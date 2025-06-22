@@ -127,6 +127,8 @@ export function getCropBox<T extends ShapeWithCrop>(
 		return
 	}
 
+	// Lets get a box here in pixel space. For simplicity, we'll do all the math in
+	// pixel space, then convert to normalized space at the end.
 	const prevCropBox = new Box(
 		crop.topLeft.x * w,
 		crop.topLeft.y * h,
@@ -136,6 +138,8 @@ export function getCropBox<T extends ShapeWithCrop>(
 
 	const targetRatio = prevCropBox.aspectRatio
 	const tempBox = prevCropBox.clone()
+
+	// Basic resizing logic based on the handles
 
 	if (handle === 'top_left' || handle === 'bottom_left' || handle === 'left') {
 		tempBox.x = clamp(tempBox.x + change.x, 0, prevCropBox.maxX - minWidth)
@@ -152,6 +156,9 @@ export function getCropBox<T extends ShapeWithCrop>(
 		const tempBottom = clamp(tempBox.maxY + change.y, prevCropBox.y + minHeight, h)
 		tempBox.h = tempBottom - tempBox.y
 	}
+
+	// Aspect ratio locked resizing logic
+
 	if (aspectRatioLocked) {
 		const isXLimiting = tempBox.aspectRatio > targetRatio
 
@@ -163,6 +170,7 @@ export function getCropBox<T extends ShapeWithCrop>(
 
 		switch (handle) {
 			case 'top_left': {
+				// preserve the bottom right corner
 				tempBox.x = prevCropBox.maxX - tempBox.w
 				tempBox.y = prevCropBox.maxY - tempBox.h
 
@@ -182,6 +190,7 @@ export function getCropBox<T extends ShapeWithCrop>(
 				break
 			}
 			case 'top_right': {
+				// preserve the bottom left corner
 				tempBox.x = prevCropBox.x
 				tempBox.y = prevCropBox.maxY - tempBox.h
 
@@ -199,6 +208,7 @@ export function getCropBox<T extends ShapeWithCrop>(
 				break
 			}
 			case 'bottom_left': {
+				// preserve the top right corner
 				tempBox.x = prevCropBox.maxX - tempBox.w
 				tempBox.y = prevCropBox.y
 
@@ -216,6 +226,7 @@ export function getCropBox<T extends ShapeWithCrop>(
 				break
 			}
 			case 'bottom_right': {
+				// preserve the top left corner
 				tempBox.x = prevCropBox.x
 				tempBox.y = prevCropBox.y
 
@@ -231,6 +242,7 @@ export function getCropBox<T extends ShapeWithCrop>(
 				break
 			}
 			case 'top': {
+				// preserve the bottom edge center
 				tempBox.h = prevCropBox.maxY - tempBox.y
 				tempBox.w = tempBox.h * targetRatio
 				tempBox.x -= (tempBox.w - prevCropBox.w) / 2
@@ -253,6 +265,7 @@ export function getCropBox<T extends ShapeWithCrop>(
 				break
 			}
 			case 'right': {
+				// preserve the left edge center
 				tempBox.w = tempBox.maxX - prevCropBox.x
 				tempBox.h = tempBox.w / targetRatio
 				tempBox.y -= (tempBox.h - prevCropBox.h) / 2
@@ -273,6 +286,7 @@ export function getCropBox<T extends ShapeWithCrop>(
 				break
 			}
 			case 'bottom': {
+				// preserve the top edge center
 				tempBox.h = tempBox.maxY - prevCropBox.y
 				tempBox.w = tempBox.h * targetRatio
 				tempBox.x -= (tempBox.w - prevCropBox.w) / 2
@@ -293,6 +307,7 @@ export function getCropBox<T extends ShapeWithCrop>(
 				break
 			}
 			case 'left': {
+				// preserve the right edge center
 				tempBox.w = prevCropBox.maxX - tempBox.x
 				tempBox.h = tempBox.w / targetRatio
 				tempBox.y -= (tempBox.h - prevCropBox.h) / 2
@@ -317,22 +332,25 @@ export function getCropBox<T extends ShapeWithCrop>(
 		}
 	}
 
+	// Convert the box back to normalized space
 	const newCrop: TLShapeCrop = {
 		topLeft: { x: tempBox.x / w, y: tempBox.y / h },
 		bottomRight: { x: tempBox.maxX / w, y: tempBox.maxY / h },
 	}
 
-	const hasCropChanged = !(
-		newCrop.topLeft.x === crop.topLeft.x &&
-		newCrop.topLeft.y === crop.topLeft.y &&
-		newCrop.bottomRight.x === crop.bottomRight.x &&
-		newCrop.bottomRight.y === crop.bottomRight.y
-	)
-
-	if (!hasCropChanged) {
+	// If the crop hasn't changed, we can return early
+	if (
+		!(
+			newCrop.topLeft.x === crop.topLeft.x &&
+			newCrop.topLeft.y === crop.topLeft.y &&
+			newCrop.bottomRight.x === crop.bottomRight.x &&
+			newCrop.bottomRight.y === crop.bottomRight.y
+		)
+	) {
 		return
 	}
 
+	// Adjust the shape's position to keep the crop's absolute coordinates correct
 	const newPoint = new Vec(tempBox.x - crop.topLeft.x * w, tempBox.y - crop.topLeft.y * h)
 		.rot(shape.rotation)
 		.add(shape)
