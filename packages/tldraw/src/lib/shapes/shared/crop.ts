@@ -142,20 +142,28 @@ export function getCropBox<T extends ShapeWithCrop>(
 		const prevCropH = crop.bottomRight.y - crop.topLeft.y
 		const targetRatio = prevCropW / prevCropH
 
-		if (handle.includes('_')) {
+		if (
+			handle === 'top_left' ||
+			handle === 'top_right' ||
+			handle === 'bottom_left' ||
+			handle === 'bottom_right'
+		) {
 			// --- Aspect-Locked Corner Handles ---
-			const xSign = handle.includes('left') ? -1 : 1
-			const ySign = handle.includes('top') ? -1 : 1
+			const isRight = handle === 'top_right' || handle === 'bottom_right'
+			const isBottom = handle === 'bottom_right' || handle === 'bottom_left'
 
 			const fixedCorner = {
-				x: xSign === 1 ? crop.topLeft.x : crop.bottomRight.x,
-				y: ySign === 1 ? crop.topLeft.y : crop.bottomRight.y,
+				x: isRight ? crop.topLeft.x : crop.bottomRight.x,
+				y: isBottom ? crop.topLeft.y : crop.bottomRight.y,
 			}
 
 			const movingCorner = {
-				x: (xSign === -1 ? crop.topLeft.x : crop.bottomRight.x) + change.x / w,
-				y: (ySign === -1 ? crop.topLeft.y : crop.bottomRight.y) + change.y / h,
+				x: isRight ? crop.topLeft.x : crop.bottomRight.x,
+				y: isBottom ? crop.topLeft.y : crop.bottomRight.y,
 			}
+
+			movingCorner.x += change.x / w
+			movingCorner.y += change.y / h
 
 			let newW = Math.abs(movingCorner.x - fixedCorner.x)
 			let newH = Math.abs(movingCorner.y - fixedCorner.y)
@@ -165,10 +173,10 @@ export function getCropBox<T extends ShapeWithCrop>(
 			else newH = newW / targetRatio
 
 			// Apply new dimensions from the fixed corner
-			newCrop.topLeft.x = xSign === 1 ? fixedCorner.x : fixedCorner.x - newW
-			newCrop.topLeft.y = ySign === 1 ? fixedCorner.y : fixedCorner.y - newH
-			newCrop.bottomRight.x = xSign === 1 ? fixedCorner.x + newW : fixedCorner.x
-			newCrop.bottomRight.y = ySign === 1 ? fixedCorner.y + newH : fixedCorner.y
+			newCrop.topLeft.x = isRight ? fixedCorner.x : fixedCorner.x - newW
+			newCrop.topLeft.y = isBottom ? fixedCorner.y : fixedCorner.y - newH
+			newCrop.bottomRight.x = isRight ? fixedCorner.x + newW : fixedCorner.x
+			newCrop.bottomRight.y = isBottom ? fixedCorner.y + newH : fixedCorner.y
 
 			// Clamp to boundaries
 			newCrop.topLeft.x = clamp(newCrop.topLeft.x, topLeftLimit, bottomRightLimit - minWidth / w)
