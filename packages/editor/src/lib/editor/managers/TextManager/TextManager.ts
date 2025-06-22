@@ -123,7 +123,7 @@ export class TextManager {
 		elm.style.setProperty('font-style', opts.fontStyle)
 		elm.style.setProperty('font-weight', opts.fontWeight)
 		elm.style.setProperty('font-size', opts.fontSize + 'px')
-		elm.style.setProperty('line-height', opts.lineHeight * opts.fontSize + 'px')
+		elm.style.setProperty('line-height', Math.floor(opts.lineHeight * opts.fontSize) + 'px')
 		elm.style.setProperty('padding', opts.padding)
 
 		if (opts.maxWidth) {
