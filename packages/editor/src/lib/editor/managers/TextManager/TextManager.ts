@@ -288,7 +288,7 @@ export class TextManager {
 		elm.style.setProperty('font-style', opts.fontStyle)
 		elm.style.setProperty('font-weight', opts.fontWeight)
 		elm.style.setProperty('font-size', opts.fontSize + 'px')
-		elm.style.setProperty('line-height', opts.lineHeight * opts.fontSize + 'px')
+		elm.style.setProperty('line-height', opts.lineHeight.toString())
 
 		const elementWidth = Math.ceil(opts.width - opts.padding * 2)
 		elm.style.setProperty('width', `${elementWidth}px`)
