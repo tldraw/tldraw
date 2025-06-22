@@ -340,12 +340,10 @@ export function getCropBox<T extends ShapeWithCrop>(
 
 	// If the crop hasn't changed, we can return early
 	if (
-		!(
-			newCrop.topLeft.x === crop.topLeft.x &&
-			newCrop.topLeft.y === crop.topLeft.y &&
-			newCrop.bottomRight.x === crop.bottomRight.x &&
-			newCrop.bottomRight.y === crop.bottomRight.y
-		)
+		newCrop.topLeft.x === crop.topLeft.x &&
+		newCrop.topLeft.y === crop.topLeft.y &&
+		newCrop.bottomRight.x === crop.bottomRight.x &&
+		newCrop.bottomRight.y === crop.bottomRight.y
 	) {
 		return
 	}
