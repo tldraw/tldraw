@@ -1,4 +1,5 @@
 import {
+	Box,
 	ShapeWithCrop,
 	TLCropInfo,
 	TLImageShape,
@@ -134,171 +135,202 @@ export function getCropBox<T extends ShapeWithCrop>(
 	}
 
 	const newCrop = structuredClone(crop)
-	const topLeftLimit = 0,
-		bottomRightLimit = 1
+
+	const prevCropBox = new Box(
+		crop.topLeft.x * w,
+		crop.topLeft.y * h,
+		(crop.bottomRight.x - crop.topLeft.x) * w,
+		(crop.bottomRight.y - crop.topLeft.y) * h
+	)
+
+	const targetRatio = prevCropBox.aspectRatio
+	const tempBox = prevCropBox.clone()
+
+	if (handle === 'top_left' || handle === 'bottom_left' || handle === 'left') {
+		tempBox.x = clamp(tempBox.x + change.x, 0, prevCropBox.maxX - minWidth)
+		tempBox.w = prevCropBox.maxX - tempBox.x
+	} else if (handle === 'top_right' || handle === 'bottom_right' || handle === 'right') {
+		const tempRight = clamp(tempBox.maxX + change.x, prevCropBox.x + minWidth, w)
+		tempBox.w = tempRight - tempBox.x
+	}
+
+	if (handle === 'top_left' || handle === 'top_right' || handle === 'top') {
+		tempBox.y = clamp(tempBox.y + change.y, 0, prevCropBox.maxY - minHeight)
+		tempBox.h = prevCropBox.maxY - tempBox.y
+	} else if (handle === 'bottom_left' || handle === 'bottom_right' || handle === 'bottom') {
+		const tempBottom = clamp(tempBox.maxY + change.y, prevCropBox.y + minHeight, h)
+		tempBox.h = tempBottom - tempBox.y
+	}
 
 	if (aspectRatioLocked) {
-		const prevCropW = crop.bottomRight.x - crop.topLeft.x
-		const prevCropH = crop.bottomRight.y - crop.topLeft.y
-		const targetRatio = prevCropW / prevCropH
+		const isXLimiting = tempBox.aspectRatio > targetRatio
 
-		if (
-			handle === 'top_left' ||
-			handle === 'top_right' ||
-			handle === 'bottom_left' ||
-			handle === 'bottom_right'
-		) {
-			// --- Aspect-Locked Corner Handles ---
-			const isRight = handle === 'top_right' || handle === 'bottom_right'
-			const isBottom = handle === 'bottom_right' || handle === 'bottom_left'
-
-			const fixedCorner = {
-				x: isRight ? crop.topLeft.x : crop.bottomRight.x,
-				y: isBottom ? crop.topLeft.y : crop.bottomRight.y,
-			}
-
-			const movingCorner = {
-				x: isRight ? crop.topLeft.x : crop.bottomRight.x,
-				y: isBottom ? crop.topLeft.y : crop.bottomRight.y,
-			}
-
-			movingCorner.x += change.x / w
-			movingCorner.y += change.y / h
-
-			let newW = Math.abs(movingCorner.x - fixedCorner.x)
-			let newH = Math.abs(movingCorner.y - fixedCorner.y)
-
-			// Enforce aspect ratio
-			if (newW / newH > targetRatio) newW = newH * targetRatio
-			else newH = newW / targetRatio
-
-			// Apply new dimensions from the fixed corner
-			newCrop.topLeft.x = isRight ? fixedCorner.x : fixedCorner.x - newW
-			newCrop.topLeft.y = isBottom ? fixedCorner.y : fixedCorner.y - newH
-			newCrop.bottomRight.x = isRight ? fixedCorner.x + newW : fixedCorner.x
-			newCrop.bottomRight.y = isBottom ? fixedCorner.y + newH : fixedCorner.y
-
-			// Clamp to boundaries
-			newCrop.topLeft.x = clamp(newCrop.topLeft.x, topLeftLimit, bottomRightLimit - minWidth / w)
-			newCrop.topLeft.y = clamp(newCrop.topLeft.y, topLeftLimit, bottomRightLimit - minHeight / h)
-			newCrop.bottomRight.x = clamp(
-				newCrop.bottomRight.x,
-				topLeftLimit + minWidth / w,
-				bottomRightLimit
-			)
-			newCrop.bottomRight.y = clamp(
-				newCrop.bottomRight.y,
-				topLeftLimit + minHeight / h,
-				bottomRightLimit
-			)
+		if (isXLimiting) {
+			tempBox.h = tempBox.w / targetRatio
 		} else {
-			// --- Aspect-Locked Edge Handles ---
-			const prevCropW = crop.bottomRight.x - crop.topLeft.x
-			const prevCropH = crop.bottomRight.y - crop.topLeft.y
-			const targetRatio = prevCropW / prevCropH
-			// When resizing from an edge, we want to preserve the position of the opposite edge's center.
-			if (handle === 'top' || handle === 'bottom') {
-				const fixedCenterX = crop.topLeft.x + prevCropW / 2
-				let newH: number
-				if (handle === 'top') {
-					const fixedY = crop.bottomRight.y
-					const movingY = clamp(crop.topLeft.y + change.y / h, topLeftLimit, fixedY - minHeight / h)
-					newH = fixedY - movingY
-				} else {
-					// bottom
-					const fixedY = crop.topLeft.y
-					const movingY = clamp(
-						crop.bottomRight.y + change.y / h,
-						fixedY + minHeight / h,
-						bottomRightLimit
-					)
-					newH = movingY - fixedY
+			tempBox.w = tempBox.h * targetRatio
+		}
+
+		switch (handle) {
+			case 'top_left': {
+				tempBox.x = prevCropBox.maxX - tempBox.w
+				tempBox.y = prevCropBox.maxY - tempBox.h
+
+				if (tempBox.x <= 0) {
+					tempBox.x = 0
+					tempBox.w = prevCropBox.maxX - tempBox.x
+					tempBox.h = tempBox.w / targetRatio
+					tempBox.y = prevCropBox.maxY - tempBox.h
 				}
 
-				let newW = newH * targetRatio
-				const maxW = 2 * Math.min(fixedCenterX, 1 - fixedCenterX)
-				if (newW > maxW) {
-					newW = maxW
-					newH = newW / targetRatio
+				if (tempBox.y <= 0) {
+					tempBox.y = 0
+					tempBox.h = prevCropBox.maxY - tempBox.y
+					tempBox.w = tempBox.h * targetRatio
+					tempBox.x = prevCropBox.maxX - tempBox.w
 				}
-
-				if (handle === 'top') {
-					newCrop.topLeft.y = crop.bottomRight.y - newH
-				} else {
-					// bottom
-					newCrop.bottomRight.y = crop.topLeft.y + newH
-				}
-
-				newCrop.topLeft.x = fixedCenterX - newW / 2
-				newCrop.bottomRight.x = fixedCenterX + newW / 2
-			} else {
-				// left or right
-				const fixedCenterY = crop.topLeft.y + prevCropH / 2
-				let newW: number
-				if (handle === 'left') {
-					const fixedX = crop.bottomRight.x
-					const movingX = clamp(crop.topLeft.x + change.x / w, topLeftLimit, fixedX - minWidth / w)
-					newW = fixedX - movingX
-				} else {
-					// right
-					const fixedX = crop.topLeft.x
-					const movingX = clamp(
-						crop.bottomRight.x + change.x / w,
-						fixedX + minWidth / w,
-						bottomRightLimit
-					)
-					newW = movingX - fixedX
-				}
-
-				let newH = newW / targetRatio
-				const maxH = 2 * Math.min(fixedCenterY, 1 - fixedCenterY)
-				if (newH > maxH) {
-					newH = maxH
-					newW = newH * targetRatio
-				}
-
-				if (handle === 'left') {
-					newCrop.topLeft.x = crop.bottomRight.x - newW
-				} else {
-					// right
-					newCrop.bottomRight.x = crop.topLeft.x + newW
-				}
-
-				newCrop.topLeft.y = fixedCenterY - newH / 2
-				newCrop.bottomRight.y = fixedCenterY + newH / 2
+				break
 			}
-		}
-	} else {
-		// --- Free-Resize (Unified for Corners and Edges) ---
-		if (handle === 'top_left' || handle === 'top' || handle === 'top_right') {
-			newCrop.topLeft.y = clamp(
-				newCrop.topLeft.y + change.y / h,
-				topLeftLimit,
-				newCrop.bottomRight.y - minHeight / h
-			)
-		}
-		if (handle === 'bottom_left' || handle === 'bottom' || handle === 'bottom_right') {
-			newCrop.bottomRight.y = clamp(
-				newCrop.bottomRight.y + change.y / h,
-				newCrop.topLeft.y + minHeight / h,
-				bottomRightLimit
-			)
-		}
-		if (handle === 'top_left' || handle === 'left' || handle === 'bottom_left') {
-			newCrop.topLeft.x = clamp(
-				newCrop.topLeft.x + change.x / w,
-				topLeftLimit,
-				newCrop.bottomRight.x - minWidth / w
-			)
-		}
-		if (handle === 'top_right' || handle === 'right' || handle === 'bottom_right') {
-			newCrop.bottomRight.x = clamp(
-				newCrop.bottomRight.x + change.x / w,
-				newCrop.topLeft.x + minWidth / w,
-				bottomRightLimit
-			)
+			case 'top_right': {
+				tempBox.x = prevCropBox.x
+				tempBox.y = prevCropBox.maxY - tempBox.h
+
+				if (tempBox.maxX >= w) {
+					tempBox.w = w - prevCropBox.x
+					tempBox.h = tempBox.w / targetRatio
+					tempBox.y = prevCropBox.maxY - tempBox.h
+				}
+
+				if (tempBox.y <= 0) {
+					tempBox.y = 0
+					tempBox.h = prevCropBox.maxY - tempBox.y
+					tempBox.w = tempBox.h * targetRatio
+				}
+				break
+			}
+			case 'bottom_left': {
+				tempBox.x = prevCropBox.maxX - tempBox.w
+				tempBox.y = prevCropBox.y
+
+				if (tempBox.x <= 0) {
+					tempBox.x = 0
+					tempBox.w = prevCropBox.maxX - tempBox.x
+					tempBox.h = tempBox.w / targetRatio
+				}
+
+				if (tempBox.y >= h) {
+					tempBox.h = h - prevCropBox.y
+					tempBox.w = tempBox.h * targetRatio
+					tempBox.x = prevCropBox.maxX - tempBox.w
+				}
+				break
+			}
+			case 'bottom_right': {
+				tempBox.x = prevCropBox.x
+				tempBox.y = prevCropBox.y
+
+				if (tempBox.maxX >= w) {
+					tempBox.w = w - prevCropBox.x
+					tempBox.h = tempBox.w / targetRatio
+				}
+
+				if (tempBox.y >= h) {
+					tempBox.h = h - prevCropBox.y
+					tempBox.w = tempBox.h * targetRatio
+				}
+				break
+			}
+			case 'top': {
+				tempBox.h = prevCropBox.maxY - tempBox.y
+				tempBox.w = tempBox.h * targetRatio
+				tempBox.x -= (tempBox.w - prevCropBox.w) / 2
+
+				if (tempBox.x <= 0) {
+					const leftSide = prevCropBox.midX
+					tempBox.w = leftSide * 2
+					tempBox.h = tempBox.w / targetRatio
+					tempBox.x = 0
+				}
+
+				if (tempBox.maxX >= w) {
+					const rightSide = w - prevCropBox.midX
+					tempBox.w = rightSide * 2
+					tempBox.h = tempBox.w / targetRatio
+					tempBox.x = w - tempBox.w
+				}
+
+				tempBox.y = prevCropBox.maxY - tempBox.h
+				break
+			}
+			case 'right': {
+				tempBox.w = tempBox.maxX - prevCropBox.x
+				tempBox.h = tempBox.w / targetRatio
+				tempBox.y -= (tempBox.h - prevCropBox.h) / 2
+
+				if (tempBox.y <= 0) {
+					const topSide = prevCropBox.midY
+					tempBox.h = topSide * 2
+					tempBox.w = tempBox.h * targetRatio
+					tempBox.y = 0
+				}
+
+				if (tempBox.maxY >= h) {
+					const bottomSide = h - prevCropBox.midY
+					tempBox.h = bottomSide * 2
+					tempBox.w = tempBox.h * targetRatio
+					tempBox.y = h - tempBox.h
+				}
+				break
+			}
+			case 'bottom': {
+				tempBox.h = tempBox.maxY - prevCropBox.y
+				tempBox.w = tempBox.h * targetRatio
+				tempBox.x -= (tempBox.w - prevCropBox.w) / 2
+
+				if (tempBox.x <= 0) {
+					const leftSide = prevCropBox.midX
+					tempBox.w = leftSide * 2
+					tempBox.h = tempBox.w / targetRatio
+					tempBox.x = 0
+				}
+
+				if (tempBox.maxX >= w) {
+					const rightSide = w - prevCropBox.midX
+					tempBox.w = rightSide * 2
+					tempBox.h = tempBox.w / targetRatio
+					tempBox.x = w - tempBox.w
+				}
+				break
+			}
+			case 'left': {
+				tempBox.w = prevCropBox.maxX - tempBox.x
+				tempBox.h = tempBox.w / targetRatio
+				tempBox.y -= (tempBox.h - prevCropBox.h) / 2
+
+				if (tempBox.y <= 0) {
+					const topSide = prevCropBox.midY
+					tempBox.h = topSide * 2
+					tempBox.w = tempBox.h * targetRatio
+					tempBox.y = 0
+				}
+
+				if (tempBox.maxY >= h) {
+					const bottomSide = h - prevCropBox.midY
+					tempBox.h = bottomSide * 2
+					tempBox.w = tempBox.h * targetRatio
+					tempBox.y = h - tempBox.h
+				}
+
+				tempBox.x = prevCropBox.maxX - tempBox.w
+				break
+			}
 		}
 	}
+
+	newCrop.topLeft.x = tempBox.x / w
+	newCrop.topLeft.y = tempBox.y / h
+	newCrop.bottomRight.x = tempBox.maxX / w
+	newCrop.bottomRight.y = tempBox.maxY / h
 
 	const newPoint = new Vec(
 		(newCrop.topLeft.x - crop.topLeft.x) * w,
@@ -313,8 +345,8 @@ export function getCropBox<T extends ShapeWithCrop>(
 		x: newPoint.x,
 		y: newPoint.y,
 		props: {
-			w: (newCrop.bottomRight.x - newCrop.topLeft.x) * w,
-			h: (newCrop.bottomRight.y - newCrop.topLeft.y) * h,
+			w: tempBox.w,
+			h: tempBox.h,
 			crop: newCrop,
 		},
 	}
@@ -533,3 +565,146 @@ export function getCroppedImageDataForAspectRatio(
 		y: newY,
 	}
 }
+
+// /**
+//  * Constrain an attempted resize of B so that
+//  *  • B keeps its original aspect-ratio,
+//  *  • B stays completely inside A,
+//  *  • the “anchor” (opposite corner or opposite-edge midpoint) does not move.
+//  *
+//  * @param A – the outer bounding rectangle (cannot change)
+//  * @param B0 – B *before* the user started dragging
+//  * @param B1 – B after the user’s raw drag (no constraints applied)
+//  * @param h  – which handle is being dragged
+//  *
+//  * @returns the corrected rectangle for B
+//  */
+// export function constrainResize (
+//   A: Rect,
+//   B0: Rect,
+//   B1: Rect,
+//   h: Handle
+// ): Rect {
+
+//   /* ------------------------------------------------------------------ helpers */
+
+//   const clamp = (v: number, lo: number, hi: number) =>
+//     Math.min(Math.max(v, lo), hi);
+
+//   const aspect  = B0.width / B0.height;          // constant for life of object
+//   const isCorner = h.length === 2;               // 'nw', 'e', etc.
+
+//   /* ------------------------------------------------------------------ anchor */
+
+//   // The point (ax,ay) must NOT move.
+//   let ax = 0, ay = 0;
+//   switch (h) {
+//     /* corners – opposite corner stays put */
+//     case 'nw': ax = B0.x + B0.width; ay = B0.y + B0.height; break;
+//     case 'ne': ax = B0.x            ; ay = B0.y + B0.height; break;
+//     case 'se': ax = B0.x            ; ay = B0.y            ; break;
+//     case 'sw': ax = B0.x + B0.width; ay = B0.y            ; break;
+//     /* edges – opposite edge’s midpoint stays put */
+//     case 'n':  ax = B0.x + B0.width / 2; ay = B0.y + B0.height; break;
+//     case 's':  ax = B0.x + B0.width / 2; ay = B0.y           ; break;
+//     case 'e':  ax = B0.x              ; ay = B0.y + B0.height / 2; break;
+//     case 'w':  ax = B0.x + B0.width   ; ay = B0.y + B0.height / 2; break;
+//   }
+
+//   /* ------------------------------------------------------------------ raw size
+//      Figure out how far the dragged handle wants to be from the anchor.
+//      For corners we inspect both axes; for edges only one.                   */
+//   let rawW = 0, rawH = 0;
+//   switch (h) {
+//     /* corners ----------------------------------------------------- */
+//     case 'nw':
+//     case 'ne':
+//     case 'se':
+//     case 'sw': {
+//       const hx = (h === 'nw' || h === 'sw') ? B1.x : B1.x + B1.width;
+//       const hy = (h === 'nw' || h === 'ne') ? B1.y : B1.y + B1.height;
+//       rawW = Math.abs(hx - ax);
+//       rawH = Math.abs(hy - ay);
+//       break;
+//     }
+//     /* edges ------------------------------------------------------- */
+//     case 'e':
+//     case 'w': {
+//       const hx = (h === 'e') ? B1.x + B1.width : B1.x;
+//       rawW = Math.abs(hx - ax);
+//       // Height will be determined later from aspect ratio.
+//       break;
+//     }
+//     case 'n':
+//     case 's': {
+//       const hy = (h === 'n') ? B1.y : B1.y + B1.height;
+//       rawH = Math.abs(hy - ay);
+//       // Width will be determined later from aspect ratio.
+//       break;
+//     }
+//   }
+
+//   /* ------------------------------------------------------------------ clamp to A
+//      Maximum span we’re allowed before hitting A’s walls                    */
+//   const maxWPos =  (A.x + A.width)  - ax;     // room to the right  of anchor
+//   const maxWNeg =  ax - A.x;                  // room to the left   of anchor
+//   const maxHPos =  (A.y + A.height) - ay;     // room below anchor
+//   const maxHNeg =  ay - A.y;                  // room above anchor
+
+//   // Depending on which side we’re dragging, choose the relevant limits.
+//   const sx = (h === 'e' || h === 'ne' || h === 'se') ? +1
+//            : (h === 'w' || h === 'nw' || h === 'sw') ? -1
+//            :  0;                                  // edges n/s don’t care
+//   const sy = (h === 's' || h === 'se' || h === 'sw') ? +1
+//            : (h === 'n' || h === 'ne' || h === 'nw') ? -1
+//            :  0;
+
+//   const maxW = (sx >= 0) ? maxWPos : maxWNeg;
+//   const maxH = (sy >= 0) ? maxHPos : maxHNeg;
+
+//   /* ------------------------------------------------------------------ final size */
+
+//   let width  = 0, height = 0;
+
+//   if (isCorner) {
+//     // Let the larger scale (width or height) drive the other, then reduce
+//     // uniformly until we fit inside A.
+//     if (rawW / aspect > rawH) {
+//       height = clamp(rawH, 0, maxH);
+//       width  = height * aspect;
+//       if (width > maxW) { width = maxW; height = width / aspect; }
+//     } else {
+//       width  = clamp(rawW, 0, maxW);
+//       height = width / aspect;
+//       if (height > maxH) { height = maxH; width = height * aspect; }
+//     }
+//   } else if (h === 'e' || h === 'w') {
+//     width  = clamp(rawW, 0, maxW);
+//     height = width / aspect;
+//     if (height > maxH) { height = maxH; width = height * aspect; }
+//   } else { /* 'n' | 's' */
+//     height = clamp(rawH, 0, maxH);
+//     width  = height * aspect;
+//     if (width > maxW) { width = maxW; height = width / aspect; }
+//   }
+
+//   /* ------------------------------------------------------------------ position */
+
+//   let x = 0, y = 0;
+
+//   if (isCorner) {
+//     x = (sx >= 0) ? ax : ax - width;
+//     y = (sy >= 0) ? ay : ay - height;
+//   } else if (h === 'e' || h === 'w') {
+//     x = (h === 'e') ? ax : ax - width;
+//     y = ay - height / 2;                         // keep anchor at mid-left/right
+//     // Clamp vertically in case rounding shoved us outside.
+//     y = clamp(y, A.y, A.y + A.height - height);
+//   } else { /* 'n' | 's' */
+//     x = ax - width / 2;                          // anchor at mid-top/bottom
+//     y = (h === 's') ? ay : ay - height;
+//     x = clamp(x, A.x, A.x + A.width - width);    // safety clamp horizontally
+//   }
+
+//   return { x, y, width, height };
+// }
