@@ -105,3 +105,17 @@ export async function requireWriteAccessToFile(
 		await db.destroy()
 	}
 }
+
+export async function requireAdminAccess(env: Environment, auth: { userId: string } | null) {
+	if (!auth?.userId) {
+		throw new StatusError(403, 'Unauthorized')
+	}
+	const user = await getClerkClient(env).users.getUser(auth.userId)
+	if (
+		!user.primaryEmailAddress?.emailAddress.endsWith('@tldraw.com') ||
+		user.primaryEmailAddress?.verification?.status !== 'verified'
+	) {
+		throw new StatusError(403, 'Unauthorized')
+	}
+	return user
+}

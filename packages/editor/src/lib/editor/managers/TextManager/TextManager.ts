@@ -75,6 +75,7 @@ export class TextManager {
 		// we need to save the default styles so that we can restore them when we're done
 		// these must be the css names, not the js names for the styles
 		this.defaultStyles = {
+			'overflow-wrap': 'break-word',
 			'word-break': 'auto',
 			width: null,
 			height: null,

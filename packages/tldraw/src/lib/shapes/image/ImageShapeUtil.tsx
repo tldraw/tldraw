@@ -1,10 +1,13 @@
 import {
 	BaseBoxShapeUtil,
 	Editor,
+	Ellipse2d,
 	FileHelpers,
+	Geometry2d,
 	HTMLContainer,
 	Image,
 	MediaHelpers,
+	Rectangle2d,
 	SvgExportContext,
 	TLAsset,
 	TLAssetId,
@@ -69,6 +72,22 @@ export class ImageShapeUtil extends BaseBoxShapeUtil<TLImageShape> {
 		}
 	}
 
+	override getGeometry(shape: TLImageShape): Geometry2d {
+		if (shape.props.crop?.isCircle) {
+			return new Ellipse2d({
+				width: shape.props.w,
+				height: shape.props.h,
+				isFilled: true,
+			})
+		}
+
+		return new Rectangle2d({
+			width: shape.props.w,
+			height: shape.props.h,
+			isFilled: true,
+		})
+	}
+
 	override getAriaDescriptor(shape: TLImageShape) {
 		return shape.props.altText
 	}
@@ -121,6 +140,18 @@ export class ImageShapeUtil extends BaseBoxShapeUtil<TLImageShape> {
 	indicator(shape: TLImageShape) {
 		const isCropping = this.editor.getCroppingShapeId() === shape.id
 		if (isCropping) return null
+
+		if (shape.props.crop?.isCircle) {
+			return (
+				<ellipse
+					cx={toDomPrecision(shape.props.w / 2)}
+					cy={toDomPrecision(shape.props.h / 2)}
+					rx={toDomPrecision(shape.props.w / 2)}
+					ry={toDomPrecision(shape.props.h / 2)}
+				/>
+			)
+		}
+
 		return <rect width={toDomPrecision(shape.props.w)} height={toDomPrecision(shape.props.h)} />
 	}
 
