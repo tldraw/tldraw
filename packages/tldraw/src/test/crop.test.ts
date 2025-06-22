@@ -692,23 +692,336 @@ describe('Resizing crop box when aspect-ratio locked', () => {
 	// The result should have the same aspect ratio as the initial crop
 	// The result should never have any dimension < 0 or > 1
 
-	it.todo('Resizes from the top left corner')
+	it('Resizes from the top left corner', () => {
+		const testCrop = {
+			topLeft: { x: 0.2, y: 0.3 },
+			bottomRight: { x: 0.8, y: 0.7 },
+		}
+		const initialAspectRatio =
+			(testCrop.bottomRight.x - testCrop.topLeft.x) / (testCrop.bottomRight.y - testCrop.topLeft.y)
 
-	it.todo('Resizes from the top right corner')
+		const results = getCropBox(shape, {
+			handle: 'top_left',
+			change: new Vec(10, 15),
+			crop: testCrop,
+			uncroppedSize: initialSize,
+			initialShape: shape,
+			aspectRatioLocked: true,
+		})
 
-	it.todo('Resizes from the bottom right corner')
+		if (results?.props.crop) {
+			// Bottom right corner should be preserved
+			expect(results.props.crop.bottomRight.x).toBeCloseTo(testCrop.bottomRight.x, 5)
+			expect(results.props.crop.bottomRight.y).toBeCloseTo(testCrop.bottomRight.y, 5)
 
-	it.todo('Resizes from the bottom left corner')
+			// Aspect ratio should be maintained
+			const newAspectRatio =
+				(results.props.crop.bottomRight.x - results.props.crop.topLeft.x) /
+				(results.props.crop.bottomRight.y - results.props.crop.topLeft.y)
+			expect(newAspectRatio).toBeCloseTo(initialAspectRatio, 5)
 
-	it.todo('Resizes from the top edge')
+			// All coordinates should be within valid bounds
+			expect(results.props.crop.topLeft.x).toBeGreaterThanOrEqual(0)
+			expect(results.props.crop.topLeft.y).toBeGreaterThanOrEqual(0)
+			expect(results.props.crop.bottomRight.x).toBeLessThanOrEqual(1)
+			expect(results.props.crop.bottomRight.y).toBeLessThanOrEqual(1)
+		}
+	})
 
-	it.todo('Resizes from the right edge')
+	it('Resizes from the top right corner', () => {
+		const testCrop = {
+			topLeft: { x: 0.2, y: 0.3 },
+			bottomRight: { x: 0.8, y: 0.7 },
+		}
+		const initialAspectRatio =
+			(testCrop.bottomRight.x - testCrop.topLeft.x) / (testCrop.bottomRight.y - testCrop.topLeft.y)
 
-	it.todo('Resizes from the bottom edge')
+		const results = getCropBox(shape, {
+			handle: 'top_right',
+			change: new Vec(-10, 15),
+			crop: testCrop,
+			uncroppedSize: initialSize,
+			initialShape: shape,
+			aspectRatioLocked: true,
+		})
 
-	it.todo('Resizes from the left edge')
+		if (results?.props.crop) {
+			// Bottom left corner should be preserved
+			expect(results.props.crop.topLeft.x).toBeCloseTo(testCrop.topLeft.x, 5)
+			expect(results.props.crop.bottomRight.y).toBeCloseTo(testCrop.bottomRight.y, 5)
 
-	it.todo(
-		'When overlapping edges, does not produce a result with < 0 or > 1 for x or y crop dimensions and maintains the aspect ratio'
-	)
+			// Aspect ratio should be maintained
+			const newAspectRatio =
+				(results.props.crop.bottomRight.x - results.props.crop.topLeft.x) /
+				(results.props.crop.bottomRight.y - results.props.crop.topLeft.y)
+			expect(newAspectRatio).toBeCloseTo(initialAspectRatio, 5)
+
+			// All coordinates should be within valid bounds
+			expect(results.props.crop.topLeft.x).toBeGreaterThanOrEqual(0)
+			expect(results.props.crop.topLeft.y).toBeGreaterThanOrEqual(0)
+			expect(results.props.crop.bottomRight.x).toBeLessThanOrEqual(1)
+			expect(results.props.crop.bottomRight.y).toBeLessThanOrEqual(1)
+		}
+	})
+
+	it('Resizes from the bottom right corner', () => {
+		const testCrop = {
+			topLeft: { x: 0.2, y: 0.3 },
+			bottomRight: { x: 0.8, y: 0.7 },
+		}
+		const initialAspectRatio =
+			(testCrop.bottomRight.x - testCrop.topLeft.x) / (testCrop.bottomRight.y - testCrop.topLeft.y)
+
+		const results = getCropBox(shape, {
+			handle: 'bottom_right',
+			change: new Vec(-10, -15),
+			crop: testCrop,
+			uncroppedSize: initialSize,
+			initialShape: shape,
+			aspectRatioLocked: true,
+		})
+
+		if (results?.props.crop) {
+			// Top left corner should be preserved
+			expect(results.props.crop.topLeft.x).toBeCloseTo(testCrop.topLeft.x, 5)
+			expect(results.props.crop.topLeft.y).toBeCloseTo(testCrop.topLeft.y, 5)
+
+			// Aspect ratio should be maintained
+			const newAspectRatio =
+				(results.props.crop.bottomRight.x - results.props.crop.topLeft.x) /
+				(results.props.crop.bottomRight.y - results.props.crop.topLeft.y)
+			expect(newAspectRatio).toBeCloseTo(initialAspectRatio, 5)
+
+			// All coordinates should be within valid bounds
+			expect(results.props.crop.topLeft.x).toBeGreaterThanOrEqual(0)
+			expect(results.props.crop.topLeft.y).toBeGreaterThanOrEqual(0)
+			expect(results.props.crop.bottomRight.x).toBeLessThanOrEqual(1)
+			expect(results.props.crop.bottomRight.y).toBeLessThanOrEqual(1)
+		}
+	})
+
+	it('Resizes from the bottom left corner', () => {
+		const testCrop = {
+			topLeft: { x: 0.2, y: 0.3 },
+			bottomRight: { x: 0.8, y: 0.7 },
+		}
+		const initialAspectRatio =
+			(testCrop.bottomRight.x - testCrop.topLeft.x) / (testCrop.bottomRight.y - testCrop.topLeft.y)
+
+		const results = getCropBox(shape, {
+			handle: 'bottom_left',
+			change: new Vec(10, -15),
+			crop: testCrop,
+			uncroppedSize: initialSize,
+			initialShape: shape,
+			aspectRatioLocked: true,
+		})
+
+		if (results?.props.crop) {
+			// Top right corner should be preserved
+			expect(results.props.crop.bottomRight.x).toBeCloseTo(testCrop.bottomRight.x, 5)
+			expect(results.props.crop.topLeft.y).toBeCloseTo(testCrop.topLeft.y, 5)
+
+			// Aspect ratio should be maintained
+			const newAspectRatio =
+				(results.props.crop.bottomRight.x - results.props.crop.topLeft.x) /
+				(results.props.crop.bottomRight.y - results.props.crop.topLeft.y)
+			expect(newAspectRatio).toBeCloseTo(initialAspectRatio, 5)
+
+			// All coordinates should be within valid bounds
+			expect(results.props.crop.topLeft.x).toBeGreaterThanOrEqual(0)
+			expect(results.props.crop.topLeft.y).toBeGreaterThanOrEqual(0)
+			expect(results.props.crop.bottomRight.x).toBeLessThanOrEqual(1)
+			expect(results.props.crop.bottomRight.y).toBeLessThanOrEqual(1)
+		}
+	})
+
+	it('Resizes from the top edge', () => {
+		const testCrop = {
+			topLeft: { x: 0.2, y: 0.3 },
+			bottomRight: { x: 0.8, y: 0.7 },
+		}
+		const initialAspectRatio =
+			(testCrop.bottomRight.x - testCrop.topLeft.x) / (testCrop.bottomRight.y - testCrop.topLeft.y)
+		const initialCenterX = (testCrop.topLeft.x + testCrop.bottomRight.x) / 2
+
+		const results = getCropBox(shape, {
+			handle: 'top',
+			change: new Vec(0, 15),
+			crop: testCrop,
+			uncroppedSize: initialSize,
+			initialShape: shape,
+			aspectRatioLocked: true,
+		})
+
+		if (results?.props.crop) {
+			// Bottom edge and horizontal center should be preserved
+			expect(results.props.crop.bottomRight.y).toBeCloseTo(testCrop.bottomRight.y, 5)
+			const newCenterX = (results.props.crop.topLeft.x + results.props.crop.bottomRight.x) / 2
+			expect(newCenterX).toBeCloseTo(initialCenterX, 5)
+
+			// Aspect ratio should be maintained
+			const newAspectRatio =
+				(results.props.crop.bottomRight.x - results.props.crop.topLeft.x) /
+				(results.props.crop.bottomRight.y - results.props.crop.topLeft.y)
+			expect(newAspectRatio).toBeCloseTo(initialAspectRatio, 5)
+
+			// All coordinates should be within valid bounds
+			expect(results.props.crop.topLeft.x).toBeGreaterThanOrEqual(0)
+			expect(results.props.crop.topLeft.y).toBeGreaterThanOrEqual(0)
+			expect(results.props.crop.bottomRight.x).toBeLessThanOrEqual(1)
+			expect(results.props.crop.bottomRight.y).toBeLessThanOrEqual(1)
+		}
+	})
+
+	it('Resizes from the right edge', () => {
+		const testCrop = {
+			topLeft: { x: 0.2, y: 0.3 },
+			bottomRight: { x: 0.8, y: 0.7 },
+		}
+		const initialAspectRatio =
+			(testCrop.bottomRight.x - testCrop.topLeft.x) / (testCrop.bottomRight.y - testCrop.topLeft.y)
+		const initialCenterY = (testCrop.topLeft.y + testCrop.bottomRight.y) / 2
+
+		const results = getCropBox(shape, {
+			handle: 'right',
+			change: new Vec(-15, 0),
+			crop: testCrop,
+			uncroppedSize: initialSize,
+			initialShape: shape,
+			aspectRatioLocked: true,
+		})
+
+		if (results?.props.crop) {
+			// Left edge and vertical center should be preserved
+			expect(results.props.crop.topLeft.x).toBeCloseTo(testCrop.topLeft.x, 5)
+			const newCenterY = (results.props.crop.topLeft.y + results.props.crop.bottomRight.y) / 2
+			expect(newCenterY).toBeCloseTo(initialCenterY, 5)
+
+			// Aspect ratio should be maintained
+			const newAspectRatio =
+				(results.props.crop.bottomRight.x - results.props.crop.topLeft.x) /
+				(results.props.crop.bottomRight.y - results.props.crop.topLeft.y)
+			expect(newAspectRatio).toBeCloseTo(initialAspectRatio, 5)
+
+			// All coordinates should be within valid bounds
+			expect(results.props.crop.topLeft.x).toBeGreaterThanOrEqual(0)
+			expect(results.props.crop.topLeft.y).toBeGreaterThanOrEqual(0)
+			expect(results.props.crop.bottomRight.x).toBeLessThanOrEqual(1)
+			expect(results.props.crop.bottomRight.y).toBeLessThanOrEqual(1)
+		}
+	})
+
+	it('Resizes from the bottom edge', () => {
+		const testCrop = {
+			topLeft: { x: 0.2, y: 0.3 },
+			bottomRight: { x: 0.8, y: 0.7 },
+		}
+		const initialAspectRatio =
+			(testCrop.bottomRight.x - testCrop.topLeft.x) / (testCrop.bottomRight.y - testCrop.topLeft.y)
+		const initialCenterX = (testCrop.topLeft.x + testCrop.bottomRight.x) / 2
+
+		const results = getCropBox(shape, {
+			handle: 'bottom',
+			change: new Vec(0, -15),
+			crop: testCrop,
+			uncroppedSize: initialSize,
+			initialShape: shape,
+			aspectRatioLocked: true,
+		})
+
+		if (results?.props.crop) {
+			// Top edge and horizontal center should be preserved
+			expect(results.props.crop.topLeft.y).toBeCloseTo(testCrop.topLeft.y, 5)
+			const newCenterX = (results.props.crop.topLeft.x + results.props.crop.bottomRight.x) / 2
+			expect(newCenterX).toBeCloseTo(initialCenterX, 5)
+
+			// Aspect ratio should be maintained
+			const newAspectRatio =
+				(results.props.crop.bottomRight.x - results.props.crop.topLeft.x) /
+				(results.props.crop.bottomRight.y - results.props.crop.topLeft.y)
+			expect(newAspectRatio).toBeCloseTo(initialAspectRatio, 5)
+
+			// All coordinates should be within valid bounds
+			expect(results.props.crop.topLeft.x).toBeGreaterThanOrEqual(0)
+			expect(results.props.crop.topLeft.y).toBeGreaterThanOrEqual(0)
+			expect(results.props.crop.bottomRight.x).toBeLessThanOrEqual(1)
+			expect(results.props.crop.bottomRight.y).toBeLessThanOrEqual(1)
+		}
+	})
+
+	it('Resizes from the left edge', () => {
+		const testCrop = {
+			topLeft: { x: 0.2, y: 0.3 },
+			bottomRight: { x: 0.8, y: 0.7 },
+		}
+		const initialAspectRatio =
+			(testCrop.bottomRight.x - testCrop.topLeft.x) / (testCrop.bottomRight.y - testCrop.topLeft.y)
+		const initialCenterY = (testCrop.topLeft.y + testCrop.bottomRight.y) / 2
+
+		const results = getCropBox(shape, {
+			handle: 'left',
+			change: new Vec(15, 0),
+			crop: testCrop,
+			uncroppedSize: initialSize,
+			initialShape: shape,
+			aspectRatioLocked: true,
+		})
+
+		if (results?.props.crop) {
+			// Right edge and vertical center should be preserved
+			expect(results.props.crop.bottomRight.x).toBeCloseTo(testCrop.bottomRight.x, 5)
+			const newCenterY = (results.props.crop.topLeft.y + results.props.crop.bottomRight.y) / 2
+			expect(newCenterY).toBeCloseTo(initialCenterY, 5)
+
+			// Aspect ratio should be maintained
+			const newAspectRatio =
+				(results.props.crop.bottomRight.x - results.props.crop.topLeft.x) /
+				(results.props.crop.bottomRight.y - results.props.crop.topLeft.y)
+			expect(newAspectRatio).toBeCloseTo(initialAspectRatio, 5)
+
+			// All coordinates should be within valid bounds
+			expect(results.props.crop.topLeft.x).toBeGreaterThanOrEqual(0)
+			expect(results.props.crop.topLeft.y).toBeGreaterThanOrEqual(0)
+			expect(results.props.crop.bottomRight.x).toBeLessThanOrEqual(1)
+			expect(results.props.crop.bottomRight.y).toBeLessThanOrEqual(1)
+		}
+	})
+
+	it('When overlapping edges, does not produce a result with < 0 or > 1 for x or y crop dimensions and maintains the aspect ratio', () => {
+		const testCrop = {
+			topLeft: { x: 0.25, y: 0.25 },
+			bottomRight: { x: 0.75, y: 0.75 },
+		}
+		const initialAspectRatio =
+			(testCrop.bottomRight.x - testCrop.topLeft.x) / (testCrop.bottomRight.y - testCrop.topLeft.y)
+
+		// Test extreme resize that would normally cause invalid bounds
+		const results = getCropBox(shape, {
+			handle: 'top_left',
+			change: new Vec(200, 200), // Extreme change
+			crop: testCrop,
+			uncroppedSize: initialSize,
+			initialShape: shape,
+			aspectRatioLocked: true,
+		})
+
+		if (results?.props.crop) {
+			// All coordinates should be within valid bounds
+			expect(results.props.crop.topLeft.x).toBeGreaterThanOrEqual(0)
+			expect(results.props.crop.topLeft.y).toBeGreaterThanOrEqual(0)
+			expect(results.props.crop.bottomRight.x).toBeLessThanOrEqual(1)
+			expect(results.props.crop.bottomRight.y).toBeLessThanOrEqual(1)
+
+			// Crop should have positive dimensions
+			const cropWidth = results.props.crop.bottomRight.x - results.props.crop.topLeft.x
+			const cropHeight = results.props.crop.bottomRight.y - results.props.crop.topLeft.y
+			expect(cropWidth).toBeGreaterThan(0)
+			expect(cropHeight).toBeGreaterThan(0)
+
+			// Aspect ratio should be maintained
+			const newAspectRatio = cropWidth / cropHeight
+			expect(newAspectRatio).toBeCloseTo(initialAspectRatio, 5)
+		}
+	})
 })

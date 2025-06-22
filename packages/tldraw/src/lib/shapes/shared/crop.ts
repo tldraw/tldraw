@@ -17,6 +17,7 @@ export const MIN_CROP_SIZE = 8
 export interface CropBoxOptions {
 	minWidth?: number
 	minHeight?: number
+	resizeFromCenter?: boolean
 	aspectRatioLocked?: boolean
 }
 
@@ -126,6 +127,7 @@ export function getCropBox<T extends ShapeWithCrop>(
 	const {
 		minWidth = MIN_CROP_SIZE,
 		minHeight = MIN_CROP_SIZE,
+		resizeFromCenter = false,
 		aspectRatioLocked: optsAspectRatioLocked,
 	} = opts
 
@@ -162,7 +164,10 @@ export function getCropBox<T extends ShapeWithCrop>(
 		tempBox.h = tempBottom - tempBox.y
 	}
 
-	if (aspectRatioLocked) {
+	if (resizeFromCenter) {
+		tempBox.x -= (tempBox.w - prevCropBox.w) / 2
+		tempBox.y -= (tempBox.h - prevCropBox.h) / 2
+	} else if (aspectRatioLocked) {
 		const isXLimiting = tempBox.aspectRatio > targetRatio
 
 		if (isXLimiting) {
@@ -565,146 +570,3 @@ export function getCroppedImageDataForAspectRatio(
 		y: newY,
 	}
 }
-
-// /**
-//  * Constrain an attempted resize of B so that
-//  *  • B keeps its original aspect-ratio,
-//  *  • B stays completely inside A,
-//  *  • the “anchor” (opposite corner or opposite-edge midpoint) does not move.
-//  *
-//  * @param A – the outer bounding rectangle (cannot change)
-//  * @param B0 – B *before* the user started dragging
-//  * @param B1 – B after the user’s raw drag (no constraints applied)
-//  * @param h  – which handle is being dragged
-//  *
-//  * @returns the corrected rectangle for B
-//  */
-// export function constrainResize (
-//   A: Rect,
-//   B0: Rect,
-//   B1: Rect,
-//   h: Handle
-// ): Rect {
-
-//   /* ------------------------------------------------------------------ helpers */
-
-//   const clamp = (v: number, lo: number, hi: number) =>
-//     Math.min(Math.max(v, lo), hi);
-
-//   const aspect  = B0.width / B0.height;          // constant for life of object
-//   const isCorner = h.length === 2;               // 'nw', 'e', etc.
-
-//   /* ------------------------------------------------------------------ anchor */
-
-//   // The point (ax,ay) must NOT move.
-//   let ax = 0, ay = 0;
-//   switch (h) {
-//     /* corners – opposite corner stays put */
-//     case 'nw': ax = B0.x + B0.width; ay = B0.y + B0.height; break;
-//     case 'ne': ax = B0.x            ; ay = B0.y + B0.height; break;
-//     case 'se': ax = B0.x            ; ay = B0.y            ; break;
-//     case 'sw': ax = B0.x + B0.width; ay = B0.y            ; break;
-//     /* edges – opposite edge’s midpoint stays put */
-//     case 'n':  ax = B0.x + B0.width / 2; ay = B0.y + B0.height; break;
-//     case 's':  ax = B0.x + B0.width / 2; ay = B0.y           ; break;
-//     case 'e':  ax = B0.x              ; ay = B0.y + B0.height / 2; break;
-//     case 'w':  ax = B0.x + B0.width   ; ay = B0.y + B0.height / 2; break;
-//   }
-
-//   /* ------------------------------------------------------------------ raw size
-//      Figure out how far the dragged handle wants to be from the anchor.
-//      For corners we inspect both axes; for edges only one.                   */
-//   let rawW = 0, rawH = 0;
-//   switch (h) {
-//     /* corners ----------------------------------------------------- */
-//     case 'nw':
-//     case 'ne':
-//     case 'se':
-//     case 'sw': {
-//       const hx = (h === 'nw' || h === 'sw') ? B1.x : B1.x + B1.width;
-//       const hy = (h === 'nw' || h === 'ne') ? B1.y : B1.y + B1.height;
-//       rawW = Math.abs(hx - ax);
-//       rawH = Math.abs(hy - ay);
-//       break;
-//     }
-//     /* edges ------------------------------------------------------- */
-//     case 'e':
-//     case 'w': {
-//       const hx = (h === 'e') ? B1.x + B1.width : B1.x;
-//       rawW = Math.abs(hx - ax);
-//       // Height will be determined later from aspect ratio.
-//       break;
-//     }
-//     case 'n':
-//     case 's': {
-//       const hy = (h === 'n') ? B1.y : B1.y + B1.height;
-//       rawH = Math.abs(hy - ay);
-//       // Width will be determined later from aspect ratio.
-//       break;
-//     }
-//   }
-
-//   /* ------------------------------------------------------------------ clamp to A
-//      Maximum span we’re allowed before hitting A’s walls                    */
-//   const maxWPos =  (A.x + A.width)  - ax;     // room to the right  of anchor
-//   const maxWNeg =  ax - A.x;                  // room to the left   of anchor
-//   const maxHPos =  (A.y + A.height) - ay;     // room below anchor
-//   const maxHNeg =  ay - A.y;                  // room above anchor
-
-//   // Depending on which side we’re dragging, choose the relevant limits.
-//   const sx = (h === 'e' || h === 'ne' || h === 'se') ? +1
-//            : (h === 'w' || h === 'nw' || h === 'sw') ? -1
-//            :  0;                                  // edges n/s don’t care
-//   const sy = (h === 's' || h === 'se' || h === 'sw') ? +1
-//            : (h === 'n' || h === 'ne' || h === 'nw') ? -1
-//            :  0;
-
-//   const maxW = (sx >= 0) ? maxWPos : maxWNeg;
-//   const maxH = (sy >= 0) ? maxHPos : maxHNeg;
-
-//   /* ------------------------------------------------------------------ final size */
-
-//   let width  = 0, height = 0;
-
-//   if (isCorner) {
-//     // Let the larger scale (width or height) drive the other, then reduce
-//     // uniformly until we fit inside A.
-//     if (rawW / aspect > rawH) {
-//       height = clamp(rawH, 0, maxH);
-//       width  = height * aspect;
-//       if (width > maxW) { width = maxW; height = width / aspect; }
-//     } else {
-//       width  = clamp(rawW, 0, maxW);
-//       height = width / aspect;
-//       if (height > maxH) { height = maxH; width = height * aspect; }
-//     }
-//   } else if (h === 'e' || h === 'w') {
-//     width  = clamp(rawW, 0, maxW);
-//     height = width / aspect;
-//     if (height > maxH) { height = maxH; width = height * aspect; }
-//   } else { /* 'n' | 's' */
-//     height = clamp(rawH, 0, maxH);
-//     width  = height * aspect;
-//     if (width > maxW) { width = maxW; height = width / aspect; }
-//   }
-
-//   /* ------------------------------------------------------------------ position */
-
-//   let x = 0, y = 0;
-
-//   if (isCorner) {
-//     x = (sx >= 0) ? ax : ax - width;
-//     y = (sy >= 0) ? ay : ay - height;
-//   } else if (h === 'e' || h === 'w') {
-//     x = (h === 'e') ? ax : ax - width;
-//     y = ay - height / 2;                         // keep anchor at mid-left/right
-//     // Clamp vertically in case rounding shoved us outside.
-//     y = clamp(y, A.y, A.y + A.height - height);
-//   } else { /* 'n' | 's' */
-//     x = ax - width / 2;                          // anchor at mid-top/bottom
-//     y = (h === 's') ? ay : ay - height;
-//     x = clamp(x, A.x, A.x + A.width - width);    // safety clamp horizontally
-//   }
-
-//   return { x, y, width, height };
-// }
