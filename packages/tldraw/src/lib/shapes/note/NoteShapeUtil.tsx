@@ -422,6 +422,12 @@ function getNoteLabelSize(editor: Editor, shape: TLNoteShape) {
 		return { labelHeight: minHeight, labelWidth: 100, fontSizeAdjustment: 0 }
 	}
 
+	// N.B. For some note shapes with text like 'hjhjhjhjhjhjhjhj', you'll run into
+	// some text measurement fuzziness where the browser swears there's no overflow (scrollWidth === width)
+	// but really there is when you enable overflow-wrap again. This helps account for that little bit
+	// of give.
+	const FUZZ = 1
+	const html = renderHtmlFromRichTextForMeasurement(editor, richText)
 	const unadjustedFontSize = LABEL_FONT_SIZES[shape.props.size]
 
 	let fontSizeAdjustment = 0
@@ -429,39 +435,31 @@ function getNoteLabelSize(editor: Editor, shape: TLNoteShape) {
 	let labelHeight = NOTE_SIZE
 	let labelWidth = NOTE_SIZE
 
-	// N.B. For some note shapes with text like 'hjhjhjhjhjhjhjhj', you'll run into
-	// some text measurement fuzziness where the browser swears there's no overflow (scrollWidth === width)
-	// but really there is when you enable overflow-wrap again. This helps account for that little bit
-	// of give.
-	const FUZZ = 1
-
 	// We slightly make the font smaller if the text is too big for the note, width-wise.
 	do {
 		fontSizeAdjustment = Math.min(unadjustedFontSize, unadjustedFontSize - iterations)
-		const html = renderHtmlFromRichTextForMeasurement(editor, richText)
 		const nextTextSize = editor.textMeasure.measureHtml(html, {
 			...TEXT_PROPS,
 			fontFamily: FONT_FAMILIES[shape.props.font],
 			fontSize: fontSizeAdjustment,
-			maxWidth: NOTE_SIZE - LABEL_PADDING * 2 - FUZZ,
+			maxWidth: NOTE_SIZE - LABEL_PADDING * 2 - FUZZ, // remove padding here...
 			disableOverflowWrapBreaking: true,
 			measureScrollWidth: true,
 		})
 
-		labelHeight = nextTextSize.h + LABEL_PADDING * 2
+		labelHeight = nextTextSize.h + LABEL_PADDING * 2 // and restore it here
 		labelWidth = nextTextSize.w + LABEL_PADDING * 2
 
 		if (fontSizeAdjustment <= 14) {
 			// Too small, just rely now on CSS `overflow-wrap: break-word`
 			// We need to recalculate the text measurement here with break-word enabled.
-			const html = renderHtmlFromRichTextForMeasurement(editor, richText)
 			const nextTextSizeWithOverflowBreak = editor.textMeasure.measureHtml(html, {
 				...TEXT_PROPS,
 				fontFamily: FONT_FAMILIES[shape.props.font],
 				fontSize: fontSizeAdjustment,
-				maxWidth: NOTE_SIZE - LABEL_PADDING * 2 - FUZZ,
+				maxWidth: NOTE_SIZE - LABEL_PADDING * 2 - FUZZ, // remove padding here...
 			})
-			labelHeight = nextTextSizeWithOverflowBreak.h + LABEL_PADDING * 2
+			labelHeight = nextTextSizeWithOverflowBreak.h + LABEL_PADDING * 2 // and restore it here
 			labelWidth = nextTextSizeWithOverflowBreak.w + LABEL_PADDING * 2
 			break
 		}

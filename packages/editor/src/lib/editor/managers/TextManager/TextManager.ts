@@ -68,6 +68,7 @@ export class TextManager {
 		const elm = document.createElement('div')
 		elm.classList.add('tl-text')
 		elm.classList.add('tl-text-measure')
+		// elm.classList.add('tl-text-measure__debug')
 		elm.setAttribute('dir', 'auto')
 		elm.tabIndex = -1
 		this.editor.getContainer().appendChild(elm)
@@ -76,6 +77,7 @@ export class TextManager {
 		// these must be the css names, not the js names for the styles
 		this.defaultStyles = {
 			'word-break': 'auto',
+			'overflow-wrap': 'break-word',
 			width: null,
 			height: null,
 			'max-width': null,
