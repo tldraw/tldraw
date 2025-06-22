@@ -530,8 +530,6 @@ export function createShapesForAssets(editor: Editor, assets: TLAsset[], positio
 // @public (undocumented)
 export interface CropBoxOptions {
     // (undocumented)
-    aspectRatioLocked?: boolean;
-    // (undocumented)
     minHeight?: number;
     // (undocumented)
     minWidth?: number;

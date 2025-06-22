@@ -17,7 +17,6 @@ export const MIN_CROP_SIZE = 8
 export interface CropBoxOptions {
 	minWidth?: number
 	minHeight?: number
-	aspectRatioLocked?: boolean
 }
 
 /** @public */
@@ -121,15 +120,10 @@ export function getCropBox<T extends ShapeWithCrop>(
 			props: ShapeWithCrop['props']
 	  }
 	| undefined {
-	const { handle, change, crop, aspectRatioLocked: infoAspectRatioLocked } = info
+	const { handle, change, crop, aspectRatioLocked } = info
 	const { w, h } = info.uncroppedSize
-	const {
-		minWidth = MIN_CROP_SIZE,
-		minHeight = MIN_CROP_SIZE,
-		aspectRatioLocked: optsAspectRatioLocked,
-	} = opts
+	const { minWidth = MIN_CROP_SIZE, minHeight = MIN_CROP_SIZE } = opts
 
-	const aspectRatioLocked = infoAspectRatioLocked ?? optsAspectRatioLocked ?? false
 	if (w < minWidth || h < minHeight || (change.x === 0 && change.y === 0)) {
 		return
 	}
