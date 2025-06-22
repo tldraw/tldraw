@@ -332,6 +332,19 @@ export function getCropBox<T extends ShapeWithCrop>(
 		.rot(shape.rotation)
 		.add(shape)
 
+	const hasCropChanged = !(
+		shape.x === newPoint.x &&
+		shape.y === newPoint.y &&
+		newCrop.topLeft.x === crop.topLeft.x &&
+		newCrop.topLeft.y === crop.topLeft.y &&
+		newCrop.bottomRight.x === crop.bottomRight.x &&
+		newCrop.bottomRight.y === crop.bottomRight.y
+	)
+
+	if (!hasCropChanged) {
+		return
+	}
+
 	return {
 		id: shape.id,
 		type: shape.type,

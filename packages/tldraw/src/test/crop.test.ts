@@ -121,7 +121,7 @@ describe('Crop box', () => {
 		})
 	})
 
-	it('Crop returns the same object when expanding out of the shape', () => {
+	it('Crop returns undefined when the crop does not change', () => {
 		const results = getCropBox(shape, {
 			handle: 'top_left',
 			change: new Vec(-10, 0),
@@ -129,18 +129,7 @@ describe('Crop box', () => {
 			uncroppedSize: initialSize,
 			initialShape: shape,
 		})
-		expect(results).toMatchObject({
-			x: 100,
-			y: 100,
-			props: {
-				w: 100,
-				h: 100,
-				crop: {
-					topLeft: { x: 0, y: 0 },
-					bottomRight: { x: 1, y: 1 },
-				},
-			},
-		})
+		expect(results).toBeUndefined()
 	})
 
 	it('Crop returns undefined if existing width and height is already less than minWidth and minHeight', () => {
