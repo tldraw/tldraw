@@ -3681,7 +3681,6 @@ export interface TLMeasureTextOpts {
     fontStyle: string;
     // (undocumented)
     fontWeight: string;
-    // (undocumented)
     lineHeight: number;
     maxWidth: null | number;
     // (undocumented)
