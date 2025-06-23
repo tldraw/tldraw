@@ -29,7 +29,8 @@ import { TLAppUiEventSource, useTldrawAppUiEvents } from '../../utils/app-ui-eve
 import { getIsCoarsePointer } from '../../utils/getIsCoarsePointer'
 import { defineMessages, useIntl, useMsg } from '../../utils/i18n'
 import { TlaFileMenu } from '../TlaFileMenu/TlaFileMenu'
-import { TlaIcon, TlaIconWrapper } from '../TlaIcon/TlaIcon'
+import { TlaIcon } from '../TlaIcon/TlaIcon'
+import { TlaLogo } from '../TlaLogo/TlaLogo'
 import { sidebarMessages } from '../TlaSidebar/components/TlaSidebarFileLink'
 import {
 	GiveUsFeedbackMenuItem,
@@ -88,10 +89,7 @@ export function TlaEditorTopLeftPanelAnonymous() {
 	return (
 		<>
 			<Link to="/" className={styles.topLeftOfflineLogo}>
-				<TlaIconWrapper data-size="m" data-testid="tla-sidebar-logo-icon">
-					<TlaIcon icon="tldraw" ariaLabel="tldraw" />
-				</TlaIconWrapper>
-				<div className={classNames('tla-text_ui__title', 'notranslate')}>{brandMsg}</div>
+				<TlaLogo />
 			</Link>
 			{anonFileName && (
 				<>

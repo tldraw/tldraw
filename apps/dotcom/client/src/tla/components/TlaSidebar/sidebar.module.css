@@ -221,7 +221,7 @@
 	display: flex;
 	align-items: center;
 	padding-right: 6px;
-	padding-left: 2px;
+	padding-left: 8px;
 	background-color: var(--tla-color-sidebar);
 	overflow: hidden;
 	padding-bottom: 1px;
