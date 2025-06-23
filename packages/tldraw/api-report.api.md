@@ -223,6 +223,8 @@ export interface ArrowShapeOptions {
     readonly minElbowHandleDistance: number;
     readonly minElbowLegLength: Record<TLDefaultSizeStyle, number>;
     readonly pointingPreciseTimeout: number;
+    readonly shouldBeExact: (editor: Editor) => boolean;
+    readonly shouldIgnoreTargets: (editor: Editor) => boolean;
 }
 
 // @public (undocumented)

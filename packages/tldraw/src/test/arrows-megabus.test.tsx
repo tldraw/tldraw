@@ -163,6 +163,31 @@ describe('When binding an arrow to a shape', () => {
 		expect(bindings().end).toBeUndefined()
 	})
 
+	it('creates exact bindings when alt key is held', () => {
+		editor.setCurrentTool('arrow')
+		editor.keyDown('Alt')
+		editor.pointerDown(0, 50)
+		editor.pointerMove(100, 50)
+		expect(bindings().end).toMatchObject({
+			toId: ids.box1,
+			props: {
+				isExact: true,
+			},
+		})
+	})
+
+	it('creates non-exact bindings when alt key is not held', () => {
+		editor.setCurrentTool('arrow')
+		editor.pointerDown(0, 50)
+		editor.pointerMove(100, 50)
+		expect(bindings().end).toMatchObject({
+			toId: ids.box1,
+			props: {
+				isExact: false,
+			},
+		})
+	})
+
 	it('does not bind when the shape is locked', () => {
 		editor.toggleLock(editor.getCurrentPageShapes())
 		editor.setCurrentTool('arrow')
@@ -193,6 +218,27 @@ describe('When binding an arrow to a shape', () => {
 		editor.pointerUp()
 		jest.advanceTimersByTime(1000) // once the timer runs out...
 		expect(bindings().end).toBeUndefined() // still a point because interaction ended before timer ended
+	})
+
+	it('respects shouldIgnoreTargets option when control key is held', () => {
+		// This test verifies that the ctrl key behavior is now driven by the shouldIgnoreTargets option
+		editor.setCurrentTool('arrow')
+		editor.pointerDown(0, 50)
+		editor.pointerMove(100, 50)
+
+		// Initial binding should exist
+		expect(bindings().end).toBeDefined()
+		expect(bindings().end?.toId).toBe(ids.box1)
+
+		// Pressing ctrl should trigger shouldIgnoreTargets and remove binding
+		editor.keyDown('Control')
+		expect(bindings().end).toBeUndefined()
+
+		// Releasing ctrl should restore binding (after timer)
+		editor.keyUp('Control')
+		expect(bindings().end).toBeUndefined() // Still no binding immediately
+		jest.advanceTimersByTime(1000)
+		expect(bindings().end).toBeDefined()
 	})
 })
 

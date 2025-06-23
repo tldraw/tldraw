@@ -32,7 +32,6 @@ export interface UpdateArrowTargetStateOpts {
 	pointInPageSpace: VecLike
 	arrow: TLArrowShape | undefined
 	isPrecise: boolean
-	isExact: boolean
 	currentBinding: TLArrowBinding | undefined
 	/** The binding from the opposite end of the arrow, if one exists. */
 	oppositeBinding: TLArrowBinding | undefined
@@ -77,17 +76,19 @@ export function updateArrowTargetState({
 	pointInPageSpace,
 	arrow,
 	isPrecise,
-	isExact,
 	currentBinding,
 	oppositeBinding,
 }: UpdateArrowTargetStateOpts): ArrowTargetState | null {
+	const util = editor.getShapeUtil<ArrowShapeUtil>('arrow')
+
 	// no target picking when ctrl is held:
-	if (editor.inputs.ctrlKey) {
+	if (util.options.shouldIgnoreTargets(editor)) {
 		getArrowTargetAtom(editor).set(null)
 		return null
 	}
 
-	const util = editor.getShapeUtil<ArrowShapeUtil>('arrow')
+	const isExact = util.options.shouldBeExact(editor)
+
 	const arrowKind = arrow ? arrow.props.kind : editor.getStyleForNextShape(ArrowShapeKindStyle)
 
 	const target = editor.getShapeAtPoint(pointInPageSpace, {

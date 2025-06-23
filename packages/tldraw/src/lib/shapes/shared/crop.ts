@@ -1,11 +1,12 @@
 import {
+	Box,
 	ShapeWithCrop,
 	TLCropInfo,
 	TLImageShape,
 	TLShapeCrop,
 	TLShapeId,
 	Vec,
-	structuredClone,
+	clamp,
 } from '@tldraw/editor'
 
 /** @internal */
@@ -118,100 +119,240 @@ export function getCropBox<T extends ShapeWithCrop>(
 			props: ShapeWithCrop['props']
 	  }
 	| undefined {
-	const { handle, change, crop } = info
+	const { handle, change, crop, aspectRatioLocked } = info
 	const { w, h } = info.uncroppedSize
 	const { minWidth = MIN_CROP_SIZE, minHeight = MIN_CROP_SIZE } = opts
 
-	const newCrop = structuredClone(crop)
-	const newPoint = new Vec(shape.x, shape.y)
-	const pointDelta = new Vec(0, 0)
+	if (w < minWidth || h < minHeight || (change.x === 0 && change.y === 0)) {
+		return
+	}
 
-	let hasCropChanged = false
-	const topLeftLimit = 0
-	const bottomRightLimit = 1
+	// Lets get a box here in pixel space. For simplicity, we'll do all the math in
+	// pixel space, then convert to normalized space at the end.
+	const prevCropBox = new Box(
+		crop.topLeft.x * w,
+		crop.topLeft.y * h,
+		(crop.bottomRight.x - crop.topLeft.x) * w,
+		(crop.bottomRight.y - crop.topLeft.y) * h
+	)
 
-	// Set y dimension
-	switch (handle) {
-		case 'top':
-		case 'top_left':
-		case 'top_right': {
-			if (h < minHeight) break
-			hasCropChanged = true
-			// top
-			newCrop.topLeft.y = newCrop.topLeft.y + change.y / h
-			const heightAfterCrop = h * (newCrop.bottomRight.y - newCrop.topLeft.y)
+	const targetRatio = prevCropBox.aspectRatio
+	const tempBox = prevCropBox.clone()
 
-			if (heightAfterCrop < minHeight) {
-				newCrop.topLeft.y = newCrop.bottomRight.y - minHeight / h
-				pointDelta.y = (newCrop.topLeft.y - crop.topLeft.y) * h
-			} else {
-				if (newCrop.topLeft.y <= topLeftLimit) {
-					newCrop.topLeft.y = topLeftLimit
-					pointDelta.y = (newCrop.topLeft.y - crop.topLeft.y) * h
-				} else {
-					pointDelta.y = change.y
-				}
-			}
-			break
+	// Basic resizing logic based on the handles
+
+	if (handle === 'top_left' || handle === 'bottom_left' || handle === 'left') {
+		tempBox.x = clamp(tempBox.x + change.x, 0, prevCropBox.maxX - minWidth)
+		tempBox.w = prevCropBox.maxX - tempBox.x
+	} else if (handle === 'top_right' || handle === 'bottom_right' || handle === 'right') {
+		const tempRight = clamp(tempBox.maxX + change.x, prevCropBox.x + minWidth, w)
+		tempBox.w = tempRight - tempBox.x
+	}
+
+	if (handle === 'top_left' || handle === 'top_right' || handle === 'top') {
+		tempBox.y = clamp(tempBox.y + change.y, 0, prevCropBox.maxY - minHeight)
+		tempBox.h = prevCropBox.maxY - tempBox.y
+	} else if (handle === 'bottom_left' || handle === 'bottom_right' || handle === 'bottom') {
+		const tempBottom = clamp(tempBox.maxY + change.y, prevCropBox.y + minHeight, h)
+		tempBox.h = tempBottom - tempBox.y
+	}
+
+	// Aspect ratio locked resizing logic
+
+	if (aspectRatioLocked) {
+		const isXLimiting = tempBox.aspectRatio > targetRatio
+
+		if (isXLimiting) {
+			tempBox.h = tempBox.w / targetRatio
+		} else {
+			tempBox.w = tempBox.h * targetRatio
 		}
-		case 'bottom':
-		case 'bottom_left':
-		case 'bottom_right': {
-			if (h < minHeight) break
-			hasCropChanged = true
-			// bottom
-			newCrop.bottomRight.y = Math.min(bottomRightLimit, newCrop.bottomRight.y + change.y / h)
-			const heightAfterCrop = h * (newCrop.bottomRight.y - newCrop.topLeft.y)
 
-			if (heightAfterCrop < minHeight) {
-				newCrop.bottomRight.y = newCrop.topLeft.y + minHeight / h
+		switch (handle) {
+			case 'top_left': {
+				// preserve the bottom right corner
+				tempBox.x = prevCropBox.maxX - tempBox.w
+				tempBox.y = prevCropBox.maxY - tempBox.h
+
+				if (tempBox.x <= 0) {
+					tempBox.x = 0
+					tempBox.w = prevCropBox.maxX - tempBox.x
+					tempBox.h = tempBox.w / targetRatio
+					tempBox.y = prevCropBox.maxY - tempBox.h
+				}
+
+				if (tempBox.y <= 0) {
+					tempBox.y = 0
+					tempBox.h = prevCropBox.maxY - tempBox.y
+					tempBox.w = tempBox.h * targetRatio
+					tempBox.x = prevCropBox.maxX - tempBox.w
+				}
+				break
 			}
-			break
+			case 'top_right': {
+				// preserve the bottom left corner
+				tempBox.x = prevCropBox.x
+				tempBox.y = prevCropBox.maxY - tempBox.h
+
+				if (tempBox.maxX >= w) {
+					tempBox.w = w - prevCropBox.x
+					tempBox.h = tempBox.w / targetRatio
+					tempBox.y = prevCropBox.maxY - tempBox.h
+				}
+
+				if (tempBox.y <= 0) {
+					tempBox.y = 0
+					tempBox.h = prevCropBox.maxY - tempBox.y
+					tempBox.w = tempBox.h * targetRatio
+				}
+				break
+			}
+			case 'bottom_left': {
+				// preserve the top right corner
+				tempBox.x = prevCropBox.maxX - tempBox.w
+				tempBox.y = prevCropBox.y
+
+				if (tempBox.x <= 0) {
+					tempBox.x = 0
+					tempBox.w = prevCropBox.maxX - tempBox.x
+					tempBox.h = tempBox.w / targetRatio
+				}
+
+				if (tempBox.y >= h) {
+					tempBox.h = h - prevCropBox.y
+					tempBox.w = tempBox.h * targetRatio
+					tempBox.x = prevCropBox.maxX - tempBox.w
+				}
+				break
+			}
+			case 'bottom_right': {
+				// preserve the top left corner
+				tempBox.x = prevCropBox.x
+				tempBox.y = prevCropBox.y
+
+				if (tempBox.maxX >= w) {
+					tempBox.w = w - prevCropBox.x
+					tempBox.h = tempBox.w / targetRatio
+				}
+
+				if (tempBox.y >= h) {
+					tempBox.h = h - prevCropBox.y
+					tempBox.w = tempBox.h * targetRatio
+				}
+				break
+			}
+			case 'top': {
+				// preserve the bottom edge center
+				tempBox.h = prevCropBox.maxY - tempBox.y
+				tempBox.w = tempBox.h * targetRatio
+				tempBox.x -= (tempBox.w - prevCropBox.w) / 2
+
+				if (tempBox.x <= 0) {
+					const leftSide = prevCropBox.midX
+					tempBox.w = leftSide * 2
+					tempBox.h = tempBox.w / targetRatio
+					tempBox.x = 0
+				}
+
+				if (tempBox.maxX >= w) {
+					const rightSide = w - prevCropBox.midX
+					tempBox.w = rightSide * 2
+					tempBox.h = tempBox.w / targetRatio
+					tempBox.x = w - tempBox.w
+				}
+
+				tempBox.y = prevCropBox.maxY - tempBox.h
+				break
+			}
+			case 'right': {
+				// preserve the left edge center
+				tempBox.w = tempBox.maxX - prevCropBox.x
+				tempBox.h = tempBox.w / targetRatio
+				tempBox.y -= (tempBox.h - prevCropBox.h) / 2
+
+				if (tempBox.y <= 0) {
+					const topSide = prevCropBox.midY
+					tempBox.h = topSide * 2
+					tempBox.w = tempBox.h * targetRatio
+					tempBox.y = 0
+				}
+
+				if (tempBox.maxY >= h) {
+					const bottomSide = h - prevCropBox.midY
+					tempBox.h = bottomSide * 2
+					tempBox.w = tempBox.h * targetRatio
+					tempBox.y = h - tempBox.h
+				}
+				break
+			}
+			case 'bottom': {
+				// preserve the top edge center
+				tempBox.h = tempBox.maxY - prevCropBox.y
+				tempBox.w = tempBox.h * targetRatio
+				tempBox.x -= (tempBox.w - prevCropBox.w) / 2
+
+				if (tempBox.x <= 0) {
+					const leftSide = prevCropBox.midX
+					tempBox.w = leftSide * 2
+					tempBox.h = tempBox.w / targetRatio
+					tempBox.x = 0
+				}
+
+				if (tempBox.maxX >= w) {
+					const rightSide = w - prevCropBox.midX
+					tempBox.w = rightSide * 2
+					tempBox.h = tempBox.w / targetRatio
+					tempBox.x = w - tempBox.w
+				}
+				break
+			}
+			case 'left': {
+				// preserve the right edge center
+				tempBox.w = prevCropBox.maxX - tempBox.x
+				tempBox.h = tempBox.w / targetRatio
+				tempBox.y -= (tempBox.h - prevCropBox.h) / 2
+
+				if (tempBox.y <= 0) {
+					const topSide = prevCropBox.midY
+					tempBox.h = topSide * 2
+					tempBox.w = tempBox.h * targetRatio
+					tempBox.y = 0
+				}
+
+				if (tempBox.maxY >= h) {
+					const bottomSide = h - prevCropBox.midY
+					tempBox.h = bottomSide * 2
+					tempBox.w = tempBox.h * targetRatio
+					tempBox.y = h - tempBox.h
+				}
+
+				tempBox.x = prevCropBox.maxX - tempBox.w
+				break
+			}
 		}
 	}
 
-	// Set x dimension
-	switch (handle) {
-		case 'left':
-		case 'top_left':
-		case 'bottom_left': {
-			if (w < minWidth) break
-			hasCropChanged = true
-			// left
-			newCrop.topLeft.x = newCrop.topLeft.x + change.x / w
-			const widthAfterCrop = w * (newCrop.bottomRight.x - newCrop.topLeft.x)
-
-			if (widthAfterCrop < minWidth) {
-				newCrop.topLeft.x = newCrop.bottomRight.x - minWidth / w
-				pointDelta.x = (newCrop.topLeft.x - crop.topLeft.x) * w
-			} else {
-				if (newCrop.topLeft.x <= topLeftLimit) {
-					newCrop.topLeft.x = topLeftLimit
-					pointDelta.x = (newCrop.topLeft.x - crop.topLeft.x) * w
-				} else {
-					pointDelta.x = change.x
-				}
-			}
-			break
-		}
-		case 'right':
-		case 'top_right':
-		case 'bottom_right': {
-			if (w < minWidth) break
-			hasCropChanged = true
-			// right
-			newCrop.bottomRight.x = Math.min(bottomRightLimit, newCrop.bottomRight.x + change.x / w)
-			const widthAfterCrop = w * (newCrop.bottomRight.x - newCrop.topLeft.x)
-
-			if (widthAfterCrop < minWidth) {
-				newCrop.bottomRight.x = newCrop.topLeft.x + minWidth / w
-			}
-			break
-		}
+	// Convert the box back to normalized space
+	const newCrop: TLShapeCrop = {
+		topLeft: { x: tempBox.x / w, y: tempBox.y / h },
+		bottomRight: { x: tempBox.maxX / w, y: tempBox.maxY / h },
+		isCircle: crop.isCircle,
 	}
-	if (!hasCropChanged) return undefined
 
-	newPoint.add(pointDelta.rot(shape.rotation))
+	// If the crop hasn't changed, we can return early
+	if (
+		newCrop.topLeft.x === crop.topLeft.x &&
+		newCrop.topLeft.y === crop.topLeft.y &&
+		newCrop.bottomRight.x === crop.bottomRight.x &&
+		newCrop.bottomRight.y === crop.bottomRight.y
+	) {
+		return
+	}
+
+	// Adjust the shape's position to keep the crop's absolute coordinates correct
+	const newPoint = new Vec(tempBox.x - crop.topLeft.x * w, tempBox.y - crop.topLeft.y * h)
+		.rot(shape.rotation)
+		.add(shape)
 
 	return {
 		id: shape.id,
@@ -219,8 +360,8 @@ export function getCropBox<T extends ShapeWithCrop>(
 		x: newPoint.x,
 		y: newPoint.y,
 		props: {
-			w: (newCrop.bottomRight.x - newCrop.topLeft.x) * w,
-			h: (newCrop.bottomRight.y - newCrop.topLeft.y) * h,
+			w: tempBox.w,
+			h: tempBox.h,
 			crop: newCrop,
 		},
 	}
