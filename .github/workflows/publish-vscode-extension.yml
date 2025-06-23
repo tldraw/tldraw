@@ -21,6 +21,10 @@ jobs:
     runs-on: ubuntu-latest
     permissions:
       contents: write
+    # Prevent multiple runs from happening at the same time
+    concurrency: vscode-extension-publish
+    # Skip if the commit was made by the bot to avoid infinite loops
+    if: github.event.head_commit.author.name != 'huppy-bot[bot]'
 
     steps:
       - name: Generate GH token
