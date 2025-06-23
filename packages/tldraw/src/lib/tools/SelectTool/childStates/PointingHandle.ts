@@ -41,7 +41,6 @@ export class PointingHandle extends StateNode {
 					pointInPageSpace: arrowTransform.applyToPoint(info.handle),
 					arrow: shape,
 					isPrecise: currentBinding.props.isPrecise,
-					isExact: info.altKey,
 					currentBinding: currentBinding,
 					oppositeBinding: oppositeBinding,
 				})

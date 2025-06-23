@@ -5,8 +5,6 @@ import { clearArrowTargetState, updateArrowTargetState } from '../arrowTargetSta
 export class Pointing extends StateNode {
 	static override id = 'pointing'
 
-	options = this.editor.getShapeUtil<ArrowShapeUtil>('arrow').options
-
 	shape?: TLArrowShape
 
 	isPrecise = false
@@ -23,7 +21,6 @@ export class Pointing extends StateNode {
 			pointInPageSpace: this.editor.inputs.currentPagePoint,
 			arrow: undefined,
 			isPrecise: this.isPrecise,
-			isExact: this.options.shouldBeExact(this.editor),
 			currentBinding: undefined,
 			oppositeBinding: undefined,
 		})
@@ -171,11 +168,14 @@ export class Pointing extends StateNode {
 	}
 
 	private startPreciseTimeout() {
+		const arrowUtil = this.editor.getShapeUtil<ArrowShapeUtil>('arrow')
+
 		this.isPreciseTimerId = this.editor.timers.setTimeout(() => {
 			if (!this.getIsActive()) return
 			this.isPrecise = true
-		}, this.options.pointingPreciseTimeout)
+		}, arrowUtil.options.pointingPreciseTimeout)
 	}
+
 	private clearPreciseTimeout() {
 		if (this.isPreciseTimerId !== null) {
 			clearTimeout(this.isPreciseTimerId)

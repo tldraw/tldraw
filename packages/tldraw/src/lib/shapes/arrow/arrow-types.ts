@@ -96,7 +96,7 @@ export interface ArrowShapeOptions {
 	 * When creating an arrow, should it bind to the target shape.
 	 */
 	// eslint-disable-next-line @typescript-eslint/method-signature-style
-	readonly shouldSnapToTarget: (editor: Editor) => boolean
+	readonly shouldIgnoreTargets: (editor: Editor) => boolean
 }
 
 /** @public */
