@@ -497,6 +497,10 @@
 	color: var(--tla-color-text-3);
 }
 
+.sidebarFileSectionTitlePadding span[role='img'] {
+	margin-bottom: 1px;
+}
+
 /* ------------------- File links ------------------- */
 
 .sidebarFileListItem {
