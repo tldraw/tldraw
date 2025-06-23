@@ -2,7 +2,7 @@
 	display: flex;
 	position: relative;
 	flex-shrink: 0;
-	background-color: currentColor;
+	background-color: var(--color-text-1);
 	height: 19px;
 	width: 70px;
 	z-index: 1;
