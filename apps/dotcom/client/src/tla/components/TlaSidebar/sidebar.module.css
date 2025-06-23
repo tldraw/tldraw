@@ -682,3 +682,19 @@
 	cursor: pointer;
 	color: var(--tla-color-text-1);
 }
+
+/* Presence badges */
+
+.sidebarFileListItemPresenceBadges {
+	display: flex;
+	align-items: center;
+	margin-left: auto;
+}
+
+.sidebarFileListItemPresenceBadge {
+	position: relative;
+}
+
+.sidebarFileListItemPresenceBadge:not(:first-child) {
+	margin-left: -4px; /* Creates overlap between badges */
+}
