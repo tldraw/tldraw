@@ -17,6 +17,7 @@ import {
 	useToasts,
 	useValue,
 } from 'tldraw'
+import { ErrorPage } from '../../components/ErrorPage/ErrorPage'
 import { SignedInAnalytics, SignedOutAnalytics } from '../../utils/analytics'
 import { globalEditor } from '../../utils/globalEditor'
 import { MaybeForceUserRefresh } from '../components/MaybeForceUserRefresh/MaybeForceUserRefresh'
@@ -184,6 +185,18 @@ function SignedInProvider({
 
 	if (!auth.isLoaded) return null
 
+	// Old browsers check.
+	if (!('findLastIndex' in Array.prototype)) {
+		return (
+			<ErrorPage
+				messages={{
+					header: intl.formatMessage(appMessages.oldBrowser),
+					para1: '',
+				}}
+			/>
+		)
+	}
+
 	if (!auth.isSignedIn || !user || !isUserLoaded) {
 		return (
 			<ThemeContainer onThemeChange={onThemeChange}>
@@ -191,11 +204,6 @@ function SignedInProvider({
 				{children}
 			</ThemeContainer>
 		)
-	}
-
-	// Old browsers check.
-	if (!('findLastIndex' in Array.prototype)) {
-		throw new Error(intl.formatMessage(appMessages.oldBrowser))
 	}
 
 	return (
