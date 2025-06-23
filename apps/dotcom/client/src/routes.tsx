@@ -13,7 +13,7 @@ const LoginRedirectPage = lazy(() => import('./components/LoginRedirectPage/Logi
 export const router = createRoutesFromElements(
 	<Route
 		ErrorBoundary={() => {
-			const error = useRouteError()
+			const error = useRouteError() as any
 			useEffect(() => {
 				captureException(error)
 			}, [error])
@@ -56,6 +56,7 @@ export const router = createRoutesFromElements(
 					messages={{
 						header,
 						para1,
+						para2: error?.message && typeof error.message === 'string' ? error.message : undefined,
 					}}
 				/>
 			)

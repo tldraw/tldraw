@@ -24,7 +24,7 @@ import { components } from '../components/TlaEditor/TlaEditor'
 import { AppStateProvider, useMaybeApp } from '../hooks/useAppState'
 import { UserProvider } from '../hooks/useUser'
 import '../styles/tla.css'
-import { IntlProvider, setupCreateIntl } from '../utils/i18n'
+import { IntlProvider, defineMessages, setupCreateIntl, useIntl } from '../utils/i18n'
 import {
 	clearLocalSessionState,
 	getLocalSessionState,
@@ -33,6 +33,12 @@ import {
 import { FileSidebarFocusContextProvider } from './FileInputFocusProvider'
 
 const assetUrls = getAssetUrlsByImport()
+
+export const appMessages = defineMessages({
+	oldBrowser: {
+		defaultMessage: 'Old browser detected. Please update your browser to use this app.',
+	},
+})
 
 // @ts-ignore this is fine
 const PUBLISHABLE_KEY = import.meta.env.VITE_CLERK_PUBLISHABLE_KEY
@@ -149,6 +155,7 @@ function SignedInProvider({
 	onLocaleChange(locale: string): void
 }) {
 	const auth = useAuth()
+	const intl = useIntl()
 	const { user, isLoaded: isUserLoaded } = useClerkUser()
 	const [currentLocale, setCurrentLocale] = useState<string>(
 		globalEditor.get()?.user.getUserPreferences().locale ?? 'en'
@@ -184,6 +191,11 @@ function SignedInProvider({
 				{children}
 			</ThemeContainer>
 		)
+	}
+
+	// Old browsers check.
+	if (!('findLastIndex' in Array.prototype)) {
+		throw new Error(intl.formatMessage(appMessages.oldBrowser))
 	}
 
 	return (
