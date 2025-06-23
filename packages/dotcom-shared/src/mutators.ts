@@ -156,6 +156,7 @@ export function createMutators(userId: string) {
 					id,
 					name,
 					inviteSecret: tx.location === 'server' ? uniqueId() : null,
+					isDeleted: false,
 					createdAt: Date.now(),
 					updatedAt: Date.now(),
 				})
@@ -166,6 +167,53 @@ export function createMutators(userId: string) {
 					userName: '',
 					userEmail: '',
 					role: 'owner',
+					createdAt: Date.now(),
+					updatedAt: Date.now(),
+				})
+			},
+			leave: async (tx, { groupId }: { groupId: string }) => {
+				await assertUserHasFlag(tx, userId, 'groups')
+				const users = await tx.query.group_user.where('groupId', '=', groupId).run()
+				const owners = users.filter((u) => u.role === 'owner')
+				const isOwner = owners.some((u) => u.userId === userId)
+				// if the user is the only owner, they can't leave they have to delete
+				assert(!isOwner || owners.length > 1, ZErrorCode.forbidden)
+				await tx.mutate.group_user.delete({ userId, groupId })
+				// delete any file states for this group's files ?
+			},
+			delete: async (tx, { id }: { id: string }) => {
+				await assertUserHasFlag(tx, userId, 'groups')
+				const groupUser = await tx.query.group_user
+					.where('userId', '=', userId)
+					.where('groupId', '=', id)
+					.one()
+					.run()
+				assert(groupUser, ZErrorCode.forbidden)
+				assert(groupUser.role === 'owner', ZErrorCode.forbidden)
+				const groupOwnedFiles = await tx.query.file.where('owningGroupId', '=', id).run()
+				// the group_file and group_user tables should be cleaned up via cascade
+				for (const file of groupOwnedFiles) {
+					await tx.mutate.file.update({ id: file.id, isDeleted: true })
+				}
+				await tx.mutate.group.update({ id: id, isDeleted: true })
+				if (tx.location === 'server') {
+					await tx.dbTransaction.query(`delete from public.group_user where "groupId" = $1`, [id])
+					await tx.dbTransaction.query(`delete from public.group_file where "groupId" = $1`, [id])
+				}
+			},
+			acceptInvite: async (tx, { inviteSecret }: { inviteSecret: string }) => {
+				await assertUserHasFlag(tx, userId, 'groups')
+				// It only makes sense to run this on the server because the user doesn't have the
+				// group data on the client yet.
+				if (tx.location === 'client') return
+				const group = await tx.query.group.where('inviteSecret', '=', inviteSecret).one().run()
+				assert(group, ZErrorCode.bad_request)
+				await tx.mutate.group_user.insert({
+					userId,
+					groupId: group.id,
+					userName: '',
+					userEmail: '',
+					role: 'admin',
 					createdAt: Date.now(),
 					updatedAt: Date.now(),
 				})

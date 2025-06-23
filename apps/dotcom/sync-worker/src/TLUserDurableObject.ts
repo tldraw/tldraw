@@ -166,7 +166,7 @@ export class TLUserDurableObject extends DurableObject<Environment> {
 	private makeQuery(client: PoolClient, signal: AbortSignal): SchemaQuery<TlaSchema> {
 		return mapObjectMapValues(
 			schema.tables,
-			(tableName) => new ServerQuery(signal, client, true, tableName) as any
+			(tableName) => new ServerQuery(signal, client, false, tableName) as any
 		)
 	}
 

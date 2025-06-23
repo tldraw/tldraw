@@ -2,6 +2,7 @@ import {
 	boolean,
 	createSchema,
 	definePermissions,
+	enumeration,
 	ExpressionBuilder,
 	number,
 	PermissionsConfig,
@@ -84,6 +85,7 @@ export const group = table('group')
 		id: string(),
 		name: string(),
 		inviteSecret: string().optional(),
+		isDeleted: boolean(),
 		createdAt: number(),
 		updatedAt: number(),
 	})
@@ -95,7 +97,7 @@ export const group_user = table('group_user')
 		groupId: string(),
 		createdAt: number(),
 		updatedAt: number(),
-		role: string(),
+		role: enumeration<'admin' | 'owner'>(),
 		userName: string(),
 		userEmail: string(),
 	})

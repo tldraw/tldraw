@@ -33,7 +33,7 @@ function makeColumnStuff(table: (typeof schema.tables)[keyof typeof schema.table
 const withs = [
 	{
 		alias: 'my_owned_files',
-		expression: 'SELECT * FROM public."file" WHERE "ownerId" = $1',
+		expression: 'SELECT * FROM public."file" WHERE "ownerId" = $1 AND "isDeleted" = false',
 	},
 	{
 		alias: 'my_file_states',
@@ -50,7 +50,8 @@ const withs = [
 	},
 	{
 		alias: 'my_groups',
-		expression: 'SELECT g.* FROM my_group_ids mg JOIN public."group" g ON g.id = mg."groupId"',
+		expression:
+			'SELECT g.* FROM my_group_ids mg JOIN public."group" g ON g.id = mg."groupId" WHERE g."isDeleted" = false',
 	},
 	{
 		alias: 'all_group_users',
