@@ -1057,8 +1057,8 @@ input,
 }
 
 .tl-hyperlink__icon {
-	width: 16px;
-	height: 16px;
+	width: 15px;
+	height: 15px;
 	background-color: currentColor;
 	pointer-events: none;
 }
@@ -1157,7 +1157,7 @@ input,
 	stroke-linejoin: round;
 	/* content-visibility: auto; */
 	transform-origin: top left;
-	color: inherit;
+	color: var(--color-text-1);
 }
 
 /* -------------------- Group shape ------------------ */
@@ -1272,6 +1272,7 @@ input,
 	display: flex;
 	justify-content: flex-end;
 	align-items: flex-start;
+	box-shadow: inset 0px 0px 0px 1px var(--color-divider);
 }
 
 .tl-bookmark__image_container > .tl-hyperlink-button::after {
@@ -1294,7 +1295,7 @@ input,
 }
 
 .tl-bookmark__copy_container {
-	background-color: var(--color-muted);
+	background-color: var(--color-muted-0);
 	padding: var(--space-4);
 	pointer-events: all;
 	display: flex;
