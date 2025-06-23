@@ -306,6 +306,10 @@ export class TldrawApp {
 		return this.groupUsers$.get()
 	}
 
+	getGroup(groupId: string) {
+		return this.groupUsers$.get().find((g) => g.groupId === groupId)
+	}
+
 	getPresences(fileId: string) {
 		return this.fileStates$.get().find((f) => f.fileId === fileId)?.presences ?? []
 	}
