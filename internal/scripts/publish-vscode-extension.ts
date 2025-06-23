@@ -65,8 +65,8 @@ async function copyExtensionToReleaseFolder(version: string) {
 	copyFileSync(sourcePath, targetPath)
 
 	nicelog('Setting git user identity...')
-	await exec('git', ['config', 'user.name', 'huppy'])
-	await exec('git', ['config', 'user.email', 'huppy@tldraw.com'])
+	await exec('git', ['config', 'user.name', 'huppy-bot[bot]'])
+	await exec('git', ['config', 'user.email', '128400622+huppy-bot[bot]@users.noreply.github.com'])
 
 	nicelog('Committing extension to git...')
 	await exec('git', ['add', '-f', targetPath])
