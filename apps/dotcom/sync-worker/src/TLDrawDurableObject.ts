@@ -39,6 +39,7 @@ import {
 	exhaustiveSwitchError,
 	objectMapValues,
 	retry,
+	sleep,
 	uniqueId,
 } from '@tldraw/utils'
 import { createSentry } from '@tldraw/worker-shared'
@@ -743,6 +744,7 @@ export class TLDrawDurableObject extends DurableObject {
 				.where('fileId', '=', this.documentInfo.slug)
 				.execute()
 		} else {
+			await sleep(50)
 			await this.db.transaction().execute(async (tx) => {
 				const room = await this.getRoom()
 				const presences = objectMapValues(room.getPresenceRecords()) as TLInstancePresence[]

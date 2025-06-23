@@ -12,6 +12,7 @@ import {
 } from 'tldraw'
 import { routes } from '../../../../routeDefs'
 import { useApp } from '../../../hooks/useAppState'
+import { useHasFlag } from '../../../hooks/useHasFlag'
 import { useCanUpdateFile, useIsFileOwner } from '../../../hooks/useIsFileOwner'
 import { useFileSidebarFocusContext } from '../../../providers/FileInputFocusProvider'
 import { useTldrawAppUiEvents } from '../../../utils/app-ui-events'
@@ -154,6 +155,8 @@ export function TlaSidebarFileLinkInner({
 		linkRef.current.focus()
 	}, [isActive, linkRef])
 
+	const hasGroups = useHasFlag('groups')
+
 	const file = useValue('file', () => app.getFile(fileId), [fileId, app])
 	if (!file) return null
 
@@ -205,6 +208,7 @@ export function TlaSidebarFileLinkInner({
 					{fileName}
 				</div>
 				{!isOwnFile && <GuestBadge file={file} href={href} />}
+				{hasGroups && <PresenceBadges fileId={fileId} />}
 			</div>
 			<TlaSidebarFileLinkMenu fileId={fileId} onRenameAction={handleRenameAction} />
 		</div>
@@ -259,6 +263,34 @@ function GuestBadge({ file, href }: { file: TlaFile; href: string }) {
 					</TlaTooltipContent>
 				</TlaTooltipPortal>
 			</TlaTooltipRoot>
+		</div>
+	)
+}
+
+function PresenceBadges({ fileId }: { fileId: string }) {
+	const app = useApp()
+	const presences = useValue(
+		'presences',
+		() => app.getPresences(fileId).filter((p) => p.userId !== app.userId),
+		[fileId, app]
+	)
+
+	return (
+		<div className={styles.sidebarFileListItemPresenceBadges}>
+			{presences.map((presence) => (
+				<div key={presence.userId} className={styles.sidebarFileListItemPresenceBadge}>
+					<div
+						style={{
+							width: 16,
+							height: 16,
+							borderRadius: '50%',
+							backgroundColor: presence.color ?? 'var(--tla-color-contrast)',
+							border: '2px solid var(--tla-color-contrast)',
+							marginLeft: -4, // Creates overlap between badges
+						}}
+					/>
+				</div>
+			))}
 		</div>
 	)
 }
