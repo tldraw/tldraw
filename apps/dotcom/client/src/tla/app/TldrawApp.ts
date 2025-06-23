@@ -96,7 +96,7 @@ export class TldrawApp {
 		(TlaGroupUser & {
 			group: TlaGroup
 			groupFiles: Array<TlaGroupFile & { file: TlaFile }>
-			groupMembers: Array<TlaGroupUser & { user: TlaUser }>
+			groupMembers: Array<TlaGroupUser>
 		})[]
 	>
 
@@ -198,7 +198,7 @@ export class TldrawApp {
 			.where('userId', '=', this.userId)
 			.related('group', (q) => q.one())
 			.related('groupFiles')
-			.related('groupMembers', (q) => q.related('user').one())
+			.related('groupMembers')
 	}
 
 	async preload(initialUserData: TlaUser) {
