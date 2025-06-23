@@ -134,7 +134,7 @@ export class DragAndDropManager {
 	}
 
 	clear() {
-		if (this.intervalTimerId) {
+		if (this.intervalTimerId !== -1) {
 			clearInterval(this.intervalTimerId)
 			this.intervalTimerId = -1
 		}
