@@ -1314,11 +1314,10 @@ input,
 
 .tl-bookmark__heading {
 	font-size: 16px;
-	line-height: 1.5;
+	line-height: 1.6;
 	font-weight: bold;
 	padding-bottom: var(--space-2);
 	overflow: hidden;
-	max-height: calc((16px * 1.5) * 2);
 	-webkit-box-orient: vertical;
 	-webkit-line-clamp: 2;
 	line-clamp: 2;

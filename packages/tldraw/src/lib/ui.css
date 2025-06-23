@@ -1463,7 +1463,7 @@
 .tlui-embed-dialog__list {
 	display: flex;
 	flex-direction: column;
-	padding-bottom: var(--space-5);
+	padding: 0px var(--space-3) var(--space-4) var(--space-3);
 }
 
 .tlui-embed-dialog__item__image {
@@ -1475,6 +1475,8 @@
 	background-size: contain;
 	background-repeat: no-repeat;
 	background-position: center center;
+	background-color: var(--color-selected-contrast);
+	border-radius: var(--radius-1);
 }
 
 .tlui-embed-dialog__enter {
