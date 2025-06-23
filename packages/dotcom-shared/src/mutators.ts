@@ -263,6 +263,21 @@ export function createMutators(userId: string) {
 					updatedAt: Date.now(),
 				})
 			},
+			linkFileInGroup: async (tx, { fileId, groupId }: { fileId: string; groupId: string }) => {
+				await assertUserHasFlag(tx, userId, 'groups')
+				assert(fileId, ZErrorCode.bad_request)
+				assert(groupId, ZErrorCode.bad_request)
+				const file = await tx.query.file.where('id', '=', fileId).one().run()
+				assert(file, ZErrorCode.bad_request)
+				assert(file.shared, ZErrorCode.bad_request)
+				assert(file.owningGroupId !== groupId, ZErrorCode.bad_request)
+				await tx.mutate.group_file.insert({
+					fileId,
+					groupId,
+					createdAt: Date.now(),
+					updatedAt: Date.now(),
+				})
+			},
 		},
 	} as const satisfies CustomMutatorDefs<TlaSchema>
 }

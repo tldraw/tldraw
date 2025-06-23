@@ -217,7 +217,7 @@ export function FileItems({
 			</TldrawUiMenuGroup>
 			{hasGroups && groupUsers.length > 0 && (
 				<TldrawUiMenuGroup id="file-groups">
-					<TldrawUiMenuSubmenu id="groups" label={'Move to group'} size="small">
+					<TldrawUiMenuSubmenu id="move-to-group" label={'Move to group'} size="small">
 						{groupUsers.map((groupUser) => (
 							<TldrawUiMenuItem
 								key={groupUser.groupId}
@@ -226,6 +226,19 @@ export function FileItems({
 								readonlyOk
 								onSelect={() => {
 									app.z.mutate.group.moveFileToGroup({ fileId, groupId: groupUser.groupId })
+								}}
+							/>
+						))}
+					</TldrawUiMenuSubmenu>
+					<TldrawUiMenuSubmenu id="link-in-group" label={'Link in group'} size="small">
+						{groupUsers.map((groupUser) => (
+							<TldrawUiMenuItem
+								key={groupUser.groupId}
+								label={groupUser.group.name}
+								id={`link-in-group-${groupUser.groupId}`}
+								readonlyOk
+								onSelect={() => {
+									app.z.mutate.group.linkFileInGroup({ fileId, groupId: groupUser.groupId })
 								}}
 							/>
 						))}

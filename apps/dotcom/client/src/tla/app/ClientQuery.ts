@@ -63,9 +63,7 @@ export class ClientQuery<Row extends TlaRow, isOne extends boolean = false> {
 						...gf,
 						file: data.file.find((f) => f.id === gf.fileId),
 					}))
-				const groupMembers = data.group_user
-					.filter((gu) => gu.groupId === row.groupId)
-					.map((gu) => ({ ...gu, user: data.user.find((u) => u.id === gu.userId) }))
+				const groupMembers = data.group_user.filter((gu) => gu.groupId === row.groupId)
 				return {
 					...row,
 					group,

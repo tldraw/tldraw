@@ -24,7 +24,7 @@ import {
 } from 'tldraw'
 import { useApp, useMaybeApp } from '../../hooks/useAppState'
 import { useCurrentFileId } from '../../hooks/useCurrentFileId'
-import { useIsFileOwner } from '../../hooks/useIsFileOwner'
+import { useCanUpdateFile } from '../../hooks/useIsFileOwner'
 import { TLAppUiEventSource, useTldrawAppUiEvents } from '../../utils/app-ui-events'
 import { getIsCoarsePointer } from '../../utils/getIsCoarsePointer'
 import { defineMessages, useIntl, useMsg } from '../../utils/i18n'
@@ -159,7 +159,7 @@ export function TlaEditorTopLeftPanelSignedIn() {
 	const isEmbed = !!new URLSearchParams(window.location.search).get('embed')
 
 	const fileSlug = useParams<{ fileSlug: string }>().fileSlug ?? '_not_a_file_' // fall back to a string that will not match any file
-	const isOwner = useIsFileOwner(fileSlug)
+	const canUpdateFile = useCanUpdateFile(fileSlug)
 
 	const app = useApp()
 	const fileId = useCurrentFileId()!
@@ -182,17 +182,14 @@ export function TlaEditorTopLeftPanelSignedIn() {
 	)
 	const handleFileNameChange = useCallback(
 		(name: string) => {
-			if (isOwner) {
-				setIsRenaming(false)
-				// only actually update the name if name is a value, otherwise keep the previous name
-				if (name) {
-					// don't allow guests to update the file name
-					app.updateFile(fileId, { name })
-					editor.updateDocumentSettings({ name })
-				}
+			setIsRenaming(false)
+			// don't allow guests to update the file name
+			if (canUpdateFile && name) {
+				app.updateFile(fileId, { name })
+				editor.updateDocumentSettings({ name })
 			}
 		},
-		[app, editor, fileId, isOwner]
+		[app, editor, fileId, canUpdateFile]
 	)
 
 	const handleRenameAction = () => {
@@ -216,7 +213,7 @@ export function TlaEditorTopLeftPanelSignedIn() {
 				source="file-header"
 				isRenaming={isRenaming}
 				fileName={fileName}
-				onChange={isOwner ? handleFileNameChange : undefined}
+				onChange={canUpdateFile ? handleFileNameChange : undefined}
 				onEnd={handleRenameEnd}
 			/>
 			<span className={styles.topLeftPanelSeparator}>{separator}</span>
