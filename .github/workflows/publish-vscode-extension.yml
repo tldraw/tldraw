@@ -19,12 +19,26 @@ jobs:
     environment: vsce publish
     timeout-minutes: 15
     runs-on: ubuntu-latest
+    permissions:
+      contents: write
+    # Prevent multiple runs from happening at the same time
+    concurrency: vscode-extension-publish
+    # Skip if the commit was made by the bot to avoid infinite loops
+    if: github.event.head_commit.author.name != 'huppy-bot[bot]'
 
     steps:
+      - name: Generate GH token
+        id: generate_token
+        uses: actions/create-github-app-token@v1
+        with:
+          app-id: ${{ secrets.HUPPY_APP_ID }}
+          private-key: ${{ secrets.HUPPY_APP_PRIVATE_KEY }}
+
       - name: Check out code
         uses: actions/checkout@v3
         with:
           submodules: true
+          token: ${{ steps.generate_token.outputs.token }}
 
       - uses: ./.github/actions/setup
 
@@ -40,3 +54,4 @@ jobs:
         env:
           VSCE_PAT: ${{ secrets.VSCE_PAT }}
           TLDRAW_ENV: ${{ (github.ref == 'refs/heads/production' && 'production') || (github.ref == 'refs/heads/main' && 'staging') }}
+          GH_TOKEN: ${{ steps.generate_token.outputs.token }}
