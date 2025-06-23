@@ -137,6 +137,7 @@ export interface TLUiEventMap {
 			| 'heading'
 			| 'bulletList'
 	}
+	edit: null
 }
 
 /** @public */

@@ -37,6 +37,7 @@ import { TLUiAssetUrlOverrides } from './ui/assetUrls'
 import { LoadingScreen } from './ui/components/LoadingScreen'
 import { Spinner } from './ui/components/Spinner'
 import { TLUiComponents, useTldrawUiComponents } from './ui/context/components'
+import { useUiEvents } from './ui/context/events'
 import { useToasts } from './ui/context/toasts'
 import { useTranslation } from './ui/hooks/useTranslation/useTranslation'
 import { useDefaultEditorAssetsWithOverrides } from './utils/static-assets/assetUrls'
@@ -212,6 +213,7 @@ function InsideOfEditorAndUiContext({
 	const editor = useEditor()
 	const toasts = useToasts()
 	const msg = useTranslation()
+	const trackEvent = useUiEvents()
 
 	useOnMount(() => {
 		const unsubs: (void | (() => void) | undefined)[] = []
@@ -223,6 +225,8 @@ function InsideOfEditorAndUiContext({
 		// won't be directly used, but mean that when adding text the user can switch between fonts
 		// quickly, without having to wait for them to load in.
 		editor.fonts.requestFonts(allDefaultFontFaces)
+
+		editor.once('edit', () => trackEvent('edit', { source: 'unknown' }))
 
 		// for content handling, first we register the default handlers...
 		registerDefaultExternalContentHandlers(editor, {
