@@ -1,4 +1,4 @@
-.fileErrorContainer {
+.container {
 	display: flex;
 	flex: 1;
 	flex-direction: column;
@@ -6,14 +6,11 @@
 	justify-content: center;
 	height: 100%;
 	text-align: center;
-	text-wrap: balance;
+	gap: 20px;
 }
 
-.fileErrorContainer h1 {
-	margin-bottom: 8px;
-	font-size: 18px;
-}
-
-.fileErrorCtas {
-	margin-top: 32px;
+.content {
+	display: flex;
+	flex-direction: column;
+	align-items: center;
 }

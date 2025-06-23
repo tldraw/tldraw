@@ -2,12 +2,10 @@ import { captureException } from '@sentry/react'
 import { TLRemoteSyncError, TLSyncErrorCloseEventReason } from '@tldraw/sync-core'
 import { Suspense, lazy, useEffect } from 'react'
 import { Helmet } from 'react-helmet-async'
-import { IntlProvider } from 'react-intl'
 import { Outlet, Route, createRoutesFromElements, redirect, useRouteError } from 'react-router-dom'
+import { ErrorPage } from './components/ErrorPage/ErrorPage'
 import { notFound } from './pages/not-found'
 import { ROUTES, routes } from './routeDefs'
-import { TlaFileErrorContent } from './tla/components/TlaFileError/TlaFileError'
-import { F } from './tla/utils/i18n'
 import { TlaNotFoundError } from './tla/utils/notFoundError'
 
 const LoginRedirectPage = lazy(() => import('./components/LoginRedirectPage/LoginRedirectPage'))
@@ -54,18 +52,12 @@ export const router = createRoutesFromElements(
 			}
 
 			return (
-				<IntlProvider defaultLocale="en" locale="en" messages={{}}>
-					<div className="error-page">
-						<TlaFileErrorContent>
-							<h1>
-								<F defaultMessage={header} />
-							</h1>
-							<p>
-								<F defaultMessage={para1} />
-							</p>
-						</TlaFileErrorContent>
-					</div>
-				</IntlProvider>
+				<ErrorPage
+					messages={{
+						header,
+						para1,
+					}}
+				/>
 			)
 		}}
 	>
