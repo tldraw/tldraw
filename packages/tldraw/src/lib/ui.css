@@ -141,7 +141,7 @@
 }
 
 .tlui-button__danger {
-	color: var(--color-warn);
+	color: var(--color-danger);
 	text-shadow: none;
 }
 
@@ -151,7 +151,7 @@
 	}
 
 	.tlui-button__danger:not(:disabled, :focus-visible):hover {
-		color: var(--color-warn);
+		color: var(--color-danger);
 		text-shadow: none;
 	}
 }
@@ -1204,7 +1204,7 @@
 
 .tlui-debug-panel__fps__slow {
 	font-weight: bold;
-	color: var(--color-warn);
+	color: var(--color-danger);
 }
 
 .tlui-a11y-audit {
@@ -1266,7 +1266,7 @@
 }
 
 .tlui-toast__container[data-severity='error'] .tlui-icon {
-	color: var(--color-error);
+	color: var(--color-danger);
 }
 
 .tlui-toast__main {
@@ -1494,7 +1494,7 @@
 }
 
 .tlui-embed-dialog__warning {
-	color: var(--color-warn);
+	color: var(--color-danger);
 	text-shadow: none;
 }
 
