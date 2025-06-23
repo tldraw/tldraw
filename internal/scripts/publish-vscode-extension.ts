@@ -64,6 +64,10 @@ async function copyExtensionToReleaseFolder(version: string) {
 	nicelog(`Copying extension from ${sourcePath} to ${targetPath}`)
 	copyFileSync(sourcePath, targetPath)
 
+	nicelog('Setting git user identity...')
+	await exec('git', ['config', 'user.name', 'huppy'])
+	await exec('git', ['config', 'user.email', 'huppy@tldraw.com'])
+
 	nicelog('Committing extension to git...')
 	await exec('git', ['add', '-f', targetPath])
 	await exec('git', ['commit', '-m', `Add VSCode extension v${version}`])
