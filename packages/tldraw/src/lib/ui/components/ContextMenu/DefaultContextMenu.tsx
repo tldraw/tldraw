@@ -1,6 +1,6 @@
 import { preventDefault, useContainer, useEditor, useEditorComponents } from '@tldraw/editor'
 import { ContextMenu as _ContextMenu } from 'radix-ui'
-import { ReactNode, memo, useCallback } from 'react'
+import { ReactNode, memo, useCallback, useEffect } from 'react'
 import { useMenuIsOpen } from '../../hooks/useMenuIsOpen'
 import { useTranslation } from '../../hooks/useTranslation/useTranslation'
 import { TldrawUiMenuContextProvider } from '../primitives/menus/TldrawUiMenuContext'
@@ -34,6 +34,15 @@ export const DefaultContextMenu = memo(function DefaultContextMenu({
 		},
 		[editor]
 	)
+
+	useEffect(() => {
+		return () => {
+			// Cleanup the event listener when the component unmounts.
+			document.body.removeEventListener('keydown', preventEscapeFromLosingShapeFocus, {
+				capture: true,
+			})
+		}
+	}, [preventEscapeFromLosingShapeFocus])
 
 	const cb = useCallback(
 		(isOpen: boolean) => {
