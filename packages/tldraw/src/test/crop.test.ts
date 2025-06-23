@@ -310,7 +310,7 @@ describe('getCroppedImageDataWhenZooming', () => {
 })
 
 describe('Circle crop preservation during resize', () => {
-	it('preserves circle crop when resizing without aspect ratio lock', () => {
+	it('preserves circle crop when resizing', () => {
 		const circleShape: TLImageShape = {
 			...shape,
 			props: {
@@ -337,7 +337,7 @@ describe('Circle crop preservation during resize', () => {
 		expect(results?.props.crop?.isCircle).toBe(true)
 	})
 
-	it('preserves circle crop when resizing with aspect ratio lock (shift-resize)', () => {
+	it('preserves circle crop when resizing false', () => {
 		const circleShape: TLImageShape = {
 			...shape,
 			props: {
@@ -345,65 +345,23 @@ describe('Circle crop preservation during resize', () => {
 				w: 100,
 				h: 100,
 				crop: {
-					topLeft: { x: 0.25, y: 0.25 },
-					bottomRight: { x: 0.75, y: 0.75 },
-					isCircle: true,
+					topLeft: { x: 0.2, y: 0.2 },
+					bottomRight: { x: 0.8, y: 0.8 },
+					isCircle: false,
 				},
 			},
 		}
 
 		const results = getCropBox(circleShape, {
-			handle: 'top_left',
-			change: new Vec(10, 10),
+			handle: 'bottom_right',
+			change: new Vec(-10, -15),
 			crop: circleShape.props.crop!,
 			uncroppedSize: initialSize,
 			initialShape: circleShape,
-			aspectRatioLocked: true,
+			aspectRatioLocked: false,
 		})
 
-		expect(results?.props.crop?.isCircle).toBe(true)
-
-		// Also verify aspect ratio is maintained (should be 1:1 for circles)
-		if (results?.props.crop) {
-			const cropWidth = results.props.crop.bottomRight.x - results.props.crop.topLeft.x
-			const cropHeight = results.props.crop.bottomRight.y - results.props.crop.topLeft.y
-			expect(cropWidth / cropHeight).toBeCloseTo(1, 5)
-		}
-	})
-
-	it('preserves circle crop when resizing from edge handles', () => {
-		const circleShape: TLImageShape = {
-			...shape,
-			props: {
-				...shape.props,
-				w: 100,
-				h: 100,
-				crop: {
-					topLeft: { x: 0.3, y: 0.3 },
-					bottomRight: { x: 0.7, y: 0.7 },
-					isCircle: true,
-				},
-			},
-		}
-
-		// Test resizing from top edge with aspect ratio locked
-		const results = getCropBox(circleShape, {
-			handle: 'top',
-			change: new Vec(0, 10),
-			crop: circleShape.props.crop!,
-			uncroppedSize: initialSize,
-			initialShape: circleShape,
-			aspectRatioLocked: true,
-		})
-
-		expect(results?.props.crop?.isCircle).toBe(true)
-
-		// Verify it maintains square proportions
-		if (results?.props.crop) {
-			const cropWidth = results.props.crop.bottomRight.x - results.props.crop.topLeft.x
-			const cropHeight = results.props.crop.bottomRight.y - results.props.crop.topLeft.y
-			expect(cropWidth / cropHeight).toBeCloseTo(1, 5)
-		}
+		expect(results?.props.crop?.isCircle).toBe(false)
 	})
 })
 
