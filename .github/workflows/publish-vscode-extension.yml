@@ -25,10 +25,10 @@ jobs:
     steps:
       - name: Generate GH token
         id: generate_token
-        uses: tibdex/github-app-token@b62528385c34dbc9f38e5f4225ac829252d1ea92
+        uses: actions/create-github-app-token@v1
         with:
-          app_id: ${{ secrets.HUPPY_APP_ID }}
-          private_key: ${{ secrets.HUPPY_APP_PRIVATE_KEY }}
+          app-id: ${{ secrets.HUPPY_APP_ID }}
+          private-key: ${{ secrets.HUPPY_APP_PRIVATE_KEY }}
 
       - name: Check out code
         uses: actions/checkout@v3
