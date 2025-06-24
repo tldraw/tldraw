@@ -3788,6 +3788,8 @@ export interface TLUiEventMap {
     // (undocumented)
     cut: null;
     // (undocumented)
+    edit: null;
+    // (undocumented)
     paste: null;
     // (undocumented)
     print: null;
