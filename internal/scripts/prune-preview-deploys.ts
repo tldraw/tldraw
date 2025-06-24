@@ -87,17 +87,17 @@ async function listPreviewWorkerDeployments() {
 
 async function deleteQueue(queueName: string) {
 	nicelog('Deleting queue:', queueName)
-	await exec('yarn', ['wrangler', 'queues', 'delete', queueName])
+	await exec('npx', ['wrangler', 'queues', 'delete', queueName])
 }
 
 async function deleteQueueConsumer(queueName: string, scriptName: string) {
 	nicelog('Deleting queue consumer:', scriptName, 'from queue:', queueName)
-	await exec('yarn', ['wrangler', 'queues', 'consumer', 'worker', 'remove', queueName, scriptName])
+	await exec('npx', ['wrangler', 'queues', 'consumer', 'worker', 'remove', queueName, scriptName])
 }
 
 async function deletePreviewWorker(workerName: string) {
 	nicelog('Deleting worker:', workerName)
-	await exec('yarn', ['wrangler', 'delete', '--name', workerName])
+	await exec('npx', ['wrangler', 'delete', '--name', workerName])
 }
 
 async function deletePreviewWorkerDeployment(id: string) {
