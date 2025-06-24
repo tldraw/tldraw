@@ -4,12 +4,15 @@ import { LegacyMigrations, MigrationSequence } from '@tldraw/store'
 import {
 	RecordProps,
 	TLHandle,
+	TLParentId,
 	TLPropsMigrations,
 	TLShape,
 	TLShapeCrop,
+	TLShapeId,
 	TLShapePartial,
 	TLUnknownShape,
 } from '@tldraw/tlschema'
+import { IndexKey } from '@tldraw/utils'
 import { ReactElement } from 'react'
 import { Box, SelectionHandle } from '../../primitives/Box'
 import { Vec } from '../../primitives/Vec'
@@ -388,17 +391,6 @@ export abstract class ShapeUtil<Shape extends TLUnknownShape = TLUnknownShape> {
 	}
 
 	/**
-	 * Get whether the shape can receive children of a given type.
-	 *
-	 * @param shape - The shape type.
-	 * @param shapes - The shapes that are being dropped.
-	 * @public
-	 */
-	canDropShapes(_shape: Shape, _shapes: TLShape[]) {
-		return false
-	}
-
-	/**
 	 * Get the shape as an SVG object.
 	 *
 	 * @param shape - The shape.
@@ -517,7 +509,16 @@ export abstract class ShapeUtil<Shape extends TLUnknownShape = TLUnknownShape> {
 	): Omit<TLShapePartial<Shape>, 'id' | 'type'> | undefined | void
 
 	/**
-	 * A callback called when some other shapes are dragged over this one.
+	 * A callback called when some other shapes are dragged into this one. This fires when the shapes are dragged over the shape for the first time.
+	 *
+	 * @param shape - The shape.
+	 * @param shapes - The shapes that are being dragged in.
+	 * @public
+	 */
+	onDragShapesIn?(shape: Shape, shapes: TLShape[], info: TLDragShapesInInfo): void
+
+	/**
+	 * A callback called when some other shapes are dragged over this one. This fires when the shapes are dragged over the shape for the first time (after the onDragShapesIn callback), and again on every update while the shapes are being dragged.
 	 *
 	 * @example
 	 *
@@ -531,7 +532,7 @@ export abstract class ShapeUtil<Shape extends TLUnknownShape = TLUnknownShape> {
 	 * @param shapes - The shapes that are being dragged over this one.
 	 * @public
 	 */
-	onDragShapesOver?(shape: Shape, shapes: TLShape[]): void
+	onDragShapesOver?(shape: Shape, shapes: TLShape[], info: TLDragShapesOverInfo): void
 
 	/**
 	 * A callback called when some other shapes are dragged out of this one.
@@ -540,7 +541,7 @@ export abstract class ShapeUtil<Shape extends TLUnknownShape = TLUnknownShape> {
 	 * @param shapes - The shapes that are being dragged out.
 	 * @public
 	 */
-	onDragShapesOut?(shape: Shape, shapes: TLShape[]): void
+	onDragShapesOut?(shape: Shape, shapes: TLShape[], info: TLDragShapesOutInfo): void
 
 	/**
 	 * A callback called when some other shapes are dropped over this one.
@@ -549,7 +550,7 @@ export abstract class ShapeUtil<Shape extends TLUnknownShape = TLUnknownShape> {
 	 * @param shapes - The shapes that are being dropped over this one.
 	 * @public
 	 */
-	onDropShapesOver?(shape: Shape, shapes: TLShape[]): void
+	onDropShapesOver?(shape: Shape, shapes: TLShape[], info: TLDropShapesOverInfo): void
 
 	/**
 	 * A callback called when a shape starts being resized.
@@ -746,6 +747,36 @@ export interface TLCropInfo<T extends TLShape> {
 	uncroppedSize: { w: number; h: number }
 	initialShape: T
 	aspectRatioLocked?: boolean
+}
+
+/** @public */
+export interface TLDragShapesInInfo {
+	initialDraggingOverShapeId: TLShapeId | null
+	prevDraggingOverShapeId: TLShapeId | null
+	initialParentIds: Map<TLShapeId, TLParentId>
+	initialIndices: Map<TLShapeId, IndexKey>
+}
+
+/** @public */
+export interface TLDragShapesOverInfo {
+	initialDraggingOverShapeId: TLShapeId | null
+	initialParentIds: Map<TLShapeId, TLParentId>
+	initialIndices: Map<TLShapeId, IndexKey>
+}
+
+/** @public */
+export interface TLDragShapesOutInfo {
+	nextDraggingOverShapeId: TLShapeId | null
+	initialDraggingOverShapeId: TLShapeId | null
+	initialParentIds: Map<TLShapeId, TLParentId>
+	initialIndices: Map<TLShapeId, IndexKey>
+}
+
+/** @public */
+export interface TLDropShapesOverInfo {
+	initialDraggingOverShapeId: TLShapeId | null
+	initialParentIds: Map<TLShapeId, TLParentId>
+	initialIndices: Map<TLShapeId, IndexKey>
 }
 
 /**

@@ -1,6 +1,7 @@
 import {
 	approximately,
 	isEqual,
+	kickoutOccludedShapes,
 	modulate,
 	TLImageShape,
 	TLShapePartial,
@@ -18,7 +19,6 @@ import {
 	getDefaultCrop,
 	MAX_ZOOM,
 } from '../../../shapes/shared/crop'
-import { kickoutOccludedShapes } from '../../../tools/SelectTool/selectHelpers'
 import { useActions } from '../../context/actions'
 import { useUiEvents } from '../../context/events'
 import { useTranslation } from '../../hooks/useTranslation/useTranslation'

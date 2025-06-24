@@ -81,6 +81,8 @@ import { TLDefaultFontStyle } from '@tldraw/editor';
 import { TLDefaultHorizontalAlignStyle } from '@tldraw/editor';
 import { TLDefaultSizeStyle } from '@tldraw/editor';
 import { TLDefaultVerticalAlignStyle } from '@tldraw/editor';
+import { TLDragShapesOutInfo } from '@tldraw/editor';
+import { TLDragShapesOverInfo } from '@tldraw/editor';
 import { TldrawEditorBaseProps } from '@tldraw/editor';
 import { TldrawEditorStoreProps } from '@tldraw/editor';
 import { TLDrawShape } from '@tldraw/editor';
@@ -1452,11 +1454,9 @@ export class FrameShapeTool extends BaseBoxShapeTool {
 // @public (undocumented)
 export class FrameShapeUtil extends BaseBoxShapeUtil<TLFrameShape> {
     // (undocumented)
-    canDropShapes(shape: TLFrameShape, _shapes: TLShape[]): boolean;
-    // (undocumented)
     canEdit(): boolean;
     // (undocumented)
-    canReceiveNewChildrenOfType(shape: TLShape, _type: TLShape['type']): boolean;
+    canReceiveNewChildrenOfType(shape: TLShape): boolean;
     // (undocumented)
     canResize(): boolean;
     // (undocumented)
@@ -1496,9 +1496,9 @@ export class FrameShapeUtil extends BaseBoxShapeUtil<TLFrameShape> {
         type: "frame";
     } | undefined;
     // (undocumented)
-    onDragShapesOut(_shape: TLFrameShape, shapes: TLShape[]): void;
+    onDragShapesIn(shape: TLFrameShape, draggingShapes: TLShape[], { initialParentIds, initialIndices }: TLDragShapesOverInfo): void;
     // (undocumented)
-    onDragShapesOver(frame: TLFrameShape, shapes: TLShape[]): void;
+    onDragShapesOut(shape: TLFrameShape, draggingShapes: TLShape[], info: TLDragShapesOutInfo): void;
     // (undocumented)
     onResize(shape: any, info: TLResizeInfo<any>): any;
     // (undocumented)
@@ -1703,9 +1703,6 @@ export function getEmbedInfo(definitions: readonly TLEmbedDefinition[], inputUrl
 // @public (undocumented)
 export function getMediaAssetInfoPartial(file: File, assetId: TLAssetId, isImageType: boolean, isVideoType: boolean, maxImageDimension?: number): Promise<TLImageAsset | TLVideoAsset>;
 
-// @public (undocumented)
-export function getOccludedChildren(editor: Editor, parent: TLShape): TLShapeId[];
-
 // @public
 export function getUncroppedSize(shapeSize: {
     h: number;
@@ -1854,9 +1851,6 @@ export const KeyboardShiftEnterTweakExtension: Extension<any, any>;
 
 // @public (undocumented)
 export function KeyboardShortcutsMenuItem(): JSX_2.Element | null;
-
-// @internal (undocumented)
-export function kickoutOccludedShapes(editor: Editor, shapeIds: TLShapeId[]): void;
 
 // @public (undocumented)
 export const LABEL_FONT_SIZES: Record<TLDefaultSizeStyle, number>;

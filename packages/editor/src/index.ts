@@ -182,6 +182,10 @@ export { BaseBoxShapeUtil, type TLBaseBoxShape } from './lib/editor/shapes/BaseB
 export {
 	ShapeUtil,
 	type TLCropInfo,
+	type TLDragShapesInInfo,
+	type TLDragShapesOutInfo,
+	type TLDragShapesOverInfo,
+	type TLDropShapesOverInfo,
 	type TLGeometryOpts,
 	type TLHandleDragInfo,
 	type TLResizeInfo,
@@ -446,6 +450,7 @@ export { hardResetEditor } from './lib/utils/hardResetEditor'
 export { isAccelKey } from './lib/utils/keyboard'
 export { normalizeWheel } from './lib/utils/normalizeWheel'
 export { refreshPage } from './lib/utils/refreshPage'
+export { getDroppedShapesToNewParents, kickoutOccludedShapes } from './lib/utils/reparenting'
 export {
 	getFontsFromRichText,
 	type RichTextFontVisitor,
