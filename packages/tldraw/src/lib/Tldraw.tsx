@@ -7,6 +7,7 @@ import {
 	TldrawEditor,
 	TldrawEditorBaseProps,
 	TldrawEditorStoreProps,
+	defaultUserPreferences,
 	mergeArraysAndReplaceDefaults,
 	useEditor,
 	useEditorComponents,
@@ -33,12 +34,17 @@ import { defaultTools } from './defaultTools'
 import { EmbedShapeUtil } from './shapes/embed/EmbedShapeUtil'
 import { allDefaultFontFaces } from './shapes/shared/defaultFonts'
 import { TldrawUi, TldrawUiProps } from './ui/TldrawUi'
-import { TLUiAssetUrlOverrides } from './ui/assetUrls'
+import { TLUiAssetUrlOverrides, useDefaultUiAssetUrlsWithOverrides } from './ui/assetUrls'
 import { LoadingScreen } from './ui/components/LoadingScreen'
 import { Spinner } from './ui/components/Spinner'
+import { AssetUrlsProvider } from './ui/context/asset-urls'
 import { TLUiComponents, useTldrawUiComponents } from './ui/context/components'
 import { useToasts } from './ui/context/toasts'
-import { useTranslation } from './ui/hooks/useTranslation/useTranslation'
+import {
+	TldrawUiTranslationProvider,
+	useTranslation,
+} from './ui/hooks/useTranslation/useTranslation'
+import { useMergedTranslationOverrides } from './ui/overrides'
 import { useDefaultEditorAssetsWithOverrides } from './utils/static-assets/assetUrls'
 import { defaultAddFontsFromNode, tipTapDefaultExtensions } from './utils/text/richText'
 
@@ -163,27 +169,37 @@ export function Tldraw(props: TldrawProps) {
 	}
 
 	return (
-		<TldrawEditor
-			initialState="select"
-			{...rest}
-			components={componentsWithDefault}
-			shapeUtils={shapeUtilsWithDefaults}
-			bindingUtils={bindingUtilsWithDefaults}
-			tools={toolsWithDefaults}
-			textOptions={textOptionsWithDefaults}
-			assetUrls={assets}
-		>
-			<TldrawUi {...rest} components={componentsWithDefault} mediaMimeTypes={mediaMimeTypes}>
-				<InsideOfEditorAndUiContext
-					maxImageDimension={maxImageDimension}
-					maxAssetSize={maxAssetSize}
-					acceptedImageMimeTypes={_imageMimeTypes}
-					acceptedVideoMimeTypes={_videoMimeTypes}
-					onMount={onMount}
-				/>
-				{children}
-			</TldrawUi>
-		</TldrawEditor>
+		// We provide an extra higher layer of asset+translations providers here so that
+		// loading UI (which is rendered outside of TldrawUi) may be translated.
+		// Ideally we would refactor to hoist all the UI context providers we can up here. Maybe later.
+		<AssetUrlsProvider assetUrls={useDefaultUiAssetUrlsWithOverrides(rest.assetUrls)}>
+			<TldrawUiTranslationProvider
+				overrides={useMergedTranslationOverrides(rest.overrides)}
+				locale={rest.user?.userPreferences.get().locale ?? defaultUserPreferences.locale}
+			>
+				<TldrawEditor
+					initialState="select"
+					{...rest}
+					components={componentsWithDefault}
+					shapeUtils={shapeUtilsWithDefaults}
+					bindingUtils={bindingUtilsWithDefaults}
+					tools={toolsWithDefaults}
+					textOptions={textOptionsWithDefaults}
+					assetUrls={assets}
+				>
+					<TldrawUi {...rest} components={componentsWithDefault} mediaMimeTypes={mediaMimeTypes}>
+						<InsideOfEditorAndUiContext
+							maxImageDimension={maxImageDimension}
+							maxAssetSize={maxAssetSize}
+							acceptedImageMimeTypes={_imageMimeTypes}
+							acceptedVideoMimeTypes={_videoMimeTypes}
+							onMount={onMount}
+						/>
+						{children}
+					</TldrawUi>
+				</TldrawEditor>
+			</TldrawUiTranslationProvider>
+		</AssetUrlsProvider>
 	)
 }
 
