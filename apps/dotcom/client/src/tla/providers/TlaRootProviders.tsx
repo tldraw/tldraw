@@ -17,6 +17,7 @@ import {
 	useToasts,
 	useValue,
 } from 'tldraw'
+import { ErrorPage } from '../../components/ErrorPage/ErrorPage'
 import { SignedInAnalytics, SignedOutAnalytics } from '../../utils/analytics'
 import { globalEditor } from '../../utils/globalEditor'
 import { MaybeForceUserRefresh } from '../components/MaybeForceUserRefresh/MaybeForceUserRefresh'
@@ -24,7 +25,7 @@ import { components } from '../components/TlaEditor/TlaEditor'
 import { AppStateProvider, useMaybeApp } from '../hooks/useAppState'
 import { UserProvider } from '../hooks/useUser'
 import '../styles/tla.css'
-import { IntlProvider, setupCreateIntl } from '../utils/i18n'
+import { IntlProvider, defineMessages, setupCreateIntl, useIntl } from '../utils/i18n'
 import {
 	clearLocalSessionState,
 	getLocalSessionState,
@@ -33,6 +34,12 @@ import {
 import { FileSidebarFocusContextProvider } from './FileInputFocusProvider'
 
 const assetUrls = getAssetUrlsByImport()
+
+export const appMessages = defineMessages({
+	oldBrowser: {
+		defaultMessage: 'Old browser detected. Please update your browser to use this app.',
+	},
+})
 
 // @ts-ignore this is fine
 const PUBLISHABLE_KEY = import.meta.env.VITE_CLERK_PUBLISHABLE_KEY
@@ -149,6 +156,7 @@ function SignedInProvider({
 	onLocaleChange(locale: string): void
 }) {
 	const auth = useAuth()
+	const intl = useIntl()
 	const { user, isLoaded: isUserLoaded } = useClerkUser()
 	const [currentLocale, setCurrentLocale] = useState<string>(
 		globalEditor.get()?.user.getUserPreferences().locale ?? 'en'
@@ -176,6 +184,19 @@ function SignedInProvider({
 	}, [auth.userId, auth.isSignedIn])
 
 	if (!auth.isLoaded) return null
+
+	// Old browsers check.
+	if (!('findLastIndex' in Array.prototype)) {
+		return (
+			<ErrorPage
+				messages={{
+					header: intl.formatMessage(appMessages.oldBrowser),
+					para1: '',
+				}}
+				cta={null}
+			/>
+		)
+	}
 
 	if (!auth.isSignedIn || !user || !isUserLoaded) {
 		return (
