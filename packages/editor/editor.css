@@ -1316,6 +1316,7 @@ input,
 	font-weight: bold;
 	padding-bottom: var(--space-2);
 	overflow: hidden;
+	max-height: calc((16px * 1.6) * 2);
 	-webkit-box-orient: vertical;
 	-webkit-line-clamp: 2;
 	line-clamp: 2;
