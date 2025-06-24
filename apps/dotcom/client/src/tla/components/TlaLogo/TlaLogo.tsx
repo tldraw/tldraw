@@ -1,7 +1,8 @@
-import { useLayoutEffect, useRef } from 'react'
+import classNames from 'classnames'
+import { HTMLAttributes, useLayoutEffect, useRef } from 'react'
 import styles from './logo.module.css'
 
-export function TlaLogo() {
+export function TlaLogo(props: HTMLAttributes<HTMLDivElement>) {
 	const ref = useRef<HTMLDivElement>(null)
 
 	useLayoutEffect(() => {
@@ -12,13 +13,15 @@ export function TlaLogo() {
 
 	return (
 		<span
-			ref={ref}
-			aria-hidden="true"
-			className={styles.logo}
+			data-testid="tla-sidebar-logo-icon"
 			role="img"
+			ref={ref}
+			{...props}
 			style={{
 				mask: `url(/tldraw_sidebar_logo.svg) center 100% / 100% no-repeat`,
+				...props.style,
 			}}
+			className={classNames(styles.logo, props.className)}
 		/>
 	)
 }
