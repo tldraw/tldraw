@@ -7937,6 +7937,8 @@ export class Editor extends EventEmitter<TLEventMap> {
 				}
 			})
 
+			this.emit('created-shapes', shapeRecordsToCreate)
+			this.emit('edit')
 			this.store.put(shapeRecordsToCreate)
 		})
 
@@ -8331,6 +8333,8 @@ export class Editor extends EventEmitter<TLEventMap> {
 				updates.push(updated)
 			}
 
+			this.emit('edited-shapes', updates)
+			this.emit('edit')
 			this.store.put(updates)
 		})
 	}
@@ -8380,6 +8384,8 @@ export class Editor extends EventEmitter<TLEventMap> {
 			})
 		}
 
+		this.emit('deleted-shapes', [...allShapeIdsToDelete])
+		this.emit('edit')
 		return this.run(() => this.store.remove([...allShapeIdsToDelete]))
 	}
 

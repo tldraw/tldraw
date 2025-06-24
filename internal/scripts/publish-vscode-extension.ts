@@ -70,7 +70,7 @@ async function copyExtensionToReleaseFolder(version: string) {
 
 	nicelog('Committing extension to git...')
 	await exec('git', ['add', '-f', targetPath])
-	await exec('git', ['commit', '-m', `Add VSCode extension v${version}`])
+	await exec('git', ['commit', '-m', `Add VSCode extension v${version} [skip ci]`])
 	nicelog('Pushing changes to remote repository...')
 	await exec('git', ['push'])
 }
@@ -80,6 +80,7 @@ async function packageAndPublish(version: string) {
 	switch (env.TLDRAW_ENV) {
 		case 'production':
 			await exec('yarn', ['package'], { pwd: EXTENSION_DIR })
+			await copyExtensionToReleaseFolder(version)
 			await exec('yarn', ['publish'], { pwd: EXTENSION_DIR })
 			return
 		case 'staging':
