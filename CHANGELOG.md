@@ -1,3 +1,36 @@
+# v3.13.2 (Tue Jun 24 2025)
+
+### Release Notes
+
+#### Fix LoadingScreen context usage ([#6309](https://github.com/tldraw/tldraw/pull/6309))
+
+- Fixed a bug where tldraw was ignoring custom asset URL configuration for the LoadingScreen component, causing spurious requests to cdn.tldraw.com.
+
+---
+
+#### 🐛 Bug Fix
+
+- [hotfix] Update landing page link to the upcoming AI starter template [#6227](https://github.com/tldraw/tldraw/pull/6227) ([@TodePond](https://github.com/TodePond))
+- Fix overscroll on docs [#6171](https://github.com/tldraw/tldraw/pull/6171) ([@TodePond](https://github.com/TodePond) [@steveruizok](https://github.com/steveruizok))
+- Remove autodesk from announcement [#6185](https://github.com/tldraw/tldraw/pull/6185) ([@steveruizok](https://github.com/steveruizok))
+- Remove references to Yjs and make clear our recommendations re: tldraw sync [#6183](https://github.com/tldraw/tldraw/pull/6183) ([@TodePond](https://github.com/TodePond))
+- Fix docs pages overscrolling from page links [#6172](https://github.com/tldraw/tldraw/pull/6172) ([@TodePond](https://github.com/TodePond))
+- hotfix analytics on .dev to check Vercel baselines/link session traversal [#6151](https://github.com/tldraw/tldraw/pull/6151) ([@mimecuvalo](https://github.com/mimecuvalo))
+
+#### 🐛 Bug Fixes
+
+- `tldraw`
+  - Fix LoadingScreen context usage [#6309](https://github.com/tldraw/tldraw/pull/6309) ([@ds300](https://github.com/ds300))
+
+#### Authors: 4
+
+- David Sheldrick ([@ds300](https://github.com/ds300))
+- Lu Wilson ([@TodePond](https://github.com/TodePond))
+- Mime Čuvalo ([@mimecuvalo](https://github.com/mimecuvalo))
+- Steve Ruiz ([@steveruizok](https://github.com/steveruizok))
+
+---
+
 # v3.13.1 (Fri May 23 2025)
 
 ### Release Notes

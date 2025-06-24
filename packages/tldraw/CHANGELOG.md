@@ -1,3 +1,23 @@
+# v3.13.2 (Tue Jun 24 2025)
+
+### Release Notes
+
+#### Fix LoadingScreen context usage ([#6309](https://github.com/tldraw/tldraw/pull/6309))
+
+- Fixed a bug where tldraw was ignoring custom asset URL configuration for the LoadingScreen component, causing spurious requests to cdn.tldraw.com.
+
+---
+
+#### 🐛 Bug Fixes
+
+- Fix LoadingScreen context usage [#6309](https://github.com/tldraw/tldraw/pull/6309) ([@ds300](https://github.com/ds300))
+
+#### Authors: 1
+
+- David Sheldrick ([@ds300](https://github.com/ds300))
+
+---
+
 # v3.13.1 (Fri May 23 2025)
 
 ### Release Notes
