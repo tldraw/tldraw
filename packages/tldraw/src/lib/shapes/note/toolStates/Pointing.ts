@@ -41,7 +41,12 @@ export class Pointing extends StateNode {
 		if (offset) {
 			center.sub(offset)
 		}
-		this.shape = createNoteShape(this.editor, id, center)
+		const shape = createNoteShape(this.editor, id, center)
+		if (shape) {
+			this.shape = shape
+		} else {
+			this.cancel()
+		}
 	}
 
 	override onPointerMove(info: TLPointerEventInfo) {
@@ -124,7 +129,11 @@ export function createNoteShape(editor: Editor, id: TLShapeId, center: Vec) {
 		})
 		.select(id)
 
-	const shape = editor.getShape<TLNoteShape>(id)!
+	const shape = editor.getShape<TLNoteShape>(id)
+	if (!shape) {
+		return
+	}
+
 	const bounds = editor.getShapeGeometry(shape).bounds
 	const newPoint = maybeSnapToGrid(
 		new Vec(shape.x - bounds.width / 2, shape.y - bounds.height / 2),
@@ -141,5 +150,5 @@ export function createNoteShape(editor: Editor, id: TLShapeId, center: Vec) {
 		},
 	])
 
-	return editor.getShape<TLNoteShape>(id)!
+	return editor.getShape<TLNoteShape>(id)
 }
