@@ -18,14 +18,20 @@ import { pointInPolygon } from '../primitives/utils'
  *
  * @param editor - The editor instance.
  * @param shapeIds - The IDs of the shapes to reparent.
+ * @param opts - Optional options, including a callback to filter out certain parents, such as when removing a frame.
  *
  * @public
  */
-export function kickoutOccludedShapes(editor: Editor, shapeIds: TLShapeId[]) {
+export function kickoutOccludedShapes(
+	editor: Editor,
+	shapeIds: TLShapeId[],
+	opts?: { filter?(parent: TLShape): boolean }
+) {
 	const parentsToCheck = new Set<TLShape>()
 
 	for (const id of shapeIds) {
 		const shape = editor.getShape(id)
+
 		if (!shape) continue
 		parentsToCheck.add(shape)
 
@@ -39,12 +45,17 @@ export function kickoutOccludedShapes(editor: Editor, shapeIds: TLShapeId[]) {
 
 	for (const parent of parentsToCheck) {
 		const childIds = editor.getSortedChildIdsForParent(parent)
-		const overlappingChildren = getOverlappingShapes(editor, parent.id, childIds)
-		if (overlappingChildren.length < childIds.length) {
-			parentsToLostChildren.set(
-				parent,
-				childIds.filter((id) => !overlappingChildren.includes(id))
-			)
+		if (opts?.filter && !opts.filter(parent)) {
+			// If the shape is filtered out, we kick out all of its children
+			parentsToLostChildren.set(parent, childIds)
+		} else {
+			const overlappingChildren = getOverlappingShapes(editor, parent.id, childIds)
+			if (overlappingChildren.length < childIds.length) {
+				parentsToLostChildren.set(
+					parent,
+					childIds.filter((id) => !overlappingChildren.includes(id))
+				)
+			}
 		}
 	}
 
@@ -67,9 +78,14 @@ export function kickoutOccludedShapes(editor: Editor, shapeIds: TLShapeId[]) {
 		const { reparenting, remainingShapesToReparent } = getDroppedShapesToNewParents(
 			editor,
 			lostChildren,
-			(shape, maybeNewParent) =>
-				maybeNewParent.id !== prevParent.id &&
-				sortedShapeIds.indexOf(maybeNewParent.id) < sortedShapeIds.indexOf(shape.id)
+			(shape, maybeNewParent) => {
+				// If we're filtering out a potential parent, don't reparent shapes to the filtered out shape
+				if (opts?.filter && !opts.filter(maybeNewParent)) return false
+				return (
+					maybeNewParent.id !== prevParent.id &&
+					sortedShapeIds.indexOf(maybeNewParent.id) < sortedShapeIds.indexOf(shape.id)
+				)
+			}
 		)
 
 		reparenting.forEach((childrenToReparent, newParentId) => {
@@ -283,7 +299,11 @@ export function getDroppedShapesToNewParents(
 	const potentialParentShapes = editor
 		.getCurrentPageShapesSorted()
 		// filter out any shapes that aren't frames or that are included among the provided shapes
-		.filter((s) => editor.getShapeUtil(s).canDropShapes(s) && !remainingShapesToReparent.has(s))
+		.filter(
+			(s) =>
+				editor.getShapeUtil(s).canReceiveNewChildrenOfType?.(s, s.type) &&
+				!remainingShapesToReparent.has(s)
+		)
 
 	parentCheck: for (let i = potentialParentShapes.length - 1; i >= 0; i--) {
 		const parentShape = potentialParentShapes[i]
@@ -336,7 +356,10 @@ export function getDroppedShapesToNewParents(
 			// If the shape overlaps the parent polygon, reparent it to that parent
 			if (doesGeometryOverlapPolygon(editor.getShapeGeometry(shape), parentPolygonInShapeSpace)) {
 				// Use the util to check if the shape can be reparented to the parent
-				if (!editor.getShapeUtil(parentShape).canDropShape(parentShape, shape)) continue shapeCheck
+				if (
+					!editor.getShapeUtil(parentShape).canReceiveNewChildrenOfType?.(parentShape, shape.type)
+				)
+					continue shapeCheck
 
 				if (shape.parentId !== parentShape.id) {
 					childrenToReparent.push(shape)

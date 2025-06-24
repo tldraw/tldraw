@@ -7,6 +7,8 @@ import {
 	SVGContainer,
 	SvgExportContext,
 	TLClickEventInfo,
+	TLDragShapesOutInfo,
+	TLDragShapesOverInfo,
 	TLFrameShape,
 	TLFrameShapeProps,
 	TLResizeInfo,
@@ -328,11 +330,7 @@ export class FrameShapeUtil extends BaseBoxShapeUtil<TLFrameShape> {
 		return true
 	}
 
-	override canDropShape(shape: TLShape) {
-		return !shape.isLocked
-	}
-
-	override canDropShapes(shape: TLFrameShape): boolean {
+	override canReceiveNewChildrenOfType(shape: TLShape) {
 		return !shape.isLocked
 	}
 
@@ -397,6 +395,71 @@ export class FrameShapeUtil extends BaseBoxShapeUtil<TLFrameShape> {
 		return {
 			id: shape.id,
 			type: shape.type,
+		}
+	}
+
+	override onDragShapesIn(
+		shape: TLFrameShape,
+		draggingShapes: TLShape[],
+		{ initialParentIds, initialIndices }: TLDragShapesOverInfo
+	) {
+		const { editor } = this
+
+		if (draggingShapes.every((s) => s.parentId === shape.id)) return
+
+		if (initialIndices && initialParentIds) {
+			// Check to see whether any of the shapes can have their old index restored
+			let canRestoreOriginalIndices = false
+			const previousChildren = draggingShapes.filter((s) => shape.id === initialParentIds.get(s.id))
+
+			if (previousChildren.length > 0) {
+				const currentChildren = compact(
+					editor.getSortedChildIdsForParent(shape).map((id) => editor.getShape(id))
+				)
+				if (previousChildren.every((s) => !currentChildren.find((c) => c.index === s.index))) {
+					canRestoreOriginalIndices = true
+				}
+			}
+
+			// Reparent the shapes to the new parent
+			editor.reparentShapes(draggingShapes, shape.id)
+
+			// If we can restore the original indices, then do so
+			if (canRestoreOriginalIndices) {
+				for (const shape of previousChildren) {
+					editor.updateShape({
+						id: shape.id,
+						type: shape.type,
+						index: initialIndices.get(shape.id),
+					})
+				}
+			}
+		} else {
+			// If we don't have initial indices, then do simple reparenting
+			editor.reparentShapes(
+				draggingShapes.filter(
+					(s) => s.parentId !== shape.id && this.canReceiveNewChildrenOfType(s)
+				),
+				shape.id
+			)
+		}
+	}
+
+	override onDragShapesOut(
+		shape: TLFrameShape,
+		draggingShapes: TLShape[],
+		info: TLDragShapesOutInfo
+	): void {
+		const { editor } = this
+		// When a user drags shapes out of a frame, and if we're not dragging into a new shape, then reparent
+		// the dragging shapes (that are current children of the frame) onto the current page instead
+		if (!info.nextDraggingOverShapeId) {
+			editor.reparentShapes(
+				draggingShapes.filter(
+					(s) => s.parentId === shape.id && this.canReceiveNewChildrenOfType(s)
+				),
+				editor.getCurrentPageId()
+			)
 		}
 	}
 }

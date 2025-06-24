@@ -2024,7 +2024,9 @@ export const isAccelKey: <InputType extends {
 export const isSafeFloat: (n: number) => boolean;
 
 // @public
-export function kickoutOccludedShapes(editor: Editor, shapeIds: TLShapeId[]): void;
+export function kickoutOccludedShapes(editor: Editor, shapeIds: TLShapeId[], opts?: {
+    filter?(parent: TLShape): boolean;
+}): void;
 
 // @internal (undocumented)
 export type LicenseFromKeyResult = InvalidLicenseKeyResult | ValidLicenseKeyResult;
@@ -2540,10 +2542,9 @@ export abstract class ShapeUtil<Shape extends TLUnknownShape = TLUnknownShape> {
     canBeLaidOut(_shape: Shape, _info: TLShapeUtilCanBeLaidOutOpts): boolean;
     canBind(_opts: TLShapeUtilCanBindOpts): boolean;
     canCrop(_shape: Shape): boolean;
-    canDropShape(_shape: Shape, _droppedShape: TLShapePartial): boolean;
-    canDropShapes(_shape: Shape): boolean;
     canEdit(_shape: Shape): boolean;
     canEditInReadonly(_shape: Shape): boolean;
+    canReceiveNewChildrenOfType(_shape: Shape, _type: TLShape['type']): boolean;
     canResize(_shape: Shape): boolean;
     canResizeChildren(_shape: Shape): boolean;
     canScroll(_shape: Shape): boolean;
@@ -2587,9 +2588,10 @@ export abstract class ShapeUtil<Shape extends TLUnknownShape = TLUnknownShape> {
     onDoubleClickCorner?(shape: Shape, info: TLClickEventInfo): TLShapePartial<Shape> | void;
     onDoubleClickEdge?(shape: Shape, info: TLClickEventInfo): TLShapePartial<Shape> | void;
     onDoubleClickHandle?(shape: Shape, handle: TLHandle): TLShapePartial<Shape> | void;
-    onDragShapesOut?(shape: Shape, shapes: TLShape[]): void;
-    onDragShapesOver?(shape: Shape, shapes: TLShape[]): void;
-    onDropShapesOver?(shape: Shape, shapes: TLShape[]): void;
+    onDragShapesIn?(shape: Shape, shapes: TLShape[], info: TLDragShapesInInfo): void;
+    onDragShapesOut?(shape: Shape, shapes: TLShape[], info: TLDragShapesOutInfo): void;
+    onDragShapesOver?(shape: Shape, shapes: TLShape[], info: TLDragShapesOverInfo): void;
+    onDropShapesOver?(shape: Shape, shapes: TLShape[], info: TLDropShapesOverInfo): void;
     onEditEnd?(shape: Shape): void;
     onEditStart?(shape: Shape): void;
     onHandleDrag?(shape: Shape, info: TLHandleDragInfo<Shape>): TLShapePartial<Shape> | void;
@@ -3103,6 +3105,40 @@ export interface TLDeepLinkOptions {
 }
 
 // @public (undocumented)
+export interface TLDragShapesInInfo {
+    // (undocumented)
+    initialDraggingOverShapeId: null | TLShapeId;
+    // (undocumented)
+    initialIndices: Map<TLShapeId, IndexKey>;
+    // (undocumented)
+    initialParentIds: Map<TLShapeId, TLParentId>;
+    // (undocumented)
+    prevDraggingOverShapeId: null | TLShapeId;
+}
+
+// @public (undocumented)
+export interface TLDragShapesOutInfo {
+    // (undocumented)
+    initialDraggingOverShapeId: null | TLShapeId;
+    // (undocumented)
+    initialIndices: Map<TLShapeId, IndexKey>;
+    // (undocumented)
+    initialParentIds: Map<TLShapeId, TLParentId>;
+    // (undocumented)
+    nextDraggingOverShapeId: null | TLShapeId;
+}
+
+// @public (undocumented)
+export interface TLDragShapesOverInfo {
+    // (undocumented)
+    initialDraggingOverShapeId: null | TLShapeId;
+    // (undocumented)
+    initialIndices: Map<TLShapeId, IndexKey>;
+    // (undocumented)
+    initialParentIds: Map<TLShapeId, TLParentId>;
+}
+
+// @public (undocumented)
 export const TldrawEditor: React_2.NamedExoticComponent<TldrawEditorProps>;
 
 // @public
@@ -3235,6 +3271,16 @@ export interface TldrawOptions {
     readonly temporaryAssetPreviewLifetimeMs: number;
     // (undocumented)
     readonly textShadowLod: number;
+}
+
+// @public (undocumented)
+export interface TLDropShapesOverInfo {
+    // (undocumented)
+    initialDraggingOverShapeId: null | TLShapeId;
+    // (undocumented)
+    initialIndices: Map<TLShapeId, IndexKey>;
+    // (undocumented)
+    initialParentIds: Map<TLShapeId, TLParentId>;
 }
 
 // @public (undocumented)

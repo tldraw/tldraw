@@ -1019,6 +1019,43 @@ describe('When deleting/removing a frame', () => {
 		removeFrame(editor, [frame1Id])
 		expect(editor.getShape(rectId)?.parentId).toBe(frame2Id)
 	})
+
+	it('reparents shape from removed frame to overlapping frame', () => {
+		// Create first frame (0,0) to (100,100)
+		const frame1Id = dragCreateFrame({ down: [0, 0], move: [100, 100], up: [100, 100] })
+
+		// Create second frame that overlaps with first frame (50,50) to (150,150)
+		// We create it outside first, then move it to overlap to avoid auto-parenting
+		const frame2Id = dragCreateFrame({ down: [200, 200], move: [300, 300], up: [300, 300] })
+
+		// Move frame2 to overlap with frame1 while keeping it parented to the page
+		editor.updateShape({
+			id: frame2Id,
+			type: 'frame',
+			x: 50,
+			y: 50,
+		})
+
+		// Verify frame2 is parented to the page, not inside frame1
+		expect(editor.getShape(frame2Id)?.parentId).toBe(editor.getCurrentPageId())
+
+		// Create a shape inside frame2, positioned in the overlapping area (70,70)
+		const rectId = createRect({ pos: [70, 70], size: [20, 20] })
+
+		// Verify the shape is initially parented to frame2
+		expect(editor.getShape(rectId)?.parentId).toBe(frame2Id)
+
+		// Remove frame2 - the shape should be reparented to frame1 since it's in the overlapping area
+		removeFrame(editor, [frame2Id])
+
+		// Verify the shape is now parented to frame1
+		expect(editor.getShape(rectId)?.parentId).toBe(frame1Id)
+
+		// Verify frame2 is removed but frame1 and the shape still exist
+		expect(editor.getShape(frame2Id)).toBeUndefined()
+		expect(editor.getShape(frame1Id)).toBeDefined()
+		expect(editor.getShape(rectId)).toBeDefined()
+	})
 })
 
 describe('When dragging a shape', () => {

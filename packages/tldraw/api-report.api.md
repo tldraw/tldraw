@@ -81,6 +81,8 @@ import { TLDefaultFontStyle } from '@tldraw/editor';
 import { TLDefaultHorizontalAlignStyle } from '@tldraw/editor';
 import { TLDefaultSizeStyle } from '@tldraw/editor';
 import { TLDefaultVerticalAlignStyle } from '@tldraw/editor';
+import { TLDragShapesOutInfo } from '@tldraw/editor';
+import { TLDragShapesOverInfo } from '@tldraw/editor';
 import { TldrawEditorBaseProps } from '@tldraw/editor';
 import { TldrawEditorStoreProps } from '@tldraw/editor';
 import { TLDrawShape } from '@tldraw/editor';
@@ -1450,11 +1452,9 @@ export class FrameShapeTool extends BaseBoxShapeTool {
 // @public (undocumented)
 export class FrameShapeUtil extends BaseBoxShapeUtil<TLFrameShape> {
     // (undocumented)
-    canDropShape(shape: TLShape): boolean;
-    // (undocumented)
-    canDropShapes(shape: TLFrameShape): boolean;
-    // (undocumented)
     canEdit(): boolean;
+    // (undocumented)
+    canReceiveNewChildrenOfType(shape: TLShape): boolean;
     // (undocumented)
     canResize(): boolean;
     // (undocumented)
@@ -1493,6 +1493,10 @@ export class FrameShapeUtil extends BaseBoxShapeUtil<TLFrameShape> {
         };
         type: "frame";
     } | undefined;
+    // (undocumented)
+    onDragShapesIn(shape: TLFrameShape, draggingShapes: TLShape[], { initialParentIds, initialIndices }: TLDragShapesOverInfo): void;
+    // (undocumented)
+    onDragShapesOut(shape: TLFrameShape, draggingShapes: TLShape[], info: TLDragShapesOutInfo): void;
     // (undocumented)
     onResize(shape: any, info: TLResizeInfo<any>): any;
     // (undocumented)

@@ -5,6 +5,7 @@ import {
 	Rectangle2d,
 	ShapeUtil,
 	TLBaseShape,
+	TLDragShapesOutInfo,
 	TLShape,
 	Tldraw,
 } from 'tldraw'
@@ -76,14 +77,26 @@ class MyGridShapeUtil extends ShapeUtil<MyGridShape> {
 		return true
 	}
 
-	// [4]
-	override canDropShapes(shape: MyGridShape): boolean {
-		return !shape.isLocked
+	// [5]
+	override onDragShapesIn(shape: MyGridShape, draggingShapes: TLShape[]): void {
+		const { editor } = this
+		const reparentingShapes = draggingShapes.filter(
+			(s) => s.parentId !== shape.id && s.type === 'my-counter-shape'
+		)
+		if (reparentingShapes.length === 0) return
+		editor.reparentShapes(reparentingShapes, shape.id)
 	}
 
-	// [5]
-	override canDropShape(_shape: MyGridShape, droppedShape: TLShape): boolean {
-		return droppedShape.type === 'my-counter-shape'
+	override onDragShapesOut(
+		shape: MyGridShape,
+		draggingShapes: TLShape[],
+		info: TLDragShapesOutInfo
+	): void {
+		const { editor } = this
+		const reparentingShapes = draggingShapes.filter((s) => s.parentId !== shape.id)
+		if (!info.nextDraggingOverShapeId) {
+			editor.reparentShapes(reparentingShapes, editor.getCurrentPageId())
+		}
 	}
 
 	component() {

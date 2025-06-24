@@ -7768,8 +7768,7 @@ export class Editor extends EventEmitter<TLEventMap> {
 						const parent = currentPageShapesSorted[i]
 						const util = this.getShapeUtil(parent)
 						if (
-							util.canDropShapes(parent) &&
-							util.canDropShape(parent, partial as TLShapePartial) &&
+							util.canReceiveNewChildrenOfType(parent, partial.type) &&
 							!this.isShapeHidden(parent) &&
 							this.isPointInShape(
 								parent,
@@ -9458,6 +9457,8 @@ export class Editor extends EventEmitter<TLEventMap> {
 			previousPagePoint,
 			currentScreenPoint,
 			currentPagePoint,
+			originScreenPoint,
+			originPagePoint,
 		} = this.inputs
 
 		const { screenBounds } = this.store.unsafeGetWithoutCapture(TLINSTANCE_ID)!
@@ -9486,8 +9487,8 @@ export class Editor extends EventEmitter<TLEventMap> {
 		// Reset velocity on pointer down, or when a pinch starts or ends
 		if (info.name === 'pointer_down' || this.inputs.isPinching) {
 			pointerVelocity.set(0, 0)
-			this.inputs.originScreenPoint.setTo(currentScreenPoint)
-			this.inputs.originPagePoint.setTo(currentPagePoint)
+			originScreenPoint.setTo(currentScreenPoint)
+			originPagePoint.setTo(currentPagePoint)
 		}
 
 		// todo: We only have to do this if there are multiple users in the document
