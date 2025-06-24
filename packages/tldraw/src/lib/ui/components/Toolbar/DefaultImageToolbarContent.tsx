@@ -204,7 +204,7 @@ export const DefaultImageToolbarContent = track(function DefaultImageToolbarCont
 				elm.removeEventListener('keydown', handleKeyDown)
 			}
 		}
-	}, [editor, isManipulating])
+	}, [editor, isManipulating, onManipulatingEnd])
 
 	if (isManipulating) {
 		return (
