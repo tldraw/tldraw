@@ -39,15 +39,22 @@ export class Pointing extends StateNode {
 					},
 				])
 				.select(id)
-				.setCurrentTool('select.resizing', {
-					...info,
-					target: 'selection',
-					handle: 'bottom_right',
-					isCreating: true,
-					creatingMarkId,
-					creationCursorOffset: { x: 1, y: 1 },
-					onInteractionEnd: 'geo',
-				})
+
+			const shape = this.editor.getShape(id)
+			if (!shape) {
+				this.cancel()
+				return
+			}
+
+			this.editor.setCurrentTool('select.resizing', {
+				...info,
+				target: 'selection',
+				handle: 'bottom_right',
+				isCreating: true,
+				creatingMarkId,
+				creationCursorOffset: { x: 1, y: 1 },
+				onInteractionEnd: 'geo',
+			})
 		}
 	}
 
