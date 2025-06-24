@@ -510,7 +510,7 @@ export function getCroppedImageDataForAspectRatio(
 	const currentCropCenter = getCropCenter(currentCrop)
 
 	// Calculate the relative width and height of the crop rectangle (0-1 scale)
-	// that maximizes the area while fitting the original image and matching the target aspect ratio.
+	// Try to preserve the longest dimension of the current crop when changing aspect ratios
 	let newRelativeWidth: number
 	let newRelativeHeight: number
 
@@ -518,16 +518,48 @@ export function getCroppedImageDataForAspectRatio(
 		// Avoid division by zero or NaN issues if image dimensions are invalid or target ratio is 0
 		newRelativeWidth = 1
 		newRelativeHeight = 1
-	} else if (targetRatio / imageAspectRatio > 1) {
-		// Target aspect ratio is "wider" relative to the image aspect ratio.
-		// Width will be clipped to 1.0, calculate height accordingly.
-		newRelativeWidth = 1
-		newRelativeHeight = imageAspectRatio / targetRatio
 	} else {
-		// Target aspect ratio is "narrower" or equal relative to the image aspect ratio.
-		// Height will be clipped to 1.0, calculate width accordingly.
-		newRelativeHeight = 1
-		newRelativeWidth = targetRatio / imageAspectRatio
+		// Get current crop dimensions in absolute units
+		const currentAbsoluteWidth = cropW * uncroppedW
+		const currentAbsoluteHeight = cropH * uncroppedH
+
+		// Find the longest current dimension to preserve
+		const longestCurrentDimension = Math.max(currentAbsoluteWidth, currentAbsoluteHeight)
+		const isWidthLongest = currentAbsoluteWidth >= currentAbsoluteHeight
+
+		// Calculate new dimensions preserving the longest dimension
+		let newAbsoluteWidth: number
+		let newAbsoluteHeight: number
+
+		if (isWidthLongest) {
+			// Preserve width, calculate height based on target ratio
+			newAbsoluteWidth = longestCurrentDimension
+			newAbsoluteHeight = newAbsoluteWidth / targetRatio
+		} else {
+			// Preserve height, calculate width based on target ratio
+			newAbsoluteHeight = longestCurrentDimension
+			newAbsoluteWidth = newAbsoluteHeight * targetRatio
+		}
+
+		// Convert back to relative coordinates
+		newRelativeWidth = newAbsoluteWidth / uncroppedW
+		newRelativeHeight = newAbsoluteHeight / uncroppedH
+
+		// Clamp to image bounds and adjust if necessary
+		if (newRelativeWidth > 1) {
+			// Width exceeds bounds, clamp and recalculate height
+			newRelativeWidth = 1
+			newRelativeHeight = imageAspectRatio / targetRatio
+		}
+		if (newRelativeHeight > 1) {
+			// Height exceeds bounds, clamp and recalculate width
+			newRelativeHeight = 1
+			newRelativeWidth = targetRatio / imageAspectRatio
+		}
+
+		// Final clamp to ensure we stay within bounds
+		newRelativeWidth = Math.max(0, Math.min(1, newRelativeWidth))
+		newRelativeHeight = Math.max(0, Math.min(1, newRelativeHeight))
 	}
 
 	// Ensure dimensions are within [0, 1] bounds (should be handled by logic above, but clamps anyway)

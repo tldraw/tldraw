@@ -493,6 +493,123 @@ describe('getCroppedImageDataForAspectRatio', () => {
 		expect(cropCenterX).toBeCloseTo(0.5, 5)
 		expect(cropCenterY).toBeCloseTo(0.5, 5)
 	})
+
+	it('preserves longest dimension when changing from circle to landscape aspect ratio', () => {
+		// Start with a smaller circular crop on a larger image
+		const imageWithCircleCrop: TLImageShape = {
+			...shape,
+			props: {
+				...shape.props,
+				w: 60, // Current displayed size
+				h: 60,
+				crop: {
+					// Small circular crop in center, actual crop is 40x40 pixels of a 200x200 image
+					topLeft: { x: 0.3, y: 0.3 },
+					bottomRight: { x: 0.7, y: 0.7 },
+					isCircle: true,
+				},
+			},
+		}
+
+		// The uncropped image would be 150x150 (60 / 0.4 = 150)
+		// So the current crop represents 40x40 absolute pixels
+		const result = getCroppedImageDataForAspectRatio('landscape', imageWithCircleCrop)
+
+		// Should have 4:3 aspect ratio (landscape)
+		expect((result?.w as number) / (result?.h as number)).toBeCloseTo(4 / 3, 5)
+
+		// The longest dimension was 40 pixels (both width and height were equal)
+		// For landscape (4:3), if we preserve 40 pixels as width: height = 40 * (3/4) = 30
+		// If we preserve 40 pixels as height: width = 40 * (4/3) = 53.33
+		// Since both current dimensions are equal, we should preserve the first one (width)
+		// So we expect roughly: width preserved at ~40, height = 40 * (3/4) = 30
+
+		// Calculate the actual crop dimensions in absolute pixels
+		const cropWidth = (result!.crop.bottomRight.x - result!.crop.topLeft.x) * 150 // uncropped width
+		const cropHeight = (result!.crop.bottomRight.y - result!.crop.topLeft.y) * 150 // uncropped height
+
+		// The width should be preserved (approximately 60 pixels, the current crop width)
+		expect(cropWidth).toBeCloseTo(60, 1)
+		// The height should be adjusted to maintain 4:3 ratio
+		expect(cropHeight).toBeCloseTo(60 * (3 / 4), 1)
+	})
+
+	it('preserves longest dimension when changing from wide rectangle to square', () => {
+		// Start with a wide rectangular crop
+		const imageWithWideCrop: TLImageShape = {
+			...shape,
+			props: {
+				...shape.props,
+				w: 120, // Current displayed size
+				h: 60,
+				crop: {
+					// Wide crop: 80x40 pixels of a 100x100 image
+					topLeft: { x: 0.1, y: 0.3 },
+					bottomRight: { x: 0.9, y: 0.7 },
+				},
+			},
+		}
+
+		// The uncropped image would be 150x150 (120 / 0.8 = 150)
+		// Current crop represents 120x60 absolute pixels (80% x 40% of 150x150)
+		const result = getCroppedImageDataForAspectRatio('square', imageWithWideCrop)
+
+		// Should have 1:1 aspect ratio (square)
+		expect((result?.w as number) / (result?.h as number)).toBeCloseTo(1, 5)
+
+		// The longest dimension was width (120 pixels), so it should be preserved
+		// For square, both width and height should be 120 pixels
+
+		// Calculate the actual crop dimensions in absolute pixels
+		const cropWidth = (result!.crop.bottomRight.x - result!.crop.topLeft.x) * 150
+		const cropHeight = (result!.crop.bottomRight.y - result!.crop.topLeft.y) * 150
+
+		// Both should be equal to the preserved longest dimension
+		expect(cropWidth).toBeCloseTo(120, 1)
+		expect(cropHeight).toBeCloseTo(120, 1)
+	})
+
+	it('preserves longest dimension when changing from tall rectangle to wide rectangle', () => {
+		// Start with a tall rectangular crop
+		const imageWithTallCrop: TLImageShape = {
+			...shape,
+			props: {
+				...shape.props,
+				w: 40, // Current displayed size
+				h: 100,
+				crop: {
+					// Tall crop: 0.3 x 0.75 relative dimensions (30% width, 75% height)
+					topLeft: { x: 0.35, y: 0.125 },
+					bottomRight: { x: 0.65, y: 0.875 },
+				},
+			},
+		}
+
+		// Calculate uncropped size: if 0.3 relative width = 40 pixels, then uncropped = 40/0.3 = 133.33
+		// And if 0.75 relative height = 100 pixels, then uncropped = 100/0.75 = 133.33 ✓
+		const uncroppedSize = 40 / 0.3 // 133.33
+
+		// Current crop represents 40x100 absolute pixels
+		const result = getCroppedImageDataForAspectRatio('wide', imageWithTallCrop)
+
+		// Should have 16:9 aspect ratio (wide)
+		expect((result?.w as number) / (result?.h as number)).toBeCloseTo(16 / 9, 5)
+
+		// The longest dimension was height (100 pixels), so it should be preserved
+		// For 16:9, if height = 100, then width = 100 * (16/9) = 177.78
+		// But 177.78 pixels would require 177.78/133.33 = 1.33 relative width, which exceeds 1.0
+		// So it should fall back to maximum width (1.0 relative = 133.33 pixels)
+		// And then height = 133.33 * (9/16) = 75 pixels
+
+		// Calculate the actual crop dimensions in absolute pixels
+		const cropWidth = (result!.crop.bottomRight.x - result!.crop.topLeft.x) * uncroppedSize
+		const cropHeight = (result!.crop.bottomRight.y - result!.crop.topLeft.y) * uncroppedSize
+
+		// Since the crop would exceed bounds, it falls back to maximum width
+		expect(cropWidth).toBeCloseTo(133.33, 1)
+		// And height is adjusted to maintain 16:9 ratio
+		expect(cropHeight).toBeCloseTo(75, 1)
+	})
 })
 
 describe('Resizing crop box when not aspect-ratio locked', () => {

@@ -1,5 +1,5 @@
 import { Box, TLImageShape, track, useEditor, useValue } from '@tldraw/editor'
-import { useCallback, useState } from 'react'
+import { useCallback, useRef, useState } from 'react'
 import { useTranslation } from '../../hooks/useTranslation/useTranslation'
 import { TldrawUiContextualToolbar } from '../primitives/TldrawUiContextualToolbar'
 import { AltTextEditor } from './AltTextEditor'
@@ -51,6 +51,7 @@ function ContextualToolbarInner({
 
 	const isInCropTool = useValue('editor path', () => editor.isIn('select.crop.'), [editor])
 	const isCropping = useValue('editor path', () => editor.isIn('select.crop.cropping'), [editor])
+	const previousSelectionBounds = useRef<Box | undefined>()
 	const handleManipulatingEnd = useCallback(() => {
 		editor.setCroppingShape(null)
 		editor.setCurrentTool('select.idle')
@@ -65,12 +66,21 @@ function ContextualToolbarInner({
 	const onEditAltTextClose = useCallback(() => setIsEditingAltText(false), [])
 
 	const getSelectionBounds = useCallback(() => {
+		if (isInCropTool && previousSelectionBounds.current) {
+			// If we're cropping we want to be able to keep the toolbar in the same position.
+			return previousSelectionBounds.current
+		}
 		const fullBounds = editor.getSelectionScreenBounds()
 		if (!fullBounds) return undefined
-		return new Box(fullBounds.x, fullBounds.y, fullBounds.width, 0)
-	}, [editor])
+		const bounds = new Box(fullBounds.x, fullBounds.y, fullBounds.width, 0)
+		previousSelectionBounds.current = bounds
+		return bounds
+	}, [editor, isInCropTool])
 
-	if (isCropping) return null
+	if (isCropping) {
+		previousSelectionBounds.current = undefined
+		return null
+	}
 
 	return (
 		<TldrawUiContextualToolbar
