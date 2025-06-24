@@ -85,25 +85,19 @@ async function listPreviewWorkerDeployments() {
 	)
 }
 
-async function deleteQueue(id: string) {
-	await cloudflareApi(`/queues/${id}`, { method: 'DELETE' })
+async function deleteQueue(queueName: string) {
+	nicelog('Deleting queue:', queueName)
+	await exec('yarn', ['wrangler', 'queues', 'delete', queueName])
 }
 
-async function deleteQueueConsumer({ id, consumerId }: { id: string; consumerId: string }) {
-	await cloudflareApi(`/queues/${id}/consumers/${consumerId}`, { method: 'DELETE' })
+async function deleteQueueConsumer(queueName: string, scriptName: string) {
+	nicelog('Deleting queue consumer:', scriptName, 'from queue:', queueName)
+	await exec('yarn', ['wrangler', 'queues', 'consumer', 'worker', 'remove', queueName, scriptName])
 }
 
-async function deletePreviewWorker(id: string) {
-	const endpoint = `/workers/scripts/${id}`
-	nicelog(
-		'DELETE',
-		`https://api.cloudflare.com/client/v4/accounts/${env.CLOUDFLARE_ACCOUNT_ID}${endpoint}`
-	)
-	const res = await cloudflareApi(endpoint, { method: 'DELETE' })
-
-	if (!res.ok) {
-		throw new Error('Failed to delete worker ' + JSON.stringify(await res.json()))
-	}
+async function deletePreviewWorker(workerName: string) {
+	nicelog('Deleting worker:', workerName)
+	await exec('yarn', ['wrangler', 'delete', '--name', workerName])
 }
 
 async function deletePreviewWorkerDeployment(id: string) {
@@ -111,19 +105,24 @@ async function deletePreviewWorkerDeployment(id: string) {
 	if (id.match(CLOUDFLARE_SYNC_WORKER_REGEX)) {
 		const prNumber = Number(id.match(CLOUDFLARE_WORKER_REGEX)?.[1])
 		const queueName = `tldraw-multiplayer-queue-pr-${prNumber}`
-		const queueInfo = queuesMap.get(queueName)
-		if (queueInfo) {
-			const { id, consumerId } = queueInfo
-			if (consumerId) {
-				await deleteQueueConsumer({ id, consumerId })
-			}
-			await deleteQueue(id)
+		const scriptName = `pr-${prNumber}-tldraw-multiplayer`
+
+		try {
+			await deleteQueueConsumer(queueName, scriptName)
+		} catch (err) {
+			nicelog(`Failed to delete consumer ${scriptName}: ${err}`)
+		}
+
+		try {
+			await deleteQueue(queueName)
+		} catch (err) {
+			nicelog(`Failed to delete queue ${queueName}: ${err}`)
 		}
 	}
 	await deletePreviewWorker(id)
 }
 
-const queuesMap = new Map<string, { id: string; consumerId: string | undefined }>()
+const queuesMap = new Map<string, { id: string }>()
 
 async function getQueues() {
 	const res = await cloudflareApi('/queues')
@@ -132,8 +131,8 @@ async function getQueues() {
 		throw new Error('Failed to get queues ' + JSON.stringify(data))
 	}
 	data.result.forEach((queue) => {
-		const { queue_id: id, queue_name: name, consumers } = queue
-		queuesMap.set(name, { id, consumerId: consumers[0]?.consumer_id })
+		const { queue_id: id, queue_name: name } = queue
+		queuesMap.set(name, { id })
 	})
 }
 
