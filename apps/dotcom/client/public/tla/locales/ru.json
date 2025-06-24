@@ -298,7 +298,7 @@
     "translation": "Открепить"
   },
   "bbbcefd7ce": {
-    "translation": "{total, plural, one {Загрузка файла .tldr…} few {} many {} other {Загрузка {uploaded} из {total} файлов .tldr…}}"
+    "translation": "{total, plural, one {Загрузка файла .tldr…} few {Загрузка файлов .tldr…} many {Загрузка файлов .tldr…} other {Загрузка {uploaded} из {total} файлов .tldr…}}"
   },
   "bc88b0e89e": {
     "translation": "Поделился {ownerName}"

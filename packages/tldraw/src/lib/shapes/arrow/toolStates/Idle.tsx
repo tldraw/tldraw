@@ -5,8 +5,6 @@ import { clearArrowTargetState, updateArrowTargetState } from '../arrowTargetSta
 export class Idle extends StateNode {
 	static override id = 'idle'
 
-	options = this.editor.getShapeUtil<ArrowShapeUtil>('arrow').options
-
 	isPrecise = false
 	isPreciseTimerId: number | null = null
 	preciseTargetId: TLShapeId | null = null
@@ -61,12 +59,13 @@ export class Idle extends StateNode {
 	}
 
 	update() {
+		const arrowUtil = this.editor.getShapeUtil<ArrowShapeUtil>('arrow')
+
 		const targetState = updateArrowTargetState({
 			editor: this.editor,
 			pointInPageSpace: this.editor.inputs.currentPagePoint,
 			arrow: undefined,
 			isPrecise: this.isPrecise,
-			isExact: this.editor.inputs.altKey,
 			currentBinding: undefined,
 			oppositeBinding: undefined,
 		})
@@ -80,7 +79,7 @@ export class Idle extends StateNode {
 			this.isPreciseTimerId = this.editor.timers.setTimeout(() => {
 				this.isPrecise = true
 				this.update()
-			}, this.options.hoverPreciseTimeout)
+			}, arrowUtil.options.hoverPreciseTimeout)
 		} else if (!targetState && this.preciseTargetId) {
 			this.isPrecise = false
 			this.preciseTargetId = null

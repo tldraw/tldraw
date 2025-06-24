@@ -3039,6 +3039,8 @@ export interface TLContent {
 // @public
 export interface TLCropInfo<T extends TLShape> {
     // (undocumented)
+    aspectRatioLocked?: boolean;
+    // (undocumented)
     change: Vec;
     // (undocumented)
     crop: TLShapeCrop;
@@ -3426,6 +3428,12 @@ export interface TLEventMap {
     // (undocumented)
     'before-event': [TLEventInfo];
     // (undocumented)
+    'created-shapes': [TLRecord[]];
+    // (undocumented)
+    'deleted-shapes': [TLShapeId[]];
+    // (undocumented)
+    'edited-shapes': [TLRecord[]];
+    // (undocumented)
     'max-shapes': [{
         count: number;
         name: string;
@@ -3453,6 +3461,8 @@ export interface TLEventMap {
     crash: [{
         error: unknown;
     }];
+    // (undocumented)
+    edit: [];
     // (undocumented)
     event: [TLEventInfo];
     // (undocumented)
@@ -3681,7 +3691,6 @@ export interface TLMeasureTextOpts {
     fontStyle: string;
     // (undocumented)
     fontWeight: string;
-    // (undocumented)
     lineHeight: number;
     maxWidth: null | number;
     // (undocumented)

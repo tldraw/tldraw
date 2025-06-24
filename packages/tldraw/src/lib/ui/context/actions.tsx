@@ -1538,6 +1538,39 @@ export function ActionsProvider({ overrides, children }: ActionsProviderProps) {
 				},
 			},
 			{
+				id: 'a11y-open-context-menu',
+				kbd: 'cmd+shift+Enter,ctrl+shift+Enter',
+				readonlyOk: true,
+				onSelect: async (source) => {
+					if (!canApplySelectionAction()) return
+
+					// For multiple shapes or a single shape, get the selection bounds
+					const selectionBounds = editor.getSelectionPageBounds()
+					if (!selectionBounds) return
+
+					// Calculate the center point of the selection
+					const centerX = selectionBounds.x + selectionBounds.width / 2
+					const centerY = selectionBounds.y + selectionBounds.height / 2
+
+					// Convert page coordinates to screen coordinates
+					const screenPoint = editor.pageToScreen(new Vec(centerX, centerY))
+
+					// Dispatch a contextmenu event directly at the center of the selection
+					editor
+						.getContainer()
+						.querySelector('.tl-canvas')
+						?.dispatchEvent(
+							new PointerEvent('contextmenu', {
+								clientX: screenPoint.x,
+								clientY: screenPoint.y,
+								bubbles: true,
+							})
+						)
+
+					trackEvent('open-context-menu', { source })
+				},
+			},
+			{
 				id: 'enlarge-shapes',
 				label: 'a11y.enlarge-shape',
 				kbd: 'cmd+alt+shift+=,ctrl+alt+shift+=',
