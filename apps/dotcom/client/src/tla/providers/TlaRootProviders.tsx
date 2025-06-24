@@ -193,6 +193,7 @@ function SignedInProvider({
 					header: intl.formatMessage(appMessages.oldBrowser),
 					para1: '',
 				}}
+				cta={null}
 			/>
 		)
 	}
