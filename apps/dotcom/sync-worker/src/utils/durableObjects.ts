@@ -26,6 +26,21 @@ export function getRoomDurableObject(env: Environment, roomId: string) {
 	) as any as TLDrawDurableObject
 }
 
+function shouldRecordStats(env: Environment): boolean {
+	return env.TLDRAW_ENV === 'production'
+}
+
 export function getStatsDurableObjct(env: Environment) {
-	return env.TL_STATS.get(env.TL_STATS.idFromName('stats')) as any as TLStatsDurableObject
+	if (shouldRecordStats(env)) {
+		return env.TL_STATS.get(env.TL_STATS.idFromName('stats')) as any as TLStatsDurableObject
+	}
+
+	return {
+		recordUserDoAbort: async () => {},
+		recordReplicatorBootRetry: async () => {},
+		recordReplicatorPostgresUpdate: async () => {},
+		unusualNumberOfUserDOAborts: async () => false,
+		unusualNumberOfReplicatorBootRetries: async () => false,
+		isReplicatorGettingUpdates: async () => true,
+	} as any as TLStatsDurableObject
 }
