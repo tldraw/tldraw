@@ -1,4 +1,8 @@
 /** @type {import('next').NextConfig} */
+
+// Configurable domain for rewrites
+const REWRITE_DOMAIN = 'fortuitous-checklist-970816.framer.app'
+
 const nextConfig = {
 	reactStrictMode: true,
 	experimental: {
@@ -131,6 +135,26 @@ const nextConfig = {
 				permanent: true,
 			},
 		]
+	},
+	async rewrites() {
+		const rewrites = {
+			beforeFiles: [
+				{
+					source: '/',
+					destination: `https://${REWRITE_DOMAIN}/`,
+				},
+				{
+					source: '/blog/:path*',
+					destination: `https://${REWRITE_DOMAIN}/blog/:path*`,
+				},
+				{
+					source: '/legal/:path*',
+					destination: `https://${REWRITE_DOMAIN}/legal/:path*`,
+				},
+			],
+		}
+
+		return rewrites
 	},
 }
 
