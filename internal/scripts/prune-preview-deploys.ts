@@ -112,14 +112,15 @@ async function deletePreviewWorkerDeployment(id: string) {
 		} catch (err) {
 			nicelog(`Failed to delete consumer ${scriptName}: ${err}`)
 		}
-
+		await deletePreviewWorker(id)
 		try {
 			await deleteQueue(queueName)
 		} catch (err) {
 			nicelog(`Failed to delete queue ${queueName}: ${err}`)
 		}
+	} else {
+		await deletePreviewWorker(id)
 	}
-	await deletePreviewWorker(id)
 }
 
 const queuesMap = new Map<string, { id: string }>()
