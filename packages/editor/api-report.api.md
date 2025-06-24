@@ -1184,6 +1184,9 @@ export class Editor extends EventEmitter<TLEventMap> {
     getCurrentTool(): StateNode;
     getCurrentToolId(): string;
     getDocumentSettings(): TLDocument;
+    getDraggingOverShape(point: Vec, droppingShapes: TLShape[]): TLShape | undefined;
+    // @deprecated (undocumented)
+    getDroppingOverShape(point: Vec, droppingShapes: TLShape[]): TLShape | undefined;
     getEditingShape(): TLShape | undefined;
     getEditingShapeId(): null | TLShapeId;
     getErasingShapeIds(): TLShapeId[];

@@ -5818,6 +5818,52 @@ export class Editor extends EventEmitter<TLEventMap> {
 		return shapeIds
 	}
 
+	/** @deprecated Use {@link Editor.getDraggingOverShape} instead */
+	getDroppingOverShape(point: Vec, droppingShapes: TLShape[]): TLShape | undefined {
+		return this.getDraggingOverShape(point, droppingShapes)
+	}
+
+	/**
+	 * Get the shape that some shapes should be dropped on at a given point.
+	 *
+	 * @param point - The point to find the parent for.
+	 * @param droppingShapes - The shapes that are being dropped.
+	 *
+	 * @returns The shape to drop on.
+	 *
+	 * @public
+	 */
+	getDraggingOverShape(point: Vec, droppingShapes: TLShape[]): TLShape | undefined {
+		// get fresh moving shapes
+		const draggingShapes = compact(droppingShapes.map((s) => this.getShape(s))).filter(
+			(s) => !s.isLocked && !this.isShapeHidden(s)
+		)
+
+		const maybeDraggingOverShapes = this.getShapesAtPoint(point, {
+			hitInside: true,
+			margin: 0,
+		}).filter(
+			(s) =>
+				!droppingShapes.includes(s) &&
+				!s.isLocked &&
+				!this.isShapeHidden(s) &&
+				!draggingShapes.includes(s)
+		)
+
+		for (const maybeDraggingOverShape of maybeDraggingOverShapes) {
+			const shapeUtil = this.getShapeUtil(maybeDraggingOverShape)
+			// Any shape that can handle any dragging interactions is a valid target
+			if (
+				shapeUtil.onDragShapesOver ||
+				shapeUtil.onDragShapesIn ||
+				shapeUtil.onDragShapesOut ||
+				shapeUtil.onDropShapesOver
+			) {
+				return maybeDraggingOverShape
+			}
+		}
+	}
+
 	/**
 	 * Get the shape that should be selected when you click on a given shape, assuming there is
 	 * nothing already selected. It will not return anything higher than or including the current

@@ -407,41 +407,34 @@ export class FrameShapeUtil extends BaseBoxShapeUtil<TLFrameShape> {
 
 		if (draggingShapes.every((s) => s.parentId === shape.id)) return
 
-		if (initialIndices && initialParentIds) {
-			// Check to see whether any of the shapes can have their old index restored
-			let canRestoreOriginalIndices = false
-			const previousChildren = draggingShapes.filter((s) => shape.id === initialParentIds.get(s.id))
+		// Check to see whether any of the shapes can have their old index restored
+		let canRestoreOriginalIndices = false
+		const previousChildren = draggingShapes.filter((s) => shape.id === initialParentIds.get(s.id))
 
-			if (previousChildren.length > 0) {
-				const currentChildren = compact(
-					editor.getSortedChildIdsForParent(shape).map((id) => editor.getShape(id))
-				)
-				if (previousChildren.every((s) => !currentChildren.find((c) => c.index === s.index))) {
-					canRestoreOriginalIndices = true
-				}
-			}
-
-			// Reparent the shapes to the new parent
-			editor.reparentShapes(draggingShapes, shape.id)
-
-			// If we can restore the original indices, then do so
-			if (canRestoreOriginalIndices) {
-				for (const shape of previousChildren) {
-					editor.updateShape({
-						id: shape.id,
-						type: shape.type,
-						index: initialIndices.get(shape.id),
-					})
-				}
-			}
-		} else {
-			// If we don't have initial indices, then do simple reparenting
-			editor.reparentShapes(
-				draggingShapes.filter(
-					(s) => s.parentId !== shape.id && this.canReceiveNewChildrenOfType(s)
-				),
-				shape.id
+		if (previousChildren.length > 0) {
+			const currentChildren = compact(
+				editor.getSortedChildIdsForParent(shape).map((id) => editor.getShape(id))
 			)
+			if (previousChildren.every((s) => !currentChildren.find((c) => c.index === s.index))) {
+				canRestoreOriginalIndices = true
+			}
+		}
+
+		// I can't imagine this happening, but if any of the children are the ancestor of the frame, quit here
+		if (draggingShapes.some((s) => editor.hasAncestor(shape, s.id))) return
+
+		// Reparent the shapes to the new parent
+		editor.reparentShapes(draggingShapes, shape.id)
+
+		// If we can restore the original indices, then do so
+		if (canRestoreOriginalIndices) {
+			for (const shape of previousChildren) {
+				editor.updateShape({
+					id: shape.id,
+					type: shape.type,
+					index: initialIndices.get(shape.id),
+				})
+			}
 		}
 	}
 

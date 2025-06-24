@@ -83,7 +83,7 @@ export class DragAndDropManager {
 			.filter((s) => !s.isLocked)
 			.sort((a, b) => allShapes.indexOf(a) - allShapes.indexOf(b))
 
-		this.initialDraggingOverShape = this.getDraggingOverShape(editor, point)
+		this.initialDraggingOverShape = editor.getDraggingOverShape(point, this.shapesToActuallyMove)
 		this.prevDraggingOverShape = this.initialDraggingOverShape
 
 		// run once on first frame
@@ -107,7 +107,7 @@ export class DragAndDropManager {
 		const { editor } = this
 		this.updateDraggingShapes(editor.inputs.currentPagePoint)
 
-		const draggingOverShape = this.getDraggingOverShape(editor, editor.inputs.currentPagePoint)
+		const draggingOverShape = editor.getDraggingOverShape(editor.inputs.currentPagePoint, shapes)
 
 		if (draggingOverShape) {
 			const util = editor.getShapeUtil(draggingOverShape)
@@ -138,35 +138,6 @@ export class DragAndDropManager {
 		this.clear()
 	}
 
-	private getDraggingOverShape(editor: Editor, point: Vec): TLShape | undefined {
-		// get fresh moving shapes
-		const draggingShapes = compact(this.shapesToActuallyMove.map((s) => editor.getShape(s))).filter(
-			(s) => !s.isLocked && !editor.isShapeHidden(s)
-		)
-
-		const maybeDraggingOverShapes = editor
-			.getShapesAtPoint(point, {
-				hitInside: true,
-				margin: 0,
-			})
-			.filter((s) => !s.isLocked && !editor.isShapeHidden(s) && !draggingShapes.includes(s))
-
-		for (const maybeDraggingOverShape of maybeDraggingOverShapes) {
-			const shapeUtil = editor.getShapeUtil(maybeDraggingOverShape)
-			// Any shape that can handle any dragging interactions is a valid target
-			if (
-				shapeUtil.onDragShapesOver ||
-				shapeUtil.onDragShapesIn ||
-				shapeUtil.onDragShapesOut ||
-				shapeUtil.onDropShapesOver
-			) {
-				return maybeDraggingOverShape
-			}
-		}
-
-		return
-	}
-
 	private updateDraggingShapes(point: Vec, cb?: () => void): void {
 		const { editor } = this
 
@@ -176,7 +147,7 @@ export class DragAndDropManager {
 		if (!draggingShapes.length) return
 
 		// This is the shape under the pointer that can handle at least one of the dragging shapes
-		const nextDraggingOverShape = this.getDraggingOverShape(editor, point)
+		const nextDraggingOverShape = editor.getDraggingOverShape(point, this.shapesToActuallyMove)
 
 		const cursorDidMove = !this.prevPagePoint.equals(editor.inputs.currentPagePoint)
 		this.prevPagePoint.setTo(editor.inputs.currentPagePoint)
