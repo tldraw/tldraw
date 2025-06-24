@@ -19,11 +19,6 @@ interface ListWorkersResult {
 	result: { id: string }[]
 }
 
-interface ListQueuesResult {
-	success: boolean
-	result: { queue_id: string; queue_name: string; consumers: { consumer_id: string }[] }[]
-}
-
 const _isPrClosedCache = new Map<number, boolean>()
 async function isPrClosedForAWhile(prNumber: number) {
 	if (_isPrClosedCache.has(prNumber)) {
@@ -126,20 +121,6 @@ async function deletePreviewWorkerDeployment(id: string) {
 	} else {
 		await deletePreviewWorker(id)
 	}
-}
-
-const queuesMap = new Map<string, { id: string }>()
-
-async function getQueues() {
-	const res = await cloudflareApi('/queues')
-	const data = (await res.json()) as ListQueuesResult
-	if (!data.success) {
-		throw new Error('Failed to get queues ' + JSON.stringify(data))
-	}
-	data.result.forEach((queue) => {
-		const { queue_id: id, queue_name: name } = queue
-		queuesMap.set(name, { id })
-	})
 }
 
 const neonHeaders = {
@@ -245,8 +226,6 @@ const deletionErrors: string[] = []
 
 async function main() {
 	nicelog('Getting queues information')
-	await getQueues()
-	nicelog('Pruning preview deployments')
 	await processItems(listPreviewWorkerDeployments, deletePreviewWorkerDeployment)
 	nicelog('\nPruning preview databases')
 	await processItems(listPreviewDatabases, deletePreviewDatabase)
