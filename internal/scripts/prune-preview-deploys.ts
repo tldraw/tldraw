@@ -105,12 +105,11 @@ async function deletePreviewWorkerDeployment(id: string) {
 	if (id.match(CLOUDFLARE_SYNC_WORKER_REGEX)) {
 		const prNumber = Number(id.match(CLOUDFLARE_WORKER_REGEX)?.[1])
 		const queueName = `tldraw-multiplayer-queue-pr-${prNumber}`
-		const scriptName = `pr-${prNumber}-tldraw-multiplayer`
 
 		try {
-			await deleteQueueConsumer(queueName, scriptName)
+			await deleteQueueConsumer(queueName, id)
 		} catch (err) {
-			nicelog(`Failed to delete consumer ${scriptName}: ${err}`)
+			nicelog(`Failed to delete consumer ${id}: ${err}`)
 		}
 		await deletePreviewWorker(id)
 		try {
