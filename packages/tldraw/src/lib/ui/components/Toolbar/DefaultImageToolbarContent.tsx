@@ -183,6 +183,29 @@ export const DefaultImageToolbarContent = track(function DefaultImageToolbarCont
 		}
 	}, [editor, isManipulating])
 
+	useEffect(() => {
+		function handleKeyDown(e: KeyboardEvent) {
+			if (isManipulating) {
+				if (e.key === 'Escape') {
+					editor.cancel()
+					onManipulatingEnd()
+				} else if (e.key === 'Enter') {
+					editor.complete()
+					onManipulatingEnd()
+				}
+			}
+		}
+		const elm = sliderRef.current
+		if (elm) {
+			elm.addEventListener('keydown', handleKeyDown)
+		}
+		return () => {
+			if (elm) {
+				elm.removeEventListener('keydown', handleKeyDown)
+			}
+		}
+	}, [editor, isManipulating, onManipulatingEnd])
+
 	if (isManipulating) {
 		return (
 			<>
