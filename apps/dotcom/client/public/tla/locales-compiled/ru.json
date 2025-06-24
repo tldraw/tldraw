@@ -98,7 +98,7 @@
   "b6d4223e60": "Войти",
   "b758336699": "Копировать ссылку",
   "bb792693e2": "Открепить",
-  "bbbcefd7ce": "{total, plural, one {Загрузка файла .tldr…} few {} many {} other {Загрузка {uploaded} из {total} файлов .tldr…}}",
+  "bbbcefd7ce": "{total, plural, one {Загрузка файла .tldr…} few {Загрузка файлов .tldr…} many {Загрузка файлов .tldr…} other {Загрузка {uploaded} из {total} файлов .tldr…}}",
   "bc88b0e89e": "Поделился {ownerName}",
   "bcb62136a3": "Загрузить файлы .tldr",
   "c2276c9127": "Узнать больше о том, как поделиться.",

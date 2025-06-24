@@ -25,7 +25,12 @@ export const DefaultVideoToolbar = track(function DefaultVideoToolbar({
 		[editor]
 	)
 	const showToolbar = editor.isInAny('select.idle', 'select.pointing_shape')
-	if (!videoShapeId || !showToolbar) return null
+	const isLocked = useValue(
+		'locked',
+		() => (videoShapeId ? editor.getShape<TLVideoShape>(videoShapeId)?.isLocked : false),
+		[editor, videoShapeId]
+	)
+	if (!videoShapeId || !showToolbar || isLocked) return null
 
 	return (
 		<ContextualToolbarInner key={videoShapeId} videoShapeId={videoShapeId}>

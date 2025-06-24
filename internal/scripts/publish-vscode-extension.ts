@@ -1,4 +1,4 @@
-import { existsSync, readFileSync, writeFileSync } from 'fs'
+import { copyFileSync, existsSync, mkdirSync, readdirSync, readFileSync, writeFileSync } from 'fs'
 import path from 'path'
 import { parse } from 'semver'
 import { exec } from './lib/exec'
@@ -9,6 +9,7 @@ import { nicelog } from './lib/nicelog'
 const env = makeEnv(['VSCE_PAT', 'TLDRAW_ENV'])
 
 const EXTENSION_DIR = 'apps/vscode/extension'
+const DISTRIBUTION_DIR = 'apps/vscode/extension/release'
 
 async function updateExtensionVersion() {
 	const extensionInfoJsonPath = path.join(EXTENSION_DIR, 'extension.json')
@@ -36,9 +37,45 @@ async function updateExtensionVersion() {
 	packageJson.version = nextVersion
 
 	writeFileSync(packageJsonPath, JSON.stringify(packageJson, null, '\t') + '\n')
+	return nextVersion
 }
 
-async function packageAndPublish() {
+async function copyExtensionToReleaseFolder(version: string) {
+	if (!existsSync(DISTRIBUTION_DIR)) {
+		mkdirSync(DISTRIBUTION_DIR, { recursive: true })
+	}
+
+	const tempDir = path.join(EXTENSION_DIR, 'temp')
+	if (!existsSync(tempDir)) {
+		throw new Error(
+			'Extension temp directory not found. Make sure packaging completed successfully.'
+		)
+	}
+
+	const files = readdirSync(tempDir)
+	const vsixFile = files.find((file: string) => file.endsWith('.vsix'))
+	if (!vsixFile) {
+		throw new Error('No .vsix file found in temp directory.')
+	}
+
+	const sourcePath = path.join(tempDir, vsixFile)
+	const targetPath = path.join(DISTRIBUTION_DIR, 'tldraw-vscode.vsix')
+
+	nicelog(`Copying extension from ${sourcePath} to ${targetPath}`)
+	copyFileSync(sourcePath, targetPath)
+
+	nicelog('Setting git user identity...')
+	await exec('git', ['config', 'user.name', 'huppy-bot[bot]'])
+	await exec('git', ['config', 'user.email', '128400622+huppy-bot[bot]@users.noreply.github.com'])
+
+	nicelog('Committing extension to git...')
+	await exec('git', ['add', '-f', targetPath])
+	await exec('git', ['commit', '-m', `Add VSCode extension v${version}`])
+	nicelog('Pushing changes to remote repository...')
+	await exec('git', ['push'])
+}
+
+async function packageAndPublish(version: string) {
 	await exec('yarn', ['lazy', 'run', 'build', '--filter=packages/*'])
 	switch (env.TLDRAW_ENV) {
 		case 'production':
@@ -47,6 +84,7 @@ async function packageAndPublish() {
 			return
 		case 'staging':
 			await exec('yarn', ['package', '--pre-release'], { pwd: EXTENSION_DIR })
+			await copyExtensionToReleaseFolder(version)
 			await exec('yarn', ['publish', '--pre-release'], { pwd: EXTENSION_DIR })
 			return
 		default:
@@ -55,8 +93,8 @@ async function packageAndPublish() {
 }
 
 async function main() {
-	await updateExtensionVersion()
-	await packageAndPublish()
+	const version = await updateExtensionVersion()
+	await packageAndPublish(version)
 }
 main().catch(async (err) => {
 	console.error(err)

@@ -21,6 +21,7 @@ export const DefaultVideoToolbarContent = track(function DefaultVideoToolbarCont
 	const trackEvent = useUiEvents()
 	const msg = useTranslation()
 	const source = 'video-toolbar'
+	const isReadonly = editor.getIsReadonly()
 
 	const actions = useActions()
 
@@ -42,9 +43,11 @@ export const DefaultVideoToolbarContent = track(function DefaultVideoToolbarCont
 
 	return (
 		<>
-			<TldrawUiButton type="icon" title={msg('tool.replace-media')} onClick={handleVideoReplace}>
-				<TldrawUiButtonIcon small icon="arrow-cycle" />
-			</TldrawUiButton>
+			{!isReadonly && (
+				<TldrawUiButton type="icon" title={msg('tool.replace-media')} onClick={handleVideoReplace}>
+					<TldrawUiButtonIcon small icon="tool-media" />
+				</TldrawUiButton>
+			)}
 			<TldrawUiButton
 				type="icon"
 				title={msg('action.download-original')}
@@ -52,17 +55,19 @@ export const DefaultVideoToolbarContent = track(function DefaultVideoToolbarCont
 			>
 				<TldrawUiButtonIcon small icon="download" />
 			</TldrawUiButton>
-			<TldrawUiButton
-				type="normal"
-				isActive={!!altText}
-				title={msg('tool.media-alt-text')}
-				onClick={() => {
-					trackEvent('alt-text-start', { source })
-					onEditAltTextStart()
-				}}
-			>
-				<TldrawUiButtonIcon small icon="alt" />
-			</TldrawUiButton>
+			{(altText || !isReadonly) && (
+				<TldrawUiButton
+					type="normal"
+					isActive={!!altText}
+					title={msg('tool.media-alt-text')}
+					onClick={() => {
+						trackEvent('alt-text-start', { source })
+						onEditAltTextStart()
+					}}
+				>
+					<TldrawUiButtonIcon small icon="alt" />
+				</TldrawUiButton>
+			)}
 		</>
 	)
 })

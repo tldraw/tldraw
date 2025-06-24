@@ -326,6 +326,76 @@ describe('When pointing an end shape', () => {
 		expect(getArrowTargetState(editor)).toBeNull()
 	})
 
+	it('respects shouldIgnoreTargets option when ctrl key is held', () => {
+		editor.setCurrentTool('arrow')
+
+		// Test without ctrl key - should bind normally
+		editor.pointerDown(0, 0)
+		editor.pointerMove(375, 375) // Move to box3
+
+		let arrow = editor.getCurrentPageShapes()[editor.getCurrentPageShapes().length - 1]
+		expect(bindings(arrow.id)).toMatchObject({
+			end: {
+				toId: ids.box3,
+			},
+		})
+
+		editor.pointerUp()
+		editor.setCurrentTool('arrow')
+
+		// Test with ctrl key - should not bind
+		editor.keyDown('Control')
+		editor.pointerDown(0, 0)
+		editor.pointerMove(375, 375) // Move to box3
+
+		arrow = editor.getCurrentPageShapes()[editor.getCurrentPageShapes().length - 1]
+		expect(bindings(arrow.id)).toMatchObject({
+			end: undefined,
+		})
+
+		editor.pointerUp()
+		editor.keyUp('Control')
+	})
+
+	it('respects shouldBeExact option when alt key is held', () => {
+		editor.setCurrentTool('arrow')
+
+		// Test without alt key - should not be exact
+		editor.pointerDown(0, 0)
+		editor.pointerMove(375, 375) // Move to box3
+
+		let arrow = editor.getCurrentPageShapes()[editor.getCurrentPageShapes().length - 1]
+		expect(bindings(arrow.id)).toMatchObject({
+			end: {
+				toId: ids.box3,
+				props: {
+					isExact: false,
+				},
+			},
+		})
+
+		editor.pointerUp()
+		editor.setCurrentTool('arrow')
+
+		// Test with alt key - should be exact
+		editor.keyDown('Alt')
+		editor.pointerDown(0, 0)
+		editor.pointerMove(375, 375) // Move to box3
+
+		arrow = editor.getCurrentPageShapes()[editor.getCurrentPageShapes().length - 1]
+		expect(bindings(arrow.id)).toMatchObject({
+			end: {
+				toId: ids.box3,
+				props: {
+					isExact: true,
+				},
+			},
+		})
+
+		editor.pointerUp()
+		editor.keyUp('Alt')
+	})
+
 	it('begins imprecise when moving quickly', () => {
 		editor.setCurrentTool('arrow').pointerDown(0, 0)
 		editor.inputs.pointerVelocity = new Vec(1, 1)

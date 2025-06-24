@@ -257,6 +257,7 @@ export {
 	type TLExternalContent,
 	type TLExternalContentSource,
 	type TLFileExternalAsset,
+	type TLFileReplaceExternalContent,
 	type TLFilesExternalContent,
 	type TLSvgTextExternalContent,
 	type TLTextExternalContent,

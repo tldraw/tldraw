@@ -25,6 +25,7 @@ export function AltTextEditor({ shapeId, onClose, source }: AltTextEditorProps) 
 	const msg = useTranslation()
 	const ref = useRef<HTMLInputElement>(null)
 	const trackEvent = useUiEvents()
+	const isReadonly = editor.getIsReadonly()
 
 	const handleValueChange = (value: string) => setAltText(value)
 
@@ -46,7 +47,7 @@ export function AltTextEditor({ shapeId, onClose, source }: AltTextEditorProps) 
 	const handleAltTextCancel = useCallback(() => onClose(), [onClose])
 
 	useEffect(() => {
-		ref.current?.focus()
+		ref.current?.select()
 
 		function handleKeyDown(event: KeyboardEvent) {
 			if (event.key === 'Escape') {
@@ -72,15 +73,18 @@ export function AltTextEditor({ shapeId, onClose, source }: AltTextEditorProps) 
 				onValueChange={handleValueChange}
 				onComplete={handleComplete}
 				onCancel={handleAltTextCancel}
+				disabled={isReadonly}
 			/>
-			<TldrawUiButton
-				title={msg('tool.media-alt-text-confirm')}
-				type="icon"
-				onPointerDown={preventDefault}
-				onClick={handleConfirm}
-			>
-				<TldrawUiButtonIcon small icon="check" />
-			</TldrawUiButton>
+			{!isReadonly && (
+				<TldrawUiButton
+					title={msg('tool.media-alt-text-confirm')}
+					type="icon"
+					onPointerDown={preventDefault}
+					onClick={handleConfirm}
+				>
+					<TldrawUiButtonIcon small icon="check" />
+				</TldrawUiButton>
+			)}
 		</>
 	)
 }
