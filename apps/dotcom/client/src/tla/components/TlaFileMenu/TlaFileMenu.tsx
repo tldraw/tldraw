@@ -106,7 +106,7 @@ export function FileItems({
 	const hasGroups = useHasFlag('groups')
 
 	// Get groups data
-	const groupUsers = useValue('groupUsers', () => app.getGroupUsers(), [app])
+	const groupUsers = useValue('groupUsers', () => app.getGroupMemberships(), [app])
 
 	const handleCopyLinkClick = useCallback(() => {
 		const url = routes.tlaFile(fileId, { asUrl: true })
