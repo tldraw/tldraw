@@ -88,6 +88,11 @@ export class Pointing extends StateNode {
 					? { w: 300, h: 180 }
 					: { w: 200, h: 200 }
 
+		if (!this.editor.canCreateShape(id)) {
+			this.cancel()
+			return
+		}
+
 		this.editor.createShapes<TLGeoShape>([
 			{
 				id,
@@ -103,7 +108,10 @@ export class Pointing extends StateNode {
 		])
 
 		const shape = this.editor.getShape<TLGeoShape>(id)!
-		if (!shape) return
+		if (!shape) {
+			this.cancel()
+			return
+		}
 
 		const { w, h } = shape.props
 

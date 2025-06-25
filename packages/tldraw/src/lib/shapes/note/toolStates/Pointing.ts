@@ -41,6 +41,7 @@ export class Pointing extends StateNode {
 		if (offset) {
 			center.sub(offset)
 		}
+		if (!editor.canCreateShape({ id, type: 'note' })) this.cancel()
 		const shape = createNoteShape(this.editor, id, center)
 		if (shape) {
 			this.shape = shape
@@ -117,22 +118,19 @@ export function getNoteShapeAdjacentPositionOffset(editor: Editor, center: Vec, 
 }
 
 export function createNoteShape(editor: Editor, id: TLShapeId, center: Vec) {
-	editor
-		.createShape({
-			id,
-			type: 'note',
-			x: center.x,
-			y: center.y,
-			props: {
-				scale: editor.user.getIsDynamicResizeMode() ? 1 / editor.getZoomLevel() : 1,
-			},
-		})
-		.select(id)
+	editor.createShape({
+		id,
+		type: 'note',
+		x: center.x,
+		y: center.y,
+		props: {
+			scale: editor.user.getIsDynamicResizeMode() ? 1 / editor.getZoomLevel() : 1,
+		},
+	})
 
 	const shape = editor.getShape<TLNoteShape>(id)
-	if (!shape) {
-		return
-	}
+	// Should never happen since we just checked, but just in case
+	if (!shape) return
 
 	const bounds = editor.getShapeGeometry(shape).bounds
 	const newPoint = maybeSnapToGrid(

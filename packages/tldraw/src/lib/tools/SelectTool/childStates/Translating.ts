@@ -93,7 +93,7 @@ export class Translating extends StateNode {
 		if (!this.isCreating) {
 			if (this.editor.inputs.altKey) {
 				this.startCloning()
-				return
+				if (this.isCloning) return
 			}
 		}
 
@@ -123,7 +123,7 @@ export class Translating extends StateNode {
 	override onKeyDown() {
 		if (this.editor.inputs.altKey && !this.isCloning) {
 			this.startCloning()
-			return
+			if (this.isCloning) return
 		}
 
 		// need to update in case user pressed a different modifier key
@@ -154,6 +154,10 @@ export class Translating extends StateNode {
 
 	protected startCloning() {
 		if (this.isCreating) return
+		const shapeIds = Array.from(this.editor.getSelectedShapeIds())
+
+		// If we can't create the shapes, don't even start cloning
+		if (!this.editor.canCreateShapes(shapeIds)) return
 
 		this.isCloning = true
 		this.reset()

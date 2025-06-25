@@ -820,6 +820,8 @@ export class Editor extends EventEmitter<TLEventMap> {
     }): boolean;
     cancel(): this;
     cancelDoubleClick(): void;
+    canCreateShape<T extends TLUnknownShape>(shape: OptionalKeys<TLShapePartial<T>, 'id'> | T['id']): boolean;
+    canCreateShapes<T extends TLUnknownShape>(shapes: (OptionalKeys<TLShapePartial<T>, 'id'> | T['id'])[]): boolean;
     // @internal (undocumented)
     capturedPointerId: null | number;
     centerOnPoint(point: VecLike, opts?: TLCameraMoveOptions): this;

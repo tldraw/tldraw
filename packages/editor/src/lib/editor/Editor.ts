@@ -6303,10 +6303,7 @@ export class Editor extends EventEmitter<TLEventMap> {
 			})
 			const shapesToCreate = shapesToCreateWithOriginals.map(({ shape }) => shape)
 
-			const maxShapesReached =
-				shapesToCreate.length + this.getCurrentPageShapeIds().size > this.options.maxShapesPerPage
-
-			if (maxShapesReached) {
+			if (!this.canCreateShapes(shapesToCreate)) {
 				alertMaxShapes(this)
 				return
 			}
@@ -7736,6 +7733,32 @@ export class Editor extends EventEmitter<TLEventMap> {
 	}
 
 	/**
+	 * Get whether the provided shape can be created.
+	 *
+	 * @param shape - The shape or shape IDs to check.
+	 *
+	 * @public
+	 */
+	canCreateShape<T extends TLUnknownShape>(
+		shape: OptionalKeys<TLShapePartial<T>, 'id'> | T['id']
+	): boolean {
+		return this.canCreateShapes([shape])
+	}
+
+	/**
+	 * Get whether the provided shapes can be created.
+	 *
+	 * @param shapes - The shapes or shape IDs to create.
+	 *
+	 * @public
+	 */
+	canCreateShapes<T extends TLUnknownShape>(
+		shapes: (T['id'] | OptionalKeys<TLShapePartial<T>, 'id'>)[]
+	): boolean {
+		return shapes.length + this.getCurrentPageShapeIds().size <= this.options.maxShapesPerPage
+	}
+
+	/**
 	 * Create a single shape.
 	 *
 	 * @example
@@ -7781,6 +7804,7 @@ export class Editor extends EventEmitter<TLEventMap> {
 		if (maxShapesReached) {
 			// can't create more shapes than fit on the page
 			alertMaxShapes(this)
+			// todo: throw an error here? Otherwise we'll need to check every time whether the shapes were actually created
 			return this
 		}
 

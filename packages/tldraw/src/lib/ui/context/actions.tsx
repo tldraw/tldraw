@@ -408,6 +408,8 @@ export function ActionsProvider({ overrides, children }: ActionsProviderProps) {
 						}
 
 						editor.markHistoryStoppingPoint('convert shapes to bookmark')
+
+						// Should be able to create the shape since we're about to delete the other other
 						editor.deleteShapes(deleteList)
 						editor.createShapes(createList)
 					})
@@ -500,6 +502,7 @@ export function ActionsProvider({ overrides, children }: ActionsProviderProps) {
 								}
 					}
 
+					if (!editor.canCreateShapes(ids)) return
 					editor.markHistoryStoppingPoint('duplicate shapes')
 					editor.duplicateShapes(ids, offset)
 

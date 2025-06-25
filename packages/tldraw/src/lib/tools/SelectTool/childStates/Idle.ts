@@ -625,6 +625,7 @@ export class Idle extends StateNode {
 
 		const { x, y } = this.editor.inputs.currentPagePoint
 
+		// Allow this to trigger the max shapes reached alert
 		this.editor.createShapes<TLTextShape>([
 			{
 				id,
