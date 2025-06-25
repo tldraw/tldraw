@@ -225,6 +225,7 @@
 	min-width: 0px;
 	height: auto;
 	overflow: hidden;
+	position: relative;
 }
 
 .tlui-layout__top__right {
@@ -239,11 +240,11 @@
 }
 
 .tlui-page-menu__trigger {
-	flex-shrink: 0;
-	max-width: fit-content;
+	width: fit-content;
+	max-width: 128px;
 }
 
-@media (min-width: 1080px) {
+@media (min-width: 640px) {
 	.tlui-page-menu__trigger {
 		width: fit-content;
 		max-width: 320px;

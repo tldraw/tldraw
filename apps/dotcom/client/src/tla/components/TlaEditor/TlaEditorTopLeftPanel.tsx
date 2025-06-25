@@ -211,7 +211,7 @@ export function TlaEditorTopLeftPanelSignedIn() {
 	return (
 		<>
 			{/* spacer for the sidebar toggle button */}
-			{isEmbed ? null : <div style={{ width: 40 }} />}
+			{isEmbed ? null : <div style={{ width: 40, flexShrink: 0 }} />}
 			<TlaFileNameEditor
 				source="file-header"
 				isRenaming={isRenaming}
