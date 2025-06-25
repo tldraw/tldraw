@@ -41,7 +41,8 @@ export class Pointing extends StateNode {
 		if (offset) {
 			center.sub(offset)
 		}
-		if (!editor.canCreateShape({ id, type: 'note' })) this.cancel()
+
+		// Allow this to trigger the max shapes reached alert
 		const shape = createNoteShape(this.editor, id, center)
 		if (shape) {
 			this.shape = shape
@@ -132,6 +133,7 @@ export function createNoteShape(editor: Editor, id: TLShapeId, center: Vec) {
 	// Should never happen since we just checked, but just in case
 	if (!shape) return
 
+	editor.select(id)
 	const bounds = editor.getShapeGeometry(shape).bounds
 	const newPoint = maybeSnapToGrid(
 		new Vec(shape.x - bounds.width / 2, shape.y - bounds.height / 2),
