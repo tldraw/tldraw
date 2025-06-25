@@ -27,6 +27,10 @@ export class Pointing extends StateNode {
 
 		if (!targetState) {
 			this.createArrowShape()
+			if (!this.shape) {
+				this.cancel()
+				return
+			}
 		}
 
 		this.startPreciseTimeout()
@@ -44,7 +48,10 @@ export class Pointing extends StateNode {
 				this.createArrowShape()
 			}
 
-			if (!this.shape) throw Error(`expected shape`)
+			if (!this.shape) {
+				this.cancel()
+				return
+			}
 
 			this.updateArrowShapeEndHandle()
 
@@ -100,7 +107,7 @@ export class Pointing extends StateNode {
 		})
 
 		const shape = this.editor.getShape<TLArrowShape>(id)
-		if (!shape) throw Error(`expected shape`)
+		if (!shape) return
 
 		const handles = this.editor.getShapeHandles(shape)
 		if (!handles) throw Error(`expected handles for arrow`)

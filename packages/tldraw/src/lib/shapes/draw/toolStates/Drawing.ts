@@ -249,6 +249,7 @@ export class Drawing extends StateNode {
 		this.pagePointWhereCurrentSegmentChanged = originPagePoint.clone()
 		const id = createShapeId()
 
+		// Allow this to trigger the max shapes reached alert
 		this.editor.createShapes<DrawableShape>([
 			{
 				id,
@@ -637,6 +638,7 @@ export class Drawing extends StateNode {
 
 					const props = this.editor.getShape<DrawableShape>(id)!.props
 
+					if (!this.editor.canCreateShapes([newShapeId])) return this.cancel()
 					this.editor.createShapes<DrawableShape>([
 						{
 							id: newShapeId,
