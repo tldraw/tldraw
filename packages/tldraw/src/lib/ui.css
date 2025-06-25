@@ -697,7 +697,7 @@
 }
 
 .tlui-page-menu__trigger {
-	width: 128px;
+	min-width: 40px;
 }
 
 .tlui-page-menu__header {
