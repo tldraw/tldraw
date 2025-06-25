@@ -241,7 +241,9 @@ export class HistoryManager<R extends UnknownRecord> {
 	}
 
 	bailToMark(id: string) {
-		this._undo({ pushToRedoStack: false, toMark: id })
+		if (id) {
+			this._undo({ pushToRedoStack: false, toMark: id })
+		}
 
 		return this
 	}

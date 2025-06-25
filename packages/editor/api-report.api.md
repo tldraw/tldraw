@@ -820,6 +820,8 @@ export class Editor extends EventEmitter<TLEventMap> {
     }): boolean;
     cancel(): this;
     cancelDoubleClick(): void;
+    canCreateShape<T extends TLUnknownShape>(shape: OptionalKeys<TLShapePartial<T>, 'id'> | T['id']): boolean;
+    canCreateShapes<T extends TLUnknownShape>(shapes: (OptionalKeys<TLShapePartial<T>, 'id'> | T['id'])[]): boolean;
     // @internal (undocumented)
     capturedPointerId: null | number;
     centerOnPoint(point: VecLike, opts?: TLCameraMoveOptions): this;
@@ -1184,7 +1186,9 @@ export class Editor extends EventEmitter<TLEventMap> {
     getCurrentTool(): StateNode;
     getCurrentToolId(): string;
     getDocumentSettings(): TLDocument;
-    getDroppingOverShape(point: VecLike, droppingShapes?: TLShape[]): TLUnknownShape | undefined;
+    getDraggingOverShape(point: Vec, droppingShapes: TLShape[]): TLShape | undefined;
+    // @deprecated (undocumented)
+    getDroppingOverShape(point: Vec, droppingShapes: TLShape[]): TLShape | undefined;
     getEditingShape(): TLShape | undefined;
     getEditingShapeId(): null | TLShapeId;
     getErasingShapeIds(): TLShapeId[];
@@ -1675,6 +1679,8 @@ export abstract class Geometry2d {
     // (undocumented)
     isClosed: boolean;
     // (undocumented)
+    isEmptyLabel: boolean;
+    // (undocumented)
     isExcludedByFilter(filters?: Geometry2dFilters): boolean;
     // (undocumented)
     isFilled: boolean;
@@ -1731,6 +1737,12 @@ export function getCursor(cursor: TLCursorType, rotation?: number, color?: strin
 
 // @public (undocumented)
 export function getDefaultCdnBaseUrl(): string;
+
+// @public
+export function getDroppedShapesToNewParents(editor: Editor, shapes: Set<TLShape> | TLShape[], cb?: (shape: TLShape, parent: TLShape) => boolean): {
+    remainingShapesToReparent: Set<TLShape>;
+    reparenting: Map<TLShapeId, TLShape[]>;
+};
 
 // @public (undocumented)
 export function getFontsFromRichText(editor: Editor, richText: TLRichText, initialState: RichTextFontVisitorState): TLFontFace[];
@@ -2016,6 +2028,11 @@ export const isAccelKey: <InputType extends {
 
 // @public
 export const isSafeFloat: (n: number) => boolean;
+
+// @public
+export function kickoutOccludedShapes(editor: Editor, shapeIds: TLShapeId[], opts?: {
+    filter?(parent: TLShape): boolean;
+}): void;
 
 // @internal (undocumented)
 export type LicenseFromKeyResult = InvalidLicenseKeyResult | ValidLicenseKeyResult;
@@ -2531,7 +2548,6 @@ export abstract class ShapeUtil<Shape extends TLUnknownShape = TLUnknownShape> {
     canBeLaidOut(_shape: Shape, _info: TLShapeUtilCanBeLaidOutOpts): boolean;
     canBind(_opts: TLShapeUtilCanBindOpts): boolean;
     canCrop(_shape: Shape): boolean;
-    canDropShapes(_shape: Shape, _shapes: TLShape[]): boolean;
     canEdit(_shape: Shape): boolean;
     canEditInReadonly(_shape: Shape): boolean;
     canReceiveNewChildrenOfType(_shape: Shape, _type: TLShape['type']): boolean;
@@ -2578,9 +2594,10 @@ export abstract class ShapeUtil<Shape extends TLUnknownShape = TLUnknownShape> {
     onDoubleClickCorner?(shape: Shape, info: TLClickEventInfo): TLShapePartial<Shape> | void;
     onDoubleClickEdge?(shape: Shape, info: TLClickEventInfo): TLShapePartial<Shape> | void;
     onDoubleClickHandle?(shape: Shape, handle: TLHandle): TLShapePartial<Shape> | void;
-    onDragShapesOut?(shape: Shape, shapes: TLShape[]): void;
-    onDragShapesOver?(shape: Shape, shapes: TLShape[]): void;
-    onDropShapesOver?(shape: Shape, shapes: TLShape[]): void;
+    onDragShapesIn?(shape: Shape, shapes: TLShape[], info: TLDragShapesInInfo): void;
+    onDragShapesOut?(shape: Shape, shapes: TLShape[], info: TLDragShapesOutInfo): void;
+    onDragShapesOver?(shape: Shape, shapes: TLShape[], info: TLDragShapesOverInfo): void;
+    onDropShapesOver?(shape: Shape, shapes: TLShape[], info: TLDropShapesOverInfo): void;
     onEditEnd?(shape: Shape): void;
     onEditStart?(shape: Shape): void;
     onHandleDrag?(shape: Shape, info: TLHandleDragInfo<Shape>): TLShapePartial<Shape> | void;
@@ -3039,6 +3056,8 @@ export interface TLContent {
 // @public
 export interface TLCropInfo<T extends TLShape> {
     // (undocumented)
+    aspectRatioLocked?: boolean;
+    // (undocumented)
     change: Vec;
     // (undocumented)
     crop: TLShapeCrop;
@@ -3091,6 +3110,40 @@ export interface TLDeepLinkOptions {
     getUrl?(editor: Editor): string | URL;
     onChange?(url: URL, editor: Editor): void;
     param?: string;
+}
+
+// @public (undocumented)
+export interface TLDragShapesInInfo {
+    // (undocumented)
+    initialDraggingOverShapeId: null | TLShapeId;
+    // (undocumented)
+    initialIndices: Map<TLShapeId, IndexKey>;
+    // (undocumented)
+    initialParentIds: Map<TLShapeId, TLParentId>;
+    // (undocumented)
+    prevDraggingOverShapeId: null | TLShapeId;
+}
+
+// @public (undocumented)
+export interface TLDragShapesOutInfo {
+    // (undocumented)
+    initialDraggingOverShapeId: null | TLShapeId;
+    // (undocumented)
+    initialIndices: Map<TLShapeId, IndexKey>;
+    // (undocumented)
+    initialParentIds: Map<TLShapeId, TLParentId>;
+    // (undocumented)
+    nextDraggingOverShapeId: null | TLShapeId;
+}
+
+// @public (undocumented)
+export interface TLDragShapesOverInfo {
+    // (undocumented)
+    initialDraggingOverShapeId: null | TLShapeId;
+    // (undocumented)
+    initialIndices: Map<TLShapeId, IndexKey>;
+    // (undocumented)
+    initialParentIds: Map<TLShapeId, TLParentId>;
 }
 
 // @public (undocumented)
@@ -3226,6 +3279,16 @@ export interface TldrawOptions {
     readonly temporaryAssetPreviewLifetimeMs: number;
     // (undocumented)
     readonly textShadowLod: number;
+}
+
+// @public (undocumented)
+export interface TLDropShapesOverInfo {
+    // (undocumented)
+    initialDraggingOverShapeId: null | TLShapeId;
+    // (undocumented)
+    initialIndices: Map<TLShapeId, IndexKey>;
+    // (undocumented)
+    initialParentIds: Map<TLShapeId, TLParentId>;
 }
 
 // @public (undocumented)
@@ -3426,6 +3489,12 @@ export interface TLEventMap {
     // (undocumented)
     'before-event': [TLEventInfo];
     // (undocumented)
+    'created-shapes': [TLRecord[]];
+    // (undocumented)
+    'deleted-shapes': [TLShapeId[]];
+    // (undocumented)
+    'edited-shapes': [TLRecord[]];
+    // (undocumented)
     'max-shapes': [{
         count: number;
         name: string;
@@ -3453,6 +3522,8 @@ export interface TLEventMap {
     crash: [{
         error: unknown;
     }];
+    // (undocumented)
+    edit: [];
     // (undocumented)
     event: [TLEventInfo];
     // (undocumented)
@@ -3681,7 +3752,6 @@ export interface TLMeasureTextOpts {
     fontStyle: string;
     // (undocumented)
     fontWeight: string;
-    // (undocumented)
     lineHeight: number;
     maxWidth: null | number;
     // (undocumented)
@@ -4260,6 +4330,8 @@ export interface TransformedGeometry2dOptions {
     debugColor?: string;
     // (undocumented)
     ignore?: boolean;
+    // (undocumented)
+    isEmptyLabel?: boolean;
     // (undocumented)
     isInternal?: boolean;
     // (undocumented)

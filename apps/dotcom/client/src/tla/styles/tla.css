@@ -45,9 +45,14 @@
 	--tla-color-hover-2: hsl(204, 16%, 4%, 4.5%);
 	--tla-color-hover-3: hsla(0, 0%, 100%, 32.5%);
 	--tla-color-overlay: hsla(240, 16%, 2%, 30%);
-	--tla-color-primary: hsl(214, 84%, 56%);
 	--tla-color-cta: hsl(214, 92%, 50%);
+	--tla-color-cta-hover: hsl(214, 92%, 53%);
+	--tla-color-inactive: hsl(204, 4%, 55%);
+	--tla-color-inactive-hover: hsl(204, 4%, 59%);
+	--tla-color-primary: hsl(214, 84%, 56%);
+	--tla-color-primary-hover: hsl(214, 84%, 58%);
 	--tla-color-secondary: hsl(0, 0%, 92%);
+	--tla-color-secondary-hover: hsl(0, 0%, 93.5%);
 	--tla-color-secondary-border: hsl(0, 0%, 80%);
 	--tla-color-accent-1: hsl(50, 91%, 70%);
 	--tla-color-accent-2: hsl(28, 88%, 57%);
@@ -84,8 +89,13 @@
 	--tla-color-hover-3: hsl(204, 16%, 4%, 3%);
 	--tla-color-overlay: hsla(240, 0%, 0%, 81%);
 	--tla-color-cta: hsl(214, 100%, 50%);
+	--tla-color-cta-hover: hsl(214, 100%, 52%);
+	--tla-color-inactive: hsl(204, 4%, 45%);
+	--tla-color-inactive-hover: hsl(204, 4%, 49%);
 	--tla-color-primary: hsl(214, 84%, 46%);
+	--tla-color-primary-hover: hsl(214, 84%, 50%);
 	--tla-color-secondary: hsl(0, 0%, 20%);
+	--tla-color-secondary-hover: hsl(0, 0%, 22%);
 	--tla-color-secondary-border: hsl(0, 0%, 25%);
 	--tla-color-accent-1: hsl(50, 91%, 60%);
 	--tla-color-accent-2: hsl(28, 88%, 47%);
@@ -215,6 +225,7 @@
 	min-width: 0px;
 	height: auto;
 	overflow: hidden;
+	position: relative;
 }
 
 .tlui-layout__top__right {
@@ -229,11 +240,11 @@
 }
 
 .tlui-page-menu__trigger {
-	flex-shrink: 0;
-	max-width: fit-content;
+	width: fit-content;
+	max-width: 128px;
 }
 
-@media (min-width: 1080px) {
+@media (min-width: 640px) {
 	.tlui-page-menu__trigger {
 		width: fit-content;
 		max-width: 320px;

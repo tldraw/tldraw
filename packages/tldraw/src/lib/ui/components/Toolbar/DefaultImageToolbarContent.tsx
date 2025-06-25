@@ -1,6 +1,7 @@
 import {
 	approximately,
 	isEqual,
+	kickoutOccludedShapes,
 	modulate,
 	TLImageShape,
 	TLShapePartial,
@@ -142,21 +143,23 @@ export const DefaultImageToolbarContent = track(function DefaultImageToolbarCont
 	const handleAspectRatioChange = (aspectRatio: ASPECT_RATIO_OPTION) => {
 		const imageShape = editor.getShape<TLImageShape>(imageShapeId)
 		if (!imageShape) return
-		editor.setCurrentTool('select.crop.idle')
-		const change = getCroppedImageDataForAspectRatio(aspectRatio, imageShape)
-
-		editor.markHistoryStoppingPoint('aspect ratio')
-		editor.updateShape({
-			id: imageShapeId,
-			type: 'image',
-			x: change.x,
-			y: change.y,
-			props: {
-				crop: change.crop,
-				w: change.w,
-				h: change.h,
-			},
-		} as TLShapePartial)
+		editor.run(() => {
+			editor.setCurrentTool('select.crop.idle')
+			const change = getCroppedImageDataForAspectRatio(aspectRatio, imageShape)
+			editor.markHistoryStoppingPoint('aspect ratio')
+			editor.updateShape({
+				id: imageShapeId,
+				type: 'image',
+				x: change.x,
+				y: change.y,
+				props: {
+					crop: change.crop,
+					w: change.w,
+					h: change.h,
+				},
+			} as TLShapePartial)
+			kickoutOccludedShapes(editor, [imageShapeId])
+		})
 	}
 
 	const altText = useValue(
@@ -179,6 +182,29 @@ export const DefaultImageToolbarContent = track(function DefaultImageToolbarCont
 			editor.timers.setTimeout(() => sliderRef.current?.focus(), 0)
 		}
 	}, [editor, isManipulating])
+
+	useEffect(() => {
+		function handleKeyDown(e: KeyboardEvent) {
+			if (isManipulating) {
+				if (e.key === 'Escape') {
+					editor.cancel()
+					onManipulatingEnd()
+				} else if (e.key === 'Enter') {
+					editor.complete()
+					onManipulatingEnd()
+				}
+			}
+		}
+		const elm = sliderRef.current
+		if (elm) {
+			elm.addEventListener('keydown', handleKeyDown)
+		}
+		return () => {
+			if (elm) {
+				elm.removeEventListener('keydown', handleKeyDown)
+			}
+		}
+	}, [editor, isManipulating, onManipulatingEnd])
 
 	if (isManipulating) {
 		return (

@@ -1,0 +1,32 @@
+.drag-tray {
+	position: absolute;
+	left: 10px;
+	top: 50px;
+	background: white;
+	border: 1px solid #e0e0e0;
+	border-radius: 12px;
+	box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+	z-index: 1000;
+	pointer-events: all;
+	overflow: hidden;
+}
+
+.drag-tray-items {
+	display: flex;
+	flex-direction: column;
+	gap: 4px;
+}
+
+.drag-tray-item {
+	display: flex;
+	align-items: center;
+	justify-content: center;
+	gap: 12px;
+	width: 40px;
+	height: 40px;
+	border-radius: 8px;
+	cursor: grab;
+	transition: all 0.2s ease;
+	user-select: none;
+	font-size: 18px;
+}

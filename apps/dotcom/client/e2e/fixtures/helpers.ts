@@ -1,6 +1,7 @@
 import { Browser, BrowserContext, Page, test } from '@playwright/test'
 import fs from 'fs'
 import path from 'path'
+import { sleep } from 'tldraw'
 import { Editor } from './Editor'
 import { ErrorPage } from './ErrorPages'
 import { HomePage } from './HomePage'
@@ -75,4 +76,26 @@ export function getRandomName() {
 		result += characters[randomIndex]
 	}
 	return result
+}
+
+const PROPAGATE_CHANGES_TIMEOUT = 100
+/**
+ * Ensures that the provided expectations are met both before and after a page reload.
+ *
+ * @param fn - An asynchronous function containing the expectations to be tested.
+ * @param page - The Playwright Page object representing the browser page.
+ *
+ * The function performs the following steps:
+ * 1. Executes the provided expectations and ensures they pass.
+ * 2. Waits for a specified timeout to allow optimistic changes to propagate to the server.
+ * 3. Reloads the page.
+ * 4. Executes the provided expectations again and ensures they pass.
+ */
+export async function expectBeforeAndAfterReload(fn: () => Promise<void>, page: Page) {
+	await fn()
+	await sleep(PROPAGATE_CHANGES_TIMEOUT)
+	await page.reload()
+	const { newHomePage } = createFixtures(page)
+	await newHomePage.isLoaded()
+	await fn()
 }

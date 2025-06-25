@@ -5528,7 +5528,7 @@ export class Editor extends EventEmitter<TLEventMap> {
 		if (!id) return undefined
 		const freshShape = this.getShape(id)
 		if (freshShape === undefined || !isShapeId(freshShape.parentId)) return undefined
-		return this.store.get(freshShape.parentId)
+		return this.getShape(freshShape.parentId)
 	}
 
 	/**
@@ -5711,6 +5711,10 @@ export class Editor extends EventEmitter<TLEventMap> {
 					const newPoint = invertedParentTransform.applyToPoint(pagePoint)
 					const newRotation = pageTransform.rotation() - parentPageRotation
 
+					if (shape.id === parentId) {
+						throw Error('Attempted to reparent a shape to itself!')
+					}
+
 					changes.push({
 						id: shape.id,
 						type: shape.type,
@@ -5814,6 +5818,11 @@ export class Editor extends EventEmitter<TLEventMap> {
 		return shapeIds
 	}
 
+	/** @deprecated Use {@link Editor.getDraggingOverShape} instead */
+	getDroppingOverShape(point: Vec, droppingShapes: TLShape[]): TLShape | undefined {
+		return this.getDraggingOverShape(point, droppingShapes)
+	}
+
 	/**
 	 * Get the shape that some shapes should be dropped on at a given point.
 	 *
@@ -5824,35 +5833,33 @@ export class Editor extends EventEmitter<TLEventMap> {
 	 *
 	 * @public
 	 */
-	getDroppingOverShape(point: VecLike, droppingShapes: TLShape[] = []) {
-		// starting from the top...
-		const currentPageShapesSorted = this.getCurrentPageShapesSorted()
-		for (let i = currentPageShapesSorted.length - 1; i >= 0; i--) {
-			const shape = currentPageShapesSorted[i]
+	getDraggingOverShape(point: Vec, droppingShapes: TLShape[]): TLShape | undefined {
+		// get fresh moving shapes
+		const draggingShapes = compact(droppingShapes.map((s) => this.getShape(s))).filter(
+			(s) => !s.isLocked && !this.isShapeHidden(s)
+		)
 
+		const maybeDraggingOverShapes = this.getShapesAtPoint(point, {
+			hitInside: true,
+			margin: 0,
+		}).filter(
+			(s) =>
+				!droppingShapes.includes(s) &&
+				!s.isLocked &&
+				!this.isShapeHidden(s) &&
+				!draggingShapes.includes(s)
+		)
+
+		for (const maybeDraggingOverShape of maybeDraggingOverShapes) {
+			const shapeUtil = this.getShapeUtil(maybeDraggingOverShape)
+			// Any shape that can handle any dragging interactions is a valid target
 			if (
-				// ignore hidden shapes
-				this.isShapeHidden(shape) ||
-				// don't allow dropping on selected shapes
-				this.getSelectedShapeIds().includes(shape.id) ||
-				// only allow shapes that can receive children
-				!this.getShapeUtil(shape).canDropShapes(shape, droppingShapes) ||
-				// don't allow dropping a shape on itself or one of it's children
-				droppingShapes.find((s) => s.id === shape.id || this.hasAncestor(shape, s.id))
+				shapeUtil.onDragShapesOver ||
+				shapeUtil.onDragShapesIn ||
+				shapeUtil.onDragShapesOut ||
+				shapeUtil.onDropShapesOver
 			) {
-				continue
-			}
-
-			// Only allow dropping into the masked page bounds of the shape, e.g. when a frame is
-			// partially clipped by its own parent frame
-			const maskedPageBounds = this.getShapeMaskedPageBounds(shape.id)
-
-			if (
-				maskedPageBounds &&
-				maskedPageBounds.containsPoint(point) &&
-				this.getShapeGeometry(shape).hitTestPoint(this.getPointInShapeSpace(shape, point), 0, true)
-			) {
-				return shape
+				return maybeDraggingOverShape
 			}
 		}
 	}
@@ -6296,10 +6303,7 @@ export class Editor extends EventEmitter<TLEventMap> {
 			})
 			const shapesToCreate = shapesToCreateWithOriginals.map(({ shape }) => shape)
 
-			const maxShapesReached =
-				shapesToCreate.length + this.getCurrentPageShapeIds().size > this.options.maxShapesPerPage
-
-			if (maxShapesReached) {
+			if (!this.canCreateShapes(shapesToCreate)) {
 				alertMaxShapes(this)
 				return
 			}
@@ -7729,6 +7733,32 @@ export class Editor extends EventEmitter<TLEventMap> {
 	}
 
 	/**
+	 * Get whether the provided shape can be created.
+	 *
+	 * @param shape - The shape or shape IDs to check.
+	 *
+	 * @public
+	 */
+	canCreateShape<T extends TLUnknownShape>(
+		shape: OptionalKeys<TLShapePartial<T>, 'id'> | T['id']
+	): boolean {
+		return this.canCreateShapes([shape])
+	}
+
+	/**
+	 * Get whether the provided shapes can be created.
+	 *
+	 * @param shapes - The shapes or shape IDs to create.
+	 *
+	 * @public
+	 */
+	canCreateShapes<T extends TLUnknownShape>(
+		shapes: (T['id'] | OptionalKeys<TLShapePartial<T>, 'id'>)[]
+	): boolean {
+		return shapes.length + this.getCurrentPageShapeIds().size <= this.options.maxShapesPerPage
+	}
+
+	/**
 	 * Create a single shape.
 	 *
 	 * @example
@@ -7774,6 +7804,7 @@ export class Editor extends EventEmitter<TLEventMap> {
 		if (maxShapesReached) {
 			// can't create more shapes than fit on the page
 			alertMaxShapes(this)
+			// todo: throw an error here? Otherwise we'll need to check every time whether the shapes were actually created
 			return this
 		}
 
@@ -7806,9 +7837,10 @@ export class Editor extends EventEmitter<TLEventMap> {
 
 					for (let i = currentPageShapesSorted.length - 1; i >= 0; i--) {
 						const parent = currentPageShapesSorted[i]
+						const util = this.getShapeUtil(parent)
 						if (
+							util.canReceiveNewChildrenOfType(parent, partial.type) &&
 							!this.isShapeHidden(parent) &&
-							this.getShapeUtil(parent).canReceiveNewChildrenOfType(parent, partial.type) &&
 							this.isPointInShape(
 								parent,
 								// If no parent is provided, then we can treat the
@@ -7937,6 +7969,8 @@ export class Editor extends EventEmitter<TLEventMap> {
 				}
 			})
 
+			this.emit('created-shapes', shapeRecordsToCreate)
+			this.emit('edit')
 			this.store.put(shapeRecordsToCreate)
 		})
 
@@ -8331,6 +8365,8 @@ export class Editor extends EventEmitter<TLEventMap> {
 				updates.push(updated)
 			}
 
+			this.emit('edited-shapes', updates)
+			this.emit('edit')
 			this.store.put(updates)
 		})
 	}
@@ -8380,6 +8416,8 @@ export class Editor extends EventEmitter<TLEventMap> {
 			})
 		}
 
+		this.emit('deleted-shapes', [...allShapeIdsToDelete])
+		this.emit('edit')
 		return this.run(() => this.store.remove([...allShapeIdsToDelete]))
 	}
 
@@ -9506,6 +9544,8 @@ export class Editor extends EventEmitter<TLEventMap> {
 			previousPagePoint,
 			currentScreenPoint,
 			currentPagePoint,
+			originScreenPoint,
+			originPagePoint,
 		} = this.inputs
 
 		const { screenBounds } = this.store.unsafeGetWithoutCapture(TLINSTANCE_ID)!
@@ -9534,8 +9574,8 @@ export class Editor extends EventEmitter<TLEventMap> {
 		// Reset velocity on pointer down, or when a pinch starts or ends
 		if (info.name === 'pointer_down' || this.inputs.isPinching) {
 			pointerVelocity.set(0, 0)
-			this.inputs.originScreenPoint.setTo(currentScreenPoint)
-			this.inputs.originPagePoint.setTo(currentPagePoint)
+			originScreenPoint.setTo(currentScreenPoint)
+			originPagePoint.setTo(currentPagePoint)
 		}
 
 		// todo: We only have to do this if there are multiple users in the document

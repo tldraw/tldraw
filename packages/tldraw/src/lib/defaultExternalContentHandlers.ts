@@ -341,7 +341,9 @@ export function defaultHandleExternalEmbedContent<T>(
 		},
 	}
 
-	editor.createShapes([shapePartial]).select(id)
+	if (editor.canCreateShape(shapePartial)) {
+		editor.createShape(shapePartial).select(id)
+	}
 }
 
 /** @public */
@@ -497,9 +499,12 @@ export async function defaultHandleExternalTextContent(
 	}
 
 	const newPoint = maybeSnapToGrid(new Vec(p.x - w / 2, p.y - h / 2), editor)
+	const shapeId = createShapeId()
+
+	// Allow this to trigger the max shapes reached alert
 	editor.createShapes<TLTextShape>([
 		{
-			id: createShapeId(),
+			id: shapeId,
 			type: 'text',
 			x: newPoint.x,
 			y: newPoint.y,
@@ -737,14 +742,17 @@ export async function createShapesForAssets(
 		const assetsToCreate = assets.filter((asset) => !editor.getAsset(asset.id))
 
 		editor.store.atomic(() => {
-			if (assetsToCreate.length) {
-				editor.createAssets(assetsToCreate)
-			}
-			// Create the shapes
-			editor.createShapes(partials).select(...partials.map((p) => p.id))
+			if (editor.canCreateShapes(partials)) {
+				if (assetsToCreate.length) {
+					editor.createAssets(assetsToCreate)
+				}
 
-			// Re-position shapes so that the center of the group is at the provided point
-			centerSelectionAroundPoint(editor, position)
+				// Create the shapes
+				editor.createShapes(partials).select(...partials.map((p) => p.id))
+
+				// Re-position shapes so that the center of the group is at the provided point
+				centerSelectionAroundPoint(editor, position)
+			}
 		})
 	})
 
@@ -827,7 +835,10 @@ export function createEmptyBookmarkShape(
 	}
 
 	editor.run(() => {
-		editor.createShapes([partial]).select(partial.id)
+		// Allow this to trigger the max shapes reached alert
+		editor.createShape(partial)
+		if (!editor.getShape(partial.id)) return
+		editor.select(partial.id)
 		centerSelectionAroundPoint(editor, position)
 	})
 

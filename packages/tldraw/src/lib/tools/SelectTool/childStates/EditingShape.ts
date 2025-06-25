@@ -190,10 +190,12 @@ export class EditingShape extends StateNode {
 	}
 
 	override onComplete(info: TLCompleteEventInfo) {
+		this.editor.getContainer().focus()
 		this.parent.transition('idle', info)
 	}
 
 	override onCancel(info: TLCancelEventInfo) {
+		this.editor.getContainer().focus()
 		this.parent.transition('idle', info)
 	}
 }
