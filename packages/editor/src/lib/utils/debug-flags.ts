@@ -53,6 +53,8 @@ export const debugFlags = {
 	debugGeometry: createDebugValue('debugGeometry', { defaults: { all: false } }),
 	hideShapes: createDebugValue('hideShapes', { defaults: { all: false } }),
 	editOnType: createDebugValue('editOnType', { defaults: { all: false } }),
+	a11y: createDebugValue('a11y', { defaults: { all: false } }),
+	debugElbowArrows: createDebugValue('debugElbowArrows', { defaults: { all: false } }),
 } as const
 
 declare global {
@@ -148,7 +150,9 @@ function createDebugValueBase<T>(def: DebugFlagDef<T>): DebugFlag<T> {
 		})
 	}
 
-	return Object.assign(valueAtom, def)
+	return Object.assign(valueAtom, def, {
+		reset: () => valueAtom.set(defaultValue),
+	})
 }
 
 function getStoredInitialValue(name: string) {
@@ -205,4 +209,6 @@ export interface DebugFlagDef<T> {
 }
 
 /** @internal */
-export type DebugFlag<T> = DebugFlagDef<T> & Atom<T>
+export interface DebugFlag<T> extends DebugFlagDef<T>, Atom<T> {
+	reset(): void
+}

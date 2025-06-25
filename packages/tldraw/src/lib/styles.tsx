@@ -82,6 +82,10 @@ export const STYLES = {
 		{ value: 'check-box', icon: 'geo-check-box' },
 		{ value: 'heart', icon: 'geo-heart' },
 	],
+	arrowKind: [
+		{ value: 'arc', icon: 'arrow-arc' },
+		{ value: 'elbow', icon: 'arrow-elbow' },
+	],
 	arrowheadStart: [
 		{ value: 'none', icon: 'arrowhead-none' },
 		{ value: 'arrow', icon: 'arrowhead-arrow' },

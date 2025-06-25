@@ -1,13 +1,11 @@
-import { DB, TlaFile, TlaFileState, TlaRow, TlaUser, ZTable } from '@tldraw/dotcom-shared'
+import { DB, TlaFile } from '@tldraw/dotcom-shared'
 import {
 	ExecutionQueue,
 	assert,
 	assertExists,
 	exhaustiveSwitchError,
-	groupBy,
 	promiseWithResolve,
 	sleep,
-	stringEnum,
 	throttle,
 	uniqueId,
 } from '@tldraw/utils'
@@ -17,9 +15,15 @@ import { Kysely, sql } from 'kysely'
 
 import { LogicalReplicationService, Wal2Json, Wal2JsonPlugin } from 'pg-logical-replication'
 import { Logger } from './Logger'
-import { UserChangeCollator } from './UserChangeCollator'
 import { ZReplicationEventWithoutSequenceInfo } from './UserDataSyncer'
 import { createPostgresConnectionPool } from './postgres'
+import { getR2KeyForRoom } from './r2'
+import { LiveChangeCollator, buildTopicsString, getTopics } from './replicator/ChangeCollator'
+import { getSubscriptionChanges, serializeSubscriptions } from './replicator/Subscription'
+import { getResumeType } from './replicator/getResumeType'
+import { pruneTopicSubscriptionsSql } from './replicator/pruneTopicSubscriptions'
+import { migrate } from './replicator/replicatorMigrations'
+import { ChangeV2, ReplicationEvent, relevantTables } from './replicator/replicatorTypes'
 import {
 	Analytics,
 	Environment,
@@ -33,108 +37,13 @@ import {
 	getUserDurableObject,
 } from './utils/durableObjects'
 
-const relevantTables = stringEnum('user', 'file', 'file_state', 'user_mutation_number')
-
-interface ReplicationEvent {
-	command: 'insert' | 'update' | 'delete'
-	table: keyof typeof relevantTables
-}
-
-interface Change {
-	event: ReplicationEvent
-	userId: string
-	fileId: string | null
-	row: TlaRow
-}
-
-interface Migration {
-	id: string
-	code: string
-}
-
-const migrations: Migration[] = [
-	{
-		id: '000_seed',
-		code: `
-			CREATE TABLE IF NOT EXISTS active_user (
-				id TEXT PRIMARY KEY
-			);
-			CREATE TABLE IF NOT EXISTS user_file_subscriptions (
-				userId TEXT,
-				fileId TEXT,
-				PRIMARY KEY (userId, fileId),
-				FOREIGN KEY (userId) REFERENCES active_user(id) ON DELETE CASCADE
-			);
-			CREATE TABLE migrations (
-				id TEXT PRIMARY KEY,
-				code TEXT NOT NULL
-			);
-		`,
-	},
-	{
-		id: '001_add_sequence_number',
-		code: `
-			ALTER TABLE active_user ADD COLUMN sequenceNumber INTEGER NOT NULL DEFAULT 0;
-			ALTER TABLE active_user ADD COLUMN sequenceIdSuffix TEXT NOT NULL DEFAULT '';
-		`,
-	},
-	{
-		id: '002_add_last_updated_at',
-		code: `
-			ALTER TABLE active_user ADD COLUMN lastUpdatedAt INTEGER NOT NULL DEFAULT 0;
-		`,
-	},
-	{
-		id: '003_add_lsn_tracking',
-		code: `
-			CREATE TABLE IF NOT EXISTS meta (
-				lsn TEXT PRIMARY KEY,
-				slotName TEXT NOT NULL
-			);
-			-- The slot name references the replication slot in postgres.
-			-- If something ever gets messed up beyond mortal comprehension and we need to force all
-			-- clients to reboot, we can just change the slot name by altering the slotNamePrefix in the constructor.
-			INSERT INTO meta (lsn, slotName) VALUES ('0/0', 'init');
-		`,
-	},
-	{
-		id: '004_keep_event_log',
-		code: `
-		  CREATE TABLE history (
-				lsn TEXT NOT NULL,
-				userId TEXT NOT NULL,
-				fileId TEXT,
-				json TEXT NOT NULL
-			);
-			CREATE INDEX history_lsn_userId ON history (lsn, userId);
-			CREATE INDEX history_lsn_fileId ON history (lsn, fileId);
-			PRAGMA optimize;
-		`,
-	},
-	{
-		id: '005_add_history_timestamp',
-		code: `
-			ALTER TABLE history ADD COLUMN timestamp INTEGER NOT NULL DEFAULT 0;
-		`,
-	},
-]
-
 const ONE_MINUTE = 60 * 1000
+// IMPORTANT prune interval needs to be at least twice as big as the lsn update request timeout
+// otherwise we might prune users who are still connected.
 const PRUNE_INTERVAL = 10 * ONE_MINUTE
 const MAX_HISTORY_ROWS = 20_000
 
 type PromiseWithResolve = ReturnType<typeof promiseWithResolve>
-
-type Row =
-	| TlaRow
-	| {
-			bootId: string
-			userId: string
-	  }
-	| {
-			mutationNumber: number
-			userId: string
-	  }
 
 type BootState =
 	| {
@@ -232,7 +141,7 @@ export class TLPostgresReplicator extends DurableObject<Environment> {
 		this.alarm()
 		this.ctx
 			.blockConcurrencyWhile(async () => {
-				await this._migrate().catch((e) => {
+				await migrate(this.sqlite, this.log).catch((e) => {
 					this.captureException(e)
 					throw e
 				})
@@ -253,42 +162,6 @@ export class TLPostgresReplicator extends DurableObject<Environment> {
 			})
 		// no need to catch since throwing in a blockConcurrencyWhile will trigger
 		// a DO reboot
-	}
-
-	private _applyMigration(index: number) {
-		this.log.debug('running migration', migrations[index].id)
-		this.sqlite.exec(migrations[index].code)
-		this.sqlite.exec(
-			'insert into migrations (id, code) values (?, ?)',
-			migrations[index].id,
-			migrations[index].code
-		)
-		this.log.debug('ran migration', migrations[index].id)
-	}
-
-	private async _migrate() {
-		let appliedMigrations: Migration[]
-		try {
-			appliedMigrations = this.sqlite
-				.exec('select code, id from migrations order by id asc')
-				.toArray() as any
-		} catch (_e) {
-			// no migrations table, run initial migration
-			this._applyMigration(0)
-			appliedMigrations = [migrations[0]]
-		}
-
-		for (let i = 0; i < appliedMigrations.length; i++) {
-			if (appliedMigrations[i].id !== migrations[i].id) {
-				throw new Error(
-					'TLPostgresReplicator migrations have changed!! this is an append-only array!!'
-				)
-			}
-		}
-
-		for (let i = appliedMigrations.length; i < migrations.length; i++) {
-			this._applyMigration(i)
-		}
 	}
 
 	async __test__forceReboot() {
@@ -334,6 +207,7 @@ export class TLPostgresReplicator extends DurableObject<Environment> {
 			await this.unregisterUser(id)
 		}
 		this.pruneHistory()
+		this.pruneTopicSubscriptions()
 		this.lastUserPruneTime = Date.now()
 	}
 
@@ -345,6 +219,13 @@ export class TLPostgresReplicator extends DurableObject<Environment> {
       DELETE FROM history
       WHERE rowid < (SELECT max_id FROM max) - ${MAX_HISTORY_ROWS};
     `)
+	}
+
+	private pruneTopicSubscriptions() {
+		// Use a temp table + index for fast lookups during the delete
+		this.ctx.storage.transactionSync(() => {
+			this.sqlite.exec(pruneTopicSubscriptionsSql)
+		})
 	}
 
 	private maybeLogRpm() {
@@ -361,16 +242,22 @@ export class TLPostgresReplicator extends DurableObject<Environment> {
 
 	async getDiagnostics() {
 		const earliestHistoryRow = this.sqlite
-			.exec('select * from history order by rowid asc limit 1')
+			.exec<{ timestamp: number }>('select * from history order by rowid asc limit 1')
 			.toArray()[0]
 		const latestHistoryRow = this.sqlite
-			.exec('select * from history order by rowid desc limit 1')
+			.exec<{ timestamp: number }>('select * from history order by rowid desc limit 1')
 			.toArray()[0]
+		const numHistoryRows = this.sqlite.exec('select count(*) from history').one().count as number
+		const numTopicSubscriptions = this.sqlite.exec('select count(*) from topic_subscription').one()
+			.count as number
 		const activeUsers = this.sqlite.exec('select count(*) from active_user').one().count as number
 		const meta = this.sqlite.exec('select * from meta').one()
 		return {
 			earliestHistoryRow,
 			latestHistoryRow,
+			historyDurationMinutes: (latestHistoryRow.timestamp - earliestHistoryRow.timestamp) / 60_000,
+			numHistoryRows,
+			numTopicSubscriptions,
 			activeUsers,
 			meta,
 		}
@@ -449,7 +336,9 @@ export class TLPostgresReplicator extends DurableObject<Environment> {
 				this.postgresUpdates++
 				this.lastPostgresMessageTime = Date.now()
 				this.reportPostgresUpdate()
-				const collator = new UserChangeCollator()
+
+				const changes: ChangeV2[] = []
+
 				for (const _change of log.change) {
 					if (_change.kind === 'message' && (_change as any).prefix === 'requestLsnUpdate') {
 						this.requestLsnUpdate((_change as any).content)
@@ -460,21 +349,76 @@ export class TLPostgresReplicator extends DurableObject<Environment> {
 						this.log.debug('IGNORING CHANGE', _change)
 						continue
 					}
+					changes.push(change)
+				}
 
-					this.handleEvent(collator, change, false)
+				if (changes.length === 0) {
+					return
+				}
+
+				const { newSubscriptions, removedSubscriptions } = getSubscriptionChanges(changes)
+
+				this.log.debug('data', lsn, { changes, newSubscriptions, removedSubscriptions })
+
+				this.ctx.storage.transactionSync(() => {
 					this.sqlite.exec(
-						'INSERT INTO history (lsn, userId, fileId, json, timestamp) VALUES (?, ?, ?, ?, ?)',
+						'INSERT INTO history (lsn, changesJson, newSubscriptions, removedSubscriptions, topics, timestamp) VALUES (?, ?, ?, ?, ?, ?)',
 						lsn,
-						change.userId,
-						change.fileId,
-						JSON.stringify(change),
+						JSON.stringify(changes),
+						newSubscriptions && serializeSubscriptions(newSubscriptions),
+						removedSubscriptions && serializeSubscriptions(removedSubscriptions),
+						buildTopicsString(changes),
 						Date.now()
 					)
-				}
-				this.log.debug('changes', collator.changes.size)
-				for (const [userId, changes] of collator.changes) {
-					this._messageUser(userId, { type: 'changes', changes, lsn })
-				}
+
+					const collator = new LiveChangeCollator(this.sqlite)
+
+					// handle add ops first so that we get insertions for new topics
+					if (newSubscriptions) {
+						collator.addSubscriptions(newSubscriptions)
+					}
+
+					for (const change of changes) {
+						collator.handleEvent(change)
+					}
+
+					// handle remove ops last so that we get deletions/updates for dying topics
+					if (removedSubscriptions) {
+						collator.removeSubscriptions(removedSubscriptions)
+					}
+
+					collator.effects.forEach((effect) => {
+						switch (effect.type) {
+							case 'publish':
+								return this.publishSnapshot(effect.file)
+							case 'unpublish':
+								return this.unpublishSnapshot(effect.file)
+							case 'notify_file_durable_object':
+								switch (effect.command) {
+									case 'insert':
+										return getRoomDurableObject(this.env, effect.file.id).appFileRecordCreated(
+											effect.file
+										)
+									case 'update':
+										return getRoomDurableObject(this.env, effect.file.id).appFileRecordDidUpdate(
+											effect.file
+										)
+									case 'delete':
+										return getRoomDurableObject(this.env, effect.file.id).appFileRecordDidDelete(
+											effect.file
+										)
+									default:
+										exhaustiveSwitchError(effect.command)
+								}
+							default:
+								exhaustiveSwitchError(effect)
+						}
+					})
+
+					for (const [userId, changes] of collator.changes) {
+						this._messageUser(userId, { type: 'changes', changes, lsn })
+					}
+				})
 				this.commitLsn(lsn)
 			} catch (e) {
 				this.captureException(e)
@@ -525,13 +469,14 @@ export class TLPostgresReplicator extends DurableObject<Environment> {
 		}
 	}
 
-	private parseChange(change: Wal2Json.Change): Change | null {
+	private parseChange(change: Wal2Json.Change): ChangeV2 | null {
 		const table = change.table as ReplicationEvent['table']
 		if (change.kind === 'truncate' || change.kind === 'message' || !(table in relevantTables)) {
 			return null
 		}
 
 		const row = {} as any
+		const previous = {} as any
 		// take everything from change.columnnames and associated the values from change.columnvalues
 		if (change.kind === 'delete') {
 			const oldkeys = change.oldkeys
@@ -540,46 +485,34 @@ export class TLPostgresReplicator extends DurableObject<Environment> {
 			oldkeys.keynames.forEach((key, i) => {
 				row[key] = oldkeys.keyvalues[i]
 			})
+		} else if (change.kind === 'update') {
+			const oldkeys = change.oldkeys
+			assert(oldkeys, 'oldkeys is required for delete events')
+			assert(oldkeys.keyvalues, 'oldkeys is required for delete events')
+			oldkeys.keynames.forEach((key, i) => {
+				previous[key] = oldkeys.keyvalues[i]
+			})
+			change.columnnames.forEach((col, i) => {
+				row[col] = change.columnvalues[i]
+			})
 		} else {
 			change.columnnames.forEach((col, i) => {
 				row[col] = change.columnvalues[i]
 			})
 		}
 
-		let userId = null as string | null
-		let fileId = null as string | null
-		switch (table) {
-			case 'user':
-				userId = (row as TlaUser).id
-				break
-			case 'file':
-				userId = (row as TlaFile).ownerId
-				fileId = (row as TlaFile).id
-				break
-			case 'file_state':
-				userId = (row as TlaFileState).userId
-				fileId = (row as TlaFileState).fileId
-				break
-			case 'user_mutation_number':
-				userId = (row as { userId: string }).userId
-				break
-			default: {
-				// assert never
-				const _x: never = table
-			}
+		const event = {
+			command: change.kind,
+			table,
 		}
 
-		if (!userId) return null
-
-		return {
-			row,
-			event: {
-				command: change.kind,
-				table,
-			},
-			userId,
-			fileId,
+		const topics = getTopics(row, event)
+		if (topics.length === 0) {
+			this.captureException(new Error('getTopics returned empty array'), { change })
+			return null
 		}
+
+		return { row, previous, event, topics }
 	}
 
 	private onDidSequenceBreak() {
@@ -603,133 +536,6 @@ export class TLPostgresReplicator extends DurableObject<Environment> {
 		() => getStatsDurableObjct(this.env).recordReplicatorPostgresUpdate(),
 		5000
 	)
-
-	private handleEvent(collator: UserChangeCollator, change: Change, isReplay: boolean) {
-		// ignore events received after disconnecting, if that can even happen
-		if (this.state.type !== 'connected') return
-
-		// We shouldn't get these two, but just to be sure we'll filter them out
-		const { command, table } = change.event
-		this.log.debug('handleEvent', change)
-		assert(this.state.type === 'connected', 'state should be connected in handleEvent')
-		try {
-			switch (table) {
-				case 'user_mutation_number':
-					this.handleMutationConfirmationEvent(collator, change.row, { command, table })
-					break
-				case 'file_state':
-					this.handleFileStateEvent(collator, change.row, { command, table })
-					break
-				case 'file':
-					this.handleFileEvent(collator, change.row, { command, table }, isReplay)
-					break
-				case 'user':
-					this.handleUserEvent(collator, change.row, { command, table })
-					break
-				default: {
-					const _x: never = table
-					this.captureException(new Error(`Unhandled table: ${table}`), { change })
-					break
-				}
-			}
-		} catch (e) {
-			this.captureException(e)
-		}
-	}
-
-	private handleMutationConfirmationEvent(
-		collator: UserChangeCollator,
-		row: Row | null,
-		event: ReplicationEvent
-	) {
-		if (event.command === 'delete') return
-		assert(row && 'mutationNumber' in row, 'mutationNumber is required')
-		collator.addChange(row.userId, {
-			type: 'mutation_commit',
-			mutationNumber: row.mutationNumber,
-			userId: row.userId,
-		})
-	}
-
-	private handleFileStateEvent(
-		collator: UserChangeCollator,
-		row: Row | null,
-		event: ReplicationEvent
-	) {
-		assert(row && 'userId' in row && 'fileId' in row, 'userId is required')
-		if (!this.userIsActive(row.userId)) return
-		if (event.command === 'insert') {
-			if (!row.isFileOwner) {
-				this.sqlite.exec(
-					`INSERT INTO user_file_subscriptions (userId, fileId) VALUES (?, ?) ON CONFLICT (userId, fileId) DO NOTHING`,
-					row.userId,
-					row.fileId
-				)
-			}
-		} else if (event.command === 'delete') {
-			this.sqlite.exec(
-				`DELETE FROM user_file_subscriptions WHERE userId = ? AND fileId = ?`,
-				row.userId,
-				row.fileId
-			)
-		}
-		collator.addChange(row.userId, {
-			type: 'row_update',
-			row: row as any,
-			table: event.table as ZTable,
-			event: event.command,
-			userId: row.userId,
-		})
-	}
-
-	private handleFileEvent(
-		collator: UserChangeCollator,
-		row: Row | null,
-		event: ReplicationEvent,
-		isReplay: boolean
-	) {
-		assert(row && 'id' in row && 'ownerId' in row, 'row id is required')
-		const impactedUserIds = [
-			row.ownerId,
-			...this.sqlite
-				.exec('SELECT userId FROM user_file_subscriptions WHERE fileId = ?', row.id)
-				.toArray()
-				.map((x) => x.userId as string),
-		]
-		// if the file state was deleted before the file, we might not have any impacted users
-		if (event.command === 'delete') {
-			if (!isReplay) getRoomDurableObject(this.env, row.id).appFileRecordDidDelete(row)
-			this.sqlite.exec(`DELETE FROM user_file_subscriptions WHERE fileId = ?`, row.id)
-		} else if (event.command === 'update') {
-			assert('ownerId' in row, 'ownerId is required when updating file')
-			if (!isReplay) getRoomDurableObject(this.env, row.id).appFileRecordDidUpdate(row)
-		} else if (event.command === 'insert') {
-			assert('ownerId' in row, 'ownerId is required when inserting file')
-			if (!isReplay) getRoomDurableObject(this.env, row.id).appFileRecordCreated(row)
-		}
-		for (const userId of impactedUserIds) {
-			collator.addChange(userId, {
-				type: 'row_update',
-				row: row as any,
-				table: event.table as ZTable,
-				event: event.command,
-				userId,
-			})
-		}
-	}
-
-	private handleUserEvent(collator: UserChangeCollator, row: Row | null, event: ReplicationEvent) {
-		assert(row && 'id' in row, 'user id is required')
-		this.log.debug('USER EVENT', event.command, row.id)
-		collator.addChange(row.id, {
-			type: 'row_update',
-			row: row as any,
-			table: event.table as ZTable,
-			event: event.command,
-			userId: row.id,
-		})
-		return [row.id]
-	}
 
 	private userIsActive(userId: string) {
 		return this.sqlite.exec(`SELECT * FROM active_user WHERE id = ?`, userId).toArray().length > 0
@@ -789,70 +595,6 @@ export class TLPostgresReplicator extends DurableObject<Environment> {
 		}
 	}
 
-	private getResumeType(
-		lsn: string,
-		userId: string,
-		guestFileIds: string[]
-	): { type: 'done'; messages?: ZReplicationEventWithoutSequenceInfo[] } | { type: 'reboot' } {
-		const currentLsn = assertExists(this.getCurrentLsn())
-
-		if (lsn >= currentLsn) {
-			this.log.debug('getResumeType: resuming from current lsn', lsn, '>=', currentLsn)
-			// targetLsn is now or in the future, we can register them and deliver events
-			// without needing to check the history
-			return { type: 'done' }
-		}
-		const earliestLsn = this.sqlite
-			.exec<{ lsn: string }>('SELECT lsn FROM history ORDER BY rowid asc LIMIT 1')
-			.toArray()[0]?.lsn
-
-		if (!earliestLsn || lsn < earliestLsn) {
-			this.log.debug('getResumeType: not enough history', lsn, '<', earliestLsn)
-			// not enough history, we can't resume
-			return { type: 'reboot' }
-		}
-
-		const history = this.sqlite
-			.exec<{ json: string; lsn: string }>(
-				`
-			SELECT lsn, json
-			FROM history
-			WHERE
-			  lsn > ?
-				AND (
-				  userId = ? 
-					OR fileId IN (${guestFileIds.map((_, i) => '$' + (i + 1)).join(', ')})
-				)
-			ORDER BY rowid ASC
-		`,
-				lsn,
-				userId,
-				...guestFileIds
-			)
-			.toArray()
-			.map(({ json, lsn }) => ({ change: JSON.parse(json) as Change, lsn }))
-
-		if (history.length === 0) {
-			this.log.debug('getResumeType: no history to replay, all good', lsn)
-			return { type: 'done' }
-		}
-
-		const changesByLsn = groupBy(history, (x) => x.lsn)
-		const messages: ZReplicationEventWithoutSequenceInfo[] = []
-		for (const lsn of Object.keys(changesByLsn).sort()) {
-			const collator = new UserChangeCollator()
-			for (const change of changesByLsn[lsn]) {
-				this.handleEvent(collator, change.change, true)
-			}
-			const changes = collator.changes.get(userId)
-			if (changes?.length) {
-				messages.push({ type: 'changes', changes, lsn })
-			}
-		}
-		this.log.debug('getResumeType: resuming', messages.length, messages)
-		return { type: 'done', messages }
-	}
-
 	async registerUser({
 		userId,
 		lsn,
@@ -882,20 +624,30 @@ export class TLPostgresReplicator extends DurableObject<Environment> {
 				Date.now()
 			)
 
-			this.sqlite.exec(`DELETE FROM user_file_subscriptions WHERE userId = ?`, userId)
+			// Clear existing subscriptions for this user
+			this.sqlite.exec(`DELETE FROM topic_subscription WHERE fromTopic = ?`, `user:${userId}`)
+
+			// Add direct subscriptions for all files the user cares about (both owned and guest)
 			for (const fileId of guestFileIds) {
 				this.sqlite.exec(
-					`INSERT INTO user_file_subscriptions (userId, fileId) VALUES (?, ?) ON CONFLICT (userId, fileId) DO NOTHING`,
-					userId,
-					fileId
+					`INSERT INTO topic_subscription (fromTopic, toTopic) VALUES (?, ?) ON CONFLICT (fromTopic, toTopic) DO NOTHING`,
+					`user:${userId}`,
+					`file:${fileId}`
 				)
 			}
-			this.log.debug('inserted file subscriptions', guestFileIds.length)
+
+			this.log.debug('inserted guest file subscriptions', guestFileIds.length)
 
 			this.reportActiveUsers()
 			this.log.debug('inserted active user')
 
-			const resume = this.getResumeType(lsn, userId, guestFileIds)
+			const resume = getResumeType({
+				sqlite: this.sqlite,
+				log: this.log,
+				currentLsn: assertExists(this.getCurrentLsn()),
+				lsn,
+				userId,
+			})
 			if (resume.type === 'reboot') {
 				return { type: 'reboot' }
 			}
@@ -933,6 +685,7 @@ export class TLPostgresReplicator extends DurableObject<Environment> {
 	async unregisterUser(userId: string) {
 		this.logEvent({ type: 'unregister_user' })
 		this.sqlite.exec(`DELETE FROM active_user WHERE id = ?`, userId)
+		this.sqlite.exec(`DELETE FROM topic_subscription WHERE fromTopic = ?`, `user:${userId}`)
 		this.reportActiveUsers()
 		const queue = this.userDispatchQueues.get(userId)
 		if (queue) {
@@ -981,6 +734,47 @@ export class TLPostgresReplicator extends DurableObject<Environment> {
 				break
 			default:
 				exhaustiveSwitchError(event)
+		}
+	}
+
+	private async publishSnapshot(file: TlaFile) {
+		try {
+			// make sure the room's snapshot is up to date
+			await getRoomDurableObject(this.env, file.id).awaitPersist()
+			// and that it exists
+			const snapshot = await this.env.ROOMS.get(getR2KeyForRoom({ slug: file.id, isApp: true }))
+
+			if (!snapshot) {
+				throw new Error('Snapshot not found')
+			}
+			const blob = await snapshot.blob()
+
+			// Create a new slug for the published room
+			await this.env.SNAPSHOT_SLUG_TO_PARENT_SLUG.put(file.publishedSlug, file.id)
+
+			// Bang the snapshot into the database
+			await this.env.ROOM_SNAPSHOTS.put(
+				getR2KeyForRoom({ slug: `${file.id}/${file.publishedSlug}`, isApp: true }),
+				blob
+			)
+			const currentTime = new Date().toISOString()
+			await this.env.ROOM_SNAPSHOTS.put(
+				getR2KeyForRoom({ slug: `${file.id}/${file.publishedSlug}|${currentTime}`, isApp: true }),
+				blob
+			)
+		} catch (e) {
+			this.log.debug('Error publishing snapshot', e)
+		}
+	}
+
+	private async unpublishSnapshot(file: TlaFile) {
+		try {
+			await this.env.SNAPSHOT_SLUG_TO_PARENT_SLUG.delete(file.publishedSlug)
+			await this.env.ROOM_SNAPSHOTS.delete(
+				getR2KeyForRoom({ slug: `${file.id}/${file.publishedSlug}`, isApp: true })
+			)
+		} catch (e) {
+			this.log.debug('Error unpublishing snapshot', e)
 		}
 	}
 }

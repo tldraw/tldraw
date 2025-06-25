@@ -206,15 +206,15 @@ export abstract class StateNode implements Partial<TLEventHandlers> {
 	}
 
 	// todo: move this logic into transition
-	exit(info: any, from: string) {
+	exit(info: any, to: string) {
 		if (debugFlags.measurePerformance.get() && this.performanceTracker.isStarted()) {
 			this.performanceTracker.stop()
 		}
 		this._isActive.set(false)
-		this.onExit?.(info, from)
+		this.onExit?.(info, to)
 
 		if (!this.getIsActive()) {
-			this.getCurrent()?.exit(info, from)
+			this.getCurrent()?.exit(info, to)
 		}
 	}
 

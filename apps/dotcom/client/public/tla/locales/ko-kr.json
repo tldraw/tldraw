@@ -20,11 +20,17 @@
   "08331c1710": {
     "translation": "비율 제한이 초과되었습니다. 잠시 후 다시 시도하세요."
   },
+  "08bd40c754": {
+    "translation": "계정"
+  },
   "0b27918290": {
     "translation": "파일"
   },
   "0b9a4cde72": {
     "translation": "파일 메뉴"
+  },
+  "0d1f2bb523": {
+    "translation": "피드백 보내기"
   },
   "110a4b01be": {
     "translation": "게시"
@@ -35,17 +41,14 @@
   "181b90f889": {
     "translation": "파일 생성"
   },
-  "1bef75f760": {
-    "translation": "tldraw가 이 문제에 대해 나에게 이메일을 보내도록 허용하세요"
-  },
   "1da2e8106b": {
     "translation": "예기치 못한 오류가 발생했습니다."
   },
   "1dd1c5fb7f": {
     "translation": "오늘"
   },
-  "26e5b44256": {
-    "translation": "피드백을 주세요"
+  "250ddea65c": {
+    "translation": "tldraw에 대하여"
   },
   "299cb00a7a": {
     "translation": "업로드 실패"
@@ -55,9 +58,6 @@
   },
   "31418ce4ad": {
     "translation": "i18n(국제화): 하이라이트 누락"
-  },
-  "32656a600c": {
-    "translation": "뭔가 잘못된 게 보이나요? tldraw를 개선할 아이디어가 있나요? 들려주세요!"
   },
   "335defdafe": {
     "translation": "페이지를 새로 고침해 주세요."
@@ -71,6 +71,9 @@
   "3c5e891bff": {
     "translation": "고정됨"
   },
+  "3d0238bf16": {
+    "translation": "모두 수락"
+  },
   "42e53c47c1": {
     "translation": "액세스 권한 요청은 소유주에게 문의하세요."
   },
@@ -80,17 +83,14 @@
   "46137245cd": {
     "translation": "tldraw 개선에 도움을 주셔서 감사합니다!"
   },
-  "4778b9f3f2": {
-    "translation": "개인정보 보호 설정"
-  },
   "47839e47a5": {
     "translation": "tldraw"
   },
   "4908687e50": {
     "translation": "이 파일을 무시하시겠습니까?"
   },
-  "4c06678729": {
-    "translation": "당사는 서비스 개선을 위해 자사 쿠키를 사용합니다. <a>자세히 알아보기</a>"
+  "4d0d3ddec9": {
+    "translation": "이 사이트에서는 앱을 작동시키고 분석 정보를 수집하기 위해 쿠키를 사용합니다."
   },
   "4d1c8263ba": {
     "translation": "다시 로드"
@@ -113,23 +113,17 @@
   "55505ba281": {
     "translation": "PNG"
   },
+  "5677e381d2": {
+    "translation": "tldraw를 개선하기 위해 분석 쿠키를 사용합니다."
+  },
   "56c34c6410": {
     "translation": "개인정보 보호정책"
-  },
-  "5817f82c16": {
-    "translation": "선택 사항 — 사람들이 tldraw를 어떻게 사용하는지 이해하고, 이를 어떻게 개선할 수 있는지 알려주세요."
   },
   "5a95a425f7": {
     "translation": "공유"
   },
-  "5d160eb095": {
-    "translation": "귀하의 세션"
-  },
   "5d26ae7550": {
     "translation": "로그인하기 전에 생성하신 콘텐츠 중 일부를 업로드하지 못했습니다."
-  },
-  "5db1e9a8ca": {
-    "translation": "이 양식을 작성하거나, <discord>Discord에서 채팅</discord>하거나, <github>GitHub에서 이슈를 제출</github>하세요."
   },
   "5f3c333678": {
     "translation": "피드백 제출됨"
@@ -161,6 +155,9 @@
   "70a6facb9d": {
     "translation": "이번 주"
   },
+  "71a29b007b": {
+    "translation": "tldraw 관련 버그, 문제 또는 아이디어가 있으신가요? 알려주세요!"
+  },
   "73ab799383": {
     "translation": "이 tldraw 버전은 더 이상 지원되지 않습니다."
   },
@@ -188,6 +185,12 @@
   "797799f35e": {
     "translation": "GitHub에 이슈 제출"
   },
+  "7b1329f5ca": {
+    "translation": "사용 설명서"
+  },
+  "7be10fc592": {
+    "translation": "버전 복원"
+  },
   "7cb5f8b4a5": {
     "translation": "무시"
   },
@@ -197,8 +200,11 @@
   "7fcdcc6455": {
     "translation": "파일 무시"
   },
-  "81d389ac80": {
-    "translation": "콘텐츠를 .tldr 파일로 내보내려면 왼쪽 상단 메뉴에서 '파일 다운로드'를 선택하세요."
+  "801ab24683": {
+    "translation": "다운로드"
+  },
+  "815e116a2e": {
+    "translation": "tldraw 관련 버그, 문제 또는 아이디어가 있으신가요? 알려주세요! 이 양식을 작성해 주시면 필요 시 이메일로 답변해 드리겠습니다. <discord>Discord에서 채팅</discord>하거나 <github>GitHub에서 문제를 제출</github>하실 수도 있습니다."
   },
   "85a082de1b": {
     "translation": "최신 tldraw 버전을 받으려면 페이지를 새로 고침해 주세요."
@@ -211,9 +217,6 @@
   },
   "8eb2c00e96": {
     "translation": "나와 공유됨"
-  },
-  "8f7f4c1ce7": {
-    "translation": "에 대한"
   },
   "8ff3d0a705": {
     "translation": "비율 제한됨"
@@ -243,7 +246,10 @@
     "translation": "찾을 수 없음"
   },
   "9e93c98d88": {
-    "translation": "옵트 아웃"
+    "translation": "거부하기"
+  },
+  "a0da245992": {
+    "translation": "콘텐츠를 .tldr 파일로 내보내려면 왼쪽 상단 메뉴에서 '다운로드'를 선택하세요."
   },
   "a104439641": {
     "translation": "여백"
@@ -279,6 +285,9 @@
     "notes": "This is used to show the last time the file was published. An example is 'Last published 5 minutes ago'.",
     "translation": "마지막 게시: <date></date>"
   },
+  "b028909917": {
+    "translation": "게스트 사용자"
+  },
   "b6d4223e60": {
     "translation": "로그인"
   },
@@ -303,8 +312,8 @@
   "c303bd1095": {
     "translation": "이 파일을 게시할 수 없습니다."
   },
-  "c4408d3350": {
-    "translation": "수용하다"
+  "c4b39a1cc3": {
+    "translation": "필수 쿠키"
   },
   "c655b27b1e": {
     "translation": "i18n(국제화): 롱 스트링"
@@ -315,14 +324,14 @@
   "c87aacf567": {
     "translation": "로그아웃"
   },
+  "cbef7ba103": {
+    "translation": "이 방은 곧 읽기 전용이 됩니다."
+  },
   "cceaefbc20": {
     "translation": "이 파일 공유"
   },
   "cd15a75c26": {
     "translation": "SVG"
-  },
-  "cd16f555de": {
-    "translation": "필수 — 파일 및 설정을 저장하고 여러 기기에서 동기화하는 데 필요합니다."
   },
   "cea291e45e": {
     "translation": "게시에 대해 자세히 알아보세요."
@@ -332,9 +341,6 @@
   },
   "d4bbf74f3e": {
     "translation": "사이드바 전환"
-  },
-  "d5ef96e383": {
-    "translation": "파일 다운로드"
   },
   "d721757161": {
     "translation": "테마"
@@ -351,8 +357,8 @@
   "dfdb78a4e4": {
     "translation": "앱 디버그 신고"
   },
-  "e371526ad0": {
-    "translation": "이 쿠키는 tldraw가 작동하는 데 필요하며 비활성화할 수 없습니다."
+  "e2ae80a510": {
+    "translation": "법적 요약"
   },
   "e404559826": {
     "translation": "서비스 약관"
@@ -360,8 +366,8 @@
   "e78e14c5f1": {
     "translation": "고정"
   },
-  "e8d1090cb9": {
-    "translation": "쿠키를 사용하여 로그인 상태를 유지하고, 파일을 동기화하고, tldraw를 개선하는 데 도움이 되는 분석을 수집합니다. 자세한 내용은 <a>쿠키 정책</a>을 참조하세요."
+  "ea2301d01c": {
+    "translation": "2025년 7월 1일 이후 이 익명 tldraw 멀티플레이어 방은 읽기 전용으로 전환됩니다. 나중에 편집을 계속하려면 로그인하여 파일에 복사하세요."
   },
   "ea4788705e": {
     "translation": "취소"
@@ -381,11 +387,26 @@
   "ed75712b0e": {
     "translation": "복제"
   },
+  "ede55d955f": {
+    "translation": "자세한 내용을 알아보려면 <a>쿠키 정책</a>을 읽어보세요."
+  },
+  "f09b16bc5f": {
+    "translation": "tldraw를 개선하는 데 도움이 되는 분석 자료를 수집하고, 파일을 동기화하고, 로그인 상태를 유지하기 위해 쿠키를 사용합니다."
+  },
+  "f0e8bff6f9": {
+    "translation": "사용자 설정"
+  },
+  "f2569594b2": {
+    "translation": "이 쿠키는 귀하의 파일과 설정을 저장하는 데 사용됩니다."
+  },
   "f2a6c498fb": {
     "translation": "삭제"
   },
   "f43fb62093": {
     "translation": "tldraw로 돌아갑니다."
+  },
+  "f4f70727dc": {
+    "translation": "설정"
   },
   "fb15c53f22": {
     "translation": "뷰어"
@@ -395,5 +416,8 @@
   },
   "fed5ec05eb": {
     "translation": "복사된 링크"
+  },
+  "ffcd73e997": {
+    "translation": "파일 가져오기…"
   }
 }

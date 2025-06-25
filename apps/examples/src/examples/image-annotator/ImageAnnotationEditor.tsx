@@ -131,17 +131,13 @@ export function ImageAnnotationEditor({
 		 */
 		editor.setCameraOptions({
 			constraints: {
-				initialZoom: 'fit-max',
-				baseZoom: 'default',
+				initialZoom: 'default',
+				baseZoom: 'fit-min-100',
 				bounds: { w: image.width, h: image.height, x: 0, y: 0 },
 				padding: { x: 32, y: 64 },
 				origin: { x: 0.5, y: 0.5 },
 				behavior: 'contain',
 			},
-			zoomSteps: [1, 2, 4, 8],
-			zoomSpeed: 1,
-			panSpeed: 1,
-			isLocked: false,
 		})
 		editor.setCamera(editor.getCamera(), { reset: true })
 	}, [editor, imageShapeId, image])

@@ -7,18 +7,18 @@ import { PngHelpers } from './png'
 import { isWebpAnimated } from './webp'
 
 /** @public */
-export const DEFAULT_SUPPORTED_VECTOR_IMAGE_TYPES = Object.freeze(['image/svg+xml'])
+export const DEFAULT_SUPPORTED_VECTOR_IMAGE_TYPES = Object.freeze(['image/svg+xml' as const])
 /** @public */
 export const DEFAULT_SUPPORTED_STATIC_IMAGE_TYPES = Object.freeze([
-	'image/jpeg',
-	'image/png',
-	'image/webp',
+	'image/jpeg' as const,
+	'image/png' as const,
+	'image/webp' as const,
 ])
 /** @public */
 export const DEFAULT_SUPPORTED_ANIMATED_IMAGE_TYPES = Object.freeze([
-	'image/gif',
-	'image/apng',
-	'image/avif',
+	'image/gif' as const,
+	'image/apng' as const,
+	'image/avif' as const,
 ])
 /** @public */
 export const DEFAULT_SUPPORTED_IMAGE_TYPES = Object.freeze([
@@ -28,15 +28,17 @@ export const DEFAULT_SUPPORTED_IMAGE_TYPES = Object.freeze([
 ])
 /** @public */
 export const DEFAULT_SUPPORT_VIDEO_TYPES = Object.freeze([
-	'video/mp4',
-	'video/webm',
-	'video/quicktime',
+	'video/mp4' as const,
+	'video/webm' as const,
+	'video/quicktime' as const,
 ])
 /** @public */
-export const DEFAULT_SUPPORTED_MEDIA_TYPE_LIST = [
+export const DEFAULT_SUPPORTED_MEDIA_TYPES = Object.freeze([
 	...DEFAULT_SUPPORTED_IMAGE_TYPES,
 	...DEFAULT_SUPPORT_VIDEO_TYPES,
-].join(',')
+])
+/** @public */
+export const DEFAULT_SUPPORTED_MEDIA_TYPE_LIST = DEFAULT_SUPPORTED_MEDIA_TYPES.join(',')
 
 /**
  * Helpers for media
@@ -119,16 +121,40 @@ export class MediaHelpers {
 	 * Load an image from a url.
 	 * @public
 	 */
-	static loadImage(src: string): Promise<HTMLImageElement> {
+	static getImageAndDimensions(
+		src: string
+	): Promise<{ w: number; h: number; image: HTMLImageElement }> {
 		return new Promise((resolve, reject) => {
 			const img = Image()
-			img.onload = () => resolve(img)
+			img.onload = () => {
+				let dimensions
+				if (img.naturalWidth) {
+					dimensions = {
+						w: img.naturalWidth,
+						h: img.naturalHeight,
+					}
+				} else {
+					// Sigh, Firefox doesn't have naturalWidth or naturalHeight for SVGs. :-/
+					// We have to attach to dom and use clientWidth/clientHeight.
+					document.body.appendChild(img)
+					dimensions = {
+						w: img.clientWidth,
+						h: img.clientHeight,
+					}
+					document.body.removeChild(img)
+				}
+				resolve({ ...dimensions, image: img })
+			}
 			img.onerror = (e) => {
 				console.error(e)
 				reject(new Error('Could not load image'))
 			}
 			img.crossOrigin = 'anonymous'
 			img.referrerPolicy = 'strict-origin-when-cross-origin'
+			img.style.visibility = 'hidden'
+			img.style.position = 'absolute'
+			img.style.opacity = '0'
+			img.style.zIndex = '-9999'
 			img.src = src
 		})
 	}
@@ -153,7 +179,7 @@ export class MediaHelpers {
 	 * @public
 	 */
 	static async getImageSize(blob: Blob): Promise<{ w: number; h: number }> {
-		const image = await MediaHelpers.usingObjectURL(blob, MediaHelpers.loadImage)
+		const { w, h } = await MediaHelpers.usingObjectURL(blob, MediaHelpers.getImageAndDimensions)
 
 		try {
 			if (blob.type === 'image/png') {
@@ -170,8 +196,8 @@ export class MediaHelpers {
 							const pixelsPerMeter = 72 / 0.0254
 							const pixelRatio = Math.max(physData.ppux / pixelsPerMeter, 1)
 							return {
-								w: Math.round(image.naturalWidth / pixelRatio),
-								h: Math.round(image.naturalHeight / pixelRatio),
+								w: Math.round(w / pixelRatio),
+								h: Math.round(h / pixelRatio),
 							}
 						}
 					}
@@ -179,9 +205,9 @@ export class MediaHelpers {
 			}
 		} catch (err) {
 			console.error(err)
-			return { w: image.naturalWidth, h: image.naturalHeight }
+			return { w, h }
 		}
-		return { w: image.naturalWidth, h: image.naturalHeight }
+		return { w, h }
 	}
 
 	static async isAnimated(file: Blob): Promise<boolean> {
@@ -205,19 +231,19 @@ export class MediaHelpers {
 	}
 
 	static isAnimatedImageType(mimeType: string | null): boolean {
-		return DEFAULT_SUPPORTED_ANIMATED_IMAGE_TYPES.includes(mimeType || '')
+		return DEFAULT_SUPPORTED_ANIMATED_IMAGE_TYPES.includes((mimeType as any) || '')
 	}
 
 	static isStaticImageType(mimeType: string | null): boolean {
-		return DEFAULT_SUPPORTED_STATIC_IMAGE_TYPES.includes(mimeType || '')
+		return DEFAULT_SUPPORTED_STATIC_IMAGE_TYPES.includes((mimeType as any) || '')
 	}
 
 	static isVectorImageType(mimeType: string | null): boolean {
-		return DEFAULT_SUPPORTED_VECTOR_IMAGE_TYPES.includes(mimeType || '')
+		return DEFAULT_SUPPORTED_VECTOR_IMAGE_TYPES.includes((mimeType as any) || '')
 	}
 
 	static isImageType(mimeType: string): boolean {
-		return DEFAULT_SUPPORTED_IMAGE_TYPES.includes(mimeType)
+		return DEFAULT_SUPPORTED_IMAGE_TYPES.includes((mimeType as any) || '')
 	}
 
 	static async usingObjectURL<T>(blob: Blob, fn: (url: string) => Promise<T>): Promise<T> {

@@ -47,12 +47,6 @@ export class EditingShape extends StateNode {
 
 		updateHoveredShapeId.cancel()
 
-		const shape = this.editor.getShape(editingShapeId)!
-		const util = this.editor.getShapeUtil(shape)
-
-		// Check for changes on editing end
-		util.onEditEnd?.(shape)
-
 		if (this.info.isCreatingTextWhileToolLocked) {
 			this.parent.setCurrentToolIdMask(undefined)
 			this.editor.setCurrentTool('text', {})
@@ -174,7 +168,7 @@ export class EditingShape extends StateNode {
 		if (hitShape.isLocked) return
 
 		if (this.editor.getIsReadonly()) {
-			if (!util.canEditInReadOnly(hitShape)) {
+			if (!util.canEditInReadonly(hitShape)) {
 				this.parent.transition('pointing_shape', info)
 				return
 			}
@@ -196,10 +190,12 @@ export class EditingShape extends StateNode {
 	}
 
 	override onComplete(info: TLCompleteEventInfo) {
+		this.editor.getContainer().focus()
 		this.parent.transition('idle', info)
 	}
 
 	override onCancel(info: TLCancelEventInfo) {
+		this.editor.getContainer().focus()
 		this.parent.transition('idle', info)
 	}
 }

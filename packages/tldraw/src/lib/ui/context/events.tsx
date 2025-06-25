@@ -22,6 +22,8 @@ export type TLUiEventSource =
 	| 'helper-buttons'
 	| 'style-panel'
 	| 'rich-text-menu'
+	| 'image-toolbar'
+	| 'video-toolbar'
 	| 'unknown'
 
 /** @public */
@@ -31,6 +33,7 @@ export interface TLUiEventMap {
 	redo: null
 	'change-language': { locale: string }
 	'change-page': { direction?: 'prev' | 'next' }
+	'select-adjacent-shape': { direction: 'prev' | 'next' | 'left' | 'right' | 'up' | 'down' }
 	'delete-page': null
 	'duplicate-page': null
 	'move-page': null
@@ -50,9 +53,14 @@ export interface TLUiEventMap {
 	'copy-as': { format: 'svg' | 'png' | 'json' }
 	'export-as': { format: 'svg' | 'png' | 'json' }
 	'export-all-as': { format: 'svg' | 'png' | 'json' }
+	'download-original': null
 	'edit-link': null
 	'insert-embed': null
 	'insert-media': null
+	'replace-media': null
+	'image-manipulate': null
+	'alt-text-start': null
+	'set-alt-text': null
 	'align-shapes': {
 		operation: 'left' | 'center-horizontal' | 'right' | 'top' | 'center-vertical' | 'bottom'
 	}
@@ -109,9 +117,16 @@ export interface TLUiEventMap {
 	'open-cursor-chat': null
 	'zoom-tool': null
 	'unlock-all': null
+	'enlarge-shapes': null
+	'shrink-shapes': null
 	'flatten-to-image': null
+	'a11y-repeat-shape-announce': null
 	'open-url': { url: string }
+	'open-context-menu': null
+	'adjust-shape-styles': null
 	'copy-link': null
+	'image-replace': null
+	'video-replace': null
 	'rich-text': {
 		operation:
 			| 'bold'
@@ -123,6 +138,7 @@ export interface TLUiEventMap {
 			| 'heading'
 			| 'bulletList'
 	}
+	edit: null
 }
 
 /** @public */

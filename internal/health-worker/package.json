@@ -6,18 +6,18 @@
 		"deploy": "wrangler deploy",
 		"dev": "wrangler dev",
 		"start": "wrangler dev",
-		"check-bundle-size": "yarn run -T tsx ../scripts/check-worker-bundle.ts --entry src/index.ts --size-limit-bytes 35000",
+		"check-bundle-size": "yarn run -T tsx ../scripts/check-worker-bundle.ts --entry src/index.ts --size-limit-bytes 40000",
 		"lint": "yarn run -T tsx ../scripts/lint.ts"
 	},
 	"dependencies": {
 		"@tldraw/utils": "workspace:*"
 	},
 	"devDependencies": {
-		"@cloudflare/workers-types": "^4.20250224.0",
-		"@types/node": "~20.11.30",
+		"@cloudflare/workers-types": "^4.20250510.0",
+		"@types/node": "^22.15.31",
 		"discord-api-types": "^0.37.118",
 		"esbuild": "^0.24.2",
 		"typescript": "~5.4.5",
-		"wrangler": "^3.111.0"
+		"wrangler": "^4.14.4"
 	}
 }

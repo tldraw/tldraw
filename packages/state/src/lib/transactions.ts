@@ -5,7 +5,12 @@ import { singleton } from './helpers'
 import { Child, Signal } from './types'
 
 class Transaction {
-	constructor(public readonly parent: Transaction | null) {}
+	asyncProcessCount = 0
+	constructor(
+		public readonly parent: Transaction | null,
+		public readonly isSync: boolean
+	) {}
+
 	initialAtomValues = new Map<_Atom, any>()
 
 	/**
@@ -256,7 +261,7 @@ export function advanceGlobalEpoch() {
  * @public
  */
 export function transaction<T>(fn: (rollback: () => void) => T) {
-	const txn = new Transaction(inst.currentTransaction)
+	const txn = new Transaction(inst.currentTransaction, true)
 
 	// Set the current transaction to the transaction
 	inst.currentTransaction = txn
@@ -274,6 +279,10 @@ export function transaction<T>(fn: (rollback: () => void) => T) {
 			throw e
 		}
 
+		if (inst.currentTransaction !== txn) {
+			throw new Error('Transaction boundaries overlap')
+		}
+
 		if (rollback) {
 			// If the rollback was triggered, abort the transaction.
 			txn.abort()
@@ -284,7 +293,7 @@ export function transaction<T>(fn: (rollback: () => void) => T) {
 		return result
 	} finally {
 		// Set the current transaction to the transaction's parent.
-		inst.currentTransaction = inst.currentTransaction.parent
+		inst.currentTransaction = txn.parent
 	}
 }
 
@@ -299,4 +308,62 @@ export function transact<T>(fn: () => T): T {
 		return fn()
 	}
 	return transaction(fn)
+}
+
+/**
+ * @internal
+ */
+export async function deferAsyncEffects<T>(fn: () => Promise<T>) {
+	// Can't kick off async transactions during a sync transaction because
+	// the async transaction won't finish until after the sync transaction
+	// is done.
+	if (inst.currentTransaction?.isSync) {
+		throw new Error('deferAsyncEffects cannot be called during a sync transaction')
+	}
+
+	// Can't kick off async transactions during a reaction phase at the moment,
+	// because the transaction stack is cleared after the reaction phase.
+	// So wait until the path ahead is clear
+	while (inst.globalIsReacting) {
+		await new Promise((r) => queueMicrotask(() => r(null)))
+	}
+
+	const txn = inst.currentTransaction ?? new Transaction(null, false)
+
+	// don't think this can happen, but just in case
+	if (txn.isSync) throw new Error('deferAsyncEffects cannot be called during a sync transaction')
+
+	inst.currentTransaction = txn
+	txn.asyncProcessCount++
+
+	let result = undefined as T | undefined
+
+	let error = undefined as any
+	try {
+		// Run the function.
+		result = await fn()
+	} catch (e) {
+		// Abort the transaction if the function throws.
+		error = e ?? null
+	}
+
+	if (--txn.asyncProcessCount > 0) {
+		if (typeof error !== 'undefined') {
+			// If the rollback was triggered, abort the transaction.
+			throw error
+		} else {
+			return result
+		}
+	}
+
+	inst.currentTransaction = null
+
+	if (typeof error !== 'undefined') {
+		// If the rollback was triggered, abort the transaction.
+		txn.abort()
+		throw error
+	} else {
+		txn.commit()
+		return result
+	}
 }

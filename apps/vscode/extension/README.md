@@ -14,6 +14,28 @@
 
 > **Tip:** The `.tldr` files you create with this extension can also be opened in the tldraw [web app](https://tldraw.com). You can also use this extension to open `.tldr` files saved from the web app.
 
+## Releases
+
+This extension is automatically released to the [VS Code Marketplace](https://marketplace.visualstudio.com/items?itemName=tldraw-org.tldraw-vscode) when changes are merged:
+
+- **Pre-releases**: Merges to `main` branch trigger pre-release builds
+- **Production releases**: Merges to `production` branch trigger stable releases
+
+### Direct Downloads
+
+You can also download the extension directly from our repository:
+
+- **Latest Pre-release**: [tldraw-vscode.vsix](https://github.com/tldraw/tldraw/blob/main/apps/vscode/extension/release/tldraw-vscode.vsix) (from `main` branch)
+- **Latest Production Release**: [tldraw-vscode.vsix](https://github.com/tldraw/tldraw/blob/production/apps/vscode/extension/release/tldraw-vscode.vsix) (from `production` branch)
+
+To install from a `.vsix` file:
+
+1. Download the file from one of the links above
+2. Open VS Code
+3. Go to Extensions (Ctrl+Shift+X)
+4. Click the "..." menu and select "Install from VSIX..."
+5. Select the downloaded `tldraw-vscode.vsix` file
+
 ## Contribution
 
 Please see our [contributing guide](https://github.com/tldraw/tldraw/blob/main/CONTRIBUTING.md). Found a bug? Please [submit an issue](https://github.com/tldraw/tldraw/issues/new).

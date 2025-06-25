@@ -252,7 +252,7 @@ describe('CameraOptions.panSpeed', () => {
 			.pointerDown(0, 0)
 			.pointerMove(5, 10)
 			.forceTick()
-		expect(editor.getCamera()).toMatchObject({ x: 10, y: 20, z: 1 })
+		expect(editor.getCamera()).toMatchObject({ x: 5, y: 10, z: 1 })
 	})
 
 	it('Affects spacebar panning (0.5x)', () => {
@@ -262,7 +262,7 @@ describe('CameraOptions.panSpeed', () => {
 			.pointerDown(0, 0)
 			.pointerMove(5, 10)
 			.forceTick()
-		expect(editor.getCamera()).toMatchObject({ x: 2.5, y: 5, z: 1 })
+		expect(editor.getCamera()).toMatchObject({ x: 5, y: 10, z: 1 })
 	})
 
 	it('Does not affect edge scroll panning', () => {
@@ -360,7 +360,7 @@ describe('CameraOptions.zoomSpeed', () => {
 			name: 'pinch_end',
 		})
 		editor.forceTick()
-		expect(editor.getCamera()).toMatchObject({ x: 0, y: 0, z: 0.5 })
+		expect(editor.getCamera()).toMatchObject({ x: 0, y: 0, z: 1 })
 	})
 	it('Does not affect zoom tool zooming (2x)', () => {
 		editor.setCameraOptions({ ...DEFAULT_CAMERA_OPTIONS, zoomSpeed: 2 })

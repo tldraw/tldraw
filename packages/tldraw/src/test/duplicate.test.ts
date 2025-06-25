@@ -41,6 +41,26 @@ it('duplicates a shape with an offset', () => {
 	expect(editor.getLastCreatedShape()).toMatchObject({ x: 10, y: 10 })
 })
 
+it("doesn't duplicate locked shapes", () => {
+	editor
+		.createShape({ id: ids.box1, type: 'geo', x: 0, y: 0, props: { w: 100, h: 100 } })
+		.createShape({
+			id: ids.box2,
+			type: 'geo',
+			x: 200,
+			y: 200,
+			props: { w: 100, h: 100 },
+			isLocked: true,
+		})
+
+	editor.select(ids.box1, ids.box2)
+	editor.duplicateShapes(editor.getSelectedShapeIds(), { x: 10, y: 10 })
+	expect(editor.getCurrentPageShapes().length).toBe(3) // 1 original + 1 duplicate of box1
+	expect(editor.getShape(ids.box1)).toMatchObject({ x: 0, y: 0 })
+	expect(editor.getShape(ids.box2)).toMatchObject({ x: 200, y: 200, isLocked: true })
+	expect(editor.getLastCreatedShape()).toMatchObject({ x: 10, y: 10 })
+})
+
 it('creates new bindings for arrows when pasting', async () => {
 	editor
 		.selectAll()

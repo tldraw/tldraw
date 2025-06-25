@@ -1,6 +1,6 @@
 # Examples
 
-Development environment and examples for the tldraw SDK. A live version of the examples is found on [examples.tldraw.com](https://examples.tldraw.com)
+Development environment and examples for the tldraw SDK. A live version of the examples is found here: [examples.tldraw.com](https://examples.tldraw.com)
 
 ## Distributions
 

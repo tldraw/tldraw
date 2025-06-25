@@ -1,7 +1,7 @@
 {
 	"name": "@tldraw/sync-core",
 	"description": "A tiny little drawing app (multiplayer sync).",
-	"version": "3.11.0",
+	"version": "3.13.0",
 	"author": {
 		"name": "tldraw GB Ltd.",
 		"email": "hello@tldraw.com"
@@ -69,7 +69,6 @@
 		"@tldraw/store": "workspace:*",
 		"@tldraw/tlschema": "workspace:*",
 		"@tldraw/utils": "workspace:*",
-		"lodash.isequal": "^4.5.0",
 		"nanoevents": "^7.0.1",
 		"ws": "^8.18.0"
 	},

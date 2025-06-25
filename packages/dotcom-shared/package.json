@@ -7,13 +7,14 @@
 	"types": "./.tsbuild/index.d.ts",
 	"/* GOTCHA */": "files will include ./dist and index.d.ts by default, add any others you want to include in here",
 	"files": [],
+	"type": "module",
 	"dependencies": {
+		"@rocicorp/zero": "0.19.2025050203",
 		"@tldraw/state": "workspace:*",
 		"@tldraw/store": "workspace:*",
 		"@tldraw/tlschema": "workspace:*",
 		"@tldraw/utils": "workspace:*",
 		"@tldraw/validate": "workspace:*",
-		"lodash.isequal": "^4.5.0",
 		"tldraw": "workspace:*"
 	},
 	"peerDependencies": {

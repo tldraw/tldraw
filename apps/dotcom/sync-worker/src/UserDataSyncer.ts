@@ -5,23 +5,20 @@ import {
 	TlaRow,
 	ZEvent,
 	ZRowUpdate,
-	ZServerSentMessage,
+	ZServerSentPacket,
 	ZStoreData,
+	ZStoreDataV1,
 	ZTable,
 } from '@tldraw/dotcom-shared'
 import { react, transact } from '@tldraw/state'
 import { ExecutionQueue, assert, promiseWithResolve, sleep, uniqueId } from '@tldraw/utils'
 import { createSentry } from '@tldraw/worker-shared'
-import { Kysely, sql } from 'kysely'
+import { CompiledQuery, Kysely, sql } from 'kysely'
 import throttle from 'lodash.throttle'
 import { Logger } from './Logger'
-import {
-	fileKeys,
-	fileStateKeys,
-	getFetchUserDataSql,
-	parseResultRow,
-	userKeys,
-} from './getFetchEverythingSql'
+import { fetchEverythingSql } from './fetchEverythingSql.snap'
+import { parseResultRow } from './parseResultRow'
+import { getSubscriptionChanges } from './replicator/Subscription'
 import { Environment, TLUserDurableObjectEvent, getUserDoSnapshotKey } from './types'
 import { getReplicator, getStatsDurableObjct } from './utils/durableObjects'
 import { retryOnConnectionFailure } from './utils/retryOnConnectionFailure'
@@ -29,7 +26,6 @@ type PromiseWithResolve = ReturnType<typeof promiseWithResolve>
 
 export interface ZRowUpdateEvent {
 	type: 'row_update'
-	userId: string
 	row: TlaRow
 	table: ZTable
 	event: ZEvent
@@ -82,7 +78,7 @@ type BootState =
 			lastSequenceNumber: number
 	  }
 
-const stateVersion = 0
+const stateVersion = 1
 interface StateSnapshot {
 	version: number
 	initialData: ZStoreData
@@ -90,6 +86,19 @@ interface StateSnapshot {
 		updates: ZRowUpdate[]
 		mutationId: string
 	}>
+}
+
+function migrateStateSnapshot(snapshot: any) {
+	if (snapshot.version === 0) {
+		snapshot.version = 1
+		const data = snapshot.initialData as ZStoreDataV1
+		snapshot.initialData = {
+			lsn: data.lsn,
+			user: [data.user],
+			file: data.files,
+			file_state: data.fileStates,
+		} satisfies ZStoreData
+	}
 }
 
 const MUTATION_COMMIT_TIMEOUT = 10_000
@@ -123,7 +132,7 @@ export class UserDataSyncer {
 		private env: Environment,
 		private db: Kysely<DB>,
 		private userId: string,
-		private broadcast: (message: ZServerSentMessage) => void,
+		private broadcast: (message: ZServerSentPacket) => void,
 		private logEvent: (event: TLUserDurableObjectEvent) => void,
 		private log: Logger
 	) {
@@ -227,8 +236,9 @@ export class UserDataSyncer {
 		}
 		const data = (await res.json()) as StateSnapshot
 		if (signal.aborted) return null
+		migrateStateSnapshot(data)
 		if (data.version !== stateVersion) {
-			this.log.debug('snapshot version mismatch')
+			this.log.debug('snapshot version mismatch', data.version, stateVersion)
 			return null
 		}
 		this.log.debug('loaded snapshot from R2')
@@ -240,11 +250,10 @@ export class UserDataSyncer {
 		this.logEvent({ type: hard ? 'full_data_fetch_hard' : 'full_data_fetch', id: this.userId })
 		this.log.debug('fetching fresh initial data from postgres')
 		// if the bootId changes during the boot process, we should stop silently
-		const userSql = getFetchUserDataSql(this.userId)
 		const initialData: ZStoreData & { mutationNumber?: number } = {
-			user: null as any,
-			files: [],
-			fileStates: [],
+			user: [],
+			file: [],
+			file_state: [],
 			lsn: '0/0',
 			mutationNumber: 0,
 		}
@@ -254,25 +263,17 @@ export class UserDataSyncer {
 			async () => {
 				// sync initial data
 				if (signal.aborted) return
-				initialData.user = null as any
-				initialData.files = []
-				initialData.fileStates = []
+				initialData.user = []
+				initialData.file = []
+				initialData.file_state = []
 
 				await this.db.transaction().execute(async (tx) => {
-					const result = await userSql.execute(tx)
+					const result = await tx.executeQuery(CompiledQuery.raw(fetchEverythingSql, [this.userId]))
+					assert(this.state.type === 'connecting', 'state should be connecting in boot')
 					if (signal.aborted) return
-					result.rows.forEach((row: any) => {
-						assert(this.state.type === 'connecting', 'state should be connecting in boot')
-						switch (row.table) {
-							case 'user':
-								initialData.user = parseResultRow(userKeys, row)
-								break
-							case 'file':
-								initialData.files.push(parseResultRow(fileKeys, row))
-								break
-							case 'file_state':
-								initialData.fileStates.push(parseResultRow(fileStateKeys, row))
-								break
+					for (const _row of result.rows) {
+						const { table, row } = parseResultRow(_row)
+						switch (table) {
 							case 'lsn':
 								assert(typeof row.lsn === 'string', 'lsn should be a string')
 								initialData.lsn = row.lsn
@@ -286,8 +287,10 @@ export class UserDataSyncer {
 									initialData.mutationNumber = row.mutationNumber
 								}
 								break
+							default:
+								initialData[table].push(row)
 						}
-					})
+					}
 				})
 			},
 			() => {
@@ -345,7 +348,7 @@ export class UserDataSyncer {
 
 		const initialData = this.store.getCommittedData()!
 
-		const guestFileIds = initialData.files.filter((f) => f.ownerId !== this.userId).map((f) => f.id)
+		const guestFileIds = initialData.file.filter((f) => f.ownerId !== this.userId).map((f) => f.id)
 
 		const res = await getReplicator(this.env).registerUser({
 			userId: this.userId,
@@ -461,6 +464,18 @@ export class UserDataSyncer {
 			return
 		}
 
+		// do a hard reboot if any topic subscriptions changed
+		const topicUpdates = getSubscriptionChanges(
+			event.changes
+				.filter((c): c is ZRowUpdateEvent => c.type === 'row_update')
+				.map((ev) => ({ row: ev.row, event: { command: ev.event, table: ev.table } }))
+		)
+
+		if (topicUpdates.newSubscriptions?.length || topicUpdates.removedSubscriptions?.length) {
+			this.reboot({ hard: true, delay: false, source: 'handleReplicationEvent(hard reboot)' })
+			return
+		}
+
 		transact(() => {
 			let maxMutationNumber = -1
 			for (const ev of event.changes) {
@@ -482,31 +497,6 @@ export class UserDataSyncer {
 			this.lastLsnCommit = Date.now()
 			this.store.commitLsn(event.lsn)
 		})
-
-		// make sure we have all the files we need
-		const data = this.store.getFullData()
-		for (const fileState of data?.fileStates ?? []) {
-			if (!data?.files.some((f) => f.id === fileState.fileId)) {
-				this.log.debug('missing file', fileState.fileId)
-				this.addGuestFile(fileState.fileId)
-			}
-		}
-
-		for (const file of data?.files ?? []) {
-			// and make sure we don't have any files we don't need
-			// this happens when a shared file is made private
-			if (file.ownerId !== this.userId && !data?.fileStates.some((fs) => fs.fileId === file.id)) {
-				this.log.debug('extra file', file.id)
-				const update: ZRowUpdate = {
-					event: 'delete',
-					row: { id: file.id },
-					table: 'file',
-				}
-				this.store.updateCommittedData(update)
-				this.broadcast({ type: 'update', update: update })
-				continue
-			}
-		}
 	}
 
 	async addGuestFile(fileOrId: string | TlaFile) {

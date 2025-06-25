@@ -3,9 +3,10 @@ import { assert, sleep, uniqueId } from '@tldraw/utils'
 import { createRouter } from '@tldraw/worker-shared'
 import { StatusError, json } from 'itty-router'
 import { createPostgresConnectionPool } from './postgres'
+import { getFileSnapshot } from './routes/tla/getFileSnapshot'
 import { type Environment } from './types'
 import { getReplicator, getRoomDurableObject, getUserDurableObject } from './utils/durableObjects'
-import { getClerkClient, requireAuth } from './utils/tla/getAuth'
+import { requireAdminAccess, requireAuth } from './utils/tla/getAuth'
 
 async function requireUser(env: Environment, q: string) {
 	const db = createPostgresConnectionPool(env, '/app/admin/user')
@@ -24,13 +25,7 @@ async function requireUser(env: Environment, q: string) {
 export const adminRoutes = createRouter<Environment>()
 	.all('/app/admin/*', async (req, env) => {
 		const auth = await requireAuth(req, env)
-		const user = await getClerkClient(env).users.getUser(auth.userId)
-		if (
-			!user.primaryEmailAddress?.emailAddress.endsWith('@tldraw.com') ||
-			user.primaryEmailAddress?.verification?.status !== 'verified'
-		) {
-			throw new StatusError(403, 'Unauthorized')
-		}
+		await requireAdminAccess(env, auth)
 	})
 	.get('/app/admin/user', async (res, env) => {
 		const q = res.query['q']
@@ -76,6 +71,28 @@ export const adminRoutes = createRouter<Environment>()
 			}
 		}
 		return await hardDeleteAppFile({ pg, file, env })
+	})
+	.get('/app/admin/download-tldr/:fileSlug', async (res, env) => {
+		const fileSlug = res.params.fileSlug
+		assert(typeof fileSlug === 'string', 'fileSlug is required')
+
+		const snapshot = await getFileSnapshot(env, fileSlug)
+		if (!snapshot) {
+			throw new StatusError(404, 'File not found')
+		}
+
+		const tldrFile = {
+			tldrawFileFormatVersion: 1,
+			schema: snapshot.schema,
+			records: Object.values(snapshot.documents.map((doc: { state: { id: string } }) => doc.state)),
+		}
+
+		return new Response(JSON.stringify(tldrFile, null, 2), {
+			headers: {
+				'Content-Type': 'application/json',
+				'Content-Disposition': `attachment; filename="${fileSlug}.tldr"`,
+			},
+		})
 	})
 
 async function maybeHardDeleteLegacyFile({ id, env }: { id: string; env: Environment }) {

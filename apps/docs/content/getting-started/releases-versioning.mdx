@@ -15,58 +15,89 @@ Unlike many JavaScript packages distributed on [NPM](https://www.npmjs.com/), th
 
 {/* START AUTO-GENERATED CHANGELOG */}
 
-## Current release: [v3.10.0](/releases/v3.10.0)
+## Current release: [v3.13.0](/releases/v3.13.0)
 
-Welcome to the 3.10.0 release of tldraw. This month's SDK release's big news is adding rich text to all of our shapes.
+The big new feature in this months release is Elbow Arrows! These connectors supplement our existing arrow shape and are well suited to more technical diagramming type use-cases. We’re also been continuing to work on accessibility in tldraw, and there are plenty of other performance improvements too.
 
-## What's new
+#### Elbow arrows
 
-#### Rich text ([#4895](https://github.com/tldraw/tldraw/pull/4895))
+The arrow shape now supports elbow arrows! Instead of a single straight line or arc, these arrows get from A to B in a series straight lines joined at right angles. Access the new arrow type by selecting the arrow tool, and choosing the new option under the "Line" style.
 
-Tldraw now has the supports rich text as a first-class primitive within the Editor. After deliberating on which rich text editor to choose, we settled on using [TipTap](https://tiptap.dev/) as our out-of-the-box solution. Our basic implementation includes the TipTap [StarterKit](https://tiptap.dev/docs/editor/extensions/functionality/starterkit) extension along with a couple extra extensions to make the experience butter-smooth.
+#### Accessibility features
 
-Of course, we wouldn't be providing this functionality if it wasn't extensible and remixable by the community. There is a `textOptions` property now that lets you customize TipTap and add/remove extensions as per your needs.
+We’re continuing to work on accessibility in this release, as we make progress towards WCAG compliance.
 
-Take a look at our [Shapes documentation](https://tldraw.dev/docs/shapes#Editing) to learn more.
+- You can now focus the style panel with the ⌘⏎ keyboard shortcut. ([#5827](https://github.com/tldraw/tldraw/pull/5827))
+- More icons and handles in the UI now have labels. ([#6001](https://github.com/tldraw/tldraw/pull/6001))
+- ⌘⇧↓ and ⌘⇧↑ moves the selection in and out of container shapes, like frames and groups. ([#5973](https://github.com/tldraw/tldraw/pull/5973))
+- You can now tab into embed shapes. ([#5958](https://github.com/tldraw/tldraw/pull/5958))
+- The toolbars throughout tldraw are now keyboard navigable. ([#5872](https://github.com/tldraw/tldraw/pull/5872))
+- The shortcuts for rich text editing are shown in the keyboard shortcuts help menu. ([#5912](https://github.com/tldraw/tldraw/pull/5912))
 
-Please do jump in the [Discord](https://discord.tldraw.com/?utm_source=docs&utm_medium=organic&utm_campaign=sociallink) if you have any feedback or bugs about this new feature.
+#### Breaking changes
+
+- `ShapeUtil.canEditInReadOnly` has been renamed to `ShapeUtil.canEditInReadonly` - note the case-change on “only”. ([#6019](https://github.com/tldraw/tldraw/pull/6019))
 
 #### Improvements
 
-- Ensure .tldr files with embedded base64 assets get their assets rehydrated back into the local db. [#5525](https://github.com/tldraw/tldraw/pull/5525)
-- Display BrokenAssetIcon when file upload fails [#5552](https://github.com/tldraw/tldraw/pull/5552)
+- When editing the link on a shape, link text is now auto-selected for faster editing. ([#6072](https://github.com/tldraw/tldraw/pull/6072))
+- Pasted text and embeds are now snapped to the grid if it’s enabled. ([#6020](https://github.com/tldraw/tldraw/pull/6020))
+- Figma embed now also work with selection links. ([#6025](https://github.com/tldraw/tldraw/pull/6025))
+- When editing an arrow label, we now block off part of the arrow to show where your label will appear. ([#6029](https://github.com/tldraw/tldraw/pull/6029))
+- Exports of single frames now have the frame background color included in the export. ([#5993](https://github.com/tldraw/tldraw/pull/5993))
+- Standardised gradient and hover effects for open submenu items are standardised across the UI. ([#5974](https://github.com/tldraw/tldraw/pull/5974))
+- Frames can now be resized to fit their contents by double-clicking their edges. ([#5967](https://github.com/tldraw/tldraw/pull/5967))
 
-#### API changes
+#### API additions
 
-- Make collaboration hooks public (`usePeerIds` and `usePresence`) [#5541](https://github.com/tldraw/tldraw/pull/5541)
-- Pass userId to collaboration components [#5534](https://github.com/tldraw/tldraw/pull/5534)
+- The text measurement API now accepts arbitrary styles to be applied to the text being measured. ([#6014](https://github.com/tldraw/tldraw/pull/6014))
+- A new `Overlays` component lets you add overlays on top of the canvas that still follow the camera. ([#5952](https://github.com/tldraw/tldraw/pull/5952))
+- `RichTextLabel` now accepts a `hasCustomTabBehavior` prop to disable our default tabbing logic where needed. ([#5908](https://github.com/tldraw/tldraw/pull/5908))
 
-#### Bug fix
+#### Other improvements
 
-- Fix a perf regression that caused slowness mainly when loading documents. [#5567](https://github.com/tldraw/tldraw/pull/5567)
-- Fix exports / style embedding for foreignObjects in Firefox [#5593](https://github.com/tldraw/tldraw/pull/5593)
-- Fix the reparentShapes() function to ensure that the original order of the shapes is preserved when reparenting. [#5565](https://github.com/tldraw/tldraw/pull/5565)
-- Fix a bug that could occur when resizing [#5292](https://github.com/tldraw/tldraw/pull/5292)
-- Fix a bug with pasting files from your computer in Safari [#5545](https://github.com/tldraw/tldraw/pull/5545)
-- Fix bug with loading TLDraw in an SSR environment by removing a core-js import [#5543](https://github.com/tldraw/tldraw/pull/5543)
-- Prevent text duplication when using IME with Enter key in Chrome [#5540](https://github.com/tldraw/tldraw/pull/5540)
+- Improve performance of a programatically rotating shape when it is selected ([#6023](https://github.com/tldraw/tldraw/pull/6023))
+- Dragging many shapes at once is now much faster. ([#5821](https://github.com/tldraw/tldraw/pull/5821))
+- Errors in tldraw no longer prompt users to open an issue on GitHub, as they were getting confused between tldraw and products that use the SDK. ([#5947](https://github.com/tldraw/tldraw/pull/5947))
+- License keys now support VS Code extensions. ([#5940](https://github.com/tldraw/tldraw/pull/5940))
+
+#### Bug fixes
+
+- Flattened shapes no longer include an opaque background color. ([#6043](https://github.com/tldraw/tldraw/pull/6043))
+- Screenreader announcements are now only triggered in response to user actions. ([#6041](https://github.com/tldraw/tldraw/pull/6041))
+- The hand tool no longer takes pan speed into account, so it’s consistent with middle-mouse/spacebar panning. ([#6024](https://github.com/tldraw/tldraw/pull/6024))
+- Empty lines and list in text now render consistently. ([#6013](https://github.com/tldraw/tldraw/pull/6013))
+- The escape key now correctly exits the laser tool. ([#6015](https://github.com/tldraw/tldraw/pull/6015))
+- Offscreen shapes are now selected correctly while brushing. ([#6004](https://github.com/tldraw/tldraw/pull/6004))
+- `ShapeUtil.getGeometry` uses `shape.meta` as part of its cache key, instead of just `shape.props`. ([#5988](https://github.com/tldraw/tldraw/pull/5988))
+- Toolbar buttons reflect their active states correctly. ([#5981](https://github.com/tldraw/tldraw/pull/5981))
+- The control key gets released properly when wheeling. ([#5983](https://github.com/tldraw/tldraw/pull/5983))
+- Remove jitter from arrows & lines as their size changes in some browsers. ([#5975](https://github.com/tldraw/tldraw/pull/5975))
+- Long-pressing the enter key no longer enters edit mode. ([#5957](https://github.com/tldraw/tldraw/pull/5957))
+- Partially bound arrows don’t flicker when you rotate them. ([#5951](https://github.com/tldraw/tldraw/pull/5951))
+- `editor.getSelectedShapes` no longer causes re-evaluations unless it actually changed. ([#5928](https://github.com/tldraw/tldraw/pull/5928))
+- Chains of viewport followers now work as expected. ([#5924](https://github.com/tldraw/tldraw/pull/5924))
 
 #### Authors
 
+- [@budatl](https://github.com/budatl)
 - alex ([@SomeHats](https://github.com/SomeHats))
+- Ante Sepic ([@OriginalEXE](https://github.com/OriginalEXE))
 - David Sheldrick ([@ds300](https://github.com/ds300))
-- Josh Willis ([@bluedot74](https://github.com/bluedot74))
-- Lorenzo Lewis ([@lorenzolewis](https://github.com/lorenzolewis))
 - Lu Wilson ([@TodePond](https://github.com/TodePond))
-- Mathieu Triay ([@MathieuLoutre](https://github.com/MathieuLoutre))
-- mimata kazutaka ([@kazu-2020](https://github.com/kazu-2020))
 - Mime Čuvalo ([@mimecuvalo](https://github.com/mimecuvalo))
 - Mitja Bezenšek ([@MitjaBezensek](https://github.com/MitjaBezensek))
-- Qinghe Ban ([@banqinghe](https://github.com/banqinghe))
-- Riley ([@dodo-Riley](https://github.com/dodo-Riley))
 - Steve Ruiz ([@steveruizok](https://github.com/steveruizok))
+- Trygve Aaberge ([@trygve-aaberge-adsk](https://github.com/trygve-aaberge-adsk))
+- Younsang Na ([@nayounsang](https://github.com/nayounsang))
 
 ## Previous releases
+
+- [v3.12.0](/releases/v3.12.0)
+
+- [v3.11.0](/releases/v3.11.0)
+
+- [v3.10.0](/releases/v3.10.0)
 
 - [v3.9.0](/releases/v3.9.0)
 

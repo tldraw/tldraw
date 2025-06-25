@@ -30,7 +30,7 @@
 		"tldraw": "latest"
 	},
 	"devDependencies": {
-		"@cloudflare/workers-types": "^4.20240909.0",
+		"@cloudflare/workers-types": "^4.20250510.0",
 		"@types/lodash.throttle": "^4",
 		"@types/react": "^18.3.18",
 		"@types/react-dom": "^18.3.5",
@@ -43,6 +43,6 @@
 		"eslint-plugin-react-refresh": "^0.4.13",
 		"typescript": "^5.0.2",
 		"vite": "^5.4.10",
-		"wrangler": "^3.64.0"
+		"wrangler": "^4.14.4"
 	}
 }

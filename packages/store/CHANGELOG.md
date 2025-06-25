@@ -1,3 +1,53 @@
+# v3.13.0 (Thu May 22 2025)
+
+### Release Notes
+
+#### Elbow arrows ([#5572](https://github.com/tldraw/tldraw/pull/5572))
+
+- The arrow shape now supports elbow arrows. Instead of a single straight line or arc, these arrows get from A to B in a series straight lines joined at right angles. Access the new arrow type by selecting the arrow tool, and choosing the new option under the "Line" style.
+
+---
+
+#### 🐛 Bug Fixes
+
+- don't call createId if id is overridden [#6048](https://github.com/tldraw/tldraw/pull/6048) ([@ds300](https://github.com/ds300))
+
+#### 🎉 New Features
+
+- Elbow arrows [#5572](https://github.com/tldraw/tldraw/pull/5572) ([@SomeHats](https://github.com/SomeHats) [@huppy-bot[bot]](https://github.com/huppy-bot[bot]))
+
+#### Authors: 3
+
+- [@huppy-bot[bot]](https://github.com/huppy-bot[bot])
+- alex ([@SomeHats](https://github.com/SomeHats))
+- David Sheldrick ([@ds300](https://github.com/ds300))
+
+---
+
+# v3.12.0 (Tue Apr 15 2025)
+
+### Release Notes
+
+#### Store.atomic and Store.mergeRemoteChanges fixes ([#5801](https://github.com/tldraw/tldraw/pull/5801))
+
+- Make `store.mergeRemoteChanges` atomic. This allows after* side effects to react to incoming changes and to propagate any effects to other clients via `'user'`-scoped store change events.
+
+---
+
+#### 🐛 Bug Fix
+
+- Better whyAmIRunning [#5746](https://github.com/tldraw/tldraw/pull/5746) ([@ds300](https://github.com/ds300))
+
+#### 💄 Product Improvements
+
+- Store.atomic and Store.mergeRemoteChanges fixes [#5801](https://github.com/tldraw/tldraw/pull/5801) ([@ds300](https://github.com/ds300))
+
+#### Authors: 1
+
+- David Sheldrick ([@ds300](https://github.com/ds300))
+
+---
+
 # v3.11.0 (Thu Mar 20 2025)
 
 ### Release Notes

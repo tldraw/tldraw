@@ -270,7 +270,13 @@ describe('DraggingHandle', () => {
 describe('PointingLabel', () => {
 	it('Enters from pointing_arrow_label and exits to idle', () => {
 		editor.createShapes<TLArrowShape>([
-			{ id: ids.arrow1, type: 'arrow', x: 100, y: 100, props: { text: 'Test Label' } },
+			{
+				id: ids.arrow1,
+				type: 'arrow',
+				x: 100,
+				y: 100,
+				props: { text: 'Test Label', end: { x: 100, y: 100 } },
+			},
 		])
 		const shape = editor.getShape(ids.arrow1)
 		editor.pointerDown(150, 150, {
@@ -286,7 +292,13 @@ describe('PointingLabel', () => {
 
 	it('Bails on escape', () => {
 		editor.createShapes<TLArrowShape>([
-			{ id: ids.arrow1, type: 'arrow', x: 100, y: 100, props: { text: 'Test Label' } },
+			{
+				id: ids.arrow1,
+				type: 'arrow',
+				x: 100,
+				y: 100,
+				props: { text: 'Test Label', end: { x: 100, y: 100 } },
+			},
 		])
 		const shape = editor.getShape(ids.arrow1)
 
@@ -338,7 +350,7 @@ describe('When pressing enter on a selected shape', () => {
 			.selectNone()
 			.createShapes([{ id, type: 'geo' }])
 			.select(id)
-			.keyUp('Enter')
+			.keyPress('Enter')
 			.expectToBeIn('select.editing_shape')
 	})
 })
@@ -577,7 +589,7 @@ describe('When in readonly mode', () => {
 		editor.setSelectedShapes([ids.embed1])
 		expect(editor.getSelectedShapeIds().length).toBe(1)
 
-		editor.keyUp('Enter')
+		editor.keyPress('Enter')
 		expect(editor.getEditingShapeId()).toBe(ids.embed1)
 	})
 })

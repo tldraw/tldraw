@@ -47,7 +47,7 @@ test.describe('Rich text behaviour', () => {
 
 		const toolsForHTMLStyle = [
 			{ name: 'bold', tag: 'strong' },
-			// { name: 'italic', tag: 'emphasis' },
+			{ name: 'italic', tag: 'em' },
 			// // { name: 'strike', tag: 's' },
 			{ name: 'highlight', tag: 'mark' },
 			{ name: 'code', tag: 'code' },
@@ -364,6 +364,7 @@ test.describe('Rich text behaviour', () => {
 			Math.round(selectedTextRect!.y - toolbarRect!.height - 8)
 		)
 
+		// historically this has been flaky without the sleep
 		await sleep(2000)
 	})
 
@@ -467,6 +468,7 @@ test.describe('Rich text behaviour', () => {
 		await expect(richTextToolbar.container).toHaveCSS('opacity', '1')
 		await expect(richTextToolbar.container).toHaveCSS('pointer-events', 'all')
 
+		// historically this has been flaky without the sleep
 		await sleep(2000)
 	})
 

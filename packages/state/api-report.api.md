@@ -42,9 +42,13 @@ export interface AtomOptions<Value, Diff> {
 // @internal (undocumented)
 export interface Child {
     // (undocumented)
+    __debug_ancestor_epochs__: Map<Signal<any, any>, number> | null;
+    // (undocumented)
     isActivelyListening: boolean;
     // (undocumented)
     lastTraversedEpoch: number;
+    // (undocumented)
+    readonly name: string;
     // (undocumented)
     readonly parentEpochs: number[];
     // (undocumented)
@@ -86,11 +90,16 @@ export interface ComputedOptions<Value, Diff> {
     isEqual?(a: any, b: any): boolean;
 }
 
+// @internal (undocumented)
+export function deferAsyncEffects<T>(fn: () => Promise<T>): Promise<T | undefined>;
+
 // @public
 export const EffectScheduler: new <Result>(name: string, runEffect: (lastReactedEpoch: number) => Result, options?: EffectSchedulerOptions) => EffectScheduler<Result>;
 
 // @public (undocumented)
 export interface EffectScheduler<Result> {
+    // @internal (undocumented)
+    __debug_ancestor_epochs__: Map<Signal<any, any>, number> | null;
     attach(): void;
     detach(): void;
     execute(): Result;
@@ -101,6 +110,8 @@ export interface EffectScheduler<Result> {
     maybeExecute(): void;
     // @internal (undocumented)
     maybeScheduleEffect(): void;
+    // (undocumented)
+    readonly name: string;
     // @internal (undocumented)
     readonly parentEpochs: number[];
     // @internal (undocumented)

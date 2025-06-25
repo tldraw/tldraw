@@ -140,9 +140,18 @@ export function useKeyboardShortcuts() {
 	}, [actions, tools, isReadonlyMode, editor, isFocused])
 }
 
-// The "raw" kbd here will look something like "a" or a combination of keys "del,backspace",
-// or modifier keys (using ! for shift, $ for cmd, and ? for alt). We need to first split them
-// up by comma, then parse each key to get the actual key and modifiers.
+export function areShortcutsDisabled(editor: Editor) {
+	return (
+		editor.menus.hasAnyOpenMenus() ||
+		editor.getEditingShapeId() !== null ||
+		editor.getCrashingError()
+	)
+}
+
+// The "raw" kbd here will look something like "a" or a combination of keys "del,backspace".
+// We need to first split them up by comma, then parse each key to ensure backwards compatibility
+// with the old kbd format. We used to have symbols to denote cmd/alt/shift,
+// using ! for shift, $ for cmd, and ? for alt.
 function getHotkeysStringFromKbd(kbd: string) {
 	return getKeys(kbd)
 		.map((kbd) => {
@@ -192,12 +201,4 @@ function getKeys(key: string) {
 	}
 
 	return keys
-}
-
-export function areShortcutsDisabled(editor: Editor) {
-	return (
-		editor.menus.hasAnyOpenMenus() ||
-		editor.getEditingShapeId() !== null ||
-		editor.getCrashingError()
-	)
 }

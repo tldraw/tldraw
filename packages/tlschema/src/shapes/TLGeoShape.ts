@@ -55,20 +55,22 @@ export type TLGeoShapeGeoStyle = T.TypeOf<typeof GeoShapeGeoStyle>
 /** @public */
 export interface TLGeoShapeProps {
 	geo: TLGeoShapeGeoStyle
-	labelColor: TLDefaultColorStyle
-	color: TLDefaultColorStyle
-	fill: TLDefaultFillStyle
 	dash: TLDefaultDashStyle
-	size: TLDefaultSizeStyle
-	font: TLDefaultFontStyle
-	align: TLDefaultHorizontalAlignStyle
-	verticalAlign: TLDefaultVerticalAlignStyle
 	url: string
 	w: number
 	h: number
 	growY: number
-	richText: TLRichText
 	scale: number
+
+	// Text properties
+	labelColor: TLDefaultColorStyle
+	color: TLDefaultColorStyle
+	fill: TLDefaultFillStyle
+	size: TLDefaultSizeStyle
+	font: TLDefaultFontStyle
+	align: TLDefaultHorizontalAlignStyle
+	verticalAlign: TLDefaultVerticalAlignStyle
+	richText: TLRichText
 }
 
 /** @public */
@@ -77,20 +79,22 @@ export type TLGeoShape = TLBaseShape<'geo', TLGeoShapeProps>
 /** @public */
 export const geoShapeProps: RecordProps<TLGeoShape> = {
 	geo: GeoShapeGeoStyle,
-	labelColor: DefaultLabelColorStyle,
-	color: DefaultColorStyle,
-	fill: DefaultFillStyle,
 	dash: DefaultDashStyle,
-	size: DefaultSizeStyle,
-	font: DefaultFontStyle,
-	align: DefaultHorizontalAlignStyle,
-	verticalAlign: DefaultVerticalAlignStyle,
 	url: T.linkUrl,
 	w: T.nonZeroNumber,
 	h: T.nonZeroNumber,
 	growY: T.positiveNumber,
-	richText: richTextValidator,
 	scale: T.nonZeroNumber,
+
+	// Text properties
+	labelColor: DefaultLabelColorStyle,
+	color: DefaultColorStyle,
+	fill: DefaultFillStyle,
+	size: DefaultSizeStyle,
+	font: DefaultFontStyle,
+	align: DefaultHorizontalAlignStyle,
+	verticalAlign: DefaultVerticalAlignStyle,
+	richText: richTextValidator,
 }
 
 const geoShapeVersions = createShapePropsMigrationIds('geo', {
