@@ -44,6 +44,7 @@ export const Geometry2dFilters: {
 /** @public */
 export interface TransformedGeometry2dOptions {
 	isLabel?: boolean
+	isEmptyLabel?: boolean
 	isInternal?: boolean
 	debugColor?: string
 	ignore?: boolean
@@ -57,20 +58,24 @@ export interface Geometry2dOptions extends TransformedGeometry2dOptions {
 
 /** @public */
 export abstract class Geometry2d {
+	// todo: consider making accessors for these too, so that they can be overridden in subclasses by geometries with more complex logic
 	isFilled = false
 	isClosed = true
 	isLabel = false
+	isEmptyLabel = false
 	isInternal = false
 	debugColor?: string
 	ignore?: boolean
 
 	constructor(opts: Geometry2dOptions) {
+		const { isLabel = false, isEmptyLabel = false, isInternal = false } = opts
 		this.isFilled = opts.isFilled
 		this.isClosed = opts.isClosed
-		this.isLabel = opts.isLabel ?? false
-		this.isInternal = opts.isInternal ?? false
 		this.debugColor = opts.debugColor
 		this.ignore = opts.ignore
+		this.isLabel = isLabel
+		this.isEmptyLabel = isEmptyLabel
+		this.isInternal = isInternal
 	}
 
 	isExcludedByFilter(filters?: Geometry2dFilters) {

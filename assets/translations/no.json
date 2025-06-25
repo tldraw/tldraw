@@ -354,6 +354,8 @@
 	"tool.ellipse": "Ellipse",
 	"tool.embed": "Bygg inn",
 	"tool.eraser": "Viskelær",
+	"tool.flip-horz": "Snu horisontalt",
+	"tool.flip-vert": "Snu vertikalt",
 	"tool.frame": "Ramme",
 	"tool.hand": "Hånd",
 	"tool.heart": "Hjerte",

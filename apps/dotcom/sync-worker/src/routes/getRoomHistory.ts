@@ -4,6 +4,7 @@ import { getR2KeyForRoom } from '../r2'
 import { Environment } from '../types'
 import { isRoomIdTooLong, roomIdIsTooLong } from '../utils/roomIdIsTooLong'
 import { requireWriteAccessToFile } from '../utils/tla/getAuth'
+import { isTestFile } from '../utils/tla/isTestFile'
 
 // Returns the history of a room as a list of objects with timestamps
 export async function getRoomHistory(
@@ -18,6 +19,10 @@ export async function getRoomHistory(
 
 	if (isApp) {
 		await requireWriteAccessToFile(request, env, roomId)
+	}
+
+	if (isTestFile(roomId)) {
+		return new Response('Not found', { status: 404 })
 	}
 
 	const versionCacheBucket = env.ROOMS_HISTORY_EPHEMERAL

@@ -19,11 +19,6 @@ interface ListWorkersResult {
 	result: { id: string }[]
 }
 
-interface ListQueuesResult {
-	success: boolean
-	result: { queue_id: string; queue_name: string; consumers: { consumer_id: string }[] }[]
-}
-
 const _isPrClosedCache = new Map<number, boolean>()
 async function isPrClosedForAWhile(prNumber: number) {
 	if (_isPrClosedCache.has(prNumber)) {
@@ -44,10 +39,10 @@ async function isPrClosedForAWhile(prNumber: number) {
 		}
 		throw err
 	}
-	const twoDays = 1000 * 60 * 60 * 24 * 2
+	const timeout = 1000 * 60 * 60 * 24 * 2 // two days
 	const result =
 		prResult.data.state === 'closed' &&
-		Date.now() - new Date(prResult.data.closed_at!).getTime() > twoDays
+		Date.now() - new Date(prResult.data.closed_at!).getTime() > timeout
 	_isPrClosedCache.set(prNumber, result)
 	return result
 }
@@ -85,25 +80,25 @@ async function listPreviewWorkerDeployments() {
 	)
 }
 
-async function deleteQueue(id: string) {
-	await cloudflareApi(`/queues/${id}`, { method: 'DELETE' })
+async function deleteQueue(queueName: string) {
+	nicelog('Deleting queue:', queueName)
+	await exec('npx', ['wrangler', 'queues', 'delete', queueName], {
+		env: { CI: '1' },
+	})
 }
 
-async function deleteQueueConsumer({ id, consumerId }: { id: string; consumerId: string }) {
-	await cloudflareApi(`/queues/${id}/consumers/${consumerId}`, { method: 'DELETE' })
+async function deleteQueueConsumer(queueName: string, scriptName: string) {
+	nicelog('Deleting queue consumer:', scriptName, 'from queue:', queueName)
+	await exec('npx', ['wrangler', 'queues', 'consumer', 'worker', 'remove', queueName, scriptName], {
+		env: { CI: '1' },
+	})
 }
 
-async function deletePreviewWorker(id: string) {
-	const endpoint = `/workers/scripts/${id}`
-	nicelog(
-		'DELETE',
-		`https://api.cloudflare.com/client/v4/accounts/${env.CLOUDFLARE_ACCOUNT_ID}${endpoint}`
-	)
-	const res = await cloudflareApi(endpoint, { method: 'DELETE' })
-
-	if (!res.ok) {
-		throw new Error('Failed to delete worker ' + JSON.stringify(await res.json()))
-	}
+async function deletePreviewWorker(workerName: string) {
+	nicelog('Deleting worker:', workerName)
+	await exec('npx', ['wrangler', 'delete', '--name', workerName], {
+		env: { CI: '1' },
+	})
 }
 
 async function deletePreviewWorkerDeployment(id: string) {
@@ -111,30 +106,21 @@ async function deletePreviewWorkerDeployment(id: string) {
 	if (id.match(CLOUDFLARE_SYNC_WORKER_REGEX)) {
 		const prNumber = Number(id.match(CLOUDFLARE_WORKER_REGEX)?.[1])
 		const queueName = `tldraw-multiplayer-queue-pr-${prNumber}`
-		const queueInfo = queuesMap.get(queueName)
-		if (queueInfo) {
-			const { id, consumerId } = queueInfo
-			if (consumerId) {
-				await deleteQueueConsumer({ id, consumerId })
-			}
-			await deleteQueue(id)
+
+		try {
+			await deleteQueueConsumer(queueName, id)
+		} catch (err) {
+			nicelog(`Failed to delete consumer ${id}: ${err}`)
 		}
+		await deletePreviewWorker(id)
+		try {
+			await deleteQueue(queueName)
+		} catch (err) {
+			nicelog(`Failed to delete queue ${queueName}: ${err}`)
+		}
+	} else {
+		await deletePreviewWorker(id)
 	}
-	await deletePreviewWorker(id)
-}
-
-const queuesMap = new Map<string, { id: string; consumerId: string | undefined }>()
-
-async function getQueues() {
-	const res = await cloudflareApi('/queues')
-	const data = (await res.json()) as ListQueuesResult
-	if (!data.success) {
-		throw new Error('Failed to get queues ' + JSON.stringify(data))
-	}
-	data.result.forEach((queue) => {
-		const { queue_id: id, queue_name: name, consumers } = queue
-		queuesMap.set(name, { id, consumerId: consumers[0]?.consumer_id })
-	})
 }
 
 const neonHeaders = {
@@ -236,10 +222,10 @@ async function deleteSstPreviewApp(stage: string) {
 	await exec('yarn', ['sst', 'remove', '--stage', stage])
 }
 
+const deletionErrors: string[] = []
+
 async function main() {
 	nicelog('Getting queues information')
-	await getQueues()
-	nicelog('Pruning preview deployments')
 	await processItems(listPreviewWorkerDeployments, deletePreviewWorkerDeployment)
 	nicelog('\nPruning preview databases')
 	await processItems(listPreviewDatabases, deletePreviewDatabase)
@@ -248,6 +234,13 @@ async function main() {
 	nicelog('\nPruning sst preview stages')
 	await processItems(listAmazonClusters, deleteSstPreviewApp)
 	nicelog('\nDone')
+	if (deletionErrors.length > 0) {
+		nicelog('\nDeletion errors:')
+		for (const error of deletionErrors) {
+			nicelog(error)
+		}
+		process.exit(1)
+	}
 }
 
 async function processItems(
@@ -263,7 +256,11 @@ async function processItems(
 		}
 		if (await isPrClosedForAWhile(number)) {
 			nicelog(`Deleting ${item} because PR is closed`)
-			await deleteFn(item)
+			try {
+				await deleteFn(item)
+			} catch (err) {
+				deletionErrors.push(`${item}: ${err}`)
+			}
 		} else {
 			nicelog(`Skipping ${item} because PR is still open`)
 		}

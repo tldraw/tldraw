@@ -99,7 +99,7 @@ export const PlainTextLabel = React.memo(function PlainTextLabel({
 				className={`${cssPrefix}-label__inner tl-text-content__wrapper`}
 				style={{
 					fontSize,
-					lineHeight: Math.floor(fontSize * lineHeight) + 'px',
+					lineHeight: lineHeight.toString(),
 					minHeight: Math.floor(fontSize * lineHeight) + 'px',
 					minWidth: Math.ceil(textWidth || 0),
 					color: labelColor,

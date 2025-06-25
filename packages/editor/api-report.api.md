@@ -1184,7 +1184,9 @@ export class Editor extends EventEmitter<TLEventMap> {
     getCurrentTool(): StateNode;
     getCurrentToolId(): string;
     getDocumentSettings(): TLDocument;
-    getDroppingOverShape(point: VecLike, droppingShapes?: TLShape[]): TLUnknownShape | undefined;
+    getDraggingOverShape(point: Vec, droppingShapes: TLShape[]): TLShape | undefined;
+    // @deprecated (undocumented)
+    getDroppingOverShape(point: Vec, droppingShapes: TLShape[]): TLShape | undefined;
     getEditingShape(): TLShape | undefined;
     getEditingShapeId(): null | TLShapeId;
     getErasingShapeIds(): TLShapeId[];
@@ -1400,6 +1402,7 @@ export class Editor extends EventEmitter<TLEventMap> {
     }> : TLExternalContent<E>) => void) | null): this;
     renamePage(page: TLPage | TLPageId, name: string): this;
     reparentShapes(shapes: TLShape[] | TLShapeId[], parentId: TLParentId, insertIndex?: IndexKey): this;
+    replaceExternalContent<E>(info: TLExternalContent<E>): Promise<void>;
     resetZoom(point?: Vec, opts?: TLCameraMoveOptions): this;
     resizeShape(shape: TLShape | TLShapeId, scale: VecLike, opts?: TLResizeShapeOptions): this;
     // (undocumented)
@@ -1674,6 +1677,8 @@ export abstract class Geometry2d {
     // (undocumented)
     isClosed: boolean;
     // (undocumented)
+    isEmptyLabel: boolean;
+    // (undocumented)
     isExcludedByFilter(filters?: Geometry2dFilters): boolean;
     // (undocumented)
     isFilled: boolean;
@@ -1730,6 +1735,12 @@ export function getCursor(cursor: TLCursorType, rotation?: number, color?: strin
 
 // @public (undocumented)
 export function getDefaultCdnBaseUrl(): string;
+
+// @public
+export function getDroppedShapesToNewParents(editor: Editor, shapes: Set<TLShape> | TLShape[], cb?: (shape: TLShape, parent: TLShape) => boolean): {
+    remainingShapesToReparent: Set<TLShape>;
+    reparenting: Map<TLShapeId, TLShape[]>;
+};
 
 // @public (undocumented)
 export function getFontsFromRichText(editor: Editor, richText: TLRichText, initialState: RichTextFontVisitorState): TLFontFace[];
@@ -2015,6 +2026,11 @@ export const isAccelKey: <InputType extends {
 
 // @public
 export const isSafeFloat: (n: number) => boolean;
+
+// @public
+export function kickoutOccludedShapes(editor: Editor, shapeIds: TLShapeId[], opts?: {
+    filter?(parent: TLShape): boolean;
+}): void;
 
 // @internal (undocumented)
 export type LicenseFromKeyResult = InvalidLicenseKeyResult | ValidLicenseKeyResult;
@@ -2530,7 +2546,6 @@ export abstract class ShapeUtil<Shape extends TLUnknownShape = TLUnknownShape> {
     canBeLaidOut(_shape: Shape, _info: TLShapeUtilCanBeLaidOutOpts): boolean;
     canBind(_opts: TLShapeUtilCanBindOpts): boolean;
     canCrop(_shape: Shape): boolean;
-    canDropShapes(_shape: Shape, _shapes: TLShape[]): boolean;
     canEdit(_shape: Shape): boolean;
     canEditInReadonly(_shape: Shape): boolean;
     canReceiveNewChildrenOfType(_shape: Shape, _type: TLShape['type']): boolean;
@@ -2577,9 +2592,10 @@ export abstract class ShapeUtil<Shape extends TLUnknownShape = TLUnknownShape> {
     onDoubleClickCorner?(shape: Shape, info: TLClickEventInfo): TLShapePartial<Shape> | void;
     onDoubleClickEdge?(shape: Shape, info: TLClickEventInfo): TLShapePartial<Shape> | void;
     onDoubleClickHandle?(shape: Shape, handle: TLHandle): TLShapePartial<Shape> | void;
-    onDragShapesOut?(shape: Shape, shapes: TLShape[]): void;
-    onDragShapesOver?(shape: Shape, shapes: TLShape[]): void;
-    onDropShapesOver?(shape: Shape, shapes: TLShape[]): void;
+    onDragShapesIn?(shape: Shape, shapes: TLShape[], info: TLDragShapesInInfo): void;
+    onDragShapesOut?(shape: Shape, shapes: TLShape[], info: TLDragShapesOutInfo): void;
+    onDragShapesOver?(shape: Shape, shapes: TLShape[], info: TLDragShapesOverInfo): void;
+    onDropShapesOver?(shape: Shape, shapes: TLShape[], info: TLDropShapesOverInfo): void;
     onEditEnd?(shape: Shape): void;
     onEditStart?(shape: Shape): void;
     onHandleDrag?(shape: Shape, info: TLHandleDragInfo<Shape>): TLShapePartial<Shape> | void;
@@ -2699,7 +2715,7 @@ export abstract class StateNode implements Partial<TLEventHandlers> {
     // (undocumented)
     enter(info: any, from: string): void;
     // (undocumented)
-    exit(info: any, from: string): void;
+    exit(info: any, to: string): void;
     getCurrent(): StateNode | undefined;
     // (undocumented)
     getCurrentToolIdMask(): string | undefined;
@@ -3038,6 +3054,8 @@ export interface TLContent {
 // @public
 export interface TLCropInfo<T extends TLShape> {
     // (undocumented)
+    aspectRatioLocked?: boolean;
+    // (undocumented)
     change: Vec;
     // (undocumented)
     crop: TLShapeCrop;
@@ -3090,6 +3108,40 @@ export interface TLDeepLinkOptions {
     getUrl?(editor: Editor): string | URL;
     onChange?(url: URL, editor: Editor): void;
     param?: string;
+}
+
+// @public (undocumented)
+export interface TLDragShapesInInfo {
+    // (undocumented)
+    initialDraggingOverShapeId: null | TLShapeId;
+    // (undocumented)
+    initialIndices: Map<TLShapeId, IndexKey>;
+    // (undocumented)
+    initialParentIds: Map<TLShapeId, TLParentId>;
+    // (undocumented)
+    prevDraggingOverShapeId: null | TLShapeId;
+}
+
+// @public (undocumented)
+export interface TLDragShapesOutInfo {
+    // (undocumented)
+    initialDraggingOverShapeId: null | TLShapeId;
+    // (undocumented)
+    initialIndices: Map<TLShapeId, IndexKey>;
+    // (undocumented)
+    initialParentIds: Map<TLShapeId, TLParentId>;
+    // (undocumented)
+    nextDraggingOverShapeId: null | TLShapeId;
+}
+
+// @public (undocumented)
+export interface TLDragShapesOverInfo {
+    // (undocumented)
+    initialDraggingOverShapeId: null | TLShapeId;
+    // (undocumented)
+    initialIndices: Map<TLShapeId, IndexKey>;
+    // (undocumented)
+    initialParentIds: Map<TLShapeId, TLParentId>;
 }
 
 // @public (undocumented)
@@ -3225,6 +3277,16 @@ export interface TldrawOptions {
     readonly temporaryAssetPreviewLifetimeMs: number;
     // (undocumented)
     readonly textShadowLod: number;
+}
+
+// @public (undocumented)
+export interface TLDropShapesOverInfo {
+    // (undocumented)
+    initialDraggingOverShapeId: null | TLShapeId;
+    // (undocumented)
+    initialIndices: Map<TLShapeId, IndexKey>;
+    // (undocumented)
+    initialParentIds: Map<TLShapeId, TLParentId>;
 }
 
 // @public (undocumented)
@@ -3425,6 +3487,12 @@ export interface TLEventMap {
     // (undocumented)
     'before-event': [TLEventInfo];
     // (undocumented)
+    'created-shapes': [TLRecord[]];
+    // (undocumented)
+    'deleted-shapes': [TLShapeId[]];
+    // (undocumented)
+    'edited-shapes': [TLRecord[]];
+    // (undocumented)
     'max-shapes': [{
         count: number;
         name: string;
@@ -3452,6 +3520,8 @@ export interface TLEventMap {
     crash: [{
         error: unknown;
     }];
+    // (undocumented)
+    edit: [];
     // (undocumented)
     event: [TLEventInfo];
     // (undocumented)
@@ -3496,7 +3566,7 @@ export type TLExportType = 'jpeg' | 'png' | 'svg' | 'webp';
 export type TLExternalAsset = TLFileExternalAsset | TLUrlExternalAsset;
 
 // @public (undocumented)
-export type TLExternalContent<EmbedDefinition> = TLEmbedExternalContent<EmbedDefinition> | TLExcalidrawExternalContent | TLFilesExternalContent | TLSvgTextExternalContent | TLTextExternalContent | TLTldrawExternalContent | TLUrlExternalContent;
+export type TLExternalContent<EmbedDefinition> = TLEmbedExternalContent<EmbedDefinition> | TLExcalidrawExternalContent | TLFileReplaceExternalContent | TLFilesExternalContent | TLSvgTextExternalContent | TLTextExternalContent | TLTldrawExternalContent | TLUrlExternalContent;
 
 // @public (undocumented)
 export type TLExternalContentSource = TLErrorExternalContentSource | TLExcalidrawExternalContentSource | TLTextExternalContentSource | TLTldrawExternalContentSource;
@@ -3509,6 +3579,18 @@ export interface TLFileExternalAsset {
     file: File;
     // (undocumented)
     type: 'file';
+}
+
+// @public (undocumented)
+export interface TLFileReplaceExternalContent extends TLBaseExternalContent {
+    // (undocumented)
+    file: File;
+    // (undocumented)
+    isImage: boolean;
+    // (undocumented)
+    shapeId: TLShapeId;
+    // (undocumented)
+    type: 'file-replace';
 }
 
 // @public (undocumented)
@@ -3668,7 +3750,6 @@ export interface TLMeasureTextOpts {
     fontStyle: string;
     // (undocumented)
     fontWeight: string;
-    // (undocumented)
     lineHeight: number;
     maxWidth: null | number;
     // (undocumented)
@@ -4247,6 +4328,8 @@ export interface TransformedGeometry2dOptions {
     debugColor?: string;
     // (undocumented)
     ignore?: boolean;
+    // (undocumented)
+    isEmptyLabel?: boolean;
     // (undocumented)
     isInternal?: boolean;
     // (undocumented)

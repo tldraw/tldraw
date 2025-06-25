@@ -26,6 +26,7 @@ export interface TLMeasureTextOpts {
 	fontWeight: string
 	fontFamily: string
 	fontSize: number
+	/** This must be a number, e.g. 1.35, not a pixel value. */
 	lineHeight: number
 	/**
 	 * When maxWidth is a number, the text will be wrapped to that maxWidth. When maxWidth
@@ -75,6 +76,7 @@ export class TextManager {
 		// we need to save the default styles so that we can restore them when we're done
 		// these must be the css names, not the js names for the styles
 		this.defaultStyles = {
+			'overflow-wrap': 'break-word',
 			'word-break': 'auto',
 			width: null,
 			height: null,
@@ -123,7 +125,7 @@ export class TextManager {
 		elm.style.setProperty('font-style', opts.fontStyle)
 		elm.style.setProperty('font-weight', opts.fontWeight)
 		elm.style.setProperty('font-size', opts.fontSize + 'px')
-		elm.style.setProperty('line-height', opts.lineHeight * opts.fontSize + 'px')
+		elm.style.setProperty('line-height', opts.lineHeight.toString())
 		elm.style.setProperty('padding', opts.padding)
 
 		if (opts.maxWidth) {
@@ -287,7 +289,7 @@ export class TextManager {
 		elm.style.setProperty('font-style', opts.fontStyle)
 		elm.style.setProperty('font-weight', opts.fontWeight)
 		elm.style.setProperty('font-size', opts.fontSize + 'px')
-		elm.style.setProperty('line-height', opts.lineHeight * opts.fontSize + 'px')
+		elm.style.setProperty('line-height', opts.lineHeight.toString())
 
 		const elementWidth = Math.ceil(opts.width - opts.padding * 2)
 		elm.style.setProperty('width', `${elementWidth}px`)

@@ -60,6 +60,18 @@ const snapshots: Snapshots = {
 					h={300}
 				/>
 			),
+			'overflowing text with small scale': (
+				<TL.geo
+					dash="solid"
+					richText={toRichText('\n\n\n\n\n\ntext')}
+					w={100}
+					h={30}
+					scale={0.25}
+				/>
+			),
+			'overflowing text with large scale': (
+				<TL.geo dash="solid" richText={toRichText('\n\n\n\n\n\ntext')} w={200} h={30} scale={2} />
+			),
 			'rich text': <TL.geo dash="solid" richText={richText} align="start" w={300} h={300} />,
 		},
 	},
