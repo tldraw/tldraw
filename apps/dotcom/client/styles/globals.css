@@ -134,6 +134,7 @@ a {
 	position: absolute;
 	align-items: center;
 	justify-content: center;
+	padding: 0px 12px;
 }
 
 .error-page__container {
