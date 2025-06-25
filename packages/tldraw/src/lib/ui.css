@@ -796,7 +796,20 @@
 	overflow: hidden;
 	text-overflow: ellipsis;
 	white-space: nowrap;
+}
+
+.tlui-page-menu__item__button > span {
 	padding-right: calc(40px - 12px);
+}
+
+@media (hover: hover) {
+	.tlui-page-menu__item__button > span {
+		padding-right: 0px;
+	}
+
+	.tlui-page-menu__item:hover > .tlui-page-menu__item__button > span {
+		padding-right: calc(40px - 12px);
+	}
 }
 
 .tlui-page-menu__item__button__checkbox {
