@@ -89,11 +89,6 @@ export class Pointing extends StateNode {
 
 			const newPoint = maybeSnapToGrid(currentPagePoint, this.editor)
 
-			if (!this.editor.canCreateShape(id)) {
-				this.cancel()
-				return
-			}
-
 			this.editor.createShapes<TLLineShape>([
 				{
 					id,
@@ -105,6 +100,11 @@ export class Pointing extends StateNode {
 					},
 				},
 			])
+
+			if (!this.editor.getShape(id)) {
+				this.cancel()
+				return
+			}
 
 			this.editor.select(id)
 			this.shape = this.editor.getShape(id)!
