@@ -112,7 +112,7 @@ export const user_presence = table('user_presence')
 		name: string().optional(),
 		color: string().optional(),
 	})
-	.primaryKey('sessionId')
+	.primaryKey('fileId', 'sessionId')
 
 export const group_file = table('group_file')
 	.columns({
@@ -338,8 +338,19 @@ export const permissions = definePermissions<AuthData, TlaSchema>(schema, () => 
 
 	const allowIfIsUserIdMatches = (
 		authData: AuthData,
-		{ cmp }: ExpressionBuilder<TlaSchema, 'file_state' | 'group_user'>
+		{ cmp }: ExpressionBuilder<TlaSchema, 'file_state'>
 	) => cmp('userId', '=', authData.sub!)
+
+	const userCanAccessGroupMembershipListing = (
+		authData: AuthData,
+		{ or, cmp, exists }: ExpressionBuilder<TlaSchema, 'group_user'>
+	) =>
+		or(
+			cmp('userId', '=', authData.sub!),
+			exists('group', (q) =>
+				q.whereExists('userGroups', (q) => q.where('userId', '=', authData.sub!))
+			)
+		)
 
 	const userCanAccessFile = (
 		authData: AuthData,
@@ -394,7 +405,7 @@ export const permissions = definePermissions<AuthData, TlaSchema>(schema, () => 
 		},
 		group_user: {
 			row: {
-				select: [allowIfIsUserIdMatches],
+				select: [userCanAccessGroupMembershipListing],
 			},
 		},
 		user_presence: {
