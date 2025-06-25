@@ -9,7 +9,7 @@ export function TempGroupsUi() {
 	const hasGroupsFlag = useHasFlag('groups')
 	const app = useApp()
 
-	const groupUsers = useValue('groupUsers', () => app.getGroupUsers(), [app])
+	const groupUsers = useValue('groupUsers', () => app.getGroupMemberships(), [app])
 
 	if (!hasGroupsFlag) return null
 

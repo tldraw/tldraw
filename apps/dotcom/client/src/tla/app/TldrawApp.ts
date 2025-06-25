@@ -92,7 +92,7 @@ export class TldrawApp {
 	private readonly fileStates$: Signal<
 		(TlaFileState & { file: TlaFile; presences: TlaUserPresence[] })[]
 	>
-	private readonly groupUsers$: Signal<
+	private readonly groupMemberships$: Signal<
 		(TlaGroupUser & {
 			group: TlaGroup
 			groupFiles: Array<TlaGroupFile & { file: TlaFile }>
@@ -176,7 +176,10 @@ export class TldrawApp {
 
 		this.user$ = this.signalizeQuery('user signal', this.userQuery())
 		this.fileStates$ = this.signalizeQuery('file states signal', this.fileStateQuery())
-		this.groupUsers$ = this.signalizeQuery('group users signal', this.groupUsersQuery())
+		this.groupMemberships$ = this.signalizeQuery(
+			'group memberships signal',
+			this.groupMembershipsQuery()
+		)
 	}
 
 	private userQuery() {
@@ -193,11 +196,11 @@ export class TldrawApp {
 		)
 	}
 
-	private groupUsersQuery() {
+	private groupMembershipsQuery() {
 		return this.z.query.group_user
 			.where('userId', '=', this.userId)
 			.related('group', (q) => q.one())
-			.related('groupFiles')
+			.related('groupFiles', (q) => q.related('file', (q) => q.one()))
 			.related('groupMembers')
 	}
 
@@ -293,7 +296,8 @@ export class TldrawApp {
 		return assertExists(this.user$.get(), 'no user')
 	}
 
-	@computed({ isEqual }) getUserFlags(): Set<TlaFlags> {
+	@computed({ isEqual })
+	getUserFlags(): Set<TlaFlags> {
 		const user = this.getUser()
 		return new Set(user.flags?.split(',') ?? []) as Set<TlaFlags>
 	}
@@ -302,12 +306,12 @@ export class TldrawApp {
 		return this.getUserFlags().has(flag)
 	}
 
-	getGroupUsers() {
-		return this.groupUsers$.get()
+	getGroupMemberships() {
+		return this.groupMemberships$.get()
 	}
 
 	getGroup(groupId: string) {
-		return this.groupUsers$.get().find((g) => g.groupId === groupId)
+		return this.groupMemberships$.get().find((g) => g.groupId === groupId)
 	}
 
 	getPresences(fileId: string) {
@@ -554,7 +558,7 @@ export class TldrawApp {
 		const file = this.getFile(fileId)
 		if (!file) return false
 		if (file.ownerId) return file.ownerId === this.userId
-		return this.getGroupUsers().some((g) => g.groupId === file.owningGroupId)
+		return this.getGroupMemberships().some((g) => g.groupId === file.owningGroupId)
 	}
 
 	requireFile(fileId: string): TlaFile {
@@ -917,10 +921,5 @@ export class TldrawApp {
 			''
 
 		return this.createFile({ id, name })
-	}
-
-	@computed({ isEqual })
-	getFiles() {
-		return this.fileStates$.get().map((fs) => fs.file)
 	}
 }

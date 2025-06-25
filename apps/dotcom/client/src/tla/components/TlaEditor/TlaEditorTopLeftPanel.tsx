@@ -23,8 +23,8 @@ import {
 	useValue,
 } from 'tldraw'
 import { useApp, useMaybeApp } from '../../hooks/useAppState'
+import { useCanUpdateFile } from '../../hooks/useCanUpdateFile'
 import { useCurrentFileId } from '../../hooks/useCurrentFileId'
-import { useCanUpdateFile } from '../../hooks/useIsFileOwner'
 import { TLAppUiEventSource, useTldrawAppUiEvents } from '../../utils/app-ui-events'
 import { getIsCoarsePointer } from '../../utils/getIsCoarsePointer'
 import { defineMessages, useIntl, useMsg } from '../../utils/i18n'
