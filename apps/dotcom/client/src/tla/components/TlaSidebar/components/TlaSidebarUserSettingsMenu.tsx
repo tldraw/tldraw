@@ -45,7 +45,7 @@ export function TlaUserSettingsMenu() {
 								'notranslate'
 							)}
 						>
-							{user.name || <F defaultMessage="My account" />}
+							{user.name || <F defaultMessage="Account" />}
 						</div>
 						<div className={styles.sidebarUserSettingsIcon}>
 							<TlaIcon icon="dots-vertical-strong" />
