@@ -322,7 +322,7 @@ export const DefaultPageMenu = memo(function DefaultPageMenu() {
 			<TldrawUiPopoverContent
 				side="bottom"
 				align="start"
-				sideOffset={6}
+				sideOffset={0}
 				disableEscapeKeyDown={isEditing}
 			>
 				<div className="tlui-page-menu__wrapper">

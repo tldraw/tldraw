@@ -176,8 +176,7 @@
 	--color-success: hsl(123, 46%, 34%);
 	--color-info: hsl(201, 98%, 41%);
 	--color-warning: hsl(27, 98%, 47%);
-	--color-error: hsl(0, 65%, 51%);
-	--color-warn: hsl(0, 90%, 43%);
+	--color-danger: hsl(0, 90%, 43%);
 	--color-laser: hsl(0, 100%, 50%);
 	/* Shadows */
 	--shadow-1: 0px 1px 2px hsl(0, 0%, 0%, 25%), 0px 1px 3px hsl(0, 0%, 0%, 9%);
@@ -232,8 +231,7 @@
 	--color-success: hsl(123, 38%, 57%);
 	--color-info: hsl(199, 92%, 56%);
 	--color-warning: hsl(36, 100%, 57%);
-	--color-error: hsl(4, 90%, 58%);
-	--color-warn: hsl(0, 81%, 66%);
+	--color-danger: hsl(0, 82%, 66%);
 	--color-laser: hsl(0, 100%, 50%);
 	/* Shadows */
 	--shadow-1:
@@ -1057,8 +1055,8 @@ input,
 }
 
 .tl-hyperlink__icon {
-	width: 16px;
-	height: 16px;
+	width: 15px;
+	height: 15px;
 	background-color: currentColor;
 	pointer-events: none;
 }
@@ -1157,7 +1155,7 @@ input,
 	stroke-linejoin: round;
 	/* content-visibility: auto; */
 	transform-origin: top left;
-	color: inherit;
+	color: var(--color-text-1);
 }
 
 /* -------------------- Group shape ------------------ */
@@ -1272,6 +1270,7 @@ input,
 	display: flex;
 	justify-content: flex-end;
 	align-items: flex-start;
+	box-shadow: inset 0px 0px 0px 1px var(--color-divider);
 }
 
 .tl-bookmark__image_container > .tl-hyperlink-button::after {
@@ -1294,7 +1293,7 @@ input,
 }
 
 .tl-bookmark__copy_container {
-	background-color: var(--color-muted);
+	background-color: var(--color-muted-0);
 	padding: var(--space-4);
 	pointer-events: all;
 	display: flex;
@@ -1313,11 +1312,11 @@ input,
 
 .tl-bookmark__heading {
 	font-size: 16px;
-	line-height: 1.5;
+	line-height: 1.6;
 	font-weight: bold;
 	padding-bottom: var(--space-2);
 	overflow: hidden;
-	max-height: calc((16px * 1.5) * 2);
+	max-height: calc((16px * 1.6) * 2);
 	-webkit-box-orient: vertical;
 	-webkit-line-clamp: 2;
 	line-clamp: 2;
@@ -1706,7 +1705,7 @@ it from receiving any pointer events or affecting the cursor. */
 	gap: var(--space-4);
 }
 .tl-error-boundary__content .tl-error-boundary__reset {
-	color: var(--color-warn);
+	color: var(--color-danger);
 }
 .tl-error-boundary__content .tl-error-boundary__refresh {
 	background-color: var(--color-primary);
