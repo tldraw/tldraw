@@ -835,10 +835,11 @@ export function createEmptyBookmarkShape(
 	}
 
 	editor.run(() => {
-		if (editor.canCreateShape(partial)) {
-			editor.createShape(partial).select(partial.id)
-			centerSelectionAroundPoint(editor, position)
-		}
+		// Allow this to trigger the max shapes reached alert
+		editor.createShape(partial)
+		if (!editor.getShape(partial.id)) return
+		editor.select(partial.id)
+		centerSelectionAroundPoint(editor, position)
 	})
 
 	return editor.getShape(partial.id) as TLBookmarkShape
