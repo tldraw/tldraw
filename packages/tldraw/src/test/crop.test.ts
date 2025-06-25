@@ -2124,4 +2124,55 @@ describe('getCroppedImageDataForReplacedImage', () => {
 		expect(result.crop.bottomRight.x).toBeLessThanOrEqual(1)
 		expect(result.crop.bottomRight.y).toBeLessThanOrEqual(1)
 	})
+
+	it('handles real-world image replacement example 2', () => {
+		// Second real example: Twitter yeast image being replaced with screenshot
+		const originalShape: TLImageShape = {
+			...shape,
+			x: 100,
+			y: 100,
+			props: {
+				...shape.props,
+				w: 205.04988142156844,
+				h: 326.9950273786993,
+				crop: {
+					topLeft: {
+						x: 0.23316482887716639,
+						y: 0.38688411384568194,
+					},
+					bottomRight: {
+						x: 0.42665668980670746,
+						y: 0.720217447179015,
+					},
+					isCircle: false,
+				},
+			},
+		}
+
+		// Original asset: 942x872 (Twitter yeast image, aspect ratio ≈ 1.081)
+		// New asset: 1285x765 (Screenshot, aspect ratio ≈ 1.679)
+		const result = getCroppedImageDataForReplacedImage(originalShape, 1285, 765)
+
+		// Should preserve display dimensions
+		expect(result.w).toBeCloseTo(205.04988142156844, 1)
+		expect(result.h).toBeCloseTo(326.9950273786993, 1)
+
+		// Y coordinates should remain exactly the same (key requirement)
+		expect(result.crop.topLeft.y).toBeCloseTo(0.38688411384568194, 6)
+		expect(result.crop.bottomRight.y).toBeCloseTo(0.720217447179015, 6)
+
+		// X coordinates should adjust for the new image aspect ratio
+		// Going from wider to even wider image should adjust X coordinates
+		expect(result.crop.topLeft.x).toBeCloseTo(0.2677, 3) // Should be around 0.2677
+		expect(result.crop.bottomRight.x).toBeCloseTo(0.3921, 3) // Should be around 0.3921
+
+		// Should preserve circle setting
+		expect(result.crop.isCircle).toBe(false)
+
+		// Crop should be within valid bounds
+		expect(result.crop.topLeft.x).toBeGreaterThanOrEqual(0)
+		expect(result.crop.topLeft.y).toBeGreaterThanOrEqual(0)
+		expect(result.crop.bottomRight.x).toBeLessThanOrEqual(1)
+		expect(result.crop.bottomRight.y).toBeLessThanOrEqual(1)
+	})
 })

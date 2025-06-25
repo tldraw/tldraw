@@ -516,7 +516,7 @@ export function getCroppedImageDataForReplacedImage(
 		const maxRatioConversion = MAX_ZOOM / (MAX_ZOOM - 1)
 		if (ratioConversion > maxRatioConversion) {
 			const minDimension = 1 / MAX_ZOOM
-			if (1 / newRelativeHeight < minDimension) {
+			if (1 / newRelativeHeight < 1 / newRelativeWidth) {
 				const scale = newRelativeHeight / minDimension
 				newRelativeHeight = newRelativeHeight / scale
 				newRelativeWidth = newRelativeWidth / scale
