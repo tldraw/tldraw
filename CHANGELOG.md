@@ -1,3 +1,24 @@
+# v3.13.3 (Thu Jun 26 2025)
+
+### Release Notes
+
+#### Fix tool overrides ([#6330](https://github.com/tldraw/tldraw/pull/6330))
+
+- Fixed a bug where overriding builtin tools was not working.
+
+---
+
+#### 🐛 Bug Fixes
+
+- `tldraw`, `@tldraw/utils`
+  - Fix tool overrides [#6330](https://github.com/tldraw/tldraw/pull/6330) ([@ds300](https://github.com/ds300))
+
+#### Authors: 1
+
+- David Sheldrick ([@ds300](https://github.com/ds300))
+
+---
+
 # v3.13.2 (Tue Jun 24 2025)
 
 ### Release Notes
