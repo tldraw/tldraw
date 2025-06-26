@@ -131,8 +131,16 @@ export function createMutators(userId: string) {
 					const file = await tx.query.file.where('id', '=', fileState.fileId).one().run()
 					assert(file, ZErrorCode.bad_request)
 					assert(file.isDeleted === false, ZErrorCode.bad_request)
-					if (file?.ownerId !== userId) {
-						assert(file?.shared, ZErrorCode.forbidden)
+					if (file.ownerId) {
+						assert(file.ownerId === userId || file.shared, ZErrorCode.forbidden)
+					} else {
+						assert(file.owningGroupId, ZErrorCode.unknown_error)
+						const groupUser = await tx.query.group_user
+							.where('userId', '=', userId)
+							.where('groupId', '=', file.owningGroupId)
+							.one()
+							.run()
+						assert(groupUser, ZErrorCode.forbidden)
 					}
 				}
 				// use upsert under the hood here for a little fault tolerance
