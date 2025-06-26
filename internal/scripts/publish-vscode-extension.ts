@@ -85,7 +85,6 @@ async function packageAndPublish(version: string) {
 			return
 		case 'staging':
 			await exec('yarn', ['package', '--pre-release'], { pwd: EXTENSION_DIR })
-			await copyExtensionToReleaseFolder(version)
 			await exec('yarn', ['publish', '--pre-release'], { pwd: EXTENSION_DIR })
 			return
 		default:
