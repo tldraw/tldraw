@@ -382,6 +382,7 @@ export {
 	polygonIntersectsPolyline,
 	polygonsIntersect,
 } from './lib/primitives/intersect'
+export { type Padding } from './lib/primitives/layout/types'
 export {
 	HALF_PI,
 	PI,

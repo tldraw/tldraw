@@ -5,6 +5,7 @@ import kleur from 'kleur'
 import path from 'path'
 import rimraf from 'rimraf'
 import { pathToFileURL } from 'url'
+import { inlineWorkerPlugin } from '../config/esbuild/inline-worker'
 import { addJsExtensions } from './lib/add-extensions'
 import { readJsonIfExists } from './lib/file'
 
@@ -114,6 +115,7 @@ async function buildLibrary({
 		sourcemap: true,
 		target: 'es2022',
 		define,
+		plugins: [inlineWorkerPlugin()],
 	})
 
 	if (info.moduleSystem === 'esm') {

@@ -249,6 +249,105 @@ __metadata:
   languageName: node
   linkType: hard
 
+"@ast-grep/napi-darwin-arm64@npm:0.38.6":
+  version: 0.38.6
+  resolution: "@ast-grep/napi-darwin-arm64@npm:0.38.6"
+  conditions: os=darwin & cpu=arm64
+  languageName: node
+  linkType: hard
+
+"@ast-grep/napi-darwin-x64@npm:0.38.6":
+  version: 0.38.6
+  resolution: "@ast-grep/napi-darwin-x64@npm:0.38.6"
+  conditions: os=darwin & cpu=x64
+  languageName: node
+  linkType: hard
+
+"@ast-grep/napi-linux-arm64-gnu@npm:0.38.6":
+  version: 0.38.6
+  resolution: "@ast-grep/napi-linux-arm64-gnu@npm:0.38.6"
+  conditions: os=linux & cpu=arm64 & libc=glibc
+  languageName: node
+  linkType: hard
+
+"@ast-grep/napi-linux-arm64-musl@npm:0.38.6":
+  version: 0.38.6
+  resolution: "@ast-grep/napi-linux-arm64-musl@npm:0.38.6"
+  conditions: os=linux & cpu=arm64 & libc=musl
+  languageName: node
+  linkType: hard
+
+"@ast-grep/napi-linux-x64-gnu@npm:0.38.6":
+  version: 0.38.6
+  resolution: "@ast-grep/napi-linux-x64-gnu@npm:0.38.6"
+  conditions: os=linux & cpu=x64 & libc=glibc
+  languageName: node
+  linkType: hard
+
+"@ast-grep/napi-linux-x64-musl@npm:0.38.6":
+  version: 0.38.6
+  resolution: "@ast-grep/napi-linux-x64-musl@npm:0.38.6"
+  conditions: os=linux & cpu=x64 & libc=musl
+  languageName: node
+  linkType: hard
+
+"@ast-grep/napi-win32-arm64-msvc@npm:0.38.6":
+  version: 0.38.6
+  resolution: "@ast-grep/napi-win32-arm64-msvc@npm:0.38.6"
+  conditions: os=win32 & cpu=arm64
+  languageName: node
+  linkType: hard
+
+"@ast-grep/napi-win32-ia32-msvc@npm:0.38.6":
+  version: 0.38.6
+  resolution: "@ast-grep/napi-win32-ia32-msvc@npm:0.38.6"
+  conditions: os=win32 & cpu=ia32
+  languageName: node
+  linkType: hard
+
+"@ast-grep/napi-win32-x64-msvc@npm:0.38.6":
+  version: 0.38.6
+  resolution: "@ast-grep/napi-win32-x64-msvc@npm:0.38.6"
+  conditions: os=win32 & cpu=x64
+  languageName: node
+  linkType: hard
+
+"@ast-grep/napi@npm:0.38.6":
+  version: 0.38.6
+  resolution: "@ast-grep/napi@npm:0.38.6"
+  dependencies:
+    "@ast-grep/napi-darwin-arm64": "npm:0.38.6"
+    "@ast-grep/napi-darwin-x64": "npm:0.38.6"
+    "@ast-grep/napi-linux-arm64-gnu": "npm:0.38.6"
+    "@ast-grep/napi-linux-arm64-musl": "npm:0.38.6"
+    "@ast-grep/napi-linux-x64-gnu": "npm:0.38.6"
+    "@ast-grep/napi-linux-x64-musl": "npm:0.38.6"
+    "@ast-grep/napi-win32-arm64-msvc": "npm:0.38.6"
+    "@ast-grep/napi-win32-ia32-msvc": "npm:0.38.6"
+    "@ast-grep/napi-win32-x64-msvc": "npm:0.38.6"
+  dependenciesMeta:
+    "@ast-grep/napi-darwin-arm64":
+      optional: true
+    "@ast-grep/napi-darwin-x64":
+      optional: true
+    "@ast-grep/napi-linux-arm64-gnu":
+      optional: true
+    "@ast-grep/napi-linux-arm64-musl":
+      optional: true
+    "@ast-grep/napi-linux-x64-gnu":
+      optional: true
+    "@ast-grep/napi-linux-x64-musl":
+      optional: true
+    "@ast-grep/napi-win32-arm64-msvc":
+      optional: true
+    "@ast-grep/napi-win32-ia32-msvc":
+      optional: true
+    "@ast-grep/napi-win32-x64-msvc":
+      optional: true
+  checksum: 10/d5b6d9049e3677f0d39634e737fda70c80454f9ddaa6afda14055f890568ae9b43b23b1df42cb6937fc341b6af5bdc8abe012d7f35e8b5ee7193dd0118d40bc2
+  languageName: node
+  linkType: hard
+
 "@auto-it/bot-list@npm:11.3.0":
   version: 11.3.0
   resolution: "@auto-it/bot-list@npm:11.3.0"
@@ -8978,6 +9077,7 @@ __metadata:
     react: "npm:^18.3.1"
     react-dom: "npm:^18.3.1"
     resize-observer-polyfill: "npm:^1.5.1"
+    webcola: "npm:^3.4.0"
   peerDependencies:
     react: ^18.2.0 || ^19.0.0
     react-dom: ^18.2.0 || ^19.0.0
@@ -9043,6 +9143,7 @@ __metadata:
   resolution: "@tldraw/scripts@workspace:internal/scripts"
   dependencies:
     "@actions/github": "npm:^6.0.0"
+    "@ast-grep/napi": "npm:0.38.6"
     "@auto-it/core": "npm:^11.3.0"
     "@aws-sdk/client-s3": "npm:^3.735.0"
     "@aws-sdk/lib-storage": "npm:^3.735.0"
@@ -13361,6 +13462,53 @@ __metadata:
   dependencies:
     array-find-index: "npm:^1.0.1"
   checksum: 10/53fb803e582737bdb5de6b150f0924dd9abf7be606648b4c2871db1c682bf288e248e8066ef10548979732a680cfb6c047294e3877846c2cf2f8d40437d8a741
+  languageName: node
+  linkType: hard
+
+"d3-dispatch@npm:1, d3-dispatch@npm:^1.0.3":
+  version: 1.0.6
+  resolution: "d3-dispatch@npm:1.0.6"
+  checksum: 10/c04770f3055cf3841b4640fcf41ed75f31c599b0e32a9fa8d51939a780c8bff9e849f2335960ce3f5b9b9294d26fd11b7ee4040d1668f7a7a1140925fddb3f60
+  languageName: node
+  linkType: hard
+
+"d3-drag@npm:^1.0.4":
+  version: 1.2.5
+  resolution: "d3-drag@npm:1.2.5"
+  dependencies:
+    d3-dispatch: "npm:1"
+    d3-selection: "npm:1"
+  checksum: 10/e1fdc87b4e2ccb74ea18d82e423515b5781758fc773d25979efb7eba179d1912ada8348e856b2d95674936f7fa1e30a02ce8bb52fb855196adbd24fb293290e0
+  languageName: node
+  linkType: hard
+
+"d3-path@npm:1":
+  version: 1.0.9
+  resolution: "d3-path@npm:1.0.9"
+  checksum: 10/6ce1747837ea2a449d9ea32e169a382978ab09a4805eb408feb6bbc12cb5f5f6ce29aefc252dd9a815d420f4813d672f75578b78b3bbaf7811f54d8c7f93fd11
+  languageName: node
+  linkType: hard
+
+"d3-selection@npm:1":
+  version: 1.4.2
+  resolution: "d3-selection@npm:1.4.2"
+  checksum: 10/fdbfffb735f76132762399e3c4297e7e21e983c984524373b2d36f06eef185424e578794a0ae17c3565be136ef1e639848c6ae378f99a91b5ac3b5a649e4c4db
+  languageName: node
+  linkType: hard
+
+"d3-shape@npm:^1.3.5":
+  version: 1.3.7
+  resolution: "d3-shape@npm:1.3.7"
+  dependencies:
+    d3-path: "npm:1"
+  checksum: 10/1e40fdcfdc8edc9c53a77a6aaea2dbf31bf06df12ebd66cc8d91f76bbde753049ad21dfee0577f7dc5d0a4468554ede4783f6df7d809e291745334dba977c09e
+  languageName: node
+  linkType: hard
+
+"d3-timer@npm:^1.0.5":
+  version: 1.0.10
+  resolution: "d3-timer@npm:1.0.10"
+  checksum: 10/aeaf0f849f1ed316ab4467b822333b22851f174faa6c7dd24735b86bf5f3dc75bb3c3ae02b99ba1f16260a7570ac59563728577ecb6083e47edbaff2ca5c9237
   languageName: node
   linkType: hard
 
@@ -28923,6 +29071,18 @@ __metadata:
   version: 4.2.4
   resolution: "web-vitals@npm:4.2.4"
   checksum: 10/68cd1c2625a04b26e7eab67110623396afc6c9ef8c3a76f4e780aefe5b7d4ca1691737a0b99119e1d1ca9a463c4d468c0f0090b1875b6d784589d3a4a8503313
+  languageName: node
+  linkType: hard
+
+"webcola@npm:^3.4.0":
+  version: 3.4.0
+  resolution: "webcola@npm:3.4.0"
+  dependencies:
+    d3-dispatch: "npm:^1.0.3"
+    d3-drag: "npm:^1.0.4"
+    d3-shape: "npm:^1.3.5"
+    d3-timer: "npm:^1.0.5"
+  checksum: 10/a61f560ab0c8bf4dab7c03a47917d075ab2df2489c39aaaaf95f7dbbc275da20316568b71afc632c28bc398fd13b1a3ed2cdab7e8822162693e8fac8792d54a6
   languageName: node
   linkType: hard
 
