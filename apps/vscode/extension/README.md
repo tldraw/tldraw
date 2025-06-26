@@ -25,12 +25,11 @@ This extension is automatically released to the [VS Code Marketplace](https://ma
 
 You can also download the extension directly from our repository:
 
-- **Latest Pre-release**: [tldraw-vscode.vsix](https://github.com/tldraw/tldraw/blob/main/apps/vscode/extension/release/tldraw-vscode.vsix) (from `main` branch)
 - **Latest Production Release**: [tldraw-vscode.vsix](https://github.com/tldraw/tldraw/blob/production/apps/vscode/extension/release/tldraw-vscode.vsix) (from `production` branch)
 
 To install from a `.vsix` file:
 
-1. Download the file from one of the links above
+1. Download the file from the link above
 2. Open VS Code
 3. Go to Extensions (Ctrl+Shift+X)
 4. Click the "..." menu and select "Install from VSIX..."
