@@ -83,21 +83,16 @@ export function createMutators(userId: string) {
 				await tx.mutate.file.insert(file)
 				await tx.mutate.file_state.upsert(fileState)
 			},
-			deleteOrForget: async (tx, file: TlaFile) => {
-				await tx.mutate.file_state.delete({ fileId: file.id, userId })
-				if (file?.ownerId === userId) {
-					if (tx.location === 'server') {
-						// todo: use a sql trigger for this like we do for setting shared to false
-						await tx.dbTransaction.query(`delete from public.file_state where "fileId" = $1`, [
-							file.id,
-						])
-					}
+			deleteOrForget: async (tx, { fileId }: { fileId: string }) => {
+				const file = await tx.query.file.where('id', '=', fileId).one().run()
+				assert(file, ZErrorCode.bad_request)
+				await tx.mutate.file_state.delete({ fileId, userId })
+				if (file.ownerId === userId) {
 					await tx.mutate.file.update({
 						id: file.id,
-						ownerId: file.ownerId,
-						publishedSlug: file.publishedSlug,
 						isDeleted: true,
 					})
+					// other file_states and group_files will be cleaned up via trigger
 				}
 			},
 			update: async (tx, _file: TlaFilePartial) => {

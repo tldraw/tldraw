@@ -551,7 +551,13 @@ export class TldrawApp {
 
 	getFile(fileId?: string): TlaFile | null {
 		if (!fileId) return null
-		return this.getUserOwnFiles().find((f) => f.id === fileId) ?? null
+		return (
+			this.getUserOwnFiles().find((f) => f.id === fileId) ??
+			this.getGroupMemberships()
+				.find((g) => g.groupFiles.some((gf) => gf.fileId === fileId))
+				?.groupFiles.find((gf) => gf.fileId === fileId)?.file ??
+			null
+		)
 	}
 
 	canUpdateFile(fileId: string): boolean {
@@ -590,11 +596,8 @@ export class TldrawApp {
 	 * @param fileId - The file id.
 	 */
 	async deleteOrForgetFile(fileId: string) {
-		const file = this.getFile(fileId)
-		if (!file) return
-
 		// Optimistic update, remove file and file states
-		await this.z.mutate.file.deleteOrForget(file)
+		await this.z.mutate.file.deleteOrForget({ fileId })
 	}
 
 	/**

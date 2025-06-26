@@ -374,8 +374,16 @@ export const permissions = definePermissions<AuthData, TlaSchema>(schema, () => 
 
 	const userCanAccessPresence = (
 		authData: AuthData,
-		{ exists }: ExpressionBuilder<TlaSchema, 'user_presence'>
-	) => exists('fileStates', (q) => q.where('userId', '=', authData.sub!))
+		{ exists, or }: ExpressionBuilder<TlaSchema, 'user_presence'>
+	) =>
+		or(
+			exists('fileStates', (q) => q.where('userId', '=', authData.sub!)),
+			exists('file', (q) =>
+				q.whereExists('groupFiles', (g) =>
+					g.whereExists('groupUsers', (u) => u.where('userId', '=', authData.sub!))
+				)
+			)
+		)
 
 	const userCanAccessGroupFile = (
 		authData: AuthData,

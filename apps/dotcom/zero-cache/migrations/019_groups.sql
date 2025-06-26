@@ -152,3 +152,24 @@ AFTER INSERT OR UPDATE OF "ownerId", "owningGroupId" ON "file"
 FOR EACH ROW
 EXECUTE FUNCTION set_file_owner_details();
 
+-- Create a function to clean up related records when a file is marked as deleted
+CREATE OR REPLACE FUNCTION cleanup_deleted_file() RETURNS TRIGGER AS $$
+BEGIN
+  -- Delete any file states for this file
+  DELETE FROM "file_state"
+  WHERE "fileId" = NEW."id";
+  
+  -- Delete any group file associations for this file
+  DELETE FROM "group_file" 
+  WHERE "fileId" = NEW."id";
+  
+  RETURN NEW;
+END;
+$$ LANGUAGE plpgsql;
+
+-- Create a trigger to clean up related records when a file is marked as deleted
+CREATE TRIGGER "cleanup_deleted_file_trigger"
+AFTER UPDATE OF "isDeleted" ON public."file"
+FOR EACH ROW
+WHEN (OLD."isDeleted" = false AND NEW."isDeleted" = true)
+EXECUTE FUNCTION cleanup_deleted_file();
