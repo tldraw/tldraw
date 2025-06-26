@@ -173,3 +173,13 @@ AFTER UPDATE OF "isDeleted" ON public."file"
 FOR EACH ROW
 WHEN (OLD."isDeleted" = false AND NEW."isDeleted" = true)
 EXECUTE FUNCTION cleanup_deleted_file();
+
+-- Let's delete all the dangling file_state records (there should only be a handful, I already
+-- deleted the rows manually in prod)
+WITH dangling_file_states AS (
+  SELECT fs."fileId", fs."userId"
+  FROM public."file" f INNER JOIN public."file_state" fs ON f."id" = fs."fileId"
+  WHERE f."isDeleted" = true
+)
+DELETE FROM public."file_state"
+WHERE ("fileId", "userId") IN (SELECT "fileId", "userId" FROM dangling_file_states);
