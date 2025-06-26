@@ -47,10 +47,10 @@ export function getSubscriptionChanges(changes: Array<{ row: TlaRow; event: Repl
 				const fileTopic: Topic = `file:${fileState.fileId}`
 
 				if (change.event.command === 'insert') {
-					// User gains access to a file
+					// User gains access to a file - create subscription from user to file
 					newSubscriptions.push({ fromTopic: userTopic, toTopic: fileTopic })
 				} else if (change.event.command === 'delete') {
-					// User loses access to a file
+					// User loses access to a file - remove subscription from user to file
 					removedSubscriptions.push({ fromTopic: userTopic, toTopic: fileTopic })
 				}
 				break
@@ -60,8 +60,10 @@ export function getSubscriptionChanges(changes: Array<{ row: TlaRow; event: Repl
 				const userTopic: Topic = `user:${userGroup.userId}`
 				const groupTopic: Topic = `group:${userGroup.groupId}`
 				if (change.event.command === 'insert') {
+					// User joins a group - create subscription from user to group
 					newSubscriptions.push({ fromTopic: userTopic, toTopic: groupTopic })
 				} else if (change.event.command === 'delete') {
+					// User leaves a group - remove subscription from user to group
 					removedSubscriptions.push({ fromTopic: userTopic, toTopic: groupTopic })
 				}
 				break
@@ -71,14 +73,16 @@ export function getSubscriptionChanges(changes: Array<{ row: TlaRow; event: Repl
 				const fileTopic: Topic = `file:${fileGroup.fileId}`
 				const groupTopic: Topic = `group:${fileGroup.groupId}`
 				if (change.event.command === 'insert') {
+					// File is added to group - create subscription from group to file
 					newSubscriptions.push({ fromTopic: groupTopic, toTopic: fileTopic })
 				} else if (change.event.command === 'delete') {
+					// File is removed from group - remove subscription from group to file
 					removedSubscriptions.push({ fromTopic: groupTopic, toTopic: fileTopic })
 				}
 				break
 			}
 			default:
-				// Only file_state changes affect subscriptions at the moment
+				// Only file_state, group_user, and group_file changes affect subscriptions
 				break
 		}
 	}

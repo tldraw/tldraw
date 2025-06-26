@@ -127,13 +127,16 @@ export function createMutators(userId: string) {
 			insert: async (tx, fileState: TlaFileState) => {
 				assert(fileState.userId === userId, ZErrorCode.forbidden)
 				if (tx.location === 'server') {
-					// the user won't be able to see the file in the client if they are not the owner
+					// Server-side validation: ensure user has access to the file before allowing file_state creation
 					const file = await tx.query.file.where('id', '=', fileState.fileId).one().run()
 					assert(file, ZErrorCode.bad_request)
 					assert(file.isDeleted === false, ZErrorCode.bad_request)
+
 					if (file.ownerId) {
+						// File is owned by a user - check if current user is the owner or file is shared
 						assert(file.ownerId === userId || file.shared, ZErrorCode.forbidden)
 					} else {
+						// File is owned by a group - verify user is a member of the owning group
 						assert(file.owningGroupId, ZErrorCode.unknown_error)
 						const groupUser = await tx.query.group_user
 							.where('userId', '=', userId)
@@ -184,10 +187,10 @@ export function createMutators(userId: string) {
 				const users = await tx.query.group_user.where('groupId', '=', groupId).run()
 				const owners = users.filter((u) => u.role === 'owner')
 				const isOwner = owners.some((u) => u.userId === userId)
-				// if the user is the only owner, they can't leave they have to delete
+				// Prevent the last owner from leaving - they must delete the group instead
+				// This ensures groups always have at least one owner for administrative purposes
 				assert(!isOwner || owners.length > 1, ZErrorCode.forbidden)
 				await tx.mutate.group_user.delete({ userId, groupId })
-				// delete any file states for this group's files ?
 			},
 			delete: async (tx, { id }: { id: string }) => {
 				await assertUserHasFlag(tx, userId, 'groups')
@@ -197,16 +200,17 @@ export function createMutators(userId: string) {
 					.one()
 					.run()
 				assert(groupUser, ZErrorCode.forbidden)
+				// Only group owners can delete the group - admins cannot
 				assert(groupUser.role === 'owner', ZErrorCode.forbidden)
-				const groupOwnedFiles = await tx.query.file.where('owningGroupId', '=', id).run()
-				// the group_file and group_user tables should be cleaned up via cascade
-				for (const file of groupOwnedFiles) {
-					await tx.mutate.file.update({ id: file.id, isDeleted: true })
-				}
-				await tx.mutate.group.update({ id: id, isDeleted: true })
+
 				if (tx.location === 'server') {
-					await tx.dbTransaction.query(`delete from public.group_user where "groupId" = $1`, [id])
-					await tx.dbTransaction.query(`delete from public.group_file where "groupId" = $1`, [id])
+					await tx.mutate.group.update({ id: id, isDeleted: true })
+					// everything else will be cleaned up via triggers
+				} else {
+					// on the client, we can just delete the group
+					// and wait for the server to clean up and propagate the rest of the changes
+					await tx.mutate.group.delete({ id })
+					await tx.mutate.group_user.delete({ userId, groupId: id })
 				}
 			},
 			acceptInvite: async (tx, { inviteSecret }: { inviteSecret: string }) => {
@@ -230,10 +234,13 @@ export function createMutators(userId: string) {
 				await assertUserHasFlag(tx, userId, 'groups')
 				assert(fileId, ZErrorCode.bad_request)
 				assert(groupId, ZErrorCode.bad_request)
-				// if the user owns the file, we can move it
-				// if the user has access to a group which owns the file we can move
+
 				const file = await tx.query.file.where('id', '=', fileId).one().run()
 				assert(file, ZErrorCode.bad_request)
+
+				// Check if user has permission to move this file:
+				// 1. User owns the file directly, OR
+				// 2. User is a member of the group that currently owns the file
 				const isOwner = file.ownerId === userId
 				const hasFromGroupAccess =
 					!isOwner && file.owningGroupId
@@ -245,7 +252,8 @@ export function createMutators(userId: string) {
 						: false
 
 				assert(isOwner || hasFromGroupAccess, ZErrorCode.forbidden)
-				// also needs toGroupAccess
+
+				// User must also be a member of the target group
 				const hasToGroupAccess = await tx.query.group_user
 					.where('userId', '=', userId)
 					.where('groupId', '=', groupId)
@@ -253,16 +261,17 @@ export function createMutators(userId: string) {
 					.run()
 				assert(hasToGroupAccess, ZErrorCode.forbidden)
 
-				// if the file is already in the group, we can move it
+				// No-op if file is already in the target group
 				if (file.owningGroupId === groupId) {
 					return
 				}
 
-				// if the file is in a group, we need to remove it from the group
+				// Remove file from current group association if it exists
 				if (file.owningGroupId) {
 					await tx.mutate.group_file.delete({ fileId, groupId: file.owningGroupId })
 				}
 
+				// Transfer file ownership from user to group
 				await tx.mutate.file.update({ id: fileId, owningGroupId: groupId, ownerId: null })
 				await tx.mutate.group_file.insert({
 					fileId,

@@ -347,7 +347,9 @@ export const permissions = definePermissions<AuthData, TlaSchema>(schema, () => 
 		{ or, cmp, exists }: ExpressionBuilder<TlaSchema, 'group_user'>
 	) =>
 		or(
+			// User can see their own group memberships
 			cmp('userId', '=', authData.sub!),
+			// User can see memberships of groups they belong to
 			exists('group', (q) =>
 				q.whereExists('userGroups', (q) => q.where('userId', '=', authData.sub!))
 			)
@@ -355,14 +357,14 @@ export const permissions = definePermissions<AuthData, TlaSchema>(schema, () => 
 
 	const userCanAccessFile = (
 		authData: AuthData,
-		{ exists, and, cmp, or }: ExpressionBuilder<TlaSchema, 'file'>
+		{ exists, cmp, or }: ExpressionBuilder<TlaSchema, 'file'>
 	) =>
 		or(
+			// User owns the file directly (redundant given that every owned file will have a file_state now, but should be faster to check)
 			cmp('ownerId', '=', authData.sub!),
-			and(
-				cmp('shared', '=', true),
-				exists('states', (q) => q.where('userId', '=', authData.sub!))
-			),
+			// User has a file_state (file is shared)
+			exists('states', (q) => q.where('userId', '=', authData.sub!)),
+			// User is a member of a group that has access to the file
 			exists('groupFiles', (q) =>
 				q.whereExists('groupUsers', (q) => q.where('userId', '=', authData.sub!))
 			)
@@ -371,17 +373,18 @@ export const permissions = definePermissions<AuthData, TlaSchema>(schema, () => 
 	const userCanAccessGroup = (
 		authData: AuthData,
 		{ exists }: ExpressionBuilder<TlaSchema, 'group'>
-	) => exists('userGroups', (q) => q.where('userId', '=', authData.sub!))
+	) =>
+		// User can access groups they are members of
+		exists('userGroups', (q) => q.where('userId', '=', authData.sub!))
 
 	const userCanAccessPresence = (
 		authData: AuthData,
 		{ exists, or }: ExpressionBuilder<TlaSchema, 'user_presence'>
 	) =>
 		or(
-			// if the user has a file state, they can access the file, this is guaranteed now
-			// thanks to the trigger that deletes file_state records when a file is deleted
+			// User has a file_state for this file (kept valid by triggers)
 			exists('fileStates', (q) => q.where('userId', '=', authData.sub!)),
-			// otherwise if the user is a member of a group that has a file, they can access the file
+			// User is a member of a group that has access to the file
 			exists('file', (q) =>
 				q.whereExists('groupFiles', (g) =>
 					g.whereExists('groupUsers', (u) => u.where('userId', '=', authData.sub!))
@@ -392,7 +395,9 @@ export const permissions = definePermissions<AuthData, TlaSchema>(schema, () => 
 	const userCanAccessGroupFile = (
 		authData: AuthData,
 		{ exists }: ExpressionBuilder<TlaSchema, 'group_file'>
-	) => exists('groupUsers', (q) => q.where('userId', '=', authData.sub!))
+	) =>
+		// User can access group_file records for groups they are members of
+		exists('groupUsers', (q) => q.where('userId', '=', authData.sub!))
 
 	return {
 		user: {
