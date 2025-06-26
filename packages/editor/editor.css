@@ -1342,13 +1342,18 @@ input,
 .tl-bookmark__description + .tl-bookmark__link {
 	margin-top: var(--space-3);
 }
+
+.tl-bookmark__link-wrapper,
 .tl-bookmark__link {
 	font-size: 12px;
 	pointer-events: all;
-	display: flex;
-	color: var(--color-text-2);
-	align-items: center;
 	cursor: var(--tl-cursor-pointer);
+	color: var(--color-text-2);
+}
+
+.tl-bookmark__link {
+	display: flex;
+	align-items: center;
 	width: fit-content;
 	max-width: 100%;
 }
