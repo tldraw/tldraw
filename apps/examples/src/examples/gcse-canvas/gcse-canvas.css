@@ -1,0 +1,15 @@
+.gcse-layout {
+	display: flex;
+	height: 100%;
+}
+
+.gcse-question {
+	flex: 1;
+	padding: 24px;
+	overflow-y: auto;
+	background: var(--whiteboard);
+}
+
+.gcse-canvas {
+	flex: 1;
+}
