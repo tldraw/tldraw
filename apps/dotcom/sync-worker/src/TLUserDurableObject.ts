@@ -9,11 +9,10 @@ import {
 	ZErrorCode,
 	ZServerSentPacket,
 	createMutators,
-	downgradeZStoreData,
 	schema,
 } from '@tldraw/dotcom-shared'
 import { TLSyncErrorCloseEventCode, TLSyncErrorCloseEventReason } from '@tldraw/sync-core'
-import { ExecutionQueue, assert, assertExists, mapObjectMapValues, sleep } from '@tldraw/utils'
+import { ExecutionQueue, assert, mapObjectMapValues, sleep } from '@tldraw/utils'
 import { createSentry } from '@tldraw/worker-shared'
 import { DurableObject } from 'cloudflare:workers'
 import { IRequest, Router } from 'itty-router'
@@ -29,7 +28,6 @@ import { retryOnConnectionFailure } from './utils/retryOnConnectionFailure'
 import { PerfHackHooks, ServerCRUD } from './zero/ServerCrud'
 import { ServerQuery } from './zero/ServerQuery'
 import { ZMutationError } from './zero/ZMutationError'
-import { legacy_assertValidMutation } from './zero/legacy_assertValidMutation'
 
 export class TLUserDurableObject extends DurableObject<Environment> {
 	private readonly db: Kysely<DB>
@@ -185,26 +183,13 @@ export class TLUserDurableObject extends DurableObject<Environment> {
 		this.outgoingBuffer = null
 		if (!buffer) return
 
-		for (const [socket, socketMeta] of this.sockets.entries()) {
+		for (const [socket] of this.sockets.entries()) {
 			if (socket.readyState === WebSocket.CLOSED || socket.readyState === WebSocket.CLOSING) {
 				this.sockets.delete(socket)
 				continue
 			}
 			if (socket.readyState !== WebSocket.OPEN) {
 				continue
-			}
-			// maybe downgrade the data for the client
-			if (socketMeta.protocolVersion === 1) {
-				for (let msg of buffer) {
-					if (msg.type === 'initial_data') {
-						msg = {
-							type: 'initial_data',
-							initialData: downgradeZStoreData(msg.initialData) as any,
-						}
-					}
-					socket.send(JSON.stringify(msg))
-				}
-				return
 			}
 
 			socket.send(JSON.stringify(buffer))
@@ -273,17 +258,12 @@ export class TLUserDurableObject extends DurableObject<Environment> {
 		if (initialData) {
 			this.log.debug('sending initial data on connect', this.userId)
 			serverWebSocket.send(
-				protocolVersion === 1
-					? JSON.stringify({
-							type: 'initial_data',
-							initialData: downgradeZStoreData(initialData),
-						})
-					: JSON.stringify([
-							{
-								type: 'initial_data',
-								initialData,
-							} satisfies ZServerSentPacket,
-						])
+				JSON.stringify([
+					{
+						type: 'initial_data',
+						initialData,
+					} satisfies ZServerSentPacket,
+				])
 			)
 		} else {
 			this.log.debug('no initial data to send, waiting for boot to finish', this.userId)
@@ -331,7 +311,6 @@ export class TLUserDurableObject extends DurableObject<Environment> {
 
 	private async rejectMutation(socket: WebSocket, mutationId: string, errorCode: ZErrorCode) {
 		this.assertCache()
-		const socketMeta = assertExists(this.sockets.get(socket), 'Socket not found')
 		this.logEvent({ type: 'reject_mutation', id: this.userId! })
 		this.cache.store.rejectMutation(mutationId)
 		this.cache.mutations = this.cache.mutations.filter((m) => m.mutationId !== mutationId)
@@ -342,12 +321,13 @@ export class TLUserDurableObject extends DurableObject<Environment> {
 			errorCode,
 		}
 
-		socket?.send(JSON.stringify(socketMeta.protocolVersion === 1 ? msg : [msg]))
+		socket?.send(JSON.stringify([msg]))
 	}
 
 	private pool: Pool
 
 	private async _doMutate(msg: ZClientSentMessage) {
+		assert(msg.type === 'mutator', 'Invalid message type')
 		this.assertCache()
 		const client = await this.pool.connect()
 
@@ -359,38 +339,30 @@ export class TLUserDurableObject extends DurableObject<Environment> {
 			const controller = new AbortController()
 			const mutate = this.makeCrud(client, controller.signal, { newFiles })
 			try {
-				if (msg.type === 'mutate') {
-					// legacy
-					for (const update of msg.updates) {
-						await legacy_assertValidMutation(this.userId!, client, update)
-						await mutate[update.table][update.event](update.row as any)
-					}
-				} else {
-					// new
-					const mutators = createMutators(this.userId!)
-					const path = msg.name.split('.')
-					assert(path.length <= 2, 'Invalid mutation path')
-					const mutator: CustomMutatorImpl<TlaSchema> =
-						path.length === 1 ? (mutators as any)[path[0]] : (mutators as any)[path[0]][path[1]]
-					assert(mutator, 'Invalid mutator path')
-					await mutator(
-						{
-							clientID: '',
-							dbTransaction: {
-								wrappedTransaction: null as any,
-								async query(sqlString: string, params: unknown[]): Promise<any[]> {
-									return client.query(sqlString, params).then((res) => res.rows)
-								},
+				// new
+				const mutators = createMutators(this.userId!)
+				const path = msg.name.split('.')
+				assert(path.length <= 2, 'Invalid mutation path')
+				const mutator: CustomMutatorImpl<TlaSchema> =
+					path.length === 1 ? (mutators as any)[path[0]] : (mutators as any)[path[0]][path[1]]
+				assert(mutator, 'Invalid mutator path')
+				await mutator(
+					{
+						clientID: '',
+						dbTransaction: {
+							wrappedTransaction: null as any,
+							async query(sqlString: string, params: unknown[]): Promise<any[]> {
+								return client.query(sqlString, params).then((res) => res.rows)
 							},
-							mutate,
-							location: 'server',
-							reason: 'authoritative',
-							mutationID: 0,
-							query: this.makeQuery(client, controller.signal),
 						},
-						msg.props
-					)
-				}
+						mutate,
+						location: 'server',
+						reason: 'authoritative',
+						mutationID: 0,
+						query: this.makeQuery(client, controller.signal),
+					},
+					msg.props
+				)
 			} finally {
 				controller.abort()
 			}
@@ -439,6 +411,7 @@ export class TLUserDurableObject extends DurableObject<Environment> {
 		}
 		this.log.debug('mutation', this.userId, msg)
 		try {
+			assert(msg.type === 'mutator', 'Invalid message type')
 			// we connect to pg via a pooler, so in the case that the pool is exhausted
 			// we need to retry the connection. (also in the case that a neon branch is asleep apparently?)
 			await retryOnConnectionFailure(

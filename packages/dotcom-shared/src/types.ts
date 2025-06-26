@@ -160,7 +160,7 @@ export type ZErrorCode = keyof typeof ZErrorCode
 // increment this to force clients to reload
 // e.g. if we make backwards-incompatible changes to the schema
 export const Z_PROTOCOL_VERSION = 2
-export const MIN_Z_PROTOCOL_VERSION = 1
+export const MIN_Z_PROTOCOL_VERSION = 2
 
 export function downgradeZStoreData(data: ZStoreData): ZStoreDataV1 {
 	return {
@@ -194,6 +194,7 @@ export type ZServerSentMessage = ZServerSentPacket[]
 
 export type ZClientSentMessage =
 	| {
+			// no longer supported
 			type: 'mutate'
 			mutationId: string
 			updates: ZRowUpdate[]
