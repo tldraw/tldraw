@@ -10,8 +10,24 @@ export type TLLanguage = (typeof LANGUAGES)[number]
 // 	readonly label: string
 // }
 
+let $defaultTranslationLocale: TLLanguage['locale'] | null = null
+/**
+ * Sets the default translation locale. Defaults to 'en'.
+ * @public
+ */
+export function setDefaultTranslationLocale(locale: TLLanguage['locale'] | null) {
+	if (locale) {
+		$defaultTranslationLocale = _getDefaultTranslationLocale([locale])
+	} else {
+		$defaultTranslationLocale = null
+	}
+}
+
 /** @public */
 export function getDefaultTranslationLocale(): TLLanguage['locale'] {
+	if ($defaultTranslationLocale) {
+		return $defaultTranslationLocale
+	}
 	const locales = typeof window !== 'undefined' ? (window.navigator.languages ?? ['en']) : ['en']
 	return _getDefaultTranslationLocale(locales)
 }

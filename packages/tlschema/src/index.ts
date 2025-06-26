@@ -264,6 +264,7 @@ export {
 export {
 	LANGUAGES,
 	getDefaultTranslationLocale,
+	setDefaultTranslationLocale,
 	type TLLanguage,
 } from './translations/translations'
 export { type SetValue } from './util-types'

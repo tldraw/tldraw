@@ -618,6 +618,9 @@ export interface SchemaPropsInfo {
 // @public (undocumented)
 export const scribbleValidator: T.ObjectValidator<TLScribble>;
 
+// @public
+export function setDefaultTranslationLocale(locale: null | TLLanguage['locale']): void;
+
 // @public (undocumented)
 export type SetValue<T extends Set<any>> = T extends Set<infer U> ? U : never;
 
