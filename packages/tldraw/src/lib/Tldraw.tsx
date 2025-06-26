@@ -134,7 +134,7 @@ export function Tldraw(props: TldrawProps) {
 
 	const _tools = useShallowArrayIdentity(tools)
 	const toolsWithDefaults = useMemo(
-		() => mergeArraysAndReplaceDefaults('id', allDefaultTools, _tools),
+		() => mergeArraysAndReplaceDefaults('id', _tools, allDefaultTools),
 		[_tools]
 	)
 
