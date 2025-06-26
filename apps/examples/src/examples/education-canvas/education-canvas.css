@@ -1,0 +1,123 @@
+/* Education Canvas Example Styles */
+
+.education-container {
+	display: flex;
+	height: 100vh;
+	font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+}
+
+.question-panel {
+	width: 50%;
+	padding: 2rem;
+	background-color: #f8fafc;
+	border-right: 2px solid #e2e8f0;
+	display: flex;
+	flex-direction: column;
+	justify-content: flex-start;
+	overflow: auto;
+}
+
+.question-content {
+	max-width: 500px;
+}
+
+.main-title {
+	font-size: 1.5rem;
+	font-weight: bold;
+	margin-bottom: 1.5rem;
+	color: #1e293b;
+}
+
+.question-card {
+	background-color: white;
+	padding: 1.5rem;
+	border-radius: 8px;
+	border: 1px solid #e2e8f0;
+	margin-bottom: 1.5rem;
+}
+
+.question-title {
+	font-size: 1.2rem;
+	font-weight: 600;
+	margin-bottom: 1rem;
+	color: #374151;
+}
+
+.question-text {
+	line-height: 1.6;
+	margin-bottom: 1rem;
+	color: #4b5563;
+}
+
+.question-text:last-child {
+	margin-bottom: 0;
+}
+
+.instructions-card {
+	background-color: #e0f2fe;
+	padding: 1rem;
+	border-radius: 6px;
+	border: 1px solid #0284c7;
+}
+
+.instructions-title {
+	margin: 0;
+	font-size: 1rem;
+	font-weight: 600;
+	margin-bottom: 0.5rem;
+	color: #0c4a6e;
+}
+
+.instructions-list {
+	margin: 0;
+	padding-left: 1.2rem;
+	color: #0c4a6e;
+}
+
+.hint-card {
+	background-color: #fef3c7;
+	padding: 1rem;
+	border-radius: 6px;
+	border: 1px solid #f59e0b;
+	margin-top: 1rem;
+}
+
+.hint-text {
+	margin: 0;
+	font-size: 0.9rem;
+	color: #92400e;
+}
+
+.canvas-panel {
+	width: 50%;
+	position: relative;
+	background-color: #ffffff;
+}
+
+.canvas-container {
+	position: absolute;
+	top: 1rem;
+	left: 1rem;
+	right: 1rem;
+	bottom: 1rem;
+	border: 2px solid #e2e8f0;
+	border-radius: 8px;
+}
+
+.cartesian-grid {
+	position: absolute;
+	top: -300px;
+	left: -300px;
+	right: 0;
+	bottom: 0;
+	width: 600px;
+	height: 600px;
+}
+
+.mask-fg {
+	position: absolute;
+	inset: 0px;
+	background-color: black;
+	opacity: 0.5;
+	pointer-events: none;
+}
