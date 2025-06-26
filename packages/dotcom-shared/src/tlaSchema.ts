@@ -242,16 +242,17 @@ export type TlaGroupPartial = Partial<TlaGroup> & {
 	id: TlaGroup['id']
 }
 
-export type TlaUserGroupPartial = Partial<TlaGroupUser> & {
+export type TlaGroupUserPartial = Partial<TlaGroupUser> & {
 	userId: TlaGroupUser['userId']
 	groupId: TlaGroupUser['groupId']
 }
 
 export type TlaUserPresencePartial = Partial<TlaUserPresence> & {
 	sessionId: TlaUserPresence['sessionId']
+	fileId: TlaUserPresence['fileId']
 }
 
-export type TlaFileGroupPartial = Partial<TlaGroupFile> & {
+export type TlaGroupFilePartial = Partial<TlaGroupFile> & {
 	fileId: TlaGroupFile['fileId']
 	groupId: TlaGroupFile['groupId']
 }
@@ -270,7 +271,7 @@ export interface TlaUserMutationNumber {
 }
 
 export const immutableColumns = {
-	user: new Set<keyof TlaUser>(['email', 'createdAt', 'updatedAt', 'avatar']),
+	user: new Set<keyof TlaUser>(['email', 'createdAt', 'updatedAt', 'avatar', 'flags']),
 	file: new Set<keyof TlaFile>([
 		'ownerName',
 		'ownerAvatar',
@@ -377,7 +378,10 @@ export const permissions = definePermissions<AuthData, TlaSchema>(schema, () => 
 		{ exists, or }: ExpressionBuilder<TlaSchema, 'user_presence'>
 	) =>
 		or(
+			// if the user has a file state, they can access the file, this is guaranteed now
+			// thanks to the trigger that deletes file_state records when a file is deleted
 			exists('fileStates', (q) => q.where('userId', '=', authData.sub!)),
+			// otherwise if the user is a member of a group that has a file, they can access the file
 			exists('file', (q) =>
 				q.whereExists('groupFiles', (g) =>
 					g.whereExists('groupUsers', (u) => u.where('userId', '=', authData.sub!))

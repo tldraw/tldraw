@@ -2,17 +2,17 @@ import { stringEnum } from '@tldraw/utils'
 import type { SerializedSchema, SerializedStore, TLRecord } from 'tldraw'
 import {
 	TlaFile,
-	TlaFileGroupPartial,
 	TlaFilePartial,
 	TlaFileState,
 	TlaFileStatePartial,
 	TlaGroup,
 	TlaGroupFile,
+	TlaGroupFilePartial,
 	TlaGroupPartial,
 	TlaGroupUser,
+	TlaGroupUserPartial,
 	TlaRow,
 	TlaUser,
-	TlaUserGroupPartial,
 	TlaUserPartial,
 	TlaUserPresence,
 	TlaUserPresencePartial,
@@ -89,6 +89,7 @@ export type UnpublishFileResponseBody =
 			message: string
 	  }
 
+// legacy version 1, needed for migration
 export interface ZStoreDataV1 {
 	files: TlaFile[]
 	fileStates: TlaFileState[]
@@ -96,6 +97,7 @@ export interface ZStoreDataV1 {
 	lsn: string
 }
 
+// legacy version 2, needed for migration
 export interface ZStoreDataV2 {
 	file: TlaFile[]
 	file_state: TlaFileState[]
@@ -103,6 +105,7 @@ export interface ZStoreDataV2 {
 	lsn: string
 }
 
+// current version
 export interface ZStoreData {
 	file: TlaFile[]
 	file_state: TlaFileState[]
@@ -128,9 +131,9 @@ export interface ZRowDeleteOrUpdate {
 		| TlaFileStatePartial
 		| TlaUserPartial
 		| TlaGroupPartial
-		| TlaUserGroupPartial
+		| TlaGroupUserPartial
 		| TlaUserPresencePartial
-		| TlaFileGroupPartial
+		| TlaGroupFilePartial
 	table: ZTable
 	event: 'update' | 'delete'
 }

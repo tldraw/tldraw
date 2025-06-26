@@ -75,13 +75,15 @@ export function createMutators(userId: string) {
 				{ file, fileState }: { file: TlaFile; fileState: TlaFileState }
 			) => {
 				assert(file.ownerId === userId, ZErrorCode.forbidden)
+				assert(file.owningGroupId === null, ZErrorCode.bad_request)
+				assert(file.isDeleted === false, ZErrorCode.bad_request)
 				await assertNotMaxFiles(tx, userId)
 				assertValidId(file.id)
 				assert(file.id === fileState.fileId, ZErrorCode.bad_request)
 				assert(fileState.userId === userId, ZErrorCode.forbidden)
 
 				await tx.mutate.file.insert(file)
-				await tx.mutate.file_state.upsert(fileState)
+				await tx.mutate.file_state.insert(fileState)
 			},
 			deleteOrForget: async (tx, { fileId }: { fileId: string }) => {
 				const file = await tx.query.file.where('id', '=', fileId).one().run()
@@ -111,11 +113,13 @@ export function createMutators(userId: string) {
 						: false
 				assert(isOwner || hasGroupAccess, ZErrorCode.forbidden)
 
+				// don't allow changing ownership in this mutator
+				assert(_file.ownerId === file.ownerId, ZErrorCode.forbidden)
+				assert(_file.owningGroupId === file.owningGroupId, ZErrorCode.forbidden)
+
 				await tx.mutate.file.update({
 					..._file,
 					id: file.id,
-					ownerId: file.ownerId,
-					publishedSlug: file.publishedSlug,
 				})
 			},
 		},
@@ -126,6 +130,7 @@ export function createMutators(userId: string) {
 					// the user won't be able to see the file in the client if they are not the owner
 					const file = await tx.query.file.where('id', '=', fileState.fileId).one().run()
 					assert(file, ZErrorCode.bad_request)
+					assert(file.isDeleted === false, ZErrorCode.bad_request)
 					if (file?.ownerId !== userId) {
 						assert(file?.shared, ZErrorCode.forbidden)
 					}
