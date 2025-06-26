@@ -249,7 +249,11 @@ export class MinimapManager {
 
 			const len = geometry.length
 
-			if (selectedShapes.has(shapeId)) {
+			const isThinShape =
+				this.editor.isShapeOfType(shapeId, 'arrow') || this.editor.isShapeOfType(shapeId, 'line')
+			if (isThinShape) {
+				continue
+			} else if (selectedShapes.has(shapeId)) {
 				appendVertices(this.gl.selectedShapes, selectedShapeOffset, geometry)
 				selectedShapeOffset += len
 			} else {
