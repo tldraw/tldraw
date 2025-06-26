@@ -167,46 +167,44 @@ function BookmarkShapeComponent({ shape }: { shape: TLBookmarkShape }) {
 						{asset?.props.image && <HyperlinkButton url={shape.props.url} />}
 					</div>
 				)}
-				<div className="tl-bookmark__copy_container">
-					<a
-						className="tl-bookmark__link-wrapper"
-						href={shape.props.url || ''}
-						target="_blank"
-						rel="noopener noreferrer"
-						draggable={false}
-						onPointerDown={useStopPropagationOnShiftKey}
-						onPointerUp={useStopPropagationOnShiftKey}
-					>
-						{asset?.props.title ? (
-							<h2 className="tl-bookmark__heading">
-								{convertCommonTitleHTMLEntities(asset.props.title)}
-							</h2>
-						) : null}
-						{asset?.props.description && asset?.props.image ? (
-							<p className="tl-bookmark__description">{asset.props.description}</p>
-						) : null}
-						<span className="tl-bookmark__link">
-							{isFaviconValid && asset?.props.favicon ? (
-								<img
-									className="tl-bookmark__favicon"
-									src={asset?.props.favicon}
-									referrerPolicy="strict-origin-when-cross-origin"
-									onError={onFaviconError}
-									alt={`favicon of ${address}`}
-								/>
-							) : (
-								<div
-									className="tl-hyperlink__icon"
-									style={{
-										mask: `url("${LINK_ICON}") center 100% / 100% no-repeat`,
-										WebkitMask: `url("${LINK_ICON}") center 100% / 100% no-repeat`,
-									}}
-								/>
-							)}
-							<span>{address}</span>
-						</span>
-					</a>
-				</div>
+				<a
+					className="tl-bookmark__link-wrapper"
+					href={shape.props.url || ''}
+					target="_blank"
+					rel="noopener noreferrer"
+					draggable={false}
+					onPointerDown={useStopPropagationOnShiftKey}
+					onPointerUp={useStopPropagationOnShiftKey}
+				>
+					{asset?.props.title ? (
+						<h2 className="tl-bookmark__heading">
+							{convertCommonTitleHTMLEntities(asset.props.title)}
+						</h2>
+					) : null}
+					{asset?.props.description && asset?.props.image ? (
+						<p className="tl-bookmark__description">{asset.props.description}</p>
+					) : null}
+					<span className="tl-bookmark__link">
+						{isFaviconValid && asset?.props.favicon ? (
+							<img
+								className="tl-bookmark__favicon"
+								src={asset?.props.favicon}
+								referrerPolicy="strict-origin-when-cross-origin"
+								onError={onFaviconError}
+								alt={`favicon of ${address}`}
+							/>
+						) : (
+							<div
+								className="tl-hyperlink__icon"
+								style={{
+									mask: `url("${LINK_ICON}") center 100% / 100% no-repeat`,
+									WebkitMask: `url("${LINK_ICON}") center 100% / 100% no-repeat`,
+								}}
+							/>
+						)}
+						<span>{address}</span>
+					</span>
+				</a>
 			</div>
 		</HTMLContainer>
 	)

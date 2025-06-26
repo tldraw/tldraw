@@ -1292,7 +1292,7 @@ input,
 	border-bottom: 1px solid var(--color-muted-2);
 }
 
-.tl-bookmark__copy_container {
+.tl-bookmark__link-wrapper {
 	background-color: var(--color-muted-0);
 	padding: var(--space-4);
 	pointer-events: all;
@@ -1349,6 +1349,7 @@ input,
 	pointer-events: all;
 	cursor: var(--tl-cursor-pointer);
 	color: var(--color-text-2);
+	text-decoration: none;
 }
 
 .tl-bookmark__link {
@@ -1749,7 +1750,7 @@ it from receiving any pointer events or affecting the cursor. */
 		fill: var(--color-selection-fill);
 	}
 
-	.tl-bookmark__link:hover {
+	.tl-bookmark__link-wrapper:hover {
 		color: var(--color-selected);
 	}
 
