@@ -89,22 +89,6 @@ export type UnpublishFileResponseBody =
 			message: string
 	  }
 
-// legacy version 1, needed for migration
-export interface ZStoreDataV1 {
-	files: TlaFile[]
-	fileStates: TlaFileState[]
-	user: TlaUser
-	lsn: string
-}
-
-// legacy version 2, needed for migration
-export interface ZStoreDataV2 {
-	file: TlaFile[]
-	file_state: TlaFileState[]
-	user: TlaUser[]
-	lsn: string
-}
-
 // current version
 export interface ZStoreData {
 	file: TlaFile[]

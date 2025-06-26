@@ -2,13 +2,13 @@ import {
 	DB,
 	OptimisticAppStore,
 	TlaFile,
+	TlaFileState,
 	TlaRow,
+	TlaUser,
 	ZEvent,
 	ZRowUpdate,
 	ZServerSentPacket,
 	ZStoreData,
-	ZStoreDataV1,
-	ZStoreDataV2,
 	ZTable,
 } from '@tldraw/dotcom-shared'
 import { react, transact } from '@tldraw/state'
@@ -92,21 +92,35 @@ interface StateSnapshot {
 }
 
 const notASequenceId = 'not_a_sequence'
+// Legacy interfaces for migration - inlined here since they're only used in this migration function
+interface LegacyZStoreDataV0 {
+	files: TlaFile[]
+	fileStates: TlaFileState[]
+	user: TlaUser
+	lsn: string
+}
+
+interface LegacyZStoreDataV1 {
+	file: TlaFile[]
+	file_state: TlaFileState[]
+	user: TlaUser[]
+	lsn: string
+}
 
 function migrateStateSnapshot(snapshot: any) {
 	if (snapshot.version === 0) {
 		snapshot.version = 1
-		const data = snapshot.initialData as ZStoreDataV1
+		const data = snapshot.initialData as LegacyZStoreDataV0
 		snapshot.initialData = {
 			lsn: data.lsn,
 			user: [data.user],
 			file: data.files,
 			file_state: data.fileStates,
-		} satisfies ZStoreDataV2
+		} satisfies LegacyZStoreDataV1
 	}
 	if (snapshot.version === 1) {
 		snapshot.version = 2
-		const data = snapshot.initialData as ZStoreDataV2
+		const data = snapshot.initialData as LegacyZStoreDataV1
 		snapshot.initialData = {
 			lsn: data.lsn,
 			user: data.user,
