@@ -148,7 +148,7 @@ const snapshots: Snapshots = {
 						start={{ x: 0, y: 0 }}
 						end={{ x: 100, y: 100 }}
 						bend={20}
-						text="test"
+						richText={toRichText('test')}
 					/>
 				),
 				note: <TL.note font={font} color="violet" richText={toRichText('test')} />,
@@ -521,7 +521,7 @@ const snapshots: Snapshots = {
 					size="xl"
 					arrowheadStart="pipe"
 					arrowheadEnd="diamond"
-					text="with text"
+					richText={toRichText('with text')}
 				/>
 			),
 			Arrow4: (
