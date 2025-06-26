@@ -76,7 +76,6 @@ const CartesianGrid = memo(function CartesianGrid() {
 								key={index}
 								x={312}
 								y={y}
-								dy="0.3em"
 								fontFamily="Arial"
 								textAnchor="start"
 								letterSpacing=".25em"
@@ -99,8 +98,7 @@ const CartesianGrid = memo(function CartesianGrid() {
 							<text
 								key={index}
 								x={x}
-								y={320}
-								dy="0.3em"
+								y={325}
 								fontFamily="Arial"
 								textAnchor="middle"
 								stroke="none"
