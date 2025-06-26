@@ -87,12 +87,17 @@ const components: TLComponents = {
 	),
 }
 
-function afterChangeHandler(prev: any, next: any) {
+function afterShapeChangeHandler(prev: any, next: any) {
 	const tracked = trackedShapes.get()
 	if (tracked.includes(next.id)) {
 		// eslint-disable-next-line no-console
 		console.table(getDiff(prev, next))
 	}
+}
+
+function afterInstancePageStateChangeHandler(prev: any, next: any) {
+	// @ts-ignore don't worry about it man
+	window.$s = next.selectedShapeIds.length === 1 ? window.editor.getOnlySelectedShape() : null
 }
 
 export default function Develop() {
@@ -108,12 +113,18 @@ export default function Develop() {
 				onMount={(editor) => {
 					;(window as any).app = editor
 					;(window as any).editor = editor
-					const dispose = editor.store.sideEffects.registerAfterChangeHandler(
+					const disposeShapeSideEffect = editor.store.sideEffects.registerAfterChangeHandler(
 						'shape',
-						afterChangeHandler
+						afterShapeChangeHandler
 					)
+					const disposeInstancePageStateSideEffect =
+						editor.store.sideEffects.registerAfterChangeHandler(
+							'instance_page_state',
+							afterInstancePageStateChangeHandler
+						)
 					return () => {
-						dispose()
+						disposeShapeSideEffect()
+						disposeInstancePageStateSideEffect()
 					}
 				}}
 				components={components}
