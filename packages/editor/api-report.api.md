@@ -2072,12 +2072,16 @@ export class LicenseManager {
 export function linesIntersect(A: VecLike, B: VecLike, C: VecLike, D: VecLike): boolean;
 
 // @public (undocumented)
-export function LoadingScreen({ children }: LoadingScreenProps): JSX_2.Element;
+export function LoadingScreen({ children, delay, fallback }: LoadingScreenProps): JSX_2.Element;
 
 // @public (undocumented)
 export interface LoadingScreenProps {
     // (undocumented)
     children: ReactNode;
+    // (undocumented)
+    delay?: number;
+    // (undocumented)
+    fallback?: ReactNode;
 }
 
 // @public

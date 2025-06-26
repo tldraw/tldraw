@@ -17,6 +17,7 @@ import classNames from 'classnames'
 import { version } from '../version'
 import { OptionalErrorBoundary } from './components/ErrorBoundary'
 import { DefaultErrorFallback } from './components/default-components/DefaultErrorFallback'
+import { DefaultSpinner } from './components/default-components/DefaultSpinner'
 import { TLEditorSnapshot } from './config/TLEditorSnapshot'
 import { TLStoreBaseOptions } from './config/createTLStore'
 import { TLUser, createTLUser } from './config/createTLUser'
@@ -665,11 +666,62 @@ function Crash({ crashingError }: { crashingError: unknown }): null {
 
 /** @public */
 export interface LoadingScreenProps {
+	delay?: number
+	fallback?: ReactNode
 	children: ReactNode
 }
 
 /** @public @react */
-export function LoadingScreen({ children }: LoadingScreenProps) {
+export function LoadingScreen({ children, delay, fallback }: LoadingScreenProps) {
+	const [state, setState] = useState<'loading' | 'fallback' | 'ready'>('loading')
+
+	useEffect(() => {
+		let timeout1: NodeJS.Timeout | null = null
+		let timeout2: NodeJS.Timeout | null = null
+
+		if (delay) {
+			// eslint-disable-next-line
+			timeout1 = setTimeout(() => {
+				timeout1 = null
+				setState('loading')
+				// eslint-disable-next-line
+				timeout2 = setTimeout(() => {
+					timeout2 = null
+					setState('fallback')
+				}, delay)
+			}, delay)
+		} else {
+			setState('loading')
+		}
+
+		return () => {
+			if (timeout1) {
+				clearTimeout(timeout1)
+			}
+
+			if (timeout2) {
+				clearTimeout(timeout2)
+			}
+		}
+	}, [delay])
+
+	if (state === 'loading') {
+		return (
+			<div className="tl-loading">
+				<DefaultSpinner />
+			</div>
+		)
+	}
+
+	if (state === 'fallback') {
+		return (
+			<div className="tl-loading">
+				<DefaultSpinner />
+				<p style={{ marginTop: 'var(--space-2)' }}>{fallback}</p>
+			</div>
+		)
+	}
+
 	return (
 		<div className="tl-loading" aria-busy="true" tabIndex={0}>
 			{children}

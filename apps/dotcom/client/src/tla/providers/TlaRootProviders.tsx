@@ -8,8 +8,10 @@ import {
 	ContainerProvider,
 	DefaultA11yAnnouncer,
 	DefaultDialogs,
+	DefaultSpinner,
 	DefaultToasts,
 	EditorContext,
+	LoadingScreen,
 	TLUiEventHandler,
 	TldrawUiA11yProvider,
 	TldrawUiContextProvider,
@@ -183,7 +185,14 @@ function SignedInProvider({
 		}
 	}, [auth.userId, auth.isSignedIn])
 
-	if (!auth.isLoaded) return null
+	auth.isLoaded = false
+
+	if (!auth.isLoaded)
+		return (
+			<LoadingScreen delay={1000} fallback="Waiting for authentication...">
+				<DefaultSpinner />
+			</LoadingScreen>
+		)
 
 	// Old browsers check.
 	if (!('findLastIndex' in Array.prototype)) {
