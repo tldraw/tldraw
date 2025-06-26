@@ -22,6 +22,7 @@ import {
 import { routes } from '../../../routeDefs'
 import { TldrawApp } from '../../app/TldrawApp'
 import { useApp } from '../../hooks/useAppState'
+import { useCanUpdateFile } from '../../hooks/useCanUpdateFile'
 import { useCurrentFileId } from '../../hooks/useCurrentFileId'
 import { useHasFlag } from '../../hooks/useHasFlag'
 import { useIsFileOwner } from '../../hooks/useIsFileOwner'
@@ -167,6 +168,7 @@ export function FileItems({
 	const pinMsg = useMsg(messages.pin)
 	const unpinMsg = useMsg(messages.unpin)
 	const deleteOrForgetMsg = useMsg(isOwner ? messages.delete : messages.forget)
+	const canUpdateFile = useCanUpdateFile(fileId)
 	const downloadFile = useMsg(editorMessages.downloadFile)
 
 	return (
@@ -179,7 +181,7 @@ export function FileItems({
 					readonlyOk
 					onSelect={handleCopyLinkClick}
 				/>
-				{isOwner && (
+				{canUpdateFile && (
 					<TldrawUiMenuItem label={renameMsg} id="rename" readonlyOk onSelect={onRenameAction} />
 				)}
 				{/* todo: in published rooms, support duplication / forking */}

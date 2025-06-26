@@ -3,8 +3,8 @@ import { useCallback } from 'react'
 import { useEditor, useValue } from 'tldraw'
 import { routes } from '../../../../routeDefs'
 import { useApp } from '../../../hooks/useAppState'
+import { useCanUpdateFile } from '../../../hooks/useCanUpdateFile'
 import { useEditorDeepLink } from '../../../hooks/useDeepLink'
-import { useIsFileOwner } from '../../../hooks/useIsFileOwner'
 import { useTldrawUser } from '../../../hooks/useUser'
 import { useTldrawAppUiEvents } from '../../../utils/app-ui-events'
 import { copyTextToClipboard } from '../../../utils/copy'
@@ -37,13 +37,13 @@ export function TlaInviteTab({ fileId }: { fileId: string }) {
 		[app, fileId]
 	)
 
-	const isOwner = useIsFileOwner(fileId)
+	const canUpdateFile = useCanUpdateFile(fileId)
 	const url = useEditorDeepLink()
 
 	return (
 		<>
 			<TlaMenuSection>
-				{isOwner && (
+				{canUpdateFile && (
 					<TlaMenuControlGroup>
 						<TlaSharedToggle isShared={isShared} fileId={fileId} />
 						{isShared && <TlaSelectSharedLinkType fileId={fileId} />}
