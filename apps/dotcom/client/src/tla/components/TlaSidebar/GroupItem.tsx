@@ -9,11 +9,61 @@ import {
 	useValue,
 } from 'tldraw'
 import { useApp } from '../../hooks/useAppState'
+import { useHasFlag } from '../../hooks/useHasFlag'
 import { TlaIcon } from '../TlaIcon/TlaIcon'
+import { PresenceBadges } from './components/PresenceBadges'
 import styles from './groups.module.css'
 
-export function GroupItem({ id }: { id: string }) {
+interface GroupFileItemProps {
+	fileId: string
+	groupId?: string
+}
+
+function GroupFileItem({ fileId, groupId }: GroupFileItemProps) {
 	const navigate = useNavigate()
+	const app = useApp()
+	const hasGroups = useHasFlag('groups')
+
+	const file = useValue(
+		'file',
+		() => {
+			return app.getFile(fileId)
+		},
+		[app, fileId]
+	)
+
+	if (!file) {
+		return null
+	}
+
+	const isOwnedByGroup = file.owningGroupId === groupId
+
+	return (
+		<div key={file.id} className={styles.fileItem}>
+			<div className={styles.fileName}>{file.name}</div>
+			{!isOwnedByGroup && (
+				<div className={styles.groupName} title={`From ${file.ownerName}`}>
+					<TlaIcon icon="link" />
+				</div>
+			)}
+			{hasGroups && (
+				<PresenceBadges
+					fileId={fileId}
+					className={styles.presenceBadges}
+					badgeClassName={styles.presenceBadge}
+				/>
+			)}
+			<button
+				className={styles.fileButton}
+				onClick={() => {
+					navigate(`/f/${file.id}`)
+				}}
+			/>
+		</div>
+	)
+}
+
+export function GroupItem({ id }: { id: string }) {
 	const app = useApp()
 	const group = useValue(
 		'group',
@@ -101,22 +151,12 @@ export function GroupItem({ id }: { id: string }) {
 			</div>
 			<div className={styles.fileList}>
 				{group?.groupFiles.map((groupFile) => {
-					const isOwnedByGroup = groupFile.file?.owningGroupId === group?.groupId
 					return groupFile.file ? (
-						<div key={groupFile.file.id} className={styles.fileItem}>
-							<div className={styles.fileName}>{groupFile.file.name}</div>
-							{!isOwnedByGroup && (
-								<div className={styles.groupName} title={`From ${groupFile.file.ownerName}`}>
-									<TlaIcon icon="link" />
-								</div>
-							)}
-							<button
-								className={styles.fileButton}
-								onClick={() => {
-									navigate(`/f/${groupFile.file!.id}`)
-								}}
-							/>
-						</div>
+						<GroupFileItem
+							key={groupFile.file.id}
+							fileId={groupFile.file.id}
+							groupId={group?.groupId}
+						/>
 					) : null
 				})}
 			</div>

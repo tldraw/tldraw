@@ -30,6 +30,7 @@ import {
 	TlaTooltipTrigger,
 } from '../../TlaTooltip/TlaTooltip'
 import styles from '../sidebar.module.css'
+import { PresenceBadges } from './PresenceBadges'
 import { TlaSidebarFileLinkMenu } from './TlaSidebarFileLinkMenu'
 import { TlaSidebarRenameInline } from './TlaSidebarRenameInline'
 import { RecentFile } from './sidebar-shared'
@@ -209,7 +210,13 @@ export function TlaSidebarFileLinkInner({
 					{fileName}
 				</div>
 				{!isOwnFile && <GuestBadge file={file} href={href} />}
-				{hasGroups && <PresenceBadges fileId={fileId} />}
+				{hasGroups && (
+					<PresenceBadges
+						fileId={fileId}
+						className={styles.sidebarFileListItemPresenceBadges}
+						badgeClassName={styles.sidebarFileListItemPresenceBadge}
+					/>
+				)}
 			</div>
 			<TlaSidebarFileLinkMenu fileId={fileId} onRenameAction={handleRenameAction} />
 		</div>
@@ -264,34 +271,6 @@ function GuestBadge({ file, href }: { file: TlaFile; href: string }) {
 					</TlaTooltipContent>
 				</TlaTooltipPortal>
 			</TlaTooltipRoot>
-		</div>
-	)
-}
-
-function PresenceBadges({ fileId }: { fileId: string }) {
-	const app = useApp()
-	const presences = useValue(
-		'presences',
-		() => app.getPresences(fileId).filter((p) => p.userId !== app.userId),
-		[fileId, app]
-	)
-
-	return (
-		<div className={styles.sidebarFileListItemPresenceBadges}>
-			{presences.map((presence) => (
-				<div key={presence.userId} className={styles.sidebarFileListItemPresenceBadge}>
-					<div
-						style={{
-							width: 16,
-							height: 16,
-							borderRadius: '50%',
-							backgroundColor: presence.color ?? 'var(--tla-color-contrast)',
-							border: '2px solid var(--tla-color-contrast)',
-							marginLeft: -4, // Creates overlap between badges
-						}}
-					/>
-				</div>
-			))}
 		</div>
 	)
 }

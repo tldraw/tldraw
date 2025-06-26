@@ -66,6 +66,20 @@
 	flex: 1;
 }
 
+.presenceBadges {
+	display: flex;
+	align-items: center;
+	margin-left: auto;
+}
+
+.presenceBadge {
+	position: relative;
+}
+
+.presenceBadge:not(:first-child) {
+	margin-left: -4px; /* Creates overlap between badges */
+}
+
 .fileButton {
 	position: absolute;
 	inset: 0;
