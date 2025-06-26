@@ -84,22 +84,6 @@ export type UnpublishFileResponseBody =
 			message: string
 	  }
 
-// legacy version 1, needed for migration
-export interface ZStoreDataV1 {
-	files: TlaFile[]
-	fileStates: TlaFileState[]
-	user: TlaUser
-	lsn: string
-}
-
-// legacy version 2, needed for migration
-export interface ZStoreDataV2 {
-	file: TlaFile[]
-	file_state: TlaFileState[]
-	user: TlaUser[]
-	lsn: string
-}
-
 // current version
 export interface ZStoreData {
 	file: TlaFile[]
@@ -161,15 +145,6 @@ export type ZErrorCode = keyof typeof ZErrorCode
 // e.g. if we make backwards-incompatible changes to the schema
 export const Z_PROTOCOL_VERSION = 2
 export const MIN_Z_PROTOCOL_VERSION = 2
-
-export function downgradeZStoreData(data: ZStoreData): ZStoreDataV1 {
-	return {
-		files: data.file,
-		fileStates: data.file_state,
-		user: data.user[0] ?? null,
-		lsn: data.lsn,
-	}
-}
 
 export type ZServerSentPacket =
 	| {
