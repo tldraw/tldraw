@@ -168,16 +168,8 @@ function BookmarkShapeComponent({ shape }: { shape: TLBookmarkShape }) {
 					</div>
 				)}
 				<div className="tl-bookmark__copy_container">
-					{asset?.props.title ? (
-						<h2 className="tl-bookmark__heading">
-							{convertCommonTitleHTMLEntities(asset.props.title)}
-						</h2>
-					) : null}
-					{asset?.props.description && asset?.props.image ? (
-						<p className="tl-bookmark__description">{asset.props.description}</p>
-					) : null}
 					<a
-						className="tl-bookmark__link"
+						className="tl-bookmark__link-wrapper"
 						href={shape.props.url || ''}
 						target="_blank"
 						rel="noopener noreferrer"
@@ -185,24 +177,34 @@ function BookmarkShapeComponent({ shape }: { shape: TLBookmarkShape }) {
 						onPointerDown={useStopPropagationOnShiftKey}
 						onPointerUp={useStopPropagationOnShiftKey}
 					>
-						{isFaviconValid && asset?.props.favicon ? (
-							<img
-								className="tl-bookmark__favicon"
-								src={asset?.props.favicon}
-								referrerPolicy="strict-origin-when-cross-origin"
-								onError={onFaviconError}
-								alt={`favicon of ${address}`}
-							/>
-						) : (
-							<div
-								className="tl-hyperlink__icon"
-								style={{
-									mask: `url("${LINK_ICON}") center 100% / 100% no-repeat`,
-									WebkitMask: `url("${LINK_ICON}") center 100% / 100% no-repeat`,
-								}}
-							/>
-						)}
-						<span>{address}</span>
+						{asset?.props.title ? (
+							<h2 className="tl-bookmark__heading">
+								{convertCommonTitleHTMLEntities(asset.props.title)}
+							</h2>
+						) : null}
+						{asset?.props.description && asset?.props.image ? (
+							<p className="tl-bookmark__description">{asset.props.description}</p>
+						) : null}
+						<span className="tl-bookmark__link">
+							{isFaviconValid && asset?.props.favicon ? (
+								<img
+									className="tl-bookmark__favicon"
+									src={asset?.props.favicon}
+									referrerPolicy="strict-origin-when-cross-origin"
+									onError={onFaviconError}
+									alt={`favicon of ${address}`}
+								/>
+							) : (
+								<div
+									className="tl-hyperlink__icon"
+									style={{
+										mask: `url("${LINK_ICON}") center 100% / 100% no-repeat`,
+										WebkitMask: `url("${LINK_ICON}") center 100% / 100% no-repeat`,
+									}}
+								/>
+							)}
+							<span>{address}</span>
+						</span>
 					</a>
 				</div>
 			</div>
