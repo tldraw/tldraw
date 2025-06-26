@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useRef, useState } from 'react'
+import { memo, useCallback, useEffect, useRef, useState } from 'react'
 import { Box, Editor, TLCameraOptions, TLComponents, Tldraw, track, useEditor } from 'tldraw'
 import 'tldraw/tldraw.css'
 import './education-canvas.css'
@@ -45,7 +45,7 @@ const CameraSetup = track(() => {
 
 const TICKS = 8
 
-function CartesianGrid() {
+const CartesianGrid = memo(function CartesianGrid() {
 	return (
 		<svg
 			className="cartesian-grid"
@@ -116,7 +116,7 @@ function CartesianGrid() {
 			</g>
 		</svg>
 	)
-}
+})
 
 const components: TLComponents = {
 	OnTheCanvas: () => <CartesianGrid />,
