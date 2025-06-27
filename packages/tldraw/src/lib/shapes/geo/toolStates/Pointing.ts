@@ -88,11 +88,6 @@ export class Pointing extends StateNode {
 					? { w: 300, h: 180 }
 					: { w: 200, h: 200 }
 
-		if (!this.editor.canCreateShape(id)) {
-			this.cancel()
-			return
-		}
-
 		this.editor.createShapes<TLGeoShape>([
 			{
 				id,

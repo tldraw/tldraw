@@ -218,7 +218,7 @@ export function getCropBox<T extends ShapeWithCrop>(
 					tempBox.h = tempBox.w / targetRatio
 				}
 
-				if (tempBox.y >= h) {
+				if (tempBox.maxY >= h) {
 					tempBox.h = h - prevCropBox.y
 					tempBox.w = tempBox.h * targetRatio
 					tempBox.x = prevCropBox.maxX - tempBox.w
@@ -235,7 +235,7 @@ export function getCropBox<T extends ShapeWithCrop>(
 					tempBox.h = tempBox.w / targetRatio
 				}
 
-				if (tempBox.y >= h) {
+				if (tempBox.maxY >= h) {
 					tempBox.h = h - prevCropBox.y
 					tempBox.w = tempBox.h * targetRatio
 				}
