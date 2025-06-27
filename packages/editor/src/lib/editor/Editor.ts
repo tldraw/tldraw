@@ -127,6 +127,8 @@ import { EASINGS } from '../primitives/easings'
 import { Geometry2d } from '../primitives/geometry/Geometry2d'
 import { Group2d } from '../primitives/geometry/Group2d'
 import { intersectPolygonPolygon } from '../primitives/intersect'
+import type { LayoutAPI } from '../primitives/layout/api'
+import type { Padding, RequestNode } from '../primitives/layout/types'
 import { PI, approximately, areAnglesCompatible, clamp, pointInPolygon } from '../primitives/utils'
 import { ReadonlySharedStyleMap, SharedStyle, SharedStyleMap } from '../utils/SharedStylesMap'
 import { areShapesContentEqual } from '../utils/areShapesContentEqual'
@@ -7029,6 +7031,115 @@ export class Editor extends EventEmitter<TLEventMap> {
 		}
 
 		return this
+	}
+
+	private layoutApi: LayoutAPI | undefined
+
+	/**
+	 * Layout shapes to remove overlaps.
+	 *
+	 * @example
+	 * ```ts
+	 * editor.layoutShapes([shape1, shape2])
+	 * ```
+	 *
+	 * @example
+	 * ```ts
+	 * editor.layoutShapes([shape1, shape2], { animation: { duration: 300 } })
+	 * ```
+	 *
+	 * @example
+	 * ```ts
+	 * editor.layoutShapes([shape1, shape2], {
+	 *   defaultWeight: 2,
+	 *   defaultPadding: 10,
+	 *   weightByShapeId: { shape1: 3 },
+	 *   paddingByShapeId: { shape2: 5 },
+	 *   weightByShapeType: { 'rectangle': 1.5 },
+	 *   paddingByShapeType: { 'rectangle': 8 },
+	 *   animation: { duration: 500 }
+	 * })
+	 * ```
+	 *
+	 * @param shapes - The shapes (or shape ids) to layout.
+	 * @param opts - Options for the layout operation, including animation and weights/padding
+	 * @param opts.defaultWeight - Default weight for shapes that don't have a specific weight set. 1 by default.
+	 * @param opts.defaultPadding - Default padding for shapes that don't have a specific padding set. 0 by default. number or [number, number, number, number] for top, right, bottom, left.
+	 * @param opts.weightByShapeId - A record mapping shape ids to their weights.
+	 * @param opts.paddingByShapeId - A record mapping shape ids to their padding.
+	 * @param opts.weightByShapeType - A record mapping shape types to their weights.
+	 * @param opts.paddingByShapeType - A record mapping shape types to their padding.
+	 */
+	async layoutShapes(
+		shapes: TLShapeId[] | TLShape[],
+		opts = { animation: DEFAULT_ANIMATION_OPTIONS } as TLCameraMoveOptions & {
+			defaultWeight?: number
+			defaultPadding?: Padding
+			weightByShapeId?: Record<TLShapeId, number>
+			paddingByShapeId?: Record<TLShapeId, Padding>
+			weightByShapeType?: Record<string, number>
+			paddingByShapeType?: Record<string, Padding>
+		}
+	) {
+		if (this.getIsReadonly()) return this
+
+		this.layoutApi ??= new (await import('../primitives/layout/api')).LayoutAPI()
+
+		const {
+			defaultWeight,
+			defaultPadding,
+			weightByShapeId,
+			paddingByShapeId,
+			weightByShapeType,
+			paddingByShapeType,
+			...animationOpts
+		} = opts
+
+		const ids =
+			typeof shapes[0] === 'string'
+				? (shapes as TLShapeId[])
+				: (shapes as TLShape[]).map((s) => s.id)
+
+		// Always get fresh shapes
+		const shapesToAlignFirstPass = compact(ids.map((id) => this.getShape(id)))
+
+		const nodes = shapesToAlignFirstPass
+			.map((shape) => {
+				const sizes = (() => {
+					if (
+						'w' in shape.props &&
+						'h' in shape.props &&
+						typeof shape.props.w === 'number' &&
+						typeof shape.props.h === 'number'
+					) {
+						return { w: shape.props.w, h: shape.props.h }
+					}
+
+					const boundingBox = this.getShapePageBounds(shape)
+					if (boundingBox) {
+						return { w: boundingBox.width, h: boundingBox.height }
+					}
+				})()
+
+				if (!sizes) return undefined
+
+				return {
+					type: shape.type,
+					id: shape.id,
+					x: shape.x,
+					y: shape.y,
+					w: sizes.w,
+					h: sizes.h,
+					weight:
+						weightByShapeId?.[shape.id] ?? weightByShapeType?.[shape.type] ?? defaultWeight ?? 1,
+					padding:
+						paddingByShapeId?.[shape.id] ?? paddingByShapeType?.[shape.type] ?? defaultPadding,
+				}
+			})
+			.filter((node) => !!node) as RequestNode[]
+		const overlaps = await this.layoutApi.removeOverlaps(nodes)
+
+		this.animateShapes(overlaps, animationOpts)
 	}
 
 	/**
