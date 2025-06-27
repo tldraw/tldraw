@@ -106,7 +106,9 @@ export const DefaultImageToolbarContent = track(function DefaultImageToolbarCont
 			//        z_out = 2 * z_in / (1 + 2 * z_in)
 			//    Solving for z_in gives:
 			//        z_in = z_out / (2 * (1 - z_out))
-			const zOut = sliderPercent * sliderPercent * (maxZoom ?? 1)
+			const maxDimension = 1 - 1 / MAX_ZOOM
+			const clampedMaxZoom = Math.min(maxDimension, maxZoom ?? maxDimension)
+			const zOut = sliderPercent * sliderPercent * clampedMaxZoom
 			const zoom = zOut >= 1 ? 1 : zOut / (2 * (1 - zOut))
 			const imageShape = editor.getShape<TLImageShape>(imageShapeId)
 			if (!imageShape) return
