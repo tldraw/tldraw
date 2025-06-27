@@ -32,12 +32,14 @@ import {
 	debugFlags,
 	exhaustiveSwitchError,
 	getDefaultColorTheme,
+	getFontsFromRichText,
 	invLerp,
 	lerp,
 	mapObjectMapValues,
 	maybeSnapToGrid,
 	structuredClone,
 	toDomPrecision,
+	toRichText,
 	track,
 	useEditor,
 	useIsEditing,
@@ -46,12 +48,11 @@ import {
 } from '@tldraw/editor'
 import React, { useMemo } from 'react'
 import { updateArrowTerminal } from '../../bindings/arrow/ArrowBindingUtil'
+import { isEmptyRichText, renderPlaintextFromRichText } from '../../utils/text/richText'
 import { PathBuilder } from '../shared/PathBuilder'
-import { PlainTextLabel } from '../shared/PlainTextLabel'
+import { RichTextLabel, RichTextSVG } from '../shared/RichTextLabel'
 import { ShapeFill } from '../shared/ShapeFill'
-import { SvgTextLabel } from '../shared/SvgTextLabel'
 import { ARROW_LABEL_PADDING, STROKE_SIZES, TEXT_PROPS } from '../shared/default-shape-constants'
-import { DefaultFontFaces } from '../shared/defaultFonts'
 import { getFillDefForCanvas, getFillDefForExport } from '../shared/defaultStyleDefs'
 import { useDefaultColorTheme } from '../shared/useDefaultColorTheme'
 import { getArrowBodyPath, getArrowHandlePath } from './ArrowPath'
@@ -132,7 +133,7 @@ export class ArrowShapeUtil extends ShapeUtil<TLArrowShape> {
 	}
 	override canTabTo(shape: TLArrowShape) {
 		const bindings = getArrowBindings(this.editor, shape)
-		return !!(bindings.start || bindings.end || shape.props.text)
+		return !!(bindings.start || bindings.end || !isEmptyRichText(shape.props.richText))
 	}
 	override hideResizeHandles() {
 		return true
@@ -160,8 +161,13 @@ export class ArrowShapeUtil extends ShapeUtil<TLArrowShape> {
 	}
 
 	override getFontFaces(shape: TLArrowShape) {
-		if (!shape.props.text) return EMPTY_ARRAY
-		return [DefaultFontFaces[`tldraw_${shape.props.font}`].normal.normal]
+		if (isEmptyRichText(shape.props.richText)) return EMPTY_ARRAY
+
+		return getFontsFromRichText(this.editor, shape.props.richText, {
+			family: `tldraw_${shape.props.font}`,
+			weight: 'normal',
+			style: 'normal',
+		})
 	}
 
 	override getDefaultProps(): TLArrowShape['props'] {
@@ -178,7 +184,7 @@ export class ArrowShapeUtil extends ShapeUtil<TLArrowShape> {
 			end: { x: 2, y: 0 },
 			arrowheadStart: 'none',
 			arrowheadEnd: 'arrow',
-			text: '',
+			richText: toRichText(''),
 			labelPosition: 0.5,
 			font: 'draw',
 			scale: 1,
@@ -208,7 +214,7 @@ export class ArrowShapeUtil extends ShapeUtil<TLArrowShape> {
 					: new Polyline2d({ points: info.route.points })
 
 		let labelGeom
-		if (isEditing || shape.props.text.trim()) {
+		if (isEditing || !isEmptyRichText(shape.props.richText)) {
 			const labelPosition = getArrowLabelPosition(this.editor, shape)
 			if (debugFlags.debugGeometry.get()) {
 				debugGeom.push(...labelPosition.debugGeom)
@@ -280,7 +286,7 @@ export class ArrowShapeUtil extends ShapeUtil<TLArrowShape> {
 	}
 
 	override getText(shape: TLArrowShape) {
-		return shape.props.text
+		return renderPlaintextFromRichText(this.editor, shape.props.richText)
 	}
 
 	override onHandleDrag(shape: TLArrowShape, info: TLHandleDragInfo<TLArrowShape>) {
@@ -761,7 +767,7 @@ export class ArrowShapeUtil extends ShapeUtil<TLArrowShape> {
 		const labelPosition = getArrowLabelPosition(this.editor, shape)
 		const isSelected = shape.id === this.editor.getOnlySelectedShapeId()
 		const isEditing = this.editor.getEditingShapeId() === shape.id
-		const showArrowLabel = isEditing || shape.props.text
+		const showArrowLabel = isEditing || !isEmptyRichText(shape.props.richText)
 
 		return (
 			<>
@@ -775,16 +781,15 @@ export class ArrowShapeUtil extends ShapeUtil<TLArrowShape> {
 					)}
 				</SVGContainer>
 				{showArrowLabel && (
-					<PlainTextLabel
+					<RichTextLabel
 						shapeId={shape.id}
-						classNamePrefix="tl-arrow"
 						type="arrow"
 						font={shape.props.font}
 						fontSize={getArrowLabelFontSize(shape)}
 						lineHeight={TEXT_PROPS.lineHeight}
 						align="middle"
 						verticalAlign="middle"
-						text={shape.props.text}
+						richText={shape.props.richText}
 						labelColor={theme[shape.props.labelColor].solid}
 						textWidth={labelPosition.box.w - ARROW_LABEL_PADDING * 2 * shape.props.scale}
 						isSelected={isSelected}
@@ -810,9 +815,9 @@ export class ArrowShapeUtil extends ShapeUtil<TLArrowShape> {
 		const { start, end } = getArrowTerminalsInArrowSpace(this.editor, shape, info?.bindings)
 		const geometry = this.editor.getShapeGeometry<Group2d>(shape)
 		const bounds = geometry.bounds
+		const isEmpty = isEmptyRichText(shape.props.richText)
 
-		const labelGeometry =
-			isEditing || shape.props.text.trim() ? (geometry.children[1] as Rectangle2d) : null
+		const labelGeometry = isEditing || !isEmpty ? (geometry.children[1] as Rectangle2d) : null
 
 		if (Vec.Equals(start, end)) return null
 
@@ -851,7 +856,7 @@ export class ArrowShapeUtil extends ShapeUtil<TLArrowShape> {
 					<defs>
 						<ArrowClipPath
 							radius={3.5 * shape.props.scale}
-							hasText={shape.props.text.trim().length > 0}
+							hasText={!isEmpty}
 							bounds={bounds}
 							labelBounds={labelBounds}
 							as={clipStartArrowhead && as ? as : ''}
@@ -909,7 +914,7 @@ export class ArrowShapeUtil extends ShapeUtil<TLArrowShape> {
 	}
 
 	override onEditStart(shape: TLArrowShape) {
-		if (shape.props.text.trim() === '') {
+		if (isEmptyRichText(shape.props.richText)) {
 			// editing text for the first time, so set the position to the default:
 			const labelPosition = getArrowLabelDefaultPosition(this.editor, shape)
 			this.editor.updateShape<TLArrowShape>({
@@ -917,26 +922,6 @@ export class ArrowShapeUtil extends ShapeUtil<TLArrowShape> {
 				type: shape.type,
 				props: { labelPosition },
 			})
-		}
-	}
-
-	override onEditEnd(shape: TLArrowShape) {
-		const {
-			id,
-			type,
-			props: { text },
-		} = shape
-
-		if (text.trimEnd() !== shape.props.text) {
-			this.editor.updateShapes<TLArrowShape>([
-				{
-					id,
-					type,
-					props: {
-						text: text.trimEnd(),
-					},
-				},
-			])
 		}
 	}
 
@@ -948,12 +933,12 @@ export class ArrowShapeUtil extends ShapeUtil<TLArrowShape> {
 		return (
 			<g transform={`scale(${scaleFactor})`}>
 				<ArrowSvg shape={shape} shouldDisplayHandles={false} />
-				<SvgTextLabel
+				<RichTextSVG
 					fontSize={getArrowLabelFontSize(shape)}
 					font={shape.props.font}
 					align="middle"
 					verticalAlign="middle"
-					text={shape.props.text}
+					richText={shape.props.richText}
 					labelColor={theme[shape.props.labelColor].solid}
 					bounds={getArrowLabelPosition(this.editor, shape)
 						.box.clone()
@@ -1034,6 +1019,7 @@ const ArrowSvg = track(function ArrowSvg({
 	if (!geometry) return null
 	const bounds = Box.ZeroFix(geometry.bounds)
 	const bindings = getArrowBindings(editor, shape)
+	const isEmpty = isEmptyRichText(shape.props.richText)
 
 	if (!info?.isValid) return null
 
@@ -1084,7 +1070,7 @@ const ArrowSvg = track(function ArrowSvg({
 				<clipPath id={clipPathId}>
 					<ArrowClipPath
 						radius={3.5 * shape.props.scale}
-						hasText={isEditing || shape.props.text.trim().length > 0}
+						hasText={isEditing || !isEmpty}
 						bounds={bounds}
 						labelBounds={labelPosition.box}
 						as={clipStartArrowhead && as ? as : ''}

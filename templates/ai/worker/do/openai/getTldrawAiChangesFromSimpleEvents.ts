@@ -137,7 +137,7 @@ function getTldrawAiChangesFromSimpleCreateOrUpdateEvent(
 					y: 0,
 					props: {
 						color: shape.color ?? 'black',
-						text: shape.text ?? '',
+						richText: toRichText(shape.text ?? ''),
 						start: { x: x1, y: y1 },
 						end: { x: x2, y: y2 },
 					},
