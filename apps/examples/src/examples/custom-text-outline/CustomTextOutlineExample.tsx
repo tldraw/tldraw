@@ -3,12 +3,12 @@ import 'tldraw/tldraw.css'
 
 // Configure the arrow shape to disable text outline
 const CustomArrowShapeUtil = ArrowShapeUtil.configure({
-	showTextOutline: false,
+	showTextOutline: true,
 })
 
 // Configure the text shape to disable outline
 const CustomTextShapeUtil = TextShapeUtil.configure({
-	showOutline: false,
+	showTextOutline: true,
 })
 
 // Use the configured shape utilities

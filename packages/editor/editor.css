@@ -946,6 +946,10 @@ input,
 	display: block;
 }
 
+.tl-text__outline {
+	text-shadow: var(--tl-text-outline);
+}
+
 .tl-text__no-outline {
 	text-shadow: none;
 }

@@ -2340,6 +2340,8 @@ export interface PlainTextLabelProps {
     // (undocumented)
     shapeId: TLShapeId;
     // (undocumented)
+    showTextOutline?: boolean;
+    // (undocumented)
     style?: React_3.CSSProperties;
     // (undocumented)
     text?: string;
@@ -2460,6 +2462,8 @@ export interface RichTextLabelProps {
     // (undocumented)
     shapeId: TLShapeId;
     // (undocumented)
+    showTextOutline?: boolean;
+    // (undocumented)
     style?: React_3.CSSProperties;
     // (undocumented)
     textHeight?: number;
@@ -2474,7 +2478,7 @@ export interface RichTextLabelProps {
 }
 
 // @public
-export function RichTextSVG({ bounds, richText, fontSize, font, align, verticalAlign, wrap, labelColor, padding, }: RichTextSVGProps): JSX_2.Element;
+export function RichTextSVG({ bounds, richText, fontSize, font, align, verticalAlign, wrap, labelColor, padding, showTextOutline, }: RichTextSVGProps): JSX_2.Element;
 
 // @public (undocumented)
 export interface RichTextSVGProps {
@@ -2492,6 +2496,8 @@ export interface RichTextSVGProps {
     padding: number;
     // (undocumented)
     richText: TLRichText;
+    // (undocumented)
+    showTextOutline?: boolean;
     // (undocumented)
     verticalAlign: TLDefaultVerticalAlignStyle;
     // (undocumented)
@@ -2621,7 +2627,7 @@ export const TextLabel: React_3.NamedExoticComponent<PlainTextLabelProps>;
 // @public (undocumented)
 export interface TextShapeOptions {
     extraArrowHorizontalPadding: number;
-    showOutline: boolean;
+    showTextOutline: boolean;
 }
 
 // @public (undocumented)

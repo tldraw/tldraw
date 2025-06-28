@@ -44,7 +44,6 @@ import {
 	useSharedSafeId,
 	useValue,
 } from '@tldraw/editor'
-import classNames from 'classnames'
 import React, { useMemo } from 'react'
 import { updateArrowTerminal } from '../../bindings/arrow/ArrowBindingUtil'
 import { PathBuilder } from '../shared/PathBuilder'
@@ -780,10 +779,7 @@ export class ArrowShapeUtil extends ShapeUtil<TLArrowShape> {
 				{showArrowLabel && (
 					<PlainTextLabel
 						shapeId={shape.id}
-						classNamePrefix={classNames(
-							'tl-arrow',
-							!this.options.showTextOutline && 'tl-text__no-outline'
-						)}
+						classNamePrefix="tl-arrow"
 						type="arrow"
 						font={shape.props.font}
 						fontSize={getArrowLabelFontSize(shape)}
@@ -795,6 +791,7 @@ export class ArrowShapeUtil extends ShapeUtil<TLArrowShape> {
 						textWidth={labelPosition.box.w - ARROW_LABEL_PADDING * 2 * shape.props.scale}
 						isSelected={isSelected}
 						padding={0}
+						showTextOutline={this.options.showTextOutline}
 						style={{
 							transform: `translate(${labelPosition.box.center.x}px, ${labelPosition.box.center.y}px)`,
 						}}
@@ -965,6 +962,8 @@ export class ArrowShapeUtil extends ShapeUtil<TLArrowShape> {
 						.box.clone()
 						.expandBy(-ARROW_LABEL_PADDING * shape.props.scale)}
 					padding={0}
+					// todo: unify with showTextOutline prop in other shapes
+					stroke={this.options.showTextOutline}
 				/>
 			</g>
 		)
