@@ -28,6 +28,7 @@ export interface TLAppUiEventMap {
 	'rename-file': { name: string }
 	'duplicate-file': null
 	'download-file': null
+	'download-file-as-ocif': null
 	'drop-tldr-file': null
 	'import-tldr-file': null
 	'change-user-name': null

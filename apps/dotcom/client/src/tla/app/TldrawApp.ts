@@ -42,11 +42,17 @@ import {
 	getUserPreferences,
 	objectMapFromEntries,
 	objectMapKeys,
+	OCIF_FILE_EXTENSION,
+	OcifFileParseError,
+	parseOcifFile,
 	parseTldrawJsonFile,
 	react,
 	Signal,
 	TLDocument,
+	TLDRAW_FILE_EXTENSION,
+	TldrawFileParseError,
 	TLSessionStateSnapshot,
+	TLStore,
 	TLUiToastsContextType,
 	TLUserPreferences,
 	transact,
@@ -727,7 +733,7 @@ export class TldrawApp {
 		return createIntl()!
 	}
 
-	async uploadTldrFiles(files: File[], onFirstFileUploaded?: (file: TlaFile) => void) {
+	async uploadTldrCompatibleFiles(files: File[], onFirstFileUploaded?: (file: TlaFile) => void) {
 		const totalFiles = files.length
 		let uploadedFiles = 0
 		if (totalFiles === 0) return
@@ -778,7 +784,7 @@ export class TldrawApp {
 		}
 
 		for (const f of files) {
-			const res = await this.uploadTldrFile(f, (bytes) => {
+			const res = await this.uploadTldrCompatibleFile(f, (bytes) => {
 				bytesUploaded += bytes
 				updateProgress()
 			}).catch((e) => Result.err(e))
@@ -821,15 +827,25 @@ export class TldrawApp {
 		}
 	}
 
-	private async uploadTldrFile(
+	private async uploadTldrCompatibleFile(
 		file: File,
 		onProgress?: (bytesUploadedSinceLastProgressUpdate: number) => void
 	) {
 		const json = await file.text()
-		const parseFileResult = parseTldrawJsonFile({
-			schema: createTLSchema(),
-			json,
-		})
+		let parseFileResult: Result<TLStore, TldrawFileParseError | OcifFileParseError>
+		if (file.name.endsWith(TLDRAW_FILE_EXTENSION)) {
+			parseFileResult = parseTldrawJsonFile({
+				schema: createTLSchema(),
+				json,
+			})
+		} else if (file.name.endsWith(OCIF_FILE_EXTENSION)) {
+			parseFileResult = parseOcifFile({
+				schema: createTLSchema(),
+				json,
+			})
+		} else {
+			return Result.err('unknown file type')
+		}
 
 		if (!parseFileResult.ok) {
 			return Result.err('could not parse file')
@@ -887,7 +903,7 @@ export class TldrawApp {
 		}
 		const id = response.slugs[0]
 		const name =
-			file.name?.replace(/\.tldr$/, '') ??
+			file.name?.replace(/\.tldr$/, '').replace(/\.ocif.json$/, '') ??
 			Object.values(snapshot.store).find((d): d is TLDocument => d.typeName === 'document')?.name ??
 			''
 
