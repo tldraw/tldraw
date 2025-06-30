@@ -1,3 +1,23 @@
+# v3.13.4 (Mon Jun 30 2025)
+
+### Release Notes
+
+#### Selected cross-realm fixes ([#6338](https://github.com/tldraw/tldraw/pull/6338))
+
+- Fix a few code paths that didn't work for cross-realm situations.
+
+---
+
+#### 🐛 Bug Fixes
+
+- Selected cross-realm fixes [#6338](https://github.com/tldraw/tldraw/pull/6338) ([@ds300](https://github.com/ds300))
+
+#### Authors: 1
+
+- David Sheldrick ([@ds300](https://github.com/ds300))
+
+---
+
 # v3.13.0 (Thu May 22 2025)
 
 ### Release Notes
