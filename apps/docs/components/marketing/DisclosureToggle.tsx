@@ -1,9 +1,9 @@
 'use client'
 
+import { track } from '@/app/analytics'
 import { cn } from '@/utils/cn'
 import { Disclosure, DisclosureButton, DisclosurePanel } from '@headlessui/react'
 import { MinusIcon, PlusIcon } from '@heroicons/react/20/solid'
-import { track } from '@vercel/analytics'
 import { ReactNode } from 'react'
 
 export function DisclosureToggle({ q, a, index }: { q: string; a: ReactNode; index: number }) {

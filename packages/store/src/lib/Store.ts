@@ -4,13 +4,13 @@ import {
 	assert,
 	filterEntries,
 	getOwnProperty,
+	isEqual,
 	objectMapEntries,
 	objectMapKeys,
 	objectMapValues,
 	throttleToNextFrame,
 	uniqueId,
 } from '@tldraw/utils'
-import isEqual from 'lodash.isequal'
 import { AtomMap } from './AtomMap'
 import { IdOf, RecordId, UnknownRecord } from './BaseRecord'
 import { RecordScope } from './RecordType'

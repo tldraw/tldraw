@@ -125,6 +125,9 @@
   "5bcc12ace8": {
     "translation": "This room is now read-only"
   },
+  "5bec508475": {
+    "translation": "Old browser detected. Please update your browser to use this app."
+  },
   "5d26ae7550": {
     "translation": "We failed to upload some of the content you created before you signed in."
   },
@@ -190,6 +193,9 @@
   },
   "7b1329f5ca": {
     "translation": "User manual"
+  },
+  "7be10fc592": {
+    "translation": "Restore version"
   },
   "7cb5f8b4a5": {
     "translation": "Forget"

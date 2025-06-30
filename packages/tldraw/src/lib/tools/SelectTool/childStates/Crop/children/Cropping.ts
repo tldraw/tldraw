@@ -1,6 +1,12 @@
-import { SelectionHandle, ShapeWithCrop, StateNode, TLPointerEventInfo, Vec } from '@tldraw/editor'
-import { getCropBox, getDefaultCrop } from '../../../../../shapes/shared/crop'
-import { kickoutOccludedShapes } from '../../../selectHelpers'
+import {
+	SelectionHandle,
+	ShapeWithCrop,
+	StateNode,
+	TLPointerEventInfo,
+	Vec,
+	kickoutOccludedShapes,
+} from '@tldraw/editor'
+import { getCropBox, getDefaultCrop, getUncroppedSize } from '../../../../../shapes/shared/crop'
 import { CursorTypeMap } from '../../PointingResizeHandle'
 
 type Snapshot = ReturnType<Cropping['createSnapshot']>
@@ -35,6 +41,14 @@ export class Cropping extends StateNode {
 		this.updateShapes()
 	}
 
+	override onKeyDown() {
+		this.updateShapes()
+	}
+
+	override onKeyUp() {
+		this.updateShapes()
+	}
+
 	override onPointerUp() {
 		this.complete()
 	}
@@ -62,16 +76,13 @@ export class Cropping extends StateNode {
 		const util = this.editor.getShapeUtil<ShapeWithCrop>(shape.type)
 		if (!util) return
 
+		const { shiftKey } = this.editor.inputs
 		const currentPagePoint = this.editor.inputs.currentPagePoint.clone().sub(cursorHandleOffset)
 		const originPagePoint = this.editor.inputs.originPagePoint.clone().sub(cursorHandleOffset)
-
 		const change = currentPagePoint.clone().sub(originPagePoint).rot(-shape.rotation)
 
 		const crop = shape.props.crop ?? getDefaultCrop()
-		const uncroppedSize = {
-			w: (1 / (crop.bottomRight.x - crop.topLeft.x)) * shape.props.w,
-			h: (1 / (crop.bottomRight.y - crop.topLeft.y)) * shape.props.h,
-		}
+		const uncroppedSize = getUncroppedSize(shape.props, crop)
 
 		const cropFn = util.onCrop?.bind(util) ?? getCropBox
 		const partial = cropFn(shape, {
@@ -80,6 +91,7 @@ export class Cropping extends StateNode {
 			crop,
 			uncroppedSize,
 			initialShape: this.snapshot.shape,
+			aspectRatioLocked: shiftKey,
 		})
 		if (!partial) return
 

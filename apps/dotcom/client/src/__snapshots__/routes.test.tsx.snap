@@ -19,6 +19,14 @@ exports[`the_routes 1`] = `
     "vercelRouterPattern": "^/f/[^/]*/?$",
   },
   {
+    "reactRouterPattern": "/f/:fileSlug/history",
+    "vercelRouterPattern": "^/f/[^/]*/history/?$",
+  },
+  {
+    "reactRouterPattern": "/f/:fileSlug/history/:timestamp",
+    "vercelRouterPattern": "^/f/[^/]*/history/[^/]*/?$",
+  },
+  {
     "reactRouterPattern": "/lf",
     "vercelRouterPattern": "^/lf/?$",
   },

@@ -1,3 +1,5 @@
+import isEqualWith from 'lodash.isequalwith'
+
 /** @internal */
 export function hasOwnProperty(obj: object, key: string): boolean {
 	return Object.prototype.hasOwnProperty.call(obj, key)
@@ -143,4 +145,29 @@ export function omit(
 		delete result[key]
 	}
 	return result
+}
+
+/** @internal */
+export function getChangedKeys<T extends object>(obj1: T, obj2: T): (keyof T)[] {
+	const result: (keyof T)[] = []
+	for (const key in obj1) {
+		if (!Object.is(obj1[key], obj2[key])) {
+			result.push(key)
+		}
+	}
+	return result
+}
+
+/** @internal */
+export function isEqualAllowingForFloatingPointErrors(
+	obj1: object,
+	obj2: object,
+	threshold = 0.000001
+): boolean {
+	return isEqualWith(obj1, obj2, (value1, value2) => {
+		if (typeof value1 === 'number' && typeof value2 === 'number') {
+			return Math.abs(value1 - value2) < threshold
+		}
+		return undefined
+	})
 }

@@ -63,7 +63,11 @@ export const TlaSidebar = memo(function TlaSidebar() {
 	const { onDrop, onDragOver, onDragEnter, onDragLeave, isDraggingOver } = useTldrFileDrop()
 
 	return (
-		<nav ref={sidebarRef}>
+		<nav
+			ref={sidebarRef}
+			aria-hidden={!isSidebarOpen}
+			style={{ visibility: isSidebarOpen ? 'visible' : 'hidden' }}
+		>
 			<button
 				className={styles.sidebarOverlayMobile}
 				data-visiblemobile={isSidebarOpenMobile}

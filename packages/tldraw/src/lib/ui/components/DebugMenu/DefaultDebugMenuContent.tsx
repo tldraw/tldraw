@@ -292,6 +292,7 @@ function createNShapes(editor: Editor, n: number) {
 	}
 
 	editor.run(() => {
+		// allow this to trigger the max shapes alert
 		editor.createShapes(shapesToCreate).setSelectedShapes(shapesToCreate.map((s) => s.id))
 	})
 }

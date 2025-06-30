@@ -19,7 +19,7 @@
 		"@types/react": "^18.3.18",
 		"@types/react-dom": "^18.3.5",
 		"eslint": "^9.13.0",
-		"next": "14.1.1",
+		"next": "14.2.30",
 		"react": "^18.2.0",
 		"react-dom": "^18.2.0",
 		"tldraw": "latest",

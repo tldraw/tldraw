@@ -7,6 +7,7 @@ import {
 	TldrawEditor,
 	TldrawEditorBaseProps,
 	TldrawEditorStoreProps,
+	defaultUserPreferences,
 	mergeArraysAndReplaceDefaults,
 	useEditor,
 	useEditorComponents,
@@ -33,12 +34,18 @@ import { defaultTools } from './defaultTools'
 import { EmbedShapeUtil } from './shapes/embed/EmbedShapeUtil'
 import { allDefaultFontFaces } from './shapes/shared/defaultFonts'
 import { TldrawUi, TldrawUiProps } from './ui/TldrawUi'
-import { TLUiAssetUrlOverrides } from './ui/assetUrls'
+import { TLUiAssetUrlOverrides, useDefaultUiAssetUrlsWithOverrides } from './ui/assetUrls'
 import { LoadingScreen } from './ui/components/LoadingScreen'
 import { Spinner } from './ui/components/Spinner'
+import { AssetUrlsProvider } from './ui/context/asset-urls'
 import { TLUiComponents, useTldrawUiComponents } from './ui/context/components'
+import { useUiEvents } from './ui/context/events'
 import { useToasts } from './ui/context/toasts'
-import { useTranslation } from './ui/hooks/useTranslation/useTranslation'
+import {
+	TldrawUiTranslationProvider,
+	useTranslation,
+} from './ui/hooks/useTranslation/useTranslation'
+import { useMergedTranslationOverrides } from './ui/overrides'
 import { useDefaultEditorAssetsWithOverrides } from './utils/static-assets/assetUrls'
 import { defaultAddFontsFromNode, tipTapDefaultExtensions } from './utils/text/richText'
 
@@ -140,7 +147,7 @@ export function Tldraw(props: TldrawProps) {
 
 	const _tools = useShallowArrayIdentity(tools)
 	const toolsWithDefaults = useMemo(
-		() => mergeArraysAndReplaceDefaults('id', allDefaultTools, _tools),
+		() => mergeArraysAndReplaceDefaults('id', _tools, allDefaultTools),
 		[_tools]
 	)
 
@@ -175,27 +182,37 @@ export function Tldraw(props: TldrawProps) {
 	}
 
 	return (
-		<TldrawEditor
-			initialState="select"
-			{...rest}
-			components={componentsWithDefault}
-			shapeUtils={shapeUtilsWithDefaults}
-			bindingUtils={bindingUtilsWithDefaults}
-			tools={toolsWithDefaults}
-			textOptions={textOptionsWithDefaults}
-			assetUrls={assets}
-		>
-			<TldrawUi {...rest} components={componentsWithDefault} mediaMimeTypes={mediaMimeTypes}>
-				<InsideOfEditorAndUiContext
-					maxImageDimension={maxImageDimension}
-					maxAssetSize={maxAssetSize}
-					acceptedImageMimeTypes={_imageMimeTypes}
-					acceptedVideoMimeTypes={_videoMimeTypes}
-					onMount={onMount}
-				/>
-				{children}
-			</TldrawUi>
-		</TldrawEditor>
+		// We provide an extra higher layer of asset+translations providers here so that
+		// loading UI (which is rendered outside of TldrawUi) may be translated.
+		// Ideally we would refactor to hoist all the UI context providers we can up here. Maybe later.
+		<AssetUrlsProvider assetUrls={useDefaultUiAssetUrlsWithOverrides(rest.assetUrls)}>
+			<TldrawUiTranslationProvider
+				overrides={useMergedTranslationOverrides(rest.overrides)}
+				locale={rest.user?.userPreferences.get().locale ?? defaultUserPreferences.locale}
+			>
+				<TldrawEditor
+					initialState="select"
+					{...rest}
+					components={componentsWithDefault}
+					shapeUtils={shapeUtilsWithDefaults}
+					bindingUtils={bindingUtilsWithDefaults}
+					tools={toolsWithDefaults}
+					textOptions={textOptionsWithDefaults}
+					assetUrls={assets}
+				>
+					<TldrawUi {...rest} components={componentsWithDefault} mediaMimeTypes={mediaMimeTypes}>
+						<InsideOfEditorAndUiContext
+							maxImageDimension={maxImageDimension}
+							maxAssetSize={maxAssetSize}
+							acceptedImageMimeTypes={_imageMimeTypes}
+							acceptedVideoMimeTypes={_videoMimeTypes}
+							onMount={onMount}
+						/>
+						{children}
+					</TldrawUi>
+				</TldrawEditor>
+			</TldrawUiTranslationProvider>
+		</AssetUrlsProvider>
 	)
 }
 
@@ -212,6 +229,7 @@ function InsideOfEditorAndUiContext({
 	const editor = useEditor()
 	const toasts = useToasts()
 	const msg = useTranslation()
+	const trackEvent = useUiEvents()
 
 	useOnMount(() => {
 		const unsubs: (void | (() => void) | undefined)[] = []
@@ -223,6 +241,8 @@ function InsideOfEditorAndUiContext({
 		// won't be directly used, but mean that when adding text the user can switch between fonts
 		// quickly, without having to wait for them to load in.
 		editor.fonts.requestFonts(allDefaultFontFaces)
+
+		editor.once('edit', () => trackEvent('edit', { source: 'unknown' }))
 
 		// for content handling, first we register the default handlers...
 		registerDefaultExternalContentHandlers(editor, {

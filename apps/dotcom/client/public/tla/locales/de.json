@@ -20,6 +20,9 @@
   "08331c1710": {
     "translation": "Ratenbegrenzung überschritten, bitte versuchen Sie es später."
   },
+  "08bd40c754": {
+    "translation": "Konto"
+  },
   "0b27918290": {
     "translation": "Datei"
   },
@@ -185,6 +188,9 @@
   "7b1329f5ca": {
     "translation": "Benutzerhandbuch"
   },
+  "7be10fc592": {
+    "translation": "Version wiederherstellen"
+  },
   "7cb5f8b4a5": {
     "translation": "Vergessen"
   },
@@ -318,6 +324,9 @@
   "c87aacf567": {
     "translation": "Abmelden"
   },
+  "cbef7ba103": {
+    "translation": "Dieser Raum wird bald schreibgeschützt sein"
+  },
   "cceaefbc20": {
     "translation": "Diese Datei teilen"
   },
@@ -356,6 +365,9 @@
   },
   "e78e14c5f1": {
     "translation": "Anheften"
+  },
+  "ea2301d01c": {
+    "translation": "Nach dem 1. Juli 2025 ist dieser anonyme tldraw-Multiplayer-Raum schreibgeschützt. Um in Zukunft weiterarbeiten zu können, melden Sie sich bitte an und kopieren Sie den Inhalt in Ihre Dateien."
   },
   "ea4788705e": {
     "translation": "Abbrechen"

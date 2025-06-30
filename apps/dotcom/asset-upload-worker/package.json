@@ -9,7 +9,7 @@
 	},
 	"main": "src/index.ts",
 	"scripts": {
-		"dev": "yarn run -T tsx ../../../internal/scripts/workers/dev.ts --persist-to tmp-assets",
+		"dev": "yarn run -T tsx ../../../internal/scripts/workers/dev.ts --persist-to tmp-assets --inspector-port 9449",
 		"test-ci": "lazy inherit --passWithNoTests",
 		"test": "yarn run -T jest --passWithNoTests",
 		"test-coverage": "lazy inherit --passWithNoTests",

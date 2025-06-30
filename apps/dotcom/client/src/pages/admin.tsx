@@ -60,7 +60,16 @@ export function Component() {
 		return <Navigate to="/" replace />
 	}
 	return (
-		<div style={{ flex: 1, overflow: 'scroll', userSelect: 'text' }}>
+		<div
+			style={{
+				display: 'flex',
+				flexDirection: 'column',
+				overflow: 'scroll',
+				userSelect: 'text',
+				padding: '16px',
+				gap: '16px',
+			}}
+		>
 			<h1>Very secret admin page</h1>
 			<div style={{ display: 'flex' }}>
 				<input ref={inputRef} type="text" placeholder="Email or id" />
@@ -85,18 +94,13 @@ export function Component() {
 			{replicatorData && (
 				<pre style={{ userSelect: 'text' }}>{JSON.stringify(replicatorData, null, 2)}</pre>
 			)}
-			<h2>User data</h2>
-			{data && <pre style={{ userSelect: 'text' }}>{JSON.stringify(data, null, 2)}</pre>}
+			<div>
+				<h2>User data</h2>
+				{data && <pre style={{ userSelect: 'text' }}>{JSON.stringify(data, null, 2)}</pre>}
+			</div>
+			<DownloadTldrFile />
+			<CreateLegacyFile />
 			<HardDeleteFile />
-			<button
-				onClick={() =>
-					fetch(`/api/app/admin/create_legacy_file`, { method: 'POST' })
-						.then((res) => res.json())
-						.then(({ slug }) => window.open(`/r/${slug}`, '_blank')?.focus())
-				}
-			>
-				create legacy file
-			</button>
 		</div>
 	)
 }
@@ -105,8 +109,22 @@ function HardDeleteFile() {
 	const inputRef = useRef<HTMLInputElement>(null)
 	const [error, setError] = useState(null as string | null)
 	const onDelete = useCallback(async () => {
+		const fileId = inputRef.current?.value
+		if (!fileId) {
+			setError('Please enter a file ID')
+			return
+		}
+
+		if (
+			!window.confirm(
+				`Are you sure you want to permanently delete file ${fileId}? This action cannot be undone.`
+			)
+		) {
+			return
+		}
+
 		setError(null)
-		const res = await fetch(`/api/app/admin/hard_delete_file/${inputRef.current?.value}`, {
+		const res = await fetch(`/api/app/admin/hard_delete_file/${fileId}`, {
 			method: 'POST',
 		})
 		if (!res.ok) {
@@ -117,13 +135,75 @@ function HardDeleteFile() {
 		}
 	}, [])
 	return (
-		<>
+		<div>
 			<h2>Hard delete file</h2>
 			{error && <div style={{ color: 'red' }}>{error}</div>}
-			<div>
+			<div style={{ display: 'flex', gap: '8px' }}>
 				<input type="text" placeholder="file id" ref={inputRef} />
-				<button onClick={onDelete}>delete (cannot be undone)</button>
+				<button
+					onClick={onDelete}
+					style={{ border: 'none', backgroundColor: '#ff4444', color: 'white' }}
+				>
+					Delete (cannot be undone)
+				</button>
 			</div>
-		</>
+		</div>
+	)
+}
+
+function CreateLegacyFile() {
+	return (
+		<div>
+			<h2>Create legacy file</h2>
+			<button
+				onClick={() =>
+					fetch(`/api/app/admin/create_legacy_file`, { method: 'POST' })
+						.then((res) => res.json())
+						.then(({ slug }) => window.open(`/r/${slug}`, '_blank')?.focus())
+				}
+			>
+				Create legacy file
+			</button>
+		</div>
+	)
+}
+
+function DownloadTldrFile() {
+	const inputRef = useRef<HTMLInputElement>(null)
+	const [error, setError] = useState(null as string | null)
+	const onDownload = useCallback(async () => {
+		setError(null)
+		const fileSlug = inputRef.current?.value
+		if (!fileSlug) {
+			setError('Please enter a file slug')
+			return
+		}
+
+		const res = await fetch(`/api/app/admin/download-tldr/${fileSlug}`)
+		if (!res.ok) {
+			setError(res.statusText + ': ' + (await res.text()))
+			return
+		}
+
+		// Create a blob from the response and trigger download
+		const blob = await res.blob()
+		const url = window.URL.createObjectURL(blob)
+		const a = document.createElement('a')
+		a.href = url
+		a.download = `${fileSlug}.tldr`
+		document.body.appendChild(a)
+		a.click()
+		window.URL.revokeObjectURL(url)
+		document.body.removeChild(a)
+	}, [])
+	return (
+		<div>
+			<h2>Download .tldr file</h2>
+			{error && <div style={{ color: 'red' }}>{error}</div>}
+			<div style={{ display: 'flex', gap: '8px' }}>
+				<input type="text" placeholder="file id" ref={inputRef} />
+				<button onClick={onDownload}>Download</button>
+			</div>
+		</div>
 	)
 }

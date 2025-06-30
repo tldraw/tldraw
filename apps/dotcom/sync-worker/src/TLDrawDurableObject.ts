@@ -49,8 +49,9 @@ import { getRoomDurableObject } from './utils/durableObjects'
 import { isRateLimited } from './utils/rateLimit'
 import { getSlug } from './utils/roomOpenMode'
 import { throttle } from './utils/throttle'
-import { getAuth } from './utils/tla/getAuth'
+import { getAuth, requireAdminAccess, requireWriteAccessToFile } from './utils/tla/getAuth'
 import { getLegacyRoomData } from './utils/tla/getLegacyRoomData'
+import { isTestFile } from './utils/tla/isTestFile'
 
 const MAX_CONNECTIONS = 50
 
@@ -68,6 +69,18 @@ const ROOM_NOT_FOUND = Symbol('room_not_found')
 interface SessionMeta {
 	storeId: string
 	userId: string | null
+}
+
+async function canAccessTestProductionFile(
+	env: Environment,
+	auth: { userId: string } | null
+): Promise<boolean> {
+	try {
+		await requireAdminAccess(env, auth)
+		return true
+	} catch (_e) {
+		return false
+	}
 }
 
 export class TLDrawDurableObject extends DurableObject {
@@ -228,6 +241,11 @@ export class TLDrawDurableObject extends DurableObject {
 			(req) => this.extractDocumentInfoFromRequest(req, ROOM_OPEN_MODE.READ_WRITE),
 			(req) => this.onRestore(req)
 		)
+		.post(
+			`/app/file/:roomId/restore`,
+			(req) => this.extractDocumentInfoFromRequest(req, ROOM_OPEN_MODE.READ_WRITE),
+			(req) => this.onRestore(req)
+		)
 		.all('*', () => new Response('Not found', { status: 404 }))
 
 	readonly scheduler = new AlarmScheduler({
@@ -287,6 +305,9 @@ export class TLDrawDurableObject extends DurableObject {
 	async onRestore(req: IRequest) {
 		this._isRestoring = true
 		try {
+			if (this.documentInfo.isApp) {
+				await requireWriteAccessToFile(req, this.env, this.documentInfo.slug)
+			}
 			const roomId = this.documentInfo.slug
 			const roomKey = getR2KeyForRoom({ slug: roomId, isApp: this.documentInfo.isApp })
 			const timestamp = ((await req.json()) as any).timestamp
@@ -374,6 +395,11 @@ export class TLDrawDurableObject extends DurableObject {
 				if (file.isDeleted) {
 					return closeSocket(TLSyncErrorCloseEventReason.NOT_FOUND)
 				}
+
+				if (isTestFile(file.id) && !(await canAccessTestProductionFile(this.env, auth))) {
+					return closeSocket(TLSyncErrorCloseEventReason.NOT_FOUND)
+				}
+
 				if (!auth && !file.shared) {
 					return closeSocket(TLSyncErrorCloseEventReason.NOT_AUTHENTICATED)
 				}

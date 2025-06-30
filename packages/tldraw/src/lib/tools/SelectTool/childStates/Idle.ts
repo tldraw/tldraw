@@ -14,6 +14,7 @@ import {
 	VecLike,
 	createShapeId,
 	debugFlags,
+	kickoutOccludedShapes,
 	pointInPolygon,
 	toRichText,
 } from '@tldraw/editor'
@@ -21,7 +22,7 @@ import { getHitShapeOnCanvasPointerDown } from '../../selection-logic/getHitShap
 import { getShouldEnterCropMode } from '../../selection-logic/getShouldEnterCropModeOnPointerDown'
 import { selectOnCanvasPointerUp } from '../../selection-logic/selectOnCanvasPointerUp'
 import { updateHoveredShapeId } from '../../selection-logic/updateHoveredShapeId'
-import { kickoutOccludedShapes, startEditingShapeWithLabel } from '../selectHelpers'
+import { startEditingShapeWithLabel } from '../selectHelpers'
 
 const SKIPPED_KEYS_FOR_AUTO_EDITING = [
 	'Delete',
@@ -594,13 +595,12 @@ export class Idle extends StateNode {
 	isOverArrowLabelTest(shape: TLShape | undefined) {
 		if (!shape) return false
 
-		const pointInShapeSpace = this.editor.getPointInShapeSpace(
-			shape,
-			this.editor.inputs.currentPagePoint
-		)
-
 		// todo: Extract into general hit test for arrows
 		if (this.editor.isShapeOfType<TLArrowShape>(shape, 'arrow')) {
+			const pointInShapeSpace = this.editor.getPointInShapeSpace(
+				shape,
+				this.editor.inputs.currentPagePoint
+			)
 			// How should we handle multiple labels? Do shapes ever have multiple labels?
 			const labelGeometry = this.editor.getShapeGeometry<Group2d>(shape).children[1]
 			// Knowing what we know about arrows... if the shape has no text in its label,
@@ -625,6 +625,7 @@ export class Idle extends StateNode {
 
 		const { x, y } = this.editor.inputs.currentPagePoint
 
+		// Allow this to trigger the max shapes reached alert
 		this.editor.createShapes<TLTextShape>([
 			{
 				id,

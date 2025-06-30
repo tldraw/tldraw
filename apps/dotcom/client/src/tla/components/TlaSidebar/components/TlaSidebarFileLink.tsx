@@ -84,7 +84,7 @@ export function TlaSidebarFileLink({ item, testId }: { item: RecentFile; testId:
 					handleRenameAction={handleRenameAction}
 				/>
 			</_ContextMenu.Trigger>
-			<_ContextMenu.Content className="tlui-menu scrollable">
+			<_ContextMenu.Content className="tlui-menu tlui-scrollable">
 				{/* Don't show the context menu on mobile */}
 				{!isMobile && (
 					<TldrawUiMenuContextProvider type="context-menu" sourceId="context-menu">
@@ -173,6 +173,7 @@ export function TlaSidebarFileLinkInner({
 			// We use this id to scroll the active file link into view when creating or deleting files.
 			id={isActive ? ACTIVE_FILE_LINK_ID : undefined}
 			role="listitem"
+			draggable={false}
 		>
 			<Link
 				ref={linkRef}
@@ -191,6 +192,7 @@ export function TlaSidebarFileLinkInner({
 				}}
 				to={href}
 				className={styles.sidebarFileListItemButton}
+				draggable={false}
 			/>
 			<div className={styles.sidebarFileListItemContent}>
 				<div

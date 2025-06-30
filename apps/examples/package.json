@@ -43,7 +43,6 @@
 		"@tldraw/dotcom-shared": "workspace:*",
 		"@tldraw/state": "workspace:*",
 		"@tldraw/sync": "workspace:*",
-		"@vercel/analytics": "^1.4.1",
 		"ag-grid-community": "^32.3.3",
 		"ag-grid-react": "^32.3.3",
 		"axe-core": "^4.10.3",

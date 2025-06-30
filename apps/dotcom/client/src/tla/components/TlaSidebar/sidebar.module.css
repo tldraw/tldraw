@@ -221,7 +221,7 @@
 	display: flex;
 	align-items: center;
 	padding-right: 6px;
-	padding-left: 2px;
+	padding-left: 8px;
 	background-color: var(--tla-color-sidebar);
 	overflow: hidden;
 	padding-bottom: 1px;
@@ -329,6 +329,7 @@
 	display: flex;
 	gap: 4px;
 	flex-wrap: wrap;
+	justify-content: space-between;
 }
 
 .sidebarCookieButton {
@@ -346,13 +347,14 @@
 }
 
 .sidebarCookieAcceptButton {
-	color: var(--tla-color-sidebar);
-	background-color: var(--tla-color-cta);
+	color: var(--tla-color-contrast);
+	background-color: var(--tla-color-primary);
 }
 
 @media (hover: hover) {
 	.sidebarCookieAcceptButton:hover {
-		color: var(--tla-color-sidebar);
+		color: var(--tla-color-contrast);
+		background-color: var(--tla-color-primary-hover);
 	}
 }
 
@@ -473,9 +475,12 @@
 
 /* ---------------- File link section --------------- */
 
+.sidebarFileSectionWrapper {
+	padding-top: 8px;
+}
+
 .sidebarFileSection {
 	background: var(--tla-color-sidebar);
-	padding-top: 8px;
 }
 
 .sidebarFileSectionTitle {
@@ -490,6 +495,10 @@
 	gap: 4px;
 	font-weight: bold;
 	color: var(--tla-color-text-3);
+}
+
+.sidebarFileSectionTitlePadding span[role='img'] {
+	margin-bottom: 1px;
 }
 
 /* ------------------- File links ------------------- */

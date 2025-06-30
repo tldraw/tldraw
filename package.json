@@ -91,7 +91,7 @@
 		"@types/aws-lambda": "8.10.148",
 		"@types/glob": "^8.1.0",
 		"@types/jest": "^29.5.14",
-		"@types/node": "~20.11.30",
+		"@types/node": "^22.15.31",
 		"@types/react": "^18.3.18",
 		"@types/react-dom": "^18.3.5",
 		"@types/semver": "^7.5.8",
@@ -129,13 +129,14 @@
 		"domino@^2.1.6": "patch:domino@npm%3A2.1.6#./.yarn/patches/domino-npm-2.1.6-b0dc3de857.patch",
 		"canvas": "npm:empty-npm-package@1.0.0",
 		"@microsoft/tsdoc@npm:~0.15.1": "patch:@microsoft/tsdoc@npm%3A0.15.1#~/.yarn/patches/@microsoft-tsdoc-npm-0.15.1-e24295d9bd.patch",
-		"@microsoft/tsdoc@npm:0.15.1": "patch:@microsoft/tsdoc@npm%3A0.15.1#~/.yarn/patches/@microsoft-tsdoc-npm-0.15.1-e24295d9bd.patch"
+		"@microsoft/tsdoc@npm:0.15.1": "patch:@microsoft/tsdoc@npm%3A0.15.1#~/.yarn/patches/@microsoft-tsdoc-npm-0.15.1-e24295d9bd.patch",
+		"@types/node": "22.15.31"
 	},
 	"dependencies": {
 		"@sentry/cli": "^2.41.1",
 		"@yarnpkg/types": "^4.0.0",
 		"cross-env": "^7.0.3",
-		"esbuild": "^0.24.2",
+		"esbuild": "^0.25.0",
 		"mime": "^4.0.6",
 		"purgecss": "^5.0.0",
 		"sst": "^3.10.13",

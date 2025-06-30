@@ -134,6 +134,7 @@ a {
 	position: absolute;
 	align-items: center;
 	justify-content: center;
+	padding: 0px 12px;
 }
 
 .error-page__container {
@@ -154,7 +155,7 @@ a {
 
 /* text-header mb-sm */
 .error-page__content h1 {
-	font-size: 20px;
+	font-size: 18px;
 	font-weight: 800;
 	margin-bottom: 0.5rem;
 }
@@ -178,6 +179,8 @@ a {
 
 .board-history {
 	padding: 64px;
+	height: 100%;
+	overflow: scroll;
 }
 
 .board-history__list {

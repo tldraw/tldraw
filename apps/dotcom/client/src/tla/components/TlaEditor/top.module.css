@@ -3,7 +3,7 @@
 .topLeftOfflineLogo {
 	color: var(--tla-color-text-1);
 	margin-top: -4px;
-	padding: 4px 8px 4px 4px;
+	padding: 4px 8px 4px 10px;
 	height: 40px;
 	display: flex;
 	align-items: center;
@@ -22,14 +22,14 @@
 	border-bottom-right-radius: 11px;
 	padding-left: 2px;
 	width: 100%;
+	max-width: 100%;
 	min-width: 0px;
 	overflow: hidden;
-	color: var(--color-text-1);
+	color: var(--tla-color-text-1);
 }
 
 .topLeftPanelButtons {
 	position: relative;
-	flex-shrink: 0;
 	z-index: 1;
 	display: flex;
 	width: 100%;
@@ -40,6 +40,7 @@
 
 @media (min-width: 768px) {
 	.topLeftPanel {
+		max-width: 100%;
 		width: auto;
 	}
 	.topLeftPanelButtons {
@@ -49,7 +50,6 @@
 
 .topLeftPanel > button:nth-last-of-type(1) {
 	position: relative;
-	flex-shrink: 0;
 	z-index: 2;
 }
 
@@ -57,6 +57,7 @@
 	color: var(--color-text-3);
 	pointer-events: none;
 	padding: 0px 4px;
+	flex-shrink: 0;
 }
 
 .topLeftPanelSeparator:nth-last-of-type(1) {
@@ -69,7 +70,7 @@
 	align-items: center;
 	justify-content: center;
 	max-width: 100%;
-	min-width: 0px;
+	min-width: 64px;
 	height: 40px;
 	margin-left: -4px;
 	margin-right: -4px;
@@ -86,7 +87,7 @@
 	z-index: 1;
 	width: fit-content;
 	max-width: 320px;
-	min-width: 0px;
+	width: 100%;
 	white-space: no-wrap;
 	text-overflow: ellipsis;
 	overflow: hidden;
@@ -94,6 +95,7 @@
 	pointer-events: none;
 	padding: 0px 12px;
 	font-weight: 800;
+	flex-shrink: 0;
 }
 
 .topLeftInputNameWidthSetter:focus-visible {
@@ -110,7 +112,7 @@ button.topLeftInputNameWidthSetter {
 	pointer-events: all;
 	height: 100%;
 	min-width: 0px;
-	color: var(--color-text-1);
+	color: var(--tla-color-text-1);
 }
 
 .topLeftInputWrapper > div:nth-of-type(1) {
@@ -125,7 +127,7 @@ button.topLeftInputNameWidthSetter {
 	padding: 0px 12px 1px 12px;
 	height: 100%;
 	font-weight: 800;
-	color: var(--color-text-1);
+	color: var(--tla-color-text-1);
 }
 
 .topLeftInputWrapper input:focus-visible {
@@ -192,7 +194,7 @@ button.topLeftInputNameWidthSetter {
 
 @media (hover: hover) {
 	.topLeftMainMenuTrigger:hover {
-		color: var(--color-text-1);
+		color: var(--tla-color-text-1);
 	}
 
 	.topLeftMainMenuTrigger:hover::after {
@@ -257,7 +259,7 @@ button.topLeftInputNameWidthSetter {
 	position: relative;
 	cursor: pointer;
 	z-index: 1;
-	color: var(--color-text-1);
+	color: var(--tla-color-text-1);
 }
 
 .topRightAnonShareButton::before {

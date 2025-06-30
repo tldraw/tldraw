@@ -591,14 +591,6 @@ export class Box {
 		return b.x === a.x && b.y === a.y && b.w === a.w && b.h === a.h
 	}
 
-	prettyMuchEquals(other: Box | BoxModel) {
-		return this.clone().toFixed().equals(Box.From(other).toFixed())
-	}
-
-	static PrettyMuchEquals(a: Box | BoxModel, b: Box | BoxModel) {
-		return b.x === a.x && b.y === a.y && b.w === a.w && b.h === a.h
-	}
-
 	zeroFix() {
 		this.w = Math.max(1, this.w)
 		this.h = Math.max(1, this.h)

@@ -181,6 +181,7 @@ function BookmarkShapeComponent({ shape }: { shape: TLBookmarkShape }) {
 						href={shape.props.url || ''}
 						target="_blank"
 						rel="noopener noreferrer"
+						draggable={false}
 						onPointerDown={useStopPropagationOnShiftKey}
 						onPointerUp={useStopPropagationOnShiftKey}
 					>
