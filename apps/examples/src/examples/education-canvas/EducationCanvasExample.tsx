@@ -252,7 +252,7 @@ export default function EducationCanvasExample() {
 								<input
 									type="text"
 									className="answer-input"
-									placeholder="Enter the area (include units)"
+									placeholder="Enter the area"
 									value={answers.partB}
 									onChange={(e) => handleAnswerChange('partB', e.target.value)}
 								/>
