@@ -1,17 +1,5 @@
 import { memo, useCallback, useEffect, useRef, useState } from 'react'
-import {
-	Box,
-	DefaultToolbar,
-	Editor,
-	TLCameraOptions,
-	TLComponents,
-	Tldraw,
-	TldrawUiMenuItem,
-	track,
-	useEditor,
-	useIsToolSelected,
-	useTools,
-} from 'tldraw'
+import { Box, Editor, TLCameraOptions, TLComponents, Tldraw, track, useEditor } from 'tldraw'
 import 'tldraw/tldraw.css'
 import './education-canvas.css'
 
@@ -130,31 +118,8 @@ const CartesianGrid = memo(function CartesianGrid() {
 	)
 })
 
-function CustomToolbar() {
-	const tools = useTools()
-	const isSelectToolSelected = useIsToolSelected(tools['select'])
-	const isHandToolSelected = useIsToolSelected(tools['hand'])
-	const isDrawToolSelected = useIsToolSelected(tools['draw'])
-	const isEraserToolSelected = useIsToolSelected(tools['eraser'])
-	const isLineToolSelected = useIsToolSelected(tools['line'])
-	const isTextToolSelected = useIsToolSelected(tools['text'])
-	return (
-		<div>
-			<DefaultToolbar>
-				<TldrawUiMenuItem {...tools['select']} isSelected={isSelectToolSelected} />
-				<TldrawUiMenuItem {...tools['hand']} isSelected={isHandToolSelected} />
-				<TldrawUiMenuItem {...tools['draw']} isSelected={isDrawToolSelected} />
-				<TldrawUiMenuItem {...tools['eraser']} isSelected={isEraserToolSelected} />
-				<TldrawUiMenuItem {...tools['line']} isSelected={isLineToolSelected} />
-				<TldrawUiMenuItem {...tools['text']} isSelected={isTextToolSelected} />
-			</DefaultToolbar>
-		</div>
-	)
-}
-
 const components: TLComponents = {
 	OnTheCanvas: CartesianGrid,
-	Toolbar: CustomToolbar,
 }
 
 export default function EducationCanvasExample() {
@@ -309,6 +274,15 @@ export default function EducationCanvasExample() {
 						persistenceKey="education-canvas"
 						components={components}
 						onMount={handleMount}
+						overrides={{
+							tools: (_editor, tools) => {
+								const allowedTools = ['select', 'hand', 'draw', 'eraser', 'line', 'text']
+								const filteredTools = Object.fromEntries(
+									Object.entries(tools).filter(([key]) => allowedTools.includes(key))
+								)
+								return filteredTools
+							},
+						}}
 					>
 						<CameraSetup />
 					</Tldraw>
