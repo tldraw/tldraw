@@ -524,6 +524,205 @@ If the structure of your binding needs to change over time, you can provide
 [migrations](/docs/persistence#Shape-props-migrations) describing how old stored bindings can be
 brought up to date.
 
+### Complete binding example
+
+Here's a complete example that creates a "magnet" binding system where magnet shapes stick to other shapes and follow them around:
+
+#### Step 1: Define the binding type
+
+```ts
+import { TLBaseBinding, VecModel } from 'tldraw'
+
+type MagnetBinding = TLBaseBinding<
+	'magnet',
+	{
+		// The anchor point on the target shape (0,0 = top-left, 1,1 = bottom-right)
+		anchor: VecModel
+		// Optional offset from the anchor point
+		offset: VecModel
+	}
+>
+```
+
+#### Step 2: Create the BindingUtil class
+
+```ts
+import { 
+	BindingUtil, 
+	BindingOnShapeChangeOptions, 
+	BindingOnShapeDeleteOptions,
+	Box,
+	lerp,
+	invLerp
+} from 'tldraw'
+
+class MagnetBindingUtil extends BindingUtil<MagnetBinding> {
+	static override type = 'magnet' as const
+
+	// Define default properties for new bindings
+	override getDefaultProps() {
+		return {
+			anchor: { x: 0.5, y: 0.5 }, // Center of the target shape
+			offset: { x: 0, y: 0 }      // No offset by default
+		}
+	}
+
+	// Called when the target shape (toShape) changes
+	override onAfterChangeToShape({ binding, shapeAfter }: BindingOnShapeChangeOptions<MagnetBinding>) {
+		const magnet = this.editor.getShape(binding.fromId)
+		if (!magnet) return
+
+		// Get the target shape's bounds
+		const targetBounds = this.editor.getShapeGeometry(shapeAfter)!.bounds
+		
+		// Calculate where the anchor point is on the target shape
+		const anchorPoint = {
+			x: lerp(targetBounds.minX, targetBounds.maxX, binding.props.anchor.x),
+			y: lerp(targetBounds.minY, targetBounds.maxY, binding.props.anchor.y)
+		}
+
+		// Apply the offset
+		const finalPoint = {
+			x: anchorPoint.x + binding.props.offset.x,
+			y: anchorPoint.y + binding.props.offset.y
+		}
+
+		// Convert to page coordinates
+		const pagePoint = this.editor.getShapePageTransform(shapeAfter).applyToPoint(finalPoint)
+		
+		// Convert to the magnet's parent coordinates
+		const magnetParentPoint = this.editor
+			.getShapeParentTransform(magnet)
+			.invert()
+			.applyToPoint(pagePoint)
+
+		// Update the magnet's position
+		this.editor.updateShape({
+			id: magnet.id,
+			type: magnet.type,
+			x: magnetParentPoint.x,
+			y: magnetParentPoint.y,
+		})
+	}
+
+	// Called when the target shape is deleted
+	override onBeforeDeleteToShape({ binding }: BindingOnShapeDeleteOptions<MagnetBinding>) {
+		// When the target is deleted, delete the magnet too
+		this.editor.deleteShape(binding.fromId)
+	}
+}
+```
+
+#### Step 3: Create a magnet shape
+
+```ts
+import { ShapeUtil, TLBaseShape, Rectangle2d, HTMLContainer, RecordProps, T } from 'tldraw'
+
+type MagnetShape = TLBaseShape<'magnet', { color: string }>
+
+class MagnetShapeUtil extends ShapeUtil<MagnetShape> {
+	static override type = 'magnet' as const
+	static override props: RecordProps<MagnetShape> = {
+		color: T.string,
+	}
+
+	override getDefaultProps() {
+		return { color: 'red' }
+	}
+
+	override canBind() {
+		return true // Magnets can bind to other shapes
+	}
+
+	override getGeometry() {
+		return new Rectangle2d({ width: 24, height: 24, isFilled: true })
+	}
+
+	override component(shape: MagnetShape) {
+		return (
+			<HTMLContainer style={{ 
+				backgroundColor: shape.props.color,
+				width: 24,
+				height: 24,
+				borderRadius: '50%',
+				border: '2px solid black'
+			}} />
+		)
+	}
+
+	override indicator() {
+		return <rect width={24} height={24} />
+	}
+
+	// When the magnet is moved, create or update the binding
+	override onTranslateEnd(_initial: MagnetShape, magnet: MagnetShape) {
+		const magnetCenter = this.editor.getShapePageTransform(magnet).applyToPoint({ x: 12, y: 12 })
+		
+		// Find a shape to attach to (excluding the magnet itself)
+		const target = this.editor.getShapeAtPoint(magnetCenter, {
+			hitInside: true,
+			filter: (shape) => 
+				shape.id !== magnet.id && 
+				this.editor.canBindShapes({ fromShape: magnet, toShape: shape, binding: 'magnet' })
+		})
+
+		// Remove any existing bindings
+		const existingBindings = this.editor.getBindingsFromShape(magnet, 'magnet')
+		this.editor.deleteBindings(existingBindings)
+
+		if (target) {
+			// Calculate the anchor point on the target shape
+			const targetBounds = this.editor.getShapeGeometry(target)!.bounds
+			const pointInTargetSpace = this.editor.getPointInShapeSpace(target, magnetCenter)
+			
+			const anchor = {
+				x: invLerp(targetBounds.minX, targetBounds.maxX, pointInTargetSpace.x),
+				y: invLerp(targetBounds.minY, targetBounds.maxY, pointInTargetSpace.y),
+			}
+
+			// Create the binding
+			this.editor.createBinding({
+				type: 'magnet',
+				fromId: magnet.id,
+				toId: target.id,
+				props: { anchor, offset: { x: 0, y: 0 } }
+			})
+		}
+	}
+}
+```
+
+#### Step 4: Use the binding in your app
+
+```tsx
+import { Tldraw } from 'tldraw'
+
+export default function MagnetExample() {
+	return (
+		<Tldraw
+			shapeUtils={[MagnetShapeUtil]}
+			bindingUtils={[MagnetBindingUtil]}
+			onMount={(editor) => {
+				// Create some shapes to demonstrate
+				editor.createShapes([
+					{ type: 'geo', x: 100, y: 100, props: { w: 100, h: 100, geo: 'rectangle' } },
+					{ type: 'magnet', x: 150, y: 150, props: { color: 'red' } }
+				])
+			}}
+		/>
+	)
+}
+```
+
+This example demonstrates:
+
+- **Binding lifecycle**: How bindings respond to shape changes and deletions
+- **Coordinate transformations**: Converting between different coordinate spaces
+- **Anchor points**: Using normalized coordinates to attach to specific points on shapes
+- **Integration**: How to combine custom shapes with custom bindings
+
+The magnet shapes will stick to other shapes when dropped on them, and automatically follow when the target shape is moved, rotated, or resized. When the target shape is deleted, the magnet is deleted too.
+
 ## Image exports
 
 You can export the contents of the canvas to an image with [`Editor#toImage`](?).
