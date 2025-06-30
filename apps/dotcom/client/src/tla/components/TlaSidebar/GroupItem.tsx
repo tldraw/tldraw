@@ -68,7 +68,7 @@ export function GroupItem({ id }: { id: string }) {
 	const group = useValue(
 		'group',
 		() => {
-			return app.getGroup(id)
+			return app.getGroupMembership(id)
 		},
 		[app]
 	)

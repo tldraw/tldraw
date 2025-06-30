@@ -310,7 +310,7 @@ export class TldrawApp {
 		return this.groupMemberships$.get()
 	}
 
-	getGroup(groupId: string) {
+	getGroupMembership(groupId: string) {
 		return this.groupMemberships$.get().find((g) => g.groupId === groupId)
 	}
 
