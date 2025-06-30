@@ -114,8 +114,12 @@ export function createMutators(userId: string) {
 				assert(isOwner || hasGroupAccess, ZErrorCode.forbidden)
 
 				// don't allow changing ownership in this mutator
-				assert(_file.ownerId === file.ownerId, ZErrorCode.forbidden)
-				assert(_file.owningGroupId === file.owningGroupId, ZErrorCode.forbidden)
+				if ('ownerId' in _file) {
+					assert(_file.ownerId === file.ownerId, ZErrorCode.forbidden)
+				}
+				if ('owningGroupId' in _file) {
+					assert(_file.owningGroupId === file.owningGroupId, ZErrorCode.forbidden)
+				}
 
 				await tx.mutate.file.update({
 					..._file,

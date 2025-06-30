@@ -559,29 +559,32 @@ export class UserDataSyncer {
 				.map((ev) => ({ row: ev.row, event: { command: ev.event, table: ev.table } }))
 		)
 
-		// if the new subscription is from current user to a file, we can add the file to the store
-		// directly instead of doing a hard reboot
-		for (const update of topicUpdates.newSubscriptions ?? []) {
-			if (update.fromTopic !== `user:${this.userId}` || !update.toTopic.startsWith('file:')) {
-				this.reboot({ hard: true, delay: false, source: 'handleReplicationEvent(hard reboot)' })
-				return
-			}
-			const fileId = update.toTopic.split(':')[1]
-			if (!this.store.getCommittedData()?.file.find((f) => f.id === fileId)) {
-				this.addGuestFile(fileId)
-			}
+		if (topicUpdates.removedSubscriptions && topicUpdates.removedSubscriptions.length > 0) {
+			this.reboot({
+				hard: true,
+				delay: false,
+				source: 'handleReplicationEvent(removed subscription)',
+			})
+			return
 		}
 
-		// if the removed subscription is from current user to a file, we can remove the file from the store
-		// directly instead of doing a hard reboot
-		for (const update of topicUpdates.removedSubscriptions ?? []) {
-			if (update.fromTopic !== `user:${this.userId}` || !update.toTopic.startsWith('file:')) {
-				this.reboot({ hard: true, delay: false, source: 'handleReplicationEvent(hard reboot)' })
+		// if we encounter a new subscription for the user to a file, and the file is not in the store,
+		// we can add the file to the store directly instead of doing a hard reboot
+		for (const update of topicUpdates.newSubscriptions ?? []) {
+			// Only handle user-to-file subscriptions, reboot for everything else
+			if (update.fromTopic === `user:${this.userId}` && update.toTopic.startsWith('file:')) {
+				const fileId = update.toTopic.split(':')[1]
+				if (!this.store.getCommittedData()?.file.find((f) => f.id === fileId)) {
+					this.log.debug('new subscription, adding guest file', fileId)
+					this.addGuestFile(fileId)
+				}
+			} else {
+				this.reboot({
+					hard: true,
+					delay: false,
+					source: 'handleReplicationEvent(new subscription)',
+				})
 				return
-			}
-			const fileId = update.toTopic.split(':')[1]
-			if (this.store.getCommittedData()?.file.find((f) => f.id === fileId)) {
-				this.removeGuestFile(fileId)
 			}
 		}
 
