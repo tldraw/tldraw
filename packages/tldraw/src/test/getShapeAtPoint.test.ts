@@ -171,6 +171,48 @@ describe('with filter', () => {
 	})
 })
 
+describe('checkbox geo shapes', () => {
+	it('selects checkbox shape when filled and in front of another filled shape', () => {
+		// Clear existing shapes
+		editor.selectAll().deleteShapes(editor.getSelectedShapes())
+		
+		// Create a filled checkbox shape in front of a filled rectangle
+		const checkboxId = createShapeId('checkbox')
+		const backgroundId = createShapeId('background')
+		
+		editor.createShapes([
+			{ id: backgroundId, type: 'geo', x: 100, y: 100, props: { w: 200, h: 200, fill: 'solid' } },
+			{ id: checkboxId, type: 'geo', x: 150, y: 150, props: { w: 100, h: 100, geo: 'check-box', fill: 'solid' } },
+		])
+
+		// Test that clicking on the checkmark area selects the checkbox shape, not the background
+		const result = editor.getShapeAtPoint({ x: 180, y: 180 }, { hitInside: true })
+		expect(result?.id).toBe(checkboxId)
+	})
+
+	it('selects checkbox shape when unfilled and in front of another filled shape', () => {
+		// Clear existing shapes
+		editor.selectAll().deleteShapes(editor.getSelectedShapes())
+		
+		// Create an unfilled checkbox shape in front of a filled rectangle
+		const checkboxId = createShapeId('checkbox2')
+		const backgroundId = createShapeId('background2')
+		
+		editor.createShapes([
+			{ id: backgroundId, type: 'geo', x: 100, y: 100, props: { w: 200, h: 200, fill: 'solid' } },
+			{ id: checkboxId, type: 'geo', x: 150, y: 150, props: { w: 100, h: 100, geo: 'check-box', fill: 'none' } },
+		])
+
+		// Test that clicking on the checkbox border selects the checkbox shape
+		const result = editor.getShapeAtPoint({ x: 150, y: 175 }, { margin: 5 })
+		expect(result?.id).toBe(checkboxId)
+		
+		// Test that clicking in the empty center area doesn't select the checkbox but selects the background
+		const centerResult = editor.getShapeAtPoint({ x: 200, y: 200 }, { hitInside: true })
+		expect(centerResult?.id).toBe(backgroundId)
+	})
+})
+
 describe('frames', () => {
 	it('hits frame label', () => {
 		editor

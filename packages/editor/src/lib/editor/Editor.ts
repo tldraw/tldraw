@@ -5240,6 +5240,8 @@ export class Editor extends EventEmitter<TLEventMap> {
 				let minDistance = Infinity
 				for (const childGeometry of geometry.children) {
 					if (childGeometry.isLabel && !hitLabels) continue
+					// Skip internal geometries (like checkmarks) unless they're filled
+					if (childGeometry.isInternal && !childGeometry.isFilled) continue
 
 					// hit test the all of the child geometries that aren't labels
 					const tDistance = childGeometry.distanceToPoint(pointInShapeSpace, hitInside)
