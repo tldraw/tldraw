@@ -79,14 +79,18 @@ export function SneakyLegacyModal() {
 	const location = useLocation()
 	const { isSignedIn } = useAuth()
 	const [searchParams, setSearchParams] = useSearchParams()
+	const app = useMaybeApp()
 
 	useEffect(() => {
 		if (!location.pathname.startsWith(`/${ROOM_PREFIX}/`)) {
 			return
 		}
 
-		const hasShownModal = searchParams.get('shownLegacyModal') === 'true'
-		if (hasShownModal) {
+		// We might have shown the modal before. If that's the case, we don't show it again.
+		// In case the user has no files, we show the modal anyway, so they can copy the room to their files.
+		const dontShowModal =
+			searchParams.get('shownLegacyModal') === 'true' && app?.getUserOwnFiles().length !== 0
+		if (dontShowModal) {
 			return
 		}
 
@@ -102,6 +106,6 @@ export function SneakyLegacyModal() {
 		return () => {
 			removeDialog(id)
 		}
-	}, [addDialog, removeDialog, location.pathname, searchParams, isSignedIn, setSearchParams])
+	}, [addDialog, removeDialog, location.pathname, searchParams, isSignedIn, setSearchParams, app])
 	return null
 }
