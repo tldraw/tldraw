@@ -1941,7 +1941,7 @@ describe('snapping', () => {
 		expect(editor.snaps.getIndicators().length).toBe(0)
 	})
 
-	it('does not happen between children and thier group', () => {
+	it('does not happen between children and their group', () => {
 		editor.select(ids.boxD)
 		editor.pointerDown(65, 5, ids.boxD)
 		editor.pointerMove(80, 105, ids.boxD, { ctrlKey: true })
