@@ -107,7 +107,7 @@ export function FileItems({
 	const hasGroups = useHasFlag('groups')
 
 	// Get groups data
-	const groupUsers = useValue('groupUsers', () => app.getGroupMemberships(), [app])
+	const groupMembers = useValue('groupMembers', () => app.getGroupMemberships(), [app])
 
 	const handleCopyLinkClick = useCallback(() => {
 		const url = routes.tlaFile(fileId, { asUrl: true })
@@ -217,10 +217,10 @@ export function FileItems({
 					onSelect={handleDeleteClick}
 				/>
 			</TldrawUiMenuGroup>
-			{hasGroups && groupUsers.length > 0 && (
+			{hasGroups && groupMembers.length > 0 && (
 				<TldrawUiMenuGroup id="file-groups">
 					<TldrawUiMenuSubmenu id="move-to-group" label={'Move to group'} size="small">
-						{groupUsers.map((groupUser) => (
+						{groupMembers.map((groupUser) => (
 							<TldrawUiMenuItem
 								key={groupUser.groupId}
 								label={groupUser.group.name}
@@ -233,7 +233,7 @@ export function FileItems({
 						))}
 					</TldrawUiMenuSubmenu>
 					<TldrawUiMenuSubmenu id="link-in-group" label={'Link in group'} size="small">
-						{groupUsers.map((groupUser) => (
+						{groupMembers.map((groupUser) => (
 							<TldrawUiMenuItem
 								key={groupUser.groupId}
 								label={groupUser.group.name}

@@ -9,7 +9,7 @@ export function TempGroupsUi() {
 	const hasGroupsFlag = useHasFlag('groups')
 	const app = useApp()
 
-	const groupUsers = useValue('groupUsers', () => app.getGroupMemberships(), [app])
+	const groupMembers = useValue('groupMembers', () => app.getGroupMemberships(), [app])
 
 	if (!hasGroupsFlag) return null
 
@@ -31,8 +31,8 @@ export function TempGroupsUi() {
 					<TlaIcon icon="plus" />
 				</button>
 			</div>
-			{groupUsers.map((group) => (
-				<GroupItem key={group.groupId} id={group.groupId} />
+			{groupMembers.map((groupMember) => (
+				<GroupItem key={groupMember.groupId} id={groupMember.groupId} />
 			))}
 		</div>
 	)
