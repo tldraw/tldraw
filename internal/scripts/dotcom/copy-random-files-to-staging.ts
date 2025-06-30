@@ -114,11 +114,12 @@ async function copyFilesToStaging(fileIds: string[]) {
 					isEmpty: false,
 					isDeleted: false,
 					createSource: null,
+					owningGroupId: null,
 				}
 
 				const insertQuery = `
-					INSERT INTO file (id, name, "ownerId", "ownerName", "ownerAvatar", thumbnail, shared, "sharedLinkType", published, "lastPublished", "publishedSlug", "createdAt", "updatedAt", "isEmpty", "isDeleted")
-					VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15)
+					INSERT INTO file (id, name, "ownerId", "ownerName", "ownerAvatar", thumbnail, shared, "sharedLinkType", published, "lastPublished", "publishedSlug", "createdAt", "updatedAt", "isEmpty", "isDeleted", "owningGroupId")
+					VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15, $16)
 				`
 				await stagingClient.query(insertQuery, [
 					testFile.id,
@@ -136,6 +137,7 @@ async function copyFilesToStaging(fileIds: string[]) {
 					testFile.updatedAt,
 					testFile.isEmpty,
 					testFile.isDeleted,
+					testFile.owningGroupId,
 				])
 
 				copiedIds.push(newId)
