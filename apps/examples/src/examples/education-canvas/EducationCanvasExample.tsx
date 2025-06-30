@@ -276,11 +276,16 @@ export default function EducationCanvasExample() {
 						onMount={handleMount}
 						overrides={{
 							tools: (_editor, tools) => {
+								// These are the tool ids that are allowed to be used in the education canvas...
 								const allowedTools = ['select', 'hand', 'draw', 'eraser', 'line', 'text']
-								const filteredTools = Object.fromEntries(
-									Object.entries(tools).filter(([key]) => allowedTools.includes(key))
-								)
-								return filteredTools
+								// Tools are keyed by their id, so we can delete off all the tools that are not in the allowedTools array
+								for (const key in tools) {
+									if (!allowedTools.includes(key)) {
+										delete tools[key]
+									}
+								}
+								// Return the mutated tools
+								return tools
 							},
 						}}
 					>
