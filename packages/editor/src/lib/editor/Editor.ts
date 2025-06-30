@@ -5196,8 +5196,8 @@ export class Editor extends EventEmitter<TLEventMap> {
 			// Check labels first
 			if (
 				this.isShapeOfType<TLFrameShape>(shape, 'frame') ||
-				(this.isShapeOfType<TLArrowShape>(shape, 'arrow') && shape.props.text.trim()) ||
 				((this.isShapeOfType<TLNoteShape>(shape, 'note') ||
+					this.isShapeOfType<TLArrowShape>(shape, 'arrow') ||
 					(this.isShapeOfType<TLGeoShape>(shape, 'geo') && shape.props.fill === 'none')) &&
 					this.getShapeUtil(shape).getText(shape)?.trim())
 			) {
