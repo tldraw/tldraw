@@ -17,13 +17,19 @@ export class Group2d extends Geometry2d {
 	) {
 		super({ ...config, isClosed: true, isFilled: false })
 
-		for (const child of config.children) {
-			if (child.ignore) {
-				this.ignoredChildren.push(child)
-			} else {
-				this.children.push(child)
+		const addChildren = (children: Geometry2d[]) => {
+			for (const child of children) {
+				if (child instanceof Group2d) {
+					addChildren(child.children)
+				} else if (child.ignore) {
+					this.ignoredChildren.push(child)
+				} else {
+					this.children.push(child)
+				}
 			}
 		}
+
+		addChildren(config.children)
 
 		if (this.children.length === 0) throw Error('Group2d must have at least one child')
 	}
