@@ -859,6 +859,8 @@ export class TLDrawDurableObject extends DurableObject {
 	}
 
 	private async updatePresence() {
+		// it would be wise to perf test this in production before switching it on for everyone
+		if (this.env.TLDRAW_ENV === 'production') return
 		if (!this.documentInfo?.isApp) return
 		if (!this._room) {
 			await this.db
