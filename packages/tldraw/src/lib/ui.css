@@ -1716,6 +1716,7 @@
 	position: relative;
 	font-size: 10px;
 	font-weight: bold;
+	text-align: center;
 	color: var(--color-selected-contrast);
 	z-index: 2;
 }
