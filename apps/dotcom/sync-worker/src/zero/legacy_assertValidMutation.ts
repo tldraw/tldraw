@@ -7,12 +7,12 @@ import {
 	ZErrorCode,
 	ZRowUpdate,
 } from '@tldraw/dotcom-shared'
-import { PoolClient } from 'pg'
+import { PostgresPoolClient } from 'kysely'
 import { ZMutationError } from './ZMutationError'
 
 export async function legacy_assertValidMutation(
 	userId: string,
-	client: PoolClient,
+	client: PostgresPoolClient,
 	update: ZRowUpdate
 ) {
 	switch (update.table) {
