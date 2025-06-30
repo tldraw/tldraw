@@ -9248,7 +9248,7 @@ export class Editor extends EventEmitter<TLEventMap> {
 			}
 
 			if (asset.props.src?.match(/^data:(image|video|audio)/)) {
-				// it's src is a base64 image or video; we need to create a new asset without the src,
+				// it's src is a base64 image/video/audio; we need to create a new asset without the src,
 				// then create a new asset from the original src. So we save a copy of the original asset,
 				// then delete the src from the original asset.
 				assetsToUpdate.push(structuredClone(asset as TLMediaAsset))

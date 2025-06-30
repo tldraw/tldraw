@@ -13,6 +13,7 @@ export interface TLAudioShapeProps {
 	playing: boolean
 	url: string
 	assetId: TLAssetId | null
+	altText: string
 }
 
 /** @public */
@@ -26,6 +27,7 @@ export const audioShapeProps: RecordProps<TLAudioShape> = {
 	playing: T.boolean,
 	url: T.linkUrl,
 	assetId: assetIdValidator.nullable(),
+	altText: T.string,
 }
 
 const Versions = createShapePropsMigrationIds('audio', {})

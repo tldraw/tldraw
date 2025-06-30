@@ -807,6 +807,8 @@ export type TLAudioShape = TLBaseShape<'audio', TLAudioShapeProps>;
 // @public (undocumented)
 export interface TLAudioShapeProps {
     // (undocumented)
+    altText: string;
+    // (undocumented)
     assetId: null | TLAssetId;
     // (undocumented)
     h: number;

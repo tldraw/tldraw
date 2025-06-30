@@ -105,7 +105,7 @@ export function generateShapeAnnouncementMessage(args: {
 
 		const shapeUtil = editor.getShapeUtil(shape.type)
 
-		const isMedia = ['image', 'video'].includes(shape.type)
+		const isMedia = ['image', 'video', 'audio'].includes(shape.type)
 		// Yeah, yeah this is a bit of a hack, we should get better translations.
 		let shapeType = ''
 		if (shape.type === 'geo') {

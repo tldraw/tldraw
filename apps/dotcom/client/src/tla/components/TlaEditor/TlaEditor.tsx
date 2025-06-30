@@ -110,8 +110,8 @@ function TlaEditorInner({ fileSlug, deepLinks }: TlaEditorProps) {
 		dialogs.addDialog(dialog)
 	)
 
-	// We cycle this flag to cause shapes to remount when slurping images/videos fails.
-	// Because in that case we want to show the failure state for the images/videos.
+	// We cycle this flag to cause shapes to remount when slurping images/videos/audio fails.
+	// Because in that case we want to show the failure state for the images/videos/audio.
 	// i.e. where it appears that they are not present. so the user knows which ones failed.
 	// There's probably a better way of doing this but I couldn't think of one.
 	const hideAllShapes = useAtom('hideAllShapes', false)

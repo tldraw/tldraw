@@ -5,6 +5,7 @@ import {
 	Editor,
 	HALF_PI,
 	PageRecordType,
+	TLAudioShape,
 	TLBookmarkShape,
 	TLEmbedShape,
 	TLFrameShape,
@@ -71,9 +72,11 @@ export interface ActionsProviderProps {
 export function supportsDownloadingOriginal(
 	shape: TLShape,
 	editor: Editor
-): shape is TLImageShape | TLVideoShape {
+): shape is TLImageShape | TLVideoShape | TLAudioShape {
 	return (
-		(editor.isShapeOfType(shape, 'image') || editor.isShapeOfType(shape, 'video')) &&
+		(editor.isShapeOfType(shape, 'image') ||
+			editor.isShapeOfType(shape, 'video') ||
+			editor.isShapeOfType(shape, 'audio')) &&
 		!!(shape as any).props.assetId
 	)
 }
@@ -1635,6 +1638,16 @@ export function ActionsProvider({ overrides, children }: ActionsProviderProps) {
 				},
 			},
 			{
+				id: 'audio-replace',
+				label: 'tool.replace-media',
+				icon: 'arrow-cycle',
+				readonlyOk: false,
+				onSelect: async (source) => {
+					trackEvent('audio-replace', { source })
+					helpers.replaceAudio()
+				},
+			},
+			{
 				id: 'download-original',
 				label: 'action.download-original',
 				readonlyOk: true,
@@ -1642,8 +1655,9 @@ export function ActionsProvider({ overrides, children }: ActionsProviderProps) {
 					const selectedShapes = editor.getSelectedShapes()
 					if (selectedShapes.length === 0) return
 
-					const mediaShapes = selectedShapes.filter((s): s is TLImageShape | TLVideoShape =>
-						supportsDownloadingOriginal(s, editor)
+					const mediaShapes = selectedShapes.filter(
+						(s): s is TLImageShape | TLVideoShape | TLAudioShape =>
+							supportsDownloadingOriginal(s, editor)
 					)
 
 					if (mediaShapes.length === 0) return
@@ -1659,7 +1673,7 @@ export function ActionsProvider({ overrides, children }: ActionsProviderProps) {
 						link.href = url
 
 						if (
-							(asset.type === 'video' || asset.type === 'image') &&
+							(asset.type === 'video' || asset.type === 'image' || asset.type === 'audio') &&
 							!asset.props.src.startsWith('asset:')
 						) {
 							link.download = asset.props.name

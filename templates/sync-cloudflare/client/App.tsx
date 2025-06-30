@@ -14,7 +14,7 @@ function App() {
 	const store = useSync({
 		// We need to know the websockets URI...
 		uri: `${WORKER_URL}/connect/${roomId}`,
-		// ...and how to handle static assets like images & videos
+		// ...and how to handle static assets like images/videos/audio
 		assets: multiplayerAssetStore,
 	})
 

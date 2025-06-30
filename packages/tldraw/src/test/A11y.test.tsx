@@ -17,6 +17,7 @@ describe('A11y Shape Announcements', () => {
 			if (key === 'a11y.shape-index') return '{num} of {total}'
 			if (key === 'a11y.shape-image') return 'image'
 			if (key === 'a11y.shape-video') return 'video'
+			if (key === 'a11y.shape-audio') return 'audio'
 			if (key.startsWith('geo-style.')) return key.split('.')[1]
 			if (key.startsWith('tool.')) return key.split('.')[1]
 			return key

@@ -41,6 +41,7 @@ export class AudioShapeUtil extends BaseBoxShapeUtil<TLAudioShape> {
 			time: 0,
 			playing: true,
 			url: '',
+			altText: '',
 		}
 	}
 

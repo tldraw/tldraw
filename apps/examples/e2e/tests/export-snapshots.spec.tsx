@@ -475,6 +475,7 @@ const snapshots: Snapshots = {
 		Embeds: {
 			Video: <TL.html w={300} h={169} html='<video src="/bonk.webm" width="300" height="169" />' />,
 			Image: <TL.html w={100} h={200} html='<img src="/man.png" width="100" />' />,
+			Audio: <TL.html w={300} h={169} html='<audio src="/bonk.webm" width="300" height="169" />' />,
 			Background: (
 				<TL.html
 					w={200}

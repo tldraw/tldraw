@@ -24,6 +24,7 @@ export type TLUiEventSource =
 	| 'rich-text-menu'
 	| 'image-toolbar'
 	| 'video-toolbar'
+	| 'audio-toolbar'
 	| 'unknown'
 
 /** @public */
@@ -127,6 +128,7 @@ export interface TLUiEventMap {
 	'copy-link': null
 	'image-replace': null
 	'video-replace': null
+	'audio-replace': null
 	'rich-text': {
 		operation:
 			| 'bold'
