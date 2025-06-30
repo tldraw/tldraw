@@ -7,7 +7,7 @@ import {
 	useValue,
 } from 'tldraw'
 import { useMaybeApp } from '../../hooks/useAppState'
-import { useIsFileOwner } from '../../hooks/useIsFileOwner'
+import { useCanUpdateFile } from '../../hooks/useCanUpdateFile'
 import { useTldrawAppUiEvents } from '../../utils/app-ui-events'
 import { F } from '../../utils/i18n'
 import { getLocalSessionState, updateLocalSessionState } from '../../utils/local-session-state'
@@ -44,7 +44,7 @@ export function TlaFileShareMenu({
 		[]
 	)
 
-	const isOwner = useIsFileOwner(fileId)
+	const canUpdateFile = useCanUpdateFile(fileId)
 
 	const file = useValue('file', () => app?.getFile(fileId), [app])
 
@@ -61,12 +61,13 @@ export function TlaFileShareMenu({
 	const okTabs = {
 		// If the context is a guest file or published file, show the anon share file
 		'anon-share':
-			!isOwner && (context === 'file' || context === 'published-file' || context === 'legacy'),
+			!canUpdateFile &&
+			(context === 'file' || context === 'published-file' || context === 'legacy'),
 		export: true,
 		// Can the current user configure the file's sharing settings?
-		share: context === 'file' && fileId && file && isOwner,
+		share: context === 'file' && fileId && file && canUpdateFile,
 		// Can the current user configure the file's publishing settings?
-		publish: context === 'file' && fileId && file && isOwner,
+		publish: context === 'file' && fileId && file && canUpdateFile,
 	}
 
 	// If the user is not signed in and their local active tab is share, then show the anon share tab

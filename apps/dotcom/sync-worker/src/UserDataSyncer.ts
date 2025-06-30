@@ -2,12 +2,13 @@ import {
 	DB,
 	OptimisticAppStore,
 	TlaFile,
+	TlaFileState,
 	TlaRow,
+	TlaUser,
 	ZEvent,
 	ZRowUpdate,
 	ZServerSentPacket,
 	ZStoreData,
-	ZStoreDataV1,
 	ZTable,
 } from '@tldraw/dotcom-shared'
 import { react, transact } from '@tldraw/state'
@@ -18,7 +19,7 @@ import throttle from 'lodash.throttle'
 import { Logger } from './Logger'
 import { fetchEverythingSql } from './fetchEverythingSql.snap'
 import { parseResultRow } from './parseResultRow'
-import { getSubscriptionChanges } from './replicator/Subscription'
+import { TopicSubscriptionTree, getSubscriptionChanges } from './replicator/Subscription'
 import { Environment, TLUserDurableObjectEvent, getUserDoSnapshotKey } from './types'
 import { getReplicator, getStatsDurableObjct } from './utils/durableObjects'
 import { retryOnConnectionFailure } from './utils/retryOnConnectionFailure'
@@ -78,7 +79,7 @@ type BootState =
 			lastSequenceNumber: number
 	  }
 
-const stateVersion = 1
+const stateVersion = 2
 interface StateSnapshot {
 	version: number
 	initialData: ZStoreData
@@ -88,15 +89,44 @@ interface StateSnapshot {
 	}>
 }
 
+// Legacy interfaces for migration - inlined here since they're only used in this migration function
+interface LegacyZStoreDataV0 {
+	files: TlaFile[]
+	fileStates: TlaFileState[]
+	user: TlaUser
+	lsn: string
+}
+
+interface LegacyZStoreDataV1 {
+	file: TlaFile[]
+	file_state: TlaFileState[]
+	user: TlaUser[]
+	lsn: string
+}
+
 function migrateStateSnapshot(snapshot: any) {
 	if (snapshot.version === 0) {
 		snapshot.version = 1
-		const data = snapshot.initialData as ZStoreDataV1
+		const data = snapshot.initialData as LegacyZStoreDataV0
 		snapshot.initialData = {
 			lsn: data.lsn,
 			user: [data.user],
 			file: data.files,
 			file_state: data.fileStates,
+		} satisfies LegacyZStoreDataV1
+	}
+	if (snapshot.version === 1) {
+		snapshot.version = 2
+		const data = snapshot.initialData as LegacyZStoreDataV1
+		snapshot.initialData = {
+			lsn: data.lsn,
+			user: data.user,
+			file: data.file,
+			file_state: data.file_state,
+			group: [],
+			group_user: [],
+			user_presence: [],
+			group_file: [],
 		} satisfies ZStoreData
 	}
 }
@@ -254,6 +284,10 @@ export class UserDataSyncer {
 			user: [],
 			file: [],
 			file_state: [],
+			group: [],
+			group_user: [],
+			user_presence: [],
+			group_file: [],
 			lsn: '0/0',
 			mutationNumber: 0,
 		}
@@ -348,12 +382,31 @@ export class UserDataSyncer {
 
 		const initialData = this.store.getCommittedData()!
 
-		const guestFileIds = initialData.file.filter((f) => f.ownerId !== this.userId).map((f) => f.id)
+		const topicSubscriptions: TopicSubscriptionTree = {}
+		const groupFileIds = new Set()
+		for (const group_user of initialData.group_user) {
+			topicSubscriptions[`group:${group_user.groupId}`] = {}
+		}
+		for (const group_file of initialData.group_file) {
+			groupFileIds.add(group_file.fileId)
+			let subgraph = topicSubscriptions[`group:${group_file.groupId}`]
+			if (typeof subgraph !== 'object') {
+				subgraph = {}
+				topicSubscriptions[`group:${group_file.groupId}`] = subgraph
+			}
+
+			subgraph[`file:${group_file.fileId}`] = 1
+		}
+
+		for (const file_state of initialData.file_state) {
+			if (groupFileIds.has(file_state.fileId)) continue
+			topicSubscriptions[`file:${file_state.fileId}`] = 1
+		}
 
 		const res = await getReplicator(this.env).registerUser({
 			userId: this.userId,
 			lsn: initialData.lsn,
-			guestFileIds,
+			topicSubscriptions,
 			bootId: this.state.bootId,
 		})
 
@@ -392,7 +445,15 @@ export class UserDataSyncer {
 	private handleRowUpdateEvent(event: ZRowUpdateEvent) {
 		try {
 			assert(this.state.type === 'connected', 'state should be connected in handleEvent')
-			if (event.table !== 'user' && event.table !== 'file' && event.table !== 'file_state') {
+			if (
+				event.table !== 'user' &&
+				event.table !== 'file' &&
+				event.table !== 'file_state' &&
+				event.table !== 'group' &&
+				event.table !== 'group_user' &&
+				event.table !== 'user_presence' &&
+				event.table !== 'group_file'
+			) {
 				throw new Error(`Unhandled table: ${event.table}`)
 			}
 			this.store.updateCommittedData(event)
