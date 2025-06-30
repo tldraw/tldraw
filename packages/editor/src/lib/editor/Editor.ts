@@ -3642,7 +3642,7 @@ export class Editor extends EventEmitter<TLEventMap> {
 	 * @public
 	 */
 	updateViewportScreenBounds(screenBounds: Box | HTMLElement, center = false): this {
-		if (screenBounds instanceof HTMLElement) {
+		if (!(screenBounds instanceof Box)) {
 			const rect = screenBounds.getBoundingClientRect()
 			screenBounds = new Box(
 				rect.left || rect.x,
