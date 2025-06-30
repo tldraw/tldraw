@@ -31,12 +31,12 @@ function LegacyChangesModal({ onClose }: { onClose(): void }) {
 			name,
 			createSource: window.location.pathname.slice(1),
 		})
+		onClose()
 		if (res?.ok) {
 			const { file } = res.value
 			navigate(routes.tlaFile(file.id))
 			trackEvent('create-file', { source: 'legacy-import-button' })
 		}
-		onClose()
 	}
 
 	return (
