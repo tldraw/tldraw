@@ -32,6 +32,8 @@ export function parseSubscriptions(str: string | null): Subscription[] | null {
 	})
 }
 
+// IMPORTANT: If you make changes to this function, we might need to add a replicator migration
+// to update the history table's subscription changes columns.
 export function getSubscriptionChanges(changes: Array<{ row: TlaRow; event: ReplicationEvent }>): {
 	newSubscriptions: Subscription[] | null
 	removedSubscriptions: Subscription[] | null
@@ -81,6 +83,8 @@ export function getSubscriptionChanges(changes: Array<{ row: TlaRow; event: Repl
 				}
 				break
 			}
+			// IMPORTANT: If you make changes to this function, we might need to add a replicator migration
+			// to update the history table's subscription changes columns.
 			default:
 				// Only file_state, group_user, and group_file changes affect subscriptions
 				break

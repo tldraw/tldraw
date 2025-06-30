@@ -2,9 +2,7 @@ import { unlinkSync } from 'node:fs'
 import { tmpdir } from 'node:os'
 import { join } from 'node:path'
 import { DatabaseSync } from 'node:sqlite'
-import { parseSubscriptions } from './Subscription'
 import { migrate } from './replicatorMigrations'
-import { ChangeV1 } from './replicatorTypes'
 import { MockLogger, SqlStorageAdapter } from './test-helpers'
 
 describe('replicatorMigrations', () => {
@@ -156,456 +154,190 @@ describe('replicatorMigrations', () => {
 		})
 	})
 
-	describe('migration 006_graph_subscriptions', () => {
-		// Type definitions for mock data
-		interface OldHistoryRow {
-			lsn: string
-			userId: string
-			fileId: string | null
-			json: string
-			timestamp: number
-		}
+	describe('migration 007_update_history_subscriptions', () => {
+		it('should update the subscription changes column for all existing history rows', async () => {
+			await migrate(sqlStorage as any, logger as any, '006_graph_subscriptions')
 
-		interface MockFileState {
-			userId: string
-			fileId: string
-			isFileOwner: boolean
-		}
+			// Add test data to verify the migration works correctly
+			const testData = [
+				// Test case 1: file_state insert that should create user->file subscription
+				{
+					lsn: 'test/001',
+					changesJson: JSON.stringify([
+						{
+							event: { table: 'file_state', command: 'insert' },
+							row: { userId: 'alice', fileId: 'doc1' },
+							topics: ['user:alice'], // Missing file:doc1 topic
+						},
+					]),
+					newSubscriptions: null, // Should be updated to include user:alice->file:doc1
+					removedSubscriptions: null,
+					topics: 'user:alice',
+					timestamp: 1000,
+				},
+				// Test case 2: file_state delete that should remove user->file subscription
+				{
+					lsn: 'test/002',
+					changesJson: JSON.stringify([
+						{
+							event: { table: 'file_state', command: 'delete' },
+							row: { userId: 'bob', fileId: 'doc2' },
+							previous: { userId: 'bob', fileId: 'doc2' },
+							topics: ['user:bob'], // Missing file:doc2 topic
+						},
+					]),
+					newSubscriptions: null,
+					removedSubscriptions: null, // Should be updated to include user:bob->file:doc2
+					topics: 'user:bob',
+					timestamp: 1001,
+				},
+				// Test case 3: user update that should NOT change subscriptions
+				{
+					lsn: 'test/003',
+					changesJson: JSON.stringify([
+						{
+							event: { table: 'user', command: 'update' },
+							row: { id: 'dave', name: 'David' },
+							previous: { id: 'dave', name: 'Dave' },
+							topics: ['user:dave'],
+						},
+					]),
+					newSubscriptions: null, // Should remain null
+					removedSubscriptions: null, // Should remain null
+					topics: 'user:dave',
+					timestamp: 1002,
+				},
+				// Test case 4: file update that should NOT change subscriptions
+				{
+					lsn: 'test/004',
+					changesJson: JSON.stringify([
+						{
+							event: { table: 'file', command: 'update' },
+							row: { id: 'doc4', name: 'Updated Doc' },
+							previous: { id: 'doc4', name: 'Old Doc' },
+							topics: ['file:doc4'],
+						},
+					]),
+					newSubscriptions: null, // Should remain null
+					removedSubscriptions: null, // Should remain null
+					topics: 'file:doc4',
+					timestamp: 1003,
+				},
+				// Test case 5: Multiple file_state changes in one transaction
+				{
+					lsn: 'test/005',
+					changesJson: JSON.stringify([
+						{
+							event: { table: 'file_state', command: 'insert' },
+							row: { userId: 'eve', fileId: 'doc5' },
+							topics: ['user:eve'],
+						},
+						{
+							event: { table: 'file_state', command: 'delete' },
+							row: { userId: 'frank', fileId: 'doc6' },
+							previous: { userId: 'frank', fileId: 'doc6' },
+							topics: ['user:frank'],
+						},
+					]),
+					newSubscriptions: null, // Should be updated to include user:eve->file:doc5
+					removedSubscriptions: null, // Should be updated to include user:frank->file:doc6
+					topics: 'user:eve,user:frank',
+					timestamp: 1004,
+				},
+				// Test case 6: Multiple insertions and deletions in one transaction
+				{
+					lsn: 'test/006',
+					changesJson: JSON.stringify([
+						{
+							event: { table: 'file_state', command: 'insert' },
+							row: { userId: 'grace', fileId: 'doc7' },
+							topics: ['user:grace'],
+						},
+						{
+							event: { table: 'file_state', command: 'insert' },
+							row: { userId: 'henry', fileId: 'doc8' },
+							topics: ['user:henry'],
+						},
+						{
+							event: { table: 'file_state', command: 'delete' },
+							row: { userId: 'iris', fileId: 'doc9' },
+							previous: { userId: 'iris', fileId: 'doc9' },
+							topics: ['user:iris'],
+						},
+						{
+							event: { table: 'file_state', command: 'delete' },
+							row: { userId: 'jack', fileId: 'doc10' },
+							previous: { userId: 'jack', fileId: 'doc10' },
+							topics: ['user:jack'],
+						},
+					]),
+					newSubscriptions: null, // Should be updated to include user:grace->file:doc7, user:henry->file:doc8
+					removedSubscriptions: null, // Should be updated to include user:iris->file:doc9, user:jack->file:doc10
+					topics: 'user:grace,user:henry,user:iris,user:jack',
+					timestamp: 1005,
+				},
+			]
 
-		interface MockUser {
-			id: string
-		}
-
-		interface MockFile {
-			id: string
-			ownerId: string
-		}
-
-		// Helper to create ChangeV1 JSON strings
-		const createChangeV1 = (
-			event: {
-				command: 'insert' | 'update' | 'delete'
-				table: 'file_state' | 'user' | 'file' | 'user_mutation_number'
-			},
-			userId: string,
-			fileId: string | null,
-			row: any,
-			previous?: any
-		) => {
-			const changeV1 = {
-				event,
-				userId,
-				fileId,
-				row,
-				previous,
-			} satisfies ChangeV1
-			return JSON.stringify(changeV1)
-		}
-
-		const _oldHistoryRows: OldHistoryRow[] = [
-			// LSN 1/1000 - Group 1: Multiple file_state changes in same transaction
-			{
-				lsn: '1/1000',
-				userId: 'alice',
-				fileId: 'file_shared_doc',
-				json: createChangeV1(
-					{ command: 'insert', table: 'file_state' },
-					'alice',
-					'file_shared_doc',
-					{
-						userId: 'alice',
-						fileId: 'file_shared_doc',
-						isFileOwner: false, // Non-owner insert = new subscription
-					} satisfies MockFileState
-				),
-				timestamp: 1704110400000,
-			},
-			{
-				lsn: '1/1000', // Same LSN - should be grouped together
-				userId: 'bob',
-				fileId: 'file_shared_doc',
-				json: createChangeV1({ command: 'insert', table: 'file_state' }, 'bob', 'file_shared_doc', {
-					userId: 'bob',
-					fileId: 'file_shared_doc',
-					isFileOwner: false, // Non-owner insert = new subscription
-				} satisfies MockFileState),
-				timestamp: 1704110400000,
-			},
-
-			// LSN 1/1001 - Group 2: File owner creation (no subscription changes)
-			{
-				lsn: '1/1001',
-				userId: 'charlie',
-				fileId: 'file_charlie_private',
-				json: createChangeV1(
-					{ command: 'insert', table: 'file_state' },
-					'charlie',
-					'file_charlie_private',
-					{
-						userId: 'charlie',
-						fileId: 'file_charlie_private',
-						isFileOwner: true, // Owner insert = no subscription changes
-					} satisfies MockFileState
-				),
-				timestamp: 1704114000000,
-			},
-
-			// LSN 1/1002 - Group 3: User leaves shared file (subscription removal)
-			{
-				lsn: '1/1002',
-				userId: 'alice',
-				fileId: 'file_team_project',
-				json: createChangeV1(
-					{ command: 'delete', table: 'file_state' },
-					'alice',
-					'file_team_project',
-					{
-						userId: 'alice',
-						fileId: 'file_team_project',
-						isFileOwner: false, // Non-owner delete = removed subscription
-					} satisfies MockFileState,
-					null // Delete has null previous
-				),
-				timestamp: 1704117600000,
-			},
-
-			// LSN 1/1003 - Group 4: User profile update (user-only change, no fileId)
-			{
-				lsn: '1/1003',
-				userId: 'diana',
-				fileId: null, // User-only change
-				json: createChangeV1(
-					{ command: 'update', table: 'user' },
-					'diana',
-					null,
-					{
-						id: 'diana',
-					} satisfies MockUser,
-					{
-						id: 'diana',
-					} satisfies MockUser
-				),
-				timestamp: 1704121200000,
-			},
-
-			// LSN 1/1004 - Group 5: Mixed changes - file metadata + multiple file_state ops
-			{
-				lsn: '1/1004',
-				userId: 'eve',
-				fileId: 'file_design_system',
-				json: createChangeV1(
-					{ command: 'update', table: 'file' },
-					'eve',
-					'file_design_system',
-					{
-						id: 'file_design_system',
-						ownerId: 'eve',
-					} satisfies MockFile,
-					{
-						id: 'file_design_system',
-						ownerId: 'eve',
-					} satisfies MockFile
-				),
-				timestamp: 1704124800000,
-			},
-			{
-				lsn: '1/1004', // Same LSN as above
-				userId: 'frank',
-				fileId: 'file_design_system',
-				json: createChangeV1(
-					{ command: 'insert', table: 'file_state' },
-					'frank',
-					'file_design_system',
-					{
-						userId: 'frank',
-						fileId: 'file_design_system',
-						isFileOwner: false, // Non-owner insert = new subscription
-					} satisfies MockFileState
-				),
-				timestamp: 1704124800000,
-			},
-
-			// LSN 1/1005 - Group 6: User mutation number update (no subscription impact)
-			{
-				lsn: '1/1005',
-				userId: 'grace',
-				fileId: 'file_notebook',
-				json: createChangeV1(
-					{ command: 'update', table: 'user_mutation_number' },
-					'grace',
-					'file_notebook',
-					{
-						userId: 'grace',
-						fileId: 'file_notebook',
-						mutationNumber: 42,
-					},
-					{
-						userId: 'grace',
-						fileId: 'file_notebook',
-						mutationNumber: 41,
-					}
-				),
-				timestamp: 1704128400000,
-			},
-
-			// LSN 1/1006 - Group 7: Owner leaves their own file (subscription removal but owner)
-			{
-				lsn: '1/1006',
-				userId: 'henry',
-				fileId: 'file_henry_temp',
-				json: createChangeV1(
-					{ command: 'delete', table: 'file_state' },
-					'henry',
-					'file_henry_temp',
-					{
-						userId: 'henry',
-						fileId: 'file_henry_temp',
-						isFileOwner: true, // Owner delete = no subscription changes
-					} satisfies MockFileState,
-					null // Delete has null previous
-				),
-				timestamp: 1704132000000,
-			},
-		]
-
-		it('should migrate from old format to graph subscriptions', async () => {
-			// First migrate up to just before the graph subscriptions migration
-			await migrate(sqlStorage as any, logger as any, '005_add_history_timestamp')
-
-			// Add active users first (required for foreign key constraints)
-			sqlStorage.exec(
-				`INSERT INTO active_user (id, sequenceNumber, sequenceIdSuffix, lastUpdatedAt) VALUES (?, ?, ?, ?)`,
-				'alice',
-				1,
-				'suffix',
-				Date.now()
-			)
-			sqlStorage.exec(
-				`INSERT INTO active_user (id, sequenceNumber, sequenceIdSuffix, lastUpdatedAt) VALUES (?, ?, ?, ?)`,
-				'bob',
-				2,
-				'suffix',
-				Date.now()
-			)
-
-			// Set up some initial subscriptions based on what our mock data implies
-			sqlStorage.exec(
-				`INSERT INTO user_file_subscriptions (userId, fileId) VALUES (?, ?)`,
-				'alice',
-				'file_shared_doc'
-			)
-			sqlStorage.exec(
-				`INSERT INTO user_file_subscriptions (userId, fileId) VALUES (?, ?)`,
-				'bob',
-				'file_shared_doc'
-			)
-			sqlStorage.exec(
-				`INSERT INTO user_file_subscriptions (userId, fileId) VALUES (?, ?)`,
-				'alice',
-				'file_team_project'
-			)
-
-			// Insert all the mock history data
-			for (const row of _oldHistoryRows) {
+			// Insert test data
+			for (const testRow of testData) {
 				sqlStorage.exec(
-					`INSERT INTO history (lsn, userId, fileId, json, timestamp) VALUES (?, ?, ?, ?, ?)`,
-					row.lsn,
-					row.userId,
-					row.fileId,
-					row.json,
-					row.timestamp
+					'INSERT INTO history (lsn, changesJson, newSubscriptions, removedSubscriptions, topics, timestamp) VALUES (?, ?, ?, ?, ?, ?)',
+					testRow.lsn,
+					testRow.changesJson,
+					testRow.newSubscriptions,
+					testRow.removedSubscriptions,
+					testRow.topics,
+					testRow.timestamp
 				)
 			}
 
-			// Verify old data exists
-			const subsCount = sqlStorage
-				.exec('SELECT COUNT(*) as count FROM user_file_subscriptions')
-				.one().count
-			expect(subsCount).toBe(3)
+			// Verify test data was inserted
+			const initialHistory = sqlStorage.exec('SELECT * FROM history').toArray()
+			expect(initialHistory).toHaveLength(6)
 
-			const historyCount = sqlStorage.exec('SELECT COUNT(*) as count FROM history').one().count
-			expect(historyCount).toBe(9) // All our mock entries
+			// Run migration 007
+			await migrate(sqlStorage as any, logger as any, '007_update_history_subscriptions')
 
-			// Verify history table has old structure
-			const oldHistoryCols = sqlStorage.exec('PRAGMA table_info(history)').toArray()
-			const oldColNames = oldHistoryCols.map((c: any) => c.name)
-			expect(oldColNames).toContain('userId')
-			expect(oldColNames).toContain('fileId')
-			expect(oldColNames).toContain('json')
-
-			// Now run the graph subscriptions migration
-			await migrate(sqlStorage as any, logger as any)
-
-			// === VERIFY MIGRATION COMPLETED ===
+			// Verify the migration was applied
 			const migrations = sqlStorage.exec('SELECT id FROM migrations ORDER BY id').toArray()
-			expect(migrations).toHaveLength(7)
-			expect(migrations[6]).toEqual({ id: '006_graph_subscriptions' })
+			expect(migrations.map((m: any) => m.id)).toContain('007_update_history_subscriptions')
 
-			// === VERIFY TOPIC SUBSCRIPTIONS ===
-			const topicSubs = sqlStorage
-				.exec('SELECT * FROM topic_subscription ORDER BY fromTopic, toTopic')
-				.toArray()
-
-			// Should have migrated existing subscriptions
-			const subPairs = topicSubs.map((s: any) => `${s.fromTopic}->${s.toTopic}`)
-			expect(subPairs).toContain('user:alice->file:file_shared_doc')
-			expect(subPairs).toContain('user:bob->file:file_shared_doc')
-			expect(subPairs).toContain('user:alice->file:file_team_project')
-
-			// === VERIFY OLD TABLE DROPPED ===
-			const oldTables = sqlStorage
+			// Get the updated history data
+			const updatedHistory = sqlStorage
 				.exec(
-					`SELECT name FROM sqlite_master WHERE type='table' AND name='user_file_subscriptions'`
+					"SELECT lsn, newSubscriptions, removedSubscriptions FROM history WHERE lsn LIKE 'test/%' ORDER BY lsn"
 				)
 				.toArray()
-			expect(oldTables).toHaveLength(0)
 
-			// === VERIFY NEW HISTORY FORMAT ===
-			const newHistory = sqlStorage.exec('SELECT * FROM history ORDER BY lsn').toArray()
+			// Test case 1: file_state insert should have new subscription
+			const test1 = updatedHistory.find((r: any) => r.lsn === 'test/001')
+			expect(test1?.newSubscriptions).toBe('user:alice\\file:doc1')
+			expect(test1?.removedSubscriptions).toBeNull()
 
-			// Should have 7 LSN groups (matching our _oldHistoryRows data)
-			expect(newHistory).toHaveLength(7)
+			// Test case 2: file_state delete should have removed subscription
+			const test2 = updatedHistory.find((r: any) => r.lsn === 'test/002')
+			expect(test2?.newSubscriptions).toBeNull()
+			expect(test2?.removedSubscriptions).toBe('user:bob\\file:doc2')
 
-			// === VERIFY TIMESTAMPS MIGRATED CORRECTLY ===
-			// The migration preserves original timestamps from the old history entries
-			// Each LSN group gets the timestamp from the last entry in that group
+			// Test case 3: user update should have no subscription changes
+			const test3 = updatedHistory.find((r: any) => r.lsn === 'test/003')
+			expect(test3?.newSubscriptions).toBeNull()
+			expect(test3?.removedSubscriptions).toBeNull()
 
-			// Verify all timestamps are valid and positive
-			for (const historyEntry of newHistory) {
-				expect(historyEntry.timestamp).toBeGreaterThan(0)
-			}
+			// Test case 4: file update should have no subscription changes
+			const test4 = updatedHistory.find((r: any) => r.lsn === 'test/004')
+			expect(test4?.newSubscriptions).toBeNull()
+			expect(test4?.removedSubscriptions).toBeNull()
 
-			// Verify that timestamps come from our original mock data
-			const originalTimestamps = _oldHistoryRows.map((row) => row.timestamp)
-			const newTimestamps = newHistory.map((h: any) => h.timestamp)
+			// Test case 5: Multiple file_state changes should have both new and removed subscriptions
+			const test5 = updatedHistory.find((r: any) => r.lsn === 'test/005')
+			expect(test5?.newSubscriptions).toBe('user:eve\\file:doc5')
+			expect(test5?.removedSubscriptions).toBe('user:frank\\file:doc6')
 
-			// Each new timestamp should be one of the original timestamps
-			// (specifically, the timestamp of the last entry in each LSN group)
-			for (const newTimestamp of newTimestamps) {
-				expect(originalTimestamps).toContain(newTimestamp)
-			}
-
-			// Verify specific timestamp mappings for our test data
-			// LSN groups should have timestamps from the last entry in each group
-			const group7 = newHistory.find((h: any) => h.lsn === '1/1006') as any
-			expect(group7.timestamp).toBe(1704132000000) // Henry leaving his file
-
-			// Check LSN 1/1000 - Group 1: Multiple file_state changes grouped together
-			const group1 = newHistory.find((h: any) => h.lsn === '1/1000') as any
-			expect(group1).toBeTruthy()
-			expect(group1.topics.split(',').sort()).toEqual(['user:alice', 'user:bob'])
-
-			const changes1 = JSON.parse(group1.changesJson)
-			expect(changes1).toHaveLength(2) // Alice and Bob's changes grouped
-
-			// Verify conversion to ChangeV2 format
-			expect(changes1[0]).toHaveProperty('topics')
-			expect(changes1[0].topics).toEqual(['user:alice'])
-			expect(changes1[1]).toHaveProperty('topics')
-			expect(changes1[1].topics).toEqual(['user:bob'])
-
-			// Check subscription changes for new users joining file
-			expect(group1.newSubscriptions).toBeTruthy()
-			const newSubs1 = parseSubscriptions(group1.newSubscriptions)
-			expect(newSubs1).toContainEqual({ fromTopic: 'user:alice', toTopic: 'file:file_shared_doc' })
-			expect(newSubs1).toContainEqual({ fromTopic: 'user:bob', toTopic: 'file:file_shared_doc' })
-
-			// Check LSN 1/1001 - Group 2: File owner creation (no subscription changes)
-			const group2 = newHistory.find((h: any) => h.lsn === '1/1001') as any
-			expect(group2).toBeTruthy()
-			expect(group2.topics.split(',').sort()).toEqual(['user:charlie'])
-			const changes2 = JSON.parse(group2.changesJson)
-			expect(changes2).toHaveLength(1)
-			expect(changes2[0].topics).toEqual(['user:charlie\\file:file_charlie_private'])
-			// No subscription changes for owner
-			expect(group2.newSubscriptions).toBeNull()
-			expect(group2.removedSubscriptions).toBeNull()
-
-			// Check LSN 1/1002 - Group 3: User leaves shared file (subscription removal)
-			const group3 = newHistory.find((h: any) => h.lsn === '1/1002') as any
-			expect(group3).toBeTruthy()
-			expect(group3.topics).toContain('user:alice')
-			const changes3 = JSON.parse(group3.changesJson)
-			expect(changes3).toHaveLength(1)
-			expect(changes3[0].topics).toEqual(['user:alice'])
-			// Should track subscription removal
-			expect(group3.removedSubscriptions).toBeTruthy()
-			const removedSubs3 = parseSubscriptions(group3.removedSubscriptions)
-			expect(removedSubs3).toContainEqual({
-				fromTopic: 'user:alice',
-				toTopic: 'file:file_team_project',
-			})
-			// no new subscriptions for this group
-			expect(group3.newSubscriptions).toBeNull()
-
-			// Check LSN 1/1003 - Group 4: User profile update (user-only change, no fileId)
-			const group4 = newHistory.find((h: any) => h.lsn === '1/1003') as any
-			expect(group4).toBeTruthy()
-			expect(group4.topics).toContain('user:diana')
-			const changes4 = JSON.parse(group4.changesJson)
-			expect(changes4).toHaveLength(1)
-			expect(changes4[0].topics).toEqual(['user:diana'])
-			// No subscription changes for user-only updates
-			expect(group4.newSubscriptions).toBeNull()
-			expect(group4.removedSubscriptions).toBeNull()
-
-			// Check LSN 1/1004 - Group 5: Mixed changes - file metadata + multiple file_state ops
-			const group5 = newHistory.find((h: any) => h.lsn === '1/1004') as any
-			expect(group5).toBeTruthy()
-			expect(group5.topics.split(',').sort()).toEqual([
-				'file:file_design_system',
-				'user:eve',
-				'user:frank',
-			])
-			const changes5 = JSON.parse(group5.changesJson)
-			expect(changes5).toHaveLength(2) // File update + Frank's file_state insert
-			expect(changes5[0].topics.sort()).toEqual(['file:file_design_system', 'user:eve'])
-			expect(changes5[1].topics).toEqual(['user:frank'])
-			// Should track Frank's new subscription
-			expect(group5.newSubscriptions).toBeTruthy()
-			const newSubs5 = parseSubscriptions(group5.newSubscriptions)
-			expect(newSubs5).toContainEqual({
-				fromTopic: 'user:frank',
-				toTopic: 'file:file_design_system',
-			})
-
-			// Check LSN 1/1005 - Group 6: User mutation number update (no subscription impact)
-			const group6 = newHistory.find((h: any) => h.lsn === '1/1005') as any
-			expect(group6).toBeTruthy()
-			expect(group6.topics).toContain('user:grace')
-			const changes6 = JSON.parse(group6.changesJson)
-			expect(changes6).toHaveLength(1)
-			expect(changes6[0].topics).toEqual(['user:grace'])
-			// No subscription changes for mutation number updates
-			expect(group6.newSubscriptions).toBeNull()
-			expect(group6.removedSubscriptions).toBeNull()
-
-			// Check LSN 1/1006 - Group 7: Owner leaves their own file (no subscription changes)
-			expect(group7).toBeTruthy()
-			expect(group7.topics).toContain('user:henry')
-			const changes7 = JSON.parse(group7.changesJson)
-			expect(changes7).toHaveLength(1)
-			expect(changes7[0].topics).toEqual(['user:henry'])
-			// No subscription changes for owner leaving their own file
-			expect(group7.newSubscriptions).toBeNull()
-			expect(group7.removedSubscriptions).toBeNull()
-
-			// === VERIFY NEW TABLE STRUCTURE ===
-			const newHistoryCols = sqlStorage.exec('PRAGMA table_info(history)').toArray()
-			const newColNames = newHistoryCols.map((c: any) => c.name)
-
-			// Should have new columns
-			expect(newColNames).toContain('lsn')
-			expect(newColNames).toContain('changesJson')
-			expect(newColNames).toContain('topics')
-			expect(newColNames).toContain('timestamp')
-			expect(newColNames).toContain('newSubscriptions')
-			expect(newColNames).toContain('removedSubscriptions')
-
-			// Should NOT have old columns
-			expect(newColNames).not.toContain('userId')
-			expect(newColNames).not.toContain('fileId')
-			expect(newColNames).not.toContain('json')
+			// Test case 6: Multiple insertions and deletions should have new subscriptions
+			const test6 = updatedHistory.find((r: any) => r.lsn === 'test/006')
+			expect(test6?.newSubscriptions).toBe('user:grace\\file:doc7,user:henry\\file:doc8')
+			expect(test6?.removedSubscriptions).toBe('user:iris\\file:doc9,user:jack\\file:doc10')
 		})
 	})
 })

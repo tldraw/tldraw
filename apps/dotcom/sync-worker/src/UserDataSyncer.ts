@@ -559,9 +559,30 @@ export class UserDataSyncer {
 				.map((ev) => ({ row: ev.row, event: { command: ev.event, table: ev.table } }))
 		)
 
-		if (topicUpdates.newSubscriptions?.length || topicUpdates.removedSubscriptions?.length) {
-			this.reboot({ hard: true, delay: false, source: 'handleReplicationEvent(hard reboot)' })
-			return
+		// if the new subscription is from current user to a file, we can add the file to the store
+		// directly instead of doing a hard reboot
+		for (const update of topicUpdates.newSubscriptions ?? []) {
+			if (update.fromTopic !== `user:${this.userId}` || !update.toTopic.startsWith('file:')) {
+				this.reboot({ hard: true, delay: false, source: 'handleReplicationEvent(hard reboot)' })
+				return
+			}
+			const fileId = update.toTopic.split(':')[1]
+			if (!this.store.getCommittedData()?.file.find((f) => f.id === fileId)) {
+				this.addGuestFile(fileId)
+			}
+		}
+
+		// if the removed subscription is from current user to a file, we can remove the file from the store
+		// directly instead of doing a hard reboot
+		for (const update of topicUpdates.removedSubscriptions ?? []) {
+			if (update.fromTopic !== `user:${this.userId}` || !update.toTopic.startsWith('file:')) {
+				this.reboot({ hard: true, delay: false, source: 'handleReplicationEvent(hard reboot)' })
+				return
+			}
+			const fileId = update.toTopic.split(':')[1]
+			if (this.store.getCommittedData()?.file.find((f) => f.id === fileId)) {
+				this.removeGuestFile(fileId)
+			}
 		}
 
 		transact(() => {
@@ -588,15 +609,29 @@ export class UserDataSyncer {
 	}
 
 	async addGuestFile(fileOrId: string | TlaFile) {
+		assert('bootId' in this.state, 'bootId should be in state')
+		const bootId = this.state.bootId
 		const file =
 			typeof fileOrId === 'string'
 				? await this.db.selectFrom('file').where('id', '=', fileOrId).selectAll().executeTakeFirst()
 				: fileOrId
 		if (!file) return
 		if (file.ownerId !== this.userId && !file.shared) return
+		if (this.state.bootId !== bootId) return
 		const update: ZRowUpdate = {
 			event: 'insert',
 			row: file,
+			table: 'file',
+		}
+		this.store.updateCommittedData(update)
+		this.broadcast({ type: 'update', update })
+	}
+
+	async removeGuestFile(id: string) {
+		if (!this.store.getFullData()?.file.find((f) => f.id === id)) return
+		const update: ZRowUpdate = {
+			event: 'delete',
+			row: { id },
 			table: 'file',
 		}
 		this.store.updateCommittedData(update)
