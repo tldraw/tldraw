@@ -120,7 +120,7 @@ FROM group_file_ownership
 UNION
 SELECT
   'group' as "table",
-  null::boolean as "0",
+  "isDeleted"::boolean as "0",
   null::boolean as "1",
   null::boolean as "2",
   null::boolean as "3",
@@ -310,6 +310,7 @@ export const columnNamesByAlias = {
 		'13': 'groupId',
 	},
 	group: {
+		'0': 'isDeleted',
 		'8': 'createdAt',
 		'9': 'updatedAt',
 		'12': 'id',

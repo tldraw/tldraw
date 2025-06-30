@@ -516,7 +516,7 @@ describe('replicatorMigrations', () => {
 			expect(group2.topics.split(',').sort()).toEqual(['user:charlie'])
 			const changes2 = JSON.parse(group2.changesJson)
 			expect(changes2).toHaveLength(1)
-			expect(changes2[0].topics).toEqual(['user:charlie'])
+			expect(changes2[0].topics).toEqual(['user:charlie\\file:file_charlie_private'])
 			// No subscription changes for owner
 			expect(group2.newSubscriptions).toBeNull()
 			expect(group2.removedSubscriptions).toBeNull()
