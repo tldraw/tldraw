@@ -227,6 +227,7 @@ export interface ArrowShapeOptions {
     readonly pointingPreciseTimeout: number;
     readonly shouldBeExact: (editor: Editor) => boolean;
     readonly shouldIgnoreTargets: (editor: Editor) => boolean;
+    readonly showTextOutline: boolean;
 }
 
 // @public (undocumented)
@@ -2620,6 +2621,7 @@ export const TextLabel: React_3.NamedExoticComponent<PlainTextLabelProps>;
 // @public (undocumented)
 export interface TextShapeOptions {
     extraArrowHorizontalPadding: number;
+    showOutline: boolean;
 }
 
 // @public (undocumented)

@@ -44,6 +44,7 @@ import {
 	useSharedSafeId,
 	useValue,
 } from '@tldraw/editor'
+import classNames from 'classnames'
 import React, { useMemo } from 'react'
 import { updateArrowTerminal } from '../../bindings/arrow/ArrowBindingUtil'
 import { PathBuilder } from '../shared/PathBuilder'
@@ -118,6 +119,8 @@ export class ArrowShapeUtil extends ShapeUtil<TLArrowShape> {
 
 		shouldBeExact: (editor: Editor) => editor.inputs.altKey,
 		shouldIgnoreTargets: (editor: Editor) => editor.inputs.ctrlKey,
+
+		showTextOutline: true,
 	}
 
 	override canEdit() {
@@ -777,7 +780,10 @@ export class ArrowShapeUtil extends ShapeUtil<TLArrowShape> {
 				{showArrowLabel && (
 					<PlainTextLabel
 						shapeId={shape.id}
-						classNamePrefix="tl-arrow"
+						classNamePrefix={classNames(
+							'tl-arrow',
+							!this.options.showTextOutline && 'tl-text__no-outline'
+						)}
 						type="arrow"
 						font={shape.props.font}
 						fontSize={getArrowLabelFontSize(shape)}
