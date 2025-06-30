@@ -160,12 +160,12 @@ const fileStateRelationships = relationships(file_state, ({ one, many }) => ({
 }))
 
 const groupRelationships = relationships(group, ({ many }) => ({
-	userGroups: many({
+	groupMembers: many({
 		sourceField: ['id'],
 		destField: ['groupId'],
 		destSchema: group_user,
 	}),
-	fileGroups: many({
+	groupFiles: many({
 		sourceField: ['id'],
 		destField: ['groupId'],
 		destSchema: group_file,
@@ -219,7 +219,7 @@ const groupFileRelationships = relationships(group_file, ({ one, many }) => ({
 		destField: ['id'],
 		destSchema: group,
 	}),
-	groupUsers: many({
+	groupMembers: many({
 		sourceField: ['groupId'],
 		destField: ['groupId'],
 		destSchema: group_user,
@@ -351,7 +351,7 @@ export const permissions = definePermissions<AuthData, TlaSchema>(schema, () => 
 			cmp('userId', '=', authData.sub!),
 			// User can see memberships of groups they belong to
 			exists('group', (q) =>
-				q.whereExists('userGroups', (q) => q.where('userId', '=', authData.sub!))
+				q.whereExists('groupMembers', (q) => q.where('userId', '=', authData.sub!))
 			)
 		)
 
@@ -366,7 +366,7 @@ export const permissions = definePermissions<AuthData, TlaSchema>(schema, () => 
 			exists('states', (q) => q.where('userId', '=', authData.sub!)),
 			// User is a member of a group that has access to the file
 			exists('groupFiles', (q) =>
-				q.whereExists('groupUsers', (q) => q.where('userId', '=', authData.sub!))
+				q.whereExists('groupMembers', (q) => q.where('userId', '=', authData.sub!))
 			)
 		)
 
@@ -375,7 +375,7 @@ export const permissions = definePermissions<AuthData, TlaSchema>(schema, () => 
 		{ exists }: ExpressionBuilder<TlaSchema, 'group'>
 	) =>
 		// User can access groups they are members of
-		exists('userGroups', (q) => q.where('userId', '=', authData.sub!))
+		exists('groupMembers', (q) => q.where('userId', '=', authData.sub!))
 
 	const userCanAccessPresence = (
 		authData: AuthData,
@@ -387,7 +387,7 @@ export const permissions = definePermissions<AuthData, TlaSchema>(schema, () => 
 			// User is a member of a group that has access to the file
 			exists('file', (q) =>
 				q.whereExists('groupFiles', (g) =>
-					g.whereExists('groupUsers', (u) => u.where('userId', '=', authData.sub!))
+					g.whereExists('groupMembers', (u) => u.where('userId', '=', authData.sub!))
 				)
 			)
 		)
@@ -397,7 +397,7 @@ export const permissions = definePermissions<AuthData, TlaSchema>(schema, () => 
 		{ exists }: ExpressionBuilder<TlaSchema, 'group_file'>
 	) =>
 		// User can access group_file records for groups they are members of
-		exists('groupUsers', (q) => q.where('userId', '=', authData.sub!))
+		exists('groupMembers', (q) => q.where('userId', '=', authData.sub!))
 
 	return {
 		user: {

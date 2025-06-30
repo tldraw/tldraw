@@ -89,7 +89,6 @@ export type UnpublishFileResponseBody =
 			message: string
 	  }
 
-// current version
 export interface ZStoreData {
 	file: TlaFile[]
 	file_state: TlaFileState[]
