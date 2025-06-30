@@ -86,22 +86,9 @@ export function SneakyLegacyModal() {
 			return
 		}
 
-		// We might have shown the modal before. If that's the case, we don't show it again.
-		// In case the user has no files, we show the modal anyway, so they can copy the room to their files.
-		const dontShowModal =
-			searchParams.get('shownLegacyModal') === 'true' && app?.getUserOwnFiles().length !== 0
-		if (dontShowModal) {
-			return
-		}
-
 		const id = addDialog({
 			component: ({ onClose }) => <LegacyChangesModal onClose={onClose} />,
 			preventBackgroundClose: true,
-			onClose: () => {
-				const newParams = new URLSearchParams(window.location.search)
-				newParams.set('shownLegacyModal', 'true')
-				setSearchParams(newParams)
-			},
 		})
 		return () => {
 			removeDialog(id)
