@@ -19,6 +19,7 @@ import {
 	createShapeId,
 	invLerp,
 	lerp,
+	toRichText,
 	useIsToolSelected,
 	useTools,
 } from 'tldraw'
@@ -244,6 +245,8 @@ export default function MagnetExample() {
 			<Tldraw
 				persistenceKey="magnet-example"
 				onMount={(editor) => {
+					if (editor.getCurrentPageShapeIds().size > 0) return
+
 					// Create some demo shapes to demonstrate the binding
 					editor.createShapes([
 						{
@@ -262,7 +265,7 @@ export default function MagnetExample() {
 							type: 'text',
 							x: 300,
 							y: 350,
-							props: { text: 'Drag magnets onto shapes!' },
+							props: { richText: toRichText('Drag magnets onto shapes!') },
 						},
 					])
 
@@ -271,7 +274,6 @@ export default function MagnetExample() {
 						{ type: 'magnet', x: 100, y: 100 },
 						{ type: 'magnet', x: 150, y: 100 },
 					])
-
 					;(window as any).editor = editor
 				}}
 				shapeUtils={[MagnetShapeUtil]}
