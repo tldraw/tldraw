@@ -245,6 +245,13 @@
 		inset 0px 0px 0px 1px var(--color-panel-contrast);
 }
 
+.tl-counter-scaled {
+	transform: scale(var(--tl-scale));
+	transform-origin: top left;
+	width: calc(100% * var(--tl-zoom));
+	height: calc(100% * var(--tl-zoom));
+}
+
 .tl-container,
 .tl-container * {
 	-webkit-touch-callout: none;
