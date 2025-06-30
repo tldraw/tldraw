@@ -3581,7 +3581,7 @@ Fix textbox direction when it contains both RTL and LTR languages
 
 #### Removing frames and adding elements to frames ([#2219](https://github.com/tldraw/tldraw/pull/2219))
 
-- Allow users to remove the frame, but keep it's children. Allow the users to add shapes to the frame directly when creating a frame.
+- Allow users to remove the frame, but keep its children. Allow the users to add shapes to the frame directly when creating a frame.
 
 #### Fix missing padding-right in toast ([#2251](https://github.com/tldraw/tldraw/pull/2251))
 
