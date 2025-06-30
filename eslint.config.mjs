@@ -63,6 +63,7 @@ export default [
 			'**/patchedJestJsDom.js',
 			'**/.clasp.json',
 			'**/*.mjs',
+			'**/.*.js',
 			'packages/assets/*',
 		],
 	},
@@ -148,6 +149,7 @@ export default [
 			'local/tagged-components': 'error',
 			'local/prefer-class-methods': 'error',
 			'local/tsdoc-param-matching': 'error',
+			'local/no-whilst': 'error',
 			'no-only-tests/no-only-tests': 'error',
 			'formatjs/enforce-default-message': ['error', 'literal'],
 

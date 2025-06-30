@@ -9,18 +9,21 @@ export function Component() {
 	const navigate = useNavigate()
 	const trackEvent = useTldrawAppUiEvents()
 	useEffect(() => {
-		if (!app) {
-			navigate(routes.tlaRoot(), { replace: true })
-			return
+		const createFile = async () => {
+			if (!app) {
+				navigate(routes.tlaRoot(), { replace: true })
+				return
+			}
+			const res = await app.createFile()
+			if (res.ok) {
+				const { file } = res.value
+				navigate(routes.tlaFile(file.id), { replace: true })
+				trackEvent('create-file', { source: 'new-page' })
+			} else {
+				navigate(routes.tlaRoot(), { replace: true })
+			}
 		}
-		const res = app.createFile()
-		if (res.ok) {
-			const { file } = res.value
-			navigate(routes.tlaFile(file.id), { replace: true })
-			trackEvent('create-file', { source: 'new-page' })
-		} else {
-			navigate(routes.tlaRoot(), { replace: true })
-		}
+		createFile()
 	}, [app, navigate, trackEvent])
 	return null
 }

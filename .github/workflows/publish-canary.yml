@@ -1,8 +1,12 @@
-name: Publish Canary Packages
+name: Publish Prerelease Packages
 
 on:
   push:
-    branches: [main]
+    branches: [main, production]
+
+defaults:
+  run:
+    shell: bash
 
 jobs:
   deploy:
@@ -21,7 +25,7 @@ jobs:
         uses: ./.github/actions/setup
 
       - name: Publish Canary Packages
-        run: yarn tsx ./internal/scripts/publish-prerelease.ts canary
+        run: yarn tsx ./internal/scripts/publish-prerelease.ts ${{ github.ref == 'refs/heads/production' && 'next' || 'canary' }}
         env:
           GH_TOKEN: ${{ github.token }}
           NPM_TOKEN: ${{ secrets.NPM_TOKEN }}

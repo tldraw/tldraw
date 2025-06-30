@@ -3,6 +3,7 @@ import { getTestMigration, testSchema } from './__tests__/migrationTestUtils'
 import { bookmarkAssetVersions } from './assets/TLBookmarkAsset'
 import { imageAssetVersions } from './assets/TLImageAsset'
 import { videoAssetVersions } from './assets/TLVideoAsset'
+import { arrowBindingVersions } from './bindings/TLArrowBinding'
 import { toRichText } from './misc/TLRichText'
 import { assetVersions } from './records/TLAsset'
 import { cameraVersions } from './records/TLCamera'
@@ -17,6 +18,7 @@ import { arrowShapeVersions } from './shapes/TLArrowShape'
 import { bookmarkShapeVersions } from './shapes/TLBookmarkShape'
 import { drawShapeVersions } from './shapes/TLDrawShape'
 import { embedShapeVersions } from './shapes/TLEmbedShape'
+import { frameShapeVersions } from './shapes/TLFrameShape'
 import { geoShapeVersions } from './shapes/TLGeoShape'
 import { highlightShapeVersions } from './shapes/TLHighlightShape'
 import { imageShapeVersions } from './shapes/TLImageShape'
@@ -2028,6 +2030,30 @@ describe('Add flipX, flipY to image shape', () => {
 	})
 })
 
+describe('Add alt text to image shape', () => {
+	const { up, down } = getTestMigration(imageShapeVersions.AddAltText)
+
+	test('up works as expected', () => {
+		expect(up({ props: {} })).toEqual({ props: { altText: '' } })
+	})
+
+	test('down works as expected', () => {
+		expect(down({ props: { altText: 'yo' } })).toEqual({ props: {} })
+	})
+})
+
+describe('Add alt text to video shape', () => {
+	const { up, down } = getTestMigration(videoShapeVersions.AddAltText)
+
+	test('up works as expected', () => {
+		expect(up({ props: {} })).toEqual({ props: { altText: '' } })
+	})
+
+	test('down works as expected', () => {
+		expect(down({ props: { altText: 'yo' } })).toEqual({ props: {} })
+	})
+})
+
 describe('Make video asset file size optional', () => {
 	const { up, down } = getTestMigration(videoAssetVersions.MakeFileSizeOptional)
 
@@ -2117,6 +2143,57 @@ describe('TLPresence NullableCameraCursor', () => {
 			chatMessage: '',
 			meta: {},
 		})
+	})
+})
+
+describe('Adding color to frame shapes', () => {
+	const { up, down } = getTestMigration(frameShapeVersions.AddColorProp)
+
+	test('up works as expected', () => {
+		expect(up({ props: {} })).toEqual({ props: { color: 'black' } })
+	})
+
+	test('down works as expected', () => {
+		expect(down({ props: { color: 'black' } })).toEqual({ props: {} })
+	})
+})
+
+describe('Add elbow kind to arrow shape', () => {
+	const { up, down } = getTestMigration(arrowShapeVersions.AddElbow)
+
+	test('up works as expected', () => {
+		expect(up({ props: {} })).toEqual({ props: { kind: 'arc', elbowMidPoint: 0.5 } })
+	})
+
+	test('down works as expected', () => {
+		expect(down({ props: { kind: 'arc', elbowMidPoint: 0.5, wow: true } })).toEqual({
+			props: { wow: true },
+		})
+		expect(down({ props: { kind: 'elbow', elbowMidPoint: 0.5, wow: true } })).toEqual({
+			props: { wow: true },
+		})
+	})
+})
+
+describe('Add side to arrow binding', () => {
+	const { up, down } = getTestMigration(arrowBindingVersions.AddSnap)
+
+	test('up works as expected', () => {
+		expect(up({ props: {} })).toEqual({ props: { snap: 'none' } })
+	})
+
+	test('down works as expected', () => {
+		expect(down({ props: { snap: 'none' } })).toEqual({ props: {} })
+		expect(down({ props: { snap: 'edge' } })).toEqual({ props: {} })
+	})
+})
+
+describe('TLVideoAsset AddAutoplay', () => {
+	const { up, down } = getTestMigration(videoShapeVersions.AddAutoplay)
+
+	test('down works as expected', () => {
+		expect(up({ props: {} })).toEqual({ props: { autoplay: true } })
+		expect(down({ props: { autoplay: true } })).toEqual({ props: {} })
 	})
 })
 

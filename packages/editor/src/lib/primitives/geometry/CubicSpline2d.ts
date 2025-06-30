@@ -1,25 +1,25 @@
-import { Vec } from '../Vec'
+import { Vec, VecLike } from '../Vec'
 import { CubicBezier2d } from './CubicBezier2d'
 import { Geometry2d, Geometry2dOptions } from './Geometry2d'
 
 /** @public */
 export class CubicSpline2d extends Geometry2d {
-	points: Vec[]
+	private _points: Vec[]
 
 	constructor(config: Omit<Geometry2dOptions, 'isClosed' | 'isFilled'> & { points: Vec[] }) {
 		super({ ...config, isClosed: false, isFilled: false })
 		const { points } = config
 
-		this.points = points
+		this._points = points
 	}
 
-	_segments?: CubicBezier2d[]
+	private _segments?: CubicBezier2d[]
 
 	// eslint-disable-next-line no-restricted-syntax
 	get segments() {
 		if (!this._segments) {
 			this._segments = []
-			const { points } = this
+			const { _points: points } = this
 
 			const len = points.length
 			const last = len - 2
@@ -54,11 +54,11 @@ export class CubicSpline2d extends Geometry2d {
 		const vertices = this.segments.reduce((acc, segment) => {
 			return acc.concat(segment.vertices)
 		}, [] as Vec[])
-		vertices.push(this.points[this.points.length - 1])
+		vertices.push(this._points[this._points.length - 1])
 		return vertices
 	}
 
-	nearestPoint(A: Vec): Vec {
+	nearestPoint(A: VecLike): Vec {
 		let nearest: Vec | undefined
 		let dist = Infinity
 		let d: number
@@ -75,7 +75,7 @@ export class CubicSpline2d extends Geometry2d {
 		return nearest
 	}
 
-	hitTestLineSegment(A: Vec, B: Vec): boolean {
+	hitTestLineSegment(A: VecLike, B: VecLike): boolean {
 		return this.segments.some((segment) => segment.hitTestLineSegment(A, B))
 	}
 

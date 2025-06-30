@@ -17,12 +17,18 @@ export function AssetUrlsProvider({
 }) {
 	useEffect(() => {
 		for (const src of Object.values(assetUrls.icons)) {
+			if (!src) continue
+
 			const image = Image()
+			image.crossOrigin = 'anonymous'
 			image.src = src
 			image.decode()
 		}
 		for (const src of Object.values(assetUrls.embedIcons)) {
+			if (!src) continue
+
 			const image = Image()
+			image.crossOrigin = 'anonymous'
 			image.src = src
 			image.decode()
 		}

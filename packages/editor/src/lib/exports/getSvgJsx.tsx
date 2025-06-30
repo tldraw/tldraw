@@ -21,7 +21,7 @@ import { flushSync } from 'react-dom'
 import { ErrorBoundary } from '../components/ErrorBoundary'
 import { InnerShape, InnerShapeBackground } from '../components/Shape'
 import { Editor, TLRenderingShape } from '../editor/Editor'
-import { TLFontFace } from '../editor/managers/FontManager'
+import { TLFontFace } from '../editor/managers/FontManager/FontManager'
 import { ShapeUtil } from '../editor/shapes/ShapeUtil'
 import {
 	SvgExportContext,
@@ -355,7 +355,7 @@ function SvgExport({
 				key: uniqueId(),
 				getElement: async () => {
 					const declaration = await editor.fonts.toEmbeddedCssDeclaration(font)
-					return <style>{declaration}</style>
+					return <style nonce={editor.options.nonce}>{declaration}</style>
 				},
 			})
 		}
@@ -365,6 +365,21 @@ function SvgExport({
 		if (shapeElements === null) return
 		onMount()
 	}, [onMount, shapeElements])
+
+	let backgroundColor = background ? theme.background : 'transparent'
+
+	if (singleFrameShapeId && background) {
+		const frameShapeUtil = editor.getShapeUtil('frame') as any as
+			| undefined
+			| { options: { showColors: boolean } }
+		if (frameShapeUtil?.options.showColors) {
+			const shape = editor.getShape(singleFrameShapeId)! as TLFrameShape
+			const color = theme[shape.props.color]
+			backgroundColor = color.frame.fill
+		} else {
+			backgroundColor = theme.solid
+		}
+	}
 
 	return (
 		<SvgExportContextProvider editor={editor} context={exportContext}>
@@ -376,13 +391,7 @@ function SvgExport({
 				viewBox={`${bbox.minX} ${bbox.minY} ${bbox.width} ${bbox.height}`}
 				strokeLinecap="round"
 				strokeLinejoin="round"
-				style={{
-					backgroundColor: background
-						? singleFrameShapeId
-							? theme.solid
-							: theme.background
-						: 'transparent',
-				}}
+				style={{ backgroundColor }}
 				data-color-mode={isDarkMode ? 'dark' : 'light'}
 				className={`tl-container tl-theme__force-sRGB ${isDarkMode ? 'tl-theme__dark' : 'tl-theme__light'}`}
 			>

@@ -1,0 +1,63 @@
+{
+	"name": "@tldraw/ai",
+	"description": "A tiny little drawing app (ai module).",
+	"version": "3.12.0",
+	"author": {
+		"name": "tldraw Inc.",
+		"email": "hello@tldraw.com"
+	},
+	"homepage": "https://tldraw.dev",
+	"license": "SEE LICENSE IN LICENSE.md",
+	"repository": {
+		"type": "git",
+		"url": "https://github.com/tldraw/tldraw"
+	},
+	"bugs": {
+		"url": "https://github.com/tldraw/tldraw/issues"
+	},
+	"keywords": [
+		"tldraw",
+		"drawing",
+		"app",
+		"development",
+		"whiteboard",
+		"canvas",
+		"infinite"
+	],
+	"/* NOTE */": "These `main` and `types` fields are rewritten by the build script. They are not the actual values we publish",
+	"main": "./src/index.ts",
+	"types": "./.tsbuild/index.d.ts",
+	"/* GOTCHA */": "files will include ./dist and index.d.ts by default, add any others you want to include in here",
+	"files": [],
+	"scripts": {
+		"test-ci": "lazy inherit",
+		"test": "yarn run -T jest",
+		"test-coverage": "lazy inherit",
+		"build": "yarn run -T tsx ../../internal/scripts/build-package.ts",
+		"build-api": "yarn run -T tsx ../../internal/scripts/build-api.ts",
+		"prepack": "yarn run -T tsx ../../internal/scripts/prepack.ts",
+		"postpack": "../../internal/scripts/postpack.sh",
+		"pack-tarball": "yarn pack",
+		"lint": "yarn run -T tsx ../../internal/scripts/lint.ts"
+	},
+	"dependencies": {
+		"@tldraw/utils": "workspace:*",
+		"tldraw": "workspace:*"
+	},
+	"peerDependencies": {
+		"react": "^18.2.0 || ^19.0.0"
+	},
+	"devDependencies": {
+		"lazyrepo": "0.0.0-alpha.27",
+		"raf": "^3.4.1"
+	},
+	"jest": {
+		"preset": "../../internal/config/jest/node/jest-preset.js",
+		"setupFiles": [
+			"./setupTests.js"
+		],
+		"moduleNameMapper": {
+			"^~(.*)": "<rootDir>/src/$1"
+		}
+	}
+}

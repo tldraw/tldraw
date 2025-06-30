@@ -1,12 +1,16 @@
 import { useSync } from '@tldraw/sync'
-import { useCallback, useEffect, useMemo } from 'react'
+import { useCallback, useEffect, useMemo, useRef } from 'react'
 import {
+	DefaultDebugMenu,
+	DefaultDebugMenuContent,
 	Editor,
 	TLComponents,
 	TLSessionStateSnapshot,
 	TLUiDialogsContextType,
 	Tldraw,
+	TldrawUiMenuItem,
 	createSessionStateSnapshotSignal,
+	parseDeepLinkString,
 	react,
 	throttle,
 	tltime,
@@ -14,26 +18,30 @@ import {
 	useDialogs,
 	useEditor,
 	useEvent,
+	useValue,
 } from 'tldraw'
 import { ThemeUpdater } from '../../../components/ThemeUpdater/ThemeUpdater'
+import { useOpenUrlAndTrack } from '../../../hooks/useOpenUrlAndTrack'
+import { useHandleUiEvents } from '../../../utils/analytics'
 import { assetUrls } from '../../../utils/assetUrls'
 import { MULTIPLAYER_SERVER } from '../../../utils/config'
 import { createAssetFromUrl } from '../../../utils/createAssetFromUrl'
 import { globalEditor } from '../../../utils/globalEditor'
 import { multiplayerAssetStore } from '../../../utils/multiplayerAssetStore'
-import { useHandleUiEvents } from '../../../utils/useHandleUiEvent'
 import { useMaybeApp } from '../../hooks/useAppState'
 import { ReadyWrapper, useSetIsReady } from '../../hooks/useIsReady'
 import { useTldrawUser } from '../../hooks/useUser'
 import { maybeSlurp } from '../../utils/slurping'
-import { SneakyDarkModeSync } from './SneakyDarkModeSync'
+import { A11yAudit } from './TlaDebug'
 import { TlaEditorWrapper } from './TlaEditorWrapper'
 import { TlaEditorErrorFallback } from './editor-components/TlaEditorErrorFallback'
 import { TlaEditorMenuPanel } from './editor-components/TlaEditorMenuPanel'
 import { TlaEditorSharePanel } from './editor-components/TlaEditorSharePanel'
 import { TlaEditorTopPanel } from './editor-components/TlaEditorTopPanel'
+import { SneakyDarkModeSync } from './sneaky/SneakyDarkModeSync'
 import { SneakyTldrawFileDropHandler } from './sneaky/SneakyFileDropHandler'
 import { SneakySetDocumentTitle } from './sneaky/SneakySetDocumentTitle'
+import { SneakyToolSwitcher } from './sneaky/SneakyToolSwitcher'
 import { useFileEditorOverrides } from './useFileEditorOverrides'
 
 /** @internal */
@@ -44,10 +52,35 @@ export const components: TLComponents = {
 	SharePanel: TlaEditorSharePanel,
 	Dialogs: null,
 	Toasts: null,
+	DebugMenu: () => {
+		const app = useMaybeApp()
+		const openAndTrack = useOpenUrlAndTrack('unknown')
+		const editor = useEditor()
+		const isReadOnly = useValue('isReadOnly', () => editor.getIsReadonly(), [editor])
+		return (
+			<DefaultDebugMenu>
+				<A11yAudit />
+				{!isReadOnly && app && (
+					<TldrawUiMenuItem
+						id="user-manual"
+						label="File history"
+						readonlyOk
+						onSelect={() => {
+							const url = new URL(window.location.href)
+							url.pathname += '/history'
+							openAndTrack(url.toString())
+						}}
+					/>
+				)}
+				<DefaultDebugMenuContent />
+			</DefaultDebugMenu>
+		)
+	},
 }
 
 interface TlaEditorProps {
 	fileSlug: string
+	isEmbed?: boolean
 	deepLinks?: boolean
 }
 
@@ -82,7 +115,10 @@ function TlaEditorInner({ fileSlug, deepLinks }: TlaEditorProps) {
 	// i.e. where it appears that they are not present. so the user knows which ones failed.
 	// There's probably a better way of doing this but I couldn't think of one.
 	const hideAllShapes = useAtom('hideAllShapes', false)
-	const isShapeHidden = useCallback(() => hideAllShapes.get(), [hideAllShapes])
+	const getShapeVisibility = useCallback(
+		() => (hideAllShapes.get() ? 'hidden' : 'inherit'),
+		[hideAllShapes]
+	)
 	const remountImageShapes = useCallback(() => {
 		hideAllShapes.set(true)
 		requestAnimationFrame(() => {
@@ -106,11 +142,14 @@ function TlaEditorInner({ fileSlug, deepLinks }: TlaEditorProps) {
 			}
 
 			const fileState = app.getFileState(fileId)
-			if (fileState?.lastSessionState) {
+			const deepLink = new URLSearchParams(window.location.search).get('d')
+			if (fileState?.lastSessionState && !deepLink) {
 				editor.loadSnapshot(
 					{ session: JSON.parse(fileState.lastSessionState.trim() || 'null') },
 					{ forceOverwriteSessionState: true }
 				)
+			} else if (deepLink) {
+				editor.navigateToDeepLink(parseDeepLinkString(deepLink))
 			}
 			const sessionState$ = createSessionStateSnapshotSignal(editor.store)
 			const updateSessionState = throttle((state: TLSessionStateSnapshot) => {
@@ -168,6 +207,12 @@ function TlaEditorInner({ fileSlug, deepLinks }: TlaEditorProps) {
 		userInfo: app?.tlUser.userPreferences,
 	})
 
+	// we need to prevent calling onFileExit if the store is in an error state
+	const storeError = useRef(false)
+	if (store.status === 'error') {
+		storeError.current = true
+	}
+
 	// Handle entering and exiting the file, with some protection against rapid enters/exits
 	useEffect(() => {
 		if (!app) return
@@ -195,7 +240,7 @@ function TlaEditorInner({ fileSlug, deepLinks }: TlaEditorProps) {
 
 		return () => {
 			clearTimeout(timer)
-			if (didEnter) {
+			if (didEnter && !storeError.current) {
 				app.onFileExit(fileId)
 			}
 		}
@@ -216,10 +261,11 @@ function TlaEditorInner({ fileSlug, deepLinks }: TlaEditorProps) {
 				options={{ actionShortcutsLocation: 'toolbar' }}
 				deepLinks={deepLinks || undefined}
 				overrides={overrides}
-				isShapeHidden={isShapeHidden}
+				getShapeVisibility={getShapeVisibility}
 			>
 				<ThemeUpdater />
 				<SneakyDarkModeSync />
+				<SneakyToolSwitcher />
 				{app && <SneakyTldrawFileDropHandler />}
 				<SneakyFileUpdateHandler fileId={fileId} />
 			</Tldraw>

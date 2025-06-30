@@ -6,6 +6,8 @@ import {
 	TLImageExportOptions,
 	TLPageId,
 	TLStoreSnapshot,
+	TLTextOptions,
+	mergeArraysAndReplaceDefaults,
 	useShallowArrayIdentity,
 	useTLStore,
 } from '@tldraw/editor'
@@ -13,6 +15,7 @@ import { memo, useEffect, useLayoutEffect, useMemo, useState } from 'react'
 import { defaultBindingUtils } from './defaultBindingUtils'
 import { defaultShapeUtils } from './defaultShapeUtils'
 import { TLUiAssetUrlOverrides } from './ui/assetUrls'
+import { defaultAddFontsFromNode, tipTapDefaultExtensions } from './utils/text/richText'
 
 /** @public */
 export interface TldrawImageProps extends TLImageExportOptions {
@@ -47,10 +50,21 @@ export interface TldrawImageProps extends TLImageExportOptions {
 	 * Asset URL overrides.
 	 */
 	assetUrls?: TLUiAssetUrlOverrides
+	/**
+	 * Text options for the editor.
+	 */
+	textOptions?: TLTextOptions
+}
+
+const defaultTextOptions = {
+	tipTapConfig: {
+		extensions: tipTapDefaultExtensions,
+	},
+	addFontsFromNode: defaultAddFontsFromNode,
 }
 
 /**
- * A renderered SVG image of a Tldraw snapshot.
+ * A rendered SVG image of a Tldraw snapshot.
  *
  * @example
  * ```tsx
@@ -71,12 +85,15 @@ export const TldrawImage = memo(function TldrawImage(props: TldrawImageProps) {
 	const [url, setUrl] = useState<string | null>(null)
 	const [container, setContainer] = useState<HTMLDivElement | null>(null)
 
-	const shapeUtils = useShallowArrayIdentity(props.shapeUtils ?? [])
-	const shapeUtilsWithDefaults = useMemo(() => [...defaultShapeUtils, ...shapeUtils], [shapeUtils])
-	const bindingUtils = useShallowArrayIdentity(props.bindingUtils ?? [])
+	const _shapeUtils = useShallowArrayIdentity(props.shapeUtils ?? [])
+	const shapeUtilsWithDefaults = useMemo(
+		() => mergeArraysAndReplaceDefaults('type', _shapeUtils, defaultShapeUtils),
+		[_shapeUtils]
+	)
+	const _bindingUtils = useShallowArrayIdentity(props.bindingUtils ?? [])
 	const bindingUtilsWithDefaults = useMemo(
-		() => [...defaultBindingUtils, ...bindingUtils],
-		[bindingUtils]
+		() => mergeArraysAndReplaceDefaults('type', _bindingUtils, defaultBindingUtils),
+		[_bindingUtils]
 	)
 	const store = useTLStore({ snapshot: props.snapshot, shapeUtils: shapeUtilsWithDefaults })
 
@@ -92,6 +109,7 @@ export const TldrawImage = memo(function TldrawImage(props: TldrawImageProps) {
 		format = 'svg',
 		licenseKey,
 		assetUrls,
+		textOptions = defaultTextOptions,
 	} = props
 
 	useLayoutEffect(() => {
@@ -112,6 +130,7 @@ export const TldrawImage = memo(function TldrawImage(props: TldrawImageProps) {
 			getContainer: () => tempElm,
 			licenseKey,
 			fontAssetUrls: assetUrls?.fonts,
+			textOptions,
 		})
 
 		if (pageId) editor.setCurrentPage(pageId)
@@ -157,6 +176,7 @@ export const TldrawImage = memo(function TldrawImage(props: TldrawImageProps) {
 		licenseKey,
 		pixelRatio,
 		assetUrls,
+		textOptions,
 	])
 
 	useEffect(() => {

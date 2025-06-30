@@ -49,8 +49,9 @@ import { getRoomDurableObject } from './utils/durableObjects'
 import { isRateLimited } from './utils/rateLimit'
 import { getSlug } from './utils/roomOpenMode'
 import { throttle } from './utils/throttle'
-import { getAuthFromSearchParams } from './utils/tla/getAuth'
+import { getAuth, requireAdminAccess, requireWriteAccessToFile } from './utils/tla/getAuth'
 import { getLegacyRoomData } from './utils/tla/getLegacyRoomData'
+import { isTestFile } from './utils/tla/isTestFile'
 
 const MAX_CONNECTIONS = 50
 
@@ -70,11 +71,25 @@ interface SessionMeta {
 	userId: string | null
 }
 
+async function canAccessTestProductionFile(
+	env: Environment,
+	auth: { userId: string } | null
+): Promise<boolean> {
+	try {
+		await requireAdminAccess(env, auth)
+		return true
+	} catch (_e) {
+		return false
+	}
+}
+
 export class TLDrawDurableObject extends DurableObject {
 	// A unique identifier for this instance of the Durable Object
 	id: DurableObjectId
 
 	_room: Promise<TLSocketRoom<TLRecord, SessionMeta>> | null = null
+
+	sentry: ReturnType<typeof createSentry> | null = null
 
 	getRoom() {
 		if (!this._documentInfo) {
@@ -180,6 +195,7 @@ export class TLDrawDurableObject extends DurableObject {
 		this.storage = state.storage
 		this.sentryDSN = env.SENTRY_DSN
 		this.measure = env.MEASURE
+		this.sentry = createSentry(this.state, this.env)
 		this.supabaseClient = createSupabaseClient(env)
 
 		this.supabaseTable = env.TLDRAW_ENV === 'production' ? 'drawings' : 'drawings_staging'
@@ -222,6 +238,11 @@ export class TLDrawDurableObject extends DurableObject {
 		)
 		.post(
 			`/${ROOM_PREFIX}/:roomId/restore`,
+			(req) => this.extractDocumentInfoFromRequest(req, ROOM_OPEN_MODE.READ_WRITE),
+			(req) => this.onRestore(req)
+		)
+		.post(
+			`/app/file/:roomId/restore`,
 			(req) => this.extractDocumentInfoFromRequest(req, ROOM_OPEN_MODE.READ_WRITE),
 			(req) => this.onRestore(req)
 		)
@@ -284,6 +305,9 @@ export class TLDrawDurableObject extends DurableObject {
 	async onRestore(req: IRequest) {
 		this._isRestoring = true
 		try {
+			if (this.documentInfo.isApp) {
+				await requireWriteAccessToFile(req, this.env, this.documentInfo.slug)
+			}
 			const roomId = this.documentInfo.slug
 			const roomKey = getR2KeyForRoom({ slug: roomId, isApp: this.documentInfo.isApp })
 			const timestamp = ((await req.json()) as any).timestamp
@@ -362,7 +386,7 @@ export class TLDrawDurableObject extends DurableObject {
 			return closeSocket(TLSyncErrorCloseEventReason.NOT_FOUND)
 		}
 
-		const auth = await getAuthFromSearchParams(req, this.env)
+		const auth = await getAuth(req, this.env)
 		if (this.documentInfo.isApp) {
 			openMode = ROOM_OPEN_MODE.READ_WRITE
 			const file = await this.getAppFileRecord()
@@ -371,6 +395,11 @@ export class TLDrawDurableObject extends DurableObject {
 				if (file.isDeleted) {
 					return closeSocket(TLSyncErrorCloseEventReason.NOT_FOUND)
 				}
+
+				if (isTestFile(file.id) && !(await canAccessTestProductionFile(this.env, auth))) {
+					return closeSocket(TLSyncErrorCloseEventReason.NOT_FOUND)
+				}
+
 				if (!auth && !file.shared) {
 					return closeSocket(TLSyncErrorCloseEventReason.NOT_AUTHENTICATED)
 				}
@@ -456,7 +485,7 @@ export class TLDrawDurableObject extends DurableObject {
 	}, 2000)
 
 	private writeEvent(name: string, eventData: EventData) {
-		writeDataPoint(this.measure, this.env, name, eventData)
+		writeDataPoint(this.sentry, this.measure, this.env, name, eventData)
 	}
 
 	logEvent(event: TLServerEvent) {
@@ -695,12 +724,9 @@ export class TLDrawDurableObject extends DurableObject {
 		}
 	}
 	private reportError(e: unknown) {
-		const sentryDSN = this.sentryDSN
-		if (sentryDSN) {
-			const sentry = createSentry(this.state, this.env)
-			// eslint-disable-next-line @typescript-eslint/no-deprecated
-			sentry?.captureException(e)
-		}
+		// eslint-disable-next-line @typescript-eslint/no-deprecated
+		this.sentry?.captureException(e)
+		console.error(e)
 	}
 
 	async schedulePersist() {
@@ -839,6 +865,48 @@ export class TLDrawDurableObject extends DurableObject {
 	async awaitPersist() {
 		if (!this._documentInfo) return
 		await this.persistToDatabase()
+	}
+
+	async __admin__hardDeleteIfLegacy() {
+		if (!this._documentInfo || this.documentInfo.deleted || this.documentInfo.isApp) return false
+		this.setDocumentInfo({
+			version: CURRENT_DOCUMENT_INFO_VERSION,
+			slug: this.documentInfo.slug,
+			isApp: false,
+			deleted: true,
+		})
+		if (this._room) {
+			const room = await this.getRoom()
+			room.close()
+		}
+		const slug = this.documentInfo.slug
+		const roomKey = getR2KeyForRoom({ slug, isApp: false })
+
+		// remove edit history
+		const editHistory = await listAllObjectKeys(this.env.ROOMS_HISTORY_EPHEMERAL, roomKey)
+		if (editHistory.length > 0) {
+			await this.env.ROOMS_HISTORY_EPHEMERAL.delete(editHistory)
+		}
+
+		// remove main file
+		await this.env.ROOMS.delete(roomKey)
+
+		return true
+	}
+
+	async __admin__createLegacyRoom(id: string) {
+		this.setDocumentInfo({
+			version: CURRENT_DOCUMENT_INFO_VERSION,
+			slug: id,
+			isApp: false,
+			deleted: false,
+		})
+		const key = getR2KeyForRoom({ slug: id, isApp: false })
+		await this.r2.rooms.put(
+			key,
+			JSON.stringify(new TLSyncRoom({ schema: createTLSchema() }).getSnapshot())
+		)
+		await this.getRoom()
 	}
 }
 

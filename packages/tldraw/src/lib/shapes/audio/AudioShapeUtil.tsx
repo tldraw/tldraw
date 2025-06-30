@@ -92,7 +92,7 @@ export class AudioShapeUtil extends BaseBoxShapeUtil<TLAudioShape> {
 		const handleSeek = (time: number) => {
 			setNewSeekTime(time)
 		}
-		const handleSliderPointerUp = () => {
+		const handleSliderPointerDown = () => {
 			if (!rAudio.current) return
 			rAudio.current.currentTime = newSeekTime ?? 0
 			setNewSeekTime(null)
@@ -181,7 +181,7 @@ export class AudioShapeUtil extends BaseBoxShapeUtil<TLAudioShape> {
 												label={secondsToTime(newSeekTime ?? currentTime)}
 												onValueChange={handleSeek}
 												onHistoryMark={onHistoryMark}
-												onPointerUp={handleSliderPointerUp}
+												onPointerUp={handleSliderPointerDown}
 												steps={rAudio.current?.duration || 0}
 												title={msg('audio.seek')}
 											/>

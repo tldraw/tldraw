@@ -16,7 +16,7 @@ function isChild(x: any): x is Child {
  * @param child The child to check.
  * @returns True if the child's parents have changed, false otherwise.
  */
-export function haveParentsChanged(child: Child) {
+export function haveParentsChanged(child: Child): boolean {
 	for (let i = 0, n = child.parents.length; i < n; i++) {
 		// Get the parent's value without capturing it.
 		child.parents[i].__unsafe__getWithoutCapture(true)

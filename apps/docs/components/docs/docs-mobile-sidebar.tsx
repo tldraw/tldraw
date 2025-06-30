@@ -19,6 +19,23 @@ export async function DocsMobileSidebar({
 	// @ts-ignore
 	const elements = skipFirstLevel ? sidebar.links[0].children : sidebar.links
 
+	// Manually copy the sync example and the editor API example to the getting started category
+	if (sectionId === 'examples') {
+		const gettingStartedCategory = elements.find((v: any) => v?.url === '/examples/getting-started')
+		const collaborationCategory = elements.find((v: any) => v?.url === '/examples/collaboration')
+		const editorApiCategory = elements.find((v: any) => v?.url === '/examples/editor-api')
+		const syncDemoExample = collaborationCategory.children.find(
+			(v: any) => v?.articleId === 'sync-demo'
+		)
+		const editorApiExample = editorApiCategory.children.find((v: any) => v?.articleId === 'api')
+		if (!gettingStartedCategory.children.includes(syncDemoExample)) {
+			gettingStartedCategory.children.push(syncDemoExample)
+		}
+		if (!gettingStartedCategory.children.includes(editorApiExample)) {
+			gettingStartedCategory.children.push(editorApiExample)
+		}
+	}
+
 	return (
 		<Popover className="group/popover h-full grow">
 			<PopoverButton className="group/button focus:outline-none h-full w-full flex justify-start items-center">

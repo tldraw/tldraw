@@ -3,19 +3,20 @@ import { useCallback } from 'react'
 import { useEditor, useValue } from 'tldraw'
 import { routes } from '../../../../routeDefs'
 import { useApp } from '../../../hooks/useAppState'
+import { useEditorDeepLink } from '../../../hooks/useDeepLink'
 import { useIsFileOwner } from '../../../hooks/useIsFileOwner'
 import { useTldrawUser } from '../../../hooks/useUser'
 import { useTldrawAppUiEvents } from '../../../utils/app-ui-events'
 import { copyTextToClipboard } from '../../../utils/copy'
 import { F, defineMessages, useMsg } from '../../../utils/i18n'
-import { TlaSelect } from '../../TlaSelect/TlaSelect'
-import { TlaSwitch } from '../../TlaSwitch/TlaSwitch'
 import {
 	TlaMenuControl,
 	TlaMenuControlGroup,
 	TlaMenuControlInfoTooltip,
 	TlaMenuControlLabel,
 	TlaMenuSection,
+	TlaMenuSelect,
+	TlaMenuSwitch,
 } from '../../tla-menu/tla-menu'
 import { QrCode } from '../QrCode'
 import { TlaShareMenuCopyButton } from '../file-share-menu-primitives'
@@ -37,6 +38,7 @@ export function TlaInviteTab({ fileId }: { fileId: string }) {
 	)
 
 	const isOwner = useIsFileOwner(fileId)
+	const url = useEditorDeepLink()
 
 	return (
 		<>
@@ -44,11 +46,11 @@ export function TlaInviteTab({ fileId }: { fileId: string }) {
 				{isOwner && (
 					<TlaMenuControlGroup>
 						<TlaSharedToggle isShared={isShared} fileId={fileId} />
-						<TlaSelectSharedLinkType isShared={isShared} fileId={fileId} />
+						{isShared && <TlaSelectSharedLinkType fileId={fileId} />}
 					</TlaMenuControlGroup>
 				)}
 				{isShared && <TlaCopyLinkButton isShared={isShared} fileId={fileId} />}
-				{isShared && <QrCode url={routes.tlaFile(fileId, { asUrl: true })} />}
+				{isShared && <QrCode url={url ?? ''} />}
 			</TlaMenuSection>
 		</>
 	)
@@ -79,7 +81,7 @@ function TlaSharedToggle({ isShared, fileId }: { isShared: boolean; fileId: stri
 			>
 				<F defaultMessage="Learn more about sharing." />
 			</TlaMenuControlInfoTooltip>
-			<TlaSwitch
+			<TlaMenuSwitch
 				data-testid="shared-link-shared-switch"
 				checked={!!isShared}
 				onChange={handleToggleShared}
@@ -88,7 +90,7 @@ function TlaSharedToggle({ isShared, fileId }: { isShared: boolean; fileId: stri
 	)
 }
 
-function TlaSelectSharedLinkType({ isShared, fileId }: { isShared: boolean; fileId: string }) {
+function TlaSelectSharedLinkType({ fileId }: { fileId: string }) {
 	const app = useApp()
 	const user = useTldrawUser()
 	const trackEvent = useTldrawAppUiEvents()
@@ -110,25 +112,21 @@ function TlaSelectSharedLinkType({ isShared, fileId }: { isShared: boolean; file
 		[app, fileId, trackEvent]
 	)
 
-	const label = useMsg(
-		isShared ? (sharedLinkType === 'edit' ? messages.editor : messages.viewer) : messages.noAccess
-	)
+	const label = useMsg(sharedLinkType === 'edit' ? messages.editor : messages.viewer)
 
 	return (
 		<TlaMenuControl>
 			<TlaMenuControlLabel>
 				<F defaultMessage="Anyone with the link" />
 			</TlaMenuControlLabel>
-			<TlaSelect
+			<TlaMenuSelect
 				data-testid="shared-link-type-select"
 				label={label}
-				value={!isShared ? 'no-access' : sharedLinkType!}
-				disabled={!isShared}
+				value={sharedLinkType!}
 				onChange={handleSelectChange}
 				options={[
 					{ value: 'edit', label: <F defaultMessage="Editor" /> },
 					{ value: 'view', label: <F defaultMessage="Viewer" /> },
-					// { value: 'no-access', label: <F defaultMessage="No access" /> },
 				]}
 			/>
 		</TlaMenuControl>

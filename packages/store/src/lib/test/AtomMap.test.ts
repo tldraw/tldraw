@@ -1,4 +1,4 @@
-import { react } from '@tldraw/state'
+import { react, transaction } from '@tldraw/state'
 import { AtomMap } from '../AtomMap'
 
 describe('AtomMap', () => {
@@ -177,10 +177,10 @@ describe('AtomMap', () => {
 			expect(map.has('b')).toBe(true)
 			expect(map.has('c')).toBe(false)
 			expect(map.has('d')).toBe(true)
-			expect(Array.from(map.entries())).toEqual([
-				['b', 2],
-				['d', 4],
-			])
+			expect(Object.fromEntries(map.entries())).toEqual({
+				b: 2,
+				d: 4,
+			})
 		})
 
 		it('should trigger a single reaction for multiple deletions', () => {
@@ -562,6 +562,66 @@ describe('AtomMap', () => {
 			map.forEach(function (this: any) {
 				expect(this).toBe(thisArg)
 			}, thisArg)
+		})
+	})
+
+	describe('transaction rollbacks', () => {
+		it('works for additions', () => {
+			const map = new AtomMap('test', [
+				['a', 1],
+				['b', 2],
+			])
+			transaction((rollback) => {
+				map.set('c', 3)
+				rollback()
+			})
+			expect(map.size).toBe(2)
+			expect(map.has('c')).toBe(false)
+			transaction(() => {
+				map.set('c', 3)
+			})
+			expect(map.size).toBe(3)
+			expect(map.get('c')).toBe(3)
+		})
+
+		it('works for updates', () => {
+			const map = new AtomMap('test', [
+				['a', 1],
+				['b', 2],
+			])
+			transaction((rollback) => {
+				map.set('a', 3)
+				map.set('b', 4)
+				rollback()
+			})
+			expect(map.get('a')).toBe(1)
+			expect(map.get('b')).toBe(2)
+
+			transaction(() => {
+				map.set('a', 3)
+				map.set('b', 4)
+			})
+
+			expect(map.get('a')).toBe(3)
+			expect(map.get('b')).toBe(4)
+		})
+
+		it('works for deletions', () => {
+			const map = new AtomMap('test', [
+				['a', 1],
+				['b', 2],
+			])
+			transaction((rollback) => {
+				map.delete('a')
+				rollback()
+			})
+			expect(map.has('a')).toBe(true)
+			expect(map.size).toBe(2)
+			transaction(() => {
+				map.delete('a')
+			})
+			expect(map.has('a')).toBe(false)
+			expect(map.size).toBe(1)
 		})
 	})
 })

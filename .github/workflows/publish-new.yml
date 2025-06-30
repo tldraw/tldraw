@@ -23,6 +23,10 @@ on:
         description: Version Override
         required: false
 
+defaults:
+  run:
+    shell: bash
+
 jobs:
   deploy:
     name: 'Publish new version of public packages'

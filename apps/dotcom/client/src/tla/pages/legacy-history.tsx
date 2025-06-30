@@ -8,7 +8,6 @@ import { defineLoader } from '../../utils/defineLoader'
 import { TlaFileError } from '../components/TlaFileError/TlaFileError'
 import { useMaybeApp } from '../hooks/useAppState'
 import { TlaAnonLayout } from '../layouts/TlaAnonLayout/TlaAnonLayout'
-import { TlaSidebarLayout } from '../layouts/TlaSidebarLayout/TlaSidebarLayout'
 import { toggleSidebar } from '../utils/local-session-state'
 
 /*
@@ -55,25 +54,17 @@ export function Component({ error: _error }: { error?: unknown }) {
 		}
 	}, [error, userId])
 
-	if (!userId) {
-		return (
-			// Override TlaEditor's internal ReadyWrapper. This prevents the anon layout chrome from rendering
-			// before the editor is ready.
-			<>
-				{error ? (
-					<TlaFileError error={error} />
-				) : (
-					<TlaAnonLayout>
-						<BoardHistoryLog data={data.data} />
-					</TlaAnonLayout>
-				)}
-			</>
-		)
-	}
-
 	return (
-		<TlaSidebarLayout collapsible>
-			{error ? <TlaFileError error={error} /> : <BoardHistoryLog data={data.data} />}
-		</TlaSidebarLayout>
+		// Override TlaEditor's internal ReadyWrapper. This prevents the anon layout chrome from rendering
+		// before the editor is ready.
+		<>
+			{error ? (
+				<TlaFileError error={error} />
+			) : (
+				<TlaAnonLayout>
+					<BoardHistoryLog data={data.data} />
+				</TlaAnonLayout>
+			)}
+		</>
 	)
 }

@@ -96,7 +96,7 @@ describe('setCurrentPage', () => {
 		const geoId = createShapeId()
 		editor.createShape({ type: 'geo', id: geoId, props: { w: 100, h: 100 } })
 		editor.select(geoId)
-		editor.keyUp('Enter')
+		editor.keyPress('Enter')
 
 		expect(editor.isIn('select.editing_shape')).toBe(true)
 

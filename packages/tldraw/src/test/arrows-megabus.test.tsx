@@ -31,6 +31,7 @@ it('requires a move to begin drawing', () => {
 	editor.pointerMove(0, 0)
 	editor.pointerDown()
 	editor.pointerMove(2, 0)
+
 	expect(editor.inputs.isDragging).toBe(false)
 })
 
@@ -96,14 +97,14 @@ describe('Making an arrow on the page', () => {
 				type: 'vertex',
 			},
 			{
-				x: 50,
-				y: 0,
-				type: 'virtual',
-			},
-			{
 				x: 100,
 				y: 0,
 				type: 'vertex',
+			},
+			{
+				x: 50,
+				y: 0,
+				type: 'virtual',
 			},
 		])
 	})
@@ -162,6 +163,31 @@ describe('When binding an arrow to a shape', () => {
 		expect(bindings().end).toBeUndefined()
 	})
 
+	it('creates exact bindings when alt key is held', () => {
+		editor.setCurrentTool('arrow')
+		editor.keyDown('Alt')
+		editor.pointerDown(0, 50)
+		editor.pointerMove(100, 50)
+		expect(bindings().end).toMatchObject({
+			toId: ids.box1,
+			props: {
+				isExact: true,
+			},
+		})
+	})
+
+	it('creates non-exact bindings when alt key is not held', () => {
+		editor.setCurrentTool('arrow')
+		editor.pointerDown(0, 50)
+		editor.pointerMove(100, 50)
+		expect(bindings().end).toMatchObject({
+			toId: ids.box1,
+			props: {
+				isExact: false,
+			},
+		})
+	})
+
 	it('does not bind when the shape is locked', () => {
 		editor.toggleLock(editor.getCurrentPageShapes())
 		editor.setCurrentTool('arrow')
@@ -192,6 +218,27 @@ describe('When binding an arrow to a shape', () => {
 		editor.pointerUp()
 		jest.advanceTimersByTime(1000) // once the timer runs out...
 		expect(bindings().end).toBeUndefined() // still a point because interaction ended before timer ended
+	})
+
+	it('respects shouldIgnoreTargets option when control key is held', () => {
+		// This test verifies that the ctrl key behavior is now driven by the shouldIgnoreTargets option
+		editor.setCurrentTool('arrow')
+		editor.pointerDown(0, 50)
+		editor.pointerMove(100, 50)
+
+		// Initial binding should exist
+		expect(bindings().end).toBeDefined()
+		expect(bindings().end?.toId).toBe(ids.box1)
+
+		// Pressing ctrl should trigger shouldIgnoreTargets and remove binding
+		editor.keyDown('Control')
+		expect(bindings().end).toBeUndefined()
+
+		// Releasing ctrl should restore binding (after timer)
+		editor.keyUp('Control')
+		expect(bindings().end).toBeUndefined() // Still no binding immediately
+		jest.advanceTimersByTime(1000)
+		expect(bindings().end).toBeDefined()
 	})
 })
 
@@ -333,8 +380,8 @@ describe('When starting an arrow inside of multiple shapes', () => {
 				props: {
 					normalizedAnchor: {
 						// bound to the center, imprecise!
-						x: 0.2,
-						y: 0.2,
+						x: 0.5,
+						y: 0.5,
 					},
 					isPrecise: false,
 				},
@@ -505,8 +552,8 @@ describe('When starting an arrow inside of multiple shapes', () => {
 				toId: ids.box1,
 				props: {
 					normalizedAnchor: {
-						x: 0.25,
-						y: 0.25,
+						x: 0.5,
+						y: 0.5,
 					},
 					isPrecise: false,
 				},

@@ -1,26 +1,36 @@
 import classNames from 'classnames'
 import { ReactElement, ReactNode } from 'react'
+import { useUniqueSafeId } from 'tldraw'
 import { TlaIcon } from '../../TlaIcon/TlaIcon'
-import { TlaSpacer } from '../../TlaSpacer/TlaSpacer'
 import styles from '../sidebar.module.css'
 
 export function TlaSidebarFileSection({
 	title,
 	iconLeft,
+	onePixelOfPaddingAtTheTop,
 	children,
 }: {
 	title: ReactElement
 	iconLeft?: string
+	onePixelOfPaddingAtTheTop?: boolean
 	children: ReactNode
 }) {
+	const id = useUniqueSafeId()
 	return (
-		<div className={styles.section}>
-			<TlaSpacer height="8" />
-			<div className={classNames('tla-text_ui__medium', styles.sectionTitle)}>
+		<div
+			className={classNames(styles.sidebarFileSectionWrapper, {
+				[styles.sidebarFileSectionTitlePadding]: onePixelOfPaddingAtTheTop,
+			})}
+		>
+			<div className={classNames('tla-text_ui__medium', styles.sidebarFileSectionTitle)}>
 				{iconLeft ? <TlaIcon icon={iconLeft} /> : null}
-				<span>{title}</span>
+				<span id={id} role="heading" aria-level={2}>
+					{title}
+				</span>
 			</div>
-			{children}
+			<div className={styles.sidebarFileSection} role="list" aria-labelledby={id}>
+				{children}
+			</div>
 		</div>
 	)
 }

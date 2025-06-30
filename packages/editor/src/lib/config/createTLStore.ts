@@ -119,6 +119,7 @@ export function createTLStore({
 			assets: {
 				upload: assets.upload,
 				resolve: assets.resolve ?? defaultAssetResolve,
+				remove: assets.remove ?? (() => Promise.resolve()),
 			},
 			onMount: (editor) => {
 				assert(editor instanceof Editor)

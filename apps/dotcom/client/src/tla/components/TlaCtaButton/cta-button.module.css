@@ -6,7 +6,6 @@
 	pointer-events: all;
 	gap: 8px;
 	height: 36px;
-	margin-top: 1px;
 	margin-left: 2px;
 	margin-right: 0px;
 	display: flex;
@@ -15,6 +14,11 @@
 	padding: 0px 16px;
 	border: none;
 	cursor: pointer;
+}
+
+.ctaButton:focus-visible {
+	outline-offset: 2px;
+	border-radius: 6px;
 }
 
 .ctaButton > span {
@@ -46,4 +50,10 @@
 	background-color: var(--color-background);
 	border-radius: 8px;
 	z-index: 1;
+}
+
+@media (hover: hover) {
+	.ctaButton:hover::before {
+		background-color: var(--tla-color-cta-hover);
+	}
 }

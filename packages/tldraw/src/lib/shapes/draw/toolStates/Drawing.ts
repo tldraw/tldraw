@@ -249,6 +249,7 @@ export class Drawing extends StateNode {
 		this.pagePointWhereCurrentSegmentChanged = originPagePoint.clone()
 		const id = createShapeId()
 
+		// Allow this to trigger the max shapes reached alert
 		this.editor.createShapes<DrawableShape>([
 			{
 				id,
@@ -637,6 +638,7 @@ export class Drawing extends StateNode {
 
 					const props = this.editor.getShape<DrawableShape>(id)!.props
 
+					if (!this.editor.canCreateShapes([newShapeId])) return this.cancel()
 					this.editor.createShapes<DrawableShape>([
 						{
 							id: newShapeId,
@@ -656,7 +658,15 @@ export class Drawing extends StateNode {
 						},
 					])
 
-					this.initialShape = structuredClone(this.editor.getShape<DrawableShape>(newShapeId)!)
+					const shape = this.editor.getShape<DrawableShape>(newShapeId)
+
+					if (!shape) {
+						// This would only happen if the page is full and no more shapes can be created. The bug would manifest as a crash when we try to clone the shape.
+						// todo: handle this type of thing better
+						return this.cancel()
+					}
+
+					this.initialShape = structuredClone(shape)
 					this.mergeNextPoint = false
 					this.lastRecordedPoint = inputs.currentPagePoint.clone()
 					this.currentLineLength = 0

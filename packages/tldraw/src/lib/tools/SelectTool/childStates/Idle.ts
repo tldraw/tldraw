@@ -2,6 +2,7 @@ import {
 	Editor,
 	Group2d,
 	StateNode,
+	TLAdjacentDirection,
 	TLArrowShape,
 	TLClickEventInfo,
 	TLGroupShape,
@@ -13,6 +14,7 @@ import {
 	VecLike,
 	createShapeId,
 	debugFlags,
+	kickoutOccludedShapes,
 	pointInPolygon,
 	toRichText,
 } from '@tldraw/editor'
@@ -20,7 +22,7 @@ import { getHitShapeOnCanvasPointerDown } from '../../selection-logic/getHitShap
 import { getShouldEnterCropMode } from '../../selection-logic/getShouldEnterCropModeOnPointerDown'
 import { selectOnCanvasPointerUp } from '../../selection-logic/selectOnCanvasPointerUp'
 import { updateHoveredShapeId } from '../../selection-logic/updateHoveredShapeId'
-import { kickoutOccludedShapes, startEditingShapeWithLabel } from '../selectHelpers'
+import { startEditingShapeWithLabel } from '../selectHelpers'
 
 const SKIPPED_KEYS_FOR_AUTO_EDITING = [
 	'Delete',
@@ -36,9 +38,12 @@ const SKIPPED_KEYS_FOR_AUTO_EDITING = [
 export class Idle extends StateNode {
 	static override id = 'idle'
 
+	selectedShapesOnKeyDown: TLShape[] = []
+
 	override onEnter() {
 		this.parent.setCurrentToolIdMask(undefined)
 		updateHoveredShapeId(this.editor)
+		this.selectedShapesOnKeyDown = []
 		this.editor.setCursor({ type: 'default', rotation: 0 })
 	}
 
@@ -260,7 +265,7 @@ export class Idle extends StateNode {
 						info.handle === 'top' ||
 						info.handle === 'bottom'
 					) {
-						const change = util.onDoubleClickEdge?.(onlySelectedShape)
+						const change = util.onDoubleClickEdge?.(onlySelectedShape, info)
 						if (change) {
 							this.editor.markHistoryStoppingPoint('double click edge')
 							this.editor.updateShapes([change])
@@ -269,6 +274,20 @@ export class Idle extends StateNode {
 						}
 					}
 
+					if (
+						info.handle === 'top_left' ||
+						info.handle === 'top_right' ||
+						info.handle === 'bottom_right' ||
+						info.handle === 'bottom_left'
+					) {
+						const change = util.onDoubleClickCorner?.(onlySelectedShape, info)
+						if (change) {
+							this.editor.markHistoryStoppingPoint('double click corner')
+							this.editor.updateShapes([change])
+							kickoutOccludedShapes(this.editor, [onlySelectedShape.id])
+							return
+						}
+					}
 					// For corners OR edges but NOT rotation corners
 					if (
 						util.canCrop(onlySelectedShape) &&
@@ -423,11 +442,27 @@ export class Idle extends StateNode {
 	}
 
 	override onKeyDown(info: TLKeyboardEventInfo) {
+		this.selectedShapesOnKeyDown = this.editor.getSelectedShapes()
+
 		switch (info.code) {
 			case 'ArrowLeft':
 			case 'ArrowRight':
 			case 'ArrowUp':
 			case 'ArrowDown': {
+				if (info.accelKey) {
+					if (info.shiftKey) {
+						if (info.code === 'ArrowDown') {
+							this.editor.selectFirstChildShape()
+						} else if (info.code === 'ArrowUp') {
+							this.editor.selectParentShape()
+						}
+					} else {
+						this.editor.selectAdjacentShape(
+							info.code.replace('Arrow', '').toLowerCase() as TLAdjacentDirection
+						)
+					}
+					return
+				}
 				this.nudgeSelectedShapes(false)
 				return
 			}
@@ -468,7 +503,20 @@ export class Idle extends StateNode {
 			case 'ArrowRight':
 			case 'ArrowUp':
 			case 'ArrowDown': {
+				if (info.accelKey) {
+					this.editor.selectAdjacentShape(
+						info.code.replace('Arrow', '').toLowerCase() as TLAdjacentDirection
+					)
+					return
+				}
 				this.nudgeSelectedShapes(true)
+				break
+			}
+			case 'Tab': {
+				const selectedShapes = this.editor.getSelectedShapes()
+				if (selectedShapes.length) {
+					this.editor.selectAdjacentShape(info.shiftKey ? 'prev' : 'next')
+				}
 				break
 			}
 		}
@@ -477,6 +525,10 @@ export class Idle extends StateNode {
 	override onKeyUp(info: TLKeyboardEventInfo) {
 		switch (info.code) {
 			case 'Enter': {
+				// Because Enter onKeyDown can happen outside the canvas (but then focus the canvas potentially),
+				// we need to check if the canvas was initially selecting something before continuing.
+				if (!this.selectedShapesOnKeyDown.length) return
+
 				const selectedShapes = this.editor.getSelectedShapes()
 
 				// On enter, if every selected shape is a group, then select all of the children of the groups
@@ -510,6 +562,13 @@ export class Idle extends StateNode {
 				}
 				break
 			}
+			case 'Tab': {
+				const selectedShapes = this.editor.getSelectedShapes()
+				if (selectedShapes.length) {
+					this.editor.selectAdjacentShape(info.shiftKey ? 'prev' : 'next')
+				}
+				break
+			}
 		}
 	}
 
@@ -536,13 +595,12 @@ export class Idle extends StateNode {
 	isOverArrowLabelTest(shape: TLShape | undefined) {
 		if (!shape) return false
 
-		const pointInShapeSpace = this.editor.getPointInShapeSpace(
-			shape,
-			this.editor.inputs.currentPagePoint
-		)
-
 		// todo: Extract into general hit test for arrows
 		if (this.editor.isShapeOfType<TLArrowShape>(shape, 'arrow')) {
+			const pointInShapeSpace = this.editor.getPointInShapeSpace(
+				shape,
+				this.editor.inputs.currentPagePoint
+			)
 			// How should we handle multiple labels? Do shapes ever have multiple labels?
 			const labelGeometry = this.editor.getShapeGeometry<Group2d>(shape).children[1]
 			// Knowing what we know about arrows... if the shape has no text in its label,
@@ -567,6 +625,7 @@ export class Idle extends StateNode {
 
 		const { x, y } = this.editor.inputs.currentPagePoint
 
+		// Allow this to trigger the max shapes reached alert
 		this.editor.createShapes<TLTextShape>([
 			{
 				id,
@@ -585,7 +644,7 @@ export class Idle extends StateNode {
 
 		const util = this.editor.getShapeUtil(shape)
 		if (this.editor.getIsReadonly()) {
-			if (!util.canEditInReadOnly(shape)) {
+			if (!util.canEditInReadonly(shape)) {
 				return
 			}
 		}
@@ -636,7 +695,7 @@ export class Idle extends StateNode {
 	private canInteractWithShapeInReadOnly(shape: TLShape) {
 		if (!this.editor.getIsReadonly()) return true
 		const util = this.editor.getShapeUtil(shape)
-		if (util.canEditInReadOnly(shape)) return true
+		if (util.canEditInReadonly(shape)) return true
 		return false
 	}
 }

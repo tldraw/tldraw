@@ -479,21 +479,27 @@ async function handleClipboardThings(editor: Editor, things: ClipboardThing[], p
 
 			// If the html is NOT a link, and we have NO OTHER texty content, then paste the html as text
 			if (!results.some((r) => r.type === 'text' && r.subtype !== 'html') && result.data.trim()) {
-				handleText(editor, stripHtml(result.data), point, results)
-				return
+				const html = stripHtml(result.data) ?? ''
+				if (html) {
+					handleText(editor, stripHtml(result.data), point, results)
+					return
+				}
 			}
 
 			// If the html is NOT a link, and we have other texty content, then paste the html as a text shape
 			if (results.some((r) => r.type === 'text' && r.subtype !== 'html')) {
-				editor.markHistoryStoppingPoint('paste')
-				editor.putExternalContent({
-					type: 'text',
-					text: stripHtml(result.data),
-					html: result.data,
-					point,
-					sources: results,
-				})
-				return
+				const html = stripHtml(result.data) ?? ''
+				if (html) {
+					editor.markHistoryStoppingPoint('paste')
+					editor.putExternalContent({
+						type: 'text',
+						text: html,
+						html: result.data,
+						point,
+						sources: results,
+					})
+					return
+				}
 			}
 		}
 

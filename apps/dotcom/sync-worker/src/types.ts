@@ -1,5 +1,6 @@
 // https://developers.cloudflare.com/analytics/analytics-engine/
 
+import { Queue } from '@cloudflare/workers-types'
 import type { RoomSnapshot } from '@tldraw/sync-core'
 import type { TLDrawDurableObject } from './TLDrawDurableObject'
 import type { TLLoggerDurableObject } from './TLLoggerDurableObject'
@@ -63,6 +64,8 @@ export interface Environment {
 	HEALTH_CHECK_BEARER_TOKEN: string | undefined
 
 	RATE_LIMITER: RateLimit
+
+	QUEUE: Queue<QueueMessage>
 }
 
 export function isDebugLogging(env: Environment) {
@@ -127,7 +130,8 @@ export type TLPostgresReplicatorRebootSource =
 
 export type TLPostgresReplicatorEvent =
 	| { type: 'reboot'; source: TLPostgresReplicatorRebootSource }
-	| { type: 'reboot_error' | 'register_user' | 'unregister_user' | 'get_file_record' }
+	| { type: 'request_lsn_update' }
+	| { type: 'reboot_error' | 'register_user' | 'unregister_user' | 'get_file_record' | 'prune' }
 	| { type: 'reboot_duration'; duration: number }
 	| { type: 'rpm'; rpm: number }
 	| { type: 'active_users'; count: number }
@@ -137,6 +141,8 @@ export type TLUserDurableObjectEvent =
 			type:
 				| 'reboot'
 				| 'full_data_fetch'
+				| 'full_data_fetch_hard'
+				| 'found_snapshot'
 				| 'reboot_error'
 				| 'rate_limited'
 				| 'broadcast_message'
@@ -145,7 +151,15 @@ export type TLUserDurableObjectEvent =
 				| 'replication_event'
 				| 'connect_retry'
 				| 'user_do_abort'
+				| 'not_enough_history_for_fast_reboot'
 			id: string
 	  }
 	| { type: 'reboot_duration'; id: string; duration: number }
 	| { type: 'cold_start_time'; id: string; duration: number }
+
+export interface QueueMessage {
+	type: 'asset-upload'
+	objectName: string
+	fileId: string
+	userId: string | null
+}

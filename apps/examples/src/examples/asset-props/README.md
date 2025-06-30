@@ -1,7 +1,7 @@
 ---
-title: Asset props
+title: Asset options
 component: ./AssetPropsExample.tsx
-category: data/assets
+category: configuration
 priority: 1
 keywords: [images, videos, audio, gif, dimensions, accepted image types]
 ---

@@ -16,6 +16,7 @@ import {
 	TLEditorOptions,
 	TLEventInfo,
 	TLKeyboardEventInfo,
+	TLMeasureTextOpts,
 	TLPinchEventInfo,
 	TLPointerEventInfo,
 	TLShape,
@@ -117,15 +118,7 @@ export class TestEditor extends Editor {
 
 		this.textMeasure.measureText = (
 			textToMeasure: string,
-			opts: {
-				fontStyle: string
-				fontWeight: string
-				fontFamily: string
-				fontSize: number
-				lineHeight: number
-				maxWidth: null | number
-				padding: string
-			}
+			opts: TLMeasureTextOpts
 		): BoxModel & { scrollWidth: number } => {
 			const breaks = textToMeasure.split('\n')
 			const longest = breaks.reduce((acc, curr) => {
@@ -139,23 +132,19 @@ export class TestEditor extends Editor {
 				y: 0,
 				w: opts.maxWidth === null ? w : Math.max(w, opts.maxWidth),
 				h:
-					(opts.maxWidth === null ? breaks.length : Math.ceil(w % opts.maxWidth) + breaks.length) *
+					(opts.maxWidth === null ? breaks.length : Math.ceil(w / opts.maxWidth) + breaks.length) *
 					opts.fontSize,
-				scrollWidth: opts.maxWidth === null ? w : Math.max(w, opts.maxWidth),
+				scrollWidth: opts.measureScrollWidth
+					? opts.maxWidth === null
+						? w
+						: Math.max(w, opts.maxWidth)
+					: 0,
 			}
 		}
 
 		this.textMeasure.measureHtml = (
 			html: string,
-			opts: {
-				fontStyle: string
-				fontWeight: string
-				fontFamily: string
-				fontSize: number
-				lineHeight: number
-				maxWidth: null | number
-				padding: string
-			}
+			opts: TLMeasureTextOpts
 		): BoxModel & { scrollWidth: number } => {
 			const textToMeasure = html
 				.split('</p><p dir="auto">')
@@ -525,6 +514,12 @@ export class TestEditor extends Editor {
 		return this
 	}
 
+	keyPress(key: string, options = {} as Partial<Exclude<TLKeyboardEventInfo, 'key'>>) {
+		this.keyDown(key, options)
+		this.keyUp(key, options)
+		return this
+	}
+
 	keyDown(key: string, options = {} as Partial<Exclude<TLKeyboardEventInfo, 'key'>>) {
 		this.dispatch({ ...this.getKeyboardEventInfo(key, 'key_down', options) }).forceTick()
 		return this
@@ -741,12 +736,11 @@ export class TestEditor extends Editor {
 		return this
 	}
 
-	createShapesFromJsx(
-		shapesJsx: React.JSX.Element | React.JSX.Element[]
-	): Record<string, TLShapeId> {
-		const { shapes, assets, ids } = shapesFromJsx(shapesJsx)
+	createShapesFromJsx(shapesJsx: React.JSX.Element | React.JSX.Element[]) {
+		const { shapes, assets, ids, bindings } = shapesFromJsx(shapesJsx)
 		this.createAssets(assets)
 		this.createShapes(shapes)
+		this.createBindings(bindings)
 		return ids
 	}
 

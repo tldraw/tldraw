@@ -9,6 +9,10 @@ export type TLUiIconType =
 	| 'align-left'
 	| 'align-right'
 	| 'align-top'
+	| 'alt'
+	| 'arrow-arc'
+	| 'arrow-cycle'
+	| 'arrow-elbow'
 	| 'arrow-left'
 	| 'arrowhead-arrow'
 	| 'arrowhead-bar'
@@ -20,6 +24,7 @@ export type TLUiIconType =
 	| 'arrowhead-triangle'
 	| 'blob'
 	| 'bold'
+	| 'bookmark'
 	| 'bring-forward'
 	| 'bring-to-front'
 	| 'broken'
@@ -36,6 +41,9 @@ export type TLUiIconType =
 	| 'clipboard-copy'
 	| 'code'
 	| 'color'
+	| 'comment'
+	| 'corners'
+	| 'crop'
 	| 'cross-2'
 	| 'cross-circle'
 	| 'dash-dashed'
@@ -49,6 +57,7 @@ export type TLUiIconType =
 	| 'dot'
 	| 'dots-horizontal'
 	| 'dots-vertical'
+	| 'download'
 	| 'drag-handle-dots'
 	| 'duplicate'
 	| 'edit'
@@ -87,6 +96,7 @@ export type TLUiIconType =
 	| 'github'
 	| 'group'
 	| 'heading'
+	| 'help-circle'
 	| 'highlight'
 	| 'horizontal-align-end'
 	| 'horizontal-align-middle'
@@ -97,6 +107,7 @@ export type TLUiIconType =
 	| 'link'
 	| 'list'
 	| 'lock'
+	| 'manual'
 	| 'menu'
 	| 'minus'
 	| 'mixed'
@@ -168,6 +179,10 @@ export const iconTypes = [
 	'align-left',
 	'align-right',
 	'align-top',
+	'alt',
+	'arrow-arc',
+	'arrow-cycle',
+	'arrow-elbow',
 	'arrow-left',
 	'arrowhead-arrow',
 	'arrowhead-bar',
@@ -179,6 +194,7 @@ export const iconTypes = [
 	'arrowhead-triangle',
 	'blob',
 	'bold',
+	'bookmark',
 	'bring-forward',
 	'bring-to-front',
 	'broken',
@@ -195,6 +211,9 @@ export const iconTypes = [
 	'clipboard-copy',
 	'code',
 	'color',
+	'comment',
+	'corners',
+	'crop',
 	'cross-2',
 	'cross-circle',
 	'dash-dashed',
@@ -208,6 +227,7 @@ export const iconTypes = [
 	'dot',
 	'dots-horizontal',
 	'dots-vertical',
+	'download',
 	'drag-handle-dots',
 	'duplicate',
 	'edit',
@@ -246,6 +266,7 @@ export const iconTypes = [
 	'github',
 	'group',
 	'heading',
+	'help-circle',
 	'highlight',
 	'horizontal-align-end',
 	'horizontal-align-middle',
@@ -256,6 +277,7 @@ export const iconTypes = [
 	'link',
 	'list',
 	'lock',
+	'manual',
 	'menu',
 	'minus',
 	'mixed',

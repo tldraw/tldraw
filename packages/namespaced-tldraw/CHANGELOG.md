@@ -1,3 +1,27 @@
+# v3.11.0 (Thu Mar 20 2025)
+
+#### 🐛 Bug Fix
+
+- upgrade yarn to 4.7 [#5687](https://github.com/tldraw/tldraw/pull/5687) ([@SomeHats](https://github.com/SomeHats))
+
+#### Authors: 1
+
+- alex ([@SomeHats](https://github.com/SomeHats))
+
+---
+
+# v3.10.0 (Tue Mar 11 2025)
+
+#### 🐛 Bug Fix
+
+- CTA analytics [#5542](https://github.com/tldraw/tldraw/pull/5542) ([@TodePond](https://github.com/TodePond))
+
+#### Authors: 1
+
+- Lu Wilson ([@TodePond](https://github.com/TodePond))
+
+---
+
 # v3.9.0 (Mon Mar 03 2025)
 
 #### 🐛 Bug Fix

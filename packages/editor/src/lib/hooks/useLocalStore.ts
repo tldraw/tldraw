@@ -52,6 +52,9 @@ export function useLocalStore(
 
 				return asset.props.src
 			},
+			remove: async (assetIds) => {
+				await client.db.removeAssets(assetIds)
+			},
 			...rest.assets,
 		}
 

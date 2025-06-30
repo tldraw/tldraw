@@ -12,10 +12,6 @@
 	--layer-following-indicator: 1000;
 }
 
-/* -------------------------------------------------- */
-/*                     UI Refresh                     */
-/* -------------------------------------------------- */
-
 /* Button */
 
 .tlui-button {
@@ -38,6 +34,7 @@
 	font-size: 12px;
 	gap: 0px;
 	color: var(--color-text-1);
+	z-index: 0;
 }
 
 .tlui-button:disabled {
@@ -61,12 +58,23 @@
 	text-align: left;
 }
 
-.tlui-button:focus-visible:not(:hover) {
-	/* todo: fix the indicator errors in radix dropdown menus before restoring */
-	/* outline: 1px solid var(--color-selected); */
-	outline: none;
-	outline-offset: -4px;
-	border-radius: var(--radius-3);
+/*
+ * We only want to show the focus ring if:
+ * - the container is focused
+ * - we're not using the mouse to interact (which is the .tl-container__no-focus-ring)
+ */
+.tl-container__focused:not(.tl-container__no-focus-ring) .tlui-button:focus-visible {
+	border-radius: 10px;
+	outline: 2px solid var(--color-focus);
+	outline-offset: -5px;
+}
+.tl-container__focused:not(.tl-container__no-focus-ring) .tlui-button__tool:focus-visible {
+	border-radius: 12px;
+}
+.tlui-slider__container:has(.tlui-slider__thumb:focus-visible) {
+	border-radius: 10px;
+	outline: 2px solid var(--color-focus);
+	outline-offset: -5px;
 }
 
 .tlui-button::after {
@@ -74,24 +82,34 @@
 	content: '';
 	position: absolute;
 	inset: 4px;
-	background-color: transparent;
 	border-radius: var(--radius-2);
+	background: var(--color-muted-2);
+	opacity: 0;
 }
 
-.tlui-button[aria-expanded='true']::after {
-	background-color: var(--color-muted-0);
+.tlui-button__menu[data-highlighted]::after {
 	opacity: 1;
 }
 
-.tlui-button__icon + .tlui-button__label {
-	margin-left: var(--space-2);
+.tlui-button[data-isactive='true']::after,
+.tlui-button[data-isactive='true']:not(:disabled, :focus-visible):active:after {
+	background: var(--color-hint);
+	opacity: 1;
+}
+
+.tlui-button[aria-expanded='true'][data-direction='left']::after {
+	background: linear-gradient(270deg, rgba(144, 144, 144, 0) 0%, var(--color-muted-2) 100%);
+	opacity: 1;
 }
 
 @media (hover: hover) {
-	.tlui-button:not(.tlui-menu__submenu__trigger)::after,
-	.tlui-button.tlui-menu__submenu__trigger[data-highlighted]::after {
-		background-color: var(--color-muted-2);
-		opacity: 0;
+	.tlui-button[aria-expanded='true'][data-direction='left']:not(:hover)::after {
+		background: linear-gradient(270deg, rgba(144, 144, 144, 0) 0%, var(--color-muted-2) 100%);
+		opacity: 1;
+	}
+
+	.tlui-button:not(:disabled):hover {
+		z-index: 1;
 	}
 
 	.tlui-button:not(:disabled):hover::after {
@@ -99,14 +117,8 @@
 	}
 }
 
-.tlui-button[data-state='hinted']::after {
-	background-color: var(--color-hint);
-	opacity: 1;
-}
-
-.tlui-button[data-state='hinted']:not(:disabled, :focus-visible):active:after {
-	background: var(--color-hint);
-	opacity: 1;
+.tlui-button__icon + .tlui-button__label {
+	margin-left: var(--space-2);
 }
 
 /* Low button  */
@@ -116,9 +128,14 @@
 	background-color: var(--color-low);
 }
 
+.tlui-button__low::after {
+	background-color: var(--color-muted-2);
+	opacity: 0;
+}
+
 @media (hover: hover) {
-	.tlui-button__low::after {
-		background-color: var(--color-muted-2);
+	.tlui-button__low:hover::after {
+		opacity: 1;
 	}
 }
 
@@ -129,7 +146,7 @@
 }
 
 .tlui-button__danger {
-	color: var(--color-warn);
+	color: var(--color-danger);
 	text-shadow: none;
 }
 
@@ -139,7 +156,7 @@
 	}
 
 	.tlui-button__danger:not(:disabled, :focus-visible):hover {
-		color: var(--color-warn);
+		color: var(--color-danger);
 		text-shadow: none;
 	}
 }
@@ -160,19 +177,21 @@
 	margin: -4px 0px;
 }
 
+.tlui-button__menu::after {
+	inset: 4px;
+	border-radius: var(--radius-2);
+}
+
+.tlui-button__menu > .tlui-icon + .tlui-button__label {
+	margin-left: 0px;
+}
+
 .tlui-button__menu:nth-child(1) {
 	margin-top: 0px;
 }
 
 .tlui-button__menu:nth-last-child(1) {
 	margin-bottom: 0px;
-}
-
-@media (hover: hover) {
-	.tlui-button__menu::after {
-		inset: 4px;
-		border-radius: var(--radius-2);
-	}
 }
 
 /* Menu checkbox button */
@@ -215,10 +234,6 @@
 	margin-right: -2px;
 }
 
-.tlui-button__tool:focus-visible:not(:hover) {
-	border-radius: 12px;
-}
-
 .tlui-button__tool:nth-of-type(1) {
 	margin-left: 0px;
 }
@@ -227,26 +242,20 @@
 	margin-right: 0px;
 }
 
-@media (hover: hover) {
-	.tlui-button__tool::after {
-		inset: 4px;
-		border-radius: 8px;
-	}
-
-	.tlui-button__tool[aria-checked='true']:not(:disabled, :focus-visible):hover {
-		color: var(--color-selected-contrast);
-	}
+.tlui-button__tool::after {
+	inset: 4px;
+	border-radius: 8px;
 }
 
-.tlui-button__tool[aria-checked='true'] {
+.tlui-button__tool[aria-pressed='true'] {
 	color: var(--color-selected-contrast);
 }
 
-.tlui-button__tool[aria-checked='true']:not(:disabled, :focus-visible):active {
+.tlui-button__tool[aria-pressed='true']:not(:disabled, :focus-visible):active {
 	color: var(--color-selected-contrast);
 }
 
-.tlui-button__tool[aria-checked='true']:not(:disabled)::after {
+.tlui-button__tool[aria-pressed='true']:not(:disabled)::after {
 	background: var(--color-selected);
 	opacity: 1;
 }
@@ -259,26 +268,6 @@
 .tlui-layout__mobile .tlui-button__tool > .tlui-icon {
 	height: 16px;
 	width: 16px;
-}
-
-/* Help */
-
-.tlui-button__help {
-	height: 32px;
-	width: 32px;
-	padding: 0px;
-	min-width: 32px;
-	border-radius: 100%;
-	background-color: var(--color-low);
-	border: 1px solid var(--color-low-border);
-}
-
-@media (hover: hover) {
-	.tlui-button__help::after {
-		background-color: var(--color-muted-2);
-		border-radius: 100%;
-		inset: 4px;
-	}
 }
 
 /* Button Row */
@@ -309,7 +298,8 @@
 .tlui-buttons__grid > .tlui-button {
 	margin: -2px;
 }
-.tlui-buttons__grid > .tlui-button:nth-of-type(4n) {
+.tlui-buttons__grid > .tlui-button:nth-of-type(4n),
+.tlui-buttons__vertical-align > .tlui-button:nth-of-type(3n) {
 	margin-right: 0px;
 }
 .tlui-buttons__grid > .tlui-button:nth-of-type(4n - 3) {
@@ -324,7 +314,7 @@
 
 /* Zoom button */
 
-.tlui-zoom-menu__button__pct {
+.tlui-zoom-menu__button {
 	width: 60px;
 	min-width: 60px;
 	text-align: center;
@@ -383,8 +373,8 @@
 	min-width: 0px;
 }
 
-.scrollable,
-.scrollable * {
+.tlui-scrollable,
+.tlui-scrollable * {
 	pointer-events: all;
 	touch-action: auto;
 	overscroll-behavior: none;
@@ -429,17 +419,18 @@
 
 /* --------------------- Slider --------------------- */
 
+.tlui-slider__container {
+	width: 100%;
+	padding: 0px var(--space-4);
+}
+
 .tlui-slider {
 	position: relative;
 	display: flex;
 	align-items: center;
 	user-select: none;
 	touch-action: none;
-}
-
-.tlui-slider__container {
 	width: 100%;
-	padding: 0px var(--space-4);
 }
 
 .tlui-slider__track {
@@ -489,8 +480,56 @@
 		var(--shadow-1);
 }
 
-.tlui-slider__thumb:focus-visible {
-	box-shadow: inset 0 0 0 2px var(--color-focus);
+/* ---------------------- Input --------------------- */
+
+.tlui-input {
+	background: none;
+	margin: 0px;
+	position: relative;
+	z-index: var(--layer-above);
+	height: 40px;
+	max-height: 40px;
+	display: flex;
+	align-items: center;
+	justify-content: center;
+	font-family: inherit;
+	font-size: 12px;
+	font-weight: inherit;
+	color: var(--color-text-1);
+	padding: var(--space-4);
+	padding-left: 0px;
+	border: none;
+	outline: none;
+	text-overflow: ellipsis;
+	width: 100%;
+	user-select: all;
+	text-rendering: optimizeLegibility;
+	-webkit-user-select: auto !important;
+}
+
+.tlui-input__wrapper {
+	width: 100%;
+	height: 44px;
+	display: flex;
+	align-items: center;
+	gap: var(--space-4);
+	color: var(--color-text);
+}
+
+.tlui-input__wrapper > .tlui-icon {
+	flex-shrink: 0;
+}
+
+/* If mobile use 16px as font size */
+/* On iOS, font size under 16px in an input will make the page zoom into the input 🤦‍♂️ */
+/* https://css-tricks.com/16px-or-larger-text-prevents-ios-form-zoom/ */
+@media (max-width: 600px) {
+	@supports (-webkit-touch-callout: none) {
+		/* CSS specific to iOS devices */
+		.tlui-input {
+			font-size: 16px;
+		}
+	}
 }
 
 /* ----------------------- Kbd ---------------------- */
@@ -505,7 +544,7 @@
 	grid-template-columns: auto;
 	grid-auto-columns: minmax(1em, auto);
 	align-self: bottom;
-	color: var(--color-text-1);
+	color: currentColor;
 	margin-left: var(--space-4);
 }
 
@@ -533,6 +572,94 @@
 	pointer-events: all;
 }
 
+/* ---------------------- Menu ---------------------- */
+
+.tlui-menu:empty {
+	display: none;
+}
+
+.tlui-menu {
+	z-index: var(--layer-menus);
+	height: fit-content;
+	width: fit-content;
+	border-radius: var(--radius-3);
+	pointer-events: all;
+	touch-action: auto;
+	overflow-y: auto;
+	overscroll-behavior: none;
+	background-color: var(--color-panel);
+	box-shadow: var(--shadow-3);
+}
+
+.tlui-menu::-webkit-scrollbar {
+	display: none;
+}
+
+/* Menu groups */
+
+.tlui-menu__group {
+	width: 100%;
+}
+
+.tlui-menu__group:empty {
+	display: none;
+}
+
+.tlui-menu__group {
+	border-bottom: 1px solid var(--color-divider);
+}
+.tlui-menu__group:nth-last-of-type(1) {
+	border-bottom: none;
+}
+
+/* Submenu triggers */
+
+.tlui-menu__submenu__trigger[data-state='open']::after {
+	opacity: 1;
+	background: linear-gradient(90deg, rgba(144, 144, 144, 0) 0%, var(--color-muted-2) 100%);
+}
+
+.tlui-menu__submenu__trigger[data-direction='left'][data-state='open']::after {
+	opacity: 1;
+	background: linear-gradient(270deg, rgba(144, 144, 144, 0) 0%, var(--color-muted-2) 100%);
+}
+
+@media (hover: hover) {
+	.tlui-menu__submenu__trigger[data-state='open']:not(:hover)::after {
+		opacity: 1;
+		background: linear-gradient(90deg, rgba(144, 144, 144, 0) 0%, var(--color-muted-2) 100%);
+	}
+
+	.tlui-menu__submenu__trigger[data-direction='left'][data-state='open']:not(:hover)::after {
+		opacity: 1;
+		background: linear-gradient(270deg, rgba(144, 144, 144, 0) 0%, var(--color-muted-2) 100%);
+	}
+}
+
+/* Menu Sizes */
+
+.tlui-menu[data-size='large'] > .tlui-menu__group {
+	min-width: initial;
+}
+
+.tlui-menu[data-size='medium'] > .tlui-menu__group {
+	min-width: 144px;
+}
+
+.tlui-menu[data-size='small'] > .tlui-menu__group {
+	min-width: 96px;
+}
+
+.tlui-menu[data-size='tiny'] > .tlui-menu__group {
+	min-width: 0px;
+}
+
+.tlui-menu-click-capture {
+	position: fixed;
+	inset: 0;
+	z-index: var(--layer-menu-click-capture);
+}
+
 /* --------------------- Popover -------------------- */
 
 .tlui-popover {
@@ -558,42 +685,6 @@
 	-ms-overflow-style: none;
 }
 
-/* -------------------------------------------------- */
-/*                        Zones                       */
-/* -------------------------------------------------- */
-
-/* ------------------- Status Bar ------------------- */
-
-.tlui-debug-panel {
-	background-color: var(--color-low);
-	width: 100%;
-	display: grid;
-	align-items: center;
-	grid-template-columns: 1fr auto auto auto;
-	justify-content: space-between;
-	padding-left: var(--space-4);
-	border-top: 1px solid var(--color-background);
-	font-size: 12px;
-	color: var(--color-text-1);
-	z-index: var(--layer-panels);
-	pointer-events: all;
-}
-
-.tlui-debug-panel__current-state {
-	overflow: hidden;
-	white-space: nowrap;
-	text-overflow: ellipsis;
-}
-
-.tlui-debug-panel__fps {
-	margin-right: 8px;
-}
-
-.tlui-debug-panel__fps__slow {
-	font-weight: bold;
-	color: var(--color-warn);
-}
-
 /* -------------------- Menu Zone ------------------- */
 
 .tlui-menu-zone {
@@ -608,9 +699,278 @@
 
 .tlui-menu-zone *[data-state='open']::after {
 	background: linear-gradient(180deg, rgba(144, 144, 144, 0) 0%, var(--color-muted-2) 100%);
+	opacity: 1;
 }
 
-/* ------------------- Style Panel ------------------ */
+@media (hover: hover) {
+	.tlui-menu-zone *[data-state='open']:not(:hover)::after {
+		background: linear-gradient(180deg, rgba(144, 144, 144, 0) 0%, var(--color-muted-2) 100%);
+		opacity: 1;
+	}
+}
+
+/* ------------------- Page Select ------------------ */
+
+.tlui-page-menu__wrapper {
+	position: relative;
+	display: flex;
+	flex-direction: column;
+	width: 260px;
+	height: fit-content;
+	max-height: 50vh;
+}
+
+.tlui-page-menu__trigger {
+	width: auto;
+}
+
+.tlui-page-menu__header {
+	display: flex;
+	flex-direction: row;
+	align-items: center;
+	width: 100%;
+	height: 40px;
+	padding-left: var(--space-4);
+	border-bottom: 1px solid var(--color-divider);
+}
+
+.tlui-page-menu__header > .tlui-button:nth-of-type(1) {
+	margin-right: -4px;
+}
+
+.tlui-page-menu__header__title {
+	color: var(--color-text);
+	font-size: 12px;
+	flex-grow: 2;
+}
+
+.tlui-page-menu__name {
+	flex-grow: 2;
+	text-align: left;
+	overflow: hidden;
+	text-overflow: ellipsis;
+	white-space: nowrap;
+}
+
+.tlui-page-menu__list {
+	position: relative;
+	touch-action: auto;
+	flex-direction: column;
+	max-height: 100%;
+	overflow-x: hidden;
+	overflow-y: auto;
+	touch-action: auto;
+}
+
+.tlui-page-menu__item {
+	position: relative;
+}
+
+.tlui-page_menu__item__submenu[data-isediting='true'] > .tlui-button[data-state='open'] {
+	opacity: 1;
+}
+
+@media (hover: hover) {
+	.tlui-page-menu__item:hover > .tlui-page_menu__item__submenu > .tlui-button {
+		opacity: 1;
+	}
+}
+
+.tlui-page-menu__item:nth-of-type(n + 2) {
+	margin-top: -4px;
+}
+
+.tlui-page-menu__item__button {
+	width: 100%;
+}
+
+.tlui-page-menu__item__button:not(:only-child) {
+	flex-grow: 2;
+	margin-right: -2px;
+}
+
+.tlui-page-menu__item__button > span {
+	display: block;
+	flex-grow: 2;
+	text-align: left;
+	overflow: hidden;
+	text-overflow: ellipsis;
+	white-space: nowrap;
+}
+
+.tlui-page-menu__item__button > span {
+	padding-right: calc(40px - 12px);
+}
+
+@media (hover: hover) {
+	.tlui-page-menu__item__button > span {
+		padding-right: 0px;
+	}
+
+	.tlui-page-menu__item:hover > .tlui-page-menu__item__button > span {
+		padding-right: calc(40px - 12px);
+	}
+}
+
+.tlui-page-menu__item__button__checkbox {
+	padding-left: 35px;
+}
+
+.tlui-page-menu__item__button__check {
+	position: absolute;
+	left: 0px;
+	width: 24px;
+	padding-left: 10px;
+	display: inline-flex;
+	align-items: center;
+	justify-content: center;
+	color: var(--color-text);
+}
+
+.tlui-page_menu__item__sortable {
+	position: absolute;
+	top: 0px;
+	left: 0px;
+	width: 100%;
+	height: fit-content;
+	display: flex;
+	flex-direction: row;
+	align-items: center;
+	overflow: hidden;
+	z-index: var(--layer-above);
+}
+
+.tlui-page_menu__item__sortable__title {
+	flex: 1;
+}
+
+.tlui-page_menu__item__sortable__title > .tlui-input__wrapper {
+	height: 100%;
+}
+
+.tlui-page_menu__item__sortable:focus-visible {
+	z-index: var(--layer-focused-input);
+}
+
+.tlui-page_menu__item__sortable__handle {
+	touch-action: none;
+	width: 32px;
+	min-width: 0px;
+	height: 40px;
+	cursor: grab;
+	color: var(--color-text-3);
+	flex-shrink: 0;
+	margin-right: -9px;
+}
+
+.tlui-page_menu__item__sortable__handle:active {
+	cursor: grabbing;
+}
+
+.tlui-page-menu__item__input {
+	margin-left: 12px;
+	height: 100%;
+}
+
+/* The more menu has complex CSS here: */
+/* If the user can hover, then visible but opacity zero until hover */
+/* If the user cannot hover, then not displayed unless editing, and then opacity 1 */
+
+.tlui-page_menu__item__submenu {
+	pointer-events: all;
+	position: absolute;
+	right: 0px;
+	top: 0px;
+	height: 100%;
+	cursor: pointer;
+	margin: 0px;
+	margin-left: -2px;
+	z-index: 10;
+}
+
+.tlui-page_menu__item__submenu > .tlui-button {
+	opacity: 0;
+}
+
+.tlui-page_menu__item__sortable:focus-visible > .tlui-page_menu__item__submenu > .tlui-button,
+.tlui-page_menu__item__submenu[data-isediting='true'],
+.tlui-page_menu__item__submenu > .tlui-button[data-state='open'],
+.tlui-page_menu__item__submenu > .tlui-button:focus-visible {
+	opacity: 1;
+}
+
+.tlui-page_menu__item__submenu > .tlui-button[data-state='open']::after {
+	background: linear-gradient(90deg, rgba(144, 144, 144, 0) 0%, var(--color-muted-2) 100%);
+	opacity: 1;
+}
+
+@media (hover: hover) {
+	.tlui-page_menu__item__submenu > .tlui-button[data-state='open']:not(:hover)::after {
+		background: linear-gradient(90deg, rgba(144, 144, 144, 0) 0%, var(--color-muted-2) 100%);
+		opacity: 1;
+	}
+}
+
+@media (any-pointer: coarse) {
+	.tlui-page_menu__item__submenu > .tlui-button {
+		opacity: 1;
+	}
+}
+
+.tlui-button__icon {
+	padding: 0px;
+}
+
+.tlui-page-menu__item__button .tlui-button__icon {
+	margin-right: 4px;
+}
+
+@media (hover: hover) {
+	.tlui-page_menu__item__submenu[data-isediting='true'] > .tlui-button {
+		opacity: 0;
+	}
+
+	.tlui-page_menu__item__submenu:hover > .tlui-button {
+		opacity: 1;
+	}
+}
+
+/* -------------- Skip to main content -------------- */
+
+.tl-skip-to-main-content {
+	position: fixed;
+	top: 48px;
+	left: -9999px;
+	padding: 8px 16px;
+	z-index: var(--layer-toasts);
+}
+
+.tl-skip-to-main-content:focus {
+	left: 8px;
+}
+
+/* ---------------- Offline indicator --------------- */
+
+.tlui-offline-indicator {
+	display: flex;
+	flex-direction: row;
+	gap: var(--space-3);
+	color: var(--color-text);
+	background-color: var(--color-low);
+	border: 3px solid var(--color-background);
+	padding: 0px var(--space-5);
+	height: 42px;
+	align-items: center;
+	justify-content: center;
+	border-radius: 99px;
+	opacity: 0;
+	animation: fade-in;
+	animation-duration: 0.12s;
+	animation-delay: 2s;
+	animation-fill-mode: forwards;
+}
+
+/* ------------------- Style panel ------------------ */
 
 .tlui-style-panel__wrapper {
 	box-shadow: var(--shadow-2);
@@ -692,151 +1052,91 @@
 	max-width: 100%;
 }
 
-.tlui-style-panel__section *[data-state='open']::after {
-	background: var(--color-muted-0);
+.tlui-style-panel .tlui-button[data-state='open']::after {
+	opacity: 1;
+	background: linear-gradient(270deg, rgba(144, 144, 144, 0) 0%, var(--color-muted-2) 100%);
 }
 
-/* ---------------------- Input --------------------- */
-
-.tlui-input {
-	background: none;
-	margin: 0px;
-	position: relative;
-	z-index: var(--layer-above);
-	height: 40px;
-	max-height: 40px;
-	display: flex;
-	align-items: center;
-	justify-content: center;
-	font-family: inherit;
-	font-size: 12px;
-	font-weight: inherit;
-	color: var(--color-text-1);
-	padding: var(--space-4);
-	padding-left: 0px;
-	border: none;
-	outline: none;
-	text-overflow: ellipsis;
-	width: 100%;
-	user-select: all;
-	text-rendering: optimizeLegibility;
-	-webkit-user-select: auto !important;
-}
-
-.tlui-input__wrapper {
-	width: 100%;
-	height: 44px;
-	display: flex;
-	align-items: center;
-	gap: var(--space-4);
-	color: var(--color-text);
-}
-
-.tlui-input__wrapper > .tlui-icon {
-	flex-shrink: 0;
-}
-
-/* If mobile use 16px as font size */
-/* On iOS, font size under 16px in an input will make the page zoom into the input 🤦‍♂️ */
-/* https://css-tricks.com/16px-or-larger-text-prevents-ios-form-zoom/ */
-@media (max-width: 600px) {
-	@supports (-webkit-touch-callout: none) {
-		/* CSS specific to iOS devices */
-		.tlui-input {
-			font-size: 16px;
-		}
+@media (hover: hover) {
+	.tlui-style-panel .tlui-button[data-state='open']:not(:hover)::after {
+		opacity: 1;
+		background: linear-gradient(270deg, rgba(144, 144, 144, 0) 0%, var(--color-muted-2) 100%);
 	}
 }
 
-/* ---------------- Dialog ---------------- */
+/* --------------------- Bottom --------------------- */
 
-.tlui-dialog__overlay {
+.tlui-layout__bottom {
+	grid-row: 2;
+}
+
+.tlui-layout__bottom__main {
+	width: 100%;
+	position: relative;
+	display: flex;
+	align-items: flex-end;
+	justify-content: center;
+}
+
+/* ------------------- Navigation ------------------- */
+
+.tlui-navigation-panel {
+	display: flex;
+	width: min-content;
+	flex-direction: column;
+	z-index: var(--layer-panels);
+	pointer-events: all;
 	position: absolute;
-	top: 0px;
 	left: 0px;
+	bottom: 0px;
+}
+
+.tlui-navigation-panel::before {
+	content: '';
+	display: block;
+	position: absolute;
+	z-index: -1;
+	inset: -2px -2px 0px 0px;
+	border-radius: 0;
+	border-top: 2px solid var(--color-background);
+	border-right: 2px solid var(--color-background);
+	border-top-right-radius: var(--radius-4);
+	background-color: var(--color-low);
+}
+
+.tlui-navigation-panel[data-a11y='true']::before {
+	display: none;
+}
+
+.tlui-navigation-panel__toggle .tlui-icon {
+	opacity: 0.24;
+}
+
+.tlui-navigation-panel__toggle:active .tlui-icon {
+	opacity: 1;
+}
+
+@media (hover: hover) {
+	.tlui-navigation-panel__toggle:hover .tlui-icon {
+		opacity: 1;
+	}
+}
+
+/* Minimap */
+
+.tlui-minimap {
+	width: 100%;
+	height: 96px;
+	min-height: 96px;
+	overflow: hidden;
+	padding: var(--space-3);
+	padding-top: 0px;
+}
+
+.tlui-minimap__canvas {
+	position: relative;
 	width: 100%;
 	height: 100%;
-	z-index: var(--layer-canvas-overlays);
-	background-color: var(--color-overlay);
-	pointer-events: all;
-	animation: fadeIn 0.12s ease-out;
-	display: grid;
-	place-items: center;
-	overflow-y: auto;
-}
-
-.tlui-dialog__content {
-	display: flex;
-	flex-direction: column;
-	position: relative;
-	cursor: default;
-	background-color: var(--color-panel);
-	box-shadow: var(--shadow-3);
-	border-radius: var(--radius-3);
-	font-size: 12px;
-	overflow: hidden;
-	min-width: 300px;
-	max-width: 80%;
-	max-height: 80%;
-}
-
-.tlui-dialog__header {
-	position: relative;
-	display: flex;
-	align-items: center;
-	flex: 0;
-	z-index: var(--layer-header-footer);
-	padding-left: var(--space-4);
-	color: var(--color-text);
-	height: 44px;
-}
-
-.tlui-dialog__header__title {
-	flex: 1;
-	font-weight: inherit;
-	font-size: 12px;
-	margin: 0px;
-	color: var(--color-text-1);
-}
-
-.tlui-dialog__header__close {
-	justify-self: flex-end;
-}
-
-.tlui-dialog__body {
-	padding: var(--space-4) var(--space-4);
-	flex: 0 1;
-	overflow-y: auto;
-	overflow-x: hidden;
-	color: var(--color-text-1);
-	user-select: all;
-	-webkit-user-select: text;
-}
-.tlui-dialog__body a {
-	color: var(--color-selected);
-}
-
-.tlui-dialog__body ul,
-.tlui-dialog__body ol {
-	padding-left: 16px;
-	display: flex;
-	flex-direction: column;
-	gap: var(--space-4);
-}
-
-.tlui-dialog__footer {
-	position: relative;
-	z-index: var(--layer-header-footer);
-}
-
-.tlui-dialog__footer__actions {
-	display: flex;
-	align-items: center;
-	justify-content: flex-end;
-}
-
-.tlui-dialog__footer__actions > .tlui-button:nth-last-child(n + 2) {
-	margin-right: -4px;
 }
 
 /* --------------------- Toolbar -------------------- */
@@ -920,127 +1220,62 @@
 	padding: 0px;
 }
 
-.tlui-layout__mobile .tlui-toolbar *[data-state='open']::after {
+.tlui-toolbar *[data-state='open']::after {
 	background: linear-gradient(0deg, rgba(144, 144, 144, 0) 0%, var(--color-muted-2) 100%);
+	opacity: 1;
+}
+
+@media (hover: hover) {
+	.tlui-toolbar *[data-state='open']:not(:hover)::after {
+		background: linear-gradient(0deg, rgba(144, 144, 144, 0) 0%, var(--color-muted-2) 100%);
+		opacity: 1;
+	}
 }
 
 .tlui-layout__mobile .tlui-toolbar {
 	transition: transform 0.15s ease-out 0.05s;
 }
 
-/*
- * On Android, when the virtual keyboard is up, we used to hide the tools.
- * However, we disabled for this now.
- */
-/* .tlui-layout__mobile[data-iseditinganything='true'] .tlui-toolbar {
-	transform: translate(0px, 120%);
-	transition: none;
-} */
+/* ------------------- Debug panel ------------------ */
 
-/* -------------------- Help Zone ------------------- */
-
-.tlui-help-menu {
-	pointer-events: all;
-	position: absolute;
-	bottom: var(--space-2);
-	right: var(--space-2);
+.tlui-debug-panel {
+	background-color: var(--color-low);
+	width: 100%;
+	display: grid;
+	align-items: center;
+	grid-template-columns: 1fr auto auto auto;
+	justify-content: space-between;
+	padding-left: var(--space-4);
+	border-top: 1px solid var(--color-background);
+	font-size: 12px;
+	color: var(--color-text-1);
 	z-index: var(--layer-panels);
-	border: 2px solid var(--color-background);
-	border-radius: 100%;
+	pointer-events: all;
 }
 
-/* ------------------ Context Menu ------------------ */
-
-.tlui-context-menu__move-to-page__name {
-	max-width: calc(min(300px, 35vw));
+.tlui-debug-panel__current-state {
 	overflow: hidden;
+	white-space: nowrap;
 	text-overflow: ellipsis;
 }
 
-.tlui-context-menu__move-to-page__name[data-disabled] {
-	color: var(--color-text-3);
-	pointer-events: none;
+.tlui-debug-panel__fps {
+	margin-right: 8px;
 }
 
-/* ---------------------- Menu ---------------------- */
-
-.tlui-menu:empty {
-	display: none;
+.tlui-debug-panel__fps__slow {
+	font-weight: bold;
+	color: var(--color-danger);
 }
 
-.tlui-menu {
-	z-index: var(--layer-menus);
-	height: fit-content;
-	width: fit-content;
-	max-height: 80vh;
-	border-radius: var(--radius-3);
-	pointer-events: all;
-	touch-action: auto;
-	overflow-y: auto;
-	overscroll-behavior: none;
-	background-color: var(--color-panel);
-	box-shadow: var(--shadow-3);
+.tlui-a11y-audit {
+	border-collapse: collapse;
 }
 
-.tlui-menu::-webkit-scrollbar {
-	display: none;
-}
-
-.tlui-menu__arrow {
-	position: relative;
-	top: -1px;
-	fill: var(--color-panel);
-	stroke: var(--color-panel-contrast);
-	stroke-width: 1px;
-}
-
-.tlui-menu__group {
-	width: 100%;
-}
-
-.tlui-menu__group:empty {
-	display: none;
-}
-
-.tlui-menu__group {
-	border-bottom: 1px solid var(--color-divider);
-}
-.tlui-menu__group:nth-last-of-type(1) {
-	border-bottom: none;
-}
-
-.tlui-menu__submenu__trigger[data-state='open']:not(:hover)::after {
-	border-radius: 0px;
-	background: linear-gradient(90deg, rgba(144, 144, 144, 0) 0%, var(--color-muted-2) 100%);
-}
-
-.tlui-menu__submenu__trigger[data-direction='left'][data-state='open']:not(:hover)::after {
-	border-radius: 0px;
-	background: linear-gradient(270deg, rgba(144, 144, 144, 0) 0%, var(--color-muted-2) 100%);
-}
-
-/* Menu Sizes */
-
-.tlui-menu[data-size='large'] > .tlui-menu__group {
-	min-width: initial;
-}
-
-.tlui-menu[data-size='medium'] > .tlui-menu__group {
-	min-width: 144px;
-}
-
-.tlui-menu[data-size='small'] > .tlui-menu__group {
-	min-width: 96px;
-}
-
-.tlui-menu[data-size='tiny'] > .tlui-menu__group {
-	min-width: 0px;
-}
-
-/* ------------------ Actions Menu ------------------ */
-
-.tlui-actions-menu {
-	max-height: calc(100vh - 150px);
+.tlui-a11y-audit th,
+.tlui-a11y-audit td {
+	padding: 8px;
+	border: 1px solid var(--color-low-border);
 }
 
 /* --------------------- Toasts --------------------- */
@@ -1092,7 +1327,7 @@
 }
 
 .tlui-toast__container[data-severity='error'] .tlui-icon {
-	color: var(--color-error);
+	color: var(--color-danger);
 }
 
 .tlui-toast__main {
@@ -1165,325 +1400,97 @@
 	}
 }
 
-/* --------------------- Bottom --------------------- */
+/* ---------------- Dialog ---------------- */
 
-.tlui-layout__bottom {
-	grid-row: 2;
-}
-
-.tlui-layout__bottom__main {
-	width: 100%;
-	position: relative;
-	display: flex;
-	align-items: flex-end;
-	justify-content: center;
-}
-
-/* ------------------- Navigation ------------------- */
-
-.tlui-navigation-panel {
-	display: flex;
-	width: min-content;
-	flex-direction: column;
-	z-index: var(--layer-panels);
-	pointer-events: all;
-	position: absolute;
-	left: 0px;
-	bottom: 0px;
-}
-
-.tlui-navigation-panel::before {
-	content: '';
-	display: block;
-	position: absolute;
-	z-index: -1;
-	inset: -2px -2px 0px 0px;
-	border-radius: 0;
-	border-top: 2px solid var(--color-background);
-	border-right: 2px solid var(--color-background);
-	border-top-right-radius: var(--radius-4);
-	background-color: var(--color-low);
-}
-
-.tlui-navigation-panel__toggle .tlui-icon {
-	opacity: 0.24;
-}
-
-.tlui-navigation-panel__toggle:active .tlui-icon {
-	opacity: 1;
-}
-
-@media (hover: hover) {
-	.tlui-navigation-panel__toggle:hover .tlui-icon {
-		opacity: 1;
-	}
-}
-
-.tlui-minimap {
-	width: 100%;
-	height: 96px;
-	min-height: 96px;
-	overflow: hidden;
-	padding: var(--space-3);
-	padding-top: 0px;
-}
-
-.tlui-minimap__canvas {
-	position: relative;
-	width: 100%;
-	height: 100%;
-}
-
-/* ----------------------- ... ---------------------- */
-
-@keyframes hide {
-	0% {
-		opacity: 1;
-	}
-	100% {
-		opacity: 0;
-	}
-}
-
-@keyframes slide-in {
-	from {
-		transform: translateX(calc(100% + var(--space-3)));
-	}
-	to {
-		transform: translateX(0px);
-	}
-}
-
-@keyframes swipe-out {
-	from {
-		transform: translateX(var(--radix-toast-swipe-end-x));
-	}
-	to {
-		transform: translateX(calc(100% + var(--space-3)));
-	}
-}
-
-/* ------------------- Page Select ------------------ */
-
-.tlui-page-menu__wrapper {
-	position: relative;
-	display: flex;
-	flex-direction: column;
-	width: 260px;
-	height: fit-content;
-	max-height: 50vh;
-}
-
-.tlui-page-menu__trigger {
-	width: 128px;
-}
-
-.tlui-page-menu__header {
-	display: flex;
-	flex-direction: row;
-	align-items: center;
-	width: 100%;
-	height: 40px;
-	padding-left: var(--space-4);
-	border-bottom: 1px solid var(--color-divider);
-}
-
-.tlui-page-menu__header > .tlui-button:nth-of-type(1) {
-	margin-right: -4px;
-}
-
-.tlui-page-menu__header__title {
-	color: var(--color-text);
-	font-size: 12px;
-	flex-grow: 2;
-}
-
-.tlui-page-menu__name {
-	flex-grow: 2;
-	text-align: left;
-	overflow: hidden;
-	text-overflow: ellipsis;
-	white-space: nowrap;
-}
-
-.tlui-page-menu__list {
-	position: relative;
-	touch-action: auto;
-	flex-direction: column;
-	max-height: 100%;
-	overflow-x: hidden;
-	overflow-y: auto;
-	touch-action: auto;
-}
-
-.tlui-page-menu__item {
-	position: relative;
-	display: flex;
-	flex-direction: row;
-	align-items: center;
-	justify-content: space-between;
-	gap: 0px;
-}
-
-@media (hover: hover) {
-	.tlui-page-menu__item::after {
-		display: block;
-		content: '';
-		background-color: var(--color-muted-2);
-		position: absolute;
-		inset: 4px;
-		border-radius: 6px;
-		pointer-events: none;
-		opacity: 0;
-	}
-
-	.tlui-page-menu__item:hover::after {
-		opacity: 1;
-	}
-
-	.tlui-page-menu__item:hover > .tlui-page_menu__item__submenu > .tlui-button {
-		opacity: 1;
-	}
-}
-
-/* Since we're adding an after hover effect to the page menu item, we want to hide the hovers on the individual buttons in the page menu item */
-.tlui-page-menu__item__button::after,
-.tlui-page_menu__item__submenu > .tlui-button::after {
-	display: none;
-}
-
-.tlui-page-menu__item:nth-of-type(n + 2) {
-	margin-top: -4px;
-}
-
-.tlui-page-menu__item__button {
-	width: 100%;
-}
-
-.tlui-page-menu__item__button:not(:only-child) {
-	flex-grow: 2;
-	margin-right: -2px;
-}
-
-.tlui-page-menu__item__button > span {
-	display: block;
-	flex-grow: 2;
-	text-align: left;
-	overflow: hidden;
-	text-overflow: ellipsis;
-	white-space: nowrap;
-}
-
-.tlui-page-menu__item__button__checkbox {
-	padding-left: 35px;
-}
-
-.tlui-page-menu__item__button__check {
-	position: absolute;
-	left: 0px;
-	width: 24px;
-	padding-left: 10px;
-	display: inline-flex;
-	align-items: center;
-	justify-content: center;
-	color: var(--color-text);
-}
-
-.tlui-page_menu__item__sortable {
+.tlui-dialog__overlay {
 	position: absolute;
 	top: 0px;
 	left: 0px;
 	width: 100%;
-	height: fit-content;
-	display: flex;
-	flex-direction: row;
-	align-items: center;
-	overflow: hidden;
-	z-index: var(--layer-above);
-}
-
-.tlui-page_menu__item__sortable__title {
-	flex: 1;
-}
-
-.tlui-page_menu__item__sortable__title > .tlui-input__wrapper {
 	height: 100%;
-}
-
-.tlui-page_menu__item__sortable:focus-within {
-	z-index: var(--layer-focused-input);
-}
-
-.tlui-page_menu__item__sortable__handle {
-	touch-action: none;
-	width: 32px;
-	min-width: 0px;
-	height: 40px;
-	cursor: grab;
-	color: var(--color-text-3);
-	flex-shrink: 0;
-	margin-right: -9px;
-}
-
-.tlui-page_menu__item__sortable__handle:active {
-	cursor: grabbing;
-}
-
-.tlui-page-menu__item__input {
-	margin-left: 12px;
-	height: 100%;
-}
-
-/* The more menu has complex CSS here: */
-/* If the user can hover, then visible but opacity zero until hover */
-/* If the user cannot hover, then not displayed unless editing, and then opacity 1 */
-
-.tlui-page_menu__item__submenu {
+	z-index: var(--layer-canvas-overlays);
+	background-color: var(--color-overlay);
 	pointer-events: all;
+	animation: fadeIn 0.12s ease-out;
+	display: grid;
+	place-items: center;
+	overflow-y: auto;
+	padding: 0px var(--space-3);
+}
+
+.tlui-dialog__content {
+	display: flex;
+	flex-direction: column;
+	position: relative;
+	cursor: default;
+	background-color: var(--color-panel);
+	box-shadow: var(--shadow-3);
+	border-radius: var(--radius-3);
+	font-size: 12px;
+	overflow: hidden;
+	min-width: 300px;
+	max-width: 100%;
+	max-height: 80%;
+}
+
+.tlui-dialog__header {
+	position: relative;
+	display: flex;
+	align-items: center;
 	flex: 0;
-	cursor: pointer;
+	z-index: var(--layer-header-footer);
+	padding-left: var(--space-4);
+	color: var(--color-text);
+	height: 40px;
+}
+
+.tlui-dialog__header__title {
+	flex: 1;
+	font-weight: inherit;
+	font-size: 12px;
 	margin: 0px;
-	display: none;
-	margin-left: -2px;
+	color: var(--color-text-1);
 }
 
-.tlui-page_menu__item__submenu[data-isediting='true'] {
-	display: block;
-	opacity: 1;
+.tlui-dialog__header__close {
+	justify-self: flex-end;
 }
 
-.tlui-page_menu__item__submenu > .tlui-button {
-	opacity: 0;
+.tlui-dialog__body {
+	padding: var(--space-4) var(--space-4);
+	flex: 0 1;
+	overflow-y: auto;
+	overflow-x: hidden;
+	color: var(--color-text-1);
+	user-select: all;
+	-webkit-user-select: text;
+}
+.tlui-dialog__body a {
+	color: var(--color-selected);
 }
 
-@media (any-pointer: coarse) {
-	.tlui-page_menu__item__submenu > .tlui-button {
-		opacity: 1;
-	}
+.tlui-dialog__body ul,
+.tlui-dialog__body ol {
+	padding-left: 16px;
+	display: flex;
+	flex-direction: column;
+	gap: var(--space-2);
 }
 
-.tlui-button__icon {
-	padding: 0px;
+.tlui-dialog__footer {
+	position: relative;
+	min-height: 12px;
+	z-index: var(--layer-header-footer);
 }
 
-.tlui-page-menu__item__button .tlui-button__icon {
-	margin-right: 4px;
+.tlui-dialog__footer__actions {
+	display: flex;
+	align-items: center;
+	justify-content: flex-end;
 }
 
-@media (hover: hover) {
-	.tlui-page_menu__item__submenu {
-		display: block;
-	}
-
-	.tlui-page_menu__item__submenu[data-isediting='true'] > .tlui-button {
-		opacity: 0;
-	}
-
-	.tlui-page_menu__item__submenu > .tlui-button[data-state='open'],
-	.tlui-page_menu__item__submenu:hover > .tlui-button,
-	.tlui-page_menu__item__sortable:focus-within > .tlui-page_menu__item__submenu > .tlui-button {
-		opacity: 1;
-	}
+.tlui-dialog__footer__actions > .tlui-button:nth-last-child(n + 2) {
+	margin-right: -4px;
 }
 
 /* --------------------- Dialogs -------------------- */
@@ -1517,7 +1524,7 @@
 .tlui-embed-dialog__list {
 	display: flex;
 	flex-direction: column;
-	padding-bottom: var(--space-5);
+	padding: 0px var(--space-3) var(--space-4) var(--space-3);
 }
 
 .tlui-embed-dialog__item__image {
@@ -1529,6 +1536,8 @@
 	background-size: contain;
 	background-repeat: no-repeat;
 	background-position: center center;
+	background-color: var(--color-selected-contrast);
+	border-radius: var(--radius-1);
 }
 
 .tlui-embed-dialog__enter {
@@ -1546,7 +1555,7 @@
 }
 
 .tlui-embed-dialog__warning {
-	color: var(--color-warn);
+	color: var(--color-danger);
 	text-shadow: none;
 }
 
@@ -1558,37 +1567,6 @@
 
 .tlui-embed-dialog__enter a {
 	color: var(--color-text-1);
-}
-
-.tlui-following-indicator {
-	display: block;
-	position: absolute;
-	inset: 0px;
-	border-width: 2px;
-	border-style: solid;
-	z-index: var(--layer-following-indicator);
-	pointer-events: none;
-}
-
-/* ---------------- Offline Indicator --------------- */
-
-.tlui-offline-indicator {
-	display: flex;
-	flex-direction: row;
-	gap: var(--space-3);
-	color: var(--color-text);
-	background-color: var(--color-low);
-	border: 3px solid var(--color-background);
-	padding: 0px var(--space-5);
-	height: 42px;
-	align-items: center;
-	justify-content: center;
-	border-radius: 99px;
-	opacity: 0;
-	animation: fade-in;
-	animation-duration: 0.12s;
-	animation-delay: 2s;
-	animation-fill-mode: forwards;
 }
 
 /* --------------- Keyboard shortcuts --------------- */
@@ -1650,7 +1628,51 @@
 	font-size: 12px;
 }
 
+/* ------------------ Language menu ----------------- */
+
+.tlui-language-menu {
+	max-height: 500px;
+}
+
+.tlui-language-menu::after {
+	content: '';
+	display: block;
+	position: absolute;
+	bottom: 0px;
+	left: 0px;
+	right: 0px;
+	height: 24px;
+	background: linear-gradient(
+		to bottom,
+		var(--color-panel-transparent) 0%,
+		var(--color-panel) 90%,
+		var(--color-panel) 100%
+	);
+	border-bottom-left-radius: var(--radius-3);
+	border-bottom-right-radius: var(--radius-3);
+	pointer-events: none;
+}
+
+/* ------------------ Actions menu ------------------ */
+
+.tlui-actions-menu {
+	max-height: calc(100vh - 150px);
+}
+
+/* -------------------- Help menu ------------------- */
+
+.tlui-help-menu {
+	pointer-events: all;
+	position: absolute;
+	bottom: var(--space-2);
+	right: var(--space-2);
+	z-index: var(--layer-panels);
+	border: 2px solid var(--color-background);
+	border-radius: 100%;
+}
+
 /* ------------------- Da share zone ------------------ */
+
 .tlui-share-zone {
 	padding: 0px 0px 0px 0px;
 	display: flex;
@@ -1663,6 +1685,7 @@
 }
 
 /* ------------------- People Menu ------------------- */
+
 .tlui-people-menu__avatars-button {
 	display: flex;
 	align-items: center;
@@ -1712,6 +1735,9 @@
 }
 
 .tlui-people-menu__more {
+	position: absolute;
+	top: 0px;
+	right: 0px;
 	min-width: 0px;
 	font-size: 11px;
 	font-weight: 600;
@@ -1805,13 +1831,16 @@
 }
 
 .tlui-people-menu__item {
-	display: flex;
-	justify-content: flex-start;
-	width: 100%;
+	position: relative;
+}
+
+.tlui-people-menu__item:last-of-type .tlui-button__menu {
+	margin-bottom: 0;
 }
 
 .tlui-people-menu__item__button {
 	padding: 0 11px;
+	overflow: hidden;
 }
 
 .tlui-people-menu__item > .tlui-button__menu {
@@ -1823,35 +1852,57 @@
 	gap: 11px;
 }
 
+.tlui-people-menu__name {
+	text-align: left;
+	white-space: nowrap;
+	overflow: hidden;
+	text-overflow: ellipsis;
+}
+
 .tlui-people-menu__item__follow {
-	min-width: 44px;
+	position: absolute;
+	top: 0px;
+	right: 0px;
+	max-width: 40px;
+	flex-shrink: 0;
 }
 
-.tlui-people-menu__item__follow[data-active='true'] .tlui-icon {
-	opacity: 1;
+.tlui-people-menu__item[data-follow='true'],
+.tlui-people-menu__item:has(.tlui-button:focus-visible) {
+	padding-right: 36px;
 }
 
-.tlui-people-menu__item__follow:focus-visible .tlui-icon {
+.tlui-people-menu__item[data-follow='true'] .tlui-people-menu__item__follow,
+.tlui-people-menu__item:has(.tlui-button:focus-visible) .tlui-people-menu__item__follow {
 	opacity: 1;
 }
 
 @media (hover: hover) {
-	.tlui-people-menu__item__follow .tlui-icon {
+	.tlui-people-menu__item__follow {
 		opacity: 0;
 	}
 
-	.tlui-people-menu__item__follow:hover .tlui-icon {
+	.tlui-people-menu__item:hover {
+		padding-right: 36px;
+	}
+	.tlui-people-menu__item:hover .tlui-people-menu__item__follow {
 		opacity: 1;
 	}
 }
 
-.tlui-menu-click-capture {
-	position: fixed;
-	inset: 0;
-	z-index: var(--layer-menu-click-capture);
+/* --------------- Following indicator -------------- */
+
+.tlui-following-indicator {
+	display: block;
+	position: absolute;
+	inset: 0px;
+	border-width: 2px;
+	border-style: solid;
+	z-index: var(--layer-following-indicator);
+	pointer-events: none;
 }
 
-/* --------------- Contextual Toolbar --------------- */
+/* --------------- Contextual toolbar --------------- */
 
 .tlui-contextual-toolbar {
 	position: absolute;
@@ -1866,26 +1917,27 @@
 }
 
 .tlui-contextual-toolbar [data-isactive='true']::after {
-	background-color: var(--color-muted-1);
+	background-color: var(--color-muted-2);
 	opacity: 1;
 }
 
-.tlui-rich-text__toolbar {
+.tlui-contextual-toolbar {
 	opacity: 0;
 	transition: opacity 0.08s ease-in-out;
 }
 
-.tlui-rich-text__toolbar,
-.tlui-rich-text__toolbar * {
+.tlui-contextual-toolbar,
+.tlui-contextual-toolbar * {
 	pointer-events: none;
 }
 
-.tlui-rich-text__toolbar[data-visible='true'] {
+.tlui-contextual-toolbar[data-visible='true'] {
 	opacity: 1;
+	z-index: var(--layer-menus);
 }
 
-.tlui-rich-text__toolbar[data-interactive='true'],
-.tlui-rich-text__toolbar[data-interactive='true'] * {
+.tlui-contextual-toolbar[data-interactive='true'],
+.tlui-contextual-toolbar[data-interactive='true'] * {
 	pointer-events: all;
 }
 
@@ -1898,6 +1950,60 @@
 	width: 148px;
 }
 
-.tlui-rich-text__toolbar .tlui-input__wrapper {
+.tlui-media__toolbar-alt-text-input {
+	margin-left: 12px;
+	/*
+	 * Nice touch tweak: keep the link editor toolbar the same as the default toolbar.
+	 * This is so the toolbar size stays stable going in and out of the alt text editor.
+	 */
+	min-width: 200px;
+}
+
+.tlui-contextual-toolbar .tlui-input__wrapper {
 	height: 40px;
+}
+
+.tlui-image__toolbar .tlui-slider__container {
+	width: 125px;
+}
+
+.tlui-image__toolbar .tlui-slider {
+	height: 100%;
+}
+
+.tlui-image__toolbar .tlui-slider__track {
+	height: 32px;
+}
+
+.tlui-image__toolbar .tlui-slider__thumb {
+	width: 14px;
+	height: 14px;
+}
+
+/* ------------------- Animations ------------------- */
+@keyframes hide {
+	0% {
+		opacity: 1;
+	}
+	100% {
+		opacity: 0;
+	}
+}
+
+@keyframes slide-in {
+	from {
+		transform: translateX(calc(100% + var(--space-3)));
+	}
+	to {
+		transform: translateX(0px);
+	}
+}
+
+@keyframes swipe-out {
+	from {
+		transform: translateX(var(--radix-toast-swipe-end-x));
+	}
+	to {
+		transform: translateX(calc(100% + var(--space-3)));
+	}
 }

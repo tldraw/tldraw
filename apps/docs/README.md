@@ -1,11 +1,5 @@
 # tldraw-docs
 
-<div alt style="text-align: center; transform: scale(.5);">
-	<picture>
-		<img alt="tldraw" src="https://github.com/tldraw/tldraw-lite/raw/main/docs/public/card_repo.png" />
-	</picture>
-</div>
-
 Welcome to the source for the [tldraw docs site](https://tldraw.dev).
 
 This site is a [Next.js](https://nextjs.org/) app that uses [MDX](https://mdxjs.com/) for content. It contains human-written docs in the `content` folder as well as generated docs in the `api` folder.
@@ -150,4 +144,4 @@ Find us on Twitter/X at [@tldraw](https://twitter.com/tldraw).
 
 ## Community
 
-Have questions, comments or feedback? [Join our discord](https://discord.tldraw.com/?utm_source=github&utm_medium=social&utm_campaign=sociallink) or [start a discussion](https://github.com/tldraw/tldraw/discussions/new). For the latest news and release notes, visit [tldraw.dev](https://tldraw.dev).
+Have questions, comments or feedback? [Join our discord](https://discord.tldraw.com/?utm_source=github&utm_medium=readme&utm_campaign=sociallink). For the latest news and release notes, visit [tldraw.dev](https://tldraw.dev).

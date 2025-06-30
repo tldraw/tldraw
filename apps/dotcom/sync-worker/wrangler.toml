@@ -342,3 +342,29 @@ name = "RATE_LIMITER"
 type = "ratelimit"
 namespace_id = "1004"
 simple = { limit = 300, period = 60 }
+
+#################### Queues ####################
+[[env.dev.queues.producers]]
+queue = "tldraw-multiplayer-queue-dev"
+binding = "QUEUE"
+
+[[env.dev.queues.consumers]]
+queue = "tldraw-multiplayer-queue-dev"
+max_retries = 10
+
+[[env.staging.queues.producers]]
+queue = "tldraw-multiplayer-queue-staging"
+binding = "QUEUE"
+
+[[env.staging.queues.consumers]]
+queue = "tldraw-multiplayer-queue-staging"
+max_retries = 10
+
+[[env.production.queues.producers]]
+queue = "tldraw-multiplayer-queue"
+binding = "QUEUE"
+
+[[env.production.queues.consumers]]
+queue = "tldraw-multiplayer-queue"
+max_retries = 10
+dead_letter_queue = 'tldraw-multiplayer-dlq'

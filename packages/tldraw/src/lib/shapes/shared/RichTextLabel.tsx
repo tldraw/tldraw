@@ -14,7 +14,7 @@ import {
 	useValue,
 } from '@tldraw/editor'
 import React, { useMemo } from 'react'
-import { renderHtmlFromRichText, renderPlaintextFromRichText } from '../../utils/text/richText'
+import { renderHtmlFromRichText } from '../../utils/text/richText'
 import { RichTextArea } from '../text/RichTextArea'
 import { TEXT_PROPS } from './default-shape-constants'
 import { isLegacyAlign } from './legacyProps'
@@ -41,6 +41,7 @@ export interface RichTextLabelProps {
 	textWidth?: number
 	textHeight?: number
 	padding?: number
+	hasCustomTabBehavior?: boolean
 }
 
 /**
@@ -68,11 +69,13 @@ export const RichTextLabel = React.memo(function RichTextLabel({
 	style,
 	textWidth,
 	textHeight,
+	hasCustomTabBehavior,
 }: RichTextLabelProps) {
 	const editor = useEditor()
 	const isDragging = React.useRef(false)
-	const { rInput, isEmpty, isEditing, isEditingAnything, ...editableTextRest } =
+	const { rInput, isEmpty, isEditing, isReadyForEditing, ...editableTextRest } =
 		useEditableRichText(shapeId, type, richText)
+
 	const html = useMemo(() => {
 		if (richText) {
 			return renderHtmlFromRichText(editor, richText)
@@ -117,10 +120,8 @@ export const RichTextLabel = React.memo(function RichTextLabel({
 		}
 	}
 
-	const hasText = richText ? renderPlaintextFromRichText(editor, richText).length > 0 : false
-	if (!isEditing && !hasText) {
-		return null
-	}
+	// Should be guarded higher up so that this doesn't render... but repeated here. This should never be true.
+	if (!isEditing && isEmpty) return null
 
 	// TODO: probably combine tl-text and tl-arrow eventually
 	const cssPrefix = classNamePrefix || 'tl-text'
@@ -131,7 +132,6 @@ export const RichTextLabel = React.memo(function RichTextLabel({
 			data-align={align}
 			data-hastext={!isEmpty}
 			data-isediting={isEditing}
-			data-iseditinganything={isEditingAnything}
 			data-textwrap={!!wrap}
 			data-isselected={isSelected}
 			style={{
@@ -145,7 +145,7 @@ export const RichTextLabel = React.memo(function RichTextLabel({
 				className={`${cssPrefix}-label__inner tl-text-content__wrapper`}
 				style={{
 					fontSize,
-					lineHeight: Math.floor(fontSize * lineHeight) + 'px',
+					lineHeight: lineHeight.toString(),
 					minHeight: Math.floor(fontSize * lineHeight) + 'px',
 					minWidth: Math.ceil(textWidth || 0),
 					color: labelColor,
@@ -161,12 +161,11 @@ export const RichTextLabel = React.memo(function RichTextLabel({
 							// todo: see if I can abuse this
 							dangerouslySetInnerHTML={{ __html: html || '' }}
 							onPointerDown={handlePointerDown}
-							data-iseditinganything={isEditingAnything}
+							data-is-ready-for-editing={isReadyForEditing}
 						/>
 					)}
 				</div>
-				{/* todo: it might be okay to have just isEditing here */}
-				{(isEditingAnything || isSelected) && (
+				{(isReadyForEditing || isSelected) && (
 					<RichTextArea
 						// Fudge the ref type because we're using forwardRef and it's not typed correctly.
 						ref={rInput as any}
@@ -174,6 +173,7 @@ export const RichTextLabel = React.memo(function RichTextLabel({
 						isEditing={isEditing}
 						shapeId={shapeId}
 						{...editableTextRest}
+						hasCustomTabBehavior={hasCustomTabBehavior}
 						handleKeyDown={handleKeyDownCustom ?? editableTextRest.handleKeyDown}
 					/>
 				)}
@@ -229,6 +229,7 @@ export function RichTextSVG({
 		verticalAlign === 'middle' ? 'center' : verticalAlign === 'start' ? 'flex-start' : 'flex-end'
 	const wrapperStyle = {
 		display: 'flex',
+		fontFamily: DefaultFontFamilies[font],
 		height: `100%`,
 		justifyContent,
 		alignItems,
@@ -236,7 +237,6 @@ export function RichTextSVG({
 	}
 	const style = {
 		fontSize: `${fontSize}px`,
-		fontFamily: DefaultFontFamilies[font],
 		wrap: wrap ? 'wrap' : 'nowrap',
 		color: labelColor,
 		lineHeight: TEXT_PROPS.lineHeight,

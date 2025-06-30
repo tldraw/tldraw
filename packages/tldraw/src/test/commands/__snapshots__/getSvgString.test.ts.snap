@@ -70,24 +70,24 @@ exports[`Matches a snapshot: Basic SVG 1`] = `
       transform="matrix(1, 0, 0, 1, 0, 0)"
     >
       <path
-        d="M0, 0L100, 0,100, 428,0, 428Z"
+        d="M 0 0 L 100 0 L 100 100 L 0 100 Z"
         fill="none"
         stroke="#1d1d1d"
         stroke-width="3.5"
       />
       <foreignobject
         class="tl-export-embed-styles tl-rich-text tl-rich-text-svg"
-        height="428"
+        height="100"
         width="100"
         x="0"
         y="0"
       >
         <div
-          style="display: flex; height: 100%; justify-content: center; align-items: center; padding: 16px;"
+          style="display: flex; font-family: 'tldraw_draw', sans-serif; height: 100%; justify-content: center; align-items: center; padding: 16px 16px 16px 16px; visibility: visible;"
           xmlns="http://www.w3.org/1999/xhtml"
         >
           <div
-            style="font-size: 22px; font-family: 'tldraw_draw', sans-serif; color: rgb(29, 29, 29); line-height: 1.35; text-align: center; width: 100%; word-wrap: break-word; overflow-wrap: break-word; white-space: pre-wrap;"
+            style="font-size: 22px; color: rgb(29, 29, 29); line-height: 1.35; text-align: center; width: 100%; word-wrap: break-word; overflow-wrap: break-word; white-space: pre-wrap;"
           >
             <p
               dir="auto"
@@ -103,7 +103,7 @@ exports[`Matches a snapshot: Basic SVG 1`] = `
       transform="matrix(1, 0, 0, 1, 100, 100)"
     >
       <path
-        d="M0, 0L50, 0,50, 50,0, 50Z"
+        d="M 0 0 L 50 0 L 50 50 L 0 50 Z"
         fill="none"
         stroke="#1d1d1d"
         stroke-width="3.5"
@@ -114,15 +114,15 @@ exports[`Matches a snapshot: Basic SVG 1`] = `
       transform="matrix(1, 0, 0, 1, 400, 400)"
     >
       <path
-        d="M0, 0L100, 0,100, 100,0, 100Z"
+        d="M 0 0 L 100 0 L 100 100 L 0 100 Z"
         fill="#494949"
       />
       <path
-        d="M0, 0L100, 0,100, 100,0, 100Z"
+        d="M 0 0 L 100 0 L 100 100 L 0 100 Z"
         fill="url(#_export_4_ra__hash_pattern_light_0)"
       />
       <path
-        d="M0, 0L100, 0,100, 100,0, 100Z"
+        d="M 0 0 L 100 0 L 100 100 L 0 100 Z"
         fill="none"
         stroke="#1d1d1d"
         stroke-width="3.5"
@@ -202,24 +202,24 @@ exports[`Returns all shapes when no ids are provided: All shapes 1`] = `
       transform="matrix(1, 0, 0, 1, 0, 0)"
     >
       <path
-        d="M0, 0L100, 0,100, 428,0, 428Z"
+        d="M 0 0 L 100 0 L 100 100 L 0 100 Z"
         fill="none"
         stroke="#1d1d1d"
         stroke-width="3.5"
       />
       <foreignobject
         class="tl-export-embed-styles tl-rich-text tl-rich-text-svg"
-        height="428"
+        height="100"
         width="100"
         x="0"
         y="0"
       >
         <div
-          style="display: flex; height: 100%; justify-content: center; align-items: center; padding: 16px;"
+          style="display: flex; font-family: 'tldraw_draw', sans-serif; height: 100%; justify-content: center; align-items: center; padding: 16px 16px 16px 16px; visibility: visible;"
           xmlns="http://www.w3.org/1999/xhtml"
         >
           <div
-            style="font-size: 22px; font-family: 'tldraw_draw', sans-serif; color: rgb(29, 29, 29); line-height: 1.35; text-align: center; width: 100%; word-wrap: break-word; overflow-wrap: break-word; white-space: pre-wrap;"
+            style="font-size: 22px; color: rgb(29, 29, 29); line-height: 1.35; text-align: center; width: 100%; word-wrap: break-word; overflow-wrap: break-word; white-space: pre-wrap;"
           >
             <p
               dir="auto"
@@ -235,7 +235,7 @@ exports[`Returns all shapes when no ids are provided: All shapes 1`] = `
       transform="matrix(1, 0, 0, 1, 100, 100)"
     >
       <path
-        d="M0, 0L50, 0,50, 50,0, 50Z"
+        d="M 0 0 L 50 0 L 50 50 L 0 50 Z"
         fill="none"
         stroke="#1d1d1d"
         stroke-width="3.5"
@@ -246,15 +246,15 @@ exports[`Returns all shapes when no ids are provided: All shapes 1`] = `
       transform="matrix(1, 0, 0, 1, 400, 400)"
     >
       <path
-        d="M0, 0L100, 0,100, 100,0, 100Z"
+        d="M 0 0 L 100 0 L 100 100 L 0 100 Z"
         fill="#494949"
       />
       <path
-        d="M0, 0L100, 0,100, 100,0, 100Z"
+        d="M 0 0 L 100 0 L 100 100 L 0 100 Z"
         fill="url(#_export_2_r4__hash_pattern_light_0)"
       />
       <path
-        d="M0, 0L100, 0,100, 100,0, 100Z"
+        d="M 0 0 L 100 0 L 100 100 L 0 100 Z"
         fill="none"
         stroke="#1d1d1d"
         stroke-width="3.5"

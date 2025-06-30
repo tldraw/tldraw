@@ -7,16 +7,20 @@ import {
 	MediaHelpers,
 	TLAsset,
 	TLAssetId,
+	TLAudioShape,
 	TLBookmarkAsset,
 	TLBookmarkShape,
 	TLContent,
 	TLFileExternalAsset,
+	TLFileReplaceExternalContent,
+	TLImageShape,
 	TLMediaAsset,
 	TLShapeId,
 	TLShapePartial,
 	TLTextShape,
 	TLTextShapeProps,
 	TLUrlExternalAsset,
+	TLVideoShape,
 	Vec,
 	VecLike,
 	assert,
@@ -24,6 +28,7 @@ import {
 	fetch,
 	getHashForBuffer,
 	getHashForString,
+	maybeSnapToGrid,
 	toRichText,
 } from '@tldraw/editor'
 import { EmbedDefinition } from './defaultEmbedDefinitions'
@@ -113,6 +118,11 @@ export function registerDefaultExternalContentHandlers(
 		return defaultHandleExternalFileContent(editor, externalContent, options)
 	})
 
+	// file-replace -> asset
+	editor.registerExternalContentHandler('file-replace', async (externalContent) => {
+		return defaultHandleExternalFileReplaceContent(editor, externalContent, options)
+	})
+
 	// text
 	editor.registerExternalContentHandler('text', async (externalContent) => {
 		return defaultHandleExternalTextContent(editor, externalContent)
@@ -138,55 +148,86 @@ export function registerDefaultExternalContentHandlers(
 export async function defaultHandleExternalFileAsset(
 	editor: Editor,
 	{ file, assetId }: TLFileExternalAsset,
-	{
-		acceptedImageMimeTypes = DEFAULT_SUPPORTED_IMAGE_TYPES,
-		acceptedVideoMimeTypes = DEFAULT_SUPPORT_VIDEO_TYPES,
-		acceptedAudioMimeTypes = DEFAULT_SUPPORT_AUDIO_TYPES,
-		maxAssetSize = DEFAULT_MAX_ASSET_SIZE,
-		maxImageDimension = DEFAULT_MAX_IMAGE_DIMENSION,
-		toasts,
-		msg,
-	}: TLDefaultExternalContentHandlerOpts
+	options: TLDefaultExternalContentHandlerOpts
 ) {
-	const isImageType = acceptedImageMimeTypes.includes(file.type)
-	const isVideoType = acceptedVideoMimeTypes.includes(file.type)
-	const isAudioType = acceptedAudioMimeTypes.includes(file.type)
+	const isSuccess = runFileChecks(file, options)
+	if (!isSuccess) assert(false, 'File checks failed')
 
-	if (!isImageType && !isVideoType && !isAudioType) {
-		toasts.addToast({
-			title: msg('assets.files.type-not-allowed'),
-			severity: 'error',
-		})
-	}
-	assert(isImageType || isVideoType || isAudioType, `File type not allowed: ${file.type}`)
-
-	if (file.size > maxAssetSize) {
-		toasts.addToast({
-			title: msg('assets.files.size-too-big'),
-			severity: 'error',
-		})
-	}
-	assert(
-		file.size <= maxAssetSize,
-		`File size too big: ${(file.size / 1024).toFixed()}kb > ${(maxAssetSize / 1024).toFixed()}kb`
-	)
-
-	const hash = getHashForBuffer(await file.arrayBuffer())
-	assetId = assetId ?? AssetRecordType.createId(hash)
-	const assetInfo = await getMediaAssetInfoPartial(
-		file,
-		assetId,
-		isImageType,
-		isVideoType,
-		isAudioType,
-		maxImageDimension
-	)
-
+	const assetInfo = await getAssetInfo(file, options, assetId)
 	const result = await editor.uploadAsset(assetInfo, file)
 	assetInfo.props.src = result.src
 	if (result.meta) assetInfo.meta = { ...assetInfo.meta, ...result.meta }
 
 	return AssetRecordType.create(assetInfo)
+}
+
+/** @public */
+export async function defaultHandleExternalFileReplaceContent(
+	editor: Editor,
+	{ file, shapeId, isImage, isVideo, isAudio }: TLFileReplaceExternalContent,
+	options: TLDefaultExternalContentHandlerOpts
+) {
+	const isSuccess = runFileChecks(file, options)
+	if (!isSuccess) assert(false, 'File checks failed')
+
+	const shape = editor.getShape(shapeId)
+	if (!shape) assert(false, 'Shape not found')
+
+	const hash = getHashForBuffer(await file.arrayBuffer())
+	const assetId = AssetRecordType.createId(hash)
+	editor.createTemporaryAssetPreview(assetId, file)
+	const assetInfoPartial = await getMediaAssetInfoPartial(file, assetId, isImage, isVideo, isAudio)
+	editor.createAssets([assetInfoPartial])
+
+	// And update the shape
+	if (shape.type === 'image') {
+		editor.updateShapes<TLImageShape>([
+			{
+				id: shape.id,
+				type: shape.type,
+				props: {
+					assetId: assetId,
+					crop: { topLeft: { x: 0, y: 0 }, bottomRight: { x: 1, y: 1 } },
+					w: assetInfoPartial.props.w,
+					h: assetInfoPartial.props.h,
+				},
+			},
+		])
+	} else if (shape.type === 'video') {
+		editor.updateShapes<TLVideoShape>([
+			{
+				id: shape.id,
+				type: shape.type,
+				props: {
+					assetId: assetId,
+					w: assetInfoPartial.props.w,
+					h: assetInfoPartial.props.h,
+				},
+			},
+		])
+	} else if (shape.type === 'audio') {
+		editor.updateShapes<TLAudioShape>([
+			{
+				id: shape.id,
+				type: shape.type,
+				props: {
+					assetId: assetId,
+					w: assetInfoPartial.props.w,
+					h: assetInfoPartial.props.h,
+				},
+			},
+		])
+	}
+
+	const asset = (await editor.getAssetForExternalContent({
+		type: 'file',
+		file,
+		assetId,
+	})) as TLAsset
+
+	editor.updateAssets([{ ...asset, id: assetId }])
+
+	return asset
 }
 
 /** @public */
@@ -298,11 +339,15 @@ export function defaultHandleExternalEmbedContent<T>(
 
 	const id = createShapeId()
 
+	const newPoint = maybeSnapToGrid(
+		new Vec(position.x - (width || 450) / 2, position.y - (height || 450) / 2),
+		editor
+	)
 	const shapePartial: TLShapePartial = {
 		id,
 		type: 'embed',
-		x: position.x - (width || 450) / 2,
-		y: position.y - (height || 450) / 2,
+		x: newPoint.x,
+		y: newPoint.y,
 		props: {
 			w: width,
 			h: height,
@@ -310,23 +355,18 @@ export function defaultHandleExternalEmbedContent<T>(
 		},
 	}
 
-	editor.createShapes([shapePartial]).select(id)
+	if (editor.canCreateShape(shapePartial)) {
+		editor.createShape(shapePartial).select(id)
+	}
 }
 
 /** @public */
 export async function defaultHandleExternalFileContent(
 	editor: Editor,
 	{ point, files }: { point?: VecLike; files: File[] },
-	{
-		maxAssetSize = DEFAULT_MAX_ASSET_SIZE,
-		maxImageDimension = DEFAULT_MAX_IMAGE_DIMENSION,
-		acceptedImageMimeTypes = DEFAULT_SUPPORTED_IMAGE_TYPES,
-		acceptedVideoMimeTypes = DEFAULT_SUPPORT_VIDEO_TYPES,
-		acceptedAudioMimeTypes = DEFAULT_SUPPORT_AUDIO_TYPES,
-		toasts,
-		msg,
-	}: TLDefaultExternalContentHandlerOpts
+	options: TLDefaultExternalContentHandlerOpts
 ) {
+	const { acceptedImageMimeTypes = DEFAULT_SUPPORTED_IMAGE_TYPES, toasts, msg } = options
 	if (files.length > editor.options.maxFilesAtOnce) {
 		toasts.addToast({ title: msg('assets.files.amount-too-big'), severity: 'error' })
 		return
@@ -343,70 +383,17 @@ export async function defaultHandleExternalFileContent(
 	const assetsToUpdate: {
 		asset: TLAsset
 		file: File
-		temporaryAssetPreview?: string
 	}[] = []
 	for (const file of files) {
-		if (file.size > maxAssetSize) {
-			toasts.addToast({
-				title: msg('assets.files.size-too-big'),
-				severity: 'error',
-			})
+		const isSuccess = runFileChecks(file, options)
+		if (!isSuccess) continue
 
-			console.warn(
-				`File size too big: ${(file.size / 1024).toFixed()}kb > ${(
-					maxAssetSize / 1024
-				).toFixed()}kb`
-			)
-			continue
-		}
-
-		// Use mime type instead of file ext, this is because
-		// window.navigator.clipboard does not preserve file names
-		// of copied files.
-		if (!file.type) {
-			toasts.addToast({
-				title: msg('assets.files.upload-failed'),
-				severity: 'error',
-			})
-			console.error('No mime type')
-			continue
-		}
-
-		// We can only accept certain extensions (either images, videos, or audio)
-		const acceptedTypes = [
-			...acceptedImageMimeTypes,
-			...acceptedVideoMimeTypes,
-			...acceptedAudioMimeTypes,
-		]
-		if (!acceptedTypes.includes(file.type)) {
-			toasts.addToast({
-				title: msg('assets.files.type-not-allowed'),
-				severity: 'error',
-			})
-
-			console.warn(`${file.name} not loaded - Mime type not allowed ${file.type}.`)
-			continue
-		}
-
-		const isImageType = acceptedImageMimeTypes.includes(file.type)
-		const isVideoType = acceptedVideoMimeTypes.includes(file.type)
-		const isAudioType = acceptedAudioMimeTypes.includes(file.type)
-		const hash = getHashForBuffer(await file.arrayBuffer())
-		const assetId: TLAssetId = AssetRecordType.createId(hash)
-		const assetInfo = await getMediaAssetInfoPartial(
-			file,
-			assetId,
-			isImageType,
-			isVideoType,
-			isAudioType,
-			maxImageDimension
-		)
-		let temporaryAssetPreview
-		if (isImageType) {
-			temporaryAssetPreview = editor.createTemporaryAssetPreview(assetId, file)
+		const assetInfo = await getAssetInfo(file, options)
+		if (acceptedImageMimeTypes.includes(file.type)) {
+			editor.createTemporaryAssetPreview(assetInfo.id, file)
 		}
 		assetPartials.push(assetInfo)
-		assetsToUpdate.push({ asset: assetInfo, file, temporaryAssetPreview })
+		assetsToUpdate.push({ asset: assetInfo, file })
 	}
 
 	Promise.allSettled(
@@ -516,8 +503,8 @@ export async function defaultHandleExternalTextContent(
 		align = isRtl ? 'end' : 'start'
 	} else {
 		// autosize is fine
-		w = rawSize.w
-		h = rawSize.h
+		w = Math.max(rawSize.w, 10)
+		h = Math.max(rawSize.h, 10)
 		autoSize = true
 	}
 
@@ -525,12 +512,16 @@ export async function defaultHandleExternalTextContent(
 		p.y = editor.getViewportPageBounds().minY + 40 + h / 2
 	}
 
+	const newPoint = maybeSnapToGrid(new Vec(p.x - w / 2, p.y - h / 2), editor)
+	const shapeId = createShapeId()
+
+	// Allow this to trigger the max shapes reached alert
 	editor.createShapes<TLTextShape>([
 		{
-			id: createShapeId(),
+			id: shapeId,
 			type: 'text',
-			x: p.x - w / 2,
-			y: p.y - h / 2,
+			x: newPoint.x,
+			y: newPoint.y,
 			props: {
 				richText: richTextToPaste,
 				// if the text has more than one line, align it to the left
@@ -613,6 +604,14 @@ export async function defaultHandleExternalTldrawContent(
 	editor.run(() => {
 		const selectionBoundsBefore = editor.getSelectionPageBounds()
 		editor.markHistoryStoppingPoint('paste')
+
+		// Unlock any locked root shapes on paste
+		for (const shape of content.shapes) {
+			if (content.rootShapeIds.includes(shape.id)) {
+				shape.isLocked = false
+			}
+		}
+
 		editor.putContentOntoCurrentPage(content, {
 			point: point,
 			select: true,
@@ -756,15 +755,20 @@ export async function createShapesForAssets(
 	editor.run(() => {
 		// Create any assets
 		const assetsToCreate = assets.filter((asset) => !editor.getAsset(asset.id))
-		if (assetsToCreate.length) {
-			editor.createAssets(assetsToCreate)
-		}
 
-		// Create the shapes
-		editor.createShapes(partials).select(...partials.map((p) => p.id))
+		editor.store.atomic(() => {
+			if (editor.canCreateShapes(partials)) {
+				if (assetsToCreate.length) {
+					editor.createAssets(assetsToCreate)
+				}
 
-		// Re-position shapes so that the center of the group is at the provided point
-		centerSelectionAroundPoint(editor, position)
+				// Create the shapes
+				editor.createShapes(partials).select(...partials.map((p) => p.id))
+
+				// Re-position shapes so that the center of the group is at the provided point
+				centerSelectionAroundPoint(editor, position)
+			}
+		})
 	})
 
 	return partials.map((p) => p.id)
@@ -846,9 +850,84 @@ export function createEmptyBookmarkShape(
 	}
 
 	editor.run(() => {
-		editor.createShapes([partial]).select(partial.id)
+		// Allow this to trigger the max shapes reached alert
+		editor.createShape(partial)
+		if (!editor.getShape(partial.id)) return
+		editor.select(partial.id)
 		centerSelectionAroundPoint(editor, position)
 	})
 
 	return editor.getShape(partial.id) as TLBookmarkShape
+}
+
+function runFileChecks(file: File, options: TLDefaultExternalContentHandlerOpts) {
+	const {
+		acceptedImageMimeTypes = DEFAULT_SUPPORTED_IMAGE_TYPES,
+		acceptedVideoMimeTypes = DEFAULT_SUPPORT_VIDEO_TYPES,
+		acceptedAudioMimeTypes = DEFAULT_SUPPORT_AUDIO_TYPES,
+		maxAssetSize = DEFAULT_MAX_ASSET_SIZE,
+		toasts,
+		msg,
+	} = options
+	const isImageType = acceptedImageMimeTypes.includes(file.type)
+	const isVideoType = acceptedVideoMimeTypes.includes(file.type)
+	const isAudioType = acceptedAudioMimeTypes.includes(file.type)
+
+	if (!isImageType && !isVideoType && !isAudioType) {
+		toasts.addToast({
+			title: msg('assets.files.type-not-allowed'),
+			severity: 'error',
+		})
+		return false
+	}
+
+	if (file.size > maxAssetSize) {
+		toasts.addToast({
+			title: msg('assets.files.size-too-big'),
+			severity: 'error',
+		})
+		return false
+	}
+
+	// Use mime type instead of file ext, this is because
+	// window.navigator.clipboard does not preserve file names
+	// of copied files.
+	if (!file.type) {
+		toasts.addToast({
+			title: msg('assets.files.upload-failed'),
+			severity: 'error',
+		})
+		console.error('No mime type')
+		return false
+	}
+
+	return true
+}
+
+async function getAssetInfo(
+	file: File,
+	options: TLDefaultExternalContentHandlerOpts,
+	assetId?: TLAssetId
+) {
+	const {
+		acceptedImageMimeTypes = DEFAULT_SUPPORTED_IMAGE_TYPES,
+		acceptedVideoMimeTypes = DEFAULT_SUPPORT_VIDEO_TYPES,
+		acceptedAudioMimeTypes = DEFAULT_SUPPORT_AUDIO_TYPES,
+		maxImageDimension = DEFAULT_MAX_IMAGE_DIMENSION,
+	} = options
+
+	const isImageType = acceptedImageMimeTypes.includes(file.type)
+	const isVideoType = acceptedVideoMimeTypes.includes(file.type)
+	const isAudioType = acceptedAudioMimeTypes.includes(file.type)
+	const hash = getHashForBuffer(await file.arrayBuffer())
+	assetId ??= AssetRecordType.createId(hash)
+	const assetInfo = await getMediaAssetInfoPartial(
+		file,
+		assetId,
+		isImageType,
+		isVideoType,
+		isAudioType,
+		maxImageDimension
+	)
+	return assetInfo
 }

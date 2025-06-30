@@ -39,6 +39,7 @@ export function DefaultDebugMenuContent() {
 	return (
 		<>
 			<TldrawUiMenuGroup id="items">
+				<TldrawUiMenuItem id="hard-reset" onSelect={hardResetEditor} label={'Hard reset'} />
 				<TldrawUiMenuItem
 					id="add-toast"
 					onSelect={() => {
@@ -48,10 +49,6 @@ export function DefaultDebugMenuContent() {
 							description: 'Hey, attend to this thing over here. It might be important!',
 							keepOpen: true,
 							severity: 'success',
-							// icon?: string
-							// title?: string
-							// description?: string
-							// actions?: TLUiToastAction[]
 						})
 						addToast({
 							id: uniqueId(),
@@ -82,10 +79,6 @@ export function DefaultDebugMenuContent() {
 									},
 								},
 							],
-							// icon?: string
-							// title?: string
-							// description?: string
-							// actions?: TLUiToastAction[]
 						})
 						addToast({
 							id: uniqueId(),
@@ -166,14 +159,11 @@ export function DefaultDebugMenuContent() {
 					return null
 				})()}
 				<TldrawUiMenuItem id="throw-error" onSelect={() => setError(true)} label={'Throw error'} />
-				<TldrawUiMenuItem id="hard-reset" onSelect={hardResetEditor} label={'Hard reset'} />
 			</TldrawUiMenuGroup>
 			<TldrawUiMenuGroup id="flags">
 				<DebugFlags />
 				<FeatureFlags />
 			</TldrawUiMenuGroup>
-
-			{/* {...children} */}
 		</>
 	)
 }
@@ -209,10 +199,11 @@ export function FeatureFlags() {
 /** @public */
 export interface ExampleDialogProps {
 	title?: string
-	body?: string
+	body?: React.ReactNode
 	cancel?: string
 	confirm?: string
 	displayDontShowAgain?: boolean
+	maxWidth?: string
 	onCancel(): void
 	onContinue(): void
 }
@@ -224,6 +215,7 @@ export function ExampleDialog({
 	cancel = 'Cancel',
 	confirm = 'Continue',
 	displayDontShowAgain = false,
+	maxWidth = '350',
 	onCancel,
 	onContinue,
 }: ExampleDialogProps) {
@@ -235,7 +227,7 @@ export function ExampleDialog({
 				<TldrawUiDialogTitle>{title}</TldrawUiDialogTitle>
 				<TldrawUiDialogCloseButton />
 			</TldrawUiDialogHeader>
-			<TldrawUiDialogBody style={{ maxWidth: 350 }}>{body}</TldrawUiDialogBody>
+			<TldrawUiDialogBody style={{ maxWidth }}>{body}</TldrawUiDialogBody>
 			<TldrawUiDialogFooter className="tlui-dialog__footer__actions">
 				{displayDontShowAgain && (
 					<TldrawUiButton
@@ -285,6 +277,7 @@ const DebugFlagToggle = track(function DebugFlagToggle({
 let t = 0
 
 function createNShapes(editor: Editor, n: number) {
+	const gap = editor.options.adjacentShapeMargin
 	const shapesToCreate: TLShapePartial[] = Array(n)
 	const cols = Math.floor(Math.sqrt(n))
 
@@ -293,12 +286,13 @@ function createNShapes(editor: Editor, n: number) {
 		shapesToCreate[i] = {
 			id: createShapeId('box' + t),
 			type: 'geo',
-			x: (i % cols) * 132,
-			y: Math.floor(i / cols) * 132,
+			x: (i % cols) * (100 + gap),
+			y: Math.floor(i / cols) * (100 + gap),
 		}
 	}
 
 	editor.run(() => {
+		// allow this to trigger the max shapes alert
 		editor.createShapes(shapesToCreate).setSelectedShapes(shapesToCreate.map((s) => s.id))
 	})
 }
