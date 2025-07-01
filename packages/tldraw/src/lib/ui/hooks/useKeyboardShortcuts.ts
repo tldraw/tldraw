@@ -33,16 +33,21 @@ export function useKeyboardShortcuts() {
 		if (!isFocused) return
 
 		const disposables = new Array<() => void>()
+		const container = editor.getContainer()
 
 		const hot = (keys: string, callback: (event: KeyboardEvent) => void) => {
-			hotkeys(keys, { element: document.body }, callback)
+			hotkeys(keys, { element: container.ownerDocument.body }, callback)
 			disposables.push(() => {
 				hotkeys.unbind(keys, callback)
 			})
 		}
 
 		const hotUp = (keys: string, callback: (event: KeyboardEvent) => void) => {
-			hotkeys(keys, { element: document.body, keyup: true, keydown: false }, callback)
+			hotkeys(
+				keys,
+				{ element: container.ownerDocument.body, keyup: true, keydown: false },
+				callback
+			)
 			disposables.push(() => {
 				hotkeys.unbind(keys, callback)
 			})

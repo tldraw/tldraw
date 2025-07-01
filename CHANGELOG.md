@@ -6315,7 +6315,7 @@ add star history and contributor list to README.
 
 - Allow users to name their documents.
 
-#### Fix some problem under Windows OS development enviroment ([#2722](https://github.com/tldraw/tldraw/pull/2722))
+#### Fix some problem under Windows OS development environment ([#2722](https://github.com/tldraw/tldraw/pull/2722))
 
 - stablize language.ts when running under different OS language.
 - add isWin32() and posixPath() to format the parameter of glob.sync().
@@ -6455,7 +6455,7 @@ add star history and contributor list to README.
 
 #### 🏠 Internal
 
-- Fix some problem under Windows OS development enviroment [#2722](https://github.com/tldraw/tldraw/pull/2722) ([@Rokixy](https://github.com/Rokixy))
+- Fix some problem under Windows OS development environment [#2722](https://github.com/tldraw/tldraw/pull/2722) ([@Rokixy](https://github.com/Rokixy))
 - fix typo(examples/hosted-images) [#2849](https://github.com/tldraw/tldraw/pull/2849) ([@pocari](https://github.com/pocari))
 - ✋ humans.txt [#2842](https://github.com/tldraw/tldraw/pull/2842) ([@mimecuvalo](https://github.com/mimecuvalo))
 - examples: rename ui events and increase priority [#2840](https://github.com/tldraw/tldraw/pull/2840) ([@mimecuvalo](https://github.com/mimecuvalo))
