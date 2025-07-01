@@ -27,6 +27,5 @@
 		{
 			"path": "../../packages/dotcom-shared"
 		}
-	],
-	"types": ["node", "@types/jest", "react"]
+	]
 }
