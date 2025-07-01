@@ -435,6 +435,9 @@ export class TLDrawDurableObject extends DurableObject {
 					}
 				}
 			}
+		} else {
+			// Legacy rooms are now read-only
+			openMode = ROOM_OPEN_MODE.READ_ONLY
 		}
 
 		try {
@@ -452,8 +455,7 @@ export class TLDrawDurableObject extends DurableObject {
 					storeId,
 					userId: auth?.userId ? auth.userId : null,
 				},
-				isReadonly:
-					openMode === ROOM_OPEN_MODE.READ_ONLY || openMode === ROOM_OPEN_MODE.READ_ONLY_LEGACY,
+				isReadonly: openMode === ROOM_OPEN_MODE.READ_ONLY,
 			})
 			if (isNewSession) {
 				this.logEvent({

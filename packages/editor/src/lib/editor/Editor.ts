@@ -7859,7 +7859,7 @@ export class Editor extends EventEmitter<TLEventMap> {
 
 					const prevParentId = partial.parentId
 
-					// a shape cannot be it's own parent. This was a rare issue with frames/groups in the syncFuzz tests.
+					// a shape cannot be its own parent. This was a rare issue with frames/groups in the syncFuzz tests.
 					if (parentId === partial.id) {
 						parentId = focusedGroupId
 					}
