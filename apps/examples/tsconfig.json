@@ -4,15 +4,12 @@
 	"exclude": ["node_modules", "dist", "**/*.css", ".tsbuild*", "./scripts/legacy-translations"],
 	"compilerOptions": {
 		"outDir": "./.tsbuild",
-		"baseUrl": "./src",
+		"baseUrl": "./",
 		"paths": {
-			"tldraw": ["../../packages/tldraw/src"],
-			"react": ["../node_modules/react"],
-			"react/*": ["../node_modules/react/*"]
+			"tldraw": ["../../packages/tldraw"]
 		},
 		"jsx": "react-jsx",
-		"moduleResolution": "node",
-		"types": ["node", "@types/jest", "react"]
+		"moduleResolution": "node"
 	},
 	"references": [
 		{
