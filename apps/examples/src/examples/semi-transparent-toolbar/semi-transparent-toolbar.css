@@ -1,0 +1,53 @@
+/* Make the toolbar semi-transparent */
+.semi-transparent-toolbar .tlui-toolbar__tools {
+	background-color: rgba(255, 255, 255, 0.7) !important;
+	backdrop-filter: blur(8px);
+	border: 2px solid rgba(255, 255, 255, 0.3) !important;
+}
+
+/* Also make the toolbar extras semi-transparent */
+.semi-transparent-toolbar .tlui-toolbar__extras__controls {
+	background-color: rgba(255, 255, 255, 0.7) !important;
+	backdrop-filter: blur(8px);
+	border: 2px solid rgba(255, 255, 255, 0.3) !important;
+}
+
+/* Adjust for dark mode */
+.tl-theme__dark .semi-transparent-toolbar .tlui-toolbar__tools {
+	background-color: rgba(45, 45, 45, 0.7) !important;
+	border: 2px solid rgba(255, 255, 255, 0.1) !important;
+}
+
+.tl-theme__dark .semi-transparent-toolbar .tlui-toolbar__extras__controls {
+	background-color: rgba(45, 45, 45, 0.7) !important;
+	border: 2px solid rgba(255, 255, 255, 0.1) !important;
+}
+
+/* Ensure buttons remain readable but don't override selected state */
+.semi-transparent-toolbar .tlui-button:not([aria-pressed='true']):not([data-isactive='true']) {
+	background-color: transparent;
+}
+
+/* Fix selected tool button visibility in semi-transparent toolbar */
+.semi-transparent-toolbar .tlui-button__tool[aria-pressed='true']::after {
+	background: var(--color-selected) !important;
+	opacity: 1 !important;
+}
+
+/* Ensure hover effects work well with transparency */
+.semi-transparent-toolbar .tlui-button:not([aria-pressed='true']):hover::after {
+	background-color: rgba(144, 144, 144, 0.3) !important;
+	opacity: 1 !important;
+}
+
+/* Handle active/selected states properly */
+.semi-transparent-toolbar .tlui-button[data-isactive='true']::after {
+	background: var(--color-hint) !important;
+	opacity: 1 !important;
+}
+
+/* Dark mode adjustments for selected tools */
+.tl-theme__dark .semi-transparent-toolbar .tlui-button__tool[aria-pressed='true']::after {
+	background: var(--color-selected) !important;
+	opacity: 1 !important;
+}
