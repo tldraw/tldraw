@@ -250,30 +250,33 @@ export class Drawing extends StateNode {
 		const id = createShapeId()
 
 		// Allow this to trigger the max shapes reached alert
-		this.editor.createShapes<DrawableShape>([
-			{
-				id,
-				type: this.shapeType,
-				x: originPagePoint.x,
-				y: originPagePoint.y,
-				props: {
-					isPen: this.isPenOrStylus,
-					scale: this.editor.user.getIsDynamicResizeMode() ? 1 / this.editor.getZoomLevel() : 1,
-					segments: [
-						{
-							type: this.segmentMode,
-							points: [
-								{
-									x: 0,
-									y: 0,
-									z: +pressure.toFixed(2),
-								},
-							],
-						},
-					],
-				},
+		this.editor.createShape<DrawableShape>({
+			id,
+			type: this.shapeType,
+			x: originPagePoint.x,
+			y: originPagePoint.y,
+			props: {
+				isPen: this.isPenOrStylus,
+				scale: this.editor.user.getIsDynamicResizeMode() ? 1 / this.editor.getZoomLevel() : 1,
+				segments: [
+					{
+						type: this.segmentMode,
+						points: [
+							{
+								x: 0,
+								y: 0,
+								z: +pressure.toFixed(2),
+							},
+						],
+					},
+				],
 			},
-		])
+		})
+		const shape = this.editor.getShape<DrawableShape>(id)
+		if (!shape) {
+			this.cancel()
+			return
+		}
 		this.currentLineLength = 0
 		this.initialShape = this.editor.getShape<DrawableShape>(id)
 	}
@@ -639,24 +642,22 @@ export class Drawing extends StateNode {
 					const props = this.editor.getShape<DrawableShape>(id)!.props
 
 					if (!this.editor.canCreateShapes([newShapeId])) return this.cancel()
-					this.editor.createShapes<DrawableShape>([
-						{
-							id: newShapeId,
-							type: this.shapeType,
-							x: toFixed(inputs.currentPagePoint.x),
-							y: toFixed(inputs.currentPagePoint.y),
-							props: {
-								isPen: this.isPenOrStylus,
-								scale: props.scale,
-								segments: [
-									{
-										type: 'free',
-										points: [{ x: 0, y: 0, z: this.isPenOrStylus ? +(z! * 1.25).toFixed() : 0.5 }],
-									},
-								],
-							},
+					this.editor.createShape<DrawableShape>({
+						id: newShapeId,
+						type: this.shapeType,
+						x: toFixed(inputs.currentPagePoint.x),
+						y: toFixed(inputs.currentPagePoint.y),
+						props: {
+							isPen: this.isPenOrStylus,
+							scale: props.scale,
+							segments: [
+								{
+									type: 'free',
+									points: [{ x: 0, y: 0, z: this.isPenOrStylus ? +(z! * 1.25).toFixed() : 0.5 }],
+								},
+							],
 						},
-					])
+					})
 
 					const shape = this.editor.getShape<DrawableShape>(newShapeId)
 
