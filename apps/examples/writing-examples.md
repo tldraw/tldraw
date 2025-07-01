@@ -105,7 +105,7 @@ Follow React and TypeScript best practices when writing your examples.
 
 #### Comments
 
-Comments should be written using a "footnote" format. Inside of the code, write numbered notes that correspond to a list of notes at the bottom of the file.
+Comments should be written using a "footnote" format. Inside of the code, write numbered notes that correspond to a list of notes at the bottom of the file. You should be writing good descriptive comments.
 
 ```tsx
 import { Tldraw, type TLComponents } from 'tldraw'
