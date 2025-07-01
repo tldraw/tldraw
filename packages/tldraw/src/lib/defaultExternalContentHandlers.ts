@@ -32,6 +32,7 @@ import {
 } from '@tldraw/editor'
 import { EmbedDefinition } from './defaultEmbedDefinitions'
 import { EmbedShapeUtil } from './shapes/embed/EmbedShapeUtil'
+import { getCroppedImageDataForReplacedImage } from './shapes/shared/crop'
 import { FONT_FAMILIES, FONT_SIZES, TEXT_PROPS } from './shapes/shared/default-shape-constants'
 import { TLUiToastsContextType } from './ui/context/toasts'
 import { useTranslation } from './ui/hooks/useTranslation/useTranslation'
@@ -179,16 +180,43 @@ export async function defaultHandleExternalFileReplaceContent(
 
 	// And update the shape
 	if (shape.type === 'image') {
+		const imageShape = shape as TLImageShape
+		const currentCrop = imageShape.props.crop
+
+		// Calculate new dimensions that preserve the current visual size of the cropped area
+		let newWidth = assetInfoPartial.props.w
+		let newHeight = assetInfoPartial.props.h
+		let newX = imageShape.x
+		let newY = imageShape.y
+		let finalCrop = currentCrop
+
+		if (currentCrop) {
+			// Use the dedicated function to calculate the new crop and dimensions
+			const result = getCroppedImageDataForReplacedImage(
+				imageShape,
+				assetInfoPartial.props.w,
+				assetInfoPartial.props.h
+			)
+
+			finalCrop = result.crop
+			newWidth = result.w
+			newHeight = result.h
+			newX = result.x
+			newY = result.y
+		}
+
 		editor.updateShapes<TLImageShape>([
 			{
-				id: shape.id,
-				type: shape.type,
+				id: imageShape.id,
+				type: imageShape.type,
 				props: {
 					assetId: assetId,
-					crop: { topLeft: { x: 0, y: 0 }, bottomRight: { x: 1, y: 1 } },
-					w: assetInfoPartial.props.w,
-					h: assetInfoPartial.props.h,
+					crop: finalCrop,
+					w: newWidth,
+					h: newHeight,
 				},
+				x: newX,
+				y: newY,
 			},
 		])
 	} else if (shape.type === 'video') {
