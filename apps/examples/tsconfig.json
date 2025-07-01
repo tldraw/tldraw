@@ -10,7 +10,7 @@
 		},
 		"jsx": "react-jsx",
 		"moduleResolution": "node",
-		"types": ["node", "@types/jest", "@types/react"]
+		"types": ["node", "@types/jest", "react"]
 	},
 	"references": [
 		{

@@ -2,7 +2,7 @@ import { CenteredTopPanelContainer, DefaultToolbar, TLComponents, Tldraw } from 
 import 'tldraw/tldraw.css'
 
 // A component that renders the default toolbar inside the top panel container
-function TopPanelComponent() {
+function TopPanelComponent(): JSX.Element {
 	return (
 		<CenteredTopPanelContainer>
 			<DefaultToolbar />
