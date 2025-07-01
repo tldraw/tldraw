@@ -1,6 +1,3 @@
-/// <reference types="react" />
-
-import { memo } from 'react'
 import { CenteredTopPanelContainer, DefaultToolbar, TLComponents, Tldraw } from 'tldraw'
 import 'tldraw/tldraw.css'
 
