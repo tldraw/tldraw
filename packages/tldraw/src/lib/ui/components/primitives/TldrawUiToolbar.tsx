@@ -59,6 +59,7 @@ export interface TLUiToolbarToggleGroupProps extends React.HTMLAttributes<HTMLDi
 	children?: React.ReactNode
 	className?: string
 	dir?: 'ltr' | 'rtl'
+	value: any
 	// TODO: fix up this type later
 	defaultValue?: any
 	type: 'single' | 'multiple'
