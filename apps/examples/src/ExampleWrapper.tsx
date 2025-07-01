@@ -1,6 +1,6 @@
 import { useCallback, useEffect, useState } from 'react'
 import { useSearchParams } from 'react-router-dom'
-import { uniqueId } from 'tldraw'
+import { TldrawUiContextProvider, uniqueId } from 'tldraw'
 import { Example } from './examples'
 
 export function ExampleWrapper({
@@ -11,7 +11,11 @@ export function ExampleWrapper({
 	component: React.ComponentType<{ roomId?: string }>
 }) {
 	if (!example.multiplayer) {
-		return <Component />
+		return (
+			<TldrawUiContextProvider>
+				<Component />
+			</TldrawUiContextProvider>
+		)
 	}
 
 	return <MultiplayerExampleWrapper component={Component} example={example} />
