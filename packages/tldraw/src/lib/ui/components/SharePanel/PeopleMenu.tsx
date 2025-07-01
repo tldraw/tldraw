@@ -32,7 +32,6 @@ export function PeopleMenu({ children }: PeopleMenuProps) {
 		<_Popover.Root onOpenChange={onOpenChange} open={isOpen}>
 			<_Popover.Trigger dir="ltr" asChild>
 				<button className="tlui-people-menu__avatars-button" title={msg('people-menu.title')}>
-					{userIds.length > 5 && <PeopleMenuMore count={userIds.length - 5} />}
 					<div className="tlui-people-menu__avatars">
 						{userIds.slice(-5).map((userId) => (
 							<PeopleMenuAvatar key={userId} userId={userId} />
@@ -47,6 +46,7 @@ export function PeopleMenu({ children }: PeopleMenuProps) {
 								{userName?.[0] ?? ''}
 							</div>
 						)}
+						{userIds.length > 5 && <PeopleMenuMore count={userIds.length - 5} />}
 					</div>
 				</button>
 			</_Popover.Trigger>

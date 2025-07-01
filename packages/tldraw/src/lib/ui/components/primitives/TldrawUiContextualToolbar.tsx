@@ -190,7 +190,7 @@ export function getToolbarScreenPosition(
 	toolbarElm: HTMLElement,
 	getSelectionBounds: () => Box | undefined
 ) {
-	const selectionBounds = getSelectionBounds()
+	const selectionBounds = getSelectionBounds()?.clone()
 	if (!selectionBounds) return
 
 	// Offset the selection bounds by the viewport screen bounds (if the editor is scrolled or inset, etc)

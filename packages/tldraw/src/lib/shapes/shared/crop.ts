@@ -7,6 +7,7 @@ import {
 	TLShapeId,
 	Vec,
 	clamp,
+	isEqual,
 } from '@tldraw/editor'
 
 /** @internal */
@@ -472,6 +473,91 @@ export function getCroppedImageDataWhenZooming(
 }
 
 /**
+ * Calculate new crop dimensions and position when replacing an image
+ */
+export function getCroppedImageDataForReplacedImage(
+	imageShape: TLImageShape,
+	newImageWidth: number,
+	newImageHeight: number
+): CropChange {
+	const defaultCrop = getDefaultCrop()
+	const currentCrop = imageShape.props.crop || defaultCrop
+	const origDisplayW = imageShape.props.w
+	const origDisplayH = imageShape.props.h
+	const newImageAspectRatio = newImageWidth / newImageHeight
+
+	let crop = defaultCrop
+	let newDisplayW = origDisplayW
+	let newDisplayH = origDisplayH
+	const isOriginalCrop = isEqual(imageShape.props.crop, defaultCrop)
+
+	if (isOriginalCrop) {
+		newDisplayW = origDisplayW
+		newDisplayH = (origDisplayW * newImageHeight) / newImageWidth
+	} else {
+		const { w: uncroppedW, h: uncroppedH } = getUncroppedSize(
+			imageShape.props,
+			imageShape.props.crop || getDefaultCrop() // Use the ACTUAL current crop to correctly infer uncropped size
+		)
+		const { width: cropW, height: cropH } = getCropDimensions(currentCrop)
+		const targetRatio = cropW / cropH
+		const oldImageAspectRatio = uncroppedW / uncroppedH
+		let newRelativeWidth: number
+		let newRelativeHeight: number
+
+		const currentCropCenter = getCropCenter(currentCrop)
+
+		// Adjust the new crop dimensions to match the current crop zoom
+		newRelativeWidth = cropW
+		const ratioConversion = newImageAspectRatio / oldImageAspectRatio / targetRatio
+		newRelativeHeight = newRelativeWidth * ratioConversion
+
+		// Check that our new crop dimensions are within the MAX_ZOOM bounds
+		const maxRatioConversion = MAX_ZOOM / (MAX_ZOOM - 1)
+		if (ratioConversion > maxRatioConversion) {
+			const minDimension = 1 / MAX_ZOOM
+			if (1 / newRelativeHeight < 1 / newRelativeWidth) {
+				const scale = newRelativeHeight / minDimension
+				newRelativeHeight = newRelativeHeight / scale
+				newRelativeWidth = newRelativeWidth / scale
+			} else {
+				const scale = newRelativeWidth / minDimension
+				newRelativeWidth = newRelativeWidth / scale
+				newRelativeHeight = newRelativeHeight / scale
+			}
+		}
+
+		// Ensure dimensions are within [0, 1] bounds after adjustment
+		newRelativeWidth = Math.max(0, Math.min(1, newRelativeWidth))
+		newRelativeHeight = Math.max(0, Math.min(1, newRelativeHeight))
+
+		// Create the new crop object, centered around the CURRENT crop's center
+		crop = createCropAroundCenter(
+			currentCropCenter.x,
+			currentCropCenter.y,
+			newRelativeWidth,
+			newRelativeHeight,
+			currentCrop.isCircle
+		)
+	}
+
+	// Position so visual center stays put
+	const pageCenterX = imageShape.x + origDisplayW / 2
+	const pageCenterY = imageShape.y + origDisplayH / 2
+
+	const newX = pageCenterX - newDisplayW / 2
+	const newY = pageCenterY - newDisplayH / 2
+
+	return {
+		crop,
+		w: newDisplayW,
+		h: newDisplayH,
+		x: newX,
+		y: newY,
+	}
+}
+
+/**
  * Calculate new crop dimensions and position when changing aspect ratio
  */
 export function getCroppedImageDataForAspectRatio(
@@ -509,8 +595,11 @@ export function getCroppedImageDataForAspectRatio(
 	const { width: cropW, height: cropH } = getCropDimensions(currentCrop)
 	const currentCropCenter = getCropCenter(currentCrop)
 
+	// Calculate the current crop zoom level
+	const currentCropZoom = Math.min(1 / cropW, 1 / cropH)
+
 	// Calculate the relative width and height of the crop rectangle (0-1 scale)
-	// that maximizes the area while fitting the original image and matching the target aspect ratio.
+	// Try to preserve the longest dimension of the current crop when changing aspect ratios
 	let newRelativeWidth: number
 	let newRelativeHeight: number
 
@@ -518,19 +607,56 @@ export function getCroppedImageDataForAspectRatio(
 		// Avoid division by zero or NaN issues if image dimensions are invalid or target ratio is 0
 		newRelativeWidth = 1
 		newRelativeHeight = 1
-	} else if (targetRatio / imageAspectRatio > 1) {
-		// Target aspect ratio is "wider" relative to the image aspect ratio.
-		// Width will be clipped to 1.0, calculate height accordingly.
-		newRelativeWidth = 1
-		newRelativeHeight = imageAspectRatio / targetRatio
 	} else {
-		// Target aspect ratio is "narrower" or equal relative to the image aspect ratio.
-		// Height will be clipped to 1.0, calculate width accordingly.
-		newRelativeHeight = 1
-		newRelativeWidth = targetRatio / imageAspectRatio
+		// Get current crop dimensions in absolute units
+		const currentAbsoluteWidth = cropW * uncroppedW
+		const currentAbsoluteHeight = cropH * uncroppedH
+
+		// Find the longest current dimension to preserve
+		const longestCurrentDimension = Math.max(currentAbsoluteWidth, currentAbsoluteHeight)
+		const isWidthLongest = currentAbsoluteWidth >= currentAbsoluteHeight
+
+		// Calculate new dimensions preserving the longest dimension
+		let newAbsoluteWidth: number
+		let newAbsoluteHeight: number
+
+		if (isWidthLongest) {
+			// Preserve width, calculate height based on target ratio
+			newAbsoluteWidth = longestCurrentDimension
+			newAbsoluteHeight = newAbsoluteWidth / targetRatio
+		} else {
+			// Preserve height, calculate width based on target ratio
+			newAbsoluteHeight = longestCurrentDimension
+			newAbsoluteWidth = newAbsoluteHeight * targetRatio
+		}
+
+		// Convert back to relative coordinates
+		newRelativeWidth = newAbsoluteWidth / uncroppedW
+		newRelativeHeight = newAbsoluteHeight / uncroppedH
+
+		// Clamp to image bounds and adjust if necessary
+		if (newRelativeWidth > 1) {
+			// Width exceeds bounds, clamp and recalculate height
+			newRelativeWidth = 1
+			newRelativeHeight = imageAspectRatio / targetRatio
+		}
+		if (newRelativeHeight > 1) {
+			// Height exceeds bounds, clamp and recalculate width
+			newRelativeHeight = 1
+			newRelativeWidth = targetRatio / imageAspectRatio
+		}
+
+		// Final clamp to ensure we stay within bounds
+		newRelativeWidth = Math.max(0, Math.min(1, newRelativeWidth))
+		newRelativeHeight = Math.max(0, Math.min(1, newRelativeHeight))
 	}
 
-	// Ensure dimensions are within [0, 1] bounds (should be handled by logic above, but clamps anyway)
+	const newCropZoom = Math.min(1 / newRelativeWidth, 1 / newRelativeHeight)
+	// Adjust the new crop dimensions to match the current crop zoom
+	newRelativeWidth *= newCropZoom / currentCropZoom
+	newRelativeHeight *= newCropZoom / currentCropZoom
+
+	// Ensure dimensions are within [0, 1] bounds after adjustment
 	newRelativeWidth = Math.max(0, Math.min(1, newRelativeWidth))
 	newRelativeHeight = Math.max(0, Math.min(1, newRelativeHeight))
 
