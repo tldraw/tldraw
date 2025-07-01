@@ -1,7 +1,7 @@
 /** @type {import('next').NextConfig} */
 
 // Configurable domain for rewrites
-const REWRITE_DOMAIN = 'fortuitous-checklist-970816.framer.app'
+const REWRITE_DOMAIN = 'tldrawdotdev.framer.website'
 
 const nextConfig = {
 	reactStrictMode: true,
