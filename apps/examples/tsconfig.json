@@ -3,7 +3,16 @@
 	"include": ["src", "e2e", "./vite.config.ts", "**/*.json"],
 	"exclude": ["node_modules", "dist", "**/*.css", ".tsbuild*", "./scripts/legacy-translations"],
 	"compilerOptions": {
-		"outDir": "./.tsbuild"
+		"outDir": "./.tsbuild",
+		"baseUrl": "./src",
+		"paths": {
+			"tldraw": ["../../packages/tldraw/src"],
+			"react": ["../node_modules/react"],
+			"react/*": ["../node_modules/react/*"]
+		},
+		"jsx": "react-jsx",
+		"moduleResolution": "node",
+		"types": ["node", "@types/jest", "react"]
 	},
 	"references": [
 		{
