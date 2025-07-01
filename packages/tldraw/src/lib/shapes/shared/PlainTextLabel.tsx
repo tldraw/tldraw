@@ -111,9 +111,10 @@ export const PlainTextLabel = React.memo(function PlainTextLabel({
 				}}
 			>
 				<div
-					className={classNames(`${cssPrefix} tl-text tl-text-content`, {
-						'tl-text__no-outline': !showTextOutline,
-					})}
+					className={classNames(
+						`${cssPrefix} tl-text tl-text-content`,
+						showTextOutline ? 'tl-text__outline' : 'tl-text__no-outline'
+					)}
 					dir="auto"
 				>
 					{finalPlainText.split('\n').map((lineOfText, index) => (
