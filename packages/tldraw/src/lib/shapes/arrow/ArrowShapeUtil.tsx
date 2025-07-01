@@ -132,10 +132,6 @@ export class ArrowShapeUtil extends ShapeUtil<TLArrowShape> {
 	override canSnap() {
 		return false
 	}
-	override canTabTo(shape: TLArrowShape) {
-		const bindings = getArrowBindings(this.editor, shape)
-		return !!(bindings.start || bindings.end || shape.props.text)
-	}
 	override hideResizeHandles() {
 		return true
 	}

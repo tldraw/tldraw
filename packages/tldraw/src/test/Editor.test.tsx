@@ -33,7 +33,7 @@ beforeEach(() => {
 	editor = new TestEditor({})
 
 	editor.createShapes([
-		// on it's own
+		// on its own
 		{ id: ids.box1, type: 'geo', x: 100, y: 100, props: { w: 100, h: 100 } },
 		// in a frame
 		{ id: ids.frame1, type: 'frame', x: 100, y: 100, props: { w: 100, h: 100 } },

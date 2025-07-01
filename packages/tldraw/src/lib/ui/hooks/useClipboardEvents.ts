@@ -352,25 +352,49 @@ async function handleClipboardThings(editor: Editor, things: ClipboardThing[], p
 
 							if (tldrawHtmlComment) {
 								try {
-									// If we've found tldraw content in the html string, use that as JSON
-									const jsonComment = lz.decompressFromBase64(tldrawHtmlComment)
-									if (jsonComment === null) {
+									// First try parsing as plain JSON (version 2 format)
+									let json
+									try {
+										json = JSON.parse(tldrawHtmlComment)
+									} catch {
+										// Fall back to LZ decompression (legacy format)
+										const jsonComment = lz.decompressFromBase64(tldrawHtmlComment)
+										if (jsonComment === null) {
+											r({
+												type: 'error',
+												data: null,
+												reason: `found tldraw data comment but could not parse`,
+											})
+											return
+										}
+										json = JSON.parse(jsonComment)
+									}
+
+									if (json.type !== 'application/tldraw') {
 										r({
 											type: 'error',
-											data: jsonComment,
-											reason: `found tldraw data comment but could not parse base64`,
+											data: json,
+											reason: `found tldraw data comment but JSON was of a different type: ${json.type}`,
 										})
 										return
-									} else {
-										const json = JSON.parse(jsonComment)
-										if (json.type !== 'application/tldraw') {
+									}
+
+									// Handle versioned clipboard format
+									if (json.version === 2) {
+										// Version 2: Assets are plain, decompress only other data
+										try {
+											r({ type: 'tldraw', data: json.data })
+											return
+										} catch (error) {
 											r({
 												type: 'error',
 												data: json,
-												reason: `found tldraw data comment but JSON was of a different type: ${json.type}`,
+												reason: `failed to parse version 2 clipboard data: ${error}`,
 											})
+											return
 										}
-
+									} else {
+										// Version 1 or no version: Legacy format
 										if (typeof json.data === 'string') {
 											r({
 												type: 'error',
@@ -560,13 +584,13 @@ const handleNativeOrMenuCopy = async (editor: Editor) => {
 		return
 	}
 
-	const stringifiedClipboard = lz.compressToBase64(
-		JSON.stringify({
-			type: 'application/tldraw',
-			kind: 'content',
-			data: content,
-		})
-	)
+	// Version 2: Don't compress anything.
+	const stringifiedClipboard = JSON.stringify({
+		type: 'application/tldraw',
+		kind: 'content',
+		version: 2,
+		data: content,
+	})
 
 	if (typeof navigator === 'undefined') {
 		return

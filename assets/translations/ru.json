@@ -5,6 +5,7 @@
 	"a11y.move-shape": "Переместить фигуру",
 	"a11y.move-shape-faster": "Переместить фигуру быстрее",
 	"a11y.multiple-shapes": "Выбрано {num} фигур",
+	"a11y.open-context-menu": "Открыть контекстное меню",
 	"a11y.pan-camera": "Переместить камеру",
 	"a11y.repeat-shape": "Дублировать фигуру",
 	"a11y.select-shape": "Выбрать следующую фигуру",
