@@ -9,8 +9,7 @@
 			"tldraw": ["../../packages/tldraw"]
 		},
 		"jsx": "react-jsx",
-		"moduleResolution": "node",
-		"types": ["node", "@types/jest", "react"]
+		"moduleResolution": "node"
 	},
 	"references": [
 		{
