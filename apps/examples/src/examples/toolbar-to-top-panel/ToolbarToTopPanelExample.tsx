@@ -1,14 +1,20 @@
+import React from 'react'
 import { CenteredTopPanelContainer, DefaultToolbar, TLComponents, Tldraw } from 'tldraw'
 import 'tldraw/tldraw.css'
 
-// Create a components object that hides the default Toolbar and renders it inside the TopPanel instead.
-const components: TLComponents = {
-	Toolbar: null,
-	TopPanel: () => (
+// A memoized component that renders the default toolbar inside the top-panel container
+const TopPanelComponent = React.memo(() => {
+	return (
 		<CenteredTopPanelContainer>
 			<DefaultToolbar />
 		</CenteredTopPanelContainer>
-	),
+	)
+})
+
+// Create a components map that disables the default bottom toolbar and instead uses our custom top-panel component
+const components: TLComponents = {
+	Toolbar: null,
+	TopPanel: TopPanelComponent,
 }
 
 export default function ToolbarToTopPanelExample() {
