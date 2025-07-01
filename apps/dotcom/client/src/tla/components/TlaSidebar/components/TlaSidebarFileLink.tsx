@@ -29,8 +29,8 @@ import {
 	TlaTooltipRoot,
 	TlaTooltipTrigger,
 } from '../../TlaTooltip/TlaTooltip'
+import { PresenceBadges } from '../TempGroupsUi'
 import styles from '../sidebar.module.css'
-import { PresenceBadges } from './PresenceBadges'
 import { TlaSidebarFileLinkMenu } from './TlaSidebarFileLinkMenu'
 import { TlaSidebarRenameInline } from './TlaSidebarRenameInline'
 import { RecentFile } from './sidebar-shared'
