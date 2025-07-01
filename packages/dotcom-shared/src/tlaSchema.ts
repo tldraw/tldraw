@@ -32,6 +32,7 @@ export const user = table('user')
 		flags: string(),
 		locale: string().optional(),
 		animationSpeed: number().optional(),
+		keyboardShortcuts: boolean().optional(),
 		edgeScrollSpeed: number().optional(),
 		colorScheme: string().optional(),
 		isSnapMode: boolean().optional(),

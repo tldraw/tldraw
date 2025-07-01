@@ -90,6 +90,8 @@ export type TLUiTranslationKey =
 	| 'action.toggle-wrap-mode'
 	| 'action.toggle-reduce-motion.menu'
 	| 'action.toggle-reduce-motion'
+	| 'action.toggle-keyboard-shortcuts.menu'
+	| 'action.toggle-keyboard-shortcuts'
 	| 'action.toggle-edge-scrolling.menu'
 	| 'action.toggle-edge-scrolling'
 	| 'action.toggle-debug-mode.menu'

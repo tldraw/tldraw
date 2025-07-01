@@ -91,6 +91,8 @@ export const DEFAULT_TRANSLATION = {
 	'action.toggle-wrap-mode': 'Toggle Select on wrap',
 	'action.toggle-reduce-motion.menu': 'Reduce motion',
 	'action.toggle-reduce-motion': 'Toggle reduce motion',
+	'action.toggle-keyboard-shortcuts.menu': 'Keyboard shortcuts',
+	'action.toggle-keyboard-shortcuts': 'Toggle keyboard shortcuts',
 	'action.toggle-edge-scrolling.menu': 'Edge scrolling',
 	'action.toggle-edge-scrolling': 'Toggle edge scrolling',
 	'action.toggle-debug-mode.menu': 'Debug mode',

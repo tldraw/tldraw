@@ -723,6 +723,7 @@ export const defaultUserPreferences: Readonly<{
     isPasteAtCursorMode: false;
     isSnapMode: false;
     isWrapMode: false;
+    keyboardShortcuts: true;
     locale: "ar" | "bn" | "ca" | "cs" | "da" | "de" | "el" | "en" | "es" | "fa" | "fi" | "fr" | "gl" | "gu-in" | "he" | "hi-in" | "hr" | "hu" | "id" | "it" | "ja" | "km-kh" | "kn" | "ko-kr" | "ml" | "mr" | "ms" | "ne" | "nl" | "no" | "pa" | "pl" | "pt-br" | "pt-pt" | "ro" | "ru" | "sl" | "so" | "sv" | "ta" | "te" | "th" | "tl" | "tr" | "uk" | "ur" | "vi" | "zh-cn" | "zh-tw";
     name: "";
 }>;
@@ -4270,6 +4271,8 @@ export interface TLUserPreferences {
     // (undocumented)
     isWrapMode?: boolean | null;
     // (undocumented)
+    keyboardShortcuts?: boolean | null;
+    // (undocumented)
     locale?: null | string;
     // (undocumented)
     name?: null | string;
@@ -4439,6 +4442,8 @@ export class UserPreferencesManager {
     // (undocumented)
     getIsWrapMode(): boolean;
     // (undocumented)
+    getKeyboardShortcuts(): boolean;
+    // (undocumented)
     getLocale(): string;
     // (undocumented)
     getName(): string;
@@ -4452,6 +4457,7 @@ export class UserPreferencesManager {
         isDynamicResizeMode: boolean;
         isSnapMode: boolean;
         isWrapMode: boolean;
+        keyboardShortcuts: boolean;
         locale: string;
         name: string;
     };

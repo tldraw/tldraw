@@ -43,6 +43,7 @@ export class UserPreferencesManager {
 			locale: this.getLocale(),
 			color: this.getColor(),
 			animationSpeed: this.getAnimationSpeed(),
+			keyboardShortcuts: this.getKeyboardShortcuts(),
 			isSnapMode: this.getIsSnapMode(),
 			colorScheme: this.user.userPreferences.get().colorScheme,
 			isDarkMode: this.getIsDarkMode(),
@@ -73,6 +74,12 @@ export class UserPreferencesManager {
 
 	@computed getAnimationSpeed() {
 		return this.user.userPreferences.get().animationSpeed ?? defaultUserPreferences.animationSpeed
+	}
+
+	@computed getKeyboardShortcuts() {
+		return (
+			this.user.userPreferences.get().keyboardShortcuts ?? defaultUserPreferences.keyboardShortcuts
+		)
 	}
 
 	@computed getId() {
