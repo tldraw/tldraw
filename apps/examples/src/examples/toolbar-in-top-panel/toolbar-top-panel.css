@@ -1,0 +1,65 @@
+/* Toolbar in Top Panel Custom Styles */
+
+/* 
+ * Position the lock button outside the normal flow to prevent layout shifts
+ */
+.toolbar-top-panel .tlui-toolbar {
+	position: relative;
+	margin-right: 44px; /* Add right margin to accommodate the lock button */
+	background-color: black !important;
+	border: 1px solid #333 !important;
+}
+
+/* Make toolbar icons white for visibility on black background */
+.toolbar-top-panel .tlui-toolbar .tlui-button svg,
+.toolbar-top-panel .tlui-toolbar .tlui-icon {
+	color: white !important;
+}
+
+/* Make toolbar buttons have proper hover states on black background */
+.toolbar-top-panel .tlui-toolbar .tlui-button:hover {
+	background-color: rgba(255, 255, 255, 0.1) !important;
+}
+
+/* Make active tool button visible on black background */
+.toolbar-top-panel .tlui-toolbar .tlui-button[data-state='selected'] {
+	background-color: #4a90e2 !important;
+	color: white !important;
+}
+
+.toolbar-top-panel .tlui-toolbar__extras {
+	position: relative;
+}
+
+/* Position the lock button right next to the toolbar buttons */
+.toolbar-top-panel .tlui-toolbar__lock-button {
+	position: absolute;
+	right: -44px; /* Position it right next to the last toolbar button */
+	top: 50%;
+	transform: translateY(-50%);
+	z-index: 10;
+	background-color: black !important;
+	border: 1px solid #333 !important;
+	color: white !important;
+}
+
+/* Lock button icon styling */
+.toolbar-top-panel .tlui-toolbar__lock-button svg,
+.toolbar-top-panel .tlui-toolbar__lock-button .tlui-icon {
+	color: white !important;
+}
+
+/* Lock button hover state */
+.toolbar-top-panel .tlui-toolbar__lock-button:hover {
+	background-color: rgba(255, 255, 255, 0.1) !important;
+}
+
+/* Fix overflow menu to point downward instead of upward */
+.toolbar-top-panel .tlui-icon[data-icon='chevron-up'] {
+	transform: rotate(180deg);
+}
+
+/* Adjust dropdown positioning for top panel */
+.toolbar-top-panel .tlui-popover__content {
+	transform-origin: top center;
+}
