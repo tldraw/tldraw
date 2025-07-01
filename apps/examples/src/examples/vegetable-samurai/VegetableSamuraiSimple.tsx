@@ -1,10 +1,8 @@
 import { useCallback, useEffect, useRef, useState } from 'react'
 import {
 	BaseBoxShapeUtil,
-	Geometry2d,
 	HTMLContainer,
 	RecordProps,
-	Rectangle2d,
 	StateNode,
 	T,
 	TLBaseShape,
@@ -16,16 +14,13 @@ import {
 import 'tldraw/tldraw.css'
 
 // Game constants
-const GAME_DURATION = 60 // seconds
-const VEGETABLE_SPAWN_INTERVAL = 1000 // milliseconds
+const GAME_DURATION = 60
+const VEGETABLE_SPAWN_INTERVAL = 1000
 const GRAVITY = 0.5
 const INITIAL_VELOCITY_Y = -15
 const INITIAL_VELOCITY_X_RANGE = 8
-const CANVAS_WIDTH = 800
-const CANVAS_HEIGHT = 600
-const GROUND_Y = CANVAS_HEIGHT - 50
 
-// Vegetable types with their properties
+// Vegetable types
 const VEGETABLE_TYPES = {
 	tomato: { emoji: '🍅', color: '#ff4444', points: 10, size: 60 },
 	carrot: { emoji: '🥕', color: '#ff8800', points: 15, size: 50 },
@@ -37,32 +32,18 @@ const VEGETABLE_TYPES = {
 
 type VegetableType = keyof typeof VEGETABLE_TYPES
 
-// Vegetable shape definition
+// Vegetable shape
 type VegetableShape = TLBaseShape<
 	'vegetable',
 	{
 		w: number
 		h: number
-		vegetableType: VegetableType
+		vegetableType: string
 		velocityX: number
 		velocityY: number
 		isSliced: boolean
 		sliceAngle: number
-		juiceParticles: Array<{ x: number; y: number; vx: number; vy: number; life: number }>
 		createdAt: number
-	}
->
-
-// Juice particle shape
-type JuiceParticleShape = TLBaseShape<
-	'juice-particle',
-	{
-		w: number
-		h: number
-		color: string
-		life: number
-		velocityX: number
-		velocityY: number
 	}
 >
 
@@ -72,18 +53,11 @@ class VegetableShapeUtil extends BaseBoxShapeUtil<VegetableShape> {
 	static override props: RecordProps<VegetableShape> = {
 		w: T.number,
 		h: T.number,
-		vegetableType: T.literalEnum('tomato', 'carrot', 'broccoli', 'corn', 'eggplant', 'pepper'),
+		vegetableType: T.string,
 		velocityX: T.number,
 		velocityY: T.number,
 		isSliced: T.boolean,
 		sliceAngle: T.number,
-		juiceParticles: T.arrayOf(T.object({
-			x: T.number,
-			y: T.number,
-			vx: T.number,
-			vy: T.number,
-			life: T.number,
-		})),
 		createdAt: T.number,
 	}
 
@@ -96,7 +70,6 @@ class VegetableShapeUtil extends BaseBoxShapeUtil<VegetableShape> {
 			velocityY: 0,
 			isSliced: false,
 			sliceAngle: 0,
-			juiceParticles: [],
 			createdAt: Date.now(),
 		}
 	}
@@ -109,7 +82,7 @@ class VegetableShapeUtil extends BaseBoxShapeUtil<VegetableShape> {
 	}
 
 	component(shape: VegetableShape) {
-		const veggie = VEGETABLE_TYPES[shape.props.vegetableType as VegetableType]
+		const veggie = VEGETABLE_TYPES[shape.props.vegetableType as VegetableType] || VEGETABLE_TYPES.tomato
 		const rotation = shape.props.isSliced ? shape.props.sliceAngle : 0
 
 		return (
@@ -128,23 +101,6 @@ class VegetableShapeUtil extends BaseBoxShapeUtil<VegetableShape> {
 				}}
 			>
 				{veggie.emoji}
-				{/* Juice particles */}
-				{shape.props.juiceParticles.map((particle: any, i: number) => (
-					<div
-						key={i}
-						style={{
-							position: 'absolute',
-							left: particle.x,
-							top: particle.y,
-							width: 4,
-							height: 4,
-							backgroundColor: veggie.color,
-							borderRadius: '50%',
-							opacity: particle.life / 100,
-							pointerEvents: 'none',
-						}}
-					/>
-				))}
 			</HTMLContainer>
 		)
 	}
@@ -154,10 +110,9 @@ class VegetableShapeUtil extends BaseBoxShapeUtil<VegetableShape> {
 	}
 }
 
-// Sword tool for slicing
+// Sword tool
 class SwordTool extends StateNode {
 	static override id = 'sword'
-	private trailPoints: Vec[] = []
 	private isSlicing = false
 
 	override onEnter() {
@@ -166,30 +121,13 @@ class SwordTool extends StateNode {
 
 	override onPointerDown(info: TLPointerEventInfo) {
 		this.isSlicing = true
-		this.trailPoints = [Vec.From(info.point)]
 	}
 
 	override onPointerMove(info: TLPointerEventInfo) {
 		if (!this.isSlicing) return
 
-		this.trailPoints.push(Vec.From(info.point))
-		if (this.trailPoints.length > 10) {
-			this.trailPoints.shift()
-		}
-
-		// Check for vegetable collisions along the trail
-		this.checkVegetableSlicing(Vec.From(info.point))
-
-		// Create sword trail effect
-		this.createSwordTrail()
-	}
-
-	override onPointerUp() {
-		this.isSlicing = false
-		this.trailPoints = []
-	}
-
-	private checkVegetableSlicing(point: Vec) {
+		// Simple collision detection
+		const point = info.point
 		const vegetables = this.editor
 			.getCurrentPageShapes()
 			.filter((shape) => shape.type === 'vegetable') as VegetableShape[]
@@ -198,29 +136,27 @@ class SwordTool extends StateNode {
 			if (vegetable.props.isSliced) return
 
 			const bounds = this.editor.getShapeGeometry(vegetable).bounds
-			const shapeCenter = Vec.Add(
-				{ x: vegetable.x, y: vegetable.y },
-				{ x: bounds.width / 2, y: bounds.height / 2 }
+			const shapeCenter = {
+				x: vegetable.x + bounds.width / 2,
+				y: vegetable.y + bounds.height / 2,
+			}
+
+			const distance = Math.sqrt(
+				Math.pow(point.x - shapeCenter.x, 2) + Math.pow(point.y - shapeCenter.y, 2)
 			)
 
-			// Check if sword trail intersects with vegetable
-			if (Vec.Dist(point, shapeCenter) < bounds.width / 2) {
-				this.sliceVegetable(vegetable, point)
+			if (distance < bounds.width / 2) {
+				this.sliceVegetable(vegetable)
 			}
 		})
 	}
 
-	private sliceVegetable(vegetable: VegetableShape, slicePoint: Vec) {
-		const veggie = VEGETABLE_TYPES[vegetable.props.vegetableType]
-		
-		// Create juice particles
-		const juiceParticles = Array.from({ length: 8 }, () => ({
-			x: Math.random() * 20 - 10,
-			y: Math.random() * 20 - 10,
-			vx: (Math.random() - 0.5) * 10,
-			vy: (Math.random() - 0.5) * 10,
-			life: 100,
-		}))
+	override onPointerUp() {
+		this.isSlicing = false
+	}
+
+	private sliceVegetable(vegetable: VegetableShape) {
+		const veggie = VEGETABLE_TYPES[vegetable.props.vegetableType as VegetableType] || VEGETABLE_TYPES.tomato
 
 		// Update vegetable to sliced state
 		this.editor.updateShape<VegetableShape>({
@@ -230,7 +166,6 @@ class SwordTool extends StateNode {
 				...vegetable.props,
 				isSliced: true,
 				sliceAngle: Math.random() * 360,
-				juiceParticles,
 			},
 		})
 
@@ -240,119 +175,18 @@ class SwordTool extends StateNode {
 				detail: { points: veggie.points, type: vegetable.props.vegetableType },
 			})
 		)
-
-		// Create juice splash effect
-		this.createJuiceSplash(slicePoint, veggie.color)
-	}
-
-	private createJuiceSplash(point: Vec, color: string) {
-		// Create multiple juice particle shapes
-		for (let i = 0; i < 6; i++) {
-			const particleId = createShapeId()
-			this.editor.createShape({
-				id: particleId,
-				type: 'juice-particle',
-				x: point.x + (Math.random() - 0.5) * 20,
-				y: point.y + (Math.random() - 0.5) * 20,
-				props: {
-					w: 8,
-					h: 8,
-					color,
-					life: 100,
-					velocityX: (Math.random() - 0.5) * 8,
-					velocityY: (Math.random() - 0.5) * 8,
-				},
-			})
-		}
-	}
-
-	private createSwordTrail() {
-		// Visual sword trail effect using temporary shapes
-		if (this.trailPoints.length < 2) return
-
-		const lastPoint = this.trailPoints[this.trailPoints.length - 1]
-		const secondLastPoint = this.trailPoints[this.trailPoints.length - 2]
-
-		// Create a temporary line shape for the trail
-		const trailId = createShapeId()
-		this.editor.createShape({
-			id: trailId,
-			type: 'line',
-			x: secondLastPoint.x,
-			y: secondLastPoint.y,
-			props: {
-				points: [
-					{ x: 0, y: 0 },
-					{ x: lastPoint.x - secondLastPoint.x, y: lastPoint.y - secondLastPoint.y },
-				],
-				color: 'blue',
-				size: 'm',
-			},
-		})
-
-		// Remove trail after short delay
-		setTimeout(() => {
-			try {
-				this.editor.deleteShape(trailId)
-			} catch (e) {
-				// Shape might already be deleted
-			}
-		}, 100)
 	}
 }
 
-// Juice particle shape util
-class JuiceParticleShapeUtil extends BaseBoxShapeUtil<JuiceParticleShape> {
-	static override type = 'juice-particle' as const
-	static override props: RecordProps<JuiceParticleShape> = {
-		w: T.number,
-		h: T.number,
-		color: T.string,
-		life: T.number,
-		velocityX: T.number,
-		velocityY: T.number,
-	}
-
-	getDefaultProps(): JuiceParticleShape['props'] {
-		return {
-			w: 8,
-			h: 8,
-			color: '#ff4444',
-			life: 100,
-			velocityX: 0,
-			velocityY: 0,
-		}
-	}
-
-	override canEdit() {
-		return false
-	}
-	override canResize() {
-		return false
-	}
-
-	component(shape: JuiceParticleShape) {
-		return (
-			<HTMLContainer
-				style={{
-					width: shape.props.w,
-					height: shape.props.h,
-					backgroundColor: shape.props.color,
-					borderRadius: '50%',
-					opacity: shape.props.life / 100,
-					pointerEvents: 'none',
-				}}
-			/>
-		)
-	}
-
-	indicator(shape: JuiceParticleShape) {
-		return <rect width={shape.props.w} height={shape.props.h} />
-	}
-}
-
-// Game UI Component
-function GameUI({ score, timeLeft, combo, isGameActive, onStart, onRestart }: {
+// Game UI
+function GameUI({ 
+	score, 
+	timeLeft, 
+	combo, 
+	isGameActive, 
+	onStart, 
+	onRestart 
+}: {
 	score: number
 	timeLeft: number
 	combo: number
@@ -421,7 +255,7 @@ function GameUI({ score, timeLeft, combo, isGameActive, onStart, onRestart }: {
 }
 
 // Main game component
-export default function VegetableSamuraiExample() {
+export default function VegetableSamuraiSimple() {
 	const [score, setScore] = useState(0)
 	const [timeLeft, setTimeLeft] = useState(GAME_DURATION)
 	const [combo, setCombo] = useState(1)
@@ -430,8 +264,7 @@ export default function VegetableSamuraiExample() {
 	const spawnIntervalRef = useRef<number>()
 	const editorRef = useRef<any>()
 
-	// Custom shapes and tools
-	const customShapeUtils = [VegetableShapeUtil, JuiceParticleShapeUtil]
+	const customShapeUtils = [VegetableShapeUtil]
 	const customTools = [SwordTool]
 
 	const startGame = useCallback(() => {
@@ -444,7 +277,7 @@ export default function VegetableSamuraiExample() {
 		if (editorRef.current) {
 			const allShapes = editorRef.current.getCurrentPageShapes()
 			allShapes.forEach((shape: any) => {
-				if (shape.type === 'vegetable' || shape.type === 'juice-particle') {
+				if (shape.type === 'vegetable') {
 					editorRef.current.deleteShape(shape.id)
 				}
 			})
@@ -464,14 +297,12 @@ export default function VegetableSamuraiExample() {
 
 		// Start vegetable spawning
 		const spawnVegetables = () => {
-			if (!isGameActive) return
-
 			const vegetableTypes = Object.keys(VEGETABLE_TYPES) as VegetableType[]
 			const randomType = vegetableTypes[Math.floor(Math.random() * vegetableTypes.length)]
 			const veggie = VEGETABLE_TYPES[randomType]
 
 			const vegetableId = createShapeId()
-			const startX = Math.random() * (CANVAS_WIDTH - 100) + 50
+			const startX = Math.random() * 600 + 100
 			const velocityX = (Math.random() - 0.5) * INITIAL_VELOCITY_X_RANGE
 			const velocityY = INITIAL_VELOCITY_Y + Math.random() * -5
 
@@ -480,7 +311,7 @@ export default function VegetableSamuraiExample() {
 					id: vegetableId,
 					type: 'vegetable',
 					x: startX,
-					y: GROUND_Y,
+					y: 500,
 					props: {
 						w: veggie.size,
 						h: veggie.size,
@@ -489,7 +320,6 @@ export default function VegetableSamuraiExample() {
 						velocityY,
 						isSliced: false,
 						sliceAngle: 0,
-						juiceParticles: [],
 						createdAt: Date.now(),
 					},
 				})
@@ -500,20 +330,18 @@ export default function VegetableSamuraiExample() {
 
 		// Game physics loop
 		const gameLoop = () => {
-			if (!editorRef.current || !isGameActive) return
+			if (!editorRef.current) return
 
 			const shapes = editorRef.current.getCurrentPageShapes()
 			const vegetables = shapes.filter((shape: any) => shape.type === 'vegetable')
-			const juiceParticles = shapes.filter((shape: any) => shape.type === 'juice-particle')
 
-			// Update vegetables
 			vegetables.forEach((vegetable: VegetableShape) => {
 				const newVelocityY = vegetable.props.velocityY + GRAVITY
 				const newX = vegetable.x + vegetable.props.velocityX
 				const newY = vegetable.y + newVelocityY
 
-				// Remove vegetables that fall off screen or are too old
-				if (newY > CANVAS_HEIGHT + 100 || Date.now() - vegetable.props.createdAt > 10000) {
+				// Remove vegetables that fall off screen
+				if (newY > 700 || Date.now() - vegetable.props.createdAt > 10000) {
 					editorRef.current.deleteShape(vegetable.id)
 					return
 				}
@@ -531,31 +359,9 @@ export default function VegetableSamuraiExample() {
 				})
 			})
 
-			// Update juice particles
-			juiceParticles.forEach((particle: JuiceParticleShape) => {
-				const newLife = particle.props.life - 2
-				if (newLife <= 0) {
-					editorRef.current.deleteShape(particle.id)
-					return
-				}
-
-				const newX = particle.x + particle.props.velocityX
-				const newY = particle.y + particle.props.velocityY + GRAVITY * 0.5
-
-				editorRef.current.updateShape({
-					id: particle.id,
-					type: 'juice-particle',
-					x: newX,
-					y: newY,
-					props: {
-						...particle.props,
-						life: newLife,
-						velocityY: particle.props.velocityY + GRAVITY * 0.5,
-					},
-				})
-			})
-
-			gameLoopRef.current = requestAnimationFrame(gameLoop)
+			if (isGameActive) {
+				gameLoopRef.current = requestAnimationFrame(gameLoop)
+			}
 		}
 
 		gameLoopRef.current = requestAnimationFrame(gameLoop)
@@ -624,9 +430,7 @@ export default function VegetableSamuraiExample() {
 				hideUi
 				onMount={(editor) => {
 					editorRef.current = editor
-					// Set up canvas
 					editor.zoomToFit()
-					editor.setCamera({ x: 0, y: 0, z: 1 })
 				}}
 			/>
 			<div
