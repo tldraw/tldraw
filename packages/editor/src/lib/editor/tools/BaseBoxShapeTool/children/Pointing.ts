@@ -36,7 +36,10 @@ export class Pointing extends StateNode {
 				},
 			])
 			const shape = editor.getShape(id)
-			if (!shape) this.cancel()
+			if (!shape) {
+				this.cancel()
+				return
+			}
 			editor.select(id)
 
 			const parent = this.parent as BaseBoxShapeTool
