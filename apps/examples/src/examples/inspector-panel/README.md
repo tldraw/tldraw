@@ -1,8 +1,7 @@
 ---
-title: Inspector Panel
+title: Inspector panel
 component: ./InspectorPanelExample.tsx
 category: ui
-priority: 3
 keywords: [inspector, properties, props, selection, panel]
 ---
 

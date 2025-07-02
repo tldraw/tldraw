@@ -1,5 +1,7 @@
-import { TLComponents, TLShape, Tldraw, useEditor, useValue } from 'tldraw'
+import { useState } from 'react'
+import { Editor, EditorProvider, Tldraw, useEditor, useValue } from 'tldraw'
 import 'tldraw/tldraw.css'
+import './inspector-panel.css'
 
 // Inspector Panel Component that shows selected shape properties
 function InspectorPanel() {
@@ -11,58 +13,53 @@ function InspectorPanel() {
 	// Only show inspector when exactly one shape is selected
 	const selectedShape = selectedShapes.length === 1 ? selectedShapes[0] : null
 
+	// Get bindings involving the selected shape
+	const bindings = useValue(
+		'bindings',
+		() => {
+			if (!selectedShape) return []
+			return editor.getBindingsInvolvingShape(selectedShape.id)
+		},
+		[editor, selectedShape]
+	)
+
 	if (!selectedShape) {
 		return (
 			<div className="inspector-panel">
-				<div className="inspector-header">Inspector</div>
-				<div className="inspector-content">
-					<div className="inspector-empty">
-						{selectedShapes.length === 0 ? 'No shape selected' : 'Multiple shapes selected'}
-					</div>
-				</div>
+				<h3>Inspector</h3>
+				<p>{selectedShapes.length === 0 ? 'No shape selected' : 'Multiple shapes selected'}</p>
 			</div>
 		)
 	}
 
 	return (
 		<div className="inspector-panel">
-			<div className="inspector-header">Inspector</div>
-			<div className="inspector-content">
-				<PropertySection title="Basic Properties" shape={selectedShape} />
-				<PropertySection title="Shape Props" shape={selectedShape} isProps />
-			</div>
-		</div>
-	)
-}
-
-// Component to render a section of properties
-function PropertySection({
-	title,
-	shape,
-	isProps = false,
-}: {
-	title: string
-	shape: TLShape
-	isProps?: boolean
-}) {
-	const properties = isProps ? shape.props : shape
-
-	// Don't show props section if there are no custom props
-	if (isProps && (!properties || Object.keys(properties).length === 0)) {
-		return null
-	}
-
-	return (
-		<div className="property-section">
-			<div className="property-section-title">{title}</div>
-			<div className="property-list">
-				{Object.entries(properties).map(([key, value]) => {
-					// Skip the props property in basic section since we show it separately
-					if (!isProps && key === 'props') return null
-
+			<h3>Inspector</h3>
+			<div className="inspector-section">
+				<h4>Basic Properties</h4>
+				{Object.entries(selectedShape).map(([key, value]) => {
+					if (key === 'props') return null // Skip props, we'll show them separately
 					return <PropertyRow key={key} name={key} value={value} />
 				})}
 			</div>
+
+			{selectedShape.props && Object.keys(selectedShape.props).length > 0 && (
+				<div className="inspector-section">
+					<h4>Shape Props</h4>
+					{Object.entries(selectedShape.props).map(([key, value]) => (
+						<PropertyRow key={key} name={key} value={value} />
+					))}
+				</div>
+			)}
+
+			{bindings.length > 0 && (
+				<div className="inspector-section">
+					<h4>Bindings ({bindings.length})</h4>
+					{bindings.map((binding) => (
+						<BindingRow key={binding.id} binding={binding} selectedShapeId={selectedShape.id} />
+					))}
+				</div>
+			)}
 		</div>
 	)
 }
@@ -70,209 +67,93 @@ function PropertySection({
 // Component to render an individual property row
 function PropertyRow({ name, value }: { name: string; value: any }) {
 	const formatValue = (val: any): string => {
-		if (val === null) return 'null'
-		if (val === undefined) return 'undefined'
+		if (val === null || val === undefined) return String(val)
 		if (typeof val === 'string') return `"${val}"`
-		if (typeof val === 'number') return val.toString()
-		if (typeof val === 'boolean') return val.toString()
-		if (Array.isArray(val)) return `Array(${val.length})`
 		if (typeof val === 'object') {
-			// Handle special objects
+			if (Array.isArray(val)) return `Array(${val.length})`
+			// Handle rich text objects
 			if ('richText' in val && val.richText) {
 				return `"${val.richText[0]?.children?.[0]?.text || ''}"`
 			}
-			return `Object(${Object.keys(val).length} keys)`
+			return `Object`
 		}
 		return String(val)
 	}
 
-	const getValueType = (val: any): string => {
-		if (val === null) return 'null'
-		if (Array.isArray(val)) return 'array'
-		return typeof val
-	}
-
 	return (
 		<div className="property-row">
-			<div className="property-name">{name}</div>
-			<div className="property-value">
-				<span className={`property-type property-type-${getValueType(value)}`}>
-					{formatValue(value)}
-				</span>
-			</div>
+			<span className="property-name">{name}:</span>
+			<span className="property-value">{formatValue(value)}</span>
 		</div>
 	)
 }
 
-// Custom components that include our inspector panel
-const components: TLComponents = {
-	SharePanel: InspectorPanel,
+// Component to render a binding row
+function BindingRow({ binding, selectedShapeId }: { binding: any; selectedShapeId: string }) {
+	const editor = useEditor()
+
+	// Determine the relationship
+	const isFrom = binding.fromId === selectedShapeId
+	const otherShapeId = isFrom ? binding.toId : binding.fromId
+	const relationship = isFrom ? 'from' : 'to'
+
+	// Get info about the other shape
+	const otherShape = useValue(
+		'other shape',
+		() => {
+			return editor.getShape(otherShapeId)
+		},
+		[editor, otherShapeId]
+	)
+
+	return (
+		<div className="binding-row">
+			<div className="binding-header">
+				<span className="binding-type">{binding.type}</span>
+				<span className="binding-direction">({relationship})</span>
+			</div>
+			<div className="property-row">
+				<span className="property-name">id:</span>
+				<span className="property-value">&quot;{binding.id}&quot;</span>
+			</div>
+			<div className="property-row">
+				<span className="property-name">{relationship === 'from' ? 'toId' : 'fromId'}:</span>
+				<span className="property-value">&quot;{otherShapeId}&quot;</span>
+			</div>
+			{otherShape && (
+				<div className="property-row">
+					<span className="property-name">shape:</span>
+					<span className="property-value">{otherShape.type}</span>
+				</div>
+			)}
+			{binding.props && Object.keys(binding.props).length > 0 && (
+				<div className="binding-props">
+					<div className="property-name">props:</div>
+					{Object.entries(binding.props).map(([key, value]) => (
+						<div key={key} className="property-row binding-prop">
+							<span className="property-name"> {key}:</span>
+							<span className="property-value">{JSON.stringify(value)}</span>
+						</div>
+					))}
+				</div>
+			)}
+		</div>
+	)
 }
 
 export default function InspectorPanelExample() {
+	const [editor, setEditor] = useState<Editor | null>(null)
+
 	return (
-		<div className="tldraw__editor">
-			<Tldraw persistenceKey="inspector-panel-example" components={components} />
-			<style>{`
-				.inspector-panel {
-					position: fixed;
-					top: 10px;
-					right: 10px;
-					width: 320px;
-					max-height: 80vh;
-					background: white;
-					border: 1px solid #e1e5e9;
-					border-radius: 8px;
-					box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
-					font-family: ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, sans-serif;
-					font-size: 12px;
-					overflow: hidden;
-					z-index: 1000;
-				}
-
-				.inspector-header {
-					background: #f8f9fa;
-					padding: 12px 16px;
-					border-bottom: 1px solid #e1e5e9;
-					font-weight: 600;
-					font-size: 13px;
-					color: #1a1a1a;
-				}
-
-				.inspector-content {
-					max-height: calc(80vh - 45px);
-					overflow-y: auto;
-				}
-
-				.inspector-empty {
-					padding: 24px 16px;
-					text-align: center;
-					color: #666;
-					font-style: italic;
-				}
-
-				.property-section {
-					border-bottom: 1px solid #f1f3f4;
-				}
-
-				.property-section:last-child {
-					border-bottom: none;
-				}
-
-				.property-section-title {
-					background: #f8f9fa;
-					padding: 8px 16px;
-					font-weight: 600;
-					font-size: 11px;
-					text-transform: uppercase;
-					letter-spacing: 0.5px;
-					color: #5f6368;
-					border-bottom: 1px solid #e8eaed;
-				}
-
-				.property-list {
-					padding: 0;
-				}
-
-				.property-row {
-					display: flex;
-					padding: 8px 16px;
-					border-bottom: 1px solid #f8f9fa;
-					align-items: flex-start;
-					gap: 12px;
-				}
-
-				.property-row:last-child {
-					border-bottom: none;
-				}
-
-				.property-row:hover {
-					background: #f8f9fa;
-				}
-
-				.property-name {
-					flex: 0 0 100px;
-					font-weight: 500;
-					color: #1a1a1a;
-					word-break: break-word;
-				}
-
-				.property-value {
-					flex: 1;
-					min-width: 0;
-					word-break: break-all;
-				}
-
-				.property-type {
-					font-family: ui-monospace, Monaco, 'Cascadia Code', 'Roboto Mono', Consolas, 'Courier New', monospace;
-					padding: 2px 6px;
-					border-radius: 4px;
-					font-size: 11px;
-				}
-
-				.property-type-string {
-					background: #e8f5e8;
-					color: #137713;
-				}
-
-				.property-type-number {
-					background: #e3f2fd;
-					color: #1565c0;
-				}
-
-				.property-type-boolean {
-					background: #fff3e0;
-					color: #ef6c00;
-				}
-
-				.property-type-object {
-					background: #f3e5f5;
-					color: #7b1fa2;
-				}
-
-				.property-type-array {
-					background: #fce4ec;
-					color: #c2185b;
-				}
-
-				.property-type-null,
-				.property-type-undefined {
-					background: #f5f5f5;
-					color: #666;
-				}
-
-				/* Dark mode support */
-				@media (prefers-color-scheme: dark) {
-					.inspector-panel {
-						background: #2d2d2d;
-						border-color: #404040;
-						color: #e0e0e0;
-					}
-
-					.inspector-header,
-					.property-section-title {
-						background: #1a1a1a;
-						color: #e0e0e0;
-						border-color: #404040;
-					}
-
-					.property-row:hover {
-						background: #1a1a1a;
-					}
-
-					.property-row {
-						border-color: #1a1a1a;
-					}
-
-					.property-section {
-						border-color: #404040;
-					}
-
-					.property-name {
-						color: #e0e0e0;
-					}
-				}
-			`}</style>
+		<div className="example-container">
+			<div className="canvas-container">
+				<Tldraw persistenceKey="inspector-panel-example" onMount={setEditor} />
+			</div>
+			{editor && (
+				<EditorProvider editor={editor}>
+					<InspectorPanel />
+				</EditorProvider>
+			)}
 		</div>
 	)
 }
