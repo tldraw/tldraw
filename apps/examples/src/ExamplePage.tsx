@@ -175,27 +175,27 @@ function ExampleSidebarListItem({
 	return (
 		<li ref={ref} className="examples__sidebar__item" data-active={isActive}>
 			<Link to={example.path} className="examples__sidebar__item__link">
-				{example.title}
+				<span className="examples__sidebar__item__title">{example.title}</span>
+				{isActive && (
+					<div className="example__sidebar__item__buttons">
+						<button
+							className="example__sidebar__item__button hoverable"
+							onClick={() => setExampleDialog(example)}
+							aria-label="Info"
+						>
+							<InfoIcon />
+						</button>
+						<Link
+							to={`${example.path}/full`}
+							className="example__sidebar__item__button hoverable"
+							aria-label="Standalone"
+							title="View standalone example"
+						>
+							<StandaloneIcon />
+						</Link>
+					</div>
+				)}
 			</Link>
-			{isActive && (
-				<div className="example__sidebar__item__buttons">
-					<button
-						className="example__sidebar__item__button hoverable"
-						onClick={() => setExampleDialog(example)}
-						aria-label="Info"
-					>
-						<InfoIcon />
-					</button>
-					<Link
-						to={`${example.path}/full`}
-						className="example__sidebar__item__button hoverable"
-						aria-label="Standalone"
-						title="View standalone example"
-					>
-						<StandaloneIcon />
-					</Link>
-				</div>
-			)}
 		</li>
 	)
 }
