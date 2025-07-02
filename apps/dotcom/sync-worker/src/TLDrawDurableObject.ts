@@ -578,8 +578,56 @@ export class TLDrawDurableObject extends DurableObject {
 			const key = getR2KeyForRoom({ slug, isApp: this.documentInfo.isApp })
 			// when loading, prefer to fetch documents from the bucket
 			const roomFromBucket = await this.r2.rooms.get(key)
-			if (roomFromBucket) {
-				return { type: 'room_found', snapshot: await roomFromBucket.json() }
+			const objectInfo = await this.r2.rooms.head(key)
+			console.log('💡[701]: TLDrawDurableObject.ts:579: objectInfo=', objectInfo)
+
+			if (roomFromBucket && objectInfo) {
+				const chunkSize = 64 // Start with tiny 64-byte chunks
+				const totalSize = objectInfo.size
+				const chunks: Uint8Array[] = []
+
+				for (let offset = 0; offset < totalSize; offset += chunkSize) {
+					const length = Math.min(chunkSize, totalSize - offset)
+
+					try {
+						console.log(`Reading chunk: ${offset}-${offset + length - 1}`)
+
+						const chunk = await this.r2.rooms.get(key, {
+							range: { offset, length },
+						})
+
+						if (!chunk) {
+							throw new Error(`No data returned for chunk at ${offset}`)
+						}
+
+						const chunkBuffer = await chunk.arrayBuffer()
+						chunks.push(new Uint8Array(chunkBuffer))
+
+						console.log(`Successfully read chunk of ${chunkBuffer.byteLength} bytes`)
+					} catch (chunkError) {
+						console.error(`Failed to read chunk at offset ${offset}:`, chunkError)
+						break
+					}
+				}
+
+				if (chunks.length === 0) {
+					return { type: 'error', error: new Error('Could not read any data') }
+				}
+
+				// Combine all chunks
+				const totalLength = chunks.reduce((sum, chunk) => sum + chunk.length, 0)
+				const combined = new Uint8Array(totalLength)
+				let offset = 0
+
+				for (const chunk of chunks) {
+					combined.set(chunk, offset)
+					offset += chunk.length
+				}
+				const jsonString = new TextDecoder().decode(combined)
+
+				const snapshot = JSON.parse(jsonString)
+
+				return { type: 'room_found', snapshot }
 			}
 			if (this._fileRecordCache?.createSource) {
 				const res = await this.handleFileCreateFromSource()
