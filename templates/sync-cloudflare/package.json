@@ -15,15 +15,12 @@
 		}
 	},
 	"scripts": {
-		"dev": "concurrently --kill-others --names client,worker --prefix-colors blue,red yarn:dev:client yarn:dev:worker",
-		"dev:client": "vite",
-		"dev:worker": "wrangler dev",
+		"dev": "vite",
 		"build": "tsc && vite build",
 		"lint": "yarn run -T tsx ../../internal/scripts/lint.ts",
 		"preview": "vite preview"
 	},
 	"dependencies": {
-		"@cloudflare/types": "^6.29.0",
 		"@tldraw/sync": "workspace:*",
 		"@tldraw/sync-core": "workspace:*",
 		"@tldraw/tlschema": "workspace:*",
@@ -35,14 +32,14 @@
 		"tldraw": "workspace:*"
 	},
 	"devDependencies": {
-		"@cloudflare/workers-types": "^4.20250510.0",
+		"@cloudflare/vite-plugin": "^1.8.0",
 		"@types/lodash.throttle": "^4",
 		"@types/react": "^18.3.18",
 		"@types/react-dom": "^18.3.5",
 		"@vitejs/plugin-react-swc": "^3.7.0",
 		"concurrently": "^9.0.1",
 		"typescript": "^5.0.2",
-		"vite": "^5.4.10",
-		"wrangler": "^4.14.4"
+		"vite": "^7.0.0",
+		"wrangler": "^4.22.0"
 	}
 }

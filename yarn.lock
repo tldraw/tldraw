@@ -1881,33 +1881,12 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@cloudflare/intl-types@npm:^1.5.6":
-  version: 1.5.7
-  resolution: "@cloudflare/intl-types@npm:1.5.7"
-  peerDependencies:
-    react: ^15.0.0-0 || ^16.0.0-0 || ^17.0.0-0
-  checksum: 10/5a76c83c78e4f27ef6b49beb3b375ef561557b577e9bfae6a6ee3e3345168df83db39b2a7b180b3191dee2759cb537cc193217854aede696f31b7ee13784416c
-  languageName: node
-  linkType: hard
-
 "@cloudflare/kv-asset-handler@npm:0.4.0":
   version: 0.4.0
   resolution: "@cloudflare/kv-asset-handler@npm:0.4.0"
   dependencies:
     mime: "npm:^3.0.0"
   checksum: 10/83e3c41ba2b2542c6f59cd2222bf8bc24b22b2f457fb8ed7115f69f2708c21bb411d2fd6837e0493368d694bdf40cde20ff077021550d207b9848eaad1805114
-  languageName: node
-  linkType: hard
-
-"@cloudflare/types@npm:^6.29.0":
-  version: 6.29.1
-  resolution: "@cloudflare/types@npm:6.29.1"
-  dependencies:
-    "@cloudflare/intl-types": "npm:^1.5.6"
-    "@cloudflare/util-en-garde": "npm:^8.0.10"
-  peerDependencies:
-    react: ^15.0.0-0 || ^16.0.0-0 || ^17.0.0-0
-  checksum: 10/46593ae7522345f84f9e9645cab91c6adedac7431ca2262bea33b8d8290ab667e20d4e2cc17fa7296cd141b8c56cf3f39c9ad496822d4ba3067e2d1b9cd5c907
   languageName: node
   linkType: hard
 
@@ -1924,17 +1903,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@cloudflare/util-en-garde@npm:^8.0.10":
-  version: 8.0.10
-  resolution: "@cloudflare/util-en-garde@npm:8.0.10"
-  dependencies:
-    fp-ts: "npm:^2.1.1"
-    io-ts: "npm:^2.0.1"
-  checksum: 10/ebd031c8e2d68b5598dfd7bf1c545bcb568d96240da26af1a38ae18cd47e1b3a3055df20c3bacbe6b838152da1602bdcaaa83a13f4b7194eec243508bdd6964c
-  languageName: node
-  linkType: hard
-
-"@cloudflare/vite-plugin@npm:^1.1.0":
+"@cloudflare/vite-plugin@npm:^1.1.0, @cloudflare/vite-plugin@npm:^1.8.0":
   version: 1.8.0
   resolution: "@cloudflare/vite-plugin@npm:1.8.0"
   dependencies:
@@ -16702,7 +16671,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"fdir@npm:^6.2.0, fdir@npm:^6.4.4":
+"fdir@npm:^6.2.0, fdir@npm:^6.4.4, fdir@npm:^6.4.6":
   version: 6.4.6
   resolution: "fdir@npm:6.4.6"
   peerDependencies:
@@ -16989,7 +16958,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"fp-ts@npm:^2.1.1, fp-ts@npm:^2.5.3":
+"fp-ts@npm:^2.5.3":
   version: 2.16.10
   resolution: "fp-ts@npm:2.16.10"
   checksum: 10/516d15eb8578c96a818e77870321e335bc0d6c1577d26edec7b7fca0a4eef28e71a5088828f2b12a11ab71fc77e57917b0644d64734f9d6e68727bf9fb0e153d
@@ -18797,7 +18766,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"io-ts@npm:^2.0.1, io-ts@npm:^2.1.2":
+"io-ts@npm:^2.1.2":
   version: 2.2.22
   resolution: "io-ts@npm:2.2.22"
   peerDependencies:
@@ -24422,7 +24391,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"postcss@npm:^8.4.4, postcss@npm:^8.4.43, postcss@npm:^8.4.47, postcss@npm:^8.5.1, postcss@npm:^8.5.3":
+"postcss@npm:^8.4.4, postcss@npm:^8.4.43, postcss@npm:^8.4.47, postcss@npm:^8.5.1, postcss@npm:^8.5.3, postcss@npm:^8.5.6":
   version: 8.5.6
   resolution: "postcss@npm:8.5.6"
   dependencies:
@@ -26228,7 +26197,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"rollup@npm:^4.20.0, rollup@npm:^4.34.9":
+"rollup@npm:^4.20.0, rollup@npm:^4.34.9, rollup@npm:^4.40.0":
   version: 4.44.1
   resolution: "rollup@npm:4.44.1"
   dependencies:
@@ -28191,7 +28160,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"tinyglobby@npm:^0.2.12, tinyglobby@npm:^0.2.13":
+"tinyglobby@npm:^0.2.12, tinyglobby@npm:^0.2.13, tinyglobby@npm:^0.2.14":
   version: 0.2.14
   resolution: "tinyglobby@npm:0.2.14"
   dependencies:
@@ -28255,8 +28224,7 @@ __metadata:
   version: 0.0.0-use.local
   resolution: "tldraw-sync-cloudflare@workspace:templates/sync-cloudflare"
   dependencies:
-    "@cloudflare/types": "npm:^6.29.0"
-    "@cloudflare/workers-types": "npm:^4.20250510.0"
+    "@cloudflare/vite-plugin": "npm:^1.8.0"
     "@tldraw/sync": "workspace:*"
     "@tldraw/sync-core": "workspace:*"
     "@tldraw/tlschema": "workspace:*"
@@ -28272,8 +28240,8 @@ __metadata:
     react-dom: "npm:^18.2.0"
     tldraw: "workspace:*"
     typescript: "npm:^5.0.2"
-    vite: "npm:^5.4.10"
-    wrangler: "npm:^4.14.4"
+    vite: "npm:^7.0.0"
+    wrangler: "npm:^4.22.0"
   languageName: unknown
   linkType: soft
 
@@ -29961,6 +29929,61 @@ __metadata:
   languageName: node
   linkType: hard
 
+"vite@npm:^7.0.0":
+  version: 7.0.0
+  resolution: "vite@npm:7.0.0"
+  dependencies:
+    esbuild: "npm:^0.25.0"
+    fdir: "npm:^6.4.6"
+    fsevents: "npm:~2.3.3"
+    picomatch: "npm:^4.0.2"
+    postcss: "npm:^8.5.6"
+    rollup: "npm:^4.40.0"
+    tinyglobby: "npm:^0.2.14"
+  peerDependencies:
+    "@types/node": ^20.19.0 || >=22.12.0
+    jiti: ">=1.21.0"
+    less: ^4.0.0
+    lightningcss: ^1.21.0
+    sass: ^1.70.0
+    sass-embedded: ^1.70.0
+    stylus: ">=0.54.8"
+    sugarss: ^5.0.0
+    terser: ^5.16.0
+    tsx: ^4.8.1
+    yaml: ^2.4.2
+  dependenciesMeta:
+    fsevents:
+      optional: true
+  peerDependenciesMeta:
+    "@types/node":
+      optional: true
+    jiti:
+      optional: true
+    less:
+      optional: true
+    lightningcss:
+      optional: true
+    sass:
+      optional: true
+    sass-embedded:
+      optional: true
+    stylus:
+      optional: true
+    sugarss:
+      optional: true
+    terser:
+      optional: true
+    tsx:
+      optional: true
+    yaml:
+      optional: true
+  bin:
+    vite: bin/vite.js
+  checksum: 10/2501b706dc481529efb16c6241794a66d68ea7a074d49f22e45b701769fbeeccc721c58272c9fce743d3b1472a3de497f85ca18cb059b1b8b906b2b295e524dc
+  languageName: node
+  linkType: hard
+
 "vsce@npm:^2.15.0":
   version: 2.15.0
   resolution: "vsce@npm:2.15.0"
@@ -30372,7 +30395,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"wrangler@npm:4.22.0, wrangler@npm:^4.13.2, wrangler@npm:^4.14.4":
+"wrangler@npm:4.22.0, wrangler@npm:^4.13.2, wrangler@npm:^4.14.4, wrangler@npm:^4.22.0":
   version: 4.22.0
   resolution: "wrangler@npm:4.22.0"
   dependencies:

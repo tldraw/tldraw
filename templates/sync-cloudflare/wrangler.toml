@@ -1,10 +1,15 @@
+
 name = "tldraw-worker"
 main = "worker/worker.ts"
-compatibility_date = "2024-07-01"
+compatibility_date = "2025-05-08"
+compatibility_flags = ["nodejs_compat"]
+upload_source_maps = true
 
-[dev]
-port = 5172
-ip = "0.0.0.0"
+[assets]
+not_found_handling = "single-page-application"
+
+[observability]
+enabled = true
 
 # Set up the durable object used for each tldraw room
 [durable_objects]

@@ -59,7 +59,7 @@ async function main() {
 		if (isTypeScriptSourceFile(file)) {
 			const source = await readFile(join(REPO_ROOT, templateRepoPrefix, file), 'utf-8')
 			const cleanedSource = source.replace(
-				/\/\* EXCLUDE_FROM_TEMPLATE_EXPORT_START \*\/(.*?)\/\* EXCLUDE_FROM_TEMPLATE_EXPORT_END \*\//g,
+				/\/\* EXCLUDE_FROM_TEMPLATE_EXPORT_START \*\/(.*?)\/\* EXCLUDE_FROM_TEMPLATE_EXPORT_END \*\//gs,
 				''
 			)
 			await writeCodeFile(null, 'typescript', targetFile, cleanedSource)
