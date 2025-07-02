@@ -582,8 +582,9 @@ export class TLDrawDurableObject extends DurableObject {
 			console.log('💡[701]: TLDrawDurableObject.ts:579: objectInfo=', objectInfo)
 
 			if (roomFromBucket && objectInfo) {
-				const chunkSize = 64 // Start with tiny 64-byte chunks
 				const totalSize = objectInfo.size
+				const numChunks = Math.min(3, Math.ceil(totalSize / 200)) // Max 3 chunks, ~200 bytes each
+				const chunkSize = Math.ceil(totalSize / numChunks)
 				const chunks: Uint8Array[] = []
 
 				for (let offset = 0; offset < totalSize; offset += chunkSize) {
