@@ -955,6 +955,7 @@ export class ArrowShapeUtil extends ShapeUtil<TLArrowShape> {
 						.box.clone()
 						.expandBy(-ARROW_LABEL_PADDING * shape.props.scale)}
 					padding={0}
+					showTextOutline={true}
 				/>
 			</g>
 		)

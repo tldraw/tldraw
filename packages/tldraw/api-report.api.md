@@ -887,7 +887,7 @@ export const DefaultHelpMenu: NamedExoticComponent<TLUiHelpMenuProps>;
 export function DefaultHelpMenuContent(): JSX_2.Element;
 
 // @public (undocumented)
-export const DefaultImageToolbar: NamedExoticComponent<TLUiImageToolbarProps>;
+export function DefaultImageToolbar({ children }: TLUiImageToolbarProps): JSX_2.Element | null;
 
 // @public (undocumented)
 export const DefaultImageToolbarContent: NamedExoticComponent<DefaultImageToolbarContentProps>;
@@ -2465,7 +2465,7 @@ export interface RichTextLabelProps {
 }
 
 // @public
-export function RichTextSVG({ bounds, richText, fontSize, font, align, verticalAlign, wrap, labelColor, padding, }: RichTextSVGProps): JSX_2.Element;
+export function RichTextSVG({ bounds, richText, fontSize, font, align, verticalAlign, wrap, labelColor, padding, showTextOutline, }: RichTextSVGProps): JSX_2.Element;
 
 // @public (undocumented)
 export interface RichTextSVGProps {
@@ -2483,6 +2483,8 @@ export interface RichTextSVGProps {
     padding: number;
     // (undocumented)
     richText: TLRichText;
+    // (undocumented)
+    showTextOutline?: boolean;
     // (undocumented)
     verticalAlign: TLDefaultVerticalAlignStyle;
     // (undocumented)

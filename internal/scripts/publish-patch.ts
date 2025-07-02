@@ -1,48 +1,46 @@
 import { Auto } from '@auto-it/core'
-import glob from 'glob'
-import { assert } from 'node:console'
 import { appendFileSync } from 'node:fs'
 import { getAnyPackageDiff } from './lib/didAnyPackageChange'
 import { exec } from './lib/exec'
 import { generateAutoRcFile } from './lib/labels'
 import { nicelog } from './lib/nicelog'
 import {
-	getLatestVersion,
+	getLatestTldrawVersionFromNpm,
 	publish,
 	publishProductionDocsAndExamplesAndBemo,
 	setAllVersions,
+	triggerBumpVersionsWorkflow,
 } from './lib/publishing'
 import { uploadStaticAssets } from './lib/upload-static-assets'
-import { getAllWorkspacePackages } from './lib/workspace'
 
 async function main() {
-	const huppyToken = process.env.HUPPY_TOKEN
-	assert(huppyToken && typeof huppyToken === 'string', 'HUPPY_ACCESS_KEY env var must be set')
-
-	const latestVersionInBranch = await getLatestVersion()
-	const latestVersionOnNpm = (await exec('npm', ['show', 'tldraw', 'version'])).trim()
-
-	const isLatestVersion = latestVersionInBranch.format() === latestVersionOnNpm
-
-	const nextVersion = latestVersionInBranch.inc('patch').format()
-	// check we're on the main branch on HEAD
 	const currentBranch = (await exec('git', ['rev-parse', '--abbrev-ref', 'HEAD'])).toString().trim()
-	if (currentBranch !== `v${latestVersionInBranch.major}.${latestVersionInBranch.minor}.x`) {
+	const match = currentBranch.match(/^v(\d+)\.(\d+)\.x$/)
+	if (!match) {
 		throw new Error('Branch name does not match expected format: v{major}.{minor}.x')
 	}
+	const [major, minor] = match.slice(1).map(Number)
+	const latestVersionInBranch = await getLatestTldrawVersionFromNpm({
+		versionPrefix: `${major}.${minor}`,
+	})
 
-	// we could probably do this a lot earlier in the yml file but 🤷‍♂️
-	await exec('git', ['fetch', 'origin', 'main'])
-	const numberOfCommitsSinceBranch = Number(
-		(await exec('git', ['rev-list', '--count', `HEAD`, '^origin/main'])).toString().trim()
-	)
+	// Check if this commit is already tagged with the initial release for this major.minor version
+	const expectedInitialTag = `v${latestVersionInBranch.major}.${latestVersionInBranch.minor}.0`
+	const tagsAtThisCommit = (await exec('git', ['tag', '--points-at', 'HEAD']))
+		.toString()
+		.trim()
+		.split('\n')
 
-	if (numberOfCommitsSinceBranch === 0) {
-		// Skip release if there are no commits since this branch was created during the initial release
-		// for this <major>.<minor> version.
-		nicelog('Initial push, skipping release')
+	if (tagsAtThisCommit.includes(expectedInitialTag)) {
+		// Skip release if this is the initial release commit for this major.minor version
+		nicelog('Initial release commit, skipping patch release')
 		return
+	} else {
+		nicelog('Not an initial release commit, continuing with patch release')
 	}
+
+	const latestVersion = await getLatestTldrawVersionFromNpm()
+	const isLatestVersion = latestVersion.compare(latestVersionInBranch) === 0
 
 	if (isLatestVersion) {
 		await publishProductionDocsAndExamplesAndBemo()
@@ -59,29 +57,10 @@ async function main() {
 		appendFileSync(process.env.GITHUB_OUTPUT, `is_latest_version=${isLatestVersion}\n`)
 	}
 
+	const nextVersion = latestVersionInBranch.inc('patch').format()
 	nicelog('Releasing version', nextVersion)
 
-	await setAllVersions(nextVersion)
-
-	// stage the changes
-	const packageJsonFilesToAdd = []
-	for (const workspace of await getAllWorkspacePackages()) {
-		if (workspace.relativePath.startsWith('packages/')) {
-			packageJsonFilesToAdd.push(`${workspace.relativePath}/package.json`)
-		}
-	}
-	const versionFilesToAdd = glob.sync('**/*/version.ts', {
-		ignore: ['node_modules/**'],
-		follow: false,
-	})
-	console.log('versionFilesToAdd', versionFilesToAdd)
-	await exec('git', [
-		'add',
-		'--update',
-		'lerna.json',
-		...packageJsonFilesToAdd,
-		...versionFilesToAdd,
-	])
+	await setAllVersions(nextVersion, { stageChanges: true })
 
 	const auto = new Auto({
 		plugins: ['npm'],
@@ -95,14 +74,11 @@ async function main() {
 	await generateAutoRcFile()
 	await auto.loadConfig()
 
-	// this creates a new commit
-	await auto.changelog({
-		useVersion: nextVersion,
-		title: `v${nextVersion}`,
-	})
+	const tag = `v${nextVersion}`
 
 	// create and push a new tag
-	await exec('git', ['tag', '-f', `v${nextVersion}`])
+	await exec('git', ['commit', '-m', `${tag} [skip ci]`])
+	await exec('git', ['tag', '-f', tag])
 	await exec('git', ['push', '--follow-tags'])
 
 	// create a release on github
@@ -115,6 +91,12 @@ async function main() {
 	// semver rules will still be respected because there's no prerelease tag in the version,
 	// so clients will get the updated version if they have a range like ^1.0.0
 	await publish(isLatestVersion ? 'latest' : 'revision')
+
+	// If this is the latest version, trigger version bump on main branch to sync all package versions
+	if (isLatestVersion) {
+		nicelog('This is the latest version, triggering version bump on main branch')
+		await triggerBumpVersionsWorkflow(process.env.GH_TOKEN!)
+	}
 }
 
 main()
