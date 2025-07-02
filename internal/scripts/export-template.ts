@@ -1,11 +1,13 @@
 import { T } from '@tldraw/validate'
-import { copyFile, mkdir, readdir, readFile } from 'fs/promises'
+import { copyFile, mkdir, mkdtemp, readdir, readFile, rm } from 'fs/promises'
+import { tmpdir } from 'os'
 import { dirname, join } from 'path'
 import { exec } from './lib/exec'
 import { readJsonIfExists, REPO_ROOT, writeCodeFile, writeJsonFile } from './lib/file'
 
 const EXPORT_CONFIG_KEY = '==TLDRAW TEMPLATE EXPORT==' as const
 const ExportConfig = T.object({
+	repo: T.string,
 	scripts: T.dict(T.string, T.nullable(T.string)),
 })
 const PackageJson = T.object({
@@ -26,6 +28,8 @@ const TsConfigJson = T.object({
 
 const TEMPLATE_DIR = join(REPO_ROOT, 'templates')
 
+const EXPORT_BRANCH_NAME = 'export-test'
+
 async function main() {
 	const templateName = process.argv[2]
 	if (!templateName) {
@@ -43,18 +47,55 @@ async function main() {
 		process.exit(1)
 	}
 
+	const sourceDir = join(REPO_ROOT, 'templates', templateName)
+	const githubAuth = getGithubAuth()
+
+	// make a temporary working dir:
+	const workingDir = await mkdtemp(join(tmpdir(), `template-export-${templateName}`))
+	console.log(`Working in ${workingDir}`)
+
+	// read the package.json:
+	const packageJsonRaw = await readJsonIfExists(join(sourceDir, 'package.json'))
+	if (!packageJsonRaw) {
+		console.log('No package.json found')
+		process.exit(1)
+	}
+
+	const packageJson = PackageJson.validate(packageJsonRaw)
+	const exportConfig = packageJson[EXPORT_CONFIG_KEY]
+	if (!exportConfig) {
+		console.log('No export config found in package.json.')
+		console.log(`Please add a "${EXPORT_CONFIG_KEY}" key to your package.json.`)
+		process.exit(1)
+	}
+
+	// clone the template repo:
+	await exec('git', [
+		'clone',
+		`https://${githubAuth}github.com/${exportConfig.repo}.git`,
+		workingDir,
+		'--depth',
+		'1',
+	])
+	await exec('git', ['checkout', '-b', EXPORT_BRANCH_NAME], { pwd: workingDir })
+
+	console.log('Clearing old files...')
+	const oldFiles = (await readdir(workingDir)).filter((f) => f !== '.git')
+	for (const file of oldFiles) {
+		await rm(join(workingDir, file), { recursive: true })
+	}
+
+	console.log('Copying files to export dir...')
 	const templateRepoPrefix = `templates/${templateName}/`
 	const templateFiles = (await exec('git', ['ls-files', templateRepoPrefix]))
 		.split('\n')
 		.map((s) => s.replace(templateRepoPrefix, ''))
 		.filter((s) => s.trim())
 
-	const exportDir = join(REPO_ROOT, 'templates-export', templateName)
-	await mkdir(exportDir, { recursive: true })
+	await mkdir(workingDir, { recursive: true })
 
-	console.log('Copying files to export dir...')
 	for (const file of templateFiles) {
-		const targetFile = join(exportDir, file)
+		const targetFile = join(workingDir, file)
 		await mkdir(dirname(targetFile), { recursive: true })
 		if (isTypeScriptSourceFile(file)) {
 			const source = await readFile(join(REPO_ROOT, templateRepoPrefix, file), 'utf-8')
@@ -69,14 +110,6 @@ async function main() {
 	}
 
 	console.log('Cleaning package.json...')
-	const packageJsonRaw = await readJsonIfExists(join(exportDir, 'package.json'))
-	if (!packageJsonRaw) {
-		console.log('No package.json found')
-		process.exit(1)
-	}
-
-	const packageJson = PackageJson.validate(packageJsonRaw)
-	const exportConfig = packageJson[EXPORT_CONFIG_KEY]
 	delete packageJson[EXPORT_CONFIG_KEY]
 
 	if (exportConfig?.scripts) {
@@ -93,10 +126,10 @@ async function main() {
 	await setWorkspaceDependenciesToLatest(packageJson.devDependencies)
 	await setWorkspaceDependenciesToLatest(packageJson.peerDependencies)
 
-	await writeJsonFile(join(exportDir, 'package.json'), packageJson)
+	await writeJsonFile(join(workingDir, 'package.json'), packageJson)
 
 	console.log('Cleaning tsconfig.json...')
-	const tsconfigJsonRaw = await readJsonIfExists(join(exportDir, 'tsconfig.json'))
+	const tsconfigJsonRaw = await readJsonIfExists(join(workingDir, 'tsconfig.json'))
 	if (!tsconfigJsonRaw) {
 		console.log('No tsconfig.json found')
 		process.exit(1)
@@ -110,9 +143,29 @@ async function main() {
 		}
 	}
 
-	await writeJsonFile(join(exportDir, 'tsconfig.json'), tsconfigJson)
+	await writeJsonFile(join(workingDir, 'tsconfig.json'), tsconfigJson)
 
-	console.log('Ready for export!')
+	console.log('Committing...')
+	const latestTldrawVersion = await getLatestPackageVersion('tldraw')
+	await exec('git', ['add', '.'], { pwd: workingDir })
+	await exec('git', ['commit', '-m', `update from tldraw ${latestTldrawVersion}`], {
+		pwd: workingDir,
+	})
+
+	console.log('Pushing...')
+	await exec('git', ['push', '--force', 'origin', EXPORT_BRANCH_NAME], { pwd: workingDir })
+
+	console.log('Cleaning up temp dir...')
+	await rm(workingDir, { recursive: true })
+
+	console.log('Done!')
+}
+
+function getGithubAuth() {
+	const githubToken = process.env.GITHUB_TOKEN
+	if (!githubToken) return ''
+
+	return `huppy-bot[bot]:${githubToken}@`
 }
 
 async function setWorkspaceDependenciesToLatest(dependencies?: Record<string, string>) {

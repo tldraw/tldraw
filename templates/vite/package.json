@@ -10,6 +10,7 @@
 	"license": "MIT",
 	"type": "module",
 	"==TLDRAW TEMPLATE EXPORT==": {
+		"repo": "tldraw/vite-template",
 		"scripts": {
 			"lint": null
 		}
