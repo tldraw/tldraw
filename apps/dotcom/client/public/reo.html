@@ -3,7 +3,7 @@
     <script>
       function handleMessage(event) {
         // N.B. Strictly speaking, we should check the origin of the event
-        // but this isn't crucial for this analytics.
+        // but this isn't crucial for these analytics.
         if (!event.data) return;
         if (event.data.type === 'identify') {
           window.Reo?.identify?.(event.data.payload || {});

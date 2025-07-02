@@ -186,7 +186,7 @@ export function SignedOutAnalytics() {
 	useEffect(() => {
 		configurePosthog({ optedIn: false })
 		configureGA4({ optedIn: false })
-		window.Reo?.reset?.()
+		document.getElementById('reo-iframe-loader')?.remove()
 	}, [])
 
 	useTrackPageViews()
@@ -194,11 +194,6 @@ export function SignedOutAnalytics() {
 	return null
 }
 
-declare global {
-	interface Window {
-		Reo: any
-	}
-}
 function setupReo(options: AnalyticsOptions) {
 	if (options.optedIn === false) return
 
