@@ -28,8 +28,6 @@ const TsConfigJson = T.object({
 
 const TEMPLATE_DIR = join(REPO_ROOT, 'templates')
 
-const EXPORT_BRANCH_NAME = 'export-test'
-
 async function main() {
 	const templateName = process.argv[2]
 	if (!templateName) {
@@ -78,7 +76,6 @@ async function main() {
 	const repoUrl = `https://${githubAuth}github.com/${exportConfig.repo}.git`
 	console.log(`Cloning ${repoUrl}...`)
 	await exec('git', ['clone', repoUrl, workingDir, '--depth', '1'])
-	await exec('git', ['checkout', '-b', EXPORT_BRANCH_NAME], { pwd: workingDir })
 
 	console.log('Clearing old files...')
 	const oldFiles = (await readdir(workingDir)).filter((f) => f !== '.git')
@@ -154,7 +151,7 @@ async function main() {
 	})
 
 	console.log('Pushing...')
-	await exec('git', ['push', '--force', repoUrl, EXPORT_BRANCH_NAME], { pwd: workingDir })
+	await exec('git', ['push', repoUrl, 'main'], { pwd: workingDir })
 
 	console.log('Cleaning up temp dir...')
 	await rm(workingDir, { recursive: true })
