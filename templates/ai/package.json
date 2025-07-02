@@ -10,6 +10,7 @@
 	},
 	"type": "module",
 	"==TLDRAW TEMPLATE EXPORT==": {
+		"repo": "tldraw/ai-template",
 		"scripts": {
 			"lint": null
 		}

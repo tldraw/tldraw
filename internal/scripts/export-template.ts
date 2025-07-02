@@ -7,7 +7,7 @@ import { readJsonIfExists, REPO_ROOT, writeCodeFile, writeJsonFile } from './lib
 
 const EXPORT_CONFIG_KEY = '==TLDRAW TEMPLATE EXPORT==' as const
 const ExportConfig = T.object({
-	repo: T.string,
+	repo: T.string.optional(),
 	scripts: T.dict(T.string, T.nullable(T.string)),
 })
 const PackageJson = T.object({
@@ -67,6 +67,11 @@ async function main() {
 		console.log('No export config found in package.json.')
 		console.log(`Please add a "${EXPORT_CONFIG_KEY}" key to your package.json.`)
 		process.exit(1)
+	}
+
+	if (!exportConfig.repo) {
+		console.log('No repo found in package.json. Skipping export.')
+		process.exit(0)
 	}
 
 	// clone the template repo:
