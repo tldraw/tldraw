@@ -41,6 +41,7 @@ jobs:
         with:
           app-id: ${{ vars.HUPPY_APP_ID }}
           private-key: ${{ secrets.HUPPY_PRIVATE_KEY }}
+          owner: ${{ github.repository_owner }}
 
       - name: Configure git
         run: |
