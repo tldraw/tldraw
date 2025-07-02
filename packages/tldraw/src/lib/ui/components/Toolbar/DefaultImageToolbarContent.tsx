@@ -83,8 +83,9 @@ export const DefaultImageToolbarContent = track(function DefaultImageToolbarCont
 	// Apply an easing function to smooth out the zoom curve,
 	// otherwise the zoom slider has a cubic drag feel to it which feels off.
 	const easeZoom = useCallback((value: number, maxValue: number): number => {
+		const maxRatioConversion = MAX_ZOOM / (MAX_ZOOM - 1)
 		// Use a square root easing for a more natural zoom feel
-		return Math.sqrt(value / maxValue) * maxValue
+		return Math.pow(value / maxValue, maxRatioConversion) * maxValue
 	}, [])
 
 	const displayValue =
@@ -100,7 +101,7 @@ export const DefaultImageToolbarContent = track(function DefaultImageToolbarCont
 
 			// Convert the slider position back into the "zoom" value expected by
 			// getCroppedImageDataWhenZooming.
-			// 1. Undo the easing: z_out = (sliderPercent)^2 * maxZoom
+			// 1. Undo the easing: z_out = sliderPercent^(1/maxRatioConversion) * maxZoom
 			// 2. Translate z_out into the function's input domain. The helper computes
 			//    the *resulting* zoom (z_out) using:
 			//        z_out = 2 * z_in / (1 + 2 * z_in)
@@ -108,7 +109,8 @@ export const DefaultImageToolbarContent = track(function DefaultImageToolbarCont
 			//        z_in = z_out / (2 * (1 - z_out))
 			const maxDimension = 1 - 1 / MAX_ZOOM
 			const clampedMaxZoom = Math.min(maxDimension, maxZoom ?? maxDimension)
-			const zOut = sliderPercent * sliderPercent * clampedMaxZoom
+			const maxRatioConversion = MAX_ZOOM / (MAX_ZOOM - 1)
+			const zOut = Math.pow(sliderPercent, 1 / maxRatioConversion) * clampedMaxZoom
 			const zoom = zOut >= 1 ? 1 : zOut / (2 * (1 - zOut))
 			const imageShape = editor.getShape<TLImageShape>(imageShapeId)
 			if (!imageShape) return
