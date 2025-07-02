@@ -1,5 +1,5 @@
 import { AlertDialog as _AlertDialog } from 'radix-ui'
-import { Dispatch, createContext, useContext, useEffect, useState } from 'react'
+import { Dispatch, createContext, useContext, useEffect, useRef, useState } from 'react'
 import { Link } from 'react-router-dom'
 import { Example, examples } from './examples'
 
@@ -163,10 +163,17 @@ function ExampleSidebarListItem({
 	isActive?: boolean
 	showDescriptionWhenInactive?: boolean
 }) {
+	const ref = useRef<HTMLLIElement>(null)
 	const { setExampleDialog } = useContext(dialogContext)
 
+	useEffect(() => {
+		if (isActive) {
+			ref.current?.scrollIntoView({ behavior: 'instant', block: 'center' })
+		}
+	}, [isActive])
+
 	return (
-		<li className="examples__sidebar__item" data-active={isActive}>
+		<li ref={ref} className="examples__sidebar__item" data-active={isActive}>
 			<Link to={example.path} className="examples__sidebar__item__link">
 				{example.title}
 			</Link>
