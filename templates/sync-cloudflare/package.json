@@ -9,12 +9,17 @@
 	"homepage": "https://tldraw.dev",
 	"license": "MIT",
 	"type": "module",
+	"==TLDRAW TEMPLATE EXPORT==": {
+		"scripts": {
+			"lint": "eslint src --ext ts,tsx --report-unused-disable-directives --max-warnings 0"
+		}
+	},
 	"scripts": {
 		"dev": "concurrently --kill-others --names client,worker --prefix-colors blue,red yarn:dev:client yarn:dev:worker",
 		"dev:client": "vite",
 		"dev:worker": "wrangler dev",
 		"build": "tsc && vite build",
-		"lint": "eslint src --ext ts,tsx --report-unused-disable-directives --max-warnings 0",
+		"lint": "yarn run -T tsx ../../internal/scripts/lint.ts",
 		"preview": "vite preview"
 	},
 	"dependencies": {

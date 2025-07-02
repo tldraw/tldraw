@@ -8,11 +8,16 @@
 	},
 	"homepage": "https://tldraw.dev",
 	"license": "MIT",
+	"==TLDRAW TEMPLATE EXPORT==": {
+		"scripts": {
+			"lint": "next lint"
+		}
+	},
 	"scripts": {
 		"dev": "next dev",
 		"build": "next build",
 		"start": "next start",
-		"lint": "next lint"
+		"lint": "yarn run -T tsx ../../internal/scripts/lint.ts"
 	},
 	"dependencies": {
 		"@types/node": "20.3.1",

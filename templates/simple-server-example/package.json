@@ -8,8 +8,17 @@
 		"email": "hello@tldraw.com"
 	},
 	"license": "MIT",
+	"==TLDRAW TEMPLATE EXPORT==": {
+		"scripts": {
+			"lint": null,
+			"// this dev script is included in the monorepo as a default when running `yarn dev-template`": null,
+			"// from the repo root. we don't need it when we do exports though.": null,
+			"dev": null
+		}
+	},
 	"main": "./src/server/server.ts",
 	"scripts": {
+		"dev": "yarn dev-node",
 		"dev-node": "concurrently -n server,client -c red,blue \"yarn dev-server-node\" \"yarn dev-client\"",
 		"dev-bun": "concurrently -n server,client -c red,blue \"yarn dev-server-bun\" \"yarn dev-client\"",
 		"dev-server-node": "yarn run -T tsx watch ./src/server/server.node.ts",
@@ -18,7 +27,7 @@
 		"test-ci": "echo 'No tests yet'",
 		"test": "yarn run -T jest --passWithNoTests",
 		"test-coverage": "lazy inherit",
-		"lint": "yarn run -T tsx ../../scripts/lint.ts"
+		"lint": "yarn run -T tsx ../../internal/scripts/lint.ts"
 	},
 	"devDependencies": {
 		"@types/bun": "^1.1.6",

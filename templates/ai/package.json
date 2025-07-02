@@ -9,10 +9,16 @@
 		"email": "hello@tldraw.com"
 	},
 	"type": "module",
+	"==TLDRAW TEMPLATE EXPORT==": {
+		"scripts": {
+			"lint": null
+		}
+	},
 	"scripts": {
 		"build": "vite build",
 		"dev": "vite",
-		"preview": "vite preview"
+		"preview": "vite preview",
+		"lint": "yarn run -T tsx ../../internal/scripts/lint.ts"
 	},
 	"peerDependencies": {
 		"tldraw": "^3.0.0"
