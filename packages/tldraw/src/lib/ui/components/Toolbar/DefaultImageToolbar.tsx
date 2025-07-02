@@ -1,5 +1,5 @@
 import { Box, TLImageShape, track, useEditor, useValue } from '@tldraw/editor'
-import { useCallback, useRef, useState } from 'react'
+import { useCallback, useEffect, useRef, useState } from 'react'
 import { useTranslation } from '../../hooks/useTranslation/useTranslation'
 import { TldrawUiContextualToolbar } from '../primitives/TldrawUiContextualToolbar'
 import { AltTextEditor } from './AltTextEditor'
@@ -49,6 +49,7 @@ function ContextualToolbarInner({
 	const editor = useEditor()
 	const msg = useTranslation()
 
+	const camera = useValue('camera', () => editor.getCamera(), [editor])
 	const isInCropTool = useValue('editor path', () => editor.isIn('select.crop.'), [editor])
 	const isCropping = useValue('editor path', () => editor.isIn('select.crop.cropping'), [editor])
 	const previousSelectionBounds = useRef<Box | undefined>()
@@ -64,6 +65,10 @@ function ContextualToolbarInner({
 		[editor]
 	)
 	const onEditAltTextClose = useCallback(() => setIsEditingAltText(false), [])
+
+	useEffect(() => {
+		previousSelectionBounds.current = undefined
+	}, [camera])
 
 	const getSelectionBounds = useCallback(() => {
 		if (isInCropTool && previousSelectionBounds.current) {
