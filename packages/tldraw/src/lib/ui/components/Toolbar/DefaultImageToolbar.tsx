@@ -24,7 +24,12 @@ export const DefaultImageToolbar = track(function DefaultImageToolbar({
 		},
 		[editor]
 	)
-	const showToolbar = editor.isInAny('select.idle', 'select.pointing_shape', 'select.crop')
+	const showToolbar = editor.isInAny(
+		'select.idle',
+		'select.pointing_shape',
+		'select.crop.idle',
+		'select.crop.pointing_crop'
+	)
 	const isLocked = useValue(
 		'locked',
 		() => (imageShapeId ? editor.getShape<TLImageShape>(imageShapeId)?.isLocked : false),
