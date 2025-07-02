@@ -24,12 +24,7 @@ export function DefaultImageToolbar({ children }: TLUiImageToolbarProps) {
 	)
 	const showToolbar = useValue(
 		'showToolbar',
-		() => {
-			return (
-				editor.isInAny('select.idle', 'select.pointing_shape') ||
-				(editor.isIn('select.crop') && editor.getCameraState() === 'idle')
-			)
-		},
+		() => editor.isInAny('select.idle', 'select.pointing_shape', 'select.crop'),
 		[editor]
 	)
 	const isLocked = useValue(
