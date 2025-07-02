@@ -168,7 +168,11 @@ function ExampleSidebarListItem({
 
 	useEffect(() => {
 		if (isActive) {
-			ref.current?.scrollIntoView({ behavior: 'instant', block: 'start' })
+			if (!ref.current) return
+			const rect = ref.current.getBoundingClientRect()
+			if (rect.top < 0 || rect.bottom > window.innerHeight) {
+				ref.current.scrollIntoView({ behavior: 'instant', block: 'start' })
+			}
 		}
 	}, [isActive])
 

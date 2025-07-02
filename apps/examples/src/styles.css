@@ -172,6 +172,9 @@ li.examples__sidebar__item {
 
 .examples__sidebar__item__title {
 	flex-grow: 2;
+	overflow: hidden;
+	text-overflow: ellipsis;
+	white-space: nowrap;
 }
 
 .examples__sidebar__item__link {
@@ -194,7 +197,7 @@ li.examples__sidebar__item {
 .examples__sidebar__item::after {
 	content: '';
 	position: absolute;
-	inset: 2px 8px;
+	inset: 2px 8px 2px 4px;
 	z-index: 1;
 	background-color: var(--gray-light);
 	border-radius: 4px;
@@ -225,6 +228,7 @@ li.examples__sidebar__item {
 	color: black;
 	position: relative;
 	z-index: 20;
+	flex-shrink: 0;
 }
 .example__sidebar__item__button {
 	all: unset;
