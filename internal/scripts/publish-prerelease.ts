@@ -1,11 +1,11 @@
 import { exec } from './lib/exec'
-import { getLatestVersion, publish, setAllVersions } from './lib/publishing'
+import { getLatestTldrawVersionFromNpm, publish, setAllVersions } from './lib/publishing'
 import { uploadStaticAssets } from './lib/upload-static-assets'
 
 async function main(releaseTag: string) {
 	const sha = (await exec('git', ['rev-parse', 'HEAD'])).trim().slice(0, 12)
 
-	const latestVersion = await getLatestVersion()
+	const latestVersion = await getLatestTldrawVersionFromNpm()
 
 	const nextVersion = latestVersion.prerelease.length
 		? // if the package is in prerelease mode, we want to release a canary for the current version rather than bumping
