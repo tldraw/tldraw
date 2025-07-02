@@ -1361,6 +1361,15 @@ export class Editor extends EventEmitter<TLEventMap> {
     // (undocumented)
     isShapeOfType<T extends TLUnknownShape>(shapeId: TLUnknownShape['id'], type: T['type']): shapeId is T['id'];
     isShapeOrAncestorLocked(shape?: TLShape | TLShapeId): boolean;
+    // (undocumented)
+    layoutShapes(shapes: TLShape[] | TLShapeId[], allOpts?: TLCameraMoveOptions & {
+        defaultPadding?: Padding | undefined;
+        defaultWeight?: number | undefined;
+        paddingByShapeId?: Record<TLShapeId, Padding> | undefined;
+        paddingByShapeType?: Record<string, Padding> | undefined;
+        weightByShapeId?: Record<TLShapeId, number> | undefined;
+        weightByShapeType?: Record<string, number> | undefined;
+    }): Promise<this | undefined>;
     loadSnapshot(snapshot: Partial<TLEditorSnapshot> | TLStoreSnapshot, opts?: TLLoadSnapshotOptions): this;
     // @deprecated
     mark(markId?: string): this;
@@ -2278,6 +2287,9 @@ export function OptionalErrorBoundary({ children, fallback, ...props }: Omit<TLE
 
 // @public (undocumented)
 export type OptionalKeys<T, K extends keyof T> = Omit<T, K> & Partial<Pick<T, K>>;
+
+// @internal (undocumented)
+export type Padding = [number, number, number, number] | number;
 
 // @public
 export function parseDeepLinkString(deepLinkString: string): TLDeepLink;
@@ -4753,6 +4765,12 @@ export * from "@tldraw/store";
 export * from "@tldraw/tlschema";
 export * from "@tldraw/utils";
 export * from "@tldraw/validate";
+
+// Warnings were encountered during analysis:
+//
+// src/lib/editor/Editor.ts:7037:10 - (ae-incompatible-release-tags) The symbol "defaultPadding" is marked as @public, but its signature references "Padding" which is marked as @internal
+// src/lib/editor/Editor.ts:7037:10 - (ae-incompatible-release-tags) The symbol "paddingByShapeId" is marked as @public, but its signature references "Padding" which is marked as @internal
+// src/lib/editor/Editor.ts:7037:10 - (ae-incompatible-release-tags) The symbol "paddingByShapeType" is marked as @public, but its signature references "Padding" which is marked as @internal
 
 // (No @packageDocumentation comment for this package)
 
