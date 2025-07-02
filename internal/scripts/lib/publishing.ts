@@ -2,7 +2,7 @@ import { execSync } from 'child_process'
 import { fetch } from 'cross-fetch'
 import { existsSync, readFileSync, readdirSync, writeFileSync } from 'fs'
 import path, { join } from 'path'
-import { compare, parse } from 'semver'
+import { parse } from 'semver'
 import { exec } from './exec'
 import { REPO_ROOT } from './file'
 import { nicelog } from './nicelog'
@@ -66,19 +66,22 @@ export async function setAllVersions(version: string) {
 	execSync('yarn')
 }
 
-export async function getLatestVersion() {
-	const packages = await getAllPackageDetails()
+function assertExists<T>(v: T | null | undefined): T {
+	if (v === null || v === undefined) throw new Error('Expected value to exist')
+	return v
+}
 
-	const allVersions = Object.values(packages).map((p) => parse(p.version)!)
-	allVersions.sort(compare)
+export async function getLatestTldrawVersionFromNpm({
+	versionPrefix,
+}: { versionPrefix?: string } = {}) {
+	if (!versionPrefix)
+		return assertExists(parse((await exec('npm', ['show', 'tldraw', 'version'])).trim()))
 
-	const latestVersion = allVersions[allVersions.length - 1]
-
-	if (!latestVersion) {
-		throw new Error('Could not find latest version')
+	const versions = (await exec('npm', ['show', 'tldraw@~' + versionPrefix, 'version'])).trim()
+	if (versions.startsWith('tldraw')) {
+		return assertExists(parse(versions.split('\n').pop()?.split(' ')[1].replaceAll("'", '')))
 	}
-
-	return latestVersion
+	return assertExists(parse(versions))
 }
 
 function topologicalSortPackages(packages: Record<string, PackageDetails>) {
