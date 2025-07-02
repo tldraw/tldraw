@@ -10,7 +10,8 @@
 		"strict": true,
 		"noUnusedLocals": true,
 		"noUnusedParameters": true,
-		"noFallthroughCasesInSwitch": true
+		"noFallthroughCasesInSwitch": true,
+		"outDir": "./node_modules/.tsbuild"
 	},
 	"include": ["worker"]
 }
