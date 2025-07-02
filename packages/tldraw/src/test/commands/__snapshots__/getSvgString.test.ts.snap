@@ -76,7 +76,7 @@ exports[`Matches a snapshot: Basic SVG 1`] = `
         stroke-width="3.5"
       />
       <foreignobject
-        class="tl-export-embed-styles tl-rich-text tl-rich-text-svg"
+        class="tl-export-embed-styles tl-rich-text tl-rich-text-svg tl-text__outline"
         height="100"
         width="100"
         x="0"
@@ -208,7 +208,7 @@ exports[`Returns all shapes when no ids are provided: All shapes 1`] = `
         stroke-width="3.5"
       />
       <foreignobject
-        class="tl-export-embed-styles tl-rich-text tl-rich-text-svg"
+        class="tl-export-embed-styles tl-rich-text tl-rich-text-svg tl-text__outline"
         height="100"
         width="100"
         x="0"

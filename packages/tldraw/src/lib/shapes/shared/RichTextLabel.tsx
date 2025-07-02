@@ -13,6 +13,7 @@ import {
 	useReactor,
 	useValue,
 } from '@tldraw/editor'
+import classNames from 'classnames'
 import React, { useMemo } from 'react'
 import { renderHtmlFromRichText } from '../../utils/text/richText'
 import { RichTextArea } from '../text/RichTextArea'
@@ -42,6 +43,7 @@ export interface RichTextLabelProps {
 	textHeight?: number
 	padding?: number
 	hasCustomTabBehavior?: boolean
+	showTextOutline?: boolean
 }
 
 /**
@@ -70,6 +72,7 @@ export const RichTextLabel = React.memo(function RichTextLabel({
 	textWidth,
 	textHeight,
 	hasCustomTabBehavior,
+	showTextOutline = true,
 }: RichTextLabelProps) {
 	const editor = useEditor()
 	const isDragging = React.useRef(false)
@@ -127,7 +130,9 @@ export const RichTextLabel = React.memo(function RichTextLabel({
 	const cssPrefix = classNamePrefix || 'tl-text'
 	return (
 		<div
-			className={`${cssPrefix}-label tl-text-wrapper tl-rich-text-wrapper`}
+			className={classNames(`${cssPrefix}-label tl-text-wrapper tl-rich-text-wrapper`, {
+				'tl-text__no-outline': !showTextOutline,
+			})}
 			data-font={font}
 			data-align={align}
 			data-hastext={!isEmpty}
@@ -193,6 +198,7 @@ export interface RichTextSVGProps {
 	wrap?: boolean
 	labelColor: string
 	padding: number
+	showTextOutline?: boolean
 }
 
 /**
@@ -210,6 +216,7 @@ export function RichTextSVG({
 	wrap,
 	labelColor,
 	padding,
+	showTextOutline = true,
 }: RichTextSVGProps) {
 	const editor = useEditor()
 	const html = renderHtmlFromRichText(editor, richText)
@@ -253,7 +260,10 @@ export function RichTextSVG({
 			y={bounds.minY}
 			width={bounds.w}
 			height={bounds.h}
-			className="tl-export-embed-styles tl-rich-text tl-rich-text-svg"
+			className={classNames(
+				'tl-export-embed-styles tl-rich-text tl-rich-text-svg',
+				showTextOutline ? 'tl-text__outline' : 'tl-text__no-outline'
+			)}
 		>
 			<div style={wrapperStyle}>
 				<div dangerouslySetInnerHTML={{ __html: html }} style={style} />
