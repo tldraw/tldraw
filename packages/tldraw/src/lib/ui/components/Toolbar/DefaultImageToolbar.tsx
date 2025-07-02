@@ -1,4 +1,4 @@
-import { Box, TLImageShape, track, useEditor, useValue } from '@tldraw/editor'
+import { Box, TLImageShape, useEditor, useValue } from '@tldraw/editor'
 import { useCallback, useRef, useState } from 'react'
 import { useTranslation } from '../../hooks/useTranslation/useTranslation'
 import { TldrawUiContextualToolbar } from '../primitives/TldrawUiContextualToolbar'
@@ -11,9 +11,7 @@ export interface TLUiImageToolbarProps {
 }
 
 /** @public @react */
-export const DefaultImageToolbar = track(function DefaultImageToolbar({
-	children,
-}: TLUiImageToolbarProps) {
+export function DefaultImageToolbar({ children }: TLUiImageToolbarProps) {
 	const editor = useEditor()
 	const imageShapeId = useValue(
 		'imageShape',
@@ -24,7 +22,16 @@ export const DefaultImageToolbar = track(function DefaultImageToolbar({
 		},
 		[editor]
 	)
-	const showToolbar = editor.isInAny('select.idle', 'select.pointing_shape', 'select.crop')
+	const showToolbar = useValue(
+		'showToolbar',
+		() => {
+			return (
+				editor.isInAny('select.idle', 'select.pointing_shape') ||
+				(editor.isIn('select.crop') && editor.getCameraState() === 'idle')
+			)
+		},
+		[editor]
+	)
 	const isLocked = useValue(
 		'locked',
 		() => (imageShapeId ? editor.getShape<TLImageShape>(imageShapeId)?.isLocked : false),
@@ -37,7 +44,7 @@ export const DefaultImageToolbar = track(function DefaultImageToolbar({
 			{children}
 		</ContextualToolbarInner>
 	)
-})
+}
 
 function ContextualToolbarInner({
 	children,
