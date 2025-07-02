@@ -53,7 +53,15 @@ jobs:
         env:
           GITHUB_TOKEN: ${{ steps.generate_token.outputs.token }}
         run: |
-          yarn tsx ./internal/scripts/export-template.ts vite
+          cd templates
+          all_templates=$(ls -d */ | cut -f1 -d'/')
+          cd ..
+
+          for template in $all_templates; do
+            echo "::group::Exporting $template"
+            yarn tsx ./internal/scripts/export-template.ts $template
+            echo "::endgroup::"
+          done
 
   # publish_vite:
   #   name: 'Vite'
