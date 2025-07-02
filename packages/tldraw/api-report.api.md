@@ -887,7 +887,7 @@ export const DefaultHelpMenu: NamedExoticComponent<TLUiHelpMenuProps>;
 export function DefaultHelpMenuContent(): JSX_2.Element;
 
 // @public (undocumented)
-export const DefaultImageToolbar: NamedExoticComponent<TLUiImageToolbarProps>;
+export function DefaultImageToolbar({ children }: TLUiImageToolbarProps): JSX_2.Element | null;
 
 // @public (undocumented)
 export const DefaultImageToolbarContent: NamedExoticComponent<DefaultImageToolbarContentProps>;
