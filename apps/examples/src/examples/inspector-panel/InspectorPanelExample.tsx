@@ -1,5 +1,5 @@
 import { useState } from 'react'
-import { Editor, EditorProvider, Tldraw, useEditor, useValue } from 'tldraw'
+import { Editor, EditorProvider, Tldraw, useEditor, useIsDarkMode, useValue } from 'tldraw'
 import 'tldraw/tldraw.css'
 import './inspector-panel.css'
 
@@ -30,11 +30,15 @@ function InspectorPanel() {
 		[editor, selectedShapes]
 	)
 
+	const isDarkMode = useIsDarkMode()
+
 	const selectedShape = selectedShapes.length === 1 ? selectedShapes[0] : null
 
 	if (selectedShapes.length === 0) {
 		return (
-			<div className="inspector-panel">
+			<div
+				className={`${isDarkMode ? 'inspector-panel inspector-panel-dark' : ''} inspector-panel`}
+			>
 				<h3>Inspector</h3>
 				<p>No shape selected</p>
 			</div>
@@ -43,10 +47,10 @@ function InspectorPanel() {
 
 	if (selectedShapes.length > 1) {
 		return (
-			<div className="inspector-panel">
+			<div
+				className={`${isDarkMode ? 'inspector-panel inspector-panel-dark' : ''} inspector-panel`}
+			>
 				<h3>Inspector</h3>
-				<p>{selectedShapes.length} shapes selected</p>
-
 				{sharedStyles && sharedStyles.size > 0 && (
 					<div className="inspector-section">
 						<h4>Shared Styles</h4>
@@ -55,13 +59,14 @@ function InspectorPanel() {
 						))}
 					</div>
 				)}
+				<p>{selectedShapes.length} shapes selected</p>
 			</div>
 		)
 	}
 
 	// Single shape selected
 	return (
-		<div className="inspector-panel">
+		<div className={`${isDarkMode ? 'inspector-panel inspector-panel-dark' : ''} inspector-panel`}>
 			<h3>Inspector</h3>
 			<div className="inspector-section">
 				{Object.entries(selectedShape!).map(([key, value]) => {
