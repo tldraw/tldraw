@@ -70,13 +70,9 @@ async function main() {
 	}
 
 	// clone the template repo:
-	await exec('git', [
-		'clone',
-		`https://${githubAuth}github.com/${exportConfig.repo}.git`,
-		workingDir,
-		'--depth',
-		'1',
-	])
+	const repoUrl = `https://${githubAuth}github.com/${exportConfig.repo}.git`
+	console.log(`Cloning ${repoUrl}...`)
+	await exec('git', ['clone', repoUrl, workingDir, '--depth', '1'])
 	await exec('git', ['checkout', '-b', EXPORT_BRANCH_NAME], { pwd: workingDir })
 
 	console.log('Clearing old files...')
@@ -153,7 +149,7 @@ async function main() {
 	})
 
 	console.log('Pushing...')
-	await exec('git', ['push', '--force', 'origin', EXPORT_BRANCH_NAME], { pwd: workingDir })
+	await exec('git', ['push', '--force', repoUrl, EXPORT_BRANCH_NAME], { pwd: workingDir })
 
 	console.log('Cleaning up temp dir...')
 	await rm(workingDir, { recursive: true })
@@ -165,7 +161,7 @@ function getGithubAuth() {
 	const githubToken = process.env.GITHUB_TOKEN
 	if (!githubToken) return ''
 
-	return `huppy-bot[bot]:${githubToken}@`
+	return `huppy-bot:${githubToken}@`
 }
 
 async function setWorkspaceDependenciesToLatest(dependencies?: Record<string, string>) {
