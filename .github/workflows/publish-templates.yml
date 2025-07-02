@@ -1,18 +1,13 @@
 name: Publish templates
 
 on:
-  push:
-    branches:
-      - alex/template-tweaks
-  # workflow_dispatch:
-  # workflow_call:
-  #   secrets:
-  #     VITE_TEMPLATE_REPO_SSH_DEPLOY_KEY:
-  #       required: true
-  #     NEXTJS_TEMPLATE_REPO_SSH_DEPLOY_KEY:
-  #       required: true
-  #     CLOUDFLARE_WORKERS_TEMPLATE_REPO_SSH_DEPLOY_KEY:
-  #       required: true
+  workflow_dispatch:
+  workflow_call:
+    secrets:
+      HUPPY_PRIVATE_KEY:
+        required: true
+      HUPPY_APP_ID:
+        required: true
 
 env:
   CI: 1
@@ -42,7 +37,7 @@ jobs:
         id: generate_token
         uses: actions/create-github-app-token@v1
         with:
-          app-id: ${{ vars.HUPPY_APP_ID }}
+          app-id: ${{ secrets.HUPPY_APP_ID }}
           private-key: ${{ secrets.HUPPY_PRIVATE_KEY }}
           owner: ${{ github.repository_owner }}
 
