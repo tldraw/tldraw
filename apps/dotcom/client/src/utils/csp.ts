@@ -28,7 +28,7 @@ export const cspDirectives: { [key: string]: string[] } = {
 		'https://api.reo.dev',
 	],
 	'font-src': [`'self'`, `https://fonts.googleapis.com`, `https://fonts.gstatic.com`, 'data:'],
-	'frame-src': [`https:`],
+	'frame-src': [`'self'`, `https:`],
 	'img-src': [`'self'`, `http:`, `https:`, `data:`, `blob:`],
 	'media-src': [`'self'`, `http:`, `https:`, `data:`, `blob:`],
 	'script-src': [
