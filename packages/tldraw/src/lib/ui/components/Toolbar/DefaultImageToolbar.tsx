@@ -24,12 +24,7 @@ export const DefaultImageToolbar = track(function DefaultImageToolbar({
 		},
 		[editor]
 	)
-	const showToolbar = editor.isInAny(
-		'select.idle',
-		'select.pointing_shape',
-		'select.crop.idle',
-		'select.crop.pointing_crop'
-	)
+	const showToolbar = editor.isInAny('select.idle', 'select.pointing_shape', 'select.crop')
 	const isLocked = useValue(
 		'locked',
 		() => (imageShapeId ? editor.getShape<TLImageShape>(imageShapeId)?.isLocked : false),
@@ -54,8 +49,17 @@ function ContextualToolbarInner({
 	const editor = useEditor()
 	const msg = useTranslation()
 
-	const isInCropTool = useValue('editor path', () => editor.isIn('select.crop.'), [editor])
-	const isCropping = useValue('editor path', () => editor.isIn('select.crop.cropping'), [editor])
+	const isInCropTool = useValue('editor path', () => editor.isIn('select.crop'), [editor])
+	const isChangingCrop = useValue(
+		'editor path',
+		() =>
+			editor.isInAny(
+				'select.crop.cropping',
+				'select.crop.pointing_crop_handle',
+				'select.crop.translating_crop'
+			),
+		[editor]
+	)
 	const previousSelectionBounds = useRef<Box | undefined>()
 	const handleManipulatingEnd = useCallback(() => {
 		editor.setCroppingShape(null)
@@ -82,7 +86,7 @@ function ContextualToolbarInner({
 		return bounds
 	}, [editor, isInCropTool])
 
-	if (isCropping) {
+	if (isChangingCrop) {
 		previousSelectionBounds.current = undefined
 		return null
 	}
