@@ -1,9 +1,10 @@
-import { IRequest, error } from 'itty-router'
+import { caches, ExecutionContext, Request, Response } from '@cloudflare/workers-types'
+import { error, IRequest } from 'itty-router'
 import { Environment } from './types'
 
 // assets are stored in the bucket under the /uploads path
 function getAssetObjectName(uploadId: string) {
-	return `uploads/${uploadId.replace(/[^a-zA-Z0-9\_\-]+/g, '_')}`
+	return `uploads/${uploadId.replace(/[^a-zA-Z0-9_-]+/g, '_')}`
 }
 
 // when a user uploads an asset, we store it in the bucket. we only allow image and video assets.
@@ -19,7 +20,7 @@ export async function handleAssetUpload(request: IRequest, env: Environment) {
 		return error(409, 'Upload already exists')
 	}
 
-	await env.TLDRAW_BUCKET.put(objectName, request.body, {
+	await env.TLDRAW_BUCKET.put(objectName, request.body as any, {
 		httpMetadata: request.headers,
 	})
 

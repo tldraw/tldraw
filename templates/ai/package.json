@@ -20,9 +20,6 @@
 		"preview": "vite preview",
 		"lint": "yarn run -T tsx ../../internal/scripts/lint.ts"
 	},
-	"peerDependencies": {
-		"tldraw": "^3.0.0"
-	},
 	"dependencies": {
 		"@cloudflare/vite-plugin": "^1.1.0",
 		"@google/generative-ai": "^0.24.1",

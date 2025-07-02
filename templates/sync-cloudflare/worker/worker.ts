@@ -1,3 +1,4 @@
+import { ExecutionContext } from '@cloudflare/workers-types'
 import { handleUnfurlRequest } from 'cloudflare-workers-unfurl'
 import { AutoRouter, cors, error, IRequest } from 'itty-router'
 import { handleAssetDownload, handleAssetUpload } from './assetUploads'
@@ -21,7 +22,7 @@ const router = AutoRouter<IRequest, [env: Environment, ctx: ExecutionContext]>({
 	.get('/connect/:roomId', (request, env) => {
 		const id = env.TLDRAW_DURABLE_OBJECT.idFromName(request.params.roomId)
 		const room = env.TLDRAW_DURABLE_OBJECT.get(id)
-		return room.fetch(request.url, { headers: request.headers, body: request.body })
+		return room.fetch(request.url, { headers: request.headers, body: request.body as any })
 	})
 
 	// assets can be uploaded to the bucket under /uploads:

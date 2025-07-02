@@ -47,46 +47,47 @@ const router: RouterType<IRequest, any, any> = Router()
 		new Response('Not found', { status: 404 })
 	})
 
-const server = Bun.serve<{ room?: TLSocketRoom<any, void>; sessionId: string; roomId: string }, {}>(
-	{
-		port: PORT,
-		fetch(req) {
-			try {
-				return router.fetch(req).then(corsify)
-			} catch (e) {
-				console.error(e)
-				return new Response('Something went wrong', {
-					status: 500,
-				})
-			}
-		},
-		websocket: {
-			async open(socket) {
-				// get the params extracted from the URL in the GET /connect/:roomId handler above
-				const { sessionId, roomId } = socket.data
+const server = Bun.serve<
+	{ room?: TLSocketRoom<any, void>; sessionId: string; roomId: string },
+	null
+>({
+	port: PORT,
+	fetch(req) {
+		try {
+			return router.fetch(req).then(corsify)
+		} catch (e) {
+			console.error(e)
+			return new Response('Something went wrong', {
+				status: 500,
+			})
+		}
+	},
+	websocket: {
+		async open(socket) {
+			// get the params extracted from the URL in the GET /connect/:roomId handler above
+			const { sessionId, roomId } = socket.data
 
-				// Here we make or get an existing instance of TLSocketRoom for the given roomId
-				const room = await makeOrLoadRoom(roomId)
-				// and finally connect the socket to the room
-				room.handleSocketConnect({ sessionId, socket })
-				// store the room on the socket so we can access it easily later
-				socket.data.room = room
-			},
-			async message(ws, message) {
-				// pass the message along to the room
-				ws.data.room?.handleSocketMessage(ws.data.sessionId, message)
-			},
-			drain(ws) {
-				// If the socket was was overloaded with backpressure, let's just close it
-				// and let the client reconnect and send all the data again.
-				ws.close()
-			},
-			close(ws) {
-				// let the room know the socket has closed
-				ws.data.room?.handleSocketClose(ws.data.sessionId)
-			},
+			// Here we make or get an existing instance of TLSocketRoom for the given roomId
+			const room = await makeOrLoadRoom(roomId)
+			// and finally connect the socket to the room
+			room.handleSocketConnect({ sessionId, socket })
+			// store the room on the socket so we can access it easily later
+			socket.data.room = room
 		},
-	}
-)
+		async message(ws, message) {
+			// pass the message along to the room
+			ws.data.room?.handleSocketMessage(ws.data.sessionId, message)
+		},
+		drain(ws) {
+			// If the socket was was overloaded with backpressure, let's just close it
+			// and let the client reconnect and send all the data again.
+			ws.close()
+		},
+		close(ws) {
+			// let the room know the socket has closed
+			ws.data.room?.handleSocketClose(ws.data.sessionId)
+		},
+	},
+})
 
 console.log(`Listening on localhost:${server.port}`)

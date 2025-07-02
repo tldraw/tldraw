@@ -1,3 +1,4 @@
+import { DurableObjectState, R2Bucket, Response, WebSocketPair } from '@cloudflare/workers-types'
 import { RoomSnapshot, TLSocketRoom } from '@tldraw/sync-core'
 import {
 	TLRecord,
@@ -62,7 +63,7 @@ export class TldrawDurableObject {
 	}
 
 	// what happens when someone tries to connect to this room?
-	async handleConnect(request: IRequest): Promise<Response> {
+	async handleConnect(request: IRequest) {
 		// extract query params from request
 		const sessionId = request.query.sessionId as string
 		if (!sessionId) return error(400, 'Missing sessionId')

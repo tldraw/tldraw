@@ -11,7 +11,7 @@
 	"type": "module",
 	"==TLDRAW TEMPLATE EXPORT==": {
 		"scripts": {
-			"lint": "eslint src --ext ts,tsx --report-unused-disable-directives --max-warnings 0"
+			"lint": null
 		}
 	},
 	"scripts": {
@@ -39,13 +39,8 @@
 		"@types/lodash.throttle": "^4",
 		"@types/react": "^18.3.18",
 		"@types/react-dom": "^18.3.5",
-		"@typescript-eslint/eslint-plugin": "^8.11.0",
-		"@typescript-eslint/parser": "^8.11.0",
 		"@vitejs/plugin-react-swc": "^3.7.0",
 		"concurrently": "^9.0.1",
-		"eslint": "^9.13.0",
-		"eslint-plugin-react-hooks": "^5.0.0",
-		"eslint-plugin-react-refresh": "^0.4.13",
 		"typescript": "^5.0.2",
 		"vite": "^5.4.10",
 		"wrangler": "^4.14.4"

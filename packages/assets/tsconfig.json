@@ -9,14 +9,6 @@
 		"modules.d.ts"
 	],
 	"exclude": ["node_modules", "dist", ".tsbuild*"],
-	"compilerOptions": {
-		"outDir": "./.tsbuild",
-		"rootDir": "src",
-		"resolveJsonModule": false
-	},
-	"references": [
-		{
-			"path": "../utils"
-		}
-	]
+	"compilerOptions": { "outDir": "./.tsbuild", "rootDir": "src", "resolveJsonModule": false },
+	"references": [{ "path": "../utils" }]
 }

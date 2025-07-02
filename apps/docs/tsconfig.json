@@ -2,15 +2,9 @@
 	"extends": "../../internal/config/tsconfig.base.json",
 	"compilerOptions": {
 		"baseUrl": ".",
-		"paths": {
-			"@/*": ["./*"]
-		},
+		"paths": { "@/*": ["./*"] },
 		"lib": ["dom", "dom.iterable", "esnext"],
-		"plugins": [
-			{
-				"name": "next"
-			}
-		],
+		"plugins": [{ "name": "next" }],
 		"allowJs": true,
 		"emitDeclarationOnly": false,
 		"noEmit": true,
@@ -29,14 +23,8 @@
 	],
 	"exclude": ["node_modules", ".next", "postcss.config.js", "tailwind.config.js"],
 	"references": [
-		{
-			"path": "../../packages/assets"
-		},
-		{
-			"path": "../../packages/tldraw"
-		},
-		{
-			"path": "../../packages/utils"
-		}
+		{ "path": "../../packages/assets" },
+		{ "path": "../../packages/tldraw" },
+		{ "path": "../../packages/utils" }
 	]
 }

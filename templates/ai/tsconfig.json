@@ -1,5 +1,4 @@
 {
-	"extends": "./tsconfig.base.json",
 	"compilerOptions": {
 		"outDir": "./.tsbuild",
 		"types": ["@cloudflare/workers-types", "node"],

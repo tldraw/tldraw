@@ -16,7 +16,7 @@
 		"noUnusedParameters": true,
 		"noFallthroughCasesInSwitch": true
 	},
-	"include": ["client"],
+	"include": ["client", "worker", "vite.config.ts"],
 	"references": [
 		{ "path": "../../packages/sync" },
 		{ "path": "../../packages/sync-core" },

@@ -1,6 +1,5 @@
 import { TLAiChange, TLAiPrompt, TldrawAiTransform } from '@tldraw/ai'
 import { createBindingId, createShapeId } from '@tldraw/tlschema'
-import { exhaustiveSwitchError } from '../utils'
 
 export class SimpleIds extends TldrawAiTransform {
 	originalIdsToSimpleIds = new Map()
@@ -20,7 +19,7 @@ export class SimpleIds extends TldrawAiTransform {
 		return input
 	}
 
-	override transformChange = (change: TLAiChange) => {
+	override transformChange = (change: TLAiChange): TLAiChange => {
 		switch (change.type) {
 			case 'createShape': {
 				const { shape } = change
@@ -87,8 +86,6 @@ export class SimpleIds extends TldrawAiTransform {
 					bindingId,
 				}
 			}
-			default:
-				return exhaustiveSwitchError(change)
 		}
 	}
 

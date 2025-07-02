@@ -1,3 +1,5 @@
+import { DurableObjectNamespace, R2Bucket } from '@cloudflare/workers-types'
+
 // the contents of the environment should mostly be determined by wrangler.toml. These entries match
 // the bindings defined there.
 export interface Environment {

@@ -2856,7 +2856,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@eslint/eslintrc@npm:^3.1.0, @eslint/eslintrc@npm:^3.2.0, @eslint/eslintrc@npm:^3.3.1":
+"@eslint/eslintrc@npm:^3.2.0, @eslint/eslintrc@npm:^3.3.1":
   version: 3.3.1
   resolution: "@eslint/eslintrc@npm:3.3.1"
   dependencies:
@@ -2873,7 +2873,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@eslint/js@npm:9.30.0, @eslint/js@npm:^9.13.0, @eslint/js@npm:^9.19.0":
+"@eslint/js@npm:9.30.0, @eslint/js@npm:^9.19.0":
   version: 9.30.0
   resolution: "@eslint/js@npm:9.30.0"
   checksum: 10/42e3d5a9cdd5a0842f3ed078e28f81ae1cf04bd2edfd09f43e6dc148bb2e99904f09090007eb6485afd82d837771890c5a8b9ceb1e8c4e256953df4b4aa97308
@@ -10671,7 +10671,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@typescript-eslint/eslint-plugin@npm:^5.4.2 || ^6.0.0 || ^7.0.0 || ^8.0.0, @typescript-eslint/eslint-plugin@npm:^8.11.0, @typescript-eslint/eslint-plugin@npm:^8.21.0":
+"@typescript-eslint/eslint-plugin@npm:^5.4.2 || ^6.0.0 || ^7.0.0 || ^8.0.0, @typescript-eslint/eslint-plugin@npm:^8.21.0":
   version: 8.35.1
   resolution: "@typescript-eslint/eslint-plugin@npm:8.35.1"
   dependencies:
@@ -10708,7 +10708,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@typescript-eslint/parser@npm:^5.4.2 || ^6.0.0 || ^7.0.0 || ^8.0.0, @typescript-eslint/parser@npm:^8.11.0, @typescript-eslint/parser@npm:^8.21.0":
+"@typescript-eslint/parser@npm:^5.4.2 || ^6.0.0 || ^7.0.0 || ^8.0.0, @typescript-eslint/parser@npm:^8.21.0":
   version: 8.35.1
   resolution: "@typescript-eslint/parser@npm:8.35.1"
   dependencies:
@@ -15897,7 +15897,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"eslint-plugin-react-refresh@npm:^0.4.13, eslint-plugin-react-refresh@npm:^0.4.18":
+"eslint-plugin-react-refresh@npm:^0.4.18":
   version: 0.4.20
   resolution: "eslint-plugin-react-refresh@npm:0.4.20"
   peerDependencies:
@@ -15968,7 +15968,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"eslint@npm:^9.13.0, eslint@npm:^9.19.0":
+"eslint@npm:^9.19.0":
   version: 9.30.0
   resolution: "eslint@npm:9.30.0"
   dependencies:
@@ -28233,8 +28233,6 @@ __metadata:
     vite: "npm:^6.3.4"
     wrangler: "npm:^4.13.2"
     zod: "npm:^3.24.3"
-  peerDependencies:
-    tldraw: ^3.0.0
   languageName: unknown
   linkType: soft
 
@@ -28242,12 +28240,9 @@ __metadata:
   version: 0.0.0-use.local
   resolution: "tldraw-nextjs-app-example@workspace:templates/nextjs"
   dependencies:
-    "@eslint/eslintrc": "npm:^3.1.0"
-    "@eslint/js": "npm:^9.13.0"
     "@types/node": "npm:20.3.1"
     "@types/react": "npm:^18.3.18"
     "@types/react-dom": "npm:^18.3.5"
-    eslint: "npm:^9.13.0"
     next: "npm:14.2.30"
     react: "npm:^18.2.0"
     react-dom: "npm:^18.2.0"
@@ -28268,14 +28263,9 @@ __metadata:
     "@types/lodash.throttle": "npm:^4"
     "@types/react": "npm:^18.3.18"
     "@types/react-dom": "npm:^18.3.5"
-    "@typescript-eslint/eslint-plugin": "npm:^8.11.0"
-    "@typescript-eslint/parser": "npm:^8.11.0"
     "@vitejs/plugin-react-swc": "npm:^3.7.0"
     cloudflare-workers-unfurl: "npm:^0.0.7"
     concurrently: "npm:^9.0.1"
-    eslint: "npm:^9.13.0"
-    eslint-plugin-react-hooks: "npm:^5.0.0"
-    eslint-plugin-react-refresh: "npm:^0.4.13"
     itty-router: "npm:^5.0.17"
     lodash.throttle: "npm:^4.1.1"
     react: "npm:^18.2.0"
@@ -28293,12 +28283,7 @@ __metadata:
   dependencies:
     "@types/react": "npm:^18.3.18"
     "@types/react-dom": "npm:^18.3.5"
-    "@typescript-eslint/eslint-plugin": "npm:^8.11.0"
-    "@typescript-eslint/parser": "npm:^8.11.0"
     "@vitejs/plugin-react-swc": "npm:^3.7.0"
-    eslint: "npm:^9.13.0"
-    eslint-plugin-react-hooks: "npm:^5.0.0"
-    eslint-plugin-react-refresh: "npm:^0.4.13"
     react: "npm:^18.2.0"
     react-dom: "npm:^18.2.0"
     tldraw: "workspace:*"
