@@ -84,7 +84,7 @@ export const DefaultImageToolbarContent = track(function DefaultImageToolbarCont
 	// otherwise the zoom slider has a cubic drag feel to it which feels off.
 	const easeZoom = useCallback((value: number, maxValue: number): number => {
 		const maxRatioConversion = MAX_ZOOM / (MAX_ZOOM - 1)
-		// Use a square root easing for a more natural zoom feel
+		// Use an easing function for a more natural zoom feel
 		return Math.pow(value / maxValue, maxRatioConversion) * maxValue
 	}, [])
 
