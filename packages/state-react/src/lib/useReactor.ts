@@ -1,16 +1,14 @@
 import { EffectScheduler } from '@tldraw/state'
-import { useEffect, useMemo, useRef } from 'react'
+import { throttleToNextFrame } from '@tldraw/utils'
+import { useEffect, useMemo } from 'react'
 
 /** @public */
 export function useReactor(name: string, reactFn: () => void, deps: undefined | any[] = []) {
-	const raf = useRef(-1)
 	const scheduler = useMemo(
 		() =>
 			new EffectScheduler(name, reactFn, {
 				scheduleEffect: (cb) => {
-					const rafId = requestAnimationFrame(cb)
-					raf.current = rafId
-					return rafId
+					throttleToNextFrame(cb)
 				},
 			}),
 		// eslint-disable-next-line react-hooks/exhaustive-deps
@@ -22,7 +20,6 @@ export function useReactor(name: string, reactFn: () => void, deps: undefined | 
 		scheduler.execute()
 		return () => {
 			scheduler.detach()
-			cancelAnimationFrame(raf.current)
 		}
 	}, [scheduler])
 }
