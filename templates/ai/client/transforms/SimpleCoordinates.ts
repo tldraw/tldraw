@@ -45,7 +45,7 @@ export class SimpleCoordinates extends TldrawAiTransform {
 				// Add back in the offset
 				for (const prop of ['x', 'y'] as const) {
 					if (shape[prop] !== undefined) {
-						shape[prop] += this.bounds[prop]
+						shape[prop]! += this.bounds[prop]
 					} else {
 						if (offsetIds.has(shape.id)) {
 							shape[prop] = this.before[shape.id + '_' + prop]

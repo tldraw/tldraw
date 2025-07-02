@@ -22,7 +22,7 @@
 		"next": "14.2.30",
 		"react": "^18.2.0",
 		"react-dom": "^18.2.0",
-		"tldraw": "latest",
+		"tldraw": "workspace:*",
 		"typescript": "5.1.3"
 	},
 	"devDependencies": {
