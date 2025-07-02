@@ -144,6 +144,22 @@ const nextConfig = {
 					destination: `https://${REWRITE_DOMAIN}/`,
 				},
 				{
+					source: '/blog/announcements',
+					destination: `https://${REWRITE_DOMAIN}/blog/category/announcements`,
+				},
+				{
+					source: '/blog/case-studies',
+					destination: `https://${REWRITE_DOMAIN}/blog/category/case-studies`,
+				},
+				{
+					source: '/blog/product',
+					destination: `https://${REWRITE_DOMAIN}/blog/category/product`,
+				},
+				{
+					source: '/blog/release-notes',
+					destination: `https://${REWRITE_DOMAIN}/blog/category/release-notes`,
+				},
+				{
 					source: '/blog/:path*',
 					destination: `https://${REWRITE_DOMAIN}/blog/:path*`,
 				},
