@@ -1,4 +1,3 @@
-import { getLicenseKey } from '@tldraw/dotcom-shared'
 import { ReactNode } from 'react'
 import { Editor, TLComponents, Tldraw, TldrawOptions, useEvent } from 'tldraw'
 import { SneakyToolSwitcher } from '../tla/components/TlaEditor/sneaky/SneakyToolSwitcher'
@@ -38,7 +37,6 @@ export function LocalEditor({
 	return (
 		<div className="tldraw__editor" data-testid={dataTestId}>
 			<Tldraw
-				licenseKey={getLicenseKey()}
 				assetUrls={assetUrls}
 				persistenceKey={persistenceKey ?? getScratchPersistenceKey()}
 				onMount={handleMount}

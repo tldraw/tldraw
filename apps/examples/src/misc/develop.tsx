@@ -1,4 +1,3 @@
-import { getLicenseKey } from '@tldraw/dotcom-shared'
 import {
 	DefaultContextMenu,
 	DefaultContextMenuContent,
@@ -102,7 +101,6 @@ export default function Develop() {
 	return (
 		<div className="tldraw__editor">
 			<Tldraw
-				licenseKey={getLicenseKey()}
 				overrides={[performanceOverrides, debuggingOverrides]}
 				persistenceKey="example"
 				onMount={(editor) => {

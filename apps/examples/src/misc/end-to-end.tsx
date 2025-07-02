@@ -1,4 +1,3 @@
-import { getLicenseKey } from '@tldraw/dotcom-shared'
 import { useEffect, useLayoutEffect } from 'react'
 import {
 	BaseBoxShapeUtil,
@@ -97,7 +96,6 @@ export default function EndToEnd() {
 	return (
 		<div className="tldraw__editor">
 			<Tldraw
-				licenseKey={getLicenseKey()}
 				onMount={(editor) => {
 					;(window as any).app = editor
 					;(window as any).editor = editor
