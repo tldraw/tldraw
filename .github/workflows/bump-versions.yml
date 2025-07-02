@@ -1,0 +1,53 @@
+name: Bump versions to latest tldraw version
+# This bumps all package versions to match the latest tldraw version from npm
+
+# Prevent more than one version bumping job from running at the same time
+concurrency:
+  group: version-bump
+
+# Only run on main branch
+on:
+  workflow_dispatch:
+
+defaults:
+  run:
+    shell: bash
+
+jobs:
+  bump_versions:
+    name: 'Bump package versions to latest tldraw version'
+    environment: npm deploy
+    timeout-minutes: 30
+    runs-on: ubuntu-latest-16-cores-open
+
+    steps:
+      - name: Check branch
+        run: |
+          if [[ "$(git rev-parse --abbrev-ref HEAD)" != "main" ]]; then
+            echo "ERROR This workflow only runs on the main branch."
+            exit 1
+          fi
+
+      - name: Generate GH token
+        id: generate_token
+        uses: tibdex/github-app-token@b62528385c34dbc9f38e5f4225ac829252d1ea92
+        with:
+          app_id: ${{ secrets.HUPPY_APP_ID }}
+          private_key: ${{ secrets.HUPPY_APP_PRIVATE_KEY }}
+
+      - name: Check out code
+        uses: actions/checkout@v3
+        with:
+          token: ${{ steps.generate_token.outputs.token }}
+
+      - name: Run our setup
+        uses: ./.github/actions/setup
+
+      - name: Bump versions
+        run: |
+          git config --global user.name 'huppy-bot[bot]'
+          git config --global user.email '128400622+huppy-bot[bot]@users.noreply.github.com'
+          yarn tsx ./internal/scripts/bump-versions.ts
+        env:
+          GH_TOKEN: ${{ steps.generate_token.outputs.token }}
+          NPM_TOKEN: ${{ secrets.NPM_TOKEN }}
