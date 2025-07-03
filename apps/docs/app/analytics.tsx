@@ -11,13 +11,10 @@ export default function Analytics() {
 	useEffect(() => {
 		const handleCopy = (copyEvent: ClipboardEvent) => {
 			const isWithinCodeBlock = (copyEvent.target as HTMLElement | null)?.closest('pre, code')
-			const copiedText = window.getSelection()?.toString() || ''
-			if (copiedText.trim() === 'npm install tldraw') {
-				track('docs.copy.npm-install')
-			} else if (isWithinCodeBlock) {
-				track('docs.copy.code-block')
-			} else {
-				track('docs.copy')
+			if (isWithinCodeBlock) {
+				const copiedText = window.getSelection()?.toString() || ''
+				const isInstall = copiedText.trim() === 'npm install tldraw'
+				track('docs.copy.code-block', { isInstall })
 			}
 		}
 		document.addEventListener('copy', handleCopy)
