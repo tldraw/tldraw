@@ -51,10 +51,6 @@ export class DrawShapeUtil extends ShapeUtil<TLDrawShape> {
 		maxPointsPerShape: 600,
 	}
 
-	override canTabTo() {
-		return false
-	}
-
 	override hideResizeHandles(shape: TLDrawShape) {
 		return getIsDot(shape)
 	}

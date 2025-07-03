@@ -4,7 +4,7 @@ This repo is a starter for projects that use the [tldraw ai module](https://gith
 
 To use:
 
-1. Create a `.dev.vars` file in the root direectory.
+1. Create a `.dev.vars` file in the root directory.
 2. Add your OpenAI key to that file as an environment variable, i.e. `OPENAI_API_KEY=sk-your-key`.
 3. Install dependencies with `pnpm i`
 4. Run `pnpm run dev`
