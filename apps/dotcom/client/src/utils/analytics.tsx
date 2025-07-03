@@ -37,6 +37,9 @@ const PROPERTIES_TO_REDACT = ['url', 'href', 'pathname']
 // Match property names against the defined list
 function filterProperties(value: { [key: string]: any }) {
 	return Object.entries(value).reduce<{ [key: string]: any }>((acc, [key, value]) => {
+		// N.B. This isn't super obvious but Posthog has keys that can be like
+		// `$pathname` for native events, but also you could have `pathname` for custom events.
+		// So we check for both here.
 		if (PROPERTIES_TO_REDACT.some((prop) => key.includes(prop))) {
 			acc[key] = 'redacted'
 		} else {
