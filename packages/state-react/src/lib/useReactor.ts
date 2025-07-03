@@ -18,5 +18,5 @@ export function useReactor(name: string, reactFn: () => void, deps: undefined | 
 			cancelFn?.()
 		}
 		// eslint-disable-next-line react-hooks/exhaustive-deps
-	}, [deps])
+	}, deps)
 }
