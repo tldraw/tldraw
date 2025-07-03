@@ -49,7 +49,7 @@
 		"@types/react": "^18.3.18",
 		"esbuild": "^0.25.0",
 		"lazyrepo": "0.0.0-alpha.27",
-		"typescript": "^5.4.5",
+		"typescript": "^5.8.3",
 		"wrangler": "^4.23.0"
 	},
 	"jest": {

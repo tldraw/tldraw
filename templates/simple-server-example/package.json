@@ -38,7 +38,7 @@
 		"concurrently": "^9.1.2",
 		"lazyrepo": "0.0.0-alpha.27",
 		"tsx": "^4.19.2",
-		"typescript": "^5.4.5"
+		"typescript": "^5.8.3"
 	},
 	"jest": {
 		"preset": "../../internal/config/jest/node/jest-preset.js",

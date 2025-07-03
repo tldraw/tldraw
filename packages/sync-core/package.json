@@ -46,7 +46,7 @@
 		"react": "^18.3.1",
 		"react-dom": "^18.3.1",
 		"tldraw": "workspace:*",
-		"typescript": "^5.4.5",
+		"typescript": "^5.8.3",
 		"uuid-by-string": "^4.0.0",
 		"uuid-readable": "^0.0.2"
 	},
