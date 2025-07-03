@@ -130,7 +130,7 @@ jobs:
           filter='
             .dependencies."tldraw" |= $latest_tldraw |
             .dependencies."@tldraw/ai" |= $latest_tldraw |
-            .dependencies."@tldraw/tlschema" |= $latest_tldraw |
+            .dependencies."@tldraw/tlschema" |= $latest_tldraw
           '
           jq --tab --arg latest_tldraw "$(< /tmp/latest_tldraw)" "$filter" /tmp/template_package.json > "templates/$TEMPLATE/package.json"
 
