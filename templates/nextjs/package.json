@@ -8,7 +8,7 @@
 	},
 	"homepage": "https://tldraw.dev",
 	"license": "MIT",
-	"==TLDRAW TEMPLATE EXPORT==": {
+	"tldraw_template": {
 		"repo": "tldraw/nextjs-template",
 		"scripts": {
 			"lint": "next lint"

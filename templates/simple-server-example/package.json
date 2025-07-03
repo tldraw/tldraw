@@ -8,7 +8,7 @@
 		"email": "hello@tldraw.com"
 	},
 	"license": "MIT",
-	"==TLDRAW TEMPLATE EXPORT==": {
+	"tldraw_template": {
 		"scripts": {
 			"lint": null,
 			"// this dev script is included in the monorepo as a default when running `yarn dev-template`": null,

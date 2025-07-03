@@ -9,7 +9,7 @@
 	"homepage": "https://tldraw.dev",
 	"license": "MIT",
 	"type": "module",
-	"==TLDRAW TEMPLATE EXPORT==": {
+	"tldraw_template": {
 		"repo": "tldraw/vite-template",
 		"scripts": {
 			"lint": null

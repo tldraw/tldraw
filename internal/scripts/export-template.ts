@@ -5,7 +5,8 @@ import { dirname, join } from 'path'
 import { exec } from './lib/exec'
 import { readJsonIfExists, REPO_ROOT, writeCodeFile, writeJsonFile } from './lib/file'
 
-const EXPORT_CONFIG_KEY = '==TLDRAW TEMPLATE EXPORT==' as const
+const EXPORT_CONFIG_KEY = 'tldraw_template' as const
+
 const ExportConfig = T.object({
 	repo: T.string.optional(),
 	scripts: T.dict(T.string, T.nullable(T.string)),

@@ -9,7 +9,7 @@
 		"email": "hello@tldraw.com"
 	},
 	"type": "module",
-	"==TLDRAW TEMPLATE EXPORT==": {
+	"tldraw_template": {
 		"repo": "tldraw/ai-template",
 		"scripts": {
 			"lint": null
