@@ -1,8 +1,8 @@
--- Purpose: Add an allowAnalyticsCookie column to the user table that indicates whether the user has
--- consented to analytics cookies. 3 possible values:
--- - true: the user has consented to analytics cookies
--- - false: the user has not consented to analytics cookies
--- - null: the user has not yet been asked to consent to analytics cookies
+-- Purpose: Add an areKeyboardShortcutsEnabled column to the user table that indicates whether the user
+-- wants keyboard shortcuts enabled. 3 possible values:
+-- - true: the user wants keyboard shortcuts
+-- - false: the user does not want keyboard shortcuts
+-- - null: the user has not yet set the preference
 
 ALTER TABLE "user"
 ADD COLUMN "keyboardShortcuts" BOOLEAN DEFAULT NULL;

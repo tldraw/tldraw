@@ -639,7 +639,7 @@ export function ToggleKeyboardShortcutsItem() {
 	const editor = useEditor()
 	const keyboardShortcuts = useValue(
 		'keyboardShortcuts',
-		() => editor.user.getKeyboardShortcuts(),
+		() => editor.user.getAreKeyboardShortcutsEnabled(),
 		[editor]
 	)
 

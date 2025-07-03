@@ -702,7 +702,7 @@ export class TldrawApp {
 			...restOfPreferences,
 			locale: restOfPreferences.locale ?? null,
 			animationSpeed: restOfPreferences.animationSpeed ?? null,
-			keyboardShortcuts: restOfPreferences.keyboardShortcuts ?? null,
+			areKeyboardShortcutsEnabled: restOfPreferences.areKeyboardShortcutsEnabled ?? null,
 			edgeScrollSpeed: restOfPreferences.edgeScrollSpeed ?? null,
 			colorScheme: restOfPreferences.colorScheme ?? null,
 			isSnapMode: restOfPreferences.isSnapMode ?? null,

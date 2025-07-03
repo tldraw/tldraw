@@ -17,7 +17,7 @@ export interface TLUserPreferences {
 	// N.B. These are duplicated in TLdrawAppUser.
 	locale?: string | null
 	animationSpeed?: number | null
-	keyboardShortcuts?: boolean | null
+	areKeyboardShortcutsEnabled?: boolean | null
 	edgeScrollSpeed?: number | null
 	colorScheme?: 'light' | 'dark' | 'system'
 	isSnapMode?: boolean | null
@@ -45,7 +45,7 @@ export const userTypeValidator: T.Validator<TLUserPreferences> = T.object<TLUser
 	// N.B. These are duplicated in TLdrawAppUser.
 	locale: T.string.nullable().optional(),
 	animationSpeed: T.number.nullable().optional(),
-	keyboardShortcuts: T.boolean.nullable().optional(),
+	areKeyboardShortcutsEnabled: T.boolean.nullable().optional(),
 	edgeScrollSpeed: T.number.nullable().optional(),
 	colorScheme: T.literalEnum('light', 'dark', 'system').optional(),
 	isSnapMode: T.boolean.nullable().optional(),
@@ -100,7 +100,7 @@ function migrateSnapshot(data: { version: number; user: any }) {
 		data.user.isPasteAtCursorMode = false
 	}
 	if (data.version < Versions.AddKeyboardShortcuts) {
-		data.user.keyboardShortcuts = true
+		data.user.areKeyboardShortcutsEnabled = true
 	}
 
 	// finally
@@ -145,7 +145,7 @@ export const defaultUserPreferences = Object.freeze({
 	// N.B. These are duplicated in TLdrawAppUser.
 	edgeScrollSpeed: 1,
 	animationSpeed: userPrefersReducedMotion() ? 0 : 1,
-	keyboardShortcuts: true,
+	areKeyboardShortcutsEnabled: true,
 	isSnapMode: false,
 	isWrapMode: false,
 	isDynamicSizeMode: false,

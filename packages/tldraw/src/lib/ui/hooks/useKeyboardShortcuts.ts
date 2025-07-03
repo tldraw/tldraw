@@ -150,7 +150,7 @@ export function areShortcutsDisabled(editor: Editor) {
 		editor.menus.hasAnyOpenMenus() ||
 		editor.getEditingShapeId() !== null ||
 		editor.getCrashingError() ||
-		!editor.user.getKeyboardShortcuts()
+		!editor.user.getAreKeyboardShortcutsEnabled()
 	)
 }
 

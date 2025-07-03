@@ -716,6 +716,7 @@ export const defaultTldrawOptions: {
 // @public (undocumented)
 export const defaultUserPreferences: Readonly<{
     animationSpeed: 0 | 1;
+    areKeyboardShortcutsEnabled: true;
     color: "#02B1CC" | "#11B3A3" | "#39B178" | "#55B467" | "#7B66DC" | "#9D5BD2" | "#BD54C6" | "#E34BA9" | "#EC5E41" | "#F04F88" | "#F2555A" | "#FF802B";
     colorScheme: "light";
     edgeScrollSpeed: 1;
@@ -723,7 +724,6 @@ export const defaultUserPreferences: Readonly<{
     isPasteAtCursorMode: false;
     isSnapMode: false;
     isWrapMode: false;
-    keyboardShortcuts: true;
     locale: "ar" | "bn" | "ca" | "cs" | "da" | "de" | "el" | "en" | "es" | "fa" | "fi" | "fr" | "gl" | "gu-in" | "he" | "hi-in" | "hr" | "hu" | "id" | "it" | "ja" | "km-kh" | "kn" | "ko-kr" | "ml" | "mr" | "ms" | "ne" | "nl" | "no" | "pa" | "pl" | "pt-br" | "pt-pt" | "ro" | "ru" | "sl" | "so" | "sv" | "ta" | "te" | "th" | "tl" | "tr" | "uk" | "ur" | "vi" | "zh-cn" | "zh-tw";
     name: "";
 }>;
@@ -4255,6 +4255,8 @@ export interface TLUserPreferences {
     // (undocumented)
     animationSpeed?: null | number;
     // (undocumented)
+    areKeyboardShortcutsEnabled?: boolean | null;
+    // (undocumented)
     color?: null | string;
     // (undocumented)
     colorScheme?: 'dark' | 'light' | 'system';
@@ -4270,8 +4272,6 @@ export interface TLUserPreferences {
     isSnapMode?: boolean | null;
     // (undocumented)
     isWrapMode?: boolean | null;
-    // (undocumented)
-    keyboardShortcuts?: boolean | null;
     // (undocumented)
     locale?: null | string;
     // (undocumented)
@@ -4427,6 +4427,8 @@ export class UserPreferencesManager {
     // (undocumented)
     getAnimationSpeed(): number;
     // (undocumented)
+    getAreKeyboardShortcutsEnabled(): boolean;
+    // (undocumented)
     getColor(): string;
     getEdgeScrollSpeed(): number;
     // (undocumented)
@@ -4442,14 +4444,13 @@ export class UserPreferencesManager {
     // (undocumented)
     getIsWrapMode(): boolean;
     // (undocumented)
-    getKeyboardShortcuts(): boolean;
-    // (undocumented)
     getLocale(): string;
     // (undocumented)
     getName(): string;
     // (undocumented)
     getUserPreferences(): {
         animationSpeed: number;
+        areKeyboardShortcutsEnabled: boolean;
         color: string;
         colorScheme: "dark" | "light" | "system" | undefined;
         id: string;
@@ -4457,7 +4458,6 @@ export class UserPreferencesManager {
         isDynamicResizeMode: boolean;
         isSnapMode: boolean;
         isWrapMode: boolean;
-        keyboardShortcuts: boolean;
         locale: string;
         name: string;
     };

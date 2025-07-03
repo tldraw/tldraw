@@ -24,7 +24,7 @@ describe('UserPreferencesManager', () => {
 		color: '#FF802B',
 		locale: 'en',
 		animationSpeed: 1,
-		keyboardShortcuts: true,
+		areKeyboardShortcutsEnabled: true,
 		edgeScrollSpeed: 1,
 		colorScheme: 'light',
 		isSnapMode: false,
@@ -230,7 +230,7 @@ describe('UserPreferencesManager', () => {
 				locale: mockUserPreferences.locale,
 				color: mockUserPreferences.color,
 				animationSpeed: mockUserPreferences.animationSpeed,
-				keyboardShortcuts: mockUserPreferences.keyboardShortcuts,
+				areKeyboardShortcutsEnabled: mockUserPreferences.areKeyboardShortcutsEnabled,
 				isSnapMode: mockUserPreferences.isSnapMode,
 				colorScheme: mockUserPreferences.colorScheme,
 				isDarkMode: false, // light mode
@@ -364,17 +364,17 @@ describe('UserPreferencesManager', () => {
 			})
 		})
 
-		describe('getKeyboardShortcuts', () => {
+		describe('getAreKeyboardShortcutsEnabled', () => {
 			it('should return user keyboard shortcuts', () => {
-				expect(userPreferencesManager.getKeyboardShortcuts()).toBe(
-					mockUserPreferences.keyboardShortcuts
+				expect(userPreferencesManager.getAreKeyboardShortcutsEnabled()).toBe(
+					mockUserPreferences.areKeyboardShortcutsEnabled
 				)
 			})
 
 			it('should return default keyboard shortcuts when null', () => {
-				userPreferencesAtom.set({ ...mockUserPreferences, keyboardShortcuts: null })
-				expect(userPreferencesManager.getKeyboardShortcuts()).toBe(
-					defaultUserPreferences.keyboardShortcuts
+				userPreferencesAtom.set({ ...mockUserPreferences, areKeyboardShortcutsEnabled: null })
+				expect(userPreferencesManager.getAreKeyboardShortcutsEnabled()).toBe(
+					defaultUserPreferences.areKeyboardShortcutsEnabled
 				)
 			})
 		})
@@ -500,7 +500,7 @@ describe('UserPreferencesManager', () => {
 				color: null,
 				locale: null,
 				animationSpeed: null,
-				keyboardShortcuts: null,
+				areKeyboardShortcutsEnabled: null,
 				edgeScrollSpeed: null,
 				isSnapMode: null,
 				isWrapMode: null,
@@ -514,8 +514,8 @@ describe('UserPreferencesManager', () => {
 			expect(userPreferencesManager.getColor()).toBe(defaultUserPreferences.color)
 			expect(userPreferencesManager.getLocale()).toBe(defaultUserPreferences.locale)
 			expect(userPreferencesManager.getAnimationSpeed()).toBe(defaultUserPreferences.animationSpeed)
-			expect(userPreferencesManager.getKeyboardShortcuts()).toBe(
-				defaultUserPreferences.keyboardShortcuts
+			expect(userPreferencesManager.getAreKeyboardShortcutsEnabled()).toBe(
+				defaultUserPreferences.areKeyboardShortcutsEnabled
 			)
 			expect(userPreferencesManager.getEdgeScrollSpeed()).toBe(
 				defaultUserPreferences.edgeScrollSpeed

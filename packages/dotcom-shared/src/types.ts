@@ -170,7 +170,7 @@ export type ZClientSentMessage =
 export const UserPreferencesKeys = [
 	'locale',
 	'animationSpeed',
-	'keyboardShortcuts',
+	'areKeyboardShortcutsEnabled',
 	'edgeScrollSpeed',
 	'colorScheme',
 	'isSnapMode',

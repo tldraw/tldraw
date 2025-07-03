@@ -1255,7 +1255,7 @@ export function ActionsProvider({ overrides, children }: ActionsProviderProps) {
 				onSelect(source) {
 					trackEvent('toggle-keyboard-shortcuts', { source })
 					editor.user.updateUserPreferences({
-						keyboardShortcuts: !editor.user.getKeyboardShortcuts(),
+						areKeyboardShortcutsEnabled: !editor.user.getAreKeyboardShortcutsEnabled(),
 					})
 				},
 				checkbox: true,

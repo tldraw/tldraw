@@ -189,7 +189,7 @@ export function createMockUser(
 		flags: '',
 		locale: 'en',
 		animationSpeed: 1.0,
-		keyboardShortcuts: true,
+		areKeyboardShortcutsEnabled: true,
 		edgeScrollSpeed: 1.0,
 		colorScheme: 'auto',
 		isSnapMode: false,
