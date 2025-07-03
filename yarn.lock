@@ -27746,6 +27746,21 @@ __metadata:
   languageName: unknown
   linkType: soft
 
+"tldraw-workflow-builder@workspace:templates/workflow-builder":
+  version: 0.0.0-use.local
+  resolution: "tldraw-workflow-builder@workspace:templates/workflow-builder"
+  dependencies:
+    "@types/react": "npm:^18.3.18"
+    "@types/react-dom": "npm:^18.3.5"
+    "@vitejs/plugin-react-swc": "npm:^3.10.2"
+    react: "npm:^18.3.1"
+    react-dom: "npm:^18.3.1"
+    tldraw: "workspace:*"
+    typescript: "npm:^5.8.3"
+    vite: "npm:^7.0.1"
+  languageName: unknown
+  linkType: soft
+
 "tldraw@workspace:*, tldraw@workspace:packages/tldraw":
   version: 0.0.0-use.local
   resolution: "tldraw@workspace:packages/tldraw"
