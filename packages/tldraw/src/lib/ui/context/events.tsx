@@ -128,6 +128,7 @@ export interface TLUiEventMap {
 	'copy-link': null
 	'image-replace': null
 	'video-replace': null
+	'open-kbd-shortcuts': null
 	'rich-text': {
 		operation:
 			| 'bold'

@@ -28,6 +28,7 @@ import { fitFrameToContent, removeFrame } from '../../utils/frames/frames'
 import { generateShapeAnnouncementMessage } from '../components/A11y'
 import { EditLinkDialog } from '../components/EditLinkDialog'
 import { EmbedDialog } from '../components/EmbedDialog'
+import { DefaultKeyboardShortcutsDialog } from '../components/KeyboardShortcutsDialog/DefaultKeyboardShortcutsDialog'
 import { useShowCollaborationUi } from '../hooks/useCollaborationStatus'
 import { flattenShapesToImages } from '../hooks/useFlatten'
 import { TLUiTranslationKey } from '../hooks/useTranslation/TLUiTranslationKey'
@@ -167,6 +168,15 @@ export function ActionsProvider({ overrides, children }: ActionsProviderProps) {
 				onSelect(source) {
 					trackEvent('insert-embed', { source })
 					helpers.addDialog({ component: EmbedDialog })
+				},
+			},
+			{
+				id: 'open-kbd-shortcuts',
+				label: 'action.open-kbd-shortcuts',
+				kbd: 'cmd+alt+/,ctrl+alt+/',
+				onSelect(source) {
+					trackEvent('open-kbd-shortcuts', { source })
+					helpers.addDialog({ component: DefaultKeyboardShortcutsDialog })
 				},
 			},
 			{
