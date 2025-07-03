@@ -141,6 +141,6 @@ jobs:
         with:
           source-directory: 'templates/ai'
           destination-github-username: 'tldraw'
-          destination-repository-name: 'tldraw-ai'
+          destination-repository-name: 'ai-template'
           user-email: steve+github.actions@tldraw.com
           target-branch: main
