@@ -22,15 +22,15 @@
 		"preview": "vite preview"
 	},
 	"dependencies": {
-		"react": "^18.2.0",
-		"react-dom": "^18.2.0",
+		"react": "^18.3.1",
+		"react-dom": "^18.3.1",
 		"tldraw": "workspace:*"
 	},
 	"devDependencies": {
 		"@types/react": "^18.3.18",
 		"@types/react-dom": "^18.3.5",
 		"@vitejs/plugin-react-swc": "^3.10.2",
-		"typescript": "^5.0.2",
+		"typescript": "^5.4.5",
 		"vite": "^7.0.1"
 	}
 }

@@ -26,21 +26,21 @@
 		"@tldraw/sync-core": "workspace:*",
 		"@tldraw/tlschema": "workspace:*",
 		"cloudflare-workers-unfurl": "^0.0.7",
-		"itty-router": "^5.0.17",
+		"itty-router": "^5.0.18",
 		"lodash.throttle": "^4.1.1",
-		"react": "^18.2.0",
-		"react-dom": "^18.2.0",
+		"react": "^18.3.1",
+		"react-dom": "^18.3.1",
 		"tldraw": "workspace:*"
 	},
 	"devDependencies": {
-		"@cloudflare/vite-plugin": "^1.8.0",
-		"@types/lodash.throttle": "^4",
+		"@cloudflare/vite-plugin": "^1.9.0",
+		"@types/lodash.throttle": "^4.1.9",
 		"@types/react": "^18.3.18",
 		"@types/react-dom": "^18.3.5",
-		"@vitejs/plugin-react-swc": "^3.7.0",
-		"concurrently": "^9.0.1",
-		"typescript": "^5.0.2",
-		"vite": "^7.0.0",
-		"wrangler": "^4.22.0"
+		"@vitejs/plugin-react-swc": "^3.10.2",
+		"concurrently": "^9.1.2",
+		"typescript": "^5.4.5",
+		"vite": "^7.0.1",
+		"wrangler": "^4.23.0"
 	}
 }

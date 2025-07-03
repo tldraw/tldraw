@@ -22,7 +22,7 @@
 		"lint": "yarn run -T tsx ../../internal/scripts/lint.ts"
 	},
 	"dependencies": {
-		"@cloudflare/vite-plugin": "^1.1.0",
+		"@cloudflare/vite-plugin": "^1.9.0",
 		"@google/generative-ai": "^0.24.1",
 		"@tldraw/ai": "workspace:*",
 		"@tldraw/tlschema": "workspace:*",
@@ -31,17 +31,18 @@
 		"itty-router": "^5.0.18",
 		"openai": "^4.96.0",
 		"openai-partial-stream": "^0.3.9",
-		"react": "^18.2.0",
-		"react-dom": "^18.2.0",
+		"react": "^18.3.1",
+		"react-dom": "^18.3.1",
 		"tldraw": "workspace:*",
-		"wrangler": "^4.13.2",
+		"wrangler": "^4.23.0",
 		"zod": "^3.24.3"
 	},
 	"devDependencies": {
-		"@cloudflare/workers-types": "^4.20250503.0",
-		"@types/react": "^18.2.0",
-		"@types/react-dom": "^18.2.0",
-		"@vitejs/plugin-react-swc": "^3.9.0",
+		"@cloudflare/workers-types": "^4.20250703.0",
+		"@types/react": "^18.3.18",
+		"@types/react-dom": "^18.3.5",
+		"@vitejs/plugin-react-swc": "^3.10.2",
+		"typescript": "^5.4.5",
 		"vite": "^7.0.1"
 	}
 }
