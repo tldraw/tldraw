@@ -77,7 +77,7 @@ function SignedInSubmitFeedbackDialog({ onClose }: { onClose(): void }) {
 			body: JSON.stringify({
 				allowContact: true,
 				description: rInput.current.value.trim(),
-				url: `please-be-mindful-${window.location.href}`,
+				url: window.location.href.replace('https', 'https-please-be-mindful'),
 			} satisfies SubmitFeedbackRequestBody),
 		})
 			.then((r) => {
