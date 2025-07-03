@@ -53,7 +53,6 @@ jobs:
         env:
           GH_TOKEN: ${{ steps.generate_token.outputs.token }}
           NPM_TOKEN: ${{ secrets.NPM_TOKEN }}
-          HUPPY_TOKEN: ${{ secrets.HUPPY_TOKEN }}
           R2_ACCESS_KEY_ID: ${{ secrets.R2_ACCESS_KEY_ID }}
           R2_ACCESS_KEY_SECRET: ${{ secrets.R2_ACCESS_KEY_SECRET }}
           TLDRAW_BEMO_URL: https://demo.tldraw.xyz

@@ -346,6 +346,7 @@ export class NoteShapeUtil extends ShapeUtil<TLNoteShape> {
 				labelColor={theme[shape.props.color].note.text}
 				bounds={bounds}
 				padding={LABEL_PADDING}
+				showTextOutline={false}
 			/>
 		)
 

@@ -148,20 +148,22 @@ export const useSelectedShapesAnnouncer = () => {
 			if (!editor) return
 
 			const isInSelecting = editor.isIn('select.idle')
-			const selectedShapeIds = editor.getSelectedShapeIds()
-			if (isInSelecting && selectedShapeIds !== rPrevSelectedShapeIds.current) {
-				rPrevSelectedShapeIds.current = selectedShapeIds
-				unsafe__withoutCapture(() => {
-					const a11yLive = generateShapeAnnouncementMessage({
-						editor,
-						selectedShapeIds,
-						msg,
-					})
+			if (isInSelecting) {
+				const selectedShapeIds = editor.getSelectedShapeIds()
+				if (selectedShapeIds !== rPrevSelectedShapeIds.current) {
+					rPrevSelectedShapeIds.current = selectedShapeIds
+					unsafe__withoutCapture(() => {
+						const a11yLive = generateShapeAnnouncementMessage({
+							editor,
+							selectedShapeIds,
+							msg,
+						})
 
-					if (a11yLive) {
-						a11y.announce({ msg: a11yLive })
-					}
-				})
+						if (a11yLive) {
+							a11y.announce({ msg: a11yLive })
+						}
+					})
+				}
 			}
 		},
 		[editor, a11y, msg]
