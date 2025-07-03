@@ -21,13 +21,6 @@ jobs:
     runs-on: ubuntu-latest-16-cores-open
 
     steps:
-      - name: Check branch
-        run: |
-          if [[ "$(git rev-parse --abbrev-ref HEAD)" != "main" ]]; then
-            echo "ERROR This workflow only runs on the main branch."
-            exit 1
-          fi
-
       - name: Generate GH token
         id: generate_token
         uses: tibdex/github-app-token@b62528385c34dbc9f38e5f4225ac829252d1ea92
@@ -39,6 +32,13 @@ jobs:
         uses: actions/checkout@v3
         with:
           token: ${{ steps.generate_token.outputs.token }}
+
+      - name: Check branch
+        run: |
+          if [[ "$(git rev-parse --abbrev-ref HEAD)" != "main" ]]; then
+            echo "ERROR This workflow only runs on the main branch."
+            exit 1
+          fi
 
       - name: Run our setup
         uses: ./.github/actions/setup
