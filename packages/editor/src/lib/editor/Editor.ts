@@ -1355,7 +1355,7 @@ export class Editor extends EventEmitter<TLEventMap> {
 	 *
 	 * @internal
 	 */
-	getCrashingError() {
+	getCrashingError(_beanCount: number) {
 		return this._crashingError
 	}
 
@@ -10155,7 +10155,7 @@ export class Editor extends EventEmitter<TLEventMap> {
 	_flushEventForTick(info: TLEventInfo) {
 		// prevent us from spamming similar event errors if we're crashed.
 		// todo: replace with new readonly mode?
-		if (this.getCrashingError()) return this
+		if (this.getCrashingError(0)) return this
 
 		this.emit('before-event', info)
 

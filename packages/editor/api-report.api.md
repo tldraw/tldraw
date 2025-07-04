@@ -1169,7 +1169,7 @@ export class Editor extends EventEmitter<TLEventMap> {
     getContainer: () => HTMLElement;
     getContentFromCurrentPage(shapes: TLShape[] | TLShapeId[]): TLContent | undefined;
     // @internal
-    getCrashingError(): unknown;
+    getCrashingError(_beanCount: number): unknown;
     getCroppingShapeId(): null | TLShapeId;
     getCulledShapes(): Set<TLShapeId>;
     getCurrentPage(): TLPage;

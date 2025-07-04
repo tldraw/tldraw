@@ -542,7 +542,7 @@ function TldrawEditorWithReadyStore({
 			},
 			[editor]
 		),
-		() => editor?.getCrashingError() ?? null
+		() => editor?.getCrashingError(0) ?? null
 	)
 
 	// For our examples site, we want autoFocus to be true on the examples site, but not
