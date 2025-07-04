@@ -14,6 +14,7 @@ import {
 	ROOM_PREFIX,
 	SNAPSHOT_PREFIX,
 	TlaFile,
+	TlaUserPresence,
 	type RoomOpenMode,
 } from '@tldraw/dotcom-shared'
 import {
@@ -24,13 +25,21 @@ import {
 	TLSyncRoom,
 	type PersistedRoomSnapshotForSupabase,
 } from '@tldraw/sync-core'
-import { TLDOCUMENT_ID, TLDocument, TLRecord, createTLSchema } from '@tldraw/tlschema'
+import {
+	TLDOCUMENT_ID,
+	TLDocument,
+	TLInstancePresence,
+	TLRecord,
+	createTLSchema,
+} from '@tldraw/tlschema'
 import {
 	ExecutionQueue,
 	assert,
 	assertExists,
 	exhaustiveSwitchError,
+	objectMapValues,
 	retry,
+	sleep,
 	uniqueId,
 } from '@tldraw/utils'
 import { createSentry } from '@tldraw/worker-shared'
@@ -110,6 +119,7 @@ export class TLDrawDurableObject extends DurableObject {
 									instanceId: args.sessionId,
 									localClientId: args.meta.storeId,
 								})
+								this.updatePresence()
 
 								if (args.numSessionsRemaining > 0) return
 								if (!this._room) return
@@ -473,6 +483,7 @@ export class TLDrawDurableObject extends DurableObject {
 				instanceId: sessionId,
 				localClientId: storeId,
 			})
+			this.updatePresence()
 			return new Response(null, { status: 101, webSocket: clientWebSocket })
 		} catch (e) {
 			if (e === ROOM_NOT_FOUND) {
@@ -719,12 +730,63 @@ export class TLDrawDurableObject extends DurableObject {
 						.where('id', '=', this.documentInfo.slug)
 						.execute()
 						.catch((e) => this.reportError(e))
+						.then(() => this.updatePresence())
 				}
 			})
 		} catch (e) {
 			this.reportError(e)
 		}
 	}
+
+	private async updatePresence() {
+		// it would be wise to perf test this in production before switching it on for everyone
+		if (this.env.TLDRAW_ENV === 'production') return
+		if (!this.documentInfo?.isApp) return
+		if (!this._room) {
+			await this.db
+				.deleteFrom('user_presence')
+				.where('fileId', '=', this.documentInfo.slug)
+				.execute()
+		} else {
+			await sleep(50)
+			await this.db.transaction().execute(async (tx) => {
+				const room = await this.getRoom()
+				const presences = objectMapValues(room.getPresenceRecords()) as TLInstancePresence[]
+				const dbPresences = await tx
+					.selectFrom('user_presence')
+					.where('fileId', '=', this.documentInfo.slug)
+					.selectAll()
+					.execute()
+
+				for (const presence of dbPresences) {
+					const existingPresence = presences.find((p) => p?.id === presence.sessionId)
+					if (!existingPresence) {
+						await tx
+							.deleteFrom('user_presence')
+							.where('sessionId', '=', presence.sessionId)
+							.execute()
+					}
+				}
+
+				for (const { userId, color, lastActivityTimestamp, userName, id } of presences) {
+					const values: Omit<TlaUserPresence, 'sessionId' | 'fileId'> = {
+						userId,
+						color,
+						lastActivityAt: lastActivityTimestamp ?? 0,
+						name: userName,
+					}
+					await tx
+						.insertInto('user_presence')
+						.values({ sessionId: id, fileId: this.documentInfo.slug, ...values })
+						.onConflict((oc) => {
+							return oc.column('sessionId').column('fileId').doUpdateSet(values)
+						})
+						.execute()
+				}
+			})
+		}
+	}
+
 	private reportError(e: unknown) {
 		// eslint-disable-next-line @typescript-eslint/no-deprecated
 		this.sentry?.captureException(e)

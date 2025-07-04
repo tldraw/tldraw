@@ -1,14 +1,13 @@
 import { useValue } from 'tldraw'
 import { useMaybeApp } from './useAppState'
 
-export function useIsFileOwner(fileId?: string): boolean {
+export function useCanUpdateFile(fileId?: string): boolean {
 	const app = useMaybeApp()
 	return useValue(
-		'isOwner',
+		'canUpdateFile',
 		() => {
 			if (!fileId) return false
-			if (!app) return false
-			return app.getFile(fileId)?.ownerId === app.userId
+			return app?.canUpdateFile(fileId) ?? false
 		},
 		[app, fileId]
 	)

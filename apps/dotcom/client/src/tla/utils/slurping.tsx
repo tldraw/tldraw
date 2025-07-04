@@ -71,11 +71,12 @@ interface SlurperOpts {
 
 export async function maybeSlurp(opts: SlurperOpts) {
 	if (opts.abortSignal.aborted) return
-	if (!opts.app.isFileOwner(opts.fileId)) return
 	const file = opts.app.getFile(opts.fileId)
+	if (!file) return
+	if (file.ownerId !== opts.app.userId) return
 	const persistenceKey =
 		(opts.editor.getDocumentSettings().meta.slurpPersistenceKey as string | undefined) ||
-		file?.createSource?.match(/lf\/(.+)/)?.[1]
+		file.createSource?.match(/lf\/(.+)/)?.[1]
 	if (!persistenceKey) return
 	if (opts.editor.getDocumentSettings().meta.slurpFinished) return
 	return new Slurper({ ...opts, slurpPersistenceKey: persistenceKey }).slurp()

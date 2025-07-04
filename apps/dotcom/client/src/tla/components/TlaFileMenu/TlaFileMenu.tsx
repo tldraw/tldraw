@@ -17,11 +17,14 @@ import {
 	useDialogs,
 	useMaybeEditor,
 	useToasts,
+	useValue,
 } from 'tldraw'
 import { routes } from '../../../routeDefs'
 import { TldrawApp } from '../../app/TldrawApp'
 import { useApp } from '../../hooks/useAppState'
+import { useCanUpdateFile } from '../../hooks/useCanUpdateFile'
 import { useCurrentFileId } from '../../hooks/useCurrentFileId'
+import { useHasFlag } from '../../hooks/useHasFlag'
 import { useIsFileOwner } from '../../hooks/useIsFileOwner'
 import { useIsFilePinned } from '../../hooks/useIsFilePinned'
 import { useFileSidebarFocusContext } from '../../providers/FileInputFocusProvider'
@@ -101,6 +104,10 @@ export function FileItems({
 	const isOwner = useIsFileOwner(fileId)
 	const isPinned = useIsFilePinned(fileId)
 	const isActive = useCurrentFileId() === fileId
+	const hasGroups = useHasFlag('groups')
+
+	// Get groups data
+	const groupMembers = useValue('groupMembers', () => app.getGroupMemberships(), [app])
 
 	const handleCopyLinkClick = useCallback(() => {
 		const url = routes.tlaFile(fileId, { asUrl: true })
@@ -161,6 +168,7 @@ export function FileItems({
 	const pinMsg = useMsg(messages.pin)
 	const unpinMsg = useMsg(messages.unpin)
 	const deleteOrForgetMsg = useMsg(isOwner ? messages.delete : messages.forget)
+	const canUpdateFile = useCanUpdateFile(fileId)
 	const downloadFile = useMsg(editorMessages.downloadFile)
 
 	return (
@@ -173,7 +181,7 @@ export function FileItems({
 					readonlyOk
 					onSelect={handleCopyLinkClick}
 				/>
-				{isOwner && (
+				{canUpdateFile && (
 					<TldrawUiMenuItem label={renameMsg} id="rename" readonlyOk onSelect={onRenameAction} />
 				)}
 				{/* todo: in published rooms, support duplication / forking */}
@@ -209,6 +217,36 @@ export function FileItems({
 					onSelect={handleDeleteClick}
 				/>
 			</TldrawUiMenuGroup>
+			{hasGroups && groupMembers.length > 0 && (
+				<TldrawUiMenuGroup id="file-groups">
+					<TldrawUiMenuSubmenu id="move-to-group" label={'Move to group'} size="small">
+						{groupMembers.map((groupUser) => (
+							<TldrawUiMenuItem
+								key={groupUser.groupId}
+								label={groupUser.group.name}
+								id={`group-${groupUser.groupId}`}
+								readonlyOk
+								onSelect={() => {
+									app.z.mutate.group.moveFileToGroup({ fileId, groupId: groupUser.groupId })
+								}}
+							/>
+						))}
+					</TldrawUiMenuSubmenu>
+					<TldrawUiMenuSubmenu id="link-in-group" label={'Link in group'} size="small">
+						{groupMembers.map((groupUser) => (
+							<TldrawUiMenuItem
+								key={groupUser.groupId}
+								label={groupUser.group.name}
+								id={`link-in-group-${groupUser.groupId}`}
+								readonlyOk
+								onSelect={() => {
+									app.z.mutate.group.linkFileInGroup({ fileId, groupId: groupUser.groupId })
+								}}
+							/>
+						))}
+					</TldrawUiMenuSubmenu>
+				</TldrawUiMenuGroup>
+			)}
 		</Fragment>
 	)
 }
