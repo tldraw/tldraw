@@ -182,9 +182,16 @@ function _updateHistorySubscriptions(sqlite: SqlStorage) {
 		changesJson: string
 		newSubscriptions: string | null
 		removedSubscriptions: string | null
-	}>('SELECT rowid, changesJson, newSubscriptions, removedSubscriptions FROM history')) {
+		topics: string
+	}>('SELECT rowid, changesJson, newSubscriptions, removedSubscriptions, topics FROM history')) {
 		// Parse the changes from the existing row
 		const changes = JSON.parse(row.changesJson) as ChangeV2[]
+		// update the topics too
+		changes.forEach((change) => {
+			change.topics = getTopics(change.row, change.event)
+		})
+
+		const newTopics = buildTopicsString(changes)
 
 		// Regenerate subscription changes using the updated function
 		const { newSubscriptions, removedSubscriptions } = getSubscriptionChanges(changes)
@@ -197,12 +204,14 @@ function _updateHistorySubscriptions(sqlite: SqlStorage) {
 		// Only update if the values have actually changed
 		if (
 			newSubscriptionsStr !== row.newSubscriptions ||
-			removedSubscriptionsStr !== row.removedSubscriptions
+			removedSubscriptionsStr !== row.removedSubscriptions ||
+			newTopics !== row.topics
 		) {
 			sqlite.exec(
-				'UPDATE history SET newSubscriptions = ?, removedSubscriptions = ? WHERE rowid = ?',
+				'UPDATE history SET newSubscriptions = ?, removedSubscriptions = ?, topics = ? WHERE rowid = ?',
 				newSubscriptionsStr,
 				removedSubscriptionsStr,
+				buildTopicsString(changes),
 				row.rowid
 			)
 		}

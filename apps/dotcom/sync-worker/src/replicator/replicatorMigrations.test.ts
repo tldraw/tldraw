@@ -142,7 +142,7 @@ describe('replicatorMigrations', () => {
 			await migrate(sqlStorage as any, logger as any)
 
 			migrations = sqlStorage.exec('SELECT id FROM migrations ORDER BY id').toArray()
-			expect(migrations).toHaveLength(7) // All migrations should be applied
+			expect(migrations).toHaveLength(8) // All migrations should be applied
 
 			// Should not duplicate existing migrations
 			const migrationCounts = sqlStorage
@@ -338,6 +338,35 @@ describe('replicatorMigrations', () => {
 			const test6 = updatedHistory.find((r: any) => r.lsn === 'test/006')
 			expect(test6?.newSubscriptions).toBe('user:grace\\file:doc7,user:henry\\file:doc8')
 			expect(test6?.removedSubscriptions).toBe('user:iris\\file:doc9,user:jack\\file:doc10')
+		})
+
+		it('should update file change topics to only include the file after migration', async () => {
+			await migrate(sqlStorage as any, logger as any, '006_graph_subscriptions')
+
+			// Insert a history row with a file change and both user and file topics
+			sqlStorage.exec(
+				'INSERT INTO history (lsn, changesJson, newSubscriptions, removedSubscriptions, topics, timestamp) VALUES (?, ?, ?, ?, ?, ?)',
+				'00/001',
+				JSON.stringify([
+					{
+						event: { table: 'file', command: 'update' },
+						row: { id: 'doc1', ownerId: 'alice', name: 'Doc 1' },
+						previous: { id: 'doc1', ownerId: 'alice', name: 'Old Doc 1' },
+						topics: ['user:alice', 'file:doc1'],
+					},
+				]),
+				null,
+				null,
+				'user:alice,file:doc1',
+				1234
+			)
+
+			// Run migration 007
+			await migrate(sqlStorage as any, logger as any, '007_update_history_subscriptions')
+
+			// Check that topics are now just 'file:doc1'
+			const updated = sqlStorage.exec("SELECT topics FROM history WHERE lsn = '00/001'").one()
+			expect(updated.topics).toBe('file:doc1')
 		})
 	})
 })

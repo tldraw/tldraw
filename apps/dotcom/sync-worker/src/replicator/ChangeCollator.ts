@@ -43,7 +43,7 @@ export function getTopics(row: TlaRow, event: ReplicationEvent): Topic[] {
 		case 'file': {
 			const file = row as TlaFile
 			// File events notify both the file topic AND the file owner's user topic
-			return [`file:${file.id}`, `user:${file.ownerId}`]
+			return [`file:${file.id}`]
 		}
 		case 'file_state': {
 			const fileState = row as TlaFileState
