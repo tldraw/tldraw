@@ -1,6 +1,7 @@
 import { useValue } from '@tldraw/state-react'
 import { TLShapeId } from '@tldraw/tlschema'
 import { memo, useRef } from 'react'
+import { StateNode } from '../../editor/tools/StateNode'
 import { useEditor } from '../../hooks/useEditor'
 import { useEditorComponents } from '../../hooks/useEditorComponents'
 
@@ -32,14 +33,17 @@ export const DefaultShapeIndicators = memo(function DefaultShapeIndicators({
 				return prev
 			}
 
-			const path = editor.getPath()
-			const nodeIds = path.split('.')
-			for (let i = 0; i < nodeIds.length; i++) {
-				const subpath = nodeIds.slice(0, i).join('.')
-				const stateNode = editor.getStateDescendant(subpath)
-				if (!stateNode?.getShouldShowIndicators()) {
-					return prev
-				}
+			let shouldShowIndicators = false
+			let state: StateNode | undefined = editor.getCurrentTool()
+			// allow deeper state nodes to override the should show indicators value of shallower nodes
+			while (state) {
+				shouldShowIndicators = !!state.getShouldShowIndicators()
+				state = state.getCurrent()
+				if (!state) break
+			}
+
+			if (!shouldShowIndicators) {
+				return prev
 			}
 
 			const next = new Set<TLShapeId>()
