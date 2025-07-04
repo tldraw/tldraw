@@ -20,6 +20,10 @@ interface EditingShapeInfo {
 export class EditingShape extends StateNode {
 	static override id = 'editing_shape'
 
+	override getShouldShowIndicators() {
+		return true
+	}
+
 	hitShapeForPointerUp: TLShape | null = null
 	private info = {} as EditingShapeInfo
 

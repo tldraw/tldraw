@@ -28,27 +28,28 @@ export const DefaultShapeIndicators = memo(function DefaultShapeIndicators({
 		'should display selected ids',
 		() => {
 			const prev = rPreviousSelectedShapeIds.current
+			if (hideAll) {
+				return prev
+			}
+
+			const path = editor.getPath()
+			const nodeIds = path.split('.')
+			for (let i = 0; i < nodeIds.length; i++) {
+				const subpath = nodeIds.slice(0, i).join('.')
+				const stateNode = editor.getStateDescendant(subpath)
+				if (!stateNode?.getShouldShowIndicators()) {
+					return prev
+				}
+			}
+
 			const next = new Set<TLShapeId>()
 
 			const instanceState = editor.getInstanceState()
 
 			const isChangingStyle = instanceState.isChangingStyle
 
-			// todo: this is tldraw specific and is duplicated at the tldraw layer. What should we do here instead?
-
-			const isIdleOrEditing = editor.isInAny('select.idle', 'select.editing_shape')
-
-			const isInSelectState = editor.isInAny(
-				'select.brushing',
-				'select.scribble_brushing',
-				'select.pointing_shape',
-				'select.pointing_selection',
-				'select.pointing_handle'
-			)
-
 			// We hide all indicators if we're changing style or in certain interactions
-			// todo: move this to some kind of Tool.hideIndicators property
-			if (isChangingStyle || !(isIdleOrEditing || isInSelectState)) {
+			if (isChangingStyle) {
 				rPreviousSelectedShapeIds.current = next
 				return next
 			}
@@ -59,7 +60,7 @@ export const DefaultShapeIndicators = memo(function DefaultShapeIndicators({
 			}
 
 			// If we're idle or editing a shape, we want to also show an indicator for the hovered shape, if any
-			if (isIdleOrEditing && instanceState.isHoveringCanvas && !instanceState.isCoarsePointer) {
+			if (instanceState.isHoveringCanvas && !instanceState.isCoarsePointer) {
 				const hovered = editor.getHoveredShapeId()
 				if (hovered) next.add(hovered)
 			}
@@ -85,11 +86,14 @@ export const DefaultShapeIndicators = memo(function DefaultShapeIndicators({
 		[editor]
 	)
 
-	// Show indicators only for the shapes that are currently being rendered (ie that are on screen)
 	const renderingShapes = useValue('rendering shapes', () => editor.getRenderingShapes(), [editor])
 
 	const { ShapeIndicator } = useEditorComponents()
 	if (!ShapeIndicator) return null
+
+	// Render indicators for all of the rendering shapes, but only show indicators for the shapes that
+	// are in the idsToDisplay set. (Hidden indicators will not be displayed, though they will be mounted,
+	// because it's slow as hell to mount and unmount lots of things in React.
 
 	return renderingShapes.map(({ id }) => (
 		<ShapeIndicator

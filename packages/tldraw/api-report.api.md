@@ -2901,9 +2901,6 @@ export function TldrawScribble({ scribble, zoom, color, opacity, className }: TL
 export const TldrawSelectionForeground: NamedExoticComponent<TLSelectionForegroundProps>;
 
 // @public (undocumented)
-export function TldrawShapeIndicators(): JSX_2.Element;
-
-// @public (undocumented)
 export const TldrawUi: React_3.NamedExoticComponent<TldrawUiProps>;
 
 // @public (undocumented)

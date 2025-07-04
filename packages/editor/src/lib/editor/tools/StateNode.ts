@@ -135,6 +135,15 @@ export abstract class StateNode implements Partial<TLEventHandlers> {
 	private _isActive: Atom<boolean>
 
 	/**
+	 * Whether this node should show indicators.
+	 *
+	 * @public
+	 */
+	getShouldShowIndicators() {
+		return false
+	}
+
+	/**
 	 * Transition to a new active child state node.
 	 *
 	 * @example

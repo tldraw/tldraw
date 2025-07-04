@@ -8,6 +8,10 @@ export class PointingSelection extends StateNode {
 		target: 'selection'
 	}
 
+	override getShouldShowIndicators() {
+		return true
+	}
+
 	override onEnter(info: TLPointerEventInfo & { target: 'selection' }) {
 		this.info = info
 	}

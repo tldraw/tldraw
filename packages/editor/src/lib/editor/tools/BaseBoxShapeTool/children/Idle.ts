@@ -4,6 +4,10 @@ import { StateNode } from '../../StateNode'
 export class Idle extends StateNode {
 	static override id = 'idle'
 
+	getShouldShowIndicators() {
+		return true
+	}
+
 	override onPointerDown(info: TLPointerEventInfo) {
 		this.parent.transition('pointing', info)
 	}
