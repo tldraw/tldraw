@@ -180,10 +180,10 @@ export abstract class ShapeUtil<Shape extends TLUnknownShape = TLUnknownShape> {
 	 * Get the font faces that should be rendered in the document in order for this shape to render
 	 * correctly.
 	 *
-	 * @param shape - The shape.
+	 * @param superShape - The shape.
 	 * @public
 	 */
-	getFontFaces(shape: Shape): TLFontFace[] {
+	getFontFaces(superShape: Shape): TLFontFace[] {
 		return EMPTY_ARRAY
 	}
 
