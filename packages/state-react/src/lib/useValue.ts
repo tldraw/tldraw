@@ -1,6 +1,6 @@
 /* eslint-disable prefer-rest-params */
 import { Signal, computed, react } from '@tldraw/state'
-import { useMemo, useRef, useSyncExternalStore } from 'react'
+import { useMemo, useSyncExternalStore } from 'react'
 
 /** @public */
 export function useValue<Value>(value: Signal<Value>): Value
@@ -49,38 +49,36 @@ export function useValue() {
 	const deps = args.length === 3 ? args[2] : [args[0]]
 	const name = args.length === 3 ? args[0] : `useValue(${args[0].name})`
 
-	const isInRender = useRef(true)
-	isInRender.current = true
-
-	const $val = useMemo(() => {
-		if (args.length === 1) {
-			return args[0]
-		}
-		return computed(name, () => {
-			if (isInRender.current) {
-				return args[1]()
-			} else {
-				try {
-					return args[1]()
-				} catch {
-					// when getSnapshot is called outside of the render phase &
-					// subsequently throws an error, it might be because we're
-					// in a zombie-child state. in that case, we suppress the
-					// error and instead return a new dummy value to trigger a
-					// react re-render. if we were in a zombie child, react will
-					// unmount us instead of re-rendering so the error is
-					// irrelevant. if we're not in a zombie-child, react will
-					// call `getSnapshot` again in the render phase, and the
-					// error will be thrown as expected.
-					return {}
-				}
-			}
-		})
-		// eslint-disable-next-line react-hooks/exhaustive-deps
-	}, deps)
+	let isInRender = true
 
 	try {
 		const { subscribe, getSnapshot } = useMemo(() => {
+			let $val: any
+			if (args.length === 1) {
+				$val = args[0]
+			} else {
+				$val = computed(name, () => {
+					if (isInRender) {
+						return args[1]()
+					} else {
+						try {
+							return args[1]()
+						} catch {
+							// when getSnapshot is called outside of the render phase &
+							// subsequently throws an error, it might be because we're
+							// in a zombie-child state. in that case, we suppress the
+							// error and instead return a new dummy value to trigger a
+							// react re-render. if we were in a zombie child, react will
+							// unmount us instead of re-rendering so the error is
+							// irrelevant. if we're not in a zombie-child, react will
+							// call `getSnapshot` again in the render phase, and the
+							// error will be thrown as expected.
+							return {}
+						}
+					}
+				})
+			}
+
 			return {
 				subscribe: (listen: () => void) => {
 					return react(`useValue(${name})`, () => {
@@ -91,10 +89,10 @@ export function useValue() {
 				getSnapshot: () => $val.get(),
 			}
 			// eslint-disable-next-line react-hooks/exhaustive-deps
-		}, [$val])
+		}, deps)
 
 		return useSyncExternalStore(subscribe, getSnapshot, getSnapshot)
 	} finally {
-		isInRender.current = false
+		isInRender = false
 	}
 }
