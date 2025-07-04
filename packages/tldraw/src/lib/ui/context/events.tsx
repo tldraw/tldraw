@@ -107,6 +107,7 @@ export interface TLUiEventMap {
 	'toggle-paste-at-cursor': null
 	'toggle-lock': null
 	'toggle-reduce-motion': null
+	'toggle-keyboard-shortcuts': null
 	'toggle-edge-scrolling': null
 	'color-scheme': { value: string }
 	'exit-pen-mode': null
@@ -127,6 +128,7 @@ export interface TLUiEventMap {
 	'copy-link': null
 	'image-replace': null
 	'video-replace': null
+	'open-kbd-shortcuts': null
 	'rich-text': {
 		operation:
 			| 'bold'
