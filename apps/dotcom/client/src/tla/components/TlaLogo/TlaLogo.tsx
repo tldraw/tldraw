@@ -21,6 +21,7 @@ export function TlaLogo(props: HTMLAttributes<HTMLDivElement>) {
 				mask: `url(/tldraw_sidebar_logo.svg) center 100% / 100% no-repeat`,
 				...props.style,
 			}}
+			aria-label="tldraw"
 			className={classNames(styles.logo, props.className)}
 		/>
 	)

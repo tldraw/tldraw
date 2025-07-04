@@ -193,6 +193,7 @@ export interface RichTextSVGProps {
 	wrap?: boolean
 	labelColor: string
 	padding: number
+	showTextOutline?: boolean
 }
 
 /**
@@ -210,6 +211,7 @@ export function RichTextSVG({
 	wrap,
 	labelColor,
 	padding,
+	showTextOutline = true,
 }: RichTextSVGProps) {
 	const editor = useEditor()
 	const html = renderHtmlFromRichText(editor, richText)
@@ -245,6 +247,7 @@ export function RichTextSVG({
 		wordWrap: 'break-word' as const,
 		overflowWrap: 'break-word' as const,
 		whiteSpace: 'pre-wrap',
+		textShadow: showTextOutline ? 'var(--tl-text-outline)' : 'none',
 	}
 
 	return (

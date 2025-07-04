@@ -8,6 +8,21 @@ export default function Analytics() {
 		window.TL_GA4_MEASUREMENT_ID = process.env.NEXT_PUBLIC_GA4_MEASUREMENT_ID
 	}, [])
 
+	useEffect(() => {
+		const handleCopy = (copyEvent: ClipboardEvent) => {
+			const isWithinCodeBlock = (copyEvent.target as HTMLElement | null)?.closest('pre, code')
+			if (isWithinCodeBlock) {
+				const copiedText = window.getSelection()?.toString() || ''
+				const isInstall = copiedText.trim() === 'npm install tldraw'
+				track('docs.copy.code-block', { isInstall })
+			}
+		}
+		document.addEventListener('copy', handleCopy)
+		return () => {
+			document.removeEventListener('copy', handleCopy)
+		}
+	}, [])
+
 	return (
 		<>
 			<Script

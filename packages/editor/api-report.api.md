@@ -12,7 +12,7 @@ import { ComponentType } from 'react';
 import { Computed } from '@tldraw/state';
 import { Dispatch } from 'react';
 import { Editor as Editor_2 } from '@tiptap/core';
-import { EditorProviderProps } from '@tiptap/react';
+import { EditorProviderProps as EditorProviderProps_2 } from '@tiptap/react';
 import EventEmitter from 'eventemitter3';
 import { ExoticComponent } from 'react';
 import { HistoryEntry } from '@tldraw/store';
@@ -1545,6 +1545,17 @@ export class Editor extends EventEmitter<TLEventMap> {
 
 // @public (undocumented)
 export const EditorContext: React_2.Context<Editor | null>;
+
+// @public (undocumented)
+export function EditorProvider({ editor, children }: EditorProviderProps): JSX_2.Element;
+
+// @public (undocumented)
+export interface EditorProviderProps {
+    // (undocumented)
+    children: React_2.ReactNode;
+    // (undocumented)
+    editor: Editor;
+}
 
 // @public (undocumented)
 export class Ellipse2d extends Geometry2d {
@@ -4191,7 +4202,7 @@ export interface TLTextOptions {
     // (undocumented)
     addFontsFromNode?: RichTextFontVisitor;
     // (undocumented)
-    tipTapConfig?: EditorProviderProps;
+    tipTapConfig?: EditorProviderProps_2;
 }
 
 // @public (undocumented)

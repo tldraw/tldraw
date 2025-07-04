@@ -252,8 +252,6 @@ export class ArrowShapeUtil extends ShapeUtil<TLArrowShape> {
     // (undocumented)
     canSnap(): boolean;
     // (undocumented)
-    canTabTo(shape: TLArrowShape): boolean;
-    // (undocumented)
     component(shape: TLArrowShape): JSX_2.Element | null;
     // (undocumented)
     getCanvasSvgDefs(): TLShapeUtilCanvasSvgDef[];
@@ -889,7 +887,7 @@ export const DefaultHelpMenu: NamedExoticComponent<TLUiHelpMenuProps>;
 export function DefaultHelpMenuContent(): JSX_2.Element;
 
 // @public (undocumented)
-export const DefaultImageToolbar: NamedExoticComponent<TLUiImageToolbarProps>;
+export function DefaultImageToolbar({ children }: TLUiImageToolbarProps): JSX_2.Element | null;
 
 // @public (undocumented)
 export const DefaultImageToolbarContent: NamedExoticComponent<DefaultImageToolbarContentProps>;
@@ -1073,8 +1071,6 @@ export class DrawShapeTool extends StateNode {
 
 // @public (undocumented)
 export class DrawShapeUtil extends ShapeUtil<TLDrawShape> {
-    // (undocumented)
-    canTabTo(): boolean;
     // (undocumented)
     component(shape: TLDrawShape): JSX_2.Element;
     // (undocumented)
@@ -1774,8 +1770,6 @@ export class HighlightShapeUtil extends ShapeUtil<TLHighlightShape> {
     // (undocumented)
     backgroundComponent(shape: TLHighlightShape): JSX_2.Element;
     // (undocumented)
-    canTabTo(): boolean;
-    // (undocumented)
     component(shape: TLHighlightShape): JSX_2.Element;
     // (undocumented)
     getDefaultProps(): TLHighlightShape['props'];
@@ -1889,8 +1883,6 @@ export class LineShapeTool extends StateNode {
 
 // @public (undocumented)
 export class LineShapeUtil extends ShapeUtil<TLLineShape> {
-    // (undocumented)
-    canTabTo(): boolean;
     // (undocumented)
     component(shape: TLLineShape): JSX_2.Element;
     // (undocumented)
@@ -2473,7 +2465,7 @@ export interface RichTextLabelProps {
 }
 
 // @public
-export function RichTextSVG({ bounds, richText, fontSize, font, align, verticalAlign, wrap, labelColor, padding, }: RichTextSVGProps): JSX_2.Element;
+export function RichTextSVG({ bounds, richText, fontSize, font, align, verticalAlign, wrap, labelColor, padding, showTextOutline, }: RichTextSVGProps): JSX_2.Element;
 
 // @public (undocumented)
 export interface RichTextSVGProps {
@@ -2491,6 +2483,8 @@ export interface RichTextSVGProps {
     padding: number;
     // (undocumented)
     richText: TLRichText;
+    // (undocumented)
+    showTextOutline?: boolean;
     // (undocumented)
     verticalAlign: TLDefaultVerticalAlignStyle;
     // (undocumented)
@@ -4191,6 +4185,8 @@ export interface TLUiToolbarToggleGroupProps extends React_3.HTMLAttributes<HTML
     dir?: 'ltr' | 'rtl';
     // (undocumented)
     type: 'multiple' | 'single';
+    // (undocumented)
+    value: any;
 }
 
 // @public (undocumented)

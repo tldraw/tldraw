@@ -2,10 +2,9 @@
 	position: absolute;
 	left: 10px;
 	top: 50px;
-	background: white;
-	border: 1px solid #e0e0e0;
-	border-radius: 12px;
-	box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+	background: var(--color-panel);
+	border-radius: 9px;
+	box-shadow: var(--shadow-1);
 	z-index: 1000;
 	pointer-events: all;
 	overflow: hidden;

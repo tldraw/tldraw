@@ -218,7 +218,6 @@ export function TldrawUiMenuItem<
 						preventDefault(e)
 						onSelect('toolbar')
 					}}
-					role="option"
 					title={titleStr}
 					type="tool"
 				>
@@ -237,7 +236,6 @@ export function TldrawUiMenuItem<
 					data-value={id}
 					disabled={disabled}
 					onClick={() => onSelect('toolbar')}
-					role="option"
 					title={titleStr}
 					type="icon"
 				>

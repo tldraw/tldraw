@@ -87,7 +87,7 @@ exports[`Matches a snapshot: Basic SVG 1`] = `
           xmlns="http://www.w3.org/1999/xhtml"
         >
           <div
-            style="font-size: 22px; color: rgb(29, 29, 29); line-height: 1.35; text-align: center; width: 100%; word-wrap: break-word; overflow-wrap: break-word; white-space: pre-wrap;"
+            style="font-size: 22px; color: rgb(29, 29, 29); line-height: 1.35; text-align: center; width: 100%; word-wrap: break-word; overflow-wrap: break-word; white-space: pre-wrap; text-shadow: var(--tl-text-outline);"
           >
             <p
               dir="auto"
@@ -219,7 +219,7 @@ exports[`Returns all shapes when no ids are provided: All shapes 1`] = `
           xmlns="http://www.w3.org/1999/xhtml"
         >
           <div
-            style="font-size: 22px; color: rgb(29, 29, 29); line-height: 1.35; text-align: center; width: 100%; word-wrap: break-word; overflow-wrap: break-word; white-space: pre-wrap;"
+            style="font-size: 22px; color: rgb(29, 29, 29); line-height: 1.35; text-align: center; width: 100%; word-wrap: break-word; overflow-wrap: break-word; white-space: pre-wrap; text-shadow: var(--tl-text-outline);"
           >
             <p
               dir="auto"
