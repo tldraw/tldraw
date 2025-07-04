@@ -1588,16 +1588,6 @@ export class Editor extends EventEmitter<TLEventMap> {
 	}
 
 	/**
-	 * @deprecated Use `editor.menus.addOpenMenu` instead.
-	 *
-	 * @public
-	 */
-	addOpenMenu(id: string): this {
-		this.menus.addOpenMenu(id)
-		return this
-	}
-
-	/**
 	 * @deprecated Use `editor.menus.deleteOpenMenu` instead.
 	 *
 	 * @public
