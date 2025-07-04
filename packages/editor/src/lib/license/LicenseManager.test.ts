@@ -417,7 +417,7 @@ function importPrivateKey(pemContents: string) {
 	// base64 decode the string to get the binary data
 	const binaryDerString = atob(pemContents)
 	// convert from a binary string to an ArrayBuffer
-	const binaryDer = str2ab(binaryDerString) as Uint8Array
+	const binaryDer = str2ab(binaryDerString)
 
 	return crypto.subtle.importKey(
 		'pkcs8',

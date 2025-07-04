@@ -65,7 +65,7 @@ function InputBar({ editor }: { editor: Editor }) {
 				rCancelFn.current = null
 			}
 		},
-		[prompt]
+		[ai]
 	)
 
 	return (

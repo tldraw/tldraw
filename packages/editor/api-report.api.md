@@ -4,8 +4,6 @@
 
 ```ts
 
-/// <reference types="react" />
-
 import { Atom } from '@tldraw/state';
 import { BoxModel } from '@tldraw/tlschema';
 import { ComponentType } from 'react';
@@ -25,8 +23,8 @@ import { NamedExoticComponent } from 'react';
 import { Node as Node_2 } from '@tiptap/pm/model';
 import { PerformanceTracker } from '@tldraw/utils';
 import { PointerEventHandler } from 'react';
-import { default as React_2 } from 'react';
-import * as React_3 from 'react';
+import * as React_2 from 'react';
+import { default as React_3 } from 'react';
 import { ReactElement } from 'react';
 import { ReactNode } from 'react';
 import { RecordProps } from '@tldraw/tlschema';
@@ -65,6 +63,7 @@ import { TLImageAsset } from '@tldraw/tlschema';
 import { TLInstance } from '@tldraw/tlschema';
 import { TLInstancePageState } from '@tldraw/tlschema';
 import { TLInstancePresence } from '@tldraw/tlschema';
+import { TLOpacityType } from '@tldraw/tlschema';
 import { TLPage } from '@tldraw/tlschema';
 import { TLPageId } from '@tldraw/tlschema';
 import { TLParentId } from '@tldraw/tlschema';
@@ -497,8 +496,8 @@ export function createTLStore({ initialData, defaultName, id, assets, onMount, c
 
 // @public (undocumented)
 export function createTLUser(opts?: {
-    setUserPreferences?: ((userPreferences: TLUserPreferences) => void) | undefined;
-    userPreferences?: Signal<TLUserPreferences, unknown> | undefined;
+    setUserPreferences?: (userPreferences: TLUserPreferences) => void;
+    userPreferences?: Signal<TLUserPreferences>;
 }): TLUser;
 
 // @public (undocumented)
@@ -676,7 +675,7 @@ export const defaultTldrawOptions: {
     readonly edgeScrollSpeed: 25;
     readonly enableToolbarKeyboardShortcuts: true;
     readonly exportProvider: ExoticComponent<    {
-    children?: ReactNode;
+    children?: ReactNode | undefined;
     }>;
     readonly flattenImageBoundsExpand: 64;
     readonly flattenImageBoundsPadding: 16;
@@ -879,7 +878,7 @@ export class Editor extends EventEmitter<TLEventMap> {
                 index: IndexKey;
                 isLocked: boolean;
                 meta: JsonObject;
-                opacity: number;
+                opacity: TLOpacityType;
                 parentId: TLParentId;
                 props: any;
                 rotation: number;
@@ -892,7 +891,7 @@ export class Editor extends EventEmitter<TLEventMap> {
                 index: IndexKey;
                 isLocked: boolean;
                 meta: JsonObject;
-                opacity: number;
+                opacity: TLOpacityType;
                 parentId: TLParentId;
                 props: any;
                 rotation: number;
@@ -905,7 +904,7 @@ export class Editor extends EventEmitter<TLEventMap> {
                 index: IndexKey;
                 isLocked: boolean;
                 meta: JsonObject;
-                opacity: number;
+                opacity: TLOpacityType;
                 parentId: TLParentId;
                 props: any;
                 rotation: number;
@@ -918,7 +917,7 @@ export class Editor extends EventEmitter<TLEventMap> {
                 index: IndexKey;
                 isLocked: boolean;
                 meta: JsonObject;
-                opacity: number;
+                opacity: TLOpacityType;
                 parentId: TLParentId;
                 props: any;
                 rotation: number;
@@ -931,7 +930,7 @@ export class Editor extends EventEmitter<TLEventMap> {
                 index: IndexKey;
                 isLocked: boolean;
                 meta: JsonObject;
-                opacity: number;
+                opacity: TLOpacityType;
                 parentId: TLParentId;
                 props: any;
                 rotation: number;
@@ -944,7 +943,7 @@ export class Editor extends EventEmitter<TLEventMap> {
                 index: IndexKey;
                 isLocked: boolean;
                 meta: JsonObject;
-                opacity: number;
+                opacity: TLOpacityType;
                 parentId: TLParentId;
                 props: any;
                 rotation: number;
@@ -957,7 +956,7 @@ export class Editor extends EventEmitter<TLEventMap> {
                 index: IndexKey;
                 isLocked: boolean;
                 meta: JsonObject;
-                opacity: number;
+                opacity: TLOpacityType;
                 parentId: TLParentId;
                 props: any;
                 rotation: number;
@@ -970,7 +969,7 @@ export class Editor extends EventEmitter<TLEventMap> {
                 index: IndexKey;
                 isLocked: boolean;
                 meta: JsonObject;
-                opacity: number;
+                opacity: TLOpacityType;
                 parentId: TLParentId;
                 props: any;
                 rotation: number;
@@ -983,7 +982,7 @@ export class Editor extends EventEmitter<TLEventMap> {
                 index: IndexKey;
                 isLocked: boolean;
                 meta: JsonObject;
-                opacity: number;
+                opacity: TLOpacityType;
                 parentId: TLParentId;
                 props: any;
                 rotation: number;
@@ -996,7 +995,7 @@ export class Editor extends EventEmitter<TLEventMap> {
                 index: IndexKey;
                 isLocked: boolean;
                 meta: JsonObject;
-                opacity: number;
+                opacity: TLOpacityType;
                 parentId: TLParentId;
                 props: any;
                 rotation: number;
@@ -1009,7 +1008,7 @@ export class Editor extends EventEmitter<TLEventMap> {
                 index: IndexKey;
                 isLocked: boolean;
                 meta: JsonObject;
-                opacity: number;
+                opacity: TLOpacityType;
                 parentId: TLParentId;
                 props: any;
                 rotation: number;
@@ -1022,7 +1021,7 @@ export class Editor extends EventEmitter<TLEventMap> {
                 index: IndexKey;
                 isLocked: boolean;
                 meta: JsonObject;
-                opacity: number;
+                opacity: TLOpacityType;
                 parentId: TLParentId;
                 props: any;
                 rotation: number;
@@ -1035,7 +1034,7 @@ export class Editor extends EventEmitter<TLEventMap> {
                 index: IndexKey;
                 isLocked: boolean;
                 meta: JsonObject;
-                opacity: number;
+                opacity: TLOpacityType;
                 parentId: TLParentId;
                 props: any;
                 rotation: number;
@@ -1048,7 +1047,7 @@ export class Editor extends EventEmitter<TLEventMap> {
                 index: IndexKey;
                 isLocked: boolean;
                 meta: JsonObject;
-                opacity: number;
+                opacity: TLOpacityType;
                 parentId: TLParentId;
                 props: any;
                 rotation: number;
@@ -1240,12 +1239,12 @@ export class Editor extends EventEmitter<TLEventMap> {
     getShapeAndDescendantIds(ids: TLShapeId[]): Set<TLShapeId>;
     getShapeAtPoint(point: VecLike, opts?: {
         filter?(shape: TLShape): boolean;
-        hitFrameInside?: boolean | undefined;
-        hitInside?: boolean | undefined;
-        hitLabels?: boolean | undefined;
-        hitLocked?: boolean | undefined;
-        margin?: number | undefined;
-        renderingOnly?: boolean | undefined;
+        hitFrameInside?: boolean;
+        hitInside?: boolean;
+        hitLabels?: boolean;
+        hitLocked?: boolean;
+        margin?: number;
+        renderingOnly?: boolean;
     }): TLShape | undefined;
     getShapeClipPath(shape: TLShape | TLShapeId): string | undefined;
     getShapeGeometry<T extends Geometry2d>(shape: TLShape | TLShapeId, opts?: TLGeometryOpts): T;
@@ -1260,8 +1259,8 @@ export class Editor extends EventEmitter<TLEventMap> {
     getShapeParent(shape?: TLShape | TLShapeId): TLShape | undefined;
     getShapeParentTransform(shape: TLShape | TLShapeId): Mat;
     getShapesAtPoint(point: VecLike, opts?: {
-        hitInside?: boolean | undefined;
-        margin?: number | undefined;
+        hitInside?: boolean;
+        margin?: number;
     }): TLShape[];
     // @internal (undocumented)
     getShapesPageBounds(shapeIds: TLShapeId[]): Box | null;
@@ -1351,8 +1350,8 @@ export class Editor extends EventEmitter<TLEventMap> {
     isIn(path: string): boolean;
     isInAny(...paths: string[]): boolean;
     isPointInShape(shape: TLShape | TLShapeId, point: VecLike, opts?: {
-        hitInside?: boolean | undefined;
-        margin?: number | undefined;
+        hitInside?: boolean;
+        margin?: number;
     }): boolean;
     // (undocumented)
     isShapeHidden(shapeOrId: TLShape | TLShapeId): boolean;
@@ -1465,10 +1464,10 @@ export class Editor extends EventEmitter<TLEventMap> {
     readonly sideEffects: StoreSideEffects<TLRecord>;
     slideCamera(opts?: {
         direction: VecLike;
-        force?: boolean | undefined;
-        friction?: number | undefined;
+        force?: boolean;
+        friction?: number;
         speed: number;
-        speedThreshold?: number | undefined;
+        speedThreshold?: number;
     }): this;
     readonly snaps: SnapManager;
     squashToMark(markId: string): this;
@@ -1488,8 +1487,8 @@ export class Editor extends EventEmitter<TLEventMap> {
     readonly timers: {
         dispose: () => void;
         requestAnimationFrame: (callback: FrameRequestCallback) => number;
-        setInterval: (handler: TimerHandler, timeout?: number | undefined, ...args: any[]) => number;
-        setTimeout: (handler: TimerHandler, timeout?: number | undefined, ...args: any[]) => number;
+        setInterval: (handler: TimerHandler, timeout?: number, ...args: any[]) => number;
+        setTimeout: (handler: TimerHandler, timeout?: number, ...args: any[]) => number;
     };
     toggleLock(shapes: TLShape[] | TLShapeId[]): this;
     toImage(shapes: TLShape[] | TLShapeId[], opts?: TLImageExportOptions): Promise<{
@@ -1543,7 +1542,7 @@ export class Editor extends EventEmitter<TLEventMap> {
 }
 
 // @public (undocumented)
-export const EditorContext: React_2.Context<Editor | null>;
+export const EditorContext: React_3.Context<Editor | null>;
 
 // @public (undocumented)
 export class Ellipse2d extends Geometry2d {
@@ -1573,7 +1572,7 @@ export class Ellipse2d extends Geometry2d {
 }
 
 // @public (undocumented)
-export class ErrorBoundary extends React_3.Component<React_3.PropsWithRef<React_3.PropsWithChildren<TLErrorBoundaryProps>>, {
+export class ErrorBoundary extends React_2.Component<React_2.PropsWithRef<React_2.PropsWithChildren<TLErrorBoundaryProps>>, {
     error: Error | null;
 }> {
     // (undocumented)
@@ -1583,7 +1582,7 @@ export class ErrorBoundary extends React_3.Component<React_3.PropsWithRef<React_
         error: Error;
     };
     // (undocumented)
-    render(): boolean | JSX_2.Element | Iterable<React_3.ReactNode> | null | number | string | undefined;
+    render(): boolean | JSX_2.Element | Iterable<React_2.ReactNode> | null | number | string | undefined;
     // (undocumented)
     state: {
         error: null;
@@ -1977,7 +1976,7 @@ export class HistoryManager<R extends UnknownRecord> {
 export function HTMLContainer({ children, className, ...rest }: HTMLContainerProps): JSX_2.Element;
 
 // @public (undocumented)
-export type HTMLContainerProps = React_3.HTMLAttributes<HTMLDivElement>;
+export type HTMLContainerProps = React_2.HTMLAttributes<HTMLDivElement>;
 
 // @public (undocumented)
 export const inlineBase64AssetStore: TLAssetStore;
@@ -2274,7 +2273,7 @@ export function openWindow(url: string, target?: string): void;
 // @internal (undocumented)
 export function OptionalErrorBoundary({ children, fallback, ...props }: Omit<TLErrorBoundaryProps, 'fallback'> & {
     fallback: TLErrorFallbackComponent;
-}): boolean | JSX_2.Element | Iterable<React_3.ReactNode> | null | number | string | undefined;
+}): boolean | JSX_2.Element | Iterable<React_2.ReactNode> | null | number | string | undefined;
 
 // @public (undocumented)
 export type OptionalKeys<T, K extends keyof T> = Omit<T, K> & Partial<Pick<T, K>>;
@@ -2359,7 +2358,7 @@ export class Polyline2d extends Geometry2d {
 export function precise(A: VecLike): string;
 
 // @public
-export function preventDefault(event: Event | React_2.BaseSyntheticEvent): void;
+export function preventDefault(event: Event | React_3.BaseSyntheticEvent): void;
 
 // @public
 export function radiansToDegrees(r: number): number;
@@ -2370,10 +2369,10 @@ export function rangeIntersection(a0: number, a1: number, b0: number, b1: number
 // @public
 export class ReadonlySharedStyleMap {
     // (undocumented)
-    [Symbol.iterator](): IterableIterator<[StyleProp<any>, SharedStyle<unknown>]>;
+    [Symbol.iterator](): MapIterator<[StyleProp<any>, SharedStyle<unknown>]>;
     constructor(entries?: Iterable<[StyleProp<unknown>, SharedStyle<unknown>]>);
     // (undocumented)
-    entries(): IterableIterator<[StyleProp<any>, SharedStyle<unknown>]>;
+    entries(): MapIterator<[StyleProp<any>, SharedStyle<unknown>]>;
     // (undocumented)
     equals(other: ReadonlySharedStyleMap): boolean;
     // (undocumented)
@@ -2381,13 +2380,13 @@ export class ReadonlySharedStyleMap {
     // (undocumented)
     getAsKnownValue<T>(prop: StyleProp<T>): T | undefined;
     // (undocumented)
-    keys(): IterableIterator<StyleProp<any>>;
+    keys(): MapIterator<StyleProp<any>>;
     // @internal (undocumented)
     protected map: Map<StyleProp<any>, SharedStyle<unknown>>;
     // (undocumented)
     get size(): number;
     // (undocumented)
-    values(): IterableIterator<SharedStyle<unknown>>;
+    values(): MapIterator<SharedStyle<unknown>>;
 }
 
 // @public (undocumented)
@@ -2408,7 +2407,7 @@ export class Rectangle2d extends Polygon2d {
 export function refreshPage(): void;
 
 // @public (undocumented)
-export function releasePointerCapture(element: Element, event: PointerEvent | React_2.PointerEvent<Element>): void;
+export function releasePointerCapture(element: Element, event: PointerEvent | React_3.PointerEvent<Element>): void;
 
 // @public (undocumented)
 export type RequiredKeys<T, K extends keyof T> = Required<Pick<T, K>> & Omit<T, K>;
@@ -2532,7 +2531,7 @@ export type SelectionEdge = 'bottom' | 'left' | 'right' | 'top';
 export type SelectionHandle = SelectionCorner | SelectionEdge;
 
 // @public (undocumented)
-export function setPointerCapture(element: Element, event: PointerEvent | React_2.PointerEvent<Element>): void;
+export function setPointerCapture(element: Element, event: PointerEvent | React_3.PointerEvent<Element>): void;
 
 // @public (undocumented)
 export function setRuntimeOverrides(input: Partial<typeof runtime>): void;
@@ -2807,7 +2806,7 @@ export function suffixSafeId(id: SafeId, suffix: string): SafeId;
 export function SVGContainer({ children, className, ...rest }: SVGContainerProps): JSX_2.Element;
 
 // @public (undocumented)
-export type SVGContainerProps = React_3.ComponentProps<'svg'>;
+export type SVGContainerProps = React_2.ComponentProps<'svg'>;
 
 // @public (undocumented)
 export interface SvgExportContext {
@@ -3147,7 +3146,7 @@ export interface TLDragShapesOverInfo {
 }
 
 // @public (undocumented)
-export const TldrawEditor: React_2.NamedExoticComponent<TldrawEditorProps>;
+export const TldrawEditor: React_3.NamedExoticComponent<TldrawEditorProps>;
 
 // @public
 export interface TldrawEditorBaseProps {
@@ -3420,7 +3419,7 @@ export const tlenv: {
 // @public (undocumented)
 export interface TLErrorBoundaryProps {
     // (undocumented)
-    children: React_3.ReactNode;
+    children: React_2.ReactNode;
     // (undocumented)
     fallback: TLErrorFallbackComponent;
     // (undocumented)
