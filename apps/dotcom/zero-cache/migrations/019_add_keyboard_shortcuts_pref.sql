@@ -5,4 +5,4 @@
 -- - null: the user has not yet set the preference
 
 ALTER TABLE "user"
-ADD COLUMN "keyboardShortcuts" BOOLEAN DEFAULT NULL;
+ADD COLUMN "areKeyboardShortcutsEnabled" BOOLEAN DEFAULT NULL;
