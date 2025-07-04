@@ -213,6 +213,14 @@ export function DefaultKeyboardShortcutsDialogContent() {
 				<TldrawUiMenuActionItem actionId="enlarge-shapes" />
 				<TldrawUiMenuActionItem actionId="shrink-shapes" />
 				<TldrawUiMenuActionItem actionId="a11y-repeat-shape-announce" />
+				<TldrawUiMenuItem
+					id="a11y-open-keyboard-shortcuts"
+					label="a11y.open-keyboard-shortcuts"
+					kbd="cmd+alt+/"
+					onSelect={() => {
+						/* do nothing */
+					}}
+				/>
 			</TldrawUiMenuGroup>
 			{showCollaborationUi && (
 				<TldrawUiMenuGroup label="shortcuts-dialog.collaboration" id="collaboration">

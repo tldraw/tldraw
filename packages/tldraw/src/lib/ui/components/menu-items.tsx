@@ -635,6 +635,23 @@ export function ToggleReduceMotionItem() {
 }
 
 /** @public @react */
+export function ToggleKeyboardShortcutsItem() {
+	const editor = useEditor()
+	const keyboardShortcuts = useValue(
+		'keyboardShortcuts',
+		() => editor.user.getAreKeyboardShortcutsEnabled(),
+		[editor]
+	)
+
+	return (
+		<TldrawUiMenuActionCheckboxItem
+			actionId="toggle-keyboard-shortcuts"
+			checked={keyboardShortcuts}
+		/>
+	)
+}
+
+/** @public @react */
 export function ToggleDebugModeItem() {
 	const editor = useEditor()
 	const isDebugMode = useValue('isDebugMode', () => editor.getInstanceState().isDebugMode, [editor])
