@@ -183,7 +183,7 @@ for (const select of selects) {
 	mainSelects.push(selectString)
 }
 
-const mainSelect = `${mainSelects.join('\nUNION\n')}`
+const mainSelect = `${mainSelects.join('\nUNION ALL\n')}`
 const fetchEverythingSql = `${withClause}\n${mainSelect}`.trim()
 
 function escapeForTemplateLiteral(str: string) {

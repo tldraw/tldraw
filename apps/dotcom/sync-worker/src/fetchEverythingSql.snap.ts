@@ -39,7 +39,7 @@ SELECT
   "name"::text as "21"
 FROM public."user"
 WHERE "id" = $1
-UNION
+UNION ALL
 SELECT
   'file_state' as "table",
   "isFileOwner"::boolean as "0",
@@ -65,7 +65,7 @@ SELECT
   null::text as "20",
   null::text as "21"
 FROM my_file_states
-UNION
+UNION ALL
 SELECT
   'file' as "table",
   "isDeleted"::boolean as "0",
@@ -91,7 +91,7 @@ SELECT
   "sharedLinkType"::text as "20",
   "thumbnail"::text as "21"
 FROM all_files
-UNION
+UNION ALL
 SELECT
   'group_file' as "table",
   null::boolean as "0",
@@ -117,7 +117,7 @@ SELECT
   null::text as "20",
   null::text as "21"
 FROM group_file_ownership
-UNION
+UNION ALL
 SELECT
   'group' as "table",
   "isDeleted"::boolean as "0",
@@ -143,7 +143,7 @@ SELECT
   null::text as "20",
   null::text as "21"
 FROM my_groups
-UNION
+UNION ALL
 SELECT
   'group_user' as "table",
   null::boolean as "0",
@@ -169,7 +169,7 @@ SELECT
   null::text as "20",
   null::text as "21"
 FROM all_group_users
-UNION
+UNION ALL
 SELECT
   'user_presence' as "table",
   null::boolean as "0",
@@ -195,7 +195,7 @@ SELECT
   null::text as "20",
   null::text as "21"
 FROM all_presences
-UNION
+UNION ALL
 SELECT
   'user_mutation_number' as "table",
   null::boolean as "0",
@@ -222,7 +222,7 @@ SELECT
   null::text as "21"
 FROM public."user_mutation_number"
 WHERE "userId" = $1
-UNION
+UNION ALL
 SELECT
   'lsn' as "table",
   null::boolean as "0",
