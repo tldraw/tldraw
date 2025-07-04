@@ -38,7 +38,7 @@ function buildDeveloperMessage(prompt: TLAiSerializedPrompt) {
 
 	developerMessage.content.push({
 		type: 'text',
-		text: `The user\'s current viewport is: { x: ${prompt.promptBounds.x}, y: ${prompt.promptBounds.y}, width: ${prompt.promptBounds.w}, height: ${prompt.promptBounds.h} }`,
+		text: `The user's current viewport is: { x: ${prompt.promptBounds.x}, y: ${prompt.promptBounds.y}, width: ${prompt.promptBounds.w}, height: ${prompt.promptBounds.h} }`,
 	})
 
 	if (prompt.canvasContent) {

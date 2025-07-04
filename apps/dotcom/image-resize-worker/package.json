@@ -24,9 +24,9 @@
 		"react-dom": "^18.3.1"
 	},
 	"devDependencies": {
-		"@cloudflare/workers-types": "^4.20250510.0",
+		"@cloudflare/workers-types": "^4.20250703.0",
 		"lazyrepo": "0.0.0-alpha.27",
-		"wrangler": "^4.14.4"
+		"wrangler": "^4.23.0"
 	},
 	"jest": {
 		"preset": "../../../internal/config/jest/node/jest-preset.js",
