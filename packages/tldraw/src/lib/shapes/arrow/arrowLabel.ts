@@ -218,9 +218,8 @@ interface ArrowheadInfo {
 	hasStartArrowhead: boolean
 	hasEndArrowhead: boolean
 }
-export function getArrowLabelPosition(editor: Editor, shape: TLArrowShape) {
+export function getArrowLabelPosition(editor: Editor, shape: TLArrowShape, info: TLArrowInfo) {
 	const debugGeom: Geometry2d[] = []
-	const info = getArrowInfo(editor, shape)!
 
 	const arrowheadInfo: ArrowheadInfo = {
 		hasStartBinding: !!info.bindings.start,

@@ -1,4 +1,4 @@
-import { createBindingId, createShapeId } from '@tldraw/editor'
+import { createBindingId, createShapeId, TLArrowShape } from '@tldraw/editor'
 import { getArrowBindings } from '../../lib/shapes/arrow/shared'
 import { TestEditor } from '../TestEditor'
 
@@ -106,7 +106,7 @@ describe('Editor.deleteShapes', () => {
 
 describe('When deleting arrows', () => {
 	function bindings() {
-		return getArrowBindings(editor, editor.getShape(ids.arrow1)!)
+		return getArrowBindings(editor, editor.getShape<TLArrowShape>(ids.arrow1)!)
 	}
 	it('Restores any bindings on undo', () => {
 		editor.select(ids.arrow1)

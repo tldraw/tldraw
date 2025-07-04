@@ -38,7 +38,6 @@ import {
 	maybeSnapToGrid,
 	structuredClone,
 	toDomPrecision,
-	track,
 	useEditor,
 	useIsEditing,
 	useSharedSafeId,
@@ -205,7 +204,7 @@ export class ArrowShapeUtil extends ShapeUtil<TLArrowShape> {
 
 		let labelGeom
 		if (isEditing || shape.props.text.trim()) {
-			const labelPosition = getArrowLabelPosition(this.editor, shape)
+			const labelPosition = getArrowLabelPosition(this.editor, shape, info)
 			if (debugFlags.debugGeometry.get()) {
 				debugGeom.push(...labelPosition.debugGeom)
 			}
@@ -754,7 +753,7 @@ export class ArrowShapeUtil extends ShapeUtil<TLArrowShape> {
 		const info = getArrowInfo(this.editor, shape)
 		if (!info?.isValid) return null
 
-		const labelPosition = getArrowLabelPosition(this.editor, shape)
+		const labelPosition = getArrowLabelPosition(this.editor, shape, info)
 		const isSelected = shape.id === this.editor.getOnlySelectedShapeId()
 		const isEditing = this.editor.getEditingShapeId() === shape.id
 		const showArrowLabel = isEditing || shape.props.text
@@ -940,6 +939,8 @@ export class ArrowShapeUtil extends ShapeUtil<TLArrowShape> {
 		ctx.addExportDef(getFillDefForExport(shape.props.fill))
 		const theme = getDefaultColorTheme(ctx)
 		const scaleFactor = 1 / shape.props.scale
+		const info = getArrowInfo(this.editor, shape)
+		if (!info) return null
 
 		return (
 			<g transform={`scale(${scaleFactor})`}>
@@ -951,7 +952,7 @@ export class ArrowShapeUtil extends ShapeUtil<TLArrowShape> {
 					verticalAlign="middle"
 					text={shape.props.text}
 					labelColor={theme[shape.props.labelColor].solid}
-					bounds={getArrowLabelPosition(this.editor, shape)
+					bounds={getArrowLabelPosition(this.editor, shape, info)
 						.box.clone()
 						.expandBy(-ARROW_LABEL_PADDING * shape.props.scale)}
 					padding={0}
@@ -1006,7 +1007,7 @@ export function getArrowLength(editor: Editor, shape: TLArrowShape): number {
 			: info.route.distance
 }
 
-const ArrowSvg = track(function ArrowSvg({
+function ArrowSvg({
 	shape,
 	shouldDisplayHandles,
 }: {
@@ -1015,25 +1016,40 @@ const ArrowSvg = track(function ArrowSvg({
 }) {
 	const editor = useEditor()
 	const theme = useDefaultColorTheme()
-	const info = getArrowInfo(editor, shape)
-	const isForceSolid = useValue(
-		'force solid',
+
+	const { info, labelPosition } = useValue(
+		'arrow info and label position',
 		() => {
-			return editor.getZoomLevel() < 0.2
+			const info = getArrowInfo(editor, shape.id)
+			return {
+				info,
+				bindings: getArrowBindings(editor, shape.id),
+				labelPosition: getArrowLabelPosition(editor, editor.getShape(shape.id)!, info!),
+			}
 		},
-		[editor]
+		[editor, shape.id]
 	)
+
+	const geometry = useValue('geometry', () => editor.getShapeGeometry(shape.id), [editor, shape.id])
+	const bindings = useValue('bindings', () => getArrowBindings(editor, shape.id), [
+		editor,
+		shape.id,
+	])
+
+	const zoomLevel = useValue('zoom level', () => editor.getZoomLevel(), [editor])
+
 	const clipPathId = useSharedSafeId(shape.id + '_clip')
 	const arrowheadDotId = useSharedSafeId('arrowhead-dot')
 	const arrowheadCrossId = useSharedSafeId('arrowhead-cross')
 	const isEditing = useIsEditing(shape.id)
-	const geometry = editor.getShapeGeometry(shape)
+
 	if (!geometry) return null
+
 	const bounds = Box.ZeroFix(geometry.bounds)
-	const bindings = getArrowBindings(editor, shape)
 
 	if (!info?.isValid) return null
 
+	const isForceSolid = zoomLevel < 0.2
 	const strokeWidth = STROKE_SIZES[shape.props.size] * shape.props.scale
 
 	const as = info.start.arrowhead && getArrowheadPathForType(info, 'start', strokeWidth)
@@ -1047,7 +1063,7 @@ const ArrowSvg = track(function ArrowSvg({
 			start: 'skip',
 			end: 'skip',
 			lengthRatio: 2.5,
-			strokeWidth: 2 / editor.getZoomLevel(),
+			strokeWidth: 2 / zoomLevel,
 			props: {
 				className: 'tl-arrow-hint',
 				markerStart: bindings.start
@@ -1068,8 +1084,6 @@ const ArrowSvg = track(function ArrowSvg({
 			},
 		})
 	}
-
-	const labelPosition = getArrowLabelPosition(editor, shape)
 
 	const clipStartArrowhead = !(info.start.arrowhead === 'none' || info.start.arrowhead === 'arrow')
 	const clipEndArrowhead = !(info.end.arrowhead === 'none' || info.end.arrowhead === 'arrow')
@@ -1141,7 +1155,7 @@ const ArrowSvg = track(function ArrowSvg({
 			</g>
 		</>
 	)
-})
+}
 
 function ArrowClipPath({
 	radius,

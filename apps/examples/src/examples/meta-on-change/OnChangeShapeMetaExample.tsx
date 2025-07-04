@@ -1,4 +1,4 @@
-import { TLShape, Tldraw, track, useEditor } from 'tldraw'
+import { TLShape, Tldraw, useEditor, useValue } from 'tldraw'
 import 'tldraw/tldraw.css'
 
 // There's a guide at the bottom of this file!
@@ -39,9 +39,13 @@ export default function OnChangeShapeMetaExample() {
 type ShapeWithMyMeta = TLShape & { meta: { updatedBy: string; updatedAt: string } }
 
 // [4]
-export const MetaUiHelper = track(function MetaUiHelper() {
+export function MetaUiHelper() {
 	const editor = useEditor()
-	const onlySelectedShape = editor.getOnlySelectedShape() as ShapeWithMyMeta | null
+	const onlySelectedShape = useValue(
+		'only selected shape',
+		() => editor.getOnlySelectedShape() as ShapeWithMyMeta | null,
+		[editor]
+	)
 
 	return (
 		<pre style={{ position: 'absolute', zIndex: 300, top: 64, left: 12, margin: 0 }}>
@@ -50,7 +54,7 @@ export const MetaUiHelper = track(function MetaUiHelper() {
 				: 'Select one shape to see its meta data.'}
 		</pre>
 	)
-})
+}
 
 /* 
 This example shows how to add meta data to shapes when they are created and

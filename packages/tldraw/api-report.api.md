@@ -326,7 +326,7 @@ export class ArrowShapeUtil extends ShapeUtil<TLArrowShape> {
     // (undocumented)
     static props: RecordProps<TLArrowShape>;
     // (undocumented)
-    toSvg(shape: TLArrowShape, ctx: SvgExportContext): JSX_2.Element;
+    toSvg(shape: TLArrowShape, ctx: SvgExportContext): JSX_2.Element | null;
     // (undocumented)
     static type: "arrow";
 }
@@ -1670,7 +1670,7 @@ export class GeoShapeUtil extends BaseBoxShapeUtil<TLGeoShape> {
 export function GeoStylePickerSet({ styles }: StylePickerSetProps): JSX_2.Element | null;
 
 // @public (undocumented)
-export function getArrowBindings(editor: Editor, shape: TLArrowShape): TLArrowBindings;
+export function getArrowBindings(editor: Editor, shape: TLArrowShape | TLShapeId): TLArrowBindings;
 
 // @public (undocumented)
 export function getArrowInfo(editor: Editor, shape: TLArrowShape | TLShapeId): TLArrowInfo | undefined;

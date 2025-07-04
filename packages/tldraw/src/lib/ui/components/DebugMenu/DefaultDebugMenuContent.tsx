@@ -6,7 +6,6 @@ import {
 	debugFlags,
 	featureFlags,
 	hardResetEditor,
-	track,
 	uniqueId,
 	useEditor,
 } from '@tldraw/editor'
@@ -250,7 +249,7 @@ export function ExampleDialog({
 	)
 }
 
-const DebugFlagToggle = track(function DebugFlagToggle({
+function DebugFlagToggle({
 	flag,
 	onChange,
 }: {
@@ -272,7 +271,7 @@ const DebugFlagToggle = track(function DebugFlagToggle({
 			}}
 		/>
 	)
-})
+}
 
 let t = 0
 
