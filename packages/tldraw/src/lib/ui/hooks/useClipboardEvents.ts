@@ -355,7 +355,12 @@ async function handleClipboardThings(editor: Editor, things: ClipboardThing[], p
 									// First try parsing as plain JSON (version 2 format)
 									let json
 									try {
-										json = JSON.parse(tldrawHtmlComment)
+										json = JSON.parse(
+											tldrawHtmlComment
+												.replace(/&gt;/g, '>')
+												.replace(/&lt;/g, '<')
+												.replace(/&amp;/g, '&')
+										)
 									} catch {
 										// Fall back to LZ decompression (legacy format)
 										const jsonComment = lz.decompressFromBase64(tldrawHtmlComment)
