@@ -8,6 +8,39 @@
 
 This library provides the core of tldraw's reactivity system. Its sister library, **tldraw state-react**, provides bindings for [React](https://react.dev/).
 
+### Installation
+
+```bash
+npm install @tldraw/state
+```
+
+### TypeScript
+
+**tldraw state** is written in TypeScript and provides excellent type safety out of the box. No additional types package needed.
+
+### Quick Example
+
+Here's a simple example to show how tldraw state works:
+
+```ts
+import { atom, computed, react } from '@tldraw/state'
+
+// Create some state
+const name = atom('name', 'World')
+const greeting = computed('greeting', () => `Hello, ${name.get()}!`)
+
+// React to changes
+react('update page title', () => {
+	window.alert(greeting.get())
+})
+
+// Update the state
+name.set('tldraw state')
+// Page title automatically updates to "Hello, tldraw state!"
+```
+
+In just a few lines, you've created reactive state that automatically alerts the user when it changes.
+
 ## 2. Signals
 
 A **signal** is a reactive container for a value that can change over time.
@@ -363,7 +396,7 @@ class Counter {
 
 	@computed({ isEqual: (a, b) => a === b })
 	get remaining() {
-		return this.max - this.count.value
+		return this.max - this.count.get()
 	}
 }
 ```
@@ -379,7 +412,7 @@ const count = atom('count', 0)
 const double = computed(
 	'double',
 	(prevValue) => {
-		return count.value * 2
+		return count.get() * 2
 	},
 	{ computeDiff: (a, b) => b - a }
 )
@@ -390,7 +423,7 @@ You can use the `withDiff` helper to wrap the return value of a computed signal 
 ```ts
 const count = atom('count', 0)
 const double = computed('double', (prevValue) => {
-	const nextValue = count.value * 2
+	const nextValue = count.get() * 2
 	if (isUninitialized(prevValue)) {
 		return nextValue
 	}
