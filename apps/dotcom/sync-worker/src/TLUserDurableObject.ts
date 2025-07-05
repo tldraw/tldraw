@@ -1,8 +1,8 @@
+// eslint-disable @typescript-eslint/no-deprecated
 import { CustomMutatorImpl } from '@rocicorp/zero'
-import type { SchemaCRUD, SchemaQuery } from '@rocicorp/zero/out/zql/src/mutate/custom'
+import { SchemaCRUD, SchemaQuery } from '@rocicorp/zero/out/zql/src/mutate/custom'
 import {
 	DB,
-	MIN_Z_PROTOCOL_VERSION,
 	TlaFile,
 	TlaSchema,
 	ZClientSentMessage,
@@ -12,15 +12,14 @@ import {
 	downgradeZStoreData,
 	schema,
 } from '@tldraw/dotcom-shared'
-import { TLSyncErrorCloseEventCode, TLSyncErrorCloseEventReason } from '@tldraw/sync-core'
 import { ExecutionQueue, assert, assertExists, mapObjectMapValues, sleep } from '@tldraw/utils'
 import { createSentry } from '@tldraw/worker-shared'
 import { DurableObject } from 'cloudflare:workers'
 import { IRequest, Router } from 'itty-router'
-import { Kysely, PostgresDialect, Transaction, sql } from 'kysely'
-import { Pool, PoolClient } from 'pg'
+import { Kysely, PostgresDialect, PostgresPoolClient, Transaction, sql } from 'kysely'
 import { Logger } from './Logger'
 import { UserDataSyncer, ZReplicationEvent } from './UserDataSyncer'
+import { TLPostgresPool } from './postgres'
 import { Analytics, Environment, TLUserDurableObjectEvent, getUserDoSnapshotKey } from './types'
 import { EventData, writeDataPoint } from './utils/analytics'
 import { getRoomDurableObject } from './utils/durableObjects'
@@ -31,16 +30,24 @@ import { ServerQuery } from './zero/ServerQuery'
 import { ZMutationError } from './zero/ZMutationError'
 import { legacy_assertValidMutation } from './zero/legacy_assertValidMutation'
 
+interface SocketMetadata {
+	version: number
+	protocolVersion: number
+	sessionId: string
+	userId: string
+}
+
+const SOCKET_METADATA_VERSION = 1
+
 export class TLUserDurableObject extends DurableObject<Environment> {
 	private readonly db: Kysely<DB>
 	private measure: Analytics | undefined
 
 	private readonly sentry
-	private captureException(exception: unknown, extras?: Record<string, unknown>) {
-		// eslint-disable-next-line @typescript-eslint/no-deprecated
+	// eslint-disable-next-line local/prefer-class-methods
+	private captureException = (exception: unknown, extras?: Record<string, unknown>) => {
 		this.sentry?.withScope((scope) => {
 			if (extras) scope.setExtras(extras)
-			// eslint-disable-next-line @typescript-eslint/no-deprecated
 			this.sentry?.captureException(exception) as any
 		})
 		if (!this.sentry) {
@@ -57,12 +64,8 @@ export class TLUserDurableObject extends DurableObject<Environment> {
 
 		this.sentry = createSentry(ctx, env)
 
-		this.pool = new Pool({
-			connectionString: env.BOTCOM_POSTGRES_POOLED_CONNECTION_STRING,
-			application_name: 'user-do',
-			idleTimeoutMillis: 3_000,
-			max: 1,
-		})
+		this.log = new Logger(env, 'TLUserDurableObject', this.sentry)
+		this.pool = new TLPostgresPool(env, this.log)
 
 		this.db = new Kysely<DB>({
 			dialect: new PostgresDialect({ pool: this.pool }),
@@ -71,7 +74,7 @@ export class TLUserDurableObject extends DurableObject<Environment> {
 		this.measure = env.MEASURE
 
 		// debug logging in preview envs by default
-		this.log = new Logger(env, 'TLUserDurableObject', this.sentry)
+		this.log.debug('TLUserDurableObject constructor', this.ctx.getWebSockets().length)
 	}
 
 	private userId: string | null = null
@@ -82,25 +85,15 @@ export class TLUserDurableObject extends DurableObject<Environment> {
 			if (!this.userId) {
 				this.userId = req.params.userId
 			}
-			const rateLimited = await isRateLimited(this.env, this.userId!)
+
+			const rateLimited = await isRateLimited(this.env, this.userId)
 			if (rateLimited) {
 				this.log.debug('rate limited')
 				this.logEvent({ type: 'rate_limited', id: this.userId })
 				throw new Error('Rate limited')
 			}
-			if (!this.cache) {
-				this.coldStartStartTime = Date.now()
-				this.log.debug('creating cache', this.userId)
-				this.cache = new UserDataSyncer(
-					this.ctx,
-					this.env,
-					this.db,
-					this.userId,
-					(message) => this.broadcast(message),
-					this.logEvent.bind(this),
-					this.log
-				)
-			}
+
+			await this.ensureCache()
 		})
 		.get(`/app/:userId/connect`, (req) => this.onRequest(req))
 
@@ -113,7 +106,6 @@ export class TLUserDurableObject extends DurableObject<Environment> {
 			return await this.router.fetch(req)
 		} catch (err) {
 			if (sentry) {
-				// eslint-disable-next-line @typescript-eslint/no-deprecated
 				sentry?.captureException(err)
 			} else {
 				console.error(err)
@@ -125,37 +117,50 @@ export class TLUserDurableObject extends DurableObject<Environment> {
 		}
 	}
 
-	private assertCache(): asserts this is { cache: UserDataSyncer } {
-		assert(this.cache, 'no cache')
+	private async ensureCache(): Promise<void> {
+		if (this.cache) return
+
+		// This could be called from hibernation wake-up, so we need to ensure userId is set
+		if (!this.userId) {
+			// Try to get userId from any connected hibernated socket metadata
+			const hibernatedSockets = this.ctx.getWebSockets()
+			for (const socket of hibernatedSockets) {
+				const metadata = this.deserializeSocketMetadata(socket)
+				if (metadata?.userId) {
+					this.userId = metadata.userId
+					this.log.debug('hibernation: restored userId from socket metadata', this.userId)
+					break
+				}
+			}
+
+			// If we still don't have userId, we can't proceed
+			if (!this.userId) {
+				throw new Error('Cannot initialize cache: userId not available during hibernation wake-up')
+			}
+		}
+
+		this.coldStartStartTime = Date.now()
+		this.log.debug('hibernation: creating cache during wake-up', this.userId)
+		this.cache = new UserDataSyncer(
+			this.ctx,
+			this.env,
+			this.db,
+			this.userId,
+			(message) => this.broadcast(message),
+			this.logEvent.bind(this),
+			this.log
+		)
+	}
+
+	private async assertCache(): Promise<void> {
+		await this.ensureCache()
+		assert(this.cache, 'cache should exist after ensureCache')
 	}
 
 	interval: NodeJS.Timeout | null = null
 
-	private maybeStartInterval() {
-		if (!this.interval) {
-			this.interval = setInterval(() => {
-				// do cache persist + cleanup
-				this.cache?.onInterval()
-
-				// clean up closed sockets if there are any
-				for (const socket of this.sockets.keys()) {
-					if (socket.readyState === WebSocket.CLOSED || socket.readyState === WebSocket.CLOSING) {
-						this.sockets.delete(socket)
-					}
-				}
-
-				if (this.sockets.size === 0 && typeof this.interval === 'number') {
-					clearInterval(this.interval)
-					this.interval = null
-				}
-			}, 2000)
-		}
-	}
-
-	private readonly sockets = new Map<WebSocket, { protocolVersion: number; sessionId: string }>()
-
 	private makeCrud(
-		client: PoolClient,
+		client: PostgresPoolClient,
 		signal: AbortSignal,
 		perfHackHooks: PerfHackHooks
 	): SchemaCRUD<TlaSchema> {
@@ -165,7 +170,7 @@ export class TLUserDurableObject extends DurableObject<Environment> {
 		)
 	}
 
-	private makeQuery(client: PoolClient, signal: AbortSignal): SchemaQuery<TlaSchema> {
+	private makeQuery(client: PostgresPoolClient, signal: AbortSignal): SchemaQuery<TlaSchema> {
 		return mapObjectMapValues(
 			schema.tables,
 			(tableName) => new ServerQuery(signal, client, true, tableName) as any
@@ -185,14 +190,28 @@ export class TLUserDurableObject extends DurableObject<Environment> {
 		this.outgoingBuffer = null
 		if (!buffer) return
 
-		for (const [socket, socketMeta] of this.sockets.entries()) {
+		// Use ctx.getWebSockets() for hibernation-compatible socket access
+		const hibernatedSockets = this.ctx.getWebSockets()
+
+		for (const socket of hibernatedSockets) {
 			if (socket.readyState === WebSocket.CLOSED || socket.readyState === WebSocket.CLOSING) {
-				this.sockets.delete(socket)
 				continue
 			}
 			if (socket.readyState !== WebSocket.OPEN) {
 				continue
 			}
+
+			// Get socket metadata from hibernation attachment
+			const socketMeta = socket.deserializeAttachment() as SocketMetadata
+			if (!socketMeta) {
+				this.captureException(new Error('Socket metadata not found'), {
+					source: 'flushBuffer',
+					userId: this.userId,
+					socketReadyState: socket.readyState,
+				})
+				continue
+			}
+
 			// maybe downgrade the data for the client
 			if (socketMeta.protocolVersion === 1) {
 				for (let msg of buffer) {
@@ -224,50 +243,37 @@ export class TLUserDurableObject extends DurableObject<Environment> {
 	}
 	private readonly messageQueue = new ExecutionQueue()
 
-	async onRequest(req: IRequest) {
-		assert(this.userId, 'User ID not set')
-		// handle legacy param names
-
+	async onRequest(req: IRequest): Promise<Response> {
 		const url = new URL(req.url)
-		const params = Object.fromEntries(url.searchParams.entries())
-		const { sessionId } = params
-
-		const protocolVersion = params.protocolVersion ? Number(params.protocolVersion) : 1
-
-		assert(sessionId, 'Session ID is required')
+		const params = Object.fromEntries(url.searchParams)
+		const protocolVersion = parseInt(params.protocolVersion)
 		assert(Number.isFinite(protocolVersion), `Invalid protocol version ${params.protocolVersion}`)
 
-		this.assertCache()
+		// Get sessionId from query params - it's required
+		const sessionId = params.sessionId
+		assert(sessionId, 'sessionId is required')
+
+		await this.assertCache()
+		assert(this.cache, 'cache should exist after assertCache')
+		assert(this.userId, 'userId should be set after cache initialization')
 
 		// Create the websocket pair for the client
 		const { 0: clientWebSocket, 1: serverWebSocket } = new WebSocketPair()
-		serverWebSocket.accept()
 
-		if (protocolVersion < MIN_Z_PROTOCOL_VERSION || this.__test__isForceDowngraded) {
-			serverWebSocket.close(TLSyncErrorCloseEventCode, TLSyncErrorCloseEventReason.CLIENT_TOO_OLD)
-			return new Response(null, { status: 101, webSocket: clientWebSocket })
-		}
+		// Use hibernation API instead of legacy WebSocket API
+		this.ctx.acceptWebSocket(serverWebSocket)
 
-		serverWebSocket.addEventListener('message', (e) =>
-			this.messageQueue.push(() =>
-				this.handleSocketMessage(serverWebSocket, e.data.toString()).catch((e) =>
-					this.captureException(e, { source: 'serverWebSocket "message" event' })
-				)
-			)
-		)
-		serverWebSocket.addEventListener('close', () => {
-			this.sockets.delete(serverWebSocket)
-		})
-		serverWebSocket.addEventListener('error', (e) => {
-			this.captureException(e, { source: 'serverWebSocket "error" event' })
-			this.sockets.delete(serverWebSocket)
-		})
-
-		this.sockets.set(serverWebSocket, {
+		// Set up socket metadata for hibernation with versioning
+		const metadata: SocketMetadata = {
+			version: SOCKET_METADATA_VERSION,
 			protocolVersion,
 			sessionId,
-		})
-		this.maybeStartInterval()
+			userId: this.userId,
+		}
+		serverWebSocket.serializeAttachment(metadata)
+
+		// Start LSN update alarm if this is the first socket
+		await this.maybeStartLsnUpdateAlarm()
 
 		const initialData = this.cache.store.getCommittedData()
 		if (initialData) {
@@ -292,9 +298,49 @@ export class TLUserDurableObject extends DurableObject<Environment> {
 		return new Response(null, { status: 101, webSocket: clientWebSocket })
 	}
 
+	// Hibernation handler for incoming WebSocket messages
+	override async webSocketMessage(ws: WebSocket, message: string | ArrayBuffer) {
+		await this.assertCache()
+		// Handle both string and ArrayBuffer message types
+		const messageString = typeof message === 'string' ? message : new TextDecoder().decode(message)
+
+		await this.messageQueue.push(() =>
+			this.handleSocketMessage(ws, messageString).catch((e) =>
+				this.captureException(e, { source: 'hibernation webSocketMessage handler' })
+			)
+		)
+	}
+
+	// Hibernation handler for WebSocket close events
+	override async webSocketClose(ws: WebSocket, code: number, reason: string, wasClean: boolean) {
+		this.log.debug('hibernation: webSocketClose', this.userId, {
+			code,
+			reason,
+			wasClean,
+			meta: ws.deserializeAttachment(),
+		})
+	}
+
+	// Hibernation handler for WebSocket errors
+	override async webSocketError(_ws: WebSocket, error: unknown) {
+		this.log.debug('hibernation: webSocketError', this.userId, error)
+		this.captureException(error, { source: 'hibernation webSocketError handler' })
+		// No need to manually clean up - hibernation handles socket lifecycle
+	}
+
 	private async handleSocketMessage(socket: WebSocket, message: string) {
 		const rateLimited = await isRateLimited(this.env, this.userId!)
-		this.assertCache()
+		await this.assertCache() // Now async and hibernation-aware
+
+		// Log hibernation wake-up and metadata restoration
+		const socketMeta = this.deserializeSocketMetadata(socket)
+		if (socketMeta) {
+			this.log.debug('hibernation: handling message with restored metadata', this.userId, {
+				sessionId: socketMeta.sessionId,
+				protocolVersion: socketMeta.protocolVersion,
+				metadataVersion: socketMeta.version,
+			})
+		}
 
 		const msg = JSON.parse(message) as any as ZClientSentMessage
 		switch (msg.type) {
@@ -330,8 +376,13 @@ export class TLUserDurableObject extends DurableObject<Environment> {
 	}
 
 	private async rejectMutation(socket: WebSocket, mutationId: string, errorCode: ZErrorCode) {
-		this.assertCache()
-		const socketMeta = assertExists(this.sockets.get(socket), 'Socket not found')
+		await this.assertCache()
+		assert(this.cache, 'cache should exist after assertCache')
+
+		const socketMeta = assertExists(
+			socket.deserializeAttachment(),
+			'Socket metadata not found'
+		) as SocketMetadata
 		this.logEvent({ type: 'reject_mutation', id: this.userId! })
 		this.cache.store.rejectMutation(mutationId)
 		this.cache.mutations = this.cache.mutations.filter((m) => m.mutationId !== mutationId)
@@ -345,16 +396,18 @@ export class TLUserDurableObject extends DurableObject<Environment> {
 		socket?.send(JSON.stringify(socketMeta.protocolVersion === 1 ? msg : [msg]))
 	}
 
-	private pool: Pool
+	private pool: TLPostgresPool
 
 	private async _doMutate(msg: ZClientSentMessage) {
-		this.assertCache()
+		await this.assertCache()
+		assert(this.cache, 'cache should exist after assertCache')
+
 		const client = await this.pool.connect()
 
 		try {
 			const newFiles = [] as TlaFile[]
 
-			await client.query('BEGIN')
+			await client.query('BEGIN', [])
 
 			const controller = new AbortController()
 			const mutate = this.makeCrud(client, controller.signal, { newFiles })
@@ -414,17 +467,22 @@ export class TLUserDurableObject extends DurableObject<Environment> {
 				timestamp: Date.now(),
 			})
 
-			await client.query('COMMIT')
+			await client.query('COMMIT', [])
+
+			// Check mutation status after 5 seconds
+			setTimeout(() => {
+				this.cache?.checkMutationDidCommit(msg.mutationId).catch(this.captureException)
+			}, 5000)
 
 			for (const file of newFiles) {
 				if (file.ownerId !== this.userId) {
-					this.cache?.addGuestFile(file)
+					this.cache.addGuestFile(file)
 				} else {
 					getRoomDurableObject(this.env, file.id).appFileRecordCreated(file)
 				}
 			}
 		} catch (e) {
-			await client.query('ROLLBACK')
+			await client.query('ROLLBACK', [])
 			throw e
 		} finally {
 			client.release()
@@ -432,7 +490,9 @@ export class TLUserDurableObject extends DurableObject<Environment> {
 	}
 
 	private async handleMutate(socket: WebSocket, msg: ZClientSentMessage) {
-		this.assertCache()
+		await this.assertCache()
+		assert(this.cache, 'cache should exist after assertCache')
+
 		while (!this.cache.store.getCommittedData()) {
 			// this could happen if the cache was cleared due to a full db reboot
 			await sleep(100)
@@ -514,7 +574,7 @@ export class TLUserDurableObject extends DurableObject<Environment> {
 			return
 		}
 		this.__test__isForceDowngraded = isDowngraded
-		for (const socket of this.sockets.keys()) {
+		for (const socket of this.ctx.getWebSockets()) {
 			socket.close()
 		}
 	}
@@ -543,5 +603,47 @@ export class TLUserDurableObject extends DurableObject<Environment> {
 			await sleep(100)
 		}
 		return cache.store.getCommittedData()
+	}
+
+	private deserializeSocketMetadata(socket: WebSocket): SocketMetadata | null {
+		const metadata = socket.deserializeAttachment() as SocketMetadata
+		if (metadata && metadata.version === SOCKET_METADATA_VERSION) {
+			return metadata
+		}
+		return null
+	}
+
+	// Durable Object alarm handler for periodic LSN updates
+	override async alarm() {
+		try {
+			const hibernatedSockets = this.ctx.getWebSockets()
+
+			if (hibernatedSockets.length === 0) {
+				this.log.debug('hibernation: stopping LSN update alarm - no active sockets')
+				return
+			}
+
+			await this.ensureCache()
+			if (this.cache) {
+				this.log.debug('hibernation: running scheduled LSN update')
+				this.cache.maybeRequestLsnUpdate()
+			}
+
+			// Schedule next alarm in 10 minutes
+			await this.maybeStartLsnUpdateAlarm()
+		} catch (e) {
+			this.captureException(e, { source: 'alarm handler' })
+		}
+	}
+
+	private async maybeStartLsnUpdateAlarm() {
+		const hibernatedSockets = this.ctx.getWebSockets()
+
+		if (hibernatedSockets.length > 0) {
+			// Schedule alarm for 10 minutes from now
+			const alarmTime = Date.now() + 10 * 60 * 1000 // 10 minutes
+			await this.ctx.storage.setAlarm(alarmTime)
+			this.log.debug('hibernation: scheduled LSN update alarm', { alarmTime: new Date(alarmTime) })
+		}
 	}
 }
