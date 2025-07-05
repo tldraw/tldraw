@@ -666,6 +666,9 @@ export class Editor extends EventEmitter<TLEventMap> {
 							])
 						}
 					},
+					beforeDelete: (record) => {
+						store.remove(this.getSortedChildIdsForParent(record.id))
+					},
 					afterDelete: (record, source) => {
 						// page was deleted, need to check whether it's the current page and select another one if so
 						if (this.getInstanceState()?.currentPageId === record.id) {
@@ -4408,6 +4411,7 @@ export class Editor extends EventEmitter<TLEventMap> {
 				const next = pages[index - 1] ?? pages[index + 1]
 				this.setCurrentPage(next.id)
 			}
+
 			this.store.remove([deletedPage.id])
 		})
 		return this
