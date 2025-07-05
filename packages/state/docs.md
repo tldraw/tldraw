@@ -23,14 +23,16 @@ Atoms are the foundation of your application's state. They contain "raw" values 
 
 #### Creating Atoms
 
-You create an atom using the atom function. You must give it a name (for debugging) and an initial value.
+You create an atom using the atom function. You must give it a name and an initial value.
 
 ```ts
-import { atom } from '**tldraw state**'
+import { atom } from '@tldraw/state'
 
 const count = atom('count', 0)
 const user = atom('user', { name: 'Alice', age: 30 })
 ```
+
+> Tip: The name is used for debugging purposes, specifically for the `whyAmIRunning` function described later in these docs.
 
 #### Reading an Atom's Value
 
@@ -85,15 +87,15 @@ A Computed is a signal whose value is derived from other signals. You can use co
 
 #### Creating Computeds
 
-You create a computed signal using the `computed` function. It takes a name and a function that calculates its value. Inside this function, you can `.get()` the value of other atoms or computeds.
+You create a computed signal using the `computed` function. It takes a name and a function that calculates its value. Inside this function, you can `.get()` the value of other signals.
 
 ```ts
-import { atom, computed } from '**tldraw state**'
+import { atom, computed } from '@tldraw/state'
 
 const firstName = atom('firstName', 'John')
 const lastName = atom('lastName', 'Doe')
 
-const fullName = computed('fullName', () => {
+const fullName = computed('fullName', (prevValue) => {
 	return `${firstName.get()} ${lastName.get()}`
 })
 
@@ -102,13 +104,29 @@ console.log(fullName.get()) // "John Doe"
 // Now, if we change a dependency...
 firstName.set('Jane')
 
-// ...the computed value automatically updates!
+// ...the computed signal automatically updates!
 console.log(fullName.get()) // "Jane Doe"
 ```
 
-This works through a process called **dependency capture**. When the `fullName` function runs, the library actively "listens" for any calls to `.get()`. Each signal that is "gotten" is automatically registered as a dependency of `fullName`. The list of dependencies is updated every time the function re-runs, so they can even change dynamically.
+Note that computed signals capture both atoms and other computed signals as dependencies. Following the example above, if we create a new computed signal that depends on `fullName`, it will automatically update when `fullName` changes.
 
-> Tip: Computed signals are evaluated **lazily**. The calculation function only runs when you call `.get()` on the computed _and_ one of its captured signal dependencies has changed since the last time it was gotten. If nothing has changed, the computed returns its previous cached value.
+```ts
+const greeting = computed('greeting', (prevValue) => {
+	return `Hello, ${fullName.get()}!`
+})
+
+firstName.set('Sam')
+
+console.log(greeting.get()) // "Hello, Sam Doe!"
+```
+
+#### Dependency Capture
+
+This automatic dependency tracking works through a process called **dependency capture**. When the `fullName` function runs, the library actively "listens" for any calls to `.get()`. Each signal that is "gotten" is automatically registered as a dependency of `fullName`. The list of dependencies is updated every time the function re-runs, so they can even change dynamically.
+
+#### Lazy Evaluation
+
+Computed signals are evaluated **lazily**. The calculation function only runs when you call `.get()` on the computed _and_ one of its captured signal dependencies has changed since the last time it was gotten. If nothing has changed, the computed returns its previous cached value.
 
 #### Using `@computed` as a Decorator
 
@@ -151,7 +169,7 @@ The easiest way to create a side effect is with the `react` function. You give i
 When created, `react` will immediate run your function once. It returns a `stop` function that you can call to tear down the reaction and stop it from listening to changes.
 
 ```ts
-import { atom, react } from '**tldraw state**'
+import { atom, react } from '@tldraw/state'
 
 const color = atom('color', 'red')
 
@@ -178,7 +196,7 @@ color.set('green')
 For more control over the lifecycle of an effect, you can use `reactor`. It's similar to `react` but it doesn't start automatically. Instead, it returns a Reactor object with `.start()` and `.stop()` methods.
 
 ```ts
-import { atom, reactor } from '**tldraw state**'
+import { atom, reactor } from '@tldraw/state'
 
 const name = atom('name', 'world')
 
@@ -234,7 +252,9 @@ transact(() => {
 
 #### Aborting and Rolling Back
 
-The transact callback receives a rollback function. If you call rollback(), or if an error is thrown inside the transaction, all state changes made within it are discarded.
+Transactions may be aborted. Aborting a transaction will restore previous values of all signals modified inside of the transaction.
+
+Rollbacks also occur automatically if an error is thrown inside the transaction.
 
 ```ts
 const name = atom('name', 'Alice')
@@ -242,17 +262,29 @@ const name = atom('name', 'Alice')
 try {
 	transact((rollback) => {
 		name.set('Bob')
-		if (someCondition) {
-			rollback() // Discard the change
-		}
-		throw new Error('Something went wrong') // Also discards the change
+		throw new Error('Something went wrong')
 	})
 } catch (e) {
-	// ...
+	// The transaction was aborted.
 }
 
 console.log(name.get()) // "Alice"
 ```
+
+You can also abort a transaction manually by calling the `rollback` function, which is passed to the transaction callback.
+
+```ts
+const name = atom('name', 'Alice')
+
+transact((rollback) => {
+	name.set('Bob')
+	rollback() // Discard the change
+})
+
+console.log(name.get()) // "Alice"
+```
+
+Aborting a transaction will _only_ restore the values of the signals that were modified inside of the transaction. Other types of data or parts of your application will not be affected.
 
 #### Nested Transactions
 
@@ -299,7 +331,7 @@ The `historyLength` option defines the maximum number of diffs to keep in the hi
 Once history is enabled, you can use `getDiffSince(epoch)` to get an array of diffs that occurred since a specific point in time.
 
 ```ts
-import { getGlobalEpoch } from '**tldraw state**'
+import { getGlobalEpoch } from '@tldraw/state'
 
 const startEpoch = getGlobalEpoch()
 
@@ -371,7 +403,7 @@ const double = computed('double', (prevValue) => {
 Sometimes you need to know if a computed function is running for the very first time. The function is called with the previous value, which will be the special symbol `UNINITIALIZED` on the first run. You can check for this using the `isUninitialized` helper. This is particularly useful for incremental computations.
 
 ```ts
-import { isUninitialized } from '**tldraw state**'
+import { isUninitialized } from '@tldraw/state'
 
 const list = computed('list', (prevValue) => {
 	if (isUninitialized(prevValue)) {
@@ -457,7 +489,7 @@ Because **tldraw state** manages a graph of dependencies, it can sometimes be tr
 If you're ever confused about what caused an effect to run, you can call `whyAmIRunning()` at the beginning of its function. It will log a detailed, hierarchical tree to the console, showing you exactly which atom(s) changed and triggered the update.
 
 ```ts
-import { atom, computed, react, whyAmIRunning } from '**tldraw state**'
+import { atom, computed, react, whyAmIRunning } from '@tldraw/state'
 
 const name = atom('name', 'Bob')
 const age = atom('age', 42)
