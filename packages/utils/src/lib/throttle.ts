@@ -7,8 +7,7 @@ const isTest = () =>
 const fpsQueue: Array<() => void> = []
 const targetFps = 60
 const targetTimePerFrame = Math.ceil(1000 / targetFps)
-let frame: number | undefined
-let time = 0
+let frame = null as null | number
 let last = 0
 
 const flush = () => {
@@ -19,31 +18,25 @@ const flush = () => {
 }
 
 function tick() {
-	if (frame) {
-		return
-	}
+	if (frame) return
+
 	const now = Date.now()
 	const elapsed = now - last
 
-	if (time + elapsed < targetTimePerFrame) {
+	if (elapsed < targetTimePerFrame) {
 		// It's up to the consumer of debounce to call `cancel`
 		// eslint-disable-next-line no-restricted-globals
 		frame = requestAnimationFrame(() => {
-			frame = undefined
+			frame = null
 			tick()
 		})
 		return
 	}
+
 	// It's up to the consumer of debounce to call `cancel`
-	// eslint-disable-next-line no-restricted-globals
-	frame = requestAnimationFrame(() => {
-		frame = undefined
-		last = now
-		// If we fall behind more than 10 frames, we'll just reset the time so we don't try to update a number of times
-		// This can happen if we don't interact with the page for a while
-		time = Math.min(time + elapsed - targetTimePerFrame, targetTimePerFrame * 10)
-		flush()
-	})
+	frame = null
+	last = now
+	flush()
 }
 
 let started = false
@@ -107,6 +100,7 @@ export function throttleToNextFrame(fn: () => void): () => void {
 			// We set last to Date.now() - targetTimePerFrame - 1 so that the first run will happen immediately
 			last = Date.now() - targetTimePerFrame - 1
 		}
+
 		tick()
 	}
 
