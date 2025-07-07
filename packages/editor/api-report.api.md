@@ -2736,6 +2736,8 @@ export abstract class StateNode implements Partial<TLEventHandlers> {
     constructor(editor: Editor, parent?: StateNode);
     addChild(childConstructor: TLStateNodeConstructor): this;
     // (undocumented)
+    addChild(ChildConstructor: TLStateNodeConstructor): this;
+    // (undocumented)
     static children?: () => TLStateNodeConstructor[];
     // (undocumented)
     children?: Record<string, StateNode>;

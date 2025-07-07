@@ -228,7 +228,7 @@ class ValidationError extends Error {
 
 // @public (undocumented)
 export class Validator<T> implements Validatable<T> {
-    constructor(validationFn: ValidatorFn<T>, validateUsingKnownGoodVersionFn?: undefined | ValidatorUsingKnownGoodVersionFn<T>);
+    constructor(validationFn: ValidatorFn<T>, validateUsingKnownGoodVersionFn?: undefined | ValidatorUsingKnownGoodVersionFn<T, T>);
     check(name: string, checkFn: (value: T) => void): Validator<T>;
     // (undocumented)
     check(checkFn: (value: T) => void): Validator<T>;
@@ -240,7 +240,7 @@ export class Validator<T> implements Validatable<T> {
     // (undocumented)
     validateUsingKnownGoodVersion(knownGoodValue: T, newValue: unknown): T;
     // (undocumented)
-    readonly validateUsingKnownGoodVersionFn?: undefined | ValidatorUsingKnownGoodVersionFn<T>;
+    readonly validateUsingKnownGoodVersionFn?: undefined | ValidatorUsingKnownGoodVersionFn<T, T>;
     // (undocumented)
     readonly validationFn: ValidatorFn<T>;
 }
