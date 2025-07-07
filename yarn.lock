@@ -28808,6 +28808,7 @@ __metadata:
     "@types/react": "npm:^18.3.18"
     "@types/react-dom": "npm:^18.3.5"
     "@vitejs/plugin-react-swc": "npm:^3.10.2"
+    classnames: "npm:^2.5.1"
     react: "npm:^18.3.1"
     react-dom: "npm:^18.3.1"
     tldraw: "workspace:*"

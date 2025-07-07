@@ -17,18 +17,44 @@ body {
 	height: 100%;
 	display: flex;
 	flex-direction: column;
+
+	.NodeShape-heading {
+		padding: 8px;
+		border-bottom: 1px solid var(--color-divider);
+		display: flex;
+		align-items: center;
+		justify-content: center;
+		gap: 12px;
+		height: 32px;
+	}
+
+	.NodeShape-label {
+		flex: 1 1 auto;
+		font-weight: 700;
+	}
 }
 
-.NodeShape-label {
-	padding: 12px 18px;
-	border-bottom: 1px solid var(--color-divider);
+.NodeBodyRow {
+	display: flex;
+	flex-direction: row;
+	padding: 8px;
+	gap: 12px;
+	align-items: center;
+	justify-content: center;
+	height: 32px;
+
+	input {
+		flex: 1 1 auto;
+		pointer-events: all;
+		border: none;
+		background: none;
+		font: inherit;
+	}
 }
 
 .Port {
-	position: absolute;
-	top: 10px;
-	width: 20px;
-	height: 20px;
+	width: 12px;
+	height: 12px;
 	border-radius: 50%;
 	background: var(--color-panel);
 	box-sizing: border-box;
@@ -37,12 +63,19 @@ body {
 		0 0 0 1px rgba(0, 0, 0, 0.04),
 		0 1px 3px rgba(0, 0, 0, 0.12);
 	pointer-events: all;
+	flex: 0 0 auto;
 
-	.Port_left {
-		left: -10px;
+	&.Port_hinting {
+		box-shadow:
+			0 0 0 2px var(--color-selected),
+			0 1px 3px rgba(0, 0, 0, 0.12);
 	}
 
-	.Port_right {
-		right: -10px;
+	&.Port_end {
+		margin-left: -14px;
+	}
+
+	&.Port_start {
+		margin-right: -14px;
 	}
 }
