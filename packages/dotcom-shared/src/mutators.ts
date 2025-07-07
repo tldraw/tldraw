@@ -68,8 +68,8 @@ export function createMutators(userId: string) {
 				assert(file.id === fileState.fileId, ZErrorCode.bad_request)
 				assert(fileState.userId === userId, ZErrorCode.forbidden)
 
-				await tx.mutate.file.upsert(file)
-				await tx.mutate.file_state.upsert(fileState)
+				await tx.mutate.file.insert(file)
+				await tx.mutate.file_state.insert(fileState)
 			},
 			deleteOrForget: async (tx, file: TlaFile) => {
 				await tx.mutate.file_state.delete({ fileId: file.id, userId })
@@ -114,6 +114,7 @@ export function createMutators(userId: string) {
 						assert(file?.shared, ZErrorCode.forbidden)
 					}
 				}
+				// use upsert under the hood here for a little fault tolerance
 				await tx.mutate.file_state.upsert(fileState)
 			},
 			update: async (tx, fileState: TlaFileStatePartial) => {
