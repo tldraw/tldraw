@@ -27,7 +27,24 @@ function urlOrLocalFallback(mode: string, url: string | undefined, localFallback
 
 // https://vitejs.dev/config/
 export default defineConfig((env) => ({
-	plugins: [react({ tsDecorators: true })],
+	plugins: [
+		react({
+			tsDecorators: true,
+			useAtYourOwnRisk_mutateSwcOptions(options) {
+				const jsc = (options.jsc ??= {})
+				const experimental = (jsc.experimental ??= {})
+				experimental.plugins ??= []
+				experimental.plugins.push([
+					'@swc/plugin-formatjs',
+					{
+						idInterpolationPattern: '[md5:contenthash:hex:10]',
+						additionalComponentNames: ['F'],
+						ast: true,
+					},
+				])
+			},
+		}),
+	],
 	publicDir: './public',
 	build: {
 		// output source maps to .map files and include //sourceMappingURL comments in JavaScript files
