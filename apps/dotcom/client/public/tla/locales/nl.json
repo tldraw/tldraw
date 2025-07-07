@@ -122,6 +122,9 @@
   "5a95a425f7": {
     "translation": "Deel"
   },
+  "5bcc12ace8": {
+    "translation": "Deze kamer is nu alleen-lezen"
+  },
   "5bec508475": {
     "translation": "Oude browser gedetecteerd. Werk uw browser bij om deze app te gebruiken."
   },
@@ -218,6 +221,9 @@
   "86c66437fd": {
     "translation": "Bestand hernoemen"
   },
+  "8b1946f965": {
+    "translation": "Om door te kunnen gaan met bewerken, kopieer je de kamer naar je bestanden."
+  },
   "8eb2c00e96": {
     "translation": "Gedeeld met jou"
   },
@@ -241,6 +247,9 @@
   },
   "9bef626805": {
     "translation": "Bestand verwijderen"
+  },
+  "9c258b8f88": {
+    "translation": "Deze anonieme tldraw-multiplayerroom is nu alleen-lezen. Om verder te gaan met bewerken, meld je aan en kopieer je de room naar je bestanden."
   },
   "9ceb927baa": {
     "translation": "Publiceer dit bestand"
@@ -327,9 +336,6 @@
   "c87aacf567": {
     "translation": "Afmelden"
   },
-  "cbef7ba103": {
-    "translation": "Deze kamer zal binnenkort alleen-lezen zijn"
-  },
   "cceaefbc20": {
     "translation": "Deel dit bestand"
   },
@@ -368,9 +374,6 @@
   },
   "e78e14c5f1": {
     "translation": "Vastmaken"
-  },
-  "ea2301d01c": {
-    "translation": "Na 1 juli 2025 wordt deze anonieme tldraw-multiplayerruimte alleen-lezen. Om in de toekomst te kunnen blijven bewerken, meld je aan en kopieer je de ruimte naar je bestanden."
   },
   "ea4788705e": {
     "translation": "Annuleren"

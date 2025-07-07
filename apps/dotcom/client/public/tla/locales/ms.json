@@ -122,6 +122,9 @@
   "5a95a425f7": {
     "translation": "Kongsi"
   },
+  "5bcc12ace8": {
+    "translation": "Bilik ini kini dibaca sahaja"
+  },
   "5bec508475": {
     "translation": "Pelayar lama dikesan. Sila kemas kini pelayar anda untuk menggunakan aplikasi ini."
   },
@@ -218,6 +221,9 @@
   "86c66437fd": {
     "translation": "Namakan semula fail"
   },
+  "8b1946f965": {
+    "translation": "Untuk meneruskan pengeditan sila salin bilik ke fail anda."
+  },
   "8eb2c00e96": {
     "translation": "Dikongsi dengan anda"
   },
@@ -241,6 +247,9 @@
   },
   "9bef626805": {
     "translation": "Padam fail"
+  },
+  "9c258b8f88": {
+    "translation": "Bilik berbilang pemain tldraw tanpa nama ini kini dibaca sahaja. Untuk meneruskan pengeditan, sila log masuk dan salin ke fail anda."
   },
   "9ceb927baa": {
     "translation": "Terbitkan fail ini"
@@ -327,9 +336,6 @@
   "c87aacf567": {
     "translation": "Log keluar"
   },
-  "cbef7ba103": {
-    "translation": "Bilik ini akan menjadi baca sahaja tidak lama lagi"
-  },
   "cceaefbc20": {
     "translation": "Kongsi fail ini"
   },
@@ -368,9 +374,6 @@
   },
   "e78e14c5f1": {
     "translation": "Pin"
-  },
-  "ea2301d01c": {
-    "translation": "Selepas 1 Julai 2025, bilik berbilang pemain tldraw tanpa nama ini akan menjadi baca sahaja. Untuk meneruskan pengeditan pada masa hadapan sila log masuk dan salin ke fail anda."
   },
   "ea4788705e": {
     "translation": "Batal"

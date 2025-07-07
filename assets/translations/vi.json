@@ -94,6 +94,7 @@
 	"action.toggle-focus-mode.menu": "Chế độ tập trung",
 	"action.toggle-grid": "Bật/tắt lưới",
 	"action.toggle-grid.menu": "Hiển thị lưới",
+	"action.toggle-keyboard-shortcuts.menu": "Phím tắt bàn phím",
 	"action.toggle-lock": "Khóa/Mở khóa",
 	"action.toggle-paste-at-cursor": "Bật/tắt chế độ dán tại con trỏ",
 	"action.toggle-paste-at-cursor.menu": "Dán tại con trỏ",

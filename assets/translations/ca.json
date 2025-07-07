@@ -94,6 +94,7 @@
 	"action.toggle-focus-mode.menu": "Mode de concentració",
 	"action.toggle-grid": "Commutar quadrícula",
 	"action.toggle-grid.menu": "Mostra la quadrícula",
+	"action.toggle-keyboard-shortcuts.menu": "Dreceres de teclat",
 	"action.toggle-lock": "Bloquejar / Desbloquejar",
 	"action.toggle-paste-at-cursor": "Commuta enganxat al cursor",
 	"action.toggle-paste-at-cursor.menu": "Enganxa al cursor",

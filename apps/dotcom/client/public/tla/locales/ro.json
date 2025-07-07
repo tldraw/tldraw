@@ -122,6 +122,9 @@
   "5a95a425f7": {
     "translation": "Distribuie"
   },
+  "5bcc12ace8": {
+    "translation": "Această cameră este acum doar pentru citire"
+  },
   "5bec508475": {
     "translation": "Browser vechi detectat. Vă rugăm să actualizați browserul pentru a utiliza această aplicație."
   },
@@ -218,6 +221,9 @@
   "86c66437fd": {
     "translation": "Redenumiți fișierul"
   },
+  "8b1946f965": {
+    "translation": "Pentru a continua editarea, vă rugăm să copiați camera în fișierele dvs."
+  },
   "8eb2c00e96": {
     "translation": "Împărtășită cu tine"
   },
@@ -241,6 +247,9 @@
   },
   "9bef626805": {
     "translation": "Ștergeți fișierul"
+  },
+  "9c258b8f88": {
+    "translation": "Această cameră multiplayer anonimă de pe tldraw este acum doar pentru citire. Pentru a continua editarea, vă rugăm să o conectați și să o copiați în fișierele dvs."
   },
   "9ceb927baa": {
     "translation": "Publicați acest fișier"
@@ -327,9 +336,6 @@
   "c87aacf567": {
     "translation": "Sign out"
   },
-  "cbef7ba103": {
-    "translation": "Această cameră va fi în curând doar pentru citire"
-  },
   "cceaefbc20": {
     "translation": "Distribuiți acest fișier"
   },
@@ -368,9 +374,6 @@
   },
   "e78e14c5f1": {
     "translation": "Pin"
-  },
-  "ea2301d01c": {
-    "translation": "După 1 iulie 2025, această cameră multiplayer anonimă de pe tldraw va deveni doar pentru citire. Pentru a continua editarea în viitor, vă rugăm să vă conectați și să o copiați în fișierele dvs."
   },
   "ea4788705e": {
     "translation": "Anula"

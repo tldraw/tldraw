@@ -94,6 +94,7 @@
 	"action.toggle-focus-mode.menu": "Keskittymistila",
 	"action.toggle-grid": "Ruudukko päälle/pois",
 	"action.toggle-grid.menu": "Näytä ruudukko",
+	"action.toggle-keyboard-shortcuts.menu": "Pikanäppäimet",
 	"action.toggle-lock": "Lukitse / Avaa",
 	"action.toggle-paste-at-cursor": "Vaihda liitä kohdistin kohdalle",
 	"action.toggle-paste-at-cursor.menu": "Liitä kohdistimen kohdalle",
