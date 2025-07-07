@@ -78,7 +78,7 @@ type BootState =
 			lastSequenceNumber: number
 	  }
 
-const stateVersion = 1
+const stateVersion = 2
 interface StateSnapshot {
 	version: number
 	initialData: ZStoreData
@@ -86,7 +86,11 @@ interface StateSnapshot {
 		updates: ZRowUpdate[]
 		mutationId: string
 	}>
+	sequenceId: string
+	lastSequenceNumber: number
 }
+
+const notASequenceId = 'not_a_sequence'
 
 function migrateStateSnapshot(snapshot: any) {
 	if (snapshot.version === 0) {
@@ -98,6 +102,12 @@ function migrateStateSnapshot(snapshot: any) {
 			file: data.files,
 			file_state: data.fileStates,
 		} satisfies ZStoreData
+	}
+
+	if (snapshot.version === 1) {
+		snapshot.version = 2
+		snapshot.sequenceId = notASequenceId
+		snapshot.lastSequenceNumber = 0
 	}
 }
 
@@ -140,12 +150,15 @@ export class UserDataSyncer {
 		this.reboot({ delay: false, source: 'constructor' })
 		const persist = throttle(
 			async () => {
+				if (this.state.type !== 'connected') return
 				const initialData = this.store.getCommittedData()
 				if (initialData) {
 					const snapshot: StateSnapshot = {
 						version: stateVersion,
 						initialData,
 						optimisticUpdates: this.store.getOptimisticUpdates(),
+						sequenceId: this.state.sequenceId,
+						lastSequenceNumber: this.state.lastSequenceNumber,
 					}
 					this.log.debug('stashing snapshot')
 					this.lastStashEpoch = this.store.epoch
@@ -302,6 +315,8 @@ export class UserDataSyncer {
 			version: stateVersion,
 			initialData,
 			optimisticUpdates: [],
+			sequenceId: notASequenceId,
+			lastSequenceNumber: 0,
 		} satisfies StateSnapshot
 	}
 
@@ -315,6 +330,7 @@ export class UserDataSyncer {
 			bootId: uniqueId(),
 			bufferedEvents: [],
 		}
+		let resumeData: { sequenceId: string; lastSequenceNumber: number } | null = null
 		/**
 		 * BOOTUP SEQUENCE
 		 * 1. Generate a unique boot id
@@ -344,36 +360,49 @@ export class UserDataSyncer {
 			) {
 				this.commitMutations(res.initialData.mutationNumber)
 			}
+			if (res.sequenceId !== notASequenceId) {
+				resumeData = { sequenceId: res.sequenceId, lastSequenceNumber: res.lastSequenceNumber }
+			}
 		}
 
 		const initialData = this.store.getCommittedData()!
 
 		const guestFileIds = initialData.file.filter((f) => f.ownerId !== this.userId).map((f) => f.id)
 
-		const res = await getReplicator(this.env).registerUser({
-			userId: this.userId,
-			lsn: initialData.lsn,
-			guestFileIds,
-			bootId: this.state.bootId,
-		})
+		if (
+			!resumeData ||
+			!(await getReplicator(this.env).resumeSequence({
+				userId: this.userId,
+				sequenceId: resumeData.sequenceId,
+				lastSequenceNumber: resumeData.lastSequenceNumber,
+			}))
+		) {
+			const res = await getReplicator(this.env).registerUser({
+				userId: this.userId,
+				lsn: initialData.lsn,
+				guestFileIds,
+				bootId: this.state.bootId,
+			})
 
-		if (signal.aborted) {
-			this.log.debug('aborting because of timeout')
-			return
-		}
+			if (signal.aborted) {
+				this.log.debug('aborting because of timeout')
+				return
+			}
 
-		if (res.type === 'reboot') {
-			this.logEvent({ type: 'not_enough_history_for_fast_reboot', id: this.userId })
-			if (hard) throw new Error('reboot loop, waiting')
-			return this.boot(true, signal)
+			if (res.type === 'reboot') {
+				this.logEvent({ type: 'not_enough_history_for_fast_reboot', id: this.userId })
+				if (hard) throw new Error('reboot loop, waiting')
+				return this.boot(true, signal)
+			}
+			resumeData = { sequenceId: res.sequenceId, lastSequenceNumber: res.sequenceNumber }
 		}
 
 		const bufferedEvents = this.state.bufferedEvents
 		this.state = {
 			type: 'connected',
 			bootId: this.state.bootId,
-			sequenceId: res.sequenceId,
-			lastSequenceNumber: res.sequenceNumber,
+			sequenceId: resumeData.sequenceId,
+			lastSequenceNumber: resumeData.lastSequenceNumber,
 		}
 
 		if (bufferedEvents.length > 0) {
