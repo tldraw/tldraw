@@ -122,6 +122,9 @@
   "5a95a425f7": {
     "translation": "Paylaş"
   },
+  "5bcc12ace8": {
+    "translation": "Bu oda artık salt okunur"
+  },
   "5bec508475": {
     "translation": "Eski tarayıcı algılandı. Bu uygulamayı kullanmak için lütfen tarayıcınızı güncelleyin."
   },
@@ -218,6 +221,9 @@
   "86c66437fd": {
     "translation": "Dosyayı yeniden adlandır"
   },
+  "8b1946f965": {
+    "translation": "Düzenlemeye devam etmek için lütfen odayı dosyalarınıza kopyalayın."
+  },
   "8eb2c00e96": {
     "translation": "Sizinle paylaşıldı"
   },
@@ -241,6 +247,9 @@
   },
   "9bef626805": {
     "translation": "Dosyayı sil"
+  },
+  "9c258b8f88": {
+    "translation": "Bu anonim tldraw çok oyunculu odası artık salt okunur. Düzenlemeye devam etmek için lütfen oturum açın ve dosyalarınıza kopyalayın."
   },
   "9ceb927baa": {
     "translation": "Bu dosyayı yayınla"
@@ -327,9 +336,6 @@
   "c87aacf567": {
     "translation": "Oturumu kapat"
   },
-  "cbef7ba103": {
-    "translation": "Bu oda yakında salt okunur olacak"
-  },
   "cceaefbc20": {
     "translation": "Bu dosyayı paylaş"
   },
@@ -368,9 +374,6 @@
   },
   "e78e14c5f1": {
     "translation": "Sabitle"
-  },
-  "ea2301d01c": {
-    "translation": "1 Temmuz 2025'ten sonra bu anonim tldraw çok oyunculu odası salt okunur hale gelecektir. Gelecekte düzenlemeye devam etmek için lütfen oturum açın ve dosyalarınıza kopyalayın."
   },
   "ea4788705e": {
     "translation": "İptal"

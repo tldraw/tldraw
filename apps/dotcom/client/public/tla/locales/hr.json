@@ -122,6 +122,9 @@
   "5a95a425f7": {
     "translation": "Udio"
   },
+  "5bcc12ace8": {
+    "translation": "Ova soba je sada samo za čitanje"
+  },
   "5bec508475": {
     "translation": "Otkriven je stari preglednik. Ažurirajte preglednik da biste mogli koristiti ovu aplikaciju."
   },
@@ -218,6 +221,9 @@
   "86c66437fd": {
     "translation": "Preimenuj datoteku"
   },
+  "8b1946f965": {
+    "translation": "Za nastavak uređivanja kopirajte sobu u svoje datoteke."
+  },
   "8eb2c00e96": {
     "translation": "Podijeljeno s vama"
   },
@@ -241,6 +247,9 @@
   },
   "9bef626805": {
     "translation": "Izbriši datoteku"
+  },
+  "9c258b8f88": {
+    "translation": "Ova anonimna tldraw soba za više igrača sada je samo za čitanje. Za nastavak uređivanja, prijavite se i kopirajte je u svoje datoteke."
   },
   "9ceb927baa": {
     "translation": "Objavite ovu datoteku"
@@ -327,9 +336,6 @@
   "c87aacf567": {
     "translation": "Odjavi se"
   },
-  "cbef7ba103": {
-    "translation": "Ova soba će uskoro biti samo za čitanje"
-  },
   "cceaefbc20": {
     "translation": "Podijelite ovu datoteku"
   },
@@ -368,9 +374,6 @@
   },
   "e78e14c5f1": {
     "translation": "Pin"
-  },
-  "ea2301d01c": {
-    "translation": "Nakon 1. srpnja 2025. ova anonimna tldraw soba za više igrača postat će samo za čitanje. Za nastavak uređivanja u budućnosti prijavite se i kopirajte je u svoje datoteke."
   },
   "ea4788705e": {
     "translation": "Otkazati"

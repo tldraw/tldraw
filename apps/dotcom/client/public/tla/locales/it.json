@@ -122,6 +122,9 @@
   "5a95a425f7": {
     "translation": "Condividi"
   },
+  "5bcc12ace8": {
+    "translation": "Questa stanza è ora di sola lettura"
+  },
   "5bec508475": {
     "translation": "Rilevato browser obsoleto. Aggiorna il browser per utilizzare questa app."
   },
@@ -218,6 +221,9 @@
   "86c66437fd": {
     "translation": "Rinomina file"
   },
+  "8b1946f965": {
+    "translation": "Per continuare la modifica, copia la stanza nei tuoi file."
+  },
   "8eb2c00e96": {
     "translation": "Condivisi con te"
   },
@@ -241,6 +247,9 @@
   },
   "9bef626805": {
     "translation": "Elimina file"
+  },
+  "9c258b8f88": {
+    "translation": "Questa stanza multigiocatore anonima di Tldraw è ora di sola lettura. Per continuare a modificarla, accedi e copiala nei tuoi file."
   },
   "9ceb927baa": {
     "translation": "Pubblica questo file"
@@ -327,9 +336,6 @@
   "c87aacf567": {
     "translation": "Esci"
   },
-  "cbef7ba103": {
-    "translation": "Questa stanza sarà presto di sola lettura"
-  },
   "cceaefbc20": {
     "translation": "Condividi questo file"
   },
@@ -368,9 +374,6 @@
   },
   "e78e14c5f1": {
     "translation": "Fissa in alto"
-  },
-  "ea2301d01c": {
-    "translation": "Dopo il 1° luglio 2025, questa stanza multigiocatore anonima di Tldraw diventerà di sola lettura. Per continuare a modificarla in futuro, accedi e copiala nei tuoi file."
   },
   "ea4788705e": {
     "translation": "Annulla"
