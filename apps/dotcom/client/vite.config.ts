@@ -30,19 +30,16 @@ export default defineConfig((env) => ({
 	plugins: [
 		react({
 			tsDecorators: true,
-			useAtYourOwnRisk_mutateSwcOptions(options) {
-				const jsc = (options.jsc ??= {})
-				const experimental = (jsc.experimental ??= {})
-				experimental.plugins ??= []
-				experimental.plugins.push([
+			plugins: [
+				[
 					'@swc/plugin-formatjs',
 					{
 						idInterpolationPattern: '[md5:contenthash:hex:10]',
 						additionalComponentNames: ['F'],
 						ast: true,
 					},
-				])
-			},
+				],
+			],
 		}),
 	],
 	publicDir: './public',
