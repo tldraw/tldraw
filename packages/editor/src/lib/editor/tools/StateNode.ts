@@ -238,21 +238,6 @@ export abstract class StateNode implements Partial<TLEventHandlers> {
 		this._currentToolIdMask.set(id)
 	}
 
-	getChild(name: string) {
-		return this.children?.[name]
-	}
-	find(path: string | string[]) {
-		const pathParts = Array.isArray(path) ? path : path.split('.')
-
-		// eslint-disable-next-line @typescript-eslint/no-this-alias
-		let current: StateNode | undefined = this
-		for (const part of pathParts) {
-			current = current.getChild(part)
-			if (!current) throw new Error(`StateNode.find: ${pathParts.join('.')} not found`)
-		}
-
-		return current
-	}
 	addChild(ChildConstructor: TLStateNodeConstructor): this {
 		if (this.type === 'leaf') {
 			throw new Error('StateNode.addChild: cannot add child to a leaf node')
