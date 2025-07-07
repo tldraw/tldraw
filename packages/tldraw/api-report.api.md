@@ -4,8 +4,6 @@
 
 ```ts
 
-/// <reference types="react" />
-
 import { Atom } from '@tldraw/editor';
 import { BaseBoxShapeTool } from '@tldraw/editor';
 import { BaseBoxShapeUtil } from '@tldraw/editor';
@@ -16,7 +14,6 @@ import { BindingOnShapeIsolateOptions } from '@tldraw/editor';
 import { BindingUtil } from '@tldraw/editor';
 import { Box } from '@tldraw/editor';
 import { Circle2d } from '@tldraw/editor';
-import { ClipboardEvent as ClipboardEvent_2 } from 'react';
 import { ComponentType } from 'react';
 import { CSSProperties } from 'react';
 import { Editor } from '@tldraw/editor';
@@ -36,7 +33,6 @@ import { MigrationSequence } from '@tldraw/editor';
 import { NamedExoticComponent } from 'react';
 import { Node as Node_2 } from '@tiptap/pm/model';
 import { PerfectDashTerminal } from '@tldraw/editor';
-import { PointerEvent as PointerEvent_2 } from 'react';
 import { Polygon2d } from '@tldraw/editor';
 import { Polyline2d } from '@tldraw/editor';
 import * as React_2 from 'react';
@@ -74,12 +70,15 @@ import { TLBookmarkShapeProps } from '@tldraw/editor';
 import { TLClickEventInfo } from '@tldraw/editor';
 import { TLContent } from '@tldraw/editor';
 import { TLCropInfo } from '@tldraw/editor';
+import { TLDefaultColorStyle } from '@tldraw/editor';
 import { TLDefaultColorTheme } from '@tldraw/editor';
 import { TLDefaultColorThemeColor } from '@tldraw/editor';
+import { TLDefaultDashStyle } from '@tldraw/editor';
 import { TLDefaultFillStyle } from '@tldraw/editor';
 import { TLDefaultFontStyle } from '@tldraw/editor';
 import { TLDefaultHorizontalAlignStyle } from '@tldraw/editor';
 import { TLDefaultSizeStyle } from '@tldraw/editor';
+import { TLDefaultTextAlignStyle } from '@tldraw/editor';
 import { TLDefaultVerticalAlignStyle } from '@tldraw/editor';
 import { TLDragShapesOutInfo } from '@tldraw/editor';
 import { TLDragShapesOverInfo } from '@tldraw/editor';
@@ -99,6 +98,7 @@ import { TLFrameShape } from '@tldraw/editor';
 import { TLFrameShapeProps } from '@tldraw/editor';
 import { TLGeometryOpts } from '@tldraw/editor';
 import { TLGeoShape } from '@tldraw/editor';
+import { TLGeoShapeGeoStyle } from '@tldraw/editor';
 import { TLGeoShapeProps } from '@tldraw/editor';
 import { TLHandle } from '@tldraw/editor';
 import { TLHandleDragInfo } from '@tldraw/editor';
@@ -112,8 +112,10 @@ import { TLImageShapeProps } from '@tldraw/editor';
 import { TLKeyboardEventInfo } from '@tldraw/editor';
 import { TLLineShape } from '@tldraw/editor';
 import { TLLineShapePoint } from '@tldraw/editor';
+import { TLLineShapeSplineStyle } from '@tldraw/editor';
 import { TLNoteShape } from '@tldraw/editor';
 import { TLNoteShapeProps } from '@tldraw/editor';
+import { TLOpacityType } from '@tldraw/editor';
 import { TLPageId } from '@tldraw/editor';
 import { TLParentId } from '@tldraw/editor';
 import { TLPointerEventInfo } from '@tldraw/editor';
@@ -393,7 +395,7 @@ export class BookmarkShapeUtil extends BaseBoxShapeUtil<TLBookmarkShape> {
         index: IndexKey;
         isLocked: boolean;
         meta: JsonObject;
-        opacity: number;
+        opacity: TLOpacityType;
         parentId: TLParentId;
         props: {
             assetId: null | TLAssetId;
@@ -413,7 +415,7 @@ export class BookmarkShapeUtil extends BaseBoxShapeUtil<TLBookmarkShape> {
         index: IndexKey;
         isLocked: boolean;
         meta: JsonObject;
-        opacity: number;
+        opacity: TLOpacityType;
         parentId: TLParentId;
         props: {
             assetId: null | TLAssetId;
@@ -1020,8 +1022,8 @@ export function downloadFile(file: File): void;
 
 // @public
 export function downsizeImage(blob: Blob, width: number, height: number, opts?: {
-    quality?: number | undefined;
-    type?: string | undefined;
+    quality?: number;
+    type?: string;
 }): Promise<Blob>;
 
 // @public (undocumented)
@@ -1554,26 +1556,23 @@ export class GeoShapeUtil extends BaseBoxShapeUtil<TLGeoShape> {
         index: IndexKey;
         isLocked: boolean;
         meta: JsonObject;
-        opacity: number;
+        opacity: TLOpacityType;
         parentId: TLParentId;
         props: {
-            align: "end-legacy" | "end" | "middle-legacy" | "middle" | "start-legacy" | "start";
-            color: "black" | "blue" | "green" | "grey" | "light-blue" | "light-green" | "light-red" | "light-violet" | "orange" | "red" | "violet" | "white" | "yellow";
-            dash: "dashed" | "dotted" | "draw" | "solid";
-            fill: "fill" | "none" | "pattern" | "semi" | "solid";
-            font: "draw" | "mono" | "sans" | "serif";
-            geo: "arrow-down" | "arrow-left" | "arrow-right" | "arrow-up" | "check-box" | "cloud" | "diamond" | "ellipse" | "heart" | "hexagon" | "octagon" | "oval" | "pentagon" | "rectangle" | "rhombus-2" | "rhombus" | "star" | "trapezoid" | "triangle" | "x-box";
+            align: TLDefaultHorizontalAlignStyle;
+            color: TLDefaultColorStyle;
+            dash: TLDefaultDashStyle;
+            fill: TLDefaultFillStyle;
+            font: TLDefaultFontStyle;
+            geo: TLGeoShapeGeoStyle;
             growY: number;
             h: number;
-            labelColor: "black" | "blue" | "green" | "grey" | "light-blue" | "light-green" | "light-red" | "light-violet" | "orange" | "red" | "violet" | "white" | "yellow";
-            richText: {
-                content: unknown[];
-                type: string;
-            };
+            labelColor: TLDefaultColorStyle;
+            richText: TLRichText;
             scale: number;
-            size: "l" | "m" | "s" | "xl";
+            size: TLDefaultSizeStyle;
             url: string;
-            verticalAlign: "end" | "middle" | "start";
+            verticalAlign: TLDefaultVerticalAlignStyle;
             w: number;
         };
         rotation: number;
@@ -1588,26 +1587,23 @@ export class GeoShapeUtil extends BaseBoxShapeUtil<TLGeoShape> {
         index: IndexKey;
         isLocked: boolean;
         meta: JsonObject;
-        opacity: number;
+        opacity: TLOpacityType;
         parentId: TLParentId;
         props: {
-            align: "end-legacy" | "end" | "middle-legacy" | "middle" | "start-legacy" | "start";
-            color: "black" | "blue" | "green" | "grey" | "light-blue" | "light-green" | "light-red" | "light-violet" | "orange" | "red" | "violet" | "white" | "yellow";
-            dash: "dashed" | "dotted" | "draw" | "solid";
-            fill: "fill" | "none" | "pattern" | "semi" | "solid";
-            font: "draw" | "mono" | "sans" | "serif";
-            geo: "arrow-down" | "arrow-left" | "arrow-right" | "arrow-up" | "check-box" | "cloud" | "diamond" | "ellipse" | "heart" | "hexagon" | "octagon" | "oval" | "pentagon" | "rectangle" | "rhombus-2" | "rhombus" | "star" | "trapezoid" | "triangle" | "x-box";
+            align: TLDefaultHorizontalAlignStyle;
+            color: TLDefaultColorStyle;
+            dash: TLDefaultDashStyle;
+            fill: TLDefaultFillStyle;
+            font: TLDefaultFontStyle;
+            geo: TLGeoShapeGeoStyle;
             growY: number;
             h: number;
-            labelColor: "black" | "blue" | "green" | "grey" | "light-blue" | "light-green" | "light-red" | "light-violet" | "orange" | "red" | "violet" | "white" | "yellow";
-            richText: {
-                content: unknown[];
-                type: string;
-            };
+            labelColor: TLDefaultColorStyle;
+            richText: TLRichText;
             scale: number;
-            size: "l" | "m" | "s" | "xl";
+            size: TLDefaultSizeStyle;
             url: string;
-            verticalAlign: "end" | "middle" | "start";
+            verticalAlign: TLDefaultVerticalAlignStyle;
             w: number;
         };
         rotation: number;
@@ -1622,7 +1618,7 @@ export class GeoShapeUtil extends BaseBoxShapeUtil<TLGeoShape> {
         index: IndexKey;
         isLocked: boolean;
         meta: JsonObject;
-        opacity: number;
+        opacity: TLOpacityType;
         parentId: TLParentId;
         props: {
             geo: "check-box";
@@ -1637,7 +1633,7 @@ export class GeoShapeUtil extends BaseBoxShapeUtil<TLGeoShape> {
         index: IndexKey;
         isLocked: boolean;
         meta: JsonObject;
-        opacity: number;
+        opacity: TLOpacityType;
         parentId: TLParentId;
         props: {
             geo: "rectangle";
@@ -1915,11 +1911,11 @@ export class LineShapeUtil extends ShapeUtil<TLLineShape> {
         index: IndexKey;
         isLocked: boolean;
         meta: JsonObject;
-        opacity: number;
+        opacity: TLOpacityType;
         parentId: TLParentId;
         props: {
-            color: "black" | "blue" | "green" | "grey" | "light-blue" | "light-green" | "light-red" | "light-violet" | "orange" | "red" | "violet" | "white" | "yellow";
-            dash: "dashed" | "dotted" | "draw" | "solid";
+            color: TLDefaultColorStyle;
+            dash: TLDefaultDashStyle;
             points: {
                 [x: string]: {
                     id: string;
@@ -1929,8 +1925,8 @@ export class LineShapeUtil extends ShapeUtil<TLLineShape> {
                 } | TLLineShapePoint;
             };
             scale: number;
-            size: "l" | "m" | "s" | "xl";
-            spline: "cubic" | "line";
+            size: TLDefaultSizeStyle;
+            spline: TLLineShapeSplineStyle;
         };
         rotation: number;
         type: "line";
@@ -2038,23 +2034,20 @@ export class NoteShapeUtil extends ShapeUtil<TLNoteShape> {
         index: IndexKey;
         isLocked: boolean;
         meta: JsonObject;
-        opacity: number;
+        opacity: TLOpacityType;
         parentId: TLParentId;
         props: {
-            align: "end-legacy" | "end" | "middle-legacy" | "middle" | "start-legacy" | "start";
-            color: "black" | "blue" | "green" | "grey" | "light-blue" | "light-green" | "light-red" | "light-violet" | "orange" | "red" | "violet" | "white" | "yellow";
-            font: "draw" | "mono" | "sans" | "serif";
+            align: TLDefaultHorizontalAlignStyle;
+            color: TLDefaultColorStyle;
+            font: TLDefaultFontStyle;
             fontSizeAdjustment: number;
             growY: number;
-            labelColor: "black" | "blue" | "green" | "grey" | "light-blue" | "light-green" | "light-red" | "light-violet" | "orange" | "red" | "violet" | "white" | "yellow";
-            richText: {
-                content: unknown[];
-                type: string;
-            };
+            labelColor: TLDefaultColorStyle;
+            richText: TLRichText;
             scale: number;
-            size: "l" | "m" | "s" | "xl";
+            size: TLDefaultSizeStyle;
             url: string;
-            verticalAlign: "end" | "middle" | "start";
+            verticalAlign: TLDefaultVerticalAlignStyle;
         };
         rotation: number;
         type: "note";
@@ -2068,23 +2061,20 @@ export class NoteShapeUtil extends ShapeUtil<TLNoteShape> {
         index: IndexKey;
         isLocked: boolean;
         meta: JsonObject;
-        opacity: number;
+        opacity: TLOpacityType;
         parentId: TLParentId;
         props: {
-            align: "end-legacy" | "end" | "middle-legacy" | "middle" | "start-legacy" | "start";
-            color: "black" | "blue" | "green" | "grey" | "light-blue" | "light-green" | "light-red" | "light-violet" | "orange" | "red" | "violet" | "white" | "yellow";
-            font: "draw" | "mono" | "sans" | "serif";
+            align: TLDefaultHorizontalAlignStyle;
+            color: TLDefaultColorStyle;
+            font: TLDefaultFontStyle;
             fontSizeAdjustment: number;
             growY: number;
-            labelColor: "black" | "blue" | "green" | "grey" | "light-blue" | "light-green" | "light-red" | "light-violet" | "orange" | "red" | "violet" | "white" | "yellow";
-            richText: {
-                content: unknown[];
-                type: string;
-            };
+            labelColor: TLDefaultColorStyle;
+            richText: TLRichText;
             scale: number;
-            size: "l" | "m" | "s" | "xl";
+            size: TLDefaultSizeStyle;
             url: string;
-            verticalAlign: "end" | "middle" | "start";
+            verticalAlign: TLDefaultVerticalAlignStyle;
         };
         rotation: number;
         type: "note";
@@ -2659,19 +2649,16 @@ export class TextShapeUtil extends ShapeUtil<TLTextShape> {
         index: IndexKey;
         isLocked: boolean;
         meta: JsonObject;
-        opacity: number;
+        opacity: TLOpacityType;
         parentId: TLParentId;
         props: {
             autoSize: boolean;
-            color: "black" | "blue" | "green" | "grey" | "light-blue" | "light-green" | "light-red" | "light-violet" | "orange" | "red" | "violet" | "white" | "yellow";
-            font: "draw" | "mono" | "sans" | "serif";
-            richText: {
-                content: unknown[];
-                type: string;
-            };
+            color: TLDefaultColorStyle;
+            font: TLDefaultFontStyle;
+            richText: TLRichText;
             scale: number;
-            size: "l" | "m" | "s" | "xl";
-            textAlign: "end" | "middle" | "start";
+            size: TLDefaultSizeStyle;
+            textAlign: TLDefaultTextAlignStyle;
             w: number;
         };
         rotation: number;
@@ -4834,10 +4821,10 @@ export function useDefaultColorTheme(): {
 // @public (undocumented)
 export function useDefaultHelpers(): {
     addDialog: (dialog: Omit<TLUiDialog, "id"> & {
-        id?: string | undefined;
+        id?: string;
     }) => string;
     addToast: (toast: Omit<TLUiToast, "id"> & {
-        id?: string | undefined;
+        id?: string;
     }) => string;
     clearDialogs: () => void;
     clearToasts: () => void;
@@ -4848,11 +4835,11 @@ export function useDefaultHelpers(): {
     getEmbedDefinition: (url: string) => TLEmbedResult;
     insertMedia: () => Promise<void>;
     isMobile: boolean;
-    msg: (id?: string | undefined) => string;
-    paste: (data: ClipboardItem[] | DataTransfer, source: TLUiEventSource, point?: VecLike | undefined) => Promise<void>;
+    msg: (id?: Exclude<string, TLUiTranslationKey> | string) => string;
+    paste: (data: ClipboardItem[] | DataTransfer, source: TLUiEventSource, point?: VecLike) => Promise<void>;
     printSelectionOrPages: () => Promise<void>;
     removeDialog: (id: string) => string;
-    removeToast: (id: string) => string;
+    removeToast: (id: TLUiToast["id"]) => string;
     replaceImage: () => Promise<void>;
     replaceVideo: () => Promise<void>;
 };
@@ -4868,7 +4855,7 @@ export function useEditablePlainText(shapeId: TLShapeId, type: string, text?: st
     }) => void;
     handleDoubleClick: (e: any) => any;
     handleFocus: () => void;
-    handleInputPointerDown: (e: React_3.PointerEvent<Element>) => void;
+    handleInputPointerDown: (e: React_3.PointerEvent) => void;
     handleKeyDown: (e: KeyboardEvent) => void;
     handlePaste: (e: ClipboardEvent | React_3.ClipboardEvent<HTMLTextAreaElement>) => void;
     isEditing: boolean;
@@ -4885,9 +4872,9 @@ export function useEditableRichText(shapeId: TLShapeId, type: string, richText?:
     }) => void;
     handleDoubleClick: (e: any) => any;
     handleFocus: () => void;
-    handleInputPointerDown: (e: PointerEvent_2<Element>) => void;
+    handleInputPointerDown: (e: React.PointerEvent) => void;
     handleKeyDown: (e: KeyboardEvent) => void;
-    handlePaste: (e: ClipboardEvent | ClipboardEvent_2<HTMLTextAreaElement>) => void;
+    handlePaste: (e: ClipboardEvent | React.ClipboardEvent<HTMLTextAreaElement>) => void;
     isEditing: boolean;
     isEmpty: boolean | undefined;
     isReadyForEditing: boolean;
@@ -5019,7 +5006,7 @@ export class ZoomTool extends StateNode {
     static id: string;
     // (undocumented)
     info: TLPointerEventInfo & {
-        onInteractionEnd?: string | undefined;
+        onInteractionEnd?: string;
     };
     // (undocumented)
     static initial: string;

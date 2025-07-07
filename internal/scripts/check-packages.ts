@@ -181,10 +181,11 @@ async function checkTsConfigs({
 		}
 
 		fixedDeps.sort((a, b) => a.path.localeCompare(b.path))
+
 		if (currentRefs.size > 0) {
 			if (fix) {
 				tsconfig.references = fixedDeps
-				writeJsonFile(tsconfigPath, tsconfig)
+				await writeJsonFile(tsconfigPath, tsconfig)
 			} else {
 				numErrors++
 				nicelog(
@@ -201,7 +202,7 @@ async function checkTsConfigs({
 		if (missingRefs.length) {
 			if (fix) {
 				tsconfig.references = fixedDeps
-				writeJsonFile(tsconfigPath, tsconfig)
+				await writeJsonFile(tsconfigPath, tsconfig)
 			} else {
 				numErrors++
 				nicelog(
@@ -217,6 +218,7 @@ async function checkTsConfigs({
 				nicelog('"references": ' + JSON.stringify(fixedDeps, null, 2))
 			}
 		}
+
 		if (currentRefs.size === 0 && missingRefs.length === 0) {
 			nicelog(['✅ ', kleur.green(`${workspace.name}`)].join(''))
 		}

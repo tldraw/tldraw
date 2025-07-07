@@ -7,12 +7,5 @@
 		"noImplicitReturns": false,
 		"rootDir": "src"
 	},
-	"references": [
-		{
-			"path": "../editor"
-		},
-		{
-			"path": "../store"
-		}
-	]
+	"references": [{ "path": "../editor" }, { "path": "../store" }]
 }

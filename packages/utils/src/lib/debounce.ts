@@ -17,7 +17,6 @@ export function debounce<T extends unknown[], U>(
 	let state:
 		| undefined
 		| {
-				// eslint-disable-next-line no-restricted-globals
 				timeout: ReturnType<typeof setTimeout>
 				promise: Promise<U>
 				resolve(value: U | PromiseLike<U>): void

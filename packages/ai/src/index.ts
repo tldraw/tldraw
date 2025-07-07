@@ -14,6 +14,7 @@ export {
 	type TldrawAiPromptOptions,
 	type TldrawAiStreamFn,
 } from './lib/useTldrawAi'
+export { asMessage } from './lib/utils'
 
 registerTldrawLibraryVersion(
 	(globalThis as any).TLDRAW_LIBRARY_NAME,

@@ -4,7 +4,6 @@ import {
 	TLAiCreateShapeChange,
 	TLAiSerializedPrompt,
 	TLAiUpdateShapeChange,
-	exhaustiveSwitchError,
 } from '@tldraw/ai'
 import {
 	IndexKey,
@@ -14,6 +13,7 @@ import {
 	TLGeoShape,
 	TLLineShape,
 	TLNoteShape,
+	TLRichText,
 	TLTextShape,
 	toRichText,
 } from 'tldraw'
@@ -25,10 +25,17 @@ import {
 	ISimpleMoveEvent,
 } from './schema'
 
+function toRichTextIfNeeded(text: string | { type: string; content: any[] }): TLRichText {
+	if (typeof text === 'string') {
+		return toRichText(text)
+	}
+	return text
+}
+
 export function getTldrawAiChangesFromSimpleEvents(
 	prompt: TLAiSerializedPrompt,
 	event: ISimpleEvent
-) {
+): TLAiChange[] {
 	switch (event.type) {
 		case 'update':
 		case 'create': {
@@ -42,9 +49,6 @@ export function getTldrawAiChangesFromSimpleEvents(
 		}
 		case 'think': {
 			return []
-		}
-		default: {
-			throw exhaustiveSwitchError(event, 'type')
 		}
 	}
 }
@@ -82,7 +86,7 @@ function getTldrawAiChangesFromSimpleCreateOrUpdateEvent(
 					x: shape.x,
 					y: shape.y,
 					props: {
-						richText: toRichText(shape.text ?? ''),
+						richText: toRichTextIfNeeded(shape.text ?? ''),
 						color: shape.color ?? 'black',
 						textAlign: shape.textAlign ?? 'middle',
 					},
@@ -218,7 +222,7 @@ function getTldrawAiChangesFromSimpleCreateOrUpdateEvent(
 						h: shape.height,
 						color: shape.color ?? 'black',
 						fill: simpleFillToShapeFill(shape.fill ?? 'none'),
-						richText: toRichText(shape.text ?? ''),
+						richText: toRichTextIfNeeded(shape.text ?? ''),
 					},
 				},
 			} satisfies TLAiCreateShapeChange<TLGeoShape> | TLAiUpdateShapeChange<TLGeoShape>)
@@ -236,7 +240,7 @@ function getTldrawAiChangesFromSimpleCreateOrUpdateEvent(
 					y: shape.y,
 					props: {
 						color: shape.color ?? 'black',
-						richText: toRichText(shape.text ?? ''),
+						richText: toRichTextIfNeeded(shape.text ?? ''),
 					},
 				},
 			} satisfies TLAiCreateShapeChange<TLNoteShape> | TLAiUpdateShapeChange<TLNoteShape>)
