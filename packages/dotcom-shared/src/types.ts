@@ -145,7 +145,7 @@ export type ZServerSentPacket =
 
 export type ZServerSentMessage = ZServerSentPacket[]
 
-export type ZClientSentMessage = {
+export interface ZClientSentMessage {
 	type: 'mutator'
 	mutationId: string
 	name: string
