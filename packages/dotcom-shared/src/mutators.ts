@@ -69,7 +69,7 @@ export function createMutators(userId: string) {
 				assert(fileState.userId === userId, ZErrorCode.forbidden)
 
 				await tx.mutate.file.insert(file)
-				await tx.mutate.file_state.insert(fileState)
+				await tx.mutate.file_state.upsert(fileState)
 			},
 			deleteOrForget: async (tx, file: TlaFile) => {
 				await tx.mutate.file_state.delete({ fileId: file.id, userId })
