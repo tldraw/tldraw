@@ -122,6 +122,9 @@
   "5a95a425f7": {
     "translation": "Dele"
   },
+  "5bcc12ace8": {
+    "translation": "Dette rum er nu skrivebeskyttet"
+  },
   "5bec508475": {
     "translation": "Gammel browser fundet. Opdater venligst din browser for at bruge denne app."
   },
@@ -218,6 +221,9 @@
   "86c66437fd": {
     "translation": "Omdøb fil"
   },
+  "8b1946f965": {
+    "translation": "For at fortsætte redigeringen skal du kopiere rummet til dine filer."
+  },
   "8eb2c00e96": {
     "translation": "Delt med dig"
   },
@@ -241,6 +247,9 @@
   },
   "9bef626805": {
     "translation": "Slet fil"
+  },
+  "9c258b8f88": {
+    "translation": "Dette anonyme tldraw multiplayer-rum er nu skrivebeskyttet. For at fortsætte med at redigere, skal du logge ind og kopiere det til dine filer."
   },
   "9ceb927baa": {
     "translation": "Udgiv denne fil"
@@ -327,9 +336,6 @@
   "c87aacf567": {
     "translation": "Log ud"
   },
-  "cbef7ba103": {
-    "translation": "Dette rum vil snart være skrivebeskyttet"
-  },
   "cceaefbc20": {
     "translation": "Del denne fil"
   },
@@ -368,9 +374,6 @@
   },
   "e78e14c5f1": {
     "translation": "Stift"
-  },
-  "ea2301d01c": {
-    "translation": "Efter 1. juli 2025 vil dette anonyme tldraw multiplayer-rum blive skrivebeskyttet. For at fortsætte med at redigere i fremtiden skal du logge ind og kopiere det til dine filer."
   },
   "ea4788705e": {
     "translation": "Ophæve"

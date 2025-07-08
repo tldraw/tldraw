@@ -122,6 +122,9 @@
   "5a95a425f7": {
     "translation": "Chia sẻ"
   },
+  "5bcc12ace8": {
+    "translation": "Phòng này hiện chỉ có thể đọc"
+  },
   "5bec508475": {
     "translation": "Đã phát hiện trình duyệt cũ. Vui lòng cập nhật trình duyệt của bạn để sử dụng ứng dụng này."
   },
@@ -218,6 +221,9 @@
   "86c66437fd": {
     "translation": "Đổi tên tập tin"
   },
+  "8b1946f965": {
+    "translation": "Để tiếp tục chỉnh sửa, vui lòng sao chép phòng vào tệp của bạn."
+  },
   "8eb2c00e96": {
     "translation": "Chia sẻ với bạn"
   },
@@ -241,6 +247,9 @@
   },
   "9bef626805": {
     "translation": "Xóa tệp"
+  },
+  "9c258b8f88": {
+    "translation": "Phòng nhiều người chơi tldraw ẩn danh này hiện chỉ có thể đọc. Để tiếp tục chỉnh sửa, vui lòng đăng nhập và sao chép vào tệp của bạn."
   },
   "9ceb927baa": {
     "translation": "Xuất bản tệp này"
@@ -327,9 +336,6 @@
   "c87aacf567": {
     "translation": "Đăng xuất"
   },
-  "cbef7ba103": {
-    "translation": "Phòng này sẽ sớm chỉ đọc"
-  },
   "cceaefbc20": {
     "translation": "Chia sẻ tệp này"
   },
@@ -368,9 +374,6 @@
   },
   "e78e14c5f1": {
     "translation": "Ghim"
-  },
-  "ea2301d01c": {
-    "translation": "Sau ngày 1 tháng 7 năm 2025, phòng nhiều người chơi tldraw ẩn danh này sẽ trở thành chỉ đọc. Để tiếp tục chỉnh sửa trong tương lai, vui lòng đăng nhập và sao chép vào tệp của bạn."
   },
   "ea4788705e": {
     "translation": "Hủy"

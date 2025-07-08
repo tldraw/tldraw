@@ -122,6 +122,9 @@
   "5a95a425f7": {
     "translation": "Dele"
   },
+  "5bcc12ace8": {
+    "translation": "Dette rommet er nå skrivebeskyttet"
+  },
   "5bec508475": {
     "translation": "Gammel nettleser oppdaget. Oppdater nettleseren din for å bruke denne appen."
   },
@@ -218,6 +221,9 @@
   "86c66437fd": {
     "translation": "Gi nytt navn til filen"
   },
+  "8b1946f965": {
+    "translation": "For å fortsette redigeringen, kopier rommet til filene dine."
+  },
   "8eb2c00e96": {
     "translation": "Delt med deg"
   },
@@ -241,6 +247,9 @@
   },
   "9bef626805": {
     "translation": "Slett fil"
+  },
+  "9c258b8f88": {
+    "translation": "Dette anonyme tldraw-flerspillerrommet er nå skrivebeskyttet. For å fortsette redigeringen, vennligst logg inn og kopier det til filene dine."
   },
   "9ceb927baa": {
     "translation": "Publiser denne filen"
@@ -327,9 +336,6 @@
   "c87aacf567": {
     "translation": "Logg ut"
   },
-  "cbef7ba103": {
-    "translation": "Dette rommet vil snart være skrivebeskyttet"
-  },
   "cceaefbc20": {
     "translation": "Del denne filen"
   },
@@ -368,9 +374,6 @@
   },
   "e78e14c5f1": {
     "translation": "Pin"
-  },
-  "ea2301d01c": {
-    "translation": "Etter 1. juli 2025 vil dette anonyme tldraw-flerspillerrommet bli skrivebeskyttet. For å fortsette å redigere i fremtiden, vennligst logg inn og kopier det til filene dine."
   },
   "ea4788705e": {
     "translation": "Kansellere"

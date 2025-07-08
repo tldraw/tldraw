@@ -122,6 +122,9 @@
   "5a95a425f7": {
     "translation": "Teilen"
   },
+  "5bcc12ace8": {
+    "translation": "Dieser Raum ist jetzt schreibgeschützt"
+  },
   "5bec508475": {
     "translation": "Alter Browser erkannt. Bitte aktualisieren Sie Ihren Browser, um diese App zu verwenden."
   },
@@ -218,6 +221,9 @@
   "86c66437fd": {
     "translation": "Datei umbenennen"
   },
+  "8b1946f965": {
+    "translation": "Um mit der Bearbeitung fortzufahren, kopieren Sie den Raum bitte in Ihre Dateien."
+  },
   "8eb2c00e96": {
     "translation": "Mit Ihnen geteilt"
   },
@@ -241,6 +247,9 @@
   },
   "9bef626805": {
     "translation": "Datei löschen"
+  },
+  "9c258b8f88": {
+    "translation": "Dieser anonyme TLdraw-Multiplayer-Raum ist jetzt schreibgeschützt. Um mit der Bearbeitung fortzufahren, melden Sie sich bitte an und kopieren Sie den Inhalt in Ihre Dateien."
   },
   "9ceb927baa": {
     "translation": "Diese Datei veröffentlichen"
@@ -327,9 +336,6 @@
   "c87aacf567": {
     "translation": "Abmelden"
   },
-  "cbef7ba103": {
-    "translation": "Dieser Raum wird bald schreibgeschützt sein"
-  },
   "cceaefbc20": {
     "translation": "Diese Datei teilen"
   },
@@ -368,9 +374,6 @@
   },
   "e78e14c5f1": {
     "translation": "Anheften"
-  },
-  "ea2301d01c": {
-    "translation": "Nach dem 1. Juli 2025 ist dieser anonyme tldraw-Multiplayer-Raum schreibgeschützt. Um in Zukunft weiterarbeiten zu können, melden Sie sich bitte an und kopieren Sie den Inhalt in Ihre Dateien."
   },
   "ea4788705e": {
     "translation": "Abbrechen"

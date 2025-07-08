@@ -122,6 +122,9 @@
   "5a95a425f7": {
     "translation": "Jakaa"
   },
+  "5bcc12ace8": {
+    "translation": "Tämä huone on nyt vain luku -tilassa"
+  },
   "5bec508475": {
     "translation": "Vanha selain havaittu. Päivitä selaimesi käyttääksesi tätä sovellusta."
   },
@@ -218,6 +221,9 @@
   "86c66437fd": {
     "translation": "Nimeä tiedosto uudelleen"
   },
+  "8b1946f965": {
+    "translation": "Jatkaaksesi muokkaamista, kopioi huone tiedostoihisi."
+  },
   "8eb2c00e96": {
     "translation": "Jaettu kanssasi"
   },
@@ -241,6 +247,9 @@
   },
   "9bef626805": {
     "translation": "Poista tiedosto"
+  },
+  "9c258b8f88": {
+    "translation": "Tämä anonyymi tldraw-moninpelihuone on nyt vain luku -tilassa. Jatkaaksesi muokkaamista, kirjaudu sisään ja kopioi se tiedostoihisi."
   },
   "9ceb927baa": {
     "translation": "Julkaise tämä tiedosto"
@@ -327,9 +336,6 @@
   "c87aacf567": {
     "translation": "Kirjaudu ulos"
   },
-  "cbef7ba103": {
-    "translation": "Tämä huone on pian vain luku -tilassa"
-  },
   "cceaefbc20": {
     "translation": "Jaa tämä tiedosto"
   },
@@ -368,9 +374,6 @@
   },
   "e78e14c5f1": {
     "translation": "Pin"
-  },
-  "ea2301d01c": {
-    "translation": "1. heinäkuuta 2025 jälkeen tästä anonyymistä tldraw-moninpelihuoneesta tulee vain luku -tilassa oleva. Jos haluat jatkaa muokkaamista tulevaisuudessa, kirjaudu sisään ja kopioi se tiedostoihisi."
   },
   "ea4788705e": {
     "translation": "Peruuttaa"

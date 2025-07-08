@@ -122,6 +122,9 @@
   "5a95a425f7": {
     "translation": "Podziel się"
   },
+  "5bcc12ace8": {
+    "translation": "Ten pokój jest teraz tylko do odczytu"
+  },
   "5bec508475": {
     "translation": "Wykryto starą przeglądarkę. Zaktualizuj przeglądarkę, aby korzystać z tej aplikacji."
   },
@@ -218,6 +221,9 @@
   "86c66437fd": {
     "translation": "Zmień nazwę pliku"
   },
+  "8b1946f965": {
+    "translation": "Aby kontynuować edycję, skopiuj pokój do swoich plików."
+  },
   "8eb2c00e96": {
     "translation": "Udostępniono Tobie"
   },
@@ -241,6 +247,9 @@
   },
   "9bef626805": {
     "translation": "Usuń plik"
+  },
+  "9c258b8f88": {
+    "translation": "Ten anonimowy pokój wieloosobowy tldraw jest teraz tylko do odczytu. Aby kontynuować edycję, zaloguj się i skopiuj go do swoich plików."
   },
   "9ceb927baa": {
     "translation": "Opublikuj ten plik"
@@ -327,9 +336,6 @@
   "c87aacf567": {
     "translation": "Wyloguj się"
   },
-  "cbef7ba103": {
-    "translation": "Ten pokój wkrótce będzie dostępny tylko do odczytu"
-  },
   "cceaefbc20": {
     "translation": "Udostępnij ten plik"
   },
@@ -368,9 +374,6 @@
   },
   "e78e14c5f1": {
     "translation": "Pinezka"
-  },
-  "ea2301d01c": {
-    "translation": "Po 1 lipca 2025 r. ten anonimowy pokój wieloosobowy tldraw stanie się tylko do odczytu. Aby kontynuować edycję w przyszłości, zaloguj się i skopiuj go do swoich plików."
   },
   "ea4788705e": {
     "translation": "Anuluj"

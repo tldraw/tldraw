@@ -94,6 +94,7 @@
 	"action.toggle-focus-mode.menu": "Tryb skupienia",
 	"action.toggle-grid": "Włącz/wyłącz siatkę",
 	"action.toggle-grid.menu": "Pokaż siatkę",
+	"action.toggle-keyboard-shortcuts.menu": "Skróty klawiaturowe",
 	"action.toggle-lock": "Blokuj/odblokuj",
 	"action.toggle-paste-at-cursor": "Włącz/wyłącz wklejanie na kursorze",
 	"action.toggle-paste-at-cursor.menu": "Wklej w miejscu kursora",

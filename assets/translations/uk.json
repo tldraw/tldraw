@@ -94,6 +94,7 @@
 	"action.toggle-focus-mode.menu": "Режим концентрації",
 	"action.toggle-grid": "Перемкнути сітку",
 	"action.toggle-grid.menu": "Показати сітку",
+	"action.toggle-keyboard-shortcuts.menu": "Комбінації клавіш",
 	"action.toggle-lock": "Блокувати / Розблокувати",
 	"action.toggle-paste-at-cursor": "Перемкнути вставку за курсором",
 	"action.toggle-paste-at-cursor.menu": "Вставити під курсор",
