@@ -22,13 +22,15 @@ function App() {
 
 	return (
 		<div className="tldraw-ai-container">
-			<Tldraw persistenceKey="tldraw-ai-demo-2" onMount={handleMount} />
-			{editor && <InputBar editor={editor} />}
+			<div className="tldraw-canvas">
+				<Tldraw persistenceKey="tldraw-ai-demo-2" onMount={handleMount} />
+			</div>
+			{editor && <ChatPanel editor={editor} />}
 		</div>
 	)
 }
 
-function InputBar({ editor }: { editor: Editor }) {
+function ChatPanel({ editor }: { editor: Editor }) {
 	const ai = useTldrawAiExample(editor)
 
 	// The state of the prompt input, either idle or loading with a cancel callback
@@ -85,11 +87,14 @@ function InputBar({ editor }: { editor: Editor }) {
 	)
 
 	return (
-		<div className="prompt-input">
-			<form onSubmit={handleSubmit}>
-				<input name="input" type="text" autoComplete="off" placeholder="Enter your prompt…" />
-				<button>{isGenerating ? <DefaultSpinner /> : 'Send'}</button>
-			</form>
+		<div className="chat-panel">
+			<div className="chat-history"></div>
+			<div className="chat-input">
+				<form onSubmit={handleSubmit}>
+					<input name="input" type="text" autoComplete="off" placeholder="Enter your prompt…" />
+					<button>{isGenerating ? <DefaultSpinner /> : 'Send'}</button>
+				</form>
+			</div>
 		</div>
 	)
 }
