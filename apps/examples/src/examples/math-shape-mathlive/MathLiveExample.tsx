@@ -5,7 +5,6 @@ import { useCallback, useEffect, useRef } from 'react'
 import {
 	DefaultToolbar,
 	DefaultToolbarContent,
-	Editor,
 	Geometry2d,
 	HTMLContainer,
 	RecordProps,
@@ -212,12 +211,6 @@ export const components: TLComponents = {
 const shapeUtils = [MathShapeUtil]
 const tools = [MathShapeTool]
 export default function CustomShapeExample() {
-	function handleMount(editor: Editor) {
-		const mathShapes = editor.getCurrentPageShapes().filter((shape) => shape.type === 'math')
-		if (mathShapes.length > 0) return
-		editor.createShape({ type: 'math', x: 0, y: 0, props: { content: '2x=y^3' } })
-	}
-
 	return (
 		<div className="tldraw__editor">
 			<Tldraw
@@ -226,7 +219,6 @@ export default function CustomShapeExample() {
 				tools={tools}
 				overrides={overrides}
 				components={components}
-				onMount={handleMount}
 			/>
 		</div>
 	)
