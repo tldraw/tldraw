@@ -1,10 +1,7 @@
 import {
-	Subscription,
 	TopicSubscriptionTree,
 	getSubscriptionChanges,
-	parseSubscriptions,
 	parseTopicSubscriptionTree,
-	serializeSubscriptions,
 } from './Subscription'
 import { Topic } from './replicatorTypes'
 
@@ -100,50 +97,6 @@ describe('getSubscriptionChanges', () => {
 		const result = getSubscriptionChanges(changes as any)
 		expect(result.newSubscriptions).toBe(null)
 		expect(result.removedSubscriptions).toBe(null)
-	})
-})
-
-describe('parseSubscriptions', () => {
-	it('should parse empty string', () => {
-		expect(parseSubscriptions('')).toEqual(null)
-	})
-
-	it('should parse single subscription', () => {
-		const result = parseSubscriptions('user:alice\\file:doc1')
-		expect(result).toEqual([{ fromTopic: 'user:alice', toTopic: 'file:doc1' }])
-	})
-
-	it('should parse multiple subscriptions', () => {
-		const result = parseSubscriptions(
-			'user:alice\\file:doc1,user:bob\\file:doc2,user:charlie\\file:doc3'
-		)
-		expect(result).toEqual([
-			{ fromTopic: 'user:alice', toTopic: 'file:doc1' },
-			{ fromTopic: 'user:bob', toTopic: 'file:doc2' },
-			{ fromTopic: 'user:charlie', toTopic: 'file:doc3' },
-		])
-	})
-})
-
-describe('serialize/parse round-trip', () => {
-	it('should maintain data integrity through serialize->parse cycle', () => {
-		const original: Subscription[] = [
-			{ fromTopic: 'user:alice', toTopic: 'file:doc1' },
-			{ fromTopic: 'user:bob', toTopic: 'file:doc2' },
-			{ fromTopic: 'user:charlie', toTopic: 'file:doc3' },
-		]
-
-		const serialized = serializeSubscriptions(original)
-		const parsed = parseSubscriptions(serialized)
-
-		expect(parsed).toEqual(original)
-	})
-
-	it('should handle empty array round-trip', () => {
-		const original: Subscription[] = []
-		const serialized = serializeSubscriptions(original)
-
-		expect(serialized).toBe(null)
 	})
 })
 

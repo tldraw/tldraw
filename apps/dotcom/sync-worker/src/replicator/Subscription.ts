@@ -15,24 +15,6 @@ export interface Subscription {
 	toTopic: Topic
 }
 
-export function serializeSubscriptions(ops: Subscription[]): string | null {
-	if (ops.length === 0) {
-		return null
-	}
-	// Format: "fromTopic\toTopic,fromTopic\toTopic"
-	// Using backslash as separator since topics contain colons
-	return ops.map((op) => `${op.fromTopic}\\${op.toTopic}`).join(',')
-}
-
-export function parseSubscriptions(str: string | null): Subscription[] | null {
-	if (!str) return null
-	// Split by comma for multiple subscriptions, then by backslash for topic pairs
-	return str.split(',').map((op) => {
-		const [fromTopic, toTopic] = op.split('\\') as [Topic, Topic]
-		return { fromTopic, toTopic }
-	})
-}
-
 export function getSubscriptionChanges(changes: Array<{ row: TlaRow; event: ReplicationEvent }>): {
 	newSubscriptions: Subscription[] | null
 	removedSubscriptions: Subscription[] | null

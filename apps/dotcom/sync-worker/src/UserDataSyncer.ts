@@ -255,12 +255,12 @@ export class UserDataSyncer {
 			return null
 		}
 		this.log.debug('loaded snapshot from R2')
-		this.logEvent({ type: 'found_snapshot', id: this.userId })
+		this.logEvent({ type: 'fast_resume', id: this.userId })
 		return data
 	}
 
-	private async loadInitialDataFromPostgres(hard: boolean, signal: AbortSignal) {
-		this.logEvent({ type: hard ? 'full_data_fetch_hard' : 'full_data_fetch', id: this.userId })
+	private async loadInitialDataFromPostgres(signal: AbortSignal) {
+		this.logEvent({ type: 'full_data_fetch_hard', id: this.userId })
 		this.log.debug('fetching fresh initial data from postgres')
 		// if the bootId changes during the boot process, we should stop silently
 		const initialData: ZStoreData & { mutationNumber?: number } = {
@@ -324,93 +324,78 @@ export class UserDataSyncer {
 		this.log.debug('boot hard:', hard)
 		// todo: clean up old resources if necessary?
 		const start = Date.now()
+		// fine to discard previous buffered events because we're generating a new bootId
+		const bufferedEvents: ZReplicationEvent[] = []
 		this.state = {
 			type: 'connecting',
 			// preserve the promise so any awaiters do eventually get resolved
 			bootId: uniqueId(),
-			bufferedEvents: [],
+			bufferedEvents,
 		}
-		let resumeData: { sequenceId: string; lastSequenceNumber: number } | null = null
-		/**
-		 * BOOTUP SEQUENCE
-		 * 1. Generate a unique boot id
-		 * 2. Fetch data from R2, or fetch fresh data from postgres
-		 * 3. Send initial data to client
-		 * 4. Register with the replicator
-		 * 5. Ignore any events that come in before the sequence id ends with our boot id
-		 * 6. Buffer any events that come in with a valid sequence id
-		 * 7. Once the replicator responds to the registration request, apply the buffered events
-		 */
-		if (!this.store.getCommittedData() || hard) {
-			const res =
-				(!hard && (await this.loadInitialDataFromR2(signal))) ||
-				(await this.loadInitialDataFromPostgres(hard, signal))
+
+		if (hard) {
+			this.log.debug('hard boot, clearing store')
+
+			const res = await this.loadInitialDataFromPostgres(signal)
+			if (signal.aborted) return
+
+			this.store.initialize(res.initialData, res.optimisticUpdates)
+
+			const topicSubscriptions: TopicSubscriptionTree = {}
+
+			for (const file_state of res.initialData.file_state) {
+				topicSubscriptions[`file:${file_state.fileId}`] = 1
+			}
+
+			const { sequenceId, sequenceNumber } = await getReplicator(this.env).registerUser({
+				userId: this.userId,
+				topicSubscriptions,
+				bootId: this.state.bootId,
+			})
 
 			if (signal.aborted) return
 
-			this.log.debug('got initial data')
+			this.state = {
+				type: 'connected',
+				bootId: this.state.bootId,
+				sequenceId,
+				lastSequenceNumber: sequenceNumber,
+			}
+		} else {
+			const res = await this.loadInitialDataFromR2(signal)
+			if (signal.aborted) return
+			if (!res) {
+				return this.boot(true, signal)
+			}
+
 			this.store.initialize(res.initialData, res.optimisticUpdates)
 			this.broadcast({
 				type: 'initial_data',
 				initialData: res.initialData,
 			})
+
 			if (
-				'mutationNumber' in res.initialData &&
-				typeof res.initialData.mutationNumber === 'number'
+				res.sequenceId === notASequenceId ||
+				!(await getReplicator(this.env).resumeSequence({
+					userId: this.userId,
+					sequenceId: res.sequenceId,
+					lastSequenceNumber: res.lastSequenceNumber,
+				}))
 			) {
-				this.commitMutations(res.initialData.mutationNumber)
-			}
-			if (res.sequenceId !== notASequenceId) {
-				resumeData = { sequenceId: res.sequenceId, lastSequenceNumber: res.lastSequenceNumber }
-			}
-		}
-
-		if (
-			!resumeData ||
-			!(await getReplicator(this.env).resumeSequence({
-				userId: this.userId,
-				sequenceId: resumeData.sequenceId,
-				lastSequenceNumber: resumeData.lastSequenceNumber,
-			}))
-		) {
-			const initialData = this.store.getCommittedData()!
-
-			const topicSubscriptions: TopicSubscriptionTree = {}
-
-			for (const file_state of initialData.file_state) {
-				topicSubscriptions[`file:${file_state.fileId}`] = 1
-			}
-
-			const res = await getReplicator(this.env).registerUser({
-				userId: this.userId,
-				lsn: initialData.lsn,
-				topicSubscriptions,
-				bootId: this.state.bootId,
-			})
-
-			if (signal.aborted) {
-				this.log.debug('aborting because of timeout')
-				return
-			}
-
-			if (res.type === 'reboot') {
-				this.logEvent({ type: 'not_enough_history_for_fast_reboot', id: this.userId })
-				if (hard) throw new Error('reboot loop, waiting')
+				if (signal.aborted) return
 				return this.boot(true, signal)
 			}
-			resumeData = { sequenceId: res.sequenceId, lastSequenceNumber: res.sequenceNumber }
+
+			this.state = {
+				type: 'connected',
+				bootId: this.state.bootId,
+				sequenceId: res.sequenceId,
+				lastSequenceNumber: res.lastSequenceNumber,
+			}
 		}
 
-		const bufferedEvents = this.state.bufferedEvents
-		this.state = {
-			type: 'connected',
-			bootId: this.state.bootId,
-			sequenceId: resumeData.sequenceId,
-			lastSequenceNumber: resumeData.lastSequenceNumber,
-		}
-
-		if (bufferedEvents.length > 0) {
-			bufferedEvents.forEach((event) => this.handleReplicationEvent(event))
+		for (const event of bufferedEvents) {
+			this.handleReplicationEvent(event)
 		}
 
 		const end = Date.now()

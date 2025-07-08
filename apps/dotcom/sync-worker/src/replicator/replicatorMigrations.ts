@@ -1,7 +1,4 @@
 import { Logger } from '../Logger'
-import { buildTopicsString, getTopics } from './ChangeCollator'
-import { getSubscriptionChanges, serializeSubscriptions } from './Subscription'
-import { ChangeV1, ChangeV2 } from './replicatorTypes'
 
 type Migration =
 	| {
@@ -80,88 +77,28 @@ const migrations: Migration[] = [
 	},
 	{
 		id: '006_graph_subscriptions',
-		fn(sqlite: SqlStorage) {
-			// We're doing two things here:
-			// 1. Replacing file subscriptions with a graph-based topic subscription system
-			// 2. Grouping history entries by transaction (using lsn to group) and storing topic subscription ops
-			//    separately to allow for efficient catch-up operations.
-			sqlite.exec(`
-				CREATE TABLE history_new (
-					lsn TEXT NOT NULL,
-					changesJson TEXT NOT NULL,
-					newSubscriptions TEXT,
-					removedSubscriptions TEXT,
-					topics TEXT NOT NULL,
-					timestamp INTEGER NOT NULL
-				);
-				CREATE INDEX history_lsn ON history_new (lsn);
-				CREATE INDEX history_topics ON history_new (topics);
-				CREATE INDEX history_timestamp ON history_new (timestamp);
+		sql: `
+			-- Create graph-based subscription system
+			CREATE TABLE topic_subscription (
+				fromTopic TEXT NOT NULL,
+				toTopic TEXT NOT NULL,
+				PRIMARY KEY (fromTopic, toTopic)
+			);
+			CREATE INDEX topic_subscription_toTopic_fromTopic ON topic_subscription (toTopic, fromTopic);
+			CREATE INDEX topic_subscription_fromTopic_toTopic ON topic_subscription (fromTopic, toTopic);
 
-				-- Create graph-based subscription system
-				CREATE TABLE topic_subscription (
-					fromTopic TEXT NOT NULL,
-					toTopic TEXT NOT NULL,
-					PRIMARY KEY (fromTopic, toTopic)
-				);
-				CREATE INDEX topic_subscription_toTopic_fromTopic ON topic_subscription (toTopic, fromTopic);
-				CREATE INDEX topic_subscription_fromTopic_toTopic ON topic_subscription (fromTopic, toTopic);
+			-- Migrate existing data: user -> file subscriptions become direct edges
+			INSERT INTO topic_subscription (fromTopic, toTopic)
+			SELECT 'user:' || userId, 'file:' || fileId FROM user_file_subscriptions;
 
-				-- Migrate existing data: user -> file subscriptions become direct edges
-				INSERT INTO topic_subscription (fromTopic, toTopic)
-				SELECT 'user:' || userId, 'file:' || fileId FROM user_file_subscriptions;
-
-				DROP TABLE user_file_subscriptions;
-			`)
-			// migrate old history to new history
-			let lsn = '0/0'
-			let timestamp = 0
-			let changes: ChangeV2[] = []
-			const stash = () => {
-				// don't write on the first iteration
-				if (changes.length === 0) return
-				// Map ChangeV2 to the format expected by getSubscriptionChanges
-				const mappedChanges = changes.map((change) => ({
-					row: change.row || change.previous, // For deletes, row is null so use previous
-					event: change.event,
-				}))
-				const { newSubscriptions, removedSubscriptions } = getSubscriptionChanges(mappedChanges)
-				sqlite.exec(
-					'insert into history_new (lsn, changesJson, newSubscriptions, removedSubscriptions, topics, timestamp) values (?, ?, ?, ?, ?, ?)',
-					lsn,
-					JSON.stringify(changes),
-					newSubscriptions && serializeSubscriptions(newSubscriptions),
-					removedSubscriptions && serializeSubscriptions(removedSubscriptions),
-					buildTopicsString(changes),
-					timestamp
-				)
-				changes = []
-			}
-			for (const row of sqlite.exec<{
-				lsn: string
-				userId: string
-				fileId: string
-				json: string
-				timestamp: number
-			}>('select * from history')) {
-				if (lsn !== row.lsn) {
-					stash()
-					lsn = row.lsn
-				}
-				const changeV1 = JSON.parse(row.json) as ChangeV1
-				const changeV2: ChangeV2 = {
-					event: changeV1.event,
-					row: changeV1.row,
-					previous: changeV1.previous,
-					topics: getTopics(changeV1.row, changeV1.event),
-				}
-				changes.push(changeV2)
-				timestamp = row.timestamp
-			}
-			stash()
-			sqlite.exec('DROP TABLE history')
-			sqlite.exec('ALTER TABLE history_new RENAME TO history')
-		},
+			DROP TABLE user_file_subscriptions;
+		`,
+	},
+	{
+		id: '007_drop_history_for_good',
+		sql: `
+			DROP TABLE history;
+		`,
 	},
 ]
 

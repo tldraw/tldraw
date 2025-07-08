@@ -2,7 +2,6 @@ import { DB, TlaFile } from '@tldraw/dotcom-shared'
 import {
 	ExecutionQueue,
 	assert,
-	assertExists,
 	exhaustiveSwitchError,
 	promiseWithResolve,
 	sleep,
@@ -18,14 +17,12 @@ import { Logger } from './Logger'
 import { ZReplicationEventWithoutSequenceInfo } from './UserDataSyncer'
 import { createPostgresConnectionPool } from './postgres'
 import { getR2KeyForRoom } from './r2'
-import { LiveChangeCollator, buildTopicsString, getTopics } from './replicator/ChangeCollator'
+import { ChangeCollator, getTopics } from './replicator/ChangeCollator'
 import {
 	TopicSubscriptionTree,
 	getSubscriptionChanges,
 	parseTopicSubscriptionTree,
-	serializeSubscriptions,
 } from './replicator/Subscription'
-import { getResumeType } from './replicator/getResumeType'
 import { pruneTopicSubscriptionsSql } from './replicator/pruneTopicSubscriptions'
 import { migrate } from './replicator/replicatorMigrations'
 import { ChangeV2, ReplicationEvent, relevantTables } from './replicator/replicatorTypes'
@@ -43,10 +40,11 @@ import {
 } from './utils/durableObjects'
 
 const ONE_MINUTE = 60 * 1000
-// IMPORTANT prune interval needs to be at least twice as big as the lsn update request timeout
-// otherwise we might prune users who are still connected.
+const ONE_HOUR = 60 * ONE_MINUTE
+const ONE_DAY = 24 * ONE_HOUR
+const ONE_WEEK = 7 * ONE_DAY
 const PRUNE_INTERVAL = 10 * ONE_MINUTE
-const MAX_HISTORY_ROWS = 20_000
+const ACTIVE_USER_TIMEOUT = ONE_WEEK
 
 type PromiseWithResolve = ReturnType<typeof promiseWithResolve>
 
@@ -157,7 +155,6 @@ export class TLPostgresReplicator extends DurableObject<Environment> {
 				await sql`SELECT pg_create_logical_replication_slot(${this.slotName}, 'wal2json') WHERE NOT EXISTS (SELECT 1 FROM pg_replication_slots WHERE slot_name = ${this.slotName})`.execute(
 					this.db
 				)
-				this.pruneHistory()
 			})
 			.then(() => {
 				this.reboot('constructor', false).catch((e) => {
@@ -202,7 +199,7 @@ export class TLPostgresReplicator extends DurableObject<Environment> {
 		if (now - this.lastUserPruneTime < PRUNE_INTERVAL) return
 		this.logEvent({ type: 'prune' })
 		this.log.debug('pruning')
-		const cutoffTime = now - PRUNE_INTERVAL
+		const cutoffTime = now - ACTIVE_USER_TIMEOUT
 		const usersWithoutRecentUpdates = this.ctx.storage.sql
 			.exec('SELECT id FROM active_user WHERE lastUpdatedAt < ?', cutoffTime)
 			.toArray() as {
@@ -211,23 +208,14 @@ export class TLPostgresReplicator extends DurableObject<Environment> {
 		for (const { id } of usersWithoutRecentUpdates) {
 			await this.unregisterUser(id)
 		}
-		this.pruneHistory()
 		this.pruneTopicSubscriptions()
 		this.lastUserPruneTime = Date.now()
 	}
 
-	private pruneHistory() {
-		this.sqlite.exec(`
-      WITH max AS (
-        SELECT MAX(rowid) AS max_id FROM history
-      )
-      DELETE FROM history
-      WHERE rowid < (SELECT max_id FROM max) - ${MAX_HISTORY_ROWS};
-    `)
-	}
-
 	private pruneTopicSubscriptions() {
-		// Use a temp table + index for fast lookups during the delete
+		// This uses a temp table + index for fast lookups during the delete
+		// so we need to do it in a transaction.
+		// With sqlite storage you use the transactionSync method to do this instead of BEGIN/COMMIT.
 		this.ctx.storage.transactionSync(() => {
 			this.sqlite.exec(pruneTopicSubscriptionsSql)
 		})
@@ -246,22 +234,11 @@ export class TLPostgresReplicator extends DurableObject<Environment> {
 	}
 
 	async getDiagnostics() {
-		const earliestHistoryRow = this.sqlite
-			.exec<{ timestamp: number }>('select * from history order by rowid asc limit 1')
-			.toArray()[0]
-		const latestHistoryRow = this.sqlite
-			.exec<{ timestamp: number }>('select * from history order by rowid desc limit 1')
-			.toArray()[0]
-		const numHistoryRows = this.sqlite.exec('select count(*) from history').one().count as number
 		const numTopicSubscriptions = this.sqlite.exec('select count(*) from topic_subscription').one()
 			.count as number
 		const activeUsers = this.sqlite.exec('select count(*) from active_user').one().count as number
 		const meta = this.sqlite.exec('select * from meta').one()
 		return {
-			earliestHistoryRow,
-			latestHistoryRow,
-			historyDurationMinutes: (latestHistoryRow.timestamp - earliestHistoryRow.timestamp) / 60_000,
-			numHistoryRows,
 			numTopicSubscriptions,
 			activeUsers,
 			meta,
@@ -345,10 +322,6 @@ export class TLPostgresReplicator extends DurableObject<Environment> {
 				const changes: ChangeV2[] = []
 
 				for (const _change of log.change) {
-					if (_change.kind === 'message' && (_change as any).prefix === 'requestLsnUpdate') {
-						this.requestLsnUpdate((_change as any).content)
-						continue
-					}
 					const change = this.parseChange(_change)
 					if (!change) {
 						this.log.debug('IGNORING CHANGE', _change)
@@ -366,17 +339,7 @@ export class TLPostgresReplicator extends DurableObject<Environment> {
 				this.log.debug('data', lsn, { changes, newSubscriptions, removedSubscriptions })
 
 				this.ctx.storage.transactionSync(() => {
-					this.sqlite.exec(
-						'INSERT INTO history (lsn, changesJson, newSubscriptions, removedSubscriptions, topics, timestamp) VALUES (?, ?, ?, ?, ?, ?)',
-						lsn,
-						JSON.stringify(changes),
-						newSubscriptions && serializeSubscriptions(newSubscriptions),
-						removedSubscriptions && serializeSubscriptions(removedSubscriptions),
-						buildTopicsString(changes),
-						Date.now()
-					)
-
-					const collator = new LiveChangeCollator(this.sqlite)
+					const collator = new ChangeCollator(this.sqlite)
 
 					// handle add ops first so that we get insertions for new topics
 					if (newSubscriptions) {
@@ -633,22 +596,15 @@ export class TLPostgresReplicator extends DurableObject<Environment> {
 
 	async registerUser({
 		userId,
-		lsn,
 		topicSubscriptions,
 		bootId,
 	}: {
 		userId: string
-		lsn: string
 		topicSubscriptions: TopicSubscriptionTree
 		bootId: string
-	}): Promise<{ type: 'done'; sequenceId: string; sequenceNumber: number } | { type: 'reboot' }> {
+	}): Promise<{ type: 'done'; sequenceId: string; sequenceNumber: number }> {
 		try {
-			while (!this.getCurrentLsn()) {
-				// this should only happen once per slot name change, which should never happen!
-				await sleep(100)
-			}
-
-			this.log.debug('registering user', userId, lsn, bootId, topicSubscriptions)
+			this.log.debug('registering user', userId, bootId, topicSubscriptions)
 			this.logEvent({ type: 'register_user' })
 
 			// clear user and subscriptions
@@ -677,23 +633,6 @@ export class TLPostgresReplicator extends DurableObject<Environment> {
 			this.reportActiveUsers()
 			this.log.debug('inserted active user')
 
-			const resume = getResumeType({
-				sqlite: this.sqlite,
-				log: this.log,
-				currentLsn: assertExists(this.getCurrentLsn()),
-				lsn,
-				userId,
-			})
-			if (resume.type === 'reboot') {
-				return { type: 'reboot' }
-			}
-
-			if (resume.messages) {
-				for (const message of resume.messages) {
-					this._messageUser(userId, message)
-				}
-			}
-
 			return {
 				type: 'done',
 				sequenceId: this.slotName + bootId,
@@ -703,19 +642,6 @@ export class TLPostgresReplicator extends DurableObject<Environment> {
 			this.captureException(e)
 			throw e
 		}
-	}
-
-	private async requestLsnUpdate(userId: string) {
-		try {
-			this.log.debug('requestLsnUpdate', userId)
-			this.logEvent({ type: 'request_lsn_update' })
-			const lsn = assertExists(this.getCurrentLsn(), 'lsn should exist')
-			this._messageUser(userId, { type: 'changes', changes: [], lsn })
-		} catch (e) {
-			this.captureException(e)
-			throw e
-		}
-		return
 	}
 
 	async unregisterUser(userId: string) {
@@ -742,7 +668,6 @@ export class TLPostgresReplicator extends DurableObject<Environment> {
 			case 'reboot_error':
 			case 'register_user':
 			case 'unregister_user':
-			case 'request_lsn_update':
 			case 'prune':
 			case 'get_file_record':
 			case 'resume_sequence':
