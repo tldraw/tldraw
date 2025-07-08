@@ -1,5 +1,5 @@
 import { FormEventHandler, useCallback, useEffect, useRef, useState } from 'react'
-import { DefaultSpinner, Editor } from 'tldraw'
+import { Editor } from 'tldraw'
 import { useTldrawAiExample } from './useTldrawAiExample'
 
 export function ChatPanel({ editor }: { editor: Editor }) {
@@ -18,6 +18,10 @@ export function ChatPanel({ editor }: { editor: Editor }) {
 		;(window as any).ai = ai
 	}, [ai, editor])
 
+	const [historyItems, setHistoryItems] = useState<ChatHistoryItem[]>([])
+
+	const inputRef = useRef<HTMLInputElement>(null)
+
 	const handleSubmit = useCallback<FormEventHandler<HTMLFormElement>>(
 		async (e) => {
 			e.preventDefault()
@@ -34,6 +38,16 @@ export function ChatPanel({ editor }: { editor: Editor }) {
 				const formData = new FormData(e.currentTarget)
 				const value = formData.get('input') as string
 
+				if (inputRef.current) {
+					inputRef.current.value = ''
+				}
+
+				setHistoryItems((prev) => [
+					...prev,
+					{ type: 'user-message', message: value },
+					{ type: 'agent-action', action: 'thinking', done: false, message: 'Thinking...' },
+				])
+
 				// We call the ai module with the value from the input field and get back a promise and a cancel function
 				const { promise, cancel } = ai.prompt({ message: value, stream: true })
 
@@ -45,6 +59,14 @@ export function ChatPanel({ editor }: { editor: Editor }) {
 
 				// ...wait for the promise to resolve
 				await promise
+
+				setHistoryItems((prev) => {
+					const lastItem = prev[prev.length - 1]
+					if (lastItem.type === 'agent-action') {
+						return [...prev.slice(0, -1), { ...lastItem, done: true }]
+					}
+					return prev
+				})
 
 				// ...then set the state back to idle
 				setIsGenerating(false)
@@ -60,13 +82,98 @@ export function ChatPanel({ editor }: { editor: Editor }) {
 
 	return (
 		<div className="chat-panel">
-			<div className="chat-history"></div>
+			<ChatHistory items={historyItems} />
 			<div className="chat-input">
 				<form onSubmit={handleSubmit}>
-					<input name="input" type="text" autoComplete="off" placeholder="Enter your prompt…" />
-					<button>{isGenerating ? <DefaultSpinner /> : 'Send'}</button>
+					<input
+						ref={inputRef}
+						name="input"
+						type="text"
+						autoComplete="off"
+						placeholder="Speak to your agent..."
+					/>
+					<button>{isGenerating ? '◼' : '⬆'}</button>
 				</form>
 			</div>
+		</div>
+	)
+}
+
+type ChatHistoryItem =
+	| UserMessageHistoryItem
+	| AgentMessageHistoryItem
+	| AgentChangeHistoryItem
+	| AgentActionHistoryItem
+
+interface UserMessageHistoryItem {
+	type: 'user-message'
+	message: string
+}
+
+interface AgentMessageHistoryItem {
+	type: 'agent-message'
+	message: string
+}
+
+interface AgentActionHistoryItem {
+	type: 'agent-action'
+	action: 'thinking'
+	done: boolean
+}
+
+interface AgentChangeHistoryItem {
+	type: 'agent-change'
+	change: string
+}
+
+function UserMessageHistoryItem({ item }: { item: UserMessageHistoryItem }) {
+	return <div className="user-chat-message">{item.message}</div>
+}
+
+function AgentMessageHistoryItem({ item }: { item: AgentMessageHistoryItem }) {
+	return <div className="agent-chat-message">{item.message}</div>
+}
+
+function AgentChangeHistoryItem({ item }: { item: AgentChangeHistoryItem }) {
+	return <div className="agent-change-message">{item.change}</div>
+}
+
+function AgentActionHistoryItem({ item }: { item: AgentActionHistoryItem }) {
+	const actionDefinition = ACTION_HISTORY_ITEMS[item.action]
+	return (
+		<div className="agent-action-message">
+			<span>{item.done ? '✅' : actionDefinition.icon}</span>
+			<span>{item.done ? actionDefinition.doneMessage : actionDefinition.message}</span>
+		</div>
+	)
+}
+
+const ACTION_HISTORY_ITEMS: Record<
+	AgentActionHistoryItem['action'],
+	{ icon: string; message: string; doneMessage: string }
+> = {
+	thinking: {
+		icon: '🧠',
+		message: 'Thinking...',
+		doneMessage: 'Thoughts complete.',
+	},
+}
+
+function ChatHistory({ items }: { items: ChatHistoryItem[] }) {
+	return (
+		<div className="chat-history">
+			{items.map((item, index) => {
+				switch (item.type) {
+					case 'user-message':
+						return <UserMessageHistoryItem key={index} item={item} />
+					case 'agent-message':
+						return <AgentMessageHistoryItem key={index} item={item} />
+					case 'agent-change':
+						return <AgentChangeHistoryItem key={index} item={item} />
+					case 'agent-action':
+						return <AgentActionHistoryItem key={index} item={item} />
+				}
+			})}
 		</div>
 	)
 }

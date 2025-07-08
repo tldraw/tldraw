@@ -1,6 +1,10 @@
 @import url('https://fonts.googleapis.com/css2?family=Inter:wght@500;700&display=swap');
 @import url('tldraw/tldraw.css');
 
+* {
+	box-sizing: border-box;
+}
+
 body {
 	font-family: 'Inter', sans-serif;
 	overscroll-behavior: none;
@@ -37,12 +41,13 @@ body {
 }
 
 .chat-input {
-	padding: 16px;
+	padding: 8px;
 	border-top: 1px solid black;
 }
 
 .chat-input form {
 	display: flex;
+	flex-direction: column;
 	gap: 8px;
 }
 
@@ -53,6 +58,7 @@ body {
 	border-radius: 4px;
 	font-size: 14px;
 	outline: none;
+	width: 100%;
 }
 
 .chat-input input[type='text']:focus {
@@ -60,8 +66,9 @@ body {
 }
 
 .chat-input button {
-	width: 64px;
-	height: 36px;
+	width: 32px;
+	height: 32px;
+	align-self: flex-end;
 	background: hsl(214, 84%, 56%);
 	color: hsl(0, 0%, 100%);
 	appearance: none;
@@ -70,6 +77,7 @@ body {
 	cursor: pointer;
 	font-size: 14px;
 	font-weight: 500;
+	border-radius: 100%;
 }
 
 .chat-input button:hover {
@@ -79,4 +87,20 @@ body {
 .chat-input button:disabled {
 	background: hsl(0, 0%, 85%);
 	cursor: not-allowed;
+}
+
+.agent-action-message {
+	display: flex;
+	align-items: center;
+	gap: 4px;
+}
+
+.user-chat-message {
+	text-align: right;
+	background-color: hsl(214, 84%, 56%);
+	color: hsl(0, 0%, 100%);
+	padding: 8px 12px;
+	border-radius: 8px;
+	max-width: 80%;
+	margin-left: auto;
 }
