@@ -259,6 +259,12 @@
       "value": "Dele"
     }
   ],
+  "5bcc12ace8": [
+    {
+      "type": 0,
+      "value": "Dette rommet er nå skrivebeskyttet"
+    }
+  ],
   "5bec508475": [
     {
       "type": 0,
@@ -487,6 +493,12 @@
       "value": "Gi nytt navn til filen"
     }
   ],
+  "8b1946f965": [
+    {
+      "type": 0,
+      "value": "For å fortsette redigeringen, kopier rommet til filene dine."
+    }
+  ],
   "8eb2c00e96": [
     {
       "type": 0,
@@ -533,6 +545,12 @@
     {
       "type": 0,
       "value": "Slett fil"
+    }
+  ],
+  "9c258b8f88": [
+    {
+      "type": 0,
+      "value": "Dette anonyme tldraw-flerspillerrommet er nå skrivebeskyttet. For å fortsette redigeringen, vennligst logg inn og kopier det til filene dine."
     }
   ],
   "9ceb927baa": [
@@ -749,12 +767,6 @@
       "value": "Logg ut"
     }
   ],
-  "cbef7ba103": [
-    {
-      "type": 0,
-      "value": "Dette rommet vil snart være skrivebeskyttet"
-    }
-  ],
   "cceaefbc20": [
     {
       "type": 0,
@@ -831,12 +843,6 @@
     {
       "type": 0,
       "value": "Pin"
-    }
-  ],
-  "ea2301d01c": [
-    {
-      "type": 0,
-      "value": "Etter 1. juli 2025 vil dette anonyme tldraw-flerspillerrommet bli skrivebeskyttet. For å fortsette å redigere i fremtiden, vennligst logg inn og kopier det til filene dine."
     }
   ],
   "ea4788705e": [

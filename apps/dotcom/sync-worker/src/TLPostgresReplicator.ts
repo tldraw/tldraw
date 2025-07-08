@@ -546,7 +546,7 @@ export class TLPostgresReplicator extends DurableObject<Environment> {
 		return { sequenceId: this.slotName }
 	}
 
-	private async _messageUser(userId: string, event: ZReplicationEventWithoutSequenceInfo) {
+	private _messageUser(userId: string, event: ZReplicationEventWithoutSequenceInfo) {
 		this.log.debug('messageUser', userId, event)
 		if (!this.userIsActive(userId)) {
 			this.log.debug('user is not active', userId)
@@ -568,7 +568,7 @@ export class TLPostgresReplicator extends DurableObject<Environment> {
 			assert(typeof sequenceNumber === 'number', 'sequenceNumber should be a number')
 			assert(typeof sequenceIdSuffix === 'string', 'sequenceIdSuffix should be a string')
 
-			await q.push(async () => {
+			q.push(async () => {
 				const user = getUserDurableObject(this.env, userId)
 
 				const res = await user.handleReplicationEvent({
@@ -593,6 +593,37 @@ export class TLPostgresReplicator extends DurableObject<Environment> {
 		} catch (e) {
 			console.error('Error in reportActiveUsers', e)
 		}
+	}
+
+	async resumeSequence({
+		userId,
+		sequenceId,
+		lastSequenceNumber,
+	}: {
+		userId: string
+		sequenceId: string
+		lastSequenceNumber: number
+	}) {
+		this.log.debug('resumeSequence', userId, sequenceId, lastSequenceNumber)
+		const [row] = this.sqlite
+			.exec<{
+				sequenceIdSuffix: string
+				sequenceNumber: number
+			}>('SELECT sequenceIdSuffix, sequenceNumber FROM active_user WHERE id = ?', userId)
+			.toArray()
+		if (!row) return false
+		const { sequenceIdSuffix, sequenceNumber: currentSequenceNumber } = row
+		const canResume =
+			sequenceId === this.slotName + sequenceIdSuffix &&
+			lastSequenceNumber === currentSequenceNumber
+		if (canResume) {
+			this.log.debug('can resume sequence', userId, sequenceId, lastSequenceNumber)
+			this.logEvent({ type: 'resume_sequence' })
+			this.sqlite.exec('UPDATE active_user SET lastUpdatedAt = ? WHERE id = ?', Date.now(), userId)
+			return true
+		}
+		this.log.debug('cannot resume sequence', userId, sequenceId, lastSequenceNumber)
+		return false
 	}
 
 	async registerUser({
@@ -709,6 +740,7 @@ export class TLPostgresReplicator extends DurableObject<Environment> {
 			case 'request_lsn_update':
 			case 'prune':
 			case 'get_file_record':
+			case 'resume_sequence':
 				this.writeEvent({
 					blobs: [event.type],
 				})

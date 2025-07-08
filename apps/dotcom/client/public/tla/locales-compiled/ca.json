@@ -259,6 +259,12 @@
       "value": "Comparteix"
     }
   ],
+  "5bcc12ace8": [
+    {
+      "type": 0,
+      "value": "Aquesta sala ara és de només lectura"
+    }
+  ],
   "5bec508475": [
     {
       "type": 0,
@@ -487,6 +493,12 @@
       "value": "Canvia el nom del fitxer"
     }
   ],
+  "8b1946f965": [
+    {
+      "type": 0,
+      "value": "Per continuar editant, copieu la sala als vostres fitxers."
+    }
+  ],
   "8eb2c00e96": [
     {
       "type": 0,
@@ -533,6 +545,12 @@
     {
       "type": 0,
       "value": "Esborra el fitxer"
+    }
+  ],
+  "9c258b8f88": [
+    {
+      "type": 0,
+      "value": "Aquesta sala multijugador anònima de tldraw ara és de només lectura. Per continuar editant-la, inicia la sessió i copia-la als teus fitxers."
     }
   ],
   "9ceb927baa": [
@@ -749,12 +767,6 @@
       "value": "Tanca la sessió"
     }
   ],
-  "cbef7ba103": [
-    {
-      "type": 0,
-      "value": "Aquesta sala aviat serà de només lectura"
-    }
-  ],
   "cceaefbc20": [
     {
       "type": 0,
@@ -831,12 +843,6 @@
     {
       "type": 0,
       "value": "Pin"
-    }
-  ],
-  "ea2301d01c": [
-    {
-      "type": 0,
-      "value": "Després de l'1 de juliol de 2025, aquesta sala multijugador anònima de tldraw passarà a ser de només lectura. Per continuar editant-la en el futur, inicia la sessió i copia-la als teus fitxers."
     }
   ],
   "ea4788705e": [

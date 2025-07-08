@@ -259,6 +259,12 @@
       "value": "Dela"
     }
   ],
+  "5bcc12ace8": [
+    {
+      "type": 0,
+      "value": "Det här rummet är nu skrivskyddat"
+    }
+  ],
   "5bec508475": [
     {
       "type": 0,
@@ -487,6 +493,12 @@
       "value": "Byt namn på filen"
     }
   ],
+  "8b1946f965": [
+    {
+      "type": 0,
+      "value": "För att fortsätta redigera, kopiera rummet till dina filer."
+    }
+  ],
   "8eb2c00e96": [
     {
       "type": 0,
@@ -533,6 +545,12 @@
     {
       "type": 0,
       "value": "Ta bort fil"
+    }
+  ],
+  "9c258b8f88": [
+    {
+      "type": 0,
+      "value": "Detta anonyma tldraw-multiplayerrum är nu skrivskyddat. För att fortsätta redigera, vänligen logga in och kopiera det till dina filer."
     }
   ],
   "9ceb927baa": [
@@ -749,12 +767,6 @@
       "value": "Logga ut"
     }
   ],
-  "cbef7ba103": [
-    {
-      "type": 0,
-      "value": "Det här rummet kommer snart att vara skrivskyddat"
-    }
-  ],
   "cceaefbc20": [
     {
       "type": 0,
@@ -831,12 +843,6 @@
     {
       "type": 0,
       "value": "Nåla fast"
-    }
-  ],
-  "ea2301d01c": [
-    {
-      "type": 0,
-      "value": "Efter den 1 juli 2025 kommer detta anonyma tldraw-multiplayerrum att bli skrivskyddat. För att fortsätta redigera i framtiden, vänligen logga in och kopiera det till dina filer."
     }
   ],
   "ea4788705e": [

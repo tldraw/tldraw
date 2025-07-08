@@ -94,6 +94,7 @@
 	"action.toggle-focus-mode.menu": "Modalità concentrazione",
 	"action.toggle-grid": "Alterna griglia",
 	"action.toggle-grid.menu": "Mostra griglia",
+	"action.toggle-keyboard-shortcuts.menu": "Scorciatoie da tastiera",
 	"action.toggle-lock": "Blocca / Sblocca",
 	"action.toggle-paste-at-cursor": "Attiva/disattiva Incolla nella posizione del cursore",
 	"action.toggle-paste-at-cursor.menu": "Incolla nella posizione del cursore",

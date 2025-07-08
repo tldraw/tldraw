@@ -122,6 +122,9 @@
   "5a95a425f7": {
     "translation": "Compartir"
   },
+  "5bcc12ace8": {
+    "translation": "Esta sala agora é de só lectura"
+  },
   "5bec508475": {
     "translation": "Detectouse un navegador antigo. Actualízao para usar esta aplicación."
   },
@@ -218,6 +221,9 @@
   "86c66437fd": {
     "translation": "Cambiar o nome do ficheiro"
   },
+  "8b1946f965": {
+    "translation": "Para continuar coa edición, copia a sala nos teus ficheiros."
+  },
   "8eb2c00e96": {
     "translation": "Compartido contigo"
   },
@@ -241,6 +247,9 @@
   },
   "9bef626805": {
     "translation": "Eliminar ficheiro"
+  },
+  "9c258b8f88": {
+    "translation": "Esta sala multixogador anónima de tldraw agora é de só lectura. Para continuar editándoa, inicia sesión e cópiaa nos teus ficheiros."
   },
   "9ceb927baa": {
     "translation": "Publicar este ficheiro"
@@ -327,9 +336,6 @@
   "c87aacf567": {
     "translation": "Pechar sesión"
   },
-  "cbef7ba103": {
-    "translation": "Esta sala será de só lectura en breve"
-  },
   "cceaefbc20": {
     "translation": "Comparte este ficheiro"
   },
@@ -368,9 +374,6 @@
   },
   "e78e14c5f1": {
     "translation": "Pin"
-  },
-  "ea2301d01c": {
-    "translation": "Despois do 1 de xullo de 2025, esta sala multixogador anónima de tldraw pasará a ser de só lectura. Para continuar editándoa no futuro, inicia sesión e cópiaa nos teus ficheiros."
   },
   "ea4788705e": {
     "translation": "Cancelar"

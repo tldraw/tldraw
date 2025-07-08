@@ -259,6 +259,12 @@
       "value": "Compartir"
     }
   ],
+  "5bcc12ace8": [
+    {
+      "type": 0,
+      "value": "Esta sala ahora es de solo lectura."
+    }
+  ],
   "5bec508475": [
     {
       "type": 0,
@@ -487,6 +493,12 @@
       "value": "Cambiar el nombre del archivo"
     }
   ],
+  "8b1946f965": [
+    {
+      "type": 0,
+      "value": "Para continuar editando, copie la sala a sus archivos."
+    }
+  ],
   "8eb2c00e96": [
     {
       "type": 0,
@@ -533,6 +545,12 @@
     {
       "type": 0,
       "value": "Eliminar archivo"
+    }
+  ],
+  "9c258b8f88": [
+    {
+      "type": 0,
+      "value": "Esta sala multijugador anónima de tldraw ahora es de solo lectura. Para continuar editando, inicia sesión y cópiala a tus archivos."
     }
   ],
   "9ceb927baa": [
@@ -749,12 +767,6 @@
       "value": "Cerrar sesión"
     }
   ],
-  "cbef7ba103": [
-    {
-      "type": 0,
-      "value": "Esta sala pronto será de solo lectura."
-    }
-  ],
   "cceaefbc20": [
     {
       "type": 0,
@@ -831,12 +843,6 @@
     {
       "type": 0,
       "value": "Anclar"
-    }
-  ],
-  "ea2301d01c": [
-    {
-      "type": 0,
-      "value": "A partir del 1 de julio de 2025, esta sala multijugador anónima de tldraw será de solo lectura. Para seguir editando, inicia sesión y cópiala en tus archivos."
     }
   ],
   "ea4788705e": [

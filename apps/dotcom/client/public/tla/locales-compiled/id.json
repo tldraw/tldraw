@@ -259,6 +259,12 @@
       "value": "Bagikan"
     }
   ],
+  "5bcc12ace8": [
+    {
+      "type": 0,
+      "value": "Ruangan ini sekarang hanya bisa dibaca"
+    }
+  ],
   "5bec508475": [
     {
       "type": 0,
@@ -487,6 +493,12 @@
       "value": "Ganti nama berkas"
     }
   ],
+  "8b1946f965": [
+    {
+      "type": 0,
+      "value": "Untuk meneruskan pengeditan, salin ruangan ke berkas Anda."
+    }
+  ],
   "8eb2c00e96": [
     {
       "type": 0,
@@ -533,6 +545,12 @@
     {
       "type": 0,
       "value": "Hapus file"
+    }
+  ],
+  "9c258b8f88": [
+    {
+      "type": 0,
+      "value": "Ruang multipemain tldraw anonim ini sekarang hanya dapat dibaca. Untuk melanjutkan pengeditan, silakan masuk dan salin ke berkas Anda."
     }
   ],
   "9ceb927baa": [
@@ -741,12 +759,6 @@
       "value": "Keluar"
     }
   ],
-  "cbef7ba103": [
-    {
-      "type": 0,
-      "value": "Ruangan ini akan segera menjadi hanya-baca"
-    }
-  ],
   "cceaefbc20": [
     {
       "type": 0,
@@ -823,12 +835,6 @@
     {
       "type": 0,
       "value": "Sematkan"
-    }
-  ],
-  "ea2301d01c": [
-    {
-      "type": 0,
-      "value": "Setelah 1 Juli 2025, ruang multipemain tldraw anonim ini akan menjadi hanya-baca. Untuk terus mengedit di masa mendatang, silakan masuk dan salin ke berkas Anda."
     }
   ],
   "ea4788705e": [

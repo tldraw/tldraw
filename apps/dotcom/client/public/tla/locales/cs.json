@@ -122,6 +122,9 @@
   "5a95a425f7": {
     "translation": "Podíl"
   },
+  "5bcc12ace8": {
+    "translation": "Tato místnost je nyní pouze pro čtení"
+  },
   "5bec508475": {
     "translation": "Byl detekován starý prohlížeč. Pro použití této aplikace prosím aktualizujte prohlížeč."
   },
@@ -218,6 +221,9 @@
   "86c66437fd": {
     "translation": "Přejmenovat soubor"
   },
+  "8b1946f965": {
+    "translation": "Chcete-li pokračovat v úpravách, zkopírujte prosím místnost do svých souborů."
+  },
   "8eb2c00e96": {
     "translation": "Sdíleno s vámi"
   },
@@ -241,6 +247,9 @@
   },
   "9bef626805": {
     "translation": "Smazat soubor"
+  },
+  "9c258b8f88": {
+    "translation": "Tato anonymní multiplayerová místnost tldraw je nyní pouze pro čtení. Chcete-li pokračovat v úpravách, přihlaste se a zkopírujte ji do svých souborů."
   },
   "9ceb927baa": {
     "translation": "Publikovat tento soubor"
@@ -327,9 +336,6 @@
   "c87aacf567": {
     "translation": "Odhlaste se"
   },
-  "cbef7ba103": {
-    "translation": "Tato místnost bude brzy pouze pro čtení"
-  },
   "cceaefbc20": {
     "translation": "Sdílet tento soubor"
   },
@@ -368,9 +374,6 @@
   },
   "e78e14c5f1": {
     "translation": "Připnout"
-  },
-  "ea2301d01c": {
-    "translation": "Po 1. červenci 2025 bude tato anonymní multiplayerová místnost tldraw pouze pro čtení. Chcete-li v budoucnu pokračovat v úpravách, přihlaste se a zkopírujte ji do svých souborů."
   },
   "ea4788705e": {
     "translation": "Zrušit"

@@ -259,6 +259,12 @@
       "value": "Distribuie"
     }
   ],
+  "5bcc12ace8": [
+    {
+      "type": 0,
+      "value": "Această cameră este acum doar pentru citire"
+    }
+  ],
   "5bec508475": [
     {
       "type": 0,
@@ -487,6 +493,12 @@
       "value": "Redenumiți fișierul"
     }
   ],
+  "8b1946f965": [
+    {
+      "type": 0,
+      "value": "Pentru a continua editarea, vă rugăm să copiați camera în fișierele dvs."
+    }
+  ],
   "8eb2c00e96": [
     {
       "type": 0,
@@ -533,6 +545,12 @@
     {
       "type": 0,
       "value": "Ștergeți fișierul"
+    }
+  ],
+  "9c258b8f88": [
+    {
+      "type": 0,
+      "value": "Această cameră multiplayer anonimă de pe tldraw este acum doar pentru citire. Pentru a continua editarea, vă rugăm să o conectați și să o copiați în fișierele dvs."
     }
   ],
   "9ceb927baa": [
@@ -753,12 +771,6 @@
       "value": "Sign out"
     }
   ],
-  "cbef7ba103": [
-    {
-      "type": 0,
-      "value": "Această cameră va fi în curând doar pentru citire"
-    }
-  ],
   "cceaefbc20": [
     {
       "type": 0,
@@ -835,12 +847,6 @@
     {
       "type": 0,
       "value": "Pin"
-    }
-  ],
-  "ea2301d01c": [
-    {
-      "type": 0,
-      "value": "După 1 iulie 2025, această cameră multiplayer anonimă de pe tldraw va deveni doar pentru citire. Pentru a continua editarea în viitor, vă rugăm să vă conectați și să o copiați în fișierele dvs."
     }
   ],
   "ea4788705e": [

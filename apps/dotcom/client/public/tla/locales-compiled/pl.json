@@ -259,6 +259,12 @@
       "value": "Podziel się"
     }
   ],
+  "5bcc12ace8": [
+    {
+      "type": 0,
+      "value": "Ten pokój jest teraz tylko do odczytu"
+    }
+  ],
   "5bec508475": [
     {
       "type": 0,
@@ -487,6 +493,12 @@
       "value": "Zmień nazwę pliku"
     }
   ],
+  "8b1946f965": [
+    {
+      "type": 0,
+      "value": "Aby kontynuować edycję, skopiuj pokój do swoich plików."
+    }
+  ],
   "8eb2c00e96": [
     {
       "type": 0,
@@ -533,6 +545,12 @@
     {
       "type": 0,
       "value": "Usuń plik"
+    }
+  ],
+  "9c258b8f88": [
+    {
+      "type": 0,
+      "value": "Ten anonimowy pokój wieloosobowy tldraw jest teraz tylko do odczytu. Aby kontynuować edycję, zaloguj się i skopiuj go do swoich plików."
     }
   ],
   "9ceb927baa": [
@@ -757,12 +775,6 @@
       "value": "Wyloguj się"
     }
   ],
-  "cbef7ba103": [
-    {
-      "type": 0,
-      "value": "Ten pokój wkrótce będzie dostępny tylko do odczytu"
-    }
-  ],
   "cceaefbc20": [
     {
       "type": 0,
@@ -839,12 +851,6 @@
     {
       "type": 0,
       "value": "Pinezka"
-    }
-  ],
-  "ea2301d01c": [
-    {
-      "type": 0,
-      "value": "Po 1 lipca 2025 r. ten anonimowy pokój wieloosobowy tldraw stanie się tylko do odczytu. Aby kontynuować edycję w przyszłości, zaloguj się i skopiuj go do swoich plików."
     }
   ],
   "ea4788705e": [

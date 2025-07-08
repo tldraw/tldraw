@@ -259,6 +259,12 @@
       "value": "Deel"
     }
   ],
+  "5bcc12ace8": [
+    {
+      "type": 0,
+      "value": "Deze kamer is nu alleen-lezen"
+    }
+  ],
   "5bec508475": [
     {
       "type": 0,
@@ -483,6 +489,12 @@
       "value": "Bestand hernoemen"
     }
   ],
+  "8b1946f965": [
+    {
+      "type": 0,
+      "value": "Om door te kunnen gaan met bewerken, kopieer je de kamer naar je bestanden."
+    }
+  ],
   "8eb2c00e96": [
     {
       "type": 0,
@@ -529,6 +541,12 @@
     {
       "type": 0,
       "value": "Bestand verwijderen"
+    }
+  ],
+  "9c258b8f88": [
+    {
+      "type": 0,
+      "value": "Deze anonieme tldraw-multiplayerroom is nu alleen-lezen. Om verder te gaan met bewerken, meld je aan en kopieer je de room naar je bestanden."
     }
   ],
   "9ceb927baa": [
@@ -745,12 +763,6 @@
       "value": "Afmelden"
     }
   ],
-  "cbef7ba103": [
-    {
-      "type": 0,
-      "value": "Deze kamer zal binnenkort alleen-lezen zijn"
-    }
-  ],
   "cceaefbc20": [
     {
       "type": 0,
@@ -827,12 +839,6 @@
     {
       "type": 0,
       "value": "Vastmaken"
-    }
-  ],
-  "ea2301d01c": [
-    {
-      "type": 0,
-      "value": "Na 1 juli 2025 wordt deze anonieme tldraw-multiplayerruimte alleen-lezen. Om in de toekomst te kunnen blijven bewerken, meld je aan en kopieer je de ruimte naar je bestanden."
     }
   ],
   "ea4788705e": [

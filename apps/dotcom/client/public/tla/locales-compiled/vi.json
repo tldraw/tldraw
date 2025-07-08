@@ -259,6 +259,12 @@
       "value": "Chia sẻ"
     }
   ],
+  "5bcc12ace8": [
+    {
+      "type": 0,
+      "value": "Phòng này hiện chỉ có thể đọc"
+    }
+  ],
   "5bec508475": [
     {
       "type": 0,
@@ -487,6 +493,12 @@
       "value": "Đổi tên tập tin"
     }
   ],
+  "8b1946f965": [
+    {
+      "type": 0,
+      "value": "Để tiếp tục chỉnh sửa, vui lòng sao chép phòng vào tệp của bạn."
+    }
+  ],
   "8eb2c00e96": [
     {
       "type": 0,
@@ -533,6 +545,12 @@
     {
       "type": 0,
       "value": "Xóa tệp"
+    }
+  ],
+  "9c258b8f88": [
+    {
+      "type": 0,
+      "value": "Phòng nhiều người chơi tldraw ẩn danh này hiện chỉ có thể đọc. Để tiếp tục chỉnh sửa, vui lòng đăng nhập và sao chép vào tệp của bạn."
     }
   ],
   "9ceb927baa": [
@@ -741,12 +759,6 @@
       "value": "Đăng xuất"
     }
   ],
-  "cbef7ba103": [
-    {
-      "type": 0,
-      "value": "Phòng này sẽ sớm chỉ đọc"
-    }
-  ],
   "cceaefbc20": [
     {
       "type": 0,
@@ -823,12 +835,6 @@
     {
       "type": 0,
       "value": "Ghim"
-    }
-  ],
-  "ea2301d01c": [
-    {
-      "type": 0,
-      "value": "Sau ngày 1 tháng 7 năm 2025, phòng nhiều người chơi tldraw ẩn danh này sẽ trở thành chỉ đọc. Để tiếp tục chỉnh sửa trong tương lai, vui lòng đăng nhập và sao chép vào tệp của bạn."
     }
   ],
   "ea4788705e": [

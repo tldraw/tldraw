@@ -259,6 +259,12 @@
       "value": "Teilen"
     }
   ],
+  "5bcc12ace8": [
+    {
+      "type": 0,
+      "value": "Dieser Raum ist jetzt schreibgeschützt"
+    }
+  ],
   "5bec508475": [
     {
       "type": 0,
@@ -483,6 +489,12 @@
       "value": "Datei umbenennen"
     }
   ],
+  "8b1946f965": [
+    {
+      "type": 0,
+      "value": "Um mit der Bearbeitung fortzufahren, kopieren Sie den Raum bitte in Ihre Dateien."
+    }
+  ],
   "8eb2c00e96": [
     {
       "type": 0,
@@ -529,6 +541,12 @@
     {
       "type": 0,
       "value": "Datei löschen"
+    }
+  ],
+  "9c258b8f88": [
+    {
+      "type": 0,
+      "value": "Dieser anonyme TLdraw-Multiplayer-Raum ist jetzt schreibgeschützt. Um mit der Bearbeitung fortzufahren, melden Sie sich bitte an und kopieren Sie den Inhalt in Ihre Dateien."
     }
   ],
   "9ceb927baa": [
@@ -749,12 +767,6 @@
       "value": "Abmelden"
     }
   ],
-  "cbef7ba103": [
-    {
-      "type": 0,
-      "value": "Dieser Raum wird bald schreibgeschützt sein"
-    }
-  ],
   "cceaefbc20": [
     {
       "type": 0,
@@ -831,12 +843,6 @@
     {
       "type": 0,
       "value": "Anheften"
-    }
-  ],
-  "ea2301d01c": [
-    {
-      "type": 0,
-      "value": "Nach dem 1. Juli 2025 ist dieser anonyme tldraw-Multiplayer-Raum schreibgeschützt. Um in Zukunft weiterarbeiten zu können, melden Sie sich bitte an und kopieren Sie den Inhalt in Ihre Dateien."
     }
   ],
   "ea4788705e": [

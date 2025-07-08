@@ -259,6 +259,12 @@
       "value": "Részesedés"
     }
   ],
+  "5bcc12ace8": [
+    {
+      "type": 0,
+      "value": "Ez a szoba mostantól írásvédett"
+    }
+  ],
   "5bec508475": [
     {
       "type": 0,
@@ -483,6 +489,12 @@
       "value": "Fájl átnevezése"
     }
   ],
+  "8b1946f965": [
+    {
+      "type": 0,
+      "value": "A szerkesztés folytatásához másold át a szobát a fájljaid közé."
+    }
+  ],
   "8eb2c00e96": [
     {
       "type": 0,
@@ -529,6 +541,12 @@
     {
       "type": 0,
       "value": "Fájl törlése"
+    }
+  ],
+  "9c258b8f88": [
+    {
+      "type": 0,
+      "value": "Ez az anonim tldraw többjátékos szoba mostantól csak olvasható. A szerkesztés folytatásához jelentkezzen be, és másolja át a fájljai közé."
     }
   ],
   "9ceb927baa": [
@@ -741,12 +759,6 @@
       "value": "Jelentkezzen ki"
     }
   ],
-  "cbef7ba103": [
-    {
-      "type": 0,
-      "value": "Ez a szoba hamarosan csak olvasható lesz"
-    }
-  ],
   "cceaefbc20": [
     {
       "type": 0,
@@ -823,12 +835,6 @@
     {
       "type": 0,
       "value": "Pin"
-    }
-  ],
-  "ea2301d01c": [
-    {
-      "type": 0,
-      "value": "2025. július 1. után ez az anonim tldraw többjátékos szoba írásvédetté válik. A jövőbeni szerkesztés folytatásához kérjük, jelentkezzen be, és másolja át a fájljai közé."
     }
   ],
   "ea4788705e": [

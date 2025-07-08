@@ -259,6 +259,12 @@
       "value": "Partilhar"
     }
   ],
+  "5bcc12ace8": [
+    {
+      "type": 0,
+      "value": "Esta sala agora é somente leitura"
+    }
+  ],
   "5bec508475": [
     {
       "type": 0,
@@ -487,6 +493,12 @@
       "value": "Renomear arquivo"
     }
   ],
+  "8b1946f965": [
+    {
+      "type": 0,
+      "value": "Para continuar editando, copie a sala para seus arquivos."
+    }
+  ],
   "8eb2c00e96": [
     {
       "type": 0,
@@ -533,6 +545,12 @@
     {
       "type": 0,
       "value": "Eliminar ficheiro"
+    }
+  ],
+  "9c258b8f88": [
+    {
+      "type": 0,
+      "value": "Esta sala multijogador anônima do tldraw agora é somente leitura. Para continuar editando, faça login e copie-a para seus arquivos."
     }
   ],
   "9ceb927baa": [
@@ -749,12 +767,6 @@
       "value": "Terminar sessão"
     }
   ],
-  "cbef7ba103": [
-    {
-      "type": 0,
-      "value": "Em breve esta sala será somente leitura"
-    }
-  ],
   "cceaefbc20": [
     {
       "type": 0,
@@ -831,12 +843,6 @@
     {
       "type": 0,
       "value": "Afixar"
-    }
-  ],
-  "ea2301d01c": [
-    {
-      "type": 0,
-      "value": "Após 1º de julho de 2025, esta sala multijogador anônima do tldraw se tornará somente leitura. Para continuar editando no futuro, faça login e copie-a para seus arquivos."
     }
   ],
   "ea4788705e": [

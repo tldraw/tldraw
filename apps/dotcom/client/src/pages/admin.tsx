@@ -98,7 +98,8 @@ export function Component() {
 				<h2>User data</h2>
 				{data && <pre style={{ userSelect: 'text' }}>{JSON.stringify(data, null, 2)}</pre>}
 			</div>
-			<DownloadTldrFile />
+			<DownloadTldrFile legacy={false} />
+			<DownloadTldrFile legacy={true} />
 			<CreateLegacyFile />
 			<HardDeleteFile />
 		</div>
@@ -168,7 +169,7 @@ function CreateLegacyFile() {
 	)
 }
 
-function DownloadTldrFile() {
+function DownloadTldrFile({ legacy }: { legacy: boolean }) {
 	const inputRef = useRef<HTMLInputElement>(null)
 	const [error, setError] = useState(null as string | null)
 	const onDownload = useCallback(async () => {
@@ -178,8 +179,9 @@ function DownloadTldrFile() {
 			setError('Please enter a file slug')
 			return
 		}
+		const path = legacy ? 'download-legacy-tldr' : 'download-tldr'
 
-		const res = await fetch(`/api/app/admin/download-tldr/${fileSlug}`)
+		const res = await fetch(`/api/app/admin/${path}/${fileSlug}`)
 		if (!res.ok) {
 			setError(res.statusText + ': ' + (await res.text()))
 			return
@@ -195,10 +197,10 @@ function DownloadTldrFile() {
 		a.click()
 		window.URL.revokeObjectURL(url)
 		document.body.removeChild(a)
-	}, [])
+	}, [legacy])
 	return (
 		<div>
-			<h2>Download .tldr file</h2>
+			<h2>{legacy ? 'Download legacy .tldr file' : 'Download .tldr file'}</h2>
 			{error && <div style={{ color: 'red' }}>{error}</div>}
 			<div style={{ display: 'flex', gap: '8px' }}>
 				<input type="text" placeholder="file id" ref={inputRef} />

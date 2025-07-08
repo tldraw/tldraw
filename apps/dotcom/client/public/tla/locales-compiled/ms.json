@@ -259,6 +259,12 @@
       "value": "Kongsi"
     }
   ],
+  "5bcc12ace8": [
+    {
+      "type": 0,
+      "value": "Bilik ini kini dibaca sahaja"
+    }
+  ],
   "5bec508475": [
     {
       "type": 0,
@@ -487,6 +493,12 @@
       "value": "Namakan semula fail"
     }
   ],
+  "8b1946f965": [
+    {
+      "type": 0,
+      "value": "Untuk meneruskan pengeditan sila salin bilik ke fail anda."
+    }
+  ],
   "8eb2c00e96": [
     {
       "type": 0,
@@ -533,6 +545,12 @@
     {
       "type": 0,
       "value": "Padam fail"
+    }
+  ],
+  "9c258b8f88": [
+    {
+      "type": 0,
+      "value": "Bilik berbilang pemain tldraw tanpa nama ini kini dibaca sahaja. Untuk meneruskan pengeditan, sila log masuk dan salin ke fail anda."
     }
   ],
   "9ceb927baa": [
@@ -741,12 +759,6 @@
       "value": "Log keluar"
     }
   ],
-  "cbef7ba103": [
-    {
-      "type": 0,
-      "value": "Bilik ini akan menjadi baca sahaja tidak lama lagi"
-    }
-  ],
   "cceaefbc20": [
     {
       "type": 0,
@@ -823,12 +835,6 @@
     {
       "type": 0,
       "value": "Pin"
-    }
-  ],
-  "ea2301d01c": [
-    {
-      "type": 0,
-      "value": "Selepas 1 Julai 2025, bilik berbilang pemain tldraw tanpa nama ini akan menjadi baca sahaja. Untuk meneruskan pengeditan pada masa hadapan sila log masuk dan salin ke fail anda."
     }
   ],
   "ea4788705e": [

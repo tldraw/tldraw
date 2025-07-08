@@ -259,6 +259,12 @@
       "value": "Paylaş"
     }
   ],
+  "5bcc12ace8": [
+    {
+      "type": 0,
+      "value": "Bu oda artık salt okunur"
+    }
+  ],
   "5bec508475": [
     {
       "type": 0,
@@ -483,6 +489,12 @@
       "value": "Dosyayı yeniden adlandır"
     }
   ],
+  "8b1946f965": [
+    {
+      "type": 0,
+      "value": "Düzenlemeye devam etmek için lütfen odayı dosyalarınıza kopyalayın."
+    }
+  ],
   "8eb2c00e96": [
     {
       "type": 0,
@@ -529,6 +541,12 @@
     {
       "type": 0,
       "value": "Dosyayı sil"
+    }
+  ],
+  "9c258b8f88": [
+    {
+      "type": 0,
+      "value": "Bu anonim tldraw çok oyunculu odası artık salt okunur. Düzenlemeye devam etmek için lütfen oturum açın ve dosyalarınıza kopyalayın."
     }
   ],
   "9ceb927baa": [
@@ -741,12 +759,6 @@
       "value": "Oturumu kapat"
     }
   ],
-  "cbef7ba103": [
-    {
-      "type": 0,
-      "value": "Bu oda yakında salt okunur olacak"
-    }
-  ],
   "cceaefbc20": [
     {
       "type": 0,
@@ -823,12 +835,6 @@
     {
       "type": 0,
       "value": "Sabitle"
-    }
-  ],
-  "ea2301d01c": [
-    {
-      "type": 0,
-      "value": "1 Temmuz 2025'ten sonra bu anonim tldraw çok oyunculu odası salt okunur hale gelecektir. Gelecekte düzenlemeye devam etmek için lütfen oturum açın ve dosyalarınıza kopyalayın."
     }
   ],
   "ea4788705e": [

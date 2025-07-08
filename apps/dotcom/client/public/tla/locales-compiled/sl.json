@@ -259,6 +259,12 @@
       "value": "Deli"
     }
   ],
+  "5bcc12ace8": [
+    {
+      "type": 0,
+      "value": "Ta soba je zdaj samo za branje"
+    }
+  ],
   "5bec508475": [
     {
       "type": 0,
@@ -487,6 +493,12 @@
       "value": "Preimenuj datoteko"
     }
   ],
+  "8b1946f965": [
+    {
+      "type": 0,
+      "value": "Za nadaljevanje urejanja kopirajte sobo v svoje datoteke."
+    }
+  ],
   "8eb2c00e96": [
     {
       "type": 0,
@@ -533,6 +545,12 @@
     {
       "type": 0,
       "value": "Izbriši datoteko"
+    }
+  ],
+  "9c258b8f88": [
+    {
+      "type": 0,
+      "value": "Ta anonimna soba za več igralcev tldraw je zdaj samo za branje. Če želite nadaljevati z urejanjem, se prijavite in jo kopirajte v svoje datoteke."
     }
   ],
   "9ceb927baa": [
@@ -757,12 +775,6 @@
       "value": "Odjava"
     }
   ],
-  "cbef7ba103": [
-    {
-      "type": 0,
-      "value": "Ta soba bo kmalu samo za branje"
-    }
-  ],
   "cceaefbc20": [
     {
       "type": 0,
@@ -839,12 +851,6 @@
     {
       "type": 0,
       "value": "Pin"
-    }
-  ],
-  "ea2301d01c": [
-    {
-      "type": 0,
-      "value": "Po 1. juliju 2025 bo ta anonimna soba za več igralcev tldraw postala samo za branje. Če želite v prihodnje nadaljevati z urejanjem, se prijavite in jo kopirajte v svoje datoteke."
     }
   ],
   "ea4788705e": [

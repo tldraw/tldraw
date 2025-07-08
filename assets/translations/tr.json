@@ -94,6 +94,7 @@
 	"action.toggle-focus-mode.menu": "Odak modu",
 	"action.toggle-grid": "Izgarayı değiştir",
 	"action.toggle-grid.menu": "Izgarayı göster",
+	"action.toggle-keyboard-shortcuts.menu": "Klavye kısayolları",
 	"action.toggle-lock": "Kilidi Aç / Kilidi Kapat",
 	"action.toggle-paste-at-cursor": "İmleç konumuna yapıştırmayı aç/kapat",
 	"action.toggle-paste-at-cursor.menu": "İmleç konumuna yapıştır",

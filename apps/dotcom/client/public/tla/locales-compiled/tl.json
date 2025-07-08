@@ -259,6 +259,12 @@
       "value": "Ibahagi"
     }
   ],
+  "5bcc12ace8": [
+    {
+      "type": 0,
+      "value": "Read-only na ang kwartong ito"
+    }
+  ],
   "5bec508475": [
     {
       "type": 0,
@@ -487,6 +493,12 @@
       "value": "Palitan ang pangalan ng file"
     }
   ],
+  "8b1946f965": [
+    {
+      "type": 0,
+      "value": "Para magpatuloy sa pag-edit, pakikopya ang kwarto sa iyong mga file."
+    }
+  ],
   "8eb2c00e96": [
     {
       "type": 0,
@@ -533,6 +545,12 @@
     {
       "type": 0,
       "value": "Tanggalin ang file"
+    }
+  ],
+  "9c258b8f88": [
+    {
+      "type": 0,
+      "value": "Read-only na ang anonymous na tldraw multiplayer room na ito. Upang magpatuloy sa pag-edit, mangyaring mag-sign in at kopyahin ito sa iyong mga file."
     }
   ],
   "9ceb927baa": [
@@ -765,12 +783,6 @@
       "value": "Mag-sign out"
     }
   ],
-  "cbef7ba103": [
-    {
-      "type": 0,
-      "value": "Malapit nang maging read-only ang kwartong ito"
-    }
-  ],
   "cceaefbc20": [
     {
       "type": 0,
@@ -847,12 +859,6 @@
     {
       "type": 0,
       "value": "Pin"
-    }
-  ],
-  "ea2301d01c": [
-    {
-      "type": 0,
-      "value": "Pagkatapos ng Hulyo 1, 2025, magiging read-only ang anonymous na tldraw multiplayer room na ito. Upang magpatuloy sa pag-edit sa hinaharap mangyaring mag-sign in at kopyahin ito sa iyong mga file."
     }
   ],
   "ea4788705e": [
