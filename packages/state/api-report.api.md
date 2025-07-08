@@ -7,7 +7,7 @@
 // @internal
 export class ArraySet<T> {
     // (undocumented)
-    [Symbol.iterator](): Generator<T, void, undefined>;
+    [Symbol.iterator](): Generator<T, void, unknown>;
     add(elem: T): boolean;
     // (undocumented)
     clear(): void;

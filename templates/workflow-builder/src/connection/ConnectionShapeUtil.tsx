@@ -108,7 +108,11 @@ export class ConnectionShapeUtil extends ShapeUtil<ConnectionShape> {
 		const draggingTerminal = handle.id as 'start' | 'end'
 		const oppositeTerminal = draggingTerminal === 'start' ? 'end' : 'start'
 
-		const target = getPortAtPoint(this.editor, this.editor.inputs.currentPagePoint, {
+		const shapeTransform = this.editor.getShapePageTransform(shape)
+		const handlePagePosition = shapeTransform.applyToPoint(handle)
+
+		const target = getPortAtPoint(this.editor, handlePagePosition, {
+			margin: 8,
 			filter: (s) => s.id !== shape.id && s.id !== existingBindings[oppositeTerminal]?.toId,
 			terminal: handle.id as 'start' | 'end',
 		})
