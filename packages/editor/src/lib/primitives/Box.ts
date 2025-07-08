@@ -410,7 +410,7 @@ export class Box {
 	}
 
 	static Collides(A: Box, B: Box) {
-		return !(A.maxX < B.minX || A.minX > B.maxX || A.maxY < B.minY || A.minY > B.maxY)
+		return !(A.minY > B.maxY || A.maxX < B.minX || A.maxY < B.minY || A.minX > B.maxX)
 	}
 
 	static Contains(A: Box, B: Box) {
@@ -418,7 +418,8 @@ export class Box {
 	}
 
 	static Includes(A: Box, B: Box) {
-		return Box.Collides(A, B) || Box.Contains(A, B)
+		// turns out this is the same as collides
+		return this.Collides(A, B)
 	}
 
 	static ContainsPoint(A: Box, B: VecLike, margin = 0) {
