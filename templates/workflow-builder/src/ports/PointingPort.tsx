@@ -70,13 +70,6 @@ export class PointingPort extends StateNode {
 				.getShapeHandles(connectionShapeId)
 				?.find((h) => h.id === draggingTerminal)
 
-			console.log({
-				shape: this.editor.getShape(connectionShapeId),
-				handle,
-				handles: this.editor.getShapeHandles(connectionShapeId),
-				info: this.info,
-			})
-
 			this.parent.transition('dragging_handle', {
 				...info,
 				target: 'handle',
@@ -89,7 +82,6 @@ export class PointingPort extends StateNode {
 	}
 
 	private onClick() {
-		console.log('onClick', this.info)
 		if (this.info?.terminal !== 'start') return
 		const hasExistingConnection = getNodePortConnections(this.editor, this.info!.shapeId)[
 			this.info!.portId

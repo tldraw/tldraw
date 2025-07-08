@@ -93,7 +93,6 @@ export function keepConnectionsAtBottom(editor: Editor) {
 			}
 		}
 
-		console.log('keepConnectionsAtBottom', updates)
 		editor.updateShapes(updates)
 	})
 }
