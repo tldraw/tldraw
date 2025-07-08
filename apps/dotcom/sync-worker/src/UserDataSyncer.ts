@@ -18,7 +18,7 @@ import throttle from 'lodash.throttle'
 import { Logger } from './Logger'
 import { fetchEverythingSql } from './fetchEverythingSql.snap'
 import { parseResultRow } from './parseResultRow'
-import { getSubscriptionChanges } from './replicator/Subscription'
+import { TopicSubscriptionTree, getSubscriptionChanges } from './replicator/Subscription'
 import { Environment, TLUserDurableObjectEvent, getUserDoSnapshotKey } from './types'
 import { getReplicator, getStatsDurableObjct } from './utils/durableObjects'
 import { retryOnConnectionFailure } from './utils/retryOnConnectionFailure'
@@ -365,10 +365,6 @@ export class UserDataSyncer {
 			}
 		}
 
-		const initialData = this.store.getCommittedData()!
-
-		const guestFileIds = initialData.file.filter((f) => f.ownerId !== this.userId).map((f) => f.id)
-
 		if (
 			!resumeData ||
 			!(await getReplicator(this.env).resumeSequence({
@@ -377,10 +373,18 @@ export class UserDataSyncer {
 				lastSequenceNumber: resumeData.lastSequenceNumber,
 			}))
 		) {
+			const initialData = this.store.getCommittedData()!
+
+			const topicSubscriptions: TopicSubscriptionTree = {}
+
+			for (const file_state of initialData.file_state) {
+				topicSubscriptions[`file:${file_state.fileId}`] = 1
+			}
+
 			const res = await getReplicator(this.env).registerUser({
 				userId: this.userId,
 				lsn: initialData.lsn,
-				guestFileIds,
+				topicSubscriptions,
 				bootId: this.state.bootId,
 			})
 
@@ -500,9 +504,33 @@ export class UserDataSyncer {
 				.map((ev) => ({ row: ev.row, event: { command: ev.event, table: ev.table } }))
 		)
 
-		if (topicUpdates.newSubscriptions?.length || topicUpdates.removedSubscriptions?.length) {
-			this.reboot({ hard: true, delay: false, source: 'handleReplicationEvent(hard reboot)' })
+		if (topicUpdates.removedSubscriptions && topicUpdates.removedSubscriptions.length > 0) {
+			this.reboot({
+				hard: true,
+				delay: false,
+				source: 'handleReplicationEvent(removed subscription)',
+			})
 			return
+		}
+
+		// if we encounter a new subscription for the user to a file, and the file is not in the store,
+		// we can add the file to the store directly instead of doing a hard reboot
+		for (const update of topicUpdates.newSubscriptions ?? []) {
+			// Only handle user-to-file subscriptions, reboot for everything else
+			if (update.fromTopic === `user:${this.userId}` && update.toTopic.startsWith('file:')) {
+				const fileId = update.toTopic.split(':')[1]
+				if (!this.store.getCommittedData()?.file.find((f) => f.id === fileId)) {
+					this.log.debug('new subscription, adding guest file', fileId)
+					this.addGuestFile(fileId)
+				}
+			} else {
+				this.reboot({
+					hard: true,
+					delay: false,
+					source: 'handleReplicationEvent(new subscription)',
+				})
+				return
+			}
 		}
 
 		transact(() => {
@@ -529,12 +557,15 @@ export class UserDataSyncer {
 	}
 
 	async addGuestFile(fileOrId: string | TlaFile) {
+		assert('bootId' in this.state, 'bootId should be in state')
+		const bootId = this.state.bootId
 		const file =
 			typeof fileOrId === 'string'
 				? await this.db.selectFrom('file').where('id', '=', fileOrId).selectAll().executeTakeFirst()
 				: fileOrId
 		if (!file) return
 		if (file.ownerId !== this.userId && !file.shared) return
+		if (this.state.bootId !== bootId) return
 		const update: ZRowUpdate = {
 			event: 'insert',
 			row: file,
