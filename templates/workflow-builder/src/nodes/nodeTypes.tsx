@@ -24,9 +24,25 @@ export const SubtractNodeType = T.object({
 })
 export type SubtractNodeType = T.TypeOf<typeof SubtractNodeType>
 
+export const MultiplyNodeType = T.object({
+	type: T.literal('multiply'),
+	a: T.number,
+	b: T.number,
+})
+export type MultiplyNodeType = T.TypeOf<typeof MultiplyNodeType>
+
+export const DivideNodeType = T.object({
+	type: T.literal('divide'),
+	a: T.number,
+	b: T.number,
+})
+export type DivideNodeType = T.TypeOf<typeof DivideNodeType>
+
 export const NodeType = T.union('type', {
 	add: AddNodeType,
 	subtract: SubtractNodeType,
+	multiply: MultiplyNodeType,
+	divide: DivideNodeType,
 })
 export type NodeType = T.TypeOf<typeof NodeType>
 
@@ -35,7 +51,11 @@ export function getNodeBodyHeightPx(node: NodeType): number {
 		case 'add':
 			return NODE_ROW_HEIGHT_PX * node.items.length
 		case 'subtract':
-			return NODE_ROW_HEIGHT_PX
+			return NODE_ROW_HEIGHT_PX * 2
+		case 'multiply':
+			return NODE_ROW_HEIGHT_PX * 2
+		case 'divide':
+			return NODE_ROW_HEIGHT_PX * 2
 	}
 }
 
@@ -79,6 +99,38 @@ export function getNodeTypePorts(node: NodeType): Record<string, ShapePort> {
 					terminal: 'end',
 				},
 			}
+		case 'multiply':
+			return {
+				output: outputPort,
+				multiplicand: {
+					id: 'multiplicand',
+					x: 0,
+					y: NODE_HEADER_HEIGHT_PX + NODE_PORT_OFFSET_Y_PX,
+					terminal: 'end',
+				},
+				multiplier: {
+					id: 'multiplier',
+					x: 0,
+					y: NODE_HEADER_HEIGHT_PX + NODE_PORT_OFFSET_Y_PX + NODE_ROW_HEIGHT_PX,
+					terminal: 'end',
+				},
+			}
+		case 'divide':
+			return {
+				output: outputPort,
+				dividend: {
+					id: 'dividend',
+					x: 0,
+					y: NODE_HEADER_HEIGHT_PX + NODE_PORT_OFFSET_Y_PX,
+					terminal: 'end',
+				},
+				divisor: {
+					id: 'divisor',
+					x: 0,
+					y: NODE_HEADER_HEIGHT_PX + NODE_PORT_OFFSET_Y_PX + NODE_ROW_HEIGHT_PX,
+					terminal: 'end',
+				},
+			}
 	}
 }
 
@@ -97,6 +149,14 @@ export function computeNodeOutput(
 		case 'subtract':
 			return {
 				output: (inputs.minuend ?? node.a) - (inputs.subtrahend ?? node.b),
+			}
+		case 'multiply':
+			return {
+				output: (inputs.multiplicand ?? node.a) * (inputs.multiplier ?? node.b),
+			}
+		case 'divide':
+			return {
+				output: (inputs.dividend ?? node.a) / (inputs.divisor ?? node.b),
 			}
 	}
 }
@@ -141,6 +201,40 @@ export function NodeBody({ shape }: { shape: NodeShape }) {
 					<NodeBodyRow
 						shapeId={shape.id}
 						portId="subtrahend"
+						value={node.b}
+						onChange={(newValue) => updateNode({ ...node, b: newValue })}
+					/>
+				</>
+			)
+		case 'multiply':
+			return (
+				<>
+					<NodeBodyRow
+						shapeId={shape.id}
+						portId="multiplicand"
+						value={node.a}
+						onChange={(newValue) => updateNode({ ...node, a: newValue })}
+					/>
+					<NodeBodyRow
+						shapeId={shape.id}
+						portId="multiplier"
+						value={node.b}
+						onChange={(newValue) => updateNode({ ...node, b: newValue })}
+					/>
+				</>
+			)
+		case 'divide':
+			return (
+				<>
+					<NodeBodyRow
+						shapeId={shape.id}
+						portId="dividend"
+						value={node.a}
+						onChange={(newValue) => updateNode({ ...node, a: newValue })}
+					/>
+					<NodeBodyRow
+						shapeId={shape.id}
+						portId="divisor"
 						value={node.b}
 						onChange={(newValue) => updateNode({ ...node, b: newValue })}
 					/>
