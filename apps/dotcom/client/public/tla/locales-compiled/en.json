@@ -1,144 +1,964 @@
 {
-  "0095a9fa74": "Export",
-  "03b3e13197": "Drag the file into the sidebar on this page. Or select the 'Import file' option from the user menu.",
-  "043973ec1f": "Still having trouble? {GetHelpLink}",
-  "05596b840b": "Open tldraw.",
-  "06b9281e39": "Auto",
-  "07dbd11b21": "Untitled file",
-  "08331c1710": "Rate limit exceeded, try again later.",
-  "08bd40c754": "Account",
-  "0b27918290": "File",
-  "0b9a4cde72": "File menu",
-  "0d1f2bb523": "Send feedback",
-  "110a4b01be": "Publish",
-  "13ddd375ad": "Export as",
-  "181b90f889": "Create file",
-  "1da2e8106b": "An unexpected error occurred.",
-  "1dd1c5fb7f": "Today",
-  "250ddea65c": "About tldraw",
-  "299cb00a7a": "Upload failed",
-  "31246941ad": "You need to sign in to view this file.",
-  "31418ce4ad": "i18n: Highlight Missing",
-  "335defdafe": "Please try refreshing the page.",
-  "344a7f427f": "Editor",
-  "3bd1b98dbd": "Unable to publish the changes.",
-  "3c5e891bff": "Pinned",
-  "3d0238bf16": "Accept all",
-  "42e53c47c1": "Contact the owner to request access.",
-  "44db318ee5": "Get help on Discord",
-  "46137245cd": "Thanks for helping us improve tldraw!",
-  "47839e47a5": "tldraw",
-  "4908687e50": "Are you sure you want to forget this file?",
-  "4d0d3ddec9": "This site uses cookies to make the app work and to collect analytics.",
-  "4d1c8263ba": "Reload",
-  "50db1b7e1e": "Unable to unpublish the file.",
-  "517bb809d9": "Page menu",
-  "54286b1d01": "Collaborator limit reached",
-  "54d240fa41": "Please slow down.",
-  "554a05155c": "Still having trouble? <a>Report a problem</a>",
-  "55505ba281": "PNG",
-  "5677e381d2": "We use analytics cookies to make tldraw better.",
-  "56c34c6410": "Privacy policy",
-  "5a95a425f7": "Share",
-  "5bcc12ace8": "This room is now read-only",
-  "5bec508475": "Old browser detected. Please update your browser to use this app.",
-  "5d26ae7550": "We failed to upload some of the content you created before you signed in.",
-  "5f3c333678": "Feedback submitted",
-  "5fb63579fc": "Copy",
-  "61057a0c84": "Later",
-  "625fd29749": "Older",
-  "6609dd239e": "Something went wrong",
-  "6637a98151": "A new version of tldraw is available. Please reload the page to continue.",
-  "6a26f54883": "Help",
-  "6dc0836c1b": "You do not have the necessary permissions to perform this action.",
-  "6dfc62f621": "Follow these steps to import the content manually:",
-  "70a6facb9d": "This week",
-  "71a29b007b": "Have a bug, issue, or idea for tldraw? Let us know!",
-  "73ab799383": "This version of tldraw is no longer supported.",
-  "7408cf0d7b": "Please reload the page",
-  "752b79f137": "You have reached the maximum number of files. You need to delete old files before creating new ones.",
-  "7573b8110a": "No access",
-  "761e93ede9": "Manage cookies",
-  "764671e008": "Chat with us on Discord",
-  "7697920637": "Please reload",
-  "777f9e90cf": "Invalid request.",
-  "797799f35e": "Submit an issue on GitHub",
-  "7b1329f5ca": "User manual",
-  "7be10fc592": "Restore version",
-  "7cb5f8b4a5": "Forget",
-  "7daeced9ff": "Publish changes",
-  "7fcdcc6455": "Forget file",
-  "801ab24683": "Download",
-  "815e116a2e": "Have a bug, issue, or idea for tldraw? Let us know! Fill out this form and we will follow up over email if needed. You can also <discord>chat with us on Discord</discord> or <github>submit an issue on GitHub</github>.",
-  "85a082de1b": "Please refresh the page to get the latest version of tldraw.",
-  "86353d2c41": "Added {total} .tldr files.",
-  "86c66437fd": "Rename file",
-  "8b1946f965": "To continue editing please copy the room to your files.",
-  "8eb2c00e96": "Shared with you",
-  "8ff3d0a705": "Rate limited",
-  "902b0d55fd": "Error",
-  "904a830405": "Rename",
-  "91e49bb0eb": "Copy to my files",
-  "96165d6df5": "This month",
-  "9914a0ce04": "Light",
-  "9bef626805": "Delete file",
-  "9c258b8f88": "This anonymous tldraw multiplayer room is now read-only. To continue editing, please sign in and copy it to your files.",
-  "9ceb927baa": "Publish this file",
-  "9e076f5885": "Not found",
-  "9e93c98d88": "Opt out",
-  "a0da245992": "Export the content as a .tldr file: Select 'Download' in the top left menu.",
-  "a104439641": "Padding",
-  "a18366b217": "Dark",
-  "a1c915578c": "The file you are looking for does not exist.",
-  "a239905023": "Export image",
-  "a3debabee7": "Cookie policy",
-  "a4d3b161ce": "Submit",
-  "a6cc403d56": "Anyone with the link",
-  "a768caa988": "Analytics",
-  "a9ded1e5ce": "Background",
-  "ab0df9ba36": "File limit reached",
-  "af3dc88931": "Last published <date></date>",
-  "b028909917": "Guest user",
-  "b6d4223e60": "Sign in",
-  "b758336699": "Copy link",
-  "bb792693e2": "Unpin",
-  "bbbcefd7ce": "{total, plural, one {Uploading .tldr file…} other {Uploading {uploaded} of {total} .tldr files…}}",
-  "bc88b0e89e": "Shared by {ownerName}",
-  "bcb62136a3": "Upload .tldr files",
-  "c2276c9127": "Learn more about sharing.",
-  "c303bd1095": "Unable to publish the file.",
-  "c4b39a1cc3": "Essential cookies",
-  "c655b27b1e": "i18n: Long String",
-  "c6a00f137b": "Invite",
-  "c87aacf567": "Sign out",
-  "cceaefbc20": "Share this file",
-  "cd15a75c26": "SVG",
-  "cea291e45e": "Learn more about publishing.",
-  "d3d2e61733": "Close",
-  "d4bbf74f3e": "Toggle sidebar",
-  "d721757161": "Theme",
-  "d876a9fe1a": "Try Again",
-  "d9100f3e10": "Go here to see the content",
-  "dbbebf3c03": "Invite only",
-  "dfdb78a4e4": "App debug flags",
-  "e2ae80a510": "Legal summary",
-  "e404559826": "Terms of service",
-  "e78e14c5f1": "Pin",
-  "ea4788705e": "Cancel",
-  "ebfe9ce86e": "Yesterday",
-  "ec59b960ea": "This file has reached the maximum number of active collaborators.",
-  "ec611e9a08": "Account menu",
-  "ed53713239": "i18n: Accented",
-  "ed75712b0e": "Duplicate",
-  "ede55d955f": "Read our <a>cookie policy</a> to learn more.",
-  "f09b16bc5f": "We use cookies to keep you logged in, to sync your files, and to collect analytics to help us improve tldraw.",
-  "f0e8bff6f9": "User settings",
-  "f2569594b2": "We use these cookies to save your files and settings.",
-  "f2a6c498fb": "Delete",
-  "f43fb62093": "Back to tldraw.",
-  "f4f70727dc": "Settings",
-  "fb15c53f22": "Viewer",
-  "fd1be3efcf": "Are you sure you want to delete this file?",
-  "fed5ec05eb": "Copied link",
-  "ffcd73e997": "Import file…"
+  "0095a9fa74": [
+    {
+      "type": 0,
+      "value": "Export"
+    }
+  ],
+  "03b3e13197": [
+    {
+      "type": 0,
+      "value": "Drag the file into the sidebar on this page. Or select the 'Import file' option from the user menu."
+    }
+  ],
+  "043973ec1f": [
+    {
+      "type": 0,
+      "value": "Still having trouble? "
+    },
+    {
+      "type": 1,
+      "value": "GetHelpLink"
+    }
+  ],
+  "05596b840b": [
+    {
+      "type": 0,
+      "value": "Open tldraw."
+    }
+  ],
+  "06b9281e39": [
+    {
+      "type": 0,
+      "value": "Auto"
+    }
+  ],
+  "07dbd11b21": [
+    {
+      "type": 0,
+      "value": "Untitled file"
+    }
+  ],
+  "08331c1710": [
+    {
+      "type": 0,
+      "value": "Rate limit exceeded, try again later."
+    }
+  ],
+  "08bd40c754": [
+    {
+      "type": 0,
+      "value": "Account"
+    }
+  ],
+  "0b27918290": [
+    {
+      "type": 0,
+      "value": "File"
+    }
+  ],
+  "0b9a4cde72": [
+    {
+      "type": 0,
+      "value": "File menu"
+    }
+  ],
+  "0d1f2bb523": [
+    {
+      "type": 0,
+      "value": "Send feedback"
+    }
+  ],
+  "110a4b01be": [
+    {
+      "type": 0,
+      "value": "Publish"
+    }
+  ],
+  "13ddd375ad": [
+    {
+      "type": 0,
+      "value": "Export as"
+    }
+  ],
+  "181b90f889": [
+    {
+      "type": 0,
+      "value": "Create file"
+    }
+  ],
+  "1da2e8106b": [
+    {
+      "type": 0,
+      "value": "An unexpected error occurred."
+    }
+  ],
+  "1dd1c5fb7f": [
+    {
+      "type": 0,
+      "value": "Today"
+    }
+  ],
+  "250ddea65c": [
+    {
+      "type": 0,
+      "value": "About tldraw"
+    }
+  ],
+  "299cb00a7a": [
+    {
+      "type": 0,
+      "value": "Upload failed"
+    }
+  ],
+  "31246941ad": [
+    {
+      "type": 0,
+      "value": "You need to sign in to view this file."
+    }
+  ],
+  "31418ce4ad": [
+    {
+      "type": 0,
+      "value": "i18n: Highlight Missing"
+    }
+  ],
+  "335defdafe": [
+    {
+      "type": 0,
+      "value": "Please try refreshing the page."
+    }
+  ],
+  "344a7f427f": [
+    {
+      "type": 0,
+      "value": "Editor"
+    }
+  ],
+  "3bd1b98dbd": [
+    {
+      "type": 0,
+      "value": "Unable to publish the changes."
+    }
+  ],
+  "3c5e891bff": [
+    {
+      "type": 0,
+      "value": "Pinned"
+    }
+  ],
+  "3d0238bf16": [
+    {
+      "type": 0,
+      "value": "Accept all"
+    }
+  ],
+  "42e53c47c1": [
+    {
+      "type": 0,
+      "value": "Contact the owner to request access."
+    }
+  ],
+  "44db318ee5": [
+    {
+      "type": 0,
+      "value": "Get help on Discord"
+    }
+  ],
+  "46137245cd": [
+    {
+      "type": 0,
+      "value": "Thanks for helping us improve tldraw!"
+    }
+  ],
+  "47839e47a5": [
+    {
+      "type": 0,
+      "value": "tldraw"
+    }
+  ],
+  "4908687e50": [
+    {
+      "type": 0,
+      "value": "Are you sure you want to forget this file?"
+    }
+  ],
+  "4d0d3ddec9": [
+    {
+      "type": 0,
+      "value": "This site uses cookies to make the app work and to collect analytics."
+    }
+  ],
+  "4d1c8263ba": [
+    {
+      "type": 0,
+      "value": "Reload"
+    }
+  ],
+  "50db1b7e1e": [
+    {
+      "type": 0,
+      "value": "Unable to unpublish the file."
+    }
+  ],
+  "517bb809d9": [
+    {
+      "type": 0,
+      "value": "Page menu"
+    }
+  ],
+  "54286b1d01": [
+    {
+      "type": 0,
+      "value": "Collaborator limit reached"
+    }
+  ],
+  "54d240fa41": [
+    {
+      "type": 0,
+      "value": "Please slow down."
+    }
+  ],
+  "554a05155c": [
+    {
+      "type": 0,
+      "value": "Still having trouble? "
+    },
+    {
+      "children": [
+        {
+          "type": 0,
+          "value": "Report a problem"
+        }
+      ],
+      "type": 8,
+      "value": "a"
+    }
+  ],
+  "55505ba281": [
+    {
+      "type": 0,
+      "value": "PNG"
+    }
+  ],
+  "5677e381d2": [
+    {
+      "type": 0,
+      "value": "We use analytics cookies to make tldraw better."
+    }
+  ],
+  "56c34c6410": [
+    {
+      "type": 0,
+      "value": "Privacy policy"
+    }
+  ],
+  "5a95a425f7": [
+    {
+      "type": 0,
+      "value": "Share"
+    }
+  ],
+  "5bcc12ace8": [
+    {
+      "type": 0,
+      "value": "This room is now read-only"
+    }
+  ],
+  "5bec508475": [
+    {
+      "type": 0,
+      "value": "Old browser detected. Please update your browser to use this app."
+    }
+  ],
+  "5d26ae7550": [
+    {
+      "type": 0,
+      "value": "We failed to upload some of the content you created before you signed in."
+    }
+  ],
+  "5f3c333678": [
+    {
+      "type": 0,
+      "value": "Feedback submitted"
+    }
+  ],
+  "5fb63579fc": [
+    {
+      "type": 0,
+      "value": "Copy"
+    }
+  ],
+  "61057a0c84": [
+    {
+      "type": 0,
+      "value": "Later"
+    }
+  ],
+  "625fd29749": [
+    {
+      "type": 0,
+      "value": "Older"
+    }
+  ],
+  "6609dd239e": [
+    {
+      "type": 0,
+      "value": "Something went wrong"
+    }
+  ],
+  "6637a98151": [
+    {
+      "type": 0,
+      "value": "A new version of tldraw is available. Please reload the page to continue."
+    }
+  ],
+  "6a26f54883": [
+    {
+      "type": 0,
+      "value": "Help"
+    }
+  ],
+  "6dc0836c1b": [
+    {
+      "type": 0,
+      "value": "You do not have the necessary permissions to perform this action."
+    }
+  ],
+  "6dfc62f621": [
+    {
+      "type": 0,
+      "value": "Follow these steps to import the content manually:"
+    }
+  ],
+  "70a6facb9d": [
+    {
+      "type": 0,
+      "value": "This week"
+    }
+  ],
+  "71a29b007b": [
+    {
+      "type": 0,
+      "value": "Have a bug, issue, or idea for tldraw? Let us know!"
+    }
+  ],
+  "73ab799383": [
+    {
+      "type": 0,
+      "value": "This version of tldraw is no longer supported."
+    }
+  ],
+  "7408cf0d7b": [
+    {
+      "type": 0,
+      "value": "Please reload the page"
+    }
+  ],
+  "752b79f137": [
+    {
+      "type": 0,
+      "value": "You have reached the maximum number of files. You need to delete old files before creating new ones."
+    }
+  ],
+  "7573b8110a": [
+    {
+      "type": 0,
+      "value": "No access"
+    }
+  ],
+  "761e93ede9": [
+    {
+      "type": 0,
+      "value": "Manage cookies"
+    }
+  ],
+  "764671e008": [
+    {
+      "type": 0,
+      "value": "Chat with us on Discord"
+    }
+  ],
+  "7697920637": [
+    {
+      "type": 0,
+      "value": "Please reload"
+    }
+  ],
+  "777f9e90cf": [
+    {
+      "type": 0,
+      "value": "Invalid request."
+    }
+  ],
+  "797799f35e": [
+    {
+      "type": 0,
+      "value": "Submit an issue on GitHub"
+    }
+  ],
+  "7b1329f5ca": [
+    {
+      "type": 0,
+      "value": "User manual"
+    }
+  ],
+  "7be10fc592": [
+    {
+      "type": 0,
+      "value": "Restore version"
+    }
+  ],
+  "7cb5f8b4a5": [
+    {
+      "type": 0,
+      "value": "Forget"
+    }
+  ],
+  "7daeced9ff": [
+    {
+      "type": 0,
+      "value": "Publish changes"
+    }
+  ],
+  "7fcdcc6455": [
+    {
+      "type": 0,
+      "value": "Forget file"
+    }
+  ],
+  "801ab24683": [
+    {
+      "type": 0,
+      "value": "Download"
+    }
+  ],
+  "815e116a2e": [
+    {
+      "type": 0,
+      "value": "Have a bug, issue, or idea for tldraw? Let us know! Fill out this form and we will follow up over email if needed. You can also "
+    },
+    {
+      "children": [
+        {
+          "type": 0,
+          "value": "chat with us on Discord"
+        }
+      ],
+      "type": 8,
+      "value": "discord"
+    },
+    {
+      "type": 0,
+      "value": " or "
+    },
+    {
+      "children": [
+        {
+          "type": 0,
+          "value": "submit an issue on GitHub"
+        }
+      ],
+      "type": 8,
+      "value": "github"
+    },
+    {
+      "type": 0,
+      "value": "."
+    }
+  ],
+  "85a082de1b": [
+    {
+      "type": 0,
+      "value": "Please refresh the page to get the latest version of tldraw."
+    }
+  ],
+  "86353d2c41": [
+    {
+      "type": 0,
+      "value": "Added "
+    },
+    {
+      "type": 1,
+      "value": "total"
+    },
+    {
+      "type": 0,
+      "value": " .tldr files."
+    }
+  ],
+  "86c66437fd": [
+    {
+      "type": 0,
+      "value": "Rename file"
+    }
+  ],
+  "8b1946f965": [
+    {
+      "type": 0,
+      "value": "To continue editing please copy the room to your files."
+    }
+  ],
+  "8eb2c00e96": [
+    {
+      "type": 0,
+      "value": "Shared with you"
+    }
+  ],
+  "8ff3d0a705": [
+    {
+      "type": 0,
+      "value": "Rate limited"
+    }
+  ],
+  "902b0d55fd": [
+    {
+      "type": 0,
+      "value": "Error"
+    }
+  ],
+  "904a830405": [
+    {
+      "type": 0,
+      "value": "Rename"
+    }
+  ],
+  "91e49bb0eb": [
+    {
+      "type": 0,
+      "value": "Copy to my files"
+    }
+  ],
+  "96165d6df5": [
+    {
+      "type": 0,
+      "value": "This month"
+    }
+  ],
+  "9914a0ce04": [
+    {
+      "type": 0,
+      "value": "Light"
+    }
+  ],
+  "9bef626805": [
+    {
+      "type": 0,
+      "value": "Delete file"
+    }
+  ],
+  "9c258b8f88": [
+    {
+      "type": 0,
+      "value": "This anonymous tldraw multiplayer room is now read-only. To continue editing, please sign in and copy it to your files."
+    }
+  ],
+  "9ceb927baa": [
+    {
+      "type": 0,
+      "value": "Publish this file"
+    }
+  ],
+  "9e076f5885": [
+    {
+      "type": 0,
+      "value": "Not found"
+    }
+  ],
+  "9e93c98d88": [
+    {
+      "type": 0,
+      "value": "Opt out"
+    }
+  ],
+  "a0da245992": [
+    {
+      "type": 0,
+      "value": "Export the content as a .tldr file: Select 'Download' in the top left menu."
+    }
+  ],
+  "a104439641": [
+    {
+      "type": 0,
+      "value": "Padding"
+    }
+  ],
+  "a18366b217": [
+    {
+      "type": 0,
+      "value": "Dark"
+    }
+  ],
+  "a1c915578c": [
+    {
+      "type": 0,
+      "value": "The file you are looking for does not exist."
+    }
+  ],
+  "a239905023": [
+    {
+      "type": 0,
+      "value": "Export image"
+    }
+  ],
+  "a3debabee7": [
+    {
+      "type": 0,
+      "value": "Cookie policy"
+    }
+  ],
+  "a4d3b161ce": [
+    {
+      "type": 0,
+      "value": "Submit"
+    }
+  ],
+  "a6cc403d56": [
+    {
+      "type": 0,
+      "value": "Anyone with the link"
+    }
+  ],
+  "a768caa988": [
+    {
+      "type": 0,
+      "value": "Analytics"
+    }
+  ],
+  "a9ded1e5ce": [
+    {
+      "type": 0,
+      "value": "Background"
+    }
+  ],
+  "ab0df9ba36": [
+    {
+      "type": 0,
+      "value": "File limit reached"
+    }
+  ],
+  "af3dc88931": [
+    {
+      "type": 0,
+      "value": "Last published "
+    },
+    {
+      "children": [
+      ],
+      "type": 8,
+      "value": "date"
+    }
+  ],
+  "b028909917": [
+    {
+      "type": 0,
+      "value": "Guest user"
+    }
+  ],
+  "b6d4223e60": [
+    {
+      "type": 0,
+      "value": "Sign in"
+    }
+  ],
+  "b758336699": [
+    {
+      "type": 0,
+      "value": "Copy link"
+    }
+  ],
+  "bb792693e2": [
+    {
+      "type": 0,
+      "value": "Unpin"
+    }
+  ],
+  "bbbcefd7ce": [
+    {
+      "offset": 0,
+      "options": {
+        "one": {
+          "value": [
+            {
+              "type": 0,
+              "value": "Uploading .tldr file…"
+            }
+          ]
+        },
+        "other": {
+          "value": [
+            {
+              "type": 0,
+              "value": "Uploading "
+            },
+            {
+              "type": 1,
+              "value": "uploaded"
+            },
+            {
+              "type": 0,
+              "value": " of "
+            },
+            {
+              "type": 1,
+              "value": "total"
+            },
+            {
+              "type": 0,
+              "value": " .tldr files…"
+            }
+          ]
+        }
+      },
+      "pluralType": "cardinal",
+      "type": 6,
+      "value": "total"
+    }
+  ],
+  "bc88b0e89e": [
+    {
+      "type": 0,
+      "value": "Shared by "
+    },
+    {
+      "type": 1,
+      "value": "ownerName"
+    }
+  ],
+  "bcb62136a3": [
+    {
+      "type": 0,
+      "value": "Upload .tldr files"
+    }
+  ],
+  "c2276c9127": [
+    {
+      "type": 0,
+      "value": "Learn more about sharing."
+    }
+  ],
+  "c303bd1095": [
+    {
+      "type": 0,
+      "value": "Unable to publish the file."
+    }
+  ],
+  "c4b39a1cc3": [
+    {
+      "type": 0,
+      "value": "Essential cookies"
+    }
+  ],
+  "c655b27b1e": [
+    {
+      "type": 0,
+      "value": "i18n: Long String"
+    }
+  ],
+  "c6a00f137b": [
+    {
+      "type": 0,
+      "value": "Invite"
+    }
+  ],
+  "c87aacf567": [
+    {
+      "type": 0,
+      "value": "Sign out"
+    }
+  ],
+  "cceaefbc20": [
+    {
+      "type": 0,
+      "value": "Share this file"
+    }
+  ],
+  "cd15a75c26": [
+    {
+      "type": 0,
+      "value": "SVG"
+    }
+  ],
+  "cea291e45e": [
+    {
+      "type": 0,
+      "value": "Learn more about publishing."
+    }
+  ],
+  "d3d2e61733": [
+    {
+      "type": 0,
+      "value": "Close"
+    }
+  ],
+  "d4bbf74f3e": [
+    {
+      "type": 0,
+      "value": "Toggle sidebar"
+    }
+  ],
+  "d721757161": [
+    {
+      "type": 0,
+      "value": "Theme"
+    }
+  ],
+  "d876a9fe1a": [
+    {
+      "type": 0,
+      "value": "Try Again"
+    }
+  ],
+  "d9100f3e10": [
+    {
+      "type": 0,
+      "value": "Go here to see the content"
+    }
+  ],
+  "dbbebf3c03": [
+    {
+      "type": 0,
+      "value": "Invite only"
+    }
+  ],
+  "dfdb78a4e4": [
+    {
+      "type": 0,
+      "value": "App debug flags"
+    }
+  ],
+  "e2ae80a510": [
+    {
+      "type": 0,
+      "value": "Legal summary"
+    }
+  ],
+  "e404559826": [
+    {
+      "type": 0,
+      "value": "Terms of service"
+    }
+  ],
+  "e78e14c5f1": [
+    {
+      "type": 0,
+      "value": "Pin"
+    }
+  ],
+  "ea4788705e": [
+    {
+      "type": 0,
+      "value": "Cancel"
+    }
+  ],
+  "ebfe9ce86e": [
+    {
+      "type": 0,
+      "value": "Yesterday"
+    }
+  ],
+  "ec59b960ea": [
+    {
+      "type": 0,
+      "value": "This file has reached the maximum number of active collaborators."
+    }
+  ],
+  "ec611e9a08": [
+    {
+      "type": 0,
+      "value": "Account menu"
+    }
+  ],
+  "ed53713239": [
+    {
+      "type": 0,
+      "value": "i18n: Accented"
+    }
+  ],
+  "ed75712b0e": [
+    {
+      "type": 0,
+      "value": "Duplicate"
+    }
+  ],
+  "ede55d955f": [
+    {
+      "type": 0,
+      "value": "Read our "
+    },
+    {
+      "children": [
+        {
+          "type": 0,
+          "value": "cookie policy"
+        }
+      ],
+      "type": 8,
+      "value": "a"
+    },
+    {
+      "type": 0,
+      "value": " to learn more."
+    }
+  ],
+  "f09b16bc5f": [
+    {
+      "type": 0,
+      "value": "We use cookies to keep you logged in, to sync your files, and to collect analytics to help us improve tldraw."
+    }
+  ],
+  "f0e8bff6f9": [
+    {
+      "type": 0,
+      "value": "User settings"
+    }
+  ],
+  "f2569594b2": [
+    {
+      "type": 0,
+      "value": "We use these cookies to save your files and settings."
+    }
+  ],
+  "f2a6c498fb": [
+    {
+      "type": 0,
+      "value": "Delete"
+    }
+  ],
+  "f43fb62093": [
+    {
+      "type": 0,
+      "value": "Back to tldraw."
+    }
+  ],
+  "f4f70727dc": [
+    {
+      "type": 0,
+      "value": "Settings"
+    }
+  ],
+  "fb15c53f22": [
+    {
+      "type": 0,
+      "value": "Viewer"
+    }
+  ],
+  "fd1be3efcf": [
+    {
+      "type": 0,
+      "value": "Are you sure you want to delete this file?"
+    }
+  ],
+  "fed5ec05eb": [
+    {
+      "type": 0,
+      "value": "Copied link"
+    }
+  ],
+  "ffcd73e997": [
+    {
+      "type": 0,
+      "value": "Import file…"
+    }
+  ]
 }

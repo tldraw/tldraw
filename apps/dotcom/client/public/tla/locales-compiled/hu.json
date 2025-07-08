@@ -1,143 +1,950 @@
 {
-  "0095a9fa74": "Export",
-  "03b3e13197": "Húzza a fájlt az oldal oldalsávjába. Vagy válassza a „Fájl importálása” opciót a felhasználói menüből.",
-  "043973ec1f": "Még mindig gondja van? {GetHelpLink}",
-  "05596b840b": "Nyissa meg a tldraw-t.",
-  "06b9281e39": "Auto",
-  "07dbd11b21": "Névtelen fájl",
-  "08331c1710": "Túllépte a díjkorlátot, próbálkozzon újra később.",
-  "08bd40c754": "Fiók",
-  "0b27918290": "Fájl",
-  "0b9a4cde72": "Fájl menü",
-  "0d1f2bb523": "Visszajelzés küldése",
-  "110a4b01be": "Közzététel",
-  "13ddd375ad": "Exportálás másként",
-  "181b90f889": "Fájl létrehozása",
-  "1da2e8106b": "Váratlan hiba történt.",
-  "1dd1c5fb7f": "Ma",
-  "250ddea65c": "A tldraw-ról",
-  "299cb00a7a": "A feltöltés sikertelen",
-  "31246941ad": "A fájl megtekintéséhez be kell jelentkeznie.",
-  "31418ce4ad": "i18n: Hiányzó kiemelés",
-  "335defdafe": "Kérjük, próbálja meg frissíteni az oldalt.",
-  "344a7f427f": "Szerkesztő",
-  "3bd1b98dbd": "Nem sikerült közzétenni a változtatásokat.",
-  "3c5e891bff": "Rögzítve",
-  "3d0238bf16": "Összes elfogadása",
-  "42e53c47c1": "Hozzáférés kéréséhez forduljon a tulajdonoshoz.",
-  "44db318ee5": "Kérjen segítséget a Discordhoz",
-  "46137245cd": "Köszönjük, hogy segít a tldraw fejlesztésében!",
-  "47839e47a5": "tldraw",
-  "4908687e50": "Biztosan elfelejti ezt a fájlt?",
-  "4d0d3ddec9": "Ez az oldal sütiket használ az alkalmazás működéséhez és elemzések gyűjtéséhez.",
-  "4d1c8263ba": "Újratöltés",
-  "50db1b7e1e": "Nem lehet visszavonni a fájl közzétételét.",
-  "517bb809d9": "Oldal menü",
-  "54286b1d01": "Elérte az együttműködők korlátját",
-  "54d240fa41": "Kérlek lassíts.",
-  "554a05155c": "Még mindig gondja van? <a>Hibabejelentés</a>",
-  "55505ba281": "PNG",
-  "5677e381d2": "Analitikai sütiket használunk a tldraw jobbá tételéhez.",
-  "56c34c6410": "Adatvédelmi szabályzat",
-  "5a95a425f7": "Részesedés",
-  "5bec508475": "Régi böngésző észlelve. Kérjük, frissítse böngészőjét az alkalmazás használatához.",
-  "5d26ae7550": "Nem sikerült feltöltenünk a bejelentkezés előtt létrehozott tartalmak egy részét.",
-  "5f3c333678": "Visszajelzés elküldve",
-  "5fb63579fc": "Másolat",
-  "61057a0c84": "Később",
-  "625fd29749": "Régebbi",
-  "6609dd239e": "Valami elromlott",
-  "6637a98151": "Elérhető a tldraw új verziója. A folytatáshoz töltse be újra az oldalt.",
-  "6a26f54883": "Segítség",
-  "6dc0836c1b": "Nem rendelkezik a szükséges engedélyekkel a művelet végrehajtásához.",
-  "6dfc62f621": "Kövesse az alábbi lépéseket a tartalom kézi importálásához:",
-  "70a6facb9d": "Ezen a héten",
-  "71a29b007b": "Van egy hibád, problémád vagy ötleted a tldraw-val kapcsolatban? Tudasd velünk!",
-  "73ab799383": "A tldraw ezen verziója már nem támogatott.",
-  "7408cf0d7b": "Kérjük, töltse be újra az oldalt",
-  "752b79f137": "Elérte a fájlok maximális számát. Újak létrehozása előtt törölnie kell a régi fájlokat.",
-  "7573b8110a": "Nincs hozzáférés",
-  "761e93ede9": "Cookie-k kezelése",
-  "764671e008": "Csevegés velünk a Discordon",
-  "7697920637": "Kérjük, töltse újra",
-  "777f9e90cf": "Érvénytelen kérés.",
-  "797799f35e": "Probléma benyújtása a GitHubon",
-  "7b1329f5ca": "Felhasználói kézikönyv",
-  "7be10fc592": "Verzió visszaállítása",
-  "7cb5f8b4a5": "Felejtsd el",
-  "7daeced9ff": "Módosítások közzététele",
-  "7fcdcc6455": "Felejtsd el a fájlt",
-  "801ab24683": "Letöltés",
-  "815e116a2e": "Van hibád, problémád vagy ötleted a tldraw-val kapcsolatban? Tudasd velünk! Töltsd ki ezt az űrlapot, és szükség esetén e-mailben felvesszük veled a kapcsolatot. <discord>cseveghetsz velünk a Discordon</discord> vagy <github>beküldhetsz egy problémát a GitHubon</github>.",
-  "85a082de1b": "Kérjük, frissítse az oldalt a tldraw legújabb verziójának letöltéséhez.",
-  "86353d2c41": "{total} .tldr fájl hozzáadva.",
-  "86c66437fd": "Fájl átnevezése",
-  "8eb2c00e96": "Megosztva veled",
-  "8ff3d0a705": "Ára korlátozott",
-  "902b0d55fd": "Hiba",
-  "904a830405": "Átnevezés",
-  "91e49bb0eb": "Másolás a fájljaim közé",
-  "96165d6df5": "Ebben a hónapban",
-  "9914a0ce04": "Fény",
-  "9bef626805": "Fájl törlése",
-  "9ceb927baa": "Tegye közzé ezt a fájlt",
-  "9e076f5885": "Nem található",
-  "9e93c98d88": "Leiratkozás",
-  "a0da245992": "Exportáld a tartalmat .tldr fájlként: Válaszd a „Letöltés” ​​lehetőséget a bal felső menüben.",
-  "a104439641": "Párnázás",
-  "a18366b217": "Sötét",
-  "a1c915578c": "A keresett fájl nem létezik.",
-  "a239905023": "Kép exportálása",
-  "a3debabee7": "Cookie-szabályzat",
-  "a4d3b161ce": "Beküld",
-  "a6cc403d56": "Bárki, akinek van linkje",
-  "a768caa988": "Analitika",
-  "a9ded1e5ce": "Háttér",
-  "ab0df9ba36": "Elérte a fájlkorlátot",
-  "af3dc88931": "Utolsó közzététel: <date></date>",
-  "b028909917": "Vendégfelhasználó",
-  "b6d4223e60": "Jelentkezzen be",
-  "b758336699": "Link másolása",
-  "bb792693e2": "Kibont",
-  "bbbcefd7ce": "{total, plural, one {.tldr fájl feltöltése…} other {{total} .tldr fájlból {uploaded} feltöltése…}}",
-  "bc88b0e89e": "Megosztva: {ownerName}",
-  "bcb62136a3": "Töltsön fel .tldr fájlokat",
-  "c2276c9127": "További információ a megosztásról.",
-  "c303bd1095": "Nem lehet közzétenni a fájlt.",
-  "c4b39a1cc3": "Alapvető sütik",
-  "c655b27b1e": "i18n: Hosszú karakterlánc",
-  "c6a00f137b": "Meghív",
-  "c87aacf567": "Jelentkezzen ki",
-  "cbef7ba103": "Ez a szoba hamarosan csak olvasható lesz",
-  "cceaefbc20": "Ossza meg ezt a fájlt",
-  "cd15a75c26": "SVG",
-  "cea291e45e": "További információ a közzétételről.",
-  "d3d2e61733": "Közeli",
-  "d4bbf74f3e": "Oldalsáv váltása",
-  "d721757161": "Téma",
-  "d876a9fe1a": "Próbáld újra",
-  "d9100f3e10": "Menjen ide a tartalom megtekintéséhez",
-  "dbbebf3c03": "Csak meghívással",
-  "dfdb78a4e4": "Alkalmazás-hibakeresési jelzők",
-  "e2ae80a510": "Jogi összefoglaló",
-  "e404559826": "Szolgáltatási feltételek",
-  "e78e14c5f1": "Pin",
-  "ea2301d01c": "2025. július 1. után ez az anonim tldraw többjátékos szoba írásvédetté válik. A jövőbeni szerkesztés folytatásához kérjük, jelentkezzen be, és másolja át a fájljai közé.",
-  "ea4788705e": "Mégsem",
-  "ebfe9ce86e": "Tegnap",
-  "ec59b960ea": "Ez a fájl elérte az aktív együttműködők maximális számát.",
-  "ec611e9a08": "Fiók menü",
-  "ed53713239": "i18n: Ékezetes",
-  "ed75712b0e": "Másolat",
-  "ede55d955f": "További információért olvassa el <a>süti szabályzatunkat</a>.",
-  "f09b16bc5f": "Sütiket használunk a bejelentkezéshez, a fájlok szinkronizálásához és a tldraw fejlesztését segítő elemzések gyűjtéséhez.",
-  "f0e8bff6f9": "Felhasználói beállítások",
-  "f2569594b2": "Ezeket a sütiket a fájljaid és beállításaidat mentjük.",
-  "f2a6c498fb": "Töröl",
-  "f43fb62093": "Vissza a tldraw-hoz.",
-  "f4f70727dc": "Beállítások",
-  "fb15c53f22": "Néző",
-  "fd1be3efcf": "Biztosan törli ezt a fájlt?",
-  "fed5ec05eb": "Link másolva",
-  "ffcd73e997": "Fájl importálása…"
+  "0095a9fa74": [
+    {
+      "type": 0,
+      "value": "Export"
+    }
+  ],
+  "03b3e13197": [
+    {
+      "type": 0,
+      "value": "Húzza a fájlt az oldal oldalsávjába. Vagy válassza a „Fájl importálása” opciót a felhasználói menüből."
+    }
+  ],
+  "043973ec1f": [
+    {
+      "type": 0,
+      "value": "Még mindig gondja van? "
+    },
+    {
+      "type": 1,
+      "value": "GetHelpLink"
+    }
+  ],
+  "05596b840b": [
+    {
+      "type": 0,
+      "value": "Nyissa meg a tldraw-t."
+    }
+  ],
+  "06b9281e39": [
+    {
+      "type": 0,
+      "value": "Auto"
+    }
+  ],
+  "07dbd11b21": [
+    {
+      "type": 0,
+      "value": "Névtelen fájl"
+    }
+  ],
+  "08331c1710": [
+    {
+      "type": 0,
+      "value": "Túllépte a díjkorlátot, próbálkozzon újra később."
+    }
+  ],
+  "08bd40c754": [
+    {
+      "type": 0,
+      "value": "Fiók"
+    }
+  ],
+  "0b27918290": [
+    {
+      "type": 0,
+      "value": "Fájl"
+    }
+  ],
+  "0b9a4cde72": [
+    {
+      "type": 0,
+      "value": "Fájl menü"
+    }
+  ],
+  "0d1f2bb523": [
+    {
+      "type": 0,
+      "value": "Visszajelzés küldése"
+    }
+  ],
+  "110a4b01be": [
+    {
+      "type": 0,
+      "value": "Közzététel"
+    }
+  ],
+  "13ddd375ad": [
+    {
+      "type": 0,
+      "value": "Exportálás másként"
+    }
+  ],
+  "181b90f889": [
+    {
+      "type": 0,
+      "value": "Fájl létrehozása"
+    }
+  ],
+  "1da2e8106b": [
+    {
+      "type": 0,
+      "value": "Váratlan hiba történt."
+    }
+  ],
+  "1dd1c5fb7f": [
+    {
+      "type": 0,
+      "value": "Ma"
+    }
+  ],
+  "250ddea65c": [
+    {
+      "type": 0,
+      "value": "A tldraw-ról"
+    }
+  ],
+  "299cb00a7a": [
+    {
+      "type": 0,
+      "value": "A feltöltés sikertelen"
+    }
+  ],
+  "31246941ad": [
+    {
+      "type": 0,
+      "value": "A fájl megtekintéséhez be kell jelentkeznie."
+    }
+  ],
+  "31418ce4ad": [
+    {
+      "type": 0,
+      "value": "i18n: Hiányzó kiemelés"
+    }
+  ],
+  "335defdafe": [
+    {
+      "type": 0,
+      "value": "Kérjük, próbálja meg frissíteni az oldalt."
+    }
+  ],
+  "344a7f427f": [
+    {
+      "type": 0,
+      "value": "Szerkesztő"
+    }
+  ],
+  "3bd1b98dbd": [
+    {
+      "type": 0,
+      "value": "Nem sikerült közzétenni a változtatásokat."
+    }
+  ],
+  "3c5e891bff": [
+    {
+      "type": 0,
+      "value": "Rögzítve"
+    }
+  ],
+  "3d0238bf16": [
+    {
+      "type": 0,
+      "value": "Összes elfogadása"
+    }
+  ],
+  "42e53c47c1": [
+    {
+      "type": 0,
+      "value": "Hozzáférés kéréséhez forduljon a tulajdonoshoz."
+    }
+  ],
+  "44db318ee5": [
+    {
+      "type": 0,
+      "value": "Kérjen segítséget a Discordhoz"
+    }
+  ],
+  "46137245cd": [
+    {
+      "type": 0,
+      "value": "Köszönjük, hogy segít a tldraw fejlesztésében!"
+    }
+  ],
+  "47839e47a5": [
+    {
+      "type": 0,
+      "value": "tldraw"
+    }
+  ],
+  "4908687e50": [
+    {
+      "type": 0,
+      "value": "Biztosan elfelejti ezt a fájlt?"
+    }
+  ],
+  "4d0d3ddec9": [
+    {
+      "type": 0,
+      "value": "Ez az oldal sütiket használ az alkalmazás működéséhez és elemzések gyűjtéséhez."
+    }
+  ],
+  "4d1c8263ba": [
+    {
+      "type": 0,
+      "value": "Újratöltés"
+    }
+  ],
+  "50db1b7e1e": [
+    {
+      "type": 0,
+      "value": "Nem lehet visszavonni a fájl közzétételét."
+    }
+  ],
+  "517bb809d9": [
+    {
+      "type": 0,
+      "value": "Oldal menü"
+    }
+  ],
+  "54286b1d01": [
+    {
+      "type": 0,
+      "value": "Elérte az együttműködők korlátját"
+    }
+  ],
+  "54d240fa41": [
+    {
+      "type": 0,
+      "value": "Kérlek lassíts."
+    }
+  ],
+  "554a05155c": [
+    {
+      "type": 0,
+      "value": "Még mindig gondja van? "
+    },
+    {
+      "children": [
+        {
+          "type": 0,
+          "value": "Hibabejelentés"
+        }
+      ],
+      "type": 8,
+      "value": "a"
+    }
+  ],
+  "55505ba281": [
+    {
+      "type": 0,
+      "value": "PNG"
+    }
+  ],
+  "5677e381d2": [
+    {
+      "type": 0,
+      "value": "Analitikai sütiket használunk a tldraw jobbá tételéhez."
+    }
+  ],
+  "56c34c6410": [
+    {
+      "type": 0,
+      "value": "Adatvédelmi szabályzat"
+    }
+  ],
+  "5a95a425f7": [
+    {
+      "type": 0,
+      "value": "Részesedés"
+    }
+  ],
+  "5bec508475": [
+    {
+      "type": 0,
+      "value": "Régi böngésző észlelve. Kérjük, frissítse böngészőjét az alkalmazás használatához."
+    }
+  ],
+  "5d26ae7550": [
+    {
+      "type": 0,
+      "value": "Nem sikerült feltöltenünk a bejelentkezés előtt létrehozott tartalmak egy részét."
+    }
+  ],
+  "5f3c333678": [
+    {
+      "type": 0,
+      "value": "Visszajelzés elküldve"
+    }
+  ],
+  "5fb63579fc": [
+    {
+      "type": 0,
+      "value": "Másolat"
+    }
+  ],
+  "61057a0c84": [
+    {
+      "type": 0,
+      "value": "Később"
+    }
+  ],
+  "625fd29749": [
+    {
+      "type": 0,
+      "value": "Régebbi"
+    }
+  ],
+  "6609dd239e": [
+    {
+      "type": 0,
+      "value": "Valami elromlott"
+    }
+  ],
+  "6637a98151": [
+    {
+      "type": 0,
+      "value": "Elérhető a tldraw új verziója. A folytatáshoz töltse be újra az oldalt."
+    }
+  ],
+  "6a26f54883": [
+    {
+      "type": 0,
+      "value": "Segítség"
+    }
+  ],
+  "6dc0836c1b": [
+    {
+      "type": 0,
+      "value": "Nem rendelkezik a szükséges engedélyekkel a művelet végrehajtásához."
+    }
+  ],
+  "6dfc62f621": [
+    {
+      "type": 0,
+      "value": "Kövesse az alábbi lépéseket a tartalom kézi importálásához:"
+    }
+  ],
+  "70a6facb9d": [
+    {
+      "type": 0,
+      "value": "Ezen a héten"
+    }
+  ],
+  "71a29b007b": [
+    {
+      "type": 0,
+      "value": "Van egy hibád, problémád vagy ötleted a tldraw-val kapcsolatban? Tudasd velünk!"
+    }
+  ],
+  "73ab799383": [
+    {
+      "type": 0,
+      "value": "A tldraw ezen verziója már nem támogatott."
+    }
+  ],
+  "7408cf0d7b": [
+    {
+      "type": 0,
+      "value": "Kérjük, töltse be újra az oldalt"
+    }
+  ],
+  "752b79f137": [
+    {
+      "type": 0,
+      "value": "Elérte a fájlok maximális számát. Újak létrehozása előtt törölnie kell a régi fájlokat."
+    }
+  ],
+  "7573b8110a": [
+    {
+      "type": 0,
+      "value": "Nincs hozzáférés"
+    }
+  ],
+  "761e93ede9": [
+    {
+      "type": 0,
+      "value": "Cookie-k kezelése"
+    }
+  ],
+  "764671e008": [
+    {
+      "type": 0,
+      "value": "Csevegés velünk a Discordon"
+    }
+  ],
+  "7697920637": [
+    {
+      "type": 0,
+      "value": "Kérjük, töltse újra"
+    }
+  ],
+  "777f9e90cf": [
+    {
+      "type": 0,
+      "value": "Érvénytelen kérés."
+    }
+  ],
+  "797799f35e": [
+    {
+      "type": 0,
+      "value": "Probléma benyújtása a GitHubon"
+    }
+  ],
+  "7b1329f5ca": [
+    {
+      "type": 0,
+      "value": "Felhasználói kézikönyv"
+    }
+  ],
+  "7be10fc592": [
+    {
+      "type": 0,
+      "value": "Verzió visszaállítása"
+    }
+  ],
+  "7cb5f8b4a5": [
+    {
+      "type": 0,
+      "value": "Felejtsd el"
+    }
+  ],
+  "7daeced9ff": [
+    {
+      "type": 0,
+      "value": "Módosítások közzététele"
+    }
+  ],
+  "7fcdcc6455": [
+    {
+      "type": 0,
+      "value": "Felejtsd el a fájlt"
+    }
+  ],
+  "801ab24683": [
+    {
+      "type": 0,
+      "value": "Letöltés"
+    }
+  ],
+  "815e116a2e": [
+    {
+      "type": 0,
+      "value": "Van hibád, problémád vagy ötleted a tldraw-val kapcsolatban? Tudasd velünk! Töltsd ki ezt az űrlapot, és szükség esetén e-mailben felvesszük veled a kapcsolatot. "
+    },
+    {
+      "children": [
+        {
+          "type": 0,
+          "value": "cseveghetsz velünk a Discordon"
+        }
+      ],
+      "type": 8,
+      "value": "discord"
+    },
+    {
+      "type": 0,
+      "value": " vagy "
+    },
+    {
+      "children": [
+        {
+          "type": 0,
+          "value": "beküldhetsz egy problémát a GitHubon"
+        }
+      ],
+      "type": 8,
+      "value": "github"
+    },
+    {
+      "type": 0,
+      "value": "."
+    }
+  ],
+  "85a082de1b": [
+    {
+      "type": 0,
+      "value": "Kérjük, frissítse az oldalt a tldraw legújabb verziójának letöltéséhez."
+    }
+  ],
+  "86353d2c41": [
+    {
+      "type": 1,
+      "value": "total"
+    },
+    {
+      "type": 0,
+      "value": " .tldr fájl hozzáadva."
+    }
+  ],
+  "86c66437fd": [
+    {
+      "type": 0,
+      "value": "Fájl átnevezése"
+    }
+  ],
+  "8eb2c00e96": [
+    {
+      "type": 0,
+      "value": "Megosztva veled"
+    }
+  ],
+  "8ff3d0a705": [
+    {
+      "type": 0,
+      "value": "Ára korlátozott"
+    }
+  ],
+  "902b0d55fd": [
+    {
+      "type": 0,
+      "value": "Hiba"
+    }
+  ],
+  "904a830405": [
+    {
+      "type": 0,
+      "value": "Átnevezés"
+    }
+  ],
+  "91e49bb0eb": [
+    {
+      "type": 0,
+      "value": "Másolás a fájljaim közé"
+    }
+  ],
+  "96165d6df5": [
+    {
+      "type": 0,
+      "value": "Ebben a hónapban"
+    }
+  ],
+  "9914a0ce04": [
+    {
+      "type": 0,
+      "value": "Fény"
+    }
+  ],
+  "9bef626805": [
+    {
+      "type": 0,
+      "value": "Fájl törlése"
+    }
+  ],
+  "9ceb927baa": [
+    {
+      "type": 0,
+      "value": "Tegye közzé ezt a fájlt"
+    }
+  ],
+  "9e076f5885": [
+    {
+      "type": 0,
+      "value": "Nem található"
+    }
+  ],
+  "9e93c98d88": [
+    {
+      "type": 0,
+      "value": "Leiratkozás"
+    }
+  ],
+  "a0da245992": [
+    {
+      "type": 0,
+      "value": "Exportáld a tartalmat .tldr fájlként: Válaszd a „Letöltés” ​​lehetőséget a bal felső menüben."
+    }
+  ],
+  "a104439641": [
+    {
+      "type": 0,
+      "value": "Párnázás"
+    }
+  ],
+  "a18366b217": [
+    {
+      "type": 0,
+      "value": "Sötét"
+    }
+  ],
+  "a1c915578c": [
+    {
+      "type": 0,
+      "value": "A keresett fájl nem létezik."
+    }
+  ],
+  "a239905023": [
+    {
+      "type": 0,
+      "value": "Kép exportálása"
+    }
+  ],
+  "a3debabee7": [
+    {
+      "type": 0,
+      "value": "Cookie-szabályzat"
+    }
+  ],
+  "a4d3b161ce": [
+    {
+      "type": 0,
+      "value": "Beküld"
+    }
+  ],
+  "a6cc403d56": [
+    {
+      "type": 0,
+      "value": "Bárki, akinek van linkje"
+    }
+  ],
+  "a768caa988": [
+    {
+      "type": 0,
+      "value": "Analitika"
+    }
+  ],
+  "a9ded1e5ce": [
+    {
+      "type": 0,
+      "value": "Háttér"
+    }
+  ],
+  "ab0df9ba36": [
+    {
+      "type": 0,
+      "value": "Elérte a fájlkorlátot"
+    }
+  ],
+  "af3dc88931": [
+    {
+      "type": 0,
+      "value": "Utolsó közzététel: "
+    },
+    {
+      "children": [
+      ],
+      "type": 8,
+      "value": "date"
+    }
+  ],
+  "b028909917": [
+    {
+      "type": 0,
+      "value": "Vendégfelhasználó"
+    }
+  ],
+  "b6d4223e60": [
+    {
+      "type": 0,
+      "value": "Jelentkezzen be"
+    }
+  ],
+  "b758336699": [
+    {
+      "type": 0,
+      "value": "Link másolása"
+    }
+  ],
+  "bb792693e2": [
+    {
+      "type": 0,
+      "value": "Kibont"
+    }
+  ],
+  "bbbcefd7ce": [
+    {
+      "offset": 0,
+      "options": {
+        "one": {
+          "value": [
+            {
+              "type": 0,
+              "value": ".tldr fájl feltöltése…"
+            }
+          ]
+        },
+        "other": {
+          "value": [
+            {
+              "type": 1,
+              "value": "total"
+            },
+            {
+              "type": 0,
+              "value": " .tldr fájlból "
+            },
+            {
+              "type": 1,
+              "value": "uploaded"
+            },
+            {
+              "type": 0,
+              "value": " feltöltése…"
+            }
+          ]
+        }
+      },
+      "pluralType": "cardinal",
+      "type": 6,
+      "value": "total"
+    }
+  ],
+  "bc88b0e89e": [
+    {
+      "type": 0,
+      "value": "Megosztva: "
+    },
+    {
+      "type": 1,
+      "value": "ownerName"
+    }
+  ],
+  "bcb62136a3": [
+    {
+      "type": 0,
+      "value": "Töltsön fel .tldr fájlokat"
+    }
+  ],
+  "c2276c9127": [
+    {
+      "type": 0,
+      "value": "További információ a megosztásról."
+    }
+  ],
+  "c303bd1095": [
+    {
+      "type": 0,
+      "value": "Nem lehet közzétenni a fájlt."
+    }
+  ],
+  "c4b39a1cc3": [
+    {
+      "type": 0,
+      "value": "Alapvető sütik"
+    }
+  ],
+  "c655b27b1e": [
+    {
+      "type": 0,
+      "value": "i18n: Hosszú karakterlánc"
+    }
+  ],
+  "c6a00f137b": [
+    {
+      "type": 0,
+      "value": "Meghív"
+    }
+  ],
+  "c87aacf567": [
+    {
+      "type": 0,
+      "value": "Jelentkezzen ki"
+    }
+  ],
+  "cbef7ba103": [
+    {
+      "type": 0,
+      "value": "Ez a szoba hamarosan csak olvasható lesz"
+    }
+  ],
+  "cceaefbc20": [
+    {
+      "type": 0,
+      "value": "Ossza meg ezt a fájlt"
+    }
+  ],
+  "cd15a75c26": [
+    {
+      "type": 0,
+      "value": "SVG"
+    }
+  ],
+  "cea291e45e": [
+    {
+      "type": 0,
+      "value": "További információ a közzétételről."
+    }
+  ],
+  "d3d2e61733": [
+    {
+      "type": 0,
+      "value": "Közeli"
+    }
+  ],
+  "d4bbf74f3e": [
+    {
+      "type": 0,
+      "value": "Oldalsáv váltása"
+    }
+  ],
+  "d721757161": [
+    {
+      "type": 0,
+      "value": "Téma"
+    }
+  ],
+  "d876a9fe1a": [
+    {
+      "type": 0,
+      "value": "Próbáld újra"
+    }
+  ],
+  "d9100f3e10": [
+    {
+      "type": 0,
+      "value": "Menjen ide a tartalom megtekintéséhez"
+    }
+  ],
+  "dbbebf3c03": [
+    {
+      "type": 0,
+      "value": "Csak meghívással"
+    }
+  ],
+  "dfdb78a4e4": [
+    {
+      "type": 0,
+      "value": "Alkalmazás-hibakeresési jelzők"
+    }
+  ],
+  "e2ae80a510": [
+    {
+      "type": 0,
+      "value": "Jogi összefoglaló"
+    }
+  ],
+  "e404559826": [
+    {
+      "type": 0,
+      "value": "Szolgáltatási feltételek"
+    }
+  ],
+  "e78e14c5f1": [
+    {
+      "type": 0,
+      "value": "Pin"
+    }
+  ],
+  "ea2301d01c": [
+    {
+      "type": 0,
+      "value": "2025. július 1. után ez az anonim tldraw többjátékos szoba írásvédetté válik. A jövőbeni szerkesztés folytatásához kérjük, jelentkezzen be, és másolja át a fájljai közé."
+    }
+  ],
+  "ea4788705e": [
+    {
+      "type": 0,
+      "value": "Mégsem"
+    }
+  ],
+  "ebfe9ce86e": [
+    {
+      "type": 0,
+      "value": "Tegnap"
+    }
+  ],
+  "ec59b960ea": [
+    {
+      "type": 0,
+      "value": "Ez a fájl elérte az aktív együttműködők maximális számát."
+    }
+  ],
+  "ec611e9a08": [
+    {
+      "type": 0,
+      "value": "Fiók menü"
+    }
+  ],
+  "ed53713239": [
+    {
+      "type": 0,
+      "value": "i18n: Ékezetes"
+    }
+  ],
+  "ed75712b0e": [
+    {
+      "type": 0,
+      "value": "Másolat"
+    }
+  ],
+  "ede55d955f": [
+    {
+      "type": 0,
+      "value": "További információért olvassa el "
+    },
+    {
+      "children": [
+        {
+          "type": 0,
+          "value": "süti szabályzatunkat"
+        }
+      ],
+      "type": 8,
+      "value": "a"
+    },
+    {
+      "type": 0,
+      "value": "."
+    }
+  ],
+  "f09b16bc5f": [
+    {
+      "type": 0,
+      "value": "Sütiket használunk a bejelentkezéshez, a fájlok szinkronizálásához és a tldraw fejlesztését segítő elemzések gyűjtéséhez."
+    }
+  ],
+  "f0e8bff6f9": [
+    {
+      "type": 0,
+      "value": "Felhasználói beállítások"
+    }
+  ],
+  "f2569594b2": [
+    {
+      "type": 0,
+      "value": "Ezeket a sütiket a fájljaid és beállításaidat mentjük."
+    }
+  ],
+  "f2a6c498fb": [
+    {
+      "type": 0,
+      "value": "Töröl"
+    }
+  ],
+  "f43fb62093": [
+    {
+      "type": 0,
+      "value": "Vissza a tldraw-hoz."
+    }
+  ],
+  "f4f70727dc": [
+    {
+      "type": 0,
+      "value": "Beállítások"
+    }
+  ],
+  "fb15c53f22": [
+    {
+      "type": 0,
+      "value": "Néző"
+    }
+  ],
+  "fd1be3efcf": [
+    {
+      "type": 0,
+      "value": "Biztosan törli ezt a fájlt?"
+    }
+  ],
+  "fed5ec05eb": [
+    {
+      "type": 0,
+      "value": "Link másolva"
+    }
+  ],
+  "ffcd73e997": [
+    {
+      "type": 0,
+      "value": "Fájl importálása…"
+    }
+  ]
 }

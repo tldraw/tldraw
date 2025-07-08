@@ -1,143 +1,954 @@
 {
-  "0095a9fa74": "Exporteren",
-  "03b3e13197": "Sleep het bestand naar de zijbalk op deze pagina. Of selecteer de optie 'Bestand importeren' in het gebruikersmenu.",
-  "043973ec1f": "Nog steeds problemen? {GetHelpLink}",
-  "05596b840b": "Open tldraw.",
-  "06b9281e39": "Auto",
-  "07dbd11b21": "Bestand zonder titel",
-  "08331c1710": "Tarieflimiet overschreden, probeer het later opnieuw.",
-  "08bd40c754": "Rekening",
-  "0b27918290": "Bestand",
-  "0b9a4cde72": "Bestandsmenu",
-  "0d1f2bb523": "Feedback sturen",
-  "110a4b01be": "Publiceren",
-  "13ddd375ad": "Exporteren als",
-  "181b90f889": "Bestand aanmaken",
-  "1da2e8106b": "Er is een onverwachte fout opgetreden.",
-  "1dd1c5fb7f": "Vandaag",
-  "250ddea65c": "Over tldraw",
-  "299cb00a7a": "Uploaden mislukt",
-  "31246941ad": "U moet zijn aangemeld om dit bestand te kunnen bekijken.",
-  "31418ce4ad": "i18n: Markering ontbreekt",
-  "335defdafe": "Probeer de pagina te vernieuwen.",
-  "344a7f427f": "Editor",
-  "3bd1b98dbd": "De wijzigingen konden niet worden gepubliceerd.",
-  "3c5e891bff": "Vastgemaakt",
-  "3d0238bf16": "Alles accepteren",
-  "42e53c47c1": "Neem contact op met de eigenaar om toegang aan te vragen.",
-  "44db318ee5": "Krijg hulp op Discord",
-  "46137245cd": "Bedankt voor uw hulp bij het verbeteren van tldraw!",
-  "47839e47a5": "tldraw",
-  "4908687e50": "Weet u zeker dat u dit bestand wilt vergeten?",
-  "4d0d3ddec9": "Deze site maakt gebruik van cookies om de app te laten werken en om analyses te verzamelen.",
-  "4d1c8263ba": "Opnieuw laden",
-  "50db1b7e1e": "De publicatie van het bestand kan niet ongedaan worden gemaakt.",
-  "517bb809d9": "Paginamenu",
-  "54286b1d01": "Limiet voor bijdragers bereikt",
-  "54d240fa41": "Doe rustig aan.",
-  "554a05155c": "Nog steeds problemen? <a>Meld een probleem</a>",
-  "55505ba281": "PNG",
-  "5677e381d2": "Wij gebruiken analytische cookies om tldraw te verbeteren.",
-  "56c34c6410": "Privacybeleid",
-  "5a95a425f7": "Deel",
-  "5bec508475": "Oude browser gedetecteerd. Werk uw browser bij om deze app te gebruiken.",
-  "5d26ae7550": "Een deel van de content die u hebt gemaakt voordat u zich aanmeldde, is niet geüpload.",
-  "5f3c333678": "Feedback verzonden",
-  "5fb63579fc": "Kopiëren",
-  "61057a0c84": "Later",
-  "625fd29749": "Ouder",
-  "6609dd239e": "Er is iets fout gegaan",
-  "6637a98151": "Er is een nieuwe versie van tldraw beschikbaar. Laad de pagina opnieuw om verder te gaan.",
-  "6a26f54883": "Hulp",
-  "6dc0836c1b": "U beschikt niet over de benodigde machtigingen om deze actie uit te voeren.",
-  "6dfc62f621": "Volg deze stappen om de inhoud handmatig te importeren:",
-  "70a6facb9d": "Deze week",
-  "71a29b007b": "Heb je een bug, probleem of idee voor tldraw? Laat het ons weten!",
-  "73ab799383": "Deze versie van tldraw wordt niet langer ondersteund.",
-  "7408cf0d7b": "Laad de pagina opnieuw",
-  "752b79f137": "U hebt het maximum aantal bestanden bereikt. U moet oude bestanden verwijderen voordat u nieuwe bestanden maakt.",
-  "7573b8110a": "Geen toegang",
-  "761e93ede9": "Cookies beheren",
-  "764671e008": "Chat met ons op Discord",
-  "7697920637": "Gelieve opnieuw te laden",
-  "777f9e90cf": "Ongeldig verzoek.",
-  "797799f35e": "Een probleem melden op GitHub",
-  "7b1329f5ca": "Gebruikershandleiding",
-  "7be10fc592": "Versie herstellen",
-  "7cb5f8b4a5": "Vergeten",
-  "7daeced9ff": "Wijzigingen publiceren",
-  "7fcdcc6455": "Bestand vergeten",
-  "801ab24683": "Download",
-  "815e116a2e": "Heb je een bug, probleem of idee voor tldraw? Laat het ons weten! Vul dit formulier in en we nemen indien nodig per e-mail contact met je op. Je kunt ook <discord>met ons chatten op Discord</discord> of <github>een probleem melden op GitHub</github>.",
-  "85a082de1b": "Vernieuw de pagina om de nieuwste versie van tldraw te verkrijgen.",
-  "86353d2c41": "{total} .tldr-bestanden toegevoegd.",
-  "86c66437fd": "Bestand hernoemen",
-  "8eb2c00e96": "Gedeeld met jou",
-  "8ff3d0a705": "Beperkt door limiet",
-  "902b0d55fd": "Fout",
-  "904a830405": "Hernoemen",
-  "91e49bb0eb": "Kopieer naar mijn bestanden",
-  "96165d6df5": "Deze maand",
-  "9914a0ce04": "Licht",
-  "9bef626805": "Bestand verwijderen",
-  "9ceb927baa": "Publiceer dit bestand",
-  "9e076f5885": "Niet gevonden",
-  "9e93c98d88": "Afmelden",
-  "a0da245992": "Exporteer de inhoud als een .tldr-bestand: Selecteer 'Downloaden' in het menu linksboven.",
-  "a104439641": "Opvulling",
-  "a18366b217": "Donker",
-  "a1c915578c": "Het bestand dat u zoekt bestaat niet.",
-  "a239905023": "Afbeelding exporteren",
-  "a3debabee7": "Cookiebeleid",
-  "a4d3b161ce": "Verzenden",
-  "a6cc403d56": "Iedereen met de link",
-  "a768caa988": "Analyse",
-  "a9ded1e5ce": "Achtergrond",
-  "ab0df9ba36": "Bestandslimiet bereikt",
-  "af3dc88931": "Laatst gepubliceerd <date></date>",
-  "b028909917": "Gastgebruiker",
-  "b6d4223e60": "Aanmelden",
-  "b758336699": "Link kopiëren",
-  "bb792693e2": "Losmaken",
-  "bbbcefd7ce": "{total, plural, one {Uploaden van .tldr-bestand…} other {Uploaden van {uploaded} van {total} .tldr-bestanden…}}",
-  "bc88b0e89e": "Gedeeld door {ownerName}",
-  "bcb62136a3": "Upload .tldr-bestanden",
-  "c2276c9127": "Meer informatie over delen.",
-  "c303bd1095": "Het bestand kan niet worden gepubliceerd.",
-  "c4b39a1cc3": "Essentiële cookies",
-  "c655b27b1e": "i18n: Lange reeks",
-  "c6a00f137b": "Uitnodiging",
-  "c87aacf567": "Afmelden",
-  "cbef7ba103": "Deze kamer zal binnenkort alleen-lezen zijn",
-  "cceaefbc20": "Deel dit bestand",
-  "cd15a75c26": "SVG",
-  "cea291e45e": "Meer informatie over publiceren.",
-  "d3d2e61733": "Sluiten",
-  "d4bbf74f3e": "Schakel zijbalk in",
-  "d721757161": "Thema",
-  "d876a9fe1a": "Probeer het opnieuw",
-  "d9100f3e10": "Ga hierheen om de inhoud te bekijken",
-  "dbbebf3c03": "Alleen op uitnodiging",
-  "dfdb78a4e4": "App-debug vlaggen",
-  "e2ae80a510": "Juridische samenvatting",
-  "e404559826": "Servicevoorwaarden",
-  "e78e14c5f1": "Vastmaken",
-  "ea2301d01c": "Na 1 juli 2025 wordt deze anonieme tldraw-multiplayerruimte alleen-lezen. Om in de toekomst te kunnen blijven bewerken, meld je aan en kopieer je de ruimte naar je bestanden.",
-  "ea4788705e": "Annuleren",
-  "ebfe9ce86e": "Gisteren",
-  "ec59b960ea": "Dit bestand heeft het maximale aantal actieve medewerkers bereikt.",
-  "ec611e9a08": "Accountmenu",
-  "ed53713239": "i18n: Geaccentueerd",
-  "ed75712b0e": "Duplicaat",
-  "ede55d955f": "Lees ons <a>cookiebeleid</a> voor meer informatie.",
-  "f09b16bc5f": "We gebruiken cookies om ervoor te zorgen dat u ingelogd blijft, om uw bestanden te synchroniseren en om analyses te verzamelen waarmee we tldraw kunnen verbeteren.",
-  "f0e8bff6f9": "Gebruikersinstellingen",
-  "f2569594b2": "Wij gebruiken deze cookies om uw bestanden en instellingen op te slaan.",
-  "f2a6c498fb": "Verwijderen",
-  "f43fb62093": "Terug naar tldraw.",
-  "f4f70727dc": "Instellingen",
-  "fb15c53f22": "Kijker",
-  "fd1be3efcf": "Weet u zeker dat u dit bestand wilt verwijderen?",
-  "fed5ec05eb": "Gekopieerde link",
-  "ffcd73e997": "Bestand importeren…"
+  "0095a9fa74": [
+    {
+      "type": 0,
+      "value": "Exporteren"
+    }
+  ],
+  "03b3e13197": [
+    {
+      "type": 0,
+      "value": "Sleep het bestand naar de zijbalk op deze pagina. Of selecteer de optie 'Bestand importeren' in het gebruikersmenu."
+    }
+  ],
+  "043973ec1f": [
+    {
+      "type": 0,
+      "value": "Nog steeds problemen? "
+    },
+    {
+      "type": 1,
+      "value": "GetHelpLink"
+    }
+  ],
+  "05596b840b": [
+    {
+      "type": 0,
+      "value": "Open tldraw."
+    }
+  ],
+  "06b9281e39": [
+    {
+      "type": 0,
+      "value": "Auto"
+    }
+  ],
+  "07dbd11b21": [
+    {
+      "type": 0,
+      "value": "Bestand zonder titel"
+    }
+  ],
+  "08331c1710": [
+    {
+      "type": 0,
+      "value": "Tarieflimiet overschreden, probeer het later opnieuw."
+    }
+  ],
+  "08bd40c754": [
+    {
+      "type": 0,
+      "value": "Rekening"
+    }
+  ],
+  "0b27918290": [
+    {
+      "type": 0,
+      "value": "Bestand"
+    }
+  ],
+  "0b9a4cde72": [
+    {
+      "type": 0,
+      "value": "Bestandsmenu"
+    }
+  ],
+  "0d1f2bb523": [
+    {
+      "type": 0,
+      "value": "Feedback sturen"
+    }
+  ],
+  "110a4b01be": [
+    {
+      "type": 0,
+      "value": "Publiceren"
+    }
+  ],
+  "13ddd375ad": [
+    {
+      "type": 0,
+      "value": "Exporteren als"
+    }
+  ],
+  "181b90f889": [
+    {
+      "type": 0,
+      "value": "Bestand aanmaken"
+    }
+  ],
+  "1da2e8106b": [
+    {
+      "type": 0,
+      "value": "Er is een onverwachte fout opgetreden."
+    }
+  ],
+  "1dd1c5fb7f": [
+    {
+      "type": 0,
+      "value": "Vandaag"
+    }
+  ],
+  "250ddea65c": [
+    {
+      "type": 0,
+      "value": "Over tldraw"
+    }
+  ],
+  "299cb00a7a": [
+    {
+      "type": 0,
+      "value": "Uploaden mislukt"
+    }
+  ],
+  "31246941ad": [
+    {
+      "type": 0,
+      "value": "U moet zijn aangemeld om dit bestand te kunnen bekijken."
+    }
+  ],
+  "31418ce4ad": [
+    {
+      "type": 0,
+      "value": "i18n: Markering ontbreekt"
+    }
+  ],
+  "335defdafe": [
+    {
+      "type": 0,
+      "value": "Probeer de pagina te vernieuwen."
+    }
+  ],
+  "344a7f427f": [
+    {
+      "type": 0,
+      "value": "Editor"
+    }
+  ],
+  "3bd1b98dbd": [
+    {
+      "type": 0,
+      "value": "De wijzigingen konden niet worden gepubliceerd."
+    }
+  ],
+  "3c5e891bff": [
+    {
+      "type": 0,
+      "value": "Vastgemaakt"
+    }
+  ],
+  "3d0238bf16": [
+    {
+      "type": 0,
+      "value": "Alles accepteren"
+    }
+  ],
+  "42e53c47c1": [
+    {
+      "type": 0,
+      "value": "Neem contact op met de eigenaar om toegang aan te vragen."
+    }
+  ],
+  "44db318ee5": [
+    {
+      "type": 0,
+      "value": "Krijg hulp op Discord"
+    }
+  ],
+  "46137245cd": [
+    {
+      "type": 0,
+      "value": "Bedankt voor uw hulp bij het verbeteren van tldraw!"
+    }
+  ],
+  "47839e47a5": [
+    {
+      "type": 0,
+      "value": "tldraw"
+    }
+  ],
+  "4908687e50": [
+    {
+      "type": 0,
+      "value": "Weet u zeker dat u dit bestand wilt vergeten?"
+    }
+  ],
+  "4d0d3ddec9": [
+    {
+      "type": 0,
+      "value": "Deze site maakt gebruik van cookies om de app te laten werken en om analyses te verzamelen."
+    }
+  ],
+  "4d1c8263ba": [
+    {
+      "type": 0,
+      "value": "Opnieuw laden"
+    }
+  ],
+  "50db1b7e1e": [
+    {
+      "type": 0,
+      "value": "De publicatie van het bestand kan niet ongedaan worden gemaakt."
+    }
+  ],
+  "517bb809d9": [
+    {
+      "type": 0,
+      "value": "Paginamenu"
+    }
+  ],
+  "54286b1d01": [
+    {
+      "type": 0,
+      "value": "Limiet voor bijdragers bereikt"
+    }
+  ],
+  "54d240fa41": [
+    {
+      "type": 0,
+      "value": "Doe rustig aan."
+    }
+  ],
+  "554a05155c": [
+    {
+      "type": 0,
+      "value": "Nog steeds problemen? "
+    },
+    {
+      "children": [
+        {
+          "type": 0,
+          "value": "Meld een probleem"
+        }
+      ],
+      "type": 8,
+      "value": "a"
+    }
+  ],
+  "55505ba281": [
+    {
+      "type": 0,
+      "value": "PNG"
+    }
+  ],
+  "5677e381d2": [
+    {
+      "type": 0,
+      "value": "Wij gebruiken analytische cookies om tldraw te verbeteren."
+    }
+  ],
+  "56c34c6410": [
+    {
+      "type": 0,
+      "value": "Privacybeleid"
+    }
+  ],
+  "5a95a425f7": [
+    {
+      "type": 0,
+      "value": "Deel"
+    }
+  ],
+  "5bec508475": [
+    {
+      "type": 0,
+      "value": "Oude browser gedetecteerd. Werk uw browser bij om deze app te gebruiken."
+    }
+  ],
+  "5d26ae7550": [
+    {
+      "type": 0,
+      "value": "Een deel van de content die u hebt gemaakt voordat u zich aanmeldde, is niet geüpload."
+    }
+  ],
+  "5f3c333678": [
+    {
+      "type": 0,
+      "value": "Feedback verzonden"
+    }
+  ],
+  "5fb63579fc": [
+    {
+      "type": 0,
+      "value": "Kopiëren"
+    }
+  ],
+  "61057a0c84": [
+    {
+      "type": 0,
+      "value": "Later"
+    }
+  ],
+  "625fd29749": [
+    {
+      "type": 0,
+      "value": "Ouder"
+    }
+  ],
+  "6609dd239e": [
+    {
+      "type": 0,
+      "value": "Er is iets fout gegaan"
+    }
+  ],
+  "6637a98151": [
+    {
+      "type": 0,
+      "value": "Er is een nieuwe versie van tldraw beschikbaar. Laad de pagina opnieuw om verder te gaan."
+    }
+  ],
+  "6a26f54883": [
+    {
+      "type": 0,
+      "value": "Hulp"
+    }
+  ],
+  "6dc0836c1b": [
+    {
+      "type": 0,
+      "value": "U beschikt niet over de benodigde machtigingen om deze actie uit te voeren."
+    }
+  ],
+  "6dfc62f621": [
+    {
+      "type": 0,
+      "value": "Volg deze stappen om de inhoud handmatig te importeren:"
+    }
+  ],
+  "70a6facb9d": [
+    {
+      "type": 0,
+      "value": "Deze week"
+    }
+  ],
+  "71a29b007b": [
+    {
+      "type": 0,
+      "value": "Heb je een bug, probleem of idee voor tldraw? Laat het ons weten!"
+    }
+  ],
+  "73ab799383": [
+    {
+      "type": 0,
+      "value": "Deze versie van tldraw wordt niet langer ondersteund."
+    }
+  ],
+  "7408cf0d7b": [
+    {
+      "type": 0,
+      "value": "Laad de pagina opnieuw"
+    }
+  ],
+  "752b79f137": [
+    {
+      "type": 0,
+      "value": "U hebt het maximum aantal bestanden bereikt. U moet oude bestanden verwijderen voordat u nieuwe bestanden maakt."
+    }
+  ],
+  "7573b8110a": [
+    {
+      "type": 0,
+      "value": "Geen toegang"
+    }
+  ],
+  "761e93ede9": [
+    {
+      "type": 0,
+      "value": "Cookies beheren"
+    }
+  ],
+  "764671e008": [
+    {
+      "type": 0,
+      "value": "Chat met ons op Discord"
+    }
+  ],
+  "7697920637": [
+    {
+      "type": 0,
+      "value": "Gelieve opnieuw te laden"
+    }
+  ],
+  "777f9e90cf": [
+    {
+      "type": 0,
+      "value": "Ongeldig verzoek."
+    }
+  ],
+  "797799f35e": [
+    {
+      "type": 0,
+      "value": "Een probleem melden op GitHub"
+    }
+  ],
+  "7b1329f5ca": [
+    {
+      "type": 0,
+      "value": "Gebruikershandleiding"
+    }
+  ],
+  "7be10fc592": [
+    {
+      "type": 0,
+      "value": "Versie herstellen"
+    }
+  ],
+  "7cb5f8b4a5": [
+    {
+      "type": 0,
+      "value": "Vergeten"
+    }
+  ],
+  "7daeced9ff": [
+    {
+      "type": 0,
+      "value": "Wijzigingen publiceren"
+    }
+  ],
+  "7fcdcc6455": [
+    {
+      "type": 0,
+      "value": "Bestand vergeten"
+    }
+  ],
+  "801ab24683": [
+    {
+      "type": 0,
+      "value": "Download"
+    }
+  ],
+  "815e116a2e": [
+    {
+      "type": 0,
+      "value": "Heb je een bug, probleem of idee voor tldraw? Laat het ons weten! Vul dit formulier in en we nemen indien nodig per e-mail contact met je op. Je kunt ook "
+    },
+    {
+      "children": [
+        {
+          "type": 0,
+          "value": "met ons chatten op Discord"
+        }
+      ],
+      "type": 8,
+      "value": "discord"
+    },
+    {
+      "type": 0,
+      "value": " of "
+    },
+    {
+      "children": [
+        {
+          "type": 0,
+          "value": "een probleem melden op GitHub"
+        }
+      ],
+      "type": 8,
+      "value": "github"
+    },
+    {
+      "type": 0,
+      "value": "."
+    }
+  ],
+  "85a082de1b": [
+    {
+      "type": 0,
+      "value": "Vernieuw de pagina om de nieuwste versie van tldraw te verkrijgen."
+    }
+  ],
+  "86353d2c41": [
+    {
+      "type": 1,
+      "value": "total"
+    },
+    {
+      "type": 0,
+      "value": " .tldr-bestanden toegevoegd."
+    }
+  ],
+  "86c66437fd": [
+    {
+      "type": 0,
+      "value": "Bestand hernoemen"
+    }
+  ],
+  "8eb2c00e96": [
+    {
+      "type": 0,
+      "value": "Gedeeld met jou"
+    }
+  ],
+  "8ff3d0a705": [
+    {
+      "type": 0,
+      "value": "Beperkt door limiet"
+    }
+  ],
+  "902b0d55fd": [
+    {
+      "type": 0,
+      "value": "Fout"
+    }
+  ],
+  "904a830405": [
+    {
+      "type": 0,
+      "value": "Hernoemen"
+    }
+  ],
+  "91e49bb0eb": [
+    {
+      "type": 0,
+      "value": "Kopieer naar mijn bestanden"
+    }
+  ],
+  "96165d6df5": [
+    {
+      "type": 0,
+      "value": "Deze maand"
+    }
+  ],
+  "9914a0ce04": [
+    {
+      "type": 0,
+      "value": "Licht"
+    }
+  ],
+  "9bef626805": [
+    {
+      "type": 0,
+      "value": "Bestand verwijderen"
+    }
+  ],
+  "9ceb927baa": [
+    {
+      "type": 0,
+      "value": "Publiceer dit bestand"
+    }
+  ],
+  "9e076f5885": [
+    {
+      "type": 0,
+      "value": "Niet gevonden"
+    }
+  ],
+  "9e93c98d88": [
+    {
+      "type": 0,
+      "value": "Afmelden"
+    }
+  ],
+  "a0da245992": [
+    {
+      "type": 0,
+      "value": "Exporteer de inhoud als een .tldr-bestand: Selecteer 'Downloaden' in het menu linksboven."
+    }
+  ],
+  "a104439641": [
+    {
+      "type": 0,
+      "value": "Opvulling"
+    }
+  ],
+  "a18366b217": [
+    {
+      "type": 0,
+      "value": "Donker"
+    }
+  ],
+  "a1c915578c": [
+    {
+      "type": 0,
+      "value": "Het bestand dat u zoekt bestaat niet."
+    }
+  ],
+  "a239905023": [
+    {
+      "type": 0,
+      "value": "Afbeelding exporteren"
+    }
+  ],
+  "a3debabee7": [
+    {
+      "type": 0,
+      "value": "Cookiebeleid"
+    }
+  ],
+  "a4d3b161ce": [
+    {
+      "type": 0,
+      "value": "Verzenden"
+    }
+  ],
+  "a6cc403d56": [
+    {
+      "type": 0,
+      "value": "Iedereen met de link"
+    }
+  ],
+  "a768caa988": [
+    {
+      "type": 0,
+      "value": "Analyse"
+    }
+  ],
+  "a9ded1e5ce": [
+    {
+      "type": 0,
+      "value": "Achtergrond"
+    }
+  ],
+  "ab0df9ba36": [
+    {
+      "type": 0,
+      "value": "Bestandslimiet bereikt"
+    }
+  ],
+  "af3dc88931": [
+    {
+      "type": 0,
+      "value": "Laatst gepubliceerd "
+    },
+    {
+      "children": [
+      ],
+      "type": 8,
+      "value": "date"
+    }
+  ],
+  "b028909917": [
+    {
+      "type": 0,
+      "value": "Gastgebruiker"
+    }
+  ],
+  "b6d4223e60": [
+    {
+      "type": 0,
+      "value": "Aanmelden"
+    }
+  ],
+  "b758336699": [
+    {
+      "type": 0,
+      "value": "Link kopiëren"
+    }
+  ],
+  "bb792693e2": [
+    {
+      "type": 0,
+      "value": "Losmaken"
+    }
+  ],
+  "bbbcefd7ce": [
+    {
+      "offset": 0,
+      "options": {
+        "one": {
+          "value": [
+            {
+              "type": 0,
+              "value": "Uploaden van .tldr-bestand…"
+            }
+          ]
+        },
+        "other": {
+          "value": [
+            {
+              "type": 0,
+              "value": "Uploaden van "
+            },
+            {
+              "type": 1,
+              "value": "uploaded"
+            },
+            {
+              "type": 0,
+              "value": " van "
+            },
+            {
+              "type": 1,
+              "value": "total"
+            },
+            {
+              "type": 0,
+              "value": " .tldr-bestanden…"
+            }
+          ]
+        }
+      },
+      "pluralType": "cardinal",
+      "type": 6,
+      "value": "total"
+    }
+  ],
+  "bc88b0e89e": [
+    {
+      "type": 0,
+      "value": "Gedeeld door "
+    },
+    {
+      "type": 1,
+      "value": "ownerName"
+    }
+  ],
+  "bcb62136a3": [
+    {
+      "type": 0,
+      "value": "Upload .tldr-bestanden"
+    }
+  ],
+  "c2276c9127": [
+    {
+      "type": 0,
+      "value": "Meer informatie over delen."
+    }
+  ],
+  "c303bd1095": [
+    {
+      "type": 0,
+      "value": "Het bestand kan niet worden gepubliceerd."
+    }
+  ],
+  "c4b39a1cc3": [
+    {
+      "type": 0,
+      "value": "Essentiële cookies"
+    }
+  ],
+  "c655b27b1e": [
+    {
+      "type": 0,
+      "value": "i18n: Lange reeks"
+    }
+  ],
+  "c6a00f137b": [
+    {
+      "type": 0,
+      "value": "Uitnodiging"
+    }
+  ],
+  "c87aacf567": [
+    {
+      "type": 0,
+      "value": "Afmelden"
+    }
+  ],
+  "cbef7ba103": [
+    {
+      "type": 0,
+      "value": "Deze kamer zal binnenkort alleen-lezen zijn"
+    }
+  ],
+  "cceaefbc20": [
+    {
+      "type": 0,
+      "value": "Deel dit bestand"
+    }
+  ],
+  "cd15a75c26": [
+    {
+      "type": 0,
+      "value": "SVG"
+    }
+  ],
+  "cea291e45e": [
+    {
+      "type": 0,
+      "value": "Meer informatie over publiceren."
+    }
+  ],
+  "d3d2e61733": [
+    {
+      "type": 0,
+      "value": "Sluiten"
+    }
+  ],
+  "d4bbf74f3e": [
+    {
+      "type": 0,
+      "value": "Schakel zijbalk in"
+    }
+  ],
+  "d721757161": [
+    {
+      "type": 0,
+      "value": "Thema"
+    }
+  ],
+  "d876a9fe1a": [
+    {
+      "type": 0,
+      "value": "Probeer het opnieuw"
+    }
+  ],
+  "d9100f3e10": [
+    {
+      "type": 0,
+      "value": "Ga hierheen om de inhoud te bekijken"
+    }
+  ],
+  "dbbebf3c03": [
+    {
+      "type": 0,
+      "value": "Alleen op uitnodiging"
+    }
+  ],
+  "dfdb78a4e4": [
+    {
+      "type": 0,
+      "value": "App-debug vlaggen"
+    }
+  ],
+  "e2ae80a510": [
+    {
+      "type": 0,
+      "value": "Juridische samenvatting"
+    }
+  ],
+  "e404559826": [
+    {
+      "type": 0,
+      "value": "Servicevoorwaarden"
+    }
+  ],
+  "e78e14c5f1": [
+    {
+      "type": 0,
+      "value": "Vastmaken"
+    }
+  ],
+  "ea2301d01c": [
+    {
+      "type": 0,
+      "value": "Na 1 juli 2025 wordt deze anonieme tldraw-multiplayerruimte alleen-lezen. Om in de toekomst te kunnen blijven bewerken, meld je aan en kopieer je de ruimte naar je bestanden."
+    }
+  ],
+  "ea4788705e": [
+    {
+      "type": 0,
+      "value": "Annuleren"
+    }
+  ],
+  "ebfe9ce86e": [
+    {
+      "type": 0,
+      "value": "Gisteren"
+    }
+  ],
+  "ec59b960ea": [
+    {
+      "type": 0,
+      "value": "Dit bestand heeft het maximale aantal actieve medewerkers bereikt."
+    }
+  ],
+  "ec611e9a08": [
+    {
+      "type": 0,
+      "value": "Accountmenu"
+    }
+  ],
+  "ed53713239": [
+    {
+      "type": 0,
+      "value": "i18n: Geaccentueerd"
+    }
+  ],
+  "ed75712b0e": [
+    {
+      "type": 0,
+      "value": "Duplicaat"
+    }
+  ],
+  "ede55d955f": [
+    {
+      "type": 0,
+      "value": "Lees ons "
+    },
+    {
+      "children": [
+        {
+          "type": 0,
+          "value": "cookiebeleid"
+        }
+      ],
+      "type": 8,
+      "value": "a"
+    },
+    {
+      "type": 0,
+      "value": " voor meer informatie."
+    }
+  ],
+  "f09b16bc5f": [
+    {
+      "type": 0,
+      "value": "We gebruiken cookies om ervoor te zorgen dat u ingelogd blijft, om uw bestanden te synchroniseren en om analyses te verzamelen waarmee we tldraw kunnen verbeteren."
+    }
+  ],
+  "f0e8bff6f9": [
+    {
+      "type": 0,
+      "value": "Gebruikersinstellingen"
+    }
+  ],
+  "f2569594b2": [
+    {
+      "type": 0,
+      "value": "Wij gebruiken deze cookies om uw bestanden en instellingen op te slaan."
+    }
+  ],
+  "f2a6c498fb": [
+    {
+      "type": 0,
+      "value": "Verwijderen"
+    }
+  ],
+  "f43fb62093": [
+    {
+      "type": 0,
+      "value": "Terug naar tldraw."
+    }
+  ],
+  "f4f70727dc": [
+    {
+      "type": 0,
+      "value": "Instellingen"
+    }
+  ],
+  "fb15c53f22": [
+    {
+      "type": 0,
+      "value": "Kijker"
+    }
+  ],
+  "fd1be3efcf": [
+    {
+      "type": 0,
+      "value": "Weet u zeker dat u dit bestand wilt verwijderen?"
+    }
+  ],
+  "fed5ec05eb": [
+    {
+      "type": 0,
+      "value": "Gekopieerde link"
+    }
+  ],
+  "ffcd73e997": [
+    {
+      "type": 0,
+      "value": "Bestand importeren…"
+    }
+  ]
 }
