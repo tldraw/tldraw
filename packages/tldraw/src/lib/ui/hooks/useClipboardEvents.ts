@@ -32,8 +32,6 @@ const expectedPasteFileMimeTypes = [
 	'image/svg+xml',
 ] satisfies string[]
 
-const ENCODING_PLACEHOLDER = '__tldraw__html___entity__'
-
 /**
  * Strip HTML tags from a string.
  * @param html - The HTML to strip.
@@ -357,13 +355,12 @@ async function handleClipboardThings(editor: Editor, things: ClipboardThing[], p
 									// First try parsing as plain JSON (version 2 format)
 									let json
 									try {
-										const createDecodeRegex = (str: string) =>
-											new RegExp(ENCODING_PLACEHOLDER + str + ENCODING_PLACEHOLDER, 'g')
-										const tldrawHtmlCommentDecoded = tldrawHtmlComment
-											.replace(createDecodeRegex('gt'), '>')
-											.replace(createDecodeRegex('lt'), '<')
-											.replace(createDecodeRegex('amp'), '&')
-										json = JSON.parse(tldrawHtmlCommentDecoded)
+										json = JSON.parse(
+											tldrawHtmlComment
+												.replace(/&gt;/g, '>')
+												.replace(/&lt;/g, '<')
+												.replace(/&amp;/g, '&')
+										)
 									} catch {
 										// Fall back to LZ decompression (legacy format)
 										const jsonComment = lz.decompressFromBase64(tldrawHtmlComment)
@@ -599,11 +596,6 @@ const handleNativeOrMenuCopy = async (editor: Editor) => {
 		version: 2,
 		data: content,
 	})
-	const createEncodeStr = (str: string) => `${ENCODING_PLACEHOLDER}${str}${ENCODING_PLACEHOLDER}`
-	const encodedClipboard = stringifiedClipboard
-		.replace(/>/g, createEncodeStr('gt'))
-		.replace(/</g, createEncodeStr('lt'))
-		.replace(/&/g, createEncodeStr('amp'))
 
 	if (typeof navigator === 'undefined') {
 		return
@@ -617,7 +609,7 @@ const handleNativeOrMenuCopy = async (editor: Editor) => {
 			.filter(isDefined)
 
 		if (navigator.clipboard?.write) {
-			const htmlBlob = new Blob([`<div data-tldraw>${encodedClipboard}</div>`], {
+			const htmlBlob = new Blob([`<div data-tldraw>${stringifiedClipboard}</div>`], {
 				type: 'text/html',
 			})
 
@@ -638,7 +630,7 @@ const handleNativeOrMenuCopy = async (editor: Editor) => {
 				}),
 			])
 		} else if (navigator.clipboard.writeText) {
-			navigator.clipboard.writeText(`<div data-tldraw>${encodedClipboard}</div>`)
+			navigator.clipboard.writeText(`<div data-tldraw>${stringifiedClipboard}</div>`)
 		}
 	}
 }
