@@ -7,8 +7,9 @@ const isTest = () =>
 const fpsQueue: Array<() => void> = []
 const targetFps = 60
 const targetTimePerFrame = Math.ceil(1000 / targetFps)
-let frame = undefined as undefined | number
-let last = 0
+let frameRaf = undefined as undefined | number
+let flushRaf = undefined as undefined | number
+let last = -targetTimePerFrame
 
 const flush = () => {
 	const queue = fpsQueue.splice(0, fpsQueue.length)
@@ -17,29 +18,39 @@ const flush = () => {
 	}
 }
 
-function tick() {
-	if (frame) return
+// This tick is called immediately (ie, not as a callback to a requestAnimationFrame)
+function tick(isOnNextFrame = false) {
+	if (frameRaf) return
 
 	const now = Date.now()
 	const elapsed = now - last
 
 	if (elapsed < targetTimePerFrame) {
-		// It's up to the consumer of debounce to call `cancel`
+		// Mark that we're waiting for the next frame
 		// eslint-disable-next-line no-restricted-globals
-		frame = requestAnimationFrame(() => {
-			frame = undefined
-			tick()
+		frameRaf = requestAnimationFrame(() => {
+			frameRaf = undefined
+			tick(true)
 		})
-		return
 	}
 
-	// It's up to the consumer of debounce to call `cancel`
-	frame = undefined
-	last = now
-	flush()
+	// If we're on the next frame, we need to wait for the next frame to run the flush
+	if (isOnNextFrame) {
+		// If we already waited for the next frame to run the tick, that means it will also run this frame, we don't need to do anything here
+		if (flushRaf) return
+		last = now
+		flush()
+	} else {
+		if (flushRaf) return
+		// Since we're not already on the "next frame", we need to wait until the next frame to flush
+		// eslint-disable-next-line no-restricted-globals
+		flushRaf = requestAnimationFrame(() => {
+			flushRaf = undefined
+			last = now
+			flush()
+		})
+	}
 }
-
-let started = false
 
 /**
  * Returns a throttled version of the function that will only be called max once per frame.
@@ -53,7 +64,8 @@ export function fpsThrottle(fn: { (): void; cancel?(): void }): {
 	cancel?(): void
 } {
 	if (isTest()) {
-		fn.cancel = () => frame && cancelAnimationFrame(frame)
+		// Some redundancy here to make sure we're not cancelling a frame that's already been flushed
+		fn.cancel = () => frameRaf && cancelAnimationFrame(frameRaf)
 		return fn
 	}
 
@@ -62,11 +74,6 @@ export function fpsThrottle(fn: { (): void; cancel?(): void }): {
 			return
 		}
 		fpsQueue.push(fn)
-		if (!started) {
-			started = true
-			// We set last to Date.now() - targetTimePerFrame - 1 so that the first run will happen immediately
-			last = Date.now() - targetTimePerFrame - 1
-		}
 		tick()
 	}
 	throttledFn.cancel = () => {
@@ -95,12 +102,6 @@ export function throttleToNextFrame(fn: () => void): () => void {
 
 	if (!fpsQueue.includes(fn)) {
 		fpsQueue.push(fn)
-		if (!started) {
-			started = true
-			// We set last to Date.now() - targetTimePerFrame - 1 so that the first run will happen immediately
-			last = Date.now() - targetTimePerFrame - 1
-		}
-
 		tick()
 	}
 
