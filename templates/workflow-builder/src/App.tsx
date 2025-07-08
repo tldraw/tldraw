@@ -1,5 +1,17 @@
-import { createShapeId, Editor, Tldraw } from 'tldraw'
+import {
+	createShapeId,
+	DefaultToolbar,
+	DefaultToolbarContent,
+	Editor,
+	TLComponents,
+	Tldraw,
+	TLUiOverrides,
+	ToolbarItem,
+	useReadonly,
+} from 'tldraw'
 import { DraggingHandle } from 'tldraw/src/lib/tools/SelectTool/childStates/DraggingHandle'
+import { InsertComponentDialog } from './components/InsertComponentDialog'
+import { InsertComponentPanel } from './components/InsertComponentPanel'
 import {
 	ConnectionBindingUtil,
 	createOrUpdateConnectionBinding,
@@ -14,6 +26,72 @@ import { updatePortState } from './ports/portState'
 const shapeUtils = [NodeShapeUtil, ConnectionShapeUtil]
 const bindingUtils = [ConnectionBindingUtil]
 
+const uiOverrides: TLUiOverrides = {
+	tools(_editor, tools, helpers) {
+		const insertNodeTool = {
+			id: 'insert-node',
+			icon: 'plus',
+			label: 'Node',
+			onSelect() {
+				helpers.addDialog({
+					component: InsertComponentDialog,
+				})
+			},
+		}
+
+		return {
+			...tools,
+			'insert-node': insertNodeTool,
+		}
+	},
+	actions(_editor, actions, helpers) {
+		const openInsertMenu = {
+			id: 'open-insert-menu',
+			kbd: 'c',
+			icon: 'plus',
+			onSelect() {
+				helpers.addDialog({
+					component: InsertComponentDialog,
+				})
+			},
+		}
+
+		return {
+			...actions,
+			'open-insert-menu': openInsertMenu,
+		}
+	},
+}
+
+const components: TLComponents = {
+	InFrontOfTheCanvas: () => {
+		return <InsertComponentPanel />
+	},
+	Toolbar: () => {
+		const isReadonly = useReadonly()
+		return (
+			<>
+				<DefaultToolbar>
+					{!isReadonly && (
+						<>
+							<ToolbarItem tool="insert-node" />
+							<div
+								style={{
+									width: 1,
+									height: 40,
+									margin: '0px 2px',
+									backgroundColor: 'var(--color-muted-2)',
+								}}
+							/>
+						</>
+					)}
+					<DefaultToolbarContent />
+				</DefaultToolbar>
+			</>
+		)
+	},
+}
+
 function App() {
 	return (
 		<div style={{ position: 'fixed', inset: 0 }}>
@@ -21,6 +99,8 @@ function App() {
 				persistenceKey="workflow-builder"
 				shapeUtils={shapeUtils}
 				bindingUtils={bindingUtils}
+				overrides={uiOverrides}
+				components={components}
 				onMount={(editor) => {
 					if (!editor.getCurrentPageShapes().some((s) => s.type === 'node')) {
 						editor.createShape({ type: 'node', x: 200, y: 200 })
