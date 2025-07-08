@@ -7,7 +7,7 @@ const isTest = () =>
 const fpsQueue: Array<() => void> = []
 const targetFps = 60
 const targetTimePerFrame = Math.ceil(1000 / targetFps)
-let frame = null as null | number
+let frame = undefined as undefined | number
 let last = 0
 
 const flush = () => {
@@ -27,14 +27,14 @@ function tick() {
 		// It's up to the consumer of debounce to call `cancel`
 		// eslint-disable-next-line no-restricted-globals
 		frame = requestAnimationFrame(() => {
-			frame = null
+			frame = undefined
 			tick()
 		})
 		return
 	}
 
 	// It's up to the consumer of debounce to call `cancel`
-	frame = null
+	frame = undefined
 	last = now
 	flush()
 }
