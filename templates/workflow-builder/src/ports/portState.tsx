@@ -36,7 +36,7 @@ export function updatePortState(editor: Editor, update: Partial<PortState>) {
 export function getPortAtPoint(
 	editor: Editor,
 	point: VecLike,
-	opts?: { filter?(shape: TLShape): boolean; terminal?: 'start' | 'end' }
+	opts?: { filter?(shape: TLShape): boolean; terminal?: 'start' | 'end'; margin?: number }
 ) {
 	const shape = editor.getShapeAtPoint(point, { hitInside: true, ...opts })
 	if (!shape || !editor.isShapeOfType<NodeShape>(shape, 'node')) return null
