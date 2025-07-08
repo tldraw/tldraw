@@ -63,6 +63,14 @@ export class ConnectionShapeUtil extends ShapeUtil<ConnectionShape> {
 	override hideSelectionBoundsFg() {
 		return true
 	}
+	override canSnap() {
+		return false
+	}
+	override getBoundsSnapGeometry() {
+		return {
+			points: [],
+		}
+	}
 
 	getGeometry(shape: ConnectionShape) {
 		const { start, end } = getConnectionTerminals(this.editor, shape)
