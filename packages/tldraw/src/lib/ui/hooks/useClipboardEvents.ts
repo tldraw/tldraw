@@ -383,13 +383,21 @@ async function handleClipboardThings(editor: Editor, things: ClipboardThing[], p
 									if (json.version === 2) {
 										// Version 2: Assets are plain, decompress only other data
 										try {
-											r({ type: 'tldraw', data: json.data })
+											const otherData = JSON.parse(
+												lz.decompressFromBase64(json.data.otherCompressed) || '{}'
+											)
+											const reconstructedData = {
+												assets: json.data.assets || [],
+												...otherData,
+											}
+
+											r({ type: 'tldraw', data: reconstructedData })
 											return
 										} catch (error) {
 											r({
 												type: 'error',
 												data: json,
-												reason: `failed to parse version 2 clipboard data: ${error}`,
+												reason: `failed to decompress version 2 clipboard data: ${error}`,
 											})
 											return
 										}
@@ -584,13 +592,21 @@ const handleNativeOrMenuCopy = async (editor: Editor) => {
 		return
 	}
 
-	// Version 2: Don't compress anything.
-	const stringifiedClipboard = JSON.stringify({
+	// Use versioned clipboard format for better compression
+	// Version 2: Don't compress assets, only compress other data
+	const { assets, ...otherData } = content
+	const clipboardData = {
 		type: 'application/tldraw',
 		kind: 'content',
 		version: 2,
-		data: content,
-	})
+		data: {
+			assets: assets || [], // Plain JSON, no compression
+			otherCompressed: lz.compressToBase64(JSON.stringify(otherData)), // Only compress non-asset data
+		},
+	}
+
+	// Don't compress the final structure - just use plain JSON
+	const stringifiedClipboard = JSON.stringify(clipboardData)
 
 	if (typeof navigator === 'undefined') {
 		return
