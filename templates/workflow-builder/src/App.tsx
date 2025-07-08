@@ -25,6 +25,8 @@ function App() {
 					if (!editor.getCurrentPageShapes().some((s) => s.type === 'node')) {
 						editor.createShape({ type: 'node', x: 200, y: 200 })
 					}
+
+					editor.user.updateUserPreferences({ isSnapMode: true })
 					editor.getStateDescendant('select')!.addChild(PointingPort)
 
 					keepConnectionsAtBottom(editor)

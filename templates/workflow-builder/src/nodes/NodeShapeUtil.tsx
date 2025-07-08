@@ -67,6 +67,11 @@ export class NodeShapeUtil extends ShapeUtil<NodeShape> {
 	override isAspectRatioLocked() {
 		return false
 	}
+	override getBoundsSnapGeometry(_shape: NodeShape) {
+		return {
+			points: [{ x: 0, y: 0 }],
+		}
+	}
 
 	getGeometry(shape: NodeShape) {
 		const ports = getNodePorts(this.editor, shape)
@@ -253,7 +258,6 @@ const nodeOutputPortValuesCache = createComputedCache(
 	'node output port values',
 	(editor: Editor, node: NodeShape) => {
 		const inputs = getNodeInputPortValues(editor, node)
-		console.log('computing node output port values', node.id, node.props.node, inputs)
 		return computeNodeOutput(node.props.node, inputs)
 	},
 	{
