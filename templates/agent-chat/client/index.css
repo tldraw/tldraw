@@ -10,5 +10,73 @@ body {
 	position: fixed;
 	inset: 0;
 	display: grid;
-	grid-template-rows: 1fr;
+	grid-template-columns: 1fr 320px;
+}
+
+.tldraw-canvas {
+	width: 100%;
+	height: 100%;
+}
+
+/* Chat Panel */
+
+.chat-panel {
+	display: flex;
+	flex-direction: column;
+	height: 100vh;
+	border-left: 2px solid black;
+}
+
+.chat-history {
+	flex: 1;
+	padding: 16px;
+	overflow-y: auto;
+	display: flex;
+	flex-direction: column;
+	gap: 12px;
+}
+
+.chat-input {
+	padding: 16px;
+	border-top: 1px solid black;
+}
+
+.chat-input form {
+	display: flex;
+	gap: 8px;
+}
+
+.chat-input input[type='text'] {
+	flex: 1;
+	padding: 8px 12px;
+	border: 1px solid hsl(0, 0%, 85%);
+	border-radius: 4px;
+	font-size: 14px;
+	outline: none;
+}
+
+.chat-input input[type='text']:focus {
+	border-color: hsl(214, 84%, 56%);
+}
+
+.chat-input button {
+	width: 64px;
+	height: 36px;
+	background: hsl(214, 84%, 56%);
+	color: hsl(0, 0%, 100%);
+	appearance: none;
+	border: 0;
+	border-radius: 4px;
+	cursor: pointer;
+	font-size: 14px;
+	font-weight: 500;
+}
+
+.chat-input button:hover {
+	background: hsl(214, 84%, 50%);
+}
+
+.chat-input button:disabled {
+	background: hsl(0, 0%, 85%);
+	cursor: not-allowed;
 }
