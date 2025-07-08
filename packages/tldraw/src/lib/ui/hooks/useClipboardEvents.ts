@@ -352,7 +352,7 @@ async function handleClipboardThings(editor: Editor, things: ClipboardThing[], p
 
 							if (tldrawHtmlComment) {
 								try {
-									// First try parsing as plain JSON (version 2 format)
+									// First try parsing as plain JSON (version 2/3 formats)
 									let json
 									try {
 										json = JSON.parse(tldrawHtmlComment)
@@ -380,8 +380,8 @@ async function handleClipboardThings(editor: Editor, things: ClipboardThing[], p
 									}
 
 									// Handle versioned clipboard format
-									if (json.version === 2) {
-										// Version 2: Assets are plain, decompress only other data
+									if (json.version === 3) {
+										// Version 3: Assets are plain, decompress only other data
 										try {
 											const otherData = JSON.parse(
 												lz.decompressFromBase64(json.data.otherCompressed) || '{}'
@@ -401,6 +401,11 @@ async function handleClipboardThings(editor: Editor, things: ClipboardThing[], p
 											})
 											return
 										}
+									}
+									if (json.version === 2) {
+										// Version 2: Everything is plain, this had issues with encoding... :-/
+										// TODO: nix this support after some time.
+										r({ type: 'tldraw', data: json.data })
 									} else {
 										// Version 1 or no version: Legacy format
 										if (typeof json.data === 'string') {
@@ -598,7 +603,7 @@ const handleNativeOrMenuCopy = async (editor: Editor) => {
 	const clipboardData = {
 		type: 'application/tldraw',
 		kind: 'content',
-		version: 2,
+		version: 3,
 		data: {
 			assets: assets || [], // Plain JSON, no compression
 			otherCompressed: lz.compressToBase64(JSON.stringify(otherData)), // Only compress non-asset data
