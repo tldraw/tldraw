@@ -38,9 +38,9 @@ const SimpleRectangleShape = z.object({
 	y: z.number(),
 	width: z.number(),
 	height: z.number(),
-	color: SimpleColor.optional(),
-	fill: SimpleFill.optional(),
-	text: SimpleLabel.optional(),
+	color: SimpleColor.optional().nullable(),
+	fill: SimpleFill.optional().nullable(),
+	text: SimpleLabel.optional().nullable(),
 })
 
 export type ISimpleRectangleShape = z.infer<typeof SimpleRectangleShape>
@@ -53,9 +53,9 @@ const SimpleEllipseShape = z.object({
 	y: z.number(),
 	width: z.number(),
 	height: z.number(),
-	color: SimpleColor.optional(),
-	fill: SimpleFill.optional(),
-	text: SimpleLabel.optional(),
+	color: SimpleColor.optional().nullable(),
+	fill: SimpleFill.optional().nullable(),
+	text: SimpleLabel.optional().nullable(),
 })
 
 export type ISimpleEllipseShape = z.infer<typeof SimpleEllipseShape>
@@ -68,9 +68,9 @@ const SimpleCloudShape = z.object({
 	y: z.number(),
 	width: z.number(),
 	height: z.number(),
-	color: SimpleColor.optional(),
-	fill: SimpleFill.optional(),
-	text: SimpleLabel.optional(),
+	color: SimpleColor.optional().nullable(),
+	fill: SimpleFill.optional().nullable(),
+	text: SimpleLabel.optional().nullable(),
 })
 
 export type ISimpleCloudShape = z.infer<typeof SimpleCloudShape>
@@ -83,7 +83,7 @@ const SimpleLineShape = z.object({
 	y1: z.number(),
 	x2: z.number(),
 	y2: z.number(),
-	color: SimpleColor.optional(),
+	color: SimpleColor.optional().nullable(),
 })
 
 export type ISimpleLineShape = z.infer<typeof SimpleLineShape>
@@ -94,8 +94,8 @@ const SimpleNoteShape = z.object({
 	note: z.string(),
 	x: z.number(),
 	y: z.number(),
-	color: SimpleColor.optional(),
-	text: SimpleLabel.optional(),
+	color: SimpleColor.optional().nullable(),
+	text: SimpleLabel.optional().nullable(),
 })
 
 export type ISimpleNoteShape = z.infer<typeof SimpleNoteShape>
@@ -106,9 +106,9 @@ const SimpleTextShape = z.object({
 	note: z.string(),
 	x: z.number(),
 	y: z.number(),
-	color: SimpleColor.optional(),
-	text: SimpleLabel.optional(),
-	textAlign: z.enum(['start', 'middle', 'end']).optional(),
+	color: SimpleColor.optional().nullable(),
+	text: SimpleLabel.optional().nullable(),
+	textAlign: z.enum(['start', 'middle', 'end']).optional().nullable(),
 })
 
 export type ISimpleTextShape = z.infer<typeof SimpleTextShape>
@@ -123,8 +123,8 @@ const SimpleArrowShape = z.object({
 	y1: z.number(),
 	x2: z.number(),
 	y2: z.number(),
-	color: SimpleColor.optional(),
-	text: z.string().optional(),
+	color: SimpleColor.optional().nullable(),
+	text: z.string().optional().nullable(),
 })
 
 export type ISimpleArrowShape = z.infer<typeof SimpleArrowShape>
