@@ -30,6 +30,13 @@ export function ChatPanel({ editor }: { editor: Editor }) {
 			if (rCancelFn.current) {
 				rCancelFn.current()
 				rCancelFn.current = null
+				setHistoryItems((prev) => {
+					const lastItem = prev[prev.length - 1]
+					if (lastItem.type === 'agent-action') {
+						return [...prev.slice(0, -1), { ...lastItem, status: 'cancelled' }]
+					}
+					return prev
+				})
 				setIsGenerating(false)
 				return
 			}
@@ -45,7 +52,7 @@ export function ChatPanel({ editor }: { editor: Editor }) {
 				setHistoryItems((prev) => [
 					...prev,
 					{ type: 'user-message', message: value },
-					{ type: 'agent-action', action: 'thinking', done: false, message: 'Thinking...' },
+					{ type: 'agent-action', action: 'thinking', status: 'progress' },
 				])
 
 				// We call the ai module with the value from the input field and get back a promise and a cancel function
@@ -63,7 +70,7 @@ export function ChatPanel({ editor }: { editor: Editor }) {
 				setHistoryItems((prev) => {
 					const lastItem = prev[prev.length - 1]
 					if (lastItem.type === 'agent-action') {
-						return [...prev.slice(0, -1), { ...lastItem, done: true }]
+						return [...prev.slice(0, -1), { ...lastItem, status: 'done' }]
 					}
 					return prev
 				})
@@ -118,7 +125,7 @@ interface AgentMessageHistoryItem {
 interface AgentActionHistoryItem {
 	type: 'agent-action'
 	action: 'thinking'
-	done: boolean
+	status: 'progress' | 'done' | 'cancelled'
 }
 
 interface AgentChangeHistoryItem {
@@ -140,22 +147,33 @@ function AgentChangeHistoryItem({ item }: { item: AgentChangeHistoryItem }) {
 
 function AgentActionHistoryItem({ item }: { item: AgentActionHistoryItem }) {
 	const actionDefinition = ACTION_HISTORY_ITEMS[item.action]
+
+	const icon =
+		item.status === 'done' ? '✅' : item.status === 'cancelled' ? '❌' : actionDefinition.icon
+
+	const message = actionDefinition.message[item.status]
+
 	return (
 		<div className="agent-action-message">
-			<span>{item.done ? '✅' : actionDefinition.icon}</span>
-			<span>{item.done ? actionDefinition.doneMessage : actionDefinition.message}</span>
+			<span>{icon}</span>
+			<span>{message}</span>
 		</div>
 	)
 }
 
-const ACTION_HISTORY_ITEMS: Record<
-	AgentActionHistoryItem['action'],
-	{ icon: string; message: string; doneMessage: string }
-> = {
+interface AgentActionDefinition {
+	icon: string
+	message: { progress: string; done: string; cancelled: string }
+}
+
+const ACTION_HISTORY_ITEMS: Record<AgentActionHistoryItem['action'], AgentActionDefinition> = {
 	thinking: {
 		icon: '🧠',
-		message: 'Thinking...',
-		doneMessage: 'Thoughts complete.',
+		message: {
+			progress: 'Thinking...',
+			done: 'Thoughts complete.',
+			cancelled: 'Thoughts cancelled.',
+		},
 	},
 }
 
