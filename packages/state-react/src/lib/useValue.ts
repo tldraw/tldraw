@@ -60,7 +60,7 @@ export function useValue() {
 					try {
 						$val.get()
 					} catch {
-						// noop
+						// Will be rethrown during render if the component doesn't unmount first.
 					}
 					notify()
 				})
