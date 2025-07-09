@@ -1,7 +1,7 @@
 export type ChatHistoryItem =
 	| UserMessageHistoryItem
-	| AgentMessageHistoryItem
-	| AgentChangeHistoryItem
+	// | AgentChangeHistoryItem //TODO
+	// | AgentMessageHistoryItem //TODO
 	| AgentActionHistoryItem
 
 export interface UserMessageHistoryItem {
@@ -9,27 +9,29 @@ export interface UserMessageHistoryItem {
 	message: string
 }
 
-export interface AgentMessageHistoryItem {
-	type: 'agent-message'
-	message: string
-}
+// export interface AgentMessageHistoryItem {
+// 	type: 'agent-message'
+// 	message: string
+// }
 
-export interface AgentChangeHistoryItem {
-	type: 'agent-change'
-	change: string
-}
+// export interface AgentChangeHistoryItem {
+// 	type: 'agent-change'
+// 	change: string
+// }
 
 export function UserMessageHistoryItem({ item }: { item: UserMessageHistoryItem }) {
 	return <div className="user-chat-message">{item.message}</div>
 }
 
-export function AgentMessageHistoryItem({ item }: { item: AgentMessageHistoryItem }) {
-	return <div className="agent-chat-message">{item.message}</div>
-}
+// TODO
+// export function AgentMessageHistoryItem({ item }: { item: AgentMessageHistoryItem }) {
+// 	return <div className="agent-chat-message">{item.message}</div>
+// }
 
-export function AgentChangeHistoryItem({ item }: { item: AgentChangeHistoryItem }) {
-	return <div className="agent-change-message">{item.change}</div>
-}
+// TODO
+// export function AgentChangeHistoryItem({ item }: { item: AgentChangeHistoryItem }) {
+// 	return <div className="agent-change-message">{item.change}</div>
+// }
 
 export function AgentActionHistoryItem({ item }: { item: AgentActionHistoryItem }) {
 	const actionDefinition = ACTION_HISTORY_ITEM_DEFINITIONS[item.action]
@@ -56,7 +58,7 @@ export interface AgentActionHistoryItem {
 	type: 'agent-action'
 	action: 'thinking' | 'creating' | 'deleting' | 'updating'
 	status: 'progress' | 'done' | 'cancelled'
-	info?: string
+	info: string
 }
 
 export const ACTION_HISTORY_ITEM_DEFINITIONS: Record<

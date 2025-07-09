@@ -2,6 +2,7 @@ import { AnthropicProvider, createAnthropic } from '@ai-sdk/anthropic'
 import { createOpenAI, OpenAIProvider } from '@ai-sdk/openai'
 import { asMessage, TLAiChange, TLAiResult, TLAiSerializedPrompt } from '@tldraw/ai'
 import { CoreMessage, generateObject, LanguageModel, streamObject, UserContent } from 'ai'
+import { ACTION_HISTORY_ITEM_DEFINITIONS, ChatHistoryItem } from '../../../client/ChatHistoryItem'
 import { getTLAgentModelDefinition } from '../../models'
 import { getSimpleContentFromCanvasContent } from '../../simple/getSimpleContentFromCanvasContent'
 import { getTldrawAiChangesFromSimpleEvents } from '../../simple/getTldrawAiChangesFromSimpleEvents'
@@ -46,7 +47,7 @@ async function* streamEventsVercel(
 	const { partialObjectStream } = streamObject<IModelResponse>({
 		model,
 		system: SIMPLE_SYSTEM_PROMPT,
-		messages: [buildUserMessage(prompt)],
+		messages: buildMessages(prompt),
 		schema: ModelResponse,
 	})
 
@@ -82,11 +83,48 @@ async function generateEventsVercel(
 	const response = await generateObject({
 		model,
 		system: SIMPLE_SYSTEM_PROMPT,
-		messages: [buildUserMessage(prompt)],
+		messages: buildMessages(prompt),
 		schema: ModelResponse,
 	})
 
 	return response.object.events
+}
+
+function buildMessages(prompt: TLAiSerializedPrompt): CoreMessage[] {
+	const messages: CoreMessage[] = []
+
+	messages.push(...buildHistoryMessages(prompt))
+	messages.push(buildUserMessage(prompt))
+
+	return messages
+}
+
+function buildHistoryMessages(prompt: TLAiSerializedPrompt): CoreMessage[] {
+	const messages: CoreMessage[] = []
+
+	for (const item of prompt.meta.historyItems) {
+		messages.push(buildHistoryItemMessage(item))
+	}
+
+	return messages
+}
+
+function buildHistoryItemMessage(item: ChatHistoryItem): CoreMessage {
+	switch (item.type) {
+		case 'user-message': {
+			return {
+				role: 'user',
+				content: [{ type: 'text', text: item.message }],
+			}
+		}
+		case 'agent-action': {
+			const text = `${ACTION_HISTORY_ITEM_DEFINITIONS[item.action].message.done}${item.info}`
+			return {
+				role: 'assistant',
+				content: [{ type: 'text', text }],
+			}
+		}
+	}
 }
 
 /**

@@ -14,7 +14,7 @@ export function useTldrawAiExample(editor?: Editor) {
 	const [, setHistoryItems] = useChatHistory()
 
 	function apply({ change, editor }: { change: TLAiChange; editor: Editor }) {
-		console.log('change', change)
+		console.log(change)
 		defaultApply({ change, editor })
 
 		switch (change.type) {

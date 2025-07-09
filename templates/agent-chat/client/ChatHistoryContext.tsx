@@ -1,11 +1,5 @@
 import React, { createContext, ReactNode, useContext, useState } from 'react'
-import {
-	AgentActionHistoryItem,
-	AgentChangeHistoryItem,
-	AgentMessageHistoryItem,
-	ChatHistoryItem,
-	UserMessageHistoryItem,
-} from './ChatHistoryItem'
+import { ChatHistoryItem } from './ChatHistoryItem'
 
 interface ChatHistoryContextType {
 	historyItems: ChatHistoryItem[]
@@ -33,12 +27,4 @@ export function useChatHistory(): [
 		throw new Error('useChatHistory must be used within a ChatHistoryProvider')
 	}
 	return [context.historyItems, context.setHistoryItems]
-}
-
-export type {
-	AgentActionHistoryItem,
-	AgentChangeHistoryItem,
-	AgentMessageHistoryItem,
-	ChatHistoryItem,
-	UserMessageHistoryItem,
 }
