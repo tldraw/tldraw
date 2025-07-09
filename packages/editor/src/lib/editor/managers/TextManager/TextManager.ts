@@ -126,7 +126,7 @@ export class TextManager {
 			padding: opts.padding,
 			'max-width': opts.maxWidth ? opts.maxWidth + 'px' : undefined,
 			'min-width': opts.minWidth ? opts.minWidth + 'px' : undefined,
-			'overflow-wrap': opts.disableOverflowWrapBreaking ? 'normal' : 'break-word',
+			'overflow-wrap': opts.disableOverflowWrapBreaking ? 'normal' : undefined,
 			...opts.otherStyles,
 		}
 
