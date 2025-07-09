@@ -11,15 +11,46 @@ module.exports = class AutoPlugin {
 			)
 		)
 
-		// Render the release note line, not the commit line.
+		// Render the release note line and the api changes line, not the commit line.
 		auto.hooks.onCreateChangelog.tap(this.name, (changelog) =>
 			changelog.hooks.renderChangelogLine.tap(this.name, async (line, commit) => {
-				const releaseNote = /### Release Notes\n\n-(.*)/g.exec(
-					commit.pullRequest.body.replaceAll('\r\n', '\n')
-				)
-				return releaseNote
-					? `- ${releaseNote[1].trim()} [#${commit.pullRequest.number}](https://github.com/tldraw/tldraw/pull/${commit.pullRequest.number})`
-					: line
+				const body = commit.pullRequest.body.replaceAll('\r\n', '\n')
+
+				const parseSection = (sectionHeader) => {
+					// Match the section between the header and the next header or end of text.
+					// This makes sure we capture multiple bullet points if we have them.
+					const match = new RegExp(`${sectionHeader}\\n\\n([\\s\\S]*?)(?=\\n### |\\n\\n|$)`).exec(
+						body
+					)
+					if (!match) return
+
+					const bulletPoints = match[1]
+						.split('\n')
+						.map((line) => line.trim())
+						.filter((line) => line.startsWith('-'))
+						.map((line) => line.substring(1).trim())
+
+					if (bulletPoints.length === 0) return
+
+					const prefix = sectionHeader === '### API Changes' ? '[API Change]: ' : ''
+					const formattedPoints = bulletPoints
+						.map((point) => {
+							return `- ${prefix}${point} [#${commit.pullRequest.number}](https://github.com/tldraw/tldraw/pull/${commit.pullRequest.number})`
+						})
+						.join('\n')
+					output.push(formattedPoints)
+				}
+
+				let output = []
+
+				parseSection('### Release Notes')
+				parseSection('### API Changes')
+
+				if (output.length > 0) {
+					return output.join('\n')
+				}
+
+				return line
 			})
 		)
 
