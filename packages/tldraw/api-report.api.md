@@ -546,6 +546,8 @@ export interface CubicBezierToPathBuilderCommand extends PathBuilderCommandBase 
     // (undocumented)
     cp2: VecModel;
     // (undocumented)
+    resolution?: number;
+    // (undocumented)
     type: 'cubic';
 }
 

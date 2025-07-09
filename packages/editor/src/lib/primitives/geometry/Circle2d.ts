@@ -3,7 +3,7 @@ import { Vec, VecLike } from '../Vec'
 import { intersectLineSegmentCircle } from '../intersect'
 import { PI2, getPointOnCircle } from '../utils'
 import { Geometry2d, Geometry2dOptions } from './Geometry2d'
-import { getVerticesCountForLength } from './geometry-constants'
+import { getVerticesCountForArcLength } from './geometry-constants'
 
 /** @public */
 export class Circle2d extends Geometry2d {
@@ -36,7 +36,7 @@ export class Circle2d extends Geometry2d {
 		const { _center, _radius: radius } = this
 		const perimeter = PI2 * radius
 		const vertices: Vec[] = []
-		for (let i = 0, n = getVerticesCountForLength(perimeter); i < n; i++) {
+		for (let i = 0, n = getVerticesCountForArcLength(perimeter); i < n; i++) {
 			const angle = (i / n) * PI2
 			vertices.push(getPointOnCircle(_center, radius, angle))
 		}

@@ -506,6 +506,7 @@ export class CubicBezier2d extends Polyline2d {
         cp1: Vec;
         cp2: Vec;
         end: Vec;
+        resolution?: number;
         start: Vec;
     });
     // (undocumented)
@@ -1830,6 +1831,9 @@ export function getSvgPathFromPoints(points: VecLike[], closed?: boolean): strin
 
 // @public (undocumented)
 export function getUserPreferences(): TLUserPreferences;
+
+// @internal (undocumented)
+export function getVerticesCountForArcLength(length: number, spacing?: number): number;
 
 // @public (undocumented)
 export class Group2d extends Geometry2d {
