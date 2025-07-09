@@ -1,13 +1,7 @@
-import {
-	Box,
-	Editor,
-	exhaustiveSwitchError,
-	FileHelpers,
-	structuredClone,
-	TLShapePartial,
-} from 'tldraw'
+import { Box, Editor, FileHelpers, structuredClone } from 'tldraw'
 import { TldrawAiTransformConstructor } from './TldrawAiTransform'
 import { TLAiChange, TLAiContent, TLAiMessages, TLAiPrompt } from './types'
+import { TldrawAiApplyFn } from './useTldrawAi'
 import { asMessage } from './utils'
 
 /** @public */
@@ -49,13 +43,13 @@ export class TldrawAiModule {
 
 		transforms.reverse()
 
-		const handleChange = (change: TLAiChange) => {
+		const handleChange = (change: TLAiChange, apply: TldrawAiApplyFn) => {
 			for (const transform of transforms) {
 				if (transform.transformChange) {
 					change = transform.transformChange(change)
 				}
 			}
-			this.applyChange(change)
+			apply({ change, editor: this.opts.editor })
 		}
 
 		const handleChanges = (changes: TLAiChange[]) => {
@@ -70,50 +64,6 @@ export class TldrawAiModule {
 			prompt: _prompt,
 			handleChange,
 			handleChanges,
-		}
-	}
-
-	/**
-	 * Apply a change to the editor.
-	 *
-	 * @param change - The change to apply
-	 */
-	applyChange(change: TLAiChange) {
-		const { editor } = this.opts
-
-		if (editor.isDisposed) return
-
-		try {
-			switch (change.type) {
-				case 'createShape': {
-					editor.createShape(change.shape)
-					break
-				}
-				case 'updateShape': {
-					editor.updateShape(change.shape as TLShapePartial)
-					break
-				}
-				case 'deleteShape': {
-					editor.deleteShape(change.shapeId)
-					break
-				}
-				case 'createBinding': {
-					editor.createBinding(change.binding)
-					break
-				}
-				case 'updateBinding': {
-					editor.updateBinding(change.binding)
-					break
-				}
-				case 'deleteBinding': {
-					editor.deleteBinding(change.bindingId)
-					break
-				}
-				default:
-					exhaustiveSwitchError(change)
-			}
-		} catch (e) {
-			console.error('Error handling change:', e)
 		}
 	}
 

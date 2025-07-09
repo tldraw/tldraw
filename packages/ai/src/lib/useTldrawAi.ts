@@ -1,5 +1,5 @@
 import { useCallback, useMemo, useRef } from 'react'
-import { Editor, uniqueId, useMaybeEditor } from 'tldraw'
+import { Editor, exhaustiveSwitchError, TLShapePartial, uniqueId, useMaybeEditor } from 'tldraw'
 import { TldrawAiModule, TldrawAiModuleOptions } from './TldrawAiModule'
 import { TLAiChange, TLAiPrompt, TLAiSerializedPrompt } from './types'
 
@@ -23,11 +23,18 @@ export type TldrawAiStreamFn = (opts: {
 	signal: AbortSignal
 }) => AsyncGenerator<TLAiChange>
 
+/**
+ * The function signature for applying changes to the editor.
+ * @public
+ */
+export type TldrawAiApplyFn = (opts: { change: TLAiChange; editor: Editor }) => void
+
 /** @public */
 export interface TldrawAiOptions extends Omit<TldrawAiModuleOptions, 'editor'> {
 	editor?: Editor
 	generate?: TldrawAiGenerateFn
 	stream?: TldrawAiStreamFn
+	apply?: TldrawAiApplyFn
 }
 
 /** @public */
@@ -37,7 +44,13 @@ export type TldrawAiPromptOptions =
 
 /** @public */
 export function useTldrawAi(opts: TldrawAiOptions) {
-	const { editor: _editor, generate: generateFn, stream: streamFn, transforms } = opts
+	const {
+		editor: _editor,
+		generate: generateFn,
+		stream: streamFn,
+		transforms,
+		apply: applyFn = defaultApply,
+	} = opts
 
 	// If the editor is provided as a prop, use that. Otherwise, use the editor in react context and throw if not present.
 	const maybeEditor = useMaybeEditor()
@@ -109,7 +122,7 @@ export function useTldrawAi(opts: TldrawAiOptions) {
 								try {
 									editor.run(
 										() => {
-											handleChange(change)
+											handleChange(change, applyFn)
 										},
 										{
 											ignoreShapeLock: false, // ? should this be true?
@@ -127,7 +140,7 @@ export function useTldrawAi(opts: TldrawAiOptions) {
 					} else {
 						if (!generateFn) {
 							throw Error(
-								`Stream function not found. You should pass a stream method in your call to the useTldrawAi hook.`
+								`Generate function not found. You should pass a generate method in your call to the useTldrawAi hook.`
 							)
 						}
 						// Handle a one-off generation
@@ -149,7 +162,7 @@ export function useTldrawAi(opts: TldrawAiOptions) {
 									() => {
 										for (const change of changes) {
 											pendingChanges.push(change)
-											handleChange(change)
+											handleChange(change, applyFn)
 										}
 									},
 									{
@@ -188,7 +201,7 @@ export function useTldrawAi(opts: TldrawAiOptions) {
 				cancel: rCancelFunction.current,
 			}
 		},
-		[ai, editor, generateFn, streamFn]
+		[ai, editor, generateFn, streamFn, applyFn]
 	)
 
 	/**
@@ -210,7 +223,7 @@ export function useTldrawAi(opts: TldrawAiOptions) {
 			editor.run(
 				() => {
 					for (const change of rPreviousChanges.current) {
-						handleChange(change)
+						handleChange(change, applyFn)
 					}
 				},
 				{
@@ -238,11 +251,59 @@ export function useTldrawAi(opts: TldrawAiOptions) {
 			promise,
 			cancel: rCancelFunction.current,
 		}
-	}, [ai, editor])
+	}, [ai, editor, applyFn])
 
 	const cancel = useCallback(() => {
 		rCancelFunction.current?.()
 	}, [])
 
 	return { prompt, repeat, cancel }
+}
+
+/**
+ * The default apply function for the AI module.
+ *
+ * @param change - The change to apply
+ * @param editor - The editor to apply the change to
+ *
+ * @public
+ */
+export function defaultApply({ change, editor }: { change: TLAiChange; editor: Editor }) {
+	if (editor.isDisposed) return
+
+	try {
+		switch (change.type) {
+			case 'createShape': {
+				editor.createShape(change.shape)
+				break
+			}
+			case 'updateShape': {
+				editor.updateShape(change.shape as TLShapePartial)
+				break
+			}
+			case 'deleteShape': {
+				editor.deleteShape(change.shapeId)
+				break
+			}
+			case 'createBinding': {
+				editor.createBinding(change.binding)
+				break
+			}
+			case 'updateBinding': {
+				editor.updateBinding(change.binding)
+				break
+			}
+			case 'deleteBinding': {
+				editor.deleteBinding(change.bindingId)
+				break
+			}
+			case 'custom': {
+				break
+			}
+			default:
+				exhaustiveSwitchError(change)
+		}
+	} catch (e) {
+		console.error('Error handling change:', e)
+	}
 }

@@ -20,7 +20,13 @@ import type { TLShapePartial } from 'tldraw';
 export function asMessage(message: TLAiMessages): TLAiMessage[];
 
 // @public
-export type TLAiChange = TLAiCreateBindingChange | TLAiCreateShapeChange | TLAiDeleteBindingChange | TLAiDeleteShapeChange | TLAiUpdateBindingChange | TLAiUpdateShapeChange;
+export function defaultApply({ change, editor }: {
+    change: TLAiChange;
+    editor: Editor;
+}): void;
+
+// @public
+export type TLAiChange = TLAiCreateBindingChange | TLAiCreateShapeChange | TLAiCustomChange | TLAiDeleteBindingChange | TLAiDeleteShapeChange | TLAiUpdateBindingChange | TLAiUpdateShapeChange;
 
 // @public (undocumented)
 export type TLAiContent = Omit<TLContent, 'rootShapeIds' | 'schema'> & {
@@ -45,6 +51,14 @@ export interface TLAiCreateShapeChange<T extends TLShape = TLShape> {
     shape: TLShapePartial<T>;
     // (undocumented)
     type: 'createShape';
+}
+
+// @public (undocumented)
+export interface TLAiCustomChange {
+    // (undocumented)
+    [key: string]: any;
+    // (undocumented)
+    type: 'custom';
 }
 
 // @public (undocumented)
@@ -136,6 +150,12 @@ export interface TLAiUpdateShapeChange<T extends TLShape = TLShape> {
 }
 
 // @public
+export type TldrawAiApplyFn = (opts: {
+    change: TLAiChange;
+    editor: Editor;
+}) => void;
+
+// @public
 export type TldrawAiGenerateFn = (opts: {
     editor: Editor;
     prompt: TLAiSerializedPrompt;
@@ -145,14 +165,13 @@ export type TldrawAiGenerateFn = (opts: {
 // @public
 export class TldrawAiModule {
     constructor(opts?: TldrawAiModuleOptions);
-    applyChange(change: TLAiChange): void;
     // (undocumented)
     dispose(): void;
     generate(prompt: {
         message: TLAiMessages;
         stream?: boolean;
     } | string): Promise<{
-        handleChange: (change: TLAiChange) => void;
+        handleChange: (change: TLAiChange, apply: TldrawAiApplyFn) => void;
         handleChanges: (changes: TLAiChange[]) => void;
         prompt: TLAiPrompt;
     }>;
@@ -171,6 +190,8 @@ export interface TldrawAiModuleOptions {
 
 // @public (undocumented)
 export interface TldrawAiOptions extends Omit<TldrawAiModuleOptions, 'editor'> {
+    // (undocumented)
+    apply?: TldrawAiApplyFn;
     // (undocumented)
     editor?: Editor;
     // (undocumented)

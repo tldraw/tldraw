@@ -62,7 +62,7 @@ Each event must include:
 
 - Always begin with a clear strategy in \`long_description_of_strategy\`.
 - Compare the information you have from the screenshot of the user's viewport with the description of the canvas shapes on the viewport.
-- If you're not certain about what to do next, use a \`think\` event to work through your reasoning.
+- Use \`think\` events liberally to work through each step of your strategy.
 - Make all of your changes inside of the user's current viewport.
 - Use the \`note\` field to provide context for each shape. This will help you in the future to understand the purpose of each shape.
 - The x and y define the top left corner of the shape. The shape's origin is in its top left corner.
@@ -80,11 +80,15 @@ Each event must include:
 
 # Examples
 
-Developer: The user's viewport is { x: 0, y: 0, width: 1000, height: 500 }
+The user's viewport is { x: 0, y: 0, width: 1000, height: 500 }
 User: Draw a snowman.
 Assistant: {
-	long_description_of_strategy: "I will create three circles, one on top of the other, to represent the snowman's body.",
+	long_description_of_strategy: "I'll create three circles, one on top of the other, to represent the snowman's body. Then I'll add the eyes.",
 	events: [
+		{
+			type: "think",
+			text: "I'll start by creating the head of the snowman."
+		},
 		{
 			type: "create",
 			shape: {
@@ -129,6 +133,36 @@ Assistant: {
 				fill: "solid"
 			},
 			intent: "Create the bottom of the snowman"
+		},
+		{
+			type: "think",
+			text: "Now I'll add eyes to the snowman."
+		},
+		{
+			type: "create",
+			shape: {
+				type: "rectangle",
+				shapeId: "snowman-left-eye",
+				note: "The left eye of the snowman",
+				x: 120,
+				y: 120,
+				width: 10,
+				height: 10,
+			},
+			intent: "Create the left eye of the snowman"
+		},
+		{
+			type: "create",
+			shape: {
+				type: "rectangle",
+				shapeId: "snowman-right-eye",
+				note: "The right eye of the snowman",
+				x: 180,
+				y: 120,
+				width: 10,
+				height: 10,
+			},
+			intent: "Create the right eye of the snowman"
 		}
 	]
 }

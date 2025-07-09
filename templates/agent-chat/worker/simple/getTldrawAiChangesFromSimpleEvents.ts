@@ -48,7 +48,7 @@ export function getTldrawAiChangesFromSimpleEvents(
 			return getTldrawAiChangesFromSimpleMoveEvent(prompt, event)
 		}
 		case 'think': {
-			return []
+			return [{ type: 'custom', action: 'think', text: event.text }]
 		}
 	}
 }

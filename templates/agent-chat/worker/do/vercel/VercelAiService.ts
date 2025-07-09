@@ -5,7 +5,7 @@ import { CoreMessage, generateObject, LanguageModel, streamObject, UserContent }
 import { getTLAgentModelDefinition } from '../../models'
 import { getSimpleContentFromCanvasContent } from '../../simple/getSimpleContentFromCanvasContent'
 import { getTldrawAiChangesFromSimpleEvents } from '../../simple/getTldrawAiChangesFromSimpleEvents'
-import { IModelResponse, ISimpleEvent, ModelResponse, SimpleEvent } from '../../simple/schema'
+import { IModelResponse, ISimpleEvent, ModelResponse } from '../../simple/schema'
 import { SIMPLE_SYSTEM_PROMPT } from '../../simple/system-prompt'
 import { TldrawAiBaseService } from '../../TldrawAiBaseService'
 import { Environment } from '../../types'
@@ -50,42 +50,60 @@ async function* streamEventsVercel(
 		schema: ModelResponse,
 	})
 
+	// let cursor = 0
+	// const events: ISimpleEvent[] = []
+	// let maybeUnfinishedEvent: ISimpleEvent | null = null
+
 	let cursor = 0
-	const events: ISimpleEvent[] = []
 	let maybeUnfinishedEvent: ISimpleEvent | null = null
 
 	for await (const partialObject of partialObjectStream) {
-		if (Array.isArray(partialObject.events)) {
-			for (let i = cursor, len = partialObject.events.length; i < len; i++) {
-				const part = partialObject.events[i]
-				if (i === cursor) {
-					try {
-						SimpleEvent.parse(part)
+		if (!Array.isArray(partialObject.events)) continue
+		if (partialObject.events.length === 0) continue
 
-						const event = part as ISimpleEvent
-
-						if (i < len) {
-							events.push(event)
-							yield event
-							maybeUnfinishedEvent = null
-							cursor++
-						} else {
-							maybeUnfinishedEvent = event
-						}
-					} catch {
-						// noop but okay, it's just not done enough to be a valid event
-					}
-				}
+		if (partialObject.events.length > cursor) {
+			cursor++
+			if (maybeUnfinishedEvent) {
+				yield maybeUnfinishedEvent
+				maybeUnfinishedEvent = null
 			}
 		}
+		const event = partialObject.events[cursor - 1] as ISimpleEvent
+		maybeUnfinishedEvent = event
+
+		// if (Array.isArray(partialObject.events)) {
+		// 	for (let i = cursor, len = partialObject.events.length; i < len; i++) {
+		// 		const part = partialObject.events[i]
+		// 		if (i === cursor) {
+		// 			try {
+		// 				SimpleEvent.parse(part)
+
+		// 				const event = part as ISimpleEvent
+
+		// 				if (i < len) {
+		// 					events[events.length - 1] = event
+		// 					yield event
+		// 					maybeUnfinishedEvent = null
+		// 					cursor++
+		// 				} else {
+		// 					events.push(event)
+		// 					maybeUnfinishedEvent = event
+		// 					yield event
+		// 				}
+		// 			} catch {
+		// 				// noop but okay, it's just not done enough to be a valid event
+		// 			}
+		// 		}
+		// 	}
+		// }
 	}
 
 	if (maybeUnfinishedEvent) {
-		events.push(maybeUnfinishedEvent)
+		// 	events.push(maybeUnfinishedEvent)
 		yield maybeUnfinishedEvent
 	}
 
-	return events
+	// return events
 }
 
 async function generateEventsVercel(

@@ -177,7 +177,6 @@ export type ISimpleDeleteEvent = z.infer<typeof SimpleDeleteEvent>
 const SimpleThinkEvent = z.object({
 	type: z.literal('think'),
 	text: z.string(),
-	intent: z.string(),
 })
 export type ISimpleThinkEvent = z.infer<typeof SimpleThinkEvent>
 
