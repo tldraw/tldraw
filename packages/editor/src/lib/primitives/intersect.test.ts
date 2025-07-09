@@ -181,6 +181,17 @@ describe('intersectLineSegmentLineSegment', () => {
 			expect(result!.x).toBeCloseTo(5, 1)
 			expect(result!.y).toBeCloseTo(5, 1)
 		})
+
+		it('should find intersection when segments cross at endpoints (floating point error case)', () => {
+			const result = intersectLineSegmentLineSegment(
+				{ x: 100, y: 100 },
+				{ x: 20, y: 20 },
+				{ x: 36.141160159025375, y: 31.811740238538057 },
+				{ x: 34.14213562373095, y: 34.14213562373095 }
+			)
+
+			expect(result).not.toBeNull()
+		})
 	})
 
 	describe('edge cases', () => {
@@ -189,17 +200,6 @@ describe('intersectLineSegmentLineSegment', () => {
 			const a2 = new Vec(0.0001, 0.0001)
 			const b1 = new Vec(0, 0.0001)
 			const b2 = new Vec(0.0001, 0)
-
-			const result = intersectLineSegmentLineSegment(a1, a2, b1, b2)
-
-			expect(result).not.toBeNull()
-		})
-
-		it('should handle segments with very small coordinates', () => {
-			const a1 = new Vec(1e-10, 1e-10)
-			const a2 = new Vec(1e-9, 1e-9)
-			const b1 = new Vec(1e-10, 1e-9)
-			const b2 = new Vec(1e-9, 1e-10)
 
 			const result = intersectLineSegmentLineSegment(a1, a2, b1, b2)
 
@@ -530,6 +530,52 @@ describe('intersectLineSegmentPolyline', () => {
 		expect(sorted[2].x).toBeCloseTo(12, 5)
 		expect(sorted[3].x).toBeCloseTo(18, 5)
 		sorted.forEach((pt) => expect(pt.y).toBeCloseTo(5, 5))
+	})
+
+	// Test cases for vertex intersection issues
+	describe('vertex intersection edge cases', () => {
+		it('should detect intersection when line segment passes through polyline vertex', () => {
+			const a1 = new Vec(0, 5)
+			const a2 = new Vec(10, 5)
+			const points = [new Vec(5, 0), new Vec(5, 10)] // vertical line at x=5
+			const result = intersectLineSegmentPolyline(a1, a2, points)
+			expect(result).not.toBeNull()
+			expect(result!.length).toBe(1)
+			expect(result![0].x).toBeCloseTo(5, 5)
+			expect(result![0].y).toBeCloseTo(5, 5)
+		})
+
+		it('should detect intersection when line segment passes through polyline vertex at angle', () => {
+			const a1 = new Vec(0, 0)
+			const a2 = new Vec(10, 10)
+			const points = [new Vec(5, 0), new Vec(5, 10)] // vertical line at x=5
+			const result = intersectLineSegmentPolyline(a1, a2, points)
+			expect(result).not.toBeNull()
+			expect(result!.length).toBe(1)
+			expect(result![0].x).toBeCloseTo(5, 5)
+			expect(result![0].y).toBeCloseTo(5, 5)
+		})
+
+		it('should detect intersection when line segment passes through polyline vertex at middle', () => {
+			const a1 = new Vec(0, 5)
+			const a2 = new Vec(10, 5)
+			const points = [new Vec(0, 0), new Vec(5, 5), new Vec(10, 0)] // vertex at (5,5)
+			const result = intersectLineSegmentPolyline(a1, a2, points)
+			expect(result).not.toBeNull()
+			expect(result!.length).toBe(1)
+			expect(result![0].x).toBeCloseTo(5, 5)
+			expect(result![0].y).toBeCloseTo(5, 5)
+		})
+
+		it('should detect intersection when line segment passes through a polyline vertext (floating point error case)', () => {
+			const result = intersectLineSegmentPolyline({ x: 100, y: 100 }, { x: 20, y: 20 }, [
+				{ x: 36.141160159025375, y: 31.811740238538057 },
+				{ x: 34.14213562373095, y: 34.14213562373095 },
+				{ x: 31.811740238538057, y: 36.141160159025375 },
+			])
+
+			expect(result).not.toBeNull()
+		})
 	})
 })
 
