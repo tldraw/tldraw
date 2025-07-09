@@ -31,7 +31,12 @@ export class HomePage {
 		await this.page.getByLabel('Email address').fill(email)
 		await this.page.getByRole('button', { name: 'Continue', exact: true }).click()
 		await this.page.waitForTimeout(1000)
-		await this.page.getByLabel('Enter verification code. Digit').fill('424242')
+		await this.page.getByRole('textbox', { name: 'Digit 1' }).fill('4')
+		await this.page.getByRole('textbox', { name: 'Digit 2' }).fill('2')
+		await this.page.getByRole('textbox', { name: 'Digit 3' }).fill('4')
+		await this.page.getByRole('textbox', { name: 'Digit 4' }).fill('2')
+		await this.page.getByRole('textbox', { name: 'Digit 5' }).fill('4')
+		await this.page.getByRole('textbox', { name: 'Digit 6' }).fill('2')
 		await expect(async () => {
 			await expect(this.page.getByTestId('tla-sidebar-toggle')).toBeVisible()
 		}).toPass()
