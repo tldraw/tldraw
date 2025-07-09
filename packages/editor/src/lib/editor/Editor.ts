@@ -1725,10 +1725,14 @@ export class Editor extends EventEmitter<TLEventMap> {
 	 * ```
 	 *
 	 * @param shapes - The shape (or shape ids) to select.
+	 * @param someString - An arbitrary string to log for debugging purposes.
 	 *
 	 * @public
 	 */
-	setSelectedShapes(shapes: TLShapeId[] | TLShape[]): this {
+	// eslint-disable-next-line local/tsdoc-param-matching
+	setSelectedShapes(shapes: TLShapeId[] | TLShape[], someString?: string): this {
+		// eslint-disable-next-line no-console
+		console.log(someString)
 		return this.run(
 			() => {
 				const ids = shapes.map((shape) => (typeof shape === 'string' ? shape : shape.id))

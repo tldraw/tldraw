@@ -1454,7 +1454,7 @@ export class Editor extends EventEmitter<TLEventMap> {
     setOpacityForNextShapes(opacity: number, historyOptions?: TLHistoryBatchOptions): this;
     setOpacityForSelectedShapes(opacity: number): this;
     setRichTextEditor(textEditor: null | TiptapEditor): this;
-    setSelectedShapes(shapes: TLShape[] | TLShapeId[]): this;
+    setSelectedShapes(shapes: TLShape[] | TLShapeId[], someString?: string): this;
     // @internal (undocumented)
     _setShiftKeyTimeout(): void;
     setStyleForNextShapes<T>(style: StyleProp<T>, value: T, historyOptions?: TLHistoryBatchOptions): this;
