@@ -38,6 +38,9 @@
   "13ddd375ad": {
     "translation": "Export as"
   },
+  "17aaea1442": {
+    "translation": "Pick your username"
+  },
   "181b90f889": {
     "translation": "Create file"
   },
@@ -46,6 +49,9 @@
   },
   "1dd1c5fb7f": {
     "translation": "Today"
+  },
+  "221e705c06": {
+    "translation": "Your name"
   },
   "250ddea65c": {
     "translation": "About tldraw"
@@ -64,6 +70,9 @@
   },
   "344a7f427f": {
     "translation": "Editor"
+  },
+  "3836062bbf": {
+    "translation": "Welcome to tldraw! How would you like to be called?"
   },
   "3bd1b98dbd": {
     "translation": "Unable to publish the changes."
@@ -119,6 +128,9 @@
   "56c34c6410": {
     "translation": "Privacy policy"
   },
+  "575f5f86d2": {
+    "translation": "Saving..."
+  },
   "5a95a425f7": {
     "translation": "Share"
   },
@@ -163,6 +175,9 @@
   },
   "71a29b007b": {
     "translation": "Have a bug, issue, or idea for tldraw? Let us know!"
+  },
+  "72ef2b9b69": {
+    "translation": "Skip"
   },
   "73ab799383": {
     "translation": "This version of tldraw is no longer supported."
@@ -336,6 +351,9 @@
   "c87aacf567": {
     "translation": "Sign out"
   },
+  "c9cc8cce24": {
+    "translation": "Save"
+  },
   "cceaefbc20": {
     "translation": "Share this file"
   },
@@ -377,6 +395,9 @@
   },
   "ea4788705e": {
     "translation": "Cancel"
+  },
+  "ebd65bc658": {
+    "translation": "You can change this later in your settings."
   },
   "ebfe9ce86e": {
     "translation": "Yesterday"
