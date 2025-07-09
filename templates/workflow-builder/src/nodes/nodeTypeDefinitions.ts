@@ -4,7 +4,7 @@ export interface NodeInfo {
 	type: NodeType['type']
 	title: string
 	icon: string
-	getDefaultProps: () => Partial<NodeType>
+	getDefault: () => NodeType
 }
 
 export const nodeTypes: NodeInfo[] = [
@@ -12,24 +12,24 @@ export const nodeTypes: NodeInfo[] = [
 		type: 'add',
 		title: 'Add',
 		icon: '+',
-		getDefaultProps: () => ({ type: 'add' as const, items: [0, 0] }),
+		getDefault: () => ({ type: 'add', items: [0, 0] }),
 	},
 	{
 		type: 'subtract',
 		title: 'Subtract',
 		icon: '−',
-		getDefaultProps: () => ({ type: 'subtract' as const, a: 0, b: 0 }),
+		getDefault: () => ({ type: 'subtract', a: 0, b: 0 }),
 	},
 	{
 		type: 'multiply',
 		title: 'Multiply',
 		icon: '×',
-		getDefaultProps: () => ({ type: 'multiply' as const, a: 0, b: 0 }),
+		getDefault: () => ({ type: 'multiply', a: 0, b: 0 }),
 	},
 	{
 		type: 'divide',
 		title: 'Divide',
 		icon: '÷',
-		getDefaultProps: () => ({ type: 'divide' as const, a: 0, b: 0 }),
+		getDefault: () => ({ type: 'divide', a: 0, b: 0 }),
 	},
-] 
+]

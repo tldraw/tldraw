@@ -6,13 +6,24 @@ body {
 	overscroll-behavior: none;
 }
 
-.NodeShape {
-	border-radius: 6px;
-	background: var(--color-panel);
-	box-shadow:
-		0 0 0 1px rgba(0, 0, 0, 0.04),
-		0 2px 6px rgba(0, 0, 0, 0.08),
+.tl-container {
+	--node-width: 180px;
+	--node-header-height: 32.5px;
+	--node-row-height: 32px;
+	--node-port-offset-y: 15.5px;
+
+	--node-shadows: 0 2px 6px rgba(0, 0, 0, 0.08), 0 1px 2px rgba(0, 0, 0, 0.04);
+	--node-shadow-border:
+		0 0 0 1px rgba(0, 0, 0, 0.04), 0 2px 6px rgba(0, 0, 0, 0.08), 0 1px 2px rgba(0, 0, 0, 0.04);
+	--node-shadow-highlight:
+		0 0 0 calc(1.2px / var(--tl-zoom)) var(--color-selected), 0 2px 6px rgba(0, 0, 0, 0.08),
 		0 1px 2px rgba(0, 0, 0, 0.04);
+}
+
+.NodeShape {
+	border-radius: var(--radius-2);
+	background: var(--color-panel);
+	box-shadow: var(--node-shadow-border);
 	width: 100%;
 	height: 100%;
 	display: flex;
@@ -67,7 +78,8 @@ body {
 
 	&.Port_hinting {
 		box-shadow:
-			0 0 0 2px var(--color-selected),
+			0 0 0 calc(2px / var(--tl-zoom)) var(--color-selected),
+			0 0 0 1px rgba(0, 0, 0, 0.04),
 			0 1px 3px rgba(0, 0, 0, 0.12);
 	}
 
@@ -77,5 +89,34 @@ body {
 
 	&.Port_start {
 		margin-right: -14px;
+	}
+}
+
+.OnCanvasComponentPicker {
+	position: absolute;
+	top: 0;
+	left: 0;
+	z-index: var(--layer-overlays);
+	border-radius: var(--radius-2);
+	background: var(--color-panel);
+	box-shadow: var(--node-shadow-highlight);
+	display: grid;
+	grid-template-columns: repeat(2, 1fr);
+	--top: calc(var(--node-header-height) + var(--node-port-offset-y));
+	transform-origin: 0 var(--top);
+	margin-top: calc(-1 * var(--top));
+	padding-top: 4px;
+
+	button {
+		height: auto;
+		aspect-ratio: 1;
+		display: flex;
+		flex-direction: column;
+		align-items: center;
+		justify-content: center;
+	}
+
+	.OnCanvasComponentPicker-icon {
+		font-size: 36px;
 	}
 }
