@@ -1,5 +1,6 @@
 import { FormEventHandler, useCallback, useEffect, useRef, useState } from 'react'
 import { Editor } from 'tldraw'
+import { AGENT_MODEL_DEFINITIONS, TLAgentModelName } from '../worker/models'
 import { useTldrawAiExample } from './useTldrawAiExample'
 
 export function ChatPanel({ editor }: { editor: Editor }) {
@@ -9,6 +10,7 @@ export function ChatPanel({ editor }: { editor: Editor }) {
 	const [historyItems, setHistoryItems] = useState<ChatHistoryItem[]>([])
 	const rCancelFn = useRef<(() => void) | null>(null)
 	const inputRef = useRef<HTMLInputElement>(null)
+	const [modelName, setModelName] = useState<TLAgentModelName>('claude-4-sonnet')
 
 	useEffect(() => {
 		if (!editor) return
@@ -55,7 +57,7 @@ export function ChatPanel({ editor }: { editor: Editor }) {
 				const { promise, cancel } = ai.prompt({
 					message: value,
 					stream: true,
-					meta: { modelName: 'claude-4-sonnet' },
+					meta: { modelName },
 				})
 
 				rCancelFn.current = cancel
@@ -79,7 +81,7 @@ export function ChatPanel({ editor }: { editor: Editor }) {
 				rCancelFn.current = null
 			}
 		},
-		[ai]
+		[ai, modelName]
 	)
 
 	return (
@@ -94,7 +96,19 @@ export function ChatPanel({ editor }: { editor: Editor }) {
 						autoComplete="off"
 						placeholder="Speak to your agent..."
 					/>
-					<button>{isGenerating ? '◼' : '⬆'}</button>
+					<span className="chat-input-actions">
+						<select
+							value={modelName}
+							onChange={(e) => setModelName(e.target.value as TLAgentModelName)}
+						>
+							{Object.values(AGENT_MODEL_DEFINITIONS).map((model) => (
+								<option key={model.name} value={model.name}>
+									{model.name}
+								</option>
+							))}
+						</select>
+						<button>{isGenerating ? '◼' : '⬆'}</button>
+					</span>
 				</form>
 			</div>
 		</div>

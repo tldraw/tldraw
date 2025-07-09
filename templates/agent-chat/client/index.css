@@ -103,3 +103,10 @@ body {
 	max-width: 80%;
 	margin-left: auto;
 }
+
+.chat-input-actions {
+	display: flex;
+	gap: 8px;
+	width: 100%;
+	justify-content: space-between;
+}
