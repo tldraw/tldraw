@@ -1,8 +1,8 @@
 import { TLAiSerializedPrompt } from '@tldraw/ai'
 import { parse } from 'best-effort-json-parser'
 import OpenAI from 'openai'
+import { ISimpleEvent, RESPONSE_FORMAT, SimpleEvent } from '../../simple/schema'
 import { buildPromptMessages } from './prompt'
-import { ISimpleEvent, RESPONSE_FORMAT, SimpleEvent } from './schema'
 
 const OPENAI_MODEL = 'gpt-4o-2024-08-06'
 

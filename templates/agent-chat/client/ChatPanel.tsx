@@ -139,8 +139,7 @@ function AgentChangeHistoryItem({ item }: { item: AgentChangeHistoryItem }) {
 function AgentActionHistoryItem({ item }: { item: AgentActionHistoryItem }) {
 	const actionDefinition = ACTION_HISTORY_ITEMS[item.action]
 
-	const icon =
-		item.status === 'done' ? '✅' : item.status === 'cancelled' ? '❌' : actionDefinition.icon
+	const icon = actionDefinition.icon
 
 	const message = actionDefinition.message[item.status]
 
@@ -162,7 +161,7 @@ const ACTION_HISTORY_ITEMS: Record<AgentActionHistoryItem['action'], AgentAction
 		icon: '✏️',
 		message: {
 			progress: 'Editing the board...',
-			done: 'Edits complete.',
+			done: 'Edited the board.',
 			cancelled: 'Edits cancelled.',
 		},
 	},

@@ -96,7 +96,6 @@ body {
 }
 
 .user-chat-message {
-	text-align: right;
 	background-color: hsl(214, 84%, 56%);
 	color: hsl(0, 0%, 100%);
 	padding: 8px 12px;

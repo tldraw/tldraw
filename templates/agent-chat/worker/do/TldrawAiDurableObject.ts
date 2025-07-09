@@ -3,14 +3,14 @@ import { DurableObject } from 'cloudflare:workers'
 import { AutoRouter, error } from 'itty-router'
 import { TldrawAiBaseService } from '../TldrawAiBaseService'
 import { Environment } from '../types'
-import { OpenAiService } from './openai/OpenAiService'
+import { VercelAiService } from './custom/CustomProviderService'
 
 export class TldrawAiDurableObject extends DurableObject<Environment> {
 	service: TldrawAiBaseService
 
 	constructor(ctx: DurableObjectState, env: Environment) {
 		super(ctx, env)
-		this.service = new OpenAiService(this.env) // swap this with your own service
+		this.service = new VercelAiService(this.env) // swap this with your own service
 	}
 
 	private readonly router = AutoRouter({

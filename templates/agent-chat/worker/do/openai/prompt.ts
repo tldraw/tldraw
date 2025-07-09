@@ -4,8 +4,8 @@ import {
 	ChatCompletionDeveloperMessageParam,
 	ChatCompletionUserMessageParam,
 } from 'openai/resources'
-import { getSimpleContentFromCanvasContent } from './getSimpleContentFromCanvasContent'
-import { OPENAI_SYSTEM_PROMPT } from './system-prompt'
+import { getSimpleContentFromCanvasContent } from '../../simple/getSimpleContentFromCanvasContent'
+import { SIMPLE_SYSTEM_PROMPT } from '../../simple/system-prompt'
 
 /**
  * Build the messages for the prompt.
@@ -24,7 +24,7 @@ export function buildPromptMessages(prompt: TLAiSerializedPrompt) {
 function buildSystemPrompt(_prompt: TLAiSerializedPrompt) {
 	return {
 		role: 'system',
-		content: OPENAI_SYSTEM_PROMPT,
+		content: SIMPLE_SYSTEM_PROMPT,
 	} as const
 }
 
@@ -76,7 +76,7 @@ function buildUserMessages(prompt: TLAiSerializedPrompt) {
 			},
 			{
 				type: 'text',
-				text: 'Here is a screenshot of the my current viewport.',
+				text: 'Here is a screenshot of the current viewport.',
 			}
 		)
 	}

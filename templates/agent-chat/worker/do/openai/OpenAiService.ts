@@ -1,9 +1,9 @@
 import { TLAiChange, TLAiResult, TLAiSerializedPrompt } from '@tldraw/ai'
 import OpenAI from 'openai'
+import { getTldrawAiChangesFromSimpleEvents } from '../../simple/getTldrawAiChangesFromSimpleEvents'
 import { TldrawAiBaseService } from '../../TldrawAiBaseService'
 import { Environment } from '../../types'
 import { generateEvents } from './generate'
-import { getTldrawAiChangesFromSimpleEvents } from './getTldrawAiChangesFromSimpleEvents'
 import { streamEvents } from './stream'
 
 export class OpenAiService extends TldrawAiBaseService {
