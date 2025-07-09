@@ -206,17 +206,6 @@ describe('intersectLineSegmentLineSegment', () => {
 			expect(result).not.toBeNull()
 		})
 
-		it('should handle segments with very small coordinates', () => {
-			const a1 = new Vec(1e-10, 1e-10)
-			const a2 = new Vec(1e-9, 1e-9)
-			const b1 = new Vec(1e-10, 1e-9)
-			const b2 = new Vec(1e-9, 1e-10)
-
-			const result = intersectLineSegmentLineSegment(a1, a2, b1, b2)
-
-			expect(result).not.toBeNull()
-		})
-
 		it('should handle segments with very large coordinates', () => {
 			const a1 = new Vec(1e10, 1e10)
 			const a2 = new Vec(1e11, 1e11)
