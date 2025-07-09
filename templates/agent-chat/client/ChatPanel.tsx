@@ -12,7 +12,7 @@ export function ChatPanel({ editor }: { editor: Editor }) {
 	const [historyItems, setHistoryItems] = useChatHistory()
 	const rCancelFn = useRef<(() => void) | null>(null)
 	const inputRef = useRef<HTMLInputElement>(null)
-	const [modelName, setModelName] = useState<TLAgentModelName>('claude-4-sonnet')
+	const [modelName, setModelName] = useState<TLAgentModelName>('gpt-4o')
 
 	useEffect(() => {
 		if (!editor) return
