@@ -172,6 +172,6 @@ export class PngHelpers {
 		const startBuf = view.buffer.slice(0, offset)
 		const endBuf = view.buffer.slice(offset + size)
 
-		return new Blob([startBuf, pHYsData, endBuf], options)
+		return new Blob([startBuf as ArrayBuffer, pHYsData, endBuf as ArrayBuffer], options)
 	}
 }

@@ -9,23 +9,11 @@
 		"types": ["node", "@types/jest"]
 	},
 	"references": [
-		{
-			"path": "../state"
-		},
-		{
-			"path": "../state-react"
-		},
-		{
-			"path": "../store"
-		},
-		{
-			"path": "../tlschema"
-		},
-		{
-			"path": "../utils"
-		},
-		{
-			"path": "../validate"
-		}
+		{ "path": "../state" },
+		{ "path": "../state-react" },
+		{ "path": "../store" },
+		{ "path": "../tlschema" },
+		{ "path": "../utils" },
+		{ "path": "../validate" }
 	]
 }

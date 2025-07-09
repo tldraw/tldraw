@@ -393,4 +393,12 @@ export default [
 			'no-console': 'off',
 		},
 	},
+	{
+		files: ['templates/**/*'],
+		rules: {
+			'local/prefer-class-methods': 'off',
+			'no-restricted-syntax': 'off',
+			'no-console': 'off',
+		},
+	},
 ]
