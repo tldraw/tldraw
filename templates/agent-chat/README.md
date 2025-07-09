@@ -1,6 +1,6 @@
-# tldraw ai starter
+# tldraw agent chat
 
-This repo is a starter for projects that use the [tldraw ai module](https://github.com/tldraw/tldraw/tree/main/packages/ai).
+This repo is a starter for projects that want to create an agentic chat with the [tldraw ai module](https://github.com/tldraw/tldraw/tree/main/packages/ai).
 
 To use:
 
@@ -10,15 +10,11 @@ To use:
 4. Run `pnpm run dev`
 5. Open `http://localhost:5173/` in your browser.
 
-To hack:
-
-- Edit the example system prompt at `worker/openai/system-prompt.ts`.
-- Create new transforms and use them in `useTldrawAiExample`.
-- Maybe replace the OpenAI service with your own.
-
 ## License
 
-This project is provided under the MIT license found [here](https://github.com/tldraw/ai-template/blob/main/LICENSE.md). The tldraw SDK is provided under the [tldraw license](https://github.com/tldraw/tldraw/blob/main/LICENSE.md).
+This project is part of the tldraw SDK. It is provided under the [tldraw SDK license](https://github.com/tldraw/tldraw/blob/main/LICENSE.md).
+
+You can use the tldraw SDK in commercial or non-commercial projects so long as you preserve the "Made with tldraw" watermark on the canvas. To remove the watermark, you can purchase a [business license](https://tldraw.dev#pricing). Visit [tldraw.dev](https://tldraw.dev) to learn more.
 
 ## Trademarks
 
