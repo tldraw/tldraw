@@ -20,11 +20,15 @@ import {
 import { ConnectionShape, ConnectionShapeUtil } from './connection/ConnectionShapeUtil'
 import { keepConnectionsAtBottom } from './connection/keepConnectionsAtBottom'
 import { getNodePorts, NodeShapeUtil } from './nodes/NodeShapeUtil'
+import { NodeType } from './nodes/nodeTypes.tsx'
 import { PointingPort } from './ports/PointingPort'
 import { updatePortState } from './ports/portState'
 
 const shapeUtils = [NodeShapeUtil, ConnectionShapeUtil]
 const bindingUtils = [ConnectionBindingUtil]
+
+// Ok, yes totally cheating here.
+let dialogHelpersRef: any = null
 
 const uiOverrides: TLUiOverrides = {
 	tools(_editor, tools, helpers) {
@@ -38,6 +42,8 @@ const uiOverrides: TLUiOverrides = {
 				})
 			},
 		}
+		dialogHelpersRef = helpers
+		;(globalThis as any).dialogHelpersRef = helpers
 
 		return {
 			...tools,
@@ -55,6 +61,8 @@ const uiOverrides: TLUiOverrides = {
 				})
 			},
 		}
+		dialogHelpersRef = helpers
+		;(globalThis as any).dialogHelpersRef = helpers
 
 		return {
 			...actions,
@@ -119,20 +127,6 @@ function App() {
 
 function draggingHandleOverrides(editor: Editor) {
 	const draggingHandle = editor.getStateDescendant('select.dragging_handle') as DraggingHandle
-	const originalOnExit = draggingHandle.onExit
-	draggingHandle.onExit = function (...args) {
-		originalOnExit?.apply(this, args)
-
-		updatePortState(this.editor, { hintingPort: null })
-
-		const shape = this.editor.getShape(this.shapeId)
-		if (shape && editor.isShapeOfType<ConnectionShape>(shape, 'connection')) {
-			const bindings = getConnectionBindings(editor, shape)
-			if (!bindings.start || !bindings.end) {
-				editor.deleteShapes([shape.id])
-			}
-		}
-	}
 
 	const originalOnPointerUp = draggingHandle.onPointerUp
 	draggingHandle.onPointerUp = function (...args) {
@@ -147,39 +141,76 @@ function draggingHandleOverrides(editor: Editor) {
 			// ...and we haven't successfully connected to an existing node...
 			const bindings = getConnectionBindings(editor, shape)
 			if (bindings.end) return
-			// ...then create a new node to connect to.
-			const newNodeId = createShapeId()
-			editor.createShape({
-				type: 'node',
-				id: newNodeId,
-				x: 0,
-				y: 0,
-			})
 
-			const ports = getNodePorts(editor, newNodeId)
-			const firstInputPort = Object.values(ports).find((p) => p.terminal === 'end')
-			if (!firstInputPort) return
-
+			// Get handle position for node placement
 			const transform = editor.getShapePageTransform(shape.id)
 			const handle = editor.getShapeHandles(shape.id)!.find((h) => h.id === info.handle.id)
 			if (!handle) return
 
 			const handlePagePosition = transform.applyToPoint(handle)
 
-			editor.updateShape({
-				id: newNodeId,
-				type: 'node',
-				x: handlePagePosition.x - firstInputPort.x,
-				y: handlePagePosition.y - firstInputPort.y,
-			})
+			// Create dialog component with closure and show it
+			if (dialogHelpersRef) {
+				const DialogComponent = createNodeSelectionDialog(shape, handlePagePosition, editor)
+				dialogHelpersRef.addDialog({
+					component: DialogComponent,
+					onClose: () => {
+						updatePortState(editor, { hintingPort: null })
 
-			createOrUpdateConnectionBinding(editor, shape, newNodeId, {
-				portId: firstInputPort.id,
-				terminal: 'end',
-			})
+						if (editor.isShapeOfType<ConnectionShape>(shape, 'connection')) {
+							const bindings = getConnectionBindings(editor, shape)
+							if (!bindings.start || !bindings.end) {
+								editor.deleteShapes([shape.id])
+							}
+						}
+					},
+				})
+			}
 		} finally {
 			originalOnPointerUp?.apply(this, args)
 		}
+	}
+}
+
+// Helper function to create a node selection dialog with closure
+function createNodeSelectionDialog(
+	shape: ConnectionShape,
+	handlePosition: { x: number; y: number },
+	editor: Editor
+) {
+	return function NodeSelectionDialog({ onClose }: { onClose: () => void }) {
+		const handleNodeSelected = (nodeType: NodeType) => {
+			const newNodeId = createShapeId()
+			editor.createShape({
+				type: 'node',
+				id: newNodeId,
+				x: 0,
+				y: 0,
+				props: {
+					node: nodeType,
+				},
+			})
+
+			const ports = getNodePorts(editor, newNodeId)
+			const firstInputPort = Object.values(ports).find((p: any) => p.terminal === 'end')
+			if (firstInputPort) {
+				editor.updateShape({
+					id: newNodeId,
+					type: 'node',
+					x: handlePosition.x - (firstInputPort as any).x,
+					y: handlePosition.y - (firstInputPort as any).y,
+				})
+
+				createOrUpdateConnectionBinding(editor, shape, newNodeId, {
+					portId: (firstInputPort as any).id,
+					terminal: 'end',
+				})
+			}
+
+			onClose()
+		}
+
+		return <InsertComponentDialog onClose={onClose} onNodeSelected={handleNodeSelected} />
 	}
 }
 

@@ -9,7 +9,8 @@ import {
 	Vec,
 } from 'tldraw'
 import { NodeShape } from '../nodes/NodeShapeUtil'
-import { NodeType } from '../nodes/nodeTypes'
+import { NodeInfo, nodeTypes } from '../nodes/nodeTypeDefinitions'
+import { NodeType } from '../nodes/nodeTypes.tsx'
 
 type TranslatingInfo = TLPointerEventInfo & {
 	target: 'shape'
@@ -20,41 +21,13 @@ type TranslatingInfo = TLPointerEventInfo & {
 	onInteractionEnd?: string
 }
 
-interface NodeInfo {
-	type: NodeType['type']
-	title: string
-	icon: string
-	getDefaultProps: () => Partial<NodeType>
-}
-
-const nodeTypes: NodeInfo[] = [
-	{
-		type: 'add',
-		title: 'Add',
-		icon: '+',
-		getDefaultProps: () => ({ type: 'add' as const, items: [0, 0] }),
-	},
-	{
-		type: 'subtract',
-		title: 'Subtract',
-		icon: '−',
-		getDefaultProps: () => ({ type: 'subtract' as const, a: 0, b: 0 }),
-	},
-	{
-		type: 'multiply',
-		title: 'Multiply',
-		icon: '×',
-		getDefaultProps: () => ({ type: 'multiply' as const, a: 0, b: 0 }),
-	},
-	{
-		type: 'divide',
-		title: 'Divide',
-		icon: '÷',
-		getDefaultProps: () => ({ type: 'divide' as const, a: 0, b: 0 }),
-	},
-]
-
-export function ComponentMenuContent({ onClose }: { onClose?: () => void }) {
+export function ComponentMenuContent({
+	onClose,
+	onNodeSelected,
+}: {
+	onClose?: () => void
+	onNodeSelected?: (nodeType: NodeType) => void
+}) {
 	const editor = useEditor()
 
 	const onPointerDown = (down: React.PointerEvent, nodeInfo: NodeInfo) => {
@@ -197,7 +170,15 @@ export function ComponentMenuContent({ onClose }: { onClose?: () => void }) {
 					type="menu"
 					style={{ justifyContent: 'space-between', gap: 16, cursor: 'grab' }}
 					onPointerDown={(e) => {
-						onPointerDown(e, nodeInfo)
+						if (onNodeSelected) {
+							// When used in dialog mode, just call the callback
+							e.preventDefault()
+							e.stopPropagation()
+							onNodeSelected(nodeInfo.getDefaultProps() as NodeType)
+						} else {
+							// Original drag behavior
+							onPointerDown(e, nodeInfo)
+						}
 					}}
 				>
 					<span>{nodeInfo.title}</span>
