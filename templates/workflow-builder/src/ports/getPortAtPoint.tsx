@@ -1,37 +1,6 @@
-import { atom, Atom, Editor, TLShape, TLShapeId, Vec, VecLike, WeakCache } from 'tldraw'
-import { getNodePortConnections, getNodePorts, NodeShape } from '../nodes/NodeShapeUtil'
+import { Editor, TLShape, Vec, VecLike } from 'tldraw'
+import { NodeShape, getNodePortConnections, getNodePorts } from '../nodes/NodeShapeUtil'
 import { ShapePort } from './Port'
-
-export type PortId = string
-
-export interface PortIdentifier {
-	portId: PortId
-	shapeId: TLShapeId
-}
-
-export interface PortState {
-	hintingPort: PortIdentifier | null
-}
-
-const portState = new WeakCache<Editor, Atom<PortState>>()
-export function getPortStateAtom(editor: Editor) {
-	return portState.get(editor, () =>
-		atom('port state', {
-			hintingPort: null,
-		})
-	)
-}
-
-export function getPortState(editor: Editor) {
-	return getPortStateAtom(editor).get()
-}
-
-export function updatePortState(editor: Editor, update: Partial<PortState>) {
-	return getPortStateAtom(editor).update((state) => ({
-		...state,
-		...update,
-	}))
-}
 
 export function getPortAtPoint(
 	editor: Editor,

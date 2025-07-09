@@ -1,7 +1,6 @@
 import { useState } from 'react'
 import { stopEventPropagation, T, TLShapeId, useEditor, useValue } from 'tldraw'
-import { Port, ShapePort } from '../ports/Port'
-import { PortId } from '../ports/portState'
+import { Port, PortId, ShapePort } from '../ports/Port'
 import { replaceInArray } from '../utils'
 import { getNodeInputPortValues, NodeShape } from './NodeShapeUtil'
 

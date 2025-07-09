@@ -1,7 +1,14 @@
 import classNames from 'classnames'
 import { TLShapeId, useEditor, useValue, VecModel } from 'tldraw'
 import { getNodePorts, NodeShape } from '../nodes/NodeShapeUtil'
-import { getPortState, PortId } from './portState'
+import { portState } from '../state'
+
+export type PortId = string
+
+export interface PortIdentifier {
+	portId: PortId
+	shapeId: TLShapeId
+}
 
 export const PORT_RADIUS_PX = 6
 
@@ -26,12 +33,8 @@ export function Port({ shapeId, portId }: { shapeId: TLShapeId; portId: PortId }
 	const isHinting = useValue(
 		'isHinting',
 		() => {
-			const portState = getPortState(editor)
-			return (
-				portState.hintingPort &&
-				portState.hintingPort.portId === portId &&
-				portState.hintingPort.shapeId === shapeId
-			)
+			const { hintingPort } = portState.get(editor)
+			return hintingPort && hintingPort.portId === portId && hintingPort.shapeId === shapeId
 		},
 		[editor, shapeId, portId]
 	)

@@ -15,7 +15,8 @@ import {
 	clamp,
 	vecModelValidator,
 } from 'tldraw'
-import { getPortAtPoint, updatePortState } from '../ports/portState'
+import { getPortAtPoint } from '../ports/getPortAtPoint'
+import { updatePortState } from '../state'
 import {
 	createOrUpdateConnectionBinding,
 	getConnectionBindingPositionInPageSpace,

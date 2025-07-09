@@ -17,8 +17,7 @@ import {
 	useValue,
 } from 'tldraw'
 import { ConnectionBinding, getConnectionBindings } from '../connection/ConnectionBindingUtil'
-import { Port, PORT_RADIUS_PX, ShapePort } from '../ports/Port'
-import { PortId } from '../ports/portState'
+import { Port, PORT_RADIUS_PX, PortId, ShapePort } from '../ports/Port'
 import {
 	computeNodeOutput,
 	getNodeBodyHeightPx,

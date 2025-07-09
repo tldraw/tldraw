@@ -1,10 +1,11 @@
 import { createShapeId, StateNode, TLPointerEventInfo, TLShapeId } from 'tldraw'
-import { InsertComponentDialog } from '../components/InsertComponentDialog'
 import { createOrUpdateConnectionBinding } from '../connection/ConnectionBindingUtil'
+import { ConnectionShape } from '../connection/ConnectionShapeUtil.tsx'
 import { getNextConnectionIndex } from '../connection/keepConnectionsAtBottom'
-import { getNodePortConnections, getNodePorts } from '../nodes/NodeShapeUtil'
-import { NodeType } from '../nodes/nodeTypes.tsx'
-import { PortId } from './portState'
+import { getNodePortConnections } from '../nodes/NodeShapeUtil'
+import { NODE_HEADER_HEIGHT_PX, NODE_PORT_OFFSET_Y_PX } from '../nodes/nodeTypes'
+import { PortId } from '../ports/Port'
+import { onCanvasComponentPickerState } from '../state.tsx'
 
 interface PointingPortInfo {
 	shapeId: TLShapeId
@@ -13,59 +14,59 @@ interface PointingPortInfo {
 }
 
 // Helper function to create a node selection dialog for click-to-create
-function createNodeSelectionDialogForClick(
-	sourceShapeId: TLShapeId,
-	sourcePortId: PortId,
-	nodePosition: { x: number; y: number },
-	editor: any
-) {
-	return function NodeSelectionDialog({ onClose }: { onClose: () => void }) {
-		const handleNodeSelected = (nodeType: NodeType) => {
-			const newNodeId = createShapeId()
-			const newConnectionId = createShapeId()
+// function createNodeSelectionDialogForClick(
+// 	sourceShapeId: TLShapeId,
+// 	sourcePortId: PortId,
+// 	nodePosition: { x: number; y: number },
+// 	editor: any
+// ) {
+// 	return function NodeSelectionDialog({ onClose }: { onClose: () => void }) {
+// 		const handleNodeSelected = (nodeType: NodeType) => {
+// 			const newNodeId = createShapeId()
+// 			const newConnectionId = createShapeId()
 
-			// Create the new node with selected type
-			editor.createShape({
-				type: 'node',
-				id: newNodeId,
-				x: nodePosition.x,
-				y: nodePosition.y,
-				props: {
-					node: nodeType,
-				},
-			})
+// 			// Create the new node with selected type
+// 			editor.createShape({
+// 				type: 'node',
+// 				id: newNodeId,
+// 				x: nodePosition.x,
+// 				y: nodePosition.y,
+// 				props: {
+// 					node: nodeType,
+// 				},
+// 			})
 
-			// Get ports for the newly created node
-			const ports = getNodePorts(editor, newNodeId)
-			const firstInputPort = Object.values(ports).find((p: any) => p.terminal === 'end')
+// 			// Get ports for the newly created node
+// 			const ports = getNodePorts(editor, newNodeId)
+// 			const firstInputPort = Object.values(ports).find((p: any) => p.terminal === 'end')
 
-			if (firstInputPort) {
-				// Create the connection shape
-				editor.createShape({
-					type: 'connection',
-					id: newConnectionId,
-					x: nodePosition.x + 100,
-					y: nodePosition.y,
-					index: getNextConnectionIndex(editor),
-				})
+// 			if (firstInputPort) {
+// 				// Create the connection shape
+// 				editor.createShape({
+// 					type: 'connection',
+// 					id: newConnectionId,
+// 					x: nodePosition.x + 100,
+// 					y: nodePosition.y,
+// 					index: getNextConnectionIndex(editor),
+// 				})
 
-				// Create bindings for both ends of the connection
-				createOrUpdateConnectionBinding(editor, newConnectionId, sourceShapeId, {
-					portId: sourcePortId,
-					terminal: 'start',
-				})
-				createOrUpdateConnectionBinding(editor, newConnectionId, newNodeId, {
-					portId: (firstInputPort as any).id,
-					terminal: 'end',
-				})
-			}
+// 				// Create bindings for both ends of the connection
+// 				createOrUpdateConnectionBinding(editor, newConnectionId, sourceShapeId, {
+// 					portId: sourcePortId,
+// 					terminal: 'start',
+// 				})
+// 				createOrUpdateConnectionBinding(editor, newConnectionId, newNodeId, {
+// 					portId: (firstInputPort as any).id,
+// 					terminal: 'end',
+// 				})
+// 			}
 
-			onClose()
-		}
+// 			onClose()
+// 		}
 
-		return <InsertComponentDialog onClose={onClose} onNodeSelected={handleNodeSelected} />
-	}
-}
+// 		return <InsertComponentDialog onClose={onClose} onNodeSelected={handleNodeSelected} />
+// 	}
+// }
 
 export class PointingPort extends StateNode {
 	static override id = 'pointing_port'
@@ -146,28 +147,59 @@ export class PointingPort extends StateNode {
 		if (hasExistingConnection) return
 
 		// Get the global dialog helpers (we'll need to import this)
-		const dialogHelpersRef = (globalThis as any).dialogHelpersRef
-		if (!dialogHelpersRef) return
+		// const dialogHelpersRef = (globalThis as any).dialogHelpersRef
+		// if (!dialogHelpersRef) return
 
 		const bounds = this.editor.getShapePageBounds(this.info!.shapeId)
 		if (!bounds) return
 
 		// Calculate position for new node
-		const nodePosition = {
-			x: bounds.right + 100,
+		const targetPositionInPageSpace = {
+			x: bounds.right + 60,
 			y: bounds.top,
 		}
 
-		// Create dialog component with closure and show it
-		const DialogComponent = createNodeSelectionDialogForClick(
-			this.info!.shapeId,
-			this.info!.portId,
-			nodePosition,
-			this.editor
-		)
-
-		dialogHelpersRef.addDialog({
-			component: DialogComponent,
+		const connectionShapeId = createShapeId()
+		this.editor.createShape({
+			type: 'connection',
+			id: connectionShapeId,
+			x: bounds.right,
+			y: bounds.top,
+			index: getNextConnectionIndex(this.editor),
 		})
+
+		createOrUpdateConnectionBinding(this.editor, connectionShapeId, this.info!.shapeId, {
+			portId: this.info!.portId,
+			terminal: 'start',
+		})
+
+		const targetPositionInConnectionSpace = this.editor
+			.getPointInShapeSpace(connectionShapeId, targetPositionInPageSpace)
+			.addXY(0, NODE_HEADER_HEIGHT_PX + NODE_PORT_OFFSET_Y_PX)
+
+		this.editor.updateShape<ConnectionShape>({
+			id: connectionShapeId,
+			type: 'connection',
+			props: {
+				end: targetPositionInConnectionSpace.toJson(),
+			},
+		})
+
+		onCanvasComponentPickerState.set(this.editor, {
+			connectionShapeId,
+			terminal: 'end',
+		})
+
+		// Create dialog component with closure and show it
+		// const DialogComponent = createNodeSelectionDialogForClick(
+		// 	this.info!.shapeId,
+		// 	this.info!.portId,
+		// 	nodePosition,
+		// 	this.editor
+		// )
+
+		// dialogHelpersRef.addDialog({
+		// 	component: DialogComponent,
+		// })
 	}
 }

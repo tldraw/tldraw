@@ -1,5 +1,4 @@
 import {
-	createShapeId,
 	DefaultToolbar,
 	DefaultToolbarContent,
 	Editor,
@@ -12,23 +11,19 @@ import {
 import { DraggingHandle } from 'tldraw/src/lib/tools/SelectTool/childStates/DraggingHandle'
 import { InsertComponentDialog } from './components/InsertComponentDialog'
 import { InsertComponentPanel } from './components/InsertComponentPanel'
-import {
-	ConnectionBindingUtil,
-	createOrUpdateConnectionBinding,
-	getConnectionBindings,
-} from './connection/ConnectionBindingUtil'
+import { OnCanvasComponentPicker } from './components/OnCanvasComponentPicker.tsx'
+import { ConnectionBindingUtil, getConnectionBindings } from './connection/ConnectionBindingUtil'
 import { ConnectionShape, ConnectionShapeUtil } from './connection/ConnectionShapeUtil'
 import { keepConnectionsAtBottom } from './connection/keepConnectionsAtBottom'
-import { getNodePorts, NodeShapeUtil } from './nodes/NodeShapeUtil'
-import { NodeType } from './nodes/nodeTypes.tsx'
+import { NodeShapeUtil } from './nodes/NodeShapeUtil'
 import { PointingPort } from './ports/PointingPort'
-import { updatePortState } from './ports/portState'
+import { onCanvasComponentPickerState, updatePortState } from './state.tsx'
 
 const shapeUtils = [NodeShapeUtil, ConnectionShapeUtil]
 const bindingUtils = [ConnectionBindingUtil]
 
 // Ok, yes totally cheating here.
-let dialogHelpersRef: any = null
+// let dialogHelpersRef: any = null
 
 const uiOverrides: TLUiOverrides = {
 	tools(_editor, tools, helpers) {
@@ -42,8 +37,8 @@ const uiOverrides: TLUiOverrides = {
 				})
 			},
 		}
-		dialogHelpersRef = helpers
-		;(globalThis as any).dialogHelpersRef = helpers
+		// dialogHelpersRef = helpers
+		// ;(globalThis as any).dialogHelpersRef = helpers
 
 		return {
 			...tools,
@@ -61,8 +56,8 @@ const uiOverrides: TLUiOverrides = {
 				})
 			},
 		}
-		dialogHelpersRef = helpers
-		;(globalThis as any).dialogHelpersRef = helpers
+		// dialogHelpersRef = helpers
+		// ;(globalThis as any).dialogHelpersRef = helpers
 
 		return {
 			...actions,
@@ -72,9 +67,12 @@ const uiOverrides: TLUiOverrides = {
 }
 
 const components: TLComponents = {
-	InFrontOfTheCanvas: () => {
-		return <InsertComponentPanel />
-	},
+	InFrontOfTheCanvas: () => (
+		<>
+			<OnCanvasComponentPicker />
+			<InsertComponentPanel />
+		</>
+	),
 	Toolbar: () => {
 		const isReadonly = useReadonly()
 		return (
@@ -132,86 +130,108 @@ function draggingHandleOverrides(editor: Editor) {
 	draggingHandle.onPointerUp = function (...args) {
 		try {
 			const info = this.info!
-			const shape = this.editor.getShape(this.shapeId)
-			if (!shape || !editor.isShapeOfType<ConnectionShape>(shape, 'connection')) return
+			const connection = this.editor.getShape(this.shapeId)
+			if (!connection || !editor.isShapeOfType<ConnectionShape>(connection, 'connection')) return
 
-			// if we're creating a connection shape by dragging from an output port...
-			if (!info.isCreating || info.handle.id !== 'end') return
+			const draggingTerminal = info.handle.id as 'start' | 'end'
 
-			// ...and we haven't successfully connected to an existing node...
-			const bindings = getConnectionBindings(editor, shape)
-			if (bindings.end) return
+			const bindings = getConnectionBindings(editor, connection)
+			if (bindings[draggingTerminal]) {
+				// we successfully connected the shape, so we're done!
+				return
+			}
+
+			if (info.isCreating && draggingTerminal === 'end') {
+				// if we were creating a new connection and didn't attach it to anything, open the
+				// component picker at the end of this connection.
+				editor.selectNone()
+				onCanvasComponentPickerState.set(editor, {
+					connectionShapeId: connection.id,
+					terminal: draggingTerminal,
+				})
+			} else {
+				// if we're not creating a new connection and we just let go, there must be
+				// bindings. If not, let's interpret this as the user disconnecting the shape.
+				if (!bindings.start || !bindings.end) {
+					editor.deleteShapes([connection.id])
+				}
+			}
+
+			// if we're here, it's because we're
 
 			// Get handle position for node placement
-			const transform = editor.getShapePageTransform(shape.id)
-			const handle = editor.getShapeHandles(shape.id)!.find((h) => h.id === info.handle.id)
-			if (!handle) return
+			// const transform = editor.getShapePageTransform(shape.id)
+			// const handle = editor.getShapeHandles(shape.id)!.find((h) => h.id === info.handle.id)
+			// if (!handle) return
 
-			const handlePagePosition = transform.applyToPoint(handle)
+			// const handlePagePosition = transform.applyToPoint(handle)
 
 			// Create dialog component with closure and show it
-			if (dialogHelpersRef) {
-				const DialogComponent = createNodeSelectionDialog(shape, handlePagePosition, editor)
-				dialogHelpersRef.addDialog({
-					component: DialogComponent,
-					onClose: () => {
-						updatePortState(editor, { hintingPort: null })
 
-						if (editor.isShapeOfType<ConnectionShape>(shape, 'connection')) {
-							const bindings = getConnectionBindings(editor, shape)
-							if (!bindings.start || !bindings.end) {
-								editor.deleteShapes([shape.id])
-							}
-						}
-					},
-				})
-			}
+			// if (dialogHelpersRef) {
+			// 	const DialogComponent = createNodeSelectionDialog(shape, handlePagePosition, editor)
+			// 	dialogHelpersRef.addDialog({
+			// 		component: DialogComponent,
+			// 		onClose: () => {
+			// 			updatePortState(editor, { hintingPort: null })
+
+			// 			if (editor.isShapeOfType<ConnectionShape>(shape, 'connection')) {
+			// 				const bindings = getConnectionBindings(editor, shape)
+			// 				if (!bindings.start || !bindings.end) {
+			// 					editor.deleteShapes([shape.id])
+			// 				}
+			// 			}
+			// 		},
+			// 	})
+			// }
 		} finally {
 			originalOnPointerUp?.apply(this, args)
+
+			updatePortState(editor, { hintingPort: null })
 		}
 	}
 }
 
 // Helper function to create a node selection dialog with closure
-function createNodeSelectionDialog(
-	shape: ConnectionShape,
-	handlePosition: { x: number; y: number },
-	editor: Editor
-) {
-	return function NodeSelectionDialog({ onClose }: { onClose: () => void }) {
-		const handleNodeSelected = (nodeType: NodeType) => {
-			const newNodeId = createShapeId()
-			editor.createShape({
-				type: 'node',
-				id: newNodeId,
-				x: 0,
-				y: 0,
-				props: {
-					node: nodeType,
-				},
-			})
+// function createNodeSelectionDialog(
+// 	shape: ConnectionShape,
+// 	handlePosition: { x: number; y: number },
+// 	editor: Editor
+// ) {
+// 	return function NodeSelectionDialog({ onClose }: { onClose: () => void }) {
+// 		const handleNodeSelected = (nodeType: NodeType) => {
+// 			const newNodeId = createShapeId()
+// 			editor.createShape({
+// 				type: 'node',
+// 				id: newNodeId,
+// 				x: 0,
+// 				y: 0,
+// 				props: {
+// 					node: nodeType,
+// 				},
+// 			})
 
-			const ports = getNodePorts(editor, newNodeId)
-			const firstInputPort = Object.values(ports).find((p: any) => p.terminal === 'end')
-			if (firstInputPort) {
-				editor.updateShape({
-					id: newNodeId,
-					type: 'node',
-					x: handlePosition.x - (firstInputPort as any).x,
-					y: handlePosition.y - (firstInputPort as any).y,
-				})
+// 			const ports = getNodePorts(editor, newNodeId)
+// 			const firstInputPort = Object.values(ports).find((p: any) => p.terminal === 'end')
+// 			if (firstInputPort) {
+// 				editor.updateShape({
+// 					id: newNodeId,
+// 					type: 'node',
+// 					x: handlePosition.x - (firstInputPort as any).x,
+// 					y: handlePosition.y - (firstInputPort as any).y,
+// 				})
 
-				createOrUpdateConnectionBinding(editor, shape, newNodeId, {
-					portId: (firstInputPort as any).id,
-					terminal: 'end',
-				})
-			}
+// 				createOrUpdateConnectionBinding(editor, shape, newNodeId, {
+// 					portId: (firstInputPort as any).id,
+// 					terminal: 'end',
+// 				})
+// 			}
 
-			onClose()
-		}
+// 			onClose()
+// 		}
 
-		return <InsertComponentDialog onClose={onClose} onNodeSelected={handleNodeSelected} />
-	}
-}
+// 		return <InsertComponentDialog onClose={onClose} onNodeSelected={handleNodeSelected} />
+// 	}
+// }
 
 export default App
