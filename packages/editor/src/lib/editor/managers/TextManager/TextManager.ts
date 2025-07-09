@@ -1,4 +1,5 @@
 import { BoxModel, TLDefaultHorizontalAlignStyle } from '@tldraw/tlschema'
+import { objectMapKeys } from '@tldraw/utils'
 import { Editor } from '../../Editor'
 
 const fixNewLines = /\r?\n|\r/g
@@ -60,10 +61,18 @@ export interface TLMeasureTextSpanOpts {
 
 const spaceCharacterRegex = /\s/
 
+const initialDefaultStyles = Object.freeze({
+	'overflow-wrap': 'break-word',
+	'word-break': 'auto',
+	width: null,
+	height: null,
+	'max-width': null,
+	'min-width': null,
+})
+
 /** @public */
 export class TextManager {
 	private elm: HTMLDivElement
-	private defaultStyles: Record<string, string | null>
 
 	constructor(public editor: Editor) {
 		const elm = document.createElement('div')
@@ -73,29 +82,32 @@ export class TextManager {
 		elm.tabIndex = -1
 		this.editor.getContainer().appendChild(elm)
 
-		// we need to save the default styles so that we can restore them when we're done
-		// these must be the css names, not the js names for the styles
-		this.defaultStyles = {
-			'overflow-wrap': 'break-word',
-			'word-break': 'auto',
-			width: null,
-			height: null,
-			'max-width': null,
-			'min-width': null,
-		}
-
 		this.elm = elm
+
+		for (const key of objectMapKeys(initialDefaultStyles)) {
+			elm.style.setProperty(key, initialDefaultStyles[key])
+		}
+	}
+
+	private setElementStyles(styles: Record<string, string | undefined>) {
+		const stylesToReinstate = {} as any
+		for (const key of objectMapKeys(styles)) {
+			if (typeof styles[key] === 'string') {
+				const oldValue = this.elm.style.getPropertyValue(key)
+				if (oldValue === styles[key]) continue
+				stylesToReinstate[key] = oldValue
+				this.elm.style.setProperty(key, styles[key])
+			}
+		}
+		return () => {
+			for (const key of objectMapKeys(stylesToReinstate)) {
+				this.elm.style.setProperty(key, stylesToReinstate[key])
+			}
+		}
 	}
 
 	dispose() {
 		return this.elm.remove()
-	}
-
-	private resetElmStyles() {
-		const { elm, defaultStyles } = this
-		for (const key in defaultStyles) {
-			elm.style.setProperty(key, defaultStyles[key])
-		}
 	}
 
 	measureText(textToMeasure: string, opts: TLMeasureTextOpts): BoxModel & { scrollWidth: number } {
@@ -107,54 +119,36 @@ export class TextManager {
 	measureHtml(html: string, opts: TLMeasureTextOpts): BoxModel & { scrollWidth: number } {
 		const { elm } = this
 
-		if (opts.otherStyles) {
-			for (const key in opts.otherStyles) {
-				if (!this.defaultStyles[key]) {
-					// we need to save the original style so that we can restore it when we're done
-					this.defaultStyles[key] = elm.style.getPropertyValue(key)
-				}
+		const newStyles = {
+			'font-family': opts.fontFamily,
+			'font-style': opts.fontStyle,
+			'font-weight': opts.fontWeight,
+			'font-size': opts.fontSize + 'px',
+			'line-height': opts.lineHeight.toString(),
+			padding: opts.padding,
+			'max-width': opts.maxWidth ? opts.maxWidth + 'px' : undefined,
+			'min-width': opts.minWidth ? opts.minWidth + 'px' : undefined,
+			'overflow-wrap': opts.disableOverflowWrapBreaking ? 'normal' : undefined,
+			...opts.otherStyles,
+		}
+
+		const restoreStyles = this.setElementStyles(newStyles)
+
+		try {
+			elm.innerHTML = html
+
+			const scrollWidth = opts.measureScrollWidth ? elm.scrollWidth : 0
+			const rect = elm.getBoundingClientRect()
+
+			return {
+				x: 0,
+				y: 0,
+				w: rect.width,
+				h: rect.height,
+				scrollWidth,
 			}
-		}
-
-		elm.innerHTML = html
-
-		// Apply the default styles to the element (for all styles here or that were ever seen in opts.otherStyles)
-		this.resetElmStyles()
-
-		elm.style.setProperty('font-family', opts.fontFamily)
-		elm.style.setProperty('font-style', opts.fontStyle)
-		elm.style.setProperty('font-weight', opts.fontWeight)
-		elm.style.setProperty('font-size', opts.fontSize + 'px')
-		elm.style.setProperty('line-height', opts.lineHeight.toString())
-		elm.style.setProperty('padding', opts.padding)
-
-		if (opts.maxWidth) {
-			elm.style.setProperty('max-width', opts.maxWidth + 'px')
-		}
-
-		if (opts.minWidth) {
-			elm.style.setProperty('min-width', opts.minWidth + 'px')
-		}
-
-		if (opts.disableOverflowWrapBreaking) {
-			elm.style.setProperty('overflow-wrap', 'normal')
-		}
-
-		if (opts.otherStyles) {
-			for (const [key, value] of Object.entries(opts.otherStyles)) {
-				elm.style.setProperty(key, value)
-			}
-		}
-
-		const scrollWidth = opts.measureScrollWidth ? elm.scrollWidth : 0
-		const rect = elm.getBoundingClientRect()
-
-		return {
-			x: 0,
-			y: 0,
-			w: rect.width,
-			h: rect.height,
-			scrollWidth,
+		} finally {
+			restoreStyles()
 		}
 	}
 
@@ -274,82 +268,68 @@ export class TextManager {
 
 		const { elm } = this
 
-		if (opts.otherStyles) {
-			for (const key in opts.otherStyles) {
-				if (!this.defaultStyles[key]) {
-					// we need to save the original style so that we can restore it when we're done
-					this.defaultStyles[key] = elm.style.getPropertyValue(key)
-				}
-			}
-		}
-
-		this.resetElmStyles()
-
-		elm.style.setProperty('font-family', opts.fontFamily)
-		elm.style.setProperty('font-style', opts.fontStyle)
-		elm.style.setProperty('font-weight', opts.fontWeight)
-		elm.style.setProperty('font-size', opts.fontSize + 'px')
-		elm.style.setProperty('line-height', opts.lineHeight.toString())
-
-		const elementWidth = Math.ceil(opts.width - opts.padding * 2)
-		elm.style.setProperty('width', `${elementWidth}px`)
-		elm.style.setProperty('height', 'min-content')
-		elm.style.setProperty('text-align', textAlignmentsForLtr[opts.textAlign])
-
 		const shouldTruncateToFirstLine =
 			opts.overflow === 'truncate-ellipsis' || opts.overflow === 'truncate-clip'
-
-		if (shouldTruncateToFirstLine) {
-			elm.style.setProperty('overflow-wrap', 'anywhere')
-			elm.style.setProperty('word-break', 'break-all')
+		const elementWidth = Math.ceil(opts.width - opts.padding * 2)
+		const newStyles = {
+			'font-family': opts.fontFamily,
+			'font-style': opts.fontStyle,
+			'font-weight': opts.fontWeight,
+			'font-size': opts.fontSize + 'px',
+			'line-height': opts.lineHeight.toString(),
+			width: `${elementWidth}px`,
+			height: 'min-content',
+			'text-align': textAlignmentsForLtr[opts.textAlign],
+			'overflow-wrap': shouldTruncateToFirstLine ? 'anywhere' : undefined,
+			'word-break': shouldTruncateToFirstLine ? 'break-all' : undefined,
+			...opts.otherStyles,
 		}
+		const restoreStyles = this.setElementStyles(newStyles)
 
-		if (opts.otherStyles) {
-			for (const [key, value] of Object.entries(opts.otherStyles)) {
-				elm.style.setProperty(key, value)
-			}
-		}
+		try {
+			const normalizedText = normalizeTextForDom(textToMeasure)
 
-		const normalizedText = normalizeTextForDom(textToMeasure)
-
-		// Render the text into the measurement element:
-		elm.textContent = normalizedText
-
-		// actually measure the text:
-		const { spans, didTruncate } = this.measureElementTextNodeSpans(elm, {
-			shouldTruncateToFirstLine,
-		})
-
-		if (opts.overflow === 'truncate-ellipsis' && didTruncate) {
-			// we need to measure the ellipsis to know how much space it takes up
-			elm.textContent = '…'
-			const ellipsisWidth = Math.ceil(this.measureElementTextNodeSpans(elm).spans[0].box.w)
-
-			// then, we need to subtract that space from the width we have and measure again:
-			elm.style.setProperty('width', `${elementWidth - ellipsisWidth}px`)
+			// Render the text into the measurement element:
 			elm.textContent = normalizedText
-			const truncatedSpans = this.measureElementTextNodeSpans(elm, {
-				shouldTruncateToFirstLine: true,
-			}).spans
 
-			// Finally, we add in our ellipsis at the end of the last span. We
-			// have to do this after measuring, not before, because adding the
-			// ellipsis changes how whitespace might be getting collapsed by the
-			// browser.
-			const lastSpan = truncatedSpans[truncatedSpans.length - 1]!
-			truncatedSpans.push({
-				text: '…',
-				box: {
-					x: Math.min(lastSpan.box.x + lastSpan.box.w, opts.width - opts.padding - ellipsisWidth),
-					y: lastSpan.box.y,
-					w: ellipsisWidth,
-					h: lastSpan.box.h,
-				},
+			// actually measure the text:
+			const { spans, didTruncate } = this.measureElementTextNodeSpans(elm, {
+				shouldTruncateToFirstLine,
 			})
 
-			return truncatedSpans
-		}
+			if (opts.overflow === 'truncate-ellipsis' && didTruncate) {
+				// we need to measure the ellipsis to know how much space it takes up
+				elm.textContent = '…'
+				const ellipsisWidth = Math.ceil(this.measureElementTextNodeSpans(elm).spans[0].box.w)
 
-		return spans
+				// then, we need to subtract that space from the width we have and measure again:
+				elm.style.setProperty('width', `${elementWidth - ellipsisWidth}px`)
+				elm.textContent = normalizedText
+				const truncatedSpans = this.measureElementTextNodeSpans(elm, {
+					shouldTruncateToFirstLine: true,
+				}).spans
+
+				// Finally, we add in our ellipsis at the end of the last span. We
+				// have to do this after measuring, not before, because adding the
+				// ellipsis changes how whitespace might be getting collapsed by the
+				// browser.
+				const lastSpan = truncatedSpans[truncatedSpans.length - 1]!
+				truncatedSpans.push({
+					text: '…',
+					box: {
+						x: Math.min(lastSpan.box.x + lastSpan.box.w, opts.width - opts.padding - ellipsisWidth),
+						y: lastSpan.box.y,
+						w: ellipsisWidth,
+						h: lastSpan.box.h,
+					},
+				})
+
+				return truncatedSpans
+			}
+
+			return spans
+		} finally {
+			restoreStyles()
+		}
 	}
 }

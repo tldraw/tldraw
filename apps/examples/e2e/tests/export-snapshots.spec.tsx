@@ -554,6 +554,25 @@ const snapshots: Snapshots = {
 				</TL.frame>
 			),
 		},
+		'#6391': {
+			'Circles at 45deg from each other': (
+				<>
+					<TL.geo geo="ellipse" ref="a" w={40} h={40} />
+					<TL.geo geo="ellipse" ref="b" w={40} h={40} x={80} y={80} />
+					<TL.arrow>
+						<TL.binding.arrow to="a" terminal="start" />
+						<TL.binding.arrow to="b" terminal="end" />
+					</TL.arrow>
+
+					<TL.geo geo="ellipse" ref="c" w={40} h={40} x={200} />
+					<TL.geo geo="ellipse" ref="d" w={40} h={40} x={280} y={80} />
+					<TL.arrow bend={10}>
+						<TL.binding.arrow to="c" terminal="start" />
+						<TL.binding.arrow to="d" terminal="end" />
+					</TL.arrow>
+				</>
+			),
+		},
 	},
 	'Weird elbow arrows': {
 		'Small segments, contained': {
