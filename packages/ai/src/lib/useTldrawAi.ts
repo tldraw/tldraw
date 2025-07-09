@@ -31,7 +31,9 @@ export interface TldrawAiOptions extends Omit<TldrawAiModuleOptions, 'editor'> {
 }
 
 /** @public */
-export type TldrawAiPromptOptions = string | { message: TLAiPrompt['message']; stream?: boolean }
+export type TldrawAiPromptOptions =
+	| string
+	| { message: TLAiPrompt['message']; stream?: boolean; meta?: TLAiPrompt['meta'] }
 
 /** @public */
 export function useTldrawAi(opts: TldrawAiOptions) {
@@ -68,7 +70,7 @@ export function useTldrawAi(opts: TldrawAiOptions) {
 
 			// Pull out options, keeping in mind that the argument may be just a string
 			const opts = typeof message === 'string' ? { message } : message
-			const { stream = false } = opts
+			const { stream = false, meta = {} } = opts
 
 			const markId = 'generating_' + uniqueId()
 
@@ -81,6 +83,7 @@ export function useTldrawAi(opts: TldrawAiOptions) {
 				ai.generate(message).then(async ({ handleChange, prompt }) => {
 					const serializedPrompt: TLAiSerializedPrompt = {
 						...prompt,
+						meta,
 						promptBounds: prompt.promptBounds.toJson(),
 						contextBounds: prompt.contextBounds.toJson(),
 					}

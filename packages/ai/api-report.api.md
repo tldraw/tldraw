@@ -182,6 +182,7 @@ export interface TldrawAiOptions extends Omit<TldrawAiModuleOptions, 'editor'> {
 // @public (undocumented)
 export type TldrawAiPromptOptions = {
     message: TLAiPrompt['message'];
+    meta?: TLAiPrompt['meta'];
     stream?: boolean;
 } | string;
 

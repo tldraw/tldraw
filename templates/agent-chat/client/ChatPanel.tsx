@@ -52,7 +52,11 @@ export function ChatPanel({ editor }: { editor: Editor }) {
 					{ type: 'agent-action', action: 'editing', status: 'progress' },
 				])
 
-				const { promise, cancel } = ai.prompt({ message: value, stream: true })
+				const { promise, cancel } = ai.prompt({
+					message: value,
+					stream: true,
+					meta: { modelName: 'claude-4-sonnet' },
+				})
 
 				rCancelFn.current = cancel
 				setIsGenerating(true)

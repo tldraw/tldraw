@@ -1,6 +1,8 @@
+import { AnthropicProvider, createAnthropic } from '@ai-sdk/anthropic'
 import { createOpenAI, OpenAIProvider } from '@ai-sdk/openai'
 import { asMessage, TLAiChange, TLAiResult, TLAiSerializedPrompt } from '@tldraw/ai'
 import { CoreMessage, generateObject, LanguageModel, streamObject, UserContent } from 'ai'
+import { getTLAgentModelDefinition } from '../../models'
 import { getSimpleContentFromCanvasContent } from '../../simple/getSimpleContentFromCanvasContent'
 import { getTldrawAiChangesFromSimpleEvents } from '../../simple/getTldrawAiChangesFromSimpleEvents'
 import { IModelResponse, ISimpleEvent, ModelResponse, SimpleEvent } from '../../simple/schema'
@@ -10,22 +12,26 @@ import { Environment } from '../../types'
 
 export class VercelAiService extends TldrawAiBaseService {
 	openai: OpenAIProvider
+	anthropic: AnthropicProvider
 
 	constructor(env: Environment) {
 		super(env)
-		this.openai = createOpenAI({
-			apiKey: env.OPENAI_API_KEY,
-		})
+		this.openai = createOpenAI({ apiKey: env.OPENAI_API_KEY })
+		this.anthropic = createAnthropic({ apiKey: env.ANTHROPIC_API_KEY })
 	}
 
 	async generate(prompt: TLAiSerializedPrompt): Promise<TLAiResult> {
-		const events = await generateEventsVercel(this.openai('gpt-4o'), prompt)
+		const modelDefinition = getTLAgentModelDefinition(prompt.meta.modelName)
+		const provider = modelDefinition.provider
+		const events = await generateEventsVercel(this[provider](modelDefinition.id), prompt)
 		const changes = events.map((event) => getTldrawAiChangesFromSimpleEvents(prompt, event)).flat()
 		return { changes }
 	}
 
 	async *stream(prompt: TLAiSerializedPrompt): AsyncGenerator<TLAiChange> {
-		for await (const event of streamEventsVercel(this.openai('gpt-4o'), prompt)) {
+		const modelDefinition = getTLAgentModelDefinition(prompt.meta.modelName)
+		const provider = modelDefinition.provider
+		for await (const event of streamEventsVercel(this[provider](modelDefinition.id), prompt)) {
 			for (const change of getTldrawAiChangesFromSimpleEvents(prompt, event)) {
 				yield change
 			}

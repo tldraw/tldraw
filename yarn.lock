@@ -41,6 +41,18 @@ __metadata:
   languageName: node
   linkType: hard
 
+"@ai-sdk/anthropic@npm:^1.2.12":
+  version: 1.2.12
+  resolution: "@ai-sdk/anthropic@npm:1.2.12"
+  dependencies:
+    "@ai-sdk/provider": "npm:1.1.3"
+    "@ai-sdk/provider-utils": "npm:2.2.8"
+  peerDependencies:
+    zod: ^3.0.0
+  checksum: 10/ee09f00328c88954fba8d00795f6c379091f95b7717bb90292acf32f41b072b2c89b178c1c18dfc23fcec7532e04fcd13233b9a813ce4881e0a16cae20a878c8
+  languageName: node
+  linkType: hard
+
 "@ai-sdk/openai@npm:^1.3.23":
   version: 1.3.23
   resolution: "@ai-sdk/openai@npm:1.3.23"
@@ -27773,6 +27785,7 @@ __metadata:
   version: 0.0.0-use.local
   resolution: "tldraw-agent-chat@workspace:templates/agent-chat"
   dependencies:
+    "@ai-sdk/anthropic": "npm:^1.2.12"
     "@ai-sdk/openai": "npm:^1.3.23"
     "@cloudflare/vite-plugin": "npm:^1.9.0"
     "@cloudflare/workers-types": "npm:^4.20250703.0"
