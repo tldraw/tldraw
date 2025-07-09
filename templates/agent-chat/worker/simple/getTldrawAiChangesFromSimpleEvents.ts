@@ -18,11 +18,13 @@ import {
 	toRichText,
 } from 'tldraw'
 import {
+	ISimpleColor,
 	ISimpleCreateEvent,
 	ISimpleDeleteEvent,
 	ISimpleEvent,
 	ISimpleFill,
 	ISimpleMoveEvent,
+	SimpleColor,
 } from './schema'
 
 function toRichTextIfNeeded(text: string | { type: string; content: any[] }): TLRichText {
@@ -87,7 +89,7 @@ function getTldrawAiChangesFromSimpleCreateOrUpdateEvent(
 					y: shape.y,
 					props: {
 						richText: toRichTextIfNeeded(shape.text ?? ''),
-						color: shape.color ?? 'black',
+						color: getTldrawColorFromFuzzyColor(shape.color),
 						textAlign: shape.textAlign ?? 'middle',
 					},
 				},
@@ -121,7 +123,7 @@ function getTldrawAiChangesFromSimpleCreateOrUpdateEvent(
 								y: shape.y2 - minY,
 							},
 						},
-						color: shape.color ?? 'black',
+						color: getTldrawColorFromFuzzyColor(shape.color),
 					},
 				},
 			} satisfies TLAiCreateShapeChange<TLLineShape> | TLAiUpdateShapeChange<TLLineShape>)
@@ -140,7 +142,7 @@ function getTldrawAiChangesFromSimpleCreateOrUpdateEvent(
 					x: 0,
 					y: 0,
 					props: {
-						color: shape.color ?? 'black',
+						color: getTldrawColorFromFuzzyColor(shape.color),
 						text: shape.text ?? '',
 						start: { x: x1, y: y1 },
 						end: { x: x2, y: y2 },
@@ -220,7 +222,7 @@ function getTldrawAiChangesFromSimpleCreateOrUpdateEvent(
 						geo: shape.type,
 						w: shape.width,
 						h: shape.height,
-						color: shape.color ?? 'black',
+						color: getTldrawColorFromFuzzyColor(shape.color),
 						fill: simpleFillToShapeFill(shape.fill ?? 'none'),
 						richText: toRichTextIfNeeded(shape.text ?? ''),
 					},
@@ -239,7 +241,7 @@ function getTldrawAiChangesFromSimpleCreateOrUpdateEvent(
 					x: shape.x,
 					y: shape.y,
 					props: {
-						color: shape.color ?? 'black',
+						color: getTldrawColorFromFuzzyColor(shape.color),
 						richText: toRichTextIfNeeded(shape.text ?? ''),
 					},
 				},
@@ -306,4 +308,21 @@ function getTldrawAiChangesFromSimpleMoveEvent(
 			},
 		},
 	]
+}
+
+function getTldrawColorFromFuzzyColor(simpleColor: any): ISimpleColor {
+	if (SimpleColor.safeParse(simpleColor).success) {
+		return simpleColor as ISimpleColor
+	}
+
+	switch (simpleColor) {
+		case 'pink': {
+			return 'light-violet'
+		}
+		case 'light-pink': {
+			return 'light-violet'
+		}
+	}
+
+	return 'black'
 }

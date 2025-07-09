@@ -1,7 +1,7 @@
 import { zodResponseFormat } from 'openai/helpers/zod'
 import { z } from 'zod'
 
-const SimpleColor = z.enum([
+export const SimpleColor = z.enum([
 	'red',
 	'light-red',
 	'green',

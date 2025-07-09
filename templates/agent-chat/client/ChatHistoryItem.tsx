@@ -33,9 +33,7 @@ export function AgentChangeHistoryItem({ item }: { item: AgentChangeHistoryItem 
 
 export function AgentActionHistoryItem({ item }: { item: AgentActionHistoryItem }) {
 	const actionDefinition = ACTION_HISTORY_ITEM_DEFINITIONS[item.action]
-
 	const icon = actionDefinition.icon
-
 	const message = actionDefinition.message[item.status]
 
 	return (
