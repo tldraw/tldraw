@@ -56,7 +56,17 @@ async function* streamEventsVercel(
 
 	for await (const partialObject of partialObjectStream) {
 		if (!Array.isArray(partialObject.events)) continue
-		if (partialObject.events.length === 0) continue
+		if (partialObject.events.length === 0) {
+			console.log(partialObject)
+			continue
+		}
+
+		if (cursor === 0) {
+			// Hacky way to see the plan in the meantime
+			// Will be removed once we have a dedicated plan step or event
+			// @ts-expect-error
+			yield { type: 'plan', text: partialObject.long_description_of_strategy } as ISimpleEvent
+		}
 
 		const event = partialObject.events[cursor - 1] as ISimpleEvent
 		if (partialObject.events.length > cursor) {

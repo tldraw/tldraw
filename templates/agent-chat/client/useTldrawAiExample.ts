@@ -19,10 +19,22 @@ export function useTldrawAiExample(editor?: Editor) {
 
 		switch (change.type) {
 			case 'custom': {
-				setHistoryItems((prev) => [
-					...prev,
-					{ type: 'agent-action', action: 'thinking', status: 'done', info: change.text },
-				])
+				switch (change.action) {
+					case 'think': {
+						setHistoryItems((prev) => [
+							...prev,
+							{ type: 'agent-action', action: 'thinking', status: 'done', info: change.text },
+						])
+						return
+					}
+					case 'plan': {
+						setHistoryItems((prev) => [
+							...prev,
+							{ type: 'agent-action', action: 'planning', status: 'done', info: change.text },
+						])
+						return
+					}
+				}
 				return
 			}
 			case 'createShape': {

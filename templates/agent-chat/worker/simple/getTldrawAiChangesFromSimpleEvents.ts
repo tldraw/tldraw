@@ -52,6 +52,10 @@ export function getTldrawAiChangesFromSimpleEvents(
 		case 'think': {
 			return [{ type: 'custom', action: 'think', text: event.text }]
 		}
+		// @ts-expect-error - placeholder until we have a dedicated plan step or event
+		case 'plan': {
+			return [{ type: 'custom', action: 'plan', text: event['text'] }]
+		}
 	}
 }
 

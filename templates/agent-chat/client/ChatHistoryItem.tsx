@@ -56,7 +56,7 @@ export interface AgentActionDefinition {
 
 export interface AgentActionHistoryItem {
 	type: 'agent-action'
-	action: 'thinking' | 'creating' | 'deleting' | 'updating'
+	action: 'thinking' | 'creating' | 'deleting' | 'updating' | 'planning'
 	status: 'progress' | 'done' | 'cancelled'
 	info: string
 }
@@ -71,6 +71,14 @@ export const ACTION_HISTORY_ITEM_DEFINITIONS: Record<
 			progress: 'Thinking: ',
 			done: 'Thought: ',
 			cancelled: 'Thought: ',
+		},
+	},
+	planning: {
+		icon: '🎯',
+		message: {
+			progress: 'Planning: ',
+			done: 'Plan: ',
+			cancelled: 'Planning cancelled: ',
 		},
 	},
 	creating: {
