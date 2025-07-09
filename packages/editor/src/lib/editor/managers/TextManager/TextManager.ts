@@ -89,17 +89,19 @@ export class TextManager {
 		}
 	}
 
-	private setCustomStyles(styles: Record<string, string | undefined>) {
-		const oldStyles = {} as any
+	private setElementStyles(styles: Record<string, string | undefined>) {
+		const stylesToReinstate = {} as any
 		for (const key of objectMapKeys(styles)) {
 			if (typeof styles[key] === 'string') {
-				oldStyles[key] = this.elm.style.getPropertyValue(key)
+				const oldValue = this.elm.style.getPropertyValue(key)
+				if (oldValue === styles[key]) continue
+				stylesToReinstate[key] = oldValue
 				this.elm.style.setProperty(key, styles[key])
 			}
 		}
 		return () => {
-			for (const key of objectMapKeys(oldStyles)) {
-				this.elm.style.setProperty(key, oldStyles[key])
+			for (const key of objectMapKeys(stylesToReinstate)) {
+				this.elm.style.setProperty(key, stylesToReinstate[key])
 			}
 		}
 	}
@@ -130,7 +132,7 @@ export class TextManager {
 			...opts.otherStyles,
 		}
 
-		const restoreStyles = this.setCustomStyles(newStyles)
+		const restoreStyles = this.setElementStyles(newStyles)
 
 		try {
 			elm.innerHTML = html
@@ -282,7 +284,7 @@ export class TextManager {
 			'word-break': shouldTruncateToFirstLine ? 'break-all' : undefined,
 			...opts.otherStyles,
 		}
-		const restoreStyles = this.setCustomStyles(newStyles)
+		const restoreStyles = this.setElementStyles(newStyles)
 
 		try {
 			const normalizedText = normalizeTextForDom(textToMeasure)
