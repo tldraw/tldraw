@@ -9,7 +9,7 @@ import {
 	TLShapeId,
 } from 'tldraw'
 import { getNodePorts, NodeShape } from '../nodes/NodeShapeUtil'
-import { PortId } from '../ports/portState'
+import { PortId } from '../ports/Port'
 import { ConnectionShape } from './ConnectionShapeUtil'
 
 export interface ConnectionBindingProps {

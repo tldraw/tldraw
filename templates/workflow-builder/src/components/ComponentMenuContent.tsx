@@ -147,7 +147,7 @@ export function ComponentMenuContent({
 					id: shapeId,
 					type: 'node',
 					props: {
-						node: nodeInfo.getDefaultProps() as NodeType,
+						node: nodeInfo.getDefault(),
 					},
 				}
 				editor.createShape(partial)
@@ -164,9 +164,9 @@ export function ComponentMenuContent({
 
 	return (
 		<TldrawUiMenuGroup id="math-operations">
-			{nodeTypes.map((nodeInfo, i) => (
+			{nodeTypes.map((nodeInfo) => (
 				<TldrawUiButton
-					key={nodeInfo.type + i}
+					key={nodeInfo.type}
 					type="menu"
 					style={{ justifyContent: 'space-between', gap: 16, cursor: 'grab' }}
 					onPointerDown={(e) => {
@@ -174,7 +174,7 @@ export function ComponentMenuContent({
 							// When used in dialog mode, just call the callback
 							e.preventDefault()
 							e.stopPropagation()
-							onNodeSelected(nodeInfo.getDefaultProps() as NodeType)
+							onNodeSelected(nodeInfo.getDefault())
 						} else {
 							// Original drag behavior
 							onPointerDown(e, nodeInfo)
