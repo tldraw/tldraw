@@ -142,6 +142,7 @@
 		"esbuild": "^0.25.0",
 		"mime": "^4.0.6",
 		"purgecss": "^5.0.0",
+		"react-flow-renderer": "^10.3.17",
 		"sst": "^3.10.13",
 		"svgo": "^3.3.2"
 	}
