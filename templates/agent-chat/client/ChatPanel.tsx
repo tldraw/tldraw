@@ -66,6 +66,9 @@ export function ChatPanel({ editor }: { editor: Editor }) {
 
 	return (
 		<div className="chat-panel">
+			<div className="chat-header">
+				<NewChatButton />
+			</div>
 			<ChatHistory items={historyItems} />
 			<div className="chat-input">
 				<form onSubmit={handleSubmit}>
@@ -92,5 +95,15 @@ export function ChatPanel({ editor }: { editor: Editor }) {
 				</form>
 			</div>
 		</div>
+	)
+}
+
+function NewChatButton() {
+	const [, setHistoryItems] = useChatHistory()
+
+	return (
+		<button className="new-chat-button" onClick={() => setHistoryItems([])}>
+			+
+		</button>
 	)
 }

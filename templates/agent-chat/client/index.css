@@ -28,7 +28,6 @@ body {
 	display: flex;
 	flex-direction: column;
 	height: 100vh;
-	border-left: 2px solid black;
 }
 
 .chat-history {
@@ -42,7 +41,6 @@ body {
 
 .chat-input {
 	padding: 8px;
-	border-top: 1px solid black;
 }
 
 .chat-input form {
@@ -108,4 +106,26 @@ body {
 	gap: 8px;
 	width: 100%;
 	justify-content: space-between;
+}
+
+.chat-header {
+	display: flex;
+	justify-content: flex-end;
+}
+
+.new-chat-button {
+	width: 32px;
+	height: 32px;
+	font-size: 20px;
+	align-self: flex-end;
+	appearance: none;
+	border: 0;
+	border-radius: 4px;
+	cursor: pointer;
+	background: none;
+	margin: 2px;
+}
+
+.new-chat-button:hover {
+	background: hsl(0, 0%, 90%);
 }
