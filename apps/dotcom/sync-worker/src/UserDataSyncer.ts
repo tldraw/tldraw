@@ -12,6 +12,7 @@ import {
 } from '@tldraw/dotcom-shared'
 import { react, transact } from '@tldraw/state'
 import { ExecutionQueue, assert, promiseWithResolve, sleep, uniqueId } from '@tldraw/utils'
+import { T } from '@tldraw/validate'
 import { createSentry } from '@tldraw/worker-shared'
 import { CompiledQuery, Kysely, sql } from 'kysely'
 import throttle from 'lodash.throttle'
@@ -23,6 +24,15 @@ import { Environment, TLUserDurableObjectEvent, getUserDoSnapshotKey } from './t
 import { getReplicator, getStatsDurableObjct } from './utils/durableObjects'
 import { retryOnConnectionFailure } from './utils/retryOnConnectionFailure'
 type PromiseWithResolve = ReturnType<typeof promiseWithResolve>
+
+// Type definition for user registration notification payload
+export const UserRegistrationNotificationSchema = T.object({
+	userId: T.string,
+	bootId: T.string,
+	topicSubscriptions: T.jsonValue as T.ObjectValidator<TopicSubscriptionTree>,
+})
+
+export type UserRegistrationNotification = T.TypeOf<typeof UserRegistrationNotificationSchema>
 
 export interface ZRowUpdateEvent {
 	type: 'row_update'
@@ -67,7 +77,7 @@ type BootState =
 			promise: PromiseWithResolve
 	  }
 	| {
-			type: 'connecting'
+			type: 'connecting' | 'connecting_hard'
 			bootId: string
 			bufferedEvents: Array<ZReplicationEvent>
 	  }
@@ -304,6 +314,26 @@ export class UserDataSyncer {
 								initialData[table].push(row)
 						}
 					}
+
+					// Extract topic subscriptions and send notification
+					const topicSubscriptions: TopicSubscriptionTree = {}
+					for (const file_state of initialData.file_state) {
+						topicSubscriptions[`file:${file_state.fileId}`] = 1
+					}
+
+					// Send notification to replicator to register user
+					const notificationPayload = {
+						userId: this.userId,
+						bootId: this.state.bootId,
+						topicSubscriptions,
+					}
+					this.log.debug('sending user registration notification', notificationPayload)
+
+					await tx.executeQuery(
+						CompiledQuery.raw(`SELECT pg_logical_emit_message(true, 'user_registration', $1)`, [
+							JSON.stringify(notificationPayload),
+						])
+					)
 				})
 			},
 			() => {
@@ -328,38 +358,26 @@ export class UserDataSyncer {
 		const bufferedEvents: ZReplicationEvent[] = []
 		this.state = {
 			type: 'connecting',
-			// preserve the promise so any awaiters do eventually get resolved
 			bootId: uniqueId(),
 			bufferedEvents,
 		}
 
 		if (hard) {
 			this.log.debug('hard boot, clearing store')
+			this.store.clearOptimisticUpdates()
 
 			const res = await this.loadInitialDataFromPostgres(signal)
 			if (signal.aborted) return
+			//ok
 
 			this.store.initialize(res.initialData, res.optimisticUpdates)
 
-			const topicSubscriptions: TopicSubscriptionTree = {}
-
-			for (const file_state of res.initialData.file_state) {
-				topicSubscriptions[`file:${file_state.fileId}`] = 1
-			}
-
-			const { sequenceId, sequenceNumber } = await getReplicator(this.env).registerUser({
-				userId: this.userId,
-				topicSubscriptions,
-				bootId: this.state.bootId,
-			})
-
-			if (signal.aborted) return
-
+			// User registration is now handled via PostgreSQL notification in loadInitialDataFromPostgres
+			// Wait a bit for the notification to be processed
 			this.state = {
-				type: 'connected',
+				type: 'connecting_hard',
 				bootId: this.state.bootId,
-				sequenceId,
-				lastSequenceNumber: sequenceNumber,
+				bufferedEvents,
 			}
 		} else {
 			const res = await this.loadInitialDataFromR2(signal)
@@ -392,10 +410,10 @@ export class UserDataSyncer {
 				sequenceId: res.sequenceId,
 				lastSequenceNumber: res.lastSequenceNumber,
 			}
-		}
 
-		for (const event of bufferedEvents) {
-			this.handleReplicationEvent(event)
+			for (const event of bufferedEvents) {
+				this.handleReplicationEvent(event)
+			}
 		}
 
 		const end = Date.now()
@@ -441,7 +459,7 @@ export class UserDataSyncer {
 
 		// ignore irrelevant events
 		if (!event.sequenceId.endsWith(this.state.bootId)) {
-			this.log.debug('ignoring irrelevant event', event)
+			this.log.debug('ignoring irrelevant event', event.sequenceId, this.state.bootId)
 			return
 		}
 
@@ -451,6 +469,18 @@ export class UserDataSyncer {
 			this.state.bufferedEvents.push(event)
 			return
 		}
+
+		if (this.state.type === 'connecting_hard') {
+			// connected now
+			this.state = {
+				type: 'connected',
+				bootId: this.state.bootId,
+				sequenceId: event.sequenceId,
+				lastSequenceNumber: event.sequenceNumber - 1,
+			}
+		}
+
+		assert(this.state.type === 'connected', 'state should be connected now')
 
 		if (this.state.sequenceId !== event.sequenceId) {
 			// the replicator has restarted, so we need to reboot

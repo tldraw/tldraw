@@ -59,6 +59,10 @@ export class OptimisticAppStore {
 		return this._optimisticStore.get()
 	}
 
+	clearOptimisticUpdates() {
+		this._optimisticStore.set([])
+	}
+
 	updateCommittedData(data: ZRowUpdate) {
 		this._gold_store.update((prev) => {
 			if (!prev) return prev

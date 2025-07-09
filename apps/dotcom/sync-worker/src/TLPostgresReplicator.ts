@@ -14,15 +14,15 @@ import { Kysely, sql } from 'kysely'
 
 import { LogicalReplicationService, Wal2Json, Wal2JsonPlugin } from 'pg-logical-replication'
 import { Logger } from './Logger'
-import { ZReplicationEventWithoutSequenceInfo } from './UserDataSyncer'
+import {
+	UserRegistrationNotification,
+	UserRegistrationNotificationSchema,
+	ZReplicationEventWithoutSequenceInfo,
+} from './UserDataSyncer'
 import { createPostgresConnectionPool } from './postgres'
 import { getR2KeyForRoom } from './r2'
 import { ChangeCollator, getTopics } from './replicator/ChangeCollator'
-import {
-	TopicSubscriptionTree,
-	getSubscriptionChanges,
-	parseTopicSubscriptionTree,
-} from './replicator/Subscription'
+import { getSubscriptionChanges, parseTopicSubscriptionTree } from './replicator/Subscription'
 import { pruneTopicSubscriptionsSql } from './replicator/pruneTopicSubscriptions'
 import { migrate } from './replicator/replicatorMigrations'
 import { ChangeV2, ReplicationEvent, relevantTables } from './replicator/replicatorTypes'
@@ -321,7 +321,21 @@ export class TLPostgresReplicator extends DurableObject<Environment> {
 
 				const changes: ChangeV2[] = []
 
+				let userRegistrationPayload: UserRegistrationNotification | null = null
+
 				for (const _change of log.change) {
+					// Handle message type changes for user registration notifications
+					if (_change.kind === 'message' && (_change as any).prefix === 'user_registration') {
+						try {
+							this.log.debug('user registration notification', _change)
+							// Decode the notification payload using the schema
+							const payload = JSON.parse((_change as any).content)
+							userRegistrationPayload = UserRegistrationNotificationSchema.validate(payload)
+						} catch (e) {
+							this.captureException(e, { change: _change })
+						}
+					}
+
 					const change = this.parseChange(_change)
 					if (!change) {
 						this.log.debug('IGNORING CHANGE', _change)
@@ -330,15 +344,20 @@ export class TLPostgresReplicator extends DurableObject<Environment> {
 					changes.push(change)
 				}
 
-				if (changes.length === 0) {
-					return
-				}
-
-				const { newSubscriptions, removedSubscriptions } = getSubscriptionChanges(changes)
-
-				this.log.debug('data', lsn, { changes, newSubscriptions, removedSubscriptions })
-
 				this.ctx.storage.transactionSync(() => {
+					// Handle user registration notification first if present
+					if (userRegistrationPayload) {
+						this.handleUserRegistrationNotification(userRegistrationPayload)
+					}
+
+					if (changes.length === 0) {
+						return
+					}
+
+					const { newSubscriptions, removedSubscriptions } = getSubscriptionChanges(changes)
+
+					this.log.debug('data', lsn, { changes, newSubscriptions, removedSubscriptions })
+
 					const collator = new ChangeCollator(this.sqlite)
 
 					// handle add ops first so that we get insertions for new topics
@@ -539,6 +558,7 @@ export class TLPostgresReplicator extends DurableObject<Environment> {
 			q.push(async () => {
 				const user = getUserDurableObject(this.env, userId)
 
+				// ok
 				const res = await user.handleReplicationEvent({
 					...event,
 					sequenceNumber,
@@ -594,57 +614,7 @@ export class TLPostgresReplicator extends DurableObject<Environment> {
 		return false
 	}
 
-	async registerUser({
-		userId,
-		topicSubscriptions,
-		bootId,
-	}: {
-		userId: string
-		topicSubscriptions: TopicSubscriptionTree
-		bootId: string
-	}): Promise<{ type: 'done'; sequenceId: string; sequenceNumber: number }> {
-		try {
-			this.log.debug('registering user', userId, bootId, topicSubscriptions)
-			this.logEvent({ type: 'register_user' })
-
-			// clear user and subscriptions
-			this.sqlite.exec(`DELETE FROM active_user WHERE id = ?`, userId)
-			this.sqlite.exec(
-				`INSERT INTO active_user (id, sequenceNumber, sequenceIdSuffix, lastUpdatedAt) VALUES (?, 0, ?, ?)`,
-				userId,
-				bootId,
-				Date.now()
-			)
-
-			// Clear existing subscriptions for this user
-			this.sqlite.exec(`DELETE FROM topic_subscription WHERE fromTopic = ?`, `user:${userId}`)
-
-			const subscriptions = parseTopicSubscriptionTree(topicSubscriptions, `user:${userId}`)
-			for (const subscription of subscriptions) {
-				this.sqlite.exec(
-					`INSERT INTO topic_subscription (fromTopic, toTopic) VALUES (?, ?) ON CONFLICT (fromTopic, toTopic) DO NOTHING`,
-					subscription.fromTopic,
-					subscription.toTopic
-				)
-			}
-
-			this.log.debug('inserted topic subscriptions', subscriptions.length)
-
-			this.reportActiveUsers()
-			this.log.debug('inserted active user')
-
-			return {
-				type: 'done',
-				sequenceId: this.slotName + bootId,
-				sequenceNumber: 0,
-			}
-		} catch (e) {
-			this.captureException(e)
-			throw e
-		}
-	}
-
-	async unregisterUser(userId: string) {
+	private async unregisterUser(userId: string) {
 		this.logEvent({ type: 'unregister_user' })
 		this.sqlite.exec(`DELETE FROM active_user WHERE id = ?`, userId)
 		this.sqlite.exec(`DELETE FROM topic_subscription WHERE fromTopic = ?`, `user:${userId}`)
@@ -737,6 +707,48 @@ export class TLPostgresReplicator extends DurableObject<Environment> {
 			)
 		} catch (e) {
 			this.log.debug('Error unpublishing snapshot', e)
+		}
+	}
+
+	private handleUserRegistrationNotification(payload: UserRegistrationNotification) {
+		try {
+			this.log.debug('handling user registration notification', payload)
+			// Call registerUser synchronously to avoid race conditions
+			// We need to handle this synchronously within the transaction
+			this.logEvent({ type: 'register_user' })
+
+			// clear user and subscriptions
+			this.sqlite.exec(`DELETE FROM active_user WHERE id = ?`, payload.userId)
+			this.sqlite.exec(
+				`INSERT INTO active_user (id, sequenceNumber, sequenceIdSuffix, lastUpdatedAt) VALUES (?, 0, ?, ?)`,
+				payload.userId,
+				payload.bootId,
+				Date.now()
+			)
+
+			// Clear existing subscriptions for this user
+			this.sqlite.exec(
+				`DELETE FROM topic_subscription WHERE fromTopic = ?`,
+				`user:${payload.userId}`
+			)
+
+			const subscriptions = parseTopicSubscriptionTree(
+				payload.topicSubscriptions,
+				`user:${payload.userId}`
+			)
+			for (const subscription of subscriptions) {
+				this.sqlite.exec(
+					`INSERT INTO topic_subscription (fromTopic, toTopic) VALUES (?, ?) ON CONFLICT (fromTopic, toTopic) DO NOTHING`,
+					subscription.fromTopic,
+					subscription.toTopic
+				)
+			}
+
+			this.log.debug('inserted topic subscriptions', subscriptions.length)
+			this.reportActiveUsers()
+			this.log.debug('inserted active user')
+		} catch (e) {
+			this.captureException(e, { payload })
 		}
 	}
 }

@@ -58,9 +58,6 @@ describe('replicatorMigrations', () => {
 			    "name": "sqlite_stat1",
 			  },
 			  {
-			    "name": "history",
-			  },
-			  {
 			    "name": "topic_subscription",
 			  },
 			]
@@ -142,7 +139,7 @@ describe('replicatorMigrations', () => {
 			await migrate(sqlStorage as any, logger as any)
 
 			migrations = sqlStorage.exec('SELECT id FROM migrations ORDER BY id').toArray()
-			expect(migrations).toHaveLength(7) // All migrations should be applied
+			expect(migrations).toHaveLength(8) // All migrations should be applied
 
 			// Should not duplicate existing migrations
 			const migrationCounts = sqlStorage
