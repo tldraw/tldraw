@@ -305,20 +305,17 @@ export class TextShapeUtil extends ShapeUtil<TLTextShape> {
 function getTextSize(editor: Editor, props: TLTextShape['props']) {
 	const { font, richText, autoSize, size, w } = props
 
-	const minWidth = autoSize ? 16 : Math.max(16, w)
+	const minWidth = 16
 	const fontSize = FONT_SIZES[size]
 
-	const cw = autoSize
-		? null
-		: // `measureText` floors the number so we need to do the same here to avoid issues.
-			Math.floor(Math.max(minWidth, w))
+	const manualWidth = autoSize ? null : Math.max(minWidth, Math.floor(w))
 
 	const html = renderHtmlFromRichTextForMeasurement(editor, richText)
 	const result = editor.textMeasure.measureHtml(html, {
 		...TEXT_PROPS,
 		fontFamily: FONT_FAMILIES[font],
 		fontSize: fontSize,
-		maxWidth: cw,
+		maxWidth: manualWidth,
 	})
 
 	// If we're autosizing the measureText will essentially `Math.floor`
@@ -329,7 +326,7 @@ function getTextSize(editor: Editor, props: TLTextShape['props']) {
 	}
 
 	return {
-		width: Math.max(minWidth, result.w),
+		width: manualWidth ?? Math.max(minWidth, result.w),
 		height: Math.max(fontSize, result.h),
 	}
 }
