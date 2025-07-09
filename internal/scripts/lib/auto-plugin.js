@@ -17,8 +17,7 @@ module.exports = class AutoPlugin {
 				const body = commit.pullRequest.body.replaceAll('\r\n', '\n')
 
 				const parseSection = (sectionHeader) => {
-					// Match the section between the header and the next header or end of text.
-					// This makes sure we capture multiple bullet points if we have them.
+					// Match the section between the header and the next header or any empty line or end of text.
 					const match = new RegExp(`${sectionHeader}\\n\\n([\\s\\S]*?)(?=\\n### |\\n\\n|$)`).exec(
 						body
 					)
