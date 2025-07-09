@@ -1,5 +1,6 @@
 import { defaultApply, TLAiChange, TLAiResult, TldrawAiOptions, useTldrawAi } from '@tldraw/ai'
 import { Editor } from 'tldraw'
+import { useChatHistory } from './ChatHistoryContext'
 import { ShapeDescriptions } from './transforms/ShapeDescriptions'
 import { SimpleCoordinates } from './transforms/SimpleCoordinates'
 import { SimpleIds } from './transforms/SimpleIds'
@@ -10,16 +11,48 @@ import { SimpleIds } from './transforms/SimpleIds'
  * @param editor - (optional) The editor instance to use. If not provided, the hook will try to use the editor from React context.
  */
 export function useTldrawAiExample(editor?: Editor) {
-	return useTldrawAi({ editor, ...STATIC_TLDRAWAI_OPTIONS })
+	const [, setHistoryItems] = useChatHistory()
+
+	function apply({ change, editor }: { change: TLAiChange; editor: Editor }) {
+		console.log('change', change)
+		defaultApply({ change, editor })
+
+		switch (change.type) {
+			case 'custom': {
+				setHistoryItems((prev) => [
+					...prev,
+					{ type: 'agent-action', action: 'thinking', status: 'done', info: change.text },
+				])
+				return
+			}
+			case 'createShape': {
+				setHistoryItems((prev) => [
+					...prev,
+					{ type: 'agent-action', action: 'creating', status: 'done', info: change.description },
+				])
+				return
+			}
+			case 'updateShape': {
+				setHistoryItems((prev) => [
+					...prev,
+					{ type: 'agent-action', action: 'updating', status: 'done', info: change.description },
+				])
+				return
+			}
+			case 'deleteShape': {
+				setHistoryItems((prev) => [
+					...prev,
+					{ type: 'agent-action', action: 'deleting', status: 'done', info: change.description },
+				])
+				return
+			}
+		}
+	}
+	return useTldrawAi({ editor, apply, ...STATIC_TLDRAWAI_OPTIONS })
 }
 
 const STATIC_TLDRAWAI_OPTIONS: TldrawAiOptions = {
 	transforms: [SimpleIds, ShapeDescriptions, SimpleCoordinates],
-
-	apply: ({ change, editor }) => {
-		console.log('change', change)
-		defaultApply({ change, editor })
-	},
 
 	// A function that calls the backend and return generated changes.
 	// See worker/do/OpenAiService.ts#generate for the backend part.

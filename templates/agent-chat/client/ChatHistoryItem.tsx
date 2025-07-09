@@ -14,12 +14,6 @@ export interface AgentMessageHistoryItem {
 	message: string
 }
 
-export interface AgentActionHistoryItem {
-	type: 'agent-action'
-	action: 'editing'
-	status: 'progress' | 'done' | 'cancelled'
-}
-
 export interface AgentChangeHistoryItem {
 	type: 'agent-change'
 	change: string
@@ -47,7 +41,10 @@ export function AgentActionHistoryItem({ item }: { item: AgentActionHistoryItem 
 	return (
 		<div className="agent-action-message">
 			<span>{icon}</span>
-			<span>{message}</span>
+			<span>
+				{message}
+				{item.info ?? ''}
+			</span>
 		</div>
 	)
 }
@@ -57,16 +54,47 @@ export interface AgentActionDefinition {
 	message: { progress: string; done: string; cancelled: string }
 }
 
+export interface AgentActionHistoryItem {
+	type: 'agent-action'
+	action: 'thinking' | 'creating' | 'deleting' | 'updating'
+	status: 'progress' | 'done' | 'cancelled'
+	info?: string
+}
+
 export const ACTION_HISTORY_ITEM_DEFINITIONS: Record<
 	AgentActionHistoryItem['action'],
 	AgentActionDefinition
 > = {
-	editing: {
+	thinking: {
+		icon: '🧠',
+		message: {
+			progress: 'Thinking: ',
+			done: 'Thought: ',
+			cancelled: 'Thought: ',
+		},
+	},
+	creating: {
 		icon: '✏️',
 		message: {
-			progress: 'Editing the board...',
-			done: 'Edited the board.',
-			cancelled: 'Edits cancelled.',
+			progress: 'Creating: ',
+			done: 'Created: ',
+			cancelled: 'Creation cancelled: ',
+		},
+	},
+	deleting: {
+		icon: '🗑️',
+		message: {
+			progress: 'Deleting: ',
+			done: 'Deleted: ',
+			cancelled: 'Deletion cancelled: ',
+		},
+	},
+	updating: {
+		icon: '🔄',
+		message: {
+			progress: 'Updating: ',
+			done: 'Updated: ',
+			cancelled: 'Update cancelled: ',
 		},
 	},
 }
