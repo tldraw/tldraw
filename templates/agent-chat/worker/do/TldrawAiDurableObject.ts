@@ -3,7 +3,7 @@ import { DurableObject } from 'cloudflare:workers'
 import { AutoRouter, error } from 'itty-router'
 import { TldrawAiBaseService } from '../TldrawAiBaseService'
 import { Environment } from '../types'
-import { VercelAiService } from './custom/CustomProviderService'
+import { VercelAiService } from './vercel/VercelAiService'
 
 export class TldrawAiDurableObject extends DurableObject<Environment> {
 	service: TldrawAiBaseService
