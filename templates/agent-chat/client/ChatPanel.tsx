@@ -5,22 +5,16 @@ import { useTldrawAiExample } from './useTldrawAiExample'
 export function ChatPanel({ editor }: { editor: Editor }) {
 	const ai = useTldrawAiExample(editor)
 
-	// The state of the prompt input, either idle or loading with a cancel callback
 	const [isGenerating, setIsGenerating] = useState(false)
-
-	// A stashed cancel function that we can call if the user clicks the button while loading
+	const [historyItems, setHistoryItems] = useState<ChatHistoryItem[]>([])
 	const rCancelFn = useRef<(() => void) | null>(null)
+	const inputRef = useRef<HTMLInputElement>(null)
 
-	// Put the editor and ai helpers onto the window for debugging. You can run commands like `ai.prompt('draw a unicorn')` in the console.
 	useEffect(() => {
 		if (!editor) return
 		;(window as any).editor = editor
 		;(window as any).ai = ai
 	}, [ai, editor])
-
-	const [historyItems, setHistoryItems] = useState<ChatHistoryItem[]>([])
-
-	const inputRef = useRef<HTMLInputElement>(null)
 
 	const handleSubmit = useCallback<FormEventHandler<HTMLFormElement>>(
 		async (e) => {
@@ -30,6 +24,8 @@ export function ChatPanel({ editor }: { editor: Editor }) {
 			if (rCancelFn.current) {
 				rCancelFn.current()
 				rCancelFn.current = null
+
+				// Faking this for now
 				setHistoryItems((prev) => {
 					const lastItem = prev[prev.length - 1]
 					if (lastItem.type === 'agent-action') {
@@ -41,6 +37,7 @@ export function ChatPanel({ editor }: { editor: Editor }) {
 				return
 			}
 
+			// Otherwise, submit the user's message to the agent
 			try {
 				const formData = new FormData(e.currentTarget)
 				const value = formData.get('input') as string
@@ -52,21 +49,16 @@ export function ChatPanel({ editor }: { editor: Editor }) {
 				setHistoryItems((prev) => [
 					...prev,
 					{ type: 'user-message', message: value },
-					{ type: 'agent-action', action: 'thinking', status: 'progress' },
+					{ type: 'agent-action', action: 'editing', status: 'progress' },
 				])
 
-				// We call the ai module with the value from the input field and get back a promise and a cancel function
 				const { promise, cancel } = ai.prompt({ message: value, stream: true })
 
-				// Stash the cancel function so we can call it if the user clicks the button again
 				rCancelFn.current = cancel
-
-				// Set the state to loading
 				setIsGenerating(true)
-
-				// ...wait for the promise to resolve
 				await promise
 
+				// Faking this for now
 				setHistoryItems((prev) => {
 					const lastItem = prev[prev.length - 1]
 					if (lastItem.type === 'agent-action') {
@@ -75,7 +67,6 @@ export function ChatPanel({ editor }: { editor: Editor }) {
 					return prev
 				})
 
-				// ...then set the state back to idle
 				setIsGenerating(false)
 				rCancelFn.current = null
 			} catch (e: any) {
@@ -124,7 +115,7 @@ interface AgentMessageHistoryItem {
 
 interface AgentActionHistoryItem {
 	type: 'agent-action'
-	action: 'thinking'
+	action: 'editing'
 	status: 'progress' | 'done' | 'cancelled'
 }
 
@@ -167,12 +158,12 @@ interface AgentActionDefinition {
 }
 
 const ACTION_HISTORY_ITEMS: Record<AgentActionHistoryItem['action'], AgentActionDefinition> = {
-	thinking: {
-		icon: '🧠',
+	editing: {
+		icon: '✏️',
 		message: {
-			progress: 'Thinking...',
-			done: 'Thoughts complete.',
-			cancelled: 'Thoughts cancelled.',
+			progress: 'Editing the board...',
+			done: 'Edits complete.',
+			cancelled: 'Edits cancelled.',
 		},
 	},
 }
