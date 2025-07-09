@@ -14,7 +14,7 @@ body {
 	position: fixed;
 	inset: 0;
 	display: grid;
-	grid-template-columns: 1fr 320px;
+	grid-template-columns: 1fr 350px;
 }
 
 .tldraw-canvas {
@@ -28,6 +28,7 @@ body {
 	display: flex;
 	flex-direction: column;
 	height: 100vh;
+	font-size: 14px;
 }
 
 .chat-history {
