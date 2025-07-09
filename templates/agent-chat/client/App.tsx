@@ -11,12 +11,8 @@ function App() {
 			if (source !== 'user') return next
 			const shapeUtil = editor.getShapeUtil(next.type)
 			const text = shapeUtil.getText(next)
-			return {
-				...next,
-				meta: {
-					text,
-				},
-			}
+			if (text === undefined) return next
+			return { ...next, meta: { text } }
 		})
 	}, [])
 
