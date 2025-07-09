@@ -28,15 +28,6 @@ export function ChatPanel({ editor }: { editor: Editor }) {
 			if (rCancelFn.current) {
 				rCancelFn.current()
 				rCancelFn.current = null
-
-				// Faking this for now
-				// setHistoryItems((prev) => {
-				// 	const lastItem = prev[prev.length - 1]
-				// 	if (lastItem.type === 'agent-action') {
-				// 		return [...prev.slice(0, -1), { ...lastItem, status: 'cancelled' }]
-				// 	}
-				// 	return prev
-				// })
 				setIsGenerating(false)
 				return
 			}
@@ -50,30 +41,17 @@ export function ChatPanel({ editor }: { editor: Editor }) {
 					inputRef.current.value = ''
 				}
 
-				setHistoryItems((prev) => [
-					...prev,
-					{ type: 'user-message', message: value },
-					// { type: 'agent-action', action: 'editing', status: 'progress' },
-				])
+				setHistoryItems((prev) => [...prev, { type: 'user-message', message: value }])
 
 				const { promise, cancel } = ai.prompt({
 					message: value,
 					stream: true,
-					meta: { modelName },
+					meta: { modelName, historyItems },
 				})
 
 				rCancelFn.current = cancel
 				setIsGenerating(true)
 				await promise
-
-				// Faking this for now
-				// setHistoryItems((prev) => {
-				// 	const lastItem = prev[prev.length - 1]
-				// 	if (lastItem.type === 'agent-action') {
-				// 		return [...prev.slice(0, -1), { ...lastItem, status: 'done' }]
-				// 	}
-				// 	return prev
-				// })
 
 				setIsGenerating(false)
 				rCancelFn.current = null
@@ -83,7 +61,7 @@ export function ChatPanel({ editor }: { editor: Editor }) {
 				rCancelFn.current = null
 			}
 		},
-		[ai, modelName, setHistoryItems]
+		[ai, modelName, historyItems, setHistoryItems]
 	)
 
 	return (

@@ -50,10 +50,6 @@ async function* streamEventsVercel(
 		schema: ModelResponse,
 	})
 
-	// let cursor = 0
-	// const events: ISimpleEvent[] = []
-	// let maybeUnfinishedEvent: ISimpleEvent | null = null
-
 	let cursor = 0
 	let maybeUnfinishedEvent: ISimpleEvent | null = null
 
@@ -61,49 +57,22 @@ async function* streamEventsVercel(
 		if (!Array.isArray(partialObject.events)) continue
 		if (partialObject.events.length === 0) continue
 
+		const event = partialObject.events[cursor - 1] as ISimpleEvent
 		if (partialObject.events.length > cursor) {
-			cursor++
-			if (maybeUnfinishedEvent) {
-				yield maybeUnfinishedEvent
+			if (event) {
+				yield event
 				maybeUnfinishedEvent = null
 			}
+			cursor++
 		}
-		const event = partialObject.events[cursor - 1] as ISimpleEvent
-		maybeUnfinishedEvent = event
-
-		// if (Array.isArray(partialObject.events)) {
-		// 	for (let i = cursor, len = partialObject.events.length; i < len; i++) {
-		// 		const part = partialObject.events[i]
-		// 		if (i === cursor) {
-		// 			try {
-		// 				SimpleEvent.parse(part)
-
-		// 				const event = part as ISimpleEvent
-
-		// 				if (i < len) {
-		// 					events[events.length - 1] = event
-		// 					yield event
-		// 					maybeUnfinishedEvent = null
-		// 					cursor++
-		// 				} else {
-		// 					events.push(event)
-		// 					maybeUnfinishedEvent = event
-		// 					yield event
-		// 				}
-		// 			} catch {
-		// 				// noop but okay, it's just not done enough to be a valid event
-		// 			}
-		// 		}
-		// 	}
-		// }
+		if (event) {
+			maybeUnfinishedEvent = event
+		}
 	}
 
 	if (maybeUnfinishedEvent) {
-		// 	events.push(maybeUnfinishedEvent)
 		yield maybeUnfinishedEvent
 	}
-
-	// return events
 }
 
 async function generateEventsVercel(
