@@ -42,7 +42,7 @@ export function AgentActionHistoryItem({ item }: { item: AgentActionHistoryItem 
 		<div className="agent-action-message">
 			<span>{icon}</span>
 			<span>
-				{message}
+				<strong>{message}</strong>
 				{item.info ?? ''}
 			</span>
 		</div>
