@@ -6,6 +6,7 @@ import { Discord } from './lib/discord'
 import { exec } from './lib/exec'
 import { makeEnv } from './lib/makeEnv'
 import { nicelog } from './lib/nicelog'
+import { getPrDetails, labelPresent, PullRequest } from './lib/pr-info'
 
 function getEnv() {
 	return makeEnv([
@@ -18,53 +19,32 @@ function getEnv() {
 	])
 }
 
-type Env = ReturnType<typeof getEnv>
-
-async function getPrDetails(env: Env) {
-	const lastCommitMessage = (await exec('git', ['log', '-1', '--oneline'])).trim()
-	const lastPRNumber = lastCommitMessage.match(/\(#(\d+)\)$/)?.[1]
-	if (!lastPRNumber) {
-		nicelog('No PR number found in last commit message. Exiting...')
-		return null
-	}
-
-	const octokit = new Octokit({ auth: env.GITHUB_TOKEN })
-
-	return await octokit.rest.pulls
-		.get({
-			owner: 'tldraw',
-			repo: 'tldraw',
-			pull_number: parseInt(lastPRNumber),
-		})
-		.then((res) => res.data!)
-}
-
-type PrDetails = NonNullable<Awaited<ReturnType<typeof getPrDetails>>>
-
-async function getTriggerType(env: Env, pr: PrDetails): Promise<'none' | 'SDK' | 'docs'> {
+function getTriggerType(pr: PullRequest): 'none' | 'SDK' | 'docs' {
 	nicelog(`Checking PR ${pr.number} labels...`)
 
-	const docsHotfixPlease = pr.labels.find((label) => label.name === 'docs-hotfix-please')
-	const sdkHotfixPlease = pr.labels.find((label) => label.name === 'sdk-hotfix-please')
+	const hasDocsLabel = labelPresent(pr, 'docs-hotfix-please')
+	const hasSdkLabel = labelPresent(pr, 'sdk-hotfix-please')
 
-	if (!docsHotfixPlease && !sdkHotfixPlease) {
+	if (!hasDocsLabel && !hasSdkLabel) {
 		nicelog('No "(docs|sdk)-hotfix-please" label found. Exiting...')
 		return 'none'
 	}
 
-	nicelog(`Found "${sdkHotfixPlease || docsHotfixPlease}" label. Proceeding...`)
-
-	const isDocsOnly = docsHotfixPlease && !sdkHotfixPlease
+	const isDocsOnly = hasDocsLabel && !hasSdkLabel
 	return isDocsOnly ? 'docs' : 'SDK'
 }
 
 async function main() {
 	const env = getEnv()
+	const octokit = new Octokit({ auth: env.GITHUB_TOKEN })
 
-	const pr = await getPrDetails(env)
-	if (!pr) return
+	const pr = await getPrDetails(octokit)
+	if (!pr) {
+		nicelog('Could not retrieve PR details from the last commit. Exiting...')
+		return
+	}
 
-	const triggerType = await getTriggerType(env, pr)
+	const triggerType = getTriggerType(pr)
 	if (triggerType === 'none') return
 
 	const discord = new Discord({
@@ -90,16 +70,6 @@ async function main() {
 
 	const latestReleaseBranch = `v${version.major}.${version.minor}.x`
 	nicelog('Latest release branch', latestReleaseBranch)
-
-	await discord.step(`Cherry-picking PR #${pr} onto branch ${latestReleaseBranch}`, async () => {
-		// cherry-pick HEAD on top of latest release branch
-		const HEAD = (await exec('git', ['rev-parse', 'HEAD'])).trim()
-		await exec('git', ['fetch', 'origin', latestReleaseBranch])
-		await exec('git', ['checkout', latestReleaseBranch])
-		await exec('git', ['reset', `origin/${latestReleaseBranch}`, '--hard'])
-		await exec('git', ['log', '-1', '--oneline'])
-		await exec('git', ['cherry-pick', HEAD])
-	})
 
 	if (triggerType === 'docs') {
 		await discord.step(`Ensuring no SDK changes are present`, async () => {
@@ -134,9 +104,15 @@ async function main() {
 		})
 	}
 
-	await discord.step('Pushing to release branch', async () => {
-		await exec('git', ['push', 'origin', `HEAD:${latestReleaseBranch}`])
-	})
+	if (triggerType === 'docs') {
+		await discord.step('Pushing to release branch', async () => {
+			await exec('git', ['push', 'origin', `HEAD:${latestReleaseBranch}`])
+		})
+	} else {
+		await discord.step('Pushing to release branch', async () => {
+			await exec('git', ['push', 'origin', `HEAD:${latestReleaseBranch}`])
+		})
+	}
 	// return
 }
 
@@ -145,13 +121,13 @@ main().catch(async (e: Error) => {
 
 	const discord = new Discord({
 		webhookUrl: process.env.DISCORD_DEPLOY_WEBHOOK_URL!,
-		totalSteps: 8,
+		totalSteps: 3,
 		shouldNotify: true,
 	})
 
 	await discord
 		.message(
-			`❌ **Error triggering SDK hotfix on PR ${process.env.PR_NUMBER}**\n\n\`\`\`ansi\n${e.message.slice(0, 2000)}\n\`\`\``
+			`❌ **Error triggering SDK hotfix**\n\n\`\`\`ansi\n${e.message.slice(0, 2000)}\n\`\`\``
 		)
 		.finally(() => {
 			process.exit(1)
