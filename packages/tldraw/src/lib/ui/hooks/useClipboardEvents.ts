@@ -598,7 +598,7 @@ const handleNativeOrMenuCopy = async (editor: Editor) => {
 	}
 
 	// Use versioned clipboard format for better compression
-	// Version 2: Don't compress assets, only compress other data
+	// Version 3: Don't compress assets, only compress other data
 	const { assets, ...otherData } = content
 	const clipboardData = {
 		type: 'application/tldraw',
