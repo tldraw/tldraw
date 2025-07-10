@@ -1,4 +1,4 @@
-import { Editor, TLShape, throttle } from '@tldraw/editor'
+import { Editor, TLShape } from '@tldraw/editor'
 
 function _updateHoveredShapeId(editor: Editor) {
 	// todo: consider replacing `get hoveredShapeId` with this; it would mean keeping hoveredShapeId in memory rather than in the store and possibly re-computing it more often than necessary
@@ -31,8 +31,17 @@ function _updateHoveredShapeId(editor: Editor) {
 	return editor.setHoveredShape(shapeToHover.id)
 }
 
-/** @internal */
-export const updateHoveredShapeId = throttle(
-	_updateHoveredShapeId,
-	process.env.NODE_ENV === 'test' ? 0 : 32
-)
+export function getHoveredShapeIdUpdater(editor: Editor) {
+	let last = 0
+
+	function updateHoveredShapeId() {
+		const now = Date.now()
+		console.log(editor.inputs.pointerVelocity.len2())
+		const frameLen = editor.inputs.pointerVelocity.len2() > 10 ? 64 : 32
+		if (now - last < frameLen) return
+		last = now
+		_updateHoveredShapeId(editor)
+	}
+
+	return updateHoveredShapeId
+}

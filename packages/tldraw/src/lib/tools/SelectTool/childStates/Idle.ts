@@ -21,7 +21,7 @@ import {
 import { getHitShapeOnCanvasPointerDown } from '../../selection-logic/getHitShapeOnCanvasPointerDown'
 import { getShouldEnterCropMode } from '../../selection-logic/getShouldEnterCropModeOnPointerDown'
 import { selectOnCanvasPointerUp } from '../../selection-logic/selectOnCanvasPointerUp'
-import { updateHoveredShapeId } from '../../selection-logic/updateHoveredShapeId'
+import { getHoveredShapeIdUpdater } from '../../selection-logic/updateHoveredShapeId'
 import { startEditingShapeWithLabel } from '../selectHelpers'
 
 const SKIPPED_KEYS_FOR_AUTO_EDITING = [
@@ -40,19 +40,21 @@ export class Idle extends StateNode {
 
 	selectedShapesOnKeyDown: TLShape[] = []
 
+	private readonly updateHoveredShapeId = getHoveredShapeIdUpdater(this.editor)
+
 	override onEnter() {
 		this.parent.setCurrentToolIdMask(undefined)
-		updateHoveredShapeId(this.editor)
+		this.updateHoveredShapeId()
 		this.selectedShapesOnKeyDown = []
 		this.editor.setCursor({ type: 'default', rotation: 0 })
 	}
 
 	override onExit() {
-		updateHoveredShapeId.cancel()
+		// this.updateHoveredShapeId.cancel()
 	}
 
 	override onPointerMove() {
-		updateHoveredShapeId(this.editor)
+		this.updateHoveredShapeId()
 	}
 
 	override onPointerDown(info: TLPointerEventInfo) {

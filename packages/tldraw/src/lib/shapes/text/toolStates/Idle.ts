@@ -1,14 +1,16 @@
 import { StateNode, TLKeyboardEventInfo, TLPointerEventInfo } from '@tldraw/editor'
-import { updateHoveredShapeId } from '../../../tools/selection-logic/updateHoveredShapeId'
+import { getHoveredShapeIdUpdater } from '../../../tools/selection-logic/updateHoveredShapeId'
 
 export class Idle extends StateNode {
 	static override id = 'idle'
+
+	private readonly updateHoveredShapeId = getHoveredShapeIdUpdater(this.editor)
 
 	override onPointerMove(info: TLPointerEventInfo) {
 		switch (info.target) {
 			case 'shape':
 			case 'canvas': {
-				updateHoveredShapeId(this.editor)
+				this.updateHoveredShapeId()
 			}
 		}
 	}
