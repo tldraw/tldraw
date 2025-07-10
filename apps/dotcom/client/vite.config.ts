@@ -43,6 +43,11 @@ export default defineConfig((env) => ({
 		}),
 	],
 	publicDir: './public',
+	resolve: {
+		alias: {
+			'@formatjs/icu-messageformat-parser': '@formatjs/icu-messageformat-parser/no-parser',
+		},
+	},
 	build: {
 		// output source maps to .map files and include //sourceMappingURL comments in JavaScript files
 		// these get uploaded to Sentry and can be used for debugging
