@@ -697,16 +697,13 @@ export class TLDrawDurableObject extends DurableObject {
 				if (this._lastPersistedClock === clock) return
 				if (this._isRestoring) return
 
-				const snapshot = JSON.stringify(room.getCurrentSnapshot())
+				const snapshot = room.getCurrentSnapshot()
 				this.maybeAssociateFileAssets()
 
 				const key = getR2KeyForRoom({ slug: slug, isApp: this.documentInfo.isApp })
-				await Promise.all([
-					this.r2.rooms.put(key, snapshot),
-					this.r2.versionCache.put(key + `/` + new Date().toISOString(), snapshot),
-				])
-				this._lastPersistedClock = clock
+				await this._uploadSnapshotToR2(snapshot, clock, key)
 
+				this._lastPersistedClock = clock
 				// Update the updatedAt timestamp in the database
 				if (this.documentInfo.isApp) {
 					// don't await on this because otherwise
@@ -725,6 +722,54 @@ export class TLDrawDurableObject extends DurableObject {
 			this.reportError(e)
 		}
 	}
+
+	private async _uploadSnapshotToR2(snapshot: RoomSnapshot, clock: number, key: string) {
+		const out1 = await this.r2.rooms.createMultipartUpload(key)
+		const out2 = await this.r2.versionCache.createMultipartUpload(
+			key + `/${new Date().toISOString()}`
+		)
+
+		try {
+			// 10MB buffer
+			const tenMB = 1024 * 1024 * 10
+			const buffer = new Uint8Array(tenMB)
+			const parts1 = []
+			const parts2 = []
+			let partNumber = 1
+			let offset = 0
+
+			for (const chunk of generateSnapshotChunks(snapshot, clock)) {
+				buffer.set(chunk, offset)
+				offset += chunk.byteLength
+				if (offset >= tenMB) {
+					const [p1, p2] = await Promise.all([
+						out1.uploadPart(partNumber, buffer),
+						out2.uploadPart(partNumber, buffer),
+					])
+					parts1.push(p1)
+					parts2.push(p2)
+					partNumber++
+					const overflow = offset - tenMB
+					offset = overflow
+					buffer.set(chunk.subarray(chunk.byteLength - overflow), 0)
+				}
+			}
+			if (offset > 0) {
+				const [p1, p2] = await Promise.all([
+					out1.uploadPart(partNumber, buffer.subarray(0, offset)),
+					out2.uploadPart(partNumber, buffer.subarray(0, offset)),
+				])
+				parts1.push(p1)
+				parts2.push(p2)
+			}
+
+			await Promise.all([out1.complete(parts1), out2.complete(parts2)])
+		} catch (e) {
+			await Promise.all([out1.abort(), out2.abort()])
+			throw e
+		}
+	}
+
 	private reportError(e: unknown) {
 		// eslint-disable-next-line @typescript-eslint/no-deprecated
 		this.sentry?.captureException(e)
@@ -923,4 +968,33 @@ async function listAllObjectKeys(bucket: R2Bucket, prefix: string): Promise<stri
 	} while (cursor)
 
 	return keys
+}
+
+const documentChunkCache = new WeakMap<object, Uint8Array>()
+
+function* generateSnapshotChunks(snapshot: RoomSnapshot, clock: number): Generator<Uint8Array> {
+	const encoder = new TextEncoder()
+
+	yield encoder.encode(`{"clock":${clock},"tombstones":`)
+	yield encoder.encode(JSON.stringify(snapshot.tombstones))
+	yield encoder.encode(`,"schema":`)
+	yield encoder.encode(JSON.stringify(snapshot.schema))
+	yield encoder.encode(`,"documents":[`)
+
+	for (let i = 0; i < snapshot.documents.length; i++) {
+		const document = snapshot.documents[i]
+		const cachedChunk = documentChunkCache.get(document)
+		if (cachedChunk) {
+			yield cachedChunk
+		} else {
+			const chunk = encoder.encode(JSON.stringify(document))
+			documentChunkCache.set(document, chunk)
+			yield chunk
+		}
+		if (i < snapshot.documents.length - 1) {
+			yield encoder.encode(',')
+		}
+	}
+
+	yield encoder.encode(`]}`)
 }
