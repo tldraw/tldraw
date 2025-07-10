@@ -31,13 +31,6 @@ export function useTldrawAiExample(editor?: Editor) {
 						])
 						return
 					}
-					case 'plan': {
-						setHistoryItems((prev) => [
-							...prev,
-							{ type: 'agent-action', action: 'planning', status: 'done', info: change.text },
-						])
-						return
-					}
 				}
 				return
 			}

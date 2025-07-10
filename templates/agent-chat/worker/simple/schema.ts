@@ -192,7 +192,6 @@ export type ISimpleEvent = z.infer<typeof SimpleEvent>
 // Model response schema
 
 export const ModelResponse = z.object({
-	long_description_of_strategy: z.string(),
 	events: z.array(SimpleEvent),
 })
 
