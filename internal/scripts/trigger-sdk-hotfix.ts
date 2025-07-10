@@ -71,6 +71,16 @@ async function main() {
 	const latestReleaseBranch = `v${version.major}.${version.minor}.x`
 	nicelog('Latest release branch', latestReleaseBranch)
 
+	await discord.step(`Cherry-picking PR #${pr} onto branch ${latestReleaseBranch}`, async () => {
+		// cherry-pick HEAD on top of latest release branch
+		const HEAD = (await exec('git', ['rev-parse', 'HEAD'])).trim()
+		await exec('git', ['fetch', 'origin', latestReleaseBranch])
+		await exec('git', ['checkout', latestReleaseBranch])
+		await exec('git', ['reset', `origin/${latestReleaseBranch}`, '--hard'])
+		await exec('git', ['log', '-1', '--oneline'])
+		await exec('git', ['cherry-pick', HEAD])
+	})
+
 	if (triggerType === 'docs') {
 		await discord.step(`Ensuring no SDK changes are present`, async () => {
 			// run yarn again before building packages to make sure everything is ready
@@ -104,15 +114,9 @@ async function main() {
 		})
 	}
 
-	if (triggerType === 'docs') {
-		await discord.step('Pushing to release branch', async () => {
-			await exec('git', ['push', 'origin', `HEAD:${latestReleaseBranch}`])
-		})
-	} else {
-		await discord.step('Pushing to release branch', async () => {
-			await exec('git', ['push', 'origin', `HEAD:${latestReleaseBranch}`])
-		})
-	}
+	await discord.step('Pushing to release branch', async () => {
+		await exec('git', ['push', 'origin', `HEAD:${latestReleaseBranch}`])
+	})
 	// return
 }
 
@@ -121,13 +125,13 @@ main().catch(async (e: Error) => {
 
 	const discord = new Discord({
 		webhookUrl: process.env.DISCORD_DEPLOY_WEBHOOK_URL!,
-		totalSteps: 3,
+		totalSteps: 8,
 		shouldNotify: true,
 	})
 
 	await discord
 		.message(
-			`❌ **Error triggering SDK hotfix**\n\n\`\`\`ansi\n${e.message.slice(0, 2000)}\n\`\`\``
+			`❌ **Error triggering SDK hotfix on PR ${process.env.PR_NUMBER}**\n\n\`\`\`ansi\n${e.message.slice(0, 2000)}\n\`\`\``
 		)
 		.finally(() => {
 			process.exit(1)
