@@ -4051,6 +4051,8 @@ export interface TLUiSliderProps {
     // (undocumented)
     'data-testid'?: string;
     // (undocumented)
+    ariaValueModifier?: number;
+    // (undocumented)
     label: string;
     // (undocumented)
     min?: number;
