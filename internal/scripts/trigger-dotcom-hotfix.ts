@@ -36,7 +36,9 @@ async function main() {
 	await discord.step(`Creating hotfix branch and cherry-picking changes`, async () => {
 		const HEAD = (await exec('git', ['rev-parse', 'HEAD'])).trim()
 		await exec('git', ['fetch', 'origin', 'hotfixes'])
-		await exec('git', ['checkout', '-b', hotfixBranchName, 'origin/hotfixes'])
+		await exec('git', ['checkout', 'hotfixes'])
+		await exec('git', ['reset', '--hard', 'origin/hotfixes'])
+		await exec('git', ['checkout', '-b', hotfixBranchName])
 		await exec('git', ['cherry-pick', HEAD])
 	})
 
