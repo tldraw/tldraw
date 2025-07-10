@@ -122,6 +122,9 @@
   "5a95a425f7": {
     "translation": "Deli"
   },
+  "5bcc12ace8": {
+    "translation": "Ta soba je zdaj samo za branje"
+  },
   "5bec508475": {
     "translation": "Zaznan je bil star brskalnik. Za uporabo te aplikacije posodobite brskalnik."
   },
@@ -218,6 +221,9 @@
   "86c66437fd": {
     "translation": "Preimenuj datoteko"
   },
+  "8b1946f965": {
+    "translation": "Za nadaljevanje urejanja kopirajte sobo v svoje datoteke."
+  },
   "8eb2c00e96": {
     "translation": "V skupni rabi z vami"
   },
@@ -241,6 +247,9 @@
   },
   "9bef626805": {
     "translation": "Izbriši datoteko"
+  },
+  "9c258b8f88": {
+    "translation": "Ta anonimna soba za več igralcev tldraw je zdaj samo za branje. Če želite nadaljevati z urejanjem, se prijavite in jo kopirajte v svoje datoteke."
   },
   "9ceb927baa": {
     "translation": "Objavite to datoteko"
@@ -327,9 +336,6 @@
   "c87aacf567": {
     "translation": "Odjava"
   },
-  "cbef7ba103": {
-    "translation": "Ta soba bo kmalu samo za branje"
-  },
   "cceaefbc20": {
     "translation": "Delite to datoteko"
   },
@@ -368,9 +374,6 @@
   },
   "e78e14c5f1": {
     "translation": "Pin"
-  },
-  "ea2301d01c": {
-    "translation": "Po 1. juliju 2025 bo ta anonimna soba za več igralcev tldraw postala samo za branje. Če želite v prihodnje nadaljevati z urejanjem, se prijavite in jo kopirajte v svoje datoteke."
   },
   "ea4788705e": {
     "translation": "Prekliči"

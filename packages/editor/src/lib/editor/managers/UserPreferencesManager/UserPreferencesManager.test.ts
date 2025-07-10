@@ -24,6 +24,7 @@ describe('UserPreferencesManager', () => {
 		color: '#FF802B',
 		locale: 'en',
 		animationSpeed: 1,
+		areKeyboardShortcutsEnabled: true,
 		edgeScrollSpeed: 1,
 		colorScheme: 'light',
 		isSnapMode: false,
@@ -229,6 +230,7 @@ describe('UserPreferencesManager', () => {
 				locale: mockUserPreferences.locale,
 				color: mockUserPreferences.color,
 				animationSpeed: mockUserPreferences.animationSpeed,
+				areKeyboardShortcutsEnabled: mockUserPreferences.areKeyboardShortcutsEnabled,
 				isSnapMode: mockUserPreferences.isSnapMode,
 				colorScheme: mockUserPreferences.colorScheme,
 				isDarkMode: false, // light mode
@@ -362,6 +364,21 @@ describe('UserPreferencesManager', () => {
 			})
 		})
 
+		describe('getAreKeyboardShortcutsEnabled', () => {
+			it('should return user keyboard shortcuts', () => {
+				expect(userPreferencesManager.getAreKeyboardShortcutsEnabled()).toBe(
+					mockUserPreferences.areKeyboardShortcutsEnabled
+				)
+			})
+
+			it('should return default keyboard shortcuts when null', () => {
+				userPreferencesAtom.set({ ...mockUserPreferences, areKeyboardShortcutsEnabled: null })
+				expect(userPreferencesManager.getAreKeyboardShortcutsEnabled()).toBe(
+					defaultUserPreferences.areKeyboardShortcutsEnabled
+				)
+			})
+		})
+
 		describe('getEdgeScrollSpeed', () => {
 			it('should return user edge scroll speed', () => {
 				expect(userPreferencesManager.getEdgeScrollSpeed()).toBe(
@@ -483,6 +500,7 @@ describe('UserPreferencesManager', () => {
 				color: null,
 				locale: null,
 				animationSpeed: null,
+				areKeyboardShortcutsEnabled: null,
 				edgeScrollSpeed: null,
 				isSnapMode: null,
 				isWrapMode: null,
@@ -496,6 +514,9 @@ describe('UserPreferencesManager', () => {
 			expect(userPreferencesManager.getColor()).toBe(defaultUserPreferences.color)
 			expect(userPreferencesManager.getLocale()).toBe(defaultUserPreferences.locale)
 			expect(userPreferencesManager.getAnimationSpeed()).toBe(defaultUserPreferences.animationSpeed)
+			expect(userPreferencesManager.getAreKeyboardShortcutsEnabled()).toBe(
+				defaultUserPreferences.areKeyboardShortcutsEnabled
+			)
 			expect(userPreferencesManager.getEdgeScrollSpeed()).toBe(
 				defaultUserPreferences.edgeScrollSpeed
 			)

@@ -94,6 +94,7 @@
 	"action.toggle-focus-mode.menu": "Mod focalizare",
 	"action.toggle-grid": "Comută grilă",
 	"action.toggle-grid.menu": "Arată grilă",
+	"action.toggle-keyboard-shortcuts.menu": "Scurtături tastatură",
 	"action.toggle-lock": "Blochează/deblochează",
 	"action.toggle-paste-at-cursor": "Comută lipirea la cursor",
 	"action.toggle-paste-at-cursor.menu": "Lipește pe cursor",

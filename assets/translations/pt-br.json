@@ -94,6 +94,7 @@
 	"action.toggle-focus-mode.menu": "Modo Foco",
 	"action.toggle-grid": "Mostrar Grade",
 	"action.toggle-grid.menu": "Mostrar Grade",
+	"action.toggle-keyboard-shortcuts.menu": "Atalhos de Teclado",
 	"action.toggle-lock": "Bloquear / Desbloquear",
 	"action.toggle-paste-at-cursor": "Alternar colar no cursor",
 	"action.toggle-paste-at-cursor.menu": "Colar no cursor",

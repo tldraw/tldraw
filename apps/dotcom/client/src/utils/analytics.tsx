@@ -32,6 +32,23 @@ const shouldUsePosthog = POSTHOG_KEY !== undefined
 const GA4_MEASUREMENT_ID: string | undefined = import.meta.env.VITE_GA4_MEASUREMENT_ID
 const shouldUseGA4 = GA4_MEASUREMENT_ID !== undefined
 
+const PROPERTIES_TO_REDACT = ['url', 'href', 'pathname']
+
+// Match property names against the defined list
+function filterProperties(value: { [key: string]: any }) {
+	return Object.entries(value).reduce<{ [key: string]: any }>((acc, [key, value]) => {
+		// N.B. This isn't super obvious but Posthog has keys that can be like
+		// `$pathname` for native events, but also you could have `pathname` for custom events.
+		// So we check for both here.
+		if (PROPERTIES_TO_REDACT.some((prop) => key.includes(prop))) {
+			acc[key] = 'redacted'
+		} else {
+			acc[key] = value
+		}
+		return acc
+	}, {})
+}
+
 let currentOptionsPosthog: AnalyticsOptions | null = null
 let eventBufferPosthog: null | Array<{ name: string; data: Properties | null | undefined }> = []
 function configurePosthog(options: AnalyticsOptions) {
@@ -48,6 +65,18 @@ function configurePosthog(options: AnalyticsOptions) {
 		before_send: (payload) => {
 			if (!payload) return null
 			payload.properties.is_signed_in = !!options.user
+
+			const redactedProperties = filterProperties(payload.properties || {})
+			payload.properties = redactedProperties
+
+			// $set
+			const redactedSet = filterProperties(payload.$set || {})
+			payload.$set = redactedSet
+
+			// $set_once
+			const redactedSetOnce = filterProperties(payload.$set_once || {})
+			payload.$set_once = redactedSetOnce
+
 			return payload
 		},
 		bootstrap:
@@ -160,11 +189,44 @@ export function SignedOutAnalytics() {
 	useEffect(() => {
 		configurePosthog({ optedIn: false })
 		configureGA4({ optedIn: false })
+		document.getElementById('reo-iframe-loader')?.remove()
 	}, [])
 
 	useTrackPageViews()
 
 	return null
+}
+
+function setupReo(options: AnalyticsOptions) {
+	if (options.optedIn === false) return
+
+	const user = options.user
+
+	function postToReoIframe(type: 'identify', payload?: any) {
+		const iframe = document.getElementById('reo-iframe-loader') as HTMLIFrameElement | null
+		if (iframe?.contentWindow) {
+			iframe.contentWindow.postMessage({ type, payload })
+		}
+	}
+
+	const reoIdentify = () =>
+		postToReoIframe('identify', {
+			firstname: user.name,
+			username: user.email,
+			type: 'email',
+			userId: user.id,
+		})
+
+	if (!document.getElementById('reo-iframe-loader')) {
+		const iframeTag = document.createElement('iframe')
+		iframeTag.id = 'reo-iframe-loader'
+		iframeTag.style.display = 'none'
+		iframeTag.src = '/reo.html'
+		iframeTag.onload = () => reoIdentify()
+		document.body.appendChild(iframeTag)
+	} else {
+		reoIdentify()
+	}
 }
 
 export function SignedInAnalytics() {
@@ -177,6 +239,10 @@ export function SignedInAnalytics() {
 			user: { id: user.id, name: user.name, email: user.email },
 		})
 		configureGA4({
+			optedIn: user.allowAnalyticsCookie === true,
+			user: { id: user.id, name: user.name, email: user.email },
+		})
+		setupReo({
 			optedIn: user.allowAnalyticsCookie === true,
 			user: { id: user.id, name: user.name, email: user.email },
 		})

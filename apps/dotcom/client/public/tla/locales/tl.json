@@ -122,6 +122,9 @@
   "5a95a425f7": {
     "translation": "Ibahagi"
   },
+  "5bcc12ace8": {
+    "translation": "Read-only na ang kwartong ito"
+  },
   "5bec508475": {
     "translation": "Nakita ang lumang browser. Mangyaring i-update ang iyong browser upang magamit ang app na ito."
   },
@@ -218,6 +221,9 @@
   "86c66437fd": {
     "translation": "Palitan ang pangalan ng file"
   },
+  "8b1946f965": {
+    "translation": "Para magpatuloy sa pag-edit, pakikopya ang kwarto sa iyong mga file."
+  },
   "8eb2c00e96": {
     "translation": "Ibinahagi sa iyo"
   },
@@ -241,6 +247,9 @@
   },
   "9bef626805": {
     "translation": "Tanggalin ang file"
+  },
+  "9c258b8f88": {
+    "translation": "Read-only na ang anonymous na tldraw multiplayer room na ito. Upang magpatuloy sa pag-edit, mangyaring mag-sign in at kopyahin ito sa iyong mga file."
   },
   "9ceb927baa": {
     "translation": "I-publish ang file na ito"
@@ -327,9 +336,6 @@
   "c87aacf567": {
     "translation": "Mag-sign out"
   },
-  "cbef7ba103": {
-    "translation": "Malapit nang maging read-only ang kwartong ito"
-  },
   "cceaefbc20": {
     "translation": "Ibahagi ang file na ito"
   },
@@ -368,9 +374,6 @@
   },
   "e78e14c5f1": {
     "translation": "Pin"
-  },
-  "ea2301d01c": {
-    "translation": "Pagkatapos ng Hulyo 1, 2025, magiging read-only ang anonymous na tldraw multiplayer room na ito. Upang magpatuloy sa pag-edit sa hinaharap mangyaring mag-sign in at kopyahin ito sa iyong mga file."
   },
   "ea4788705e": {
     "translation": "Kanselahin"

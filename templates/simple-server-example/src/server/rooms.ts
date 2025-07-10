@@ -8,7 +8,7 @@ async function readSnapshotIfExists(roomId: string) {
 	try {
 		const data = await readFile(join(DIR, roomId))
 		return JSON.parse(data.toString()) ?? undefined
-	} catch (e) {
+	} catch {
 		return undefined
 	}
 }

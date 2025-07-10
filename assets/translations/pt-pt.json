@@ -94,6 +94,7 @@
 	"action.toggle-focus-mode.menu": "Modo Foco",
 	"action.toggle-grid": "Mostrar Grelha",
 	"action.toggle-grid.menu": "Mostrar Grelha",
+	"action.toggle-keyboard-shortcuts.menu": "Atalhos de teclado",
 	"action.toggle-lock": "Bloquear / Desbloquear",
 	"action.toggle-paste-at-cursor": "Alternar colar em",
 	"action.toggle-paste-at-cursor.menu": "Cursor colar em",

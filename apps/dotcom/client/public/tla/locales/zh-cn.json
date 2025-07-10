@@ -122,6 +122,9 @@
   "5a95a425f7": {
     "translation": "分享"
   },
+  "5bcc12ace8": {
+    "translation": "此房间现在为只读"
+  },
   "5bec508475": {
     "translation": "检测到旧版浏览器。请更新您的浏览器以使用此应用。"
   },
@@ -218,6 +221,9 @@
   "86c66437fd": {
     "translation": "重命名文件"
   },
+  "8b1946f965": {
+    "translation": "要继续编辑，请将房间复制到您的文件中。"
+  },
   "8eb2c00e96": {
     "translation": "与您分享"
   },
@@ -241,6 +247,9 @@
   },
   "9bef626805": {
     "translation": "删除文件"
+  },
+  "9c258b8f88": {
+    "translation": "此匿名 tldraw 多人游戏房间现已设为只读。如需继续编辑，请登录并将其复制到您的文件。"
   },
   "9ceb927baa": {
     "translation": "发布此文件"
@@ -327,9 +336,6 @@
   "c87aacf567": {
     "translation": "退出登录"
   },
-  "cbef7ba103": {
-    "translation": "此房间即将变为只读"
-  },
   "cceaefbc20": {
     "translation": "分享此文件"
   },
@@ -368,9 +374,6 @@
   },
   "e78e14c5f1": {
     "translation": "固定"
-  },
-  "ea2301d01c": {
-    "translation": "2025年7月1日之后，此匿名tldraw多人游戏房间将变为只读状态。如需继续编辑，请登录并将其复制到您的文件。"
   },
   "ea4788705e": {
     "translation": "取消"

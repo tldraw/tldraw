@@ -3,9 +3,6 @@ import { Tldraw } from 'tldraw'
 import { getBookmarkPreview } from './getBookmarkPreview'
 import { multiplayerAssetStore } from './multiplayerAssetStore'
 
-// Where is our worker located? Configure this in `vite.config.ts`
-const WORKER_URL = process.env.TLDRAW_WORKER_URL
-
 // In this example, the room ID is hard-coded. You can set this however you like though.
 const roomId = 'test-room'
 
@@ -13,7 +10,7 @@ function App() {
 	// Create a store connected to multiplayer.
 	const store = useSync({
 		// We need to know the websockets URI...
-		uri: `${WORKER_URL}/connect/${roomId}`,
+		uri: `${window.location.origin}/api/connect/${roomId}`,
 		// ...and how to handle static assets like images & videos
 		assets: multiplayerAssetStore,
 	})

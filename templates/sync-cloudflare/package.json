@@ -9,40 +9,38 @@
 	"homepage": "https://tldraw.dev",
 	"license": "MIT",
 	"type": "module",
+	"tldraw_template": {
+		"repo": "tldraw/tldraw-sync-cloudflare",
+		"scripts": {
+			"lint": null
+		}
+	},
 	"scripts": {
-		"dev": "concurrently --kill-others --names client,worker --prefix-colors blue,red yarn:dev:client yarn:dev:worker",
-		"dev:client": "vite",
-		"dev:worker": "wrangler dev",
+		"dev": "vite",
 		"build": "tsc && vite build",
-		"lint": "eslint src --ext ts,tsx --report-unused-disable-directives --max-warnings 0",
+		"lint": "yarn run -T tsx ../../internal/scripts/lint.ts",
 		"preview": "vite preview"
 	},
 	"dependencies": {
-		"@cloudflare/types": "^6.29.0",
-		"@tldraw/sync": "latest",
-		"@tldraw/sync-core": "latest",
-		"@tldraw/tlschema": "latest",
+		"@tldraw/sync": "workspace:*",
+		"@tldraw/sync-core": "workspace:*",
+		"@tldraw/tlschema": "workspace:*",
 		"cloudflare-workers-unfurl": "^0.0.7",
-		"itty-router": "^5.0.17",
+		"itty-router": "^5.0.18",
 		"lodash.throttle": "^4.1.1",
-		"react": "^18.2.0",
-		"react-dom": "^18.2.0",
-		"tldraw": "latest"
+		"react": "^18.3.1",
+		"react-dom": "^18.3.1",
+		"tldraw": "workspace:*"
 	},
 	"devDependencies": {
-		"@cloudflare/workers-types": "^4.20250510.0",
-		"@types/lodash.throttle": "^4",
+		"@cloudflare/vite-plugin": "^1.9.0",
+		"@types/lodash.throttle": "^4.1.9",
 		"@types/react": "^18.3.18",
 		"@types/react-dom": "^18.3.5",
-		"@typescript-eslint/eslint-plugin": "^8.11.0",
-		"@typescript-eslint/parser": "^8.11.0",
-		"@vitejs/plugin-react-swc": "^3.7.0",
-		"concurrently": "^9.0.1",
-		"eslint": "^9.13.0",
-		"eslint-plugin-react-hooks": "^5.0.0",
-		"eslint-plugin-react-refresh": "^0.4.13",
-		"typescript": "^5.0.2",
-		"vite": "^5.4.10",
-		"wrangler": "^4.14.4"
+		"@vitejs/plugin-react-swc": "^3.10.2",
+		"concurrently": "^9.1.2",
+		"typescript": "^5.8.3",
+		"vite": "^7.0.1",
+		"wrangler": "^4.23.0"
 	}
 }

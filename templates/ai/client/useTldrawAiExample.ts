@@ -19,7 +19,7 @@ const STATIC_TLDRAWAI_OPTIONS: TldrawAiOptions = {
 	transforms: [SimpleIds, ShapeDescriptions, SimpleCoordinates],
 	// A function that calls the backend and return generated changes.
 	// See worker/do/OpenAiService.ts#generate for the backend part.
-	generate: async ({ editor, prompt, signal }) => {
+	generate: async ({ prompt, signal }) => {
 		const res = await fetch('/generate', {
 			method: 'POST',
 			body: JSON.stringify(prompt),
@@ -36,7 +36,7 @@ const STATIC_TLDRAWAI_OPTIONS: TldrawAiOptions = {
 	// A function similar to `generate` but that will stream changes from
 	// the AI as they are ready. See worker/do/OpenAiService.ts#stream for
 	// the backend part.
-	stream: async function* ({ editor, prompt, signal }) {
+	stream: async function* ({ prompt, signal }) {
 		const res = await fetch('/stream', {
 			method: 'POST',
 			body: JSON.stringify(prompt),
@@ -76,8 +76,6 @@ const STATIC_TLDRAWAI_OPTIONS: TldrawAiOptions = {
 					}
 				}
 			}
-		} catch (err) {
-			throw err
 		} finally {
 			reader.releaseLock()
 		}

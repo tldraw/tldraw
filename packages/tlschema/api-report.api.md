@@ -108,13 +108,13 @@ id: TLAssetId;
 meta: JsonObject;
 props: Props;
 type: Type;
-typeName: 'asset';
+typeName: "asset";
 }[P]; } & { [P_1 in (undefined extends Props ? "props" : never) | (undefined extends Type ? "type" : never)]?: {
 id: TLAssetId;
 meta: JsonObject;
 props: Props;
 type: Type;
-typeName: 'asset';
+typeName: "asset";
 }[P_1] | undefined; }>>;
 
 // @public (undocumented)
