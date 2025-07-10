@@ -70,6 +70,7 @@ This PR cherry-picks the changes from the original PR to the hotfixes branch for
 			repo: 'tldraw',
 			pull_number: createdPr.data.number,
 			merge_method: 'squash',
+			auto_merge: true,
 			commit_title: `[HOTFIX] ${pr.title}`,
 			commit_message: `This is an automated hotfix for dotcom deployment.
 
