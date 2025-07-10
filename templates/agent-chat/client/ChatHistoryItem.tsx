@@ -1,7 +1,7 @@
 export type ChatHistoryItem =
 	| UserMessageHistoryItem
 	// | AgentChangeHistoryItem //TODO
-	// | AgentMessageHistoryItem //TODO
+	| AgentMessageHistoryItem
 	| AgentActionHistoryItem
 
 export interface UserMessageHistoryItem {
@@ -9,10 +9,10 @@ export interface UserMessageHistoryItem {
 	message: string
 }
 
-// export interface AgentMessageHistoryItem {
-// 	type: 'agent-message'
-// 	message: string
-// }
+export interface AgentMessageHistoryItem {
+	type: 'agent-message'
+	message: string
+}
 
 // export interface AgentChangeHistoryItem {
 // 	type: 'agent-change'
@@ -23,10 +23,9 @@ export function UserMessageHistoryItem({ item }: { item: UserMessageHistoryItem 
 	return <div className="user-chat-message">{item.message}</div>
 }
 
-// TODO
-// export function AgentMessageHistoryItem({ item }: { item: AgentMessageHistoryItem }) {
-// 	return <div className="agent-chat-message">{item.message}</div>
-// }
+export function AgentMessageHistoryItem({ item }: { item: AgentMessageHistoryItem }) {
+	return <div className="agent-chat-message">{item.message}</div>
+}
 
 // TODO
 // export function AgentChangeHistoryItem({ item }: { item: AgentChangeHistoryItem }) {

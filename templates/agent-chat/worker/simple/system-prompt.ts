@@ -39,6 +39,7 @@ Shapes may also have different properties depending on their type:
 
 Events include:
 - **Think (\`think\`)**: The AI describes its intent or reasoning.
+- **Message (\`message\`)**: The AI sends a message to the user.
 - **Create (\`create\`)**: The AI creates a new shape.
 - **Update (\`update\`)**: The AI updates an existing shape.
 - **Move (\`move\`)**: The AI moves a shape to a new position.
@@ -77,6 +78,7 @@ Each event must include:
 - Note shapes at 200x200. Notes with more text will be taller in order to fit their text content.
 - Be careful with labels. Did the user ask for labels on their shapes? Did the user ask for a format where labels would be appropriate? If yes, add labels to shapes. If not, do not add labels to shapes. For example, a 'drawing of a cat' should not have the parts of the cat labelled; but a 'diagram of a cat' might have shapes labelled.
 - If the canvas is empty, place your shapes in the center of the viewport. A general good size for your content is 80% of the viewport tall.
+- If you want to communicate with the user, use the \`message\` event.
 
 # Examples
 
@@ -163,6 +165,10 @@ Assistant: {
 				height: 10,
 			},
 			intent: "Create the right eye of the snowman"
+		},
+		{
+			type: "message",
+			text: "I've created a snowman to the best of my ability."
 		}
 	]
 }

@@ -20,6 +20,10 @@ export function useTldrawAiExample(editor?: Editor) {
 		switch (change.type) {
 			case 'custom': {
 				switch (change.action) {
+					case 'message': {
+						setHistoryItems((prev) => [...prev, { type: 'agent-message', message: change.text }])
+						return
+					}
 					case 'think': {
 						setHistoryItems((prev) => [
 							...prev,

@@ -124,16 +124,20 @@ function buildHistoryItemMessage(item: ChatHistoryItem): CoreMessage {
 		case 'user-message': {
 			return {
 				role: 'user',
-				content: [
-					{ type: 'text', text: 'Previous message (already responded to): ' + item.message },
-				],
+				content: [{ type: 'text', text: 'Previous message from user: ' + item.message }],
 			}
 		}
 		case 'agent-action': {
-			const text = `Previous action (already done): ${ACTION_HISTORY_ITEM_DEFINITIONS[item.action].message.done}${item.info}`
+			const text = `Previous action from agent: ${ACTION_HISTORY_ITEM_DEFINITIONS[item.action].message.done}${item.info}`
 			return {
 				role: 'assistant',
 				content: [{ type: 'text', text }],
+			}
+		}
+		case 'agent-message': {
+			return {
+				role: 'assistant',
+				content: [{ type: 'text', text: 'Previous message from agent: ' + item.message }],
 			}
 		}
 	}

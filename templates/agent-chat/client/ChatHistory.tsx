@@ -1,5 +1,10 @@
 import { useEffect, useRef } from 'react'
-import { AgentActionHistoryItem, ChatHistoryItem, UserMessageHistoryItem } from './ChatHistoryItem'
+import {
+	AgentActionHistoryItem,
+	AgentMessageHistoryItem,
+	ChatHistoryItem,
+	UserMessageHistoryItem,
+} from './ChatHistoryItem'
 
 export function ChatHistory({ items }: { items: ChatHistoryItem[] }) {
 	const scrollContainerRef = useRef<HTMLDivElement>(null)
@@ -29,8 +34,8 @@ export function ChatHistory({ items }: { items: ChatHistoryItem[] }) {
 				switch (item.type) {
 					case 'user-message':
 						return <UserMessageHistoryItem key={index} item={item} />
-					// case 'agent-message':
-					// 	return <AgentMessageHistoryItem key={index} item={item} />
+					case 'agent-message':
+						return <AgentMessageHistoryItem key={index} item={item} />
 					// case 'agent-change':
 					// 	return <AgentChangeHistoryItem key={index} item={item} />
 					case 'agent-action':

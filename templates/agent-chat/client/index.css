@@ -130,3 +130,11 @@ body {
 .new-chat-button:hover {
 	background: hsl(0, 0%, 90%);
 }
+
+.agent-chat-message {
+	background-color: hsl(0, 0%, 90%);
+	color: hsl(0, 0%, 0%);
+	padding: 8px 12px;
+	border-radius: 8px;
+	max-width: 80%;
+}
