@@ -3,7 +3,7 @@ import { createOpenAI, OpenAIProvider } from '@ai-sdk/openai'
 import { asMessage, TLAiChange, TLAiResult, TLAiSerializedPrompt } from '@tldraw/ai'
 import { CoreMessage, generateObject, LanguageModel, streamObject, UserContent } from 'ai'
 import { ACTION_HISTORY_ITEM_DEFINITIONS, ChatHistoryItem } from '../../../client/ChatHistoryItem'
-import { getTLAgentModelDefinition } from '../../models'
+import { getTLAgentModelDefinition, TLAgentModelName } from '../../models'
 import { getSimpleContentFromCanvasContent } from '../../simple/getSimpleContentFromCanvasContent'
 import { getTldrawAiChangesFromSimpleEvents } from '../../simple/getTldrawAiChangesFromSimpleEvents'
 import { IModelResponse, ISimpleEvent, ModelResponse } from '../../simple/schema'
@@ -21,18 +21,22 @@ export class VercelAiService extends TldrawAiBaseService {
 		this.anthropic = createAnthropic({ apiKey: env.ANTHROPIC_API_KEY })
 	}
 
-	async generate(prompt: TLAiSerializedPrompt): Promise<TLAiResult> {
-		const modelDefinition = getTLAgentModelDefinition(prompt.meta.modelName)
+	getModel(modelName: TLAgentModelName): LanguageModel {
+		const modelDefinition = getTLAgentModelDefinition(modelName)
 		const provider = modelDefinition.provider
-		const events = await generateEventsVercel(this[provider](modelDefinition.id), prompt)
+		return this[provider](modelDefinition.id)
+	}
+
+	async generate(prompt: TLAiSerializedPrompt): Promise<TLAiResult> {
+		const model = this.getModel(prompt.meta.modelName)
+		const events = await generateEventsVercel(model, prompt)
 		const changes = events.map((event) => getTldrawAiChangesFromSimpleEvents(prompt, event)).flat()
 		return { changes }
 	}
 
 	async *stream(prompt: TLAiSerializedPrompt): AsyncGenerator<TLAiChange> {
-		const modelDefinition = getTLAgentModelDefinition(prompt.meta.modelName)
-		const provider = modelDefinition.provider
-		for await (const event of streamEventsVercel(this[provider](modelDefinition.id), prompt)) {
+		const model = this.getModel(prompt.meta.modelName)
+		for await (const event of streamEventsVercel(model, prompt)) {
 			for (const change of getTldrawAiChangesFromSimpleEvents(prompt, event)) {
 				yield change
 			}
