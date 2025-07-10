@@ -1,5 +1,5 @@
 export type TLAgentModelName = keyof typeof AGENT_MODEL_DEFINITIONS
-export type TLAgentModelProvider = 'openai' | 'anthropic'
+export type TLAgentModelProvider = 'openai' | 'anthropic' | 'google'
 
 export interface TLAgentModelDefinition {
 	name: TLAgentModelName
@@ -16,6 +16,16 @@ export function getTLAgentModelDefinition(modelName: TLAgentModelName): TLAgentM
 }
 
 export const AGENT_MODEL_DEFINITIONS = {
+	'gemini-2.5-flash': {
+		name: 'gemini-2.5-flash',
+		id: 'gemini-2.5-flash',
+		provider: 'google',
+	},
+	'gemini-2.5-flash-lite': {
+		name: 'gemini-2.5-flash-lite',
+		id: 'gemini-2.5-flash-lite-preview-06-17',
+		provider: 'google',
+	},
 	'gpt-4o': {
 		name: 'gpt-4o',
 		id: 'gpt-4o',

@@ -53,6 +53,18 @@ __metadata:
   languageName: node
   linkType: hard
 
+"@ai-sdk/google@npm:^1.2.22":
+  version: 1.2.22
+  resolution: "@ai-sdk/google@npm:1.2.22"
+  dependencies:
+    "@ai-sdk/provider": "npm:1.1.3"
+    "@ai-sdk/provider-utils": "npm:2.2.8"
+  peerDependencies:
+    zod: ^3.0.0
+  checksum: 10/a00d74dcd37d190642a16e767085c0dc83aa44e06b81f28318fab6fa8eba398197bcb5c2da6d5b188981fefc7e2b61729a5bea595338d42d8e939c73cc29dbaf
+  languageName: node
+  linkType: hard
+
 "@ai-sdk/openai@npm:^1.3.23":
   version: 1.3.23
   resolution: "@ai-sdk/openai@npm:1.3.23"
@@ -27786,6 +27798,7 @@ __metadata:
   resolution: "tldraw-agent@workspace:templates/agent"
   dependencies:
     "@ai-sdk/anthropic": "npm:^1.2.12"
+    "@ai-sdk/google": "npm:^1.2.22"
     "@ai-sdk/openai": "npm:^1.3.23"
     "@cloudflare/vite-plugin": "npm:^1.9.0"
     "@cloudflare/workers-types": "npm:^4.20250703.0"

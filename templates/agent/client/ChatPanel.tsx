@@ -17,7 +17,10 @@ export function ChatPanel({ editor }: { editor: Editor }) {
 	const historyItems = useValue($chatHistoryItems)
 	const rCancelFn = useRef<(() => void) | null>(null)
 	const inputRef = useRef<HTMLInputElement>(null)
-	const [modelName, setModelName] = useLocalStorageState<TLAgentModelName>('model-name', 'gpt-4o')
+	const [modelName, setModelName] = useLocalStorageState<TLAgentModelName>(
+		'model-name',
+		'gemini-2.5-flash'
+	)
 
 	useEffect(() => {
 		if (!editor) return

@@ -1,4 +1,5 @@
 import { AnthropicProvider, createAnthropic } from '@ai-sdk/anthropic'
+import { createGoogleGenerativeAI, GoogleGenerativeAIProvider } from '@ai-sdk/google'
 import { createOpenAI, OpenAIProvider } from '@ai-sdk/openai'
 import { asMessage, TLAiChange, TLAiResult, TLAiSerializedPrompt } from '@tldraw/ai'
 import { CoreMessage, generateObject, LanguageModel, streamObject, UserContent } from 'ai'
@@ -14,11 +15,13 @@ import { Environment } from '../../types'
 export class VercelAiService extends TldrawAiBaseService {
 	openai: OpenAIProvider
 	anthropic: AnthropicProvider
+	google: GoogleGenerativeAIProvider
 
 	constructor(env: Environment) {
 		super(env)
 		this.openai = createOpenAI({ apiKey: env.OPENAI_API_KEY })
 		this.anthropic = createAnthropic({ apiKey: env.ANTHROPIC_API_KEY })
+		this.google = createGoogleGenerativeAI({ apiKey: env.GOOGLE_API_KEY })
 	}
 
 	getModel(modelName: TLAgentModelName): LanguageModel {
