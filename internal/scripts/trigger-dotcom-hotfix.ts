@@ -31,7 +31,7 @@ async function main() {
 		totalSteps: 3,
 		shouldNotify: true,
 	})
-	// await discord.message(`🚀 Triggering dotcom hotfix for PR #${pr.number}...`)
+	await discord.message(`🚀 Triggering dotcom hotfix for PR #${pr.number}...`)
 
 	const hotfixBranchName = `hotfix/dotcom-${pr.number}`
 
@@ -89,18 +89,18 @@ Original Author: @${pr.user?.login}`,
 
 main().catch(async (e: Error) => {
 	console.error(e)
-	//
-	// const discord = new Discord({
-	// 	webhookUrl: process.env.DISCORD_DEPLOY_WEBHOOK_URL!,
-	// 	totalSteps: 3,
-	// 	shouldNotify: true,
-	// })
-	//
-	// await discord
-	// 	.message(
-	// 		`❌ **Error triggering dotcom hotfix**\n\n\`\`\`ansi\n${e.message.slice(0, 2000)}\n\`\`\``
-	// 	)
-	// 	.finally(() => {
-	// 		process.exit(1)
-	// 	})
+
+	const discord = new Discord({
+		webhookUrl: process.env.DISCORD_DEPLOY_WEBHOOK_URL!,
+		totalSteps: 3,
+		shouldNotify: true,
+	})
+
+	await discord
+		.message(
+			`❌ **Error triggering dotcom hotfix**\n\n\`\`\`ansi\n${e.message.slice(0, 2000)}\n\`\`\``
+		)
+		.finally(() => {
+			process.exit(1)
+		})
 })
