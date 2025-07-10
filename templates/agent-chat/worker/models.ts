@@ -46,4 +46,9 @@ export const AGENT_MODEL_DEFINITIONS = {
 		id: 'claude-3-7-sonnet-latest',
 		provider: 'anthropic',
 	},
+	'claude-3.5-haiku': {
+		name: 'claude-3.5-haiku',
+		id: 'claude-3-5-haiku-latest',
+		provider: 'anthropic',
+	},
 } as const
