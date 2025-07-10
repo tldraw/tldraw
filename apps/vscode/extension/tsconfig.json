@@ -22,12 +22,5 @@
 		"skipDefaultLibCheck": true
 	},
 	"include": ["src", "../messages", "scripts"],
-	"references": [
-		{
-			"path": "../../../packages/editor"
-		},
-		{
-			"path": "../../../packages/tldraw"
-		}
-	]
+	"references": [{ "path": "../../../packages/editor" }, { "path": "../../../packages/tldraw" }]
 }

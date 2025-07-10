@@ -17,5 +17,5 @@
  * @public
  */
 export function getFirstFromIterable<T = unknown>(set: Set<T> | Map<any, T>): T {
-	return set.values().next().value
+	return set.values().next().value!
 }

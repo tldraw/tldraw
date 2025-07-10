@@ -41,6 +41,7 @@ export interface RichTextLabelProps {
 	textWidth?: number
 	textHeight?: number
 	padding?: number
+	hasCustomTabBehavior?: boolean
 }
 
 /**
@@ -68,6 +69,7 @@ export const RichTextLabel = React.memo(function RichTextLabel({
 	style,
 	textWidth,
 	textHeight,
+	hasCustomTabBehavior,
 }: RichTextLabelProps) {
 	const editor = useEditor()
 	const isDragging = React.useRef(false)
@@ -143,7 +145,7 @@ export const RichTextLabel = React.memo(function RichTextLabel({
 				className={`${cssPrefix}-label__inner tl-text-content__wrapper`}
 				style={{
 					fontSize,
-					lineHeight: Math.floor(fontSize * lineHeight) + 'px',
+					lineHeight: lineHeight.toString(),
 					minHeight: Math.floor(fontSize * lineHeight) + 'px',
 					minWidth: Math.ceil(textWidth || 0),
 					color: labelColor,
@@ -171,6 +173,7 @@ export const RichTextLabel = React.memo(function RichTextLabel({
 						isEditing={isEditing}
 						shapeId={shapeId}
 						{...editableTextRest}
+						hasCustomTabBehavior={hasCustomTabBehavior}
 						handleKeyDown={handleKeyDownCustom ?? editableTextRest.handleKeyDown}
 					/>
 				)}
@@ -190,6 +193,7 @@ export interface RichTextSVGProps {
 	wrap?: boolean
 	labelColor: string
 	padding: number
+	showTextOutline?: boolean
 }
 
 /**
@@ -207,6 +211,7 @@ export function RichTextSVG({
 	wrap,
 	labelColor,
 	padding,
+	showTextOutline = true,
 }: RichTextSVGProps) {
 	const editor = useEditor()
 	const html = renderHtmlFromRichText(editor, richText)
@@ -242,6 +247,7 @@ export function RichTextSVG({
 		wordWrap: 'break-word' as const,
 		overflowWrap: 'break-word' as const,
 		whiteSpace: 'pre-wrap',
+		textShadow: showTextOutline ? 'var(--tl-text-outline)' : 'none',
 	}
 
 	return (

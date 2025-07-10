@@ -14,10 +14,10 @@ import { routes } from '../../../routeDefs'
 import { useMaybeApp } from '../../hooks/useAppState'
 import { useCurrentFileId } from '../../hooks/useCurrentFileId'
 import { useTldrawAppUiEvents } from '../../utils/app-ui-events'
-import { F } from '../../utils/i18n'
+import { F, defineMessages, useMsg } from '../../utils/i18n'
 import { TlaCtaButton } from '../TlaCtaButton/TlaCtaButton'
 import { TlaFileShareMenu } from '../TlaFileShareMenu/TlaFileShareMenu'
-import { TlaSignedOutShareButton } from '../TlaSignedOutShareButton/TlaSignedOutShareButton'
+import { TlaIcon } from '../TlaIcon/TlaIcon'
 import styles from './top.module.css'
 
 export function TlaEditorTopRightPanel({
@@ -35,8 +35,8 @@ export function TlaEditorTopRightPanel({
 	if (isAnonUser) {
 		return (
 			<div ref={ref} className={classNames(styles.topRightPanel)}>
-				<PeopleMenu displayUserWhenAlone={false} />
-				<TlaSignedOutShareButton fileId={fileId} context={context} />
+				<PeopleMenu />
+				<SignedOutShareButton fileId={fileId} context={context} />
 				<SignInButton
 					mode="modal"
 					forceRedirectUrl={location.pathname + location.search}
@@ -55,21 +55,23 @@ export function TlaEditorTopRightPanel({
 
 	return (
 		<div ref={ref} className={styles.topRightPanel}>
-			<PeopleMenu displayUserWhenAlone={false} />
+			<PeopleMenu />
 			{context === 'legacy' && <LegacyImportButton />}
-			<TlaFileShareMenu fileId={fileId!} source="file-header" context={context}>
-				<TlaCtaButton
-					data-testid="tla-share-button"
-					onClick={() => trackEvent('open-share-menu', { source: 'top-bar' })}
-				>
-					<F defaultMessage="Share" />
-				</TlaCtaButton>
-			</TlaFileShareMenu>
+			{context !== 'legacy' && (
+				<TlaFileShareMenu fileId={fileId!} source="file-header" context={context}>
+					<TlaCtaButton
+						data-testid="tla-share-button"
+						onClick={() => trackEvent('open-share-menu', { source: 'top-bar' })}
+					>
+						<F defaultMessage="Share" />
+					</TlaCtaButton>
+				</TlaFileShareMenu>
+			)}
 		</div>
 	)
 }
 
-function useGetFileName() {
+export function useGetFileName() {
 	const editor = useEditor()
 	const msg = useTranslation()
 	const defaultPageName = msg('page-menu.new-page-initial-name')
@@ -116,11 +118,11 @@ function LegacyImportButton() {
 	const name = useGetFileName()
 	const roomInfo = useRoomInfo()
 
-	const handleClick = useCallback(() => {
+	const handleClick = useCallback(async () => {
 		if (!app || !editor || !roomInfo) return
 
 		const { prefix, id } = roomInfo
-		const res = app.createFile({ name, createSource: `${prefix}/${id}` })
+		const res = await app.createFile({ name, createSource: `${prefix}/${id}` })
 		if (res.ok) {
 			const { file } = res.value
 			navigate(routes.tlaFile(file.id))
@@ -132,5 +134,33 @@ function LegacyImportButton() {
 		<TlaCtaButton data-testid="tla-import-button" onClick={handleClick}>
 			<F defaultMessage="Copy to my files" />
 		</TlaCtaButton>
+	)
+}
+
+export const signedOutShareMessages = defineMessages({
+	share: { defaultMessage: 'Share' },
+})
+
+export function SignedOutShareButton({
+	fileId,
+	context,
+}: {
+	fileId?: string
+	context: 'file' | 'published-file' | 'scratch' | 'legacy'
+}) {
+	const trackEvent = useTldrawAppUiEvents()
+	const shareLbl = useMsg(signedOutShareMessages.share)
+
+	return (
+		<TlaFileShareMenu fileId={fileId} context={context} source="anon">
+			<button
+				data-testid="tla-share-button"
+				aria-label={shareLbl}
+				className={classNames(styles.topRightAnonShareButton)}
+				onClick={() => trackEvent('open-share-menu', { source: 'anon-top-bar' })}
+			>
+				<TlaIcon icon="share" />
+			</button>
+		</TlaFileShareMenu>
 	)
 }

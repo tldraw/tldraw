@@ -2,6 +2,7 @@ import fs from 'fs'
 import path from 'path'
 import { Database } from 'sqlite'
 import sqlite3 from 'sqlite3'
+import { EXAMPLES_CATEGORIES } from './generateExamplesContent'
 import { PUBLIC_DIR } from './utils'
 
 type DbType = Database<sqlite3.Database, sqlite3.Statement>
@@ -63,22 +64,35 @@ async function getMarkdownForDocs(db: DbType) {
 async function getMarkdownForExamples(db: DbType) {
 	const examples = await db.all('SELECT * FROM articles WHERE sectionId = "examples"')
 
-	let result = `# tldraw SDK Examples`
-	for (const example of examples) {
-		result += `\n\n--------`
-		result += `\n\n# ${example.title}`
-
-		result += `\n\nKeywords: ${example.keywords.trim()}`
-		if (example.description?.trim()) {
-			result += `\n\n${example.description.trim()}`
+	// Sort examples by category
+	const categories = EXAMPLES_CATEGORIES.map((category) => {
+		return {
+			id: category.id,
+			title: category.title,
+			examples: examples.filter((example) => example.categoryId === category.id),
 		}
+	})
 
-		result += `\n\n${example.content.trim()}`
-		result += getMarkdownForFile('App.tsx', example.componentCode)
+	let result = `# tldraw SDK Examples`
 
-		const files = JSON.parse(example.componentCodeFiles)
-		for (const name in files) {
-			result += getMarkdownForFile(name, files[name])
+	for (const category of categories) {
+		for (const example of category.examples) {
+			result += `\n\n--------`
+			result += `\n\n# ${example.title}`
+
+			result += `\n\nCategory: ${category.title}`
+			result += `\n\nKeywords: ${example.keywords.trim()}`
+			if (example.description?.trim()) {
+				result += `\n\n${example.description.trim()}`
+			}
+
+			result += `\n\n${example.content.trim()}`
+			result += getMarkdownForFile('App.tsx', example.componentCode)
+
+			const files = JSON.parse(example.componentCodeFiles)
+			for (const name in files) {
+				result += getMarkdownForFile(name, files[name])
+			}
 		}
 	}
 

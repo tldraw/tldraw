@@ -19,6 +19,7 @@ import {
 	ToggleEdgeScrollingItem,
 	ToggleFocusModeItem,
 	ToggleGridItem,
+	ToggleKeyboardShortcutsItem,
 	ToggleLockMenuItem,
 	TogglePasteAtCursorItem,
 	ToggleReduceMotionItem,
@@ -161,6 +162,7 @@ export function PreferencesGroup() {
 					<ToggleFocusModeItem />
 					<ToggleEdgeScrollingItem />
 					<ToggleReduceMotionItem />
+					<ToggleKeyboardShortcutsItem />
 					<ToggleDynamicSizeModeItem />
 					<TogglePasteAtCursorItem />
 					<ToggleDebugModeItem />

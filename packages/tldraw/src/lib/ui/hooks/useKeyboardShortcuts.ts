@@ -33,16 +33,21 @@ export function useKeyboardShortcuts() {
 		if (!isFocused) return
 
 		const disposables = new Array<() => void>()
+		const container = editor.getContainer()
 
 		const hot = (keys: string, callback: (event: KeyboardEvent) => void) => {
-			hotkeys(keys, { element: document.body }, callback)
+			hotkeys(keys, { element: container.ownerDocument.body }, callback)
 			disposables.push(() => {
 				hotkeys.unbind(keys, callback)
 			})
 		}
 
 		const hotUp = (keys: string, callback: (event: KeyboardEvent) => void) => {
-			hotkeys(keys, { element: document.body, keyup: true, keydown: false }, callback)
+			hotkeys(
+				keys,
+				{ element: container.ownerDocument.body, keyup: true, keydown: false },
+				callback
+			)
 			disposables.push(() => {
 				hotkeys.unbind(keys, callback)
 			})
@@ -56,7 +61,7 @@ export function useKeyboardShortcuts() {
 			if (SKIP_KBDS.includes(action.id)) continue
 
 			hot(getHotkeysStringFromKbd(action.kbd), (event) => {
-				if (areShortcutsDisabled(editor)) return
+				if (areShortcutsDisabled(editor) && !action.isRequiredA11yAction) return
 				preventDefault(event)
 				action.onSelect('kbd')
 			})
@@ -140,9 +145,19 @@ export function useKeyboardShortcuts() {
 	}, [actions, tools, isReadonlyMode, editor, isFocused])
 }
 
-// The "raw" kbd here will look something like "a" or a combination of keys "del,backspace",
-// or modifier keys (using ! for shift, $ for cmd, and ? for alt). We need to first split them
-// up by comma, then parse each key to get the actual key and modifiers.
+export function areShortcutsDisabled(editor: Editor) {
+	return (
+		editor.menus.hasAnyOpenMenus() ||
+		editor.getEditingShapeId() !== null ||
+		editor.getCrashingError() ||
+		!editor.user.getAreKeyboardShortcutsEnabled()
+	)
+}
+
+// The "raw" kbd here will look something like "a" or a combination of keys "del,backspace".
+// We need to first split them up by comma, then parse each key to ensure backwards compatibility
+// with the old kbd format. We used to have symbols to denote cmd/alt/shift,
+// using ! for shift, $ for cmd, and ? for alt.
 function getHotkeysStringFromKbd(kbd: string) {
 	return getKeys(kbd)
 		.map((kbd) => {
@@ -192,12 +207,4 @@ function getKeys(key: string) {
 	}
 
 	return keys
-}
-
-export function areShortcutsDisabled(editor: Editor) {
-	return (
-		editor.menus.hasAnyOpenMenus() ||
-		editor.getEditingShapeId() !== null ||
-		editor.getCrashingError()
-	)
 }

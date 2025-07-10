@@ -4,6 +4,8 @@
 
 ```ts
 
+import { default as isEqual } from 'lodash.isequal';
+import { default as isEqualWith } from 'lodash.isequalwith';
 import { default as throttle } from 'lodash.throttle';
 import { default as uniq } from 'lodash.uniq';
 
@@ -38,7 +40,9 @@ export function clearSessionStorage(): void;
 export function compact<T>(arr: T[]): NonNullable<T>[];
 
 // @public
-export function debounce<T extends unknown[], U>(callback: (...args: T) => PromiseLike<U> | U, wait: number): {
+export function debounce<T extends unknown[], U>(callback: (...args: T) => PromiseLike<U> | U, wait: number, options?: {
+    leading?: boolean;
+}): {
     (...args: T): Promise<U>;
     cancel(): void;
 };
@@ -47,13 +51,16 @@ export function debounce<T extends unknown[], U>(callback: (...args: T) => Promi
 export function dedupe<T>(input: T[], equals?: (a: any, b: any) => boolean): T[];
 
 // @public (undocumented)
-export const DEFAULT_SUPPORT_VIDEO_TYPES: readonly string[];
+export const DEFAULT_SUPPORT_VIDEO_TYPES: readonly ("video/mp4" | "video/quicktime" | "video/webm")[];
 
 // @public (undocumented)
-export const DEFAULT_SUPPORTED_IMAGE_TYPES: readonly string[];
+export const DEFAULT_SUPPORTED_IMAGE_TYPES: readonly ("image/apng" | "image/avif" | "image/gif" | "image/jpeg" | "image/png" | "image/svg+xml" | "image/webp")[];
 
 // @public (undocumented)
 export const DEFAULT_SUPPORTED_MEDIA_TYPE_LIST: string;
+
+// @public (undocumented)
+export const DEFAULT_SUPPORTED_MEDIA_TYPES: readonly ("image/apng" | "image/avif" | "image/gif" | "image/jpeg" | "image/png" | "image/svg+xml" | "image/webp" | "video/mp4" | "video/quicktime" | "video/webm")[];
 
 // @internal
 export function deleteFromLocalStorage(key: string): void;
@@ -135,6 +142,9 @@ export function fpsThrottle(fn: {
 };
 
 // @internal (undocumented)
+export function getChangedKeys<T extends object>(obj1: T, obj2: T): (keyof T)[];
+
+// @internal (undocumented)
 export function getErrorAnnotations(error: Error): ErrorAnnotations;
 
 // @public
@@ -206,6 +216,13 @@ export function invLerp(a: number, b: number, t: number): number;
 // @public
 export function isDefined<T>(value: T): value is typeof value extends undefined ? never : T;
 
+export { isEqual }
+
+// @internal (undocumented)
+export function isEqualAllowingForFloatingPointErrors(obj1: object, obj2: object, threshold?: number): boolean;
+
+export { isEqualWith }
+
 // @internal (undocumented)
 export const isNativeStructuredClone: boolean;
 
@@ -271,6 +288,11 @@ export function measureDuration(_target: any, propertyKey: string, descriptor: P
 
 // @public
 export class MediaHelpers {
+    static getImageAndDimensions(src: string): Promise<{
+        h: number;
+        image: HTMLImageElement;
+        w: number;
+    }>;
     static getImageSize(blob: Blob): Promise<{
         h: number;
         w: number;
@@ -291,7 +313,6 @@ export class MediaHelpers {
     static isStaticImageType(mimeType: null | string): boolean;
     // (undocumented)
     static isVectorImageType(mimeType: null | string): boolean;
-    static loadImage(src: string): Promise<HTMLImageElement>;
     static loadVideo(src: string): Promise<HTMLVideoElement>;
     // (undocumented)
     static usingObjectURL<T>(blob: Blob, fn: (url: string) => Promise<T>): Promise<T>;
@@ -341,6 +362,9 @@ export interface OkResult<T> {
     // (undocumented)
     readonly value: T;
 }
+
+// @internal (undocumented)
+export function omit(obj: Record<string, unknown>, keys: ReadonlyArray<string>): Record<string, unknown>;
 
 // @internal
 export function omitFromStackTrace<Args extends Array<unknown>, Return>(fn: (...args: Args) => Return): (...args: Args) => Return;

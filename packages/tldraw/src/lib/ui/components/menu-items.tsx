@@ -7,6 +7,7 @@ import {
 	useEditor,
 	useValue,
 } from '@tldraw/editor'
+import { supportsDownloadingOriginal } from '../context/actions'
 import { useUiEvents } from '../context/events'
 import { useToasts } from '../context/toasts'
 import {
@@ -73,6 +74,23 @@ export function FlattenMenuItem() {
 	if (!shouldDisplay) return null
 
 	return <TldrawUiMenuActionItem actionId="flatten-to-image" />
+}
+
+/** @public @react */
+export function DownloadOriginalMenuItem() {
+	const editor = useEditor()
+	const shouldDisplay = useValue(
+		'should display download original option',
+		() => {
+			const selectedShapes = editor.getSelectedShapes()
+			if (selectedShapes.length === 0) return false
+			return selectedShapes.some((shape) => supportsDownloadingOriginal(shape, editor))
+		},
+		[editor]
+	)
+	if (!shouldDisplay) return null
+
+	return <TldrawUiMenuActionItem actionId="download-original" />
 }
 
 /** @public @react */
@@ -299,6 +317,7 @@ export function ConversionsMenuGroup() {
 					<ToggleTransparentBgMenuItem />
 				</TldrawUiMenuGroup>
 			</TldrawUiMenuSubmenu>
+			<DownloadOriginalMenuItem />
 		</TldrawUiMenuGroup>
 	)
 }
@@ -611,6 +630,23 @@ export function ToggleReduceMotionItem() {
 		<TldrawUiMenuActionCheckboxItem
 			actionId="toggle-reduce-motion"
 			checked={animationSpeed === 0}
+		/>
+	)
+}
+
+/** @public @react */
+export function ToggleKeyboardShortcutsItem() {
+	const editor = useEditor()
+	const keyboardShortcuts = useValue(
+		'keyboardShortcuts',
+		() => editor.user.getAreKeyboardShortcutsEnabled(),
+		[editor]
+	)
+
+	return (
+		<TldrawUiMenuActionCheckboxItem
+			actionId="toggle-keyboard-shortcuts"
+			checked={keyboardShortcuts}
 		/>
 	)
 }

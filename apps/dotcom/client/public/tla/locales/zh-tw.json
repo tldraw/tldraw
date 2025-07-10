@@ -20,11 +20,17 @@
   "08331c1710": {
     "translation": "超出速率限制，請稍後重試。"
   },
+  "08bd40c754": {
+    "translation": "帳戶"
+  },
   "0b27918290": {
     "translation": "檔案"
   },
   "0b9a4cde72": {
     "translation": "檔案選單"
+  },
+  "0d1f2bb523": {
+    "translation": "傳送回饋"
   },
   "110a4b01be": {
     "translation": "發布"
@@ -35,17 +41,14 @@
   "181b90f889": {
     "translation": "建立檔案"
   },
-  "1bef75f760": {
-    "translation": "允許 tldraw 就此事向我發送電子郵件"
-  },
   "1da2e8106b": {
     "translation": "發生未預期的錯誤。"
   },
   "1dd1c5fb7f": {
     "translation": "今天"
   },
-  "26e5b44256": {
-    "translation": "向我們提供回饋"
+  "250ddea65c": {
+    "translation": "關於tldraw"
   },
   "299cb00a7a": {
     "translation": "上傳失敗"
@@ -55,9 +58,6 @@
   },
   "31418ce4ad": {
     "translation": "i18n：醒目顯示遺失"
-  },
-  "32656a600c": {
-    "translation": "發現了什麼錯誤嗎？有什麼想法可以改進 tldraw 嗎？我們很想聽聽這個消息！"
   },
   "335defdafe": {
     "translation": "請嘗試重新整理頁面。"
@@ -71,6 +71,9 @@
   "3c5e891bff": {
     "translation": "已置頂"
   },
+  "3d0238bf16": {
+    "translation": "全部接受"
+  },
   "42e53c47c1": {
     "translation": "請聯絡擁有者請求存取權限。"
   },
@@ -80,17 +83,14 @@
   "46137245cd": {
     "translation": "感謝您幫助我們改進 tldraw！"
   },
-  "4778b9f3f2": {
-    "translation": "隱私設定"
-  },
   "47839e47a5": {
     "translation": "tldraw"
   },
   "4908687e50": {
     "translation": "您確定要遺忘此檔案嗎？"
   },
-  "4c06678729": {
-    "translation": "我們使用第一方 cookie 來改善我們的服務。 <a>了解詳情</a>"
+  "4d0d3ddec9": {
+    "translation": "本網站使用 cookies 來使應用程式運作並收集分析資料。"
   },
   "4d1c8263ba": {
     "translation": "重新載入"
@@ -113,23 +113,23 @@
   "55505ba281": {
     "translation": "PNG"
   },
+  "5677e381d2": {
+    "translation": "我們使用分析性 cookie 來改進 tldraw。"
+  },
   "56c34c6410": {
     "translation": "隱私權政策"
-  },
-  "5817f82c16": {
-    "translation": "可選 — 幫助我們了解人們如何使用 tldraw，以及如何改進它。"
   },
   "5a95a425f7": {
     "translation": "共享"
   },
-  "5d160eb095": {
-    "translation": "您的會話"
+  "5bcc12ace8": {
+    "translation": "此房間現在為唯讀"
+  },
+  "5bec508475": {
+    "translation": "偵測到舊版瀏覽器。請更新您的瀏覽器以使用此應用程式。"
   },
   "5d26ae7550": {
     "translation": "我們無法上傳您登入之前所建立的部分內容。"
-  },
-  "5db1e9a8ca": {
-    "translation": "填寫此表格，<discord>在 Discord 上與我們聊天</discord>或<github>在 GitHub 上提交問題</github>。"
   },
   "5f3c333678": {
     "translation": "已提交回饋"
@@ -161,6 +161,9 @@
   "70a6facb9d": {
     "translation": "本週"
   },
+  "71a29b007b": {
+    "translation": "對於 tldraw 有錯誤、問題或想法嗎？讓我們知道！"
+  },
   "73ab799383": {
     "translation": "不再支援此版本的 tldraw。"
   },
@@ -188,6 +191,12 @@
   "797799f35e": {
     "translation": "在 GitHub 上提交問題"
   },
+  "7b1329f5ca": {
+    "translation": "使用者手冊"
+  },
+  "7be10fc592": {
+    "translation": "恢復版本"
+  },
   "7cb5f8b4a5": {
     "translation": "遺忘"
   },
@@ -197,8 +206,11 @@
   "7fcdcc6455": {
     "translation": "遺忘檔案"
   },
-  "81d389ac80": {
-    "translation": "將內容匯出為 .tldr 檔案：在左上角的選單中選擇「下載檔案」。"
+  "801ab24683": {
+    "translation": "下載"
+  },
+  "815e116a2e": {
+    "translation": "對於 tldraw 有錯誤、問題或想法嗎？讓我們知道！填寫此表格，如有需要，我們將透過電子郵件跟進。您也可以<discord>在 Discord 上與我們聊天</discord>或<github>在 GitHub 上提交問題</github>。"
   },
   "85a082de1b": {
     "translation": "請重新整理頁面以取得最新版本的 tldraw。"
@@ -209,11 +221,11 @@
   "86c66437fd": {
     "translation": "重新命名文件"
   },
+  "8b1946f965": {
+    "translation": "若要繼續編輯，請將房間複製到您的文件中。"
+  },
   "8eb2c00e96": {
     "translation": "已與您共享"
-  },
-  "8f7f4c1ce7": {
-    "translation": "關於"
   },
   "8ff3d0a705": {
     "translation": "速率受限"
@@ -236,6 +248,9 @@
   "9bef626805": {
     "translation": "刪除檔案"
   },
+  "9c258b8f88": {
+    "translation": "此匿名 tldraw 多人遊戲房間現已設為唯讀。如需繼續編輯，請登入並將其複製到您的文件。"
+  },
   "9ceb927baa": {
     "translation": "發布此檔案"
   },
@@ -244,6 +259,9 @@
   },
   "9e93c98d88": {
     "translation": "選擇退出"
+  },
+  "a0da245992": {
+    "translation": "將內容匯出為 .tldr 檔案：在左上角選單中選擇“下載”。"
   },
   "a104439641": {
     "translation": "填充"
@@ -279,6 +297,9 @@
     "notes": "This is used to show the last time the file was published. An example is 'Last published 5 minutes ago'.",
     "translation": "上次發布：<date></date>"
   },
+  "b028909917": {
+    "translation": "來賓用戶"
+  },
   "b6d4223e60": {
     "translation": "登入"
   },
@@ -303,8 +324,8 @@
   "c303bd1095": {
     "translation": "無法發布此檔案。"
   },
-  "c4408d3350": {
-    "translation": "接受"
+  "c4b39a1cc3": {
+    "translation": "必備 Cookie"
   },
   "c655b27b1e": {
     "translation": "i18n：長字串"
@@ -321,9 +342,6 @@
   "cd15a75c26": {
     "translation": "SVG"
   },
-  "cd16f555de": {
-    "translation": "必需 — 需要儲存您的檔案和設置，並在您的裝置之間同步它們。"
-  },
   "cea291e45e": {
     "translation": "瞭解有關發布的更多資訊。"
   },
@@ -332,9 +350,6 @@
   },
   "d4bbf74f3e": {
     "translation": "切換側邊欄"
-  },
-  "d5ef96e383": {
-    "translation": "下載文件"
   },
   "d721757161": {
     "translation": "主題"
@@ -351,17 +366,14 @@
   "dfdb78a4e4": {
     "translation": "應用程式的偵錯旗標"
   },
-  "e371526ad0": {
-    "translation": "此 cookie 是 tldraw 工作所必需的，並且無法停用。"
+  "e2ae80a510": {
+    "translation": "法律摘要"
   },
   "e404559826": {
     "translation": "服務條款"
   },
   "e78e14c5f1": {
     "translation": "置頂"
-  },
-  "e8d1090cb9": {
-    "translation": "我們使用 cookie 來讓您保持登入狀態、同步您的檔案並收集分析資料以幫助我們改善 tldraw。請閱讀我們的<a>cookie 政策</a>以了解更多資訊。"
   },
   "ea4788705e": {
     "translation": "取消"
@@ -381,11 +393,26 @@
   "ed75712b0e": {
     "translation": "複製"
   },
+  "ede55d955f": {
+    "translation": "請閱讀我們的<a>cookie 政策</a>以了解更多資訊。"
+  },
+  "f09b16bc5f": {
+    "translation": "我們使用 cookie 來讓您保持登入狀態、同步您的檔案並收集分析資料以幫助我們改善 tldraw。"
+  },
+  "f0e8bff6f9": {
+    "translation": "使用者設定"
+  },
+  "f2569594b2": {
+    "translation": "我們使用這些 cookie 來保存您的檔案和設定。"
+  },
   "f2a6c498fb": {
     "translation": "刪除"
   },
   "f43fb62093": {
     "translation": "返回 tldraw。"
+  },
+  "f4f70727dc": {
+    "translation": "設定"
   },
   "fb15c53f22": {
     "translation": "閱覽者"
@@ -395,5 +422,8 @@
   },
   "fed5ec05eb": {
     "translation": "已複製連結"
+  },
+  "ffcd73e997": {
+    "translation": "導入文件…"
   }
 }

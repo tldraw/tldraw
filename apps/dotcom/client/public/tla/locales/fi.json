@@ -20,11 +20,17 @@
   "08331c1710": {
     "translation": "Hintarajoitus ylitetty, yritä myöhemmin uudelleen."
   },
+  "08bd40c754": {
+    "translation": "Tili"
+  },
   "0b27918290": {
     "translation": "Tiedosto"
   },
   "0b9a4cde72": {
     "translation": "Tiedosto-valikko"
+  },
+  "0d1f2bb523": {
+    "translation": "Lähetä palautetta"
   },
   "110a4b01be": {
     "translation": "Julkaista"
@@ -35,17 +41,14 @@
   "181b90f889": {
     "translation": "Luo tiedosto"
   },
-  "1bef75f760": {
-    "translation": "Salli tldrawn lähettää minulle sähköpostia tästä"
-  },
   "1da2e8106b": {
     "translation": "Tapahtui odottamaton virhe."
   },
   "1dd1c5fb7f": {
     "translation": "Tänään"
   },
-  "26e5b44256": {
-    "translation": "Anna meille palautetta"
+  "250ddea65c": {
+    "translation": "Tietoja tldraw'sta"
   },
   "299cb00a7a": {
     "translation": "Lataus epäonnistui"
@@ -55,9 +58,6 @@
   },
   "31418ce4ad": {
     "translation": "i18n: Korosta puuttuu"
-  },
-  "32656a600c": {
-    "translation": "Näetkö jotain vikaa? Onko sinulla idea tldraw:n parantamiseksi? Haluaisimme kuulla sen!"
   },
   "335defdafe": {
     "translation": "Yritä päivittää sivu."
@@ -71,6 +71,9 @@
   "3c5e891bff": {
     "translation": "Kiinnitetty"
   },
+  "3d0238bf16": {
+    "translation": "Hyväksy kaikki"
+  },
   "42e53c47c1": {
     "translation": "Pyydä käyttöoikeutta ottamalla yhteyttä omistajaan."
   },
@@ -80,17 +83,14 @@
   "46137245cd": {
     "translation": "Kiitos, että autat meitä parantamaan tldraw:ta!"
   },
-  "4778b9f3f2": {
-    "translation": "Yksityisyysasetukset"
-  },
   "47839e47a5": {
     "translation": "tldraw"
   },
   "4908687e50": {
     "translation": "Haluatko varmasti unohtaa tämän tiedoston?"
   },
-  "4c06678729": {
-    "translation": "Käytämme ensimmäisen osapuolen evästeitä palveluidemme parantamiseen. <a>Lisätietoja</a>"
+  "4d0d3ddec9": {
+    "translation": "Tämä sivusto käyttää evästeitä sovelluksen toiminnan varmistamiseksi ja analytiikkatietojen keräämiseksi."
   },
   "4d1c8263ba": {
     "translation": "Lataa uudelleen"
@@ -113,23 +113,23 @@
   "55505ba281": {
     "translation": "PNG"
   },
+  "5677e381d2": {
+    "translation": "Käytämme analytiikkaevästeitä parantaaksemme tldraw'ta."
+  },
   "56c34c6410": {
     "translation": "Tietosuojakäytäntö"
-  },
-  "5817f82c16": {
-    "translation": "Valinnainen – Auta meitä ymmärtämään, kuinka ihmiset käyttävät tldraw:ta ja miten voimme parantaa sitä."
   },
   "5a95a425f7": {
     "translation": "Jakaa"
   },
-  "5d160eb095": {
-    "translation": "Sinun istuntosi"
+  "5bcc12ace8": {
+    "translation": "Tämä huone on nyt vain luku -tilassa"
+  },
+  "5bec508475": {
+    "translation": "Vanha selain havaittu. Päivitä selaimesi käyttääksesi tätä sovellusta."
   },
   "5d26ae7550": {
     "translation": "Emme pystyneet lataamaan osaa sisällöstä, jonka loit ennen kirjautumista."
-  },
-  "5db1e9a8ca": {
-    "translation": "Täytä tämä lomake, <discord>keskustele kanssamme Discordissa</discord> tai <github>lähetä ongelma GitHubissa</github>."
   },
   "5f3c333678": {
     "translation": "Palaute lähetetty"
@@ -161,6 +161,9 @@
   "70a6facb9d": {
     "translation": "Tällä viikolla"
   },
+  "71a29b007b": {
+    "translation": "Onko sinulla bugi, ongelma tai idea tldraw'hun liittyen? Kerro meille!"
+  },
   "73ab799383": {
     "translation": "Tätä tldraw-versiota ei enää tueta."
   },
@@ -188,6 +191,12 @@
   "797799f35e": {
     "translation": "Lähetä ongelma GitHubissa"
   },
+  "7b1329f5ca": {
+    "translation": "Käyttöohje"
+  },
+  "7be10fc592": {
+    "translation": "Palauta versio"
+  },
   "7cb5f8b4a5": {
     "translation": "Unohtaa"
   },
@@ -197,8 +206,11 @@
   "7fcdcc6455": {
     "translation": "Unohda tiedosto"
   },
-  "81d389ac80": {
-    "translation": "Vie sisällön .tldr-tiedostona: Valitse vasemmassa yläkulmassa olevasta valikosta Lataa tiedosto."
+  "801ab24683": {
+    "translation": "Lataa"
+  },
+  "815e116a2e": {
+    "translation": "Onko sinulla bugi, ongelma tai idea tldraw'hun liittyen? Kerro meille! Täytä tämä lomake, niin otamme sinuun tarvittaessa yhteyttä sähköpostitse. Voit myös <discord>chattailla kanssamme Discordissa</discord> tai <github>lähettää ongelman GitHubissa</github>."
   },
   "85a082de1b": {
     "translation": "Päivitä sivu saadaksesi tldraw:n uusimman version."
@@ -209,11 +221,11 @@
   "86c66437fd": {
     "translation": "Nimeä tiedosto uudelleen"
   },
+  "8b1946f965": {
+    "translation": "Jatkaaksesi muokkaamista, kopioi huone tiedostoihisi."
+  },
   "8eb2c00e96": {
     "translation": "Jaettu kanssasi"
-  },
-  "8f7f4c1ce7": {
-    "translation": "Noin"
   },
   "8ff3d0a705": {
     "translation": "Hinta rajoitettu"
@@ -236,6 +248,9 @@
   "9bef626805": {
     "translation": "Poista tiedosto"
   },
+  "9c258b8f88": {
+    "translation": "Tämä anonyymi tldraw-moninpelihuone on nyt vain luku -tilassa. Jatkaaksesi muokkaamista, kirjaudu sisään ja kopioi se tiedostoihisi."
+  },
   "9ceb927baa": {
     "translation": "Julkaise tämä tiedosto"
   },
@@ -244,6 +259,9 @@
   },
   "9e93c98d88": {
     "translation": "Poista käytöstä"
+  },
+  "a0da245992": {
+    "translation": "Vie sisältö .tldr-tiedostona: Valitse vasemman yläkulman valikosta \"Lataa\"."
   },
   "a104439641": {
     "translation": "Pehmuste"
@@ -279,6 +297,9 @@
     "notes": "This is used to show the last time the file was published. An example is 'Last published 5 minutes ago'.",
     "translation": "Viimeksi julkaistu <date></date>"
   },
+  "b028909917": {
+    "translation": "Vieraskäyttäjä"
+  },
   "b6d4223e60": {
     "translation": "Kirjaudu sisään"
   },
@@ -303,8 +324,8 @@
   "c303bd1095": {
     "translation": "Tiedostoa ei voi julkaista."
   },
-  "c4408d3350": {
-    "translation": "Hyväksyä"
+  "c4b39a1cc3": {
+    "translation": "Välttämättömät evästeet"
   },
   "c655b27b1e": {
     "translation": "i18n: Pitkä merkkijono"
@@ -321,9 +342,6 @@
   "cd15a75c26": {
     "translation": "SVG"
   },
-  "cd16f555de": {
-    "translation": "Essential – Vaaditaan tiedostojen ja asetusten tallentamiseen ja niiden synkronoimiseen laitteidesi välillä."
-  },
   "cea291e45e": {
     "translation": "Lisätietoja julkaisemisesta."
   },
@@ -332,9 +350,6 @@
   },
   "d4bbf74f3e": {
     "translation": "Vaihda sivupalkki"
-  },
-  "d5ef96e383": {
-    "translation": "Lataa tiedosto"
   },
   "d721757161": {
     "translation": "Teema"
@@ -351,17 +366,14 @@
   "dfdb78a4e4": {
     "translation": "Sovelluksen virheenkorjausliput"
   },
-  "e371526ad0": {
-    "translation": "Tämä eväste tarvitaan, jotta tldraw toimii, eikä sitä voi poistaa käytöstä."
+  "e2ae80a510": {
+    "translation": "Oikeudellinen yhteenveto"
   },
   "e404559826": {
     "translation": "Palveluehdot"
   },
   "e78e14c5f1": {
     "translation": "Pin"
-  },
-  "e8d1090cb9": {
-    "translation": "Käytämme evästeitä pitääksemme sinut kirjautuneena sisään, synkronoidaksemme tiedostosi ja kerätäksemme analytiikkaa tldraw:n parantamiseksi. Lue <a>evästekäytäntömme</a> saadaksesi lisätietoja."
   },
   "ea4788705e": {
     "translation": "Peruuttaa"
@@ -381,11 +393,26 @@
   "ed75712b0e": {
     "translation": "Kopioi"
   },
+  "ede55d955f": {
+    "translation": "Lue lisää <a>evästekäytännöstämme</a>."
+  },
+  "f09b16bc5f": {
+    "translation": "Käytämme evästeitä pitääksemme sinut kirjautuneena sisään, synkronoidaksemme tiedostosi ja kerätäksemme analytiikkaa tldrawin parantamiseksi."
+  },
+  "f0e8bff6f9": {
+    "translation": "Käyttäjäasetukset"
+  },
+  "f2569594b2": {
+    "translation": "Käytämme näitä evästeitä tiedostojesi ja asetuksiesi tallentamiseen."
+  },
   "f2a6c498fb": {
     "translation": "Poistaa"
   },
   "f43fb62093": {
     "translation": "Takaisin tldraw."
+  },
+  "f4f70727dc": {
+    "translation": "Asetukset"
   },
   "fb15c53f22": {
     "translation": "Katsoja"
@@ -395,5 +422,8 @@
   },
   "fed5ec05eb": {
     "translation": "Linkki kopioitu"
+  },
+  "ffcd73e997": {
+    "translation": "Tuo tiedosto…"
   }
 }

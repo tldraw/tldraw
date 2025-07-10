@@ -6,10 +6,10 @@ import {
 	applyRotationToSnapshotShapes,
 	degreesToRadians,
 	getRotationSnapshot,
+	kickoutOccludedShapes,
 	shortAngleDist,
 	snapAngle,
 } from '@tldraw/editor'
-import { kickoutOccludedShapes } from '../selectHelpers'
 import { CursorTypeMap } from './PointingResizeHandle'
 
 const ONE_DEGREE = Math.PI / 180
@@ -136,21 +136,13 @@ export class Rotating extends StateNode {
 	}
 
 	_getRotationFromPointerPosition({ snapToNearestDegree }: { snapToNearestDegree: boolean }) {
-		const selectionRotation = this.editor.getSelectionRotation()
-		const selectionBounds = this.editor.getSelectionRotatedPageBounds()
 		const {
 			inputs: { shiftKey, currentPagePoint },
 		} = this.editor
-		const { initialCursorAngle, initialShapesRotation } = this.snapshot
-
-		if (!selectionBounds) return initialShapesRotation
-
-		const selectionPageCenter = selectionBounds.center
-			.clone()
-			.rotWith(selectionBounds.point, selectionRotation)
+		const { initialCursorAngle, initialShapesRotation, initialPageCenter } = this.snapshot
 
 		// The delta is the difference between the current angle and the initial angle
-		const preSnapRotationDelta = selectionPageCenter.angle(currentPagePoint) - initialCursorAngle
+		const preSnapRotationDelta = initialPageCenter.angle(currentPagePoint) - initialCursorAngle
 		let newSelectionRotation = initialShapesRotation + preSnapRotationDelta
 
 		if (shiftKey) {

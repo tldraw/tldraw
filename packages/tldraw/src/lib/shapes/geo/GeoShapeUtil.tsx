@@ -2,21 +2,14 @@
 import {
 	BaseBoxShapeUtil,
 	Box,
+	EMPTY_ARRAY,
 	Editor,
-	Ellipse2d,
-	Geometry2d,
 	Group2d,
-	HALF_PI,
 	HTMLContainer,
 	HandleSnapGeometry,
-	PI2,
-	Polygon2d,
-	Polyline2d,
 	Rectangle2d,
 	SVGContainer,
-	Stadium2d,
 	SvgExportContext,
-	TLFontFace,
 	TLGeoShape,
 	TLGeoShapeProps,
 	TLResizeInfo,
@@ -27,13 +20,11 @@ import {
 	geoShapeProps,
 	getDefaultColorTheme,
 	getFontsFromRichText,
-	getPolygonVertices,
+	isEqual,
 	lerp,
 	toRichText,
 	useValue,
 } from '@tldraw/editor'
-
-import isEqual from 'lodash.isequal'
 import {
 	isEmptyRichText,
 	renderHtmlFromRichTextForMeasurement,
@@ -52,16 +43,7 @@ import { getFillDefForCanvas, getFillDefForExport } from '../shared/defaultStyle
 import { useDefaultColorTheme } from '../shared/useDefaultColorTheme'
 import { useIsReadyForEditing } from '../shared/useEditablePlainText'
 import { GeoShapeBody } from './components/GeoShapeBody'
-import {
-	cloudOutline,
-	getCloudPath,
-	getEllipseDrawIndicatorPath,
-	getHeartParts,
-	getHeartPath,
-	getRoundedInkyPolygonPath,
-	getRoundedPolygonPoints,
-} from './geo-shape-helpers'
-import { getLines } from './getLines'
+import { getGeoShapePath } from './getGeoShapePath'
 
 const MIN_SIZE_WITH_LABEL = 17 * 3
 
@@ -80,17 +62,19 @@ export class GeoShapeUtil extends BaseBoxShapeUtil<TLGeoShape> {
 			w: 100,
 			h: 100,
 			geo: 'rectangle',
+			dash: 'draw',
+			growY: 0,
+			url: '',
+			scale: 1,
+
+			// Text properties
 			color: 'black',
 			labelColor: 'black',
 			fill: 'none',
-			dash: 'draw',
 			size: 'm',
 			font: 'draw',
 			align: 'middle',
 			verticalAlign: 'middle',
-			growY: 0,
-			url: '',
-			scale: 1,
 			richText: toRichText(''),
 		}
 	}
@@ -98,234 +82,8 @@ export class GeoShapeUtil extends BaseBoxShapeUtil<TLGeoShape> {
 	override getGeometry(shape: TLGeoShape) {
 		const w = Math.max(1, shape.props.w)
 		const h = Math.max(1, shape.props.h + shape.props.growY)
-		const cx = w / 2
-		const cy = h / 2
 
-		const isFilled = shape.props.fill !== 'none'
-
-		let body: Geometry2d
-
-		switch (shape.props.geo) {
-			case 'cloud': {
-				body = new Polygon2d({
-					points: cloudOutline(w, h, shape.id, shape.props.size, shape.props.scale),
-					isFilled,
-				})
-				break
-			}
-			case 'triangle': {
-				body = new Polygon2d({
-					points: [new Vec(cx, 0), new Vec(w, h), new Vec(0, h)],
-					isFilled,
-				})
-				break
-			}
-			case 'diamond': {
-				body = new Polygon2d({
-					points: [new Vec(cx, 0), new Vec(w, cy), new Vec(cx, h), new Vec(0, cy)],
-					isFilled,
-				})
-				break
-			}
-			case 'pentagon': {
-				body = new Polygon2d({
-					points: getPolygonVertices(w, h, 5),
-					isFilled,
-				})
-				break
-			}
-			case 'hexagon': {
-				body = new Polygon2d({
-					points: getPolygonVertices(w, h, 6),
-					isFilled,
-				})
-				break
-			}
-			case 'octagon': {
-				body = new Polygon2d({
-					points: getPolygonVertices(w, h, 8),
-					isFilled,
-				})
-				break
-			}
-			case 'ellipse': {
-				body = new Ellipse2d({
-					width: w,
-					height: h,
-					isFilled,
-				})
-				break
-			}
-			case 'oval': {
-				body = new Stadium2d({
-					width: w,
-					height: h,
-					isFilled,
-				})
-				break
-			}
-			case 'star': {
-				// Most of this code is to offset the center, a 5 point star
-				// will need to be moved downward because from its center [0,0]
-				// it will have a bigger minY than maxY. This is because it'll
-				// have 2 points at the bottom.
-				const sides = 5
-				const step = PI2 / sides / 2
-				const rightMostIndex = Math.floor(sides / 4) * 2
-				const leftMostIndex = sides * 2 - rightMostIndex
-				const topMostIndex = 0
-				const bottomMostIndex = Math.floor(sides / 2) * 2
-				const maxX = (Math.cos(-HALF_PI + rightMostIndex * step) * w) / 2
-				const minX = (Math.cos(-HALF_PI + leftMostIndex * step) * w) / 2
-
-				const minY = (Math.sin(-HALF_PI + topMostIndex * step) * h) / 2
-				const maxY = (Math.sin(-HALF_PI + bottomMostIndex * step) * h) / 2
-				const diffX = w - Math.abs(maxX - minX)
-				const diffY = h - Math.abs(maxY - minY)
-				const offsetX = w / 2 + minX - (w / 2 - maxX)
-				const offsetY = h / 2 + minY - (h / 2 - maxY)
-
-				const ratio = 1
-				const cx = (w - offsetX) / 2
-				const cy = (h - offsetY) / 2
-				const ox = (w + diffX) / 2
-				const oy = (h + diffY) / 2
-				const ix = (ox * ratio) / 2
-				const iy = (oy * ratio) / 2
-
-				body = new Polygon2d({
-					points: Array.from(Array(sides * 2)).map((_, i) => {
-						const theta = -HALF_PI + i * step
-						return new Vec(
-							cx + (i % 2 ? ix : ox) * Math.cos(theta),
-							cy + (i % 2 ? iy : oy) * Math.sin(theta)
-						)
-					}),
-					isFilled,
-				})
-				break
-			}
-			case 'rhombus': {
-				const offset = Math.min(w * 0.38, h * 0.38)
-				body = new Polygon2d({
-					points: [new Vec(offset, 0), new Vec(w, 0), new Vec(w - offset, h), new Vec(0, h)],
-					isFilled,
-				})
-				break
-			}
-			case 'rhombus-2': {
-				const offset = Math.min(w * 0.38, h * 0.38)
-				body = new Polygon2d({
-					points: [new Vec(0, 0), new Vec(w - offset, 0), new Vec(w, h), new Vec(offset, h)],
-					isFilled,
-				})
-				break
-			}
-			case 'trapezoid': {
-				const offset = Math.min(w * 0.38, h * 0.38)
-				body = new Polygon2d({
-					points: [new Vec(offset, 0), new Vec(w - offset, 0), new Vec(w, h), new Vec(0, h)],
-					isFilled,
-				})
-				break
-			}
-			case 'arrow-right': {
-				const ox = Math.min(w, h) * 0.38
-				const oy = h * 0.16
-				body = new Polygon2d({
-					points: [
-						new Vec(0, oy),
-						new Vec(w - ox, oy),
-						new Vec(w - ox, 0),
-						new Vec(w, h / 2),
-						new Vec(w - ox, h),
-						new Vec(w - ox, h - oy),
-						new Vec(0, h - oy),
-					],
-					isFilled,
-				})
-				break
-			}
-			case 'arrow-left': {
-				const ox = Math.min(w, h) * 0.38
-				const oy = h * 0.16
-				body = new Polygon2d({
-					points: [
-						new Vec(ox, 0),
-						new Vec(ox, oy),
-						new Vec(w, oy),
-						new Vec(w, h - oy),
-						new Vec(ox, h - oy),
-						new Vec(ox, h),
-						new Vec(0, h / 2),
-					],
-					isFilled,
-				})
-				break
-			}
-			case 'arrow-up': {
-				const ox = w * 0.16
-				const oy = Math.min(w, h) * 0.38
-				body = new Polygon2d({
-					points: [
-						new Vec(w / 2, 0),
-						new Vec(w, oy),
-						new Vec(w - ox, oy),
-						new Vec(w - ox, h),
-						new Vec(ox, h),
-						new Vec(ox, oy),
-						new Vec(0, oy),
-					],
-					isFilled,
-				})
-				break
-			}
-			case 'arrow-down': {
-				const ox = w * 0.16
-				const oy = Math.min(w, h) * 0.38
-				body = new Polygon2d({
-					points: [
-						new Vec(ox, 0),
-						new Vec(w - ox, 0),
-						new Vec(w - ox, h - oy),
-						new Vec(w, h - oy),
-						new Vec(w / 2, h),
-						new Vec(0, h - oy),
-						new Vec(ox, h - oy),
-					],
-					isFilled,
-				})
-				break
-			}
-			case 'check-box':
-			case 'x-box':
-			case 'rectangle': {
-				body = new Rectangle2d({
-					width: w,
-					height: h,
-					isFilled,
-				})
-				break
-			}
-			case 'heart': {
-				// kind of expensive (creating the primitives to create a different primitive) but hearts are rare and beautiful things
-				const parts = getHeartParts(w, h)
-				const points = parts.reduce<Vec[]>((acc, part) => {
-					acc.push(...part.vertices)
-					return acc
-				}, [])
-
-				body = new Polygon2d({
-					points,
-					isFilled,
-				})
-				break
-			}
-			default: {
-				exhaustiveSwitchError(shape.props.geo)
-			}
-		}
-
+		const path = getGeoShapePath(shape)
 		const unscaledlabelSize = getUnscaledLabelSize(this.editor, shape)
 		// unscaled w and h
 		const unscaledW = w / shape.props.scale
@@ -345,16 +103,11 @@ export class GeoShapeUtil extends BaseBoxShapeUtil<TLGeoShape> {
 			Math.max(unscaledlabelSize.h, Math.min(unscaledMinHeight, Math.max(1, unscaledH - 8)))
 		)
 
-		// not sure if bug
-
-		const lines = getLines(shape.props, STROKE_SIZES[shape.props.size] * shape.props.scale)
-		const edges = lines ? lines.map((line) => new Polyline2d({ points: line })) : []
-
 		// todo: use centroid for label position
 
 		return new Group2d({
 			children: [
-				body,
+				path.toGeometry(),
 				new Rectangle2d({
 					x:
 						shape.props.align === 'start'
@@ -372,8 +125,8 @@ export class GeoShapeUtil extends BaseBoxShapeUtil<TLGeoShape> {
 					height: unscaledLabelHeight * shape.props.scale,
 					isFilled: true,
 					isLabel: true,
+					isEmptyLabel: isEmptyRichText(shape.props.richText),
 				}),
-				...edges,
 			],
 		})
 	}
@@ -400,7 +153,7 @@ export class GeoShapeUtil extends BaseBoxShapeUtil<TLGeoShape> {
 			case 'triangle':
 			case 'x-box':
 				// poly-line type shapes hand snap points for each vertex & the center
-				return { outline: outline, points: [...outline.getVertices(), geometry.bounds.center] }
+				return { outline: outline, points: [...outline.vertices, geometry.bounds.center] }
 			case 'cloud':
 			case 'ellipse':
 			case 'heart':
@@ -416,7 +169,10 @@ export class GeoShapeUtil extends BaseBoxShapeUtil<TLGeoShape> {
 		return renderPlaintextFromRichText(this.editor, shape.props.richText)
 	}
 
-	override getFontFaces(shape: TLGeoShape): TLFontFace[] {
+	override getFontFaces(shape: TLGeoShape) {
+		if (isEmptyRichText(shape.props.richText)) {
+			return EMPTY_ARRAY
+		}
 		return getFontsFromRichText(this.editor, shape.props.richText, {
 			family: `tldraw_${shape.props.font}`,
 			weight: 'normal',
@@ -475,72 +231,37 @@ export class GeoShapeUtil extends BaseBoxShapeUtil<TLGeoShape> {
 	}
 
 	indicator(shape: TLGeoShape) {
-		const { id, props } = shape
-		const { w, size } = props
-		const h = props.h + props.growY
+		const isZoomedOut = useValue('isZoomedOut', () => this.editor.getZoomLevel() < 0.25, [
+			this.editor,
+		])
 
+		const { size, dash, scale } = shape.props
 		const strokeWidth = STROKE_SIZES[size]
 
-		const geometry = this.editor.getShapeGeometry(shape)
+		const path = getGeoShapePath(shape)
 
-		switch (props.geo) {
-			case 'ellipse': {
-				if (props.dash === 'draw') {
-					return <path d={getEllipseDrawIndicatorPath(id, w, h, strokeWidth)} />
-				}
-
-				return <path d={geometry.getSvgPathData(true)} />
-			}
-			case 'heart': {
-				return <path d={getHeartPath(w, h)} />
-			}
-			case 'oval': {
-				return <path d={geometry.getSvgPathData(true)} />
-			}
-			case 'cloud': {
-				return <path d={getCloudPath(w, h, id, size, shape.props.scale)} />
-			}
-
-			default: {
-				const geometry = this.editor.getShapeGeometry(shape)
-				const outline =
-					geometry instanceof Group2d ? geometry.children[0].vertices : geometry.vertices
-				let path: string
-
-				if (props.dash === 'draw') {
-					const polygonPoints = getRoundedPolygonPoints(
-						id,
-						outline,
-						0,
-						strokeWidth * 2 * shape.props.scale,
-						1
-					)
-					path = getRoundedInkyPolygonPath(polygonPoints)
-				} else {
-					path = 'M' + outline[0] + 'L' + outline.slice(1) + 'Z'
-				}
-
-				const lines = getLines(shape.props, strokeWidth)
-
-				if (lines) {
-					for (const [A, B] of lines) {
-						path += `M${A.x},${A.y}L${B.x},${B.y}`
-					}
-				}
-
-				return <path d={path} />
-			}
-		}
+		return path.toSvg({
+			style: dash === 'draw' ? 'draw' : 'solid',
+			strokeWidth: 1,
+			passes: 1,
+			randomSeed: shape.id,
+			offset: 0,
+			roundness: strokeWidth * 2 * scale,
+			props: { strokeWidth: undefined },
+			forceSolid: isZoomedOut,
+		})
 	}
 
 	override toSvg(shape: TLGeoShape, ctx: SvgExportContext) {
+		const scale = shape.props.scale
 		// We need to scale the shape to 1x for export
 		const newShape = {
 			...shape,
 			props: {
 				...shape.props,
-				w: shape.props.w / shape.props.scale,
-				h: shape.props.h / shape.props.scale,
+				w: shape.props.w / scale,
+				h: (shape.props.h + shape.props.growY) / scale,
+				growY: 0, // growY throws off the path calculations, so we set it to 0
 			},
 		}
 		const props = newShape.props
@@ -549,7 +270,7 @@ export class GeoShapeUtil extends BaseBoxShapeUtil<TLGeoShape> {
 		let textEl
 		if (!isEmptyRichText(props.richText)) {
 			const theme = getDefaultColorTheme(ctx)
-			const bounds = new Box(0, 0, props.w, props.h + props.growY)
+			const bounds = new Box(0, 0, props.w, (shape.props.h + shape.props.growY) / scale)
 			textEl = (
 				<RichTextSVG
 					fontSize={LABEL_FONT_SIZES[props.size]}
@@ -559,7 +280,7 @@ export class GeoShapeUtil extends BaseBoxShapeUtil<TLGeoShape> {
 					richText={props.richText}
 					labelColor={theme[props.labelColor].solid}
 					bounds={bounds}
-					padding={LABEL_PADDING * shape.props.scale}
+					padding={LABEL_PADDING}
 				/>
 			)
 		}
@@ -833,6 +554,21 @@ export class GeoShapeUtil extends BaseBoxShapeUtil<TLGeoShape> {
 	}
 }
 
+// imperfect but good enough, should be the width of the W in the font / size combo
+const minWidths = {
+	s: 12,
+	m: 14,
+	l: 16,
+	xl: 20,
+}
+
+const extraPaddings = {
+	s: 2,
+	m: 3.5,
+	l: 5,
+	xl: 10,
+}
+
 function getUnscaledLabelSize(editor: Editor, shape: TLGeoShape) {
 	const { richText, font, size, w } = shape.props
 
@@ -840,32 +576,20 @@ function getUnscaledLabelSize(editor: Editor, shape: TLGeoShape) {
 		return { w: 0, h: 0 }
 	}
 
-	const minSize = editor.textMeasure.measureText('w', {
-		...TEXT_PROPS,
-		fontFamily: FONT_FAMILIES[font],
-		fontSize: LABEL_FONT_SIZES[size],
-		maxWidth: 100, // ?
-	})
-
-	// TODO: Can I get these from somewhere?
-	const sizes = {
-		s: 2,
-		m: 3.5,
-		l: 5,
-		xl: 10,
-	}
+	// way too expensive to be recomputing on every update
+	const minWidth = minWidths[size]
 
 	const html = renderHtmlFromRichTextForMeasurement(editor, richText)
 	const textSize = editor.textMeasure.measureHtml(html, {
 		...TEXT_PROPS,
 		fontFamily: FONT_FAMILIES[font],
 		fontSize: LABEL_FONT_SIZES[size],
-		minWidth: minSize.w,
+		minWidth: minWidth,
 		maxWidth: Math.max(
 			// Guard because a DOM nodes can't be less 0
 			0,
 			// A 'w' width that we're setting as the min-width
-			Math.ceil(minSize.w + sizes[size]),
+			Math.ceil(minWidth + extraPaddings[size]),
 			// The actual text size
 			Math.ceil(w / shape.props.scale - LABEL_PADDING * 2)
 		),

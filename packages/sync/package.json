@@ -1,7 +1,7 @@
 {
 	"name": "@tldraw/sync",
 	"description": "A tiny little drawing app (multiplayer sync react bindings).",
-	"version": "3.11.0",
+	"version": "3.14.1",
 	"author": {
 		"name": "tldraw GB Ltd.",
 		"email": "hello@tldraw.com"
@@ -44,7 +44,7 @@
 		"@types/react": "^18.3.18",
 		"react": "^18.3.1",
 		"react-dom": "^18.3.1",
-		"typescript": "~5.4.5",
+		"typescript": "^5.8.3",
 		"uuid-by-string": "^4.0.0",
 		"uuid-readable": "^0.0.2"
 	},
@@ -66,7 +66,6 @@
 		"@tldraw/state-react": "workspace:*",
 		"@tldraw/sync-core": "workspace:*",
 		"@tldraw/utils": "workspace:*",
-		"lodash.isequal": "^4.5.0",
 		"nanoevents": "^7.0.1",
 		"tldraw": "workspace:*",
 		"ws": "^8.18.0"

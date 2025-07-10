@@ -121,7 +121,9 @@ class MyIdleState extends StateNode {
 class MyTool extends StateNode {
 	static override id = 'my-tool'
 	static override initial = 'my-idle-state'
-	static override children = [MyIdleState]
+	static override children() {
+		return [MyIdleState]
+	}
 
 	onPointerDown(info: TLPointerEventInfo) {
 		editor.setCurrentTool('select')

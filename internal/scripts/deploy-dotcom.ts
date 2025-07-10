@@ -79,10 +79,11 @@ const env = makeEnv([
 	'WORKER_SENTRY_DSN',
 	'BOTCOM_POSTGRES_CONNECTION_STRING',
 	'BOTCOM_POSTGRES_POOLED_CONNECTION_STRING',
-	'DEPLOY_TO',
+	'DEPLOY_ZERO',
 ])
 
-const deployViaFlyIo = env.DEPLOY_TO === 'flyio'
+const deployZero = env.DEPLOY_ZERO === 'false' ? false : (env.DEPLOY_ZERO as 'flyio' | 'sst')
+const flyioAppName = deployZero === 'flyio' ? `${previewId}-zero-cache` : undefined
 
 const clerkJWKSUrl =
 	env.TLDRAW_ENV === 'production'
@@ -102,6 +103,8 @@ if (previewId) {
 	env.MULTIPLAYER_SERVER = `https://${previewId}-tldraw-multiplayer.tldraw.workers.dev`
 	env.IMAGE_WORKER = `https://${previewId}-images.tldraw.xyz`
 }
+
+const zeroPushUrl = `${env.MULTIPLAYER_SERVER.replace(/^ws/, 'http')}/app/zero/push`
 
 async function main() {
 	assert(
@@ -123,8 +126,7 @@ async function main() {
 	// 1. get the dotcom app ready to go (env vars and pre-build)
 	await discord.step('building dotcom app', async () => {
 		await createSentryRelease()
-		const zeroUrl = await deployZero()
-		await prepareDotcomApp(zeroUrl)
+		await prepareDotcomApp()
 		await uploadSourceMaps()
 		await coalesceWithPreviousAssets(`${dotcom}/.vercel/output/static/assets`)
 	})
@@ -184,7 +186,26 @@ async function main() {
 	await discord.message(`**Deploy complete!**`)
 }
 
-async function prepareDotcomApp(zeroUrl: string) {
+function getZeroUrl() {
+	switch (env.TLDRAW_ENV) {
+		case 'preview': {
+			if (deployZero === 'flyio') {
+				return `https://${flyioAppName}.fly.dev/`
+			} else if (deployZero === 'sst') {
+				return `https://${previewId}.zero.tldraw.com/`
+			} else {
+				return 'https://zero-backend-not-deployed.tldraw.com'
+			}
+		}
+		case 'staging':
+			return 'https://staging.zero.tldraw.com/'
+		case 'production':
+			return 'https://production.zero.tldraw.com/'
+	}
+	return 'https://zero-backend-not-deployed.tldraw.com'
+}
+
+async function prepareDotcomApp() {
 	// pre-build the app:
 	await exec('yarn', ['build-app'], {
 		env: {
@@ -192,7 +213,7 @@ async function prepareDotcomApp(zeroUrl: string) {
 			ASSET_UPLOAD: env.ASSET_UPLOAD,
 			IMAGE_WORKER: env.IMAGE_WORKER,
 			MULTIPLAYER_SERVER: env.MULTIPLAYER_SERVER,
-			ZERO_SERVER: zeroUrl,
+			ZERO_SERVER: getZeroUrl(),
 			NEXT_PUBLIC_GC_API_KEY: env.GC_MAPS_API_KEY,
 			SENTRY_AUTH_TOKEN: env.SENTRY_AUTH_TOKEN,
 			SENTRY_ORG: 'tldraw',
@@ -228,33 +249,31 @@ async function deployAssetUploadWorker({ dryRun }: { dryRun: boolean }) {
 	})
 }
 
-async function deployPermissionsToFlyIo() {
-	const schemaPath = path.join(REPO_ROOT, 'packages', 'dotcom-shared', 'src', 'tlaSchema.ts')
-	const permissionsFile = 'permissions.sql'
-	await exec('npx', [
-		'zero-deploy-permissions',
-		'--schema-path',
-		schemaPath,
-		'--output-file',
-		permissionsFile,
-	])
-	await exec('psql', [env.BOTCOM_POSTGRES_CONNECTION_STRING, '-f', permissionsFile])
-}
-
 let didUpdateTlsyncWorker = false
 async function deployTlsyncWorker({ dryRun }: { dryRun: boolean }) {
 	const workerId = `${previewId ?? env.TLDRAW_ENV}-tldraw-multiplayer`
-	if (previewId && !didUpdateTlsyncWorker) {
-		await setWranglerPreviewConfig(worker, { name: workerId })
-		didUpdateTlsyncWorker = true
+	if (previewId) {
+		const queueName = `tldraw-multiplayer-queue-${previewId}`
+		if (!didUpdateTlsyncWorker) {
+			await setWranglerPreviewConfig(worker, { name: workerId }, queueName)
+			didUpdateTlsyncWorker = true
+		}
+		if (!dryRun) {
+			try {
+				await exec('yarn', ['wrangler', 'queues', 'info', queueName], { pwd: worker })
+			} catch (_e) {
+				await exec('yarn', ['wrangler', 'queues', 'create', queueName], { pwd: worker })
+			}
+		}
 	}
 	await exec('yarn', ['workspace', '@tldraw/zero-cache', 'migrate', dryRun ? '--dry-run' : null], {
 		env: {
 			BOTCOM_POSTGRES_POOLED_CONNECTION_STRING: env.BOTCOM_POSTGRES_POOLED_CONNECTION_STRING,
 		},
 	})
-	if (!dryRun && deployViaFlyIo) {
-		await deployPermissionsToFlyIo()
+	// Deploy zero after the migrations but before the sync worker
+	if (!dryRun && deployZero !== false) {
+		await deployZeroBackend()
 	}
 	await wranglerDeploy({
 		location: worker,
@@ -371,16 +390,10 @@ async function deployZeroViaSst() {
 		stage,
 	])
 	await exec('yarn', ['sst', 'secret', 'set', 'ZeroAuthSecret', clerkJWKSUrl, '--stage', stage])
+	await exec('yarn', ['sst', 'secret', 'set', 'ZeroPushUrl', zeroPushUrl, '--stage', stage])
 	await exec('yarn', ['sst', 'unlock', '--stage', stage])
 	await exec('yarn', ['bundle-schema'], { pwd: zeroCacheFolder })
-
-	const result = await exec('yarn', ['sst', 'deploy', '--stage', stage, '--verbose'])
-	const line = result.split('\n').filter((l) => l.includes('view-syncer: http'))[0]
-	const url = line.split(': ')[1].trim()
-	if (!url || url.length === 0) {
-		throw new Error('Could not find view-syncer URL in SST output ' + result)
-	}
-	return url
+	await exec('yarn', ['sst', 'deploy', '--stage', stage, '--verbose'])
 }
 
 function updateFlyioToml(appName: string): void {
@@ -393,28 +406,47 @@ function updateFlyioToml(appName: string): void {
 		.replace('__APP_NAME', appName)
 		.replace('__ZERO_VERSION', zeroVersion)
 		.replaceAll('__BOTCOM_POSTGRES_CONNECTION_STRING', env.BOTCOM_POSTGRES_CONNECTION_STRING)
+		.replaceAll('__ZERO_PUSH_URL', zeroPushUrl)
 
 	fs.writeFileSync(flyioTomlFile, updatedContent, 'utf-8')
 }
 
+async function deployPermissionsToFlyIo() {
+	const schemaPath = path.join(REPO_ROOT, 'packages', 'dotcom-shared', 'src', 'tlaSchema.ts')
+	const permissionsFile = 'permissions.sql'
+	await exec('npx', [
+		'zero-deploy-permissions',
+		'--schema-path',
+		schemaPath,
+		'--output-file',
+		permissionsFile,
+	])
+	const result = await exec('psql', [env.BOTCOM_POSTGRES_CONNECTION_STRING, '-f', permissionsFile])
+	if (result.toLowerCase().includes('error')) {
+		throw new Error('Error deploying permissions to fly.io')
+	}
+}
+
 async function deployZeroViaFlyIo() {
-	const appName = `${previewId}-zero-cache`
-	updateFlyioToml(appName)
+	if (!flyioAppName) {
+		throw new Error('Fly.io app name is not defined')
+	}
+	updateFlyioToml(flyioAppName)
 	const apps = await exec('flyctl', ['apps', 'list', '-o', 'tldraw-gb-ltd'])
-	if (apps.indexOf(appName) === -1) {
-		await exec('flyctl', ['app', 'create', appName, '-o', 'tldraw-gb-ltd'], {
+	if (apps.indexOf(flyioAppName) === -1) {
+		await exec('flyctl', ['app', 'create', flyioAppName, '-o', 'tldraw-gb-ltd'], {
 			pwd: zeroCacheFolder,
 		})
 	}
-	await exec('flyctl', ['deploy', '-a', appName, '-c', 'flyio.toml'], { pwd: zeroCacheFolder })
-	return `https://${appName}.fly.dev`
+	await exec('flyctl', ['deploy', '-a', flyioAppName, '-c', 'flyio.toml'], { pwd: zeroCacheFolder })
+	await deployPermissionsToFlyIo()
 }
 
-async function deployZero() {
-	if (deployViaFlyIo) {
-		return await deployZeroViaFlyIo()
-	} else {
-		return await deployZeroViaSst()
+async function deployZeroBackend() {
+	if (deployZero === 'flyio') {
+		await deployZeroViaFlyIo()
+	} else if (deployZero === 'sst') {
+		await deployZeroViaSst()
 	}
 }
 

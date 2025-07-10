@@ -63,6 +63,7 @@ export default [
 			'**/patchedJestJsDom.js',
 			'**/.clasp.json',
 			'**/*.mjs',
+			'**/.*.js',
 			'packages/assets/*',
 		],
 	},
@@ -389,6 +390,14 @@ export default [
 		files: ['internal/**/*', 'templates/simple-server-example/**/*'],
 
 		rules: {
+			'no-console': 'off',
+		},
+	},
+	{
+		files: ['templates/**/*'],
+		rules: {
+			'local/prefer-class-methods': 'off',
+			'no-restricted-syntax': 'off',
 			'no-console': 'off',
 		},
 	},

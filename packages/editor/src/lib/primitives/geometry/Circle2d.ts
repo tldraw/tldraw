@@ -1,5 +1,5 @@
 import { Box } from '../Box'
-import { Vec } from '../Vec'
+import { Vec, VecLike } from '../Vec'
 import { intersectLineSegmentCircle } from '../intersect'
 import { PI2, getPointOnCircle } from '../utils'
 import { Geometry2d, Geometry2dOptions } from './Geometry2d'
@@ -7,10 +7,10 @@ import { getVerticesCountForLength } from './geometry-constants'
 
 /** @public */
 export class Circle2d extends Geometry2d {
-	_center: Vec
-	radius: number
-	x: number
-	y: number
+	private _center: Vec
+	private _radius: number
+	private _x: number
+	private _y: number
 
 	constructor(
 		public config: Omit<Geometry2dOptions, 'isClosed'> & {
@@ -22,18 +22,18 @@ export class Circle2d extends Geometry2d {
 	) {
 		super({ isClosed: true, ...config })
 		const { x = 0, y = 0, radius } = config
-		this.x = x
-		this.y = y
+		this._x = x
+		this._y = y
 		this._center = new Vec(radius + x, radius + y)
-		this.radius = radius
+		this._radius = radius
 	}
 
 	getBounds() {
-		return new Box(this.x, this.y, this.radius * 2, this.radius * 2)
+		return new Box(this._x, this._y, this._radius * 2, this._radius * 2)
 	}
 
 	getVertices(): Vec[] {
-		const { _center, radius } = this
+		const { _center, _radius: radius } = this
 		const perimeter = PI2 * radius
 		const vertices: Vec[] = []
 		for (let i = 0, n = getVerticesCountForLength(perimeter); i < n; i++) {
@@ -43,19 +43,19 @@ export class Circle2d extends Geometry2d {
 		return vertices
 	}
 
-	nearestPoint(point: Vec): Vec {
-		const { _center, radius } = this
+	nearestPoint(point: VecLike): Vec {
+		const { _center, _radius: radius } = this
 		if (_center.equals(point)) return Vec.AddXY(_center, radius, 0)
-		return _center.clone().add(point.clone().sub(_center).uni().mul(radius))
+		return Vec.Sub(point, _center).uni().mul(radius).add(_center)
 	}
 
-	hitTestLineSegment(A: Vec, B: Vec, distance = 0): boolean {
-		const { _center, radius } = this
+	hitTestLineSegment(A: VecLike, B: VecLike, distance = 0): boolean {
+		const { _center, _radius: radius } = this
 		return intersectLineSegmentCircle(A, B, _center, radius + distance) !== null
 	}
 
 	getSvgPathData(): string {
-		const { _center, radius } = this
+		const { _center, _radius: radius } = this
 		return `M${_center.x + radius},${_center.y} a${radius},${radius} 0 1,0 ${radius * 2},0a${radius},${radius} 0 1,0 -${radius * 2},0`
 	}
 }

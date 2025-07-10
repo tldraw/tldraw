@@ -5,16 +5,16 @@ import {
 	SvgExportContext,
 	TLAsset,
 	TLVideoShape,
+	WeakCache,
 	toDomPrecision,
 	useEditor,
 	useEditorComponents,
 	useIsEditing,
 	videoShapeMigrations,
 	videoShapeProps,
-	WeakCache,
 } from '@tldraw/editor'
 import classNames from 'classnames'
-import { memo, ReactEventHandler, useCallback, useEffect, useRef, useState } from 'react'
+import { ReactEventHandler, memo, useCallback, useEffect, useRef, useState } from 'react'
 import { BrokenAssetIcon } from '../shared/BrokenAssetIcon'
 import { HyperlinkButton } from '../shared/HyperlinkButton'
 import { useImageOrVideoAsset } from '../shared/useImageOrVideoAsset'
@@ -23,10 +23,22 @@ import { usePrefersReducedMotion } from '../shared/usePrefersReducedMotion'
 const videoSvgExportCache = new WeakCache<TLAsset, Promise<string | null>>()
 
 /** @public */
+export interface VideoShapeOptions {
+	/**
+	 * Should videos play automatically?
+	 */
+	autoplay: boolean
+}
+
+/** @public */
 export class VideoShapeUtil extends BaseBoxShapeUtil<TLVideoShape> {
 	static override type = 'video' as const
 	static override props = videoShapeProps
 	static override migrations = videoShapeMigrations
+
+	override options: VideoShapeOptions = {
+		autoplay: true,
+	}
 
 	override canEdit() {
 		return true
@@ -40,10 +52,17 @@ export class VideoShapeUtil extends BaseBoxShapeUtil<TLVideoShape> {
 			w: 100,
 			h: 100,
 			assetId: null,
+			autoplay: this.options.autoplay,
+			url: '',
+			altText: '',
+			// Not used, but once upon a time were used to sync video state between users
 			time: 0,
 			playing: true,
-			url: '',
 		}
+	}
+
+	override getAriaDescriptor(shape: TLVideoShape) {
+		return shape.props.altText
 	}
 
 	component(shape: TLVideoShape) {
@@ -55,13 +74,14 @@ export class VideoShapeUtil extends BaseBoxShapeUtil<TLVideoShape> {
 	}
 
 	override async toSvg(shape: TLVideoShape, ctx: SvgExportContext) {
-		if (!shape.props.assetId) return null
+		const props = shape.props
+		if (!props.assetId) return null
 
-		const asset = this.editor.getAsset<TLAsset>(shape.props.assetId)
+		const asset = this.editor.getAsset<TLAsset>(props.assetId)
 		if (!asset) return null
 
 		const src = await videoSvgExportCache.get(asset, async () => {
-			const assetUrl = await ctx.resolveAssetUrl(asset.id, shape.props.w)
+			const assetUrl = await ctx.resolveAssetUrl(asset.id, props.w)
 			if (!assetUrl) return null
 			const video = await MediaHelpers.loadVideo(assetUrl)
 			return await MediaHelpers.getVideoFrameAsDataUrl(video, 0)
@@ -69,7 +89,7 @@ export class VideoShapeUtil extends BaseBoxShapeUtil<TLVideoShape> {
 
 		if (!src) return null
 
-		return <image href={src} width={shape.props.w} height={shape.props.h} />
+		return <image href={src} width={props.w} height={props.h} aria-label={shape.props.altText} />
 	}
 }
 
@@ -90,6 +110,12 @@ const VideoShape = memo(function VideoShape({ shape }: { shape: TLVideoShape }) 
 
 	const [isLoaded, setIsLoaded] = useState(false)
 
+	const handleLoadedData = useCallback<ReactEventHandler<HTMLVideoElement>>((e) => {
+		const video = e.currentTarget
+		if (!video) return
+		setIsLoaded(true)
+	}, [])
+
 	const [isFullscreen, setIsFullscreen] = useState(false)
 
 	useEffect(() => {
@@ -99,14 +125,7 @@ const VideoShape = memo(function VideoShape({ shape }: { shape: TLVideoShape }) 
 		return () => document.removeEventListener('fullscreenchange', fullscreenChange)
 	})
 
-	const handleLoadedData = useCallback<ReactEventHandler<HTMLVideoElement>>((e) => {
-		const video = e.currentTarget
-		if (!video) return
-
-		setIsLoaded(true)
-	}, [])
-
-	// If the current time changes and we're not editing the video, update the video time
+	// Focus the video when editing
 	useEffect(() => {
 		const video = rVideo.current
 		if (!video) return
@@ -117,15 +136,6 @@ const VideoShape = memo(function VideoShape({ shape }: { shape: TLVideoShape }) 
 			}
 		}
 	}, [isEditing, isLoaded])
-
-	useEffect(() => {
-		if (prefersReducedMotion) {
-			const video = rVideo.current
-			if (!video) return
-			video.pause()
-			video.currentTime = 0
-		}
-	}, [rVideo, prefersReducedMotion])
 
 	return (
 		<>
@@ -146,6 +156,7 @@ const VideoShape = memo(function VideoShape({ shape }: { shape: TLVideoShape }) 
 						) : url ? (
 							<>
 								<video
+									key={url}
 									ref={rVideo}
 									style={
 										isEditing
@@ -161,7 +172,7 @@ const VideoShape = memo(function VideoShape({ shape }: { shape: TLVideoShape }) 
 									height="100%"
 									draggable={false}
 									playsInline
-									autoPlay
+									autoPlay={shape.props.autoplay && !prefersReducedMotion}
 									muted
 									loop
 									disableRemotePlayback
@@ -169,6 +180,7 @@ const VideoShape = memo(function VideoShape({ shape }: { shape: TLVideoShape }) 
 									controls={isEditing && showControls}
 									onLoadedData={handleLoadedData}
 									hidden={!isLoaded}
+									aria-label={shape.props.altText}
 								>
 									<source src={url} />
 								</video>

@@ -4,13 +4,13 @@ import { PORTRAIT_BREAKPOINT } from '../../constants'
 import { useBreakpoint } from '../../context/breakpoints'
 import { useReadonly } from '../../hooks/useReadonly'
 import { useTranslation } from '../../hooks/useTranslation/useTranslation'
-import { TldrawUiButton } from '../primitives/Button/TldrawUiButton'
 import { TldrawUiButtonIcon } from '../primitives/Button/TldrawUiButtonIcon'
 import {
 	TldrawUiPopover,
 	TldrawUiPopoverContent,
 	TldrawUiPopoverTrigger,
 } from '../primitives/TldrawUiPopover'
+import { TldrawUiToolbar, TldrawUiToolbarButton } from '../primitives/TldrawUiToolbar'
 import { TldrawUiMenuContextProvider } from '../primitives/menus/TldrawUiMenuContext'
 import { DefaultActionsMenuContent } from './DefaultActionsMenuContent'
 
@@ -47,27 +47,28 @@ export const DefaultActionsMenu = memo(function DefaultActionsMenu({
 	return (
 		<TldrawUiPopover id="actions-menu">
 			<TldrawUiPopoverTrigger>
-				<TldrawUiButton
+				<TldrawUiToolbarButton
 					type="icon"
 					data-testid="actions-menu.button"
 					title={msg('actions-menu.title')}
 				>
 					<TldrawUiButtonIcon icon="dots-vertical" small />
-				</TldrawUiButton>
+				</TldrawUiToolbarButton>
 			</TldrawUiPopoverTrigger>
 			<TldrawUiPopoverContent
 				side={breakpoint >= PORTRAIT_BREAKPOINT.TABLET ? 'bottom' : 'top'}
 				sideOffset={6}
 			>
-				<div
+				<TldrawUiToolbar
 					ref={ref}
+					label={msg('actions-menu.title')}
 					className="tlui-actions-menu tlui-buttons__grid"
 					data-testid="actions-menu.content"
 				>
 					<TldrawUiMenuContextProvider type="icons" sourceId="actions-menu">
 						{content}
 					</TldrawUiMenuContextProvider>
-				</div>
+				</TldrawUiToolbar>
 			</TldrawUiPopoverContent>
 		</TldrawUiPopover>
 	)

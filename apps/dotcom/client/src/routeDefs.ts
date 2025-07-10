@@ -6,6 +6,8 @@ export const ROUTES = {
 	tlaRoot: `/`,
 	tlaNew: `/new`,
 	tlaFile: `/f/:fileSlug`,
+	tlaFileHistory: `/f/:fileSlug/history`,
+	tlaFileHistorySnapshot: `/f/:fileSlug/history/:timestamp`,
 	tlaLocalFileIndex: `/lf`,
 	tlaLocalFile: `/lf/:fileSlug`,
 	tlaPublish: `/p/:fileSlug`,

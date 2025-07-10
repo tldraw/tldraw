@@ -2,6 +2,7 @@ import { tlenv, useEditor, useReactor, useValue } from '@tldraw/editor'
 import classNames from 'classnames'
 import React, { ReactNode, useRef, useState } from 'react'
 import { TLUiAssetUrlOverrides } from './assetUrls'
+import { SkipToMainContent } from './components/A11y'
 import { FollowingIndicator } from './components/FollowingIndicator'
 import { TldrawUiButton } from './components/primitives/Button/TldrawUiButton'
 import { TldrawUiButtonIcon } from './components/primitives/Button/TldrawUiButtonIcon'
@@ -109,6 +110,8 @@ const TldrawUiContent = React.memo(function TldrawUI() {
 		DebugPanel,
 		CursorChatBubble,
 		RichTextToolbar,
+		ImageToolbar,
+		VideoToolbar,
 		Toasts,
 		Dialogs,
 		A11y,
@@ -167,6 +170,7 @@ const TldrawUiContent = React.memo(function TldrawUI() {
 			data-iseditinganything={hideToolbarWhileEditing}
 			data-breakpoint={breakpoint}
 		>
+			<SkipToMainContent />
 			{isFocusMode ? (
 				<div className="tlui-layout__top">
 					<TldrawUiButton
@@ -205,6 +209,8 @@ const TldrawUiContent = React.memo(function TldrawUI() {
 				</>
 			)}
 			{RichTextToolbar && <RichTextToolbar />}
+			{ImageToolbar && <ImageToolbar />}
+			{VideoToolbar && <VideoToolbar />}
 			{Toasts && <Toasts />}
 			{Dialogs && <Dialogs />}
 			<FollowingIndicator />

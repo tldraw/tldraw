@@ -19,7 +19,6 @@ export function debounce<T extends unknown[], U>(
 	let state:
 		| undefined
 		| {
-				// eslint-disable-next-line no-restricted-globals
 				timeout: ReturnType<typeof setTimeout>
 				promise: Promise<U>
 				resolve(value: U | PromiseLike<U>): void
@@ -45,18 +44,18 @@ export function debounce<T extends unknown[], U>(
 			try {
 				const result = callback(...args)
 				if (result instanceof Promise) {
-						result.then(state!.resolve, state!.reject)
+					result.then(state!.resolve, state!.reject)
 				} else {
-						state!.resolve(result)
+					state!.resolve(result)
 				}
 				// We still set the timeout to clear the state after the wait period
 				// eslint-disable-next-line no-restricted-globals
 				state!.timeout = setTimeout(() => {
-						state = undefined
+					state = undefined
 				}, wait)
 			} catch (e) {
-					state!.reject(e)
-					state = undefined
+				state!.reject(e)
+				state = undefined
 			}
 		} else {
 			// It's up to the consumer of debounce to call `cancel`

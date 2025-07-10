@@ -9,13 +9,12 @@
 	"files": [],
 	"type": "module",
 	"dependencies": {
-		"@rocicorp/zero": "0.17.2025032801",
+		"@rocicorp/zero": "0.19.2025050203",
 		"@tldraw/state": "workspace:*",
 		"@tldraw/store": "workspace:*",
 		"@tldraw/tlschema": "workspace:*",
 		"@tldraw/utils": "workspace:*",
 		"@tldraw/validate": "workspace:*",
-		"lodash.isequal": "^4.5.0",
 		"tldraw": "workspace:*"
 	},
 	"peerDependencies": {

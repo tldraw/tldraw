@@ -1,19 +1,19 @@
-import { ROOM_PREFIX } from '@tldraw/dotcom-shared'
+import { getLicenseKey } from '@tldraw/dotcom-shared'
 import { useCallback } from 'react'
-import { Editor, TLComponents, TLStoreSnapshot, Tldraw, fetch } from 'tldraw'
+import { Editor, TLComponents, TLStoreSnapshot, Tldraw } from 'tldraw'
 import { ThemeUpdater } from '../../../components/ThemeUpdater/ThemeUpdater'
 import { useLegacyUrlParams } from '../../../hooks/useLegacyUrlParams'
+import { useHandleUiEvents } from '../../../utils/analytics'
 import { assetUrls } from '../../../utils/assetUrls'
 import { globalEditor } from '../../../utils/globalEditor'
-import { useHandleUiEvents } from '../../../utils/useHandleUiEvent'
 import { useMaybeApp } from '../../hooks/useAppState'
 import { ReadyWrapper, useSetIsReady } from '../../hooks/useIsReady'
-import { SneakyDarkModeSync } from './SneakyDarkModeSync'
 import { TlaEditorWrapper } from './TlaEditorWrapper'
 import { TlaEditorErrorFallback } from './editor-components/TlaEditorErrorFallback'
 import { TlaEditorLegacySharePanel } from './editor-components/TlaEditorLegacySharePanel'
 import { TlaEditorMenuPanel } from './editor-components/TlaEditorMenuPanel'
 import { TlaEditorTopPanel } from './editor-components/TlaEditorTopPanel'
+import { SneakyDarkModeSync } from './sneaky/SneakyDarkModeSync'
 import { SneakyTldrawFileDropHandler } from './sneaky/SneakyFileDropHandler'
 import { SneakyLegacySetDocumentTitle } from './sneaky/SneakyLegacytSetDocumentTitle'
 import { SneakySetDocumentTitle } from './sneaky/SneakySetDocumentTitle'
@@ -28,47 +28,23 @@ export const components: TLComponents = {
 }
 
 export function TlaLegacySnapshotEditor({
-	fileSlug,
 	snapshot,
-	timeStamp,
-	context,
-	token,
+	fileSlug,
 }: {
 	fileSlug: string
 	snapshot: TLStoreSnapshot
-	context: 'legacy-snapshot' | 'legacy-history-snapshot'
-	timeStamp?: string
-	token?: string
 }) {
 	return (
 		<>
 			<SneakySetDocumentTitle />
 			<ReadyWrapper key={fileSlug}>
-				<TlaEditorInner
-					fileSlug={fileSlug}
-					snapshot={snapshot}
-					timeStamp={timeStamp}
-					token={token}
-					context={context}
-				/>
+				<TlaEditorInner snapshot={snapshot} />
 			</ReadyWrapper>
 		</>
 	)
 }
 
-function TlaEditorInner({
-	fileSlug,
-	snapshot,
-	timeStamp,
-	token,
-	context,
-}: {
-	fileSlug: string
-	snapshot: TLStoreSnapshot
-	context: 'legacy-snapshot' | 'legacy-history-snapshot'
-	timeStamp?: string
-	token?: string
-}) {
+function TlaEditorInner({ snapshot }: { snapshot: TLStoreSnapshot }) {
 	const app = useMaybeApp()
 
 	const setIsReady = useSetIsReady()
@@ -92,35 +68,11 @@ function TlaEditorInner({
 		[setIsReady]
 	)
 
-	const restoreVersion = useCallback(async () => {
-		const sure = window.confirm('Are you sure?')
-		if (!sure) return
-
-		const res = await fetch(`/api/${ROOM_PREFIX}/${fileSlug}/restore`, {
-			method: 'POST',
-			headers: {
-				'Content-Type': 'application/json',
-				...(token
-					? {
-							Authorization: 'Bearer ' + token,
-						}
-					: {}),
-			},
-			body: JSON.stringify({ timeStamp }),
-		})
-
-		if (!res.ok) {
-			window.alert('Something went wrong!')
-			return
-		}
-
-		window.alert('done')
-	}, [fileSlug, timeStamp, token])
-
 	return (
 		<TlaEditorWrapper>
 			<Tldraw
 				className="tla-editor"
+				licenseKey={getLicenseKey()}
 				snapshot={snapshot}
 				assetUrls={assetUrls}
 				onMount={handleMount}
@@ -135,47 +87,7 @@ function TlaEditorInner({
 				<SneakyDarkModeSync />
 				<SneakyLegacySetDocumentTitle />
 				{app && <SneakyTldrawFileDropHandler />}
-				{context === 'legacy-history-snapshot' && (
-					<button
-						style={{
-							zIndex: 10000,
-							position: 'absolute',
-							top: 64,
-							right: 6,
-							pointerEvents: 'all',
-						}}
-						onClick={restoreVersion}
-						// eslint-disable-next-line react/jsx-no-literals
-					>
-						Restore version
-					</button>
-				)}
 			</Tldraw>
 		</TlaEditorWrapper>
 	)
 }
-
-// const restoreVersion = useCallback(async () => {
-// 	const sure = window.confirm('Are you sure?')
-// 	if (!sure) return
-
-// 	const res = await fetch(`/api/${ROOM_PREFIX}/${roomId}/restore`, {
-// 		method: 'POST',
-// 		headers: {
-// 			'Content-Type': 'application/json',
-// 			...(token
-// 				? {
-// 						Authorization: 'Bearer ' + token,
-// 					}
-// 				: {}),
-// 		},
-// 		body: JSON.stringify({ timeStamp }),
-// 	})
-
-// 	if (!res.ok) {
-// 		window.alert('Something went wrong!')
-// 		return
-// 	}
-
-// 	window.alert('done')
-// }, [roomId, timeStamp, token])

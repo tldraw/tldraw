@@ -20,11 +20,17 @@
   "08331c1710": {
     "translation": "S'ha superat el límit de tarifa; torna-ho a provar més tard."
   },
+  "08bd40c754": {
+    "translation": "Compte"
+  },
   "0b27918290": {
     "translation": "Fitxer"
   },
   "0b9a4cde72": {
     "translation": "Menú Fitxer"
+  },
+  "0d1f2bb523": {
+    "translation": "Enviar comentaris"
   },
   "110a4b01be": {
     "translation": "Publicar"
@@ -35,17 +41,14 @@
   "181b90f889": {
     "translation": "Crea un fitxer"
   },
-  "1bef75f760": {
-    "translation": "Permet que tldraw m'enviï un correu electrònic sobre això"
-  },
   "1da2e8106b": {
     "translation": "S'ha produït un error inesperat."
   },
   "1dd1c5fb7f": {
     "translation": "Avui"
   },
-  "26e5b44256": {
-    "translation": "Doneu-nos comentaris"
+  "250ddea65c": {
+    "translation": "Sobre tldraw"
   },
   "299cb00a7a": {
     "translation": "La càrrega ha fallat"
@@ -55,9 +58,6 @@
   },
   "31418ce4ad": {
     "translation": "i18n: Ressaltar que falta"
-  },
-  "32656a600c": {
-    "translation": "Veus alguna cosa malament? Tens una idea per millorar tldraw? Ens encantaria escoltar-ho!"
   },
   "335defdafe": {
     "translation": "Si us plau, prova d'actualitzar la pàgina."
@@ -71,6 +71,9 @@
   "3c5e891bff": {
     "translation": "Fixat"
   },
+  "3d0238bf16": {
+    "translation": "Accepta-ho tot"
+  },
   "42e53c47c1": {
     "translation": "Contacta amb el propietari per sol·licitar accés."
   },
@@ -80,17 +83,14 @@
   "46137245cd": {
     "translation": "Gràcies per ajudar-nos a millorar tldraw!"
   },
-  "4778b9f3f2": {
-    "translation": "Configuració de privadesa"
-  },
   "47839e47a5": {
     "translation": "tldraw"
   },
   "4908687e50": {
     "translation": "Esteu segur que voleu oblidar aquest fitxer?"
   },
-  "4c06678729": {
-    "translation": "Utilitzem cookies pròpies per millorar els nostres serveis. <a>Més informació</a>"
+  "4d0d3ddec9": {
+    "translation": "Aquest lloc web utilitza cookies per fer que l'aplicació funcioni i per recopilar dades analítiques."
   },
   "4d1c8263ba": {
     "translation": "Torna a carregar"
@@ -113,23 +113,23 @@
   "55505ba281": {
     "translation": "PNG"
   },
+  "5677e381d2": {
+    "translation": "Fem servir cookies analítiques per millorar tldraw."
+  },
   "56c34c6410": {
     "translation": "Política de privadesa"
-  },
-  "5817f82c16": {
-    "translation": "Opcional: ajudeu-nos a entendre com la gent utilitza tldraw i com podem millorar-lo."
   },
   "5a95a425f7": {
     "translation": "Comparteix"
   },
-  "5d160eb095": {
-    "translation": "La teva sessió"
+  "5bcc12ace8": {
+    "translation": "Aquesta sala ara és de només lectura"
+  },
+  "5bec508475": {
+    "translation": "S'ha detectat un navegador antic. Actualitzeu el navegador per utilitzar aquesta aplicació."
   },
   "5d26ae7550": {
     "translation": "No hem pogut penjar part del contingut que vas crear abans d'iniciar la sessió."
-  },
-  "5db1e9a8ca": {
-    "translation": "Omple aquest formulari, <discord>xateja amb nosaltres a Discord</discord> o <github>envia un problema a GitHub</github>."
   },
   "5f3c333678": {
     "translation": "S'ha enviat comentaris"
@@ -161,6 +161,9 @@
   "70a6facb9d": {
     "translation": "Aquesta setmana"
   },
+  "71a29b007b": {
+    "translation": "Tens algun error, problema o idea per a tldraw? Fes-nos-ho saber!"
+  },
   "73ab799383": {
     "translation": "Aquesta versió de tldraw ja no és compatible."
   },
@@ -188,6 +191,12 @@
   "797799f35e": {
     "translation": "Envieu un problema a GitHub"
   },
+  "7b1329f5ca": {
+    "translation": "Manual d'usuari"
+  },
+  "7be10fc592": {
+    "translation": "Restaurar versió"
+  },
   "7cb5f8b4a5": {
     "translation": "Oblida't"
   },
@@ -197,8 +206,11 @@
   "7fcdcc6455": {
     "translation": "Oblida el fitxer"
   },
-  "81d389ac80": {
-    "translation": "Exporteu el contingut com a fitxer .tldr: seleccioneu \"Baixa el fitxer\" al menú superior esquerre."
+  "801ab24683": {
+    "translation": "Descarrega"
+  },
+  "815e116a2e": {
+    "translation": "Tens algun error, problema o idea per a tldraw? Fes-nos-ho saber! Emplena aquest formulari i et contactarem per correu electrònic si cal. També pots <discord>xatejar amb nosaltres a Discord</discord> o <github>enviar un problema a GitHub</github>."
   },
   "85a082de1b": {
     "translation": "Actualitzeu la pàgina per obtenir la darrera versió de tldraw."
@@ -209,11 +221,11 @@
   "86c66437fd": {
     "translation": "Canvia el nom del fitxer"
   },
+  "8b1946f965": {
+    "translation": "Per continuar editant, copieu la sala als vostres fitxers."
+  },
   "8eb2c00e96": {
     "translation": "Compartit amb tu"
-  },
-  "8f7f4c1ce7": {
-    "translation": "Sobre"
   },
   "8ff3d0a705": {
     "translation": "Tarifa limitada"
@@ -236,6 +248,9 @@
   "9bef626805": {
     "translation": "Esborra el fitxer"
   },
+  "9c258b8f88": {
+    "translation": "Aquesta sala multijugador anònima de tldraw ara és de només lectura. Per continuar editant-la, inicia la sessió i copia-la als teus fitxers."
+  },
   "9ceb927baa": {
     "translation": "Publica aquest fitxer"
   },
@@ -244,6 +259,9 @@
   },
   "9e93c98d88": {
     "translation": "Desactivar"
+  },
+  "a0da245992": {
+    "translation": "Exporteu el contingut com a fitxer .tldr: seleccioneu \"Descarrega\" al menú superior esquerre."
   },
   "a104439641": {
     "translation": "Encoixinat"
@@ -279,6 +297,9 @@
     "notes": "This is used to show the last time the file was published. An example is 'Last published 5 minutes ago'.",
     "translation": "Darrera publicació <date></date>"
   },
+  "b028909917": {
+    "translation": "Usuari convidat"
+  },
   "b6d4223e60": {
     "translation": "Inicia sessió"
   },
@@ -303,8 +324,8 @@
   "c303bd1095": {
     "translation": "No es pot publicar el fitxer."
   },
-  "c4408d3350": {
-    "translation": "Acceptar"
+  "c4b39a1cc3": {
+    "translation": "Galetes essencials"
   },
   "c655b27b1e": {
     "translation": "i18n: cadena llarga"
@@ -321,9 +342,6 @@
   "cd15a75c26": {
     "translation": "SVG"
   },
-  "cd16f555de": {
-    "translation": "Essencial: és necessari per desar els fitxers i la configuració i sincronitzar-los entre els vostres dispositius."
-  },
   "cea291e45e": {
     "translation": "Més informació sobre la publicació."
   },
@@ -332,9 +350,6 @@
   },
   "d4bbf74f3e": {
     "translation": "Canvia la barra lateral"
-  },
-  "d5ef96e383": {
-    "translation": "Descarregar fitxer"
   },
   "d721757161": {
     "translation": "Tema"
@@ -351,17 +366,14 @@
   "dfdb78a4e4": {
     "translation": "Senyals de depuració d'aplicacions"
   },
-  "e371526ad0": {
-    "translation": "Aquesta galeta és necessària perquè tldraw funcioni i no es pot desactivar."
+  "e2ae80a510": {
+    "translation": "Resum legal"
   },
   "e404559826": {
     "translation": "Condicions del servei"
   },
   "e78e14c5f1": {
     "translation": "Pin"
-  },
-  "e8d1090cb9": {
-    "translation": "Utilitzem galetes per mantenir-vos connectat, per sincronitzar els vostres fitxers i per recopilar analítiques per ajudar-nos a millorar tldraw. Llegiu la nostra <a>política de galetes</a> per obtenir més informació."
   },
   "ea4788705e": {
     "translation": "Cancel·la"
@@ -381,11 +393,26 @@
   "ed75712b0e": {
     "translation": "Duplicat"
   },
+  "ede55d955f": {
+    "translation": "Llegiu la nostra <a>política de cookies</a> per obtenir més informació."
+  },
+  "f09b16bc5f": {
+    "translation": "Fem servir galetes per mantenir la sessió iniciada, sincronitzar els vostres fitxers i recopilar dades analítiques que ens ajudin a millorar tldraw."
+  },
+  "f0e8bff6f9": {
+    "translation": "Configuració de l'usuari"
+  },
+  "f2569594b2": {
+    "translation": "Fem servir aquestes galetes per desar els vostres fitxers i la configuració."
+  },
   "f2a6c498fb": {
     "translation": "Suprimeix"
   },
   "f43fb62093": {
     "translation": "Torna a tldraw."
+  },
+  "f4f70727dc": {
+    "translation": "Configuració"
   },
   "fb15c53f22": {
     "translation": "Visor"
@@ -395,5 +422,8 @@
   },
   "fed5ec05eb": {
     "translation": "Enllaç copiat"
+  },
+  "ffcd73e997": {
+    "translation": "Importa el fitxer…"
   }
 }

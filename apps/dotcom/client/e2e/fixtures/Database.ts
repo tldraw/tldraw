@@ -30,6 +30,7 @@ const defaultUser = {
 	flags: '',
 	locale: null,
 	animationSpeed: null,
+	areKeyboardShortcutsEnabled: true,
 	edgeScrollSpeed: null,
 	colorScheme: null,
 	isSnapMode: null,

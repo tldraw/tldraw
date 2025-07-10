@@ -1,18 +1,21 @@
 import { TLDefaultDashStyle } from '@tldraw/tlschema'
 
 /** @public */
+export type PerfectDashTerminal = 'skip' | 'outset' | 'none'
+
+/** @public */
 export function getPerfectDashProps(
 	totalLength: number,
 	strokeWidth: number,
-	opts = {} as Partial<{
-		style: TLDefaultDashStyle
-		snap: number
-		end: 'skip' | 'outset' | 'none'
-		start: 'skip' | 'outset' | 'none'
-		lengthRatio: number
-		closed: boolean
-		forceSolid: boolean
-	}>
+	opts: {
+		style?: TLDefaultDashStyle
+		snap?: number
+		end?: PerfectDashTerminal
+		start?: PerfectDashTerminal
+		lengthRatio?: number
+		closed?: boolean
+		forceSolid?: boolean
+	} = {}
 ): {
 	strokeDasharray: string
 	strokeDashoffset: string

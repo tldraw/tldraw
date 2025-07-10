@@ -165,31 +165,44 @@ ul.example__sidebar__category__items {
 }
 
 li.examples__sidebar__item {
-	padding: 0px 8px 0px 8px;
 	position: relative;
 	margin: 0px;
 	height: 32px;
-	display: flex;
-	align-items: center;
-	justify-content: center;
-	flex-direction: row;
+}
+
+.examples__sidebar__item__title {
+	flex-grow: 2;
+	overflow: hidden;
+	text-overflow: ellipsis;
+	white-space: nowrap;
 }
 
 .examples__sidebar__item__link {
 	display: block;
-	position: absolute;
-	inset: 0px;
-	height: 100%;
-}
-
-.examples__sidebar__item__title {
-	max-width: 100%;
 	font-weight: 500;
 	margin: 0px;
 	overflow: hidden;
 	white-space: nowrap;
 	text-overflow: ellipsis;
-	flex-grow: 2;
+	position: absolute;
+	z-index: 2;
+	inset: 0;
+	padding: 0px 8px;
+	display: flex;
+	align-items: center;
+	justify-content: flex-start;
+	flex-direction: row;
+}
+
+.examples__sidebar__item::after {
+	content: '';
+	position: absolute;
+	inset: 2px 8px 2px 4px;
+	z-index: 1;
+	background-color: var(--gray-light);
+	border-radius: 4px;
+	opacity: 0;
+	pointer-events: none;
 }
 
 .examples__sidebar__item__details {
@@ -197,7 +210,11 @@ li.examples__sidebar__item {
 	margin: 8px 0 0 0;
 }
 
-.examples__sidebar__item[data-active='true']:not(:hover) > .examples__sidebar__item__link::after {
+.examples__sidebar__item[data-active='true']::after {
+	opacity: 1;
+}
+
+.examples__sidebar__item[data-active='false']:hover::after {
 	opacity: 1;
 }
 
@@ -207,8 +224,11 @@ li.examples__sidebar__item {
 	display: flex;
 	flex-direction: row;
 	height: 32px;
-	margin-right: -8px;
+	margin-right: 0px;
 	color: black;
+	position: relative;
+	z-index: 20;
+	flex-shrink: 0;
 }
 .example__sidebar__item__button {
 	all: unset;
@@ -227,7 +247,7 @@ li.examples__sidebar__item {
 .example__sidebar__item__button:hover {
 	z-index: 20;
 }
-.example__sidebar__item__button:nth-of-type(n + 2) {
+.example__sidebar__item__button:nth-of-type(n + 1) {
 	margin-left: -4px;
 }
 
@@ -255,7 +275,7 @@ li.examples__sidebar__item {
 .example__sidebar__footer-link {
 	padding: 8px 8px;
 	border-radius: 6px;
-	background-color: var(--focus);
+	background-color: hsl(214, 92%, 50%);
 	display: flex;
 	flex: 1 1 auto;
 	text-align: center;

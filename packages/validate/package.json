@@ -1,7 +1,7 @@
 {
 	"name": "@tldraw/validate",
 	"description": "A runtime validation library by tldraw.",
-	"version": "3.11.0",
+	"version": "3.14.1",
 	"author": {
 		"name": "tldraw Inc.",
 		"email": "hello@tldraw.com"
@@ -53,7 +53,6 @@
 		}
 	},
 	"devDependencies": {
-		"lazyrepo": "0.0.0-alpha.27",
-		"lodash.isequal": "^4.5.0"
+		"lazyrepo": "0.0.0-alpha.27"
 	}
 }

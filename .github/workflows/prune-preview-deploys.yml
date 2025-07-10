@@ -4,6 +4,7 @@ on:
   schedule:
     # run once per day at midnight or whatever
     - cron: '0 0 * * *'
+  workflow_dispatch:
 
 permissions:
   id-token: 'write'
@@ -18,7 +19,7 @@ defaults:
 jobs:
   deploy:
     name: Prune preview deploys
-    timeout-minutes: 15
+    timeout-minutes: 30
     runs-on: ubuntu-latest
     environment: deploy-staging
 
