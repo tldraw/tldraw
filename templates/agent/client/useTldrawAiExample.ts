@@ -10,7 +10,6 @@ import { useCallback } from 'react'
 import { Editor } from 'tldraw'
 import { useChatHistory } from './ChatHistoryContext'
 import { ChatHistoryItem } from './ChatHistoryItem'
-import { ShapeDescriptions } from './transforms/ShapeDescriptions'
 import { SimpleCoordinates } from './transforms/SimpleCoordinates'
 import { SimpleIds } from './transforms/SimpleIds'
 
@@ -106,7 +105,7 @@ export function useTldrawAiExample(editor?: Editor) {
 }
 
 const STATIC_TLDRAWAI_OPTIONS: TldrawAiOptions = {
-	transforms: [SimpleIds, ShapeDescriptions, SimpleCoordinates],
+	transforms: [SimpleIds, SimpleCoordinates],
 
 	// A function that calls the backend and return generated changes.
 	// See worker/do/OpenAiService.ts#generate for the backend part.
