@@ -18,9 +18,10 @@ module.exports = class AutoPlugin {
 
 				const parseSection = (sectionHeader) => {
 					// Match the section between the header and the next header or any empty line or end of text.
-					const match = new RegExp(`${sectionHeader}\\n\\n([\\s\\S]*?)(?=\\n### |\\n\\n|$)`).exec(
-						body
-					)
+					const match = new RegExp(
+						`${sectionHeader}\\n\\n([\\s\\S]*?)(?=\\n### |\\n\\n|$)`,
+						'i'
+					).exec(body)
 					if (!match) return
 
 					const bulletPoints = match[1]
@@ -31,7 +32,7 @@ module.exports = class AutoPlugin {
 
 					if (bulletPoints.length === 0) return
 
-					const prefix = sectionHeader === '### API Changes' ? '[API Change]: ' : ''
+					const prefix = sectionHeader.toLowerCase() === '### api changes' ? '[API Change]: ' : ''
 					const formattedPoints = bulletPoints
 						.map((point) => {
 							return `- ${prefix}${point} [#${commit.pullRequest.number}](https://github.com/tldraw/tldraw/pull/${commit.pullRequest.number})`
