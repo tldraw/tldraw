@@ -22,19 +22,19 @@ function getEnv() {
 function getTriggerType(pr: PullRequest): 'none' | 'SDK' | 'docs' {
 	nicelog(`Checking PR ${pr.number} labels...`)
 
-	const hasDocsLabel = labelPresent(pr, 'docs-hotfix-please')
-	const hasSdkLabel = labelPresent(pr, 'sdk-hotfix-please')
+	const hasDocsHotfixLabel = labelPresent(pr, 'docs-hotfix-please')
+	const hasSdkHotfixLabel = labelPresent(pr, 'sdk-hotfix-please')
 
-	if (!hasDocsLabel && !hasSdkLabel) {
+	if (!hasDocsHotfixLabel && !hasSdkHotfixLabel) {
 		nicelog('No "(docs|sdk)-hotfix-please" label found. Exiting...')
 		return 'none'
 	}
 
 	nicelog(
-		`Found "${hasSdkLabel ? 'sdk-hotfix-please' : 'docs-hotfix-please'}" label. Proceeding...`
+		`Found "${hasSdkHotfixLabel ? 'sdk-hotfix-please' : 'docs-hotfix-please'}" label. Proceeding...`
 	)
 
-	const isDocsOnly = hasDocsLabel && !hasSdkLabel
+	const isDocsOnly = hasDocsHotfixLabel && !hasSdkHotfixLabel
 	return isDocsOnly ? 'docs' : 'SDK'
 }
 
