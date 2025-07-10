@@ -2719,6 +2719,8 @@ export class Stadium2d extends Geometry2d {
 export abstract class StateNode implements Partial<TLEventHandlers> {
     constructor(editor: Editor, parent?: StateNode);
     // (undocumented)
+    addChild(ChildConstructor: TLStateNodeConstructor): this;
+    // (undocumented)
     static children?: () => TLStateNodeConstructor[];
     // (undocumented)
     children?: Record<string, StateNode>;

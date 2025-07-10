@@ -1,0 +1,122 @@
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@500;700&display=swap');
+@import url('tldraw/tldraw.css');
+
+body {
+	font-family: 'Inter', sans-serif;
+	overscroll-behavior: none;
+}
+
+.tl-container {
+	--node-width: 180px;
+	--node-header-height: 32.5px;
+	--node-row-height: 32px;
+	--node-port-offset-y: 15.5px;
+
+	--node-shadows: 0 2px 6px rgba(0, 0, 0, 0.08), 0 1px 2px rgba(0, 0, 0, 0.04);
+	--node-shadow-border:
+		0 0 0 1px rgba(0, 0, 0, 0.04), 0 2px 6px rgba(0, 0, 0, 0.08), 0 1px 2px rgba(0, 0, 0, 0.04);
+	--node-shadow-highlight:
+		0 0 0 calc(1.2px / var(--tl-zoom)) var(--color-selected), 0 2px 6px rgba(0, 0, 0, 0.08),
+		0 1px 2px rgba(0, 0, 0, 0.04);
+}
+
+.NodeShape {
+	border-radius: var(--radius-2);
+	background: var(--color-panel);
+	box-shadow: var(--node-shadow-border);
+	width: 100%;
+	height: 100%;
+	display: flex;
+	flex-direction: column;
+
+	.NodeShape-heading {
+		padding: 8px;
+		border-bottom: 1px solid var(--color-divider);
+		display: flex;
+		align-items: center;
+		justify-content: center;
+		gap: 12px;
+		height: 32px;
+	}
+
+	.NodeShape-label {
+		flex: 1 1 auto;
+		font-weight: 700;
+	}
+}
+
+.NodeBodyRow {
+	display: flex;
+	flex-direction: row;
+	padding: 8px;
+	gap: 12px;
+	align-items: center;
+	justify-content: center;
+	height: 32px;
+
+	input {
+		flex: 1 1 auto;
+		pointer-events: all;
+		border: none;
+		background: none;
+		font: inherit;
+	}
+}
+
+.Port {
+	width: 12px;
+	height: 12px;
+	border-radius: 50%;
+	background: var(--color-panel);
+	box-sizing: border-box;
+	z-index: 2;
+	box-shadow:
+		0 0 0 1px rgba(0, 0, 0, 0.04),
+		0 1px 3px rgba(0, 0, 0, 0.12);
+	pointer-events: all;
+	flex: 0 0 auto;
+
+	&.Port_hinting {
+		box-shadow:
+			0 0 0 calc(2px / var(--tl-zoom)) var(--color-selected),
+			0 0 0 1px rgba(0, 0, 0, 0.04),
+			0 1px 3px rgba(0, 0, 0, 0.12);
+	}
+
+	&.Port_end {
+		margin-left: -14px;
+	}
+
+	&.Port_start {
+		margin-right: -14px;
+	}
+}
+
+.OnCanvasComponentPicker {
+	position: absolute;
+	top: 0;
+	left: 0;
+	z-index: var(--layer-overlays);
+	border-radius: var(--radius-2);
+	background: var(--color-panel);
+	box-shadow: var(--node-shadow-highlight);
+	display: grid;
+	grid-template-columns: repeat(2, 1fr);
+	--top: calc(var(--node-header-height) + var(--node-port-offset-y));
+	transform-origin: 0 var(--top);
+	margin-top: calc(-1 * var(--top));
+	padding-top: 4px;
+
+	button {
+		height: auto;
+		aspect-ratio: 1;
+		display: flex;
+		flex-direction: column;
+		align-items: center;
+		justify-content: center;
+	}
+
+	.OnCanvasComponentPicker-icon {
+		font-size: 36px;
+	}
+}
