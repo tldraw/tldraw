@@ -72,9 +72,13 @@ type BootState =
 			promise: PromiseWithResolve
 	  }
 	| {
-			type: 'connecting' | 'connecting_hard'
+			type: 'connecting_soft'
 			bootId: string
 			bufferedEvents: Array<ZReplicationEvent>
+	  }
+	| {
+			type: 'connecting_hard'
+			bootId: string
 	  }
 	| {
 			type: 'connected'
@@ -264,7 +268,7 @@ export class UserDataSyncer {
 		return data
 	}
 
-	private async loadInitialDataFromPostgres(signal: AbortSignal) {
+	private async loadInitialDataFromPostgres(signal: AbortSignal, bootId: string) {
 		this.logEvent({ type: 'full_data_fetch_hard', id: this.userId })
 		this.log.debug('fetching fresh initial data from postgres')
 		// if the bootId changes during the boot process, we should stop silently
@@ -287,7 +291,6 @@ export class UserDataSyncer {
 
 				await this.db.transaction().execute(async (tx) => {
 					const result = await tx.executeQuery(CompiledQuery.raw(fetchEverythingSql, [this.userId]))
-					assert(this.state.type === 'connecting', 'state should be connecting in boot')
 					if (signal.aborted) return
 					for (const _row of result.rows) {
 						const { table, row } = parseResultRow(_row)
@@ -320,7 +323,7 @@ export class UserDataSyncer {
 					const notificationPayload: UserRegistrationNotification = {
 						version: USER_REGISTRATION_VERSION,
 						userId: this.userId,
-						bootId: this.state.bootId,
+						bootId,
 						topicSubscriptions,
 					}
 					this.log.debug('sending user registration notification', notificationPayload)
@@ -347,70 +350,98 @@ export class UserDataSyncer {
 		} satisfies StateSnapshot
 	}
 
-	private async boot(hard: boolean, signal: AbortSignal): Promise<void> {
-		this.log.debug('boot hard:', hard)
-		// todo: clean up old resources if necessary?
-		const start = Date.now()
-		// fine to discard previous buffered events because we're generating a new bootId
+	private async hardBoot(signal: AbortSignal) {
+		this.state = {
+			type: 'connecting_hard',
+			bootId: uniqueId(),
+		}
+
+		const res = await this.loadInitialDataFromPostgres(signal, this.state.bootId)
+		if (signal.aborted) return
+		this.store.initialize(res.initialData, [])
+
+		// Wait for the state to change to connected, this allows the timeout logic
+		// in the caller to abort the boot process
+		while (!signal.aborted && (this.state as BootState).type !== 'connected') {
+			await sleep(50)
+		}
+	}
+
+	private async softBoot(signal: AbortSignal) {
 		const bufferedEvents: ZReplicationEvent[] = []
 		this.state = {
-			type: 'connecting',
+			type: 'connecting_soft',
 			bootId: uniqueId(),
 			bufferedEvents,
 		}
+		const res = await this.loadInitialDataFromR2(signal)
+		if (signal.aborted) return
+		if (!res) {
+			return this.boot(true, signal)
+		}
 
-		if (hard) {
-			this.log.debug('hard boot, clearing store')
-			this.store.clearOptimisticUpdates()
+		this.store.initialize(res.initialData, res.optimisticUpdates)
+		this.broadcast({
+			type: 'initial_data',
+			initialData: res.initialData,
+		})
 
-			const res = await this.loadInitialDataFromPostgres(signal)
-			if (signal.aborted) return
-			//ok
-
-			this.store.initialize(res.initialData, res.optimisticUpdates)
-
-			// User registration is now handled via PostgreSQL notification in loadInitialDataFromPostgres
-			// Wait a bit for the notification to be processed
-			this.state = {
-				type: 'connecting_hard',
-				bootId: this.state.bootId,
-				bufferedEvents,
-			}
-		} else {
-			const res = await this.loadInitialDataFromR2(signal)
-			if (signal.aborted) return
-			if (!res) {
-				return this.boot(true, signal)
-			}
-
-			this.store.initialize(res.initialData, res.optimisticUpdates)
-			this.broadcast({
-				type: 'initial_data',
-				initialData: res.initialData,
-			})
-
-			if (
-				res.sequenceId === notASequenceId ||
-				!(await getReplicator(this.env).resumeSequence({
-					userId: this.userId,
-					sequenceId: res.sequenceId,
-					lastSequenceNumber: res.lastSequenceNumber,
-				}))
-			) {
-				if (signal.aborted) return
-				return this.boot(true, signal)
-			}
-
-			this.state = {
-				type: 'connected',
-				bootId: this.state.bootId,
+		if (
+			res.sequenceId === notASequenceId ||
+			!(await getReplicator(this.env).resumeSequence({
+				userId: this.userId,
 				sequenceId: res.sequenceId,
 				lastSequenceNumber: res.lastSequenceNumber,
-			}
+			}))
+		) {
+			if (signal.aborted) return
+			return this.boot(true, signal)
+		}
 
-			for (const event of bufferedEvents) {
-				this.handleReplicationEvent(event)
-			}
+		this.state = {
+			type: 'connected',
+			bootId: this.state.bootId,
+			sequenceId: res.sequenceId,
+			lastSequenceNumber: res.lastSequenceNumber,
+		}
+
+		for (const event of bufferedEvents) {
+			this.handleReplicationEvent(event)
+		}
+	}
+
+	/**
+	 * Boot logic for UserDataSyncer with two-phase initialization:
+	 *
+	 * 1. SOFT BOOT (hard=false): Attempts fast resume from R2 snapshot
+	 *    - Loads cached state from R2 storage
+	 *    - Tries to resume replication sequence from replicator
+	 *    - Falls back to hard boot if snapshot is missing/invalid or sequence resume fails
+	 *    - Immediately transitions to 'connected' state and processes buffered events
+	 *
+	 * 2. HARD BOOT (hard=true): Full initialization from PostgreSQL
+	 *    - Fetches fresh data directly from database
+	 *    - Sends user registration notification to replicator
+	 *    - Transitions to 'connecting_hard' state, waiting for first replication event
+	 *    - Only becomes 'connected' when first event arrives with sequence info
+	 *
+	 * State transitions:
+	 * - 'connecting': Events are buffered, waiting for sequence info
+	 * - 'connecting_hard': Waiting for first replication event after hard boot
+	 * - 'connected': Fully operational, processing events in sequence
+	 *
+	 * The bootId ensures events from previous boot attempts are ignored,
+	 * and sequence numbers guarantee ordered event processing.
+	 */
+	private async boot(hard: boolean, signal: AbortSignal): Promise<void> {
+		this.log.debug('boot hard:', hard)
+		const start = Date.now()
+		// fine to discard previous buffered events because we're generating a new bootId
+
+		if (hard) {
+			await this.hardBoot(signal)
+		} else {
+			await this.softBoot(signal)
 		}
 
 		const end = Date.now()
@@ -461,7 +492,7 @@ export class UserDataSyncer {
 		}
 
 		// buffer events until we know the sequence numbers
-		if (this.state.type === 'connecting') {
+		if (this.state.type === 'connecting_soft') {
 			this.log.debug('buffering event', event)
 			this.state.bufferedEvents.push(event)
 			return
