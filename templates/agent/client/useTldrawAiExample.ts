@@ -46,6 +46,10 @@ export function useTldrawAiExample(editor?: Editor) {
 	function apply({ change, editor }: { change: MaybeComplete<TLAiChange>; editor: Editor }) {
 		defaultApply({ change, editor })
 
+		if (change.complete) {
+			console.log(change)
+		}
+
 		switch (change.type) {
 			case 'custom': {
 				switch (change.action) {
