@@ -1,5 +1,5 @@
 import { FormEventHandler, useCallback, useEffect, useRef, useState } from 'react'
-import { Editor } from 'tldraw'
+import { Editor, useLocalStorageState } from 'tldraw'
 import { AGENT_MODEL_DEFINITIONS, TLAgentModelName } from '../worker/models'
 import { ChatHistory } from './ChatHistory'
 import { useChatHistory } from './ChatHistoryContext'
@@ -12,7 +12,7 @@ export function ChatPanel({ editor }: { editor: Editor }) {
 	const [historyItems, setHistoryItems] = useChatHistory()
 	const rCancelFn = useRef<(() => void) | null>(null)
 	const inputRef = useRef<HTMLInputElement>(null)
-	const [modelName, setModelName] = useState<TLAgentModelName>('gpt-4o')
+	const [modelName, setModelName] = useLocalStorageState<TLAgentModelName>('model-name', 'gpt-4o')
 
 	useEffect(() => {
 		if (!editor) return
