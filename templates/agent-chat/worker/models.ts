@@ -21,6 +21,11 @@ export const AGENT_MODEL_DEFINITIONS = {
 		id: 'gpt-4o',
 		provider: 'openai',
 	},
+	'gpt-4.1': {
+		name: 'gpt-4.1',
+		id: 'gpt-4.1-2025-04-14',
+		provider: 'openai',
+	},
 	'gpt-4.1-mini': {
 		name: 'gpt-4.1-mini',
 		id: 'gpt-4.1-mini-2025-04-14',
