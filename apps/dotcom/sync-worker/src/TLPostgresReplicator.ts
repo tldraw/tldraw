@@ -14,18 +14,20 @@ import { Kysely, sql } from 'kysely'
 
 import { LogicalReplicationService, Wal2Json, Wal2JsonPlugin } from 'pg-logical-replication'
 import { Logger } from './Logger'
-import {
-	UserRegistrationNotification,
-	UserRegistrationNotificationSchema,
-	ZReplicationEventWithoutSequenceInfo,
-} from './UserDataSyncer'
+import { ZReplicationEventWithoutSequenceInfo } from './UserDataSyncer'
 import { createPostgresConnectionPool } from './postgres'
 import { getR2KeyForRoom } from './r2'
 import { ChangeCollator, getTopics } from './replicator/ChangeCollator'
 import { getSubscriptionChanges, parseTopicSubscriptionTree } from './replicator/Subscription'
 import { pruneTopicSubscriptionsSql } from './replicator/pruneTopicSubscriptions'
 import { migrate } from './replicator/replicatorMigrations'
-import { ChangeV2, ReplicationEvent, relevantTables } from './replicator/replicatorTypes'
+import {
+	ChangeV2,
+	ReplicationEvent,
+	USER_REGISTRATION_MESSAGE_PREFIX,
+	UserRegistrationNotification,
+	relevantTables,
+} from './replicator/replicatorTypes'
 import {
 	Analytics,
 	Environment,
@@ -325,12 +327,16 @@ export class TLPostgresReplicator extends DurableObject<Environment> {
 
 				for (const _change of log.change) {
 					// Handle message type changes for user registration notifications
-					if (_change.kind === 'message' && (_change as any).prefix === 'user_registration') {
+					if (
+						_change.kind === 'message' &&
+						(_change as any).prefix === USER_REGISTRATION_MESSAGE_PREFIX
+					) {
 						try {
 							this.log.debug('user registration notification', _change)
 							// Decode the notification payload using the schema
-							const payload = JSON.parse((_change as any).content)
-							userRegistrationPayload = UserRegistrationNotificationSchema.validate(payload)
+							userRegistrationPayload = JSON.parse(
+								(_change as any).content
+							) as UserRegistrationNotification
 						} catch (e) {
 							this.captureException(e, { change: _change })
 						}

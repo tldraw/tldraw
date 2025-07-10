@@ -12,7 +12,6 @@ import {
 } from '@tldraw/dotcom-shared'
 import { react, transact } from '@tldraw/state'
 import { ExecutionQueue, assert, promiseWithResolve, sleep, uniqueId } from '@tldraw/utils'
-import { T } from '@tldraw/validate'
 import { createSentry } from '@tldraw/worker-shared'
 import { CompiledQuery, Kysely, sql } from 'kysely'
 import throttle from 'lodash.throttle'
@@ -20,19 +19,15 @@ import { Logger } from './Logger'
 import { fetchEverythingSql } from './fetchEverythingSql.snap'
 import { parseResultRow } from './parseResultRow'
 import { TopicSubscriptionTree, getSubscriptionChanges } from './replicator/Subscription'
+import {
+	USER_REGISTRATION_MESSAGE_PREFIX,
+	USER_REGISTRATION_VERSION,
+	UserRegistrationNotification,
+} from './replicator/replicatorTypes'
 import { Environment, TLUserDurableObjectEvent, getUserDoSnapshotKey } from './types'
 import { getReplicator, getStatsDurableObjct } from './utils/durableObjects'
 import { retryOnConnectionFailure } from './utils/retryOnConnectionFailure'
 type PromiseWithResolve = ReturnType<typeof promiseWithResolve>
-
-// Type definition for user registration notification payload
-export const UserRegistrationNotificationSchema = T.object({
-	userId: T.string,
-	bootId: T.string,
-	topicSubscriptions: T.jsonValue as T.ObjectValidator<TopicSubscriptionTree>,
-})
-
-export type UserRegistrationNotification = T.TypeOf<typeof UserRegistrationNotificationSchema>
 
 export interface ZRowUpdateEvent {
 	type: 'row_update'
@@ -322,7 +317,8 @@ export class UserDataSyncer {
 					}
 
 					// Send notification to replicator to register user
-					const notificationPayload = {
+					const notificationPayload: UserRegistrationNotification = {
+						version: USER_REGISTRATION_VERSION,
 						userId: this.userId,
 						bootId: this.state.bootId,
 						topicSubscriptions,
@@ -330,7 +326,8 @@ export class UserDataSyncer {
 					this.log.debug('sending user registration notification', notificationPayload)
 
 					await tx.executeQuery(
-						CompiledQuery.raw(`SELECT pg_logical_emit_message(true, 'user_registration', $1)`, [
+						CompiledQuery.raw(`SELECT pg_logical_emit_message(true, $1, $2)`, [
+							USER_REGISTRATION_MESSAGE_PREFIX,
 							JSON.stringify(notificationPayload),
 						])
 					)
