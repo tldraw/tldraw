@@ -9,6 +9,10 @@ defaults:
   run:
     shell: bash
 
+permissions:
+  contents: write
+  pull-requests: write
+
 jobs:
   trigger:
     name: Trigger a dotcom hotfix
