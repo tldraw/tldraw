@@ -30,6 +30,10 @@ function getTriggerType(pr: PullRequest): 'none' | 'SDK' | 'docs' {
 		return 'none'
 	}
 
+	nicelog(
+		`Found "${hasSdkLabel ? 'sdk-hotfix-please' : 'docs-hotfix-please'}" label. Proceeding...`
+	)
+
 	const isDocsOnly = hasDocsLabel && !hasSdkLabel
 	return isDocsOnly ? 'docs' : 'SDK'
 }

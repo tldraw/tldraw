@@ -22,13 +22,5 @@ export async function getPrDetails(octokit: Octokit) {
 export type PullRequest = NonNullable<Awaited<ReturnType<typeof getPrDetails>>>
 
 export function labelPresent(pr: PullRequest, labelName: string): boolean {
-	const label = pr.labels.find((label) => label.name === labelName)
-
-	if (!label) {
-		nicelog(`No "${labelName}" label found. Exiting...`)
-		return false
-	}
-
-	nicelog(`Found "${labelName}" label. Proceeding...`)
-	return true
+	return pr.labels.some((label) => label.name === labelName)
 }
