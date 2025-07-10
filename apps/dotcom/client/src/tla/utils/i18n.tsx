@@ -34,7 +34,7 @@ const INTERNAL_LOCALES = ['xx-AE', 'xx-LS']
 function fetchId({ id }: MessageDescriptor) {
 	if (id) return id
 
-	throw new Error('MessageDescriptor must have an id or defaultMessage. ')
+	throw new Error('MessageDescriptor must have an id.')
 }
 
 export function F(props: ComponentPropsWithoutRef<typeof FormattedMessage>) {
