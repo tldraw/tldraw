@@ -1,7 +1,7 @@
 import { useAuth } from '@clerk/clerk-react'
 import { DragEvent, useCallback, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
-import { tlmenus } from 'tldraw'
+import { OCIF_FILE_EXTENSION, TLDRAW_FILE_EXTENSION, tlmenus } from 'tldraw'
 import { routes } from '../../routeDefs'
 import { useApp } from './useAppState'
 
@@ -24,11 +24,14 @@ export function useTldrFileDrop() {
 
 			if (!e.dataTransfer?.files?.length) return
 			const files = Array.from(e.dataTransfer.files)
-			const tldrawFiles = files.filter((file) => file.name.endsWith('.tldr'))
+			const tldrawFiles = files.filter(
+				(file) =>
+					file.name.endsWith(TLDRAW_FILE_EXTENSION) || file.name.endsWith(OCIF_FILE_EXTENSION)
+			)
 			if (!tldrawFiles.length) {
 				return
 			}
-			app.uploadTldrFiles(tldrawFiles, (file) => {
+			app.uploadTldrCompatibleFiles(tldrawFiles, (file) => {
 				navigate(routes.tlaFile(file.id))
 			})
 		},

@@ -1,7 +1,10 @@
 import { memo, useEffect } from 'react'
 import {
+	OCIF_FILE_EXTENSION,
+	TLDRAW_FILE_EXTENSION,
 	defaultHandleExternalFileContent,
 	parseAndLoadDocument,
+	parseAndLoadOcifFile,
 	useDialogs,
 	useEditor,
 	useToasts,
@@ -22,8 +25,11 @@ export const SneakyOnDropOverride = memo(function SneakyOnDropOverride({
 	useEffect(() => {
 		editor.registerExternalContentHandler('files', async (content) => {
 			const { files } = content
-			const tldrawFiles = files.filter((file) => file.name.endsWith('.tldr'))
-			if (tldrawFiles.length > 0) {
+			const tldrawCompatibleFiles = files.filter(
+				(file) =>
+					file.name.endsWith(TLDRAW_FILE_EXTENSION) || file.name.endsWith(OCIF_FILE_EXTENSION)
+			)
+			if (tldrawCompatibleFiles.length > 0) {
 				if (isMultiplayer) {
 					toasts.addToast({
 						title: msg('file-system.shared-document-file-open-error.title'),
@@ -33,7 +39,21 @@ export const SneakyOnDropOverride = memo(function SneakyOnDropOverride({
 				} else {
 					const shouldOverride = await shouldOverrideDocument(dialogs.addDialog)
 					if (!shouldOverride) return
-					await parseAndLoadDocument(editor, await tldrawFiles[0].text(), msg, toasts.addToast)
+					if (tldrawCompatibleFiles[0].name.endsWith(TLDRAW_FILE_EXTENSION)) {
+						await parseAndLoadDocument(
+							editor,
+							await tldrawCompatibleFiles[0].text(),
+							msg,
+							toasts.addToast
+						)
+					} else {
+						await parseAndLoadOcifFile(
+							editor,
+							await tldrawCompatibleFiles[0].text(),
+							msg,
+							toasts.addToast
+						)
+					}
 				}
 			} else {
 				await defaultHandleExternalFileContent(editor, content, { toasts, msg })
