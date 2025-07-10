@@ -6,10 +6,10 @@ const isTest = () =>
 
 const fpsQueue: Array<() => void> = []
 const targetFps = 60
-const targetTimePerFrame = Math.ceil(1000 / targetFps)
-let frameRaf = undefined as undefined | number
-let flushRaf = undefined as undefined | number
-let last = -targetTimePerFrame
+const targetTimePerFrame = Math.floor(1000 / targetFps)
+let frameRaf: undefined | number
+let flushRaf: undefined | number
+let lastFlushTime = -targetTimePerFrame
 
 const flush = () => {
 	const queue = fpsQueue.splice(0, fpsQueue.length)
@@ -18,35 +18,34 @@ const flush = () => {
 	}
 }
 
-// This tick is called immediately (ie, not as a callback to a requestAnimationFrame)
 function tick(isOnNextFrame = false) {
 	if (frameRaf) return
 
 	const now = Date.now()
-	const elapsed = now - last
+	const elapsed = now - lastFlushTime
 
 	if (elapsed < targetTimePerFrame) {
-		// Mark that we're waiting for the next frame
+		// If we're too early to flush, we need to wait until the next frame to try and flush again.
 		// eslint-disable-next-line no-restricted-globals
 		frameRaf = requestAnimationFrame(() => {
 			frameRaf = undefined
 			tick(true)
 		})
+		return
 	}
 
-	// If we're on the next frame, we need to wait for the next frame to run the flush
 	if (isOnNextFrame) {
-		// If we already waited for the next frame to run the tick, that means it will also run this frame, we don't need to do anything here
-		if (flushRaf) return
-		last = now
+		// If we've already waited for the next frame to run the tick, then we can flush immediately
+		if (flushRaf) return // ...though if there's a flush raf, that means we'll be flushing on this frame already, so we can do nothing here.
+		lastFlushTime = now
 		flush()
 	} else {
-		if (flushRaf) return
-		// Since we're not already on the "next frame", we need to wait until the next frame to flush
+		// If we haven't already waited for the next frame to run the tick, we need to wait until the next frame to flush.
+		if (flushRaf) return // ...though if there's a flush raf, that means we'll be flushing on the next frame already, so we can do nothing here.
 		// eslint-disable-next-line no-restricted-globals
 		flushRaf = requestAnimationFrame(() => {
 			flushRaf = undefined
-			last = now
+			lastFlushTime = now
 			flush()
 		})
 	}
@@ -64,8 +63,16 @@ export function fpsThrottle(fn: { (): void; cancel?(): void }): {
 	cancel?(): void
 } {
 	if (isTest()) {
-		// Some redundancy here to make sure we're not cancelling a frame that's already been flushed
-		fn.cancel = () => frameRaf && cancelAnimationFrame(frameRaf)
+		fn.cancel = () => {
+			if (frameRaf) {
+				cancelAnimationFrame(frameRaf)
+				frameRaf = undefined
+			}
+			if (flushRaf) {
+				cancelAnimationFrame(flushRaf)
+				flushRaf = undefined
+			}
+		}
 		return fn
 	}
 
@@ -95,9 +102,7 @@ export function fpsThrottle(fn: { (): void; cancel?(): void }): {
 export function throttleToNextFrame(fn: () => void): () => void {
 	if (isTest()) {
 		fn()
-		return () => {
-			// noop
-		}
+		return () => void null // noop
 	}
 
 	if (!fpsQueue.includes(fn)) {
