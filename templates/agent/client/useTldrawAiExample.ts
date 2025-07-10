@@ -8,7 +8,7 @@ import {
 } from '@tldraw/ai'
 import { useCallback } from 'react'
 import { Editor } from 'tldraw'
-import { useChatHistory } from './ChatHistoryContext'
+import { $chatHistoryItems } from './ChatHistory'
 import { ChatHistoryItem } from './ChatHistoryItem'
 import { SimpleCoordinates } from './transforms/SimpleCoordinates'
 import { SimpleIds } from './transforms/SimpleIds'
@@ -19,28 +19,23 @@ import { SimpleIds } from './transforms/SimpleIds'
  * @param editor - (optional) The editor instance to use. If not provided, the hook will try to use the editor from React context.
  */
 export function useTldrawAiExample(editor?: Editor) {
-	const [, setHistoryItems] = useChatHistory()
+	const createOrUpdateHistoryItem = useCallback((item: ChatHistoryItem) => {
+		$chatHistoryItems.update((prev) => {
+			const lastItem = prev[prev.length - 1]
+			// If the last item is not the same type, create a new one
+			if (lastItem.type !== item.type) {
+				return [...prev, item]
+			}
 
-	const createOrUpdateHistoryItem = useCallback(
-		(item: ChatHistoryItem) => {
-			setHistoryItems((prev) => {
-				const lastItem = prev[prev.length - 1]
-				// If the last item is not the same type, create a new one
-				if (lastItem.type !== item.type) {
-					return [...prev, item]
-				}
+			// If the last item is complete, create a new one
+			if (lastItem.status === 'done') {
+				return [...prev, item]
+			}
 
-				// If the last item is complete, create a new one
-				if (lastItem.status === 'done') {
-					return [...prev, item]
-				}
-
-				// If the last item is not complete, update it
-				return [...prev.slice(0, -1), item]
-			})
-		},
-		[setHistoryItems]
-	)
+			// If the last item is not complete, update it
+			return [...prev.slice(0, -1), item]
+		})
+	}, [])
 
 	function apply({ change, editor }: { change: MaybeComplete<TLAiChange>; editor: Editor }) {
 		defaultApply({ change, editor })

@@ -1,15 +1,20 @@
 import { FormEventHandler, useCallback, useEffect, useRef, useState } from 'react'
-import { Editor, useLocalStorageState } from 'tldraw'
+import { Editor, useLocalStorageState, useValue } from 'tldraw'
 import { AGENT_MODEL_DEFINITIONS, TLAgentModelName } from '../worker/models'
-import { ChatHistory } from './ChatHistory'
-import { useChatHistory } from './ChatHistoryContext'
+import { $chatHistoryItems, ChatHistory } from './ChatHistory'
 import { useTldrawAiExample } from './useTldrawAiExample'
+
+// TODO: Move this to the worker
+const REVIEW_PROMPT = `Examine the actions that you (the agent) took since the most recent user message. What's next?
+
+- Are you awaiting a response from the user? If so, there's no need to do or say anything.
+- Is the task supposed to be complete? If so, it's time to review the results of that. Did you do what the user asked for? Did the plan work? Think through your findings and pay close attention to the screenshot because that's what the user sees. If you make any corrections, let the user know what you did and why. If no corrections are needed, there's no need to say anything.`
 
 export function ChatPanel({ editor }: { editor: Editor }) {
 	const ai = useTldrawAiExample(editor)
 
 	const [isGenerating, setIsGenerating] = useState(false)
-	const [historyItems, setHistoryItems] = useChatHistory()
+	const historyItems = useValue($chatHistoryItems)
 	const rCancelFn = useRef<(() => void) | null>(null)
 	const inputRef = useRef<HTMLInputElement>(null)
 	const [modelName, setModelName] = useLocalStorageState<TLAgentModelName>('model-name', 'gpt-4o')
@@ -41,7 +46,7 @@ export function ChatPanel({ editor }: { editor: Editor }) {
 					inputRef.current.value = ''
 				}
 
-				setHistoryItems((prev) => [
+				$chatHistoryItems.update((prev) => [
 					...prev,
 					{ type: 'user-message', message: value, status: 'done' },
 				])
@@ -49,12 +54,23 @@ export function ChatPanel({ editor }: { editor: Editor }) {
 				const { promise, cancel } = ai.prompt({
 					message: value,
 					stream: true,
-					meta: { modelName, historyItems },
+					meta: { modelName, historyItems: $chatHistoryItems.get() },
 				})
 
 				rCancelFn.current = cancel
+
 				setIsGenerating(true)
 				await promise
+
+				// Hardcoded (for now) review step
+				const review = ai.prompt({
+					message: REVIEW_PROMPT,
+					stream: true,
+					meta: { modelName, historyItems: $chatHistoryItems.get() },
+				})
+
+				rCancelFn.current = review.cancel
+				await review.promise
 
 				setIsGenerating(false)
 				rCancelFn.current = null
@@ -64,7 +80,7 @@ export function ChatPanel({ editor }: { editor: Editor }) {
 				rCancelFn.current = null
 			}
 		},
-		[ai, modelName, historyItems, setHistoryItems]
+		[ai, modelName]
 	)
 
 	return (
@@ -102,10 +118,8 @@ export function ChatPanel({ editor }: { editor: Editor }) {
 }
 
 function NewChatButton() {
-	const [, setHistoryItems] = useChatHistory()
-
 	return (
-		<button className="new-chat-button" onClick={() => setHistoryItems([])}>
+		<button className="new-chat-button" onClick={() => $chatHistoryItems.set([])}>
 			+
 		</button>
 	)

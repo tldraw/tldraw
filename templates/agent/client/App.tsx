@@ -1,6 +1,5 @@
 import { useCallback, useState } from 'react'
 import { Editor, Tldraw } from 'tldraw'
-import { ChatHistoryProvider } from './ChatHistoryContext'
 import { ChatPanel } from './ChatPanel'
 
 function App() {
@@ -18,14 +17,12 @@ function App() {
 	}, [])
 
 	return (
-		<ChatHistoryProvider>
-			<div className="tldraw-ai-container">
-				<div className="tldraw-canvas">
-					<Tldraw persistenceKey="tldraw-ai-demo-2" onMount={handleMount} />
-				</div>
-				{editor && <ChatPanel editor={editor} />}
+		<div className="tldraw-ai-container">
+			<div className="tldraw-canvas">
+				<Tldraw persistenceKey="tldraw-ai-demo-2" onMount={handleMount} />
 			</div>
-		</ChatHistoryProvider>
+			{editor && <ChatPanel editor={editor} />}
+		</div>
 	)
 }
 

@@ -1,10 +1,13 @@
 import { useEffect, useRef } from 'react'
+import { atom } from 'tldraw'
 import {
 	AgentActionHistoryItem,
 	AgentMessageHistoryItem,
 	ChatHistoryItem,
 	UserMessageHistoryItem,
 } from './ChatHistoryItem'
+
+export const $chatHistoryItems = atom<ChatHistoryItem[]>('chatHistoryItems', [])
 
 export function ChatHistory({ items }: { items: ChatHistoryItem[] }) {
 	const scrollContainerRef = useRef<HTMLDivElement>(null)
