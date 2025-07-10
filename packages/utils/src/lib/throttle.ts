@@ -6,7 +6,7 @@ const isTest = () =>
 
 const fpsQueue: Array<() => void> = []
 const targetFps = 60
-const targetTimePerFrame = Math.floor(1000 / targetFps)
+const targetTimePerFrame = Math.floor(1000 / targetFps) // 16ms
 let frameRaf: undefined | number
 let flushRaf: undefined | number
 let lastFlushTime = -targetTimePerFrame
