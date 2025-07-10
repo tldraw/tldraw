@@ -3,7 +3,7 @@ import { Discord } from './lib/discord'
 import { exec } from './lib/exec'
 import { makeEnv } from './lib/makeEnv'
 import { nicelog } from './lib/nicelog'
-import { getPrDetails, labelPresent } from './lib/pr-info'
+import { getPrDetailsAndCommitSha, labelPresent } from './lib/pr-info'
 
 function getEnv() {
 	return makeEnv(['DISCORD_DEPLOY_WEBHOOK_URL', 'GITHUB_TOKEN'])
@@ -13,11 +13,13 @@ async function main() {
 	const env = getEnv()
 	const octokit = new Octokit({ auth: env.GITHUB_TOKEN })
 
-	const pr = await getPrDetails(octokit)
-	if (!pr) {
-		nicelog('Could not retrieve PR details from the last commit. Exiting...')
+	const result = await getPrDetailsAndCommitSha(octokit)
+	if (!result) {
+		nicelog('Could not retrieve PR details. Exiting...')
 		return
 	}
+
+	const { pr, commitSha } = result
 
 	if (!labelPresent(pr, 'dotcom-hotfix-please')) {
 		nicelog('No dotcom-hotfix-please label found. Exiting...')
@@ -29,17 +31,17 @@ async function main() {
 		totalSteps: 3,
 		shouldNotify: true,
 	})
-	await discord.message(`🚀 Triggering dotcom hotfix for PR #${pr.number}...`)
+	// await discord.message(`🚀 Triggering dotcom hotfix for PR #${pr.number}...`)
 
 	const hotfixBranchName = `hotfix/dotcom-${pr.number}`
 
 	await discord.step(`Creating hotfix branch and cherry-picking changes`, async () => {
-		const HEAD = (await exec('git', ['rev-parse', 'HEAD'])).trim()
+		nicelog('will cherry pick from ', commitSha)
 		await exec('git', ['fetch', 'origin', 'hotfixes'])
 		await exec('git', ['checkout', 'hotfixes'])
 		await exec('git', ['reset', '--hard', 'origin/hotfixes'])
 		await exec('git', ['checkout', '-b', hotfixBranchName])
-		await exec('git', ['cherry-pick', HEAD])
+		await exec('git', ['cherry-pick', commitSha])
 	})
 
 	await discord.step('Pushing hotfix branch to remote', async () => {
@@ -87,18 +89,18 @@ Original Author: @${pr.user?.login}`,
 
 main().catch(async (e: Error) => {
 	console.error(e)
-
-	const discord = new Discord({
-		webhookUrl: process.env.DISCORD_DEPLOY_WEBHOOK_URL!,
-		totalSteps: 3,
-		shouldNotify: true,
-	})
-
-	await discord
-		.message(
-			`❌ **Error triggering dotcom hotfix**\n\n\`\`\`ansi\n${e.message.slice(0, 2000)}\n\`\`\``
-		)
-		.finally(() => {
-			process.exit(1)
-		})
+	//
+	// const discord = new Discord({
+	// 	webhookUrl: process.env.DISCORD_DEPLOY_WEBHOOK_URL!,
+	// 	totalSteps: 3,
+	// 	shouldNotify: true,
+	// })
+	//
+	// await discord
+	// 	.message(
+	// 		`❌ **Error triggering dotcom hotfix**\n\n\`\`\`ansi\n${e.message.slice(0, 2000)}\n\`\`\``
+	// 	)
+	// 	.finally(() => {
+	// 		process.exit(1)
+	// 	})
 })
