@@ -17,6 +17,7 @@ import {
 	useToasts,
 	useValue,
 } from 'tldraw'
+import translationsEnJson from '../../../public/tla/locales/en.json'
 import { ErrorPage } from '../../components/ErrorPage/ErrorPage'
 import { SignedInAnalytics, SignedOutAnalytics } from '../../utils/analytics'
 import { globalEditor } from '../../utils/globalEditor'
@@ -92,7 +93,7 @@ function IntlWrapper({ children, locale }: { children: ReactNode; locale: string
 	useEffect(() => {
 		async function fetchMessages() {
 			if (locale === 'en') {
-				setMessages({})
+				setMessages(translationsEnJson)
 				return
 			}
 

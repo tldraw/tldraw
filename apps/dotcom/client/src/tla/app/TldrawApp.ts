@@ -756,7 +756,7 @@ export class TldrawApp {
 				severity: 'info',
 				title: this.getIntl().formatMessage(this.messages.uploadingTldrFiles, {
 					total: totalFiles,
-					uploaded: uploadedFiles,
+					uploaded: uploadedFiles + 1,
 				}),
 
 				description: `${getApproxPercentage()}%`,

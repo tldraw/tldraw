@@ -546,6 +546,8 @@ export interface CubicBezierToPathBuilderCommand extends PathBuilderCommandBase 
     // (undocumented)
     cp2: VecModel;
     // (undocumented)
+    resolution?: number;
+    // (undocumented)
     type: 'cubic';
 }
 
@@ -4048,6 +4050,8 @@ export interface TLUiRichTextToolbarProps {
 export interface TLUiSliderProps {
     // (undocumented)
     'data-testid'?: string;
+    // (undocumented)
+    ariaValueModifier?: number;
     // (undocumented)
     label: string;
     // (undocumented)
