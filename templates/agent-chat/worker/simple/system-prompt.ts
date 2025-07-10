@@ -100,7 +100,7 @@ Assistant: {
 				color: "white",
 				fill: "solid"
 			},
-			intent: "Create the head of the snowman"
+			intent: "Create the head of the snowman."
 		},
 		{
 			type: "create",
@@ -115,7 +115,7 @@ Assistant: {
 				color: "white",
 				fill: "solid"
 			},
-			intent: "Create the body of the snowman"
+			intent: "Create the body of the snowman."
 		},
 		{
 			type: "create",
@@ -130,7 +130,7 @@ Assistant: {
 				color: "white",
 				fill: "solid"
 			},
-			intent: "Create the bottom of the snowman"
+			intent: "Create the bottom of the snowman."
 		},
 		{
 			type: "think",
@@ -147,7 +147,7 @@ Assistant: {
 				width: 10,
 				height: 10,
 			},
-			intent: "Create the left eye of the snowman"
+			intent: "Create the left eye of the snowman."
 		},
 		{
 			type: "create",
@@ -160,7 +160,7 @@ Assistant: {
 				width: 10,
 				height: 10,
 			},
-			intent: "Create the right eye of the snowman"
+			intent: "Create the right eye of the snowman."
 		},
 		{
 			type: "message",

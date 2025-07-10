@@ -1,6 +1,15 @@
-import { defaultApply, TLAiChange, TLAiResult, TldrawAiOptions, useTldrawAi } from '@tldraw/ai'
+import {
+	defaultApply,
+	MaybeComplete,
+	TLAiChange,
+	TLAiResult,
+	TldrawAiOptions,
+	useTldrawAi,
+} from '@tldraw/ai'
+import { useCallback } from 'react'
 import { Editor } from 'tldraw'
 import { useChatHistory } from './ChatHistoryContext'
+import { ChatHistoryItem } from './ChatHistoryItem'
 import { ShapeDescriptions } from './transforms/ShapeDescriptions'
 import { SimpleCoordinates } from './transforms/SimpleCoordinates'
 import { SimpleIds } from './transforms/SimpleIds'
@@ -13,46 +22,78 @@ import { SimpleIds } from './transforms/SimpleIds'
 export function useTldrawAiExample(editor?: Editor) {
 	const [, setHistoryItems] = useChatHistory()
 
-	function apply({ change, editor }: { change: TLAiChange; editor: Editor }) {
-		console.log(change)
+	const createOrUpdateHistoryItem = useCallback(
+		(item: ChatHistoryItem) => {
+			setHistoryItems((prev) => {
+				const lastItem = prev[prev.length - 1]
+				// If the last item is not the same type, create a new one
+				if (lastItem.type !== item.type) {
+					return [...prev, item]
+				}
+
+				// If the last item is complete, create a new one
+				if (lastItem.status === 'done') {
+					return [...prev, item]
+				}
+
+				// If the last item is not complete, update it
+				return [...prev.slice(0, -1), item]
+			})
+		},
+		[setHistoryItems]
+	)
+
+	function apply({ change, editor }: { change: MaybeComplete<TLAiChange>; editor: Editor }) {
 		defaultApply({ change, editor })
 
 		switch (change.type) {
 			case 'custom': {
 				switch (change.action) {
 					case 'message': {
-						setHistoryItems((prev) => [...prev, { type: 'agent-message', message: change.text }])
+						createOrUpdateHistoryItem({
+							type: 'agent-message',
+							message: change.text,
+							status: change.complete ? 'done' : 'progress',
+						})
 						return
 					}
 					case 'think': {
-						setHistoryItems((prev) => [
-							...prev,
-							{ type: 'agent-action', action: 'thinking', status: 'done', info: change.text },
-						])
+						createOrUpdateHistoryItem({
+							type: 'agent-action',
+							action: 'thinking',
+							status: change.complete ? 'done' : 'progress',
+							info: change.text,
+						})
 						return
 					}
 				}
 				return
 			}
 			case 'createShape': {
-				setHistoryItems((prev) => [
-					...prev,
-					{ type: 'agent-action', action: 'creating', status: 'done', info: change.description },
-				])
+				createOrUpdateHistoryItem({
+					type: 'agent-action',
+					action: 'creating',
+					status: change.complete ? 'done' : 'progress',
+					info: change.description ?? '',
+				})
 				return
 			}
 			case 'updateShape': {
-				setHistoryItems((prev) => [
-					...prev,
-					{ type: 'agent-action', action: 'updating', status: 'done', info: change.description },
-				])
+				createOrUpdateHistoryItem({
+					type: 'agent-action',
+					action: 'updating',
+					status: change.complete ? 'done' : 'progress',
+					info: change.description ?? '',
+				})
 				return
 			}
 			case 'deleteShape': {
-				setHistoryItems((prev) => [
-					...prev,
-					{ type: 'agent-action', action: 'deleting', status: 'done', info: change.description },
-				])
+				createOrUpdateHistoryItem({
+					type: 'agent-action',
+					action: 'deleting',
+					status: change.complete ? 'done' : 'progress',
+					info: change.description ?? '',
+				})
 				return
 			}
 		}

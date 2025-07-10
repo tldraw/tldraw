@@ -20,10 +20,17 @@ import type { TLShapePartial } from 'tldraw';
 export function asMessage(message: TLAiMessages): TLAiMessage[];
 
 // @public
-export function defaultApply({ change, editor }: {
-    change: TLAiChange;
+export function defaultApply({ change, editor, }: {
+    change: MaybeComplete<TLAiChange>;
     editor: Editor;
 }): void;
+
+// @public (undocumented)
+export type MaybeComplete<T> = (Partial<T> & {
+    complete: false;
+}) | (T & {
+    complete: true;
+});
 
 // @public
 export type TLAiChange = TLAiCreateBindingChange | TLAiCreateShapeChange | TLAiCustomChange | TLAiDeleteBindingChange | TLAiDeleteShapeChange | TLAiUpdateBindingChange | TLAiUpdateShapeChange;
@@ -38,6 +45,8 @@ export interface TLAiCreateBindingChange<B extends TLBinding = TLBinding> {
     // (undocumented)
     binding: TLBindingCreate<B>;
     // (undocumented)
+    complete: boolean;
+    // (undocumented)
     description: string;
     // (undocumented)
     type: 'createBinding';
@@ -45,6 +54,8 @@ export interface TLAiCreateBindingChange<B extends TLBinding = TLBinding> {
 
 // @public (undocumented)
 export interface TLAiCreateShapeChange<T extends TLShape = TLShape> {
+    // (undocumented)
+    complete: boolean;
     // (undocumented)
     description: string;
     // (undocumented)
@@ -58,6 +69,8 @@ export interface TLAiCustomChange {
     // (undocumented)
     [key: string]: any;
     // (undocumented)
+    complete: boolean;
+    // (undocumented)
     type: 'custom';
 }
 
@@ -66,6 +79,8 @@ export interface TLAiDeleteBindingChange {
     // (undocumented)
     bindingId: TLBindingId;
     // (undocumented)
+    complete: boolean;
+    // (undocumented)
     description: string;
     // (undocumented)
     type: 'deleteBinding';
@@ -73,6 +88,8 @@ export interface TLAiDeleteBindingChange {
 
 // @public (undocumented)
 export interface TLAiDeleteShapeChange {
+    // (undocumented)
+    complete: boolean;
     // (undocumented)
     description: string;
     // (undocumented)
@@ -132,6 +149,8 @@ export interface TLAiUpdateBindingChange<B extends TLBinding = TLBinding> {
     // (undocumented)
     binding: TLBindingUpdate<B>;
     // (undocumented)
+    complete: boolean;
+    // (undocumented)
     description: string;
     // (undocumented)
     type: 'updateBinding';
@@ -139,6 +158,8 @@ export interface TLAiUpdateBindingChange<B extends TLBinding = TLBinding> {
 
 // @public (undocumented)
 export interface TLAiUpdateShapeChange<T extends TLShape = TLShape> {
+    // (undocumented)
+    complete: boolean;
     // (undocumented)
     description: string;
     // (undocumented)

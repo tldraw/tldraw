@@ -41,7 +41,10 @@ export function ChatPanel({ editor }: { editor: Editor }) {
 					inputRef.current.value = ''
 				}
 
-				setHistoryItems((prev) => [...prev, { type: 'user-message', message: value }])
+				setHistoryItems((prev) => [
+					...prev,
+					{ type: 'user-message', message: value, status: 'done' },
+				])
 
 				const { promise, cancel } = ai.prompt({
 					message: value,

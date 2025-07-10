@@ -78,6 +78,7 @@ function getTldrawAiChangesFromSimpleCreateOrUpdateEvent(
 	switch (shape.type) {
 		case 'text': {
 			changes.push({
+				complete: true,
 				type: shapeEventType,
 				description: shape.note ?? '',
 				shape: {
@@ -99,6 +100,7 @@ function getTldrawAiChangesFromSimpleCreateOrUpdateEvent(
 			const minY = Math.min(shape.y1, shape.y2)
 
 			changes.push({
+				complete: true,
 				type: shapeEventType,
 				description: shape.note ?? '',
 				shape: {
@@ -132,6 +134,7 @@ function getTldrawAiChangesFromSimpleCreateOrUpdateEvent(
 
 			// Make sure that the shape itself is the first change
 			changes.push({
+				complete: true,
 				type: shapeEventType,
 				description: shape.note ?? '',
 				shape: {
@@ -152,6 +155,7 @@ function getTldrawAiChangesFromSimpleCreateOrUpdateEvent(
 				// Updating bindings is complicated, it's easier to just delete all bindings and recreate them
 				for (const binding of prompt.canvasContent.bindings.filter((b) => b.fromId === 'shapeId')) {
 					changes.push({
+						complete: true,
 						type: 'deleteBinding',
 						description: 'cleaning up old bindings',
 						bindingId: binding.id as any,
@@ -164,6 +168,7 @@ function getTldrawAiChangesFromSimpleCreateOrUpdateEvent(
 
 			if (startShape) {
 				changes.push({
+					complete: true,
 					type: 'createBinding',
 					description: shape.note ?? '',
 					binding: {
@@ -187,6 +192,7 @@ function getTldrawAiChangesFromSimpleCreateOrUpdateEvent(
 
 			if (endShape) {
 				changes.push({
+					complete: true,
 					type: 'createBinding',
 					description: shape.note ?? '',
 					binding: {
@@ -209,6 +215,7 @@ function getTldrawAiChangesFromSimpleCreateOrUpdateEvent(
 		case 'rectangle':
 		case 'ellipse': {
 			changes.push({
+				complete: true,
 				type: shapeEventType,
 				description: shape.note ?? '',
 				shape: {
@@ -231,6 +238,7 @@ function getTldrawAiChangesFromSimpleCreateOrUpdateEvent(
 
 		case 'note': {
 			changes.push({
+				complete: true,
 				type: shapeEventType,
 				description: shape.note ?? '',
 				shape: {
@@ -254,6 +262,7 @@ function getTldrawAiChangesFromSimpleCreateOrUpdateEvent(
 			if (!originalShape) break
 
 			changes.push({
+				complete: true,
 				type: shapeEventType,
 				description: shape.note ?? '',
 				shape: originalShape,
@@ -283,6 +292,7 @@ function getTldrawAiChangesFromSimpleDeleteEvent(
 
 	return [
 		{
+			complete: true,
 			type: 'deleteShape',
 			description: intent ?? '',
 			shapeId: shapeId as any,
@@ -297,6 +307,7 @@ function getTldrawAiChangesFromSimpleMoveEvent(
 	const { shapeId, intent } = event
 	return [
 		{
+			complete: true,
 			type: 'updateShape',
 			description: intent ?? '',
 			shape: {

@@ -1,7 +1,7 @@
 import { useCallback, useMemo, useRef } from 'react'
 import { Editor, exhaustiveSwitchError, TLShapePartial, uniqueId, useMaybeEditor } from 'tldraw'
 import { TldrawAiModule, TldrawAiModuleOptions } from './TldrawAiModule'
-import { TLAiChange, TLAiPrompt, TLAiSerializedPrompt } from './types'
+import { MaybeComplete, TLAiChange, TLAiPrompt, TLAiSerializedPrompt } from './types'
 
 /**
  * The function signature for generating changes from an AI prompt.
@@ -268,8 +268,15 @@ export function useTldrawAi(opts: TldrawAiOptions) {
  *
  * @public
  */
-export function defaultApply({ change, editor }: { change: TLAiChange; editor: Editor }) {
+export function defaultApply({
+	change,
+	editor,
+}: {
+	change: MaybeComplete<TLAiChange>
+	editor: Editor
+}) {
 	if (editor.isDisposed) return
+	if (!change.complete) return
 
 	try {
 		switch (change.type) {

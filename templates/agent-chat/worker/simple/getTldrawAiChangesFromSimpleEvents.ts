@@ -1,4 +1,5 @@
 import {
+	MaybeComplete,
 	TLAiChange,
 	TLAiCreateBindingChange,
 	TLAiCreateShapeChange,
@@ -36,7 +37,7 @@ function toRichTextIfNeeded(text: string | { type: string; content: any[] }): TL
 
 export function getTldrawAiChangesFromSimpleEvents(
 	prompt: TLAiSerializedPrompt,
-	event: ISimpleEvent
+	event: MaybeComplete<ISimpleEvent>
 ): TLAiChange[] {
 	switch (event.type) {
 		case 'update':
@@ -48,10 +49,6 @@ export function getTldrawAiChangesFromSimpleEvents(
 		}
 		case 'move': {
 			return getTldrawAiChangesFromSimpleMoveEvent(prompt, event)
-		}
-		// @ts-expect-error - placeholder until we have a dedicated plan step or event
-		case 'plan': {
-			return [{ type: 'custom', action: 'plan', text: event['text'] }]
 		}
 		default: {
 			return [{ ...event, type: 'custom', action: event.type }]
@@ -73,19 +70,40 @@ function simpleFillToShapeFill(fill: ISimpleFill): TLDefaultFillStyle {
 
 function getTldrawAiChangesFromSimpleCreateOrUpdateEvent(
 	prompt: TLAiSerializedPrompt,
-	event: ISimpleCreateEvent
+	event: MaybeComplete<ISimpleCreateEvent>
 ): TLAiChange[] {
-	const { shape } = event
-
-	const changes: TLAiChange[] = []
-
 	const shapeEventType = event.type === 'create' ? 'createShape' : 'updateShape'
+	if (!event.complete) {
+		const shape = event.shape ?? {
+			type: '',
+			shapeId: '',
+			note: '',
+		}
+		return [
+			{
+				complete: false,
+				type: shapeEventType,
+				description: event.intent ?? '',
+				shape: {
+					id: (shape.shapeId ?? '') as any,
+					type: shape.type ?? '',
+					meta: {
+						note: shape.note ?? '',
+					},
+				},
+			},
+		]
+	}
+
+	const { shape } = event
+	const changes: TLAiChange[] = []
 
 	switch (shape.type) {
 		case 'text': {
 			changes.push({
+				complete: event.complete,
 				type: shapeEventType,
-				description: shape.note ?? '',
+				description: event.intent ?? '',
 				shape: {
 					id: shape.shapeId as any,
 					type: 'text',
@@ -96,6 +114,9 @@ function getTldrawAiChangesFromSimpleCreateOrUpdateEvent(
 						color: getTldrawColorFromFuzzyColor(shape.color),
 						textAlign: shape.textAlign ?? 'middle',
 					},
+					meta: {
+						note: shape.note ?? '',
+					},
 				},
 			} satisfies TLAiCreateShapeChange<TLTextShape> | TLAiUpdateShapeChange<TLTextShape>)
 			break
@@ -105,8 +126,9 @@ function getTldrawAiChangesFromSimpleCreateOrUpdateEvent(
 			const minY = Math.min(shape.y1, shape.y2)
 
 			changes.push({
+				complete: event.complete,
 				type: shapeEventType,
-				description: shape.note ?? '',
+				description: event.intent ?? '',
 				shape: {
 					id: shape.shapeId as any,
 					type: 'line',
@@ -129,6 +151,9 @@ function getTldrawAiChangesFromSimpleCreateOrUpdateEvent(
 						},
 						color: getTldrawColorFromFuzzyColor(shape.color),
 					},
+					meta: {
+						note: shape.note ?? '',
+					},
 				},
 			} satisfies TLAiCreateShapeChange<TLLineShape> | TLAiUpdateShapeChange<TLLineShape>)
 			break
@@ -138,8 +163,9 @@ function getTldrawAiChangesFromSimpleCreateOrUpdateEvent(
 
 			// Make sure that the shape itself is the first change
 			changes.push({
+				complete: event.complete,
 				type: shapeEventType,
-				description: shape.note ?? '',
+				description: event.intent ?? '',
 				shape: {
 					id: shapeId as any,
 					type: 'arrow',
@@ -151,6 +177,9 @@ function getTldrawAiChangesFromSimpleCreateOrUpdateEvent(
 						start: { x: x1, y: y1 },
 						end: { x: x2, y: y2 },
 					},
+					meta: {
+						note: shape.note ?? '',
+					},
 				},
 			} satisfies TLAiCreateShapeChange<TLArrowShape> | TLAiUpdateShapeChange<TLArrowShape>)
 
@@ -158,6 +187,7 @@ function getTldrawAiChangesFromSimpleCreateOrUpdateEvent(
 				// Updating bindings is complicated, it's easier to just delete all bindings and recreate them
 				for (const binding of prompt.canvasContent.bindings.filter((b) => b.fromId === 'shapeId')) {
 					changes.push({
+						complete: event.complete,
 						type: 'deleteBinding',
 						description: 'cleaning up old bindings',
 						bindingId: binding.id as any,
@@ -170,8 +200,9 @@ function getTldrawAiChangesFromSimpleCreateOrUpdateEvent(
 
 			if (startShape) {
 				changes.push({
+					complete: event.complete,
 					type: 'createBinding',
-					description: shape.note ?? '',
+					description: event.intent ?? '',
 					binding: {
 						type: 'arrow',
 						fromId: shapeId as any,
@@ -193,8 +224,9 @@ function getTldrawAiChangesFromSimpleCreateOrUpdateEvent(
 
 			if (endShape) {
 				changes.push({
+					complete: event.complete,
 					type: 'createBinding',
-					description: shape.note ?? '',
+					description: event.intent ?? '',
 					binding: {
 						type: 'arrow',
 						fromId: shapeId as any,
@@ -215,8 +247,9 @@ function getTldrawAiChangesFromSimpleCreateOrUpdateEvent(
 		case 'rectangle':
 		case 'ellipse': {
 			changes.push({
+				complete: event.complete,
 				type: shapeEventType,
-				description: shape.note ?? '',
+				description: event.intent ?? '',
 				shape: {
 					id: shape.shapeId as any,
 					type: 'geo',
@@ -230,6 +263,9 @@ function getTldrawAiChangesFromSimpleCreateOrUpdateEvent(
 						fill: simpleFillToShapeFill(shape.fill ?? 'none'),
 						richText: toRichTextIfNeeded(shape.text ?? ''),
 					},
+					meta: {
+						note: shape.note ?? '',
+					},
 				},
 			} satisfies TLAiCreateShapeChange<TLGeoShape> | TLAiUpdateShapeChange<TLGeoShape>)
 			break
@@ -237,8 +273,9 @@ function getTldrawAiChangesFromSimpleCreateOrUpdateEvent(
 
 		case 'note': {
 			changes.push({
+				complete: event.complete,
 				type: shapeEventType,
-				description: shape.note ?? '',
+				description: event.intent ?? '',
 				shape: {
 					id: shape.shapeId as any,
 					type: 'note',
@@ -247,6 +284,9 @@ function getTldrawAiChangesFromSimpleCreateOrUpdateEvent(
 					props: {
 						color: getTldrawColorFromFuzzyColor(shape.color),
 						richText: toRichTextIfNeeded(shape.text ?? ''),
+					},
+					meta: {
+						note: shape.note ?? '',
 					},
 				},
 			} satisfies TLAiCreateShapeChange<TLNoteShape> | TLAiUpdateShapeChange<TLNoteShape>)
@@ -260,9 +300,15 @@ function getTldrawAiChangesFromSimpleCreateOrUpdateEvent(
 			if (!originalShape) break
 
 			changes.push({
+				complete: event.complete,
 				type: shapeEventType,
-				description: shape.note ?? '',
-				shape: originalShape,
+				description: event.intent ?? '',
+				shape: {
+					...originalShape,
+					meta: {
+						note: shape.note ?? '',
+					},
+				},
 			})
 			break
 		}
@@ -283,14 +329,15 @@ function getTldrawAiChangesFromSimpleCreateOrUpdateEvent(
 
 function getTldrawAiChangesFromSimpleDeleteEvent(
 	prompt: TLAiSerializedPrompt,
-	event: ISimpleDeleteEvent
+	event: MaybeComplete<ISimpleDeleteEvent>
 ): TLAiChange[] {
-	const { shapeId, intent } = event
+	const { shapeId = '', intent = '' } = event
 
 	return [
 		{
+			complete: event.complete,
 			type: 'deleteShape',
-			description: intent ?? '',
+			description: intent,
 			shapeId: shapeId as any,
 		},
 	]
@@ -298,13 +345,14 @@ function getTldrawAiChangesFromSimpleDeleteEvent(
 
 function getTldrawAiChangesFromSimpleMoveEvent(
 	prompt: TLAiSerializedPrompt,
-	event: ISimpleMoveEvent
+	event: MaybeComplete<ISimpleMoveEvent>
 ): TLAiChange[] {
-	const { shapeId, intent } = event
+	const { shapeId = '', intent = '' } = event
 	return [
 		{
+			complete: event.complete,
 			type: 'updateShape',
-			description: intent ?? '',
+			description: intent,
 			shape: {
 				id: shapeId as any,
 				x: event.x,

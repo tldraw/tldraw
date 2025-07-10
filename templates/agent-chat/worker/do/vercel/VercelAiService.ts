@@ -43,7 +43,7 @@ export class VercelAiService extends TldrawAiBaseService {
 async function* streamEventsVercel(
 	model: LanguageModel,
 	prompt: TLAiSerializedPrompt
-): AsyncGenerator<ISimpleEvent> {
+): AsyncGenerator<ISimpleEvent & { complete: boolean }> {
 	const { partialObjectStream } = streamObject<IModelResponse>({
 		model,
 		system: SIMPLE_SYSTEM_PROMPT,
@@ -52,37 +52,42 @@ async function* streamEventsVercel(
 	})
 
 	let cursor = 0
-	let maybeUnfinishedEvent: ISimpleEvent | null = null
+	let maybeIncompleteEvent: ISimpleEvent | null = null
 
 	for await (const partialObject of partialObjectStream) {
 		if (!Array.isArray(partialObject.events)) continue
-		if (partialObject.events.length === 0) {
-			console.log(partialObject)
-			continue
-		}
+		if (partialObject.events.length === 0) continue
 
-		const event = partialObject.events[cursor - 1] as ISimpleEvent
+		// If the events list is ahead of the cursor, we know we've completed the current event
+		// We can complete the event and move the cursor forward
 		if (partialObject.events.length > cursor) {
+			const event = partialObject.events[cursor - 1] as ISimpleEvent
 			if (event) {
-				yield event
-				maybeUnfinishedEvent = null
+				yield { ...event, complete: true }
+				maybeIncompleteEvent = null
 			}
 			cursor++
 		}
+
+		// Now let's check the (potentially new) current event
+		// And let's yield it in its (potentially incomplete) state
+		const event = partialObject.events[cursor - 1] as ISimpleEvent
 		if (event) {
-			maybeUnfinishedEvent = event
+			yield { ...event, complete: false }
+			maybeIncompleteEvent = event
 		}
 	}
 
-	if (maybeUnfinishedEvent) {
-		yield maybeUnfinishedEvent
+	// If we've finished receiving events, but there's still an incomplete event, we need to complete it
+	if (maybeIncompleteEvent) {
+		yield { ...maybeIncompleteEvent, complete: true }
 	}
 }
 
 async function generateEventsVercel(
 	model: LanguageModel,
 	prompt: TLAiSerializedPrompt
-): Promise<ISimpleEvent[]> {
+): Promise<(ISimpleEvent & { complete: boolean })[]> {
 	const response = await generateObject({
 		model,
 		system: SIMPLE_SYSTEM_PROMPT,
@@ -90,7 +95,7 @@ async function generateEventsVercel(
 		schema: ModelResponse,
 	})
 
-	return response.object.events
+	return response.object.events.map((event) => ({ ...event, complete: true }))
 }
 
 function buildMessages(prompt: TLAiSerializedPrompt): CoreMessage[] {

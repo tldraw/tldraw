@@ -7,11 +7,13 @@ export type ChatHistoryItem =
 export interface UserMessageHistoryItem {
 	type: 'user-message'
 	message: string
+	status: 'done'
 }
 
 export interface AgentMessageHistoryItem {
 	type: 'agent-message'
 	message: string
+	status: 'progress' | 'done' | 'cancelled'
 }
 
 // export interface AgentChangeHistoryItem {
@@ -42,7 +44,7 @@ export function AgentActionHistoryItem({ item }: { item: AgentActionHistoryItem 
 			<span>{icon}</span>
 			<span>
 				<strong>{message}</strong>
-				{item.info ?? ''}
+				<span>{item.info ?? ''}</span>
 			</span>
 		</div>
 	)
