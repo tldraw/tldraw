@@ -2,7 +2,7 @@ import { Vec, VecLike } from '../Vec'
 import { intersectLineSegmentCircle } from '../intersect'
 import { getArcMeasure, getPointInArcT, getPointOnCircle } from '../utils'
 import { Geometry2d, Geometry2dOptions } from './Geometry2d'
-import { getVerticesCountForLength } from './geometry-constants'
+import { getVerticesCountForArcLength } from './geometry-constants'
 
 /** @public */
 export class Arc2d extends Geometry2d {
@@ -94,7 +94,7 @@ export class Arc2d extends Geometry2d {
 	getVertices(): Vec[] {
 		const { _center, _measure: measure, length, _radius: radius, _angleStart: angleStart } = this
 		const vertices: Vec[] = []
-		for (let i = 0, n = getVerticesCountForLength(Math.abs(length)); i < n + 1; i++) {
+		for (let i = 0, n = getVerticesCountForArcLength(Math.abs(length)); i < n + 1; i++) {
 			const t = (i / n) * measure
 			const angle = angleStart + t
 			vertices.push(getPointOnCircle(_center, radius, angle))

@@ -469,6 +469,7 @@ export {
 	EraserToolbarItem,
 	FrameToolbarItem,
 	HandToolbarItem,
+	HeartToolbarItem,
 	HexagonToolbarItem,
 	HighlightToolbarItem,
 	LaserToolbarItem,

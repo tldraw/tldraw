@@ -546,6 +546,8 @@ export interface CubicBezierToPathBuilderCommand extends PathBuilderCommandBase 
     // (undocumented)
     cp2: VecModel;
     // (undocumented)
+    resolution?: number;
+    // (undocumented)
     type: 'cubic';
 }
 
@@ -1730,6 +1732,9 @@ export class HandTool extends StateNode {
 
 // @public (undocumented)
 export function HandToolbarItem(): JSX_2.Element;
+
+// @public (undocumented)
+export function HeartToolbarItem(): JSX_2.Element;
 
 // @public (undocumented)
 export function HexagonToolbarItem(): JSX_2.Element;
@@ -4067,6 +4072,8 @@ export interface TLUiRichTextToolbarProps {
 export interface TLUiSliderProps {
     // (undocumented)
     'data-testid'?: string;
+    // (undocumented)
+    ariaValueModifier?: number;
     // (undocumented)
     label: string;
     // (undocumented)
