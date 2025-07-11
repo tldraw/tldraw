@@ -54,8 +54,7 @@ export interface TLAppUiEventMap {
 	'publish-file': null
 	'unpublish-file': null
 	'copy-publish-link': null
-	'sign-in-clicked': null
-	'sign-up-clicked': null
+	'sign-up-clicked': { ctaMessage: string }
 	'sign-out-clicked': null
 	'learn-more-button': null
 	'sidebar-toggle': { value: boolean }

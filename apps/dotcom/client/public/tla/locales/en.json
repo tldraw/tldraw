@@ -14,6 +14,9 @@
   "06b9281e39": {
     "translation": "Auto"
   },
+  "0776e18496": {
+    "translation": "Save and share"
+  },
   "07dbd11b21": {
     "translation": "Untitled file"
   },
@@ -37,6 +40,9 @@
   },
   "13ddd375ad": {
     "translation": "Export as"
+  },
+  "1460ab5e78": {
+    "translation": "Free tldraws"
   },
   "181b90f889": {
     "translation": "Create file"
@@ -71,11 +77,17 @@
   "3c5e891bff": {
     "translation": "Pinned"
   },
+  "3cbd6d57fb": {
+    "translation": "Get in"
+  },
   "3d0238bf16": {
     "translation": "Accept all"
   },
   "42e53c47c1": {
     "translation": "Contact the owner to request access."
+  },
+  "44281ab6e5": {
+    "translation": "Log up"
   },
   "44db318ee5": {
     "translation": "Get help on Discord"
@@ -94,6 +106,12 @@
   },
   "4d1c8263ba": {
     "translation": "Reload"
+  },
+  "4e029798f2": {
+    "translation": "Free shares"
+  },
+  "4e875b8d8e": {
+    "translation": "Free saves"
   },
   "50db1b7e1e": {
     "translation": "Unable to unpublish the file."
@@ -137,6 +155,9 @@
   "5fb63579fc": {
     "translation": "Copy"
   },
+  "5ff75742e0": {
+    "translation": "Sign up for free"
+  },
   "61057a0c84": {
     "translation": "Later"
   },
@@ -148,6 +169,9 @@
   },
   "6637a98151": {
     "translation": "A new version of tldraw is available. Please reload the page to continue."
+  },
+  "697c59072d": {
+    "translation": "Sign in to save"
   },
   "6a26f54883": {
     "translation": "Help"
@@ -211,6 +235,9 @@
   },
   "815e116a2e": {
     "translation": "Have a bug, issue, or idea for tldraw? Let us know! Fill out this form and we will follow up over email if needed. You can also <discord>chat with us on Discord</discord> or <github>submit an issue on GitHub</github>."
+  },
+  "84c89d47c7": {
+    "translation": "Share for free"
   },
   "85a082de1b": {
     "translation": "Please refresh the page to get the latest version of tldraw."
@@ -303,8 +330,14 @@
   "b6d4223e60": {
     "translation": "Sign in"
   },
+  "b6ee1430f3": {
+    "translation": "Sign up free"
+  },
   "b758336699": {
     "translation": "Copy link"
+  },
+  "ba0318cb81": {
+    "translation": "Sign in to share"
   },
   "bb792693e2": {
     "translation": "Unpin"
@@ -317,6 +350,12 @@
   },
   "bcb62136a3": {
     "translation": "Upload .tldr files"
+  },
+  "bffe9a3c9a": {
+    "translation": "Log in"
+  },
+  "c079282475": {
+    "translation": "Share your work"
   },
   "c2276c9127": {
     "translation": "Learn more about sharing."
@@ -351,6 +390,9 @@
   "d4bbf74f3e": {
     "translation": "Toggle sidebar"
   },
+  "d66a1a6e3f": {
+    "translation": "Hey. Hello"
+  },
   "d721757161": {
     "translation": "Theme"
   },
@@ -359,6 +401,9 @@
   },
   "d9100f3e10": {
     "translation": "Go here to see the content"
+  },
+  "da404df474": {
+    "translation": "Save your work"
   },
   "dbbebf3c03": {
     "translation": "Invite only"

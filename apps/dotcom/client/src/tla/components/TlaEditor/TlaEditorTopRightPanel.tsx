@@ -7,18 +7,60 @@ import {
 	SNAPSHOT_PREFIX,
 } from '@tldraw/dotcom-shared'
 import classNames from 'classnames'
-import { useCallback, useRef } from 'react'
+import { useCallback, useMemo, useRef } from 'react'
 import { useLocation, useNavigate, useParams } from 'react-router-dom'
-import { PeopleMenu, useEditor, usePassThroughWheelEvents, useTranslation } from 'tldraw'
+import {
+	getFromLocalStorage,
+	PeopleMenu,
+	setInLocalStorage,
+	useEditor,
+	usePassThroughWheelEvents,
+	useTranslation,
+} from 'tldraw'
 import { routes } from '../../../routeDefs'
 import { useMaybeApp } from '../../hooks/useAppState'
 import { useCurrentFileId } from '../../hooks/useCurrentFileId'
 import { useTldrawAppUiEvents } from '../../utils/app-ui-events'
-import { F, defineMessages, useMsg } from '../../utils/i18n'
+import { defineMessages, F, useMsg } from '../../utils/i18n'
 import { TlaCtaButton } from '../TlaCtaButton/TlaCtaButton'
 import { TlaFileShareMenu } from '../TlaFileShareMenu/TlaFileShareMenu'
 import { TlaIcon } from '../TlaIcon/TlaIcon'
 import styles from './top.module.css'
+
+const ctaMessages = defineMessages({
+	signUp: { defaultMessage: 'Sign up for free' },
+	signIn: { defaultMessage: 'Sign in' },
+	signInToSave: { defaultMessage: 'Sign in to save' },
+	signInToSaveAndShare: { defaultMessage: 'Sign in to share' },
+	getIn: { defaultMessage: 'Get in' },
+	logIn: { defaultMessage: 'Log in' },
+	logUp: { defaultMessage: 'Log up' },
+	saveAndShare: { defaultMessage: 'Save and share' },
+	signUpFree: { defaultMessage: 'Sign up free' },
+	freeTldraws: { defaultMessage: 'Free tldraws' },
+	freeShares: { defaultMessage: 'Free shares' },
+	freeSaves: { defaultMessage: 'Free saves' },
+	saveYourWork: { defaultMessage: 'Save your work' },
+	shareYourWork: { defaultMessage: 'Share your work' },
+	shareYourWorkForFree: { defaultMessage: 'Share for free' },
+	hey: { defaultMessage: 'Hey. Hello' },
+})
+
+function useCtaMessage() {
+	return useMemo(() => {
+		const isFirstTime = getFromLocalStorage('tla-has-been-here')
+		if (!isFirstTime) {
+			setInLocalStorage('tla-has-been-here', 'yep')
+			return ctaMessages.signUp
+		}
+
+		const entries = Object.values(ctaMessages)
+		if (Math.random() < 0.5) {
+			return entries[0]
+		}
+		return entries[Math.floor(Math.random() * entries.length)]
+	}, [])
+}
 
 export function TlaEditorTopRightPanel({
 	isAnonUser,
@@ -27,6 +69,7 @@ export function TlaEditorTopRightPanel({
 	isAnonUser: boolean
 	context: 'file' | 'published-file' | 'scratch' | 'legacy'
 }) {
+	const ctaMessage = useCtaMessage()
 	const ref = useRef<HTMLDivElement>(null)
 	usePassThroughWheelEvents(ref)
 	const fileId = useCurrentFileId()
@@ -44,9 +87,14 @@ export function TlaEditorTopRightPanel({
 				>
 					<TlaCtaButton
 						data-testid="tla-sign-up"
-						onClick={() => trackEvent('open-share-menu', { source: 'anon-landing-page' })}
+						onClick={() =>
+							trackEvent('sign-up-clicked', {
+								source: 'anon-landing-page',
+								ctaMessage: ctaMessage.defaultMessage,
+							})
+						}
 					>
-						<F defaultMessage="Sign in" />
+						<F {...ctaMessage} />
 					</TlaCtaButton>
 				</SignInButton>
 			</div>

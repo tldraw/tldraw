@@ -33,6 +33,12 @@
       "value": "Auto"
     }
   ],
+  "0776e18496": [
+    {
+      "type": 0,
+      "value": "Save and share"
+    }
+  ],
   "07dbd11b21": [
     {
       "type": 0,
@@ -79,6 +85,12 @@
     {
       "type": 0,
       "value": "Export as"
+    }
+  ],
+  "1460ab5e78": [
+    {
+      "type": 0,
+      "value": "Free tldraws"
     }
   ],
   "181b90f889": [
@@ -147,6 +159,12 @@
       "value": "Pinned"
     }
   ],
+  "3cbd6d57fb": [
+    {
+      "type": 0,
+      "value": "Get in"
+    }
+  ],
   "3d0238bf16": [
     {
       "type": 0,
@@ -157,6 +175,12 @@
     {
       "type": 0,
       "value": "Contact the owner to request access."
+    }
+  ],
+  "44281ab6e5": [
+    {
+      "type": 0,
+      "value": "Log up"
     }
   ],
   "44db318ee5": [
@@ -193,6 +217,18 @@
     {
       "type": 0,
       "value": "Reload"
+    }
+  ],
+  "4e029798f2": [
+    {
+      "type": 0,
+      "value": "Free shares"
+    }
+  ],
+  "4e875b8d8e": [
+    {
+      "type": 0,
+      "value": "Free saves"
     }
   ],
   "50db1b7e1e": [
@@ -289,6 +325,12 @@
       "value": "Copy"
     }
   ],
+  "5ff75742e0": [
+    {
+      "type": 0,
+      "value": "Sign up for free"
+    }
+  ],
   "61057a0c84": [
     {
       "type": 0,
@@ -311,6 +353,12 @@
     {
       "type": 0,
       "value": "A new version of tldraw is available. Please reload the page to continue."
+    }
+  ],
+  "697c59072d": [
+    {
+      "type": 0,
+      "value": "Sign in to save"
     }
   ],
   "6a26f54883": [
@@ -465,6 +513,12 @@
     {
       "type": 0,
       "value": "."
+    }
+  ],
+  "84c89d47c7": [
+    {
+      "type": 0,
+      "value": "Share for free"
     }
   ],
   "85a082de1b": [
@@ -661,10 +715,22 @@
       "value": "Sign in"
     }
   ],
+  "b6ee1430f3": [
+    {
+      "type": 0,
+      "value": "Sign up free"
+    }
+  ],
   "b758336699": [
     {
       "type": 0,
       "value": "Copy link"
+    }
+  ],
+  "ba0318cb81": [
+    {
+      "type": 0,
+      "value": "Sign in to share"
     }
   ],
   "bb792693e2": [
@@ -729,6 +795,18 @@
     {
       "type": 0,
       "value": "Upload .tldr files"
+    }
+  ],
+  "bffe9a3c9a": [
+    {
+      "type": 0,
+      "value": "Log in"
+    }
+  ],
+  "c079282475": [
+    {
+      "type": 0,
+      "value": "Share your work"
     }
   ],
   "c2276c9127": [
@@ -797,6 +875,12 @@
       "value": "Toggle sidebar"
     }
   ],
+  "d66a1a6e3f": [
+    {
+      "type": 0,
+      "value": "Hey. Hello"
+    }
+  ],
   "d721757161": [
     {
       "type": 0,
@@ -813,6 +897,12 @@
     {
       "type": 0,
       "value": "Go here to see the content"
+    }
+  ],
+  "da404df474": [
+    {
+      "type": 0,
+      "value": "Save your work"
     }
   ],
   "dbbebf3c03": [
