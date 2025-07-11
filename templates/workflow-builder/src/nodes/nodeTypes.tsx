@@ -1,14 +1,15 @@
 import { useState } from 'react'
 import { stopEventPropagation, T, TLShapeId, useEditor, useValue } from 'tldraw'
+import {
+	NODE_HEADER_HEIGHT_PX,
+	NODE_PORT_OFFSET_Y_PX,
+	NODE_ROW_HEIGHT_PX,
+	NODE_WIDTH_PX,
+} from '../constants'
 import { Port, PortId, ShapePort } from '../ports/Port'
 import { replaceInArray } from '../utils'
-import { getNodeInputPortValues, NodeShape } from './NodeShapeUtil'
-
-export const NODE_WIDTH_PX = 180
-export const NODE_HEADER_HEIGHT_PX = 32.5
-export const NODE_ROW_HEIGHT_PX = 32
-
-export const NODE_PORT_OFFSET_Y_PX = 15.5
+import { getNodeInputPortValues } from './nodePorts'
+import { NodeShape } from './NodeShapeUtil'
 
 export const AddNodeType = T.object({
 	type: T.literal('add'),

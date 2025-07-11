@@ -1,0 +1,14 @@
+# Stuff I want in the SDK after building this
+
+1. Some way to have state scoped to the lifecycle of an editor. We do this a fair bit in the SDK, and it's ad-hoc every time. `EditorState` worked well here.
+2. `canTranslate` & `canDuplicate` style flags. These operations don't really make sense for connections.
+3. `onHandleDragStart`, `onHandleDragComplete`, `onHandleDragCancel`. Maybe some way of attaching state to these too? It'd be nice to have the full set for all of this genre of callback. `cancel` is important for state management.
+4. `isCreatingShape` flag for handle dragging
+5. A better way to insert nodes into the state graph
+6. More custom ways of controlling snapping & how snap lines render. Snap _lines_ rather than points, maybe?
+7. Fast spacial querying e.g. "get me all shapes in this bounding box"
+
+# Other things I maybe want to do
+
+1. API example showing inserting a state node
+2. "Ports" addon library

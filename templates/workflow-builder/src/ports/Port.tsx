@@ -1,6 +1,7 @@
 import classNames from 'classnames'
 import { TLShapeId, useEditor, useValue, VecModel } from 'tldraw'
-import { getNodePorts, NodeShape } from '../nodes/NodeShapeUtil'
+import { getNodePorts } from '../nodes/nodePorts'
+import { NodeShape } from '../nodes/NodeShapeUtil'
 import { portState } from '../state'
 
 export type PortId = string
@@ -9,8 +10,6 @@ export interface PortIdentifier {
 	portId: PortId
 	shapeId: TLShapeId
 }
-
-export const PORT_RADIUS_PX = 6
 
 export interface ShapePort extends VecModel {
 	id: PortId

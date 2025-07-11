@@ -8,7 +8,8 @@ import {
 	TLBaseBinding,
 	TLShapeId,
 } from 'tldraw'
-import { getNodePorts, NodeShape } from '../nodes/NodeShapeUtil'
+import { getNodePorts } from '../nodes/nodePorts'
+import { NodeShape } from '../nodes/NodeShapeUtil'
 import { PortId } from '../ports/Port'
 import { ConnectionShape } from './ConnectionShapeUtil'
 

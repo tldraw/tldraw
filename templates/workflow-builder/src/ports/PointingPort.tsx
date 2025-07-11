@@ -2,8 +2,12 @@ import { createShapeId, StateNode, TLPointerEventInfo, TLShapeId } from 'tldraw'
 import { createOrUpdateConnectionBinding } from '../connection/ConnectionBindingUtil'
 import { ConnectionShape } from '../connection/ConnectionShapeUtil.tsx'
 import { getNextConnectionIndex } from '../connection/keepConnectionsAtBottom'
-import { getNodePortConnections } from '../nodes/NodeShapeUtil'
-import { NODE_HEADER_HEIGHT_PX, NODE_PORT_OFFSET_Y_PX } from '../nodes/nodeTypes'
+import {
+	DEFAULT_NODE_SPACING_PX,
+	NODE_HEADER_HEIGHT_PX,
+	NODE_PORT_OFFSET_Y_PX,
+} from '../constants.tsx'
+import { getNodePortConnections } from '../nodes/nodePorts'
 import { PortId } from '../ports/Port'
 import { onCanvasComponentPickerState } from '../state.tsx'
 
@@ -155,7 +159,7 @@ export class PointingPort extends StateNode {
 
 		// Calculate position for new node
 		const targetPositionInPageSpace = {
-			x: bounds.right + 60,
+			x: bounds.right + DEFAULT_NODE_SPACING_PX,
 			y: bounds.top,
 		}
 

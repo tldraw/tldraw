@@ -14,9 +14,9 @@ import {
 	getConnectionBindings,
 } from '../connection/ConnectionBindingUtil'
 import { ConnectionShape, getConnectionTerminals } from '../connection/ConnectionShapeUtil'
-import { getNodePorts } from '../nodes/NodeShapeUtil'
+import { NODE_WIDTH_PX } from '../constants'
+import { getNodePorts } from '../nodes/nodePorts'
 import { nodeTypes } from '../nodes/nodeTypeDefinitions'
-import { NODE_WIDTH_PX } from '../nodes/nodeTypes'
 import { onCanvasComponentPickerState } from '../state'
 
 export function OnCanvasComponentPicker() {
