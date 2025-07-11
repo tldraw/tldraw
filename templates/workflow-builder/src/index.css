@@ -92,6 +92,40 @@ body {
 	}
 }
 
+.ConnectionShape {
+	stroke-width: 2px;
+	stroke: var(--color-text-3);
+	fill: none;
+}
+
+.ConnectionShapeIndicator {
+	stroke-width: 2.1px;
+	stroke-linecap: round;
+}
+
+.ConnectionCenterHandle {
+	.ConnectionCenterHandle-hover {
+		pointer-events: all;
+		cursor: pointer;
+		stroke: none;
+		fill: none;
+
+		&:hover {
+			fill: var(--color-selection-fill);
+		}
+	}
+
+	.ConnectionCenterHandle-ring {
+		stroke: none;
+		fill: var(--color-selected);
+	}
+
+	.ConnectionCenterHandle-icon {
+		stroke-width: 2px;
+		stroke: var(--color-selected-contrast);
+	}
+}
+
 .OnCanvasComponentPicker {
 	position: absolute;
 	top: 0;

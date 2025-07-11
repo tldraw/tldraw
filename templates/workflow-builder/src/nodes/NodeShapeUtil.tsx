@@ -1,8 +1,5 @@
 import {
-	areObjectsShallowEqual,
 	Circle2d,
-	createComputedCache,
-	Editor,
 	Group2d,
 	HTMLContainer,
 	RecordProps,
@@ -11,22 +8,14 @@ import {
 	ShapeUtil,
 	TLBaseShape,
 	TLResizeInfo,
-	TLShapeId,
 	useEditor,
 	useUniqueSafeId,
 	useValue,
 } from 'tldraw'
-import { ConnectionBinding, getConnectionBindings } from '../connection/ConnectionBindingUtil'
-import { Port, PORT_RADIUS_PX, PortId, ShapePort } from '../ports/Port'
-import {
-	computeNodeOutput,
-	getNodeBodyHeightPx,
-	getNodeTypePorts,
-	NODE_HEADER_HEIGHT_PX,
-	NODE_WIDTH_PX,
-	NodeBody,
-	NodeType,
-} from './nodeTypes'
+import { NODE_HEADER_HEIGHT_PX, NODE_WIDTH_PX, PORT_RADIUS_PX } from '../constants'
+import { Port, ShapePort } from '../ports/Port'
+import { getNodeOutputPortValues, getNodePorts } from './nodePorts'
+import { getNodeBodyHeightPx, NodeBody, NodeType } from './nodeTypes'
 
 export type NodeShape = TLBaseShape<'node', { node: NodeType }>
 
@@ -82,6 +71,8 @@ export class NodeShapeUtil extends ShapeUtil<NodeShape> {
 					y: port.y - PORT_RADIUS_PX,
 					radius: PORT_RADIUS_PX,
 					isFilled: true,
+					// not a label, but this hack excludes them from the selection bounds which is useful
+					isLabel: true,
 				})
 		)
 
@@ -171,104 +162,4 @@ function NodeShape({ shape }: { shape: NodeShape }) {
 			<NodeBody shape={shape} />
 		</HTMLContainer>
 	)
-}
-
-const nodePortsCache = createComputedCache('ports', (_editor: Editor, node: NodeShape) =>
-	getNodeTypePorts(node.props.node)
-)
-
-export function getNodePorts(editor: Editor, shape: NodeShape | TLShapeId) {
-	return nodePortsCache.get(editor, typeof shape === 'string' ? shape : shape.id) ?? {}
-}
-
-export interface NodePortConnection {
-	connectedShapeId: TLShapeId
-	connectionId: TLShapeId
-	terminal: 'start' | 'end'
-	ownPortId: PortId
-	connectedPortId: PortId
-}
-const nodePortConnectionsCache = createComputedCache(
-	'port connections',
-	(editor: Editor, node: NodeShape) => {
-		const bindings = editor.getBindingsToShape<ConnectionBinding>(node.id, 'connection')
-
-		const connections: Record<string, NodePortConnection> = {}
-		for (const binding of bindings) {
-			const oppositeBinding = getConnectionBindings(editor, binding.fromId).start
-			if (!oppositeBinding) continue
-
-			connections[binding.props.portId] = {
-				connectedShapeId: oppositeBinding.toId,
-				connectionId: binding.fromId,
-				terminal: binding.props.terminal,
-				ownPortId: binding.props.portId,
-				connectedPortId: oppositeBinding.props.portId,
-			}
-		}
-
-		return connections
-	},
-	{
-		areRecordsEqual: (a, b) => a.id === b.id,
-	}
-)
-
-export function getNodePortConnections(
-	editor: Editor,
-	shape: NodeShape | TLShapeId
-): { [K in PortId]?: NodePortConnection } {
-	return nodePortConnectionsCache.get(editor, typeof shape === 'string' ? shape : shape.id) ?? {}
-}
-
-const nodeInputPortValuesCache = createComputedCache(
-	'node input port values',
-	(editor: Editor, node: NodeShape) => {
-		const connections = getNodePortConnections(editor, node)
-
-		const values: Record<string, number> = {}
-		for (const connection of Object.values(connections)) {
-			if (!connection || connection.terminal !== 'end') continue
-
-			const connectedShapeOutputs = getNodeOutputPortValues(editor, connection.connectedShapeId)
-			if (!connectedShapeOutputs || connectedShapeOutputs[connection.connectedPortId] == null) {
-				continue
-			}
-
-			values[connection.ownPortId] = connectedShapeOutputs[connection.connectedPortId]
-		}
-
-		return values
-	},
-	{
-		areRecordsEqual: (a, b) => a.id === b.id,
-		areResultsEqual: areObjectsShallowEqual,
-	}
-)
-
-export function getNodeInputPortValues(
-	editor: Editor,
-	shape: NodeShape | TLShapeId
-): Record<string, number> {
-	return nodeInputPortValuesCache.get(editor, typeof shape === 'string' ? shape : shape.id) ?? {}
-}
-
-const nodeOutputPortValuesCache = createComputedCache(
-	'node output port values',
-	(editor: Editor, node: NodeShape) => {
-		const inputs = getNodeInputPortValues(editor, node)
-		return computeNodeOutput(node.props.node, inputs)
-	},
-	{
-		areRecordsEqual: (a, b) => a.id === b.id && a.props.node === b.props.node,
-		// the results should stay the same:
-		areResultsEqual: areObjectsShallowEqual,
-	}
-)
-
-export function getNodeOutputPortValues(
-	editor: Editor,
-	shape: NodeShape | TLShapeId
-): Record<string, number> {
-	return nodeOutputPortValuesCache.get(editor, typeof shape === 'string' ? shape : shape.id) ?? {}
 }
