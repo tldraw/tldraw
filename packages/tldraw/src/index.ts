@@ -290,6 +290,7 @@ export {
 	ToggleSnapModeItem,
 	ToggleToolLockItem,
 	ToggleTransparentBgMenuItem,
+	ToggleUiLabelsItem,
 	ToggleWrapModeItem,
 	UngroupMenuItem,
 	UnlockAllMenuItem,
@@ -404,6 +405,10 @@ export {
 	type TLUiToolbarToggleGroupProps,
 	type TLUiToolbarToggleItemProps,
 } from './lib/ui/components/primitives/TldrawUiToolbar'
+export {
+	TldrawUiTooltip,
+	type TldrawUiTooltipProps,
+} from './lib/ui/components/primitives/TldrawUiTooltip'
 export {
 	DefaultQuickActions,
 	type TLUiQuickActionsProps,
