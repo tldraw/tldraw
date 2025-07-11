@@ -6,6 +6,7 @@ import { Discord } from './lib/discord'
 import { exec } from './lib/exec'
 import { makeEnv } from './lib/makeEnv'
 import { nicelog } from './lib/nicelog'
+import { getPrDetails, labelPresent, PullRequest } from './lib/pr-info'
 
 function getEnv() {
 	return makeEnv([
@@ -18,53 +19,36 @@ function getEnv() {
 	])
 }
 
-type Env = ReturnType<typeof getEnv>
-
-async function getPrDetails(env: Env) {
-	const lastCommitMessage = (await exec('git', ['log', '-1', '--oneline'])).trim()
-	const lastPRNumber = lastCommitMessage.match(/\(#(\d+)\)$/)?.[1]
-	if (!lastPRNumber) {
-		nicelog('No PR number found in last commit message. Exiting...')
-		return null
-	}
-
-	const octokit = new Octokit({ auth: env.GITHUB_TOKEN })
-
-	return await octokit.rest.pulls
-		.get({
-			owner: 'tldraw',
-			repo: 'tldraw',
-			pull_number: parseInt(lastPRNumber),
-		})
-		.then((res) => res.data!)
-}
-
-type PrDetails = NonNullable<Awaited<ReturnType<typeof getPrDetails>>>
-
-async function getTriggerType(env: Env, pr: PrDetails): Promise<'none' | 'SDK' | 'docs'> {
+function getTriggerType(pr: PullRequest): 'none' | 'SDK' | 'docs' {
 	nicelog(`Checking PR ${pr.number} labels...`)
 
-	const docsHotfixPlease = pr.labels.find((label) => label.name === 'docs-hotfix-please')
-	const sdkHotfixPlease = pr.labels.find((label) => label.name === 'sdk-hotfix-please')
+	const hasDocsHotfixLabel = labelPresent(pr, 'docs-hotfix-please')
+	const hasSdkHotfixLabel = labelPresent(pr, 'sdk-hotfix-please')
 
-	if (!docsHotfixPlease && !sdkHotfixPlease) {
+	if (!hasDocsHotfixLabel && !hasSdkHotfixLabel) {
 		nicelog('No "(docs|sdk)-hotfix-please" label found. Exiting...')
 		return 'none'
 	}
 
-	nicelog(`Found "${sdkHotfixPlease || docsHotfixPlease}" label. Proceeding...`)
+	nicelog(
+		`Found "${hasSdkHotfixLabel ? 'sdk-hotfix-please' : 'docs-hotfix-please'}" label. Proceeding...`
+	)
 
-	const isDocsOnly = docsHotfixPlease && !sdkHotfixPlease
+	const isDocsOnly = hasDocsHotfixLabel && !hasSdkHotfixLabel
 	return isDocsOnly ? 'docs' : 'SDK'
 }
 
 async function main() {
 	const env = getEnv()
+	const octokit = new Octokit({ auth: env.GITHUB_TOKEN })
 
-	const pr = await getPrDetails(env)
-	if (!pr) return
+	const pr = await getPrDetails(octokit)
+	if (!pr) {
+		nicelog('Could not retrieve PR details from the last commit. Exiting...')
+		return
+	}
 
-	const triggerType = await getTriggerType(env, pr)
+	const triggerType = getTriggerType(pr)
 	if (triggerType === 'none') return
 
 	const discord = new Discord({
