@@ -38,6 +38,7 @@ async function main() {
 	await discord.step(`Creating hotfix branch and cherry-picking changes`, async () => {
 		nicelog('will cherry pick from ', commitSha)
 		await exec('git', ['fetch', 'origin', 'hotfixes'])
+		await exec('git', ['fetch', 'origin', 'main'])
 		await exec('git', ['checkout', 'hotfixes'])
 		await exec('git', ['reset', '--hard', 'origin/hotfixes'])
 		await exec('git', ['checkout', '-b', hotfixBranchName])

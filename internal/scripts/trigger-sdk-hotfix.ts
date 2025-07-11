@@ -81,6 +81,7 @@ async function main() {
 		`Cherry-picking PR #${pr.number} onto branch ${latestReleaseBranch}`,
 		async () => {
 			await exec('git', ['fetch', 'origin', latestReleaseBranch])
+			await exec('git', ['fetch', 'origin', 'main'])
 			await exec('git', ['checkout', latestReleaseBranch])
 			await exec('git', ['reset', `origin/${latestReleaseBranch}`, '--hard'])
 			await exec('git', ['log', '-1', '--oneline'])
