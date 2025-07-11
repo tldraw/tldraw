@@ -1,5 +1,6 @@
 import { Editor, TLShape, Vec, VecLike } from 'tldraw'
-import { NodeShape, getNodePortConnections, getNodePorts } from '../nodes/NodeShapeUtil'
+import { getNodePortConnections, getNodePorts } from '../nodes/nodePorts'
+import { NodeShape } from '../nodes/NodeShapeUtil'
 import { ShapePort } from './Port'
 
 export function getPortAtPoint(

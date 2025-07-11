@@ -13,8 +13,15 @@ import {
 	VecLike,
 	VecModel,
 	clamp,
+	stopEventPropagation,
+	useEditor,
+	useValue,
 	vecModelValidator,
 } from 'tldraw'
+import {
+	CONNECTION_CENTER_HANDLE_HOVER_SIZE_PX,
+	CONNECTION_CENTER_HANDLE_SIZE_PX,
+} from '../constants'
 import { getPortAtPoint } from '../ports/getPortAtPoint'
 import { updatePortState } from '../state'
 import {
@@ -23,6 +30,7 @@ import {
 	getConnectionBindings,
 	removeConnectionBinding,
 } from './ConnectionBindingUtil'
+import { insertNodeWithinConnection } from './insertNodeWithinConnection'
 
 export type ConnectionShape = TLBaseShape<
 	'connection',
@@ -149,17 +157,72 @@ export class ConnectionShapeUtil extends ShapeUtil<ConnectionShape> {
 
 	component(shape: ConnectionShape) {
 		const { start, end } = getConnectionTerminals(this.editor, shape)
+
 		return (
 			<SVGContainer className="ConnectionShape">
-				<path d={getConnectionPath(start, end)} fill="none" stroke="black" strokeWidth={2} />
+				<path d={getConnectionPath(start, end)} />
 			</SVGContainer>
 		)
 	}
 
 	indicator(shape: ConnectionShape) {
 		const { start, end } = getConnectionTerminals(this.editor, shape)
-		return <path d={getConnectionPath(start, end)} />
+		return (
+			<g className="ConnectionShapeIndicator">
+				<path d={getConnectionPath(start, end)} strokeWidth={2.1} strokeLinecap="round" />
+				<ConnectionCenterHandle shape={shape} />
+			</g>
+		)
 	}
+}
+
+function ConnectionCenterHandle({ shape }: { shape: ConnectionShape }) {
+	const editor = useEditor()
+	const { start, end } = useValue(
+		'terminals',
+		() => {
+			return getConnectionTerminals(editor, shape)
+		},
+		[editor, shape]
+	)
+
+	const center = Vec.Lrp(start, end, 0.5)
+	const shouldShowCenterHandle = useValue(
+		'shouldShowCenterHandle',
+		() => {
+			const bindings = getConnectionBindings(editor, shape)
+			const isFullyBound = !!bindings.start && !!bindings.end
+			return editor.getZoomLevel() > 0.5 && isFullyBound
+		},
+		[editor, shape.id]
+	)
+
+	const plusR = CONNECTION_CENTER_HANDLE_SIZE_PX / 3 - 1
+
+	if (!shouldShowCenterHandle) return null
+
+	return (
+		<g
+			className="ConnectionCenterHandle"
+			style={{
+				transform: `translate(${center.x}px, ${center.y}px) scale(max(0.5, calc(1 / var(--tl-zoom))))`,
+			}}
+			onPointerDown={stopEventPropagation}
+			onClick={() => {
+				insertNodeWithinConnection(editor, shape)
+			}}
+		>
+			<circle
+				className="ConnectionCenterHandle-hover"
+				r={CONNECTION_CENTER_HANDLE_HOVER_SIZE_PX / 2}
+			/>
+			<circle className="ConnectionCenterHandle-ring" r={CONNECTION_CENTER_HANDLE_SIZE_PX / 2} />
+			<path
+				className="ConnectionCenterHandle-icon"
+				d={`M ${-plusR} 0 L ${plusR} 0 M 0 ${-plusR} L 0 ${plusR}`}
+			/>
+		</g>
+	)
 }
 
 function getConnectionControlPoints(start: VecLike, end: VecLike): [Vec, Vec] {
