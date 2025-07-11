@@ -11,7 +11,7 @@ import {
 import { getTextLabels } from '../../../utils/shapes/shapes'
 import { renderPlaintextFromRichText } from '../../../utils/text/richText'
 import { getHitShapeOnCanvasPointerDown } from '../../selection-logic/getHitShapeOnCanvasPointerDown'
-import { updateHoveredShapeIdThrottled } from '../../selection-logic/updateHoveredShapeId'
+import { updateHoveredShapeIdResponsive } from '../../selection-logic/updateHoveredShapeId'
 
 interface EditingShapeInfo {
 	isCreatingTextWhileToolLocked?: boolean
@@ -34,7 +34,7 @@ export class EditingShape extends StateNode {
 			this.parent.setCurrentToolIdMask('text')
 		}
 
-		updateHoveredShapeIdThrottled(this.editor)
+		updateHoveredShapeIdResponsive(this.editor)(this.editor)
 		this.editor.select(editingShape)
 	}
 
@@ -45,7 +45,7 @@ export class EditingShape extends StateNode {
 		// Clear the editing shape
 		this.editor.setEditingShape(null)
 
-		updateHoveredShapeIdThrottled.cancel()
+		updateHoveredShapeIdResponsive(this.editor).cancel()
 
 		if (this.info.isCreatingTextWhileToolLocked) {
 			this.parent.setCurrentToolIdMask(undefined)
@@ -68,7 +68,7 @@ export class EditingShape extends StateNode {
 		switch (info.target) {
 			case 'shape':
 			case 'canvas': {
-				updateHoveredShapeIdThrottled(this.editor)
+				updateHoveredShapeIdResponsive(this.editor)(this.editor)
 				return
 			}
 		}
@@ -186,7 +186,7 @@ export class EditingShape extends StateNode {
 		} else if (isMobile && isEditToEditAction) {
 			this.editor.emit('select-all-text', { shapeId: hitShape.id })
 		}
-		updateHoveredShapeIdThrottled(this.editor)
+		updateHoveredShapeIdResponsive(this.editor)(this.editor)
 	}
 
 	override onComplete(info: TLCompleteEventInfo) {
