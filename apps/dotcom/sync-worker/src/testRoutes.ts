@@ -18,11 +18,14 @@ export const testRoutes = createRouter<Environment>()
 		return new Response('ok')
 	})
 	.get('/app/__test__/user/:userId/reboot', (req, env) => {
-		getUserDurableObject(env, req.params.userId).handleReplicationEvent({
-			type: 'maybe_force_reboot',
-			sequenceId: 'test',
-			sequenceNumber: 0,
-		})
+		getUserDurableObject(env, req.params.userId).handleReplicationEvent(
+			{
+				type: 'maybe_force_reboot',
+				sequenceId: 'test',
+				sequenceNumber: 0,
+			},
+			req.params.userId
+		)
 		return new Response('ok')
 	})
 	.get('/app/__test__/user/:userId/downgrade-client', (req, env) => {

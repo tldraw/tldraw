@@ -75,6 +75,18 @@ export class TLUserDurableObject extends DurableObject<Environment> {
 	private userId: string | null = null
 	private coldStartStartTime: number | null = null
 
+	private createCache(userId: string) {
+		return new UserDataSyncer(
+			this.ctx,
+			this.env,
+			this.db,
+			userId,
+			(message) => this.broadcast(message),
+			this.logEvent.bind(this),
+			this.log
+		)
+	}
+
 	readonly router = Router()
 		.all('/app/:userId/*', async (req) => {
 			if (!this.userId) {
@@ -89,15 +101,7 @@ export class TLUserDurableObject extends DurableObject<Environment> {
 			if (!this.cache) {
 				this.coldStartStartTime = Date.now()
 				this.log.debug('creating cache', this.userId)
-				this.cache = new UserDataSyncer(
-					this.ctx,
-					this.env,
-					this.db,
-					this.userId,
-					(message) => this.broadcast(message),
-					this.logEvent.bind(this),
-					this.log
-				)
+				this.cache = this.createCache(this.userId)
 			}
 		})
 		.get(`/app/:userId/connect`, (req) => this.onRequest(req))
@@ -431,25 +435,46 @@ export class TLUserDurableObject extends DurableObject<Environment> {
 
 	/* ------- RPCs -------  */
 
-	async handleReplicationEvent(event: ZReplicationEvent) {
-		this.logEvent({ type: 'replication_event', id: this.userId ?? 'anon' })
-		this.log.debug('replication event', event, !!this.cache)
-		if (await this.notActive()) {
-			this.log.debug('requesting to unregister')
-			return 'unregister'
-		}
+	// the first time we deploy this userId might be null while processing old rpc calls
+	async handleReplicationEvent(event: ZReplicationEvent, userId: string | null) {
+		return await this.messageQueue.push(async () => {
+			assert(userId ?? this.userId, 'userId is required, got ' + userId)
+			this.userId = userId ?? this.userId!
+			this.logEvent({ type: 'replication_event', id: this.userId })
+			this.log.debug('replication event', event, !!this.cache)
 
-		try {
-			this.cache?.handleReplicationEvent(event)
-		} catch (e) {
-			this.captureException(e)
-		}
+			// For users who have been recently active, let's still process the replication event
+			// to maybe prevent the need for them to re-register with the replicator when their
+			// socket connection is re-established.
+			// This is mainly useful for deployment time when people who are actively using the app
+			// are quite liable to be receiving replication events during the time when their DO is rebooting.
 
-		return 'ok'
-	}
+			if (!this.cache) {
+				const lastSnapshotUpdateTime = await this.env.USER_DO_SNAPSHOTS.head(
+					getUserDoSnapshotKey(this.env, this.userId)
+				).then((d) => d?.uploaded?.getTime())
+				const ONE_HOUR = 1000 * 60 * 60
+				if (lastSnapshotUpdateTime && Date.now() - lastSnapshotUpdateTime > ONE_HOUR) {
+					this.log.debug('requesting to unregister')
+					return 'unregister'
+				}
+				this.logEvent({ type: 'woken_up_by_replication_event', id: this.userId })
+				this.log.debug('creating cache to handle replication event', this.userId)
+				this.cache = this.createCache(this.userId)
+				while (this.cache.state.type === 'init') {
+					await sleep(10)
+				}
+				this.log.debug('cache created', this.cache.state)
+			}
 
-	async notActive() {
-		return !this.cache
+			try {
+				this.cache?.handleReplicationEvent(event)
+			} catch (e) {
+				this.captureException(e)
+			}
+
+			return 'ok'
+		})
 	}
 
 	/* --------------  */

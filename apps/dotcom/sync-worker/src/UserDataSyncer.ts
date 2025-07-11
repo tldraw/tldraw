@@ -11,7 +11,7 @@ import {
 	ZTable,
 } from '@tldraw/dotcom-shared'
 import { react, transact } from '@tldraw/state'
-import { ExecutionQueue, assert, promiseWithResolve, sleep, uniqueId } from '@tldraw/utils'
+import { ExecutionQueue, assert, sleep, uniqueId } from '@tldraw/utils'
 import { createSentry } from '@tldraw/worker-shared'
 import { CompiledQuery, Kysely, sql } from 'kysely'
 import throttle from 'lodash.throttle'
@@ -22,8 +22,6 @@ import { getSubscriptionChanges } from './replicator/Subscription'
 import { Environment, TLUserDurableObjectEvent, getUserDoSnapshotKey } from './types'
 import { getReplicator, getStatsDurableObjct } from './utils/durableObjects'
 import { retryOnConnectionFailure } from './utils/retryOnConnectionFailure'
-type PromiseWithResolve = ReturnType<typeof promiseWithResolve>
-
 export interface ZRowUpdateEvent {
 	type: 'row_update'
 	row: TlaRow
@@ -64,7 +62,6 @@ export type ZReplicationEventWithoutSequenceInfo =
 type BootState =
 	| {
 			type: 'init'
-			promise: PromiseWithResolve
 	  }
 	| {
 			type: 'connecting'
@@ -117,7 +114,6 @@ const LSN_COMMIT_TIMEOUT = 120_000
 export class UserDataSyncer {
 	state: BootState = {
 		type: 'init',
-		promise: promiseWithResolve(),
 	}
 
 	store = new OptimisticAppStore()
@@ -405,6 +401,11 @@ export class UserDataSyncer {
 			lastSequenceNumber: resumeData.lastSequenceNumber,
 		}
 
+		while (bufferedEvents.length && bufferedEvents[0].sequenceId !== this.state.sequenceId) {
+			this.log.debug('ignoring irrelevant event', bufferedEvents[0])
+			bufferedEvents.shift()
+		}
+
 		if (bufferedEvents.length > 0) {
 			bufferedEvents.forEach((event) => this.handleReplicationEvent(event))
 		}
@@ -447,12 +448,6 @@ export class UserDataSyncer {
 	handleReplicationEvent(event: ZReplicationEvent) {
 		if (this.state.type === 'init') {
 			this.log.debug('ignoring during init', event)
-			return
-		}
-
-		// ignore irrelevant events
-		if (!event.sequenceId.endsWith(this.state.bootId)) {
-			this.log.debug('ignoring irrelevant event', event)
 			return
 		}
 

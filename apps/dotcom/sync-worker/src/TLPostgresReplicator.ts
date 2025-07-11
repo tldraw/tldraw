@@ -571,11 +571,14 @@ export class TLPostgresReplicator extends DurableObject<Environment> {
 			q.push(async () => {
 				const user = getUserDurableObject(this.env, userId)
 
-				const res = await user.handleReplicationEvent({
-					...event,
-					sequenceNumber,
-					sequenceId: this.slotName + sequenceIdSuffix,
-				})
+				const res = await user.handleReplicationEvent(
+					{
+						...event,
+						sequenceNumber,
+						sequenceId: this.slotName + sequenceIdSuffix,
+					},
+					userId
+				)
 				if (res === 'unregister') {
 					this.log.debug('unregistering user', userId, event)
 					this.unregisterUser(userId)
