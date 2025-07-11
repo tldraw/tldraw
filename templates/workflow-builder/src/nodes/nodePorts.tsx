@@ -26,7 +26,8 @@ const nodePortConnectionsCache = createComputedCache(
 
 		const connections: Record<string, NodePortConnection> = {}
 		for (const binding of bindings) {
-			const oppositeBinding = getConnectionBindings(editor, binding.fromId).start
+			const oppositeTerminal = binding.props.terminal === 'start' ? 'end' : 'start'
+			const oppositeBinding = getConnectionBindings(editor, binding.fromId)[oppositeTerminal]
 			if (!oppositeBinding) continue
 
 			connections[binding.props.portId] = {
