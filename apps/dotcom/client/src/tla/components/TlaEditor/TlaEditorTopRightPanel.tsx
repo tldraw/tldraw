@@ -113,6 +113,7 @@ export function TlaEditorTopRightPanel({
 				<SignedOutShareButton fileId={fileId} context={context} />
 				<SignInButton
 					mode="modal"
+					data-testid="tla-sign-in-button"
 					forceRedirectUrl={location.pathname + location.search}
 					signUpForceRedirectUrl={location.pathname + location.search}
 				>
