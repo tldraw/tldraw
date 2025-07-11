@@ -3,7 +3,7 @@ import { Discord } from './lib/discord'
 import { exec } from './lib/exec'
 import { makeEnv } from './lib/makeEnv'
 import { nicelog } from './lib/nicelog'
-import { getPrDetailsAndCommitSha, labelPresent } from './lib/pr-info'
+import { getPrDetailsAndCommitSha, getPrDetailsByNumber, labelPresent } from './lib/pr-info'
 
 function getEnv() {
 	return makeEnv(['DISCORD_DEPLOY_WEBHOOK_URL', 'GITHUB_TOKEN'])
@@ -69,21 +69,43 @@ This PR cherry-picks the changes from the original PR to the hotfixes branch for
 			base: 'hotfixes',
 		})
 
-		await octokit.rest.pulls.merge({
-			owner: 'tldraw',
-			repo: 'tldraw',
-			pull_number: createdPr.data.number,
-			merge_method: 'squash',
-			auto_merge: true,
-			commit_title: `[HOTFIX] ${pr.title}`,
-			commit_message: `This is an automated hotfix for dotcom deployment.
+		nicelog(`Created hotfix PR: ${hotfixBranchName} -> hotfixes`)
+		nicelog(`Waiting for PR #${createdPr.data.number} to be ready for merge...`)
+
+		// Wait for 4 minutes initially, then check every 15 seconds (our checks take at least 4 mins)
+		await new Promise((resolve) => setTimeout(resolve, 4 * 60 * 1000))
+
+		while (true) {
+			const prStatus = await getPrDetailsByNumber(octokit, createdPr.data.number)
+			// Check if GitHub has finished calculating the merge status
+			if (prStatus.mergeable === null) {
+				nicelog(`PR #${createdPr.data.number} status still being calculated, waiting...`)
+				await new Promise((resolve) => setTimeout(resolve, 15 * 1000))
+				continue
+			}
+
+			// GitHub has finished calculating, now check the result
+			if (prStatus.mergeable) {
+				nicelog(`PR #${createdPr.data.number} is ready for merge`)
+				await octokit.rest.pulls.merge({
+					owner: 'tldraw',
+					repo: 'tldraw',
+					pull_number: createdPr.data.number,
+					merge_method: 'squash',
+					commit_title: `[HOTFIX] ${pr.title}`,
+					commit_message: `This is an automated hotfix for dotcom deployment.
 
 Original PR: #${pr.number}
 Original Author: @${pr.user?.login}`,
-		})
+				})
 
-		nicelog(`Created hotfix PR: ${hotfixBranchName} -> hotfixes`)
-		nicelog(`Added hotfix PR #${createdPr.data.number} to merge queue`)
+				nicelog(`Successfully merged hotfix PR #${createdPr.data.number}`)
+				break
+			} else {
+				nicelog(`PR #${createdPr.data.number} has conflicts and cannot be merged`)
+				throw new Error(`Hotfix PR #${createdPr.data.number} cannot be merged`)
+			}
+		}
 	})
 }
 

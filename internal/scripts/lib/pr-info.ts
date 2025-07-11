@@ -2,7 +2,7 @@ import { Octokit } from 'octokit'
 import { exec } from './exec'
 import { nicelog } from './nicelog'
 
-async function getPrDetailsByNumber(octokit: Octokit, prNumber: number) {
+export async function getPrDetailsByNumber(octokit: Octokit, prNumber: number) {
 	return await octokit.rest.pulls
 		.get({
 			owner: 'tldraw',
