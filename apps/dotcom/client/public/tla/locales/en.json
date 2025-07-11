@@ -59,6 +59,9 @@
   "299cb00a7a": {
     "translation": "Upload failed"
   },
+  "2c61d18599": {
+    "translation": "Miro but good and free"
+  },
   "31246941ad": {
     "translation": "You need to sign in to view this file."
   },
@@ -76,9 +79,6 @@
   },
   "3c5e891bff": {
     "translation": "Pinned"
-  },
-  "3cbd6d57fb": {
-    "translation": "Get in"
   },
   "3d0238bf16": {
     "translation": "Accept all"
@@ -112,6 +112,12 @@
   },
   "4e875b8d8e": {
     "translation": "Free saves"
+  },
+  "4ea8ef696f": {
+    "translation": "Get in the draw... tldraw"
+  },
+  "4ebefd3c60": {
+    "translation": "A slightly better Excalidraw"
   },
   "50db1b7e1e": {
     "translation": "Unable to unpublish the file."
@@ -384,14 +390,14 @@
   "cea291e45e": {
     "translation": "Learn more about publishing."
   },
+  "d0eedb7995": {
+    "translation": "Hey"
+  },
   "d3d2e61733": {
     "translation": "Close"
   },
   "d4bbf74f3e": {
     "translation": "Toggle sidebar"
-  },
-  "d66a1a6e3f": {
-    "translation": "Hey. Hello"
   },
   "d721757161": {
     "translation": "Theme"
@@ -467,6 +473,9 @@
   },
   "fed5ec05eb": {
     "translation": "Copied link"
+  },
+  "ff09a5ece9": {
+    "translation": "Demonstrate taste"
   },
   "ffcd73e997": {
     "translation": "Import file…"

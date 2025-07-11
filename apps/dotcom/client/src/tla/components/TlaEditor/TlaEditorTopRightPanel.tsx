@@ -32,7 +32,7 @@ const ctaMessages = defineMessages({
 	signIn: { defaultMessage: 'Sign in' },
 	signInToSave: { defaultMessage: 'Sign in to save' },
 	signInToSaveAndShare: { defaultMessage: 'Sign in to share' },
-	getIn: { defaultMessage: 'Get in' },
+	getIn: { defaultMessage: 'Get in the draw... tldraw' },
 	logIn: { defaultMessage: 'Log in' },
 	logUp: { defaultMessage: 'Log up' },
 	saveAndShare: { defaultMessage: 'Save and share' },
@@ -43,7 +43,11 @@ const ctaMessages = defineMessages({
 	saveYourWork: { defaultMessage: 'Save your work' },
 	shareYourWork: { defaultMessage: 'Share your work' },
 	shareYourWorkForFree: { defaultMessage: 'Share for free' },
-	hey: { defaultMessage: 'Hey. Hello' },
+	demonstrateTaste: { defaultMessage: 'Demonstrate taste' },
+	hey: { defaultMessage: 'Hey' },
+	miroButGood: { defaultMessage: 'Miro but good and free' },
+	betterThanExcalidraw: { defaultMessage: 'A slightly better Excalidraw' },
+	// figjamButGood: { defaultMessage: 'Figjam but without the Figjm and with other letters instead in other places' },
 })
 
 function useCtaMessage() {
@@ -55,9 +59,6 @@ function useCtaMessage() {
 		}
 
 		const entries = Object.values(ctaMessages)
-		if (Math.random() < 0.5) {
-			return entries[0]
-		}
 		return entries[Math.floor(Math.random() * entries.length)]
 	}, [])
 }
