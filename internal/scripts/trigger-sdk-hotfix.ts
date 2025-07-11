@@ -6,7 +6,7 @@ import { Discord } from './lib/discord'
 import { exec } from './lib/exec'
 import { makeEnv } from './lib/makeEnv'
 import { nicelog } from './lib/nicelog'
-import { getPrDetails, labelPresent, PullRequest } from './lib/pr-info'
+import { getPrDetailsAndCommitSha, labelPresent, PullRequest } from './lib/pr-info'
 
 function getEnv() {
 	return makeEnv([
@@ -42,11 +42,13 @@ async function main() {
 	const env = getEnv()
 	const octokit = new Octokit({ auth: env.GITHUB_TOKEN })
 
-	const pr = await getPrDetails(octokit)
-	if (!pr) {
-		nicelog('Could not retrieve PR details from the last commit. Exiting...')
+	const result = await getPrDetailsAndCommitSha(octokit)
+	if (!result) {
+		nicelog('Could not retrieve PR details. Exiting...')
 		return
 	}
+
+	const { pr, commitSha } = result
 
 	const triggerType = getTriggerType(pr)
 	if (triggerType === 'none') return
@@ -75,15 +77,17 @@ async function main() {
 	const latestReleaseBranch = `v${version.major}.${version.minor}.x`
 	nicelog('Latest release branch', latestReleaseBranch)
 
-	await discord.step(`Cherry-picking PR #${pr} onto branch ${latestReleaseBranch}`, async () => {
-		// cherry-pick HEAD on top of latest release branch
-		const HEAD = (await exec('git', ['rev-parse', 'HEAD'])).trim()
-		await exec('git', ['fetch', 'origin', latestReleaseBranch])
-		await exec('git', ['checkout', latestReleaseBranch])
-		await exec('git', ['reset', `origin/${latestReleaseBranch}`, '--hard'])
-		await exec('git', ['log', '-1', '--oneline'])
-		await exec('git', ['cherry-pick', HEAD])
-	})
+	await discord.step(
+		`Cherry-picking PR #${pr.number} onto branch ${latestReleaseBranch}`,
+		async () => {
+			await exec('git', ['fetch', 'origin', latestReleaseBranch])
+			await exec('git', ['fetch', 'origin', 'main'])
+			await exec('git', ['checkout', latestReleaseBranch])
+			await exec('git', ['reset', `origin/${latestReleaseBranch}`, '--hard'])
+			await exec('git', ['log', '-1', '--oneline'])
+			await exec('git', ['cherry-pick', commitSha])
+		}
+	)
 
 	if (triggerType === 'docs') {
 		await discord.step(`Ensuring no SDK changes are present`, async () => {

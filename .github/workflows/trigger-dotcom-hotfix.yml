@@ -4,6 +4,8 @@ on:
   push:
     branches:
       - main
+  pull_request:
+    types: [labeled]
 
 defaults:
   run:
@@ -19,6 +21,11 @@ jobs:
     runs-on: ubuntu-latest
     concurrency: dotcom-hotfix
     environment: npm deploy
+    if: |
+      github.event_name == 'push' ||
+      (github.event_name == 'pull_request' && 
+       github.event.pull_request.merged == true && 
+       github.event.label.name == 'dotcom-hotfix-please')
 
     steps:
       - name: Generate a token
@@ -45,3 +52,4 @@ jobs:
         env:
           GITHUB_TOKEN: ${{ steps.generate_token.outputs.token }}
           DISCORD_DEPLOY_WEBHOOK_URL: ${{ secrets.DISCORD_DEPLOY_WEBHOOK_URL }}
+          PR_NUMBER: ${{ github.event.pull_request.number }}
