@@ -9,6 +9,7 @@
 7. Fast spacial querying e.g. "get me all shapes in this bounding box"
 8. `getIndices(n)` returns n + 1 indices which feels very counter intuitive.
 9. Generally I'd like an easier way to work with "multiplayer arrays" - objects where the keys are fractional indexes. I ended up writing some of my own helpers for this.
+10. A way to have things in geometry that don't contribute to `bound` calculations. I achieved this by marking them as labels, but that feels wrong maybe?
 
 # Other things I maybe want to do
 
