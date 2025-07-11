@@ -11,7 +11,7 @@ import {
 } from 'tldraw'
 import { ConnectionShape, getConnectionTerminals } from '../connection/ConnectionShapeUtil'
 import { NODE_WIDTH_PX } from '../constants'
-import { nodeTypes } from '../nodes/nodeTypeDefinitions'
+import { NodeDefinitions } from '../nodes/nodeTypes'
 import { onCanvasComponentPickerState } from '../state'
 
 export function OnCanvasComponentPicker() {
@@ -78,9 +78,9 @@ export function OnCanvasComponentPicker() {
 						<Dialog.Title>Insert Node</Dialog.Title>
 					</VisuallyHidden.Root>
 					<TldrawUiMenuContextProvider sourceId="dialog" type="menu">
-						{nodeTypes.map((nodeInfo) => (
+						{NodeDefinitions.map((definition) => (
 							<TldrawUiButton
-								key={nodeInfo.type}
+								key={definition.type}
 								type="menu"
 								className="OnCanvasComponentPicker-button"
 								onClick={() => {
@@ -106,13 +106,13 @@ export function OnCanvasComponentPicker() {
 										.getShapePageTransform(connection)
 										.applyToPoint(terminalInConnectionSpace)
 
-									state.onPick(nodeInfo.getDefault(), terminalInPageSpace)
+									state.onPick(definition.getDefault(), terminalInPageSpace)
 
 									onClose()
 								}}
 							>
-								<div className="OnCanvasComponentPicker-icon">{nodeInfo.icon}</div>
-								<div>{nodeInfo.title}</div>
+								<div className="OnCanvasComponentPicker-icon">{definition.icon}</div>
+								<div>{definition.title}</div>
 							</TldrawUiButton>
 						))}
 					</TldrawUiMenuContextProvider>
