@@ -36,7 +36,6 @@ async function main() {
 	const hotfixBranchName = `hotfix/dotcom-${pr.number}`
 
 	await discord.step(`Creating hotfix branch and cherry-picking changes`, async () => {
-		nicelog('will cherry pick from ', commitSha)
 		await exec('git', ['fetch', 'origin', 'hotfixes'])
 		await exec('git', ['fetch', 'origin', 'main'])
 		await exec('git', ['checkout', 'hotfixes'])
