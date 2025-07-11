@@ -1,4 +1,7 @@
 import {
+	BindingOnChangeOptions,
+	BindingOnCreateOptions,
+	BindingOnDeleteOptions,
 	BindingOnShapeDeleteOptions,
 	BindingOnShapeIsolateOptions,
 	BindingUtil,
@@ -10,6 +13,7 @@ import {
 } from 'tldraw'
 import { getNodePorts } from '../nodes/nodePorts'
 import { NodeShape } from '../nodes/NodeShapeUtil'
+import { onNodePortConnect, onNodePortDisconnect } from '../nodes/nodeTypes'
 import { PortId } from '../ports/Port'
 import { ConnectionShape } from './ConnectionShapeUtil'
 
@@ -37,6 +41,38 @@ export class ConnectionBindingUtil extends BindingUtil<ConnectionBinding> {
 
 	onBeforeDeleteToShape({ binding }: BindingOnShapeDeleteOptions<ConnectionBinding>): void {
 		this.editor.deleteShapes([binding.fromId])
+	}
+
+	onAfterCreate({ binding }: BindingOnCreateOptions<ConnectionBinding>): void {
+		const node = this.editor.getShape(binding.toId)
+		if (!node || !this.editor.isShapeOfType<NodeShape>(node, 'node')) return
+		onNodePortConnect(this.editor, node, binding.props.portId)
+	}
+
+	onAfterChange({ bindingBefore, bindingAfter }: BindingOnChangeOptions<ConnectionBinding>): void {
+		if (
+			bindingBefore.props.portId !== bindingAfter.props.portId ||
+			bindingBefore.toId !== bindingAfter.toId
+		) {
+			const nodeBefore = this.editor.getShape(bindingBefore.toId)
+			const nodeAfter = this.editor.getShape(bindingAfter.toId)
+			if (
+				!nodeBefore ||
+				!nodeAfter ||
+				!this.editor.isShapeOfType<NodeShape>(nodeBefore, 'node') ||
+				!this.editor.isShapeOfType<NodeShape>(nodeAfter, 'node')
+			) {
+				return
+			}
+			onNodePortDisconnect(this.editor, nodeBefore, bindingBefore.props.portId)
+			onNodePortConnect(this.editor, nodeAfter, bindingAfter.props.portId)
+		}
+	}
+
+	onAfterDelete({ binding }: BindingOnDeleteOptions<ConnectionBinding>): void {
+		const node = this.editor.getShape(binding.toId)
+		if (!node || !this.editor.isShapeOfType<NodeShape>(node, 'node')) return
+		onNodePortDisconnect(this.editor, node, binding.props.portId)
 	}
 }
 

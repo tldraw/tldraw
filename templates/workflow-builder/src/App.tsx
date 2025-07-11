@@ -114,6 +114,7 @@ function App() {
 				overrides={uiOverrides}
 				components={components}
 				onMount={(editor) => {
+					;(window as any).editor = editor
 					if (!editor.getCurrentPageShapes().some((s) => s.type === 'node')) {
 						editor.createShape({ type: 'node', x: 200, y: 200 })
 					}

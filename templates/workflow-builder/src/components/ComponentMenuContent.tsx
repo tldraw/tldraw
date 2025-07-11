@@ -9,8 +9,7 @@ import {
 	Vec,
 } from 'tldraw'
 import { NodeShape } from '../nodes/NodeShapeUtil'
-import { NodeInfo, nodeTypes } from '../nodes/nodeTypeDefinitions'
-import { NodeType } from '../nodes/nodeTypes.tsx'
+import { NodeDefinitions, NodeType } from '../nodes/nodeTypes'
 
 type TranslatingInfo = TLPointerEventInfo & {
 	target: 'shape'
@@ -30,7 +29,7 @@ export function ComponentMenuContent({
 }) {
 	const editor = useEditor()
 
-	const onPointerDown = (down: React.PointerEvent, nodeInfo: NodeInfo) => {
+	const onPointerDown = (down: React.PointerEvent, node: NodeType) => {
 		down.preventDefault()
 		down.stopPropagation()
 
@@ -146,9 +145,7 @@ export function ComponentMenuContent({
 				const partial: TLShapePartial<NodeShape> = {
 					id: shapeId,
 					type: 'node',
-					props: {
-						node: nodeInfo.getDefault(),
-					},
+					props: { node },
 				}
 				editor.createShape(partial)
 				const shape = editor.getShape<NodeShape>(shapeId)!
@@ -164,9 +161,9 @@ export function ComponentMenuContent({
 
 	return (
 		<TldrawUiMenuGroup id="math-operations">
-			{nodeTypes.map((nodeInfo) => (
+			{NodeDefinitions.map((definition) => (
 				<TldrawUiButton
-					key={nodeInfo.type}
+					key={definition.type}
 					type="menu"
 					style={{ justifyContent: 'space-between', gap: 16, cursor: 'grab' }}
 					onPointerDown={(e) => {
@@ -174,15 +171,15 @@ export function ComponentMenuContent({
 							// When used in dialog mode, just call the callback
 							e.preventDefault()
 							e.stopPropagation()
-							onNodeSelected(nodeInfo.getDefault())
+							onNodeSelected(definition.getDefault())
 						} else {
 							// Original drag behavior
-							onPointerDown(e, nodeInfo)
+							onPointerDown(e, definition.getDefault())
 						}
 					}}
 				>
-					<span>{nodeInfo.title}</span>
-					<span style={{ fontSize: '16px', fontWeight: 'bold' }}>{nodeInfo.icon}</span>
+					<span>{definition.title}</span>
+					<span style={{ fontSize: '16px', fontWeight: 'bold' }}>{definition.icon}</span>
 				</TldrawUiButton>
 			))}
 		</TldrawUiMenuGroup>
