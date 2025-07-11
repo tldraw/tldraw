@@ -96,7 +96,7 @@ This PR cherry-picks the changes from the original PR to the hotfixes branch for
 					commit_message: `This is an automated hotfix for dotcom deployment.
 
 Original PR: #${pr.number}
-Origvnal Author: @${pr.user?.login}`,
+Orignal Author: @${pr.user?.login}`,
 				})
 
 				nicelog(`Successfully merged hotfix PR #${createdPr.data.number}`)
