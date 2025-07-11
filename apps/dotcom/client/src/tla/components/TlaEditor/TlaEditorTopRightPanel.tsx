@@ -60,14 +60,14 @@ function useCtaMessage() {
 		}
 
 		const LIKELIHOOD_START = 0.25
-		const LIKELIHOOD_END = 0.02
+		const LIKELIHOOD_END = 0.0005
 
 		// Make earlier messages more likely and later messages less likely
 		const entries = Object.values(ctaMessages)
 		const messagesWithLikelihood = entries.map((entry, i) => ({
 			...entry,
 			likelihood:
-				LIKELIHOOD_START - (i * (LIKELIHOOD_START - LIKELIHOOD_END)) / (entries.length - 1),
+				LIKELIHOOD_START * Math.pow(LIKELIHOOD_END / LIKELIHOOD_START, i / (entries.length - 1)),
 		}))
 
 		// Calculate total likelihood for weighted selection
@@ -85,8 +85,6 @@ function useCtaMessage() {
 		}
 
 		// Fallback (shouldn't happen, but just in case)
-		// @ts-expect-error
-		delete messagesWithLikelihood[0].likelihood
 		return messagesWithLikelihood[0]
 	}, [])
 
