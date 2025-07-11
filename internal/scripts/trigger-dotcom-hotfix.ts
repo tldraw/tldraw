@@ -85,7 +85,7 @@ This PR cherry-picks the changes from the original PR to the hotfixes branch for
 			}
 
 			// GitHub has finished calculating, now check the result
-			if (prStatus.mergeable === true) {
+			if (prStatus.mergeable) {
 				nicelog(`PR #${createdPr.data.number} is ready for merge`)
 				await octokit.rest.pulls.merge({
 					owner: 'tldraw',
