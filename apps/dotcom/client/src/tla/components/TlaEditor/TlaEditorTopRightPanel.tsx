@@ -44,8 +44,10 @@ const ctaMessages = defineMessages({
 	freeSaves: { defaultMessage: 'Free saves' },
 	getIn: { defaultMessage: 'Get in the draw... tldraw' },
 	betterThanMiro: { defaultMessage: 'Miro but good and free' },
-	betterThanExcalidraw: { defaultMessage: 'A slightly better Excalidraw' },
-	// betterThanFigjam: { defaultMessage: 'Figjam but without the Figjm and with other letters instead in other places' },
+	betterThanExcalidraw: { defaultMessage: 'Not Excalidraw' },
+	betterThanFigjam: { defaultMessage: 'Figjam but tldraw' },
+	joinTheWaitlist: { defaultMessage: 'Join the waitlist' },
+	addFriend: { defaultMessage: 'Add friend' },
 	hey: { defaultMessage: 'Hey' },
 })
 
