@@ -49,6 +49,7 @@ export class UserPreferencesManager {
 			isDarkMode: this.getIsDarkMode(),
 			isWrapMode: this.getIsWrapMode(),
 			isDynamicResizeMode: this.getIsDynamicResizeMode(),
+			showUiLabels: this.getShowUiLabels(),
 		}
 	}
 
@@ -118,5 +119,9 @@ export class UserPreferencesManager {
 			this.user.userPreferences.get().isPasteAtCursorMode ??
 			defaultUserPreferences.isPasteAtCursorMode
 		)
+	}
+
+	@computed getShowUiLabels() {
+		return this.user.userPreferences.get().showUiLabels ?? defaultUserPreferences.showUiLabels
 	}
 }

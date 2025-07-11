@@ -1,4 +1,5 @@
 import { RecursivePartial, defaultUserPreferences, track, useMaybeEditor } from '@tldraw/editor'
+import { Tooltip as _Tooltip } from 'radix-ui'
 import { ReactNode } from 'react'
 import { TLUiAssetUrls, useDefaultUiAssetUrlsWithOverrides } from '../assetUrls'
 import { ToolsProvider } from '../hooks/useTools'
@@ -72,26 +73,28 @@ export const TldrawUiContextProvider = track(function TldrawUiContextProvider({
 	const editor = useMaybeEditor()
 	return (
 		<MimeTypeContext.Provider value={mediaMimeTypes}>
-			<AssetUrlsProvider assetUrls={useDefaultUiAssetUrlsWithOverrides(assetUrls)}>
-				<TldrawUiTranslationProvider
-					overrides={useMergedTranslationOverrides(overrides)}
-					locale={editor?.user.getLocale() ?? defaultUserPreferences.locale}
-				>
-					<TldrawUiEventsProvider onEvent={onUiEvent}>
-						<TldrawUiToastsProvider>
-							<TldrawUiDialogsProvider context={'tla'}>
-								<TldrawUiA11yProvider>
-									<BreakPointProvider forceMobile={forceMobile}>
-										<TldrawUiComponentsProvider overrides={components}>
-											<InternalProviders overrides={overrides}>{children}</InternalProviders>
-										</TldrawUiComponentsProvider>
-									</BreakPointProvider>
-								</TldrawUiA11yProvider>
-							</TldrawUiDialogsProvider>
-						</TldrawUiToastsProvider>
-					</TldrawUiEventsProvider>
-				</TldrawUiTranslationProvider>
-			</AssetUrlsProvider>
+			<_Tooltip.Provider>
+				<AssetUrlsProvider assetUrls={useDefaultUiAssetUrlsWithOverrides(assetUrls)}>
+					<TldrawUiTranslationProvider
+						overrides={useMergedTranslationOverrides(overrides)}
+						locale={editor?.user.getLocale() ?? defaultUserPreferences.locale}
+					>
+						<TldrawUiEventsProvider onEvent={onUiEvent}>
+							<TldrawUiToastsProvider>
+								<TldrawUiDialogsProvider context={'tla'}>
+									<TldrawUiA11yProvider>
+										<BreakPointProvider forceMobile={forceMobile}>
+											<TldrawUiComponentsProvider overrides={components}>
+												<InternalProviders overrides={overrides}>{children}</InternalProviders>
+											</TldrawUiComponentsProvider>
+										</BreakPointProvider>
+									</TldrawUiA11yProvider>
+								</TldrawUiDialogsProvider>
+							</TldrawUiToastsProvider>
+						</TldrawUiEventsProvider>
+					</TldrawUiTranslationProvider>
+				</AssetUrlsProvider>
+			</_Tooltip.Provider>
 		</MimeTypeContext.Provider>
 	)
 })
