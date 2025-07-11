@@ -43,10 +43,17 @@ export const AddNode: NodeDefinition<AddNode> = {
 			return acc + currentValue
 		}, 0),
 	}),
-	onPortConnect: (editor, shape) => {
+	onPortConnect: (editor, shape, _node, portId) => {
+		if (!portId.startsWith('item_')) return
+		const idx = portId.slice(5) as IndexKey
 		updateNode<AddNode>(editor, shape, (node) => ({
 			...node,
-			items: ensureFinalEmptyItem(editor, shape, node.items, { removeUnused: true }),
+			items: ensureFinalEmptyItem(
+				editor,
+				shape,
+				{ ...node.items, [idx]: node.items[idx] ?? 0 },
+				{ removeUnused: true }
+			),
 		}))
 	},
 	onPortDisconnect: (editor, shape) => {
