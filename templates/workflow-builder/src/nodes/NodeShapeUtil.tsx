@@ -15,7 +15,7 @@ import {
 import { NODE_HEADER_HEIGHT_PX, NODE_WIDTH_PX, PORT_RADIUS_PX } from '../constants'
 import { Port, ShapePort } from '../ports/Port'
 import { getNodeOutputPortValues, getNodePorts } from './nodePorts'
-import { getNodeBodyHeightPx, NodeBody, NodeType } from './nodeTypes'
+import { getNodeBodyHeightPx, NodeBody, NodeDefinitions, NodeType } from './nodeTypes'
 
 export type NodeShape = TLBaseShape<'node', { node: NodeType }>
 
@@ -27,10 +27,7 @@ export class NodeShapeUtil extends ShapeUtil<NodeShape> {
 
 	getDefaultProps(): NodeShape['props'] {
 		return {
-			node: {
-				type: 'add',
-				items: [0, 0],
-			},
+			node: NodeDefinitions[0].getDefault(),
 		}
 	}
 
