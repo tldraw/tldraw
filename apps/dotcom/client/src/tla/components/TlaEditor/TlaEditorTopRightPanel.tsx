@@ -51,6 +51,8 @@ const ctaMessages = defineMessages({
 
 function useCtaMessage() {
 	const ctaMessage = useMemo(() => {
+		if (process.env.NODE_ENV === 'test') return ctaMessages.signUp
+
 		const isFirstTime = getFromLocalStorage('tla-has-been-here')
 		if (!isFirstTime) {
 			setInLocalStorage('tla-has-been-here', 'yep')
