@@ -1863,10 +1863,11 @@ export class Editor extends EventEmitter<TLEventMap> {
 			firstParentId &&
 			selectedShapeIds.every((shapeId) => this.getShape(shapeId)?.parentId === firstParentId) &&
 			!isPageId(firstParentId)
+		const filteredShapes = isSelectedWithinContainer
+			? this.getCurrentPageShapes().filter((shape) => shape.parentId === firstParentId)
+			: this.getCurrentPageShapes().filter((shape) => isPageId(shape.parentId))
 		const readingOrderShapes = isSelectedWithinContainer
-			? this._getShapesInReadingOrder(
-					this.getCurrentPageShapes().filter((shape) => shape.parentId === firstParentId)
-				)
+			? this._getShapesInReadingOrder(filteredShapes)
 			: this.getCurrentPageShapesInReadingOrder()
 		const currentShapeId: TLShapeId | undefined =
 			selectedShapeIds.length === 1
@@ -1883,7 +1884,7 @@ export class Editor extends EventEmitter<TLEventMap> {
 			adjacentShapeId = shapeIds[adjacentIndex]
 		} else {
 			if (!currentShapeId) return
-			adjacentShapeId = this.getNearestAdjacentShape(currentShapeId, direction)
+			adjacentShapeId = this.getNearestAdjacentShape(filteredShapes, currentShapeId, direction)
 		}
 
 		const shape = this.getShape(adjacentShapeId)
@@ -1982,6 +1983,7 @@ export class Editor extends EventEmitter<TLEventMap> {
 	 * @public
 	 */
 	getNearestAdjacentShape(
+		shapes: TLShape[],
 		currentShapeId: TLShapeId,
 		direction: 'left' | 'right' | 'up' | 'down'
 	): TLShapeId {
@@ -1989,7 +1991,6 @@ export class Editor extends EventEmitter<TLEventMap> {
 		const currentShape = this.getShape(currentShapeId)
 		if (!currentShape) return currentShapeId
 
-		const shapes = this.getCurrentPageShapes()
 		const tabbableShapes = shapes.filter(
 			(shape) => this.getShapeUtil(shape).canTabTo(shape) && shape.id !== currentShapeId
 		)
