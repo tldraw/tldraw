@@ -1262,16 +1262,16 @@
 	will-change: transform, opacity;
 	z-index: 2;
 }
-.tlui-tooltip[data-state="delayed-open"][data-side="top"] {
+.tlui-tooltip[data-state='delayed-open'][data-side='top'] {
 	animation-name: slideDownAndFade;
 }
-.tlui-tooltip[data-state="delayed-open"][data-side="right"] {
+.tlui-tooltip[data-state='delayed-open'][data-side='right'] {
 	animation-name: slideLeftAndFade;
 }
-.tlui-tooltip[data-state="delayed-open"][data-side="bottom"] {
+.tlui-tooltip[data-state='delayed-open'][data-side='bottom'] {
 	animation-name: slideUpAndFade;
 }
-.tlui-tooltip[data-state="delayed-open"][data-side="left"] {
+.tlui-tooltip[data-state='delayed-open'][data-side='left'] {
 	animation-name: slideRightAndFade;
 }
 
