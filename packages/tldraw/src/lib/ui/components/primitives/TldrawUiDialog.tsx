@@ -65,7 +65,7 @@ export interface TLUiDialogBodyProps {
 /** @public @react */
 export function TldrawUiDialogBody({ className, children, style }: TLUiDialogBodyProps) {
 	return (
-		<div className={classNames('tlui-dialog__body', className)} style={style}>
+		<div className={classNames('tlui-dialog__body', className)} style={style} tabIndex={0}>
 			{children}
 		</div>
 	)
