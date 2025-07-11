@@ -972,8 +972,6 @@ async function listAllObjectKeys(bucket: R2Bucket, prefix: string): Promise<stri
 	return keys
 }
 
-const documentChunkCache = new WeakMap<object, Uint8Array>()
-
 function* generateSnapshotChunks(snapshot: RoomSnapshot, clock: number): Generator<Uint8Array> {
 	const encoder = new TextEncoder()
 
@@ -985,14 +983,7 @@ function* generateSnapshotChunks(snapshot: RoomSnapshot, clock: number): Generat
 
 	for (let i = 0; i < snapshot.documents.length; i++) {
 		const document = snapshot.documents[i]
-		const cachedChunk = documentChunkCache.get(document)
-		if (cachedChunk) {
-			yield cachedChunk
-		} else {
-			const chunk = encoder.encode(JSON.stringify(document))
-			documentChunkCache.set(document, chunk)
-			yield chunk
-		}
+		yield encoder.encode(JSON.stringify(document))
 		if (i < snapshot.documents.length - 1) {
 			yield encoder.encode(',')
 		}
