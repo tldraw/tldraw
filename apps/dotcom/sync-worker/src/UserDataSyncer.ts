@@ -18,7 +18,12 @@ import throttle from 'lodash.throttle'
 import { Logger } from './Logger'
 import { fetchEverythingSql } from './fetchEverythingSql.snap'
 import { parseResultRow } from './parseResultRow'
-import { getSubscriptionChanges } from './replicator/Subscription'
+import { TopicSubscriptionTree, getSubscriptionChanges } from './replicator/Subscription'
+import {
+	USER_REGISTRATION_MESSAGE_PREFIX,
+	USER_REGISTRATION_VERSION,
+	UserRegistrationNotification,
+} from './replicator/replicatorTypes'
 import { Environment, TLUserDurableObjectEvent, getUserDoSnapshotKey } from './types'
 import { getReplicator, getStatsDurableObjct } from './utils/durableObjects'
 import { retryOnConnectionFailure } from './utils/retryOnConnectionFailure'
@@ -67,9 +72,13 @@ type BootState =
 			promise: PromiseWithResolve
 	  }
 	| {
-			type: 'connecting'
+			type: 'connecting_soft'
 			bootId: string
 			bufferedEvents: Array<ZReplicationEvent>
+	  }
+	| {
+			type: 'connecting_hard'
+			bootId: string
 	  }
 	| {
 			type: 'connected'
@@ -255,12 +264,12 @@ export class UserDataSyncer {
 			return null
 		}
 		this.log.debug('loaded snapshot from R2')
-		this.logEvent({ type: 'found_snapshot', id: this.userId })
+		this.logEvent({ type: 'fast_resume', id: this.userId })
 		return data
 	}
 
-	private async loadInitialDataFromPostgres(hard: boolean, signal: AbortSignal) {
-		this.logEvent({ type: hard ? 'full_data_fetch_hard' : 'full_data_fetch', id: this.userId })
+	private async loadInitialDataFromPostgres(signal: AbortSignal, bootId: string) {
+		this.logEvent({ type: 'full_data_fetch_hard', id: this.userId })
 		this.log.debug('fetching fresh initial data from postgres')
 		// if the bootId changes during the boot process, we should stop silently
 		const initialData: ZStoreData & { mutationNumber?: number } = {
@@ -282,7 +291,6 @@ export class UserDataSyncer {
 
 				await this.db.transaction().execute(async (tx) => {
 					const result = await tx.executeQuery(CompiledQuery.raw(fetchEverythingSql, [this.userId]))
-					assert(this.state.type === 'connecting', 'state should be connecting in boot')
 					if (signal.aborted) return
 					for (const _row of result.rows) {
 						const { table, row } = parseResultRow(_row)
@@ -304,6 +312,28 @@ export class UserDataSyncer {
 								initialData[table].push(row)
 						}
 					}
+
+					// Extract topic subscriptions and send notification
+					const topicSubscriptions: TopicSubscriptionTree = {}
+					for (const file_state of initialData.file_state) {
+						topicSubscriptions[`file:${file_state.fileId}`] = 1
+					}
+
+					// Send notification to replicator to register user
+					const notificationPayload: UserRegistrationNotification = {
+						version: USER_REGISTRATION_VERSION,
+						userId: this.userId,
+						bootId,
+						topicSubscriptions,
+					}
+					this.log.debug('sending user registration notification', notificationPayload)
+
+					await tx.executeQuery(
+						CompiledQuery.raw(`SELECT pg_logical_emit_message(true, $1, $2)`, [
+							USER_REGISTRATION_MESSAGE_PREFIX,
+							JSON.stringify(notificationPayload),
+						])
+					)
 				})
 			},
 			() => {
@@ -320,93 +350,98 @@ export class UserDataSyncer {
 		} satisfies StateSnapshot
 	}
 
-	private async boot(hard: boolean, signal: AbortSignal): Promise<void> {
-		this.log.debug('boot hard:', hard)
-		// todo: clean up old resources if necessary?
-		const start = Date.now()
+	private async hardBoot(signal: AbortSignal) {
 		this.state = {
-			type: 'connecting',
-			// preserve the promise so any awaiters do eventually get resolved
+			type: 'connecting_hard',
 			bootId: uniqueId(),
-			bufferedEvents: [],
-		}
-		let resumeData: { sequenceId: string; lastSequenceNumber: number } | null = null
-		/**
-		 * BOOTUP SEQUENCE
-		 * 1. Generate a unique boot id
-		 * 2. Fetch data from R2, or fetch fresh data from postgres
-		 * 3. Send initial data to client
-		 * 4. Register with the replicator
-		 * 5. Ignore any events that come in before the sequence id ends with our boot id
-		 * 6. Buffer any events that come in with a valid sequence id
-		 * 7. Once the replicator responds to the registration request, apply the buffered events
-		 */
-		if (!this.store.getCommittedData() || hard) {
-			const res =
-				(!hard && (await this.loadInitialDataFromR2(signal))) ||
-				(await this.loadInitialDataFromPostgres(hard, signal))
-
-			if (signal.aborted) return
-
-			this.log.debug('got initial data')
-			this.store.initialize(res.initialData, res.optimisticUpdates)
-			this.broadcast({
-				type: 'initial_data',
-				initialData: res.initialData,
-			})
-			if (
-				'mutationNumber' in res.initialData &&
-				typeof res.initialData.mutationNumber === 'number'
-			) {
-				this.commitMutations(res.initialData.mutationNumber)
-			}
-			if (res.sequenceId !== notASequenceId) {
-				resumeData = { sequenceId: res.sequenceId, lastSequenceNumber: res.lastSequenceNumber }
-			}
 		}
 
-		const initialData = this.store.getCommittedData()!
+		const res = await this.loadInitialDataFromPostgres(signal, this.state.bootId)
+		if (signal.aborted) return
+		this.store.initialize(res.initialData, [])
 
-		const guestFileIds = initialData.file.filter((f) => f.ownerId !== this.userId).map((f) => f.id)
+		// Wait for the state to change to connected, this allows the timeout logic
+		// in the caller to abort the boot process
+		while (!signal.aborted && (this.state as BootState).type !== 'connected') {
+			await sleep(50)
+		}
+	}
+
+	private async softBoot(signal: AbortSignal) {
+		const bufferedEvents: ZReplicationEvent[] = []
+		this.state = {
+			type: 'connecting_soft',
+			bootId: uniqueId(),
+			bufferedEvents,
+		}
+		const res = await this.loadInitialDataFromR2(signal)
+		if (signal.aborted) return
+		if (!res) {
+			return this.boot(true, signal)
+		}
+
+		this.store.initialize(res.initialData, res.optimisticUpdates)
+		this.broadcast({
+			type: 'initial_data',
+			initialData: res.initialData,
+		})
 
 		if (
-			!resumeData ||
+			res.sequenceId === notASequenceId ||
 			!(await getReplicator(this.env).resumeSequence({
 				userId: this.userId,
-				sequenceId: resumeData.sequenceId,
-				lastSequenceNumber: resumeData.lastSequenceNumber,
+				sequenceId: res.sequenceId,
+				lastSequenceNumber: res.lastSequenceNumber,
 			}))
 		) {
-			const res = await getReplicator(this.env).registerUser({
-				userId: this.userId,
-				lsn: initialData.lsn,
-				guestFileIds,
-				bootId: this.state.bootId,
-			})
-
-			if (signal.aborted) {
-				this.log.debug('aborting because of timeout')
-				return
-			}
-
-			if (res.type === 'reboot') {
-				this.logEvent({ type: 'not_enough_history_for_fast_reboot', id: this.userId })
-				if (hard) throw new Error('reboot loop, waiting')
-				return this.boot(true, signal)
-			}
-			resumeData = { sequenceId: res.sequenceId, lastSequenceNumber: res.sequenceNumber }
+			if (signal.aborted) return
+			return this.boot(true, signal)
 		}
 
-		const bufferedEvents = this.state.bufferedEvents
 		this.state = {
 			type: 'connected',
 			bootId: this.state.bootId,
-			sequenceId: resumeData.sequenceId,
-			lastSequenceNumber: resumeData.lastSequenceNumber,
+			sequenceId: res.sequenceId,
+			lastSequenceNumber: res.lastSequenceNumber,
 		}
 
-		if (bufferedEvents.length > 0) {
-			bufferedEvents.forEach((event) => this.handleReplicationEvent(event))
+		for (const event of bufferedEvents) {
+			this.handleReplicationEvent(event)
+		}
+	}
+
+	/**
+	 * Boot logic for UserDataSyncer with two-phase initialization:
+	 *
+	 * 1. SOFT BOOT (hard=false): Attempts fast resume from R2 snapshot
+	 *    - Loads cached state from R2 storage
+	 *    - Tries to resume replication sequence from replicator
+	 *    - Falls back to hard boot if snapshot is missing/invalid or sequence resume fails
+	 *    - Immediately transitions to 'connected' state and processes buffered events
+	 *
+	 * 2. HARD BOOT (hard=true): Full initialization from PostgreSQL
+	 *    - Fetches fresh data directly from database
+	 *    - Sends user registration notification to replicator
+	 *    - Transitions to 'connecting_hard' state, waiting for first replication event
+	 *    - Only becomes 'connected' when first event arrives with sequence info
+	 *
+	 * State transitions:
+	 * - 'connecting': Events are buffered, waiting for sequence info
+	 * - 'connecting_hard': Waiting for first replication event after hard boot
+	 * - 'connected': Fully operational, processing events in sequence
+	 *
+	 * The bootId ensures events from previous boot attempts are ignored,
+	 * and sequence numbers guarantee ordered event processing.
+	 */
+	private async boot(hard: boolean, signal: AbortSignal): Promise<void> {
+		this.log.debug('boot hard:', hard)
+		const start = Date.now()
+		// fine to discard previous buffered events because we're generating a new bootId
+
+		if (hard) {
+			await this.hardBoot(signal)
+		} else {
+			await this.softBoot(signal)
 		}
 
 		const end = Date.now()
@@ -452,16 +487,28 @@ export class UserDataSyncer {
 
 		// ignore irrelevant events
 		if (!event.sequenceId.endsWith(this.state.bootId)) {
-			this.log.debug('ignoring irrelevant event', event)
+			this.log.debug('ignoring irrelevant event', event.sequenceId, this.state.bootId)
 			return
 		}
 
 		// buffer events until we know the sequence numbers
-		if (this.state.type === 'connecting') {
+		if (this.state.type === 'connecting_soft') {
 			this.log.debug('buffering event', event)
 			this.state.bufferedEvents.push(event)
 			return
 		}
+
+		if (this.state.type === 'connecting_hard') {
+			// connected now
+			this.state = {
+				type: 'connected',
+				bootId: this.state.bootId,
+				sequenceId: event.sequenceId,
+				lastSequenceNumber: event.sequenceNumber - 1,
+			}
+		}
+
+		assert(this.state.type === 'connected', 'state should be connected now')
 
 		if (this.state.sequenceId !== event.sequenceId) {
 			// the replicator has restarted, so we need to reboot
@@ -500,9 +547,33 @@ export class UserDataSyncer {
 				.map((ev) => ({ row: ev.row, event: { command: ev.event, table: ev.table } }))
 		)
 
-		if (topicUpdates.newSubscriptions?.length || topicUpdates.removedSubscriptions?.length) {
-			this.reboot({ hard: true, delay: false, source: 'handleReplicationEvent(hard reboot)' })
+		if (topicUpdates.removedSubscriptions && topicUpdates.removedSubscriptions.length > 0) {
+			this.reboot({
+				hard: true,
+				delay: false,
+				source: 'handleReplicationEvent(removed subscription)',
+			})
 			return
+		}
+
+		// if we encounter a new subscription for the user to a file, and the file is not in the store,
+		// we can add the file to the store directly instead of doing a hard reboot
+		for (const update of topicUpdates.newSubscriptions ?? []) {
+			// Only handle user-to-file subscriptions, reboot for everything else
+			if (update.fromTopic === `user:${this.userId}` && update.toTopic.startsWith('file:')) {
+				const fileId = update.toTopic.split(':')[1]
+				if (!this.store.getCommittedData()?.file.find((f) => f.id === fileId)) {
+					this.log.debug('new subscription, adding guest file', fileId)
+					this.addGuestFile(fileId)
+				}
+			} else {
+				this.reboot({
+					hard: true,
+					delay: false,
+					source: 'handleReplicationEvent(new subscription)',
+				})
+				return
+			}
 		}
 
 		transact(() => {
@@ -529,12 +600,15 @@ export class UserDataSyncer {
 	}
 
 	async addGuestFile(fileOrId: string | TlaFile) {
+		assert('bootId' in this.state, 'bootId should be in state')
+		const bootId = this.state.bootId
 		const file =
 			typeof fileOrId === 'string'
 				? await this.db.selectFrom('file').where('id', '=', fileOrId).selectAll().executeTakeFirst()
 				: fileOrId
 		if (!file) return
 		if (file.ownerId !== this.userId && !file.shared) return
+		if (this.state.bootId !== bootId) return
 		const update: ZRowUpdate = {
 			event: 'insert',
 			row: file,

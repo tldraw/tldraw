@@ -15,24 +15,6 @@ export interface Subscription {
 	toTopic: Topic
 }
 
-export function serializeSubscriptions(ops: Subscription[]): string | null {
-	if (ops.length === 0) {
-		return null
-	}
-	// Format: "fromTopic\toTopic,fromTopic\toTopic"
-	// Using backslash as separator since topics contain colons
-	return ops.map((op) => `${op.fromTopic}\\${op.toTopic}`).join(',')
-}
-
-export function parseSubscriptions(str: string | null): Subscription[] | null {
-	if (!str) return null
-	// Split by comma for multiple subscriptions, then by backslash for topic pairs
-	return str.split(',').map((op) => {
-		const [fromTopic, toTopic] = op.split('\\') as [Topic, Topic]
-		return { fromTopic, toTopic }
-	})
-}
-
 export function getSubscriptionChanges(changes: Array<{ row: TlaRow; event: ReplicationEvent }>): {
 	newSubscriptions: Subscription[] | null
 	removedSubscriptions: Subscription[] | null
@@ -68,4 +50,39 @@ export function getSubscriptionChanges(changes: Array<{ row: TlaRow; event: Repl
 		newSubscriptions: newSubscriptions.length > 0 ? newSubscriptions : null,
 		removedSubscriptions: removedSubscriptions.length > 0 ? removedSubscriptions : null,
 	}
+}
+
+export type TopicSubscriptionTree = {
+	[key in Topic]: 1 | TopicSubscriptionTree
+}
+
+/**
+ * Recursively traverses a topic subscription graph and returns an array of subscriptions.
+ * For example, given {a: {b: {c: 1, d: {e: 1}}}} it returns [a->b, b->c, b->d, d->e]
+ */
+export function parseTopicSubscriptionTree(
+	graph: TopicSubscriptionTree,
+	parentTopic?: Topic
+): Subscription[] {
+	const subscriptions: Subscription[] = []
+
+	function traverse(node: TopicSubscriptionTree, parentTopic?: Topic) {
+		for (const [topic, value] of Object.entries(node)) {
+			// If we have a parent topic, create a subscription from parent to this topic
+			if (parentTopic) {
+				subscriptions.push({
+					fromTopic: parentTopic,
+					toTopic: topic as Topic,
+				})
+			}
+
+			// If the value is an object (not 1), recursively traverse it
+			if (typeof value === 'object') {
+				traverse(value, topic as Topic)
+			}
+		}
+	}
+
+	traverse(graph, parentTopic)
+	return subscriptions
 }

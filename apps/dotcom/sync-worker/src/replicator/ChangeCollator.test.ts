@@ -2,8 +2,8 @@ import { unlinkSync } from 'node:fs'
 import { tmpdir } from 'node:os'
 import { join } from 'node:path'
 import { DatabaseSync } from 'node:sqlite'
-import { CatchUpChangeCollator, LiveChangeCollator, getEffects } from './ChangeCollator'
-import { Subscription, serializeSubscriptions } from './Subscription'
+import { ChangeCollator, getEffects } from './ChangeCollator'
+import { Subscription } from './Subscription'
 import { migrate } from './replicatorMigrations'
 import { ChangeV2, Topic } from './replicatorTypes'
 import {
@@ -237,30 +237,8 @@ describe('ChangeCollator', () => {
 		})
 	})
 
-	describe('serializeSubscriptions', () => {
-		it('should serialize empty array to null', () => {
-			expect(serializeSubscriptions([])).toBe(null)
-		})
-
-		it('should serialize single subscription', () => {
-			const subscriptions: Subscription[] = [{ fromTopic: 'user:alice', toTopic: 'file:doc1' }]
-			expect(serializeSubscriptions(subscriptions)).toBe('user:alice\\file:doc1')
-		})
-
-		it('should serialize multiple subscriptions', () => {
-			const subscriptions: Subscription[] = [
-				{ fromTopic: 'user:alice', toTopic: 'file:doc1' },
-				{ fromTopic: 'user:bob', toTopic: 'file:doc2' },
-				{ fromTopic: 'user:charlie', toTopic: 'file:doc3' },
-			]
-			expect(serializeSubscriptions(subscriptions)).toBe(
-				'user:alice\\file:doc1,user:bob\\file:doc2,user:charlie\\file:doc3'
-			)
-		})
-	})
-
-	// Database-based integration tests for LiveChangeCollator and CatchUpChangeCollator
-	describe('LiveChangeCollator and CatchUpChangeCollator Integration Tests', () => {
+	// Database-based integration tests for ChangeCollator
+	describe('ChangeCollator Integration Tests', () => {
 		let db: DatabaseSync
 		let sqlStorage: SqlStorageAdapter
 		let dbPath: string
@@ -285,15 +263,11 @@ describe('ChangeCollator', () => {
 			}
 		})
 
-		describe('LiveChangeCollator', () => {
-			let collator: LiveChangeCollator
+		describe('ChangeCollator', () => {
+			let collator: ChangeCollator
 
 			beforeEach(() => {
-				collator = new LiveChangeCollator(sqlStorage as any)
-			})
-
-			it('should have correct isCatchUp property', () => {
-				expect(collator.isCatchUp).toBe(false)
+				collator = new ChangeCollator(sqlStorage as any)
 			})
 
 			it('should always return true for hasListenerForTopics', () => {
@@ -528,266 +502,15 @@ describe('ChangeCollator', () => {
 				expect(collator.changes.get('alice')).toHaveLength(1)
 			})
 		})
-
-		describe('CatchUpChangeCollator', () => {
-			let collator: CatchUpChangeCollator
-
-			beforeEach(() => {
-				// Set up some initial subscriptions in the database
-				sqlStorage.exec(
-					`INSERT INTO topic_subscription (fromTopic, toTopic) VALUES ('user:alice', 'file:doc1')`
-				)
-				sqlStorage.exec(
-					`INSERT INTO topic_subscription (fromTopic, toTopic) VALUES ('user:alice', 'file:doc5')`
-				)
-				sqlStorage.exec(
-					`INSERT INTO topic_subscription (fromTopic, toTopic) VALUES ('file:doc1', 'user:bob')`
-				)
-				sqlStorage.exec(
-					`INSERT INTO topic_subscription (fromTopic, toTopic) VALUES ('user:jeff', 'file:doc1')`
-				)
-
-				collator = new CatchUpChangeCollator(sqlStorage as any, 'alice')
-			})
-
-			it('should have correct isCatchUp property', () => {
-				expect(collator.isCatchUp).toBe(true)
-			})
-
-			it('should initialize with user topic', () => {
-				expect(collator.userTopic).toBe('user:alice')
-			})
-
-			it('should initialize subscription state from database during construction', () => {
-				// Verify that the constructor properly read the pre-existing subscriptions:
-				// user:alice -> file:doc1 -> user:bob
-				// Alice should be able to receive changes for all three topics
-
-				expect(collator.hasListenerForTopics(['user:alice'])).toBe(true) // Own topic
-				expect(collator.hasListenerForTopics(['file:doc1'])).toBe(true) // Direct subscription
-				expect(collator.hasListenerForTopics(['user:bob'])).toBe(true) // Transitive through file:doc1
-
-				// Verify internal state was built correctly
-				expect(collator.userSubscriptions.has('file:doc1')).toBe(true) // Direct subscription
-				expect(collator.userSubscriptions.has('user:bob')).toBe(true) // Transitive subscription
-				expect(collator.topicGraph.size).toBe(2)
-				// Verify the topic graph contains the expected edges
-				expect(collator.topicGraph.get('user:alice')).toEqual(new Set(['file:doc1', 'file:doc5']))
-				expect(collator.topicGraph.get('file:doc1')).toEqual(new Set(['user:bob']))
-				// no mention of jeff
-			})
-
-			it('should initialize with empty subscription state', () => {
-				const emptyCollator = new CatchUpChangeCollator(sqlStorage as any, 'newuser')
-				expect(emptyCollator.userSubscriptions.size).toBe(0)
-				expect(emptyCollator.topicGraph.size).toBe(0)
-			})
-
-			it('should correctly identify relevant topics', () => {
-				expect(collator.hasListenerForTopics(['user:alice'])).toBe(true) // Own topic
-				expect(collator.hasListenerForTopics(['file:doc1'])).toBe(true) // Subscribed topic
-				expect(collator.hasListenerForTopics(['user:bob'])).toBe(true) // Transitively subscribed
-				expect(collator.hasListenerForTopics(['file:other'])).toBe(false) // Not subscribed
-				expect(collator.hasListenerForTopics(['file:doc5'])).toBe(true) // Direct subscription
-				expect(collator.hasListenerForTopics(['user:jeff'])).toBe(false) // Not subscribed
-			})
-
-			it('should only collect changes for relevant topics', () => {
-				const relevantChange = createMockFileChange('doc1', 'owner1')
-				const irrelevantChange = createMockFileChange('other', 'owner2', {
-					name: 'Other Document',
-				})
-
-				// File changes generate both file topic and file owner's user topic
-				collator.addChangeForTopics(['file:doc1', 'user:owner1'], relevantChange)
-				collator.addChangeForTopics(['file:other', 'user:owner2'], irrelevantChange)
-
-				expect(collator._changes).toEqual([relevantChange])
-				// it doesn't bother with other users
-				expect(collator.changes.get('owner2')).toEqual(undefined)
-			})
-
-			it('should update subscription state when adding subscriptions', () => {
-				const initialSize = collator.userSubscriptions.size
-
-				collator.addSubscriptions([{ fromTopic: 'user:alice', toTopic: 'file:doc2' }])
-
-				expect(collator.userSubscriptions.size).toBeGreaterThan(initialSize)
-				expect(collator.userSubscriptions.has('file:doc2')).toBe(true)
-
-				expect(collator.topicGraph.get('user:alice')).toEqual(
-					new Set(['file:doc1', 'file:doc2', 'file:doc5'])
-				)
-			})
-
-			it('should only process subscription changes that affect this user', () => {
-				const initialSize = collator.userSubscriptions.size
-
-				// Add a subscription that doesn't affect this user
-				collator.addSubscriptions([{ fromTopic: 'user:charlie', toTopic: 'file:doc3' }])
-				collator.addSubscriptions([{ fromTopic: 'user:jeff', toTopic: 'file:doc5' }])
-
-				// Subscription state should not change
-				expect(collator.userSubscriptions.size).toBe(initialSize)
-			})
-
-			it('should handle user topic changes correctly', () => {
-				const userChange = createMockUserChange('alice')
-
-				collator.addChangeForTopics(['user:alice'], userChange)
-
-				expect(collator._changes).toContain(userChange)
-			})
-
-			it('should maintain changes array in correct order', () => {
-				const change1 = createMockFileChange('doc1', 'owner1')
-				const change2 = createMockUserChange('alice')
-
-				// File changes generate both file topic and file owner's user topic
-				collator.addChangeForTopics(['file:doc1', 'user:owner1'], change1)
-				collator.addChangeForTopics(['user:alice'], change2)
-
-				expect(collator._changes).toEqual([change1, change2])
-			})
-
-			it('should remove direct subscriptions and update internal state', () => {
-				const initialSubscriptions = collator.userSubscriptions.size
-
-				// Remove alice's direct subscription to file:doc5
-				collator.removeSubscriptions([{ fromTopic: 'user:alice', toTopic: 'file:doc5' }])
-
-				// Alice should no longer be able to listen to file:doc5
-				expect(collator.hasListenerForTopics(['file:doc5'])).toBe(false)
-				expect(collator.userSubscriptions.has('file:doc5')).toBe(false)
-				expect(collator.userSubscriptions.size).toBeLessThan(initialSubscriptions)
-
-				// Verify topicGraph was updated - should only contain file:doc1 and file:doc2 (added in previous test)
-				const aliceSubscriptions = collator.topicGraph.get('user:alice')
-				expect(aliceSubscriptions).toBeDefined()
-				expect(aliceSubscriptions!.has('file:doc5')).toBe(false) // Should not contain removed subscription
-				expect(aliceSubscriptions!.has('file:doc1')).toBe(true) // Should still contain original subscription
-
-				// Alice should still have other subscriptions
-				expect(collator.hasListenerForTopics(['file:doc1'])).toBe(true)
-				expect(collator.hasListenerForTopics(['user:bob'])).toBe(true) // Still transitive through file:doc1
-			})
-
-			it('should remove transitive subscriptions when intermediate subscription is removed', () => {
-				// First establish that Alice has transitive access to user:bob through the chain:
-				// alice -> file:doc1 -> user:bob (set up in beforeEach)
-
-				// Verify the transitive subscription is working
-				expect(collator.hasListenerForTopics(['user:bob'])).toBe(true) // Transitive through file:doc1
-				expect(collator.userSubscriptions.has('user:bob')).toBe(true) // Should be in computed subscriptions
-
-				// Remove the intermediate link: file:doc1 -> user:bob
-				collator.removeSubscriptions([{ fromTopic: 'file:doc1', toTopic: 'user:bob' }])
-
-				// Now Alice should lose transitive access to user:bob
-				expect(collator.hasListenerForTopics(['user:bob'])).toBe(false)
-				expect(collator.userSubscriptions.has('user:bob')).toBe(false)
-
-				// But Alice should still have direct access to file:doc1
-				expect(collator.hasListenerForTopics(['file:doc1'])).toBe(true)
-				expect(collator.userSubscriptions.has('file:doc1')).toBe(true)
-
-				// Verify topicGraph was updated - file:doc1 no longer has outgoing edges
-				expect(collator.topicGraph.get('file:doc1')).toBeUndefined()
-			})
-
-			it('should not collect changes for removed topics', () => {
-				// Remove alice's subscription to file:doc5
-				collator.removeSubscriptions([{ fromTopic: 'user:alice', toTopic: 'file:doc5' }])
-
-				const changeForRemovedTopic = createMockFileChange('doc5', 'owner5')
-				const changeForValidTopic = createMockFileChange('doc1', 'owner1')
-
-				// Try to add changes for both topics
-				collator.addChangeForTopics(['file:doc5', 'user:owner5'], changeForRemovedTopic)
-				collator.addChangeForTopics(['file:doc1', 'user:owner1'], changeForValidTopic)
-
-				// Only the change for the valid topic should be collected
-				expect(collator._changes).toEqual([changeForValidTopic])
-				expect(collator._changes).not.toContain(changeForRemovedTopic)
-			})
-
-			it('should handle removing non-existent subscriptions gracefully', () => {
-				const initialState = {
-					userSubscriptions: new Set(collator.userSubscriptions),
-					topicGraphSize: collator.topicGraph.size,
-				}
-
-				// Try to remove a subscription that doesn't exist
-				collator.removeSubscriptions([{ fromTopic: 'user:alice', toTopic: 'file:nonexistent' }])
-
-				// State should remain unchanged
-				expect(collator.userSubscriptions).toEqual(initialState.userSubscriptions)
-				expect(collator.topicGraph.size).toBe(initialState.topicGraphSize)
-			})
-
-			it('should ignore subscription removals that do not affect this user', () => {
-				const initialState = {
-					userSubscriptions: new Set(collator.userSubscriptions),
-					topicGraphSize: collator.topicGraph.size,
-				}
-
-				// Remove a subscription for a different user
-				collator.removeSubscriptions([{ fromTopic: 'user:jeff', toTopic: 'file:doc1' }])
-
-				// Alice's subscription state should remain unchanged
-				expect(collator.userSubscriptions).toEqual(initialState.userSubscriptions)
-				expect(collator.topicGraph.size).toBe(initialState.topicGraphSize)
-				expect(collator.hasListenerForTopics(['file:doc1'])).toBe(true) // Alice still subscribed
-			})
-
-			it('should not collect effects during catch-up', () => {
-				const change = createMockFileChangeV2('doc1', 'alice', 'update', {
-					published: true,
-					lastPublished: 200,
-					previous: {
-						id: 'doc1',
-						ownerId: 'alice',
-						published: false,
-						lastPublished: 100,
-					},
-				})
-
-				collator.handleEvent(change)
-
-				// CatchUpChangeCollator should not collect effects during catch-up
-				expect(collator.effects).toHaveLength(0)
-				// But it should still collect the change itself
-				expect(collator._changes).toHaveLength(1)
-			})
-
-			it('should still process changes normally during catch-up', () => {
-				const change = createMockFileChangeV2('doc1', 'alice', 'insert')
-
-				collator.handleEvent(change)
-
-				// Should collect the change but not the effects
-				expect(collator._changes).toHaveLength(1)
-				expect(collator.effects).toHaveLength(0)
-			})
-
-			it('should return early when user has no subscription to topics', () => {
-				const change = createMockFileChangeV2('unsubscribed-file', 'other-owner', 'update')
-
-				collator.handleEvent(change)
-
-				// Should not collect any changes since alice is not subscribed to this file
-				expect(collator._changes).toHaveLength(0)
-			})
-		})
 	})
 })
 
 /* eslint-disable no-console */
-describe.skip('LiveChangeCollator Performance Tests', () => {
+describe.skip('ChangeCollator Performance Tests', () => {
 	let db: DatabaseSync
 	let sqlStorage: SqlStorageAdapter
 	let dbPath: string
-	let collator: LiveChangeCollator
+	let collator: ChangeCollator
 
 	// Helper to generate user topics
 	const generateUserTopic = (userId: number): Topic => `user:user${userId}` as Topic
@@ -808,7 +531,7 @@ describe.skip('LiveChangeCollator Performance Tests', () => {
 
 		// Run migrations
 		migrate(sqlStorage as any, new MockLogger() as any)
-		collator = new LiveChangeCollator(sqlStorage as any)
+		collator = new ChangeCollator(sqlStorage as any)
 
 		console.log('Seeding large topic subscription graph...')
 		const startTime = Date.now()
