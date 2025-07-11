@@ -1,6 +1,7 @@
 /// <reference no-default-lib="true"/>
 /// <reference types="@cloudflare/workers-types" />
 
+import { JSONParser } from '@streamparser/json-whatwg'
 import { SupabaseClient } from '@supabase/supabase-js'
 import {
 	APP_ASSET_UPLOAD_ENDPOINT,
@@ -579,7 +580,8 @@ export class TLDrawDurableObject extends DurableObject {
 			// when loading, prefer to fetch documents from the bucket
 			const roomFromBucket = await this.r2.rooms.get(key)
 			if (roomFromBucket) {
-				return { type: 'room_found', snapshot: await roomFromBucket.json() }
+				const snapshot = await parseJsonObjectFromStream(roomFromBucket.body)
+				return { type: 'room_found', snapshot }
 			}
 			if (this._fileRecordCache?.createSource) {
 				const res = await this.handleFileCreateFromSource()
@@ -997,4 +999,18 @@ function* generateSnapshotChunks(snapshot: RoomSnapshot, clock: number): Generat
 	}
 
 	yield encoder.encode(`]}`)
+}
+
+async function parseJsonObjectFromStream(stream: ReadableStream<Uint8Array>) {
+	const parser = new JSONParser({ paths: ['$'] })
+
+	const reader = stream.pipeThrough(parser).getReader()
+
+	let result = null as any
+	while (true) {
+		const { done, value } = await reader.read()
+		if (done) break
+		result = value.value
+	}
+	return result
 }
