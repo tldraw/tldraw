@@ -1,4 +1,5 @@
-import { Editor, TLShapeId } from 'tldraw'
+import { Editor, TLShapeId, VecModel } from 'tldraw'
+import { NodeType } from './nodes/nodeTypes'
 import { PortIdentifier } from './ports/Port'
 import { EditorState } from './utils'
 
@@ -16,7 +17,9 @@ export function updatePortState(editor: Editor, update: Partial<PortState>) {
 
 export interface OnCanvasComponentPickerState {
 	connectionShapeId: TLShapeId
-	terminal: 'start' | 'end'
+	location: 'start' | 'end' | 'middle'
+	onPick: (nodeType: NodeType, position: VecModel) => void
+	onClose: () => void
 }
 
 export const onCanvasComponentPickerState = new EditorState<OnCanvasComponentPickerState | null>(

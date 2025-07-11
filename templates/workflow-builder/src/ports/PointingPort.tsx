@@ -1,5 +1,8 @@
 import { createShapeId, StateNode, TLPointerEventInfo, TLShapeId } from 'tldraw'
-import { createOrUpdateConnectionBinding } from '../connection/ConnectionBindingUtil'
+import {
+	createOrUpdateConnectionBinding,
+	getConnectionBindings,
+} from '../connection/ConnectionBindingUtil'
 import { ConnectionShape } from '../connection/ConnectionShapeUtil.tsx'
 import { getNextConnectionIndex } from '../connection/keepConnectionsAtBottom'
 import {
@@ -7,7 +10,7 @@ import {
 	NODE_HEADER_HEIGHT_PX,
 	NODE_PORT_OFFSET_Y_PX,
 } from '../constants.tsx'
-import { getNodePortConnections } from '../nodes/nodePorts'
+import { getNodePortConnections, getNodePorts } from '../nodes/nodePorts'
 import { PortId } from '../ports/Port'
 import { onCanvasComponentPickerState } from '../state.tsx'
 
@@ -191,7 +194,46 @@ export class PointingPort extends StateNode {
 
 		onCanvasComponentPickerState.set(this.editor, {
 			connectionShapeId,
-			terminal: 'end',
+			location: 'end',
+			onPick: (nodeType, terminalInPageSpace) => {
+				const newNodeId = createShapeId()
+				this.editor.createShape({
+					type: 'node',
+					id: newNodeId,
+					x: terminalInPageSpace.x,
+					y: terminalInPageSpace.y,
+					props: {
+						node: nodeType,
+					},
+				})
+				this.editor.select(newNodeId)
+
+				const ports = getNodePorts(this.editor, newNodeId)
+				const firstInputPort = Object.values(ports).find((p) => p.terminal === 'end')
+				if (firstInputPort) {
+					this.editor.updateShape({
+						id: newNodeId,
+						type: 'node',
+						x: terminalInPageSpace.x - firstInputPort.x,
+						y: terminalInPageSpace.y - firstInputPort.y,
+					})
+
+					createOrUpdateConnectionBinding(this.editor, connectionShapeId, newNodeId, {
+						portId: firstInputPort.id,
+						terminal: 'end',
+					})
+				}
+			},
+			onClose: () => {
+				const connection = this.editor.getShape(connectionShapeId)
+				if (!connection || !this.editor.isShapeOfType<ConnectionShape>(connection, 'connection'))
+					return
+
+				const bindings = getConnectionBindings(this.editor, connection)
+				if (!bindings.start || !bindings.end) {
+					this.editor.deleteShapes([connection.id])
+				}
+			},
 		})
 
 		// Create dialog component with closure and show it

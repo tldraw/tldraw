@@ -1,4 +1,5 @@
 import {
+	createShapeId,
 	DefaultToolbar,
 	DefaultToolbarContent,
 	Editor,
@@ -12,9 +13,14 @@ import { DraggingHandle } from 'tldraw/src/lib/tools/SelectTool/childStates/Drag
 import { InsertComponentDialog } from './components/InsertComponentDialog'
 import { InsertComponentPanel } from './components/InsertComponentPanel'
 import { OnCanvasComponentPicker } from './components/OnCanvasComponentPicker.tsx'
-import { ConnectionBindingUtil, getConnectionBindings } from './connection/ConnectionBindingUtil'
+import {
+	ConnectionBindingUtil,
+	createOrUpdateConnectionBinding,
+	getConnectionBindings,
+} from './connection/ConnectionBindingUtil'
 import { ConnectionShape, ConnectionShapeUtil } from './connection/ConnectionShapeUtil'
 import { keepConnectionsAtBottom } from './connection/keepConnectionsAtBottom'
+import { getNodePorts } from './nodes/nodePorts.tsx'
 import { NodeShapeUtil } from './nodes/NodeShapeUtil'
 import { PointingPort } from './ports/PointingPort'
 import { onCanvasComponentPickerState, updatePortState } from './state.tsx'
@@ -147,7 +153,42 @@ function draggingHandleOverrides(editor: Editor) {
 				editor.selectNone()
 				onCanvasComponentPickerState.set(editor, {
 					connectionShapeId: connection.id,
-					terminal: draggingTerminal,
+					location: draggingTerminal,
+					onClose: () => {
+						const bindings = getConnectionBindings(editor, connection)
+						if (!bindings.start || !bindings.end) {
+							editor.deleteShapes([connection.id])
+						}
+					},
+					onPick: (nodeType, terminalInPageSpace) => {
+						const newNodeId = createShapeId()
+						editor.createShape({
+							type: 'node',
+							id: newNodeId,
+							x: terminalInPageSpace.x,
+							y: terminalInPageSpace.y,
+							props: {
+								node: nodeType,
+							},
+						})
+						editor.select(newNodeId)
+
+						const ports = getNodePorts(editor, newNodeId)
+						const firstInputPort = Object.values(ports).find((p) => p.terminal === 'end')
+						if (firstInputPort) {
+							editor.updateShape({
+								id: newNodeId,
+								type: 'node',
+								x: terminalInPageSpace.x - firstInputPort.x,
+								y: terminalInPageSpace.y - firstInputPort.y,
+							})
+
+							createOrUpdateConnectionBinding(editor, connection, newNodeId, {
+								portId: firstInputPort.id,
+								terminal: draggingTerminal,
+							})
+						}
+					},
 				})
 			} else {
 				// if we're not creating a new connection and we just let go, there must be

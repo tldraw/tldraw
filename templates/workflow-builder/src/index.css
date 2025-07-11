@@ -131,15 +131,20 @@ body {
 	top: 0;
 	left: 0;
 	z-index: var(--layer-overlays);
-	border-radius: var(--radius-2);
-	background: var(--color-panel);
-	box-shadow: var(--node-shadow-highlight);
-	display: grid;
-	grid-template-columns: repeat(2, 1fr);
 	--top: calc(var(--node-header-height) + var(--node-port-offset-y));
-	transform-origin: 0 var(--top);
-	margin-top: calc(-1 * var(--top));
-	padding-top: 4px;
+	transform-origin: 0 0;
+
+	.OnCanvasComponentPicker-content {
+		position: absolute;
+		margin-top: calc(-1 * var(--top));
+		width: var(--node-width);
+		padding-top: 4px;
+		border-radius: var(--radius-2);
+		background: var(--color-panel);
+		box-shadow: var(--node-shadow-highlight);
+		display: grid;
+		grid-template-columns: repeat(2, 1fr);
+	}
 
 	button {
 		height: auto;
@@ -152,5 +157,10 @@ body {
 
 	.OnCanvasComponentPicker-icon {
 		font-size: 36px;
+	}
+
+	&.OnCanvasComponentPicker_middle .OnCanvasComponentPicker-content {
+		margin-left: -50%;
+		margin-top: -50%;
 	}
 }
