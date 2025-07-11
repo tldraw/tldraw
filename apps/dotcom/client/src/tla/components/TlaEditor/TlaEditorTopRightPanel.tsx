@@ -42,7 +42,7 @@ const ctaMessages = defineMessages({
 	freeTldraws: { defaultMessage: 'Free tldraws' },
 	freeShares: { defaultMessage: 'Free shares' },
 	freeSaves: { defaultMessage: 'Free saves' },
-	getIn: { defaultMessage: 'Get in the draw... tldraw' },
+	getIn: { defaultMessage: "You'll sign up, won't you?" },
 	betterThanMiro: { defaultMessage: 'Miro but good and free' },
 	betterThanExcalidraw: { defaultMessage: 'Not Excalidraw' },
 	betterThanFigjam: { defaultMessage: 'Figjam but tldraw' },
