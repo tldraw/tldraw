@@ -565,6 +565,12 @@
       "value": "To continue editing please copy the room to your files."
     }
   ],
+  "8ea211024d": [
+    {
+      "type": 0,
+      "value": "Create a free account"
+    }
+  ],
   "8eb2c00e96": [
     {
       "type": 0,
@@ -725,12 +731,6 @@
     {
       "type": 0,
       "value": "Sign in"
-    }
-  ],
-  "b6ee1430f3": [
-    {
-      "type": 0,
-      "value": "Sign up free"
     }
   ],
   "b758336699": [
@@ -1055,12 +1055,6 @@
     {
       "type": 0,
       "value": "Copied link"
-    }
-  ],
-  "ff09a5ece9": [
-    {
-      "type": 0,
-      "value": "Demonstrate taste"
     }
   ],
   "ffcd73e997": [

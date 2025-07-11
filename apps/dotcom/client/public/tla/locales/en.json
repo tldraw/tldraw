@@ -257,6 +257,9 @@
   "8b1946f965": {
     "translation": "To continue editing please copy the room to your files."
   },
+  "8ea211024d": {
+    "translation": "Create a free account"
+  },
   "8eb2c00e96": {
     "translation": "Shared with you"
   },
@@ -335,9 +338,6 @@
   },
   "b6d4223e60": {
     "translation": "Sign in"
-  },
-  "b6ee1430f3": {
-    "translation": "Sign up free"
   },
   "b758336699": {
     "translation": "Copy link"
@@ -473,9 +473,6 @@
   },
   "fed5ec05eb": {
     "translation": "Copied link"
-  },
-  "ff09a5ece9": {
-    "translation": "Demonstrate taste"
   },
   "ffcd73e997": {
     "translation": "Import file…"

@@ -29,38 +29,66 @@ import styles from './top.module.css'
 
 const ctaMessages = defineMessages({
 	signUp: { defaultMessage: 'Sign up for free' },
-	signIn: { defaultMessage: 'Sign in' },
 	signInToSave: { defaultMessage: 'Sign in to save' },
-	signInToSaveAndShare: { defaultMessage: 'Sign in to share' },
-	getIn: { defaultMessage: 'Get in the draw... tldraw' },
-	logIn: { defaultMessage: 'Log in' },
-	logUp: { defaultMessage: 'Log up' },
 	saveAndShare: { defaultMessage: 'Save and share' },
-	signUpFree: { defaultMessage: 'Sign up free' },
-	freeTldraws: { defaultMessage: 'Free tldraws' },
-	freeShares: { defaultMessage: 'Free shares' },
-	freeSaves: { defaultMessage: 'Free saves' },
+	signInToSaveAndShare: { defaultMessage: 'Sign in to share' },
 	saveYourWork: { defaultMessage: 'Save your work' },
 	shareYourWork: { defaultMessage: 'Share your work' },
 	shareYourWorkForFree: { defaultMessage: 'Share for free' },
-	demonstrateTaste: { defaultMessage: 'Demonstrate taste' },
-	hey: { defaultMessage: 'Hey' },
-	miroButGood: { defaultMessage: 'Miro but good and free' },
+	createFreeAccount: { defaultMessage: 'Create a free account' },
+	signIn: { defaultMessage: 'Sign in' },
+	logIn: { defaultMessage: 'Log in' },
+	logUp: { defaultMessage: 'Log up' },
+	freeTldraws: { defaultMessage: 'Free tldraws' },
+	freeShares: { defaultMessage: 'Free shares' },
+	freeSaves: { defaultMessage: 'Free saves' },
+	getIn: { defaultMessage: 'Get in the draw... tldraw' },
+	betterThanMiro: { defaultMessage: 'Miro but good and free' },
 	betterThanExcalidraw: { defaultMessage: 'A slightly better Excalidraw' },
-	// figjamButGood: { defaultMessage: 'Figjam but without the Figjm and with other letters instead in other places' },
+	// betterThanFigjam: { defaultMessage: 'Figjam but without the Figjm and with other letters instead in other places' },
+	hey: { defaultMessage: 'Hey' },
 })
 
 function useCtaMessage() {
-	return useMemo(() => {
+	const ctaMessage = useMemo(() => {
 		const isFirstTime = getFromLocalStorage('tla-has-been-here')
 		if (!isFirstTime) {
 			setInLocalStorage('tla-has-been-here', 'yep')
 			return ctaMessages.signUp
 		}
 
+		const LIKELIHOOD_START = 0.25
+		const LIKELIHOOD_END = 0.02
+
+		// Make earlier messages more likely and later messages less likely
 		const entries = Object.values(ctaMessages)
-		return entries[Math.floor(Math.random() * entries.length)]
+		const messagesWithLikelihood = entries.map((entry, i) => ({
+			...entry,
+			likelihood:
+				LIKELIHOOD_START - (i * (LIKELIHOOD_START - LIKELIHOOD_END)) / (entries.length - 1),
+		}))
+
+		// Calculate total likelihood for weighted selection
+		const totalLikelihood = messagesWithLikelihood.reduce((sum, msg) => sum + msg.likelihood, 0)
+
+		// Generate random number between 0 and totalLikelihood
+		let random = Math.random() * totalLikelihood
+
+		// Find the message based on weighted probability
+		for (const message of messagesWithLikelihood) {
+			random -= message.likelihood
+			if (random <= 0) {
+				return message
+			}
+		}
+
+		// Fallback (shouldn't happen, but just in case)
+		// @ts-expect-error
+		delete messagesWithLikelihood[0].likelihood
+		return messagesWithLikelihood[0]
 	}, [])
+
+	return ctaMessage
 }
 
 export function TlaEditorTopRightPanel({
