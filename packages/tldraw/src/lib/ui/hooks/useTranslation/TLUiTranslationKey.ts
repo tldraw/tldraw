@@ -286,6 +286,7 @@ export type TLUiTranslationKey =
 	| 'a11y.repeat-shape'
 	| 'a11y.move-shape'
 	| 'a11y.move-shape-faster'
+	| 'a11y.rotate-shape'
 	| 'a11y.enlarge-shape'
 	| 'a11y.shrink-shape'
 	| 'a11y.pan-camera'

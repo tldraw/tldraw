@@ -287,6 +287,7 @@ export const DEFAULT_TRANSLATION = {
 	'a11y.repeat-shape': 'Repeat shape',
 	'a11y.move-shape': 'Move shape',
 	'a11y.move-shape-faster': 'Move shape faster',
+	'a11y.rotate-shape': 'Rotate shape',
 	'a11y.enlarge-shape': 'Enlarge shape',
 	'a11y.shrink-shape': 'Shrink shape',
 	'a11y.pan-camera': 'Pan camera',

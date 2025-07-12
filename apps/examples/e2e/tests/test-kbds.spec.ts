@@ -315,6 +315,18 @@ test.describe('Actions on shapes', () => {
 			data: { operation: 'bottom', source: 'kbd' },
 		})
 
+		// rotate — Ctrl+Shift+ArrowLeft, Ctrl+Shift+ArrowRight
+		await page.keyboard.press('Control+Shift+ArrowLeft')
+		expect(await page.evaluate(() => __tldraw_ui_event)).toMatchObject({
+			name: 'rotate-ccw',
+			data: { source: 'kbd' },
+		})
+		await page.keyboard.press('Control+Shift+ArrowRight')
+		expect(await page.evaluate(() => __tldraw_ui_event)).toMatchObject({
+			name: 'rotate-cw',
+			data: { source: 'kbd' },
+		})
+
 		// Copy as SVG — this should have a clipboard error
 
 		// await page.keyboard.press('Control+Shift+c')

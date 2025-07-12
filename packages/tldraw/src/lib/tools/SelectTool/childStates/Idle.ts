@@ -463,6 +463,10 @@ export class Idle extends StateNode {
 					}
 					return
 				}
+				if (info.ctrlKey && ['ArrowLeft', 'ArrowRight'].includes(info.code)) {
+					// In actions.tsx we have these mapped to rotate cw/ccw.
+					return
+				}
 				this.nudgeSelectedShapes(false)
 				return
 			}
