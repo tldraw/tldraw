@@ -128,6 +128,7 @@ export const RichTextLabel = React.memo(function RichTextLabel({
 	return (
 		<div
 			className={`${cssPrefix}-label tl-text-wrapper tl-rich-text-wrapper`}
+			aria-hidden="true"
 			data-font={font}
 			data-align={align}
 			data-hastext={!isEmpty}

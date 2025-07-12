@@ -20,7 +20,7 @@ export function TldrawCropHandles({
 	const msg = useTranslation()
 
 	return (
-		<svg className="tl-overlays__item">
+		<svg className="tl-overlays__item" aria-hidden="true">
 			{/* Top left */}
 			<polyline
 				className="tl-corner-crop-handle"
