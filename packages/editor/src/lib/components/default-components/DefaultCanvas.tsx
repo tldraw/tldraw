@@ -139,7 +139,7 @@ export function DefaultCanvas({ className }: TLCanvasComponentProps) {
 				data-testid="canvas"
 				{...events}
 			>
-				<svg className="tl-svg-context">
+				<svg className="tl-svg-context" aria-hidden="true">
 					<defs>
 						{shapeSvgDefs}
 						<CursorDef />
