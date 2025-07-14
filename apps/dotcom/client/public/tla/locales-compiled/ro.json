@@ -1,144 +1,1088 @@
 {
-  "0095a9fa74": "Export",
-  "03b3e13197": "Trageți fișierul în bara laterală de pe această pagină. Sau selectați opțiunea „Importați fișierul” din meniul utilizatorului.",
-  "043973ec1f": "Mai ai probleme? {GetHelpLink}",
-  "05596b840b": "Deschideți tldraw.",
-  "06b9281e39": "Auto",
-  "07dbd11b21": "Fișier fără titlu",
-  "08331c1710": "Limita ratei a fost depășită, încercați din nou mai târziu.",
-  "08bd40c754": "Cont",
-  "0b27918290": "Fişier",
-  "0b9a4cde72": "meniul Fișier",
-  "0d1f2bb523": "Trimite feedback",
-  "110a4b01be": "Publica",
-  "13ddd375ad": "Exportați ca",
-  "181b90f889": "Creați fișier",
-  "1da2e8106b": "A apărut o eroare neașteptată.",
-  "1dd1c5fb7f": "Astăzi",
-  "250ddea65c": "Despre tldraw",
-  "299cb00a7a": "Încărcarea nu a reușit",
-  "31246941ad": "Trebuie să vă conectați pentru a vedea acest fișier.",
-  "31418ce4ad": "i18n: Evidențiați Lipsă",
-  "335defdafe": "Vă rugăm să încercați să reîmprospătați pagina.",
-  "344a7f427f": "Editor",
-  "3bd1b98dbd": "Nu se pot publica modificările.",
-  "3c5e891bff": "Fixat",
-  "3d0238bf16": "Acceptă tot",
-  "42e53c47c1": "Contactați proprietarul pentru a solicita acces.",
-  "44db318ee5": "Obțineți ajutor pe Discord",
-  "46137245cd": "Vă mulțumim că ne ajutați să îmbunătățim tldraw!",
-  "47839e47a5": "tldraw",
-  "4908687e50": "Sigur vrei să uiți acest fișier?",
-  "4d0d3ddec9": "Acest site folosește cookie-uri pentru a face aplicația să funcționeze și pentru a colecta date analitice.",
-  "4d1c8263ba": "Reîncărcați",
-  "50db1b7e1e": "Nu se poate anula publicarea fișierului.",
-  "517bb809d9": "Meniul paginii",
-  "54286b1d01": "Limita de colaboratori a fost atinsă",
-  "54d240fa41": "Vă rugăm să încetinți.",
-  "554a05155c": "Mai ai probleme? <a>Raportați o problemă</a>",
-  "55505ba281": "PNG",
-  "5677e381d2": "Folosim cookie-uri analitice pentru a îmbunătăți tldraw.",
-  "56c34c6410": "Politica de confidențialitate",
-  "5a95a425f7": "Distribuie",
-  "5bcc12ace8": "Această cameră este acum doar pentru citire",
-  "5bec508475": "Browser vechi detectat. Vă rugăm să actualizați browserul pentru a utiliza această aplicație.",
-  "5d26ae7550": "Nu am reușit să încărcăm o parte din conținutul pe care l-ați creat înainte de a vă conecta.",
-  "5f3c333678": "Feedback trimis",
-  "5fb63579fc": "Copie",
-  "61057a0c84": "Mai târziu",
-  "625fd29749": "Mai în vârstă",
-  "6609dd239e": "Ceva a mers prost",
-  "6637a98151": "Este disponibilă o nouă versiune de tldraw. Vă rugăm să reîncărcați pagina pentru a continua.",
-  "6a26f54883": "Ajutor",
-  "6dc0836c1b": "Nu aveți permisiunile necesare pentru a efectua această acțiune.",
-  "6dfc62f621": "Urmați acești pași pentru a importa manual conținutul:",
-  "70a6facb9d": "În această săptămână",
-  "71a29b007b": "Ai o eroare, o problemă sau o idee pentru tldraw? Anunță-ne!",
-  "73ab799383": "Această versiune de tldraw nu mai este acceptată.",
-  "7408cf0d7b": "Vă rugăm să reîncărcați pagina",
-  "752b79f137": "Ați atins numărul maxim de fișiere. Trebuie să ștergeți fișierele vechi înainte de a crea altele noi.",
-  "7573b8110a": "Fără acces",
-  "761e93ede9": "Gestionați cookie-urile",
-  "764671e008": "Discutați cu noi pe Discord",
-  "7697920637": "Vă rugăm să reîncărcați",
-  "777f9e90cf": "Solicitare nevalidă.",
-  "797799f35e": "Trimiteți o problemă pe GitHub",
-  "7b1329f5ca": "Manual de utilizare",
-  "7be10fc592": "Restaurați versiunea",
-  "7cb5f8b4a5": "Uita",
-  "7daeced9ff": "Publicați modificările",
-  "7fcdcc6455": "Uitați fișierul",
-  "801ab24683": "Descărcare",
-  "815e116a2e": "Aveți o eroare, o problemă sau o idee pentru tldraw? Anunțați-ne! Completați acest formular și vă vom contacta prin e-mail, dacă este necesar. De asemenea, puteți <discord>să discutați cu noi pe Discord</discord> sau <github>să trimiteți o problemă pe GitHub</github>.",
-  "85a082de1b": "Vă rugăm să reîmprospătați pagina pentru a obține cea mai recentă versiune de tldraw.",
-  "86353d2c41": "S-au adăugat {total} fișiere .tldr.",
-  "86c66437fd": "Redenumiți fișierul",
-  "8b1946f965": "Pentru a continua editarea, vă rugăm să copiați camera în fișierele dvs.",
-  "8eb2c00e96": "Împărtășită cu tine",
-  "8ff3d0a705": "Tarif limitat",
-  "902b0d55fd": "Eroare",
-  "904a830405": "Redenumiți",
-  "91e49bb0eb": "Copiați în fișierele mele",
-  "96165d6df5": "Luna aceasta",
-  "9914a0ce04": "Aprinde",
-  "9bef626805": "Ștergeți fișierul",
-  "9c258b8f88": "Această cameră multiplayer anonimă de pe tldraw este acum doar pentru citire. Pentru a continua editarea, vă rugăm să o conectați și să o copiați în fișierele dvs.",
-  "9ceb927baa": "Publicați acest fișier",
-  "9e076f5885": "Nu a fost găsit",
-  "9e93c98d88": "A renunța",
-  "a0da245992": "Exportați conținutul ca fișier .tldr: Selectați „Descărcare” în meniul din stânga sus.",
-  "a104439641": "Captuseala",
-  "a18366b217": "Întuneric",
-  "a1c915578c": "Fișierul pe care îl căutați nu există.",
-  "a239905023": "Exportați imaginea",
-  "a3debabee7": "Politica de cookie-uri",
-  "a4d3b161ce": "Trimiteți",
-  "a6cc403d56": "Oricine are linkul",
-  "a768caa988": "Analytics",
-  "a9ded1e5ce": "Fundal",
-  "ab0df9ba36": "Limita de fișiere a fost atinsă",
-  "af3dc88931": "Ultima publicare <date></date>",
-  "b028909917": "Utilizator invitat",
-  "b6d4223e60": "Conectare",
-  "b758336699": "Copiați linkul",
-  "bb792693e2": "Anulați fixarea",
-  "bbbcefd7ce": "{total, plural, one {Se încarcă fișierul .tldr...} few {} other {Se încarcă {uploaded} din {total} fișiere .tldr...}}",
-  "bc88b0e89e": "Distribuit de {ownerName}",
-  "bcb62136a3": "Încărcați fișiere .tldr",
-  "c2276c9127": "Aflați mai multe despre partajare.",
-  "c303bd1095": "Nu se poate publica fișierul.",
-  "c4b39a1cc3": "Cookie-uri esențiale",
-  "c655b27b1e": "i18n: șir lung",
-  "c6a00f137b": "Invita",
-  "c87aacf567": "Sign out",
-  "cceaefbc20": "Distribuiți acest fișier",
-  "cd15a75c26": "SVG",
-  "cea291e45e": "Aflați mai multe despre publicare.",
-  "d3d2e61733": "Aproape",
-  "d4bbf74f3e": "Comutați bara laterală",
-  "d721757161": "Temă",
-  "d876a9fe1a": "Încearcă din nou",
-  "d9100f3e10": "Intră aici pentru a vedea conținutul",
-  "dbbebf3c03": "Numai cu invitație",
-  "dfdb78a4e4": "Indicatori de depanare a aplicației",
-  "e2ae80a510": "Rezumat juridic",
-  "e404559826": "Termeni și condiții",
-  "e78e14c5f1": "Pin",
-  "ea4788705e": "Anula",
-  "ebfe9ce86e": "Ieri",
-  "ec59b960ea": "Acest fișier a atins numărul maxim de colaboratori activi.",
-  "ec611e9a08": "meniul cont",
-  "ed53713239": "i18n: Accentuat",
-  "ed75712b0e": "Duplicat",
-  "ede55d955f": "Citiți <a>politica noastră privind cookie-urile</a> pentru a afla mai multe.",
-  "f09b16bc5f": "Folosim cookie-uri pentru a vă menține conectat(ă), pentru a vă sincroniza fișierele și pentru a colecta date analitice care să ne ajute să îmbunătățim tldraw.",
-  "f0e8bff6f9": "Setări utilizator",
-  "f2569594b2": "Folosim aceste cookie-uri pentru a salva fișierele și setările dumneavoastră.",
-  "f2a6c498fb": "Şterge",
-  "f43fb62093": "Înapoi la tldraw.",
-  "f4f70727dc": "Setări",
-  "fb15c53f22": "Vizualizator",
-  "fd1be3efcf": "Sigur doriți să ștergeți acest fișier?",
-  "fed5ec05eb": "Link copiat",
-  "ffcd73e997": "Importați fișierul…"
+  "0095a9fa74": [
+    {
+      "type": 0,
+      "value": "Export"
+    }
+  ],
+  "03b3e13197": [
+    {
+      "type": 0,
+      "value": "Trageți fișierul în bara laterală de pe această pagină. Sau selectați opțiunea „Importați fișierul” din meniul utilizatorului."
+    }
+  ],
+  "043973ec1f": [
+    {
+      "type": 0,
+      "value": "Mai ai probleme? "
+    },
+    {
+      "type": 1,
+      "value": "GetHelpLink"
+    }
+  ],
+  "05596b840b": [
+    {
+      "type": 0,
+      "value": "Deschideți tldraw."
+    }
+  ],
+  "06b9281e39": [
+    {
+      "type": 0,
+      "value": "Auto"
+    }
+  ],
+  "0776e18496": [
+    {
+      "type": 0,
+      "value": "Salvați și partajați"
+    }
+  ],
+  "07dbd11b21": [
+    {
+      "type": 0,
+      "value": "Fișier fără titlu"
+    }
+  ],
+  "08331c1710": [
+    {
+      "type": 0,
+      "value": "Limita ratei a fost depășită, încercați din nou mai târziu."
+    }
+  ],
+  "08bd40c754": [
+    {
+      "type": 0,
+      "value": "Cont"
+    }
+  ],
+  "0b27918290": [
+    {
+      "type": 0,
+      "value": "Fişier"
+    }
+  ],
+  "0b9a4cde72": [
+    {
+      "type": 0,
+      "value": "meniul Fișier"
+    }
+  ],
+  "0d1f2bb523": [
+    {
+      "type": 0,
+      "value": "Trimite feedback"
+    }
+  ],
+  "110a4b01be": [
+    {
+      "type": 0,
+      "value": "Publica"
+    }
+  ],
+  "13ddd375ad": [
+    {
+      "type": 0,
+      "value": "Exportați ca"
+    }
+  ],
+  "1460ab5e78": [
+    {
+      "type": 0,
+      "value": "TLDRAW-uri gratuite"
+    }
+  ],
+  "181b90f889": [
+    {
+      "type": 0,
+      "value": "Creați fișier"
+    }
+  ],
+  "1da2e8106b": [
+    {
+      "type": 0,
+      "value": "A apărut o eroare neașteptată."
+    }
+  ],
+  "1dd1c5fb7f": [
+    {
+      "type": 0,
+      "value": "Astăzi"
+    }
+  ],
+  "22d84a12fd": [
+    {
+      "type": 0,
+      "value": "Figjam dar tldraw"
+    }
+  ],
+  "250ddea65c": [
+    {
+      "type": 0,
+      "value": "Despre tldraw"
+    }
+  ],
+  "299cb00a7a": [
+    {
+      "type": 0,
+      "value": "Încărcarea nu a reușit"
+    }
+  ],
+  "2c61d18599": [
+    {
+      "type": 0,
+      "value": "Miro, dar bun și gratuit"
+    }
+  ],
+  "31246941ad": [
+    {
+      "type": 0,
+      "value": "Trebuie să vă conectați pentru a vedea acest fișier."
+    }
+  ],
+  "31418ce4ad": [
+    {
+      "type": 0,
+      "value": "i18n: Evidențiați Lipsă"
+    }
+  ],
+  "335defdafe": [
+    {
+      "type": 0,
+      "value": "Vă rugăm să încercați să reîmprospătați pagina."
+    }
+  ],
+  "344a7f427f": [
+    {
+      "type": 0,
+      "value": "Editor"
+    }
+  ],
+  "3bd1b98dbd": [
+    {
+      "type": 0,
+      "value": "Nu se pot publica modificările."
+    }
+  ],
+  "3c5e891bff": [
+    {
+      "type": 0,
+      "value": "Fixat"
+    }
+  ],
+  "3d0238bf16": [
+    {
+      "type": 0,
+      "value": "Acceptă tot"
+    }
+  ],
+  "3fc6d0c83a": [
+    {
+      "type": 0,
+      "value": "Adaugă un prieten"
+    }
+  ],
+  "42e53c47c1": [
+    {
+      "type": 0,
+      "value": "Contactați proprietarul pentru a solicita acces."
+    }
+  ],
+  "44281ab6e5": [
+    {
+      "type": 0,
+      "value": "Autentificare"
+    }
+  ],
+  "44db318ee5": [
+    {
+      "type": 0,
+      "value": "Obțineți ajutor pe Discord"
+    }
+  ],
+  "46137245cd": [
+    {
+      "type": 0,
+      "value": "Vă mulțumim că ne ajutați să îmbunătățim tldraw!"
+    }
+  ],
+  "47839e47a5": [
+    {
+      "type": 0,
+      "value": "tldraw"
+    }
+  ],
+  "4908687e50": [
+    {
+      "type": 0,
+      "value": "Sigur vrei să uiți acest fișier?"
+    }
+  ],
+  "4d0d3ddec9": [
+    {
+      "type": 0,
+      "value": "Acest site folosește cookie-uri pentru a face aplicația să funcționeze și pentru a colecta date analitice."
+    }
+  ],
+  "4d1c8263ba": [
+    {
+      "type": 0,
+      "value": "Reîncărcați"
+    }
+  ],
+  "4e029798f2": [
+    {
+      "type": 0,
+      "value": "Acțiuni gratuite"
+    }
+  ],
+  "4e875b8d8e": [
+    {
+      "type": 0,
+      "value": "Salvări gratuite"
+    }
+  ],
+  "50db1b7e1e": [
+    {
+      "type": 0,
+      "value": "Nu se poate anula publicarea fișierului."
+    }
+  ],
+  "517bb809d9": [
+    {
+      "type": 0,
+      "value": "Meniul paginii"
+    }
+  ],
+  "54286b1d01": [
+    {
+      "type": 0,
+      "value": "Limita de colaboratori a fost atinsă"
+    }
+  ],
+  "54d240fa41": [
+    {
+      "type": 0,
+      "value": "Vă rugăm să încetinți."
+    }
+  ],
+  "554a05155c": [
+    {
+      "type": 0,
+      "value": "Mai ai probleme? "
+    },
+    {
+      "children": [
+        {
+          "type": 0,
+          "value": "Raportați o problemă"
+        }
+      ],
+      "type": 8,
+      "value": "a"
+    }
+  ],
+  "55505ba281": [
+    {
+      "type": 0,
+      "value": "PNG"
+    }
+  ],
+  "5677e381d2": [
+    {
+      "type": 0,
+      "value": "Folosim cookie-uri analitice pentru a îmbunătăți tldraw."
+    }
+  ],
+  "56c34c6410": [
+    {
+      "type": 0,
+      "value": "Politica de confidențialitate"
+    }
+  ],
+  "5a95a425f7": [
+    {
+      "type": 0,
+      "value": "Distribuie"
+    }
+  ],
+  "5bcc12ace8": [
+    {
+      "type": 0,
+      "value": "Această cameră este acum doar pentru citire"
+    }
+  ],
+  "5bec508475": [
+    {
+      "type": 0,
+      "value": "Browser vechi detectat. Vă rugăm să actualizați browserul pentru a utiliza această aplicație."
+    }
+  ],
+  "5d26ae7550": [
+    {
+      "type": 0,
+      "value": "Nu am reușit să încărcăm o parte din conținutul pe care l-ați creat înainte de a vă conecta."
+    }
+  ],
+  "5f3c333678": [
+    {
+      "type": 0,
+      "value": "Feedback trimis"
+    }
+  ],
+  "5fb63579fc": [
+    {
+      "type": 0,
+      "value": "Copie"
+    }
+  ],
+  "5ff75742e0": [
+    {
+      "type": 0,
+      "value": "Înregistrează-te gratuit"
+    }
+  ],
+  "61057a0c84": [
+    {
+      "type": 0,
+      "value": "Mai târziu"
+    }
+  ],
+  "625fd29749": [
+    {
+      "type": 0,
+      "value": "Mai în vârstă"
+    }
+  ],
+  "6609dd239e": [
+    {
+      "type": 0,
+      "value": "Ceva a mers prost"
+    }
+  ],
+  "6637a98151": [
+    {
+      "type": 0,
+      "value": "Este disponibilă o nouă versiune de tldraw. Vă rugăm să reîncărcați pagina pentru a continua."
+    }
+  ],
+  "697c59072d": [
+    {
+      "type": 0,
+      "value": "Conectați-vă pentru a salva"
+    }
+  ],
+  "6a26f54883": [
+    {
+      "type": 0,
+      "value": "Ajutor"
+    }
+  ],
+  "6dc0836c1b": [
+    {
+      "type": 0,
+      "value": "Nu aveți permisiunile necesare pentru a efectua această acțiune."
+    }
+  ],
+  "6dfc62f621": [
+    {
+      "type": 0,
+      "value": "Urmați acești pași pentru a importa manual conținutul:"
+    }
+  ],
+  "70a6facb9d": [
+    {
+      "type": 0,
+      "value": "În această săptămână"
+    }
+  ],
+  "71a29b007b": [
+    {
+      "type": 0,
+      "value": "Ai o eroare, o problemă sau o idee pentru tldraw? Anunță-ne!"
+    }
+  ],
+  "73ab799383": [
+    {
+      "type": 0,
+      "value": "Această versiune de tldraw nu mai este acceptată."
+    }
+  ],
+  "7408cf0d7b": [
+    {
+      "type": 0,
+      "value": "Vă rugăm să reîncărcați pagina"
+    }
+  ],
+  "752b79f137": [
+    {
+      "type": 0,
+      "value": "Ați atins numărul maxim de fișiere. Trebuie să ștergeți fișierele vechi înainte de a crea altele noi."
+    }
+  ],
+  "7573b8110a": [
+    {
+      "type": 0,
+      "value": "Fără acces"
+    }
+  ],
+  "761e93ede9": [
+    {
+      "type": 0,
+      "value": "Gestionați cookie-urile"
+    }
+  ],
+  "764671e008": [
+    {
+      "type": 0,
+      "value": "Discutați cu noi pe Discord"
+    }
+  ],
+  "7697920637": [
+    {
+      "type": 0,
+      "value": "Vă rugăm să reîncărcați"
+    }
+  ],
+  "777f9e90cf": [
+    {
+      "type": 0,
+      "value": "Solicitare nevalidă."
+    }
+  ],
+  "797799f35e": [
+    {
+      "type": 0,
+      "value": "Trimiteți o problemă pe GitHub"
+    }
+  ],
+  "7b1329f5ca": [
+    {
+      "type": 0,
+      "value": "Manual de utilizare"
+    }
+  ],
+  "7be10fc592": [
+    {
+      "type": 0,
+      "value": "Restaurați versiunea"
+    }
+  ],
+  "7cb5f8b4a5": [
+    {
+      "type": 0,
+      "value": "Uita"
+    }
+  ],
+  "7daeced9ff": [
+    {
+      "type": 0,
+      "value": "Publicați modificările"
+    }
+  ],
+  "7fcdcc6455": [
+    {
+      "type": 0,
+      "value": "Uitați fișierul"
+    }
+  ],
+  "801ab24683": [
+    {
+      "type": 0,
+      "value": "Descărcare"
+    }
+  ],
+  "815e116a2e": [
+    {
+      "type": 0,
+      "value": "Aveți o eroare, o problemă sau o idee pentru tldraw? Anunțați-ne! Completați acest formular și vă vom contacta prin e-mail, dacă este necesar. De asemenea, puteți "
+    },
+    {
+      "children": [
+        {
+          "type": 0,
+          "value": "să discutați cu noi pe Discord"
+        }
+      ],
+      "type": 8,
+      "value": "discord"
+    },
+    {
+      "type": 0,
+      "value": " sau "
+    },
+    {
+      "children": [
+        {
+          "type": 0,
+          "value": "să trimiteți o problemă pe GitHub"
+        }
+      ],
+      "type": 8,
+      "value": "github"
+    },
+    {
+      "type": 0,
+      "value": "."
+    }
+  ],
+  "84c89d47c7": [
+    {
+      "type": 0,
+      "value": "Distribuie gratuit"
+    }
+  ],
+  "85a082de1b": [
+    {
+      "type": 0,
+      "value": "Vă rugăm să reîmprospătați pagina pentru a obține cea mai recentă versiune de tldraw."
+    }
+  ],
+  "86353d2c41": [
+    {
+      "type": 0,
+      "value": "S-au adăugat "
+    },
+    {
+      "type": 1,
+      "value": "total"
+    },
+    {
+      "type": 0,
+      "value": " fișiere .tldr."
+    }
+  ],
+  "86c66437fd": [
+    {
+      "type": 0,
+      "value": "Redenumiți fișierul"
+    }
+  ],
+  "8b1946f965": [
+    {
+      "type": 0,
+      "value": "Pentru a continua editarea, vă rugăm să copiați camera în fișierele dvs."
+    }
+  ],
+  "8ea211024d": [
+    {
+      "type": 0,
+      "value": "Creați un cont gratuit"
+    }
+  ],
+  "8eb2c00e96": [
+    {
+      "type": 0,
+      "value": "Împărtășită cu tine"
+    }
+  ],
+  "8ff3d0a705": [
+    {
+      "type": 0,
+      "value": "Tarif limitat"
+    }
+  ],
+  "902b0d55fd": [
+    {
+      "type": 0,
+      "value": "Eroare"
+    }
+  ],
+  "904a830405": [
+    {
+      "type": 0,
+      "value": "Redenumiți"
+    }
+  ],
+  "91e49bb0eb": [
+    {
+      "type": 0,
+      "value": "Copiați în fișierele mele"
+    }
+  ],
+  "96165d6df5": [
+    {
+      "type": 0,
+      "value": "Luna aceasta"
+    }
+  ],
+  "9914a0ce04": [
+    {
+      "type": 0,
+      "value": "Aprinde"
+    }
+  ],
+  "9bef626805": [
+    {
+      "type": 0,
+      "value": "Ștergeți fișierul"
+    }
+  ],
+  "9c258b8f88": [
+    {
+      "type": 0,
+      "value": "Această cameră multiplayer anonimă de pe tldraw este acum doar pentru citire. Pentru a continua editarea, vă rugăm să o conectați și să o copiați în fișierele dvs."
+    }
+  ],
+  "9ceb927baa": [
+    {
+      "type": 0,
+      "value": "Publicați acest fișier"
+    }
+  ],
+  "9e076f5885": [
+    {
+      "type": 0,
+      "value": "Nu a fost găsit"
+    }
+  ],
+  "9e93c98d88": [
+    {
+      "type": 0,
+      "value": "A renunța"
+    }
+  ],
+  "a0da245992": [
+    {
+      "type": 0,
+      "value": "Exportați conținutul ca fișier .tldr: Selectați „Descărcare” în meniul din stânga sus."
+    }
+  ],
+  "a104439641": [
+    {
+      "type": 0,
+      "value": "Captuseala"
+    }
+  ],
+  "a18366b217": [
+    {
+      "type": 0,
+      "value": "Întuneric"
+    }
+  ],
+  "a1c915578c": [
+    {
+      "type": 0,
+      "value": "Fișierul pe care îl căutați nu există."
+    }
+  ],
+  "a239905023": [
+    {
+      "type": 0,
+      "value": "Exportați imaginea"
+    }
+  ],
+  "a3debabee7": [
+    {
+      "type": 0,
+      "value": "Politica de cookie-uri"
+    }
+  ],
+  "a4d3b161ce": [
+    {
+      "type": 0,
+      "value": "Trimiteți"
+    }
+  ],
+  "a6cc403d56": [
+    {
+      "type": 0,
+      "value": "Oricine are linkul"
+    }
+  ],
+  "a768caa988": [
+    {
+      "type": 0,
+      "value": "Analytics"
+    }
+  ],
+  "a9ded1e5ce": [
+    {
+      "type": 0,
+      "value": "Fundal"
+    }
+  ],
+  "ab0df9ba36": [
+    {
+      "type": 0,
+      "value": "Limita de fișiere a fost atinsă"
+    }
+  ],
+  "af3dc88931": [
+    {
+      "type": 0,
+      "value": "Ultima publicare "
+    },
+    {
+      "children": [
+      ],
+      "type": 8,
+      "value": "date"
+    }
+  ],
+  "b028909917": [
+    {
+      "type": 0,
+      "value": "Utilizator invitat"
+    }
+  ],
+  "b6d4223e60": [
+    {
+      "type": 0,
+      "value": "Conectare"
+    }
+  ],
+  "b758336699": [
+    {
+      "type": 0,
+      "value": "Copiați linkul"
+    }
+  ],
+  "ba0318cb81": [
+    {
+      "type": 0,
+      "value": "Conectați-vă pentru a partaja"
+    }
+  ],
+  "bb792693e2": [
+    {
+      "type": 0,
+      "value": "Anulați fixarea"
+    }
+  ],
+  "bbbcefd7ce": [
+    {
+      "offset": 0,
+      "options": {
+        "few": {
+          "value": [
+          ]
+        },
+        "one": {
+          "value": [
+            {
+              "type": 0,
+              "value": "Se încarcă fișierul .tldr..."
+            }
+          ]
+        },
+        "other": {
+          "value": [
+            {
+              "type": 0,
+              "value": "Se încarcă "
+            },
+            {
+              "type": 1,
+              "value": "uploaded"
+            },
+            {
+              "type": 0,
+              "value": " din "
+            },
+            {
+              "type": 1,
+              "value": "total"
+            },
+            {
+              "type": 0,
+              "value": " fișiere .tldr..."
+            }
+          ]
+        }
+      },
+      "pluralType": "cardinal",
+      "type": 6,
+      "value": "total"
+    }
+  ],
+  "bc88b0e89e": [
+    {
+      "type": 0,
+      "value": "Distribuit de "
+    },
+    {
+      "type": 1,
+      "value": "ownerName"
+    }
+  ],
+  "bcb62136a3": [
+    {
+      "type": 0,
+      "value": "Încărcați fișiere .tldr"
+    }
+  ],
+  "bffe9a3c9a": [
+    {
+      "type": 0,
+      "value": "Log in"
+    }
+  ],
+  "c079282475": [
+    {
+      "type": 0,
+      "value": "Împărtășește-ți munca"
+    }
+  ],
+  "c2276c9127": [
+    {
+      "type": 0,
+      "value": "Aflați mai multe despre partajare."
+    }
+  ],
+  "c24e43cd1a": [
+    {
+      "type": 0,
+      "value": "Te vei înscrie, nu-i așa?"
+    }
+  ],
+  "c303bd1095": [
+    {
+      "type": 0,
+      "value": "Nu se poate publica fișierul."
+    }
+  ],
+  "c4b39a1cc3": [
+    {
+      "type": 0,
+      "value": "Cookie-uri esențiale"
+    }
+  ],
+  "c655b27b1e": [
+    {
+      "type": 0,
+      "value": "i18n: șir lung"
+    }
+  ],
+  "c6a00f137b": [
+    {
+      "type": 0,
+      "value": "Invita"
+    }
+  ],
+  "c87aacf567": [
+    {
+      "type": 0,
+      "value": "Sign out"
+    }
+  ],
+  "cceaefbc20": [
+    {
+      "type": 0,
+      "value": "Distribuiți acest fișier"
+    }
+  ],
+  "cd15a75c26": [
+    {
+      "type": 0,
+      "value": "SVG"
+    }
+  ],
+  "cea291e45e": [
+    {
+      "type": 0,
+      "value": "Aflați mai multe despre publicare."
+    }
+  ],
+  "d0eedb7995": [
+    {
+      "type": 0,
+      "value": "Hei"
+    }
+  ],
+  "d3d2e61733": [
+    {
+      "type": 0,
+      "value": "Aproape"
+    }
+  ],
+  "d4bbf74f3e": [
+    {
+      "type": 0,
+      "value": "Comutați bara laterală"
+    }
+  ],
+  "d721757161": [
+    {
+      "type": 0,
+      "value": "Temă"
+    }
+  ],
+  "d876a9fe1a": [
+    {
+      "type": 0,
+      "value": "Încearcă din nou"
+    }
+  ],
+  "d9100f3e10": [
+    {
+      "type": 0,
+      "value": "Intră aici pentru a vedea conținutul"
+    }
+  ],
+  "da404df474": [
+    {
+      "type": 0,
+      "value": "Salvați-vă munca"
+    }
+  ],
+  "db4c2dab9a": [
+    {
+      "type": 0,
+      "value": "Nu Excalidraw"
+    }
+  ],
+  "dbbebf3c03": [
+    {
+      "type": 0,
+      "value": "Numai cu invitație"
+    }
+  ],
+  "dfdb78a4e4": [
+    {
+      "type": 0,
+      "value": "Indicatori de depanare a aplicației"
+    }
+  ],
+  "e2ae80a510": [
+    {
+      "type": 0,
+      "value": "Rezumat juridic"
+    }
+  ],
+  "e404559826": [
+    {
+      "type": 0,
+      "value": "Termeni și condiții"
+    }
+  ],
+  "e78e14c5f1": [
+    {
+      "type": 0,
+      "value": "Pin"
+    }
+  ],
+  "ea4788705e": [
+    {
+      "type": 0,
+      "value": "Anula"
+    }
+  ],
+  "ebfe9ce86e": [
+    {
+      "type": 0,
+      "value": "Ieri"
+    }
+  ],
+  "ec59b960ea": [
+    {
+      "type": 0,
+      "value": "Acest fișier a atins numărul maxim de colaboratori activi."
+    }
+  ],
+  "ec611e9a08": [
+    {
+      "type": 0,
+      "value": "meniul cont"
+    }
+  ],
+  "ed53713239": [
+    {
+      "type": 0,
+      "value": "i18n: Accentuat"
+    }
+  ],
+  "ed75712b0e": [
+    {
+      "type": 0,
+      "value": "Duplicat"
+    }
+  ],
+  "ede55d955f": [
+    {
+      "type": 0,
+      "value": "Citiți "
+    },
+    {
+      "children": [
+        {
+          "type": 0,
+          "value": "politica noastră privind cookie-urile"
+        }
+      ],
+      "type": 8,
+      "value": "a"
+    },
+    {
+      "type": 0,
+      "value": " pentru a afla mai multe."
+    }
+  ],
+  "f09b16bc5f": [
+    {
+      "type": 0,
+      "value": "Folosim cookie-uri pentru a vă menține conectat(ă), pentru a vă sincroniza fișierele și pentru a colecta date analitice care să ne ajute să îmbunătățim tldraw."
+    }
+  ],
+  "f0e8bff6f9": [
+    {
+      "type": 0,
+      "value": "Setări utilizator"
+    }
+  ],
+  "f2569594b2": [
+    {
+      "type": 0,
+      "value": "Folosim aceste cookie-uri pentru a salva fișierele și setările dumneavoastră."
+    }
+  ],
+  "f2a6c498fb": [
+    {
+      "type": 0,
+      "value": "Şterge"
+    }
+  ],
+  "f43fb62093": [
+    {
+      "type": 0,
+      "value": "Înapoi la tldraw."
+    }
+  ],
+  "f4f70727dc": [
+    {
+      "type": 0,
+      "value": "Setări"
+    }
+  ],
+  "fb15c53f22": [
+    {
+      "type": 0,
+      "value": "Vizualizator"
+    }
+  ],
+  "fd1be3efcf": [
+    {
+      "type": 0,
+      "value": "Sigur doriți să ștergeți acest fișier?"
+    }
+  ],
+  "fd27891570": [
+    {
+      "type": 0,
+      "value": "Alătură-te listei de așteptare"
+    }
+  ],
+  "fed5ec05eb": [
+    {
+      "type": 0,
+      "value": "Link copiat"
+    }
+  ],
+  "ffcd73e997": [
+    {
+      "type": 0,
+      "value": "Importați fișierul…"
+    }
+  ]
 }

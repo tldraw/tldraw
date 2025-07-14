@@ -513,7 +513,6 @@ export function ActionsProvider({ overrides, children }: ActionsProviderProps) {
 								}
 					}
 
-					if (!editor.canCreateShapes(ids)) return
 					editor.markHistoryStoppingPoint('duplicate shapes')
 					editor.duplicateShapes(ids, offset)
 
