@@ -23,7 +23,8 @@ export function useTldrawAiExample(editor?: Editor) {
 		$chatHistoryItems.update((prev) => {
 			const lastItem = prev[prev.length - 1]
 			// If the last item is not the same type, create a new one
-			if (lastItem.type !== item.type) {
+			// (Unless the last item is an agent-raw, in which case we want to update it)
+			if (lastItem.type !== item.type && lastItem.type !== 'agent-raw') {
 				return [...prev, item]
 			}
 
@@ -64,15 +65,27 @@ export function useTldrawAiExample(editor?: Editor) {
 						})
 						return
 					}
+					default: {
+						createOrUpdateHistoryItem({
+							type: 'agent-raw',
+							change,
+							status: change.complete ? 'done' : 'progress',
+						})
+						return
+					}
 				}
-				return
 			}
 			case 'createShape': {
+				// createOrUpdateHistoryItem({
+				// 	type: 'agent-action',
+				// 	action: 'creating',
+				// 	status: change.complete ? 'done' : 'progress',
+				// 	info: change.description ?? '',
+				// })
 				createOrUpdateHistoryItem({
-					type: 'agent-action',
-					action: 'creating',
+					type: 'agent-change',
+					change,
 					status: change.complete ? 'done' : 'progress',
-					info: change.description ?? '',
 				})
 				return
 			}

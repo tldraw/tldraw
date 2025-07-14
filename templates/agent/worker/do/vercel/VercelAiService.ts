@@ -62,13 +62,14 @@ async function* streamEventsVercel(
 	let maybeIncompleteEvent: ISimpleEvent | null = null
 
 	for await (const partialObject of partialObjectStream) {
-		if (!Array.isArray(partialObject.events)) continue
-		if (partialObject.events.length === 0) continue
+		const events = partialObject.events
+		if (!Array.isArray(events)) continue
+		if (events.length === 0) continue
 
 		// If the events list is ahead of the cursor, we know we've completed the current event
 		// We can complete the event and move the cursor forward
-		if (partialObject.events.length > cursor) {
-			const event = partialObject.events[cursor - 1] as ISimpleEvent
+		if (events.length > cursor) {
+			const event = events[cursor - 1] as ISimpleEvent
 			if (event) {
 				yield { ...event, complete: true }
 				maybeIncompleteEvent = null
@@ -78,7 +79,7 @@ async function* streamEventsVercel(
 
 		// Now let's check the (potentially new) current event
 		// And let's yield it in its (potentially incomplete) state
-		const event = partialObject.events[cursor - 1] as ISimpleEvent
+		const event = events[cursor - 1] as ISimpleEvent
 		if (event) {
 			yield { ...event, complete: false }
 			maybeIncompleteEvent = event
@@ -143,6 +144,28 @@ function buildHistoryItemMessage(item: ChatHistoryItem): CoreMessage {
 			return {
 				role: 'assistant',
 				content: [{ type: 'text', text: 'Previous message from agent: ' + item.message }],
+			}
+		}
+		case 'agent-change': {
+			return {
+				role: 'assistant',
+				content: [
+					{
+						type: 'text',
+						text: 'Previous change from agent: ' + JSON.stringify(item.change, null, 2),
+					},
+				],
+			}
+		}
+		case 'agent-raw': {
+			return {
+				role: 'assistant',
+				content: [
+					{
+						type: 'text',
+						text: 'Previous output from agent: ' + JSON.stringify(item.change, null, 2),
+					},
+				],
 			}
 		}
 	}

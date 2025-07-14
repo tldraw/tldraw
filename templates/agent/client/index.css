@@ -138,3 +138,20 @@ body {
 	border-radius: 8px;
 	max-width: 80%;
 }
+
+.agent-raw-message {
+	white-space: pre-wrap;
+}
+
+.agent-change-message-image {
+	max-width: 100%;
+	max-height: 100px;
+	object-fit: contain;
+}
+
+.agent-change-message-placeholder {
+	height: 100px;
+	display: flex;
+	align-items: center;
+	justify-content: center;
+}

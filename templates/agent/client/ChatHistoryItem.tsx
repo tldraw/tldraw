@@ -1,8 +1,13 @@
+import { MaybeComplete, TLAiChange } from '@tldraw/ai'
+import { useEffect, useState } from 'react'
+import { DefaultSpinner, Editor } from 'tldraw'
+
 export type ChatHistoryItem =
 	| UserMessageHistoryItem
-	// | AgentChangeHistoryItem //TODO
+	| AgentChangeHistoryItem
 	| AgentMessageHistoryItem
 	| AgentActionHistoryItem
+	| AgentRawHistoryItem
 
 export interface UserMessageHistoryItem {
 	type: 'user-message'
@@ -16,10 +21,17 @@ export interface AgentMessageHistoryItem {
 	status: 'progress' | 'done' | 'cancelled'
 }
 
-// export interface AgentChangeHistoryItem {
-// 	type: 'agent-change'
-// 	change: string
-// }
+export interface AgentChangeHistoryItem {
+	type: 'agent-change'
+	change: MaybeComplete<TLAiChange>
+	status: 'progress' | 'done' | 'cancelled'
+}
+
+export interface AgentRawHistoryItem {
+	type: 'agent-raw'
+	change: MaybeComplete<TLAiChange>
+	status: 'progress' | 'done' | 'cancelled'
+}
 
 export function UserMessageHistoryItem({ item }: { item: UserMessageHistoryItem }) {
 	return <div className="user-chat-message">{item.message}</div>
@@ -29,10 +41,42 @@ export function AgentMessageHistoryItem({ item }: { item: AgentMessageHistoryIte
 	return <div className="agent-chat-message">{item.message}</div>
 }
 
-// TODO
-// export function AgentChangeHistoryItem({ item }: { item: AgentChangeHistoryItem }) {
-// 	return <div className="agent-change-message">{item.change}</div>
-// }
+export function AgentChangeHistoryItem({
+	item,
+	editor,
+}: {
+	item: AgentChangeHistoryItem
+	editor: Editor
+}) {
+	// Hardcoded to only support a single create shape change for now
+	// TODO: Support other change types
+	// TODO: Support multiple changes grouped together
+	const [svgElement, setSvgElement] = useState<Blob | null>(null)
+
+	useEffect(() => {
+		if (!item.change.complete) return
+		if (item.change.type !== 'createShape') return
+		editor.toImage([item.change.shape.id], { format: 'svg' }).then((svgResult) => {
+			if (!svgResult) return
+			setSvgElement(svgResult.blob)
+		})
+	}, [item.change, editor])
+
+	if (item.change.type !== 'createShape') return null
+
+	return (
+		<div className="agent-change-message">
+			<div>{item.change.description}</div>
+			{svgElement ? (
+				<img className="agent-change-message-image" src={URL.createObjectURL(svgElement)} />
+			) : (
+				<div className="agent-change-message-placeholder">
+					{item.status === 'cancelled' ? '❌ Cancelled' : <DefaultSpinner />}
+				</div>
+			)}
+		</div>
+	)
+}
 
 export function AgentActionHistoryItem({ item }: { item: AgentActionHistoryItem }) {
 	const actionDefinition = ACTION_HISTORY_ITEM_DEFINITIONS[item.action]
@@ -48,6 +92,15 @@ export function AgentActionHistoryItem({ item }: { item: AgentActionHistoryItem 
 			</span>
 		</div>
 	)
+}
+
+export function AgentRawHistoryItem({ item }: { item: AgentRawHistoryItem }) {
+	const values = Object.entries(item.change).map(([key, value]) => {
+		if (key === 'type' || key === 'complete') return null
+		if (typeof value === 'object') return JSON.stringify(value, null, 2)
+		return value
+	})
+	return <div className="agent-raw-message">{values.join('\n')}</div>
 }
 
 export interface AgentActionDefinition {

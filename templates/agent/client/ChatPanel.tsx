@@ -91,7 +91,7 @@ export function ChatPanel({ editor }: { editor: Editor }) {
 			<div className="chat-header">
 				<NewChatButton />
 			</div>
-			<ChatHistory items={historyItems} />
+			<ChatHistory editor={editor} items={historyItems} />
 			<div className="chat-input">
 				<form onSubmit={handleSubmit}>
 					<input

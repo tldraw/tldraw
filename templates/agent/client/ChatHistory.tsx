@@ -1,15 +1,17 @@
 import { useEffect, useRef } from 'react'
-import { atom } from 'tldraw'
+import { atom, Editor } from 'tldraw'
 import {
 	AgentActionHistoryItem,
+	AgentChangeHistoryItem,
 	AgentMessageHistoryItem,
+	AgentRawHistoryItem,
 	ChatHistoryItem,
 	UserMessageHistoryItem,
 } from './ChatHistoryItem'
 
 export const $chatHistoryItems = atom<ChatHistoryItem[]>('chatHistoryItems', [])
 
-export function ChatHistory({ items }: { items: ChatHistoryItem[] }) {
+export function ChatHistory({ editor, items }: { editor: Editor; items: ChatHistoryItem[] }) {
 	const scrollContainerRef = useRef<HTMLDivElement>(null)
 	const previousScrollDistanceFromBottomRef = useRef(0)
 
@@ -39,10 +41,12 @@ export function ChatHistory({ items }: { items: ChatHistoryItem[] }) {
 						return <UserMessageHistoryItem key={index} item={item} />
 					case 'agent-message':
 						return <AgentMessageHistoryItem key={index} item={item} />
-					// case 'agent-change':
-					// 	return <AgentChangeHistoryItem key={index} item={item} />
+					case 'agent-change':
+						return <AgentChangeHistoryItem key={index} item={item} editor={editor} />
 					case 'agent-action':
 						return <AgentActionHistoryItem key={index} item={item} />
+					case 'agent-raw':
+						return <AgentRawHistoryItem key={index} item={item} />
 				}
 			})}
 		</div>
