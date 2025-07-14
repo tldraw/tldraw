@@ -180,11 +180,18 @@ const SimpleThinkEvent = z.object({
 })
 export type ISimpleThinkEvent = z.infer<typeof SimpleThinkEvent>
 
+const SimpleScheduleReviewEvent = z.object({
+	type: z.literal('scheduleReview'),
+	intent: z.string(),
+})
+export type ISimpleScheduleReviewEvent = z.infer<typeof SimpleScheduleReviewEvent>
+
 export const SimpleEvent = z.union([
 	SimpleThinkEvent,
 	SimpleCreateEvent, // or update
 	SimpleDeleteEvent,
 	SimpleMoveEvent,
+	SimpleScheduleReviewEvent,
 ])
 
 export type ISimpleEvent = z.infer<typeof SimpleEvent>

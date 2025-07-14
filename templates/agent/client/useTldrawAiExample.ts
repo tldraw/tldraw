@@ -7,11 +7,13 @@ import {
 	useTldrawAi,
 } from '@tldraw/ai'
 import { useCallback } from 'react'
-import { Editor } from 'tldraw'
+import { atom, Editor } from 'tldraw'
 import { $chatHistoryItems } from './ChatHistory'
 import { ChatHistoryItem } from './ChatHistoryItem'
 import { SimpleCoordinates } from './transforms/SimpleCoordinates'
 import { SimpleIds } from './transforms/SimpleIds'
+
+export const $eventSchedule = atom<any[]>('eventSchedule', [])
 
 /**
  * A hook that calls `useTldrawAi` with static options.
@@ -62,6 +64,29 @@ export function useTldrawAiExample(editor?: Editor) {
 							action: 'thinking',
 							status: change.complete ? 'done' : 'progress',
 							info: change.text,
+						})
+						return
+					}
+					case 'scheduleReview': {
+						createOrUpdateHistoryItem({
+							type: 'agent-action',
+							action: 'scheduleReview',
+							status: change.complete ? 'done' : 'progress',
+							info: change.intent ?? '',
+						})
+						$eventSchedule.update((prev) => {
+							if (change.complete) {
+								return [
+									...prev,
+									{
+										type: 'agent-action',
+										action: 'scheduleReview',
+										status: 'done',
+										info: change.intent ?? '',
+									},
+								]
+							}
+							return prev
 						})
 						return
 					}
