@@ -24,11 +24,6 @@ export function ChatPanel({ editor }: { editor: Editor }) {
 		'gemini-2.5-flash'
 	)
 
-	const eventSchedule = useValue($eventSchedule)
-	useEffect(() => {
-		console.log('eventSchedule changed:', eventSchedule)
-	}, [eventSchedule])
-
 	useEffect(() => {
 		if (!editor) return
 		;(window as any).editor = editor
@@ -37,10 +32,8 @@ export function ChatPanel({ editor }: { editor: Editor }) {
 
 	async function checkSchedule() {
 		const eventSchedule = $eventSchedule.get()
-		console.log('[checkSchedule] Called. Current eventSchedule:', eventSchedule)
 
 		if (!eventSchedule || eventSchedule.length === 0) {
-			console.log('[checkSchedule] No events to process. Returning.')
 			return // Base case - no more events to process
 		}
 
@@ -51,38 +44,21 @@ export function ChatPanel({ editor }: { editor: Editor }) {
 				item.action === 'scheduleReview'
 		)
 
-		console.log('[checkSchedule] reviewEventIndex:', reviewEventIndex)
-
 		if (reviewEventIndex === -1) {
-			console.log('[checkSchedule] No review events found. Returning.')
-			console.log('[checkSchedule] eventSchedule:', eventSchedule)
 			return // No review events found
 		}
 
 		const reviewEvent = eventSchedule[reviewEventIndex]
-		console.log('[checkSchedule] Reviewing event at index', reviewEventIndex, ':', reviewEvent)
 		const intent = (reviewEvent as any).info ?? (reviewEvent as any).intent ?? ''
 
 		if (!intent) {
-			console.log(
-				'[checkSchedule] No intent found for event at index',
-				reviewEventIndex,
-				'. Removing and continuing.'
-			)
 			// Remove event with no intent and continue
 			$eventSchedule.update((prev) => prev.filter((_, i) => i !== reviewEventIndex))
-			console.log('[checkSchedule] Removed event with no intent. Calling checkSchedule again.')
 			return checkSchedule() // Process next event
 		}
 
 		try {
 			const reviewPrompt = getReviewPrompt(intent)
-			console.log(
-				'[checkSchedule] Sending review prompt for event at index',
-				reviewEventIndex,
-				'with intent:',
-				intent
-			)
 			const review = ai.prompt({
 				message: reviewPrompt,
 				stream: true,
@@ -91,29 +67,12 @@ export function ChatPanel({ editor }: { editor: Editor }) {
 			rCancelFn.current = review.cancel
 			await review.promise
 
-			console.log(
-				'[checkSchedule] Review complete for event at index',
-				reviewEventIndex,
-				'. Removing event and continuing.'
-			)
 			// Only remove the event after successful processing
 			$eventSchedule.update((prev) => prev.filter((_, i) => i !== reviewEventIndex))
 
 			// Process next event (if any) after a 1s timeout to allow for cancellation
-			console.log(
-				'[checkSchedule] Calling checkSchedule again after successful review. Waiting 1s before next review.'
-			)
-			// setTimeout(() => {
-			// 	checkSchedule()
-			// }, 1000)
 			checkSchedule()
 		} catch (error) {
-			console.error(
-				'[checkSchedule] Review failed for event at index',
-				reviewEventIndex,
-				':',
-				error
-			)
 			// Don't remove the event on failure - let it be retried
 			return
 		}
