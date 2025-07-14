@@ -97,7 +97,7 @@
 	opacity: 1;
 }
 
-.tlui-button[aria-expanded='true'][data-direction='left']::after {
+.tlui-button[aria-expanded='true'][data-direction='left'] {
 	background: linear-gradient(270deg, rgba(144, 144, 144, 0) 0%, var(--color-muted-2) 100%);
 	opacity: 1;
 }
@@ -998,6 +998,12 @@
 	pointer-events: all;
 	width: 148px;
 	max-width: 148px;
+}
+
+.tlui-style-panel[data-show-ui-labels='true'] .tlui-button[data-isactive='true'] {
+	border-radius: 10px;
+	outline: 2px solid var(--color-text);
+	outline-offset: -5px;
 }
 
 .tlui-style-panel::-webkit-scrollbar {
