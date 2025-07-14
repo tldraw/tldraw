@@ -19,7 +19,7 @@ function App() {
 	return (
 		<div className="tldraw-ai-container">
 			<div className="tldraw-canvas">
-				<Tldraw persistenceKey="tldraw-ai-demo-2" onMount={handleMount} />
+				<Tldraw persistenceKey="tldraw-agent-demo" onMount={handleMount} />
 			</div>
 			{editor && <ChatPanel editor={editor} />}
 		</div>
