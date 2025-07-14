@@ -1037,7 +1037,7 @@ export function ActionsProvider({ overrides, children }: ActionsProviderProps) {
 				id: 'rotate-cw',
 				label: 'action.rotate-cw',
 				icon: 'rotate-cw',
-				kbd: 'ctrl+shift+right',
+				kbd: 'shift+]',
 				onSelect(source) {
 					if (!canApplySelectionAction()) return
 					if (mustGoBackToSelectToolFirst()) return
@@ -1057,7 +1057,7 @@ export function ActionsProvider({ overrides, children }: ActionsProviderProps) {
 				id: 'rotate-ccw',
 				label: 'action.rotate-ccw',
 				icon: 'rotate-ccw',
-				kbd: 'ctrl+shift+left',
+				kbd: 'shift+[',
 				onSelect(source) {
 					if (!canApplySelectionAction()) return
 					if (mustGoBackToSelectToolFirst()) return
