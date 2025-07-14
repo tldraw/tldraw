@@ -33,6 +33,12 @@
       "value": "Auto"
     }
   ],
+  "0776e18496": [
+    {
+      "type": 0,
+      "value": "Mentés és megosztás"
+    }
+  ],
   "07dbd11b21": [
     {
       "type": 0,
@@ -81,6 +87,12 @@
       "value": "Exportálás másként"
     }
   ],
+  "1460ab5e78": [
+    {
+      "type": 0,
+      "value": "Ingyenes tldraw-ok"
+    }
+  ],
   "181b90f889": [
     {
       "type": 0,
@@ -99,6 +111,12 @@
       "value": "Ma"
     }
   ],
+  "22d84a12fd": [
+    {
+      "type": 0,
+      "value": "Figjam, de tldraw"
+    }
+  ],
   "250ddea65c": [
     {
       "type": 0,
@@ -109,6 +127,12 @@
     {
       "type": 0,
       "value": "A feltöltés sikertelen"
+    }
+  ],
+  "2c61d18599": [
+    {
+      "type": 0,
+      "value": "Miro, de jó és ingyenes"
     }
   ],
   "31246941ad": [
@@ -153,10 +177,22 @@
       "value": "Összes elfogadása"
     }
   ],
+  "3fc6d0c83a": [
+    {
+      "type": 0,
+      "value": "Barát hozzáadása"
+    }
+  ],
   "42e53c47c1": [
     {
       "type": 0,
       "value": "Hozzáférés kéréséhez forduljon a tulajdonoshoz."
+    }
+  ],
+  "44281ab6e5": [
+    {
+      "type": 0,
+      "value": "Bejelentkezés"
     }
   ],
   "44db318ee5": [
@@ -193,6 +229,18 @@
     {
       "type": 0,
       "value": "Újratöltés"
+    }
+  ],
+  "4e029798f2": [
+    {
+      "type": 0,
+      "value": "Ingyenes részvények"
+    }
+  ],
+  "4e875b8d8e": [
+    {
+      "type": 0,
+      "value": "Ingyenes mentések"
     }
   ],
   "50db1b7e1e": [
@@ -289,6 +337,12 @@
       "value": "Másolat"
     }
   ],
+  "5ff75742e0": [
+    {
+      "type": 0,
+      "value": "Regisztrálj ingyenesen"
+    }
+  ],
   "61057a0c84": [
     {
       "type": 0,
@@ -311,6 +365,12 @@
     {
       "type": 0,
       "value": "Elérhető a tldraw új verziója. A folytatáshoz töltse be újra az oldalt."
+    }
+  ],
+  "697c59072d": [
+    {
+      "type": 0,
+      "value": "Jelentkezzen be a mentéshez"
     }
   ],
   "6a26f54883": [
@@ -467,6 +527,12 @@
       "value": "."
     }
   ],
+  "84c89d47c7": [
+    {
+      "type": 0,
+      "value": "Megosztás ingyenesen"
+    }
+  ],
   "85a082de1b": [
     {
       "type": 0,
@@ -493,6 +559,12 @@
     {
       "type": 0,
       "value": "A szerkesztés folytatásához másold át a szobát a fájljaid közé."
+    }
+  ],
+  "8ea211024d": [
+    {
+      "type": 0,
+      "value": "Hozz létre egy ingyenes fiókot"
     }
   ],
   "8eb2c00e96": [
@@ -663,6 +735,12 @@
       "value": "Link másolása"
     }
   ],
+  "ba0318cb81": [
+    {
+      "type": 0,
+      "value": "Jelentkezzen be a megosztáshoz"
+    }
+  ],
   "bb792693e2": [
     {
       "type": 0,
@@ -723,10 +801,28 @@
       "value": "Töltsön fel .tldr fájlokat"
     }
   ],
+  "bffe9a3c9a": [
+    {
+      "type": 0,
+      "value": "Bejelentkezés"
+    }
+  ],
+  "c079282475": [
+    {
+      "type": 0,
+      "value": "Oszd meg a munkádat"
+    }
+  ],
   "c2276c9127": [
     {
       "type": 0,
       "value": "További információ a megosztásról."
+    }
+  ],
+  "c24e43cd1a": [
+    {
+      "type": 0,
+      "value": "Jelentkezel majd, ugye?"
     }
   ],
   "c303bd1095": [
@@ -777,6 +873,12 @@
       "value": "További információ a közzétételről."
     }
   ],
+  "d0eedb7995": [
+    {
+      "type": 0,
+      "value": "Hé"
+    }
+  ],
   "d3d2e61733": [
     {
       "type": 0,
@@ -805,6 +907,18 @@
     {
       "type": 0,
       "value": "Menjen ide a tartalom megtekintéséhez"
+    }
+  ],
+  "da404df474": [
+    {
+      "type": 0,
+      "value": "Mentsd el a munkádat"
+    }
+  ],
+  "db4c2dab9a": [
+    {
+      "type": 0,
+      "value": "Nem Excalidraw"
     }
   ],
   "dbbebf3c03": [
@@ -939,6 +1053,12 @@
     {
       "type": 0,
       "value": "Biztosan törli ezt a fájlt?"
+    }
+  ],
+  "fd27891570": [
+    {
+      "type": 0,
+      "value": "Iratkozzon fel a várólistára"
     }
   ],
   "fed5ec05eb": [

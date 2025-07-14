@@ -33,6 +33,12 @@
       "value": "Automático"
     }
   ],
+  "0776e18496": [
+    {
+      "type": 0,
+      "value": "Gardar e compartir"
+    }
+  ],
   "07dbd11b21": [
     {
       "type": 0,
@@ -81,6 +87,12 @@
       "value": "Exportar como"
     }
   ],
+  "1460ab5e78": [
+    {
+      "type": 0,
+      "value": "tldraws gratuítos"
+    }
+  ],
   "181b90f889": [
     {
       "type": 0,
@@ -99,6 +111,12 @@
       "value": "Hoxe"
     }
   ],
+  "22d84a12fd": [
+    {
+      "type": 0,
+      "value": "Atasco de figuras pero debuxo rápido"
+    }
+  ],
   "250ddea65c": [
     {
       "type": 0,
@@ -109,6 +127,12 @@
     {
       "type": 0,
       "value": "Produciuse un erro na carga"
+    }
+  ],
+  "2c61d18599": [
+    {
+      "type": 0,
+      "value": "Miro pero bo e gratuíto"
     }
   ],
   "31246941ad": [
@@ -153,10 +177,22 @@
       "value": "Aceptar todo"
     }
   ],
+  "3fc6d0c83a": [
+    {
+      "type": 0,
+      "value": "Engadir amigo/a"
+    }
+  ],
   "42e53c47c1": [
     {
       "type": 0,
       "value": "Ponte en contacto co propietario para solicitar acceso."
+    }
+  ],
+  "44281ab6e5": [
+    {
+      "type": 0,
+      "value": "Rexistrarse"
     }
   ],
   "44db318ee5": [
@@ -193,6 +229,18 @@
     {
       "type": 0,
       "value": "Recarga"
+    }
+  ],
+  "4e029798f2": [
+    {
+      "type": 0,
+      "value": "Accións gratuítas"
+    }
+  ],
+  "4e875b8d8e": [
+    {
+      "type": 0,
+      "value": "Gardadas gratuítas"
     }
   ],
   "50db1b7e1e": [
@@ -289,6 +337,12 @@
       "value": "Copiar"
     }
   ],
+  "5ff75742e0": [
+    {
+      "type": 0,
+      "value": "Rexístrate gratis"
+    }
+  ],
   "61057a0c84": [
     {
       "type": 0,
@@ -311,6 +365,12 @@
     {
       "type": 0,
       "value": "Hai unha nova versión de tldraw dispoñible. Volve cargar a páxina para continuar."
+    }
+  ],
+  "697c59072d": [
+    {
+      "type": 0,
+      "value": "Inicia sesión para gardar"
     }
   ],
   "6a26f54883": [
@@ -467,6 +527,12 @@
       "value": "."
     }
   ],
+  "84c89d47c7": [
+    {
+      "type": 0,
+      "value": "Compartir de balde"
+    }
+  ],
   "85a082de1b": [
     {
       "type": 0,
@@ -497,6 +563,12 @@
     {
       "type": 0,
       "value": "Para continuar coa edición, copia a sala nos teus ficheiros."
+    }
+  ],
+  "8ea211024d": [
+    {
+      "type": 0,
+      "value": "Crear unha conta gratuíta"
     }
   ],
   "8eb2c00e96": [
@@ -667,6 +739,12 @@
       "value": "Copiar ligazón"
     }
   ],
+  "ba0318cb81": [
+    {
+      "type": 0,
+      "value": "Inicia sesión para compartir"
+    }
+  ],
   "bb792693e2": [
     {
       "type": 0,
@@ -731,10 +809,28 @@
       "value": "Carga ficheiros .tldr"
     }
   ],
+  "bffe9a3c9a": [
+    {
+      "type": 0,
+      "value": "Iniciar sesión"
+    }
+  ],
+  "c079282475": [
+    {
+      "type": 0,
+      "value": "Comparte o teu traballo"
+    }
+  ],
   "c2276c9127": [
     {
       "type": 0,
       "value": "Obtén máis información sobre como compartir."
+    }
+  ],
+  "c24e43cd1a": [
+    {
+      "type": 0,
+      "value": "Vas apuntarte, non si?"
     }
   ],
   "c303bd1095": [
@@ -785,6 +881,12 @@
       "value": "Máis información sobre a publicación."
     }
   ],
+  "d0eedb7995": [
+    {
+      "type": 0,
+      "value": "Ei"
+    }
+  ],
   "d3d2e61733": [
     {
       "type": 0,
@@ -813,6 +915,18 @@
     {
       "type": 0,
       "value": "Entra aquí para ver o contido"
+    }
+  ],
+  "da404df474": [
+    {
+      "type": 0,
+      "value": "Garda o teu traballo"
+    }
+  ],
+  "db4c2dab9a": [
+    {
+      "type": 0,
+      "value": "Non é Excalidraw"
     }
   ],
   "dbbebf3c03": [
@@ -947,6 +1061,12 @@
     {
       "type": 0,
       "value": "Estás seguro de que queres eliminar este ficheiro?"
+    }
+  ],
+  "fd27891570": [
+    {
+      "type": 0,
+      "value": "Únete á lista de espera"
     }
   ],
   "fed5ec05eb": [
