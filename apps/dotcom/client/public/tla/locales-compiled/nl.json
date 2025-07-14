@@ -33,6 +33,12 @@
       "value": "Auto"
     }
   ],
+  "0776e18496": [
+    {
+      "type": 0,
+      "value": "Opslaan en delen"
+    }
+  ],
   "07dbd11b21": [
     {
       "type": 0,
@@ -81,6 +87,12 @@
       "value": "Exporteren als"
     }
   ],
+  "1460ab5e78": [
+    {
+      "type": 0,
+      "value": "Gratis tldraws"
+    }
+  ],
   "181b90f889": [
     {
       "type": 0,
@@ -99,6 +111,12 @@
       "value": "Vandaag"
     }
   ],
+  "22d84a12fd": [
+    {
+      "type": 0,
+      "value": "Figjam maar tldraw"
+    }
+  ],
   "250ddea65c": [
     {
       "type": 0,
@@ -109,6 +127,12 @@
     {
       "type": 0,
       "value": "Uploaden mislukt"
+    }
+  ],
+  "2c61d18599": [
+    {
+      "type": 0,
+      "value": "Miro maar dan goed en gratis"
     }
   ],
   "31246941ad": [
@@ -153,10 +177,22 @@
       "value": "Alles accepteren"
     }
   ],
+  "3fc6d0c83a": [
+    {
+      "type": 0,
+      "value": "Vriend toevoegen"
+    }
+  ],
   "42e53c47c1": [
     {
       "type": 0,
       "value": "Neem contact op met de eigenaar om toegang aan te vragen."
+    }
+  ],
+  "44281ab6e5": [
+    {
+      "type": 0,
+      "value": "Aanmelden"
     }
   ],
   "44db318ee5": [
@@ -193,6 +229,18 @@
     {
       "type": 0,
       "value": "Opnieuw laden"
+    }
+  ],
+  "4e029798f2": [
+    {
+      "type": 0,
+      "value": "Gratis aandelen"
+    }
+  ],
+  "4e875b8d8e": [
+    {
+      "type": 0,
+      "value": "Gratis opslaan"
     }
   ],
   "50db1b7e1e": [
@@ -289,6 +337,12 @@
       "value": "Kopiëren"
     }
   ],
+  "5ff75742e0": [
+    {
+      "type": 0,
+      "value": "Meld je gratis aan"
+    }
+  ],
   "61057a0c84": [
     {
       "type": 0,
@@ -311,6 +365,12 @@
     {
       "type": 0,
       "value": "Er is een nieuwe versie van tldraw beschikbaar. Laad de pagina opnieuw om verder te gaan."
+    }
+  ],
+  "697c59072d": [
+    {
+      "type": 0,
+      "value": "Meld u aan om op te slaan"
     }
   ],
   "6a26f54883": [
@@ -467,6 +527,12 @@
       "value": "."
     }
   ],
+  "84c89d47c7": [
+    {
+      "type": 0,
+      "value": "Deel gratis"
+    }
+  ],
   "85a082de1b": [
     {
       "type": 0,
@@ -493,6 +559,12 @@
     {
       "type": 0,
       "value": "Om door te kunnen gaan met bewerken, kopieer je de kamer naar je bestanden."
+    }
+  ],
+  "8ea211024d": [
+    {
+      "type": 0,
+      "value": "Maak een gratis account aan"
     }
   ],
   "8eb2c00e96": [
@@ -663,6 +735,12 @@
       "value": "Link kopiëren"
     }
   ],
+  "ba0318cb81": [
+    {
+      "type": 0,
+      "value": "Meld je aan om te delen"
+    }
+  ],
   "bb792693e2": [
     {
       "type": 0,
@@ -727,10 +805,28 @@
       "value": "Upload .tldr-bestanden"
     }
   ],
+  "bffe9a3c9a": [
+    {
+      "type": 0,
+      "value": "Inloggen"
+    }
+  ],
+  "c079282475": [
+    {
+      "type": 0,
+      "value": "Deel je werk"
+    }
+  ],
   "c2276c9127": [
     {
       "type": 0,
       "value": "Meer informatie over delen."
+    }
+  ],
+  "c24e43cd1a": [
+    {
+      "type": 0,
+      "value": "Je schrijft je toch wel in?"
     }
   ],
   "c303bd1095": [
@@ -781,6 +877,12 @@
       "value": "Meer informatie over publiceren."
     }
   ],
+  "d0eedb7995": [
+    {
+      "type": 0,
+      "value": "Hoi"
+    }
+  ],
   "d3d2e61733": [
     {
       "type": 0,
@@ -809,6 +911,18 @@
     {
       "type": 0,
       "value": "Ga hierheen om de inhoud te bekijken"
+    }
+  ],
+  "da404df474": [
+    {
+      "type": 0,
+      "value": "Bewaar uw werk"
+    }
+  ],
+  "db4c2dab9a": [
+    {
+      "type": 0,
+      "value": "Niet Excalidraw"
     }
   ],
   "dbbebf3c03": [
@@ -943,6 +1057,12 @@
     {
       "type": 0,
       "value": "Weet u zeker dat u dit bestand wilt verwijderen?"
+    }
+  ],
+  "fd27891570": [
+    {
+      "type": 0,
+      "value": "Schrijf je in op de wachtlijst"
     }
   ],
   "fed5ec05eb": [
