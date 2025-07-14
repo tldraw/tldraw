@@ -13,51 +13,199 @@ import ReactFlow, {
 } from 'react-flow-renderer'
 import 'react-flow-renderer/dist/style.css'
 
-// DeepSeek API call function
-async function callDeepSeekAPI(question: string): Promise<string> {
-	const apiKey = 'sk-26d1dcdacd4148b0a27b724af6f8daf7' // substitute your DeepSeek API Key
+// ==================== Tool Definitions ====================
 
-	// Build the prompt to help the LLM better understand the task
-	const systemPrompt = `You are a helpful AI assistant. Please provide clear, concise, and accurate answers to user questions. 
+export interface ToolDefinition {
+	id: string
+	name: string
+	type: 'input' | 'agent' | 'process' | 'output'
+	description: string
+	config: {
+		apiEndpoint?: string
+		parameters?: Record<string, any>
+		headers?: Record<string, string>
+		apiKey?: string
+	}
+	inputSchema?: Record<string, any>
+	outputSchema?: Record<string, any>
+	metadata?: {
+		//metadata: Not sure if this is needed
+		toolSetId?: string
+		toolSetName?: string
+		category?: string
+		version?: string
+		author?: string
+		lastUpdated?: string
+		tags?: string[]
+		[key: string]: any
+	}
+}
+
+// Default tool definitions - can be loaded from backend
+export const defaultTools: ToolDefinition[] = [
+	{
+		id: 'deepseek-agent',
+		name: 'DeepSeek AI Agent',
+		type: 'agent',
+		description: 'AI-powered content generation using DeepSeek API',
+		config: {
+			apiEndpoint: 'https://api.deepseek.com/v1/chat/completions',
+			apiKey: 'sk-26d1dcdacd4148b0a27b724af6f8daf7', // substitute your DeepSeek API Key
+			parameters: {
+				model: 'deepseek-chat',
+				max_tokens: 256,
+				temperature: 0.7,
+			},
+			headers: {
+				'Content-Type': 'application/json',
+			},
+		},
+		inputSchema: {
+			question: { type: 'string', required: true },
+		},
+		outputSchema: {
+			response: { type: 'string' },
+		},
+	},
+	{
+		id: 'text-processor',
+		name: 'Text Processor',
+		type: 'process',
+		description: 'Process and analyze text content',
+		config: {
+			apiEndpoint: '/api/tools/text-processor',
+			parameters: {
+				maxLength: 1000,
+				language: 'en',
+			},
+		},
+		inputSchema: {
+			text: { type: 'string', required: true },
+		},
+		outputSchema: {
+			processedText: { type: 'string' },
+			analysis: { type: 'object' },
+		},
+	},
+]
+
+// ==================== Tool Registry ====================
+
+export class ToolRegistry {
+	private tools: Map<string, ToolDefinition> = new Map()
+
+	constructor(tools: ToolDefinition[] = []) {
+		tools.forEach((tool) => this.registerTool(tool))
+	}
+
+	registerTool(tool: ToolDefinition) {
+		this.tools.set(tool.id, tool)
+	}
+
+	getTool(id: string): ToolDefinition | undefined {
+		return this.tools.get(id)
+	}
+
+	getAllTools(): ToolDefinition[] {
+		return Array.from(this.tools.values())
+	}
+
+	getToolsByType(type: ToolDefinition['type']): ToolDefinition[] {
+		return this.getAllTools().filter((tool) => tool.type === type)
+	}
+}
+
+// ==================== API Service ====================
+
+export class ToolAPIService {
+	constructor(private toolRegistry: ToolRegistry) {}
+
+	async executeTool(toolId: string, input: any): Promise<any> {
+		const tool = this.toolRegistry.getTool(toolId)
+		if (!tool) {
+			throw new Error(`Tool ${toolId} not found`)
+		}
+
+		if (!tool.config.apiEndpoint) {
+			throw new Error(`Tool ${toolId} has no API endpoint`)
+		}
+
+		const requestBody = {
+			...tool.config.parameters,
+			...input,
+		}
+
+		const response = await fetch(tool.config.apiEndpoint, {
+			method: 'POST',
+			headers: {
+				'Content-Type': 'application/json',
+				...(tool.config.apiKey && { Authorization: `Bearer ${tool.config.apiKey}` }),
+				...tool.config.headers,
+			},
+			body: JSON.stringify(requestBody),
+		})
+
+		if (!response.ok) {
+			throw new Error(`API call failed: ${response.statusText}`)
+		}
+
+		return await response.json()
+	}
+
+	// Special handling for DeepSeek API
+	async callDeepSeekAPI(question: string): Promise<string> {
+		const tool = this.toolRegistry.getTool('deepseek-agent')
+		if (!tool) {
+			throw new Error('DeepSeek tool not found')
+		}
+
+		const systemPrompt = `You are a helpful AI assistant. Please provide clear, concise, and accurate answers to user questions. 
 If the question is about coding or technical topics, provide practical examples when possible.
 If the question is unclear, ask for clarification.`
 
-	const userPrompt = `User Query: ${question}
+		const response = await fetch(tool.config.apiEndpoint!, {
+			method: 'POST',
+			headers: {
+				'Content-Type': 'application/json',
+				Authorization: `Bearer ${tool.config.apiKey}`,
+			},
+			body: JSON.stringify({
+				model: tool.config.parameters?.model || 'deepseek-chat',
+				messages: [
+					{ role: 'system', content: systemPrompt },
+					{ role: 'user', content: question },
+				],
+				max_tokens: tool.config.parameters?.max_tokens || 256,
+				temperature: tool.config.parameters?.temperature || 0.7,
+			}),
+		})
 
-Please provide a helpful response:`
+		if (!response.ok) {
+			throw new Error('DeepSeek API error')
+		}
 
-	const response = await fetch('https://api.deepseek.com/v1/chat/completions', {
-		method: 'POST',
-		headers: {
-			'Content-Type': 'application/json',
-			Authorization: `Bearer ${apiKey}`,
-		},
-		body: JSON.stringify({
-			model: 'deepseek-chat',
-			messages: [
-				{ role: 'system', content: systemPrompt },
-				{ role: 'user', content: userPrompt },
-			],
-			max_tokens: 256, // 限制回复最大长度
-			temperature: 0.7,
-		}),
-	})
-	if (!response.ok) throw new Error('API error')
-	const data = await response.json()
-	return data.choices?.[0]?.message?.content || '无回答'
+		const data = await response.json()
+		return data.choices?.[0]?.message?.content || '无回答'
+	}
 }
 
-// 自定义节点类型
-function InputNode({ data, id }: { data: any; id: string }) {
+// ==================== Node Components ====================
+
+interface NodeProps {
+	data: any
+	id: string
+}
+
+function InputNode({ data, id }: NodeProps) {
 	return (
 		<div
 			style={{
-				padding: 18,
+				padding: 10,
 				background: '#fff',
 				border: '2px solid #bbb',
 				borderRadius: 10,
-				minWidth: 260,
-				maxWidth: 400,
+				minWidth: 160,
+				maxWidth: 250,
 			}}
 		>
 			<div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
@@ -82,7 +230,7 @@ function InputNode({ data, id }: { data: any; id: string }) {
 				style={{
 					width: '100%',
 					marginTop: 12,
-					fontSize: 20,
+					fontSize: 16,
 					padding: 6,
 					borderRadius: 6,
 					border: '1px solid #ccc',
@@ -101,16 +249,16 @@ function InputNode({ data, id }: { data: any; id: string }) {
 	)
 }
 
-function AgentNode({ data, id }: { data: any; id: string }) {
+function AgentNode({ data, id }: NodeProps) {
 	return (
 		<div
 			style={{
-				padding: 18,
+				padding: 10,
 				background: '#f6f6ff',
 				border: '2px solid #888',
 				borderRadius: 10,
-				minWidth: 260,
-				maxWidth: 500,
+				minWidth: 160,
+				maxWidth: 250,
 			}}
 		>
 			<div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
@@ -133,7 +281,7 @@ function AgentNode({ data, id }: { data: any; id: string }) {
 			</div>
 			<div
 				style={{
-					fontSize: 18,
+					fontSize: 16,
 					marginTop: 12,
 					minHeight: 32,
 					whiteSpace: 'pre-wrap',
@@ -148,16 +296,16 @@ function AgentNode({ data, id }: { data: any; id: string }) {
 	)
 }
 
-function OutputNode({ data, id }: { data: any; id: string }) {
+function OutputNode({ data, id }: NodeProps) {
 	return (
 		<div
 			style={{
-				padding: 18,
+				padding: 10,
 				background: '#eaffea',
 				border: '2px solid #6b6',
 				borderRadius: 10,
-				minWidth: 220,
-				maxWidth: 500,
+				minWidth: 160,
+				maxWidth: 250,
 			}}
 		>
 			<div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
@@ -180,7 +328,7 @@ function OutputNode({ data, id }: { data: any; id: string }) {
 			</div>
 			<div
 				style={{
-					fontSize: 18,
+					fontSize: 16,
 					marginTop: 12,
 					minHeight: 32,
 					whiteSpace: 'pre-wrap',
@@ -194,17 +342,16 @@ function OutputNode({ data, id }: { data: any; id: string }) {
 	)
 }
 
-// 新增：处理节点
-function ProcessNode({ data, id }: { data: any; id: string }) {
+function ProcessNode({ data, id }: NodeProps) {
 	return (
 		<div
 			style={{
-				padding: 18,
+				padding: 10,
 				background: '#fff3cd',
 				border: '2px solid #ffc107',
 				borderRadius: 10,
-				minWidth: 220,
-				maxWidth: 400,
+				minWidth: 160,
+				maxWidth: 250,
 			}}
 		>
 			<div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
@@ -227,7 +374,7 @@ function ProcessNode({ data, id }: { data: any; id: string }) {
 			</div>
 			<div
 				style={{
-					fontSize: 18,
+					fontSize: 16,
 					marginTop: 12,
 					minHeight: 32,
 					whiteSpace: 'pre-wrap',
@@ -249,8 +396,21 @@ const nodeTypes = {
 	processNode: ProcessNode,
 }
 
-// 工具栏组件
-function Toolbar({ onAddNode }: { onAddNode: (type: string) => void }) {
+// ==================== Toolbar Component ====================
+
+interface ToolbarProps {
+	onAddNode: (type: string) => void
+	toolRegistry: ToolRegistry
+}
+
+function Toolbar({ onAddNode, toolRegistry }: ToolbarProps) {
+	const toolsByType = {
+		input: toolRegistry.getToolsByType('input'),
+		agent: toolRegistry.getToolsByType('agent'),
+		process: toolRegistry.getToolsByType('process'),
+		output: toolRegistry.getToolsByType('output'),
+	}
+
 	return (
 		<div
 			style={{
@@ -279,32 +439,36 @@ function Toolbar({ onAddNode }: { onAddNode: (type: string) => void }) {
 			>
 				Add Input
 			</button>
-			<button
-				onClick={() => onAddNode('agentNode')}
-				style={{
-					padding: '8px 12px',
-					background: '#28a745',
-					color: 'white',
-					border: 'none',
-					borderRadius: 4,
-					cursor: 'pointer',
-				}}
-			>
-				Add Agent
-			</button>
-			<button
-				onClick={() => onAddNode('processNode')}
-				style={{
-					padding: '8px 12px',
-					background: '#ffc107',
-					color: 'black',
-					border: 'none',
-					borderRadius: 4,
-					cursor: 'pointer',
-				}}
-			>
-				Add Process
-			</button>
+			{toolsByType.agent.length > 0 && (
+				<button
+					onClick={() => onAddNode('agentNode')}
+					style={{
+						padding: '8px 12px',
+						background: '#28a745',
+						color: 'white',
+						border: 'none',
+						borderRadius: 4,
+						cursor: 'pointer',
+					}}
+				>
+					Add Agent
+				</button>
+			)}
+			{toolsByType.process.length > 0 && (
+				<button
+					onClick={() => onAddNode('processNode')}
+					style={{
+						padding: '8px 12px',
+						background: '#ffc107',
+						color: 'black',
+						border: 'none',
+						borderRadius: 4,
+						cursor: 'pointer',
+					}}
+				>
+					Add Process
+				</button>
+			)}
 			<button
 				onClick={() => onAddNode('outputNode')}
 				style={{
@@ -322,11 +486,25 @@ function Toolbar({ onAddNode }: { onAddNode: (type: string) => void }) {
 	)
 }
 
-export default function ToolChainEditor() {
-	// 节点计数器
+// ==================== Main Component ====================
+
+interface ToolChainEditorProps {
+	tools?: ToolDefinition[]
+	onWorkflowChange?: (workflow: { nodes: Node[]; edges: Edge[] }) => void
+}
+
+export default function ToolChainEditor({
+	tools = defaultTools,
+	onWorkflowChange,
+}: ToolChainEditorProps) {
+	// Initialize tool registry and API service
+	const toolRegistry = new ToolRegistry(tools)
+	const apiService = new ToolAPIService(toolRegistry)
+
+	// Node counter
 	const [nodeCounter, setNodeCounter] = useState(3)
 
-	// 节点/连线 state
+	// Initial nodes
 	const initialNodes: Node[] = [
 		{
 			id: 'input-1',
@@ -352,14 +530,16 @@ export default function ToolChainEditor() {
 			position: { x: 900, y: 200 },
 		},
 	]
+
 	const initialEdges: Edge[] = [
 		{ id: 'e1', source: 'input-1', target: 'agent-1', animated: true },
 		{ id: 'e2', source: 'agent-1', target: 'output-1', animated: true },
 	]
+
 	const [nodes, setNodes, onNodesChange] = useNodesState(initialNodes)
 	const [edges, setEdges, onEdgesChange] = useEdgesState(initialEdges)
 
-	// 添加节点
+	// Add node
 	function handleAddNode(type: string) {
 		const newNodeId = `${type}-${nodeCounter}`
 		const newNode: Node = {
@@ -379,20 +559,20 @@ export default function ToolChainEditor() {
 		setNodeCounter((counter) => counter + 1)
 	}
 
-	// 删除节点
+	// Delete node
 	function handleDeleteNode(nodeId: string) {
 		setNodes((nds) => nds.filter((node) => node.id !== nodeId))
 		setEdges((eds) => eds.filter((edge) => edge.source !== nodeId && edge.target !== nodeId))
 	}
 
-	// 处理连线
+	// Handle connections
 	const onConnect = useCallback(
 		(params: Edge | Connection) => {
 			setEdges((eds) =>
 				addEdge(
 					{
 						...params,
-						animated: true, // 新增连线带动画
+						animated: true,
 					},
 					eds
 				)
@@ -401,7 +581,7 @@ export default function ToolChainEditor() {
 		[setEdges]
 	)
 
-	// 删除连线
+	// Delete edge
 	const onEdgeClick = useCallback(
 		(event: React.MouseEvent, edge: Edge) => {
 			event.stopPropagation()
@@ -412,7 +592,7 @@ export default function ToolChainEditor() {
 		[setEdges]
 	)
 
-	// input 变化时，只更新对应 input 节点的 value
+	// Handle input change
 	function handleInputChange(nodeId: string, val: string) {
 		setNodes((nds) =>
 			nds.map((node) =>
@@ -421,18 +601,20 @@ export default function ToolChainEditor() {
 		)
 	}
 
-	// 按回车时，找到与该 input 相连的 agent 节点，只更新该 agent 节点
+	// Handle submit
 	async function handleSubmit(inputId: string) {
 		const inputNode = nodes.find((n) => n.id === inputId)
 		if (!inputNode) return
 		const val = inputNode.data.value
 		if (!val.trim()) return
-		// 找到所有与该 input 相连的 agent 节点
+
+		// Find connected agent nodes
 		const connectedAgentIds = edges
 			.filter((e) => e.source === inputId)
 			.map((e) => e.target)
 			.filter((targetId) => nodes.find((n) => n.id === targetId && n.type === 'agentNode'))
-		// 设置 agent 节点 loading
+
+		// Set loading state
 		setNodes((nds) =>
 			nds.map((node) =>
 				connectedAgentIds.includes(node.id)
@@ -440,9 +622,10 @@ export default function ToolChainEditor() {
 					: node
 			)
 		)
-		// 调用 API 并更新 agent 节点 result
+
+		// Call API and update results
 		try {
-			const result = await callDeepSeekAPI(val)
+			const result = await apiService.callDeepSeekAPI(val)
 			setNodes((nds) =>
 				nds.map((node) =>
 					connectedAgentIds.includes(node.id)
@@ -461,7 +644,7 @@ export default function ToolChainEditor() {
 		}
 	}
 
-	// 保证所有节点的 data 事件都带上 id
+	// Update node event handlers
 	useEffect(() => {
 		setNodes((nds) =>
 			nds.map((node) => {
@@ -490,17 +673,21 @@ export default function ToolChainEditor() {
 		)
 	}, [nodes, setNodes])
 
+	// Notify parent of workflow changes
+	useEffect(() => {
+		onWorkflowChange?.({ nodes, edges })
+	}, [nodes, edges, onWorkflowChange])
+
 	return (
 		<div
 			style={{
 				width: '100%',
-				height: '600px',
+				height: '100%',
 				background: '#f8f9fa',
-				borderRadius: 12,
 				position: 'relative',
 			}}
 		>
-			<Toolbar onAddNode={handleAddNode} />
+			<Toolbar onAddNode={handleAddNode} toolRegistry={toolRegistry} />
 			<ReactFlow
 				nodes={nodes}
 				edges={edges}

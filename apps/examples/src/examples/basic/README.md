@@ -1,6 +1,6 @@
 ---
 title: Tldraw component
-component: ./BasicExample.tsx
+component: ./BasicWithToolChainEditor.tsx
 category: getting-started
 priority: 0
 keywords: [basic, intro, simple, quick, start, hello world, installation]
