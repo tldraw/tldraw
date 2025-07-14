@@ -28,11 +28,11 @@ export function TldrawUiTooltip({
 	}
 
 	return (
-		<_Tooltip.Root delayDuration={300}>
+		<_Tooltip.Root delayDuration={300} disableHoverableContent>
 			<_Tooltip.Trigger asChild>{children}</_Tooltip.Trigger>
 			<_Tooltip.Content className="tlui-tooltip" side={side} sideOffset={sideOffset}>
 				{content}
-				{/* <_Tooltip.Arrow className="tlui-tooltip__arrow" /> */}
+				<_Tooltip.Arrow className="tlui-tooltip__arrow" />
 			</_Tooltip.Content>
 		</_Tooltip.Root>
 	)

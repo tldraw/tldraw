@@ -1255,74 +1255,23 @@
 /* ------------------- Tooltip -------------------- */
 
 .tlui-tooltip {
+	font-size: 12px;
+	padding: 2px 8px;
 	border-radius: 4px;
-	padding: 10px 15px;
-	font-size: 15px;
-	line-height: 1;
-	color: var(--color-text-1);
-	background-color: var(--color-background);
-	box-shadow: var(--shadow-2);
-	user-select: none;
-	animation-duration: 400ms;
-	animation-timing-function: cubic-bezier(0.16, 1, 0.3, 1);
+	background-color: var(--color-tooltip);
+	box-shadow: none;
+	color: var(--color-text-shadow);
+	max-width: 400px;
+	width: fit-content;
+	text-align: center;
+	pointer-events: none;
 	will-change: transform, opacity;
 	z-index: 2;
 }
-.tlui-tooltip[data-state='delayed-open'][data-side='top'] {
-	animation-name: slideDownAndFade;
-}
-.tlui-tooltip[data-state='delayed-open'][data-side='right'] {
-	animation-name: slideLeftAndFade;
-}
-.tlui-tooltip[data-state='delayed-open'][data-side='bottom'] {
-	animation-name: slideUpAndFade;
-}
-.tlui-tooltip[data-state='delayed-open'][data-side='left'] {
-	animation-name: slideRightAndFade;
-}
 
-@keyframes slideUpAndFade {
-	from {
-		opacity: 0;
-		transform: translateY(2px);
-	}
-	to {
-		opacity: 1;
-		transform: translateY(0);
-	}
-}
-
-@keyframes slideRightAndFade {
-	from {
-		opacity: 0;
-		transform: translateX(-2px);
-	}
-	to {
-		opacity: 1;
-		transform: translateX(0);
-	}
-}
-
-@keyframes slideDownAndFade {
-	from {
-		opacity: 0;
-		transform: translateY(-2px);
-	}
-	to {
-		opacity: 1;
-		transform: translateY(0);
-	}
-}
-
-@keyframes slideLeftAndFade {
-	from {
-		opacity: 0;
-		transform: translateX(2px);
-	}
-	to {
-		opacity: 1;
-		transform: translateX(0);
-	}
+.tlui-tooltip__arrow {
+	fill: var(--color-tooltip);
+	will-change: opacity;
 }
 
 /* ------------------- Debug panel ------------------ */
