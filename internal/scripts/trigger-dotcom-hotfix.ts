@@ -72,71 +72,15 @@ This PR cherry-picks the changes from the original PR to the hotfixes branch for
 		nicelog(`Created hotfix PR: ${hotfixBranchName} -> hotfixes`)
 		nicelog(`Waiting for PR #${createdPr.data.number} to be ready for merge...`)
 
-		// Get the branch protection rules to find required contexts
-		const branchProtection = await octokit.rest.repos.getBranchProtection({
-			owner: 'tldraw',
-			repo: 'tldraw',
-			branch: 'hotfixes',
-		})
-
-		const requiredContexts = branchProtection.data.required_status_checks?.contexts || []
-		nicelog(`Required contexts: ${requiredContexts.join(', ')}`)
-
 		// Wait for 5 minutes initially, then check every 15 seconds (our checks take at least 5 mins)
 		await new Promise((resolve) => setTimeout(resolve, 5 * 60 * 1000))
 
 		while (true) {
 			const prStatus = await getPrDetailsByNumber(octokit, createdPr.data.number)
 
-			if (prStatus.mergeable === null) {
-				nicelog(`PR #${createdPr.data.number} merge status still being calculated, waiting...`)
-				await new Promise((resolve) => setTimeout(resolve, 15 * 1000))
-				continue
-			}
+			nicelog(`PR #${createdPr.data.number} mergeable_state: ${prStatus.mergeable_state}`)
 
-			if (!prStatus.mergeable) {
-				nicelog(`PR #${createdPr.data.number} has conflicts and cannot be merged`)
-				throw new Error(`Hotfix PR #${createdPr.data.number} cannot be merged`)
-			}
-
-			// Get the combined status of all checks
-			const status = await octokit.rest.repos.getCombinedStatusForRef({
-				owner: 'tldraw',
-				repo: 'tldraw',
-				ref: prStatus.head.sha,
-			})
-
-			// Filter to only check required contexts
-			const requiredStatuses = status.data.statuses.filter((check) =>
-				requiredContexts.includes(check.context)
-			)
-
-			nicelog(`PR #${createdPr.data.number} status: ${status.data.state}`)
-			nicelog(`Total required checks: ${requiredStatuses.length}`)
-			nicelog(
-				`Successful required checks: ${requiredStatuses.filter((s) => s.state === 'success').length}`
-			)
-			nicelog(
-				`Failed required checks: ${requiredStatuses.filter((s) => s.state === 'failure').length}`
-			)
-			nicelog(
-				`Pending required checks: ${requiredStatuses.filter((s) => s.state === 'pending').length}`
-			)
-
-			// Check if all required status checks have passed
-			const allRequiredPassed = requiredStatuses.every((check) => check.state === 'success')
-			const anyRequiredFailed = requiredStatuses.some((check) => check.state === 'failure')
-			const anyRequiredPending = requiredStatuses.some((check) => check.state === 'pending')
-
-			if (anyRequiredFailed) {
-				nicelog(`PR #${createdPr.data.number} has failed required checks:`)
-				requiredStatuses
-					.filter((s) => s.state === 'failure')
-					.forEach((check) => {
-						nicelog(`  - ${check.context}: ${check.description || 'Failed'}`)
-					})
-				throw new Error(`Hotfix PR #${createdPr.data.number} has failed required checks`)
-			} else if (allRequiredPassed && requiredStatuses.length > 0) {
+			if (prStatus.mergeable_state === 'clean') {
 				nicelog(`PR #${createdPr.data.number} is ready for merge`)
 				await octokit.rest.pulls.merge({
 					owner: 'tldraw',
@@ -152,15 +96,19 @@ Original Author: @${pr.user?.login}`,
 
 				nicelog(`Successfully merged hotfix PR #${createdPr.data.number}`)
 				break
-			} else if (anyRequiredPending) {
-				nicelog(`PR #${createdPr.data.number} required checks still pending, waiting...`)
-				await new Promise((resolve) => setTimeout(resolve, 15 * 1000))
-				continue
-			} else if (requiredStatuses.length === 0) {
-				nicelog(`PR #${createdPr.data.number} has no required checks configured`)
-				throw new Error(`Hotfix PR #${createdPr.data.number} has no required checks configured`)
+			} else if (prStatus.mergeable_state === 'blocked') {
+				nicelog(`PR #${createdPr.data.number} is blocked (likely failed checks)`)
+				throw new Error(`Hotfix PR #${createdPr.data.number} is blocked`)
+			} else if (prStatus.mergeable_state === 'unstable') {
+				nicelog(`PR #${createdPr.data.number} is unstable (some checks failed)`)
+				throw new Error(`Hotfix PR #${createdPr.data.number} is unstable`)
+			} else if (prStatus.mergeable_state === 'dirty') {
+				nicelog(`PR #${createdPr.data.number} has conflicts and cannot be merged`)
+				throw new Error(`Hotfix PR #${createdPr.data.number} has conflicts`)
 			} else {
-				nicelog(`PR #${createdPr.data.number} has unknown status for required checks`)
+				nicelog(
+					`PR #${createdPr.data.number} merge status: ${prStatus.mergeable_state}, waiting...`
+				)
 				await new Promise((resolve) => setTimeout(resolve, 15 * 1000))
 				continue
 			}
