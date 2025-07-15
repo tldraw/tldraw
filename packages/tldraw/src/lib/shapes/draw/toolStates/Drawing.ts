@@ -20,6 +20,13 @@ import {
 import { HighlightShapeUtil } from '../../highlight/HighlightShapeUtil'
 import { STROKE_SIZES } from '../../shared/default-shape-constants'
 import { DrawShapeUtil } from '../DrawShapeUtil'
+import {
+	b64PointsToVecs,
+	createB64FromPoints,
+	forEachMutablePoint,
+	getFirstPointFromB64,
+	getLastPointFromB64,
+} from '../getPath'
 
 type DrawableShape = TLDrawShape | TLHighlightShape
 
@@ -142,11 +149,13 @@ export class Drawing extends StateNode {
 		if (!this.canClose()) return false
 
 		const strokeWidth = STROKE_SIZES[size]
-		const firstPoint = segments[0].points[0]
+		const firstPoint = getFirstPointFromB64(segments[0].points)
 		const lastSegment = segments[segments.length - 1]
-		const lastPoint = lastSegment.points[lastSegment.points.length - 1]
+		const lastPoint = getLastPointFromB64(lastSegment.points)
 
 		return (
+			firstPoint !== null &&
+			lastPoint !== null &&
 			firstPoint !== lastPoint &&
 			this.currentLineLength > strokeWidth * 4 * scale &&
 			Vec.DistMin(firstPoint, lastPoint, strokeWidth * 2 * scale)
@@ -188,25 +197,17 @@ export class Drawing extends StateNode {
 
 				const prevSegment = last(shape.props.segments)
 				if (!prevSegment) throw Error('Expected a previous segment!')
-				const prevPoint = last(prevSegment.points)
+				const prevPoint = getLastPointFromB64(prevSegment.points)
 				if (!prevPoint) throw Error('Expected a previous point!')
 
 				const { x, y } = this.editor.getPointInShapeSpace(shape, originPagePoint).toFixed()
 
 				const newSegment: TLDrawShapeSegment = {
 					type: this.segmentMode,
-					points: [
-						{
-							x: prevPoint.x,
-							y: prevPoint.y,
-							z: +pressure.toFixed(2),
-						},
-						{
-							x,
-							y,
-							z: +pressure.toFixed(2),
-						},
-					],
+					points: createB64FromPoints([
+						{ x: prevPoint.x, y: prevPoint.y, z: +pressure.toFixed(2) },
+						{ x, y, z: +pressure.toFixed(2) },
+					]),
 				}
 
 				// Convert prevPoint to page space
@@ -261,13 +262,7 @@ export class Drawing extends StateNode {
 				segments: [
 					{
 						type: this.segmentMode,
-						points: [
-							{
-								x: 0,
-								y: 0,
-								z: +pressure.toFixed(2),
-							},
-						],
+						points: createB64FromPoints([{ x: 0, y: 0, z: +pressure.toFixed(2) }]),
 					},
 				],
 			},
@@ -328,7 +323,7 @@ export class Drawing extends StateNode {
 					const prevSegment = last(segments)
 					if (!prevSegment) throw Error('Expected a previous segment!')
 
-					const prevLastPoint = last(prevSegment.points)
+					const prevLastPoint = getLastPointFromB64(prevSegment.points)
 					if (!prevLastPoint) throw Error('Expected a previous last point!')
 
 					let newSegment: TLDrawShapeSegment
@@ -343,7 +338,7 @@ export class Drawing extends StateNode {
 
 						newSegment = {
 							type: 'straight',
-							points: [{ ...prevLastPoint }, newLastPoint],
+							points: createB64FromPoints([prevLastPoint, newLastPoint]),
 						}
 
 						const transform = this.editor.getShapePageTransform(shape)!
@@ -352,7 +347,7 @@ export class Drawing extends StateNode {
 					} else {
 						newSegment = {
 							type: 'straight',
-							points: [newLastPoint, newPoint],
+							points: createB64FromPoints([newLastPoint, newPoint]),
 						}
 					}
 
@@ -400,7 +395,7 @@ export class Drawing extends StateNode {
 
 					const newSegments = segments.slice()
 					const prevStraightSegment = newSegments[newSegments.length - 1]
-					const prevPoint = last(prevStraightSegment.points)
+					const prevPoint = getLastPointFromB64(prevStraightSegment.points)
 
 					if (!prevPoint) {
 						throw Error('No previous point!')
@@ -410,13 +405,13 @@ export class Drawing extends StateNode {
 					// ended and where the pointer is now
 					const newFreeSegment: TLDrawShapeSegment = {
 						type: 'free',
-						points: [
-							...Vec.PointsBetween(prevPoint, newPoint, 6).map((p) => ({
+						points: createB64FromPoints(
+							Vec.PointsBetween(prevPoint, newPoint, 6).map((p) => ({
 								x: toFixed(p.x),
 								y: toFixed(p.y),
 								z: toFixed(p.z),
-							})),
-						],
+							}))
+						),
 					}
 
 					const finalSegments = [...newSegments, newFreeSegment]
@@ -489,8 +484,8 @@ export class Drawing extends StateNode {
 							if (!segment) break
 							if (segment.type === 'free') continue
 
-							const first = segment.points[0]
-							const lastPoint = last(segment.points)
+							const first = getFirstPointFromB64(segment.points)
+							const lastPoint = getLastPointFromB64(segment.points)
 							if (!(first && lastPoint)) continue
 
 							// Snap to the nearest point on the segment, if it's closer than the previous snapped point
@@ -517,9 +512,9 @@ export class Drawing extends StateNode {
 
 				if (didSnap && snapSegment) {
 					const transform = this.editor.getShapePageTransform(shape)!
-					const first = snapSegment.points[0]
-					const lastPoint = last(snapSegment.points)
-					if (!lastPoint) throw Error('Expected a last point!')
+					const first = getFirstPointFromB64(snapSegment.points)
+					const lastPoint = getLastPointFromB64(snapSegment.points)
+					if (!first || !lastPoint) throw Error('Expected a last point!')
 
 					const A = Mat.applyToPoint(transform, first)
 
@@ -559,12 +554,18 @@ export class Drawing extends StateNode {
 				// then the user just did a click-and-immediately-press-shift to create a new straight line
 				// without continuing the previous line. In this case, we want to remove the previous segment.
 
-				this.currentLineLength += Vec.Dist(newSegment.points[0], newPoint)
+				this.currentLineLength +=
+					newSegments.length && getFirstPointFromB64(newSegment.points)
+						? Vec.Dist(getFirstPointFromB64(newSegment.points)!, Vec.Cast(newPoint))
+						: 0
 
 				newSegments[newSegments.length - 1] = {
 					...newSegment,
 					type: 'straight',
-					points: [newSegment.points[0], newPoint],
+					points: createB64FromPoints([
+						getFirstPointFromB64(newSegment.points)!,
+						Vec.Cast(newPoint),
+					]),
 				}
 
 				const shapePartial: TLShapePartial<DrawableShape> = {
@@ -590,25 +591,27 @@ export class Drawing extends StateNode {
 			case 'free': {
 				const newSegments = segments.slice()
 				const newSegment = newSegments[newSegments.length - 1]
-				const newPoints = [...newSegment.points]
+				const newPoints = b64PointsToVecs(newSegment.points)
 
 				if (newPoints.length && this.mergeNextPoint) {
-					const { z } = newPoints[newPoints.length - 1]
-					newPoints[newPoints.length - 1] = {
+					const lastPoint = newPoints[newPoints.length - 1]
+					newPoints[newPoints.length - 1] = Vec.Cast({
 						x: newPoint.x,
 						y: newPoint.y,
-						z: z ? Math.max(z, newPoint.z) : newPoint.z,
-					}
+						z: lastPoint.z ? Math.max(lastPoint.z, newPoint.z) : newPoint.z,
+					})
 					// Note: we could recompute the line length here, but it's not really necessary
 					// this.currentLineLength = this.getLineLength(newSegments)
 				} else {
-					this.currentLineLength += Vec.Dist(newPoints[newPoints.length - 1], newPoint)
-					newPoints.push(newPoint)
+					this.currentLineLength += newPoints.length
+						? Vec.Dist(newPoints[newPoints.length - 1], Vec.Cast(newPoint))
+						: 0
+					newPoints.push(Vec.Cast(newPoint))
 				}
 
 				newSegments[newSegments.length - 1] = {
 					...newSegment,
-					points: newPoints,
+					points: createB64FromPoints(newPoints),
 				}
 
 				if (this.currentLineLength < STROKE_SIZES[shape.props.size] * 4) {
@@ -653,7 +656,9 @@ export class Drawing extends StateNode {
 							segments: [
 								{
 									type: 'free',
-									points: [{ x: 0, y: 0, z: this.isPenOrStylus ? +(z! * 1.25).toFixed() : 0.5 }],
+									points: createB64FromPoints([
+										{ x: 0, y: 0, z: this.isPenOrStylus ? +(z! * 1.25).toFixed() : 0.5 },
+									]),
 								},
 							],
 						},
@@ -681,13 +686,11 @@ export class Drawing extends StateNode {
 	private getLineLength(segments: TLDrawShapeSegment[]) {
 		let length = 0
 
-		for (const segment of segments) {
-			for (let i = 0; i < segment.points.length - 1; i++) {
-				const A = segment.points[i]
-				const B = segment.points[i + 1]
-				length += Vec.Dist2(B, A)
+		forEachMutablePoint((point, prevPoint) => {
+			if (prevPoint) {
+				length += Vec.Dist2(point, prevPoint)
 			}
-		}
+		}, segments)
 
 		return Math.sqrt(length)
 	}

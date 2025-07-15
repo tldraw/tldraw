@@ -5,8 +5,10 @@ import {
 	DefaultDebugMenu,
 	DefaultDebugMenuContent,
 	ExampleDialog,
+	float16ArrayToBase64,
 	TLComponents,
 	Tldraw,
+	TLDrawShape,
 	TldrawUiMenuActionCheckboxItem,
 	TldrawUiMenuActionItem,
 	TldrawUiMenuGroup,
@@ -15,6 +17,7 @@ import {
 	useDialogs,
 	useEditor,
 } from 'tldraw'
+import { getPointsFromSegments } from 'tldraw/src/lib/shapes/draw/getPath'
 import 'tldraw/tldraw.css'
 import { trackedShapes, useDebugging } from '../hooks/useDebugging'
 import { usePerformance } from '../hooks/usePerformance'
@@ -108,6 +111,9 @@ export default function Develop() {
 				onMount={(editor) => {
 					;(window as any).app = editor
 					;(window as any).editor = editor
+					// window.poop = () => {
+					// 	persistToByteStream(editor.store as any)
+					// }
 
 					Object.defineProperty(window, '$s', {
 						get: function () {
@@ -121,6 +127,21 @@ export default function Develop() {
 						'shape',
 						afterChangeHandler
 					)
+					window.banana = () => {
+						const points = getPointsFromSegments(
+							(editor.getOnlySelectedShape() as TLDrawShape)?.props.segments
+						)
+						const jsonEncoded = new TextEncoder().encode(JSON.stringify(points))
+
+						console.log('json', jsonEncoded.byteLength)
+
+						const flatByteArray = new Float16Array(points.flatMap((p) => [p.x, p.y, p.z]))
+						const b64Encoded = float16ArrayToBase64(flatByteArray)
+
+						console.log('b64', b64Encoded.length)
+
+						console.log('reduction %', (b64Encoded.length / jsonEncoded.byteLength) * 100)
+					}
 					return () => {
 						dispose()
 					}

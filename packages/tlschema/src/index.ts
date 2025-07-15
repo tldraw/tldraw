@@ -153,8 +153,10 @@ export {
 	type TLBookmarkShapeProps,
 } from './shapes/TLBookmarkShape'
 export {
+	base64ToFloat16Array,
 	drawShapeMigrations,
 	drawShapeProps,
+	float16ArrayToBase64,
 	type TLDrawShape,
 	type TLDrawShapeProps,
 	type TLDrawShapeSegment,
