@@ -282,9 +282,8 @@ export class NoteShapeUtil extends ShapeUtil<TLNoteShape> {
 		const isEmpty = isEmptyRichText(richText)
 
 		const {
-			fill: fillColor,
-			note: { text: noteTextColor },
-		} = isDefaultColor(color) ? theme[color] : { fill: color, note: { text: theme.text } }
+			note: { fill: noteFillColor },
+		} = isDefaultColor(color) ? theme[color] : { note: { fill: color } }
 
 		return (
 			<>
@@ -294,7 +293,7 @@ export class NoteShapeUtil extends ShapeUtil<TLNoteShape> {
 					style={{
 						width: nw,
 						height: nh,
-						backgroundColor: fillColor,
+						backgroundColor: noteFillColor,
 						borderBottom: hideShadows
 							? isDarkMode
 								? `${2 * scale}px solid rgb(20, 20, 20)`
@@ -314,7 +313,7 @@ export class NoteShapeUtil extends ShapeUtil<TLNoteShape> {
 							verticalAlign={verticalAlign}
 							richText={richText}
 							isSelected={isSelected}
-							labelColor={labelColor === 'black' ? noteTextColor : fillColor}
+							labelColor={labelColor}
 							wrap
 							padding={LABEL_PADDING * scale}
 							hasCustomTabBehavior
