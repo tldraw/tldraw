@@ -108,7 +108,7 @@ export function getNodeOutputPortValues(
 export function getAllConnectedNodes(
 	editor: Editor,
 	startingNode: TLShapeId | NodeShape,
-	direction: 'start' | 'end'
+	direction?: 'start' | 'end'
 ) {
 	const toVisit = [typeof startingNode === 'string' ? startingNode : startingNode.id]
 	const found = new Set<NodeShape>()
@@ -124,7 +124,7 @@ export function getAllConnectedNodes(
 		found.add(node)
 
 		for (const connection of getNodePortConnections(editor, node)) {
-			if (connection.terminal !== direction) continue
+			if (direction && connection.terminal !== direction) continue
 			toVisit.push(connection.connectedShapeId)
 		}
 	}
