@@ -170,6 +170,22 @@ export interface TLAiUpdateShapeChange<T extends TLShape = TLShape> {
     type: 'updateShape';
 }
 
+// @public (undocumented)
+export interface TldrawAi {
+    // (undocumented)
+    cancel(): void;
+    // (undocumented)
+    prompt(message: TldrawAiPromptOptions): {
+        cancel(): void;
+        promise: Promise<void>;
+    };
+    // (undocumented)
+    repeat(): {
+        cancel: (() => void) | null;
+        promise: Promise<void>;
+    };
+}
+
 // @public
 export type TldrawAiApplyFn = (opts: {
     change: TLAiChange;
@@ -252,17 +268,7 @@ export interface TldrawAiTransformConstructor {
 }
 
 // @public (undocumented)
-export function useTldrawAi(opts: TldrawAiOptions): {
-    cancel: () => void;
-    prompt: (message: TldrawAiPromptOptions) => {
-        cancel: () => void;
-        promise: Promise<void>;
-    };
-    repeat: () => {
-        cancel: (() => void) | null;
-        promise: Promise<void>;
-    };
-};
+export function useTldrawAi(opts: TldrawAiOptions): TldrawAi;
 
 // (No @packageDocumentation comment for this package)
 

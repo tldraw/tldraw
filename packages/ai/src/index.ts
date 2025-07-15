@@ -10,6 +10,7 @@ export { TldrawAiTransform, type TldrawAiTransformConstructor } from './lib/Tldr
 export {
 	defaultApplyChanges as defaultApply,
 	useTldrawAi,
+	type TldrawAi,
 	type TldrawAiApplyFn,
 	type TldrawAiGenerateFn,
 	type TldrawAiOptions,

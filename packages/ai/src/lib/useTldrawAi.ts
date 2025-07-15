@@ -3,6 +3,13 @@ import { Editor, exhaustiveSwitchError, TLShapePartial, uniqueId, useMaybeEditor
 import { TldrawAiModule, TldrawAiModuleOptions } from './TldrawAiModule'
 import { TLAiChange, TLAiPrompt, TLAiSerializedPrompt, TLAiStreamingChange } from './types'
 
+/** @public */
+export interface TldrawAi {
+	prompt(message: TldrawAiPromptOptions): { promise: Promise<void>; cancel(): void }
+	repeat(): { promise: Promise<void>; cancel: (() => void) | null }
+	cancel(): void
+}
+
 /**
  * The function signature for generating changes from an AI prompt.
  * @public
@@ -43,7 +50,7 @@ export type TldrawAiPromptOptions =
 	| { message: TLAiPrompt['message']; stream?: boolean; meta?: TLAiPrompt['meta'] }
 
 /** @public */
-export function useTldrawAi(opts: TldrawAiOptions) {
+export function useTldrawAi(opts: TldrawAiOptions): TldrawAi {
 	const {
 		editor: _editor,
 		generate: generateFn,
