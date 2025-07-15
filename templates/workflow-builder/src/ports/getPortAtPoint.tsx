@@ -30,6 +30,8 @@ export function getPortAtPoint(
 	}
 
 	if (!bestPort) return null
-	const existingConnection = getNodePortConnections(editor, shape)[bestPort.id]
+	const existingConnection = getNodePortConnections(editor, shape).find(
+		(c) => c.ownPortId === bestPort.id
+	)
 	return { shape, port: bestPort, existingConnection }
 }
