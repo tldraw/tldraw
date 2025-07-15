@@ -69,7 +69,11 @@ export function ChatPanel({ editor }: { editor: Editor }) {
 
 			$chatHistoryItems.update((prev) => [
 				...prev,
-				{ type: 'status-thinking', message: 'Generating', status: 'progress' },
+				{
+					type: 'status-thinking',
+					message: request.review ? 'Reviewing' : 'Generating',
+					status: 'progress',
+				},
 			])
 
 			rCancelFn.current = cancel
