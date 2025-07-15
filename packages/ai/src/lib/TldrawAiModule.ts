@@ -52,18 +52,9 @@ export class TldrawAiModule {
 			apply({ change, editor: this.opts.editor })
 		}
 
-		const handleChanges = (changes: TLAiStreamingChange[]) => {
-			for (const transform of transforms) {
-				if (transform.transformChanges) {
-					changes = transform.transformChanges(changes)
-				}
-			}
-		}
-
 		return {
 			prompt: _prompt,
 			handleChange,
-			handleChanges,
 		}
 	}
 

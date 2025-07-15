@@ -209,7 +209,6 @@ export class TldrawAiModule {
         stream?: boolean;
     } | string): Promise<{
         handleChange: (change: TLAiStreamingChange, apply: TldrawAiApplyFn) => void;
-        handleChanges: (changes: TLAiStreamingChange[]) => void;
         prompt: TLAiPrompt;
     }>;
     getPrompt(prompt: TLAiMessages, options?: Partial<Pick<TLAiPrompt, "canvasContent" | "contextBounds" | "promptBounds">>): Promise<TLAiPrompt>;

@@ -1,11 +1,12 @@
 import { TLAiStreamingChange } from '@tldraw/ai'
 import { useEffect, useState } from 'react'
-import { Editor } from 'tldraw'
+import { Editor, TLShape } from 'tldraw'
 import { BrainIcon } from './icons/BrainIcon'
 import { PencilIcon } from './icons/PencilIcon'
 import { RefreshIcon } from './icons/RefreshIcon'
 import { SearchIcon } from './icons/SearchIcon'
 import { TrashIcon } from './icons/TrashIcon'
+import TldrawViewer from './TldrawViewer'
 
 export type ChatHistoryItem =
 	| UserMessageHistoryItem
@@ -53,6 +54,32 @@ export function AgentMessageHistoryItem({ item }: { item: AgentMessageHistoryIte
 	return <div className="agent-chat-message">{item.message}</div>
 }
 
+function getCompleteShapeFromStreamingShape({
+	shape,
+	editor,
+}: {
+	shape?: Partial<TLShape>
+	editor: Editor
+}) {
+	if (!shape) return null
+	if (!shape.type) return null
+	const util = editor.getShapeUtil(shape.type)
+	if (!util) return null
+
+	const shapeRecord = editor.store.schema.types.shape.create(shape)
+	const completeShapeRecord = {
+		...shapeRecord,
+		index: 'a0',
+		parentId: 'page:',
+		props: {
+			...util.getDefaultProps(),
+			...(shape.props ?? {}),
+		},
+	}
+
+	return completeShapeRecord as TLShape
+}
+
 export function AgentChangeHistoryItem({
 	item,
 	editor,
@@ -63,22 +90,17 @@ export function AgentChangeHistoryItem({
 	// Hardcoded to only support a single create shape change for now
 	// TODO: Support other change types
 	// TODO: Support multiple changes grouped together
-	const [svgElement, setSvgElement] = useState<Blob | null>(null)
-
-	useEffect(() => {
-		if (!item.change.complete) return
-		if (item.change.type !== 'createShape') return
-		// editor.toImage([item.change.shape.id], { format: 'svg' }).then((svgResult) => {
-		// 	if (!svgResult) return
-		// 	setSvgElement(svgResult.blob)
-		// })
-	}, [item.change, editor])
-
 	if (item.change.type !== 'createShape') return null
+
+	const shape = getCompleteShapeFromStreamingShape({ shape: item.change.shape, editor })
+	const Background = () => (
+		<div style={{ backgroundColor: 'rgba(0, 255, 0, 0.05)', height: '100%' }} />
+	)
 
 	return (
 		<div className="agent-change-message">
 			<div>{item.change.description}</div>
+			{shape && <TldrawViewer shape={shape} components={{ Background }} />}
 		</div>
 	)
 }
@@ -100,21 +122,26 @@ export function AgentActionHistoryItem({ item }: { item: AgentActionHistoryItem 
 }
 
 export function StatusThinkingHistoryItem({ item }: { item: StatusThinkingHistoryItem }) {
-	const [dots, setDots] = useState('')
+	const [startTime] = useState(() => new Date())
+	const [endTime, setEndTime] = useState<Date | null>(null)
 
 	useEffect(() => {
-		const interval = setInterval(() => {
-			setDots((prev) => (prev.length >= 3 ? '' : prev + '.'))
-		}, 500)
+		if (item.status === 'done' && !endTime) {
+			setEndTime(new Date())
+		}
+	}, [item.status, endTime])
 
-		return () => clearInterval(interval)
-	}, [])
+	const secondsElapsed = Math.floor(
+		(endTime ? endTime.getTime() : Date.now()) / 1000 - startTime.getTime() / 1000
+	)
 
 	if (item.status === 'done') return null
 
 	return (
 		<div className="agent-chat-message status-thinking-message">
-			<p className="status-thinking-message-text">{item.message + dots}</p>
+			<p className="status-thinking-message-text">
+				{`Thought for`} for {secondsElapsed}s
+			</p>
 		</div>
 	)
 }

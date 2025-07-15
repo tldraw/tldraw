@@ -233,19 +233,6 @@ body {
 	white-space: pre-wrap;
 }
 
-.agent-change-message-image {
-	max-width: 100%;
-	max-height: 100px;
-	object-fit: contain;
-}
-
-.agent-change-message-placeholder {
-	height: 100px;
-	display: flex;
-	align-items: center;
-	justify-content: center;
-}
-
 .status-thinking-message {
 	opacity: 0.8;
 	/* background-color: hsl(0, 0%, 95%); */
