@@ -1,6 +1,6 @@
 import { TLAiStreamingChange } from '@tldraw/ai'
 import { useEffect, useState } from 'react'
-import { DefaultSpinner, Editor } from 'tldraw'
+import { Editor } from 'tldraw'
 
 export type ChatHistoryItem =
 	| UserMessageHistoryItem
@@ -56,10 +56,10 @@ export function AgentChangeHistoryItem({
 	useEffect(() => {
 		if (!item.change.complete) return
 		if (item.change.type !== 'createShape') return
-		editor.toImage([item.change.shape.id], { format: 'svg' }).then((svgResult) => {
-			if (!svgResult) return
-			setSvgElement(svgResult.blob)
-		})
+		// editor.toImage([item.change.shape.id], { format: 'svg' }).then((svgResult) => {
+		// 	if (!svgResult) return
+		// 	setSvgElement(svgResult.blob)
+		// })
 	}, [item.change, editor])
 
 	if (item.change.type !== 'createShape') return null
@@ -67,13 +67,6 @@ export function AgentChangeHistoryItem({
 	return (
 		<div className="agent-change-message">
 			<div>{item.change.description}</div>
-			{svgElement ? (
-				<img className="agent-change-message-image" src={URL.createObjectURL(svgElement)} />
-			) : (
-				<div className="agent-change-message-placeholder">
-					{item.status === 'cancelled' ? '❌ Cancelled' : <DefaultSpinner />}
-				</div>
-			)}
 		</div>
 	)
 }
