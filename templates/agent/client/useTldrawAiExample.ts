@@ -1,10 +1,8 @@
 import { TLAiChange, TLAiResult, TldrawAiOptions, useTldrawAi } from '@tldraw/ai'
-import { atom, Editor } from 'tldraw'
+import { Editor } from 'tldraw'
 import { applyChanges } from './applyChanges'
 import { SimpleCoordinates } from './transforms/SimpleCoordinates'
 import { SimpleIds } from './transforms/SimpleIds'
-
-export const $eventSchedule = atom<any[]>('eventSchedule', [])
 
 /**
  * A hook that calls `useTldrawAi` with static options.

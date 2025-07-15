@@ -1,8 +1,8 @@
 import { FormEventHandler, useCallback, useEffect, useRef, useState } from 'react'
-import { Editor, useLocalStorageState, useValue } from 'tldraw'
+import { atom, Editor, useLocalStorageState, useValue } from 'tldraw'
 import { AGENT_MODEL_DEFINITIONS, TLAgentModelName } from '../worker/models'
 import { $chatHistoryItems, ChatHistory } from './ChatHistory'
-import { $eventSchedule, useTldrawAiExample } from './useTldrawAiExample'
+import { useTldrawAiExample } from './useTldrawAiExample'
 
 // TODO: Move this to the worker
 function getReviewPrompt(intent: string) {
@@ -11,6 +11,8 @@ function getReviewPrompt(intent: string) {
 - Are you awaiting a response from the user? If so, there's no need to do or say anything.
 - Is the task supposed to be complete? If so, it's time to review the results of that. Did you do what the user asked for? Did the plan work? Think through your findings and pay close attention to the screenshot because that's what the user sees. If you make any corrections, let the user know what you did and why. If no corrections are needed, there's no need to say anything.`
 }
+
+export const $eventSchedule = atom<any[]>('eventSchedule', [])
 
 export function ChatPanel({ editor }: { editor: Editor }) {
 	const ai = useTldrawAiExample(editor)
@@ -73,8 +75,9 @@ export function ChatPanel({ editor }: { editor: Editor }) {
 			// Process next event (if any) after a 1s timeout to allow for cancellation
 			await checkSchedule()
 		} catch (e) {
-			// Don't remove the event on failure - let it be retried
 			console.error(e)
+			setIsGenerating(false)
+			rCancelFn.current = null
 		}
 	}, [ai, modelName])
 
@@ -100,7 +103,6 @@ export function ChatPanel({ editor }: { editor: Editor }) {
 				}
 
 				$eventSchedule.set([])
-
 				$chatHistoryItems.update((prev) => [
 					...prev,
 					{ type: 'user-message', message: value, status: 'done' },
