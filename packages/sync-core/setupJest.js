@@ -14,3 +14,4 @@ document.fonts = {
 
 global.TextEncoder = require('util').TextEncoder
 global.TextDecoder = require('util').TextDecoder
+global.TransformStream = require('node:stream/web').TransformStream
