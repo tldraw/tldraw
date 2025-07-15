@@ -39,9 +39,13 @@ body {
 	flex-direction: column;
 	height: 100vh;
 	font-size: 14px;
-	color: var(--color-text);
 	background-color: var(--color-panel);
 	border-left: 1px solid var(--color-border);
+	color: var(--color-text-1);
+	font-family: 'Inter', sans-serif;
+	font-weight: 400;
+	font-size: 12px;
+	line-height: 1.5;
 }
 
 .chat-history {
@@ -50,11 +54,11 @@ body {
 	overflow-y: auto;
 	display: flex;
 	flex-direction: column;
-	gap: 12px;
+	gap: 16px;
 }
 
 .chat-input {
-	padding: 8px;
+	padding: 0px 8px 8px 8px;
 }
 
 .chat-input form {
@@ -66,12 +70,14 @@ body {
 	color: var(--color-text-2);
 	background-color: var(--color-muted-2);
 	border: 1px solid var(--color-panel-contrast);
+	box-shadow: var(--shadow-1);
 	font-size: 11px;
 }
 
 .chat-input input[type='text'] {
 	flex: 1;
 	padding: 8px 0px;
+	margin-bottom: 4px;
 	border: none;
 	background-color: transparent;
 	color: var(--color-text);
@@ -82,7 +88,7 @@ body {
 }
 
 .chat-input input[type='text']::placeholder {
-	color: var(--color-text-2);
+	color: var(--color-text-3);
 }
 
 .chat-input input[type='text']:focus {
@@ -130,8 +136,12 @@ body {
 }
 
 .user-chat-message {
-	background-color: var(--color-primary);
-	color: var(--color-selected-contrast);
+	background-color: var(--color-muted-2);
+	border: 1px solid var(--color-muted-2);
+	color: var(--color-text-1);
+	font-family: 'Inter', sans-serif;
+	font-weight: 400;
+	font-size: 12px;
 	padding: 8px 12px;
 	border-radius: 8px;
 	max-width: 80%;

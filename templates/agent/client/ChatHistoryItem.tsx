@@ -1,6 +1,11 @@
 import { TLAiStreamingChange } from '@tldraw/ai'
 import { useEffect, useState } from 'react'
 import { Editor } from 'tldraw'
+import { BrainIcon } from './icons/BrainIcon'
+import { PencilIcon } from './icons/PencilIcon'
+import { RefreshIcon } from './icons/RefreshIcon'
+import { SearchIcon } from './icons/SearchIcon'
+import { TrashIcon } from './icons/TrashIcon'
 
 export type ChatHistoryItem =
 	| UserMessageHistoryItem
@@ -104,11 +109,12 @@ export function StatusThinkingHistoryItem({ item }: { item: StatusThinkingHistor
 
 		return () => clearInterval(interval)
 	}, [])
+
+	if (item.status === 'done') return null
+
 	return (
 		<div className="agent-chat-message status-thinking-message">
-			<p className="status-thinking-message-text">
-				{item.status === 'done' ? 'Response' : item.message + dots}
-			</p>
+			<p className="status-thinking-message-text">{item.message + dots}</p>
 		</div>
 	)
 }
@@ -123,7 +129,7 @@ export function AgentRawHistoryItem({ item }: { item: AgentRawHistoryItem }) {
 }
 
 export interface AgentActionDefinition {
-	icon: string
+	icon: React.ReactNode
 	message: { progress: string; done: string; cancelled: string }
 }
 
@@ -139,7 +145,7 @@ export const ACTION_HISTORY_ITEM_DEFINITIONS: Record<
 	AgentActionDefinition
 > = {
 	thinking: {
-		icon: '🧠',
+		icon: <BrainIcon />,
 		message: {
 			progress: 'Thinking: ',
 			done: 'Thought: ',
@@ -147,7 +153,7 @@ export const ACTION_HISTORY_ITEM_DEFINITIONS: Record<
 		},
 	},
 	creating: {
-		icon: '✏️',
+		icon: <PencilIcon />,
 		message: {
 			progress: 'Creating: ',
 			done: 'Created: ',
@@ -155,7 +161,7 @@ export const ACTION_HISTORY_ITEM_DEFINITIONS: Record<
 		},
 	},
 	deleting: {
-		icon: '🗑️',
+		icon: <TrashIcon />,
 		message: {
 			progress: 'Deleting: ',
 			done: 'Deleted: ',
@@ -163,7 +169,7 @@ export const ACTION_HISTORY_ITEM_DEFINITIONS: Record<
 		},
 	},
 	updating: {
-		icon: '🔄',
+		icon: <RefreshIcon />,
 		message: {
 			progress: 'Updating: ',
 			done: 'Updated: ',
@@ -171,7 +177,7 @@ export const ACTION_HISTORY_ITEM_DEFINITIONS: Record<
 		},
 	},
 	schedule: {
-		icon: '🔍',
+		icon: <SearchIcon />,
 		message: {
 			progress: 'Scheduling review: ',
 			done: 'Review scheduled: ',

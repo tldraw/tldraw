@@ -145,7 +145,7 @@ export function ChatPanel({ editor }: { editor: Editor }) {
 						name="input"
 						type="text"
 						autoComplete="off"
-						placeholder="Speak to your agent..."
+						placeholder="Ask, learn, brainstorm, draw"
 					/>
 					<span className="chat-input-actions">
 						<div className="chat-input-actions-left">
