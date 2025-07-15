@@ -23,7 +23,7 @@ export function ChatPanel({ editor }: { editor: Editor }) {
 		;(window as any).ai = ai
 	}, [ai, editor])
 
-	const checkSchedule = useCallback(async () => {
+	const advanceSchedule = useCallback(async () => {
 		const eventSchedule = $requestsSchedule.get()
 
 		if (!eventSchedule || eventSchedule.length === 0) {
@@ -47,10 +47,9 @@ export function ChatPanel({ editor }: { editor: Editor }) {
 			$requestsSchedule.update((prev) => prev.filter((_, i) => i !== 0))
 
 			// Process next event (if any) after a 1s timeout to allow for cancellation
-			await checkSchedule()
+			await advanceSchedule()
 		} catch (e) {
 			console.error(e)
-			setIsGenerating(false)
 			rCancelFn.current = null
 		}
 	}, [ai, modelName])
@@ -68,43 +67,25 @@ export function ChatPanel({ editor }: { editor: Editor }) {
 			}
 
 			// Otherwise, submit the user's message to the agent
-			try {
-				const formData = new FormData(e.currentTarget)
-				const value = formData.get('input') as string
+			const formData = new FormData(e.currentTarget)
+			const value = formData.get('input') as string
 
-				if (inputRef.current) {
-					inputRef.current.value = ''
-				}
-
-				$requestsSchedule.set([])
-				$chatHistoryItems.update((prev) => [
-					...prev,
-					{ type: 'user-message', message: value, status: 'done' },
-				])
-
-				const { promise, cancel } = ai.prompt({
-					message: value,
-					stream: true,
-					meta: { modelName, historyItems: $chatHistoryItems.get() },
-				})
-
-				rCancelFn.current = cancel
-
-				setIsGenerating(true)
-				await promise
-
-				// Do follow up steps if any have been scheduled
-				await checkSchedule()
-
-				setIsGenerating(false)
-				rCancelFn.current = null
-			} catch (e: any) {
-				console.error(e)
-				setIsGenerating(false)
-				rCancelFn.current = null
+			if (inputRef.current) {
+				inputRef.current.value = ''
 			}
+
+			$chatHistoryItems.update((prev) => [
+				...prev,
+				{ type: 'user-message', message: value, status: 'done' },
+			])
+
+			$requestsSchedule.update((prev) => [...prev, { message: value, review: false }])
+
+			setIsGenerating(true)
+			await advanceSchedule()
+			setIsGenerating(false)
 		},
-		[ai, modelName, checkSchedule]
+		[advanceSchedule]
 	)
 
 	return (
