@@ -58,7 +58,7 @@ export function AgentChangeHistoryItem({
 	// Hardcoded to only support a single create shape change for now
 	// TODO: Support other change types
 	// TODO: Support multiple changes grouped together
-	const [svgElement, setSvgElement] = useState<Blob | null>(null)
+	// const [svgElement, setSvgElement] = useState<Blob | null>(null)
 
 	useEffect(() => {
 		if (!item.change.complete) return
