@@ -87,7 +87,7 @@ function getTldrawAiChangesFromSimpleCreateOrUpdateEvent(
 				description: event.intent ?? '',
 				shape: {
 					id: (shape.shapeId ?? '') as any,
-					type: shape.type ?? '',
+					type: '',
 					meta: {
 						note: shape.note ?? '',
 					},
