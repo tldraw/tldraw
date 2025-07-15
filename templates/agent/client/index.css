@@ -68,7 +68,7 @@ body {
 	padding: 8px;
 	border-radius: 12px;
 	color: var(--color-text-2);
-	background-color: var(--color-muted-2);
+	background-color: var(--color-muted-1);
 	box-shadow: var(--shadow-1);
 	font-size: 11px;
 }
@@ -136,8 +136,8 @@ body {
 }
 
 .user-chat-message {
-	background-color: var(--color-muted-2);
-	border: 1px solid var(--color-panel-contrast);
+	background-color: var(--color-muted-1);
+	box-shadow: var(--shadow-1);
 	color: var(--color-text-1);
 	width: 100%;
 	font-family: 'Inter', sans-serif;
