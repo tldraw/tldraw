@@ -104,3 +104,30 @@ export function getNodeOutputPortValues(
 ): Record<string, number> {
 	return nodeOutputPortValuesCache.get(editor, typeof shape === 'string' ? shape : shape.id) ?? {}
 }
+
+export function getAllConnectedNodes(
+	editor: Editor,
+	startingNode: TLShapeId | NodeShape,
+	direction: 'start' | 'end'
+) {
+	const toVisit = [typeof startingNode === 'string' ? startingNode : startingNode.id]
+	const found = new Set<NodeShape>()
+
+	while (toVisit.length > 0) {
+		const nodeId = toVisit.shift()
+		if (!nodeId) continue
+
+		const node = editor.getShape(nodeId)
+		if (!node || !editor.isShapeOfType<NodeShape>(node, 'node')) continue
+
+		if (found.has(node)) continue
+		found.add(node)
+
+		for (const connection of getNodePortConnections(editor, node)) {
+			if (connection.terminal !== direction) continue
+			toVisit.push(connection.connectedShapeId)
+		}
+	}
+
+	return found
+}

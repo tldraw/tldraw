@@ -22,6 +22,7 @@ import {
 	CONNECTION_CENTER_HANDLE_HOVER_SIZE_PX,
 	CONNECTION_CENTER_HANDLE_SIZE_PX,
 } from '../constants'
+import { getAllConnectedNodes } from '../nodes/nodePorts'
 import { getPortAtPoint } from '../ports/getPortAtPoint'
 import { updatePortState } from '../state'
 import {
@@ -116,6 +117,7 @@ export class ConnectionShapeUtil extends ShapeUtil<ConnectionShape> {
 		const existingBindings = getConnectionBindings(this.editor, shape)
 		const draggingTerminal = handle.id as 'start' | 'end'
 		const oppositeTerminal = draggingTerminal === 'start' ? 'end' : 'start'
+		const oppositeTerminalShapeId = existingBindings[oppositeTerminal]?.toId
 
 		const shapeTransform = this.editor.getShapePageTransform(shape)
 		const handlePagePosition = shapeTransform.applyToPoint(handle)
@@ -130,7 +132,12 @@ export class ConnectionShapeUtil extends ShapeUtil<ConnectionShape> {
 		const hasExistingConnection =
 			target?.existingConnection && target.existingConnection.connectionId !== shape.id
 
-		if (!target || (hasExistingConnection && !allowsMultipleConnections)) {
+		const wouldCreateACycle =
+			target &&
+			oppositeTerminalShapeId &&
+			getAllConnectedNodes(this.editor, oppositeTerminalShapeId, draggingTerminal).has(target.shape)
+
+		if (!target || (hasExistingConnection && !allowsMultipleConnections) || wouldCreateACycle) {
 			updatePortState(this.editor, { hintingPort: null })
 			removeConnectionBinding(this.editor, shape, draggingTerminal)
 
