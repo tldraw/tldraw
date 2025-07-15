@@ -3,6 +3,7 @@ import {
 	DefaultColorStyle,
 	DefaultSizeStyle,
 	HTMLContainer,
+	isDefaultColor,
 	T,
 	TLBaseShape,
 	TLDefaultColorStyle,
@@ -65,7 +66,9 @@ class MyShapeUtil extends BaseBoxShapeUtil<IMyShape> {
 					style={{
 						// [3]
 						fontSize: FONT_SIZES[shape.props.size],
-						color: theme[shape.props.color].solid,
+						color: isDefaultColor(shape.props.color)
+							? theme[shape.props.color].solid
+							: shape.props.color,
 					}}
 				>
 					Select the shape and use the style panel to change the font size and color

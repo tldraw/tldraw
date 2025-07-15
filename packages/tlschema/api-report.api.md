@@ -175,7 +175,7 @@ export const defaultBindingSchemas: {
 export const defaultColorNames: readonly ["black", "grey", "light-violet", "violet", "blue", "light-blue", "yellow", "orange", "green", "light-green", "light-red", "red", "white"];
 
 // @public (undocumented)
-export const DefaultColorStyle: EnumStyleProp<"black" | "blue" | "green" | "grey" | "light-blue" | "light-green" | "light-red" | "light-violet" | "orange" | "red" | "violet" | "white" | "yellow">;
+export const DefaultColorStyle: EnumStylePropOrString<"black" | "blue" | "green" | "grey" | "light-blue" | "light-green" | "light-red" | "light-violet" | "orange" | "red" | "violet" | "white" | "yellow">;
 
 // @public (undocumented)
 export const DefaultColorThemePalette: {
@@ -297,6 +297,14 @@ export class EnumStyleProp<T> extends StyleProp<T> {
     readonly values: readonly T[];
 }
 
+// @public
+export class EnumStylePropOrString<T> extends StyleProp<string | T> {
+    // @internal
+    constructor(id: string, defaultValue: T, values: readonly T[]);
+    // (undocumented)
+    readonly values: readonly T[];
+}
+
 // @public (undocumented)
 export const frameShapeMigrations: TLPropsMigrations;
 
@@ -385,6 +393,9 @@ export function isBinding(record?: UnknownRecord): record is TLBinding;
 
 // @public (undocumented)
 export function isBindingId(id?: string): id is TLBindingId;
+
+// @public (undocumented)
+export function isDefaultColor(color: string): color is (typeof defaultColorNames)[number];
 
 // @public (undocumented)
 export function isDocument(record?: UnknownRecord): record is TLDocument;
@@ -645,6 +656,10 @@ export class StyleProp<Type> implements T.Validatable<Type> {
         defaultValue: Values[number];
         values: Values;
     }): EnumStyleProp<Values[number]>;
+    static defineEnumOrString<const Values extends readonly unknown[]>(uniqueId: string, options: {
+        defaultValue: Values[number];
+        values: Values;
+    }): EnumStylePropOrString<Values[number]>;
     // (undocumented)
     readonly id: string;
     // (undocumented)
@@ -911,7 +926,7 @@ export type TLCursorType = SetValue<typeof TL_CURSOR_TYPES>;
 export type TLDefaultBinding = TLArrowBinding;
 
 // @public (undocumented)
-export type TLDefaultColorStyle = T.TypeOf<typeof DefaultColorStyle>;
+export type TLDefaultColorStyle = string | T.TypeOf<typeof DefaultColorStyle>;
 
 // @public (undocumented)
 export type TLDefaultColorTheme = Expand<{

@@ -33,6 +33,7 @@ import {
 	exhaustiveSwitchError,
 	getDefaultColorTheme,
 	invLerp,
+	isDefaultColor,
 	lerp,
 	mapObjectMapValues,
 	maybeSnapToGrid,
@@ -759,6 +760,10 @@ export class ArrowShapeUtil extends ShapeUtil<TLArrowShape> {
 		const isEditing = this.editor.getEditingShapeId() === shape.id
 		const showArrowLabel = isEditing || shape.props.text
 
+		const { solid: solidColor } = isDefaultColor(shape.props.color)
+			? theme[shape.props.color]
+			: { solid: shape.props.color }
+
 		return (
 			<>
 				<SVGContainer style={{ minWidth: 50, minHeight: 50 }}>
@@ -781,7 +786,7 @@ export class ArrowShapeUtil extends ShapeUtil<TLArrowShape> {
 						align="middle"
 						verticalAlign="middle"
 						text={shape.props.text}
-						labelColor={theme[shape.props.labelColor].solid}
+						labelColor={solidColor}
 						textWidth={labelPosition.box.w - ARROW_LABEL_PADDING * 2 * shape.props.scale}
 						isSelected={isSelected}
 						padding={0}
@@ -941,6 +946,10 @@ export class ArrowShapeUtil extends ShapeUtil<TLArrowShape> {
 		const theme = getDefaultColorTheme(ctx)
 		const scaleFactor = 1 / shape.props.scale
 
+		const { solid: solidColor } = isDefaultColor(shape.props.color)
+			? theme[shape.props.color]
+			: { solid: shape.props.color }
+
 		return (
 			<g transform={`scale(${scaleFactor})`}>
 				<ArrowSvg shape={shape} shouldDisplayHandles={false} />
@@ -950,7 +959,7 @@ export class ArrowShapeUtil extends ShapeUtil<TLArrowShape> {
 					align="middle"
 					verticalAlign="middle"
 					text={shape.props.text}
-					labelColor={theme[shape.props.labelColor].solid}
+					labelColor={solidColor}
 					bounds={getArrowLabelPosition(this.editor, shape)
 						.box.clone()
 						.expandBy(-ARROW_LABEL_PADDING * shape.props.scale)}
@@ -1074,6 +1083,10 @@ const ArrowSvg = track(function ArrowSvg({
 	const clipStartArrowhead = !(info.start.arrowhead === 'none' || info.start.arrowhead === 'arrow')
 	const clipEndArrowhead = !(info.end.arrowhead === 'none' || info.end.arrowhead === 'arrow')
 
+	const { solid: solidColor } = isDefaultColor(shape.props.color)
+		? theme[shape.props.color]
+		: { solid: shape.props.color }
+
 	return (
 		<>
 			{/* Yep */}
@@ -1091,7 +1104,7 @@ const ArrowSvg = track(function ArrowSvg({
 			</defs>
 			<g
 				fill="none"
-				stroke={theme[shape.props.color].solid}
+				stroke={solidColor}
 				strokeWidth={strokeWidth}
 				strokeLinejoin="round"
 				strokeLinecap="round"

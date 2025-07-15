@@ -19,6 +19,7 @@ import {
 	exhaustiveSwitchError,
 	getDefaultColorTheme,
 	getFontsFromRichText,
+	isDefaultColor,
 	isEqual,
 	lerp,
 	noteShapeMigrations,
@@ -280,6 +281,11 @@ export class NoteShapeUtil extends ShapeUtil<TLNoteShape> {
 		const isReadyForEditing = useIsReadyForEditing(this.editor, shape.id)
 		const isEmpty = isEmptyRichText(richText)
 
+		const {
+			fill: fillColor,
+			note: { text: noteTextColor },
+		} = isDefaultColor(color) ? theme[color] : { fill: color, note: { text: theme.text } }
+
 		return (
 			<>
 				<div
@@ -288,7 +294,7 @@ export class NoteShapeUtil extends ShapeUtil<TLNoteShape> {
 					style={{
 						width: nw,
 						height: nh,
-						backgroundColor: theme[color].note.fill,
+						backgroundColor: fillColor,
 						borderBottom: hideShadows
 							? isDarkMode
 								? `${2 * scale}px solid rgb(20, 20, 20)`
@@ -308,7 +314,7 @@ export class NoteShapeUtil extends ShapeUtil<TLNoteShape> {
 							verticalAlign={verticalAlign}
 							richText={richText}
 							isSelected={isSelected}
-							labelColor={labelColor === 'black' ? theme[color].note.text : theme[labelColor].fill}
+							labelColor={labelColor === 'black' ? noteTextColor : fillColor}
 							wrap
 							padding={LABEL_PADDING * scale}
 							hasCustomTabBehavior
@@ -343,7 +349,9 @@ export class NoteShapeUtil extends ShapeUtil<TLNoteShape> {
 				align={shape.props.align}
 				verticalAlign={shape.props.verticalAlign}
 				richText={shape.props.richText}
-				labelColor={theme[shape.props.color].note.text}
+				labelColor={
+					isDefaultColor(shape.props.color) ? theme[shape.props.color].note.text : shape.props.color
+				}
 				bounds={bounds}
 				padding={LABEL_PADDING}
 				showTextOutline={false}
@@ -357,7 +365,11 @@ export class NoteShapeUtil extends ShapeUtil<TLNoteShape> {
 					rx={1}
 					width={NOTE_SIZE}
 					height={bounds.h}
-					fill={theme[shape.props.color].note.fill}
+					fill={
+						isDefaultColor(shape.props.color)
+							? theme[shape.props.color].note.fill
+							: shape.props.color
+					}
 				/>
 				{textLabel}
 			</>

@@ -80,6 +80,34 @@ export class StyleProp<Type> implements T.Validatable<Type> {
 		return new EnumStyleProp<Values[number]>(uniqueId, defaultValue, values)
 	}
 
+	/**
+	 * Define a new {@link StyleProp} as a list of possible values or a string.
+	 *
+	 * @param uniqueId - Each StyleProp must have a unique ID. We recommend you prefix this with
+	 * your app/library name.
+	 * @param options -
+	 * - `defaultValue`: The default value for this style prop.
+	 *
+	 * - `values`: An array of possible values of this style prop.
+	 *
+	 * @example
+	 * ```ts
+	 * import {StyleProp} from '@tldraw/tlschema'
+	 *
+	 * const MySizeProp = StyleProp.defineEnumOrString('myApp:size', {
+	 *   defaultValue: 'medium',
+	 *   values: ['small', 'medium', 'large'],
+	 * })
+	 * ```
+	 */
+	static defineEnumOrString<const Values extends readonly unknown[]>(
+		uniqueId: string,
+		options: { defaultValue: Values[number]; values: Values }
+	) {
+		const { defaultValue, values } = options
+		return new EnumStylePropOrString<Values[number]>(uniqueId, defaultValue, values)
+	}
+
 	/** @internal */
 	protected constructor(
 		readonly id: string,
@@ -117,6 +145,22 @@ export class EnumStyleProp<T> extends StyleProp<T> {
 		readonly values: readonly T[]
 	) {
 		super(id, defaultValue, T.literalEnum(...values))
+	}
+}
+
+/**
+ * See {@link StyleProp} & {@link StyleProp.defineEnumOrString}
+ *
+ * @public
+ */
+export class EnumStylePropOrString<T> extends StyleProp<T | string> {
+	/** @internal */
+	constructor(
+		id: string,
+		defaultValue: T,
+		readonly values: readonly T[]
+	) {
+		super(id, defaultValue, T.or(T.string, T.literalEnum(...values)))
 	}
 }
 

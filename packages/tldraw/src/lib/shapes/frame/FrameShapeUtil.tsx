@@ -20,6 +20,7 @@ import {
 	frameShapeMigrations,
 	frameShapeProps,
 	getDefaultColorTheme,
+	isDefaultColor,
 	lerp,
 	resizeBox,
 	toDomPrecision,
@@ -221,12 +222,31 @@ export class FrameShapeUtil extends BaseBoxShapeUtil<TLFrameShape> {
 
 		const showFrameColors = this.options.showColors
 
-		const color = theme[shape.props.color]
-		const frameFill = showFrameColors ? color.frame.fill : theme.black.frame.fill
-		const frameStroke = showFrameColors ? color.frame.stroke : theme.black.frame.stroke
-		const frameHeadingStroke = showFrameColors ? color.frame.headingStroke : theme.background
-		const frameHeadingFill = showFrameColors ? color.frame.headingFill : theme.background
-		const frameHeadingText = showFrameColors ? color.frame.text : theme.text
+		const {
+			frame: {
+				fill: frameFillColor,
+				stroke: frameStrokeColor,
+				headingStroke: frameHeadingStrokeColor,
+				headingFill: frameHeadingFillColor,
+				text: frameHeadingTextColor,
+			},
+		} = isDefaultColor(shape.props.color)
+			? theme[shape.props.color]
+			: {
+					frame: {
+						fill: shape.props.color,
+						stroke: shape.props.color,
+						headingStroke: shape.props.color,
+						headingFill: shape.props.color,
+						text: shape.props.color,
+					},
+				}
+
+		const frameFill = showFrameColors ? frameFillColor : theme.black.frame.fill
+		const frameStroke = showFrameColors ? frameStrokeColor : theme.black.frame.stroke
+		const frameHeadingStroke = showFrameColors ? frameHeadingStrokeColor : theme.background
+		const frameHeadingFill = showFrameColors ? frameHeadingFillColor : theme.background
+		const frameHeadingText = showFrameColors ? frameHeadingTextColor : theme.text
 
 		return (
 			<>
@@ -278,12 +298,31 @@ export class FrameShapeUtil extends BaseBoxShapeUtil<TLFrameShape> {
 
 		const showFrameColors = this.options.showColors
 
-		const color = theme[shape.props.color]
-		const frameFill = showFrameColors ? color.frame.fill : theme.black.frame.fill
-		const frameStroke = showFrameColors ? color.frame.stroke : theme.black.frame.stroke
-		const frameHeadingStroke = showFrameColors ? color.frame.headingStroke : theme.background
-		const frameHeadingFill = showFrameColors ? color.frame.headingFill : theme.background
-		const frameHeadingText = showFrameColors ? color.frame.text : theme.text
+		const {
+			frame: {
+				fill: frameFillColor,
+				stroke: frameStrokeColor,
+				headingStroke: frameHeadingStrokeColor,
+				headingFill: frameHeadingFillColor,
+				text: frameHeadingTextColor,
+			},
+		} = isDefaultColor(shape.props.color)
+			? theme[shape.props.color]
+			: {
+					frame: {
+						fill: shape.props.color,
+						stroke: shape.props.color,
+						headingStroke: shape.props.color,
+						headingFill: shape.props.color,
+						text: shape.props.color,
+					},
+				}
+
+		const frameFill = showFrameColors ? frameFillColor : theme.black.frame.fill
+		const frameStroke = showFrameColors ? frameStrokeColor : theme.black.frame.stroke
+		const frameHeadingStroke = showFrameColors ? frameHeadingStrokeColor : theme.background
+		const frameHeadingFill = showFrameColors ? frameHeadingFillColor : theme.background
+		const frameHeadingText = showFrameColors ? frameHeadingTextColor : theme.text
 
 		return (
 			<>
