@@ -17,6 +17,7 @@ export function useTldrawAiExample(editor?: Editor) {
 
 const STATIC_TLDRAWAI_OPTIONS: TldrawAiOptions = {
 	transforms: [SimpleIds, SimpleCoordinates],
+	apply: applyChanges,
 
 	// A function that calls the backend and return generated changes.
 	// See worker/do/OpenAiService.ts#generate for the backend part.
@@ -81,5 +82,4 @@ const STATIC_TLDRAWAI_OPTIONS: TldrawAiOptions = {
 			reader.releaseLock()
 		}
 	},
-	apply: applyChanges,
 }

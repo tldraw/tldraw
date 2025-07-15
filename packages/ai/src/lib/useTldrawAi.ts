@@ -49,7 +49,7 @@ export function useTldrawAi(opts: TldrawAiOptions) {
 		generate: generateFn,
 		stream: streamFn,
 		transforms,
-		apply: applyFn = defaultApply,
+		apply: applyFn = defaultApplyChanges,
 	} = opts
 
 	// If the editor is provided as a prop, use that. Otherwise, use the editor in react context and throw if not present.
@@ -268,7 +268,7 @@ export function useTldrawAi(opts: TldrawAiOptions) {
  *
  * @public
  */
-export function defaultApply({
+export function defaultApplyChanges({
 	change,
 	editor,
 }: {
