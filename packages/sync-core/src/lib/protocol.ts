@@ -1,7 +1,7 @@
 import { SerializedSchema, UnknownRecord } from '@tldraw/store'
 import { NetworkDiff, ObjectDiff, RecordOpType } from './diff'
 
-const TLSYNC_PROTOCOL_VERSION = 7
+const TLSYNC_PROTOCOL_VERSION = 8
 
 /** @internal */
 export function getTlsyncProtocolVersion() {
@@ -34,7 +34,7 @@ export type TLSocketServerSentEvent<R extends UnknownRecord> =
 			connectRequestId: string
 			protocolVersion: number
 			schema: SerializedSchema
-			diff: NetworkDiff<R>
+			diff: string | NetworkDiff<R>
 			serverClock: number
 			isReadonly: boolean
 	  }

@@ -40,6 +40,7 @@ import {
 	ValueOpType,
 	applyObjectDiff,
 	diffRecord,
+	getBase64ZippedNetworkDiffString,
 } from './diff'
 import { interval } from './interval'
 import {
@@ -545,6 +546,7 @@ export class TLSyncRoom<R extends UnknownRecord, SessionMeta> {
 			meta: session.meta,
 			isReadonly: session.isReadonly,
 			requiresLegacyRejection: session.requiresLegacyRejection,
+			requiresObjectDiffInConnectMsg: session.requiresObjectDiffInConnectMsg,
 		})
 
 		try {
@@ -615,6 +617,7 @@ export class TLSyncRoom<R extends UnknownRecord, SessionMeta> {
 			isReadonly: isReadonly ?? false,
 			// this gets set later during handleConnectMessage
 			requiresLegacyRejection: false,
+			requiresObjectDiffInConnectMsg: false,
 		})
 		return this
 	}
@@ -756,6 +759,12 @@ export class TLSyncRoom<R extends UnknownRecord, SessionMeta> {
 		if (theirProtocolVersion === 6) {
 			theirProtocolVersion++
 		}
+
+		session.requiresObjectDiffInConnectMsg = theirProtocolVersion === 7
+		if (theirProtocolVersion === 7) {
+			theirProtocolVersion++
+		}
+
 		if (theirProtocolVersion == null || theirProtocolVersion < getTlsyncProtocolVersion()) {
 			this.rejectSession(session.sessionId, TLSyncErrorCloseEventReason.CLIENT_TOO_OLD)
 			return
@@ -780,7 +789,7 @@ export class TLSyncRoom<R extends UnknownRecord, SessionMeta> {
 			? this.serializedSchema
 			: message.schema
 
-		const connect = (msg: TLSocketServerSentEvent<R>) => {
+		const connect = async (msg: Extract<TLSocketServerSentEvent<R>, { type: 'connect' }>) => {
 			this.sessions.set(session.sessionId, {
 				state: RoomSessionState.Connected,
 				sessionId: session.sessionId,
@@ -793,7 +802,11 @@ export class TLSyncRoom<R extends UnknownRecord, SessionMeta> {
 				meta: session.meta,
 				isReadonly: session.isReadonly,
 				requiresLegacyRejection: session.requiresLegacyRejection,
+				requiresObjectDiffInConnectMsg: session.requiresObjectDiffInConnectMsg,
 			})
+			if (typeof msg.diff === 'object' && !session.requiresObjectDiffInConnectMsg) {
+				msg.diff = await getBase64ZippedNetworkDiffString(msg.diff)
+			}
 			this.sendMessage(session.sessionId, msg)
 		}
 

@@ -156,6 +156,7 @@ export type RoomSession<R extends UnknownRecord, Meta> = {
     meta: Meta;
     presenceId: null | string;
     requiresLegacyRejection: boolean;
+    requiresObjectDiffInConnectMsg: boolean;
     sessionId: string;
     socket: TLRoomSocket<R>;
     state: typeof RoomSessionState.AwaitingRemoval;
@@ -167,6 +168,7 @@ export type RoomSession<R extends UnknownRecord, Meta> = {
     outstandingDataMessages: TLSocketServerSentDataEvent<R>[];
     presenceId: null | string;
     requiresLegacyRejection: boolean;
+    requiresObjectDiffInConnectMsg: boolean;
     serializedSchema: SerializedSchema;
     sessionId: string;
     socket: TLRoomSocket<R>;
@@ -176,6 +178,7 @@ export type RoomSession<R extends UnknownRecord, Meta> = {
     meta: Meta;
     presenceId: null | string;
     requiresLegacyRejection: boolean;
+    requiresObjectDiffInConnectMsg: boolean;
     sessionId: string;
     sessionStartTime: number;
     socket: TLRoomSocket<R>;
@@ -403,7 +406,7 @@ export type TLSocketServerSentDataEvent<R extends UnknownRecord> = {
 // @internal (undocumented)
 export type TLSocketServerSentEvent<R extends UnknownRecord> = {
     connectRequestId: string;
-    diff: NetworkDiff<R>;
+    diff: NetworkDiff<R> | string;
     hydrationType: 'wipe_all' | 'wipe_presence';
     isReadonly: boolean;
     protocolVersion: number;

@@ -8,6 +8,8 @@ import {
 	squashRecordDiffs,
 } from '@tldraw/store'
 import {
+	ExecutionQueue,
+	assert,
 	exhaustiveSwitchError,
 	fpsThrottle,
 	isEqual,
@@ -198,6 +200,8 @@ export class TLSyncClient<R extends UnknownRecord, S extends Store<R> = Store<R>
 
 		this.presenceState = config.presence
 
+		const queue = new ExecutionQueue()
+
 		this.disposables.push(
 			// when local 'user' changes are made, send them to the server
 			// or stash them locally in offline mode
@@ -213,14 +217,25 @@ export class TLSyncClient<R extends UnknownRecord, S extends Store<R> = Store<R>
 			this.socket.onReceiveMessage((msg) => {
 				if (this.didCancel?.()) return this.close()
 				this.debug('received message from server', msg)
-				this.handleServerEvent(msg)
+				queue.push(async () => {
+					if (msg.type === 'connect' && typeof msg.diff === 'string') {
+						const jsonGz = atob(msg.diff)
+						// Decompress the gzipped JSON string using DecompressionStream (async)
+						const uint8Array = new Uint8Array([...jsonGz].map((c) => c.charCodeAt(0)))
+						const stream = new Response(
+							new Blob([uint8Array]).stream().pipeThrough(new DecompressionStream('gzip'))
+						).text()
+						const json = await stream
+						msg.diff = JSON.parse(json)
+					}
+					this.handleServerEvent(msg)
+					// one of the load callbacks
+					if (!didLoad) {
+						didLoad = true
+						config.onLoad(this)
+					}
+				})
 				// the first time we receive a message from the server, we should trigger
-
-				// one of the load callbacks
-				if (!didLoad) {
-					didLoad = true
-					config.onLoad(this)
-				}
 			}),
 			// handle switching between online and offline
 			this.socket.onStatusChange((ev) => {
@@ -378,6 +393,8 @@ export class TLSyncClient<R extends UnknownRecord, S extends Store<R> = Store<R>
 						wipeDiff[id] = [RecordOpType.Remove]
 					}
 				}
+
+				assert(typeof event.diff === 'object', 'diff should be an object by now')
 
 				// then apply the upstream changes
 				this.applyNetworkDiff({ ...wipeDiff, ...event.diff }, true)
