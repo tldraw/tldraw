@@ -38,7 +38,6 @@ import { createSentry } from '@tldraw/worker-shared'
 import { DurableObject } from 'cloudflare:workers'
 import { IRequest, Router } from 'itty-router'
 import { Kysely } from 'kysely'
-import { AlarmScheduler } from './AlarmScheduler'
 import { PERSIST_INTERVAL_MS } from './config'
 import { createPostgresConnectionPool } from './postgres'
 import { getR2KeyForRoom } from './r2'
@@ -133,7 +132,7 @@ export class TLDrawDurableObject extends DurableObject {
 								room.close()
 							},
 							onDataChange: () => {
-								this.triggerPersistSchedule()
+								this.triggerPersist()
 							},
 							onBeforeSendMessage: ({ message, stringified }) => {
 								this.logEvent({
@@ -248,15 +247,6 @@ export class TLDrawDurableObject extends DurableObject {
 			(req) => this.onRestore(req)
 		)
 		.all('*', () => new Response('Not found', { status: 404 }))
-
-	readonly scheduler = new AlarmScheduler({
-		storage: () => this.storage,
-		alarms: {
-			persist: async () => {
-				this.persistToDatabase()
-			},
-		},
-	})
 
 	// eslint-disable-next-line no-restricted-syntax
 	get documentInfo() {
@@ -483,9 +473,9 @@ export class TLDrawDurableObject extends DurableObject {
 		}
 	}
 
-	triggerPersistSchedule = throttle(() => {
-		this.schedulePersist()
-	}, 2000)
+	triggerPersist = throttle(() => {
+		this.persistToDatabase()
+	}, 5000)
 
 	private writeEvent(name: string, eventData: EventData) {
 		writeDataPoint(this.sentry, this.measure, this.env, name, eventData)
@@ -741,9 +731,17 @@ export class TLDrawDurableObject extends DurableObject {
 			let offset = 0
 
 			for (const chunk of generateSnapshotChunks(snapshot, clock)) {
-				buffer.set(chunk, offset)
-				offset += chunk.byteLength
-				if (offset >= tenMB) {
+				// Check if adding this chunk would overflow the buffer
+				if (offset + chunk.byteLength > tenMB) {
+					// We need to split this chunk
+					const spaceLeft = tenMB - offset
+					const firstPart = chunk.subarray(0, spaceLeft)
+					const secondPart = chunk.subarray(spaceLeft)
+
+					// Add the first part to the current buffer
+					buffer.set(firstPart, offset)
+
+					// Upload the full buffer
 					const [p1, p2] = await Promise.all([
 						out1.uploadPart(partNumber, buffer),
 						out2.uploadPart(partNumber, buffer),
@@ -751,9 +749,14 @@ export class TLDrawDurableObject extends DurableObject {
 					parts1.push(p1)
 					parts2.push(p2)
 					partNumber++
-					const overflow = offset - tenMB
-					offset = overflow
-					buffer.set(chunk.subarray(chunk.byteLength - overflow), 0)
+
+					// Start a new buffer with the second part
+					offset = secondPart.byteLength
+					buffer.set(secondPart, 0)
+				} else {
+					// Normal case: add the chunk to the buffer
+					buffer.set(chunk, offset)
+					offset += chunk.byteLength
 				}
 			}
 			if (offset > 0) {
@@ -776,17 +779,6 @@ export class TLDrawDurableObject extends DurableObject {
 		// eslint-disable-next-line @typescript-eslint/no-deprecated
 		this.sentry?.captureException(e)
 		console.error(e)
-	}
-
-	async schedulePersist() {
-		await this.scheduler.scheduleAlarmAfter('persist', PERSIST_INTERVAL_MS, {
-			overwrite: 'if-sooner',
-		})
-	}
-
-	// Will be called automatically when the alarm ticks.
-	override async alarm() {
-		await this.scheduler.onAlarm()
 	}
 
 	async appFileRecordCreated(file: TlaFile) {
