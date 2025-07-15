@@ -1,6 +1,7 @@
 import { TLAiStreamingChange } from '@tldraw/ai'
 import { useEffect, useState } from 'react'
-import { Editor } from 'tldraw'
+import { Editor, TLShape } from 'tldraw'
+import TldrawViewer from './TldrawViewer'
 
 export type ChatHistoryItem =
 	| UserMessageHistoryItem
@@ -48,6 +49,32 @@ export function AgentMessageHistoryItem({ item }: { item: AgentMessageHistoryIte
 	return <div className="agent-chat-message">{item.message}</div>
 }
 
+function getCompleteShapeFromStreamingShape({
+	shape,
+	editor,
+}: {
+	shape?: Partial<TLShape>
+	editor: Editor
+}) {
+	if (!shape) return null
+	if (!shape.type) return null
+	const util = editor.getShapeUtil(shape.type)
+	if (!util) return null
+
+	const shapeRecord = editor.store.schema.types.shape.create(shape)
+	const completeShapeRecord = {
+		...shapeRecord,
+		index: 'a0',
+		parentId: 'page:',
+		props: {
+			...util.getDefaultProps(),
+			...(shape.props ?? {}),
+		},
+	}
+
+	return completeShapeRecord as TLShape
+}
+
 export function AgentChangeHistoryItem({
 	item,
 	editor,
@@ -58,22 +85,17 @@ export function AgentChangeHistoryItem({
 	// Hardcoded to only support a single create shape change for now
 	// TODO: Support other change types
 	// TODO: Support multiple changes grouped together
-	// const [svgElement, setSvgElement] = useState<Blob | null>(null)
-
-	useEffect(() => {
-		if (!item.change.complete) return
-		if (item.change.type !== 'createShape') return
-		// editor.toImage([item.change.shape.id], { format: 'svg' }).then((svgResult) => {
-		// 	if (!svgResult) return
-		// 	setSvgElement(svgResult.blob)
-		// })
-	}, [item.change, editor])
-
 	if (item.change.type !== 'createShape') return null
+
+	const shape = getCompleteShapeFromStreamingShape({ shape: item.change.shape, editor })
+	const Background = () => (
+		<div style={{ backgroundColor: 'rgba(0, 255, 0, 0.1)', height: '100%' }} />
+	)
 
 	return (
 		<div className="agent-change-message">
 			<div>{item.change.description}</div>
+			{shape && <TldrawViewer shape={shape} components={{ Background }} />}
 		</div>
 	)
 }
