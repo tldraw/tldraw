@@ -2,7 +2,7 @@ import { TLAiChange, TLAiStreamingChange, defaultApply } from '@tldraw/ai'
 import { Editor } from 'tldraw'
 import { $chatHistoryItems } from './ChatHistory'
 import { ChatHistoryItem } from './ChatHistoryItem'
-import { $requestsSchedule } from './ChatPanel'
+import { $requestsSchedule } from './requestsSchedule'
 
 const createOrUpdateHistoryItem = (item: ChatHistoryItem) => {
 	$chatHistoryItems.update((prev) => {

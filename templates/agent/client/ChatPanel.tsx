@@ -1,15 +1,9 @@
 import { FormEventHandler, useCallback, useEffect, useRef, useState } from 'react'
-import { atom, Editor, useLocalStorageState, useValue } from 'tldraw'
+import { Editor, useLocalStorageState, useValue } from 'tldraw'
 import { AGENT_MODEL_DEFINITIONS, TLAgentModelName } from '../worker/models'
 import { $chatHistoryItems, ChatHistory } from './ChatHistory'
+import { $requestsSchedule } from './requestsSchedule'
 import { useTldrawAiExample } from './useTldrawAiExample'
-
-export const $requestsSchedule = atom<
-	{
-		message: string
-		review: boolean
-	}[]
->('requestsSchedule', [])
 
 export function ChatPanel({ editor }: { editor: Editor }) {
 	const ai = useTldrawAiExample(editor)
