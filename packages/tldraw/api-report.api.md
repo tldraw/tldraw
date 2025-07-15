@@ -2534,7 +2534,7 @@ export interface SolidPathBuilderOpts extends BasePathBuilderOpts {
 }
 
 // @internal (undocumented)
-export function Spinner(props: React_3.SVGProps<SVGSVGElement>): JSX_2.Element | null;
+export function Spinner(props: React_3.SVGProps<SVGSVGElement>): JSX_2.Element;
 
 // @public (undocumented)
 export function SplineStylePickerSet({ styles }: StylePickerSetProps): JSX_2.Element | null;
