@@ -30,7 +30,7 @@ export function ChatPanel({ editor }: { editor: Editor }) {
 		;(window as any).ai = ai
 	}, [ai, editor])
 
-	async function checkSchedule() {
+	const checkSchedule = useCallback(async () => {
 		const eventSchedule = $eventSchedule.get()
 
 		if (!eventSchedule || eventSchedule.length === 0) {
@@ -72,11 +72,11 @@ export function ChatPanel({ editor }: { editor: Editor }) {
 
 			// Process next event (if any) after a 1s timeout to allow for cancellation
 			checkSchedule()
-		} catch (error) {
+		} catch (e) {
 			// Don't remove the event on failure - let it be retried
-			return
+			console.error(e)
 		}
-	}
+	}, [ai, modelName])
 
 	const handleSubmit = useCallback<FormEventHandler<HTMLFormElement>>(
 		async (e) => {
@@ -117,7 +117,8 @@ export function ChatPanel({ editor }: { editor: Editor }) {
 				setIsGenerating(true)
 				await promise
 
-				checkSchedule()
+				// Do follow up steps if any have been scheduled
+				await checkSchedule()
 
 				setIsGenerating(false)
 				rCancelFn.current = null
@@ -127,7 +128,7 @@ export function ChatPanel({ editor }: { editor: Editor }) {
 				rCancelFn.current = null
 			}
 		},
-		[ai, modelName]
+		[ai, modelName, checkSchedule]
 	)
 
 	return (
