@@ -205,23 +205,37 @@ function buildUserMessage(prompt: TLAiSerializedPrompt): CoreMessage {
 		)
 	}
 
-	// If it's an array, push each message as a separate message
-	content.push({
-		type: 'text',
-		text: `Using the events provided in the response schema, here's what I want you to do:`,
-	})
+	if (prompt.meta.review) {
+		// Review mode
+		const messages = asMessage(prompt.message)
+		const intent = messages[0]
+		if (messages.length !== 1 || intent.type !== 'text') {
+			throw new Error('Review message must be a single text message')
+		}
+		content.push({
+			type: 'text',
+			text: getReviewPrompt(intent.text),
+		})
+	} else {
+		// Normal mode
+		content.push({
+			type: 'text',
+			text: `Using the events provided in the response schema, here's what I want you to do:`,
+		})
 
-	for (const message of asMessage(prompt.message)) {
-		if (message.type === 'image') {
-			content.push({
-				type: 'image',
-				image: message.src!,
-			})
-		} else {
-			content.push({
-				type: 'text',
-				text: message.text,
-			})
+		// If it's an array, push each message as a separate message
+		for (const message of asMessage(prompt.message)) {
+			if (message.type === 'image') {
+				content.push({
+					type: 'image',
+					image: message.src!,
+				})
+			} else {
+				content.push({
+					type: 'text',
+					text: message.text,
+				})
+			}
 		}
 	}
 
@@ -229,4 +243,13 @@ function buildUserMessage(prompt: TLAiSerializedPrompt): CoreMessage {
 		role: 'user',
 		content,
 	}
+}
+
+// TODO: Move this to the worker
+function getReviewPrompt(intent: string) {
+	return `Examine the actions that you (the agent) took since the most recent user message, with the intent: "${intent}". What's next?
+
+- Are you awaiting a response from the user? If so, there's no need to do or say anything.
+- Is there still more work to do? If so, continue it.
+- Is the task supposed to be complete? If so, it's time to review the results of that. Did you do what the user asked for? Did the plan work? Think through your findings and pay close attention to the screenshot because that's what the user sees. If you make any corrections, let the user know what you did and why. If no corrections are needed, there's no need to say anything.`
 }
