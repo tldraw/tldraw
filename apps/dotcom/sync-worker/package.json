@@ -1,6 +1,6 @@
 {
 	"name": "@tldraw/dotcom-worker",
-	"description": "A tiny little drawing app (merge server).",
+	"description": "Infinite canvas SDK (merge server).",
 	"version": "0.0.0",
 	"private": true,
 	"author": {

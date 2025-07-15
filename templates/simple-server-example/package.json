@@ -1,6 +1,6 @@
 {
 	"name": "@tldraw/simple-server-example",
-	"description": "A tiny little drawing app (example node/bun servers).",
+	"description": "Infinite canvas SDK (example node/bun servers).",
 	"version": "0.0.0",
 	"private": true,
 	"author": {

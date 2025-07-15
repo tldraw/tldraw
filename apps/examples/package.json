@@ -1,6 +1,6 @@
 {
 	"name": "examples.tldraw.com",
-	"description": "A tiny little drawing app (examples).",
+	"description": "Infinite canvas SDK (examples).",
 	"version": "0.0.0",
 	"private": true,
 	"author": {

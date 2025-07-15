@@ -1,6 +1,6 @@
 {
 	"name": "@tldraw/utils",
-	"description": "A tiny little drawing app (private utilities).",
+	"description": "Infinite canvas SDK (private utilities).",
 	"version": "3.14.2",
 	"author": {
 		"name": "tldraw Inc.",

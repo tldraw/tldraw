@@ -1,6 +1,6 @@
 {
 	"name": "@tldraw/state",
-	"description": "A tiny little drawing app (state).",
+	"description": "Infinite canvas SDK (state).",
 	"version": "3.14.2",
 	"author": {
 		"name": "tldraw Inc.",

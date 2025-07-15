@@ -1,6 +1,6 @@
 {
 	"name": "@tldraw/store",
-	"description": "A tiny little drawing app (store).",
+	"description": "Infinite canvas SDK (store).",
 	"version": "3.14.2",
 	"author": {
 		"name": "tldraw Inc.",

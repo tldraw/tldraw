@@ -1,6 +1,6 @@
 {
 	"name": "@tldraw/assets",
-	"description": "A tiny little drawing app (assets).",
+	"description": "Infinite canvas SDK (assets).",
 	"version": "3.14.2",
 	"author": {
 		"name": "tldraw Inc.",

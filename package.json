@@ -1,6 +1,6 @@
 {
 	"name": "@tldraw/monorepo",
-	"description": "A tiny little drawing app (monorepo).",
+	"description": "Infinite canvas SDK (monorepo).",
 	"version": "0.0.0",
 	"private": true,
 	"author": {
