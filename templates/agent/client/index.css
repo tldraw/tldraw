@@ -50,7 +50,7 @@ body {
 
 .chat-history {
 	flex: 1;
-	padding: 16px;
+	padding: 16px 16px;
 	overflow-y: auto;
 	display: flex;
 	flex-direction: column;
@@ -69,7 +69,6 @@ body {
 	border-radius: 12px;
 	color: var(--color-text-2);
 	background-color: var(--color-muted-2);
-	border: 1px solid var(--color-panel-contrast);
 	box-shadow: var(--shadow-1);
 	font-size: 11px;
 }
@@ -106,6 +105,7 @@ body {
 	height: 16px;
 	align-self: flex-end;
 	background: var(--color-primary);
+	box-shadow: var(--shadow-1);
 	color: var(--color-panel-contrast);
 	appearance: none;
 	border: 0;
@@ -132,20 +132,19 @@ body {
 .agent-action-message {
 	display: flex;
 	gap: 4px;
-	color: var(--color-text-3);
+	color: var(--color-text-2);
 }
 
 .user-chat-message {
 	background-color: var(--color-muted-2);
-	border: 1px solid var(--color-muted-2);
+	border: 1px solid var(--color-panel-contrast);
 	color: var(--color-text-1);
+	width: 100%;
 	font-family: 'Inter', sans-serif;
 	font-weight: 400;
 	font-size: 12px;
 	padding: 8px 12px;
 	border-radius: 8px;
-	max-width: 80%;
-	margin-left: auto;
 }
 
 .chat-input-actions {
@@ -243,4 +242,16 @@ body {
 	font-style: italic;
 	color: var(--color-text-2);
 	margin: 0;
+}
+
+.agent-change-message {
+	display: flex;
+	flex-direction: column;
+	gap: 16px;
+	width: 100%;
+}
+
+.tldraw-viewer {
+	height: 100px;
+	position: relative;
 }
