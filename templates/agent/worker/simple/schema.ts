@@ -165,6 +165,15 @@ export const SimpleMoveEvent = z.object({
 	intent: z.string(),
 })
 
+export type ISimpleLabelEvent = z.infer<typeof SimpleLabelEvent>
+
+export const SimpleLabelEvent = z.object({
+	type: z.literal('label'),
+	shapeId: z.string(),
+	text: z.string(),
+	intent: z.string(),
+})
+
 export type ISimpleMoveEvent = z.infer<typeof SimpleMoveEvent>
 
 const SimpleDeleteEvent = z.object({
@@ -191,6 +200,7 @@ export const SimpleEvent = z.union([
 	SimpleCreateEvent, // or update
 	SimpleDeleteEvent,
 	SimpleMoveEvent,
+	SimpleLabelEvent,
 	SimpleScheduleReviewEvent,
 ])
 

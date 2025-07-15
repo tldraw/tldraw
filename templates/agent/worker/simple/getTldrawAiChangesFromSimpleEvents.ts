@@ -23,6 +23,7 @@ import {
 	ISimpleDeleteEvent,
 	ISimpleEvent,
 	ISimpleFill,
+	ISimpleLabelEvent,
 	ISimpleMoveEvent,
 	SimpleColor,
 } from './schema'
@@ -44,6 +45,9 @@ export function getTldrawAiChangesFromSimpleEvents(
 		case 'update':
 		case 'create': {
 			return getTldrawAiChangesFromSimpleCreateOrUpdateEvent(prompt, event)
+		}
+		case 'label': {
+			return getTldrawAiChangesFromSimpleLabelEvent(prompt, event)
 		}
 		case 'delete': {
 			return getTldrawAiChangesFromSimpleDeleteEvent(prompt, event)
@@ -358,6 +362,26 @@ function getTldrawAiChangesFromSimpleMoveEvent(
 				id: shapeId as any,
 				x: event.x,
 				y: event.y,
+			},
+		},
+	]
+}
+
+function getTldrawAiChangesFromSimpleLabelEvent(
+	prompt: TLAiSerializedPrompt,
+	event: MaybeComplete<ISimpleLabelEvent>
+): TLAiChange[] {
+	const { shapeId = '', intent = '' } = event
+	return [
+		{
+			complete: event.complete,
+			type: 'updateShape',
+			description: intent,
+			shape: {
+				id: shapeId as any,
+				props: {
+					richText: toRichTextIfNeeded(event.text ?? ''),
+				},
 			},
 		},
 	]
