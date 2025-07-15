@@ -1,6 +1,6 @@
 {
 	"name": "@tldraw/sync-core",
-	"description": "Infinite canvas SDK (multiplayer sync).",
+	"description": "tldraw infinite canvas SDK (multiplayer sync).",
 	"version": "3.14.2",
 	"author": {
 		"name": "tldraw GB Ltd.",
@@ -17,6 +17,7 @@
 	},
 	"keywords": [
 		"tldraw",
+		"sdk",
 		"drawing",
 		"app",
 		"development",

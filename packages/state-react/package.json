@@ -1,6 +1,6 @@
 {
 	"name": "@tldraw/state-react",
-	"description": "Infinite canvas SDK (react bindings for state).",
+	"description": "tldraw infinite canvas SDK (react bindings for state).",
 	"version": "3.14.2",
 	"author": {
 		"name": "tldraw Inc.",
@@ -17,6 +17,7 @@
 	},
 	"keywords": [
 		"tldraw",
+		"sdk",
 		"drawing",
 		"app",
 		"development",
