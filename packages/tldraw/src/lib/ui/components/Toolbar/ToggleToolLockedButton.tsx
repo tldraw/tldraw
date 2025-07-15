@@ -5,6 +5,7 @@ import { useBreakpoint } from '../../context/breakpoints'
 import { useTranslation } from '../../hooks/useTranslation/useTranslation'
 import { TldrawUiButton } from '../primitives/Button/TldrawUiButton'
 import { TldrawUiButtonIcon } from '../primitives/Button/TldrawUiButtonIcon'
+import { TldrawUiTooltip } from '../primitives/TldrawUiTooltip'
 
 interface ToggleToolLockedButtonProps {
 	activeToolId?: string
@@ -23,16 +24,18 @@ export function ToggleToolLockedButton({ activeToolId }: ToggleToolLockedButtonP
 	if (!activeToolId || !tool.isLockable) return null
 
 	return (
-		<TldrawUiButton
-			type="normal"
-			title={msg('action.toggle-tool-lock')}
-			data-testid="tool-lock"
-			className={classNames('tlui-toolbar__lock-button', {
-				'tlui-toolbar__lock-button__mobile': breakpoint < PORTRAIT_BREAKPOINT.TABLET_SM,
-			})}
-			onClick={() => editor.updateInstanceState({ isToolLocked: !isToolLocked })}
-		>
-			<TldrawUiButtonIcon icon={isToolLocked ? 'lock' : 'unlock'} small />
-		</TldrawUiButton>
+		<TldrawUiTooltip content={msg('action.toggle-tool-lock')}>
+			<TldrawUiButton
+				type="normal"
+				title={msg('action.toggle-tool-lock')}
+				data-testid="tool-lock"
+				className={classNames('tlui-toolbar__lock-button', {
+					'tlui-toolbar__lock-button__mobile': breakpoint < PORTRAIT_BREAKPOINT.TABLET_SM,
+				})}
+				onClick={() => editor.updateInstanceState({ isToolLocked: !isToolLocked })}
+			>
+				<TldrawUiButtonIcon icon={isToolLocked ? 'lock' : 'unlock'} small />
+			</TldrawUiButton>
+		</TldrawUiTooltip>
 	)
 }

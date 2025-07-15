@@ -1,7 +1,7 @@
 import { RecursivePartial, defaultUserPreferences, track, useMaybeEditor } from '@tldraw/editor'
-import { Tooltip as _Tooltip } from 'radix-ui'
 import { ReactNode } from 'react'
 import { TLUiAssetUrls, useDefaultUiAssetUrlsWithOverrides } from '../assetUrls'
+import { TldrawUiTooltipProvider } from '../components/primitives/TldrawUiTooltip'
 import { ToolsProvider } from '../hooks/useTools'
 import { TldrawUiTranslationProvider } from '../hooks/useTranslation/useTranslation'
 import {
@@ -73,7 +73,7 @@ export const TldrawUiContextProvider = track(function TldrawUiContextProvider({
 	const editor = useMaybeEditor()
 	return (
 		<MimeTypeContext.Provider value={mediaMimeTypes}>
-			<_Tooltip.Provider>
+			<TldrawUiTooltipProvider>
 				<AssetUrlsProvider assetUrls={useDefaultUiAssetUrlsWithOverrides(assetUrls)}>
 					<TldrawUiTranslationProvider
 						overrides={useMergedTranslationOverrides(overrides)}
@@ -94,7 +94,7 @@ export const TldrawUiContextProvider = track(function TldrawUiContextProvider({
 						</TldrawUiEventsProvider>
 					</TldrawUiTranslationProvider>
 				</AssetUrlsProvider>
-			</_Tooltip.Provider>
+			</TldrawUiTooltipProvider>
 		</MimeTypeContext.Provider>
 	)
 })

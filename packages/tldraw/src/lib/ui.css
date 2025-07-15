@@ -1274,6 +1274,14 @@
 	will-change: opacity;
 }
 
+[data-radix-popper-content-wrapper]:has(.tlui-tooltip) {
+	z-index: var(--layer-toasts) !important;
+}
+
+[data-radix-popper-content-wrapper]:has(.tlui-tooltip[data-should-animate='true']) {
+	transition: all 0.1s ease-out;
+}
+
 /* ------------------- Debug panel ------------------ */
 
 .tlui-debug-panel {
