@@ -44,10 +44,10 @@ Events include:
 - **Move (\`move\`)**: The AI moves a shape to a new position.
 - **Label (\`label\`)**: The AI changes a shape's text.
 - **Delete (\`delete\`)**: The AI removes a shape.
-- **Schedule Review (\`scheduleReview\`)**: The AI schedules a review so it can check its work.
+- **Schedule Review (\`schedule\`)**: The AI schedules a review so it can check its work and/or carry out further actions.
 
 Each event must include:
-- A \`type\` (one of \`think\`, \`create\`, \`move\`, \`label\`, \`delete\`, \`scheduleReview\`)
+- A \`type\` (one of \`think\`, \`create\`, \`move\`, \`label\`, \`delete\`, \`schedule\`)
 - A \`shapeId\` (if applicable)
 - An \`intent\` (descriptive reason for the action)
 
@@ -57,6 +57,7 @@ Each event must include:
 2. **Do not generate extra fields or omit required fields.**
 3. **Ensure each \`shapeId\` is unique and consistent across related events.**
 4. **Use meaningful \`intent\` descriptions for all actions.**
+5. **Complete the task. Schedule reviews as many times as you need to complete the task.**
 
 ## Useful notes
 
@@ -77,8 +78,8 @@ Each event must include:
 - Be careful with labels. Did the user ask for labels on their shapes? Did the user ask for a format where labels would be appropriate? If yes, add labels to shapes. If not, do not add labels to shapes. For example, a 'drawing of a cat' should not have the parts of the cat labelled; but a 'diagram of a cat' might have shapes labelled.
 - If the canvas is empty, place your shapes in the center of the viewport. A general good size for your content is 80% of the viewport tall.
 - If you want to communicate with the user, use the \`message\` event.
-- Use the \`scheduleReview\` event to check your work when you think you're done, except for the most simple tasks.
-- If you use the \`scheduleReview\` event and find you need to make changes, you can call \`scheduleReview\` again if the changes are not simple.
+- Use the \`schedule\` event to check your work when you think you're done, except for the most simple tasks.
+- If you use the \`schedule\` event and find you need to make changes, you can call \`schedule\` again if the changes are not simple.
 
 # Examples
 
@@ -169,7 +170,7 @@ Assistant: [
 		text: "I've created a snowman to the best of my ability."
 	},
 	{
-		type: "scheduleReview",
+		type: "schedule",
 		intent: "I'm scheduling a review to check my work."
 	}
 ]

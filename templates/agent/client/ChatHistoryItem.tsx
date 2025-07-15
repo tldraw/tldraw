@@ -110,7 +110,7 @@ export interface AgentActionDefinition {
 
 export interface AgentActionHistoryItem {
 	type: 'agent-action'
-	action: 'thinking' | 'creating' | 'deleting' | 'updating' | 'scheduleReview'
+	action: 'thinking' | 'creating' | 'deleting' | 'updating' | 'schedule'
 	status: 'progress' | 'done' | 'cancelled'
 	info: string
 }
@@ -151,8 +151,8 @@ export const ACTION_HISTORY_ITEM_DEFINITIONS: Record<
 			cancelled: 'Update cancelled: ',
 		},
 	},
-	scheduleReview: {
-		icon: '🕒',
+	schedule: {
+		icon: '🔍',
 		message: {
 			progress: 'Scheduling review: ',
 			done: 'Review scheduled: ',

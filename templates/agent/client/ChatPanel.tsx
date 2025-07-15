@@ -35,19 +35,20 @@ export function ChatPanel({ editor }: { editor: Editor }) {
 		const intent = request.message
 
 		try {
-			const review = ai.prompt({
+			const { promise, cancel } = ai.prompt({
 				message: intent,
 				stream: true,
-				meta: { modelName, historyItems: $chatHistoryItems.get(), review: true },
+				meta: { modelName, historyItems: $chatHistoryItems.get(), review: request.review },
 			})
-			rCancelFn.current = review.cancel
-			await review.promise
+			rCancelFn.current = cancel
+			await promise
 
 			// Only remove the event after successful processing
 			$requestsSchedule.update((prev) => prev.filter((_, i) => i !== 0))
 
 			// Process next event (if any) after a 1s timeout to allow for cancellation
 			await advanceSchedule()
+			rCancelFn.current = null
 		} catch (e) {
 			console.error(e)
 			rCancelFn.current = null

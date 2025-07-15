@@ -56,22 +56,16 @@ export function applyChanges({
 					})
 					return
 				}
-				case 'scheduleReview': {
+				case 'schedule': {
 					createOrUpdateHistoryItem({
 						type: 'agent-action',
-						action: 'scheduleReview',
+						action: 'schedule',
 						status: change.complete ? 'done' : 'progress',
 						info: change.intent ?? '',
 					})
 					$requestsSchedule.update((prev) => {
 						if (change.complete) {
-							return [
-								...prev,
-								{
-									review: true,
-									message: change.intent ?? '',
-								},
-							]
+							return [...prev, { review: true, message: change.intent ?? '' }]
 						}
 						return prev
 					})
