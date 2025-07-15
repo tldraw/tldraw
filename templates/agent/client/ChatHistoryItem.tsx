@@ -1,4 +1,4 @@
-import { MaybeComplete, TLAiChange } from '@tldraw/ai'
+import { TLAiChange, TLAiStreamingChange } from '@tldraw/ai'
 import { useEffect, useState } from 'react'
 import { DefaultSpinner, Editor } from 'tldraw'
 
@@ -23,13 +23,13 @@ export interface AgentMessageHistoryItem {
 
 export interface AgentChangeHistoryItem {
 	type: 'agent-change'
-	change: MaybeComplete<TLAiChange>
+	change: TLAiStreamingChange<TLAiChange>
 	status: 'progress' | 'done' | 'cancelled'
 }
 
 export interface AgentRawHistoryItem {
 	type: 'agent-raw'
-	change: MaybeComplete<TLAiChange>
+	change: TLAiStreamingChange<TLAiChange>
 	status: 'progress' | 'done' | 'cancelled'
 }
 

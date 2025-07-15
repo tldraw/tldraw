@@ -1,7 +1,7 @@
 import { useCallback, useMemo, useRef } from 'react'
 import { Editor, exhaustiveSwitchError, TLShapePartial, uniqueId, useMaybeEditor } from 'tldraw'
 import { TldrawAiModule, TldrawAiModuleOptions } from './TldrawAiModule'
-import { MaybeComplete, TLAiChange, TLAiPrompt, TLAiSerializedPrompt } from './types'
+import { TLAiChange, TLAiPrompt, TLAiSerializedPrompt, TLAiStreamingChange } from './types'
 
 /**
  * The function signature for generating changes from an AI prompt.
@@ -272,7 +272,7 @@ export function defaultApply({
 	change,
 	editor,
 }: {
-	change: MaybeComplete<TLAiChange>
+	change: TLAiStreamingChange<TLAiChange>
 	editor: Editor
 }) {
 	if (editor.isDisposed) return

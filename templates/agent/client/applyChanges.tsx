@@ -1,4 +1,4 @@
-import { MaybeComplete, TLAiChange, defaultApply } from '@tldraw/ai'
+import { TLAiChange, TLAiStreamingChange, defaultApply } from '@tldraw/ai'
 import { Editor } from 'tldraw'
 import { $chatHistoryItems } from './ChatHistory'
 import { ChatHistoryItem } from './ChatHistoryItem'
@@ -27,7 +27,7 @@ export function applyChanges({
 	change,
 	editor,
 }: {
-	change: MaybeComplete<TLAiChange>
+	change: TLAiStreamingChange<TLAiChange>
 	editor: Editor
 }) {
 	defaultApply({ change, editor })

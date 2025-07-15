@@ -21,16 +21,9 @@ export function asMessage(message: TLAiMessages): TLAiMessage[];
 
 // @public
 export function defaultApply({ change, editor, }: {
-    change: MaybeComplete<TLAiChange>;
+    change: TLAiStreamingChange<TLAiChange>;
     editor: Editor;
 }): void;
-
-// @public (undocumented)
-export type MaybeComplete<T> = (Partial<T> & {
-    complete: false;
-}) | (T & {
-    complete: true;
-});
 
 // @public
 export type TLAiChange = TLAiCreateBindingChange | TLAiCreateShapeChange | TLAiCustomChange | TLAiDeleteBindingChange | TLAiDeleteShapeChange | TLAiUpdateBindingChange | TLAiUpdateShapeChange;
@@ -135,6 +128,13 @@ export interface TLAiSerializedPrompt extends Omit<TLAiPrompt, 'contextBounds' |
     contextBounds: BoxModel;
     promptBounds: BoxModel;
 }
+
+// @public (undocumented)
+export type TLAiStreamingChange<T> = (Partial<T> & {
+    complete: false;
+}) | (T & {
+    complete: true;
+});
 
 // @public (undocumented)
 export interface TLAiTextMessage {
