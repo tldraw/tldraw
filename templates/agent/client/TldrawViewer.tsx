@@ -17,6 +17,7 @@ function TldrawViewer({ shape, components }: { shape: TLShape; components?: TLCo
 					}
 					editor.zoomToBounds(bounds, { inset: 20 })
 					editor.setCameraOptions({ isLocked: true })
+					editor.blur()
 				}}
 			/>
 		</div>
