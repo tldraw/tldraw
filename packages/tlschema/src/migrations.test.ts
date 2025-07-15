@@ -1664,6 +1664,40 @@ describe('add white', () => {
 	})
 })
 
+describe('add custom colors', () => {
+	const { up, down } = getTestMigration(rootShapeVersions.AddCustomColors)
+
+	test('up works as expected (noop)', () => {
+		expect(
+			up({
+				props: { color: 'red', labelColor: 'blue' },
+			})
+		).toEqual({
+			props: { color: 'red', labelColor: 'blue' },
+		})
+	})
+
+	test('down resets non-default color and labelColor to black', () => {
+		expect(
+			down({
+				props: { color: '#123456', labelColor: '#abcdef' },
+			})
+		).toEqual({
+			props: { color: 'black', labelColor: 'black' },
+		})
+	})
+
+	test('down does not change default colors', () => {
+		expect(
+			down({
+				props: { color: 'red', labelColor: 'blue' },
+			})
+		).toEqual({
+			props: { color: 'red', labelColor: 'blue' },
+		})
+	})
+})
+
 describe('Add font size adjustment to notes', () => {
 	const { up, down } = getTestMigration(noteShapeVersions.AddFontSizeAdjustment)
 
