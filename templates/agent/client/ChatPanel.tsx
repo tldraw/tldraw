@@ -4,7 +4,12 @@ import { AGENT_MODEL_DEFINITIONS, TLAgentModelName } from '../worker/models'
 import { $chatHistoryItems, ChatHistory } from './ChatHistory'
 import { useTldrawAiExample } from './useTldrawAiExample'
 
-export const $eventSchedule = atom<any[]>('eventSchedule', [])
+export const $requestsSchedule = atom<
+	{
+		message: string
+		review: boolean
+	}[]
+>('requestsSchedule', [])
 
 export function ChatPanel({ editor }: { editor: Editor }) {
 	const ai = useTldrawAiExample(editor)
@@ -25,31 +30,15 @@ export function ChatPanel({ editor }: { editor: Editor }) {
 	}, [ai, editor])
 
 	const checkSchedule = useCallback(async () => {
-		const eventSchedule = $eventSchedule.get()
+		const eventSchedule = $requestsSchedule.get()
 
 		if (!eventSchedule || eventSchedule.length === 0) {
 			return // Base case - no more events to process
 		}
 
-		// Find the first scheduleReview event
-		const reviewEventIndex = eventSchedule.findIndex(
-			(item) =>
-				item.type === 'agent-action' && // Correct type for scheduleReview
-				item.action === 'scheduleReview'
-		)
-
-		if (reviewEventIndex === -1) {
-			return // No review events found
-		}
-
-		const reviewEvent = eventSchedule[reviewEventIndex]
-		const intent = (reviewEvent as any).info ?? (reviewEvent as any).intent ?? ''
-
-		if (!intent) {
-			// Remove event with no intent and continue
-			$eventSchedule.update((prev) => prev.filter((_, i) => i !== reviewEventIndex))
-			return checkSchedule() // Process next event
-		}
+		// The next scheduled request
+		const request = eventSchedule[0]
+		const intent = request.message
 
 		try {
 			const review = ai.prompt({
@@ -61,7 +50,7 @@ export function ChatPanel({ editor }: { editor: Editor }) {
 			await review.promise
 
 			// Only remove the event after successful processing
-			$eventSchedule.update((prev) => prev.filter((_, i) => i !== reviewEventIndex))
+			$requestsSchedule.update((prev) => prev.filter((_, i) => i !== 0))
 
 			// Process next event (if any) after a 1s timeout to allow for cancellation
 			await checkSchedule()
@@ -93,7 +82,7 @@ export function ChatPanel({ editor }: { editor: Editor }) {
 					inputRef.current.value = ''
 				}
 
-				$eventSchedule.set([])
+				$requestsSchedule.set([])
 				$chatHistoryItems.update((prev) => [
 					...prev,
 					{ type: 'user-message', message: value, status: 'done' },

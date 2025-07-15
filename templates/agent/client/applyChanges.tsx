@@ -2,7 +2,7 @@ import { TLAiChange, TLAiStreamingChange, defaultApply } from '@tldraw/ai'
 import { Editor } from 'tldraw'
 import { $chatHistoryItems } from './ChatHistory'
 import { ChatHistoryItem } from './ChatHistoryItem'
-import { $eventSchedule } from './ChatPanel'
+import { $requestsSchedule } from './ChatPanel'
 
 const createOrUpdateHistoryItem = (item: ChatHistoryItem) => {
 	$chatHistoryItems.update((prev) => {
@@ -63,15 +63,13 @@ export function applyChanges({
 						status: change.complete ? 'done' : 'progress',
 						info: change.intent ?? '',
 					})
-					$eventSchedule.update((prev) => {
+					$requestsSchedule.update((prev) => {
 						if (change.complete) {
 							return [
 								...prev,
 								{
-									type: 'agent-action',
-									action: 'scheduleReview',
-									status: 'done',
-									info: change.intent ?? '',
+									review: true,
+									message: change.intent ?? '',
 								},
 							]
 						}
