@@ -147,12 +147,22 @@ body {
 
 .chat-input-actions-left {
 	display: flex;
-	gap: 8px;
+	gap: 0px;
 }
 
 .chat-input-icon {
 	width: 11px;
 	height: 11px;
+	margin-right: 4px;
+}
+
+.chat-mode-select {
+	display: flex;
+	align-items: center;
+	gap: 0px;
+}
+
+.chat-mode-select span {
 	margin-right: 4px;
 }
 

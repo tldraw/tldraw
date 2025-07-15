@@ -3,6 +3,7 @@ import { Editor, useLocalStorageState, useReactor, useValue } from 'tldraw'
 import { AGENT_MODEL_DEFINITIONS, TLAgentModelName } from '../worker/models'
 import { $chatHistoryItems, ChatHistory } from './ChatHistory'
 import { BrainIcon } from './icons/BrainIcon'
+import { ChevronDownIcon } from './icons/ChevronDownIcon'
 import { CommentIcon } from './icons/CommentIcon'
 import { $requestsSchedule } from './requestsSchedule'
 import { useTldrawAiExample } from './useTldrawAiExample'
@@ -148,9 +149,10 @@ export function ChatPanel({ editor }: { editor: Editor }) {
 					/>
 					<span className="chat-input-actions">
 						<div className="chat-input-actions-left">
-							<div className="chat-input-actions-label">
+							<div className="chat-mode-select">
 								<CommentIcon />
-								Agent
+								<span>Agent</span>
+								<ChevronDownIcon />
 							</div>
 							<div className="chat-model-select">
 								<div className="chat-input-actions-label">
@@ -166,6 +168,7 @@ export function ChatPanel({ editor }: { editor: Editor }) {
 										</option>
 									))}
 								</select>
+								<ChevronDownIcon />
 							</div>
 						</div>
 						<button>{isGenerating ? '◼' : '⬆'}</button>
