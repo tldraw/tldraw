@@ -117,19 +117,23 @@ export function AgentActionHistoryItem({ item }: { item: AgentActionHistoryItem 
 }
 
 export function StatusThinkingHistoryItem({ item }: { item: StatusThinkingHistoryItem }) {
-	const [dots, setDots] = useState('')
+	const [startTime] = useState(() => new Date())
+	const [endTime, setEndTime] = useState<Date | null>(null)
 
 	useEffect(() => {
-		const interval = setInterval(() => {
-			setDots((prev) => (prev.length >= 3 ? '' : prev + '.'))
-		}, 500)
+		if (item.status === 'done' && !endTime) {
+			setEndTime(new Date())
+		}
+	}, [item.status, endTime])
 
-		return () => clearInterval(interval)
-	}, [])
+	const secondsElapsed = Math.floor(
+		(endTime ? endTime.getTime() : Date.now()) / 1000 - startTime.getTime() / 1000
+	)
+
 	return (
 		<div className="agent-chat-message status-thinking-message">
 			<p className="status-thinking-message-text">
-				{item.status === 'done' ? 'Response' : item.message + dots}
+				{item.status === 'done' ? `Thought for` : item.message} {secondsElapsed}s
 			</p>
 		</div>
 	)
