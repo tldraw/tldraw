@@ -33,6 +33,12 @@
       "value": "Otomatis"
     }
   ],
+  "0776e18496": [
+    {
+      "type": 0,
+      "value": "Simpan dan bagikan"
+    }
+  ],
   "07dbd11b21": [
     {
       "type": 0,
@@ -81,6 +87,12 @@
       "value": "Ekspor sebagai"
     }
   ],
+  "1460ab5e78": [
+    {
+      "type": 0,
+      "value": "Tldraw gratis"
+    }
+  ],
   "181b90f889": [
     {
       "type": 0,
@@ -99,6 +111,12 @@
       "value": "Hari ini"
     }
   ],
+  "22d84a12fd": [
+    {
+      "type": 0,
+      "value": "Figjam tapi tldraw"
+    }
+  ],
   "250ddea65c": [
     {
       "type": 0,
@@ -109,6 +127,12 @@
     {
       "type": 0,
       "value": "Pengunggahan gagal"
+    }
+  ],
+  "2c61d18599": [
+    {
+      "type": 0,
+      "value": "Miro tapi bagus dan gratis"
     }
   ],
   "31246941ad": [
@@ -153,10 +177,22 @@
       "value": "Terima semua"
     }
   ],
+  "3fc6d0c83a": [
+    {
+      "type": 0,
+      "value": "Tambahkan teman"
+    }
+  ],
   "42e53c47c1": [
     {
       "type": 0,
       "value": "Hubungi pemilik untuk meminta akses."
+    }
+  ],
+  "44281ab6e5": [
+    {
+      "type": 0,
+      "value": "Masuk"
     }
   ],
   "44db318ee5": [
@@ -193,6 +229,18 @@
     {
       "type": 0,
       "value": "Muat ulang"
+    }
+  ],
+  "4e029798f2": [
+    {
+      "type": 0,
+      "value": "Saham gratis"
+    }
+  ],
+  "4e875b8d8e": [
+    {
+      "type": 0,
+      "value": "Penyimpanan gratis"
     }
   ],
   "50db1b7e1e": [
@@ -289,6 +337,12 @@
       "value": "Salin"
     }
   ],
+  "5ff75742e0": [
+    {
+      "type": 0,
+      "value": "Daftar gratis"
+    }
+  ],
   "61057a0c84": [
     {
       "type": 0,
@@ -311,6 +365,12 @@
     {
       "type": 0,
       "value": "Versi baru tldraw telah tersedia. Silakan muat ulang halaman untuk melanjutkan."
+    }
+  ],
+  "697c59072d": [
+    {
+      "type": 0,
+      "value": "Masuk untuk menyimpan"
     }
   ],
   "6a26f54883": [
@@ -467,6 +527,12 @@
       "value": "."
     }
   ],
+  "84c89d47c7": [
+    {
+      "type": 0,
+      "value": "Bagikan secara gratis"
+    }
+  ],
   "85a082de1b": [
     {
       "type": 0,
@@ -497,6 +563,12 @@
     {
       "type": 0,
       "value": "Untuk meneruskan pengeditan, salin ruangan ke berkas Anda."
+    }
+  ],
+  "8ea211024d": [
+    {
+      "type": 0,
+      "value": "Buat akun gratis"
     }
   ],
   "8eb2c00e96": [
@@ -667,6 +739,12 @@
       "value": "Salin tautan"
     }
   ],
+  "ba0318cb81": [
+    {
+      "type": 0,
+      "value": "Masuk untuk berbagi"
+    }
+  ],
   "bb792693e2": [
     {
       "type": 0,
@@ -723,10 +801,28 @@
       "value": "Unggah file .tldr"
     }
   ],
+  "bffe9a3c9a": [
+    {
+      "type": 0,
+      "value": "Masuk"
+    }
+  ],
+  "c079282475": [
+    {
+      "type": 0,
+      "value": "Bagikan pekerjaan Anda"
+    }
+  ],
   "c2276c9127": [
     {
       "type": 0,
       "value": "Pelajari lebih lanjut tentang berbagi."
+    }
+  ],
+  "c24e43cd1a": [
+    {
+      "type": 0,
+      "value": "Anda akan mendaftar, bukan?"
     }
   ],
   "c303bd1095": [
@@ -777,6 +873,12 @@
       "value": "Pelajari lebih lanjut tentang penerbitan."
     }
   ],
+  "d0eedb7995": [
+    {
+      "type": 0,
+      "value": "Hai"
+    }
+  ],
   "d3d2e61733": [
     {
       "type": 0,
@@ -805,6 +907,18 @@
     {
       "type": 0,
       "value": "Klik di sini untuk melihat konten"
+    }
+  ],
+  "da404df474": [
+    {
+      "type": 0,
+      "value": "Simpan pekerjaan Anda"
+    }
+  ],
+  "db4c2dab9a": [
+    {
+      "type": 0,
+      "value": "Bukan Excalidraw"
     }
   ],
   "dbbebf3c03": [
@@ -939,6 +1053,12 @@
     {
       "type": 0,
       "value": "Yakin ingin menghapus file ini?"
+    }
+  ],
+  "fd27891570": [
+    {
+      "type": 0,
+      "value": "Bergabunglah dalam daftar tunggu"
     }
   ],
   "fed5ec05eb": [

@@ -160,6 +160,7 @@ export type TLUserDurableObjectEvent =
 				| 'connect_retry'
 				| 'user_do_abort'
 				| 'not_enough_history_for_fast_reboot'
+				| 'woken_up_by_replication_event'
 			id: string
 	  }
 	| { type: 'reboot_duration'; id: string; duration: number }

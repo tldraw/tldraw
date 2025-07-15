@@ -33,6 +33,12 @@
       "value": "Auto"
     }
   ],
+  "0776e18496": [
+    {
+      "type": 0,
+      "value": "Uložit a sdílet"
+    }
+  ],
   "07dbd11b21": [
     {
       "type": 0,
@@ -81,6 +87,12 @@
       "value": "Exportovat jako"
     }
   ],
+  "1460ab5e78": [
+    {
+      "type": 0,
+      "value": "Zdarma tldraws"
+    }
+  ],
   "181b90f889": [
     {
       "type": 0,
@@ -99,6 +111,12 @@
       "value": "Dnes"
     }
   ],
+  "22d84a12fd": [
+    {
+      "type": 0,
+      "value": "Figjam, ale tldraw"
+    }
+  ],
   "250ddea65c": [
     {
       "type": 0,
@@ -109,6 +127,12 @@
     {
       "type": 0,
       "value": "Nahrání se nezdařilo"
+    }
+  ],
+  "2c61d18599": [
+    {
+      "type": 0,
+      "value": "Miro, ale dobrý a svobodný"
     }
   ],
   "31246941ad": [
@@ -153,10 +177,22 @@
       "value": "Přijmout vše"
     }
   ],
+  "3fc6d0c83a": [
+    {
+      "type": 0,
+      "value": "Přidat přítele"
+    }
+  ],
   "42e53c47c1": [
     {
       "type": 0,
       "value": "Kontaktujte vlastníka a požádejte o přístup."
+    }
+  ],
+  "44281ab6e5": [
+    {
+      "type": 0,
+      "value": "Přihlásit se"
     }
   ],
   "44db318ee5": [
@@ -193,6 +229,18 @@
     {
       "type": 0,
       "value": "Znovu načíst"
+    }
+  ],
+  "4e029798f2": [
+    {
+      "type": 0,
+      "value": "Bezplatné sdílení"
+    }
+  ],
+  "4e875b8d8e": [
+    {
+      "type": 0,
+      "value": "Ukládání zdarma"
     }
   ],
   "50db1b7e1e": [
@@ -289,6 +337,12 @@
       "value": "Kopie"
     }
   ],
+  "5ff75742e0": [
+    {
+      "type": 0,
+      "value": "Zaregistrujte se zdarma"
+    }
+  ],
   "61057a0c84": [
     {
       "type": 0,
@@ -311,6 +365,12 @@
     {
       "type": 0,
       "value": "K dispozici je nová verze tldraw. Chcete-li pokračovat, znovu načtěte stránku."
+    }
+  ],
+  "697c59072d": [
+    {
+      "type": 0,
+      "value": "Přihlaste se pro uložení"
     }
   ],
   "6a26f54883": [
@@ -467,6 +527,12 @@
       "value": "."
     }
   ],
+  "84c89d47c7": [
+    {
+      "type": 0,
+      "value": "Sdílejte zdarma"
+    }
+  ],
   "85a082de1b": [
     {
       "type": 0,
@@ -497,6 +563,12 @@
     {
       "type": 0,
       "value": "Chcete-li pokračovat v úpravách, zkopírujte prosím místnost do svých souborů."
+    }
+  ],
+  "8ea211024d": [
+    {
+      "type": 0,
+      "value": "Vytvořte si bezplatný účet"
     }
   ],
   "8eb2c00e96": [
@@ -667,6 +739,12 @@
       "value": "Zkopírujte odkaz"
     }
   ],
+  "ba0318cb81": [
+    {
+      "type": 0,
+      "value": "Přihlaste se pro sdílení"
+    }
+  ],
   "bb792693e2": [
     {
       "type": 0,
@@ -739,10 +817,28 @@
       "value": "Nahrajte soubory .tldr"
     }
   ],
+  "bffe9a3c9a": [
+    {
+      "type": 0,
+      "value": "Přihlásit se"
+    }
+  ],
+  "c079282475": [
+    {
+      "type": 0,
+      "value": "Sdílejte svou práci"
+    }
+  ],
   "c2276c9127": [
     {
       "type": 0,
       "value": "Další informace o sdílení."
+    }
+  ],
+  "c24e43cd1a": [
+    {
+      "type": 0,
+      "value": "Přihlásíš se, že?"
     }
   ],
   "c303bd1095": [
@@ -793,6 +889,12 @@
       "value": "Další informace o publikování."
     }
   ],
+  "d0eedb7995": [
+    {
+      "type": 0,
+      "value": "Hej"
+    }
+  ],
   "d3d2e61733": [
     {
       "type": 0,
@@ -821,6 +923,18 @@
     {
       "type": 0,
       "value": "Přejděte sem a podívejte se na obsah"
+    }
+  ],
+  "da404df474": [
+    {
+      "type": 0,
+      "value": "Uložte si svou práci"
+    }
+  ],
+  "db4c2dab9a": [
+    {
+      "type": 0,
+      "value": "Není Excalidraw"
     }
   ],
   "dbbebf3c03": [
@@ -955,6 +1069,12 @@
     {
       "type": 0,
       "value": "Opravdu chcete tento soubor smazat?"
+    }
+  ],
+  "fd27891570": [
+    {
+      "type": 0,
+      "value": "Přidejte se na čekací listinu"
     }
   ],
   "fed5ec05eb": [

@@ -6,10 +6,10 @@ const isTest = () =>
 
 const fpsQueue: Array<() => void> = []
 const targetFps = 60
-const targetTimePerFrame = Math.ceil(1000 / targetFps)
-let frame: number | undefined
-let time = 0
-let last = 0
+const targetTimePerFrame = Math.floor(1000 / targetFps) // 16ms
+let frameRaf: undefined | number
+let flushRaf: undefined | number
+let lastFlushTime = -targetTimePerFrame
 
 const flush = () => {
 	const queue = fpsQueue.splice(0, fpsQueue.length)
@@ -18,35 +18,38 @@ const flush = () => {
 	}
 }
 
-function tick() {
-	if (frame) {
-		return
-	}
-	const now = Date.now()
-	const elapsed = now - last
+function tick(isOnNextFrame = false) {
+	if (frameRaf) return
 
-	if (time + elapsed < targetTimePerFrame) {
-		// It's up to the consumer of debounce to call `cancel`
+	const now = Date.now()
+	const elapsed = now - lastFlushTime
+
+	if (elapsed < targetTimePerFrame) {
+		// If we're too early to flush, we need to wait until the next frame to try and flush again.
 		// eslint-disable-next-line no-restricted-globals
-		frame = requestAnimationFrame(() => {
-			frame = undefined
-			tick()
+		frameRaf = requestAnimationFrame(() => {
+			frameRaf = undefined
+			tick(true)
 		})
 		return
 	}
-	// It's up to the consumer of debounce to call `cancel`
-	// eslint-disable-next-line no-restricted-globals
-	frame = requestAnimationFrame(() => {
-		frame = undefined
-		last = now
-		// If we fall behind more than 10 frames, we'll just reset the time so we don't try to update a number of times
-		// This can happen if we don't interact with the page for a while
-		time = Math.min(time + elapsed - targetTimePerFrame, targetTimePerFrame * 10)
-		flush()
-	})
-}
 
-let started = false
+	if (isOnNextFrame) {
+		// If we've already waited for the next frame to run the tick, then we can flush immediately
+		if (flushRaf) return // ...though if there's a flush raf, that means we'll be flushing on this frame already, so we can do nothing here.
+		lastFlushTime = now
+		flush()
+	} else {
+		// If we haven't already waited for the next frame to run the tick, we need to wait until the next frame to flush.
+		if (flushRaf) return // ...though if there's a flush raf, that means we'll be flushing on the next frame already, so we can do nothing here.
+		// eslint-disable-next-line no-restricted-globals
+		flushRaf = requestAnimationFrame(() => {
+			flushRaf = undefined
+			lastFlushTime = now
+			flush()
+		})
+	}
+}
 
 /**
  * Returns a throttled version of the function that will only be called max once per frame.
@@ -60,7 +63,16 @@ export function fpsThrottle(fn: { (): void; cancel?(): void }): {
 	cancel?(): void
 } {
 	if (isTest()) {
-		fn.cancel = () => frame && cancelAnimationFrame(frame)
+		fn.cancel = () => {
+			if (frameRaf) {
+				cancelAnimationFrame(frameRaf)
+				frameRaf = undefined
+			}
+			if (flushRaf) {
+				cancelAnimationFrame(flushRaf)
+				flushRaf = undefined
+			}
+		}
 		return fn
 	}
 
@@ -69,11 +81,6 @@ export function fpsThrottle(fn: { (): void; cancel?(): void }): {
 			return
 		}
 		fpsQueue.push(fn)
-		if (!started) {
-			started = true
-			// We set last to Date.now() - targetTimePerFrame - 1 so that the first run will happen immediately
-			last = Date.now() - targetTimePerFrame - 1
-		}
 		tick()
 	}
 	throttledFn.cancel = () => {
@@ -95,18 +102,11 @@ export function fpsThrottle(fn: { (): void; cancel?(): void }): {
 export function throttleToNextFrame(fn: () => void): () => void {
 	if (isTest()) {
 		fn()
-		return () => {
-			// noop
-		}
+		return () => void null // noop
 	}
 
 	if (!fpsQueue.includes(fn)) {
 		fpsQueue.push(fn)
-		if (!started) {
-			started = true
-			// We set last to Date.now() - targetTimePerFrame - 1 so that the first run will happen immediately
-			last = Date.now() - targetTimePerFrame - 1
-		}
 		tick()
 	}
 

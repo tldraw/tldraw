@@ -33,6 +33,12 @@
       "value": "Auto"
     }
   ],
+  "0776e18496": [
+    {
+      "type": 0,
+      "value": "I-save at ibahagi"
+    }
+  ],
   "07dbd11b21": [
     {
       "type": 0,
@@ -81,6 +87,12 @@
       "value": "I-export bilang"
     }
   ],
+  "1460ab5e78": [
+    {
+      "type": 0,
+      "value": "Libreng tldraws"
+    }
+  ],
   "181b90f889": [
     {
       "type": 0,
@@ -99,6 +111,12 @@
       "value": "Ngayong araw"
     }
   ],
+  "22d84a12fd": [
+    {
+      "type": 0,
+      "value": "Figjam pero tldraw"
+    }
+  ],
   "250ddea65c": [
     {
       "type": 0,
@@ -109,6 +127,12 @@
     {
       "type": 0,
       "value": "Nabigo ang pag-upload"
+    }
+  ],
+  "2c61d18599": [
+    {
+      "type": 0,
+      "value": "Miro ngunit mabuti at libre"
     }
   ],
   "31246941ad": [
@@ -153,10 +177,22 @@
       "value": "Tanggapin lahat"
     }
   ],
+  "3fc6d0c83a": [
+    {
+      "type": 0,
+      "value": "Magdagdag ng kaibigan"
+    }
+  ],
   "42e53c47c1": [
     {
       "type": 0,
       "value": "Makipag-ugnayan sa may-ari para humiling ng access."
+    }
+  ],
+  "44281ab6e5": [
+    {
+      "type": 0,
+      "value": "Mag-log up"
     }
   ],
   "44db318ee5": [
@@ -193,6 +229,18 @@
     {
       "type": 0,
       "value": "I-reload"
+    }
+  ],
+  "4e029798f2": [
+    {
+      "type": 0,
+      "value": "Libreng pagbabahagi"
+    }
+  ],
+  "4e875b8d8e": [
+    {
+      "type": 0,
+      "value": "Libreng pagtitipid"
     }
   ],
   "50db1b7e1e": [
@@ -289,6 +337,12 @@
       "value": "Kopyahin"
     }
   ],
+  "5ff75742e0": [
+    {
+      "type": 0,
+      "value": "Mag-sign up nang libre"
+    }
+  ],
   "61057a0c84": [
     {
       "type": 0,
@@ -311,6 +365,12 @@
     {
       "type": 0,
       "value": "Available ang bagong bersyon ng tldraw. Paki-reload ang page para magpatuloy."
+    }
+  ],
+  "697c59072d": [
+    {
+      "type": 0,
+      "value": "Mag-sign in para i-save"
     }
   ],
   "6a26f54883": [
@@ -467,6 +527,12 @@
       "value": "."
     }
   ],
+  "84c89d47c7": [
+    {
+      "type": 0,
+      "value": "Ibahagi nang libre"
+    }
+  ],
   "85a082de1b": [
     {
       "type": 0,
@@ -497,6 +563,12 @@
     {
       "type": 0,
       "value": "Para magpatuloy sa pag-edit, pakikopya ang kwarto sa iyong mga file."
+    }
+  ],
+  "8ea211024d": [
+    {
+      "type": 0,
+      "value": "Lumikha ng isang libreng account"
     }
   ],
   "8eb2c00e96": [
@@ -667,6 +739,12 @@
       "value": "Kopyahin ang link"
     }
   ],
+  "ba0318cb81": [
+    {
+      "type": 0,
+      "value": "Mag-sign in upang ibahagi"
+    }
+  ],
   "bb792693e2": [
     {
       "type": 0,
@@ -747,10 +825,28 @@
       "value": "Mag-upload ng mga .tldr na file"
     }
   ],
+  "bffe9a3c9a": [
+    {
+      "type": 0,
+      "value": "Mag-log in"
+    }
+  ],
+  "c079282475": [
+    {
+      "type": 0,
+      "value": "Ibahagi ang iyong trabaho"
+    }
+  ],
   "c2276c9127": [
     {
       "type": 0,
       "value": "Matuto pa tungkol sa pagbabahagi."
+    }
+  ],
+  "c24e43cd1a": [
+    {
+      "type": 0,
+      "value": "Magpaparehistro ka, hindi ba?"
     }
   ],
   "c303bd1095": [
@@ -801,6 +897,12 @@
       "value": "Matuto pa tungkol sa pag-publish."
     }
   ],
+  "d0eedb7995": [
+    {
+      "type": 0,
+      "value": "Hey"
+    }
+  ],
   "d3d2e61733": [
     {
       "type": 0,
@@ -829,6 +931,18 @@
     {
       "type": 0,
       "value": "Pumunta dito upang makita ang nilalaman"
+    }
+  ],
+  "da404df474": [
+    {
+      "type": 0,
+      "value": "I-save ang iyong trabaho"
+    }
+  ],
+  "db4c2dab9a": [
+    {
+      "type": 0,
+      "value": "Hindi Excalidraw"
     }
   ],
   "dbbebf3c03": [
@@ -963,6 +1077,12 @@
     {
       "type": 0,
       "value": "Sigurado ka bang gusto mong tanggalin ang file na ito?"
+    }
+  ],
+  "fd27891570": [
+    {
+      "type": 0,
+      "value": "Sumali sa waitlist"
     }
   ],
   "fed5ec05eb": [
