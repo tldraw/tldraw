@@ -590,7 +590,7 @@ describe('isReadonly', () => {
 		// sessionA is readonly
 		room.handleMessage(sessionAId, push)
 
-		expect(room.state.get().documents['page:page_3']?.state).toBe(undefined)
+		expect(room.documents.get('page:page_3')?.state).toBe(undefined)
 		// should tell the session to discard it
 		expect(socketA.__lastMessage).toMatchInlineSnapshot(`
 		{
@@ -611,7 +611,7 @@ describe('isReadonly', () => {
 		// sessionB is not readonly
 		room.handleMessage(sessionBId, push)
 
-		expect(room.state.get().documents['page:page_3']?.state).not.toBe(undefined)
+		expect(room.documents.get('page:page_3')?.state).not.toBe(undefined)
 
 		// should tell the session to commit it
 		expect(socketB.__lastMessage).toMatchInlineSnapshot(`

@@ -15,3 +15,5 @@ document.fonts = {
 global.TextEncoder = require('util').TextEncoder
 global.TextDecoder = require('util').TextDecoder
 global.TransformStream = require('node:stream/web').TransformStream
+global.ReadableStream = require('node:stream/web').ReadableStream
+global.CompressionStream = require('node:stream/web').CompressionStream

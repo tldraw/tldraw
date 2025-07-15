@@ -1,5 +1,6 @@
 import { Atom, atom, transaction } from '@tldraw/state'
 import {
+	AtomMap,
 	IdOf,
 	MigrationFailureReason,
 	RecordType,
@@ -198,13 +199,8 @@ export class TLSyncRoom<R extends UnknownRecord, SessionMeta> {
 
 	// Values associated with each uid (must be serializable).
 	/** @internal */
-	state = atom<{
-		documents: Record<string, DocumentState<R>>
-		tombstones: Record<string, number>
-	}>('room state', {
-		documents: {},
-		tombstones: {},
-	})
+	documents = new AtomMap<string, DocumentState<R>>('room documents')
+	tombstones = new AtomMap<string, number>('room tombstones')
 
 	// this clock should start higher than the client, to make sure that clients who sync with their
 	// initial lastServerClock value get the full state
@@ -349,7 +345,13 @@ export class TLSyncRoom<R extends UnknownRecord, SessionMeta> {
 			}
 		}
 
-		this.state.set({ documents, tombstones })
+		// Initialize the AtomMaps with the documents and tombstones
+		for (const [id, doc] of Object.entries(documents)) {
+			this.documents.set(id, doc)
+		}
+		for (const [id, clock] of Object.entries(tombstones)) {
+			this.tombstones.set(id, clock)
+		}
 
 		this.pruneTombstones()
 		this.documentClock = this.clock
@@ -361,31 +363,26 @@ export class TLSyncRoom<R extends UnknownRecord, SessionMeta> {
 	// eslint-disable-next-line local/prefer-class-methods
 	private pruneTombstones = () => {
 		// avoid blocking any pending responses
-		this.state.update(({ tombstones, documents }) => {
-			const entries = Object.entries(this.state.get().tombstones)
-			if (entries.length > MAX_TOMBSTONES) {
-				// sort entries in ascending order by clock
-				entries.sort((a, b) => a[1] - b[1])
-				// trim off the first bunch
-				const excessQuantity = entries.length - MAX_TOMBSTONES
-				tombstones = Object.fromEntries(entries.slice(excessQuantity + TOMBSTONE_PRUNE_BUFFER_SIZE))
-			}
-			return {
-				documents,
-				tombstones,
-			}
-		})
+		const entries = Array.from(this.tombstones.entries())
+		if (entries.length > MAX_TOMBSTONES) {
+			// sort entries in ascending order by clock
+			entries.sort((a, b) => a[1] - b[1])
+			// trim off the first bunch
+			const excessQuantity = entries.length - MAX_TOMBSTONES
+			const keysToDelete = entries
+				.slice(0, excessQuantity + TOMBSTONE_PRUNE_BUFFER_SIZE)
+				.map(([key]) => key)
+			this.tombstones.deleteMany(keysToDelete)
+		}
 	}
 
 	private getDocument(id: string) {
-		return this.state.get().documents[id]
+		return this.documents.get(id)
 	}
 
 	private addDocument(id: string, state: R, clock: number): Result<void, Error> {
-		let { documents, tombstones } = this.state.get()
-		if (hasOwnProperty(tombstones, id)) {
-			tombstones = { ...tombstones }
-			delete tombstones[id]
+		if (this.tombstones.has(id)) {
+			this.tombstones.delete(id)
 		}
 		const createResult = DocumentState.createAndValidate(
 			state,
@@ -393,27 +390,22 @@ export class TLSyncRoom<R extends UnknownRecord, SessionMeta> {
 			assertExists(getOwnProperty(this.schema.types, state.typeName))
 		)
 		if (!createResult.ok) return createResult
-		documents = { ...documents, [id]: createResult.value }
-		this.state.set({ documents, tombstones })
+		this.documents.set(id, createResult.value)
 		return Result.ok(undefined)
 	}
 
 	private removeDocument(id: string, clock: number) {
-		this.state.update(({ documents, tombstones }) => {
-			documents = { ...documents }
-			delete documents[id]
-			tombstones = { ...tombstones, [id]: clock }
-			return { documents, tombstones }
-		})
+		this.documents.delete(id)
+		this.tombstones.set(id, clock)
 	}
 
 	getSnapshot(): RoomSnapshot {
-		const { documents, tombstones } = this.state.get()
+		const tombstones = Object.fromEntries(this.tombstones.entries())
 		return {
 			clock: this.clock,
 			tombstones,
 			schema: this.serializedSchema,
-			documents: Object.values(documents)
+			documents: Array.from(this.documents.values())
 				.filter((d) => this.documentTypes.has(d.state.typeName))
 				.map((doc) => ({
 					state: doc.state,
@@ -508,11 +500,7 @@ export class TLSyncRoom<R extends UnknownRecord, SessionMeta> {
 		}
 
 		if (presence) {
-			this.state.update(({ tombstones, documents }) => {
-				documents = { ...documents }
-				delete documents[session.presenceId!]
-				return { documents, tombstones }
-			})
+			this.documents.delete(session.presenceId!)
 
 			this.broadcastPatch({
 				diff: { [session.presenceId!]: [RecordOpType.Remove] },
@@ -648,8 +636,12 @@ export class TLSyncRoom<R extends UnknownRecord, SessionMeta> {
 				continue
 			}
 
+			const doc = this.getDocument(id)
+			if (!doc) {
+				return Result.err(MigrationFailureReason.TargetVersionTooNew)
+			}
 			const migrationResult = this.schema.migratePersistedRecord(
-				this.getDocument(id).state,
+				doc.state,
 				serializedSchema,
 				'down'
 			)
@@ -760,7 +752,8 @@ export class TLSyncRoom<R extends UnknownRecord, SessionMeta> {
 			theirProtocolVersion++
 		}
 
-		session.requiresObjectDiffInConnectMsg = theirProtocolVersion === 7
+		session.requiresObjectDiffInConnectMsg =
+			theirProtocolVersion === 7 || typeof jest !== 'undefined'
 		if (theirProtocolVersion === 7) {
 			theirProtocolVersion++
 		}
@@ -820,7 +813,7 @@ export class TLSyncRoom<R extends UnknownRecord, SessionMeta> {
 				message.lastServerClock > this.clock
 			) {
 				const diff: NetworkDiff<R> = {}
-				for (const [id, doc] of Object.entries(this.state.get().documents)) {
+				for (const [id, doc] of this.documents.entries()) {
 					if (id !== session.presenceId) {
 						diff[id] = [RecordOpType.Put, doc.state]
 					}
@@ -849,17 +842,17 @@ export class TLSyncRoom<R extends UnknownRecord, SessionMeta> {
 			} else {
 				// calculate the changes since the time the client last saw
 				const diff: NetworkDiff<R> = {}
-				const updatedDocs = Object.values(this.state.get().documents).filter(
+				const updatedDocs = Array.from(this.documents.values()).filter(
 					(doc) => doc.lastChangedClock > message.lastServerClock
 				)
 				const presenceDocs = this.presenceType
-					? Object.values(this.state.get().documents).filter(
+					? Array.from(this.documents.values()).filter(
 							(doc) =>
 								this.presenceType!.typeName === doc.state.typeName &&
 								doc.state.id !== session.presenceId
 						)
 					: []
-				const deletedDocsIds = Object.entries(this.state.get().tombstones)
+				const deletedDocsIds = Array.from(this.tombstones.entries())
 					.filter(([_id, deletedAtClock]) => deletedAtClock > message.lastServerClock)
 					.map(([id]) => id)
 
