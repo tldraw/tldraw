@@ -96,11 +96,14 @@ function ensureFinalEmptyItem(
 	const connections = getNodePortConnections(editor, shape.id)
 
 	let entriesToKeep = indexListEntries(items)
+	const connectedPortIds = new Set(connections.map((c) => c.ownPortId))
 
 	if (removeUnused) {
 		entriesToKeep = entriesToKeep.filter(([idx, value], i) => {
 			const portId = `item_${idx}`
-			return i === 0 || i === entriesToKeep.length - 1 || value !== 0 || connections[portId]
+			return (
+				i === 0 || i === entriesToKeep.length - 1 || value !== 0 || connectedPortIds.has(portId)
+			)
 		})
 
 		if (entriesToKeep.length < 2) {
@@ -115,7 +118,7 @@ function ensureFinalEmptyItem(
 	}
 
 	const lastEntry = entriesToKeep[entriesToKeep.length - 1]!
-	if (lastEntry[1] !== 0 || connections[`item_${lastEntry[0]}`]) {
+	if (lastEntry[1] !== 0 || connectedPortIds.has(`item_${lastEntry[0]}`)) {
 		entriesToKeep.push([getIndexAbove(lastEntry[0]), 0])
 	}
 

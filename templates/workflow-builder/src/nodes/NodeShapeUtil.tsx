@@ -1,5 +1,7 @@
+import classNames from 'classnames'
 import {
 	Circle2d,
+	DefaultSpinner,
 	Group2d,
 	HTMLContainer,
 	RecordProps,
@@ -14,6 +16,7 @@ import {
 } from 'tldraw'
 import { NODE_HEADER_HEIGHT_PX, NODE_WIDTH_PX, PORT_RADIUS_PX } from '../constants'
 import { Port, ShapePort } from '../ports/Port'
+import { executionState } from '../state'
 import { getNodeOutputPortValues, getNodePorts } from './nodePorts'
 import { getNodeBodyHeightPx, NodeBody, NodeDefinitions, NodeType } from './nodeTypes'
 
@@ -141,10 +144,17 @@ function NodeShape({ shape }: { shape: NodeShape }) {
 		editor,
 		shape.id,
 	])
+	const isExecuting = useValue(
+		'is executing',
+		() => executionState.get(editor).runningGraph?.getNodeStatus(shape.id) === 'executing',
+		[editor, shape.id]
+	)
 
 	return (
 		<HTMLContainer
-			className="NodeShape"
+			className={classNames('NodeShape', {
+				NodeShape_executing: isExecuting,
+			})}
 			style={{
 				width: NODE_WIDTH_PX,
 				height: NODE_HEADER_HEIGHT_PX + getNodeBodyHeightPx(shape.props.node),
@@ -153,6 +163,7 @@ function NodeShape({ shape }: { shape: NodeShape }) {
 		>
 			<div className="NodeShape-heading">
 				<div className="NodeShape-label">{shape.props.node.type}</div>
+				{isExecuting && <DefaultSpinner />}
 				<div className="NodeShape-output">{output}</div>
 				<Port shapeId={shape.id} portId="output" />
 			</div>
