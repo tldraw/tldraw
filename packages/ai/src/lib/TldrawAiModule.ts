@@ -1,6 +1,6 @@
 import { Box, Editor, FileHelpers, structuredClone } from 'tldraw'
 import { TldrawAiTransformConstructor } from './TldrawAiTransform'
-import { TLAiChange, TLAiContent, TLAiMessages, TLAiPrompt } from './types'
+import { TLAiContent, TLAiMessages, TLAiPrompt, TLAiStreamingChange } from './types'
 import { TldrawAiApplyFn } from './useTldrawAi'
 import { asMessage } from './utils'
 
@@ -43,7 +43,7 @@ export class TldrawAiModule {
 
 		transforms.reverse()
 
-		const handleChange = (change: TLAiChange, apply: TldrawAiApplyFn) => {
+		const handleChange = (change: TLAiStreamingChange, apply: TldrawAiApplyFn) => {
 			for (const transform of transforms) {
 				if (transform.transformChange) {
 					change = transform.transformChange(change)
@@ -52,7 +52,7 @@ export class TldrawAiModule {
 			apply({ change, editor: this.opts.editor })
 		}
 
-		const handleChanges = (changes: TLAiChange[]) => {
+		const handleChanges = (changes: TLAiStreamingChange[]) => {
 			for (const transform of transforms) {
 				if (transform.transformChanges) {
 					changes = transform.transformChanges(changes)
