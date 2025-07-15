@@ -15,6 +15,7 @@
 13. A better way of having geometry derived from the DOM (ie port locations).
 14. Hide resize handles when no selected items are resizable.
 15. Disable rotation?
+16. A better way of doing horizontal toolbars with overflow
 
 # Other things I maybe want to do
 
