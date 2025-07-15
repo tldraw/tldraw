@@ -2,7 +2,6 @@
 title: Custom colors
 component: ./CustomColorsExample.tsx
 category: configuration
-priority: 0
 keywords: [custom, colors, theme, palette, configuration]
 ---
 
