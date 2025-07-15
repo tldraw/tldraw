@@ -71,7 +71,7 @@ export function ChatPanel({ editor }: { editor: Editor }) {
 			$eventSchedule.update((prev) => prev.filter((_, i) => i !== reviewEventIndex))
 
 			// Process next event (if any) after a 1s timeout to allow for cancellation
-			checkSchedule()
+			await checkSchedule()
 		} catch (e) {
 			// Don't remove the event on failure - let it be retried
 			console.error(e)
