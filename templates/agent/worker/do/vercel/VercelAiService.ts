@@ -57,6 +57,10 @@ async function* streamEventsVercel(
 		system: SIMPLE_SYSTEM_PROMPT,
 		messages: buildMessages(prompt),
 		schema: ModelResponse,
+		onError: (e) => {
+			console.error(e)
+			throw e
+		},
 	})
 
 	let cursor = 0
