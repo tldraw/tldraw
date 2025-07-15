@@ -138,6 +138,13 @@ function buildHistoryItemMessage(item: ChatHistoryItem): CoreMessage {
 				content: [{ type: 'text', text: 'Previous message from user: ' + item.message }],
 			}
 		}
+		// We're filtering out status-thinking from the history items before sending to the models, so they should never see this, but this needs to be here to get the types to be happy
+		case 'status-thinking': {
+			return {
+				role: 'assistant',
+				content: [{ type: 'text', text: 'Thinking.' }],
+			}
+		}
 		case 'agent-action': {
 			const text = `Previous action from agent: ${ACTION_HISTORY_ITEM_DEFINITIONS[item.action].message.done}${item.info}`
 			return {

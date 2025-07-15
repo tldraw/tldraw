@@ -155,3 +155,15 @@ body {
 	align-items: center;
 	justify-content: center;
 }
+
+.status-thinking-message {
+	opacity: 0.8;
+	/* background-color: hsl(0, 0%, 95%); */
+	background-color: transparent;
+}
+
+.status-thinking-message-text {
+	font-style: italic;
+	color: hsl(0, 0%, 45%);
+	margin: 0;
+}

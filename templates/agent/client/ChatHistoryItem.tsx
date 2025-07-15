@@ -8,11 +8,18 @@ export type ChatHistoryItem =
 	| AgentMessageHistoryItem
 	| AgentActionHistoryItem
 	| AgentRawHistoryItem
+	| StatusThinkingHistoryItem
 
 export interface UserMessageHistoryItem {
 	type: 'user-message'
 	message: string
 	status: 'done'
+}
+
+export interface StatusThinkingHistoryItem {
+	type: 'status-thinking'
+	message: string
+	status: 'progress' | 'done' | 'cancelled'
 }
 
 export interface AgentMessageHistoryItem {
@@ -83,6 +90,25 @@ export function AgentActionHistoryItem({ item }: { item: AgentActionHistoryItem 
 				<strong>{message}</strong>
 				<span>{item.info ?? ''}</span>
 			</span>
+		</div>
+	)
+}
+
+export function StatusThinkingHistoryItem({ item }: { item: StatusThinkingHistoryItem }) {
+	const [dots, setDots] = useState('')
+
+	useEffect(() => {
+		const interval = setInterval(() => {
+			setDots((prev) => (prev.length >= 3 ? '' : prev + '.'))
+		}, 500)
+
+		return () => clearInterval(interval)
+	}, [])
+	return (
+		<div className="agent-chat-message status-thinking-message">
+			<p className="status-thinking-message-text">
+				{item.status === 'done' ? 'Response' : item.message + dots}
+			</p>
 		</div>
 	)
 }
