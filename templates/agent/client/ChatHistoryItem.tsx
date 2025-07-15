@@ -36,7 +36,7 @@ export interface AgentMessageHistoryItem {
 
 export interface AgentChangeHistoryItem {
 	type: 'agent-change'
-	change: TLAiStreamingChange
+	changes: TLAiStreamingChange[]
 	status: 'progress' | 'done' | 'cancelled'
 }
 
@@ -87,20 +87,25 @@ export function AgentChangeHistoryItem({
 	item: AgentChangeHistoryItem
 	editor: Editor
 }) {
+	const createdShapes = item.changes
+		.map((change) => {
+			if (change.type !== 'createShape') return null
+			return getCompleteShapeFromStreamingShape({ shape: change.shape, editor })
+		})
+		.filter((v) => v !== null)
+
 	// Hardcoded to only support a single create shape change for now
 	// TODO: Support other change types
-	// TODO: Support multiple changes grouped together
-	if (item.change.type !== 'createShape') return null
+	if (createdShapes.length === 0) return null
 
-	const shape = getCompleteShapeFromStreamingShape({ shape: item.change.shape, editor })
 	const Background = () => (
 		<div style={{ backgroundColor: 'rgba(0, 255, 0, 0.05)', height: '100%' }} />
 	)
 
 	return (
 		<div className="agent-change-message">
-			<div>{item.change.description}</div>
-			{shape && <TldrawViewer shape={shape} components={{ Background }} />}
+			{/* <div>{item.changes[0]?.description}</div> */}
+			{createdShapes && <TldrawViewer shapes={createdShapes} components={{ Background }} />}
 		</div>
 	)
 }

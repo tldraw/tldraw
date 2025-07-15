@@ -4,22 +4,44 @@ import { $chatHistoryItems } from './ChatHistory'
 import { ChatHistoryItem } from './ChatHistoryItem'
 import { $requestsSchedule } from './requestsSchedule'
 
-const createOrUpdateHistoryItem = (item: ChatHistoryItem) => {
+function createOrUpdateHistoryItem(item: ChatHistoryItem) {
 	$chatHistoryItems.update((prev) => {
 		const lastItem = prev[prev.length - 1]
-		// If the last item is not the same type, create a new one
-		// (Unless the last item is an agent-raw, in which case we want to update it)
-		if (lastItem.type !== item.type && lastItem.type !== 'agent-raw') {
-			return [...prev, item]
+		if (!lastItem) return [item]
+
+		// If the previous item is in progress, then replace it with the new item
+		if (lastItem.status === 'progress') {
+			return [...prev.slice(0, -1), item]
 		}
 
-		// If the last item is complete, create a new one
-		if (lastItem.status === 'done') {
-			return [...prev, item]
+		// If the previous item is done or cancelled, then create a new one
+		return [...prev, item]
+	})
+
+	mergeAdjacentHistoryItems()
+}
+
+function mergeAdjacentHistoryItems() {
+	$chatHistoryItems.update((items) => {
+		const newItems = []
+		for (let i = 0; i < items.length; i++) {
+			const currentItem = items[i]
+			const nextItem = items[i + 1]
+
+			if (currentItem.type === 'agent-change' && nextItem?.type === 'agent-change') {
+				const mergedItem = {
+					...currentItem,
+					changes: [...currentItem.changes, ...nextItem.changes],
+				}
+				newItems.push(mergedItem)
+				i++
+				continue
+			}
+
+			newItems.push(currentItem)
 		}
 
-		// If the last item is not complete, update it
-		return [...prev.slice(0, -1), item]
+		return newItems
 	})
 }
 
@@ -84,7 +106,7 @@ export function applyChanges({ change, editor }: { change: TLAiStreamingChange; 
 			// })
 			createOrUpdateHistoryItem({
 				type: 'agent-change',
-				change,
+				changes: [change],
 				status: change.complete ? 'done' : 'progress',
 			})
 			return

@@ -164,7 +164,7 @@ function buildHistoryItemMessage(item: ChatHistoryItem): CoreMessage | null {
 				content: [
 					{
 						type: 'text',
-						text: 'Previous change from agent: ' + JSON.stringify(item.change, null, 2),
+						text: 'Previous changes from agent: ' + JSON.stringify(item.changes, null, 2),
 					},
 				],
 			}
