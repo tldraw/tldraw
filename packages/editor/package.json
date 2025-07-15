@@ -1,6 +1,6 @@
 {
 	"name": "@tldraw/editor",
-	"description": "A tiny little drawing app (editor).",
+	"description": "tldraw infinite canvas SDK (editor).",
 	"version": "3.14.2",
 	"author": {
 		"name": "tldraw Inc.",
@@ -17,6 +17,7 @@
 	},
 	"keywords": [
 		"tldraw",
+		"sdk",
 		"drawing",
 		"app",
 		"development",

@@ -1,6 +1,6 @@
 {
 	"name": "@tldraw/sync",
-	"description": "A tiny little drawing app (multiplayer sync react bindings).",
+	"description": "tldraw infinite canvas SDK (multiplayer sync react bindings).",
 	"version": "3.14.2",
 	"author": {
 		"name": "tldraw GB Ltd.",
@@ -17,6 +17,7 @@
 	},
 	"keywords": [
 		"tldraw",
+		"sdk",
 		"drawing",
 		"app",
 		"development",
