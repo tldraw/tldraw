@@ -17,6 +17,16 @@ body {
 	grid-template-columns: 1fr 350px;
 }
 
+.chat-panel.tl-theme__light {
+	--color-text-2: hsl(0, 0%, 55%);
+	--color-primary-hover: hsl(214, 84%, 58%);
+}
+
+.chat-panel.tl-theme__dark {
+	--color-text-2: hsl(0, 0%, 55%);
+	--color-primary-hover: hsl(214, 84%, 50%);
+}
+
 .tldraw-canvas {
 	width: 100%;
 	height: 100%;
@@ -29,6 +39,9 @@ body {
 	flex-direction: column;
 	height: 100vh;
 	font-size: 14px;
+	color: var(--color-text);
+	background-color: var(--color-panel);
+	border-left: 1px solid var(--color-border);
 }
 
 .chat-history {
@@ -48,54 +61,77 @@ body {
 	display: flex;
 	flex-direction: column;
 	gap: 8px;
+	padding: 8px;
+	border-radius: 12px;
+	color: var(--color-text-2);
+	background-color: var(--color-muted-2);
+	border: 1px solid var(--color-panel-contrast);
+	font-size: 11px;
 }
 
 .chat-input input[type='text'] {
 	flex: 1;
-	padding: 8px 12px;
-	border: 1px solid hsl(0, 0%, 85%);
+	padding: 8px 0px;
+	border: none;
+	background-color: transparent;
+	color: var(--color-text);
 	border-radius: 4px;
-	font-size: 14px;
+	font-size: 12px;
 	outline: none;
 	width: 100%;
 }
 
+.chat-input input[type='text']::placeholder {
+	color: var(--color-text-2);
+}
+
 .chat-input input[type='text']:focus {
-	border-color: hsl(214, 84%, 56%);
+	border-color: var(--color-primary);
+}
+
+.chat-input-actions-label {
+	display: flex;
+	align-items: center;
+	justify-content: center;
 }
 
 .chat-input button {
-	width: 32px;
-	height: 32px;
+	width: 16px;
+	height: 16px;
 	align-self: flex-end;
-	background: hsl(214, 84%, 56%);
-	color: hsl(0, 0%, 100%);
+	background: var(--color-primary);
+	color: var(--color-panel-contrast);
 	appearance: none;
 	border: 0;
 	border-radius: 4px;
+	display: flex;
+	align-items: center;
+	justify-content: center;
 	cursor: pointer;
-	font-size: 14px;
+	font-size: 10px;
+	text-align: center;
 	font-weight: 500;
 	border-radius: 100%;
 }
 
 .chat-input button:hover {
-	background: hsl(214, 84%, 50%);
+	background: var(--color-primary-hover);
 }
 
 .chat-input button:disabled {
-	background: hsl(0, 0%, 85%);
+	background: var(--color-border);
 	cursor: not-allowed;
 }
 
 .agent-action-message {
 	display: flex;
 	gap: 4px;
+	color: var(--color-text-3);
 }
 
 .user-chat-message {
-	background-color: hsl(214, 84%, 56%);
-	color: hsl(0, 0%, 100%);
+	background-color: var(--color-primary);
+	color: var(--color-selected-contrast);
 	padding: 8px 12px;
 	border-radius: 8px;
 	max-width: 80%;
@@ -109,6 +145,43 @@ body {
 	justify-content: space-between;
 }
 
+.chat-input-actions-left {
+	display: flex;
+	gap: 8px;
+}
+
+.chat-input-icon {
+	width: 11px;
+	height: 11px;
+	margin-right: 4px;
+}
+
+.chat-model-select {
+	position: relative;
+	display: flex;
+	align-items: center;
+	gap: 4px;
+	padding: 0px 8px;
+}
+
+.chat-model-select:hover {
+	color: var(--color-text);
+}
+
+.chat-model-select select {
+	opacity: 0;
+	position: absolute;
+	inset: 0px;
+	background-color: transparent;
+	border-radius: 6px;
+	padding: 2px 16px 2px 0px;
+	font-size: 11px;
+	border: none;
+	-webkit-appearance: none;
+	-moz-appearance: none;
+	appearance: none;
+}
+
 .chat-header {
 	display: flex;
 	justify-content: flex-end;
@@ -117,7 +190,7 @@ body {
 .new-chat-button {
 	width: 32px;
 	height: 32px;
-	font-size: 20px;
+	font-size: 16px;
 	align-self: flex-end;
 	appearance: none;
 	border: 0;
@@ -125,17 +198,14 @@ body {
 	cursor: pointer;
 	background: none;
 	margin: 2px;
+	color: var(--color-text);
 }
 
 .new-chat-button:hover {
-	background: hsl(0, 0%, 90%);
+	background-color: var(--color-muted-2);
 }
 
 .agent-chat-message {
-	background-color: hsl(0, 0%, 90%);
-	color: hsl(0, 0%, 0%);
-	padding: 8px 12px;
-	border-radius: 8px;
 	max-width: 80%;
 }
 
@@ -164,6 +234,6 @@ body {
 
 .status-thinking-message-text {
 	font-style: italic;
-	color: hsl(0, 0%, 45%);
+	color: var(--color-text-2);
 	margin: 0;
 }

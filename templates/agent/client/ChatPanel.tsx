@@ -2,6 +2,8 @@ import { FormEventHandler, useCallback, useEffect, useRef, useState } from 'reac
 import { Editor, useLocalStorageState, useReactor, useValue } from 'tldraw'
 import { AGENT_MODEL_DEFINITIONS, TLAgentModelName } from '../worker/models'
 import { $chatHistoryItems, ChatHistory } from './ChatHistory'
+import { BrainIcon } from './icons/BrainIcon'
+import { CommentIcon } from './icons/CommentIcon'
 import { $requestsSchedule } from './requestsSchedule'
 import { useTldrawAiExample } from './useTldrawAiExample'
 
@@ -130,7 +132,7 @@ export function ChatPanel({ editor }: { editor: Editor }) {
 	)
 
 	return (
-		<div className="chat-panel">
+		<div className="chat-panel tl-container tl-theme__dark">
 			<div className="chat-header">
 				<NewChatButton />
 			</div>
@@ -145,16 +147,27 @@ export function ChatPanel({ editor }: { editor: Editor }) {
 						placeholder="Speak to your agent..."
 					/>
 					<span className="chat-input-actions">
-						<select
-							value={modelName}
-							onChange={(e) => setModelName(e.target.value as TLAgentModelName)}
-						>
-							{Object.values(AGENT_MODEL_DEFINITIONS).map((model) => (
-								<option key={model.name} value={model.name}>
-									{model.name}
-								</option>
-							))}
-						</select>
+						<div className="chat-input-actions-left">
+							<div className="chat-input-actions-label">
+								<CommentIcon />
+								Agent
+							</div>
+							<div className="chat-model-select">
+								<div className="chat-input-actions-label">
+									<BrainIcon /> {modelName}
+								</div>
+								<select
+									value={modelName}
+									onChange={(e) => setModelName(e.target.value as TLAgentModelName)}
+								>
+									{Object.values(AGENT_MODEL_DEFINITIONS).map((model) => (
+										<option key={model.name} value={model.name}>
+											{model.name}
+										</option>
+									))}
+								</select>
+							</div>
+						</div>
 						<button>{isGenerating ? '◼' : '⬆'}</button>
 					</span>
 				</form>
