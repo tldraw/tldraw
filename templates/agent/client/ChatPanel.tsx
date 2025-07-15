@@ -1,5 +1,5 @@
 import { FormEventHandler, useCallback, useEffect, useRef, useState } from 'react'
-import { Editor, useLocalStorageState, useValue } from 'tldraw'
+import { Editor, useLocalStorageState, useReactor, useValue } from 'tldraw'
 import { AGENT_MODEL_DEFINITIONS, TLAgentModelName } from '../worker/models'
 import { $chatHistoryItems, ChatHistory } from './ChatHistory'
 import { $requestsSchedule } from './requestsSchedule'
@@ -22,6 +22,25 @@ export function ChatPanel({ editor }: { editor: Editor }) {
 		;(window as any).editor = editor
 		;(window as any).ai = ai
 	}, [ai, editor])
+
+	useEffect(() => {
+		const localHistoryItems = localStorage.getItem('chat-history-items')
+		if (localHistoryItems) {
+			try {
+				$chatHistoryItems.set(JSON.parse(localHistoryItems))
+			} catch (e) {
+				console.error(e)
+			}
+		}
+	}, [])
+
+	useReactor(
+		'stash locally',
+		() => {
+			localStorage.setItem('chat-history-items', JSON.stringify($chatHistoryItems.get()))
+		},
+		[$chatHistoryItems]
+	)
 
 	const advanceSchedule = useCallback(async () => {
 		const eventSchedule = $requestsSchedule.get()
