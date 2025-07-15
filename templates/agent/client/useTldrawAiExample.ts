@@ -1,15 +1,6 @@
-import {
-	defaultApply,
-	MaybeComplete,
-	TLAiChange,
-	TLAiResult,
-	TldrawAiOptions,
-	useTldrawAi,
-} from '@tldraw/ai'
-import { useCallback } from 'react'
+import { TLAiChange, TLAiResult, TldrawAiOptions, useTldrawAi } from '@tldraw/ai'
 import { atom, Editor } from 'tldraw'
-import { $chatHistoryItems } from './ChatHistory'
-import { ChatHistoryItem } from './ChatHistoryItem'
+import { applyChanges } from './applyChanges'
 import { SimpleCoordinates } from './transforms/SimpleCoordinates'
 import { SimpleIds } from './transforms/SimpleIds'
 
@@ -21,120 +12,7 @@ export const $eventSchedule = atom<any[]>('eventSchedule', [])
  * @param editor - (optional) The editor instance to use. If not provided, the hook will try to use the editor from React context.
  */
 export function useTldrawAiExample(editor?: Editor) {
-	const createOrUpdateHistoryItem = useCallback((item: ChatHistoryItem) => {
-		$chatHistoryItems.update((prev) => {
-			const lastItem = prev[prev.length - 1]
-			// If the last item is not the same type, create a new one
-			// (Unless the last item is an agent-raw, in which case we want to update it)
-			if (lastItem.type !== item.type && lastItem.type !== 'agent-raw') {
-				return [...prev, item]
-			}
-
-			// If the last item is complete, create a new one
-			if (lastItem.status === 'done') {
-				return [...prev, item]
-			}
-
-			// If the last item is not complete, update it
-			return [...prev.slice(0, -1), item]
-		})
-	}, [])
-
-	function apply({ change, editor }: { change: MaybeComplete<TLAiChange>; editor: Editor }) {
-		defaultApply({ change, editor })
-
-		if (change.complete) {
-			console.log(change)
-		}
-
-		switch (change.type) {
-			case 'custom': {
-				switch (change.action) {
-					case 'message': {
-						createOrUpdateHistoryItem({
-							type: 'agent-message',
-							message: change.text,
-							status: change.complete ? 'done' : 'progress',
-						})
-						return
-					}
-					case 'think': {
-						createOrUpdateHistoryItem({
-							type: 'agent-action',
-							action: 'thinking',
-							status: change.complete ? 'done' : 'progress',
-							info: change.text,
-						})
-						return
-					}
-					case 'scheduleReview': {
-						createOrUpdateHistoryItem({
-							type: 'agent-action',
-							action: 'scheduleReview',
-							status: change.complete ? 'done' : 'progress',
-							info: change.intent ?? '',
-						})
-						$eventSchedule.update((prev) => {
-							if (change.complete) {
-								return [
-									...prev,
-									{
-										type: 'agent-action',
-										action: 'scheduleReview',
-										status: 'done',
-										info: change.intent ?? '',
-									},
-								]
-							}
-							return prev
-						})
-						return
-					}
-					default: {
-						createOrUpdateHistoryItem({
-							type: 'agent-raw',
-							change,
-							status: change.complete ? 'done' : 'progress',
-						})
-						return
-					}
-				}
-			}
-			case 'createShape': {
-				// createOrUpdateHistoryItem({
-				// 	type: 'agent-action',
-				// 	action: 'creating',
-				// 	status: change.complete ? 'done' : 'progress',
-				// 	info: change.description ?? '',
-				// })
-				createOrUpdateHistoryItem({
-					type: 'agent-change',
-					change,
-					status: change.complete ? 'done' : 'progress',
-				})
-				return
-			}
-			case 'updateShape': {
-				createOrUpdateHistoryItem({
-					type: 'agent-action',
-					action: 'updating',
-					status: change.complete ? 'done' : 'progress',
-					info: change.description ?? '',
-				})
-				return
-			}
-			case 'deleteShape': {
-				createOrUpdateHistoryItem({
-					type: 'agent-action',
-					action: 'deleting',
-					status: change.complete ? 'done' : 'progress',
-					info: change.description ?? '',
-				})
-				return
-			}
-		}
-	}
-	return useTldrawAi({ editor, apply, ...STATIC_TLDRAWAI_OPTIONS })
+	return useTldrawAi({ editor, ...STATIC_TLDRAWAI_OPTIONS })
 }
 
 const STATIC_TLDRAWAI_OPTIONS: TldrawAiOptions = {
@@ -203,4 +81,5 @@ const STATIC_TLDRAWAI_OPTIONS: TldrawAiOptions = {
 			reader.releaseLock()
 		}
 	},
+	apply: applyChanges,
 }
