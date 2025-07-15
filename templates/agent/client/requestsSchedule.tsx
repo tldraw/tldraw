@@ -1,8 +1,8 @@
 import { atom } from 'tldraw'
 
-interface AgentRequest {
+interface ScheduledRequest {
 	message: string
 	review: boolean
 }
 
-export const $requestsSchedule = atom<AgentRequest[]>('requestsSchedule', [])
+export const $requestsSchedule = atom<ScheduledRequest[]>('requestsSchedule', [])
