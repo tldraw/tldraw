@@ -279,7 +279,7 @@ export function defaultApplyChanges({
 	change,
 	editor,
 }: {
-	change: TLAiStreamingChange<TLAiChange>
+	change: TLAiStreamingChange
 	editor: Editor
 }) {
 	if (editor.isDisposed) return

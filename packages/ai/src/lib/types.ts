@@ -129,7 +129,9 @@ export type TLAiChange =
 	| TLAiCustomChange
 
 /** @public */
-export type TLAiStreamingChange<T> = (Partial<T> & { complete: false }) | (T & { complete: true })
+export type TLAiStreamingChange =
+	| (Partial<TLAiChange> & { complete: false })
+	| (TLAiChange & { complete: true })
 
 /** @public */
 export type TLAiContent = Omit<TLContent, 'schema' | 'rootShapeIds'> & {

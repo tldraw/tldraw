@@ -21,7 +21,7 @@ export function asMessage(message: TLAiMessages): TLAiMessage[];
 
 // @public
 export function defaultApply({ change, editor, }: {
-    change: TLAiStreamingChange<TLAiChange>;
+    change: TLAiStreamingChange;
     editor: Editor;
 }): void;
 
@@ -130,9 +130,9 @@ export interface TLAiSerializedPrompt extends Omit<TLAiPrompt, 'contextBounds' |
 }
 
 // @public (undocumented)
-export type TLAiStreamingChange<T> = (Partial<T> & {
+export type TLAiStreamingChange = (Partial<TLAiChange> & {
     complete: false;
-}) | (T & {
+}) | (TLAiChange & {
     complete: true;
 });
 
@@ -188,7 +188,7 @@ export interface TldrawAi {
 
 // @public
 export type TldrawAiApplyFn = (opts: {
-    change: TLAiChange;
+    change: TLAiStreamingChange;
     editor: Editor;
 }) => void;
 
@@ -208,8 +208,8 @@ export class TldrawAiModule {
         message: TLAiMessages;
         stream?: boolean;
     } | string): Promise<{
-        handleChange: (change: TLAiChange, apply: TldrawAiApplyFn) => void;
-        handleChanges: (changes: TLAiChange[]) => void;
+        handleChange: (change: TLAiStreamingChange, apply: TldrawAiApplyFn) => void;
+        handleChanges: (changes: TLAiStreamingChange[]) => void;
         prompt: TLAiPrompt;
     }>;
     getPrompt(prompt: TLAiMessages, options?: Partial<Pick<TLAiPrompt, "canvasContent" | "contextBounds" | "promptBounds">>): Promise<TLAiPrompt>;
@@ -249,15 +249,15 @@ export type TldrawAiStreamFn = (opts: {
     editor: Editor;
     prompt: TLAiSerializedPrompt;
     signal: AbortSignal;
-}) => AsyncGenerator<TLAiChange>;
+}) => AsyncGenerator<TLAiStreamingChange>;
 
 // @public (undocumented)
 export abstract class TldrawAiTransform {
     constructor(editor: Editor);
     // (undocumented)
     editor: Editor;
-    transformChange?(change: TLAiChange): TLAiChange;
-    transformChanges?(changes: TLAiChange[]): TLAiChange[];
+    transformChange?(change: TLAiStreamingChange): TLAiStreamingChange;
+    transformChanges?(changes: TLAiStreamingChange[]): TLAiStreamingChange[];
     transformPrompt?(prompt: TLAiPrompt): TLAiPrompt;
 }
 

@@ -1,4 +1,4 @@
-import { TLAiChange, TLAiStreamingChange, defaultApply } from '@tldraw/ai'
+import { TLAiStreamingChange, defaultApply } from '@tldraw/ai'
 import { Editor } from 'tldraw'
 import { $chatHistoryItems } from './ChatHistory'
 import { ChatHistoryItem } from './ChatHistoryItem'
@@ -23,13 +23,7 @@ const createOrUpdateHistoryItem = (item: ChatHistoryItem) => {
 	})
 }
 
-export function applyChanges({
-	change,
-	editor,
-}: {
-	change: TLAiStreamingChange<TLAiChange>
-	editor: Editor
-}) {
+export function applyChanges({ change, editor }: { change: TLAiStreamingChange; editor: Editor }) {
 	defaultApply({ change, editor })
 
 	if (change.complete) {
