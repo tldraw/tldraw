@@ -40,7 +40,7 @@ body {
 	height: 100vh;
 	font-size: 14px;
 	background-color: var(--color-panel);
-	border-left: 1px solid var(--color-border);
+	border-left: 1px solid var(--color-low);
 	color: var(--color-text-1);
 	font-family: 'Inter', sans-serif;
 	font-weight: 400;
