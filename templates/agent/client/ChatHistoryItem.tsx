@@ -1,6 +1,6 @@
 import { TLAiStreamingChange } from '@tldraw/ai'
 import { useEffect, useState } from 'react'
-import { DefaultSpinner, Editor } from 'tldraw'
+import { Editor } from 'tldraw'
 
 export type ChatHistoryItem =
 	| UserMessageHistoryItem
@@ -8,11 +8,18 @@ export type ChatHistoryItem =
 	| AgentMessageHistoryItem
 	| AgentActionHistoryItem
 	| AgentRawHistoryItem
+	| StatusThinkingHistoryItem
 
 export interface UserMessageHistoryItem {
 	type: 'user-message'
 	message: string
 	status: 'done'
+}
+
+export interface StatusThinkingHistoryItem {
+	type: 'status-thinking'
+	message: string
+	status: 'progress' | 'done' | 'cancelled'
 }
 
 export interface AgentMessageHistoryItem {
@@ -56,10 +63,10 @@ export function AgentChangeHistoryItem({
 	useEffect(() => {
 		if (!item.change.complete) return
 		if (item.change.type !== 'createShape') return
-		editor.toImage([item.change.shape.id], { format: 'svg' }).then((svgResult) => {
-			if (!svgResult) return
-			setSvgElement(svgResult.blob)
-		})
+		// editor.toImage([item.change.shape.id], { format: 'svg' }).then((svgResult) => {
+		// 	if (!svgResult) return
+		// 	setSvgElement(svgResult.blob)
+		// })
 	}, [item.change, editor])
 
 	if (item.change.type !== 'createShape') return null
@@ -67,13 +74,6 @@ export function AgentChangeHistoryItem({
 	return (
 		<div className="agent-change-message">
 			<div>{item.change.description}</div>
-			{svgElement ? (
-				<img className="agent-change-message-image" src={URL.createObjectURL(svgElement)} />
-			) : (
-				<div className="agent-change-message-placeholder">
-					{item.status === 'cancelled' ? '❌ Cancelled' : <DefaultSpinner />}
-				</div>
-			)}
 		</div>
 	)
 }
@@ -90,6 +90,25 @@ export function AgentActionHistoryItem({ item }: { item: AgentActionHistoryItem 
 				<strong>{message}</strong>
 				<span>{item.info ?? ''}</span>
 			</span>
+		</div>
+	)
+}
+
+export function StatusThinkingHistoryItem({ item }: { item: StatusThinkingHistoryItem }) {
+	const [dots, setDots] = useState('')
+
+	useEffect(() => {
+		const interval = setInterval(() => {
+			setDots((prev) => (prev.length >= 3 ? '' : prev + '.'))
+		}, 500)
+
+		return () => clearInterval(interval)
+	}, [])
+	return (
+		<div className="agent-chat-message status-thinking-message">
+			<p className="status-thinking-message-text">
+				{item.status === 'done' ? 'Response' : item.message + dots}
+			</p>
 		</div>
 	)
 }

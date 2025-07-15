@@ -6,12 +6,21 @@ import {
 	AgentMessageHistoryItem,
 	AgentRawHistoryItem,
 	ChatHistoryItem,
+	StatusThinkingHistoryItem,
 	UserMessageHistoryItem,
 } from './ChatHistoryItem'
 
 export const $chatHistoryItems = atom<ChatHistoryItem[]>('chatHistoryItems', [])
 
-export function ChatHistory({ editor, items }: { editor: Editor; items: ChatHistoryItem[] }) {
+export function ChatHistory({
+	editor,
+	items,
+	isGenerating,
+}: {
+	editor: Editor
+	items: ChatHistoryItem[]
+	isGenerating: boolean
+}) {
 	const scrollContainerRef = useRef<HTMLDivElement>(null)
 	const previousScrollDistanceFromBottomRef = useRef(0)
 
@@ -39,6 +48,8 @@ export function ChatHistory({ editor, items }: { editor: Editor; items: ChatHist
 				switch (item.type) {
 					case 'user-message':
 						return <UserMessageHistoryItem key={index} item={item} />
+					case 'status-thinking':
+						return <StatusThinkingHistoryItem key={index} item={item} />
 					case 'agent-message':
 						return <AgentMessageHistoryItem key={index} item={item} />
 					case 'agent-change':

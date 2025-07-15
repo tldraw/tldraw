@@ -57,15 +57,36 @@ export function ChatPanel({ editor }: { editor: Editor }) {
 			const { promise, cancel } = ai.prompt({
 				message: intent,
 				stream: true,
-				meta: { modelName, historyItems: $chatHistoryItems.get(), review: request.review },
+				meta: {
+					modelName,
+					historyItems: $chatHistoryItems.get().filter((item) => item.type !== 'status-thinking'),
+					review: request.review,
+				},
 			})
+
+			$chatHistoryItems.update((prev) => [
+				...prev,
+				{ type: 'status-thinking', message: 'Generating', status: 'progress' },
+			])
+
 			rCancelFn.current = cancel
 			await promise
 
 			// Only remove the event after successful processing
 			$requestsSchedule.update((prev) => prev.filter((_, i) => i !== 0))
 
-			// Process next event (if any) after a 1s timeout to allow for cancellation
+			// Set previous status-thinking to done
+			// this assume only one status-thinking at a time. not a bad assumption for now?
+			$chatHistoryItems.update((prev) => {
+				const lastStatusThinkingIndex = [...prev]
+					.reverse()
+					.findIndex((item) => item.type === 'status-thinking' && item.status === 'progress')
+				if (lastStatusThinkingIndex === -1) return prev
+				const idx = prev.length - 1 - lastStatusThinkingIndex
+				return prev.map((item, i) => (i === idx ? { ...item, status: 'done' } : item))
+			})
+
+			// Process next event (if any)
 			await advanceSchedule()
 			rCancelFn.current = null
 		} catch (e) {
@@ -113,7 +134,7 @@ export function ChatPanel({ editor }: { editor: Editor }) {
 			<div className="chat-header">
 				<NewChatButton />
 			</div>
-			<ChatHistory editor={editor} items={historyItems} />
+			<ChatHistory editor={editor} items={historyItems} isGenerating={isGenerating} />
 			<div className="chat-input">
 				<form onSubmit={handleSubmit}>
 					<input
