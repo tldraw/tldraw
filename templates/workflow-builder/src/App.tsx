@@ -10,6 +10,7 @@ import {
 } from 'tldraw'
 import { DraggingHandle } from 'tldraw/src/lib/tools/SelectTool/childStates/DraggingHandle'
 import { InsertComponentPanel } from './components/InsertComponentPanel'
+import { NodeToolbar } from './components/NodeToolbar.tsx'
 import { OnCanvasComponentPicker } from './components/OnCanvasComponentPicker.tsx'
 import {
 	ConnectionBindingUtil,
@@ -29,6 +30,7 @@ const bindingUtils = [ConnectionBindingUtil]
 const components: TLComponents = {
 	InFrontOfTheCanvas: () => (
 		<>
+			<NodeToolbar />
 			<OnCanvasComponentPicker />
 			<InsertComponentPanel />
 		</>

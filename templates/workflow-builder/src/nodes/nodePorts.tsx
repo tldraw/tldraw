@@ -24,19 +24,19 @@ const nodePortConnectionsCache = createComputedCache(
 	(editor: Editor, node: NodeShape) => {
 		const bindings = editor.getBindingsToShape<ConnectionBinding>(node.id, 'connection')
 
-		const connections: Record<string, NodePortConnection> = {}
+		const connections: NodePortConnection[] = []
 		for (const binding of bindings) {
 			const oppositeTerminal = binding.props.terminal === 'start' ? 'end' : 'start'
 			const oppositeBinding = getConnectionBindings(editor, binding.fromId)[oppositeTerminal]
 			if (!oppositeBinding) continue
 
-			connections[binding.props.portId] = {
+			connections.push({
 				connectedShapeId: oppositeBinding.toId,
 				connectionId: binding.fromId,
 				terminal: binding.props.terminal,
 				ownPortId: binding.props.portId,
 				connectedPortId: oppositeBinding.props.portId,
-			}
+			})
 		}
 
 		return connections
@@ -49,8 +49,8 @@ const nodePortConnectionsCache = createComputedCache(
 export function getNodePortConnections(
 	editor: Editor,
 	shape: NodeShape | TLShapeId
-): { [K in PortId]?: NodePortConnection } {
-	return nodePortConnectionsCache.get(editor, typeof shape === 'string' ? shape : shape.id) ?? {}
+): NodePortConnection[] {
+	return nodePortConnectionsCache.get(editor, typeof shape === 'string' ? shape : shape.id) ?? []
 }
 
 const nodeInputPortValuesCache = createComputedCache(
@@ -59,7 +59,7 @@ const nodeInputPortValuesCache = createComputedCache(
 		const connections = getNodePortConnections(editor, node)
 
 		const values: Record<string, number> = {}
-		for (const connection of Object.values(connections)) {
+		for (const connection of connections) {
 			if (!connection || connection.terminal !== 'end') continue
 
 			const connectedShapeOutputs = getNodeOutputPortValues(editor, connection.connectedShapeId)

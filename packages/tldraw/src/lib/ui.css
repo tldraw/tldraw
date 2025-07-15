@@ -964,7 +964,7 @@
 	justify-content: center;
 	border-radius: 99px;
 	opacity: 0;
-	animation: fade-in;
+	animation: tl-fade-in;
 	animation-duration: 0.12s;
 	animation-delay: 2s;
 	animation-fill-mode: forwards;

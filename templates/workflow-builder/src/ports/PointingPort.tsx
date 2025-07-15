@@ -37,9 +37,9 @@ export class PointingPort extends StateNode {
 	override onPointerMove(info: TLPointerEventInfo): void {
 		if (this.editor.inputs.isDragging) {
 			const allowsMultipleConnections = this.info?.terminal === 'start'
-			const hasExistingConnection = getNodePortConnections(this.editor, this.info!.shapeId)[
-				this.info!.portId
-			]
+			const hasExistingConnection = getNodePortConnections(this.editor, this.info!.shapeId).find(
+				(c) => c.ownPortId === this.info!.portId
+			)
 
 			if (!allowsMultipleConnections && hasExistingConnection) {
 				// we've got a connection and can't have multiple, so lets move it:
@@ -93,9 +93,9 @@ export class PointingPort extends StateNode {
 
 	private onClick() {
 		if (this.info?.terminal !== 'start') return
-		const hasExistingConnection = getNodePortConnections(this.editor, this.info!.shapeId)[
-			this.info!.portId
-		]
+		const hasExistingConnection = getNodePortConnections(this.editor, this.info!.shapeId).find(
+			(c) => c.ownPortId === this.info!.portId
+		)
 		if (hasExistingConnection) return
 
 		const bounds = this.editor.getShapePageBounds(this.info!.shapeId)
