@@ -119,6 +119,7 @@ export function AgentActionHistoryItem({ item }: { item: AgentActionHistoryItem 
 export function StatusThinkingHistoryItem({ item }: { item: StatusThinkingHistoryItem }) {
 	const [startTime] = useState(() => new Date())
 	const [endTime, setEndTime] = useState<Date | null>(null)
+	const [currentTime, setCurrentTime] = useState(() => new Date())
 
 	useEffect(() => {
 		if (item.status === 'done' && !endTime) {
@@ -126,8 +127,19 @@ export function StatusThinkingHistoryItem({ item }: { item: StatusThinkingHistor
 		}
 	}, [item.status, endTime])
 
+	// Update current time every second while status is 'progress'
+	useEffect(() => {
+		if (item.status !== 'progress') return
+
+		const interval = setInterval(() => {
+			setCurrentTime(new Date())
+		}, 1000)
+
+		return () => clearInterval(interval)
+	}, [item.status])
+
 	const secondsElapsed = Math.floor(
-		(endTime ? endTime.getTime() : Date.now()) / 1000 - startTime.getTime() / 1000
+		(endTime ? endTime.getTime() : currentTime.getTime()) / 1000 - startTime.getTime() / 1000
 	)
 
 	return (
