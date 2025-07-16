@@ -16,6 +16,7 @@ export function getSimpleContentFromCanvasContent(content: TLAiContent): {
 	return {
 		shapes: compact(
 			content.shapes.map((shape) => {
+				console.log(shape)
 				if (shape.type === 'text') {
 					const s = shape as TLTextShape
 					return {
@@ -39,7 +40,8 @@ export function getSimpleContentFromCanvasContent(content: TLAiContent): {
 						s.props.geo === 'triangle' ||
 						s.props.geo === 'diamond' ||
 						s.props.geo === 'hexagon' ||
-						s.props.geo === 'oval'
+						s.props.geo === 'oval' ||
+						s.props.geo === 'x-box'
 					) {
 						return {
 							shapeId: s.id,

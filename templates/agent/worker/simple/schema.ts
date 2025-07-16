@@ -130,6 +130,21 @@ const SimpleCloudShape = z.object({
 
 export type ISimpleCloudShape = z.infer<typeof SimpleCloudShape>
 
+const SimpleXBoxShape = z.object({
+	type: z.literal('x-box'),
+	shapeId: z.string(),
+	note: z.string(),
+	x: z.number(),
+	y: z.number(),
+	width: z.number(),
+	height: z.number(),
+	color: SimpleColor.optional(),
+	fill: SimpleFill.optional(),
+	text: SimpleLabel.optional(),
+})
+
+export type ISimpleXBoxShape = z.infer<typeof SimpleXBoxShape>
+
 const SimpleLineShape = z.object({
 	type: z.literal('line'),
 	shapeId: z.string(),
@@ -204,6 +219,7 @@ export const SimpleShape = z.union([
 	SimpleOvalShape,
 	SimpleCloudShape,
 	SimpleLineShape,
+	SimpleXBoxShape,
 	SimpleTextShape,
 	SimpleArrowShape,
 	SimpleNoteShape,

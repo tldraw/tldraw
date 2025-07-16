@@ -254,6 +254,7 @@ function getTldrawAiChangesFromSimpleCreateOrUpdateEvent(
 		case 'diamond':
 		case 'hexagon':
 		case 'oval':
+		case 'x-box':
 		case 'ellipse': {
 			changes.push({
 				complete: event.complete,
