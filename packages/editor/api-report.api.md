@@ -648,7 +648,7 @@ export const DefaultShapeIndicators: NamedExoticComponent<TLShapeIndicatorsProps
 export function DefaultSnapIndicator({ className, line, zoom }: TLSnapIndicatorProps): JSX_2.Element;
 
 // @public (undocumented)
-export function DefaultSpinner(): JSX_2.Element;
+export function DefaultSpinner(props: React.SVGProps<SVGSVGElement>): JSX_2.Element;
 
 // @public (undocumented)
 export const DefaultSvgDefs: () => null;
@@ -3359,7 +3359,7 @@ export interface TLEditorComponents {
     // (undocumented)
     SnapIndicator?: ComponentType<TLSnapIndicatorProps> | null;
     // (undocumented)
-    Spinner?: ComponentType | null;
+    Spinner?: ComponentType<React.SVGProps<SVGSVGElement>> | null;
     // (undocumented)
     SvgDefs?: ComponentType | null;
     // (undocumented)
