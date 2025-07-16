@@ -208,7 +208,7 @@ function buildUserMessage(prompt: TLAiSerializedPrompt): CoreMessage {
 		content.push(
 			{
 				type: 'text',
-				text: "This is a screenshot of the current viewport on the canvas. It's what you will be editing or adding to.",
+				text: "This is a screenshot of the current viewport on the canvas. It's what you will be editing or adding to. It's what the user can see.",
 			},
 			{
 				type: 'image',

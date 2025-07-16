@@ -20,7 +20,7 @@ import type { TLShapePartial } from 'tldraw';
 export function asMessage(message: TLAiMessages): TLAiMessage[];
 
 // @public
-export function defaultApply({ change, editor, }: {
+export function defaultApplyChange({ change, editor, }: {
     change: TLAiStreamingChange;
     editor: Editor;
 }): void;

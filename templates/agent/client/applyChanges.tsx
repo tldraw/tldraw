@@ -1,5 +1,5 @@
-import { TLAiStreamingChange, defaultApply } from '@tldraw/ai'
-import { Editor } from 'tldraw'
+import { TLAiStreamingChange, defaultApplyChange } from '@tldraw/ai'
+import { Editor, TLShape } from 'tldraw'
 import { $chatHistoryItems } from './ChatHistory'
 import { ChatHistoryItem } from './ChatHistoryItem'
 import { $requestsSchedule } from './requestsSchedule'
@@ -58,12 +58,21 @@ function mergeAdjacentHistoryItems() {
 }
 
 export function applyChanges({ change, editor }: { change: TLAiStreamingChange; editor: Editor }) {
-	defaultApply({ change, editor })
-
 	if (change.complete) {
-		console.log(change)
+		// console.log(change)
 	}
 
+	applyChangeToChatHistory({ change, editor })
+	defaultApplyChange({ change, editor })
+}
+
+function applyChangeToChatHistory({
+	change,
+	editor,
+}: {
+	change: TLAiStreamingChange
+	editor: Editor
+}) {
 	switch (change.type) {
 		case 'custom': {
 			switch (change.action) {
@@ -133,11 +142,20 @@ export function applyChanges({ change, editor }: { change: TLAiStreamingChange; 
 			return
 		}
 		case 'deleteShape': {
+			// createOrUpdateHistoryItem({
+			// 	type: 'agent-action',
+			// 	action: 'deleting',
+			// 	status: change.complete ? 'done' : 'progress',
+			// 	info: change.description ?? '',
+			// })
+			let shape: TLShape | undefined = undefined
+			if (change.complete) {
+				shape = editor.getShape(change.shapeId)
+			}
 			createOrUpdateHistoryItem({
-				type: 'agent-action',
-				action: 'deleting',
+				type: 'agent-change',
+				changes: [{ ...change, shape }],
 				status: change.complete ? 'done' : 'progress',
-				info: change.description ?? '',
 			})
 			return
 		}

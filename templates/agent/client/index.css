@@ -48,6 +48,10 @@ body {
 	line-height: 1.5;
 }
 
+.chat-panel * {
+	user-select: text;
+}
+
 .chat-history {
 	flex: 1;
 	padding: 16px 16px;

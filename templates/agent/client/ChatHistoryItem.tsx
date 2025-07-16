@@ -1,6 +1,6 @@
 import { TLAiStreamingChange } from '@tldraw/ai'
 import { useEffect, useState } from 'react'
-import { Editor, TLShape } from 'tldraw'
+import { Editor, TLShape, TLShapeId } from 'tldraw'
 import { BrainIcon } from './icons/BrainIcon'
 import { PencilIcon } from './icons/PencilIcon'
 import { RefreshIcon } from './icons/RefreshIcon'
@@ -36,7 +36,7 @@ export interface AgentMessageHistoryItem {
 
 export interface AgentChangeHistoryItem {
 	type: 'agent-change'
-	changes: TLAiStreamingChange[]
+	changes: (TLAiStreamingChange & { shape?: Partial<TLShape> })[]
 	status: 'progress' | 'done' | 'cancelled'
 }
 
@@ -80,6 +80,50 @@ function getCompleteShapeFromStreamingShape({
 	return completeShapeRecord as TLShape
 }
 
+function getDiffShapesFromChange({
+	change,
+	editor,
+}: {
+	change: TLAiStreamingChange & { shape?: Partial<TLShape> }
+	editor: Editor
+}): TLShape[] {
+	switch (change.type) {
+		case 'createShape': {
+			const shape = getCompleteShapeFromStreamingShape({ shape: change.shape, editor })
+			if (shape) {
+				const highlightShape = {
+					...shape,
+					id: (shape.id + '-highlight') as TLShapeId,
+					opacity: 0.5,
+					props: { ...shape.props, dash: 'solid', color: 'light-green', scale: 6 },
+				}
+				return [highlightShape, shape]
+			}
+			return []
+		}
+		case 'updateShape': {
+			const shape = getCompleteShapeFromStreamingShape({ shape: change.shape, editor })
+			return shape ? [shape] : []
+		}
+		case 'deleteShape': {
+			const shape = getCompleteShapeFromStreamingShape({ shape: change.shape, editor })
+			if (shape) {
+				const highlightShape = {
+					...shape,
+					id: (shape.id + '-highlight') as TLShapeId,
+					opacity: 0.5,
+					props: { ...shape.props, dash: 'solid', color: 'light-red', scale: 6 },
+				}
+				return [highlightShape, shape]
+			}
+			return []
+		}
+		default: {
+			return []
+		}
+	}
+}
+
 export function AgentChangeHistoryItem({
 	item,
 	editor,
@@ -87,21 +131,17 @@ export function AgentChangeHistoryItem({
 	item: AgentChangeHistoryItem
 	editor: Editor
 }) {
-	const createdShapes = item.changes
-		.map((change) => {
-			if (change.type !== 'createShape') return null
-			return getCompleteShapeFromStreamingShape({ shape: change.shape, editor })
-		})
-		.filter((v) => v !== null)
+	const diffShapes = item.changes
+		.map((change) => getDiffShapesFromChange({ change, editor }))
+		.flat()
 
-	// Hardcoded to only support a single create shape change for now
-	// TODO: Support other change types
-	if (createdShapes.length === 0) return null
+	if (diffShapes.length === 0) return null
 
+	console.log('diffShapes', diffShapes)
 	return (
 		<div className="agent-change-message">
 			{/* <div>{item.changes[0]?.description}</div> */}
-			{createdShapes && <TldrawViewer shapes={createdShapes} />}
+			{diffShapes && <TldrawViewer shapes={diffShapes} />}
 		</div>
 	)
 }
