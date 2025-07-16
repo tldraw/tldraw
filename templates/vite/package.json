@@ -10,7 +10,11 @@
 	"license": "MIT",
 	"type": "module",
 	"tldraw_template": {
-		"repo": "tldraw/vite-template",
+		"publish": {
+			"repo": "tldraw/vite-template",
+			"name": "Just tldraw",
+			"description": "A simple tldraw app using Vite and TypeScript."
+		},
 		"scripts": {
 			"lint": null
 		}

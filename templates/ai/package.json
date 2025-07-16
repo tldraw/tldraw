@@ -10,7 +10,11 @@
 	},
 	"type": "module",
 	"tldraw_template": {
-		"repo": "tldraw/ai-template",
+		"publish": {
+			"repo": "tldraw/ai-template",
+			"name": "AI",
+			"description": "tldraw + the ai module, built with Vite and TypeScript. This app includes a Cloudflare Worker that connects to the OpenAI API."
+		},
 		"scripts": {
 			"lint": null
 		}

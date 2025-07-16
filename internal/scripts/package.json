@@ -1,5 +1,5 @@
 {
-	"name": "@tldraw/scripts",
+	"name": "@tldraw-internal/scripts",
 	"description": "build scripts",
 	"version": "0.0.0",
 	"private": true,
