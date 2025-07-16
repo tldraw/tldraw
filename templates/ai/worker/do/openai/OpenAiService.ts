@@ -1,4 +1,4 @@
-import { TLAiChange, TLAiResult, TLAiSerializedPrompt } from '@tldraw/ai'
+import { TLAiChange, TLAiPrompt, TLAiResult } from '@tldraw/ai'
 import OpenAI from 'openai'
 import { TldrawAiBaseService } from '../../TldrawAiBaseService'
 import { Environment } from '../../types'
@@ -16,14 +16,14 @@ export class OpenAiService extends TldrawAiBaseService {
 		})
 	}
 
-	async generate(prompt: TLAiSerializedPrompt): Promise<TLAiResult> {
+	async generate(prompt: TLAiPrompt): Promise<TLAiResult> {
 		const events = await generateEvents(this.openai, prompt)
 		if (this.env.LOG_LEVEL === 'debug') console.log(events)
 		const changes = events.map((event) => getTldrawAiChangesFromSimpleEvents(prompt, event)).flat()
 		return { changes }
 	}
 
-	async *stream(prompt: TLAiSerializedPrompt): AsyncGenerator<TLAiChange> {
+	async *stream(prompt: TLAiPrompt): AsyncGenerator<TLAiChange> {
 		for await (const simpleEvent of streamEvents(this.openai, prompt)) {
 			if (this.env.LOG_LEVEL === 'debug') console.log(simpleEvent)
 			for (const change of getTldrawAiChangesFromSimpleEvents(prompt, simpleEvent)) {

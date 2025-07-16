@@ -1,4 +1,4 @@
-import type { TLAiResult, TLAiSerializedPrompt } from '@tldraw/ai'
+import type { TLAiPrompt, TLAiResult } from '@tldraw/ai'
 import { DurableObject } from 'cloudflare:workers'
 import { AutoRouter, error } from 'itty-router'
 import { TldrawAiBaseService } from '../TldrawAiBaseService'
@@ -48,7 +48,7 @@ export class TldrawAiDurableObject extends DurableObject<Environment> {
 	 * @returns A Promise that resolves to a Response object containing the generated changes.
 	 */
 	private async generate(request: Request) {
-		const prompt = (await request.json()) as TLAiSerializedPrompt
+		const prompt = (await request.json()) as TLAiPrompt
 
 		try {
 			const response = await this.service.generate(prompt)
@@ -84,7 +84,7 @@ export class TldrawAiDurableObject extends DurableObject<Environment> {
 			try {
 				const prompt = await request.json()
 
-				for await (const change of this.service.stream(prompt as TLAiSerializedPrompt)) {
+				for await (const change of this.service.stream(prompt as TLAiPrompt)) {
 					response.changes.push(change)
 					const data = `data: ${JSON.stringify(change)}\n\n`
 					await writer.write(encoder.encode(data))

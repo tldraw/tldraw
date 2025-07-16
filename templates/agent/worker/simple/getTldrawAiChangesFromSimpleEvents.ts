@@ -2,7 +2,7 @@ import {
 	TLAiChange,
 	TLAiCreateBindingChange,
 	TLAiCreateShapeChange,
-	TLAiSerializedPrompt,
+	TLAiPrompt,
 	TLAiUpdateShapeChange,
 } from '@tldraw/ai'
 import {
@@ -37,7 +37,7 @@ function toRichTextIfNeeded(text: string | { type: string; content: any[] }): TL
 type MaybeComplete<T> = (Partial<T> & { complete: false }) | (T & { complete: true })
 
 export function getTldrawAiChangesFromSimpleEvents(
-	prompt: TLAiSerializedPrompt,
+	prompt: TLAiPrompt,
 	event: MaybeComplete<ISimpleEvent>
 ): TLAiChange[] {
 	switch (event.type) {
@@ -70,7 +70,7 @@ function simpleFillToShapeFill(fill: ISimpleFill): TLDefaultFillStyle {
 }
 
 function getTldrawAiChangesFromSimpleCreateOrUpdateEvent(
-	prompt: TLAiSerializedPrompt,
+	prompt: TLAiPrompt,
 	event: MaybeComplete<ISimpleCreateEvent>
 ): TLAiChange[] {
 	const shapeEventType = event.type === 'create' ? 'createShape' : 'updateShape'
@@ -329,7 +329,7 @@ function getTldrawAiChangesFromSimpleCreateOrUpdateEvent(
 }
 
 function getTldrawAiChangesFromSimpleDeleteEvent(
-	prompt: TLAiSerializedPrompt,
+	prompt: TLAiPrompt,
 	event: MaybeComplete<ISimpleDeleteEvent>
 ): TLAiChange[] {
 	const { shapeId = '', intent = '' } = event
@@ -345,7 +345,7 @@ function getTldrawAiChangesFromSimpleDeleteEvent(
 }
 
 function getTldrawAiChangesFromSimpleMoveEvent(
-	prompt: TLAiSerializedPrompt,
+	prompt: TLAiPrompt,
 	event: MaybeComplete<ISimpleMoveEvent>
 ): TLAiChange[] {
 	const { shapeId = '', intent = '' } = event

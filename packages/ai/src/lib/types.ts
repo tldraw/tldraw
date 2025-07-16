@@ -1,5 +1,4 @@
 import type {
-	Box,
 	BoxModel,
 	TLBinding,
 	TLBindingCreate,
@@ -42,22 +41,11 @@ export interface TLAiPrompt {
 	/** The content pulled from the editor */
 	canvasContent: TLAiContent
 	/** The bounds of the context in the editor */
-	contextBounds: Box
-	/** The bounds of the prompt in the editor */
-	promptBounds: Box
-	/** Any additional information. Must be JSON serializable! */
-	meta?: any
-}
-
-/**
- * A prompt with information from the editor, serialized to JSON.
- * @public
- */
-export interface TLAiSerializedPrompt extends Omit<TLAiPrompt, 'contextBounds' | 'promptBounds'> {
-	/** The bounds of the context in the editor */
 	contextBounds: BoxModel
 	/** The bounds of the prompt in the editor */
 	promptBounds: BoxModel
+	/** Any additional information. Must be JSON serializable! */
+	meta?: any
 }
 
 /** @public */

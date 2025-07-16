@@ -1,108 +1,126 @@
-import { TLAiPrompt, TLAiStreamingChange, TldrawAiTransform } from '@tldraw/ai'
+import { createTldrawAiTransform } from '@tldraw/ai'
 import { createBindingId, createShapeId } from '@tldraw/tlschema'
 
-export class SimpleIds extends TldrawAiTransform {
-	originalIdsToSimpleIds = new Map()
-	simpleIdsToOriginalIds = new Map()
-	nextSimpleId = 0
+export const SimpleIdsTransform = createTldrawAiTransform((editor, prompt) => {
+	const originalIdsToSimpleIds = new Map()
+	const simpleIdsToOriginalIds = new Map()
+	let nextSimpleId = 0
 
-	override transformPrompt = (input: TLAiPrompt) => {
-		// Collect all ids, write simple ids, and write the simple ids
-		for (const shape of input.canvasContent.shapes ?? []) {
-			this.collectAllIdsRecursively(shape, this.mapObjectWithIdAndWriteSimple)
-		}
-
-		for (const binding of input.canvasContent.bindings ?? []) {
-			this.collectAllIdsRecursively(binding, this.mapObjectWithIdAndWriteSimple)
-		}
-
-		return input
+	// Collect all ids, write simple ids, and write the simple ids
+	for (const shape of prompt.canvasContent.shapes ?? []) {
+		collectAllIdsRecursively(shape, mapObjectWithIdAndWriteSimple)
 	}
 
-	override transformChange = (change: TLAiStreamingChange): TLAiStreamingChange => {
-		switch (change.type) {
-			case 'createShape': {
-				if (!change.complete) return change
-				const { shape } = change
-				const { id: simpleId } = shape
-				const originalId = createShapeId(simpleId)
-				this.originalIdsToSimpleIds.set(originalId, simpleId)
-				this.simpleIdsToOriginalIds.set(simpleId, originalId)
-				shape.id = originalId
-
-				return {
-					...change,
-					shape,
-				}
-			}
-			case 'updateShape': {
-				if (!change.complete) return change
-				const shape = this.collectAllIdsRecursively(change.shape, this.writeOriginalIds)
-				return {
-					...change,
-					shape,
-				}
-			}
-			case 'deleteShape': {
-				if (!change.complete) return change
-				const shapeId = this.simpleIdsToOriginalIds.get(change.shapeId)
-				if (!shapeId) {
-					throw new Error(`Shape id not found: ${change.shapeId}`)
-				}
-				return {
-					...change,
-					shapeId, // this isn't going to be in our map of ids
-				}
-			}
-			case 'createBinding': {
-				if (!change.complete) return change
-				let { binding } = change
-				const { id: simpleId } = binding
-				const originalId = createBindingId(simpleId)
-				this.originalIdsToSimpleIds.set(originalId, simpleId)
-				this.simpleIdsToOriginalIds.set(simpleId, originalId)
-				binding.id = originalId
-
-				binding = this.collectAllIdsRecursively(change.binding, this.writeOriginalIds)
-
-				return {
-					...change,
-					binding,
-				}
-			}
-			case 'updateBinding': {
-				if (!change.complete) return change
-				const binding = this.collectAllIdsRecursively(change.binding, this.writeOriginalIds)
-				return {
-					...change,
-					binding,
-				}
-			}
-			case 'deleteBinding': {
-				if (!change.complete) return change
-				const bindingId = this.simpleIdsToOriginalIds.get(change.bindingId)
-				if (!bindingId) {
-					throw new Error(`Binding id not found: ${change.bindingId}`)
-				}
-				return {
-					...change,
-					bindingId,
-				}
-			}
-			default: {
-				return change
-			}
-		}
+	for (const binding of prompt.canvasContent.bindings ?? []) {
+		collectAllIdsRecursively(binding, mapObjectWithIdAndWriteSimple)
 	}
 
-	private mapObjectWithIdAndWriteSimple = (obj: { id: string; fromId?: string; toId?: string }) => {
-		const { originalIdsToSimpleIds, simpleIdsToOriginalIds, nextSimpleId } = this
+	return {
+		prompt,
+		handleChange(change) {
+			switch (change.type) {
+				case 'createShape': {
+					const { shape } = change
+					if (!shape) return change
+					const { id: simpleId } = shape
+					const originalId = createShapeId(simpleId)
+					originalIdsToSimpleIds.set(originalId, simpleId)
+					simpleIdsToOriginalIds.set(simpleId, originalId)
+					shape.id = originalId
 
+					return {
+						...change,
+						shape,
+					}
+				}
+				case 'updateShape': {
+					const shape = collectAllIdsRecursively(change.shape, writeOriginalIds)
+
+					return {
+						...change,
+						shape,
+					}
+				}
+				case 'deleteShape': {
+					const shapeId = simpleIdsToOriginalIds.get(change.shapeId)
+					if (!shapeId) {
+						throw new Error(`Shape id not found: ${change.shapeId}`)
+					}
+					return {
+						...change,
+						shapeId, // this isn't going to be in our map of ids
+					}
+				}
+				case 'createBinding': {
+					let { binding } = change
+					if (!binding) return change
+
+					const { id: simpleId } = binding
+					const originalId = createBindingId(simpleId)
+					originalIdsToSimpleIds.set(originalId, simpleId)
+					simpleIdsToOriginalIds.set(simpleId, originalId)
+					binding.id = originalId
+
+					binding = collectAllIdsRecursively(change.binding, writeOriginalIds)
+
+					return {
+						...change,
+						binding,
+					}
+				}
+				case 'updateBinding': {
+					const binding = collectAllIdsRecursively(change.binding, writeOriginalIds)
+
+					return {
+						...change,
+						binding,
+					}
+				}
+				case 'deleteBinding': {
+					const bindingId = simpleIdsToOriginalIds.get(change.bindingId)
+					if (!bindingId) {
+						throw new Error(`Binding id not found: ${change.bindingId}`)
+					}
+					return {
+						...change,
+						bindingId,
+					}
+				}
+				default:
+					return change
+			}
+		},
+	}
+
+	function collectAllIdsRecursively(value: any, cb: (obj: any) => any) {
+		if (!value || typeof value !== 'object') {
+			return value
+		}
+
+		if (Array.isArray(value)) {
+			value.forEach((item) => collectAllIdsRecursively(item, cb))
+			return value
+		}
+
+		// If object has an id property that's a string, map it
+		if ('id' in value && typeof value.id === 'string') {
+			return cb(value)
+		}
+
+		// Recursively process all object properties
+		Object.entries(value).forEach(([key, propValue]) => {
+			value[key] = collectAllIdsRecursively(propValue, cb)
+		})
+
+		return value
+	}
+
+	function mapObjectWithIdAndWriteSimple(obj: { id: string; fromId?: string; toId?: string }) {
 		if (!originalIdsToSimpleIds.has(obj.id)) {
 			const tId = `${nextSimpleId}`
 			simpleIdsToOriginalIds.set(tId, obj.id)
 			originalIdsToSimpleIds.set(obj.id, tId)
-			this.nextSimpleId++
+			nextSimpleId++
 			obj.id = tId
 		}
 
@@ -110,7 +128,7 @@ export class SimpleIds extends TldrawAiTransform {
 			const tId = `${nextSimpleId}`
 			simpleIdsToOriginalIds.set(tId, obj.id)
 			originalIdsToSimpleIds.set(obj.id, tId)
-			this.nextSimpleId++
+			nextSimpleId++
 			obj.fromId = tId
 		}
 
@@ -118,13 +136,12 @@ export class SimpleIds extends TldrawAiTransform {
 			const tId = `${nextSimpleId}`
 			simpleIdsToOriginalIds.set(tId, obj.id)
 			originalIdsToSimpleIds.set(obj.id, tId)
-			this.nextSimpleId++
+			nextSimpleId++
 			obj.fromId = tId
 		}
 	}
 
-	private writeOriginalIds = (obj: { id: string; fromId?: string; toId?: string }) => {
-		const { simpleIdsToOriginalIds } = this
+	function writeOriginalIds(obj: { id: string; fromId?: string; toId?: string }) {
 		const id = simpleIdsToOriginalIds.get(obj.id)
 		if (id) {
 			obj = { ...obj, id }
@@ -139,27 +156,4 @@ export class SimpleIds extends TldrawAiTransform {
 		}
 		return obj
 	}
-
-	private collectAllIdsRecursively(value: any, cb: (obj: any) => any) {
-		if (!value || typeof value !== 'object') {
-			return value
-		}
-
-		if (Array.isArray(value)) {
-			value.forEach((item) => this.collectAllIdsRecursively(item, cb))
-			return value
-		}
-
-		// If object has an id property that's a string, map it
-		if ('id' in value && typeof value.id === 'string') {
-			return cb(value)
-		}
-
-		// Recursively process all object properties
-		Object.entries(value).forEach(([key, propValue]) => {
-			value[key] = this.collectAllIdsRecursively(propValue, cb)
-		})
-
-		return value
-	}
-}
+})

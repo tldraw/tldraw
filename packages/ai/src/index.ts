@@ -6,9 +6,14 @@ import { registerTldrawLibraryVersion } from 'tldraw'
 export type * from './lib/types'
 
 export { TldrawAiModule, type TldrawAiModuleOptions } from './lib/TldrawAiModule'
-export { TldrawAiTransform, type TldrawAiTransformConstructor } from './lib/TldrawAiTransform'
 export {
-	defaultApplyChanges as defaultApply,
+	createTldrawAiTransform,
+	TldrawAiTransforms,
+	type TldrawAiTransformFn,
+} from './lib/TldrawAiTransform'
+export {
+	configureTldrawAi,
+	defaultApplyChanges,
 	useTldrawAi,
 	type TldrawAi,
 	type TldrawAiApplyFn,

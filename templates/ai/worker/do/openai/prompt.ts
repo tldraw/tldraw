@@ -1,4 +1,4 @@
-import { TLAiSerializedPrompt, asMessage } from '@tldraw/ai'
+import { TLAiPrompt, asMessage } from '@tldraw/ai'
 import {
 	ChatCompletionContentPart,
 	ChatCompletionDeveloperMessageParam,
@@ -10,7 +10,7 @@ import { OPENAI_SYSTEM_PROMPT } from './system-prompt'
 /**
  * Build the messages for the prompt.
  */
-export function buildPromptMessages(prompt: TLAiSerializedPrompt) {
+export function buildPromptMessages(prompt: TLAiPrompt) {
 	const systemPrompt = buildSystemPrompt(prompt)
 	const developerMessage = buildDeveloperMessage(prompt)
 	const userMessage = buildUserMessages(prompt)
@@ -21,14 +21,14 @@ export function buildPromptMessages(prompt: TLAiSerializedPrompt) {
 /**
  * Build the system prompt.
  */
-function buildSystemPrompt(_prompt: TLAiSerializedPrompt) {
+function buildSystemPrompt(_prompt: TLAiPrompt) {
 	return {
 		role: 'system',
 		content: OPENAI_SYSTEM_PROMPT,
 	} as const
 }
 
-function buildDeveloperMessage(prompt: TLAiSerializedPrompt) {
+function buildDeveloperMessage(prompt: TLAiPrompt) {
 	const developerMessage: ChatCompletionDeveloperMessageParam & {
 		content: Array<ChatCompletionContentPart>
 	} = {
@@ -57,7 +57,7 @@ function buildDeveloperMessage(prompt: TLAiSerializedPrompt) {
 /**
  * Build the user messages.
  */
-function buildUserMessages(prompt: TLAiSerializedPrompt) {
+function buildUserMessages(prompt: TLAiPrompt) {
 	const userMessage: ChatCompletionUserMessageParam & {
 		content: Array<ChatCompletionContentPart>
 	} = {

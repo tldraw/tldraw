@@ -1,8 +1,9 @@
-import { TLAiChange, TLAiResult, TldrawAiOptions, useTldrawAi } from '@tldraw/ai'
+import { TLAiChange, TLAiResult, useTldrawAi } from '@tldraw/ai'
+import { configureTldrawAi } from '@tldraw/ai/src/lib/useTldrawAi'
 import { Editor } from 'tldraw'
 import { applyChanges } from './applyChanges'
-import { SimpleCoordinates } from './transforms/SimpleCoordinates'
-import { SimpleIds } from './transforms/SimpleIds'
+import { SimpleCoordinatesTransform } from './transforms/SimpleCoordinates'
+import { SimpleIdsTransform } from './transforms/SimpleIds'
 
 /**
  * A hook that calls `useTldrawAi` with static options.
@@ -13,8 +14,8 @@ export function useTldrawAiExample(editor?: Editor) {
 	return useTldrawAi({ editor, ...STATIC_TLDRAWAI_OPTIONS })
 }
 
-const STATIC_TLDRAWAI_OPTIONS: TldrawAiOptions = {
-	transforms: [SimpleIds, SimpleCoordinates],
+const STATIC_TLDRAWAI_OPTIONS = configureTldrawAi({
+	transforms: (t) => t.use(SimpleIdsTransform).use(SimpleCoordinatesTransform),
 	apply: applyChanges,
 
 	// A function that calls the backend and return generated changes.
@@ -80,4 +81,4 @@ const STATIC_TLDRAWAI_OPTIONS: TldrawAiOptions = {
 			reader.releaseLock()
 		}
 	},
-}
+})

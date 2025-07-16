@@ -1,11 +1,11 @@
 import { useCallback, useMemo, useRef } from 'react'
 import { Editor, exhaustiveSwitchError, TLShapePartial, uniqueId, useMaybeEditor } from 'tldraw'
-import { TldrawAiModule, TldrawAiModuleOptions } from './TldrawAiModule'
-import { TLAiChange, TLAiPrompt, TLAiSerializedPrompt, TLAiStreamingChange } from './types'
+import { TldrawAiGenerateOptions, TldrawAiModule, TldrawAiModuleOptions } from './TldrawAiModule'
+import { TLAiPrompt, TLAiStreamingChange } from './types'
 
 /** @public */
 export interface TldrawAi {
-	prompt(message: TldrawAiPromptOptions): { promise: Promise<void>; cancel(): void }
+	prompt(message: string | TldrawAiPromptOptions): { promise: Promise<void>; cancel(): void }
 	repeat(): { promise: Promise<void>; cancel: (() => void) | null }
 	cancel(): void
 }
@@ -14,21 +14,21 @@ export interface TldrawAi {
  * The function signature for generating changes from an AI prompt.
  * @public
  */
-export type TldrawAiGenerateFn = (opts: {
+export type TldrawAiGenerateFn<Prompt, Change> = (opts: {
 	editor: Editor
-	prompt: TLAiSerializedPrompt
+	prompt: Prompt
 	signal: AbortSignal
-}) => Promise<TLAiChange[]>
+}) => Promise<Change[]>
 
 /**
  * The function signature for streaming changes from an AI prompt.
  * @public
  */
-export type TldrawAiStreamFn = (opts: {
+export type TldrawAiStreamFn<Prompt, Change> = (opts: {
 	editor: Editor
-	prompt: TLAiSerializedPrompt
+	prompt: Prompt
 	signal: AbortSignal
-}) => AsyncGenerator<TLAiStreamingChange>
+}) => AsyncGenerator<Change>
 
 /**
  * The function signature for applying changes to the editor.
@@ -37,20 +37,28 @@ export type TldrawAiStreamFn = (opts: {
 export type TldrawAiApplyFn = (opts: { change: TLAiStreamingChange; editor: Editor }) => void
 
 /** @public */
-export interface TldrawAiOptions extends Omit<TldrawAiModuleOptions, 'editor'> {
+export interface TldrawAiOptions<Prompt, Change> extends TldrawAiModuleOptions<Prompt, Change> {
 	editor?: Editor
-	generate?: TldrawAiGenerateFn
-	stream?: TldrawAiStreamFn
+	generate?: TldrawAiGenerateFn<Prompt, Change>
+	stream?: TldrawAiStreamFn<Prompt, Change>
 	apply?: TldrawAiApplyFn
 }
 
-/** @public */
-export type TldrawAiPromptOptions =
-	| string
-	| { message: TLAiPrompt['message']; stream?: boolean; meta?: TLAiPrompt['meta'] }
+export function configureTldrawAi<Prompt = TLAiPrompt, Change = TLAiStreamingChange>(
+	options: TldrawAiOptions<Prompt, Change>
+) {
+	return options
+}
 
 /** @public */
-export function useTldrawAi(opts: TldrawAiOptions): TldrawAi {
+export interface TldrawAiPromptOptions extends TldrawAiGenerateOptions {
+	stream?: boolean
+}
+
+/** @public */
+export function useTldrawAi<Prompt = TLAiPrompt, Change = TLAiStreamingChange>(
+	opts: TldrawAiOptions<Prompt, Change>
+): TldrawAi {
 	const {
 		editor: _editor,
 		generate: generateFn,
@@ -69,11 +77,11 @@ export function useTldrawAi(opts: TldrawAiOptions): TldrawAi {
 		)
 	}
 
-	const ai = useMemo(() => new TldrawAiModule({ editor, transforms }), [editor, transforms])
+	const ai = useMemo(() => new TldrawAiModule(editor, { transforms }), [editor, transforms])
 
 	const rCancelFunction = useRef<(() => void) | null>(null)
-	const rPreviousArguments = useRef<TldrawAiPromptOptions>('')
-	const rPreviousChanges = useRef<TLAiStreamingChange[]>([])
+	const rPreviousArguments = useRef<string | TldrawAiPromptOptions>('')
+	const rPreviousChanges = useRef<Change[]>([])
 
 	/**
 	 * Prompt the AI for a response. If the stream flag is set to true, the call will stream changes as they are ready.
@@ -83,14 +91,14 @@ export function useTldrawAi(opts: TldrawAiOptions): TldrawAi {
 	 * @returns An object with a promise that will resolve when all changes have been applied and a cancel function to abort the work.
 	 */
 	const prompt = useCallback(
-		(message: TldrawAiPromptOptions) => {
+		(message: string | TldrawAiPromptOptions) => {
 			let cancelled = false
 			const controller = new AbortController()
 			const signal = controller.signal
 
 			// Pull out options, keeping in mind that the argument may be just a string
-			const opts = typeof message === 'string' ? { message } : message
-			const { stream = false, meta = {} } = opts
+			const { stream = false, ...generateOptions } =
+				typeof message === 'string' ? { message: message } : message
 
 			const markId = 'generating_' + uniqueId()
 
@@ -100,15 +108,8 @@ export function useTldrawAi(opts: TldrawAiOptions): TldrawAi {
 					return
 				}
 
-				ai.generate(message).then(async ({ handleChange, prompt }) => {
-					const serializedPrompt: TLAiSerializedPrompt = {
-						...prompt,
-						meta,
-						promptBounds: prompt.promptBounds.toJson(),
-						contextBounds: prompt.contextBounds.toJson(),
-					}
-
-					const pendingChanges: TLAiStreamingChange[] = []
+				ai.generate(generateOptions).then(async ({ handleChange, prompt }) => {
+					const pendingChanges: Change[] = []
 
 					if (stream) {
 						if (!streamFn) {
@@ -122,7 +123,7 @@ export function useTldrawAi(opts: TldrawAiOptions): TldrawAi {
 						editor.markHistoryStoppingPoint(markId)
 						for await (const change of streamFn({
 							editor,
-							prompt: serializedPrompt,
+							prompt,
 							signal,
 						})) {
 							if (!cancelled) {
@@ -151,15 +152,13 @@ export function useTldrawAi(opts: TldrawAiOptions): TldrawAi {
 							)
 						}
 						// Handle a one-off generation
-						const changes = await generateFn({ editor, prompt: serializedPrompt, signal }).catch(
-							(error) => {
-								if (error.name === 'AbortError') {
-									console.error('Cancelled')
-								} else {
-									console.error('Fetch error:', error)
-								}
+						const changes = await generateFn({ editor, prompt, signal }).catch((error) => {
+							if (error.name === 'AbortError') {
+								console.error('Cancelled')
+							} else {
+								console.error('Fetch error:', error)
 							}
-						)
+						})
 
 						if (changes && !cancelled) {
 							// todo: consider history while generating. Is this configurable? Can we guarantee that these changes won't interrupt the user's changes?
@@ -186,7 +185,7 @@ export function useTldrawAi(opts: TldrawAiOptions): TldrawAi {
 					}
 
 					// If successful, save the previous options / response
-					rPreviousArguments.current = opts
+					rPreviousArguments.current = message
 					rPreviousChanges.current = pendingChanges
 
 					rCancelFunction.current = null
@@ -225,22 +224,7 @@ export function useTldrawAi(opts: TldrawAiOptions): TldrawAi {
 			if (!ai) throw Error('tldraw AI instance not found')
 
 			// Repeat the previous arguments and changes
-			const prevOpts = rPreviousArguments.current
-			const { handleChange } = await ai.generate(prevOpts)
-			editor.run(
-				() => {
-					for (const change of rPreviousChanges.current) {
-						handleChange(change, applyFn)
-					}
-				},
-				{
-					ignoreShapeLock: false, // should this be true?
-					history: 'record', // should this be 'ignore'?
-				}
-			)
-
-			rCancelFunction.current = null
-			return
+			return await prompt(rPreviousArguments.current)
 		}
 
 		const promise = new Promise<void>((resolve, reject) => {
@@ -258,7 +242,7 @@ export function useTldrawAi(opts: TldrawAiOptions): TldrawAi {
 			promise,
 			cancel: rCancelFunction.current,
 		}
-	}, [ai, editor, applyFn])
+	}, [ai, editor, prompt])
 
 	const cancel = useCallback(() => {
 		rCancelFunction.current?.()

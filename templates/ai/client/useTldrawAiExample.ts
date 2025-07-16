@@ -1,8 +1,8 @@
-import { TLAiChange, TLAiResult, TldrawAiOptions, useTldrawAi } from '@tldraw/ai'
+import { configureTldrawAi, TLAiChange, TLAiResult, useTldrawAi } from '@tldraw/ai'
 import { Editor } from 'tldraw'
-import { ShapeDescriptions } from './transforms/ShapeDescriptions'
-import { SimpleCoordinates } from './transforms/SimpleCoordinates'
-import { SimpleIds } from './transforms/SimpleIds'
+import { ShapeDescriptionsTransform } from './transforms/ShapeDescriptions'
+import { SimpleCoordinatesTransform } from './transforms/SimpleCoordinates'
+import { SimpleIdsTransform } from './transforms/SimpleIds'
 
 /**
  * A hook that calls `useTldrawAi` with static options.
@@ -13,10 +13,11 @@ export function useTldrawAiExample(editor?: Editor) {
 	return useTldrawAi({ editor, ...STATIC_TLDRAWAI_OPTIONS })
 }
 
-const STATIC_TLDRAWAI_OPTIONS: TldrawAiOptions = {
+const STATIC_TLDRAWAI_OPTIONS = configureTldrawAi({
 	// Transforms that will be applied to the prompt before it's
 	// sent and to changes as they're received.
-	transforms: [SimpleIds, ShapeDescriptions, SimpleCoordinates],
+	transforms: (t) =>
+		t.use(SimpleIdsTransform).use(ShapeDescriptionsTransform).use(SimpleCoordinatesTransform),
 	// A function that calls the backend and return generated changes.
 	// See worker/do/OpenAiService.ts#generate for the backend part.
 	generate: async ({ prompt, signal }) => {
@@ -80,4 +81,4 @@ const STATIC_TLDRAWAI_OPTIONS: TldrawAiOptions = {
 			reader.releaseLock()
 		}
 	},
-}
+})

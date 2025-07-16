@@ -1,15 +1,28 @@
-import { Box, Editor, FileHelpers, structuredClone } from 'tldraw'
-import { TldrawAiTransformConstructor } from './TldrawAiTransform'
-import { TLAiContent, TLAiMessages, TLAiPrompt, TLAiStreamingChange } from './types'
+import { Box, BoxModel, Editor, FileHelpers, structuredClone } from 'tldraw'
+import { TldrawAiTransforms } from './TldrawAiTransform'
+import { TLAiContent, TLAiMessage, TLAiPrompt, TLAiStreamingChange } from './types'
 import { TldrawAiApplyFn } from './useTldrawAi'
 import { asMessage } from './utils'
 
 /** @public */
-export interface TldrawAiModuleOptions {
-	editor: Editor
-	transforms?: TldrawAiTransformConstructor[]
+export interface TldrawAiModuleOptions<Prompt, Change> {
+	transforms:
+		| TldrawAiTransforms<Prompt, Change>
+		| ((transforms: TldrawAiTransforms) => TldrawAiTransforms<Prompt, Change>)
 }
 
+export interface TldrawAiGenerateOptions {
+	/** The user's written prompt or an array of messages */
+	message: string | TLAiMessage[]
+	/** The content pulled from the editor */
+	canvasContent?: TLAiContent
+	/** The bounds of the context in the editor */
+	contextBounds?: BoxModel
+	/** The bounds of the prompt in the editor */
+	promptBounds?: BoxModel
+	/** Any additional information. Must be JSON serializable! */
+	meta?: any
+}
 /**
  * The AI manager for tldraw. This class is used to produce prompts for the AI
  * using data from the editor, and to update the editor based on the
@@ -17,8 +30,11 @@ export interface TldrawAiModuleOptions {
  *
  * @public
  */
-export class TldrawAiModule {
-	constructor(public readonly opts = {} as TldrawAiModuleOptions) {}
+export class TldrawAiModule<Prompt = TLAiPrompt, Change = TLAiStreamingChange> {
+	constructor(
+		public readonly editor: Editor,
+		public readonly opts = {} as TldrawAiModuleOptions<Prompt, Change>
+	) {}
 
 	dispose() {}
 
@@ -26,74 +42,76 @@ export class TldrawAiModule {
 	 * Creates and prepare a prompt, returning the prompt
 	 * and a function to handle changes.
 	 *
-	 * @param prompt - The user's message or a configuration for the prompt
+	 * @param options - Options for the prompt
 	 */
-	async generate(prompt: string | { message: TLAiMessages; stream?: boolean }) {
-		const { transforms: _transformCtors = [] } = this.opts
-		const transforms = _transformCtors.map((ctor) => new ctor(this.opts.editor))
+	async generate(options: TldrawAiGenerateOptions) {
+		const { transforms: transformsFn = TldrawAiTransforms.empty } = this.opts
+		const transforms = (
+			typeof transformsFn === 'function' ? transformsFn(TldrawAiTransforms.empty) : transformsFn
+		).transforms
 
-		const message = typeof prompt === 'string' ? prompt : prompt.message
-		let _prompt = await this.getPrompt(message)
+		let _prompt: any = await this.getPrompt(options)
+		const changeTransforms: ((change: any) => any)[] = []
 
 		for (const transform of transforms) {
-			if (transform.transformPrompt) {
-				_prompt = transform.transformPrompt(_prompt)
+			const result = transform(this.editor, _prompt)
+			if (result.prompt) {
+				_prompt = result.prompt
+			}
+			if (result.handleChange) {
+				changeTransforms.push(result.handleChange)
 			}
 		}
 
-		transforms.reverse()
+		const prompt: Prompt = _prompt
 
-		const handleChange = (change: TLAiStreamingChange, apply: TldrawAiApplyFn) => {
-			for (const transform of transforms) {
-				if (transform.transformChange) {
-					change = transform.transformChange(change)
+		changeTransforms.reverse()
+
+		const handleChange = (change: Change, apply: TldrawAiApplyFn) => {
+			let _change: any = change
+			for (const changeTransform of changeTransforms) {
+				const result = changeTransform(change)
+				if (result) {
+					_change = result
+				} else {
+					return
 				}
 			}
-			apply({ change, editor: this.opts.editor })
-		}
-
-		const handleChanges = (changes: TLAiStreamingChange[]) => {
-			for (const transform of transforms) {
-				if (transform.transformChanges) {
-					changes = transform.transformChanges(changes)
-				}
-			}
+			const finalChange: TLAiStreamingChange = _change
+			apply({ change: finalChange, editor: this.editor })
 		}
 
 		return {
-			prompt: _prompt,
+			prompt,
 			handleChange,
-			handleChanges,
 		}
 	}
 
 	/**
 	 * Create the prompt to be sent to the AI.
 	 *
-	 * @param prompt - The user's prompt
 	 * @param options - Options to generate the input
 	 */
-	async getPrompt(
-		prompt: TLAiMessages,
-		options = {} as Partial<Pick<TLAiPrompt, 'canvasContent' | 'contextBounds' | 'promptBounds'>>
-	): Promise<TLAiPrompt> {
-		const { editor } = this.opts
+	async getPrompt(options: TldrawAiGenerateOptions): Promise<TLAiPrompt> {
+		const { editor } = this
 		const {
+			message,
 			contextBounds = editor.getViewportPageBounds(),
 			promptBounds = editor.getViewportPageBounds(),
+			canvasContent = this.getContent(promptBounds),
+			meta,
 		} = options
 
-		const content = options.canvasContent ?? this.getContent(promptBounds)
-
 		// Get image from the content
-		const image = await this.getImage(content)
+		const image = await this.getImage(canvasContent)
 
 		return {
-			message: asMessage(prompt),
-			canvasContent: content,
+			message: asMessage(message),
+			canvasContent,
 			contextBounds: roundBox(contextBounds),
 			promptBounds: roundBox(promptBounds),
 			image,
+			meta,
 		}
 	}
 
@@ -102,8 +120,10 @@ export class TldrawAiModule {
 	 *
 	 * @param bounds - The bounds to get the content for
 	 */
-	private getContent(bounds: Box): TLAiContent {
-		const { editor } = this.opts
+	private getContent(bounds: BoxModel): TLAiContent {
+		const { editor } = this
+
+		const boundsBox = Box.From(bounds)
 
 		// Get the page content (same as what we put on the clipboard when a user copies) for the shapes
 		// that are included (contained or colliding with) the provided bounds
@@ -115,7 +135,7 @@ export class TldrawAiModule {
 			...editor.getContentFromCurrentPage(
 				editor
 					.getCurrentPageShapesSorted()
-					.filter((s) => bounds.includes(editor.getShapeMaskedPageBounds(s)!))
+					.filter((s) => boundsBox.includes(editor.getShapeMaskedPageBounds(s)!))
 			),
 		}
 
@@ -146,7 +166,7 @@ export class TldrawAiModule {
 	private async getImage(content: TLAiContent) {
 		if (!content.shapes.length) return undefined
 
-		const result = await this.opts.editor.toImage(content.shapes, {
+		const result = await this.editor.toImage(content.shapes, {
 			format: 'jpeg',
 			background: false,
 			darkMode: false,
@@ -157,11 +177,11 @@ export class TldrawAiModule {
 	}
 }
 
-function roundBox(box: Box) {
-	const b = box.clone()
-	b.x = Math.round(b.x)
-	b.y = Math.round(b.y)
-	b.width = Math.round(b.width)
-	b.height = Math.round(b.height)
-	return b
+function roundBox(box: BoxModel): BoxModel {
+	return {
+		x: Math.round(box.x),
+		y: Math.round(box.y),
+		w: Math.round(box.w),
+		h: Math.round(box.h),
+	}
 }

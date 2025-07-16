@@ -1,4 +1,4 @@
-import { TLAiChange, TLAiResult, TLAiSerializedPrompt } from '@tldraw/ai'
+import type { TLAiChange, TLAiPrompt, TLAiResult } from '@tldraw/ai'
 import { TldrawAiBaseService } from '../../TldrawAiBaseService'
 import { Environment } from '../../types'
 
@@ -7,12 +7,12 @@ export class CustomProviderService extends TldrawAiBaseService {
 		super(env)
 	}
 
-	async generate(_prompt: TLAiSerializedPrompt): Promise<TLAiResult> {
+	async generate(_prompt: TLAiPrompt): Promise<TLAiResult> {
 		// todo: generate changes based on the prompt and return them all at once
 		return { changes: [] }
 	}
 
-	async *stream(_prompt: TLAiSerializedPrompt): AsyncGenerator<TLAiChange> {
+	async *stream(_prompt: TLAiPrompt): AsyncGenerator<TLAiChange> {
 		// todo: generate changes one-by-one based on the prompt and stream them back
 		const changes: TLAiChange[] = []
 		for (const change of changes) {

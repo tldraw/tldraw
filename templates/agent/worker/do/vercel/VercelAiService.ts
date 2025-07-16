@@ -1,7 +1,7 @@
 import { AnthropicProvider, createAnthropic } from '@ai-sdk/anthropic'
 import { createGoogleGenerativeAI, GoogleGenerativeAIProvider } from '@ai-sdk/google'
 import { createOpenAI, OpenAIProvider } from '@ai-sdk/openai'
-import { asMessage, TLAiChange, TLAiResult, TLAiSerializedPrompt } from '@tldraw/ai'
+import { asMessage, TLAiChange, TLAiPrompt, TLAiResult } from '@tldraw/ai'
 import { CoreMessage, generateObject, LanguageModel, streamObject, UserContent } from 'ai'
 import { ACTION_HISTORY_ITEM_DEFINITIONS, ChatHistoryItem } from '../../../client/ChatHistoryItem'
 import { getTLAgentModelDefinition, TLAgentModelName } from '../../models'
@@ -31,14 +31,14 @@ export class VercelAiService extends TldrawAiBaseService {
 		return this[provider](modelDefinition.id)
 	}
 
-	async generate(prompt: TLAiSerializedPrompt): Promise<TLAiResult> {
+	async generate(prompt: TLAiPrompt): Promise<TLAiResult> {
 		const model = this.getModel(prompt.meta.modelName)
 		const events = await generateEventsVercel(model, prompt)
 		const changes = events.map((event) => getTldrawAiChangesFromSimpleEvents(prompt, event)).flat()
 		return { changes }
 	}
 
-	async *stream(prompt: TLAiSerializedPrompt): AsyncGenerator<TLAiChange> {
+	async *stream(prompt: TLAiPrompt): AsyncGenerator<TLAiChange> {
 		const model = this.getModel(prompt.meta.modelName)
 		for await (const event of streamEventsVercel(model, prompt)) {
 			for (const change of getTldrawAiChangesFromSimpleEvents(prompt, event)) {
@@ -50,7 +50,7 @@ export class VercelAiService extends TldrawAiBaseService {
 
 async function* streamEventsVercel(
 	model: LanguageModel,
-	prompt: TLAiSerializedPrompt
+	prompt: TLAiPrompt
 ): AsyncGenerator<ISimpleEvent & { complete: boolean }> {
 	const { partialObjectStream } = streamObject<IModelResponse>({
 		model,
@@ -95,7 +95,7 @@ async function* streamEventsVercel(
 
 async function generateEventsVercel(
 	model: LanguageModel,
-	prompt: TLAiSerializedPrompt
+	prompt: TLAiPrompt
 ): Promise<(ISimpleEvent & { complete: boolean })[]> {
 	const response = await generateObject({
 		model,
@@ -107,7 +107,7 @@ async function generateEventsVercel(
 	return response.object.events.map((event) => ({ ...event, complete: true }))
 }
 
-function buildMessages(prompt: TLAiSerializedPrompt): CoreMessage[] {
+function buildMessages(prompt: TLAiPrompt): CoreMessage[] {
 	const messages: CoreMessage[] = []
 
 	messages.push(...buildHistoryMessages(prompt))
@@ -116,7 +116,7 @@ function buildMessages(prompt: TLAiSerializedPrompt): CoreMessage[] {
 	return messages
 }
 
-function buildHistoryMessages(prompt: TLAiSerializedPrompt): CoreMessage[] {
+function buildHistoryMessages(prompt: TLAiPrompt): CoreMessage[] {
 	const messages: CoreMessage[] = []
 
 	for (const item of prompt.meta.historyItems) {
@@ -175,7 +175,7 @@ function buildHistoryItemMessage(item: ChatHistoryItem): CoreMessage {
 /**
  * Build the user messages.
  */
-function buildUserMessage(prompt: TLAiSerializedPrompt): CoreMessage {
+function buildUserMessage(prompt: TLAiPrompt): CoreMessage {
 	const content: UserContent = []
 
 	// Add the current viewport

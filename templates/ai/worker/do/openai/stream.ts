@@ -1,4 +1,4 @@
-import { TLAiSerializedPrompt } from '@tldraw/ai'
+import { TLAiPrompt } from '@tldraw/ai'
 import { parse } from 'best-effort-json-parser'
 import OpenAI from 'openai'
 import { buildPromptMessages } from './prompt'
@@ -11,7 +11,7 @@ const OPENAI_MODEL = 'gpt-4o-2024-08-06'
  */
 export async function* streamEvents(
 	model: OpenAI,
-	prompt: TLAiSerializedPrompt
+	prompt: TLAiPrompt
 ): AsyncGenerator<ISimpleEvent> {
 	const stream = model.beta.chat.completions.stream({
 		model: OPENAI_MODEL,
