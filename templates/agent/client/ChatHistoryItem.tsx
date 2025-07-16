@@ -8,6 +8,7 @@ import { RefreshIcon } from './icons/RefreshIcon'
 import { SearchIcon } from './icons/SearchIcon'
 import { TrashIcon } from './icons/TrashIcon'
 import TldrawViewer from './TldrawViewer'
+import { unapplyChanges } from './unapplyChanges'
 
 export type ChatHistoryItem =
 	| UserMessageHistoryItem
@@ -204,9 +205,10 @@ export function AgentChangeHistoryItem({
 			const oldItem = items[id]
 			const status = oldItem.status === 'progress' ? 'cancelled' : 'done'
 			newItems[id] = { ...item, acceptance: 'rejected', status }
+			unapplyChanges({ changes: item.changes, editor })
 			return newItems
 		})
-	}, [id, item])
+	}, [id, item, editor])
 
 	if (diffShapes.length === 0) return null
 
