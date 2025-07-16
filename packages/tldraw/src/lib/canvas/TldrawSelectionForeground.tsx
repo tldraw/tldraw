@@ -192,7 +192,11 @@ export const TldrawSelectionForeground = track(function TldrawSelectionForegroun
 		textHandleHeight * zoom >= 4
 
 	return (
-		<svg className="tl-overlays__item tl-selection__fg" data-testid="selection-foreground">
+		<svg
+			className="tl-overlays__item tl-selection__fg"
+			data-testid="selection-foreground"
+			aria-hidden="true"
+		>
 			<g ref={rSvg}>
 				{shouldDisplayBox && (
 					<rect

@@ -44,7 +44,7 @@ const tolkeinId = Author.createCustomId('tolkein')
 
 store.put([
 	Author.create({
-		id: jrrTolkeinId,
+		id: tolkeinId,
 		name: 'J.R.R Tolkein',
 	}),
 ])
@@ -163,7 +163,7 @@ store.deserialize(serialized)
 
 ### `listen(listener: ((entry: HistoryEntry) => void): () => void`
 
-Add a new listener to the store The store will call the function each time the history changes. Returns a function to remove the listener.
+Add a new listener to the store. The store will call the function each time the history changes. Returns a function to remove the listener.
 
 ```ts
 store.listen((entry) => doSomethingWith(entry))
