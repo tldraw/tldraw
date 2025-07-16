@@ -318,12 +318,12 @@ test.describe('Actions on shapes', () => {
 		// rotate — Ctrl+Shift+ArrowLeft, Ctrl+Shift+ArrowRight
 		await page.keyboard.press('Shift+]')
 		expect(await page.evaluate(() => __tldraw_ui_event)).toMatchObject({
-			name: 'rotate-ccw',
+			name: 'rotate-cw',
 			data: { source: 'kbd' },
 		})
 		await page.keyboard.press('Shift+[')
 		expect(await page.evaluate(() => __tldraw_ui_event)).toMatchObject({
-			name: 'rotate-cw',
+			name: 'rotate-ccw',
 			data: { source: 'kbd' },
 		})
 
