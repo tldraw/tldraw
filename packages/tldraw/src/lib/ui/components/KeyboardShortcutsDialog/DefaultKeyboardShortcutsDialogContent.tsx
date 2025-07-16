@@ -213,7 +213,7 @@ export function DefaultKeyboardShortcutsDialogContent() {
 				<TldrawUiMenuItem
 					id="a11y-rotate-shape-cw"
 					label="a11y.rotate-shape-cw"
-					kbd="shift+]"
+					kbd="shift+﹥"
 					onSelect={() => {
 						/* do nothing */
 					}}
@@ -221,7 +221,7 @@ export function DefaultKeyboardShortcutsDialogContent() {
 				<TldrawUiMenuItem
 					id="a11y-rotate-shape-ccw"
 					label="a11y.rotate-shape-ccw"
-					kbd="shift+["
+					kbd="shift+﹤"
 					onSelect={() => {
 						/* do nothing */
 					}}
