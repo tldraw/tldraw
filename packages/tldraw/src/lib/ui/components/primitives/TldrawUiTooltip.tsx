@@ -1,4 +1,4 @@
-import { uniqueId, useEditor, useValue, Vec } from '@tldraw/editor'
+import { Editor, uniqueId, useEditor, useMaybeEditor, useValue, Vec } from '@tldraw/editor'
 import { Tooltip as _Tooltip } from 'radix-ui'
 import React, { createContext, useContext, useEffect, useRef, useState } from 'react'
 
@@ -21,7 +21,7 @@ class TooltipManager {
 	private destroyTimeoutId: number | null = null
 	private subscribers: Set<() => void> = new Set()
 	private activeElement: HTMLElement | null = null
-	private editor: any = null
+	private editor: Editor | null = null
 
 	static getInstance(): TooltipManager {
 		if (!TooltipManager.instance) {
@@ -30,7 +30,7 @@ class TooltipManager {
 		return TooltipManager.instance
 	}
 
-	setEditor(editor: any) {
+	setEditor(editor: Editor | null) {
 		this.editor = editor
 	}
 
@@ -117,7 +117,7 @@ export function TldrawUiTooltipProvider({ children }: TldrawUiTooltipProviderPro
 
 // The singleton tooltip component that renders once
 function TooltipSingleton() {
-	const editor = useEditor()
+	const editor = useMaybeEditor()
 	const [, forceUpdate] = useState({})
 	const [isOpen, setIsOpen] = useState(false)
 	const triggerRef = useRef<HTMLDivElement>(null)
@@ -183,7 +183,7 @@ function TooltipSingleton() {
 			trigger.style.zIndex = '9999'
 
 			// Handle delay for first show
-			if (isFirstShowRef.current) {
+			if (isFirstShowRef.current && editor) {
 				// First tooltip needs 300ms delay
 				showTimeoutRef.current = editor.timers.setTimeout(() => {
 					setIsOpen(true)
