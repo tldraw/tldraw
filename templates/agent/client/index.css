@@ -224,10 +224,6 @@ body {
 	background-color: var(--color-muted-2);
 }
 
-.agent-chat-message {
-	max-width: 80%;
-}
-
 .agent-raw-message {
 	white-space: pre-wrap;
 }

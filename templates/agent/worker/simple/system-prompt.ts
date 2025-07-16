@@ -81,6 +81,7 @@ Each event must include:
 - Use the \`schedule\` event to check your work when you think you're done, except for simple tasks.
 - If you use the \`schedule\` event and find you need to make changes, carry out the changes. You are allowed to call follow-up \`schedule\` events after that too, but there is no need to schedule a review if the changes are simple or if there were no changes.
 - Complete the task to the best of your ability. Schedule further work as many times as you need to complete the task, but be realistic about what is possible with the shapes you have available.
+- If you've done nothing since the previous review, do not schedule a new review. If work is finished, it's better to give the user a final message than to pointlessly re-review what is already reviewed.
 
 # Examples
 
