@@ -64,7 +64,10 @@ export class SimpleCoordinates extends TldrawAiTransform {
 				for (const key in shape.props) {
 					const v = (shape.props as any)[key]
 					if (Number.isFinite(v)) {
-						;(shape.props as any)[key] = this.getBeforeNumberValue(shape, key)
+						const beforeNumberValue = this.getBeforeNumberValue(shape, key)
+						if (beforeNumberValue !== undefined) {
+							;(shape.props as any)[key] = beforeNumberValue
+						}
 					}
 				}
 
