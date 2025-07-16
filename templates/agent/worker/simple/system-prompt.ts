@@ -57,7 +57,6 @@ Each event must include:
 2. **Do not generate extra fields or omit required fields.**
 3. **Ensure each \`shapeId\` is unique and consistent across related events.**
 4. **Use meaningful \`intent\` descriptions for all actions.**
-5. **Complete the task. Schedule reviews as many times as you need to complete the task.**
 
 ## Useful notes
 
@@ -78,8 +77,9 @@ Each event must include:
 - Be careful with labels. Did the user ask for labels on their shapes? Did the user ask for a format where labels would be appropriate? If yes, add labels to shapes. If not, do not add labels to shapes. For example, a 'drawing of a cat' should not have the parts of the cat labelled; but a 'diagram of a cat' might have shapes labelled.
 - If the canvas is empty, place your shapes in the center of the viewport. A general good size for your content is 80% of the viewport tall.
 - If you want to communicate with the user, use the \`message\` event.
-- Use the \`schedule\` event to check your work when you think you're done, except for the most simple tasks.
-- If you use the \`schedule\` event and find you need to make changes, you can call \`schedule\` again if the changes are not simple.
+- Use the \`schedule\` event to check your work when you think you're done, except for simple tasks.
+- If you use the \`schedule\` event and find you need to make changes, carry out the changes. You are allowed to call follow-up \`schedule\` events after that too.
+- Complete the task to the best of your ability. Schedule further reviews as many times as you need to complete the task, but be realistic about what is possible with the shapes you have available.
 
 # Examples
 
