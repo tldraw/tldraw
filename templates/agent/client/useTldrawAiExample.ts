@@ -1,5 +1,4 @@
-import { TLAiChange, TLAiResult, useTldrawAi } from '@tldraw/ai'
-import { configureTldrawAi } from '@tldraw/ai/src/lib/useTldrawAi'
+import { configureTldrawAi, TLAiChange, TLAiResult, useTldrawAi } from '@tldraw/ai'
 import { Editor } from 'tldraw'
 import { applyChanges } from './applyChanges'
 import { SimpleCoordinatesTransform } from './transforms/SimpleCoordinates'
@@ -13,6 +12,70 @@ import { SimpleIdsTransform } from './transforms/SimpleIds'
 export function useTldrawAiExample(editor?: Editor) {
 	return useTldrawAi({ editor, ...STATIC_TLDRAWAI_OPTIONS })
 }
+
+const tldrawAi = TldrawAi.use(SimpleIds)
+	.use(SimpleCoordinates)
+	.use(SimpleShapes)
+	.use(ThoughtsAndChat)
+	.withGenerate(async ({ prompt, signal }) => {
+		const res = await fetch('/generate', {
+			method: 'POST',
+			body: JSON.stringify(prompt),
+			headers: {
+				'Content-Type': 'application/json',
+			},
+			signal,
+		})
+
+		const result: TLAiResult = await res.json()
+
+		return result.changes
+	})
+	.withStream(async function* ({ prompt, signal }) {
+		const res = await fetch('/stream', {
+			method: 'POST',
+			body: JSON.stringify(prompt),
+			headers: {
+				'Content-Type': 'application/json',
+			},
+			signal,
+		})
+
+		if (!res.body) {
+			throw Error('No body in response')
+		}
+
+		const reader = res.body.getReader()
+		const decoder = new TextDecoder()
+		let buffer = ''
+
+		try {
+			while (true) {
+				const { value, done } = await reader.read()
+				if (done) break
+
+				buffer += decoder.decode(value, { stream: true })
+				const events = buffer.split('\n\n')
+				buffer = events.pop() || ''
+
+				for (const event of events) {
+					const match = event.match(/^data: (.+)$/m)
+					if (match) {
+						try {
+							const change: TLAiChange = JSON.parse(match[1])
+							yield change
+						} catch (err) {
+							console.error(err)
+							throw Error(`JSON parsing error: ${match[1]}`)
+						}
+					}
+				}
+			}
+		} finally {
+			reader.releaseLock()
+		}
+	})
+	.withApply(applyChanges)
 
 const STATIC_TLDRAWAI_OPTIONS = configureTldrawAi({
 	transforms: (t) => t.use(SimpleIdsTransform).use(SimpleCoordinatesTransform),
