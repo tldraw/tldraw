@@ -1,6 +1,6 @@
 import { TLAiStreamingChange } from '@tldraw/ai'
 import { useEffect, useState } from 'react'
-import { defaultColorNames, Editor, TLShape, TLShapeId } from 'tldraw'
+import { defaultColorNames, Editor, TLShape, TLShapeId, toRichText } from 'tldraw'
 import { BrainIcon } from './icons/BrainIcon'
 import { PencilIcon } from './icons/PencilIcon'
 import { RefreshIcon } from './icons/RefreshIcon'
@@ -92,7 +92,7 @@ function makeHighlightShape({
 	if ('color' in props) props.color = color
 	if ('dash' in props) props.dash = 'solid'
 	if ('scale' in props) {
-		if (shape.type === 'text') {
+		if (shape.type === 'text' || shape.type === 'note') {
 			// Hack for injecting CSS to the shape
 			// Probably legit ways to do this now
 			if (color === 'light-green') {
@@ -103,6 +103,7 @@ function makeHighlightShape({
 				opacity = 0.53
 			}
 		} else {
+			if ('richText' in props) props.richText = toRichText('')
 			props.scale = 6
 		}
 	}
