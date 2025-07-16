@@ -255,3 +255,15 @@ body {
 	height: 100px;
 	position: relative;
 }
+
+.tl-shape[style*='opacity: 0.51'] {
+	filter: drop-shadow(1.5px 1.5px 0px rgb(0, 200, 0));
+}
+
+.tl-shape[style*='opacity: 0.52'] {
+	filter: drop-shadow(1.5px 1.5px 0px rgb(200, 0, 0));
+}
+
+.tl-shape[style*='opacity: 0.53'] {
+	filter: drop-shadow(1.5px 1.5px 0px rgb(0, 0, 200));
+}

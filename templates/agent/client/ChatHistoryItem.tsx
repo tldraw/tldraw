@@ -1,6 +1,6 @@
 import { TLAiStreamingChange } from '@tldraw/ai'
 import { useEffect, useState } from 'react'
-import { Editor, TLShape, TLShapeId } from 'tldraw'
+import { defaultColorNames, Editor, TLShape, TLShapeId } from 'tldraw'
 import { BrainIcon } from './icons/BrainIcon'
 import { PencilIcon } from './icons/PencilIcon'
 import { RefreshIcon } from './icons/RefreshIcon'
@@ -80,6 +80,40 @@ function getCompleteShapeFromStreamingShape({
 	return completeShapeRecord as TLShape
 }
 
+function makeHighlightShape({
+	shape,
+	color,
+}: {
+	shape: TLShape
+	color: (typeof defaultColorNames)[number]
+}) {
+	let opacity = 0.5
+	const props = { ...shape.props }
+	if ('color' in props) props.color = color
+	if ('dash' in props) props.dash = 'solid'
+	if ('scale' in props) {
+		if (shape.type === 'text') {
+			// Hack for injecting CSS to the shape
+			// Probably legit ways to do this now
+			if (color === 'light-green') {
+				opacity = 0.51
+			} else if (color === 'light-red') {
+				opacity = 0.52
+			} else if (color === 'light-blue') {
+				opacity = 0.53
+			}
+		} else {
+			props.scale = 6
+		}
+	}
+	return {
+		...shape,
+		id: (shape.id + '-highlight') as TLShapeId,
+		opacity,
+		props,
+	}
+}
+
 function getDiffShapesFromChange({
 	change,
 	editor,
@@ -91,12 +125,7 @@ function getDiffShapesFromChange({
 		case 'createShape': {
 			const shape = getCompleteShapeFromStreamingShape({ shape: change.shape, editor })
 			if (shape) {
-				const highlightShape = {
-					...shape,
-					id: (shape.id + '-highlight') as TLShapeId,
-					opacity: 0.5,
-					props: { ...shape.props, dash: 'solid', color: 'light-green', scale: 6 },
-				}
+				const highlightShape = makeHighlightShape({ shape, color: 'light-green' })
 				return [highlightShape, shape]
 			}
 			return []
@@ -108,12 +137,7 @@ function getDiffShapesFromChange({
 		case 'deleteShape': {
 			const shape = getCompleteShapeFromStreamingShape({ shape: change.shape, editor })
 			if (shape) {
-				const highlightShape = {
-					...shape,
-					id: (shape.id + '-highlight') as TLShapeId,
-					opacity: 0.5,
-					props: { ...shape.props, dash: 'solid', color: 'light-red', scale: 6 },
-				}
+				const highlightShape = makeHighlightShape({ shape, color: 'light-red' })
 				return [highlightShape, shape]
 			}
 			return []
