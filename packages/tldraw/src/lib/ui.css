@@ -964,7 +964,7 @@
 	justify-content: center;
 	border-radius: 99px;
 	opacity: 0;
-	animation: fade-in;
+	animation: tl-fade-in;
 	animation-duration: 0.12s;
 	animation-delay: 2s;
 	animation-fill-mode: forwards;
@@ -1421,11 +1421,11 @@
 
 @media (prefers-reduced-motion: no-preference) {
 	.tlui-toast__container[data-state='open'] {
-		animation: slide-in 200ms cubic-bezier(0.785, 0.135, 0.15, 0.86);
+		animation: tlui-slide-in 200ms cubic-bezier(0.785, 0.135, 0.15, 0.86);
 	}
 
 	.tlui-toast__container[data-state='closed'] {
-		animation: hide 100ms ease-in;
+		animation: tlui-fade-out 100ms ease-in;
 	}
 
 	.tlui-toast__container[data-swipe='move'] {
@@ -1438,7 +1438,7 @@
 	}
 
 	.tlui-toast__container[data-swipe='end'] {
-		animation: swipe-out 100ms ease-out;
+		animation: tlui-slide-out 100ms ease-out;
 	}
 }
 
@@ -1453,7 +1453,7 @@
 	z-index: var(--layer-canvas-overlays);
 	background-color: var(--color-overlay);
 	pointer-events: all;
-	animation: fadeIn 0.12s ease-out;
+	animation: tl-fade-in 0.12s ease-out;
 	display: grid;
 	place-items: center;
 	overflow-y: auto;
@@ -2020,7 +2020,7 @@
 }
 
 /* ------------------- Animations ------------------- */
-@keyframes hide {
+@keyframes tlui-fade-out {
 	0% {
 		opacity: 1;
 	}
@@ -2029,7 +2029,7 @@
 	}
 }
 
-@keyframes slide-in {
+@keyframes tlui-slide-in {
 	from {
 		transform: translateX(calc(100% + var(--space-3)));
 	}
@@ -2038,7 +2038,7 @@
 	}
 }
 
-@keyframes swipe-out {
+@keyframes tlui-slide-out {
 	from {
 		transform: translateX(var(--radix-toast-swipe-end-x));
 	}

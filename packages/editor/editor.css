@@ -970,19 +970,32 @@ input,
 	font-size: 14px;
 	font-weight: 500;
 	opacity: 0;
-	animation: fade-in 0.2s ease-in-out forwards;
+	animation: tl-fade-in 0.2s ease-in-out forwards;
 	animation-delay: 0.2s;
 	position: absolute;
 	inset: 0px;
 	z-index: var(--layer-canvas-blocker);
 }
 
-@keyframes fade-in {
+@keyframes tl-fade-in {
 	0% {
 		opacity: 0;
 	}
 	100% {
 		opacity: 1;
+	}
+}
+
+.tl-spinner {
+	animation: tl-spin 1s linear infinite;
+}
+
+@keyframes tl-spin {
+	0% {
+		transform: rotate(0deg);
+	}
+	100% {
+		transform: rotate(360deg);
 	}
 }
 
