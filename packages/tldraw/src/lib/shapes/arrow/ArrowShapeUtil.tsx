@@ -31,6 +31,7 @@ import {
 	clamp,
 	debugFlags,
 	exhaustiveSwitchError,
+	getColorValue,
 	getDefaultColorTheme,
 	invLerp,
 	lerp,
@@ -781,7 +782,7 @@ export class ArrowShapeUtil extends ShapeUtil<TLArrowShape> {
 						align="middle"
 						verticalAlign="middle"
 						text={shape.props.text}
-						labelColor={theme[shape.props.labelColor].solid}
+						labelColor={getColorValue(theme, shape.props.labelColor, 'solid')}
 						textWidth={labelPosition.box.w - ARROW_LABEL_PADDING * 2 * shape.props.scale}
 						isSelected={isSelected}
 						padding={0}
@@ -950,7 +951,7 @@ export class ArrowShapeUtil extends ShapeUtil<TLArrowShape> {
 					align="middle"
 					verticalAlign="middle"
 					text={shape.props.text}
-					labelColor={theme[shape.props.labelColor].solid}
+					labelColor={getColorValue(theme, shape.props.labelColor, 'solid')}
 					bounds={getArrowLabelPosition(this.editor, shape)
 						.box.clone()
 						.expandBy(-ARROW_LABEL_PADDING * shape.props.scale)}
@@ -1091,7 +1092,7 @@ const ArrowSvg = track(function ArrowSvg({
 			</defs>
 			<g
 				fill="none"
-				stroke={theme[shape.props.color].solid}
+				stroke={getColorValue(theme, shape.props.color, 'solid')}
 				strokeWidth={strokeWidth}
 				strokeLinejoin="round"
 				strokeLinecap="round"
