@@ -98,14 +98,10 @@ export function AgentChangeHistoryItem({
 	// TODO: Support other change types
 	if (createdShapes.length === 0) return null
 
-	const Background = () => (
-		<div style={{ backgroundColor: 'rgba(0, 255, 0, 0.05)', height: '100%' }} />
-	)
-
 	return (
 		<div className="agent-change-message">
 			{/* <div>{item.changes[0]?.description}</div> */}
-			{createdShapes && <TldrawViewer shapes={createdShapes} components={{ Background }} />}
+			{createdShapes && <TldrawViewer shapes={createdShapes} />}
 		</div>
 	)
 }
