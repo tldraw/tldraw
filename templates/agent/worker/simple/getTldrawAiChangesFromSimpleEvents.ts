@@ -250,6 +250,10 @@ function getTldrawAiChangesFromSimpleCreateOrUpdateEvent(
 		}
 		case 'cloud':
 		case 'rectangle':
+		case 'triangle':
+		case 'diamond':
+		case 'hexagon':
+		case 'oval':
 		case 'ellipse': {
 			changes.push({
 				complete: event.complete,

@@ -55,6 +55,66 @@ const SimpleEllipseShape = z.object({
 
 export type ISimpleEllipseShape = z.infer<typeof SimpleEllipseShape>
 
+const SimpleTriangleShape = z.object({
+	type: z.literal('triangle'),
+	shapeId: z.string(),
+	note: z.string(),
+	x: z.number(),
+	y: z.number(),
+	width: z.number(),
+	height: z.number(),
+	color: SimpleColor.optional(),
+	fill: SimpleFill.optional(),
+	text: SimpleLabel.optional(),
+})
+
+export type ISimpleTriangleShape = z.infer<typeof SimpleTriangleShape>
+
+const SimpleDiamondShape = z.object({
+	type: z.literal('diamond'),
+	shapeId: z.string(),
+	note: z.string(),
+	x: z.number(),
+	y: z.number(),
+	width: z.number(),
+	height: z.number(),
+	color: SimpleColor.optional(),
+	fill: SimpleFill.optional(),
+	text: SimpleLabel.optional(),
+})
+
+export type ISimpleDiamondShape = z.infer<typeof SimpleDiamondShape>
+
+const SimpleHexagonShape = z.object({
+	type: z.literal('hexagon'),
+	shapeId: z.string(),
+	note: z.string(),
+	x: z.number(),
+	y: z.number(),
+	width: z.number(),
+	height: z.number(),
+	color: SimpleColor.optional(),
+	fill: SimpleFill.optional(),
+	text: SimpleLabel.optional(),
+})
+
+export type ISimpleHexagonShape = z.infer<typeof SimpleHexagonShape>
+
+const SimpleOvalShape = z.object({
+	type: z.literal('oval'),
+	shapeId: z.string(),
+	note: z.string(),
+	x: z.number(),
+	y: z.number(),
+	width: z.number(),
+	height: z.number(),
+	color: SimpleColor.optional(),
+	fill: SimpleFill.optional(),
+	text: SimpleLabel.optional(),
+})
+
+export type ISimpleOvalShape = z.infer<typeof SimpleOvalShape>
+
 const SimpleCloudShape = z.object({
 	type: z.literal('cloud'),
 	shapeId: z.string(),
@@ -134,10 +194,14 @@ const SimpleUnknownShape = z.object({
 
 export type ISimpleUnknownShape = z.infer<typeof SimpleUnknownShape>
 
-const SimpleShape = z.union([
+export const SimpleShape = z.union([
 	SimpleUnknownShape,
 	SimpleRectangleShape,
 	SimpleEllipseShape,
+	SimpleTriangleShape,
+	SimpleDiamondShape,
+	SimpleHexagonShape,
+	SimpleOvalShape,
 	SimpleCloudShape,
 	SimpleLineShape,
 	SimpleTextShape,

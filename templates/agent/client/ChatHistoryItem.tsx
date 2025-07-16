@@ -152,9 +152,7 @@ export function StatusThinkingHistoryItem({ item }: { item: StatusThinkingHistor
 
 	return (
 		<div className="agent-chat-message status-thinking-message">
-			<p className="status-thinking-message-text">
-				{`Thought for`} for {secondsElapsed}s
-			</p>
+			<p className="status-thinking-message-text">Thinking for {secondsElapsed}s</p>
 		</div>
 	)
 }
