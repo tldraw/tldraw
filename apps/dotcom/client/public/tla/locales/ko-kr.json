@@ -14,6 +14,9 @@
   "06b9281e39": {
     "translation": "자동"
   },
+  "0776e18496": {
+    "translation": "저장하고 공유하세요"
+  },
   "07dbd11b21": {
     "translation": "제목 없는 파일"
   },
@@ -38,6 +41,9 @@
   "13ddd375ad": {
     "translation": "내보내기 형식"
   },
+  "1460ab5e78": {
+    "translation": "무료 tldraws"
+  },
   "181b90f889": {
     "translation": "파일 생성"
   },
@@ -47,11 +53,17 @@
   "1dd1c5fb7f": {
     "translation": "오늘"
   },
+  "22d84a12fd": {
+    "translation": "Figjam이지만 tldraw"
+  },
   "250ddea65c": {
     "translation": "tldraw에 대하여"
   },
   "299cb00a7a": {
     "translation": "업로드 실패"
+  },
+  "2c61d18599": {
+    "translation": "미로지만 좋고 무료입니다"
   },
   "31246941ad": {
     "translation": "이 파일을 보려면 로그인해야 합니다."
@@ -74,8 +86,14 @@
   "3d0238bf16": {
     "translation": "모두 수락"
   },
+  "3fc6d0c83a": {
+    "translation": "친구 추가"
+  },
   "42e53c47c1": {
     "translation": "액세스 권한 요청은 소유주에게 문의하세요."
+  },
+  "44281ab6e5": {
+    "translation": "로그인"
   },
   "44db318ee5": {
     "translation": "Discord에서 도움 받기"
@@ -94,6 +112,12 @@
   },
   "4d1c8263ba": {
     "translation": "다시 로드"
+  },
+  "4e029798f2": {
+    "translation": "무료 주식"
+  },
+  "4e875b8d8e": {
+    "translation": "무료 저장"
   },
   "50db1b7e1e": {
     "translation": "파일 게시를 취소할 수 없습니다."
@@ -137,6 +161,9 @@
   "5fb63579fc": {
     "translation": "복사"
   },
+  "5ff75742e0": {
+    "translation": "무료로 가입하세요"
+  },
   "61057a0c84": {
     "translation": "이후"
   },
@@ -148,6 +175,9 @@
   },
   "6637a98151": {
     "translation": "tldraw의 새 버전이 출시되었습니다. 계속하려면 페이지를 다시 로드하세요."
+  },
+  "697c59072d": {
+    "translation": "저장하려면 로그인하세요"
   },
   "6a26f54883": {
     "translation": "도움말"
@@ -212,6 +242,9 @@
   "815e116a2e": {
     "translation": "tldraw 관련 버그, 문제 또는 아이디어가 있으신가요? 알려주세요! 이 양식을 작성해 주시면 필요 시 이메일로 답변해 드리겠습니다. <discord>Discord에서 채팅</discord>하거나 <github>GitHub에서 문제를 제출</github>하실 수도 있습니다."
   },
+  "84c89d47c7": {
+    "translation": "무료로 공유하세요"
+  },
   "85a082de1b": {
     "translation": "최신 tldraw 버전을 받으려면 페이지를 새로 고침해 주세요."
   },
@@ -223,6 +256,9 @@
   },
   "8b1946f965": {
     "translation": "편집을 계속하려면 해당 방을 파일로 복사하세요."
+  },
+  "8ea211024d": {
+    "translation": "무료 계정을 만드세요"
   },
   "8eb2c00e96": {
     "translation": "나와 공유됨"
@@ -306,6 +342,9 @@
   "b758336699": {
     "translation": "링크 복사"
   },
+  "ba0318cb81": {
+    "translation": "공유하려면 로그인하세요"
+  },
   "bb792693e2": {
     "translation": "고정 해제"
   },
@@ -318,8 +357,17 @@
   "bcb62136a3": {
     "translation": ".tldr 파일 업로드"
   },
+  "bffe9a3c9a": {
+    "translation": "로그인"
+  },
+  "c079282475": {
+    "translation": "당신의 작업을 공유하세요"
+  },
   "c2276c9127": {
     "translation": "공유에 대해 자세히 알아보세요."
+  },
+  "c24e43cd1a": {
+    "translation": "당신도 가입할 거죠?"
   },
   "c303bd1095": {
     "translation": "이 파일을 게시할 수 없습니다."
@@ -345,6 +393,9 @@
   "cea291e45e": {
     "translation": "게시에 대해 자세히 알아보세요."
   },
+  "d0eedb7995": {
+    "translation": "여기요"
+  },
   "d3d2e61733": {
     "translation": "닫기"
   },
@@ -359,6 +410,12 @@
   },
   "d9100f3e10": {
     "translation": "여기로 이동하여 콘텐츠 보기"
+  },
+  "da404df474": {
+    "translation": "작업을 저장하세요"
+  },
+  "db4c2dab9a": {
+    "translation": "엑스칼리드로우 아님"
   },
   "dbbebf3c03": {
     "translation": "초대만"
@@ -419,6 +476,9 @@
   },
   "fd1be3efcf": {
     "translation": "이 파일을 삭제하시겠습니까?"
+  },
+  "fd27891570": {
+    "translation": "대기자 명단에 가입하세요"
   },
   "fed5ec05eb": {
     "translation": "복사된 링크"
