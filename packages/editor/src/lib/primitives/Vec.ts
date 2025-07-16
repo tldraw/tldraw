@@ -395,8 +395,11 @@ export class Vec {
 		return new Vec(Math.max(A.x, B.x), Math.max(A.y, B.y))
 	}
 
-	static From({ x, y, z = 1 }: VecModel) {
-		return new Vec(x, y, z)
+	static From({ x, y, z }: VecModel) {
+		// Convert from new pressure system: z is optional integer 0-100
+		// to stroke system expectation: z is float 0-1 with default 0.5 for no pressure
+		const pressure = z !== undefined ? z / 100 : 0.5
+		return new Vec(x, y, pressure)
 	}
 
 	static FromArray(v: number[]): Vec {

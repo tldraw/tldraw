@@ -170,7 +170,14 @@ export class Drawing extends StateNode {
 		this.isPen = isPen
 		this.isPenOrStylus = isPen || (z > 0 && z < 0.5) || (z > 0.5 && z < 1)
 
-		const pressure = this.isPenOrStylus ? z * 1.25 : 0.5
+		// Calculate pressure in new format (integer 0-100 or undefined)
+		let pressure: number | undefined
+		if (this.isPenOrStylus) {
+			// Convert from 0-1 input range to 0-100 integer, with 1.25x multiplier for pen sensitivity
+			const rawPressure = z * 1.25
+			pressure = Math.round(Math.min(100, Math.max(0, rawPressure * 100)))
+		}
+		// For non-pen inputs, pressure remains undefined (no z property)
 
 		this.segmentMode = this.editor.inputs.shiftKey ? 'straight' : 'free'
 
@@ -193,20 +200,19 @@ export class Drawing extends StateNode {
 
 				const { x, y } = this.editor.getPointInShapeSpace(shape, originPagePoint).toFixed()
 
+				const newPoint: VecModel = { x, y }
+				if (pressure !== undefined) {
+					newPoint.z = pressure
+				}
+
+				const prevPointWithPressure: VecModel = { x: prevPoint.x, y: prevPoint.y }
+				if (pressure !== undefined) {
+					prevPointWithPressure.z = pressure
+				}
+
 				const newSegment: TLDrawShapeSegment = {
 					type: this.segmentMode,
-					points: [
-						{
-							x: prevPoint.x,
-							y: prevPoint.y,
-							z: +pressure.toFixed(2),
-						},
-						{
-							x,
-							y,
-							z: +pressure.toFixed(2),
-						},
-					],
+					points: [prevPointWithPressure, newPoint],
 				}
 
 				// Convert prevPoint to page space
@@ -249,6 +255,11 @@ export class Drawing extends StateNode {
 		this.pagePointWhereCurrentSegmentChanged = originPagePoint.clone()
 		const id = createShapeId()
 
+		const initialPoint: VecModel = { x: 0, y: 0 }
+		if (pressure !== undefined) {
+			initialPoint.z = pressure
+		}
+
 		// Allow this to trigger the max shapes reached alert
 		this.editor.createShape<DrawableShape>({
 			id,
@@ -261,13 +272,7 @@ export class Drawing extends StateNode {
 				segments: [
 					{
 						type: this.segmentMode,
-						points: [
-							{
-								x: 0,
-								y: 0,
-								z: +pressure.toFixed(2),
-							},
-						],
+						points: [initialPoint],
 					},
 				],
 			},
@@ -298,9 +303,20 @@ export class Drawing extends StateNode {
 
 		const { segments } = shape.props
 
-		const { x, y, z } = this.editor.getPointInShapeSpace(shape, inputs.currentPagePoint).toFixed()
-		const pressure = this.isPenOrStylus ? +(inputs.currentPagePoint.z! * 1.25).toFixed(2) : 0.5
-		const newPoint = { x, y, z: pressure }
+		const { x, y } = this.editor.getPointInShapeSpace(shape, inputs.currentPagePoint).toFixed()
+		
+		// Calculate pressure in new format (integer 0-100 or undefined)
+		let pressure: number | undefined
+		if (this.isPenOrStylus && inputs.currentPagePoint.z !== undefined) {
+			// Convert from 0-1 input range to 0-100 integer, with 1.25x multiplier for pen sensitivity
+			const rawPressure = inputs.currentPagePoint.z * 1.25
+			pressure = Math.round(Math.min(100, Math.max(0, rawPressure * 100)))
+		}
+		
+		const newPoint: VecModel = { x, y }
+		if (pressure !== undefined) {
+			newPoint.z = pressure
+		}
 
 		switch (this.segmentMode) {
 			case 'starting_straight': {
@@ -408,15 +424,20 @@ export class Drawing extends StateNode {
 
 					// Create the new free segment and interpolate the points between where the last line
 					// ended and where the pointer is now
+					const interpolatedPoints = Vec.PointsBetween(prevPoint, newPoint, 6).map((p) => {
+						const point: VecModel = {
+							x: toFixed(p.x),
+							y: toFixed(p.y),
+						}
+						if (pressure !== undefined) {
+							point.z = pressure
+						}
+						return point
+					})
+					
 					const newFreeSegment: TLDrawShapeSegment = {
 						type: 'free',
-						points: [
-							...Vec.PointsBetween(prevPoint, newPoint, 6).map((p) => ({
-								x: toFixed(p.x),
-								y: toFixed(p.y),
-								z: toFixed(p.z),
-							})),
-						],
+						points: interpolatedPoints,
 					}
 
 					const finalSegments = [...newSegments, newFreeSegment]
@@ -593,12 +614,16 @@ export class Drawing extends StateNode {
 				const newPoints = [...newSegment.points]
 
 				if (newPoints.length && this.mergeNextPoint) {
-					const { z } = newPoints[newPoints.length - 1]
-					newPoints[newPoints.length - 1] = {
+					const lastPoint = newPoints[newPoints.length - 1]
+					const mergedPoint: VecModel = {
 						x: newPoint.x,
 						y: newPoint.y,
-						z: z ? Math.max(z, newPoint.z) : newPoint.z,
 					}
+					// For pressure, use the maximum of existing and new pressure (if either exists)
+					if (lastPoint.z !== undefined || newPoint.z !== undefined) {
+						mergedPoint.z = Math.max(lastPoint.z || 0, newPoint.z || 0)
+					}
+					newPoints[newPoints.length - 1] = mergedPoint
 					// Note: we could recompute the line length here, but it's not really necessary
 					// this.currentLineLength = this.getLineLength(newSegments)
 				} else {
@@ -642,6 +667,12 @@ export class Drawing extends StateNode {
 					const props = this.editor.getShape<DrawableShape>(id)!.props
 
 					if (!this.editor.canCreateShapes([newShapeId])) return this.cancel()
+					// Create initial point for new shape
+					const initialPoint: VecModel = { x: 0, y: 0 }
+					if (pressure !== undefined) {
+						initialPoint.z = pressure
+					}
+					
 					this.editor.createShape<DrawableShape>({
 						id: newShapeId,
 						type: this.shapeType,
@@ -653,7 +684,7 @@ export class Drawing extends StateNode {
 							segments: [
 								{
 									type: 'free',
-									points: [{ x: 0, y: 0, z: this.isPenOrStylus ? +(z! * 1.25).toFixed() : 0.5 }],
+									points: [initialPoint],
 								},
 							],
 						},

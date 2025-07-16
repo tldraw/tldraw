@@ -259,6 +259,65 @@ for (const toolType of ['draw', 'highlight'] as const) {
 			const shape = editor.getCurrentPageShapes()[0] as DrawableShape
 			expect(shape.props.segments.length).toBe(1)
 		})
+
+		// New tests for pressure system
+		it('Omits pressure property when no pressure is provided', () => {
+			editor.setCurrentTool(toolType).pointerDown(10, 10, { pointerId: 1 }).pointerUp()
+
+			const shape = editor.getCurrentPageShapes()[0] as DrawableShape
+			const point = shape.props.segments[0].points[0]
+			
+			// Point should not have z property when no pressure provided
+			expect(point.z).toBeUndefined()
+		})
+
+		it('Stores pressure as integer 0-100 when pressure is provided', () => {
+			// Simulate pen input with pressure
+			editor.setCurrentTool(toolType).pointerDown(10, 10, { 
+				pointerId: 1, 
+				isPen: true,
+				point: { x: 10, y: 10, z: 0.8 } // 80% pressure
+			}).pointerUp()
+
+			const shape = editor.getCurrentPageShapes()[0] as DrawableShape
+			const point = shape.props.segments[0].points[0]
+			
+			// Should convert 0.8 * 1.25 * 100 = 100 (clamped)
+			expect(point.z).toBe(100)
+			expect(Number.isInteger(point.z!)).toBe(true)
+		})
+
+		it('Handles low pressure values correctly', () => {
+			// Simulate pen input with low pressure
+			editor.setCurrentTool(toolType).pointerDown(10, 10, { 
+				pointerId: 1, 
+				isPen: true,
+				point: { x: 10, y: 10, z: 0.3 } // 30% pressure
+			}).pointerUp()
+
+			const shape = editor.getCurrentPageShapes()[0] as DrawableShape
+			const point = shape.props.segments[0].points[0]
+			
+			// Should convert 0.3 * 1.25 * 100 = 37.5 -> 38 (rounded)
+			expect(point.z).toBe(38)
+			expect(Number.isInteger(point.z!)).toBe(true)
+		})
+
+		it('Clamps pressure values to 0-100 range', () => {
+			// Simulate pen input with very high pressure that would exceed 100
+			editor.setCurrentTool(toolType).pointerDown(10, 10, { 
+				pointerId: 1, 
+				isPen: true,
+				point: { x: 10, y: 10, z: 0.9 } // 90% pressure
+			}).pointerUp()
+
+			const shape = editor.getCurrentPageShapes()[0] as DrawableShape
+			const point = shape.props.segments[0].points[0]
+			
+			// Should convert 0.9 * 1.25 * 100 = 112.5 -> 100 (clamped)
+			expect(point.z).toBe(100)
+			expect(Number.isInteger(point.z!)).toBe(true)
+		})
 	})
 }
 

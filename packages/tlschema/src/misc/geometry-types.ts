@@ -18,6 +18,7 @@ export interface BoxModel {
 export interface VecModel {
 	x: number
 	y: number
+	/** Pressure value from 0-100. Only present when pressure input is available. */
 	z?: number
 }
 
@@ -25,7 +26,7 @@ export interface VecModel {
 export const vecModelValidator: T.ObjectValidator<VecModel> = T.object({
 	x: T.number,
 	y: T.number,
-	z: T.number.optional(),
+	z: T.integer.check((val) => val >= 0 && val <= 100).optional(),
 })
 
 /** @public */
