@@ -11,7 +11,19 @@ function createOrUpdateHistoryItem(item: ChatHistoryItem) {
 
 		// If the previous item is in progress, then replace it with the new item
 		if (lastItem.status === 'progress') {
-			return [...prev.slice(0, -1), item]
+			let newItem = item
+			if (lastItem.type === 'agent-change' && item.type === 'agent-change') {
+				// Replace the final change with the new one
+				const changeCount = item.changes.length
+				const newChanges = [...lastItem.changes.slice(0, -changeCount), ...item.changes]
+				newItem = {
+					...item,
+					changes: newChanges,
+					status: item.status,
+				}
+			}
+
+			return [...prev.slice(0, -1), newItem]
 		}
 
 		// If the previous item is done or cancelled, then create a new one
@@ -30,7 +42,7 @@ function mergeAdjacentHistoryItems() {
 
 			if (currentItem.type === 'agent-change' && nextItem?.type === 'agent-change') {
 				const mergedItem = {
-					...currentItem,
+					...nextItem,
 					changes: [...currentItem.changes, ...nextItem.changes],
 				}
 				newItems.push(mergedItem)
