@@ -211,7 +211,7 @@ export function StatusThinkingHistoryItem({ item }: { item: StatusThinkingHistor
 	const [currentTime, setCurrentTime] = useState(() => new Date())
 
 	useEffect(() => {
-		if (item.status === 'done' && !endTime) {
+		if ((item.status === 'done' || item.status === 'cancelled') && !endTime) {
 			setEndTime(new Date())
 		}
 	}, [item.status, endTime])
@@ -235,7 +235,9 @@ export function StatusThinkingHistoryItem({ item }: { item: StatusThinkingHistor
 
 	return (
 		<div className="agent-chat-message status-thinking-message">
-			<p className="status-thinking-message-text">Thinking for {secondsElapsed}s</p>
+			<p className="status-thinking-message-text">
+				Thinking for {secondsElapsed}s {item.status === 'cancelled' ? '(cancelled)' : ''}
+			</p>
 		</div>
 	)
 }
@@ -247,7 +249,11 @@ export function AgentRawHistoryItem({ item }: { item: AgentRawHistoryItem }) {
 		if (typeof value === 'object') return JSON.stringify(value, null, 2)
 		return value
 	})
-	return <div className="agent-raw-message">{values.join('\n')}</div>
+	return (
+		<div className="agent-raw-message">
+			{item.status === 'cancelled' ? 'Cancelled' : values.join('\n')}
+		</div>
+	)
 }
 
 export interface AgentActionDefinition {

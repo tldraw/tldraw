@@ -16,7 +16,6 @@ export function getSimpleContentFromCanvasContent(content: TLAiContent): {
 	return {
 		shapes: compact(
 			content.shapes.map((shape) => {
-				console.log(shape)
 				if (shape.type === 'text') {
 					const s = shape as TLTextShape
 					return {

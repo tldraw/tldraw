@@ -111,6 +111,12 @@ export function ChatPanel({ editor }: { editor: Editor }) {
 				rCancelFn.current()
 				rCancelFn.current = null
 				setIsGenerating(false)
+
+				$requestsSchedule.set([])
+				$chatHistoryItems.update((prev) =>
+					prev.map((item) => (item.status === 'progress' ? { ...item, status: 'cancelled' } : item))
+				)
+
 				return
 			}
 
@@ -135,6 +141,25 @@ export function ChatPanel({ editor }: { editor: Editor }) {
 		},
 		[advanceSchedule]
 	)
+
+	function handleNewChat() {
+		if (rCancelFn.current) {
+			rCancelFn.current()
+			rCancelFn.current = null
+		}
+
+		setIsGenerating(false)
+		$chatHistoryItems.set([])
+		$requestsSchedule.set([])
+	}
+
+	function NewChatButton() {
+		return (
+			<button className="new-chat-button" onClick={handleNewChat}>
+				+
+			</button>
+		)
+	}
 
 	return (
 		<div className="chat-panel tl-container tl-theme__dark">
@@ -180,13 +205,5 @@ export function ChatPanel({ editor }: { editor: Editor }) {
 				</form>
 			</div>
 		</div>
-	)
-}
-
-function NewChatButton() {
-	return (
-		<button className="new-chat-button" onClick={() => $chatHistoryItems.set([])}>
-			+
-		</button>
 	)
 }
