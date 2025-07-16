@@ -26,7 +26,7 @@ export function getSimpleContentFromCanvasContent(content: TLAiContent): {
 						y: s.y,
 						color: s.props.color,
 						textAlign: s.props.textAlign,
-						note: (s.meta?.description as string) ?? '',
+						note: (s.meta?.note as string) ?? '',
 					}
 				}
 
@@ -43,7 +43,7 @@ export function getSimpleContentFromCanvasContent(content: TLAiContent): {
 							color: s.props.color,
 							fill: shapeFillToSimpleFill(s.props.fill),
 							text: (s.meta?.text as string) ?? '',
-							note: (s.meta?.description as string) ?? '',
+							note: (s.meta?.note as string) ?? '',
 						}
 					}
 				}
@@ -61,7 +61,7 @@ export function getSimpleContentFromCanvasContent(content: TLAiContent): {
 						x2: points[1].x + s.x,
 						y2: points[1].y + s.y,
 						color: s.props.color,
-						note: (s.meta?.description as string) ?? '',
+						note: (s.meta?.note as string) ?? '',
 					}
 				}
 
@@ -85,7 +85,7 @@ export function getSimpleContentFromCanvasContent(content: TLAiContent): {
 						y2: s.props.end.y,
 						color: s.props.color,
 						text: (s.meta?.text as string) ?? '',
-						note: (s.meta?.description as string) ?? '',
+						note: (s.meta?.note as string) ?? '',
 					}
 				}
 
@@ -98,7 +98,7 @@ export function getSimpleContentFromCanvasContent(content: TLAiContent): {
 						y: s.y,
 						color: s.props.color,
 						text: (s.meta?.text as string) ?? '',
-						note: (s.meta?.description as string) ?? '',
+						note: (s.meta?.note as string) ?? '',
 					}
 				}
 
@@ -106,7 +106,7 @@ export function getSimpleContentFromCanvasContent(content: TLAiContent): {
 				return {
 					shapeId: shape.id,
 					type: 'unknown',
-					note: (shape.meta?.description as string) ?? '',
+					note: (shape.meta?.note as string) ?? '',
 					x: shape.x,
 					y: shape.y,
 				}
