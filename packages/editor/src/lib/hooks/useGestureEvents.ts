@@ -138,6 +138,7 @@ export function useGestureEvents(ref: React.RefObject<HTMLDivElement>) {
 		let currDistanceBetweenFingers = 0
 		const initPointBetweenFingers = new Vec()
 		const prevPointBetweenFingers = new Vec()
+		let prevScaleBetweenFingers = 0
 
 		const onPinchStart: PinchHandler = (gesture) => {
 			const elm = ref.current
@@ -230,9 +231,11 @@ export function useGestureEvents(ref: React.RefObject<HTMLDivElement>) {
 
 			const dx = origin[0] - prevPointBetweenFingers.x
 			const dy = origin[1] - prevPointBetweenFingers.y
+			const dz = offset[0] - prevScaleBetweenFingers
 
 			prevPointBetweenFingers.x = origin[0]
 			prevPointBetweenFingers.y = origin[1]
+			prevScaleBetweenFingers = offset[0]
 
 			updatePinchState(isSafariTrackpadPinch)
 
@@ -244,7 +247,7 @@ export function useGestureEvents(ref: React.RefObject<HTMLDivElement>) {
 						type: 'pinch',
 						name: 'pinch',
 						point: { x: origin[0], y: origin[1], z: currZoom },
-						delta: { x: dx, y: dy },
+						delta: { x: dx, y: dy, z: dz },
 						shiftKey: event.shiftKey,
 						altKey: event.altKey,
 						ctrlKey: event.metaKey || event.ctrlKey,
@@ -258,7 +261,7 @@ export function useGestureEvents(ref: React.RefObject<HTMLDivElement>) {
 						type: 'pinch',
 						name: 'pinch',
 						point: { x: origin[0], y: origin[1], z: initZoom },
-						delta: { x: dx, y: dy },
+						delta: { x: dx, y: dy, z: dz },
 						shiftKey: event.shiftKey,
 						altKey: event.altKey,
 						ctrlKey: event.metaKey || event.ctrlKey,
