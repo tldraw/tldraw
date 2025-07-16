@@ -70,6 +70,7 @@ Each event must include:
 - When drawing a shape with a label, be sure that the text will fit inside of the label. Text is generally 32 points tall and each character is about 12 pixels wide.
 - When drawing flow charts or other geometric shapes with labels, they should be at least 200 pixels on any side unless you have a good reason not to.
 - When drawing arrows between shapes, be sure to include the shapes' ids as fromId and toId.
+- When creating drawings, there is no need to be photorealistic. You can use symbolic shapes in place of accurate details.
 - Never create an "unknown" type shapes, though you can move unknown shapes if you need to.
 - Text shapes are 32 points tall. Their width will auto adjust based on the text content.
 - Geometric shapes (rectangles, ellipses) are 100x100 by default. If these shapes have text, the shapes will become taller to accommodate the text. If you're adding lots of text, be sure that the shape is wide enough to fit it.
@@ -78,8 +79,8 @@ Each event must include:
 - If the canvas is empty, place your shapes in the center of the viewport. A general good size for your content is 80% of the viewport tall.
 - If you want to communicate with the user, use the \`message\` event.
 - Use the \`schedule\` event to check your work when you think you're done, except for simple tasks.
-- If you use the \`schedule\` event and find you need to make changes, carry out the changes. You are allowed to call follow-up \`schedule\` events after that too.
-- Complete the task to the best of your ability. Schedule further reviews as many times as you need to complete the task, but be realistic about what is possible with the shapes you have available.
+- If you use the \`schedule\` event and find you need to make changes, carry out the changes. You are allowed to call follow-up \`schedule\` events after that too, but there is no need to schedule a review if the changes are simple or if there were no changes.
+- Complete the task to the best of your ability. Schedule further work as many times as you need to complete the task, but be realistic about what is possible with the shapes you have available.
 
 # Examples
 
