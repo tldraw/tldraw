@@ -5,14 +5,12 @@ import {
 	DefaultDebugMenu,
 	DefaultDebugMenuContent,
 	ExampleDialog,
-	Mat,
 	TLComponents,
 	Tldraw,
 	TldrawUiMenuActionCheckboxItem,
 	TldrawUiMenuActionItem,
 	TldrawUiMenuGroup,
 	TldrawUiMenuItem,
-	TLShape,
 	track,
 	useDialogs,
 	useEditor,
@@ -23,6 +21,7 @@ import { trackedShapes, useDebugging } from '../hooks/useDebugging'
 import { usePerformance } from '../hooks/usePerformance'
 import { A11yResultTable } from './a11y'
 import { getDiff } from './diff'
+import { MiniShapes } from './MiniShapes'
 
 const ContextMenu = track(() => {
 	const editor = useEditor()
@@ -90,77 +89,15 @@ const components: TLComponents = {
 	),
 	InFrontOfTheCanvas: () => {
 		const editor = useEditor()
-		const shape = useValue('shape', () => editor.getOnlySelectedShape(), [editor])
-		if (!shape) return null
+		const ids = useValue('ids', () => editor.getSelectedShapeIds(), [editor])
+		if (ids.length === 0) return null
 
-		return <Shape shape={shape} />
+		return <MiniShapes ids={ids} width={200} height={width / aspectRatio} />
 	},
 }
 
 const width = 200
 const aspectRatio = 16 / 9
-
-const Shape = (props: { shape: TLShape }) => {
-	const editor = useEditor()
-	const util = editor.getShapeUtil(props.shape.type)
-	const box = useValue(
-		'transform',
-		() => {
-			const bounds = editor.getShapeGeometry(props.shape.id).bounds
-			const rotation = editor.getShapePageTransform(props.shape.id).decompose().rotation
-			const rotatedBounds = editor
-				.getShapeGeometry(props.shape.id)
-				.transform(Mat.Rotate(rotation)).bounds
-			// construct a scale matrix so that rotatedBounds fits inside a width x height box
-			const height = width / aspectRatio
-			const scaleX = width / rotatedBounds.w
-			const scaleY = height / rotatedBounds.h
-			const scale = Math.min(scaleX, scaleY) // Use the smaller scale to ensure it fits in both dimensions
-			const scaleMatrix = Mat.Scale(scale, scale)
-
-			// Create a translation to top-left the shape by negating the rotated bounds offsets
-			const topLeftMatrix = Mat.Translate(-rotatedBounds.x, -rotatedBounds.y)
-
-			// Combine transforms: translate -> rotate -> scale
-			const combinedTransform = Mat.Compose(scaleMatrix, topLeftMatrix, Mat.Rotate(rotation))
-			// get final bounds so we can center the shape within the parent width/height
-			const finalBounds = editor
-				.getShapeGeometry(props.shape.id)
-				.transform(combinedTransform).bounds
-
-			const centerMatrix = Mat.Translate((width - finalBounds.w) / 2, (height - finalBounds.h) / 2)
-
-			return {
-				transform: Mat.toCssString(Mat.Compose(centerMatrix, combinedTransform)),
-				width: bounds.w,
-				height: bounds.h,
-				transformOrigin: 'top left',
-			}
-		},
-		[editor, props.shape.id]
-	)
-	return (
-		<div
-			style={{
-				position: 'fixed',
-				left: 50,
-				top: 50,
-				outline: '1px solid red',
-				width: width,
-				height: width / aspectRatio,
-			}}
-		>
-			<div
-				style={{
-					position: 'absolute',
-					...box,
-				}}
-			>
-				{util.component(props.shape)}
-			</div>
-		</div>
-	)
-}
 
 function afterChangeHandler(prev: any, next: any) {
 	const tracked = trackedShapes.get()
