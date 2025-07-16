@@ -187,5 +187,3 @@ Assistant: [
 	}
 ]
 `
-
-console.log(SIMPLE_SYSTEM_PROMPT)
