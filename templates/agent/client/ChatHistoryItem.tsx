@@ -1,6 +1,7 @@
 import { TLAiStreamingChange } from '@tldraw/ai'
-import { useEffect, useState } from 'react'
+import { useCallback, useEffect, useState } from 'react'
 import { defaultColorNames, Editor, TLShape, TLShapeId, toRichText } from 'tldraw'
+import { $chatHistoryItems } from './ChatHistory'
 import { BrainIcon } from './icons/BrainIcon'
 import { PencilIcon } from './icons/PencilIcon'
 import { RefreshIcon } from './icons/RefreshIcon'
@@ -38,12 +39,20 @@ export interface AgentChangeHistoryItem {
 	type: 'agent-change'
 	changes: (TLAiStreamingChange & { shape?: Partial<TLShape>; previousShape?: Partial<TLShape> })[]
 	status: 'progress' | 'done' | 'cancelled'
+	acceptance: 'accepted' | 'rejected' | 'pending'
 }
 
 export interface AgentRawHistoryItem {
 	type: 'agent-raw'
 	change: TLAiStreamingChange
 	status: 'progress' | 'done' | 'cancelled'
+}
+
+export interface AgentActionHistoryItem {
+	type: 'agent-action'
+	action: 'thinking' | 'creating' | 'deleting' | 'updating' | 'schedule'
+	status: 'progress' | 'done' | 'cancelled'
+	info: string
 }
 
 export function UserMessageHistoryItem({ item }: { item: UserMessageHistoryItem }) {
@@ -171,20 +180,51 @@ function getDiffShapesFromChange({
 export function AgentChangeHistoryItem({
 	item,
 	editor,
+	id,
 }: {
 	item: AgentChangeHistoryItem
 	editor: Editor
+	id: number
 }) {
 	const diffShapes = item.changes
 		.map((change) => getDiffShapesFromChange({ change, editor }))
 		.flat()
 
+	const handleAccept = useCallback(() => {
+		$chatHistoryItems.update((items) => {
+			const newItems = [...items]
+			newItems[id] = { ...item, acceptance: 'accepted', status: 'done' }
+			return newItems
+		})
+	}, [id, item])
+
+	const handleReject = useCallback(() => {
+		$chatHistoryItems.update((items) => {
+			const newItems = [...items]
+			const oldItem = items[id]
+			const status = oldItem.status === 'progress' ? 'cancelled' : 'done'
+			newItems[id] = { ...item, acceptance: 'rejected', status }
+			return newItems
+		})
+	}, [id, item])
+
 	if (diffShapes.length === 0) return null
 
 	return (
 		<div className="agent-change-message">
-			{/* <div>{item.changes[0]?.description}</div> */}
-			{diffShapes && <TldrawViewer shapes={diffShapes} />}
+			<div className="agent-change-message-actions">
+				{item.acceptance === 'pending' ? (
+					<>
+						<button onClick={handleReject}>Reject</button>
+						<button onClick={handleAccept}>Accept</button>
+					</>
+				) : (
+					<span className="agent-change-message-acceptance-notice">
+						{item.acceptance === 'accepted' ? '✅' : '❌'}
+					</span>
+				)}
+			</div>
+			{<TldrawViewer shapes={diffShapes} />}
 		</div>
 	)
 }
@@ -259,13 +299,6 @@ export function AgentRawHistoryItem({ item }: { item: AgentRawHistoryItem }) {
 export interface AgentActionDefinition {
 	icon: React.ReactNode
 	message: { progress: string; done: string; cancelled: string }
-}
-
-export interface AgentActionHistoryItem {
-	type: 'agent-action'
-	action: 'thinking' | 'creating' | 'deleting' | 'updating' | 'schedule'
-	status: 'progress' | 'done' | 'cancelled'
-	info: string
 }
 
 export const ACTION_HISTORY_ITEM_DEFINITIONS: Record<

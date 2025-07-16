@@ -247,8 +247,45 @@ body {
 .agent-change-message {
 	display: flex;
 	flex-direction: column;
-	gap: 16px;
 	width: 100%;
+}
+
+.agent-change-message-actions {
+	display: flex;
+	justify-content: flex-end;
+	width: 100%;
+	gap: 2px;
+}
+
+.agent-change-message-actions button {
+	border: 0;
+	cursor: pointer;
+	background-color: var(--color-muted-1);
+	color: var(--color-text-2);
+	padding: 4px 8px;
+	font-size: 10px;
+	font-weight: 500;
+	cursor: pointer;
+	height: 20px;
+	user-select: none;
+}
+
+.agent-change-message-actions button:hover {
+	color: var(--color-text);
+}
+
+.agent-change-message-actions button:first-child {
+	border-radius: 4px 0px 0px 0px;
+}
+
+.agent-change-message-actions button:last-child {
+	border-radius: 0px 4px 0px 0px;
+}
+
+.agent-change-message-acceptance-notice {
+	font-size: 10px;
+	font-weight: 500;
+	height: 20px;
 }
 
 .tldraw-viewer {

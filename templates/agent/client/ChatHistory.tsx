@@ -45,7 +45,7 @@ export function ChatHistory({ editor, items }: { editor: Editor; items: ChatHist
 					case 'agent-message':
 						return <AgentMessageHistoryItem key={index} item={item} />
 					case 'agent-change':
-						return <AgentChangeHistoryItem key={index} item={item} editor={editor} />
+						return <AgentChangeHistoryItem key={index} item={item} editor={editor} id={index} />
 					case 'agent-action':
 						return <AgentActionHistoryItem key={index} item={item} />
 					case 'agent-raw':

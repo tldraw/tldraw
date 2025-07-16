@@ -76,6 +76,7 @@ function applyChangeToChatHistory({
 				type: 'agent-change',
 				changes: [change],
 				status: change.complete ? 'done' : 'progress',
+				acceptance: 'pending',
 			})
 			return
 		}
@@ -100,6 +101,7 @@ function applyChangeToChatHistory({
 				type: 'agent-change',
 				changes: [{ ...change, previousShape, shape: newShape as TLShape }],
 				status: change.complete ? 'done' : 'progress',
+				acceptance: 'pending',
 			})
 			return
 		}
@@ -118,6 +120,7 @@ function applyChangeToChatHistory({
 				type: 'agent-change',
 				changes: [{ ...change, shape }],
 				status: change.complete ? 'done' : 'progress',
+				acceptance: 'pending',
 			})
 			return
 		}
@@ -173,7 +176,12 @@ function getChatHistoryWithMergedAdjacentItems({
 		const currentItem = items[i]
 		const nextItem = items[i + 1]
 
-		if (currentItem.type === 'agent-change' && nextItem?.type === 'agent-change') {
+		if (
+			currentItem.type === 'agent-change' &&
+			currentItem.acceptance === 'pending' &&
+			nextItem?.type === 'agent-change' &&
+			nextItem.acceptance === 'pending'
+		) {
 			const mergedItem = {
 				...nextItem,
 				changes: [...currentItem.changes, ...nextItem.changes],
