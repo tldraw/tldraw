@@ -12,15 +12,7 @@ import {
 
 export const $chatHistoryItems = atom<ChatHistoryItem[]>('chatHistoryItems', [])
 
-export function ChatHistory({
-	editor,
-	items,
-	isGenerating,
-}: {
-	editor: Editor
-	items: ChatHistoryItem[]
-	isGenerating: boolean
-}) {
+export function ChatHistory({ editor, items }: { editor: Editor; items: ChatHistoryItem[] }) {
 	const scrollContainerRef = useRef<HTMLDivElement>(null)
 	const previousScrollDistanceFromBottomRef = useRef(0)
 

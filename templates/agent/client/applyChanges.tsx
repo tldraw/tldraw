@@ -4,59 +4,6 @@ import { $chatHistoryItems } from './ChatHistory'
 import { ChatHistoryItem } from './ChatHistoryItem'
 import { $requestsSchedule } from './requestsSchedule'
 
-function createOrUpdateHistoryItem(item: ChatHistoryItem) {
-	$chatHistoryItems.update((prev) => {
-		const lastItem = prev[prev.length - 1]
-		if (!lastItem) return [item]
-
-		// If the previous item is in progress, then replace it with the new item
-		if (lastItem.status === 'progress') {
-			let newItem = item
-			if (lastItem.type === 'agent-change' && item.type === 'agent-change') {
-				// Replace the final change with the new one
-				const changeCount = item.changes.length
-				const newChanges = [...lastItem.changes.slice(0, -changeCount), ...item.changes]
-				newItem = {
-					...item,
-					changes: newChanges,
-					status: item.status,
-				}
-			}
-
-			return [...prev.slice(0, -1), newItem]
-		}
-
-		// If the previous item is done or cancelled, then create a new one
-		return [...prev, item]
-	})
-
-	mergeAdjacentHistoryItems()
-}
-
-function mergeAdjacentHistoryItems() {
-	$chatHistoryItems.update((items) => {
-		const newItems = []
-		for (let i = 0; i < items.length; i++) {
-			const currentItem = items[i]
-			const nextItem = items[i + 1]
-
-			if (currentItem.type === 'agent-change' && nextItem?.type === 'agent-change') {
-				const mergedItem = {
-					...nextItem,
-					changes: [...currentItem.changes, ...nextItem.changes],
-				}
-				newItems.push(mergedItem)
-				i++
-				continue
-			}
-
-			newItems.push(currentItem)
-		}
-
-		return newItems
-	})
-}
-
 export function applyChanges({ change, editor }: { change: TLAiStreamingChange; editor: Editor }) {
 	if (change.complete) {
 		// console.log(change)
@@ -175,4 +122,69 @@ function applyChangeToChatHistory({
 			return
 		}
 	}
+}
+
+function createOrUpdateHistoryItem(item: ChatHistoryItem) {
+	$chatHistoryItems.update((prev) => {
+		const newItems = getChatHistoryWithAddedItem({ items: prev, item })
+		const mergedItems = getChatHistoryWithMergedAdjacentItems({ items: newItems })
+		return mergedItems
+	})
+}
+
+function getChatHistoryWithAddedItem({
+	items,
+	item,
+}: {
+	items: ChatHistoryItem[]
+	item: ChatHistoryItem
+}): ChatHistoryItem[] {
+	const lastItem = items[items.length - 1]
+	if (!lastItem) return [item]
+
+	// If the previous item is in progress, then replace it with the new item
+	if (lastItem.status === 'progress') {
+		let newItem = item
+		if (lastItem.type === 'agent-change' && item.type === 'agent-change') {
+			// Replace the final change with the new one
+			const changeCount = item.changes.length
+			const newChanges = [...lastItem.changes.slice(0, -changeCount), ...item.changes]
+			newItem = {
+				...item,
+				changes: newChanges,
+				status: item.status,
+			}
+		}
+
+		return [...items.slice(0, -1), newItem]
+	}
+
+	// If the previous item is done or cancelled, then create a new one
+	return [...items, item]
+}
+
+function getChatHistoryWithMergedAdjacentItems({
+	items,
+}: {
+	items: ChatHistoryItem[]
+}): ChatHistoryItem[] {
+	const newItems = []
+	for (let i = 0; i < items.length; i++) {
+		const currentItem = items[i]
+		const nextItem = items[i + 1]
+
+		if (currentItem.type === 'agent-change' && nextItem?.type === 'agent-change') {
+			const mergedItem = {
+				...nextItem,
+				changes: [...currentItem.changes, ...nextItem.changes],
+			}
+			newItems.push(mergedItem)
+			i++
+			continue
+		}
+
+		newItems.push(currentItem)
+	}
+
+	return newItems
 }
