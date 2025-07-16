@@ -137,7 +137,6 @@ export function AgentChangeHistoryItem({
 
 	if (diffShapes.length === 0) return null
 
-	console.log('diffShapes', diffShapes)
 	return (
 		<div className="agent-change-message">
 			{/* <div>{item.changes[0]?.description}</div> */}
