@@ -40,7 +40,19 @@ export function getSimpleContentFromCanvasContent(content: TLAiContent): {
 						s.props.geo === 'diamond' ||
 						s.props.geo === 'hexagon' ||
 						s.props.geo === 'oval' ||
-						s.props.geo === 'x-box'
+						s.props.geo === 'x-box' ||
+						s.props.geo === 'pentagon' ||
+						s.props.geo === 'octagon' ||
+						s.props.geo === 'star' ||
+						s.props.geo === 'rhombus' ||
+						s.props.geo === 'rhombus-2' ||
+						s.props.geo === 'trapezoid' ||
+						s.props.geo === 'arrow-right' ||
+						s.props.geo === 'arrow-left' ||
+						s.props.geo === 'arrow-up' ||
+						s.props.geo === 'arrow-down' ||
+						s.props.geo === 'check-box' ||
+						s.props.geo === 'heart'
 					) {
 						return {
 							shapeId: s.id,

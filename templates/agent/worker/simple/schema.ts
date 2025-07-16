@@ -145,6 +145,186 @@ const SimpleXBoxShape = z.object({
 
 export type ISimpleXBoxShape = z.infer<typeof SimpleXBoxShape>
 
+const SimplePentagonShape = z.object({
+	type: z.literal('pentagon'),
+	shapeId: z.string(),
+	note: z.string(),
+	x: z.number(),
+	y: z.number(),
+	width: z.number(),
+	height: z.number(),
+	color: SimpleColor.optional(),
+	fill: SimpleFill.optional(),
+	text: SimpleLabel.optional(),
+})
+
+export type ISimplePentagonShape = z.infer<typeof SimplePentagonShape>
+
+const SimpleOctagonShape = z.object({
+	type: z.literal('octagon'),
+	shapeId: z.string(),
+	note: z.string(),
+	x: z.number(),
+	y: z.number(),
+	width: z.number(),
+	height: z.number(),
+	color: SimpleColor.optional(),
+	fill: SimpleFill.optional(),
+	text: SimpleLabel.optional(),
+})
+
+export type ISimpleOctagonShape = z.infer<typeof SimpleOctagonShape>
+
+const SimpleStarShape = z.object({
+	type: z.literal('star'),
+	shapeId: z.string(),
+	note: z.string(),
+	x: z.number(),
+	y: z.number(),
+	width: z.number(),
+	height: z.number(),
+	color: SimpleColor.optional(),
+	fill: SimpleFill.optional(),
+	text: SimpleLabel.optional(),
+})
+
+export type ISimpleStarShape = z.infer<typeof SimpleStarShape>
+
+const SimpleRhombusShape = z.object({
+	type: z.literal('rhombus'),
+	shapeId: z.string(),
+	note: z.string(),
+	x: z.number(),
+	y: z.number(),
+	width: z.number(),
+	height: z.number(),
+	color: SimpleColor.optional(),
+	fill: SimpleFill.optional(),
+	text: SimpleLabel.optional(),
+})
+
+export type ISimpleRhombusShape = z.infer<typeof SimpleRhombusShape>
+
+const SimpleRhombus2Shape = z.object({
+	type: z.literal('rhombus-2'),
+	shapeId: z.string(),
+	note: z.string(),
+	x: z.number(),
+	y: z.number(),
+	width: z.number(),
+	height: z.number(),
+	color: SimpleColor.optional(),
+	fill: SimpleFill.optional(),
+	text: SimpleLabel.optional(),
+})
+
+export type ISimpleRhombus2Shape = z.infer<typeof SimpleRhombus2Shape>
+
+const SimpleTrapezoidShape = z.object({
+	type: z.literal('trapezoid'),
+	shapeId: z.string(),
+	note: z.string(),
+	x: z.number(),
+	y: z.number(),
+	width: z.number(),
+	height: z.number(),
+	color: SimpleColor.optional(),
+	fill: SimpleFill.optional(),
+	text: SimpleLabel.optional(),
+})
+
+export type ISimpleTrapezoidShape = z.infer<typeof SimpleTrapezoidShape>
+
+const SimpleArrowRightShape = z.object({
+	type: z.literal('arrow-right'),
+	shapeId: z.string(),
+	note: z.string(),
+	x: z.number(),
+	y: z.number(),
+	width: z.number(),
+	height: z.number(),
+	color: SimpleColor.optional(),
+	fill: SimpleFill.optional(),
+	text: SimpleLabel.optional(),
+})
+
+export type ISimpleArrowRightShape = z.infer<typeof SimpleArrowRightShape>
+
+const SimpleArrowLeftShape = z.object({
+	type: z.literal('arrow-left'),
+	shapeId: z.string(),
+	note: z.string(),
+	x: z.number(),
+	y: z.number(),
+	width: z.number(),
+	height: z.number(),
+	color: SimpleColor.optional(),
+	fill: SimpleFill.optional(),
+	text: SimpleLabel.optional(),
+})
+
+export type ISimpleArrowLeftShape = z.infer<typeof SimpleArrowLeftShape>
+
+const SimpleArrowUpShape = z.object({
+	type: z.literal('arrow-up'),
+	shapeId: z.string(),
+	note: z.string(),
+	x: z.number(),
+	y: z.number(),
+	width: z.number(),
+	height: z.number(),
+	color: SimpleColor.optional(),
+	fill: SimpleFill.optional(),
+	text: SimpleLabel.optional(),
+})
+
+export type ISimpleArrowUpShape = z.infer<typeof SimpleArrowUpShape>
+
+const SimpleArrowDownShape = z.object({
+	type: z.literal('arrow-down'),
+	shapeId: z.string(),
+	note: z.string(),
+	x: z.number(),
+	y: z.number(),
+	width: z.number(),
+	height: z.number(),
+	color: SimpleColor.optional(),
+	fill: SimpleFill.optional(),
+	text: SimpleLabel.optional(),
+})
+
+export type ISimpleArrowDownShape = z.infer<typeof SimpleArrowDownShape>
+
+const SimpleCheckBoxShape = z.object({
+	type: z.literal('check-box'),
+	shapeId: z.string(),
+	note: z.string(),
+	x: z.number(),
+	y: z.number(),
+	width: z.number(),
+	height: z.number(),
+	color: SimpleColor.optional(),
+	fill: SimpleFill.optional(),
+	text: SimpleLabel.optional(),
+})
+
+export type ISimpleCheckBoxShape = z.infer<typeof SimpleCheckBoxShape>
+
+const SimpleHeartShape = z.object({
+	type: z.literal('heart'),
+	shapeId: z.string(),
+	note: z.string(),
+	x: z.number(),
+	y: z.number(),
+	width: z.number(),
+	height: z.number(),
+	color: SimpleColor.optional(),
+	fill: SimpleFill.optional(),
+	text: SimpleLabel.optional(),
+})
+
+export type ISimpleHeartShape = z.infer<typeof SimpleHeartShape>
+
 const SimpleLineShape = z.object({
 	type: z.literal('line'),
 	shapeId: z.string(),
@@ -219,10 +399,22 @@ export const SimpleShape = z.union([
 	SimpleOvalShape,
 	SimpleCloudShape,
 	SimpleLineShape,
+	SimplePentagonShape,
+	SimpleOctagonShape,
+	SimpleStarShape,
+	SimpleRhombusShape,
+	SimpleRhombus2Shape,
+	SimpleTrapezoidShape,
+	SimpleArrowRightShape,
+	SimpleArrowLeftShape,
+	SimpleArrowUpShape,
+	SimpleArrowDownShape,
 	SimpleXBoxShape,
 	SimpleTextShape,
 	SimpleArrowShape,
 	SimpleNoteShape,
+	SimpleCheckBoxShape,
+	SimpleHeartShape,
 ])
 
 export type ISimpleShape = z.infer<typeof SimpleShape>

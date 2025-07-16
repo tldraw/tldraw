@@ -255,6 +255,18 @@ function getTldrawAiChangesFromSimpleCreateOrUpdateEvent(
 		case 'hexagon':
 		case 'oval':
 		case 'x-box':
+		case 'pentagon':
+		case 'octagon':
+		case 'star':
+		case 'rhombus':
+		case 'rhombus-2':
+		case 'trapezoid':
+		case 'arrow-right':
+		case 'arrow-left':
+		case 'arrow-up':
+		case 'arrow-down':
+		case 'check-box':
+		case 'heart':
 		case 'ellipse': {
 			changes.push({
 				complete: event.complete,
