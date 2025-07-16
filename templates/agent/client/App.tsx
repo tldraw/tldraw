@@ -1,6 +1,9 @@
 import { useCallback, useState } from 'react'
 import { Editor, Tldraw } from 'tldraw'
 import { ChatPanel } from './ChatPanel'
+import { overrideFillStyleWithLinedFillStyle } from './LinedFillStyle'
+
+overrideFillStyleWithLinedFillStyle()
 
 function App() {
 	const [editor, setEditor] = useState<Editor | null>(null)
