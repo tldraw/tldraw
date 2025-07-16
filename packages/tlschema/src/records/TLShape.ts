@@ -143,7 +143,7 @@ export const rootShapeMigrations = createRecordMigrationSequence({
 				return record
 			},
 			down: (record: any) => {
-				if (!isDefaultColor(record.props.color)) {
+				if (record.props.color && !isDefaultColor(record.props.color)) {
 					record.props.color = 'black'
 				}
 				if (record.props.labelColor && !isDefaultColor(record.props.labelColor)) {
