@@ -19,6 +19,7 @@ jobs:
   trigger:
     name: Trigger a dotcom hotfix
     runs-on: ubuntu-latest
+    timeout-minutes: 20
     concurrency: dotcom-hotfix
     environment: npm deploy
     if: |

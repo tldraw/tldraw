@@ -3,7 +3,7 @@ import { Discord } from './lib/discord'
 import { exec } from './lib/exec'
 import { makeEnv } from './lib/makeEnv'
 import { nicelog } from './lib/nicelog'
-import { getPrDetailsAndCommitSha, labelPresent } from './lib/pr-info'
+import { getPrDetailsAndCommitSha, getPrDetailsByNumber, labelPresent } from './lib/pr-info'
 
 function getEnv() {
 	return makeEnv(['DISCORD_DEPLOY_WEBHOOK_URL', 'GITHUB_TOKEN'])
@@ -48,7 +48,7 @@ async function main() {
 		await exec('git', ['push', 'origin', hotfixBranchName])
 	})
 
-	await discord.step('Creating hotfix PR and adding to merge queue', async () => {
+	await discord.step('Creating hotfix PR and waiting for checks to pass', async () => {
 		const prTitle = `[HOTFIX] ${pr.title}`
 		const prBody = `This is an automated hotfix PR for dotcom deployment.
 
@@ -69,21 +69,50 @@ This PR cherry-picks the changes from the original PR to the hotfixes branch for
 			base: 'hotfixes',
 		})
 
-		await octokit.rest.pulls.merge({
-			owner: 'tldraw',
-			repo: 'tldraw',
-			pull_number: createdPr.data.number,
-			merge_method: 'squash',
-			auto_merge: true,
-			commit_title: `[HOTFIX] ${pr.title}`,
-			commit_message: `This is an automated hotfix for dotcom deployment.
+		nicelog(`Created hotfix PR: ${hotfixBranchName} -> hotfixes`)
+		nicelog(`Waiting for PR #${createdPr.data.number} to be ready for merge...`)
+
+		// Wait for 5 minutes initially, then check every 15 seconds (our checks take at least 5 mins)
+		await new Promise((resolve) => setTimeout(resolve, 5 * 60 * 1000))
+
+		while (true) {
+			const prStatus = await getPrDetailsByNumber(octokit, createdPr.data.number)
+
+			nicelog(`PR #${createdPr.data.number} mergeable_state: ${prStatus.mergeable_state}`)
+
+			if (prStatus.mergeable_state === 'clean') {
+				nicelog(`PR #${createdPr.data.number} is ready for merge`)
+				await octokit.rest.pulls.merge({
+					owner: 'tldraw',
+					repo: 'tldraw',
+					pull_number: createdPr.data.number,
+					merge_method: 'squash',
+					commit_title: `[HOTFIX] ${pr.title}`,
+					commit_message: `This is an automated hotfix for dotcom deployment.
 
 Original PR: #${pr.number}
 Original Author: @${pr.user?.login}`,
-		})
+				})
 
-		nicelog(`Created hotfix PR: ${hotfixBranchName} -> hotfixes`)
-		nicelog(`Added hotfix PR #${createdPr.data.number} to merge queue`)
+				nicelog(`Successfully merged hotfix PR #${createdPr.data.number}`)
+				break
+			} else if (prStatus.mergeable_state === 'blocked') {
+				nicelog(`PR #${createdPr.data.number} is blocked (likely failed checks)`)
+				throw new Error(`Hotfix PR #${createdPr.data.number} is blocked`)
+			} else if (prStatus.mergeable_state === 'unstable') {
+				nicelog(`PR #${createdPr.data.number} is unstable (some checks failed)`)
+				throw new Error(`Hotfix PR #${createdPr.data.number} is unstable`)
+			} else if (prStatus.mergeable_state === 'dirty') {
+				nicelog(`PR #${createdPr.data.number} has conflicts and cannot be merged`)
+				throw new Error(`Hotfix PR #${createdPr.data.number} has conflicts`)
+			} else {
+				nicelog(
+					`PR #${createdPr.data.number} merge status: ${prStatus.mergeable_state}, waiting...`
+				)
+				await new Promise((resolve) => setTimeout(resolve, 15 * 1000))
+				continue
+			}
+		}
 	})
 }
 

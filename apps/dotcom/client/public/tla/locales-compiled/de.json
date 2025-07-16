@@ -33,6 +33,12 @@
       "value": "Automatisch"
     }
   ],
+  "0776e18496": [
+    {
+      "type": 0,
+      "value": "Speichern und teilen"
+    }
+  ],
   "07dbd11b21": [
     {
       "type": 0,
@@ -81,6 +87,12 @@
       "value": "Exportieren als"
     }
   ],
+  "1460ab5e78": [
+    {
+      "type": 0,
+      "value": "Kostenlose tldraws"
+    }
+  ],
   "181b90f889": [
     {
       "type": 0,
@@ -99,6 +111,12 @@
       "value": "Heute"
     }
   ],
+  "22d84a12fd": [
+    {
+      "type": 0,
+      "value": "Figjam aber tldraw"
+    }
+  ],
   "250ddea65c": [
     {
       "type": 0,
@@ -109,6 +127,12 @@
     {
       "type": 0,
       "value": "Hochladen fehlgeschlagen"
+    }
+  ],
+  "2c61d18599": [
+    {
+      "type": 0,
+      "value": "Miro aber gut und kostenlos"
     }
   ],
   "31246941ad": [
@@ -153,10 +177,22 @@
       "value": "Alle akzeptieren"
     }
   ],
+  "3fc6d0c83a": [
+    {
+      "type": 0,
+      "value": "Freund hinzufügen"
+    }
+  ],
   "42e53c47c1": [
     {
       "type": 0,
       "value": "Kontaktieren Sie den Eigentümer, um Zugriff anzufordern."
+    }
+  ],
+  "44281ab6e5": [
+    {
+      "type": 0,
+      "value": "Anmelden"
     }
   ],
   "44db318ee5": [
@@ -193,6 +229,18 @@
     {
       "type": 0,
       "value": "Neu laden"
+    }
+  ],
+  "4e029798f2": [
+    {
+      "type": 0,
+      "value": "Kostenlose Aktien"
+    }
+  ],
+  "4e875b8d8e": [
+    {
+      "type": 0,
+      "value": "Kostenlose Speicherungen"
     }
   ],
   "50db1b7e1e": [
@@ -289,6 +337,12 @@
       "value": "Kopieren"
     }
   ],
+  "5ff75742e0": [
+    {
+      "type": 0,
+      "value": "Kostenlos registrieren"
+    }
+  ],
   "61057a0c84": [
     {
       "type": 0,
@@ -311,6 +365,12 @@
     {
       "type": 0,
       "value": "Eine neue Version von tldraw ist verfügbar. Bitte laden Sie die Seite neu, um fortzufahren."
+    }
+  ],
+  "697c59072d": [
+    {
+      "type": 0,
+      "value": "Anmelden, um zu speichern"
     }
   ],
   "6a26f54883": [
@@ -467,6 +527,12 @@
       "value": "."
     }
   ],
+  "84c89d47c7": [
+    {
+      "type": 0,
+      "value": "Kostenlos teilen"
+    }
+  ],
   "85a082de1b": [
     {
       "type": 0,
@@ -493,6 +559,12 @@
     {
       "type": 0,
       "value": "Um mit der Bearbeitung fortzufahren, kopieren Sie den Raum bitte in Ihre Dateien."
+    }
+  ],
+  "8ea211024d": [
+    {
+      "type": 0,
+      "value": "Kostenloses Konto erstellen"
     }
   ],
   "8eb2c00e96": [
@@ -663,6 +735,12 @@
       "value": "Link kopieren"
     }
   ],
+  "ba0318cb81": [
+    {
+      "type": 0,
+      "value": "Zum Teilen anmelden"
+    }
+  ],
   "bb792693e2": [
     {
       "type": 0,
@@ -731,10 +809,28 @@
       "value": ".tldr-Dateien hochladen"
     }
   ],
+  "bffe9a3c9a": [
+    {
+      "type": 0,
+      "value": "Einloggen"
+    }
+  ],
+  "c079282475": [
+    {
+      "type": 0,
+      "value": "Teilen Sie Ihre Arbeit"
+    }
+  ],
   "c2276c9127": [
     {
       "type": 0,
       "value": "Erfahren Sie mehr über das Teilen."
+    }
+  ],
+  "c24e43cd1a": [
+    {
+      "type": 0,
+      "value": "Du wirst dich doch anmelden, oder?"
     }
   ],
   "c303bd1095": [
@@ -785,6 +881,12 @@
       "value": "Erfahren Sie mehr über das Veröffentlichen."
     }
   ],
+  "d0eedb7995": [
+    {
+      "type": 0,
+      "value": "Hey"
+    }
+  ],
   "d3d2e61733": [
     {
       "type": 0,
@@ -813,6 +915,18 @@
     {
       "type": 0,
       "value": "Hier können Sie den Inhalt sehen"
+    }
+  ],
+  "da404df474": [
+    {
+      "type": 0,
+      "value": "Speichern Sie Ihre Arbeit"
+    }
+  ],
+  "db4c2dab9a": [
+    {
+      "type": 0,
+      "value": "Nicht Excalidraw"
     }
   ],
   "dbbebf3c03": [
@@ -947,6 +1061,12 @@
     {
       "type": 0,
       "value": "Möchten Sie diese Datei wirklich löschen?"
+    }
+  ],
+  "fd27891570": [
+    {
+      "type": 0,
+      "value": "Tragen Sie sich in die Warteliste ein"
     }
   ],
   "fed5ec05eb": [

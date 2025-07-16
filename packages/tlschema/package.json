@@ -1,6 +1,6 @@
 {
 	"name": "@tldraw/tlschema",
-	"description": "A tiny little drawing app (schema).",
+	"description": "tldraw infinite canvas SDK (schema).",
 	"version": "3.14.2",
 	"author": {
 		"name": "tldraw Inc.",
@@ -17,6 +17,7 @@
 	},
 	"keywords": [
 		"tldraw",
+		"sdk",
 		"drawing",
 		"app",
 		"development",
