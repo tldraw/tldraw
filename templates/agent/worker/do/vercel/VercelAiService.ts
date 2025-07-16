@@ -207,12 +207,12 @@ function buildUserMessage(prompt: TLAiSerializedPrompt): CoreMessage {
 	if (prompt.image) {
 		content.push(
 			{
-				type: 'image',
-				image: prompt.image,
+				type: 'text',
+				text: "This is a screenshot of the current viewport on the canvas. It's what you will be editing or adding to.",
 			},
 			{
-				type: 'text',
-				text: 'Here is a screenshot of the current viewport.',
+				type: 'image',
+				image: prompt.image,
 			}
 		)
 	}
