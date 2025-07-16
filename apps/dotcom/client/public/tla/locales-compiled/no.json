@@ -33,6 +33,12 @@
       "value": "Auto"
     }
   ],
+  "0776e18496": [
+    {
+      "type": 0,
+      "value": "Lagre og del"
+    }
+  ],
   "07dbd11b21": [
     {
       "type": 0,
@@ -81,6 +87,12 @@
       "value": "Eksporter som"
     }
   ],
+  "1460ab5e78": [
+    {
+      "type": 0,
+      "value": "Gratis tldraws"
+    }
+  ],
   "181b90f889": [
     {
       "type": 0,
@@ -99,6 +111,12 @@
       "value": "I dag"
     }
   ],
+  "22d84a12fd": [
+    {
+      "type": 0,
+      "value": "Figjam men tldraw"
+    }
+  ],
   "250ddea65c": [
     {
       "type": 0,
@@ -109,6 +127,12 @@
     {
       "type": 0,
       "value": "Opplasting mislyktes"
+    }
+  ],
+  "2c61d18599": [
+    {
+      "type": 0,
+      "value": "Miro, men god og fri"
     }
   ],
   "31246941ad": [
@@ -153,10 +177,22 @@
       "value": "Godta alle"
     }
   ],
+  "3fc6d0c83a": [
+    {
+      "type": 0,
+      "value": "Legg til venn"
+    }
+  ],
   "42e53c47c1": [
     {
       "type": 0,
       "value": "Kontakt eieren for å be om tilgang."
+    }
+  ],
+  "44281ab6e5": [
+    {
+      "type": 0,
+      "value": "Logg deg på"
     }
   ],
   "44db318ee5": [
@@ -193,6 +229,18 @@
     {
       "type": 0,
       "value": "Last inn på nytt"
+    }
+  ],
+  "4e029798f2": [
+    {
+      "type": 0,
+      "value": "Gratis aksjer"
+    }
+  ],
+  "4e875b8d8e": [
+    {
+      "type": 0,
+      "value": "Gratis lagringer"
     }
   ],
   "50db1b7e1e": [
@@ -289,6 +337,12 @@
       "value": "Kopiere"
     }
   ],
+  "5ff75742e0": [
+    {
+      "type": 0,
+      "value": "Registrer deg gratis"
+    }
+  ],
   "61057a0c84": [
     {
       "type": 0,
@@ -311,6 +365,12 @@
     {
       "type": 0,
       "value": "En ny versjon av tldraw er tilgjengelig. Last inn siden på nytt for å fortsette."
+    }
+  ],
+  "697c59072d": [
+    {
+      "type": 0,
+      "value": "Logg inn for å lagre"
     }
   ],
   "6a26f54883": [
@@ -467,6 +527,12 @@
       "value": "."
     }
   ],
+  "84c89d47c7": [
+    {
+      "type": 0,
+      "value": "Del gratis"
+    }
+  ],
   "85a082de1b": [
     {
       "type": 0,
@@ -497,6 +563,12 @@
     {
       "type": 0,
       "value": "For å fortsette redigeringen, kopier rommet til filene dine."
+    }
+  ],
+  "8ea211024d": [
+    {
+      "type": 0,
+      "value": "Opprett en gratis konto"
     }
   ],
   "8eb2c00e96": [
@@ -667,6 +739,12 @@
       "value": "Kopier lenken"
     }
   ],
+  "ba0318cb81": [
+    {
+      "type": 0,
+      "value": "Logg inn for å dele"
+    }
+  ],
   "bb792693e2": [
     {
       "type": 0,
@@ -731,10 +809,28 @@
       "value": "Last opp .tldr-filer"
     }
   ],
+  "bffe9a3c9a": [
+    {
+      "type": 0,
+      "value": "Logg inn"
+    }
+  ],
+  "c079282475": [
+    {
+      "type": 0,
+      "value": "Del arbeidet ditt"
+    }
+  ],
   "c2276c9127": [
     {
       "type": 0,
       "value": "Finn ut mer om deling."
+    }
+  ],
+  "c24e43cd1a": [
+    {
+      "type": 0,
+      "value": "Du melder deg på, ikke sant?"
     }
   ],
   "c303bd1095": [
@@ -785,6 +881,12 @@
       "value": "Finn ut mer om publisering."
     }
   ],
+  "d0eedb7995": [
+    {
+      "type": 0,
+      "value": "Hei"
+    }
+  ],
   "d3d2e61733": [
     {
       "type": 0,
@@ -813,6 +915,18 @@
     {
       "type": 0,
       "value": "Gå hit for å se innholdet"
+    }
+  ],
+  "da404df474": [
+    {
+      "type": 0,
+      "value": "Lagre arbeidet ditt"
+    }
+  ],
+  "db4c2dab9a": [
+    {
+      "type": 0,
+      "value": "Ikke Excalidraw"
     }
   ],
   "dbbebf3c03": [
@@ -947,6 +1061,12 @@
     {
       "type": 0,
       "value": "Er du sikker på at du vil slette denne filen?"
+    }
+  ],
+  "fd27891570": [
+    {
+      "type": 0,
+      "value": "Bli med på ventelisten"
     }
   ],
   "fed5ec05eb": [

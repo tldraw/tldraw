@@ -1124,20 +1124,6 @@
 	display: none;
 }
 
-.tlui-navigation-panel__toggle .tlui-icon {
-	opacity: 0.24;
-}
-
-.tlui-navigation-panel__toggle:active .tlui-icon {
-	opacity: 1;
-}
-
-@media (hover: hover) {
-	.tlui-navigation-panel__toggle:hover .tlui-icon {
-		opacity: 1;
-	}
-}
-
 /* Minimap */
 
 .tlui-minimap {

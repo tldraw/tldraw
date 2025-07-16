@@ -14,6 +14,9 @@
   "06b9281e39": {
     "translation": "Otomatik"
   },
+  "0776e18496": {
+    "translation": "Kaydet ve paylaş"
+  },
   "07dbd11b21": {
     "translation": "İsimsiz dosya"
   },
@@ -38,6 +41,9 @@
   "13ddd375ad": {
     "translation": "Dışa aktarma formatı"
   },
+  "1460ab5e78": {
+    "translation": "Ücretsiz TLdraw'lar"
+  },
   "181b90f889": {
     "translation": "Dosya oluştur"
   },
@@ -47,11 +53,17 @@
   "1dd1c5fb7f": {
     "translation": "Bugün"
   },
+  "22d84a12fd": {
+    "translation": "Figjam ama tldraw"
+  },
   "250ddea65c": {
     "translation": "tldraw hakkında"
   },
   "299cb00a7a": {
     "translation": "Yüklenemedi"
+  },
+  "2c61d18599": {
+    "translation": "Miro ama iyi ve özgür"
   },
   "31246941ad": {
     "translation": "Bu dosyayı görüntülemek için oturum açmanız gerekiyor."
@@ -74,8 +86,14 @@
   "3d0238bf16": {
     "translation": "Hepsini kabul et"
   },
+  "3fc6d0c83a": {
+    "translation": "Arkadaş ekle"
+  },
   "42e53c47c1": {
     "translation": "Erişim isteğinde bulunmak için sahibiyle iletişime geçin."
+  },
+  "44281ab6e5": {
+    "translation": "Giriş yap"
   },
   "44db318ee5": {
     "translation": "Discord'da yardım alın"
@@ -94,6 +112,12 @@
   },
   "4d1c8263ba": {
     "translation": "Tekrar yükle"
+  },
+  "4e029798f2": {
+    "translation": "Ücretsiz hisseler"
+  },
+  "4e875b8d8e": {
+    "translation": "Ücretsiz kayıtlar"
   },
   "50db1b7e1e": {
     "translation": "Dosya yayından kaldırılamıyor."
@@ -137,6 +161,9 @@
   "5fb63579fc": {
     "translation": "Kopyala"
   },
+  "5ff75742e0": {
+    "translation": "Ücretsiz kaydolun"
+  },
   "61057a0c84": {
     "translation": "Daha sonra"
   },
@@ -148,6 +175,9 @@
   },
   "6637a98151": {
     "translation": "tldraw'ın yeni bir sürümü mevcut. Devam etmek için lütfen sayfayı yeniden yükleyin."
+  },
+  "697c59072d": {
+    "translation": "Kaydetmek için oturum açın"
   },
   "6a26f54883": {
     "translation": "Yardım"
@@ -212,6 +242,9 @@
   "815e116a2e": {
     "translation": "tldraw için bir hata, sorun veya fikriniz mi var? Bize bildirin! Bu formu doldurun ve gerekirse e-posta yoluyla takip edeceğiz. Ayrıca <discord>Discord'da bizimle sohbet edebilir</discord> veya <github>GitHub'da bir sorun gönderebilirsiniz</github>."
   },
+  "84c89d47c7": {
+    "translation": "Ücretsiz paylaşın"
+  },
   "85a082de1b": {
     "translation": "En güncel tldraw sürümü için lütfen sayfayı yenileyin."
   },
@@ -223,6 +256,9 @@
   },
   "8b1946f965": {
     "translation": "Düzenlemeye devam etmek için lütfen odayı dosyalarınıza kopyalayın."
+  },
+  "8ea211024d": {
+    "translation": "Ücretsiz bir hesap oluşturun"
   },
   "8eb2c00e96": {
     "translation": "Sizinle paylaşıldı"
@@ -306,6 +342,9 @@
   "b758336699": {
     "translation": "Bağlantıyı kopyala"
   },
+  "ba0318cb81": {
+    "translation": "Paylaşmak için oturum açın"
+  },
   "bb792693e2": {
     "translation": "SabitlemeyI kaldır"
   },
@@ -318,8 +357,17 @@
   "bcb62136a3": {
     "translation": ".tldr dosyalarını yükle"
   },
+  "bffe9a3c9a": {
+    "translation": "Giriş yapmak"
+  },
+  "c079282475": {
+    "translation": "Çalışmanızı paylaşın"
+  },
   "c2276c9127": {
     "translation": "Paylaşım hakkında daha fazla bilgi edinin."
+  },
+  "c24e43cd1a": {
+    "translation": "Kaydolacaksın değil mi?"
   },
   "c303bd1095": {
     "translation": "Bu dosya yayınlanamıyor."
@@ -345,6 +393,9 @@
   "cea291e45e": {
     "translation": "Yayınlama hakkında daha fazla bilgi edinin."
   },
+  "d0eedb7995": {
+    "translation": "Hey"
+  },
   "d3d2e61733": {
     "translation": "Kapat"
   },
@@ -359,6 +410,12 @@
   },
   "d9100f3e10": {
     "translation": "İçeriği görmek için buraya gidin"
+  },
+  "da404df474": {
+    "translation": "Çalışmanızı kaydedin"
+  },
+  "db4c2dab9a": {
+    "translation": "Excalidraw değil"
   },
   "dbbebf3c03": {
     "translation": "Yalnızca davetle"
@@ -419,6 +476,9 @@
   },
   "fd1be3efcf": {
     "translation": "Bu dosyayı silmek istediğinizden emin misiniz?"
+  },
+  "fd27891570": {
+    "translation": "Bekleme listesine katılın"
   },
   "fed5ec05eb": {
     "translation": "Bağlantı kopyalandı"

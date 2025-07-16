@@ -1,4 +1,4 @@
 const getLicenseKey = () =>
 	process.env.TLDRAW_LICENSE ||
-	'tldraw-tldraw-2025-07-10/WyJocTUxVWM3RiIsWyIqLnRsZHJhdy5jb20iXSw5LCIyMDI1LTA3LTEwIl0.fcGEICPNGbpCjxyLkyRXjv7CfcenRjBRl06I/v6loCD8CijVePhVwsT3B+TgJr+x7ihZAa/cn6N43ty6yz/ZPg'
+	'tldraw-tldraw-2026-07-10/WyJES1F3eDE5TCIsWyIqLnRsZHJhdy5jb20iXSw5LCIyMDI2LTA3LTEwIl0.ESLyxHZvYuMQYvHuiXqWlmVT6Gkq7vZcs1HeSXpsttYSGmqMgfilSIsrw6hEw53PzrqBMwIjjcmcvPl9Iil/nw'
 export default getLicenseKey

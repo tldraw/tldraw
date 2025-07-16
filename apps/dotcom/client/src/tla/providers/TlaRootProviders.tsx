@@ -17,7 +17,7 @@ import {
 	useToasts,
 	useValue,
 } from 'tldraw'
-import translationsEnJson from '../../../public/tla/locales/en.json'
+import translationsEnJson from '../../../public/tla/locales-compiled/en.json'
 import { ErrorPage } from '../../components/ErrorPage/ErrorPage'
 import { SignedInAnalytics, SignedOutAnalytics } from '../../utils/analytics'
 import { globalEditor } from '../../utils/globalEditor'
@@ -88,7 +88,7 @@ export function Component() {
 }
 
 function IntlWrapper({ children, locale }: { children: ReactNode; locale: string }) {
-	const [messages, setMessages] = useState({})
+	const [messages, setMessages] = useState(translationsEnJson)
 
 	useEffect(() => {
 		async function fetchMessages() {
