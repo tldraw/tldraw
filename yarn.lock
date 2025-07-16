@@ -13967,6 +13967,18 @@ __metadata:
   languageName: node
   linkType: hard
 
+"create-tldraw@workspace:packages/create-tldraw":
+  version: 0.0.0-use.local
+  resolution: "create-tldraw@workspace:packages/create-tldraw"
+  dependencies:
+    "@tldraw/utils": "workspace:*"
+    esbuild: "npm:^0.25.6"
+    lazyrepo: "npm:0.0.0-alpha.27"
+  bin:
+    create-tldraw: ./cli.mjs
+  languageName: unknown
+  linkType: soft
+
 "crelt@npm:^1.0.0":
   version: 1.0.6
   resolution: "crelt@npm:1.0.6"
@@ -15601,7 +15613,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"esbuild@npm:^0.25.0, esbuild@npm:~0.25.0":
+"esbuild@npm:^0.25.0, esbuild@npm:^0.25.6, esbuild@npm:~0.25.0":
   version: 0.25.6
   resolution: "esbuild@npm:0.25.6"
   dependencies:

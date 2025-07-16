@@ -10,7 +10,11 @@
 	"license": "MIT",
 	"type": "module",
 	"tldraw_template": {
-		"repo": "tldraw/tldraw-sync-cloudflare",
+		"publish": {
+			"repo": "tldraw/tldraw-sync-cloudflare",
+			"name": "Sync",
+			"description": "Self-hosted tldraw with realtime multiplayer, powered by tldraw sync and Cloudflare Durable Objects. Built with Vite and TypeScript."
+		},
 		"scripts": {
 			"lint": null
 		}

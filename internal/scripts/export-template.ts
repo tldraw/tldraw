@@ -1,31 +1,9 @@
-import { T } from '@tldraw/validate'
 import { copyFile, mkdir, mkdtemp, readdir, readFile, rm } from 'fs/promises'
 import { tmpdir } from 'os'
 import { dirname, join } from 'path'
 import { exec } from './lib/exec'
 import { readJsonIfExists, REPO_ROOT, writeCodeFile, writeJsonFile } from './lib/file'
-
-const EXPORT_CONFIG_KEY = 'tldraw_template' as const
-
-const ExportConfig = T.object({
-	repo: T.string.optional(),
-	scripts: T.dict(T.string, T.nullable(T.string)),
-})
-const PackageJson = T.object({
-	[EXPORT_CONFIG_KEY]: ExportConfig.optional(),
-	scripts: T.dict(T.string, T.nullable(T.string)),
-	dependencies: T.dict(T.string, T.string).optional(),
-	devDependencies: T.dict(T.string, T.string).optional(),
-	peerDependencies: T.dict(T.string, T.string).optional(),
-}).allowUnknownProperties()
-
-const TsConfigJson = T.object({
-	references: T.arrayOf(
-		T.object({
-			path: T.string,
-		})
-	).optional(),
-}).allowUnknownProperties()
+import { EXPORT_CONFIG_KEY, PackageJson, TsConfigJson } from './lib/types'
 
 const TEMPLATE_DIR = join(REPO_ROOT, 'templates')
 
@@ -68,13 +46,13 @@ async function main() {
 		process.exit(1)
 	}
 
-	if (!exportConfig.repo) {
-		console.log('No repo found in package.json. Skipping export.')
+	if (!exportConfig.publish) {
+		console.log('No publish key found in package.json. Skipping export.')
 		process.exit(0)
 	}
 
 	// clone the template repo:
-	const repoUrl = `https://${githubAuth}github.com/${exportConfig.repo}.git`
+	const repoUrl = `https://${githubAuth}github.com/${exportConfig.publish.repo}.git`
 	console.log(`Cloning ${repoUrl}...`)
 	await exec('git', ['clone', repoUrl, workingDir, '--depth', '1'])
 
@@ -111,7 +89,7 @@ async function main() {
 	console.log('Cleaning package.json...')
 	delete packageJson[EXPORT_CONFIG_KEY]
 
-	if (exportConfig?.scripts) {
+	if (exportConfig?.scripts && packageJson.scripts) {
 		for (const [name, script] of Object.entries(exportConfig.scripts)) {
 			if (script === null) {
 				delete packageJson.scripts[name]

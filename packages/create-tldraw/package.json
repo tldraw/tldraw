@@ -1,0 +1,59 @@
+{
+	"name": "create-tldraw",
+	"description": "tldraw infinite canvas SDK (create cli).",
+	"version": "0.0.0",
+	"author": {
+		"name": "tldraw Inc.",
+		"email": "hello@tldraw.com"
+	},
+	"homepage": "https://tldraw.dev",
+	"license": "SEE LICENSE IN LICENSE.md",
+	"repository": {
+		"type": "git",
+		"url": "https://github.com/tldraw/tldraw"
+	},
+	"bugs": {
+		"url": "https://github.com/tldraw/tldraw/issues"
+	},
+	"keywords": [
+		"tldraw",
+		"sdk",
+		"drawing",
+		"app",
+		"development",
+		"whiteboard",
+		"canvas",
+		"infinite"
+	],
+	"bin": "./cli.mjs",
+	"files": [
+		"dist-esm",
+		"./cli.mjs"
+	],
+	"scripts": {
+		"dev": "./scripts/dev.sh",
+		"test-ci": "lazy inherit",
+		"test": "yarn run -T jest",
+		"test-coverage": "lazy inherit",
+		"build": "esbuild src/index.ts --bundle --outfile=dist-esm/index.mjs --platform=node --target=node20 --sourcemap",
+		"pack-tarball": "yarn pack",
+		"lint": "yarn run -T tsx ../../internal/scripts/lint.ts"
+	},
+	"// because this is bundled, all dependencies should be dev dependencies.": null,
+	"dependencies": {},
+	"devDependencies": {
+		"@tldraw/utils": "workspace:*",
+		"@tldraw-internal/scripts": "workspace:*",
+		"esbuild": "^0.25.6",
+		"lazyrepo": "0.0.0-alpha.27"
+	},
+	"jest": {
+		"preset": "../../internal/config/jest/node/jest-preset.js",
+		"setupFiles": [
+			"raf/polyfill"
+		],
+		"moduleNameMapper": {
+			"^~(.*)": "<rootDir>/src/$1"
+		}
+	}
+}
