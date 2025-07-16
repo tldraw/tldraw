@@ -36,7 +36,7 @@ export interface AgentMessageHistoryItem {
 
 export interface AgentChangeHistoryItem {
 	type: 'agent-change'
-	changes: (TLAiStreamingChange & { shape?: Partial<TLShape> })[]
+	changes: (TLAiStreamingChange & { shape?: Partial<TLShape>; previousShape?: Partial<TLShape> })[]
 	status: 'progress' | 'done' | 'cancelled'
 }
 
@@ -118,7 +118,7 @@ function getDiffShapesFromChange({
 	change,
 	editor,
 }: {
-	change: TLAiStreamingChange & { shape?: Partial<TLShape> }
+	change: TLAiStreamingChange & { shape?: Partial<TLShape>; previousShape?: Partial<TLShape> }
 	editor: Editor
 }): TLShape[] {
 	switch (change.type) {
@@ -132,7 +132,26 @@ function getDiffShapesFromChange({
 		}
 		case 'updateShape': {
 			const shape = getCompleteShapeFromStreamingShape({ shape: change.shape, editor })
-			return shape ? [shape] : []
+			const previousShape = {
+				...getCompleteShapeFromStreamingShape({
+					shape: change.previousShape,
+					editor,
+				}),
+				id: (change.previousShape?.id + '-previous') as TLShapeId,
+			} as TLShape
+
+			if (shape) {
+				const highlightShape = makeHighlightShape({ shape, color: 'light-blue' })
+				if (previousShape) {
+					const previousHighlightShape = makeHighlightShape({
+						shape: previousShape,
+						color: 'light-red',
+					})
+					return [previousHighlightShape, previousShape, highlightShape, shape]
+				}
+				return [highlightShape, shape]
+			}
+			return []
 		}
 		case 'deleteShape': {
 			const shape = getCompleteShapeFromStreamingShape({ shape: change.shape, editor })

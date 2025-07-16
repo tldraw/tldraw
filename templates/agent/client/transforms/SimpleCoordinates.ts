@@ -61,15 +61,17 @@ export class SimpleCoordinates extends TldrawAiTransform {
 				const { x: nextX, y: nextY } = shape
 
 				// Restore all the original number values
-				for (const key in shape.props) {
-					const v = (shape.props as any)[key]
-					if (Number.isFinite(v)) {
-						const beforeNumberValue = this.getBeforeNumberValue(shape, key)
-						if (beforeNumberValue !== undefined) {
-							;(shape.props as any)[key] = beforeNumberValue
-						}
-					}
-				}
+				// This was preventing the model from resizing shapes
+				// for (const key in shape.props) {
+				// 	const v = (shape.props as any)[key]
+				// 	if (Number.isFinite(v)) {
+				// 		const beforeNumberValue = this.getBeforeNumberValue(shape, key)
+				// 		if (beforeNumberValue !== undefined) {
+				// 			console.log('restoring', key, beforeNumberValue, 'instead of', v)
+				// 			;(shape.props as any)[key] = beforeNumberValue
+				// 		}
+				// 	}
+				// }
 
 				// Also restore the original x and y coordinates
 				if (nextX !== undefined) {

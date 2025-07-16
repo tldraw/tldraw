@@ -133,11 +133,26 @@ function applyChangeToChatHistory({
 			return
 		}
 		case 'updateShape': {
+			// createOrUpdateHistoryItem({
+			// 	type: 'agent-action',
+			// 	action: 'updating',
+			// 	status: change.complete ? 'done' : 'progress',
+			// 	info: change.description ?? '',
+			// })
+			let previousShape: TLShape | undefined = undefined
+			if (change.complete) {
+				previousShape = editor.getShape(change.shape.id)
+			}
+			const newShape = {
+				...previousShape,
+				...change.shape,
+				props: { ...previousShape?.props, ...(change.shape?.props ?? {}) },
+				meta: { ...previousShape?.meta, ...change.shape?.meta },
+			}
 			createOrUpdateHistoryItem({
-				type: 'agent-action',
-				action: 'updating',
+				type: 'agent-change',
+				changes: [{ ...change, previousShape, shape: newShape as TLShape }],
 				status: change.complete ? 'done' : 'progress',
-				info: change.description ?? '',
 			})
 			return
 		}
