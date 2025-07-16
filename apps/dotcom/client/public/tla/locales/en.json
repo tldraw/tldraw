@@ -41,9 +41,6 @@
   "13ddd375ad": {
     "translation": "Export as"
   },
-  "1460ab5e78": {
-    "translation": "Free tldraws"
-  },
   "181b90f889": {
     "translation": "Create file"
   },
@@ -76,6 +73,9 @@
   },
   "344a7f427f": {
     "translation": "Editor"
+  },
+  "37b3dca331": {
+    "translation": "Please sign in"
   },
   "3bd1b98dbd": {
     "translation": "Unable to publish the changes."
@@ -113,11 +113,8 @@
   "4d1c8263ba": {
     "translation": "Reload"
   },
-  "4e029798f2": {
-    "translation": "Free shares"
-  },
-  "4e875b8d8e": {
-    "translation": "Free saves"
+  "4ea0bb66f7": {
+    "translation": "An account would be nice"
   },
   "50db1b7e1e": {
     "translation": "Unable to unpublish the file."
@@ -152,6 +149,9 @@
   "5bec508475": {
     "translation": "Old browser detected. Please update your browser to use this app."
   },
+  "5bef23eb7e": {
+    "translation": "Create your account"
+  },
   "5d26ae7550": {
     "translation": "We failed to upload some of the content you created before you signed in."
   },
@@ -160,9 +160,6 @@
   },
   "5fb63579fc": {
     "translation": "Copy"
-  },
-  "5ff75742e0": {
-    "translation": "Sign up for free"
   },
   "61057a0c84": {
     "translation": "Later"
@@ -226,6 +223,9 @@
   },
   "7be10fc592": {
     "translation": "Restore version"
+  },
+  "7c7d5d493e": {
+    "translation": "Please sign up"
   },
   "7cb5f8b4a5": {
     "translation": "Forget"
@@ -336,6 +336,9 @@
   "b028909917": {
     "translation": "Guest user"
   },
+  "b52dc007ac": {
+    "translation": "Sign up (free and good)"
+  },
   "b6d4223e60": {
     "translation": "Sign in"
   },
@@ -384,6 +387,9 @@
   "c87aacf567": {
     "translation": "Sign out"
   },
+  "c8c6a6504a": {
+    "translation": "You should sign up"
+  },
   "cceaefbc20": {
     "translation": "Share this file"
   },
@@ -407,6 +413,9 @@
   },
   "d876a9fe1a": {
     "translation": "Try Again"
+  },
+  "d8a50c79a7": {
+    "translation": "Come with me to tldraw"
   },
   "d9100f3e10": {
     "translation": "Go here to see the content"
