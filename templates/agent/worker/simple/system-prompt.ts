@@ -9,7 +9,7 @@ const shapeTypeNames = SimpleShape._def.options
 		return null
 	})
 	.filter((type) => !!type)
-	.filter((type) => !['unknown', 'line', 'arrow'].includes(type))
+	.filter((type) => !['unknown'].includes(type))
 
 export const SIMPLE_SYSTEM_PROMPT = `
 ## System Prompt:
@@ -187,3 +187,5 @@ Assistant: [
 	}
 ]
 `
+
+// console.log(SIMPLE_SYSTEM_PROMPT)
