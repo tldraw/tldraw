@@ -241,6 +241,7 @@ export function StatusThinkingHistoryItem({ item }: { item: StatusThinkingHistor
 }
 
 export function AgentRawHistoryItem({ item }: { item: AgentRawHistoryItem }) {
+	return null
 	const values = Object.entries(item.change).map(([key, value]) => {
 		if (key === 'type' || key === 'complete') return null
 		if (typeof value === 'object') return JSON.stringify(value, null, 2)
