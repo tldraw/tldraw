@@ -13,9 +13,7 @@ onMounted(() => {
 </script>
 
 <template>
-	<header>
-		Here's a vue app that includes tldraw!
-	</header>
+	<header>Here's a vue app that includes tldraw!</header>
 
 	<main ref="tldraw" />
 </template>
