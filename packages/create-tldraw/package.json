@@ -27,7 +27,7 @@
 	],
 	"bin": "./cli.cjs",
 	"files": [
-		"dist-esm",
+		"dist-cjs",
 		"./cli.cjs"
 	],
 	"scripts": {
