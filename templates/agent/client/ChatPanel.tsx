@@ -1,10 +1,8 @@
 import { FormEventHandler, useCallback, useEffect, useRef, useState } from 'react'
 import { Editor, useLocalStorageState } from 'tldraw'
-import { AGENT_MODEL_DEFINITIONS, TLAgentModelName } from '../worker/models'
+import { DEFAULT_MODEL_NAME, TLAgentModelName } from '../worker/models'
 import { $chatHistoryItems, ChatHistory } from './ChatHistory'
-import { BrainIcon } from './icons/BrainIcon'
-import { ChevronDownIcon } from './icons/ChevronDownIcon'
-import { CommentIcon } from './icons/CommentIcon'
+import { ChatInput } from './ChatInput'
 import { $requestsSchedule } from './requestsSchedule'
 import { useTldrawAiExample } from './useTldrawAiExample'
 
@@ -14,10 +12,7 @@ export function ChatPanel({ editor }: { editor: Editor }) {
 	const [isGenerating, setIsGenerating] = useState(false)
 	const rCancelFn = useRef<(() => void) | null>(null)
 	const inputRef = useRef<HTMLInputElement>(null)
-	const [modelName, setModelName] = useLocalStorageState<TLAgentModelName>(
-		'model-name',
-		'gemini-2.5-flash'
-	)
+	const [modelName] = useLocalStorageState<TLAgentModelName>('model-name', DEFAULT_MODEL_NAME)
 
 	useEffect(() => {
 		if (!editor) return
@@ -147,43 +142,7 @@ export function ChatPanel({ editor }: { editor: Editor }) {
 				<NewChatButton />
 			</div>
 			<ChatHistory editor={editor} />
-			<div className="chat-input">
-				<form onSubmit={handleSubmit}>
-					<input
-						ref={inputRef}
-						name="input"
-						type="text"
-						autoComplete="off"
-						placeholder="Ask, learn, brainstorm, draw"
-					/>
-					<span className="chat-input-actions">
-						<div className="chat-input-actions-left">
-							<div className="chat-mode-select">
-								<CommentIcon />
-								<span>Agent</span>
-								<ChevronDownIcon />
-							</div>
-							<div className="chat-model-select">
-								<div className="chat-input-actions-label">
-									<BrainIcon /> {modelName}
-								</div>
-								<select
-									value={modelName}
-									onChange={(e) => setModelName(e.target.value as TLAgentModelName)}
-								>
-									{Object.values(AGENT_MODEL_DEFINITIONS).map((model) => (
-										<option key={model.name} value={model.name}>
-											{model.name}
-										</option>
-									))}
-								</select>
-								<ChevronDownIcon />
-							</div>
-						</div>
-						<button>{isGenerating ? '◼' : '⬆'}</button>
-					</span>
-				</form>
-			</div>
+			<ChatInput handleSubmit={handleSubmit} inputRef={inputRef} isGenerating={isGenerating} />
 		</div>
 	)
 }

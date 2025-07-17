@@ -1,3 +1,5 @@
+export const DEFAULT_MODEL_NAME = 'gemini-2.5-flash'
+
 export type TLAgentModelName = keyof typeof AGENT_MODEL_DEFINITIONS
 export type TLAgentModelProvider = 'openai' | 'anthropic' | 'google'
 
