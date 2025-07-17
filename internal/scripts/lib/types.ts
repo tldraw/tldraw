@@ -7,6 +7,8 @@ export const TemplateConfig = T.object({
 		repo: T.string,
 		name: T.string,
 		description: T.string,
+		category: T.literalEnum('framework', 'app'),
+		order: T.number.optional(),
 	}).optional(),
 	scripts: T.dict(T.string, T.nullable(T.string)),
 })
