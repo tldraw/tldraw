@@ -1,14 +1,23 @@
 <script setup lang="ts">
 import { createElement } from 'react'
 import { createRoot } from 'react-dom/client'
-import { onMounted, useTemplateRef } from 'vue'
+import { onMounted, onUnmounted, useTemplateRef } from 'vue'
 import { TldrawWrapper } from './TldrawWrapper'
 
 const tldrawWrapperEl = useTemplateRef('tldraw')
+let root: any = null
 
 onMounted(() => {
 	if (!tldrawWrapperEl.value) return
-	createRoot(tldrawWrapperEl.value).render(createElement(TldrawWrapper))
+	root = createRoot(tldrawWrapperEl.value)
+	root.render(createElement(TldrawWrapper))
+})
+
+onUnmounted(() => {
+	if (root) {
+		root.unmount()
+		root = null
+	}
 })
 </script>
 
