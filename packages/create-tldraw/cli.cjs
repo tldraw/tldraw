@@ -1,3 +1,3 @@
 #!/usr/bin/env node
 
-require('./dist-cjs/index.cjs')
+require('./dist-cjs/main.cjs')
