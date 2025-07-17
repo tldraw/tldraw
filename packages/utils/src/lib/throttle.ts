@@ -68,6 +68,8 @@ const updateTargetFps = () => {
 // Track actual browser frame timing using requestAnimationFrame
 let frameTimingRaf: number | undefined
 let isFrameTimingActive = false
+let measurementStartTime = 0
+const MEASUREMENT_DURATION = 2000 // Continue measuring for 2 seconds after throttling activity
 
 const startFrameTimingMeasurement = () => {
 	if (isFrameTimingActive || isTest()) return
@@ -75,6 +77,7 @@ const startFrameTimingMeasurement = () => {
 	isFrameTimingActive = true
 	framesInCurrentWindow = 0
 	windowStartTime = performance.now()
+	measurementStartTime = windowStartTime
 
 	const measureFrame = () => {
 		// Count this frame
@@ -103,8 +106,10 @@ const startFrameTimingMeasurement = () => {
 			}
 		}
 
-		// Continue measuring as long as there are functions being throttled
-		if (fpsQueue.length > 0) {
+		// Continue measuring for a reasonable period even if queue is empty
+		// This ensures we collect enough data for adaptive FPS decisions
+		const timeSinceStart = now - measurementStartTime
+		if (fpsQueue.length > 0 || timeSinceStart < MEASUREMENT_DURATION) {
 			// eslint-disable-next-line no-restricted-globals
 			frameTimingRaf = requestAnimationFrame(measureFrame)
 		} else {
@@ -256,6 +261,7 @@ export function resetAdaptiveFps(): void {
 	fpsCheckHistory = []
 	framesInCurrentWindow = 0
 	windowStartTime = 0
+	measurementStartTime = 0
 	consecutiveGoodFrames = 0
 	consecutiveBadFrames = 0
 	stopFrameTimingMeasurement()
