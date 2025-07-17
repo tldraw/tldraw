@@ -34,9 +34,11 @@ export function ChatHistory({ editor, items }: { editor: Editor; items: ChatHist
 		previousScrollDistanceFromBottomRef.current = scrollDistanceFromBottom
 	}
 
+	const mergedItems = getChatHistoryWithMergedAdjacentItems({ items })
+
 	return (
 		<div className="chat-history" ref={scrollContainerRef} onScroll={handleScroll}>
-			{items.map((item, index) => {
+			{mergedItems.map((item, index) => {
 				switch (item.type) {
 					case 'user-message':
 						return <UserMessageHistoryItem key={index} item={item} />
@@ -54,4 +56,39 @@ export function ChatHistory({ editor, items }: { editor: Editor; items: ChatHist
 			})}
 		</div>
 	)
+}
+
+function getChatHistoryWithMergedAdjacentItems({
+	items,
+}: {
+	items: ChatHistoryItem[]
+}): ChatHistoryItem[] {
+	const newItems: ChatHistoryItem[] = []
+	for (let i = 0; i < items.length; i++) {
+		const currentItem = newItems[newItems.length - 1]
+		const nextItem = items[i]
+		if (!currentItem) {
+			newItems.push(nextItem)
+			continue
+		}
+
+		// Merge together pending diffs
+		if (
+			currentItem.type === 'agent-change' &&
+			currentItem.acceptance === 'pending' &&
+			nextItem?.type === 'agent-change' &&
+			nextItem.acceptance === 'pending'
+		) {
+			const mergedItem = {
+				...nextItem,
+				changes: [...currentItem.changes, ...nextItem.changes],
+			}
+			newItems[newItems.length - 1] = mergedItem
+			continue
+		}
+
+		newItems.push(nextItem)
+	}
+
+	return newItems
 }

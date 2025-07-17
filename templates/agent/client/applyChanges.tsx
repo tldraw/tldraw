@@ -128,71 +128,13 @@ function applyChangeToChatHistory({
 }
 
 function createOrUpdateHistoryItem(item: ChatHistoryItem) {
-	$chatHistoryItems.update((prev) => {
-		const newItems = getChatHistoryWithAddedItem({ items: prev, item })
-		const mergedItems = getChatHistoryWithMergedAdjacentItems({ items: newItems })
-		return mergedItems
+	$chatHistoryItems.update((items) => {
+		if (items.length === 0) return [item]
+
+		const lastItem = items[items.length - 1]
+		if (lastItem.status === 'progress') {
+			return [...items.slice(0, -1), item]
+		}
+		return [...items, item]
 	})
-}
-
-function getChatHistoryWithAddedItem({
-	items,
-	item,
-}: {
-	items: ChatHistoryItem[]
-	item: ChatHistoryItem
-}): ChatHistoryItem[] {
-	const lastItem = items[items.length - 1]
-	if (!lastItem) return [item]
-
-	// If the previous item is in progress, then replace it with the new item
-	if (lastItem.status === 'progress') {
-		let newItem = item
-		if (lastItem.type === 'agent-change' && item.type === 'agent-change') {
-			// Replace the final change with the new one
-			const changeCount = item.changes.length
-			const newChanges = [...lastItem.changes.slice(0, -changeCount), ...item.changes]
-			newItem = {
-				...item,
-				changes: newChanges,
-				status: item.status,
-			}
-		}
-
-		return [...items.slice(0, -1), newItem]
-	}
-
-	// If the previous item is done or cancelled, then create a new one
-	return [...items, item]
-}
-
-function getChatHistoryWithMergedAdjacentItems({
-	items,
-}: {
-	items: ChatHistoryItem[]
-}): ChatHistoryItem[] {
-	const newItems = []
-	for (let i = 0; i < items.length; i++) {
-		const currentItem = items[i]
-		const nextItem = items[i + 1]
-
-		if (
-			currentItem.type === 'agent-change' &&
-			currentItem.acceptance === 'pending' &&
-			nextItem?.type === 'agent-change' &&
-			nextItem.acceptance === 'pending'
-		) {
-			const mergedItem = {
-				...nextItem,
-				changes: [...currentItem.changes, ...nextItem.changes],
-			}
-			newItems.push(mergedItem)
-			i++
-			continue
-		}
-
-		newItems.push(currentItem)
-	}
-
-	return newItems
 }
