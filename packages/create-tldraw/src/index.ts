@@ -58,10 +58,11 @@ async function main() {
 		process.exit(0)
 	}
 
-	const targetDir = args._[0] ? formatTargetDir(resolve(String(args._[0]))) : process.cwd()
+	const maybeTargetDir = args._[0] ? formatTargetDir(resolve(String(args._[0]))) : undefined
+	const targetDir = maybeTargetDir ?? process.cwd()
 
 	const template = await templatePicker(args.template)
-	const name = await namePicker(targetDir)
+	const name = await namePicker(maybeTargetDir)
 
 	await ensureDirectoryEmpty(targetDir, args.overwrite)
 	await downloadTemplate(template, targetDir)
