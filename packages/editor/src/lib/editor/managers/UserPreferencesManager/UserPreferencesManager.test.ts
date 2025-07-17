@@ -25,6 +25,7 @@ describe('UserPreferencesManager', () => {
 		locale: 'en',
 		animationSpeed: 1,
 		areKeyboardShortcutsEnabled: true,
+		showUiLabels: false,
 		edgeScrollSpeed: 1,
 		colorScheme: 'light',
 		isSnapMode: false,
@@ -231,6 +232,7 @@ describe('UserPreferencesManager', () => {
 				color: mockUserPreferences.color,
 				animationSpeed: mockUserPreferences.animationSpeed,
 				areKeyboardShortcutsEnabled: mockUserPreferences.areKeyboardShortcutsEnabled,
+				showUiLabels: mockUserPreferences.showUiLabels,
 				isSnapMode: mockUserPreferences.isSnapMode,
 				colorScheme: mockUserPreferences.colorScheme,
 				isDarkMode: false, // light mode
@@ -376,6 +378,17 @@ describe('UserPreferencesManager', () => {
 				expect(userPreferencesManager.getAreKeyboardShortcutsEnabled()).toBe(
 					defaultUserPreferences.areKeyboardShortcutsEnabled
 				)
+			})
+		})
+
+		describe('getShowUiLabels', () => {
+			it('should return user show ui labels setting', () => {
+				expect(userPreferencesManager.getShowUiLabels()).toBe(mockUserPreferences.showUiLabels)
+			})
+
+			it('should return default show ui labels when null', () => {
+				userPreferencesAtom.set({ ...mockUserPreferences, showUiLabels: null })
+				expect(userPreferencesManager.getShowUiLabels()).toBe(defaultUserPreferences.showUiLabels)
 			})
 		})
 

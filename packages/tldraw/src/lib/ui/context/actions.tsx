@@ -1260,6 +1260,21 @@ export function ActionsProvider({ overrides, children }: ActionsProviderProps) {
 				checkbox: true,
 			},
 			{
+				id: 'toggle-ui-labels',
+				label: {
+					default: 'action.toggle-ui-labels',
+					menu: 'action.toggle-ui-labels.menu',
+				},
+				readonlyOk: true,
+				onSelect(source) {
+					trackEvent('toggle-ui-labels', { source })
+					editor.user.updateUserPreferences({
+						showUiLabels: !editor.user.getShowUiLabels(),
+					})
+				},
+				checkbox: true,
+			},
+			{
 				id: 'toggle-edge-scrolling',
 				label: {
 					default: 'action.toggle-edge-scrolling',
