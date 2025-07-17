@@ -1,5 +1,5 @@
 /*!
- * This is a fork of strip-ansi, adding the ability to customize the string inserted at the start of each wrapped line.
+ * This is a fork of wrap-ansi, adding the ability to customize the string inserted at the start of each wrapped line.
  * MIT License: https://github.com/chalk/wrap-ansi/blob/163b878a6eb5d8c32b7bbea65036eeadc0e4def9/license
  * Copyright (c) Sindre Sorhus <sindresorhus@gmail.com> (https://sindresorhus.com)
  * https://github.com/chalk/wrap-ansi/blob/163b878a6eb5d8c32b7bbea65036eeadc0e4def9/index.js

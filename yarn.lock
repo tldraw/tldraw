@@ -9115,49 +9115,6 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@tldraw-internal/scripts@workspace:internal/scripts":
-  version: 0.0.0-use.local
-  resolution: "@tldraw-internal/scripts@workspace:internal/scripts"
-  dependencies:
-    "@actions/github": "npm:^6.0.0"
-    "@auto-it/core": "npm:^11.3.0"
-    "@aws-sdk/client-s3": "npm:^3.735.0"
-    "@aws-sdk/lib-storage": "npm:^3.735.0"
-    "@lokalise/node-api": "npm:^12.8.0"
-    "@octokit/rest": "npm:^20.1.1"
-    "@types/diff": "npm:^7.0.1"
-    "@types/is-ci": "npm:^3.0.4"
-    "@types/minimist": "npm:^1.2.5"
-    "@types/node": "npm:^22.15.31"
-    "@types/proper-lockfile": "npm:^4.1.4"
-    "@types/tmp": "npm:^0.2.6"
-    "@typescript-eslint/utils": "npm:^8.21.0"
-    ast-types: "npm:^0.14.2"
-    cross-fetch: "npm:^3.2.0"
-    diff: "npm:^7.0.0"
-    esbuild: "npm:^0.25.0"
-    eslint: "npm:^9.19.0"
-    glob: "npm:^8.1.0"
-    gray-matter: "npm:^4.0.3"
-    ignore: "npm:^5.3.2"
-    is-ci: "npm:^3.0.1"
-    jszip: "npm:^3.10.1"
-    kleur: "npm:^4.1.5"
-    lazyrepo: "npm:0.0.0-alpha.27"
-    minimist: "npm:^1.2.8"
-    prettier: "npm:^3.6.1"
-    proper-lockfile: "npm:^4.1.2"
-    recast: "npm:^0.22.0"
-    rimraf: "npm:^4.4.1"
-    semver: "npm:^7.6.3"
-    svgo: "npm:^3.3.2"
-    tar: "npm:^7.4.3"
-    tmp: "npm:^0.2.3"
-    toml: "npm:^3.0.0"
-    typescript: "npm:^5.8.3"
-  languageName: unknown
-  linkType: soft
-
 "@tldraw/ai@workspace:*, @tldraw/ai@workspace:packages/ai":
   version: 0.0.0-use.local
   resolution: "@tldraw/ai@workspace:packages/ai"
@@ -9443,6 +9400,49 @@ __metadata:
     tsx: "npm:^4.19.2"
     typescript: "npm:^5.8.3"
     vercel: "npm:^34.4.0"
+  languageName: unknown
+  linkType: soft
+
+"@tldraw/scripts@workspace:internal/scripts":
+  version: 0.0.0-use.local
+  resolution: "@tldraw/scripts@workspace:internal/scripts"
+  dependencies:
+    "@actions/github": "npm:^6.0.0"
+    "@auto-it/core": "npm:^11.3.0"
+    "@aws-sdk/client-s3": "npm:^3.735.0"
+    "@aws-sdk/lib-storage": "npm:^3.735.0"
+    "@lokalise/node-api": "npm:^12.8.0"
+    "@octokit/rest": "npm:^20.1.1"
+    "@types/diff": "npm:^7.0.1"
+    "@types/is-ci": "npm:^3.0.4"
+    "@types/minimist": "npm:^1.2.5"
+    "@types/node": "npm:^22.15.31"
+    "@types/proper-lockfile": "npm:^4.1.4"
+    "@types/tmp": "npm:^0.2.6"
+    "@typescript-eslint/utils": "npm:^8.21.0"
+    ast-types: "npm:^0.14.2"
+    cross-fetch: "npm:^3.2.0"
+    diff: "npm:^7.0.0"
+    esbuild: "npm:^0.25.0"
+    eslint: "npm:^9.19.0"
+    glob: "npm:^8.1.0"
+    gray-matter: "npm:^4.0.3"
+    ignore: "npm:^5.3.2"
+    is-ci: "npm:^3.0.1"
+    jszip: "npm:^3.10.1"
+    kleur: "npm:^4.1.5"
+    lazyrepo: "npm:0.0.0-alpha.27"
+    minimist: "npm:^1.2.8"
+    prettier: "npm:^3.6.1"
+    proper-lockfile: "npm:^4.1.2"
+    recast: "npm:^0.22.0"
+    rimraf: "npm:^4.4.1"
+    semver: "npm:^7.6.3"
+    svgo: "npm:^3.3.2"
+    tar: "npm:^7.4.3"
+    tmp: "npm:^0.2.3"
+    toml: "npm:^3.0.0"
+    typescript: "npm:^5.8.3"
   languageName: unknown
   linkType: soft
 
