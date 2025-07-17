@@ -46,7 +46,7 @@ Shapes may also have different properties depending on their type:
 
 ### Arrow Properties
 
-Arrows are differrent from shapes, in that they are lines that connect two shapes. They arr different frmo the arrowshapes (arrow-up, arrow-down, arrow-left, arrow-right), which are two dimensional.
+Arrows are differrent from shapes, in that they are lines that connect two shapes. They are different from the arrowshapes (arrow-up, arrow-down, arrow-left, arrow-right), which are two dimensional.
 
 Arrows have:
 - \`fromId\` (the id of the shape that the arrow starts from)
