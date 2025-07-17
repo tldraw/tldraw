@@ -1,28 +1,22 @@
 import { TLAiStreamingChange, defaultApplyChange } from '@tldraw/ai'
-import { Editor, RecordsDiff, TLRecord, TLShape } from 'tldraw'
+import { Editor, RecordsDiff, TLRecord } from 'tldraw'
 import { $chatHistoryItems } from './ChatHistory'
 import { ChatHistoryItem } from './ChatHistoryItem'
 import { $requestsSchedule } from './requestsSchedule'
 
 export function applyChange({ change, editor }: { change: TLAiStreamingChange; editor: Editor }) {
-	if (change.complete) {
-		// console.log(change)
-	}
-
 	const diff = editor.store.extractingChanges(() => {
 		defaultApplyChange({ change, editor })
 	})
 
-	applyChangeToChatHistory({ change, editor, diff })
+	applyChangeToChatHistory({ change, diff })
 }
 
 function applyChangeToChatHistory({
 	change,
-	editor,
 	diff,
 }: {
 	change: TLAiStreamingChange
-	editor: Editor
 	diff: RecordsDiff<TLRecord>
 }) {
 	switch (change.type) {
@@ -71,62 +65,30 @@ function applyChangeToChatHistory({
 			}
 		}
 		case 'createShape': {
-			// createOrUpdateHistoryItem({
-			// 	type: 'agent-action',
-			// 	action: 'creating',
-			// 	status: change.complete ? 'done' : 'progress',
-			// 	info: change.description ?? '',
-			// })
 			createOrUpdateHistoryItem({
 				type: 'agent-change',
-				change,
 				diff,
+				change,
 				status: change.complete ? 'done' : 'progress',
 				acceptance: 'pending',
 			})
 			return
 		}
 		case 'updateShape': {
-			// createOrUpdateHistoryItem({
-			// 	type: 'agent-action',
-			// 	action: 'updating',
-			// 	status: change.complete ? 'done' : 'progress',
-			// 	info: change.description ?? '',
-			// })
-			let previousShape: TLShape | undefined = undefined
-			if (change.complete) {
-				previousShape = editor.getShape(change.shape.id)
-			}
-			const newShape = {
-				...previousShape,
-				...change.shape,
-				props: { ...previousShape?.props, ...(change.shape?.props ?? {}) },
-				meta: { ...previousShape?.meta, ...change.shape?.meta },
-			}
 			createOrUpdateHistoryItem({
 				type: 'agent-change',
 				diff,
-				change: { ...change, previousShape, shape: newShape as TLShape },
+				change,
 				status: change.complete ? 'done' : 'progress',
 				acceptance: 'pending',
 			})
 			return
 		}
 		case 'deleteShape': {
-			// createOrUpdateHistoryItem({
-			// 	type: 'agent-action',
-			// 	action: 'deleting',
-			// 	status: change.complete ? 'done' : 'progress',
-			// 	info: change.description ?? '',
-			// })
-			let shape: TLShape | undefined = undefined
-			if (change.complete) {
-				shape = editor.getShape(change.shapeId)
-			}
 			createOrUpdateHistoryItem({
 				type: 'agent-change',
 				diff,
-				change: { ...change, shape },
+				change,
 				status: change.complete ? 'done' : 'progress',
 				acceptance: 'pending',
 			})

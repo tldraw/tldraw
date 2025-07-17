@@ -4,6 +4,7 @@ import {
 	defaultColorNames,
 	Editor,
 	RecordsDiff,
+	reverseRecordsDiff,
 	TLRecord,
 	TLShape,
 	TLShapeId,
@@ -16,7 +17,6 @@ import { RefreshIcon } from './icons/RefreshIcon'
 import { SearchIcon } from './icons/SearchIcon'
 import { TrashIcon } from './icons/TrashIcon'
 import TldrawViewer from './TldrawViewer'
-import { unapplyChanges } from './unapplyChanges'
 
 export type ChatHistoryItem =
 	| UserMessageHistoryItem
@@ -48,7 +48,7 @@ export interface AgentMessageHistoryItem {
 export interface AgentChangeHistoryItem {
 	type: 'agent-change'
 	diff: RecordsDiff<TLRecord>
-	change: TLAiStreamingChange & { shape?: Partial<TLShape>; previousShape?: Partial<TLShape> }
+	change: TLAiStreamingChange
 	status: 'progress' | 'done' | 'cancelled'
 	acceptance: 'accepted' | 'rejected' | 'pending'
 }
@@ -177,15 +177,14 @@ export function AgentChangeHistoryItems({
 	const handleReject = useCallback(() => {
 		$chatHistoryItems.update((oldItems) => {
 			const newItems = [...oldItems]
-			const changes = items.map((item) => item.change)
 			for (const item of items) {
 				const index = newItems.findIndex((v) => v === item)
 				if (index !== -1) {
 					newItems[index] = { ...item, acceptance: 'rejected', status: 'done' }
 				}
-				changes.push(item.change)
+				const reverseDiff = reverseRecordsDiff(item.diff)
+				editor.store.applyDiff(reverseDiff)
 			}
-			unapplyChanges({ changes, editor })
 			return newItems
 		})
 	}, [items, editor])
