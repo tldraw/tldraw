@@ -52,6 +52,10 @@ body {
 	user-select: text;
 }
 
+.chat-panel button {
+	user-select: none;
+}
+
 .chat-history {
 	flex: 1;
 	padding: 16px 16px;
@@ -303,4 +307,30 @@ body {
 
 .tl-shape[style*='opacity: 0.53'] {
 	filter: drop-shadow(1.5px 1.5px 0px rgb(0, 0, 200));
+}
+
+.chat-input-attachments button {
+	border-radius: 1px;
+	background-color: transparent;
+	border: 1px solid var(--color-text-2);
+	cursor: pointer;
+	padding: 0;
+	border-radius: 6px;
+	margin: 0;
+	width: 16px;
+	height: 16px;
+	box-shadow: none;
+	color: var(--color-text-2);
+	font-family: 'Inter', sans-serif;
+	font-size: 10px;
+	width: fit-content;
+	padding: 8px 4px;
+	font-weight: 500;
+	color: var(--color-text-2);
+}
+
+.chat-input-attachments button:hover {
+	color: var(--color-text);
+	background-color: transparent;
+	border-color: var(--color-text);
 }

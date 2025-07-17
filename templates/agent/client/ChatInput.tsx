@@ -1,6 +1,7 @@
 import { FormEventHandler } from 'react'
 import { useLocalStorageState } from 'tldraw'
 import { AGENT_MODEL_DEFINITIONS, DEFAULT_MODEL_NAME, TLAgentModelName } from '../worker/models'
+import { AtIcon } from './icons/AtIcon'
 import { BrainIcon } from './icons/BrainIcon'
 import { ChevronDownIcon } from './icons/ChevronDownIcon'
 import { CommentIcon } from './icons/CommentIcon'
@@ -22,6 +23,11 @@ export function ChatInput({
 	return (
 		<div className="chat-input">
 			<form onSubmit={handleSubmit}>
+				<div className="chat-input-attachments">
+					<button type="button">
+						<AtIcon /> Add Context
+					</button>
+				</div>
 				<input
 					ref={inputRef}
 					name="input"
