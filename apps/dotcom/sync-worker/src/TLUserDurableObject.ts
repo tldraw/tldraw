@@ -434,7 +434,8 @@ export class TLUserDurableObject extends DurableObject<Environment> {
 	async handleReplicationEvent(event: ZReplicationEvent) {
 		this.logEvent({ type: 'replication_event', id: this.userId ?? 'anon' })
 		this.log.debug('replication event', event, !!this.cache)
-		if (await this.notActive()) {
+		if (!this.cache) {
+			this.logEvent({ type: 'woken_up_by_replication_event', id: this.userId ?? 'anon' })
 			this.log.debug('requesting to unregister')
 			return 'unregister'
 		}
@@ -446,10 +447,6 @@ export class TLUserDurableObject extends DurableObject<Environment> {
 		}
 
 		return 'ok'
-	}
-
-	async notActive() {
-		return !this.cache
 	}
 
 	/* --------------  */

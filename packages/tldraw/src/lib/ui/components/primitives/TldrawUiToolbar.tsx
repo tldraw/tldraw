@@ -76,6 +76,10 @@ export const TldrawUiToolbarToggleGroup = ({
 		<_Toolbar.ToggleGroup
 			type={type}
 			{...props}
+			// TODO: this fixes a bug in Radix until they fix it.
+			// https://github.com/radix-ui/primitives/issues/3188
+			// https://github.com/radix-ui/primitives/pull/3189
+			role="radiogroup"
 			className={classnames('tlui-toolbar-toggle-group', className)}
 		>
 			{children}

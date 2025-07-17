@@ -346,6 +346,7 @@ export { CubicBezier2d } from './lib/primitives/geometry/CubicBezier2d'
 export { CubicSpline2d } from './lib/primitives/geometry/CubicSpline2d'
 export { Edge2d } from './lib/primitives/geometry/Edge2d'
 export { Ellipse2d } from './lib/primitives/geometry/Ellipse2d'
+export { getVerticesCountForArcLength } from './lib/primitives/geometry/geometry-constants'
 export {
 	Geometry2d,
 	Geometry2dFilters,

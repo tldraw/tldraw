@@ -451,6 +451,7 @@ export function OpacitySlider() {
 			steps={tldrawSupportedOpacities.length - 1}
 			title={msg('style-panel.opacity')}
 			onHistoryMark={onHistoryMark}
+			ariaValueModifier={25}
 		/>
 	)
 }

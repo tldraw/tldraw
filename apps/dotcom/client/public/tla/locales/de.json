@@ -14,6 +14,9 @@
   "06b9281e39": {
     "translation": "Automatisch"
   },
+  "0776e18496": {
+    "translation": "Speichern und teilen"
+  },
   "07dbd11b21": {
     "translation": "Datei ohne Titel"
   },
@@ -38,6 +41,9 @@
   "13ddd375ad": {
     "translation": "Exportieren als"
   },
+  "1460ab5e78": {
+    "translation": "Kostenlose tldraws"
+  },
   "181b90f889": {
     "translation": "Datei erstellen"
   },
@@ -47,11 +53,17 @@
   "1dd1c5fb7f": {
     "translation": "Heute"
   },
+  "22d84a12fd": {
+    "translation": "Figjam aber tldraw"
+  },
   "250ddea65c": {
     "translation": "Über tldraw"
   },
   "299cb00a7a": {
     "translation": "Hochladen fehlgeschlagen"
+  },
+  "2c61d18599": {
+    "translation": "Miro aber gut und kostenlos"
   },
   "31246941ad": {
     "translation": "Um diese Datei anzuzeigen, müssen Sie sich anmelden."
@@ -74,8 +86,14 @@
   "3d0238bf16": {
     "translation": "Alle akzeptieren"
   },
+  "3fc6d0c83a": {
+    "translation": "Freund hinzufügen"
+  },
   "42e53c47c1": {
     "translation": "Kontaktieren Sie den Eigentümer, um Zugriff anzufordern."
+  },
+  "44281ab6e5": {
+    "translation": "Anmelden"
   },
   "44db318ee5": {
     "translation": "Holen Sie sich Hilfe auf Discord"
@@ -94,6 +112,12 @@
   },
   "4d1c8263ba": {
     "translation": "Neu laden"
+  },
+  "4e029798f2": {
+    "translation": "Kostenlose Aktien"
+  },
+  "4e875b8d8e": {
+    "translation": "Kostenlose Speicherungen"
   },
   "50db1b7e1e": {
     "translation": "Die Veröffentlichung für diese Datei kann nicht aufgehoben werden."
@@ -137,6 +161,9 @@
   "5fb63579fc": {
     "translation": "Kopieren"
   },
+  "5ff75742e0": {
+    "translation": "Kostenlos registrieren"
+  },
   "61057a0c84": {
     "translation": "Später"
   },
@@ -148,6 +175,9 @@
   },
   "6637a98151": {
     "translation": "Eine neue Version von tldraw ist verfügbar. Bitte laden Sie die Seite neu, um fortzufahren."
+  },
+  "697c59072d": {
+    "translation": "Anmelden, um zu speichern"
   },
   "6a26f54883": {
     "translation": "Hilfe"
@@ -212,6 +242,9 @@
   "815e116a2e": {
     "translation": "Haben Sie einen Fehler, ein Problem oder eine Idee für tldraw? Lassen Sie es uns wissen! Füllen Sie dieses Formular aus und wir melden uns bei Bedarf per E-Mail. Sie können auch <discord>mit uns auf Discord chatten</discord> oder <github>ein Problem auf GitHub melden</github>."
   },
+  "84c89d47c7": {
+    "translation": "Kostenlos teilen"
+  },
   "85a082de1b": {
     "translation": "Bitte aktualisieren Sie die Seite und holden Sie sich die neueste Version von tldraw."
   },
@@ -223,6 +256,9 @@
   },
   "8b1946f965": {
     "translation": "Um mit der Bearbeitung fortzufahren, kopieren Sie den Raum bitte in Ihre Dateien."
+  },
+  "8ea211024d": {
+    "translation": "Kostenloses Konto erstellen"
   },
   "8eb2c00e96": {
     "translation": "Mit Ihnen geteilt"
@@ -306,6 +342,9 @@
   "b758336699": {
     "translation": "Link kopieren"
   },
+  "ba0318cb81": {
+    "translation": "Zum Teilen anmelden"
+  },
   "bb792693e2": {
     "translation": "Lösen"
   },
@@ -318,8 +357,17 @@
   "bcb62136a3": {
     "translation": ".tldr-Dateien hochladen"
   },
+  "bffe9a3c9a": {
+    "translation": "Einloggen"
+  },
+  "c079282475": {
+    "translation": "Teilen Sie Ihre Arbeit"
+  },
   "c2276c9127": {
     "translation": "Erfahren Sie mehr über das Teilen."
+  },
+  "c24e43cd1a": {
+    "translation": "Du wirst dich doch anmelden, oder?"
   },
   "c303bd1095": {
     "translation": "Diese Datei kann nicht veröffentlicht werden."
@@ -345,6 +393,9 @@
   "cea291e45e": {
     "translation": "Erfahren Sie mehr über das Veröffentlichen."
   },
+  "d0eedb7995": {
+    "translation": "Hey"
+  },
   "d3d2e61733": {
     "translation": "Schließen"
   },
@@ -359,6 +410,12 @@
   },
   "d9100f3e10": {
     "translation": "Hier können Sie den Inhalt sehen"
+  },
+  "da404df474": {
+    "translation": "Speichern Sie Ihre Arbeit"
+  },
+  "db4c2dab9a": {
+    "translation": "Nicht Excalidraw"
   },
   "dbbebf3c03": {
     "translation": "Nur einladen"
@@ -419,6 +476,9 @@
   },
   "fd1be3efcf": {
     "translation": "Möchten Sie diese Datei wirklich löschen?"
+  },
+  "fd27891570": {
+    "translation": "Tragen Sie sich in die Warteliste ein"
   },
   "fed5ec05eb": {
     "translation": "Link kopiert"

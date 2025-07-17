@@ -167,7 +167,7 @@
 	--color-text: hsl(0, 0%, 0%);
 	--color-text-0: hsl(0, 0%, 11%);
 	--color-text-1: hsl(0, 0%, 18%);
-	--color-text-3: hsl(220, 2%, 65%);
+	--color-text-3: hsl(204, 4%, 45%);
 	--color-text-shadow: hsl(0, 0%, 100%);
 	--color-text-highlight: hsl(52, 100%, 50%);
 	--color-text-highlight-p3: color(display-p3 0.972 0.8205 0.05);
@@ -222,7 +222,7 @@
 	--color-text: hsl(210, 17%, 98%);
 	--color-text-0: hsl(0, 9%, 94%);
 	--color-text-1: hsl(0, 0%, 85%);
-	--color-text-3: hsl(210, 6%, 45%);
+	--color-text-3: hsl(204, 4%, 75%);
 	--color-text-shadow: hsl(210, 13%, 18%);
 	--color-text-highlight: hsl(52, 100%, 41%);
 	--color-text-highlight-p3: color(display-p3 0.8078 0.6225 0.0312);

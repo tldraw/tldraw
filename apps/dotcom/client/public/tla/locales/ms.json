@@ -14,6 +14,9 @@
   "06b9281e39": {
     "translation": "Auto"
   },
+  "0776e18496": {
+    "translation": "Simpan dan kongsi"
+  },
   "07dbd11b21": {
     "translation": "Fail tidak bertajuk"
   },
@@ -38,6 +41,9 @@
   "13ddd375ad": {
     "translation": "Eksport sebagai"
   },
+  "1460ab5e78": {
+    "translation": "tldraw percuma"
+  },
   "181b90f889": {
     "translation": "Buat fail"
   },
@@ -47,11 +53,17 @@
   "1dd1c5fb7f": {
     "translation": "Hari ini"
   },
+  "22d84a12fd": {
+    "translation": "Figjam tetapi tldraw"
+  },
   "250ddea65c": {
     "translation": "Mengenai tldraw"
   },
   "299cb00a7a": {
     "translation": "Muat naik gagal"
+  },
+  "2c61d18599": {
+    "translation": "Miro tetapi bagus dan percuma"
   },
   "31246941ad": {
     "translation": "Anda perlu log masuk untuk melihat fail ini."
@@ -74,8 +86,14 @@
   "3d0238bf16": {
     "translation": "Terima semua"
   },
+  "3fc6d0c83a": {
+    "translation": "Tambah kawan"
+  },
   "42e53c47c1": {
     "translation": "Hubungi pemilik untuk meminta akses."
+  },
+  "44281ab6e5": {
+    "translation": "Daftar masuk"
   },
   "44db318ee5": {
     "translation": "Dapatkan bantuan tentang Discord"
@@ -94,6 +112,12 @@
   },
   "4d1c8263ba": {
     "translation": "Muat semula"
+  },
+  "4e029798f2": {
+    "translation": "Saham percuma"
+  },
+  "4e875b8d8e": {
+    "translation": "Penjimatan percuma"
   },
   "50db1b7e1e": {
     "translation": "Tidak dapat menyahterbitkan fail."
@@ -137,6 +161,9 @@
   "5fb63579fc": {
     "translation": "salin"
   },
+  "5ff75742e0": {
+    "translation": "Daftar secara percuma"
+  },
   "61057a0c84": {
     "translation": "Nanti"
   },
@@ -148,6 +175,9 @@
   },
   "6637a98151": {
     "translation": "Versi baharu tldraw tersedia. Sila muat semula halaman untuk meneruskan."
+  },
+  "697c59072d": {
+    "translation": "Log masuk untuk menyimpan"
   },
   "6a26f54883": {
     "translation": "Tolong"
@@ -212,6 +242,9 @@
   "815e116a2e": {
     "translation": "Mempunyai pepijat, isu atau idea untuk tldraw? Beritahu kami! Isi borang ini dan kami akan membuat susulan melalui e-mel jika perlu. Anda juga boleh <discord>berbual dengan kami di Discord</discord> atau <github>menyerahkan isu pada GitHub</github>."
   },
+  "84c89d47c7": {
+    "translation": "Kongsi secara percuma"
+  },
   "85a082de1b": {
     "translation": "Sila muat semula halaman untuk mendapatkan versi terkini tldraw."
   },
@@ -223,6 +256,9 @@
   },
   "8b1946f965": {
     "translation": "Untuk meneruskan pengeditan sila salin bilik ke fail anda."
+  },
+  "8ea211024d": {
+    "translation": "Buat akaun percuma"
   },
   "8eb2c00e96": {
     "translation": "Dikongsi dengan anda"
@@ -306,6 +342,9 @@
   "b758336699": {
     "translation": "Salin pautan"
   },
+  "ba0318cb81": {
+    "translation": "Log masuk untuk berkongsi"
+  },
   "bb792693e2": {
     "translation": "Nyahsemat"
   },
@@ -318,8 +357,17 @@
   "bcb62136a3": {
     "translation": "Muat naik fail .tldr"
   },
+  "bffe9a3c9a": {
+    "translation": "Log masuk"
+  },
+  "c079282475": {
+    "translation": "Kongsi kerja anda"
+  },
   "c2276c9127": {
     "translation": "Ketahui lebih lanjut tentang perkongsian."
+  },
+  "c24e43cd1a": {
+    "translation": "Anda akan mendaftar, bukan?"
   },
   "c303bd1095": {
     "translation": "Tidak dapat menerbitkan fail."
@@ -345,6 +393,9 @@
   "cea291e45e": {
     "translation": "Ketahui lebih lanjut tentang penerbitan."
   },
+  "d0eedb7995": {
+    "translation": "Hei"
+  },
   "d3d2e61733": {
     "translation": "tutup"
   },
@@ -359,6 +410,12 @@
   },
   "d9100f3e10": {
     "translation": "Pergi ke sini untuk melihat kandungannya"
+  },
+  "da404df474": {
+    "translation": "Simpan kerja anda"
+  },
+  "db4c2dab9a": {
+    "translation": "Bukan Excalidraw"
   },
   "dbbebf3c03": {
     "translation": "Jemput sahaja"
@@ -419,6 +476,9 @@
   },
   "fd1be3efcf": {
     "translation": "Adakah anda pasti mahu memadamkan fail ini?"
+  },
+  "fd27891570": {
+    "translation": "Sertai senarai tunggu"
   },
   "fed5ec05eb": {
     "translation": "pautan disalin"

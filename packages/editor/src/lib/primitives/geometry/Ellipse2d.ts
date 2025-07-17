@@ -3,7 +3,7 @@ import { Vec, VecLike } from '../Vec'
 import { PI, PI2, clamp, perimeterOfEllipse } from '../utils'
 import { Edge2d } from './Edge2d'
 import { Geometry2d, Geometry2dOptions } from './Geometry2d'
-import { getVerticesCountForLength } from './geometry-constants'
+import { getVerticesCountForArcLength } from './geometry-constants'
 
 /** @public */
 export class Ellipse2d extends Geometry2d {
@@ -47,7 +47,7 @@ export class Ellipse2d extends Geometry2d {
 		const q = Math.pow(cx - cy, 2) / Math.pow(cx + cy, 2)
 		const p = PI * (cx + cy) * (1 + (3 * q) / (10 + Math.sqrt(4 - 3 * q)))
 		// Number of points
-		const len = getVerticesCountForLength(p)
+		const len = getVerticesCountForArcLength(p)
 		// Size of step
 		const step = PI2 / len
 

@@ -69,7 +69,7 @@ export interface TLEditorComponents {
 	ShapeIndicator?: ComponentType<TLShapeIndicatorProps> | null
 	ShapeIndicators?: ComponentType | null
 	SnapIndicator?: ComponentType<TLSnapIndicatorProps> | null
-	Spinner?: ComponentType | null
+	Spinner?: ComponentType<React.SVGProps<SVGSVGElement>> | null
 	SvgDefs?: ComponentType | null
 	ZoomBrush?: ComponentType<TLBrushProps> | null
 

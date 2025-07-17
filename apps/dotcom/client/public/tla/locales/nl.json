@@ -14,6 +14,9 @@
   "06b9281e39": {
     "translation": "Auto"
   },
+  "0776e18496": {
+    "translation": "Opslaan en delen"
+  },
   "07dbd11b21": {
     "translation": "Bestand zonder titel"
   },
@@ -38,6 +41,9 @@
   "13ddd375ad": {
     "translation": "Exporteren als"
   },
+  "1460ab5e78": {
+    "translation": "Gratis tldraws"
+  },
   "181b90f889": {
     "translation": "Bestand aanmaken"
   },
@@ -47,11 +53,17 @@
   "1dd1c5fb7f": {
     "translation": "Vandaag"
   },
+  "22d84a12fd": {
+    "translation": "Figjam maar tldraw"
+  },
   "250ddea65c": {
     "translation": "Over tldraw"
   },
   "299cb00a7a": {
     "translation": "Uploaden mislukt"
+  },
+  "2c61d18599": {
+    "translation": "Miro maar dan goed en gratis"
   },
   "31246941ad": {
     "translation": "U moet zijn aangemeld om dit bestand te kunnen bekijken."
@@ -74,8 +86,14 @@
   "3d0238bf16": {
     "translation": "Alles accepteren"
   },
+  "3fc6d0c83a": {
+    "translation": "Vriend toevoegen"
+  },
   "42e53c47c1": {
     "translation": "Neem contact op met de eigenaar om toegang aan te vragen."
+  },
+  "44281ab6e5": {
+    "translation": "Aanmelden"
   },
   "44db318ee5": {
     "translation": "Krijg hulp op Discord"
@@ -94,6 +112,12 @@
   },
   "4d1c8263ba": {
     "translation": "Opnieuw laden"
+  },
+  "4e029798f2": {
+    "translation": "Gratis aandelen"
+  },
+  "4e875b8d8e": {
+    "translation": "Gratis opslaan"
   },
   "50db1b7e1e": {
     "translation": "De publicatie van het bestand kan niet ongedaan worden gemaakt."
@@ -137,6 +161,9 @@
   "5fb63579fc": {
     "translation": "Kopiëren"
   },
+  "5ff75742e0": {
+    "translation": "Meld je gratis aan"
+  },
   "61057a0c84": {
     "translation": "Later"
   },
@@ -148,6 +175,9 @@
   },
   "6637a98151": {
     "translation": "Er is een nieuwe versie van tldraw beschikbaar. Laad de pagina opnieuw om verder te gaan."
+  },
+  "697c59072d": {
+    "translation": "Meld u aan om op te slaan"
   },
   "6a26f54883": {
     "translation": "Hulp"
@@ -212,6 +242,9 @@
   "815e116a2e": {
     "translation": "Heb je een bug, probleem of idee voor tldraw? Laat het ons weten! Vul dit formulier in en we nemen indien nodig per e-mail contact met je op. Je kunt ook <discord>met ons chatten op Discord</discord> of <github>een probleem melden op GitHub</github>."
   },
+  "84c89d47c7": {
+    "translation": "Deel gratis"
+  },
   "85a082de1b": {
     "translation": "Vernieuw de pagina om de nieuwste versie van tldraw te verkrijgen."
   },
@@ -223,6 +256,9 @@
   },
   "8b1946f965": {
     "translation": "Om door te kunnen gaan met bewerken, kopieer je de kamer naar je bestanden."
+  },
+  "8ea211024d": {
+    "translation": "Maak een gratis account aan"
   },
   "8eb2c00e96": {
     "translation": "Gedeeld met jou"
@@ -306,6 +342,9 @@
   "b758336699": {
     "translation": "Link kopiëren"
   },
+  "ba0318cb81": {
+    "translation": "Meld je aan om te delen"
+  },
   "bb792693e2": {
     "translation": "Losmaken"
   },
@@ -318,8 +357,17 @@
   "bcb62136a3": {
     "translation": "Upload .tldr-bestanden"
   },
+  "bffe9a3c9a": {
+    "translation": "Inloggen"
+  },
+  "c079282475": {
+    "translation": "Deel je werk"
+  },
   "c2276c9127": {
     "translation": "Meer informatie over delen."
+  },
+  "c24e43cd1a": {
+    "translation": "Je schrijft je toch wel in?"
   },
   "c303bd1095": {
     "translation": "Het bestand kan niet worden gepubliceerd."
@@ -345,6 +393,9 @@
   "cea291e45e": {
     "translation": "Meer informatie over publiceren."
   },
+  "d0eedb7995": {
+    "translation": "Hoi"
+  },
   "d3d2e61733": {
     "translation": "Sluiten"
   },
@@ -359,6 +410,12 @@
   },
   "d9100f3e10": {
     "translation": "Ga hierheen om de inhoud te bekijken"
+  },
+  "da404df474": {
+    "translation": "Bewaar uw werk"
+  },
+  "db4c2dab9a": {
+    "translation": "Niet Excalidraw"
   },
   "dbbebf3c03": {
     "translation": "Alleen op uitnodiging"
@@ -419,6 +476,9 @@
   },
   "fd1be3efcf": {
     "translation": "Weet u zeker dat u dit bestand wilt verwijderen?"
+  },
+  "fd27891570": {
+    "translation": "Schrijf je in op de wachtlijst"
   },
   "fed5ec05eb": {
     "translation": "Gekopieerde link"
