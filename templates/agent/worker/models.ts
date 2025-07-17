@@ -26,6 +26,11 @@ export const AGENT_MODEL_DEFINITIONS = {
 		id: 'gemini-2.5-flash-lite-preview-06-17',
 		provider: 'google',
 	},
+	'gemini-2.5-pro': {
+		name: 'gemini-2.5-pro',
+		id: 'gemini-2.5-pro',
+		provider: 'google',
+	},
 	'gpt-4o': {
 		name: 'gpt-4o',
 		id: 'gpt-4o',

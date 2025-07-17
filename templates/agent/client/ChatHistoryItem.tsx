@@ -13,6 +13,7 @@ import { unapplyChanges } from './unapplyChanges'
 export type ChatHistoryItem =
 	| UserMessageHistoryItem
 	| AgentChangeHistoryItem
+	| AgentChangeGroupHistoryItem
 	| AgentMessageHistoryItem
 	| AgentActionHistoryItem
 	| AgentRawHistoryItem
@@ -38,9 +39,15 @@ export interface AgentMessageHistoryItem {
 
 export interface AgentChangeHistoryItem {
 	type: 'agent-change'
-	changes: (TLAiStreamingChange & { shape?: Partial<TLShape>; previousShape?: Partial<TLShape> })[]
+	change: TLAiStreamingChange & { shape?: Partial<TLShape>; previousShape?: Partial<TLShape> }
 	status: 'progress' | 'done' | 'cancelled'
 	acceptance: 'accepted' | 'rejected' | 'pending'
+}
+
+export interface AgentChangeGroupHistoryItem {
+	type: 'agent-change-group'
+	items: AgentChangeHistoryItem[]
+	status: 'progress' | 'done' | 'cancelled'
 }
 
 export interface AgentRawHistoryItem {
@@ -178,55 +185,65 @@ function getDiffShapesFromChange({
 	}
 }
 
-export function AgentChangeHistoryItem({
-	item,
+export function AgentChangeHistoryItems({
+	items,
 	editor,
-	id,
 }: {
-	item: AgentChangeHistoryItem
+	items: AgentChangeHistoryItem[]
 	editor: Editor
-	id: number
 }) {
-	const diffShapes = item.changes
-		.map((change) => getDiffShapesFromChange({ change, editor }))
+	const diffShapes = items
+		.map((item) => getDiffShapesFromChange({ change: item.change, editor }))
 		.flat()
 
 	const handleAccept = useCallback(() => {
-		$chatHistoryItems.update((items) => {
-			const newItems = [...items]
-			newItems[id] = { ...item, acceptance: 'accepted', status: 'done' }
+		$chatHistoryItems.update((oldItems) => {
+			const newItems = [...oldItems]
+			for (const item of items) {
+				const index = newItems.findIndex((v) => v === item)
+				if (index !== -1) {
+					newItems[index] = { ...item, acceptance: 'accepted', status: 'done' }
+				}
+			}
 			return newItems
 		})
-	}, [id, item])
-
+	}, [items])
 	const handleReject = useCallback(() => {
-		$chatHistoryItems.update((items) => {
-			const newItems = [...items]
-			const oldItem = items[id]
-			const status = oldItem.status === 'progress' ? 'cancelled' : 'done'
-			newItems[id] = { ...item, acceptance: 'rejected', status }
-			unapplyChanges({ changes: item.changes, editor })
+		$chatHistoryItems.update((oldItems) => {
+			const newItems = [...oldItems]
+			const changes = items.map((item) => item.change)
+			for (const item of items) {
+				const index = newItems.findIndex((v) => v === item)
+				if (index !== -1) {
+					newItems[index] = { ...item, acceptance: 'rejected', status: 'done' }
+				}
+				changes.push(item.change)
+			}
+			unapplyChanges({ changes, editor })
 			return newItems
 		})
-	}, [id, item, editor])
+	}, [items, editor])
 
-	if (diffShapes.length === 0) return null
+	const acceptance: AgentChangeHistoryItem['acceptance'] = items[0].acceptance
+	const acceptanceConsensus = items.every((item) => item.acceptance === acceptance)
 
 	return (
 		<div className="agent-change-message">
 			<div className="agent-change-message-actions">
-				{item.acceptance === 'pending' ? (
+				{!acceptanceConsensus ? (
+					<span className="agent-change-message-acceptance-notice">Error</span>
+				) : acceptance === 'pending' ? (
 					<>
 						<button onClick={handleReject}>Reject</button>
 						<button onClick={handleAccept}>Accept</button>
 					</>
 				) : (
 					<span className="agent-change-message-acceptance-notice">
-						{item.acceptance === 'accepted' ? '✅' : '❌'}
+						{acceptance === 'accepted' ? '✅' : '❌'}
 					</span>
 				)}
 			</div>
-			{<TldrawViewer shapes={diffShapes} />}
+			<TldrawViewer shapes={diffShapes} />
 		</div>
 	)
 }

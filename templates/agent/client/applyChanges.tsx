@@ -74,7 +74,7 @@ function applyChangeToChatHistory({
 			// })
 			createOrUpdateHistoryItem({
 				type: 'agent-change',
-				changes: [change],
+				change,
 				status: change.complete ? 'done' : 'progress',
 				acceptance: 'pending',
 			})
@@ -99,7 +99,7 @@ function applyChangeToChatHistory({
 			}
 			createOrUpdateHistoryItem({
 				type: 'agent-change',
-				changes: [{ ...change, previousShape, shape: newShape as TLShape }],
+				change: { ...change, previousShape, shape: newShape as TLShape },
 				status: change.complete ? 'done' : 'progress',
 				acceptance: 'pending',
 			})
@@ -118,7 +118,7 @@ function applyChangeToChatHistory({
 			}
 			createOrUpdateHistoryItem({
 				type: 'agent-change',
-				changes: [{ ...change, shape }],
+				change: { ...change, shape },
 				status: change.complete ? 'done' : 'progress',
 				acceptance: 'pending',
 			})

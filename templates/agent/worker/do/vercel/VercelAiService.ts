@@ -164,7 +164,19 @@ function buildHistoryItemMessage(item: ChatHistoryItem): CoreMessage | null {
 				content: [
 					{
 						type: 'text',
-						text: 'Previous changes from agent: ' + JSON.stringify(item.changes, null, 2),
+						text: 'Previous change from agent: ' + JSON.stringify(item.change, null, 2),
+					},
+				],
+			}
+		}
+		case 'agent-change-group': {
+			const changes = item.items.map((item) => item.change)
+			return {
+				role: 'assistant',
+				content: [
+					{
+						type: 'text',
+						text: 'Previous changes from agent: ' + JSON.stringify(changes, null, 2),
 					},
 				],
 			}

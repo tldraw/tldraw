@@ -2,7 +2,8 @@ import { useEffect, useRef } from 'react'
 import { atom, Editor } from 'tldraw'
 import {
 	AgentActionHistoryItem,
-	AgentChangeHistoryItem,
+	AgentChangeGroupHistoryItem,
+	AgentChangeHistoryItems,
 	AgentMessageHistoryItem,
 	AgentRawHistoryItem,
 	ChatHistoryItem,
@@ -47,11 +48,13 @@ export function ChatHistory({ editor, items }: { editor: Editor; items: ChatHist
 					case 'agent-message':
 						return <AgentMessageHistoryItem key={index} item={item} />
 					case 'agent-change':
-						return <AgentChangeHistoryItem key={index} item={item} editor={editor} id={index} />
+						return <AgentChangeHistoryItems key={index} items={[item]} editor={editor} />
 					case 'agent-action':
 						return <AgentActionHistoryItem key={index} item={item} />
 					case 'agent-raw':
 						return <AgentRawHistoryItem key={index} item={item} />
+					case 'agent-change-group':
+						return <AgentChangeHistoryItems key={index} items={item.items} editor={editor} />
 				}
 			})}
 		</div>
@@ -75,13 +78,23 @@ function getChatHistoryWithMergedAdjacentItems({
 		// Merge together pending diffs
 		if (
 			currentItem.type === 'agent-change' &&
-			currentItem.acceptance === 'pending' &&
-			nextItem?.type === 'agent-change' &&
-			nextItem.acceptance === 'pending'
+			nextItem.type === 'agent-change' &&
+			nextItem.acceptance === currentItem.acceptance
 		) {
-			const mergedItem = {
-				...nextItem,
-				changes: [...currentItem.changes, ...nextItem.changes],
+			const mergedItem: AgentChangeGroupHistoryItem = {
+				type: 'agent-change-group',
+				items: [currentItem, nextItem],
+				status: nextItem.status,
+			}
+			newItems[newItems.length - 1] = mergedItem
+			continue
+		}
+
+		if (currentItem.type === 'agent-change-group' && nextItem.type === 'agent-change') {
+			const mergedItem: AgentChangeGroupHistoryItem = {
+				type: 'agent-change-group',
+				items: [...currentItem.items, nextItem],
+				status: nextItem.status,
 			}
 			newItems[newItems.length - 1] = mergedItem
 			continue
