@@ -648,7 +648,7 @@ export const DefaultShapeIndicators: NamedExoticComponent<TLShapeIndicatorsProps
 export function DefaultSnapIndicator({ className, line, zoom }: TLSnapIndicatorProps): JSX_2.Element;
 
 // @public (undocumented)
-export function DefaultSpinner(props: React.SVGProps<SVGSVGElement>): JSX_2.Element;
+export function DefaultSpinner(): JSX_2.Element;
 
 // @public (undocumented)
 export const DefaultSvgDefs: () => null;
@@ -2722,6 +2722,8 @@ export class Stadium2d extends Geometry2d {
 // @public (undocumented)
 export abstract class StateNode implements Partial<TLEventHandlers> {
     constructor(editor: Editor, parent?: StateNode);
+    // (undocumented)
+    addChild(ChildConstructor: TLStateNodeConstructor): this;
     // (undocumented)
     static children?: () => TLStateNodeConstructor[];
     // (undocumented)
