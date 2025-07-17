@@ -11,8 +11,10 @@ const MIN_FPS = 30
 const MAX_FPS = 120
 const DEFAULT_FPS = 60
 
+const getTargetTimePerFrame = (fps: number) => Math.floor(1000 / fps) * 0.9 // e.g. ~15ms for 60 - we allow for some variance as browsers aren't that precise.
+
 let targetFps = DEFAULT_FPS
-let targetTimePerFrame = Math.floor(1000 / targetFps) // 16ms
+let targetTimePerFrame = getTargetTimePerFrame(targetFps)
 let frameRaf: undefined | number
 let flushRaf: undefined | number
 let lastFlushTime = -targetTimePerFrame
@@ -39,7 +41,7 @@ const updateTargetFps = () => {
 		if (consecutiveGoodFrames >= 3 && targetFps < MAX_FPS) {
 			const newFps = Math.min(MAX_FPS, targetFps + 10)
 			targetFps = newFps
-			targetTimePerFrame = Math.floor(1000 / targetFps)
+			targetTimePerFrame = getTargetTimePerFrame(targetFps)
 			consecutiveGoodFrames = 0
 		}
 	}
@@ -52,7 +54,7 @@ const updateTargetFps = () => {
 		if (consecutiveBadFrames >= 2 && targetFps > MIN_FPS) {
 			const newFps = Math.max(MIN_FPS, targetFps - 10)
 			targetFps = newFps
-			targetTimePerFrame = Math.floor(1000 / targetFps)
+			targetTimePerFrame = getTargetTimePerFrame(targetFps)
 			consecutiveBadFrames = 0
 		}
 	}
@@ -250,7 +252,7 @@ export function getCurrentFps(): number {
  */
 export function resetAdaptiveFps(): void {
 	targetFps = DEFAULT_FPS
-	targetTimePerFrame = Math.floor(1000 / targetFps)
+	targetTimePerFrame = getTargetTimePerFrame(targetFps)
 	fpsCheckHistory = []
 	framesInCurrentWindow = 0
 	windowStartTime = 0
@@ -266,5 +268,5 @@ export function resetAdaptiveFps(): void {
  */
 export function setTargetFps(fps: number): void {
 	targetFps = Math.max(MIN_FPS, Math.min(MAX_FPS, fps))
-	targetTimePerFrame = Math.floor(1000 / targetFps)
+	targetTimePerFrame = getTargetTimePerFrame(targetFps)
 }
