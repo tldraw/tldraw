@@ -148,10 +148,14 @@ export default function Develop() {
 				>
 					<ShapeSnapshotInner />
 				</Tldraw>
-				<div style={{ width, background: 'red' }}>
-					<LiveShapesThumbnail ids={selectedIds} width={width} height={width / aspectRatio} />
+				<div style={{ width }}>
+					<div style={{ padding: 5, aspectRatio }}>
+						<LiveShapesThumbnail ids={selectedIds} />
+					</div>
 					{snapshots.map((snapshot, i) => (
-						<ShapeSnapshot key={i} snapshot={snapshot} />
+						<div key={i} style={{ padding: 5, aspectRatio }}>
+							<ShapeSnapshot snapshot={snapshot} />
+						</div>
 					))}
 					{editor && <TakeSnapshotButton editor={editor} setSnapshots={setSnapshots} />}
 				</div>

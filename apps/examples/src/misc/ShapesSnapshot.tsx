@@ -214,14 +214,10 @@ export const InnerShapeBackground = memo(
 
 function MiniShapes({
 	ids,
-	width,
-	height,
-	containerRef,
+	svgRef,
 }: {
 	ids: TLShapeId[]
-	width: number
-	height: number
-	containerRef?: React.RefCallback<HTMLDivElement>
+	svgRef?: React.RefCallback<SVGSVGElement>
 }) {
 	const editor = useEditor()
 	const isDark = useIsDarkMode()
@@ -236,37 +232,18 @@ function MiniShapes({
 		[editor, ids]
 	)
 
-	const transform = useValue(
-		'transform',
+	const { transform, width, height } = useValue(
+		'stuff',
 		() => {
-			const sharedBounds = Box.Common(compact(ids.map((id) => editor.getShapePageBounds(id))))
-			// grow the bounds so that the aspect ratio matches width / height, keeping the center the same
-			// then that becomes the viewport
-			const aspectRatio = width / height
-
-			// Calculate the current bounds aspect ratio
-			const currentAspectRatio = sharedBounds.w / sharedBounds.h
-
-			const center = sharedBounds.center.clone()
-
-			if (currentAspectRatio > aspectRatio) {
-				// Current bounds are wider than target - grow height
-				sharedBounds.h = sharedBounds.w / aspectRatio
-			} else if (currentAspectRatio < aspectRatio) {
-				// Current bounds are taller than target - grow width
-				sharedBounds.w = sharedBounds.h * aspectRatio
-			}
-			sharedBounds.center = center
+			const sharedBounds = Box.Common(compact(ids.map((id) => editor.getShapePageBounds(id)))).zeroFix()
 
 			// return transform that converts the shared bounds to 0,0,width,height
-			return Mat.toCssString(
-				Mat.Compose(
-					Mat.Scale(width / sharedBounds.w, height / sharedBounds.h),
-					Mat.Translate(-sharedBounds.x, -sharedBounds.y)
-				)
-			)
+			const transform = Mat.toCssString(Mat.Translate(-sharedBounds.x, -sharedBounds.y))
+			const width = sharedBounds.w
+			const height = sharedBounds.h
+			return { transform, width, height }
 		},
-		[editor, ids, width, height]
+		[editor, ids]
 	)
 
 	const dprMultiple = useValue(
@@ -277,35 +254,41 @@ function MiniShapes({
 			nearestMultiple(Math.floor(editor.getInstanceState().devicePixelRatio * 100) / 100),
 		[editor]
 	)
+	if (!Number.isFinite(width) || !Number.isFinite(height)) return null
 
 	return (
-		<div
-			ref={containerRef}
-			className={isDark ? 'tl-theme__dark' : 'tl-theme__light'}
-			style={{ width, height, background: 'var(--color-background)' }}
+		<svg
+			ref={svgRef}
+			viewBox={`0 0 ${width} ${height}`}
+			style={{ width: '100%', height: '100%', objectFit: 'contain', overflow: 'visible' }}
 		>
-			<div style={{ transform, position: 'absolute' }}>
-				{renderingShapes.map((shape) => (
-					<Shape
-						key={shape.id}
-						id={shape.id}
-						shape={shape.shape}
-						util={shape.util}
-						index={shape.index}
-						backgroundIndex={shape.backgroundIndex}
-						opacity={shape.opacity}
-						dprMultiple={dprMultiple}
-					/>
-				))}
-			</div>
-		</div>
+			<foreignObject width={width} height={height} style={{ overflow: 'visible' }}>
+				<div
+					className={isDark ? 'tl-theme__dark' : 'tl-theme__light'}
+					style={{ width, height, background: 'var(--color-background)' }}
+				>
+					<div style={{ transform, position: 'absolute' }}>
+						{renderingShapes.map((shape) => (
+							<Shape
+								key={shape.id}
+								id={shape.id}
+								shape={shape.shape}
+								util={shape.util}
+								index={shape.index}
+								backgroundIndex={shape.backgroundIndex}
+								opacity={shape.opacity}
+								dprMultiple={dprMultiple}
+							/>
+						))}
+					</div>
+				</div>
+			</foreignObject>
+		</svg>
 	)
 }
 
 interface SnapshotArgs {
 	ids: TLShapeId[]
-	width: number
-	height: number
 }
 
 export interface Snapshot {
@@ -322,7 +305,7 @@ interface ShapesSnapshotContextType {
 
 	liveViewConfig: Record<string, { args: SnapshotArgs; ref: React.RefObject<HTMLDivElement> }>
 	snapshotConfig: SnapshotArgs | null
-	snapshotRef: React.RefCallback<HTMLDivElement>
+	snapshotRef: React.RefCallback<SVGSVGElement>
 }
 
 const ShapesSnapshotContext = createContext<ShapesSnapshotContextType | null>(null)
@@ -332,27 +315,27 @@ export function ProvideShapesSnapshot({ children }: { children: React.ReactNode 
 		{}
 	)
 	const [snapshotConfig, setSnapshotConfig] = useState<SnapshotArgs | null>(null)
-	const snapshotRefCallback = useRef<(div: HTMLDivElement) => void>(() => {})
+	const snapshotRefCallback = useRef<(svg: SVGSVGElement) => void>(() => {})
 
-	const snapshotRef = useCallback((div: HTMLDivElement) => {
-		snapshotRefCallback.current(div)
+	const snapshotRef = useCallback((svg: SVGSVGElement) => {
+		snapshotRefCallback.current(svg)
 	}, [])
 
 	const createSnapshot = useCallback<ShapesSnapshotContextType['createSnapshot']>(
 		async (args: SnapshotArgs) => {
-			const div = await new Promise<HTMLDivElement>((resolve) => {
+			const svg = await new Promise<SVGSVGElement>((resolve) => {
 				snapshotRefCallback.current = resolve
 				setSnapshotConfig(args)
 			})
 			await new Promise((res) => requestAnimationFrame(res))
 			setSnapshotConfig(null)
 			return {
-				node: div.cloneNode(true)! as HTMLDivElement,
+				node: svg.cloneNode(true)! as SVGSVGElement,
 				id: uniqueId(),
-				text: new XMLSerializer().serializeToString(div),
-				width: args.width,
-				height: args.height,
-				mode: div.classList.contains('tl-theme__dark') ? 'dark' : 'light',
+				text: new XMLSerializer().serializeToString(svg),
+				width: svg.clientWidth,
+				height: svg.clientHeight,
+				mode: svg.classList.contains('tl-theme__dark') ? 'dark' : 'light',
 			}
 		},
 		[]
@@ -390,10 +373,7 @@ function LiveView({ id }: { id: string }) {
 	const { liveViewConfig } = useContext(ShapesSnapshotContext)!
 	const config = liveViewConfig[id]
 
-	return createPortal(
-		<MiniShapes ids={config.args.ids} width={config.args.width} height={config.args.height} />,
-		config.ref.current!
-	)
+	return createPortal(<MiniShapes ids={config.args.ids} />, config.ref.current!.parentElement!)
 }
 
 function Snapshotter() {
@@ -403,12 +383,7 @@ function Snapshotter() {
 
 	return (
 		<div style={{ visibility: 'hidden' }}>
-			<MiniShapes
-				ids={snapshotConfig.ids}
-				width={snapshotConfig.width}
-				height={snapshotConfig.height}
-				containerRef={snapshotRef}
-			/>
+			<MiniShapes ids={snapshotConfig.ids} svgRef={snapshotRef} />
 		</div>
 	)
 }
@@ -426,31 +401,24 @@ export function ShapeSnapshotInner() {
 }
 
 export function ShapeSnapshot({ snapshot }: { snapshot: Snapshot }) {
-	const ref = useRef<HTMLDivElement>(null)
+	const ref = useRef<SVGSVGElement>(null)
 	useLayoutEffect(() => {
 		if (!ref.current) return
 		ref.current!.replaceWith(
 			new DOMParser().parseFromString(snapshot.text, 'text/html').body.firstChild!
 		)
 	}, [snapshot.text])
-	return <div ref={ref} />
+	return <svg ref={ref} />
 }
 
-export function LiveShapesThumbnail({
-	ids,
-	width,
-	height,
-}: {
-	ids: TLShapeId[]
-	width: number
-	height: number
-}) {
+export function LiveShapesThumbnail({ ids }: { ids: TLShapeId[] }) {
 	const context = useContext(ShapesSnapshotContext)!
 	const ref = useRef<HTMLDivElement>(null)
 	useLayoutEffect(() => {
-		context.renderLiveView({ ids, width, height }, ref, 'live-shapes-thumbnail')
+		context.renderLiveView({ ids }, ref, 'live-shapes-thumbnail')
 	})
-	return <div ref={ref} style={{ width, height, position: 'relative' }} />
+	// dummy div, we actually render the shapes into its parent
+	return <div ref={ref} role="presentation" style={{ display: 'none' }} />
 }
 
 export function useTakeSnapshot() {
