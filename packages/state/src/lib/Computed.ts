@@ -210,10 +210,11 @@ class __UNSAFE__Computed<Value, Diff = unknown> implements Computed<Value, Diff>
 		) {
 			this.lastCheckedEpoch = globalEpoch
 			if (this.error) {
-				if (!ignoreErrors) {
-					throw this.error.thrownValue
-				} else {
+				if (ignoreErrors) {
 					return this.state // will be UNINITIALIZED
+				} else {
+					// Fall through to recompute the value and throw the error again from scratch.
+					// Gives a better debugging experience than rethrowing with captureStackTrace.
 				}
 			} else {
 				return this.state

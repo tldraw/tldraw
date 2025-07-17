@@ -1,18 +1,43 @@
-import { nearestMultiple } from '@tldraw/editor/src/lib/utils/nearestMultiple'
 import { react } from '@tldraw/state'
-import { compact } from 'lodash'
-import { memo, useEffect, useLayoutEffect, useRef } from 'react'
+import { compact, isEqual } from 'lodash'
+import {
+	createContext,
+	memo,
+	useCallback,
+	useContext,
+	useEffect,
+	useLayoutEffect,
+	useRef,
+	useState,
+} from 'react'
+import { createPortal } from 'react-dom'
 import {
 	Box,
 	Mat,
 	ShapeUtil,
 	TLShape,
 	TLShapeId,
+	uniqueId,
 	useEditor,
+	useIsDarkMode,
 	useQuickReactor,
 	useStateTracking,
 	useValue,
 } from 'tldraw'
+
+// Euclidean algorithm to find the GCD
+function gcd(a: number, b: number): number {
+	return b === 0 ? a : gcd(b, a % b)
+}
+
+// Returns the lowest value that the given number can be multiplied by to reach an integer
+export function nearestMultiple(float: number) {
+	const decimal = float.toString().split('.')[1]
+	if (!decimal) return 1
+	const denominator = Math.pow(10, decimal.length)
+	const numerator = parseInt(decimal, 10)
+	return denominator / gcd(numerator, denominator)
+}
 
 function setStyleProperty(el: HTMLElement | null, prop: string, value: string | number) {
 	if (!el) return
@@ -187,21 +212,25 @@ export const InnerShapeBackground = memo(
 		prev.util === next.util
 )
 
-export function MiniShapes({
+function MiniShapes({
 	ids,
 	width,
 	height,
+	containerRef,
 }: {
 	ids: TLShapeId[]
 	width: number
 	height: number
+	containerRef?: React.RefCallback<HTMLDivElement>
 }) {
-	const containerRef = useRef<HTMLDivElement>(null)
 	const editor = useEditor()
+	const isDark = useIsDarkMode()
 	const renderingShapes = useValue(
 		'rendering shapes',
 		() => {
-			const idsAncChildIds = editor.getShapeAndDescendantIds(ids)
+			const idsAncChildIds = editor.getShapeAndDescendantIds(
+				ids.filter((id) => editor.getShape(id))
+			)
 			return editor.getRenderingShapes().filter((s) => idsAncChildIds.has(s.id))
 		},
 		[editor, ids]
@@ -250,49 +279,180 @@ export function MiniShapes({
 	)
 
 	return (
-		<>
-			<button
-				onClick={() => {
-					const node = containerRef.current!.cloneNode(true)! as HTMLDivElement
-
-					containerRef.current?.parentElement?.appendChild(node)
-					node.style.setProperty('top', 50 + height + 25 + 'px')
-				}}
-				style={{
-					position: 'fixed',
-					width: 15,
-					height: 15,
-					top: 50 + height + 1,
-					left: 50,
-					outline: '1px solid red',
-					background: 'none',
-					border: 'none',
-					padding: 0,
-					margin: 0,
-					fontSize: 10,
-				}}
-			>
-				↓
-			</button>
-			<div
-				ref={containerRef}
-				style={{ width, height, position: 'fixed', top: 50, left: 50, outline: '1px solid red' }}
-			>
-				<div style={{ transform, position: 'absolute' }}>
-					{renderingShapes.map((shape) => (
-						<Shape
-							key={shape.id}
-							id={shape.id}
-							shape={shape.shape}
-							util={shape.util}
-							index={shape.index}
-							backgroundIndex={shape.backgroundIndex}
-							opacity={shape.opacity}
-							dprMultiple={dprMultiple}
-						/>
-					))}
-				</div>
+		<div
+			ref={containerRef}
+			className={isDark ? 'tl-theme__dark' : 'tl-theme__light'}
+			style={{ width, height, background: 'var(--color-background)' }}
+		>
+			<div style={{ transform, position: 'absolute' }}>
+				{renderingShapes.map((shape) => (
+					<Shape
+						key={shape.id}
+						id={shape.id}
+						shape={shape.shape}
+						util={shape.util}
+						index={shape.index}
+						backgroundIndex={shape.backgroundIndex}
+						opacity={shape.opacity}
+						dprMultiple={dprMultiple}
+					/>
+				))}
 			</div>
+		</div>
+	)
+}
+
+interface SnapshotArgs {
+	ids: TLShapeId[]
+	width: number
+	height: number
+}
+
+export interface Snapshot {
+	id: string
+	text: string
+	width: number
+	height: number
+	mode: 'light' | 'dark'
+}
+
+interface ShapesSnapshotContextType {
+	createSnapshot(args: SnapshotArgs): Promise<Snapshot>
+	renderLiveView(args: SnapshotArgs, ref: React.RefObject<HTMLDivElement>, id: string): void
+
+	liveViewConfig: Record<string, { args: SnapshotArgs; ref: React.RefObject<HTMLDivElement> }>
+	snapshotConfig: SnapshotArgs | null
+	snapshotRef: React.RefCallback<HTMLDivElement>
+}
+
+const ShapesSnapshotContext = createContext<ShapesSnapshotContextType | null>(null)
+
+export function ProvideShapesSnapshot({ children }: { children: React.ReactNode }) {
+	const [liveViewConfig, setLiveViewConfig] = useState<ShapesSnapshotContextType['liveViewConfig']>(
+		{}
+	)
+	const [snapshotConfig, setSnapshotConfig] = useState<SnapshotArgs | null>(null)
+	const snapshotRefCallback = useRef<(div: HTMLDivElement) => void>(() => {})
+
+	const snapshotRef = useCallback((div: HTMLDivElement) => {
+		snapshotRefCallback.current(div)
+	}, [])
+
+	const createSnapshot = useCallback<ShapesSnapshotContextType['createSnapshot']>(
+		async (args: SnapshotArgs) => {
+			const div = await new Promise<HTMLDivElement>((resolve) => {
+				snapshotRefCallback.current = resolve
+				setSnapshotConfig(args)
+			})
+			await new Promise((res) => requestAnimationFrame(res))
+			setSnapshotConfig(null)
+			return {
+				node: div.cloneNode(true)! as HTMLDivElement,
+				id: uniqueId(),
+				text: new XMLSerializer().serializeToString(div),
+				width: args.width,
+				height: args.height,
+				mode: div.classList.contains('tl-theme__dark') ? 'dark' : 'light',
+			}
+		},
+		[]
+	)
+
+	const renderLiveView = useCallback<ShapesSnapshotContextType['renderLiveView']>(
+		(args: SnapshotArgs, ref: React.RefObject<HTMLDivElement>, id: string) => {
+			setLiveViewConfig((liveViewConfig) => {
+				const next = { ...liveViewConfig, [id]: { args, ref } }
+				if (!isEqual(liveViewConfig, next)) {
+					return next
+				}
+				return liveViewConfig
+			})
+		},
+		[]
+	)
+
+	return (
+		<ShapesSnapshotContext.Provider
+			value={{
+				createSnapshot,
+				renderLiveView,
+				liveViewConfig,
+				snapshotConfig,
+				snapshotRef,
+			}}
+		>
+			{children}
+		</ShapesSnapshotContext.Provider>
+	)
+}
+
+function LiveView({ id }: { id: string }) {
+	const { liveViewConfig } = useContext(ShapesSnapshotContext)!
+	const config = liveViewConfig[id]
+
+	return createPortal(
+		<MiniShapes ids={config.args.ids} width={config.args.width} height={config.args.height} />,
+		config.ref.current!
+	)
+}
+
+function Snapshotter() {
+	const { snapshotConfig, snapshotRef } = useContext(ShapesSnapshotContext)!
+
+	if (!snapshotConfig) return null
+
+	return (
+		<div style={{ visibility: 'hidden' }}>
+			<MiniShapes
+				ids={snapshotConfig.ids}
+				width={snapshotConfig.width}
+				height={snapshotConfig.height}
+				containerRef={snapshotRef}
+			/>
+		</div>
+	)
+}
+
+export function ShapeSnapshotInner() {
+	const liveViews = useContext(ShapesSnapshotContext)!.liveViewConfig
+	return (
+		<>
+			<Snapshotter />
+			{Object.keys(liveViews).map((id) => (
+				<LiveView key={id} id={id} />
+			))}
 		</>
 	)
+}
+
+export function ShapeSnapshot({ snapshot }: { snapshot: Snapshot }) {
+	const ref = useRef<HTMLDivElement>(null)
+	useLayoutEffect(() => {
+		if (!ref.current) return
+		ref.current!.replaceWith(
+			new DOMParser().parseFromString(snapshot.text, 'text/html').body.firstChild!
+		)
+	}, [snapshot.text])
+	return <div ref={ref} />
+}
+
+export function LiveShapesThumbnail({
+	ids,
+	width,
+	height,
+}: {
+	ids: TLShapeId[]
+	width: number
+	height: number
+}) {
+	const context = useContext(ShapesSnapshotContext)!
+	const ref = useRef<HTMLDivElement>(null)
+	useLayoutEffect(() => {
+		context.renderLiveView({ ids, width, height }, ref, 'live-shapes-thumbnail')
+	})
+	return <div ref={ref} style={{ width, height, position: 'relative' }} />
+}
+
+export function useTakeSnapshot() {
+	return useContext(ShapesSnapshotContext)!.createSnapshot
 }

@@ -1,9 +1,11 @@
 import { getLicenseKey } from '@tldraw/dotcom-shared'
+import { useState } from 'react'
 import {
 	DefaultContextMenu,
 	DefaultContextMenuContent,
 	DefaultDebugMenu,
 	DefaultDebugMenuContent,
+	Editor,
 	ExampleDialog,
 	TLComponents,
 	Tldraw,
@@ -21,7 +23,14 @@ import { trackedShapes, useDebugging } from '../hooks/useDebugging'
 import { usePerformance } from '../hooks/usePerformance'
 import { A11yResultTable } from './a11y'
 import { getDiff } from './diff'
-import { MiniShapes } from './MiniShapes'
+import {
+	LiveShapesThumbnail,
+	ProvideShapesSnapshot,
+	ShapeSnapshot,
+	ShapeSnapshotInner,
+	Snapshot,
+	useTakeSnapshot,
+} from './ShapesSnapshot'
 
 const ContextMenu = track(() => {
 	const editor = useEditor()
@@ -87,13 +96,6 @@ const components: TLComponents = {
 			<DefaultDebugMenuContent />
 		</DefaultDebugMenu>
 	),
-	InFrontOfTheCanvas: () => {
-		const editor = useEditor()
-		const ids = useValue('ids', () => editor.getSelectedShapeIds(), [editor])
-		if (ids.length === 0) return null
-
-		return <MiniShapes ids={ids} width={200} height={width / aspectRatio} />
-	},
 }
 
 const width = 200
@@ -110,35 +112,74 @@ function afterChangeHandler(prev: any, next: any) {
 export default function Develop() {
 	const performanceOverrides = usePerformance()
 	const debuggingOverrides = useDebugging()
+	const [editor, setEditor] = useState<Editor | null>(null)
+	const [snapshots, setSnapshots] = useState([] as Snapshot[])
+	const selectedIds = useValue('selectedIds', () => editor?.getSelectedShapeIds() ?? [], [editor])
 
 	return (
-		<div className="tldraw__editor">
-			<Tldraw
-				licenseKey={getLicenseKey()}
-				overrides={[performanceOverrides, debuggingOverrides]}
-				persistenceKey="example"
-				onMount={(editor) => {
-					;(window as any).app = editor
-					;(window as any).editor = editor
+		<ProvideShapesSnapshot>
+			<div className="tldraw__editor" style={{ display: 'flex' }}>
+				<Tldraw
+					licenseKey={getLicenseKey()}
+					overrides={[performanceOverrides, debuggingOverrides]}
+					persistenceKey="example"
+					onMount={(editor) => {
+						setEditor(editor)
+						;(window as any).app = editor
+						;(window as any).editor = editor
 
-					Object.defineProperty(window, '$s', {
-						get: function () {
-							return editor.getOnlySelectedShape()
-						},
-						configurable: true,
-						enumerable: true,
-					})
+						Object.defineProperty(window, '$s', {
+							get: function () {
+								return editor.getOnlySelectedShape()
+							},
+							configurable: true,
+							enumerable: true,
+						})
 
-					const dispose = editor.store.sideEffects.registerAfterChangeHandler(
-						'shape',
-						afterChangeHandler
-					)
-					return () => {
-						dispose()
-					}
-				}}
-				components={components}
-			></Tldraw>
-		</div>
+						const dispose = editor.store.sideEffects.registerAfterChangeHandler(
+							'shape',
+							afterChangeHandler
+						)
+						return () => {
+							dispose()
+						}
+					}}
+					components={components}
+				>
+					<ShapeSnapshotInner />
+				</Tldraw>
+				<div style={{ width, background: 'red' }}>
+					<LiveShapesThumbnail ids={selectedIds} width={width} height={width / aspectRatio} />
+					{snapshots.map((snapshot, i) => (
+						<ShapeSnapshot key={i} snapshot={snapshot} />
+					))}
+					{editor && <TakeSnapshotButton editor={editor} setSnapshots={setSnapshots} />}
+				</div>
+			</div>
+		</ProvideShapesSnapshot>
+	)
+}
+
+function TakeSnapshotButton({
+	editor,
+	setSnapshots,
+}: {
+	editor: Editor
+	setSnapshots: React.Dispatch<React.SetStateAction<Snapshot[]>>
+}) {
+	const takeSnapshot = useTakeSnapshot()
+	return (
+		<button
+			onClick={async () => {
+				const snapshot = await takeSnapshot({
+					ids: editor.getSelectedShapeIds(),
+					width,
+					height: width / aspectRatio,
+				})
+				setSnapshots((snapshots) => [...snapshots, snapshot])
+			}}
+		>
+			ok
+		</button>
 	)
 }
