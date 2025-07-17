@@ -27,6 +27,7 @@ export type RoomSession<R extends UnknownRecord, Meta> =
 			meta: Meta
 			isReadonly: boolean
 			requiresLegacyRejection: boolean
+			requiresObjectDiffInConnectMsg: boolean
 	  }
 	| {
 			state: typeof RoomSessionState.AwaitingRemoval
@@ -37,6 +38,7 @@ export type RoomSession<R extends UnknownRecord, Meta> =
 			meta: Meta
 			isReadonly: boolean
 			requiresLegacyRejection: boolean
+			requiresObjectDiffInConnectMsg: boolean
 	  }
 	| {
 			state: typeof RoomSessionState.Connected
@@ -50,4 +52,5 @@ export type RoomSession<R extends UnknownRecord, Meta> =
 			meta: Meta
 			isReadonly: boolean
 			requiresLegacyRejection: boolean
+			requiresObjectDiffInConnectMsg: boolean
 	  }

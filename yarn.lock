@@ -8251,6 +8251,22 @@ __metadata:
   languageName: node
   linkType: hard
 
+"@streamparser/json-whatwg@npm:^0.0.22":
+  version: 0.0.22
+  resolution: "@streamparser/json-whatwg@npm:0.0.22"
+  dependencies:
+    "@streamparser/json": "npm:^0.0.22"
+  checksum: 10/0fbd0c07b5fadaadfb4b57b299fda5842dd9fdddd5fabb6a29c7fc535c4091e4572cb5521f4506640d2c1d6cd86638605ea247627b5a7c5fe4a40f22f04778ef
+  languageName: node
+  linkType: hard
+
+"@streamparser/json@npm:^0.0.22":
+  version: 0.0.22
+  resolution: "@streamparser/json@npm:0.0.22"
+  checksum: 10/46ae2dbb2ff9e932479b9073b8af18e5f2348739581f2fd238ad452047e0d19adc8730a9f0ba77b42ceb30322a192a3e271bf5682269df57024c717e07f6b625
+  languageName: node
+  linkType: hard
+
 "@supabase/auth-helpers-remix@npm:^0.2.6":
   version: 0.2.6
   resolution: "@supabase/auth-helpers-remix@npm:0.2.6"
@@ -9098,6 +9114,7 @@ __metadata:
     "@clerk/backend": "npm:^1.23.7"
     "@cloudflare/workers-types": "npm:^4.20250703.0"
     "@rocicorp/zero": "npm:0.19.2025050203"
+    "@streamparser/json-whatwg": "npm:^0.0.22"
     "@supabase/auth-helpers-remix": "npm:^0.2.6"
     "@supabase/supabase-js": "npm:^2.48.1"
     "@tldraw/dotcom-shared": "workspace:*"
