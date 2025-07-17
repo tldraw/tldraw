@@ -1,6 +1,14 @@
 import { TLAiStreamingChange } from '@tldraw/ai'
 import { useCallback, useEffect, useState } from 'react'
-import { defaultColorNames, Editor, TLShape, TLShapeId, toRichText } from 'tldraw'
+import {
+	defaultColorNames,
+	Editor,
+	RecordsDiff,
+	TLRecord,
+	TLShape,
+	TLShapeId,
+	toRichText,
+} from 'tldraw'
 import { $chatHistoryItems } from './ChatHistory'
 import { BrainIcon } from './icons/BrainIcon'
 import { PencilIcon } from './icons/PencilIcon'
@@ -39,6 +47,7 @@ export interface AgentMessageHistoryItem {
 
 export interface AgentChangeHistoryItem {
 	type: 'agent-change'
+	diff: RecordsDiff<TLRecord>
 	change: TLAiStreamingChange & { shape?: Partial<TLShape>; previousShape?: Partial<TLShape> }
 	status: 'progress' | 'done' | 'cancelled'
 	acceptance: 'accepted' | 'rejected' | 'pending'
@@ -71,32 +80,6 @@ export function AgentMessageHistoryItem({ item }: { item: AgentMessageHistoryIte
 	return <div className="agent-chat-message">{item.message}</div>
 }
 
-function getCompleteShapeFromStreamingShape({
-	shape,
-	editor,
-}: {
-	shape?: Partial<TLShape>
-	editor: Editor
-}) {
-	if (!shape) return null
-	if (!shape.type) return null
-	const util = editor.getShapeUtil(shape.type)
-	if (!util) return null
-
-	const shapeRecord = editor.store.schema.types.shape.create(shape)
-	const completeShapeRecord = {
-		...shapeRecord,
-		index: 'a0',
-		parentId: 'page:',
-		props: {
-			...util.getDefaultProps(),
-			...(shape.props ?? {}),
-		},
-	}
-
-	return completeShapeRecord as TLShape
-}
-
 function makeHighlightShape({
 	shape,
 	color,
@@ -121,7 +104,7 @@ function makeHighlightShape({
 			}
 		} else {
 			if ('richText' in props) props.richText = toRichText('')
-			props.scale = 6
+			props.scale = 4
 		}
 	}
 	return {
@@ -132,57 +115,41 @@ function makeHighlightShape({
 	}
 }
 
-function getDiffShapesFromChange({
-	change,
-	editor,
-}: {
-	change: TLAiStreamingChange & { shape?: Partial<TLShape>; previousShape?: Partial<TLShape> }
-	editor: Editor
-}): TLShape[] {
-	switch (change.type) {
-		case 'createShape': {
-			const shape = getCompleteShapeFromStreamingShape({ shape: change.shape, editor })
-			if (shape) {
-				const highlightShape = makeHighlightShape({ shape, color: 'light-green' })
-				return [highlightShape, shape]
-			}
-			return []
-		}
-		case 'updateShape': {
-			const shape = getCompleteShapeFromStreamingShape({ shape: change.shape, editor })
-			const previousShape = {
-				...getCompleteShapeFromStreamingShape({
-					shape: change.previousShape,
-					editor,
-				}),
-				id: (change.previousShape?.id + '-previous') as TLShapeId,
-			} as TLShape
+function getDiffShapesFromDiff({ diff }: { diff: RecordsDiff<TLRecord> }): TLShape[] {
+	const diffShapes: TLShape[] = []
 
-			if (shape) {
-				const highlightShape = makeHighlightShape({ shape, color: 'light-blue' })
-				if (previousShape) {
-					const previousHighlightShape = makeHighlightShape({
-						shape: previousShape,
-						color: 'light-red',
-					})
-					return [previousHighlightShape, previousShape, highlightShape, shape]
-				}
-				return [highlightShape, shape]
-			}
-			return []
-		}
-		case 'deleteShape': {
-			const shape = getCompleteShapeFromStreamingShape({ shape: change.shape, editor })
-			if (shape) {
-				const highlightShape = makeHighlightShape({ shape, color: 'light-red' })
-				return [highlightShape, shape]
-			}
-			return []
-		}
-		default: {
-			return []
-		}
+	for (const key in diff.removed) {
+		const id = key as TLShapeId
+		const shape = { ...diff.removed[id] }
+		if (shape.typeName !== 'shape') continue
+		const highlightShape = makeHighlightShape({ shape, color: 'light-red' })
+		diffShapes.push(highlightShape)
+		diffShapes.push(shape)
 	}
+
+	for (const key in diff.updated) {
+		const id = key as TLShapeId
+		const before = { ...diff.updated[id][0], id: (id + '-before') as TLShapeId }
+		const after = { ...diff.updated[id][1] }
+		if (before.typeName !== 'shape' || after.typeName !== 'shape') continue
+		const highlightBeforeShape = makeHighlightShape({ shape: before, color: 'light-red' })
+		const highlightAfterShape = makeHighlightShape({ shape: after, color: 'light-blue' })
+		diffShapes.push(highlightBeforeShape)
+		diffShapes.push(before)
+		diffShapes.push(highlightAfterShape)
+		diffShapes.push(after)
+	}
+
+	for (const key in diff.added) {
+		const id = key as TLShapeId
+		const shape = { ...diff.added[id] }
+		if (shape.typeName !== 'shape') continue
+		const highlightShape = makeHighlightShape({ shape, color: 'light-green' })
+		diffShapes.push(highlightShape)
+		diffShapes.push(shape)
+	}
+
+	return diffShapes
 }
 
 export function AgentChangeHistoryItems({
@@ -192,9 +159,7 @@ export function AgentChangeHistoryItems({
 	items: AgentChangeHistoryItem[]
 	editor: Editor
 }) {
-	const diffShapes = items
-		.map((item) => getDiffShapesFromChange({ change: item.change, editor }))
-		.flat()
+	const diffShapes = items.map((item) => getDiffShapesFromDiff({ diff: item.diff })).flat()
 
 	const handleAccept = useCallback(() => {
 		$chatHistoryItems.update((oldItems) => {
@@ -208,6 +173,7 @@ export function AgentChangeHistoryItems({
 			return newItems
 		})
 	}, [items])
+
 	const handleReject = useCallback(() => {
 		$chatHistoryItems.update((oldItems) => {
 			const newItems = [...oldItems]

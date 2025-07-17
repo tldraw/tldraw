@@ -1,6 +1,6 @@
 import { TLAiChange, TLAiResult, TldrawAiOptions, useTldrawAi } from '@tldraw/ai'
 import { Editor } from 'tldraw'
-import { applyChanges } from './applyChanges'
+import { applyChange } from './applyChanges'
 import { SimpleCoordinates } from './transforms/SimpleCoordinates'
 import { SimpleIds } from './transforms/SimpleIds'
 
@@ -15,7 +15,7 @@ export function useTldrawAiExample(editor?: Editor) {
 
 const STATIC_TLDRAWAI_OPTIONS: TldrawAiOptions = {
 	transforms: [SimpleIds, SimpleCoordinates],
-	apply: applyChanges,
+	apply: applyChange,
 
 	// A function that calls the backend and return generated changes.
 	// See worker/do/OpenAiService.ts#generate for the backend part.

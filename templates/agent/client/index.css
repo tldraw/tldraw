@@ -294,7 +294,7 @@ body {
 }
 
 .tl-shape[style*='opacity: 0.51'] {
-	filter: drop-shadow(1.5px 1.5px 0px rgb(0, 200, 0));
+	filter: drop-shadow(calc(var(--tl-zoom) * 40px) calc(var(--tl-zoom) * 1.5px) 0px rgb(0, 200, 0));
 }
 
 .tl-shape[style*='opacity: 0.52'] {

@@ -1,24 +1,29 @@
 import { TLAiStreamingChange, defaultApplyChange } from '@tldraw/ai'
-import { Editor, TLShape } from 'tldraw'
+import { Editor, RecordsDiff, TLRecord, TLShape } from 'tldraw'
 import { $chatHistoryItems } from './ChatHistory'
 import { ChatHistoryItem } from './ChatHistoryItem'
 import { $requestsSchedule } from './requestsSchedule'
 
-export function applyChanges({ change, editor }: { change: TLAiStreamingChange; editor: Editor }) {
+export function applyChange({ change, editor }: { change: TLAiStreamingChange; editor: Editor }) {
 	if (change.complete) {
 		// console.log(change)
 	}
 
-	applyChangeToChatHistory({ change, editor })
-	defaultApplyChange({ change, editor })
+	const diff = editor.store.extractingChanges(() => {
+		defaultApplyChange({ change, editor })
+	})
+
+	applyChangeToChatHistory({ change, editor, diff })
 }
 
 function applyChangeToChatHistory({
 	change,
 	editor,
+	diff,
 }: {
 	change: TLAiStreamingChange
 	editor: Editor
+	diff: RecordsDiff<TLRecord>
 }) {
 	switch (change.type) {
 		case 'custom': {
@@ -75,6 +80,7 @@ function applyChangeToChatHistory({
 			createOrUpdateHistoryItem({
 				type: 'agent-change',
 				change,
+				diff,
 				status: change.complete ? 'done' : 'progress',
 				acceptance: 'pending',
 			})
@@ -99,6 +105,7 @@ function applyChangeToChatHistory({
 			}
 			createOrUpdateHistoryItem({
 				type: 'agent-change',
+				diff,
 				change: { ...change, previousShape, shape: newShape as TLShape },
 				status: change.complete ? 'done' : 'progress',
 				acceptance: 'pending',
@@ -118,6 +125,7 @@ function applyChangeToChatHistory({
 			}
 			createOrUpdateHistoryItem({
 				type: 'agent-change',
+				diff,
 				change: { ...change, shape },
 				status: change.complete ? 'done' : 'progress',
 				acceptance: 'pending',
