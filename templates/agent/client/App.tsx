@@ -1,9 +1,27 @@
 import { useCallback, useState } from 'react'
-import { Editor, Tldraw } from 'tldraw'
+import { Editor, Tldraw, TLUiOverrides } from 'tldraw'
 import { ChatPanel } from './ChatPanel'
 import { overrideFillStyleWithLinedFillStyle } from './LinedFillStyle'
+import { TargetTool } from './TargetTool'
 
 overrideFillStyleWithLinedFillStyle()
+
+const customUiOverrides: TLUiOverrides = {
+	tools: (editor, tools) => {
+		return {
+			...tools,
+			screenshot: {
+				id: 'target',
+				label: 'Target',
+				kbd: 'c',
+				icon: 'tool-frame',
+				onSelect() {
+					editor.setCurrentTool('target')
+				},
+			},
+		}
+	},
+}
 
 function App() {
 	const [editor, setEditor] = useState<Editor | null>(null)
@@ -19,10 +37,17 @@ function App() {
 		})
 	}, [])
 
+	const tools = [TargetTool]
+
 	return (
 		<div className="tldraw-ai-container">
 			<div className="tldraw-canvas">
-				<Tldraw persistenceKey="tldraw-agent-demo" onMount={handleMount} />
+				<Tldraw
+					persistenceKey="tldraw-agent-demo"
+					onMount={handleMount}
+					tools={tools}
+					overrides={customUiOverrides}
+				/>
 			</div>
 			{editor && <ChatPanel editor={editor} />}
 		</div>

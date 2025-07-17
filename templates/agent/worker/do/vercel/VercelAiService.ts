@@ -115,9 +115,33 @@ function buildMessages(prompt: TLAiSerializedPrompt): CoreMessage[] {
 	const messages: CoreMessage[] = []
 
 	messages.push(...buildHistoryMessages(prompt))
+	messages.push(...buildContextContentMessages(prompt))
 	messages.push(buildUserMessage(prompt))
 
 	return messages
+}
+
+function buildContextContentMessages(prompt: TLAiSerializedPrompt): CoreMessage[] {
+	const shapes = prompt.meta.contextContent.shapes
+	if (shapes.length === 0) {
+		return []
+	}
+
+	const content: UserContent = []
+
+	content.push({
+		type: 'text',
+		text: 'The user has specifically brought your attention to the following shapes in this request. Make sure to focus your task on these shapes:',
+	})
+
+	for (const shape of shapes) {
+		content.push({
+			type: 'text',
+			text: JSON.stringify(shape, null, 2),
+		})
+	}
+
+	return [{ role: 'user', content }]
 }
 
 function buildHistoryMessages(prompt: TLAiSerializedPrompt): CoreMessage[] {

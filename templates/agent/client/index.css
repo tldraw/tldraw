@@ -334,3 +334,45 @@ body {
 	background-color: transparent;
 	border-color: var(--color-text);
 }
+
+.chat-input-attachments button.active {
+	background-color: var(--color-primary);
+	color: var(--color-text-1);
+	border-color: var(--color-text-1);
+}
+
+.chat-input-attachments button.active:hover {
+	background-color: var(--color-primary);
+	color: var(--color-text);
+	border-color: var(--color-text);
+}
+
+.chat-input-attachments {
+	display: flex;
+	gap: 4px;
+	align-items: center;
+	flex-wrap: wrap;
+}
+
+.chat-input-context {
+	display: flex;
+	gap: 4px;
+}
+
+/* Should look very similar to the chat-input-attachments button */
+.chat-input-context-item {
+	background-color: var(--color-muted-1);
+	padding: 8px 4px;
+	border-radius: 6px;
+	font-size: 10px;
+	font-weight: 500;
+	height: 16px;
+	border: 1px solid var(--color-text-2);
+	color: var(--color-text-2);
+	line-height: 0;
+	display: flex;
+	align-items: center;
+	text-overflow: ellipsis;
+	overflow: hidden;
+	white-space: nowrap;
+}

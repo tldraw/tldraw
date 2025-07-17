@@ -48,7 +48,15 @@ function applyChangeToChatHistory({
 					})
 					$requestsSchedule.update((prev) => {
 						if (change.complete) {
-							return [...prev, { review: true, message: change.intent ?? '' }]
+							const lastItem = prev[prev.length - 1]
+							return [
+								...prev,
+								{
+									review: true,
+									message: change.intent ?? '',
+									contextItems: lastItem?.contextItems ?? [],
+								},
+							]
 						}
 						return prev
 					})

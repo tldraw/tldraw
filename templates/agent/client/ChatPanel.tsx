@@ -3,6 +3,7 @@ import { Editor, useLocalStorageState } from 'tldraw'
 import { DEFAULT_MODEL_NAME, TLAgentModelName } from '../worker/models'
 import { $chatHistoryItems, ChatHistory } from './ChatHistory'
 import { ChatInput } from './ChatInput'
+import { $contextItems, getSimpleContentFromContextItems } from './Context'
 import { $requestsSchedule } from './requestsSchedule'
 import { useTldrawAiExample } from './useTldrawAiExample'
 
@@ -38,6 +39,9 @@ export function ChatPanel({ editor }: { editor: Editor }) {
 				meta: {
 					modelName,
 					historyItems: $chatHistoryItems.get().filter((item) => item.type !== 'status-thinking'),
+					// TODO: Add first-class support to handle custom-specified shapes/viewports/etc.
+					// Note: Right now this is not applying our transforms
+					contextContent: getSimpleContentFromContextItems(request.contextItems),
 					review: request.review,
 				},
 			})
@@ -108,7 +112,12 @@ export function ChatPanel({ editor }: { editor: Editor }) {
 				{ type: 'user-message', message: value, status: 'done' },
 			])
 
-			$requestsSchedule.update((prev) => [...prev, { message: value, review: false }])
+			$requestsSchedule.update((prev) => [
+				...prev,
+				{ message: value, review: false, contextItems: $contextItems.get() },
+			])
+
+			$contextItems.set([])
 
 			setIsGenerating(true)
 			await advanceSchedule()
@@ -142,7 +151,12 @@ export function ChatPanel({ editor }: { editor: Editor }) {
 				<NewChatButton />
 			</div>
 			<ChatHistory editor={editor} />
-			<ChatInput handleSubmit={handleSubmit} inputRef={inputRef} isGenerating={isGenerating} />
+			<ChatInput
+				handleSubmit={handleSubmit}
+				inputRef={inputRef}
+				isGenerating={isGenerating}
+				editor={editor}
+			/>
 		</div>
 	)
 }
