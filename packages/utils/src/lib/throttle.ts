@@ -10,8 +10,6 @@ const fpsQueue: Array<() => void> = []
 const MIN_FPS = 30
 const MAX_FPS = 120
 const DEFAULT_FPS = 60
-const PERFORMANCE_SAMPLE_SIZE = 10
-const ADJUSTMENT_THRESHOLD = 0.8 // 80% of target time
 
 let targetFps = DEFAULT_FPS
 let targetTimePerFrame = Math.floor(1000 / targetFps) // 16ms
@@ -19,20 +17,21 @@ let frameRaf: undefined | number
 let flushRaf: undefined | number
 let lastFlushTime = -targetTimePerFrame
 
-// Performance monitoring
-let performanceSamples: number[] = []
-let lastPerformanceCheck = 0
+// Performance monitoring (aligned with DefaultDebugPanel approach)
+const FPS_MEASUREMENT_WINDOW = 250
+let fpsCheckHistory: number[] = []
+let framesInCurrentWindow = 0
+let windowStartTime = 0
 let consecutiveGoodFrames = 0
 let consecutiveBadFrames = 0
 
 const updateTargetFps = () => {
-	if (performanceSamples.length < PERFORMANCE_SAMPLE_SIZE) return
+	if (fpsCheckHistory.length < 3) return // Need at least 3 measurements
 
-	const avgFrameTime = performanceSamples.reduce((a, b) => a + b, 0) / performanceSamples.length
-	const currentTargetTime = 1000 / targetFps
+	const avgFps = fpsCheckHistory.reduce((a, b) => a + b, 0) / fpsCheckHistory.length
 
 	// If we're consistently performing well, try to increase FPS
-	if (avgFrameTime < currentTargetTime * ADJUSTMENT_THRESHOLD) {
+	if (avgFps > targetFps) {
 		consecutiveGoodFrames++
 		consecutiveBadFrames = 0
 
@@ -45,7 +44,7 @@ const updateTargetFps = () => {
 		}
 	}
 	// If we're consistently performing poorly, decrease FPS
-	else if (avgFrameTime > currentTargetTime * 1.2) {
+	else if (avgFps < targetFps) {
 		consecutiveBadFrames++
 		consecutiveGoodFrames = 0
 
@@ -58,32 +57,80 @@ const updateTargetFps = () => {
 		}
 	}
 
-	// Reset samples for next measurement period
-	performanceSamples = []
-}
-
-const recordPerformance = (frameTime: number) => {
-	performanceSamples.push(frameTime)
-
-	// Check performance every second
-	const now = Date.now()
-	if (now - lastPerformanceCheck > 1000) {
-		updateTargetFps()
-		lastPerformanceCheck = now
+	// Keep only recent measurements
+	if (fpsCheckHistory.length > 5) {
+		fpsCheckHistory = fpsCheckHistory.slice(-3)
 	}
 }
 
+// Track actual browser frame timing using requestAnimationFrame
+let frameTimingRaf: number | undefined
+let isFrameTimingActive = false
+
+const startFrameTimingMeasurement = () => {
+	if (isFrameTimingActive || isTest()) return
+
+	isFrameTimingActive = true
+	framesInCurrentWindow = 0
+	windowStartTime = performance.now()
+
+	const measureFrame = () => {
+		// Count this frame
+		framesInCurrentWindow++
+
+		// Calculate elapsed time
+		const now = performance.now()
+		const elapsed = now - windowStartTime
+
+		// Check if we should calculate FPS
+		if (elapsed >= FPS_MEASUREMENT_WINDOW) {
+			const measuredFps = Math.round(
+				framesInCurrentWindow * (FPS_MEASUREMENT_WINDOW / elapsed) * (1000 / FPS_MEASUREMENT_WINDOW)
+			)
+
+			// Store the measurement
+			fpsCheckHistory.push(measuredFps)
+
+			// Reset for next measurement window
+			framesInCurrentWindow = 0
+			windowStartTime = now
+
+			// Check if we should update target FPS
+			if (fpsCheckHistory.length >= 3) {
+				updateTargetFps()
+			}
+		}
+
+		// Continue measuring as long as there are functions being throttled
+		if (fpsQueue.length > 0) {
+			// eslint-disable-next-line no-restricted-globals
+			frameTimingRaf = requestAnimationFrame(measureFrame)
+		} else {
+			isFrameTimingActive = false
+		}
+	}
+
+	// eslint-disable-next-line no-restricted-globals
+	frameTimingRaf = requestAnimationFrame(measureFrame)
+}
+
+const stopFrameTimingMeasurement = () => {
+	if (frameTimingRaf) {
+		cancelAnimationFrame(frameTimingRaf)
+		frameTimingRaf = undefined
+	}
+	isFrameTimingActive = false
+}
+
 const flush = () => {
-	const startTime = Date.now()
 	const queue = fpsQueue.splice(0, fpsQueue.length)
 	for (const fn of queue) {
 		fn()
 	}
-	const endTime = Date.now()
 
-	// Record performance if not in test mode
+	// Start measuring actual browser frame timing
 	if (!isTest()) {
-		recordPerformance(endTime - startTime)
+		startFrameTimingMeasurement()
 	}
 }
 
@@ -122,7 +169,7 @@ function tick(isOnNextFrame = false) {
 
 /**
  * Returns a throttled version of the function that will only be called max once per frame.
- * The target frame rate is 60fps.
+ * The target frame rate is adaptive (30-120fps, starting at 60fps).
  * @param fn - the fun to return a throttled version of
  * @returns
  * @internal
@@ -162,7 +209,7 @@ export function fpsThrottle(fn: { (): void; cancel?(): void }): {
 }
 
 /**
- * Calls the function on the next frame. The target frame rate is 60fps.
+ * Calls the function on the next frame. The target frame rate is adaptive (30-120fps, starting at 60fps).
  * If the same fn is passed again before the next frame, it will still be called only once.
  * @param fn - the fun to call on the next frame
  * @returns a function that will cancel the call if called before the next frame
@@ -204,10 +251,12 @@ export function getCurrentFps(): number {
 export function resetAdaptiveFps(): void {
 	targetFps = DEFAULT_FPS
 	targetTimePerFrame = Math.floor(1000 / targetFps)
-	performanceSamples = []
-	lastPerformanceCheck = 0
+	fpsCheckHistory = []
+	framesInCurrentWindow = 0
+	windowStartTime = 0
 	consecutiveGoodFrames = 0
 	consecutiveBadFrames = 0
+	stopFrameTimingMeasurement()
 }
 
 /**
