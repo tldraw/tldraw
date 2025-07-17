@@ -11,8 +11,10 @@
 	"tldraw_template": {
 		"publish": {
 			"repo": "tldraw/nextjs-template",
-			"name": "Just tldraw (next.js)",
-			"description": "A simple tldraw app built on Next.js & TypeScript."
+			"name": "Next.js + tldraw",
+			"description": "tldraw in a Next.js app, with TypeScript.",
+			"category": "framework",
+			"order": 2
 		},
 		"scripts": {
 			"lint": "next lint"

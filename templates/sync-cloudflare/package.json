@@ -12,8 +12,10 @@
 	"tldraw_template": {
 		"publish": {
 			"repo": "tldraw/tldraw-sync-cloudflare",
-			"name": "Sync",
-			"description": "Self-hosted tldraw with realtime multiplayer, powered by tldraw sync and Cloudflare Durable Objects. Built with Vite and TypeScript."
+			"name": "Multiplayer sync",
+			"description": "Self-hosted tldraw with realtime multiplayer, powered by tldraw sync and Cloudflare Durable Objects. Built with Vite and TypeScript.",
+			"category": "app",
+			"order": 1
 		},
 		"scripts": {
 			"lint": null

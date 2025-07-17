@@ -1,3 +1,10 @@
 #!/usr/bin/env bash
 
-yarn run -T tsx ../../internal/scripts/refresh-create-templates.ts
+set -eux
+
+yarn build
+
+# add the current directory in case the command deletes it
+git add .
+
+./cli.cjs "$@"

@@ -10,7 +10,12 @@
 	"license": "MIT",
 	"type": "module",
 	"tldraw_template": {
-		"repo": "tldraw/vue-template",
+		"publish": {
+			"repo": "tldraw/vue-template",
+			"name": "Vue.js + tldraw",
+			"description": "tldraw in a Vue.js app, built with Vite and TypeScript.",
+			"category": "framework"
+		},
 		"scripts": {
 			"lint": null
 		}

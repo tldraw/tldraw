@@ -12,8 +12,10 @@
 	"tldraw_template": {
 		"publish": {
 			"repo": "tldraw/vite-template",
-			"name": "Just tldraw",
-			"description": "A simple tldraw app using Vite and TypeScript."
+			"name": "Vite + tldraw",
+			"description": "The easiest way to get started with tldraw. Built with Vite, React, and TypeScript.",
+			"category": "framework",
+			"order": 1
 		},
 		"scripts": {
 			"lint": null
