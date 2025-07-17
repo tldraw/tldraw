@@ -120,7 +120,7 @@ function getDiffShapesFromDiff({ diff }: { diff: RecordsDiff<TLRecord> }): TLSha
 
 	for (const key in diff.removed) {
 		const id = key as TLShapeId
-		const shape = { ...diff.removed[id] }
+		const shape = diff.removed[id]
 		if (shape.typeName !== 'shape') continue
 		const highlightShape = makeHighlightShape({ shape, color: 'light-red' })
 		diffShapes.push(highlightShape)
@@ -130,7 +130,7 @@ function getDiffShapesFromDiff({ diff }: { diff: RecordsDiff<TLRecord> }): TLSha
 	for (const key in diff.updated) {
 		const id = key as TLShapeId
 		const before = { ...diff.updated[id][0], id: (id + '-before') as TLShapeId }
-		const after = { ...diff.updated[id][1] }
+		const after = diff.updated[id][1]
 		if (before.typeName !== 'shape' || after.typeName !== 'shape') continue
 		const highlightBeforeShape = makeHighlightShape({ shape: before, color: 'light-red' })
 		const highlightAfterShape = makeHighlightShape({ shape: after, color: 'light-blue' })
@@ -142,7 +142,7 @@ function getDiffShapesFromDiff({ diff }: { diff: RecordsDiff<TLRecord> }): TLSha
 
 	for (const key in diff.added) {
 		const id = key as TLShapeId
-		const shape = { ...diff.added[id] }
+		const shape = diff.added[id]
 		if (shape.typeName !== 'shape') continue
 		const highlightShape = makeHighlightShape({ shape, color: 'light-green' })
 		diffShapes.push(highlightShape)
