@@ -86,6 +86,7 @@ export const TldrawUiSlider = React.forwardRef<HTMLDivElement, TLUiSliderProps>(
 						aria-valuemin={(min ?? 0) * ariaValueModifier}
 						aria-valuenow={value * ariaValueModifier}
 						aria-valuemax={steps * ariaValueModifier}
+						aria-label={title + ' — ' + msg(label as TLUiTranslationKey)}
 						className="tlui-slider__thumb"
 						dir="ltr"
 						ref={ref}
