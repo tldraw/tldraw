@@ -1,5 +1,5 @@
 import { FormEventHandler, useCallback, useEffect, useRef, useState } from 'react'
-import { Editor, useLocalStorageState, useReactor, useValue } from 'tldraw'
+import { Editor, useLocalStorageState } from 'tldraw'
 import { AGENT_MODEL_DEFINITIONS, TLAgentModelName } from '../worker/models'
 import { $chatHistoryItems, ChatHistory } from './ChatHistory'
 import { BrainIcon } from './icons/BrainIcon'
@@ -12,7 +12,6 @@ export function ChatPanel({ editor }: { editor: Editor }) {
 	const ai = useTldrawAiExample(editor)
 
 	const [isGenerating, setIsGenerating] = useState(false)
-	const historyItems = useValue($chatHistoryItems)
 	const rCancelFn = useRef<(() => void) | null>(null)
 	const inputRef = useRef<HTMLInputElement>(null)
 	const [modelName, setModelName] = useLocalStorageState<TLAgentModelName>(
@@ -25,25 +24,6 @@ export function ChatPanel({ editor }: { editor: Editor }) {
 		;(window as any).editor = editor
 		;(window as any).ai = ai
 	}, [ai, editor])
-
-	useEffect(() => {
-		const localHistoryItems = localStorage.getItem('chat-history-items')
-		if (localHistoryItems) {
-			try {
-				$chatHistoryItems.set(JSON.parse(localHistoryItems))
-			} catch (e) {
-				console.error(e)
-			}
-		}
-	}, [])
-
-	useReactor(
-		'stash locally',
-		() => {
-			localStorage.setItem('chat-history-items', JSON.stringify($chatHistoryItems.get()))
-		},
-		[$chatHistoryItems]
-	)
 
 	const advanceSchedule = useCallback(async () => {
 		const eventSchedule = $requestsSchedule.get()
@@ -166,7 +146,7 @@ export function ChatPanel({ editor }: { editor: Editor }) {
 			<div className="chat-header">
 				<NewChatButton />
 			</div>
-			<ChatHistory editor={editor} items={historyItems} />
+			<ChatHistory editor={editor} />
 			<div className="chat-input">
 				<form onSubmit={handleSubmit}>
 					<input

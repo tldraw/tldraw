@@ -1,5 +1,5 @@
 import { useEffect, useRef } from 'react'
-import { atom, Editor } from 'tldraw'
+import { atom, Editor, useReactor, useValue } from 'tldraw'
 import {
 	AgentActionHistoryItem,
 	AgentChangeGroupHistoryItem,
@@ -13,9 +13,29 @@ import {
 
 export const $chatHistoryItems = atom<ChatHistoryItem[]>('chatHistoryItems', [])
 
-export function ChatHistory({ editor, items }: { editor: Editor; items: ChatHistoryItem[] }) {
+export function ChatHistory({ editor }: { editor: Editor }) {
+	const items = useValue($chatHistoryItems)
 	const scrollContainerRef = useRef<HTMLDivElement>(null)
 	const previousScrollDistanceFromBottomRef = useRef(0)
+
+	useEffect(() => {
+		const localHistoryItems = localStorage.getItem('chat-history-items')
+		if (localHistoryItems) {
+			try {
+				$chatHistoryItems.set(JSON.parse(localHistoryItems))
+			} catch (e) {
+				console.error(e)
+			}
+		}
+	}, [])
+
+	useReactor(
+		'stash locally',
+		() => {
+			localStorage.setItem('chat-history-items', JSON.stringify($chatHistoryItems.get()))
+		},
+		[$chatHistoryItems]
+	)
 
 	useEffect(() => {
 		if (!scrollContainerRef.current) return
