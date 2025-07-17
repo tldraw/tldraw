@@ -1,5 +1,12 @@
 import { useCallback, useMemo, useRef } from 'react'
-import { Editor, exhaustiveSwitchError, TLShapePartial, uniqueId, useMaybeEditor } from 'tldraw'
+import {
+	Editor,
+	exhaustiveSwitchError,
+	TLShapeId,
+	TLShapePartial,
+	uniqueId,
+	useMaybeEditor,
+} from 'tldraw'
 import { TldrawAiModule, TldrawAiModuleOptions } from './TldrawAiModule'
 import { TLAiChange, TLAiPrompt, TLAiSerializedPrompt, TLAiStreamingChange } from './types'
 
@@ -288,15 +295,33 @@ export function defaultApplyChange({
 	try {
 		switch (change.type) {
 			case 'createShape': {
-				editor.createShape(change.shape)
+				if (Array.isArray(change.shape)) {
+					change.shape.forEach((shape) => {
+						editor.createShape(shape as TLShapePartial)
+					})
+				} else {
+					editor.createShape(change.shape as TLShapePartial)
+				}
 				break
 			}
 			case 'updateShape': {
-				editor.updateShape(change.shape as TLShapePartial)
+				if (Array.isArray(change.shape)) {
+					change.shape.forEach((shape) => {
+						editor.updateShape(shape as TLShapePartial)
+					})
+				} else {
+					editor.updateShape(change.shape as TLShapePartial)
+				}
 				break
 			}
 			case 'deleteShape': {
-				editor.deleteShape(change.shapeId)
+				if (Array.isArray(change.shapeId)) {
+					change.shapeId.forEach((id) => {
+						editor.deleteShape(id)
+					})
+				} else {
+					editor.deleteShape(change.shapeId as TLShapeId)
+				}
 				break
 			}
 			case 'createBinding': {

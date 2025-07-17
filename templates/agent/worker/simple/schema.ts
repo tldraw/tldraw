@@ -423,7 +423,7 @@ export type ISimpleShape = z.infer<typeof SimpleShape>
 
 export const SimpleCreateEvent = z.object({
 	type: z.enum(['create', 'update']),
-	shape: SimpleShape,
+	shapes: z.array(SimpleShape),
 	intent: z.string(),
 })
 
@@ -431,9 +431,13 @@ export type ISimpleCreateEvent = z.infer<typeof SimpleCreateEvent>
 
 export const SimpleMoveEvent = z.object({
 	type: z.literal('move'),
-	shapeId: z.string(),
-	x: z.number(),
-	y: z.number(),
+	moves: z.array(
+		z.object({
+			shapeId: z.string(),
+			x: z.number(),
+			y: z.number(),
+		})
+	),
 	intent: z.string(),
 })
 
@@ -441,8 +445,12 @@ export type ISimpleLabelEvent = z.infer<typeof SimpleLabelEvent>
 
 export const SimpleLabelEvent = z.object({
 	type: z.literal('label'),
-	shapeId: z.string(),
-	text: z.string(),
+	labels: z.array(
+		z.object({
+			shapeId: z.string(),
+			text: z.string(),
+		})
+	),
 	intent: z.string(),
 })
 
@@ -450,7 +458,7 @@ export type ISimpleMoveEvent = z.infer<typeof SimpleMoveEvent>
 
 const SimpleDeleteEvent = z.object({
 	type: z.literal('delete'),
-	shapeId: z.string(),
+	shapeIds: z.array(z.string()),
 	intent: z.string(),
 })
 export type ISimpleDeleteEvent = z.infer<typeof SimpleDeleteEvent>

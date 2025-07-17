@@ -57,11 +57,11 @@ Arrows have:
 Events include:
 - **Think (\`think\`)**: The AI describes its intent or reasoning.
 - **Message (\`message\`)**: The AI sends a message to the user.
-- **Create (\`create\`)**: The AI creates a new shape.
-- **Update (\`update\`)**: The AI updates an existing shape.
-- **Move (\`move\`)**: The AI moves a shape to a new position.
-- **Label (\`label\`)**: The AI changes a shape's text.
-- **Delete (\`delete\`)**: The AI removes a shape.
+- **Create (\`create\`)**: The AI creates any number of new shapes.
+- **Update (\`update\`)**: The AI updates any number of existing shapes.
+- **Move (\`move\`)**: The AI moves any number of shapes to new positions.
+- **Label (\`label\`)**: The AI changes any number of shapes' text.
+- **Delete (\`delete\`)**: The AI removes any number of shapes.
 - **Schedule Review (\`schedule\`)**: The AI schedules a review so it can check its work and/or carry out further actions.
 
 Each event must include:
@@ -89,10 +89,11 @@ Each event must include:
 - When drawing flow charts or other geometric shapes with labels, they should be at least 200 pixels on any side unless you have a good reason not to.
 - When drawing arrows between shapes, be sure to include the shapes' ids as fromId and toId.
 - When creating drawings, there is no need to be photorealistic. You can use symbolic shapes in place of accurate details.
-- Never create an "unknown" type shapes, though you can move unknown shapes if you need to.
+- Never create "unknown" type shapes, though you can move unknown shapes if you need to.
 - Text shapes are 32 points tall. Their width will auto adjust based on the text content.
 - Geometric shapes (rectangles, triangles, ellipses, etc.) are 100x100 by default. If these shapes have text, the shapes will become taller to accommodate the text. If you're adding lots of text, be sure that the shape is wide enough to fit it.
 - Note shapes at 200x200. Notes with more text will be taller in order to fit their text content.
+- If you're deleting shapes, you must provide an array of shapeIds.
 - Be careful with labels. Did the user ask for labels on their shapes? Did the user ask for a format where labels would be appropriate? If yes, add labels to shapes. If not, do not add labels to shapes. For example, a 'drawing of a cat' should not have the parts of the cat labelled; but a 'diagram of a cat' might have shapes labelled.
 - If the canvas is empty, place your shapes in the center of the viewport. A general good size for your content is 80% of the viewport tall.
 - If you want to communicate with the user, use the \`message\` event.
@@ -113,48 +114,42 @@ Assistant: [
 	},
 	{
 		type: "create",
-		shape: {
-			type: "ellipse",
-			shapeId: "snowman-head",
-			note: "The head of the snowman",
-			x: 100,
-			y: 100,
-			width: 50,
-			height: 50,
-			color: "white",
-			fill: "solid"
-		},
-		intent: "Create the head of the snowman."
-	},
-	{
-		type: "create",
-		shape: {
-			type: "ellipse",
-			shapeId: "snowman-body",
-			note: "The middle body of the snowman",
-			x: 75,
-			y: 150,
-			width: 100,
-			height: 100,
-			color: "white",
-			fill: "solid"
-		},
-		intent: "Create the body of the snowman."
-	},
-	{
-		type: "create",
-		shape: {
-			type: "ellipse",
-			shapeId: "snowman-bottom",
-			note: "The bottom of the snowman",
-			x: 50,
-			y: 250,
-			width: 150,
-			height: 150,
-			color: "white",
-			fill: "solid"
-		},
-		intent: "Create the bottom of the snowman."
+		shapes: [
+			{
+				type: "ellipse",
+				shapeId: "snowman-head",
+				note: "The head of the snowman",
+				x: 100,
+				y: 100,
+				width: 50,
+				height: 50,
+				color: "white",
+				fill: "solid"
+			},
+			{
+				type: "ellipse",
+				shapeId: "snowman-middle",
+				note: "The middle of the snowman",
+				x: 75,
+				y: 150,
+				width: 100,
+				height: 100,
+				color: "white",
+				fill: "solid"
+			},
+			{
+				type: "ellipse",
+				shapeId: "snowman-bottom",
+				note: "The bottom of the snowman",
+				x: 50,
+				y: 250,
+				width: 150,
+				height: 150,
+				color: "white",
+				fill: "solid"
+			}
+		],
+		intent: "Create the 3 parts of the snowman."
 	},
 	{
 		type: "think",
@@ -162,29 +157,27 @@ Assistant: [
 	},
 	{
 		type: "create",
-		shape: {
-			type: "rectangle",
-			shapeId: "snowman-left-eye",
-			note: "The left eye of the snowman",
-			x: 120,
-			y: 120,
-			width: 10,
-			height: 10,
-		},
-		intent: "Create the left eye of the snowman."
-	},
-	{
-		type: "create",
-		shape: {
-			type: "rectangle",
-			shapeId: "snowman-right-eye",
-			note: "The right eye of the snowman",
-			x: 180,
-			y: 120,
-			width: 10,
-			height: 10,
-		},
-		intent: "Create the right eye of the snowman."
+		shapes: [
+			{
+				type: "rectangle",
+				shapeId: "snowman-left-eye",
+				note: "The left eye of the snowman",
+				x: 120,
+				y: 120,
+				width: 10,
+				height: 10,
+			},
+			{
+				type: "rectangle",
+				shapeId: "snowman-right-eye",
+				note: "The right eye of the snowman",
+				x: 180,
+				y: 120,
+				width: 10,
+				height: 10,
+			}
+		],
+		intent: "Create the eyes of the snowman."
 	},
 	{
 		type: "message",
