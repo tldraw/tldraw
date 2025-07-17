@@ -177,8 +177,6 @@ function TakeSnapshotButton({
 			onClick={async () => {
 				const snapshot = await takeSnapshot({
 					ids: editor.getSelectedShapeIds(),
-					width,
-					height: width / aspectRatio,
 				})
 				setSnapshots((snapshots) => [...snapshots, snapshot])
 			}}

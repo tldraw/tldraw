@@ -235,7 +235,9 @@ function MiniShapes({
 	const { transform, width, height } = useValue(
 		'stuff',
 		() => {
-			const sharedBounds = Box.Common(compact(ids.map((id) => editor.getShapePageBounds(id)))).zeroFix()
+			const sharedBounds = Box.Common(
+				compact(ids.map((id) => editor.getShapePageBounds(id)))
+			).zeroFix()
 
 			// return transform that converts the shared bounds to 0,0,width,height
 			const transform = Mat.toCssString(Mat.Translate(-sharedBounds.x, -sharedBounds.y))
@@ -264,8 +266,8 @@ function MiniShapes({
 		>
 			<foreignObject width={width} height={height} style={{ overflow: 'visible' }}>
 				<div
-					className={isDark ? 'tl-theme__dark' : 'tl-theme__light'}
-					style={{ width, height, background: 'var(--color-background)' }}
+					className={isDark ? 'tl-theme__dark tl-container' : 'tl-theme__light tl-container'}
+					style={{ width, height, background: 'var(--color-background)', overflow: 'visible' }}
 				>
 					<div style={{ transform, position: 'absolute' }}>
 						{renderingShapes.map((shape) => (
