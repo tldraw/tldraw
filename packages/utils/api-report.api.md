@@ -142,6 +142,9 @@ export function fpsThrottle(fn: {
 // @internal (undocumented)
 export function getChangedKeys<T extends object>(obj1: T, obj2: T): (keyof T)[];
 
+// @internal
+export function getCurrentFps(): number;
+
 // @internal (undocumented)
 export function getErrorAnnotations(error: Error): ErrorAnnotations;
 
@@ -430,6 +433,9 @@ type Required_2<T, K extends keyof T> = Expand<Omit<T, K> & {
 }>;
 export { Required_2 as Required }
 
+// @internal
+export function resetAdaptiveFps(): void;
+
 // @internal (undocumented)
 export function restoreUniqueId(): void;
 
@@ -464,6 +470,9 @@ export function setInLocalStorage(key: string, value: string): void;
 
 // @internal
 export function setInSessionStorage(key: string, value: string): void;
+
+// @internal
+export function setTargetFps(fps: number): void;
 
 // @internal (undocumented)
 export function sleep(ms: number): Promise<void>;

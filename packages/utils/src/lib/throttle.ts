@@ -5,16 +5,85 @@ const isTest = () =>
 	!globalThis.__FORCE_RAF_IN_TESTS__
 
 const fpsQueue: Array<() => void> = []
-const targetFps = 60
-const targetTimePerFrame = Math.floor(1000 / targetFps) // 16ms
+
+// Adaptive FPS system
+const MIN_FPS = 30
+const MAX_FPS = 120
+const DEFAULT_FPS = 60
+const PERFORMANCE_SAMPLE_SIZE = 10
+const ADJUSTMENT_THRESHOLD = 0.8 // 80% of target time
+
+let targetFps = DEFAULT_FPS
+let targetTimePerFrame = Math.floor(1000 / targetFps) // 16ms
 let frameRaf: undefined | number
 let flushRaf: undefined | number
 let lastFlushTime = -targetTimePerFrame
 
+// Performance monitoring
+let performanceSamples: number[] = []
+let lastPerformanceCheck = 0
+let consecutiveGoodFrames = 0
+let consecutiveBadFrames = 0
+
+const updateTargetFps = () => {
+	if (performanceSamples.length < PERFORMANCE_SAMPLE_SIZE) return
+
+	const avgFrameTime = performanceSamples.reduce((a, b) => a + b, 0) / performanceSamples.length
+	const currentTargetTime = 1000 / targetFps
+
+	// If we're consistently performing well, try to increase FPS
+	if (avgFrameTime < currentTargetTime * ADJUSTMENT_THRESHOLD) {
+		consecutiveGoodFrames++
+		consecutiveBadFrames = 0
+
+		// After 3 consecutive good performance checks, try to increase FPS
+		if (consecutiveGoodFrames >= 3 && targetFps < MAX_FPS) {
+			const newFps = Math.min(MAX_FPS, targetFps + 10)
+			targetFps = newFps
+			targetTimePerFrame = Math.floor(1000 / targetFps)
+			consecutiveGoodFrames = 0
+		}
+	}
+	// If we're consistently performing poorly, decrease FPS
+	else if (avgFrameTime > currentTargetTime * 1.2) {
+		consecutiveBadFrames++
+		consecutiveGoodFrames = 0
+
+		// After 2 consecutive bad performance checks, decrease FPS
+		if (consecutiveBadFrames >= 2 && targetFps > MIN_FPS) {
+			const newFps = Math.max(MIN_FPS, targetFps - 10)
+			targetFps = newFps
+			targetTimePerFrame = Math.floor(1000 / targetFps)
+			consecutiveBadFrames = 0
+		}
+	}
+
+	// Reset samples for next measurement period
+	performanceSamples = []
+}
+
+const recordPerformance = (frameTime: number) => {
+	performanceSamples.push(frameTime)
+
+	// Check performance every second
+	const now = Date.now()
+	if (now - lastPerformanceCheck > 1000) {
+		updateTargetFps()
+		lastPerformanceCheck = now
+	}
+}
+
 const flush = () => {
+	const startTime = Date.now()
 	const queue = fpsQueue.splice(0, fpsQueue.length)
 	for (const fn of queue) {
 		fn()
+	}
+	const endTime = Date.now()
+
+	// Record performance if not in test mode
+	if (!isTest()) {
+		recordPerformance(endTime - startTime)
 	}
 }
 
@@ -116,4 +185,37 @@ export function throttleToNextFrame(fn: () => void): () => void {
 			fpsQueue.splice(index, 1)
 		}
 	}
+}
+
+/**
+ * Gets the current adaptive target FPS.
+ * @returns the current target FPS (between 30-120)
+ * @internal
+ */
+export function getCurrentFps(): number {
+	return targetFps
+}
+
+/**
+ * Resets the adaptive FPS system back to default settings.
+ * Useful for testing or manual performance adjustments.
+ * @internal
+ */
+export function resetAdaptiveFps(): void {
+	targetFps = DEFAULT_FPS
+	targetTimePerFrame = Math.floor(1000 / targetFps)
+	performanceSamples = []
+	lastPerformanceCheck = 0
+	consecutiveGoodFrames = 0
+	consecutiveBadFrames = 0
+}
+
+/**
+ * Manually sets the target FPS (will be overridden by adaptive system).
+ * @param fps - the target FPS to set (will be clamped between 30-120)
+ * @internal
+ */
+export function setTargetFps(fps: number): void {
+	targetFps = Math.max(MIN_FPS, Math.min(MAX_FPS, fps))
+	targetTimePerFrame = Math.floor(1000 / targetFps)
 }
