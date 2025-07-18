@@ -46,6 +46,12 @@ export type TLSocketServerSentEvent<R extends UnknownRecord> =
 	| {
 			type: 'pong'
 	  }
+	| {
+			type: 'room_size_warning'
+	  }
+	| {
+			type: 'room_size_limit_reached'
+	  }
 	| { type: 'data'; data: TLSocketServerSentDataEvent<R>[] }
 	| TLSocketServerSentDataEvent<R>
 

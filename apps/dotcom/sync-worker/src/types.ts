@@ -85,6 +85,7 @@ export type DBLoadResult =
 	| {
 			type: 'room_found'
 			snapshot: RoomSnapshot
+			sizeInMB?: number
 	  }
 	| {
 			type: 'room_not_found'

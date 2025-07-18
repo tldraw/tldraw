@@ -262,6 +262,14 @@ export class TLSocketRoom<R extends UnknownRecord = UnknownRecord, SessionMeta =
 	}
 
 	/**
+	 * Update room size and send notifications if thresholds are reached
+	 * @public
+	 */
+	updateRoomSizeAndNotify(sizeInMB: number): void {
+		this.room.updateRoomSizeAndNotify(sizeInMB)
+	}
+
+	/**
 	 * Return a snapshot of the document state, including clock-related bookkeeping.
 	 * You can store this and load it later on when initializing a TLSocketRoom.
 	 * You can also pass a snapshot to {@link TLSocketRoom#loadSnapshot} if you need to revert to a previous state.

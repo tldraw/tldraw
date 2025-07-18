@@ -18,6 +18,7 @@ import { globalEditor } from '../../../utils/globalEditor'
 import { multiplayerAssetStore } from '../../../utils/multiplayerAssetStore'
 import { useMaybeApp } from '../../hooks/useAppState'
 import { ReadyWrapper, useSetIsReady } from '../../hooks/useIsReady'
+import { useRoomSizeCallbacks } from '../../utils/roomSizeCallbacks'
 import { TlaEditorErrorFallback } from './editor-components/TlaEditorErrorFallback'
 import { TlaEditorLegacySharePanel } from './editor-components/TlaEditorLegacySharePanel'
 import { TlaEditorMenuPanel } from './editor-components/TlaEditorMenuPanel'
@@ -72,12 +73,14 @@ function TlaEditorInner({
 
 	const handleUiEvent = useHandleUiEvents()
 	const assets = useMemo(() => multiplayerAssetStore(), [])
+	const roomSizeCallbacks = useRoomSizeCallbacks()
 
 	const storeWithStatus = useSync({
 		uri: `${MULTIPLAYER_SERVER}/${RoomOpenModeToPath[roomOpenMode]}/${fileSlug}`,
 		roomId: fileSlug,
 		assets,
 		trackAnalyticsEvent: trackEvent,
+		...roomSizeCallbacks,
 	})
 
 	const fileSystemUiOverrides = useFileEditorOverrides({})

@@ -26,7 +26,7 @@ export {
 	type TLSocketServerSentDataEvent,
 	type TLSocketServerSentEvent,
 } from './lib/protocol'
-export { RoomSessionState, type RoomSession } from './lib/RoomSession'
+export { RoomSessionState, type ConnectedRoomSession, type RoomSession } from './lib/RoomSession'
 export type { PersistedRoomSnapshotForSupabase } from './lib/server-types'
 export type { WebSocketMinimal } from './lib/ServerSocketAdapter'
 export { TLRemoteSyncError } from './lib/TLRemoteSyncError'
@@ -43,6 +43,8 @@ export {
 } from './lib/TLSyncClient'
 export {
 	DocumentState,
+	ROOM_SIZE_MAX_LIMIT_MB,
+	ROOM_SIZE_WARNING_THRESHOLD_MB,
 	TLSyncRoom,
 	type RoomSnapshot,
 	type RoomStoreMethods,

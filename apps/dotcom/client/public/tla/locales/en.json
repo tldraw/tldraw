@@ -77,6 +77,12 @@
   "344a7f427f": {
     "translation": "Editor"
   },
+  "35cdefbde0": {
+    "translation": "Consider removing some content to keep it running smoothly."
+  },
+  "3adde9e74b": {
+    "translation": "Room Size Limit Reached"
+  },
   "3bd1b98dbd": {
     "translation": "Unable to publish the changes."
   },
@@ -142,6 +148,9 @@
   },
   "56c34c6410": {
     "translation": "Privacy policy"
+  },
+  "57177300ef": {
+    "translation": "This room is now full."
   },
   "5a95a425f7": {
     "translation": "Share"
@@ -257,6 +266,9 @@
   "8b1946f965": {
     "translation": "To continue editing please copy the room to your files."
   },
+  "8dfc69659d": {
+    "translation": "This room is getting quite large."
+  },
   "8ea211024d": {
     "translation": "Create a free account"
   },
@@ -277,6 +289,9 @@
   },
   "96165d6df5": {
     "translation": "This month"
+  },
+  "971bdc52ec": {
+    "translation": "Room Size Warning"
   },
   "9914a0ce04": {
     "translation": "Light"
@@ -423,11 +438,17 @@
   "dfdb78a4e4": {
     "translation": "App debug flags"
   },
+  "e0aa021e21": {
+    "translation": "OK"
+  },
   "e2ae80a510": {
     "translation": "Legal summary"
   },
   "e404559826": {
     "translation": "Terms of service"
+  },
+  "e565a1cdc3": {
+    "translation": "You'll need to remove some content before adding anything new."
   },
   "e78e14c5f1": {
     "translation": "Pin"

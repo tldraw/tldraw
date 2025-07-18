@@ -17,6 +17,24 @@ export const SESSION_REMOVAL_WAIT_TIME = 5000
 export const SESSION_IDLE_TIMEOUT = 20000
 
 /** @internal */
+export interface ConnectedRoomSession<R extends UnknownRecord, Meta> {
+	state: typeof RoomSessionState.Connected
+	sessionId: string
+	presenceId: string | null
+	socket: TLRoomSocket<R>
+	serializedSchema: SerializedSchema
+	lastInteractionTime: number
+	debounceTimer: ReturnType<typeof setTimeout> | null
+	outstandingDataMessages: TLSocketServerSentDataEvent<R>[]
+	meta: Meta
+	isReadonly: boolean
+	requiresLegacyRejection: boolean
+	requiresObjectDiffInConnectMsg: boolean
+	hasReceivedSizeWarning: boolean
+	hasReceivedSizeLimit: boolean
+}
+
+/** @internal */
 export type RoomSession<R extends UnknownRecord, Meta> =
 	| {
 			state: typeof RoomSessionState.AwaitingConnectMessage
@@ -40,17 +58,4 @@ export type RoomSession<R extends UnknownRecord, Meta> =
 			requiresLegacyRejection: boolean
 			requiresObjectDiffInConnectMsg: boolean
 	  }
-	| {
-			state: typeof RoomSessionState.Connected
-			sessionId: string
-			presenceId: string | null
-			socket: TLRoomSocket<R>
-			serializedSchema: SerializedSchema
-			lastInteractionTime: number
-			debounceTimer: ReturnType<typeof setTimeout> | null
-			outstandingDataMessages: TLSocketServerSentDataEvent<R>[]
-			meta: Meta
-			isReadonly: boolean
-			requiresLegacyRejection: boolean
-			requiresObjectDiffInConnectMsg: boolean
-	  }
+	| ConnectedRoomSession<R, Meta>

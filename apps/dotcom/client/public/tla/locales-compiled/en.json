@@ -159,6 +159,18 @@
       "value": "Editor"
     }
   ],
+  "35cdefbde0": [
+    {
+      "type": 0,
+      "value": "Consider removing some content to keep it running smoothly."
+    }
+  ],
+  "3adde9e74b": [
+    {
+      "type": 0,
+      "value": "Room Size Limit Reached"
+    }
+  ],
   "3bd1b98dbd": [
     {
       "type": 0,
@@ -299,6 +311,12 @@
     {
       "type": 0,
       "value": "Privacy policy"
+    }
+  ],
+  "57177300ef": [
+    {
+      "type": 0,
+      "value": "This room is now full."
     }
   ],
   "5a95a425f7": [
@@ -565,6 +583,12 @@
       "value": "To continue editing please copy the room to your files."
     }
   ],
+  "8dfc69659d": [
+    {
+      "type": 0,
+      "value": "This room is getting quite large."
+    }
+  ],
   "8ea211024d": [
     {
       "type": 0,
@@ -605,6 +629,12 @@
     {
       "type": 0,
       "value": "This month"
+    }
+  ],
+  "971bdc52ec": [
+    {
+      "type": 0,
+      "value": "Room Size Warning"
     }
   ],
   "9914a0ce04": [
@@ -941,6 +971,12 @@
       "value": "App debug flags"
     }
   ],
+  "e0aa021e21": [
+    {
+      "type": 0,
+      "value": "OK"
+    }
+  ],
   "e2ae80a510": [
     {
       "type": 0,
@@ -951,6 +987,12 @@
     {
       "type": 0,
       "value": "Terms of service"
+    }
+  ],
+  "e565a1cdc3": [
+    {
+      "type": 0,
+      "value": "You'll need to remove some content before adding anything new."
     }
   ],
   "e78e14c5f1": [

@@ -41,6 +41,8 @@ export interface UseSyncOptions {
     getUserPresence?(store: TLStore, user: TLPresenceUserInfo): null | TLPresenceStateInfo;
     // @internal (undocumented)
     onMount?(editor: Editor): void;
+    onRoomSizeLimitReached?(): void;
+    onRoomSizeWarning?(): void;
     // @internal
     roomId?: string;
     // @internal (undocumented)

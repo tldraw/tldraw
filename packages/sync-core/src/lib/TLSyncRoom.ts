@@ -25,6 +25,7 @@ import {
 } from '@tldraw/utils'
 import { createNanoEvents } from 'nanoevents'
 import {
+	ConnectedRoomSession,
 	RoomSession,
 	RoomSessionState,
 	SESSION_IDLE_TIMEOUT,
@@ -65,6 +66,12 @@ export const MAX_TOMBSTONES = 3000
 export const TOMBSTONE_PRUNE_BUFFER_SIZE = 300
 // the minimum time between data-related messages to the clients
 export const DATA_MESSAGE_DEBOUNCE_INTERVAL = 1000 / 60
+
+// Room size limits in MB
+/** @internal */
+export const ROOM_SIZE_WARNING_THRESHOLD_MB = 25
+/** @internal */
+export const ROOM_SIZE_MAX_LIMIT_MB = 30
 
 const timeSince = (time: number) => Date.now() - time
 
@@ -142,6 +149,8 @@ export interface RoomSnapshot {
 export class TLSyncRoom<R extends UnknownRecord, SessionMeta> {
 	// A table of connected clients
 	readonly sessions = new Map<string, RoomSession<R, SessionMeta>>()
+
+	private lastKnownSizeMB = 0
 
 	// eslint-disable-next-line local/prefer-class-methods
 	pruneSessions = () => {
@@ -477,6 +486,90 @@ export class TLSyncRoom<R extends UnknownRecord, SessionMeta> {
 		}
 	}
 
+	/**
+	 * Update the known room size and send notifications if thresholds are reached
+	 * @public
+	 */
+	public updateRoomSizeAndNotify(sizeInMB: number) {
+		this.lastKnownSizeMB = sizeInMB
+
+		if (sizeInMB >= ROOM_SIZE_MAX_LIMIT_MB) {
+			this.broadcastRoomSizeMessage('room_size_limit_reached')
+			return
+		}
+
+		if (sizeInMB >= ROOM_SIZE_WARNING_THRESHOLD_MB) {
+			this.broadcastRoomSizeMessage('room_size_warning')
+		}
+	}
+
+	/**
+	 * Get connected sessions that meet the specified criteria
+	 */
+	private getConnectedSessions(
+		predicate?: (session: ConnectedRoomSession<R, SessionMeta>) => boolean
+	) {
+		return Array.from(this.sessions.values()).filter(
+			(session) =>
+				session.state === RoomSessionState.Connected &&
+				session.socket.isOpen &&
+				(!predicate || predicate(session as ConnectedRoomSession<R, SessionMeta>))
+		) as Array<ConnectedRoomSession<R, SessionMeta>>
+	}
+
+	/**
+	 * Send a room size message to specified sessions
+	 */
+	private sendRoomSizeMessage(
+		sessions: Array<ConnectedRoomSession<R, SessionMeta>>,
+		messageType: 'room_size_warning' | 'room_size_limit_reached'
+	) {
+		if (sessions.length === 0) {
+			return
+		}
+
+		sessions.forEach((session) => {
+			this.sendMessage(session.sessionId, {
+				type: messageType,
+			})
+
+			// Mark the session as having received the appropriate notification
+			if (messageType === 'room_size_warning') {
+				session.hasReceivedSizeWarning = true
+			} else {
+				session.hasReceivedSizeLimit = true
+			}
+		})
+	}
+
+	roomSizePredicates = {
+		room_size_warning: (session: ConnectedRoomSession<R, SessionMeta>) =>
+			!session.hasReceivedSizeWarning && !session.hasReceivedSizeLimit,
+		room_size_limit_reached: (session: ConnectedRoomSession<R, SessionMeta>) =>
+			!session.hasReceivedSizeLimit,
+	}
+
+	/**
+	 * Send a room size message to a specific session if they haven't received it yet
+	 */
+	private sendRoomSizeMessageToSession(
+		session: ConnectedRoomSession<R, SessionMeta>,
+		messageType: 'room_size_warning' | 'room_size_limit_reached'
+	) {
+		const predicate = this.roomSizePredicates[messageType]
+		if (predicate(session)) {
+			this.sendRoomSizeMessage([session], messageType)
+		}
+	}
+
+	/**
+	 * Broadcast a room size message to all connected clients who haven't received it yet
+	 */
+	private broadcastRoomSizeMessage(messageType: 'room_size_warning' | 'room_size_limit_reached') {
+		const connectedSessions = this.getConnectedSessions(this.roomSizePredicates[messageType])
+		this.sendRoomSizeMessage(connectedSessions, messageType)
+	}
+
 	/** @internal */
 	private removeSession(sessionId: string, fatalReason?: string) {
 		const session = this.sessions.get(sessionId)
@@ -551,14 +644,12 @@ export class TLSyncRoom<R extends UnknownRecord, SessionMeta> {
 	 */
 	broadcastPatch(message: { diff: NetworkDiff<R>; sourceSessionId?: string }) {
 		const { diff, sourceSessionId } = message
-		this.sessions.forEach((session) => {
-			if (session.state !== RoomSessionState.Connected) return
-			if (sourceSessionId === session.sessionId) return
-			if (!session.socket.isOpen) {
-				this.cancelSession(session.sessionId)
-				return
-			}
 
+		const connectedSessions = this.getConnectedSessions(
+			sourceSessionId ? (session) => session.sessionId !== sourceSessionId : undefined
+		)
+
+		connectedSessions.forEach((session) => {
 			const res = this.migrateDiffForSession(session.serializedSchema, diff)
 
 			if (!res.ok) {
@@ -796,11 +887,16 @@ export class TLSyncRoom<R extends UnknownRecord, SessionMeta> {
 				isReadonly: session.isReadonly,
 				requiresLegacyRejection: session.requiresLegacyRejection,
 				requiresObjectDiffInConnectMsg: session.requiresObjectDiffInConnectMsg,
+				hasReceivedSizeWarning: false,
+				hasReceivedSizeLimit: false,
 			})
 			if (typeof msg.diff === 'object' && !session.requiresObjectDiffInConnectMsg) {
 				msg.diff = await getBase64ZippedNetworkDiffString(msg.diff)
 			}
 			this.sendMessage(session.sessionId, msg)
+
+			// Send any pending room size warnings to the newly connected client
+			this.sendPendingRoomSizeWarnings(session.sessionId)
 		}
 
 		transaction((rollback) => {
@@ -1221,6 +1317,32 @@ export class TLSyncRoom<R extends UnknownRecord, SessionMeta> {
 		}
 
 		this.handlePushRequest(null, { type: 'push', diff, clientClock: 0 })
+	}
+
+	/**
+	 * Send any pending room size warnings to a newly connected client
+	 */
+	private sendPendingRoomSizeWarnings(sessionId: string) {
+		const session = this.sessions.get(sessionId)
+		if (!session || session.state !== RoomSessionState.Connected) {
+			return
+		}
+
+		const connectedSession = session as Extract<
+			RoomSession<R, SessionMeta>,
+			{ state: typeof RoomSessionState.Connected }
+		>
+
+		// If we have a room size above limit, send the limit reached notification
+		if (this.lastKnownSizeMB >= ROOM_SIZE_MAX_LIMIT_MB) {
+			this.sendRoomSizeMessageToSession(connectedSession, 'room_size_limit_reached')
+			return // Do not send warning if limit is reached
+		}
+
+		// If we have a room size above warning threshold, send the warning
+		if (this.lastKnownSizeMB >= ROOM_SIZE_WARNING_THRESHOLD_MB) {
+			this.sendRoomSizeMessageToSession(connectedSession, 'room_size_warning')
+		}
 	}
 }
 
