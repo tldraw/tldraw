@@ -33,7 +33,7 @@ function App() {
 			const shapeUtil = editor.getShapeUtil(next.type)
 			const text = shapeUtil.getText(next)
 			if (text === undefined) return next
-			return { ...next, meta: { text } }
+			return { ...next, meta: { ...next.meta, text } }
 		})
 	}, [])
 
