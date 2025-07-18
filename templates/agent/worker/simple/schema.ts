@@ -390,7 +390,6 @@ const SimpleUnknownShape = z.object({
 export type ISimpleUnknownShape = z.infer<typeof SimpleUnknownShape>
 
 export const SimpleShape = z.union([
-	SimpleUnknownShape,
 	SimpleRectangleShape,
 	SimpleEllipseShape,
 	SimpleTriangleShape,
@@ -415,6 +414,7 @@ export const SimpleShape = z.union([
 	SimpleNoteShape,
 	SimpleCheckBoxShape,
 	SimpleHeartShape,
+	SimpleUnknownShape,
 ])
 
 export type ISimpleShape = z.infer<typeof SimpleShape>
@@ -422,12 +422,20 @@ export type ISimpleShape = z.infer<typeof SimpleShape>
 // Events
 
 export const SimpleCreateEvent = z.object({
-	type: z.enum(['create', 'update']),
+	type: z.literal('create'),
 	shapes: z.array(SimpleShape),
 	intent: z.string(),
 })
 
 export type ISimpleCreateEvent = z.infer<typeof SimpleCreateEvent>
+
+export const SimpleUpdateEvent = z.object({
+	type: z.literal('update'),
+	updates: z.array(SimpleShape),
+	intent: z.string(),
+})
+
+export type ISimpleUpdateEvent = z.infer<typeof SimpleUpdateEvent>
 
 export const SimpleMoveEvent = z.object({
 	type: z.literal('move'),
@@ -477,7 +485,8 @@ export type ISimpleScheduleReviewEvent = z.infer<typeof SimpleScheduleReviewEven
 
 export const SimpleEvent = z.union([
 	SimpleThinkEvent,
-	SimpleCreateEvent, // or update
+	SimpleCreateEvent,
+	SimpleUpdateEvent,
 	SimpleDeleteEvent,
 	SimpleMoveEvent,
 	SimpleLabelEvent,

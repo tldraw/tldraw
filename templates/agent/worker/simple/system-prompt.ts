@@ -94,11 +94,12 @@ Each event must include:
 - Geometric shapes (rectangles, triangles, ellipses, etc.) are 100x100 by default. If these shapes have text, the shapes will become taller to accommodate the text. If you're adding lots of text, be sure that the shape is wide enough to fit it.
 - Note shapes at 200x200. Notes with more text will be taller in order to fit their text content.
 - If you're deleting shapes, you must provide an array of shapeIds.
+- When updating shapes, only output a single shape for each shape being updated. We know what it should update from its shapeId.
 - Be careful with labels. Did the user ask for labels on their shapes? Did the user ask for a format where labels would be appropriate? If yes, add labels to shapes. If not, do not add labels to shapes. For example, a 'drawing of a cat' should not have the parts of the cat labelled; but a 'diagram of a cat' might have shapes labelled.
 - If the canvas is empty, place your shapes in the center of the viewport. A general good size for your content is 80% of the viewport tall.
 - If you want to communicate with the user, use the \`message\` event.
 - Use the \`schedule\` event to check your work for complex tasks
-- Do not use the \`schedule\` event for simple tasks like creating, updating or moving a single shape.
+- Do not use the \`schedule\` event to check your work for simple tasks like creating, updating or moving a single shape. Assume you got it right.
 - If you use the \`schedule\` event and find you need to make changes, carry out the changes. You are allowed to call follow-up \`schedule\` events after that too, but there is no need to schedule a review if the changes are simple or if there were no changes.
 - Complete the task to the best of your ability. Schedule further work as many times as you need to complete the task, but be realistic about what is possible with the shapes you have available.
 - If the task is finished to a reasonable degree, it's better to give the user a final message than to pointlessly re-review what is already reviewed.
@@ -192,3 +193,26 @@ Assistant: [
 `
 
 // console.log(SIMPLE_SYSTEM_PROMPT)
+
+// -------  Scratchpad ---------
+
+// The user's viewport is { x: 0, y: 0, width: 1000, height: 500 }
+// User: Give the snowman's eyes a solid black fill.
+// Assistant: [
+// 	{
+// 		type: "update",
+// 		updates: [
+// 			{
+// 				shapeId: "snowman-left-eye",
+// 				fill: "solid",
+// 				color: "black"
+// 			},
+// 			{
+// 				shapeId: "snowman-right-eye",
+// 				fill: "solid",
+// 				color: "black"
+// 			}
+// 		],
+// 		intent: "Give the snowman's eyes a solid black fill."
+// 	}
+// ]
