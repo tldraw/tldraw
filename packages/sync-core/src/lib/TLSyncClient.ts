@@ -164,6 +164,16 @@ export class TLSyncClient<R extends UnknownRecord, S extends Store<R> = Store<R>
 	 */
 	public readonly onAfterConnect?: (self: this, details: { isReadonly: boolean }) => void
 
+	/**
+	 * Called when the room size warning threshold is reached
+	 */
+	public readonly onRoomSizeWarning?: () => void
+
+	/**
+	 * Called when the room size limit is reached
+	 */
+	public readonly onRoomSizeLimitReached?: () => void
+
 	private isDebugging = false
 	private debug(...args: any[]) {
 		if (this.isDebugging) {
@@ -183,6 +193,8 @@ export class TLSyncClient<R extends UnknownRecord, S extends Store<R> = Store<R>
 		onLoad(self: TLSyncClient<R, S>): void
 		onSyncError(reason: string): void
 		onAfterConnect?(self: TLSyncClient<R, S>, details: { isReadonly: boolean }): void
+		onRoomSizeWarning?(): void
+		onRoomSizeLimitReached?(): void
 		didCancel?(): boolean
 	}) {
 		this.didCancel = config.didCancel
@@ -195,6 +207,8 @@ export class TLSyncClient<R extends UnknownRecord, S extends Store<R> = Store<R>
 		this.store = config.store
 		this.socket = config.socket
 		this.onAfterConnect = config.onAfterConnect
+		this.onRoomSizeWarning = config.onRoomSizeWarning
+		this.onRoomSizeLimitReached = config.onRoomSizeLimitReached
 
 		let didLoad = false
 
@@ -453,6 +467,12 @@ export class TLSyncClient<R extends UnknownRecord, S extends Store<R> = Store<R>
 				if (!this.isConnectedToRoom) break
 				this.incomingDiffBuffer.push(...event.data)
 				this.scheduleRebase()
+				break
+			case 'room_size_warning':
+				this.onRoomSizeWarning?.()
+				break
+			case 'room_size_limit_reached':
+				this.onRoomSizeLimitReached?.()
 				break
 			case 'incompatibility_error':
 				// legacy unrecoverable errors

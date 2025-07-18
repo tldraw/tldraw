@@ -57,6 +57,38 @@ export class ClientWebSocketAdapter implements TLPersistentClientSocket<TLRecord
 }
 
 // @internal (undocumented)
+export interface ConnectedRoomSession<R extends UnknownRecord, Meta> {
+    // (undocumented)
+    debounceTimer: null | ReturnType<typeof setTimeout>;
+    // (undocumented)
+    hasReceivedSizeLimit: boolean;
+    // (undocumented)
+    hasReceivedSizeWarning: boolean;
+    // (undocumented)
+    isReadonly: boolean;
+    // (undocumented)
+    lastInteractionTime: number;
+    // (undocumented)
+    meta: Meta;
+    // (undocumented)
+    outstandingDataMessages: TLSocketServerSentDataEvent<R>[];
+    // (undocumented)
+    presenceId: null | string;
+    // (undocumented)
+    requiresLegacyRejection: boolean;
+    // (undocumented)
+    requiresObjectDiffInConnectMsg: boolean;
+    // (undocumented)
+    serializedSchema: SerializedSchema;
+    // (undocumented)
+    sessionId: string;
+    // (undocumented)
+    socket: TLRoomSocket<R>;
+    // (undocumented)
+    state: typeof RoomSessionState.Connected;
+}
+
+// @internal (undocumented)
 export type DeleteOp = [type: typeof ValueOpType.Delete];
 
 // @internal (undocumented)
@@ -151,6 +183,12 @@ export const RecordOpType: {
 export type RecordOpType = (typeof RecordOpType)[keyof typeof RecordOpType];
 
 // @internal (undocumented)
+export const ROOM_SIZE_MAX_LIMIT_MB = 30;
+
+// @internal (undocumented)
+export const ROOM_SIZE_WARNING_THRESHOLD_MB = 25;
+
+// @internal (undocumented)
 export type RoomSession<R extends UnknownRecord, Meta> = {
     cancellationTime: number;
     isReadonly: boolean;
@@ -162,19 +200,6 @@ export type RoomSession<R extends UnknownRecord, Meta> = {
     socket: TLRoomSocket<R>;
     state: typeof RoomSessionState.AwaitingRemoval;
 } | {
-    debounceTimer: null | ReturnType<typeof setTimeout>;
-    isReadonly: boolean;
-    lastInteractionTime: number;
-    meta: Meta;
-    outstandingDataMessages: TLSocketServerSentDataEvent<R>[];
-    presenceId: null | string;
-    requiresLegacyRejection: boolean;
-    requiresObjectDiffInConnectMsg: boolean;
-    serializedSchema: SerializedSchema;
-    sessionId: string;
-    socket: TLRoomSocket<R>;
-    state: typeof RoomSessionState.Connected;
-} | {
     isReadonly: boolean;
     meta: Meta;
     presenceId: null | string;
@@ -184,7 +209,7 @@ export type RoomSession<R extends UnknownRecord, Meta> = {
     sessionStartTime: number;
     socket: TLRoomSocket<R>;
     state: typeof RoomSessionState.AwaitingConnectMessage;
-};
+} | ConnectedRoomSession<R, Meta>;
 
 // @internal (undocumented)
 export const RoomSessionState: {
@@ -387,6 +412,7 @@ export class TLSocketRoom<R extends UnknownRecord = UnknownRecord, SessionMeta =
         }) => void;
         schema?: StoreSchema<R, any>;
     };
+    updateRoomSizeAndNotify(sizeInMB: number): void;
     updateStore(updater: (store: RoomStoreMethods<R>) => Promise<void> | void): Promise<void>;
 }
 
@@ -422,6 +448,10 @@ export type TLSocketServerSentEvent<R extends UnknownRecord> = {
     type: 'incompatibility_error';
 } | {
     type: 'pong';
+} | {
+    type: 'room_size_limit_reached';
+} | {
+    type: 'room_size_warning';
 } | TLSocketServerSentDataEvent<R>;
 
 // @internal (undocumented)
@@ -443,6 +473,8 @@ export class TLSyncClient<R extends UnknownRecord, S extends Store<R> = Store<R>
             isReadonly: boolean;
         }): void;
         onLoad(self: TLSyncClient<R, S>): void;
+        onRoomSizeLimitReached?(): void;
+        onRoomSizeWarning?(): void;
         onSyncError(reason: string): void;
         presence: Signal<null | R>;
         socket: TLPersistentClientSocket<R>;
@@ -463,6 +495,8 @@ export class TLSyncClient<R extends UnknownRecord, S extends Store<R> = Store<R>
     readonly onAfterConnect?: (self: this, details: {
         isReadonly: boolean;
     }) => void;
+    readonly onRoomSizeLimitReached?: () => void;
+    readonly onRoomSizeWarning?: () => void;
     // (undocumented)
     readonly presenceState: Signal<null | R> | undefined;
     // (undocumented)
@@ -549,6 +583,11 @@ export class TLSyncRoom<R extends UnknownRecord, SessionMeta> {
     pruneSessions: () => void;
     rejectSession(sessionId: string, fatalReason?: string | TLSyncErrorCloseEventReason): void;
     // (undocumented)
+    roomSizePredicates: {
+        room_size_limit_reached: (session: ConnectedRoomSession<R, SessionMeta>) => boolean;
+        room_size_warning: (session: ConnectedRoomSession<R, SessionMeta>) => boolean;
+    };
+    // (undocumented)
     readonly schema: StoreSchema<R, any>;
     // (undocumented)
     readonly serializedSchema: SerializedSchema;
@@ -558,6 +597,8 @@ export class TLSyncRoom<R extends UnknownRecord, SessionMeta> {
     tombstoneHistoryStartsAtClock: number;
     // (undocumented)
     tombstones: AtomMap<string, number>;
+    // @public
+    updateRoomSizeAndNotify(sizeInMB: number): void;
     updateStore(updater: (store: RoomStoreMethods<R>) => Promise<void> | void): Promise<void>;
 }
 

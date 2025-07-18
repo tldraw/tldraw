@@ -54,7 +54,13 @@ export type RemoteTLStoreWithStatus = Exclude<
  * function MyApp() {
  *     const store = useSync({
  *         uri: 'wss://myapp.com/sync/my-test-room',
- *         assets: myAssetStore
+ *         assets: myAssetStore,
+ *         onRoomSizeWarning: () => {
+ *             // Show a warning toast to the user
+ *         },
+ *         onRoomSizeLimitReached: () => {
+ *             // Show a critical error toast to the user
+ *         }
  *     })
  *     return <Tldraw store={store} />
  * }
@@ -77,6 +83,8 @@ export function useSync(opts: UseSyncOptions & TLStoreSchemaOptions): RemoteTLSt
 		trackAnalyticsEvent: track,
 		userInfo,
 		getUserPresence: _getUserPresence,
+		onRoomSizeWarning,
+		onRoomSizeLimitReached,
 		...schemaOpts
 	} = opts
 
@@ -209,6 +217,8 @@ export function useSync(opts: UseSyncOptions & TLStoreSchemaOptions): RemoteTLSt
 					store.ensureStoreIsUsable()
 				})
 			},
+			onRoomSizeWarning,
+			onRoomSizeLimitReached,
 			presence,
 		})
 
@@ -218,7 +228,19 @@ export function useSync(opts: UseSyncOptions & TLStoreSchemaOptions): RemoteTLSt
 			socket.close()
 			setState(null)
 		}
-	}, [assets, onMount, userAtom, roomId, schema, setState, track, uri, getUserPresence])
+	}, [
+		assets,
+		onMount,
+		userAtom,
+		roomId,
+		schema,
+		setState,
+		track,
+		uri,
+		getUserPresence,
+		onRoomSizeWarning,
+		onRoomSizeLimitReached,
+	])
 
 	return useValue<RemoteTLStoreWithStatus>(
 		'remote synced store',
@@ -283,4 +305,14 @@ export interface UseSyncOptions {
 	 * the default implementation of this function.
 	 */
 	getUserPresence?(store: TLStore, user: TLPresenceUserInfo): TLPresenceStateInfo | null
+
+	/**
+	 * Called when the room size warning threshold is reached
+	 */
+	onRoomSizeWarning?(): void
+
+	/**
+	 * Called when the room size limit is reached
+	 */
+	onRoomSizeLimitReached?(): void
 }

@@ -32,6 +32,7 @@ import { multiplayerAssetStore } from '../../../utils/multiplayerAssetStore'
 import { useMaybeApp } from '../../hooks/useAppState'
 import { ReadyWrapper, useSetIsReady } from '../../hooks/useIsReady'
 import { useTldrawUser } from '../../hooks/useUser'
+import { useRoomSizeCallbacks } from '../../utils/roomSizeCallbacks'
 import { maybeSlurp } from '../../utils/slurping'
 import { A11yAudit } from './TlaDebug'
 import { TlaEditorWrapper } from './TlaEditorWrapper'
@@ -196,6 +197,8 @@ function TlaEditorInner({ fileSlug, deepLinks }: TlaEditorProps) {
 		return multiplayerAssetStore(() => fileId)
 	}, [fileId])
 
+	const roomSizeCallbacks = useRoomSizeCallbacks()
+
 	const store = useSync({
 		uri: useCallback(async () => {
 			const url = new URL(`${MULTIPLAYER_SERVER}/app/file/${fileSlug}`)
@@ -206,6 +209,7 @@ function TlaEditorInner({ fileSlug, deepLinks }: TlaEditorProps) {
 		}, [fileSlug, hasUser, getUserToken]),
 		assets,
 		userInfo: app?.tlUser.userPreferences,
+		...roomSizeCallbacks,
 	})
 
 	// we need to prevent calling onFileExit if the store is in an error state

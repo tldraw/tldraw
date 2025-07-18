@@ -57,6 +57,10 @@ const MAX_CONNECTIONS = 50
 
 // increment this any time you make a change to this type
 const CURRENT_DOCUMENT_INFO_VERSION = 3
+
+const MB = 1024 * 1024
+const MULTIPART_UPLOAD_BUFFER_SIZE_BYTES = MB * 10
+
 interface DocumentInfo {
 	version: number
 	slug: string
@@ -143,6 +147,10 @@ export class TLDrawDurableObject extends DurableObject {
 								})
 							},
 						})
+
+						if (result.sizeInMB !== undefined) {
+							room.updateRoomSizeAndNotify(result.sizeInMB)
+						}
 
 						this.logEvent({ type: 'room', roomId: slug, name: 'room_start' })
 						// Also associate file assets after we load the room
@@ -571,7 +579,10 @@ export class TLDrawDurableObject extends DurableObject {
 			const roomFromBucket = await this.r2.rooms.get(key)
 			if (roomFromBucket) {
 				const snapshot = await parseJsonObjectFromStream(roomFromBucket.body)
-				return { type: 'room_found', snapshot }
+
+				const sizeInMB = roomFromBucket.size / MB
+
+				return { type: 'room_found', snapshot, sizeInMB }
 			}
 			if (this._fileRecordCache?.createSource) {
 				const res = await this.handleFileCreateFromSource()
@@ -722,19 +733,19 @@ export class TLDrawDurableObject extends DurableObject {
 		)
 
 		try {
-			// 10MB buffer
-			const tenMB = 1024 * 1024 * 10
-			const buffer = new Uint8Array(tenMB)
+			const buffer = new Uint8Array(MULTIPART_UPLOAD_BUFFER_SIZE_BYTES)
 			const parts1 = []
 			const parts2 = []
 			let partNumber = 1
 			let offset = 0
+			let totalSizeInBytes = 0
 
 			for (const chunk of generateSnapshotChunks(snapshot, clock)) {
+				totalSizeInBytes += chunk.byteLength
 				// Check if adding this chunk would overflow the buffer
-				if (offset + chunk.byteLength > tenMB) {
+				if (offset + chunk.byteLength > MULTIPART_UPLOAD_BUFFER_SIZE_BYTES) {
 					// We need to split this chunk
-					const spaceLeft = tenMB - offset
+					const spaceLeft = MULTIPART_UPLOAD_BUFFER_SIZE_BYTES - offset
 					const firstPart = chunk.subarray(0, spaceLeft)
 					const secondPart = chunk.subarray(spaceLeft)
 
@@ -769,6 +780,11 @@ export class TLDrawDurableObject extends DurableObject {
 			}
 
 			await Promise.all([out1.complete(parts1), out2.complete(parts2)])
+
+			if (this._room) {
+				const room = await this.getRoom()
+				room.updateRoomSizeAndNotify(totalSizeInBytes / MB)
+			}
 		} catch (e) {
 			await Promise.all([out1.abort(), out2.abort()])
 			throw e
