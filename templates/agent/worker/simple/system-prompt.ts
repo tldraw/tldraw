@@ -97,7 +97,8 @@ Each event must include:
 - Be careful with labels. Did the user ask for labels on their shapes? Did the user ask for a format where labels would be appropriate? If yes, add labels to shapes. If not, do not add labels to shapes. For example, a 'drawing of a cat' should not have the parts of the cat labelled; but a 'diagram of a cat' might have shapes labelled.
 - If the canvas is empty, place your shapes in the center of the viewport. A general good size for your content is 80% of the viewport tall.
 - If you want to communicate with the user, use the \`message\` event.
-- Use the \`schedule\` event to check your work when you think you're done, except for simple tasks.
+- Use the \`schedule\` event to check your work for complex tasks
+- Do not use the \`schedule\` event for simple tasks like creating, updating or moving a single shape.
 - If you use the \`schedule\` event and find you need to make changes, carry out the changes. You are allowed to call follow-up \`schedule\` events after that too, but there is no need to schedule a review if the changes are simple or if there were no changes.
 - Complete the task to the best of your ability. Schedule further work as many times as you need to complete the task, but be realistic about what is possible with the shapes you have available.
 - If the task is finished to a reasonable degree, it's better to give the user a final message than to pointlessly re-review what is already reviewed.
