@@ -14,6 +14,7 @@ import {
 	VecLike,
 	drawShapeMigrations,
 	drawShapeProps,
+	isDefaultColor,
 	last,
 	lerp,
 	rng,
@@ -271,6 +272,10 @@ function DrawShapeSvg({ shape, zoomOverride }: { shape: TLDrawShape; zoomOverrid
 
 	const options = getFreehandOptions(shape.props, sw, showAsComplete, forceSolid)
 
+	const { solid: solidColor } = isDefaultColor(shape.props.color)
+		? theme[shape.props.color]
+		: { solid: shape.props.color }
+
 	if (!forceSolid && shape.props.dash === 'draw') {
 		return (
 			<>
@@ -286,11 +291,7 @@ function DrawShapeSvg({ shape, zoomOverride }: { shape: TLDrawShape; zoomOverrid
 						scale={shape.props.scale}
 					/>
 				) : null}
-				<path
-					d={svgInk(allPointsFromSegments, options)}
-					strokeLinecap="round"
-					fill={theme[shape.props.color].solid}
-				/>
+				<path d={svgInk(allPointsFromSegments, options)} strokeLinecap="round" fill={solidColor} />
 			</>
 		)
 	}
@@ -313,8 +314,8 @@ function DrawShapeSvg({ shape, zoomOverride }: { shape: TLDrawShape; zoomOverrid
 			<path
 				d={solidStrokePath}
 				strokeLinecap="round"
-				fill={isDot ? theme[shape.props.color].solid : 'none'}
-				stroke={theme[shape.props.color].solid}
+				fill={isDot ? solidColor : 'none'}
+				stroke={solidColor}
 				strokeWidth={sw}
 				strokeDasharray={isDot ? 'none' : getDrawShapeStrokeDashArray(shape, sw, dotAdjustment)}
 				strokeDashoffset="0"

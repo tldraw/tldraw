@@ -1,5 +1,5 @@
 import { useLayoutEffect, useRef } from 'react'
-import { TLDrawShape, TLGeoShape, getDefaultColorTheme, useEditor } from 'tldraw'
+import { TLDrawShape, TLGeoShape, getDefaultColorTheme, isDefaultColor, useEditor } from 'tldraw'
 
 export function CustomRenderer() {
 	const editor = useEditor()
@@ -70,17 +70,23 @@ export function CustomRenderer() {
 							}
 						}
 					}
-					ctx.strokeStyle = theme[shape.props.color].solid
+					const { solid, semi } = isDefaultColor(shape.props.color)
+						? theme[shape.props.color]
+						: { solid: shape.props.color, semi: shape.props.color }
+					ctx.strokeStyle = solid
 					ctx.lineWidth = 4
 					ctx.stroke()
 					if (shape.props.fill !== 'none' && shape.props.isClosed) {
-						ctx.fillStyle = theme[shape.props.color].semi
+						ctx.fillStyle = semi
 						ctx.fill()
 					}
 				} else if (editor.isShapeOfType<TLGeoShape>(shape, 'geo')) {
 					// Draw a geo shape
 					const bounds = editor.getShapeGeometry(shape).bounds
-					ctx.strokeStyle = theme[shape.props.color].solid
+					const { solid } = isDefaultColor(shape.props.color)
+						? theme[shape.props.color]
+						: { solid: shape.props.color }
+					ctx.strokeStyle = solid
 					ctx.lineWidth = 2
 					ctx.strokeRect(bounds.minX, bounds.minY, bounds.width, bounds.height)
 				} else {
