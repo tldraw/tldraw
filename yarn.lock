@@ -9424,7 +9424,7 @@ __metadata:
     "@types/lodash.isequalwith": "npm:^4.4.9"
     "@types/lodash.throttle": "npm:^4.1.9"
     "@types/lodash.uniq": "npm:^4.5.9"
-    fractional-indexing-jittered: "npm:^0.9.1"
+    fractional-indexing-jittered: "npm:^1.0.0"
     jest-environment-jsdom: "npm:^29.7.0"
     lazyrepo: "npm:0.0.0-alpha.27"
     lodash.isequal: "npm:^4.5.0"
@@ -16466,10 +16466,10 @@ __metadata:
   languageName: node
   linkType: hard
 
-"fractional-indexing-jittered@npm:^0.9.1":
-  version: 0.9.1
-  resolution: "fractional-indexing-jittered@npm:0.9.1"
-  checksum: 10/2908f1109ba52e7dfc96cf212c1fb95aebfe3a0dabd4e1b7663fe8d855f74d4554e3ebf600f47af28acdbc307bb149eaf78b975208a44a0a85a5c993471b32a4
+"fractional-indexing-jittered@npm:^1.0.0":
+  version: 1.0.0
+  resolution: "fractional-indexing-jittered@npm:1.0.0"
+  checksum: 10/75211d77422ef9040a93c5bb1254521997c1cd177074add72d50f461a2eae886043149a58384706dff1d61813050edc97a5f5ac919703bb77235e0013b566d79
   languageName: node
   linkType: hard
 
