@@ -256,7 +256,7 @@ function MiniShapes({
 			nearestMultiple(Math.floor(editor.getInstanceState().devicePixelRatio * 100) / 100),
 		[editor]
 	)
-	if (!Number.isFinite(width) || !Number.isFinite(height)) return null
+	if (!Number.isFinite(width) || !Number.isFinite(height) || ids.length === 0) return null
 
 	return (
 		<svg
