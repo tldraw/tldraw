@@ -140,7 +140,7 @@
 		"@sentry/cli": "^2.41.1",
 		"@yarnpkg/types": "^4.0.0",
 		"cross-env": "^7.0.3",
-		"esbuild": "^0.25.0",
+		"esbuild": "^0.25.6",
 		"mime": "^4.0.6",
 		"purgecss": "^5.0.0",
 		"sst": "^3.10.13",
