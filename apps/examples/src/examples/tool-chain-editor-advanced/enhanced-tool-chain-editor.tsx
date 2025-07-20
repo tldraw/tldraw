@@ -439,25 +439,41 @@ export default function EnhancedToolChainEditor({
 		if (tool.config.apiEndpoint) {
 			// API tool
 			try {
+				console.log(`🔧 Executing tool ${tool.id} with input:`, input)
+
+				// Prepare request body
+				const requestBody = {
+					...(tool.config.parameters || {}),
+					...input,
+				}
+
 				const response = await fetch(tool.config.apiEndpoint, {
 					method: 'POST',
 					headers: {
 						'Content-Type': 'application/json',
 						...tool.config.headers,
 					},
-					body: JSON.stringify({
-						...tool.config.parameters,
-						...input,
-					}),
+					body: JSON.stringify(requestBody),
 				})
 
 				if (!response.ok) {
-					throw new Error(`API call failed: ${response.statusText}`)
+					const errorText = await response.text()
+					console.error(`API call failed for ${tool.id}:`, response.status, errorText)
+					throw new Error(`API call failed: ${response.statusText} (${response.status})`)
 				}
 
-				return await response.json()
+				const result = await response.json()
+				console.log(`✅ Tool ${tool.id} executed successfully:`, result)
+
+				// Handle backend response format: {success: true, result: {...}}
+				if (result.success && result.result) {
+					return result.result
+				}
+
+				// If it's already in the expected format, return as is
+				return result
 			} catch (error) {
-				console.error(`Error executing tool ${tool.id}:`, error)
+				console.error(`❌ Error executing tool ${tool.id}:`, error)
 				return { error: error instanceof Error ? error.message : 'Unknown error' }
 			}
 		} else {

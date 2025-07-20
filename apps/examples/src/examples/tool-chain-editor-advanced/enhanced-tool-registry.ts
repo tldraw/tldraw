@@ -347,7 +347,7 @@ export const aiMlToolSet: ToolSet = {
 			type: 'agent',
 			description: 'AI-powered content generation using DeepSeek API',
 			config: {
-				apiEndpoint: 'https://api.deepseek.com/v1/chat/completions',
+				apiEndpoint: '/api/tools/deepseek-agent',
 				apiKey: 'sk-26d1dcdacd4148b0a27b724af6f8daf7',
 				parameters: {
 					model: 'deepseek-chat',

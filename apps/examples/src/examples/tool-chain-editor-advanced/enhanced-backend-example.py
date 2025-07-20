@@ -746,29 +746,82 @@ def deepseek_agent():
                 "error": "No data provided"
             }), 400
         
-        question = data.get('question', '')
+        # Accept both 'question' and 'text' fields for flexibility
+        question = data.get('question', '') or data.get('text', '')
         if not question:
             return jsonify({
                 "success": False,
-                "error": "Question is required"
+                "error": "Question or text is required"
             }), 400
         
-        # Simulate DeepSeek API call
-        # In a real implementation, you would make an actual API call to DeepSeek
-        import time
-        time.sleep(1)  # Simulate API delay
+        logger.info(f"DeepSeek agent received question: {question}")
         
-        # For demo purposes, return a structured response
-        response = f"DeepSeek AI processed: {question}"
+        # Real DeepSeek API call using urllib
+        import urllib.request
+        import urllib.parse
+        import urllib.error
+        import json
         
-        return jsonify({
-            "success": True,
-            "result": {
-                "response": response,
-                "model": "deepseek-chat",
-                "timestamp": datetime.now().isoformat()
+        api_key = "sk-26d1dcdacd4148b0a27b724af6f8daf7"
+        api_url = "https://api.deepseek.com/v1/chat/completions"
+        
+        payload = {
+            "model": "deepseek-chat",
+            "messages": [
+                {
+                    "role": "user",
+                    "content": question
+                }
+            ],
+            "max_tokens": 256,
+            "temperature": 0.7
+        }
+        
+        logger.info(f"Calling DeepSeek API with payload: {payload}")
+        
+        # Prepare the request
+        data = json.dumps(payload).encode('utf-8')
+        req = urllib.request.Request(api_url, data=data)
+        req.add_header('Content-Type', 'application/json')
+        req.add_header('Authorization', f'Bearer {api_key}')
+        
+        try:
+            with urllib.request.urlopen(req, timeout=30) as response:
+                response_data = response.read()
+                deepseek_response = json.loads(response_data.decode('utf-8'))
+                logger.info(f"DeepSeek API response: {deepseek_response}")
+                
+                # Extract the response content
+                if deepseek_response.get('choices') and len(deepseek_response['choices']) > 0:
+                    ai_response = deepseek_response['choices'][0]['message']['content']
+                else:
+                    ai_response = "No response from DeepSeek API"
+                
+                result = {
+                    "success": True,
+                    "result": {
+                        "response": ai_response,
+                        "model": deepseek_response.get('model', 'deepseek-chat'),
+                        "usage": deepseek_response.get('usage', {}),
+                        "timestamp": datetime.now().isoformat()
+                    }
+                }
+        except urllib.error.HTTPError as e:
+            error_data = e.read().decode('utf-8')
+            logger.error(f"DeepSeek API error: {e.code} - {error_data}")
+            result = {
+                "success": False,
+                "error": f"DeepSeek API error: {e.code} - {error_data}"
             }
-        })
+        except Exception as e:
+            logger.error(f"Network error: {e}")
+            result = {
+                "success": False,
+                "error": f"Network error: {str(e)}"
+            }
+        
+        logger.info(f"DeepSeek agent final response: {result}")
+        return jsonify(result)
     except Exception as e:
         logger.error(f"Error in DeepSeek agent: {e}")
         return jsonify({
