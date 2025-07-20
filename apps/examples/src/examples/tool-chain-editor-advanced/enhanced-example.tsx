@@ -1,4 +1,5 @@
 import { useEffect, useState } from 'react'
+import ChatbotToolchainParser from './chatbot-toolchain-parser'
 import EnhancedToolChainEditor from './enhanced-tool-chain-editor'
 import { EnhancedToolRegistry, defaultToolSets } from './enhanced-tool-registry'
 
@@ -12,6 +13,9 @@ export default function EnhancedToolChainEditorExample() {
 	const [statistics, setStatistics] = useState<any>(null)
 	const [showToolSets, setShowToolSets] = useState(false)
 	const [showWorkflowInfo, setShowWorkflowInfo] = useState(false)
+	const [showChatbot, setShowChatbot] = useState(false)
+	const [generatedNodes, setGeneratedNodes] = useState<any[]>([])
+	const [generatedEdges, setGeneratedEdges] = useState<any[]>([])
 
 	// Initialize tool registry
 	const [toolRegistry] = useState(() => new EnhancedToolRegistry(toolSets))
@@ -20,6 +24,9 @@ export default function EnhancedToolChainEditorExample() {
 	useEffect(() => {
 		setStatistics(toolRegistry.getStatistics())
 	}, [toolRegistry])
+
+	// Keep generated nodes and edges permanently
+	// Removed auto-clear logic - toolchains will now persist
 
 	// Handle workflow change
 	const handleWorkflowChange = (newWorkflow: any) => {
@@ -104,6 +111,32 @@ export default function EnhancedToolChainEditorExample() {
 		} finally {
 			setLoading(false)
 		}
+	}
+
+	// Handle toolchain generation from chatbot
+	const handleGenerateToolchain = (nodes: any[], edges: any[]) => {
+		console.log('🔄 Received generated toolchain:', { nodes, edges })
+
+		// Clear any existing workflow first
+		setWorkflow(null)
+
+		// Set the generated nodes and edges
+		setGeneratedNodes(nodes)
+		setGeneratedEdges(edges)
+
+		// Update the workflow with the generated toolchain
+		const newWorkflow = { nodes, edges }
+		setWorkflow(newWorkflow)
+		handleWorkflowChange(newWorkflow)
+		console.log('✅ Toolchain applied to workflow:', newWorkflow)
+	}
+
+	// Reset workflow function
+	const resetWorkflow = () => {
+		setWorkflow(null)
+		setGeneratedNodes([])
+		setGeneratedEdges([])
+		console.log('🔄 Workflow reset')
 	}
 
 	return (
@@ -199,6 +232,22 @@ export default function EnhancedToolChainEditorExample() {
 					{/* Action Buttons */}
 					<div style={{ display: 'flex', gap: 8 }}>
 						<button
+							onClick={() => setShowChatbot(true)}
+							style={{
+								padding: '6px 12px',
+								background: '#6f42c1',
+								color: 'white',
+								border: 'none',
+								borderRadius: 4,
+								cursor: 'pointer',
+								fontSize: 12,
+								fontWeight: '500',
+							}}
+						>
+							🤖 AI Generator
+						</button>
+
+						<button
 							onClick={() => setShowToolSets(!showToolSets)}
 							style={{
 								padding: '6px 12px',
@@ -284,6 +333,24 @@ export default function EnhancedToolChainEditorExample() {
 							}}
 						>
 							{loading ? '⏳' : '▶️'}
+						</button>
+
+						<button
+							onClick={resetWorkflow}
+							disabled={!workflow}
+							title="Reset Workflow"
+							style={{
+								padding: '6px 12px',
+								background: !workflow ? '#ccc' : '#dc3545',
+								color: 'white',
+								border: 'none',
+								borderRadius: 4,
+								cursor: !workflow ? 'not-allowed' : 'pointer',
+								fontSize: 12,
+								fontWeight: '500',
+							}}
+						>
+							🔄
 						</button>
 					</div>
 				</div>
@@ -374,8 +441,18 @@ export default function EnhancedToolChainEditorExample() {
 					toolSets={toolSets}
 					onWorkflowChange={handleWorkflowChange}
 					onToolSetLoad={handleToolSetLoad}
+					generatedNodes={generatedNodes}
+					generatedEdges={generatedEdges}
 				/>
 			</div>
+
+			{/* Chatbot Toolchain Parser */}
+			{showChatbot && (
+				<ChatbotToolchainParser
+					onGenerateToolchain={handleGenerateToolchain}
+					onClose={() => setShowChatbot(false)}
+				/>
+			)}
 		</div>
 	)
 }

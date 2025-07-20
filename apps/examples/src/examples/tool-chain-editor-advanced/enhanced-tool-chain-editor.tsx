@@ -266,12 +266,16 @@ interface EnhancedToolChainEditorProps {
 	toolSets?: any[]
 	onWorkflowChange?: (workflow: { nodes: Node[]; edges: Edge[] }) => void
 	onToolSetLoad?: (toolSetId: string) => void
+	generatedNodes?: Node[]
+	generatedEdges?: Edge[]
 }
 
 export default function EnhancedToolChainEditor({
 	toolSets = defaultToolSets,
 	onWorkflowChange,
 	onToolSetLoad,
+	generatedNodes,
+	generatedEdges,
 }: EnhancedToolChainEditorProps) {
 	// Initialize tool registry
 	const [toolRegistry] = useState(() => new EnhancedToolRegistry(toolSets))
@@ -513,6 +517,55 @@ export default function EnhancedToolChainEditor({
 	const handleSearch = (query: string) => {
 		console.log('Search query:', query)
 	}
+
+	// Update nodes with proper callbacks
+	const updateNodesWithCallbacks = (nodes: Node[]) => {
+		return nodes.map((node) => {
+			// If the node has a tool with only id and name, get the full tool definition
+			let updatedData = { ...node.data }
+			if (node.data.tool && node.data.tool.id && !node.data.tool.type) {
+				const fullTool = toolRegistry.getTool(node.data.tool.id)
+				if (fullTool) {
+					updatedData.tool = fullTool
+				}
+			}
+
+			return {
+				...node,
+				data: {
+					...updatedData,
+					onChange: (val: string) => handleInputChange(node.id, val),
+					onSubmit: () => handleSubmit(node.id),
+					onDeleteNode: handleDeleteNode,
+				},
+			}
+		})
+	}
+
+	// Handle generated nodes and edges - apply when they change from empty to non-empty
+	const [hasAppliedGenerated, setHasAppliedGenerated] = useState(false)
+
+	useEffect(() => {
+		if (
+			generatedNodes &&
+			generatedEdges &&
+			generatedNodes.length > 0 &&
+			generatedEdges.length > 0 &&
+			!hasAppliedGenerated
+		) {
+			console.log('🎯 Applying generated nodes and edges:', { generatedNodes, generatedEdges })
+			const updatedNodes = updateNodesWithCallbacks(generatedNodes)
+			setNodes(updatedNodes)
+			setEdges(generatedEdges)
+			setHasAppliedGenerated(true)
+
+			// Update workflow
+			onWorkflowChange?.({ nodes: updatedNodes, edges: generatedEdges })
+		} else if ((!generatedNodes || generatedNodes.length === 0) && hasAppliedGenerated) {
+			// Reset the flag when generated nodes are cleared
+			setHasAppliedGenerated(false)
+		}
+	}, [generatedNodes, generatedEdges, hasAppliedGenerated])
 
 	// Update node event handlers
 	useEffect(() => {

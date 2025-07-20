@@ -61,6 +61,13 @@ export default defineConfig(({ mode }) => ({
 	server: {
 		port: 5420,
 		allowedHosts: true,
+		proxy: {
+			'/api': {
+				target: 'http://localhost:5000',
+				changeOrigin: true,
+				secure: false,
+			},
+		},
 	},
 	clearScreen: false,
 	optimizeDeps: {

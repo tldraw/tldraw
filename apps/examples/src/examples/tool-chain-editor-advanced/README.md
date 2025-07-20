@@ -34,6 +34,13 @@ Tool Chain Editor Advanced is an enhanced version of the original Tool Chain Edi
 - **Visual feedback**: Different colors for local and API tools
 - **Loading state**: Real-time processing status display
 
+### AI-Powered Tool Chain Generation
+- **Natural language input**: Describe workflows in plain English
+- **Automatic tool chain generation**: AI analyzes input and creates tool chains
+- **Smart node positioning**: Automatically positions nodes and creates connections
+- **Quick suggestions**: Pre-built examples for common workflows
+- **Real-time generation**: Instant tool chain creation with visual feedback
+
 ## File Structure
 
 ```
@@ -45,6 +52,8 @@ tool-chain-editor-advanced/
 ├── enhanced-tool-chain-editor.tsx      # Main editor component
 ├── enhanced-backend-example.py         # Backend API example
 ├── enhanced-example.tsx                # Complete usage example
+├── chatbot-toolchain-parser.tsx        # AI-powered tool chain generator
+├── chatbot-demo.tsx                    # Demo component for chatbot features
 ```
 
 ## Quick Start
@@ -69,6 +78,36 @@ python enhanced-backend-example.py
 The backend service will start at `http://localhost:5000`.
 
 ---
+
+## Using the AI Tool Chain Generator
+
+### Quick Start with AI Generation
+
+1. **Click the "🤖 AI Generator" button** in the toolbar
+2. **Describe your workflow** in natural language (e.g., "Analyze text sentiment and extract keywords")
+3. **Press Ctrl+Enter** or click "🚀 Generate Tool Chain"
+4. **View the generated tool chain** with connected nodes and edges
+
+### Example Inputs
+
+| Input | Generated Workflow |
+|-------|-------------------|
+| "Analyze text sentiment and extract keywords" | Input → Text Analyzer → Sentiment Analyzer → Output |
+| "Translate text from English to Chinese" | Input → Text Translator → Output |
+| "Format JSON data and transform it" | Input → JSON Formatter → Data Transformer → Output |
+| "Process text through AI agent for analysis" | Input → DeepSeek AI Agent → Output |
+
+### Features
+
+- **Natural Language Processing**: Describe workflows in plain English
+- **Smart Tool Selection**: AI automatically selects appropriate tools
+- **Automatic Connections**: Creates logical connections between tools
+- **Quick Suggestions**: Pre-built examples for common workflows
+- **Real-time Generation**: Instant visual feedback
+
+---
+
+## How to Define a New ToolSet and Tools
 
 ## How to Define a New ToolSet and Tools
 

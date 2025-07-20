@@ -735,6 +735,280 @@ def file_processor():
             "error": str(e)
         }), 500
 
+@app.route('/api/tools/deepseek-agent', methods=['POST'])
+def deepseek_agent():
+    """DeepSeek AI Agent API"""
+    try:
+        data = request.get_json()
+        if not data:
+            return jsonify({
+                "success": False,
+                "error": "No data provided"
+            }), 400
+        
+        question = data.get('question', '')
+        if not question:
+            return jsonify({
+                "success": False,
+                "error": "Question is required"
+            }), 400
+        
+        # Simulate DeepSeek API call
+        # In a real implementation, you would make an actual API call to DeepSeek
+        import time
+        time.sleep(1)  # Simulate API delay
+        
+        # For demo purposes, return a structured response
+        response = f"DeepSeek AI processed: {question}"
+        
+        return jsonify({
+            "success": True,
+            "result": {
+                "response": response,
+                "model": "deepseek-chat",
+                "timestamp": datetime.now().isoformat()
+            }
+        })
+    except Exception as e:
+        logger.error(f"Error in DeepSeek agent: {e}")
+        return jsonify({
+            "success": False,
+            "error": str(e)
+        }), 500
+
+@app.route('/api/parse-toolchain', methods=['POST'])
+def parse_toolchain():
+    """Parse chatbot input to generate tool chain"""
+    try:
+        data = request.get_json()
+        if not data:
+            return jsonify({
+                "success": False,
+                "error": "No data provided"
+            }), 400
+        
+        user_input = data.get('input', '')
+        if not user_input:
+            return jsonify({
+                "success": False,
+                "error": "Input text is required"
+            }), 400
+        
+        # Enhanced prompt for tool chain parsing
+        enhanced_prompt = f"""
+You are an AI assistant that analyzes user input and generates tool chain configurations for a visual workflow editor.
+
+Available toolsets and tools:
+{json.dumps(TOOLSETS_REGISTRY, indent=2, default=str)}
+
+User Input: "{user_input}"
+
+Please analyze the user's request and generate a tool chain configuration that includes:
+1. The sequence of tools needed
+2. The connections between tools
+3. Any specific parameters or configurations
+
+Return your response as a JSON object with the following structure:
+{{
+    "nodes": [
+        {{
+            "id": "node_id",
+            "type": "inputNode|agentNode|processNode|outputNode",
+            "position": {{"x": 100, "y": 100}},
+            "data": {{
+                "tool": {{"id": "tool_id", "name": "Tool Name"}},
+                "value": "input_value_if_applicable"
+            }}
+        }}
+    ],
+    "edges": [
+        {{
+            "id": "edge_id",
+            "source": "source_node_id",
+            "target": "target_node_id"
+        }}
+    ],
+    "description": "Brief description of the generated workflow"
+}}
+
+Focus on creating logical workflows that process data through multiple steps. Use appropriate tools from the available toolsets.
+"""
+        
+        # Simulate AI processing with enhanced prompt
+        import time
+        time.sleep(2)  # Simulate processing time
+        
+        # Generate a sample tool chain based on common patterns
+        tool_chain = generate_sample_toolchain(user_input)
+        
+        return jsonify({
+            "success": True,
+            "result": {
+                "toolchain": tool_chain,
+                "prompt_used": enhanced_prompt,
+                "timestamp": datetime.now().isoformat()
+            }
+        })
+    except Exception as e:
+        logger.error(f"Error parsing toolchain: {e}")
+        return jsonify({
+            "success": False,
+            "error": str(e)
+        }), 500
+
+def generate_sample_toolchain(user_input: str) -> dict:
+    """Generate a sample tool chain based on user input"""
+    input_lower = user_input.lower()
+    
+    # Common patterns for tool chain generation
+    if any(word in input_lower for word in ['analyze', 'text', 'sentiment']):
+        return {
+            "nodes": [
+                {
+                    "id": "input-1",
+                    "type": "inputNode",
+                    "position": {"x": 100, "y": 100},
+                    "data": {
+                        "value": "Enter text to analyze..."
+                    }
+                },
+                {
+                    "id": "text-analyzer-1",
+                    "type": "processNode",
+                    "position": {"x": 300, "y": 100},
+                    "data": {
+                        "tool": {"id": "text-analyzer", "name": "Text Analyzer"}
+                    }
+                },
+                {
+                    "id": "sentiment-1",
+                    "type": "processNode",
+                    "position": {"x": 500, "y": 100},
+                    "data": {
+                        "tool": {"id": "sentiment-analyzer", "name": "Sentiment Analyzer"}
+                    }
+                },
+                {
+                    "id": "output-1",
+                    "type": "outputNode",
+                    "position": {"x": 700, "y": 100},
+                    "data": {}
+                }
+            ],
+            "edges": [
+                {"id": "e1", "source": "input-1", "target": "text-analyzer-1"},
+                {"id": "e2", "source": "text-analyzer-1", "target": "sentiment-1"},
+                {"id": "e3", "source": "sentiment-1", "target": "output-1"}
+            ],
+            "description": "Text analysis and sentiment detection workflow"
+        }
+    elif any(word in input_lower for word in ['translate', 'language']):
+        return {
+            "nodes": [
+                {
+                    "id": "input-1",
+                    "type": "inputNode",
+                    "position": {"x": 100, "y": 100},
+                    "data": {
+                        "value": "Enter text to translate..."
+                    }
+                },
+                {
+                    "id": "translator-1",
+                    "type": "agentNode",
+                    "position": {"x": 300, "y": 100},
+                    "data": {
+                        "tool": {"id": "text-translator", "name": "Text Translator"}
+                    }
+                },
+                {
+                    "id": "output-1",
+                    "type": "outputNode",
+                    "position": {"x": 500, "y": 100},
+                    "data": {}
+                }
+            ],
+            "edges": [
+                {"id": "e1", "source": "input-1", "target": "translator-1"},
+                {"id": "e2", "source": "translator-1", "target": "output-1"}
+            ],
+            "description": "Text translation workflow"
+        }
+    elif any(word in input_lower for word in ['json', 'format', 'data']):
+        return {
+            "nodes": [
+                {
+                    "id": "input-1",
+                    "type": "inputNode",
+                    "position": {"x": 100, "y": 100},
+                    "data": {
+                        "value": "Enter JSON data..."
+                    }
+                },
+                {
+                    "id": "formatter-1",
+                    "type": "processNode",
+                    "position": {"x": 300, "y": 100},
+                    "data": {
+                        "tool": {"id": "json-formatter", "name": "JSON Formatter"}
+                    }
+                },
+                {
+                    "id": "transformer-1",
+                    "type": "processNode",
+                    "position": {"x": 500, "y": 100},
+                    "data": {
+                        "tool": {"id": "data-transformer", "name": "Data Transformer"}
+                    }
+                },
+                {
+                    "id": "output-1",
+                    "type": "outputNode",
+                    "position": {"x": 700, "y": 100},
+                    "data": {}
+                }
+            ],
+            "edges": [
+                {"id": "e1", "source": "input-1", "target": "formatter-1"},
+                {"id": "e2", "source": "formatter-1", "target": "transformer-1"},
+                {"id": "e3", "source": "transformer-1", "target": "output-1"}
+            ],
+            "description": "JSON formatting and data transformation workflow"
+        }
+    else:
+        # Default workflow with AI agent
+        return {
+            "nodes": [
+                {
+                    "id": "input-1",
+                    "type": "inputNode",
+                    "position": {"x": 100, "y": 100},
+                    "data": {
+                        "value": "Enter your question..."
+                    }
+                },
+                {
+                    "id": "ai-agent-1",
+                    "type": "agentNode",
+                    "position": {"x": 300, "y": 100},
+                    "data": {
+                        "tool": {"id": "deepseek-agent", "name": "DeepSeek AI Agent"}
+                    }
+                },
+                {
+                    "id": "output-1",
+                    "type": "outputNode",
+                    "position": {"x": 500, "y": 100},
+                    "data": {}
+                }
+            ],
+            "edges": [
+                {"id": "e1", "source": "input-1", "target": "ai-agent-1"},
+                {"id": "e2", "source": "ai-agent-1", "target": "output-1"}
+            ],
+            "description": "AI-powered workflow with DeepSeek agent"
+        }
+
 # Workflow management API
 @app.route('/api/workflows', methods=['POST'])
 def save_workflow():
@@ -764,6 +1038,22 @@ def save_workflow():
             "success": False,
             "error": str(e)
         }), 500
+
+@app.route('/', methods=['GET'])
+def root():
+    """Root endpoint"""
+    return jsonify({
+        "message": "Enhanced Tool Chain Editor Backend",
+        "version": "1.0.0",
+        "status": "running",
+        "timestamp": datetime.now().isoformat(),
+        "available_endpoints": [
+            "/api/health",
+            "/api/toolsets",
+            "/api/parse-toolchain",
+            "/api/workflows"
+        ]
+    })
 
 @app.route('/api/health', methods=['GET'])
 def health_check():
@@ -808,6 +1098,8 @@ if __name__ == '__main__':
     print("  - POST /api/tools/sentiment-analyzer - Analyze sentiment")
     print("  - POST /api/tools/data-transformer - Transform data")
     print("  - POST /api/tools/file-processor - Process files")
+    print("  - POST /api/tools/deepseek-agent - DeepSeek AI Agent")
+    print("  - POST /api/parse-toolchain - Parse chatbot input to tool chain")
     print("  - POST /api/workflows - Save workflow")
     print("  - GET  /api/health - Health check")
     
