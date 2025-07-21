@@ -60,7 +60,10 @@
 		],
 		"moduleNameMapper": {
 			"^~(.*)": "<rootDir>/src/$1"
-		}
+		},
+		"transformIgnorePatterns": [
+			"node_modules/(?!(ansi-styles|string-width|strip-ansi|ansi-regex|get-east-asian-width)/)"
+		]
 	},
 	"// because this is bundled, all dependencies should be dev dependencies.": null
 }
