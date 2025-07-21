@@ -238,6 +238,21 @@ export abstract class StateNode implements Partial<TLEventHandlers> {
 		this._currentToolIdMask.set(id)
 	}
 
+	/**
+	 * Add a child node to this state node.
+	 *
+	 * @public
+	 */
+	addChild(childConstructor: TLStateNodeConstructor): this {
+		if (this.type === 'leaf') {
+			throw new Error('StateNode.addChild: cannot add child to a leaf node')
+		}
+
+		const child = new childConstructor(this.editor, this)
+		this.children![child.id] = child
+		return this
+	}
+
 	onWheel?(info: TLWheelEventInfo): void
 	onPointerDown?(info: TLPointerEventInfo): void
 	onPointerMove?(info: TLPointerEventInfo): void
