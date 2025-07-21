@@ -3,8 +3,9 @@
 This directory contains a comprehensive FPS performance testing suite for tldraw, designed to detect performance regressions and track performance improvements over time.
 
 ## ✨ **Key Features**
+
 - **🔄 Auto-Baseline Creation**: Baselines are automatically created on first test run
-- **📈 Regression Detection**: 10% threshold with configurable warnings  
+- **📈 Regression Detection**: 10% threshold with configurable warnings
 - **📊 Multiple Test Types**: Rotation, dragging, panning, zooming + stress tests
 - **🔗 Analytics Integration**: PostHog reporting with performance alerts
 - **📱 Cross-Platform**: Desktop & mobile viewport testing
@@ -59,16 +60,18 @@ Performance baselines are stored in `baselines/fps-baselines.json`:
 
 ```json
 {
-  "baselines": {
-    "darwin-1920x1080": {
-      "rotate_shapes": {
-        "avgFps": 45,
-        "minFps": 38,
-        "timestamp": "2024-01-15T10:30:00Z",
-        "environment": { /* ... */ }
-      }
-    }
-  }
+	"baselines": {
+		"darwin-1920x1080": {
+			"rotate_shapes": {
+				"avgFps": 45,
+				"minFps": 38,
+				"timestamp": "2024-01-15T10:30:00Z",
+				"environment": {
+					/* ... */
+				}
+			}
+		}
+	}
 }
 ```
 
@@ -99,8 +102,8 @@ GITHUB_ACTIONS=true
 ```typescript
 // In test code
 perfSuite.setThresholds(
-  15,  // regression threshold (%)
-  8    // warning threshold (%)
+	15, // regression threshold (%)
+	8 // warning threshold (%)
 )
 ```
 
@@ -111,12 +114,14 @@ When enabled, the suite sends detailed metrics to PostHog:
 ### Events Sent
 
 **`performance_test_result`**:
+
 - FPS metrics (avg, min, max)
 - Test environment (platform, browser, viewport)
 - Baseline comparison results
 - Git context (commit, branch)
 
 **`performance_regression_alert`**:
+
 - Automatic alerts for >10% regressions
 - Severity levels (high/medium)
 - Detailed regression information
@@ -136,13 +141,16 @@ yarn e2e --grep "Mobile Performance" --viewport 390x844
 ### 📊 Baseline Management
 
 #### **Automatic Baseline Creation**
+
 Baselines are **automatically created** on first test run! No manual setup required.
 
 #### **Manual Baseline Management**
 
 # Or run the specific test
+
 yarn e2e --grep "Establish All Performance Baselines"
-```
+
+````
 
 #### **Programmatic Baseline Control**
 
@@ -153,26 +161,26 @@ const result = await perfSuite.testShapeRotation()
 
 // Disable auto-creation
 const comparison = baselineManager.compareWithBaseline(
-  'rotate_shapes', 
-  metrics, 
-  environment, 
+  'rotate_shapes',
+  metrics,
+  environment,
   false // Don't auto-create
 )
 
 // Manual baseline updates
 perfSuite.updateBaseline('rotate_shapes', metrics, true) // Force update
 perfSuite.establishBaselines() // Run all tests and set baselines
-```
+````
 
 ### Custom Board Generation
 
 ```typescript
 await boardGenerator.generateHeavyBoard({
-  shapeCount: 300,
-  includeGroups: true,
-  includeText: true,
-  includeArrows: true,
-  seed: 42 // for reproducible tests
+	shapeCount: 300,
+	includeGroups: true,
+	includeText: true,
+	includeArrows: true,
+	seed: 42, // for reproducible tests
 })
 ```
 
@@ -197,16 +205,19 @@ await boardGenerator.generateHeavyBoard({
 ### Common Issues
 
 **Low FPS measurements**:
+
 - Check system load during testing
 - Ensure headless mode is enabled
 - Verify no other heavy processes running
 
 **Inconsistent results**:
+
 - Tests include warmup periods to stabilize measurements
 - Multiple samples averaged for accuracy
 - Consider increasing measurement duration
 
 **Baseline missing**:
+
 - First test run establishes baselines automatically
 - Use `updateBaseline()` to set initial values
 
@@ -215,7 +226,10 @@ await boardGenerator.generateHeavyBoard({
 ```typescript
 // Enable detailed logging
 console.log('FPS Samples:', result.metrics.samples)
-console.log('Frame distribution:', result.metrics.samples.map((fps, i) => `${i}:${fps}`))
+console.log(
+	'Frame distribution:',
+	result.metrics.samples.map((fps, i) => `${i}:${fps}`)
+)
 
 // Check board complexity
 const shapeCount = await boardGenerator.getShapeCount()
@@ -245,4 +259,4 @@ console.log(`Testing with ${shapeCount} shapes`)
 
 ---
 
-For questions or improvements, please see the main tldraw contributing guidelines. 
+For questions or improvements, please see the main tldraw contributing guidelines.
