@@ -1,0 +1,54 @@
+{
+	"baselines": {
+		"darwin-1280x720": {
+			"rotate_shapes": {
+				"avgFps": 26,
+				"minFps": 17,
+				"maxFps": 59,
+				"timestamp": "2025-07-21T14:27:50.788Z",
+				"environment": {
+					"platform": "darwin",
+					"viewport": "1280x720",
+					"browser": "chromium"
+				}
+			},
+			"drag_shapes": {
+				"avgFps": 45,
+				"minFps": 17,
+				"maxFps": 68,
+				"timestamp": "2025-07-21T14:28:04.232Z",
+				"environment": {
+					"platform": "darwin",
+					"viewport": "1280x720",
+					"browser": "chromium"
+				}
+			},
+			"canvas_panning": {
+				"avgFps": 60,
+				"minFps": 56,
+				"maxFps": 64,
+				"timestamp": "2025-07-21T14:28:13.302Z",
+				"environment": {
+					"platform": "darwin",
+					"viewport": "1280x720",
+					"browser": "chromium"
+				}
+			},
+			"canvas_zooming": {
+				"avgFps": 60,
+				"minFps": 45,
+				"maxFps": 78,
+				"timestamp": "2025-07-21T14:28:23.924Z",
+				"environment": {
+					"platform": "darwin",
+					"viewport": "1280x720",
+					"browser": "chromium"
+				}
+			}
+		}
+	},
+	"metadata": {
+		"lastUpdated": "2025-07-21T14:28:23.924Z",
+		"version": "1.0.0"
+	}
+}
