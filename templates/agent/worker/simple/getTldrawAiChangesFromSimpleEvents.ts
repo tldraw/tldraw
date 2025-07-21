@@ -14,6 +14,8 @@ import {
 	TLLineShape,
 	TLNoteShape,
 	TLRichText,
+	TLShapeId,
+	TLShapePartial,
 	TLTextShape,
 	toRichText,
 } from 'tldraw'
@@ -42,7 +44,10 @@ export function getTldrawAiChangesFromSimpleEvents(
 	prompt: TLAiSerializedPrompt,
 	event: MaybeComplete<ISimpleEvent>
 ): TLAiChange[] {
-	event.complete && console.log('getTldrawAiChangesFromSimpleEvents [EVENT FROM MODEL]', event)
+	if (event.complete) {
+		console.log('getTldrawAiChangesFromSimpleEvents [EVENT FROM MODEL]', event)
+	}
+
 	switch (event.type) {
 		case 'update': {
 			return getTldrawAiChangesFromSimpleUpdateEvent(prompt, event)
@@ -232,41 +237,20 @@ function getTldrawAiChangesFromSimpleUpdateEvent(
 
 				// Create a merged shape object that starts with all properties from shapeOnCanvas
 				// and overrides with any properties from the update
-				const mergedShape = { ...shapeOnCanvas }
-
-				// Update position if provided (only for shapes that have x,y coordinates)
-				if ('x' in update && update.x !== undefined) mergedShape.x = update.x
-				if ('y' in update && update.y !== undefined) mergedShape.y = update.y
-
-				// Update props if provided
-				if ('color' in update && update.color !== undefined) {
-					mergedShape.props = {
-						...mergedShape.props,
-						color: getTldrawColorFromFuzzyColor(update.color),
-					}
-				}
-				if ('fill' in update && update.fill !== undefined) {
-					mergedShape.props = { ...mergedShape.props, fill: simpleFillToShapeFill(update.fill) }
-				}
-				if ('text' in update && update.text !== undefined) {
-					mergedShape.props = { ...mergedShape.props, richText: toRichTextIfNeeded(update.text) }
-				}
-				if ('textAlign' in update && update.textAlign !== undefined) {
-					mergedShape.props = { ...mergedShape.props, textAlign: update.textAlign }
-				}
-				if ('width' in update && update.width !== undefined) {
-					mergedShape.props = { ...mergedShape.props, w: update.width }
-				}
-				if ('height' in update && update.height !== undefined) {
-					mergedShape.props = { ...mergedShape.props, h: update.height }
-				}
-				if ('geo' in update && update.geo !== undefined) {
-					mergedShape.props = { ...mergedShape.props, geo: update.geo }
-				}
-
-				// Update meta if note is provided
-				if ('note' in update && update.note !== undefined) {
-					mergedShape.meta = { ...mergedShape.meta, note: update.note }
+				const mergedShape: TLShapePartial<TLGeoShape> = {
+					id: update.shapeId as TLShapeId,
+					type: 'geo',
+					props: {
+						color: update.color ? getTldrawColorFromFuzzyColor(update.color) : undefined,
+						geo: update.type,
+						w: update.width,
+						h: update.height,
+						fill: update.fill ? simpleFillToShapeFill(update.fill) : undefined,
+						richText: update.text ? toRichTextIfNeeded(update.text) : undefined,
+					},
+					meta: {
+						note: update.note,
+					},
 				}
 
 				changes.push({
