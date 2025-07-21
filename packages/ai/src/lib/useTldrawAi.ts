@@ -295,33 +295,15 @@ export function defaultApplyChange({
 	try {
 		switch (change.type) {
 			case 'createShape': {
-				if (Array.isArray(change.shape)) {
-					change.shape.forEach((shape) => {
-						editor.createShape(shape as TLShapePartial)
-					})
-				} else {
-					editor.createShape(change.shape as TLShapePartial)
-				}
+				editor.createShape(change.shape as TLShapePartial)
 				break
 			}
 			case 'updateShape': {
-				if (Array.isArray(change.shape)) {
-					change.shape.forEach((shape) => {
-						editor.updateShape(shape as TLShapePartial)
-					})
-				} else {
-					editor.updateShape(change.shape as TLShapePartial)
-				}
+				editor.updateShape(change.shape as TLShapePartial)
 				break
 			}
 			case 'deleteShape': {
-				if (Array.isArray(change.shapeId)) {
-					change.shapeId.forEach((id) => {
-						editor.deleteShape(id)
-					})
-				} else {
-					editor.deleteShape(change.shapeId as TLShapeId)
-				}
+				editor.deleteShape(change.shapeId as TLShapeId)
 				break
 			}
 			case 'createBinding': {
