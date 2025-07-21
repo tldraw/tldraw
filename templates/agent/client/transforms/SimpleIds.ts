@@ -12,6 +12,7 @@ export class SimpleIds extends TldrawAiTransform {
 			this.collectAllIdsRecursively(shape, this.mapObjectWithIdAndWriteSimple)
 		}
 
+		// it's important bindings are processed after shapes so all the shapes have their ids mapped
 		for (const binding of input.canvasContent.bindings ?? []) {
 			this.collectAllIdsRecursively(binding, this.mapObjectWithIdAndWriteSimple)
 		}
@@ -106,20 +107,24 @@ export class SimpleIds extends TldrawAiTransform {
 			obj.id = tId
 		}
 
-		if (obj.fromId && !originalIdsToSimpleIds.has(obj.fromId)) {
-			const tId = `${nextSimpleId}`
-			simpleIdsToOriginalIds.set(tId, obj.id)
-			originalIdsToSimpleIds.set(obj.id, tId)
-			this.nextSimpleId++
-			obj.fromId = tId
+		if (obj.fromId) {
+			if (!originalIdsToSimpleIds.has(obj.fromId)) {
+				const tId = `${nextSimpleId}`
+				simpleIdsToOriginalIds.set(tId, obj.fromId)
+				originalIdsToSimpleIds.set(obj.fromId, tId)
+				this.nextSimpleId++
+			}
+			obj.fromId = originalIdsToSimpleIds.get(obj.fromId)
 		}
 
-		if (obj.toId && !originalIdsToSimpleIds.has(obj.toId)) {
-			const tId = `${nextSimpleId}`
-			simpleIdsToOriginalIds.set(tId, obj.id)
-			originalIdsToSimpleIds.set(obj.id, tId)
-			this.nextSimpleId++
-			obj.fromId = tId
+		if (obj.toId) {
+			if (!originalIdsToSimpleIds.has(obj.toId)) {
+				const tId = `${nextSimpleId}`
+				simpleIdsToOriginalIds.set(tId, obj.toId)
+				originalIdsToSimpleIds.set(obj.toId, tId)
+				this.nextSimpleId++
+			}
+			obj.toId = originalIdsToSimpleIds.get(obj.toId)
 		}
 	}
 
