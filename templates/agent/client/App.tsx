@@ -1,5 +1,5 @@
 import { useCallback, useState } from 'react'
-import { Editor, Tldraw, TLUiOverrides } from 'tldraw'
+import { Editor, ErrorBoundary, Tldraw, TLUiOverrides } from 'tldraw'
 import { ChatPanel } from './ChatPanel'
 import { overrideFillStyleWithLinedFillStyle } from './LinedFillStyle'
 import { TargetTool } from './TargetTool'
@@ -49,7 +49,26 @@ function App() {
 					overrides={customUiOverrides}
 				/>
 			</div>
-			{editor && <ChatPanel editor={editor} />}
+			<ErrorBoundary fallback={ChatPanelFallback}>
+				{editor && <ChatPanel editor={editor} />}
+			</ErrorBoundary>
+		</div>
+	)
+}
+
+function ChatPanelFallback() {
+	return (
+		<div className="chat-panel-fallback">
+			<p>Error loading chat history</p>
+			<button
+				className="chat-panel-fallback-button"
+				onClick={() => {
+					localStorage.removeItem('chat-history-items')
+					window.location.reload()
+				}}
+			>
+				Clear chat history
+			</button>
 		</div>
 	)
 }

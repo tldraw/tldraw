@@ -69,13 +69,13 @@ export function ChatInput({
 					</button>
 					{contextItems.map((item, i) => (
 						<ContextPreview
-							onRemove={() => {
+							onClick={() => {
 								$contextItems.update((items) => {
 									return items.filter((v) => v.id !== item.id)
 								})
 							}}
 							key={'context-item-' + i}
-							context={item}
+							contextItem={item}
 						/>
 					))}
 				</div>

@@ -11,6 +11,8 @@ import {
 	toRichText,
 } from 'tldraw'
 import { $chatHistoryItems } from './ChatHistory'
+import { ContextItem, getContextItemName } from './Context'
+import { AtIcon } from './icons/AtIcon'
 import { BrainIcon } from './icons/BrainIcon'
 import { PencilIcon } from './icons/PencilIcon'
 import { RefreshIcon } from './icons/RefreshIcon'
@@ -31,6 +33,7 @@ export interface UserMessageHistoryItem {
 	type: 'user-message'
 	message: string
 	status: 'done'
+	contextItems: ContextItem[]
 }
 
 export interface StatusThinkingHistoryItem {
@@ -73,7 +76,26 @@ export interface AgentActionHistoryItem {
 }
 
 export function UserMessageHistoryItem({ item }: { item: UserMessageHistoryItem }) {
-	return <div className="user-chat-message">{item.message}</div>
+	return (
+		<div className="user-message">
+			{item.contextItems.length > 0 && (
+				<div className="user-message-context-items">
+					{item.contextItems.map((contextItem, i) => {
+						return <UserMessageContextItem key={'context-item-' + i} contextItem={contextItem} />
+					})}
+				</div>
+			)}
+			{item.message}
+		</div>
+	)
+}
+
+function UserMessageContextItem({ contextItem }: { contextItem: ContextItem }) {
+	return (
+		<div className="context-item-preview">
+			<AtIcon /> {getContextItemName(contextItem)}
+		</div>
+	)
 }
 
 export function AgentMessageHistoryItem({ item }: { item: AgentMessageHistoryItem }) {

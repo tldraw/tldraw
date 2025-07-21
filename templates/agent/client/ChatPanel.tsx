@@ -2,6 +2,7 @@ import { FormEventHandler, useCallback, useEffect, useRef, useState } from 'reac
 import { Editor, useLocalStorageState } from 'tldraw'
 import { DEFAULT_MODEL_NAME, TLAgentModelName } from '../worker/models'
 import { $chatHistoryItems, ChatHistory } from './ChatHistory'
+import { UserMessageHistoryItem } from './ChatHistoryItem'
 import { ChatInput } from './ChatInput'
 import { $contextItems, getSimpleContentFromContextItems } from './Context'
 import { $requestsSchedule } from './requestsSchedule'
@@ -102,22 +103,25 @@ export function ChatPanel({ editor }: { editor: Editor }) {
 			// Otherwise, submit the user's message to the agent
 			const formData = new FormData(e.currentTarget)
 			const value = formData.get('input') as string
+			if (inputRef.current) inputRef.current.value = ''
 
-			if (inputRef.current) {
-				inputRef.current.value = ''
+			const userMessageHistoryItem: UserMessageHistoryItem = {
+				type: 'user-message',
+				message: value,
+				status: 'done',
+				contextItems: $contextItems.get(),
 			}
 
-			$chatHistoryItems.update((prev) => [
-				...prev,
-				{ type: 'user-message', message: value, status: 'done' },
-			])
-
+			$contextItems.set([])
+			$chatHistoryItems.update((prev) => [...prev, userMessageHistoryItem])
 			$requestsSchedule.update((prev) => [
 				...prev,
-				{ message: value, review: false, contextItems: $contextItems.get() },
+				{
+					message: userMessageHistoryItem.message,
+					contextItems: userMessageHistoryItem.contextItems,
+					review: false,
+				},
 			])
-
-			$contextItems.set([])
 
 			setIsGenerating(true)
 			await advanceSchedule()

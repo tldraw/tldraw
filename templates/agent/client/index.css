@@ -143,7 +143,7 @@ body {
 	color: var(--color-text-2);
 }
 
-.user-chat-message {
+.user-message {
 	background-color: var(--color-muted-1);
 	box-shadow: var(--shadow-1);
 	color: var(--color-text-1);
@@ -151,8 +151,16 @@ body {
 	font-family: 'Inter', sans-serif;
 	font-weight: 400;
 	font-size: 12px;
-	padding: 8px 12px;
+	padding: 8px;
 	border-radius: 8px;
+	display: flex;
+	flex-direction: column;
+	gap: 4px;
+}
+
+.user-message-context-items {
+	display: flex;
+	gap: 4px;
 }
 
 .chat-input-actions {
@@ -347,7 +355,8 @@ body {
 	border-color: var(--color-text);
 }
 
-.chat-input-attachments {
+.chat-input-attachments,
+.user-message-context-items {
 	display: flex;
 	gap: 4px;
 	align-items: center;
@@ -359,9 +368,7 @@ body {
 	gap: 4px;
 }
 
-/* Should look very similar to the chat-input-attachments button */
-.chat-input-context-item {
-	background-color: var(--color-muted-1);
+.context-item-preview {
 	padding: 8px 4px;
 	border-radius: 6px;
 	font-size: 10px;
@@ -375,4 +382,30 @@ body {
 	text-overflow: ellipsis;
 	overflow: hidden;
 	white-space: nowrap;
+	font-family: 'Inter', sans-serif;
+}
+
+.chat-panel-fallback {
+	padding: 10px;
+	display: flex;
+	align-items: center;
+	justify-content: center;
+	flex-direction: column;
+	color: var(--color-text-2);
+	user-select: none;
+	font-size: 14px;
+}
+
+.chat-panel-fallback-button {
+	background-color: hsl(214, 84%, 50%);
+	color: white;
+	border: none;
+	border-radius: 4px;
+	padding: 6px 12px;
+	font-weight: 500;
+	cursor: pointer;
+}
+
+.chat-panel-fallback-button:hover {
+	background-color: hsl(214, 84%, 40%);
 }
