@@ -1,6 +1,5 @@
 ---
-description: Instructions for writing tests
-alwaysApply: false
+alwaysApply: true
 ---
 
 Most tests in tldraw are written using jest. End-to-end tests are written using playwright.
