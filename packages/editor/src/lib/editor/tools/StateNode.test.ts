@@ -184,6 +184,58 @@ describe('StateNode.addChild', () => {
 		expect(rootStateWithoutChildren.children!['child2']).toBeDefined()
 		expect(rootStateWithoutChildren.children!['child2']).toBeInstanceOf(ChildState2)
 	})
+
+	it('should throw an error when trying to add a child with a duplicate ID', () => {
+		const parentState = editor.root.children!['parent'] as ParentState
+
+		// Initially should have one child
+		expect(Object.keys(parentState.children!)).toHaveLength(1)
+		expect(parentState.children!['child1']).toBeDefined()
+
+		// Should throw an error when trying to add a child with the same ID
+		expect(() => {
+			parentState.addChild(ChildState1)
+		}).toThrow("StateNode.addChild: a child with id 'child1' already exists")
+
+		// Should still have only one child
+		expect(Object.keys(parentState.children!)).toHaveLength(1)
+		expect(parentState.children!['child1']).toBeDefined()
+	})
+
+	it('should throw an error when trying to add a child with a duplicate ID to a root state', () => {
+		const rootState = editor.root.children!['root'] as RootState
+
+		// Initially should have one child
+		expect(Object.keys(rootState.children!)).toHaveLength(1)
+		expect(rootState.children!['child1']).toBeDefined()
+
+		// Should throw an error when trying to add a child with the same ID
+		expect(() => {
+			rootState.addChild(ChildState1)
+		}).toThrow("StateNode.addChild: a child with id 'child1' already exists")
+
+		// Should still have only one child
+		expect(Object.keys(rootState.children!)).toHaveLength(1)
+		expect(rootState.children!['child1']).toBeDefined()
+	})
+
+	it('should throw an error when trying to add a child with a duplicate ID to a root state without static children', () => {
+		// Create a StateNode directly as a root node (no parent)
+		const mockEditor = {} as Editor
+		const rootStateWithoutChildren = new RootStateWithoutChildren(mockEditor, undefined)
+
+		// Add a child first
+		rootStateWithoutChildren.addChild(ChildState1)
+
+		// Should throw an error when trying to add a child with the same ID
+		expect(() => {
+			rootStateWithoutChildren.addChild(ChildState1)
+		}).toThrow("StateNode.addChild: a child with id 'child1' already exists")
+
+		// Should still have only one child
+		expect(Object.keys(rootStateWithoutChildren.children!)).toHaveLength(1)
+		expect(rootStateWithoutChildren.children!['child1']).toBeDefined()
+	})
 })
 
 describe('current tool id mask', () => {

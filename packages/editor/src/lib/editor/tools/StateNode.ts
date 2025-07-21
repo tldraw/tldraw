@@ -254,6 +254,12 @@ export abstract class StateNode implements Partial<TLEventHandlers> {
 		}
 
 		const child = new childConstructor(this.editor, this)
+
+		// Check if a child with this ID already exists
+		if (this.children[child.id]) {
+			throw new Error(`StateNode.addChild: a child with id '${child.id}' already exists`)
+		}
+
 		this.children[child.id] = child
 		return this
 	}
