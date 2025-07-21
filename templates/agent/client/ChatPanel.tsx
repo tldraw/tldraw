@@ -138,6 +138,7 @@ export function ChatPanel({ editor }: { editor: Editor }) {
 
 		setIsGenerating(false)
 		$chatHistoryItems.set([])
+		$contextItems.set([])
 		$requestsSchedule.set([])
 	}
 
