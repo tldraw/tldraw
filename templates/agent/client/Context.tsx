@@ -13,7 +13,11 @@ export type ContextItem = ShapeContextItem
 export const $contextItems = atom<ContextItem[]>('context items', [])
 
 export function addToContext(item: ContextItem) {
-	$contextItems.update((items) => [...items, item])
+	$contextItems.update((items) => {
+		const existingItem = items.find((v) => v.id === item.id)
+		if (existingItem) return items
+		return [...items, item]
+	})
 }
 
 export function removeFromContext(item: ContextItem) {
