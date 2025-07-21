@@ -89,7 +89,10 @@ async function main() {
 	console.log('Cleaning package.json...')
 	delete packageJson[EXPORT_CONFIG_KEY]
 
-	if (exportConfig?.scripts && packageJson.scripts) {
+	if (exportConfig?.scripts) {
+		if (!packageJson.scripts) {
+			packageJson.scripts = {}
+		}
 		for (const [name, script] of Object.entries(exportConfig.scripts)) {
 			if (script === null) {
 				delete packageJson.scripts[name]
