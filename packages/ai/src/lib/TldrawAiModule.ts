@@ -141,7 +141,7 @@ export class TldrawAiModule {
 			format: 'jpeg',
 			background: false,
 			darkMode: false,
-			padding: 0, // will the context bounds take into account the padding?
+			padding: 10, // will the context bounds take into account the padding?
 		})
 
 		return await FileHelpers.blobToDataUrl(result.blob)
