@@ -11,7 +11,7 @@ import {
 	toRichText,
 } from 'tldraw'
 import { $chatHistoryItems } from './ChatHistory'
-import { ContextItem, getContextItemName } from './Context'
+import { ContextItem, getContextItemName, roundBox } from './Context'
 import { AtIcon } from './icons/AtIcon'
 import { BrainIcon } from './icons/BrainIcon'
 import { PencilIcon } from './icons/PencilIcon'
@@ -76,16 +76,25 @@ export interface AgentActionHistoryItem {
 }
 
 export function UserMessageHistoryItem({ item }: { item: UserMessageHistoryItem }) {
+	const contextAttachments = item.contextItems.filter((item) => item.type === 'area')
 	return (
-		<div className="user-message">
-			{item.contextItems.length > 0 && (
-				<div className="user-message-context-items">
-					{item.contextItems.map((contextItem, i) => {
-						return <UserMessageContextItem key={'context-item-' + i} contextItem={contextItem} />
-					})}
-				</div>
-			)}
-			{item.message}
+		<div>
+			<div className="user-message-context-attachments">
+				{contextAttachments.map((contextItem, i) => {
+					const { x, y, w, h } = roundBox(contextItem.bounds)
+					return <div key={'context-attachment-' + i}>{`x: ${x}, y: ${y}, w: ${w}, h: ${h}`}</div>
+				})}
+			</div>
+			<div className="user-message">
+				{item.contextItems.length > 0 && (
+					<div className="user-message-context-items">
+						{item.contextItems.map((contextItem, i) => {
+							return <UserMessageContextItem key={'context-item-' + i} contextItem={contextItem} />
+						})}
+					</div>
+				)}
+				{item.message}
+			</div>
 		</div>
 	)
 }

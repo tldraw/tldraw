@@ -317,7 +317,7 @@ body {
 	filter: drop-shadow(1.5px 1.5px 0px rgb(0, 0, 200));
 }
 
-.chat-input-attachments button {
+.chat-input-context-items button {
 	border-radius: 1px;
 	background-color: transparent;
 	border: 1px solid var(--color-text-2);
@@ -337,25 +337,25 @@ body {
 	color: var(--color-text-2);
 }
 
-.chat-input-attachments button:hover {
+.chat-input-context-items button:hover {
 	color: var(--color-text);
 	background-color: transparent;
 	border-color: var(--color-text);
 }
 
-.chat-input-attachments button.active {
+.chat-input-context-items button.active {
 	background-color: var(--color-primary);
 	color: var(--color-text-1);
 	border-color: var(--color-text-1);
 }
 
-.chat-input-attachments button.active:hover {
+.chat-input-context-items button.active:hover {
 	background-color: var(--color-primary);
 	color: var(--color-text);
 	border-color: var(--color-text);
 }
 
-.chat-input-attachments,
+.chat-input-context-items,
 .user-message-context-items {
 	display: flex;
 	gap: 4px;

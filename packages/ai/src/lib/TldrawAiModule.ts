@@ -1,8 +1,7 @@
 import { Box, Editor, FileHelpers, structuredClone } from 'tldraw'
 import { TldrawAiTransformConstructor } from './TldrawAiTransform'
-import { TLAiContent, TLAiMessages, TLAiPrompt, TLAiStreamingChange } from './types'
-import { TldrawAiApplyFn } from './useTldrawAi'
-import { asMessage } from './utils'
+import { TLAiContent, TLAiPrompt, TLAiStreamingChange } from './types'
+import { TldrawAiApplyFn, TldrawAiPromptOptions } from './useTldrawAi'
 
 /** @public */
 export interface TldrawAiModuleOptions {
@@ -26,18 +25,17 @@ export class TldrawAiModule {
 	 * Creates and prepare a prompt, returning the prompt
 	 * and a function to handle changes.
 	 *
-	 * @param prompt - The user's message or a configuration for the prompt
+	 * @param options - The user's message or a configuration for the prompt
 	 */
-	async generate(prompt: string | { message: TLAiMessages; stream?: boolean }) {
+	async generate(options: TldrawAiPromptOptions) {
 		const { transforms: _transformCtors = [] } = this.opts
 		const transforms = _transformCtors.map((ctor) => new ctor(this.opts.editor))
 
-		const message = typeof prompt === 'string' ? prompt : prompt.message
-		let _prompt = await this.getPrompt(message)
+		let prompt = await this.getPrompt(options)
 
 		for (const transform of transforms) {
 			if (transform.transformPrompt) {
-				_prompt = transform.transformPrompt(_prompt)
+				prompt = transform.transformPrompt(prompt)
 			}
 		}
 
@@ -53,38 +51,33 @@ export class TldrawAiModule {
 		}
 
 		return {
-			prompt: _prompt,
+			prompt,
 			handleChange,
 		}
 	}
 
 	/**
-	 * Create the prompt to be sent to the AI.
+	 * Create a full prompt to be sent to the AI.
 	 *
-	 * @param prompt - The user's prompt
-	 * @param options - Options to generate the input
+	 * @param options - The options to generate the prompt
 	 */
-	async getPrompt(
-		prompt: TLAiMessages,
-		options = {} as Partial<Pick<TLAiPrompt, 'canvasContent' | 'contextBounds' | 'promptBounds'>>
-	): Promise<TLAiPrompt> {
+	async getPrompt(options: TldrawAiPromptOptions): Promise<TLAiPrompt> {
 		const { editor } = this.opts
-		const {
-			contextBounds = editor.getViewportPageBounds(),
-			promptBounds = editor.getViewportPageBounds(),
-		} = options
 
-		const content = options.canvasContent ?? this.getContent(promptBounds)
+		const _options = typeof options === 'string' ? { message: options } : options
 
-		// Get image from the content
-		const image = await this.getImage(content)
+		const contextBounds = _options.contextBounds ?? editor.getViewportPageBounds()
+		const promptBounds = _options.promptBounds ?? editor.getViewportPageBounds()
+		const canvasContent = _options.canvasContent ?? this.getContent(promptBounds)
+		const image = _options.image ?? (await this.getImage(canvasContent))
 
 		return {
-			message: asMessage(prompt),
-			canvasContent: content,
+			message: _options.message ?? '',
+			canvasContent,
 			contextBounds: roundBox(contextBounds),
 			promptBounds: roundBox(promptBounds),
 			image,
+			meta: _options.meta,
 		}
 	}
 

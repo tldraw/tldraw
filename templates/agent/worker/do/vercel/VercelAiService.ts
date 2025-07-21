@@ -114,21 +114,48 @@ async function generateEventsVercel(
 function buildMessages(prompt: TLAiSerializedPrompt): CoreMessage[] {
 	const messages: CoreMessage[] = []
 
-	messages.push(...buildHistoryMessages(prompt))
-	messages.push(...buildContextContentMessages(prompt))
-	messages.push(buildUserMessage(prompt))
+	const historyMessages = buildHistoryMessages(prompt)
+	const contextShapesMessages = buildContextShapesMessages(prompt)
+	const contextAreasMessages = buildContextAreasMessages(prompt)
+	const userMessage = buildUserMessage(prompt)
+
+	messages.push(...contextShapesMessages)
+	messages.push(...contextAreasMessages)
+	messages.push(...historyMessages)
+	messages.push(userMessage)
 
 	return messages
 }
 
-function buildContextContentMessages(prompt: TLAiSerializedPrompt): CoreMessage[] {
-	const shapes = prompt.meta.contextContent.shapes
+function buildContextAreasMessages(prompt: TLAiSerializedPrompt): CoreMessage[] {
+	const areas = prompt.meta.context.areas
+	if (areas.length === 0) {
+		return []
+	}
+
+	const content: UserContent = []
+	content.push({
+		type: 'text',
+		text: 'The user has specifically brought your attention to the following areas in this request. Make sure to focus your task on these areas:',
+	})
+
+	for (const area of areas) {
+		content.push({
+			type: 'text',
+			text: JSON.stringify(area, null, 2),
+		})
+	}
+
+	return [{ role: 'user', content }]
+}
+
+function buildContextShapesMessages(prompt: TLAiSerializedPrompt): CoreMessage[] {
+	const shapes = prompt.meta.context.shapes
 	if (shapes.length === 0) {
 		return []
 	}
 
 	const content: UserContent = []
-
 	content.push({
 		type: 'text',
 		text: 'The user has specifically brought your attention to the following shapes in this request. Make sure to focus your task on these shapes:',
@@ -160,9 +187,20 @@ function buildHistoryMessages(prompt: TLAiSerializedPrompt): CoreMessage[] {
 function buildHistoryItemMessage(item: ChatHistoryItem): CoreMessage | null {
 	switch (item.type) {
 		case 'user-message': {
+			const content: UserContent = [
+				{ type: 'text', text: 'Previous message from user: ' + item.message },
+			]
+			// if (item.contextItems.length > 0) {
+			// 	for (const contextItem of item.contextItems) {
+			// 		content.push({
+			// 			type: 'text',
+			// 			text: `Previous context item to focus on from the user: ${JSON.stringify(contextItem, null, 2)}`,
+			// 		})
+			// 	}
+			// }
 			return {
 				role: 'user',
-				content: [{ type: 'text', text: 'Previous message from user: ' + item.message }],
+				content,
 			}
 		}
 		// We're filtering out status-thinking from the history items before sending to the models, so they should never see this

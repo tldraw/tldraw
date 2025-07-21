@@ -54,7 +54,7 @@ export interface TldrawAiOptions extends Omit<TldrawAiModuleOptions, 'editor'> {
 /** @public */
 export type TldrawAiPromptOptions =
 	| string
-	| { message: TLAiPrompt['message']; stream?: boolean; meta?: TLAiPrompt['meta'] }
+	| (Partial<TLAiPrompt> & { stream?: boolean; message: string })
 
 /** @public */
 export function useTldrawAi(opts: TldrawAiOptions): TldrawAi {

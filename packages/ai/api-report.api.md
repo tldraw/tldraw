@@ -204,14 +204,11 @@ export class TldrawAiModule {
     constructor(opts?: TldrawAiModuleOptions);
     // (undocumented)
     dispose(): void;
-    generate(prompt: {
-        message: TLAiMessages;
-        stream?: boolean;
-    } | string): Promise<{
+    generate(options: TldrawAiPromptOptions): Promise<{
         handleChange: (change: TLAiStreamingChange, apply: TldrawAiApplyFn) => void;
         prompt: TLAiPrompt;
     }>;
-    getPrompt(prompt: TLAiMessages, options?: Partial<Pick<TLAiPrompt, "canvasContent" | "contextBounds" | "promptBounds">>): Promise<TLAiPrompt>;
+    getPrompt(options: TldrawAiPromptOptions): Promise<TLAiPrompt>;
     // (undocumented)
     readonly opts: TldrawAiModuleOptions;
 }
@@ -237,11 +234,10 @@ export interface TldrawAiOptions extends Omit<TldrawAiModuleOptions, 'editor'> {
 }
 
 // @public (undocumented)
-export type TldrawAiPromptOptions = {
-    message: TLAiPrompt['message'];
-    meta?: TLAiPrompt['meta'];
+export type TldrawAiPromptOptions = (Partial<TLAiPrompt> & {
+    message: string;
     stream?: boolean;
-} | string;
+}) | string;
 
 // @public
 export type TldrawAiStreamFn = (opts: {

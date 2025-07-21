@@ -4,7 +4,7 @@ import { DEFAULT_MODEL_NAME, TLAgentModelName } from '../worker/models'
 import { $chatHistoryItems, ChatHistory } from './ChatHistory'
 import { UserMessageHistoryItem } from './ChatHistoryItem'
 import { ChatInput } from './ChatInput'
-import { $contextItems, getSimpleContentFromContextItems } from './Context'
+import { $contextItems, getSimpleContextFromContextItems } from './Context'
 import { $requestsSchedule } from './requestsSchedule'
 import { useTldrawAiExample } from './useTldrawAiExample'
 
@@ -42,7 +42,7 @@ export function ChatPanel({ editor }: { editor: Editor }) {
 					historyItems: $chatHistoryItems.get().filter((item) => item.type !== 'status-thinking'),
 					// TODO: Add first-class support to handle custom-specified shapes/viewports/etc.
 					// Note: Right now this is not applying our transforms
-					contextContent: getSimpleContentFromContextItems(request.contextItems),
+					context: getSimpleContextFromContextItems(request.contextItems),
 					review: request.review,
 				},
 			})

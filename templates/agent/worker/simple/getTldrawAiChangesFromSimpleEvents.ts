@@ -150,9 +150,7 @@ function getTldrawAiChangesFromSimpleUpdateEvent(
 
 				if (event.type === 'update') {
 					// Updating bindings is complicated, it's easier to just delete all bindings and recreate them
-					for (const binding of prompt.canvasContent.bindings.filter(
-						(b) => b.fromId === 'shapeId'
-					)) {
+					for (const binding of prompt.canvasContent.bindings.filter((b) => b.fromId === shapeId)) {
 						changes.push({
 							complete: event.complete,
 							type: 'deleteBinding',

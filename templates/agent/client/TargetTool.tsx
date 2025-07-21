@@ -1,4 +1,4 @@
-import { Box, StateNode, TLShape, VecModel } from 'tldraw'
+import { BoxModel, StateNode, TLShape, VecModel } from 'tldraw'
 import { addToContext } from './Context'
 
 export class TargetTool extends StateNode {
@@ -53,10 +53,11 @@ class TargetDragging extends StateNode {
 	static override id = 'dragging'
 
 	private initialPagePoint: VecModel | undefined = undefined
-	private shapes: TLShape[] = []
+	private bounds: BoxModel | undefined = undefined
 
 	override onEnter(props: { initialPagePoint: VecModel }) {
 		this.initialPagePoint = props.initialPagePoint
+		this.editor.setHintingShapes([])
 		this.updateBounds()
 	}
 
@@ -65,14 +66,16 @@ class TargetDragging extends StateNode {
 	}
 
 	override onPointerUp() {
-		this.editor.setHintingShapes([])
+		// this.editor.setHintingShapes([])
 		this.editor.updateInstanceState({
-			brush: { x: 0, y: 0, w: 0, h: 0 },
+			brush: null,
 		})
 
-		for (const shape of this.shapes) {
-			addToContext({ type: 'shape', shape, id: shape.id })
-		}
+		if (!this.bounds) throw new Error('Bounds not set')
+		addToContext({ type: 'area', bounds: this.bounds })
+		// for (const shape of this.shapes) {
+		// 	addToContext({ type: 'shape', shape, id: shape.id })
+		// }
 		this.editor.setCurrentTool('select')
 	}
 
@@ -88,14 +91,16 @@ class TargetDragging extends StateNode {
 			brush: { x, y, w, h },
 		})
 
-		const bounds = new Box(x, y, w, h)
-		const shapesInBounds = this.editor.getCurrentPageShapesSorted().filter((shape) => {
-			const shapeBounds = this.editor.getShapePageBounds(shape)
-			return shapeBounds && bounds.contains(shapeBounds)
-		})
+		this.bounds = { x, y, w, h }
 
-		this.shapes = shapesInBounds
-		this.editor.setHintingShapes(shapesInBounds)
+		// const bounds = new Box(x, y, w, h)
+		// const shapesInBounds = this.editor.getCurrentPageShapesSorted().filter((shape) => {
+		// 	const shapeBounds = this.editor.getShapePageBounds(shape)
+		// 	return shapeBounds && bounds.contains(shapeBounds)
+		// })
+
+		// this.shapes = shapesInBounds
+		// this.editor.setHintingShapes(shapesInBounds)
 	}
 }
 

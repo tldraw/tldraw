@@ -5,16 +5,12 @@ export class SimpleCoordinates extends TldrawAiTransform {
 	before: Record<string, number> = {}
 	bounds = {} as Box
 
-	private setBeforeNumberValue(
-		shape: { x?: number; y?: number; id: string },
-		prop: string,
-		value: number
-	) {
-		this.before[shape.id + '_' + prop] = value
+	private setBeforeNumberValue(id: string, prop: string, value: number) {
+		this.before[id + '_' + prop] = value
 	}
 
-	private getBeforeNumberValue(shape: { x?: number; y?: number; id: string }, prop: string) {
-		return this.before[shape.id + '_' + prop]
+	private getBeforeNumberValue(id: string, prop: string) {
+		return this.before[id + '_' + prop]
 	}
 
 	override transformPrompt = (input: TLAiPrompt) => {
@@ -25,21 +21,22 @@ export class SimpleCoordinates extends TldrawAiTransform {
 		// Save the original coordinates of all shapes
 		for (const shape of canvasContent.shapes) {
 			// Stash the original coordinates
-			this.setBeforeNumberValue(shape, 'x', shape.x)
-			this.setBeforeNumberValue(shape, 'y', shape.y)
+			this.setBeforeNumberValue(shape.id, 'x', shape.x)
+			this.setBeforeNumberValue(shape.id, 'y', shape.y)
 
 			// Subtract the context bounds from the shape coordinates
 			shape.x = Math.floor(shape.x - this.bounds.x)
 			shape.y = Math.floor(shape.y - this.bounds.y)
+		}
 
-			// Stash the original number values of all shape props
-			for (const key in shape.props) {
-				const v = (shape.props as any)[key]
-				if (Number.isFinite(v)) {
-					this.setBeforeNumberValue(shape, key, v)
-					;(shape.props as any)[key] = v
-				}
-			}
+		for (const key in input.meta.context.areas) {
+			const area = input.meta.context.areas[key]
+
+			this.setBeforeNumberValue(key, 'x', area.x)
+			this.setBeforeNumberValue(key, 'y', area.y)
+
+			area.x = Math.floor(area.x - this.bounds.x)
+			area.y = Math.floor(area.y - this.bounds.y)
 		}
 
 		// Make the prompt bounds relative to the context bounds
@@ -60,32 +57,19 @@ export class SimpleCoordinates extends TldrawAiTransform {
 				const { shape } = change
 				const { x: nextX, y: nextY } = shape
 
-				// Restore all the original number values
-				// This was preventing the model from resizing shapes
-				// for (const key in shape.props) {
-				// 	const v = (shape.props as any)[key]
-				// 	if (Number.isFinite(v)) {
-				// 		const beforeNumberValue = this.getBeforeNumberValue(shape, key)
-				// 		if (beforeNumberValue !== undefined) {
-				// 			console.log('restoring', key, beforeNumberValue, 'instead of', v)
-				// 			;(shape.props as any)[key] = beforeNumberValue
-				// 		}
-				// 	}
-				// }
-
-				// Also restore the original x and y coordinates
+				// Restore the original x and y coordinates
 				if (nextX !== undefined) {
 					// If the model came back with an x coordinate, add back in the offset that we subtracted earlier
 					shape.x = nextX + this.bounds.x
 				} else {
-					shape.x = this.getBeforeNumberValue(shape, 'x')
+					shape.x = this.getBeforeNumberValue(shape.id, 'x')
 				}
 
 				if (nextY !== undefined) {
 					// If the model came back with a y coordinate, add back in the offset that we subtracted earlier
 					shape.y = nextY + this.bounds.y
 				} else {
-					shape.y = this.getBeforeNumberValue(shape, 'y')
+					shape.y = this.getBeforeNumberValue(shape.id, 'y')
 				}
 
 				return {

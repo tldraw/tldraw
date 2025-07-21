@@ -1,7 +1,7 @@
 import { FormEventHandler, useEffect } from 'react'
 import { Editor, useLocalStorageState, useReactor, useValue } from 'tldraw'
 import { AGENT_MODEL_DEFINITIONS, DEFAULT_MODEL_NAME, TLAgentModelName } from '../worker/models'
-import { $contextItems, ContextPreview } from './Context'
+import { $contextItems, ContextPreview, removeFromContext } from './Context'
 import { BrainIcon } from './icons/BrainIcon'
 import { ChevronDownIcon } from './icons/ChevronDownIcon'
 import { CommentIcon } from './icons/CommentIcon'
@@ -25,6 +25,11 @@ export function ChatInput({
 	)
 
 	const contextItems = useValue('contextItems', () => $contextItems.get(), [$contextItems])
+	const contextAttachments = useValue(
+		'contextAttachments',
+		() => contextItems.filter((item) => item.type === 'area'),
+		[contextItems]
+	)
 
 	const [modelName, setModelName] = useLocalStorageState<TLAgentModelName>(
 		'model-name',
@@ -52,8 +57,15 @@ export function ChatInput({
 
 	return (
 		<div className="chat-input">
+			<div className="chat-input-context-attachments">
+				{contextAttachments.map((item, i) => (
+					<div key={'context-attachment-' + i} className="chat-input-context-attachment">
+						{`x: ${item.bounds.x.toFixed(0)}, y: ${item.bounds.y.toFixed(0)}, w: ${item.bounds.w.toFixed(0)}, h: ${item.bounds.h.toFixed(0)}`}
+					</div>
+				))}
+			</div>
 			<form onSubmit={handleSubmit}>
-				<div className="chat-input-attachments">
+				<div className="chat-input-context-items">
 					{/* <button type="button">
 						<AtIcon /> Add Context
 					</button> */}
@@ -69,11 +81,7 @@ export function ChatInput({
 					</button>
 					{contextItems.map((item, i) => (
 						<ContextPreview
-							onClick={() => {
-								$contextItems.update((items) => {
-									return items.filter((v) => v.id !== item.id)
-								})
-							}}
+							onClick={() => removeFromContext(item)}
 							key={'context-item-' + i}
 							contextItem={item}
 						/>
