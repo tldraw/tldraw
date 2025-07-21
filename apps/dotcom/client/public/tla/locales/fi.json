@@ -41,9 +41,6 @@
   "13ddd375ad": {
     "translation": "Vie nimellä"
   },
-  "1460ab5e78": {
-    "translation": "Ilmaiset tldraw-tiedostot"
-  },
   "181b90f889": {
     "translation": "Luo tiedosto"
   },
@@ -76,6 +73,9 @@
   },
   "344a7f427f": {
     "translation": "Toimittaja"
+  },
+  "37b3dca331": {
+    "translation": "Kirjaudu sisään"
   },
   "3bd1b98dbd": {
     "translation": "Muutoksia ei voi julkaista."
@@ -113,11 +113,8 @@
   "4d1c8263ba": {
     "translation": "Lataa uudelleen"
   },
-  "4e029798f2": {
-    "translation": "Ilmaiset osakkeet"
-  },
-  "4e875b8d8e": {
-    "translation": "Ilmaiset tallennukset"
+  "4ea0bb66f7": {
+    "translation": "Tili olisi kiva"
   },
   "50db1b7e1e": {
     "translation": "Tiedoston julkaisua ei voi peruuttaa."
@@ -152,6 +149,9 @@
   "5bec508475": {
     "translation": "Vanha selain havaittu. Päivitä selaimesi käyttääksesi tätä sovellusta."
   },
+  "5bef23eb7e": {
+    "translation": "Luo tili"
+  },
   "5d26ae7550": {
     "translation": "Emme pystyneet lataamaan osaa sisällöstä, jonka loit ennen kirjautumista."
   },
@@ -160,9 +160,6 @@
   },
   "5fb63579fc": {
     "translation": "Kopioida"
-  },
-  "5ff75742e0": {
-    "translation": "Rekisteröidy ilmaiseksi"
   },
   "61057a0c84": {
     "translation": "Myöhemmin"
@@ -226,6 +223,9 @@
   },
   "7be10fc592": {
     "translation": "Palauta versio"
+  },
+  "7c7d5d493e": {
+    "translation": "Ole hyvä ja rekisteröidy"
   },
   "7cb5f8b4a5": {
     "translation": "Unohtaa"
@@ -336,6 +336,9 @@
   "b028909917": {
     "translation": "Vieraskäyttäjä"
   },
+  "b52dc007ac": {
+    "translation": "Rekisteröidy (ilmainen ja hyvä)"
+  },
   "b6d4223e60": {
     "translation": "Kirjaudu sisään"
   },
@@ -384,6 +387,9 @@
   "c87aacf567": {
     "translation": "Kirjaudu ulos"
   },
+  "c8c6a6504a": {
+    "translation": "Sinun pitäisi rekisteröityä"
+  },
   "cceaefbc20": {
     "translation": "Jaa tämä tiedosto"
   },
@@ -407,6 +413,9 @@
   },
   "d876a9fe1a": {
     "translation": "Yritä uudelleen"
+  },
+  "d8a50c79a7": {
+    "translation": "Tule kanssani piirtämään"
   },
   "d9100f3e10": {
     "translation": "Siirry tänne nähdäksesi sisällön"
