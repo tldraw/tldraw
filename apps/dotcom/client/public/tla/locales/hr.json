@@ -41,9 +41,6 @@
   "13ddd375ad": {
     "translation": "Izvezi kao"
   },
-  "1460ab5e78": {
-    "translation": "Besplatni tldraws"
-  },
   "181b90f889": {
     "translation": "Stvori datoteku"
   },
@@ -76,6 +73,9 @@
   },
   "344a7f427f": {
     "translation": "Urednik"
+  },
+  "37b3dca331": {
+    "translation": "Molimo prijavite se"
   },
   "3bd1b98dbd": {
     "translation": "Nije moguće objaviti promjene."
@@ -113,11 +113,8 @@
   "4d1c8263ba": {
     "translation": "Ponovno učitaj"
   },
-  "4e029798f2": {
-    "translation": "Besplatne dionice"
-  },
-  "4e875b8d8e": {
-    "translation": "Besplatne spremljene datoteke"
+  "4ea0bb66f7": {
+    "translation": "Račun bi bio dobar"
   },
   "50db1b7e1e": {
     "translation": "Nije moguće poništiti objavu datoteke."
@@ -152,6 +149,9 @@
   "5bec508475": {
     "translation": "Otkriven je stari preglednik. Ažurirajte preglednik da biste mogli koristiti ovu aplikaciju."
   },
+  "5bef23eb7e": {
+    "translation": "Izradite svoj račun"
+  },
   "5d26ae7550": {
     "translation": "Nismo uspjeli prenijeti dio sadržaja koji ste izradili prije nego što ste se prijavili."
   },
@@ -160,9 +160,6 @@
   },
   "5fb63579fc": {
     "translation": "Kopirati"
-  },
-  "5ff75742e0": {
-    "translation": "Prijavite se besplatno"
   },
   "61057a0c84": {
     "translation": "Kasnije"
@@ -226,6 +223,9 @@
   },
   "7be10fc592": {
     "translation": "Vrati verziju"
+  },
+  "7c7d5d493e": {
+    "translation": "Molimo vas da se prijavite"
   },
   "7cb5f8b4a5": {
     "translation": "Zaboraviti"
@@ -336,6 +336,9 @@
   "b028909917": {
     "translation": "Gostujući korisnik"
   },
+  "b52dc007ac": {
+    "translation": "Registracija (besplatna i dobra)"
+  },
   "b6d4223e60": {
     "translation": "Prijavite se"
   },
@@ -384,6 +387,9 @@
   "c87aacf567": {
     "translation": "Odjavi se"
   },
+  "c8c6a6504a": {
+    "translation": "Trebao/la bi se prijaviti"
+  },
   "cceaefbc20": {
     "translation": "Podijelite ovu datoteku"
   },
@@ -407,6 +413,9 @@
   },
   "d876a9fe1a": {
     "translation": "Pokušajte ponovno"
+  },
+  "d8a50c79a7": {
+    "translation": "Pođi sa mnom crtati"
   },
   "d9100f3e10": {
     "translation": "Idite ovdje da vidite sadržaj"
