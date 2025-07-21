@@ -112,7 +112,7 @@ function getTldrawAiChangesFromSimpleCreateOrUpdateEvent(
 						points: {
 							a1: {
 								id: 'a1',
-								index: 'a2' as IndexKey,
+								index: 'a1' as IndexKey,
 								x: shape.x1 - minX,
 								y: shape.y1 - minY,
 							},
