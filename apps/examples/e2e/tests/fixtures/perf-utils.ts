@@ -363,14 +363,16 @@ export class PerformanceTestSuite {
 	}
 
 	async runFullPerformanceTest(): Promise<PerformanceTestResult[]> {
-		await this.setupHeavyBoard()
-
 		const results: PerformanceTestResult[] = []
 
 		// Run all performance tests
+		await this.setupHeavyBoard()
 		results.push(await this.testShapeRotation())
+		await this.setupHeavyBoard()
 		results.push(await this.testShapeDragging())
+		await this.setupHeavyBoard()
 		results.push(await this.testCanvasPanning())
+		await this.setupHeavyBoard()
 		results.push(await this.testCanvasZooming())
 
 		return results

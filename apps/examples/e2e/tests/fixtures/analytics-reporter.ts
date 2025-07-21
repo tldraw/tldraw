@@ -153,7 +153,7 @@ export class PerformanceAnalyticsReporter {
 // Factory function to create analytics reporter with environment-based config
 export function createAnalyticsReporter(): PerformanceAnalyticsReporter {
 	const config: AnalyticsConfig = {
-		enabled: true,
+		enabled: process.env.PERFORMANCE_ANALYTICS_ENABLED === 'true',
 		projectKey: 'phc_i8oKgMzgV38sn3GfjswW9mevQ3gFlo7bJXekZFeDN6',
 		apiHost: process.env.POSTHOG_API_HOST || 'https://analytics.tldraw.com/ingest',
 	}

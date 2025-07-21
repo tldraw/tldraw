@@ -6,7 +6,7 @@ import { formatPerformanceResults, setupPerformanceTest } from './fixtures/perf-
 
 test.describe('Performance Tests', () => {
 	test.beforeEach(setup)
-	test.setTimeout(60000) // Increase timeout
+	test.setTimeout(120000) // Increase timeout
 	test.describe.configure({ mode: 'serial' }) // Run tests in series to avoid resource conflicts
 
 	test('Baseline FPS Performance - Desktop', async ({
