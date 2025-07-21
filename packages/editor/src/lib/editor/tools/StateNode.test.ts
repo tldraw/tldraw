@@ -36,6 +36,10 @@ describe('StateNode.addChild', () => {
 		}
 	}
 
+	class RootStateWithoutChildren extends StateNode {
+		static override id = 'rootWithoutChildren'
+	}
+
 	let editor: Editor
 
 	beforeEach(() => {
@@ -43,7 +47,15 @@ describe('StateNode.addChild', () => {
 			initialState: 'parent',
 			shapeUtils: [],
 			bindingUtils: [],
-			tools: [ParentState, ChildState1, ChildState2, ChildState3, LeafState, RootState],
+			tools: [
+				ParentState,
+				ChildState1,
+				ChildState2,
+				ChildState3,
+				LeafState,
+				RootState,
+				RootStateWithoutChildren,
+			],
 			store: createTLStore({ shapeUtils: [], bindingUtils: [] }),
 			getContainer: () => document.body,
 		})
@@ -153,6 +165,24 @@ describe('StateNode.addChild', () => {
 		// Original child should still exist and be the same instance
 		expect(parentState.children!['child1']).toBe(originalChild)
 		expect(parentState.children!['child1']).toBeInstanceOf(ChildState1)
+	})
+
+	it('should initialize children object for root nodes without static children', () => {
+		// Create a StateNode directly as a root node (no parent)
+		const mockEditor = {} as Editor
+		const rootStateWithoutChildren = new RootStateWithoutChildren(mockEditor, undefined)
+
+		// Root state without static children should not have children initially
+		expect(rootStateWithoutChildren.children).toBeUndefined()
+
+		// Adding a child should initialize the children object
+		rootStateWithoutChildren.addChild(ChildState2)
+
+		// Should now have children object with the added child
+		expect(rootStateWithoutChildren.children).toBeDefined()
+		expect(Object.keys(rootStateWithoutChildren.children!)).toHaveLength(1)
+		expect(rootStateWithoutChildren.children!['child2']).toBeDefined()
+		expect(rootStateWithoutChildren.children!['child2']).toBeInstanceOf(ChildState2)
 	})
 })
 

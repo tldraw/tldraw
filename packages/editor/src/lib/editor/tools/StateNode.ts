@@ -62,7 +62,7 @@ export abstract class StateNode implements Partial<TLEventHandlers> {
 
 		this.parent = parent ?? ({} as any)
 
-		if (this.parent) {
+		if (parent) {
 			if (children && initial) {
 				this.type = 'branch'
 				this.initial = initial
@@ -248,8 +248,13 @@ export abstract class StateNode implements Partial<TLEventHandlers> {
 			throw new Error('StateNode.addChild: cannot add child to a leaf node')
 		}
 
+		// Initialize children if it's undefined (for root nodes without static children)
+		if (!this.children) {
+			this.children = {}
+		}
+
 		const child = new childConstructor(this.editor, this)
-		this.children![child.id] = child
+		this.children[child.id] = child
 		return this
 	}
 
