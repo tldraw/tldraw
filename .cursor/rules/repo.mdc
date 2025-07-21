@@ -1,0 +1,34 @@
+---
+alwaysApply: true
+---
+
+This is the monorepo for tldraw, an infinite canvas whiteboard SDK.
+
+The monorepo uses yarn berry, and is organized using workspaces.
+
+The workspaces are:
+
+- apps/docs: the tldraw.dev next.js app, hosting our public facing website, written documentation, and generated reference documentation.
+- apps/examples: API examples showing how to use the tldraw sdk.
+- apps/dotcom/client: the front-end to the user-facing tldraw.com white-boarding app. the app adds file and user management functionality around the core tldraw whiteboard sdk.
+- apps/dotcom/sync-worker: the main backend cloudflare worker for tldraw.com.
+- apps/dotcom/asset-upload-worker: a cloudflare worker handling media asset uploads for tldraw.com.
+- apps/dotcom/image-resize-worker: a cloudflare worker handling image resizing and optimization for tldraw.com.
+- apps/analytics: our internal analytics service.
+- apps/bemo-worker: a cloudflare worker hosting a demo server for tldraw sync, our multi-player backend.
+- apps/vscode: the tldraw vscode extension.
+- internal/\*: internal utilities, mostly for running this repo.
+- packages/ai: the tldraw ai module, an sdk addon for working with LLMs.
+- packages/assets: the assets (fonts, icons, images) needed for tldraw.
+- packages/create-tldraw: `npm create tldraw` cli for quickly creating a tldraw app.
+- packages/dotcom-shared: shared utilities used by the `apps/dotcom` workspaces.
+- packages/editor: the core tldraw editor.
+- packages/state: our reactive signals library, used for state management throughout the repo.
+- packages/state-react: react bindings to our reactive signals library.
+- packages/store: the reactive client-side in-memory database used to store the tldraw document in the editor.
+- packages/sync & packages/sync-core: the tldraw sync multi-player sdk addon.
+- packages/tldraw: builds on the editor adding the specific shapes (arrows, boxes, etc), tools, and UI that are recognizably tldraw.
+- packages/tlschema: type definitions, validators, and migrations for the data used & stored by tldraw.
+- packages/utils: internal utilities and helpers. generic things we use a lot, but that aren't part of the public sdk api.
+- packages/validate: lightweight zod-inspired validation library.
+- templates/\*: starting points for building tldraw applications. some of these are minimal starters showing tldraw in different frameworks, but other are more comprehensive mini-apps showing how tldraw can be adapted to a specific domain / vertical.
