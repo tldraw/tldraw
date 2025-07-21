@@ -87,12 +87,6 @@
       "value": "Exportar como"
     }
   ],
-  "1460ab5e78": [
-    {
-      "type": 0,
-      "value": "Desenhos grátis"
-    }
-  ],
   "181b90f889": [
     {
       "type": 0,
@@ -157,6 +151,12 @@
     {
       "type": 0,
       "value": "Editor"
+    }
+  ],
+  "37b3dca331": [
+    {
+      "type": 0,
+      "value": "Por favor faça login"
     }
   ],
   "3bd1b98dbd": [
@@ -231,16 +231,10 @@
       "value": "Recarregar"
     }
   ],
-  "4e029798f2": [
+  "4ea0bb66f7": [
     {
       "type": 0,
-      "value": "Ações gratuitas"
-    }
-  ],
-  "4e875b8d8e": [
-    {
-      "type": 0,
-      "value": "Salvamentos gratuitos"
+      "value": "Uma conta seria legal"
     }
   ],
   "50db1b7e1e": [
@@ -319,6 +313,12 @@
       "value": "Navegador antigo detectado. Atualize seu navegador para usar este aplicativo."
     }
   ],
+  "5bef23eb7e": [
+    {
+      "type": 0,
+      "value": "Crie sua conta"
+    }
+  ],
   "5d26ae7550": [
     {
       "type": 0,
@@ -335,12 +335,6 @@
     {
       "type": 0,
       "value": "Copiar"
-    }
-  ],
-  "5ff75742e0": [
-    {
-      "type": 0,
-      "value": "Cadastre-se gratuitamente"
     }
   ],
   "61057a0c84": [
@@ -467,6 +461,12 @@
     {
       "type": 0,
       "value": "Restaurar versão"
+    }
+  ],
+  "7c7d5d493e": [
+    {
+      "type": 0,
+      "value": "Por favor inscreva-se"
     }
   ],
   "7cb5f8b4a5": [
@@ -727,6 +727,12 @@
       "value": "Usuário convidado"
     }
   ],
+  "b52dc007ac": [
+    {
+      "type": 0,
+      "value": "Cadastre-se (grátis e bom)"
+    }
+  ],
   "b6d4223e60": [
     {
       "type": 0,
@@ -863,6 +869,12 @@
       "value": "Sair"
     }
   ],
+  "c8c6a6504a": [
+    {
+      "type": 0,
+      "value": "Você deveria se inscrever"
+    }
+  ],
   "cceaefbc20": [
     {
       "type": 0,
@@ -909,6 +921,12 @@
     {
       "type": 0,
       "value": "Tente novamente"
+    }
+  ],
+  "d8a50c79a7": [
+    {
+      "type": 0,
+      "value": "Venha comigo desenhar"
     }
   ],
   "d9100f3e10": [

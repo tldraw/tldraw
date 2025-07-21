@@ -41,9 +41,6 @@
   "13ddd375ad": {
     "translation": "导出为"
   },
-  "1460ab5e78": {
-    "translation": "免费抽奖"
-  },
   "181b90f889": {
     "translation": "创建文件"
   },
@@ -76,6 +73,9 @@
   },
   "344a7f427f": {
     "translation": "编辑器"
+  },
+  "37b3dca331": {
+    "translation": "请登录"
   },
   "3bd1b98dbd": {
     "translation": "无法发布更改。"
@@ -113,11 +113,8 @@
   "4d1c8263ba": {
     "translation": "重新加载"
   },
-  "4e029798f2": {
-    "translation": "免费股票"
-  },
-  "4e875b8d8e": {
-    "translation": "免费保存"
+  "4ea0bb66f7": {
+    "translation": "有个账户就好了"
   },
   "50db1b7e1e": {
     "translation": "无法取消发布文件。"
@@ -152,6 +149,9 @@
   "5bec508475": {
     "translation": "检测到旧版浏览器。请更新您的浏览器以使用此应用。"
   },
+  "5bef23eb7e": {
+    "translation": "创建您的帐户"
+  },
   "5d26ae7550": {
     "translation": "在您登录前创建的部分内容未能成功上传。"
   },
@@ -160,9 +160,6 @@
   },
   "5fb63579fc": {
     "translation": "复制"
-  },
-  "5ff75742e0": {
-    "translation": "免费注册"
   },
   "61057a0c84": {
     "translation": "稍后"
@@ -226,6 +223,9 @@
   },
   "7be10fc592": {
     "translation": "恢复版本"
+  },
+  "7c7d5d493e": {
+    "translation": "请注册"
   },
   "7cb5f8b4a5": {
     "translation": "忘记"
@@ -336,6 +336,9 @@
   "b028909917": {
     "translation": "来宾用户"
   },
+  "b52dc007ac": {
+    "translation": "注册（免费且有效）"
+  },
   "b6d4223e60": {
     "translation": "登录"
   },
@@ -384,6 +387,9 @@
   "c87aacf567": {
     "translation": "退出登录"
   },
+  "c8c6a6504a": {
+    "translation": "你应该注册"
+  },
   "cceaefbc20": {
     "translation": "分享此文件"
   },
@@ -407,6 +413,9 @@
   },
   "d876a9fe1a": {
     "translation": "重试"
+  },
+  "d8a50c79a7": {
+    "translation": "跟我一起去tldraw"
   },
   "d9100f3e10": {
     "translation": "在这里查看内容"
