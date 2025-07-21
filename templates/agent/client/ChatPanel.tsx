@@ -1,5 +1,5 @@
 import { FormEventHandler, useCallback, useEffect, useRef, useState } from 'react'
-import { Editor, useLocalStorageState } from 'tldraw'
+import { Editor, uniqueId, useLocalStorageState } from 'tldraw'
 import { DEFAULT_MODEL_NAME, TLAgentModelName } from '../worker/models'
 import { $chatHistoryItems, ChatHistory } from './ChatHistory'
 import { ChatInput } from './ChatInput'
@@ -49,6 +49,7 @@ export function ChatPanel({ editor }: { editor: Editor }) {
 			$chatHistoryItems.update((prev) => [
 				...prev,
 				{
+					id: uniqueId(),
 					type: 'status-thinking',
 					message: request.review ? 'Reviewing' : 'Generating',
 					status: 'progress',
@@ -109,7 +110,7 @@ export function ChatPanel({ editor }: { editor: Editor }) {
 
 			$chatHistoryItems.update((prev) => [
 				...prev,
-				{ type: 'user-message', message: value, status: 'done' },
+				{ id: uniqueId(), type: 'user-message', message: value, status: 'done' },
 			])
 
 			$requestsSchedule.update((prev) => [

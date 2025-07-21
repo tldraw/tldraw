@@ -1,5 +1,16 @@
 import { useEffect, useRef } from 'react'
-import { atom, Editor, useReactor, useValue } from 'tldraw'
+import {
+	atom,
+	Editor,
+	ExecutionQueue,
+	isEqual,
+	RecordsDiff,
+	TLRecord,
+	TLShapeId,
+	useComputed,
+	useReactor,
+	useValue,
+} from 'tldraw'
 import {
 	AgentActionHistoryItem,
 	AgentChangeGroupHistoryItem,
@@ -10,11 +21,18 @@ import {
 	StatusThinkingHistoryItem,
 	UserMessageHistoryItem,
 } from './ChatHistoryItem'
+import { useTakeSnapshot } from './ShapesSnapshot'
 
 export const $chatHistoryItems = atom<ChatHistoryItem[]>('chatHistoryItems', [])
 
 export function ChatHistory({ editor }: { editor: Editor }) {
-	const items = useValue($chatHistoryItems)
+	const $mergedItems = useComputed(
+		'mergedItems',
+		() => getChatHistoryWithMergedAdjacentItems({ items: $chatHistoryItems.get() }),
+		{ isEqual },
+		[$chatHistoryItems]
+	)
+	const mergedItems = useValue($mergedItems)
 	const scrollContainerRef = useRef<HTMLDivElement>(null)
 	const previousScrollDistanceFromBottomRef = useRef(0)
 
@@ -44,7 +62,7 @@ export function ChatHistory({ editor }: { editor: Editor }) {
 			scrollContainerRef.current.scrollTop = scrollContainerRef.current.scrollHeight
 			previousScrollDistanceFromBottomRef.current = 0
 		}
-	}, [items])
+	}, [mergedItems])
 
 	const handleScroll = () => {
 		if (!scrollContainerRef.current) return
@@ -55,7 +73,51 @@ export function ChatHistory({ editor }: { editor: Editor }) {
 		previousScrollDistanceFromBottomRef.current = scrollDistanceFromBottom
 	}
 
-	const mergedItems = getChatHistoryWithMergedAdjacentItems({ items })
+	const takeSnapshot = useTakeSnapshot()
+
+	useEffect(() => {
+		const queue = new ExecutionQueue()
+		for (const item of mergedItems) {
+			if (item.type === 'agent-change' && item.status === 'done') {
+				console.log('pushing 1')
+				queue.push(async () => {
+					const shapeIds = getAffectedShapeIds(new Set(), item.diff)
+					const snapshot = await takeSnapshot({ ids: Array.from(shapeIds) })
+					console.log('took snapshot 1', snapshot)
+					if (snapshot) {
+						$chatHistoryItems.update((oldItems) =>
+							oldItems.map((v) => (v.id === item.id ? { ...v, snapshot } : v))
+						)
+					}
+				})
+			}
+			if (
+				item.type === 'agent-change-group' &&
+				item.status === 'done' &&
+				!item.items.at(-1)?.snapshot
+			) {
+				console.log('pushing 2')
+				const id = item.items.at(-1)!.id
+				queue.push(async () => {
+					console.log('pushing (2)', item.items.at(-1)!.id)
+					const shapeIds = new Set<TLShapeId>()
+					for (const { diff } of item.items) {
+						getAffectedShapeIds(shapeIds, diff)
+					}
+					console.log('shapeIds 2', shapeIds)
+					const snapshot = await takeSnapshot({ ids: Array.from(shapeIds) })
+					console.log('took snapshot 2', snapshot)
+					if (snapshot) {
+						$chatHistoryItems.update((oldItems) =>
+							oldItems.map((v) => (v.id === id ? { ...v, snapshot } : v))
+						)
+					}
+				})
+			}
+		}
+	}, [mergedItems, takeSnapshot])
+
+	console.log(mergedItems)
 
 	return (
 		<div className="chat-history" ref={scrollContainerRef} onScroll={handleScroll}>
@@ -80,6 +142,15 @@ export function ChatHistory({ editor }: { editor: Editor }) {
 		</div>
 	)
 }
+function getAffectedShapeIds(shapeIds: Set<TLShapeId>, diff: RecordsDiff<TLRecord>) {
+	for (const key in diff.added) {
+		shapeIds.add(key as TLShapeId)
+	}
+	for (const key in diff.updated) {
+		shapeIds.add(key as TLShapeId)
+	}
+	return shapeIds
+}
 
 function getChatHistoryWithMergedAdjacentItems({
 	items,
@@ -102,6 +173,7 @@ function getChatHistoryWithMergedAdjacentItems({
 			nextItem.acceptance === currentItem.acceptance
 		) {
 			const mergedItem: AgentChangeGroupHistoryItem = {
+				id: currentItem.id + ':' + nextItem.id,
 				type: 'agent-change-group',
 				items: [currentItem, nextItem],
 				status: nextItem.status,
@@ -112,6 +184,7 @@ function getChatHistoryWithMergedAdjacentItems({
 
 		if (currentItem.type === 'agent-change-group' && nextItem.type === 'agent-change') {
 			const mergedItem: AgentChangeGroupHistoryItem = {
+				id: currentItem.items[0].id + ':' + nextItem.id,
 				type: 'agent-change-group',
 				items: [...currentItem.items, nextItem],
 				status: nextItem.status,

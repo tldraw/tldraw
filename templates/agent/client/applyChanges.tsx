@@ -1,5 +1,5 @@
 import { TLAiStreamingChange, defaultApplyChange } from '@tldraw/ai'
-import { Editor, RecordsDiff, TLRecord } from 'tldraw'
+import { Editor, RecordsDiff, TLRecord, uniqueId } from 'tldraw'
 import { $chatHistoryItems } from './ChatHistory'
 import { ChatHistoryItem } from './ChatHistoryItem'
 import { $requestsSchedule } from './requestsSchedule'
@@ -24,6 +24,7 @@ function applyChangeToChatHistory({
 			switch (change.action) {
 				case 'message': {
 					createOrUpdateHistoryItem({
+						id: uniqueId(),
 						type: 'agent-message',
 						message: change.text,
 						status: change.complete ? 'done' : 'progress',
@@ -32,6 +33,7 @@ function applyChangeToChatHistory({
 				}
 				case 'think': {
 					createOrUpdateHistoryItem({
+						id: uniqueId(),
 						type: 'agent-action',
 						action: 'thinking',
 						status: change.complete ? 'done' : 'progress',
@@ -41,6 +43,7 @@ function applyChangeToChatHistory({
 				}
 				case 'schedule': {
 					createOrUpdateHistoryItem({
+						id: uniqueId(),
 						type: 'agent-action',
 						action: 'schedule',
 						status: change.complete ? 'done' : 'progress',
@@ -64,6 +67,7 @@ function applyChangeToChatHistory({
 				}
 				default: {
 					createOrUpdateHistoryItem({
+						id: uniqueId(),
 						type: 'agent-raw',
 						change,
 						status: change.complete ? 'done' : 'progress',
@@ -74,6 +78,7 @@ function applyChangeToChatHistory({
 		}
 		case 'createShape': {
 			createOrUpdateHistoryItem({
+				id: uniqueId(),
 				type: 'agent-change',
 				diff,
 				change,
@@ -84,6 +89,7 @@ function applyChangeToChatHistory({
 		}
 		case 'updateShape': {
 			createOrUpdateHistoryItem({
+				id: uniqueId(),
 				type: 'agent-change',
 				diff,
 				change,
@@ -94,6 +100,7 @@ function applyChangeToChatHistory({
 		}
 		case 'deleteShape': {
 			createOrUpdateHistoryItem({
+				id: uniqueId(),
 				type: 'agent-change',
 				diff,
 				change,

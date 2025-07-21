@@ -16,7 +16,7 @@ import { PencilIcon } from './icons/PencilIcon'
 import { RefreshIcon } from './icons/RefreshIcon'
 import { SearchIcon } from './icons/SearchIcon'
 import { TrashIcon } from './icons/TrashIcon'
-import TldrawViewer from './TldrawViewer'
+import { LiveShapesThumbnail, ShapeSnapshot, ShapesSnapshot } from './ShapesSnapshot'
 
 export type ChatHistoryItem =
 	| UserMessageHistoryItem
@@ -28,44 +28,52 @@ export type ChatHistoryItem =
 	| StatusThinkingHistoryItem
 
 export interface UserMessageHistoryItem {
+	id: string
 	type: 'user-message'
 	message: string
 	status: 'done'
 }
 
 export interface StatusThinkingHistoryItem {
+	id: string
 	type: 'status-thinking'
 	message: string
 	status: 'progress' | 'done' | 'cancelled'
 }
 
 export interface AgentMessageHistoryItem {
+	id: string
 	type: 'agent-message'
 	message: string
 	status: 'progress' | 'done' | 'cancelled'
 }
 
 export interface AgentChangeHistoryItem {
+	id: string
 	type: 'agent-change'
 	diff: RecordsDiff<TLRecord>
 	change: TLAiStreamingChange
 	status: 'progress' | 'done' | 'cancelled'
 	acceptance: 'accepted' | 'rejected' | 'pending'
+	snapshot?: ShapesSnapshot
 }
 
 export interface AgentChangeGroupHistoryItem {
+	id: string
 	type: 'agent-change-group'
 	items: AgentChangeHistoryItem[]
 	status: 'progress' | 'done' | 'cancelled'
 }
 
 export interface AgentRawHistoryItem {
+	id: string
 	type: 'agent-raw'
 	change: TLAiStreamingChange
 	status: 'progress' | 'done' | 'cancelled'
 }
 
 export interface AgentActionHistoryItem {
+	id: string
 	type: 'agent-action'
 	action: 'thinking' | 'creating' | 'deleting' | 'updating' | 'schedule'
 	status: 'progress' | 'done' | 'cancelled'
@@ -160,6 +168,7 @@ export function AgentChangeHistoryItems({
 	editor: Editor
 }) {
 	const diffShapes = items.map((item) => getDiffShapesFromDiff({ diff: item.diff })).flat()
+	const shapeIds = new Set<TLShapeId>(diffShapes.map((shape) => shape.id))
 
 	const handleAccept = useCallback(() => {
 		$chatHistoryItems.update((oldItems) => {
@@ -208,7 +217,14 @@ export function AgentChangeHistoryItems({
 					</span>
 				)}
 			</div>
-			<TldrawViewer shapes={diffShapes} />
+			{/* <TldrawViewer shapes={diffShapes} /> */}
+			<div className="tldraw-viewer">
+				{items.at(-1)?.snapshot ? (
+					<ShapeSnapshot snapshot={items.at(-1)!.snapshot!} />
+				) : (
+					<LiveShapesThumbnail ids={Array.from(shapeIds)} />
+				)}
+			</div>
 		</div>
 	)
 }

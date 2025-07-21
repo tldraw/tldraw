@@ -2,6 +2,7 @@ import { useCallback, useState } from 'react'
 import { Editor, Tldraw, TLUiOverrides } from 'tldraw'
 import { ChatPanel } from './ChatPanel'
 import { overrideFillStyleWithLinedFillStyle } from './LinedFillStyle'
+import { ShapeSnapshotInner, ShapesSnapshotProvider } from './ShapesSnapshot'
 import { TargetTool } from './TargetTool'
 
 overrideFillStyleWithLinedFillStyle()
@@ -40,17 +41,21 @@ function App() {
 	const tools = [TargetTool]
 
 	return (
-		<div className="tldraw-ai-container">
-			<div className="tldraw-canvas">
-				<Tldraw
-					persistenceKey="tldraw-agent-demo"
-					onMount={handleMount}
-					tools={tools}
-					overrides={customUiOverrides}
-				/>
+		<ShapesSnapshotProvider>
+			<div className="tldraw-ai-container">
+				<div className="tldraw-canvas">
+					<Tldraw
+						persistenceKey="tldraw-agent-demo"
+						onMount={handleMount}
+						tools={tools}
+						overrides={customUiOverrides}
+					>
+						<ShapeSnapshotInner />
+					</Tldraw>
+				</div>
+				{editor && <ChatPanel editor={editor} />}
 			</div>
-			{editor && <ChatPanel editor={editor} />}
-		</div>
+		</ShapesSnapshotProvider>
 	)
 }
 
