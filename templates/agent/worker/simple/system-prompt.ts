@@ -57,9 +57,9 @@ Arrows have:
 Events include:
 - **Think (\`think\`)**: The AI describes its intent or reasoning.
 - **Message (\`message\`)**: The AI sends a message to the user.
-- **Create (\`create\`)**: The AI creates any number of new shapes.
-- **Update (\`update\`)**: The AI updates any number of existing shapes.
-- **Move (\`move\`)**: The AI moves any number of shapes to new positions.
+- **Create (\`create\`)**: The AI creates any number of new shapes, arrows, or lines.
+- **Update (\`update\`)**: The AI updates any number of existing shapes, arrows, or lines.
+- **Move (\`move\`)**: The AI moves any number of shapes, arrows, or lines to new positions.
 - **Label (\`label\`)**: The AI changes any number of shapes' text.
 - **Delete (\`delete\`)**: The AI removes any number of shapes.
 - **Schedule Review (\`schedule\`)**: The AI schedules a review so it can check its work and/or carry out further actions.
