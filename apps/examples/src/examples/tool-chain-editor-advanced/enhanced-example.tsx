@@ -25,9 +25,6 @@ export default function EnhancedToolChainEditorExample() {
 		setStatistics(toolRegistry.getStatistics())
 	}, [toolRegistry])
 
-	// Keep generated nodes and edges permanently
-	// Removed auto-clear logic - toolchains will now persist
-
 	// Handle workflow change
 	const handleWorkflowChange = (newWorkflow: any) => {
 		setWorkflow(newWorkflow)
@@ -102,157 +99,102 @@ export default function EnhancedToolChainEditorExample() {
 
 		setLoading(true)
 		try {
-			// Workflow execution logic can be implemented here
-			console.log('Executing workflow:', workflow)
-			alert('Workflow execution completed!')
+			// Simulate workflow execution
+			await new Promise((resolve) => setTimeout(resolve, 2000))
+			alert('Workflow executed successfully!')
 		} catch (error) {
-			console.error('Workflow execution failed:', error)
-			alert('Workflow execution failed')
+			console.error('Failed to execute workflow:', error)
+			alert('Failed to execute workflow')
 		} finally {
 			setLoading(false)
 		}
 	}
 
-	// Handle toolchain generation from chatbot
+	// Handle toolchain generation
 	const handleGenerateToolchain = (nodes: any[], edges: any[]) => {
-		console.log('🔄 Received generated toolchain:', { nodes, edges })
-
-		// Clear any existing workflow first
-		setWorkflow(null)
-
-		// Set the generated nodes and edges
 		setGeneratedNodes(nodes)
 		setGeneratedEdges(edges)
-
-		// Update the workflow with the generated toolchain
-		const newWorkflow = { nodes, edges }
-		setWorkflow(newWorkflow)
-		handleWorkflowChange(newWorkflow)
-		console.log('✅ Toolchain applied to workflow:', newWorkflow)
+		console.log('Generated toolchain:', { nodes, edges })
 	}
 
-	// Reset workflow function
+	// Reset workflow
 	const resetWorkflow = () => {
 		setWorkflow(null)
+		setResults({})
 		setGeneratedNodes([])
 		setGeneratedEdges([])
-		console.log('🔄 Workflow reset')
 	}
 
 	return (
-		<div
-			style={{
-				position: 'relative',
-				width: '100vw',
-				height: '100vh',
-				background: '#f8f9fa',
-				display: 'flex',
-				flexDirection: 'column',
-				overflow: 'hidden',
-			}}
-		>
-			{/* Compact Header */}
+		<div className="tldraw__editor">
+			{/* Floating Control Panel */}
 			<div
 				style={{
-					padding: '12px 20px',
-					borderBottom: '1px solid #e0e0e0',
-					background: '#fff',
-					boxShadow: '0 2px 4px rgba(0,0,0,0.1)',
-					zIndex: 100,
+					position: 'absolute',
+					top: 20,
+					right: 20,
+					zIndex: 1000,
+					background: 'rgba(255, 255, 255, 0.95)',
+					border: '1px solid #e0e0e0',
+					borderRadius: 8,
+					padding: 16,
+					boxShadow: '0 4px 12px rgba(0,0,0,0.15)',
+					backdropFilter: 'blur(10px)',
+					minWidth: 200,
 				}}
 			>
-				<div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
-					<div>
-						<h1
-							style={{
-								margin: '0 0 4px 0',
-								fontSize: 20,
-								fontWeight: 'bold',
-								color: '#333',
-							}}
-						>
-							🚀 Enhanced Tool Chain Editor
-						</h1>
-						<p
-							style={{
-								margin: 0,
-								color: '#666',
-								fontSize: 12,
-							}}
-						>
-							Advanced workflow editor with toolset management
-						</p>
-					</div>
-
-					{/* Statistics */}
+				<div style={{ marginBottom: 12 }}>
+					<h3 style={{ margin: '0 0 8px 0', fontSize: 16, fontWeight: 'bold' }}>
+						🚀 Enhanced Tool Chain Editor
+					</h3>
 					{statistics && (
-						<div
-							style={{
-								display: 'flex',
-								gap: 12,
-								marginRight: 20,
-							}}
-						>
-							<div
-								style={{
-									padding: '4px 8px',
-									background: '#e3f2fd',
-									borderRadius: 4,
-									fontSize: 11,
-									color: '#1976d2',
-								}}
-							>
-								📦 {statistics.totalToolSets} Sets
-							</div>
-							<div
-								style={{
-									padding: '4px 8px',
-									background: '#e8f5e8',
-									borderRadius: 4,
-									fontSize: 11,
-									color: '#2e7d32',
-								}}
-							>
-								🛠️ {statistics.totalTools} Tools
-							</div>
-							<div
-								style={{
-									padding: '4px 8px',
-									background: '#fff3cd',
-									borderRadius: 4,
-									fontSize: 11,
-									color: '#856404',
-								}}
-							>
-								📂 {statistics.categories} Categories
-							</div>
+						<div style={{ fontSize: 11, color: '#666' }}>
+							📦 {statistics.totalToolSets} Sets • 🛠️ {statistics.totalTools} Tools • 📂{' '}
+							{statistics.categories} Categories
 						</div>
 					)}
+				</div>
 
-					{/* Action Buttons */}
-					<div style={{ display: 'flex', gap: 8 }}>
-						<button
-							onClick={() => setShowChatbot(true)}
-							style={{
-								padding: '6px 12px',
-								background: '#6f42c1',
-								color: 'white',
-								border: 'none',
-								borderRadius: 4,
-								cursor: 'pointer',
-								fontSize: 12,
-								fontWeight: '500',
-							}}
-						>
-							🤖 AI Generator
-						</button>
+				<div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
+					<button
+						onClick={() => setShowChatbot(true)}
+						style={{
+							padding: '8px 12px',
+							background: '#6f42c1',
+							color: 'white',
+							border: 'none',
+							borderRadius: 4,
+							cursor: 'pointer',
+							fontSize: 12,
+							fontWeight: '500',
+						}}
+					>
+						🤖 AI Generator
+					</button>
 
+					<button
+						onClick={() => setShowToolSets(!showToolSets)}
+						style={{
+							padding: '8px 12px',
+							background: showToolSets ? '#007bff' : '#f8f9fa',
+							color: showToolSets ? 'white' : '#333',
+							border: '1px solid #dee2e6',
+							borderRadius: 4,
+							cursor: 'pointer',
+							fontSize: 12,
+							fontWeight: '500',
+						}}
+					>
+						📋 Tool Sets
+					</button>
+
+					{workflow && (
 						<button
-							onClick={() => setShowToolSets(!showToolSets)}
+							onClick={() => setShowWorkflowInfo(!showWorkflowInfo)}
 							style={{
-								padding: '6px 12px',
-								background: showToolSets ? '#007bff' : '#f8f9fa',
-								color: showToolSets ? 'white' : '#333',
+								padding: '8px 12px',
+								background: showWorkflowInfo ? '#28a745' : '#f8f9fa',
+								color: showWorkflowInfo ? 'white' : '#333',
 								border: '1px solid #dee2e6',
 								borderRadius: 4,
 								cursor: 'pointer',
@@ -260,40 +202,23 @@ export default function EnhancedToolChainEditorExample() {
 								fontWeight: '500',
 							}}
 						>
-							📋 Tool Sets
+							🔗 Workflow
 						</button>
+					)}
 
-						{workflow && (
-							<button
-								onClick={() => setShowWorkflowInfo(!showWorkflowInfo)}
-								style={{
-									padding: '6px 12px',
-									background: showWorkflowInfo ? '#28a745' : '#f8f9fa',
-									color: showWorkflowInfo ? 'white' : '#333',
-									border: '1px solid #dee2e6',
-									borderRadius: 4,
-									cursor: 'pointer',
-									fontSize: 12,
-									fontWeight: '500',
-								}}
-							>
-								🔗 Workflow
-							</button>
-						)}
-
+					<div style={{ display: 'flex', gap: 4 }}>
 						<button
 							onClick={loadToolSetsFromBackend}
 							disabled={loading}
 							title="Load ToolSets"
 							style={{
-								padding: '6px 12px',
+								padding: '6px 8px',
 								background: loading ? '#ccc' : '#6c757d',
 								color: 'white',
 								border: 'none',
 								borderRadius: 4,
 								cursor: loading ? 'not-allowed' : 'pointer',
-								fontSize: 12,
-								fontWeight: '500',
+								fontSize: 11,
 							}}
 						>
 							{loading ? '⏳' : '📥'}
@@ -304,14 +229,13 @@ export default function EnhancedToolChainEditorExample() {
 							disabled={!workflow}
 							title="Save Workflow"
 							style={{
-								padding: '6px 12px',
+								padding: '6px 8px',
 								background: !workflow ? '#ccc' : '#28a745',
 								color: 'white',
 								border: 'none',
 								borderRadius: 4,
 								cursor: !workflow ? 'not-allowed' : 'pointer',
-								fontSize: 12,
-								fontWeight: '500',
+								fontSize: 11,
 							}}
 						>
 							💾
@@ -322,14 +246,13 @@ export default function EnhancedToolChainEditorExample() {
 							disabled={!workflow || loading}
 							title="Run Workflow"
 							style={{
-								padding: '6px 12px',
+								padding: '6px 8px',
 								background: !workflow || loading ? '#ccc' : '#ffc107',
 								color: 'white',
 								border: 'none',
 								borderRadius: 4,
 								cursor: !workflow || loading ? 'not-allowed' : 'pointer',
-								fontSize: 12,
-								fontWeight: '500',
+								fontSize: 11,
 							}}
 						>
 							{loading ? '⏳' : '▶️'}
@@ -340,14 +263,13 @@ export default function EnhancedToolChainEditorExample() {
 							disabled={!workflow}
 							title="Reset Workflow"
 							style={{
-								padding: '6px 12px',
+								padding: '6px 8px',
 								background: !workflow ? '#ccc' : '#dc3545',
 								color: 'white',
 								border: 'none',
 								borderRadius: 4,
 								cursor: !workflow ? 'not-allowed' : 'pointer',
-								fontSize: 12,
-								fontWeight: '500',
+								fontSize: 11,
 							}}
 						>
 							🔄
@@ -356,21 +278,29 @@ export default function EnhancedToolChainEditorExample() {
 				</div>
 			</div>
 
-			{/* Collapsible Tool Sets Info */}
+			{/* Floating Tool Sets Info */}
 			{showToolSets && (
 				<div
 					style={{
-						padding: '12px 20px',
-						background: '#fff',
-						borderBottom: '1px solid #e0e0e0',
-						maxHeight: 200,
+						position: 'absolute',
+						top: 20,
+						left: 20,
+						zIndex: 1000,
+						background: 'rgba(255, 255, 255, 0.95)',
+						border: '1px solid #e0e0e0',
+						borderRadius: 8,
+						padding: 16,
+						boxShadow: '0 4px 12px rgba(0,0,0,0.15)',
+						backdropFilter: 'blur(10px)',
+						maxWidth: 300,
+						maxHeight: 400,
 						overflow: 'auto',
 					}}
 				>
-					<h3 style={{ margin: '0 0 8px 0', fontSize: 14, fontWeight: 'bold' }}>
+					<h3 style={{ margin: '0 0 12px 0', fontSize: 14, fontWeight: 'bold' }}>
 						📋 Available Tool Sets
 					</h3>
-					<div style={{ display: 'flex', flexWrap: 'wrap', gap: 8 }}>
+					<div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
 						{toolSets.map((toolSet) => (
 							<div
 								key={toolSet.id}
@@ -379,7 +309,6 @@ export default function EnhancedToolChainEditorExample() {
 									background: '#f8f9fa',
 									border: '1px solid #e9ecef',
 									borderRadius: 4,
-									minWidth: 180,
 									fontSize: 11,
 								}}
 							>
@@ -406,15 +335,20 @@ export default function EnhancedToolChainEditorExample() {
 				</div>
 			)}
 
-			{/* Collapsible Workflow Info */}
+			{/* Floating Workflow Info */}
 			{showWorkflowInfo && workflow && (
 				<div
 					style={{
-						padding: '12px 20px',
-						background: '#fff',
-						borderBottom: '1px solid #e0e0e0',
-						maxHeight: 120,
-						overflow: 'auto',
+						position: 'absolute',
+						bottom: 20,
+						left: 20,
+						zIndex: 1000,
+						background: 'rgba(255, 255, 255, 0.95)',
+						border: '1px solid #e0e0e0',
+						borderRadius: 8,
+						padding: 16,
+						boxShadow: '0 4px 12px rgba(0,0,0,0.15)',
+						backdropFilter: 'blur(10px)',
 					}}
 				>
 					<h3 style={{ margin: '0 0 8px 0', fontSize: 14, fontWeight: 'bold' }}>
@@ -428,23 +362,14 @@ export default function EnhancedToolChainEditorExample() {
 				</div>
 			)}
 
-			{/* Main Tool Chain Editor - occupies remaining space */}
-			<div
-				style={{
-					flex: 1,
-					minHeight: 0,
-					position: 'relative',
-					background: '#f8f9fa',
-				}}
-			>
-				<EnhancedToolChainEditor
-					toolSets={toolSets}
-					onWorkflowChange={handleWorkflowChange}
-					onToolSetLoad={handleToolSetLoad}
-					generatedNodes={generatedNodes}
-					generatedEdges={generatedEdges}
-				/>
-			</div>
+			{/* Main Tool Chain Editor - Full Screen */}
+			<EnhancedToolChainEditor
+				toolSets={toolSets}
+				onWorkflowChange={handleWorkflowChange}
+				onToolSetLoad={handleToolSetLoad}
+				generatedNodes={generatedNodes}
+				generatedEdges={generatedEdges}
+			/>
 
 			{/* Chatbot Toolchain Parser */}
 			{showChatbot && (
@@ -453,149 +378,6 @@ export default function EnhancedToolChainEditorExample() {
 					onClose={() => setShowChatbot(false)}
 				/>
 			)}
-		</div>
-	)
-}
-
-// ==================== Tool Set Manager Component ====================
-
-interface ToolSetManagerProps {
-	toolRegistry: EnhancedToolRegistry
-	onToolSetLoad: (toolSetId: string) => void
-}
-
-export function ToolSetManager({ toolRegistry, onToolSetLoad }: ToolSetManagerProps) {
-	const [selectedCategory, setSelectedCategory] = useState<string>('all')
-	const [searchQuery, setSearchQuery] = useState<string>('')
-
-	const categories = ['all', ...toolRegistry.getAllCategories()]
-	const toolSets =
-		selectedCategory === 'all'
-			? toolRegistry.getAllToolSets()
-			: toolRegistry.getToolSetsByCategory(selectedCategory)
-
-	const filteredToolSets = searchQuery
-		? toolSets.filter(
-				(toolSet) =>
-					toolSet.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
-					toolSet.description.toLowerCase().includes(searchQuery.toLowerCase())
-			)
-		: toolSets
-
-	return (
-		<div
-			style={{
-				padding: 20,
-				background: '#fff',
-				border: '1px solid #e0e0e0',
-				borderRadius: 8,
-				marginBottom: 20,
-			}}
-		>
-			<h3 style={{ margin: '0 0 16px 0', fontSize: 18 }}>📦 Tool Set Manager</h3>
-
-			{/* Search and Filter */}
-			<div style={{ display: 'flex', gap: 12, marginBottom: 16 }}>
-				<input
-					type="text"
-					placeholder="Search tool sets..."
-					value={searchQuery}
-					onChange={(e) => setSearchQuery(e.target.value)}
-					style={{
-						flex: 1,
-						padding: '8px 12px',
-						border: '1px solid #ddd',
-						borderRadius: 4,
-						fontSize: 14,
-					}}
-				/>
-				<select
-					value={selectedCategory}
-					onChange={(e) => setSelectedCategory(e.target.value)}
-					style={{
-						padding: '8px 12px',
-						border: '1px solid #ddd',
-						borderRadius: 4,
-						fontSize: 14,
-					}}
-				>
-					{categories.map((category) => (
-						<option key={category} value={category}>
-							{category === 'all' ? 'All Categories' : category}
-						</option>
-					))}
-				</select>
-			</div>
-
-			{/* Tool Set List */}
-			<div style={{ display: 'flex', flexWrap: 'wrap', gap: 12 }}>
-				{filteredToolSets.map((toolSet) => (
-					<div
-						key={toolSet.id}
-						style={{
-							padding: '16px',
-							background: '#f8f9fa',
-							border: '1px solid #e9ecef',
-							borderRadius: 6,
-							minWidth: 250,
-							flex: 1,
-						}}
-					>
-						<div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 8 }}>
-							<span style={{ fontSize: 24 }}>{toolSet.icon}</span>
-							<div>
-								<h4 style={{ margin: 0, fontSize: 16, fontWeight: 'bold' }}>{toolSet.name}</h4>
-								<div style={{ fontSize: 12, color: '#666' }}>{toolSet.category}</div>
-							</div>
-						</div>
-
-						<p
-							style={{
-								margin: '0 0 12px 0',
-								fontSize: 13,
-								color: '#666',
-								lineHeight: 1.4,
-							}}
-						>
-							{toolSet.description}
-						</p>
-
-						<div
-							style={{
-								display: 'flex',
-								justifyContent: 'space-between',
-								alignItems: 'center',
-								fontSize: 12,
-								color: '#888',
-							}}
-						>
-							<span>🛠️ {toolSet.tools.length} tools</span>
-							<span>📅 {new Date(toolSet.metadata?.lastUpdated || '').toLocaleDateString()}</span>
-						</div>
-
-						{toolSet.metadata?.tags && (
-							<div style={{ marginTop: 8 }}>
-								{toolSet.metadata.tags.map((tag: string) => (
-									<span
-										key={tag}
-										style={{
-											display: 'inline-block',
-											padding: '2px 6px',
-											background: '#e3f2fd',
-											color: '#1976d2',
-											borderRadius: 3,
-											fontSize: 10,
-											marginRight: 4,
-										}}
-									>
-										{tag}
-									</span>
-								))}
-							</div>
-						)}
-					</div>
-				))}
-			</div>
 		</div>
 	)
 }
