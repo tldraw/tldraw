@@ -9,8 +9,8 @@ import {
 	TldrawUiDialogHeader,
 	TldrawUiDialogTitle,
 	useDialogs,
-	useUiEvents,
 } from 'tldraw'
+import { useTldrawAppUiEvents } from './app-ui-events'
 import { F } from './i18n'
 
 function RoomSizeWarningDialog({ onClose }: { onClose(): void }) {
@@ -65,7 +65,7 @@ function RoomSizeLimitDialog({ onClose }: { onClose(): void }) {
  */
 export function useRoomSizeMessageHandler() {
 	const { addDialog } = useDialogs()
-	const trackEvent = useUiEvents()
+	const trackEvent = useTldrawAppUiEvents()
 
 	const onMessage = useCallback(
 		(messageType: TLServerMessageType) => {
