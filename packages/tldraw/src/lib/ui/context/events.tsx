@@ -127,6 +127,8 @@ export interface TLUiEventMap {
 	'adjust-shape-styles': null
 	'copy-link': null
 	'image-replace': null
+	'room-size-warning-dialog-shown': { source: string }
+	'room-size-limit-dialog-shown': { source: string }
 	'video-replace': null
 	'open-kbd-shortcuts': null
 	'rich-text': {

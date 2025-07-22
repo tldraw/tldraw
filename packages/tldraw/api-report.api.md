@@ -3677,6 +3677,14 @@ export interface TLUiEventMap {
         operation: 'bold' | 'bulletList' | 'heading' | 'link-edit' | 'link-remove' | 'link-visit' | 'link' | 'strike';
     };
     // (undocumented)
+    'room-size-limit-dialog-shown': {
+        source: string;
+    };
+    // (undocumented)
+    'room-size-warning-dialog-shown': {
+        source: string;
+    };
+    // (undocumented)
     'rotate-ccw': null;
     // (undocumented)
     'rotate-cw': null;

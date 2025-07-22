@@ -9,6 +9,7 @@ import {
 	TldrawUiDialogHeader,
 	TldrawUiDialogTitle,
 	useDialogs,
+	useUiEvents,
 } from 'tldraw'
 import { F } from './i18n'
 
@@ -68,11 +69,13 @@ function RoomSizeLimitDialog({ onClose }: { onClose(): void }) {
  */
 export function useRoomSizeMessageHandler() {
 	const { addDialog } = useDialogs()
+	const trackEvent = useUiEvents()
 
 	const onMessage = useCallback(
 		(messageType: TLServerMessageType) => {
 			switch (messageType) {
 				case 'room_size_warning':
+					trackEvent('room-size-warning-dialog-shown', { source: 'dialog' })
 					addDialog({
 						component: ({ onClose }: { onClose(): void }) => (
 							<RoomSizeWarningDialog onClose={onClose} />
@@ -80,6 +83,7 @@ export function useRoomSizeMessageHandler() {
 					})
 					break
 				case 'room_size_limit_reached':
+					trackEvent('room-size-limit-dialog-shown', { source: 'dialog' })
 					addDialog({
 						component: ({ onClose }: { onClose(): void }) => (
 							<RoomSizeLimitDialog onClose={onClose} />
@@ -88,7 +92,7 @@ export function useRoomSizeMessageHandler() {
 					break
 			}
 		},
-		[addDialog]
+		[addDialog, trackEvent]
 	)
 
 	return onMessage
