@@ -32,7 +32,7 @@
 	"files": [],
 	"scripts": {
 		"test-ci": "lazy inherit",
-		"test": "yarn run -T jest",
+		"test": "yarn run -T vitest run",
 		"test-coverage": "lazy inherit",
 		"build": "yarn run -T tsx ../../internal/scripts/build-package.ts",
 		"build-api": "yarn run -T tsx ../../internal/scripts/build-api.ts",
@@ -41,14 +41,8 @@
 		"pack-tarball": "yarn pack",
 		"lint": "yarn run -T tsx ../../internal/scripts/lint.ts"
 	},
-	"jest": {
-		"preset": "../../internal/config/jest/node/jest-preset.js",
-		"setupFiles": [
-			"raf/polyfill"
-		],
-		"moduleNameMapper": {
-			"^~(.*)": "<rootDir>/src/$1"
-		}
+	"vitest": {
+		"config": "../../internal/config/vitest/vitest.config.ts"
 	},
 	"devDependencies": {
 		"@types/lodash": "^4.17.14",

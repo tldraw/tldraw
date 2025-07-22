@@ -13,7 +13,7 @@
 	"scripts": {
 		"dev": "yarn run -T tsx ../../internal/scripts/workers/dev.ts",
 		"test-ci": "lazy inherit",
-		"test": "yarn run -T jest",
+		"test": "yarn run -T vitest run",
 		"test-coverage": "lazy inherit",
 		"check-bundle-size": "yarn run -T tsx ../../internal/scripts/check-worker-bundle.ts --entry src/worker.ts --size-limit-bytes 350000",
 		"lint": "yarn run -T tsx ../../internal/scripts/lint.ts"
@@ -39,10 +39,7 @@
 		"typescript": "^5.8.3",
 		"wrangler": "^4.23.0"
 	},
-	"jest": {
-		"preset": "../../internal/config/jest/node/jest-preset.js",
-		"moduleNameMapper": {
-			"^~(.*)": "<rootDir>/src/$1"
-		}
+	"vitest": {
+		"config": "../../internal/config/vitest/vitest.config.ts"
 	}
 }

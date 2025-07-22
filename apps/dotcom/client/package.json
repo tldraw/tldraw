@@ -17,7 +17,7 @@
 		"start": "VITE_PREVIEW=1 yarn run -T tsx scripts/dev-app.ts",
 		"lint": "yarn run -T tsx ../../../internal/scripts/lint.ts",
 		"test-ci": "lazy inherit",
-		"test": "yarn run -T jest",
+		"test": "yarn run -T vitest run",
 		"i18n:extract": "formatjs extract 'src/{tla,pages,components}/**/*.ts*' --out-file public/tla/locales/en.json --additional-component-names F --id-interpolation-pattern '[md5:contenthash:hex:10]' --format lokalise",
 		"i18n:compile": "formatjs compile-folder public/tla/locales public/tla/locales-compiled --format lokalise --ast",
 		"e2e": "rm -rf 'e2e/.auth' && yarn playwright test --project=chromium",
@@ -57,7 +57,6 @@
 	"devDependencies": {
 		"@clerk/testing": "^1.4.15",
 		"@formatjs/cli": "^6.5.1",
-		"@jest/globals": "30.0.0-alpha.2",
 		"@playwright/test": "^1.50.0",
 		"@sentry/cli": "^2.41.1",
 		"@swc/plugin-formatjs": "^5.1.1",
@@ -79,23 +78,10 @@
 		"vite": "^7.0.1",
 		"ws": "^8.18.0"
 	},
-	"jest": {
-		"preset": "../../../internal/config/jest/node/jest-preset.js",
-		"roots": [
-			"<rootDir>"
-		],
-		"testEnvironment": "../../../packages/utils/patchedJestJsDom.js",
-		"transformIgnorePatterns": [
-			"node_modules/(?!(nanoevents)/)"
-		],
-		"moduleNameMapper": {
-			"\\.(css|less)$": "identity-obj-proxy"
-		},
+	"vitest": {
+		"config": "../../../internal/config/vitest/vitest-browser.config.ts",
 		"setupFiles": [
 			"./setupTests.js"
-		],
-		"testPathIgnorePatterns": [
-			"/e2e/"
 		]
 	}
 }

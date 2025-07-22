@@ -32,7 +32,7 @@
 	"files": [],
 	"scripts": {
 		"test-ci": "lazy inherit",
-		"test": "yarn run -T jest",
+		"test": "yarn run -T vitest run",
 		"test-coverage": "lazy inherit",
 		"build": "yarn run -T tsx ../../internal/scripts/build-package.ts",
 		"build-api": "yarn run -T tsx ../../internal/scripts/build-api.ts",
@@ -53,14 +53,7 @@
 		"lazyrepo": "0.0.0-alpha.27",
 		"raf": "^3.4.1"
 	},
-	"jest": {
-		"preset": "../../internal/config/jest/node/jest-preset.js",
-		"setupFiles": [
-			"./setupTests.js",
-			"raf/polyfill"
-		],
-		"moduleNameMapper": {
-			"^~(.*)": "<rootDir>/src/$1"
-		}
+	"vitest": {
+		"config": "../../internal/config/vitest/vitest.config.ts"
 	}
 }

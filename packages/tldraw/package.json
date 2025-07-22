@@ -30,7 +30,7 @@
 	"types": "./.tsbuild/index.d.ts",
 	"scripts": {
 		"test-ci": "lazy inherit",
-		"test": "yarn run -T jest",
+		"test": "yarn run -T vitest run",
 		"test-coverage": "lazy inherit",
 		"predev": "node ./scripts/copy-css-files.mjs",
 		"dev": "chokidar '../{editor/editor,tldraw/src/lib/ui}.css' -c 'node ./scripts/copy-css-files.mjs'",
@@ -80,26 +80,12 @@
 		"react-dom": "^18.3.1",
 		"resize-observer-polyfill": "^1.5.1"
 	},
-	"jest": {
-		"preset": "../../internal/config/jest/node/jest-preset.js",
-		"testEnvironment": "../../../packages/utils/patchedJestJsDom.js",
-		"fakeTimers": {
-			"enableGlobally": true
-		},
-		"testPathIgnorePatterns": [
-			"^.+\\.*.css$"
-		],
-		"moduleNameMapper": {
-			"^~(.*)": "<rootDir>/src/$1",
-			"\\.(css|less|scss|sass)$": "identity-obj-proxy"
-		},
+	"vitest": {
+		"config": "../../internal/config/vitest/vitest-browser.config.ts",
 		"setupFiles": [
 			"raf/polyfill",
 			"jest-canvas-mock",
 			"<rootDir>/setupTests.js"
-		],
-		"setupFilesAfterEnv": [
-			"../../internal/config/setupJest.ts"
 		]
 	}
 }

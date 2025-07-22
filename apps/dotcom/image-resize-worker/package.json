@@ -11,7 +11,7 @@
 	"scripts": {
 		"dev": "yarn run -T tsx ../../../internal/scripts/workers/dev.ts --inspector-port 9339",
 		"test-ci": "lazy inherit --passWithNoTests",
-		"test": "yarn run -T jest --passWithNoTests",
+		"test": "yarn run -T vitest run --passWithNoTests",
 		"test-coverage": "lazy inherit --passWithNoTests",
 		"lint": "yarn run -T tsx ../../../internal/scripts/lint.ts"
 	},
@@ -28,10 +28,7 @@
 		"lazyrepo": "0.0.0-alpha.27",
 		"wrangler": "^4.23.0"
 	},
-	"jest": {
-		"preset": "../../../internal/config/jest/node/jest-preset.js",
-		"moduleNameMapper": {
-			"^~(.*)": "<rootDir>/src/$1"
-		}
+	"vitest": {
+		"config": "../../../internal/config/vitest/vitest.config.ts"
 	}
 }
