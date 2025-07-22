@@ -62,7 +62,7 @@ const config = {
 			cache: 'none',
 		},
 		'test-ci': {
-			baseCommand: 'yarn run -T jest',
+			baseCommand: 'yarn run -T vitest run',
 			runsAfter: { 'refresh-assets': {} },
 			cache: {
 				inputs: {
@@ -71,7 +71,7 @@ const config = {
 			},
 		},
 		'test-coverage': {
-			baseCommand: 'yarn run -T jest --coverage',
+			baseCommand: 'yarn run -T vitest run --coverage',
 			runsAfter: { 'refresh-assets': {} },
 		},
 		lint: {
