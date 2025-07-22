@@ -1,13 +1,14 @@
 import { useCallback, useState } from 'react'
-import { Editor, ErrorBoundary, Tldraw, TLUiOverrides } from 'tldraw'
+import { Editor, ErrorBoundary, TLComponents, Tldraw, TLUiOverrides } from 'tldraw'
 import { ChatPanel } from './ChatPanel'
+import { ContextHighlights } from './ContextHighlights'
 import { overrideFillStyleWithLinedFillStyle } from './LinedFillStyle'
 import { TargetAreaTool } from './TargetAreaTool'
 import { TargetShapeTool } from './TargetShapeTool'
 
 overrideFillStyleWithLinedFillStyle()
 
-const customUiOverrides: TLUiOverrides = {
+const overrides: TLUiOverrides = {
 	tools: (editor, tools) => {
 		return {
 			...tools,
@@ -33,6 +34,10 @@ const customUiOverrides: TLUiOverrides = {
 	},
 }
 
+const components: TLComponents = {
+	InFrontOfTheCanvas: ContextHighlights,
+}
+
 function App() {
 	const [editor, setEditor] = useState<Editor | null>(null)
 
@@ -56,7 +61,8 @@ function App() {
 					persistenceKey="tldraw-agent-demo"
 					onMount={handleMount}
 					tools={tools}
-					overrides={customUiOverrides}
+					overrides={overrides}
+					components={components}
 				/>
 			</div>
 			<ErrorBoundary fallback={ChatPanelFallback}>

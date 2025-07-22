@@ -428,3 +428,26 @@ body {
 .chat-panel-fallback-button:hover {
 	background-color: hsl(214, 84%, 40%);
 }
+
+.context-highlight {
+	stroke-width: 1px;
+	pointer-events: none;
+	stroke-linecap: round;
+	stroke-linejoin: round;
+}
+
+.context-highlight line {
+	stroke-dasharray: 4px;
+	stroke-linecap: round;
+	stroke-width: 1px;
+}
+
+.context-highlight.generating line {
+	animation: dash 100s linear infinite;
+}
+
+@keyframes dash {
+	to {
+		stroke-dashoffset: -2000;
+	}
+}

@@ -4,7 +4,7 @@ import { DEFAULT_MODEL_NAME, TLAgentModelName } from '../worker/models'
 import { $chatHistoryItems, ChatHistory } from './ChatHistory'
 import { UserMessageHistoryItem } from './ChatHistoryItem'
 import { ChatInput } from './ChatInput'
-import { $contextItems, getSimpleContextFromContextItems } from './Context'
+import { $contextItems, $pendingContextItems, getSimpleContextFromContextItems } from './Context'
 import { $requestsSchedule } from './requestsSchedule'
 import { useTldrawAiExample } from './useTldrawAiExample'
 
@@ -93,6 +93,7 @@ export function ChatPanel({ editor }: { editor: Editor }) {
 				setIsGenerating(false)
 
 				$requestsSchedule.set([])
+				$pendingContextItems.set([])
 				$chatHistoryItems.update((prev) =>
 					prev.map((item) => (item.status === 'progress' ? { ...item, status: 'cancelled' } : item))
 				)
@@ -112,6 +113,7 @@ export function ChatPanel({ editor }: { editor: Editor }) {
 				contextItems: $contextItems.get(),
 			}
 
+			$pendingContextItems.set(userMessageHistoryItem.contextItems)
 			$contextItems.set([])
 			$chatHistoryItems.update((prev) => [...prev, userMessageHistoryItem])
 			$requestsSchedule.update((prev) => [
@@ -126,6 +128,7 @@ export function ChatPanel({ editor }: { editor: Editor }) {
 			setIsGenerating(true)
 			await advanceSchedule()
 			setIsGenerating(false)
+			$pendingContextItems.set([])
 		},
 		[advanceSchedule]
 	)
@@ -138,6 +141,7 @@ export function ChatPanel({ editor }: { editor: Editor }) {
 
 		setIsGenerating(false)
 		$chatHistoryItems.set([])
+		$pendingContextItems.set([])
 		$contextItems.set([])
 		$requestsSchedule.set([])
 	}

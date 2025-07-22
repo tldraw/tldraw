@@ -3,6 +3,7 @@ import { getSimpleContentFromCanvasContent } from '../worker/simple/getSimpleCon
 import { TargetIcon } from './icons/TargetIcon'
 
 export const $contextItems = atom<ContextItem[]>('context items', [])
+export const $pendingContextItems = atom<ContextItem[]>('pending context items', [])
 
 export type ContextItem =
 	| ShapeContextItem
