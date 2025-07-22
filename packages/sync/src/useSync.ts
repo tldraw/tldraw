@@ -56,11 +56,15 @@ export type RemoteTLStoreWithStatus = Exclude<
  *     const store = useSync({
  *         uri: 'wss://myapp.com/sync/my-test-room',
  *         assets: myAssetStore,
- *         onRoomSizeWarning: () => {
- *             // Show a warning toast to the user
- *         },
- *         onRoomSizeLimitReached: () => {
- *             // Show a critical error toast to the user
+ *         onMessage: (messageType) => {
+ *             switch (messageType) {
+ *                 case 'room_size_warning':
+ *                     // Show a warning toast to the user
+ *                     break
+ *                 case 'room_size_limit_reached':
+ *                     // Show a critical error toast to the user
+ *                     break
+ *             }
  *         }
  *     })
  *     return <Tldraw store={store} />
