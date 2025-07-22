@@ -216,16 +216,7 @@ export class DraggingHandle extends StateNode {
 		this.editor.snaps.clearIndicators()
 		kickoutOccludedShapes(this.editor, [this.shapeId])
 
-		const { onInteractionEnd } = this.info
-		if (this.editor.getInstanceState().isToolLocked && onInteractionEnd) {
-			// Return to the tool that was active before this one,
-			// but only if tool lock is turned on!
-			this.editor.setCurrentTool(onInteractionEnd, { shapeId: this.shapeId })
-			return
-		}
-
-		this.parent.transition('idle')
-
+		// Call onHandleDragEnd callback before state transitions
 		const shape = this.editor.getShape(this.shapeId)
 		if (shape) {
 			const util = this.editor.getShapeUtil(shape)
@@ -239,6 +230,16 @@ export class DraggingHandle extends StateNode {
 				this.editor.updateShapes([{ ...endChanges, id: shape.id, type: shape.type }])
 			}
 		}
+
+		const { onInteractionEnd } = this.info
+		if (this.editor.getInstanceState().isToolLocked && onInteractionEnd) {
+			// Return to the tool that was active before this one,
+			// but only if tool lock is turned on!
+			this.editor.setCurrentTool(onInteractionEnd, { shapeId: this.shapeId })
+			return
+		}
+
+		this.parent.transition('idle')
 	}
 
 	private cancel() {
