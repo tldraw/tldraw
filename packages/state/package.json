@@ -50,12 +50,9 @@
 			"^~(.*)": "<rootDir>/src/$1"
 		}
 	},
-	"devDependencies": {
-		"@types/lodash": "^4.17.14",
-		"lodash": "^4.17.21"
-	},
 	"dependencies": {
-		"@tldraw/utils": "workspace:*"
+		"@tldraw/utils": "workspace:*",
+		"es-toolkit": "^1.39.7"
 	},
 	"typedoc": {
 		"readmeFile": "none",

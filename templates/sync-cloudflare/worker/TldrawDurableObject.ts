@@ -6,7 +6,7 @@ import {
 	defaultShapeSchemas,
 } from '@tldraw/tlschema'
 import { AutoRouter, IRequest, error } from 'itty-router'
-import throttle from 'lodash.throttle'
+import {throttle} from 'es-toolkit'
 
 // add custom shapes and bindings here if needed:
 const schema = createTLSchema({

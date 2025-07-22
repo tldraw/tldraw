@@ -1,4 +1,4 @@
-import { times } from 'lodash'
+import { times } from 'es-toolkit/compat'
 import { Atom, atom, isAtom } from '../Atom'
 import { Computed, computed, isComputed } from '../Computed'
 import { Reactor, reactor } from '../EffectScheduler'

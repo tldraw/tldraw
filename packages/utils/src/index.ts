@@ -1,9 +1,9 @@
 import { registerTldrawLibraryVersion } from './lib/version'
 
-export { default as isEqual } from 'lodash.isequal'
-export { default as isEqualWith } from 'lodash.isequalwith'
-export { default as throttle } from 'lodash.throttle'
-export { default as uniq } from 'lodash.uniq'
+export { default as isEqual } from 'es-toolkit/compat/isequal'
+export { default as isEqualWith } from 'es-toolkit/compat/isequalwith'
+export { default as throttle } from 'es-toolkit/compat/throttle'
+export { default as uniq } from 'es-toolkit/compat/uniq'
 export {
 	areArraysShallowEqual,
 	compact,

@@ -1,4 +1,4 @@
-import isEqualWith from 'lodash.isequalwith'
+import isEqualWith from 'es-toolkit/compat/isequalwith'
 
 /** @internal */
 export function hasOwnProperty(obj: object, key: string): boolean {
