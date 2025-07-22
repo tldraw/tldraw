@@ -73,16 +73,28 @@ describe('When interacting with a shape...', () => {
 		editor.selectAll()
 		expect(editor.getSelectedShapeIds()).toMatchObject([ids.frame1, ids.box1])
 
-		editor
-			.pointerDown(300, 300, {
-				target: 'selection',
-				handle: 'bottom_right_rotate',
-			})
-			.pointerMove(200, 200)
-			.pointerUp(200, 200)
+		editor.pointerDown(300, 300, {
+			target: 'selection',
+			handle: 'bottom_right_rotate',
+		})
 
-		// Should have called start, change, and end in sequence
-		expect(calls).toEqual(['start', 'change', 'change', 'end'])
+		// Should not have called any callbacks yet
+		expect(calls).toEqual([])
+
+		editor.pointerMove(200, 200)
+
+		// Should have called start once and change at least once now
+		expect(calls).toEqual(['start', 'change'])
+
+		editor.pointerMove(200, 210)
+
+		// Should have called start once and change multiple times
+		expect(calls).toEqual(['start', 'change', 'change'])
+
+		editor.pointerUp(200, 210)
+
+		// Should have called end once now
+		expect(calls).toEqual(['start', 'change', 'change', 'change', 'end'])
 	})
 
 	it('cleans up events', () => {
@@ -127,13 +139,25 @@ describe('When interacting with a shape...', () => {
 		})
 
 		editor.expectToBeIn('select.pointing_resize_handle')
+
+		// Should not have called any callbacks yet
+		expect(calls).toEqual([])
+
 		editor.pointerMove(200, 200)
 		editor.expectToBeIn('select.resizing')
+
+		// Should have called start once and change at least once now
+		expect(calls).toEqual(['start', 'change'])
+
 		editor.pointerMove(200, 210)
+
+		// Should have called start once and change multiple times
+		expect(calls).toEqual(['start', 'change', 'change'])
+
 		editor.pointerUp(200, 210)
 		editor.expectToBeIn('select.idle')
 
-		// Should have called start, change, and end in sequence
+		// Should have called end once now
 		expect(calls).toEqual(['start', 'change', 'change', 'end'])
 	})
 
@@ -158,10 +182,25 @@ describe('When interacting with a shape...', () => {
 		expect(editor.getSelectedShapeIds()).toMatchObject([ids.frame1, ids.box1])
 
 		// Translate the shapes...
-		editor.pointerDown(50, 50, ids.box1).pointerMove(50, 40).pointerUp(50, 40)
+		editor.pointerDown(50, 50, ids.box1)
 
-		// Should have called start, change, and end in sequence
-		expect(calls).toEqual(['start', 'change', 'change', 'end'])
+		// Should not have called any callbacks yet
+		expect(calls).toEqual([])
+
+		editor.pointerMove(50, 40)
+
+		// Should have called start once and change at least once now
+		expect(calls).toEqual(['start', 'change'])
+
+		editor.pointerMove(50, 35)
+
+		// Should have called start once and change multiple times
+		expect(calls).toEqual(['start', 'change', 'change'])
+
+		editor.pointerUp(50, 35)
+
+		// Should have called end once now
+		expect(calls).toEqual(['start', 'change', 'change', 'change', 'end'])
 	})
 
 	it('Uses the shape utils onClick handler', () => {
