@@ -65,7 +65,7 @@ describe('With default options', () => {
 			.dispatch({
 				...pinchEvent,
 				name: 'pinch',
-				delta: new Vec(100, -10),
+				delta: new Vec(100, -10, 0),
 			})
 			.forceTick()
 		editor
@@ -103,7 +103,7 @@ describe('With default options', () => {
 			.dispatch({
 				...pinchEvent,
 				name: 'pinch',
-				point: new Vec(0, 0, 0.5),
+				delta: new Vec(0, 0, -0.5),
 			})
 			.forceTick()
 		editor
@@ -133,7 +133,7 @@ describe('With default options', () => {
 				name: 'pinch_end',
 			})
 			.forceTick()
-		expect(editor.getCamera()).toMatchObject({ x: 0, y: 0, z: 1 })
+		expect(editor.getCamera()).toMatchObject({ x: 0, y: 0, z: 1.5 })
 	})
 })
 
@@ -245,7 +245,7 @@ describe('CameraOptions.panSpeed', () => {
 		expect(editor.getCamera()).toMatchObject({ x: 5, y: 10, z: 1 })
 	})
 
-	it('Does not affect spacebar panning (2x)', () => {
+	it('Affects spacebar panning (2x)', () => {
 		editor.setCameraOptions({ ...DEFAULT_CAMERA_OPTIONS, panSpeed: 2 })
 		editor
 			.dispatch({ ...keyBoardEvent, key: ' ', code: 'Space' })
@@ -255,7 +255,7 @@ describe('CameraOptions.panSpeed', () => {
 		expect(editor.getCamera()).toMatchObject({ x: 5, y: 10, z: 1 })
 	})
 
-	it('Does not affect spacebar panning (0.5x)', () => {
+	it('Affects spacebar panning (0.5x)', () => {
 		editor.setCameraOptions({ ...DEFAULT_CAMERA_OPTIONS, panSpeed: 0.5 })
 		editor
 			.dispatch({ ...keyBoardEvent, key: ' ', code: 'Space' })
@@ -320,7 +320,7 @@ describe('CameraOptions.zoomSpeed', () => {
 		expect(editor.getCamera()).toMatchObject({ x: 5, y: 10, z: 1 })
 	})
 
-	it('Does not affect pinch zooming (2x)', () => {
+	it('Affects pinch zooming (2x)', () => {
 		editor
 			.setCameraOptions({ ...DEFAULT_CAMERA_OPTIONS, zoomSpeed: 2 })
 			.dispatch({
@@ -339,9 +339,9 @@ describe('CameraOptions.zoomSpeed', () => {
 			name: 'pinch_end',
 		})
 		editor.forceTick()
-		expect(editor.getCamera()).toMatchObject({ x: 0, y: 0, z: 1 })
+		expect(editor.getCamera()).toMatchObject({ x: 0, y: 0, z: 3 })
 	})
-	it('Does not affect pinch zooming (0.5x)', () => {
+	it('Affects pinch zooming (0.5x)', () => {
 		editor
 			.setCameraOptions({ ...DEFAULT_CAMERA_OPTIONS, zoomSpeed: 0.5 })
 			.dispatch({
@@ -352,7 +352,7 @@ describe('CameraOptions.zoomSpeed', () => {
 		editor.dispatch({
 			...pinchEvent,
 			name: 'pinch',
-			delta: new Vec(0, 0, 1),
+			delta: new Vec(0, 0, -1),
 		})
 		editor.forceTick()
 		editor.dispatch({
