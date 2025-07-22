@@ -70,9 +70,9 @@ export const DATA_MESSAGE_DEBOUNCE_INTERVAL = 1000 / 60
 
 // Room size limits in MB
 /** @internal */
-export const ROOM_SIZE_WARNING_THRESHOLD_MB = 25
+export const ROOM_SIZE_WARNING_THRESHOLD_MB = 2
 /** @internal */
-export const ROOM_SIZE_MAX_LIMIT_MB = 30
+export const ROOM_SIZE_MAX_LIMIT_MB = 4
 
 // Room size message types
 /** @internal */

@@ -18,19 +18,17 @@ function RoomSizeWarningDialog({ onClose }: { onClose(): void }) {
 		<>
 			<TldrawUiDialogHeader>
 				<TldrawUiDialogTitle>
-					<F defaultMessage="Room Size Warning" />
+					<F defaultMessage="Room getting large" />
 				</TldrawUiDialogTitle>
 				<TldrawUiDialogCloseButton />
 			</TldrawUiDialogHeader>
-			<TldrawUiDialogBody>
-				<F defaultMessage="This room is getting quite large." />
-				<br />
-				<F defaultMessage="Consider removing some content to keep it running smoothly." />
+			<TldrawUiDialogBody style={{ maxWidth: 350 }}>
+				<F defaultMessage="This room is approaching its size limit. Consider removing some content or starting a new file." />
 			</TldrawUiDialogBody>
 			<TldrawUiDialogFooter className="tlui-dialog__footer__actions">
 				<TldrawUiButton type="primary" onClick={onClose}>
 					<TldrawUiButtonLabel>
-						<F defaultMessage="OK" />
+						<F defaultMessage="Got it" />
 					</TldrawUiButtonLabel>
 				</TldrawUiButton>
 			</TldrawUiDialogFooter>
@@ -43,19 +41,17 @@ function RoomSizeLimitDialog({ onClose }: { onClose(): void }) {
 		<>
 			<TldrawUiDialogHeader>
 				<TldrawUiDialogTitle>
-					<F defaultMessage="Room Size Limit Reached" />
+					<F defaultMessage="Room is full" />
 				</TldrawUiDialogTitle>
 				<TldrawUiDialogCloseButton />
 			</TldrawUiDialogHeader>
-			<TldrawUiDialogBody>
-				<F defaultMessage="This room is now full." />
-				<br />
-				<F defaultMessage="You'll need to remove some content before adding anything new." />
+			<TldrawUiDialogBody style={{ maxWidth: 350 }}>
+				<F defaultMessage="This room has reached its size limit and changes might no longer be saved. Remove some content or start a new file." />
 			</TldrawUiDialogBody>
 			<TldrawUiDialogFooter className="tlui-dialog__footer__actions">
 				<TldrawUiButton type="primary" onClick={onClose}>
 					<TldrawUiButtonLabel>
-						<F defaultMessage="OK" />
+						<F defaultMessage="Got it" />
 					</TldrawUiButtonLabel>
 				</TldrawUiButton>
 			</TldrawUiDialogFooter>
