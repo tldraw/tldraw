@@ -122,8 +122,20 @@ export class Resizing extends StateNode {
 	}
 
 	private cancel() {
-		// Restore initial models
+		// Call onResizeCancel callback before resetting
+		const { shapeSnapshots } = this.snapshot
+
+		shapeSnapshots.forEach(({ shape }) => {
+			const current = this.editor.getShape(shape.id)
+			if (current) {
+				const util = this.editor.getShapeUtil(shape)
+				util.onResizeCancel?.(shape, current)
+			}
+		})
+
 		this.editor.bailToMark(this.markId)
+		this.editor.setCursor({ type: 'default', rotation: 0 })
+
 		if (this.info.onInteractionEnd) {
 			this.editor.setCurrentTool(this.info.onInteractionEnd, {})
 		} else {

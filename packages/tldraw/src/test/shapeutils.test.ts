@@ -163,6 +163,57 @@ describe('When interacting with a shape...', () => {
 		expect(calls).toEqual(['start', 'change', 'change', 'end'])
 	})
 
+	it('Fires resizing cancel events', () => {
+		const util = editor.getShapeUtil<TLFrameShape>('frame')
+
+		const calls: string[] = []
+
+		util.onResizeStart = () => {
+			calls.push('start')
+		}
+
+		util.onResize = () => {
+			calls.push('change')
+		}
+
+		util.onResizeEnd = () => {
+			calls.push('end')
+		}
+
+		util.onResizeCancel = () => {
+			calls.push('cancel')
+		}
+
+		editor.selectAll()
+		expect(editor.getSelectedShapeIds()).toMatchObject([ids.frame1, ids.box1])
+
+		editor.pointerDown(300, 300, {
+			target: 'selection',
+			handle: 'bottom_right',
+		})
+
+		editor.expectToBeIn('select.pointing_resize_handle')
+
+		// Should not have called any callbacks yet
+		expect(calls).toEqual([])
+
+		editor.pointerMove(200, 200)
+		editor.expectToBeIn('select.resizing')
+
+		// Should have called start once and change at least once now
+		expect(calls).toEqual(['start', 'change'])
+
+		editor.pointerMove(200, 210)
+
+		// Should have called start once and change multiple times
+		expect(calls).toEqual(['start', 'change', 'change'])
+
+		editor.cancel()
+
+		// Should have called cancel instead of end
+		expect(calls).toEqual(['start', 'change', 'change', 'cancel'])
+	})
+
 	it('Fires translating events', () => {
 		const util = editor.getShapeUtil<TLFrameShape>('frame')
 
