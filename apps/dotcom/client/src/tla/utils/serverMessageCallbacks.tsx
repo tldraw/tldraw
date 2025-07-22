@@ -77,9 +77,6 @@ export function useRoomSizeMessageHandler() {
 						component: ({ onClose }: { onClose(): void }) => (
 							<RoomSizeWarningDialog onClose={onClose} />
 						),
-						onClose: () => {
-							// Dialog closed
-						},
 					})
 					break
 				case 'room_size_limit_reached':
@@ -87,9 +84,6 @@ export function useRoomSizeMessageHandler() {
 						component: ({ onClose }: { onClose(): void }) => (
 							<RoomSizeLimitDialog onClose={onClose} />
 						),
-						onClose: () => {
-							// Dialog closed
-						},
 					})
 					break
 			}
