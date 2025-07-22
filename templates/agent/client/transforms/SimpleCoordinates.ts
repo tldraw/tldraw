@@ -39,6 +39,14 @@ export class SimpleCoordinates extends TldrawAiTransform {
 			area.y = Math.floor(area.y - this.bounds.y)
 		}
 
+		for (const key in input.meta.context.points) {
+			const point = input.meta.context.points[key]
+			this.setBeforeNumberValue(key, 'x', point.x)
+			this.setBeforeNumberValue(key, 'y', point.y)
+			point.x = Math.floor(point.x - this.bounds.x)
+			point.y = Math.floor(point.y - this.bounds.y)
+		}
+
 		// Make the prompt bounds relative to the context bounds
 		promptBounds.x -= contextBounds.x
 		promptBounds.y -= contextBounds.y

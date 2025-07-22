@@ -131,6 +131,7 @@ export function ContextPreview({
 export function getSimpleContextFromContextItems(contextItems: ContextItem[]) {
 	const shapeContextItems = contextItems.filter((item) => item.type === 'shape')
 	const areaContextItems = contextItems.filter((item) => item.type === 'area')
+	const pointContextItems = contextItems.filter((item) => item.type === 'point')
 
 	const simpleContent = getSimpleContentFromCanvasContent({
 		shapes: shapeContextItems.map((item) => item.shape),
@@ -141,6 +142,7 @@ export function getSimpleContextFromContextItems(contextItems: ContextItem[]) {
 	return {
 		shapes: simpleContent.shapes,
 		areas: areaContextItems.map((area) => roundBox(area.bounds)),
+		points: pointContextItems.map((point) => point.point),
 	}
 }
 

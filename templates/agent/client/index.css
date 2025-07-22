@@ -453,6 +453,7 @@ body {
 
 .context-point.generating circle {
 	stroke-dasharray: 3px;
+	stroke-width: 2px;
 	fill: none;
 	animation: dash 100s linear infinite;
 }

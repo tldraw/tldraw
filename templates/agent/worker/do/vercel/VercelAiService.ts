@@ -117,10 +117,12 @@ function buildMessages(prompt: TLAiSerializedPrompt): CoreMessage[] {
 	const historyMessages = buildHistoryMessages(prompt)
 	const contextShapesMessages = buildContextShapesMessages(prompt)
 	const contextAreasMessages = buildContextAreasMessages(prompt)
+	const contextPointsMessages = buildContextPointsMessages(prompt)
 	const userMessage = buildUserMessage(prompt)
 
 	messages.push(...contextShapesMessages)
 	messages.push(...contextAreasMessages)
+	messages.push(...contextPointsMessages)
 	messages.push(...historyMessages)
 	messages.push(userMessage)
 
@@ -136,13 +138,35 @@ function buildContextAreasMessages(prompt: TLAiSerializedPrompt): CoreMessage[] 
 	const content: UserContent = []
 	content.push({
 		type: 'text',
-		text: 'The user has specifically brought your attention to the following areas in this request. Make sure to focus your task on these areas:',
+		text: 'The user has specifically brought your attention to the following areas in this request. The user might refer to them as the "area(s)" or perhaps "here" or "there", but either way, it\'s implied that you should focus on these areas in both your reasoning and actions. Make sure to focus your task on these areas:',
 	})
 
 	for (const area of areas) {
 		content.push({
 			type: 'text',
 			text: JSON.stringify(area, null, 2),
+		})
+	}
+
+	return [{ role: 'user', content }]
+}
+
+function buildContextPointsMessages(prompt: TLAiSerializedPrompt): CoreMessage[] {
+	const points = prompt.meta.context.points
+	if (points.length === 0) {
+		return []
+	}
+
+	const content: UserContent = []
+	content.push({
+		type: 'text',
+		text: 'The user has specifically brought your attention to the following points in this request. The user might refer to them as the "point(s)" or perhaps "here" or "there", but either way, it\'s implied that you should focus on these points in both your reasoning and actions. Make sure to focus your task on these points:',
+	})
+
+	for (const point of points) {
+		content.push({
+			type: 'text',
+			text: JSON.stringify(point, null, 2),
 		})
 	}
 
@@ -226,19 +250,21 @@ function buildHistoryItemMessage(item: ChatHistoryItem): CoreMessage | null {
 				content: [
 					{
 						type: 'text',
-						text: 'Previous change from agent: ' + JSON.stringify(item.change, null, 2),
+						// text: 'Previous change from agent: ' + JSON.stringify(item.change, null, 2),
+						text: 'A previous change from agent.',
 					},
 				],
 			}
 		}
 		case 'agent-change-group': {
-			const changes = item.items.map((item) => item.change)
+			// const changes = item.items.map((item) => item.change)
 			return {
 				role: 'assistant',
 				content: [
 					{
 						type: 'text',
-						text: 'Previous changes from agent: ' + JSON.stringify(changes, null, 2),
+						// text: 'Previous changes from agent: ' + JSON.stringify(changes, null, 2),
+						text: 'Previous changes from agent.',
 					},
 				],
 			}
