@@ -80,16 +80,12 @@ class TargetAreaDragging extends StateNode {
 	}
 
 	override onPointerUp() {
-		// this.editor.setHintingShapes([])
 		this.editor.updateInstanceState({
 			brush: null,
 		})
 
 		if (!this.bounds) throw new Error('Bounds not set')
 		addToContext({ type: 'area', bounds: this.bounds })
-		// for (const shape of this.shapes) {
-		// 	addToContext({ type: 'shape', shape, id: shape.id })
-		// }
 		this.editor.setCurrentTool('select')
 	}
 
@@ -106,14 +102,5 @@ class TargetAreaDragging extends StateNode {
 		})
 
 		this.bounds = { x, y, w, h }
-
-		// const bounds = new Box(x, y, w, h)
-		// const shapesInBounds = this.editor.getCurrentPageShapesSorted().filter((shape) => {
-		// 	const shapeBounds = this.editor.getShapePageBounds(shape)
-		// 	return shapeBounds && bounds.contains(shapeBounds)
-		// })
-
-		// this.shapes = shapesInBounds
-		// this.editor.setHintingShapes(shapesInBounds)
 	}
 }
