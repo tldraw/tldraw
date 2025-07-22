@@ -107,6 +107,7 @@ export class StoreSchema<R extends UnknownRecord, P = unknown> {
 
 	readonly migrations: Record<string, MigrationSequence> = {}
 	readonly sortedMigrations: readonly Migration[]
+	private readonly migrationCache = new WeakMap<SerializedSchema, Result<Migration[], string>>()
 
 	private constructor(
 		public readonly types: {
@@ -158,10 +159,17 @@ export class StoreSchema<R extends UnknownRecord, P = unknown> {
 		}
 	}
 
-	// TODO: use a weakmap to store the result of this function
 	public getMigrationsSince(persistedSchema: SerializedSchema): Result<Migration[], string> {
+		// Check cache first
+		const cached = this.migrationCache.get(persistedSchema)
+		if (cached) {
+			return cached
+		}
+
 		const upgradeResult = upgradeSchema(persistedSchema)
 		if (!upgradeResult.ok) {
+			// Cache the error result
+			this.migrationCache.set(persistedSchema, upgradeResult)
 			return upgradeResult
 		}
 		const schema = upgradeResult.value
@@ -178,7 +186,10 @@ export class StoreSchema<R extends UnknownRecord, P = unknown> {
 		}
 
 		if (sequenceIdsToInclude.size === 0) {
-			return Result.ok([])
+			const result = Result.ok([])
+			// Cache the empty result
+			this.migrationCache.set(persistedSchema, result)
+			return result
 		}
 
 		const allMigrationsToInclude = new Set<MigrationId>()
@@ -197,7 +208,10 @@ export class StoreSchema<R extends UnknownRecord, P = unknown> {
 			const idx = this.migrations[sequenceId].sequence.findIndex((m) => m.id === theirVersionId)
 			// todo: better error handling
 			if (idx === -1) {
-				return Result.err('Incompatible schema?')
+				const result = Result.err('Incompatible schema?')
+				// Cache the error result
+				this.migrationCache.set(persistedSchema, result)
+				return result
 			}
 			for (const migration of this.migrations[sequenceId].sequence.slice(idx + 1)) {
 				allMigrationsToInclude.add(migration.id)
@@ -205,7 +219,12 @@ export class StoreSchema<R extends UnknownRecord, P = unknown> {
 		}
 
 		// collect any migrations
-		return Result.ok(this.sortedMigrations.filter(({ id }) => allMigrationsToInclude.has(id)))
+		const result = Result.ok(
+			this.sortedMigrations.filter(({ id }) => allMigrationsToInclude.has(id))
+		)
+		// Cache the result
+		this.migrationCache.set(persistedSchema, result)
+		return result
 	}
 
 	migratePersistedRecord(

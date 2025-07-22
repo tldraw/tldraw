@@ -56,6 +56,7 @@ export {
 	isEqualAllowingForFloatingPointErrors,
 	mapObjectMapValues,
 	objectMapEntries,
+	objectMapEntriesLazy,
 	objectMapFromEntries,
 	objectMapKeys,
 	objectMapValues,
