@@ -531,10 +531,6 @@ export class TLSyncRoom<R extends UnknownRecord, SessionMeta> {
 		sessions: Array<ConnectedRoomSession<R, SessionMeta>>,
 		messageType: TLServerMessageType
 	) {
-		if (sessions.length === 0) {
-			return
-		}
-
 		sessions.forEach((session) => {
 			this.sendMessage(session.sessionId, {
 				type: messageType,
