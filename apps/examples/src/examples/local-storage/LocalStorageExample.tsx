@@ -1,4 +1,4 @@
-import { throttle } from 'lodash'
+import { throttle } from 'es-toolkit/compat'
 import { useLayoutEffect, useMemo, useState } from 'react'
 import { DefaultSpinner, Tldraw, createTLStore, getSnapshot, loadSnapshot } from 'tldraw'
 import 'tldraw/tldraw.css'

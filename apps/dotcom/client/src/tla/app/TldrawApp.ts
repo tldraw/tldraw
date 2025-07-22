@@ -29,7 +29,7 @@ import {
 	throttle,
 	uniqueId,
 } from '@tldraw/utils'
-import pick from 'lodash.pick'
+import pick from 'es-toolkit/compat/pick'
 import {
 	assertExists,
 	Atom,
