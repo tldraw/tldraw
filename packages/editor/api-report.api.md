@@ -2616,7 +2616,7 @@ export abstract class ShapeUtil<Shape extends TLUnknownShape = TLUnknownShape> {
     onEditEnd?(shape: Shape): void;
     onEditStart?(shape: Shape): void;
     onHandleDrag?(shape: Shape, info: TLHandleDragInfo<Shape>): TLShapePartial<Shape> | void;
-    onHandleDragCancel?(current: Shape, info: TLHandleDragInfo<Shape>): TLShapePartial<Shape> | void;
+    onHandleDragCancel?(current: Shape, info: TLHandleDragInfo<Shape>): void;
     onHandleDragEnd?(current: Shape, info: TLHandleDragInfo<Shape>): TLShapePartial<Shape> | void;
     onHandleDragStart?(shape: Shape, info: TLHandleDragInfo<Shape>): TLShapePartial<Shape> | void;
     onResize?(shape: Shape, info: TLResizeInfo<Shape>): Omit<TLShapePartial<Shape>, 'id' | 'type'> | undefined | void;
@@ -2626,7 +2626,7 @@ export abstract class ShapeUtil<Shape extends TLUnknownShape = TLUnknownShape> {
     onRotateEnd?(initial: Shape, current: Shape): TLShapePartial<Shape> | void;
     onRotateStart?(shape: Shape): TLShapePartial<Shape> | void;
     onTranslate?(initial: Shape, current: Shape): TLShapePartial<Shape> | void;
-    onTranslateCancel?(initial: Shape, current: Shape): TLShapePartial<Shape> | void;
+    onTranslateCancel?(initial: Shape, current: Shape): void;
     onTranslateEnd?(initial: Shape, current: Shape): TLShapePartial<Shape> | void;
     onTranslateStart?(shape: Shape): TLShapePartial<Shape> | void;
     options: {};

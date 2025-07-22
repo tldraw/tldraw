@@ -251,10 +251,7 @@ export class DraggingHandle extends StateNode {
 				isPrecise: this.isPrecise,
 				initial: this.info.shape,
 			}
-			const cancelChanges = util.onHandleDragCancel?.(shape, handleDragInfo)
-			if (cancelChanges) {
-				this.editor.updateShapes([{ ...cancelChanges, id: shape.id, type: shape.type }])
-			}
+			util.onHandleDragCancel?.(shape, handleDragInfo)
 		}
 
 		this.editor.bailToMark(this.markId)
