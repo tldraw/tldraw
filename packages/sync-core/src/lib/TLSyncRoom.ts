@@ -47,6 +47,7 @@ import {
 import { interval } from './interval'
 import {
 	TLIncompatibilityReason,
+	TLServerMessageType,
 	TLSocketClientSentEvent,
 	TLSocketServerSentDataEvent,
 	TLSocketServerSentEvent,
@@ -72,6 +73,12 @@ export const DATA_MESSAGE_DEBOUNCE_INTERVAL = 1000 / 60
 export const ROOM_SIZE_WARNING_THRESHOLD_MB = 25
 /** @internal */
 export const ROOM_SIZE_MAX_LIMIT_MB = 30
+
+// Room size message types
+/** @internal */
+export const ROOM_SIZE_WARNING_MESSAGE: TLServerMessageType = 'room_size_warning'
+/** @internal */
+export const ROOM_SIZE_LIMIT_MESSAGE: TLServerMessageType = 'room_size_limit_reached'
 
 const timeSince = (time: number) => Date.now() - time
 
@@ -494,12 +501,12 @@ export class TLSyncRoom<R extends UnknownRecord, SessionMeta> {
 		this.lastKnownSizeMB = sizeInMB
 
 		if (sizeInMB >= ROOM_SIZE_MAX_LIMIT_MB) {
-			this.broadcastRoomSizeMessage('room_size_limit_reached')
+			this.broadcastRoomSizeMessage(ROOM_SIZE_LIMIT_MESSAGE)
 			return
 		}
 
 		if (sizeInMB >= ROOM_SIZE_WARNING_THRESHOLD_MB) {
-			this.broadcastRoomSizeMessage('room_size_warning')
+			this.broadcastRoomSizeMessage(ROOM_SIZE_WARNING_MESSAGE)
 		}
 	}
 
@@ -522,7 +529,7 @@ export class TLSyncRoom<R extends UnknownRecord, SessionMeta> {
 	 */
 	private sendRoomSizeMessage(
 		sessions: Array<ConnectedRoomSession<R, SessionMeta>>,
-		messageType: 'room_size_warning' | 'room_size_limit_reached'
+		messageType: TLServerMessageType
 	) {
 		if (sessions.length === 0) {
 			return
@@ -542,7 +549,10 @@ export class TLSyncRoom<R extends UnknownRecord, SessionMeta> {
 		})
 	}
 
-	roomSizePredicates = {
+	roomSizePredicates: Record<
+		TLServerMessageType,
+		(session: ConnectedRoomSession<R, SessionMeta>) => boolean
+	> = {
 		room_size_warning: (session: ConnectedRoomSession<R, SessionMeta>) =>
 			!session.hasReceivedSizeWarning && !session.hasReceivedSizeLimit,
 		room_size_limit_reached: (session: ConnectedRoomSession<R, SessionMeta>) =>
@@ -550,22 +560,9 @@ export class TLSyncRoom<R extends UnknownRecord, SessionMeta> {
 	}
 
 	/**
-	 * Send a room size message to a specific session if they haven't received it yet
-	 */
-	private sendRoomSizeMessageToSession(
-		session: ConnectedRoomSession<R, SessionMeta>,
-		messageType: 'room_size_warning' | 'room_size_limit_reached'
-	) {
-		const predicate = this.roomSizePredicates[messageType]
-		if (predicate(session)) {
-			this.sendRoomSizeMessage([session], messageType)
-		}
-	}
-
-	/**
 	 * Broadcast a room size message to all connected clients who haven't received it yet
 	 */
-	private broadcastRoomSizeMessage(messageType: 'room_size_warning' | 'room_size_limit_reached') {
+	private broadcastRoomSizeMessage(messageType: TLServerMessageType) {
 		const connectedSessions = this.getConnectedSessions(this.roomSizePredicates[messageType])
 		this.sendRoomSizeMessage(connectedSessions, messageType)
 	}
@@ -1328,20 +1325,23 @@ export class TLSyncRoom<R extends UnknownRecord, SessionMeta> {
 			return
 		}
 
-		const connectedSession = session as Extract<
-			RoomSession<R, SessionMeta>,
-			{ state: typeof RoomSessionState.Connected }
-		>
+		const connectedSession = session as ConnectedRoomSession<R, SessionMeta>
 
 		// If we have a room size above limit, send the limit reached notification
-		if (this.lastKnownSizeMB >= ROOM_SIZE_MAX_LIMIT_MB) {
-			this.sendRoomSizeMessageToSession(connectedSession, 'room_size_limit_reached')
+		if (
+			this.lastKnownSizeMB >= ROOM_SIZE_MAX_LIMIT_MB &&
+			this.roomSizePredicates[ROOM_SIZE_LIMIT_MESSAGE](connectedSession)
+		) {
+			this.sendRoomSizeMessage([connectedSession], ROOM_SIZE_LIMIT_MESSAGE)
 			return // Do not send warning if limit is reached
 		}
 
 		// If we have a room size above warning threshold, send the warning
-		if (this.lastKnownSizeMB >= ROOM_SIZE_WARNING_THRESHOLD_MB) {
-			this.sendRoomSizeMessageToSession(connectedSession, 'room_size_warning')
+		if (
+			this.lastKnownSizeMB >= ROOM_SIZE_WARNING_THRESHOLD_MB &&
+			this.roomSizePredicates[ROOM_SIZE_WARNING_MESSAGE](connectedSession)
+		) {
+			this.sendRoomSizeMessage([connectedSession], ROOM_SIZE_WARNING_MESSAGE)
 		}
 	}
 }

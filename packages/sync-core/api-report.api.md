@@ -584,10 +584,7 @@ export class TLSyncRoom<R extends UnknownRecord, SessionMeta> {
     pruneSessions: () => void;
     rejectSession(sessionId: string, fatalReason?: string | TLSyncErrorCloseEventReason): void;
     // (undocumented)
-    roomSizePredicates: {
-        room_size_limit_reached: (session: ConnectedRoomSession<R, SessionMeta>) => boolean;
-        room_size_warning: (session: ConnectedRoomSession<R, SessionMeta>) => boolean;
-    };
+    roomSizePredicates: Record<TLServerMessageType, (session: ConnectedRoomSession<R, SessionMeta>) => boolean>;
     // (undocumented)
     readonly schema: StoreSchema<R, any>;
     // (undocumented)
