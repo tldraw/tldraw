@@ -11,10 +11,19 @@ const customUiOverrides: TLUiOverrides = {
 	tools: (editor, tools) => {
 		return {
 			...tools,
-			screenshot: {
-				id: 'target',
-				label: 'Target',
+			'target-area': {
+				id: 'target-area',
+				label: 'Pick Area',
 				kbd: 'c',
+				icon: 'tool-frame',
+				onSelect() {
+					editor.setCurrentTool('target-area')
+				},
+			},
+			'target-shape': {
+				id: 'target-shape',
+				label: 'Pick Shape',
+				kbd: 's',
 				icon: 'tool-frame',
 				onSelect() {
 					editor.setCurrentTool('target-shape')
