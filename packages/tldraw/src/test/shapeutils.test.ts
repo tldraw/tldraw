@@ -99,6 +99,54 @@ describe('When interacting with a shape...', () => {
 		expect(calls).toEqual(['start', 'change', 'change', 'change', 'end'])
 	})
 
+	it('fires rotate cancel events', () => {
+		const util = editor.getShapeUtil<TLFrameShape>('frame')
+
+		const calls: string[] = []
+
+		util.onRotateStart = () => {
+			calls.push('start')
+		}
+
+		util.onRotate = () => {
+			calls.push('change')
+		}
+
+		util.onRotateEnd = () => {
+			calls.push('end')
+		}
+
+		util.onRotateCancel = () => {
+			calls.push('cancel')
+		}
+
+		editor.selectAll()
+		expect(editor.getSelectedShapeIds()).toMatchObject([ids.frame1, ids.box1])
+
+		editor.pointerDown(300, 300, {
+			target: 'selection',
+			handle: 'bottom_right_rotate',
+		})
+
+		// Should not have called any callbacks yet
+		expect(calls).toEqual([])
+
+		editor.pointerMove(200, 200)
+
+		// Should have called start once and change at least once now
+		expect(calls).toEqual(['start', 'change'])
+
+		editor.pointerMove(200, 210)
+
+		// Should have called start once and change multiple times
+		expect(calls).toEqual(['start', 'change', 'change'])
+
+		editor.cancel()
+
+		// Should have called cancel instead of end
+		expect(calls).toEqual(['start', 'change', 'change', 'cancel'])
+	})
+
 	it('cleans up events', () => {
 		const util = editor.getShapeUtil<TLGeoShape>('geo')
 		expect(util.onRotateStart).toBeUndefined()

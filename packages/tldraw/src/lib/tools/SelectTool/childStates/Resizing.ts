@@ -134,7 +134,6 @@ export class Resizing extends StateNode {
 		})
 
 		this.editor.bailToMark(this.markId)
-		this.editor.setCursor({ type: 'default', rotation: 0 })
 
 		if (this.info.onInteractionEnd) {
 			this.editor.setCurrentTool(this.info.onInteractionEnd, {})
