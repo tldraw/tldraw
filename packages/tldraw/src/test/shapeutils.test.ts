@@ -297,7 +297,7 @@ describe('When interacting with a shape...', () => {
 		editor.pointerDown(handlePagePoint.x, handlePagePoint.y, {
 			target: 'handle',
 			shape: editor.getShape(lineShape.id)!,
-			handle: { id: 'a2', type: 'vertex', index: 'a2', x: 100, y: 100 },
+			handle: { id: 'a2', type: 'vertex', index: 'a2' as any, x: 100, y: 100 },
 		})
 
 		editor.expectToBeIn('select.pointing_handle')
@@ -380,7 +380,7 @@ describe('When interacting with a shape...', () => {
 		editor.pointerDown(handlePagePoint.x, handlePagePoint.y, {
 			target: 'handle',
 			shape: editor.getShape(lineShape.id)!,
-			handle: { id: 'a2', type: 'vertex', index: 'a2', x: 100, y: 100 },
+			handle: { id: 'a2', type: 'vertex', index: 'a2' as any, x: 100, y: 100 },
 		})
 
 		editor.expectToBeIn('select.pointing_handle')

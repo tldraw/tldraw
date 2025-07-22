@@ -242,10 +242,7 @@ export class DraggingHandle extends StateNode {
 	}
 
 	private cancel() {
-		this.editor.bailToMark(this.markId)
-		this.editor.snaps.clearIndicators()
-
-		// Call onHandleDragCancel callback
+		// Call onHandleDragCancel callback before bailing to mark
 		const shape = this.editor.getShape(this.shapeId)
 		if (shape) {
 			const util = this.editor.getShapeUtil(shape)
@@ -259,6 +256,9 @@ export class DraggingHandle extends StateNode {
 				this.editor.updateShapes([{ ...cancelChanges, id: shape.id, type: shape.type }])
 			}
 		}
+
+		this.editor.bailToMark(this.markId)
+		this.editor.snaps.clearIndicators()
 
 		const { onInteractionEnd } = this.info
 		if (onInteractionEnd) {
