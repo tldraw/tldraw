@@ -1,5 +1,5 @@
 import { getLicenseKey } from '@tldraw/dotcom-shared'
-import { useState } from 'react'
+import { useEffect, useState } from 'react'
 import {
 	DefaultContextMenu,
 	DefaultContextMenuContent,
@@ -25,10 +25,10 @@ import { A11yResultTable } from './a11y'
 import { getDiff } from './diff'
 import {
 	LiveShapesThumbnail,
-	ProvideShapesSnapshot,
 	ShapeSnapshot,
 	ShapeSnapshotInner,
-	Snapshot,
+	ShapesSnapshot,
+	ShapesSnapshotProvider,
 	useTakeSnapshot,
 } from './ShapesSnapshot'
 
@@ -113,11 +113,39 @@ export default function Develop() {
 	const performanceOverrides = usePerformance()
 	const debuggingOverrides = useDebugging()
 	const [editor, setEditor] = useState<Editor | null>(null)
-	const [snapshots, setSnapshots] = useState([] as Snapshot[])
+	const [snapshots, setSnapshots] = useState(() => {
+		try {
+			console.warn('🔍 Loading snapshots from localStorage synchronously...')
+			const savedSnapshots = localStorage.getItem('tldraw-snapshots')
+			console.warn('📦 Raw localStorage data:', savedSnapshots)
+			if (savedSnapshots) {
+				const parsed = JSON.parse(savedSnapshots)
+				console.warn('✅ Parsed snapshots:', parsed)
+				return parsed
+			} else {
+				console.warn('📭 No saved snapshots found')
+				return []
+			}
+		} catch (error) {
+			console.warn('❌ Failed to load snapshots from localStorage:', error)
+			return []
+		}
+	})
 	const selectedIds = useValue('selectedIds', () => editor?.getSelectedShapeIds() ?? [], [editor])
 
+	// Save snapshots to localStorage whenever they change
+	useEffect(() => {
+		try {
+			console.warn('💾 Saving snapshots to localStorage:', snapshots)
+			localStorage.setItem('tldraw-snapshots', JSON.stringify(snapshots))
+			console.warn('✅ Snapshots saved successfully')
+		} catch (error) {
+			console.warn('❌ Failed to save snapshots to localStorage:', error)
+		}
+	}, [snapshots])
+
 	return (
-		<ProvideShapesSnapshot>
+		<ShapesSnapshotProvider>
 			<div className="tldraw__editor" style={{ display: 'flex' }}>
 				<Tldraw
 					licenseKey={getLicenseKey()}
@@ -160,7 +188,7 @@ export default function Develop() {
 					{editor && <TakeSnapshotButton editor={editor} setSnapshots={setSnapshots} />}
 				</div>
 			</div>
-		</ProvideShapesSnapshot>
+		</ShapesSnapshotProvider>
 	)
 }
 
@@ -169,7 +197,7 @@ function TakeSnapshotButton({
 	setSnapshots,
 }: {
 	editor: Editor
-	setSnapshots: React.Dispatch<React.SetStateAction<Snapshot[]>>
+	setSnapshots: React.Dispatch<React.SetStateAction<ShapesSnapshot[]>>
 }) {
 	const takeSnapshot = useTakeSnapshot()
 	return (
@@ -178,7 +206,9 @@ function TakeSnapshotButton({
 				const snapshot = await takeSnapshot({
 					ids: editor.getSelectedShapeIds(),
 				})
-				setSnapshots((snapshots) => [...snapshots, snapshot])
+				if (snapshot) {
+					setSnapshots((snapshots) => [...snapshots, snapshot])
+				}
 			}}
 		>
 			ok

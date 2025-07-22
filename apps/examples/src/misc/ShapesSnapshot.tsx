@@ -1,11 +1,10 @@
-import { react } from '@tldraw/state'
-import { compact, isEqual } from 'lodash'
 import {
 	createContext,
 	memo,
 	useCallback,
 	useContext,
 	useEffect,
+	useId,
 	useLayoutEffect,
 	useRef,
 	useState,
@@ -13,7 +12,10 @@ import {
 import { createPortal } from 'react-dom'
 import {
 	Box,
+	compact,
+	isEqual,
 	Mat,
+	react,
 	ShapeUtil,
 	TLShape,
 	TLShapeId,
@@ -21,9 +23,12 @@ import {
 	useEditor,
 	useIsDarkMode,
 	useQuickReactor,
+	useShallowArrayIdentity,
 	useStateTracking,
 	useValue,
 } from 'tldraw'
+
+const PADDING_PAGE_SPACE = 4
 
 // Euclidean algorithm to find the GCD
 function gcd(a: number, b: number): number {
@@ -235,9 +240,9 @@ function MiniShapes({
 	const { transform, width, height } = useValue(
 		'stuff',
 		() => {
-			const sharedBounds = Box.Common(
-				compact(ids.map((id) => editor.getShapePageBounds(id)))
-			).zeroFix()
+			const sharedBounds = Box.Common(compact(ids.map((id) => editor.getShapePageBounds(id))))
+				.zeroFix()
+				.expandBy(PADDING_PAGE_SPACE)
 
 			// return transform that converts the shared bounds to 0,0,width,height
 			const transform = Mat.toCssString(Mat.Translate(-sharedBounds.x, -sharedBounds.y))
@@ -293,7 +298,7 @@ interface SnapshotArgs {
 	ids: TLShapeId[]
 }
 
-export interface Snapshot {
+export interface ShapesSnapshot {
 	id: string
 	text: string
 	width: number
@@ -302,7 +307,7 @@ export interface Snapshot {
 }
 
 interface ShapesSnapshotContextType {
-	createSnapshot(args: SnapshotArgs): Promise<Snapshot>
+	createSnapshot(args: SnapshotArgs): Promise<ShapesSnapshot | undefined>
 	renderLiveView(args: SnapshotArgs, ref: React.RefObject<HTMLDivElement>, id: string): void
 
 	liveViewConfig: Record<string, { args: SnapshotArgs; ref: React.RefObject<HTMLDivElement> }>
@@ -312,7 +317,7 @@ interface ShapesSnapshotContextType {
 
 const ShapesSnapshotContext = createContext<ShapesSnapshotContextType | null>(null)
 
-export function ProvideShapesSnapshot({ children }: { children: React.ReactNode }) {
+export function ShapesSnapshotProvider({ children }: { children: React.ReactNode }) {
 	const [liveViewConfig, setLiveViewConfig] = useState<ShapesSnapshotContextType['liveViewConfig']>(
 		{}
 	)
@@ -325,10 +330,14 @@ export function ProvideShapesSnapshot({ children }: { children: React.ReactNode 
 
 	const createSnapshot = useCallback<ShapesSnapshotContextType['createSnapshot']>(
 		async (args: SnapshotArgs) => {
+			if (args.ids.length === 0) {
+				return undefined
+			}
 			const svg = await new Promise<SVGSVGElement>((resolve) => {
 				snapshotRefCallback.current = resolve
 				setSnapshotConfig(args)
 			})
+
 			await new Promise((res) => requestAnimationFrame(res))
 			setSnapshotConfig(null)
 			return {
@@ -402,7 +411,7 @@ export function ShapeSnapshotInner() {
 	)
 }
 
-export function ShapeSnapshot({ snapshot }: { snapshot: Snapshot }) {
+export function ShapeSnapshot({ snapshot }: { snapshot: ShapesSnapshot }) {
 	const ref = useRef<SVGSVGElement>(null)
 	useLayoutEffect(() => {
 		if (!ref.current) return
@@ -416,9 +425,12 @@ export function ShapeSnapshot({ snapshot }: { snapshot: Snapshot }) {
 export function LiveShapesThumbnail({ ids }: { ids: TLShapeId[] }) {
 	const context = useContext(ShapesSnapshotContext)!
 	const ref = useRef<HTMLDivElement>(null)
+	const id = useId()
+	ids = useShallowArrayIdentity(ids)
 	useLayoutEffect(() => {
-		context.renderLiveView({ ids }, ref, 'live-shapes-thumbnail')
-	})
+		console.log('LiveShapesThumbnail', ids)
+		context.renderLiveView({ ids }, ref, 'live-shapes-thumbnail-' + id)
+	}, [ids, context, id])
 	// dummy div, we actually render the shapes into its parent
 	return <div ref={ref} role="presentation" style={{ display: 'none' }} />
 }
