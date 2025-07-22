@@ -42,6 +42,7 @@ export const TldrawUiIcon = memo(function TldrawUiIcon({
 	}
 
 	return cloneElement(icon, {
+		...props,
 		className: classNames({ 'tlui-icon__small': small }, className, icon.props.className),
 		'aria-label': label,
 		style: {
@@ -49,7 +50,6 @@ export const TldrawUiIcon = memo(function TldrawUiIcon({
 			transform: invertIcon ? 'scale(-1, 1)' : undefined,
 			...icon.props.style,
 		},
-		...props,
 	})
 })
 
@@ -61,7 +61,7 @@ function TldrawUIIconInner({
 	color,
 	className,
 	...props
-}: TLUiIconProps) {
+}: TLUiIconProps & { icon: TLUiIconType | Exclude<string, TLUiIconType> }) {
 	const assetUrls = useAssetUrls()
 	const asset = assetUrls.icons[icon as TLUiIconType] ?? assetUrls.icons['question-mark-circle']
 	const ref = useRef<HTMLDivElement>(null)

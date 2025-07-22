@@ -16,9 +16,9 @@ export const uiOverrides: TLUiOverrides = {
 	tools(editor, tools) {
 		// Create a tool item in the ui's context.
 		tools.PlayingCard = {
-			id: 'Playing Card',
+			id: 'PlayingCard',
 			icon: <span style={{ fontSize: '2em' }}>🃏</span>,
-			label: 'PlayingCard',
+			label: 'Playing Card',
 			kbd: 'c',
 			onSelect: () => {
 				editor.setCurrentTool('PlayingCard')
