@@ -32,7 +32,7 @@
 	"files": [],
 	"scripts": {
 		"test-ci": "lazy inherit",
-		"test": "yarn run -T jest",
+		"test": "yarn run -T vitest",
 		"test-coverage": "lazy inherit",
 		"lint": "yarn run -T tsx ../../internal/scripts/lint.ts",
 		"build": "yarn run -T tsx ../../internal/scripts/build-package.ts",

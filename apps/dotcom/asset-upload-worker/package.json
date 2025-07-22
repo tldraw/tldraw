@@ -11,7 +11,7 @@
 	"scripts": {
 		"dev": "yarn run -T tsx ../../../internal/scripts/workers/dev.ts --persist-to tmp-assets --inspector-port 9449",
 		"test-ci": "lazy inherit --passWithNoTests",
-		"test": "yarn run -T vitest run --passWithNoTests",
+		"test": "yarn run -T vitest --passWithNoTests",
 		"test-coverage": "lazy inherit --passWithNoTests",
 		"lint": "yarn run -T tsx ../../../internal/scripts/lint.ts"
 	},
