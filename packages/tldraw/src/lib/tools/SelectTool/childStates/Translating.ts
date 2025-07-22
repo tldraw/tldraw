@@ -203,6 +203,25 @@ export class Translating extends StateNode {
 	}
 
 	private cancel() {
+		// Call onTranslateCancel callback before resetting
+		const { movingShapes } = this.snapshot
+		const changes: TLShapePartial[] = []
+
+		movingShapes.forEach((shape) => {
+			const current = this.editor.getShape(shape.id)
+			if (current) {
+				const util = this.editor.getShapeUtil(shape)
+				const change = util.onTranslateCancel?.(shape, current)
+				if (change) {
+					changes.push(change)
+				}
+			}
+		})
+
+		if (changes.length > 0) {
+			this.editor.updateShapes(changes)
+		}
+
 		this.reset()
 		if (this.info.onInteractionEnd) {
 			this.editor.setCurrentTool(this.info.onInteractionEnd)

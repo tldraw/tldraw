@@ -205,6 +205,52 @@ describe('When interacting with a shape...', () => {
 		expect(calls).toEqual(['start', 'change', 'change', 'change', 'end'])
 	})
 
+	it('Fires translating cancel events', () => {
+		const util = editor.getShapeUtil<TLFrameShape>('frame')
+
+		const calls: string[] = []
+
+		util.onTranslateStart = () => {
+			calls.push('start')
+		}
+
+		util.onTranslate = () => {
+			calls.push('change')
+		}
+
+		util.onTranslateEnd = () => {
+			calls.push('end')
+		}
+
+		util.onTranslateCancel = () => {
+			calls.push('cancel')
+		}
+
+		editor.selectAll()
+		expect(editor.getSelectedShapeIds()).toMatchObject([ids.frame1, ids.box1])
+
+		// Translate the shapes...
+		editor.pointerDown(50, 50, ids.box1)
+
+		// Should not have called any callbacks yet
+		expect(calls).toEqual([])
+
+		editor.pointerMove(50, 40)
+
+		// Should have called start once and change at least once now
+		expect(calls).toEqual(['start', 'change'])
+
+		editor.pointerMove(50, 35)
+
+		// Should have called start once and change multiple times
+		expect(calls).toEqual(['start', 'change', 'change'])
+
+		editor.cancel()
+
+		// Should have called cancel instead of end
+		expect(calls).toEqual(['start', 'change', 'change', 'cancel'])
+	})
+
 	it('Uses the shape utils onClick handler', () => {
 		const util = editor.getShapeUtil<TLFrameShape>('frame')
 
