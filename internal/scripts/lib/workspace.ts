@@ -1,11 +1,8 @@
 import glob from 'glob'
 import path from 'path'
 import { REPO_ROOT, readJsonIfExists } from './file'
+import { PackageJson } from './types'
 
-export type PackageJson = { name: string; private?: boolean; workspaces?: string[] } & Record<
-	string,
-	any
->
 export interface Package {
 	packageJson: PackageJson
 	relativePath: string
@@ -15,16 +12,24 @@ export interface Package {
 
 async function readPackage(packageJsonFile: string): Promise<Package> {
 	const packageJsonPath = path.resolve(packageJsonFile)
-	const packageJson = await readJsonIfExists(packageJsonFile)
-	if (!packageJson) {
+	const packagePath = path.dirname(packageJsonPath)
+	const relativePath = path.relative(REPO_ROOT, packagePath)
+
+	const packageJsonRaw = await readJsonIfExists(packageJsonFile)
+	if (!packageJsonRaw) {
 		throw new Error(`No package.json found at ${packageJsonPath}`)
 	}
 
-	const packagePath = path.dirname(packageJsonPath)
+	let packageJson: PackageJson
+	try {
+		packageJson = PackageJson.validate(packageJsonRaw)
+	} catch (e: any) {
+		throw new Error(`Invalid package.json in ${relativePath}: ${e.message}`)
+	}
 
 	return {
 		packageJson,
-		relativePath: path.relative(REPO_ROOT, packagePath),
+		relativePath,
 		path: packagePath,
 		name: packageJson.name,
 	}
