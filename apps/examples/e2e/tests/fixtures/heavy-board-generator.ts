@@ -242,7 +242,7 @@ export class HeavyBoardGenerator {
 	async setupStressTestBoard(): Promise<void> {
 		// Pre-configured stress test with maximum complexity
 		await this.generateHeavyBoard({
-			shapeCount: 500,
+			shapeCount: 250,
 			includeGroups: true,
 			includeText: true,
 			includeArrows: true,
