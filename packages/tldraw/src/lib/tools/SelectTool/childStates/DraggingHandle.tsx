@@ -245,6 +245,21 @@ export class DraggingHandle extends StateNode {
 		this.editor.bailToMark(this.markId)
 		this.editor.snaps.clearIndicators()
 
+		// Call onHandleDragCancel callback
+		const shape = this.editor.getShape(this.shapeId)
+		if (shape) {
+			const util = this.editor.getShapeUtil(shape)
+			const handleDragInfo = {
+				handle: this.initialHandle,
+				isPrecise: this.isPrecise,
+				initial: this.info.shape,
+			}
+			const cancelChanges = util.onHandleDragCancel?.(shape, handleDragInfo)
+			if (cancelChanges) {
+				this.editor.updateShapes([{ ...cancelChanges, id: shape.id, type: shape.type }])
+			}
+		}
+
 		const { onInteractionEnd } = this.info
 		if (onInteractionEnd) {
 			// Return to the tool that was active before this one,
@@ -254,20 +269,6 @@ export class DraggingHandle extends StateNode {
 		}
 
 		this.parent.transition('idle')
-
-		const shape = this.editor.getShape(this.shapeId)
-		if (shape) {
-			const util = this.editor.getShapeUtil(shape)
-			const handleDragInfo = {
-				handle: this.initialHandle,
-				isPrecise: this.isPrecise,
-				initial: this.info.shape,
-			}
-			const endChanges = util.onHandleDragEnd?.(shape, handleDragInfo)
-			if (endChanges) {
-				this.editor.updateShapes([{ ...endChanges, id: shape.id, type: shape.type }])
-			}
-		}
 	}
 
 	private update() {

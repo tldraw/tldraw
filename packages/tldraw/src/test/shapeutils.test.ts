@@ -11,6 +11,8 @@ const ids = {
 	frame1: createShapeId('frame1'),
 	box1: createShapeId('box1'),
 	box2: createShapeId('box2'),
+	line1: createShapeId('line1'),
+	page1: createShapeId('page1'),
 }
 
 beforeEach(() => {
@@ -239,23 +241,6 @@ describe('When interacting with a shape...', () => {
 	})
 
 	it('Fires handle dragging events', () => {
-		// Create a line shape with handles for testing
-		const lineId = createShapeId('line1')
-		editor.createShapes([
-			{
-				id: lineId,
-				type: 'line',
-				x: 100,
-				y: 100,
-				props: {
-					points: {
-						a1: { id: 'a1', index: 'a1', x: 0, y: 0 },
-						a2: { id: 'a2', index: 'a2', x: 100, y: 100 },
-					},
-				},
-			},
-		])
-
 		const util = editor.getShapeUtil<TLLineShape>('line')
 
 		const calls: string[] = []
@@ -272,22 +257,47 @@ describe('When interacting with a shape...', () => {
 			calls.push('end')
 		}
 
-		editor.select(lineId)
+		util.onHandleDragCancel = () => {
+			calls.push('cancel')
+		}
 
-		// Get the handles for the line
-		const handles = editor.getShapeHandles(editor.getShape(lineId)!)!
-		const vertexHandle = handles.find((h) => h.type === 'vertex')!
+		// Create a line shape with handles
+		const lineShape: TLLineShape = {
+			id: ids.line1,
+			type: 'line',
+			typeName: 'shape',
+			parentId: ids.page1,
+			index: 'a1' as any,
+			x: 100,
+			y: 100,
+			rotation: 0,
+			isLocked: false,
+			opacity: 1,
+			meta: {},
+			props: {
+				dash: 'draw',
+				size: 'm',
+				color: 'black',
+				spline: 'line',
+				scale: 1,
+				points: {
+					a1: { id: 'a1', index: 'a1' as any, x: 0, y: 0 },
+					a2: { id: 'a2', index: 'a2' as any, x: 100, y: 100 },
+				},
+			},
+		}
 
-		// Get the handle position in page space
-		const shape = editor.getShape(lineId)!
-		const pageTransform = editor.getShapePageTransform(shape.id)!
-		const handlePagePoint = pageTransform.applyToPoint(vertexHandle)
+		editor.createShapes([lineShape])
 
-		// Start dragging a handle
+		// Get the handle point
+		const handlePagePoint = editor
+			.getShapePageTransform(lineShape.id)!
+			.applyToPoint(lineShape.props.points['a2'])
+
 		editor.pointerDown(handlePagePoint.x, handlePagePoint.y, {
 			target: 'handle',
-			shape: editor.getShape(lineId)!,
-			handle: vertexHandle,
+			shape: editor.getShape(lineShape.id)!,
+			handle: { id: 'a2', type: 'vertex', index: 'a2', x: 100, y: 100 },
 		})
 
 		editor.expectToBeIn('select.pointing_handle')
@@ -311,5 +321,88 @@ describe('When interacting with a shape...', () => {
 
 		// Should have called end once now
 		expect(calls).toEqual(['start', 'change', 'change', 'end'])
+	})
+
+	it('Fires handle dragging cancel events', () => {
+		const util = editor.getShapeUtil<TLLineShape>('line')
+
+		const calls: string[] = []
+
+		util.onHandleDragStart = () => {
+			calls.push('start')
+		}
+
+		util.onHandleDrag = () => {
+			calls.push('change')
+		}
+
+		util.onHandleDragEnd = () => {
+			calls.push('end')
+		}
+
+		util.onHandleDragCancel = () => {
+			calls.push('cancel')
+		}
+
+		// Create a line shape with handles
+		const lineShape: TLLineShape = {
+			id: ids.line1,
+			type: 'line',
+			typeName: 'shape',
+			parentId: ids.page1,
+			index: 'a1' as any,
+			x: 100,
+			y: 100,
+			rotation: 0,
+			isLocked: false,
+			opacity: 1,
+			meta: {},
+			props: {
+				dash: 'draw',
+				size: 'm',
+				color: 'black',
+				spline: 'line',
+				scale: 1,
+				points: {
+					a1: { id: 'a1', index: 'a1' as any, x: 0, y: 0 },
+					a2: { id: 'a2', index: 'a2' as any, x: 100, y: 100 },
+				},
+			},
+		}
+
+		editor.createShapes([lineShape])
+
+		// Get the handle point
+		const handlePagePoint = editor
+			.getShapePageTransform(lineShape.id)!
+			.applyToPoint(lineShape.props.points['a2'])
+
+		editor.pointerDown(handlePagePoint.x, handlePagePoint.y, {
+			target: 'handle',
+			shape: editor.getShape(lineShape.id)!,
+			handle: { id: 'a2', type: 'vertex', index: 'a2', x: 100, y: 100 },
+		})
+
+		editor.expectToBeIn('select.pointing_handle')
+
+		// Should not have called any callbacks yet
+		expect(calls).toEqual([])
+
+		editor.pointerMove(handlePagePoint.x + 20, handlePagePoint.y + 20) // Larger move to trigger drag
+		editor.expectToBeIn('select.dragging_handle')
+
+		// Should have called start once and change at least once now
+		expect(calls).toEqual(['start', 'change'])
+
+		editor.pointerMove(150, 150)
+
+		// Should have called start once and change multiple times
+		expect(calls).toEqual(['start', 'change', 'change'])
+
+		editor.cancel()
+		editor.expectToBeIn('select.idle')
+
+		// Should have called cancel instead of end
+		expect(calls).toEqual(['start', 'change', 'change', 'cancel'])
 	})
 })
