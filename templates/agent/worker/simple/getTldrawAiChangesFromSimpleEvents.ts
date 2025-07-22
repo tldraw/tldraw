@@ -480,6 +480,9 @@ function getTldrawAiChangesFromSimpleCreateEvent(
 			case 'arrow': {
 				const { shapeId, fromId, toId, x1, x2, y1, y2 } = shape
 
+				const minX = Math.min(x1, x2)
+				const minY = Math.min(y1, y2)
+
 				// Make sure that the shape itself is the first change
 				changes.push({
 					complete: event.complete,
@@ -488,13 +491,13 @@ function getTldrawAiChangesFromSimpleCreateEvent(
 					shape: {
 						id: shapeId as any,
 						type: 'arrow',
-						x: 0,
-						y: 0,
+						x: minX,
+						y: minY,
 						props: {
 							color: getTldrawColorFromFuzzyColor(shape.color),
 							text: shape.text ?? '',
-							start: { x: x1, y: y1 },
-							end: { x: x2, y: y2 },
+							start: { x: x1 - minX, y: y1 - minY },
+							end: { x: x2 - minX, y: y2 - minY },
 						},
 						meta: {
 							note: shape.note ?? '',
@@ -680,16 +683,41 @@ function getTldrawAiChangesFromSimpleMoveEvent(
 	const changes: TLAiChange[] = []
 
 	for (const moveItem of moves) {
-		changes.push({
-			complete: event.complete,
-			type: 'updateShape',
-			description: intent,
-			shape: {
-				id: moveItem.shapeId as any,
-				x: moveItem.x,
-				y: moveItem.y,
-			},
-		})
+		const { x: newX, y: newY } = moveItem
+
+		const shapeOnCanvas = prompt.canvasContent.shapes.find((s) => s.id === moveItem.shapeId)
+		if (!shapeOnCanvas) {
+			throw new Error(`Shape ${moveItem.shapeId} not found in canvas`)
+		}
+
+		// When moving arrows and lines, we tell the model just to x1 and y1, and the x2 and y2 will be updated automatically. This logic here handles that
+		if (shapeOnCanvas.type === 'arrow') {
+			changes.push({
+				complete: event.complete,
+				type: 'updateShape',
+				description: intent,
+				shape: getUpdatedArrowGivenSimpleMove(prompt, moveItem.shapeId, newX, newY),
+			})
+		} else if (shapeOnCanvas.type === 'line') {
+			changes.push({
+				complete: event.complete,
+				type: 'updateShape',
+				description: intent,
+				shape: getUpdatedLineGivenSimpleMove(prompt, moveItem.shapeId, newX, newY),
+			})
+		} else {
+			// For all other shapes, update x and y only
+			changes.push({
+				complete: event.complete,
+				type: 'updateShape',
+				description: intent,
+				shape: {
+					id: moveItem.shapeId as any,
+					x: moveItem.x,
+					y: moveItem.y,
+				},
+			})
+		}
 	}
 
 	return changes
@@ -756,4 +784,91 @@ function getTldrawColorFromFuzzyColor(simpleColor: any): ISimpleColor {
 	}
 
 	return 'black'
+}
+
+function getUpdatedLineGivenSimpleMove(
+	prompt: TLAiSerializedPrompt,
+	shapeId: string,
+	newX: number,
+	newY: number
+) {
+	const shapeOnCanvas = prompt.canvasContent.shapes.find((s) => s.id === shapeId)
+	if (!shapeOnCanvas) {
+		throw new Error(`Shape ${shapeId} not found in canvas`)
+	}
+
+	const points = (shapeOnCanvas as TLLineShape).props.points
+
+	const currentX1 = shapeOnCanvas.x + points['a1'].x
+	const currentY1 = shapeOnCanvas.y + points['a1'].y
+	const currentX2 = shapeOnCanvas.x + points['a2'].x
+	const currentY2 = shapeOnCanvas.y + points['a2'].y
+
+	const dx = newX - currentX1
+	const dy = newY - currentY1
+
+	const newX1 = currentX1 + dx
+	const newY1 = currentY1 + dy
+
+	const newX2 = currentX2 + dx
+	const newY2 = currentY2 + dy
+
+	const newA1 = {
+		...points['a1'],
+		x: 0,
+		y: 0,
+	}
+	const newA2 = {
+		...points['a2'],
+		x: newX2 - newX1,
+		y: newY2 - newY1,
+	}
+
+	return {
+		id: shapeId as any,
+		x: newX1,
+		y: newY1,
+		props: {
+			points: {
+				a1: newA1,
+				a2: newA2,
+			},
+		},
+	}
+}
+
+function getUpdatedArrowGivenSimpleMove(
+	prompt: TLAiSerializedPrompt,
+	shapeId: string,
+	newX: number,
+	newY: number
+) {
+	const shapeOnCanvas = prompt.canvasContent.shapes.find((s) => s.id === shapeId)
+	if (!shapeOnCanvas) {
+		throw new Error(`Shape ${shapeId} not found in canvas`)
+	}
+
+	const currentX1 = shapeOnCanvas.x + (shapeOnCanvas as TLArrowShape).props.start.x
+	const currentY1 = shapeOnCanvas.y + (shapeOnCanvas as TLArrowShape).props.start.y
+	const currentX2 = shapeOnCanvas.x + (shapeOnCanvas as TLArrowShape).props.end.x
+	const currentY2 = shapeOnCanvas.y + (shapeOnCanvas as TLArrowShape).props.end.y
+
+	const dx = newX - currentX1
+	const dy = newY - currentY1
+
+	const newX1 = currentX1 + dx
+	const newY1 = currentY1 + dy
+
+	const newX2 = currentX2 + dx
+	const newY2 = currentY2 + dy
+
+	return {
+		id: shapeId as any,
+		x: newX1,
+		y: newY1,
+		props: {
+			start: { x: 0, y: 0 },
+			end: { x: newX2 - newX1, y: newY2 - newY1 },
+		},
+	}
 }

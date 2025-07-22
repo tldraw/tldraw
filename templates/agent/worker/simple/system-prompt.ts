@@ -90,6 +90,8 @@ Each event must include:
 - When drawing arrows between shapes, be sure to include the shapes' ids as fromId and toId.
 - When creating drawings, there is no need to be photorealistic. You can use symbolic shapes in place of accurate details.
 - Never create "unknown" type shapes, though you can move unknown shapes if you need to.
+- When moving an arrow or a line, only move x1 and y1. x2 and y2 will be updated automatically.
+- Always use the \`move\` event to move shapes, never the \`update\` event.
 - Text shapes are 32 points tall. Their width will auto adjust based on the text content.
 - Geometric shapes (rectangles, triangles, ellipses, etc.) are 100x100 by default. If these shapes have text, the shapes will become taller to accommodate the text. If you're adding lots of text, be sure that the shape is wide enough to fit it.
 - Note shapes at 200x200. Notes with more text will be taller in order to fit their text content.
