@@ -1,4 +1,4 @@
-import { createShapeId, TLFrameShape, TLGeoShape } from '@tldraw/editor'
+import { createShapeId, TLFrameShape, TLGeoShape, TLLineShape } from '@tldraw/editor'
 import { TestEditor } from './TestEditor'
 
 let editor: TestEditor
@@ -200,5 +200,80 @@ describe('When interacting with a shape...', () => {
 		// If a shape has an onClick handler, and it returns something, then
 		// it should not be selected.
 		expect(editor.getSelectedShapeIds().length).toBe(0)
+	})
+
+	it('Fires handle dragging events', () => {
+		// Create a line shape with handles for testing
+		const lineId = createShapeId('line1')
+		editor.createShapes([
+			{
+				id: lineId,
+				type: 'line',
+				x: 100,
+				y: 100,
+				props: {
+					points: {
+						a1: { id: 'a1', index: 'a1', x: 0, y: 0 },
+						a2: { id: 'a2', index: 'a2', x: 100, y: 100 },
+					},
+				},
+			},
+		])
+
+		const util = editor.getShapeUtil<TLLineShape>('line')
+
+		const calls: string[] = []
+
+		util.onHandleDragStart = () => {
+			calls.push('start')
+		}
+
+		util.onHandleDrag = () => {
+			calls.push('change')
+		}
+
+		util.onHandleDragEnd = () => {
+			calls.push('end')
+		}
+
+		editor.select(lineId)
+
+		// Get the handles for the line
+		const handles = editor.getShapeHandles(editor.getShape(lineId)!)!
+		const vertexHandle = handles.find((h) => h.type === 'vertex')!
+
+		// Get the handle position in page space
+		const shape = editor.getShape(lineId)!
+		const pageTransform = editor.getShapePageTransform(shape.id)!
+		const handlePagePoint = pageTransform.applyToPoint(vertexHandle)
+
+		// Start dragging a handle
+		editor.pointerDown(handlePagePoint.x, handlePagePoint.y, {
+			target: 'handle',
+			shape: editor.getShape(lineId)!,
+			handle: vertexHandle,
+		})
+
+		editor.expectToBeIn('select.pointing_handle')
+
+		// Should not have called any callbacks yet
+		expect(calls).toEqual([])
+
+		editor.pointerMove(handlePagePoint.x + 20, handlePagePoint.y + 20) // Larger move to trigger drag
+		editor.expectToBeIn('select.dragging_handle')
+
+		// Should have called start once and change at least once now
+		expect(calls).toEqual(['start', 'change'])
+
+		editor.pointerMove(150, 150)
+
+		// Should have called start once and change multiple times
+		expect(calls).toEqual(['start', 'change', 'change'])
+
+		editor.pointerUp(150, 150)
+		editor.expectToBeIn('select.idle')
+
+		// Should have called end once now
+		expect(calls).toEqual(['start', 'change', 'change', 'end'])
 	})
 })

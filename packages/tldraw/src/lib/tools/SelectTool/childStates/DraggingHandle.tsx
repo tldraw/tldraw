@@ -135,6 +135,18 @@ export class DraggingHandle extends StateNode {
 		}
 		// -->
 
+		// Call onHandleDragStart callback
+		const handleDragInfo = {
+			handle: this.initialHandle,
+			isPrecise: this.isPrecise,
+			initial: shape,
+		}
+		const util = this.editor.getShapeUtil(shape)
+		const startChanges = util.onHandleDragStart?.(shape, handleDragInfo)
+		if (startChanges) {
+			this.editor.updateShapes([{ ...startChanges, id: shape.id, type: shape.type }])
+		}
+
 		this.update()
 
 		this.editor.select(this.shapeId)
@@ -213,6 +225,20 @@ export class DraggingHandle extends StateNode {
 		}
 
 		this.parent.transition('idle')
+
+		const shape = this.editor.getShape(this.shapeId)
+		if (shape) {
+			const util = this.editor.getShapeUtil(shape)
+			const handleDragInfo = {
+				handle: this.initialHandle,
+				isPrecise: this.isPrecise,
+				initial: this.info.shape,
+			}
+			const endChanges = util.onHandleDragEnd?.(shape, handleDragInfo)
+			if (endChanges) {
+				this.editor.updateShapes([{ ...endChanges, id: shape.id, type: shape.type }])
+			}
+		}
 	}
 
 	private cancel() {
@@ -228,6 +254,20 @@ export class DraggingHandle extends StateNode {
 		}
 
 		this.parent.transition('idle')
+
+		const shape = this.editor.getShape(this.shapeId)
+		if (shape) {
+			const util = this.editor.getShapeUtil(shape)
+			const handleDragInfo = {
+				handle: this.initialHandle,
+				isPrecise: this.isPrecise,
+				initial: this.info.shape,
+			}
+			const endChanges = util.onHandleDragEnd?.(shape, handleDragInfo)
+			if (endChanges) {
+				this.editor.updateShapes([{ ...endChanges, id: shape.id, type: shape.type }])
+			}
+		}
 	}
 
 	private update() {
