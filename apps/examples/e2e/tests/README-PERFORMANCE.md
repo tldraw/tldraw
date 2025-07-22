@@ -18,12 +18,6 @@ yarn e2e --grep "Performance Tests"
 
 # Run specific performance test
 yarn e2e --grep "Shape Rotation Performance"
-
-# View current baselines
-node scripts/manage-perf-baselines.mjs view
-
-# Establish all baselines manually
-node scripts/manage-perf-baselines.mjs establish
 ```
 
 ## 📊 What It Tests

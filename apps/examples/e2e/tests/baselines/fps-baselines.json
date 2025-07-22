@@ -2,8 +2,8 @@
 	"baselines": {
 		"linux-1280x720": {
 			"rotate_shapes": {
-				"avgFps": 14,
-				"minFps": 6,
+				"avgFps": 30,
+				"minFps": 19,
 				"maxFps": 58,
 				"timestamp": "2025-07-21T14:27:50.788Z",
 				"environment": {
@@ -13,8 +13,8 @@
 				}
 			},
 			"drag_shapes": {
-				"avgFps": 32,
-				"minFps": 9,
+				"avgFps": 47,
+				"minFps": 20,
 				"maxFps": 69,
 				"timestamp": "2025-07-21T14:28:04.232Z",
 				"environment": {
@@ -24,8 +24,8 @@
 				}
 			},
 			"canvas_panning": {
-				"avgFps": 59,
-				"minFps": 43,
+				"avgFps": 54,
+				"minFps": 28,
 				"maxFps": 70,
 				"timestamp": "2025-07-21T14:28:13.302Z",
 				"environment": {
@@ -35,8 +35,8 @@
 				}
 			},
 			"canvas_zooming": {
-				"avgFps": 35,
-				"minFps": 14,
+				"avgFps": 51,
+				"minFps": 19,
 				"maxFps": 67,
 				"timestamp": "2025-07-21T14:28:23.924Z",
 				"environment": {
