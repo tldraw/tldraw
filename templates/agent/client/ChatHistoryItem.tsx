@@ -11,8 +11,7 @@ import {
 	toRichText,
 } from 'tldraw'
 import { $chatHistoryItems } from './ChatHistory'
-import { ContextItem, getContextItemName, roundBox } from './Context'
-import { AtIcon } from './icons/AtIcon'
+import { CONTEXT_TYPE_DEFINITIONS, ContextItem, roundBox } from './Context'
 import { BrainIcon } from './icons/BrainIcon'
 import { PencilIcon } from './icons/PencilIcon'
 import { RefreshIcon } from './icons/RefreshIcon'
@@ -100,9 +99,12 @@ export function UserMessageHistoryItem({ item }: { item: UserMessageHistoryItem 
 }
 
 function UserMessageContextItem({ contextItem }: { contextItem: ContextItem }) {
+	const contextTypeDefinition = CONTEXT_TYPE_DEFINITIONS[contextItem.type]
+	const icon = contextTypeDefinition.icon(contextItem)
+	const name = contextTypeDefinition.name(contextItem)
 	return (
 		<div className="context-item-preview">
-			<AtIcon /> {getContextItemName(contextItem)}
+			{icon} {name}
 		</div>
 	)
 }

@@ -106,6 +106,7 @@ body {
 	display: flex;
 	align-items: center;
 	justify-content: center;
+	font-size: 10px;
 }
 
 .chat-input button {
@@ -191,7 +192,8 @@ body {
 	margin-right: 4px;
 }
 
-.chat-model-select {
+.chat-model-select,
+.chat-context-select {
 	position: relative;
 	display: flex;
 	align-items: center;
@@ -199,11 +201,20 @@ body {
 	padding: 0px 8px;
 }
 
-.chat-model-select:hover {
+.chat-context-select {
+	border: 1px solid var(--color-text-2);
+	padding: 0px 4px 0px 3px;
+	border-radius: 6px;
+	height: 18px;
+}
+
+.chat-model-select:hover,
+.chat-context-select:hover {
 	color: var(--color-text);
 }
 
-.chat-model-select select {
+.chat-model-select select,
+.chat-context-select select {
 	opacity: 0;
 	position: absolute;
 	inset: 0px;
@@ -215,6 +226,26 @@ body {
 	-webkit-appearance: none;
 	-moz-appearance: none;
 	appearance: none;
+	font-family: 'Inter', sans-serif;
+}
+
+.chat-context-select select {
+	cursor: pointer;
+	font-size: 10px;
+	font-weight: 500;
+	line-height: 1.5;
+}
+
+.chat-context-select.active {
+	background-color: var(--color-primary);
+	color: var(--color-text-1);
+	border-color: var(--color-text-1);
+}
+
+.chat-context-select.active:hover {
+	background-color: var(--color-primary);
+	color: var(--color-text);
+	border-color: var(--color-text);
 }
 
 .chat-header {
@@ -332,7 +363,7 @@ body {
 	font-family: 'Inter', sans-serif;
 	font-size: 10px;
 	width: fit-content;
-	padding: 8px 4px;
+	padding: 8px 4px 8px 3px;
 	font-weight: 500;
 	color: var(--color-text-2);
 }
@@ -340,18 +371,6 @@ body {
 .chat-input-context-items button:hover {
 	color: var(--color-text);
 	background-color: transparent;
-	border-color: var(--color-text);
-}
-
-.chat-input-context-items button.active {
-	background-color: var(--color-primary);
-	color: var(--color-text-1);
-	border-color: var(--color-text-1);
-}
-
-.chat-input-context-items button.active:hover {
-	background-color: var(--color-primary);
-	color: var(--color-text);
 	border-color: var(--color-text);
 }
 

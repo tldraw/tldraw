@@ -2,7 +2,8 @@ import { useCallback, useState } from 'react'
 import { Editor, ErrorBoundary, Tldraw, TLUiOverrides } from 'tldraw'
 import { ChatPanel } from './ChatPanel'
 import { overrideFillStyleWithLinedFillStyle } from './LinedFillStyle'
-import { TargetTool } from './TargetTool'
+import { TargetAreaTool } from './TargetAreaTool'
+import { TargetShapeTool } from './TargetShapeTool'
 
 overrideFillStyleWithLinedFillStyle()
 
@@ -16,7 +17,7 @@ const customUiOverrides: TLUiOverrides = {
 				kbd: 'c',
 				icon: 'tool-frame',
 				onSelect() {
-					editor.setCurrentTool('target')
+					editor.setCurrentTool('target-shape')
 				},
 			},
 		}
@@ -37,7 +38,7 @@ function App() {
 		})
 	}, [])
 
-	const tools = [TargetTool]
+	const tools = [TargetShapeTool, TargetAreaTool]
 
 	return (
 		<div className="tldraw-ai-container">

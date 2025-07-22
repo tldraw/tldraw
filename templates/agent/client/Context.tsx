@@ -1,20 +1,87 @@
-import { atom, Box, BoxModel, TLGeoShape, TLShape } from 'tldraw'
+import { atom, Box, BoxModel, TLGeoShape, TLPage, TLShape, Vec, VecModel } from 'tldraw'
 import { getSimpleContentFromCanvasContent } from '../worker/simple/getSimpleContentFromCanvasContent'
-import { AtIcon } from './icons/AtIcon'
+import { TargetIcon } from './icons/TargetIcon'
 
 export const $contextItems = atom<ContextItem[]>('context items', [])
 
-export type ContextItem = ShapeContextItem | AreaContextItem
+export type ContextItem =
+	| ShapeContextItem
+	| AreaContextItem
+	| PointContextItem
+	| ViewportContextItem
+	| PageContextItem
+	| SelectionContextItem
+
+export const CONTEXT_TYPE_DEFINITIONS: Record<
+	ContextItem['type'],
+	{ name(item: ContextItem): string; icon(item: ContextItem): React.ReactNode }
+> = {
+	shape: {
+		name: (item: ShapeContextItem) => {
+			if (item.shape.meta.note) {
+				return item.shape.meta.note as string
+			}
+			const name =
+				item.shape.type === 'geo' ? (item.shape as TLGeoShape).props.geo : item.shape.type
+			return name[0].toUpperCase() + name.slice(1)
+		},
+		icon: () => <TargetIcon />,
+	},
+	area: {
+		name: () => 'Area',
+		icon: () => <TargetIcon />,
+	},
+	point: {
+		name: () => 'Point',
+		icon: () => <TargetIcon />,
+	},
+	viewport: {
+		name: () => 'Viewport',
+		icon: () => <TargetIcon />,
+	},
+	page: {
+		name: () => 'Page',
+		icon: () => <TargetIcon />,
+	},
+	selection: {
+		name: () => 'Selection',
+		icon: () => <TargetIcon />,
+	},
+}
 
 export interface ShapeContextItem {
 	type: 'shape'
 	shape: TLShape
-	id: string
+}
+
+export interface ShapesContextItem {
+	type: 'shapes'
+	shapes: TLShape[]
 }
 
 export interface AreaContextItem {
 	type: 'area'
 	bounds: BoxModel
+}
+
+export interface PointContextItem {
+	type: 'point'
+	point: VecModel
+}
+
+export interface ViewportContextItem {
+	type: 'viewport'
+	bounds: BoxModel
+}
+
+export interface PageContextItem {
+	type: 'page'
+	page: TLPage
+}
+
+export interface SelectionContextItem {
+	type: 'selection'
+	shapes: TLShape[]
 }
 
 export function addToContext(item: ContextItem) {
@@ -31,9 +98,16 @@ export function removeFromContext(item: ContextItem) {
 
 export function areContextItemsEquivalent(a: ContextItem, b: ContextItem) {
 	if (a.type !== b.type) return false
-	if (a.type === 'shape' && b.type === 'shape') return a.id === b.id
+	if (a.type === 'shape' && b.type === 'shape') return a.shape.id === b.shape.id
 	if (a.type === 'area' && b.type === 'area') return Box.Equals(a.bounds, b.bounds)
-	return false
+	if (a.type === 'point' && b.type === 'point') return Vec.Equals(a.point, b.point)
+	if (a.type === 'viewport' && b.type === 'viewport') return Box.Equals(a.bounds, b.bounds)
+	if (a.type === 'page' && b.type === 'page') return a.page.id === b.page.id
+	if (a.type === 'selection' && b.type === 'selection') {
+		return a.shapes.every((shape) => b.shapes.findIndex((s) => s.id === shape.id) !== -1)
+	}
+
+	throw new Error('Unknown context item type')
 }
 
 export function ContextPreview({
@@ -43,31 +117,14 @@ export function ContextPreview({
 	contextItem: ContextItem
 	onClick(): void
 }) {
-	const name = getContextItemName(contextItem)
-
+	const definition = CONTEXT_TYPE_DEFINITIONS[contextItem.type]
+	const name = definition.name(contextItem)
+	const icon = definition.icon(contextItem)
 	return (
 		<button type="button" className="context-item-preview" onClick={onClick}>
-			<AtIcon /> {name}
+			{icon} {name}
 		</button>
 	)
-}
-
-export function getContextItemName(contextItem: ContextItem) {
-	switch (contextItem.type) {
-		case 'shape': {
-			if (contextItem.shape.meta.note) {
-				return contextItem.shape.meta.note as string
-			}
-			const name =
-				contextItem.shape.type === 'geo'
-					? (contextItem.shape as TLGeoShape).props.geo
-					: contextItem.shape.type
-			return name[0].toUpperCase() + name.slice(1)
-		}
-		case 'area': {
-			return 'Area'
-		}
-	}
 }
 
 export function getSimpleContextFromContextItems(contextItems: ContextItem[]) {

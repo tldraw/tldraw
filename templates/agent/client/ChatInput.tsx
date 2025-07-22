@@ -1,11 +1,60 @@
 import { FormEventHandler, useEffect } from 'react'
 import { Editor, useLocalStorageState, useReactor, useValue } from 'tldraw'
 import { AGENT_MODEL_DEFINITIONS, DEFAULT_MODEL_NAME, TLAgentModelName } from '../worker/models'
-import { $contextItems, ContextPreview, removeFromContext } from './Context'
+import { $contextItems, addToContext, ContextPreview, removeFromContext } from './Context'
+import { AtIcon } from './icons/AtIcon'
 import { BrainIcon } from './icons/BrainIcon'
 import { ChevronDownIcon } from './icons/ChevronDownIcon'
 import { CommentIcon } from './icons/CommentIcon'
-import { TargetIcon } from './icons/TargetIcon'
+
+const ADD_CONTEXT_ACTIONS = [
+	{
+		name: 'Pick Shapes',
+		onSelect: (editor: Editor) => {
+			editor.setCurrentTool('target-shape')
+			editor.focus()
+		},
+	},
+	{
+		name: 'Pick Area',
+		onSelect: (editor: Editor) => {
+			editor.setCurrentTool('target-area')
+			editor.focus()
+		},
+	},
+	{
+		name: 'Current Selection',
+		onSelect: (editor: Editor) => {
+			editor.setCurrentTool('select')
+			const shapes = editor.getSelectedShapes()
+			for (const shape of shapes) {
+				addToContext({ type: 'shape', shape })
+			}
+			editor.focus()
+		},
+	},
+	{
+		name: 'Current Viewport',
+		onSelect: (editor: Editor) => {
+			editor.setCurrentTool('select')
+			const bounds = editor.getViewportPageBounds()
+			addToContext({ type: 'area', bounds })
+			editor.focus()
+		},
+	},
+	// {
+	// 	name: 'Current Page',
+	// 	onSelect: (editor: Editor) => {
+	// 		editor.setCurrentTool('select')
+	// 		addToContext({ type: 'page', page: editor.getCurrentPage() })
+	// 		editor.focus()
+	// 	},
+	// },
+	{
+		name: ' ',
+		onSelect: () => {},
+	},
+]
 
 export function ChatInput({
 	handleSubmit,
@@ -18,9 +67,21 @@ export function ChatInput({
 	isGenerating: boolean
 	editor: Editor
 }) {
-	const isTargetToolActive = useValue(
-		'isTargetToolActive',
-		() => editor.getCurrentTool().id === 'target',
+	const isContextToolActive = useValue(
+		'isContextToolActive',
+		() => {
+			const tool = editor.getCurrentTool()
+			return tool.id === 'target-shape' || tool.id === 'target-area'
+		},
+		[editor]
+	)
+
+	const someShapesSelected = useValue(
+		'someShapesSelected',
+		() => {
+			const shapes = editor.getSelectedShapes()
+			return shapes.length > 0
+		},
 		[editor]
 	)
 
@@ -66,19 +127,29 @@ export function ChatInput({
 			</div>
 			<form onSubmit={handleSubmit}>
 				<div className="chat-input-context-items">
-					{/* <button type="button">
-						<AtIcon /> Add Context
-					</button> */}
-					<button
-						type="button"
-						className={isTargetToolActive ? 'active' : ''}
-						onClick={() => {
-							editor.setCurrentTool('target')
-							editor.focus()
-						}}
-					>
-						<TargetIcon /> Pick Target
-					</button>
+					<div className={'chat-context-select ' + (isContextToolActive ? 'active' : '')}>
+						<div className="chat-input-actions-label">
+							<AtIcon /> Add Context
+						</div>
+						{/* TODO: Replace this with an actual combobox */}
+						<select
+							id="add-context-select"
+							value={' '}
+							onChange={(e) => {
+								const action = ADD_CONTEXT_ACTIONS.find((action) => action.name === e.target.value)
+								if (action) action.onSelect(editor)
+							}}
+						>
+							{ADD_CONTEXT_ACTIONS.map((action) => {
+								const disabled = action.name === 'Current Selection' && !someShapesSelected
+								return (
+									<option key={action.name} value={action.name} disabled={disabled}>
+										{action.name}
+									</option>
+								)
+							})}
+						</select>
+					</div>
 					{contextItems.map((item, i) => (
 						<ContextPreview
 							onClick={() => removeFromContext(item)}

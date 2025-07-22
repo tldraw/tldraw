@@ -452,7 +452,11 @@ export { hardResetEditor } from './lib/utils/hardResetEditor'
 export { isAccelKey } from './lib/utils/keyboard'
 export { normalizeWheel } from './lib/utils/normalizeWheel'
 export { refreshPage } from './lib/utils/refreshPage'
-export { getDroppedShapesToNewParents, kickoutOccludedShapes } from './lib/utils/reparenting'
+export {
+	doesGeometryOverlapPolygon,
+	getDroppedShapesToNewParents,
+	kickoutOccludedShapes,
+} from './lib/utils/reparenting'
 export {
 	getFontsFromRichText,
 	type RichTextFontVisitor,

@@ -1,11 +1,11 @@
-import { BoxModel, StateNode, TLShape, VecModel } from 'tldraw'
+import { BoxModel, StateNode, VecModel } from 'tldraw'
 import { addToContext } from './Context'
 
-export class TargetTool extends StateNode {
-	static override id = 'target'
+export class TargetAreaTool extends StateNode {
+	static override id = 'target-area'
 	static override initial = 'idle'
 	static override children() {
-		return [TargetIdle, TargetPointing, TargetDragging]
+		return [TargetAreaIdle, TargetAreaPointing, TargetAreaDragging]
 	}
 
 	override isLockable = false
@@ -31,25 +31,40 @@ export class TargetTool extends StateNode {
 	}
 }
 
-class TargetIdle extends StateNode {
+class TargetAreaIdle extends StateNode {
 	static override id = 'idle'
 
-	override onPointerMove() {
-		const { currentPagePoint } = this.editor.inputs
-		const shape = this.editor.getShapeAtPoint(currentPagePoint)
-		if (shape) {
-			this.editor.setHintingShapes([shape])
-		} else {
-			this.editor.setHintingShapes([])
-		}
-	}
-
 	override onPointerDown() {
-		this.parent.transition('pointing', {})
+		this.parent.transition('pointing')
 	}
 }
 
-class TargetDragging extends StateNode {
+class TargetAreaPointing extends StateNode {
+	static override id = 'pointing'
+
+	private initialScreenPoint: VecModel | undefined = undefined
+	private initialPagePoint: VecModel | undefined = undefined
+
+	override onEnter() {
+		this.initialScreenPoint = this.editor.inputs.currentScreenPoint.clone()
+		this.initialPagePoint = this.editor.inputs.currentPagePoint.clone()
+	}
+
+	override onPointerMove() {
+		if (!this.initialScreenPoint) return
+		const distance = this.editor.inputs.currentScreenPoint.dist(this.initialScreenPoint)
+		if (distance > 10) {
+			this.parent.transition('dragging', { initialPagePoint: this.initialPagePoint })
+		}
+	}
+
+	override onPointerUp() {
+		addToContext({ type: 'point', point: this.editor.inputs.currentPagePoint.clone() })
+		this.editor.setCurrentTool('select')
+	}
+}
+
+class TargetAreaDragging extends StateNode {
 	static override id = 'dragging'
 
 	private initialPagePoint: VecModel | undefined = undefined
@@ -57,7 +72,6 @@ class TargetDragging extends StateNode {
 
 	override onEnter(props: { initialPagePoint: VecModel }) {
 		this.initialPagePoint = props.initialPagePoint
-		this.editor.setHintingShapes([])
 		this.updateBounds()
 	}
 
@@ -101,36 +115,5 @@ class TargetDragging extends StateNode {
 
 		// this.shapes = shapesInBounds
 		// this.editor.setHintingShapes(shapesInBounds)
-	}
-}
-
-class TargetPointing extends StateNode {
-	static override id = 'pointing'
-
-	private shape: TLShape | undefined = undefined
-	private initialScreenPoint: VecModel | undefined = undefined
-	private initialPagePoint: VecModel | undefined = undefined
-
-	override onEnter() {
-		const shape = this.editor.getShapeAtPoint(this.editor.inputs.currentPagePoint)
-		this.initialScreenPoint = this.editor.inputs.currentScreenPoint.clone()
-		this.initialPagePoint = this.editor.inputs.currentPagePoint.clone()
-		this.shape = shape
-	}
-
-	override onPointerMove() {
-		if (!this.initialScreenPoint) return
-		const distance = this.editor.inputs.currentScreenPoint.dist(this.initialScreenPoint)
-		if (distance > 10) {
-			this.parent.transition('dragging', { initialPagePoint: this.initialPagePoint })
-		}
-	}
-
-	override onPointerUp() {
-		this.editor.setHintingShapes([])
-		if (this.shape) {
-			addToContext({ type: 'shape', shape: this.shape, id: this.shape.id })
-		}
-		this.editor.setCurrentTool('select')
 	}
 }
