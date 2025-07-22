@@ -32,3 +32,5 @@ The workspaces are:
 - packages/utils: internal utilities and helpers. generic things we use a lot, but that aren't part of the public sdk api.
 - packages/validate: lightweight zod-inspired validation library.
 - templates/\*: starting points for building tldraw applications. some of these are minimal starters showing tldraw in different frameworks, but other are more comprehensive mini-apps showing how tldraw can be adapted to a specific domain / vertical.
+
+Tldraw is written in typescript. If you want to check types, you can run `yarn typecheck` from the root of the repo.
