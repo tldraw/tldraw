@@ -429,11 +429,9 @@ body {
 	background-color: hsl(214, 84%, 40%);
 }
 
-.context-highlight {
-	stroke-width: 1px;
+.context-highlight,
+.context-point {
 	pointer-events: none;
-	stroke-linecap: round;
-	stroke-linejoin: round;
 }
 
 .context-highlight line {
@@ -443,6 +441,23 @@ body {
 }
 
 .context-highlight.generating line {
+	animation: dash 100s linear infinite;
+}
+
+.context-point circle {
+	stroke-width: 1px;
+	pointer-events: none;
+	stroke-linecap: round;
+	stroke-linejoin: round;
+}
+
+.context-point.generating circle {
+	stroke-dasharray: 3px;
+	fill: none;
+	animation: dash 100s linear infinite;
+}
+
+.context-highlight.generating circle {
 	animation: dash 100s linear infinite;
 }
 

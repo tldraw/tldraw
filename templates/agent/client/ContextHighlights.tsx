@@ -1,9 +1,12 @@
-import { Box, SVGContainer, useEditor, useValue } from 'tldraw'
+import { Box, SVGContainer, useEditor, useValue, Vec } from 'tldraw'
 import { $contextItems, $pendingContextItems } from './Context'
 
 export function ContextHighlights() {
 	const editor = useEditor()
 	const contextItems = useValue('contextItems', () => $contextItems.get(), [])
+	const pendingContextItems = useValue('pendingContextItems', () => $pendingContextItems.get(), [
+		$pendingContextItems,
+	])
 	const areaItems = useValue(
 		'areaContextItems',
 		() => contextItems.filter((item) => item.type === 'area'),
@@ -11,8 +14,8 @@ export function ContextHighlights() {
 	)
 	const pendingAreaItems = useValue(
 		'pendingAreaContextItems',
-		() => $pendingContextItems.get().filter((item) => item.type === 'area'),
-		[$pendingContextItems]
+		() => pendingContextItems.filter((item) => item.type === 'area'),
+		[pendingContextItems]
 	)
 	const shapeItems = useValue(
 		'shapeContextItems',
@@ -21,8 +24,18 @@ export function ContextHighlights() {
 	)
 	const pendingShapeItems = useValue(
 		'pendingShapeContextItems',
-		() => $pendingContextItems.get().filter((item) => item.type === 'shape'),
-		[$pendingContextItems]
+		() => pendingContextItems.filter((item) => item.type === 'shape'),
+		[pendingContextItems]
+	)
+	const pointItems = useValue(
+		'pointContextItems',
+		() => contextItems.filter((item) => item.type === 'point'),
+		[contextItems]
+	)
+	const pendingPointItems = useValue(
+		'pendingPointContextItems',
+		() => pendingContextItems.filter((item) => item.type === 'point'),
+		[pendingContextItems]
 	)
 
 	const areaBounds = useValue(
@@ -79,6 +92,18 @@ export function ContextHighlights() {
 		[pendingShapeItems, editor]
 	)
 
+	const points = useValue(
+		'points',
+		() => pointItems.map((item) => editor.pageToScreen(item.point)),
+		[pointItems, editor]
+	)
+
+	const pendingPoints = useValue(
+		'pendingPoints',
+		() => pendingPointItems.map((item) => editor.pageToScreen(item.point)),
+		[pendingPointItems, editor]
+	)
+
 	return (
 		<>
 			{areaBounds.map((item, i) => (
@@ -111,7 +136,49 @@ export function ContextHighlights() {
 					className="generating"
 				/>
 			))}
+			{points.map((item, i) => (
+				<ContextPoint key={'context-point-' + i} point={item} color="var(--color-selected)" />
+			))}
+			{pendingPoints.map((item, i) => (
+				<ContextPoint
+					key={'context-point-' + i}
+					point={item}
+					color="var(--color-selected)"
+					className="generating"
+				/>
+			))}
 		</>
+	)
+}
+
+function ContextPoint({
+	point,
+	color,
+	className,
+}: {
+	point: Vec
+	color?: string
+	className?: string
+}) {
+	const r = 3
+	return (
+		<SVGContainer
+			className={`context-point ${className}`}
+			style={{
+				top: point.y - r,
+				left: point.x - r,
+				width: r * 2,
+				height: r * 2,
+			}}
+		>
+			<circle
+				cx={r}
+				cy={r}
+				r={r}
+				stroke={color ? color : 'var(--color-selected)'}
+				fill={color ? color : 'var(--color-selected)'}
+			/>
+		</SVGContainer>
 	)
 }
 
@@ -137,7 +204,6 @@ function ContextHighlight({
 				left: minX,
 				width: maxX - minX,
 				height: maxY - minY,
-				pointerEvents: 'none',
 			}}
 		>
 			{screenBounds.sides.map((side, j) => {
