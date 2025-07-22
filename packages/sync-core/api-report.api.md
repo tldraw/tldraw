@@ -183,10 +183,10 @@ export const RecordOpType: {
 export type RecordOpType = (typeof RecordOpType)[keyof typeof RecordOpType];
 
 // @internal (undocumented)
-export const ROOM_SIZE_MAX_LIMIT_MB = 4;
+export const ROOM_SIZE_MAX_LIMIT_MB = 30;
 
 // @internal (undocumented)
-export const ROOM_SIZE_WARNING_THRESHOLD_MB = 2;
+export const ROOM_SIZE_WARNING_THRESHOLD_MB = 25;
 
 // @internal (undocumented)
 export type RoomSession<R extends UnknownRecord, Meta> = {
