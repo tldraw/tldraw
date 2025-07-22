@@ -56,14 +56,19 @@ describe('When interacting with a shape...', () => {
 		// Set start / change / end events on only the geo shape
 		const util = editor.getShapeUtil<TLFrameShape>('frame')
 
-		const fnStart = jest.fn()
-		util.onRotateStart = fnStart
+		const calls: string[] = []
 
-		const fnChange = jest.fn()
-		util.onRotate = fnChange
+		util.onRotateStart = () => {
+			calls.push('start')
+		}
 
-		const fnEnd = jest.fn()
-		util.onRotateEnd = fnEnd
+		util.onRotate = () => {
+			calls.push('change')
+		}
+
+		util.onRotateEnd = () => {
+			calls.push('end')
+		}
 
 		editor.selectAll()
 		expect(editor.getSelectedShapeIds()).toMatchObject([ids.frame1, ids.box1])
@@ -76,14 +81,8 @@ describe('When interacting with a shape...', () => {
 			.pointerMove(200, 200)
 			.pointerUp(200, 200)
 
-		// Once on start (for frame only)
-		expect(fnStart).toHaveBeenCalledTimes(1)
-
-		// Once on start, once during the move
-		expect(fnChange).toHaveBeenCalledTimes(2)
-
-		// Once on end
-		expect(fnEnd).toHaveBeenCalledTimes(1)
+		// Should have called start, change, and end in sequence
+		expect(calls).toEqual(['start', 'change', 'change', 'end'])
 	})
 
 	it('cleans up events', () => {
@@ -105,14 +104,19 @@ describe('When interacting with a shape...', () => {
 	it('Fires resisizing events', () => {
 		const util = editor.getShapeUtil<TLFrameShape>('frame')
 
-		const fnStart = jest.fn()
-		util.onResizeStart = fnStart
+		const calls: string[] = []
 
-		const fnChange = jest.fn()
-		util.onResize = fnChange
+		util.onResizeStart = () => {
+			calls.push('start')
+		}
 
-		const fnEnd = jest.fn()
-		util.onResizeEnd = fnEnd
+		util.onResize = () => {
+			calls.push('change')
+		}
+
+		util.onResizeEnd = () => {
+			calls.push('end')
+		}
 
 		editor.selectAll()
 		expect(editor.getSelectedShapeIds()).toMatchObject([ids.frame1, ids.box1])
@@ -129,27 +133,26 @@ describe('When interacting with a shape...', () => {
 		editor.pointerUp(200, 210)
 		editor.expectToBeIn('select.idle')
 
-		// Once on start (for frame only)
-		expect(fnStart).toHaveBeenCalledTimes(1)
-
-		// Once on start, once during the resize
-		expect(fnChange).toHaveBeenCalledTimes(2)
-
-		// Once on end
-		expect(fnEnd).toHaveBeenCalledTimes(1)
+		// Should have called start, change, and end in sequence
+		expect(calls).toEqual(['start', 'change', 'change', 'end'])
 	})
 
 	it('Fires translating events', () => {
 		const util = editor.getShapeUtil<TLFrameShape>('frame')
 
-		const fnStart = jest.fn()
-		util.onTranslateStart = fnStart
+		const calls: string[] = []
 
-		const fnChange = jest.fn()
-		util.onTranslate = fnChange
+		util.onTranslateStart = () => {
+			calls.push('start')
+		}
 
-		const fnEnd = jest.fn()
-		util.onTranslateEnd = fnEnd
+		util.onTranslate = () => {
+			calls.push('change')
+		}
+
+		util.onTranslateEnd = () => {
+			calls.push('end')
+		}
 
 		editor.selectAll()
 		expect(editor.getSelectedShapeIds()).toMatchObject([ids.frame1, ids.box1])
@@ -157,14 +160,8 @@ describe('When interacting with a shape...', () => {
 		// Translate the shapes...
 		editor.pointerDown(50, 50, ids.box1).pointerMove(50, 40).pointerUp(50, 40)
 
-		// Once on start for frame
-		expect(fnStart).toHaveBeenCalledTimes(1)
-
-		// Once on start, once during the move
-		expect(fnChange).toHaveBeenCalledTimes(2)
-
-		// Once on end
-		expect(fnEnd).toHaveBeenCalledTimes(1)
+		// Should have called start, change, and end in sequence
+		expect(calls).toEqual(['start', 'change', 'change', 'end'])
 	})
 
 	it('Uses the shape utils onClick handler', () => {
