@@ -4,7 +4,7 @@ import { objectMapValues, structuredClone } from '@tldraw/utils'
 import { RoomSessionState } from './RoomSession'
 import { ServerSocketAdapter, WebSocketMinimal } from './ServerSocketAdapter'
 import { TLSyncErrorCloseEventReason } from './TLSyncClient'
-import { RoomSnapshot, RoomStoreMethods, TLSyncRoom } from './TLSyncRoom'
+import { RoomSnapshot, RoomStoreMethods, RoomUpdate, TLSyncRoom } from './TLSyncRoom'
 import { JsonChunkAssembler } from './chunk'
 import { TLSocketServerSentEvent } from './protocol'
 
@@ -262,11 +262,13 @@ export class TLSocketRoom<R extends UnknownRecord = UnknownRecord, SessionMeta =
 	}
 
 	/**
-	 * Update room size and send notifications if thresholds are reached
+	 * Send a room update.
+	 *
+	 * @param update - The room update to send.
 	 * @public
 	 */
-	updateRoomSizeAndNotify(sizeInMB: number): void {
-		this.room.updateRoomSizeAndNotify(sizeInMB)
+	sendRoomUpdate(update: RoomUpdate): void {
+		this.room.sendRoomUpdate(update)
 	}
 
 	/**

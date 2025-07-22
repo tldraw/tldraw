@@ -80,6 +80,13 @@ export const ROOM_SIZE_WARNING_MESSAGE: TLServerMessageType = 'room_size_warning
 /** @internal */
 export const ROOM_SIZE_LIMIT_MESSAGE: TLServerMessageType = 'room_size_limit_reached'
 
+// Room update types
+/** @public */
+export interface RoomUpdate {
+	type: 'roomSize'
+	sizeInMB: number
+}
+
 const timeSince = (time: number) => Date.now() - time
 
 /** @internal */
@@ -494,10 +501,20 @@ export class TLSyncRoom<R extends UnknownRecord, SessionMeta> {
 	}
 
 	/**
-	 * Update the known room size and send notifications if thresholds are reached
+	 * Send a room update to all connected clients
+	 *
+	 * @param update - The room update to send.
 	 * @public
 	 */
-	public updateRoomSizeAndNotify(sizeInMB: number) {
+	public sendRoomUpdate(update: RoomUpdate) {
+		switch (update.type) {
+			case 'roomSize':
+				this.handleRoomSizeUpdate(update.sizeInMB)
+				break
+		}
+	}
+
+	private handleRoomSizeUpdate(sizeInMB: number) {
 		this.lastKnownSizeMB = sizeInMB
 
 		if (sizeInMB >= ROOM_SIZE_MAX_LIMIT_MB) {

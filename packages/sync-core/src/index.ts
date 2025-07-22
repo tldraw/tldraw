@@ -49,6 +49,7 @@ export {
 	TLSyncRoom,
 	type RoomSnapshot,
 	type RoomStoreMethods,
+	type RoomUpdate,
 	type TLRoomSocket,
 } from './lib/TLSyncRoom'
 

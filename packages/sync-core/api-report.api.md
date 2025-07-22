@@ -248,6 +248,14 @@ export interface RoomStoreMethods<R extends UnknownRecord = UnknownRecord> {
     put(record: R): void;
 }
 
+// @public (undocumented)
+export interface RoomUpdate {
+    // (undocumented)
+    sizeInMB: number;
+    // (undocumented)
+    type: 'roomSize';
+}
+
 // @internal (undocumented)
 export type SubscribingFn<T> = (cb: (val: T) => void) => () => void;
 
@@ -415,7 +423,7 @@ export class TLSocketRoom<R extends UnknownRecord = UnknownRecord, SessionMeta =
         }) => void;
         schema?: StoreSchema<R, any>;
     };
-    updateRoomSizeAndNotify(sizeInMB: number): void;
+    sendRoomUpdate(update: RoomUpdate): void;
     updateStore(updater: (store: RoomStoreMethods<R>) => Promise<void> | void): Promise<void>;
 }
 
@@ -587,6 +595,8 @@ export class TLSyncRoom<R extends UnknownRecord, SessionMeta> {
     roomSizePredicates: Record<TLServerMessageType, (session: ConnectedRoomSession<R, SessionMeta>) => boolean>;
     // (undocumented)
     readonly schema: StoreSchema<R, any>;
+    // @public
+    sendRoomUpdate(update: RoomUpdate): void;
     // (undocumented)
     readonly serializedSchema: SerializedSchema;
     // (undocumented)
@@ -595,8 +605,6 @@ export class TLSyncRoom<R extends UnknownRecord, SessionMeta> {
     tombstoneHistoryStartsAtClock: number;
     // (undocumented)
     tombstones: AtomMap<string, number>;
-    // @public
-    updateRoomSizeAndNotify(sizeInMB: number): void;
     updateStore(updater: (store: RoomStoreMethods<R>) => Promise<void> | void): Promise<void>;
 }
 

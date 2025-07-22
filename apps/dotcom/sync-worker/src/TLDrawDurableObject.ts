@@ -149,7 +149,7 @@ export class TLDrawDurableObject extends DurableObject {
 						})
 
 						if (result.sizeInMB !== undefined) {
-							room.updateRoomSizeAndNotify(result.sizeInMB)
+							room.sendRoomUpdate({ type: 'roomSize', sizeInMB: result.sizeInMB })
 						}
 
 						this.logEvent({ type: 'room', roomId: slug, name: 'room_start' })
@@ -783,7 +783,7 @@ export class TLDrawDurableObject extends DurableObject {
 
 			if (this._room) {
 				const room = await this.getRoom()
-				room.updateRoomSizeAndNotify(totalSizeInBytes / MB)
+				room.sendRoomUpdate({ type: 'roomSize', sizeInMB: totalSizeInBytes / MB })
 			}
 		} catch (e) {
 			await Promise.all([out1.abort(), out2.abort()])
