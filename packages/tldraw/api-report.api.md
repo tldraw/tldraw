@@ -1938,6 +1938,35 @@ export class LineShapeUtil extends ShapeUtil<TLLineShape> {
         typeName: "shape";
         x: number;
         y: number;
+    };
+    // (undocumented)
+    onHandleDragStart(shape: TLLineShape, { handle }: TLHandleDragInfo<TLLineShape>): {
+        id: TLShapeId;
+        index: IndexKey;
+        isLocked: boolean;
+        meta: JsonObject;
+        opacity: TLOpacityType;
+        parentId: TLParentId;
+        props: {
+            color: TLDefaultColorStyle;
+            dash: TLDefaultDashStyle;
+            points: {
+                [x: string]: {
+                    id: IndexKey;
+                    index: IndexKey;
+                    x: number;
+                    y: number;
+                } | TLLineShapePoint;
+            };
+            scale: number;
+            size: TLDefaultSizeStyle;
+            spline: TLLineShapeSplineStyle;
+        };
+        rotation: number;
+        type: "line";
+        typeName: "shape";
+        x: number;
+        y: number;
     } | undefined;
     // (undocumented)
     onResize(shape: TLLineShape, info: TLResizeInfo<TLLineShape>): {
