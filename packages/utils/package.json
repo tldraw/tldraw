@@ -51,7 +51,7 @@
 		}
 	},
 	"dependencies": {
-		"fractional-indexing-jittered": "^0.9.1",
+		"fractional-indexing-jittered": "^1.0.0",
 		"lodash.isequal": "^4.5.0",
 		"lodash.isequalwith": "^4.4.0",
 		"lodash.throttle": "^4.1.1",

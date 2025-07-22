@@ -41,9 +41,6 @@
   "13ddd375ad": {
     "translation": "Exportera som"
   },
-  "1460ab5e78": {
-    "translation": "Gratis tldraws"
-  },
   "181b90f889": {
     "translation": "Skapa fil"
   },
@@ -76,6 +73,9 @@
   },
   "344a7f427f": {
     "translation": "Redigeringsverktyg"
+  },
+  "37b3dca331": {
+    "translation": "Vänligen logga in"
   },
   "3bd1b98dbd": {
     "translation": "Det gick inte att publicera ändringarna."
@@ -113,11 +113,8 @@
   "4d1c8263ba": {
     "translation": "Ladda om"
   },
-  "4e029798f2": {
-    "translation": "Gratis aktier"
-  },
-  "4e875b8d8e": {
-    "translation": "Gratis sparningar"
+  "4ea0bb66f7": {
+    "translation": "Ett konto vore trevligt"
   },
   "50db1b7e1e": {
     "translation": "Det gick inte att avpublicera filen."
@@ -152,6 +149,9 @@
   "5bec508475": {
     "translation": "Gammal webbläsare upptäckt. Uppdatera din webbläsare för att använda den här appen."
   },
+  "5bef23eb7e": {
+    "translation": "Skapa ditt konto"
+  },
   "5d26ae7550": {
     "translation": "Vi kunde inte ladda upp en del av innehållet du skapade innan du loggade in."
   },
@@ -160,9 +160,6 @@
   },
   "5fb63579fc": {
     "translation": "Kopiera"
-  },
-  "5ff75742e0": {
-    "translation": "Registrera dig gratis"
   },
   "61057a0c84": {
     "translation": "Senare"
@@ -226,6 +223,9 @@
   },
   "7be10fc592": {
     "translation": "Återställ version"
+  },
+  "7c7d5d493e": {
+    "translation": "Vänligen registrera dig"
   },
   "7cb5f8b4a5": {
     "translation": "Glöm"
@@ -336,6 +336,9 @@
   "b028909917": {
     "translation": "Gästanvändare"
   },
+  "b52dc007ac": {
+    "translation": "Registrera dig (gratis och bra)"
+  },
   "b6d4223e60": {
     "translation": "Logga in"
   },
@@ -384,6 +387,9 @@
   "c87aacf567": {
     "translation": "Logga ut"
   },
+  "c8c6a6504a": {
+    "translation": "Du borde registrera dig"
+  },
   "cceaefbc20": {
     "translation": "Dela den här filen"
   },
@@ -407,6 +413,9 @@
   },
   "d876a9fe1a": {
     "translation": "Försök igen"
+  },
+  "d8a50c79a7": {
+    "translation": "Kom med mig till tldraw"
   },
   "d9100f3e10": {
     "translation": "Gå hit för att se innehållet"

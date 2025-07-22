@@ -143,7 +143,7 @@ To remove the watermark, please purchase a license at tldraw.dev.
 		}
 
 		.${className}:hover > button {
-			animation: delayed_link 0.2s forwards ease-in-out;
+			animation: ${className}_delayed_link 0.2s forwards ease-in-out;
 			animation-delay: 0.32s;
 		}
 
@@ -153,7 +153,7 @@ To remove the watermark, please purchase a license at tldraw.dev.
 	}
 
 
-	@keyframes delayed_link {
+	@keyframes ${className}_delayed_link {
 		0% {
 			cursor: inherit;
 			opacity: .38;
