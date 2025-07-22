@@ -1,3 +1,4 @@
+import { TLServerMessageType } from '@tldraw/sync-core'
 import { useCallback } from 'react'
 import {
 	TldrawUiButton,
@@ -62,32 +63,39 @@ function RoomSizeLimitDialog({ onClose }: { onClose(): void }) {
 }
 
 /**
- * Custom hook that creates reusable callbacks for room size warnings and limits
- * @returns Object containing onRoomSizeWarning and onRoomSizeLimitReached callbacks
+ * Custom hook that creates room size message handlers
+ * @returns onMessage callback that handles room size warnings and limits
  */
-export function useRoomSizeCallbacks() {
+export function useRoomSizeMessageHandler() {
 	const { addDialog } = useDialogs()
 
-	const onRoomSizeWarning = useCallback(() => {
-		addDialog({
-			component: ({ onClose }) => <RoomSizeWarningDialog onClose={onClose} />,
-			onClose: () => {
-				// Dialog closed
-			},
-		})
-	}, [addDialog])
+	const onMessage = useCallback(
+		(messageType: TLServerMessageType) => {
+			switch (messageType) {
+				case 'room_size_warning':
+					addDialog({
+						component: ({ onClose }: { onClose(): void }) => (
+							<RoomSizeWarningDialog onClose={onClose} />
+						),
+						onClose: () => {
+							// Dialog closed
+						},
+					})
+					break
+				case 'room_size_limit_reached':
+					addDialog({
+						component: ({ onClose }: { onClose(): void }) => (
+							<RoomSizeLimitDialog onClose={onClose} />
+						),
+						onClose: () => {
+							// Dialog closed
+						},
+					})
+					break
+			}
+		},
+		[addDialog]
+	)
 
-	const onRoomSizeLimitReached = useCallback(() => {
-		addDialog({
-			component: ({ onClose }) => <RoomSizeLimitDialog onClose={onClose} />,
-			onClose: () => {
-				// Dialog closed
-			},
-		})
-	}, [addDialog])
-
-	return {
-		onRoomSizeWarning,
-		onRoomSizeLimitReached,
-	}
+	return onMessage
 }

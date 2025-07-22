@@ -183,10 +183,10 @@ export const RecordOpType: {
 export type RecordOpType = (typeof RecordOpType)[keyof typeof RecordOpType];
 
 // @internal (undocumented)
-export const ROOM_SIZE_MAX_LIMIT_MB = 30;
+export const ROOM_SIZE_MAX_LIMIT_MB = 4;
 
 // @internal (undocumented)
-export const ROOM_SIZE_WARNING_THRESHOLD_MB = 25;
+export const ROOM_SIZE_WARNING_THRESHOLD_MB = 2;
 
 // @internal (undocumented)
 export type RoomSession<R extends UnknownRecord, Meta> = {
@@ -324,6 +324,9 @@ export interface TLRoomSocket<R extends UnknownRecord> {
     // (undocumented)
     sendMessage(msg: TLSocketServerSentEvent<R>): void;
 }
+
+// @internal (undocumented)
+export type TLServerMessageType = 'room_size_limit_reached' | 'room_size_warning';
 
 // @internal (undocumented)
 export type TLSocketClientSentEvent<R extends UnknownRecord> = TLConnectRequest | TLPingRequest | TLPushRequest<R>;
@@ -473,8 +476,7 @@ export class TLSyncClient<R extends UnknownRecord, S extends Store<R> = Store<R>
             isReadonly: boolean;
         }): void;
         onLoad(self: TLSyncClient<R, S>): void;
-        onRoomSizeLimitReached?(): void;
-        onRoomSizeWarning?(): void;
+        onMessage?(messageType: TLServerMessageType): void;
         onSyncError(reason: string): void;
         presence: Signal<null | R>;
         socket: TLPersistentClientSocket<R>;
@@ -495,8 +497,7 @@ export class TLSyncClient<R extends UnknownRecord, S extends Store<R> = Store<R>
     readonly onAfterConnect?: (self: this, details: {
         isReadonly: boolean;
     }) => void;
-    readonly onRoomSizeLimitReached?: () => void;
-    readonly onRoomSizeWarning?: () => void;
+    readonly onMessage?: (messageType: TLServerMessageType) => void;
     // (undocumented)
     readonly presenceState: Signal<null | R> | undefined;
     // (undocumented)

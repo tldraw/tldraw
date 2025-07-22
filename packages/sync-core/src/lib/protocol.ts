@@ -27,6 +27,9 @@ export type TLIncompatibilityReason =
 	(typeof TLIncompatibilityReason)[keyof typeof TLIncompatibilityReason]
 
 /** @internal */
+export type TLServerMessageType = 'room_size_warning' | 'room_size_limit_reached'
+
+/** @internal */
 export type TLSocketServerSentEvent<R extends UnknownRecord> =
 	| {
 			type: 'connect'

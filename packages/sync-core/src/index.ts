@@ -22,6 +22,7 @@ export {
 	type TLConnectRequest,
 	type TLPingRequest,
 	type TLPushRequest,
+	type TLServerMessageType,
 	type TLSocketClientSentEvent,
 	type TLSocketServerSentDataEvent,
 	type TLSocketServerSentEvent,

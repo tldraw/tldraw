@@ -3,6 +3,7 @@ import { useAtom } from '@tldraw/state-react'
 import {
 	ClientWebSocketAdapter,
 	TLRemoteSyncError,
+	TLServerMessageType,
 	TLSyncClient,
 	TLSyncErrorCloseEventReason,
 } from '@tldraw/sync-core'
@@ -83,8 +84,7 @@ export function useSync(opts: UseSyncOptions & TLStoreSchemaOptions): RemoteTLSt
 		trackAnalyticsEvent: track,
 		userInfo,
 		getUserPresence: _getUserPresence,
-		onRoomSizeWarning,
-		onRoomSizeLimitReached,
+		onMessage,
 		...schemaOpts
 	} = opts
 
@@ -217,8 +217,7 @@ export function useSync(opts: UseSyncOptions & TLStoreSchemaOptions): RemoteTLSt
 					store.ensureStoreIsUsable()
 				})
 			},
-			onRoomSizeWarning,
-			onRoomSizeLimitReached,
+			onMessage,
 			presence,
 		})
 
@@ -228,19 +227,7 @@ export function useSync(opts: UseSyncOptions & TLStoreSchemaOptions): RemoteTLSt
 			socket.close()
 			setState(null)
 		}
-	}, [
-		assets,
-		onMount,
-		userAtom,
-		roomId,
-		schema,
-		setState,
-		track,
-		uri,
-		getUserPresence,
-		onRoomSizeWarning,
-		onRoomSizeLimitReached,
-	])
+	}, [assets, onMount, userAtom, roomId, schema, setState, track, uri, getUserPresence, onMessage])
 
 	return useValue<RemoteTLStoreWithStatus>(
 		'remote synced store',
@@ -307,12 +294,7 @@ export interface UseSyncOptions {
 	getUserPresence?(store: TLStore, user: TLPresenceUserInfo): TLPresenceStateInfo | null
 
 	/**
-	 * Called when the room size warning threshold is reached
+	 * Called when the server sends a message to the client
 	 */
-	onRoomSizeWarning?(): void
-
-	/**
-	 * Called when the room size limit is reached
-	 */
-	onRoomSizeLimitReached?(): void
+	onMessage?(messageType: TLServerMessageType): void
 }

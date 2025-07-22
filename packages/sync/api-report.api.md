@@ -9,6 +9,7 @@ import { Signal } from 'tldraw';
 import { TLAssetStore } from 'tldraw';
 import { TLPresenceStateInfo } from 'tldraw';
 import { TLPresenceUserInfo } from 'tldraw';
+import { TLServerMessageType } from '@tldraw/sync-core';
 import { TLStore } from 'tldraw';
 import { TLStoreSchemaOptions } from 'tldraw';
 import { TLStoreWithStatus } from 'tldraw';
@@ -39,10 +40,9 @@ export interface UseSyncDemoOptions {
 export interface UseSyncOptions {
     assets: TLAssetStore;
     getUserPresence?(store: TLStore, user: TLPresenceUserInfo): null | TLPresenceStateInfo;
+    onMessage?(messageType: TLServerMessageType): void;
     // @internal (undocumented)
     onMount?(editor: Editor): void;
-    onRoomSizeLimitReached?(): void;
-    onRoomSizeWarning?(): void;
     // @internal
     roomId?: string;
     // @internal (undocumented)
