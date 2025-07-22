@@ -1,4 +1,4 @@
-import { isEqual } from 'lodash'
+import { isEqual } from 'es-toolkit/compat'
 import * as vscode from 'vscode'
 import { TLDrawDocument } from './TldrawDocument'
 import { loadFile } from './file'
