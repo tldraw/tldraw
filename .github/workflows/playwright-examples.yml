@@ -49,7 +49,7 @@ jobs:
       - name: Run Playwright tests
         run: 'yarn e2e'
         working-directory: apps/examples
-        with:
+        env:
           PERFORMANCE_ANALYTICS_ENABLED: true
           GITHUB_REF_NAME: ${{ github.ref_name }}
           GIT_COMMIT: ${{ github.sha }}
