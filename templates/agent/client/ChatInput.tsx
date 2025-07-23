@@ -174,11 +174,6 @@ export function ChatInput({
 					placeholder="Ask, learn, brainstorm, draw"
 					value={inputValue}
 					onInput={(e) => setInputValue(e.currentTarget.value)}
-					onKeyDown={(e) => {
-						if (e.key === 'Enter' && inputValue === '' && isGenerating) {
-							e.preventDefault()
-						}
-					}}
 				/>
 				<span className="chat-input-actions">
 					<div className="chat-input-actions-left">
@@ -204,7 +199,9 @@ export function ChatInput({
 							<ChevronDownIcon />
 						</div>
 					</div>
-					<button>{isGenerating && inputValue === '' ? '◼' : '⬆'}</button>
+					<button disabled={inputValue === '' && !isGenerating}>
+						{isGenerating && inputValue === '' ? '◼' : '⬆'}
+					</button>
 				</span>
 			</form>
 		</div>

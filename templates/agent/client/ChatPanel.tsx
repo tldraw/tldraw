@@ -101,11 +101,10 @@ export function ChatPanel({ editor }: { editor: Editor }) {
 				$chatHistoryItems.update((prev) =>
 					prev.map((item) => (item.status === 'progress' ? { ...item, status: 'cancelled' } : item))
 				)
-
-				if (value === '') {
-					return
-				}
 			}
+
+			// If the user's message is empty, do nothing
+			if (value === '') return
 
 			// Submit the user's message to the agent
 			if (inputRef.current) inputRef.current.value = ''
