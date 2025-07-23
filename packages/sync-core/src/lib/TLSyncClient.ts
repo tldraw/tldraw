@@ -9,7 +9,7 @@ import {
 } from '@tldraw/store'
 import {
 	exhaustiveSwitchError,
-	fpsThrottle,
+	fixedFpsThrottle,
 	isEqual,
 	objectMapEntries,
 	uniqueId,
@@ -533,7 +533,7 @@ export class TLSyncClient<R extends UnknownRecord, S extends Store<R> = Store<R>
 	}
 
 	/** Send any unsent push requests to the server */
-	private flushPendingPushRequests = fpsThrottle(() => {
+	private flushPendingPushRequests = fixedFpsThrottle(() => {
 		this.debug('flushing pending push requests', {
 			isConnectedToRoom: this.isConnectedToRoom,
 			pendingPushRequests: this.pendingPushRequests,
@@ -551,7 +551,7 @@ export class TLSyncClient<R extends UnknownRecord, S extends Store<R> = Store<R>
 				pendingPushRequest.sent = true
 			}
 		}
-	})
+	}, 30)
 
 	/**
 	 * Applies a 'network' diff to the store this does value-based equality checking so that if the
@@ -659,5 +659,5 @@ export class TLSyncClient<R extends UnknownRecord, S extends Store<R> = Store<R>
 		}
 	}
 
-	private scheduleRebase = fpsThrottle(this.rebase)
+	private scheduleRebase = fixedFpsThrottle(this.rebase, 30)
 }
