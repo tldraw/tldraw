@@ -845,7 +845,7 @@ export class TLSyncRoom<R extends UnknownRecord, SessionMeta> {
 				for (const doc of this.documents.values()) {
 					if (doc.lastChangedClock > message.lastServerClock) {
 						diff[doc.state.id] = [RecordOpType.Put, doc.state]
-					} else if (this.presenceType && doc.state.id !== session.presenceId) {
+					} else if (this.presenceType?.isId(doc.state.id) && doc.state.id !== session.presenceId) {
 						diff[doc.state.id] = [RecordOpType.Put, doc.state]
 					}
 				}
