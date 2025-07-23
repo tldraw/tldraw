@@ -327,7 +327,7 @@ export const ACTION_HISTORY_ITEM_DEFINITIONS: Record<
 		message: {
 			progress: 'Thinking: ',
 			done: 'Thought: ',
-			cancelled: 'Thought: ',
+			cancelled: 'Thought cancelled. ',
 		},
 	},
 	creating: {
@@ -335,7 +335,7 @@ export const ACTION_HISTORY_ITEM_DEFINITIONS: Record<
 		message: {
 			progress: 'Creating: ',
 			done: 'Created: ',
-			cancelled: 'Creation cancelled: ',
+			cancelled: 'Creation cancelled. ',
 		},
 	},
 	deleting: {
@@ -343,7 +343,7 @@ export const ACTION_HISTORY_ITEM_DEFINITIONS: Record<
 		message: {
 			progress: 'Deleting: ',
 			done: 'Deleted: ',
-			cancelled: 'Deletion cancelled: ',
+			cancelled: 'Deletion cancelled. ',
 		},
 	},
 	updating: {
@@ -351,15 +351,15 @@ export const ACTION_HISTORY_ITEM_DEFINITIONS: Record<
 		message: {
 			progress: 'Updating: ',
 			done: 'Updated: ',
-			cancelled: 'Update cancelled: ',
+			cancelled: 'Update cancelled. ',
 		},
 	},
 	schedule: {
 		icon: <SearchIcon />,
 		message: {
-			progress: 'Scheduling review: ',
-			done: 'Review scheduled: ',
-			cancelled: 'Review scheduling cancelled: ',
+			progress: 'Scheduling: ',
+			done: 'Scheduled: ',
+			cancelled: 'Scheduling cancelled. ',
 		},
 	},
 }
