@@ -226,8 +226,8 @@ function getTldrawAiChangesFromSimpleUpdateEvent(
 			const mergedShape: TLShapePartial<TLArrowShape> = {
 				id: update.shapeId as TLShapeId,
 				type: 'arrow',
-				x: 0,
-				y: 0,
+				x: shapeOnCanvas.x,
+				y: shapeOnCanvas.y,
 				props: {
 					color: update.color ? getTldrawColorFromFuzzyColor(update.color) : undefined,
 					text: update.text ?? undefined,
