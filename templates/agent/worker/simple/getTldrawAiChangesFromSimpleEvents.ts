@@ -192,31 +192,21 @@ function getTldrawAiChangesFromSimpleUpdateEvent(
 				throw new Error(`Shape ${update.shapeId} not found in canvas`)
 			}
 
-			let start: { x: number; y: number } | undefined
-			let end: { x: number; y: number } | undefined
-			if (update.x1 !== undefined && update.y1 !== undefined) {
-				start = {
-					x: update.x1,
-					y: update.y1,
-				}
-			}
-			if (update.x2 !== undefined && update.y2 !== undefined) {
-				end = {
-					x: update.x2,
-					y: update.y2,
-				}
-			}
+			const startX = update.x1
+			const startY = update.y1
+			const endX = update.x2 - startX
+			const endY = update.y2 - startY
 
 			const mergedShape: TLShapePartial<TLArrowShape> = {
 				id: update.shapeId as TLShapeId,
 				type: 'arrow',
-				x: shapeOnCanvas.x,
-				y: shapeOnCanvas.y,
+				x: startX,
+				y: startY,
 				props: {
 					color: update.color ? getTldrawColorFromFuzzyColor(update.color) : undefined,
 					text: update.text ?? undefined,
-					start,
-					end,
+					start: { x: 0, y: 0 },
+					end: { x: endX, y: endY },
 				},
 				meta: {
 					note: update.note,
