@@ -214,14 +214,14 @@ function buildHistoryItemMessage(item: ChatHistoryItem): CoreMessage | null {
 			const content: UserContent = [
 				{ type: 'text', text: 'Previous message from user: ' + item.message },
 			]
-			// if (item.contextItems.length > 0) {
-			// 	for (const contextItem of item.contextItems) {
-			// 		content.push({
-			// 			type: 'text',
-			// 			text: `Previous context item to focus on from the user: ${JSON.stringify(contextItem, null, 2)}`,
-			// 		})
-			// 	}
-			// }
+			if (item.contextItems.length > 0) {
+				for (const contextItem of item.contextItems) {
+					content.push({
+						type: 'text',
+						text: `Previous context item to focus on from the user: ${JSON.stringify(contextItem, null, 2)}`,
+					})
+				}
+			}
 			return {
 				role: 'user',
 				content,
@@ -250,21 +250,21 @@ function buildHistoryItemMessage(item: ChatHistoryItem): CoreMessage | null {
 				content: [
 					{
 						type: 'text',
-						// text: 'Previous change from agent: ' + JSON.stringify(item.change, null, 2),
-						text: 'A previous change from agent.',
+						text: 'Previous change from agent: ' + JSON.stringify(item.change, null, 2),
+						// text: 'A previous change from agent.',
 					},
 				],
 			}
 		}
 		case 'agent-change-group': {
-			// const changes = item.items.map((item) => item.change)
+			const changes = item.items.map((item) => item.change)
 			return {
 				role: 'assistant',
 				content: [
 					{
 						type: 'text',
-						// text: 'Previous changes from agent: ' + JSON.stringify(changes, null, 2),
-						text: 'Previous changes from agent.',
+						text: 'Previous changes from agent: ' + JSON.stringify(changes, null, 2),
+						// text: 'Previous changes from agent.',
 					},
 				],
 			}
