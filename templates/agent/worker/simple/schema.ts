@@ -421,10 +421,8 @@ export const SimpleShape = z.union(SIMPLE_SHAPES)
 
 export type ISimpleShape = z.infer<typeof SimpleShape>
 
-export const SimpleShapeUpdate = z.union(
-	// @ts-expect-error
-	SIMPLE_SHAPES.map((shape) => shape.partial().required({ shapeId: true }))
-)
+export const SimpleShapeUpdate = z.union(SIMPLE_SHAPES)
+export type ISimpleShapeUpdate = z.infer<typeof SimpleShapeUpdate>
 
 // Events
 

@@ -144,44 +144,31 @@ function getTldrawAiChangesFromSimpleUpdateEvent(
 				throw new Error(`Shape ${update.shapeId} not found in canvas`)
 			}
 
-			let x: number | undefined
-			let y: number | undefined
-			let points:
-				| {
-						a1: { id: string; index: IndexKey; x: number; y: number }
-						a2: { id: string; index: IndexKey; x: number; y: number }
-				  }
-				| undefined
+			const startX = update.x1
+			const startY = update.y1
+			const endX = update.x2 - startX
+			const endY = update.y2 - startY
 
-			if (
-				update.x1 !== undefined &&
-				update.x2 !== undefined &&
-				update.y1 !== undefined &&
-				update.y2 !== undefined
-			) {
-				x = Math.min(update.x1, update.x2)
-				y = Math.min(update.y1, update.y2)
-				points = {
-					a1: {
-						id: 'a1',
-						index: 'a1' as IndexKey,
-						x: update.x1,
-						y: update.y1,
-					},
-					a2: {
-						id: 'a2',
-						index: 'a2' as IndexKey,
-						x: update.x2,
-						y: update.y2,
-					},
-				}
+			const points = {
+				a1: {
+					id: 'a1',
+					index: 'a1' as IndexKey,
+					x: 0,
+					y: 0,
+				},
+				a2: {
+					id: 'a2',
+					index: 'a2' as IndexKey,
+					x: endX,
+					y: endY,
+				},
 			}
 
 			const mergedShape: TLShapePartial<TLLineShape> = {
 				id: update.shapeId as TLShapeId,
 				type: 'line',
-				x,
-				y,
+				x: startX,
+				y: startY,
 				props: {
 					color: update.color ? getTldrawColorFromFuzzyColor(update.color) : undefined,
 					points,
@@ -722,41 +709,16 @@ function getTldrawAiChangesFromSimpleMoveEvent(
 	const move = event.move
 	const intent = event.intent
 
-	const { x: newX, y: newY } = move
-
-	const shapeOnCanvas = prompt.canvasContent.shapes.find((s) => s.id === move.shapeId)
-	if (!shapeOnCanvas) {
-		throw new Error(`Shape ${move.shapeId} not found in canvas`)
-	}
-
-	// When moving arrows and lines, we tell the model just to x1 and y1, and the x2 and y2 will be updated automatically. This logic here handles that
-	if (shapeOnCanvas.type === 'arrow') {
-		changes.push({
-			complete: event.complete,
-			type: 'updateShape',
-			description: intent,
-			shape: getUpdatedArrowGivenSimpleMove(prompt, move.shapeId, newX, newY),
-		})
-	} else if (shapeOnCanvas.type === 'line') {
-		changes.push({
-			complete: event.complete,
-			type: 'updateShape',
-			description: intent,
-			shape: getUpdatedLineGivenSimpleMove(prompt, move.shapeId, newX, newY),
-		})
-	} else {
-		// For all other shapes, update x and y only
-		changes.push({
-			complete: event.complete,
-			type: 'updateShape',
-			description: intent,
-			shape: {
-				id: move.shapeId as TLShapeId,
-				x: move.x,
-				y: move.y,
-			},
-		})
-	}
+	changes.push({
+		complete: event.complete,
+		type: 'updateShape',
+		description: intent,
+		shape: {
+			id: move.shapeId as TLShapeId,
+			x: move.x,
+			y: move.y,
+		},
+	})
 
 	return changes
 }
@@ -823,91 +785,4 @@ function getTldrawColorFromFuzzyColor(simpleColor: any): ISimpleColor {
 	}
 
 	return 'black'
-}
-
-function getUpdatedLineGivenSimpleMove(
-	prompt: TLAiSerializedPrompt,
-	shapeId: string,
-	newX: number,
-	newY: number
-) {
-	const shapeOnCanvas = prompt.canvasContent.shapes.find((s) => s.id === shapeId)
-	if (!shapeOnCanvas) {
-		throw new Error(`Shape ${shapeId} not found in canvas`)
-	}
-
-	const points = (shapeOnCanvas as TLLineShape).props.points
-
-	const currentX1 = shapeOnCanvas.x + points['a1'].x
-	const currentY1 = shapeOnCanvas.y + points['a1'].y
-	const currentX2 = shapeOnCanvas.x + points['a2'].x
-	const currentY2 = shapeOnCanvas.y + points['a2'].y
-
-	const dx = newX - currentX1
-	const dy = newY - currentY1
-
-	const newX1 = currentX1 + dx
-	const newY1 = currentY1 + dy
-
-	const newX2 = currentX2 + dx
-	const newY2 = currentY2 + dy
-
-	const newA1 = {
-		...points['a1'],
-		x: 0,
-		y: 0,
-	}
-	const newA2 = {
-		...points['a2'],
-		x: newX2 - newX1,
-		y: newY2 - newY1,
-	}
-
-	return {
-		id: shapeId as any,
-		x: newX1,
-		y: newY1,
-		props: {
-			points: {
-				a1: newA1,
-				a2: newA2,
-			},
-		},
-	}
-}
-
-function getUpdatedArrowGivenSimpleMove(
-	prompt: TLAiSerializedPrompt,
-	shapeId: string,
-	newX: number,
-	newY: number
-) {
-	const shapeOnCanvas = prompt.canvasContent.shapes.find((s) => s.id === shapeId)
-	if (!shapeOnCanvas) {
-		throw new Error(`Shape ${shapeId} not found in canvas`)
-	}
-
-	const currentX1 = shapeOnCanvas.x + (shapeOnCanvas as TLArrowShape).props.start.x
-	const currentY1 = shapeOnCanvas.y + (shapeOnCanvas as TLArrowShape).props.start.y
-	const currentX2 = shapeOnCanvas.x + (shapeOnCanvas as TLArrowShape).props.end.x
-	const currentY2 = shapeOnCanvas.y + (shapeOnCanvas as TLArrowShape).props.end.y
-
-	const dx = newX - currentX1
-	const dy = newY - currentY1
-
-	const newX1 = currentX1 + dx
-	const newY1 = currentY1 + dy
-
-	const newX2 = currentX2 + dx
-	const newY2 = currentY2 + dy
-
-	return {
-		id: shapeId as any,
-		x: newX1,
-		y: newY1,
-		props: {
-			start: { x: 0, y: 0 },
-			end: { x: newX2 - newX1, y: newY2 - newY1 },
-		},
-	}
 }
