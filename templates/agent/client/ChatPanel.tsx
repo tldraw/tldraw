@@ -86,7 +86,11 @@ export function ChatPanel({ editor }: { editor: Editor }) {
 		async (e) => {
 			e.preventDefault()
 
-			// If we have a stashed cancel function, call it and stop here
+			// Otherwise, submit the user's message to the agent
+			const formData = new FormData(e.currentTarget)
+			const value = formData.get('input') as string
+
+			// If we're currently generating, cancel the current request and send the new one instead
 			if (rCancelFn.current) {
 				rCancelFn.current()
 				rCancelFn.current = null
@@ -98,12 +102,12 @@ export function ChatPanel({ editor }: { editor: Editor }) {
 					prev.map((item) => (item.status === 'progress' ? { ...item, status: 'cancelled' } : item))
 				)
 
-				return
+				if (value === '') {
+					return
+				}
 			}
 
-			// Otherwise, submit the user's message to the agent
-			const formData = new FormData(e.currentTarget)
-			const value = formData.get('input') as string
+			// Submit the user's message to the agent
 			if (inputRef.current) inputRef.current.value = ''
 
 			const userMessageHistoryItem: UserMessageHistoryItem = {
