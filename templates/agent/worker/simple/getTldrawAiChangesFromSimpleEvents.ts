@@ -207,16 +207,13 @@ function getTldrawAiChangesFromSimpleUpdateEvent(
 
 			let start: { x: number; y: number } | undefined
 			let end: { x: number; y: number } | undefined
-			if (
-				update.x1 !== undefined &&
-				update.y1 !== undefined &&
-				update.x2 !== undefined &&
-				update.y2 !== undefined
-			) {
+			if (update.x1 !== undefined && update.y1 !== undefined) {
 				start = {
 					x: update.x1,
 					y: update.y1,
 				}
+			}
+			if (update.x2 !== undefined && update.y2 !== undefined) {
 				end = {
 					x: update.x2,
 					y: update.y2,
@@ -454,7 +451,7 @@ function getTldrawAiChangesFromSimpleCreateEvent(
 					props: {
 						richText: toRichTextIfNeeded(shape.text ?? ''),
 						color: getTldrawColorFromFuzzyColor(shape.color),
-						textAlign: shape.textAlign ?? 'middle',
+						// textAlign: shape.textAlign ?? 'middle',
 					},
 					meta: {
 						note: shape.note ?? '',

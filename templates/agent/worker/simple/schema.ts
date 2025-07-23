@@ -29,12 +29,12 @@ const SimpleRectangleShape = z.object({
 	_type: z.literal('rectangle'),
 	shapeId: z.string(),
 	note: z.string(),
-	x: z.number().optional(),
-	y: z.number().optional(),
-	width: z.number().optional(),
-	height: z.number().optional(),
-	color: SimpleColor.optional(),
-	fill: SimpleFill.optional(),
+	x: z.number(),
+	y: z.number(),
+	width: z.number(),
+	height: z.number(),
+	color: SimpleColor,
+	fill: SimpleFill,
 	text: SimpleLabel.optional(),
 })
 
@@ -44,12 +44,12 @@ const SimpleEllipseShape = z.object({
 	_type: z.literal('ellipse'),
 	shapeId: z.string(),
 	note: z.string(),
-	x: z.number().optional(),
-	y: z.number().optional(),
-	width: z.number().optional(),
-	height: z.number().optional(),
-	color: SimpleColor.optional(),
-	fill: SimpleFill.optional(),
+	x: z.number(),
+	y: z.number(),
+	width: z.number(),
+	height: z.number(),
+	color: SimpleColor,
+	fill: SimpleFill,
 	text: SimpleLabel.optional(),
 })
 
@@ -59,12 +59,12 @@ const SimpleTriangleShape = z.object({
 	_type: z.literal('triangle'),
 	shapeId: z.string(),
 	note: z.string(),
-	x: z.number().optional(),
-	y: z.number().optional(),
-	width: z.number().optional(),
-	height: z.number().optional(),
-	color: SimpleColor.optional(),
-	fill: SimpleFill.optional(),
+	x: z.number(),
+	y: z.number(),
+	width: z.number(),
+	height: z.number(),
+	color: SimpleColor,
+	fill: SimpleFill,
 	text: SimpleLabel.optional(),
 })
 
@@ -74,12 +74,12 @@ const SimpleDiamondShape = z.object({
 	_type: z.literal('diamond'),
 	shapeId: z.string(),
 	note: z.string(),
-	x: z.number().optional(),
-	y: z.number().optional(),
-	width: z.number().optional(),
-	height: z.number().optional(),
-	color: SimpleColor.optional(),
-	fill: SimpleFill.optional(),
+	x: z.number(),
+	y: z.number(),
+	width: z.number(),
+	height: z.number(),
+	color: SimpleColor,
+	fill: SimpleFill,
 	text: SimpleLabel.optional(),
 })
 
@@ -89,12 +89,12 @@ const SimpleHexagonShape = z.object({
 	_type: z.literal('hexagon'),
 	shapeId: z.string(),
 	note: z.string(),
-	x: z.number().optional(),
-	y: z.number().optional(),
-	width: z.number().optional(),
-	height: z.number().optional(),
-	color: SimpleColor.optional(),
-	fill: SimpleFill.optional(),
+	x: z.number(),
+	y: z.number(),
+	width: z.number(),
+	height: z.number(),
+	color: SimpleColor,
+	fill: SimpleFill,
 	text: SimpleLabel.optional(),
 })
 
@@ -104,12 +104,12 @@ const SimpleOvalShape = z.object({
 	_type: z.literal('oval'),
 	shapeId: z.string(),
 	note: z.string(),
-	x: z.number().optional(),
-	y: z.number().optional(),
-	width: z.number().optional(),
-	height: z.number().optional(),
-	color: SimpleColor.optional(),
-	fill: SimpleFill.optional(),
+	x: z.number(),
+	y: z.number(),
+	width: z.number(),
+	height: z.number(),
+	color: SimpleColor,
+	fill: SimpleFill,
 	text: SimpleLabel.optional(),
 })
 
@@ -118,13 +118,13 @@ export type ISimpleOvalShape = z.infer<typeof SimpleOvalShape>
 const SimpleCloudShape = z.object({
 	_type: z.literal('cloud'),
 	shapeId: z.string(),
-	note: z.string().optional(),
-	x: z.number().optional(),
-	y: z.number().optional(),
-	width: z.number().optional(),
-	height: z.number().optional(),
-	color: SimpleColor.optional(),
-	fill: SimpleFill.optional(),
+	note: z.string(),
+	x: z.number(),
+	y: z.number(),
+	width: z.number(),
+	height: z.number(),
+	color: SimpleColor,
+	fill: SimpleFill,
 	text: SimpleLabel.optional(),
 })
 
@@ -134,12 +134,12 @@ const SimpleXBoxShape = z.object({
 	_type: z.literal('x-box'),
 	shapeId: z.string(),
 	note: z.string(),
-	x: z.number().optional(),
-	y: z.number().optional(),
-	width: z.number().optional(),
-	height: z.number().optional(),
-	color: SimpleColor.optional(),
-	fill: SimpleFill.optional(),
+	x: z.number(),
+	y: z.number(),
+	width: z.number(),
+	height: z.number(),
+	color: SimpleColor,
+	fill: SimpleFill,
 	text: SimpleLabel.optional(),
 })
 
@@ -149,12 +149,12 @@ const SimplePentagonShape = z.object({
 	_type: z.literal('pentagon'),
 	shapeId: z.string(),
 	note: z.string(),
-	x: z.number().optional(),
-	y: z.number().optional(),
-	width: z.number().optional(),
-	height: z.number().optional(),
-	color: SimpleColor.optional(),
-	fill: SimpleFill.optional(),
+	x: z.number(),
+	y: z.number(),
+	width: z.number(),
+	height: z.number(),
+	color: SimpleColor,
+	fill: SimpleFill,
 	text: SimpleLabel.optional(),
 })
 
@@ -164,12 +164,12 @@ const SimpleOctagonShape = z.object({
 	_type: z.literal('octagon'),
 	shapeId: z.string(),
 	note: z.string(),
-	x: z.number().optional(),
-	y: z.number().optional(),
-	width: z.number().optional(),
-	height: z.number().optional(),
-	color: SimpleColor.optional(),
-	fill: SimpleFill.optional(),
+	x: z.number(),
+	y: z.number(),
+	width: z.number(),
+	height: z.number(),
+	color: SimpleColor,
+	fill: SimpleFill,
 	text: SimpleLabel.optional(),
 })
 
@@ -179,12 +179,12 @@ const SimpleStarShape = z.object({
 	_type: z.literal('star'),
 	shapeId: z.string(),
 	note: z.string(),
-	x: z.number().optional(),
-	y: z.number().optional(),
-	width: z.number().optional(),
-	height: z.number().optional(),
-	color: SimpleColor.optional(),
-	fill: SimpleFill.optional(),
+	x: z.number(),
+	y: z.number(),
+	width: z.number(),
+	height: z.number(),
+	color: SimpleColor,
+	fill: SimpleFill,
 	text: SimpleLabel.optional(),
 })
 
@@ -194,8 +194,8 @@ const SimpleRhombusShape = z.object({
 	_type: z.literal('rhombus'),
 	shapeId: z.string(),
 	note: z.string(),
-	x: z.number().optional(),
-	y: z.number().optional(),
+	x: z.number(),
+	y: z.number(),
 	width: z.number().optional(),
 	height: z.number().optional(),
 	color: SimpleColor.optional(),
@@ -209,12 +209,12 @@ const SimpleRhombus2Shape = z.object({
 	_type: z.literal('rhombus-2'),
 	shapeId: z.string(),
 	note: z.string(),
-	x: z.number().optional(),
-	y: z.number().optional(),
-	width: z.number().optional(),
-	height: z.number().optional(),
-	color: SimpleColor.optional(),
-	fill: SimpleFill.optional(),
+	x: z.number(),
+	y: z.number(),
+	width: z.number(),
+	height: z.number(),
+	color: SimpleColor,
+	fill: SimpleFill,
 	text: SimpleLabel.optional(),
 })
 
@@ -224,12 +224,12 @@ const SimpleTrapezoidShape = z.object({
 	_type: z.literal('trapezoid'),
 	shapeId: z.string(),
 	note: z.string(),
-	x: z.number().optional(),
-	y: z.number().optional(),
-	width: z.number().optional(),
-	height: z.number().optional(),
-	color: SimpleColor.optional(),
-	fill: SimpleFill.optional(),
+	x: z.number(),
+	y: z.number(),
+	width: z.number(),
+	height: z.number(),
+	color: SimpleColor,
+	fill: SimpleFill,
 	text: SimpleLabel.optional(),
 })
 
@@ -239,12 +239,12 @@ const SimpleArrowRightShape = z.object({
 	_type: z.literal('arrow-right'),
 	shapeId: z.string(),
 	note: z.string(),
-	x: z.number().optional(),
-	y: z.number().optional(),
-	width: z.number().optional(),
-	height: z.number().optional(),
-	color: SimpleColor.optional(),
-	fill: SimpleFill.optional(),
+	x: z.number(),
+	y: z.number(),
+	width: z.number(),
+	height: z.number(),
+	color: SimpleColor,
+	fill: SimpleFill,
 	text: SimpleLabel.optional(),
 })
 
@@ -254,12 +254,12 @@ const SimpleArrowLeftShape = z.object({
 	_type: z.literal('arrow-left'),
 	shapeId: z.string(),
 	note: z.string(),
-	x: z.number().optional(),
-	y: z.number().optional(),
-	width: z.number().optional(),
-	height: z.number().optional(),
-	color: SimpleColor.optional(),
-	fill: SimpleFill.optional(),
+	x: z.number(),
+	y: z.number(),
+	width: z.number(),
+	height: z.number(),
+	color: SimpleColor,
+	fill: SimpleFill,
 	text: SimpleLabel.optional(),
 })
 
@@ -269,12 +269,12 @@ const SimpleArrowUpShape = z.object({
 	_type: z.literal('arrow-up'),
 	shapeId: z.string(),
 	note: z.string(),
-	x: z.number().optional(),
-	y: z.number().optional(),
-	width: z.number().optional(),
-	height: z.number().optional(),
-	color: SimpleColor.optional(),
-	fill: SimpleFill.optional(),
+	x: z.number(),
+	y: z.number(),
+	width: z.number(),
+	height: z.number(),
+	color: SimpleColor,
+	fill: SimpleFill,
 	text: SimpleLabel.optional(),
 })
 
@@ -284,12 +284,12 @@ const SimpleArrowDownShape = z.object({
 	_type: z.literal('arrow-down'),
 	shapeId: z.string(),
 	note: z.string(),
-	x: z.number().optional(),
-	y: z.number().optional(),
-	width: z.number().optional(),
-	height: z.number().optional(),
-	color: SimpleColor.optional(),
-	fill: SimpleFill.optional(),
+	x: z.number(),
+	y: z.number(),
+	width: z.number(),
+	height: z.number(),
+	color: SimpleColor,
+	fill: SimpleFill,
 	text: SimpleLabel.optional(),
 })
 
@@ -299,12 +299,12 @@ const SimpleCheckBoxShape = z.object({
 	_type: z.literal('check-box'),
 	shapeId: z.string(),
 	note: z.string(),
-	x: z.number().optional(),
-	y: z.number().optional(),
-	width: z.number().optional(),
-	height: z.number().optional(),
-	color: SimpleColor.optional(),
-	fill: SimpleFill.optional(),
+	x: z.number(),
+	y: z.number(),
+	width: z.number(),
+	height: z.number(),
+	color: SimpleColor,
+	fill: SimpleFill,
 	text: SimpleLabel.optional(),
 })
 
@@ -314,12 +314,12 @@ const SimpleHeartShape = z.object({
 	_type: z.literal('heart'),
 	shapeId: z.string(),
 	note: z.string(),
-	x: z.number().optional(),
-	y: z.number().optional(),
-	width: z.number().optional(),
-	height: z.number().optional(),
-	color: SimpleColor.optional(),
-	fill: SimpleFill.optional(),
+	x: z.number(),
+	y: z.number(),
+	width: z.number(),
+	height: z.number(),
+	color: SimpleColor,
+	fill: SimpleFill,
 	text: SimpleLabel.optional(),
 })
 
@@ -329,11 +329,11 @@ const SimpleLineShape = z.object({
 	_type: z.literal('line'),
 	shapeId: z.string(),
 	note: z.string(),
-	x1: z.number().optional(),
-	y1: z.number().optional(),
-	x2: z.number().optional(),
-	y2: z.number().optional(),
-	color: SimpleColor.optional(),
+	x1: z.number(),
+	x2: z.number(),
+	y1: z.number(),
+	y2: z.number(),
+	color: SimpleColor,
 })
 
 export type ISimpleLineShape = z.infer<typeof SimpleLineShape>
@@ -342,9 +342,9 @@ const SimpleNoteShape = z.object({
 	_type: z.literal('note'),
 	shapeId: z.string(),
 	note: z.string(),
-	x: z.number().optional(),
-	y: z.number().optional(),
-	color: SimpleColor.optional(),
+	x: z.number(),
+	y: z.number(),
+	color: SimpleColor,
 	text: SimpleLabel.optional(),
 })
 
@@ -354,11 +354,11 @@ const SimpleTextShape = z.object({
 	_type: z.literal('text'),
 	shapeId: z.string(),
 	note: z.string(),
-	x: z.number().optional(),
-	y: z.number().optional(),
-	color: SimpleColor.optional(),
+	x: z.number(),
+	y: z.number(),
+	color: SimpleColor,
 	text: SimpleLabel.optional(),
-	textAlign: z.enum(['start', 'middle', 'end']).optional(),
+	// textAlign: z.enum(['start', 'middle', 'end']).optional(),
 })
 
 export type ISimpleTextShape = z.infer<typeof SimpleTextShape>
@@ -367,13 +367,13 @@ const SimpleArrowShape = z.object({
 	_type: z.literal('arrow'),
 	shapeId: z.string(),
 	note: z.string(),
-	fromId: z.string().nullable().optional(),
-	toId: z.string().nullable().optional(),
-	x1: z.number().optional(),
-	y1: z.number().optional(),
-	x2: z.number().optional(),
-	y2: z.number().optional(),
-	color: SimpleColor.optional(),
+	fromId: z.string().nullable(),
+	toId: z.string().nullable(),
+	x1: z.number(),
+	y1: z.number(),
+	x2: z.number(),
+	y2: z.number(),
+	color: SimpleColor,
 	text: z.string().optional(),
 })
 
@@ -383,13 +383,13 @@ const SimpleUnknownShape = z.object({
 	_type: z.literal('unknown'),
 	shapeId: z.string(),
 	note: z.string(),
-	x: z.number().optional(),
-	y: z.number().optional(),
+	x: z.number(),
+	y: z.number(),
 })
 
 export type ISimpleUnknownShape = z.infer<typeof SimpleUnknownShape>
 
-export const SimpleShape = z.union([
+const SIMPLE_SHAPES = [
 	SimpleRectangleShape,
 	SimpleEllipseShape,
 	SimpleTriangleShape,
@@ -415,9 +415,16 @@ export const SimpleShape = z.union([
 	SimpleCheckBoxShape,
 	SimpleHeartShape,
 	SimpleUnknownShape,
-])
+] as const
+
+export const SimpleShape = z.union(SIMPLE_SHAPES)
 
 export type ISimpleShape = z.infer<typeof SimpleShape>
+
+export const SimpleShapeUpdate = z.union(
+	// @ts-expect-error
+	SIMPLE_SHAPES.map((shape) => shape.partial().required({ shapeId: true }))
+)
 
 // Events
 
@@ -433,7 +440,7 @@ export type ISimpleCreateEvent = z.infer<typeof SimpleCreateEvent>
 export const SimpleUpdateEvent = z.object({
 	_type: z.literal('update'),
 	// updates: z.array(SimpleShapeUpdate),
-	update: SimpleShape,
+	update: SimpleShapeUpdate,
 	intent: z.string(),
 })
 

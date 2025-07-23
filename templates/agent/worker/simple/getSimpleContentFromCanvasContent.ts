@@ -25,7 +25,7 @@ export function getSimpleContentFromCanvasContent(content: TLAiContent): {
 						x: s.x,
 						y: s.y,
 						color: s.props.color,
-						textAlign: s.props.textAlign,
+						// textAlign: s.props.textAlign,
 						note: (s.meta?.note as string) ?? '',
 					}
 				}
@@ -56,7 +56,7 @@ export function getSimpleContentFromCanvasContent(content: TLAiContent): {
 					) {
 						return {
 							shapeId: s.id,
-							_type: s.props.geo,
+							_type: s.props.geo as any,
 							x: s.x,
 							y: s.y,
 							width: s.props.w,
@@ -75,14 +75,14 @@ export function getSimpleContentFromCanvasContent(content: TLAiContent): {
 						a.index.localeCompare(b.index)
 					)
 					return {
-						shapeId: s.id,
 						_type: 'line',
-						x1: points[0].x + s.x,
-						y1: points[0].y + s.y,
-						x2: points[1].x + s.x,
-						y2: points[1].y + s.y,
 						color: s.props.color,
 						note: (s.meta?.note as string) ?? '',
+						shapeId: s.id,
+						x1: points[0].x + s.x,
+						x2: points[1].x + s.x,
+						y1: points[0].y + s.y,
+						y2: points[1].y + s.y,
 					}
 				}
 
@@ -96,17 +96,17 @@ export function getSimpleContentFromCanvasContent(content: TLAiContent): {
 					const endBinding = arrowBindings.find((b) => b.props.terminal === 'end')
 
 					return {
-						shapeId: s.id,
 						_type: 'arrow',
-						fromId: startBinding?.toId ?? null,
-						toId: endBinding?.toId ?? null,
-						x1: s.props.start.x + s.x,
-						y1: s.props.start.y + s.y,
-						x2: s.props.end.x + s.x,
-						y2: s.props.end.y + s.y,
 						color: s.props.color,
+						fromId: startBinding?.toId ?? null,
+						shapeId: s.id,
 						text: (s.meta?.text as string) ?? '',
+						toId: endBinding?.toId ?? null,
 						note: (s.meta?.note as string) ?? '',
+						x1: s.props.start.x + s.x,
+						x2: s.props.end.x + s.x,
+						y1: s.props.start.y + s.y,
+						y2: s.props.end.y + s.y,
 					}
 				}
 
