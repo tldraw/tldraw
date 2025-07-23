@@ -1,8 +1,8 @@
 import { TLAiChange, TLAiResult, TldrawAiOptions, useTldrawAi } from '@tldraw/ai'
 import { Editor } from 'tldraw'
 import { applyChange } from './applyChanges'
-import { SimpleIds } from './transforms/SimpleIds'
 import { SimplishCoordinates } from './transforms/SimplishCoordinates'
+import { SimplishIds } from './transforms/SimplishIds'
 
 /**
  * A hook that calls `useTldrawAi` with static options.
@@ -14,7 +14,7 @@ export function useTldrawAiExample(editor?: Editor) {
 }
 
 const STATIC_TLDRAWAI_OPTIONS: TldrawAiOptions = {
-	transforms: [SimpleIds, SimplishCoordinates],
+	transforms: [SimplishIds, SimplishCoordinates],
 	apply: applyChange,
 
 	// A function that calls the backend and return generated changes.
