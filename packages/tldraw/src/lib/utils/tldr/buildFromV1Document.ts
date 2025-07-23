@@ -562,6 +562,7 @@ export function buildFromV1Document(editor: Editor, _document: unknown) {
 										y: point.y,
 									},
 									isPrecise: point.x !== 0.5 || point.y !== 0.5,
+									isCreatingShape: true,
 								})
 
 								if (change) {
