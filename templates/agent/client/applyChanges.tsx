@@ -102,6 +102,14 @@ function applyChangeToChatHistory({
 			})
 			return
 		}
+		default: {
+			createOrUpdateHistoryItem({
+				type: 'agent-raw',
+				change,
+				status: change.complete ? 'done' : 'progress',
+			})
+			return
+		}
 	}
 }
 
