@@ -1,4 +1,4 @@
-import { FormEventHandler, useEffect } from 'react'
+import { FormEventHandler, useEffect, useState } from 'react'
 import { Editor, useLocalStorageState, useReactor, useValue } from 'tldraw'
 import { AGENT_MODEL_DEFINITIONS, DEFAULT_MODEL_NAME, TLAgentModelName } from '../worker/models'
 import { $contextItems, addToContext, ContextPreview, removeFromContext } from './Context'
@@ -67,6 +67,8 @@ export function ChatInput({
 	isGenerating: boolean
 	editor: Editor
 }) {
+	const [inputValue, setInputValue] = useState('')
+
 	const isContextToolActive = useValue(
 		'isContextToolActive',
 		() => {
@@ -125,7 +127,13 @@ export function ChatInput({
 					</div>
 				))}
 			</div>
-			<form onSubmit={handleSubmit}>
+			<form
+				onSubmit={(e) => {
+					e.preventDefault()
+					setInputValue('')
+					handleSubmit(e)
+				}}
+			>
 				<div className="chat-input-context-items">
 					<div className={'chat-context-select ' + (isContextToolActive ? 'active' : '')}>
 						<div className="chat-input-actions-label">
@@ -164,6 +172,13 @@ export function ChatInput({
 					type="text"
 					autoComplete="off"
 					placeholder="Ask, learn, brainstorm, draw"
+					value={inputValue}
+					onInput={(e) => setInputValue(e.currentTarget.value)}
+					onKeyDown={(e) => {
+						if (e.key === 'Enter' && inputValue === '' && isGenerating) {
+							e.preventDefault()
+						}
+					}}
 				/>
 				<span className="chat-input-actions">
 					<div className="chat-input-actions-left">
@@ -189,7 +204,7 @@ export function ChatInput({
 							<ChevronDownIcon />
 						</div>
 					</div>
-					<button>{isGenerating ? '◼' : '⬆'}</button>
+					<button>{isGenerating && inputValue === '' ? '◼' : '⬆'}</button>
 				</span>
 			</form>
 		</div>
