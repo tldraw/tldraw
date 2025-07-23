@@ -1,4 +1,5 @@
 import {
+	Mat,
 	StateNode,
 	TLArrowShape,
 	TLHandle,
@@ -26,20 +27,20 @@ export type DraggingHandleInfo = TLPointerEventInfo & {
 export class DraggingHandle extends StateNode {
 	static override id = 'dragging_handle'
 
-	shapeId = '' as TLShapeId
-	initialHandle = {} as TLHandle
-	initialAdjacentHandle = null as TLHandle | null
-	initialPagePoint = {} as Vec
+	shapeId!: TLShapeId
+	initialHandle!: TLHandle
+	initialAdjacentHandle!: TLHandle | null
+	initialPagePoint!: Vec
 
-	markId = ''
-	initialPageTransform: any
-	initialPageRotation: any
+	markId!: string
+	initialPageTransform!: Mat
+	initialPageRotation!: number
 
-	info = {} as DraggingHandleInfo
+	info!: DraggingHandleInfo
 
 	isPrecise = false
-	isPreciseId = null as TLShapeId | null
-	pointingId = null as TLShapeId | null
+	isPreciseId: TLShapeId | null = null
+	pointingId: TLShapeId | null = null
 
 	override onEnter(info: DraggingHandleInfo) {
 		const { shape, isCreating, creatingMarkId, handle } = info
@@ -65,26 +66,6 @@ export class DraggingHandle extends StateNode {
 		}
 
 		this.initialHandle = structuredClone(handle)
-
-		if (this.editor.isShapeOfType<TLLineShape>(shape, 'line')) {
-			// For line shapes, if we're dragging a "create" handle, then
-			// create a new vertex handle at that point; and make this handle
-			// the handle that we're dragging.
-			if (this.initialHandle.type === 'create') {
-				this.editor.updateShape({
-					...shape,
-					props: {
-						points: {
-							...shape.props.points,
-							[handle.index]: { id: handle.index, index: handle.index, x: handle.x, y: handle.y },
-						},
-					},
-				})
-				const handlesAfter = this.editor.getShapeHandles(shape)!
-				const handleAfter = handlesAfter.find((h) => h.index === handle.index)!
-				this.initialHandle = structuredClone(handleAfter)
-			}
-		}
 
 		this.initialPageTransform = this.editor.getShapePageTransform(shape)!
 		this.initialPageRotation = this.initialPageTransform.rotation()
@@ -134,6 +115,18 @@ export class DraggingHandle extends StateNode {
 			}
 		}
 		// -->
+
+		// Call onHandleDragStart callback
+		const handleDragInfo = {
+			handle: this.initialHandle,
+			isPrecise: this.isPrecise,
+			initial: shape,
+		}
+		const util = this.editor.getShapeUtil(shape)
+		const startChanges = util.onHandleDragStart?.(shape, handleDragInfo)
+		if (startChanges) {
+			this.editor.updateShapes([{ ...startChanges, id: shape.id, type: shape.type }])
+		}
 
 		this.update()
 
@@ -204,6 +197,21 @@ export class DraggingHandle extends StateNode {
 		this.editor.snaps.clearIndicators()
 		kickoutOccludedShapes(this.editor, [this.shapeId])
 
+		// Call onHandleDragEnd callback before state transitions
+		const shape = this.editor.getShape(this.shapeId)
+		if (shape) {
+			const util = this.editor.getShapeUtil(shape)
+			const handleDragInfo = {
+				handle: this.initialHandle,
+				isPrecise: this.isPrecise,
+				initial: this.info.shape,
+			}
+			const endChanges = util.onHandleDragEnd?.(shape, handleDragInfo)
+			if (endChanges) {
+				this.editor.updateShapes([{ ...endChanges, id: shape.id, type: shape.type }])
+			}
+		}
+
 		const { onInteractionEnd } = this.info
 		if (this.editor.getInstanceState().isToolLocked && onInteractionEnd) {
 			// Return to the tool that was active before this one,
@@ -216,6 +224,18 @@ export class DraggingHandle extends StateNode {
 	}
 
 	private cancel() {
+		// Call onHandleDragCancel callback before bailing to mark
+		const shape = this.editor.getShape(this.shapeId)
+		if (shape) {
+			const util = this.editor.getShapeUtil(shape)
+			const handleDragInfo = {
+				handle: this.initialHandle,
+				isPrecise: this.isPrecise,
+				initial: this.info.shape,
+			}
+			util.onHandleDragCancel?.(shape, handleDragInfo)
+		}
+
 		this.editor.bailToMark(this.markId)
 		this.editor.snaps.clearIndicators()
 
