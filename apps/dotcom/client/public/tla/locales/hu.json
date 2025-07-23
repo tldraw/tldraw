@@ -41,9 +41,6 @@
   "13ddd375ad": {
     "translation": "Exportálás másként"
   },
-  "1460ab5e78": {
-    "translation": "Ingyenes tldraw-ok"
-  },
   "181b90f889": {
     "translation": "Fájl létrehozása"
   },
@@ -76,6 +73,9 @@
   },
   "344a7f427f": {
     "translation": "Szerkesztő"
+  },
+  "37b3dca331": {
+    "translation": "Kérjük, jelentkezzen be"
   },
   "3bd1b98dbd": {
     "translation": "Nem sikerült közzétenni a változtatásokat."
@@ -113,11 +113,8 @@
   "4d1c8263ba": {
     "translation": "Újratöltés"
   },
-  "4e029798f2": {
-    "translation": "Ingyenes részvények"
-  },
-  "4e875b8d8e": {
-    "translation": "Ingyenes mentések"
+  "4ea0bb66f7": {
+    "translation": "Jó lenne egy számla"
   },
   "50db1b7e1e": {
     "translation": "Nem lehet visszavonni a fájl közzétételét."
@@ -152,6 +149,9 @@
   "5bec508475": {
     "translation": "Régi böngésző észlelve. Kérjük, frissítse böngészőjét az alkalmazás használatához."
   },
+  "5bef23eb7e": {
+    "translation": "Fiók létrehozása"
+  },
   "5d26ae7550": {
     "translation": "Nem sikerült feltöltenünk a bejelentkezés előtt létrehozott tartalmak egy részét."
   },
@@ -160,9 +160,6 @@
   },
   "5fb63579fc": {
     "translation": "Másolat"
-  },
-  "5ff75742e0": {
-    "translation": "Regisztrálj ingyenesen"
   },
   "61057a0c84": {
     "translation": "Később"
@@ -226,6 +223,9 @@
   },
   "7be10fc592": {
     "translation": "Verzió visszaállítása"
+  },
+  "7c7d5d493e": {
+    "translation": "Kérjük, regisztráljon"
   },
   "7cb5f8b4a5": {
     "translation": "Felejtsd el"
@@ -336,6 +336,9 @@
   "b028909917": {
     "translation": "Vendégfelhasználó"
   },
+  "b52dc007ac": {
+    "translation": "Regisztráció (ingyenes és jó)"
+  },
   "b6d4223e60": {
     "translation": "Jelentkezzen be"
   },
@@ -384,6 +387,9 @@
   "c87aacf567": {
     "translation": "Jelentkezzen ki"
   },
+  "c8c6a6504a": {
+    "translation": "Regisztrálnod kellene"
+  },
   "cceaefbc20": {
     "translation": "Ossza meg ezt a fájlt"
   },
@@ -407,6 +413,9 @@
   },
   "d876a9fe1a": {
     "translation": "Próbáld újra"
+  },
+  "d8a50c79a7": {
+    "translation": "Gyere velem rajzolni"
   },
   "d9100f3e10": {
     "translation": "Menjen ide a tartalom megtekintéséhez"

@@ -43,7 +43,7 @@ export interface TLUiActionItem<
 	TransationKey extends string = string,
 	IconType extends string = string,
 > {
-	icon?: IconType
+	icon?: IconType | React.ReactElement
 	id: string
 	kbd?: string
 	label?: TransationKey | { [key: string]: TransationKey }

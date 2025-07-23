@@ -41,9 +41,6 @@
   "13ddd375ad": {
     "translation": "Eksport sebagai"
   },
-  "1460ab5e78": {
-    "translation": "tldraw percuma"
-  },
   "181b90f889": {
     "translation": "Buat fail"
   },
@@ -76,6 +73,9 @@
   },
   "344a7f427f": {
     "translation": "Editor"
+  },
+  "37b3dca331": {
+    "translation": "Sila log masuk"
   },
   "3bd1b98dbd": {
     "translation": "Tidak dapat menerbitkan perubahan."
@@ -113,11 +113,8 @@
   "4d1c8263ba": {
     "translation": "Muat semula"
   },
-  "4e029798f2": {
-    "translation": "Saham percuma"
-  },
-  "4e875b8d8e": {
-    "translation": "Penjimatan percuma"
+  "4ea0bb66f7": {
+    "translation": "Akaun akan menjadi bagus"
   },
   "50db1b7e1e": {
     "translation": "Tidak dapat menyahterbitkan fail."
@@ -152,6 +149,9 @@
   "5bec508475": {
     "translation": "Pelayar lama dikesan. Sila kemas kini pelayar anda untuk menggunakan aplikasi ini."
   },
+  "5bef23eb7e": {
+    "translation": "Buat akaun anda"
+  },
   "5d26ae7550": {
     "translation": "Kami gagal memuat naik beberapa kandungan yang anda buat sebelum anda melog masuk."
   },
@@ -160,9 +160,6 @@
   },
   "5fb63579fc": {
     "translation": "salin"
-  },
-  "5ff75742e0": {
-    "translation": "Daftar secara percuma"
   },
   "61057a0c84": {
     "translation": "Nanti"
@@ -226,6 +223,9 @@
   },
   "7be10fc592": {
     "translation": "Pulihkan versi"
+  },
+  "7c7d5d493e": {
+    "translation": "Sila daftar"
   },
   "7cb5f8b4a5": {
     "translation": "lupa"
@@ -336,6 +336,9 @@
   "b028909917": {
     "translation": "Pengguna tetamu"
   },
+  "b52dc007ac": {
+    "translation": "Daftar (percuma dan bagus)"
+  },
   "b6d4223e60": {
     "translation": "Log masuk"
   },
@@ -384,6 +387,9 @@
   "c87aacf567": {
     "translation": "Log keluar"
   },
+  "c8c6a6504a": {
+    "translation": "Anda harus mendaftar"
+  },
   "cceaefbc20": {
     "translation": "Kongsi fail ini"
   },
@@ -407,6 +413,9 @@
   },
   "d876a9fe1a": {
     "translation": "Cuba Lagi"
+  },
+  "d8a50c79a7": {
+    "translation": "Mari bersama saya untuk tldraw"
   },
   "d9100f3e10": {
     "translation": "Pergi ke sini untuk melihat kandungannya"

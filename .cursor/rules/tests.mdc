@@ -1,0 +1,20 @@
+---
+alwaysApply: true
+---
+
+Most tests in tldraw are written using jest. End-to-end tests are written using playwright.
+
+## Jest tests
+
+When writing unit-style jest tests, test files should be named after the file they are testing.
+For example, `src/lib/LicenseManager.ts` should be tested in `src/lib/LicenseManager.test.ts`.
+
+When writing more integration-style jest test that touch several files, they should live in a separate `src/test/the-thing-you-are-testing.test.ts` file.
+For example, selection logic cuts across many files, so it's tested in `src/test/selection.test.ts`.
+
+When testing the editor, if you need tldraw's default shapes and tools, write your tests in the tldraw workspace, not the editor workspace.
+
+Tests for a specific package should be run using `yarn test` within that workspace's directory - ie in `packages/editor` to run editor tests.
+This is an alias for running `jest`, so you can filter down the tests you're running if needed.
+Running `yarn test` from the repo root will run all the tests for the entire repo.
+This can be slow, and can't be filtered as usual, so don't use it unless you have a good reason.

@@ -87,12 +87,6 @@
       "value": "Esporta come"
     }
   ],
-  "1460ab5e78": [
-    {
-      "type": 0,
-      "value": "Tldraws gratuiti"
-    }
-  ],
   "181b90f889": [
     {
       "type": 0,
@@ -157,6 +151,12 @@
     {
       "type": 0,
       "value": "Editor"
+    }
+  ],
+  "37b3dca331": [
+    {
+      "type": 0,
+      "value": "Per favore accedi"
     }
   ],
   "3bd1b98dbd": [
@@ -231,16 +231,10 @@
       "value": "Ricarica"
     }
   ],
-  "4e029798f2": [
+  "4ea0bb66f7": [
     {
       "type": 0,
-      "value": "azioni gratuite"
-    }
-  ],
-  "4e875b8d8e": [
-    {
-      "type": 0,
-      "value": "Salvataggi gratuiti"
+      "value": "Un account sarebbe bello"
     }
   ],
   "50db1b7e1e": [
@@ -319,6 +313,12 @@
       "value": "Rilevato browser obsoleto. Aggiorna il browser per utilizzare questa app."
     }
   ],
+  "5bef23eb7e": [
+    {
+      "type": 0,
+      "value": "Crea il tuo account"
+    }
+  ],
   "5d26ae7550": [
     {
       "type": 0,
@@ -335,12 +335,6 @@
     {
       "type": 0,
       "value": "Copia"
-    }
-  ],
-  "5ff75742e0": [
-    {
-      "type": 0,
-      "value": "Iscriviti gratuitamente"
     }
   ],
   "61057a0c84": [
@@ -467,6 +461,12 @@
     {
       "type": 0,
       "value": "Ripristina versione"
+    }
+  ],
+  "7c7d5d493e": [
+    {
+      "type": 0,
+      "value": "Per favore, registrati"
     }
   ],
   "7cb5f8b4a5": [
@@ -727,6 +727,12 @@
       "value": "Utente ospite"
     }
   ],
+  "b52dc007ac": [
+    {
+      "type": 0,
+      "value": "Iscriviti (gratuito e valido)"
+    }
+  ],
   "b6d4223e60": [
     {
       "type": 0,
@@ -863,6 +869,12 @@
       "value": "Esci"
     }
   ],
+  "c8c6a6504a": [
+    {
+      "type": 0,
+      "value": "Dovresti iscriverti"
+    }
+  ],
   "cceaefbc20": [
     {
       "type": 0,
@@ -909,6 +921,12 @@
     {
       "type": 0,
       "value": "Riprova"
+    }
+  ],
+  "d8a50c79a7": [
+    {
+      "type": 0,
+      "value": "Vieni con me a tldraw"
     }
   ],
   "d9100f3e10": [

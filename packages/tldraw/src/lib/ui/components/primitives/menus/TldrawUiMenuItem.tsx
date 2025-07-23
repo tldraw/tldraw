@@ -12,6 +12,7 @@ import { TldrawUiButton } from '../Button/TldrawUiButton'
 import { TldrawUiButtonIcon } from '../Button/TldrawUiButtonIcon'
 import { TldrawUiButtonLabel } from '../Button/TldrawUiButtonLabel'
 import { TldrawUiDropdownMenuItem } from '../TldrawUiDropdownMenu'
+import { TLUiIconJsx } from '../TldrawUiIcon'
 import { TldrawUiKbd } from '../TldrawUiKbd'
 import { TldrawUiToolbarButton } from '../TldrawUiToolbar'
 import { useTldrawUiMenuContext } from './TldrawUiMenuContext'
@@ -25,11 +26,11 @@ export interface TLUiMenuItemProps<
 	/**
 	 * The icon to display on the item. Icons are only shown in certain menu types.
 	 */
-	icon?: IconType
+	icon?: IconType | TLUiIconJsx
 	/**
 	 * An icon to display to the left of the menu item.
 	 */
-	iconLeft?: IconType
+	iconLeft?: IconType | TLUiIconJsx
 	/**
 	 * The keyboard shortcut to display on the item.
 	 */

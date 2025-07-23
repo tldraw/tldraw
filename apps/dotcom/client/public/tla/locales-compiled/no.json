@@ -87,12 +87,6 @@
       "value": "Eksporter som"
     }
   ],
-  "1460ab5e78": [
-    {
-      "type": 0,
-      "value": "Gratis tldraws"
-    }
-  ],
   "181b90f889": [
     {
       "type": 0,
@@ -157,6 +151,12 @@
     {
       "type": 0,
       "value": "Redaktør"
+    }
+  ],
+  "37b3dca331": [
+    {
+      "type": 0,
+      "value": "Vennligst logg inn"
     }
   ],
   "3bd1b98dbd": [
@@ -231,16 +231,10 @@
       "value": "Last inn på nytt"
     }
   ],
-  "4e029798f2": [
+  "4ea0bb66f7": [
     {
       "type": 0,
-      "value": "Gratis aksjer"
-    }
-  ],
-  "4e875b8d8e": [
-    {
-      "type": 0,
-      "value": "Gratis lagringer"
+      "value": "En konto hadde vært fint"
     }
   ],
   "50db1b7e1e": [
@@ -319,6 +313,12 @@
       "value": "Gammel nettleser oppdaget. Oppdater nettleseren din for å bruke denne appen."
     }
   ],
+  "5bef23eb7e": [
+    {
+      "type": 0,
+      "value": "Opprett kontoen din"
+    }
+  ],
   "5d26ae7550": [
     {
       "type": 0,
@@ -335,12 +335,6 @@
     {
       "type": 0,
       "value": "Kopiere"
-    }
-  ],
-  "5ff75742e0": [
-    {
-      "type": 0,
-      "value": "Registrer deg gratis"
     }
   ],
   "61057a0c84": [
@@ -467,6 +461,12 @@
     {
       "type": 0,
       "value": "Gjenopprett versjon"
+    }
+  ],
+  "7c7d5d493e": [
+    {
+      "type": 0,
+      "value": "Vennligst registrer deg"
     }
   ],
   "7cb5f8b4a5": [
@@ -727,6 +727,12 @@
       "value": "Gjestebruker"
     }
   ],
+  "b52dc007ac": [
+    {
+      "type": 0,
+      "value": "Registrer deg (gratis og bra)"
+    }
+  ],
   "b6d4223e60": [
     {
       "type": 0,
@@ -863,6 +869,12 @@
       "value": "Logg ut"
     }
   ],
+  "c8c6a6504a": [
+    {
+      "type": 0,
+      "value": "Du burde registrere deg"
+    }
+  ],
   "cceaefbc20": [
     {
       "type": 0,
@@ -909,6 +921,12 @@
     {
       "type": 0,
       "value": "Prøv igjen"
+    }
+  ],
+  "d8a50c79a7": [
+    {
+      "type": 0,
+      "value": "Bli med meg på tldraw"
     }
   ],
   "d9100f3e10": [

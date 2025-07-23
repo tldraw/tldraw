@@ -87,12 +87,6 @@
       "value": "Exporta com a"
     }
   ],
-  "1460ab5e78": [
-    {
-      "type": 0,
-      "value": "tldraws gratuïts"
-    }
-  ],
   "181b90f889": [
     {
       "type": 0,
@@ -157,6 +151,12 @@
     {
       "type": 0,
       "value": "Editor"
+    }
+  ],
+  "37b3dca331": [
+    {
+      "type": 0,
+      "value": "Si us plau, inicia la sessió"
     }
   ],
   "3bd1b98dbd": [
@@ -231,16 +231,10 @@
       "value": "Torna a carregar"
     }
   ],
-  "4e029798f2": [
+  "4ea0bb66f7": [
     {
       "type": 0,
-      "value": "Accions gratuïtes"
-    }
-  ],
-  "4e875b8d8e": [
-    {
-      "type": 0,
-      "value": "Guardats gratuïts"
+      "value": "Un compte estaria bé"
     }
   ],
   "50db1b7e1e": [
@@ -319,6 +313,12 @@
       "value": "S'ha detectat un navegador antic. Actualitzeu el navegador per utilitzar aquesta aplicació."
     }
   ],
+  "5bef23eb7e": [
+    {
+      "type": 0,
+      "value": "Crea el teu compte"
+    }
+  ],
   "5d26ae7550": [
     {
       "type": 0,
@@ -335,12 +335,6 @@
     {
       "type": 0,
       "value": "Còpia"
-    }
-  ],
-  "5ff75742e0": [
-    {
-      "type": 0,
-      "value": "Registra't gratuïtament"
     }
   ],
   "61057a0c84": [
@@ -467,6 +461,12 @@
     {
       "type": 0,
       "value": "Restaurar versió"
+    }
+  ],
+  "7c7d5d493e": [
+    {
+      "type": 0,
+      "value": "Si us plau, registreu-vos"
     }
   ],
   "7cb5f8b4a5": [
@@ -727,6 +727,12 @@
       "value": "Usuari convidat"
     }
   ],
+  "b52dc007ac": [
+    {
+      "type": 0,
+      "value": "Registra't (gratuït i bo)"
+    }
+  ],
   "b6d4223e60": [
     {
       "type": 0,
@@ -863,6 +869,12 @@
       "value": "Tanca la sessió"
     }
   ],
+  "c8c6a6504a": [
+    {
+      "type": 0,
+      "value": "T'hauries de registrar"
+    }
+  ],
   "cceaefbc20": [
     {
       "type": 0,
@@ -909,6 +921,12 @@
     {
       "type": 0,
       "value": "Torna-ho a provar"
+    }
+  ],
+  "d8a50c79a7": [
+    {
+      "type": 0,
+      "value": "Vine amb mi a dibuixar"
     }
   ],
   "d9100f3e10": [

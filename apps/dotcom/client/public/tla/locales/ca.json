@@ -41,9 +41,6 @@
   "13ddd375ad": {
     "translation": "Exporta com a"
   },
-  "1460ab5e78": {
-    "translation": "tldraws gratuïts"
-  },
   "181b90f889": {
     "translation": "Crea un fitxer"
   },
@@ -76,6 +73,9 @@
   },
   "344a7f427f": {
     "translation": "Editor"
+  },
+  "37b3dca331": {
+    "translation": "Si us plau, inicia la sessió"
   },
   "3bd1b98dbd": {
     "translation": "No es poden publicar els canvis."
@@ -113,11 +113,8 @@
   "4d1c8263ba": {
     "translation": "Torna a carregar"
   },
-  "4e029798f2": {
-    "translation": "Accions gratuïtes"
-  },
-  "4e875b8d8e": {
-    "translation": "Guardats gratuïts"
+  "4ea0bb66f7": {
+    "translation": "Un compte estaria bé"
   },
   "50db1b7e1e": {
     "translation": "No es pot anul·lar la publicació del fitxer."
@@ -152,6 +149,9 @@
   "5bec508475": {
     "translation": "S'ha detectat un navegador antic. Actualitzeu el navegador per utilitzar aquesta aplicació."
   },
+  "5bef23eb7e": {
+    "translation": "Crea el teu compte"
+  },
   "5d26ae7550": {
     "translation": "No hem pogut penjar part del contingut que vas crear abans d'iniciar la sessió."
   },
@@ -160,9 +160,6 @@
   },
   "5fb63579fc": {
     "translation": "Còpia"
-  },
-  "5ff75742e0": {
-    "translation": "Registra't gratuïtament"
   },
   "61057a0c84": {
     "translation": "Més tard"
@@ -226,6 +223,9 @@
   },
   "7be10fc592": {
     "translation": "Restaurar versió"
+  },
+  "7c7d5d493e": {
+    "translation": "Si us plau, registreu-vos"
   },
   "7cb5f8b4a5": {
     "translation": "Oblida't"
@@ -336,6 +336,9 @@
   "b028909917": {
     "translation": "Usuari convidat"
   },
+  "b52dc007ac": {
+    "translation": "Registra't (gratuït i bo)"
+  },
   "b6d4223e60": {
     "translation": "Inicia sessió"
   },
@@ -384,6 +387,9 @@
   "c87aacf567": {
     "translation": "Tanca la sessió"
   },
+  "c8c6a6504a": {
+    "translation": "T'hauries de registrar"
+  },
   "cceaefbc20": {
     "translation": "Comparteix aquest fitxer"
   },
@@ -407,6 +413,9 @@
   },
   "d876a9fe1a": {
     "translation": "Torna-ho a provar"
+  },
+  "d8a50c79a7": {
+    "translation": "Vine amb mi a dibuixar"
   },
   "d9100f3e10": {
     "translation": "Entra aquí per veure el contingut"

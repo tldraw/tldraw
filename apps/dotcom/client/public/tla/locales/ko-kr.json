@@ -41,9 +41,6 @@
   "13ddd375ad": {
     "translation": "내보내기 형식"
   },
-  "1460ab5e78": {
-    "translation": "무료 tldraws"
-  },
   "181b90f889": {
     "translation": "파일 생성"
   },
@@ -76,6 +73,9 @@
   },
   "344a7f427f": {
     "translation": "편집기"
+  },
+  "37b3dca331": {
+    "translation": "로그인해주세요"
   },
   "3bd1b98dbd": {
     "translation": "변경 사항을 게시할 수 없습니다."
@@ -113,11 +113,8 @@
   "4d1c8263ba": {
     "translation": "다시 로드"
   },
-  "4e029798f2": {
-    "translation": "무료 주식"
-  },
-  "4e875b8d8e": {
-    "translation": "무료 저장"
+  "4ea0bb66f7": {
+    "translation": "계정이 있으면 좋겠어요"
   },
   "50db1b7e1e": {
     "translation": "파일 게시를 취소할 수 없습니다."
@@ -152,6 +149,9 @@
   "5bec508475": {
     "translation": "이전 브라우저가 감지되었습니다. 이 앱을 사용하려면 브라우저를 업데이트하세요."
   },
+  "5bef23eb7e": {
+    "translation": "계정을 생성하세요"
+  },
   "5d26ae7550": {
     "translation": "로그인하기 전에 생성하신 콘텐츠 중 일부를 업로드하지 못했습니다."
   },
@@ -160,9 +160,6 @@
   },
   "5fb63579fc": {
     "translation": "복사"
-  },
-  "5ff75742e0": {
-    "translation": "무료로 가입하세요"
   },
   "61057a0c84": {
     "translation": "이후"
@@ -226,6 +223,9 @@
   },
   "7be10fc592": {
     "translation": "버전 복원"
+  },
+  "7c7d5d493e": {
+    "translation": "가입해주세요"
   },
   "7cb5f8b4a5": {
     "translation": "무시"
@@ -336,6 +336,9 @@
   "b028909917": {
     "translation": "게스트 사용자"
   },
+  "b52dc007ac": {
+    "translation": "가입하기 (무료이고 좋음)"
+  },
   "b6d4223e60": {
     "translation": "로그인"
   },
@@ -384,6 +387,9 @@
   "c87aacf567": {
     "translation": "로그아웃"
   },
+  "c8c6a6504a": {
+    "translation": "가입해야 합니다"
+  },
   "cceaefbc20": {
     "translation": "이 파일 공유"
   },
@@ -407,6 +413,9 @@
   },
   "d876a9fe1a": {
     "translation": "다시 시도"
+  },
+  "d8a50c79a7": {
+    "translation": "나랑 같이 그림 그리러 가자"
   },
   "d9100f3e10": {
     "translation": "여기로 이동하여 콘텐츠 보기"

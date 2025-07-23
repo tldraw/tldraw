@@ -87,12 +87,6 @@
       "value": "Exportálás másként"
     }
   ],
-  "1460ab5e78": [
-    {
-      "type": 0,
-      "value": "Ingyenes tldraw-ok"
-    }
-  ],
   "181b90f889": [
     {
       "type": 0,
@@ -157,6 +151,12 @@
     {
       "type": 0,
       "value": "Szerkesztő"
+    }
+  ],
+  "37b3dca331": [
+    {
+      "type": 0,
+      "value": "Kérjük, jelentkezzen be"
     }
   ],
   "3bd1b98dbd": [
@@ -231,16 +231,10 @@
       "value": "Újratöltés"
     }
   ],
-  "4e029798f2": [
+  "4ea0bb66f7": [
     {
       "type": 0,
-      "value": "Ingyenes részvények"
-    }
-  ],
-  "4e875b8d8e": [
-    {
-      "type": 0,
-      "value": "Ingyenes mentések"
+      "value": "Jó lenne egy számla"
     }
   ],
   "50db1b7e1e": [
@@ -319,6 +313,12 @@
       "value": "Régi böngésző észlelve. Kérjük, frissítse böngészőjét az alkalmazás használatához."
     }
   ],
+  "5bef23eb7e": [
+    {
+      "type": 0,
+      "value": "Fiók létrehozása"
+    }
+  ],
   "5d26ae7550": [
     {
       "type": 0,
@@ -335,12 +335,6 @@
     {
       "type": 0,
       "value": "Másolat"
-    }
-  ],
-  "5ff75742e0": [
-    {
-      "type": 0,
-      "value": "Regisztrálj ingyenesen"
     }
   ],
   "61057a0c84": [
@@ -467,6 +461,12 @@
     {
       "type": 0,
       "value": "Verzió visszaállítása"
+    }
+  ],
+  "7c7d5d493e": [
+    {
+      "type": 0,
+      "value": "Kérjük, regisztráljon"
     }
   ],
   "7cb5f8b4a5": [
@@ -723,6 +723,12 @@
       "value": "Vendégfelhasználó"
     }
   ],
+  "b52dc007ac": [
+    {
+      "type": 0,
+      "value": "Regisztráció (ingyenes és jó)"
+    }
+  ],
   "b6d4223e60": [
     {
       "type": 0,
@@ -855,6 +861,12 @@
       "value": "Jelentkezzen ki"
     }
   ],
+  "c8c6a6504a": [
+    {
+      "type": 0,
+      "value": "Regisztrálnod kellene"
+    }
+  ],
   "cceaefbc20": [
     {
       "type": 0,
@@ -901,6 +913,12 @@
     {
       "type": 0,
       "value": "Próbáld újra"
+    }
+  ],
+  "d8a50c79a7": [
+    {
+      "type": 0,
+      "value": "Gyere velem rajzolni"
     }
   ],
   "d9100f3e10": [

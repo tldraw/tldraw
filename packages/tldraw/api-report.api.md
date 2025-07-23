@@ -1938,6 +1938,35 @@ export class LineShapeUtil extends ShapeUtil<TLLineShape> {
         typeName: "shape";
         x: number;
         y: number;
+    };
+    // (undocumented)
+    onHandleDragStart(shape: TLLineShape, { handle }: TLHandleDragInfo<TLLineShape>): {
+        id: TLShapeId;
+        index: IndexKey;
+        isLocked: boolean;
+        meta: JsonObject;
+        opacity: TLOpacityType;
+        parentId: TLParentId;
+        props: {
+            color: TLDefaultColorStyle;
+            dash: TLDefaultDashStyle;
+            points: {
+                [x: string]: {
+                    id: IndexKey;
+                    index: IndexKey;
+                    x: number;
+                    y: number;
+                } | TLLineShapePoint;
+            };
+            scale: number;
+            size: TLDefaultSizeStyle;
+            spline: TLLineShapeSplineStyle;
+        };
+        rotation: number;
+        type: "line";
+        typeName: "shape";
+        x: number;
+        y: number;
     } | undefined;
     // (undocumented)
     onResize(shape: TLLineShape, info: TLResizeInfo<TLLineShape>): {
@@ -2556,7 +2585,7 @@ export interface StylePickerSetProps {
 
 // @public (undocumented)
 export type StyleValuesForUi<T> = readonly {
-    readonly icon: string;
+    readonly icon: string | TLUiIconJsx;
     readonly value: T;
 }[];
 
@@ -3171,7 +3200,7 @@ export interface TLUiActionItem<TransationKey extends string = string, IconType 
     // (undocumented)
     checkbox?: boolean;
     // (undocumented)
-    icon?: IconType;
+    icon?: IconType | React_2.ReactElement;
     // (undocumented)
     id: string;
     // (undocumented)
@@ -3219,7 +3248,7 @@ export interface TLUiButtonCheckProps {
 // @public (undocumented)
 export interface TLUiButtonIconProps {
     // (undocumented)
-    icon: string;
+    icon: string | TLUiIconJsx;
     // (undocumented)
     invertIcon?: boolean;
     // (undocumented)
@@ -3801,6 +3830,9 @@ export interface TLUiHelpMenuProps {
 }
 
 // @public (undocumented)
+export type TLUiIconJsx = ReactElement<React.HTMLAttributes<HTMLDivElement>>;
+
+// @public (undocumented)
 export interface TLUiIconProps extends React.HTMLAttributes<HTMLDivElement> {
     // (undocumented)
     children?: undefined;
@@ -3809,7 +3841,7 @@ export interface TLUiIconProps extends React.HTMLAttributes<HTMLDivElement> {
     // (undocumented)
     crossOrigin?: 'anonymous' | 'use-credentials';
     // (undocumented)
-    icon: Exclude<string, TLUiIconType> | TLUiIconType;
+    icon: Exclude<string, TLUiIconType> | TLUiIconJsx | TLUiIconType;
     // (undocumented)
     invertIcon?: boolean;
     // (undocumented)
@@ -3904,7 +3936,7 @@ export interface TLUiMenuCheckboxItemProps<TranslationKey extends string = strin
     // (undocumented)
     disabled?: boolean;
     // (undocumented)
-    icon?: IconType;
+    icon?: IconType | TLUiIconJsx;
     // (undocumented)
     id: string;
     // (undocumented)
@@ -3952,8 +3984,8 @@ export interface TLUiMenuGroupProps<TranslationKey extends string = string> {
 // @public (undocumented)
 export interface TLUiMenuItemProps<TranslationKey extends string = string, IconType extends string = string> {
     disabled?: boolean;
-    icon?: IconType;
-    iconLeft?: IconType;
+    icon?: IconType | TLUiIconJsx;
+    iconLeft?: IconType | TLUiIconJsx;
     // (undocumented)
     id: string;
     isSelected?: boolean;
@@ -4198,7 +4230,7 @@ export interface TLUiToolbarToggleItemProps extends React_3.HTMLAttributes<HTMLB
 // @public (undocumented)
 export interface TLUiToolItem<TranslationKey extends string = string, IconType extends string = string> {
     // (undocumented)
-    icon: IconType;
+    icon: IconType | TLUiIconJsx;
     // (undocumented)
     id: string;
     kbd?: string;

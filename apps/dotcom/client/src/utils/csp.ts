@@ -26,6 +26,7 @@ export const cspDirectives: { [key: string]: string[] } = {
 		'https://stats.g.doubleclick.net',
 		'https://*.google-analytics.com',
 		'https://api.reo.dev',
+		'https://fonts.googleapis.com',
 	],
 	'font-src': [`'self'`, `https://fonts.googleapis.com`, `https://fonts.gstatic.com`, 'data:'],
 	'frame-src': [`'self'`, `https:`],

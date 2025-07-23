@@ -41,9 +41,6 @@
   "13ddd375ad": {
     "translation": "Dışa aktarma formatı"
   },
-  "1460ab5e78": {
-    "translation": "Ücretsiz TLdraw'lar"
-  },
   "181b90f889": {
     "translation": "Dosya oluştur"
   },
@@ -76,6 +73,9 @@
   },
   "344a7f427f": {
     "translation": "Düzenleyici"
+  },
+  "37b3dca331": {
+    "translation": "Lütfen giriş yapın"
   },
   "3bd1b98dbd": {
     "translation": "Değişiklikler yayınlanamıyor."
@@ -113,11 +113,8 @@
   "4d1c8263ba": {
     "translation": "Tekrar yükle"
   },
-  "4e029798f2": {
-    "translation": "Ücretsiz hisseler"
-  },
-  "4e875b8d8e": {
-    "translation": "Ücretsiz kayıtlar"
+  "4ea0bb66f7": {
+    "translation": "Bir hesap güzel olurdu"
   },
   "50db1b7e1e": {
     "translation": "Dosya yayından kaldırılamıyor."
@@ -152,6 +149,9 @@
   "5bec508475": {
     "translation": "Eski tarayıcı algılandı. Bu uygulamayı kullanmak için lütfen tarayıcınızı güncelleyin."
   },
+  "5bef23eb7e": {
+    "translation": "Hesabınızı oluşturun"
+  },
   "5d26ae7550": {
     "translation": "Oturum açmadan önce oluşturduğunuz bazı içerikleri yükleyemedik."
   },
@@ -160,9 +160,6 @@
   },
   "5fb63579fc": {
     "translation": "Kopyala"
-  },
-  "5ff75742e0": {
-    "translation": "Ücretsiz kaydolun"
   },
   "61057a0c84": {
     "translation": "Daha sonra"
@@ -226,6 +223,9 @@
   },
   "7be10fc592": {
     "translation": "Sürümü geri yükle"
+  },
+  "7c7d5d493e": {
+    "translation": "Lütfen kaydolun"
   },
   "7cb5f8b4a5": {
     "translation": "Unut"
@@ -336,6 +336,9 @@
   "b028909917": {
     "translation": "Misafir kullanıcı"
   },
+  "b52dc007ac": {
+    "translation": "Kayıt ol (ücretsiz ve iyi)"
+  },
   "b6d4223e60": {
     "translation": "Oturum aç"
   },
@@ -384,6 +387,9 @@
   "c87aacf567": {
     "translation": "Oturumu kapat"
   },
+  "c8c6a6504a": {
+    "translation": "Kaydolmalısın"
+  },
   "cceaefbc20": {
     "translation": "Bu dosyayı paylaş"
   },
@@ -407,6 +413,9 @@
   },
   "d876a9fe1a": {
     "translation": "Tekrar Dene"
+  },
+  "d8a50c79a7": {
+    "translation": "Benimle tldraw'a gel"
   },
   "d9100f3e10": {
     "translation": "İçeriği görmek için buraya gidin"
