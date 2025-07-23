@@ -428,7 +428,7 @@ function getTldrawAiChangesFromSimpleCreateEvent(
 					props: {
 						richText: toRichTextIfNeeded(shape.text ?? ''),
 						color: getTldrawColorFromFuzzyColor(shape.color),
-						// textAlign: shape.textAlign ?? 'middle',
+						textAlign: 'start',
 					},
 					meta: {
 						note: shape.note ?? '',
