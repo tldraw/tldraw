@@ -49,7 +49,7 @@ export function getTldrawAiChangesFromSimpleEvents(
 		console.log('getTldrawAiChangesFromSimpleEvents [EVENT FROM MODEL]', event)
 	}
 
-	switch (event.type) {
+	switch (event._type) {
 		case 'update': {
 			return getTldrawAiChangesFromSimpleUpdateEvent(prompt, event)
 		}
@@ -66,7 +66,7 @@ export function getTldrawAiChangesFromSimpleEvents(
 			return getTldrawAiChangesFromSimpleMoveEvent(prompt, event)
 		}
 		default: {
-			return [{ ...event, type: 'custom', action: event.type }]
+			return [{ ...event, type: 'custom', action: event._type }]
 		}
 	}
 }
@@ -109,7 +109,7 @@ function getTldrawAiChangesFromSimpleUpdateEvent(
 
 	const update = event.update
 
-	switch (update.type) {
+	switch (update._type) {
 		case 'text': {
 			const shapeOnCanvas = prompt.canvasContent.shapes.find((s) => s.id === update.shapeId)
 			if (!shapeOnCanvas) {
@@ -338,7 +338,7 @@ function getTldrawAiChangesFromSimpleUpdateEvent(
 				type: 'geo',
 				props: {
 					color: update.color ? getTldrawColorFromFuzzyColor(update.color) : undefined,
-					geo: update.type,
+					geo: update._type,
 					w: update.width,
 					h: update.height,
 					fill: update.fill ? simpleFillToShapeFill(update.fill) : undefined,
@@ -440,7 +440,7 @@ function getTldrawAiChangesFromSimpleCreateEvent(
 	}
 
 	const shape = event.shape
-	switch (shape.type) {
+	switch (shape._type) {
 		case 'text': {
 			changes.push({
 				complete: event.complete,
@@ -614,7 +614,7 @@ function getTldrawAiChangesFromSimpleCreateEvent(
 					x: shape.x,
 					y: shape.y,
 					props: {
-						geo: shape.type,
+						geo: shape._type,
 						w: shape.width,
 						h: shape.height,
 						color: getTldrawColorFromFuzzyColor(shape.color),

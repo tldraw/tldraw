@@ -2,7 +2,7 @@ import { SimpleShape } from './schema'
 
 const shapeTypeNames = SimpleShape._def.options
 	.map((option) => {
-		const typeField = option.shape.type
+		const typeField = option.shape._type
 		if (typeField._def.typeName === 'ZodLiteral') {
 			return typeField._def.value
 		}
@@ -31,6 +31,7 @@ ${shapeTypeNames.map((type) => `- **${type.charAt(0).toUpperCase() + type.slice(
 
 Each shape has:
 
+- \`_type\` (one of ${shapeTypeNames.map((type) => `\`${type}\``).join(', ')})
 - \`x\`, \`y\` (numbers, coordinates, the TOP LEFT corner of the shape) (except for arrows and lines, which have \`x1\`, \`y1\`, \`x2\`, \`y2\`)
 - \`note\` (a description of the shape's purpose or intent) (invisible to the user)
 
@@ -63,7 +64,7 @@ Events include:
 - **Schedule (\`schedule\`)**: The AI schedules further work or a review so that it can look at the results of its work so far and take further action, such as reviewing what it has done or taking further steps that would benefit from seeing the results of its work so far.
 
 Each event must include:
-- A \`type\` (one of \`think\`, \`create\`, \`move\`, \`label\`, \`delete\`, \`schedule\`, \`message\`)
+- A \`_type\` (one of \`think\`, \`create\`, \`move\`, \`label\`, \`delete\`, \`schedule\`, \`message\`)
 - An \`intent\` (descriptive reason for the action)
 
 ## Rules
@@ -112,90 +113,90 @@ Assistant:
 {
 	events: [
 		{
-			type: "think",
+			_type: "think",
 			text: "I'll create three circles, one on top of the other, to represent the snowman's body. Then I'll add the eyes. Let's start by creating the circles."
 		},
 		{
-			type: "create",
+			_type: "create",
+			intent: "Create the snowman's head.",
 			shape: {
-				type: "ellipse",
-				shapeId: "snowman-head",
+				_type: "ellipse",
+				color: "white",
+				fill: "solid"
+				height: 50,
 				note: "Snowman's head",
+				shapeId: "snowman-head",
+				width: 50,
 				x: 100,
 				y: 100,
-				width: 50,
-				height: 50,
-				color: "white",
-				fill: "solid"
-			},
-			intent: "Create the snowman's head."
+			}
 		},
 		{
-			type: "create",
+			_type: "create",
+			intent: "Create the snowman's middle.",
 			shape: {
-				type: "ellipse",
-				shapeId: "snowman-middle",
+				_type: "ellipse",
+				color: "white",
+				fill: "solid",
+				height: 100,
 				note: "Snowman's middle",
+				shapeId: "snowman-middle",
+				width: 100,
 				x: 75,
 				y: 150,
-				width: 100,
-				height: 100,
-				color: "white",
-				fill: "solid"
-			},
-			intent: "Create the snowman's middle."
+			}
 		},
 		{
-			type: "create",
+			_type: "create",
+			intent: "Create the snowman's bottom.",
 			shape: {
-				type: "ellipse",
-				shapeId: "snowman-bottom",
+				_type: "ellipse",
+				color: "white",
+				fill: "solid",
+				height: 150,
 				note: "Snowman's bottom",
+				shapeId: "snowman-bottom",
+				width: 150,
 				x: 50,
 				y: 250,
-				width: 150,
-				height: 150,
-				color: "white",
-				fill: "solid"
-			},
-			intent: "Create the snowman's bottom."
+			}
 		},
 		{
-			type: "think",
+			_type: "think",
 			text: "Now I'll add eyes to the snowman."
 		},
 		{
-			type: "create",
+			_type: "create",
+			intent: "Create the snowman's left eye.",
 			shape: {
-				type: "rectangle",
-					shapeId: "snowman-left-eye",
-					note: "Snowman's left eye",
-					x: 120,
-					y: 120,
-					width: 10,
-					height: 10,
-			},
-			intent: "Create the snowman's left eye."
+				_type: "rectangle",
+				height: 10,
+				note: "Snowman's left eye",
+				shapeId: "snowman-left-eye",
+				width: 10,
+				x: 120,
+				y: 120,
+			}
 		},
 		{
-			type: "create",
+			_type: "create",
+			intent: "Create the eyes of the snowman.",
 			shape: {
-				type: "rectangle",
-					shapeId: "snowman-right-eye",
-					note: "Snowman's right eye",
-					x: 180,
-					y: 120,
-					width: 10,
-					height: 10,
-				},
-			intent: "Create the eyes of the snowman."
+				_type: "rectangle",
+				height: 10,
+				note: "Snowman's right eye",
+				shapeId: "snowman-right-eye",
+				width: 10,
+				x: 180,
+				y: 120,
+			}
 		},
 		{
-			type: "message",
-			text: "I've created a snowman to the best of my ability."
+			_type: "message",
+			text: "I've created a snowman."
 		},
 		{
-			type: "schedule",
+			_type: "schedule",
 			intent: "I'll make sure the snowman looks done."
 		}
 	]

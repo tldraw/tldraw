@@ -20,7 +20,7 @@ export function getSimpleContentFromCanvasContent(content: TLAiContent): {
 					const s = shape as TLTextShape
 					return {
 						shapeId: s.id,
-						type: 'text',
+						_type: 'text',
 						text: (s.meta?.text as string) ?? '',
 						x: s.x,
 						y: s.y,
@@ -56,7 +56,7 @@ export function getSimpleContentFromCanvasContent(content: TLAiContent): {
 					) {
 						return {
 							shapeId: s.id,
-							type: s.props.geo,
+							_type: s.props.geo,
 							x: s.x,
 							y: s.y,
 							width: s.props.w,
@@ -76,7 +76,7 @@ export function getSimpleContentFromCanvasContent(content: TLAiContent): {
 					)
 					return {
 						shapeId: s.id,
-						type: 'line',
+						_type: 'line',
 						x1: points[0].x + s.x,
 						y1: points[0].y + s.y,
 						x2: points[1].x + s.x,
@@ -97,7 +97,7 @@ export function getSimpleContentFromCanvasContent(content: TLAiContent): {
 
 					return {
 						shapeId: s.id,
-						type: 'arrow',
+						_type: 'arrow',
 						fromId: startBinding?.toId ?? null,
 						toId: endBinding?.toId ?? null,
 						x1: s.props.start.x + s.x,
@@ -114,7 +114,7 @@ export function getSimpleContentFromCanvasContent(content: TLAiContent): {
 					const s = shape as TLNoteShape
 					return {
 						shapeId: s.id,
-						type: 'note',
+						_type: 'note',
 						x: s.x,
 						y: s.y,
 						color: s.props.color,
@@ -126,7 +126,7 @@ export function getSimpleContentFromCanvasContent(content: TLAiContent): {
 				// Any other shape is unknown
 				return {
 					shapeId: shape.id,
-					type: 'unknown',
+					_type: 'unknown',
 					note: (shape.meta?.note as string) ?? '',
 					x: shape.x,
 					y: shape.y,
