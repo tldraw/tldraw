@@ -282,7 +282,10 @@ export class StoreSchema<R extends UnknownRecord, P = unknown> {
 		return { type: 'success', value: record }
 	}
 
-	migrateStoreSnapshot(snapshot: StoreSnapshot<R>): MigrationResult<SerializedStore<R>> {
+	migrateStoreSnapshot(
+		snapshot: StoreSnapshot<R>,
+		opts?: { mutateInputStore?: boolean }
+	): MigrationResult<SerializedStore<R>> {
 		let { store } = snapshot
 		const migrations = this.getMigrationsSince(snapshot.schema)
 		if (!migrations.ok) {
@@ -295,7 +298,9 @@ export class StoreSchema<R extends UnknownRecord, P = unknown> {
 			return { type: 'success', value: store }
 		}
 
-		store = structuredClone(store)
+		if (!opts?.mutateInputStore) {
+			store = structuredClone(store)
+		}
 
 		try {
 			for (const migration of migrationsToApply) {
@@ -305,13 +310,13 @@ export class StoreSchema<R extends UnknownRecord, P = unknown> {
 						if (!shouldApply) continue
 						const result = migration.up!(record as any)
 						if (result) {
-							store[id as keyof typeof store] = structuredClone(result) as any
+							store[id as keyof typeof store] = result as any
 						}
 					}
 				} else if (migration.scope === 'store') {
 					const result = migration.up!(store)
 					if (result) {
-						store = structuredClone(result) as any
+						store = result as any
 					}
 				} else {
 					exhaustiveSwitchError(migration)

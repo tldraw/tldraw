@@ -309,7 +309,10 @@ export class TLSyncRoom<R extends UnknownRecord, SessionMeta> {
 					store[k as IdOf<R>] = v.state
 				}
 
-				const migrationResult = this.schema.migrateStoreSnapshot({ store, schema })
+				const migrationResult = this.schema.migrateStoreSnapshot(
+					{ store, schema },
+					{ mutateInputStore: true }
+				)
 
 				if (migrationResult.type === 'error') {
 					// TODO: Fault tolerance
