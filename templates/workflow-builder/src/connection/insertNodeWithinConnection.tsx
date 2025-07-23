@@ -1,5 +1,4 @@
 import { Box, createShapeId, Editor, TLShapeId } from 'tldraw'
-import { updateHoveredShapeId } from 'tldraw/src/lib/tools/selection-logic/updateHoveredShapeId'
 import { DEFAULT_NODE_SPACING_PX, NODE_WIDTH_PX } from '../constants'
 import { getNodePortConnections, getNodePorts } from '../nodes/nodePorts'
 import { NodeShape } from '../nodes/NodeShapeUtil'
@@ -62,7 +61,7 @@ export function insertNodeWithinConnection(editor: Editor, connection: Connectio
 
 			moveNodesIfNeeded(editor, newNodeId, originalBindings.end.toId)
 			editor.select(newNodeId)
-			updateHoveredShapeId(editor)
+			editor.updatePointer()
 		},
 		onClose: () => {},
 	})
