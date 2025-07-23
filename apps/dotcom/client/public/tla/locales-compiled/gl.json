@@ -87,12 +87,6 @@
       "value": "Exportar como"
     }
   ],
-  "1460ab5e78": [
-    {
-      "type": 0,
-      "value": "tldraws gratuítos"
-    }
-  ],
   "181b90f889": [
     {
       "type": 0,
@@ -157,6 +151,12 @@
     {
       "type": 0,
       "value": "Editor"
+    }
+  ],
+  "37b3dca331": [
+    {
+      "type": 0,
+      "value": "Inicia sesión"
     }
   ],
   "3bd1b98dbd": [
@@ -231,16 +231,10 @@
       "value": "Recarga"
     }
   ],
-  "4e029798f2": [
+  "4ea0bb66f7": [
     {
       "type": 0,
-      "value": "Accións gratuítas"
-    }
-  ],
-  "4e875b8d8e": [
-    {
-      "type": 0,
-      "value": "Gardadas gratuítas"
+      "value": "Unha conta estaría ben"
     }
   ],
   "50db1b7e1e": [
@@ -319,6 +313,12 @@
       "value": "Detectouse un navegador antigo. Actualízao para usar esta aplicación."
     }
   ],
+  "5bef23eb7e": [
+    {
+      "type": 0,
+      "value": "Crea a túa conta"
+    }
+  ],
   "5d26ae7550": [
     {
       "type": 0,
@@ -335,12 +335,6 @@
     {
       "type": 0,
       "value": "Copiar"
-    }
-  ],
-  "5ff75742e0": [
-    {
-      "type": 0,
-      "value": "Rexístrate gratis"
     }
   ],
   "61057a0c84": [
@@ -467,6 +461,12 @@
     {
       "type": 0,
       "value": "Restaurar versión"
+    }
+  ],
+  "7c7d5d493e": [
+    {
+      "type": 0,
+      "value": "Rexístrate"
     }
   ],
   "7cb5f8b4a5": [
@@ -727,6 +727,12 @@
       "value": "Usuario convidado"
     }
   ],
+  "b52dc007ac": [
+    {
+      "type": 0,
+      "value": "Rexistrarse (gratuíto e bo)"
+    }
+  ],
   "b6d4223e60": [
     {
       "type": 0,
@@ -863,6 +869,12 @@
       "value": "Pechar sesión"
     }
   ],
+  "c8c6a6504a": [
+    {
+      "type": 0,
+      "value": "Deberías rexistrarte"
+    }
+  ],
   "cceaefbc20": [
     {
       "type": 0,
@@ -909,6 +921,12 @@
     {
       "type": 0,
       "value": "Téntao de novo"
+    }
+  ],
+  "d8a50c79a7": [
+    {
+      "type": 0,
+      "value": "Ven comigo a debuxar"
     }
   ],
   "d9100f3e10": [

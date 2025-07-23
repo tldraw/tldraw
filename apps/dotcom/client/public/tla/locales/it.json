@@ -41,9 +41,6 @@
   "13ddd375ad": {
     "translation": "Esporta come"
   },
-  "1460ab5e78": {
-    "translation": "Tldraws gratuiti"
-  },
   "181b90f889": {
     "translation": "Crea file"
   },
@@ -76,6 +73,9 @@
   },
   "344a7f427f": {
     "translation": "Editor"
+  },
+  "37b3dca331": {
+    "translation": "Per favore accedi"
   },
   "3bd1b98dbd": {
     "translation": "Impossibile pubblicare le modifiche."
@@ -113,11 +113,8 @@
   "4d1c8263ba": {
     "translation": "Ricarica"
   },
-  "4e029798f2": {
-    "translation": "azioni gratuite"
-  },
-  "4e875b8d8e": {
-    "translation": "Salvataggi gratuiti"
+  "4ea0bb66f7": {
+    "translation": "Un account sarebbe bello"
   },
   "50db1b7e1e": {
     "translation": "Impossibile annullare la pubblicazione del file."
@@ -152,6 +149,9 @@
   "5bec508475": {
     "translation": "Rilevato browser obsoleto. Aggiorna il browser per utilizzare questa app."
   },
+  "5bef23eb7e": {
+    "translation": "Crea il tuo account"
+  },
   "5d26ae7550": {
     "translation": "Impossibile caricare alcuni dei contenuti che hai creato prima di accedere."
   },
@@ -160,9 +160,6 @@
   },
   "5fb63579fc": {
     "translation": "Copia"
-  },
-  "5ff75742e0": {
-    "translation": "Iscriviti gratuitamente"
   },
   "61057a0c84": {
     "translation": "Più tardi"
@@ -226,6 +223,9 @@
   },
   "7be10fc592": {
     "translation": "Ripristina versione"
+  },
+  "7c7d5d493e": {
+    "translation": "Per favore, registrati"
   },
   "7cb5f8b4a5": {
     "translation": "Dimentica"
@@ -336,6 +336,9 @@
   "b028909917": {
     "translation": "Utente ospite"
   },
+  "b52dc007ac": {
+    "translation": "Iscriviti (gratuito e valido)"
+  },
   "b6d4223e60": {
     "translation": "Accedi"
   },
@@ -384,6 +387,9 @@
   "c87aacf567": {
     "translation": "Esci"
   },
+  "c8c6a6504a": {
+    "translation": "Dovresti iscriverti"
+  },
   "cceaefbc20": {
     "translation": "Condividi questo file"
   },
@@ -407,6 +413,9 @@
   },
   "d876a9fe1a": {
     "translation": "Riprova"
+  },
+  "d8a50c79a7": {
+    "translation": "Vieni con me a tldraw"
   },
   "d9100f3e10": {
     "translation": "Vai qui per vedere i contenuti"

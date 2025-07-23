@@ -87,12 +87,6 @@
       "value": "Izvezi kao"
     }
   ],
-  "1460ab5e78": [
-    {
-      "type": 0,
-      "value": "Besplatni tldraws"
-    }
-  ],
   "181b90f889": [
     {
       "type": 0,
@@ -157,6 +151,12 @@
     {
       "type": 0,
       "value": "Urednik"
+    }
+  ],
+  "37b3dca331": [
+    {
+      "type": 0,
+      "value": "Molimo prijavite se"
     }
   ],
   "3bd1b98dbd": [
@@ -231,16 +231,10 @@
       "value": "Ponovno učitaj"
     }
   ],
-  "4e029798f2": [
+  "4ea0bb66f7": [
     {
       "type": 0,
-      "value": "Besplatne dionice"
-    }
-  ],
-  "4e875b8d8e": [
-    {
-      "type": 0,
-      "value": "Besplatne spremljene datoteke"
+      "value": "Račun bi bio dobar"
     }
   ],
   "50db1b7e1e": [
@@ -319,6 +313,12 @@
       "value": "Otkriven je stari preglednik. Ažurirajte preglednik da biste mogli koristiti ovu aplikaciju."
     }
   ],
+  "5bef23eb7e": [
+    {
+      "type": 0,
+      "value": "Izradite svoj račun"
+    }
+  ],
   "5d26ae7550": [
     {
       "type": 0,
@@ -335,12 +335,6 @@
     {
       "type": 0,
       "value": "Kopirati"
-    }
-  ],
-  "5ff75742e0": [
-    {
-      "type": 0,
-      "value": "Prijavite se besplatno"
     }
   ],
   "61057a0c84": [
@@ -467,6 +461,12 @@
     {
       "type": 0,
       "value": "Vrati verziju"
+    }
+  ],
+  "7c7d5d493e": [
+    {
+      "type": 0,
+      "value": "Molimo vas da se prijavite"
     }
   ],
   "7cb5f8b4a5": [
@@ -727,6 +727,12 @@
       "value": "Gostujući korisnik"
     }
   ],
+  "b52dc007ac": [
+    {
+      "type": 0,
+      "value": "Registracija (besplatna i dobra)"
+    }
+  ],
   "b6d4223e60": [
     {
       "type": 0,
@@ -867,6 +873,12 @@
       "value": "Odjavi se"
     }
   ],
+  "c8c6a6504a": [
+    {
+      "type": 0,
+      "value": "Trebao/la bi se prijaviti"
+    }
+  ],
   "cceaefbc20": [
     {
       "type": 0,
@@ -913,6 +925,12 @@
     {
       "type": 0,
       "value": "Pokušajte ponovno"
+    }
+  ],
+  "d8a50c79a7": [
+    {
+      "type": 0,
+      "value": "Pođi sa mnom crtati"
     }
   ],
   "d9100f3e10": [
