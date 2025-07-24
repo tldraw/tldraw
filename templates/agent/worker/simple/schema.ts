@@ -494,11 +494,15 @@ const SimpleThinkEvent = z.object({
 })
 export type ISimpleThinkEvent = z.infer<typeof SimpleThinkEvent>
 
-const SimpleScheduleEvent = z.object({
+const SimpleScheduleReviewEvent = z.object({
 	_type: z.literal('schedule'),
 	intent: z.string(),
+	x: z.number(),
+	y: z.number(),
+	w: z.number(),
+	h: z.number(),
 })
-export type ISimpleScheduleEvent = z.infer<typeof SimpleScheduleEvent>
+export type ISimpleScheduleEvent = z.infer<typeof SimpleScheduleReviewEvent>
 
 export const SimpleEvent = z.union([
 	SimpleThinkEvent,
@@ -507,7 +511,7 @@ export const SimpleEvent = z.union([
 	SimpleDeleteEvent,
 	SimpleMoveEvent,
 	SimpleLabelEvent,
-	SimpleScheduleEvent,
+	SimpleScheduleReviewEvent,
 ])
 
 export type ISimpleEvent = z.infer<typeof SimpleEvent>

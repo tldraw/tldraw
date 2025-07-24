@@ -59,7 +59,11 @@ class TargetAreaPointing extends StateNode {
 	}
 
 	override onPointerUp() {
-		addToContext({ type: 'point', point: this.editor.inputs.currentPagePoint.clone() })
+		addToContext({
+			type: 'point',
+			point: this.editor.inputs.currentPagePoint.clone(),
+			addedby: 'user',
+		})
 		this.editor.setCurrentTool('select')
 	}
 }
@@ -85,7 +89,7 @@ class TargetAreaDragging extends StateNode {
 		})
 
 		if (!this.bounds) throw new Error('Bounds not set')
-		addToContext({ type: 'area', bounds: this.bounds })
+		addToContext({ type: 'area', bounds: this.bounds, addedby: 'user' })
 		this.editor.setCurrentTool('select')
 	}
 

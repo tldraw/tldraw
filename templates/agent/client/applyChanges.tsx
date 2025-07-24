@@ -55,6 +55,12 @@ function applyChangeToChatHistory({
 									review: true,
 									message: change.intent ?? '',
 									contextItems: lastItem?.contextItems ?? [],
+									bounds: {
+										x: change.x,
+										y: change.y,
+										w: change.w,
+										h: change.h,
+									},
 								},
 							]
 						}

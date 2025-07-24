@@ -104,6 +104,7 @@ export function ContextHighlights() {
 		[pendingPointItems, editor]
 	)
 
+	// TODO: render the context provided by agent differently than that provided by the user
 	return (
 		<>
 			{areaBounds.map((item, i) => (

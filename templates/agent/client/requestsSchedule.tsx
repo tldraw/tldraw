@@ -5,6 +5,12 @@ interface ScheduledRequest {
 	message: string
 	review: boolean
 	contextItems: ContextItem[]
+	bounds?: {
+		x: number
+		y: number
+		w: number
+		h: number
+	}
 }
 
 export const $requestsSchedule = atom<ScheduledRequest[]>('requestsSchedule', [])

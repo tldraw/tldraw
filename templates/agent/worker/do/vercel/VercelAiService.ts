@@ -120,25 +120,34 @@ function buildMessages(prompt: TLAiSerializedPrompt): CoreMessage[] {
 	const contextPointsMessages = buildContextPointsMessages(prompt)
 	const userMessage = buildUserMessage(prompt)
 
+	messages.push(...historyMessages)
 	messages.push(...contextShapesMessages)
 	messages.push(...contextAreasMessages)
 	messages.push(...contextPointsMessages)
-	messages.push(...historyMessages)
 	messages.push(userMessage)
 
 	return messages
 }
 
 function buildContextAreasMessages(prompt: TLAiSerializedPrompt): CoreMessage[] {
+	const review = prompt.meta.review.shouldReview
+
 	const areas = prompt.meta.context.areas
 	if (areas.length === 0) {
 		return []
 	}
 
+	const noReviewPrompt =
+		'The user has specifically brought your attention to the following areas in this request. The user might refer to them as the "area(s)" or perhaps "here" or "there", but either way, it\'s implied that you should focus on these areas in both your reasoning and actions. Make sure to focus your task on these areas:'
+	const reviewPrompt =
+		'You have been instructed to review your work. Here are the areas you should review:'
+
+	const contextAreasText = review ? reviewPrompt : noReviewPrompt
+
 	const content: UserContent = []
 	content.push({
 		type: 'text',
-		text: 'The user has specifically brought your attention to the following areas in this request. The user might refer to them as the "area(s)" or perhaps "here" or "there", but either way, it\'s implied that you should focus on these areas in both your reasoning and actions. Make sure to focus your task on these areas:',
+		text: contextAreasText,
 	})
 
 	for (const area of areas) {
@@ -317,7 +326,7 @@ function buildUserMessage(prompt: TLAiSerializedPrompt): CoreMessage {
 		)
 	}
 
-	if (prompt.meta.review) {
+	if (prompt.meta.review.shouldReview) {
 		// Review mode
 		const messages = asMessage(prompt.message)
 		const intent = messages[0]

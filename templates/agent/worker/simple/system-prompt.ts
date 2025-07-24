@@ -108,6 +108,7 @@ Each event must include:
 - If the canvas is empty, place your shapes in the center of the viewport. A general good size for your content is 80% of the viewport tall.
 - If you want to communicate with the user, use the \`message\` event.
 - Use the \`schedule\` event to check your work for complex tasks
+- When using the \`schedule\` event, pass in \`x\`, \`y\`, \`w\`, and \`h\` values to define the area of the canvas where you want to focus on for your review. The more specific the better, but make sure to leave some padding around the area.
 - Do not use the \`schedule\` event to check your work for simple tasks like creating, updating or moving a single shape. Assume you got it right.
 - If you use the \`schedule\` event and find you need to make changes, carry out the changes. You are allowed to call follow-up \`schedule\` events after that too, but there is no need to schedule a review if the changes are simple or if there were no changes.
 - Complete the task to the best of your ability. Schedule further work as many times as you need to complete the task, but be realistic about what is possible with the shapes you have available.
@@ -206,7 +207,11 @@ Assistant:
 		},
 		{
 			_type: "schedule",
-			intent: "I'll make sure the snowman looks done."
+			h: 450
+			intent: "I'll make sure the snowman looks done.",
+			w: 225,
+			x: 25,
+			y: 50,
 		}
 	]
 }

@@ -28,7 +28,7 @@ const ADD_CONTEXT_ACTIONS = [
 			editor.setCurrentTool('select')
 			const shapes = editor.getSelectedShapes()
 			for (const shape of shapes) {
-				addToContext({ type: 'shape', shape })
+				addToContext({ type: 'shape', shape, addedby: 'user' })
 			}
 			editor.focus()
 		},
@@ -38,7 +38,7 @@ const ADD_CONTEXT_ACTIONS = [
 		onSelect: (editor: Editor) => {
 			editor.setCurrentTool('select')
 			const bounds = editor.getViewportPageBounds()
-			addToContext({ type: 'area', bounds })
+			addToContext({ type: 'area', bounds, addedby: 'user' })
 			editor.focus()
 		},
 	},
@@ -46,7 +46,7 @@ const ADD_CONTEXT_ACTIONS = [
 	// 	name: 'Current Page',
 	// 	onSelect: (editor: Editor) => {
 	// 		editor.setCurrentTool('select')
-	// 		addToContext({ type: 'page', page: editor.getCurrentPage() })
+	// 		addToContext({ type: 'page', page: editor.getCurrentPage(), addedby: 'user' })
 	// 		editor.focus()
 	// 	},
 	// },
@@ -121,11 +121,14 @@ export function ChatInput({
 	return (
 		<div className="chat-input">
 			<div className="chat-input-context-attachments">
-				{contextAttachments.map((item, i) => (
-					<div key={'context-attachment-' + i} className="chat-input-context-attachment">
-						{`x: ${item.bounds.x.toFixed(0)}, y: ${item.bounds.y.toFixed(0)}, w: ${item.bounds.w.toFixed(0)}, h: ${item.bounds.h.toFixed(0)}`}
-					</div>
-				))}
+				{contextAttachments.map(
+					(item, i) =>
+						item.addedby === 'user' && (
+							<div key={'context-attachment-' + i} className="chat-input-context-attachment">
+								{`x: ${item.bounds.x.toFixed(0)}, y: ${item.bounds.y.toFixed(0)}, w: ${item.bounds.w.toFixed(0)}, h: ${item.bounds.h.toFixed(0)}`}
+							</div>
+						)
+				)}
 			</div>
 			<form
 				onSubmit={(e) => {
@@ -158,13 +161,16 @@ export function ChatInput({
 							})}
 						</select>
 					</div>
-					{contextItems.map((item, i) => (
-						<ContextPreview
-							onClick={() => removeFromContext(item)}
-							key={'context-item-' + i}
-							contextItem={item}
-						/>
-					))}
+					{contextItems.map(
+						(item, i) =>
+							item.addedby === 'user' && (
+								<ContextPreview
+									onClick={() => removeFromContext(item)}
+									key={'context-item-' + i}
+									contextItem={item}
+								/>
+							)
+					)}
 				</div>
 				<input
 					ref={inputRef}

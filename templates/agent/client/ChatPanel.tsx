@@ -4,7 +4,12 @@ import { DEFAULT_MODEL_NAME, TLAgentModelName } from '../worker/models'
 import { $chatHistoryItems, ChatHistory } from './ChatHistory'
 import { UserMessageHistoryItem } from './ChatHistoryItem'
 import { ChatInput } from './ChatInput'
-import { $contextItems, $pendingContextItems, getSimpleContextFromContextItems } from './Context'
+import {
+	$contextItems,
+	$pendingContextItems,
+	addToContext,
+	getSimpleContextFromContextItems,
+} from './Context'
 import { $requestsSchedule } from './requestsSchedule'
 import { useTldrawAiExample } from './useTldrawAiExample'
 
@@ -33,6 +38,16 @@ export function ChatPanel({ editor }: { editor: Editor }) {
 		const request = eventSchedule[0]
 		const intent = request.message
 
+		// If the agent has scheduled a review, add the area it wants to reviewto the context
+		const { review: shouldReview, bounds } = request
+		if (shouldReview && bounds) {
+			addToContext({ type: 'area', bounds, addedby: 'agent' })
+			request.contextItems.push({ type: 'area', bounds, addedby: 'agent' })
+		}
+
+		$pendingContextItems.set($contextItems.get())
+		$contextItems.set([])
+
 		try {
 			const { promise, cancel } = ai.prompt({
 				message: intent,
@@ -43,7 +58,12 @@ export function ChatPanel({ editor }: { editor: Editor }) {
 					// TODO: Add first-class support to handle custom-specified shapes/viewports/etc.
 					// Note: Right now this is not applying our transforms
 					context: getSimpleContextFromContextItems(request.contextItems),
-					review: request.review,
+					review: shouldReview
+						? {
+								shouldReview,
+								bounds: request.bounds,
+							}
+						: { shouldReview },
 				},
 			})
 
@@ -51,7 +71,7 @@ export function ChatPanel({ editor }: { editor: Editor }) {
 				...prev,
 				{
 					type: 'status-thinking',
-					message: request.review ? 'Reviewing' : 'Generating',
+					message: shouldReview ? 'Reviewing' : 'Generating',
 					status: 'progress',
 				},
 			])
@@ -74,6 +94,7 @@ export function ChatPanel({ editor }: { editor: Editor }) {
 			})
 
 			// Process next event (if any)
+			$contextItems.set([]) //clear context items added by the agent
 			await advanceSchedule()
 			rCancelFn.current = null
 		} catch (e) {

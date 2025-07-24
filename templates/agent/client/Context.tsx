@@ -53,36 +53,43 @@ export const CONTEXT_TYPE_DEFINITIONS: Record<
 export interface ShapeContextItem {
 	type: 'shape'
 	shape: TLShape
+	addedby: 'agent' | 'user'
 }
 
 export interface ShapesContextItem {
 	type: 'shapes'
 	shapes: TLShape[]
+	addedby: 'agent' | 'user'
 }
 
 export interface AreaContextItem {
 	type: 'area'
 	bounds: BoxModel
+	addedby: 'agent' | 'user'
 }
 
 export interface PointContextItem {
 	type: 'point'
 	point: VecModel
+	addedby: 'agent' | 'user'
 }
 
 export interface ViewportContextItem {
 	type: 'viewport'
 	bounds: BoxModel
+	addedby: 'agent' | 'user'
 }
 
 export interface PageContextItem {
 	type: 'page'
 	page: TLPage
+	addedby: 'agent' | 'user'
 }
 
 export interface SelectionContextItem {
 	type: 'selection'
 	shapes: TLShape[]
+	addedby: 'agent' | 'user'
 }
 
 export function addToContext(item: ContextItem) {
