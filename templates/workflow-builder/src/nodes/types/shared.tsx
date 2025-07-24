@@ -10,7 +10,7 @@ export interface NodeDefinition<Node extends { type: string }> {
 	type: Node['type']
 	validator: T.Validator<Node>
 	title: string
-	icon: string
+	icon: React.ReactNode
 	getDefault: () => Node
 	getBodyHeightPx: (node: Node) => number
 	getPorts: (node: Node) => Record<string, ShapePort>

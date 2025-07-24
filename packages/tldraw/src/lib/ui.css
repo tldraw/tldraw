@@ -313,7 +313,7 @@
 	position: relative;
 	display: grid;
 	grid-template-columns: 1fr;
-	grid-template-rows: minmax(0px, 1fr) auto;
+	grid-template-rows: minmax(0px, 1fr) minmax(0px, 1fr) auto;
 	grid-auto-rows: auto;
 	height: 100%;
 	max-height: 100%;
@@ -1073,6 +1073,25 @@
 	padding-top: 0px;
 }
 
+/* ------------------- Center --------------------- */
+
+.tlui-layout__center {
+	grid-row: 2;
+	display: flex;
+	min-width: 0px;
+	justify-content: space-between;
+}
+
+.tlui-layout__center__left {
+	display: flex;
+	flex-direction: column;
+	align-items: flex-start;
+	justify-content: flex-start;
+	width: 100%;
+	height: 100%;
+	flex: 0 1 0;
+}
+
 /* --------------------- Bottom --------------------- */
 
 .tlui-layout__bottom {
@@ -1161,6 +1180,10 @@
 
 [data-breakpoints-below*='6'] .tlui-main-toolbar--vertical {
 	bottom: 90px; /* collapsed mini-map, but same as top to keep things looking even */
+}
+
+.tlui-toolbar.tlui-toolbar__vertical {
+	align-items: flex-start;
 }
 
 /* Centered Content */
