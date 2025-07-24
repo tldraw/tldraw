@@ -26,70 +26,67 @@ export function ChatPanel({ editor }: { editor: Editor }) {
 		;(window as any).ai = ai
 	}, [ai, editor])
 
-	const advanceSchedule = useCallback(
-		async (lockedBounds?: Box) => {
-			const eventSchedule = $requestsSchedule.get()
+	const advanceSchedule = useCallback(async () => {
+		const eventSchedule = $requestsSchedule.get()
 
-			if (!eventSchedule || eventSchedule.length === 0) {
-				return // Base case - no more events to process
-			}
+		if (!eventSchedule || eventSchedule.length === 0) {
+			return // Base case - no more events to process
+		}
 
-			// The next scheduled request
-			const request = eventSchedule[0]
-			const intent = request.message
+		// The next scheduled request
+		const request = eventSchedule[0]
+		const intent = request.message
 
-			$pendingContextItems.set(request.contextItems)
+		$pendingContextItems.set(request.contextItems)
+		const bounds = Box.From(request.bounds)
+		try {
+			const { promise, cancel } = ai.prompt({
+				message: intent,
+				stream: true,
+				contextBounds: bounds,
+				promptBounds: bounds,
+				meta: {
+					modelName,
+					historyItems: $chatHistoryItems.get().filter((item) => item.type !== 'status-thinking'),
+					contextItems: getSimpleContextItemsFromContextItems(request.contextItems),
+					review: request.review,
+				},
+			})
 
-			try {
-				const { promise, cancel } = ai.prompt({
-					message: intent,
-					stream: true,
-					contextBounds: lockedBounds ?? undefined,
-					promptBounds: lockedBounds ?? undefined,
-					meta: {
-						modelName,
-						historyItems: $chatHistoryItems.get().filter((item) => item.type !== 'status-thinking'),
-						contextItems: getSimpleContextItemsFromContextItems(request.contextItems),
-						review: request.review,
-					},
-				})
+			$chatHistoryItems.update((prev) => [
+				...prev,
+				{
+					type: 'status-thinking',
+					message: request.review ? 'Reviewing' : 'Generating',
+					status: 'progress',
+				},
+			])
 
-				$chatHistoryItems.update((prev) => [
-					...prev,
-					{
-						type: 'status-thinking',
-						message: request.review ? 'Reviewing' : 'Generating',
-						status: 'progress',
-					},
-				])
+			rCancelFn.current = cancel
+			await promise
 
-				rCancelFn.current = cancel
-				await promise
+			// Only remove the event after successful processing
+			$requestsSchedule.update((prev) => prev.filter((_, i) => i !== 0))
 
-				// Only remove the event after successful processing
-				$requestsSchedule.update((prev) => prev.filter((_, i) => i !== 0))
+			// Set previous status-thinking to done
+			// this assume only one status-thinking at a time. not a bad assumption for now?
+			$chatHistoryItems.update((prev) => {
+				const lastStatusThinkingIndex = [...prev]
+					.reverse()
+					.findIndex((item) => item.type === 'status-thinking' && item.status === 'progress')
+				if (lastStatusThinkingIndex === -1) return prev
+				const idx = prev.length - 1 - lastStatusThinkingIndex
+				return prev.map((item, i) => (i === idx ? { ...item, status: 'done' } : item))
+			})
 
-				// Set previous status-thinking to done
-				// this assume only one status-thinking at a time. not a bad assumption for now?
-				$chatHistoryItems.update((prev) => {
-					const lastStatusThinkingIndex = [...prev]
-						.reverse()
-						.findIndex((item) => item.type === 'status-thinking' && item.status === 'progress')
-					if (lastStatusThinkingIndex === -1) return prev
-					const idx = prev.length - 1 - lastStatusThinkingIndex
-					return prev.map((item, i) => (i === idx ? { ...item, status: 'done' } : item))
-				})
-
-				// Process next event (if any)
-				await advanceSchedule(lockedBounds)
-				rCancelFn.current = null
-			} catch (e) {
-				console.error(e)
-				rCancelFn.current = null
-			}
-		},
-		[ai, modelName]
-	)
+			// Process next event (if any)
+			await advanceSchedule()
+			rCancelFn.current = null
+		} catch (e) {
+			console.error(e)
+			rCancelFn.current = null
+		}
+	}, [ai, modelName])
 
 	const handleSubmit = useCallback<FormEventHandler<HTMLFormElement>>(
 		async (e) => {
@@ -134,18 +131,17 @@ export function ChatPanel({ editor }: { editor: Editor }) {
 					message: userMessageHistoryItem.message,
 					contextItems: userMessageHistoryItem.contextItems,
 					review: false,
+					// TODO: hardcoded to default to the viewport bounds for now
+					bounds: editor.getViewportPageBounds(),
 				},
 			])
 
-			// TODO once we implement letting the agent move, we can get those bounds and lock them here instead of using the viewport
-			const lockedBounds = editor.getViewportPageBounds()
-
 			setIsGenerating(true)
-			await advanceSchedule(lockedBounds)
+			await advanceSchedule()
 			setIsGenerating(false)
 			$pendingContextItems.set([])
 		},
-		[advanceSchedule, editor, ai]
+		[advanceSchedule, editor]
 	)
 
 	function handleNewChat() {

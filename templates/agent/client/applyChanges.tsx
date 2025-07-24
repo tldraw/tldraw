@@ -59,12 +59,20 @@ function applyChangeToChatHistory({
 							},
 							source: 'agent',
 						}
+
+						const prevRequest = prev[prev.length - 1]
+						if (!prevRequest) {
+							// TODO: Get rid of this by letting the agent decide the bounds instead
+							throw new Error("We couldnt find the request's bounds from the previous request.")
+						}
+
 						const schedule: ScheduledRequest[] = [
 							...prev,
 							{
 								review: true,
 								message: change.intent ?? '',
 								contextItems: [contextArea],
+								bounds: prevRequest.bounds,
 							},
 						]
 						return schedule

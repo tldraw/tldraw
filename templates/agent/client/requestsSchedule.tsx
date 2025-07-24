@@ -1,16 +1,11 @@
-import { atom } from 'tldraw'
+import { atom, BoxModel } from 'tldraw'
 import { ContextItem } from './Context'
 
 export interface ScheduledRequest {
 	message: string
 	review: boolean
 	contextItems: ContextItem[]
-	// bounds?: {
-	// 	x: number
-	// 	y: number
-	// 	w: number
-	// 	h: number
-	// }
+	bounds: BoxModel
 }
 
 export const $requestsSchedule = atom<ScheduledRequest[]>('requestsSchedule', [])
