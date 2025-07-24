@@ -339,7 +339,7 @@ export function objectMapEntries<Key extends string, Value>(object: {
 }): Array<[Key, Value]>;
 
 // @internal
-export function objectMapEntriesLazy<Key extends string, Value>(object: {
+export function objectMapEntriesIterable<Key extends string, Value>(object: {
     [K in Key]: Value;
 }): IterableIterator<[Key, Value]>;
 

@@ -19,7 +19,7 @@ import {
 	hasOwnProperty,
 	isEqual,
 	isNativeStructuredClone,
-	objectMapEntriesLazy,
+	objectMapEntriesIterable,
 	structuredClone,
 } from '@tldraw/utils'
 import { createNanoEvents } from 'nanoevents'
@@ -278,7 +278,7 @@ export class TLSyncRoom<R extends UnknownRecord, SessionMeta> {
 
 		this.tombstones = new AtomMap(
 			'room tombstones',
-			objectMapEntriesLazy(snapshot.tombstones ?? {})
+			objectMapEntriesIterable(snapshot.tombstones ?? {})
 		)
 		this.documents = new AtomMap(
 			'room documents',
@@ -650,7 +650,7 @@ export class TLSyncRoom<R extends UnknownRecord, SessionMeta> {
 		}
 
 		const result: NetworkDiff<R> = {}
-		for (const [id, op] of objectMapEntriesLazy(diff)) {
+		for (const [id, op] of objectMapEntriesIterable(diff)) {
 			if (op[0] === RecordOpType.Remove) {
 				result[id] = op
 				continue
@@ -1065,7 +1065,7 @@ export class TLSyncRoom<R extends UnknownRecord, SessionMeta> {
 			}
 			if (message.diff && !session?.isReadonly) {
 				// The push request was for the document scope.
-				for (const [id, op] of objectMapEntriesLazy(message.diff!)) {
+				for (const [id, op] of objectMapEntriesIterable(message.diff!)) {
 					switch (op[0]) {
 						case RecordOpType.Put: {
 							// Try to add the document.

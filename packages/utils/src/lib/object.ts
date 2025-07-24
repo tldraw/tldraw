@@ -60,10 +60,11 @@ export function objectMapEntries<Key extends string, Value>(object: {
 
 /**
  * Returns the entries of an object as an iterable iterator.
+ * Useful when working with large collections, to avoid allocating an array.
  *
  * @internal
  */
-export function* objectMapEntriesLazy<Key extends string, Value>(object: {
+export function* objectMapEntriesIterable<Key extends string, Value>(object: {
 	[K in Key]: Value
 }): IterableIterator<[Key, Value]> {
 	for (const key in object) {
