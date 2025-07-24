@@ -15,7 +15,7 @@ describe(TLSocketRoom, () => {
 			initialSnapshot: snapshot,
 		})
 
-		expect(room.getCurrentSnapshot()).toMatchObject({ clock: 0, documents: [] })
+		expect(room.getCurrentSnapshot()).toMatchObject({ clock: 1, documents: [] })
 		expect(room.getCurrentSnapshot().documents.length).toBe(0)
 	})
 
@@ -27,8 +27,8 @@ describe(TLSocketRoom, () => {
 		const room = new TLSocketRoom({
 			initialSnapshot: snapshot,
 		})
-		expect(room.getCurrentSnapshot()).not.toMatchObject({ clock: 0, documents: [] })
-		expect(room.getCurrentSnapshot().clock).toBe(0)
+		expect(room.getCurrentSnapshot()).not.toMatchObject({ clock: 1, documents: [] })
+		expect(room.getCurrentSnapshot().clock).toBe(1)
 		expect(room.getCurrentSnapshot().documents.sort((a, b) => a.state.id.localeCompare(b.state.id)))
 			.toMatchInlineSnapshot(`
 		[
@@ -62,7 +62,7 @@ describe(TLSocketRoom, () => {
 			initialSnapshot: store.getStoreSnapshot(),
 		})
 
-		expect(room.getCurrentSnapshot()).toMatchObject({ clock: 0, documents: [] })
+		expect(room.getCurrentSnapshot()).toMatchObject({ clock: 1, documents: [] })
 
 		// populate with an empty document (document:document and page:page records)
 		store.ensureStoreIsUsable()
@@ -70,12 +70,12 @@ describe(TLSocketRoom, () => {
 		const snapshot = store.getStoreSnapshot()
 		room.loadSnapshot(snapshot)
 
-		expect(room.getCurrentSnapshot().clock).toBe(1)
+		expect(room.getCurrentSnapshot().clock).toBe(2)
 		expect(room.getCurrentSnapshot().documents.sort((a, b) => a.state.id.localeCompare(b.state.id)))
 			.toMatchInlineSnapshot(`
 		[
 		  {
-		    "lastChangedClock": 1,
+		    "lastChangedClock": 2,
 		    "state": {
 		      "gridSize": 10,
 		      "id": "document:document",
@@ -85,7 +85,7 @@ describe(TLSocketRoom, () => {
 		    },
 		  },
 		  {
-		    "lastChangedClock": 1,
+		    "lastChangedClock": 2,
 		    "state": {
 		      "id": "page:page",
 		      "index": "a1",

@@ -41,6 +41,7 @@ import {
 	applyObjectDiff,
 	diffRecord,
 } from './diff'
+import { findMin } from './findMin'
 import { interval } from './interval'
 import {
 	TLIncompatibilityReason,
@@ -116,6 +117,7 @@ export interface RoomSnapshot {
 	clock: number
 	documents: Array<{ state: UnknownRecord; lastChangedClock: number }>
 	tombstones?: Record<string, number>
+	tombstoneHistoryStartsAtClock?: number
 	schema?: SerializedSchema
 }
 
@@ -247,21 +249,25 @@ export class TLSyncRoom<R extends UnknownRecord, SessionMeta> {
 
 		if (!snapshot) {
 			snapshot = {
-				clock: 0,
+				clock: 1,
 				documents: [
 					{
 						state: DocumentRecordType.create({ id: TLDOCUMENT_ID }),
-						lastChangedClock: 0,
+						lastChangedClock: 1,
 					},
 					{
 						state: PageRecordType.create({ name: 'Page 1', index: 'a1' as IndexKey }),
-						lastChangedClock: 0,
+						lastChangedClock: 1,
 					},
 				],
 			}
 		}
 
 		this.clock = snapshot.clock
+		if (this.clock === 0) {
+			this.clock = 1
+		}
+
 		let didIncrementClock = false
 		const ensureClockDidIncrement = (_reason: string) => {
 			if (!didIncrementClock) {
@@ -294,6 +300,9 @@ export class TLSyncRoom<R extends UnknownRecord, SessionMeta> {
 				}
 			}.call(this)
 		)
+
+		this.tombstoneHistoryStartsAtClock =
+			snapshot.tombstoneHistoryStartsAtClock ?? findMin(this.tombstones.values()) ?? this.clock
 
 		transact(() => {
 			// eslint-disable-next-line @typescript-eslint/no-deprecated
@@ -360,7 +369,7 @@ export class TLSyncRoom<R extends UnknownRecord, SessionMeta> {
 		}
 	}
 
-	needsPrune = true
+	private needsPrune = true
 	// eslint-disable-next-line local/prefer-class-methods
 	private pruneTombstones = () => {
 		if (!this.needsPrune) return
@@ -369,17 +378,17 @@ export class TLSyncRoom<R extends UnknownRecord, SessionMeta> {
 			const entries = Array.from(this.tombstones.entries())
 			// sort entries in ascending order by clock
 			entries.sort((a, b) => a[1] - b[1])
+			let idx = entries.length - 1 - MAX_TOMBSTONES + TOMBSTONE_PRUNE_BUFFER_SIZE
+			const cullClock = entries[idx++][1]
+			while (idx < entries.length && entries[idx][1] === cullClock) {
+				idx++
+			}
 			// trim off the first bunch
-			const excessQuantity = entries.length - MAX_TOMBSTONES
-			const keysToDelete = entries
-				.slice(0, excessQuantity + TOMBSTONE_PRUNE_BUFFER_SIZE)
-				.map(([key]) => key)
+			const keysToDelete = entries.slice(0, idx).map(([key]) => key)
 
-			// Calculate the new starting point before deleting
-			const oldestRemainingIndex = excessQuantity + TOMBSTONE_PRUNE_BUFFER_SIZE
-			this.tombstoneHistoryStartsAtClock = entries[oldestRemainingIndex][1]
-
+			this.tombstoneHistoryStartsAtClock = cullClock + 1
 			this.tombstones.deleteMany(keysToDelete)
+
 			this.needsPrune = false
 		}
 	}
@@ -421,6 +430,7 @@ export class TLSyncRoom<R extends UnknownRecord, SessionMeta> {
 		return {
 			clock: this.clock,
 			tombstones,
+			tombstoneHistoryStartsAtClock: this.tombstoneHistoryStartsAtClock,
 			schema: this.serializedSchema,
 			documents,
 		}

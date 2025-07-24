@@ -200,6 +200,8 @@ export interface RoomSnapshot {
     // (undocumented)
     schema?: SerializedSchema;
     // (undocumented)
+    tombstoneHistoryStartsAtClock?: number;
+    // (undocumented)
     tombstones?: Record<string, number>;
 }
 
@@ -535,8 +537,6 @@ export class TLSyncRoom<R extends UnknownRecord, SessionMeta> {
     }): this;
     // (undocumented)
     isClosed(): boolean;
-    // (undocumented)
-    needsPrune: boolean;
     // (undocumented)
     readonly presenceType: null | RecordType<R, any>;
     // (undocumented)
