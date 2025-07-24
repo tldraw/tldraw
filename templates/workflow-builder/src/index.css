@@ -46,7 +46,7 @@ body {
 
 	&.NodeShape_executing {
 		box-shadow:
-			0 0 0 calc(2px / var(--tl-zoom)) var(--color-selected),
+			0 0 0 1px var(--color-selected),
 			0 2px 6px rgba(0, 0, 0, 0.08),
 			0 1px 2px rgba(0, 0, 0, 0.04);
 	}
@@ -169,5 +169,94 @@ body {
 	&.OnCanvasComponentPicker_middle .OnCanvasComponentPicker-content {
 		margin-left: -50%;
 		margin-top: -50%;
+	}
+}
+
+.NodeShapeAnimation {
+	fill: var(--color-selected);
+	stroke: none;
+	position: absolute;
+	z-index: -1;
+	top: 0;
+	left: 0;
+	--x-duration: calc(1s * var(--shape-width) / (var(--shape-width) + var(--shape-height)));
+	--y-duration: calc(1s * var(--shape-height) / (var(--shape-width) + var(--shape-height)));
+
+	.NodeShapeAnimation-track {
+		transform-origin: 0 0;
+		animation: NodeShapeAnimation-track 1s linear infinite;
+	}
+
+	.NodeShapeAnimation-bump {
+		display: block;
+		animation: NodeShapeAnimation-bump 0.5s linear infinite;
+		width: calc(var(--bump-radius) * 2);
+		height: calc(var(--bump-height));
+	}
+
+	.NodeShapeAnimation-track_top {
+		--track-rotate: 0deg;
+		--track-translate-x: 0px;
+		--track-translate-y: -0.5px;
+		--track-length: var(--shape-width);
+	}
+
+	.NodeShapeAnimation-track_bottom {
+		--track-rotate: 180deg;
+		--track-translate-x: calc(-1 * var(--shape-width));
+		--track-translate-y: calc(-1 * var(--shape-height) + 2.5px);
+		--track-length: var(--shape-width);
+	}
+
+	.NodeShapeAnimation-track_left {
+		--track-rotate: 270deg;
+		--track-translate-x: calc(-1 * var(--shape-height) + 5px);
+		--track-translate-y: -0.5px;
+		--track-length: var(--shape-height);
+		animation-delay: 0.5s;
+	}
+	.NodeShapeAnimation-track_right {
+		--track-rotate: 90deg;
+		--track-translate-x: -10px;
+		--track-translate-y: calc(-1 * var(--shape-width) - 0.5px);
+		--track-length: var(--shape-height);
+		animation-delay: 0.5s;
+	}
+}
+
+@keyframes NodeShapeAnimation-track {
+	0% {
+		transform: rotate(var(--track-rotate))
+			translate(var(--track-translate-x), var(--track-translate-y));
+	}
+
+	10% {
+		transform: rotate(var(--track-rotate))
+			translate(var(--track-translate-x), calc(var(--track-translate-y) - var(--bump-height)));
+	}
+
+	40% {
+		transform: rotate(var(--track-rotate))
+			translate(var(--track-translate-x), calc(var(--track-translate-y) - var(--bump-height)));
+	}
+
+	50% {
+		transform: rotate(var(--track-rotate))
+			translate(var(--track-translate-x), var(--track-translate-y));
+	}
+
+	100% {
+		transform: rotate(var(--track-rotate))
+			translate(var(--track-translate-x), var(--track-translate-y));
+	}
+}
+
+@keyframes NodeShapeAnimation-bump {
+	0% {
+		transform: translateX(0);
+	}
+
+	100% {
+		transform: translateX(calc(var(--track-length) - var(--bump-radius) * 2));
 	}
 }
