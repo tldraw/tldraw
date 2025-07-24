@@ -1,5 +1,6 @@
 import { useCallback, useMemo, useRef } from 'react'
 import {
+	Box,
 	Editor,
 	exhaustiveSwitchError,
 	TLShapeId,
@@ -15,6 +16,8 @@ export interface TldrawAi {
 	prompt(message: TldrawAiPromptOptions): { promise: Promise<void>; cancel(): void }
 	repeat(): { promise: Promise<void>; cancel: (() => void) | null }
 	cancel(): void
+	lockViewport(editor: Editor): void
+	unlockViewport(): void
 }
 
 /**
@@ -81,6 +84,18 @@ export function useTldrawAi(opts: TldrawAiOptions): TldrawAi {
 	const rCancelFunction = useRef<(() => void) | null>(null)
 	const rPreviousArguments = useRef<TldrawAiPromptOptions>('')
 	const rPreviousChanges = useRef<TLAiStreamingChange[]>([])
+	const rLockedViewportBounds = useRef<{ promptBounds: Box; contextBounds: Box } | null>(null)
+
+	const lockViewport = useCallback((editor: Editor, bounds?: Box) => {
+		rLockedViewportBounds.current = {
+			promptBounds: bounds ?? editor.getViewportPageBounds(),
+			contextBounds: bounds ?? editor.getViewportPageBounds(),
+		}
+	}, [])
+
+	const unlockViewport = useCallback(() => {
+		rLockedViewportBounds.current = null
+	}, [])
 
 	/**
 	 * Prompt the AI for a response. If the stream flag is set to true, the call will stream changes as they are ready.
@@ -107,7 +122,15 @@ export function useTldrawAi(opts: TldrawAiOptions): TldrawAi {
 					return
 				}
 
-				ai.generate(message).then(async ({ handleChange, prompt }) => {
+				const messageWithBounds = typeof message === 'string' ? { message } : { ...message }
+				if (rLockedViewportBounds.current) {
+					if (typeof messageWithBounds === 'object') {
+						messageWithBounds.promptBounds = rLockedViewportBounds.current.promptBounds
+						messageWithBounds.contextBounds = rLockedViewportBounds.current.contextBounds
+					}
+				}
+
+				ai.generate(messageWithBounds).then(async ({ handleChange, prompt }) => {
 					const serializedPrompt: TLAiSerializedPrompt = {
 						...prompt,
 						meta,
@@ -271,7 +294,7 @@ export function useTldrawAi(opts: TldrawAiOptions): TldrawAi {
 		rCancelFunction.current?.()
 	}, [])
 
-	return { prompt, repeat, cancel }
+	return { prompt, repeat, cancel, lockViewport, unlockViewport }
 }
 
 /**

@@ -175,6 +175,8 @@ export interface TldrawAi {
     // (undocumented)
     cancel(): void;
     // (undocumented)
+    lockViewport(editor: Editor): void;
+    // (undocumented)
     prompt(message: TldrawAiPromptOptions): {
         cancel(): void;
         promise: Promise<void>;
@@ -184,6 +186,8 @@ export interface TldrawAi {
         cancel: (() => void) | null;
         promise: Promise<void>;
     };
+    // (undocumented)
+    unlockViewport(): void;
 }
 
 // @public

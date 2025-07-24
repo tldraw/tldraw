@@ -31,6 +31,7 @@ export function ChatPanel({ editor }: { editor: Editor }) {
 		const eventSchedule = $requestsSchedule.get()
 
 		if (!eventSchedule || eventSchedule.length === 0) {
+			ai.unlockViewport()
 			return // Base case - no more events to process
 		}
 
@@ -116,6 +117,7 @@ export function ChatPanel({ editor }: { editor: Editor }) {
 				rCancelFn.current()
 				rCancelFn.current = null
 				setIsGenerating(false)
+				ai.unlockViewport()
 
 				$requestsSchedule.set([])
 				$pendingContextItems.set([])
@@ -149,12 +151,13 @@ export function ChatPanel({ editor }: { editor: Editor }) {
 				},
 			])
 
+			ai.lockViewport(editor)
 			setIsGenerating(true)
 			await advanceSchedule()
 			setIsGenerating(false)
 			$pendingContextItems.set([])
 		},
-		[advanceSchedule]
+		[advanceSchedule, editor]
 	)
 
 	function handleNewChat() {
@@ -163,6 +166,7 @@ export function ChatPanel({ editor }: { editor: Editor }) {
 			rCancelFn.current = null
 		}
 
+		ai.unlockViewport()
 		setIsGenerating(false)
 		$chatHistoryItems.set([])
 		$pendingContextItems.set([])
