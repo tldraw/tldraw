@@ -1,5 +1,5 @@
 import { FormEventHandler, useCallback, useEffect, useRef, useState } from 'react'
-import { Editor, useLocalStorageState } from 'tldraw'
+import { Box, Editor, useLocalStorageState } from 'tldraw'
 import { DEFAULT_MODEL_NAME, TLAgentModelName } from '../worker/models'
 import { $chatHistoryItems, ChatHistory } from './ChatHistory'
 import { UserMessageHistoryItem } from './ChatHistoryItem'
@@ -26,66 +26,70 @@ export function ChatPanel({ editor }: { editor: Editor }) {
 		;(window as any).ai = ai
 	}, [ai, editor])
 
-	const advanceSchedule = useCallback(async () => {
-		const eventSchedule = $requestsSchedule.get()
+	const advanceSchedule = useCallback(
+		async (lockedBounds?: Box) => {
+			const eventSchedule = $requestsSchedule.get()
 
-		if (!eventSchedule || eventSchedule.length === 0) {
-			ai.unlockPromptAndContextBounds()
-			return // Base case - no more events to process
-		}
+			if (!eventSchedule || eventSchedule.length === 0) {
+				return // Base case - no more events to process
+			}
 
-		// The next scheduled request
-		const request = eventSchedule[0]
-		const intent = request.message
+			// The next scheduled request
+			const request = eventSchedule[0]
+			const intent = request.message
 
-		$pendingContextItems.set(request.contextItems)
+			$pendingContextItems.set(request.contextItems)
 
-		try {
-			const { promise, cancel } = ai.prompt({
-				message: intent,
-				stream: true,
-				meta: {
-					modelName,
-					historyItems: $chatHistoryItems.get().filter((item) => item.type !== 'status-thinking'),
-					contextItems: getSimpleContextItemsFromContextItems(request.contextItems),
-					review: request.review,
-				},
-			})
+			try {
+				const { promise, cancel } = ai.prompt({
+					message: intent,
+					stream: true,
+					contextBounds: lockedBounds ?? undefined,
+					promptBounds: lockedBounds ?? undefined,
+					meta: {
+						modelName,
+						historyItems: $chatHistoryItems.get().filter((item) => item.type !== 'status-thinking'),
+						contextItems: getSimpleContextItemsFromContextItems(request.contextItems),
+						review: request.review,
+					},
+				})
 
-			$chatHistoryItems.update((prev) => [
-				...prev,
-				{
-					type: 'status-thinking',
-					message: request.review ? 'Reviewing' : 'Generating',
-					status: 'progress',
-				},
-			])
+				$chatHistoryItems.update((prev) => [
+					...prev,
+					{
+						type: 'status-thinking',
+						message: request.review ? 'Reviewing' : 'Generating',
+						status: 'progress',
+					},
+				])
 
-			rCancelFn.current = cancel
-			await promise
+				rCancelFn.current = cancel
+				await promise
 
-			// Only remove the event after successful processing
-			$requestsSchedule.update((prev) => prev.filter((_, i) => i !== 0))
+				// Only remove the event after successful processing
+				$requestsSchedule.update((prev) => prev.filter((_, i) => i !== 0))
 
-			// Set previous status-thinking to done
-			// this assume only one status-thinking at a time. not a bad assumption for now?
-			$chatHistoryItems.update((prev) => {
-				const lastStatusThinkingIndex = [...prev]
-					.reverse()
-					.findIndex((item) => item.type === 'status-thinking' && item.status === 'progress')
-				if (lastStatusThinkingIndex === -1) return prev
-				const idx = prev.length - 1 - lastStatusThinkingIndex
-				return prev.map((item, i) => (i === idx ? { ...item, status: 'done' } : item))
-			})
+				// Set previous status-thinking to done
+				// this assume only one status-thinking at a time. not a bad assumption for now?
+				$chatHistoryItems.update((prev) => {
+					const lastStatusThinkingIndex = [...prev]
+						.reverse()
+						.findIndex((item) => item.type === 'status-thinking' && item.status === 'progress')
+					if (lastStatusThinkingIndex === -1) return prev
+					const idx = prev.length - 1 - lastStatusThinkingIndex
+					return prev.map((item, i) => (i === idx ? { ...item, status: 'done' } : item))
+				})
 
-			// Process next event (if any)
-			await advanceSchedule()
-			rCancelFn.current = null
-		} catch (e) {
-			console.error(e)
-			rCancelFn.current = null
-		}
-	}, [ai, modelName])
+				// Process next event (if any)
+				await advanceSchedule(lockedBounds)
+				rCancelFn.current = null
+			} catch (e) {
+				console.error(e)
+				rCancelFn.current = null
+			}
+		},
+		[ai, modelName]
+	)
 
 	const handleSubmit = useCallback<FormEventHandler<HTMLFormElement>>(
 		async (e) => {
@@ -100,7 +104,6 @@ export function ChatPanel({ editor }: { editor: Editor }) {
 				rCancelFn.current()
 				rCancelFn.current = null
 				setIsGenerating(false)
-				ai.unlockPromptAndContextBounds()
 
 				$requestsSchedule.set([])
 				$pendingContextItems.set([])
@@ -135,10 +138,10 @@ export function ChatPanel({ editor }: { editor: Editor }) {
 			])
 
 			// TODO once we implement letting the agent move, we can get those bounds and lock them here instead of using the viewport
-			ai.lockPromptAndContextBounds(editor)
+			const lockedBounds = editor.getViewportPageBounds()
 
 			setIsGenerating(true)
-			await advanceSchedule()
+			await advanceSchedule(lockedBounds)
 			setIsGenerating(false)
 			$pendingContextItems.set([])
 		},
@@ -151,7 +154,6 @@ export function ChatPanel({ editor }: { editor: Editor }) {
 			rCancelFn.current = null
 		}
 
-		ai.unlockPromptAndContextBounds()
 		setIsGenerating(false)
 		$chatHistoryItems.set([])
 		$pendingContextItems.set([])

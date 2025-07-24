@@ -4,7 +4,7 @@
 
 ```ts
 
-import { Box } from 'tldraw';
+import type { Box } from 'tldraw';
 import type { BoxModel } from 'tldraw';
 import { Editor } from 'tldraw';
 import type { TLBinding } from 'tldraw';
@@ -175,11 +175,6 @@ export interface TldrawAi {
     // (undocumented)
     cancel(): void;
     // (undocumented)
-    lockPromptAndContextBounds(editor: Editor, bounds?: Box): {
-        contextBounds: Box;
-        promptBounds: Box;
-    };
-    // (undocumented)
     prompt(message: TldrawAiPromptOptions): {
         cancel(): void;
         promise: Promise<void>;
@@ -189,8 +184,6 @@ export interface TldrawAi {
         cancel: (() => void) | null;
         promise: Promise<void>;
     };
-    // (undocumented)
-    unlockPromptAndContextBounds(): void;
 }
 
 // @public

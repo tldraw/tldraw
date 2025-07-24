@@ -1,6 +1,5 @@
 import { useCallback, useMemo, useRef } from 'react'
 import {
-	Box,
 	Editor,
 	exhaustiveSwitchError,
 	TLShapeId,
@@ -16,11 +15,6 @@ export interface TldrawAi {
 	prompt(message: TldrawAiPromptOptions): { promise: Promise<void>; cancel(): void }
 	repeat(): { promise: Promise<void>; cancel: (() => void) | null }
 	cancel(): void
-	lockPromptAndContextBounds(
-		editor: Editor,
-		bounds?: Box
-	): { promptBounds: Box; contextBounds: Box }
-	unlockPromptAndContextBounds(): void
 }
 
 /**
@@ -87,24 +81,6 @@ export function useTldrawAi(opts: TldrawAiOptions): TldrawAi {
 	const rCancelFunction = useRef<(() => void) | null>(null)
 	const rPreviousArguments = useRef<TldrawAiPromptOptions>('')
 	const rPreviousChanges = useRef<TLAiStreamingChange[]>([])
-	const rLockedPromptAndContextBounds = useRef<{ promptBounds: Box; contextBounds: Box } | null>(
-		null
-	)
-
-	const lockPromptAndContextBounds = useCallback(
-		(editor: Editor, bounds?: Box): { promptBounds: Box; contextBounds: Box } => {
-			rLockedPromptAndContextBounds.current = {
-				promptBounds: bounds ?? editor.getViewportPageBounds(),
-				contextBounds: bounds ?? editor.getViewportPageBounds(),
-			}
-			return rLockedPromptAndContextBounds.current
-		},
-		[]
-	)
-
-	const unlockPromptAndContextBounds = useCallback(() => {
-		rLockedPromptAndContextBounds.current = null
-	}, [])
 
 	/**
 	 * Prompt the AI for a response. If the stream flag is set to true, the call will stream changes as they are ready.
@@ -131,15 +107,7 @@ export function useTldrawAi(opts: TldrawAiOptions): TldrawAi {
 					return
 				}
 
-				const messageWithBounds = typeof message === 'string' ? { message } : { ...message }
-				if (rLockedPromptAndContextBounds.current) {
-					if (typeof messageWithBounds === 'object') {
-						messageWithBounds.promptBounds = rLockedPromptAndContextBounds.current.promptBounds
-						messageWithBounds.contextBounds = rLockedPromptAndContextBounds.current.contextBounds
-					}
-				}
-
-				ai.generate(messageWithBounds).then(async ({ handleChange, prompt }) => {
+				ai.generate(opts).then(async ({ handleChange, prompt }) => {
 					const serializedPrompt: TLAiSerializedPrompt = {
 						...prompt,
 						meta,
@@ -303,7 +271,7 @@ export function useTldrawAi(opts: TldrawAiOptions): TldrawAi {
 		rCancelFunction.current?.()
 	}, [])
 
-	return { prompt, repeat, cancel, lockPromptAndContextBounds, unlockPromptAndContextBounds }
+	return { prompt, repeat, cancel }
 }
 
 /**
