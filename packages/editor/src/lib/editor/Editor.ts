@@ -9685,7 +9685,7 @@ export class Editor extends EventEmitter<TLEventMap> {
 				),
 			pointerId: options?.pointerId ?? 0,
 			button: options?.button ?? 0,
-			isPen: options?.isPen ?? this.inputs.isPen,
+			isPen: options?.isPen ?? this.getInstanceState().isPenMode ?? false,
 			shiftKey: options?.shiftKey ?? this.inputs.shiftKey,
 			altKey: options?.altKey ?? this.inputs.altKey,
 			ctrlKey: options?.ctrlKey ?? this.inputs.ctrlKey,
