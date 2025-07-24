@@ -1,17 +1,8 @@
-import {
-	createShapeId,
-	DefaultToolbar,
-	DefaultToolbarContent,
-	Editor,
-	TLComponents,
-	Tldraw,
-	ToolbarItem,
-	useReadonly,
-} from 'tldraw'
+import { createShapeId, Editor, TLComponents, Tldraw } from 'tldraw'
 import { DraggingHandle } from 'tldraw/src/lib/tools/SelectTool/childStates/DraggingHandle'
-import { InsertComponentPanel } from './components/InsertComponentPanel'
 import { NodeToolbar } from './components/NodeToolbar.tsx'
 import { OnCanvasComponentPicker } from './components/OnCanvasComponentPicker.tsx'
+import { Toolbar } from './components/Toolbar.tsx'
 import {
 	ConnectionBindingUtil,
 	createOrUpdateConnectionBinding,
@@ -32,32 +23,10 @@ const components: TLComponents = {
 		<>
 			<NodeToolbar />
 			<OnCanvasComponentPicker />
-			<InsertComponentPanel />
 		</>
 	),
-	Toolbar: () => {
-		const isReadonly = useReadonly()
-		return (
-			<>
-				<DefaultToolbar>
-					{!isReadonly && (
-						<>
-							<ToolbarItem tool="insert-node" />
-							<div
-								style={{
-									width: 1,
-									height: 40,
-									margin: '0px 2px',
-									backgroundColor: 'var(--color-muted-2)',
-								}}
-							/>
-						</>
-					)}
-					<DefaultToolbarContent />
-				</DefaultToolbar>
-			</>
-		)
-	},
+	Toolbar: () => <Toolbar />,
+	MenuPanel: () => null,
 }
 
 function App() {

@@ -1,4 +1,5 @@
 import { T, useEditor } from 'tldraw'
+import { SubtractIcon } from '../../components/icons/Subtract'
 import { NODE_HEADER_HEIGHT_PX, NODE_PORT_OFFSET_Y_PX, NODE_ROW_HEIGHT_PX } from '../../constants'
 import { NodeBodyRow, NodeDefinition, outputPort, updateNode } from './shared'
 
@@ -13,7 +14,7 @@ export const SubtractNode: NodeDefinition<SubtractNode> = {
 	type: 'subtract',
 	validator: SubtractNodeType,
 	title: 'Subtract',
-	icon: '−',
+	icon: <SubtractIcon />,
 	getDefault: () => ({
 		type: 'subtract',
 		a: 0,

@@ -1,4 +1,5 @@
 import { Editor, getIndexAbove, getIndicesBetween, IndexKey, T, useEditor } from 'tldraw'
+import { AddIcon } from '../../components/icons/Add'
 import { NODE_HEADER_HEIGHT_PX, NODE_PORT_OFFSET_Y_PX, NODE_ROW_HEIGHT_PX } from '../../constants'
 import { indexList, indexListEntries, indexListLength } from '../../utils'
 import { getNodePortConnections } from '../nodePorts'
@@ -15,7 +16,7 @@ export const AddNode: NodeDefinition<AddNode> = {
 	type: 'add',
 	validator: AddNodeType,
 	title: 'Add',
-	icon: '+',
+	icon: <AddIcon />,
 	getDefault: () => ({
 		type: 'add',
 		items: indexList([0, 0]),

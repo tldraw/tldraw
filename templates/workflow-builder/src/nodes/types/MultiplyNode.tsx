@@ -1,4 +1,5 @@
 import { T, useEditor } from 'tldraw'
+import { MultiplyIcon } from '../../components/icons/Multiply'
 import { NODE_HEADER_HEIGHT_PX, NODE_PORT_OFFSET_Y_PX, NODE_ROW_HEIGHT_PX } from '../../constants'
 import { NodeBodyRow, NodeDefinition, outputPort, updateNode } from './shared'
 
@@ -13,7 +14,7 @@ export const MultiplyNode: NodeDefinition<MultiplyNode> = {
 	type: 'multiply',
 	validator: MultiplyNodeType,
 	title: 'Multiply',
-	icon: '×',
+	icon: <MultiplyIcon />,
 	getDefault: () => ({
 		type: 'multiply',
 		a: 0,
