@@ -79,7 +79,6 @@ export function ChatPanel({ editor }: { editor: Editor }) {
 			})
 
 			// Process next event (if any)
-			$contextItems.set([]) //clear context items added by the agent
 			await advanceSchedule()
 			rCancelFn.current = null
 		} catch (e) {

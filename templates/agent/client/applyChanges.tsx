@@ -49,8 +49,7 @@ function applyChangeToChatHistory({
 					})
 					$requestsSchedule.update((prev) => {
 						if (!change.complete) return prev
-						const prevItem = prev[prev.length - 1]
-						const newContextArea: AreaContextItem = {
+						const contextArea: AreaContextItem = {
 							type: 'area',
 							bounds: {
 								x: change.x,
@@ -60,16 +59,15 @@ function applyChangeToChatHistory({
 							},
 							source: 'agent',
 						}
-						const prevContextItems = prevItem?.contextItems ?? []
-						const newSchedule: ScheduledRequest[] = [
+						const schedule: ScheduledRequest[] = [
 							...prev,
 							{
 								review: true,
 								message: change.intent ?? '',
-								contextItems: [...prevContextItems, newContextArea],
+								contextItems: [contextArea],
 							},
 						]
-						return newSchedule
+						return schedule
 					})
 					return
 				}
