@@ -1,10 +1,9 @@
 import classNames from 'classnames'
-import { CSSProperties } from 'react'
 import {
 	Circle2d,
+	DefaultSpinner,
 	Group2d,
 	HTMLContainer,
-	PathBuilder,
 	RecordProps,
 	Rectangle2d,
 	resizeBox,
@@ -162,80 +161,13 @@ function NodeShape({ shape }: { shape: NodeShape }) {
 				pointerEvents: 'all',
 			}}
 		>
-			{isExecuting && (
-				<NodeShapeAnimation
-					width={NODE_WIDTH_PX}
-					height={NODE_HEADER_HEIGHT_PX + getNodeBodyHeightPx(shape.props.node)}
-				/>
-			)}
 			<div className="NodeShape-heading">
 				<div className="NodeShape-label">{shape.props.node.type}</div>
+				{isExecuting && <DefaultSpinner />}
 				<div className="NodeShape-output">{output}</div>
 				<Port shapeId={shape.id} portId="output" />
 			</div>
 			<NodeBody shape={shape} />
 		</HTMLContainer>
-	)
-}
-
-const BUMP_RADIUS_PX = 20
-const BUMP_HEIGHT_PX = 2.5
-const BUMP_CURVE_PX = 8
-
-const BUMP_PATH = new PathBuilder()
-	.moveTo(0, BUMP_HEIGHT_PX)
-	.cubicBezierTo(
-		BUMP_RADIUS_PX,
-		0,
-		BUMP_CURVE_PX,
-		BUMP_HEIGHT_PX,
-		BUMP_RADIUS_PX - BUMP_CURVE_PX,
-		0
-	)
-	.cubicBezierTo(
-		BUMP_RADIUS_PX * 2,
-		BUMP_HEIGHT_PX,
-		BUMP_RADIUS_PX + BUMP_CURVE_PX,
-		0,
-		BUMP_RADIUS_PX * 2 - BUMP_CURVE_PX,
-		BUMP_HEIGHT_PX
-	)
-	.close()
-	.toD()
-
-function NodeShapeAnimation({ width, height }: { width: number; height: number }) {
-	return (
-		<div
-			className="NodeShapeAnimation"
-			style={
-				{
-					'--bump-radius': `${BUMP_RADIUS_PX}px`,
-					'--bump-height': `${BUMP_HEIGHT_PX}px`,
-					'--shape-width': `${width}px`,
-					'--shape-height': `${height}px`,
-				} as CSSProperties
-			}
-		>
-			<div className="NodeShapeAnimation-track NodeShapeAnimation-track_top">
-				<svg className="NodeShapeAnimation-bump">
-					<path d={BUMP_PATH} />
-				</svg>
-			</div>
-			<div className="NodeShapeAnimation-track NodeShapeAnimation-track_bottom">
-				<svg className="NodeShapeAnimation-bump">
-					<path d={BUMP_PATH} />
-				</svg>
-			</div>
-			<div className="NodeShapeAnimation-track NodeShapeAnimation-track_left">
-				<svg className="NodeShapeAnimation-bump">
-					<path d={BUMP_PATH} />
-				</svg>
-			</div>
-			<div className="NodeShapeAnimation-track NodeShapeAnimation-track_right">
-				<svg className="NodeShapeAnimation-bump">
-					<path d={BUMP_PATH} />
-				</svg>
-			</div>
-		</div>
 	)
 }
