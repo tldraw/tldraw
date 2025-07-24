@@ -7,8 +7,7 @@ import { ChatInput } from './ChatInput'
 import {
 	$contextItems,
 	$pendingContextItems,
-	addToContext,
-	getSimpleContextFromContextItems,
+	getSimpleContextItemsFromContextItems,
 } from './Context'
 import { $requestsSchedule } from './requestsSchedule'
 import { useTldrawAiExample } from './useTldrawAiExample'
@@ -39,15 +38,7 @@ export function ChatPanel({ editor }: { editor: Editor }) {
 		const request = eventSchedule[0]
 		const intent = request.message
 
-		// If the agent has scheduled a review, add the area it wants to reviewto the context
-		const { review: shouldReview, bounds } = request
-		if (shouldReview && bounds) {
-			addToContext({ type: 'area', bounds, addedby: 'agent' })
-			request.contextItems.push({ type: 'area', bounds, addedby: 'agent' })
-		}
-
-		$pendingContextItems.set($contextItems.get())
-		$contextItems.set([])
+		$pendingContextItems.set(request.contextItems)
 
 		try {
 			const { promise, cancel } = ai.prompt({
@@ -56,15 +47,8 @@ export function ChatPanel({ editor }: { editor: Editor }) {
 				meta: {
 					modelName,
 					historyItems: $chatHistoryItems.get().filter((item) => item.type !== 'status-thinking'),
-					// TODO: Add first-class support to handle custom-specified shapes/viewports/etc.
-					// Note: Right now this is not applying our transforms
-					context: getSimpleContextFromContextItems(request.contextItems),
-					review: shouldReview
-						? {
-								shouldReview,
-								bounds: request.bounds,
-							}
-						: { shouldReview },
+					contextItems: getSimpleContextItemsFromContextItems(request.contextItems),
+					review: request.review,
 				},
 			})
 
@@ -72,7 +56,7 @@ export function ChatPanel({ editor }: { editor: Editor }) {
 				...prev,
 				{
 					type: 'status-thinking',
-					message: shouldReview ? 'Reviewing' : 'Generating',
+					message: request.review ? 'Reviewing' : 'Generating',
 					status: 'progress',
 				},
 			])
@@ -152,14 +136,14 @@ export function ChatPanel({ editor }: { editor: Editor }) {
 			])
 
 			// TODO once we implement letting the agent move, we can get those bounds and lock them here instead of using the viewport
-			const { promptBounds, contextBounds } = ai.lockPromptAndContextBounds(editor)
+			ai.lockPromptAndContextBounds(editor)
 
 			setIsGenerating(true)
 			await advanceSchedule()
 			setIsGenerating(false)
 			$pendingContextItems.set([])
 		},
-		[advanceSchedule, editor]
+		[advanceSchedule, editor, ai]
 	)
 
 	function handleNewChat() {

@@ -29,8 +29,8 @@ export class SimplishCoordinates extends TldrawAiTransform {
 			shape.y = roundedY
 		}
 
-		for (const key in input.meta.context.areas) {
-			const area = input.meta.context.areas[key]
+		for (const key in input.meta.contextItems.areas) {
+			const area = input.meta.contextItems.areas[key]
 			const roundedX = Math.floor(area.x)
 			const roundedY = Math.floor(area.y)
 			this.setRoundingDiff(key, 'x', roundedX - area.x)
@@ -39,8 +39,8 @@ export class SimplishCoordinates extends TldrawAiTransform {
 			area.y = roundedY
 		}
 
-		for (const key in input.meta.context.points) {
-			const point = input.meta.context.points[key]
+		for (const key in input.meta.contextItems.points) {
+			const point = input.meta.contextItems.points[key]
 			const roundedX = Math.floor(point.x)
 			const roundedY = Math.floor(point.y)
 			this.setRoundingDiff(key, 'x', roundedX - point.x)

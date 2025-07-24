@@ -130,9 +130,9 @@ function buildMessages(prompt: TLAiSerializedPrompt): CoreMessage[] {
 }
 
 function buildContextAreasMessages(prompt: TLAiSerializedPrompt): CoreMessage[] {
-	const review = prompt.meta.review.shouldReview
+	const review = prompt.meta.review
 
-	const areas = prompt.meta.context.areas
+	const areas = prompt.meta.contextItems.areas
 	if (areas.length === 0) {
 		return []
 	}
@@ -161,7 +161,7 @@ function buildContextAreasMessages(prompt: TLAiSerializedPrompt): CoreMessage[] 
 }
 
 function buildContextPointsMessages(prompt: TLAiSerializedPrompt): CoreMessage[] {
-	const points = prompt.meta.context.points
+	const points = prompt.meta.contextItems.points
 	if (points.length === 0) {
 		return []
 	}
@@ -183,7 +183,7 @@ function buildContextPointsMessages(prompt: TLAiSerializedPrompt): CoreMessage[]
 }
 
 function buildContextShapesMessages(prompt: TLAiSerializedPrompt): CoreMessage[] {
-	const shapes = prompt.meta.context.shapes
+	const shapes = prompt.meta.contextItems.shapes
 	if (shapes.length === 0) {
 		return []
 	}
@@ -326,7 +326,7 @@ function buildUserMessage(prompt: TLAiSerializedPrompt): CoreMessage {
 		)
 	}
 
-	if (prompt.meta.review.shouldReview) {
+	if (prompt.meta.review) {
 		// Review mode
 		const messages = asMessage(prompt.message)
 		const intent = messages[0]

@@ -77,7 +77,7 @@ class TargetShapePointing extends StateNode {
 		this.editor.setHintingShapes([])
 		console.log(this.shape)
 		if (this.shape) {
-			addToContext({ type: 'shape', shape: this.shape, addedby: 'user' })
+			addToContext({ type: 'shape', shape: this.shape, source: 'user' })
 		}
 		this.editor.setCurrentTool('select')
 	}
@@ -108,7 +108,7 @@ class TargetShapeDragging extends StateNode {
 
 		if (!this.bounds) throw new Error('Bounds not set')
 		for (const shape of this.shapes) {
-			addToContext({ type: 'shape', shape, addedby: 'user' })
+			addToContext({ type: 'shape', shape, source: 'user' })
 		}
 		this.editor.setCurrentTool('select')
 	}

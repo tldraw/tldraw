@@ -2,7 +2,8 @@ import { TLAiStreamingChange, defaultApplyChange } from '@tldraw/ai'
 import { Editor, RecordsDiff, TLRecord } from 'tldraw'
 import { $chatHistoryItems } from './ChatHistory'
 import { ChatHistoryItem } from './ChatHistoryItem'
-import { $requestsSchedule } from './requestsSchedule'
+import { AreaContextItem } from './Context'
+import { $requestsSchedule, ScheduledRequest } from './requestsSchedule'
 
 export function applyChange({ change, editor }: { change: TLAiStreamingChange; editor: Editor }) {
 	const diff = editor.store.extractingChanges(() => {
@@ -47,24 +48,28 @@ function applyChangeToChatHistory({
 						info: change.intent ?? '',
 					})
 					$requestsSchedule.update((prev) => {
-						if (change.complete) {
-							const lastItem = prev[prev.length - 1]
-							return [
-								...prev,
-								{
-									review: true,
-									message: change.intent ?? '',
-									contextItems: lastItem?.contextItems ?? [],
-									bounds: {
-										x: change.x,
-										y: change.y,
-										w: change.w,
-										h: change.h,
-									},
-								},
-							]
+						if (!change.complete) return prev
+						const prevItem = prev[prev.length - 1]
+						const newContextArea: AreaContextItem = {
+							type: 'area',
+							bounds: {
+								x: change.x,
+								y: change.y,
+								w: change.w,
+								h: change.h,
+							},
+							source: 'agent',
 						}
-						return prev
+						const prevContextItems = prevItem?.contextItems ?? []
+						const newSchedule: ScheduledRequest[] = [
+							...prev,
+							{
+								review: true,
+								message: change.intent ?? '',
+								contextItems: [...prevContextItems, newContextArea],
+							},
+						]
+						return newSchedule
 					})
 					return
 				}

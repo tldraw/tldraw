@@ -1,3 +1,4 @@
+// TODO: These should be part of the system prompt
 export function getReviewPrompt(intent: string) {
 	return `Examine the actions that you (the agent) took since the most recent user message, with the intent: "${intent}". What's next?
 

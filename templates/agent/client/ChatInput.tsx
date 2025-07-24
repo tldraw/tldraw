@@ -28,7 +28,7 @@ const ADD_CONTEXT_ACTIONS = [
 			editor.setCurrentTool('select')
 			const shapes = editor.getSelectedShapes()
 			for (const shape of shapes) {
-				addToContext({ type: 'shape', shape, addedby: 'user' })
+				addToContext({ type: 'shape', shape, source: 'user' })
 			}
 			editor.focus()
 		},
@@ -38,7 +38,7 @@ const ADD_CONTEXT_ACTIONS = [
 		onSelect: (editor: Editor) => {
 			editor.setCurrentTool('select')
 			const bounds = editor.getViewportPageBounds()
-			addToContext({ type: 'area', bounds, addedby: 'user' })
+			addToContext({ type: 'area', bounds, source: 'user' })
 			editor.focus()
 		},
 	},
@@ -46,7 +46,7 @@ const ADD_CONTEXT_ACTIONS = [
 	// 	name: 'Current Page',
 	// 	onSelect: (editor: Editor) => {
 	// 		editor.setCurrentTool('select')
-	// 		addToContext({ type: 'page', page: editor.getCurrentPage(), addedby: 'user' })
+	// 		addToContext({ type: 'page', page: editor.getCurrentPage(), source: 'user' })
 	// 		editor.focus()
 	// 	},
 	// },
@@ -123,7 +123,7 @@ export function ChatInput({
 			<div className="chat-input-context-attachments">
 				{contextAttachments.map(
 					(item, i) =>
-						item.addedby === 'user' && (
+						item.source === 'user' && (
 							<div key={'context-attachment-' + i} className="chat-input-context-attachment">
 								{`x: ${item.bounds.x.toFixed(0)}, y: ${item.bounds.y.toFixed(0)}, w: ${item.bounds.w.toFixed(0)}, h: ${item.bounds.h.toFixed(0)}`}
 							</div>
@@ -163,7 +163,7 @@ export function ChatInput({
 					</div>
 					{contextItems.map(
 						(item, i) =>
-							item.addedby === 'user' && (
+							item.source === 'user' && (
 								<ContextPreview
 									onClick={() => removeFromContext(item)}
 									key={'context-item-' + i}
