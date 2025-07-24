@@ -193,9 +193,9 @@ export class TLSyncRoom<R extends UnknownRecord, SessionMeta> {
 	// this clock should start higher than the client, to make sure that clients who sync with their
 	// initial lastServerClock value get the full state
 	// in this case clients will start with 0, and the server will start with 1
-	clock = 1
-	documentClock = 1
-	tombstoneHistoryStartsAtClock = this.clock
+	clock: number
+	documentClock: number
+	tombstoneHistoryStartsAtClock: number
 	// map from record id to clock upon deletion
 
 	readonly serializedSchema: SerializedSchema
@@ -249,24 +249,21 @@ export class TLSyncRoom<R extends UnknownRecord, SessionMeta> {
 
 		if (!snapshot) {
 			snapshot = {
-				clock: 1,
+				clock: 0,
 				documents: [
 					{
 						state: DocumentRecordType.create({ id: TLDOCUMENT_ID }),
-						lastChangedClock: 1,
+						lastChangedClock: 0,
 					},
 					{
 						state: PageRecordType.create({ name: 'Page 1', index: 'a1' as IndexKey }),
-						lastChangedClock: 1,
+						lastChangedClock: 0,
 					},
 				],
 			}
 		}
 
 		this.clock = snapshot.clock
-		if (this.clock === 0) {
-			this.clock = 1
-		}
 
 		let didIncrementClock = false
 		const ensureClockDidIncrement = (_reason: string) => {
@@ -303,6 +300,15 @@ export class TLSyncRoom<R extends UnknownRecord, SessionMeta> {
 
 		this.tombstoneHistoryStartsAtClock =
 			snapshot.tombstoneHistoryStartsAtClock ?? findMin(this.tombstones.values()) ?? this.clock
+
+		if (this.tombstoneHistoryStartsAtClock === 0) {
+			// Before this comment was added, new clients would send '0' as their 'lastServerClock'
+			// which was technically an error because clocks start at 0, but the error didn't manifest
+			// because we initialized tombstoneHistoryStartsAtClock to 1 and then never updated it.
+			// Now that we handle tombstoneHistoryStartsAtClock properly we need to increment it here to make sure old
+			// clients still get data when they connect. This if clause can be deleted after a few months.
+			this.tombstoneHistoryStartsAtClock++
+		}
 
 		transact(() => {
 			// eslint-disable-next-line @typescript-eslint/no-deprecated
@@ -361,8 +367,9 @@ export class TLSyncRoom<R extends UnknownRecord, SessionMeta> {
 			}
 
 			this.pruneTombstones()
-			this.documentClock = this.clock
 		})
+
+		this.documentClock = this.clock
 
 		if (didIncrementClock) {
 			opts.onDataChange?.()
