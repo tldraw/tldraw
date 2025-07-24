@@ -376,10 +376,10 @@ export class TLSyncRoom<R extends UnknownRecord, SessionMeta> {
 		}
 	}
 
-	private needsPrune = true
+	private didSchedulePrune = true
 	// eslint-disable-next-line local/prefer-class-methods
 	private pruneTombstones = () => {
-		if (!this.needsPrune) return
+		this.didSchedulePrune = false
 		// avoid blocking any pending responses
 		if (this.tombstones.size > MAX_TOMBSTONES) {
 			const entries = Array.from(this.tombstones.entries())
@@ -395,8 +395,6 @@ export class TLSyncRoom<R extends UnknownRecord, SessionMeta> {
 
 			this.tombstoneHistoryStartsAtClock = cullClock + 1
 			this.tombstones.deleteMany(keysToDelete)
-
-			this.needsPrune = false
 		}
 	}
 
@@ -421,6 +419,10 @@ export class TLSyncRoom<R extends UnknownRecord, SessionMeta> {
 	private removeDocument(id: string, clock: number) {
 		this.documents.delete(id)
 		this.tombstones.set(id, clock)
+		if (!this.didSchedulePrune) {
+			this.didSchedulePrune = true
+			setTimeout(this.pruneTombstones, 0)
+		}
 	}
 
 	getSnapshot(): RoomSnapshot {
@@ -1102,8 +1104,6 @@ export class TLSyncRoom<R extends UnknownRecord, SessionMeta> {
 							// Delete the document and propagate the delete op
 							this.removeDocument(id, this.clock)
 							// Schedule a pruneTombstones call to happen on the next call stack
-							this.needsPrune = true
-							setTimeout(this.pruneTombstones, 0)
 							propagateOp(docChanges, id, op)
 							break
 						}
