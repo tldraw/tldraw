@@ -8,6 +8,7 @@ export interface TLUiToolbarProps extends React.HTMLAttributes<HTMLDivElement> {
 	className?: string
 	dir?: 'ltr' | 'rtl'
 	label: string
+	orientation?: 'horizontal' | 'vertical'
 }
 
 /** @public @react */

@@ -1,4 +1,5 @@
 import { T, useEditor } from 'tldraw'
+import { DivideIcon } from '../../components/icons/Divide'
 import { NODE_HEADER_HEIGHT_PX, NODE_PORT_OFFSET_Y_PX, NODE_ROW_HEIGHT_PX } from '../../constants'
 import { NodeBodyRow, NodeDefinition, outputPort, updateNode } from './shared'
 
@@ -13,7 +14,7 @@ export const DivideNode: NodeDefinition<DivideNode> = {
 	type: 'divide',
 	validator: DivideNodeType,
 	title: 'Divide',
-	icon: '÷',
+	icon: <DivideIcon />,
 	getDefault: () => ({
 		type: 'divide',
 		a: 0,

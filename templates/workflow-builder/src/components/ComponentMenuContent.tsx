@@ -23,9 +23,11 @@ type TranslatingInfo = TLPointerEventInfo & {
 export function ComponentMenuContent({
 	onClose,
 	onNodeSelected,
+	hideLabels,
 }: {
 	onClose?: () => void
 	onNodeSelected?: (nodeType: NodeType) => void
+	hideLabels?: boolean
 }) {
 	const editor = useEditor()
 
@@ -178,8 +180,8 @@ export function ComponentMenuContent({
 						}
 					}}
 				>
-					<span>{definition.title}</span>
-					<span style={{ fontSize: '16px', fontWeight: 'bold' }}>{definition.icon}</span>
+					{!hideLabels && <span>{definition.title}</span>}
+					{definition.icon}
 				</TldrawUiButton>
 			))}
 		</TldrawUiMenuGroup>

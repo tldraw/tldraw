@@ -4223,6 +4223,8 @@ export interface TLUiToolbarProps extends React_3.HTMLAttributes<HTMLDivElement>
     dir?: 'ltr' | 'rtl';
     // (undocumented)
     label: string;
+    // (undocumented)
+    orientation?: 'horizontal' | 'vertical';
 }
 
 // @public (undocumented)
