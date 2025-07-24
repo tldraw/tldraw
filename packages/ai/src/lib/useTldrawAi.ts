@@ -16,8 +16,11 @@ export interface TldrawAi {
 	prompt(message: TldrawAiPromptOptions): { promise: Promise<void>; cancel(): void }
 	repeat(): { promise: Promise<void>; cancel: (() => void) | null }
 	cancel(): void
-	lockViewport(editor: Editor): void
-	unlockViewport(): void
+	lockPromptAndContextBounds(
+		editor: Editor,
+		bounds?: Box
+	): { promptBounds: Box; contextBounds: Box }
+	unlockPromptAndContextBounds(): void
 }
 
 /**
@@ -84,17 +87,23 @@ export function useTldrawAi(opts: TldrawAiOptions): TldrawAi {
 	const rCancelFunction = useRef<(() => void) | null>(null)
 	const rPreviousArguments = useRef<TldrawAiPromptOptions>('')
 	const rPreviousChanges = useRef<TLAiStreamingChange[]>([])
-	const rLockedViewportBounds = useRef<{ promptBounds: Box; contextBounds: Box } | null>(null)
+	const rLockedPromptAndContextBounds = useRef<{ promptBounds: Box; contextBounds: Box } | null>(
+		null
+	)
 
-	const lockViewport = useCallback((editor: Editor, bounds?: Box) => {
-		rLockedViewportBounds.current = {
-			promptBounds: bounds ?? editor.getViewportPageBounds(),
-			contextBounds: bounds ?? editor.getViewportPageBounds(),
-		}
-	}, [])
+	const lockPromptAndContextBounds = useCallback(
+		(editor: Editor, bounds?: Box): { promptBounds: Box; contextBounds: Box } => {
+			rLockedPromptAndContextBounds.current = {
+				promptBounds: bounds ?? editor.getViewportPageBounds(),
+				contextBounds: bounds ?? editor.getViewportPageBounds(),
+			}
+			return rLockedPromptAndContextBounds.current
+		},
+		[]
+	)
 
-	const unlockViewport = useCallback(() => {
-		rLockedViewportBounds.current = null
+	const unlockPromptAndContextBounds = useCallback(() => {
+		rLockedPromptAndContextBounds.current = null
 	}, [])
 
 	/**
@@ -123,10 +132,10 @@ export function useTldrawAi(opts: TldrawAiOptions): TldrawAi {
 				}
 
 				const messageWithBounds = typeof message === 'string' ? { message } : { ...message }
-				if (rLockedViewportBounds.current) {
+				if (rLockedPromptAndContextBounds.current) {
 					if (typeof messageWithBounds === 'object') {
-						messageWithBounds.promptBounds = rLockedViewportBounds.current.promptBounds
-						messageWithBounds.contextBounds = rLockedViewportBounds.current.contextBounds
+						messageWithBounds.promptBounds = rLockedPromptAndContextBounds.current.promptBounds
+						messageWithBounds.contextBounds = rLockedPromptAndContextBounds.current.contextBounds
 					}
 				}
 
@@ -294,7 +303,7 @@ export function useTldrawAi(opts: TldrawAiOptions): TldrawAi {
 		rCancelFunction.current?.()
 	}, [])
 
-	return { prompt, repeat, cancel, lockViewport, unlockViewport }
+	return { prompt, repeat, cancel, lockPromptAndContextBounds, unlockPromptAndContextBounds }
 }
 
 /**

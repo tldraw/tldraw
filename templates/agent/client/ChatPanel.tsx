@@ -31,7 +31,7 @@ export function ChatPanel({ editor }: { editor: Editor }) {
 		const eventSchedule = $requestsSchedule.get()
 
 		if (!eventSchedule || eventSchedule.length === 0) {
-			ai.unlockViewport()
+			ai.unlockPromptAndContextBounds()
 			return // Base case - no more events to process
 		}
 
@@ -117,7 +117,7 @@ export function ChatPanel({ editor }: { editor: Editor }) {
 				rCancelFn.current()
 				rCancelFn.current = null
 				setIsGenerating(false)
-				ai.unlockViewport()
+				ai.unlockPromptAndContextBounds()
 
 				$requestsSchedule.set([])
 				$pendingContextItems.set([])
@@ -151,7 +151,9 @@ export function ChatPanel({ editor }: { editor: Editor }) {
 				},
 			])
 
-			ai.lockViewport(editor)
+			// TODO once we implement letting the agent move, we can get those bounds and lock them here instead of using the viewport
+			const { promptBounds, contextBounds } = ai.lockPromptAndContextBounds(editor)
+
 			setIsGenerating(true)
 			await advanceSchedule()
 			setIsGenerating(false)
@@ -166,7 +168,7 @@ export function ChatPanel({ editor }: { editor: Editor }) {
 			rCancelFn.current = null
 		}
 
-		ai.unlockViewport()
+		ai.unlockPromptAndContextBounds()
 		setIsGenerating(false)
 		$chatHistoryItems.set([])
 		$pendingContextItems.set([])
