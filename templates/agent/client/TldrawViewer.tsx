@@ -39,7 +39,7 @@ function TldrawViewer({
 		editor.selectAll()
 		const bounds = editor.getSelectionPageBounds()
 		if (bounds) {
-			editor.zoomToBounds(bounds, { inset: 20 })
+			editor.zoomToBounds(bounds, { inset: 30 })
 		}
 		editor.selectNone()
 		editor.setCameraOptions({ isLocked: true })

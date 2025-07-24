@@ -8,7 +8,6 @@ import {
 	TLRecord,
 	TLShape,
 	TLShapeId,
-	toRichText,
 } from 'tldraw'
 import { $chatHistoryItems } from './ChatHistory'
 import { CONTEXT_TYPE_DEFINITIONS, ContextItem, roundBox } from './Context'
@@ -122,24 +121,15 @@ function makeHighlightShape({
 }) {
 	let opacity = 0.5
 	const props = { ...shape.props }
-	if ('color' in props) props.color = color
-	if ('dash' in props) props.dash = 'solid'
-	if ('scale' in props) {
-		if (shape.type === 'text' || shape.type === 'note') {
-			// Hack for injecting CSS to the shape
-			// Probably legit ways to do this now
-			if (color === 'light-green') {
-				opacity = 0.51
-			} else if (color === 'light-red') {
-				opacity = 0.52
-			} else if (color === 'light-blue') {
-				opacity = 0.53
-			}
-		} else {
-			if ('richText' in props) props.richText = toRichText('')
-			props.scale = 4
-		}
+
+	if (color === 'light-green') {
+		opacity = 0.51
+	} else if (color === 'light-red') {
+		opacity = 0.52
+	} else if (color === 'light-blue') {
+		opacity = 0.53
 	}
+	if ('dash' in props) props.dash = 'solid'
 	return {
 		...shape,
 		id: (shape.id + '-highlight') as TLShapeId,
@@ -157,7 +147,12 @@ function getDiffShapesFromDiff({ diff }: { diff: RecordsDiff<TLRecord> }): TLSha
 		if (shape.typeName !== 'shape') continue
 		const highlightShape = makeHighlightShape({ shape, color: 'light-red' })
 		diffShapes.push(highlightShape)
-		diffShapes.push(shape)
+
+		if ('dash' in shape.props) {
+			diffShapes.push({ ...shape, props: { ...shape.props, dash: 'solid' } })
+		} else {
+			diffShapes.push(shape)
+		}
 	}
 
 	for (const key in diff.updated) {
@@ -168,9 +163,17 @@ function getDiffShapesFromDiff({ diff }: { diff: RecordsDiff<TLRecord> }): TLSha
 		const highlightBeforeShape = makeHighlightShape({ shape: before, color: 'light-red' })
 		const highlightAfterShape = makeHighlightShape({ shape: after, color: 'light-blue' })
 		diffShapes.push(highlightBeforeShape)
-		diffShapes.push(before)
+		if ('dash' in before.props) {
+			diffShapes.push({ ...before, props: { ...before.props, dash: 'solid' } })
+		} else {
+			diffShapes.push(before)
+		}
 		diffShapes.push(highlightAfterShape)
-		diffShapes.push(after)
+		if ('dash' in after.props) {
+			diffShapes.push({ ...after, props: { ...after.props, dash: 'solid' } })
+		} else {
+			diffShapes.push(after)
+		}
 	}
 
 	for (const key in diff.added) {
@@ -179,7 +182,12 @@ function getDiffShapesFromDiff({ diff }: { diff: RecordsDiff<TLRecord> }): TLSha
 		if (shape.typeName !== 'shape') continue
 		const highlightShape = makeHighlightShape({ shape, color: 'light-green' })
 		diffShapes.push(highlightShape)
-		diffShapes.push(shape)
+
+		if ('dash' in shape.props) {
+			diffShapes.push({ ...shape, props: { ...shape.props, dash: 'solid' } })
+		} else {
+			diffShapes.push(shape)
+		}
 	}
 
 	return diffShapes
