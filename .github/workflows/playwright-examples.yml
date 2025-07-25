@@ -49,6 +49,10 @@ jobs:
       - name: Run Playwright tests
         run: 'yarn e2e'
         working-directory: apps/examples
+        env:
+          PERFORMANCE_ANALYTICS_ENABLED: true
+          GITHUB_REF_NAME: ${{ github.ref_name }}
+          GIT_COMMIT: ${{ github.sha }}
 
       - uses: actions/upload-artifact@v4
         if: always()
