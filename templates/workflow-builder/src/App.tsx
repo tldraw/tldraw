@@ -27,6 +27,7 @@ const components: TLComponents = {
 	Toolbar: () => (
 		<div style={{ display: 'flex', alignItems: 'flex-end', flexGrow: 2 }}>
 			<WorkflowToolbar />
+			<div style={{ flex: 2 }} />
 			<div className="tlui-toolbar">
 				<TldrawUiToolbar className="tlui-toolbar__tools tlui-buttons__horizontal" label="Actions">
 					<DefaultQuickActions />
