@@ -204,3 +204,13 @@ body {
 		margin-top: -50%;
 	}
 }
+
+.WorkflowToolbar {
+	justify-content: flex-start;
+}
+
+.WorkflowToolbar .tlui-toolbar__tools {
+	transform: translateY(-50%);
+	margin-left: 8px;
+	padding-bottom: calc(var(--space-3) + var(--sab));
+}

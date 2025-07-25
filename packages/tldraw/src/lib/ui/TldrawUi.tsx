@@ -212,14 +212,10 @@ const TldrawUiContent = React.memo(function TldrawUI() {
 							)}
 						</div>
 					</div>
-					<div className="tlui-layout__center">
-						<div className="tlui-layout__center__left">{Toolbar && <Toolbar />}</div>
-					</div>
 					<div className="tlui-layout__bottom">
 						<div className="tlui-layout__bottom__main">
 							{NavigationPanel && <NavigationPanel />}
-							{/* TODO TODO TODO */}
-							{/* {Toolbar && <Toolbar />} */}
+							{Toolbar && <Toolbar />}
 							{HelpMenu && <HelpMenu />}
 						</div>
 						{isDebugMode && DebugPanel && <DebugPanel />}
