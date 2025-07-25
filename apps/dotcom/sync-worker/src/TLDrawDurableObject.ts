@@ -190,8 +190,6 @@ export class TLDrawDurableObject extends DurableObject {
 
 	db: Kysely<DB>
 
-	roomSizeMB: number | null = null
-
 	constructor(
 		private state: DurableObjectState,
 		override env: Environment
