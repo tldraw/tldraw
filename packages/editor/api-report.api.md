@@ -648,7 +648,7 @@ export const DefaultShapeIndicators: NamedExoticComponent<TLShapeIndicatorsProps
 export function DefaultSnapIndicator({ className, line, zoom }: TLSnapIndicatorProps): JSX_2.Element;
 
 // @public (undocumented)
-export function DefaultSpinner(props: React.SVGProps<SVGSVGElement>): JSX_2.Element;
+export function DefaultSpinner(): JSX_2.Element;
 
 // @public (undocumented)
 export const DefaultSvgDefs: () => null;
@@ -1277,7 +1277,7 @@ export class Editor extends EventEmitter<TLEventMap> {
     getShapeUtil<S extends TLUnknownShape>(type: S['type']): ShapeUtil<S>;
     // (undocumented)
     getShapeUtil<T extends ShapeUtil>(type: T extends ShapeUtil<infer R> ? R['type'] : string): T;
-    getSharedOpacity(): SharedStyle<number>;
+    getSharedOpacity(): SharedStyle<number> | undefined;
     getSharedStyles(): ReadonlySharedStyleMap;
     // (undocumented)
     getSnapshot(): TLEditorSnapshot;
@@ -1517,6 +1517,7 @@ export class Editor extends EventEmitter<TLEventMap> {
     // @internal (undocumented)
     _updateInstanceState(partial: Partial<Omit<TLInstance, 'currentPageId'>>, opts?: TLHistoryBatchOptions): void;
     updatePage(partial: RequiredKeys<Partial<TLPage>, 'id'>): this;
+    updatePointer(options?: TLUpdatePointerOptions): this;
     updateShape<T extends TLUnknownShape>(partial: null | TLShapePartial<T> | undefined): this;
     updateShapes<T extends TLUnknownShape>(partials: (null | TLShapePartial<T> | undefined)[]): this;
     // @internal (undocumented)
@@ -2561,6 +2562,7 @@ export abstract class ShapeUtil<Shape extends TLUnknownShape = TLUnknownShape> {
     // @internal
     backgroundComponent?(shape: Shape): any;
     canBeLaidOut(_shape: Shape, _info: TLShapeUtilCanBeLaidOutOpts): boolean;
+    canBeTransparent(_shape: Shape): boolean;
     canBind(_opts: TLShapeUtilCanBindOpts): boolean;
     canCrop(_shape: Shape): boolean;
     canEdit(_shape: Shape): boolean;
@@ -4247,6 +4249,28 @@ export interface TLTldrawExternalContentSource {
     data: TLContent;
     // (undocumented)
     type: 'tldraw';
+}
+
+// @public (undocumented)
+export interface TLUpdatePointerOptions {
+    // (undocumented)
+    accelKey?: boolean;
+    // (undocumented)
+    altKey?: boolean;
+    // (undocumented)
+    button?: number;
+    // (undocumented)
+    ctrlKey?: boolean;
+    immediate?: boolean;
+    // (undocumented)
+    isPen?: boolean;
+    // (undocumented)
+    metaKey?: boolean;
+    point?: VecLike;
+    // (undocumented)
+    pointerId?: number;
+    // (undocumented)
+    shiftKey?: boolean;
 }
 
 // @public (undocumented)

@@ -187,3 +187,22 @@ export interface TLCameraConstraints {
 				y: 'free' | 'fixed' | 'inside' | 'outside' | 'contain'
 		  }
 }
+
+/** @public */
+export interface TLUpdatePointerOptions {
+	/** Whether to update the pointer immediately, rather than on the next tick. */
+	immediate?: boolean
+	/**
+	 * The point, in screen-space, to update the pointer to. Defaults to the position of the last
+	 * pointer event.
+	 */
+	point?: VecLike
+	pointerId?: number
+	ctrlKey?: boolean
+	altKey?: boolean
+	shiftKey?: boolean
+	metaKey?: boolean
+	accelKey?: boolean
+	isPen?: boolean
+	button?: number
+}

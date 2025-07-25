@@ -235,6 +235,15 @@ export abstract class ShapeUtil<Shape extends TLUnknownShape = TLUnknownShape> {
 	}
 
 	/**
+	 * Whether the shape can be made opaque.
+	 *
+	 * @public
+	 */
+	canBeTransparent(_shape: Shape): boolean {
+		return true
+	}
+
+	/**
 	 * Whether the shape can be resized.
 	 *
 	 * @public
