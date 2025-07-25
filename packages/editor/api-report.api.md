@@ -3678,6 +3678,8 @@ export interface TLHandleDragInfo<T extends TLShape> {
     // (undocumented)
     initial?: T | undefined;
     // (undocumented)
+    isCreatingShape: boolean;
+    // (undocumented)
     isPrecise: boolean;
 }
 
