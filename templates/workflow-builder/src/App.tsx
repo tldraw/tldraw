@@ -1,4 +1,10 @@
-import { TLComponents, Tldraw } from 'tldraw'
+import {
+	DefaultActionsMenu,
+	DefaultQuickActions,
+	TLComponents,
+	Tldraw,
+	TldrawUiToolbar,
+} from 'tldraw'
 import { NodeToolbar } from './components/NodeToolbar.tsx'
 import { OnCanvasComponentPicker } from './components/OnCanvasComponentPicker.tsx'
 import { WorkflowToolbar } from './components/WorkflowToolbar.tsx'
@@ -18,7 +24,18 @@ const components: TLComponents = {
 			<OnCanvasComponentPicker />
 		</>
 	),
-	Toolbar: () => <WorkflowToolbar />,
+	Toolbar: () => (
+		<div style={{ display: 'flex', alignItems: 'flex-end', flexGrow: 2 }}>
+			<WorkflowToolbar />
+			<div className="tlui-toolbar">
+				<TldrawUiToolbar className="tlui-toolbar__tools tlui-buttons__horizontal" label="Actions">
+					<DefaultQuickActions />
+					<DefaultActionsMenu />
+				</TldrawUiToolbar>
+			</div>
+			<div style={{ flex: 2 }} />
+		</div>
+	),
 	MenuPanel: () => null,
 }
 

@@ -45,7 +45,7 @@ export function WorkflowToolbar() {
 	const editor = useEditor()
 
 	return (
-		<div ref={ref} className="tlui-toolbar tlui-toolbar__vertical">
+		<div ref={ref} className="WorkflowToolbar tlui-toolbar tlui-toolbar__vertical">
 			<div className="tlui-toolbar__inner">
 				<TldrawUiToolbar
 					className="tlui-toolbar__tools"
