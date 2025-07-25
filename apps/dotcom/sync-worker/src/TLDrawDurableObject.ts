@@ -1,6 +1,7 @@
 /// <reference no-default-lib="true"/>
 /// <reference types="@cloudflare/workers-types" />
 
+import { JSONParser } from '@streamparser/json-whatwg'
 import { SupabaseClient } from '@supabase/supabase-js'
 import {
 	APP_ASSET_UPLOAD_ENDPOINT,
@@ -37,7 +38,6 @@ import { createSentry } from '@tldraw/worker-shared'
 import { DurableObject } from 'cloudflare:workers'
 import { IRequest, Router } from 'itty-router'
 import { Kysely } from 'kysely'
-import { AlarmScheduler } from './AlarmScheduler'
 import { PERSIST_INTERVAL_MS } from './config'
 import { createPostgresConnectionPool } from './postgres'
 import { getR2KeyForRoom } from './r2'
@@ -132,7 +132,7 @@ export class TLDrawDurableObject extends DurableObject {
 								room.close()
 							},
 							onDataChange: () => {
-								this.triggerPersistSchedule()
+								this.triggerPersist()
 							},
 							onBeforeSendMessage: ({ message, stringified }) => {
 								this.logEvent({
@@ -247,15 +247,6 @@ export class TLDrawDurableObject extends DurableObject {
 			(req) => this.onRestore(req)
 		)
 		.all('*', () => new Response('Not found', { status: 404 }))
-
-	readonly scheduler = new AlarmScheduler({
-		storage: () => this.storage,
-		alarms: {
-			persist: async () => {
-				this.persistToDatabase()
-			},
-		},
-	})
 
 	// eslint-disable-next-line no-restricted-syntax
 	get documentInfo() {
@@ -482,9 +473,9 @@ export class TLDrawDurableObject extends DurableObject {
 		}
 	}
 
-	triggerPersistSchedule = throttle(() => {
-		this.schedulePersist()
-	}, 2000)
+	triggerPersist = throttle(() => {
+		this.persistToDatabase()
+	}, 5000)
 
 	private writeEvent(name: string, eventData: EventData) {
 		writeDataPoint(this.sentry, this.measure, this.env, name, eventData)
@@ -579,7 +570,8 @@ export class TLDrawDurableObject extends DurableObject {
 			// when loading, prefer to fetch documents from the bucket
 			const roomFromBucket = await this.r2.rooms.get(key)
 			if (roomFromBucket) {
-				return { type: 'room_found', snapshot: await roomFromBucket.json() }
+				const snapshot = await parseJsonObjectFromStream(roomFromBucket.body)
+				return { type: 'room_found', snapshot }
 			}
 			if (this._fileRecordCache?.createSource) {
 				const res = await this.handleFileCreateFromSource()
@@ -697,16 +689,13 @@ export class TLDrawDurableObject extends DurableObject {
 				if (this._lastPersistedClock === clock) return
 				if (this._isRestoring) return
 
-				const snapshot = JSON.stringify(room.getCurrentSnapshot())
+				const snapshot = room.getCurrentSnapshot()
 				this.maybeAssociateFileAssets()
 
 				const key = getR2KeyForRoom({ slug: slug, isApp: this.documentInfo.isApp })
-				await Promise.all([
-					this.r2.rooms.put(key, snapshot),
-					this.r2.versionCache.put(key + `/` + new Date().toISOString(), snapshot),
-				])
-				this._lastPersistedClock = clock
+				await this._uploadSnapshotToR2(snapshot, clock, key)
 
+				this._lastPersistedClock = clock
 				// Update the updatedAt timestamp in the database
 				if (this.documentInfo.isApp) {
 					// don't await on this because otherwise
@@ -725,21 +714,71 @@ export class TLDrawDurableObject extends DurableObject {
 			this.reportError(e)
 		}
 	}
+
+	private async _uploadSnapshotToR2(snapshot: RoomSnapshot, clock: number, key: string) {
+		const out1 = await this.r2.rooms.createMultipartUpload(key)
+		const out2 = await this.r2.versionCache.createMultipartUpload(
+			key + `/${new Date().toISOString()}`
+		)
+
+		try {
+			// 10MB buffer
+			const tenMB = 1024 * 1024 * 10
+			const buffer = new Uint8Array(tenMB)
+			const parts1 = []
+			const parts2 = []
+			let partNumber = 1
+			let offset = 0
+
+			for (const chunk of generateSnapshotChunks(snapshot, clock)) {
+				// Check if adding this chunk would overflow the buffer
+				if (offset + chunk.byteLength > tenMB) {
+					// We need to split this chunk
+					const spaceLeft = tenMB - offset
+					const firstPart = chunk.subarray(0, spaceLeft)
+					const secondPart = chunk.subarray(spaceLeft)
+
+					// Add the first part to the current buffer
+					buffer.set(firstPart, offset)
+
+					// Upload the full buffer
+					const [p1, p2] = await Promise.all([
+						out1.uploadPart(partNumber, buffer),
+						out2.uploadPart(partNumber, buffer),
+					])
+					parts1.push(p1)
+					parts2.push(p2)
+					partNumber++
+
+					// Start a new buffer with the second part
+					offset = secondPart.byteLength
+					buffer.set(secondPart, 0)
+				} else {
+					// Normal case: add the chunk to the buffer
+					buffer.set(chunk, offset)
+					offset += chunk.byteLength
+				}
+			}
+			if (offset > 0) {
+				const [p1, p2] = await Promise.all([
+					out1.uploadPart(partNumber, buffer.subarray(0, offset)),
+					out2.uploadPart(partNumber, buffer.subarray(0, offset)),
+				])
+				parts1.push(p1)
+				parts2.push(p2)
+			}
+
+			await Promise.all([out1.complete(parts1), out2.complete(parts2)])
+		} catch (e) {
+			await Promise.all([out1.abort(), out2.abort()])
+			throw e
+		}
+	}
+
 	private reportError(e: unknown) {
 		// eslint-disable-next-line @typescript-eslint/no-deprecated
 		this.sentry?.captureException(e)
 		console.error(e)
-	}
-
-	async schedulePersist() {
-		await this.scheduler.scheduleAlarmAfter('persist', PERSIST_INTERVAL_MS, {
-			overwrite: 'if-sooner',
-		})
-	}
-
-	// Will be called automatically when the alarm ticks.
-	override async alarm() {
-		await this.scheduler.onAlarm()
 	}
 
 	async appFileRecordCreated(file: TlaFile) {
@@ -923,4 +962,38 @@ async function listAllObjectKeys(bucket: R2Bucket, prefix: string): Promise<stri
 	} while (cursor)
 
 	return keys
+}
+
+function* generateSnapshotChunks(snapshot: RoomSnapshot, clock: number): Generator<Uint8Array> {
+	const encoder = new TextEncoder()
+
+	yield encoder.encode(`{"clock":${clock},"tombstones":`)
+	yield encoder.encode(JSON.stringify(snapshot.tombstones))
+	yield encoder.encode(`,"schema":`)
+	yield encoder.encode(JSON.stringify(snapshot.schema))
+	yield encoder.encode(`,"documents":[`)
+
+	for (let i = 0; i < snapshot.documents.length; i++) {
+		const document = snapshot.documents[i]
+		yield encoder.encode(JSON.stringify(document))
+		if (i < snapshot.documents.length - 1) {
+			yield encoder.encode(',')
+		}
+	}
+
+	yield encoder.encode(`]}`)
+}
+
+async function parseJsonObjectFromStream(stream: ReadableStream<Uint8Array>) {
+	const parser = new JSONParser({ paths: ['$'] })
+
+	const reader = stream.pipeThrough(parser).getReader()
+
+	let result = null as any
+	while (true) {
+		const { done, value } = await reader.read()
+		if (done) break
+		result = value.value
+	}
+	return result
 }

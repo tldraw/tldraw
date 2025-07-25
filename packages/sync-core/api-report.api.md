@@ -5,6 +5,7 @@
 ```ts
 
 import { Atom } from '@tldraw/state';
+import { AtomMap } from '@tldraw/store';
 import { Emitter } from 'nanoevents';
 import { RecordsDiff } from '@tldraw/store';
 import { RecordType } from '@tldraw/store';
@@ -156,6 +157,7 @@ export type RoomSession<R extends UnknownRecord, Meta> = {
     meta: Meta;
     presenceId: null | string;
     requiresLegacyRejection: boolean;
+    requiresObjectDiffInConnectMsg: boolean;
     sessionId: string;
     socket: TLRoomSocket<R>;
     state: typeof RoomSessionState.AwaitingRemoval;
@@ -167,6 +169,7 @@ export type RoomSession<R extends UnknownRecord, Meta> = {
     outstandingDataMessages: TLSocketServerSentDataEvent<R>[];
     presenceId: null | string;
     requiresLegacyRejection: boolean;
+    requiresObjectDiffInConnectMsg: boolean;
     serializedSchema: SerializedSchema;
     sessionId: string;
     socket: TLRoomSocket<R>;
@@ -176,6 +179,7 @@ export type RoomSession<R extends UnknownRecord, Meta> = {
     meta: Meta;
     presenceId: null | string;
     requiresLegacyRejection: boolean;
+    requiresObjectDiffInConnectMsg: boolean;
     sessionId: string;
     sessionStartTime: number;
     socket: TLRoomSocket<R>;
@@ -335,7 +339,7 @@ export class TLSocketRoom<R extends UnknownRecord = UnknownRecord, SessionMeta =
     getNumActiveSessions(): number;
     // @internal (undocumented)
     getPresenceRecords(): Record<string, UnknownRecord>;
-    getRecord(id: string): R;
+    getRecord(id: string): R | undefined;
     getSessions(): Array<{
         isConnected: boolean;
         isReadonly: boolean;
@@ -403,7 +407,7 @@ export type TLSocketServerSentDataEvent<R extends UnknownRecord> = {
 // @internal (undocumented)
 export type TLSocketServerSentEvent<R extends UnknownRecord> = {
     connectRequestId: string;
-    diff: NetworkDiff<R>;
+    diff: NetworkDiff<R> | string;
     hydrationType: 'wipe_all' | 'wipe_presence';
     isReadonly: boolean;
     protocolVersion: number;
@@ -514,6 +518,8 @@ export class TLSyncRoom<R extends UnknownRecord, SessionMeta> {
     // (undocumented)
     documentClock: number;
     // (undocumented)
+    documents: AtomMap<string, DocumentState<R>>;
+    // (undocumented)
     readonly documentTypes: Set<string>;
     // (undocumented)
     readonly events: Emitter<    {
@@ -549,12 +555,9 @@ export class TLSyncRoom<R extends UnknownRecord, SessionMeta> {
     // (undocumented)
     readonly sessions: Map<string, RoomSession<R, SessionMeta>>;
     // (undocumented)
-    state: Atom<{
-        documents: Record<string, DocumentState<R>>;
-        tombstones: Record<string, number>;
-    }, unknown>;
-    // (undocumented)
     tombstoneHistoryStartsAtClock: number;
+    // (undocumented)
+    tombstones: AtomMap<string, number>;
     updateStore(updater: (store: RoomStoreMethods<R>) => Promise<void> | void): Promise<void>;
 }
 
