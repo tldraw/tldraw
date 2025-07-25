@@ -1,9 +1,5 @@
 import { useRef, useState } from 'react'
 import {
-	ArrowDownToolbarItem,
-	ArrowLeftToolbarItem,
-	ArrowRightToolbarItem,
-	ArrowUpToolbarItem,
 	AssetToolbarItem,
 	CheckBoxToolbarItem,
 	CloudToolbarItem,
@@ -98,8 +94,9 @@ export function WorkflowToolbar() {
 								>
 									<TldrawUiMenuContextProvider type="toolbar-overflow" sourceId="toolbar">
 										<TextToolbarItem />
-										<NoteToolbarItem />
 										<AssetToolbarItem />
+										<HighlightToolbarItem />
+										<LaserToolbarItem />
 
 										<RectangleToolbarItem />
 										<EllipseToolbarItem />
@@ -115,14 +112,6 @@ export function WorkflowToolbar() {
 										<HeartToolbarItem />
 										<XBoxToolbarItem />
 										<CheckBoxToolbarItem />
-
-										<ArrowLeftToolbarItem />
-										<ArrowUpToolbarItem />
-										<ArrowDownToolbarItem />
-										<ArrowRightToolbarItem />
-
-										<HighlightToolbarItem />
-										<LaserToolbarItem />
 									</TldrawUiMenuContextProvider>
 								</TldrawUiToolbar>
 							</TldrawUiPopoverContent>
