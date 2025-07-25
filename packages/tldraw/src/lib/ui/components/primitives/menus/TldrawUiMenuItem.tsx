@@ -421,42 +421,39 @@ function DraggableToolbarButton({
 
 	if (overflow) {
 		return (
-			<TldrawUiDropdownMenuItem aria-label={labelToUse}>
-				<TldrawUiButton
-					type="icon"
-					className="tlui-button-grid__button"
-					data-testid={`tools.more.${id}`}
-					data-value={id}
-					title={titleStr}
-					disabled={disabled}
-					role="radio"
-					aria-checked={isSelected ? 'true' : 'false'}
-					{...events}
-				>
-					<TldrawUiButtonIcon icon={icon!} />
-				</TldrawUiButton>
-			</TldrawUiDropdownMenuItem>
+			<TldrawUiToolbarButton
+				aria-label={labelToUse}
+				aria-pressed={isSelected ? 'true' : 'false'}
+				isActive={isSelected}
+				className="tlui-button-grid__button"
+				data-testid={`tools.more.${id}`}
+				data-value={id}
+				disabled={disabled}
+				title={titleStr}
+				type="icon"
+				{...events}
+			>
+				<TldrawUiButtonIcon icon={icon!} />
+			</TldrawUiToolbarButton>
 		)
 	}
 
 	return (
-		<TldrawUiButton
-			type="tool"
-			className="tlui-button-grid__button"
-			data-testid={`tools.${id}`}
+		<TldrawUiToolbarButton
 			aria-label={labelToUse}
+			aria-pressed={isSelected ? 'true' : 'false'}
+			data-testid={`tools.${id}`}
 			data-value={id}
-			title={titleStr}
 			disabled={disabled}
 			onTouchStart={(e) => {
 				preventDefault(e)
 				onSelect('toolbar')
 			}}
-			role="radio"
-			aria-checked={isSelected ? 'true' : 'false'}
+			title={titleStr}
+			type="tool"
 			{...events}
 		>
 			<TldrawUiButtonIcon icon={icon!} />
-		</TldrawUiButton>
+		</TldrawUiToolbarButton>
 	)
 }
