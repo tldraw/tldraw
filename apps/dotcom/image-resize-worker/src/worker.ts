@@ -1,3 +1,4 @@
+import { APP_ASSET_UPLOAD_ENDPOINT } from '@tldraw/dotcom-shared'
 import { T } from '@tldraw/validate'
 import { createRouter, handleApiRequest, notFound, parseRequestQuery } from '@tldraw/worker-shared'
 import { WorkerEntrypoint } from 'cloudflare:workers'
@@ -75,6 +76,10 @@ export default class Worker extends WorkerEntrypoint<Environment> {
 
 			let actualResponse: Response
 			if (useServiceBinding(this.env, origin)) {
+				const route = `/${path}`
+				if (!route.startsWith(APP_ASSET_UPLOAD_ENDPOINT)) {
+					return notFound()
+				}
 				const req = new Request(passthroughUrl.href, { cf: { image: imageOptions } })
 				actualResponse = await this.env.SYNC_WORKER.fetch(req)
 			} else {

@@ -44,7 +44,7 @@ const tolkeinId = Author.createCustomId('tolkein')
 
 store.put([
 	Author.create({
-		id: jrrTolkeinId,
+		id: tolkeinId,
 		name: 'J.R.R Tolkein',
 	}),
 ])
@@ -163,7 +163,7 @@ store.deserialize(serialized)
 
 ### `listen(listener: ((entry: HistoryEntry) => void): () => void`
 
-Add a new listener to the store The store will call the function each time the history changes. Returns a function to remove the listener.
+Add a new listener to the store. The store will call the function each time the history changes. Returns a function to remove the listener.
 
 ```ts
 store.listen((entry) => doSomethingWith(entry))
@@ -355,4 +355,4 @@ Find us on Twitter/X at [@tldraw](https://twitter.com/tldraw).
 
 ## Community
 
-Have questions, comments or feedback? [Join our discord](https://discord.gg/rhsyWMUJxd) or [start a discussion](https://github.com/tldraw/tldraw/discussions/new). For the latest news and release notes, visit [tldraw.dev](https://tldraw.dev).
+Have questions, comments or feedback? [Join our discord](https://discord.tldraw.com/?utm_source=github&utm_medium=readme&utm_campaign=sociallink). For the latest news and release notes, visit [tldraw.dev](https://tldraw.dev).

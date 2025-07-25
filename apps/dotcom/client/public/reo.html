@@ -1,0 +1,20 @@
+<html>
+  <body>
+    <script>
+      function handleMessage(event) {
+        // N.B. Strictly speaking, we should check the origin of the event
+        // but this isn't crucial for these analytics.
+        if (!event.data) return;
+        if (event.data.type === 'identify') {
+          window.Reo?.identify?.(event.data.payload || {});
+        }
+      }
+
+      window.addEventListener('message', handleMessage);
+    </script>
+    <script src="https://static.reo.dev/47839e47a5ed202/reo.js"></script>
+    <script>
+      window.Reo.init({ clientID: '47839e47a5ed202' })
+    </script>
+  </body>
+</html>

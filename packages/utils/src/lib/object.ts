@@ -1,3 +1,5 @@
+import isEqualWith from 'lodash.isequalwith'
+
 /** @internal */
 export function hasOwnProperty(obj: object, key: string): boolean {
 	return Object.prototype.hasOwnProperty.call(obj, key)
@@ -8,6 +10,8 @@ export function getOwnProperty<K extends string, V>(
 	obj: Partial<Record<K, V>>,
 	key: K
 ): V | undefined
+/** @internal */
+export function getOwnProperty<O extends object>(obj: O, key: string): O[keyof O] | undefined
 /** @internal */
 export function getOwnProperty(obj: object, key: string): unknown
 /** @internal */
@@ -129,4 +133,41 @@ export function groupBy<K extends string, V>(
 		result[key].push(value)
 	}
 	return result
+}
+
+/** @internal */
+export function omit(
+	obj: Record<string, unknown>,
+	keys: ReadonlyArray<string>
+): Record<string, unknown> {
+	const result = { ...obj }
+	for (const key of keys) {
+		delete result[key]
+	}
+	return result
+}
+
+/** @internal */
+export function getChangedKeys<T extends object>(obj1: T, obj2: T): (keyof T)[] {
+	const result: (keyof T)[] = []
+	for (const key in obj1) {
+		if (!Object.is(obj1[key], obj2[key])) {
+			result.push(key)
+		}
+	}
+	return result
+}
+
+/** @internal */
+export function isEqualAllowingForFloatingPointErrors(
+	obj1: object,
+	obj2: object,
+	threshold = 0.000001
+): boolean {
+	return isEqualWith(obj1, obj2, (value1, value2) => {
+		if (typeof value1 === 'number' && typeof value2 === 'number') {
+			return Math.abs(value1 - value2) < threshold
+		}
+		return undefined
+	})
 }

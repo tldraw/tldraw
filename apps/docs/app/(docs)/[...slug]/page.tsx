@@ -51,7 +51,7 @@ export default async function Page({ params }: { params: { slug: string | string
 				categoryId={content.article.categoryId}
 				articleId={content.article.id}
 			/>
-			<div className="fixed z-10 flex items-center justify-between w-full h-12 px-5 bg-white border-b border-zinc-100 dark:border-zinc-800 dark:bg-zinc-950 backdrop-blur md:hidden">
+			<div className="sticky top-14 z-10 flex items-center justify-between w-full h-12 px-5 bg-white border-b border-zinc-100 dark:border-zinc-800 dark:bg-zinc-950 backdrop-blur md:hidden">
 				<DocsMobileSidebar
 					sectionId={content.article.sectionId}
 					categoryId={content.article.categoryId}
@@ -61,7 +61,7 @@ export default async function Page({ params }: { params: { slug: string | string
 			</div>
 			{content.article.sectionId === 'examples' ? (
 				<>
-					<main className="relative w-full px-5 pt-24 shrink md:pt-0 min-w-[1px]">
+					<main className="relative w-full px-5 pt-12 shrink md:pt-0 min-w-[1px]">
 						<DocsHeader article={content.article} />
 						<Content mdx={content.article.content ?? ''} type={content.article.sectionId} />
 						<Example article={content.article} />
@@ -73,7 +73,7 @@ export default async function Page({ params }: { params: { slug: string | string
 				</>
 			) : (
 				<>
-					<main className="relative w-full max-w-3xl px-5 pt-24 shrink md:pr-0 lg:pl-12 xl:pr-12 md:pt-0 min-w-[1px]">
+					<main className="relative w-full max-w-3xl px-5 pt-12 shrink md:pr-0 lg:pl-12 xl:pr-12 md:pt-0 min-w-[1px]">
 						<DocsHeader article={content.article} />
 						<Content mdx={content.article.content ?? ''} type={content.article.sectionId} />
 						<DocsFooter article={content.article} />

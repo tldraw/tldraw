@@ -1,13 +1,18 @@
 import { Locator } from '@playwright/test'
 import { sleep } from 'tldraw'
-import { areUrlsEqual, getRandomName } from '../fixtures/helpers'
-import { expect, expectBeforeAndAfterReload, test } from '../fixtures/tla-test'
+import { areUrlsEqual, expectBeforeAndAfterReload, getRandomName } from '../fixtures/helpers'
+import { expect, test } from '../fixtures/tla-test'
+
+test.beforeEach(async ({ editor }) => {
+	await editor.isLoaded()
+})
 
 test('can toggle sidebar', async ({ editor, sidebar }) => {
-	await editor.ensureSidebarClosed()
-	await expect(sidebar.sidebarLogo).not.toBeInViewport()
+	await editor.ensureSidebarOpen()
 	await editor.toggleSidebar()
-	await expect(sidebar.sidebarLogo).toBeInViewport()
+	await sidebar.expectIsNotVisible()
+	await editor.toggleSidebar()
+	await sidebar.expectIsVisible()
 })
 
 test('can create new file', async ({ editor, sidebar, page }) => {
@@ -28,7 +33,6 @@ test('can create new file with custom name', async ({ editor, sidebar, page }) =
 	await expectBeforeAndAfterReload(async () => {
 		const newCount = await sidebar.getNumberOfFiles()
 		expect(newCount).toBe(currentCount + 1)
-		await page.pause()
 		await expect(
 			page.getByTestId('tla-file-link-today-0').getByText(fileName, { exact: true })
 		).toBeVisible()
@@ -124,9 +128,15 @@ test.describe('sidebar actions', () => {
 		}, page)
 	})
 
-	test('delete the document via the file menu', async ({ sidebar, deleteFileDialog, page }) => {
+	test('delete the document via the file menu', async ({
+		editor,
+		sidebar,
+		deleteFileDialog,
+		page,
+	}) => {
 		const url = page.url()
 		const current = 'delete me'
+		await editor.isLoaded()
 		await test.step('rename the file', async () => {
 			await sidebar.renameFile(0, current)
 		})
@@ -149,9 +159,11 @@ test.describe('sidebar actions', () => {
 		})
 	})
 
-	test('duplicate the document via the file menu', async ({ page, sidebar }) => {
+	test('duplicate the document via the file menu', async ({ editor, page, sidebar }) => {
+		await editor.isLoaded()
 		const fileName = getRandomName()
 		expect(await sidebar.getNumberOfFiles()).toBe(1)
+
 		await sidebar.renameFile(0, fileName)
 		await sidebar.duplicateFile(0)
 		await expectBeforeAndAfterReload(async () => {
@@ -167,7 +179,8 @@ test.describe('sidebar actions', () => {
 		}, page)
 	})
 
-	test('duplicate with custom name', async ({ page, sidebar }) => {
+	test('duplicate with custom name', async ({ editor, page, sidebar }) => {
+		await editor.isLoaded()
 		const fileName = getRandomName()
 		const duplicateName = getRandomName()
 		expect(await sidebar.getNumberOfFiles()).toBe(1)
@@ -186,7 +199,8 @@ test.describe('sidebar actions', () => {
 		}, page)
 	})
 
-	test('can copy a file link from the file menu', async ({ page, context, sidebar }) => {
+	test('can copy a file link from the file menu', async ({ editor, page, context, sidebar }) => {
+		await editor.isLoaded()
 		await context.grantPermissions(['clipboard-read', 'clipboard-write'])
 		const url = page.url()
 		const copiedUrl = await sidebar.copyFileLink(0)

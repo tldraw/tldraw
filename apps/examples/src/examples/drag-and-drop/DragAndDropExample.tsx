@@ -5,12 +5,11 @@ import {
 	Rectangle2d,
 	ShapeUtil,
 	TLBaseShape,
+	TLDragShapesOutInfo,
 	TLShape,
 	Tldraw,
 } from 'tldraw'
 import 'tldraw/tldraw.css'
-
-// There's a guide at the bottom of this file!
 
 // [1]
 type MyGridShape = TLBaseShape<'my-grid-shape', Record<string, never>>
@@ -76,24 +75,27 @@ class MyGridShapeUtil extends ShapeUtil<MyGridShape> {
 		return true
 	}
 
-	// [a]
-	override canDropShapes(_shape: MyGridShape, shapes: TLShape[]) {
-		if (shapes.every((s) => s.type === 'my-counter-shape')) {
-			return true
-		}
-		return false
+	// [5]
+	override onDragShapesIn(shape: MyGridShape, draggingShapes: TLShape[]): void {
+		const { editor } = this
+		const reparentingShapes = draggingShapes.filter(
+			(s) => s.parentId !== shape.id && s.type === 'my-counter-shape'
+		)
+		if (reparentingShapes.length === 0) return
+		editor.reparentShapes(reparentingShapes, shape.id)
 	}
 
-	// [b]
-	override onDragShapesOver(shape: MyGridShape, shapes: TLShape[]) {
-		if (!shapes.every((child) => child.parentId === shape.id)) {
-			this.editor.reparentShapes(shapes, shape.id)
+	// [6]
+	override onDragShapesOut(
+		shape: MyGridShape,
+		draggingShapes: TLShape[],
+		info: TLDragShapesOutInfo
+	): void {
+		const { editor } = this
+		const reparentingShapes = draggingShapes.filter((s) => s.parentId !== shape.id)
+		if (!info.nextDraggingOverShapeId) {
+			editor.reparentShapes(reparentingShapes, editor.getCurrentPageId())
 		}
-	}
-
-	// [c]
-	override onDragShapesOut(_shape: MyGridShape, shapes: TLShape[]) {
-		this.editor.reparentShapes(shapes, this.editor.getCurrentPageId())
 	}
 
 	component() {
@@ -124,6 +126,7 @@ export default function DragAndDropExample() {
 			<Tldraw
 				shapeUtils={[MyGridShapeUtil, MyCounterShapeUtil]}
 				onMount={(editor) => {
+					if (editor.getCurrentPageShapeIds().size > 0) return
 					editor.createShape({ type: 'my-grid-shape', x: 100, y: 100 })
 					editor.createShape({ type: 'my-counter-shape', x: 700, y: 100 })
 					editor.createShape({ type: 'my-counter-shape', x: 750, y: 200 })
@@ -135,25 +138,24 @@ export default function DragAndDropExample() {
 }
 
 /*
+[1]
+Define custom shape types using TLBaseShape. Each shape type needs a unique identifier and can have custom 
+properties. Here we use Record<string, never> since our shapes don't need any custom properties. These are 
+very basic custom shapes: see the custom shape examples for more complex examples.
 
-This example demonstrates how to use the drag-and-drop system.
+[2]
+Create a ShapeUtil for the counter shape. This defines how the shape behaves and renders. We disable resizing 
+and use Circle2d geometry for collision detection. The component renders as a red circle using HTMLContainer.
 
-[1] Define some shape types. For the purposes of this example, we'll define two
-shapes: a grid and a counter.
+[3]
+Create a ShapeUtil for the grid shape. This creates a rectangular grid that can accept dropped shapes. We use 
+Rectangle2d geometry and render it with CSS grid lines using background gradients.
 
-[2] Make a shape util for the first shape. For this example, we'll make a simple
-red circle that you drag and drop onto the other shape.
+[5]
+Override onDragShapesIn to handle when shapes are dragged into the grid. We filter for counter shapes that
+aren't already children of this grid, then reparent them to become children. This makes them move with the grid. 
 
-[3] Make the other shape util. In this example, we'll make a grid that you can
-place the the circle counters onto.
-
-    [a] Use the `canDropShapes` method to specify which shapes can be dropped onto
-    the grid shape.
-
-    [b] Use the `onDragShapesOver` method to reparent counters to the grid shape
-    when they are dragged on top.
-
-    [c] Use the `onDragShapesOut` method to reparent counters back to the page
-    when they are dragged off.
-
+[6]
+Override onDragShapesOut to handle when shapes are dragged out of the grid. If they're not being dragged to
+another shape, we reparent them back to the page level, making them independent again.
 */

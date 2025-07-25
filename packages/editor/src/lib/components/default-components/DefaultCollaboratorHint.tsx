@@ -9,6 +9,7 @@ import { clamp } from '../../primitives/utils'
 
 /** @public */
 export interface TLCollaboratorHintProps {
+	userId: string
 	className?: string
 	point: VecModel
 	viewport: Box
@@ -38,7 +39,7 @@ export function DefaultCollaboratorHint({
 	const cursorHintId = useSharedSafeId('cursor_hint')
 
 	return (
-		<svg ref={rSvg} className={classNames('tl-overlays__item', className)}>
+		<svg ref={rSvg} className={classNames('tl-overlays__item', className)} aria-hidden="true">
 			<use
 				href={`#${cursorHintId}`}
 				color={color}

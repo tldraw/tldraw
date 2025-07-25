@@ -63,7 +63,9 @@ export default [
 			'**/patchedJestJsDom.js',
 			'**/.clasp.json',
 			'**/*.mjs',
+			'**/.*.js',
 			'packages/assets/*',
+			'packages/create-tldraw/cli.cjs',
 		],
 	},
 	...compat.extends(
@@ -148,6 +150,7 @@ export default [
 			'local/tagged-components': 'error',
 			'local/prefer-class-methods': 'error',
 			'local/tsdoc-param-matching': 'error',
+			'local/no-whilst': 'error',
 			'no-only-tests/no-only-tests': 'error',
 			'formatjs/enforce-default-message': ['error', 'literal'],
 
@@ -388,6 +391,14 @@ export default [
 		files: ['internal/**/*', 'templates/simple-server-example/**/*'],
 
 		rules: {
+			'no-console': 'off',
+		},
+	},
+	{
+		files: ['templates/**/*'],
+		rules: {
+			'local/prefer-class-methods': 'off',
+			'no-restricted-syntax': 'off',
 			'no-console': 'off',
 		},
 	},

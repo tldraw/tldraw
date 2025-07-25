@@ -1,4 +1,4 @@
-import { TLAssetId } from '@tldraw/tlschema'
+import { TLAssetId, TLShapeId } from '@tldraw/tlschema'
 import { VecLike } from '../../primitives/Vec'
 import { TLContent } from './clipboard-types'
 
@@ -45,13 +45,22 @@ export interface TLBaseExternalContent {
 export interface TLTextExternalContent extends TLBaseExternalContent {
 	type: 'text'
 	text: string
+	html?: string
 }
 
 /** @public */
 export interface TLFilesExternalContent extends TLBaseExternalContent {
 	type: 'files'
 	files: File[]
-	ignoreParent: boolean
+	ignoreParent?: boolean
+}
+
+/** @public */
+export interface TLFileReplaceExternalContent extends TLBaseExternalContent {
+	type: 'file-replace'
+	file: File
+	shapeId: TLShapeId
+	isImage: boolean
 }
 
 /** @public */
@@ -74,12 +83,27 @@ export interface TLEmbedExternalContent<EmbedDefinition> extends TLBaseExternalC
 }
 
 /** @public */
+export interface TLTldrawExternalContent extends TLBaseExternalContent {
+	type: 'tldraw'
+	content: TLContent
+}
+
+/** @public */
+export interface TLExcalidrawExternalContent extends TLBaseExternalContent {
+	type: 'excalidraw'
+	content: any
+}
+
+/** @public */
 export type TLExternalContent<EmbedDefinition> =
 	| TLTextExternalContent
 	| TLFilesExternalContent
+	| TLFileReplaceExternalContent
 	| TLUrlExternalContent
 	| TLSvgTextExternalContent
 	| TLEmbedExternalContent<EmbedDefinition>
+	| TLTldrawExternalContent
+	| TLExcalidrawExternalContent
 
 /** @public */
 export interface TLFileExternalAsset {

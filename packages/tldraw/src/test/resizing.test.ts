@@ -13,6 +13,7 @@ import {
 	canonicalizeRotation,
 	createShapeId,
 	rotateSelectionHandle,
+	toRichText,
 } from '@tldraw/editor'
 import { NoteShapeUtil } from '../lib/shapes/note/NoteShapeUtil'
 import { TestEditor } from './TestEditor'
@@ -3544,9 +3545,11 @@ describe('resizing a selection of mixed rotations', () => {
 // })
 
 describe('editor.resizeNoteShape', () => {
-	it('can scale when that option is set to true', () => {
-		NoteShapeUtil.options.resizeMode = 'scale'
+	beforeEach(() => {
+		editor.getShapeUtil<NoteShapeUtil>('note').options.resizeMode = 'scale'
+	})
 
+	it('can scale when that option is set to true', () => {
 		const noteBId = createShapeId('noteB')
 		editor.createShapes([box(ids.boxA, 0, 0, 200, 200), { id: noteBId, type: 'note', x: 0, y: 0 }])
 
@@ -3563,9 +3566,6 @@ describe('editor.resizeNoteShape', () => {
 		expect(editor.getShape(noteBId)).toMatchObject({ x: 0, y: 0, props: { scale: 2.1 } }) // but scaled!
 
 		expect(editor.getShapePageBounds(noteBId)).toMatchObject({ x: 0, y: 0, w: 420, h: 420 })
-
-		// for the sake of future tests, set it back to normal
-		NoteShapeUtil.options.resizeMode = 'none'
 	})
 })
 
@@ -3875,8 +3875,10 @@ it('uses the cross cursor when create resizing', () => {
 describe('Resizing text from the right edge', () => {
 	it('Resizes text from the right edge', () => {
 		const id = createShapeId()
-		editor.createShapes([{ id, type: 'text', props: { text: 'H' } }])
-		editor.updateShapes([{ id, type: 'text', props: { text: 'Hello World' } }]) // auto size
+		editor.createShapes<TLTextShape>([{ id, type: 'text', props: { richText: toRichText('H') } }])
+		editor.updateShapes<TLTextShape>([
+			{ id, type: 'text', props: { richText: toRichText('Hello World') } },
+		]) // auto size
 
 		editor.select(id)
 
@@ -3891,10 +3893,10 @@ describe('Resizing text from the right edge', () => {
 		editor.expectToBeIn('select.resizing')
 		editor.pointerUp()
 
-		editor.expectShapeToMatch({
+		editor.expectShapeToMatch<TLTextShape>({
 			id,
 			type: 'text',
-			props: { text: 'Hello World', w: bounds.width + 5 },
+			props: { richText: toRichText('Hello World'), w: bounds.width + 5 },
 		})
 	})
 
@@ -3902,8 +3904,10 @@ describe('Resizing text from the right edge', () => {
 		editor.updateInstanceState({ isCoarsePointer: true })
 
 		const id = createShapeId()
-		editor.createShapes([{ id, type: 'text', props: { text: 'H' } }])
-		editor.updateShapes([{ id, type: 'text', props: { text: 'Hello World' } }]) // auto size
+		editor.createShapes<TLTextShape>([{ id, type: 'text', props: { richText: toRichText('H') } }])
+		editor.updateShapes<TLTextShape>([
+			{ id, type: 'text', props: { richText: toRichText('Hello World') } },
+		]) // auto size
 
 		editor.select(id)
 
@@ -3918,10 +3922,10 @@ describe('Resizing text from the right edge', () => {
 		editor.expectToBeIn('select.resizing')
 		editor.pointerUp()
 
-		editor.expectShapeToMatch({
+		editor.expectShapeToMatch<TLTextShape>({
 			id,
 			type: 'text',
-			props: { text: 'Hello World', w: bounds.width + 10 },
+			props: { richText: toRichText('Hello World'), w: bounds.width + 10 },
 		})
 	})
 })
@@ -3954,7 +3958,7 @@ describe('resizing text with autosize true', () => {
 			x: 0,
 			y: 0,
 			props: {
-				text: 'Hello',
+				richText: toRichText('Hello'),
 				autoSize: false,
 				w: 200,
 			},
@@ -3980,7 +3984,7 @@ describe('resizing text with autosize true', () => {
 			x: 0,
 			y: 0,
 			props: {
-				text: 'Hello',
+				richText: toRichText('Hello'),
 				autoSize: false,
 				w: 200,
 			},
@@ -4007,7 +4011,7 @@ describe('resizing text with autosize true', () => {
 			x: 0,
 			y: 0,
 			props: {
-				text: 'Hello',
+				richText: toRichText('Hello'),
 				autoSize: false,
 				w: 200,
 			},
@@ -4033,7 +4037,7 @@ describe('resizing text with autosize true', () => {
 			x: 0,
 			y: 0,
 			props: {
-				text: 'Hello',
+				richText: toRichText('Hello'),
 				autoSize: false,
 				w: 200,
 			},

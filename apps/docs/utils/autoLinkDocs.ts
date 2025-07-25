@@ -7,7 +7,7 @@ export async function autoLinkDocs(db: Database<sqlite3.Database, sqlite3.Statem
 	// replace [TLEditor](?) with [TLEditor](/reference/editor/TLEditor)?
 	// not sure how we would get there but finding an article with the same title
 	const articles = await db.all(
-		'SELECT id, content FROM articles WHERE sectionId != ?',
+		'SELECT id, content, path FROM articles WHERE sectionId != ?',
 		'reference'
 	)
 	await Promise.all(articles.map((a) => autoLinkDocsForArticle(db, a)))
@@ -17,7 +17,7 @@ const regex = /\[`?([^\[\]]*?)`?\]\(\?\)/g
 
 export async function autoLinkDocsForArticle(
 	db: Database<sqlite3.Database, sqlite3.Statement>,
-	{ id, content }: Pick<Article, 'id' | 'content'>
+	{ id, content, path }: Pick<Article, 'id' | 'content' | 'path'>
 ) {
 	if (!content) return
 
@@ -36,7 +36,17 @@ export async function autoLinkDocsForArticle(
 			'reference'
 		)
 
-		if (!article) throw Error(`Could not find article for ${_title} (${title})`)
+		// Get the LOC of the error
+		const loc = content.split('\n').reduce((acc, line, i) => {
+			if (line.includes(hit)) {
+				acc = i
+			}
+			return acc
+		}, 0)
+
+		if (!article) {
+			throw Error(`💥 Could not find article for ${_title} (${title}) in ${path} at line ${loc}`)
+		}
 
 		let str = ''
 

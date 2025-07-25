@@ -14,6 +14,7 @@ import {
 	bind,
 	compact,
 	isPageId,
+	kickoutOccludedShapes,
 } from '@tldraw/editor'
 import {
 	NOTE_ADJACENT_POSITION_SNAP_RADIUS,
@@ -21,7 +22,6 @@ import {
 	getAvailableNoteAdjacentPositions,
 } from '../../../shapes/note/noteHelpers'
 import { DragAndDropManager } from '../DragAndDropManager'
-import { kickoutOccludedShapes } from '../selectHelpers'
 
 export type TranslatingInfo = TLPointerEventInfo & {
 	target: 'shape'
@@ -92,7 +92,7 @@ export class Translating extends StateNode {
 		if (!this.isCreating) {
 			if (this.editor.inputs.altKey) {
 				this.startCloning()
-				return
+				if (this.isCloning) return
 			}
 		}
 
@@ -112,10 +112,6 @@ export class Translating extends StateNode {
 
 	override onTick({ elapsed }: TLTickEventInfo) {
 		const { editor } = this
-		this.dragAndDropManager.updateDroppingNode(
-			this.snapshot.movingShapes,
-			this.updateParentTransforms
-		)
 		editor.edgeScrollManager.updateEdgeScrolling(elapsed)
 	}
 
@@ -126,7 +122,7 @@ export class Translating extends StateNode {
 	override onKeyDown() {
 		if (this.editor.inputs.altKey && !this.isCloning) {
 			this.startCloning()
-			return
+			if (this.isCloning) return
 		}
 
 		// need to update in case user pressed a different modifier key
@@ -157,6 +153,10 @@ export class Translating extends StateNode {
 
 	protected startCloning() {
 		if (this.isCreating) return
+		const shapeIds = Array.from(this.editor.getSelectedShapeIds())
+
+		// If we can't create the shapes, don't even start cloning
+		if (!this.editor.canCreateShapes(shapeIds)) return
 
 		this.isCloning = true
 		this.reset()
@@ -184,11 +184,11 @@ export class Translating extends StateNode {
 	protected complete() {
 		this.updateShapes()
 		this.dragAndDropManager.dropShapes(this.snapshot.movingShapes)
+		this.handleEnd()
 		kickoutOccludedShapes(
 			this.editor,
 			this.snapshot.movingShapes.map((s) => s.id)
 		)
-		this.handleEnd()
 
 		if (this.editor.getInstanceState().isToolLocked && this.info.onInteractionEnd) {
 			this.editor.setCurrentTool(this.info.onInteractionEnd)
@@ -202,6 +202,17 @@ export class Translating extends StateNode {
 	}
 
 	private cancel() {
+		// Call onTranslateCancel callback before resetting
+		const { movingShapes } = this.snapshot
+
+		movingShapes.forEach((shape) => {
+			const current = this.editor.getShape(shape.id)
+			if (current) {
+				const util = this.editor.getShapeUtil(shape)
+				util.onTranslateCancel?.(shape, current)
+			}
+		})
+
 		this.reset()
 		if (this.info.onInteractionEnd) {
 			this.editor.setCurrentTool(this.info.onInteractionEnd)
@@ -226,6 +237,14 @@ export class Translating extends StateNode {
 		if (changes.length > 0) {
 			this.editor.updateShapes(changes)
 		}
+
+		this.dragAndDropManager.startDraggingShapes(
+			// Get fresh shapes from the snapshot, in case onTranslateStart mutates the shape
+			compact(this.snapshot.movingShapes.map((s) => this.editor.getShape(s.id))),
+			// Start from the place where the user started dragging
+			this.editor.inputs.originPagePoint,
+			this.updateParentTransforms
+		)
 
 		this.editor.setHoveredShape(null)
 	}
@@ -267,7 +286,12 @@ export class Translating extends StateNode {
 	protected updateShapes() {
 		const { snapshot } = this
 
-		this.dragAndDropManager.updateDroppingNode(snapshot.movingShapes, this.updateParentTransforms)
+		// We should have started already, but hey
+		this.dragAndDropManager.startDraggingShapes(
+			snapshot.movingShapes,
+			this.editor.inputs.originPagePoint,
+			this.updateParentTransforms
+		)
 
 		moveShapesToPoint({
 			editor: this.editor,

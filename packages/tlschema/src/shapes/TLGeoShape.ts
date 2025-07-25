@@ -1,4 +1,5 @@
 import { T } from '@tldraw/validate'
+import { TLRichText, richTextValidator, toRichText } from '../misc/TLRichText'
 import { createShapePropsMigrationIds, createShapePropsMigrationSequence } from '../records/TLShape'
 import { RecordProps } from '../recordsWithProps'
 import { StyleProp } from '../styles/StyleProp'
@@ -54,20 +55,22 @@ export type TLGeoShapeGeoStyle = T.TypeOf<typeof GeoShapeGeoStyle>
 /** @public */
 export interface TLGeoShapeProps {
 	geo: TLGeoShapeGeoStyle
-	labelColor: TLDefaultColorStyle
-	color: TLDefaultColorStyle
-	fill: TLDefaultFillStyle
 	dash: TLDefaultDashStyle
-	size: TLDefaultSizeStyle
-	font: TLDefaultFontStyle
-	align: TLDefaultHorizontalAlignStyle
-	verticalAlign: TLDefaultVerticalAlignStyle
 	url: string
 	w: number
 	h: number
 	growY: number
-	text: string
 	scale: number
+
+	// Text properties
+	labelColor: TLDefaultColorStyle
+	color: TLDefaultColorStyle
+	fill: TLDefaultFillStyle
+	size: TLDefaultSizeStyle
+	font: TLDefaultFontStyle
+	align: TLDefaultHorizontalAlignStyle
+	verticalAlign: TLDefaultVerticalAlignStyle
+	richText: TLRichText
 }
 
 /** @public */
@@ -76,20 +79,22 @@ export type TLGeoShape = TLBaseShape<'geo', TLGeoShapeProps>
 /** @public */
 export const geoShapeProps: RecordProps<TLGeoShape> = {
 	geo: GeoShapeGeoStyle,
-	labelColor: DefaultLabelColorStyle,
-	color: DefaultColorStyle,
-	fill: DefaultFillStyle,
 	dash: DefaultDashStyle,
-	size: DefaultSizeStyle,
-	font: DefaultFontStyle,
-	align: DefaultHorizontalAlignStyle,
-	verticalAlign: DefaultVerticalAlignStyle,
 	url: T.linkUrl,
 	w: T.nonZeroNumber,
 	h: T.nonZeroNumber,
 	growY: T.positiveNumber,
-	text: T.string,
 	scale: T.nonZeroNumber,
+
+	// Text properties
+	labelColor: DefaultLabelColorStyle,
+	color: DefaultColorStyle,
+	fill: DefaultFillStyle,
+	size: DefaultSizeStyle,
+	font: DefaultFontStyle,
+	align: DefaultHorizontalAlignStyle,
+	verticalAlign: DefaultVerticalAlignStyle,
+	richText: richTextValidator,
 }
 
 const geoShapeVersions = createShapePropsMigrationIds('geo', {
@@ -102,6 +107,7 @@ const geoShapeVersions = createShapePropsMigrationIds('geo', {
 	AddCloud: 7,
 	MakeUrlsValid: 8,
 	AddScale: 9,
+	AddRichText: 10,
 })
 
 export { geoShapeVersions as geoShapeVersions }
@@ -191,6 +197,17 @@ export const geoShapeMigrations = createShapePropsMigrationSequence({
 			down: (props) => {
 				delete props.scale
 			},
+		},
+		{
+			id: geoShapeVersions.AddRichText,
+			up: (props) => {
+				props.richText = toRichText(props.text)
+				delete props.text
+			},
+			// N.B. Explicitly no down state so that we force clients to update.
+			// down: (props) => {
+			// 	delete props.richText
+			// },
 		},
 	],
 })

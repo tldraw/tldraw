@@ -1,11 +1,12 @@
 import { TlaFile, TlaUser } from '@tldraw/dotcom-shared'
 import { ReactNode, createContext, useContext } from 'react'
-import { trackAnalyticsEvent } from '../../utils/trackAnalyticsEvent'
+import { trackEvent } from '../../utils/analytics'
 import { TldrawAppSessionState } from './local-session-state'
 
 /** @public */
 export type TLAppUiEventSource =
 	| 'sidebar'
+	| 'sidebar-context-menu'
 	| 'user-preferences'
 	| 'file-rename-dialog'
 	| 'file-menu'
@@ -18,6 +19,7 @@ export type TLAppUiEventSource =
 	| 'legacy-import-button'
 	| 'new-page'
 	| 'app'
+	| 'cookie-settings'
 
 /** @public */
 export interface TLAppUiEventMap {
@@ -25,6 +27,7 @@ export interface TLAppUiEventMap {
 	'delete-file': null
 	'rename-file': { name: string }
 	'duplicate-file': null
+	'download-file': null
 	'drop-tldr-file': null
 	'import-tldr-file': null
 	'change-user-name': null
@@ -51,14 +54,13 @@ export interface TLAppUiEventMap {
 	'publish-file': null
 	'unpublish-file': null
 	'copy-publish-link': null
-	'sign-in-clicked': null
-	'sign-up-clicked': null
+	'sign-up-clicked': { ctaMessage: string }
 	'sign-out-clicked': null
 	'learn-more-button': null
 	'sidebar-toggle': { value: boolean }
 	'click-file-link': null
 	'open-preview-sign-up-modal': null
-	'first-connect-duration': { duration: number }
+	'create-user': null
 }
 
 /** @public */
@@ -73,7 +75,7 @@ export type TLAppUiHandler = <T extends keyof TLAppUiEventMap>(
 export type TLAppUiContextType = TLAppUiHandler
 
 /** @internal */
-const defaultEventHandler: TLAppUiContextType = trackAnalyticsEvent
+const defaultEventHandler: TLAppUiContextType = trackEvent
 
 /** @internal */
 export const EventsContext = createContext<TLAppUiContextType>(defaultEventHandler)

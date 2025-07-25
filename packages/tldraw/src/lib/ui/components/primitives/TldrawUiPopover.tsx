@@ -1,5 +1,5 @@
-import * as PopoverPrimitive from '@radix-ui/react-popover'
 import { useContainer } from '@tldraw/editor'
+import { Popover as _Popover } from 'radix-ui'
 import React from 'react'
 import { useMenuIsOpen } from '../../hooks/useMenuIsOpen'
 
@@ -16,12 +16,9 @@ export function TldrawUiPopover({ id, children, onOpenChange, open }: TLUiPopove
 	const [isOpen, handleOpenChange] = useMenuIsOpen(id, onOpenChange)
 
 	return (
-		<PopoverPrimitive.Root
-			onOpenChange={handleOpenChange}
-			open={open || isOpen /* allow debugging */}
-		>
+		<_Popover.Root onOpenChange={handleOpenChange} open={open || isOpen /* allow debugging */}>
 			<div className="tlui-popover">{children}</div>
-		</PopoverPrimitive.Root>
+		</_Popover.Root>
 	)
 }
 
@@ -33,9 +30,9 @@ export interface TLUiPopoverTriggerProps {
 /** @public @react */
 export function TldrawUiPopoverTrigger({ children }: TLUiPopoverTriggerProps) {
 	return (
-		<PopoverPrimitive.Trigger asChild dir="ltr">
+		<_Popover.Trigger asChild dir="ltr">
 			{children}
-		</PopoverPrimitive.Trigger>
+		</_Popover.Trigger>
 	)
 }
 
@@ -47,6 +44,7 @@ export interface TLUiPopoverContentProps {
 	alignOffset?: number
 	sideOffset?: number
 	disableEscapeKeyDown?: boolean
+	autoFocusFirstButton?: boolean
 }
 
 /** @public @react */
@@ -57,22 +55,37 @@ export function TldrawUiPopoverContent({
 	sideOffset = 8,
 	alignOffset = 0,
 	disableEscapeKeyDown = false,
+	autoFocusFirstButton = true,
 }: TLUiPopoverContentProps) {
 	const container = useContainer()
+	const ref = React.useRef<HTMLDivElement>(null)
+
+	const handleOpenAutoFocus = React.useCallback(() => {
+		if (!autoFocusFirstButton) return
+		const buttons = (ref.current?.querySelectorAll('button:not([disabled])') ?? []) as HTMLElement[]
+		const visibleButtons = [...buttons].filter(
+			(button) => button.offsetWidth || button.offsetHeight
+		)
+		const firstButton = visibleButtons[0]
+		if (firstButton) firstButton.focus()
+	}, [autoFocusFirstButton])
+
 	return (
-		<PopoverPrimitive.Portal container={container}>
-			<PopoverPrimitive.Content
+		<_Popover.Portal container={container}>
+			<_Popover.Content
 				className="tlui-popover__content"
 				side={side}
 				sideOffset={sideOffset}
 				align={align}
 				alignOffset={alignOffset}
 				dir="ltr"
+				ref={ref}
+				onOpenAutoFocus={handleOpenAutoFocus}
 				onEscapeKeyDown={(e) => disableEscapeKeyDown && e.preventDefault()}
 			>
 				{children}
 				{/* <StyledArrow /> */}
-			</PopoverPrimitive.Content>
-		</PopoverPrimitive.Portal>
+			</_Popover.Content>
+		</_Popover.Portal>
 	)
 }

@@ -1,5 +1,6 @@
 'use client'
 
+import { track } from '@/app/analytics'
 import LgBcDark from '@/public/images/ui-placeholder/lg-bc-dark.png'
 import LgBc from '@/public/images/ui-placeholder/lg-bc.png'
 import LgBlDark from '@/public/images/ui-placeholder/lg-bl-dark.png'
@@ -13,7 +14,6 @@ import SmBc from '@/public/images/ui-placeholder/sm-bc.png'
 import SmTlDark from '@/public/images/ui-placeholder/sm-tl-dark.png'
 import SmTl from '@/public/images/ui-placeholder/sm-tl.png'
 import { cn } from '@/utils/cn'
-import { track } from '@vercel/analytics/react'
 import Image from 'next/image'
 import { lazy, Suspense, useCallback, useState } from 'react'
 import { Button } from '../common/button'
@@ -36,7 +36,7 @@ export function Demo() {
 	}, [])
 
 	return (
-		<div className="relative w-full border-t-[4px] border-b-[4px] md:border-[4px] border-blue-500 h-96 md:rounded-br-[16px] md:rounded-bl-[16px] md:rounded-tl-[16px] md:rounded-tr-[20px] sm:h-[40rem] max-h-[80vh] overflow-hidden my-5">
+		<div className="relative w-full border-t-[4px] border-b-[4px] md:border-[4px] border-blue-500 h-96 md:rounded-br-[16px] md:rounded-bl-[16px] md:rounded-tl-[16px] md:rounded-tr-[20px] sm:h-[40rem] max-h-[80vh] overflow-hidden">
 			<Suspense fallback={<FakeTldraw isLoading={isLoading} onClick={handleSkeletonClick} />}>
 				<DemoTldraw hidden={!showCanvas} />
 			</Suspense>

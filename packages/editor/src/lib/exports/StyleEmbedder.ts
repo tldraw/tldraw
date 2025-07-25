@@ -1,5 +1,6 @@
-import { assertExists, objectMapValues, uniqueId } from '@tldraw/utils'
+import { assertExists, getOwnProperty, objectMapValues, uniqueId } from '@tldraw/utils'
 import { FontEmbedder } from './FontEmbedder'
+import { ReadonlyStyles, Styles, cssRules } from './cssRules'
 import {
 	elementStyle,
 	getComputedStyle,
@@ -7,10 +8,8 @@ import {
 	getRenderedChildren,
 } from './domUtils'
 import { resourceToDataUrl } from './fetchCache'
-import { isPropertyInherited, parseCssValueUrls, shouldIncludeCssProperty } from './parseCss'
+import { parseCssValueUrls, shouldIncludeCssProperty } from './parseCss'
 
-type Styles = { [K in string]?: string }
-type ReadonlyStyles = { readonly [K in string]?: string }
 const NO_STYLES = {} as const
 
 interface ElementStyleInfo {
@@ -53,9 +52,20 @@ export class StyleEmbedder {
 			? getDefaultStylesForTagName(element.tagName.toLowerCase())
 			: NO_STYLES
 
-		const parentStyles = shouldSkipInheritedParentStyles
-			? (this.styles.get(element.parentElement as Element)?.self ?? NO_STYLES)
-			: NO_STYLES
+		const parentStyles = Object.assign({}, NO_STYLES) as Styles
+		if (shouldSkipInheritedParentStyles) {
+			let el = element.parentElement
+			// Keep going up the tree to find all the relevant styles
+			while (el) {
+				const currentStyles = this.styles.get(el)?.self
+				for (const style in currentStyles) {
+					if (!parentStyles[style]) {
+						parentStyles[style] = currentStyles[style]
+					}
+				}
+				el = el.parentElement
+			}
+		}
 
 		const info: ElementStyleInfo = {
 			self: styleFromElement(element, { defaultStyles, parentStyles }),
@@ -223,13 +233,22 @@ function styleFromComputedStyleMap(
 	{ defaultStyles, parentStyles }: ReadStyleOpts
 ) {
 	const styles: Record<string, string> = {}
+	const currentColor = style.get('color')?.toString() || ''
+	const ruleOptions = {
+		currentColor,
+		parentStyles,
+		defaultStyles,
+		getStyle: (property: string) => style.get(property)?.toString() ?? '',
+	}
 	for (const property of style.keys()) {
 		if (!shouldIncludeCssProperty(property)) continue
 
 		const value = style.get(property)!.toString()
 
 		if (defaultStyles[property] === value) continue
-		if (parentStyles[property] === value && isPropertyInherited(property)) continue
+
+		const rule = getOwnProperty(cssRules, property)
+		if (rule && rule(value, property, ruleOptions)) continue
 
 		styles[property] = value
 	}
@@ -242,13 +261,23 @@ function styleFromComputedStyle(
 	{ defaultStyles, parentStyles }: ReadStyleOpts
 ) {
 	const styles: Record<string, string> = {}
-	for (const property of style) {
+	const currentColor = style.color
+	const ruleOptions = {
+		currentColor,
+		parentStyles,
+		defaultStyles,
+		getStyle: (property: string) => style.getPropertyValue(property),
+	}
+
+	for (const property in style) {
 		if (!shouldIncludeCssProperty(property)) continue
 
 		const value = style.getPropertyValue(property)
 
 		if (defaultStyles[property] === value) continue
-		if (parentStyles[property] === value && isPropertyInherited(property)) continue
+
+		const rule = getOwnProperty(cssRules, property)
+		if (rule && rule(value, property, ruleOptions)) continue
 
 		styles[property] = value
 	}

@@ -4,16 +4,14 @@ import {
 	DEFAULT_SUPPORTED_IMAGE_TYPES,
 	DEFAULT_SUPPORT_VIDEO_TYPES,
 	DefaultContextMenuContent,
-	DefaultSpinner,
-	ErrorScreen,
-	LoadingScreen,
 	TldrawEditor,
 	TldrawHandles,
+	TldrawOverlays,
 	TldrawScribble,
-	TldrawSelectionBackground,
 	TldrawSelectionForeground,
 	TldrawShapeIndicators,
 	TldrawUi,
+	defaultAddFontsFromNode,
 	defaultBindingUtils,
 	defaultEditorAssetUrls,
 	defaultShapeTools,
@@ -21,8 +19,8 @@ import {
 	defaultTools,
 	registerDefaultExternalContentHandlers,
 	registerDefaultSideEffects,
+	tipTapDefaultExtensions,
 	useEditor,
-	usePreloadAssets,
 	useToasts,
 	useTranslation,
 } from 'tldraw'
@@ -36,35 +34,31 @@ const defaultComponents = {
 	ShapeIndicators: TldrawShapeIndicators,
 	CollaboratorScribble: TldrawScribble,
 	SelectionForeground: TldrawSelectionForeground,
-	SelectionBackground: TldrawSelectionBackground,
 	Handles: TldrawHandles,
+	Overlays: TldrawOverlays,
+}
+
+const allDefaultTools = [...defaultTools, ...defaultShapeTools]
+const defaultTextOptions = {
+	tipTapConfig: {
+		extensions: tipTapDefaultExtensions,
+	},
+	addFontsFromNode: defaultAddFontsFromNode,
 }
 
 //[2]
 export default function ExplodedExample() {
-	const assetLoading = usePreloadAssets(defaultEditorAssetUrls)
-
-	if (assetLoading.error) {
-		return <ErrorScreen>Could not load assets.</ErrorScreen>
-	}
-
-	if (!assetLoading.done) {
-		return (
-			<LoadingScreen>
-				<DefaultSpinner />
-			</LoadingScreen>
-		)
-	}
-
 	return (
 		<div className="tldraw__editor">
 			<TldrawEditor
 				initialState="select"
 				shapeUtils={defaultShapeUtils}
 				bindingUtils={defaultBindingUtils}
-				tools={[...defaultTools, ...defaultShapeTools]}
+				tools={allDefaultTools}
 				components={defaultComponents}
 				persistenceKey="exploded-example"
+				textOptions={defaultTextOptions}
+				assetUrls={defaultEditorAssetUrls}
 			>
 				<TldrawUi>
 					<InsideEditorAndUiContext />

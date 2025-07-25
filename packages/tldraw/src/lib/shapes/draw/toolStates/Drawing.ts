@@ -33,7 +33,6 @@ export class Drawing extends StateNode {
 	override shapeType = this.parent.id === 'highlight' ? ('highlight' as const) : ('draw' as const)
 
 	util = this.editor.getShapeUtil(this.shapeType) as DrawShapeUtil | HighlightShapeUtil
-	maxPoints = 500 // temporary
 
 	isPen = false
 	isPenOrStylus = false
@@ -57,10 +56,6 @@ export class Drawing extends StateNode {
 		this.info = info
 		this.lastRecordedPoint = this.editor.inputs.currentPagePoint.clone()
 		this.startShape()
-		this.maxPoints =
-			this.shapeType === 'draw'
-				? DrawShapeUtil.options.maxPointsPerShape
-				: HighlightShapeUtil.options.maxPointsPerShape
 	}
 
 	override onPointerMove() {
@@ -254,30 +249,34 @@ export class Drawing extends StateNode {
 		this.pagePointWhereCurrentSegmentChanged = originPagePoint.clone()
 		const id = createShapeId()
 
-		this.editor.createShapes<DrawableShape>([
-			{
-				id,
-				type: this.shapeType,
-				x: originPagePoint.x,
-				y: originPagePoint.y,
-				props: {
-					isPen: this.isPenOrStylus,
-					scale: this.editor.user.getIsDynamicResizeMode() ? 1 / this.editor.getZoomLevel() : 1,
-					segments: [
-						{
-							type: this.segmentMode,
-							points: [
-								{
-									x: 0,
-									y: 0,
-									z: +pressure.toFixed(2),
-								},
-							],
-						},
-					],
-				},
+		// Allow this to trigger the max shapes reached alert
+		this.editor.createShape<DrawableShape>({
+			id,
+			type: this.shapeType,
+			x: originPagePoint.x,
+			y: originPagePoint.y,
+			props: {
+				isPen: this.isPenOrStylus,
+				scale: this.editor.user.getIsDynamicResizeMode() ? 1 / this.editor.getZoomLevel() : 1,
+				segments: [
+					{
+						type: this.segmentMode,
+						points: [
+							{
+								x: 0,
+								y: 0,
+								z: +pressure.toFixed(2),
+							},
+						],
+					},
+				],
 			},
-		])
+		})
+		const shape = this.editor.getShape<DrawableShape>(id)
+		if (!shape) {
+			this.cancel()
+			return
+		}
 		this.currentLineLength = 0
 		this.initialShape = this.editor.getShape<DrawableShape>(id)
 	}
@@ -635,33 +634,40 @@ export class Drawing extends StateNode {
 				this.editor.updateShapes([shapePartial])
 
 				// Set a maximum length for the lines array; after 200 points, complete the line.
-				if (newPoints.length > this.maxPoints) {
+				if (newPoints.length > this.util.options.maxPointsPerShape) {
 					this.editor.updateShapes([{ id, type: this.shapeType, props: { isComplete: true } }])
 
 					const newShapeId = createShapeId()
 
 					const props = this.editor.getShape<DrawableShape>(id)!.props
 
-					this.editor.createShapes<DrawableShape>([
-						{
-							id: newShapeId,
-							type: this.shapeType,
-							x: toFixed(inputs.currentPagePoint.x),
-							y: toFixed(inputs.currentPagePoint.y),
-							props: {
-								isPen: this.isPenOrStylus,
-								scale: props.scale,
-								segments: [
-									{
-										type: 'free',
-										points: [{ x: 0, y: 0, z: this.isPenOrStylus ? +(z! * 1.25).toFixed() : 0.5 }],
-									},
-								],
-							},
+					if (!this.editor.canCreateShapes([newShapeId])) return this.cancel()
+					this.editor.createShape<DrawableShape>({
+						id: newShapeId,
+						type: this.shapeType,
+						x: toFixed(inputs.currentPagePoint.x),
+						y: toFixed(inputs.currentPagePoint.y),
+						props: {
+							isPen: this.isPenOrStylus,
+							scale: props.scale,
+							segments: [
+								{
+									type: 'free',
+									points: [{ x: 0, y: 0, z: this.isPenOrStylus ? +(z! * 1.25).toFixed() : 0.5 }],
+								},
+							],
 						},
-					])
+					})
 
-					this.initialShape = structuredClone(this.editor.getShape<DrawableShape>(newShapeId)!)
+					const shape = this.editor.getShape<DrawableShape>(newShapeId)
+
+					if (!shape) {
+						// This would only happen if the page is full and no more shapes can be created. The bug would manifest as a crash when we try to clone the shape.
+						// todo: handle this type of thing better
+						return this.cancel()
+					}
+
+					this.initialShape = structuredClone(shape)
 					this.mergeNextPoint = false
 					this.lastRecordedPoint = inputs.currentPagePoint.clone()
 					this.currentLineLength = 0

@@ -4,21 +4,21 @@ import {
 	TLExternalContentSource,
 	Vec,
 	VecLike,
+	assert,
 	compact,
 	isDefined,
 	preventDefault,
 	stopEventPropagation,
 	uniq,
 	useEditor,
+	useMaybeEditor,
 	useValue,
 } from '@tldraw/editor'
 import lz from 'lz-string'
 import { useCallback, useEffect } from 'react'
 import { TLDRAW_CUSTOM_PNG_MIME_TYPE, getCanonicalClipboardReadType } from '../../utils/clipboard'
 import { TLUiEventSource, useUiEvents } from '../context/events'
-import { pasteExcalidrawContent } from './clipboard/pasteExcalidrawContent'
 import { pasteFiles } from './clipboard/pasteFiles'
-import { pasteTldrawContent } from './clipboard/pasteTldrawContent'
 import { pasteUrl } from './clipboard/pasteUrl'
 
 // Expected paste mime types. The earlier in this array they appear, the higher preference we give
@@ -88,7 +88,7 @@ function areShortcutsDisabled(editor: Editor) {
 	return (
 		editor.menus.hasAnyOpenMenus() ||
 		(activeElement &&
-			(activeElement.getAttribute('contenteditable') ||
+			((activeElement as HTMLElement).isContentEditable ||
 				INPUTS.indexOf(activeElement.tagName.toLowerCase()) > -1))
 	)
 }
@@ -296,6 +296,13 @@ const handlePasteFromClipboardApi = async ({
 		things.push(
 			...fallbackFiles.map((f): ClipboardThing => ({ type: 'file', source: Promise.resolve(f) }))
 		)
+	} else if (fallbackFiles?.length && things.length === 0) {
+		// Files pasted in Safari from your computer don't have types, so we need to use the fallback files directly
+		// if they're available. This only works if pasted keyboard shortcuts. Pasting from the menu in Safari seems to never
+		// let you access files that are copied from your computer.
+		things.push(
+			...fallbackFiles.map((f): ClipboardThing => ({ type: 'file', source: Promise.resolve(f) }))
+		)
 	}
 
 	return await handleClipboardThings(editor, things, point)
@@ -345,25 +352,62 @@ async function handleClipboardThings(editor: Editor, things: ClipboardThing[], p
 
 							if (tldrawHtmlComment) {
 								try {
-									// If we've found tldraw content in the html string, use that as JSON
-									const jsonComment = lz.decompressFromBase64(tldrawHtmlComment)
-									if (jsonComment === null) {
+									// First try parsing as plain JSON (version 2/3 formats)
+									let json
+									try {
+										json = JSON.parse(tldrawHtmlComment)
+									} catch {
+										// Fall back to LZ decompression (legacy format)
+										const jsonComment = lz.decompressFromBase64(tldrawHtmlComment)
+										if (jsonComment === null) {
+											r({
+												type: 'error',
+												data: null,
+												reason: `found tldraw data comment but could not parse`,
+											})
+											return
+										}
+										json = JSON.parse(jsonComment)
+									}
+
+									if (json.type !== 'application/tldraw') {
 										r({
 											type: 'error',
-											data: jsonComment,
-											reason: `found tldraw data comment but could not parse base64`,
+											data: json,
+											reason: `found tldraw data comment but JSON was of a different type: ${json.type}`,
 										})
 										return
-									} else {
-										const json = JSON.parse(jsonComment)
-										if (json.type !== 'application/tldraw') {
+									}
+
+									// Handle versioned clipboard format
+									if (json.version === 3) {
+										// Version 3: Assets are plain, decompress only other data
+										try {
+											const otherData = JSON.parse(
+												lz.decompressFromBase64(json.data.otherCompressed) || '{}'
+											)
+											const reconstructedData = {
+												assets: json.data.assets || [],
+												...otherData,
+											}
+
+											r({ type: 'tldraw', data: reconstructedData })
+											return
+										} catch (error) {
 											r({
 												type: 'error',
 												data: json,
-												reason: `found tldraw data comment but JSON was of a different type: ${json.type}`,
+												reason: `failed to decompress version 2 clipboard data: ${error}`,
 											})
+											return
 										}
-
+									}
+									if (json.version === 2) {
+										// Version 2: Everything is plain, this had issues with encoding... :-/
+										// TODO: nix this support after some time.
+										r({ type: 'tldraw', data: json.data })
+									} else {
+										// Version 1 or no version: Legacy format
 										if (typeof json.data === 'string') {
 											r({
 												type: 'error',
@@ -431,7 +475,8 @@ async function handleClipboardThings(editor: Editor, things: ClipboardThing[], p
 	// Try to paste tldraw content
 	for (const result of results) {
 		if (result.type === 'tldraw') {
-			pasteTldrawContent(editor, result.data, point)
+			editor.markHistoryStoppingPoint('paste')
+			editor.putExternalContent({ type: 'tldraw', content: result.data, point })
 			return
 		}
 	}
@@ -439,7 +484,8 @@ async function handleClipboardThings(editor: Editor, things: ClipboardThing[], p
 	// Try to paste excalidraw content
 	for (const result of results) {
 		if (result.type === 'excalidraw') {
-			pasteExcalidrawContent(editor, result.data, point)
+			editor.markHistoryStoppingPoint('paste')
+			editor.putExternalContent({ type: 'excalidraw', content: result.data, point })
 			return
 		}
 	}
@@ -470,8 +516,27 @@ async function handleClipboardThings(editor: Editor, things: ClipboardThing[], p
 
 			// If the html is NOT a link, and we have NO OTHER texty content, then paste the html as text
 			if (!results.some((r) => r.type === 'text' && r.subtype !== 'html') && result.data.trim()) {
-				handleText(editor, stripHtml(result.data), point, results)
-				return
+				const html = stripHtml(result.data) ?? ''
+				if (html) {
+					handleText(editor, stripHtml(result.data), point, results)
+					return
+				}
+			}
+
+			// If the html is NOT a link, and we have other texty content, then paste the html as a text shape
+			if (results.some((r) => r.type === 'text' && r.subtype !== 'html')) {
+				const html = stripHtml(result.data) ?? ''
+				if (html) {
+					editor.markHistoryStoppingPoint('paste')
+					editor.putExternalContent({
+						type: 'text',
+						text: html,
+						html: result.data,
+						point,
+						sources: results,
+					})
+					return
+				}
 			}
 		}
 
@@ -532,13 +597,21 @@ const handleNativeOrMenuCopy = async (editor: Editor) => {
 		return
 	}
 
-	const stringifiedClipboard = lz.compressToBase64(
-		JSON.stringify({
-			type: 'application/tldraw',
-			kind: 'content',
-			data: content,
-		})
-	)
+	// Use versioned clipboard format for better compression
+	// Version 3: Don't compress assets, only compress other data
+	const { assets, ...otherData } = content
+	const clipboardData = {
+		type: 'application/tldraw',
+		kind: 'content',
+		version: 3,
+		data: {
+			assets: assets || [], // Plain JSON, no compression
+			otherCompressed: lz.compressToBase64(JSON.stringify(otherData)), // Only compress non-asset data
+		},
+	}
+
+	// Don't compress the final structure - just use plain JSON
+	const stringifiedClipboard = JSON.stringify(clipboardData)
 
 	if (typeof navigator === 'undefined') {
 		return
@@ -580,11 +653,12 @@ const handleNativeOrMenuCopy = async (editor: Editor) => {
 
 /** @public */
 export function useMenuClipboardEvents() {
-	const editor = useEditor()
+	const editor = useMaybeEditor()
 	const trackEvent = useUiEvents()
 
 	const copy = useCallback(
 		async function onCopy(source: TLUiEventSource) {
+			assert(editor, 'editor is required for copy')
 			if (editor.getSelectedShapeIds().length === 0) return
 
 			await handleNativeOrMenuCopy(editor)
@@ -595,6 +669,7 @@ export function useMenuClipboardEvents() {
 
 	const cut = useCallback(
 		async function onCut(source: TLUiEventSource) {
+			if (!editor) return
 			if (editor.getSelectedShapeIds().length === 0) return
 
 			await handleNativeOrMenuCopy(editor)
@@ -610,6 +685,7 @@ export function useMenuClipboardEvents() {
 			source: TLUiEventSource,
 			point?: VecLike
 		) {
+			if (!editor) return
 			// If we're editing a shape, or we are focusing an editable input, then
 			// we would want the user's paste interaction to go to that element or
 			// input instead; e.g. when pasting text into a text shape's content

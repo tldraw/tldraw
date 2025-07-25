@@ -31,16 +31,34 @@ export const arrowBindingMigrations: TLPropsMigrations;
 export const arrowBindingProps: RecordProps<TLArrowBinding>;
 
 // @public (undocumented)
+export const arrowBindingVersions: {
+    AddSnap: `com.tldraw.binding.arrow/${number}`;
+};
+
+// @public (undocumented)
 export const ArrowShapeArrowheadEndStyle: EnumStyleProp<"arrow" | "bar" | "diamond" | "dot" | "inverted" | "none" | "pipe" | "square" | "triangle">;
 
 // @public (undocumented)
 export const ArrowShapeArrowheadStartStyle: EnumStyleProp<"arrow" | "bar" | "diamond" | "dot" | "inverted" | "none" | "pipe" | "square" | "triangle">;
 
 // @public (undocumented)
+export const ArrowShapeKindStyle: EnumStyleProp<"arc" | "elbow">;
+
+// @public (undocumented)
 export const arrowShapeMigrations: MigrationSequence;
 
 // @public (undocumented)
 export const arrowShapeProps: RecordProps<TLArrowShape>;
+
+// @public (undocumented)
+export const arrowShapeVersions: {
+    readonly AddElbow: "com.tldraw.shape.arrow/6";
+    readonly AddIsPrecise: "com.tldraw.shape.arrow/2";
+    readonly AddLabelColor: "com.tldraw.shape.arrow/1";
+    readonly AddLabelPosition: "com.tldraw.shape.arrow/3";
+    readonly AddScale: "com.tldraw.shape.arrow/5";
+    readonly ExtractBindings: "com.tldraw.shape.arrow/4";
+};
 
 // @public
 export const assetIdValidator: T.Validator<TLAssetId>;
@@ -90,13 +108,13 @@ id: TLAssetId;
 meta: JsonObject;
 props: Props;
 type: Type;
-typeName: 'asset';
+typeName: "asset";
 }[P]; } & { [P_1 in (undefined extends Props ? "props" : never) | (undefined extends Type ? "type" : never)]?: {
 id: TLAssetId;
 meta: JsonObject;
 props: Props;
 type: Type;
-typeName: 'asset';
+typeName: "asset";
 }[P_1] | undefined; }>>;
 
 // @public (undocumented)
@@ -258,6 +276,12 @@ export const drawShapeMigrations: TLPropsMigrations;
 
 // @public (undocumented)
 export const drawShapeProps: RecordProps<TLDrawShape>;
+
+// @public (undocumented)
+export const ElbowArrowSnap: T.Validator<"center" | "edge-point" | "edge" | "none">;
+
+// @public (undocumented)
+export type ElbowArrowSnap = T.TypeOf<typeof ElbowArrowSnap>;
 
 // @public (undocumented)
 export const embedShapeMigrations: TLPropsMigrations;
@@ -570,6 +594,12 @@ export type RecordPropsType<Config extends Record<string, T.Validatable<any>>> =
 }>;
 
 // @public (undocumented)
+export const richTextValidator: T.ObjectValidator<{
+    content: unknown[];
+    type: string;
+}>;
+
+// @public (undocumented)
 export const rootBindingMigrations: MigrationSequence;
 
 // @public (undocumented)
@@ -658,6 +688,8 @@ export interface TLArrowBindingProps {
     // (undocumented)
     normalizedAnchor: VecModel;
     // (undocumented)
+    snap: ElbowArrowSnap;
+    // (undocumented)
     terminal: 'end' | 'start';
 }
 
@@ -666,6 +698,9 @@ export type TLArrowShape = TLBaseShape<'arrow', TLArrowShapeProps>;
 
 // @public (undocumented)
 export type TLArrowShapeArrowheadStyle = T.TypeOf<typeof ArrowShapeArrowheadStartStyle>;
+
+// @public (undocumented)
+export type TLArrowShapeKind = T.TypeOf<typeof ArrowShapeKindStyle>;
 
 // @public (undocumented)
 export interface TLArrowShapeProps {
@@ -680,11 +715,15 @@ export interface TLArrowShapeProps {
     // (undocumented)
     dash: TLDefaultDashStyle;
     // (undocumented)
+    elbowMidPoint: number;
+    // (undocumented)
     end: VecModel;
     // (undocumented)
     fill: TLDefaultFillStyle;
     // (undocumented)
     font: TLDefaultFontStyle;
+    // (undocumented)
+    kind: TLArrowShapeKind;
     // (undocumented)
     labelColor: TLDefaultColorStyle;
     // (undocumented)
@@ -731,6 +770,7 @@ export type TLAssetShape = Extract<TLShape, {
 
 // @public
 export interface TLAssetStore {
+    remove?(assetIds: TLAssetId[]): Promise<void>;
     resolve?(asset: TLAsset, ctx: TLAssetContext): null | Promise<null | string> | string;
     upload(asset: TLAsset, file: File, abortSignal?: AbortSignal): Promise<{
         meta?: JsonObject;
@@ -886,6 +926,14 @@ export interface TLDefaultColorThemeColor {
     // (undocumented)
     fill: string;
     // (undocumented)
+    frame: {
+        fill: string;
+        headingFill: string;
+        headingStroke: string;
+        stroke: string;
+        text: string;
+    };
+    // (undocumented)
     highlight: {
         p3: string;
         srgb: string;
@@ -992,6 +1040,8 @@ export type TLFrameShape = TLBaseShape<'frame', TLFrameShapeProps>;
 // @public (undocumented)
 export interface TLFrameShapeProps {
     // (undocumented)
+    color: TLDefaultColorStyle;
+    // (undocumented)
     h: number;
     // (undocumented)
     name: string;
@@ -1026,11 +1076,11 @@ export interface TLGeoShapeProps {
     // (undocumented)
     labelColor: TLDefaultColorStyle;
     // (undocumented)
+    richText: TLRichText;
+    // (undocumented)
     scale: number;
     // (undocumented)
     size: TLDefaultSizeStyle;
-    // (undocumented)
-    text: string;
     // (undocumented)
     url: string;
     // (undocumented)
@@ -1053,6 +1103,8 @@ export interface TLHandle {
     id: string;
     // (undocumented)
     index: IndexKey;
+    // (undocumented)
+    label?: string;
     // (undocumented)
     type: TLHandleType;
     // (undocumented)
@@ -1099,6 +1151,8 @@ export type TLImageShape = TLBaseShape<'image', TLImageShapeProps>;
 
 // @public (undocumented)
 export interface TLImageShapeProps {
+    // (undocumented)
+    altText: string;
     // (undocumented)
     assetId: null | TLAssetId;
     // (undocumented)
@@ -1311,11 +1365,11 @@ export interface TLNoteShapeProps {
     // (undocumented)
     labelColor: TLDefaultColorStyle;
     // (undocumented)
+    richText: TLRichText;
+    // (undocumented)
     scale: number;
     // (undocumented)
     size: TLDefaultSizeStyle;
-    // (undocumented)
-    text: string;
     // (undocumented)
     url: string;
     // (undocumented)
@@ -1390,6 +1444,9 @@ export interface TLPropsMigrations {
 export type TLRecord = TLAsset | TLBinding | TLCamera | TLDocument | TLInstance | TLInstancePageState | TLInstancePresence | TLPage | TLPointer | TLShape;
 
 // @public (undocumented)
+export type TLRichText = T.TypeOf<typeof richTextValidator>;
+
+// @public (undocumented)
 export type TLSchema = StoreSchema<TLRecord, TLStoreProps>;
 
 // @public
@@ -1424,6 +1481,8 @@ export type TLShape = TLDefaultShape | TLUnknownShape;
 export interface TLShapeCrop {
     // (undocumented)
     bottomRight: VecModel;
+    // (undocumented)
+    isCircle?: boolean;
     // (undocumented)
     topLeft: VecModel;
 }
@@ -1474,11 +1533,11 @@ export interface TLTextShapeProps {
     // (undocumented)
     font: TLDefaultFontStyle;
     // (undocumented)
+    richText: TLRichText;
+    // (undocumented)
     scale: number;
     // (undocumented)
     size: TLDefaultSizeStyle;
-    // (undocumented)
-    text: string;
     // (undocumented)
     textAlign: TLDefaultTextAlignStyle;
     // (undocumented)
@@ -1508,7 +1567,11 @@ export type TLVideoShape = TLBaseShape<'video', TLVideoShapeProps>;
 // @public (undocumented)
 export interface TLVideoShapeProps {
     // (undocumented)
+    altText: string;
+    // (undocumented)
     assetId: null | TLAssetId;
+    // (undocumented)
+    autoplay: boolean;
     // (undocumented)
     h: number;
     // (undocumented)
@@ -1520,6 +1583,9 @@ export interface TLVideoShapeProps {
     // (undocumented)
     w: number;
 }
+
+// @public (undocumented)
+export function toRichText(text: string): TLRichText;
 
 // @public
 export interface VecModel {

@@ -1,8 +1,8 @@
 import { RoomSnapshot } from '@tldraw/sync-core'
 import { IRequest } from 'itty-router'
+import { createPostgresConnectionPool } from '../../postgres'
 import { getR2KeyForRoom } from '../../r2'
 import { Environment } from '../../types'
-import { getReplicator } from '../../utils/durableObjects'
 
 export async function getPublishedRoomSnapshot(
 	env: Environment,
@@ -11,8 +11,11 @@ export async function getPublishedRoomSnapshot(
 	const parentSlug = await env.SNAPSHOT_SLUG_TO_PARENT_SLUG.get(roomId)
 	if (!parentSlug) throw Error('not found')
 
-	const replicator = getReplicator(env)
-	const file = await replicator.getFileRecord(parentSlug)
+	const file = await createPostgresConnectionPool(env, 'getPublishedRoomSnapshot')
+		.selectFrom('file')
+		.selectAll()
+		.where('id', '=', parentSlug)
+		.executeTakeFirst()
 
 	if (!file) throw Error('not found')
 
@@ -30,23 +33,20 @@ export async function getPublishedFile(request: IRequest, env: Environment): Pro
 		return Response.json({ error: true, message: 'Room ID is required' }, { status: 400 })
 	}
 
-	try {
-		const publishedRoomSnapshot = await getPublishedRoomSnapshot(env, roomId)
-		if (!publishedRoomSnapshot) throw Error('not found')
+	const publishedRoomSnapshot = await getPublishedRoomSnapshot(env, roomId)
+	if (!publishedRoomSnapshot)
+		return Response.json({ error: true, message: 'Room not found' }, { status: 404 })
 
-		const { documents, schema } = publishedRoomSnapshot
+	const { documents, schema } = publishedRoomSnapshot
 
-		return new Response(
-			JSON.stringify({
-				records: documents.map((d) => d.state),
-				schema: schema,
-				error: false,
-			}),
-			{
-				headers: { 'content-type': 'application/json' },
-			}
-		)
-	} catch (e: any) {
-		return new Response(JSON.stringify({ error: true, message: e.message }), { status: 500 })
-	}
+	return new Response(
+		JSON.stringify({
+			records: documents.map((d) => d.state),
+			schema: schema,
+			error: false,
+		}),
+		{
+			headers: { 'content-type': 'application/json' },
+		}
+	)
 }

@@ -1,4 +1,13 @@
-import { Editor, IndexKey, TLNoteShape, TLShape, Vec, compact, createShapeId } from '@tldraw/editor'
+import {
+	Editor,
+	IndexKey,
+	TLNoteShape,
+	TLShape,
+	Vec,
+	compact,
+	createShapeId,
+	toRichText,
+} from '@tldraw/editor'
 
 /** @internal */
 export const CLONE_HANDLE_MARGIN = 0
@@ -195,7 +204,7 @@ export function getNoteShapeForAdjacentPosition(
 
 		// We create it at the center first, so that it becomes
 		// the child of whatever parent was at that center
-		editor.createShape({
+		editor.createShape<TLNoteShape>({
 			id,
 			type: 'note',
 			x: center.x,
@@ -205,8 +214,7 @@ export function getNoteShapeForAdjacentPosition(
 			props: {
 				// Use the props of the shape we're cloning
 				...shape.props,
-				// ...except for these values, which should reset to their defaults
-				text: '',
+				richText: toRichText(''),
 				growY: 0,
 				fontSizeAdjustment: 0,
 				url: '',
@@ -237,32 +245,11 @@ export function getNoteShapeForAdjacentPosition(
 		nextNote = editor.getShape(id)!
 	}
 
-	zoomToShapeIfOffscreen(editor)
+	editor.zoomToSelectionIfOffscreen(16, {
+		animation: {
+			duration: editor.options.animationMediumMs,
+		},
+		inset: 0,
+	})
 	return nextNote
-}
-
-const ZOOM_TO_SHAPE_PADDING = 16
-function zoomToShapeIfOffscreen(editor: Editor) {
-	const selectionPageBounds = editor.getSelectionPageBounds()
-	const viewportPageBounds = editor.getViewportPageBounds()
-	if (selectionPageBounds && !viewportPageBounds.contains(selectionPageBounds)) {
-		const eb = selectionPageBounds
-			.clone()
-			// Expand the bounds by the padding
-			.expandBy(ZOOM_TO_SHAPE_PADDING / editor.getZoomLevel())
-			// then expand the bounds to include the viewport bounds
-			.expand(viewportPageBounds)
-
-		// then use the difference between the centers to calculate the offset
-		const nextBounds = viewportPageBounds.clone().translate({
-			x: (eb.center.x - viewportPageBounds.center.x) * 2,
-			y: (eb.center.y - viewportPageBounds.center.y) * 2,
-		})
-		editor.zoomToBounds(nextBounds, {
-			animation: {
-				duration: editor.options.animationMediumMs,
-			},
-			inset: 0,
-		})
-	}
 }

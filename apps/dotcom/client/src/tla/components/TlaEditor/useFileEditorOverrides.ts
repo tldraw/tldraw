@@ -9,10 +9,16 @@ import {
 	serializeTldrawJsonBlob,
 } from 'tldraw'
 import { routes } from '../../../routeDefs'
-import { useHandleUiEvents } from '../../../utils/useHandleUiEvent'
+import { useHandleUiEvents } from '../../../utils/analytics'
 import { useMaybeApp } from '../../hooks/useAppState'
 import { useIntl, useMsg } from '../../utils/i18n'
 import { editorMessages as messages } from './editor-messages'
+
+export async function download(editor: Editor, name: string) {
+	const blobToSave = await serializeTldrawJsonBlob(editor)
+	const file = new File([blobToSave], name, { type: 'application/json' })
+	downloadFile(file)
+}
 
 export function useFileEditorOverrides({ fileSlug }: { fileSlug?: string }) {
 	const app = useMaybeApp()
@@ -37,13 +43,18 @@ export function useFileEditorOverrides({ fileSlug }: { fileSlug?: string }) {
 
 	const overrides = useMemo<TLUiOverrides>(() => {
 		return {
+			translations: {
+				en: {
+					'people-menu.anonymous-user': intl.formatMessage(messages.anonymousUser),
+				},
+			},
 			actions(editor, actions) {
 				// Add a shortcut that does nothing but blocks the command+s shortcut
 				actions['save-null'] = {
-					id: 'save-file-copy',
+					id: 'save-null',
 					label: 'action.save-copy',
 					readonlyOk: true,
-					kbd: '$s',
+					kbd: 'cmd+s,ctrl+s',
 					onSelect() {
 						trackEvent('save-project-no-action', { source: 'kbd' })
 					},
@@ -55,10 +66,7 @@ export function useFileEditorOverrides({ fileSlug }: { fileSlug?: string }) {
 					async onSelect() {
 						trackEvent('download-file', { source: '' })
 						const defaultName = getFileName(editor) + TLDRAW_FILE_EXTENSION
-
-						const blobToSave = await serializeTldrawJsonBlob(editor)
-						const file = new File([blobToSave], defaultName, { type: 'application/json' })
-						downloadFile(file)
+						await download(editor, defaultName)
 					},
 				}
 
@@ -68,7 +76,7 @@ export function useFileEditorOverrides({ fileSlug }: { fileSlug?: string }) {
 					readonlyOk: true,
 					async onSelect() {
 						const defaultName = getFileName(editor)
-						const res = app?.createFile({
+						const res = await app?.createFile({
 							name: defaultName,
 							createSource: window.location.pathname.slice(1),
 						})

@@ -14,17 +14,26 @@
   "06b9281e39": {
     "translation": "Tự động"
   },
+  "0776e18496": {
+    "translation": "Lưu và chia sẻ"
+  },
   "07dbd11b21": {
     "translation": "Tệp không có tiêu đề"
   },
   "08331c1710": {
     "translation": "Đã vượt quá giới hạn gửi/nhận yêu cầu, hãy thử lại sau."
   },
+  "08bd40c754": {
+    "translation": "Tài khoản"
+  },
   "0b27918290": {
     "translation": "Tệp"
   },
   "0b9a4cde72": {
     "translation": "Menu tệp"
+  },
+  "0d1f2bb523": {
+    "translation": "Gửi phản hồi"
   },
   "110a4b01be": {
     "translation": "Xuất bản"
@@ -35,23 +44,23 @@
   "181b90f889": {
     "translation": "Tạo tệp"
   },
-  "1bef75f760": {
-    "translation": "Cho phép tldraw gửi email cho tôi về vấn đề này"
-  },
   "1da2e8106b": {
     "translation": "Đã xảy ra lỗi không mong muốn."
   },
   "1dd1c5fb7f": {
     "translation": "Hôm nay"
   },
-  "1f9696d5f2": {
-    "translation": "Xuất nội dung dưới dạng tệp .tldr: Vào 'Tệp' > 'Lưu bản sao'"
+  "22d84a12fd": {
+    "translation": "Figjam nhưng tldraw"
   },
-  "26e5b44256": {
-    "translation": "Gửi phản hồi cho chúng tôi"
+  "250ddea65c": {
+    "translation": "Giới thiệu về tldraw"
   },
   "299cb00a7a": {
     "translation": "Tải lên thất bại"
+  },
+  "2c61d18599": {
+    "translation": "Miro nhưng tốt và miễn phí"
   },
   "31246941ad": {
     "translation": "Bạn cần đăng nhập để xem tệp này."
@@ -59,17 +68,14 @@
   "31418ce4ad": {
     "translation": "i18n: Thiếu đánh dấu"
   },
-  "32656a600c": {
-    "translation": "Bạn thấy có gì sai không? Bạn có ý tưởng nào để cải thiện tldraw không? Chúng tôi rất muốn nghe!"
-  },
   "335defdafe": {
     "translation": "Vui lòng thử tải lại trang."
   },
   "344a7f427f": {
     "translation": "Biên tập viên"
   },
-  "3b366e7232": {
-    "translation": "Hãy thử tldraw mới (xem trước)"
+  "37b3dca331": {
+    "translation": "Vui lòng đăng nhập"
   },
   "3bd1b98dbd": {
     "translation": "Không thể xuất bản các thay đổi này."
@@ -77,26 +83,23 @@
   "3c5e891bff": {
     "translation": "Đã ghim"
   },
-  "424cc22417": {
-    "translation": "Đưa tôi về trang chủ"
+  "3d0238bf16": {
+    "translation": "Chấp nhận tất cả"
+  },
+  "3fc6d0c83a": {
+    "translation": "Thêm bạn bè"
   },
   "42e53c47c1": {
     "translation": "Liên hệ với chủ sở hữu để yêu cầu quyền truy cập."
   },
+  "44281ab6e5": {
+    "translation": "Đăng nhập"
+  },
   "44db318ee5": {
     "translation": "Nhận trợ giúp trên Discord"
   },
-  "458cd104d7": {
-    "translation": "Rất tiếc, bạn không có quyền truy cập vào tệp này. Nếu bạn biết người đã tạo tệp này, bạn có thể yêu cầu liên kết mời mới."
-  },
-  "45b78c248d": {
-    "translation": "Nhập từ tldraw.com cũ"
-  },
   "46137245cd": {
     "translation": "Cảm ơn bạn đã giúp chúng tôi cải thiện tldraw!"
-  },
-  "4778b9f3f2": {
-    "translation": "Cài đặt quyền riêng tư"
   },
   "47839e47a5": {
     "translation": "tldraw"
@@ -104,11 +107,14 @@
   "4908687e50": {
     "translation": "Bạn có chắc chắn muốn quên tệp này không?"
   },
-  "4c06678729": {
-    "translation": "Chúng tôi sử dụng cookie của bên thứ nhất để cải thiện dịch vụ của mình. <a>Tìm hiểu thêm</a>"
+  "4d0d3ddec9": {
+    "translation": "Trang web này sử dụng cookie để ứng dụng hoạt động và thu thập số liệu phân tích."
   },
   "4d1c8263ba": {
     "translation": "Tải lại"
+  },
+  "4ea0bb66f7": {
+    "translation": "Một tài khoản sẽ tốt hơn"
   },
   "50db1b7e1e": {
     "translation": "Không thể hủy xuất bản tệp này."
@@ -128,26 +134,26 @@
   "55505ba281": {
     "translation": "PNG"
   },
+  "5677e381d2": {
+    "translation": "Chúng tôi sử dụng cookie phân tích để cải thiện tldraw."
+  },
   "56c34c6410": {
     "translation": "Chính sách bảo mật"
-  },
-  "575d47a591": {
-    "translation": "Chào mừng đến với trang web mới tldraw.com!"
-  },
-  "5817f82c16": {
-    "translation": "Tùy chọn — Giúp chúng tôi hiểu cách mọi người sử dụng tldraw và cách chúng tôi có thể cải thiện nó."
   },
   "5a95a425f7": {
     "translation": "Chia sẻ"
   },
-  "5d160eb095": {
-    "translation": "Phiên của bạn"
+  "5bcc12ace8": {
+    "translation": "Phòng này hiện chỉ có thể đọc"
+  },
+  "5bec508475": {
+    "translation": "Đã phát hiện trình duyệt cũ. Vui lòng cập nhật trình duyệt của bạn để sử dụng ứng dụng này."
+  },
+  "5bef23eb7e": {
+    "translation": "Tạo tài khoản của bạn"
   },
   "5d26ae7550": {
     "translation": "Chúng tôi không tải lên được một số nội dung bạn đã tạo trước khi bạn đăng nhập."
-  },
-  "5db1e9a8ca": {
-    "translation": "Điền vào biểu mẫu này, <discord>trò chuyện với chúng tôi trên Discord</discord> hoặc <github>gửi sự cố trên GitHub</github>."
   },
   "5f3c333678": {
     "translation": "Phản hồi đã gửi"
@@ -158,14 +164,17 @@
   "61057a0c84": {
     "translation": "Để sau"
   },
-  "61b106397b": {
-    "translation": "Để quay lại tldraw.com cũ, hãy đăng xuất khỏi menu người dùng."
-  },
   "625fd29749": {
     "translation": "Cũ hơn"
   },
   "6609dd239e": {
     "translation": "Đã xảy ra lỗi"
+  },
+  "6637a98151": {
+    "translation": "Phiên bản mới của tldraw đã có sẵn. Vui lòng tải lại trang để tiếp tục."
+  },
+  "697c59072d": {
+    "translation": "Đăng nhập để lưu"
   },
   "6a26f54883": {
     "translation": "Trợ giúp"
@@ -178,6 +187,9 @@
   },
   "70a6facb9d": {
     "translation": "Tuần này"
+  },
+  "71a29b007b": {
+    "translation": "Bạn có lỗi, vấn đề hoặc ý tưởng nào cho tldraw không? Hãy cho chúng tôi biết!"
   },
   "73ab799383": {
     "translation": "Phiên bản tldraw này không còn được hỗ trợ."
@@ -194,14 +206,26 @@
   "761e93ede9": {
     "translation": "Quản lý cookie"
   },
+  "7697920637": {
+    "translation": "Vui lòng tải lại"
+  },
+  "764671e008": {
+    "translation": "Trò chuyện với chúng tôi trên Discord"
+  },
   "777f9e90cf": {
     "translation": "Yêu cầu không hợp lệ."
   },
-  "78e9815992": {
-    "translation": "Hiểu rồi"
+  "797799f35e": {
+    "translation": "Gửi vấn đề trên GitHub"
   },
-  "791b8834d3": {
-    "translation": "Bỏ qua nhập khẩu"
+  "7b1329f5ca": {
+    "translation": "Hướng dẫn sử dụng"
+  },
+  "7be10fc592": {
+    "translation": "Khôi phục phiên bản"
+  },
+  "7c7d5d493e": {
+    "translation": "Vui lòng đăng ký"
   },
   "7cb5f8b4a5": {
     "translation": "Quên"
@@ -209,11 +233,17 @@
   "7daeced9ff": {
     "translation": "Xuất bản các thay đổi"
   },
-  "7de66f8b93": {
-    "translation": "Đăng ký để truy cập phiên bản xem trước của tldraw.com, phiên bản này bổ sung tính năng quản lý tệp và cộng tác."
-  },
   "7fcdcc6455": {
     "translation": "Quên tệp"
+  },
+  "801ab24683": {
+    "translation": "Tải về"
+  },
+  "815e116a2e": {
+    "translation": "Bạn có lỗi, vấn đề hoặc ý tưởng cho tldraw? Hãy cho chúng tôi biết! Hãy điền vào biểu mẫu này và chúng tôi sẽ liên hệ qua email nếu cần. Bạn cũng có thể <discord>trò chuyện với chúng tôi trên Discord</discord> hoặc <github>gửi vấn đề trên GitHub</github>."
+  },
+  "84c89d47c7": {
+    "translation": "Chia sẻ miễn phí"
   },
   "85a082de1b": {
     "translation": "Vui lòng làm mới trang để tải phiên bản mới nhất của tldraw."
@@ -224,14 +254,14 @@
   "86c66437fd": {
     "translation": "Đổi tên tập tin"
   },
-  "8ad4303b83": {
-    "translation": "Không, cảm ơn"
+  "8b1946f965": {
+    "translation": "Để tiếp tục chỉnh sửa, vui lòng sao chép phòng vào tệp của bạn."
+  },
+  "8ea211024d": {
+    "translation": "Tạo một tài khoản miễn phí"
   },
   "8eb2c00e96": {
     "translation": "Chia sẻ với bạn"
-  },
-  "8f7f4c1ce7": {
-    "translation": "Về"
   },
   "8ff3d0a705": {
     "translation": "Lượng gửi/nhận yêu cầu có giới hạn"
@@ -254,6 +284,9 @@
   "9bef626805": {
     "translation": "Xóa tệp"
   },
+  "9c258b8f88": {
+    "translation": "Phòng nhiều người chơi tldraw ẩn danh này hiện chỉ có thể đọc. Để tiếp tục chỉnh sửa, vui lòng đăng nhập và sao chép vào tệp của bạn."
+  },
   "9ceb927baa": {
     "translation": "Xuất bản tệp này"
   },
@@ -262,6 +295,9 @@
   },
   "9e93c98d88": {
     "translation": "Từ chối"
+  },
+  "a0da245992": {
+    "translation": "Xuất nội dung dưới dạng tệp .tldr: Chọn 'Tải xuống' ở menu trên cùng bên trái."
   },
   "a104439641": {
     "translation": "Lề trong"
@@ -293,18 +329,24 @@
   "ab0df9ba36": {
     "translation": "Đã đạt đến giới hạn tập tin"
   },
-  "abc5e29b0d": {
-    "translation": "Đây là bản xem trước của tldraw.com mới có tính năng lưu tệp, cộng tác và xuất bản."
-  },
   "af3dc88931": {
     "notes": "This is used to show the last time the file was published. An example is 'Last published 5 minutes ago'.",
     "translation": "Lần xuất bản gần nhất: <date></date>"
+  },
+  "b028909917": {
+    "translation": "Người dùng khách"
+  },
+  "b52dc007ac": {
+    "translation": "Đăng ký (miễn phí và tốt)"
   },
   "b6d4223e60": {
     "translation": "Đăng nhập"
   },
   "b758336699": {
     "translation": "Sao chép liên kết"
+  },
+  "ba0318cb81": {
+    "translation": "Đăng nhập để chia sẻ"
   },
   "bb792693e2": {
     "translation": "Bỏ ghim"
@@ -318,14 +360,23 @@
   "bcb62136a3": {
     "translation": "Tải lên các tệp .tldr."
   },
+  "bffe9a3c9a": {
+    "translation": "Đăng nhập"
+  },
+  "c079282475": {
+    "translation": "Chia sẻ công việc của bạn"
+  },
   "c2276c9127": {
     "translation": "Tìm hiểu thêm về chia sẻ."
+  },
+  "c24e43cd1a": {
+    "translation": "Bạn sẽ đăng ký chứ?"
   },
   "c303bd1095": {
     "translation": "Không thể xuất bản tệp này."
   },
-  "c4408d3350": {
-    "translation": "Chấp nhận"
+  "c4b39a1cc3": {
+    "translation": "Cookie thiết yếu"
   },
   "c655b27b1e": {
     "translation": "i18n: Chuỗi dài"
@@ -336,17 +387,20 @@
   "c87aacf567": {
     "translation": "Đăng xuất"
   },
+  "c8c6a6504a": {
+    "translation": "Bạn nên đăng ký"
+  },
   "cceaefbc20": {
     "translation": "Chia sẻ tệp này"
   },
   "cd15a75c26": {
     "translation": "SVG"
   },
-  "cd16f555de": {
-    "translation": "Thiết yếu — Bắt buộc để lưu tệp và cài đặt của bạn và đồng bộ hóa chúng trên nhiều thiết bị."
-  },
   "cea291e45e": {
     "translation": "Tìm hiểu thêm về xuất bản."
+  },
+  "d0eedb7995": {
+    "translation": "Chào"
   },
   "d3d2e61733": {
     "translation": "Đóng"
@@ -354,23 +408,23 @@
   "d4bbf74f3e": {
     "translation": "Chuyển đổi thanh bên"
   },
-  "d5ef96e383": {
-    "translation": "Tải xuống tập tin"
-  },
   "d721757161": {
     "translation": "Chủ đề"
   },
   "d876a9fe1a": {
     "translation": "Thử lại"
   },
+  "d8a50c79a7": {
+    "translation": "Hãy cùng tôi vẽ nhé"
+  },
   "d9100f3e10": {
     "translation": "Vào đây để xem nội dung"
   },
-  "d9776f0775": {
-    "translation": "Đăng ký"
+  "da404df474": {
+    "translation": "Lưu công việc của bạn"
   },
-  "d9fe660e4e": {
-    "translation": "Rất tiếc, bạn không có quyền truy cập vào không gian làm việc này."
+  "db4c2dab9a": {
+    "translation": "Không phải Excalidraw"
   },
   "dbbebf3c03": {
     "translation": "Chỉ mời"
@@ -378,20 +432,14 @@
   "dfdb78a4e4": {
     "translation": "Cờ gỡ lỗi ứng dụng"
   },
-  "e2cd8064c2": {
-    "translation": "Rất tiếc, bạn không có quyền truy cập vào người dùng đó."
-  },
-  "e371526ad0": {
-    "translation": "Cookie này là bắt buộc để tldraw hoạt động và không thể tắt được."
+  "e2ae80a510": {
+    "translation": "Tóm tắt pháp lý"
   },
   "e404559826": {
     "translation": "Điều khoản dịch vụ"
   },
   "e78e14c5f1": {
     "translation": "Ghim"
-  },
-  "e8d1090cb9": {
-    "translation": "Chúng tôi sử dụng cookie để giữ cho bạn đăng nhập, đồng bộ hóa các tệp của bạn và thu thập dữ liệu phân tích để giúp chúng tôi cải thiện tldraw. Đọc <a>chính sách cookie</a> của chúng tôi để tìm hiểu thêm."
   },
   "ea4788705e": {
     "translation": "Hủy"
@@ -405,14 +453,23 @@
   "ec611e9a08": {
     "translation": "Menu tài khoản"
   },
-  "ec9ad9950f": {
-    "translation": "Rất tiếc, tệp này không tồn tại."
-  },
   "ed53713239": {
     "translation": "i18n: Có dấu"
   },
   "ed75712b0e": {
     "translation": "Nhân đôi"
+  },
+  "ede55d955f": {
+    "translation": "Đọc <a>chính sách cookie</a> của chúng tôi để tìm hiểu thêm."
+  },
+  "f09b16bc5f": {
+    "translation": "Chúng tôi sử dụng cookie để giữ cho bạn đăng nhập, đồng bộ hóa các tệp của bạn và thu thập số liệu phân tích để giúp chúng tôi cải thiện tldraw."
+  },
+  "f0e8bff6f9": {
+    "translation": "Cài đặt người dùng"
+  },
+  "f2569594b2": {
+    "translation": "Chúng tôi sử dụng các cookie này để lưu tệp và cài đặt của bạn."
   },
   "f2a6c498fb": {
     "translation": "Xóa"
@@ -420,13 +477,22 @@
   "f43fb62093": {
     "translation": "Quay lại tldraw."
   },
+  "f4f70727dc": {
+    "translation": "Cài đặt"
+  },
   "fb15c53f22": {
     "translation": "Người xem"
   },
   "fd1be3efcf": {
     "translation": "Bạn có chắc muốn xóa tệp này?"
   },
+  "fd27891570": {
+    "translation": "Tham gia danh sách chờ"
+  },
   "fed5ec05eb": {
     "translation": "Đã sao chép liên kết"
+  },
+  "ffcd73e997": {
+    "translation": "Nhập tập tin…"
   }
 }

@@ -5,6 +5,7 @@ import { toDomPrecision } from '../../primitives/utils'
 
 /** @public */
 export interface TLBrushProps {
+	userId?: string
 	brush: BoxModel
 	color?: string
 	opacity?: number
@@ -20,7 +21,7 @@ export const DefaultBrush = ({ brush, color, opacity, className }: TLBrushProps)
 	const h = toDomPrecision(Math.max(1, brush.h))
 
 	return (
-		<svg className="tl-overlays__item" ref={rSvg}>
+		<svg className="tl-overlays__item" ref={rSvg} aria-hidden="true">
 			{color ? (
 				<g className="tl-brush" opacity={opacity}>
 					<rect width={w} height={h} fill={color} opacity={0.75} />

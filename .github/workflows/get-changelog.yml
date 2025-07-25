@@ -1,6 +1,16 @@
 name: Get draft changelog
 
-on: workflow_dispatch
+on:
+  workflow_dispatch:
+    inputs:
+      version:
+        description: The branch to get the changelog for
+        required: true
+        default: production
+
+defaults:
+  run:
+    shell: bash
 
 jobs:
   deploy:
@@ -22,8 +32,8 @@ jobs:
 
       - name: Generate changelog
         run: |
-          yarn auto changelog --dry-run
-          yarn auto changelog --dry-run > changelog.md
+          yarn auto changelog --dry-run --base-branch ${{ inputs.version }}
+          yarn auto changelog --dry-run --base-branch ${{ inputs.version }} > changelog.md
         env:
           GH_TOKEN: ${{ github.token }}
 

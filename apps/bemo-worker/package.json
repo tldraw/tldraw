@@ -1,6 +1,6 @@
 {
 	"name": "@tldraw/bemo-worker",
-	"description": "A tiny little drawing app (merge server).",
+	"description": "tldraw infinite canvas SDK (merge server).",
 	"version": "0.0.0",
 	"private": true,
 	"author": {
@@ -31,13 +31,13 @@
 		"react-dom": "^18.3.1"
 	},
 	"devDependencies": {
-		"@cloudflare/workers-types": "^4.20250124.3",
+		"@cloudflare/workers-types": "^4.20250703.0",
 		"@types/react": "^18.3.18",
 		"@types/react-dom": "^18.3.5",
-		"esbuild": "^0.24.2",
+		"esbuild": "^0.25.6",
 		"lazyrepo": "0.0.0-alpha.27",
-		"typescript": "~5.4.5",
-		"wrangler": "^3.105.1"
+		"typescript": "^5.8.3",
+		"wrangler": "^4.23.0"
 	},
 	"jest": {
 		"preset": "../../internal/config/jest/node/jest-preset.js",

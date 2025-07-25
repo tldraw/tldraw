@@ -1,16 +1,15 @@
 import { NoteShapeUtil, Tldraw } from 'tldraw'
 import 'tldraw/tldraw.css'
 
-// The note shape util has a static `options` object.
-// Important! This example will effect other examples, too.
-// If you're running examples locally, reload after leaving this page!
-NoteShapeUtil.options.resizeMode = 'scale'
+// Configure the note shape util to allow scaling to resize
+const shapeUtils = [NoteShapeUtil.configure({ resizeMode: 'scale' })]
 
 export default function ResizeNoteExample() {
 	return (
 		<>
 			<div className="tldraw__editor">
-				<Tldraw persistenceKey="resize-note"></Tldraw>
+				{/* pass the configured shape utils to the editor */}
+				<Tldraw persistenceKey="resize-note" shapeUtils={shapeUtils}></Tldraw>
 			</div>
 		</>
 	)

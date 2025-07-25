@@ -3,15 +3,14 @@ import { useMemo } from 'react'
 import { SerializedSchema, TLComponents, TLRecord, Tldraw } from 'tldraw'
 import { ThemeUpdater } from '../../../components/ThemeUpdater/ThemeUpdater'
 import { useLegacyUrlParams } from '../../../hooks/useLegacyUrlParams'
+import { useHandleUiEvents } from '../../../utils/analytics'
 import { assetUrls } from '../../../utils/assetUrls'
 import { globalEditor } from '../../../utils/globalEditor'
-import { useSharing } from '../../../utils/sharing'
-import { useHandleUiEvents } from '../../../utils/useHandleUiEvent'
-import { SneakyDarkModeSync } from './SneakyDarkModeSync'
 import { TlaEditorTopLeftPanel } from './TlaEditorTopLeftPanel'
 import { TlaEditorErrorFallback } from './editor-components/TlaEditorErrorFallback'
 import { TlaEditorPublishedSharePanel } from './editor-components/TlaEditorPublishedSharePanel'
 import styles from './editor.module.css'
+import { SneakyDarkModeSync } from './sneaky/SneakyDarkModeSync'
 import { useFileEditorOverrides } from './useFileEditorOverrides'
 
 const components: TLComponents = {
@@ -30,7 +29,6 @@ export function TlaPublishEditor({ schema, records }: TlaPublishEditorProps) {
 	useLegacyUrlParams()
 
 	const handleUiEvent = useHandleUiEvents()
-	const sharingUiOverrides = useSharing()
 	const fileEditorOverrides = useFileEditorOverrides({
 		fileSlug: undefined,
 	})
@@ -49,7 +47,7 @@ export function TlaPublishEditor({ schema, records }: TlaPublishEditorProps) {
 				licenseKey={getLicenseKey()}
 				assetUrls={assetUrls}
 				snapshot={snapshot}
-				overrides={[sharingUiOverrides, fileEditorOverrides]}
+				overrides={[fileEditorOverrides]}
 				onUiEvent={handleUiEvent}
 				onMount={(editor) => {
 					;(window as any).app = editor

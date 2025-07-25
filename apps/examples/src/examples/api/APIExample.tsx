@@ -4,6 +4,7 @@ import {
 	TLGeoShape,
 	TLShapePartial,
 	Tldraw,
+	toRichText,
 	createShapeId,
 	useEditor,
 } from 'tldraw'
@@ -27,7 +28,7 @@ export default function APIExample() {
 				y: 128 + Math.random() * 500,
 				props: {
 					geo: 'rectangle',
-					w: 100,
+					w: 120,
 					h: 100,
 					dash: 'draw',
 					color: 'blue',
@@ -39,29 +40,24 @@ export default function APIExample() {
 		// Get the created shape
 		const shape = editor.getShape<TLGeoShape>(id)!
 
-		const shapeUpdate: TLShapePartial<TLGeoShape> = {
+		// Update the shape
+		editor.updateShape<TLGeoShape>({
 			id,
 			type: 'geo',
 			props: {
 				h: shape.props.h * 3,
-				text: 'hello world!',
+				richText: toRichText('hello world!'),
 			},
-		}
-
-		// Update the shape
-		editor.updateShapes([shapeUpdate])
-
-		// Select the shape
-		editor.select(id)
+		})
 
 		// Rotate the shape around its center
 		editor.rotateShapesBy([id], Math.PI / 8)
 
-		// Clear the selection
-		editor.selectNone()
-
-		// Zoom the camera to fit both shapes
+		// Zoom the camera to fit the shape
 		editor.zoomToFit()
+
+		// Select the shape
+		editor.select(id) 
 	}
 
 	return (

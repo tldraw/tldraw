@@ -1,10 +1,9 @@
 import { expect } from '@jest/globals'
-import { uniq } from '@tldraw/utils'
 import type { MatcherFunction } from 'expect'
 import { join } from 'path'
 import { ReactElement } from 'react'
 import { Route, RouteObject, createRoutesFromElements } from 'react-router-dom'
-import { legacyRoutes, tlaRoutes } from './routes'
+import { router } from './routes'
 
 const toMatchAny: MatcherFunction<[regexes: unknown]> = function (actual, regexes) {
 	if (
@@ -92,7 +91,8 @@ function extract(...routes: ReactElement[]) {
 		.sort()
 }
 
-const spaRoutes = uniq(extract(legacyRoutes).concat(extract(tlaRoutes)))
+const spaRoutes = router
+	.flatMap(extractContentPaths)
 	.sort()
 	// ignore the root catch-all route
 	.filter((path) => path !== '/*' && path !== '*')

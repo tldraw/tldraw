@@ -1,20 +1,27 @@
 import {
 	BaseBoxShapeUtil,
 	Editor,
+	Ellipse2d,
 	FileHelpers,
+	Geometry2d,
 	HTMLContainer,
 	Image,
 	MediaHelpers,
+	Rectangle2d,
 	SvgExportContext,
+	TLAsset,
+	TLAssetId,
 	TLImageShape,
 	TLImageShapeProps,
 	TLResizeInfo,
 	TLShapePartial,
 	Vec,
+	WeakCache,
 	fetch,
 	imageShapeMigrations,
 	imageShapeProps,
 	lerp,
+	modulate,
 	resizeBox,
 	structuredClone,
 	toDomPrecision,
@@ -24,7 +31,6 @@ import {
 } from '@tldraw/editor'
 import classNames from 'classnames'
 import { memo, useEffect, useState } from 'react'
-
 import { BrokenAssetIcon } from '../shared/BrokenAssetIcon'
 import { HyperlinkButton } from '../shared/HyperlinkButton'
 import { getUncroppedSize } from '../shared/crop'
@@ -36,6 +42,8 @@ async function getDataURIFromURL(url: string): Promise<string> {
 	const blob = await response.blob()
 	return FileHelpers.blobToDataUrl(blob)
 }
+
+const imageSvgExportCache = new WeakCache<TLAsset, Promise<string | null>>()
 
 /** @public */
 export class ImageShapeUtil extends BaseBoxShapeUtil<TLImageShape> {
@@ -60,7 +68,28 @@ export class ImageShapeUtil extends BaseBoxShapeUtil<TLImageShape> {
 			crop: null,
 			flipX: false,
 			flipY: false,
+			altText: '',
 		}
+	}
+
+	override getGeometry(shape: TLImageShape): Geometry2d {
+		if (shape.props.crop?.isCircle) {
+			return new Ellipse2d({
+				width: shape.props.w,
+				height: shape.props.h,
+				isFilled: true,
+			})
+		}
+
+		return new Rectangle2d({
+			width: shape.props.w,
+			height: shape.props.h,
+			isFilled: true,
+		})
+	}
+
+	override getAriaDescriptor(shape: TLImageShape) {
+		return shape.props.altText
 	}
 
 	override onResize(shape: TLImageShape, info: TLResizeInfo<TLImageShape>) {
@@ -99,6 +128,7 @@ export class ImageShapeUtil extends BaseBoxShapeUtil<TLImageShape> {
 				x: flipCropHorizontally ? 1 - topLeft.x : bottomRight.x,
 				y: flipCropVertically ? 1 - topLeft.y : bottomRight.y,
 			},
+			isCircle: shape.props.crop.isCircle,
 		}
 		return resized
 	}
@@ -110,28 +140,53 @@ export class ImageShapeUtil extends BaseBoxShapeUtil<TLImageShape> {
 	indicator(shape: TLImageShape) {
 		const isCropping = this.editor.getCroppingShapeId() === shape.id
 		if (isCropping) return null
+
+		if (shape.props.crop?.isCircle) {
+			return (
+				<ellipse
+					cx={toDomPrecision(shape.props.w / 2)}
+					cy={toDomPrecision(shape.props.h / 2)}
+					rx={toDomPrecision(shape.props.w / 2)}
+					ry={toDomPrecision(shape.props.h / 2)}
+				/>
+			)
+		}
+
 		return <rect width={toDomPrecision(shape.props.w)} height={toDomPrecision(shape.props.h)} />
 	}
 
 	override async toSvg(shape: TLImageShape, ctx: SvgExportContext) {
-		if (!shape.props.assetId) return null
+		const props = shape.props
+		if (!props.assetId) return null
 
-		const asset = this.editor.getAsset(shape.props.assetId)
+		const asset = this.editor.getAsset(props.assetId)
 
 		if (!asset) return null
 
-		const { w } = getUncroppedSize(shape.props, shape.props.crop)
-		let src = await ctx.resolveAssetUrl(shape.props.assetId, w)
+		const { w } = getUncroppedSize(shape.props, props.crop)
+
+		const src = await imageSvgExportCache.get(asset, async () => {
+			let src = await ctx.resolveAssetUrl(asset.id, w)
+			if (!src) return null
+			if (
+				src.startsWith('blob:') ||
+				src.startsWith('http') ||
+				src.startsWith('/') ||
+				src.startsWith('./')
+			) {
+				// If it's a remote image, we need to fetch it and convert it to a data URI
+				src = (await getDataURIFromURL(src)) || ''
+			}
+
+			// If it's animated then we need to get the first frame
+			if (getIsAnimated(this.editor, asset.id)) {
+				const { promise } = getFirstFrameOfAnimatedImage(src)
+				src = await promise
+			}
+			return src
+		})
+
 		if (!src) return null
-		if (
-			src.startsWith('blob:') ||
-			src.startsWith('http') ||
-			src.startsWith('/') ||
-			src.startsWith('./')
-		) {
-			// If it's a remote image, we need to fetch it and convert it to a data URI
-			src = (await getDataURIFromURL(src)) || ''
-		}
 
 		return <SvgImage shape={shape} src={src} />
 	}
@@ -215,33 +270,19 @@ const ImageShape = memo(function ImageShape({ shape }: { shape: TLImageShape }) 
 	const prefersReducedMotion = usePrefersReducedMotion()
 	const [staticFrameSrc, setStaticFrameSrc] = useState('')
 	const [loadedUrl, setLoadedUrl] = useState<null | string>(null)
-
-	const isAnimated = getIsAnimated(editor, shape)
+	const isAnimated = asset && getIsAnimated(editor, asset.id)
 
 	useEffect(() => {
 		if (url && isAnimated) {
-			let cancelled = false
+			const { promise, cancel } = getFirstFrameOfAnimatedImage(url)
 
-			const image = Image()
-			image.onload = () => {
-				if (cancelled) return
-
-				const canvas = document.createElement('canvas')
-				canvas.width = image.width
-				canvas.height = image.height
-
-				const ctx = canvas.getContext('2d')
-				if (!ctx) return
-
-				ctx.drawImage(image, 0, 0)
-				setStaticFrameSrc(canvas.toDataURL())
+			promise.then((dataUrl) => {
+				setStaticFrameSrc(dataUrl)
 				setLoadedUrl(url)
-			}
-			image.crossOrigin = 'anonymous'
-			image.src = url
+			})
 
 			return () => {
-				cancelled = true
+				cancel()
 			}
 		}
 	}, [editor, isAnimated, prefersReducedMotion, url])
@@ -304,12 +345,18 @@ const ImageShape = memo(function ImageShape({ shape }: { shape: TLImageShape }) 
 						src={loadedSrc}
 						referrerPolicy="strict-origin-when-cross-origin"
 						draggable={false}
+						alt=""
 					/>
 				</div>
 			)}
 			<HTMLContainer
 				id={shape.id}
-				style={{ overflow: 'hidden', width: shape.props.w, height: shape.props.h }}
+				style={{
+					overflow: 'hidden',
+					width: shape.props.w,
+					height: shape.props.h,
+					borderRadius: shape.props.crop?.isCircle ? '50%' : undefined,
+				}}
 			>
 				<div className={classNames('tl-image-container')} style={containerStyle}>
 					{/* We have two images: the currently loaded image, and the next image that
@@ -327,6 +374,7 @@ const ImageShape = memo(function ImageShape({ shape }: { shape: TLImageShape }) 
 							src={loadedSrc}
 							referrerPolicy="strict-origin-when-cross-origin"
 							draggable={false}
+							alt=""
 						/>
 					)}
 					{nextSrc && (
@@ -338,6 +386,7 @@ const ImageShape = memo(function ImageShape({ shape }: { shape: TLImageShape }) 
 							src={nextSrc}
 							referrerPolicy="strict-origin-when-cross-origin"
 							draggable={false}
+							alt={shape.props.altText}
 							onLoad={() => setLoadedUrl(nextSrc)}
 						/>
 					)}
@@ -348,8 +397,8 @@ const ImageShape = memo(function ImageShape({ shape }: { shape: TLImageShape }) 
 	)
 })
 
-function getIsAnimated(editor: Editor, shape: TLImageShape) {
-	const asset = shape.props.assetId ? editor.getAsset(shape.props.assetId) : undefined
+function getIsAnimated(editor: Editor, assetId: TLAssetId) {
+	const asset = assetId ? editor.getAsset(assetId) : undefined
 
 	if (!asset) return false
 
@@ -388,12 +437,29 @@ function getCroppedContainerStyle(shape: TLImageShape) {
 }
 
 function getFlipStyle(shape: TLImageShape, size?: { width: number; height: number }) {
-	const { flipX, flipY } = shape.props
+	const { flipX, flipY, crop } = shape.props
 	if (!flipX && !flipY) return undefined
+
+	let cropOffsetX
+	let cropOffsetY
+	if (crop) {
+		// We have to do all this extra math because of the whole transform origin around 0,0
+		// instead of center in SVG-land, ugh.
+		const { w, h } = getUncroppedSize(shape.props, crop)
+
+		// Find the resulting w/h of the crop in normalized (0-1) coordinates
+		const cropWidth = crop.bottomRight.x - crop.topLeft.x
+		const cropHeight = crop.bottomRight.y - crop.topLeft.y
+
+		// Map from the normalized crop coordinate space to shape pixel space
+		cropOffsetX = modulate(crop.topLeft.x, [0, 1 - cropWidth], [0, w - shape.props.w])
+		cropOffsetY = modulate(crop.topLeft.y, [0, 1 - cropHeight], [0, h - shape.props.h])
+	}
 
 	const scale = `scale(${flipX ? -1 : 1}, ${flipY ? -1 : 1})`
 	const translate = size
-		? `translate(${flipX ? size.width : 0}px, ${flipY ? size.height : 0}px)`
+		? `translate(${(flipX ? size.width : 0) - (cropOffsetX ? cropOffsetX : 0)}px,
+		             ${(flipY ? size.height : 0) - (cropOffsetY ? cropOffsetY : 0)}px)`
 		: ''
 
 	return {
@@ -407,6 +473,7 @@ function SvgImage({ shape, src }: { shape: TLImageShape; src: string }) {
 	const cropClipId = useUniqueSafeId()
 	const containerStyle = getCroppedContainerStyle(shape)
 	const crop = shape.props.crop
+
 	if (containerStyle.transform && crop) {
 		const { transform: cropTransform, width, height } = containerStyle
 		const croppedWidth = (crop.bottomRight.x - crop.topLeft.x) * width
@@ -425,7 +492,16 @@ function SvgImage({ shape, src }: { shape: TLImageShape; src: string }) {
 			<>
 				<defs>
 					<clipPath id={cropClipId}>
-						<polygon points={points.map((p) => `${p.x},${p.y}`).join(' ')} />
+						{crop.isCircle ? (
+							<ellipse
+								cx={croppedWidth / 2}
+								cy={croppedHeight / 2}
+								rx={croppedWidth / 2}
+								ry={croppedHeight / 2}
+							/>
+						) : (
+							<polygon points={points.map((p) => `${p.x},${p.y}`).join(' ')} />
+						)}
 					</clipPath>
 				</defs>
 				<g clipPath={`url(#${cropClipId})`}>
@@ -433,11 +509,8 @@ function SvgImage({ shape, src }: { shape: TLImageShape; src: string }) {
 						href={src}
 						width={width}
 						height={height}
-						style={
-							flip
-								? { ...flip, transform: `${cropTransform} ${flip.transform}` }
-								: { transform: cropTransform }
-						}
+						aria-label={shape.props.altText}
+						style={flip ? { ...flip } : { transform: cropTransform }}
 					/>
 				</g>
 			</>
@@ -448,8 +521,34 @@ function SvgImage({ shape, src }: { shape: TLImageShape; src: string }) {
 				href={src}
 				width={shape.props.w}
 				height={shape.props.h}
+				aria-label={shape.props.altText}
 				style={getFlipStyle(shape, { width: shape.props.w, height: shape.props.h })}
 			/>
 		)
 	}
+}
+
+function getFirstFrameOfAnimatedImage(url: string) {
+	let cancelled = false
+
+	const promise = new Promise<string>((resolve) => {
+		const image = Image()
+		image.onload = () => {
+			if (cancelled) return
+
+			const canvas = document.createElement('canvas')
+			canvas.width = image.width
+			canvas.height = image.height
+
+			const ctx = canvas.getContext('2d')
+			if (!ctx) return
+
+			ctx.drawImage(image, 0, 0)
+			resolve(canvas.toDataURL())
+		}
+		image.crossOrigin = 'anonymous'
+		image.src = url
+	})
+
+	return { promise, cancel: () => (cancelled = true) }
 }

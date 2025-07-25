@@ -21,7 +21,7 @@ export class ExportDelay {
 			)
 		}
 		this.promisesToWaitFor.push(
-			promise.catch((err) => console.error('Error whilst waiting for export:', err))
+			promise.catch((err) => console.error('Error while waiting for export:', err))
 		)
 	}
 

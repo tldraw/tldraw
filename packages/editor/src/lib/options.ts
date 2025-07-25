@@ -69,6 +69,21 @@ export interface TldrawOptions {
 	 * By default, the toolbar items are accessible via number shortcuts according to their order. To disable this, set this option to false.
 	 */
 	readonly enableToolbarKeyboardShortcuts: boolean
+	/**
+	 * The maximum number of fonts that will be loaded while blocking the main rendering of the
+	 * canvas. If there are more than this number of fonts needed, we'll just show the canvas right
+	 * away and let the fonts load in in the background.
+	 */
+	readonly maxFontsToLoadBeforeRender: number
+	/**
+	 * If you have a CSP policy that blocks inline styles, you can use this prop to provide a
+	 * nonce to use in the editor's styles.
+	 */
+	readonly nonce: string | undefined
+	/**
+	 * Branding name of the app, currently only used for adding aria-label for the application.
+	 */
+	readonly branding?: string
 }
 
 /** @public */
@@ -114,4 +129,6 @@ export const defaultTldrawOptions = {
 	createTextOnCanvasDoubleClick: true,
 	exportProvider: Fragment,
 	enableToolbarKeyboardShortcuts: true,
+	maxFontsToLoadBeforeRender: Infinity,
+	nonce: undefined,
 } as const satisfies TldrawOptions

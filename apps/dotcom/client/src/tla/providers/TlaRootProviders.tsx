@@ -1,27 +1,32 @@
 import { useAuth, useUser as useClerkUser } from '@clerk/clerk-react'
-import { Provider as TooltipProvider } from '@radix-ui/react-tooltip'
 import { getAssetUrlsByImport } from '@tldraw/assets/imports.vite'
+import classNames from 'classnames'
+import { Tooltip as _Tooltip } from 'radix-ui'
 import { ReactNode, useCallback, useEffect, useState } from 'react'
 import { Outlet } from 'react-router-dom'
 import {
 	ContainerProvider,
+	DefaultA11yAnnouncer,
 	DefaultDialogs,
 	DefaultToasts,
 	EditorContext,
 	TLUiEventHandler,
+	TldrawUiA11yProvider,
 	TldrawUiContextProvider,
 	fetch,
 	useToasts,
 	useValue,
 } from 'tldraw'
+import translationsEnJson from '../../../public/tla/locales-compiled/en.json'
+import { ErrorPage } from '../../components/ErrorPage/ErrorPage'
+import { SignedInAnalytics, SignedOutAnalytics } from '../../utils/analytics'
 import { globalEditor } from '../../utils/globalEditor'
-import { SignedInPosthog, SignedOutPosthog } from '../../utils/posthog'
 import { MaybeForceUserRefresh } from '../components/MaybeForceUserRefresh/MaybeForceUserRefresh'
 import { components } from '../components/TlaEditor/TlaEditor'
 import { AppStateProvider, useMaybeApp } from '../hooks/useAppState'
 import { UserProvider } from '../hooks/useUser'
 import '../styles/tla.css'
-import { IntlProvider, setupCreateIntl } from '../utils/i18n'
+import { IntlProvider, defineMessages, setupCreateIntl, useIntl } from '../utils/i18n'
 import {
 	clearLocalSessionState,
 	getLocalSessionState,
@@ -30,6 +35,12 @@ import {
 import { FileSidebarFocusContextProvider } from './FileInputFocusProvider'
 
 const assetUrls = getAssetUrlsByImport()
+
+export const appMessages = defineMessages({
+	oldBrowser: {
+		defaultMessage: 'Old browser detected. Please update your browser to use this app.',
+	},
+})
 
 // @ts-ignore this is fine
 const PUBLISHABLE_KEY = import.meta.env.VITE_CLERK_PUBLISHABLE_KEY
@@ -45,11 +56,19 @@ export function Component() {
 	const [theme, setTheme] = useState<'light' | 'dark' | 'system'>('light')
 	const handleThemeChange = (theme: 'light' | 'dark' | 'system') => setTheme(theme)
 	const handleLocaleChange = (locale: string) => setLocale(locale)
-
+	const isFocusMode = useValue(
+		'isFocusMode',
+		() => !!globalEditor.get()?.getInstanceState().isFocusMode,
+		[]
+	)
 	return (
 		<div
 			ref={setContainer}
-			className={`tla tl-container tla-theme-container ${theme === 'light' ? 'tla-theme__light tl-theme__light' : 'tla-theme__dark tl-theme__dark'}`}
+			className={classNames(`tla tl-container tla-theme-container`, {
+				'tla-theme__light tl-theme__light': theme === 'light',
+				'tla-theme__dark tl-theme__dark': theme !== 'light',
+				'tla-focus-mode': isFocusMode,
+			})}
 		>
 			<IntlWrapper locale={locale}>
 				<MaybeForceUserRefresh>
@@ -69,12 +88,12 @@ export function Component() {
 }
 
 function IntlWrapper({ children, locale }: { children: ReactNode; locale: string }) {
-	const [messages, setMessages] = useState({})
+	const [messages, setMessages] = useState(translationsEnJson)
 
 	useEffect(() => {
 		async function fetchMessages() {
 			if (locale === 'en') {
-				setMessages({})
+				setMessages(translationsEnJson)
 				return
 			}
 
@@ -104,16 +123,19 @@ function InsideOfContainerContext({ children }: { children: ReactNode }) {
 
 	return (
 		<EditorContext.Provider value={currentEditor}>
-			<TldrawUiContextProvider
-				assetUrls={assetUrls}
-				components={components}
-				onUiEvent={handleAppLevelUiEvent}
-			>
-				<TooltipProvider>{children}</TooltipProvider>
-				<DefaultDialogs />
-				<DefaultToasts />
-				<PutToastsInApp />
-			</TldrawUiContextProvider>
+			<TldrawUiA11yProvider>
+				<TldrawUiContextProvider
+					assetUrls={assetUrls}
+					components={components}
+					onUiEvent={handleAppLevelUiEvent}
+				>
+					<_Tooltip.Provider>{children}</_Tooltip.Provider>
+					<DefaultDialogs />
+					<DefaultToasts />
+					<DefaultA11yAnnouncer />
+					<PutToastsInApp />
+				</TldrawUiContextProvider>
+			</TldrawUiA11yProvider>
 		</EditorContext.Provider>
 	)
 }
@@ -135,6 +157,7 @@ function SignedInProvider({
 	onLocaleChange(locale: string): void
 }) {
 	const auth = useAuth()
+	const intl = useIntl()
 	const { user, isLoaded: isUserLoaded } = useClerkUser()
 	const [currentLocale, setCurrentLocale] = useState<string>(
 		globalEditor.get()?.user.getUserPreferences().locale ?? 'en'
@@ -163,10 +186,23 @@ function SignedInProvider({
 
 	if (!auth.isLoaded) return null
 
+	// Old browsers check.
+	if (!('findLastIndex' in Array.prototype)) {
+		return (
+			<ErrorPage
+				messages={{
+					header: intl.formatMessage(appMessages.oldBrowser),
+					para1: '',
+				}}
+				cta={null}
+			/>
+		)
+	}
+
 	if (!auth.isSignedIn || !user || !isUserLoaded) {
 		return (
 			<ThemeContainer onThemeChange={onThemeChange}>
-				<SignedOutPosthog />
+				<SignedOutAnalytics />
 				{children}
 			</ThemeContainer>
 		)
@@ -177,7 +213,7 @@ function SignedInProvider({
 			<AppStateProvider>
 				<UserProvider>
 					<ThemeContainer onThemeChange={onThemeChange}>
-						<SignedInPosthog />
+						<SignedInAnalytics />
 						{children}
 					</ThemeContainer>
 				</UserProvider>

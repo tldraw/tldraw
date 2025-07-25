@@ -1,26 +1,28 @@
-import { Editor, objectMapEntries } from '@tldraw/editor'
-import { useMemo } from 'react'
+import { Editor, objectMapEntries, useMaybeEditor, useShallowArrayIdentity } from '@tldraw/editor'
+import { createContext, useCallback, useContext, useMemo } from 'react'
 import { PORTRAIT_BREAKPOINT } from './constants'
 import { ActionsProviderProps, TLUiActionsContextType } from './context/actions'
 import { useBreakpoint } from './context/breakpoints'
 import { useDialogs } from './context/dialogs'
 import { useToasts } from './context/toasts'
+import { getLocalFiles } from './getLocalFiles'
 import { useMenuClipboardEvents } from './hooks/useClipboardEvents'
 import { useCopyAs } from './hooks/useCopyAs'
 import { useExportAs } from './hooks/useExportAs'
 import { useGetEmbedDefinition } from './hooks/useGetEmbedDefinition'
-import { useInsertMedia } from './hooks/useInsertMedia'
 import { usePrint } from './hooks/usePrint'
 import { TLUiToolsContextType, TLUiToolsProviderProps } from './hooks/useTools'
 import { TLUiTranslationProviderProps, useTranslation } from './hooks/useTranslation/useTranslation'
 
+export const MimeTypeContext = createContext<string[] | undefined>([])
+
 /** @public */
 export function useDefaultHelpers() {
+	const editor = useMaybeEditor()
 	const { addToast, removeToast, clearToasts } = useToasts()
 	const { addDialog, clearDialogs, removeDialog } = useDialogs()
 
 	const msg = useTranslation()
-	const insertMedia = useInsertMedia()
 	const printSelectionOrPages = usePrint()
 	const { cut, copy, paste } = useMenuClipboardEvents()
 	const copyAs = useCopyAs()
@@ -30,6 +32,52 @@ export function useDefaultHelpers() {
 	// This is the only one that will change during runtime
 	const breakpoint = useBreakpoint()
 	const isMobile = breakpoint < PORTRAIT_BREAKPOINT.TABLET_SM
+	const mimeTypes = useShallowArrayIdentity(useContext(MimeTypeContext))
+
+	const insertMedia = useCallback(async () => {
+		if (!editor) return
+		const files = await getLocalFiles({
+			allowMultiple: true,
+			mimeTypes,
+		})
+		if (!files.length) return
+		editor.markHistoryStoppingPoint('insert media')
+		editor.putExternalContent({
+			type: 'files',
+			files,
+			point: editor.getViewportPageBounds().center,
+		})
+	}, [editor, mimeTypes])
+
+	const replaceMedia = useCallback(
+		async (isImage: boolean) => {
+			if (!editor) return
+			const files = await getLocalFiles({
+				allowMultiple: false,
+				mimeTypes: mimeTypes?.filter((m) =>
+					isImage ? m.startsWith('image/') : m.startsWith('video/')
+				),
+			})
+			if (!files.length) return
+			const shape = editor.getOnlySelectedShape()
+			if (!shape || (isImage && shape.type !== 'image') || (!isImage && shape.type !== 'video'))
+				return
+
+			editor.markHistoryStoppingPoint('replace media')
+
+			const file = files[0]
+			editor.replaceExternalContent({
+				type: 'file-replace',
+				file,
+				shapeId: shape.id,
+				isImage,
+			})
+		},
+		[editor, mimeTypes]
+	)
+
+	const replaceImage = useCallback(() => replaceMedia(true /* isImage */), [replaceMedia])
+	const replaceVideo = useCallback(() => replaceMedia(false /* isImage */), [replaceMedia])
 
 	return useMemo(
 		() => ({
@@ -42,6 +90,8 @@ export function useDefaultHelpers() {
 			msg,
 			isMobile,
 			insertMedia,
+			replaceImage,
+			replaceVideo,
 			printSelectionOrPages,
 			cut,
 			copy,
@@ -60,6 +110,8 @@ export function useDefaultHelpers() {
 			msg,
 			isMobile,
 			insertMedia,
+			replaceImage,
+			replaceVideo,
 			printSelectionOrPages,
 			cut,
 			copy,

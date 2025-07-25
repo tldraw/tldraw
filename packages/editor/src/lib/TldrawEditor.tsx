@@ -14,7 +14,6 @@ import React, {
 } from 'react'
 
 import classNames from 'classnames'
-import { TLDeepLinkOptions } from '..'
 import { version } from '../version'
 import { DefaultErrorFallback } from './components/default-components/DefaultErrorFallback'
 import { OptionalErrorBoundary } from './components/ErrorBoundary'
@@ -44,12 +43,14 @@ import { useZoomCss } from './hooks/useZoomCss'
 import { LicenseProvider } from './license/LicenseProvider'
 import { Watermark } from './license/Watermark'
 import { TldrawOptions } from './options'
+import { TLDeepLinkOptions } from './utils/deepLinks'
 import { stopEventPropagation } from './utils/dom'
+import { TLTextOptions } from './utils/richText'
 import { TLStoreWithStatus } from './utils/sync/StoreWithStatus'
 
 /**
  * Props for the {@link tldraw#Tldraw} and {@link TldrawEditor} components, when passing in a
- * {@link store#TLStore} directly. If you would like tldraw to create a store for you, use
+ * `TLStore` directly. If you would like tldraw to create a store for you, use
  * {@link TldrawEditorWithoutStoreProps}.
  *
  * @public
@@ -63,7 +64,7 @@ export interface TldrawEditorWithStoreProps {
 
 /**
  * Props for the {@link tldraw#Tldraw} and {@link TldrawEditor} components, when not passing in a
- * {@link store#TLStore} directly. If you would like to pass in a store directly, use
+ * `TLStore` directly. If you would like to pass in a store directly, use
  * {@link TldrawEditorWithStoreProps}.
  *
  * @public
@@ -168,6 +169,11 @@ export interface TldrawEditorBaseProps {
 	cameraOptions?: Partial<TLCameraOptions>
 
 	/**
+	 * Text options for the editor.
+	 */
+	textOptions?: TLTextOptions
+
+	/**
 	 * Options for the editor.
 	 */
 	options?: Partial<TldrawOptions>
@@ -185,11 +191,38 @@ export interface TldrawEditorBaseProps {
 	/**
 	 * Predicate for whether or not a shape should be hidden.
 	 *
+	 * @deprecated Use {@link TldrawEditorBaseProps#getShapeVisibility} instead.
+	 */
+	isShapeHidden?(shape: TLShape, editor: Editor): boolean
+
+	/**
+	 * Provides a way to hide shapes.
+	 *
 	 * Hidden shapes will not render in the editor, and they will not be eligible for hit test via
 	 * {@link Editor#getShapeAtPoint} and {@link Editor#getShapesAtPoint}. But otherwise they will
 	 * remain in the store and participate in all other operations.
+	 *
+	 * @example
+	 * ```ts
+	 * getShapeVisibility={(shape, editor) => shape.meta.hidden ? 'hidden' : 'inherit'}
+	 * ```
+	 *
+	 * - `'inherit' | undefined` - (default) The shape will be visible unless its parent is hidden.
+	 * - `'hidden'` - The shape will be hidden.
+	 * - `'visible'` - The shape will be visible.
+	 *
+	 * @param shape - The shape to check.
+	 * @param editor - The editor instance.
 	 */
-	isShapeHidden?(shape: TLShape, editor: Editor): boolean
+	getShapeVisibility?(
+		shape: TLShape,
+		editor: Editor
+	): 'visible' | 'hidden' | 'inherit' | null | undefined
+
+	/**
+	 * The URLs for the fonts to use in the editor.
+	 */
+	assetUrls?: { fonts?: { [key: string]: string | undefined } }
 }
 
 /**
@@ -251,6 +284,8 @@ export const TldrawEditor = memo(function TldrawEditor({
 			className={classNames(`${TL_CONTAINER_CLASS} tl-theme__light`, className)}
 			onPointerDown={stopEventPropagation}
 			tabIndex={-1}
+			role="application"
+			aria-label={_options?.branding ?? 'tldraw'}
 		>
 			<OptionalErrorBoundary
 				fallback={ErrorFallback}
@@ -372,10 +407,14 @@ function TldrawEditorWithReadyStore({
 	autoFocus = true,
 	inferDarkMode,
 	cameraOptions,
+	textOptions,
 	options,
 	licenseKey,
 	deepLinks: _deepLinks,
+	// eslint-disable-next-line @typescript-eslint/no-deprecated
 	isShapeHidden,
+	getShapeVisibility,
+	assetUrls,
 }: Required<
 	TldrawEditorProps & {
 		store: TLStore
@@ -430,9 +469,12 @@ function TldrawEditorWithReadyStore({
 				autoFocus,
 				inferDarkMode,
 				cameraOptions,
+				textOptions,
 				options,
 				licenseKey,
 				isShapeHidden,
+				getShapeVisibility,
+				fontAssetUrls: assetUrls?.fonts,
 			})
 
 			editor.updateViewportScreenBounds(canvasRef.current ?? container)
@@ -467,6 +509,9 @@ function TldrawEditorWithReadyStore({
 			setEditor,
 			licenseKey,
 			isShapeHidden,
+			getShapeVisibility,
+			textOptions,
+			assetUrls,
 		]
 	)
 
@@ -532,10 +577,41 @@ function TldrawEditorWithReadyStore({
 		[editor, autoFocus]
 	)
 
-	const { Canvas } = useEditorComponents()
+	const [_fontLoadingState, setFontLoadingState] = useState<{
+		editor: Editor
+		isLoaded: boolean
+	} | null>(null)
+	let fontLoadingState = _fontLoadingState
+	if (editor !== fontLoadingState?.editor) {
+		fontLoadingState = null
+	}
+	useEffect(() => {
+		if (!editor) return
+		let isCancelled = false
 
-	if (!editor) {
-		return <div className="tl-canvas" ref={canvasRef} />
+		setFontLoadingState({ editor, isLoaded: false })
+
+		editor.fonts
+			.loadRequiredFontsForCurrentPage(editor.options.maxFontsToLoadBeforeRender)
+			.finally(() => {
+				if (isCancelled) return
+				setFontLoadingState({ editor, isLoaded: true })
+			})
+
+		return () => {
+			isCancelled = true
+		}
+	}, [editor])
+
+	const { Canvas, LoadingScreen } = useEditorComponents()
+
+	if (!editor || !fontLoadingState?.isLoaded) {
+		return (
+			<>
+				{LoadingScreen && <LoadingScreen />}
+				<div className="tl-canvas" ref={canvasRef} />
+			</>
+		)
 	}
 
 	return (
@@ -594,7 +670,11 @@ export interface LoadingScreenProps {
 
 /** @public @react */
 export function LoadingScreen({ children }: LoadingScreenProps) {
-	return <div className="tl-loading">{children}</div>
+	return (
+		<div className="tl-loading" aria-busy="true" tabIndex={0}>
+			{children}
+		</div>
+	)
 }
 
 /** @public @react */

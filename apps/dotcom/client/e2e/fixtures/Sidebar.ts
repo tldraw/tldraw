@@ -8,8 +8,8 @@ export class Sidebar {
 	public readonly sidebar: Locator
 	public readonly sidebarLogo: Locator
 	public readonly createFileButton: Locator
-	public readonly sidebarBottom: Locator
-	public readonly preferencesButton: Locator
+	public readonly userSettingsMenu: Locator
+	public readonly helpMenu: Locator
 	public readonly themeButton: Locator
 	public readonly darkModeButton: Locator
 	public readonly signOutButton: Locator
@@ -18,8 +18,8 @@ export class Sidebar {
 		this.sidebar = this.page.getByTestId('tla-sidebar')
 		this.sidebarLogo = this.page.getByTestId('tla-sidebar-logo-icon')
 		this.createFileButton = this.page.getByTestId('tla-create-file')
-		this.sidebarBottom = this.page.getByTestId('tla-sidebar-bottom')
-		this.preferencesButton = this.page.getByText('Preferences')
+		this.userSettingsMenu = this.page.getByTestId('tla-sidebar-user-settings-trigger')
+		this.helpMenu = this.page.getByTestId('tla-sidebar-help-menu-trigger')
 		this.themeButton = this.page.getByText('Theme')
 		this.darkModeButton = this.page.getByText('Dark')
 		this.signOutButton = this.page.getByText('Sign out')
@@ -49,27 +49,32 @@ export class Sidebar {
 		await this.page.keyboard.press('Enter')
 		const newNumDocuments = await this.getNumberOfFiles()
 		expect(newNumDocuments).toBe(numDocuments + 1)
+		// give the websocket a chance to catch up
+		await this.mutationResolution()
 	}
 
 	async getNumberOfFiles() {
 		return (await this.page.$$(this.fileLink)).length
 	}
 
-	async openAccountMenu() {
-		await this.sidebarBottom.hover()
-		await this.page.getByTestId('tla-sidebar-user-link').click()
+	async openUserSettingsMenu() {
+		await this.userSettingsMenu.hover()
+		await this.userSettingsMenu.click()
 	}
 
 	@step
 	async setDarkMode() {
-		await this.openAccountMenu()
+		await this.openUserSettingsMenu()
 		await this.themeButton.hover()
 		await this.darkModeButton.click()
+		await this.mutationResolution()
 	}
 
 	@step
 	async openLanguageMenu(languageButtonText: string) {
-		await this.openAccountMenu()
+		// need the editor to be mounted for the menu to be available
+		await expect(this.page.getByTestId('canvas')).toBeVisible()
+		await this.openUserSettingsMenu()
 		await this.page.getByText(languageButtonText).hover()
 	}
 
@@ -89,11 +94,12 @@ export class Sidebar {
 		await this.openLanguageMenu(languageButtonText)
 		await this.page.getByRole('menuitemcheckbox', { name: language }).click()
 		await this.page.keyboard.press('Escape')
+		await this.mutationResolution()
 	}
 
 	@step
 	async signOut() {
-		await this.openAccountMenu()
+		await this.openUserSettingsMenu()
 		await this.signOutButton.click()
 	}
 
@@ -143,6 +149,7 @@ export class Sidebar {
 	@step
 	private async deleteFromFileMenu() {
 		await this.page.getByRole('menuitem', { name: 'Delete' }).click()
+		await this.mutationResolution()
 	}
 
 	@step
@@ -150,6 +157,11 @@ export class Sidebar {
 		const fileLink = this.getFileLink('today', index)
 		await this.openFileMenu(fileLink)
 		await this.renameFromFileMenu(newName)
+		await this.mutationResolution()
+	}
+
+	async mutationResolution() {
+		await this.page.evaluate(() => (window as any).app.z.__e2e__waitForMutationResolution?.())
 	}
 
 	@step
@@ -158,6 +170,7 @@ export class Sidebar {
 		const input = this.page.getByRole('textbox')
 		await input.fill(name)
 		await this.page.keyboard.press('Enter')
+		await this.mutationResolution()
 	}
 
 	@step
@@ -170,6 +183,7 @@ export class Sidebar {
 			await input.fill(name)
 		}
 		await this.page.keyboard.press('Enter')
+		await this.mutationResolution()
 	}
 
 	@step
@@ -177,6 +191,7 @@ export class Sidebar {
 		const fileLink = this.getFileLink('today', index)
 		await this.openFileMenu(fileLink)
 		await this.page.getByRole('menuitem', { name: 'Pin' }).click()
+		await this.mutationResolution()
 	}
 
 	@step
@@ -184,6 +199,7 @@ export class Sidebar {
 		const fileLink = this.getFileLink('pinned', index)
 		await this.openFileMenu(fileLink)
 		await this.page.getByRole('menuitem', { name: 'Unpin' }).click()
+		await this.mutationResolution()
 	}
 
 	@step
@@ -191,6 +207,7 @@ export class Sidebar {
 		const fileLink = this.getFileLink('today', index)
 		await this.openFileMenu(fileLink)
 		await this.duplicateFromFileMenu(name)
+		await this.mutationResolution()
 	}
 
 	@step

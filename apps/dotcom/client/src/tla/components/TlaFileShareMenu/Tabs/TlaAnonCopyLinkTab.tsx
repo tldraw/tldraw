@@ -1,5 +1,6 @@
 import { useCallback } from 'react'
 import { useEditor } from 'tldraw'
+import { useEditorDeepLink } from '../../../hooks/useDeepLink'
 import { useTldrawAppUiEvents } from '../../../utils/app-ui-events'
 import { copyTextToClipboard } from '../../../utils/copy'
 import { F } from '../../../utils/i18n'
@@ -8,11 +9,12 @@ import { QrCode } from '../QrCode'
 import { TlaShareMenuCopyButton } from '../file-share-menu-primitives'
 
 export function TlaAnonCopyLinkTab() {
+	const url = useEditorDeepLink()
 	return (
 		<>
 			<TlaMenuSection>
-				<TlaAnonCopyLinkButton url={window.location.href} />
-				<QrCode url={window.location.href} />
+				<TlaAnonCopyLinkButton url={url ?? ''} />
+				<QrCode url={url ?? ''} />
 			</TlaMenuSection>
 		</>
 	)

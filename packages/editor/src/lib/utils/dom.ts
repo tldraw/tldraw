@@ -18,7 +18,7 @@ import { debugFlags, pointerCaptureTrackingObject } from './debug-flags'
 
 /** @public */
 export function loopToHtmlElement(elm: Element): HTMLElement {
-	if (elm instanceof HTMLElement) return elm
+	if (elm.nodeType === Node.ELEMENT_NODE) return elm as HTMLElement
 	if (elm.parentElement) return loopToHtmlElement(elm.parentElement)
 	else throw Error('Could not find a parent element of an HTML type!')
 }
@@ -91,14 +91,14 @@ export const setStyleProperty = (
 	elm.style.setProperty(property, value as string)
 }
 
-const INPUTS = ['input', 'select', 'button', 'textarea']
-
 /** @internal */
-export function activeElementShouldCaptureKeys() {
+export function activeElementShouldCaptureKeys(allowButtons = false) {
 	const { activeElement } = document
+	const elements = allowButtons ? ['input', 'textarea'] : ['input', 'select', 'button', 'textarea']
 	return !!(
 		activeElement &&
-		(activeElement.getAttribute('contenteditable') ||
-			INPUTS.indexOf(activeElement.tagName.toLowerCase()) > -1)
+		((activeElement as HTMLElement).isContentEditable ||
+			elements.indexOf(activeElement.tagName.toLowerCase()) > -1 ||
+			activeElement.classList.contains('tlui-slider__thumb'))
 	)
 }

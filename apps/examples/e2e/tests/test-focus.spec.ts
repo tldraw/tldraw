@@ -119,19 +119,19 @@ test.describe('Focus', () => {
 
 		await (await page.$('body'))?.click()
 
-		expect(await EditorA.$('.tlui-button[data-testid="tools.draw"][aria-checked="true"]')).toBe(
+		expect(await EditorA.$('.tlui-button[data-testid="tools.draw"][aria-pressed="true"]')).toBe(
 			null
 		)
-		expect(await EditorB.$('.tlui-button[data-testid="tools.draw"][aria-checked="true"]')).toBe(
+		expect(await EditorB.$('.tlui-button[data-testid="tools.draw"][aria-pressed="true"]')).toBe(
 			null
 		)
 
 		await page.keyboard.press('d')
 
-		expect(await EditorA.$('.tlui-button[data-testid="tools.draw"][aria-checked="true"]')).not.toBe(
+		expect(await EditorA.$('.tlui-button[data-testid="tools.draw"][aria-pressed="true"]')).not.toBe(
 			null
 		)
-		expect(await EditorB.$('.tlui-button[data-testid="tools.draw"][aria-checked="true"]')).toBe(
+		expect(await EditorB.$('.tlui-button[data-testid="tools.draw"][aria-pressed="true"]')).toBe(
 			null
 		)
 
@@ -139,10 +139,10 @@ test.describe('Focus', () => {
 		await page.waitForTimeout(100) // takes 30ms or so to focus
 		await page.keyboard.press('d')
 
-		expect(await EditorA.$('.tlui-button[data-testid="tools.draw"][aria-checked="true"]')).not.toBe(
+		expect(await EditorA.$('.tlui-button[data-testid="tools.draw"][aria-pressed="true"]')).not.toBe(
 			null
 		)
-		expect(await EditorB.$('.tlui-button[data-testid="tools.draw"][aria-checked="true"]')).not.toBe(
+		expect(await EditorB.$('.tlui-button[data-testid="tools.draw"][aria-pressed="true"]')).not.toBe(
 			null
 		)
 	})
@@ -157,21 +157,21 @@ test.describe('Focus', () => {
 		const drawButton = await EditorA.$('.tlui-button[data-testid="tools.draw"]')
 
 		// select button should be selected, not the draw button
-		expect(await EditorA.$('.tlui-button[data-testid="tools.draw"][aria-checked="true"]')).toBe(
+		expect(await EditorA.$('.tlui-button[data-testid="tools.draw"][aria-pressed="true"]')).toBe(
 			null
 		)
 
 		await drawButton?.click()
 
 		// draw button should be selected now
-		expect(await EditorA.$('.tlui-button[data-testid="tools.draw"][aria-checked="true"]')).not.toBe(
+		expect(await EditorA.$('.tlui-button[data-testid="tools.draw"][aria-pressed="true"]')).not.toBe(
 			null
 		)
 
 		await page.keyboard.press('v')
 
 		// select button should be selected again
-		expect(await EditorA.$('.tlui-button[data-testid="tools.draw"][aria-checked="true"]')).toBe(
+		expect(await EditorA.$('.tlui-button[data-testid="tools.draw"][aria-pressed="true"]')).toBe(
 			null
 		)
 	})
@@ -189,15 +189,15 @@ test.describe('Focus', () => {
 		await page.waitForSelector('.tl-shape')
 
 		const blueButton = await page.$('.tlui-button[data-testid="style.color.blue"]')
-		await blueButton?.dispatchEvent('pointerdown')
 		await blueButton?.click()
-		await blueButton?.dispatchEvent('pointerup')
 
 		// Text should still be focused.
-		expect(await page.evaluate(() => document.activeElement?.nodeName === 'TEXTAREA')).toBe(true)
+		expect(
+			await page.evaluate(() => !!document.querySelector('.tl-shape div[contenteditable]:focus'))
+		).toBe(true)
 	})
 
-	test.skip('edit->edit, focus stays in the text areas when going from shape-to-shape', async ({
+	test('edit->edit, focus stays in the text areas when going from shape-to-shape', async ({
 		page,
 	}) => {
 		await page.goto('http://localhost:5420/end-to-end')
@@ -219,9 +219,9 @@ test.describe('Focus', () => {
 
 		await page.waitForTimeout(1000)
 
-		// First note's textarea should be focused.
-		expect(await EditorA.evaluate(() => !!document.querySelector('.tl-shape textarea:focus'))).toBe(
-			true
-		)
+		// First note's contenteditable should be focused.
+		expect(
+			await EditorA.evaluate(() => !!document.querySelector('.tl-shape div[contenteditable]:focus'))
+		).toBe(true)
 	})
 })

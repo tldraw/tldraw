@@ -4,8 +4,8 @@ import { useEditor } from './useEditor'
 
 // TODO: maybe move this to a computed property on the App class?
 /**
- * @returns The list of peer UserIDs
- * @internal
+ * @returns The latest presence of the user matching userId
+ * @public
  */
 export function usePresence(userId: string): TLInstancePresence | null {
 	const editor = useEditor()

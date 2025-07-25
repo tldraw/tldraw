@@ -5,7 +5,7 @@ import { useEditor } from './useEditor'
 // TODO: maybe move this to a computed property on the App class?
 /**
  * @returns The list of peer UserIDs
- * @internal
+ * @public
  */
 export function usePeerIds() {
 	const editor = useEditor()

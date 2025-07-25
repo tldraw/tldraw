@@ -1,6 +1,8 @@
 # Examples
 
-Development environment and examples for the tldraw SDK. A live version of the examples is found on [examples.tldraw.com](https://examples.tldraw.com)
+Development environment and examples for the tldraw SDK. A live version of the examples is found here: [examples.tldraw.com](https://examples.tldraw.com)
+
+If you're interested in contributing a new example, please see our [example writing guide](./writing-examples.md) for detailed guidelines on creating effective examples.
 
 ## Distributions
 
@@ -24,4 +26,4 @@ Find us on Twitter/X at [@tldraw](https://twitter.com/tldraw).
 
 ## Community
 
-Have questions, comments or feedback? [Join our discord](https://discord.gg/rhsyWMUJxd) or [start a discussion](https://github.com/tldraw/tldraw/discussions/new). For the latest news and release notes, visit [tldraw.dev](https://tldraw.dev).
+Have questions, comments or feedback? [Join our discord](https://discord.tldraw.com/?utm_source=github&utm_medium=readme&utm_campaign=sociallink). For the latest news and release notes, visit [tldraw.dev](https://tldraw.dev).

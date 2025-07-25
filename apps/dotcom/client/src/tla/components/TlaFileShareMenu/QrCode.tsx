@@ -1,6 +1,6 @@
 import { useEffect, useLayoutEffect, useRef } from 'react'
 import { FileHelpers, useLocalStorageState, useValue } from 'tldraw'
-import { getCurrentEditor } from '../../utils/getCurrentEditor'
+import { useGlobalEditor } from '../../../utils/globalEditor'
 import { getLocalSessionState } from '../../utils/local-session-state'
 import { createQRCodeImageDataString } from '../../utils/qrcode'
 import styles from './file-share-menu.module.css'
@@ -12,18 +12,16 @@ export function QrCode({ url }: { url: string }) {
 	const [qrCode, setQrCode] = useLocalStorageState<string | null>(url, null)
 
 	const theme = useValue('is dark mode', () => getLocalSessionState().theme, [])
+	const editor = useGlobalEditor()
 
 	useEffect(() => {
-		if (!qrCode) {
-			const editor = getCurrentEditor()
-			if (!editor) return
+		if (!editor) return
 
-			createQRCodeImageDataString(url).then((svgString) => {
-				const blob = new Blob([svgString], { type: 'image/svg+xml' })
-				FileHelpers.blobToDataUrl(blob).then(setQrCode)
-			})
-		}
-	}, [url, setQrCode, qrCode])
+		createQRCodeImageDataString(url).then((svgString) => {
+			const blob = new Blob([svgString], { type: 'image/svg+xml' })
+			FileHelpers.blobToDataUrl(blob).then(setQrCode)
+		})
+	}, [url, setQrCode, editor])
 
 	// When qr code is there, set it as src
 	useLayoutEffect(() => {
@@ -37,8 +35,8 @@ export function QrCode({ url }: { url: string }) {
 	// todo: click qr code to... copy? big modal?
 
 	return (
-		<div className={styles.qrCode}>
-			<img ref={ref} className={styles.qrCodeInner} data-theme={theme} />
+		<div className={styles.fileShareMenuQrCode}>
+			<img ref={ref} className={styles.fileShareMenuQrCodeInner} data-theme={theme} />
 		</div>
 	)
 }

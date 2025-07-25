@@ -8,12 +8,14 @@ const rootUrl = 'http://localhost:3000/'
 export class HomePage {
 	public readonly signInButton: Locator
 	public readonly tldrawEditor: Locator
+	public readonly tldrawCanvas: Locator
 	constructor(
 		private readonly page: Page,
 		private readonly editor: Editor
 	) {
-		this.signInButton = this.page.getByText('Sign in')
+		this.signInButton = this.page.getByTestId('tla-sign-in-button')
 		this.tldrawEditor = this.page.getByTestId('tla-editor')
+		this.tldrawCanvas = this.page.getByTestId('canvas')
 	}
 
 	@step
@@ -29,9 +31,30 @@ export class HomePage {
 		await this.page.getByLabel('Email address').fill(email)
 		await this.page.getByRole('button', { name: 'Continue', exact: true }).click()
 		await this.page.waitForTimeout(1000)
-		await this.page.getByLabel('Enter verification code. Digit').fill('424242')
+		await this.page.getByRole('textbox', { name: 'Digit 1' }).fill('4')
+		await this.page.getByRole('textbox', { name: 'Digit 2' }).fill('2')
+		await this.page.getByRole('textbox', { name: 'Digit 3' }).fill('4')
+		await this.page.getByRole('textbox', { name: 'Digit 4' }).fill('2')
+		await this.page.getByRole('textbox', { name: 'Digit 5' }).fill('4')
+		await this.page.getByRole('textbox', { name: 'Digit 6' }).fill('2')
 		await expect(async () => {
-			await expect(this.page.getByRole('button', { name: 'Share' })).toBeVisible()
+			await expect(this.page.getByTestId('tla-sidebar-toggle')).toBeVisible()
+		}).toPass()
+	}
+
+	async loginWithEmailAndPassword(email: string, password: string) {
+		const isSideBarToggleVisible = await this.editor.sidebarToggle.isVisible()
+		// We are already signed in
+		if (isSideBarToggleVisible) return
+		await expect(this.signInButton).toBeVisible()
+		await this.signInButton.click()
+		await this.page.getByLabel('Email address').fill(email)
+		await this.page.getByRole('button', { name: 'Continue', exact: true }).click()
+		await this.page.getByRole('textbox', { name: 'Password' }).fill(password)
+		await this.page.getByRole('button', { name: 'Continue', exact: true }).click()
+		await this.page.waitForTimeout(1000)
+		await expect(async () => {
+			await expect(this.page.getByTestId('tla-sidebar-toggle')).toBeVisible()
 		}).toPass()
 	}
 
@@ -54,6 +77,7 @@ export class HomePage {
 	async isLoaded() {
 		await expect(async () => {
 			await expect(this.tldrawEditor).toBeVisible({ timeout: 10000 })
+			await expect(this.tldrawCanvas).toBeVisible({ timeout: 10000 })
 		}).toPass()
 	}
 }

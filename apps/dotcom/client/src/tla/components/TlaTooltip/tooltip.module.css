@@ -7,11 +7,16 @@
 	color: var(--color-text-shadow);
 	animation-name: fade-in;
 	animation-duration: 0.1s;
-	z-index: 200;
+	max-width: 400px;
+	width: fit-content;
+	text-align: center;
+	z-index: 500;
+	pointer-events: none;
 }
 
 .tooltipArrow {
 	fill: var(--tla-color-tooltip);
+	will-change: opacity;
 }
 
 @keyframes fade-in {

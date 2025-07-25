@@ -126,50 +126,31 @@ describe('When shapes are the child of another shape.', () => {
 })
 
 describe('When shapes are the child of a rotated shape.', () => {
-	beforeEach(() => {
+	it('does not stretches rotated shapes (when not PI/2 rotations)', () => {
 		editor = new TestEditor()
 		editor.selectAll()
 		editor.deleteShapes(editor.getSelectedShapeIds())
 		ids = editor.createShapesFromJsx([
-			<TL.geo ref="boxA" x={0} y={0} w={100} h={100} rotation={PI}>
+			<TL.geo ref="boxA" x={0} y={0} w={100} h={100} rotation={PI / 3}>
 				<TL.geo ref="boxB" x={100} y={100} w={50} h={50} />
 			</TL.geo>,
 			<TL.geo ref="boxC" x={200} y={200} w={100} h={100} />,
 		])
 		editor.selectAll()
-	})
 
-	it('does not stretches rotated shapes', () => {
-		editor.select(ids.boxB, ids.boxC)
+		editor.select(ids.boxA, ids.boxC)
 		editor.stretchShapes(editor.getSelectedShapeIds(), 'horizontal')
 		jest.advanceTimersByTime(1000)
 		editor.expectShapeToMatch(
 			{
-				id: ids.boxB,
-				x: 100,
-				y: 100,
+				id: ids.boxA,
+				x: 0,
+				y: 0,
 				props: {
-					w: 50,
-					h: 50,
-				},
-			},
-			{
-				id: ids.boxC,
-				x: -150,
-				y: 200,
-				props: {
-					w: 450,
+					w: 100,
 					h: 100,
 				},
-			}
-		)
-	})
-
-	it('does not stretches rotated shapes', () => {
-		editor.select(ids.boxB, ids.boxC)
-		editor.stretchShapes(editor.getSelectedShapeIds(), 'vertical')
-		jest.advanceTimersByTime(1000)
-		editor.expectShapeToMatch(
+			},
 			{
 				id: ids.boxB,
 				x: 100,
@@ -182,10 +163,55 @@ describe('When shapes are the child of a rotated shape.', () => {
 			{
 				id: ids.boxC,
 				x: 200,
-				y: -150,
+				y: 200,
 				props: {
 					w: 100,
-					h: 450,
+					h: 100,
+				},
+			}
+		)
+	})
+
+	it('stretches rotated shapes when pi2 rotations', () => {
+		editor = new TestEditor()
+		editor.selectAll()
+		editor.deleteShapes(editor.getSelectedShapeIds())
+		ids = editor.createShapesFromJsx([
+			<TL.geo ref="boxA" x={0} y={0} w={100} h={100} rotation={PI / 2} />,
+			<TL.geo ref="boxB" x={100} y={100} w={50} h={50} />,
+			<TL.geo ref="boxC" x={200} y={200} w={100} h={100} />,
+		])
+		editor.selectAll()
+
+		editor.stretchShapes(editor.getSelectedShapeIds(), 'vertical')
+		jest.advanceTimersByTime(1000)
+		editor.expectShapeToMatch(
+			{
+				id: ids.boxA,
+				x: 0,
+				y: 0,
+				rotation: PI / 2,
+				props: {
+					w: 300,
+					h: 100,
+				},
+			},
+			{
+				id: ids.boxB,
+				x: 100,
+				y: 0,
+				props: {
+					w: 50,
+					h: 300,
+				},
+			},
+			{
+				id: ids.boxC,
+				x: 200,
+				y: 0,
+				props: {
+					w: 100,
+					h: 300,
 				},
 			}
 		)

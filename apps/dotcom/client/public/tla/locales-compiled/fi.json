@@ -1,145 +1,1102 @@
 {
-  "0095a9fa74": "Viedä",
-  "03b3e13197": "Vedä tiedosto tämän sivun sivupalkkiin. Tai valitse käyttäjävalikosta vaihtoehto Tuo tiedosto.",
-  "043973ec1f": "Onko sinulla edelleen ongelmia? {GetHelpLink}",
-  "05596b840b": "Avaa tldraw.",
-  "06b9281e39": "Auto",
-  "07dbd11b21": "Nimetön tiedosto",
-  "08331c1710": "Hintarajoitus ylitetty, yritä myöhemmin uudelleen.",
-  "0b27918290": "Tiedosto",
-  "0b9a4cde72": "Tiedosto-valikko",
-  "110a4b01be": "Julkaista",
-  "13ddd375ad": "Vie nimellä",
-  "181b90f889": "Luo tiedosto",
-  "1bef75f760": "Salli tldrawn lähettää minulle sähköpostia tästä",
-  "1da2e8106b": "Tapahtui odottamaton virhe.",
-  "1dd1c5fb7f": "Tänään",
-  "1f9696d5f2": "Vie sisällön .tldr-tiedostona: Siirry kohtaan \"Tiedosto\" > \"Tallenna kopio\"",
-  "26e5b44256": "Anna meille palautetta",
-  "299cb00a7a": "Lataus epäonnistui",
-  "31246941ad": "Sinun on kirjauduttava sisään nähdäksesi tämän tiedoston.",
-  "31418ce4ad": "i18n: Korosta puuttuu",
-  "32656a600c": "Näetkö jotain vikaa? Onko sinulla idea tldraw:n parantamiseksi? Haluaisimme kuulla sen!",
-  "335defdafe": "Yritä päivittää sivu.",
-  "344a7f427f": "Toimittaja",
-  "3b366e7232": "Kokeile uutta tldraw:ta (esikatselu)",
-  "3bd1b98dbd": "Muutoksia ei voi julkaista.",
-  "3c5e891bff": "Kiinnitetty",
-  "424cc22417": "Vie minut kotiin",
-  "42e53c47c1": "Pyydä käyttöoikeutta ottamalla yhteyttä omistajaan.",
-  "44db318ee5": "Hanki apua Discordissa",
-  "458cd104d7": "Valitettavasti sinulla ei ole pääsyä kyseiseen tiedostoon. Jos tiedät tiedoston luojan, voit pyytää uutta kutsulinkkiä.",
-  "45b78c248d": "Tuo vanhasta tldraw.com-sivustosta",
-  "46137245cd": "Kiitos, että autat meitä parantamaan tldraw:ta!",
-  "4778b9f3f2": "Yksityisyysasetukset",
-  "47839e47a5": "tldraw",
-  "4908687e50": "Haluatko varmasti unohtaa tämän tiedoston?",
-  "4c06678729": "Käytämme ensimmäisen osapuolen evästeitä palveluidemme parantamiseen. <a>Lisätietoja</a>",
-  "4d1c8263ba": "Lataa uudelleen",
-  "50db1b7e1e": "Tiedoston julkaisua ei voi peruuttaa.",
-  "517bb809d9": "Sivuvalikko",
-  "54286b1d01": "Yhteistyökumppanien raja saavutettu",
-  "54d240fa41": "Ole hyvä ja hidasta.",
-  "554a05155c": "Onko sinulla edelleen ongelmia? <a>Ilmoita ongelmasta</a>",
-  "55505ba281": "PNG",
-  "56c34c6410": "Tietosuojakäytäntö",
-  "575d47a591": "Tervetuloa uuteen tldraw.com-sivustoon!",
-  "5817f82c16": "Valinnainen – Auta meitä ymmärtämään, kuinka ihmiset käyttävät tldraw:ta ja miten voimme parantaa sitä.",
-  "5a95a425f7": "Jakaa",
-  "5d160eb095": "Sinun istuntosi",
-  "5d26ae7550": "Emme pystyneet lataamaan osaa sisällöstä, jonka loit ennen kirjautumista.",
-  "5db1e9a8ca": "Täytä tämä lomake, <discord>keskustele kanssamme Discordissa</discord> tai <github>lähetä ongelma GitHubissa</github>.",
-  "5f3c333678": "Palaute lähetetty",
-  "5fb63579fc": "Kopioida",
-  "61057a0c84": "Myöhemmin",
-  "61b106397b": "Palataksesi vanhaan tldraw.com-sivustoon kirjaudu ulos käyttäjävalikosta.",
-  "625fd29749": "Vanhempi",
-  "6609dd239e": "Jotain meni pieleen",
-  "6a26f54883": "Auttaa",
-  "6dc0836c1b": "Sinulla ei ole tarvittavia oikeuksia tämän toiminnon suorittamiseen.",
-  "6dfc62f621": "Tuo sisältö manuaalisesti seuraavasti:",
-  "70a6facb9d": "Tällä viikolla",
-  "73ab799383": "Tätä tldraw-versiota ei enää tueta.",
-  "7408cf0d7b": "Lataa sivu uudelleen",
-  "752b79f137": "Olet saavuttanut tiedostojen enimmäismäärän. Sinun on poistettava vanhat tiedostot ennen uusien luomista.",
-  "7573b8110a": "Ei pääsyä",
-  "761e93ede9": "Hallinnoi evästeitä",
-  "777f9e90cf": "Virheellinen pyyntö.",
-  "78e9815992": "Selvä",
-  "791b8834d3": "Ohita tuonti",
-  "7cb5f8b4a5": "Unohtaa",
-  "7daeced9ff": "Julkaise muutokset",
-  "7de66f8b93": "Rekisteröidy käyttääksesi tldraw.com-sivuston esikatseluversiota, joka lisää tiedostojen hallinta- ja yhteistyöominaisuuksia.",
-  "7fcdcc6455": "Unohda tiedosto",
-  "85a082de1b": "Päivitä sivu saadaksesi tldraw:n uusimman version.",
-  "86353d2c41": "Lisätty {total} .tldr-tiedostoja.",
-  "86c66437fd": "Nimeä tiedosto uudelleen",
-  "8ad4303b83": "Ei kiitos",
-  "8eb2c00e96": "Jaettu kanssasi",
-  "8f7f4c1ce7": "Noin",
-  "8ff3d0a705": "Hinta rajoitettu",
-  "902b0d55fd": "Virhe",
-  "904a830405": "Nimeä uudelleen",
-  "91e49bb0eb": "Kopioi tiedostoihini",
-  "96165d6df5": "Tämä kuukausi",
-  "9914a0ce04": "Kevyt",
-  "9bef626805": "Poista tiedosto",
-  "9ceb927baa": "Julkaise tämä tiedosto",
-  "9e076f5885": "Ei löytynyt",
-  "9e93c98d88": "Poista käytöstä",
-  "a104439641": "Pehmuste",
-  "a18366b217": "Tumma",
-  "a1c915578c": "Etsimääsi tiedostoa ei ole olemassa.",
-  "a239905023": "Vie kuva",
-  "a3debabee7": "Evästekäytäntö",
-  "a4d3b161ce": "Lähetä",
-  "a6cc403d56": "Kaikki, joilla on linkki",
-  "a768caa988": "Analytics",
-  "a9ded1e5ce": "Tausta",
-  "ab0df9ba36": "Tiedostoraja saavutettu",
-  "abc5e29b0d": "Tämä on uuden tldraw.com-sivuston esikatseluversio, joka sisältää tiedostojen tallennuksen, yhteistyön ja julkaisun.",
-  "af3dc88931": "Viimeksi julkaistu <date></date>",
-  "b6d4223e60": "Kirjaudu sisään",
-  "b758336699": "Kopioi linkki",
-  "bb792693e2": "Irrota kiinnitys",
-  "bbbcefd7ce": "{total, plural, one {Ladataan .tldr-tiedostoa…} other {Ladataan {uploaded} / {total} .tldr-tiedostosta…}}",
-  "bc88b0e89e": "Jakaja {ownerName}",
-  "bcb62136a3": "Lataa .tldr-tiedostoja",
-  "c2276c9127": "Lisätietoja jakamisesta.",
-  "c303bd1095": "Tiedostoa ei voi julkaista.",
-  "c4408d3350": "Hyväksyä",
-  "c655b27b1e": "i18n: Pitkä merkkijono",
-  "c6a00f137b": "Kutsu",
-  "c87aacf567": "Kirjaudu ulos",
-  "cceaefbc20": "Jaa tämä tiedosto",
-  "cd15a75c26": "SVG",
-  "cd16f555de": "Essential – Vaaditaan tiedostojen ja asetusten tallentamiseen ja niiden synkronoimiseen laitteidesi välillä.",
-  "cea291e45e": "Lisätietoja julkaisemisesta.",
-  "d3d2e61733": "Lähellä",
-  "d4bbf74f3e": "Vaihda sivupalkki",
-  "d5ef96e383": "Lataa tiedosto",
-  "d721757161": "Teema",
-  "d876a9fe1a": "Yritä uudelleen",
-  "d9100f3e10": "Siirry tänne nähdäksesi sisällön",
-  "d9776f0775": "Rekisteröidy",
-  "d9fe660e4e": "Valitettavasti sinulla ei ole pääsyä kyseiseen työtilaan.",
-  "dbbebf3c03": "Vain kutsu",
-  "dfdb78a4e4": "Sovelluksen virheenkorjausliput",
-  "e2cd8064c2": "Valitettavasti sinulla ei ole pääsyä kyseiseen käyttäjään.",
-  "e371526ad0": "Tämä eväste tarvitaan, jotta tldraw toimii, eikä sitä voi poistaa käytöstä.",
-  "e404559826": "Palveluehdot",
-  "e78e14c5f1": "Pin",
-  "e8d1090cb9": "Käytämme evästeitä pitääksemme sinut kirjautuneena sisään, synkronoidaksemme tiedostosi ja kerätäksemme analytiikkaa tldraw:n parantamiseksi. Lue <a>evästekäytäntömme</a> saadaksesi lisätietoja.",
-  "ea4788705e": "Peruuttaa",
-  "ebfe9ce86e": "Eilen",
-  "ec59b960ea": "Tämä tiedosto on saavuttanut aktiivisten yhteiskäyttäjien enimmäismäärän.",
-  "ec611e9a08": "Tili-valikko",
-  "ec9ad9950f": "Valitettavasti tiedostoa ei ole olemassa.",
-  "ed53713239": "i18n: Aksentoitu",
-  "ed75712b0e": "Kopioi",
-  "f2a6c498fb": "Poistaa",
-  "f43fb62093": "Takaisin tldraw.",
-  "fb15c53f22": "Katsoja",
-  "fd1be3efcf": "Haluatko varmasti poistaa tämän tiedoston?",
-  "fed5ec05eb": "Linkki kopioitu"
+  "0095a9fa74": [
+    {
+      "type": 0,
+      "value": "Viedä"
+    }
+  ],
+  "03b3e13197": [
+    {
+      "type": 0,
+      "value": "Vedä tiedosto tämän sivun sivupalkkiin. Tai valitse käyttäjävalikosta vaihtoehto Tuo tiedosto."
+    }
+  ],
+  "043973ec1f": [
+    {
+      "type": 0,
+      "value": "Onko sinulla edelleen ongelmia? "
+    },
+    {
+      "type": 1,
+      "value": "GetHelpLink"
+    }
+  ],
+  "05596b840b": [
+    {
+      "type": 0,
+      "value": "Avaa tldraw."
+    }
+  ],
+  "06b9281e39": [
+    {
+      "type": 0,
+      "value": "Auto"
+    }
+  ],
+  "0776e18496": [
+    {
+      "type": 0,
+      "value": "Tallenna ja jaa"
+    }
+  ],
+  "07dbd11b21": [
+    {
+      "type": 0,
+      "value": "Nimetön tiedosto"
+    }
+  ],
+  "08331c1710": [
+    {
+      "type": 0,
+      "value": "Hintarajoitus ylitetty, yritä myöhemmin uudelleen."
+    }
+  ],
+  "08bd40c754": [
+    {
+      "type": 0,
+      "value": "Tili"
+    }
+  ],
+  "0b27918290": [
+    {
+      "type": 0,
+      "value": "Tiedosto"
+    }
+  ],
+  "0b9a4cde72": [
+    {
+      "type": 0,
+      "value": "Tiedosto-valikko"
+    }
+  ],
+  "0d1f2bb523": [
+    {
+      "type": 0,
+      "value": "Lähetä palautetta"
+    }
+  ],
+  "110a4b01be": [
+    {
+      "type": 0,
+      "value": "Julkaista"
+    }
+  ],
+  "13ddd375ad": [
+    {
+      "type": 0,
+      "value": "Vie nimellä"
+    }
+  ],
+  "181b90f889": [
+    {
+      "type": 0,
+      "value": "Luo tiedosto"
+    }
+  ],
+  "1da2e8106b": [
+    {
+      "type": 0,
+      "value": "Tapahtui odottamaton virhe."
+    }
+  ],
+  "1dd1c5fb7f": [
+    {
+      "type": 0,
+      "value": "Tänään"
+    }
+  ],
+  "22d84a12fd": [
+    {
+      "type": 0,
+      "value": "Figjam, mutta tldraw"
+    }
+  ],
+  "250ddea65c": [
+    {
+      "type": 0,
+      "value": "Tietoja tldraw'sta"
+    }
+  ],
+  "299cb00a7a": [
+    {
+      "type": 0,
+      "value": "Lataus epäonnistui"
+    }
+  ],
+  "2c61d18599": [
+    {
+      "type": 0,
+      "value": "Miro, mutta hyvä ja ilmainen"
+    }
+  ],
+  "31246941ad": [
+    {
+      "type": 0,
+      "value": "Sinun on kirjauduttava sisään nähdäksesi tämän tiedoston."
+    }
+  ],
+  "31418ce4ad": [
+    {
+      "type": 0,
+      "value": "i18n: Korosta puuttuu"
+    }
+  ],
+  "335defdafe": [
+    {
+      "type": 0,
+      "value": "Yritä päivittää sivu."
+    }
+  ],
+  "344a7f427f": [
+    {
+      "type": 0,
+      "value": "Toimittaja"
+    }
+  ],
+  "37b3dca331": [
+    {
+      "type": 0,
+      "value": "Kirjaudu sisään"
+    }
+  ],
+  "3bd1b98dbd": [
+    {
+      "type": 0,
+      "value": "Muutoksia ei voi julkaista."
+    }
+  ],
+  "3c5e891bff": [
+    {
+      "type": 0,
+      "value": "Kiinnitetty"
+    }
+  ],
+  "3d0238bf16": [
+    {
+      "type": 0,
+      "value": "Hyväksy kaikki"
+    }
+  ],
+  "3fc6d0c83a": [
+    {
+      "type": 0,
+      "value": "Lisää ystävä"
+    }
+  ],
+  "42e53c47c1": [
+    {
+      "type": 0,
+      "value": "Pyydä käyttöoikeutta ottamalla yhteyttä omistajaan."
+    }
+  ],
+  "44281ab6e5": [
+    {
+      "type": 0,
+      "value": "Kirjaudu sisään"
+    }
+  ],
+  "44db318ee5": [
+    {
+      "type": 0,
+      "value": "Hanki apua Discordissa"
+    }
+  ],
+  "46137245cd": [
+    {
+      "type": 0,
+      "value": "Kiitos, että autat meitä parantamaan tldraw:ta!"
+    }
+  ],
+  "47839e47a5": [
+    {
+      "type": 0,
+      "value": "tldraw"
+    }
+  ],
+  "4908687e50": [
+    {
+      "type": 0,
+      "value": "Haluatko varmasti unohtaa tämän tiedoston?"
+    }
+  ],
+  "4d0d3ddec9": [
+    {
+      "type": 0,
+      "value": "Tämä sivusto käyttää evästeitä sovelluksen toiminnan varmistamiseksi ja analytiikkatietojen keräämiseksi."
+    }
+  ],
+  "4d1c8263ba": [
+    {
+      "type": 0,
+      "value": "Lataa uudelleen"
+    }
+  ],
+  "4ea0bb66f7": [
+    {
+      "type": 0,
+      "value": "Tili olisi kiva"
+    }
+  ],
+  "50db1b7e1e": [
+    {
+      "type": 0,
+      "value": "Tiedoston julkaisua ei voi peruuttaa."
+    }
+  ],
+  "517bb809d9": [
+    {
+      "type": 0,
+      "value": "Sivuvalikko"
+    }
+  ],
+  "54286b1d01": [
+    {
+      "type": 0,
+      "value": "Yhteistyökumppanien raja saavutettu"
+    }
+  ],
+  "54d240fa41": [
+    {
+      "type": 0,
+      "value": "Ole hyvä ja hidasta."
+    }
+  ],
+  "554a05155c": [
+    {
+      "type": 0,
+      "value": "Onko sinulla edelleen ongelmia? "
+    },
+    {
+      "children": [
+        {
+          "type": 0,
+          "value": "Ilmoita ongelmasta"
+        }
+      ],
+      "type": 8,
+      "value": "a"
+    }
+  ],
+  "55505ba281": [
+    {
+      "type": 0,
+      "value": "PNG"
+    }
+  ],
+  "5677e381d2": [
+    {
+      "type": 0,
+      "value": "Käytämme analytiikkaevästeitä parantaaksemme tldraw'ta."
+    }
+  ],
+  "56c34c6410": [
+    {
+      "type": 0,
+      "value": "Tietosuojakäytäntö"
+    }
+  ],
+  "5a95a425f7": [
+    {
+      "type": 0,
+      "value": "Jakaa"
+    }
+  ],
+  "5bcc12ace8": [
+    {
+      "type": 0,
+      "value": "Tämä huone on nyt vain luku -tilassa"
+    }
+  ],
+  "5bec508475": [
+    {
+      "type": 0,
+      "value": "Vanha selain havaittu. Päivitä selaimesi käyttääksesi tätä sovellusta."
+    }
+  ],
+  "5bef23eb7e": [
+    {
+      "type": 0,
+      "value": "Luo tili"
+    }
+  ],
+  "5d26ae7550": [
+    {
+      "type": 0,
+      "value": "Emme pystyneet lataamaan osaa sisällöstä, jonka loit ennen kirjautumista."
+    }
+  ],
+  "5f3c333678": [
+    {
+      "type": 0,
+      "value": "Palaute lähetetty"
+    }
+  ],
+  "5fb63579fc": [
+    {
+      "type": 0,
+      "value": "Kopioida"
+    }
+  ],
+  "61057a0c84": [
+    {
+      "type": 0,
+      "value": "Myöhemmin"
+    }
+  ],
+  "625fd29749": [
+    {
+      "type": 0,
+      "value": "Vanhempi"
+    }
+  ],
+  "6609dd239e": [
+    {
+      "type": 0,
+      "value": "Jotain meni pieleen"
+    }
+  ],
+  "6637a98151": [
+    {
+      "type": 0,
+      "value": "Uusi versio tldraw:sta on saatavilla. Jatka lataamalla sivu uudelleen."
+    }
+  ],
+  "697c59072d": [
+    {
+      "type": 0,
+      "value": "Kirjaudu sisään tallentaaksesi"
+    }
+  ],
+  "6a26f54883": [
+    {
+      "type": 0,
+      "value": "Auttaa"
+    }
+  ],
+  "6dc0836c1b": [
+    {
+      "type": 0,
+      "value": "Sinulla ei ole tarvittavia oikeuksia tämän toiminnon suorittamiseen."
+    }
+  ],
+  "6dfc62f621": [
+    {
+      "type": 0,
+      "value": "Tuo sisältö manuaalisesti seuraavasti:"
+    }
+  ],
+  "70a6facb9d": [
+    {
+      "type": 0,
+      "value": "Tällä viikolla"
+    }
+  ],
+  "71a29b007b": [
+    {
+      "type": 0,
+      "value": "Onko sinulla bugi, ongelma tai idea tldraw'hun liittyen? Kerro meille!"
+    }
+  ],
+  "73ab799383": [
+    {
+      "type": 0,
+      "value": "Tätä tldraw-versiota ei enää tueta."
+    }
+  ],
+  "7408cf0d7b": [
+    {
+      "type": 0,
+      "value": "Lataa sivu uudelleen"
+    }
+  ],
+  "752b79f137": [
+    {
+      "type": 0,
+      "value": "Olet saavuttanut tiedostojen enimmäismäärän. Sinun on poistettava vanhat tiedostot ennen uusien luomista."
+    }
+  ],
+  "7573b8110a": [
+    {
+      "type": 0,
+      "value": "Ei pääsyä"
+    }
+  ],
+  "761e93ede9": [
+    {
+      "type": 0,
+      "value": "Hallinnoi evästeitä"
+    }
+  ],
+  "764671e008": [
+    {
+      "type": 0,
+      "value": "Keskustele kanssamme Discordissa"
+    }
+  ],
+  "7697920637": [
+    {
+      "type": 0,
+      "value": "Lataa uudelleen"
+    }
+  ],
+  "777f9e90cf": [
+    {
+      "type": 0,
+      "value": "Virheellinen pyyntö."
+    }
+  ],
+  "797799f35e": [
+    {
+      "type": 0,
+      "value": "Lähetä ongelma GitHubissa"
+    }
+  ],
+  "7b1329f5ca": [
+    {
+      "type": 0,
+      "value": "Käyttöohje"
+    }
+  ],
+  "7be10fc592": [
+    {
+      "type": 0,
+      "value": "Palauta versio"
+    }
+  ],
+  "7c7d5d493e": [
+    {
+      "type": 0,
+      "value": "Ole hyvä ja rekisteröidy"
+    }
+  ],
+  "7cb5f8b4a5": [
+    {
+      "type": 0,
+      "value": "Unohtaa"
+    }
+  ],
+  "7daeced9ff": [
+    {
+      "type": 0,
+      "value": "Julkaise muutokset"
+    }
+  ],
+  "7fcdcc6455": [
+    {
+      "type": 0,
+      "value": "Unohda tiedosto"
+    }
+  ],
+  "801ab24683": [
+    {
+      "type": 0,
+      "value": "Lataa"
+    }
+  ],
+  "815e116a2e": [
+    {
+      "type": 0,
+      "value": "Onko sinulla bugi, ongelma tai idea tldraw'hun liittyen? Kerro meille! Täytä tämä lomake, niin otamme sinuun tarvittaessa yhteyttä sähköpostitse. Voit myös "
+    },
+    {
+      "children": [
+        {
+          "type": 0,
+          "value": "chattailla kanssamme Discordissa"
+        }
+      ],
+      "type": 8,
+      "value": "discord"
+    },
+    {
+      "type": 0,
+      "value": " tai "
+    },
+    {
+      "children": [
+        {
+          "type": 0,
+          "value": "lähettää ongelman GitHubissa"
+        }
+      ],
+      "type": 8,
+      "value": "github"
+    },
+    {
+      "type": 0,
+      "value": "."
+    }
+  ],
+  "84c89d47c7": [
+    {
+      "type": 0,
+      "value": "Jaa ilmaiseksi"
+    }
+  ],
+  "85a082de1b": [
+    {
+      "type": 0,
+      "value": "Päivitä sivu saadaksesi tldraw:n uusimman version."
+    }
+  ],
+  "86353d2c41": [
+    {
+      "type": 0,
+      "value": "Lisätty "
+    },
+    {
+      "type": 1,
+      "value": "total"
+    },
+    {
+      "type": 0,
+      "value": " .tldr-tiedostoja."
+    }
+  ],
+  "86c66437fd": [
+    {
+      "type": 0,
+      "value": "Nimeä tiedosto uudelleen"
+    }
+  ],
+  "8b1946f965": [
+    {
+      "type": 0,
+      "value": "Jatkaaksesi muokkaamista, kopioi huone tiedostoihisi."
+    }
+  ],
+  "8ea211024d": [
+    {
+      "type": 0,
+      "value": "Luo ilmainen tili"
+    }
+  ],
+  "8eb2c00e96": [
+    {
+      "type": 0,
+      "value": "Jaettu kanssasi"
+    }
+  ],
+  "8ff3d0a705": [
+    {
+      "type": 0,
+      "value": "Hinta rajoitettu"
+    }
+  ],
+  "902b0d55fd": [
+    {
+      "type": 0,
+      "value": "Virhe"
+    }
+  ],
+  "904a830405": [
+    {
+      "type": 0,
+      "value": "Nimeä uudelleen"
+    }
+  ],
+  "91e49bb0eb": [
+    {
+      "type": 0,
+      "value": "Kopioi tiedostoihini"
+    }
+  ],
+  "96165d6df5": [
+    {
+      "type": 0,
+      "value": "Tämä kuukausi"
+    }
+  ],
+  "9914a0ce04": [
+    {
+      "type": 0,
+      "value": "Kevyt"
+    }
+  ],
+  "9bef626805": [
+    {
+      "type": 0,
+      "value": "Poista tiedosto"
+    }
+  ],
+  "9c258b8f88": [
+    {
+      "type": 0,
+      "value": "Tämä anonyymi tldraw-moninpelihuone on nyt vain luku -tilassa. Jatkaaksesi muokkaamista, kirjaudu sisään ja kopioi se tiedostoihisi."
+    }
+  ],
+  "9ceb927baa": [
+    {
+      "type": 0,
+      "value": "Julkaise tämä tiedosto"
+    }
+  ],
+  "9e076f5885": [
+    {
+      "type": 0,
+      "value": "Ei löytynyt"
+    }
+  ],
+  "9e93c98d88": [
+    {
+      "type": 0,
+      "value": "Poista käytöstä"
+    }
+  ],
+  "a0da245992": [
+    {
+      "type": 0,
+      "value": "Vie sisältö .tldr-tiedostona: Valitse vasemman yläkulman valikosta \"Lataa\"."
+    }
+  ],
+  "a104439641": [
+    {
+      "type": 0,
+      "value": "Pehmuste"
+    }
+  ],
+  "a18366b217": [
+    {
+      "type": 0,
+      "value": "Tumma"
+    }
+  ],
+  "a1c915578c": [
+    {
+      "type": 0,
+      "value": "Etsimääsi tiedostoa ei ole olemassa."
+    }
+  ],
+  "a239905023": [
+    {
+      "type": 0,
+      "value": "Vie kuva"
+    }
+  ],
+  "a3debabee7": [
+    {
+      "type": 0,
+      "value": "Evästekäytäntö"
+    }
+  ],
+  "a4d3b161ce": [
+    {
+      "type": 0,
+      "value": "Lähetä"
+    }
+  ],
+  "a6cc403d56": [
+    {
+      "type": 0,
+      "value": "Kaikki, joilla on linkki"
+    }
+  ],
+  "a768caa988": [
+    {
+      "type": 0,
+      "value": "Analytics"
+    }
+  ],
+  "a9ded1e5ce": [
+    {
+      "type": 0,
+      "value": "Tausta"
+    }
+  ],
+  "ab0df9ba36": [
+    {
+      "type": 0,
+      "value": "Tiedostoraja saavutettu"
+    }
+  ],
+  "af3dc88931": [
+    {
+      "type": 0,
+      "value": "Viimeksi julkaistu "
+    },
+    {
+      "children": [
+      ],
+      "type": 8,
+      "value": "date"
+    }
+  ],
+  "b028909917": [
+    {
+      "type": 0,
+      "value": "Vieraskäyttäjä"
+    }
+  ],
+  "b52dc007ac": [
+    {
+      "type": 0,
+      "value": "Rekisteröidy (ilmainen ja hyvä)"
+    }
+  ],
+  "b6d4223e60": [
+    {
+      "type": 0,
+      "value": "Kirjaudu sisään"
+    }
+  ],
+  "b758336699": [
+    {
+      "type": 0,
+      "value": "Kopioi linkki"
+    }
+  ],
+  "ba0318cb81": [
+    {
+      "type": 0,
+      "value": "Kirjaudu sisään jakaaksesi"
+    }
+  ],
+  "bb792693e2": [
+    {
+      "type": 0,
+      "value": "Irrota kiinnitys"
+    }
+  ],
+  "bbbcefd7ce": [
+    {
+      "offset": 0,
+      "options": {
+        "one": {
+          "value": [
+            {
+              "type": 0,
+              "value": "Ladataan .tldr-tiedostoa…"
+            }
+          ]
+        },
+        "other": {
+          "value": [
+            {
+              "type": 0,
+              "value": "Ladataan "
+            },
+            {
+              "type": 1,
+              "value": "uploaded"
+            },
+            {
+              "type": 0,
+              "value": " / "
+            },
+            {
+              "type": 1,
+              "value": "total"
+            },
+            {
+              "type": 0,
+              "value": " .tldr-tiedostosta…"
+            }
+          ]
+        }
+      },
+      "pluralType": "cardinal",
+      "type": 6,
+      "value": "total"
+    }
+  ],
+  "bc88b0e89e": [
+    {
+      "type": 0,
+      "value": "Jakaja "
+    },
+    {
+      "type": 1,
+      "value": "ownerName"
+    }
+  ],
+  "bcb62136a3": [
+    {
+      "type": 0,
+      "value": "Lataa .tldr-tiedostoja"
+    }
+  ],
+  "bffe9a3c9a": [
+    {
+      "type": 0,
+      "value": "Kirjaudu sisään"
+    }
+  ],
+  "c079282475": [
+    {
+      "type": 0,
+      "value": "Jaa työsi"
+    }
+  ],
+  "c2276c9127": [
+    {
+      "type": 0,
+      "value": "Lisätietoja jakamisesta."
+    }
+  ],
+  "c24e43cd1a": [
+    {
+      "type": 0,
+      "value": "Ilmoittauduthan mukaan, eikö niin?"
+    }
+  ],
+  "c303bd1095": [
+    {
+      "type": 0,
+      "value": "Tiedostoa ei voi julkaista."
+    }
+  ],
+  "c4b39a1cc3": [
+    {
+      "type": 0,
+      "value": "Välttämättömät evästeet"
+    }
+  ],
+  "c655b27b1e": [
+    {
+      "type": 0,
+      "value": "i18n: Pitkä merkkijono"
+    }
+  ],
+  "c6a00f137b": [
+    {
+      "type": 0,
+      "value": "Kutsu"
+    }
+  ],
+  "c87aacf567": [
+    {
+      "type": 0,
+      "value": "Kirjaudu ulos"
+    }
+  ],
+  "c8c6a6504a": [
+    {
+      "type": 0,
+      "value": "Sinun pitäisi rekisteröityä"
+    }
+  ],
+  "cceaefbc20": [
+    {
+      "type": 0,
+      "value": "Jaa tämä tiedosto"
+    }
+  ],
+  "cd15a75c26": [
+    {
+      "type": 0,
+      "value": "SVG"
+    }
+  ],
+  "cea291e45e": [
+    {
+      "type": 0,
+      "value": "Lisätietoja julkaisemisesta."
+    }
+  ],
+  "d0eedb7995": [
+    {
+      "type": 0,
+      "value": "Hei"
+    }
+  ],
+  "d3d2e61733": [
+    {
+      "type": 0,
+      "value": "Lähellä"
+    }
+  ],
+  "d4bbf74f3e": [
+    {
+      "type": 0,
+      "value": "Vaihda sivupalkki"
+    }
+  ],
+  "d721757161": [
+    {
+      "type": 0,
+      "value": "Teema"
+    }
+  ],
+  "d876a9fe1a": [
+    {
+      "type": 0,
+      "value": "Yritä uudelleen"
+    }
+  ],
+  "d8a50c79a7": [
+    {
+      "type": 0,
+      "value": "Tule kanssani piirtämään"
+    }
+  ],
+  "d9100f3e10": [
+    {
+      "type": 0,
+      "value": "Siirry tänne nähdäksesi sisällön"
+    }
+  ],
+  "da404df474": [
+    {
+      "type": 0,
+      "value": "Tallenna työsi"
+    }
+  ],
+  "db4c2dab9a": [
+    {
+      "type": 0,
+      "value": "Ei Excalidraw"
+    }
+  ],
+  "dbbebf3c03": [
+    {
+      "type": 0,
+      "value": "Vain kutsu"
+    }
+  ],
+  "dfdb78a4e4": [
+    {
+      "type": 0,
+      "value": "Sovelluksen virheenkorjausliput"
+    }
+  ],
+  "e2ae80a510": [
+    {
+      "type": 0,
+      "value": "Oikeudellinen yhteenveto"
+    }
+  ],
+  "e404559826": [
+    {
+      "type": 0,
+      "value": "Palveluehdot"
+    }
+  ],
+  "e78e14c5f1": [
+    {
+      "type": 0,
+      "value": "Pin"
+    }
+  ],
+  "ea4788705e": [
+    {
+      "type": 0,
+      "value": "Peruuttaa"
+    }
+  ],
+  "ebfe9ce86e": [
+    {
+      "type": 0,
+      "value": "Eilen"
+    }
+  ],
+  "ec59b960ea": [
+    {
+      "type": 0,
+      "value": "Tämä tiedosto on saavuttanut aktiivisten yhteiskäyttäjien enimmäismäärän."
+    }
+  ],
+  "ec611e9a08": [
+    {
+      "type": 0,
+      "value": "Tili-valikko"
+    }
+  ],
+  "ed53713239": [
+    {
+      "type": 0,
+      "value": "i18n: Aksentoitu"
+    }
+  ],
+  "ed75712b0e": [
+    {
+      "type": 0,
+      "value": "Kopioi"
+    }
+  ],
+  "ede55d955f": [
+    {
+      "type": 0,
+      "value": "Lue lisää "
+    },
+    {
+      "children": [
+        {
+          "type": 0,
+          "value": "evästekäytännöstämme"
+        }
+      ],
+      "type": 8,
+      "value": "a"
+    },
+    {
+      "type": 0,
+      "value": "."
+    }
+  ],
+  "f09b16bc5f": [
+    {
+      "type": 0,
+      "value": "Käytämme evästeitä pitääksemme sinut kirjautuneena sisään, synkronoidaksemme tiedostosi ja kerätäksemme analytiikkaa tldrawin parantamiseksi."
+    }
+  ],
+  "f0e8bff6f9": [
+    {
+      "type": 0,
+      "value": "Käyttäjäasetukset"
+    }
+  ],
+  "f2569594b2": [
+    {
+      "type": 0,
+      "value": "Käytämme näitä evästeitä tiedostojesi ja asetuksiesi tallentamiseen."
+    }
+  ],
+  "f2a6c498fb": [
+    {
+      "type": 0,
+      "value": "Poistaa"
+    }
+  ],
+  "f43fb62093": [
+    {
+      "type": 0,
+      "value": "Takaisin tldraw."
+    }
+  ],
+  "f4f70727dc": [
+    {
+      "type": 0,
+      "value": "Asetukset"
+    }
+  ],
+  "fb15c53f22": [
+    {
+      "type": 0,
+      "value": "Katsoja"
+    }
+  ],
+  "fd1be3efcf": [
+    {
+      "type": 0,
+      "value": "Haluatko varmasti poistaa tämän tiedoston?"
+    }
+  ],
+  "fd27891570": [
+    {
+      "type": 0,
+      "value": "Liity odotuslistalle"
+    }
+  ],
+  "fed5ec05eb": [
+    {
+      "type": 0,
+      "value": "Linkki kopioitu"
+    }
+  ],
+  "ffcd73e997": [
+    {
+      "type": 0,
+      "value": "Tuo tiedosto…"
+    }
+  ]
 }

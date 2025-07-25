@@ -33,7 +33,7 @@ const doMockClipboard = () => {
 		},
 	})
 
-	globalThis.ClipboardItem = jest.fn((payload: any) => payload)
+	globalThis.ClipboardItem = jest.fn((payload: any) => payload) as any
 
 	return context
 }

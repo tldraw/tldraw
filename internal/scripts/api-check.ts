@@ -8,10 +8,14 @@ import { getAllWorkspacePackages } from './lib/workspace'
 const packagesOurTypesCanDependOn = [
 	'@types/lodash.throttle',
 	'@types/lodash.uniq',
+	'@types/lodash.isequal',
+	'@types/lodash.isequalwith',
 	'@types/react',
 	'@types/react-dom',
 	'eventemitter3',
 	'nanoevents',
+	'@tiptap/react',
+	'@tiptap/core',
 ]
 
 main()
@@ -19,7 +23,7 @@ main()
 async function main() {
 	const tsconfig: any = {
 		compilerOptions: {
-			lib: ['es2015', 'dom'],
+			lib: ['esnext', 'dom'],
 			strict: true,
 			rootDir: '.',
 			paths: {},

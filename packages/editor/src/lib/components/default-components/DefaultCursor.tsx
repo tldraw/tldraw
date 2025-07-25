@@ -6,6 +6,7 @@ import { useTransform } from '../../hooks/useTransform'
 
 /** @public */
 export interface TLCursorProps {
+	userId: string
 	className?: string
 	point: VecModel | null
 	zoom: number
@@ -32,7 +33,7 @@ export const DefaultCursor = memo(function DefaultCursor({
 
 	return (
 		<div ref={rCursor} className={classNames('tl-overlays__item', className)}>
-			<svg className="tl-cursor">
+			<svg className="tl-cursor" aria-hidden="true">
 				<use href={`#${cursorId}`} color={color} />
 			</svg>
 			{chatMessage ? (

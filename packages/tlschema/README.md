@@ -26,7 +26,7 @@ If you are making a change that affects the structure of a record, shape, or ass
 
 If you are making a change that affects the structure of the store (e.g. renaming or deleting a type, consolidating two shape types into one, etc), add your changes in the migrations in `schema.ts`.
 
-After making your changes, add a new version number, using a meaninful name. For example, if you add a new property
+After making your changes, add a new version number, using a meaningful name. For example, if you add a new property
 to the `TLShape` type called `ownerId` that points to a user, you might do this:
 
 In `TLShape.ts`
@@ -84,7 +84,7 @@ Please see our [contributing guide](https://github.com/tldraw/tldraw/blob/main/C
 
 ## Community
 
-Have questions, comments or feedback? [Join our discord](https://discord.gg/rhsyWMUJxd) or [start a discussion](https://github.com/tldraw/tldraw/discussions/new). For the latest news and release notes, visit [tldraw.dev](https://tldraw.dev).
+Have questions, comments or feedback? [Join our discord](https://discord.tldraw.com/?utm_source=github&utm_medium=readme&utm_campaign=sociallink). For the latest news and release notes, visit [tldraw.dev](https://tldraw.dev).
 
 ## Contact
 

@@ -16,7 +16,7 @@ function isChild(x: any): x is Child {
  * @param child The child to check.
  * @returns True if the child's parents have changed, false otherwise.
  */
-export function haveParentsChanged(child: Child) {
+export function haveParentsChanged(child: Child): boolean {
 	for (let i = 0, n = child.parents.length; i < n; i++) {
 		// Get the parent's value without capturing it.
 		child.parents[i].__unsafe__getWithoutCapture(true)
@@ -95,3 +95,17 @@ export function singleton<T>(key: string, init: () => T): T {
  * @public
  */
 export const EMPTY_ARRAY: [] = singleton('empty_array', () => Object.freeze([]) as any)
+
+/**
+ * Does this signal have any active reactors attached to it? When it changes, will it cause anything to run?
+ * @public
+ */
+export function hasReactors(signal: Signal<any>) {
+	for (const child of signal.children) {
+		if (child.isActivelyListening) {
+			return true
+		}
+	}
+
+	return false
+}

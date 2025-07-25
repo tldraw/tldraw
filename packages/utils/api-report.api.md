@@ -4,6 +4,8 @@
 
 ```ts
 
+import { default as isEqual } from 'lodash.isequal';
+import { default as isEqualWith } from 'lodash.isequalwith';
 import { default as throttle } from 'lodash.throttle';
 import { default as uniq } from 'lodash.uniq';
 
@@ -47,13 +49,16 @@ export function debounce<T extends unknown[], U>(callback: (...args: T) => Promi
 export function dedupe<T>(input: T[], equals?: (a: any, b: any) => boolean): T[];
 
 // @public (undocumented)
-export const DEFAULT_SUPPORT_VIDEO_TYPES: readonly string[];
+export const DEFAULT_SUPPORT_VIDEO_TYPES: readonly ("video/mp4" | "video/quicktime" | "video/webm")[];
 
 // @public (undocumented)
-export const DEFAULT_SUPPORTED_IMAGE_TYPES: readonly string[];
+export const DEFAULT_SUPPORTED_IMAGE_TYPES: readonly ("image/apng" | "image/avif" | "image/gif" | "image/jpeg" | "image/png" | "image/svg+xml" | "image/webp")[];
 
 // @public (undocumented)
 export const DEFAULT_SUPPORTED_MEDIA_TYPE_LIST: string;
+
+// @public (undocumented)
+export const DEFAULT_SUPPORTED_MEDIA_TYPES: readonly ("image/apng" | "image/avif" | "image/gif" | "image/jpeg" | "image/png" | "image/svg+xml" | "image/webp" | "video/mp4" | "video/quicktime" | "video/webm")[];
 
 // @internal
 export function deleteFromLocalStorage(key: string): void;
@@ -83,6 +88,8 @@ export class ExecutionQueue {
     // (undocumented)
     close(): void;
     // (undocumented)
+    isEmpty(): boolean;
+    // (undocumented)
     push<T>(task: () => T): Promise<Awaited<T>>;
 }
 
@@ -102,12 +109,18 @@ export { fetch_2 as fetch }
 export class FileHelpers {
     static blobToDataUrl(file: Blob): Promise<string>;
     static blobToText(file: Blob): Promise<string>;
-    // (undocumented)
+    // @deprecated (undocumented)
     static dataUrlToArrayBuffer(dataURL: string): Promise<ArrayBuffer>;
     // (undocumented)
     static rewriteMimeType(blob: Blob, newMimeType: string): Blob;
     // (undocumented)
     static rewriteMimeType(blob: File, newMimeType: string): File;
+    // (undocumented)
+    static urlToArrayBuffer(url: string): Promise<ArrayBuffer>;
+    // (undocumented)
+    static urlToBlob(url: string): Promise<Blob>;
+    // (undocumented)
+    static urlToDataUrl(url: string): Promise<string>;
 }
 
 // @internal
@@ -125,6 +138,9 @@ export function fpsThrottle(fn: {
     (): void;
     cancel?(): void;
 };
+
+// @internal (undocumented)
+export function getChangedKeys<T extends object>(obj1: T, obj2: T): (keyof T)[];
 
 // @internal (undocumented)
 export function getErrorAnnotations(error: Error): ErrorAnnotations;
@@ -172,6 +188,9 @@ export function getIndicesBetween(below: IndexKey | null | undefined, above: Ind
 export function getOwnProperty<K extends string, V>(obj: Partial<Record<K, V>>, key: K): undefined | V;
 
 // @internal (undocumented)
+export function getOwnProperty<O extends object>(obj: O, key: string): O[keyof O] | undefined;
+
+// @internal (undocumented)
 export function getOwnProperty(obj: object, key: string): unknown;
 
 // @internal (undocumented)
@@ -194,6 +213,13 @@ export function invLerp(a: number, b: number, t: number): number;
 
 // @public
 export function isDefined<T>(value: T): value is typeof value extends undefined ? never : T;
+
+export { isEqual }
+
+// @internal (undocumented)
+export function isEqualAllowingForFloatingPointErrors(obj1: object, obj2: object, threshold?: number): boolean;
+
+export { isEqualWith }
 
 // @internal (undocumented)
 export const isNativeStructuredClone: boolean;
@@ -260,6 +286,11 @@ export function measureDuration(_target: any, propertyKey: string, descriptor: P
 
 // @public
 export class MediaHelpers {
+    static getImageAndDimensions(src: string): Promise<{
+        h: number;
+        image: HTMLImageElement;
+        w: number;
+    }>;
     static getImageSize(blob: Blob): Promise<{
         h: number;
         w: number;
@@ -280,11 +311,15 @@ export class MediaHelpers {
     static isStaticImageType(mimeType: null | string): boolean;
     // (undocumented)
     static isVectorImageType(mimeType: null | string): boolean;
-    static loadImage(src: string): Promise<HTMLImageElement>;
     static loadVideo(src: string): Promise<HTMLVideoElement>;
     // (undocumented)
     static usingObjectURL<T>(blob: Blob, fn: (url: string) => Promise<T>): Promise<T>;
 }
+
+// @internal (undocumented)
+export function mergeArraysAndReplaceDefaults<const Key extends string, T extends {
+    [K in Key]: string;
+}>(key: Key, customEntries: readonly T[], defaults: readonly T[]): T[];
 
 // @internal (undocumented)
 export function minBy<T>(arr: readonly T[], fn: (item: T) => number): T | undefined;
@@ -325,6 +360,9 @@ export interface OkResult<T> {
     // (undocumented)
     readonly value: T;
 }
+
+// @internal (undocumented)
+export function omit(obj: Record<string, unknown>, keys: ReadonlyArray<string>): Record<string, unknown>;
 
 // @internal
 export function omitFromStackTrace<Args extends Array<unknown>, Return>(fn: (...args: Args) => Return): (...args: Args) => Return;

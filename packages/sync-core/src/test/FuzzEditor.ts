@@ -9,9 +9,11 @@ import {
 	TLStore,
 	VecModel,
 	createShapeId,
+	defaultAddFontsFromNode,
 	defaultBindingUtils,
 	defaultShapeUtils,
 	defaultTools,
+	tipTapDefaultExtensions,
 } from 'tldraw'
 import { RandomSource } from './RandomSource'
 
@@ -104,6 +106,12 @@ export class FuzzEditor extends RandomSource {
 			initialState: 'select',
 			store,
 			getContainer: () => document.createElement('div'),
+			textOptions: {
+				addFontsFromNode: defaultAddFontsFromNode,
+				tipTapConfig: {
+					extensions: tipTapDefaultExtensions,
+				},
+			},
 		})
 	}
 

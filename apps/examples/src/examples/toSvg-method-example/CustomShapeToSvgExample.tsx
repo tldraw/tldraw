@@ -143,7 +143,7 @@ export default function CustomShapeToSvgExample() {
 [3]
 	If your shape contains text, you may need to add a font definition to the SVG. This is done
 	using the `addExportDef` method of the `SvgExportContext`. Your font def must contain a unique
-	key and a function that returns a React element. Check out the `getFontDefForExport` function
+	key and a function that returns a React element. Check out the `` function
 	in the `defaultStyleDefs.tsx` file for an example of how this is done for tldraw fonts.
 
  */

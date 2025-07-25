@@ -17,14 +17,14 @@ export default defineConfig({
 	// Run files in parallel, but tests within a file in sequence. This is important for certain
 	// tests that use shared system resources like the clipboard, which should all be kept in the
 	// same file.
-	fullyParallel: false,
+	fullyParallel: process.env.STAGING_TESTS ? true : false,
 	/* Fail the build on CI if you accidentally left test.only in the source code. */
 	forbidOnly: !!process.env.CI,
 	/* Retry on CI only */
 	retries: process.env.CI ? 2 : 0,
 	// For now we need to use 1 worker for dev as well, otherwise clearing the db fails since there might
 	// an open connection to the db when we are trying to clear it.
-	workers: process.env.CI ? 2 : 3,
+	workers: process.env.STAGING_TESTS ? 6 : process.env.CI ? 2 : 3,
 	/* Reporter to use. See https://playwright.dev/docs/test-reporters */
 	reporter: process.env.CI ? [['list'], ['github'], ['html', { open: 'never' }]] : 'list',
 	/* Shared settings for all the projects below. See https://playwright.dev/docs/api/class-testoptions. */
@@ -37,14 +37,15 @@ export default defineConfig({
 		trace: 'on-first-retry',
 		video: 'retain-on-failure',
 		launchOptions: {
-			// Uncomment this to make the browser slow down. Usefull when debugging in the headed mode.
+			// Uncomment this to make the browser slow down. Useful when debugging in the headed mode.
 			// slowMo: 1000,
 		},
 	},
 
 	/* Configure projects for major browsers */
 	projects: [
-		{ name: 'global-setup', testMatch: /global.setup\.ts/ },
+		{ name: 'global-setup', testMatch: /global\.setup\.ts/ },
+		{ name: 'global-staging-setup', testMatch: /global-staging\.setup\.ts/ },
 		{
 			name: 'chromium',
 			use: {
@@ -52,10 +53,18 @@ export default defineConfig({
 			},
 			dependencies: ['global-setup'],
 		},
-
 		// {
 		// 	name: 'firefox',
 		// 	use: { ...devices['Desktop Firefox'] },
+		{
+			name: 'staging',
+			use: {
+				...devices['Desktop Chrome'],
+				storageState: 'e2e/.auth/staging.json',
+			},
+			testMatch: /staging\.spec\.ts/,
+			dependencies: ['global-staging-setup'],
+		},
 		// },
 		// {
 		// 	name: 'webkit',
@@ -93,5 +102,6 @@ export default defineConfig({
 		cwd: path.join(__dirname, '../../../'),
 		// remove comment if you wish to see the output of the server
 		// stdout: 'pipe',
+		// stderr: 'pipe',
 	},
 })

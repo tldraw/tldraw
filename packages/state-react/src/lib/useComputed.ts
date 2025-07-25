@@ -2,10 +2,11 @@
 import { Computed, ComputedOptions, computed } from '@tldraw/state'
 import { useMemo } from 'react'
 
+/** @public */
+export function useComputed<Value>(name: string, compute: () => Value, deps: any[]): Computed<Value>
+
 /**
  * Creates a new computed signal and returns it. The computed signal will be created only once.
- *
- * See [[computed]]
  *
  * @example
  * ```ts
@@ -22,8 +23,6 @@ import { useMemo } from 'react'
  *
  * @public
  */
-export function useComputed<Value>(name: string, compute: () => Value, deps: any[]): Computed<Value>
-/** @public */
 export function useComputed<Value, Diff = unknown>(
 	name: string,
 	compute: () => Value,

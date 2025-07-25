@@ -1,15 +1,22 @@
 import {
 	BaseBoxShapeUtil,
+	DefaultColorStyle,
 	Geometry2d,
 	Group2d,
 	Rectangle2d,
 	SVGContainer,
 	SvgExportContext,
+	TLClickEventInfo,
+	TLDragShapesOutInfo,
+	TLDragShapesOverInfo,
 	TLFrameShape,
 	TLFrameShapeProps,
-	TLGroupShape,
 	TLResizeInfo,
 	TLShape,
+	TLShapePartial,
+	TLShapeUtilConstructor,
+	clamp,
+	compact,
 	frameShapeMigrations,
 	frameShapeProps,
 	getDefaultColorTheme,
@@ -19,7 +26,7 @@ import {
 	useValue,
 } from '@tldraw/editor'
 import classNames from 'classnames'
-
+import { fitFrameToContent, getFrameChildrenBounds } from '../../utils/frames/frames'
 import {
 	TLCreateTextJsxFromSpansOpts,
 	createTextJsxFromSpans,
@@ -32,6 +39,20 @@ import {
 	getFrameHeadingSize,
 	getFrameHeadingTranslation,
 } from './frameHelpers'
+
+// Some of these values are repeated in CSS and need to match
+const FRAME_HEADING_EXTRA_WIDTH = 12
+const FRAME_HEADING_MIN_WIDTH = 32
+const FRAME_HEADING_NOCOLORS_OFFSET_X = -7
+const FRAME_HEADING_OFFSET_Y = 4
+
+/** @public */
+export interface FrameShapeOptions {
+	/**
+	 * When true, the frame will display colors for the shape's headings and background.
+	 */
+	showColors: boolean
+}
 
 export function defaultEmptyAs(str: string, dflt: string) {
 	if (str.match(/^\s*$/)) {
@@ -46,55 +67,112 @@ export class FrameShapeUtil extends BaseBoxShapeUtil<TLFrameShape> {
 	static override props = frameShapeProps
 	static override migrations = frameShapeMigrations
 
+	override options: FrameShapeOptions = {
+		showColors: false,
+	}
+
+	// evil crimes :)
+	// By default, showColors is off. Because they use style props, which are picked up
+	// automatically, we don't have DefaultColorStyle in the props in the schema by default.
+	// Instead, when someone calls .configure to turn the option on, we manually add in the color
+	// style here so it plays nicely with the other editor APIs.
+	static override configure<T extends TLShapeUtilConstructor<any, any>>(
+		this: T,
+		options: T extends new (...args: any[]) => { options: infer Options } ? Partial<Options> : never
+	): T {
+		const withOptions = super.configure.call(this, options) as T
+		if ((options as any).showColors) {
+			;(withOptions as any).props = { ...withOptions.props, color: DefaultColorStyle }
+		}
+		return withOptions
+	}
+
 	override canEdit() {
 		return true
 	}
 
+	override canResize() {
+		return true
+	}
+
+	override canResizeChildren() {
+		return false
+	}
+
 	override getDefaultProps(): TLFrameShape['props'] {
-		return { w: 160 * 2, h: 90 * 2, name: '' }
+		return { w: 160 * 2, h: 90 * 2, name: '', color: 'black' }
+	}
+
+	override getAriaDescriptor(shape: TLFrameShape) {
+		return shape.props.name
 	}
 
 	override getGeometry(shape: TLFrameShape): Geometry2d {
 		const { editor } = this
+
 		const z = editor.getZoomLevel()
-		const opts = getFrameHeadingOpts(shape, 'black')
-		const box = getFrameHeadingSize(editor, shape, opts)
+
+		// Which dimension measures the top edge after rotation?
 		const labelSide = getFrameHeadingSide(editor, shape)
+		const isVertical = labelSide % 2 === 1
+		const rotatedTopEdgeWidth = isVertical ? shape.props.h : shape.props.w
 
-		// wow this fucking sucks!!!
-		let x: number, y: number, w: number, h: number
+		// Get the size of the heading (max width equal to the rotatedTopEdgeWidth)
+		const opts = getFrameHeadingOpts(rotatedTopEdgeWidth, false)
+		const headingSize = getFrameHeadingSize(editor, shape, opts)
 
-		const { w: hw, h: hh } = box
-		const scaledW = Math.min(hw, shape.props.w * z)
-		const scaledH = Math.min(hh, shape.props.h * z)
+		// If NOT showing frame colors, we need to offset the label
+		// to the left so that the title is in line with the shape edge
+		// and add that extra width to the right side of the label
+		const isShowingFrameColors = this.options.showColors
+
+		// Scale everything into **screen space**
+		const extraWidth = FRAME_HEADING_EXTRA_WIDTH / z
+		const minWidth = FRAME_HEADING_MIN_WIDTH / z
+		const maxWidth = rotatedTopEdgeWidth + (isShowingFrameColors ? 1 : extraWidth)
+
+		const labelWidth = headingSize.w / z
+		const labelHeight = headingSize.h / z
+
+		const clampedLabelWidth = clamp(labelWidth + extraWidth, minWidth, maxWidth)
+
+		const offsetX = (isShowingFrameColors ? -1 : FRAME_HEADING_NOCOLORS_OFFSET_X) / z
+		const offsetY = FRAME_HEADING_OFFSET_Y / z
+
+		// In page space
+		const width = isVertical ? labelHeight : clampedLabelWidth
+		const height = isVertical ? clampedLabelWidth : labelHeight
+
+		// Calculate label position based on side. The position needs to always appear
+		// at the top left of the shape, regardless of rotation. The label must be
+		// between a minimum and maximum. The minimum is arbitrary; the maximum is the
+		// width of the edge of the frame where the label will be shown.
+
+		let x: number, y: number
 
 		switch (labelSide) {
 			case 0: {
-				x = -8 / z
-				y = (-hh - 4) / z
-				w = (scaledW + 16) / z
-				h = hh / z
+				// top
+				x = offsetX
+				y = -(labelHeight + offsetY)
 				break
 			}
 			case 1: {
-				x = (-hh - 4) / z
-				h = (scaledH + 16) / z
-				y = shape.props.h - h + 8 / z
-				w = hh / z
+				// right
+				x = -(labelHeight + offsetY)
+				y = shape.props.h - (offsetX + clampedLabelWidth)
 				break
 			}
 			case 2: {
-				x = shape.props.w - (scaledW + 8) / z
-				y = shape.props.h + 4 / z
-				w = (scaledH + 16) / z
-				h = hh / z
+				// bottom
+				x = shape.props.w - (offsetX + clampedLabelWidth)
+				y = shape.props.h + offsetY
 				break
 			}
 			case 3: {
-				x = shape.props.w + 4 / z
-				h = (scaledH + 16) / z
-				y = -8 / z
-				w = hh / z
+				// left
+				x = shape.props.w + offsetY
+				y = offsetX
 				break
 			}
 		}
@@ -109,8 +187,8 @@ export class FrameShapeUtil extends BaseBoxShapeUtil<TLFrameShape> {
 				new Rectangle2d({
 					x,
 					y,
-					width: w,
-					height: h,
+					width,
+					height,
 					isFilled: true,
 					isLabel: true,
 				}),
@@ -141,23 +219,40 @@ export class FrameShapeUtil extends BaseBoxShapeUtil<TLFrameShape> {
 			[shape.id]
 		)
 
+		const showFrameColors = this.options.showColors
+
+		const color = theme[shape.props.color]
+		const frameFill = showFrameColors ? color.frame.fill : theme.black.frame.fill
+		const frameStroke = showFrameColors ? color.frame.stroke : theme.black.frame.stroke
+		const frameHeadingStroke = showFrameColors ? color.frame.headingStroke : theme.background
+		const frameHeadingFill = showFrameColors ? color.frame.headingFill : theme.background
+		const frameHeadingText = showFrameColors ? color.frame.text : theme.text
+
 		return (
 			<>
 				<SVGContainer>
 					<rect
 						className={classNames('tl-frame__body', { 'tl-frame__creating': isCreating })}
-						width={shape.props.w}
-						height={shape.props.h}
-						fill={theme.solid}
-						stroke={theme.text}
+						fill={frameFill}
+						stroke={frameStroke}
+						style={{
+							width: `calc(${shape.props.w}px + 1px / var(--tl-zoom))`,
+							height: `calc(${shape.props.h}px + 1px / var(--tl-zoom))`,
+							transform: `translate(calc(-0.5px / var(--tl-zoom)), calc(-0.5px / var(--tl-zoom)))`,
+						}}
 					/>
 				</SVGContainer>
 				{isCreating ? null : (
 					<FrameHeading
 						id={shape.id}
 						name={shape.props.name}
+						fill={frameHeadingFill}
+						stroke={frameHeadingStroke}
+						color={frameHeadingText}
 						width={shape.props.w}
 						height={shape.props.h}
+						offsetX={showFrameColors ? -1 : -7}
+						showColors={this.options.showColors}
 					/>
 				)}
 			</>
@@ -169,38 +264,51 @@ export class FrameShapeUtil extends BaseBoxShapeUtil<TLFrameShape> {
 
 		// rotate right 45 deg
 		const labelSide = getFrameHeadingSide(this.editor, shape)
+		const isVertical = labelSide % 2 === 1
+		const rotatedTopEdgeWidth = isVertical ? shape.props.h : shape.props.w
 		const labelTranslate = getFrameHeadingTranslation(shape, labelSide, true)
 
 		// Truncate with ellipsis
-		const opts: TLCreateTextJsxFromSpansOpts = getFrameHeadingOpts(shape, theme.text)
+		const opts: TLCreateTextJsxFromSpansOpts = getFrameHeadingOpts(rotatedTopEdgeWidth - 12, true)
 
 		const frameTitle = defaultEmptyAs(shape.props.name, 'Frame') + String.fromCharCode(8203)
 		const labelBounds = getFrameHeadingSize(this.editor, shape, opts)
 		const spans = this.editor.textMeasure.measureTextSpans(frameTitle, opts)
 		const text = createTextJsxFromSpans(this.editor, spans, opts)
 
+		const showFrameColors = this.options.showColors
+
+		const color = theme[shape.props.color]
+		const frameFill = showFrameColors ? color.frame.fill : theme.black.frame.fill
+		const frameStroke = showFrameColors ? color.frame.stroke : theme.black.frame.stroke
+		const frameHeadingStroke = showFrameColors ? color.frame.headingStroke : theme.background
+		const frameHeadingFill = showFrameColors ? color.frame.headingFill : theme.background
+		const frameHeadingText = showFrameColors ? color.frame.text : theme.text
+
 		return (
 			<>
 				<rect
 					width={shape.props.w}
 					height={shape.props.h}
-					fill={theme.solid}
-					stroke={theme.black.solid}
+					fill={frameFill}
+					stroke={frameStroke}
 					strokeWidth={1}
-					rx={1}
-					ry={1}
+					x={0}
+					rx={0}
+					ry={0}
 				/>
-				<g transform={labelTranslate}>
+				<g fill={frameHeadingText} transform={labelTranslate}>
 					<rect
-						x={labelBounds.x - 8}
-						y={labelBounds.y - 4}
-						width={labelBounds.width + 20}
+						x={labelBounds.x - (showFrameColors ? 0 : 6)}
+						y={labelBounds.y - 6}
+						width={Math.min(rotatedTopEdgeWidth, labelBounds.width + 12)}
 						height={labelBounds.height}
-						fill={theme.background}
+						fill={frameHeadingFill}
+						stroke={frameHeadingStroke}
 						rx={4}
 						ry={4}
 					/>
-					{text}
+					<g transform={`translate(${showFrameColors ? 8 : 0}, 4)`}>{text}</g>
 				</g>
 			</>
 		)
@@ -216,41 +324,18 @@ export class FrameShapeUtil extends BaseBoxShapeUtil<TLFrameShape> {
 		)
 	}
 
-	override canReceiveNewChildrenOfType(shape: TLShape, _type: TLShape['type']) {
-		return !shape.isLocked
-	}
-
 	override providesBackgroundForChildren(): boolean {
 		return true
 	}
 
-	override canDropShapes(shape: TLFrameShape, _shapes: TLShape[]): boolean {
+	override canReceiveNewChildrenOfType(shape: TLShape) {
 		return !shape.isLocked
-	}
-
-	override onDragShapesOver(frame: TLFrameShape, shapes: TLShape[]) {
-		if (!shapes.every((child) => child.parentId === frame.id)) {
-			this.editor.reparentShapes(shapes, frame.id)
-		}
-	}
-
-	override onDragShapesOut(_shape: TLFrameShape, shapes: TLShape[]): void {
-		const parent = this.editor.getShape(_shape.parentId)
-		const isInGroup = parent && this.editor.isShapeOfType<TLGroupShape>(parent, 'group')
-
-		// If frame is in a group, keep the shape
-		// moved out in that group
-
-		if (isInGroup) {
-			this.editor.reparentShapes(shapes, parent.id)
-		} else {
-			this.editor.reparentShapes(shapes, this.editor.getCurrentPageId())
-		}
 	}
 
 	override onResize(shape: any, info: TLResizeInfo<any>) {
 		return resizeBox(shape, info)
 	}
+
 	override getInterpolatedProps(
 		startShape: TLFrameShape,
 		endShape: TLFrameShape,
@@ -260,6 +345,112 @@ export class FrameShapeUtil extends BaseBoxShapeUtil<TLFrameShape> {
 			...(t > 0.5 ? endShape.props : startShape.props),
 			w: lerp(startShape.props.w, endShape.props.w, t),
 			h: lerp(startShape.props.h, endShape.props.h, t),
+		}
+	}
+
+	override onDoubleClickEdge(shape: TLFrameShape, info: TLClickEventInfo) {
+		if (info.target !== 'selection') return
+		const { handle } = info
+
+		// If handle is missing, we can't determine which edge was clicked
+		if (!handle) return
+
+		const isHorizontalEdge = handle === 'left' || handle === 'right'
+		const isVerticalEdge = handle === 'top' || handle === 'bottom'
+
+		const childIds = this.editor.getSortedChildIdsForParent(shape.id)
+		const children = compact(childIds.map((id) => this.editor.getShape(id)))
+		if (!children.length) return
+
+		const { dx, dy, w, h } = getFrameChildrenBounds(children, this.editor, { padding: 10 })
+
+		this.editor.run(() => {
+			const changes: TLShapePartial[] = childIds.map((childId) => {
+				const childShape = this.editor.getShape(childId)!
+				return {
+					id: childShape.id,
+					type: childShape.type,
+					x: isHorizontalEdge ? childShape.x + dx : childShape.x,
+					y: isVerticalEdge ? childShape.y + dy : childShape.y,
+				}
+			})
+
+			this.editor.updateShapes(changes)
+		})
+
+		return {
+			id: shape.id,
+			type: shape.type,
+			props: {
+				w: isHorizontalEdge ? w : shape.props.w,
+				h: isVerticalEdge ? h : shape.props.h,
+			},
+		}
+	}
+
+	override onDoubleClickCorner(shape: TLFrameShape) {
+		fitFrameToContent(this.editor, shape.id, { padding: 10 })
+		return {
+			id: shape.id,
+			type: shape.type,
+		}
+	}
+
+	override onDragShapesIn(
+		shape: TLFrameShape,
+		draggingShapes: TLShape[],
+		{ initialParentIds, initialIndices }: TLDragShapesOverInfo
+	) {
+		const { editor } = this
+
+		if (draggingShapes.every((s) => s.parentId === shape.id)) return
+
+		// Check to see whether any of the shapes can have their old index restored
+		let canRestoreOriginalIndices = false
+		const previousChildren = draggingShapes.filter((s) => shape.id === initialParentIds.get(s.id))
+
+		if (previousChildren.length > 0) {
+			const currentChildren = compact(
+				editor.getSortedChildIdsForParent(shape).map((id) => editor.getShape(id))
+			)
+			if (previousChildren.every((s) => !currentChildren.find((c) => c.index === s.index))) {
+				canRestoreOriginalIndices = true
+			}
+		}
+
+		// I can't imagine this happening, but if any of the children are the ancestor of the frame, quit here
+		if (draggingShapes.some((s) => editor.hasAncestor(shape, s.id))) return
+
+		// Reparent the shapes to the new parent
+		editor.reparentShapes(draggingShapes, shape.id)
+
+		// If we can restore the original indices, then do so
+		if (canRestoreOriginalIndices) {
+			for (const shape of previousChildren) {
+				editor.updateShape({
+					id: shape.id,
+					type: shape.type,
+					index: initialIndices.get(shape.id),
+				})
+			}
+		}
+	}
+
+	override onDragShapesOut(
+		shape: TLFrameShape,
+		draggingShapes: TLShape[],
+		info: TLDragShapesOutInfo
+	): void {
+		const { editor } = this
+		// When a user drags shapes out of a frame, and if we're not dragging into a new shape, then reparent
+		// the dragging shapes (that are current children of the frame) onto the current page instead
+		if (!info.nextDraggingOverShapeId) {
+			editor.reparentShapes(
+				draggingShapes.filter(
+					(s) => s.parentId === shape.id && this.canReceiveNewChildrenOfType(s)
+				),
+				editor.getCurrentPageId()
+			)
 		}
 	}
 }

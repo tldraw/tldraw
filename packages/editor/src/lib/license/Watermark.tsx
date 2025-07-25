@@ -1,6 +1,5 @@
 import { useValue } from '@tldraw/state-react'
 import { memo, useRef } from 'react'
-import { tlenv } from '../globals/environment'
 import { useCanvasEvents } from '../hooks/useCanvasEvents'
 import { useEditor } from '../hooks/useEditor'
 import { usePassThroughWheelEvents } from '../hooks/usePassThroughWheelEvents'
@@ -46,7 +45,7 @@ const WatermarkInner = memo(function WatermarkInner({ src }: { src: string }) {
 	usePassThroughWheelEvents(ref)
 
 	const maskCss = `url('${src}') center 100% / 100% no-repeat`
-	const url = 'https://tldraw.dev'
+	const url = 'https://tldraw.dev/?utm_source=dotcom&utm_medium=organic&utm_campaign=watermark'
 
 	return (
 		<div
@@ -57,34 +56,23 @@ const WatermarkInner = memo(function WatermarkInner({ src }: { src: string }) {
 			draggable={false}
 			{...events}
 		>
-			{tlenv.isWebview ? (
-				<a
-					draggable={false}
-					role="button"
-					onPointerDown={(e) => {
-						stopEventPropagation(e)
-						preventDefault(e)
-					}}
-					onClick={() => runtime.openWindow(url, '_blank')}
-					style={{ mask: maskCss, WebkitMask: maskCss }}
-				/>
-			) : (
-				<a
-					href={url}
-					target="_blank"
-					rel="noreferrer"
-					draggable={false}
-					onPointerDown={(e) => {
-						stopEventPropagation(e)
-					}}
-					style={{ mask: maskCss, WebkitMask: maskCss }}
-				/>
-			)}
+			<button
+				draggable={false}
+				role="button"
+				onPointerDown={(e) => {
+					stopEventPropagation(e)
+					preventDefault(e)
+				}}
+				title="made with tldraw"
+				onClick={() => runtime.openWindow(url, '_blank')}
+				style={{ mask: maskCss, WebkitMask: maskCss }}
+			/>
 		</div>
 	)
 })
 
 const LicenseStyles = memo(function LicenseStyles() {
+	const editor = useEditor()
 	const className = LicenseManager.className
 
 	const CSS = `/* ------------------- SEE LICENSE -------------------
@@ -114,7 +102,7 @@ To remove the watermark, please purchase a license at tldraw.dev.
 		box-sizing: content-box;
 	}
 
-	.${className} > a {
+	.${className} > button {
 		position: absolute;
 		width: 96px;
 		height: 32px;
@@ -122,6 +110,8 @@ To remove the watermark, please purchase a license at tldraw.dev.
 		cursor: inherit;
 		color: var(--color-text);
 		opacity: .38;
+		border: 0;
+		padding: 0;
 		background-color: currentColor;
 	}
 
@@ -136,13 +126,13 @@ To remove the watermark, please purchase a license at tldraw.dev.
 		height: 48px;
 	}
 
-	.${className}[data-mobile='true'] > a {
+	.${className}[data-mobile='true'] > button {
 		width: 8px;
 		height: 32px;
 	}
 
 	@media (hover: hover) {
-		.${className} > a {
+		.${className} > button {
 			pointer-events: none;
 		}
 
@@ -152,13 +142,18 @@ To remove the watermark, please purchase a license at tldraw.dev.
 			transition-delay: 0.32s;
 		}
 
-		.${className}:hover > a {
-			animation: delayed_link 0.2s forwards ease-in-out;
+		.${className}:hover > button {
+			animation: ${className}_delayed_link 0.2s forwards ease-in-out;
 			animation-delay: 0.32s;
+		}
+
+		.${className} > button:focus-visible {
+			opacity: 1;
 		}
 	}
 
-	@keyframes delayed_link {
+
+	@keyframes ${className}_delayed_link {
 		0% {
 			cursor: inherit;
 			opacity: .38;
@@ -171,5 +166,5 @@ To remove the watermark, please purchase a license at tldraw.dev.
 		}
 	}`
 
-	return <style>{CSS}</style>
+	return <style nonce={editor.options.nonce}>{CSS}</style>
 })

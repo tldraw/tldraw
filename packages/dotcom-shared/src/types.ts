@@ -75,10 +75,18 @@ export type UnpublishFileResponseBody =
 			message: string
 	  }
 
-export interface ZStoreData {
+export interface ZStoreDataV1 {
 	files: TlaFile[]
 	fileStates: TlaFileState[]
 	user: TlaUser
+	lsn: string
+}
+
+export interface ZStoreData {
+	file: TlaFile[]
+	file_state: TlaFileState[]
+	user: TlaUser[]
+	lsn: string
 }
 
 export type ZRowUpdate = ZRowInsert | ZRowDeleteOrUpdate
@@ -106,15 +114,17 @@ export const ZErrorCode = stringEnum(
 	'client_too_old',
 	'forbidden',
 	'bad_request',
-	'rate_limit_exceeded'
+	'rate_limit_exceeded',
+	'max_files_reached'
 )
 export type ZErrorCode = keyof typeof ZErrorCode
 
 // increment this to force clients to reload
 // e.g. if we make backwards-incompatible changes to the schema
-export const Z_PROTOCOL_VERSION = 1
+export const Z_PROTOCOL_VERSION = 2
+export const MIN_Z_PROTOCOL_VERSION = 2
 
-export type ZServerSentMessage =
+export type ZServerSentPacket =
 	| {
 			type: 'initial_data'
 			initialData: ZStoreData
@@ -133,15 +143,19 @@ export type ZServerSentMessage =
 			errorCode: ZErrorCode
 	  }
 
+export type ZServerSentMessage = ZServerSentPacket[]
+
 export interface ZClientSentMessage {
-	type: 'mutate'
+	type: 'mutator'
 	mutationId: string
-	updates: ZRowUpdate[]
+	name: string
+	props: object
 }
 
 export const UserPreferencesKeys = [
 	'locale',
 	'animationSpeed',
+	'areKeyboardShortcutsEnabled',
 	'edgeScrollSpeed',
 	'colorScheme',
 	'isSnapMode',
@@ -155,6 +169,7 @@ export const UserPreferencesKeys = [
 export interface SubmitFeedbackRequestBody {
 	description: string
 	allowContact: boolean
+	url: string
 }
 
 export const MAX_PROBLEM_DESCRIPTION_LENGTH = 2000

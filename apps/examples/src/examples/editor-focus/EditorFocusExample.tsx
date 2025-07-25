@@ -29,9 +29,7 @@ export default function EditorFocusExample() {
 					<label htmlFor="focus">Focus</label>
 				</div>
 			</div>
-			<p>
-				The checkbox controls the editor’s <code>instanceState.isFocused</code> property.
-			</p>
+			<p>The checkbox focuses and blurs the editor.</p>
 			<p>
 				When the editor is “focused”, its keyboard shortcuts will work. When it is not focused, the
 				keyboard shortcuts will not work.

@@ -47,7 +47,7 @@ export class DrawShapeUtil extends ShapeUtil<TLDrawShape> {
 	static override props = drawShapeProps
 	static override migrations = drawShapeMigrations
 
-	static options: DrawShapeOptions = {
+	override options: DrawShapeOptions = {
 		maxPointsPerShape: 600,
 	}
 
@@ -99,10 +99,19 @@ export class DrawShapeUtil extends ShapeUtil<TLDrawShape> {
 		).map((p) => p.point)
 
 		// A closed draw stroke
-		if (shape.props.isClosed) {
+		if (shape.props.isClosed && strokePoints.length > 2) {
 			return new Polygon2d({
 				points: strokePoints,
 				isFilled: shape.props.fill !== 'none',
+			})
+		}
+
+		if (strokePoints.length === 1) {
+			return new Circle2d({
+				x: -sw,
+				y: -sw,
+				radius: sw,
+				isFilled: true,
 			})
 		}
 
