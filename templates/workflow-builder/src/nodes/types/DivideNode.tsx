@@ -1,6 +1,6 @@
 import { T, useEditor } from 'tldraw'
 import { DivideIcon } from '../../components/icons/Divide'
-import { NODE_HEADER_HEIGHT_PX, NODE_PORT_OFFSET_Y_PX, NODE_ROW_HEIGHT_PX } from '../../constants'
+import { NODE_HEADER_HEIGHT_PX, NODE_ROW_HEADER_GAP_PX, NODE_ROW_HEIGHT_PX } from '../../constants'
 import { NodeBodyRow, NodeDefinition, outputPort, updateNode } from './shared'
 
 export const DivideNodeType = T.object({
@@ -26,13 +26,17 @@ export const DivideNode: NodeDefinition<DivideNode> = {
 		dividend: {
 			id: 'dividend',
 			x: 0,
-			y: NODE_HEADER_HEIGHT_PX + NODE_PORT_OFFSET_Y_PX,
+			y: NODE_HEADER_HEIGHT_PX + NODE_ROW_HEADER_GAP_PX + NODE_ROW_HEIGHT_PX / 2,
 			terminal: 'end',
 		},
 		divisor: {
 			id: 'divisor',
 			x: 0,
-			y: NODE_HEADER_HEIGHT_PX + NODE_PORT_OFFSET_Y_PX + NODE_ROW_HEIGHT_PX,
+			y:
+				NODE_HEADER_HEIGHT_PX +
+				NODE_ROW_HEADER_GAP_PX +
+				NODE_ROW_HEIGHT_PX +
+				NODE_ROW_HEIGHT_PX / 2,
 			terminal: 'end',
 		},
 	}),

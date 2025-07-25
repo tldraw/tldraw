@@ -1,6 +1,6 @@
 import { T, useEditor } from 'tldraw'
 import { MultiplyIcon } from '../../components/icons/Multiply'
-import { NODE_HEADER_HEIGHT_PX, NODE_PORT_OFFSET_Y_PX, NODE_ROW_HEIGHT_PX } from '../../constants'
+import { NODE_HEADER_HEIGHT_PX, NODE_ROW_HEADER_GAP_PX, NODE_ROW_HEIGHT_PX } from '../../constants'
 import { NodeBodyRow, NodeDefinition, outputPort, updateNode } from './shared'
 
 export const MultiplyNodeType = T.object({
@@ -26,13 +26,17 @@ export const MultiplyNode: NodeDefinition<MultiplyNode> = {
 		multiplicand: {
 			id: 'multiplicand',
 			x: 0,
-			y: NODE_HEADER_HEIGHT_PX + NODE_PORT_OFFSET_Y_PX,
+			y: NODE_HEADER_HEIGHT_PX + NODE_ROW_HEADER_GAP_PX + NODE_ROW_HEIGHT_PX / 2,
 			terminal: 'end',
 		},
 		multiplier: {
 			id: 'multiplier',
 			x: 0,
-			y: NODE_HEADER_HEIGHT_PX + NODE_PORT_OFFSET_Y_PX + NODE_ROW_HEIGHT_PX,
+			y:
+				NODE_HEADER_HEIGHT_PX +
+				NODE_ROW_HEADER_GAP_PX +
+				NODE_ROW_HEIGHT_PX +
+				NODE_ROW_HEIGHT_PX / 2,
 			terminal: 'end',
 		},
 	}),

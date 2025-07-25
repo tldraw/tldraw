@@ -1,4 +1,9 @@
 import { Editor, T } from 'tldraw'
+import {
+	NODE_HEADER_HEIGHT_PX,
+	NODE_ROW_BOTTOM_PADDING_PX,
+	NODE_ROW_HEADER_GAP_PX,
+} from '../constants'
 import { PortId, ShapePort } from '../ports/Port'
 import { NodeShape } from './NodeShapeUtil'
 import { AddNode } from './types/AddNode'
@@ -27,6 +32,15 @@ export function getNodeDefinition(node: NodeType | NodeType['type']): NodeDefini
 
 export function getNodeBodyHeightPx(node: NodeType): number {
 	return getNodeDefinition(node).getBodyHeightPx(node)
+}
+
+export function getNodeHeightPx(node: NodeType): number {
+	return (
+		NODE_HEADER_HEIGHT_PX +
+		NODE_ROW_HEADER_GAP_PX +
+		getNodeBodyHeightPx(node) +
+		NODE_ROW_BOTTOM_PADDING_PX
+	)
 }
 
 export function getNodeTypePorts(node: NodeType): Record<string, ShapePort> {

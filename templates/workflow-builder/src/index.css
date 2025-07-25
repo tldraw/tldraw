@@ -7,11 +7,6 @@ body {
 }
 
 .tl-container {
-	--node-width: 180px;
-	--node-header-height: 32.5px;
-	--node-row-height: 32px;
-	--node-port-offset-y: 15.5px;
-
 	--node-shadows: 0 2px 6px rgba(0, 0, 0, 0.08), 0 1px 2px rgba(0, 0, 0, 0.04);
 	--node-shadow-border:
 		0 0 0 1px rgba(0, 0, 0, 0.04), 0 2px 6px rgba(0, 0, 0, 0.08), 0 1px 2px rgba(0, 0, 0, 0.04);
@@ -21,27 +16,32 @@ body {
 }
 
 .NodeShape {
-	border-radius: var(--radius-2);
+	border-radius: var(--radius-3);
 	background: var(--color-panel);
 	box-shadow: var(--node-shadow-border);
 	width: 100%;
-	height: 100%;
+	height: fit-content;
 	display: flex;
 	flex-direction: column;
+	padding-bottom: var(--space-3);
 
 	.NodeShape-heading {
-		padding: 8px;
-		border-bottom: 1px solid var(--color-divider);
+		padding: 0 var(--space-4);
 		display: flex;
 		align-items: center;
 		justify-content: center;
-		gap: 12px;
-		height: 32px;
+		gap: var(--space-4);
+		height: 40px;
+		margin-bottom: var(--space-2);
 	}
 
 	.NodeShape-label {
 		flex: 1 1 auto;
-		font-weight: 700;
+		font-weight: 500;
+	}
+
+	.NodeShape-output {
+		font-variant-numeric: tabular-nums;
 	}
 
 	&.NodeShape_executing {
@@ -55,22 +55,50 @@ body {
 .NodeBodyRow {
 	display: flex;
 	flex-direction: row;
-	padding: 8px;
-	gap: 12px;
 	align-items: center;
 	justify-content: center;
-	height: 32px;
+	height: 44px;
+	gap: var(--space-4);
+	padding: var(--space-2) var(--space-4);
 
 	input {
+		align-self: stretch;
 		flex: 1 1 auto;
 		pointer-events: all;
-		border: none;
+		border: 1px solid var(--color-hint);
+		padding: 0 var(--space-4);
+		border-radius: var(--radius-3);
 		background: none;
 		font: inherit;
+		outline: none;
+
+		&:focus {
+			border-color: var(--color-selected);
+		}
+	}
+
+	.NodeBodyRow-buttons {
+		display: none;
+		position: absolute;
+		right: 19px;
+
+		button {
+			margin-right: -8px;
+			min-width: 38px;
+			height: 38px;
+		}
+	}
+
+	&:hover,
+	&:has(input:focus) {
+		.NodeBodyRow-buttons {
+			display: flex;
+		}
 	}
 }
 
 .Port {
+	position: absolute;
 	width: 12px;
 	height: 12px;
 	border-radius: 50%;
@@ -86,18 +114,14 @@ body {
 
 	&.Port_hinting {
 		background: var(--color-selected);
-		/* box-shadow:
-			0 0 0 calc(2px / var(--tl-zoom)) var(--color-selected),
-			0 0 0 1px rgba(0, 0, 0, 0.04),
-			0 1px 3px rgba(0, 0, 0, 0.12); */
 	}
 
 	&.Port_end {
-		margin-left: -14px;
+		left: -6px;
 	}
 
 	&.Port_start {
-		margin-right: -14px;
+		right: -6px;
 	}
 
 	&.Port_eligible {
@@ -147,15 +171,15 @@ body {
 	top: 0;
 	left: 0;
 	z-index: var(--layer-overlays);
-	--top: calc(var(--node-header-height) + var(--node-port-offset-y));
+	--top: 66px;
 	transform-origin: 0 0;
 
 	.OnCanvasComponentPicker-content {
 		position: absolute;
 		margin-top: calc(-1 * var(--top));
-		width: var(--node-width);
+		width: 180px;
 		padding-top: 4px;
-		border-radius: var(--radius-2);
+		border-radius: var(--radius-3);
 		background: var(--color-panel);
 		box-shadow: var(--node-shadow-highlight);
 		display: grid;

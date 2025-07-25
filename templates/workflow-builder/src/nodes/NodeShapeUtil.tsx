@@ -14,11 +14,17 @@ import {
 	useUniqueSafeId,
 	useValue,
 } from 'tldraw'
-import { NODE_HEADER_HEIGHT_PX, NODE_WIDTH_PX, PORT_RADIUS_PX } from '../constants'
+import { NODE_WIDTH_PX, PORT_RADIUS_PX } from '../constants'
 import { Port, ShapePort } from '../ports/Port'
 import { executionState } from '../state'
 import { getNodeOutputPortValues, getNodePorts } from './nodePorts'
-import { getNodeBodyHeightPx, NodeBody, NodeDefinitions, NodeType } from './nodeTypes'
+import {
+	getNodeDefinition,
+	getNodeHeightPx,
+	NodeBody,
+	NodeDefinitions,
+	NodeType,
+} from './nodeTypes'
 
 export type NodeShape = TLBaseShape<'node', { node: NodeType }>
 
@@ -78,7 +84,7 @@ export class NodeShapeUtil extends ShapeUtil<NodeShape> {
 
 		const bodyGeometry = new Rectangle2d({
 			width: NODE_WIDTH_PX,
-			height: NODE_HEADER_HEIGHT_PX + getNodeBodyHeightPx(shape.props.node),
+			height: getNodeHeightPx(shape.props.node),
 			isFilled: true,
 		})
 
@@ -109,7 +115,7 @@ function NodeShapeIndicator({ shape, ports }: { shape: NodeShape; ports: ShapePo
 			<mask id={id}>
 				<rect
 					width={NODE_WIDTH_PX + 10}
-					height={NODE_HEADER_HEIGHT_PX + getNodeBodyHeightPx(shape.props.node) + 10}
+					height={getNodeHeightPx(shape.props.node) + 10}
 					fill="white"
 					x={-5}
 					y={-5}
@@ -126,9 +132,9 @@ function NodeShapeIndicator({ shape, ports }: { shape: NodeShape; ports: ShapePo
 				))}
 			</mask>
 			<rect
-				rx={6}
+				rx={9}
 				width={NODE_WIDTH_PX}
-				height={NODE_HEADER_HEIGHT_PX + getNodeBodyHeightPx(shape.props.node)}
+				height={getNodeHeightPx(shape.props.node)}
 				mask={`url(#${id})`}
 			/>
 			{ports.map((port) => (
@@ -150,19 +156,19 @@ function NodeShape({ shape }: { shape: NodeShape }) {
 		[editor, shape.id]
 	)
 
+	const nodeDefinition = getNodeDefinition(shape.props.node)
+
 	return (
 		<HTMLContainer
 			className={classNames('NodeShape', {
 				NodeShape_executing: isExecuting,
 			})}
 			style={{
-				width: NODE_WIDTH_PX,
-				height: NODE_HEADER_HEIGHT_PX + getNodeBodyHeightPx(shape.props.node),
 				pointerEvents: 'all',
 			}}
 		>
 			<div className="NodeShape-heading">
-				<div className="NodeShape-label">{shape.props.node.type}</div>
+				<div className="NodeShape-label">{nodeDefinition.title}</div>
 				{isExecuting && <DefaultSpinner />}
 				<div className="NodeShape-output">{output}</div>
 				<Port shapeId={shape.id} portId="output" />

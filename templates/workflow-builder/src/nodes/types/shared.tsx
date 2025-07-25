@@ -1,6 +1,16 @@
-import { useState } from 'react'
-import { Editor, stopEventPropagation, T, TLShapeId, useEditor, useValue } from 'tldraw'
-import { NODE_PORT_OFFSET_Y_PX, NODE_WIDTH_PX } from '../../constants'
+import { PointerEvent, useCallback, useRef, useState } from 'react'
+import {
+	Editor,
+	T,
+	TldrawUiButton,
+	TldrawUiButtonIcon,
+	TLShapeId,
+	useEditor,
+	useValue,
+} from 'tldraw'
+import { AddIcon } from '../../components/icons/Add'
+import { SubtractIcon } from '../../components/icons/Subtract'
+import { NODE_HEADER_HEIGHT_PX, NODE_WIDTH_PX } from '../../constants'
 import { Port, PortId, ShapePort } from '../../ports/Port'
 import { getNodeInputPortValues } from '../nodePorts'
 import { NodeShape } from '../NodeShapeUtil'
@@ -23,7 +33,7 @@ export interface NodeDefinition<Node extends { type: string }> {
 export const outputPort: ShapePort = {
 	id: 'output',
 	x: NODE_WIDTH_PX,
-	y: NODE_PORT_OFFSET_Y_PX,
+	y: NODE_HEADER_HEIGHT_PX / 2,
 	terminal: 'start',
 }
 
@@ -53,6 +63,7 @@ export function NodeBodyRow({
 	onBlur?: () => void
 }) {
 	const editor = useEditor()
+	const inputRef = useRef<HTMLInputElement>(null)
 	const valueFromPort = useValue(
 		'from port',
 		() => {
@@ -63,11 +74,24 @@ export function NodeBodyRow({
 
 	const [pendingValue, setPendingValue] = useState<string | null>(null)
 
+	const onPointerDown = useCallback((event: PointerEvent) => {
+		event.stopPropagation()
+	}, [])
+
+	const onSpinner = (delta: number) => {
+		const newValue = value + delta
+		setPendingValue(null)
+		onChange(newValue)
+		inputRef.current?.focus()
+	}
+
 	return (
 		<div className="NodeBodyRow">
 			<Port shapeId={shapeId} portId={portId} />
 			<input
-				type="number"
+				ref={inputRef}
+				type="text"
+				inputMode="decimal"
 				disabled={valueFromPort != null}
 				value={valueFromPort ?? pendingValue ?? value}
 				onChange={(e) => {
@@ -78,12 +102,33 @@ export function NodeBodyRow({
 						onChange(e.currentTarget.valueAsNumber)
 					}
 				}}
-				onPointerDown={stopEventPropagation}
+				onPointerDown={onPointerDown}
 				onBlur={() => {
 					setPendingValue(null)
 					onBlur?.()
 				}}
+				onFocus={() => {
+					editor.setSelectedShapes([shapeId])
+				}}
 			/>
+			<div className="NodeBodyRow-buttons">
+				<TldrawUiButton
+					title="decrement"
+					type="icon"
+					onPointerDown={onPointerDown}
+					onClick={() => onSpinner(-1)}
+				>
+					<TldrawUiButtonIcon icon={<SubtractIcon />} />
+				</TldrawUiButton>
+				<TldrawUiButton
+					title="increment"
+					type="icon"
+					onPointerDown={onPointerDown}
+					onClick={() => onSpinner(1)}
+				>
+					<TldrawUiButtonIcon icon={<AddIcon />} />
+				</TldrawUiButton>
+			</div>
 		</div>
 	)
 }
