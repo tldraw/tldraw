@@ -19,44 +19,31 @@ let frameRaf: undefined | number
 let flushRaf: undefined | number
 let lastFlushTime = -targetTimePerFrame
 
-// Performance monitoring (aligned with DefaultDebugPanel approach)
+// Performance monitoring - tracks maximum detected FPS (device's natural refresh rate)
 const FPS_MEASUREMENT_WINDOW = 250
 let fpsCheckHistory: number[] = []
 let framesInCurrentWindow = 0
 let windowStartTime = 0
-let consecutiveGoodFrames = 0
-let consecutiveBadFrames = 0
+let maxDetectedFps = DEFAULT_FPS // Track the highest FPS we've measured
+let measurementCount = 0
+const DETECTION_MEASUREMENTS = 10 // Number of measurements to collect before settling on max FPS
 
 const updateTargetFps = () => {
 	if (fpsCheckHistory.length < 3) return // Need at least 3 measurements
 
 	const avgFps = fpsCheckHistory.reduce((a, b) => a + b, 0) / fpsCheckHistory.length
 
-	// If we're consistently performing well, try to increase FPS
-	if (avgFps > targetFps) {
-		consecutiveGoodFrames++
-		consecutiveBadFrames = 0
-
-		// After 3 consecutive good performance checks, try to increase FPS
-		if (consecutiveGoodFrames >= 3 && targetFps < MAX_FPS) {
-			const newFps = Math.min(MAX_FPS, targetFps + 10)
-			targetFps = newFps
-			targetTimePerFrame = getTargetTimePerFrame(targetFps)
-			consecutiveGoodFrames = 0
-		}
+	// Track the maximum FPS we've detected (likely the device's natural refresh rate)
+	if (avgFps > maxDetectedFps) {
+		maxDetectedFps = Math.min(MAX_FPS, Math.round(avgFps))
 	}
-	// If we're consistently performing poorly, decrease FPS
-	else if (avgFps < targetFps) {
-		consecutiveBadFrames++
-		consecutiveGoodFrames = 0
 
-		// After 2 consecutive bad performance checks, decrease FPS
-		if (consecutiveBadFrames >= 2 && targetFps > MIN_FPS) {
-			const newFps = Math.max(MIN_FPS, targetFps - 10)
-			targetFps = newFps
-			targetTimePerFrame = getTargetTimePerFrame(targetFps)
-			consecutiveBadFrames = 0
-		}
+	measurementCount++
+
+	// After collecting enough measurements, set target to the maximum detected FPS
+	if (measurementCount >= DETECTION_MEASUREMENTS) {
+		targetFps = maxDetectedFps
+		targetTimePerFrame = getTargetTimePerFrame(targetFps)
 	}
 
 	// Keep only recent measurements
@@ -306,7 +293,7 @@ export function fpsThrottle(fn: { (): void; cancel?(): void }): {
 }
 
 /**
- * Calls the function on the next frame. The target frame rate is adaptive (30-120fps, starting at 60fps).
+ * Calls the function on the next frame. The target frame rate adapts to the device's natural maximum FPS (30-120fps, starting at 60fps).
  * If the same fn is passed again before the next frame, it will still be called only once.
  * @param fn - the fun to call on the next frame
  * @returns a function that will cancel the call if called before the next frame
@@ -332,7 +319,7 @@ export function throttleToNextFrame(fn: () => void): () => void {
 }
 
 /**
- * Gets the current adaptive target FPS.
+ * Gets the current target FPS (set to device's natural maximum FPS after detection).
  * @returns the current target FPS (between 30-120)
  * @internal
  */
@@ -341,8 +328,8 @@ export function getCurrentFps(): number {
 }
 
 /**
- * Resets the adaptive FPS system back to default settings.
- * Useful for testing or manual performance adjustments.
+ * Resets the FPS detection system back to default settings.
+ * Useful for testing or when you want to re-detect the device's natural FPS.
  * @internal
  */
 export function resetAdaptiveFps(): void {
@@ -352,13 +339,13 @@ export function resetAdaptiveFps(): void {
 	framesInCurrentWindow = 0
 	windowStartTime = 0
 	measurementStartTime = 0
-	consecutiveGoodFrames = 0
-	consecutiveBadFrames = 0
+	measurementCount = 0
+	maxDetectedFps = DEFAULT_FPS
 	stopFrameTimingMeasurement()
 }
 
 /**
- * Manually sets the target FPS (will be overridden by adaptive system).
+ * Manually sets the target FPS (may be overridden if natural FPS detection is still active).
  * @param fps - the target FPS to set (will be clamped between 30-120)
  * @internal
  */
