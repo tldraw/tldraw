@@ -206,6 +206,9 @@ body {
 }
 
 .WorkflowToolbar {
+	position: fixed;
+	left: 0;
+	top: 50%;
 	justify-content: flex-start;
 }
 
