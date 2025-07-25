@@ -562,8 +562,12 @@ export class TLDrawDurableObject extends DurableObject {
 		}
 		const serialized = typeof data === 'string' ? data : JSON.stringify(data)
 		const snapshot = typeof data === 'string' ? JSON.parse(data) : data
-		await this.r2.rooms.put(this._fileRecordCache.id, serialized)
-		return { type: 'room_found' as const, snapshot, roomSizeMB: 0 }
+		const roomObject = await this.r2.rooms.put(this._fileRecordCache.id, serialized)
+		return {
+			type: 'room_found' as const,
+			snapshot,
+			roomSizeMB: roomObject ? roomObject.size / MB : 0,
+		}
 	}
 
 	// Load the room's drawing data. First we check the R2 bucket, then we fallback to supabase (legacy).
@@ -690,13 +694,13 @@ export class TLDrawDurableObject extends DurableObject {
 		shouldUpdate: boolean
 	) {
 		await room.updateStore(async (store) => {
-		const document = store.get(TLDOCUMENT_ID) as TLDocument
-		const meta = document.meta
-		// In some cases we don't want to update the document if it already has percentage set.
-		// Example for that is when we load the room. If it has a percentage set, we don't want to overwrite it.
-		if (!shouldUpdate && meta.storageUsedPercentage !== undefined) return
-		meta.storageUsedPercentage = Math.ceil((roomSizeMB / ROOM_SIZE_LIMIT_MB) * 100)
-		store.put(document)
+			const document = store.get(TLDOCUMENT_ID) as TLDocument
+			const meta = document.meta
+			// In some cases we don't want to update the document if it already has percentage set.
+			// Example for that is when we load the room. If it has a percentage set, we don't want to overwrite it.
+			if (!shouldUpdate && meta.storageUsedPercentage !== undefined) return
+			meta.storageUsedPercentage = Math.ceil((roomSizeMB / ROOM_SIZE_LIMIT_MB) * 100)
+			store.put(document)
 		})
 	}
 
