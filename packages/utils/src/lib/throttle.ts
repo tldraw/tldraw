@@ -14,11 +14,9 @@ const setTargetFps = (fps: number) => {
 }
 
 const initializeFpsDetection = () => {
-	if (isTest()) return
-
-	// Check if we're in a browser environment with requestAnimationFrame
 	// eslint-disable-next-line no-restricted-globals
-	if (typeof window === 'undefined' || typeof requestAnimationFrame === 'undefined') return
+	if (isTest() || typeof window === 'undefined' || typeof requestAnimationFrame === 'undefined')
+		return
 
 	let frameCount = 0
 	let checkCount = 0
@@ -59,7 +57,6 @@ const initializeFpsDetection = () => {
 	// Wait a bit before starting the frame count to allow the browser to settle
 	// eslint-disable-next-line no-restricted-globals
 	setTimeout(() => {
-		checkStartTime = performance.now()
 		// eslint-disable-next-line no-restricted-globals
 		requestAnimationFrame(countFrames)
 	}, 500)
