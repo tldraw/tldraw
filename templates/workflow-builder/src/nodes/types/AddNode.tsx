@@ -1,6 +1,6 @@
 import { Editor, getIndexAbove, getIndicesBetween, IndexKey, T, useEditor } from 'tldraw'
 import { AddIcon } from '../../components/icons/Add'
-import { NODE_HEADER_HEIGHT_PX, NODE_PORT_OFFSET_Y_PX, NODE_ROW_HEIGHT_PX } from '../../constants'
+import { NODE_HEADER_HEIGHT_PX, NODE_ROW_HEADER_GAP_PX, NODE_ROW_HEIGHT_PX } from '../../constants'
 import { indexList, indexListEntries, indexListLength } from '../../utils'
 import { getNodePortConnections } from '../nodePorts'
 import { NodeShape } from '../NodeShapeUtil'
@@ -32,7 +32,11 @@ export const AddNode: NodeDefinition<AddNode> = {
 					{
 						id: `item_${idx}`,
 						x: 0,
-						y: NODE_HEADER_HEIGHT_PX + NODE_PORT_OFFSET_Y_PX + NODE_ROW_HEIGHT_PX * i,
+						y:
+							NODE_HEADER_HEIGHT_PX +
+							NODE_ROW_HEADER_GAP_PX +
+							NODE_ROW_HEIGHT_PX * i +
+							NODE_ROW_HEIGHT_PX / 2,
 						terminal: 'end',
 					},
 				])
