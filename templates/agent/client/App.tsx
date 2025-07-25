@@ -3,6 +3,7 @@ import { Editor, ErrorBoundary, TLComponents, Tldraw, TLUiOverrides } from 'tldr
 import { ChatPanel } from './ChatPanel'
 import { ContextHighlights } from './ContextHighlights'
 import { overrideFillStyleWithLinedFillStyle } from './LinedFillStyle'
+import { PromptBoundsHighlights } from './PromptBoundsHighlights'
 import { TargetAreaTool } from './TargetAreaTool'
 import { TargetShapeTool } from './TargetShapeTool'
 
@@ -35,7 +36,12 @@ const overrides: TLUiOverrides = {
 }
 
 const components: TLComponents = {
-	InFrontOfTheCanvas: ContextHighlights,
+	InFrontOfTheCanvas: () => (
+		<>
+			<PromptBoundsHighlights />
+			<ContextHighlights />
+		</>
+	),
 }
 
 function App() {

@@ -9,6 +9,7 @@ import {
 	$pendingContextItems,
 	getSimpleContextItemsFromContextItems,
 } from './Context'
+import { setContextBounds, setPromptBounds } from './PromptBounds'
 import { $requestsSchedule } from './requestsSchedule'
 import { useTldrawAiExample } from './useTldrawAiExample'
 
@@ -125,21 +126,30 @@ export function ChatPanel({ editor }: { editor: Editor }) {
 			$pendingContextItems.set(userMessageHistoryItem.contextItems)
 			$contextItems.set([])
 			$chatHistoryItems.update((prev) => [...prev, userMessageHistoryItem])
+
+			// TODO once we implement letting the agent move, we can get those bounds and lock them here instead of using the viewport
+			const lockedBounds = editor.getViewportPageBounds()
+
 			$requestsSchedule.update((prev) => [
 				...prev,
 				{
 					message: userMessageHistoryItem.message,
 					contextItems: userMessageHistoryItem.contextItems,
 					review: false,
-					// TODO: hardcoded to default to the viewport bounds for now
-					bounds: editor.getViewportPageBounds(),
+					bounds: lockedBounds,
 				},
 			])
+
+			setPromptBounds(lockedBounds)
+			setContextBounds(lockedBounds)
 
 			setIsGenerating(true)
 			await advanceSchedule()
 			setIsGenerating(false)
+
 			$pendingContextItems.set([])
+			setPromptBounds(undefined)
+			setContextBounds(undefined)
 		},
 		[advanceSchedule, editor]
 	)
