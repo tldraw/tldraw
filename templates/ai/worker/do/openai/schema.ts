@@ -23,12 +23,7 @@ const SimpleFill = z.enum(['none', 'tint', 'semi', 'solid', 'pattern'])
 
 export type ISimpleFill = z.infer<typeof SimpleFill>
 
-const SimpleLabel = z.string().or(
-	z.object({
-		type: z.string(),
-		content: z.array(z.any()),
-	})
-)
+const SimpleLabel = z.string()
 
 const SimpleRectangleShape = z.object({
 	type: z.literal('rectangle'),

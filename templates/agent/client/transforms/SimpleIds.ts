@@ -1,4 +1,4 @@
-import { TLAiChange, TLAiPrompt, TldrawAiTransform } from '@tldraw/ai'
+import { TLAiPrompt, TLAiStreamingChange, TldrawAiTransform } from '@tldraw/ai'
 import { createBindingId, createShapeId } from '@tldraw/tlschema'
 
 export class SimpleIds extends TldrawAiTransform {
@@ -12,6 +12,7 @@ export class SimpleIds extends TldrawAiTransform {
 			this.collectAllIdsRecursively(shape, this.mapObjectWithIdAndWriteSimple)
 		}
 
+		// it's important bindings are processed after shapes so all the shapes have their ids mapped
 		for (const binding of input.canvasContent.bindings ?? []) {
 			this.collectAllIdsRecursively(binding, this.mapObjectWithIdAndWriteSimple)
 		}
@@ -19,9 +20,10 @@ export class SimpleIds extends TldrawAiTransform {
 		return input
 	}
 
-	override transformChange = (change: TLAiChange): TLAiChange => {
+	override transformChange = (change: TLAiStreamingChange): TLAiStreamingChange => {
 		switch (change.type) {
 			case 'createShape': {
+				if (!change.complete) return change
 				const { shape } = change
 				const { id: simpleId } = shape
 				const originalId = createShapeId(simpleId)
@@ -35,14 +37,15 @@ export class SimpleIds extends TldrawAiTransform {
 				}
 			}
 			case 'updateShape': {
+				if (!change.complete) return change
 				const shape = this.collectAllIdsRecursively(change.shape, this.writeOriginalIds)
-
 				return {
 					...change,
 					shape,
 				}
 			}
 			case 'deleteShape': {
+				if (!change.complete) return change
 				const shapeId = this.simpleIdsToOriginalIds.get(change.shapeId)
 				if (!shapeId) {
 					throw new Error(`Shape id not found: ${change.shapeId}`)
@@ -53,8 +56,8 @@ export class SimpleIds extends TldrawAiTransform {
 				}
 			}
 			case 'createBinding': {
+				if (!change.complete) return change
 				let { binding } = change
-
 				const { id: simpleId } = binding
 				const originalId = createBindingId(simpleId)
 				this.originalIdsToSimpleIds.set(originalId, simpleId)
@@ -69,14 +72,15 @@ export class SimpleIds extends TldrawAiTransform {
 				}
 			}
 			case 'updateBinding': {
+				if (!change.complete) return change
 				const binding = this.collectAllIdsRecursively(change.binding, this.writeOriginalIds)
-
 				return {
 					...change,
 					binding,
 				}
 			}
 			case 'deleteBinding': {
+				if (!change.complete) return change
 				const bindingId = this.simpleIdsToOriginalIds.get(change.bindingId)
 				if (!bindingId) {
 					throw new Error(`Binding id not found: ${change.bindingId}`)
@@ -86,7 +90,7 @@ export class SimpleIds extends TldrawAiTransform {
 					bindingId,
 				}
 			}
-			case 'custom': {
+			default: {
 				return change
 			}
 		}
@@ -103,20 +107,24 @@ export class SimpleIds extends TldrawAiTransform {
 			obj.id = tId
 		}
 
-		if (obj.fromId && !originalIdsToSimpleIds.has(obj.fromId)) {
-			const tId = `${nextSimpleId}`
-			simpleIdsToOriginalIds.set(tId, obj.id)
-			originalIdsToSimpleIds.set(obj.id, tId)
-			this.nextSimpleId++
-			obj.fromId = tId
+		if (obj.fromId) {
+			if (!originalIdsToSimpleIds.has(obj.fromId)) {
+				const tId = `${nextSimpleId}`
+				simpleIdsToOriginalIds.set(tId, obj.fromId)
+				originalIdsToSimpleIds.set(obj.fromId, tId)
+				this.nextSimpleId++
+			}
+			obj.fromId = originalIdsToSimpleIds.get(obj.fromId)
 		}
 
-		if (obj.toId && !originalIdsToSimpleIds.has(obj.toId)) {
-			const tId = `${nextSimpleId}`
-			simpleIdsToOriginalIds.set(tId, obj.id)
-			originalIdsToSimpleIds.set(obj.id, tId)
-			this.nextSimpleId++
-			obj.fromId = tId
+		if (obj.toId) {
+			if (!originalIdsToSimpleIds.has(obj.toId)) {
+				const tId = `${nextSimpleId}`
+				simpleIdsToOriginalIds.set(tId, obj.toId)
+				originalIdsToSimpleIds.set(obj.toId, tId)
+				this.nextSimpleId++
+			}
+			obj.toId = originalIdsToSimpleIds.get(obj.toId)
 		}
 	}
 

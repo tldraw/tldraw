@@ -1,14 +1,7 @@
-import {
-	Box,
-	Editor,
-	exhaustiveSwitchError,
-	FileHelpers,
-	structuredClone,
-	TLShapePartial,
-} from 'tldraw'
+import { Box, Editor, FileHelpers, structuredClone } from 'tldraw'
 import { TldrawAiTransformConstructor } from './TldrawAiTransform'
-import { TLAiChange, TLAiContent, TLAiMessages, TLAiPrompt } from './types'
-import { asMessage } from './utils'
+import { TLAiContent, TLAiPrompt, TLAiStreamingChange } from './types'
+import { TldrawAiApplyFn, TldrawAiPromptOptions } from './useTldrawAi'
 
 /** @public */
 export interface TldrawAiModuleOptions {
@@ -32,118 +25,59 @@ export class TldrawAiModule {
 	 * Creates and prepare a prompt, returning the prompt
 	 * and a function to handle changes.
 	 *
-	 * @param prompt - The user's message or a configuration for the prompt
+	 * @param options - The user's message or a configuration for the prompt
 	 */
-	async generate(prompt: string | { message: TLAiMessages; stream?: boolean }) {
+	async generate(options: TldrawAiPromptOptions) {
 		const { transforms: _transformCtors = [] } = this.opts
 		const transforms = _transformCtors.map((ctor) => new ctor(this.opts.editor))
 
-		const message = typeof prompt === 'string' ? prompt : prompt.message
-		let _prompt = await this.getPrompt(message)
+		let prompt = await this.getPrompt(options)
 
 		for (const transform of transforms) {
 			if (transform.transformPrompt) {
-				_prompt = transform.transformPrompt(_prompt)
+				prompt = transform.transformPrompt(prompt)
 			}
 		}
 
 		transforms.reverse()
 
-		const handleChange = (change: TLAiChange) => {
+		const handleChange = (change: TLAiStreamingChange, apply: TldrawAiApplyFn) => {
 			for (const transform of transforms) {
 				if (transform.transformChange) {
 					change = transform.transformChange(change)
 				}
 			}
-			this.applyChange(change)
-		}
-
-		const handleChanges = (changes: TLAiChange[]) => {
-			for (const transform of transforms) {
-				if (transform.transformChanges) {
-					changes = transform.transformChanges(changes)
-				}
-			}
+			apply({ change, editor: this.opts.editor })
 		}
 
 		return {
-			prompt: _prompt,
+			prompt,
 			handleChange,
-			handleChanges,
 		}
 	}
 
 	/**
-	 * Apply a change to the editor.
+	 * Create a full prompt to be sent to the AI.
 	 *
-	 * @param change - The change to apply
+	 * @param options - The options to generate the prompt
 	 */
-	applyChange(change: TLAiChange) {
+	async getPrompt(options: TldrawAiPromptOptions): Promise<TLAiPrompt> {
 		const { editor } = this.opts
 
-		if (editor.isDisposed) return
+		const _options = typeof options === 'string' ? { message: options } : options
 
-		try {
-			switch (change.type) {
-				case 'createShape': {
-					editor.createShape(change.shape)
-					break
-				}
-				case 'updateShape': {
-					editor.updateShape(change.shape as TLShapePartial)
-					break
-				}
-				case 'deleteShape': {
-					editor.deleteShape(change.shapeId)
-					break
-				}
-				case 'createBinding': {
-					editor.createBinding(change.binding)
-					break
-				}
-				case 'updateBinding': {
-					editor.updateBinding(change.binding)
-					break
-				}
-				case 'deleteBinding': {
-					editor.deleteBinding(change.bindingId)
-					break
-				}
-				default:
-					exhaustiveSwitchError(change)
-			}
-		} catch (e) {
-			console.error('Error handling change:', e)
-		}
-	}
-
-	/**
-	 * Create the prompt to be sent to the AI.
-	 *
-	 * @param prompt - The user's prompt
-	 * @param options - Options to generate the input
-	 */
-	async getPrompt(
-		prompt: TLAiMessages,
-		options = {} as Partial<Pick<TLAiPrompt, 'canvasContent' | 'contextBounds' | 'promptBounds'>>
-	): Promise<TLAiPrompt> {
-		const { editor } = this.opts
-		const {
-			contextBounds = editor.getViewportPageBounds(),
-			promptBounds = editor.getViewportPageBounds(),
-		} = options
-
-		const content = options.canvasContent ?? this.getContent(promptBounds)
-
-		// Get image from the content
-		const image = await this.getImage(content)
+		const contextBounds = _options.contextBounds ?? editor.getViewportPageBounds()
+		const promptBounds = _options.promptBounds ?? editor.getViewportPageBounds()
+		const canvasContent = _options.canvasContent ?? this.getContent(promptBounds)
+		const image = _options.image ?? (await this.getImage(canvasContent))
 
 		return {
-			message: asMessage(prompt),
-			canvasContent: content,
+			message: _options.message ?? '',
+			canvasContent,
 			contextBounds: roundBox(contextBounds),
 			promptBounds: roundBox(promptBounds),
 			image,
+			meta: _options.meta,
 		}
 	}
 
@@ -200,7 +134,7 @@ export class TldrawAiModule {
 			format: 'jpeg',
 			background: false,
 			darkMode: false,
-			padding: 0, // will the context bounds take into account the padding?
+			padding: 10, // will the context bounds take into account the padding?
 		})
 
 		return await FileHelpers.blobToDataUrl(result.blob)

@@ -8,7 +8,10 @@ export type * from './lib/types'
 export { TldrawAiModule, type TldrawAiModuleOptions } from './lib/TldrawAiModule'
 export { TldrawAiTransform, type TldrawAiTransformConstructor } from './lib/TldrawAiTransform'
 export {
+	defaultApplyChange,
 	useTldrawAi,
+	type TldrawAi,
+	type TldrawAiApplyFn,
 	type TldrawAiGenerateFn,
 	type TldrawAiOptions,
 	type TldrawAiPromptOptions,

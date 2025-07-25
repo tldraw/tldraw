@@ -1,7 +1,21 @@
 import { useCallback, useMemo, useRef } from 'react'
-import { Editor, uniqueId, useMaybeEditor } from 'tldraw'
+import {
+	Editor,
+	exhaustiveSwitchError,
+	TLShapeId,
+	TLShapePartial,
+	uniqueId,
+	useMaybeEditor,
+} from 'tldraw'
 import { TldrawAiModule, TldrawAiModuleOptions } from './TldrawAiModule'
-import { TLAiChange, TLAiPrompt, TLAiSerializedPrompt } from './types'
+import { TLAiChange, TLAiPrompt, TLAiSerializedPrompt, TLAiStreamingChange } from './types'
+
+/** @public */
+export interface TldrawAi {
+	prompt(message: TldrawAiPromptOptions): { promise: Promise<void>; cancel(): void }
+	repeat(): { promise: Promise<void>; cancel: (() => void) | null }
+	cancel(): void
+}
 
 /**
  * The function signature for generating changes from an AI prompt.
@@ -21,21 +35,36 @@ export type TldrawAiStreamFn = (opts: {
 	editor: Editor
 	prompt: TLAiSerializedPrompt
 	signal: AbortSignal
-}) => AsyncGenerator<TLAiChange>
+}) => AsyncGenerator<TLAiStreamingChange>
+
+/**
+ * The function signature for applying changes to the editor.
+ * @public
+ */
+export type TldrawAiApplyFn = (opts: { change: TLAiStreamingChange; editor: Editor }) => void
 
 /** @public */
 export interface TldrawAiOptions extends Omit<TldrawAiModuleOptions, 'editor'> {
 	editor?: Editor
 	generate?: TldrawAiGenerateFn
 	stream?: TldrawAiStreamFn
+	apply?: TldrawAiApplyFn
 }
 
 /** @public */
-export type TldrawAiPromptOptions = string | { message: TLAiPrompt['message']; stream?: boolean }
+export type TldrawAiPromptOptions =
+	| string
+	| (Partial<TLAiPrompt> & { stream?: boolean; message: string })
 
 /** @public */
-export function useTldrawAi(opts: TldrawAiOptions) {
-	const { editor: _editor, generate: generateFn, stream: streamFn, transforms } = opts
+export function useTldrawAi(opts: TldrawAiOptions): TldrawAi {
+	const {
+		editor: _editor,
+		generate: generateFn,
+		stream: streamFn,
+		transforms,
+		apply: applyFn = defaultApplyChange,
+	} = opts
 
 	// If the editor is provided as a prop, use that. Otherwise, use the editor in react context and throw if not present.
 	const maybeEditor = useMaybeEditor()
@@ -51,7 +80,7 @@ export function useTldrawAi(opts: TldrawAiOptions) {
 
 	const rCancelFunction = useRef<(() => void) | null>(null)
 	const rPreviousArguments = useRef<TldrawAiPromptOptions>('')
-	const rPreviousChanges = useRef<TLAiChange[]>([])
+	const rPreviousChanges = useRef<TLAiStreamingChange[]>([])
 
 	/**
 	 * Prompt the AI for a response. If the stream flag is set to true, the call will stream changes as they are ready.
@@ -68,7 +97,7 @@ export function useTldrawAi(opts: TldrawAiOptions) {
 
 			// Pull out options, keeping in mind that the argument may be just a string
 			const opts = typeof message === 'string' ? { message } : message
-			const { stream = false } = opts
+			const { stream = false, meta = {} } = opts
 
 			const markId = 'generating_' + uniqueId()
 
@@ -78,14 +107,15 @@ export function useTldrawAi(opts: TldrawAiOptions) {
 					return
 				}
 
-				ai.generate(message).then(async ({ handleChange, prompt }) => {
+				ai.generate(opts).then(async ({ handleChange, prompt }) => {
 					const serializedPrompt: TLAiSerializedPrompt = {
 						...prompt,
+						meta,
 						promptBounds: prompt.promptBounds.toJson(),
 						contextBounds: prompt.contextBounds.toJson(),
 					}
 
-					const pendingChanges: TLAiChange[] = []
+					const pendingChanges: TLAiStreamingChange[] = []
 
 					if (stream) {
 						if (!streamFn) {
@@ -106,7 +136,7 @@ export function useTldrawAi(opts: TldrawAiOptions) {
 								try {
 									editor.run(
 										() => {
-											handleChange(change)
+											handleChange(change, applyFn)
 										},
 										{
 											ignoreShapeLock: false, // ? should this be true?
@@ -124,7 +154,7 @@ export function useTldrawAi(opts: TldrawAiOptions) {
 					} else {
 						if (!generateFn) {
 							throw Error(
-								`Stream function not found. You should pass a stream method in your call to the useTldrawAi hook.`
+								`Generate function not found. You should pass a generate method in your call to the useTldrawAi hook.`
 							)
 						}
 						// Handle a one-off generation
@@ -146,7 +176,7 @@ export function useTldrawAi(opts: TldrawAiOptions) {
 									() => {
 										for (const change of changes) {
 											pendingChanges.push(change)
-											handleChange(change)
+											handleChange(change, applyFn)
 										}
 									},
 									{
@@ -185,7 +215,7 @@ export function useTldrawAi(opts: TldrawAiOptions) {
 				cancel: rCancelFunction.current,
 			}
 		},
-		[ai, editor, generateFn, streamFn]
+		[ai, editor, generateFn, streamFn, applyFn]
 	)
 
 	/**
@@ -207,7 +237,7 @@ export function useTldrawAi(opts: TldrawAiOptions) {
 			editor.run(
 				() => {
 					for (const change of rPreviousChanges.current) {
-						handleChange(change)
+						handleChange(change, applyFn)
 					}
 				},
 				{
@@ -235,11 +265,66 @@ export function useTldrawAi(opts: TldrawAiOptions) {
 			promise,
 			cancel: rCancelFunction.current,
 		}
-	}, [ai, editor])
+	}, [ai, editor, applyFn])
 
 	const cancel = useCallback(() => {
 		rCancelFunction.current?.()
 	}, [])
 
 	return { prompt, repeat, cancel }
+}
+
+/**
+ * The default apply function for the AI module.
+ *
+ * @param change - The change to apply
+ * @param editor - The editor to apply the change to
+ *
+ * @public
+ */
+export function defaultApplyChange({
+	change,
+	editor,
+}: {
+	change: TLAiStreamingChange
+	editor: Editor
+}) {
+	if (editor.isDisposed) return
+	if (!change.complete) return
+
+	try {
+		switch (change.type) {
+			case 'createShape': {
+				editor.createShape(change.shape as TLShapePartial)
+				break
+			}
+			case 'updateShape': {
+				editor.updateShape(change.shape as TLShapePartial)
+				break
+			}
+			case 'deleteShape': {
+				editor.deleteShape(change.shapeId as TLShapeId)
+				break
+			}
+			case 'createBinding': {
+				editor.createBinding(change.binding)
+				break
+			}
+			case 'updateBinding': {
+				editor.updateBinding(change.binding)
+				break
+			}
+			case 'deleteBinding': {
+				editor.deleteBinding(change.bindingId)
+				break
+			}
+			case 'custom': {
+				break
+			}
+			default:
+				exhaustiveSwitchError(change)
+		}
+	} catch (e) {
+		console.error('Error handling change:', e)
+	}
 }

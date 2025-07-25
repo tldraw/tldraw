@@ -3,10 +3,22 @@ import { DefaultSpinner, Editor, Tldraw } from 'tldraw'
 import { useTldrawAiExample } from './useTldrawAiExample'
 
 function App() {
-	const [editor, setEditor] = useState<Editor | null>(null) // [1]
+	const [editor, setEditor] = useState<Editor | null>(null)
+
+	const handleMount = useCallback((editor: Editor) => {
+		setEditor(editor)
+		editor.sideEffects.registerBeforeChangeHandler('shape', (_prev, next, source) => {
+			if (source !== 'user') return next
+			const shapeUtil = editor.getShapeUtil(next.type)
+			const text = shapeUtil.getText(next)
+			if (text === undefined) return next
+			return { ...next, meta: { text } }
+		})
+	}, [])
+
 	return (
 		<div className="tldraw-ai-container">
-			<Tldraw persistenceKey="tldraw-ai-demo-2" onMount={setEditor} />
+			<Tldraw persistenceKey="tldraw-ai-demo-2" onMount={handleMount} />
 			{editor && <InputBar editor={editor} />}
 		</div>
 	)
