@@ -116,7 +116,7 @@ const MAX_TIME_TO_WAIT_FOR_SERVER_INTERACTION_BEFORE_RESETTING_CONNECTION = PING
  */
 export class TLSyncClient<R extends UnknownRecord, S extends Store<R> = Store<R>> {
 	/** The last clock time from the most recent server update */
-	private lastServerClock = 0
+	private lastServerClock = -1
 	private lastServerInteractionTimestamp = Date.now()
 
 	/** The queue of in-flight push requests that have not yet been acknowledged by the server */
