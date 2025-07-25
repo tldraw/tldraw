@@ -105,6 +105,18 @@
       "value": "Today"
     }
   ],
+  "20976e7bec": [
+    {
+      "type": 0,
+      "value": "Room is full"
+    }
+  ],
+  "21bfb2dc2e": [
+    {
+      "type": 0,
+      "value": "This room is approaching its size limit. Consider removing some content or starting a new file."
+    }
+  ],
   "22d84a12fd": [
     {
       "type": 0,
@@ -127,6 +139,12 @@
     {
       "type": 0,
       "value": "Miro but good and free"
+    }
+  ],
+  "2deec2cb74": [
+    {
+      "type": 0,
+      "value": "This room has reached its size limit and changes might no longer be saved. Remove some content or start a new file."
     }
   ],
   "31246941ad": [
@@ -301,6 +319,12 @@
       "value": "Share"
     }
   ],
+  "5bb6cf3b53": [
+    {
+      "type": 0,
+      "value": "Room getting large"
+    }
+  ],
   "5bcc12ace8": [
     {
       "type": 0,
@@ -443,6 +467,12 @@
     {
       "type": 0,
       "value": "Invalid request."
+    }
+  ],
+  "78e9815992": [
+    {
+      "type": 0,
+      "value": "Got it"
     }
   ],
   "797799f35e": [

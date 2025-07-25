@@ -37,7 +37,6 @@ import { createSentry } from '@tldraw/worker-shared'
 import { DurableObject } from 'cloudflare:workers'
 import { IRequest, Router } from 'itty-router'
 import { Kysely } from 'kysely'
-import { AlarmScheduler } from './AlarmScheduler'
 import { PERSIST_INTERVAL_MS } from './config'
 import { createPostgresConnectionPool } from './postgres'
 import { getR2KeyForRoom } from './r2'
@@ -82,6 +81,9 @@ async function canAccessTestProductionFile(
 		return false
 	}
 }
+
+const MB = 1024 * 1024
+const ROOM_SIZE_LIMIT_MB = 30
 
 export class TLDrawDurableObject extends DurableObject {
 	// A unique identifier for this instance of the Durable Object
@@ -144,6 +146,8 @@ export class TLDrawDurableObject extends DurableObject {
 							},
 						})
 
+						this.addRoomStorageUsedPercentage(room, result.roomSizeMB)
+
 						this.logEvent({ type: 'room', roomId: slug, name: 'room_start' })
 						// Also associate file assets after we load the room
 						setTimeout(this.maybeAssociateFileAssets.bind(this), PERSIST_INTERVAL_MS)
@@ -185,6 +189,8 @@ export class TLDrawDurableObject extends DurableObject {
 	_documentInfo: DocumentInfo | null = null
 
 	db: Kysely<DB>
+
+	roomSizeMB: number | null = null
 
 	constructor(
 		private state: DurableObjectState,
@@ -247,15 +253,6 @@ export class TLDrawDurableObject extends DurableObject {
 			(req) => this.onRestore(req)
 		)
 		.all('*', () => new Response('Not found', { status: 404 }))
-
-	readonly scheduler = new AlarmScheduler({
-		storage: () => this.storage,
-		alarms: {
-			persist: async () => {
-				this.persistToDatabase()
-			},
-		},
-	})
 
 	// eslint-disable-next-line no-restricted-syntax
 	get documentInfo() {
@@ -483,8 +480,8 @@ export class TLDrawDurableObject extends DurableObject {
 	}
 
 	triggerPersistSchedule = throttle(() => {
-		this.schedulePersist()
-	}, 2000)
+		this.persistToDatabase()
+	}, PERSIST_INTERVAL_MS)
 
 	private writeEvent(name: string, eventData: EventData) {
 		writeDataPoint(this.sentry, this.measure, this.env, name, eventData)
@@ -569,7 +566,7 @@ export class TLDrawDurableObject extends DurableObject {
 		const serialized = typeof data === 'string' ? data : JSON.stringify(data)
 		const snapshot = typeof data === 'string' ? JSON.parse(data) : data
 		await this.r2.rooms.put(this._fileRecordCache.id, serialized)
-		return { type: 'room_found' as const, snapshot }
+		return { type: 'room_found' as const, snapshot, roomSizeMB: 0 }
 	}
 
 	// Load the room's drawing data. First we check the R2 bucket, then we fallback to supabase (legacy).
@@ -579,7 +576,11 @@ export class TLDrawDurableObject extends DurableObject {
 			// when loading, prefer to fetch documents from the bucket
 			const roomFromBucket = await this.r2.rooms.get(key)
 			if (roomFromBucket) {
-				return { type: 'room_found', snapshot: await roomFromBucket.json() }
+				return {
+					type: 'room_found',
+					snapshot: await roomFromBucket.json(),
+					roomSizeMB: roomFromBucket.size / MB,
+				}
 			}
 			if (this._fileRecordCache?.createSource) {
 				const res = await this.handleFileCreateFromSource()
@@ -599,6 +600,7 @@ export class TLDrawDurableObject extends DurableObject {
 				return {
 					type: 'room_found',
 					snapshot: new TLSyncRoom({ schema: createTLSchema() }).getSnapshot(),
+					roomSizeMB: 0,
 				}
 			}
 
@@ -621,7 +623,7 @@ export class TLDrawDurableObject extends DurableObject {
 			}
 
 			const roomFromSupabase = data[0] as PersistedRoomSnapshotForSupabase
-			return { type: 'room_found', snapshot: roomFromSupabase.drawing }
+			return { type: 'room_found', snapshot: roomFromSupabase.drawing, roomSizeMB: 0 }
 		} catch (error) {
 			this.logEvent({ type: 'room', roomId: slug, name: 'failed_load_from_db' })
 
@@ -685,6 +687,22 @@ export class TLDrawDurableObject extends DurableObject {
 			.execute()
 	}
 
+	private async addRoomStorageUsedPercentage(
+		room: TLSocketRoom<TLRecord, SessionMeta>,
+		roomSizeMB: number
+	) {
+		await room.updateStore(async (store) => {
+			const records = store.getAll()
+			for (const record of records) {
+				if (record.typeName !== 'document') continue
+				const document = record as TLDocument
+				const meta = document.meta
+				meta.storageUsedPercentage = Math.ceil((roomSizeMB / ROOM_SIZE_LIMIT_MB) * 100)
+				store.put(document)
+			}
+		})
+	}
+
 	// Save the room to r2
 	async persistToDatabase() {
 		try {
@@ -701,10 +719,13 @@ export class TLDrawDurableObject extends DurableObject {
 				this.maybeAssociateFileAssets()
 
 				const key = getR2KeyForRoom({ slug: slug, isApp: this.documentInfo.isApp })
-				await Promise.all([
+				const [roomObject] = await Promise.all([
 					this.r2.rooms.put(key, snapshot),
 					this.r2.versionCache.put(key + `/` + new Date().toISOString(), snapshot),
 				])
+				if (roomObject) {
+					await this.addRoomStorageUsedPercentage(room, roomObject.size / MB)
+				}
 				this._lastPersistedClock = clock
 
 				// Update the updatedAt timestamp in the database
@@ -729,17 +750,6 @@ export class TLDrawDurableObject extends DurableObject {
 		// eslint-disable-next-line @typescript-eslint/no-deprecated
 		this.sentry?.captureException(e)
 		console.error(e)
-	}
-
-	async schedulePersist() {
-		await this.scheduler.scheduleAlarmAfter('persist', PERSIST_INTERVAL_MS, {
-			overwrite: 'if-sooner',
-		})
-	}
-
-	// Will be called automatically when the alarm ticks.
-	override async alarm() {
-		await this.scheduler.onAlarm()
 	}
 
 	async appFileRecordCreated(file: TlaFile) {
