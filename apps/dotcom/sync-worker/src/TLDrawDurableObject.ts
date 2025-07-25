@@ -690,17 +690,13 @@ export class TLDrawDurableObject extends DurableObject {
 		shouldUpdate: boolean
 	) {
 		await room.updateStore(async (store) => {
-			const records = store.getAll()
-			for (const record of records) {
-				if (record.typeName !== 'document') continue
-				const document = record as TLDocument
-				const meta = document.meta
-				// In some cases we don't want to update the document if it already has percentage set.
-				// Example for that is when we load the room. If it has a percentage set, we don't want to overwrite it.
-				if (!shouldUpdate && meta.storageUsedPercentage !== undefined) return
-				meta.storageUsedPercentage = Math.ceil((roomSizeMB / ROOM_SIZE_LIMIT_MB) * 100)
-				store.put(document)
-			}
+		const document = store.get(TLDOCUMENT_ID) as TLDocument
+		const meta = document.meta
+		// In some cases we don't want to update the document if it already has percentage set.
+		// Example for that is when we load the room. If it has a percentage set, we don't want to overwrite it.
+		if (!shouldUpdate && meta.storageUsedPercentage !== undefined) return
+		meta.storageUsedPercentage = Math.ceil((roomSizeMB / ROOM_SIZE_LIMIT_MB) * 100)
+		store.put(document)
 		})
 	}
 
