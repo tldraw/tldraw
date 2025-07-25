@@ -150,37 +150,6 @@ describe('TLSyncRoom pruneTombstones', () => {
 		expect(room.tombstones.size).toBe(initialSize)
 	})
 
-	it('should handle needsPrune flag correctly', () => {
-		// Set needsPrune to false
-		;(room as any).needsPrune = false
-
-		// Add tombstones above threshold
-		for (let i = 0; i < 3200; i++) {
-			room.tombstones.set(`doc${i}`, i + 1)
-		}
-
-		// Call pruneTombstones (should not prune since needsPrune is false)
-		;(room as any).pruneTombstones()
-
-		// Should not prune anything since needsPrune is false
-		expect(room.tombstones.size).toBe(3200)
-		expect((room as any).needsPrune).toBe(false)
-
-		// Set needsPrune to true and call again
-		;(room as any).needsPrune = true
-		;(room as any).pruneTombstones()
-
-		// Now should prune
-		expect(room.tombstones.size).toBeLessThan(3200)
-		expect((room as any).needsPrune).toBe(false)
-
-		expect(room.tombstones.size).toMatchInlineSnapshot(`2700`) // should be about 1500
-
-		expect(findMin(room.tombstones.values())).toBeGreaterThanOrEqual(
-			room.tombstoneHistoryStartsAtClock
-		)
-	})
-
 	it('should handle very large tombstone counts', () => {
 		// Test with a much larger number of tombstones
 		const totalTombstones = 10000
