@@ -4421,25 +4421,28 @@ export class Editor extends EventEmitter<TLEventMap> {
 	 */
 	deletePage(page: TLPageId | TLPage): this {
 		const id = typeof page === 'string' ? page : page.id
-		this.run(() => {
-			if (this.getIsReadonly()) return
-			const pages = this.getPages()
-			if (pages.length === 1) return
+		this.run(
+			() => {
+				if (this.getIsReadonly()) return
+				const pages = this.getPages()
+				if (pages.length === 1) return
 
-			const deletedPage = this.getPage(id)
-			if (!deletedPage) return
+				const deletedPage = this.getPage(id)
+				if (!deletedPage) return
 
-			if (id === this.getCurrentPageId()) {
-				const index = pages.findIndex((page) => page.id === id)
-				const next = pages[index - 1] ?? pages[index + 1]
-				this.setCurrentPage(next.id)
-			}
+				if (id === this.getCurrentPageId()) {
+					const index = pages.findIndex((page) => page.id === id)
+					const next = pages[index - 1] ?? pages[index + 1]
+					this.setCurrentPage(next.id)
+				}
 
-			const shapes = this.getSortedChildIdsForParent(deletedPage.id)
-			this.deleteShapes(shapes)
+				const shapes = this.getSortedChildIdsForParent(deletedPage.id)
+				this.deleteShapes(shapes)
 
-			this.store.remove([deletedPage.id])
-		})
+				this.store.remove([deletedPage.id])
+			},
+			{ ignoreShapeLock: true }
+		)
 		return this
 	}
 
