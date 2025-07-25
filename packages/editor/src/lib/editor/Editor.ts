@@ -4434,6 +4434,10 @@ export class Editor extends EventEmitter<TLEventMap> {
 				const next = pages[index - 1] ?? pages[index + 1]
 				this.setCurrentPage(next.id)
 			}
+
+			const shapes = this.getSortedChildIdsForParent(deletedPage.id)
+			this.deleteShapes(shapes)
+
 			this.store.remove([deletedPage.id])
 		})
 		return this
