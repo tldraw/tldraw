@@ -5,8 +5,69 @@ const isTest = () =>
 	!globalThis.__FORCE_RAF_IN_TESTS__
 
 const fpsQueue: Array<() => void> = []
-const targetFps = 60
-const targetTimePerFrame = Math.floor(1000 / targetFps) * 0.9 // ~15ms - we allow for some variance as browsers aren't that precise.
+let targetFps = 60
+let targetTimePerFrame = Math.floor(1000 / targetFps) * 0.9 // Allow for some variance as browsers aren't that precise
+
+const setTargetFps = (fps: number) => {
+	targetFps = fps
+	targetTimePerFrame = Math.floor(1000 / targetFps) * 0.9 // Allow for some variance as browsers aren't that precise
+}
+
+const initializeFpsDetection = () => {
+	if (isTest()) return
+
+	// Check if we're in a browser environment with requestAnimationFrame
+	// eslint-disable-next-line no-restricted-globals
+	if (typeof window === 'undefined' || typeof requestAnimationFrame === 'undefined') return
+
+	let frameCount = 0
+	let checkCount = 0
+	const maxChecks = 60
+	// Well count frames for this duration
+	const checkDuration = 200
+	// We'll then have to use this factor to calculate the FPS
+	const factor = 1000 / checkDuration
+	let checkStartTime = performance.now()
+
+	const countFrames = () => {
+		frameCount++
+		const elapsed = performance.now() - checkStartTime
+
+		if (elapsed < checkDuration) {
+			// eslint-disable-next-line no-restricted-globals
+			requestAnimationFrame(countFrames)
+		} else {
+			checkCount++
+			const fps = frameCount * factor
+			if (fps >= 100) {
+				setTargetFps(120)
+				return
+			} else if (fps > targetFps) {
+				setTargetFps(fps)
+			}
+
+			// Continue checking for the full duration to find the maximum possible FPS
+			if (checkCount < maxChecks) {
+				frameCount = 0
+				checkStartTime = performance.now()
+				// eslint-disable-next-line no-restricted-globals
+				requestAnimationFrame(countFrames)
+			}
+		}
+	}
+
+	// Wait a bit before starting the frame count to allow the browser to settle
+	// eslint-disable-next-line no-restricted-globals
+	setTimeout(() => {
+		checkStartTime = performance.now()
+		// eslint-disable-next-line no-restricted-globals
+		requestAnimationFrame(countFrames)
+	}, 500)
+}
+
+// Initialize fps detection when the module loads
+initializeFpsDetection()
+
 let frameRaf: undefined | number
 let flushRaf: undefined | number
 let lastFlushTime = -targetTimePerFrame
@@ -53,7 +114,8 @@ function tick(isOnNextFrame = false) {
 
 /**
  * Returns a throttled version of the function that will only be called max once per frame.
- * The target frame rate is 60fps.
+ * The target frame rate is 60fps by default, but will automatically increase to the maximum
+ * detected frame rate if the browser supports higher refresh rates.
  * @param fn - the fun to return a throttled version of
  * @returns
  * @internal
@@ -93,7 +155,8 @@ export function fpsThrottle(fn: { (): void; cancel?(): void }): {
 }
 
 /**
- * Calls the function on the next frame. The target frame rate is 60fps.
+ * Calls the function on the next frame. The target frame rate is 60fps by default,
+ * but will automatically increase to the maximum detected frame rate if the browser supports higher refresh rates.
  * If the same fn is passed again before the next frame, it will still be called only once.
  * @param fn - the fun to call on the next frame
  * @returns a function that will cancel the call if called before the next frame
