@@ -1,7 +1,7 @@
 import { TLComponents, Tldraw } from 'tldraw'
 import { NodeToolbar } from './components/NodeToolbar.tsx'
 import { OnCanvasComponentPicker } from './components/OnCanvasComponentPicker.tsx'
-import { Toolbar } from './components/Toolbar.tsx'
+import { WorkflowToolbar } from './components/WorkflowToolbar.tsx'
 import { ConnectionBindingUtil } from './connection/ConnectionBindingUtil'
 import { ConnectionShapeUtil } from './connection/ConnectionShapeUtil'
 import { keepConnectionsAtBottom } from './connection/keepConnectionsAtBottom'
@@ -18,7 +18,7 @@ const components: TLComponents = {
 			<OnCanvasComponentPicker />
 		</>
 	),
-	Toolbar: () => <Toolbar />,
+	Toolbar: () => <WorkflowToolbar />,
 	MenuPanel: () => null,
 }
 
