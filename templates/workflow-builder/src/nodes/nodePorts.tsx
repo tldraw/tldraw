@@ -111,7 +111,7 @@ export function getAllConnectedNodes(
 	direction?: 'start' | 'end'
 ) {
 	const toVisit = [typeof startingNode === 'string' ? startingNode : startingNode.id]
-	const found = new Set<NodeShape>()
+	const found = new Set<TLShapeId>()
 
 	while (toVisit.length > 0) {
 		const nodeId = toVisit.shift()
@@ -120,8 +120,8 @@ export function getAllConnectedNodes(
 		const node = editor.getShape(nodeId)
 		if (!node || !editor.isShapeOfType<NodeShape>(node, 'node')) continue
 
-		if (found.has(node)) continue
-		found.add(node)
+		if (found.has(node.id)) continue
+		found.add(node.id)
 
 		for (const connection of getNodePortConnections(editor, node)) {
 			if (direction && connection.terminal !== direction) continue
