@@ -1,6 +1,6 @@
 import classNames from 'classnames'
 import { TLShapeId, useEditor, useValue, VecModel } from 'tldraw'
-import { getNodePorts } from '../nodes/nodePorts'
+import { getNodePortConnections, getNodePorts } from '../nodes/nodePorts'
 import { NodeShape } from '../nodes/NodeShapeUtil'
 import { portState } from '../state'
 
@@ -38,9 +38,30 @@ export function Port({ shapeId, portId }: { shapeId: TLShapeId; portId: PortId }
 		[editor, shapeId, portId]
 	)
 
+	const isEligible = useValue(
+		'isEligible',
+		() => {
+			const { eligiblePorts: eligiblePorts } = portState.get(editor)
+			if (!eligiblePorts) return false
+			if (eligiblePorts.terminal !== port.terminal) return false
+			if (eligiblePorts.excludeNodes?.has(shapeId)) return false
+			if (port.terminal === 'end') {
+				// if the port is an end port, it can only have one connection, so it's not eligible
+				// when there is a connection
+				const connections = getNodePortConnections(editor, shapeId)
+				return !connections.some((c) => c.ownPortId === portId)
+			}
+			return true
+		},
+		[editor, shapeId, port.terminal]
+	)
+
 	return (
 		<div
-			className={classNames(`Port Port_${port.terminal}`, isHinting && 'Port_hinting')}
+			className={classNames(
+				`Port Port_${port.terminal}`,
+				isHinting ? 'Port_hinting' : isEligible ? 'Port_eligible' : undefined
+			)}
 			onPointerDown={() => {
 				editor.setCurrentTool('select.pointing_port', {
 					shapeId,

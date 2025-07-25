@@ -133,10 +133,18 @@ export class ConnectionShapeUtil extends ShapeUtil<ConnectionShape> {
 		const hasExistingConnection =
 			target?.existingConnection && target.existingConnection.connectionId !== connection.id
 
-		const wouldCreateACycle =
-			target &&
-			oppositeTerminalShapeId &&
-			getAllConnectedNodes(this.editor, oppositeTerminalShapeId, draggingTerminal).has(target.shape)
+		const nodesWhichWouldCreateACycle = oppositeTerminalShapeId
+			? getAllConnectedNodes(this.editor, oppositeTerminalShapeId, draggingTerminal)
+			: null
+
+		updatePortState(this.editor, {
+			eligiblePorts: {
+				terminal: draggingTerminal,
+				excludeNodes: nodesWhichWouldCreateACycle,
+			},
+		})
+
+		const wouldCreateACycle = (target && nodesWhichWouldCreateACycle?.has(target.shape.id)) ?? false
 
 		if (!target || (hasExistingConnection && !allowsMultipleConnections) || wouldCreateACycle) {
 			updatePortState(this.editor, { hintingPort: null })
@@ -167,7 +175,7 @@ export class ConnectionShapeUtil extends ShapeUtil<ConnectionShape> {
 		connection: ConnectionShape,
 		{ handle, isCreatingShape }: TLHandleDragInfo<ConnectionShape>
 	) {
-		updatePortState(this.editor, { hintingPort: null })
+		updatePortState(this.editor, { hintingPort: null, eligiblePorts: null })
 
 		const draggingTerminal = handle.id as 'start' | 'end'
 
@@ -230,7 +238,7 @@ export class ConnectionShapeUtil extends ShapeUtil<ConnectionShape> {
 	}
 
 	onHandleDragCancel() {
-		updatePortState(this.editor, { hintingPort: null })
+		updatePortState(this.editor, { hintingPort: null, eligiblePorts: null })
 	}
 
 	component(connection: ConnectionShape) {
