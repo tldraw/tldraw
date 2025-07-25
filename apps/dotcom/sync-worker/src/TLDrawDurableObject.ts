@@ -37,7 +37,6 @@ import { createSentry } from '@tldraw/worker-shared'
 import { DurableObject } from 'cloudflare:workers'
 import { IRequest, Router } from 'itty-router'
 import { Kysely } from 'kysely'
-import { AlarmScheduler } from './AlarmScheduler'
 import { PERSIST_INTERVAL_MS } from './config'
 import { createPostgresConnectionPool } from './postgres'
 import { getR2KeyForRoom } from './r2'
@@ -132,7 +131,7 @@ export class TLDrawDurableObject extends DurableObject {
 								room.close()
 							},
 							onDataChange: () => {
-								this.triggerPersistSchedule()
+								this.triggerPersist()
 							},
 							onBeforeSendMessage: ({ message, stringified }) => {
 								this.logEvent({
@@ -247,15 +246,6 @@ export class TLDrawDurableObject extends DurableObject {
 			(req) => this.onRestore(req)
 		)
 		.all('*', () => new Response('Not found', { status: 404 }))
-
-	readonly scheduler = new AlarmScheduler({
-		storage: () => this.storage,
-		alarms: {
-			persist: async () => {
-				this.persistToDatabase()
-			},
-		},
-	})
 
 	// eslint-disable-next-line no-restricted-syntax
 	get documentInfo() {
@@ -482,9 +472,9 @@ export class TLDrawDurableObject extends DurableObject {
 		}
 	}
 
-	triggerPersistSchedule = throttle(() => {
-		this.schedulePersist()
-	}, 2000)
+	triggerPersist = throttle(() => {
+		this.persistToDatabase()
+	}, PERSIST_INTERVAL_MS)
 
 	private writeEvent(name: string, eventData: EventData) {
 		writeDataPoint(this.sentry, this.measure, this.env, name, eventData)
@@ -729,17 +719,6 @@ export class TLDrawDurableObject extends DurableObject {
 		// eslint-disable-next-line @typescript-eslint/no-deprecated
 		this.sentry?.captureException(e)
 		console.error(e)
-	}
-
-	async schedulePersist() {
-		await this.scheduler.scheduleAlarmAfter('persist', PERSIST_INTERVAL_MS, {
-			overwrite: 'if-sooner',
-		})
-	}
-
-	// Will be called automatically when the alarm ticks.
-	override async alarm() {
-		await this.scheduler.onAlarm()
 	}
 
 	async appFileRecordCreated(file: TlaFile) {
