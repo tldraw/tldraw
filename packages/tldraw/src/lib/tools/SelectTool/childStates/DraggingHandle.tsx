@@ -120,6 +120,7 @@ export class DraggingHandle extends StateNode {
 		const handleDragInfo = {
 			handle: this.initialHandle,
 			isPrecise: this.isPrecise,
+			isCreatingShape: !!this.info.isCreating,
 			initial: shape,
 		}
 		const util = this.editor.getShapeUtil(shape)
@@ -204,6 +205,7 @@ export class DraggingHandle extends StateNode {
 			const handleDragInfo = {
 				handle: this.initialHandle,
 				isPrecise: this.isPrecise,
+				isCreatingShape: !!this.info.isCreating,
 				initial: this.info.shape,
 			}
 			const endChanges = util.onHandleDragEnd?.(shape, handleDragInfo)
@@ -231,6 +233,7 @@ export class DraggingHandle extends StateNode {
 			const handleDragInfo = {
 				handle: this.initialHandle,
 				isPrecise: this.isPrecise,
+				isCreatingShape: !!this.info.isCreating,
 				initial: this.info.shape,
 			}
 			util.onHandleDragCancel?.(shape, handleDragInfo)
@@ -304,6 +307,7 @@ export class DraggingHandle extends StateNode {
 		const changes = util.onHandleDrag?.(shape, {
 			handle: nextHandle,
 			isPrecise: this.isPrecise || altKey,
+			isCreatingShape: !!this.info.isCreating,
 			initial: initial,
 		})
 
