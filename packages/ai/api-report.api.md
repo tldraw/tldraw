@@ -111,6 +111,7 @@ export type TLAiMessages = string | TLAiMessage | TLAiMessage[];
 export interface TLAiPrompt {
     canvasContent: TLAiContent;
     contextBounds: Box;
+    currentPageContent: TLAiContent;
     image?: string;
     message: string | TLAiMessage[];
     meta?: any;

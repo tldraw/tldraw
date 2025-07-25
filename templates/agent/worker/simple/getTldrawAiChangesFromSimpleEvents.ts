@@ -111,7 +111,9 @@ function getTldrawAiChangesFromSimpleUpdateEvent(
 
 	switch (update._type) {
 		case 'text': {
-			const shapeOnCanvas = prompt.canvasContent.shapes.find((s) => s.id === update.shapeId)
+			const shapeOnCanvas =
+				prompt.canvasContent.shapes.find((s) => s.id === update.shapeId) ??
+				prompt.currentPageContent.shapes.find((s) => s.id === update.shapeId)
 			if (!shapeOnCanvas) {
 				throw new Error(`Shape ${update.shapeId} not found in canvas`)
 			}
@@ -139,7 +141,9 @@ function getTldrawAiChangesFromSimpleUpdateEvent(
 			break
 		}
 		case 'line': {
-			const shapeOnCanvas = prompt.canvasContent.shapes.find((s) => s.id === update.shapeId)
+			const shapeOnCanvas =
+				prompt.canvasContent.shapes.find((s) => s.id === update.shapeId) ??
+				prompt.currentPageContent.shapes.find((s) => s.id === update.shapeId)
 			if (!shapeOnCanvas) {
 				throw new Error(`Shape ${update.shapeId} not found in canvas`)
 			}
@@ -187,7 +191,9 @@ function getTldrawAiChangesFromSimpleUpdateEvent(
 			break
 		}
 		case 'arrow': {
-			const shapeOnCanvas = prompt.canvasContent.shapes.find((s) => s.id === update.shapeId)
+			const shapeOnCanvas =
+				prompt.canvasContent.shapes.find((s) => s.id === update.shapeId) ??
+				prompt.currentPageContent.shapes.find((s) => s.id === update.shapeId)
 			if (!shapeOnCanvas) {
 				throw new Error(`Shape ${update.shapeId} not found in canvas`)
 			}
@@ -301,7 +307,9 @@ function getTldrawAiChangesFromSimpleUpdateEvent(
 		case 'check-box':
 		case 'heart':
 		case 'ellipse': {
-			const shapeOnCanvas = prompt.canvasContent.shapes.find((s) => s.id === update.shapeId)
+			const shapeOnCanvas =
+				prompt.canvasContent.shapes.find((s) => s.id === update.shapeId) ??
+				prompt.currentPageContent.shapes.find((s) => s.id === update.shapeId)
 			if (!shapeOnCanvas) {
 				throw new Error(`Shape ${update.shapeId} not found in canvas`)
 			}
@@ -333,7 +341,9 @@ function getTldrawAiChangesFromSimpleUpdateEvent(
 			break
 		}
 		case 'note': {
-			const shapeOnCanvas = prompt.canvasContent.shapes.find((s) => s.id === update.shapeId)
+			const shapeOnCanvas =
+				prompt.canvasContent.shapes.find((s) => s.id === update.shapeId) ??
+				prompt.currentPageContent.shapes.find((s) => s.id === update.shapeId)
 			if (!shapeOnCanvas) {
 				throw new Error(`Shape ${update.shapeId} not found in canvas`)
 			}
@@ -362,7 +372,9 @@ function getTldrawAiChangesFromSimpleUpdateEvent(
 			break
 		}
 		case 'unknown': {
-			const shapeOnCanvas = prompt.canvasContent.shapes.find((s) => s.id === update.shapeId)
+			const shapeOnCanvas =
+				prompt.canvasContent.shapes.find((s) => s.id === update.shapeId) ??
+				prompt.currentPageContent.shapes.find((s) => s.id === update.shapeId)
 			if (!shapeOnCanvas) {
 				throw new Error(`Shape ${update.shapeId} not found in canvas`)
 			}
