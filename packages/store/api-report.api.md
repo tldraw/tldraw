@@ -567,7 +567,9 @@ export class StoreSchema<R extends UnknownRecord, P = unknown> {
     // (undocumented)
     migratePersistedRecord(record: R, persistedSchema: SerializedSchema, direction?: 'down' | 'up'): MigrationResult<R>;
     // (undocumented)
-    migrateStoreSnapshot(snapshot: StoreSnapshot<R>): MigrationResult<SerializedStore<R>>;
+    migrateStoreSnapshot(snapshot: StoreSnapshot<R>, opts?: {
+        mutateInputStore?: boolean;
+    }): MigrationResult<SerializedStore<R>>;
     // (undocumented)
     readonly migrations: Record<string, MigrationSequence>;
     // (undocumented)
