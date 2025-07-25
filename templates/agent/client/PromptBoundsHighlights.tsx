@@ -1,4 +1,3 @@
-import { useEffect } from 'react'
 import { Box, SVGContainer, useEditor, useValue } from 'tldraw'
 import { $promptBounds } from './PromptBounds'
 
@@ -40,10 +39,6 @@ function PromptBoundsHighlight({
 	color?: string
 	className?: string
 }) {
-	useEffect(() => {
-		console.log('screenBounds', screenBounds)
-	}, [screenBounds])
-
 	const minX = screenBounds.minX
 	const minY = screenBounds.minY
 	const maxX = screenBounds.maxX
