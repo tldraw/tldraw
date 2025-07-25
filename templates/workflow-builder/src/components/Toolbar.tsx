@@ -11,7 +11,6 @@ import {
 	DiamondToolbarItem,
 	DrawToolbarItem,
 	EllipseToolbarItem,
-	EraserToolbarItem,
 	FrameToolbarItem,
 	HandToolbarItem,
 	HeartToolbarItem,
@@ -65,7 +64,7 @@ export function Toolbar() {
 							<SelectToolbarItem />
 							<HandToolbarItem />
 							<DrawToolbarItem />
-							<EraserToolbarItem />
+							<NoteToolbarItem />
 
 							<div
 								style={{
