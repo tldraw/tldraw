@@ -82,12 +82,14 @@ body {
 		0 1px 3px rgba(0, 0, 0, 0.12);
 	pointer-events: all;
 	flex: 0 0 auto;
+	transition: transform 0.05s ease-in-out;
 
 	&.Port_hinting {
-		box-shadow:
+		background: var(--color-selected);
+		/* box-shadow:
 			0 0 0 calc(2px / var(--tl-zoom)) var(--color-selected),
 			0 0 0 1px rgba(0, 0, 0, 0.04),
-			0 1px 3px rgba(0, 0, 0, 0.12);
+			0 1px 3px rgba(0, 0, 0, 0.12); */
 	}
 
 	&.Port_end {
@@ -96,6 +98,13 @@ body {
 
 	&.Port_start {
 		margin-right: -14px;
+	}
+
+	&.Port_eligible {
+		box-shadow:
+			0 0 0 calc(1px / var(--tl-zoom)) var(--color-selected),
+			0 0 0 1px rgba(0, 0, 0, 0.04),
+			0 1px 3px rgba(0, 0, 0, 0.12);
 	}
 }
 
