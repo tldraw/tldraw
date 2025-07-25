@@ -11,7 +11,9 @@ const MIN_FPS = 30
 const MAX_FPS = 120
 const DEFAULT_FPS = 60
 
-const getTargetTimePerFrame = (fps: number) => Math.floor(1000 / fps) * 0.9 // e.g. ~15ms for 60 - we allow for some variance as browsers aren't that precise.
+// e.g. ~15ms for 60 - we allow for some variance as browsers aren't that precise.
+// However, for 120 fps we want to unlock the full 120fps, so we set fix it at that.
+const getTargetTimePerFrame = (fps: number) => Math.floor(1000 / fps) * (fps >= 120 ? 1 : 0.9)
 
 let targetFps = DEFAULT_FPS
 let targetTimePerFrame = getTargetTimePerFrame(targetFps)
