@@ -145,8 +145,8 @@ export class TLDrawDurableObject extends DurableObject {
 								})
 							},
 						})
-
-						this.addRoomStorageUsedPercentage(room, result.roomSizeMB)
+						// We don't want to update the document if it already has percentage set
+						this.addRoomStorageUsedPercentage(room, result.roomSizeMB, false)
 
 						this.logEvent({ type: 'room', roomId: slug, name: 'room_start' })
 						// Also associate file assets after we load the room
@@ -687,7 +687,8 @@ export class TLDrawDurableObject extends DurableObject {
 
 	private async addRoomStorageUsedPercentage(
 		room: TLSocketRoom<TLRecord, SessionMeta>,
-		roomSizeMB: number
+		roomSizeMB: number,
+		shouldUpdate: boolean
 	) {
 		await room.updateStore(async (store) => {
 			const records = store.getAll()
@@ -695,6 +696,7 @@ export class TLDrawDurableObject extends DurableObject {
 				if (record.typeName !== 'document') continue
 				const document = record as TLDocument
 				const meta = document.meta
+				if (!shouldUpdate && meta.storageUsedPercentage !== undefined) return
 				meta.storageUsedPercentage = Math.ceil((roomSizeMB / ROOM_SIZE_LIMIT_MB) * 100)
 				store.put(document)
 			}
@@ -722,7 +724,7 @@ export class TLDrawDurableObject extends DurableObject {
 					this.r2.versionCache.put(key + `/` + new Date().toISOString(), snapshot),
 				])
 				if (roomObject) {
-					await this.addRoomStorageUsedPercentage(room, roomObject.size / MB)
+					await this.addRoomStorageUsedPercentage(room, roomObject.size / MB, true)
 				}
 				this._lastPersistedClock = clock
 
