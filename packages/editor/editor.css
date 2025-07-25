@@ -163,6 +163,7 @@
 	--color-selected: hsl(214, 84%, 56%);
 	--color-selected-contrast: hsl(0, 0%, 100%);
 	--color-focus: hsl(219, 65%, 50%);
+	--color-tooltip: hsla(200, 14%, 4%, 1);
 	/* Text */
 	--color-text: hsl(0, 0%, 0%);
 	--color-text-0: hsl(0, 0%, 11%);
@@ -218,6 +219,7 @@
 	--color-selected: hsl(217, 89%, 61%);
 	--color-selected-contrast: hsl(0, 0%, 100%);
 	--color-focus: hsl(217, 76%, 80%);
+	--color-tooltip: hsla(0, 0%, 100%, 1);
 	/* Text */
 	--color-text: hsl(210, 17%, 98%);
 	--color-text-0: hsl(0, 9%, 94%);

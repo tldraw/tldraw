@@ -726,6 +726,7 @@ export const defaultUserPreferences: Readonly<{
     isWrapMode: false;
     locale: "ar" | "bn" | "ca" | "cs" | "da" | "de" | "el" | "en" | "es" | "fa" | "fi" | "fr" | "gl" | "gu-in" | "he" | "hi-in" | "hr" | "hu" | "id" | "it" | "ja" | "km-kh" | "kn" | "ko-kr" | "ml" | "mr" | "ms" | "ne" | "nl" | "no" | "pa" | "pl" | "pt-br" | "pt-pt" | "ro" | "ru" | "sl" | "so" | "sv" | "ta" | "te" | "th" | "tl" | "tr" | "uk" | "ur" | "vi" | "zh-cn" | "zh-tw";
     name: "";
+    showUiLabels: false;
 }>;
 
 // @public
@@ -4299,6 +4300,8 @@ export interface TLUserPreferences {
     locale?: null | string;
     // (undocumented)
     name?: null | string;
+    // (undocumented)
+    showUiLabels?: boolean | null;
 }
 
 // @public (undocumented)
@@ -4471,6 +4474,8 @@ export class UserPreferencesManager {
     // (undocumented)
     getName(): string;
     // (undocumented)
+    getShowUiLabels(): boolean;
+    // (undocumented)
     getUserPreferences(): {
         animationSpeed: number;
         areKeyboardShortcutsEnabled: boolean;
@@ -4483,6 +4488,7 @@ export class UserPreferencesManager {
         isWrapMode: boolean;
         locale: string;
         name: string;
+        showUiLabels: boolean;
     };
     // (undocumented)
     systemColorScheme: Atom<"dark" | "light", unknown>;

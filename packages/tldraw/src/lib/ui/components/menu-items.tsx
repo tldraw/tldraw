@@ -652,6 +652,14 @@ export function ToggleKeyboardShortcutsItem() {
 }
 
 /** @public @react */
+export function ToggleUiLabelsItem() {
+	const editor = useEditor()
+	const showUiLabels = useValue('showUiLabels', () => editor.user.getShowUiLabels(), [editor])
+
+	return <TldrawUiMenuActionCheckboxItem actionId="toggle-ui-labels" checked={showUiLabels} />
+}
+
+/** @public @react */
 export function ToggleDebugModeItem() {
 	const editor = useEditor()
 	const isDebugMode = useValue('isDebugMode', () => editor.getInstanceState().isDebugMode, [editor])

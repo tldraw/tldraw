@@ -1,4 +1,5 @@
 import { useCanRedo, useCanUndo } from '../../hooks/menu-hooks'
+import { AccessibilityMenu } from '../AccessibilityMenu'
 import { ColorSchemeMenu } from '../ColorSchemeMenu'
 import { KeyboardShortcutsMenuItem } from '../HelpMenu/DefaultHelpMenuContent'
 import { LanguageMenu } from '../LanguageMenu'
@@ -19,10 +20,8 @@ import {
 	ToggleEdgeScrollingItem,
 	ToggleFocusModeItem,
 	ToggleGridItem,
-	ToggleKeyboardShortcutsItem,
 	ToggleLockMenuItem,
 	TogglePasteAtCursorItem,
-	ToggleReduceMotionItem,
 	ToggleSnapModeItem,
 	ToggleToolLockItem,
 	ToggleTransparentBgMenuItem,
@@ -161,14 +160,15 @@ export function PreferencesGroup() {
 					<ToggleWrapModeItem />
 					<ToggleFocusModeItem />
 					<ToggleEdgeScrollingItem />
-					<ToggleReduceMotionItem />
-					<ToggleKeyboardShortcutsItem />
 					<ToggleDynamicSizeModeItem />
 					<TogglePasteAtCursorItem />
 					<ToggleDebugModeItem />
 				</TldrawUiMenuGroup>
 				<TldrawUiMenuGroup id="color-scheme">
 					<ColorSchemeMenu />
+				</TldrawUiMenuGroup>
+				<TldrawUiMenuGroup id="accessibility-menu">
+					<AccessibilityMenu />
 				</TldrawUiMenuGroup>
 			</TldrawUiMenuSubmenu>
 			<LanguageMenu />
