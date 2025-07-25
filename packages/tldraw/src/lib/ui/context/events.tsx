@@ -126,6 +126,7 @@ export interface TLUiEventMap {
 	'open-context-menu': null
 	'adjust-shape-styles': null
 	'copy-link': null
+	'drag-tool': { id: string }
 	'image-replace': null
 	'video-replace': null
 	'open-kbd-shortcuts': null

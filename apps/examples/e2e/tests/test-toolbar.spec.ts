@@ -1,5 +1,5 @@
 import { expect } from '@playwright/test'
-import { setup } from '../shared-e2e'
+import { getAllShapeTypes, setup } from '../shared-e2e'
 import test from './fixtures/fixtures'
 
 test.describe('when selecting a tool from the toolbar', () => {
@@ -33,6 +33,99 @@ test.describe('when selecting a tool from the toolbar', () => {
 			await popoverCloud.click()
 			await expect(toolbar.moreToolsPopover).toBeHidden()
 			await expect(cloud).toBeVisible()
+		})
+	})
+})
+
+test.describe('when dragging a tool from the toolbar', () => {
+	test.beforeEach(setup)
+
+	test('dragging from main toolbar creates and positions shapes', async ({ page, toolbar }) => {
+		const { rectangle, arrow, text } = toolbar.tools
+
+		await test.step('dragging rectangle tool creates a rectangle', async () => {
+			const startPoint = { x: 100, y: 100 }
+			const endPoint = { x: 200, y: 200 }
+
+			// Start dragging from the rectangle tool
+			await rectangle.hover()
+			await page.mouse.down()
+			await page.mouse.move(startPoint.x, startPoint.y)
+			await page.mouse.move(endPoint.x, endPoint.y)
+			await page.mouse.up()
+
+			// Verify a rectangle was created
+			const shapes = await getAllShapeTypes(page)
+			expect(shapes).toHaveLength(1)
+			expect(shapes).toContain('geo')
+		})
+
+		await test.step('dragging arrow tool creates an arrow', async () => {
+			const startPoint = { x: 300, y: 100 }
+			const endPoint = { x: 400, y: 200 }
+
+			// Start dragging from the arrow tool
+			await arrow.hover()
+			await page.mouse.down()
+			await page.mouse.move(startPoint.x, startPoint.y)
+			await page.mouse.move(endPoint.x, endPoint.y)
+			await page.mouse.up()
+
+			// Verify an arrow was created
+			const shapes = await getAllShapeTypes(page)
+			expect(shapes).toHaveLength(2)
+			expect(shapes).toContain('geo')
+			expect(shapes).toContain('arrow')
+		})
+
+		await test.step('dragging text tool creates editable text', async () => {
+			const startPoint = { x: 500, y: 100 }
+			const endPoint = { x: 600, y: 200 }
+
+			// Start dragging from the text tool
+			await text.hover()
+			await page.mouse.down()
+			await page.mouse.move(startPoint.x, startPoint.y)
+			await page.mouse.move(endPoint.x, endPoint.y)
+			await page.mouse.up()
+
+			// Verify a text shape was created
+			const shapes = await getAllShapeTypes(page)
+			expect(shapes).toHaveLength(3)
+			expect(shapes).toContain('geo')
+			expect(shapes).toContain('arrow')
+			expect(shapes).toContain('text')
+
+			// Verify text is in edit mode
+			const hasTextInputFocused = await page.evaluate(() => {
+				return document.activeElement?.classList.contains('tl-text-input')
+			})
+			expect(hasTextInputFocused).toBe(true)
+		})
+	})
+
+	test('dragging from overflow toolbar creates shapes', async ({ page, toolbar }) => {
+		// Open the overflow menu
+		await toolbar.moreToolsButton.click()
+		await expect(toolbar.moreToolsPopover).toBeVisible()
+
+		const { popoverCloud } = toolbar.popOverTools
+
+		await test.step('dragging cloud tool from overflow creates a cloud', async () => {
+			const startPoint = { x: 100, y: 100 }
+			const endPoint = { x: 200, y: 200 }
+
+			// Start dragging from the cloud tool in overflow
+			await popoverCloud.hover()
+			await page.mouse.down()
+			await page.mouse.move(startPoint.x, startPoint.y)
+			await page.mouse.move(endPoint.x, endPoint.y)
+			await page.mouse.up()
+
+			// Verify a cloud shape was created
+			const shapes = await getAllShapeTypes(page)
+			expect(shapes).toHaveLength(1)
+			expect(shapes).toContain('geo')
 		})
 	})
 })
