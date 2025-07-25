@@ -131,7 +131,7 @@ export class TLDrawDurableObject extends DurableObject {
 								room.close()
 							},
 							onDataChange: () => {
-								this.triggerPersistSchedule()
+								this.triggerPersist()
 							},
 							onBeforeSendMessage: ({ message, stringified }) => {
 								this.logEvent({
@@ -472,7 +472,7 @@ export class TLDrawDurableObject extends DurableObject {
 		}
 	}
 
-	triggerPersistSchedule = throttle(() => {
+	triggerPersist = throttle(() => {
 		this.persistToDatabase()
 	}, PERSIST_INTERVAL_MS)
 
