@@ -43,6 +43,9 @@ export class NodeShapeUtil extends ShapeUtil<NodeShape> {
 	override canEdit() {
 		return false
 	}
+	override canBeTransparent() {
+		return false
+	}
 	override canResize() {
 		return false
 	}
