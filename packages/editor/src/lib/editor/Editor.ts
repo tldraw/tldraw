@@ -8575,7 +8575,7 @@ export class Editor extends EventEmitter<TLEventMap> {
 	 *
 	 * @public
 	 */
-	@computed getSharedOpacity(): SharedStyle<number> {
+	@computed getSharedOpacity(): SharedStyle<number> | undefined {
 		if (this.isIn('select') && this.getSelectedShapeIds().length > 0) {
 			const shapesToCheck: TLShape[] = []
 			const addShape = (shapeId: TLShapeId) => {
@@ -8588,7 +8588,7 @@ export class Editor extends EventEmitter<TLEventMap> {
 					for (const childId of this.getSortedChildIdsForParent(shape.id)) {
 						addShape(childId)
 					}
-				} else {
+				} else if (this.getShapeUtil(shape).canBeTransparent(shape)) {
 					shapesToCheck.push(shape)
 				}
 			}
@@ -8606,6 +8606,8 @@ export class Editor extends EventEmitter<TLEventMap> {
 			}
 
 			if (opacity !== null) return { type: 'shared', value: opacity }
+
+			return undefined
 		}
 		return { type: 'shared', value: this.getInstanceState().opacityForNextShape }
 	}
