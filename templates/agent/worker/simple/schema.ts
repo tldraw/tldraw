@@ -424,6 +424,16 @@ export type ISimpleShape = z.infer<typeof SimpleShape>
 export const SimpleShapeUpdate = z.union(SIMPLE_SHAPES)
 export type ISimpleShapeUpdate = z.infer<typeof SimpleShapeUpdate>
 
+const SimplePeripheralShape = z.object({
+	// _type: z.enum(['shape, text']),
+	h: z.number(),
+	w: z.number(),
+	x: z.number(),
+	y: z.number(),
+})
+
+export type ISimplePeripheralShape = z.infer<typeof SimplePeripheralShape>
+
 // Events
 
 export const SimpleCreateEvent = z.object({
@@ -496,13 +506,23 @@ export type ISimpleThinkEvent = z.infer<typeof SimpleThinkEvent>
 
 const SimpleScheduleReviewEvent = z.object({
 	_type: z.literal('schedule'),
+	h: z.number(),
 	intent: z.string(),
+	w: z.number(),
 	x: z.number(),
 	y: z.number(),
-	w: z.number(),
-	h: z.number(),
 })
 export type ISimpleScheduleEvent = z.infer<typeof SimpleScheduleReviewEvent>
+
+const SimpleSetMyViewEvent = z.object({
+	_type: z.literal('setMyView'),
+	h: z.number(),
+	intent: z.string(),
+	w: z.number(),
+	x: z.number(),
+	y: z.number(),
+})
+export type ISimpleSetMyViewEvent = z.infer<typeof SimpleSetMyViewEvent>
 
 export const SimpleEvent = z.union([
 	SimpleThinkEvent,
@@ -512,6 +532,7 @@ export const SimpleEvent = z.union([
 	SimpleMoveEvent,
 	SimpleLabelEvent,
 	SimpleScheduleReviewEvent,
+	SimpleSetMyViewEvent,
 ])
 
 export type ISimpleEvent = z.infer<typeof SimpleEvent>

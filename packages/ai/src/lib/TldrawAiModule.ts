@@ -69,11 +69,13 @@ export class TldrawAiModule {
 		const contextBounds = _options.contextBounds ?? editor.getViewportPageBounds()
 		const promptBounds = _options.promptBounds ?? editor.getViewportPageBounds()
 		const canvasContent = _options.canvasContent ?? this.getContent(promptBounds)
+		const currentPageContent = this.getContent()
 		const image = _options.image ?? (await this.getImage(canvasContent))
 
 		return {
 			message: _options.message ?? '',
 			canvasContent,
+			currentPageContent, //I think this might cause problems atm because if we do want to send the current page content in the prompt, we need to make sure transforms (and probably other stuff) are applied to it
 			contextBounds: roundBox(contextBounds),
 			promptBounds: roundBox(promptBounds),
 			image,
@@ -84,23 +86,28 @@ export class TldrawAiModule {
 	/**
 	 * Get the content from the current page.
 	 *
-	 * @param bounds - The bounds to get the content for
+	 * @param bounds - The bounds to get the content for. If not provided, includes the entire page.
 	 */
-	private getContent(bounds: Box): TLAiContent {
+	private getContent(bounds?: Box): TLAiContent {
 		const { editor } = this.opts
 
-		// Get the page content (same as what we put on the clipboard when a user copies) for the shapes
-		// that are included (contained or colliding with) the provided bounds
+		let shapesToInclude
+
+		if (!bounds) {
+			// No bounds provided, include all shapes on the current page
+			shapesToInclude = editor.getCurrentPageShapesSorted()
+		} else {
+			// Only include shapes within or colliding with the provided bounds
+			shapesToInclude = editor
+				.getCurrentPageShapesSorted()
+				.filter((s) => bounds.includes(editor.getShapeMaskedPageBounds(s)!))
+		}
 
 		let content: TLAiContent | undefined = {
 			bindings: [],
 			shapes: [],
 			assets: [],
-			...editor.getContentFromCurrentPage(
-				editor
-					.getCurrentPageShapesSorted()
-					.filter((s) => bounds.includes(editor.getShapeMaskedPageBounds(s)!))
-			),
+			...editor.getContentFromCurrentPage(shapesToInclude),
 		}
 
 		// If we don't have content, it's either an empty page or an empty section of the page.

@@ -10,7 +10,7 @@ import {
 	getSimpleContextItemsFromContextItems,
 } from './Context'
 import { setContextBounds, setPromptBounds } from './PromptBounds'
-import { $requestsSchedule } from './requestsSchedule'
+import { $requestsSchedule, ScheduledRequestType } from './requestsSchedule'
 import { useTldrawAiExample } from './useTldrawAiExample'
 
 export function ChatPanel({ editor }: { editor: Editor }) {
@@ -28,64 +28,72 @@ export function ChatPanel({ editor }: { editor: Editor }) {
 	}, [ai, editor])
 
 	const advanceSchedule = useCallback(async () => {
-		const eventSchedule = $requestsSchedule.get()
+		// Process all requests in the schedule sequentially
+		while (true) {
+			const eventSchedule = $requestsSchedule.get()
 
-		if (!eventSchedule || eventSchedule.length === 0) {
-			return // Base case - no more events to process
-		}
+			if (!eventSchedule || eventSchedule.length === 0) {
+				return // Base case - no more events to process
+			}
 
-		// The next scheduled request
-		const request = eventSchedule[0]
-		const intent = request.message
+			// The next scheduled request
+			const request = eventSchedule[0]
+			const intent = request.message
 
-		$pendingContextItems.set(request.contextItems)
-		const bounds = Box.From(request.bounds)
-		try {
-			const { promise, cancel } = ai.prompt({
-				message: intent,
-				stream: true,
-				contextBounds: bounds,
-				promptBounds: bounds,
-				meta: {
-					modelName,
-					historyItems: $chatHistoryItems.get().filter((item) => item.type !== 'status-thinking'),
-					contextItems: getSimpleContextItemsFromContextItems(request.contextItems),
-					review: request.review,
-				},
-			})
+			$pendingContextItems.set(request.contextItems)
+			const bounds = Box.From(request.bounds)
 
-			$chatHistoryItems.update((prev) => [
-				...prev,
-				{
-					type: 'status-thinking',
-					message: request.review ? 'Reviewing' : 'Generating',
-					status: 'progress',
-				},
-			])
+			setContextBounds(bounds)
+			setPromptBounds(bounds)
 
-			rCancelFn.current = cancel
-			await promise
+			try {
+				const { promise, cancel } = ai.prompt({
+					message: intent,
+					stream: true,
+					contextBounds: bounds,
+					promptBounds: bounds,
+					meta: {
+						modelName,
+						historyItems: $chatHistoryItems.get().filter((item) => item.type !== 'status-thinking'),
+						contextItems: getSimpleContextItemsFromContextItems(request.contextItems),
+						type: request.type,
+					},
+				})
 
-			// Only remove the event after successful processing
-			$requestsSchedule.update((prev) => prev.filter((_, i) => i !== 0))
+				$chatHistoryItems.update((prev) => [
+					...prev,
+					{
+						type: 'status-thinking',
+						message: request.type === ScheduledRequestType.Review ? 'Reviewing' : 'Generating', //TODO handle this more gracefully once we have more scheduled requests
+						status: 'progress',
+					},
+				])
 
-			// Set previous status-thinking to done
-			// this assume only one status-thinking at a time. not a bad assumption for now?
-			$chatHistoryItems.update((prev) => {
-				const lastStatusThinkingIndex = [...prev]
-					.reverse()
-					.findIndex((item) => item.type === 'status-thinking' && item.status === 'progress')
-				if (lastStatusThinkingIndex === -1) return prev
-				const idx = prev.length - 1 - lastStatusThinkingIndex
-				return prev.map((item, i) => (i === idx ? { ...item, status: 'done' } : item))
-			})
+				rCancelFn.current = cancel
+				await promise
 
-			// Process next event (if any)
-			await advanceSchedule()
-			rCancelFn.current = null
-		} catch (e) {
-			console.error(e)
-			rCancelFn.current = null
+				// Only remove the event after successful processing
+				$requestsSchedule.update((prev) => prev.filter((_, i) => i !== 0))
+
+				// Set previous status-thinking to done
+				// this assume only one status-thinking at a time. not a bad assumption for now?
+				$chatHistoryItems.update((prev) => {
+					const lastStatusThinkingIndex = [...prev]
+						.reverse()
+						.findIndex((item) => item.type === 'status-thinking' && item.status === 'progress')
+					if (lastStatusThinkingIndex === -1) return prev
+					const idx = prev.length - 1 - lastStatusThinkingIndex
+					return prev.map((item, i) => (i === idx ? { ...item, status: 'done' } : item))
+				})
+
+				rCancelFn.current = null
+			} catch (e) {
+				console.error(e)
+				rCancelFn.current = null
+				// Remove the failed request from the schedule
+				$requestsSchedule.update((prev) => prev.filter((_, i) => i !== 0))
+				// Continue processing the next request
+			}
 		}
 	}, [ai, modelName])
 
@@ -102,6 +110,9 @@ export function ChatPanel({ editor }: { editor: Editor }) {
 				rCancelFn.current()
 				rCancelFn.current = null
 				setIsGenerating(false)
+
+				setContextBounds(undefined)
+				setPromptBounds(undefined)
 
 				$requestsSchedule.set([])
 				$pendingContextItems.set([])
@@ -135,7 +146,7 @@ export function ChatPanel({ editor }: { editor: Editor }) {
 				{
 					message: userMessageHistoryItem.message,
 					contextItems: userMessageHistoryItem.contextItems,
-					review: false,
+					type: null,
 					bounds: lockedBounds,
 				},
 			])
@@ -165,6 +176,8 @@ export function ChatPanel({ editor }: { editor: Editor }) {
 		$pendingContextItems.set([])
 		$contextItems.set([])
 		$requestsSchedule.set([])
+		setContextBounds(undefined)
+		setPromptBounds(undefined)
 	}
 
 	function NewChatButton() {

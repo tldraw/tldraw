@@ -16,6 +16,7 @@ import { PencilIcon } from './icons/PencilIcon'
 import { RefreshIcon } from './icons/RefreshIcon'
 import { SearchIcon } from './icons/SearchIcon'
 import { TrashIcon } from './icons/TrashIcon'
+import { EyeIcon } from './icons/EyeIcon'
 import TldrawViewer from './TldrawViewer'
 
 export type ChatHistoryItem =
@@ -68,7 +69,7 @@ export interface AgentRawHistoryItem {
 
 export interface AgentActionHistoryItem {
 	type: 'agent-action'
-	action: 'thinking' | 'creating' | 'deleting' | 'updating' | 'schedule'
+	action: 'thinking' | 'creating' | 'deleting' | 'updating' | 'schedule' | 'setMyView'
 	status: 'progress' | 'done' | 'cancelled'
 	info: string
 }
@@ -368,6 +369,14 @@ export const ACTION_HISTORY_ITEM_DEFINITIONS: Record<
 			progress: 'Scheduling: ',
 			done: 'Scheduled: ',
 			cancelled: 'Scheduling cancelled. ',
+		},
+	},
+	setMyView: {
+		icon: <EyeIcon />,
+		message: {
+			progress: 'Setting my view: ',
+			done: 'Set my view: ',
+			cancelled: 'Setting my view cancelled. ',
 		},
 	},
 }

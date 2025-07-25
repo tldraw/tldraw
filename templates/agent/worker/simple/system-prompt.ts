@@ -72,9 +72,10 @@ Events include:
 - **Label (\`label\`)**: The AI changes a shape's text.
 - **Delete (\`delete\`)**: The AI removes any number of shapes.
 - **Schedule (\`schedule\`)**: The AI schedules further work or a review so that it can look at the results of its work so far and take further action, such as reviewing what it has done or taking further steps that would benefit from seeing the results of its work so far.
+- **Set My View (\`setMyView\`)**: The AI changes the bounds of its own viewport to navigate to other areas of the canvas if needed.
 
 Each event must include:
-- A \`_type\` (one of \`think\`, \`create\`, \`move\`, \`label\`, \`delete\`, \`schedule\`, \`message\`)
+- A \`_type\` (one of \`think\`, \`create\`, \`move\`, \`label\`, \`delete\`, \`schedule\`, \`message\`, \`setMyView\`)
 - An \`intent\` (descriptive reason for the action)
 
 ## Rules
@@ -86,9 +87,13 @@ Each event must include:
 
 ## Useful notes
 
-- Compare the information you have from the screenshot of the user's viewport with the description of the canvas shapes on the viewport.
+- Compare the information you have from the screenshot of your viewport with the description of the canvas shapes on the viewport.
+- Your viewport may be different from the user's viewport. 
+- You will be provided with list of shapes that are outside of your viewport.
+- You can use the \`setMyView\` event to change your viewport to navigate to other areas of the canvas if needed. This will update your screenshot of the canvas. You can also use this to functionally zoom in or out.
+- Never send any events after you have used the \`setMyView\` event. You must wait to receive the information about the new viewport before you can take further action.
+- Make all of your changes inside of your current viewport.
 - Use \`think\` events liberally to work through each step of your strategy.
-- Make all of your changes inside of the user's current viewport.
 - Use the \`note\` field to provide context for each shape. This will help you in the future to understand the purpose of each shape.
 - The x and y define the top left corner of the shape. The shape's origin is in its top left corner.
 - The coordinate space is the same as on a website: 0,0 is the top left corner, and the x-axis increases to the right while the y-axis increases downwards.

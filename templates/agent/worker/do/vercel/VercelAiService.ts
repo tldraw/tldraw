@@ -4,11 +4,16 @@ import { createOpenAI, OpenAIProvider } from '@ai-sdk/openai'
 import { asMessage, TLAiChange, TLAiResult, TLAiSerializedPrompt } from '@tldraw/ai'
 import { CoreMessage, generateObject, LanguageModel, streamObject, UserContent } from 'ai'
 import { ACTION_HISTORY_ITEM_DEFINITIONS, ChatHistoryItem } from '../../../client/ChatHistoryItem'
+import { ScheduledRequestType } from '../../../client/requestsSchedule'
 import { getTLAgentModelDefinition, TLAgentModelName } from '../../models'
-import { getSimpleContentFromCanvasContent } from '../../simple/getSimpleContentFromCanvasContent'
+import {
+	getSimpleContentFromCanvasContent,
+	getSimplePeripheralContentFromCanvasContent,
+} from '../../simple/getSimpleContentFromCanvasContent'
 import { getTldrawAiChangesFromSimpleEvents } from '../../simple/getTldrawAiChangesFromSimpleEvents'
 import { getReviewPrompt } from '../../simple/review-prompt'
 import { IModelResponse, ISimpleEvent, ModelResponse } from '../../simple/schema'
+import { getSetMyViewPrompt } from '../../simple/set-my-view-prompt'
 import { SIMPLE_SYSTEM_PROMPT } from '../../simple/system-prompt'
 import { TldrawAiBaseService } from '../../TldrawAiBaseService'
 import { Environment } from '../../types'
@@ -130,7 +135,7 @@ function buildMessages(prompt: TLAiSerializedPrompt): CoreMessage[] {
 }
 
 function buildContextAreasMessages(prompt: TLAiSerializedPrompt): CoreMessage[] {
-	const review = prompt.meta.review
+	const review = prompt.meta.type === ScheduledRequestType.Review
 
 	const areas = prompt.meta.contextItems.areas
 	if (areas.length === 0) {
@@ -304,12 +309,30 @@ function buildUserMessage(prompt: TLAiSerializedPrompt): CoreMessage {
 		text: `The current viewport is: { x: ${prompt.promptBounds.x}, y: ${prompt.promptBounds.y}, width: ${prompt.promptBounds.w}, height: ${prompt.promptBounds.h} }`,
 	})
 
+	// TODO the model should probably always know the users viewport, even if the model's viewport is different
+
 	// Add the canvas content
-	if (prompt.canvasContent) {
+	if (prompt.canvasContent && prompt.currentPageContent) {
 		const simplifiedCanvasContent = getSimpleContentFromCanvasContent(prompt.canvasContent)
+
+		const peripheralContent = getSimplePeripheralContentFromCanvasContent(
+			prompt.currentPageContent,
+			prompt.canvasContent
+		)
+
+		if (peripheralContent.shapes.length > 0) {
+			content.push({
+				type: 'text',
+				text: `Here are the shapes in your peripheral vision, outside the viewport. You can only see their position and size, not their content. If you want to see their content, you need to get closer.\n\n${JSON.stringify(peripheralContent.shapes).replaceAll('\n', ' ')}`,
+			})
+		}
+
 		content.push({
 			type: 'text',
-			text: `Here are all of the shapes that are in the current viewport:\n\n${JSON.stringify(simplifiedCanvasContent.shapes).replaceAll('\n', ' ')}`,
+			text:
+				simplifiedCanvasContent.shapes.length > 0
+					? `Here are the shapes in your current viewport:\n${JSON.stringify(simplifiedCanvasContent.shapes).replaceAll('\n', ' ')}`
+					: 'Your current viewport is empty.',
 		})
 	}
 
@@ -317,7 +340,7 @@ function buildUserMessage(prompt: TLAiSerializedPrompt): CoreMessage {
 		content.push(
 			{
 				type: 'text',
-				text: "This is a screenshot of the current viewport on the canvas. It's what you will be editing or adding to. It's what the user can see.",
+				text: "Here is a screenshot of your current viewport on the canvas. It's what you will be editing or adding to.", // It's what the user can see.",
 			},
 			{
 				type: 'image',
@@ -326,7 +349,7 @@ function buildUserMessage(prompt: TLAiSerializedPrompt): CoreMessage {
 		)
 	}
 
-	if (prompt.meta.review) {
+	if (prompt.meta.type === ScheduledRequestType.Review) {
 		// Review mode
 		const messages = asMessage(prompt.message)
 		const intent = messages[0]
@@ -336,6 +359,16 @@ function buildUserMessage(prompt: TLAiSerializedPrompt): CoreMessage {
 		content.push({
 			type: 'text',
 			text: getReviewPrompt(intent.text),
+		})
+	} else if (prompt.meta.type === ScheduledRequestType.SetMyView) {
+		const messages = asMessage(prompt.message)
+		const intent = messages[0]
+		if (messages.length !== 1 || intent.type !== 'text') {
+			throw new Error('Review message must be a single text message')
+		}
+		content.push({
+			type: 'text',
+			text: getSetMyViewPrompt(intent.text),
 		})
 	} else {
 		// Normal mode
