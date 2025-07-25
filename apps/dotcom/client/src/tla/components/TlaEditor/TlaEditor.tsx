@@ -1,6 +1,6 @@
 import { getLicenseKey } from '@tldraw/dotcom-shared'
 import { useSync } from '@tldraw/sync'
-import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
+import { useCallback, useEffect, useMemo, useRef } from 'react'
 import {
 	DefaultDebugMenu,
 	DefaultDebugMenuContent,
@@ -128,15 +128,12 @@ function TlaEditorInner({ fileSlug, deepLinks }: TlaEditorProps) {
 		})
 	}, [hideAllShapes])
 
-	const [editor, setEditor] = useState<Editor | null>(null)
-
 	const handleMount = useCallback(
 		(editor: Editor) => {
 			;(window as any).app = app
 			;(window as any).editor = editor
 			// Register the editor globally
 			globalEditor.set(editor)
-			setEditor(editor)
 
 			// Register the external asset handler
 			editor.registerExternalAssetHandler('url', createAssetFromUrl)
