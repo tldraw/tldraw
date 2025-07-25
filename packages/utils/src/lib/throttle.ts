@@ -163,7 +163,97 @@ function tick(isOnNextFrame = false) {
 
 /**
  * Returns a throttled version of the function that will only be called max once per frame.
- * The target frame rate adapts to the device's natural maximum FPS (30-120fps, starting at 60fps).
+ * Uses a fixed FPS limit instead of the adaptive system.
+ * @param fn - the function to throttle
+ * @param fps - the target FPS to throttle to
+ * @returns throttled function with cancel method
+ * @internal
+ */
+export function fixedFpsThrottle(
+	fn: { (): void; cancel?(): void },
+	fps: number
+): {
+	(): void
+	cancel?(): void
+} {
+	const targetTimePerFrameValue = getTargetTimePerFrame(fps)
+	let lastFlushTimeValue = -targetTimePerFrameValue
+	let frameRafValue: number | undefined
+	let flushRafValue: number | undefined
+	const queue: Array<() => void> = []
+
+	if (isTest()) {
+		fn.cancel = () => {
+			if (frameRafValue) {
+				cancelAnimationFrame(frameRafValue)
+				frameRafValue = undefined
+			}
+			if (flushRafValue) {
+				cancelAnimationFrame(flushRafValue)
+				flushRafValue = undefined
+			}
+		}
+		return fn
+	}
+
+	const flush = () => {
+		const currentQueue = queue.splice(0, queue.length)
+		for (const queuedFn of currentQueue) {
+			queuedFn()
+		}
+	}
+
+	const tick = (isOnNextFrame = false) => {
+		if (frameRafValue) return
+
+		const now = Date.now()
+		const elapsed = now - lastFlushTimeValue
+
+		if (elapsed < targetTimePerFrameValue) {
+			// eslint-disable-next-line no-restricted-globals
+			frameRafValue = requestAnimationFrame(() => {
+				frameRafValue = undefined
+				tick(true)
+			})
+			return
+		}
+
+		if (isOnNextFrame) {
+			if (flushRafValue) return
+			lastFlushTimeValue = now
+			flush()
+		} else {
+			if (flushRafValue) return
+			// eslint-disable-next-line no-restricted-globals
+			flushRafValue = requestAnimationFrame(() => {
+				flushRafValue = undefined
+				lastFlushTimeValue = now
+				flush()
+			})
+		}
+	}
+
+	const throttledFn = () => {
+		if (queue.includes(fn)) {
+			return
+		}
+		queue.push(fn)
+		tick()
+	}
+
+	throttledFn.cancel = () => {
+		const index = queue.indexOf(fn)
+		if (index > -1) {
+			queue.splice(index, 1)
+		}
+	}
+
+	return throttledFn
+}
+
+/**
+ * Returns a throttled version of the function that will only be called max once per frame.
+ * The target frame rate is adaptive (30-120fps, starting at 60fps).
  * @param fn - the fun to return a throttled version of
  * @returns
  * @internal
