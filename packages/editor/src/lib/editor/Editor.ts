@@ -178,6 +178,7 @@ import {
 	TLCameraOptions,
 	TLImageExportOptions,
 	TLSvgExportOptions,
+	TLUpdatePointerOptions,
 } from './types/misc-types'
 import { TLAdjacentDirection, TLResizeHandle } from './types/selection-types'
 
@@ -3072,7 +3073,6 @@ export class Editor extends EventEmitter<TLEventMap> {
 			// Dispatch a new pointer move because the pointer's page will have changed
 			// (its screen position will compute to a new page position given the new camera position)
 			const { currentScreenPoint, currentPagePoint } = this.inputs
-			const { screenBounds } = this.store.unsafeGetWithoutCapture(TLINSTANCE_ID)!
 
 			// compare the next page point (derived from the current camera) to the current page point
 			if (
@@ -3080,27 +3080,10 @@ export class Editor extends EventEmitter<TLEventMap> {
 				currentScreenPoint.y / z - y !== currentPagePoint.y
 			) {
 				// If it's changed, dispatch a pointer event
-				const event: TLPointerEventInfo = {
-					type: 'pointer',
-					target: 'canvas',
-					name: 'pointer_move',
-					// weird but true: we need to put the screen point back into client space
-					point: Vec.AddXY(currentScreenPoint, screenBounds.x, screenBounds.y),
+				this.updatePointer({
+					immediate: opts?.immediate,
 					pointerId: INTERNAL_POINTER_IDS.CAMERA_MOVE,
-					ctrlKey: this.inputs.ctrlKey,
-					altKey: this.inputs.altKey,
-					shiftKey: this.inputs.shiftKey,
-					metaKey: this.inputs.metaKey,
-					accelKey: isAccelKey(this.inputs),
-					button: 0,
-					isPen: this.getInstanceState().isPenMode ?? false,
-				}
-
-				if (opts?.immediate) {
-					this._flushEventForTick(event)
-				} else {
-					this.dispatch(event)
-				}
+				})
 			}
 
 			this._tickCameraState()
@@ -9677,6 +9660,52 @@ export class Editor extends EventEmitter<TLEventMap> {
 	 */
 	complete(): this {
 		this.dispatch({ type: 'misc', name: 'complete' })
+		return this
+	}
+
+	/**
+	 * Dispatch a pointer move event in the current position of the pointer. This is useful when
+	 * external circumstances have changed (e.g. the camera moved or a shape was moved) and you want
+	 * the current interaction to respond to that change.
+	 *
+	 * @example
+	 * ```ts
+	 * editor.updatePointer()
+	 * ```
+	 *
+	 * @param options - The options for updating the pointer.
+	 * @returns The editor instance.
+	 * @public
+	 */
+	updatePointer(options?: TLUpdatePointerOptions): this {
+		const event: TLPointerEventInfo = {
+			type: 'pointer',
+			target: 'canvas',
+			name: 'pointer_move',
+			point:
+				options?.point ??
+				// weird but true: what `inputs` calls screen-space is actually viewport space. so
+				// we need to convert back into true screen space first. we should fix this...
+				Vec.Add(
+					this.inputs.currentScreenPoint,
+					this.store.unsafeGetWithoutCapture(TLINSTANCE_ID)!.screenBounds
+				),
+			pointerId: options?.pointerId ?? 0,
+			button: options?.button ?? 0,
+			isPen: options?.isPen ?? this.inputs.isPen,
+			shiftKey: options?.shiftKey ?? this.inputs.shiftKey,
+			altKey: options?.altKey ?? this.inputs.altKey,
+			ctrlKey: options?.ctrlKey ?? this.inputs.ctrlKey,
+			metaKey: options?.metaKey ?? this.inputs.metaKey,
+			accelKey: options?.accelKey ?? isAccelKey(this.inputs),
+		}
+
+		if (options?.immediate) {
+			this._flushEventForTick(event)
+		} else {
+			this.dispatch(event)
+		}
+
 		return this
 	}
 
