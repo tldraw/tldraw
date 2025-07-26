@@ -225,12 +225,18 @@ export {
 	type TLVideoShape,
 	type TLVideoShapeProps,
 } from './shapes/TLVideoShape'
-export { EnumStyleProp, StyleProp, type StylePropValue } from './styles/StyleProp'
+export {
+	EnumStyleProp,
+	EnumStylePropOrString,
+	StyleProp,
+	type StylePropValue,
+} from './styles/StyleProp'
 export {
 	defaultColorNames,
 	DefaultColorStyle,
 	DefaultColorThemePalette,
 	getDefaultColorTheme,
+	isDefaultColor,
 	type TLDefaultColorStyle,
 	type TLDefaultColorTheme,
 	type TLDefaultColorThemeColor,

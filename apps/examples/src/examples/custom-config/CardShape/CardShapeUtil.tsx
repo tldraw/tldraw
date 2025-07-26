@@ -5,6 +5,7 @@ import {
 	ShapeUtil,
 	TLResizeInfo,
 	getDefaultColorTheme,
+	isDefaultColor,
 	resizeBox,
 } from 'tldraw'
 import { cardShapeMigrations } from './card-shape-migrations'
@@ -55,6 +56,10 @@ export class CardShapeUtil extends ShapeUtil<ICardShape> {
 		// eslint-disable-next-line react-hooks/rules-of-hooks
 		const [count, setCount] = useState(0)
 
+		const { solid, semi } = isDefaultColor(shape.props.color)
+			? theme[shape.props.color]
+			: { solid: shape.props.color, semi: shape.props.color }
+
 		return (
 			<HTMLContainer
 				id={shape.id}
@@ -65,8 +70,8 @@ export class CardShapeUtil extends ShapeUtil<ICardShape> {
 					alignItems: 'center',
 					justifyContent: 'center',
 					pointerEvents: 'all',
-					backgroundColor: theme[shape.props.color].semi,
-					color: theme[shape.props.color].solid,
+					backgroundColor: semi,
+					color: solid,
 				}}
 			>
 				<h2>Clicks: {count}</h2>

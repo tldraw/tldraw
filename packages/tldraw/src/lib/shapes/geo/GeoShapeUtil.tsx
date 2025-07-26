@@ -20,6 +20,7 @@ import {
 	geoShapeProps,
 	getDefaultColorTheme,
 	getFontsFromRichText,
+	isDefaultColor,
 	isEqual,
 	lerp,
 	toRichText,
@@ -220,7 +221,9 @@ export class GeoShapeUtil extends BaseBoxShapeUtil<TLGeoShape> {
 							verticalAlign={verticalAlign}
 							richText={richText}
 							isSelected={isOnlySelected}
-							labelColor={theme[props.labelColor].solid}
+							labelColor={
+								isDefaultColor(props.labelColor) ? theme[props.labelColor].solid : props.labelColor
+							}
 							wrap
 						/>
 					</HTMLContainer>
@@ -278,7 +281,9 @@ export class GeoShapeUtil extends BaseBoxShapeUtil<TLGeoShape> {
 					align={props.align}
 					verticalAlign={props.verticalAlign}
 					richText={props.richText}
-					labelColor={theme[props.labelColor].solid}
+					labelColor={
+						isDefaultColor(props.labelColor) ? theme[props.labelColor].solid : props.labelColor
+					}
 					bounds={bounds}
 					padding={LABEL_PADDING}
 				/>

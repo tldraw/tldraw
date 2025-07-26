@@ -1,7 +1,7 @@
 import {
 	DefaultColorStyle,
-	TLDefaultColorStyle,
 	getDefaultColorTheme,
+	isDefaultColor,
 	useEditor,
 	useValue,
 } from '@tldraw/editor'
@@ -26,7 +26,11 @@ export function MobileStylePanel() {
 	const color = relevantStyles?.get(DefaultColorStyle)
 	const theme = getDefaultColorTheme({ isDarkMode: editor.user.getIsDarkMode() })
 	const currentColor = (
-		color?.type === 'shared' ? theme[color.value as TLDefaultColorStyle] : theme.black
+		color?.type === 'shared'
+			? isDefaultColor(color.value)
+				? theme[color.value]
+				: { solid: color.value }
+			: theme.black
 	).solid
 
 	const disableStylePanel = useValue(

@@ -15,6 +15,7 @@ import {
 	getIndexAbove,
 	getIndexBetween,
 	getIndices,
+	isDefaultColor,
 	lerp,
 	lineShapeMigrations,
 	lineShapeProps,
@@ -346,6 +347,10 @@ function LineShapeSvg({
 		strokeWidth,
 		forceSolid,
 		randomSeed: shape.id,
-		props: { transform: `scale(${scale})`, stroke: theme[color].solid, fill: 'none' },
+		props: {
+			transform: `scale(${scale})`,
+			stroke: isDefaultColor(color) ? theme[color].solid : color,
+			fill: 'none',
+		},
 	})
 }
