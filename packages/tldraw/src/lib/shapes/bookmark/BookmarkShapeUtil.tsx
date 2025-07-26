@@ -167,7 +167,15 @@ function BookmarkShapeComponent({ shape }: { shape: TLBookmarkShape }) {
 						{asset?.props.image && <HyperlinkButton url={shape.props.url} />}
 					</div>
 				)}
-				<div className="tl-bookmark__copy_container">
+				<a
+					className="tl-bookmark__link-wrapper"
+					href={shape.props.url || ''}
+					target="_blank"
+					rel="noopener noreferrer"
+					draggable={false}
+					onPointerDown={useStopPropagationOnShiftKey}
+					onPointerUp={useStopPropagationOnShiftKey}
+				>
 					{asset?.props.title ? (
 						<h2 className="tl-bookmark__heading">
 							{convertCommonTitleHTMLEntities(asset.props.title)}
@@ -176,15 +184,7 @@ function BookmarkShapeComponent({ shape }: { shape: TLBookmarkShape }) {
 					{asset?.props.description && asset?.props.image ? (
 						<p className="tl-bookmark__description">{asset.props.description}</p>
 					) : null}
-					<a
-						className="tl-bookmark__link"
-						href={shape.props.url || ''}
-						target="_blank"
-						rel="noopener noreferrer"
-						draggable={false}
-						onPointerDown={useStopPropagationOnShiftKey}
-						onPointerUp={useStopPropagationOnShiftKey}
-					>
+					<span className="tl-bookmark__link">
 						{isFaviconValid && asset?.props.favicon ? (
 							<img
 								className="tl-bookmark__favicon"
@@ -203,8 +203,8 @@ function BookmarkShapeComponent({ shape }: { shape: TLBookmarkShape }) {
 							/>
 						)}
 						<span>{address}</span>
-					</a>
-				</div>
+					</span>
+				</a>
 			</div>
 		</HTMLContainer>
 	)
