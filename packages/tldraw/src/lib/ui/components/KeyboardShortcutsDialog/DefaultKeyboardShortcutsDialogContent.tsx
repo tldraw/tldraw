@@ -210,6 +210,22 @@ export function DefaultKeyboardShortcutsDialogContent() {
 						/* do nothing */
 					}}
 				/>
+				<TldrawUiMenuItem
+					id="a11y-rotate-shape-cw"
+					label="a11y.rotate-shape-cw"
+					kbd="shift+﹥"
+					onSelect={() => {
+						/* do nothing */
+					}}
+				/>
+				<TldrawUiMenuItem
+					id="a11y-rotate-shape-ccw"
+					label="a11y.rotate-shape-ccw"
+					kbd="shift+﹤"
+					onSelect={() => {
+						/* do nothing */
+					}}
+				/>
 				<TldrawUiMenuActionItem actionId="enlarge-shapes" />
 				<TldrawUiMenuActionItem actionId="shrink-shapes" />
 				<TldrawUiMenuActionItem actionId="a11y-repeat-shape-announce" />
