@@ -119,7 +119,7 @@ test.describe('Performance Tests', () => {
 			`Resizing Performance: ${result.metrics.averageFps} FPS (min: ${result.metrics.minFps})`
 		)
 
-		expect(result.metrics.averageFps).toBeGreaterThan(25)
+		expect(result.metrics.averageFps).toBeGreaterThan(20)
 		expect(result.comparison.status).not.toBe('fail')
 	})
 

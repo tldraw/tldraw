@@ -2,8 +2,8 @@
 	"baselines": {
 		"linux-1280x720": {
 			"rotate_shapes": {
-				"avgFps": 30,
-				"minFps": 19,
+				"avgFps": 32,
+				"minFps": 22,
 				"maxFps": 58,
 				"timestamp": "2025-07-21T14:27:50.788Z",
 				"environment": {
@@ -13,8 +13,8 @@
 				}
 			},
 			"drag_shapes": {
-				"avgFps": 47,
-				"minFps": 20,
+				"avgFps": 54,
+				"minFps": 26,
 				"maxFps": 69,
 				"timestamp": "2025-07-21T14:28:04.232Z",
 				"environment": {
