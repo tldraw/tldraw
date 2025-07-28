@@ -41,9 +41,9 @@ export interface TLAiPrompt {
 	image?: string
 	/** The content pulled from the editor */
 	canvasContent: TLAiContent
-	/** The bounds of the context in the editor */
+	/** The bounds of the context in the editor (what the model can see) */
 	contextBounds: Box
-	/** The bounds of the prompt in the editor */
+	/** The bounds of the prompt in the editor (where the model can act) */
 	promptBounds: Box
 	/** Any additional information. Must be JSON serializable! */
 	meta?: any

@@ -68,7 +68,7 @@ export class TldrawAiModule {
 
 		const contextBounds = _options.contextBounds ?? editor.getViewportPageBounds()
 		const promptBounds = _options.promptBounds ?? editor.getViewportPageBounds()
-		const canvasContent = _options.canvasContent ?? this.getContent(promptBounds)
+		const canvasContent = _options.canvasContent ?? this.getContent(contextBounds)
 		const image = _options.image ?? (await this.getImage(canvasContent))
 
 		return {

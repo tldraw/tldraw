@@ -305,7 +305,7 @@ function buildUserMessage(prompt: TLAiSerializedPrompt): CoreMessage {
 	// Add agent's current viewport
 	content.push({
 		type: 'text',
-		text: `Your current viewport is: { x: ${prompt.promptBounds.x}, y: ${prompt.promptBounds.y}, width: ${prompt.promptBounds.w}, height: ${prompt.promptBounds.h} }`,
+		text: `Your current viewport is: { x: ${prompt.contextBounds.x}, y: ${prompt.contextBounds.y}, width: ${prompt.contextBounds.w}, height: ${prompt.contextBounds.h} }`,
 	})
 
 	const currentPageContent = prompt.meta.currentPageContent
@@ -354,10 +354,10 @@ function buildUserMessage(prompt: TLAiSerializedPrompt): CoreMessage {
 		return Math.abs(a - b) <= (percent / 100) * max
 	}
 	const doUserAndAgentShareViewport =
-		withinPercent(prompt.promptBounds.x, currentUserViewportBounds.x, 5) &&
-		withinPercent(prompt.promptBounds.y, currentUserViewportBounds.y, 5) &&
-		withinPercent(prompt.promptBounds.w, currentUserViewportBounds.w, 5) &&
-		withinPercent(prompt.promptBounds.h, currentUserViewportBounds.h, 5)
+		withinPercent(prompt.contextBounds.x, currentUserViewportBounds.x, 5) &&
+		withinPercent(prompt.contextBounds.y, currentUserViewportBounds.y, 5) &&
+		withinPercent(prompt.contextBounds.w, currentUserViewportBounds.w, 5) &&
+		withinPercent(prompt.contextBounds.h, currentUserViewportBounds.h, 5)
 
 	if (!doUserAndAgentShareViewport) {
 		content.push({
