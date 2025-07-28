@@ -6,7 +6,7 @@ export class Base64EncodeStream extends TransformStream {
 		const growBuffer = (size: number) => {
 			const newSize = Math.max(buffer.length * 2, size)
 			const newBuffer = new Uint8Array(newSize)
-			newBuffer.set(buffer.slice(0, offset))
+			newBuffer.set(buffer.subarray(0, offset))
 			buffer = newBuffer
 		}
 		const encoder = new TextEncoder()
@@ -46,7 +46,7 @@ export class Base64EncodeStream extends TransformStream {
 					return
 				}
 
-				controller.enqueue(encodeBase64(buffer.slice(0, encodableBytes)))
+				controller.enqueue(encodeBase64(buffer.subarray(0, encodableBytes)))
 
 				// Move remaining bytes to start of buffer
 				const remainingBytes = offset - encodableBytes
@@ -59,7 +59,7 @@ export class Base64EncodeStream extends TransformStream {
 			flush(controller) {
 				// Handle any remaining bytes with padding
 				if (offset > 0) {
-					controller.enqueue(encodeBase64(buffer.slice(0, offset)))
+					controller.enqueue(encodeBase64(buffer.subarray(0, offset)))
 				}
 			},
 		})
