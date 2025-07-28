@@ -57,6 +57,7 @@ export function ChatPanel({ editor }: { editor: Editor }) {
 						historyItems: $chatHistoryItems.get().filter((item) => item.type !== 'status-thinking'),
 						contextItems: getSimpleContextItemsFromContextItems(request.contextItems),
 						currentPageContent: getContent(editor),
+						currentUserViewportBounds: editor.getViewportPageBounds(),
 						type: request.type,
 					},
 				})
@@ -139,7 +140,7 @@ export function ChatPanel({ editor }: { editor: Editor }) {
 			$chatHistoryItems.update((prev) => [...prev, userMessageHistoryItem])
 
 			// TODO once we implement letting the agent move, we can get those bounds and lock them here instead of using the viewport
-			const lockedBounds = editor.getViewportPageBounds()
+			const intitialBounds = editor.getViewportPageBounds()
 
 			$requestsSchedule.update((prev) => [
 				...prev,
@@ -147,11 +148,11 @@ export function ChatPanel({ editor }: { editor: Editor }) {
 					message: userMessageHistoryItem.message,
 					contextItems: userMessageHistoryItem.contextItems,
 					type: 'user',
-					bounds: lockedBounds,
+					bounds: intitialBounds,
 				},
 			])
 
-			$contextBoundsHighlight.set(lockedBounds)
+			$contextBoundsHighlight.set(intitialBounds)
 
 			setIsGenerating(true)
 			await processSchedule()

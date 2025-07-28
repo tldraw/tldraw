@@ -302,41 +302,30 @@ function buildHistoryItemMessage(item: ChatHistoryItem): CoreMessage | null {
 function buildUserMessage(prompt: TLAiSerializedPrompt): CoreMessage {
 	const content: UserContent = []
 
-	// Add the current viewport
+	// Add agent's current viewport
 	content.push({
 		type: 'text',
-		text: `The current viewport is: { x: ${prompt.promptBounds.x}, y: ${prompt.promptBounds.y}, width: ${prompt.promptBounds.w}, height: ${prompt.promptBounds.h} }`,
+		text: `Your current viewport is: { x: ${prompt.promptBounds.x}, y: ${prompt.promptBounds.y}, width: ${prompt.promptBounds.w}, height: ${prompt.promptBounds.h} }`,
 	})
 
 	const currentPageContent = prompt.meta.currentPageContent
 
-	// TODO the model should probably always know the users viewport, even if the model's viewport is different
+	// Add the content from the agent's current viewport
+	const simplifiedAgentViewportContent = getSimpleContentFromCanvasContent(prompt.canvasContent)
+	const peripheralContent = getSimplePeripheralContentFromCanvasContent(
+		currentPageContent,
+		prompt.canvasContent
+	)
 
-	// Add the canvas content
-	if (prompt.canvasContent && currentPageContent) {
-		const simplifiedCanvasContent = getSimpleContentFromCanvasContent(prompt.canvasContent)
+	content.push({
+		type: 'text',
+		text:
+			simplifiedAgentViewportContent.shapes.length > 0
+				? `Here are the shapes in your current viewport:\n${JSON.stringify(simplifiedAgentViewportContent.shapes).replaceAll('\n', ' ')}`
+				: 'Your current viewport is empty.',
+	})
 
-		const peripheralContent = getSimplePeripheralContentFromCanvasContent(
-			currentPageContent,
-			prompt.canvasContent
-		)
-
-		if (peripheralContent.shapes.length > 0) {
-			content.push({
-				type: 'text',
-				text: `Here are the shapes in your peripheral vision, outside the viewport. You can only see their position and size, not their content. If you want to see their content, you need to get closer.\n\n${JSON.stringify(peripheralContent.shapes).replaceAll('\n', ' ')}`,
-			})
-		}
-
-		content.push({
-			type: 'text',
-			text:
-				simplifiedCanvasContent.shapes.length > 0
-					? `Here are the shapes in your current viewport:\n${JSON.stringify(simplifiedCanvasContent.shapes).replaceAll('\n', ' ')}`
-					: 'Your current viewport is empty.',
-		})
-	}
-
+	// Add the screenshot of the agent's current viewport
 	if (prompt.image) {
 		content.push(
 			{
@@ -350,6 +339,34 @@ function buildUserMessage(prompt: TLAiSerializedPrompt): CoreMessage {
 		)
 	}
 
+	// Add the content from the agent's peripheral vision
+	if (peripheralContent.shapes.length > 0) {
+		content.push({
+			type: 'text',
+			text: `Here are the shapes in your peripheral vision, outside the viewport. You can only see their position and size, not their content. If you want to see their content, you need to get closer.\n\n${JSON.stringify(peripheralContent.shapes).replaceAll('\n', ' ')}`,
+		})
+	}
+
+	// Add the user's viewport bounds if they're more than 5% different from the agent's viewport bounds (maybe a bad heuristic, not sure)
+	const currentUserViewportBounds = prompt.meta.currentUserViewportBounds
+	const withinPercent = (a: number, b: number, percent: number) => {
+		const max = Math.max(Math.abs(a), Math.abs(b), 1)
+		return Math.abs(a - b) <= (percent / 100) * max
+	}
+	const doUserAndAgentShareViewport =
+		withinPercent(prompt.promptBounds.x, currentUserViewportBounds.x, 5) &&
+		withinPercent(prompt.promptBounds.y, currentUserViewportBounds.y, 5) &&
+		withinPercent(prompt.promptBounds.w, currentUserViewportBounds.w, 5) &&
+		withinPercent(prompt.promptBounds.h, currentUserViewportBounds.h, 5)
+
+	if (!doUserAndAgentShareViewport) {
+		content.push({
+			type: 'text',
+			text: `The user's viewport is different from the agent's viewport. The user's viewport is: { x: ${Math.round(currentUserViewportBounds.x)}, y: ${Math.round(currentUserViewportBounds.y)}, width: ${Math.round(currentUserViewportBounds.w)}, height: ${Math.round(currentUserViewportBounds.h)} }`,
+		})
+	}
+
+	// Add followup messages
 	if (prompt.meta.type === 'review') {
 		// Review mode
 		const messages = asMessage(prompt.message)
@@ -362,6 +379,7 @@ function buildUserMessage(prompt: TLAiSerializedPrompt): CoreMessage {
 			text: getReviewPrompt(intent.text),
 		})
 	} else if (prompt.meta.type === 'setMyView') {
+		// Set my view mode
 		const messages = asMessage(prompt.message)
 		const intent = messages[0]
 		if (messages.length !== 1 || intent.type !== 'text') {
