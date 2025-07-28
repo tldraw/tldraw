@@ -1,7 +1,7 @@
 import { T, useEditor } from 'tldraw'
-import { SubtractIcon } from '../../components/icons/Subtract'
+import { SubtractIcon } from '../../components/icons/SubtractIcon'
 import { NODE_HEADER_HEIGHT_PX, NODE_ROW_HEADER_GAP_PX, NODE_ROW_HEIGHT_PX } from '../../constants'
-import { NodeBodyRow, NodeDefinition, outputPort, updateNode } from './shared'
+import { NodeDefinition, NodeInputRow, outputPort, updateNode } from './shared'
 
 export const SubtractNodeType = T.object({
 	type: T.literal('subtract'),
@@ -47,7 +47,7 @@ export const SubtractNode: NodeDefinition<SubtractNode> = {
 		const editor = useEditor()
 		return (
 			<>
-				<NodeBodyRow
+				<NodeInputRow
 					shapeId={shape.id}
 					portId="minuend"
 					value={node.a}
@@ -55,7 +55,7 @@ export const SubtractNode: NodeDefinition<SubtractNode> = {
 						updateNode<SubtractNode>(editor, shape, (node) => ({ ...node, a: newValue }))
 					}
 				/>
-				<NodeBodyRow
+				<NodeInputRow
 					shapeId={shape.id}
 					portId="subtrahend"
 					value={node.b}

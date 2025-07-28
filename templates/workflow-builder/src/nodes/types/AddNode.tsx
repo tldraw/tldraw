@@ -1,10 +1,10 @@
 import { Editor, getIndexAbove, getIndicesBetween, IndexKey, T, useEditor } from 'tldraw'
-import { AddIcon } from '../../components/icons/Add'
+import { AddIcon } from '../../components/icons/AddIcon'
 import { NODE_HEADER_HEIGHT_PX, NODE_ROW_HEADER_GAP_PX, NODE_ROW_HEIGHT_PX } from '../../constants'
 import { indexList, indexListEntries, indexListLength } from '../../utils'
 import { getNodePortConnections } from '../nodePorts'
 import { NodeShape } from '../NodeShapeUtil'
-import { NodeBodyRow, NodeDefinition, outputPort, updateNode } from './shared'
+import { NodeDefinition, NodeInputRow, outputPort, updateNode } from './shared'
 
 export const AddNodeType = T.object({
 	type: T.literal('add'),
@@ -70,7 +70,7 @@ export const AddNode: NodeDefinition<AddNode> = {
 	Component: ({ shape, node }) => {
 		const editor = useEditor()
 		return indexListEntries(node.items).map(([idx, value]) => (
-			<NodeBodyRow
+			<NodeInputRow
 				key={idx}
 				shapeId={shape.id}
 				portId={`item_${idx}`}

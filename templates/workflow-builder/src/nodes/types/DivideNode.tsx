@@ -1,7 +1,7 @@
 import { T, useEditor } from 'tldraw'
-import { DivideIcon } from '../../components/icons/Divide'
+import { DivideIcon } from '../../components/icons/DivideIcon'
 import { NODE_HEADER_HEIGHT_PX, NODE_ROW_HEADER_GAP_PX, NODE_ROW_HEIGHT_PX } from '../../constants'
-import { NodeBodyRow, NodeDefinition, outputPort, updateNode } from './shared'
+import { NodeDefinition, NodeInputRow, outputPort, updateNode } from './shared'
 
 export const DivideNodeType = T.object({
 	type: T.literal('divide'),
@@ -47,7 +47,7 @@ export const DivideNode: NodeDefinition<DivideNode> = {
 		const editor = useEditor()
 		return (
 			<>
-				<NodeBodyRow
+				<NodeInputRow
 					shapeId={shape.id}
 					portId="dividend"
 					value={node.a}
@@ -55,7 +55,7 @@ export const DivideNode: NodeDefinition<DivideNode> = {
 						updateNode<DivideNode>(editor, shape, (node) => ({ ...node, a: newValue }))
 					}
 				/>
-				<NodeBodyRow
+				<NodeInputRow
 					shapeId={shape.id}
 					portId="divisor"
 					value={node.b}

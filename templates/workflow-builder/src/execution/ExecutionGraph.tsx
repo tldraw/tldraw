@@ -6,6 +6,7 @@ import {
 	NodePortConnection,
 } from '../nodes/nodePorts'
 import { computeNodeOutput } from '../nodes/nodeTypes'
+import { STOP_EXECUTION } from '../nodes/types/shared'
 
 interface PendingExecutionGraphNode {
 	readonly state: 'waiting' | 'executing'
@@ -16,7 +17,7 @@ interface ExecutedExecutionGraphNode {
 	readonly state: 'executed'
 	readonly shape: NodeShape
 	readonly connections: NodePortConnection[]
-	readonly outputs: Record<string, number>
+	readonly outputs: Record<string, number | STOP_EXECUTION>
 }
 
 type ExecutionGraphNode = PendingExecutionGraphNode | ExecutedExecutionGraphNode
@@ -48,7 +49,6 @@ export class ExecutionGraph {
 				shape: node,
 				connections,
 			})
-			console.log({ connections })
 
 			for (const connection of Object.values(connections)) {
 				if (!connection || connection.terminal !== 'start') continue
@@ -56,8 +56,6 @@ export class ExecutionGraph {
 				toVisit.push(connection.connectedShapeId)
 			}
 		}
-
-		console.log(Array.from(this.nodesById))
 	}
 
 	private state: 'waiting' | 'executing' | 'stopped' = 'waiting'
@@ -97,14 +95,26 @@ export class ExecutionGraph {
 					return
 				}
 
-				inputs[portId] = dependency.outputs[connection.connectedPortId]
+				const output = dependency.outputs[connection.connectedPortId]
+				if (output === STOP_EXECUTION) {
+					// we use STOP_EXECUTION outputs for conditional execution. it means that this
+					// branch should not continue.
+					return
+				}
+
+				inputs[portId] = output
 			} else {
 				// if the dependency isn't in nodesById, it's not involved in this execution. We
-				// don't need to wait for it. We should retrieve it's cached value from last time
-				// though:
-				inputs[portId] = getNodeOutputPortValues(this.editor, connection.connectedShapeId)[
-					connection.connectedPortId
-				]
+				// don't need to wait for it. We should retrieve it's cached value from last time:
+				const outputs = getNodeOutputPortValues(this.editor, connection.connectedShapeId)
+				const output = outputs[connection.connectedPortId]
+
+				if (output === STOP_EXECUTION) {
+					// it still might be conditional though, and this branch may be disabled:
+					return
+				}
+
+				inputs[portId] = output
 			}
 		}
 

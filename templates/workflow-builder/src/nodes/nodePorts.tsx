@@ -3,6 +3,7 @@ import { ConnectionBinding, getConnectionBindings } from '../connection/Connecti
 import { PortId } from '../ports/Port'
 import { NodeShape } from './NodeShapeUtil'
 import { computeNodeOutput, getNodeTypePorts } from './nodeTypes'
+import { STOP_EXECUTION } from './types/shared'
 
 const nodePortsCache = createComputedCache('ports', (_editor: Editor, node: NodeShape) =>
 	getNodeTypePorts(node.props.node)
@@ -58,16 +59,17 @@ const nodeInputPortValuesCache = createComputedCache(
 	(editor: Editor, node: NodeShape) => {
 		const connections = getNodePortConnections(editor, node)
 
-		const values: Record<string, number> = {}
+		const values: Record<string, number | STOP_EXECUTION> = {}
 		for (const connection of connections) {
 			if (!connection || connection.terminal !== 'end') continue
 
 			const connectedShapeOutputs = getNodeOutputPortValues(editor, connection.connectedShapeId)
-			if (!connectedShapeOutputs || connectedShapeOutputs[connection.connectedPortId] == null) {
+			if (!connectedShapeOutputs) {
 				continue
 			}
 
-			values[connection.ownPortId] = connectedShapeOutputs[connection.connectedPortId]
+			const output = connectedShapeOutputs[connection.connectedPortId]
+			values[connection.ownPortId] = output
 		}
 
 		return values
@@ -81,15 +83,23 @@ const nodeInputPortValuesCache = createComputedCache(
 export function getNodeInputPortValues(
 	editor: Editor,
 	shape: NodeShape | TLShapeId
-): Record<string, number> {
+): Record<string, number | STOP_EXECUTION> {
 	return nodeInputPortValuesCache.get(editor, typeof shape === 'string' ? shape : shape.id) ?? {}
 }
 
 const nodeOutputPortValuesCache = createComputedCache(
 	'node output port values',
-	(editor: Editor, node: NodeShape) => {
+	(editor: Editor, node: NodeShape): Record<string, number | STOP_EXECUTION> => {
 		const inputs = getNodeInputPortValues(editor, node)
-		return computeNodeOutput(node.props.node, inputs)
+		if (Object.values(inputs).includes(STOP_EXECUTION)) {
+			return Object.fromEntries(
+				Object.values(getNodePorts(editor, node))
+					.filter((port) => port.terminal === 'start')
+					.map((port) => [port.id, STOP_EXECUTION])
+			)
+		}
+
+		return computeNodeOutput(node.props.node, inputs as Record<string, number>)
 	},
 	{
 		areRecordsEqual: (a, b) => a.id === b.id && a.props.node === b.props.node,
@@ -101,7 +111,7 @@ const nodeOutputPortValuesCache = createComputedCache(
 export function getNodeOutputPortValues(
 	editor: Editor,
 	shape: NodeShape | TLShapeId
-): Record<string, number> {
+): Record<string, number | STOP_EXECUTION> {
 	return nodeOutputPortValuesCache.get(editor, typeof shape === 'string' ? shape : shape.id) ?? {}
 }
 

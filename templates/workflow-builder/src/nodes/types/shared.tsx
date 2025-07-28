@@ -1,3 +1,4 @@
+import classNames from 'classnames'
 import { PointerEvent, useCallback, useRef, useState } from 'react'
 import {
 	Editor,
@@ -8,13 +9,16 @@ import {
 	useEditor,
 	useValue,
 } from 'tldraw'
-import { AddIcon } from '../../components/icons/Add'
-import { SubtractIcon } from '../../components/icons/Subtract'
+import { AddIcon } from '../../components/icons/AddIcon'
+import { SubtractIcon } from '../../components/icons/SubtractIcon'
 import { NODE_HEADER_HEIGHT_PX, NODE_WIDTH_PX } from '../../constants'
 import { Port, PortId, ShapePort } from '../../ports/Port'
 import { getNodeInputPortValues } from '../nodePorts'
 import { NodeShape } from '../NodeShapeUtil'
 import { NodeType } from '../nodeTypes'
+
+export const STOP_EXECUTION = Symbol('STOP_EXECUTION')
+export type STOP_EXECUTION = typeof STOP_EXECUTION
 
 export interface NodeDefinition<Node extends { type: string }> {
 	type: Node['type']
@@ -24,7 +28,10 @@ export interface NodeDefinition<Node extends { type: string }> {
 	getDefault: () => Node
 	getBodyHeightPx: (node: Node) => number
 	getPorts: (node: Node) => Record<string, ShapePort>
-	computeOutput: (node: Node, inputs: Record<string, number>) => Record<string, number>
+	computeOutput: (
+		node: Node,
+		inputs: Record<string, number>
+	) => Record<string, number | STOP_EXECUTION>
 	onPortConnect?: (editor: Editor, shape: NodeShape, node: Node, port: PortId) => void
 	onPortDisconnect?: (editor: Editor, shape: NodeShape, node: Node, port: PortId) => void
 	Component: React.ComponentType<{ shape: NodeShape; node: Node }>
@@ -49,7 +56,17 @@ export function updateNode<T extends NodeType>(
 	})
 }
 
-export function NodeBodyRow({
+export function NodeRow({
+	children,
+	className,
+}: {
+	children: React.ReactNode
+	className?: string
+}) {
+	return <div className={classNames('NodeRow', className)}>{children}</div>
+}
+
+export function NodeInputRow({
 	shapeId,
 	portId,
 	value,
@@ -66,9 +83,7 @@ export function NodeBodyRow({
 	const inputRef = useRef<HTMLInputElement>(null)
 	const valueFromPort = useValue(
 		'from port',
-		() => {
-			return getNodeInputPortValues(editor, shapeId)[portId]
-		},
+		() => getNodeInputPortValues(editor, shapeId)[portId],
 		[editor, shapeId, portId]
 	)
 
@@ -86,32 +101,36 @@ export function NodeBodyRow({
 	}
 
 	return (
-		<div className="NodeBodyRow">
+		<NodeRow className="NodeInputRow">
 			<Port shapeId={shapeId} portId={portId} />
-			<input
-				ref={inputRef}
-				type="text"
-				inputMode="decimal"
-				disabled={valueFromPort != null}
-				value={valueFromPort ?? pendingValue ?? value}
-				onChange={(e) => {
-					if (Number.isNaN(e.currentTarget.valueAsNumber)) {
-						setPendingValue(e.currentTarget.value)
-					} else {
+			{valueFromPort === STOP_EXECUTION ? (
+				<NodeValue value={valueFromPort} />
+			) : (
+				<input
+					ref={inputRef}
+					type="text"
+					inputMode="decimal"
+					disabled={valueFromPort != null}
+					value={valueFromPort ?? pendingValue ?? value}
+					onChange={(e) => {
+						if (Number.isNaN(e.currentTarget.valueAsNumber)) {
+							setPendingValue(e.currentTarget.value)
+						} else {
+							setPendingValue(null)
+							onChange(e.currentTarget.valueAsNumber)
+						}
+					}}
+					onPointerDown={onPointerDown}
+					onBlur={() => {
 						setPendingValue(null)
-						onChange(e.currentTarget.valueAsNumber)
-					}
-				}}
-				onPointerDown={onPointerDown}
-				onBlur={() => {
-					setPendingValue(null)
-					onBlur?.()
-				}}
-				onFocus={() => {
-					editor.setSelectedShapes([shapeId])
-				}}
-			/>
-			<div className="NodeBodyRow-buttons">
+						onBlur?.()
+					}}
+					onFocus={() => {
+						editor.setSelectedShapes([shapeId])
+					}}
+				/>
+			)}
+			<div className="NodeInputRow-buttons">
 				<TldrawUiButton
 					title="decrement"
 					type="icon"
@@ -129,6 +148,14 @@ export function NodeBodyRow({
 					<TldrawUiButtonIcon icon={<AddIcon />} />
 				</TldrawUiButton>
 			</div>
-		</div>
+		</NodeRow>
 	)
+}
+
+export function NodeValue({ value }: { value: number | STOP_EXECUTION }) {
+	if (value === STOP_EXECUTION) {
+		return <div className="NodeValue_placeholder" />
+	}
+
+	return value
 }

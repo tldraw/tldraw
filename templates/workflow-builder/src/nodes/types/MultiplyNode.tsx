@@ -1,7 +1,7 @@
 import { T, useEditor } from 'tldraw'
-import { MultiplyIcon } from '../../components/icons/Multiply'
+import { MultiplyIcon } from '../../components/icons/MultiplyIcon'
 import { NODE_HEADER_HEIGHT_PX, NODE_ROW_HEADER_GAP_PX, NODE_ROW_HEIGHT_PX } from '../../constants'
-import { NodeBodyRow, NodeDefinition, outputPort, updateNode } from './shared'
+import { NodeDefinition, NodeInputRow, outputPort, updateNode } from './shared'
 
 export const MultiplyNodeType = T.object({
 	type: T.literal('multiply'),
@@ -47,7 +47,7 @@ export const MultiplyNode: NodeDefinition<MultiplyNode> = {
 		const editor = useEditor()
 		return (
 			<>
-				<NodeBodyRow
+				<NodeInputRow
 					shapeId={shape.id}
 					portId="multiplicand"
 					value={node.a}
@@ -55,7 +55,7 @@ export const MultiplyNode: NodeDefinition<MultiplyNode> = {
 						updateNode<MultiplyNode>(editor, shape, (node) => ({ ...node, a: newValue }))
 					}
 				/>
-				<NodeBodyRow
+				<NodeInputRow
 					shapeId={shape.id}
 					portId="multiplier"
 					value={node.b}
