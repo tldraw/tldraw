@@ -1001,7 +1001,7 @@ function* generateSnapshotChunks(snapshot: RoomSnapshot): Generator<Uint8Array> 
 	const encoder = new TextEncoder()
 
 	yield encoder.encode(
-		`{"clock":${snapshot.clock},tombstoneHistoryStartsAtClock:${snapshot.tombstoneHistoryStartsAtClock},"tombstones":`
+		`{"clock":${snapshot.clock},"tombstoneHistoryStartsAtClock":${snapshot.tombstoneHistoryStartsAtClock},"tombstones":`
 	)
 	yield encoder.encode(JSON.stringify(snapshot.tombstones))
 	yield encoder.encode(`,"schema":`)
