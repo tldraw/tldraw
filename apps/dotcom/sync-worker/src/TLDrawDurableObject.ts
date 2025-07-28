@@ -787,7 +787,7 @@ export class TLDrawDurableObject extends DurableObject {
 
 					// If buffer is full, upload it
 					if (offset >= fiveMB) {
-						await uploadBuffer(buffer)
+						await uploadBuffer(buffer.subarray(0, offset))
 						offset = 0
 					}
 
