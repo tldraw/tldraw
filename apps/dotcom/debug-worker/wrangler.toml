@@ -1,0 +1,18 @@
+name = "tldraw-debug-worker"
+main = "src/worker.ts"
+compatibility_date = "2024-01-15"
+
+[dev]
+port = 8901
+
+[env.production]
+r2_buckets = [
+	{ binding = "ROOMS_HISTORY_EPHEMERAL", bucket_name = "rooms-history-ephemeral", preview_bucket_name = "rooms-history-ephemeral" },
+	{ binding = "ROOMS", bucket_name = "rooms", preview_bucket_name = "rooms" },
+]
+
+[env.staging]
+r2_buckets = [
+	{ binding = "ROOMS_HISTORY_EPHEMERAL", bucket_name = "rooms-history-ephemeral-preview", preview_bucket_name = "rooms-history-ephemeral-preview" },
+	{ binding = "ROOMS", bucket_name = "rooms-preview", preview_bucket_name = "rooms-preview" },
+]
