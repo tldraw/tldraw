@@ -10,7 +10,7 @@ import {
 	getSimpleContextItemsFromContextItems,
 } from './Context'
 import { setContextBounds, setPromptBounds } from './PromptBounds'
-import { $requestsSchedule, ScheduledRequestType } from './requestsSchedule'
+import { $requestsSchedule } from './requestsSchedule'
 import { useTldrawAiExample } from './useTldrawAiExample'
 
 export function ChatPanel({ editor }: { editor: Editor }) {
@@ -64,7 +64,7 @@ export function ChatPanel({ editor }: { editor: Editor }) {
 					...prev,
 					{
 						type: 'status-thinking',
-						message: request.type === ScheduledRequestType.Review ? 'Reviewing' : 'Generating', //TODO handle this more gracefully once we have more scheduled requests
+						message: request.type === 'review' ? 'Reviewing' : 'Generating', //TODO handle this more gracefully once we have more scheduled requests
 						status: 'progress',
 					},
 				])
@@ -146,7 +146,7 @@ export function ChatPanel({ editor }: { editor: Editor }) {
 				{
 					message: userMessageHistoryItem.message,
 					contextItems: userMessageHistoryItem.contextItems,
-					type: null,
+					type: 'user',
 					bounds: lockedBounds,
 				},
 			])

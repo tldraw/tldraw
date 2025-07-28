@@ -4,7 +4,6 @@ import { createOpenAI, OpenAIProvider } from '@ai-sdk/openai'
 import { asMessage, TLAiChange, TLAiResult, TLAiSerializedPrompt } from '@tldraw/ai'
 import { CoreMessage, generateObject, LanguageModel, streamObject, UserContent } from 'ai'
 import { ACTION_HISTORY_ITEM_DEFINITIONS, ChatHistoryItem } from '../../../client/ChatHistoryItem'
-import { ScheduledRequestType } from '../../../client/requestsSchedule'
 import { getTLAgentModelDefinition, TLAgentModelName } from '../../models'
 import {
 	getSimpleContentFromCanvasContent,
@@ -135,7 +134,7 @@ function buildMessages(prompt: TLAiSerializedPrompt): CoreMessage[] {
 }
 
 function buildContextAreasMessages(prompt: TLAiSerializedPrompt): CoreMessage[] {
-	const review = prompt.meta.type === ScheduledRequestType.Review
+	const review = prompt.meta.type === 'review'
 
 	const areas = prompt.meta.contextItems.areas
 	if (areas.length === 0) {
@@ -349,7 +348,7 @@ function buildUserMessage(prompt: TLAiSerializedPrompt): CoreMessage {
 		)
 	}
 
-	if (prompt.meta.type === ScheduledRequestType.Review) {
+	if (prompt.meta.type === 'review') {
 		// Review mode
 		const messages = asMessage(prompt.message)
 		const intent = messages[0]
@@ -360,7 +359,7 @@ function buildUserMessage(prompt: TLAiSerializedPrompt): CoreMessage {
 			type: 'text',
 			text: getReviewPrompt(intent.text),
 		})
-	} else if (prompt.meta.type === ScheduledRequestType.SetMyView) {
+	} else if (prompt.meta.type === 'setMyView') {
 		const messages = asMessage(prompt.message)
 		const intent = messages[0]
 		if (messages.length !== 1 || intent.type !== 'text') {

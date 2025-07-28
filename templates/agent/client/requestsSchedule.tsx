@@ -3,14 +3,11 @@ import { ContextItem } from './Context'
 
 export interface ScheduledRequest {
 	message: string
-	type: ScheduledRequestType | null
+	type: ScheduledRequestType
 	contextItems: ContextItem[]
 	bounds: BoxModel
 }
 
-export enum ScheduledRequestType {
-	Review = 'review',
-	SetMyView = 'setMyView',
-}
+export type ScheduledRequestType = 'review' | 'setMyView' | 'user'
 
 export const $requestsSchedule = atom<ScheduledRequest[]>('requestsSchedule', [])

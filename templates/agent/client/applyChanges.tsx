@@ -3,7 +3,7 @@ import { Editor, RecordsDiff, TLRecord } from 'tldraw'
 import { $chatHistoryItems } from './ChatHistory'
 import { ChatHistoryItem } from './ChatHistoryItem'
 import { AreaContextItem } from './Context'
-import { $requestsSchedule, ScheduledRequest, ScheduledRequestType } from './requestsSchedule'
+import { $requestsSchedule, ScheduledRequest } from './requestsSchedule'
 
 export function applyChange({ change, editor }: { change: TLAiStreamingChange; editor: Editor }) {
 	const diff = editor.store.extractingChanges(() => {
@@ -69,7 +69,7 @@ function applyChangeToChatHistory({
 						const schedule: ScheduledRequest[] = [
 							...prev,
 							{
-								type: ScheduledRequestType.Review,
+								type: 'review',
 								message: change.intent ?? '',
 								contextItems: [contextArea],
 								bounds: prevRequest.bounds,
@@ -93,7 +93,7 @@ function applyChangeToChatHistory({
 						const schedule: ScheduledRequest[] = [
 							...prev,
 							{
-								type: ScheduledRequestType.SetMyView,
+								type: 'setMyView',
 								message: change.intent ?? '',
 								contextItems: [],
 								bounds: {

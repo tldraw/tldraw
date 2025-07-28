@@ -208,7 +208,7 @@ export function getSimplePeripheralContentFromCanvasContent(
 		}
 	})
 
-	const peripheralContent = peripheralContentWithIds.map(({ shapeId, ...rest }) => rest)
+	const peripheralContent = peripheralContentWithIds.map(({ shapeId: _shapeId, ...rest }) => rest)
 
 	return {
 		shapes: peripheralContent,
