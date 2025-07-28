@@ -27,7 +27,7 @@ export function ChatPanel({ editor }: { editor: Editor }) {
 		;(window as any).ai = ai
 	}, [ai, editor])
 
-	const advanceSchedule = useCallback(async () => {
+	const processSchedule = useCallback(async () => {
 		// Process all requests in the schedule sequentially
 		while (true) {
 			const eventSchedule = $requestsSchedule.get()
@@ -155,14 +155,14 @@ export function ChatPanel({ editor }: { editor: Editor }) {
 			setContextBounds(lockedBounds)
 
 			setIsGenerating(true)
-			await advanceSchedule()
+			await processSchedule()
 			setIsGenerating(false)
 
 			$pendingContextItems.set([])
 			setPromptBounds(undefined)
 			setContextBounds(undefined)
 		},
-		[advanceSchedule, editor]
+		[processSchedule, editor]
 	)
 
 	function handleNewChat() {
