@@ -12,11 +12,11 @@ import {
 import { $chatHistoryItems } from './ChatHistory'
 import { CONTEXT_TYPE_DEFINITIONS, ContextItem, roundBox } from './Context'
 import { BrainIcon } from './icons/BrainIcon'
+import { EyeIcon } from './icons/EyeIcon'
 import { PencilIcon } from './icons/PencilIcon'
 import { RefreshIcon } from './icons/RefreshIcon'
 import { SearchIcon } from './icons/SearchIcon'
 import { TrashIcon } from './icons/TrashIcon'
-import { EyeIcon } from './icons/EyeIcon'
 import TldrawViewer from './TldrawViewer'
 
 export type ChatHistoryItem =
@@ -161,14 +161,17 @@ function getDiffShapesFromDiff({ diff }: { diff: RecordsDiff<TLRecord> }): TLSha
 		const before = { ...diff.updated[id][0], id: (id + '-before') as TLShapeId }
 		const after = diff.updated[id][1]
 		if (before.typeName !== 'shape' || after.typeName !== 'shape') continue
-		const highlightBeforeShape = makeHighlightShape({ shape: before, color: 'light-red' })
 		const highlightAfterShape = makeHighlightShape({ shape: after, color: 'light-blue' })
-		diffShapes.push(highlightBeforeShape)
+		before.opacity = 0.5
+		before.props = { ...before.props }
 		if ('dash' in before.props) {
-			diffShapes.push({ ...before, props: { ...before.props, dash: 'solid' } })
-		} else {
+			before.props.dash = 'dashed'
 			diffShapes.push(before)
 		}
+		if ('fill' in before.props) {
+			before.props.fill = 'none'
+		}
+		diffShapes.push(before)
 		diffShapes.push(highlightAfterShape)
 		if ('dash' in after.props) {
 			diffShapes.push({ ...after, props: { ...after.props, dash: 'solid' } })

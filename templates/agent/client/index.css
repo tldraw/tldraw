@@ -351,10 +351,10 @@ body {
 }
 
 .tl-shape[style*='opacity: 0.53'] {
-	filter: drop-shadow(calc(var(--tl-scale) * 1px) calc(var(--tl-scale) * 1px) 0px rgb(0, 0, 200))
-		drop-shadow(calc(var(--tl-scale) * -1px) calc(var(--tl-scale) * -1px) 0px rgb(0, 0, 200))
-		drop-shadow(calc(var(--tl-scale) * 1px) calc(var(--tl-scale) * -1px) 0px rgb(0, 0, 200))
-		drop-shadow(calc(var(--tl-scale) * -1px) calc(var(--tl-scale) * 1px) 0px rgb(0, 0, 200));
+	filter: drop-shadow(calc(var(--tl-scale) * 1px) calc(var(--tl-scale) * 1px) 0px rgb(0, 100, 255))
+		drop-shadow(calc(var(--tl-scale) * -1px) calc(var(--tl-scale) * -1px) 0px rgb(0, 100, 255))
+		drop-shadow(calc(var(--tl-scale) * 1px) calc(var(--tl-scale) * -1px) 0px rgb(0, 100, 255))
+		drop-shadow(calc(var(--tl-scale) * -1px) calc(var(--tl-scale) * 1px) 0px rgb(0, 100, 255));
 }
 
 .chat-input-context-items button {
