@@ -130,6 +130,27 @@ function buildMessages(prompt: TLAiSerializedPrompt): CoreMessage[] {
 	messages.push(...contextPointsMessages)
 	messages.push(userMessage)
 
+	// const sanitizedMessages = messages.map((message) => {
+	// 	// Deep clone the message to avoid mutating the original
+	// 	const clonedMessage = JSON.parse(JSON.stringify(message))
+
+	// 	// If the message has content, iterate through it
+	// 	if (Array.isArray(clonedMessage.content)) {
+	// 		clonedMessage.content = clonedMessage.content.map((contentItem: any) => {
+	// 			// If the content item is an image, replace its data
+	// 			if (contentItem.type === 'image') {
+	// 				return {
+	// 					...contentItem,
+	// 					image: '<IMAGE DATA REMOVED>',
+	// 				}
+	// 			}
+	// 			return contentItem
+	// 		})
+	// 	}
+	// 	return clonedMessage
+	// })
+	// console.log('messages', JSON.stringify(sanitizedMessages, null, 2))
+
 	return messages
 }
 
@@ -225,13 +246,15 @@ function buildHistoryItemMessage(item: ChatHistoryItem): CoreMessage | null {
 	switch (item.type) {
 		case 'user-message': {
 			const content: UserContent = [
-				{ type: 'text', text: 'Previous message from user: ' + item.message },
+				// { type: 'text', text: 'Previous message from user: ' + item.message },
+				{ type: 'text', text: item.message },
 			]
 			if (item.contextItems.length > 0) {
 				for (const contextItem of item.contextItems) {
 					content.push({
 						type: 'text',
-						text: `Previous context item to focus on from the user: ${JSON.stringify(contextItem, null, 2)}`,
+						// text: `Previous context item to focus on from the user: ${JSON.stringify(contextItem, null, 2)}`,
+						text: `[CONTEXT]: ${JSON.stringify(contextItem, null, 2)}`,
 					})
 				}
 			}
@@ -245,7 +268,8 @@ function buildHistoryItemMessage(item: ChatHistoryItem): CoreMessage | null {
 			return null
 		}
 		case 'agent-action': {
-			const text = `Previous action from agent: ${ACTION_HISTORY_ITEM_DEFINITIONS[item.action].message.done}${item.info}`
+			// const text = `Previous action from agent: ${ACTION_HISTORY_ITEM_DEFINITIONS[item.action].message.done}${item.info}`
+			const text = `${ACTION_HISTORY_ITEM_DEFINITIONS[item.action].message.done}${item.info}`
 			return {
 				role: 'assistant',
 				content: [{ type: 'text', text }],
@@ -254,7 +278,8 @@ function buildHistoryItemMessage(item: ChatHistoryItem): CoreMessage | null {
 		case 'agent-message': {
 			return {
 				role: 'assistant',
-				content: [{ type: 'text', text: 'Previous message from agent: ' + item.message }],
+				// content: [{ type: 'text', text: 'Previous message from agent: ' + item.message }],
+				content: [{ type: 'text', text: item.message }],
 			}
 		}
 		case 'agent-change': {
@@ -263,7 +288,7 @@ function buildHistoryItemMessage(item: ChatHistoryItem): CoreMessage | null {
 				content: [
 					{
 						type: 'text',
-						text: 'Previous change from agent: ' + JSON.stringify(item.change, null, 2),
+						text: '[ACTION]: ' + JSON.stringify(item.change, null, 2),
 						// text: 'A previous change from agent.',
 					},
 				],
@@ -276,7 +301,7 @@ function buildHistoryItemMessage(item: ChatHistoryItem): CoreMessage | null {
 				content: [
 					{
 						type: 'text',
-						text: 'Previous changes from agent: ' + JSON.stringify(changes, null, 2),
+						text: '[ACTION]: ' + JSON.stringify(changes, null, 2),
 						// text: 'Previous changes from agent.',
 					},
 				],
@@ -288,7 +313,7 @@ function buildHistoryItemMessage(item: ChatHistoryItem): CoreMessage | null {
 				content: [
 					{
 						type: 'text',
-						text: 'Previous output from agent: ' + JSON.stringify(item.change, null, 2),
+						text: '[OUTPUT]: ' + JSON.stringify(item.change, null, 2),
 					},
 				],
 			}
@@ -305,7 +330,7 @@ function buildUserMessage(prompt: TLAiSerializedPrompt): CoreMessage {
 	// Add agent's current viewport
 	content.push({
 		type: 'text',
-		text: `Your current viewport is: { x: ${prompt.contextBounds.x}, y: ${prompt.contextBounds.y}, width: ${prompt.contextBounds.w}, height: ${prompt.contextBounds.h} }`,
+		text: `Your current viewport is:\n${JSON.stringify(prompt.contextBounds)}`,
 	})
 
 	const currentPageShapes = prompt.meta.currentPageShapes
@@ -345,7 +370,7 @@ function buildUserMessage(prompt: TLAiSerializedPrompt): CoreMessage {
 	if (peripheralContent.shapes.length > 0) {
 		content.push({
 			type: 'text',
-			text: `Here are the shapes in your peripheral vision, outside the viewport. You can only see their position and size, not their content. If you want to see their content, you need to get closer.\n\n${JSON.stringify(peripheralContent.shapes).replaceAll('\n', ' ')}`,
+			text: `Here are the shapes in your peripheral vision, outside the viewport. You can only see their position and size, not their content. If you want to see their content, you need to get closer.\n${JSON.stringify(peripheralContent.shapes)}`,
 		})
 	}
 
@@ -376,6 +401,7 @@ function buildUserMessage(prompt: TLAiSerializedPrompt): CoreMessage {
 		if (messages.length !== 1 || intent.type !== 'text') {
 			throw new Error('Review message must be a single text message')
 		}
+		console.log('messages', messages)
 		content.push({
 			type: 'text',
 			text: getReviewPrompt(intent.text),
