@@ -5,6 +5,7 @@ import {
 	TLGeoShape,
 	TLLineShape,
 	TLNoteShape,
+	TLShape,
 	TLTextShape,
 } from 'tldraw'
 import { shapeFillToSimpleFill } from './conversions'
@@ -141,13 +142,17 @@ function compact<T>(arr: T[]): Exclude<T, undefined>[] {
 }
 
 export function getSimplePeripheralContentFromCanvasContent(
-	wholePageContent: TLAiContent,
+	wholePageShapes: TLShape[],
 	viewportContent: TLAiContent
 ): {
 	shapes: ISimplePeripheralShape[]
 } {
 	const simpleViewportContent = getSimpleContentFromCanvasContent(viewportContent)
-	const simpleWholePageContent = getSimpleContentFromCanvasContent(wholePageContent)
+	const simpleWholePageContent = getSimpleContentFromCanvasContent({
+		shapes: wholePageShapes,
+		bindings: [],
+		assets: [],
+	})
 
 	const wholePageLessViewportContent = simpleWholePageContent.shapes.filter(
 		(shape) => !simpleViewportContent.shapes.some((s) => s.shapeId === shape.shapeId)

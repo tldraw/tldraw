@@ -308,12 +308,14 @@ function buildUserMessage(prompt: TLAiSerializedPrompt): CoreMessage {
 		text: `Your current viewport is: { x: ${prompt.contextBounds.x}, y: ${prompt.contextBounds.y}, width: ${prompt.contextBounds.w}, height: ${prompt.contextBounds.h} }`,
 	})
 
-	const currentPageContent = prompt.meta.currentPageContent
+	const currentPageShapes = prompt.meta.currentPageShapes
 
 	// Add the content from the agent's current viewport
 	const simplifiedAgentViewportContent = getSimpleContentFromCanvasContent(prompt.canvasContent)
+
+	// Add the content from outside the agent's current viewport
 	const peripheralContent = getSimplePeripheralContentFromCanvasContent(
-		currentPageContent,
+		currentPageShapes,
 		prompt.canvasContent
 	)
 

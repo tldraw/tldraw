@@ -1,6 +1,5 @@
-import { TLAiContent } from '@tldraw/ai'
 import { FormEventHandler, useCallback, useEffect, useRef, useState } from 'react'
-import { Box, Editor, structuredClone, useLocalStorageState } from 'tldraw'
+import { Box, Editor, useLocalStorageState } from 'tldraw'
 import { DEFAULT_MODEL_NAME, TLAgentModelName } from '../worker/models'
 import { $chatHistoryItems, ChatHistory } from './ChatHistory'
 import { UserMessageHistoryItem } from './ChatHistoryItem'
@@ -56,7 +55,7 @@ export function ChatPanel({ editor }: { editor: Editor }) {
 						modelName,
 						historyItems: $chatHistoryItems.get().filter((item) => item.type !== 'status-thinking'),
 						contextItems: getSimpleContextItemsFromContextItems(request.contextItems),
-						currentPageContent: getContent(editor),
+						currentPageShapes: editor.getCurrentPageShapesSorted(),
 						currentUserViewportBounds: editor.getViewportPageBounds(),
 						type: request.type,
 					},
@@ -200,43 +199,4 @@ export function ChatPanel({ editor }: { editor: Editor }) {
 			/>
 		</div>
 	)
-}
-
-function getContent(editor: Editor, bounds?: Box): TLAiContent {
-	let shapesToInclude
-
-	if (!bounds) {
-		// No bounds provided, include all shapes on the current page
-		shapesToInclude = editor.getCurrentPageShapesSorted()
-	} else {
-		// Only include shapes within or colliding with the provided bounds
-		shapesToInclude = editor
-			.getCurrentPageShapesSorted()
-			.filter((s) => bounds.includes(editor.getShapeMaskedPageBounds(s)!))
-	}
-
-	let content: TLAiContent | undefined = {
-		bindings: [],
-		shapes: [],
-		assets: [],
-		...editor.getContentFromCurrentPage(shapesToInclude),
-	}
-
-	// If we don't have content, it's either an empty page or an empty section of the page.
-	// This is an acceptable case; but let's send along an empty content instead of undefined.
-	if (content) {
-		// the content is a TLContent, but we want to omit the schema for TLAiContent
-		content.shapes = structuredClone(content.shapes)
-		content.bindings = structuredClone(content.bindings)
-		delete (content as any).schema
-		delete (content as any).rootShapeIds
-	} else {
-		content = {
-			shapes: [],
-			bindings: [],
-			assets: [],
-		}
-	}
-
-	return content
 }
