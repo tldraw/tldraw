@@ -84,7 +84,7 @@ export function getSimpleContentFromCanvasContent(content: TLAiContent): {
 						x2: s.props.end.x,
 						y2: s.props.end.y,
 						color: s.props.color,
-						text: s.props.text,
+						richText: s.props.richText,
 						note: (s.meta?.description as string) ?? '',
 					}
 				}
