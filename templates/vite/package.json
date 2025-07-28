@@ -10,7 +10,13 @@
 	"license": "MIT",
 	"type": "module",
 	"tldraw_template": {
-		"repo": "tldraw/vite-template",
+		"publish": {
+			"repo": "tldraw/vite-template",
+			"name": "Vite + tldraw",
+			"description": "The easiest way to get started with tldraw. Built with Vite, React, and TypeScript.",
+			"category": "framework",
+			"order": 1
+		},
 		"scripts": {
 			"lint": null
 		}

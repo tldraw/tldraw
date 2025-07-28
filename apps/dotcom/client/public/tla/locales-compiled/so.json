@@ -87,12 +87,6 @@
       "value": "Dhoofinta sida"
     }
   ],
-  "1460ab5e78": [
-    {
-      "type": 0,
-      "value": "tldraws bilaash ah"
-    }
-  ],
   "181b90f889": [
     {
       "type": 0,
@@ -157,6 +151,12 @@
     {
       "type": 0,
       "value": "Tafatire"
+    }
+  ],
+  "37b3dca331": [
+    {
+      "type": 0,
+      "value": "Fadlan soo gal"
     }
   ],
   "3bd1b98dbd": [
@@ -231,16 +231,10 @@
       "value": "Dib u soo deji"
     }
   ],
-  "4e029798f2": [
+  "4ea0bb66f7": [
     {
       "type": 0,
-      "value": "Saamiyada bilaashka ah"
-    }
-  ],
-  "4e875b8d8e": [
-    {
-      "type": 0,
-      "value": "Badbaadinta bilaashka ah"
+      "value": "Xisaabtu way fiicnaan lahayd"
     }
   ],
   "50db1b7e1e": [
@@ -319,6 +313,12 @@
       "value": "browser hore waa la helay Fadlan cusboonaysii biraawsarkaaga si aad u isticmaasho abkan."
     }
   ],
+  "5bef23eb7e": [
+    {
+      "type": 0,
+      "value": "Samee akoonkaaga"
+    }
+  ],
   "5d26ae7550": [
     {
       "type": 0,
@@ -335,12 +335,6 @@
     {
       "type": 0,
       "value": "Nuqul"
-    }
-  ],
-  "5ff75742e0": [
-    {
-      "type": 0,
-      "value": "Ku biir bilaash"
     }
   ],
   "61057a0c84": [
@@ -467,6 +461,12 @@
     {
       "type": 0,
       "value": "Soo celi nooca"
+    }
+  ],
+  "7c7d5d493e": [
+    {
+      "type": 0,
+      "value": "Fadlan isdiiwaangeli"
     }
   ],
   "7cb5f8b4a5": [
@@ -727,6 +727,12 @@
       "value": "Isticmaalaha martida"
     }
   ],
+  "b52dc007ac": [
+    {
+      "type": 0,
+      "value": "Isdiiwaangeli (lacag iyo wanaag)"
+    }
+  ],
   "b6d4223e60": [
     {
       "type": 0,
@@ -863,6 +869,12 @@
       "value": "Saxiix"
     }
   ],
+  "c8c6a6504a": [
+    {
+      "type": 0,
+      "value": "Waa inaad is-diiwaangelisaa"
+    }
+  ],
   "cceaefbc20": [
     {
       "type": 0,
@@ -909,6 +921,12 @@
     {
       "type": 0,
       "value": "Isku day Mar Kale"
+    }
+  ],
+  "d8a50c79a7": [
+    {
+      "type": 0,
+      "value": "I soo raac si aad u tldraw"
     }
   ],
   "d9100f3e10": [

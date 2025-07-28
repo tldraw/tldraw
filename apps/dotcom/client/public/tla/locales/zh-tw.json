@@ -41,9 +41,6 @@
   "13ddd375ad": {
     "translation": "匯出為"
   },
-  "1460ab5e78": {
-    "translation": "免費抽獎"
-  },
   "181b90f889": {
     "translation": "建立檔案"
   },
@@ -76,6 +73,9 @@
   },
   "344a7f427f": {
     "translation": "編輯器"
+  },
+  "37b3dca331": {
+    "translation": "請登入"
   },
   "3bd1b98dbd": {
     "translation": "無法發布變更內容。"
@@ -113,11 +113,8 @@
   "4d1c8263ba": {
     "translation": "重新載入"
   },
-  "4e029798f2": {
-    "translation": "免費股票"
-  },
-  "4e875b8d8e": {
-    "translation": "免費保存"
+  "4ea0bb66f7": {
+    "translation": "有個帳戶就好了"
   },
   "50db1b7e1e": {
     "translation": "無法取消發布檔案。"
@@ -152,6 +149,9 @@
   "5bec508475": {
     "translation": "偵測到舊版瀏覽器。請更新您的瀏覽器以使用此應用程式。"
   },
+  "5bef23eb7e": {
+    "translation": "建立您的帳戶"
+  },
   "5d26ae7550": {
     "translation": "我們無法上傳您登入之前所建立的部分內容。"
   },
@@ -160,9 +160,6 @@
   },
   "5fb63579fc": {
     "translation": "複製"
-  },
-  "5ff75742e0": {
-    "translation": "免費註冊"
   },
   "61057a0c84": {
     "translation": "稍後"
@@ -226,6 +223,9 @@
   },
   "7be10fc592": {
     "translation": "恢復版本"
+  },
+  "7c7d5d493e": {
+    "translation": "請註冊"
   },
   "7cb5f8b4a5": {
     "translation": "遺忘"
@@ -336,6 +336,9 @@
   "b028909917": {
     "translation": "來賓用戶"
   },
+  "b52dc007ac": {
+    "translation": "註冊（免費且有效）"
+  },
   "b6d4223e60": {
     "translation": "登入"
   },
@@ -384,6 +387,9 @@
   "c87aacf567": {
     "translation": "登出"
   },
+  "c8c6a6504a": {
+    "translation": "你應該註冊"
+  },
   "cceaefbc20": {
     "translation": "共享此檔案"
   },
@@ -407,6 +413,9 @@
   },
   "d876a9fe1a": {
     "translation": "重試"
+  },
+  "d8a50c79a7": {
+    "translation": "跟我一起去tldraw"
   },
   "d9100f3e10": {
     "translation": "前往此處查看內容"

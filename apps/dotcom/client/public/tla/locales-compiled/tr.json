@@ -87,12 +87,6 @@
       "value": "Dışa aktarma formatı"
     }
   ],
-  "1460ab5e78": [
-    {
-      "type": 0,
-      "value": "Ücretsiz TLdraw'lar"
-    }
-  ],
   "181b90f889": [
     {
       "type": 0,
@@ -157,6 +151,12 @@
     {
       "type": 0,
       "value": "Düzenleyici"
+    }
+  ],
+  "37b3dca331": [
+    {
+      "type": 0,
+      "value": "Lütfen giriş yapın"
     }
   ],
   "3bd1b98dbd": [
@@ -231,16 +231,10 @@
       "value": "Tekrar yükle"
     }
   ],
-  "4e029798f2": [
+  "4ea0bb66f7": [
     {
       "type": 0,
-      "value": "Ücretsiz hisseler"
-    }
-  ],
-  "4e875b8d8e": [
-    {
-      "type": 0,
-      "value": "Ücretsiz kayıtlar"
+      "value": "Bir hesap güzel olurdu"
     }
   ],
   "50db1b7e1e": [
@@ -319,6 +313,12 @@
       "value": "Eski tarayıcı algılandı. Bu uygulamayı kullanmak için lütfen tarayıcınızı güncelleyin."
     }
   ],
+  "5bef23eb7e": [
+    {
+      "type": 0,
+      "value": "Hesabınızı oluşturun"
+    }
+  ],
   "5d26ae7550": [
     {
       "type": 0,
@@ -335,12 +335,6 @@
     {
       "type": 0,
       "value": "Kopyala"
-    }
-  ],
-  "5ff75742e0": [
-    {
-      "type": 0,
-      "value": "Ücretsiz kaydolun"
     }
   ],
   "61057a0c84": [
@@ -467,6 +461,12 @@
     {
       "type": 0,
       "value": "Sürümü geri yükle"
+    }
+  ],
+  "7c7d5d493e": [
+    {
+      "type": 0,
+      "value": "Lütfen kaydolun"
     }
   ],
   "7cb5f8b4a5": [
@@ -723,6 +723,12 @@
       "value": "Misafir kullanıcı"
     }
   ],
+  "b52dc007ac": [
+    {
+      "type": 0,
+      "value": "Kayıt ol (ücretsiz ve iyi)"
+    }
+  ],
   "b6d4223e60": [
     {
       "type": 0,
@@ -855,6 +861,12 @@
       "value": "Oturumu kapat"
     }
   ],
+  "c8c6a6504a": [
+    {
+      "type": 0,
+      "value": "Kaydolmalısın"
+    }
+  ],
   "cceaefbc20": [
     {
       "type": 0,
@@ -901,6 +913,12 @@
     {
       "type": 0,
       "value": "Tekrar Dene"
+    }
+  ],
+  "d8a50c79a7": [
+    {
+      "type": 0,
+      "value": "Benimle tldraw'a gel"
     }
   ],
   "d9100f3e10": [
