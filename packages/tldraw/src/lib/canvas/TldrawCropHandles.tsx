@@ -2,6 +2,7 @@ import { toDomPrecision } from '@tldraw/editor'
 import classNames from 'classnames'
 import { useTranslation } from '../ui/hooks/useTranslation/useTranslation'
 
+/** @public */
 export interface TldrawCropHandlesProps {
 	size: number
 	width: number
@@ -9,6 +10,7 @@ export interface TldrawCropHandlesProps {
 	hideAlternateHandles: boolean
 }
 
+/** @public */
 export function TldrawCropHandles({
 	size,
 	width,
