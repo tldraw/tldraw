@@ -17,7 +17,8 @@ export class SimplishCoordinates extends TldrawAiTransform {
 	}
 
 	override transformPrompt = (input: TLAiPrompt) => {
-		const { canvasContent } = input
+		const { canvasContent, meta } = input
+		const { currentPageShapes, currentUserViewportBounds, contextItems } = meta
 
 		// Save the original coordinates of all shapes
 		for (const shape of canvasContent.shapes) {
@@ -29,8 +30,18 @@ export class SimplishCoordinates extends TldrawAiTransform {
 			shape.y = roundedY
 		}
 
-		for (const key in input.meta.contextItems.areas) {
-			const area = input.meta.contextItems.areas[key]
+		// TODO this is throwing an error at shape.x = roundedX because it is apparently a readonly property
+		// for (const shape of currentPageShapes) {
+		// const roundedX = Math.floor(shape.x)
+		// const roundedY = Math.floor(shape.y)
+		// this.setRoundingDiff(shape.id, 'x', roundedX - shape.x)
+		// this.setRoundingDiff(shape.id, 'y', roundedY - shape.y)
+		// shape.x = roundedX
+		// shape.y = roundedY
+		// }
+
+		for (const key in contextItems.areas) {
+			const area = contextItems.areas[key]
 			const roundedX = Math.floor(area.x)
 			const roundedY = Math.floor(area.y)
 			this.setRoundingDiff(key, 'x', roundedX - area.x)
@@ -39,14 +50,29 @@ export class SimplishCoordinates extends TldrawAiTransform {
 			area.y = roundedY
 		}
 
-		for (const key in input.meta.contextItems.points) {
-			const point = input.meta.contextItems.points[key]
+		for (const key in contextItems.points) {
+			const point = contextItems.points[key]
 			const roundedX = Math.floor(point.x)
 			const roundedY = Math.floor(point.y)
 			this.setRoundingDiff(key, 'x', roundedX - point.x)
 			this.setRoundingDiff(key, 'y', roundedY - point.y)
 			point.x = roundedX
 			point.y = roundedY
+		}
+
+		if (currentUserViewportBounds) {
+			const roundedX = Math.floor(currentUserViewportBounds.x)
+			const roundedY = Math.floor(currentUserViewportBounds.y)
+			const roundedW = Math.floor(currentUserViewportBounds.w)
+			const roundedH = Math.floor(currentUserViewportBounds.h)
+			this.setRoundingDiff('currentUserViewportBounds', 'x', roundedX - currentUserViewportBounds.x)
+			this.setRoundingDiff('currentUserViewportBounds', 'y', roundedY - currentUserViewportBounds.y)
+			this.setRoundingDiff('currentUserViewportBounds', 'w', roundedW - currentUserViewportBounds.w)
+			this.setRoundingDiff('currentUserViewportBounds', 'h', roundedH - currentUserViewportBounds.h)
+			currentUserViewportBounds.x = roundedX
+			currentUserViewportBounds.y = roundedY
+			currentUserViewportBounds.w = roundedW
+			currentUserViewportBounds.h = roundedH
 		}
 
 		return input

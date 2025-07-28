@@ -130,26 +130,26 @@ function buildMessages(prompt: TLAiSerializedPrompt): CoreMessage[] {
 	messages.push(...contextPointsMessages)
 	messages.push(userMessage)
 
-	// const sanitizedMessages = messages.map((message) => {
-	// 	// Deep clone the message to avoid mutating the original
-	// 	const clonedMessage = JSON.parse(JSON.stringify(message))
+	const sanitizedMessages = messages.map((message) => {
+		// Deep clone the message to avoid mutating the original
+		const clonedMessage = JSON.parse(JSON.stringify(message))
 
-	// 	// If the message has content, iterate through it
-	// 	if (Array.isArray(clonedMessage.content)) {
-	// 		clonedMessage.content = clonedMessage.content.map((contentItem: any) => {
-	// 			// If the content item is an image, replace its data
-	// 			if (contentItem.type === 'image') {
-	// 				return {
-	// 					...contentItem,
-	// 					image: '<IMAGE DATA REMOVED>',
-	// 				}
-	// 			}
-	// 			return contentItem
-	// 		})
-	// 	}
-	// 	return clonedMessage
-	// })
-	// console.log('messages', JSON.stringify(sanitizedMessages, null, 2))
+		// If the message has content, iterate through it
+		if (Array.isArray(clonedMessage.content)) {
+			clonedMessage.content = clonedMessage.content.map((contentItem: any) => {
+				// If the content item is an image, replace its data
+				if (contentItem.type === 'image') {
+					return {
+						...contentItem,
+						image: '<IMAGE DATA REMOVED>',
+					}
+				}
+				return contentItem
+			})
+		}
+		return clonedMessage
+	})
+	console.log('messages', JSON.stringify(sanitizedMessages, null, 2))
 
 	return messages
 }
@@ -288,7 +288,7 @@ function buildHistoryItemMessage(item: ChatHistoryItem): CoreMessage | null {
 				content: [
 					{
 						type: 'text',
-						text: '[ACTION]: ' + JSON.stringify(item.change, null, 2),
+						text: '[ACTION]: ' + JSON.stringify(item.change),
 						// text: 'A previous change from agent.',
 					},
 				],
@@ -301,7 +301,7 @@ function buildHistoryItemMessage(item: ChatHistoryItem): CoreMessage | null {
 				content: [
 					{
 						type: 'text',
-						text: '[ACTION]: ' + JSON.stringify(changes, null, 2),
+						text: '[ACTION]: ' + JSON.stringify(changes),
 						// text: 'Previous changes from agent.',
 					},
 				],
@@ -313,7 +313,7 @@ function buildHistoryItemMessage(item: ChatHistoryItem): CoreMessage | null {
 				content: [
 					{
 						type: 'text',
-						text: '[OUTPUT]: ' + JSON.stringify(item.change, null, 2),
+						text: '[OUTPUT]: ' + JSON.stringify(item.change),
 					},
 				],
 			}
@@ -389,7 +389,7 @@ function buildUserMessage(prompt: TLAiSerializedPrompt): CoreMessage {
 	if (!doUserAndAgentShareViewport) {
 		content.push({
 			type: 'text',
-			text: `The user's viewport is different from the agent's viewport. The user's viewport is: { x: ${Math.round(currentUserViewportBounds.x)}, y: ${Math.round(currentUserViewportBounds.y)}, width: ${Math.round(currentUserViewportBounds.w)}, height: ${Math.round(currentUserViewportBounds.h)} }`,
+			text: `The user's viewport is different from the agent's viewport. The user's viewport is:\n${JSON.stringify(currentUserViewportBounds)}`,
 		})
 	}
 
@@ -401,7 +401,6 @@ function buildUserMessage(prompt: TLAiSerializedPrompt): CoreMessage {
 		if (messages.length !== 1 || intent.type !== 'text') {
 			throw new Error('Review message must be a single text message')
 		}
-		console.log('messages', messages)
 		content.push({
 			type: 'text',
 			text: getReviewPrompt(intent.text),
