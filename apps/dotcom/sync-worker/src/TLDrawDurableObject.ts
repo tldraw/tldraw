@@ -82,6 +82,9 @@ async function canAccessTestProductionFile(
 	}
 }
 
+const MB = 1024 * 1024
+const ROOM_SIZE_LIMIT_MB = 25
+
 export class TLDrawDurableObject extends DurableObject {
 	// A unique identifier for this instance of the Durable Object
 	id: DurableObjectId
@@ -142,6 +145,7 @@ export class TLDrawDurableObject extends DurableObject {
 								})
 							},
 						})
+						this.addRoomStorageUsedPercentage(room, result.roomSizeMB, false)
 
 						this.logEvent({ type: 'room', roomId: slug, name: 'room_start' })
 						// Also associate file assets after we load the room
@@ -558,8 +562,12 @@ export class TLDrawDurableObject extends DurableObject {
 		}
 		const serialized = typeof data === 'string' ? data : JSON.stringify(data)
 		const snapshot = typeof data === 'string' ? JSON.parse(data) : data
-		await this.r2.rooms.put(this._fileRecordCache.id, serialized)
-		return { type: 'room_found' as const, snapshot }
+		const roomObject = await this.r2.rooms.put(this._fileRecordCache.id, serialized)
+		return {
+			type: 'room_found' as const,
+			snapshot,
+			roomSizeMB: roomObject ? roomObject.size / MB : 0,
+		}
 	}
 
 	// Load the room's drawing data. First we check the R2 bucket, then we fallback to supabase (legacy).
@@ -569,7 +577,11 @@ export class TLDrawDurableObject extends DurableObject {
 			// when loading, prefer to fetch documents from the bucket
 			const roomFromBucket = await this.r2.rooms.get(key)
 			if (roomFromBucket) {
-				return { type: 'room_found', snapshot: await roomFromBucket.json() }
+				return {
+					type: 'room_found',
+					snapshot: await roomFromBucket.json(),
+					roomSizeMB: roomFromBucket.size / MB,
+				}
 			}
 			if (this._fileRecordCache?.createSource) {
 				const res = await this.handleFileCreateFromSource()
@@ -589,6 +601,7 @@ export class TLDrawDurableObject extends DurableObject {
 				return {
 					type: 'room_found',
 					snapshot: new TLSyncRoom({ schema: createTLSchema() }).getSnapshot(),
+					roomSizeMB: 0,
 				}
 			}
 
@@ -611,7 +624,7 @@ export class TLDrawDurableObject extends DurableObject {
 			}
 
 			const roomFromSupabase = data[0] as PersistedRoomSnapshotForSupabase
-			return { type: 'room_found', snapshot: roomFromSupabase.drawing }
+			return { type: 'room_found', snapshot: roomFromSupabase.drawing, roomSizeMB: 0 }
 		} catch (error) {
 			this.logEvent({ type: 'room', roomId: slug, name: 'failed_load_from_db' })
 
@@ -675,6 +688,22 @@ export class TLDrawDurableObject extends DurableObject {
 			.execute()
 	}
 
+	private async addRoomStorageUsedPercentage(
+		room: TLSocketRoom<TLRecord, SessionMeta>,
+		roomSizeMB: number,
+		shouldUpdate: boolean
+	) {
+		await room.updateStore(async (store) => {
+			const document = store.get(TLDOCUMENT_ID) as TLDocument
+			const meta = document.meta
+			// In some cases we don't want to update the document if it already has percentage set.
+			// Example for that is when we load the room. If it has a percentage set, we don't want to overwrite it.
+			if (!shouldUpdate && meta.storageUsedPercentage !== undefined) return
+			meta.storageUsedPercentage = Math.ceil((roomSizeMB / ROOM_SIZE_LIMIT_MB) * 100)
+			store.put(document)
+		})
+	}
+
 	// Save the room to r2
 	async persistToDatabase() {
 		try {
@@ -691,10 +720,13 @@ export class TLDrawDurableObject extends DurableObject {
 				this.maybeAssociateFileAssets()
 
 				const key = getR2KeyForRoom({ slug: slug, isApp: this.documentInfo.isApp })
-				await Promise.all([
+				const [roomObject] = await Promise.all([
 					this.r2.rooms.put(key, snapshot),
 					this.r2.versionCache.put(key + `/` + new Date().toISOString(), snapshot),
 				])
+				if (roomObject) {
+					await this.addRoomStorageUsedPercentage(room, roomObject.size / MB, true)
+				}
 				this._lastPersistedClock = clock
 
 				// Update the updatedAt timestamp in the database
