@@ -4,6 +4,8 @@ import { createAnalyticsReporter, getTestContext } from './fixtures/analytics-re
 import test from './fixtures/fixtures'
 import { formatPerformanceResults, setupPerformanceTest } from './fixtures/perf-utils'
 
+test.describe.configure({ mode: 'serial' });
+
 test.describe('Performance Tests', () => {
 	test.beforeEach(setup)
 	test.setTimeout(120000) // Increase timeout

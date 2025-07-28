@@ -32,7 +32,7 @@
 		"lint": "yarn run -T tsx ../../internal/scripts/lint.ts",
 		"e2e": "playwright test -c ./e2e/playwright.config.ts ./e2e/tests/!(test-perf).spec.ts",
 		"e2e-ui": "playwright test --ui -c ./e2e/playwright.config.ts ./e2e/tests/!(test-perf).spec.ts",
-		"e2e-perf": "playwright test -c ./e2e/playwright.config.ts ./e2e/tests/test-perf.spec.ts",
+		"e2e-perf": "playwright test --workers=1 -c ./e2e/playwright.config.ts ./e2e/tests/test-perf.spec.ts",
 		"e2e-perf-ui": "playwright test --ui -c ./e2e/playwright.config.ts ./e2e/tests/test-perf.spec.ts"
 	},
 	"dependencies": {
