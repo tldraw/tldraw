@@ -79,7 +79,7 @@ export function SneakyLargeFileHander() {
 				component: ({ onClose }: { onClose(): void }) => <RoomSizeLimitDialog onClose={onClose} />,
 			})
 			setSizeLimitShown(true)
-		} else if (!sizeLimitShown && !sizeWarningShown && storageUsedPercentage > 80) {
+		} else if (!sizeLimitShown && !sizeWarningShown && storageUsedPercentage > 75) {
 			trackEvent('room-size-warning-dialog-shown', { source: 'dialog' })
 			addDialog({
 				component: ({ onClose }: { onClose(): void }) => (
