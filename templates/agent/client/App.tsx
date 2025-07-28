@@ -1,9 +1,9 @@
 import { useCallback, useState } from 'react'
 import { Editor, ErrorBoundary, TLComponents, Tldraw, TLUiOverrides } from 'tldraw'
 import { ChatPanel } from './ChatPanel'
+import { ContextBoundsHighlights } from './ContextBoundsHighlights'
 import { ContextHighlights } from './ContextHighlights'
 import { overrideFillStyleWithLinedFillStyle } from './LinedFillStyle'
-import { PromptBoundsHighlights } from './PromptBoundsHighlights'
 import { TargetAreaTool } from './TargetAreaTool'
 import { TargetShapeTool } from './TargetShapeTool'
 
@@ -38,7 +38,7 @@ const overrides: TLUiOverrides = {
 const components: TLComponents = {
 	InFrontOfTheCanvas: () => (
 		<>
-			<PromptBoundsHighlights />
+			<ContextBoundsHighlights />
 			<ContextHighlights />
 		</>
 	),

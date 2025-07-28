@@ -9,7 +9,7 @@ import {
 	$pendingContextItems,
 	getSimpleContextItemsFromContextItems,
 } from './Context'
-import { setContextBounds, setPromptBounds } from './PromptBounds'
+import { $contextBoundsHighlight } from './ContextBoundsHighlights'
 import { $requestsSchedule } from './requestsSchedule'
 import { useTldrawAiExample } from './useTldrawAiExample'
 
@@ -43,8 +43,7 @@ export function ChatPanel({ editor }: { editor: Editor }) {
 			$pendingContextItems.set(request.contextItems)
 			const bounds = Box.From(request.bounds)
 
-			setContextBounds(bounds)
-			setPromptBounds(bounds)
+			$contextBoundsHighlight.set(bounds)
 
 			try {
 				const { promise, cancel } = ai.prompt({
@@ -111,8 +110,7 @@ export function ChatPanel({ editor }: { editor: Editor }) {
 				rCancelFn.current = null
 				setIsGenerating(false)
 
-				setContextBounds(undefined)
-				setPromptBounds(undefined)
+				$contextBoundsHighlight.set(null)
 
 				$requestsSchedule.set([])
 				$pendingContextItems.set([])
@@ -151,16 +149,14 @@ export function ChatPanel({ editor }: { editor: Editor }) {
 				},
 			])
 
-			setPromptBounds(lockedBounds)
-			setContextBounds(lockedBounds)
+			$contextBoundsHighlight.set(lockedBounds)
 
 			setIsGenerating(true)
 			await processSchedule()
 			setIsGenerating(false)
 
 			$pendingContextItems.set([])
-			setPromptBounds(undefined)
-			setContextBounds(undefined)
+			$contextBoundsHighlight.set(null)
 		},
 		[processSchedule, editor]
 	)
@@ -176,8 +172,7 @@ export function ChatPanel({ editor }: { editor: Editor }) {
 		$pendingContextItems.set([])
 		$contextItems.set([])
 		$requestsSchedule.set([])
-		setContextBounds(undefined)
-		setPromptBounds(undefined)
+		$contextBoundsHighlight.set(null)
 	}
 
 	function NewChatButton() {
