@@ -1,4 +1,4 @@
-name: End to end tests (examples)
+name: End to end tests (perf)
 
 on:
   pull_request:
@@ -16,7 +16,7 @@ defaults:
 
 jobs:
   build:
-    name: 'End to end tests (examples)'
+    name: 'End to end tests (perf)'
     timeout-minutes: 60
     runs-on: ubuntu-latest-16-cores-open
 
@@ -46,8 +46,8 @@ jobs:
         run: npx playwright install --with-deps chromium chrome
         if: steps.playwright-cache.outputs.cache-hit != 'true'
 
-      - name: Run Playwright tests
-        run: 'yarn e2e'
+      - name: Run Playwright tests (perf)
+        run: 'yarn e2e-perf'
         working-directory: apps/examples
         env:
           PERFORMANCE_ANALYTICS_ENABLED: true
