@@ -1037,10 +1037,14 @@
 .tlui-style-panel__section__common .tlui-style-panel__subheading,
 .tlui-style-panel__subheading + .tlui-slider__container {
 	margin: 0;
-	padding: var(--space-2) var(--space-3) 0px var(--space-3);
-	font-size: inherit;
+	padding: var(--space-2) var(--space-3) 0px var(--space-4);
+	font-size: 12px;
 	font-weight: inherit;
 	line-height: inherit;
+}
+
+.tlui-style-panel .tlui-style-panel__subheading:nth-of-type(1) {
+	padding-top: var(--space-3);
 }
 
 .tlui-style-panel__row {

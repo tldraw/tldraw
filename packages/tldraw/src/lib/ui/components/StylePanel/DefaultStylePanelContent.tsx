@@ -340,108 +340,84 @@ export function TextStylePickerSet({ theme, styles }: ThemeStylePickerSetProps) 
 /** @public @react */
 export function GeoStylePickerSet({ styles }: StylePickerSetProps) {
 	const msg = useTranslation()
-	const editor = useEditor()
 	const handleValueChange = useStyleChangeCallback()
-	const showUiLabels = useValue('showUiLabels', () => editor.user.getShowUiLabels(), [editor])
 
 	const geo = styles.get(GeoShapeGeoStyle)
 	if (geo === undefined) {
 		return null
 	}
 
-	const labelStr = showUiLabels && msg('style-panel.geo')
-
 	return (
-		<>
-			{labelStr && <StylePanelSubheading>{labelStr}</StylePanelSubheading>}
-			<TldrawUiToolbar label={msg('style-panel.geo')}>
-				<DropdownPicker
-					id="geo"
-					type="menu"
-					label={'style-panel.geo'}
-					uiType="geo"
-					stylePanelType="geo"
-					style={GeoShapeGeoStyle}
-					items={STYLES.geo}
-					value={geo}
-					onValueChange={handleValueChange}
-				/>
-			</TldrawUiToolbar>
-		</>
+		<TldrawUiToolbar label={msg('style-panel.geo')}>
+			<DropdownPicker
+				id="geo"
+				type="menu"
+				label={'style-panel.geo'}
+				uiType="geo"
+				stylePanelType="geo"
+				style={GeoShapeGeoStyle}
+				items={STYLES.geo}
+				value={geo}
+				onValueChange={handleValueChange}
+			/>
+		</TldrawUiToolbar>
 	)
 }
 /** @public @react */
 export function SplineStylePickerSet({ styles }: StylePickerSetProps) {
 	const msg = useTranslation()
-	const editor = useEditor()
 	const handleValueChange = useStyleChangeCallback()
-	const showUiLabels = useValue('showUiLabels', () => editor.user.getShowUiLabels(), [editor])
 
 	const spline = styles.get(LineShapeSplineStyle)
 	if (spline === undefined) {
 		return null
 	}
 
-	const labelStr = showUiLabels && msg('style-panel.spline')
-
 	return (
-		<>
-			{labelStr && <StylePanelSubheading>{labelStr}</StylePanelSubheading>}
-			<TldrawUiToolbar label={msg('style-panel.spline')}>
-				<DropdownPicker
-					id="spline"
-					type="menu"
-					label={'style-panel.spline'}
-					uiType="spline"
-					stylePanelType="spline"
-					style={LineShapeSplineStyle}
-					items={STYLES.spline}
-					value={spline}
-					onValueChange={handleValueChange}
-				/>
-			</TldrawUiToolbar>
-		</>
+		<TldrawUiToolbar label={msg('style-panel.spline')}>
+			<DropdownPicker
+				id="spline"
+				type="menu"
+				label={'style-panel.spline'}
+				uiType="spline"
+				stylePanelType="spline"
+				style={LineShapeSplineStyle}
+				items={STYLES.spline}
+				value={spline}
+				onValueChange={handleValueChange}
+			/>
+		</TldrawUiToolbar>
 	)
 }
 /** @public @react */
 export function ArrowStylePickerSet({ styles }: StylePickerSetProps) {
 	const msg = useTranslation()
-	const editor = useEditor()
 	const handleValueChange = useStyleChangeCallback()
-	const showUiLabels = useValue('showUiLabels', () => editor.user.getShowUiLabels(), [editor])
 
 	const arrowKind = styles.get(ArrowShapeKindStyle)
 	if (arrowKind === undefined) {
 		return null
 	}
 
-	const labelStr = showUiLabels && msg('style-panel.arrow-kind')
-
 	return (
-		<>
-			{labelStr && <StylePanelSubheading>{labelStr}</StylePanelSubheading>}
-			<TldrawUiToolbar label={msg('style-panel.arrow-kind')}>
-				<DropdownPicker
-					id="arrow-kind"
-					type="menu"
-					label={'style-panel.arrow-kind'}
-					uiType="arrow-kind"
-					stylePanelType="arrow-kind"
-					style={ArrowShapeKindStyle}
-					items={STYLES.arrowKind}
-					value={arrowKind}
-					onValueChange={handleValueChange}
-				/>
-			</TldrawUiToolbar>
-		</>
+		<TldrawUiToolbar label={msg('style-panel.arrow-kind')}>
+			<DropdownPicker
+				id="arrow-kind"
+				type="menu"
+				label={'style-panel.arrow-kind'}
+				uiType="arrow-kind"
+				stylePanelType="arrow-kind"
+				style={ArrowShapeKindStyle}
+				items={STYLES.arrowKind}
+				value={arrowKind}
+				onValueChange={handleValueChange}
+			/>
+		</TldrawUiToolbar>
 	)
 }
 /** @public @react */
 export function ArrowheadStylePickerSet({ styles }: StylePickerSetProps) {
-	const msg = useTranslation()
-	const editor = useEditor()
 	const handleValueChange = useStyleChangeCallback()
-	const showUiLabels = useValue('showUiLabels', () => editor.user.getShowUiLabels(), [editor])
 
 	const arrowheadEnd = styles.get(ArrowShapeArrowheadEndStyle)
 	const arrowheadStart = styles.get(ArrowShapeArrowheadStartStyle)
@@ -449,26 +425,21 @@ export function ArrowheadStylePickerSet({ styles }: StylePickerSetProps) {
 		return null
 	}
 
-	const labelStr = showUiLabels && msg('style-panel.arrowheads')
-
 	return (
-		<>
-			{labelStr && <StylePanelSubheading>{labelStr}</StylePanelSubheading>}
-			<DoubleDropdownPicker<TLArrowShapeArrowheadStyle>
-				label={'style-panel.arrowheads'}
-				uiTypeA="arrowheadStart"
-				styleA={ArrowShapeArrowheadStartStyle}
-				itemsA={STYLES.arrowheadStart}
-				valueA={arrowheadStart}
-				uiTypeB="arrowheadEnd"
-				styleB={ArrowShapeArrowheadEndStyle}
-				itemsB={STYLES.arrowheadEnd}
-				valueB={arrowheadEnd}
-				onValueChange={handleValueChange}
-				labelA="style-panel.arrowhead-start"
-				labelB="style-panel.arrowhead-end"
-			/>
-		</>
+		<DoubleDropdownPicker<TLArrowShapeArrowheadStyle>
+			label={'style-panel.arrowheads'}
+			uiTypeA="arrowheadStart"
+			styleA={ArrowShapeArrowheadStartStyle}
+			itemsA={STYLES.arrowheadStart}
+			valueA={arrowheadStart}
+			uiTypeB="arrowheadEnd"
+			styleB={ArrowShapeArrowheadEndStyle}
+			itemsB={STYLES.arrowheadEnd}
+			valueB={arrowheadEnd}
+			onValueChange={handleValueChange}
+			labelA="style-panel.arrowhead-start"
+			labelB="style-panel.arrowhead-end"
+		/>
 	)
 }
 
