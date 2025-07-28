@@ -12,10 +12,12 @@ import {
 import { $chatHistoryItems } from './ChatHistory'
 import { CONTEXT_TYPE_DEFINITIONS, ContextItem, roundBox } from './Context'
 import { BrainIcon } from './icons/BrainIcon'
+import { CrossIcon } from './icons/CrossIcon'
 import { EyeIcon } from './icons/EyeIcon'
 import { PencilIcon } from './icons/PencilIcon'
 import { RefreshIcon } from './icons/RefreshIcon'
 import { SearchIcon } from './icons/SearchIcon'
+import { TickIcon } from './icons/TickIcon'
 import { TrashIcon } from './icons/TrashIcon'
 import TldrawViewer from './TldrawViewer'
 
@@ -249,7 +251,8 @@ export function AgentChangeHistoryItems({
 					</>
 				) : (
 					<span className="agent-change-message-acceptance-notice">
-						{acceptance === 'accepted' ? '✅' : '❌'}
+						{/* TODO: Remove this. Leave the buttons there and let the user change to accepted or rejected */}
+						{acceptance === 'accepted' ? <TickIcon /> : <CrossIcon />}
 					</span>
 				)}
 			</div>

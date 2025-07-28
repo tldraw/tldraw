@@ -326,8 +326,8 @@ body {
 }
 
 .agent-change-message-acceptance-notice {
-	font-size: 10px;
-	font-weight: 500;
+	/* font-size: 10px; */
+	/* font-weight: 500; */
 	height: 20px;
 }
 
