@@ -757,10 +757,20 @@ export class TLDrawDurableObject extends DurableObject {
 			// 5MB buffer
 			const fiveMB = 5 * MB
 			const buffer = new Uint8Array(fiveMB)
-			const parts1 = []
-			const parts2 = []
+			const parts1: R2UploadedPart[] = []
+			const parts2: R2UploadedPart[] = []
 			let partNumber = 1
 			let offset = 0
+
+			const uploadBuffer = async (data: Uint8Array) => {
+				const [p1, p2] = await Promise.all([
+					out1.uploadPart(partNumber, data),
+					out2.uploadPart(partNumber, data),
+				])
+				parts1.push(p1)
+				parts2.push(p2)
+				partNumber++
+			}
 
 			for (const chunk of generateSnapshotChunks(snapshot)) {
 				let remainingChunk = chunk
@@ -777,13 +787,7 @@ export class TLDrawDurableObject extends DurableObject {
 
 					// If buffer is full, upload it
 					if (offset >= fiveMB) {
-						const [p1, p2] = await Promise.all([
-							out1.uploadPart(partNumber, buffer),
-							out2.uploadPart(partNumber, buffer),
-						])
-						parts1.push(p1)
-						parts2.push(p2)
-						partNumber++
+						await uploadBuffer(buffer)
 						offset = 0
 					}
 
@@ -791,12 +795,7 @@ export class TLDrawDurableObject extends DurableObject {
 				}
 			}
 			if (offset > 0) {
-				const [p1, p2] = await Promise.all([
-					out1.uploadPart(partNumber, buffer.subarray(0, offset)),
-					out2.uploadPart(partNumber, buffer.subarray(0, offset)),
-				])
-				parts1.push(p1)
-				parts2.push(p2)
+				await uploadBuffer(buffer.subarray(0, offset))
 			}
 
 			const [roomObject] = await Promise.all([out1.complete(parts1), out2.complete(parts2)])
