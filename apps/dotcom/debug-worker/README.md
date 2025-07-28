@@ -1,10 +1,10 @@
 # Debug Worker
 
-A local debugging tool for accessing tldraw room history data from Cloudflare R2 buckets.
+A local debugging tool for accessing tldraw data from Cloudflare.
 
 ## Purpose
 
-This worker provides a simple way to inspect room history data that's stored in Cloudflare R2 buckets, allowing you to debug and investigate room state without affecting production systems.
+This worker provides a simple way to inspect data that's stored in Cloudflare, allowing you to debug and investigate room state without affecting production systems.
 
 ## Usage
 
