@@ -763,32 +763,31 @@ export class TLDrawDurableObject extends DurableObject {
 			let offset = 0
 
 			for (const chunk of generateSnapshotChunks(snapshot)) {
-				// Check if adding this chunk would overflow the buffer
-				if (offset + chunk.byteLength > fiveMB) {
-					// We need to split this chunk
+				let remainingChunk = chunk
+
+				while (remainingChunk.byteLength > 0) {
 					const spaceLeft = fiveMB - offset
-					const firstPart = chunk.subarray(0, spaceLeft)
-					const secondPart = chunk.subarray(spaceLeft)
+					const chunkToAdd = remainingChunk.subarray(
+						0,
+						Math.min(spaceLeft, remainingChunk.byteLength)
+					)
 
-					// Add the first part to the current buffer
-					buffer.set(firstPart, offset)
+					buffer.set(chunkToAdd, offset)
+					offset += chunkToAdd.byteLength
 
-					// Upload the full buffer
-					const [p1, p2] = await Promise.all([
-						out1.uploadPart(partNumber, buffer),
-						out2.uploadPart(partNumber, buffer),
-					])
-					parts1.push(p1)
-					parts2.push(p2)
-					partNumber++
+					// If buffer is full, upload it
+					if (offset >= fiveMB) {
+						const [p1, p2] = await Promise.all([
+							out1.uploadPart(partNumber, buffer),
+							out2.uploadPart(partNumber, buffer),
+						])
+						parts1.push(p1)
+						parts2.push(p2)
+						partNumber++
+						offset = 0
+					}
 
-					// Start a new buffer with the second part
-					offset = secondPart.byteLength
-					buffer.set(secondPart, 0)
-				} else {
-					// Normal case: add the chunk to the buffer
-					buffer.set(chunk, offset)
-					offset += chunk.byteLength
+					remainingChunk = remainingChunk.subarray(chunkToAdd.byteLength)
 				}
 			}
 			if (offset > 0) {
