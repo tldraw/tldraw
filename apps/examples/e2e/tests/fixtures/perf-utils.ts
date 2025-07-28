@@ -1,4 +1,5 @@
 import { Page, PlaywrightTestArgs } from '@playwright/test'
+import { Editor } from 'tldraw'
 import { BaselineManager, ComparisonResult, Environment } from './baseline-manager'
 import { E2EFpsTracker, FPSMetrics } from './fps-tracker'
 import { HeavyBoardGenerator } from './heavy-board-generator'
@@ -48,7 +49,7 @@ export class PerformanceTestSuite {
 
 		// Disable animations for consistent testing
 		await page.evaluate(() => {
-			const editor = (window as any).editor
+			const editor: Editor = (window as any).editor
 			if (editor) {
 				editor.user.updateUserPreferences({ animationSpeed: 0 })
 			}
@@ -58,8 +59,8 @@ export class PerformanceTestSuite {
 		await page.waitForTimeout(500)
 	}
 
-	async setupHeavyBoard(): Promise<void> {
-		await this.boardGenerator.setupStressTestBoard()
+	async setupHeavyBoard(shapeCount = 200): Promise<void> {
+		await this.boardGenerator.setupStressTestBoard(shapeCount)
 
 		// Ensure the board is fully rendered
 		await this.waitForStableFramerate()
@@ -96,7 +97,7 @@ export class PerformanceTestSuite {
 
 				// Perform continuous rotations using the editor API
 				await page.evaluate(() => {
-					const editor = (window as any).editor
+					const editor: Editor = (window as any).editor
 					if (!editor) return
 
 					// Rotate shapes continuously during measurement period
@@ -204,6 +205,83 @@ export class PerformanceTestSuite {
 		return this.finalizeTestResult('drag_shapes', metrics, expectMinFps)
 	}
 
+	async testShapeResizing(options: InteractionTestOptions = {}): Promise<PerformanceTestResult> {
+		const { warmupMs = 500, measureMs = 3000, expectMinFps } = options
+
+		const { metrics } = await this.fpsTracker.measureInteraction(
+			async () => {
+				const page = this.getPage()
+
+				// Select all shapes for resizing
+				await page.keyboard.press('Control+a')
+
+				// Use editor API to programmatically resize selected shapes
+				await page.evaluate(() => {
+					const editor: Editor = (window as any).editor
+					if (!editor) return
+
+					// Simple seeded random number generator for consistent testing
+					let seed = 12345
+					function seededRandom() {
+						seed = (seed * 9301 + 49297) % 233280
+						return seed / 233280
+					}
+
+					let resizeCycle = 0
+					const resizeInterval = setInterval(() => {
+						const selectedShapes = editor.getSelectedShapes()
+						if (selectedShapes.length === 0) return
+
+						// Generate seeded random scale factors
+						let scaleFactor: number
+						if (resizeCycle % 2 === 0) {
+							// Scale up: random between 1.1 and 5
+							scaleFactor = 1.1 + seededRandom() * (3 - 1.1)
+						} else {
+							// Scale down: random between 0.2 and 0.9
+							scaleFactor = 0.3 + seededRandom() * (0.9 - 0.3)
+						}
+
+						// Get current bounds for the scale origin
+						const bounds = editor.getSelectionPageBounds()
+						if (bounds) {
+							// Resize each selected shape individually
+							selectedShapes.forEach((shape: any) => {
+								editor.resizeShape(
+									shape.id,
+									{ x: scaleFactor, y: scaleFactor },
+									{
+										scaleOrigin: bounds.center,
+									}
+								)
+							})
+						}
+
+						resizeCycle++
+					}, 16) // Resize every 16ms for ~60fps
+
+					;(window as any).__resizeInterval = resizeInterval
+				})
+			},
+			{ warmupMs, measureMs }
+		)
+
+		// Stop the resize interval
+		const page = this.getPage()
+		await page.evaluate(() => {
+			const interval = (window as any).__resizeInterval
+			if (interval) {
+				clearInterval(interval)
+				delete (window as any).__resizeInterval
+			}
+		})
+
+		// Clear selection
+		await page.keyboard.press('Escape')
+
+		return this.finalizeTestResult('resize_shapes', metrics, expectMinFps)
+	}
+
 	async testCanvasPanning(options: InteractionTestOptions = {}): Promise<PerformanceTestResult> {
 		const { warmupMs = 500, measureMs = 3000, expectMinFps } = options
 
@@ -264,7 +342,7 @@ export class PerformanceTestSuite {
 
 				// Use editor API to zoom in and out continuously
 				await page.evaluate(() => {
-					const editor = (window as any).editor
+					const editor: Editor = (window as any).editor
 					if (!editor) return
 
 					let zoomCycle = 0
@@ -305,6 +383,8 @@ export class PerformanceTestSuite {
 		results.push(await this.testShapeRotation())
 		await this.setupHeavyBoard()
 		results.push(await this.testShapeDragging())
+		await this.setupHeavyBoard(50)
+		results.push(await this.testShapeResizing())
 		await this.setupHeavyBoard()
 		results.push(await this.testCanvasPanning())
 		await this.setupHeavyBoard()

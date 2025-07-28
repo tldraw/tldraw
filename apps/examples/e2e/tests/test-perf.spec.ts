@@ -4,7 +4,7 @@ import { createAnalyticsReporter, getTestContext } from './fixtures/analytics-re
 import test from './fixtures/fixtures'
 import { formatPerformanceResults, setupPerformanceTest } from './fixtures/perf-utils'
 
-test.describe.configure({ mode: 'serial' });
+test.describe.configure({ mode: 'serial' })
 
 test.describe('Performance Tests', () => {
 	test.beforeEach(setup)
@@ -106,6 +106,23 @@ test.describe('Performance Tests', () => {
 		expect(result.comparison.status).not.toBe('fail')
 	})
 
+	test('Shape Resizing Performance', async ({ page, context, request, browserName, isMobile }) => {
+		if (isMobile) return
+
+		const perfSuite = await setupPerformanceTest({ page, context, request }, browserName)
+		await perfSuite.setupHeavyBoard(50)
+
+		const result = await perfSuite.testShapeResizing()
+
+		// eslint-disable-next-line no-console
+		console.log(
+			`Resizing Performance: ${result.metrics.averageFps} FPS (min: ${result.metrics.minFps})`
+		)
+
+		expect(result.metrics.averageFps).toBeGreaterThan(25)
+		expect(result.comparison.status).not.toBe('fail')
+	})
+
 	test('Canvas Panning Performance', async ({ page, context, request, browserName, isMobile }) => {
 		if (isMobile) return
 
@@ -153,11 +170,13 @@ test.skip('Baseline Management', () => {
 		// Verify baselines were created
 		const rotateBaseline = perfSuite.getBaseline('rotate_shapes')
 		const dragBaseline = perfSuite.getBaseline('drag_shapes')
+		const resizeBaseline = perfSuite.getBaseline('resize_shapes')
 		const panBaseline = perfSuite.getBaseline('canvas_panning')
 		const zoomBaseline = perfSuite.getBaseline('canvas_zooming')
 
 		expect(rotateBaseline).toBeTruthy()
 		expect(dragBaseline).toBeTruthy()
+		expect(resizeBaseline).toBeTruthy()
 		expect(panBaseline).toBeTruthy()
 		expect(zoomBaseline).toBeTruthy()
 
