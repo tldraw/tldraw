@@ -40,6 +40,7 @@ import {
 	ValueOpType,
 	applyObjectDiff,
 	diffRecord,
+	getBase64ZippedNetworkDiffString,
 } from './diff'
 import { findMin } from './findMin'
 import { interval } from './interval'
@@ -451,7 +452,7 @@ export class TLSyncRoom<R extends UnknownRecord, SessionMeta> {
 	 * @param sessionId - The id of the session to send the message to.
 	 * @param message - The message to send.
 	 */
-	private sendMessage(
+	private async sendMessage(
 		sessionId: string,
 		message: TLSocketServerSentEvent<R> | TLSocketServerSentDataEvent<R>
 	) {
@@ -464,6 +465,16 @@ export class TLSyncRoom<R extends UnknownRecord, SessionMeta> {
 			this.log?.warn?.('Tried to send message to disconnected client', message.type)
 			return
 		}
+
+		if (
+			message.type === 'connect' &&
+			typeof message.diff !== 'string' &&
+			!session.requiresLegacyUncompressedDiff &&
+			process.env.NODE_ENV !== 'test'
+		) {
+			message.diff = await getBase64ZippedNetworkDiffString(message.diff)
+		}
+
 		if (session.socket.isOpen) {
 			if (message.type !== 'patch' && message.type !== 'push_result') {
 				// this is not a data message
@@ -565,6 +576,7 @@ export class TLSyncRoom<R extends UnknownRecord, SessionMeta> {
 			meta: session.meta,
 			isReadonly: session.isReadonly,
 			requiresLegacyRejection: session.requiresLegacyRejection,
+			requiresLegacyUncompressedDiff: session.requiresLegacyUncompressedDiff,
 		})
 
 		try {
@@ -635,6 +647,7 @@ export class TLSyncRoom<R extends UnknownRecord, SessionMeta> {
 			isReadonly: isReadonly ?? false,
 			// this gets set later during handleConnectMessage
 			requiresLegacyRejection: false,
+			requiresLegacyUncompressedDiff: false,
 		})
 		return this
 	}
@@ -781,6 +794,8 @@ export class TLSyncRoom<R extends UnknownRecord, SessionMeta> {
 			theirProtocolVersion++
 		}
 
+		session.requiresLegacyUncompressedDiff = !message.supportsCompression
+
 		if (theirProtocolVersion == null || theirProtocolVersion < getTlsyncProtocolVersion()) {
 			this.rejectSession(session.sessionId, TLSyncErrorCloseEventReason.CLIENT_TOO_OLD)
 			return
@@ -818,6 +833,7 @@ export class TLSyncRoom<R extends UnknownRecord, SessionMeta> {
 				meta: session.meta,
 				isReadonly: session.isReadonly,
 				requiresLegacyRejection: session.requiresLegacyRejection,
+				requiresLegacyUncompressedDiff: session.requiresLegacyUncompressedDiff,
 			})
 			this.sendMessage(session.sessionId, msg)
 		}

@@ -25,6 +25,24 @@ export type AppendOp = [type: typeof ValueOpType.Append, values: unknown[], offs
 export function applyObjectDiff<T extends object>(object: T, objectDiff: ObjectDiff): T;
 
 // @internal (undocumented)
+export interface BaseRoomSession<R extends UnknownRecord, Meta> {
+    // (undocumented)
+    isReadonly: boolean;
+    // (undocumented)
+    meta: Meta;
+    // (undocumented)
+    presenceId: null | string;
+    // (undocumented)
+    requiresLegacyRejection: boolean;
+    // (undocumented)
+    requiresLegacyUncompressedDiff: boolean;
+    // (undocumented)
+    sessionId: string;
+    // (undocumented)
+    socket: TLRoomSocket<R>;
+}
+
+// @internal (undocumented)
 export function chunk(msg: string, maxSafeMessageSize?: number): string[];
 
 // @internal (undocumented)
@@ -146,37 +164,19 @@ export const RecordOpType: {
 export type RecordOpType = (typeof RecordOpType)[keyof typeof RecordOpType];
 
 // @internal (undocumented)
-export type RoomSession<R extends UnknownRecord, Meta> = {
+export type RoomSession<R extends UnknownRecord, Meta> = BaseRoomSession<R, Meta> & ({
     cancellationTime: number;
-    isReadonly: boolean;
-    meta: Meta;
-    presenceId: null | string;
-    requiresLegacyRejection: boolean;
-    sessionId: string;
-    socket: TLRoomSocket<R>;
     state: typeof RoomSessionState.AwaitingRemoval;
 } | {
     debounceTimer: null | ReturnType<typeof setTimeout>;
-    isReadonly: boolean;
     lastInteractionTime: number;
-    meta: Meta;
     outstandingDataMessages: TLSocketServerSentDataEvent<R>[];
-    presenceId: null | string;
-    requiresLegacyRejection: boolean;
     serializedSchema: SerializedSchema;
-    sessionId: string;
-    socket: TLRoomSocket<R>;
     state: typeof RoomSessionState.Connected;
 } | {
-    isReadonly: boolean;
-    meta: Meta;
-    presenceId: null | string;
-    requiresLegacyRejection: boolean;
-    sessionId: string;
     sessionStartTime: number;
-    socket: TLRoomSocket<R>;
     state: typeof RoomSessionState.AwaitingConnectMessage;
-};
+});
 
 // @internal (undocumented)
 export const RoomSessionState: {
@@ -230,6 +230,8 @@ export interface TLConnectRequest {
     protocolVersion: number;
     // (undocumented)
     schema: SerializedSchema;
+    // (undocumented)
+    supportsCompression?: boolean;
     // (undocumented)
     type: 'connect';
 }
@@ -401,7 +403,7 @@ export type TLSocketServerSentDataEvent<R extends UnknownRecord> = {
 // @internal (undocumented)
 export type TLSocketServerSentEvent<R extends UnknownRecord> = {
     connectRequestId: string;
-    diff: NetworkDiff<R>;
+    diff: NetworkDiff<R> | string;
     hydrationType: 'wipe_all' | 'wipe_presence';
     isReadonly: boolean;
     protocolVersion: number;
