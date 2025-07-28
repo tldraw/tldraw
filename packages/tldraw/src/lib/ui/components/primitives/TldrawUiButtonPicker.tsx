@@ -1,13 +1,13 @@
 import {
 	DefaultColorStyle,
+	isDefaultColor,
 	SharedStyle,
 	StyleProp,
-	TLDefaultColorStyle,
 	TLDefaultColorTheme,
 	useEditor,
 } from '@tldraw/editor'
 import classNames from 'classnames'
-import { ReactElement, memo, useMemo, useRef } from 'react'
+import { memo, ReactElement, useMemo, useRef } from 'react'
 import { StyleValuesForUi } from '../../../styles'
 import { PORTRAIT_BREAKPOINT } from '../../constants'
 import { useBreakpoint } from '../../context/breakpoints'
@@ -139,7 +139,7 @@ export const TldrawUiButtonPicker = memo(function TldrawUiButtonPicker<T extends
 						className={classNames('tlui-button-grid__button')}
 						style={
 							style === (DefaultColorStyle as StyleProp<unknown>)
-								? { color: theme[item.value as TLDefaultColorStyle].solid }
+								? { color: isDefaultColor(item.value) ? theme[item.value].solid : item.value }
 								: undefined
 						}
 						onPointerEnter={handleButtonPointerEnter}

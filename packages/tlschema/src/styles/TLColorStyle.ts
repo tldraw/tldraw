@@ -624,16 +624,21 @@ export function getDefaultColorTheme(opts: { isDarkMode: boolean }): TLDefaultCo
 }
 
 /** @public */
-export const DefaultColorStyle = StyleProp.defineEnum('tldraw:color', {
+export const DefaultColorStyle = StyleProp.defineEnumOrString('tldraw:color', {
 	defaultValue: 'black',
 	values: defaultColorNames,
 })
 
 /** @public */
-export const DefaultLabelColorStyle = StyleProp.defineEnum('tldraw:labelColor', {
+export const DefaultLabelColorStyle = StyleProp.defineEnumOrString('tldraw:labelColor', {
 	defaultValue: 'black',
 	values: defaultColorNames,
 })
 
 /** @public */
-export type TLDefaultColorStyle = T.TypeOf<typeof DefaultColorStyle>
+export type TLDefaultColorStyle = T.TypeOf<typeof DefaultColorStyle> | string
+
+/** @public */
+export function isDefaultColor(color: string): color is (typeof defaultColorNames)[number] {
+	return defaultColorNames.includes(color as (typeof defaultColorNames)[number])
+}
