@@ -547,7 +547,7 @@ export class TLSyncClient<R extends UnknownRecord, S extends Store<R> = Store<R>
 				}
 			}
 		},
-		30,
+		typeof process !== 'undefined' && process.env.NODE_ENV === 'test' ? 0 : 30,
 		{ trailing: true }
 	)
 
@@ -657,5 +657,9 @@ export class TLSyncClient<R extends UnknownRecord, S extends Store<R> = Store<R>
 		}
 	}
 
-	private scheduleRebase = throttle(this.rebase, 30, { trailing: true })
+	private scheduleRebase = throttle(
+		this.rebase,
+		typeof process !== 'undefined' && process.env.NODE_ENV === 'test' ? 0 : 30,
+		{ trailing: true }
+	)
 }
