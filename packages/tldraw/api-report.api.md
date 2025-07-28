@@ -254,8 +254,6 @@ export class ArrowShapeUtil extends ShapeUtil<TLArrowShape> {
     // (undocumented)
     canSnap(): boolean;
     // (undocumented)
-    canTabTo(shape: TLArrowShape): boolean;
-    // (undocumented)
     component(shape: TLArrowShape): JSX_2.Element | null;
     // (undocumented)
     getCanvasSvgDefs(): TLShapeUtilCanvasSvgDef[];
