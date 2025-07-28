@@ -1,6 +1,6 @@
 import { TLAiContent } from '@tldraw/ai'
 import { FormEventHandler, useCallback, useEffect, useRef, useState } from 'react'
-import { Box, Editor, useLocalStorageState } from 'tldraw'
+import { Box, Editor, structuredClone, useLocalStorageState } from 'tldraw'
 import { DEFAULT_MODEL_NAME, TLAgentModelName } from '../worker/models'
 import { $chatHistoryItems, ChatHistory } from './ChatHistory'
 import { UserMessageHistoryItem } from './ChatHistoryItem'
@@ -97,7 +97,7 @@ export function ChatPanel({ editor }: { editor: Editor }) {
 				// Continue processing the next request
 			}
 		}
-	}, [ai, modelName])
+	}, [ai, modelName, editor])
 
 	const handleSubmit = useCallback<FormEventHandler<HTMLFormElement>>(
 		async (e) => {
