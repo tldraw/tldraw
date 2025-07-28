@@ -1001,7 +1001,9 @@ async function listAllObjectKeys(bucket: R2Bucket, prefix: string): Promise<stri
 function* generateSnapshotChunks(snapshot: RoomSnapshot, clock: number): Generator<Uint8Array> {
 	const encoder = new TextEncoder()
 
-	yield encoder.encode(`{"clock":${clock},"tombstones":`)
+	yield encoder.encode(
+		`{"clock":${clock},tombstoneHistoryStartsAtClock:${snapshot.tombstoneHistoryStartsAtClock},"tombstones":`
+	)
 	yield encoder.encode(JSON.stringify(snapshot.tombstones))
 	yield encoder.encode(`,"schema":`)
 	yield encoder.encode(JSON.stringify(snapshot.schema))
