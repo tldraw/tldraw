@@ -54,9 +54,9 @@ export interface TLAiPrompt {
  * @public
  */
 export interface TLAiSerializedPrompt extends Omit<TLAiPrompt, 'contextBounds' | 'promptBounds'> {
-	/** The bounds of the context in the editor */
+	/** The bounds of the context in the editor (what the model can see) */
 	contextBounds: BoxModel
-	/** The bounds of the prompt in the editor */
+	/** The bounds of the prompt in the editor (where the model can act) */
 	promptBounds: BoxModel
 }
 
