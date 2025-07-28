@@ -41,8 +41,6 @@ export interface TLAiPrompt {
 	image?: string
 	/** The content pulled from the editor */
 	canvasContent: TLAiContent
-	/** The content pulled from the current page */
-	currentPageContent: TLAiContent
 	/** The bounds of the context in the editor */
 	contextBounds: Box
 	/** The bounds of the prompt in the editor */

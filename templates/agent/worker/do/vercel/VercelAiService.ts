@@ -308,14 +308,16 @@ function buildUserMessage(prompt: TLAiSerializedPrompt): CoreMessage {
 		text: `The current viewport is: { x: ${prompt.promptBounds.x}, y: ${prompt.promptBounds.y}, width: ${prompt.promptBounds.w}, height: ${prompt.promptBounds.h} }`,
 	})
 
+	const currentPageContent = prompt.meta.currentPageContent
+
 	// TODO the model should probably always know the users viewport, even if the model's viewport is different
 
 	// Add the canvas content
-	if (prompt.canvasContent && prompt.currentPageContent) {
+	if (prompt.canvasContent && currentPageContent) {
 		const simplifiedCanvasContent = getSimpleContentFromCanvasContent(prompt.canvasContent)
 
 		const peripheralContent = getSimplePeripheralContentFromCanvasContent(
-			prompt.currentPageContent,
+			currentPageContent,
 			prompt.canvasContent
 		)
 

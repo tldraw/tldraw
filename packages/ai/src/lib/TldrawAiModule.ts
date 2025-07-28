@@ -69,13 +69,11 @@ export class TldrawAiModule {
 		const contextBounds = _options.contextBounds ?? editor.getViewportPageBounds()
 		const promptBounds = _options.promptBounds ?? editor.getViewportPageBounds()
 		const canvasContent = _options.canvasContent ?? this.getContent(promptBounds)
-		const currentPageContent = this.getContent()
 		const image = _options.image ?? (await this.getImage(canvasContent))
 
 		return {
 			message: _options.message ?? '',
 			canvasContent,
-			currentPageContent, //I think this might cause problems atm because if we do want to send the current page content in the prompt, we need to make sure transforms (and probably other stuff) are applied to it
 			contextBounds: roundBox(contextBounds),
 			promptBounds: roundBox(promptBounds),
 			image,
