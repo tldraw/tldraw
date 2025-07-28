@@ -39,10 +39,10 @@ them faster.
 ## Development
 
 To install dependencies, run `yarn`. To start a local development server, run `yarn dev`. This will
-start a [`vite`](https://vitejs.dev/) dev server for the frontend of your application, and a
-[`wrangler`](https://developers.cloudflare.com/workers/wrangler/) dev server for your workers
-backend. The app should now be running at http://localhost:5137 (and the server at
-http://localhost:5172).
+start a [`vite`](https://vitejs.dev/) dev server running both your application frontend, and the
+cloudflare workers backend via the [cloudflare vite
+plugin](https://developers.cloudflare.com/workers/vite-plugin/). The app & server should now be
+running at http://localhost:5137.
 
 The backend worker is under [`worker`](./worker/), and is split across several files:
 
@@ -74,18 +74,16 @@ To add support for custom shapes, see the [tldraw sync custom shapes docs](https
 If you already have an app using tldraw and want to use the system in this repo, you can copy and
 paste the relevant parts to your own app.
 
+To add the server to your own app, copy the contents of the [`worker`](./worker/) folder and
+[`./wrangler.toml`](./wrangler.toml) into your app. Add the dependencies from
+[`package.json`](./package.json). You can run the worker using `wrangler dev` in the same folder as
+`./wrangler.toml`.
+
 To point your existing client at the server defined in this repo, copy
 [`client/multiplayerAssetStore.tsx`](./client/multiplayerAssetStore.tsx) and
 [`client/getBookmarkPreview.tsx`](./client/getBookmarkPreview.tsx) into your app. Then, adapt the
-code from [`client/App.tsx`](./client/App.tsx) to your own app. When you call `useSync`, you'll need
-to pass it a URL. In development, that's `http://localhost:5172/connect/some-room-id`. We use an
-environment variable set in [`./vite.config.ts`](./vite.config.ts) to set the server URL.
-
-To add the server to your own app, copy the contents of the [`worker`](./worker/) folder and
-[`./wrangler.toml`](./wrangler.toml) into your app. Add the dependencies from
-[`package.json`](./package.json). If you're using TypeScript, you'll also need to adapt
-`tsconfig.worker.json` for your own project. You can run the worker using `wrangler dev` in the same
-folder as `./wrangler.toml`.
+code from [`client/App.tsx`](./client/App.tsx) to your own app. Adapt the `/api/` URLs used in each
+of these files to point at your new `wrangler dev` server.
 
 ## Deployment
 
@@ -93,16 +91,10 @@ To deploy this example, you'll need to create a cloudflare account and create an
 your data. Update `bucket_name = 'tldraw-content'` in [`wrangler.toml`](./wrangler.toml) with the
 name of your new bucket.
 
-Run `wrangler deploy` to deploy your backend. This should give you a workers.dev URL, but you can
-also [configure a custom
+To actually deploy the app, first create a production build using `yarn build`. Then, run `yarn
+wrangler deploy`. This will deploy the backend worker along with the frontend app to cloudflare.
+This should give you a workers.dev URL, but you can also [configure a custom
 domain](https://developers.cloudflare.com/workers/configuration/routing/custom-domains/).
-
-Finally, deploy your client HTML & JavaScript. Create a production build with
-`TLDRAW_WORKER_URL=https://your.workers.domain.com yarn build`. Publish the resulting build (in
-`dist/`) on a host of your choosing - we use [Vercel](https://vercel.com).
-
-When you visit your published client, it should connect to your cloudflare workers domain and sync
-your document across devices.
 
 ## License
 

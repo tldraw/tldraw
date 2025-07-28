@@ -1,3 +1,4 @@
+import { getLicenseKey } from '@tldraw/dotcom-shared'
 import { useSync } from '@tldraw/sync'
 import { useCallback, useEffect, useMemo, useRef } from 'react'
 import {
@@ -40,6 +41,7 @@ import { TlaEditorSharePanel } from './editor-components/TlaEditorSharePanel'
 import { TlaEditorTopPanel } from './editor-components/TlaEditorTopPanel'
 import { SneakyDarkModeSync } from './sneaky/SneakyDarkModeSync'
 import { SneakyTldrawFileDropHandler } from './sneaky/SneakyFileDropHandler'
+import { SneakyLargeFileHander } from './sneaky/SneakyLargeFileHandler'
 import { SneakySetDocumentTitle } from './sneaky/SneakySetDocumentTitle'
 import { SneakyToolSwitcher } from './sneaky/SneakyToolSwitcher'
 import { useFileEditorOverrides } from './useFileEditorOverrides'
@@ -252,6 +254,7 @@ function TlaEditorInner({ fileSlug, deepLinks }: TlaEditorProps) {
 		<TlaEditorWrapper>
 			<Tldraw
 				className="tla-editor"
+				licenseKey={getLicenseKey()}
 				store={store}
 				assetUrls={assetUrls}
 				user={app?.tlUser}
@@ -268,6 +271,7 @@ function TlaEditorInner({ fileSlug, deepLinks }: TlaEditorProps) {
 				<SneakyToolSwitcher />
 				{app && <SneakyTldrawFileDropHandler />}
 				<SneakyFileUpdateHandler fileId={fileId} />
+				<SneakyLargeFileHander />
 			</Tldraw>
 		</TlaEditorWrapper>
 	)

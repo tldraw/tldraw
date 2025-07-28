@@ -23,7 +23,12 @@ const SimpleFill = z.enum(['none', 'tint', 'semi', 'solid', 'pattern'])
 
 export type ISimpleFill = z.infer<typeof SimpleFill>
 
-const SimpleLabel = z.string()
+const SimpleLabel = z.string().or(
+	z.object({
+		type: z.string(),
+		content: z.array(z.any()),
+	})
+)
 
 const SimpleRectangleShape = z.object({
 	type: z.literal('rectangle'),
@@ -102,7 +107,7 @@ const SimpleTextShape = z.object({
 	x: z.number(),
 	y: z.number(),
 	color: SimpleColor.optional(),
-	text: z.string().optional(),
+	text: SimpleLabel.optional(),
 	textAlign: z.enum(['start', 'middle', 'end']).optional(),
 })
 
@@ -119,7 +124,7 @@ const SimpleArrowShape = z.object({
 	x2: z.number(),
 	y2: z.number(),
 	color: SimpleColor.optional(),
-	text: SimpleLabel.optional(),
+	text: z.string().optional(),
 })
 
 export type ISimpleArrowShape = z.infer<typeof SimpleArrowShape>

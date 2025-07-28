@@ -1,19 +1,20 @@
-import { Auto } from '@auto-it/core'
-import glob from 'glob'
+import { Octokit } from '@octokit/rest'
+import assert from 'assert'
 import minimist from 'minimist'
-import { assert } from 'node:console'
 import { SemVer, parse } from 'semver'
 import { exec } from './lib/exec'
-import { generateAutoRcFile } from './lib/labels'
+import { makeEnv } from './lib/makeEnv'
 import { nicelog } from './lib/nicelog'
 import {
-	getLatestVersion,
+	getLatestTldrawVersionFromNpm,
 	publish,
 	publishProductionDocsAndExamplesAndBemo,
 	setAllVersions,
+	triggerBumpVersionsWorkflow,
 } from './lib/publishing'
 import { uploadStaticAssets } from './lib/upload-static-assets'
-import { getAllWorkspacePackages } from './lib/workspace'
+
+const env = makeEnv(['GH_TOKEN'])
 
 type ReleaseType =
 	| {
@@ -39,12 +40,30 @@ function getReleaseType(): ReleaseType {
 	throw new Error('Invalid bump argument ' + JSON.stringify(arg))
 }
 
+async function getReleaseNotes(): Promise<string> {
+	const arg = minimist(process.argv.slice(2))['release_notes_url']?.trim()
+	if (!arg) {
+		throw new Error('Must provide a --release_notes_url argument')
+	}
+
+	const match = arg.match(/^https:\/\/gist\.github\.com\/[^/]+\/([^/]+)(\/raw)?$/)
+	assert(match, 'Release notes URL must be a gist URL')
+
+	const gistId = match[1]
+
+	const rawUrl = `https://gist.github.com/raw/${gistId}`
+	const response = await fetch(rawUrl)
+	assert(response.ok, 'Failed to fetch release notes')
+	const text = await response.text()
+	return text
+}
+
 async function getNextVersion(releaseType: ReleaseType): Promise<string> {
 	if (releaseType.bump === 'override') {
 		return releaseType.version.format()
 	}
 
-	const latestVersion = parse(await getLatestVersion())!
+	const latestVersion = await getLatestTldrawVersionFromNpm()
 
 	nicelog('latestVersion', latestVersion)
 
@@ -64,90 +83,56 @@ async function getNextVersion(releaseType: ReleaseType): Promise<string> {
 }
 
 async function main() {
-	const huppyToken = process.env.HUPPY_TOKEN
-	assert(huppyToken && typeof huppyToken === 'string', 'HUPPY_ACCESS_KEY env var must be set')
-
-	// check we're on the main branch on HEAD
+	// // check we're on the main branch on HEAD
 	const currentBranch = (await exec('git', ['rev-parse', '--abbrev-ref', 'HEAD'])).toString().trim()
-	if (currentBranch !== 'main') {
-		throw new Error('Must be on main branch to publish')
+	if (currentBranch !== 'production') {
+		throw new Error('Must be on production branch to publish')
 	}
+
+	const releaseNotes = await getReleaseNotes()
 
 	const releaseType = getReleaseType()
 	const nextVersion = await getNextVersion(releaseType)
 
 	const isPrerelease = parse(nextVersion)!.prerelease.length > 0
+	assert(!isPrerelease, 'Prerelease versions are no longer supported for new releases')
 
 	console.log('Releasing version', nextVersion)
 
-	await setAllVersions(nextVersion)
-
-	// stage the changes
-	const packageJsonFilesToAdd = []
-	for (const workspace of await getAllWorkspacePackages()) {
-		if (workspace.relativePath.startsWith('packages/')) {
-			packageJsonFilesToAdd.push(`${workspace.relativePath}/package.json`)
-		}
-	}
-	const versionFilesToAdd = glob.sync('**/*/version.ts', {
-		ignore: ['node_modules/**'],
-		follow: false,
-	})
-	console.log('versionFilesToAdd', versionFilesToAdd)
-	await exec('git', [
-		'add',
-		'--update',
-		'lerna.json',
-		...packageJsonFilesToAdd,
-		...versionFilesToAdd,
-	])
-
-	const auto = new Auto({
-		plugins: ['npm'],
-		baseBranch: 'main',
-		owner: 'tldraw',
-		repo: 'tldraw',
-		verbose: true,
-		disableTsNode: true,
-	})
-
-	await generateAutoRcFile()
-	await auto.loadConfig()
-
-	const preTagRef = (await exec('git', ['rev-parse', 'HEAD'])).trim()
-
-	// this creates a new commit
-	await auto.changelog({
-		useVersion: nextVersion,
-		title: `v${nextVersion}`,
-	})
+	await setAllVersions(nextVersion, { stageChanges: true })
 
 	const gitTag = `v${nextVersion}`
-
-	// create and push a new tag
-	await exec('git', ['tag', '-f', gitTag])
-	await exec('git', ['push', '--follow-tags'])
+	await exec('git', ['commit', '-m', `${gitTag}`])
 
 	// create new 'release' branch called e.g. v2.0.x or v4.3.x, for making patch releases
-	if (!isPrerelease) {
-		const { major, minor } = parse(nextVersion)!
-		await exec('git', ['push', 'origin', `${gitTag}:refs/heads/v${major}.${minor}.x`])
-		await publishProductionDocsAndExamplesAndBemo({
-			// we use the ref from the HEAD before we created the tag, because auto
-			// adds `[skip ci]` to the commit message when it creates the changelog, and
-			// that will prevent the bemo release from going out.
-			gitRef: preTagRef,
-		})
-	}
+	const { major, minor } = parse(nextVersion)!
+	const branchName = `v${major}.${minor}.x`
+	// create and push a new tag to the release branch
+	await exec('git', ['tag', '-f', gitTag])
+	await exec('git', ['push', 'origin', `${gitTag}:refs/heads/${branchName}`])
+	await exec('git', ['push', 'origin', 'tag', gitTag, '-f'])
+	await publishProductionDocsAndExamplesAndBemo()
 
 	// create a release on github
-	await auto.runRelease({ useVersion: nextVersion })
+	const octokit = new Octokit({ auth: env.GH_TOKEN })
+	await octokit.rest.repos.createRelease({
+		owner: 'tldraw',
+		repo: 'tldraw',
+		tag_name: gitTag,
+		name: gitTag,
+		body: releaseNotes,
+		prerelease: isPrerelease,
+	})
 
 	// upload static assets
 	await uploadStaticAssets(nextVersion)
 
 	// finally, publish the packages [IF THIS STEP FAILS, RUN THE `publish-manual.ts` script locally]
 	await publish()
+
+	// Trigger version bump on main branch to sync all package versions
+	nicelog('Triggering version bump on main branch')
+	await triggerBumpVersionsWorkflow(env.GH_TOKEN)
 }
 
 main()

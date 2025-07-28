@@ -964,7 +964,7 @@
 	justify-content: center;
 	border-radius: 99px;
 	opacity: 0;
-	animation: fade-in;
+	animation: tl-fade-in;
 	animation-duration: 0.12s;
 	animation-delay: 2s;
 	animation-fill-mode: forwards;
@@ -1106,20 +1106,6 @@
 
 .tlui-navigation-panel[data-a11y='true']::before {
 	display: none;
-}
-
-.tlui-navigation-panel__toggle .tlui-icon {
-	opacity: 0.24;
-}
-
-.tlui-navigation-panel__toggle:active .tlui-icon {
-	opacity: 1;
-}
-
-@media (hover: hover) {
-	.tlui-navigation-panel__toggle:hover .tlui-icon {
-		opacity: 1;
-	}
 }
 
 /* Minimap */
@@ -1379,11 +1365,11 @@
 
 @media (prefers-reduced-motion: no-preference) {
 	.tlui-toast__container[data-state='open'] {
-		animation: slide-in 200ms cubic-bezier(0.785, 0.135, 0.15, 0.86);
+		animation: tlui-slide-in 200ms cubic-bezier(0.785, 0.135, 0.15, 0.86);
 	}
 
 	.tlui-toast__container[data-state='closed'] {
-		animation: hide 100ms ease-in;
+		animation: tlui-fade-out 100ms ease-in;
 	}
 
 	.tlui-toast__container[data-swipe='move'] {
@@ -1396,7 +1382,7 @@
 	}
 
 	.tlui-toast__container[data-swipe='end'] {
-		animation: swipe-out 100ms ease-out;
+		animation: tlui-slide-out 100ms ease-out;
 	}
 }
 
@@ -1411,7 +1397,7 @@
 	z-index: var(--layer-canvas-overlays);
 	background-color: var(--color-overlay);
 	pointer-events: all;
-	animation: fadeIn 0.12s ease-out;
+	animation: tl-fade-in 0.12s ease-out;
 	display: grid;
 	place-items: center;
 	overflow-y: auto;
@@ -1716,6 +1702,7 @@
 	position: relative;
 	font-size: 10px;
 	font-weight: bold;
+	text-align: center;
 	color: var(--color-selected-contrast);
 	z-index: 2;
 }
@@ -1735,16 +1722,12 @@
 }
 
 .tlui-people-menu__more {
-	position: absolute;
-	top: 0px;
-	right: 0px;
 	min-width: 0px;
 	font-size: 11px;
 	font-weight: 600;
 	color: var(--color-text-1);
 	font-family: inherit;
 	padding: 0px 4px;
-	letter-spacing: 1.5;
 }
 .tlui-people-menu__more::after {
 	border-radius: var(--radius-2);
@@ -1981,7 +1964,7 @@
 }
 
 /* ------------------- Animations ------------------- */
-@keyframes hide {
+@keyframes tlui-fade-out {
 	0% {
 		opacity: 1;
 	}
@@ -1990,7 +1973,7 @@
 	}
 }
 
-@keyframes slide-in {
+@keyframes tlui-slide-in {
 	from {
 		transform: translateX(calc(100% + var(--space-3)));
 	}
@@ -1999,7 +1982,7 @@
 	}
 }
 
-@keyframes swipe-out {
+@keyframes tlui-slide-out {
 	from {
 		transform: translateX(var(--radix-toast-swipe-end-x));
 	}

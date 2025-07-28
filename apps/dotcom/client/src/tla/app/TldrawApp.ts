@@ -702,6 +702,7 @@ export class TldrawApp {
 			...restOfPreferences,
 			locale: restOfPreferences.locale ?? null,
 			animationSpeed: restOfPreferences.animationSpeed ?? null,
+			areKeyboardShortcutsEnabled: restOfPreferences.areKeyboardShortcutsEnabled ?? null,
 			edgeScrollSpeed: restOfPreferences.edgeScrollSpeed ?? null,
 			colorScheme: restOfPreferences.colorScheme ?? null,
 			isSnapMode: restOfPreferences.isSnapMode ?? null,
@@ -755,7 +756,7 @@ export class TldrawApp {
 				severity: 'info',
 				title: this.getIntl().formatMessage(this.messages.uploadingTldrFiles, {
 					total: totalFiles,
-					uploaded: uploadedFiles,
+					uploaded: uploadedFiles + 1,
 				}),
 
 				description: `${getApproxPercentage()}%`,

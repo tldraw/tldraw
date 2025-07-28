@@ -94,6 +94,7 @@
 	"action.toggle-focus-mode.menu": "Način rada fokusa",
 	"action.toggle-grid": "Prebaci rešetku",
 	"action.toggle-grid.menu": "Prikaži rešetku",
+	"action.toggle-keyboard-shortcuts.menu": "Tipkovne prečice",
 	"action.toggle-lock": "Prebaci zaključano",
 	"action.toggle-paste-at-cursor": "Prebaci lijepljenje na kursor",
 	"action.toggle-paste-at-cursor.menu": "Zalijepi na kursor",

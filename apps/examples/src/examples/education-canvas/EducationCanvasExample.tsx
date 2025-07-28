@@ -119,7 +119,7 @@ const CartesianGrid = memo(function CartesianGrid() {
 })
 
 const components: TLComponents = {
-	OnTheCanvas: () => <CartesianGrid />,
+	OnTheCanvas: CartesianGrid,
 }
 
 export default function EducationCanvasExample() {
@@ -217,7 +217,7 @@ export default function EducationCanvasExample() {
 								<input
 									type="text"
 									className="answer-input"
-									placeholder="Enter the area (include units)"
+									placeholder="Enter the area"
 									value={answers.partB}
 									onChange={(e) => handleAnswerChange('partB', e.target.value)}
 								/>
@@ -269,7 +269,26 @@ export default function EducationCanvasExample() {
 			{/* Canvas Panel - Right Half */}
 			<div className="canvas-panel">
 				<div className="canvas-container">
-					<Tldraw persistenceKey="education-canvas" components={components} onMount={handleMount}>
+					<Tldraw
+						options={{ maxPages: 1 }}
+						persistenceKey="education-canvas"
+						components={components}
+						onMount={handleMount}
+						overrides={{
+							tools: (_editor, tools) => {
+								// These are the tool ids that are allowed to be used in the education canvas...
+								const allowedTools = ['select', 'hand', 'draw', 'eraser', 'line', 'text']
+								// Tools are keyed by their id, so we can delete off all the tools that are not in the allowedTools array
+								for (const key in tools) {
+									if (!allowedTools.includes(key)) {
+										delete tools[key]
+									}
+								}
+								// Return the mutated tools
+								return tools
+							},
+						}}
+					>
 						<CameraSetup />
 					</Tldraw>
 				</div>

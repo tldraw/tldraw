@@ -108,6 +108,15 @@ export default function Develop() {
 				onMount={(editor) => {
 					;(window as any).app = editor
 					;(window as any).editor = editor
+
+					Object.defineProperty(window, '$s', {
+						get: function () {
+							return editor.getOnlySelectedShape()
+						},
+						configurable: true,
+						enumerable: true,
+					})
+
 					const dispose = editor.store.sideEffects.registerAfterChangeHandler(
 						'shape',
 						afterChangeHandler

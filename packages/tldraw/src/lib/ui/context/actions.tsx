@@ -28,6 +28,7 @@ import { fitFrameToContent, removeFrame } from '../../utils/frames/frames'
 import { generateShapeAnnouncementMessage } from '../components/A11y'
 import { EditLinkDialog } from '../components/EditLinkDialog'
 import { EmbedDialog } from '../components/EmbedDialog'
+import { DefaultKeyboardShortcutsDialog } from '../components/KeyboardShortcutsDialog/DefaultKeyboardShortcutsDialog'
 import { useShowCollaborationUi } from '../hooks/useCollaborationStatus'
 import { flattenShapesToImages } from '../hooks/useFlatten'
 import { TLUiTranslationKey } from '../hooks/useTranslation/TLUiTranslationKey'
@@ -42,12 +43,13 @@ export interface TLUiActionItem<
 	TransationKey extends string = string,
 	IconType extends string = string,
 > {
-	icon?: IconType
+	icon?: IconType | React.ReactElement
 	id: string
 	kbd?: string
 	label?: TransationKey | { [key: string]: TransationKey }
 	readonlyOk?: boolean
 	checkbox?: boolean
+	isRequiredA11yAction?: boolean
 	onSelect(source: TLUiEventSource): Promise<void> | void
 }
 
@@ -166,6 +168,15 @@ export function ActionsProvider({ overrides, children }: ActionsProviderProps) {
 				onSelect(source) {
 					trackEvent('insert-embed', { source })
 					helpers.addDialog({ component: EmbedDialog })
+				},
+			},
+			{
+				id: 'open-kbd-shortcuts',
+				label: 'action.open-kbd-shortcuts',
+				kbd: 'cmd+alt+/,ctrl+alt+/',
+				onSelect(source) {
+					trackEvent('open-kbd-shortcuts', { source })
+					helpers.addDialog({ component: DefaultKeyboardShortcutsDialog })
 				},
 			},
 			{
@@ -502,7 +513,6 @@ export function ActionsProvider({ overrides, children }: ActionsProviderProps) {
 								}
 					}
 
-					if (!editor.canCreateShapes(ids)) return
 					editor.markHistoryStoppingPoint('duplicate shapes')
 					editor.duplicateShapes(ids, offset)
 
@@ -1235,6 +1245,21 @@ export function ActionsProvider({ overrides, children }: ActionsProviderProps) {
 				checkbox: true,
 			},
 			{
+				id: 'toggle-keyboard-shortcuts',
+				label: {
+					default: 'action.toggle-keyboard-shortcuts',
+					menu: 'action.toggle-keyboard-shortcuts.menu',
+				},
+				readonlyOk: true,
+				onSelect(source) {
+					trackEvent('toggle-keyboard-shortcuts', { source })
+					editor.user.updateUserPreferences({
+						areKeyboardShortcutsEnabled: !editor.user.getAreKeyboardShortcutsEnabled(),
+					})
+				},
+				checkbox: true,
+			},
+			{
 				id: 'toggle-edge-scrolling',
 				label: {
 					default: 'action.toggle-edge-scrolling',
@@ -1530,6 +1555,7 @@ export function ActionsProvider({ overrides, children }: ActionsProviderProps) {
 				id: 'adjust-shape-styles',
 				label: 'a11y.adjust-shape-styles',
 				kbd: 'cmd+Enter,ctrl+Enter',
+				isRequiredA11yAction: true,
 				onSelect: async (source) => {
 					if (!canApplySelectionAction()) return
 
@@ -1543,6 +1569,7 @@ export function ActionsProvider({ overrides, children }: ActionsProviderProps) {
 			{
 				id: 'a11y-open-context-menu',
 				kbd: 'cmd+shift+Enter,ctrl+shift+Enter',
+				isRequiredA11yAction: true,
 				readonlyOk: true,
 				onSelect: async (source) => {
 					if (!canApplySelectionAction()) return
@@ -1595,6 +1622,7 @@ export function ActionsProvider({ overrides, children }: ActionsProviderProps) {
 				id: 'a11y-repeat-shape-announce',
 				kbd: 'alt+r',
 				label: 'a11y.repeat-shape',
+				isRequiredA11yAction: true,
 				readonlyOk: true,
 				onSelect: async (source) => {
 					const selectedShapeIds = editor.getSelectedShapeIds()

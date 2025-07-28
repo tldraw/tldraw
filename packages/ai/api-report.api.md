@@ -16,6 +16,9 @@ import type { TLShape } from 'tldraw';
 import type { TLShapeId } from 'tldraw';
 import type { TLShapePartial } from 'tldraw';
 
+// @public (undocumented)
+export function asMessage(message: TLAiMessages): TLAiMessage[];
+
 // @public
 export type TLAiChange = TLAiCreateBindingChange | TLAiCreateShapeChange | TLAiDeleteBindingChange | TLAiDeleteShapeChange | TLAiUpdateBindingChange | TLAiUpdateShapeChange;
 

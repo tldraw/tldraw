@@ -3,7 +3,7 @@ import { assert, sleep, uniqueId } from '@tldraw/utils'
 import { createRouter } from '@tldraw/worker-shared'
 import { StatusError, json } from 'itty-router'
 import { createPostgresConnectionPool } from './postgres'
-import { getFileSnapshot } from './routes/tla/getFileSnapshot'
+import { returnFileSnapshot } from './routes/tla/getFileSnapshot'
 import { type Environment } from './types'
 import { getReplicator, getRoomDurableObject, getUserDurableObject } from './utils/durableObjects'
 import { requireAdminAccess, requireAuth } from './utils/tla/getAuth'
@@ -75,24 +75,12 @@ export const adminRoutes = createRouter<Environment>()
 	.get('/app/admin/download-tldr/:fileSlug', async (res, env) => {
 		const fileSlug = res.params.fileSlug
 		assert(typeof fileSlug === 'string', 'fileSlug is required')
-
-		const snapshot = await getFileSnapshot(env, fileSlug)
-		if (!snapshot) {
-			throw new StatusError(404, 'File not found')
-		}
-
-		const tldrFile = {
-			tldrawFileFormatVersion: 1,
-			schema: snapshot.schema,
-			records: Object.values(snapshot.documents.map((doc: { state: { id: string } }) => doc.state)),
-		}
-
-		return new Response(JSON.stringify(tldrFile, null, 2), {
-			headers: {
-				'Content-Type': 'application/json',
-				'Content-Disposition': `attachment; filename="${fileSlug}.tldr"`,
-			},
-		})
+		return await returnFileSnapshot(env, fileSlug, true)
+	})
+	.get('/app/admin/download-legacy-tldr/:fileSlug', async (res, env) => {
+		const fileSlug = res.params.fileSlug
+		assert(typeof fileSlug === 'string', 'fileSlug is required')
+		return await returnFileSnapshot(env, fileSlug, false)
 	})
 
 async function maybeHardDeleteLegacyFile({ id, env }: { id: string; env: Environment }) {

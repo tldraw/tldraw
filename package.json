@@ -1,6 +1,6 @@
 {
 	"name": "@tldraw/monorepo",
-	"description": "A tiny little drawing app (monorepo).",
+	"description": "tldraw infinite canvas SDK (monorepo).",
 	"version": "0.0.0",
 	"private": true,
 	"author": {
@@ -17,6 +17,7 @@
 	},
 	"keywords": [
 		"tldraw",
+		"sdk",
 		"drawing",
 		"app",
 		"development",
@@ -29,7 +30,8 @@
 		"apps/*",
 		"apps/vscode/*",
 		"apps/dotcom/*",
-		"internal/*"
+		"internal/*",
+		"templates/*"
 	],
 	"scripts": {
 		"aws-login": "aws sso login --sso-session=tldraw",
@@ -43,6 +45,7 @@
 		"dev-huppy": "LAZYREPO_PRETTY_OUTPUT=0 lazy run dev --filter 'internal/huppy'",
 		"dev-ai": "LAZYREPO_PRETTY_OUTPUT=0 lazy run dev --filter='templates/ai'",
 		"dev-tools": "yarn tsx internal/scripts/get-pr-numbers.ts && lazy run dev --filter='internal/dev-tools'",
+		"dev-template": "./internal/scripts/dev-template.sh",
 		"build": "lazy build",
 		"build-app": "lazy run build --filter 'apps/dotcom/client'",
 		"build-docs": "lazy run build --filter 'apps/docs'",
@@ -100,6 +103,7 @@
 		"auto": "^11.3.0",
 		"eslint": "^9.19.0",
 		"eslint-config-prettier": "^9.1.0",
+		"eslint-plugin-formatjs": "^5.4.0",
 		"eslint-plugin-import": "^2.31.0",
 		"eslint-plugin-no-only-tests": "^3.3.0",
 		"eslint-plugin-react": "^7.37.4",
@@ -111,12 +115,12 @@
 		"lazyrepo": "0.0.0-alpha.27",
 		"license-report": "^6.7.1",
 		"lint-staged": "^15.4.3",
-		"prettier": "^3.4.2",
-		"prettier-plugin-organize-imports": "^3.2.4",
+		"prettier": "^3.6.1",
+		"prettier-plugin-organize-imports": "^4.1.0",
 		"rimraf": "^4.4.1",
 		"tsutils": "^3.21.0",
 		"tsx": "^4.19.2",
-		"typescript": "~5.4.5",
+		"typescript": "^5.8.3",
 		"vercel": "^34.4.0"
 	},
 	"// resolutions.canvas": [
@@ -130,13 +134,13 @@
 		"canvas": "npm:empty-npm-package@1.0.0",
 		"@microsoft/tsdoc@npm:~0.15.1": "patch:@microsoft/tsdoc@npm%3A0.15.1#~/.yarn/patches/@microsoft-tsdoc-npm-0.15.1-e24295d9bd.patch",
 		"@microsoft/tsdoc@npm:0.15.1": "patch:@microsoft/tsdoc@npm%3A0.15.1#~/.yarn/patches/@microsoft-tsdoc-npm-0.15.1-e24295d9bd.patch",
-		"@types/node": "22.15.31"
+		"@types/node": "^22.15.31"
 	},
 	"dependencies": {
 		"@sentry/cli": "^2.41.1",
 		"@yarnpkg/types": "^4.0.0",
 		"cross-env": "^7.0.3",
-		"esbuild": "^0.25.0",
+		"esbuild": "^0.25.6",
 		"mime": "^4.0.6",
 		"purgecss": "^5.0.0",
 		"sst": "^3.10.13",

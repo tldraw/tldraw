@@ -414,6 +414,260 @@ describe('Shape navigation', () => {
 			expect(editor.getSelectedShapeIds()).toEqual([])
 		})
 
+		it('respects container boundaries when navigating with left/right', () => {
+			// Create a frame with shapes inside and shapes outside
+			editor.createShapes([
+				{
+					id: ids.frame1,
+					type: 'frame',
+					x: 0,
+					y: 0,
+					props: {
+						w: 200,
+						h: 200,
+					},
+				},
+				// Shapes inside frame
+				{
+					id: ids.box1,
+					type: 'geo',
+					x: 10,
+					y: 100,
+					parentId: ids.frame1,
+					props: {
+						w: 30,
+						h: 30,
+					},
+				},
+				{
+					id: ids.box2,
+					type: 'geo',
+					x: 50,
+					y: 100,
+					parentId: ids.frame1,
+					props: {
+						w: 30,
+						h: 30,
+					},
+				},
+				{
+					id: ids.box3,
+					type: 'geo',
+					x: 90,
+					y: 100,
+					parentId: ids.frame1,
+					props: {
+						w: 30,
+						h: 30,
+					},
+				},
+				// Shapes outside frame
+				{
+					id: ids.box4,
+					type: 'geo',
+					x: 300,
+					y: 100,
+					props: {
+						w: 30,
+						h: 30,
+					},
+				},
+				{
+					id: ids.box5,
+					type: 'geo',
+					x: 350,
+					y: 100,
+					props: {
+						w: 30,
+						h: 30,
+					},
+				},
+			])
+
+			// Setup shape centers for consistent testing
+			jest.spyOn(editor, 'getShapePageBounds').mockImplementation((shape: any) => {
+				const positions = {
+					[ids.box1]: { x: 25, y: 115 },
+					[ids.box2]: { x: 65, y: 115 },
+					[ids.box3]: { x: 105, y: 115 },
+					[ids.box4]: { x: 315, y: 115 },
+					[ids.box5]: { x: 365, y: 115 },
+				}
+				const pos = positions[shape?.id as keyof typeof positions]
+				return pos ? ({ center: pos } as any) : ({ center: { x: 0, y: 0 } } as any)
+			})
+
+			// Select a shape inside the frame
+			editor.select(ids.box1)
+			expect(editor.getSelectedShapeIds()).toEqual([ids.box1])
+
+			// Navigate right - should stay within the frame
+			editor.selectAdjacentShape('right')
+			expect(editor.getSelectedShapeIds()).toEqual([ids.box2])
+
+			// Continue navigating right - should still stay within the frame
+			editor.selectAdjacentShape('right')
+			expect(editor.getSelectedShapeIds()).toEqual([ids.box3])
+
+			// Navigate right again - should not leave the frame to go to box4
+			editor.selectAdjacentShape('right')
+			expect(editor.getSelectedShapeIds()).toEqual([ids.box3]) // Should stay at box3
+
+			// Now navigate left to test the other direction
+			editor.selectAdjacentShape('left')
+			expect(editor.getSelectedShapeIds()).toEqual([ids.box2])
+
+			editor.selectAdjacentShape('left')
+			expect(editor.getSelectedShapeIds()).toEqual([ids.box1])
+
+			// Navigate left again - should not leave the frame
+			editor.selectAdjacentShape('left')
+			expect(editor.getSelectedShapeIds()).toEqual([ids.box1]) // Should stay at box1
+
+			// Now test navigation outside the frame
+			editor.select(ids.box4)
+			expect(editor.getSelectedShapeIds()).toEqual([ids.box4])
+
+			// Navigate right - should move to box5
+			editor.selectAdjacentShape('right')
+			expect(editor.getSelectedShapeIds()).toEqual([ids.box5])
+
+			// Navigate left - should move back to box4
+			editor.selectAdjacentShape('left')
+			expect(editor.getSelectedShapeIds()).toEqual([ids.box4])
+
+			// Navigate left again - should select the frame (nearest shape to the left)
+			editor.selectAdjacentShape('left')
+			expect(editor.getSelectedShapeIds()).toEqual([ids.frame1]) // Should select frame1
+		})
+
+		it('respects container boundaries when navigating with up/down', () => {
+			// Create a frame with shapes inside and shapes outside
+			editor.createShapes([
+				{
+					id: ids.frame1,
+					type: 'frame',
+					x: 0,
+					y: 0,
+					props: {
+						w: 200,
+						h: 200,
+					},
+				},
+				// Shapes inside frame - vertically arranged
+				{
+					id: ids.box1,
+					type: 'geo',
+					x: 100,
+					y: 10,
+					parentId: ids.frame1,
+					props: {
+						w: 30,
+						h: 30,
+					},
+				},
+				{
+					id: ids.box2,
+					type: 'geo',
+					x: 100,
+					y: 50,
+					parentId: ids.frame1,
+					props: {
+						w: 30,
+						h: 30,
+					},
+				},
+				{
+					id: ids.box3,
+					type: 'geo',
+					x: 100,
+					y: 90,
+					parentId: ids.frame1,
+					props: {
+						w: 30,
+						h: 30,
+					},
+				},
+				// Shapes outside frame - vertically arranged
+				{
+					id: ids.box4,
+					type: 'geo',
+					x: 300,
+					y: 10,
+					props: {
+						w: 30,
+						h: 30,
+					},
+				},
+				{
+					id: ids.box5,
+					type: 'geo',
+					x: 300,
+					y: 50,
+					props: {
+						w: 30,
+						h: 30,
+					},
+				},
+			])
+
+			// Setup shape centers for consistent testing
+			jest.spyOn(editor, 'getShapePageBounds').mockImplementation((shape: any) => {
+				const positions = {
+					[ids.box1]: { x: 115, y: 25 },
+					[ids.box2]: { x: 115, y: 65 },
+					[ids.box3]: { x: 115, y: 105 },
+					[ids.box4]: { x: 315, y: 25 },
+					[ids.box5]: { x: 315, y: 65 },
+				}
+				const pos = positions[shape?.id as keyof typeof positions]
+				return pos ? ({ center: pos } as any) : ({ center: { x: 0, y: 0 } } as any)
+			})
+
+			// Select a shape inside the frame
+			editor.select(ids.box1)
+			expect(editor.getSelectedShapeIds()).toEqual([ids.box1])
+
+			// Navigate down - should stay within the frame
+			editor.selectAdjacentShape('down')
+			expect(editor.getSelectedShapeIds()).toEqual([ids.box2])
+
+			// Continue navigating down - should still stay within the frame
+			editor.selectAdjacentShape('down')
+			expect(editor.getSelectedShapeIds()).toEqual([ids.box3])
+
+			// Navigate down again - should not leave the frame
+			editor.selectAdjacentShape('down')
+			expect(editor.getSelectedShapeIds()).toEqual([ids.box3]) // Should stay at box3
+
+			// Now navigate up to test the other direction
+			editor.selectAdjacentShape('up')
+			expect(editor.getSelectedShapeIds()).toEqual([ids.box2])
+
+			editor.selectAdjacentShape('up')
+			expect(editor.getSelectedShapeIds()).toEqual([ids.box1])
+
+			// Navigate up again - should not leave the frame
+			editor.selectAdjacentShape('up')
+			expect(editor.getSelectedShapeIds()).toEqual([ids.box1]) // Should stay at box1
+
+			// Now test navigation outside the frame
+			editor.select(ids.box4)
+			expect(editor.getSelectedShapeIds()).toEqual([ids.box4])
+
+			// Navigate down - should move to box5
+			editor.selectAdjacentShape('down')
+			expect(editor.getSelectedShapeIds()).toEqual([ids.box5])
+
+			// Navigate up - should move back to box4
+			editor.selectAdjacentShape('up')
+			expect(editor.getSelectedShapeIds()).toEqual([ids.box4])
+
+			// Navigate up again - should not enter the frame
+			editor.selectAdjacentShape('up')
+			expect(editor.getSelectedShapeIds()).toEqual([ids.box4]) // Should stay at box4
+		})
+
 		it('respects container boundaries when navigating with Tab', () => {
 			// Create a frame with shapes inside and shapes outside
 			editor.createShapes([

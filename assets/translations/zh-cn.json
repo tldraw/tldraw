@@ -94,6 +94,7 @@
 	"action.toggle-focus-mode.menu": "专注模式",
 	"action.toggle-grid": "切换网格",
 	"action.toggle-grid.menu": "显示网格",
+	"action.toggle-keyboard-shortcuts.menu": "键盘快捷方式",
 	"action.toggle-lock": "锁定/解锁",
 	"action.toggle-paste-at-cursor": "在光标处切换粘贴",
 	"action.toggle-paste-at-cursor.menu": "粘贴至光标处",

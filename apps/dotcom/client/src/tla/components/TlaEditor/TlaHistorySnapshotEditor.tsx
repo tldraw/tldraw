@@ -1,6 +1,6 @@
-import { ROOM_PREFIX } from '@tldraw/dotcom-shared'
+import { getLicenseKey, ROOM_PREFIX } from '@tldraw/dotcom-shared'
 import { createContext, useCallback, useContext } from 'react'
-import { Editor, TLComponents, TLStoreSnapshot, Tldraw, fetch } from 'tldraw'
+import { Editor, fetch, TLComponents, Tldraw, TLStoreSnapshot } from 'tldraw'
 import { ThemeUpdater } from '../../../components/ThemeUpdater/ThemeUpdater'
 import { useLegacyUrlParams } from '../../../hooks/useLegacyUrlParams'
 import { useHandleUiEvents } from '../../../utils/analytics'
@@ -10,12 +10,12 @@ import { useMaybeApp } from '../../hooks/useAppState'
 import { ReadyWrapper, useSetIsReady } from '../../hooks/useIsReady'
 import { F } from '../../utils/i18n'
 import { TlaCtaButton } from '../TlaCtaButton/TlaCtaButton'
-import { TlaEditorWrapper } from './TlaEditorWrapper'
 import { TlaEditorErrorFallback } from './editor-components/TlaEditorErrorFallback'
 import { SneakyDarkModeSync } from './sneaky/SneakyDarkModeSync'
 import { SneakyTldrawFileDropHandler } from './sneaky/SneakyFileDropHandler'
 import { SneakyLegacySetDocumentTitle } from './sneaky/SneakyLegacytSetDocumentTitle'
 import { SneakySetDocumentTitle } from './sneaky/SneakySetDocumentTitle'
+import { TlaEditorWrapper } from './TlaEditorWrapper'
 import { useFileEditorOverrides } from './useFileEditorOverrides'
 
 const TlaHistorySnapshotEditorContext = createContext<{
@@ -120,6 +120,7 @@ function TlaEditorInner({ snapshot }: { snapshot: TLStoreSnapshot }) {
 		<TlaEditorWrapper>
 			<Tldraw
 				className="tla-editor"
+				licenseKey={getLicenseKey()}
 				snapshot={snapshot}
 				assetUrls={assetUrls}
 				onMount={handleMount}

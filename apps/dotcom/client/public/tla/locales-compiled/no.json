@@ -1,142 +1,1102 @@
 {
-  "0095a9fa74": "Eksport",
-  "03b3e13197": "Dra filen inn i sidefeltet på denne siden. Eller velg \"Importer fil\" fra brukermenyen.",
-  "043973ec1f": "Har du fortsatt problemer? {GetHelpLink}",
-  "05596b840b": "Åpne tldraw.",
-  "06b9281e39": "Auto",
-  "07dbd11b21": "Unavngitt fil",
-  "08331c1710": "Satsgrensen er overskredet. Prøv igjen senere.",
-  "08bd40c754": "Konto",
-  "0b27918290": "Fil",
-  "0b9a4cde72": "Fil-menyen",
-  "0d1f2bb523": "Send tilbakemelding",
-  "110a4b01be": "Utgi",
-  "13ddd375ad": "Eksporter som",
-  "181b90f889": "Opprett fil",
-  "1da2e8106b": "Det oppstod en uventet feil.",
-  "1dd1c5fb7f": "I dag",
-  "250ddea65c": "Om tldraw",
-  "299cb00a7a": "Opplasting mislyktes",
-  "31246941ad": "Du må logge på for å se denne filen.",
-  "31418ce4ad": "i18n: Utheving mangler",
-  "335defdafe": "Prøv å oppdatere siden.",
-  "344a7f427f": "Redaktør",
-  "3bd1b98dbd": "Kan ikke publisere endringene.",
-  "3c5e891bff": "Festet",
-  "3d0238bf16": "Godta alle",
-  "42e53c47c1": "Kontakt eieren for å be om tilgang.",
-  "44db318ee5": "Få hjelp på Discord",
-  "46137245cd": "Takk for at du hjelper oss med å forbedre tldraw!",
-  "47839e47a5": "tldra",
-  "4908687e50": "Er du sikker på at du vil glemme denne filen?",
-  "4d0d3ddec9": "Dette nettstedet bruker informasjonskapsler for å få appen til å fungere og for å samle inn analyser.",
-  "4d1c8263ba": "Last inn på nytt",
-  "50db1b7e1e": "Kan ikke oppheve publiseringen av filen.",
-  "517bb809d9": "Sidemeny",
-  "54286b1d01": "Grensen for samarbeidspartnere er nådd",
-  "54d240fa41": "Vennligst senke farten.",
-  "554a05155c": "Har du fortsatt problemer? <a>Rapporter et problem</a>",
-  "55505ba281": "PNG",
-  "5677e381d2": "Vi bruker analyseinformasjonskapsler for å gjøre tldraw bedre.",
-  "56c34c6410": "Personvernerklæring",
-  "5a95a425f7": "Dele",
-  "5d26ae7550": "Vi klarte ikke å laste opp noe av innholdet du opprettet før du logget på.",
-  "5f3c333678": "Tilbakemelding sendt",
-  "5fb63579fc": "Kopiere",
-  "61057a0c84": "Seinere",
-  "625fd29749": "Eldre",
-  "6609dd239e": "Noe gikk galt",
-  "6637a98151": "En ny versjon av tldraw er tilgjengelig. Last inn siden på nytt for å fortsette.",
-  "6a26f54883": "Hjelp",
-  "6dc0836c1b": "Du har ikke de nødvendige tillatelsene til å utføre denne handlingen.",
-  "6dfc62f621": "Følg disse trinnene for å importere innholdet manuelt:",
-  "70a6facb9d": "Denne uken",
-  "71a29b007b": "Har du en feil, et problem eller en idé for tldraw? Gi oss beskjed!",
-  "73ab799383": "Denne versjonen av tldraw støttes ikke lenger.",
-  "7408cf0d7b": "Last inn siden på nytt",
-  "752b79f137": "Du har nådd maksimalt antall filer. Du må slette gamle filer før du oppretter nye.",
-  "7573b8110a": "Ingen tilgang",
-  "761e93ede9": "Administrer informasjonskapsler",
-  "764671e008": "Chat med oss ​​på Discord",
-  "7697920637": "Last inn på nytt",
-  "777f9e90cf": "Ugyldig forespørsel.",
-  "797799f35e": "Send inn et problem på GitHub",
-  "7b1329f5ca": "Brukermanual",
-  "7be10fc592": "Gjenopprett versjon",
-  "7cb5f8b4a5": "Glemme",
-  "7daeced9ff": "Publiser endringer",
-  "7fcdcc6455": "Glem fil",
-  "801ab24683": "Last ned",
-  "815e116a2e": "Har du en feil, et problem eller en idé for tldraw? Gi oss beskjed! Fyll ut dette skjemaet, så følger vi opp via e-post om nødvendig. Du kan også <discord>chatte med oss ​​på Discord</discord> eller <github>sende inn et problem på GitHub</github>.",
-  "85a082de1b": "Oppdater siden for å få den nyeste versjonen av tldraw.",
-  "86353d2c41": "Lagt til {total} .tldr-filer.",
-  "86c66437fd": "Gi nytt navn til filen",
-  "8eb2c00e96": "Delt med deg",
-  "8ff3d0a705": "Begrenset pris",
-  "902b0d55fd": "Feil",
-  "904a830405": "Gi nytt navn",
-  "91e49bb0eb": "Kopier til filene mine",
-  "96165d6df5": "Denne måneden",
-  "9914a0ce04": "Lys",
-  "9bef626805": "Slett fil",
-  "9ceb927baa": "Publiser denne filen",
-  "9e076f5885": "Ikke funnet",
-  "9e93c98d88": "Velg bort",
-  "a0da245992": "Eksporter innholdet som en .tldr-fil: Velg «Last ned» i menyen øverst til venstre.",
-  "a104439641": "Polstring",
-  "a18366b217": "Mørk",
-  "a1c915578c": "Filen du leter etter eksisterer ikke.",
-  "a239905023": "Eksporter bilde",
-  "a3debabee7": "Cookie policy",
-  "a4d3b161ce": "Send inn",
-  "a6cc403d56": "Alle med linken",
-  "a768caa988": "Analytics",
-  "a9ded1e5ce": "Bakgrunn",
-  "ab0df9ba36": "Filgrense nådd",
-  "af3dc88931": "Sist publisert <date></date>",
-  "b028909917": "Gjestebruker",
-  "b6d4223e60": "Logg på",
-  "b758336699": "Kopier lenken",
-  "bb792693e2": "Løsne",
-  "bbbcefd7ce": "{total, plural, one {Laster opp .tldr-fil …} other {Laster opp {uploaded} av {total} .tldr-filer …}}",
-  "bc88b0e89e": "Delt av {ownerName}",
-  "bcb62136a3": "Last opp .tldr-filer",
-  "c2276c9127": "Finn ut mer om deling.",
-  "c303bd1095": "Kan ikke publisere filen.",
-  "c4b39a1cc3": "Viktige informasjonskapsler",
-  "c655b27b1e": "i18n: Lang streng",
-  "c6a00f137b": "Invitere",
-  "c87aacf567": "Logg ut",
-  "cbef7ba103": "Dette rommet vil snart være skrivebeskyttet",
-  "cceaefbc20": "Del denne filen",
-  "cd15a75c26": "SVG",
-  "cea291e45e": "Finn ut mer om publisering.",
-  "d3d2e61733": "Lukke",
-  "d4bbf74f3e": "Bytt sidefelt",
-  "d721757161": "Tema",
-  "d876a9fe1a": "Prøv igjen",
-  "d9100f3e10": "Gå hit for å se innholdet",
-  "dbbebf3c03": "Kun invitasjon",
-  "dfdb78a4e4": "App-feilsøkingsflagg",
-  "e2ae80a510": "Juridisk sammendrag",
-  "e404559826": "Vilkår for bruk",
-  "e78e14c5f1": "Pin",
-  "ea2301d01c": "Etter 1. juli 2025 vil dette anonyme tldraw-flerspillerrommet bli skrivebeskyttet. For å fortsette å redigere i fremtiden, vennligst logg inn og kopier det til filene dine.",
-  "ea4788705e": "Kansellere",
-  "ebfe9ce86e": "I går",
-  "ec59b960ea": "Denne filen har nådd maksimalt antall aktive samarbeidspartnere.",
-  "ec611e9a08": "Kontomeny",
-  "ed53713239": "i18n: Aksent",
-  "ed75712b0e": "Kopiere",
-  "ede55d955f": "Les vår <a>policy for informasjonskapsler</a> for å lære mer.",
-  "f09b16bc5f": "Vi bruker informasjonskapsler for å holde deg innlogget, for å synkronisere filene dine og for å samle inn analyser som hjelper oss med å forbedre tldraw.",
-  "f0e8bff6f9": "Brukerinnstillinger",
-  "f2569594b2": "Vi bruker disse informasjonskapslene for å lagre filene og innstillingene dine.",
-  "f2a6c498fb": "Slett",
-  "f43fb62093": "Tilbake til tldraw.",
-  "f4f70727dc": "Innstillinger",
-  "fb15c53f22": "Seer",
-  "fd1be3efcf": "Er du sikker på at du vil slette denne filen?",
-  "fed5ec05eb": "Kopiert lenke",
-  "ffcd73e997": "Importer fil…"
+  "0095a9fa74": [
+    {
+      "type": 0,
+      "value": "Eksport"
+    }
+  ],
+  "03b3e13197": [
+    {
+      "type": 0,
+      "value": "Dra filen inn i sidefeltet på denne siden. Eller velg \"Importer fil\" fra brukermenyen."
+    }
+  ],
+  "043973ec1f": [
+    {
+      "type": 0,
+      "value": "Har du fortsatt problemer? "
+    },
+    {
+      "type": 1,
+      "value": "GetHelpLink"
+    }
+  ],
+  "05596b840b": [
+    {
+      "type": 0,
+      "value": "Åpne tldraw."
+    }
+  ],
+  "06b9281e39": [
+    {
+      "type": 0,
+      "value": "Auto"
+    }
+  ],
+  "0776e18496": [
+    {
+      "type": 0,
+      "value": "Lagre og del"
+    }
+  ],
+  "07dbd11b21": [
+    {
+      "type": 0,
+      "value": "Unavngitt fil"
+    }
+  ],
+  "08331c1710": [
+    {
+      "type": 0,
+      "value": "Satsgrensen er overskredet. Prøv igjen senere."
+    }
+  ],
+  "08bd40c754": [
+    {
+      "type": 0,
+      "value": "Konto"
+    }
+  ],
+  "0b27918290": [
+    {
+      "type": 0,
+      "value": "Fil"
+    }
+  ],
+  "0b9a4cde72": [
+    {
+      "type": 0,
+      "value": "Fil-menyen"
+    }
+  ],
+  "0d1f2bb523": [
+    {
+      "type": 0,
+      "value": "Send tilbakemelding"
+    }
+  ],
+  "110a4b01be": [
+    {
+      "type": 0,
+      "value": "Utgi"
+    }
+  ],
+  "13ddd375ad": [
+    {
+      "type": 0,
+      "value": "Eksporter som"
+    }
+  ],
+  "181b90f889": [
+    {
+      "type": 0,
+      "value": "Opprett fil"
+    }
+  ],
+  "1da2e8106b": [
+    {
+      "type": 0,
+      "value": "Det oppstod en uventet feil."
+    }
+  ],
+  "1dd1c5fb7f": [
+    {
+      "type": 0,
+      "value": "I dag"
+    }
+  ],
+  "22d84a12fd": [
+    {
+      "type": 0,
+      "value": "Figjam men tldraw"
+    }
+  ],
+  "250ddea65c": [
+    {
+      "type": 0,
+      "value": "Om tldraw"
+    }
+  ],
+  "299cb00a7a": [
+    {
+      "type": 0,
+      "value": "Opplasting mislyktes"
+    }
+  ],
+  "2c61d18599": [
+    {
+      "type": 0,
+      "value": "Miro, men god og fri"
+    }
+  ],
+  "31246941ad": [
+    {
+      "type": 0,
+      "value": "Du må logge på for å se denne filen."
+    }
+  ],
+  "31418ce4ad": [
+    {
+      "type": 0,
+      "value": "i18n: Utheving mangler"
+    }
+  ],
+  "335defdafe": [
+    {
+      "type": 0,
+      "value": "Prøv å oppdatere siden."
+    }
+  ],
+  "344a7f427f": [
+    {
+      "type": 0,
+      "value": "Redaktør"
+    }
+  ],
+  "37b3dca331": [
+    {
+      "type": 0,
+      "value": "Vennligst logg inn"
+    }
+  ],
+  "3bd1b98dbd": [
+    {
+      "type": 0,
+      "value": "Kan ikke publisere endringene."
+    }
+  ],
+  "3c5e891bff": [
+    {
+      "type": 0,
+      "value": "Festet"
+    }
+  ],
+  "3d0238bf16": [
+    {
+      "type": 0,
+      "value": "Godta alle"
+    }
+  ],
+  "3fc6d0c83a": [
+    {
+      "type": 0,
+      "value": "Legg til venn"
+    }
+  ],
+  "42e53c47c1": [
+    {
+      "type": 0,
+      "value": "Kontakt eieren for å be om tilgang."
+    }
+  ],
+  "44281ab6e5": [
+    {
+      "type": 0,
+      "value": "Logg deg på"
+    }
+  ],
+  "44db318ee5": [
+    {
+      "type": 0,
+      "value": "Få hjelp på Discord"
+    }
+  ],
+  "46137245cd": [
+    {
+      "type": 0,
+      "value": "Takk for at du hjelper oss med å forbedre tldraw!"
+    }
+  ],
+  "47839e47a5": [
+    {
+      "type": 0,
+      "value": "tldra"
+    }
+  ],
+  "4908687e50": [
+    {
+      "type": 0,
+      "value": "Er du sikker på at du vil glemme denne filen?"
+    }
+  ],
+  "4d0d3ddec9": [
+    {
+      "type": 0,
+      "value": "Dette nettstedet bruker informasjonskapsler for å få appen til å fungere og for å samle inn analyser."
+    }
+  ],
+  "4d1c8263ba": [
+    {
+      "type": 0,
+      "value": "Last inn på nytt"
+    }
+  ],
+  "4ea0bb66f7": [
+    {
+      "type": 0,
+      "value": "En konto hadde vært fint"
+    }
+  ],
+  "50db1b7e1e": [
+    {
+      "type": 0,
+      "value": "Kan ikke oppheve publiseringen av filen."
+    }
+  ],
+  "517bb809d9": [
+    {
+      "type": 0,
+      "value": "Sidemeny"
+    }
+  ],
+  "54286b1d01": [
+    {
+      "type": 0,
+      "value": "Grensen for samarbeidspartnere er nådd"
+    }
+  ],
+  "54d240fa41": [
+    {
+      "type": 0,
+      "value": "Vennligst senke farten."
+    }
+  ],
+  "554a05155c": [
+    {
+      "type": 0,
+      "value": "Har du fortsatt problemer? "
+    },
+    {
+      "children": [
+        {
+          "type": 0,
+          "value": "Rapporter et problem"
+        }
+      ],
+      "type": 8,
+      "value": "a"
+    }
+  ],
+  "55505ba281": [
+    {
+      "type": 0,
+      "value": "PNG"
+    }
+  ],
+  "5677e381d2": [
+    {
+      "type": 0,
+      "value": "Vi bruker analyseinformasjonskapsler for å gjøre tldraw bedre."
+    }
+  ],
+  "56c34c6410": [
+    {
+      "type": 0,
+      "value": "Personvernerklæring"
+    }
+  ],
+  "5a95a425f7": [
+    {
+      "type": 0,
+      "value": "Dele"
+    }
+  ],
+  "5bcc12ace8": [
+    {
+      "type": 0,
+      "value": "Dette rommet er nå skrivebeskyttet"
+    }
+  ],
+  "5bec508475": [
+    {
+      "type": 0,
+      "value": "Gammel nettleser oppdaget. Oppdater nettleseren din for å bruke denne appen."
+    }
+  ],
+  "5bef23eb7e": [
+    {
+      "type": 0,
+      "value": "Opprett kontoen din"
+    }
+  ],
+  "5d26ae7550": [
+    {
+      "type": 0,
+      "value": "Vi klarte ikke å laste opp noe av innholdet du opprettet før du logget på."
+    }
+  ],
+  "5f3c333678": [
+    {
+      "type": 0,
+      "value": "Tilbakemelding sendt"
+    }
+  ],
+  "5fb63579fc": [
+    {
+      "type": 0,
+      "value": "Kopiere"
+    }
+  ],
+  "61057a0c84": [
+    {
+      "type": 0,
+      "value": "Seinere"
+    }
+  ],
+  "625fd29749": [
+    {
+      "type": 0,
+      "value": "Eldre"
+    }
+  ],
+  "6609dd239e": [
+    {
+      "type": 0,
+      "value": "Noe gikk galt"
+    }
+  ],
+  "6637a98151": [
+    {
+      "type": 0,
+      "value": "En ny versjon av tldraw er tilgjengelig. Last inn siden på nytt for å fortsette."
+    }
+  ],
+  "697c59072d": [
+    {
+      "type": 0,
+      "value": "Logg inn for å lagre"
+    }
+  ],
+  "6a26f54883": [
+    {
+      "type": 0,
+      "value": "Hjelp"
+    }
+  ],
+  "6dc0836c1b": [
+    {
+      "type": 0,
+      "value": "Du har ikke de nødvendige tillatelsene til å utføre denne handlingen."
+    }
+  ],
+  "6dfc62f621": [
+    {
+      "type": 0,
+      "value": "Følg disse trinnene for å importere innholdet manuelt:"
+    }
+  ],
+  "70a6facb9d": [
+    {
+      "type": 0,
+      "value": "Denne uken"
+    }
+  ],
+  "71a29b007b": [
+    {
+      "type": 0,
+      "value": "Har du en feil, et problem eller en idé for tldraw? Gi oss beskjed!"
+    }
+  ],
+  "73ab799383": [
+    {
+      "type": 0,
+      "value": "Denne versjonen av tldraw støttes ikke lenger."
+    }
+  ],
+  "7408cf0d7b": [
+    {
+      "type": 0,
+      "value": "Last inn siden på nytt"
+    }
+  ],
+  "752b79f137": [
+    {
+      "type": 0,
+      "value": "Du har nådd maksimalt antall filer. Du må slette gamle filer før du oppretter nye."
+    }
+  ],
+  "7573b8110a": [
+    {
+      "type": 0,
+      "value": "Ingen tilgang"
+    }
+  ],
+  "761e93ede9": [
+    {
+      "type": 0,
+      "value": "Administrer informasjonskapsler"
+    }
+  ],
+  "764671e008": [
+    {
+      "type": 0,
+      "value": "Chat med oss ​​på Discord"
+    }
+  ],
+  "7697920637": [
+    {
+      "type": 0,
+      "value": "Last inn på nytt"
+    }
+  ],
+  "777f9e90cf": [
+    {
+      "type": 0,
+      "value": "Ugyldig forespørsel."
+    }
+  ],
+  "797799f35e": [
+    {
+      "type": 0,
+      "value": "Send inn et problem på GitHub"
+    }
+  ],
+  "7b1329f5ca": [
+    {
+      "type": 0,
+      "value": "Brukermanual"
+    }
+  ],
+  "7be10fc592": [
+    {
+      "type": 0,
+      "value": "Gjenopprett versjon"
+    }
+  ],
+  "7c7d5d493e": [
+    {
+      "type": 0,
+      "value": "Vennligst registrer deg"
+    }
+  ],
+  "7cb5f8b4a5": [
+    {
+      "type": 0,
+      "value": "Glemme"
+    }
+  ],
+  "7daeced9ff": [
+    {
+      "type": 0,
+      "value": "Publiser endringer"
+    }
+  ],
+  "7fcdcc6455": [
+    {
+      "type": 0,
+      "value": "Glem fil"
+    }
+  ],
+  "801ab24683": [
+    {
+      "type": 0,
+      "value": "Last ned"
+    }
+  ],
+  "815e116a2e": [
+    {
+      "type": 0,
+      "value": "Har du en feil, et problem eller en idé for tldraw? Gi oss beskjed! Fyll ut dette skjemaet, så følger vi opp via e-post om nødvendig. Du kan også "
+    },
+    {
+      "children": [
+        {
+          "type": 0,
+          "value": "chatte med oss ​​på Discord"
+        }
+      ],
+      "type": 8,
+      "value": "discord"
+    },
+    {
+      "type": 0,
+      "value": " eller "
+    },
+    {
+      "children": [
+        {
+          "type": 0,
+          "value": "sende inn et problem på GitHub"
+        }
+      ],
+      "type": 8,
+      "value": "github"
+    },
+    {
+      "type": 0,
+      "value": "."
+    }
+  ],
+  "84c89d47c7": [
+    {
+      "type": 0,
+      "value": "Del gratis"
+    }
+  ],
+  "85a082de1b": [
+    {
+      "type": 0,
+      "value": "Oppdater siden for å få den nyeste versjonen av tldraw."
+    }
+  ],
+  "86353d2c41": [
+    {
+      "type": 0,
+      "value": "Lagt til "
+    },
+    {
+      "type": 1,
+      "value": "total"
+    },
+    {
+      "type": 0,
+      "value": " .tldr-filer."
+    }
+  ],
+  "86c66437fd": [
+    {
+      "type": 0,
+      "value": "Gi nytt navn til filen"
+    }
+  ],
+  "8b1946f965": [
+    {
+      "type": 0,
+      "value": "For å fortsette redigeringen, kopier rommet til filene dine."
+    }
+  ],
+  "8ea211024d": [
+    {
+      "type": 0,
+      "value": "Opprett en gratis konto"
+    }
+  ],
+  "8eb2c00e96": [
+    {
+      "type": 0,
+      "value": "Delt med deg"
+    }
+  ],
+  "8ff3d0a705": [
+    {
+      "type": 0,
+      "value": "Begrenset pris"
+    }
+  ],
+  "902b0d55fd": [
+    {
+      "type": 0,
+      "value": "Feil"
+    }
+  ],
+  "904a830405": [
+    {
+      "type": 0,
+      "value": "Gi nytt navn"
+    }
+  ],
+  "91e49bb0eb": [
+    {
+      "type": 0,
+      "value": "Kopier til filene mine"
+    }
+  ],
+  "96165d6df5": [
+    {
+      "type": 0,
+      "value": "Denne måneden"
+    }
+  ],
+  "9914a0ce04": [
+    {
+      "type": 0,
+      "value": "Lys"
+    }
+  ],
+  "9bef626805": [
+    {
+      "type": 0,
+      "value": "Slett fil"
+    }
+  ],
+  "9c258b8f88": [
+    {
+      "type": 0,
+      "value": "Dette anonyme tldraw-flerspillerrommet er nå skrivebeskyttet. For å fortsette redigeringen, vennligst logg inn og kopier det til filene dine."
+    }
+  ],
+  "9ceb927baa": [
+    {
+      "type": 0,
+      "value": "Publiser denne filen"
+    }
+  ],
+  "9e076f5885": [
+    {
+      "type": 0,
+      "value": "Ikke funnet"
+    }
+  ],
+  "9e93c98d88": [
+    {
+      "type": 0,
+      "value": "Velg bort"
+    }
+  ],
+  "a0da245992": [
+    {
+      "type": 0,
+      "value": "Eksporter innholdet som en .tldr-fil: Velg «Last ned» i menyen øverst til venstre."
+    }
+  ],
+  "a104439641": [
+    {
+      "type": 0,
+      "value": "Polstring"
+    }
+  ],
+  "a18366b217": [
+    {
+      "type": 0,
+      "value": "Mørk"
+    }
+  ],
+  "a1c915578c": [
+    {
+      "type": 0,
+      "value": "Filen du leter etter eksisterer ikke."
+    }
+  ],
+  "a239905023": [
+    {
+      "type": 0,
+      "value": "Eksporter bilde"
+    }
+  ],
+  "a3debabee7": [
+    {
+      "type": 0,
+      "value": "Cookie policy"
+    }
+  ],
+  "a4d3b161ce": [
+    {
+      "type": 0,
+      "value": "Send inn"
+    }
+  ],
+  "a6cc403d56": [
+    {
+      "type": 0,
+      "value": "Alle med linken"
+    }
+  ],
+  "a768caa988": [
+    {
+      "type": 0,
+      "value": "Analytics"
+    }
+  ],
+  "a9ded1e5ce": [
+    {
+      "type": 0,
+      "value": "Bakgrunn"
+    }
+  ],
+  "ab0df9ba36": [
+    {
+      "type": 0,
+      "value": "Filgrense nådd"
+    }
+  ],
+  "af3dc88931": [
+    {
+      "type": 0,
+      "value": "Sist publisert "
+    },
+    {
+      "children": [
+      ],
+      "type": 8,
+      "value": "date"
+    }
+  ],
+  "b028909917": [
+    {
+      "type": 0,
+      "value": "Gjestebruker"
+    }
+  ],
+  "b52dc007ac": [
+    {
+      "type": 0,
+      "value": "Registrer deg (gratis og bra)"
+    }
+  ],
+  "b6d4223e60": [
+    {
+      "type": 0,
+      "value": "Logg på"
+    }
+  ],
+  "b758336699": [
+    {
+      "type": 0,
+      "value": "Kopier lenken"
+    }
+  ],
+  "ba0318cb81": [
+    {
+      "type": 0,
+      "value": "Logg inn for å dele"
+    }
+  ],
+  "bb792693e2": [
+    {
+      "type": 0,
+      "value": "Løsne"
+    }
+  ],
+  "bbbcefd7ce": [
+    {
+      "offset": 0,
+      "options": {
+        "one": {
+          "value": [
+            {
+              "type": 0,
+              "value": "Laster opp .tldr-fil …"
+            }
+          ]
+        },
+        "other": {
+          "value": [
+            {
+              "type": 0,
+              "value": "Laster opp "
+            },
+            {
+              "type": 1,
+              "value": "uploaded"
+            },
+            {
+              "type": 0,
+              "value": " av "
+            },
+            {
+              "type": 1,
+              "value": "total"
+            },
+            {
+              "type": 0,
+              "value": " .tldr-filer …"
+            }
+          ]
+        }
+      },
+      "pluralType": "cardinal",
+      "type": 6,
+      "value": "total"
+    }
+  ],
+  "bc88b0e89e": [
+    {
+      "type": 0,
+      "value": "Delt av "
+    },
+    {
+      "type": 1,
+      "value": "ownerName"
+    }
+  ],
+  "bcb62136a3": [
+    {
+      "type": 0,
+      "value": "Last opp .tldr-filer"
+    }
+  ],
+  "bffe9a3c9a": [
+    {
+      "type": 0,
+      "value": "Logg inn"
+    }
+  ],
+  "c079282475": [
+    {
+      "type": 0,
+      "value": "Del arbeidet ditt"
+    }
+  ],
+  "c2276c9127": [
+    {
+      "type": 0,
+      "value": "Finn ut mer om deling."
+    }
+  ],
+  "c24e43cd1a": [
+    {
+      "type": 0,
+      "value": "Du melder deg på, ikke sant?"
+    }
+  ],
+  "c303bd1095": [
+    {
+      "type": 0,
+      "value": "Kan ikke publisere filen."
+    }
+  ],
+  "c4b39a1cc3": [
+    {
+      "type": 0,
+      "value": "Viktige informasjonskapsler"
+    }
+  ],
+  "c655b27b1e": [
+    {
+      "type": 0,
+      "value": "i18n: Lang streng"
+    }
+  ],
+  "c6a00f137b": [
+    {
+      "type": 0,
+      "value": "Invitere"
+    }
+  ],
+  "c87aacf567": [
+    {
+      "type": 0,
+      "value": "Logg ut"
+    }
+  ],
+  "c8c6a6504a": [
+    {
+      "type": 0,
+      "value": "Du burde registrere deg"
+    }
+  ],
+  "cceaefbc20": [
+    {
+      "type": 0,
+      "value": "Del denne filen"
+    }
+  ],
+  "cd15a75c26": [
+    {
+      "type": 0,
+      "value": "SVG"
+    }
+  ],
+  "cea291e45e": [
+    {
+      "type": 0,
+      "value": "Finn ut mer om publisering."
+    }
+  ],
+  "d0eedb7995": [
+    {
+      "type": 0,
+      "value": "Hei"
+    }
+  ],
+  "d3d2e61733": [
+    {
+      "type": 0,
+      "value": "Lukke"
+    }
+  ],
+  "d4bbf74f3e": [
+    {
+      "type": 0,
+      "value": "Bytt sidefelt"
+    }
+  ],
+  "d721757161": [
+    {
+      "type": 0,
+      "value": "Tema"
+    }
+  ],
+  "d876a9fe1a": [
+    {
+      "type": 0,
+      "value": "Prøv igjen"
+    }
+  ],
+  "d8a50c79a7": [
+    {
+      "type": 0,
+      "value": "Bli med meg på tldraw"
+    }
+  ],
+  "d9100f3e10": [
+    {
+      "type": 0,
+      "value": "Gå hit for å se innholdet"
+    }
+  ],
+  "da404df474": [
+    {
+      "type": 0,
+      "value": "Lagre arbeidet ditt"
+    }
+  ],
+  "db4c2dab9a": [
+    {
+      "type": 0,
+      "value": "Ikke Excalidraw"
+    }
+  ],
+  "dbbebf3c03": [
+    {
+      "type": 0,
+      "value": "Kun invitasjon"
+    }
+  ],
+  "dfdb78a4e4": [
+    {
+      "type": 0,
+      "value": "App-feilsøkingsflagg"
+    }
+  ],
+  "e2ae80a510": [
+    {
+      "type": 0,
+      "value": "Juridisk sammendrag"
+    }
+  ],
+  "e404559826": [
+    {
+      "type": 0,
+      "value": "Vilkår for bruk"
+    }
+  ],
+  "e78e14c5f1": [
+    {
+      "type": 0,
+      "value": "Pin"
+    }
+  ],
+  "ea4788705e": [
+    {
+      "type": 0,
+      "value": "Kansellere"
+    }
+  ],
+  "ebfe9ce86e": [
+    {
+      "type": 0,
+      "value": "I går"
+    }
+  ],
+  "ec59b960ea": [
+    {
+      "type": 0,
+      "value": "Denne filen har nådd maksimalt antall aktive samarbeidspartnere."
+    }
+  ],
+  "ec611e9a08": [
+    {
+      "type": 0,
+      "value": "Kontomeny"
+    }
+  ],
+  "ed53713239": [
+    {
+      "type": 0,
+      "value": "i18n: Aksent"
+    }
+  ],
+  "ed75712b0e": [
+    {
+      "type": 0,
+      "value": "Kopiere"
+    }
+  ],
+  "ede55d955f": [
+    {
+      "type": 0,
+      "value": "Les vår "
+    },
+    {
+      "children": [
+        {
+          "type": 0,
+          "value": "policy for informasjonskapsler"
+        }
+      ],
+      "type": 8,
+      "value": "a"
+    },
+    {
+      "type": 0,
+      "value": " for å lære mer."
+    }
+  ],
+  "f09b16bc5f": [
+    {
+      "type": 0,
+      "value": "Vi bruker informasjonskapsler for å holde deg innlogget, for å synkronisere filene dine og for å samle inn analyser som hjelper oss med å forbedre tldraw."
+    }
+  ],
+  "f0e8bff6f9": [
+    {
+      "type": 0,
+      "value": "Brukerinnstillinger"
+    }
+  ],
+  "f2569594b2": [
+    {
+      "type": 0,
+      "value": "Vi bruker disse informasjonskapslene for å lagre filene og innstillingene dine."
+    }
+  ],
+  "f2a6c498fb": [
+    {
+      "type": 0,
+      "value": "Slett"
+    }
+  ],
+  "f43fb62093": [
+    {
+      "type": 0,
+      "value": "Tilbake til tldraw."
+    }
+  ],
+  "f4f70727dc": [
+    {
+      "type": 0,
+      "value": "Innstillinger"
+    }
+  ],
+  "fb15c53f22": [
+    {
+      "type": 0,
+      "value": "Seer"
+    }
+  ],
+  "fd1be3efcf": [
+    {
+      "type": 0,
+      "value": "Er du sikker på at du vil slette denne filen?"
+    }
+  ],
+  "fd27891570": [
+    {
+      "type": 0,
+      "value": "Bli med på ventelisten"
+    }
+  ],
+  "fed5ec05eb": [
+    {
+      "type": 0,
+      "value": "Kopiert lenke"
+    }
+  ],
+  "ffcd73e997": [
+    {
+      "type": 0,
+      "value": "Importer fil…"
+    }
+  ]
 }
