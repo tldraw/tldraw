@@ -716,17 +716,12 @@ export class TLDrawDurableObject extends DurableObject {
 				if (this._lastPersistedClock === clock) return
 				if (this._isRestoring) return
 
-				const snapshot = JSON.stringify(room.getCurrentSnapshot())
+				const snapshot = room.getCurrentSnapshot()
 				this.maybeAssociateFileAssets()
 
 				const key = getR2KeyForRoom({ slug: slug, isApp: this.documentInfo.isApp })
-				const [roomObject] = await Promise.all([
-					this.r2.rooms.put(key, snapshot),
-					this.r2.versionCache.put(key + `/` + new Date().toISOString(), snapshot),
-				])
-				if (roomObject) {
-					await this.addRoomStorageUsedPercentage(room, roomObject.size / MB, true)
-				}
+				await this._uploadSnapshotToR2(room, snapshot, clock, key)
+
 				this._lastPersistedClock = clock
 
 				// Update the updatedAt timestamp in the database
@@ -747,6 +742,75 @@ export class TLDrawDurableObject extends DurableObject {
 			this.reportError(e)
 		}
 	}
+
+	private async _uploadSnapshotToR2(
+		room: TLSocketRoom<TLRecord, SessionMeta>,
+		snapshot: RoomSnapshot,
+		clock: number,
+		key: string
+	) {
+		const out1 = await this.r2.rooms.createMultipartUpload(key)
+		const out2 = await this.r2.versionCache.createMultipartUpload(
+			key + `/${new Date().toISOString()}`
+		)
+
+		try {
+			// 5MB buffer
+			const fiveMB = 5 * MB
+			const buffer = new Uint8Array(fiveMB)
+			const parts1 = []
+			const parts2 = []
+			let partNumber = 1
+			let offset = 0
+
+			for (const chunk of generateSnapshotChunks(snapshot, clock)) {
+				// Check if adding this chunk would overflow the buffer
+				if (offset + chunk.byteLength > fiveMB) {
+					// We need to split this chunk
+					const spaceLeft = fiveMB - offset
+					const firstPart = chunk.subarray(0, spaceLeft)
+					const secondPart = chunk.subarray(spaceLeft)
+
+					// Add the first part to the current buffer
+					buffer.set(firstPart, offset)
+
+					// Upload the full buffer
+					const [p1, p2] = await Promise.all([
+						out1.uploadPart(partNumber, buffer),
+						out2.uploadPart(partNumber, buffer),
+					])
+					parts1.push(p1)
+					parts2.push(p2)
+					partNumber++
+
+					// Start a new buffer with the second part
+					offset = secondPart.byteLength
+					buffer.set(secondPart, 0)
+				} else {
+					// Normal case: add the chunk to the buffer
+					buffer.set(chunk, offset)
+					offset += chunk.byteLength
+				}
+			}
+			if (offset > 0) {
+				const [p1, p2] = await Promise.all([
+					out1.uploadPart(partNumber, buffer.subarray(0, offset)),
+					out2.uploadPart(partNumber, buffer.subarray(0, offset)),
+				])
+				parts1.push(p1)
+				parts2.push(p2)
+			}
+
+			const [roomObject] = await Promise.all([out1.complete(parts1), out2.complete(parts2)])
+			if (roomObject) {
+				await this.addRoomStorageUsedPercentage(room, roomObject.size / MB, true)
+			}
+		} catch (e) {
+			await Promise.all([out1.abort(), out2.abort()])
+			throw e
+		}
+	}
+
 	private reportError(e: unknown) {
 		// eslint-disable-next-line @typescript-eslint/no-deprecated
 		this.sentry?.captureException(e)
@@ -934,4 +998,24 @@ async function listAllObjectKeys(bucket: R2Bucket, prefix: string): Promise<stri
 	} while (cursor)
 
 	return keys
+}
+
+function* generateSnapshotChunks(snapshot: RoomSnapshot, clock: number): Generator<Uint8Array> {
+	const encoder = new TextEncoder()
+
+	yield encoder.encode(`{"clock":${clock},"tombstones":`)
+	yield encoder.encode(JSON.stringify(snapshot.tombstones))
+	yield encoder.encode(`,"schema":`)
+	yield encoder.encode(JSON.stringify(snapshot.schema))
+	yield encoder.encode(`,"documents":[`)
+
+	for (let i = 0; i < snapshot.documents.length; i++) {
+		const document = snapshot.documents[i]
+		yield encoder.encode(JSON.stringify(document))
+		if (i < snapshot.documents.length - 1) {
+			yield encoder.encode(',')
+		}
+	}
+
+	yield encoder.encode(`]}`)
 }
