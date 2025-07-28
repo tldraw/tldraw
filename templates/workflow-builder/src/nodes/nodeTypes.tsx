@@ -7,12 +7,19 @@ import {
 import { PortId, ShapePort } from '../ports/Port'
 import { NodeShape } from './NodeShapeUtil'
 import { AddNode } from './types/AddNode'
+import { ConditionalNode } from './types/ConditionalNode'
 import { DivideNode } from './types/DivideNode'
 import { MultiplyNode } from './types/MultiplyNode'
-import { NodeDefinition } from './types/shared'
+import { NodeDefinition, STOP_EXECUTION } from './types/shared'
 import { SubtractNode } from './types/SubtractNode'
 
-export const NodeDefinitions = [AddNode, SubtractNode, MultiplyNode, DivideNode] as const
+export const NodeDefinitions = [
+	AddNode,
+	SubtractNode,
+	MultiplyNode,
+	DivideNode,
+	ConditionalNode,
+] as const
 
 const NodeDefinitionMap = Object.fromEntries(NodeDefinitions.map((type) => [type.type, type])) as {
 	[NodeDefinition in (typeof NodeDefinitions)[number] as NodeDefinition['type']]: NodeDefinition
@@ -50,7 +57,7 @@ export function getNodeTypePorts(node: NodeType): Record<string, ShapePort> {
 export function computeNodeOutput(
 	node: NodeType,
 	inputs: Record<string, number>
-): Record<string, number> {
+): Record<string, number | STOP_EXECUTION> {
 	return getNodeDefinition(node).computeOutput(node, inputs)
 }
 

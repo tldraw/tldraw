@@ -25,6 +25,7 @@ import {
 	NodeDefinitions,
 	NodeType,
 } from './nodeTypes'
+import { NodeValue } from './types/shared'
 
 export type NodeShape = TLBaseShape<'node', { node: NodeType }>
 
@@ -149,10 +150,11 @@ function NodeShapeIndicator({ shape, ports }: { shape: NodeShape; ports: ShapePo
 
 function NodeShape({ shape }: { shape: NodeShape }) {
 	const editor = useEditor()
-	const output = useValue('output', () => getNodeOutputPortValues(editor, shape.id)?.output, [
-		editor,
-		shape.id,
-	])
+	const output = useValue(
+		'output',
+		() => getNodeOutputPortValues(editor, shape.id)?.output ?? undefined,
+		[editor, shape.id]
+	)
 	const isExecuting = useValue(
 		'is executing',
 		() => executionState.get(editor).runningGraph?.getNodeStatus(shape.id) === 'executing',
@@ -173,8 +175,14 @@ function NodeShape({ shape }: { shape: NodeShape }) {
 			<div className="NodeShape-heading">
 				<div className="NodeShape-label">{nodeDefinition.title}</div>
 				{isExecuting && <DefaultSpinner />}
-				<div className="NodeShape-output">{output}</div>
-				<Port shapeId={shape.id} portId="output" />
+				{output !== undefined && (
+					<>
+						<div className="NodeShape-output">
+							<NodeValue value={output} />
+						</div>
+						<Port shapeId={shape.id} portId="output" />
+					</>
+				)}
 			</div>
 			<NodeBody shape={shape} />
 		</HTMLContainer>

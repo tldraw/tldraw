@@ -52,16 +52,17 @@ body {
 	}
 }
 
-.NodeBodyRow {
+.NodeRow {
 	display: flex;
 	flex-direction: row;
 	align-items: center;
-	justify-content: center;
+	justify-content: flex-start;
 	height: 44px;
 	gap: var(--space-4);
 	padding: var(--space-2) var(--space-4);
 
-	input {
+	input,
+	select {
 		align-self: stretch;
 		flex: 1 1 auto;
 		pointer-events: all;
@@ -76,8 +77,10 @@ body {
 			border-color: var(--color-selected);
 		}
 	}
+}
 
-	.NodeBodyRow-buttons {
+.NodeInputRow {
+	.NodeInputRow-buttons {
 		display: none;
 		position: absolute;
 		right: 19px;
@@ -91,7 +94,7 @@ body {
 
 	&:hover,
 	&:has(input:focus) {
-		.NodeBodyRow-buttons {
+		.NodeInputRow-buttons {
 			display: flex;
 		}
 	}
@@ -210,10 +213,22 @@ body {
 	left: 0;
 	top: 50%;
 	justify-content: flex-start;
+
+	.tlui-toolbar__tools {
+		transform: translateY(-50%);
+		margin-left: 8px;
+		padding-bottom: calc(var(--space-3) + var(--sab));
+	}
 }
 
-.WorkflowToolbar .tlui-toolbar__tools {
-	transform: translateY(-50%);
-	margin-left: 8px;
-	padding-bottom: calc(var(--space-3) + var(--sab));
+.ConditionalNode-output {
+	justify-content: flex-end;
+}
+
+.NodeValue_placeholder {
+	display: inline-block;
+	width: 18px;
+	height: 10px;
+	border-radius: 10px;
+	background: hsl(0, 0%, 0%, 10%);
 }
