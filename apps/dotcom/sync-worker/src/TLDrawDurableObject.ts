@@ -720,7 +720,7 @@ export class TLDrawDurableObject extends DurableObject {
 				this.maybeAssociateFileAssets()
 
 				const key = getR2KeyForRoom({ slug: slug, isApp: this.documentInfo.isApp })
-				await this._uploadSnapshotToR2(room, snapshot, clock, key)
+				await this._uploadSnapshotToR2(room, snapshot, key)
 
 				this._lastPersistedClock = clock
 
@@ -746,7 +746,6 @@ export class TLDrawDurableObject extends DurableObject {
 	private async _uploadSnapshotToR2(
 		room: TLSocketRoom<TLRecord, SessionMeta>,
 		snapshot: RoomSnapshot,
-		clock: number,
 		key: string
 	) {
 		const out1 = await this.r2.rooms.createMultipartUpload(key)
@@ -773,7 +772,7 @@ export class TLDrawDurableObject extends DurableObject {
 				partNumber++
 			}
 
-			for (const chunk of generateSnapshotChunks(snapshot, clock)) {
+			for (const chunk of generateSnapshotChunks(snapshot)) {
 				let remainingChunk = chunk
 
 				while (remainingChunk.byteLength > 0) {
@@ -998,11 +997,11 @@ async function listAllObjectKeys(bucket: R2Bucket, prefix: string): Promise<stri
 	return keys
 }
 
-function* generateSnapshotChunks(snapshot: RoomSnapshot, clock: number): Generator<Uint8Array> {
+function* generateSnapshotChunks(snapshot: RoomSnapshot): Generator<Uint8Array> {
 	const encoder = new TextEncoder()
 
 	yield encoder.encode(
-		`{"clock":${clock},tombstoneHistoryStartsAtClock:${snapshot.tombstoneHistoryStartsAtClock},"tombstones":`
+		`{"clock":${snapshot.clock},tombstoneHistoryStartsAtClock:${snapshot.tombstoneHistoryStartsAtClock},"tombstones":`
 	)
 	yield encoder.encode(JSON.stringify(snapshot.tombstones))
 	yield encoder.encode(`,"schema":`)
