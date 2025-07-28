@@ -190,7 +190,7 @@ export class BaselineManager {
 
 		const isRegression = avgFpsChange < -this.regressionThreshold
 		const isImprovement = avgFpsChange > this.warningThreshold
-		const isSignificantChange = Math.abs(avgFpsChange) > this.warningThreshold
+		const isSignificantChange = Math.abs(avgFpsChange) > this.regressionThreshold
 
 		let status: 'pass' | 'warning' | 'fail' = 'pass'
 		let message = `Performance stable. Average FPS: ${metrics.averageFps} (${avgFpsChange.toFixed(1)}% change)`
