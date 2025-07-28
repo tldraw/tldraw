@@ -27,8 +27,7 @@ let fpsCheckHistory: number[] = []
 let framesInCurrentWindow = 0
 let windowStartTime = 0
 let maxDetectedFps = DEFAULT_FPS // Track the highest FPS we've measured
-let measurementCount = 0
-const DETECTION_MEASUREMENTS = 10 // Number of measurements to collect before settling on max FPS
+let isManuallySet = false // Track if user has manually set the FPS
 
 const updateTargetFps = () => {
 	if (fpsCheckHistory.length < 3) return // Need at least 3 measurements
@@ -38,14 +37,12 @@ const updateTargetFps = () => {
 	// Track the maximum FPS we've detected (likely the device's natural refresh rate)
 	if (avgFps > maxDetectedFps) {
 		maxDetectedFps = Math.min(MAX_FPS, Math.round(avgFps))
-	}
 
-	measurementCount++
-
-	// After collecting enough measurements, set target to the maximum detected FPS
-	if (measurementCount >= DETECTION_MEASUREMENTS) {
-		targetFps = maxDetectedFps
-		targetTimePerFrame = getTargetTimePerFrame(targetFps)
+		// Only update target FPS if user hasn't manually set it
+		if (!isManuallySet) {
+			targetFps = maxDetectedFps
+			targetTimePerFrame = getTargetTimePerFrame(targetFps)
+		}
 	}
 
 	// Keep only recent measurements
@@ -251,17 +248,19 @@ export function resetAdaptiveFps(): void {
 	framesInCurrentWindow = 0
 	windowStartTime = 0
 	measurementStartTime = 0
-	measurementCount = 0
 	maxDetectedFps = DEFAULT_FPS
+	isManuallySet = false
 	stopFrameTimingMeasurement()
 }
 
 /**
- * Manually sets the target FPS (may be overridden if natural FPS detection is still active).
+ * Manually sets the target FPS. Once set manually, the system will stop automatically adapting
+ * to higher detected frame rates. Call resetAdaptiveFps() to re-enable automatic adaptation.
  * @param fps - the target FPS to set (will be clamped between 30-120)
  * @internal
  */
 export function setTargetFps(fps: number): void {
 	targetFps = Math.max(MIN_FPS, Math.min(MAX_FPS, fps))
 	targetTimePerFrame = getTargetTimePerFrame(targetFps)
+	isManuallySet = true
 }
