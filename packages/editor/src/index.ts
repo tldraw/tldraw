@@ -264,6 +264,7 @@ export {
 	type TLImageExportOptions,
 	type TLSvgExportOptions,
 	type TLSvgOptions,
+	type TLUpdatePointerOptions,
 } from './lib/editor/types/misc-types'
 export {
 	type TLAdjacentDirection,
