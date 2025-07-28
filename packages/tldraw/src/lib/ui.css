@@ -1047,6 +1047,10 @@
 	padding-top: var(--space-3);
 }
 
+.tlui-style-panel__subheading + .tlui-slider__container {
+	padding-top: 0px;
+}
+
 .tlui-style-panel__row {
 	display: flex;
 }
