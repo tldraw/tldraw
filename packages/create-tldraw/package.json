@@ -36,6 +36,7 @@
 		"test": "yarn run -T jest",
 		"test-coverage": "lazy inherit",
 		"build": "./scripts/build.sh",
+		"prepack": "yarn build",
 		"pack-tarball": "yarn pack",
 		"lint": "yarn run -T tsx ../../internal/scripts/lint.ts"
 	},
