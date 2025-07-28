@@ -86,7 +86,7 @@ export class PerformanceTestSuite {
 
 		const { metrics } = await this.fpsTracker.measureInteraction(
 			async () => {
-				const page = (this.fpsTracker as any).page as Page
+				const page = this.getPage()
 
 				// Select all shapes for rotation
 				await page.keyboard.press('Control+a')
@@ -122,7 +122,7 @@ export class PerformanceTestSuite {
 		)
 
 		// Clean up and clear selection
-		const page = (this.fpsTracker as any).page as Page
+		const page = this.getPage()
 
 		// Stop the rotation interval and get stats
 		const rotationStats = await page.evaluate(() => {
@@ -144,24 +144,7 @@ export class PerformanceTestSuite {
 		// Clear selection
 		await page.keyboard.press('Escape')
 
-		const comparison = this.baselineManager.compareWithBaseline(
-			'rotate_shapes',
-			metrics,
-			this.environment
-		)
-
-		// Validate minimum FPS if specified
-		if (expectMinFps && metrics.minFps < expectMinFps) {
-			comparison.status = 'fail'
-			comparison.message += ` Minimum FPS ${metrics.minFps} below expected ${expectMinFps}.`
-		}
-
-		return {
-			interaction: 'rotate_shapes',
-			metrics,
-			comparison,
-			environment: this.environment,
-		}
+		return this.finalizeTestResult('rotate_shapes', metrics, expectMinFps)
 	}
 
 	async testShapeDragging(options: InteractionTestOptions = {}): Promise<PerformanceTestResult> {
@@ -172,7 +155,7 @@ export class PerformanceTestSuite {
 
 		const { metrics } = await this.fpsTracker.measureInteraction(
 			async () => {
-				const page = (this.fpsTracker as any).page as Page
+				const page = this.getPage()
 
 				// Select all shapes for rotation
 				await page.keyboard.press('Control+a')
@@ -215,26 +198,10 @@ export class PerformanceTestSuite {
 		)
 
 		// Clear selection
-		const page = (this.fpsTracker as any).page as Page
+		const page = this.getPage()
 		await page.keyboard.press('Escape')
 
-		const comparison = this.baselineManager.compareWithBaseline(
-			'drag_shapes',
-			metrics,
-			this.environment
-		)
-
-		if (expectMinFps && metrics.minFps < expectMinFps) {
-			comparison.status = 'fail'
-			comparison.message += ` Minimum FPS ${metrics.minFps} below expected ${expectMinFps}.`
-		}
-
-		return {
-			interaction: 'drag_shapes',
-			metrics,
-			comparison,
-			environment: this.environment,
-		}
+		return this.finalizeTestResult('drag_shapes', metrics, expectMinFps)
 	}
 
 	async testCanvasPanning(options: InteractionTestOptions = {}): Promise<PerformanceTestResult> {
@@ -242,7 +209,7 @@ export class PerformanceTestSuite {
 
 		const { metrics } = await this.fpsTracker.measureInteraction(
 			async () => {
-				const page = (this.fpsTracker as any).page as Page
+				const page = this.getPage()
 
 				// Pan around the canvas using space + drag
 				await page.keyboard.down('Space')
@@ -285,23 +252,7 @@ export class PerformanceTestSuite {
 			{ warmupMs, measureMs }
 		)
 
-		const comparison = this.baselineManager.compareWithBaseline(
-			'canvas_panning',
-			metrics,
-			this.environment
-		)
-
-		if (expectMinFps && metrics.minFps < expectMinFps) {
-			comparison.status = 'fail'
-			comparison.message += ` Minimum FPS ${metrics.minFps} below expected ${expectMinFps}.`
-		}
-
-		return {
-			interaction: 'canvas_panning',
-			metrics,
-			comparison,
-			environment: this.environment,
-		}
+		return this.finalizeTestResult('canvas_panning', metrics, expectMinFps)
 	}
 
 	async testCanvasZooming(options: InteractionTestOptions = {}): Promise<PerformanceTestResult> {
@@ -309,7 +260,7 @@ export class PerformanceTestSuite {
 
 		const { metrics } = await this.fpsTracker.measureInteraction(
 			async () => {
-				const page = (this.fpsTracker as any).page as Page
+				const page = this.getPage()
 
 				// Use editor API to zoom in and out continuously
 				await page.evaluate(() => {
@@ -334,7 +285,7 @@ export class PerformanceTestSuite {
 		)
 
 		// Stop the zoom interval
-		const page = (this.fpsTracker as any).page as Page
+		const page = this.getPage()
 		await page.evaluate(() => {
 			const interval = (window as any).__zoomInterval
 			if (interval) {
@@ -343,23 +294,7 @@ export class PerformanceTestSuite {
 			}
 		})
 
-		const comparison = this.baselineManager.compareWithBaseline(
-			'canvas_zooming',
-			metrics,
-			this.environment
-		)
-
-		if (expectMinFps && metrics.minFps < expectMinFps) {
-			comparison.status = 'fail'
-			comparison.message += ` Minimum FPS ${metrics.minFps} below expected ${expectMinFps}.`
-		}
-
-		return {
-			interaction: 'canvas_zooming',
-			metrics,
-			comparison,
-			environment: this.environment,
-		}
+		return this.finalizeTestResult('canvas_zooming', metrics, expectMinFps)
 	}
 
 	async runFullPerformanceTest(): Promise<PerformanceTestResult[]> {
@@ -410,6 +345,37 @@ export class PerformanceTestSuite {
 			comparison,
 			environment: this.environment,
 		}
+	}
+
+	// Common method for finalizing performance test results
+	private finalizeTestResult(
+		interaction: string,
+		metrics: FPSMetrics,
+		expectMinFps?: number
+	): PerformanceTestResult {
+		const comparison = this.baselineManager.compareWithBaseline(
+			interaction,
+			metrics,
+			this.environment
+		)
+
+		// Validate minimum FPS if specified
+		if (expectMinFps && metrics.minFps < expectMinFps) {
+			comparison.status = 'fail'
+			comparison.message += ` Minimum FPS ${metrics.minFps} below expected ${expectMinFps}.`
+		}
+
+		return {
+			interaction,
+			metrics,
+			comparison,
+			environment: this.environment,
+		}
+	}
+
+	// Helper to get page reference from fps tracker
+	private getPage(): Page {
+		return (this.fpsTracker as any).page as Page
 	}
 
 	// Method to manually create/update baselines

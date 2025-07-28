@@ -259,20 +259,41 @@ export class HeavyBoardGenerator {
 		})
 	}
 
-	async selectRandomShapes(count: number): Promise<void> {
-		await this.page.evaluate((count) => {
-			const editor = (window as any).editor
-			if (!editor) return
+	async selectRandomShapes(count: number, seed: number = 12345): Promise<void> {
+		await this.page.evaluate(
+			({ count, seed }) => {
+				const editor = (window as any).editor
+				if (!editor) return
 
-			const allShapes = editor.getCurrentPageShapes()
-			const selectedCount = Math.min(count, allShapes.length)
+				// Simple seeded random number generator for reproducible tests
+				class SeededRandom {
+					private seed: number
+					constructor(seed: number) {
+						this.seed = seed
+					}
 
-			// Select random shapes
-			const shuffled = allShapes.sort(() => 0.5 - Math.random())
-			const selected = shuffled.slice(0, selectedCount)
-			const shapeIds = selected.map((shape: any) => shape.id)
+					next(): number {
+						this.seed = (this.seed * 9301 + 49297) % 233280
+						return this.seed / 233280
+					}
 
-			editor.setSelectedShapes(shapeIds)
-		}, count)
+					range(min: number, max: number): number {
+						return Math.floor(this.next() * (max - min + 1)) + min
+					}
+				}
+
+				const random = new SeededRandom(seed)
+				const allShapes = editor.getCurrentPageShapes()
+				const selectedCount = Math.min(count, allShapes.length)
+
+				// Select random shapes using seeded random
+				const shuffled = allShapes.sort(() => 0.5 - random.next())
+				const selected = shuffled.slice(0, selectedCount)
+				const shapeIds = selected.map((shape: any) => shape.id)
+
+				editor.setSelectedShapes(shapeIds)
+			},
+			{ count, seed }
+		)
 	}
 }
