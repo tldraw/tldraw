@@ -284,8 +284,6 @@ export class ArrowShapeUtil extends ShapeUtil<TLArrowShape> {
     // (undocumented)
     onDoubleClickHandle(shape: TLArrowShape, handle: TLHandle): TLShapePartial<TLArrowShape> | void;
     // (undocumented)
-    onEditEnd(shape: TLArrowShape): void;
-    // (undocumented)
     onEditStart(shape: TLArrowShape): void;
     // (undocumented)
     onHandleDrag(shape: TLArrowShape, info: TLHandleDragInfo<TLArrowShape>): ({

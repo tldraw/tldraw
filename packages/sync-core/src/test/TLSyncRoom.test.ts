@@ -76,6 +76,7 @@ const oldArrow: TLBaseShape<'arrow', Omit<TLArrowShapeProps, 'labelColor'>> = {
 		end: { x: 0, y: 0 },
 		arrowheadStart: 'none',
 		arrowheadEnd: 'arrow',
+		// @ts-ignore this is a legacy field
 		text: '',
 		font: 'draw',
 		labelPosition: 0.5,
