@@ -1,4 +1,4 @@
-import { FormEventHandler, useEffect, useState } from 'react'
+import { Dispatch, FormEventHandler, SetStateAction, useCallback, useEffect, useState } from 'react'
 import { Editor, useLocalStorageState, useReactor, useValue } from 'tldraw'
 import { AGENT_MODEL_DEFINITIONS, DEFAULT_MODEL_NAME, TLAgentModelName } from '../worker/models'
 import { $contextItems, addToContext, ContextPreview, removeFromContext } from './Context'
@@ -22,19 +22,19 @@ const ADD_CONTEXT_ACTIONS = [
 			editor.focus()
 		},
 	},
+	// {
+	// 	name: 'Current Selection',
+	// 	onSelect: (editor: Editor) => {
+	// 		editor.setCurrentTool('select')
+	// 		const shapes = editor.getSelectedShapes()
+	// 		for (const shape of shapes) {
+	// 			addToContext({ type: 'shape', shape, source: 'user' })
+	// 		}
+	// 		editor.focus()
+	// 	},
+	// },
 	{
-		name: 'Current Selection',
-		onSelect: (editor: Editor) => {
-			editor.setCurrentTool('select')
-			const shapes = editor.getSelectedShapes()
-			for (const shape of shapes) {
-				addToContext({ type: 'shape', shape, source: 'user' })
-			}
-			editor.focus()
-		},
-	},
-	{
-		name: 'Current Viewport',
+		name: 'Add Viewport',
 		onSelect: (editor: Editor) => {
 			editor.setCurrentTool('select')
 			const bounds = editor.getViewportPageBounds()
@@ -50,6 +50,12 @@ const ADD_CONTEXT_ACTIONS = [
 	// 		editor.focus()
 	// 	},
 	// },
+	{
+		name: 'Use Selection',
+		onSelect: (editor: Editor, setUsingSelectionForContext: Dispatch<SetStateAction<boolean>>) => {
+			setUsingSelectionForContext((prev) => !prev)
+		},
+	},
 	{
 		name: ' ',
 		onSelect: () => {},
@@ -68,6 +74,8 @@ export function ChatInput({
 	editor: Editor
 }) {
 	const [inputValue, setInputValue] = useState('')
+
+	const [usingSelectionForContext, setUsingSelectionForContext] = useState(true)
 
 	const isContextToolActive = useValue(
 		'isContextToolActive',
@@ -133,6 +141,12 @@ export function ChatInput({
 			<form
 				onSubmit={(e) => {
 					e.preventDefault()
+					if (usingSelectionForContext) {
+						const shapes = editor.getSelectedShapes()
+						for (const shape of shapes) {
+							addToContext({ type: 'shape', shape, source: 'user' })
+						}
+					}
 					setInputValue('')
 					handleSubmit(e)
 				}}
@@ -148,7 +162,7 @@ export function ChatInput({
 							value={' '}
 							onChange={(e) => {
 								const action = ADD_CONTEXT_ACTIONS.find((action) => action.name === e.target.value)
-								if (action) action.onSelect(editor)
+								if (action) action.onSelect(editor, setUsingSelectionForContext)
 							}}
 						>
 							{ADD_CONTEXT_ACTIONS.map((action) => {
@@ -161,6 +175,7 @@ export function ChatInput({
 							})}
 						</select>
 					</div>
+					{usingSelectionForContext && <LiveSelectionIndicator editor={editor} />}
 					{contextItems.map(
 						(item, i) =>
 							item.source === 'user' && (
@@ -172,6 +187,7 @@ export function ChatInput({
 							)
 					)}
 				</div>
+
 				<input
 					ref={inputRef}
 					name="input"
@@ -186,7 +202,7 @@ export function ChatInput({
 						<div className="chat-mode-select">
 							<CommentIcon />
 							<span>Agent</span>
-							<ChevronDownIcon />
+							{/* <ChevronDownIcon /> */}
 						</div>
 						<div className="chat-model-select">
 							<div className="chat-input-actions-label">
@@ -212,4 +228,26 @@ export function ChatInput({
 			</form>
 		</div>
 	)
+
+	function LiveSelectionIndicator({ editor }: { editor: Editor }) {
+		const shapes = useValue('shapes', () => editor.getSelectedShapes(), [editor])
+
+		const handleClick = useCallback(() => {
+			setUsingSelectionForContext((prev) => !prev)
+		}, [])
+
+		return (
+			<div className="chat-context-select" onClick={handleClick} style={{ cursor: 'pointer' }}>
+				<div className="live-dot"></div>
+				{shapes.length === 0 ? (
+					<p>No shapes selected</p>
+				) : (
+					<>
+						<p>Selection</p>
+						<p>({shapes.length} shapes)</p>
+					</>
+				)}
+			</div>
+		)
+	}
 }
