@@ -1678,6 +1678,9 @@ export function getArrowTerminalsInArrowSpace(editor: Editor, shape: TLArrowShap
 };
 
 // @public (undocumented)
+export function getAssetInfo(file: File, options: TLDefaultExternalContentHandlerOpts, assetId?: TLAssetId): Promise<TLImageAsset | TLVideoAsset>;
+
+// @public (undocumented)
 export function getCropBox<T extends ShapeWithCrop>(shape: T, info: TLCropInfo<T>, opts?: CropBoxOptions): {
     id: TLShapeId;
     props: ShapeWithCrop['props'];
@@ -1691,6 +1694,9 @@ export function getDefaultCrop(): TLShapeCrop;
 
 // @public
 export function getEmbedInfo(definitions: readonly TLEmbedDefinition[], inputUrl: string): TLEmbedResult;
+
+// @public (undocumented)
+export function getHitShapeOnCanvasPointerDown(editor: Editor, hitLabels?: boolean): TLShape | undefined;
 
 // @public (undocumented)
 export function getMediaAssetInfoPartial(file: File, assetId: TLAssetId, isImageType: boolean, isVideoType: boolean, maxImageDimension?: number): Promise<TLImageAsset | TLVideoAsset>;
@@ -1995,6 +2001,9 @@ export interface LineToPathBuilderCommand extends PathBuilderCommandBase {
     // (undocumented)
     type: 'line';
 }
+
+// @public (undocumented)
+export function LockGroup(): JSX_2.Element;
 
 // @public (undocumented)
 export function MiscMenuGroup(): JSX_2.Element;
@@ -2859,6 +2868,21 @@ export interface TldrawBaseProps extends TldrawUiProps, TldrawEditorBaseProps, T
     assetUrls?: TLUiAssetUrlOverrides;
     components?: TLComponents;
     embeds?: TLEmbedDefinition[];
+}
+
+// @public (undocumented)
+export function TldrawCropHandles({ size, width, height, hideAlternateHandles, }: TldrawCropHandlesProps): JSX_2.Element;
+
+// @public (undocumented)
+export interface TldrawCropHandlesProps {
+    // (undocumented)
+    height: number;
+    // (undocumented)
+    hideAlternateHandles: boolean;
+    // (undocumented)
+    size: number;
+    // (undocumented)
+    width: number;
 }
 
 // @public (undocumented)
@@ -4766,6 +4790,15 @@ export function ToggleReduceMotionItem(): JSX_2.Element;
 export function ToggleSnapModeItem(): JSX_2.Element;
 
 // @public (undocumented)
+export function ToggleToolLockedButton({ activeToolId }: ToggleToolLockedButtonProps): JSX_2.Element | null;
+
+// @public (undocumented)
+export interface ToggleToolLockedButtonProps {
+    // (undocumented)
+    activeToolId?: string;
+}
+
+// @public (undocumented)
 export function ToggleToolLockItem(): JSX_2.Element;
 
 // @public (undocumented)
@@ -4988,6 +5021,9 @@ export function useTranslation(): (id?: Exclude<string, TLUiTranslationKey> | st
 
 // @public (undocumented)
 export function useUiEvents(): TLUiEventContextType;
+
+// @public
+export function useUnlockedSelectedShapesCount(min?: number, max?: number): boolean | number;
 
 // @public (undocumented)
 export interface VideoShapeOptions {

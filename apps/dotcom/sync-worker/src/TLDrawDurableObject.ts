@@ -41,6 +41,7 @@ import { PERSIST_INTERVAL_MS } from './config'
 import { createPostgresConnectionPool } from './postgres'
 import { getR2KeyForRoom } from './r2'
 import { getPublishedRoomSnapshot } from './routes/tla/getPublishedFile'
+import { generateSnapshotChunks } from './snapshotUtils'
 import { Analytics, DBLoadResult, Environment, TLServerEvent } from './types'
 import { EventData, writeDataPoint } from './utils/analytics'
 import { createSupabaseClient } from './utils/createSupabaseClient'
@@ -716,17 +717,12 @@ export class TLDrawDurableObject extends DurableObject {
 				if (this._lastPersistedClock === clock) return
 				if (this._isRestoring) return
 
-				const snapshot = JSON.stringify(room.getCurrentSnapshot())
+				const snapshot = room.getCurrentSnapshot()
 				this.maybeAssociateFileAssets()
 
 				const key = getR2KeyForRoom({ slug: slug, isApp: this.documentInfo.isApp })
-				const [roomObject] = await Promise.all([
-					this.r2.rooms.put(key, snapshot),
-					this.r2.versionCache.put(key + `/` + new Date().toISOString(), snapshot),
-				])
-				if (roomObject) {
-					await this.addRoomStorageUsedPercentage(room, roomObject.size / MB, true)
-				}
+				await this._uploadSnapshotToR2(room, snapshot, key)
+
 				this._lastPersistedClock = clock
 
 				// Update the updatedAt timestamp in the database
@@ -747,6 +743,72 @@ export class TLDrawDurableObject extends DurableObject {
 			this.reportError(e)
 		}
 	}
+
+	private async _uploadSnapshotToR2(
+		room: TLSocketRoom<TLRecord, SessionMeta>,
+		snapshot: RoomSnapshot,
+		key: string
+	) {
+		const out1 = await this.r2.rooms.createMultipartUpload(key)
+		const out2 = await this.r2.versionCache.createMultipartUpload(
+			key + `/${new Date().toISOString()}`
+		)
+
+		try {
+			// 5MB buffer
+			const fiveMB = 5 * MB
+			const buffer = new Uint8Array(fiveMB)
+			const parts1: R2UploadedPart[] = []
+			const parts2: R2UploadedPart[] = []
+			let partNumber = 1
+			let offset = 0
+
+			const uploadBuffer = async (data: Uint8Array) => {
+				const [p1, p2] = await Promise.all([
+					out1.uploadPart(partNumber, data),
+					out2.uploadPart(partNumber, data),
+				])
+				parts1.push(p1)
+				parts2.push(p2)
+				partNumber++
+			}
+
+			for (const chunk of generateSnapshotChunks(snapshot)) {
+				let remainingChunk = chunk
+
+				while (remainingChunk.byteLength > 0) {
+					const spaceLeft = fiveMB - offset
+					const chunkToAdd = remainingChunk.subarray(
+						0,
+						Math.min(spaceLeft, remainingChunk.byteLength)
+					)
+
+					buffer.set(chunkToAdd, offset)
+					offset += chunkToAdd.byteLength
+
+					// If buffer is full, upload it
+					if (offset >= fiveMB) {
+						await uploadBuffer(buffer.subarray(0, offset))
+						offset = 0
+					}
+
+					remainingChunk = remainingChunk.subarray(chunkToAdd.byteLength)
+				}
+			}
+			if (offset > 0) {
+				await uploadBuffer(buffer.subarray(0, offset))
+			}
+
+			const [roomObject] = await Promise.all([out1.complete(parts1), out2.complete(parts2)])
+			if (roomObject) {
+				await this.addRoomStorageUsedPercentage(room, roomObject.size / MB, true)
+			}
+		} catch (e) {
+			await Promise.all([out1.abort(), out2.abort()])
+			throw e
+		}
+	}
+
 	private reportError(e: unknown) {
 		// eslint-disable-next-line @typescript-eslint/no-deprecated
 		this.sentry?.captureException(e)
