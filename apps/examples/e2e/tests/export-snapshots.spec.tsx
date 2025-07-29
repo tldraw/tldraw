@@ -30,6 +30,7 @@ import {
 	manCrop,
 	manCropAsCircle,
 	richText,
+	richTextForArrow,
 } from './export-snapshots-data'
 import test, { ApiFixture } from './fixtures/fixtures'
 
@@ -521,7 +522,7 @@ const snapshots: Snapshots = {
 					size="xl"
 					arrowheadStart="pipe"
 					arrowheadEnd="diamond"
-					richText={toRichText('with text')}
+					richText={richTextForArrow}
 				/>
 			),
 			Arrow4: (
