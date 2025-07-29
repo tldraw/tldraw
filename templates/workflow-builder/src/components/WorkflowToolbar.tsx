@@ -33,6 +33,7 @@ import {
 	useUniqueSafeId,
 	XBoxToolbarItem,
 } from 'tldraw'
+import { DraggableToolbarItem } from './DraggableToolbarItem'
 import { MathematicalToolbarItem } from './MathematicalToolbarItem'
 
 export function WorkflowToolbar() {
@@ -57,7 +58,9 @@ export function WorkflowToolbar() {
 							<SelectToolbarItem />
 							<HandToolbarItem />
 							<DrawToolbarItem />
-							<NoteToolbarItem />
+							<DraggableToolbarItem toolId="note">
+								<NoteToolbarItem />
+							</DraggableToolbarItem>
 
 							<div
 								style={{
@@ -93,25 +96,50 @@ export function WorkflowToolbar() {
 									}}
 								>
 									<TldrawUiMenuContextProvider type="toolbar-overflow" sourceId="toolbar">
-										<TextToolbarItem />
+										<DraggableToolbarItem toolId="text">
+											<TextToolbarItem />
+										</DraggableToolbarItem>
 										<AssetToolbarItem />
 										<HighlightToolbarItem />
 										<LaserToolbarItem />
 
-										<RectangleToolbarItem />
-										<EllipseToolbarItem />
-										<TriangleToolbarItem />
-										<DiamondToolbarItem />
+										<DraggableToolbarItem toolId="rectangle">
+											<RectangleToolbarItem />
+										</DraggableToolbarItem>
+										<DraggableToolbarItem toolId="ellipse">
+											<EllipseToolbarItem />
+										</DraggableToolbarItem>
+										<DraggableToolbarItem toolId="triangle">
+											<TriangleToolbarItem />
+										</DraggableToolbarItem>
+										<DraggableToolbarItem toolId="diamond">
+											<DiamondToolbarItem />
+										</DraggableToolbarItem>
 
-										<HexagonToolbarItem />
-										<OvalToolbarItem />
-										<RhombusToolbarItem />
-										<StarToolbarItem />
-
-										<CloudToolbarItem />
-										<HeartToolbarItem />
-										<XBoxToolbarItem />
-										<CheckBoxToolbarItem />
+										<DraggableToolbarItem toolId="hexagon">
+											<HexagonToolbarItem />
+										</DraggableToolbarItem>
+										<DraggableToolbarItem toolId="oval">
+											<OvalToolbarItem />
+										</DraggableToolbarItem>
+										<DraggableToolbarItem toolId="rhombus">
+											<RhombusToolbarItem />
+										</DraggableToolbarItem>
+										<DraggableToolbarItem toolId="star">
+											<StarToolbarItem />
+										</DraggableToolbarItem>
+										<DraggableToolbarItem toolId="cloud">
+											<CloudToolbarItem />
+										</DraggableToolbarItem>
+										<DraggableToolbarItem toolId="heart">
+											<HeartToolbarItem />
+										</DraggableToolbarItem>
+										<DraggableToolbarItem toolId="x-box">
+											<XBoxToolbarItem />
+										</DraggableToolbarItem>
+										<DraggableToolbarItem toolId="check-box">
+											<CheckBoxToolbarItem />
+										</DraggableToolbarItem>
 									</TldrawUiMenuContextProvider>
 								</TldrawUiToolbar>
 							</TldrawUiPopoverContent>

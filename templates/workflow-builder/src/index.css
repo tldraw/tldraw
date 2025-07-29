@@ -227,7 +227,6 @@ body {
 	.tlui-toolbar__tools {
 		transform: translateY(-50%);
 		margin-left: 8px;
-		padding-bottom: calc(var(--space-3) + var(--sab));
 	}
 }
 
