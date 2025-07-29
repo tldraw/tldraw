@@ -1059,7 +1059,8 @@ export function ActionsProvider({ overrides, children }: ActionsProviderProps) {
 				id: 'rotate-ccw',
 				label: 'action.rotate-ccw',
 				icon: 'rotate-ccw',
-				kbd: 'shift+,shift+alt+,',
+				// omg double comma
+				kbd: 'shift+,,shift+alt+,',
 				onSelect(source) {
 					if (!canApplySelectionAction()) return
 					if (mustGoBackToSelectToolFirst()) return
