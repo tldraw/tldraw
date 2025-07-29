@@ -7,10 +7,12 @@ import { TldrawUiButton } from '../primitives/Button/TldrawUiButton'
 import { TldrawUiButtonIcon } from '../primitives/Button/TldrawUiButtonIcon'
 import { TldrawUiTooltip } from '../primitives/TldrawUiTooltip'
 
-interface ToggleToolLockedButtonProps {
+/** @public */
+export interface ToggleToolLockedButtonProps {
 	activeToolId?: string
 }
 
+/** @public @react */
 export function ToggleToolLockedButton({ activeToolId }: ToggleToolLockedButtonProps) {
 	const editor = useEditor()
 	const breakpoint = useBreakpoint()
