@@ -138,7 +138,7 @@ const snapshots: Snapshots = {
 		DefaultFontStyle.values.map((font) => [
 			`font=${font}`,
 			{
-				geo: <TL.geo dash="draw" font={font} richText={toRichText('test')} w={100} h={100} />,
+				geo: <TL.geo dash="solid" font={font} richText={toRichText('test')} w={100} h={100} />,
 				arrow: (
 					<TL.arrow
 						font={font}
