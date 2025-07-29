@@ -65,7 +65,6 @@ export interface TLAiCreateShapeChange<T extends TLShape = TLShape> {
 	type: 'createShape'
 	description: string
 	shape: TLShapePartial<T>
-	complete: boolean
 }
 
 /** @public */
@@ -73,7 +72,6 @@ export interface TLAiUpdateShapeChange<T extends TLShape = TLShape> {
 	type: 'updateShape'
 	description: string
 	shape: Omit<TLShapePartial<T>, 'type'> & { type?: T['type'] } // type is optional
-	complete: boolean
 }
 
 /** @public */
@@ -81,7 +79,6 @@ export interface TLAiDeleteShapeChange {
 	type: 'deleteShape'
 	description: string
 	shapeId: TLShapeId
-	complete: boolean
 }
 
 /** @public */
@@ -89,7 +86,6 @@ export interface TLAiCreateBindingChange<B extends TLBinding = TLBinding> {
 	type: 'createBinding'
 	description: string
 	binding: TLBindingCreate<B>
-	complete: boolean
 }
 
 /** @public */
@@ -97,7 +93,6 @@ export interface TLAiUpdateBindingChange<B extends TLBinding = TLBinding> {
 	type: 'updateBinding'
 	description: string
 	binding: TLBindingUpdate<B>
-	complete: boolean
 }
 
 /** @public */
@@ -105,7 +100,6 @@ export interface TLAiDeleteBindingChange {
 	type: 'deleteBinding'
 	description: string
 	bindingId: TLBindingId
-	complete: boolean
 }
 
 /**
@@ -119,11 +113,6 @@ export type TLAiChange =
 	| TLAiCreateBindingChange
 	| TLAiUpdateBindingChange
 	| TLAiDeleteBindingChange
-
-/** @public */
-export type TLAiStreamingChange =
-	| (Partial<TLAiChange> & { complete: false })
-	| (TLAiChange & { complete: true })
 
 /** @public */
 export type TLAiContent = Omit<TLContent, 'schema' | 'rootShapeIds'> & {

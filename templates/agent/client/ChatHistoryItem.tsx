@@ -1,4 +1,4 @@
-import { TLAiStreamingChange } from '@tldraw/ai'
+import { TLAiChange } from '@tldraw/ai'
 import { useCallback, useEffect, useState } from 'react'
 import {
 	defaultColorNames,
@@ -9,7 +9,7 @@ import {
 	TLShape,
 	TLShapeId,
 } from 'tldraw'
-import { TLAgentStreamingChange } from './applyAgentChange'
+import { Streaming, TLAgentChange } from './AgentChange'
 import { $chatHistoryItems } from './ChatHistory'
 import { CONTEXT_TYPE_DEFINITIONS, ContextItem, roundBox } from './Context'
 import { BrainIcon } from './icons/BrainIcon'
@@ -53,7 +53,7 @@ export interface AgentMessageHistoryItem {
 export interface AgentChangeHistoryItem {
 	type: 'agent-change'
 	diff: RecordsDiff<TLRecord>
-	change: TLAiStreamingChange
+	change: TLAiChange
 	status: 'progress' | 'done' | 'cancelled'
 	acceptance: 'accepted' | 'rejected' | 'pending'
 }
@@ -66,7 +66,7 @@ export interface AgentChangeGroupHistoryItem {
 
 export interface AgentRawHistoryItem {
 	type: 'agent-raw'
-	change: TLAgentStreamingChange
+	change: Streaming<TLAgentChange>
 	status: 'progress' | 'done' | 'cancelled'
 }
 

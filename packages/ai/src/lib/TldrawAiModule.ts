@@ -1,6 +1,6 @@
 import { Box, Editor, FileHelpers, structuredClone } from 'tldraw'
 import { TldrawAiTransformConstructor } from './TldrawAiTransform'
-import { TLAiContent, TLAiPrompt, TLAiStreamingChange } from './types'
+import { TLAiChange, TLAiContent, TLAiPrompt } from './types'
 import { TldrawAiApplyFn, TldrawAiPromptOptions } from './useTldrawAi'
 
 /** @public */
@@ -41,7 +41,7 @@ export class TldrawAiModule {
 
 		transforms.reverse()
 
-		const handleChange = (change: TLAiStreamingChange, apply: TldrawAiApplyFn) => {
+		const handleChange = (change: TLAiChange, apply: TldrawAiApplyFn) => {
 			for (const transform of transforms) {
 				if (transform.transformChange) {
 					change = transform.transformChange(change)

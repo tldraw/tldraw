@@ -1,11 +1,10 @@
-import { TLAiStreamingChange, TldrawAiTransform } from '@tldraw/ai'
+import { TLAiChange, TldrawAiTransform } from '@tldraw/ai'
 import { createBindingId, TLShapeId } from '@tldraw/tlschema'
 
 export class SimplishIds extends TldrawAiTransform {
-	override transformChange = (change: TLAiStreamingChange): TLAiStreamingChange => {
+	override transformChange = (change: TLAiChange): TLAiChange => {
 		switch (change.type) {
 			case 'createShape': {
-				if (!change.complete) return change
 				const { shape } = change
 				const id = this.getIncrementedId(shape.id)
 
@@ -17,7 +16,6 @@ export class SimplishIds extends TldrawAiTransform {
 				}
 			}
 			case 'createBinding': {
-				if (!change.complete) return change
 				const { binding } = change
 				binding.id = createBindingId(binding.id)
 

@@ -1,5 +1,5 @@
 import { Editor } from 'tldraw'
-import { TLAiPrompt, TLAiStreamingChange } from './types'
+import { TLAiChange, TLAiPrompt } from './types'
 
 /** @public */
 export abstract class TldrawAiTransform {
@@ -15,13 +15,13 @@ export abstract class TldrawAiTransform {
 	 * @param change - The change to transform
 	 * @returns The transformed change
 	 */
-	transformChange?(change: TLAiStreamingChange): TLAiStreamingChange
+	transformChange?(change: TLAiChange): TLAiChange
 	/**
 	 * Will run after all changes have been received.
 	 * @param changes - The changes to transform
 	 * @returns The transformed changes
 	 */
-	transformChanges?(changes: TLAiStreamingChange[]): TLAiStreamingChange[]
+	transformChanges?(changes: TLAiChange[]): TLAiChange[]
 }
 
 /** @public */

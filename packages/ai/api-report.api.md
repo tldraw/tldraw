@@ -20,8 +20,8 @@ import type { TLShapePartial } from 'tldraw';
 export function asMessage(message: TLAiMessages): TLAiMessage[];
 
 // @public
-export function defaultApplyChange({ change, editor, }: {
-    change: TLAiStreamingChange;
+export function defaultApplyChange({ change, editor }: {
+    change: TLAiChange;
     editor: Editor;
 }): void;
 
@@ -38,8 +38,6 @@ export interface TLAiCreateBindingChange<B extends TLBinding = TLBinding> {
     // (undocumented)
     binding: TLBindingCreate<B>;
     // (undocumented)
-    complete: boolean;
-    // (undocumented)
     description: string;
     // (undocumented)
     type: 'createBinding';
@@ -47,8 +45,6 @@ export interface TLAiCreateBindingChange<B extends TLBinding = TLBinding> {
 
 // @public (undocumented)
 export interface TLAiCreateShapeChange<T extends TLShape = TLShape> {
-    // (undocumented)
-    complete: boolean;
     // (undocumented)
     description: string;
     // (undocumented)
@@ -62,8 +58,6 @@ export interface TLAiDeleteBindingChange {
     // (undocumented)
     bindingId: TLBindingId;
     // (undocumented)
-    complete: boolean;
-    // (undocumented)
     description: string;
     // (undocumented)
     type: 'deleteBinding';
@@ -71,8 +65,6 @@ export interface TLAiDeleteBindingChange {
 
 // @public (undocumented)
 export interface TLAiDeleteShapeChange {
-    // (undocumented)
-    complete: boolean;
     // (undocumented)
     description: string;
     // (undocumented)
@@ -120,13 +112,6 @@ export interface TLAiSerializedPrompt extends Omit<TLAiPrompt, 'contextBounds' |
 }
 
 // @public (undocumented)
-export type TLAiStreamingChange = (Partial<TLAiChange> & {
-    complete: false;
-}) | (TLAiChange & {
-    complete: true;
-});
-
-// @public (undocumented)
 export interface TLAiTextMessage {
     // (undocumented)
     text: string;
@@ -139,8 +124,6 @@ export interface TLAiUpdateBindingChange<B extends TLBinding = TLBinding> {
     // (undocumented)
     binding: TLBindingUpdate<B>;
     // (undocumented)
-    complete: boolean;
-    // (undocumented)
     description: string;
     // (undocumented)
     type: 'updateBinding';
@@ -148,8 +131,6 @@ export interface TLAiUpdateBindingChange<B extends TLBinding = TLBinding> {
 
 // @public (undocumented)
 export interface TLAiUpdateShapeChange<T extends TLShape = TLShape> {
-    // (undocumented)
-    complete: boolean;
     // (undocumented)
     description: string;
     // (undocumented)
@@ -178,7 +159,7 @@ export interface TldrawAi {
 
 // @public
 export type TldrawAiApplyFn = (opts: {
-    change: TLAiStreamingChange;
+    change: TLAiChange;
     editor: Editor;
 }) => void;
 
@@ -195,7 +176,7 @@ export class TldrawAiModule {
     // (undocumented)
     dispose(): void;
     generate(options: TldrawAiPromptOptions): Promise<{
-        handleChange: (change: TLAiStreamingChange, apply: TldrawAiApplyFn) => void;
+        handleChange: (change: TLAiChange, apply: TldrawAiApplyFn) => void;
         prompt: TLAiPrompt;
     }>;
     getPrompt(options: TldrawAiPromptOptions): Promise<TLAiPrompt>;
@@ -234,15 +215,15 @@ export type TldrawAiStreamFn = (opts: {
     editor: Editor;
     prompt: TLAiSerializedPrompt;
     signal: AbortSignal;
-}) => AsyncGenerator<TLAiStreamingChange>;
+}) => AsyncGenerator<TLAiChange>;
 
 // @public (undocumented)
 export abstract class TldrawAiTransform {
     constructor(editor: Editor);
     // (undocumented)
     editor: Editor;
-    transformChange?(change: TLAiStreamingChange): TLAiStreamingChange;
-    transformChanges?(changes: TLAiStreamingChange[]): TLAiStreamingChange[];
+    transformChange?(change: TLAiChange): TLAiChange;
+    transformChanges?(changes: TLAiChange[]): TLAiChange[];
     transformPrompt?(prompt: TLAiPrompt): TLAiPrompt;
 }
 

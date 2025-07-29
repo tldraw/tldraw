@@ -1,6 +1,7 @@
-import { TLAiResult, TLAiStreamingChange, TldrawAiOptions, useTldrawAi } from '@tldraw/ai'
+import { TLAiChange, TLAiResult, TldrawAiOptions, useTldrawAi } from '@tldraw/ai'
 import { Editor } from 'tldraw'
-import { applyAgentChange, TLAgentStreamingChange } from './applyAgentChange'
+import { Streaming, TLAgentChange } from './AgentChange'
+import { applyAgentChange } from './applyAgentChange'
 import { applyAiChange } from './applyAiChange'
 import { SimplishCoordinates } from './transforms/SimplishCoordinates'
 import { SimplishIds } from './transforms/SimplishIds'
@@ -68,7 +69,7 @@ const STATIC_TLDRAWAI_OPTIONS: TldrawAiOptions = {
 					const match = event.match(/^data: (.+)$/m)
 					if (match) {
 						try {
-							const agentChange: TLAgentStreamingChange = JSON.parse(match[1])
+							const agentChange: Streaming<TLAgentChange> = JSON.parse(match[1])
 							applyAgentChange(agentChange)
 
 							const aiChange = getAiChangeFromAgentChange(agentChange)
@@ -88,9 +89,8 @@ const STATIC_TLDRAWAI_OPTIONS: TldrawAiOptions = {
 	},
 }
 
-function getAiChangeFromAgentChange(
-	change: TLAgentStreamingChange
-): TLAiStreamingChange | undefined {
+function getAiChangeFromAgentChange(change: Streaming<TLAgentChange>): TLAiChange | null {
+	if (!change.complete) return null
 	switch (change.type) {
 		case 'createShape':
 		case 'updateShape':
@@ -100,8 +100,6 @@ function getAiChangeFromAgentChange(
 		case 'deleteBinding': {
 			return change
 		}
-		default: {
-			return undefined
-		}
 	}
+	return null
 }

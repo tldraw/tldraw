@@ -1,8 +1,8 @@
-import { defaultApplyChange, TLAiStreamingChange } from '@tldraw/ai'
+import { defaultApplyChange, TLAiChange } from '@tldraw/ai'
 import { Editor } from 'tldraw'
 import { createOrUpdateHistoryItem } from './ChatHistory'
 
-export function applyAiChange({ change, editor }: { change: TLAiStreamingChange; editor: Editor }) {
+export function applyAiChange({ change, editor }: { change: TLAiChange; editor: Editor }) {
 	const diff = editor.store.extractingChanges(() => {
 		defaultApplyChange({ change, editor })
 	})
@@ -11,7 +11,7 @@ export function applyAiChange({ change, editor }: { change: TLAiStreamingChange;
 		type: 'agent-change',
 		diff,
 		change,
-		status: change.complete ? 'done' : 'progress',
+		status: 'done',
 		acceptance: 'pending',
 	})
 }

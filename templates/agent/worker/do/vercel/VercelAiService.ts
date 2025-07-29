@@ -3,7 +3,7 @@ import { createGoogleGenerativeAI, GoogleGenerativeAIProvider } from '@ai-sdk/go
 import { createOpenAI, OpenAIProvider } from '@ai-sdk/openai'
 import { TLAiSerializedPrompt } from '@tldraw/ai'
 import { generateObject, LanguageModel, streamObject } from 'ai'
-import { TLAgentChange, TLAgentStreamingChange } from '../../../client/applyAgentChange'
+import { Streaming, TLAgentChange } from '../../../client/AgentChange'
 import { getTLAgentModelDefinition, TLAgentModelName } from '../../models'
 import { getTldrawAgentChangesFromSimpleEvents } from '../../simple/getTldrawAgentChangesFromSimpleEvents'
 import { IModelResponse, ISimpleEvent, ModelResponse } from '../../simple/schema'
@@ -40,7 +40,7 @@ export class VercelAiService extends TldrawAiBaseService {
 		return changes
 	}
 
-	async *stream(prompt: TLAiSerializedPrompt): AsyncGenerator<TLAgentStreamingChange> {
+	async *stream(prompt: TLAiSerializedPrompt): AsyncGenerator<Streaming<TLAgentChange>> {
 		const model = this.getModel(prompt.meta.modelName)
 		for await (const event of streamEventsVercel(model, prompt)) {
 			for (const change of getTldrawAgentChangesFromSimpleEvents(prompt, event)) {

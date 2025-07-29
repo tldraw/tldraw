@@ -1,13 +1,6 @@
-import {
-	TLAiChange,
-	TLAiCreateBindingChange,
-	TLAiCreateShapeChange,
-	TLAiSerializedPrompt,
-	TLAiUpdateShapeChange,
-} from '@tldraw/ai'
+import { TLAiSerializedPrompt } from '@tldraw/ai'
 import {
 	IndexKey,
-	TLArrowBinding,
 	TLArrowShape,
 	TLDefaultFillStyle,
 	TLGeoShape,
@@ -20,7 +13,7 @@ import {
 	TLTextShape,
 	toRichText,
 } from 'tldraw'
-import { Streaming, TLAgentStreamingChange } from '../../client/applyAgentChange'
+import { Streaming, TLAgentChange } from '../../client/AgentChange'
 import {
 	ISimpleColor,
 	ISimpleCreateEvent,
@@ -43,7 +36,7 @@ function toRichTextIfNeeded(text: string | { type: string; content: any[] }): TL
 export function getTldrawAgentChangesFromSimpleEvents(
 	prompt: TLAiSerializedPrompt,
 	event: Streaming<ISimpleEvent>
-): TLAgentStreamingChange[] {
+): Streaming<TLAgentChange>[] {
 	if (event.complete) {
 		console.log('getTldrawAiChangesFromSimpleEvents [EVENT FROM MODEL]', event)
 	}
@@ -101,8 +94,8 @@ function simpleFillToShapeFill(fill: ISimpleFill): TLDefaultFillStyle {
 function getTldrawAiChangesFromSimpleUpdateEvent(
 	prompt: TLAiSerializedPrompt,
 	event: Streaming<ISimpleUpdateEvent>
-): TLAiChange[] {
-	const changes: TLAiChange[] = []
+): Streaming<TLAgentChange>[] {
+	const changes: Streaming<TLAgentChange>[] = []
 	if (!event.complete) {
 		const update = event.update
 
@@ -233,7 +226,7 @@ function getTldrawAiChangesFromSimpleUpdateEvent(
 				type: 'updateShape',
 				description: event.intent ?? '',
 				shape: mergedShape,
-			} satisfies TLAiUpdateShapeChange<TLArrowShape>)
+			})
 
 			for (const binding of prompt.canvasContent.bindings.filter(
 				(b) => b.fromId === update.shapeId
@@ -267,7 +260,7 @@ function getTldrawAiChangesFromSimpleUpdateEvent(
 						},
 						meta: {},
 					},
-				} satisfies TLAiCreateBindingChange<TLArrowBinding>)
+				})
 			}
 
 			// Does the arrow have an end shape? Then try to create the binding
@@ -291,7 +284,7 @@ function getTldrawAiChangesFromSimpleUpdateEvent(
 						},
 						meta: {},
 					},
-				} satisfies TLAiCreateBindingChange<TLArrowBinding>)
+				})
 			}
 
 			break
@@ -343,7 +336,7 @@ function getTldrawAiChangesFromSimpleUpdateEvent(
 				type: 'updateShape',
 				description: event.intent ?? '',
 				shape: mergedShape,
-			} satisfies TLAiUpdateShapeChange<TLGeoShape>)
+			})
 
 			break
 		}
@@ -372,7 +365,7 @@ function getTldrawAiChangesFromSimpleUpdateEvent(
 				type: 'updateShape',
 				description: event.intent ?? '',
 				shape: mergedShape,
-			} satisfies TLAiUpdateShapeChange<TLNoteShape>)
+			})
 
 			break
 		}
@@ -397,7 +390,7 @@ function getTldrawAiChangesFromSimpleUpdateEvent(
 				type: 'updateShape',
 				description: event.intent ?? '',
 				shape: mergedShape,
-			} satisfies TLAiUpdateShapeChange<TLShape>)
+			})
 
 			break
 		}
@@ -409,8 +402,8 @@ function getTldrawAiChangesFromSimpleUpdateEvent(
 function getTldrawAiChangesFromSimpleCreateEvent(
 	prompt: TLAiSerializedPrompt,
 	event: Streaming<ISimpleCreateEvent>
-): TLAiChange[] {
-	const changes: TLAiChange[] = []
+): Streaming<TLAgentChange>[] {
+	const changes: Streaming<TLAgentChange>[] = []
 	if (!event.complete) {
 		const shape = event.shape
 		changes.push({
@@ -449,7 +442,7 @@ function getTldrawAiChangesFromSimpleCreateEvent(
 						note: shape.note ?? '',
 					},
 				},
-			} satisfies TLAiCreateShapeChange<TLTextShape>)
+			})
 			break
 		}
 		case 'line': {
@@ -490,7 +483,7 @@ function getTldrawAiChangesFromSimpleCreateEvent(
 						note: shape.note ?? '',
 					},
 				},
-			} satisfies TLAiCreateShapeChange<TLLineShape>)
+			})
 			break
 		}
 		case 'arrow': {
@@ -523,7 +516,7 @@ function getTldrawAiChangesFromSimpleCreateEvent(
 						note: shape.note ?? '',
 					},
 				},
-			} satisfies TLAiCreateShapeChange<TLArrowShape>)
+			})
 
 			// Does the arrow have a start shape? Then try to create the binding
 			const startShape = fromId ? prompt.canvasContent.shapes.find((s) => s.id === fromId) : null
@@ -545,7 +538,7 @@ function getTldrawAiChangesFromSimpleCreateEvent(
 						},
 						meta: {},
 					},
-				} satisfies TLAiCreateBindingChange<TLArrowBinding>)
+				})
 			}
 
 			// Does the arrow have an end shape? Then try to create the binding
@@ -569,7 +562,7 @@ function getTldrawAiChangesFromSimpleCreateEvent(
 						},
 						meta: {},
 					},
-				} satisfies TLAiCreateBindingChange<TLArrowBinding>)
+				})
 			}
 			break
 		}
@@ -614,7 +607,7 @@ function getTldrawAiChangesFromSimpleCreateEvent(
 						note: shape.note ?? '',
 					},
 				},
-			} satisfies TLAiCreateShapeChange<TLGeoShape>)
+			})
 			break
 		}
 
@@ -636,7 +629,7 @@ function getTldrawAiChangesFromSimpleCreateEvent(
 						note: shape.note ?? '',
 					},
 				},
-			} satisfies TLAiCreateShapeChange<TLNoteShape>)
+			})
 			break
 		}
 
@@ -677,8 +670,8 @@ function getTldrawAiChangesFromSimpleCreateEvent(
 function getTldrawAiChangesFromSimpleDeleteEvent(
 	prompt: TLAiSerializedPrompt,
 	event: Streaming<ISimpleDeleteEvent>
-): TLAiChange[] {
-	const changes: TLAiChange[] = []
+): Streaming<TLAgentChange>[] {
+	const changes: Streaming<TLAgentChange>[] = []
 
 	if (!event.complete) {
 		changes.push({
@@ -704,8 +697,8 @@ function getTldrawAiChangesFromSimpleDeleteEvent(
 function getTldrawAiChangesFromSimpleMoveEvent(
 	prompt: TLAiSerializedPrompt,
 	event: Streaming<ISimpleMoveEvent>
-): TLAiChange[] {
-	const changes: TLAiChange[] = []
+): Streaming<TLAgentChange>[] {
+	const changes: Streaming<TLAgentChange>[] = []
 
 	if (!event.complete) {
 		return changes
@@ -731,8 +724,8 @@ function getTldrawAiChangesFromSimpleMoveEvent(
 function getTldrawAiChangesFromSimpleLabelEvent(
 	prompt: TLAiSerializedPrompt,
 	event: Streaming<ISimpleLabelEvent>
-): TLAiChange[] {
-	const changes: TLAiChange[] = []
+): Streaming<TLAgentChange>[] {
+	const changes: Streaming<TLAgentChange>[] = []
 
 	if (!event.complete) {
 		return changes

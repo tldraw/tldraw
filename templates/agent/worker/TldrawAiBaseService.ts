@@ -1,5 +1,5 @@
 import { TLAiSerializedPrompt } from '@tldraw/ai'
-import { TLAgentChange, TLAgentStreamingChange } from '../client/applyAgentChange'
+import { Streaming, TLAgentChange } from '../client/AgentChange'
 import { Environment } from './types'
 
 export abstract class TldrawAiBaseService {
@@ -7,5 +7,5 @@ export abstract class TldrawAiBaseService {
 
 	abstract generate(prompt: TLAiSerializedPrompt): Promise<TLAgentChange[]>
 
-	abstract stream(prompt: TLAiSerializedPrompt): AsyncGenerator<TLAgentStreamingChange>
+	abstract stream(prompt: TLAiSerializedPrompt): AsyncGenerator<Streaming<TLAgentChange>>
 }

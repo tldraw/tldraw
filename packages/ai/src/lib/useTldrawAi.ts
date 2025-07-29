@@ -8,7 +8,7 @@ import {
 	useMaybeEditor,
 } from 'tldraw'
 import { TldrawAiModule, TldrawAiModuleOptions } from './TldrawAiModule'
-import { TLAiChange, TLAiPrompt, TLAiSerializedPrompt, TLAiStreamingChange } from './types'
+import { TLAiChange, TLAiPrompt, TLAiSerializedPrompt } from './types'
 
 /** @public */
 export interface TldrawAi {
@@ -35,13 +35,13 @@ export type TldrawAiStreamFn = (opts: {
 	editor: Editor
 	prompt: TLAiSerializedPrompt
 	signal: AbortSignal
-}) => AsyncGenerator<TLAiStreamingChange>
+}) => AsyncGenerator<TLAiChange>
 
 /**
  * The function signature for applying changes to the editor.
  * @public
  */
-export type TldrawAiApplyFn = (opts: { change: TLAiStreamingChange; editor: Editor }) => void
+export type TldrawAiApplyFn = (opts: { change: TLAiChange; editor: Editor }) => void
 
 /** @public */
 export interface TldrawAiOptions extends Omit<TldrawAiModuleOptions, 'editor'> {
@@ -80,7 +80,7 @@ export function useTldrawAi(opts: TldrawAiOptions): TldrawAi {
 
 	const rCancelFunction = useRef<(() => void) | null>(null)
 	const rPreviousArguments = useRef<TldrawAiPromptOptions>('')
-	const rPreviousChanges = useRef<TLAiStreamingChange[]>([])
+	const rPreviousChanges = useRef<TLAiChange[]>([])
 
 	/**
 	 * Prompt the AI for a response. If the stream flag is set to true, the call will stream changes as they are ready.
@@ -115,7 +115,7 @@ export function useTldrawAi(opts: TldrawAiOptions): TldrawAi {
 						contextBounds: prompt.contextBounds.toJson(),
 					}
 
-					const pendingChanges: TLAiStreamingChange[] = []
+					const pendingChanges: TLAiChange[] = []
 
 					if (stream) {
 						if (!streamFn) {
@@ -282,15 +282,8 @@ export function useTldrawAi(opts: TldrawAiOptions): TldrawAi {
  *
  * @public
  */
-export function defaultApplyChange({
-	change,
-	editor,
-}: {
-	change: TLAiStreamingChange
-	editor: Editor
-}) {
+export function defaultApplyChange({ change, editor }: { change: TLAiChange; editor: Editor }) {
 	if (editor.isDisposed) return
-	if (!change.complete) return
 
 	try {
 		switch (change.type) {
