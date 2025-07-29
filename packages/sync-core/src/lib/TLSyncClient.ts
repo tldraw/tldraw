@@ -328,7 +328,9 @@ export class TLSyncClient<R extends UnknownRecord, S extends Store<R> = Store<R>
 			protocolVersion: getTlsyncProtocolVersion(),
 			lastServerClock: this.lastServerClock,
 			supportsCompression:
-				typeof CompressionStream !== 'undefined' && process.env.NODE_ENV !== 'test',
+				typeof CompressionStream !== 'undefined' &&
+				process.env.NODE_ENV !== 'test' &&
+				(globalThis as any).__tldraw__noCompression !== true,
 		})
 	}
 

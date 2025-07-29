@@ -23,7 +23,7 @@ import {
 } from 'tldraw'
 import { ThemeUpdater } from '../../../components/ThemeUpdater/ThemeUpdater'
 import { useOpenUrlAndTrack } from '../../../hooks/useOpenUrlAndTrack'
-import { useHandleUiEvents } from '../../../utils/analytics'
+import { trackEvent, useHandleUiEvents } from '../../../utils/analytics'
 import { assetUrls } from '../../../utils/assetUrls'
 import { MULTIPLAYER_SERVER } from '../../../utils/config'
 import { createAssetFromUrl } from '../../../utils/createAssetFromUrl'
@@ -127,8 +127,14 @@ function TlaEditorInner({ fileSlug, deepLinks }: TlaEditorProps) {
 		})
 	}, [hideAllShapes])
 
+	const loadTime = useRef(Date.now())
+
 	const handleMount = useCallback(
 		(editor: Editor) => {
+			const readyTime = Date.now()
+			trackEvent('editor-load-time', { loadTime: readyTime - loadTime.current })
+			// eslint-disable-next-line no-console
+			console.info('editor load time', readyTime - loadTime.current)
 			;(window as any).app = app
 			;(window as any).editor = editor
 			// Register the editor globally
