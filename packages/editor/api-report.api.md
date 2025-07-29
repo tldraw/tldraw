@@ -13,6 +13,7 @@ import { Editor as Editor_2 } from '@tiptap/core';
 import { EditorProviderProps as EditorProviderProps_2 } from '@tiptap/react';
 import EventEmitter from 'eventemitter3';
 import { ExoticComponent } from 'react';
+import { ForwardRefExoticComponent } from 'react';
 import { HistoryEntry } from '@tldraw/store';
 import { IndexKey } from '@tldraw/utils';
 import { JsonObject } from '@tldraw/utils';
@@ -29,6 +30,7 @@ import { ReactElement } from 'react';
 import { ReactNode } from 'react';
 import { RecordProps } from '@tldraw/tlschema';
 import { RecordsDiff } from '@tldraw/store';
+import { RefAttributes } from 'react';
 import { RefObject } from 'react';
 import { SerializedSchema } from '@tldraw/store';
 import { SerializedStore } from '@tldraw/store';
@@ -643,6 +645,9 @@ export const DefaultShapeIndicator: NamedExoticComponent<TLShapeIndicatorProps>;
 
 // @public (undocumented)
 export const DefaultShapeIndicators: NamedExoticComponent<TLShapeIndicatorsProps>;
+
+// @public (undocumented)
+export const DefaultShapeWrapper: ForwardRefExoticComponent<TLShapeWrapperProps & RefAttributes<HTMLDivElement>>;
 
 // @public (undocumented)
 export function DefaultSnapIndicator({ className, line, zoom }: TLSnapIndicatorProps): JSX_2.Element;
@@ -3369,6 +3374,8 @@ export interface TLEditorComponents {
     // (undocumented)
     ShapeIndicators?: ComponentType | null;
     // (undocumented)
+    ShapeWrapper?: ComponentType<TLShapeWrapperProps & RefAttributes<HTMLDivElement>> | null;
+    // (undocumented)
     SnapIndicator?: ComponentType<TLSnapIndicatorProps> | null;
     // (undocumented)
     Spinner?: ComponentType<React.SVGProps<SVGSVGElement>> | null;
@@ -4090,6 +4097,13 @@ export interface TLShapeUtilConstructor<T extends TLUnknownShape, U extends Shap
     props?: RecordProps<T>;
     // (undocumented)
     type: T['type'];
+}
+
+// @public (undocumented)
+export interface TLShapeWrapperProps extends React.HTMLAttributes<HTMLDivElement> {
+    children: ReactNode;
+    isBackground: boolean;
+    shape: TLShape;
 }
 
 // @public (undocumented)
