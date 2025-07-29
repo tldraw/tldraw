@@ -17,6 +17,13 @@ body {
 	grid-template-columns: 1fr 350px;
 }
 
+@media (max-width: 768px) {
+	.tldraw-ai-container {
+		grid-template-columns: 1fr;
+		grid-template-rows: 1fr auto;
+	}
+}
+
 .chat-panel.tl-theme__light {
 	--color-text-2: hsl(0, 0%, 55%);
 	--color-primary-hover: hsl(214, 84%, 58%);
@@ -46,6 +53,12 @@ body {
 	font-weight: 400;
 	font-size: 12px;
 	line-height: 1.5;
+}
+
+@media (max-width: 768px) {
+	.chat-panel {
+		height: 50vh;
+	}
 }
 
 .chat-panel * {
