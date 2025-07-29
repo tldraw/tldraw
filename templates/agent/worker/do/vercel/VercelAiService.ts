@@ -230,9 +230,19 @@ function buildContextShapesMessages(prompt: TLAiSerializedPrompt): CoreMessage[]
 }
 
 function buildHistoryMessages(prompt: TLAiSerializedPrompt): CoreMessage[] {
+	const historyItems = prompt.meta.historyItems
 	const messages: CoreMessage[] = []
 
-	for (const item of prompt.meta.historyItems) {
+	// If the last message is from the user, skip it
+	const lastIndex = historyItems.length - 1
+	let end = historyItems.length
+	if (end > 0 && historyItems[lastIndex].type === 'user-message') {
+		end = lastIndex
+	}
+
+	for (let i = 0; i < end; i++) {
+		const item = historyItems[i]
+		console.log('item', item)
 		const message = buildHistoryItemMessage(item)
 		if (message) {
 			messages.push(message)
