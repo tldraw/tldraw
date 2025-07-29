@@ -9,7 +9,11 @@ import {
 	tlmenus,
 	useEditor,
 } from 'tldraw'
-import { ComponentMenuContent } from './ComponentMenuContent'
+import { AddNode } from '../nodes/types/AddNode'
+import { DivideNode } from '../nodes/types/DivideNode'
+import { MultiplyNode } from '../nodes/types/MultiplyNode'
+import { SubtractNode } from '../nodes/types/SubtractNode'
+import { CreateNodeToolbarButton } from './CreateNodeToobarButton'
 import { MathematicalIcon } from './icons/MathematicalIcon'
 
 export function MathematicalToolbarItem() {
@@ -18,6 +22,8 @@ export function MathematicalToolbarItem() {
 	const popoverId = 'toolbar mathematical'
 	const [isOpen, setIsOpen] = useState(false)
 	const editor = useEditor()
+
+	const onClose = () => setIsOpen(false)
 
 	return (
 		<TldrawUiPopover id={popoverId} open={isOpen} onOpenChange={setIsOpen}>
@@ -44,7 +50,10 @@ export function MathematicalToolbarItem() {
 					}}
 				>
 					<TldrawUiMenuContextProvider type="toolbar-overflow" sourceId="toolbar">
-						<ComponentMenuContent hideLabels />
+						<CreateNodeToolbarButton definition={AddNode} onClose={onClose} type="menu" />
+						<CreateNodeToolbarButton definition={SubtractNode} onClose={onClose} type="menu" />
+						<CreateNodeToolbarButton definition={MultiplyNode} onClose={onClose} type="menu" />
+						<CreateNodeToolbarButton definition={DivideNode} onClose={onClose} type="menu" />
 					</TldrawUiMenuContextProvider>
 				</TldrawUiToolbar>
 			</TldrawUiPopoverContent>

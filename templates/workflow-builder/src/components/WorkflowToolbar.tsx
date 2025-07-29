@@ -33,6 +33,9 @@ import {
 	useUniqueSafeId,
 	XBoxToolbarItem,
 } from 'tldraw'
+import { ConditionalNode } from '../nodes/types/ConditionalNode'
+import { SliderNode } from '../nodes/types/SliderNode'
+import { CreateNodeToolbarButton } from './CreateNodeToobarButton'
 import { DraggableToolbarItem } from './DraggableToolbarItem'
 import { MathematicalToolbarItem } from './MathematicalToolbarItem'
 
@@ -72,6 +75,9 @@ export function WorkflowToolbar() {
 							/>
 
 							<MathematicalToolbarItem />
+
+							<CreateNodeToolbarButton definition={SliderNode} type="tool" />
+							<CreateNodeToolbarButton definition={ConditionalNode} type="tool" />
 						</TldrawUiMenuContextProvider>
 
 						<TldrawUiPopover id={popoverId} open={isOpen} onOpenChange={setIsOpen}>
