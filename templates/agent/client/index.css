@@ -211,13 +211,15 @@ body {
 .chat-model-select:hover,
 .chat-context-select:hover {
 	color: var(--color-text);
+	border-color: var(--color-text);
 }
 
 .chat-model-select select,
 .chat-context-select select {
 	opacity: 0;
 	position: absolute;
-	inset: 0px;
+	left: -1px;
+	right: -1px;
 	background-color: transparent;
 	border-radius: 6px;
 	padding: 2px 16px 2px 0px;
@@ -238,8 +240,8 @@ body {
 
 .chat-context-select.active {
 	background-color: var(--color-primary);
-	color: var(--color-text-1);
-	border-color: var(--color-text-1);
+	color: black;
+	border-color: black;
 }
 
 .chat-context-select.active:hover {
@@ -474,29 +476,5 @@ body {
 @keyframes dash {
 	to {
 		stroke-dashoffset: -2000;
-	}
-}
-
-.live-dot {
-	width: 10px;
-	height: 10px;
-	border-radius: 50%;
-	background-color: white;
-	display: inline-block;
-	animation: live-dot-pulse 1.5s infinite ease-in-out;
-}
-
-@keyframes live-dot-pulse {
-	0% {
-		/* box-shadow: 0 0 0 0 rgba(52, 120, 246, 0.7); */
-		opacity: 1;
-	}
-	70% {
-		/* box-shadow: 0 0 0 8px rgba(52, 120, 246, 0); */
-		opacity: 0.7;
-	}
-	100% {
-		/* box-shadow: 0 0 0 0 rgba(52, 120, 246, 0); */
-		opacity: 1;
 	}
 }
