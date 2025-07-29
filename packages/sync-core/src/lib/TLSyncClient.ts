@@ -12,6 +12,7 @@ import {
 	assert,
 	exhaustiveSwitchError,
 	fpsThrottle,
+	getFromLocalStorage,
 	isEqual,
 	objectMapEntries,
 	uniqueId,
@@ -107,6 +108,8 @@ export interface TLPersistentClientSocket<R extends UnknownRecord = UnknownRecor
 
 const PING_INTERVAL = 5000
 const MAX_TIME_TO_WAIT_FOR_SERVER_INTERACTION_BEFORE_RESETTING_CONNECTION = PING_INTERVAL * 2
+
+const disableCompression = getFromLocalStorage('__tldraw__noCompression') === 'true'
 
 // Should connect support chunking the response to allow for large payloads?
 
@@ -330,7 +333,7 @@ export class TLSyncClient<R extends UnknownRecord, S extends Store<R> = Store<R>
 			supportsCompression:
 				typeof CompressionStream !== 'undefined' &&
 				process.env.NODE_ENV !== 'test' &&
-				(globalThis as any).__tldraw__noCompression !== true,
+				!disableCompression,
 		})
 	}
 
