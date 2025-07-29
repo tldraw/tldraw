@@ -313,10 +313,22 @@ body {
 	cursor: pointer;
 	height: 20px;
 	user-select: none;
+	display: flex;
+	align-items: center;
+	gap: 4px;
+	flex-direction: row;
 }
 
 .agent-change-message-actions button:hover {
 	color: var(--color-text);
+}
+
+.agent-change-message-actions button:first-child svg {
+	color: red;
+}
+
+.agent-change-message-actions button:last-child svg {
+	color: green;
 }
 
 .agent-change-message-actions button:first-child {

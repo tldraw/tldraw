@@ -107,7 +107,7 @@ export function ChatInput({
 
 	return (
 		<div className="chat-input">
-			<div className="chat-input-context-attachments">
+			{/* <div className="chat-input-context-attachments">
 				{contextAttachments.map(
 					(item, i) =>
 						item.source === 'user' && (
@@ -116,7 +116,7 @@ export function ChatInput({
 							</div>
 						)
 				)}
-			</div>
+			</div> */}
 			<form
 				onSubmit={(e) => {
 					e.preventDefault()

@@ -1,5 +1,5 @@
 import { TLAiChange } from '@tldraw/ai'
-import { useCallback, useEffect, useState } from 'react'
+import { useCallback, useEffect, useMemo, useState } from 'react'
 import {
 	defaultColorNames,
 	Editor,
@@ -215,12 +215,16 @@ export function AgentChangeHistoryItems({
 			for (const item of items) {
 				const index = newItems.findIndex((v) => v === item)
 				if (index !== -1) {
+					// If the item was previously rejected, we need to re-apply the original diff
+					if (item.acceptance === 'rejected') {
+						editor.store.applyDiff(item.diff)
+					}
 					newItems[index] = { ...item, acceptance: 'accepted', status: 'done' }
 				}
 			}
 			return newItems
 		})
-	}, [items])
+	}, [items, editor])
 
 	const handleReject = useCallback(() => {
 		$chatHistoryItems.update((oldItems) => {
@@ -230,31 +234,41 @@ export function AgentChangeHistoryItems({
 				if (index !== -1) {
 					newItems[index] = { ...item, acceptance: 'rejected', status: 'done' }
 				}
-				const reverseDiff = reverseRecordsDiff(item.diff)
-				editor.store.applyDiff(reverseDiff)
+				// Only apply reverse diff if the item wasn't already rejected
+				if (item.acceptance !== 'rejected') {
+					const reverseDiff = reverseRecordsDiff(item.diff)
+					editor.store.applyDiff(reverseDiff)
+				}
 			}
 			return newItems
 		})
 	}, [items, editor])
 
-	const acceptance: AgentChangeHistoryItem['acceptance'] = items[0].acceptance
-	const acceptanceConsensus = items.every((item) => item.acceptance === acceptance)
+	const acceptance = useMemo<AgentChangeHistoryItem['acceptance']>(
+		() => items[0].acceptance,
+		[items]
+	)
+	const acceptanceConsensus = useMemo(
+		() => items.every((item) => item.acceptance === acceptance),
+		[items, acceptance]
+	)
 
 	return (
 		<div className="agent-change-message">
 			<div className="agent-change-message-actions">
 				{!acceptanceConsensus ? (
 					<span className="agent-change-message-acceptance-notice">Error</span>
-				) : acceptance === 'pending' ? (
-					<>
-						<button onClick={handleReject}>Reject</button>
-						<button onClick={handleAccept}>Accept</button>
-					</>
 				) : (
-					<span className="agent-change-message-acceptance-notice">
-						{/* TODO: Remove this. Leave the buttons there and let the user change to accepted or rejected */}
-						{acceptance === 'accepted' ? <TickIcon /> : <CrossIcon />}
-					</span>
+					<>
+						<button onClick={handleReject}>
+							{acceptance === 'rejected' && <CrossIcon />}
+							<p>Reject{acceptance === 'rejected' && 'ed'}</p>
+						</button>
+						<button onClick={handleAccept}>
+							{acceptance === 'accepted' && <TickIcon />}
+							<p>Accept{acceptance === 'accepted' && 'ed'}</p>
+						</button>
+					</>
 				)}
 			</div>
 			<TldrawViewer shapes={diffShapes} />
