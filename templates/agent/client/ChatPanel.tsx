@@ -55,7 +55,7 @@ export function ChatPanel({ editor }: { editor: Editor }) {
 						modelName,
 						historyItems: $chatHistoryItems.get().filter((item) => item.type !== 'status-thinking'),
 						contextItems: getSimpleContextItemsFromContextItems(request.contextItems),
-						currentPageShapes: editor.getCurrentPageShapesSorted(),
+						currentPageShapes: editor.getCurrentPageShapesSorted().map((v) => ({ ...v })),
 						currentUserViewportBounds: editor.getViewportPageBounds(),
 						type: request.type,
 					},

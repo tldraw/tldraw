@@ -30,15 +30,14 @@ export class SimplishCoordinates extends TldrawAiTransform {
 			shape.y = roundedY
 		}
 
-		// TODO this is throwing an error at shape.x = roundedX because it is apparently a readonly property
-		// for (const shape of currentPageShapes) {
-		// const roundedX = Math.floor(shape.x)
-		// const roundedY = Math.floor(shape.y)
-		// this.setRoundingDiff(shape.id, 'x', roundedX - shape.x)
-		// this.setRoundingDiff(shape.id, 'y', roundedY - shape.y)
-		// shape.x = roundedX
-		// shape.y = roundedY
-		// }
+		for (const shape of currentPageShapes) {
+			const roundedX = Math.floor(shape.x)
+			const roundedY = Math.floor(shape.y)
+			this.setRoundingDiff(shape.id, 'x', roundedX - shape.x)
+			this.setRoundingDiff(shape.id, 'y', roundedY - shape.y)
+			shape.x = roundedX
+			shape.y = roundedY
+		}
 
 		for (const key in contextItems.areas) {
 			const area = contextItems.areas[key]
