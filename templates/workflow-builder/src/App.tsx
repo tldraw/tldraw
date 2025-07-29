@@ -1,9 +1,12 @@
 import {
 	DefaultActionsMenu,
 	DefaultQuickActions,
+	DefaultStylePanel,
 	TLComponents,
 	Tldraw,
 	TldrawUiToolbar,
+	useEditor,
+	useValue,
 } from 'tldraw'
 import { NodeToolbar } from './components/NodeToolbar.tsx'
 import { OnCanvasComponentPicker } from './components/OnCanvasComponentPicker.tsx'
@@ -38,6 +41,12 @@ const components: TLComponents = {
 		</div>
 	),
 	MenuPanel: () => null,
+	StylePanel: () => {
+		const editor = useEditor()
+		const currentShape = useValue('currentShape', () => editor.getOnlySelectedShape(), [editor])
+		if (['node', 'connection'].includes(currentShape?.type ?? '')) return null
+		return <DefaultStylePanel />
+	},
 }
 
 function App() {
