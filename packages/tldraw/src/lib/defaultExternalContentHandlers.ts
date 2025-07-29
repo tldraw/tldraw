@@ -915,7 +915,8 @@ function runFileChecks(file: File, options: TLDefaultExternalContentHandlerOpts)
 	return true
 }
 
-async function getAssetInfo(
+/** @public */
+export async function getAssetInfo(
 	file: File,
 	options: TLDefaultExternalContentHandlerOpts,
 	assetId?: TLAssetId

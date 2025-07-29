@@ -41,6 +41,7 @@ export { TldrawUiTranslationProvider } from './lib/ui/hooks/useTranslation/useTr
 // eslint-disable-next-line local/no-export-star
 export * from '@tldraw/editor'
 export { ArrowBindingUtil } from './lib/bindings/arrow/ArrowBindingUtil'
+export { TldrawCropHandles, type TldrawCropHandlesProps } from './lib/canvas/TldrawCropHandles'
 export { TldrawHandles } from './lib/canvas/TldrawHandles'
 export { TldrawArrowHints, TldrawOverlays } from './lib/canvas/TldrawOverlays'
 export { TldrawScribble } from './lib/canvas/TldrawScribble'
@@ -71,6 +72,7 @@ export {
 	defaultHandleExternalTldrawContent,
 	defaultHandleExternalUrlAsset,
 	defaultHandleExternalUrlContent,
+	getAssetInfo,
 	getMediaAssetInfoPartial,
 	registerDefaultExternalContentHandlers,
 	type TLDefaultExternalContentHandlerOpts,
@@ -183,6 +185,7 @@ export { TldrawImage, type TldrawImageProps } from './lib/TldrawImage'
 export { EraserTool } from './lib/tools/EraserTool/EraserTool'
 export { HandTool } from './lib/tools/HandTool/HandTool'
 export { LaserTool } from './lib/tools/LaserTool/LaserTool'
+export { getHitShapeOnCanvasPointerDown } from './lib/tools/selection-logic/getHitShapeOnCanvasPointerDown'
 export { SelectTool } from './lib/tools/SelectTool/SelectTool'
 export { ZoomTool } from './lib/tools/ZoomTool/ZoomTool'
 export {
@@ -250,6 +253,7 @@ export {
 	EditSubmenu,
 	ExportFileContentSubMenu,
 	ExtrasGroup,
+	LockGroup,
 	MiscMenuGroup,
 	PreferencesGroup,
 	UndoRedoGroup,
@@ -500,6 +504,10 @@ export {
 	type OverflowingToolbarProps,
 } from './lib/ui/components/Toolbar/OverflowingToolbar'
 export {
+	ToggleToolLockedButton,
+	type ToggleToolLockedButtonProps,
+} from './lib/ui/components/Toolbar/ToggleToolLockedButton'
+export {
 	CenteredTopPanelContainer,
 	type CenteredTopPanelContainerProps,
 } from './lib/ui/components/TopPanel/CenteredTopPanelContainer'
@@ -568,7 +576,7 @@ export {
 	type TLUiToastsContextType,
 	type TLUiToastsProviderProps,
 } from './lib/ui/context/toasts'
-export { useCanRedo, useCanUndo } from './lib/ui/hooks/menu-hooks'
+export { useCanRedo, useCanUndo, useUnlockedSelectedShapesCount } from './lib/ui/hooks/menu-hooks'
 export { useMenuClipboardEvents, useNativeClipboardEvents } from './lib/ui/hooks/useClipboardEvents'
 export {
 	useCollaborationStatus,
