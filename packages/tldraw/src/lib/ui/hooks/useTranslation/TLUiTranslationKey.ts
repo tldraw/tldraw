@@ -67,6 +67,8 @@ export type TLUiTranslationKey =
 	| 'action.rename'
 	| 'action.rotate-ccw'
 	| 'action.rotate-cw'
+	| 'action.rotate-cw-fine'
+	| 'action.rotate-ccw-fine'
 	| 'action.save-copy'
 	| 'action.select-all'
 	| 'action.select-none'

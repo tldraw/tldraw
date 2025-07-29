@@ -1042,13 +1042,13 @@ export function ActionsProvider({ overrides, children }: ActionsProviderProps) {
 					if (!canApplySelectionAction()) return
 					if (mustGoBackToSelectToolFirst()) return
 
-					trackEvent('rotate-cw', { source })
+					trackEvent('rotate-cw', { source, fine: false })
 					editor.markHistoryStoppingPoint('rotate-cw')
 					editor.run(() => {
-						const offset = editor.getSelectionRotation() % (HALF_PI / 2)
-						const dontUseOffset = approximately(offset, 0) || approximately(offset, HALF_PI / 2)
+						const offset = editor.getSelectionRotation() % (HALF_PI / 6)
+						const dontUseOffset = approximately(offset, 0) || approximately(offset, HALF_PI / 6)
 						const selectedShapeIds = editor.getSelectedShapeIds()
-						editor.rotateShapesBy(selectedShapeIds, HALF_PI / 2 - (dontUseOffset ? 0 : offset))
+						editor.rotateShapesBy(selectedShapeIds, HALF_PI / 6 - (dontUseOffset ? 0 : offset))
 						kickoutOccludedShapes(editor, selectedShapeIds)
 					})
 				},
@@ -1062,13 +1062,53 @@ export function ActionsProvider({ overrides, children }: ActionsProviderProps) {
 					if (!canApplySelectionAction()) return
 					if (mustGoBackToSelectToolFirst()) return
 
-					trackEvent('rotate-ccw', { source })
+					trackEvent('rotate-ccw', { source, fine: false })
 					editor.markHistoryStoppingPoint('rotate-ccw')
 					editor.run(() => {
-						const offset = editor.getSelectionRotation() % (HALF_PI / 2)
+						const offset = editor.getSelectionRotation() % (HALF_PI / 6)
 						const offsetCloseToZero = approximately(offset, 0)
 						const selectedShapeIds = editor.getSelectedShapeIds()
-						editor.rotateShapesBy(selectedShapeIds, offsetCloseToZero ? -(HALF_PI / 2) : -offset)
+						editor.rotateShapesBy(selectedShapeIds, offsetCloseToZero ? -(HALF_PI / 6) : -offset)
+						kickoutOccludedShapes(editor, selectedShapeIds)
+					})
+				},
+			},
+			{
+				id: 'rotate-cw-fine',
+				label: 'action.rotate-cw-fine',
+				icon: 'rotate-cw',
+				kbd: 'shift+alt+.',
+				onSelect(source) {
+					if (!canApplySelectionAction()) return
+					if (mustGoBackToSelectToolFirst()) return
+
+					trackEvent('rotate-cw', { source, fine: true })
+					editor.markHistoryStoppingPoint('rotate-cw-fine')
+					editor.run(() => {
+						const offset = editor.getSelectionRotation() % (HALF_PI / 96)
+						const dontUseOffset = approximately(offset, 0) || approximately(offset, HALF_PI / 96)
+						const selectedShapeIds = editor.getSelectedShapeIds()
+						editor.rotateShapesBy(selectedShapeIds, HALF_PI / 96 - (dontUseOffset ? 0 : offset))
+						kickoutOccludedShapes(editor, selectedShapeIds)
+					})
+				},
+			},
+			{
+				id: 'rotate-ccw-fine',
+				label: 'action.rotate-ccw-fine',
+				icon: 'rotate-ccw',
+				kbd: 'shift+alt+,',
+				onSelect(source) {
+					if (!canApplySelectionAction()) return
+					if (mustGoBackToSelectToolFirst()) return
+
+					trackEvent('rotate-ccw', { source, fine: true })
+					editor.markHistoryStoppingPoint('rotate-ccw-fine')
+					editor.run(() => {
+						const offset = editor.getSelectionRotation() % (HALF_PI / 96)
+						const offsetCloseToZero = approximately(offset, 0)
+						const selectedShapeIds = editor.getSelectedShapeIds()
+						editor.rotateShapesBy(selectedShapeIds, offsetCloseToZero ? -(HALF_PI / 96) : -offset)
 						kickoutOccludedShapes(editor, selectedShapeIds)
 					})
 				},

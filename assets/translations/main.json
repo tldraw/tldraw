@@ -63,6 +63,8 @@
 	"action.rename": "Rename",
 	"action.rotate-ccw": "Rotate counterclockwise",
 	"action.rotate-cw": "Rotate clockwise",
+	"action.rotate-cw-fine": "Rotate clockwise (fine)",
+	"action.rotate-ccw-fine": "Rotate counterclockwise (fine)",
 	"action.save-copy": "Save a copy",
 	"action.select-all": "Select all",
 	"action.select-none": "Select none",
