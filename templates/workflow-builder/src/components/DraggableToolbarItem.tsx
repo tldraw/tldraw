@@ -1,5 +1,5 @@
 import React, { ReactElement } from 'react'
-import { TLShapeId, useEditor, useTools, Vec } from 'tldraw'
+import { GeoShapeGeoStyle, TLGeoShapeGeoStyle, TLShapeId, useEditor, useTools, Vec } from 'tldraw'
 import { useDragToCreate } from '../hooks/useDragToCreate'
 
 export interface DraggableToolbarItemProps {
@@ -32,12 +32,12 @@ export function DraggableToolbarItem({
 			}
 
 			// For geometry tools, create the shape directly
-			if (!['text', 'note'].includes(toolId)) {
+			if (GeoShapeGeoStyle.values.includes(toolId as TLGeoShapeGeoStyle)) {
 				editor.createShape({
 					id: shapeId,
 					type: 'geo',
-					x: center.x - 50,
-					y: center.y - 25,
+					x: center.x,
+					y: center.y,
 					props: {
 						geo: toolId as any,
 						w: toolId === 'oval' ? 50 : 100,
@@ -56,6 +56,10 @@ export function DraggableToolbarItem({
 				editor.select(shapeId)
 				editor.setCurrentTool(toolId === 'note' ? 'select' : toolId)
 			}
+
+			const shapeBounds = editor.getShapePageBounds(shapeId)!
+			const nudgeAmount = Vec.Sub(center, shapeBounds.center)
+			editor.nudgeShapes([shapeId], nudgeAmount)
 		})
 
 		return markId

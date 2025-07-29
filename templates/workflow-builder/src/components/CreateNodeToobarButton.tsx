@@ -1,23 +1,17 @@
-import {
-	TldrawUiButton,
-	TldrawUiMenuGroup,
-	TLShapeId,
-	TLShapePartial,
-	useEditor,
-	Vec,
-} from 'tldraw'
+import { TLShapeId, TLShapePartial, TldrawUiToolbarButton, Vec, useEditor } from 'tldraw'
 import { useDragToCreate } from '../hooks/useDragToCreate'
 import { NodeShape } from '../nodes/NodeShapeUtil'
-import { NodeDefinitions, NodeType } from '../nodes/nodeTypes'
+import { NodeType } from '../nodes/nodeTypes'
+import { NodeDefinition } from '../nodes/types/shared'
 
-export function ComponentMenuContent({
+export function CreateNodeToolbarButton<T extends NodeType>({
+	definition,
+	type,
 	onClose,
-	onNodeSelected,
-	hideLabels,
 }: {
+	type: 'tool' | 'menu' | 'icon'
+	definition: NodeDefinition<T>
 	onClose?: () => void
-	onNodeSelected?: (nodeType: NodeType) => void
-	hideLabels?: boolean
 }) {
 	const editor = useEditor()
 
@@ -50,28 +44,15 @@ export function ComponentMenuContent({
 	})
 
 	return (
-		<TldrawUiMenuGroup id="math-operations">
-			{NodeDefinitions.map((definition) => (
-				<TldrawUiButton
-					key={definition.type}
-					type="menu"
-					style={{ justifyContent: 'space-between', gap: 16, cursor: 'grab' }}
-					onPointerDown={(e) => {
-						if (onNodeSelected) {
-							// When used in dialog mode, just call the callback
-							e.preventDefault()
-							e.stopPropagation()
-							onNodeSelected(definition.getDefault())
-						} else {
-							// Use the new drag behavior
-							handlePointerDown(e, definition.getDefault())
-						}
-					}}
-				>
-					{!hideLabels && <span>{definition.title}</span>}
-					{definition.icon}
-				</TldrawUiButton>
-			))}
-		</TldrawUiMenuGroup>
+		<TldrawUiToolbarButton
+			key={definition.type}
+			type={type}
+			style={{ cursor: 'grab' }}
+			onPointerDown={(e) => {
+				handlePointerDown(e, definition.getDefault())
+			}}
+		>
+			{definition.icon}
+		</TldrawUiToolbarButton>
 	)
 }
