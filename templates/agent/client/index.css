@@ -476,3 +476,27 @@ body {
 		stroke-dashoffset: -2000;
 	}
 }
+
+.live-dot {
+	width: 10px;
+	height: 10px;
+	border-radius: 50%;
+	background-color: white;
+	display: inline-block;
+	animation: live-dot-pulse 1.5s infinite ease-in-out;
+}
+
+@keyframes live-dot-pulse {
+	0% {
+		/* box-shadow: 0 0 0 0 rgba(52, 120, 246, 0.7); */
+		opacity: 1;
+	}
+	70% {
+		/* box-shadow: 0 0 0 8px rgba(52, 120, 246, 0); */
+		opacity: 0.7;
+	}
+	100% {
+		/* box-shadow: 0 0 0 0 rgba(52, 120, 246, 0); */
+		opacity: 1;
+	}
+}
