@@ -997,6 +997,13 @@ async function listAllObjectKeys(bucket: R2Bucket, prefix: string): Promise<stri
 	return keys
 }
 
+function toJsonString(value: unknown): string {
+	if (value === undefined) {
+		return 'null'
+	}
+	return JSON.stringify(value)
+}
+
 function* generateSnapshotChunks(snapshot: RoomSnapshot): Generator<Uint8Array> {
 	const encoder = new TextEncoder()
 
@@ -1021,11 +1028,11 @@ function* generateSnapshotChunks(snapshot: RoomSnapshot): Generator<Uint8Array> 
 				if (i > 0) {
 					yield encoder.encode(',')
 				}
-				yield encoder.encode(JSON.stringify(value[i]))
+				yield encoder.encode(toJsonString(value[i]))
 			}
 			yield encoder.encode(']')
 		} else {
-			yield encoder.encode(JSON.stringify(value))
+			yield encoder.encode(toJsonString(value))
 		}
 	}
 
