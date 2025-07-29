@@ -711,6 +711,7 @@ export const defaultTldrawOptions: {
     readonly nonce: undefined;
     readonly temporaryAssetPreviewLifetimeMs: 180000;
     readonly textShadowLod: 0.35;
+    readonly tooltipDelayMs: 700;
 };
 
 // @public (undocumented)
@@ -3295,6 +3296,8 @@ export interface TldrawOptions {
     readonly temporaryAssetPreviewLifetimeMs: number;
     // (undocumented)
     readonly textShadowLod: number;
+    // (undocumented)
+    readonly tooltipDelayMs: number;
 }
 
 // @public (undocumented)

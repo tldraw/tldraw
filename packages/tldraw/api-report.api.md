@@ -3050,7 +3050,7 @@ export interface TldrawUiTooltipProps {
     // (undocumented)
     children: React_3.ReactNode;
     // (undocumented)
-    content?: string;
+    content?: React_3.ReactNode | string;
     // (undocumented)
     disabled?: boolean;
     // (undocumented)

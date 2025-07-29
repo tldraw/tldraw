@@ -1,11 +1,14 @@
-import { Editor, uniqueId, useEditor, useMaybeEditor, useValue, Vec } from '@tldraw/editor'
+import { Editor, uniqueId, useMaybeEditor, Vec } from '@tldraw/editor'
 import { Tooltip as _Tooltip } from 'radix-ui'
 import React, { createContext, useContext, useEffect, useRef, useState } from 'react'
+import { usePrefersReducedMotion } from '../../../shapes/shared/usePrefersReducedMotion'
+
+const DEFAULT_TOOLTIP_DELAY_MS = 700
 
 /** @public */
 export interface TldrawUiTooltipProps {
 	children: React.ReactNode
-	content?: string
+	content?: string | React.ReactNode
 	side?: 'top' | 'right' | 'bottom' | 'left'
 	sideOffset?: number
 	disabled?: boolean
@@ -15,7 +18,7 @@ export interface TldrawUiTooltipProps {
 class TooltipManager {
 	private static instance: TooltipManager | null = null
 	private currentTooltipId: string | null = null
-	private currentContent: string = ''
+	private currentContent: string | React.ReactNode = ''
 	private currentSide: 'top' | 'right' | 'bottom' | 'left' = 'bottom'
 	private currentSideOffset: number = 5
 	private destroyTimeoutId: number | null = null
@@ -45,7 +48,7 @@ class TooltipManager {
 
 	showTooltip(
 		tooltipId: string,
-		content: string,
+		content: string | React.ReactNode,
 		element: HTMLElement,
 		side: 'top' | 'right' | 'bottom' | 'left' = 'bottom',
 		sideOffset: number = 5
@@ -122,6 +125,7 @@ function TooltipSingleton() {
 	const [isOpen, setIsOpen] = useState(false)
 	const triggerRef = useRef<HTMLDivElement>(null)
 	const previousPositionRef = useRef<{ x: number; y: number } | null>(null)
+	const prefersReducedMotion = usePrefersReducedMotion()
 	const [shouldAnimate, setShouldAnimate] = useState(false)
 	const isFirstShowRef = useRef(true)
 	const showTimeoutRef = useRef<number | null>(null)
@@ -167,7 +171,9 @@ function TooltipSingleton() {
 				const isNearPrevious = Vec.DistMin(previousPositionRef.current, newPosition, 200)
 				// Only animate if the distance is less than 200px (nearby tooltips)
 				shouldAnimateCheck =
-					isNearPrevious && Math.abs(newPosition.y - previousPositionRef.current.y) < 50
+					!prefersReducedMotion &&
+					isNearPrevious &&
+					Math.abs(newPosition.y - previousPositionRef.current.y) < 50
 			}
 			// Don't animate on initial show (previousPositionRef.current is null)
 
@@ -184,11 +190,10 @@ function TooltipSingleton() {
 
 			// Handle delay for first show
 			if (isFirstShowRef.current && editor) {
-				// First tooltip needs 300ms delay
 				showTimeoutRef.current = editor.timers.setTimeout(() => {
 					setIsOpen(true)
 					isFirstShowRef.current = false
-				}, 300)
+				}, editor.options.tooltipDelayMs)
 			} else {
 				// Subsequent tooltips show immediately
 				setIsOpen(true)
@@ -202,7 +207,7 @@ function TooltipSingleton() {
 			// Reset first show state after tooltip is hidden
 			isFirstShowRef.current = true
 		}
-	}, [tooltipData.id, tooltipData.element, editor])
+	}, [tooltipData.id, tooltipData.element, editor, prefersReducedMotion])
 
 	if (!tooltipData.id) {
 		return null
@@ -218,6 +223,9 @@ function TooltipSingleton() {
 				data-should-animate={shouldAnimate}
 				side={tooltipData.side}
 				sideOffset={tooltipData.sideOffset}
+				avoidCollisions
+				collisionPadding={8}
+				dir="ltr"
 			>
 				{tooltipData.content}
 				<_Tooltip.Arrow className="tlui-tooltip__arrow" />
@@ -234,22 +242,31 @@ export function TldrawUiTooltip({
 	sideOffset = 5,
 	disabled = false,
 }: TldrawUiTooltipProps) {
-	const editor = useEditor()
-	const showUiLabels = useValue('showUiLabels', () => editor.user.getShowUiLabels(), [editor])
+	const editor = useMaybeEditor()
 	const tooltipId = useRef<string>(uniqueId())
 	const hasProvider = useContext(TooltipSingletonContext)
 
 	// Don't show tooltip if disabled, no content, or UI labels are disabled
-	if (disabled || !content || !showUiLabels) {
+	if (disabled || !content) {
 		return <>{children}</>
 	}
 
 	// Fallback to old behavior if no provider
 	if (!hasProvider) {
 		return (
-			<_Tooltip.Root delayDuration={300} disableHoverableContent>
+			<_Tooltip.Root
+				delayDuration={editor?.options.tooltipDelayMs || DEFAULT_TOOLTIP_DELAY_MS}
+				disableHoverableContent
+			>
 				<_Tooltip.Trigger asChild>{children}</_Tooltip.Trigger>
-				<_Tooltip.Content className="tlui-tooltip" side={side} sideOffset={sideOffset}>
+				<_Tooltip.Content
+					className="tlui-tooltip"
+					side={side}
+					sideOffset={sideOffset}
+					avoidCollisions
+					collisionPadding={8}
+					dir="ltr"
+				>
 					{content}
 					<_Tooltip.Arrow className="tlui-tooltip__arrow" />
 				</_Tooltip.Content>
