@@ -5,8 +5,8 @@ import {
 	getSimpleContentFromCanvasContent,
 	getSimplePeripheralContentFromCanvasContent,
 } from '../../simple/getSimpleContentFromCanvasContent'
-import { getReviewPrompt } from '../../simple/review-prompt'
-import { getSetMyViewPrompt } from '../../simple/set-my-view-prompt'
+import { getReviewPrompt } from './review-prompt'
+import { getSetMyViewPrompt } from './set-my-view-prompt'
 
 export function buildMessages(prompt: TLAiSerializedPrompt): CoreMessage[] {
 	const messages: CoreMessage[] = []
