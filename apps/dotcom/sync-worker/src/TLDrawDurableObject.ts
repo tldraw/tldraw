@@ -1000,21 +1000,34 @@ async function listAllObjectKeys(bucket: R2Bucket, prefix: string): Promise<stri
 function* generateSnapshotChunks(snapshot: RoomSnapshot): Generator<Uint8Array> {
 	const encoder = new TextEncoder()
 
-	yield encoder.encode(
-		`{"clock":${snapshot.clock},"tombstoneHistoryStartsAtClock":${snapshot.tombstoneHistoryStartsAtClock},"tombstones":`
-	)
-	yield encoder.encode(JSON.stringify(snapshot.tombstones))
-	yield encoder.encode(`,"schema":`)
-	yield encoder.encode(JSON.stringify(snapshot.schema))
-	yield encoder.encode(`,"documents":[`)
+	yield encoder.encode('{')
 
-	for (let i = 0; i < snapshot.documents.length; i++) {
-		const document = snapshot.documents[i]
-		yield encoder.encode(JSON.stringify(document))
-		if (i < snapshot.documents.length - 1) {
+	const keys = Object.keys(snapshot) as Array<keyof RoomSnapshot>
+	let isFirstKey = true
+
+	for (const key of keys) {
+		if (isFirstKey) {
+			isFirstKey = false
+		} else {
 			yield encoder.encode(',')
+		}
+
+		yield encoder.encode(`"${key}":`)
+
+		const value = snapshot[key]
+		if (Array.isArray(value)) {
+			yield encoder.encode('[')
+			for (let i = 0; i < value.length; i++) {
+				if (i > 0) {
+					yield encoder.encode(',')
+				}
+				yield encoder.encode(JSON.stringify(value[i]))
+			}
+			yield encoder.encode(']')
+		} else {
+			yield encoder.encode(JSON.stringify(value))
 		}
 	}
 
-	yield encoder.encode(`]}`)
+	yield encoder.encode('}')
 }
