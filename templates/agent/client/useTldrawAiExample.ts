@@ -1,4 +1,4 @@
-import { TLAiChange, TLAiResult, TldrawAiOptions, useTldrawAi } from '@tldraw/ai'
+import { TLAiChange, TldrawAiOptions, useTldrawAi } from '@tldraw/ai'
 import { Editor } from 'tldraw'
 import { Streaming, TLAgentChange } from './AgentChange'
 import { applyAgentChange } from './applyAgentChange'
@@ -31,9 +31,11 @@ const STATIC_TLDRAWAI_OPTIONS: TldrawAiOptions = {
 			signal,
 		})
 
-		const result: TLAiResult = await res.json()
-
-		return result.changes
+		const agentChanges = (await res.json()) as TLAgentChange[]
+		for (const change of agentChanges) {
+			applyAgentChange({ ...change, complete: true })
+		}
+		return getAiChangesFromAgentChanges(agentChanges)
 	},
 	// A function similar to `generate` but that will stream changes from
 	// the AI as they are ready. See worker/do/OpenAiService.ts#stream for
@@ -89,7 +91,15 @@ const STATIC_TLDRAWAI_OPTIONS: TldrawAiOptions = {
 	},
 }
 
-function getAiChangeFromAgentChange(change: Streaming<TLAgentChange>): TLAiChange | null {
+function getAiChangesFromAgentChanges(changes: TLAgentChange[]): TLAiChange[] {
+	return changes
+		.map((change) => getAiChangeFromAgentChange(change))
+		.filter((change) => change !== null)
+}
+
+function getAiChangeFromAgentChange(
+	change: Streaming<TLAgentChange> | (TLAgentChange & { complete?: boolean })
+): TLAiChange | null {
 	if (!change.complete) return null
 	switch (change.type) {
 		case 'createShape':
