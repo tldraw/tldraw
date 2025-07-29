@@ -318,9 +318,6 @@ export function defaultApplyChange({
 				editor.deleteBinding(change.bindingId)
 				break
 			}
-			case 'custom': {
-				break
-			}
 			default:
 				exhaustiveSwitchError(change)
 		}

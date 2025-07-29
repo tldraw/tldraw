@@ -424,15 +424,12 @@ export type ISimpleShape = z.infer<typeof SimpleShape>
 export const SimpleShapeUpdate = z.union(SIMPLE_SHAPES)
 export type ISimpleShapeUpdate = z.infer<typeof SimpleShapeUpdate>
 
-const SimplePeripheralShape = z.object({
-	// _type: z.enum(['shape, text']),
-	h: z.number(),
-	w: z.number(),
-	x: z.number(),
-	y: z.number(),
-})
-
-export type ISimplePeripheralShape = z.infer<typeof SimplePeripheralShape>
+export interface ISimplePeripheralShape {
+	h: number
+	w: number
+	x: number
+	y: number
+}
 
 // Events
 

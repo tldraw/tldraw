@@ -86,9 +86,6 @@ export class SimpleIds extends TldrawAiTransform {
 					bindingId,
 				}
 			}
-			case 'custom': {
-				return change
-			}
 		}
 	}
 

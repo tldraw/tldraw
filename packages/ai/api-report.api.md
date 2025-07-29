@@ -26,7 +26,7 @@ export function defaultApplyChange({ change, editor, }: {
 }): void;
 
 // @public
-export type TLAiChange = TLAiCreateBindingChange | TLAiCreateShapeChange | TLAiCustomChange | TLAiDeleteBindingChange | TLAiDeleteShapeChange | TLAiUpdateBindingChange | TLAiUpdateShapeChange;
+export type TLAiChange = TLAiCreateBindingChange | TLAiCreateShapeChange | TLAiDeleteBindingChange | TLAiDeleteShapeChange | TLAiUpdateBindingChange | TLAiUpdateShapeChange;
 
 // @public (undocumented)
 export type TLAiContent = Omit<TLContent, 'rootShapeIds' | 'schema'> & {
@@ -55,16 +55,6 @@ export interface TLAiCreateShapeChange<T extends TLShape = TLShape> {
     shape: TLShapePartial<T>;
     // (undocumented)
     type: 'createShape';
-}
-
-// @public (undocumented)
-export interface TLAiCustomChange {
-    // (undocumented)
-    [key: string]: any;
-    // (undocumented)
-    complete: boolean;
-    // (undocumented)
-    type: 'custom';
 }
 
 // @public (undocumented)

@@ -20,6 +20,7 @@ import {
 	TLTextShape,
 	toRichText,
 } from 'tldraw'
+import { Streaming, TLAgentStreamingChange } from '../../client/applyAgentChange'
 import {
 	ISimpleColor,
 	ISimpleCreateEvent,
@@ -39,12 +40,10 @@ function toRichTextIfNeeded(text: string | { type: string; content: any[] }): TL
 	return text
 }
 
-type MaybeComplete<T> = (Partial<T> & { complete: false }) | (T & { complete: true })
-
-export function getTldrawAiChangesFromSimpleEvents(
+export function getTldrawAgentChangesFromSimpleEvents(
 	prompt: TLAiSerializedPrompt,
-	event: MaybeComplete<ISimpleEvent>
-): TLAiChange[] {
+	event: Streaming<ISimpleEvent>
+): TLAgentStreamingChange[] {
 	if (event.complete) {
 		console.log('getTldrawAiChangesFromSimpleEvents [EVENT FROM MODEL]', event)
 	}
@@ -65,8 +64,24 @@ export function getTldrawAiChangesFromSimpleEvents(
 		case 'move': {
 			return getTldrawAiChangesFromSimpleMoveEvent(prompt, event)
 		}
+		case 'message': {
+			const { _type, ...change } = event
+			return [{ ...change, type: _type }]
+		}
+		case 'think': {
+			const { _type, ...change } = event
+			return [{ ...change, type: _type }]
+		}
+		case 'schedule': {
+			const { _type, ...change } = event
+			return [{ ...change, type: _type }]
+		}
+		case 'setMyView': {
+			const { _type, ...change } = event
+			return [{ ...change, type: _type }]
+		}
 		default: {
-			return [{ ...event, type: 'custom', action: event._type }]
+			return [{ type: 'raw', event, complete: false }]
 		}
 	}
 }
@@ -85,7 +100,7 @@ function simpleFillToShapeFill(fill: ISimpleFill): TLDefaultFillStyle {
 
 function getTldrawAiChangesFromSimpleUpdateEvent(
 	prompt: TLAiSerializedPrompt,
-	event: MaybeComplete<ISimpleUpdateEvent>
+	event: Streaming<ISimpleUpdateEvent>
 ): TLAiChange[] {
 	const changes: TLAiChange[] = []
 	if (!event.complete) {
@@ -393,7 +408,7 @@ function getTldrawAiChangesFromSimpleUpdateEvent(
 
 function getTldrawAiChangesFromSimpleCreateEvent(
 	prompt: TLAiSerializedPrompt,
-	event: MaybeComplete<ISimpleCreateEvent>
+	event: Streaming<ISimpleCreateEvent>
 ): TLAiChange[] {
 	const changes: TLAiChange[] = []
 	if (!event.complete) {
@@ -661,7 +676,7 @@ function getTldrawAiChangesFromSimpleCreateEvent(
 
 function getTldrawAiChangesFromSimpleDeleteEvent(
 	prompt: TLAiSerializedPrompt,
-	event: MaybeComplete<ISimpleDeleteEvent>
+	event: Streaming<ISimpleDeleteEvent>
 ): TLAiChange[] {
 	const changes: TLAiChange[] = []
 
@@ -688,7 +703,7 @@ function getTldrawAiChangesFromSimpleDeleteEvent(
 
 function getTldrawAiChangesFromSimpleMoveEvent(
 	prompt: TLAiSerializedPrompt,
-	event: MaybeComplete<ISimpleMoveEvent>
+	event: Streaming<ISimpleMoveEvent>
 ): TLAiChange[] {
 	const changes: TLAiChange[] = []
 
@@ -715,7 +730,7 @@ function getTldrawAiChangesFromSimpleMoveEvent(
 
 function getTldrawAiChangesFromSimpleLabelEvent(
 	prompt: TLAiSerializedPrompt,
-	event: MaybeComplete<ISimpleLabelEvent>
+	event: Streaming<ISimpleLabelEvent>
 ): TLAiChange[] {
 	const changes: TLAiChange[] = []
 

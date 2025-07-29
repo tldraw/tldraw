@@ -1,10 +1,11 @@
 import { AnthropicProvider, createAnthropic } from '@ai-sdk/anthropic'
 import { createGoogleGenerativeAI, GoogleGenerativeAIProvider } from '@ai-sdk/google'
 import { createOpenAI, OpenAIProvider } from '@ai-sdk/openai'
-import { TLAiChange, TLAiResult, TLAiSerializedPrompt } from '@tldraw/ai'
+import { TLAiSerializedPrompt } from '@tldraw/ai'
 import { generateObject, LanguageModel, streamObject } from 'ai'
+import { TLAgentChange, TLAgentStreamingChange } from '../../../client/applyAgentChange'
 import { getTLAgentModelDefinition, TLAgentModelName } from '../../models'
-import { getTldrawAiChangesFromSimpleEvents } from '../../simple/getTldrawAiChangesFromSimpleEvents'
+import { getTldrawAgentChangesFromSimpleEvents } from '../../simple/getTldrawAgentChangesFromSimpleEvents'
 import { IModelResponse, ISimpleEvent, ModelResponse } from '../../simple/schema'
 import { SIMPLE_SYSTEM_PROMPT } from '../../simple/system-prompt'
 import { TldrawAiBaseService } from '../../TldrawAiBaseService'
@@ -29,17 +30,20 @@ export class VercelAiService extends TldrawAiBaseService {
 		return this[provider](modelDefinition.id)
 	}
 
-	async generate(prompt: TLAiSerializedPrompt): Promise<TLAiResult> {
+	async generate(prompt: TLAiSerializedPrompt): Promise<TLAgentChange[]> {
 		const model = this.getModel(prompt.meta.modelName)
 		const events = await generateEventsVercel(model, prompt)
-		const changes = events.map((event) => getTldrawAiChangesFromSimpleEvents(prompt, event)).flat()
-		return { changes }
+		const changes = events
+			.map((event) => getTldrawAgentChangesFromSimpleEvents(prompt, event))
+			.flat()
+			.filter((change) => change.complete)
+		return changes
 	}
 
-	async *stream(prompt: TLAiSerializedPrompt): AsyncGenerator<TLAiChange> {
+	async *stream(prompt: TLAiSerializedPrompt): AsyncGenerator<TLAgentStreamingChange> {
 		const model = this.getModel(prompt.meta.modelName)
 		for await (const event of streamEventsVercel(model, prompt)) {
-			for (const change of getTldrawAiChangesFromSimpleEvents(prompt, event)) {
+			for (const change of getTldrawAgentChangesFromSimpleEvents(prompt, event)) {
 				yield change
 			}
 		}

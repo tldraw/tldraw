@@ -108,13 +108,6 @@ export interface TLAiDeleteBindingChange {
 	complete: boolean
 }
 
-/** @public */
-export interface TLAiCustomChange {
-	type: 'custom'
-	[key: string]: any
-	complete: boolean
-}
-
 /**
  * A generated change that can be applied to the editor.
  * @public
@@ -126,7 +119,6 @@ export type TLAiChange =
 	| TLAiCreateBindingChange
 	| TLAiUpdateBindingChange
 	| TLAiDeleteBindingChange
-	| TLAiCustomChange
 
 /** @public */
 export type TLAiStreamingChange =

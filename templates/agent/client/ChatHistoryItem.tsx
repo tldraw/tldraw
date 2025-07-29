@@ -9,6 +9,7 @@ import {
 	TLShape,
 	TLShapeId,
 } from 'tldraw'
+import { TLAgentStreamingChange } from './applyAgentChange'
 import { $chatHistoryItems } from './ChatHistory'
 import { CONTEXT_TYPE_DEFINITIONS, ContextItem, roundBox } from './Context'
 import { BrainIcon } from './icons/BrainIcon'
@@ -65,7 +66,7 @@ export interface AgentChangeGroupHistoryItem {
 
 export interface AgentRawHistoryItem {
 	type: 'agent-raw'
-	change: TLAiStreamingChange
+	change: TLAgentStreamingChange
 	status: 'progress' | 'done' | 'cancelled'
 }
 

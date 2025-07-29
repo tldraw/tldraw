@@ -1,6 +1,7 @@
-import type { TLAiResult, TLAiSerializedPrompt } from '@tldraw/ai'
+import type { TLAiSerializedPrompt } from '@tldraw/ai'
 import { DurableObject } from 'cloudflare:workers'
 import { AutoRouter, error } from 'itty-router'
+import { TLAgentStreamingChange } from '../../client/applyAgentChange'
 import { TldrawAiBaseService } from '../TldrawAiBaseService'
 import { Environment } from '../types'
 import { VercelAiService } from './vercel/VercelAiService'
@@ -76,9 +77,7 @@ export class TldrawAiDurableObject extends DurableObject<Environment> {
 		const { readable, writable } = new TransformStream()
 		const writer = writable.getWriter()
 
-		const response: TLAiResult = {
-			changes: [],
-		}
+		const response: { changes: TLAgentStreamingChange[] } = { changes: [] }
 
 		;(async () => {
 			try {

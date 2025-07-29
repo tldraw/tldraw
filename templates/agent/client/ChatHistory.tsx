@@ -125,3 +125,15 @@ function getChatHistoryWithMergedAdjacentItems({
 
 	return newItems
 }
+
+export function createOrUpdateHistoryItem(item: ChatHistoryItem) {
+	$chatHistoryItems.update((items) => {
+		if (items.length === 0) return [item]
+
+		const lastItem = items[items.length - 1]
+		if (lastItem.status === 'progress') {
+			return [...items.slice(0, -1), item]
+		}
+		return [...items, item]
+	})
+}

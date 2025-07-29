@@ -1,6 +1,7 @@
-import { TLAiChange, TLAiResult, TldrawAiOptions, useTldrawAi } from '@tldraw/ai'
+import { TLAiResult, TLAiStreamingChange, TldrawAiOptions, useTldrawAi } from '@tldraw/ai'
 import { Editor } from 'tldraw'
-import { applyChange } from './applyChanges'
+import { applyAgentChange, TLAgentStreamingChange } from './applyAgentChange'
+import { applyAiChange } from './applyAiChange'
 import { SimplishCoordinates } from './transforms/SimplishCoordinates'
 import { SimplishIds } from './transforms/SimplishIds'
 
@@ -15,7 +16,7 @@ export function useTldrawAiExample(editor?: Editor) {
 
 const STATIC_TLDRAWAI_OPTIONS: TldrawAiOptions = {
 	transforms: [SimplishIds, SimplishCoordinates],
-	apply: applyChange,
+	apply: applyAiChange,
 
 	// A function that calls the backend and return generated changes.
 	// See worker/do/OpenAiService.ts#generate for the backend part.
@@ -67,8 +68,13 @@ const STATIC_TLDRAWAI_OPTIONS: TldrawAiOptions = {
 					const match = event.match(/^data: (.+)$/m)
 					if (match) {
 						try {
-							const change: TLAiChange = JSON.parse(match[1])
-							yield change
+							const agentChange: TLAgentStreamingChange = JSON.parse(match[1])
+							applyAgentChange(agentChange)
+
+							const aiChange = getAiChangeFromAgentChange(agentChange)
+							if (aiChange) {
+								yield aiChange
+							}
 						} catch (err) {
 							console.error(err)
 							throw Error(`JSON parsing error: ${match[1]}`)
@@ -80,4 +86,22 @@ const STATIC_TLDRAWAI_OPTIONS: TldrawAiOptions = {
 			reader.releaseLock()
 		}
 	},
+}
+
+function getAiChangeFromAgentChange(
+	change: TLAgentStreamingChange
+): TLAiStreamingChange | undefined {
+	switch (change.type) {
+		case 'createShape':
+		case 'updateShape':
+		case 'deleteShape':
+		case 'createBinding':
+		case 'updateBinding':
+		case 'deleteBinding': {
+			return change
+		}
+		default: {
+			return undefined
+		}
+	}
 }
