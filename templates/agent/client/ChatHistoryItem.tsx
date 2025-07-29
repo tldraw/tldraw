@@ -11,7 +11,7 @@ import {
 } from 'tldraw'
 import { Streaming, TLAgentChange } from './AgentChange'
 import { $chatHistoryItems } from './ChatHistory'
-import { CONTEXT_TYPE_DEFINITIONS, ContextItem, roundBox } from './Context'
+import { CONTEXT_TYPE_DEFINITIONS, ContextItem } from './Context'
 import { BrainIcon } from './icons/BrainIcon'
 import { CrossIcon } from './icons/CrossIcon'
 import { EyeIcon } from './icons/EyeIcon'
@@ -79,14 +79,15 @@ export interface AgentActionHistoryItem {
 
 export function UserMessageHistoryItem({ item }: { item: UserMessageHistoryItem }) {
 	const contextAttachments = item.contextItems.filter((item) => item.type === 'area')
+
 	return (
 		<div>
-			<div className="user-message-context-attachments">
+			{/* <div className="user-message-context-attachments">
 				{contextAttachments.map((contextItem, i) => {
 					const { x, y, w, h } = roundBox(contextItem.bounds)
 					return <div key={'context-attachment-' + i}>{`x: ${x}, y: ${y}, w: ${w}, h: ${h}`}</div>
 				})}
-			</div>
+			</div> */}
 			<div className="user-message">
 				{item.contextItems.length > 0 && (
 					<div className="user-message-context-items">
@@ -95,7 +96,12 @@ export function UserMessageHistoryItem({ item }: { item: UserMessageHistoryItem 
 						})}
 					</div>
 				)}
-				{item.message}
+				{item.message.split('\n').map((line, i, arr) => (
+					<span key={i}>
+						{line}
+						{i < arr.length - 1 && <br />}
+					</span>
+				))}
 			</div>
 		</div>
 	)

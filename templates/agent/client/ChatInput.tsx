@@ -50,7 +50,7 @@ export function ChatInput({
 	editor,
 }: {
 	handleSubmit: FormEventHandler<HTMLFormElement>
-	inputRef: React.RefObject<HTMLInputElement>
+	inputRef: React.RefObject<HTMLTextAreaElement>
 	isGenerating: boolean
 	editor: Editor
 }) {
@@ -164,14 +164,24 @@ export function ChatInput({
 					)}
 				</div>
 
-				<input
+				<textarea
 					ref={inputRef}
 					name="input"
-					type="text"
 					autoComplete="off"
 					placeholder="Ask, learn, brainstorm, draw"
 					value={inputValue}
 					onInput={(e) => setInputValue(e.currentTarget.value)}
+					onKeyDown={(e) => {
+						if (e.key === 'Enter' && !e.shiftKey) {
+							e.preventDefault()
+							//idk about this but it works oops -max
+							const form = e.currentTarget.closest('form')
+							if (form) {
+								const submitEvent = new Event('submit', { bubbles: true, cancelable: true })
+								form.dispatchEvent(submitEvent)
+							}
+						}
+					}}
 				/>
 				<span className="chat-input-actions">
 					<div className="chat-input-actions-left">

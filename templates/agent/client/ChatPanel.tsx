@@ -18,7 +18,7 @@ export function ChatPanel({ editor }: { editor: Editor }) {
 
 	const [isGenerating, setIsGenerating] = useState(false)
 	const rCancelFn = useRef<(() => void) | null>(null)
-	const inputRef = useRef<HTMLInputElement>(null)
+	const inputRef = useRef<HTMLTextAreaElement>(null)
 	const [modelName] = useLocalStorageState<TLAgentModelName>('model-name', DEFAULT_MODEL_NAME)
 
 	useEffect(() => {

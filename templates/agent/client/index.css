@@ -115,6 +115,41 @@ body {
 	border-color: var(--color-primary);
 }
 
+.chat-input textarea {
+	flex: 1;
+	padding: 8px 0px;
+	margin-bottom: 4px;
+	border: none;
+	background-color: transparent;
+	color: var(--color-text);
+	font-family: sans-serif;
+	border-radius: 4px;
+	font-size: 12px;
+	outline: none;
+	width: 100%;
+	resize: none;
+	/* Make scrollbar background transparent */
+	scrollbar-color: var(--color-text-3) transparent;
+}
+
+.chat-input textarea::placeholder {
+	color: var(--color-text-3);
+}
+
+.chat-input textarea:focus {
+	border-color: var(--color-primary);
+}
+
+/* For Webkit browsers: transparent scrollbar background */
+.chat-input textarea::-webkit-scrollbar {
+	background: transparent;
+}
+
+.chat-input textarea::-webkit-scrollbar-thumb {
+	background: var(--color-text-3);
+}
+
+
 .chat-input-actions-label {
 	display: flex;
 	align-items: center;
