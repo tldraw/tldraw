@@ -11,6 +11,7 @@ import { ConditionalNode } from './types/ConditionalNode'
 import { DivideNode } from './types/DivideNode'
 import { MultiplyNode } from './types/MultiplyNode'
 import { NodeDefinition, STOP_EXECUTION } from './types/shared'
+import { SliderNode } from './types/SliderNode'
 import { SubtractNode } from './types/SubtractNode'
 
 export const NodeDefinitions = [
@@ -19,6 +20,7 @@ export const NodeDefinitions = [
 	MultiplyNode,
 	DivideNode,
 	ConditionalNode,
+	SliderNode,
 ] as const
 
 const NodeDefinitionMap = Object.fromEntries(NodeDefinitions.map((type) => [type.type, type])) as {

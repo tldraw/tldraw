@@ -250,3 +250,10 @@ body {
 	border-radius: 10px;
 	background: hsl(0, 0%, 0%, 10%);
 }
+
+.SliderNode {
+	.tlui-slider__container {
+		padding: 0;
+		pointer-events: all;
+	}
+}
