@@ -1,6 +1,6 @@
 import { RoomSnapshot } from '@tldraw/sync-core'
 
-export function toJsonString(value: unknown): string {
+function toJsonString(value: unknown): string {
 	if (value === undefined) {
 		return 'null'
 	}
