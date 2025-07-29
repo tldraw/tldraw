@@ -10,7 +10,7 @@ export interface TldrawCropHandlesProps {
 	hideAlternateHandles: boolean
 }
 
-/** @public */
+/** @public @react */
 export function TldrawCropHandles({
 	size,
 	width,

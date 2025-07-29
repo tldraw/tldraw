@@ -11,7 +11,7 @@ export interface ToggleToolLockedButtonProps {
 	activeToolId?: string
 }
 
-/** @public */
+/** @public @react */
 export function ToggleToolLockedButton({ activeToolId }: ToggleToolLockedButtonProps) {
 	const editor = useEditor()
 	const breakpoint = useBreakpoint()
