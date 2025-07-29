@@ -59,11 +59,16 @@ export function updateNode<T extends NodeType>(
 export function NodeRow({
 	children,
 	className,
+	...props
 }: {
 	children: React.ReactNode
 	className?: string
-}) {
-	return <div className={classNames('NodeRow', className)}>{children}</div>
+} & React.HTMLAttributes<HTMLDivElement>) {
+	return (
+		<div {...props} className={classNames('NodeRow', className)}>
+			{children}
+		</div>
+	)
 }
 
 export function NodeInputRow({
