@@ -2,6 +2,7 @@ import { T, useEditor } from 'tldraw'
 import { ConditionalIcon } from '../../components/icons/ConditionalIcon'
 import {
 	NODE_HEADER_HEIGHT_PX,
+	NODE_ROW_BOTTOM_PADDING_PX,
 	NODE_ROW_HEADER_GAP_PX,
 	NODE_ROW_HEIGHT_PX,
 	NODE_WIDTH_PX,
@@ -64,7 +65,7 @@ export const ConditionalNode: NodeDefinition<ConditionalNode> = {
 		rhs: 0,
 		operator: '==',
 	}),
-	getBodyHeightPx: () => NODE_ROW_HEIGHT_PX * 5,
+	getBodyHeightPx: () => NODE_ROW_HEIGHT_PX * 5 - NODE_ROW_BOTTOM_PADDING_PX,
 	getPorts: () => ({
 		lhs: {
 			id: 'lhs',
@@ -142,7 +143,7 @@ export const ConditionalNode: NodeDefinition<ConditionalNode> = {
 					Then
 					<Port shapeId={shape.id} portId="outputTrue" />
 				</NodeRow>
-				<NodeRow className="ConditionalNode-output">
+				<NodeRow className="ConditionalNode-output ConditionalNode-output-false">
 					Otherwise
 					<Port shapeId={shape.id} portId="outputFalse" />
 				</NodeRow>

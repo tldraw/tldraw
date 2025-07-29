@@ -98,10 +98,15 @@ const connectionBindingsCache = createComputedCache(
 	}
 )
 
+export interface ConnectionBindings {
+	start?: ConnectionBinding
+	end?: ConnectionBinding
+}
+
 export function getConnectionBindings(
 	editor: Editor,
 	shape: ConnectionShape | TLShapeId
-): { start?: ConnectionBinding; end?: ConnectionBinding } {
+): ConnectionBindings {
 	return connectionBindingsCache.get(editor, typeof shape === 'string' ? shape : shape.id) ?? {}
 }
 
