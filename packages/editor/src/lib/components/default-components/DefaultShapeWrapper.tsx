@@ -1,8 +1,9 @@
 import { TLShape } from '@tldraw/tlschema'
+import classNames from 'classnames'
 import { forwardRef, ReactNode } from 'react'
 
 /** @public */
-export interface TLShapeWrapperProps {
+export interface TLShapeWrapperProps extends React.HTMLAttributes<HTMLDivElement> {
 	/** The shape being rendered. */
 	shape: TLShape
 	/** Whether this is the shapes regular, or background component. */
@@ -13,7 +14,7 @@ export interface TLShapeWrapperProps {
 
 /** @public @react */
 export const DefaultShapeWrapper = forwardRef(function DefaultShapeWrapper(
-	{ children, shape, isBackground }: TLShapeWrapperProps,
+	{ children, shape, isBackground, ...props }: TLShapeWrapperProps,
 	ref: React.Ref<HTMLDivElement>
 ) {
 	const isFilledShape = 'fill' in shape.props && shape.props.fill !== 'none'
@@ -21,11 +22,12 @@ export const DefaultShapeWrapper = forwardRef(function DefaultShapeWrapper(
 	return (
 		<div
 			ref={ref}
-			className={isBackground ? 'tl-shape tl-shape-background' : 'tl-shape'}
 			data-shape-type={shape.type}
 			data-shape-is-filled={isBackground ? undefined : isFilledShape}
 			data-shape-id={shape.id}
 			draggable={false}
+			{...props}
+			className={classNames('tl-shape', isBackground && 'tl-shape-background', props.className)}
 		>
 			{children}
 		</div>

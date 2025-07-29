@@ -1,7 +1,7 @@
-import classNames from 'classnames'
 import { forwardRef } from 'react'
 import {
 	atom,
+	DefaultShapeWrapper,
 	Editor,
 	TLComponents,
 	Tldraw,
@@ -25,22 +25,15 @@ const CustomShapeWrapper = forwardRef(function CustomShapeWrapper(
 	const isSpecial = useValue('is special', () => specialShapeId.get() === shape.id, [shape.id])
 
 	// [b]
-	const isFilledShape = 'fill' in shape.props && shape.props.fill !== 'none'
-
 	return (
-		<div
+		<DefaultShapeWrapper
 			ref={ref}
-			className={classNames('tl-shape', {
-				'tl-shape-background': isBackground,
-				'custom-special-shape': isSpecial,
-			})}
-			data-shape-type={shape.type}
-			data-shape-is-filled={isBackground ? undefined : isFilledShape}
-			data-shape-id={shape.id}
-			draggable={false}
+			shape={shape}
+			isBackground={isBackground}
+			className={isSpecial ? 'custom-special-shape' : undefined}
 		>
 			{children}
-		</div>
+		</DefaultShapeWrapper>
 	)
 })
 
@@ -109,8 +102,7 @@ shapes. We use forwardRef to properly forward the ref that tldraw passes to us.
     by looking at its props.
 
     [b]
-    We return a div that wraps the shape's children. The logic here is adapted from the DefaultShapeWrapper, with
-	our special shape classadded.
+    We re-use the DefaultShapeWrapper component, but add a custom class to the shape when it's the "special" shape.
 
 [3] We create a components object that tells tldraw to use our custom shape wrapper. The
 TLComponents type allows us to override various parts of the tldraw UI, including the ShapeWrapper

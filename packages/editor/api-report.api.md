@@ -4096,7 +4096,7 @@ export interface TLShapeUtilConstructor<T extends TLUnknownShape, U extends Shap
 }
 
 // @public (undocumented)
-export interface TLShapeWrapperProps {
+export interface TLShapeWrapperProps extends React.HTMLAttributes<HTMLDivElement> {
     children: ReactNode;
     isBackground: boolean;
     shape: TLShape;
