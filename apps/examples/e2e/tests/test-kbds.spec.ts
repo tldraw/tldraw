@@ -315,30 +315,6 @@ test.describe('Actions on shapes', () => {
 			data: { operation: 'bottom', source: 'kbd' },
 		})
 
-		// rotate — Ctrl+Shift+ArrowLeft, Ctrl+Shift+ArrowRight
-		await page.keyboard.press('Shift+.')
-		expect(await page.evaluate(() => __tldraw_ui_event)).toMatchObject({
-			name: 'rotate-cw',
-			data: { source: 'kbd', fine: false },
-		})
-		await page.keyboard.press('Shift+,')
-		expect(await page.evaluate(() => __tldraw_ui_event)).toMatchObject({
-			name: 'rotate-ccw',
-			data: { source: 'kbd', fine: false },
-		})
-
-		// rotate — Ctrl+Shift+ArrowLeft, Ctrl+Shift+ArrowRight
-		await page.keyboard.press('Shift+Alt+.')
-		expect(await page.evaluate(() => __tldraw_ui_event)).toMatchObject({
-			name: 'rotate-cw',
-			data: { source: 'kbd', fine: true },
-		})
-		await page.keyboard.press('Shift+Alt+,')
-		expect(await page.evaluate(() => __tldraw_ui_event)).toMatchObject({
-			name: 'rotate-ccw',
-			data: { source: 'kbd', fine: true },
-		})
-
 		// Copy as SVG — this should have a clipboard error
 
 		// await page.keyboard.press('Control+Shift+c')
@@ -460,8 +436,40 @@ test.describe('Actions on shapes', () => {
 		// 	data: { source: 'dialog' },
 		// })
 	})
-})
 
+	// TODO: Annoyingly, the alt key is being 'released' in the above test suite.
+	// I'll need to figure that out in a separate PR. In the meantime,
+	// this pulls out the rotate tests into a separate test suite.
+	test('rotate', async () => {
+		await setupPageWithShapes(page)
+
+		await page.keyboard.press('Control+a')
+
+		// rotate — Shift+ArrowLeft, Shift+ArrowRight
+		await page.keyboard.press('Shift+.')
+		expect(await page.evaluate(() => __tldraw_ui_event)).toMatchObject({
+			name: 'rotate-cw',
+			data: { source: 'kbd', fine: false },
+		})
+		await page.keyboard.press('Shift+,')
+		expect(await page.evaluate(() => __tldraw_ui_event)).toMatchObject({
+			name: 'rotate-ccw',
+			data: { source: 'kbd', fine: false },
+		})
+
+		// rotate — Shift+Alt+ArrowLeft, Shift+Alt+ArrowRight
+		await page.keyboard.press('Shift+Alt+.')
+		expect(await page.evaluate(() => __tldraw_ui_event)).toMatchObject({
+			name: 'rotate-cw',
+			data: { source: 'kbd', fine: true },
+		})
+		await page.keyboard.press('Shift+Alt+,')
+		expect(await page.evaluate(() => __tldraw_ui_event)).toMatchObject({
+			name: 'rotate-ccw',
+			data: { source: 'kbd', fine: true },
+		})
+	})
+})
 test.describe('Delete bug', () => {
 	test.beforeEach(async ({ browser }) => {
 		page = await browser.newPage()
