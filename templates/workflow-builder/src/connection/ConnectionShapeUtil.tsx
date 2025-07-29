@@ -1,3 +1,4 @@
+import classNames from 'classnames'
 import {
 	CubicBezier2d,
 	Editor,
@@ -23,7 +24,8 @@ import {
 	CONNECTION_CENTER_HANDLE_HOVER_SIZE_PX,
 	CONNECTION_CENTER_HANDLE_SIZE_PX,
 } from '../constants'
-import { getAllConnectedNodes, getNodePorts } from '../nodes/nodePorts'
+import { getAllConnectedNodes, getNodeOutputPortValues, getNodePorts } from '../nodes/nodePorts'
+import { STOP_EXECUTION } from '../nodes/types/shared'
 import { getPortAtPoint } from '../ports/getPortAtPoint'
 import { onCanvasComponentPickerState, updatePortState } from '../state'
 import {
@@ -242,13 +244,7 @@ export class ConnectionShapeUtil extends ShapeUtil<ConnectionShape> {
 	}
 
 	component(connection: ConnectionShape) {
-		const { start, end } = getConnectionTerminals(this.editor, connection)
-
-		return (
-			<SVGContainer className="ConnectionShape">
-				<path d={getConnectionPath(start, end)} />
-			</SVGContainer>
-		)
+		return <ConnectionShape connection={connection} />
 	}
 
 	indicator(connection: ConnectionShape) {
@@ -256,23 +252,51 @@ export class ConnectionShapeUtil extends ShapeUtil<ConnectionShape> {
 		return (
 			<g className="ConnectionShapeIndicator">
 				<path d={getConnectionPath(start, end)} strokeWidth={2.1} strokeLinecap="round" />
-				<ConnectionCenterHandle connection={connection} />
+				<ConnectionCenterHandle connection={connection} center={Vec.Lrp(start, end, 0.5)} />
 			</g>
 		)
 	}
 }
 
-function ConnectionCenterHandle({ connection }: { connection: ConnectionShape }) {
+function ConnectionShape({ connection }: { connection: ConnectionShape }) {
 	const editor = useEditor()
-	const { start, end } = useValue(
-		'terminals',
+	const { start, end } = useValue('terminals', () => getConnectionTerminals(editor, connection), [
+		editor,
+		connection,
+	])
+
+	const isInactive = useValue(
+		'isInactive',
 		() => {
-			return getConnectionTerminals(editor, connection)
+			const bindings = getConnectionBindings(editor, connection.id)
+			if (!bindings.start) return false
+			const originShapeId = bindings.start?.toId
+			if (!originShapeId) return false
+			const outputs = getNodeOutputPortValues(editor, originShapeId)
+			const outputValue = outputs[bindings.start.props.portId]
+			return outputValue === STOP_EXECUTION
 		},
-		[editor, connection]
+		[connection.id, editor]
 	)
 
-	const center = Vec.Lrp(start, end, 0.5)
+	return (
+		<SVGContainer
+			className={classNames('ConnectionShape', isInactive && 'ConnectionShape_inactive')}
+		>
+			<path d={getConnectionPath(start, end)} />
+		</SVGContainer>
+	)
+}
+
+function ConnectionCenterHandle({
+	connection,
+	center,
+}: {
+	connection: ConnectionShape
+	center: Vec
+}) {
+	const editor = useEditor()
+
 	const shouldShowCenterHandle = useValue(
 		'shouldShowCenterHandle',
 		() => {
