@@ -24,7 +24,7 @@
 				}
 			},
 			"resize_shapes": {
-				"avgFps": 24,
+				"avgFps": 22,
 				"minFps": 18,
 				"maxFps": 67,
 				"timestamp": "2025-07-21T14:28:23.924Z",
@@ -35,7 +35,7 @@
 				}
 			},
 			"canvas_panning": {
-				"avgFps": 54,
+				"avgFps": 38,
 				"minFps": 28,
 				"maxFps": 70,
 				"timestamp": "2025-07-21T14:28:13.302Z",
@@ -46,7 +46,7 @@
 				}
 			},
 			"canvas_zooming": {
-				"avgFps": 51,
+				"avgFps": 41,
 				"minFps": 19,
 				"maxFps": 67,
 				"timestamp": "2025-07-21T14:28:23.924Z",
@@ -59,7 +59,7 @@
 		}
 	},
 	"metadata": {
-		"lastUpdated": "2025-07-28T14:10:46.922Z",
+		"lastUpdated": "2025-07-30T15:19:18.438Z",
 		"version": "1.0.0"
 	}
 }
