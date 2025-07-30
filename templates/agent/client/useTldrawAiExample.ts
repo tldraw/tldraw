@@ -31,7 +31,18 @@ const STATIC_TLDRAWAI_OPTIONS: TldrawAiOptions = {
 			signal,
 		})
 
+		if (!res.ok) {
+			const errorData = (await res.json().catch(() => ({ error: 'Unknown error' }))) as any
+			throw new Error(errorData.error || `HTTP ${res.status}: ${res.statusText}`)
+		}
+
 		const agentChanges = (await res.json()) as TLAgentChange[]
+
+		// Check if the response contains an error
+		if ('error' in agentChanges) {
+			throw new Error((agentChanges as any).error)
+		}
+
 		for (const change of agentChanges) {
 			applyAgentChange({ ...change, complete: true })
 		}
@@ -71,16 +82,23 @@ const STATIC_TLDRAWAI_OPTIONS: TldrawAiOptions = {
 					const match = event.match(/^data: (.+)$/m)
 					if (match) {
 						try {
-							const agentChange: Streaming<TLAgentChange> = JSON.parse(match[1])
+							const data = JSON.parse(match[1])
+
+							// If the response contains an error, throw it
+							if ('error' in data) {
+								throw new Error(data.error)
+							}
+
+							// Otherwise, it's a regular agent change
+							const agentChange: Streaming<TLAgentChange> = data
 							applyAgentChange(agentChange)
 
 							const aiChange = getAiChangeFromAgentChange(agentChange)
 							if (aiChange) {
 								yield aiChange
 							}
-						} catch (err) {
-							console.error(err)
-							throw Error(`JSON parsing error: ${match[1]}`)
+						} catch (err: any) {
+							throw new Error(err.message)
 						}
 					}
 				}

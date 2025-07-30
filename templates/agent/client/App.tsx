@@ -1,5 +1,12 @@
 import { useCallback, useState } from 'react'
-import { Editor, ErrorBoundary, TLComponents, Tldraw, TLUiOverrides } from 'tldraw'
+import {
+	Editor,
+	ErrorBoundary,
+	TLComponents,
+	Tldraw,
+	TldrawUiToastsProvider,
+	TLUiOverrides,
+} from 'tldraw'
 import { ChatPanel } from './ChatPanel'
 import { ContextBoundsHighlights } from './ContextBoundsHighlights'
 import { ContextHighlights } from './ContextHighlights'
@@ -61,20 +68,22 @@ function App() {
 	const tools = [TargetShapeTool, TargetAreaTool]
 
 	return (
-		<div className="tldraw-ai-container">
-			<div className="tldraw-canvas">
-				<Tldraw
-					persistenceKey="tldraw-agent-demo"
-					onMount={handleMount}
-					tools={tools}
-					overrides={overrides}
-					components={components}
-				/>
+		<TldrawUiToastsProvider>
+			<div className="tldraw-ai-container">
+				<div className="tldraw-canvas">
+					<Tldraw
+						persistenceKey="tldraw-agent-demo"
+						onMount={handleMount}
+						tools={tools}
+						overrides={overrides}
+						components={components}
+					/>
+				</div>
+				<ErrorBoundary fallback={ChatPanelFallback}>
+					{editor && <ChatPanel editor={editor} />}
+				</ErrorBoundary>
 			</div>
-			<ErrorBoundary fallback={ChatPanelFallback}>
-				{editor && <ChatPanel editor={editor} />}
-			</ErrorBoundary>
-		</div>
+		</TldrawUiToastsProvider>
 	)
 }
 

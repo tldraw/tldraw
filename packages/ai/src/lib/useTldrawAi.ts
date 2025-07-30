@@ -107,43 +107,84 @@ export function useTldrawAi(opts: TldrawAiOptions): TldrawAi {
 					return
 				}
 
-				ai.generate(opts).then(async ({ handleChange, prompt }) => {
-					const serializedPrompt: TLAiSerializedPrompt = {
-						...prompt,
-						meta,
-						promptBounds: prompt.promptBounds.toJson(),
-						contextBounds: prompt.contextBounds.toJson(),
-					}
-
-					const pendingChanges: TLAiChange[] = []
-
-					if (stream) {
-						if (!streamFn) {
-							throw Error(
-								`Stream function not found. You should pass a generate method in your call to the useTldrawAi hook.`
-							)
+				ai.generate(opts)
+					.then(async ({ handleChange, prompt }) => {
+						const serializedPrompt: TLAiSerializedPrompt = {
+							...prompt,
+							meta,
+							promptBounds: prompt.promptBounds.toJson(),
+							contextBounds: prompt.contextBounds.toJson(),
 						}
-						// Handle a stream of changes
-						// todo: consider history while streaming... we could keep track of all of the changes that were made, apply them as they come in; and then once completed, revert those changes, make a history entry, and then reapply them all
 
-						editor.markHistoryStoppingPoint(markId)
-						for await (const change of streamFn({
-							editor,
-							prompt: serializedPrompt,
-							signal,
-						})) {
-							if (!cancelled) {
+						const pendingChanges: TLAiChange[] = []
+
+						if (stream) {
+							if (!streamFn) {
+								throw Error(
+									`Stream function not found. You should pass a generate method in your call to the useTldrawAi hook.`
+								)
+							}
+							// Handle a stream of changes
+							// todo: consider history while streaming... we could keep track of all of the changes that were made, apply them as they come in; and then once completed, revert those changes, make a history entry, and then reapply them all
+
+							editor.markHistoryStoppingPoint(markId)
+							for await (const change of streamFn({
+								editor,
+								prompt: serializedPrompt,
+								signal,
+							})) {
+								if (!cancelled) {
+									try {
+										editor.run(
+											() => {
+												handleChange(change, applyFn)
+											},
+											{
+												ignoreShapeLock: false, // ? should this be true?
+												history: 'record', // ? should this be 'ignore'?
+											}
+										)
+										pendingChanges.push(change)
+									} catch (e) {
+										// If we encounter an error, revert previous changes and throw the error
+										editor.bailToMark(markId)
+										throw e
+									}
+								}
+							}
+						} else {
+							if (!generateFn) {
+								throw Error(
+									`Generate function not found. You should pass a generate method in your call to the useTldrawAi hook.`
+								)
+							}
+							// Handle a one-off generation
+							const changes = await generateFn({ editor, prompt: serializedPrompt, signal }).catch(
+								(error) => {
+									if (error.name === 'AbortError') {
+										console.error('Cancelled')
+									} else {
+										console.error('Fetch error:', error)
+									}
+								}
+							)
+
+							if (changes && !cancelled) {
+								// todo: consider history while generating. Is this configurable? Can we guarantee that these changes won't interrupt the user's changes?
+								editor.markHistoryStoppingPoint(markId)
 								try {
 									editor.run(
 										() => {
-											handleChange(change, applyFn)
+											for (const change of changes) {
+												pendingChanges.push(change)
+												handleChange(change, applyFn)
+											}
 										},
 										{
 											ignoreShapeLock: false, // ? should this be true?
 											history: 'record', // ? should this be 'ignore'?
 										}
 									)
-									pendingChanges.push(change)
 								} catch (e) {
 									// If we encounter an error, revert previous changes and throw the error
 									editor.bailToMark(markId)
@@ -151,54 +192,18 @@ export function useTldrawAi(opts: TldrawAiOptions): TldrawAi {
 								}
 							}
 						}
-					} else {
-						if (!generateFn) {
-							throw Error(
-								`Generate function not found. You should pass a generate method in your call to the useTldrawAi hook.`
-							)
-						}
-						// Handle a one-off generation
-						const changes = await generateFn({ editor, prompt: serializedPrompt, signal }).catch(
-							(error) => {
-								if (error.name === 'AbortError') {
-									console.error('Cancelled')
-								} else {
-									console.error('Fetch error:', error)
-								}
-							}
-						)
 
-						if (changes && !cancelled) {
-							// todo: consider history while generating. Is this configurable? Can we guarantee that these changes won't interrupt the user's changes?
-							editor.markHistoryStoppingPoint(markId)
-							try {
-								editor.run(
-									() => {
-										for (const change of changes) {
-											pendingChanges.push(change)
-											handleChange(change, applyFn)
-										}
-									},
-									{
-										ignoreShapeLock: false, // ? should this be true?
-										history: 'record', // ? should this be 'ignore'?
-									}
-								)
-							} catch (e) {
-								// If we encounter an error, revert previous changes and throw the error
-								editor.bailToMark(markId)
-								throw e
-							}
-						}
-					}
+						// If successful, save the previous options / response
+						rPreviousArguments.current = opts
+						rPreviousChanges.current = pendingChanges
 
-					// If successful, save the previous options / response
-					rPreviousArguments.current = opts
-					rPreviousChanges.current = pendingChanges
-
-					rCancelFunction.current = null
-					resolve()
-				})
+						rCancelFunction.current = null
+						resolve()
+					})
+					.catch((e) => {
+						editor.bailToMark(markId)
+						reject(e)
+					})
 			})
 
 			rCancelFunction.current = () => {

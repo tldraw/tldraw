@@ -49,19 +49,18 @@ export class TldrawAiDurableObject extends DurableObject<Environment> {
 	 * @returns A Promise that resolves to a Response object containing the generated changes.
 	 */
 	private async generate(request: Request) {
-		const prompt = (await request.json()) as TLAiSerializedPrompt
-
 		try {
+			const prompt = (await request.json()) as TLAiSerializedPrompt
 			const response = await this.service.generate(prompt)
 
-			// Send back the response as a JSON object
 			return new Response(JSON.stringify(response), {
 				headers: { 'Content-Type': 'application/json' },
 			})
 		} catch (error: any) {
 			console.error('AI response error:', error)
-			return new Response('An internal server error occurred.', {
+			return new Response(JSON.stringify({ error: error.message }), {
 				status: 500,
+				headers: { 'Content-Type': 'application/json' },
 			})
 		}
 	}
@@ -90,9 +89,17 @@ export class TldrawAiDurableObject extends DurableObject<Environment> {
 					await writer.ready
 				}
 				await writer.close()
-			} catch (error) {
+			} catch (error: any) {
 				console.error('Stream error:', error)
-				await writer.abort(error)
+
+				// Send error through the stream
+				const errorData = `data: ${JSON.stringify({ error: error.message })}\n\n`
+				try {
+					await writer.write(encoder.encode(errorData))
+					await writer.close()
+				} catch (writeError) {
+					await writer.abort(writeError)
+				}
 			}
 		})()
 

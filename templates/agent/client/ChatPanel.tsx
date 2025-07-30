@@ -1,5 +1,5 @@
 import { FormEventHandler, useCallback, useEffect, useRef, useState } from 'react'
-import { Box, Editor, useLocalStorageState } from 'tldraw'
+import { Box, Editor, useLocalStorageState, useToasts } from 'tldraw'
 import { DEFAULT_MODEL_NAME, TLAgentModelName } from '../worker/models'
 import { $chatHistoryItems, ChatHistory } from './ChatHistory'
 import { UserMessageHistoryItem } from './ChatHistoryItem'
@@ -26,6 +26,8 @@ export function ChatPanel({ editor }: { editor: Editor }) {
 		;(window as any).editor = editor
 		;(window as any).ai = ai
 	}, [ai, editor])
+
+	const toast = useToasts()
 
 	const processSchedule = useCallback(async () => {
 		// Process all requests in the schedule sequentially
@@ -89,7 +91,11 @@ export function ChatPanel({ editor }: { editor: Editor }) {
 
 				rCancelFn.current = null
 			} catch (e) {
-				console.error(e)
+				toast.addToast({
+					title: 'Error',
+					description: e instanceof Error ? e.message : 'An error occurred',
+					severity: 'error',
+				})
 				rCancelFn.current = null
 				// Remove the failed request from the schedule
 				$requestsSchedule.update((prev) => prev.filter((_, i) => i !== 0))

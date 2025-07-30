@@ -31,21 +31,31 @@ export class VercelAiService extends TldrawAiBaseService {
 	}
 
 	async generate(prompt: TLAiSerializedPrompt): Promise<TLAgentChange[]> {
-		const model = this.getModel(prompt.meta.modelName)
-		const events = await generateEventsVercel(model, prompt)
-		const changes = events
-			.map((event) => getTldrawAgentChangesFromSimpleEvents(prompt, event))
-			.flat()
-			.filter((change) => change.complete)
-		return changes
+		try {
+			const model = this.getModel(prompt.meta.modelName)
+			const events = await generateEventsVercel(model, prompt)
+			const changes = events
+				.map((event) => getTldrawAgentChangesFromSimpleEvents(prompt, event))
+				.flat()
+				.filter((change) => change.complete)
+			return changes
+		} catch (error: any) {
+			console.error('Generate error:', error)
+			throw error
+		}
 	}
 
 	async *stream(prompt: TLAiSerializedPrompt): AsyncGenerator<Streaming<TLAgentChange>> {
-		const model = this.getModel(prompt.meta.modelName)
-		for await (const event of streamEventsVercel(model, prompt)) {
-			for (const change of getTldrawAgentChangesFromSimpleEvents(prompt, event)) {
-				yield change
+		try {
+			const model = this.getModel(prompt.meta.modelName)
+			for await (const event of streamEventsVercel(model, prompt)) {
+				for (const change of getTldrawAgentChangesFromSimpleEvents(prompt, event)) {
+					yield change
+				}
 			}
+		} catch (error: any) {
+			console.error('Stream error:', error)
+			throw error
 		}
 	}
 }
@@ -54,48 +64,53 @@ async function* streamEventsVercel(
 	model: LanguageModel,
 	prompt: TLAiSerializedPrompt
 ): AsyncGenerator<ISimpleEvent & { complete: boolean }> {
-	const { partialObjectStream } = streamObject<IModelResponse>({
-		model,
-		system: SIMPLE_SYSTEM_PROMPT,
-		messages: buildMessages(prompt),
-		schema: ModelResponse,
-		onError: (e) => {
-			console.error(e)
-			throw e
-		},
-	})
+	try {
+		const { partialObjectStream } = streamObject<IModelResponse>({
+			model,
+			system: SIMPLE_SYSTEM_PROMPT,
+			messages: buildMessages(prompt),
+			schema: ModelResponse,
+			onError: (e) => {
+				console.error('Stream object error:', e)
+				throw e
+			},
+		})
 
-	let cursor = 0
-	let maybeIncompleteEvent: ISimpleEvent | null = null
+		let cursor = 0
+		let maybeIncompleteEvent: ISimpleEvent | null = null
 
-	for await (const partialObject of partialObjectStream) {
-		const events = partialObject.events
-		if (!Array.isArray(events)) continue
-		if (events.length === 0) continue
+		for await (const partialObject of partialObjectStream) {
+			const events = partialObject.events
+			if (!Array.isArray(events)) continue
+			if (events.length === 0) continue
 
-		// If the events list is ahead of the cursor, we know we've completed the current event
-		// We can complete the event and move the cursor forward
-		if (events.length > cursor) {
+			// If the events list is ahead of the cursor, we know we've completed the current event
+			// We can complete the event and move the cursor forward
+			if (events.length > cursor) {
+				const event = events[cursor - 1] as ISimpleEvent
+				if (event) {
+					yield { ...event, complete: true }
+					maybeIncompleteEvent = null
+				}
+				cursor++
+			}
+
+			// Now let's check the (potentially new) current event
+			// And let's yield it in its (potentially incomplete) state
 			const event = events[cursor - 1] as ISimpleEvent
 			if (event) {
-				yield { ...event, complete: true }
-				maybeIncompleteEvent = null
+				yield { ...event, complete: false }
+				maybeIncompleteEvent = event
 			}
-			cursor++
 		}
 
-		// Now let's check the (potentially new) current event
-		// And let's yield it in its (potentially incomplete) state
-		const event = events[cursor - 1] as ISimpleEvent
-		if (event) {
-			yield { ...event, complete: false }
-			maybeIncompleteEvent = event
+		// If we've finished receiving events, but there's still an incomplete event, we need to complete it
+		if (maybeIncompleteEvent) {
+			yield { ...maybeIncompleteEvent, complete: true }
 		}
-	}
-
-	// If we've finished receiving events, but there's still an incomplete event, we need to complete it
-	if (maybeIncompleteEvent) {
-		yield { ...maybeIncompleteEvent, complete: true }
+	} catch (error: any) {
+		console.error('streamEventsVercel error:', error)
+		throw error
 	}
 }
 
@@ -103,12 +118,17 @@ async function generateEventsVercel(
 	model: LanguageModel,
 	prompt: TLAiSerializedPrompt
 ): Promise<(ISimpleEvent & { complete: boolean })[]> {
-	const response = await generateObject({
-		model,
-		system: SIMPLE_SYSTEM_PROMPT,
-		messages: buildMessages(prompt),
-		schema: ModelResponse,
-	})
+	try {
+		const response = await generateObject({
+			model,
+			system: SIMPLE_SYSTEM_PROMPT,
+			messages: buildMessages(prompt),
+			schema: ModelResponse,
+		})
 
-	return response.object.events.map((event) => ({ ...event, complete: true }))
+		return response.object.events.map((event) => ({ ...event, complete: true }))
+	} catch (error: any) {
+		console.error('generateEventsVercel error:', error)
+		throw error
+	}
 }
