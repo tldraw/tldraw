@@ -96,7 +96,7 @@ export async function getRoomHistory(
 	let currentMonth = new Date()
 	let monthsChecked = 0
 	const maxMonthsToCheck = 12
-	const targetEntryCount = 100
+	const targetEntryCount = 1000
 
 	if (offset) {
 		try {
