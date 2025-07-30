@@ -99,7 +99,14 @@ export function encodeBase64(buffer: Uint8Array) {
 		result[result.length - 1] = equals
 	}
 
-	return String.fromCharCode.apply(null, result as any) // faster than TextEncoder
+	// Use chunked approach to avoid call stack limit
+	const chunkSize = 8192
+	let str = ''
+	for (let i = 0; i < result.length; i += chunkSize) {
+		const chunk = result.subarray(i, i + chunkSize)
+		str += String.fromCharCode.apply(null, chunk as any)
+	}
+	return str
 }
 
 export function decodeBase64(base64: string): Uint8Array {
