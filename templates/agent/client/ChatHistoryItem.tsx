@@ -1,13 +1,15 @@
 import { TLAiChange } from '@tldraw/ai'
-import { useCallback, useEffect, useMemo, useState } from 'react'
+import { forwardRef, useCallback, useEffect, useMemo, useState } from 'react'
 import {
-	defaultColorNames,
+	DefaultShapeWrapper,
 	Editor,
 	RecordsDiff,
 	reverseRecordsDiff,
 	TLRecord,
 	TLShape,
 	TLShapeId,
+	TLShapeWrapperProps,
+	useValue,
 } from 'tldraw'
 import { Streaming, TLAgentChange } from './AgentChange'
 import { $chatHistoryItems } from './ChatHistory'
@@ -112,85 +114,73 @@ export function AgentMessageHistoryItem({ item }: { item: AgentMessageHistoryIte
 	return <div className="agent-chat-message">{item.message}</div>
 }
 
-function makeHighlightShape({
-	shape,
-	color,
-}: {
-	shape: TLShape
-	color: (typeof defaultColorNames)[number]
-}) {
-	let opacity = 0.5
-	const props = { ...shape.props }
-
-	if (color === 'light-green') {
-		opacity = 0.51
-	} else if (color === 'light-red') {
-		opacity = 0.52
-	} else if (color === 'light-blue') {
-		opacity = 0.53
-	}
-	if ('dash' in props) props.dash = 'solid'
-	return {
-		...shape,
-		id: (shape.id + '-highlight') as TLShapeId,
-		opacity,
-		props,
-	}
-}
-
 function getDiffShapesFromDiff({ diff }: { diff: RecordsDiff<TLRecord> }): TLShape[] {
 	const diffShapes: TLShape[] = []
 
 	for (const key in diff.removed) {
 		const id = key as TLShapeId
-		const shape = diff.removed[id]
-		if (shape.typeName !== 'shape') continue
-		const highlightShape = makeHighlightShape({ shape, color: 'light-red' })
-		diffShapes.push(highlightShape)
+		const prevShape = diff.removed[id]
+		if (prevShape.typeName !== 'shape') continue
+		const shape = {
+			...prevShape,
+			props: { ...prevShape.props },
+			meta: { ...prevShape.meta, changeType: 'delete' },
+		}
 
 		if ('dash' in shape.props) {
-			diffShapes.push({ ...shape, props: { ...shape.props, dash: 'solid' } })
-		} else {
-			diffShapes.push(shape)
+			shape.props.dash = 'solid'
 		}
+
+		diffShapes.push(shape)
 	}
 
 	for (const key in diff.updated) {
 		const id = key as TLShapeId
-		const before = { ...diff.updated[id][0], id: (id + '-before') as TLShapeId }
-		const after = diff.updated[id][1]
-		if (before.typeName !== 'shape' || after.typeName !== 'shape') continue
-		const highlightAfterShape = makeHighlightShape({ shape: after, color: 'light-blue' })
-		before.opacity = 0.5
-		before.props = { ...before.props }
+
+		const prevBefore = diff.updated[id][0]
+		const prevAfter = diff.updated[id][1]
+		if (prevBefore.typeName !== 'shape' || prevAfter.typeName !== 'shape') continue
+
+		const before = {
+			...prevBefore,
+			id: (id + '-before') as TLShapeId,
+			opacity: prevAfter.opacity / 2,
+			props: { ...prevBefore.props },
+			meta: { ...prevBefore.meta, changeType: 'update-before' },
+		}
+		const after = {
+			...prevAfter,
+			props: { ...prevAfter.props },
+			meta: { ...prevAfter.meta, changeType: 'update-after' },
+		}
+
 		if ('dash' in before.props) {
 			before.props.dash = 'dashed'
-			diffShapes.push(before)
 		}
 		if ('fill' in before.props) {
 			before.props.fill = 'none'
 		}
-		diffShapes.push(before)
-		diffShapes.push(highlightAfterShape)
 		if ('dash' in after.props) {
-			diffShapes.push({ ...after, props: { ...after.props, dash: 'solid' } })
-		} else {
-			diffShapes.push(after)
+			after.props.dash = 'solid'
 		}
+
+		diffShapes.push(before)
+		diffShapes.push(after)
 	}
 
 	for (const key in diff.added) {
 		const id = key as TLShapeId
-		const shape = diff.added[id]
-		if (shape.typeName !== 'shape') continue
-		const highlightShape = makeHighlightShape({ shape, color: 'light-green' })
-		diffShapes.push(highlightShape)
-
-		if ('dash' in shape.props) {
-			diffShapes.push({ ...shape, props: { ...shape.props, dash: 'solid' } })
-		} else {
-			diffShapes.push(shape)
+		const prevShape = diff.added[id]
+		if (prevShape.typeName !== 'shape') continue
+		const shape = {
+			...prevShape,
+			props: { ...prevShape.props },
+			meta: { ...prevShape.meta, changeType: 'create' },
 		}
+		if ('dash' in shape.props) {
+			shape.props.dash = 'solid'
+		}
+		diffShapes.push(shape)
 	}
 
 	return diffShapes
@@ -265,10 +255,28 @@ export function AgentChangeHistoryItems({
 					</>
 				)}
 			</div>
-			<TldrawViewer shapes={diffShapes} />
+			<TldrawViewer shapes={diffShapes} components={{ ShapeWrapper: DiffShapeWrapper }} />
 		</div>
 	)
 }
+
+const DiffShapeWrapper = forwardRef(function DiffShapeWrapper(
+	{ children, shape, isBackground }: TLShapeWrapperProps,
+	ref: React.Ref<HTMLDivElement>
+) {
+	const changeType = useValue('change type', () => shape.meta.changeType, [shape])
+
+	return (
+		<DefaultShapeWrapper
+			ref={ref}
+			shape={shape}
+			isBackground={isBackground}
+			className={changeType ? 'diff-shape-' + changeType : undefined}
+		>
+			{children}
+		</DefaultShapeWrapper>
+	)
+})
 
 export function AgentActionHistoryItem({ item }: { item: AgentActionHistoryItem }) {
 	const actionDefinition = ACTION_HISTORY_ITEM_DEFINITIONS[item.action]
