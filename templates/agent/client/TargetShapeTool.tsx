@@ -75,7 +75,6 @@ class TargetShapePointing extends StateNode {
 
 	override onPointerUp() {
 		this.editor.setHintingShapes([])
-		console.log(this.shape)
 		if (this.shape) {
 			addToContext({ type: 'shape', shape: this.shape, source: 'user' })
 		}

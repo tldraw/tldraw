@@ -37,10 +37,6 @@ export function getTldrawAgentChangesFromSimpleEvents(
 	prompt: TLAiSerializedPrompt,
 	event: Streaming<ISimpleEvent>
 ): Streaming<TLAgentChange>[] {
-	if (event.complete) {
-		console.log('getTldrawAiChangesFromSimpleEvents [EVENT FROM MODEL]', event)
-	}
-
 	switch (event._type) {
 		case 'update': {
 			return getTldrawAiChangesFromSimpleUpdateEvent(prompt, event)

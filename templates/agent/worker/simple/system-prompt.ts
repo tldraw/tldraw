@@ -221,28 +221,3 @@ Assistant:
 	]
 }
 `
-
-// console.log(SIMPLE_SYSTEM_PROMPT)
-
-// -------  Scratchpad ---------
-
-// The user's viewport is { x: 0, y: 0, width: 1000, height: 500 }
-// User: Give the snowman's eyes a solid black fill.
-// Assistant: [
-// 	{
-// 		type: "update",
-// 		updates: [
-// 			{
-// 				shapeId: "snowman-left-eye",
-// 				fill: "solid",
-// 				color: "black"
-// 			},
-// 			{
-// 				shapeId: "snowman-right-eye",
-// 				fill: "solid",
-// 				color: "black"
-// 			}
-// 		],
-// 		intent: "Give the snowman's eyes a solid black fill."
-// 	}
-// ]

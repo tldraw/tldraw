@@ -23,27 +23,6 @@ export function buildMessages(prompt: TLAiSerializedPrompt): CoreMessage[] {
 	messages.push(...contextPointsMessages)
 	messages.push(userMessage)
 
-	const sanitizedMessages = messages.map((message) => {
-		// Deep clone the message to avoid mutating the original
-		const clonedMessage = JSON.parse(JSON.stringify(message))
-
-		// If the message has content, iterate through it
-		if (Array.isArray(clonedMessage.content)) {
-			clonedMessage.content = clonedMessage.content.map((contentItem: any) => {
-				// If the content item is an image, replace its data
-				if (contentItem.type === 'image') {
-					return {
-						...contentItem,
-						image: '<IMAGE DATA REMOVED>',
-					}
-				}
-				return contentItem
-			})
-		}
-		return clonedMessage
-	})
-	console.log('messages', JSON.stringify(sanitizedMessages, null, 2))
-
 	return messages
 }
 
@@ -135,7 +114,6 @@ function buildHistoryMessages(prompt: TLAiSerializedPrompt): CoreMessage[] {
 
 	for (let i = 0; i < end; i++) {
 		const item = historyItems[i]
-		console.log('item', item)
 		const message = buildHistoryItemMessage(item)
 		if (message) {
 			messages.push(message)
