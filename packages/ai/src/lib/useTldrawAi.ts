@@ -288,18 +288,13 @@ export function defaultApplyChange({ change, editor }: { change: TLAiChange; edi
 	try {
 		switch (change.type) {
 			case 'createShape': {
-				// set defaults for props thats the model cant set so they don't default to what the user has selected in the editor
-				change.shape = {
+				const util = editor.getShapeUtil(change.shape.type)
+				const shape = {
 					...change.shape,
 					opacity: 1,
-					props: {
-						...change.shape.props,
-						dash: 'draw',
-						font: 'draw',
-						size: 'm',
-					},
+					props: { ...util?.getDefaultProps(), ...change.shape.props },
 				}
-				editor.createShape(change.shape as TLShapePartial)
+				editor.createShape(shape as TLShapePartial)
 				break
 			}
 			case 'updateShape': {
