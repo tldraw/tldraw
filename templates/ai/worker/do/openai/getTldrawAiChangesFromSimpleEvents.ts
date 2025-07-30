@@ -35,7 +35,6 @@ export function getTldrawAiChangesFromSimpleEvents(
 	prompt: TLAiSerializedPrompt,
 	event: ISimpleEvent
 ): TLAiChange[] {
-	console.log('event', JSON.stringify(event, null, 2))
 	switch (event._type) {
 		case 'update': {
 			return getTldrawAiChangesFromSimpleUpdateEvent(prompt, event)
