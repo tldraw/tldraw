@@ -75,11 +75,6 @@ export function ChatInput({
 	)
 
 	const contextItems = useValue('contextItems', () => $contextItems.get(), [$contextItems])
-	const contextAttachments = useValue(
-		'contextAttachments',
-		() => contextItems.filter((item) => item.type === 'area'),
-		[contextItems]
-	)
 
 	const [modelName, setModelName] = useLocalStorageState<TLAgentModelName>(
 		'model-name',
@@ -107,16 +102,6 @@ export function ChatInput({
 
 	return (
 		<div className="chat-input">
-			{/* <div className="chat-input-context-attachments">
-				{contextAttachments.map(
-					(item, i) =>
-						item.source === 'user' && (
-							<div key={'context-attachment-' + i} className="chat-input-context-attachment">
-								{`x: ${item.bounds.x.toFixed(0)}, y: ${item.bounds.y.toFixed(0)}, w: ${item.bounds.w.toFixed(0)}, h: ${item.bounds.h.toFixed(0)}`}
-							</div>
-						)
-				)}
-			</div> */}
 			<form
 				onSubmit={(e) => {
 					e.preventDefault()
