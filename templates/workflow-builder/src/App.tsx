@@ -8,7 +8,6 @@ import {
 	useEditor,
 	useValue,
 } from 'tldraw'
-import { NodeToolbar } from './components/NodeToolbar.tsx'
 import { OnCanvasComponentPicker } from './components/OnCanvasComponentPicker.tsx'
 import { WorkflowToolbar } from './components/WorkflowToolbar.tsx'
 import { ConnectionBindingUtil } from './connection/ConnectionBindingUtil'
@@ -21,12 +20,7 @@ const shapeUtils = [NodeShapeUtil, ConnectionShapeUtil]
 const bindingUtils = [ConnectionBindingUtil]
 
 const components: TLComponents = {
-	InFrontOfTheCanvas: () => (
-		<>
-			<NodeToolbar />
-			<OnCanvasComponentPicker />
-		</>
-	),
+	InFrontOfTheCanvas: () => <OnCanvasComponentPicker />,
 	Toolbar: () => (
 		<div style={{ display: 'flex', alignItems: 'flex-end', flexGrow: 2 }}>
 			<WorkflowToolbar />
