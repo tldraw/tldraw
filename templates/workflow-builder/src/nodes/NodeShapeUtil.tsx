@@ -17,7 +17,6 @@ import {
 import { NODE_WIDTH_PX, PORT_RADIUS_PX } from '../constants'
 import { Port, ShapePort } from '../ports/Port'
 import { executionState } from '../state'
-import { getIndicatorHolePunchesForShape } from './indicatorHolePunch'
 import { getNodeOutputPortValues, getNodePorts } from './nodePorts'
 import {
 	getNodeDefinition,
@@ -111,14 +110,6 @@ export class NodeShapeUtil extends ShapeUtil<NodeShape> {
 
 function NodeShapeIndicator({ shape, ports }: { shape: NodeShape; ports: ShapePort[] }) {
 	const id = useUniqueSafeId()
-	const editor = useEditor()
-	const holePunches = useValue(
-		'hole punches',
-		() => getIndicatorHolePunchesForShape(editor, shape.id),
-		[shape.id, editor]
-	)
-
-	if (holePunches.length > 0) console.log('hole punches', holePunches)
 
 	return (
 		<>
@@ -136,16 +127,6 @@ function NodeShapeIndicator({ shape, ports }: { shape: NodeShape; ports: ShapePo
 						cx={port.x}
 						cy={port.y}
 						r={PORT_RADIUS_PX}
-						fill="black"
-						strokeWidth={0}
-					/>
-				))}
-				{holePunches.map((holePunch, i) => (
-					<circle
-						key={i}
-						cx={holePunch.x}
-						cy={holePunch.y}
-						r={holePunch.radius}
 						fill="black"
 						strokeWidth={0}
 					/>
@@ -184,9 +165,6 @@ function NodeShape({ shape }: { shape: NodeShape }) {
 			className={classNames('NodeShape', {
 				NodeShape_executing: isExecuting,
 			})}
-			style={{
-				pointerEvents: 'all',
-			}}
 		>
 			<div className="NodeShape-heading">
 				<div className="NodeShape-label">{nodeDefinition.title}</div>

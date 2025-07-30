@@ -65,7 +65,6 @@ body {
 	select {
 		align-self: stretch;
 		flex: 1 1 auto;
-		pointer-events: all;
 		border: 1px solid var(--color-hint);
 		padding: 0 var(--space-4);
 		border-radius: var(--radius-3);
@@ -75,6 +74,10 @@ body {
 
 		&:focus {
 			border-color: var(--color-selected);
+		}
+
+		[data-state='select.idle'] & {
+			pointer-events: all;
 		}
 	}
 
@@ -121,9 +124,12 @@ body {
 	box-shadow:
 		0 0 0 1px rgba(0, 0, 0, 0.04),
 		0 1px 3px rgba(0, 0, 0, 0.12);
-	pointer-events: all;
 	flex: 0 0 auto;
 	transition: transform 0.05s ease-in-out;
+
+	[data-state='select.idle'] & {
+		pointer-events: all;
+	}
 
 	&.Port_hinting {
 		background: var(--color-selected);
@@ -158,10 +164,13 @@ body {
 
 .ConnectionCenterHandle {
 	.ConnectionCenterHandle-hover {
-		pointer-events: all;
 		cursor: pointer;
 		stroke: none;
 		fill: none;
+
+		[data-state='select.idle'] & {
+			pointer-events: all;
+		}
 
 		&:hover {
 			fill: var(--color-selection-fill);
@@ -253,55 +262,9 @@ body {
 .SliderNode {
 	.tlui-slider__container {
 		padding: 0;
-		pointer-events: all;
-	}
-}
 
-.AddNodeRowButton {
-	pointer-events: all;
-	opacity: 0;
-	position: absolute;
-	bottom: -24px;
-	height: 36px;
-	border-bottom-left-radius: 100% 66px;
-	border-bottom-right-radius: 100% 66px;
-	width: 100%;
-	display: flex;
-	align-items: flex-start;
-	justify-content: center;
-
-	&:hover,
-	&.AddNodeRowButton_forceShow {
-		opacity: 1;
-	}
-
-	.AddNodeRowButton-button {
-		cursor: pointer;
-		background: none;
-		border: none;
-		outline: none;
-		padding: 3px 12px 12px;
-		border-bottom-left-radius: 100%;
-		border-bottom-right-radius: 100%;
-	}
-
-	.AddNodeRowButton-icon {
-		width: 19px;
-		height: 19px;
-		border-radius: 50%;
-		background: var(--color-panel);
-		box-shadow:
-			0 0 0 1px rgba(0, 0, 0, 0.04),
-			0 1px 3px rgba(0, 0, 0, 0.12);
-		pointer-events: all;
-		display: flex;
-		align-items: center;
-		justify-content: center;
-	}
-
-	.AddNodeRowButton-button:hover .AddNodeRowButton-icon {
-		box-shadow:
-			0 0 0 1px var(--color-selected),
-			0 1px 3px rgba(0, 0, 0, 0.12);
+		[data-state='select.idle'] & {
+			pointer-events: all;
+		}
 	}
 }
