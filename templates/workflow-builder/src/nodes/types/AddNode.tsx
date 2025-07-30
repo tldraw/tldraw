@@ -1,17 +1,9 @@
-import classNames from 'classnames'
-import { useLayoutEffect, useState } from 'react'
-import { IndexKey, T, useEditor, useValue } from 'tldraw'
+import { Editor, getIndexAbove, getIndicesBetween, IndexKey, T, useEditor } from 'tldraw'
 import { AddIcon } from '../../components/icons/AddIcon'
-import {
-	NODE_HEADER_HEIGHT_PX,
-	NODE_ROW_HEADER_GAP_PX,
-	NODE_ROW_HEIGHT_PX,
-	NODE_WIDTH_PX,
-} from '../../constants'
+import { NODE_HEADER_HEIGHT_PX, NODE_ROW_HEADER_GAP_PX, NODE_ROW_HEIGHT_PX } from '../../constants'
 import { indexList, indexListEntries, indexListLength } from '../../utils'
-import { createIndicatorHolePunch } from '../indicatorHolePunch'
+import { getNodePortConnections } from '../nodePorts'
 import { NodeShape } from '../NodeShapeUtil'
-import { getNodeHeightPx } from '../nodeTypes'
 import { NodeDefinition, NodeInputRow, outputPort, updateNode } from './shared'
 
 export const AddNodeType = T.object({
@@ -61,7 +53,18 @@ export const AddNode: NodeDefinition<AddNode> = {
 		const idx = portId.slice(5) as IndexKey
 		updateNode<AddNode>(editor, shape, (node) => ({
 			...node,
-			items: { ...node.items, [idx]: node.items[idx] ?? 0 },
+			items: ensureFinalEmptyItem(
+				editor,
+				shape,
+				{ ...node.items, [idx]: node.items[idx] ?? 0 },
+				{ removeUnused: true }
+			),
+		}))
+	},
+	onPortDisconnect: (editor, shape) => {
+		updateNode<AddNode>(editor, shape, (node) => ({
+			...node,
+			items: ensureFinalEmptyItem(editor, shape, node.items, { removeUnused: true }),
 		}))
 	},
 	Component: ({ shape, node }) => {
@@ -77,61 +80,56 @@ export const AddNode: NodeDefinition<AddNode> = {
 						onChange={(newValue) => {
 							updateNode<AddNode>(editor, shape, (node) => ({
 								...node,
-								items: { ...node.items, [idx]: newValue },
+								items: ensureFinalEmptyItem(editor, shape, { ...node.items, [idx]: newValue }),
+							}))
+						}}
+						onBlur={() => {
+							updateNode<AddNode>(editor, shape, (node) => ({
+								...node,
+								items: ensureFinalEmptyItem(editor, shape, node.items, { removeUnused: true }),
 							}))
 						}}
 					/>
 				))}
-				<AddNodeRowButton shape={shape} />
 			</>
 		)
 	},
 }
 
-const holePunchX = NODE_WIDTH_PX / 2
-const holePunchRadius = 10
+function ensureFinalEmptyItem(
+	editor: Editor,
+	shape: NodeShape,
+	items: Record<IndexKey, number>,
+	{ removeUnused = false } = {}
+) {
+	const connections = getNodePortConnections(editor, shape.id)
 
-function AddNodeRowButton({ shape }: { shape: NodeShape }) {
-	const editor = useEditor()
-	const forceShow = useValue(
-		'forceShow',
-		() => {
-			return editor.getOnlySelectedShapeId() === shape.id
-		},
-		[shape.id, editor]
-	)
+	let entriesToKeep = indexListEntries(items)
+	const connectedPortIds = new Set(connections.map((c) => c.ownPortId))
 
-	const [isHovered, setIsHovered] = useState(false)
-	const holePunchY = getNodeHeightPx(shape.props.node)
+	if (removeUnused) {
+		entriesToKeep = entriesToKeep.filter(([idx, value], i) => {
+			const portId = `item_${idx}`
+			return (
+				i === 0 || i === entriesToKeep.length - 1 || value !== 0 || connectedPortIds.has(portId)
+			)
+		})
 
-	useLayoutEffect(() => {
-		if (!forceShow && !isHovered) return
-
-		const removeIndicatorHolePunch = createIndicatorHolePunch(
-			editor,
-			shape.id,
-			holePunchX,
-			holePunchY,
-			holePunchRadius
-		)
-		return () => {
-			removeIndicatorHolePunch()
+		if (entriesToKeep.length < 2) {
+			for (const index of getIndicesBetween(
+				entriesToKeep[entriesToKeep.length - 1]?.[0],
+				null,
+				2 - entriesToKeep.length
+			)) {
+				entriesToKeep.push([index, 0])
+			}
 		}
-	}, [shape.id, editor, holePunchY, forceShow, isHovered])
+	}
 
-	return (
-		<div
-			className={classNames('AddNodeRowButton', {
-				AddNodeRowButton_forceShow: forceShow,
-			})}
-			onMouseEnter={() => setIsHovered(true)}
-			onMouseLeave={() => setIsHovered(false)}
-		>
-			<button className="AddNodeRowButton-button" onClick={() => {}}>
-				<div className="AddNodeRowButton-icon">
-					<AddIcon />
-				</div>
-			</button>
-		</div>
-	)
+	const lastEntry = entriesToKeep[entriesToKeep.length - 1]!
+	if (lastEntry[1] !== 0 || connectedPortIds.has(`item_${lastEntry[0]}`)) {
+		entriesToKeep.push([getIndexAbove(lastEntry[0]), 0])
+	}
+
+	return Object.fromEntries(entriesToKeep)
 }
