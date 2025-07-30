@@ -156,6 +156,9 @@ export interface A11yProviderProps {
 }
 
 // @public (undocumented)
+export function AccessibilityMenu(): JSX_2.Element;
+
+// @public (undocumented)
 export interface ActionsProviderProps {
     // (undocumented)
     children: React_2.ReactNode;
@@ -3108,6 +3111,15 @@ export interface TldrawUiTooltipProps {
     side?: 'bottom' | 'left' | 'right' | 'top';
     // (undocumented)
     sideOffset?: number;
+}
+
+// @public (undocumented)
+export function TldrawUiTooltipProvider({ children }: TldrawUiTooltipProviderProps): JSX_2.Element;
+
+// @public (undocumented)
+export interface TldrawUiTooltipProviderProps {
+    // (undocumented)
+    children: React_3.ReactNode;
 }
 
 // @internal
