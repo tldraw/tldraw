@@ -1,10 +1,10 @@
 import { captureException } from '@sentry/react'
-import { FILE_PREFIX } from '@tldraw/dotcom-shared'
-import { useEffect } from 'react'
+import { type HistoryResponseBody } from '@tldraw/dotcom-shared'
+import { useEffect, useState } from 'react'
 import { useRouteError } from 'react-router-dom'
-import { fetch } from 'tldraw'
 import { BoardHistoryLog } from '../../components/BoardHistoryLog/BoardHistoryLog'
 import { defineLoader } from '../../utils/defineLoader'
+import { fetchHistory } from '../../utils/fetchHistory'
 import { TlaFileError } from '../components/TlaFileError/TlaFileError'
 import { useMaybeApp } from '../hooks/useAppState'
 import { TlaAnonLayout } from '../layouts/TlaAnonLayout/TlaAnonLayout'
@@ -15,13 +15,10 @@ const { loader, useData } = defineLoader(async (args) => {
 
 	if (!fileSlug) return null
 
-	const result = await fetch(`/api/${FILE_PREFIX}/${fileSlug}/history`, {
-		headers: {},
-	})
-	if (!result.ok) return null
-	const data = await result.json()
+	const data = await fetchHistory(fileSlug)
+	if (!data) return null
 
-	return { data, fileSlug } as { data: string[]; fileSlug: string }
+	return { data, fileSlug } as { data: HistoryResponseBody; fileSlug: string }
 })
 
 export { loader }
@@ -36,6 +33,9 @@ export function ErrorBoundary() {
 
 export function Component({ error: _error }: { error?: unknown }) {
 	const data = useData()
+	const [allTimestamps, setAllTimestamps] = useState<string[]>([])
+	const [hasMore, setHasMore] = useState(false)
+	const [isLoading, setIsLoading] = useState(false)
 
 	const userId = useMaybeApp()?.userId
 
@@ -48,13 +48,51 @@ export function Component({ error: _error }: { error?: unknown }) {
 		}
 	}, [error, userId])
 
+	// Initialize with first batch of data
+	useEffect(() => {
+		if (data?.data) {
+			setAllTimestamps(data.data.timestamps)
+			setHasMore(data.data.hasMore)
+		}
+	}, [data?.data])
+
+	const handleLoadMore = async () => {
+		if (!data?.fileSlug || isLoading) return
+
+		setIsLoading(true)
+		try {
+			// Get the earliest timestamp from the current list
+			const earliestTimestamp = allTimestamps[allTimestamps.length - 1]
+
+			const newData = await fetchHistory(data.fileSlug, earliestTimestamp)
+
+			if (newData) {
+				// Filter out any timestamps that already exist to prevent duplicates
+				const uniqueNewTimestamps = newData.timestamps.filter(
+					(timestamp) => !allTimestamps.includes(timestamp)
+				)
+				setAllTimestamps((prev) => [...prev, ...uniqueNewTimestamps])
+				setHasMore(newData.hasMore)
+			}
+		} catch (err) {
+			console.error('Failed to load more history:', err)
+		} finally {
+			setIsLoading(false)
+		}
+	}
+
 	return (
 		<>
 			{error ? (
 				<TlaFileError error={error} />
 			) : (
 				<TlaAnonLayout>
-					<BoardHistoryLog data={data.data} />
+					<BoardHistoryLog
+						data={allTimestamps}
+						hasMore={hasMore}
+						onLoadMore={handleLoadMore}
+						isLoading={isLoading}
+					/>
 				</TlaAnonLayout>
 			)}
 		</>

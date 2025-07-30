@@ -204,6 +204,38 @@ a {
 	right: 8px;
 }
 
+.board-history__load-more {
+	display: flex;
+	justify-content: center;
+	padding: 16px;
+}
+
+.board-history__load-more-button {
+	font-family: inherit;
+	font-size: inherit;
+	height: 36px;
+	border: 2px solid var(--color-selected);
+	border-radius: 8px;
+	background-color: var(--color-selected);
+	color: var(--color-selected-contrast);
+	text-shadow: none;
+	pointer-events: all;
+	position: relative;
+	font-weight: 600;
+	cursor: pointer;
+	transition: all 0.2s ease;
+}
+
+.board-history__load-more-button:hover:not(:disabled) {
+	background-color: var(--color-selected);
+	opacity: 0.9;
+}
+
+.board-history__load-more-button:disabled {
+	opacity: 0.5;
+	cursor: not-allowed;
+}
+
 /* ----------------- Iframe warning ----------------- */
 
 .iframe-warning__container {
