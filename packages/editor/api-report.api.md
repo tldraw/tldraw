@@ -1272,8 +1272,6 @@ export class Editor extends EventEmitter<TLEventMap> {
         hitInside?: boolean;
         margin?: number;
     }): TLShape[];
-    // (undocumented)
-    getShapesInBounds(bounds: Box): TLShape[];
     // @internal (undocumented)
     getShapesPageBounds(shapeIds: TLShapeId[]): Box | null;
     // @internal (undocumented)

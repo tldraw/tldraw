@@ -206,7 +206,6 @@ export interface TldrawAiOptions extends Omit<TldrawAiModuleOptions, 'editor'> {
 
 // @public (undocumented)
 export type TldrawAiPromptOptions = (Partial<TLAiPrompt> & {
-    message: string;
     stream?: boolean;
 }) | string;
 

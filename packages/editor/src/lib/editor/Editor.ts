@@ -5146,13 +5146,6 @@ export class Editor extends EventEmitter<TLEventMap> {
 			.find((shape) => this.isPointInShape(shape, point, { hitInside: true, margin: 0 }))
 	}
 
-	getShapesInBounds(bounds: Box): TLShape[] {
-		return this.getCurrentPageShapesSorted().filter((shape) => {
-			const geometry = this.getShapeGeometry(shape)
-			return geometry.isPointInBounds(bounds)
-		})
-	}
-
 	/**
 	 * Get the shape at the current point.
 	 *
