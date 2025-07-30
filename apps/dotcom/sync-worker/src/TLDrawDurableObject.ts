@@ -751,13 +751,12 @@ export class TLDrawDurableObject extends DurableObject {
 	) {
 		// Upload to rooms bucket first
 		const roomSizeMB = await this._uploadSnapshotToBucket(this.r2.rooms, snapshot, key)
+		// Update storage percentage
+		await this.addRoomStorageUsedPercentage(room, roomSizeMB, true)
 
 		// Then upload to version cache
 		const versionKey = `${key}/${new Date().toISOString()}`
 		await this._uploadSnapshotToBucket(this.r2.versionCache, snapshot, versionKey)
-
-		// Update storage percentage once with the room size
-		await this.addRoomStorageUsedPercentage(room, roomSizeMB, true)
 	}
 
 	private async _uploadSnapshotToBucket(
