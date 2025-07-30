@@ -6,9 +6,6 @@ export const $contextItems = atom<ContextItem[]>('context items', [])
 export const $pendingContextItems = atom<ContextItem[]>('pending context items', [])
 
 export type ContextItem = ShapeContextItem | AreaContextItem | PointContextItem
-// | ViewportContextItem
-// | PageContextItem
-// | SelectionContextItem
 
 export const CONTEXT_TYPE_DEFINITIONS: Record<
 	ContextItem['type'],
@@ -33,18 +30,6 @@ export const CONTEXT_TYPE_DEFINITIONS: Record<
 		name: () => 'Point',
 		icon: () => <TargetIcon />,
 	},
-	// viewport: {
-	// 	name: () => 'Viewport',
-	// 	icon: () => <TargetIcon />,
-	// },
-	// page: {
-	// 	name: () => 'Page',
-	// 	icon: () => <TargetIcon />,
-	// },
-	// selection: {
-	// 	name: () => 'Selection',
-	// 	icon: () => <TargetIcon />,
-	// },
 }
 
 export interface ShapeContextItem {
@@ -71,24 +56,6 @@ export interface PointContextItem {
 	source: 'agent' | 'user'
 }
 
-// export interface ViewportContextItem {
-// 	type: 'viewport'
-// 	bounds: BoxModel
-// 	source: 'agent' | 'user'
-// }
-
-// export interface PageContextItem {
-// 	type: 'page'
-// 	page: TLPage
-// 	source: 'agent' | 'user'
-// }
-
-// export interface SelectionContextItem {
-// 	type: 'selection'
-// 	shapes: TLShape[]
-// 	source: 'agent' | 'user'
-// }
-
 export function addToContext(item: ContextItem) {
 	$contextItems.update((items) => {
 		const existingItem = items.find((v) => areContextItemsEquivalent(v, item))
@@ -102,7 +69,9 @@ export function removeFromContext(item: ContextItem) {
 }
 
 export function areContextItemsEquivalent(a: ContextItem, b: ContextItem) {
-	if (a.type !== b.type) return false
+	if (a.type !== b.type) {
+		return false
+	}
 	if (a.type === 'shape' && b.type === 'shape') {
 		return a.shape.id === b.shape.id
 	}
@@ -112,11 +81,6 @@ export function areContextItemsEquivalent(a: ContextItem, b: ContextItem) {
 	if (a.type === 'point' && b.type === 'point') {
 		return Vec.Equals(a.point, b.point)
 	}
-	// if (a.type === 'viewport' && b.type === 'viewport') return Box.Equals(a.bounds, b.bounds)
-	// if (a.type === 'page' && b.type === 'page') return a.page.id === b.page.id
-	// if (a.type === 'selection' && b.type === 'selection') {
-	// return a.shapes.every((shape) => b.shapes.findIndex((s) => s.id === shape.id) !== -1)
-	// }
 
 	throw new Error('Unknown context item type')
 }

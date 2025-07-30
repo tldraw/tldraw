@@ -78,12 +78,6 @@ export interface AgentActionHistoryItem {
 export function UserMessageHistoryItem({ item }: { item: UserMessageHistoryItem }) {
 	return (
 		<div>
-			{/* <div className="user-message-context-attachments">
-				{contextAttachments.map((contextItem, i) => {
-					const { x, y, w, h } = roundBox(contextItem.bounds)
-					return <div key={'context-attachment-' + i}>{`x: ${x}, y: ${y}, w: ${w}, h: ${h}`}</div>
-				})}
-			</div> */}
 			<div className="user-message">
 				{item.contextItems.length > 0 && (
 					<div className="user-message-context-items">

@@ -24,15 +24,6 @@ const ADD_CONTEXT_ACTIONS = [
 		},
 	},
 	{
-		name: 'Viewport',
-		onSelect: (editor: Editor) => {
-			editor.setCurrentTool('select')
-			const bounds = editor.getViewportPageBounds()
-			addToContext({ type: 'area', bounds, source: 'user' })
-			editor.focus()
-		},
-	},
-	{
 		name: ' ',
 		onSelect: (editor: Editor) => {
 			const currentTool = editor.getCurrentTool()

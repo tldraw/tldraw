@@ -86,6 +86,8 @@ function ChatPanelFallback() {
 				className="chat-panel-fallback-button"
 				onClick={() => {
 					localStorage.removeItem('chat-history-items')
+					localStorage.removeItem('context-items')
+					localStorage.removeItem('model-name')
 					window.location.reload()
 				}}
 			>
