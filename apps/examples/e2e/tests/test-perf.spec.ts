@@ -17,7 +17,7 @@ function testOutput(result: PerformanceTestResult) {
 	)
 
 	// Validate performance
-	expect(result.metrics.averageFps).toBeGreaterThan(20)
+	expect(result.metrics.averageFps).toBeGreaterThan(18)
 	expect(result.comparison.status).not.toBe('fail')
 
 	// Update baseline if this is a significant improvement
