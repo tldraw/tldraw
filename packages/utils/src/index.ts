@@ -91,7 +91,6 @@ export {
 } from './lib/storage'
 export { stringEnum } from './lib/stringEnum'
 export {
-	fixedFpsThrottle,
 	fpsThrottle,
 	getCurrentFps,
 	resetAdaptiveFps,
