@@ -68,6 +68,10 @@ export {
 	type TLShapeIndicatorsProps,
 } from './lib/components/default-components/DefaultShapeIndicators'
 export {
+	DefaultShapeWrapper,
+	type TLShapeWrapperProps,
+} from './lib/components/default-components/DefaultShapeWrapper'
+export {
 	DefaultSnapIndicator,
 	type TLSnapIndicatorProps,
 } from './lib/components/default-components/DefaultSnapIndictor'
@@ -264,6 +268,7 @@ export {
 	type TLImageExportOptions,
 	type TLSvgExportOptions,
 	type TLSvgOptions,
+	type TLUpdatePointerOptions,
 } from './lib/editor/types/misc-types'
 export {
 	type TLAdjacentDirection,

@@ -875,5 +875,6 @@ export interface TLResizeInfo<T extends TLShape> {
 export interface TLHandleDragInfo<T extends TLShape> {
 	handle: TLHandle
 	isPrecise: boolean
+	isCreatingShape: boolean
 	initial?: T | undefined
 }

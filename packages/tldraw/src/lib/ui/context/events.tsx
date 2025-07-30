@@ -76,8 +76,8 @@ export interface TLUiEventMap {
 	'delete-shapes': null
 	'select-all-shapes': null
 	'select-none-shapes': null
-	'rotate-ccw': null
-	'rotate-cw': null
+	'rotate-ccw': { fine: boolean }
+	'rotate-cw': { fine: boolean }
 	'zoom-in': { towardsCursor: boolean }
 	'zoom-out': { towardsCursor: boolean }
 	'zoom-to-fit': null

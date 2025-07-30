@@ -221,7 +221,7 @@ export async function putExcalidrawContent(
 					...base,
 					type: 'arrow',
 					props: {
-						text,
+						richText: toRichText(text),
 						kind: element.elbowed ? 'elbow' : 'arc',
 						bend: getBend(element, start, end),
 						dash: getDash(element),

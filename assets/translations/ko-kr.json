@@ -109,6 +109,7 @@
 	"action.toggle-focus-mode.menu": "포커스 모드",
 	"action.toggle-grid": "그리드 전환",
 	"action.toggle-grid.menu": "그리드 보기",
+	"action.toggle-keyboard-shortcuts": "키보드 단축키",
 	"action.toggle-keyboard-shortcuts.menu": "키보드 단축키",
 	"action.toggle-lock": "잠금/잠금 해제",
 	"action.toggle-paste-at-cursor": "커서에 붙여넣기 기능 전환",

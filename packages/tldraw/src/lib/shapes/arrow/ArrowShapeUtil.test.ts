@@ -1,4 +1,4 @@
-import { HALF_PI, TLArrowShape, TLShapeId, createShapeId } from '@tldraw/editor'
+import { HALF_PI, TLArrowShape, TLShapeId, createShapeId, toRichText } from '@tldraw/editor'
 import { TestEditor } from '../../../test/TestEditor'
 import { createOrUpdateArrowBinding, getArrowBindings } from './shared'
 
@@ -333,7 +333,7 @@ describe('Arrow labels', () => {
 		editor.setCurrentTool('arrow').pointerDown(10, 10).pointerMove(100, 100).pointerUp()
 		const arrowId = editor.getOnlySelectedShape()!.id
 		editor.updateShapes<TLArrowShape>([
-			{ id: arrowId, type: 'arrow', props: { text: 'Test Label' } },
+			{ id: arrowId, type: 'arrow', props: { richText: toRichText('Test Label') } },
 		])
 	})
 
@@ -341,7 +341,7 @@ describe('Arrow labels', () => {
 		const arrowId = editor.getOnlySelectedShape()!.id
 		expect(arrow(arrowId)).toMatchObject({
 			props: {
-				text: 'Test Label',
+				richText: toRichText('Test Label'),
 			},
 		})
 	})
@@ -349,11 +349,11 @@ describe('Arrow labels', () => {
 	it('should update the label of an arrow', () => {
 		const arrowId = editor.getOnlySelectedShape()!.id
 		editor.updateShapes<TLArrowShape>([
-			{ id: arrowId, type: 'arrow', props: { text: 'New Label' } },
+			{ id: arrowId, type: 'arrow', props: { richText: toRichText('New Label') } },
 		])
 		expect(arrow(arrowId)).toMatchObject({
 			props: {
-				text: 'New Label',
+				richText: toRichText('New Label'),
 			},
 		})
 	})
