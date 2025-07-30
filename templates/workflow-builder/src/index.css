@@ -201,7 +201,7 @@ body {
 	.OnCanvasComponentPicker-content {
 		position: absolute;
 		margin-top: calc(-1 * var(--top));
-		width: 155px;
+		width: 150px;
 		border-radius: var(--radius-3);
 		background: var(--color-panel);
 		box-shadow: var(--node-shadow-highlight);
@@ -212,8 +212,7 @@ body {
 	}
 
 	&.OnCanvasComponentPicker_middle .OnCanvasComponentPicker-content {
-		margin-left: -50%;
-		margin-top: -50%;
+		margin-left: -75px;
 	}
 }
 
