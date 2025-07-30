@@ -100,8 +100,7 @@ export async function getRoomHistory(
 
 	if (offset) {
 		try {
-			const offsetDate = new Date(offset)
-			currentMonth = new Date(offsetDate.getFullYear(), offsetDate.getMonth(), 1)
+			currentMonth = new Date(offset)
 		} catch (_e) {
 			currentMonth = new Date()
 		}
