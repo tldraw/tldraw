@@ -98,7 +98,7 @@ test.describe('when dragging a tool from the toolbar', () => {
 
 			// Verify text is in edit mode
 			const hasTextInputFocused = await page.evaluate(() => {
-				return document.activeElement?.classList.contains('tl-text-input')
+				return document.activeElement?.classList.contains('tiptap')
 			})
 			expect(hasTextInputFocused).toBe(true)
 		})

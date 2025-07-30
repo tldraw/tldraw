@@ -5,6 +5,7 @@ import {
 	GeoShapeGeoStyle,
 	TLPointerEventInfo,
 	TLShapeId,
+	toRichText,
 	useMaybeEditor,
 } from '@tldraw/editor'
 import * as React from 'react'
@@ -215,7 +216,8 @@ export function ToolsProvider({ overrides, children }: TLUiToolsProviderProps) {
 				},
 				onDragStart(source, info) {
 					onDragFromToolbarToCreateShape(editor, info, {
-						createShape: (id) => editor.createShape({ id, type: 'text', props: { text: 'Text' } }),
+						createShape: (id) =>
+							editor.createShape({ id, type: 'text', props: { richText: toRichText('Text') } }),
 						onDragEnd: (id) => {
 							editor.emit('select-all-text', { shapeId: id })
 							editor.setEditingShape(id)

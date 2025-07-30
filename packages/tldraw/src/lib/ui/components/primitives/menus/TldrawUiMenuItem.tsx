@@ -350,6 +350,9 @@ function useDraggableEvents(
 							point: start,
 						})
 
+						// Pointer down potentially selects shapes, so we need to deselect them.
+						editor.selectNone()
+
 						// start drag
 						onDragStart?.('toolbar', {
 							type: 'pointer',
