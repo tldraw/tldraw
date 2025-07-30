@@ -2,14 +2,15 @@ import { FormEventHandler, useCallback, useEffect, useRef, useState } from 'reac
 import { Box, BoxModel, Editor, useLocalStorageState, useToasts } from 'tldraw'
 import { DEFAULT_MODEL_NAME, TLAgentModelName } from '../../worker/models'
 import { getSimpleContentFromCanvasContent } from '../../worker/simple/getSimpleContentFromCanvasContent'
-import { $contextItems, $pendingContextItems } from '../contextItems'
+import { $chatHistoryItems } from '../atoms/chatHistoryItems'
+import { $contextItems, $pendingContextItems } from '../atoms/contextItems'
 import { $requestsSchedule } from '../requestsSchedule'
 import { UserMessageHistoryItem } from '../types/ChatHistoryItem'
 import { ContextItem } from '../types/ContextItem'
 import { useTldrawAgent } from '../useTldrawAgent'
-import { $chatHistoryItems, ChatHistory } from './ChatHistory'
+import { ChatHistory } from './chat-history/ChatHistory'
 import { ChatInput } from './ChatInput'
-import { $contextBoundsHighlight } from './ContextBoundsHighlights'
+import { $contextBoundsHighlight } from './highlights/ContextBoundsHighlights'
 
 export function ChatPanel({ editor }: { editor: Editor }) {
 	const ai = useTldrawAgent(editor)

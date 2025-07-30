@@ -1,5 +1,5 @@
-import { UserMessageHistoryItem } from '../types/ChatHistoryItem'
-import { CONTEXT_TYPE_DEFINITIONS, ContextItem } from '../types/ContextItem'
+import { UserMessageHistoryItem } from '../../types/ChatHistoryItem'
+import { CONTEXT_TYPE_DEFINITIONS, ContextItem } from '../../types/ContextItem'
 
 export function UserMessageHistoryItem({ item }: { item: UserMessageHistoryItem }) {
 	return (

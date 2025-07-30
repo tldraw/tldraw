@@ -1,7 +1,7 @@
 import { FormEventHandler, useCallback, useEffect, useState } from 'react'
 import { Editor, useLocalStorageState, useReactor, useValue } from 'tldraw'
 import { AGENT_MODEL_DEFINITIONS, DEFAULT_MODEL_NAME, TLAgentModelName } from '../../worker/models'
-import { $contextItems, addToContext, removeFromContext } from '../contextItems'
+import { $contextItems, addToContext, removeFromContext } from '../atoms/contextItems'
 import { AtIcon } from '../icons/AtIcon'
 import { BrainIcon } from '../icons/BrainIcon'
 import { ChevronDownIcon } from '../icons/ChevronDownIcon'

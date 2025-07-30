@@ -1,15 +1,12 @@
 import { useEffect, useRef } from 'react'
-import { atom, Editor, useReactor, useValue } from 'tldraw'
-import { AgentChangeGroupHistoryItem, ChatHistoryItem } from '../types/ChatHistoryItem'
-import {
-	AgentActionHistoryItem,
-	AgentChangeHistoryItems,
-	AgentMessageHistoryItem,
-	StatusThinkingHistoryItem,
-} from './ChatHistoryItem'
+import { Editor, useReactor, useValue } from 'tldraw'
+import { $chatHistoryItems } from '../../atoms/chatHistoryItems'
+import { AgentChangeGroupHistoryItem, ChatHistoryItem } from '../../types/ChatHistoryItem'
+import { AgentActionHistoryItem } from './AgentActionHistoryItem'
+import { AgentChangeHistoryItems } from './AgentChangeHistoryItems'
+import { AgentMessageHistoryItem } from './AgentMessageHistoryItem'
+import { StatusThinkingHistoryItem } from './StatusThinkingHistoryItem'
 import { UserMessageHistoryItem } from './UserMessageHistoryItem'
-
-export const $chatHistoryItems = atom<ChatHistoryItem[]>('chatHistoryItems', [])
 
 export function ChatHistory({ editor }: { editor: Editor }) {
 	const items = useValue($chatHistoryItems)
@@ -122,16 +119,4 @@ function getChatHistoryWithMergedAdjacentItems({
 	}
 
 	return newItems
-}
-
-export function createOrUpdateHistoryItem(item: ChatHistoryItem) {
-	$chatHistoryItems.update((items) => {
-		if (items.length === 0) return [item]
-
-		const lastItem = items[items.length - 1]
-		if (lastItem.status === 'progress') {
-			return [...items.slice(0, -1), item]
-		}
-		return [...items, item]
-	})
 }

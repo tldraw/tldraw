@@ -8,8 +8,8 @@ import {
 	TLUiOverrides,
 } from 'tldraw'
 import { ChatPanel } from './components/ChatPanel'
-import { ContextBoundsHighlights } from './components/ContextBoundsHighlights'
-import { ContextHighlights } from './components/ContextHighlights'
+import { ContextBoundsHighlights } from './components/highlights/ContextBoundsHighlights'
+import { ContextHighlights } from './components/highlights/ContextHighlights'
 import { overrideFillStyleWithLinedFillStyle } from './linedFillStyle'
 import { TargetAreaTool } from './tools/TargetAreaTool'
 import { TargetShapeTool } from './tools/TargetShapeTool'

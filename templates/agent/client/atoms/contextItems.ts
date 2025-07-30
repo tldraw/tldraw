@@ -1,5 +1,5 @@
 import { atom, Box, Vec } from 'tldraw'
-import { ContextItem } from './types/ContextItem'
+import { ContextItem } from '../types/ContextItem'
 
 export const $contextItems = atom<ContextItem[]>('context items', [])
 export const $pendingContextItems = atom<ContextItem[]>('pending context items', [])

@@ -1,6 +1,6 @@
 import { defaultApplyChange, TLAiChange } from '@tldraw/ai'
 import { Editor } from 'tldraw'
-import { createOrUpdateHistoryItem } from './components/ChatHistory'
+import { createOrUpdateHistoryItem } from './atoms/chatHistoryItems'
 
 export function applyAiChange({ change, editor }: { change: TLAiChange; editor: Editor }) {
 	const diff = editor.store.extractingChanges(() => {

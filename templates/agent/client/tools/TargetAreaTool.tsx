@@ -1,5 +1,5 @@
 import { BoxModel, StateNode, VecModel } from 'tldraw'
-import { addToContext } from '../contextItems'
+import { addToContext } from '../atoms/contextItems'
 
 export class TargetAreaTool extends StateNode {
 	static override id = 'target-area'
