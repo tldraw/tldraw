@@ -1,4 +1,3 @@
-import { zodResponseFormat } from 'openai/helpers/zod'
 import { z } from 'zod'
 
 export const SimpleColor = z.enum([
@@ -541,5 +540,3 @@ export const ModelResponse = z.object({
 })
 
 export type IModelResponse = z.infer<typeof ModelResponse>
-
-export const RESPONSE_FORMAT = zodResponseFormat(ModelResponse, 'event')
