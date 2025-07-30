@@ -87,12 +87,6 @@
       "value": "Ekspor sebagai"
     }
   ],
-  "1460ab5e78": [
-    {
-      "type": 0,
-      "value": "Tldraw gratis"
-    }
-  ],
   "181b90f889": [
     {
       "type": 0,
@@ -157,6 +151,12 @@
     {
       "type": 0,
       "value": "Editor"
+    }
+  ],
+  "37b3dca331": [
+    {
+      "type": 0,
+      "value": "Silakan masuk"
     }
   ],
   "3bd1b98dbd": [
@@ -231,16 +231,10 @@
       "value": "Muat ulang"
     }
   ],
-  "4e029798f2": [
+  "4ea0bb66f7": [
     {
       "type": 0,
-      "value": "Saham gratis"
-    }
-  ],
-  "4e875b8d8e": [
-    {
-      "type": 0,
-      "value": "Penyimpanan gratis"
+      "value": "Sebuah akun akan lebih baik"
     }
   ],
   "50db1b7e1e": [
@@ -319,6 +313,12 @@
       "value": "Browser lama terdeteksi. Harap perbarui browser Anda untuk menggunakan aplikasi ini."
     }
   ],
+  "5bef23eb7e": [
+    {
+      "type": 0,
+      "value": "Buat akun Anda"
+    }
+  ],
   "5d26ae7550": [
     {
       "type": 0,
@@ -335,12 +335,6 @@
     {
       "type": 0,
       "value": "Salin"
-    }
-  ],
-  "5ff75742e0": [
-    {
-      "type": 0,
-      "value": "Daftar gratis"
     }
   ],
   "61057a0c84": [
@@ -467,6 +461,12 @@
     {
       "type": 0,
       "value": "Pulihkan versi"
+    }
+  ],
+  "7c7d5d493e": [
+    {
+      "type": 0,
+      "value": "Silakan mendaftar"
     }
   ],
   "7cb5f8b4a5": [
@@ -727,6 +727,12 @@
       "value": "Pengguna tamu"
     }
   ],
+  "b52dc007ac": [
+    {
+      "type": 0,
+      "value": "Daftar (gratis dan bagus)"
+    }
+  ],
   "b6d4223e60": [
     {
       "type": 0,
@@ -855,6 +861,12 @@
       "value": "Keluar"
     }
   ],
+  "c8c6a6504a": [
+    {
+      "type": 0,
+      "value": "Anda harus mendaftar"
+    }
+  ],
   "cceaefbc20": [
     {
       "type": 0,
@@ -901,6 +913,12 @@
     {
       "type": 0,
       "value": "Coba Lagi"
+    }
+  ],
+  "d8a50c79a7": [
+    {
+      "type": 0,
+      "value": "Ayo ikut aku menggambar"
     }
   ],
   "d9100f3e10": [

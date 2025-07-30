@@ -123,6 +123,7 @@ export function useAnySelectedShapesCount(min?: number, max?: number) {
 
 /**
  * Returns true if the number of UNLOCKED selected shapes is at least min or at most max.
+ * @public
  */
 export function useUnlockedSelectedShapesCount(min?: number, max?: number) {
 	const editor = useEditor()

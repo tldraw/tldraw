@@ -20,6 +20,7 @@ export type TLAppUiEventSource =
 	| 'new-page'
 	| 'app'
 	| 'cookie-settings'
+	| 'dialog'
 
 /** @public */
 export interface TLAppUiEventMap {
@@ -61,6 +62,8 @@ export interface TLAppUiEventMap {
 	'click-file-link': null
 	'open-preview-sign-up-modal': null
 	'create-user': null
+	'room-size-warning-dialog-shown': null
+	'room-size-limit-dialog-shown': null
 }
 
 /** @public */

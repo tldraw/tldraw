@@ -65,6 +65,7 @@ export default [
 			'**/*.mjs',
 			'**/.*.js',
 			'packages/assets/*',
+			'packages/create-tldraw/cli.cjs',
 		],
 	},
 	...compat.extends(

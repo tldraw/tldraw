@@ -1,8 +1,8 @@
-import { TldrawUiIcon } from '../TldrawUiIcon'
+import { TldrawUiIcon, TLUiIconJsx } from '../TldrawUiIcon'
 
 /** @public */
 export interface TLUiButtonIconProps {
-	icon: string
+	icon: string | TLUiIconJsx
 	small?: boolean
 	invertIcon?: boolean
 }
