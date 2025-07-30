@@ -1,7 +1,7 @@
-import { Streaming, TLAgentChange } from './AgentChange'
-import { createOrUpdateHistoryItem } from './ChatHistory'
-import { AreaContextItem } from './Context'
+import { createOrUpdateHistoryItem } from './components/ChatHistory'
 import { $requestsSchedule, ScheduledRequest } from './requestsSchedule'
+import { Streaming, TLAgentChange } from './types/AgentChange'
+import { AreaContextItem } from './types/ContextItem'
 
 export function applyAgentChange(change: Streaming<TLAgentChange>) {
 	switch (change.type) {

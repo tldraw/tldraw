@@ -1,6 +1,9 @@
 import { asMessage, TLAiSerializedPrompt } from '@tldraw/ai'
 import { CoreMessage, UserContent } from 'ai'
-import { ACTION_HISTORY_ITEM_DEFINITIONS, ChatHistoryItem } from '../../../client/ChatHistoryItem'
+import {
+	ACTION_HISTORY_ITEM_DEFINITIONS,
+	ChatHistoryItem,
+} from '../../../client/types/ChatHistoryItem'
 import {
 	getSimpleContentFromCanvasContent,
 	getSimplePeripheralContentFromCanvasContent,

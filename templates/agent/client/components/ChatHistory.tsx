@@ -1,15 +1,13 @@
 import { useEffect, useRef } from 'react'
 import { atom, Editor, useReactor, useValue } from 'tldraw'
+import { AgentChangeGroupHistoryItem, ChatHistoryItem } from '../types/ChatHistoryItem'
 import {
 	AgentActionHistoryItem,
-	AgentChangeGroupHistoryItem,
 	AgentChangeHistoryItems,
 	AgentMessageHistoryItem,
-	AgentRawHistoryItem,
-	ChatHistoryItem,
 	StatusThinkingHistoryItem,
-	UserMessageHistoryItem,
 } from './ChatHistoryItem'
+import { UserMessageHistoryItem } from './UserMessageHistoryItem'
 
 export const $chatHistoryItems = atom<ChatHistoryItem[]>('chatHistoryItems', [])
 
@@ -72,7 +70,7 @@ export function ChatHistory({ editor }: { editor: Editor }) {
 					case 'agent-action':
 						return <AgentActionHistoryItem key={index} item={item} />
 					case 'agent-raw':
-						return <AgentRawHistoryItem key={index} item={item} />
+						return null
 					case 'agent-change-group':
 						return <AgentChangeHistoryItems key={index} items={item.items} editor={editor} />
 				}

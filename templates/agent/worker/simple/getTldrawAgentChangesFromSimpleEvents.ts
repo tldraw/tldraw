@@ -13,7 +13,7 @@ import {
 	TLTextShape,
 	toRichText,
 } from 'tldraw'
-import { Streaming, TLAgentChange } from '../../client/AgentChange'
+import { Streaming, TLAgentChange } from '../../client/types/AgentChange'
 import {
 	ISimpleColor,
 	ISimpleCreateEvent,
@@ -504,7 +504,7 @@ function getTldrawAiChangesFromSimpleCreateEvent(
 					y: minY,
 					props: {
 						color: getTldrawColorFromFuzzyColor(shape.color),
-						text: shape.text ?? '',
+						richText: toRichTextIfNeeded(shape.text ?? ''),
 						start: { x: x1 - minX, y: y1 - minY },
 						end: { x: x2 - minX, y: y2 - minY },
 					},
@@ -742,7 +742,7 @@ function getTldrawAiChangesFromSimpleLabelEvent(
 			shape: {
 				id: label.shapeId as TLShapeId,
 				props: {
-					text: label.text ?? '',
+					richText: toRichTextIfNeeded(label.text ?? ''),
 				},
 			},
 		})

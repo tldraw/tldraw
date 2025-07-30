@@ -7,12 +7,12 @@ import {
 	TldrawUiToastsProvider,
 	TLUiOverrides,
 } from 'tldraw'
-import { ChatPanel } from './ChatPanel'
-import { ContextBoundsHighlights } from './ContextBoundsHighlights'
-import { ContextHighlights } from './ContextHighlights'
-import { overrideFillStyleWithLinedFillStyle } from './LinedFillStyle'
-import { TargetAreaTool } from './TargetAreaTool'
-import { TargetShapeTool } from './TargetShapeTool'
+import { ChatPanel } from './components/ChatPanel'
+import { ContextBoundsHighlights } from './components/ContextBoundsHighlights'
+import { ContextHighlights } from './components/ContextHighlights'
+import { overrideFillStyleWithLinedFillStyle } from './linedFillStyle'
+import { TargetAreaTool } from './tools/TargetAreaTool'
+import { TargetShapeTool } from './tools/TargetShapeTool'
 
 overrideFillStyleWithLinedFillStyle()
 
@@ -52,7 +52,7 @@ const components: TLComponents = {
 }
 
 function App() {
-	const [editor, setEditor] = useState<Editor | null>(null)
+	const [editor, setEditor] = useState<Editor | undefined>()
 
 	const handleMount = useCallback((editor: Editor) => {
 		setEditor(editor)

@@ -1,6 +1,6 @@
 import { useEditor, useValue } from 'tldraw'
+import { $contextItems, $pendingContextItems } from '../contextItems'
 import { AreaHighlight } from './AreaHighlight'
-import { $contextItems, $pendingContextItems } from './Context'
 import { PointHighlight } from './PointHighlight'
 
 export function ContextHighlights() {

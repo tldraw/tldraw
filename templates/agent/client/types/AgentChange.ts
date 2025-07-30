@@ -1,5 +1,5 @@
 import { TLAiChange } from '@tldraw/ai'
-import { ISimpleEvent } from '../worker/simple/schema'
+import { ISimpleEvent } from '../../worker/simple/schema'
 
 export type Streaming<T> = (Partial<T> & { complete: false }) | (T & { complete: true })
 

@@ -1,12 +1,13 @@
 import { FormEventHandler, useCallback, useEffect, useState } from 'react'
 import { Editor, useLocalStorageState, useReactor, useValue } from 'tldraw'
-import { AGENT_MODEL_DEFINITIONS, DEFAULT_MODEL_NAME, TLAgentModelName } from '../worker/models'
-import { $contextItems, addToContext, ContextPreview, removeFromContext } from './Context'
-import { AtIcon } from './icons/AtIcon'
-import { BrainIcon } from './icons/BrainIcon'
-import { ChevronDownIcon } from './icons/ChevronDownIcon'
-import { CommentIcon } from './icons/CommentIcon'
-import { CursorIcon } from './icons/CursorIcon'
+import { AGENT_MODEL_DEFINITIONS, DEFAULT_MODEL_NAME, TLAgentModelName } from '../../worker/models'
+import { $contextItems, addToContext, removeFromContext } from '../contextItems'
+import { AtIcon } from '../icons/AtIcon'
+import { BrainIcon } from '../icons/BrainIcon'
+import { ChevronDownIcon } from '../icons/ChevronDownIcon'
+import { CommentIcon } from '../icons/CommentIcon'
+import { CursorIcon } from '../icons/CursorIcon'
+import { CONTEXT_TYPE_DEFINITIONS, ContextItem } from '../types/ContextItem'
 
 const ADD_CONTEXT_ACTIONS = [
 	{
@@ -33,6 +34,23 @@ const ADD_CONTEXT_ACTIONS = [
 		},
 	},
 ]
+
+export function ContextPreview({
+	contextItem,
+	onClick,
+}: {
+	contextItem: ContextItem
+	onClick(): void
+}) {
+	const definition = CONTEXT_TYPE_DEFINITIONS[contextItem.type]
+	const name = definition.name(contextItem)
+	const icon = definition.icon(contextItem)
+	return (
+		<button type="button" className="context-item-preview" onClick={onClick}>
+			{icon} {name}
+		</button>
+	)
+}
 
 export function ChatInput({
 	handleSubmit,

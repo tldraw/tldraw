@@ -1,13 +1,13 @@
 import type { TLAiSerializedPrompt } from '@tldraw/ai'
 import { DurableObject } from 'cloudflare:workers'
 import { AutoRouter, error } from 'itty-router'
-import { Streaming, TLAgentChange } from '../../client/AgentChange'
-import { TldrawAiBaseService } from '../TldrawAiBaseService'
+import { Streaming, TLAgentChange } from '../../client/types/AgentChange'
+import { TldrawAgentBaseService } from '../TldrawAgentBaseService'
 import { Environment } from '../types'
 import { VercelAiService } from './vercel/VercelAiService'
 
 export class TldrawAiDurableObject extends DurableObject<Environment> {
-	service: TldrawAiBaseService
+	service: TldrawAgentBaseService
 
 	constructor(ctx: DurableObjectState, env: Environment) {
 		super(ctx, env)

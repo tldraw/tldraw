@@ -1,21 +1,18 @@
 import { FormEventHandler, useCallback, useEffect, useRef, useState } from 'react'
-import { Box, Editor, useLocalStorageState, useToasts } from 'tldraw'
-import { DEFAULT_MODEL_NAME, TLAgentModelName } from '../worker/models'
+import { Box, BoxModel, Editor, useLocalStorageState, useToasts } from 'tldraw'
+import { DEFAULT_MODEL_NAME, TLAgentModelName } from '../../worker/models'
+import { getSimpleContentFromCanvasContent } from '../../worker/simple/getSimpleContentFromCanvasContent'
+import { $contextItems, $pendingContextItems } from '../contextItems'
+import { $requestsSchedule } from '../requestsSchedule'
+import { UserMessageHistoryItem } from '../types/ChatHistoryItem'
+import { ContextItem } from '../types/ContextItem'
+import { useTldrawAgent } from '../useTldrawAgent'
 import { $chatHistoryItems, ChatHistory } from './ChatHistory'
-import { UserMessageHistoryItem } from './ChatHistoryItem'
 import { ChatInput } from './ChatInput'
-import {
-	$contextItems,
-	$pendingContextItems,
-	getSimpleContextItemsFromContextItems,
-} from './Context'
 import { $contextBoundsHighlight } from './ContextBoundsHighlights'
-import { $requestsSchedule } from './requestsSchedule'
-import { useTldrawAiExample } from './useTldrawAiExample'
 
 export function ChatPanel({ editor }: { editor: Editor }) {
-	const ai = useTldrawAiExample(editor)
-
+	const ai = useTldrawAgent(editor)
 	const [isGenerating, setIsGenerating] = useState(false)
 	const rCancelFn = useRef<(() => void) | null>(null)
 	const inputRef = useRef<HTMLTextAreaElement>(null)
@@ -24,7 +21,7 @@ export function ChatPanel({ editor }: { editor: Editor }) {
 	useEffect(() => {
 		if (!editor) return
 		;(window as any).editor = editor
-		;(window as any).ai = ai
+		;(window as any).agent = ai
 	}, [ai, editor])
 
 	const toast = useToasts()
@@ -100,9 +97,10 @@ export function ChatPanel({ editor }: { editor: Editor }) {
 				// Remove the failed request from the schedule
 				$requestsSchedule.update((prev) => prev.filter((_, i) => i !== 0))
 				// Continue processing the next request
+				console.error(e)
 			}
 		}
-	}, [ai, modelName, editor])
+	}, [ai, modelName, editor, toast])
 
 	const handleSubmit = useCallback<FormEventHandler<HTMLFormElement>>(
 		async (e) => {
@@ -205,4 +203,31 @@ export function ChatPanel({ editor }: { editor: Editor }) {
 			/>
 		</div>
 	)
+}
+
+function getSimpleContextItemsFromContextItems(contextItems: ContextItem[]) {
+	const shapeContextItems = contextItems.filter((item) => item.type === 'shape')
+	const areaContextItems = contextItems.filter((item) => item.type === 'area')
+	const pointContextItems = contextItems.filter((item) => item.type === 'point')
+
+	const simpleContent = getSimpleContentFromCanvasContent({
+		shapes: shapeContextItems.map((item) => item.shape),
+		bindings: [],
+		assets: [],
+	})
+
+	return {
+		shapes: simpleContent.shapes,
+		areas: areaContextItems.map((area) => roundBox(area.bounds)),
+		points: pointContextItems.map((point) => point.point),
+	}
+}
+
+function roundBox(box: BoxModel) {
+	const b = { ...box }
+	b.x = Math.round(b.x)
+	b.y = Math.round(b.y)
+	b.w = Math.round(b.w)
+	b.h = Math.round(b.h)
+	return b
 }

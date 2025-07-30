@@ -1,4 +1,3 @@
-import { TLAiChange } from '@tldraw/ai'
 import { forwardRef, useCallback, useEffect, useMemo, useState } from 'react'
 import {
 	DefaultShapeWrapper,
@@ -11,104 +10,15 @@ import {
 	TLShapeWrapperProps,
 	useValue,
 } from 'tldraw'
-import { Streaming, TLAgentChange } from './AgentChange'
+import {
+	ACTION_HISTORY_ITEM_DEFINITIONS,
+	AgentActionHistoryItem,
+	AgentChangeHistoryItem,
+	AgentMessageHistoryItem,
+	StatusThinkingHistoryItem,
+} from '../types/ChatHistoryItem'
 import { $chatHistoryItems } from './ChatHistory'
-import { CONTEXT_TYPE_DEFINITIONS, ContextItem } from './Context'
-import { BrainIcon } from './icons/BrainIcon'
-import { EyeIcon } from './icons/EyeIcon'
-import { PencilIcon } from './icons/PencilIcon'
-import { RefreshIcon } from './icons/RefreshIcon'
-import { SearchIcon } from './icons/SearchIcon'
-import { TrashIcon } from './icons/TrashIcon'
 import TldrawViewer from './TldrawViewer'
-
-export type ChatHistoryItem =
-	| UserMessageHistoryItem
-	| AgentChangeHistoryItem
-	| AgentChangeGroupHistoryItem
-	| AgentMessageHistoryItem
-	| AgentActionHistoryItem
-	| AgentRawHistoryItem
-	| StatusThinkingHistoryItem
-
-export interface UserMessageHistoryItem {
-	type: 'user-message'
-	message: string
-	status: 'done'
-	contextItems: ContextItem[]
-}
-
-export interface StatusThinkingHistoryItem {
-	type: 'status-thinking'
-	message: string
-	status: 'progress' | 'done' | 'cancelled'
-}
-
-export interface AgentMessageHistoryItem {
-	type: 'agent-message'
-	message: string
-	status: 'progress' | 'done' | 'cancelled'
-}
-
-export interface AgentChangeHistoryItem {
-	type: 'agent-change'
-	diff: RecordsDiff<TLRecord>
-	change: TLAiChange
-	status: 'progress' | 'done' | 'cancelled'
-	acceptance: 'accepted' | 'rejected' | 'pending'
-}
-
-export interface AgentChangeGroupHistoryItem {
-	type: 'agent-change-group'
-	items: AgentChangeHistoryItem[]
-	status: 'progress' | 'done' | 'cancelled'
-}
-
-export interface AgentRawHistoryItem {
-	type: 'agent-raw'
-	change: Streaming<TLAgentChange>
-	status: 'progress' | 'done' | 'cancelled'
-}
-
-export interface AgentActionHistoryItem {
-	type: 'agent-action'
-	action: 'thinking' | 'creating' | 'deleting' | 'updating' | 'schedule' | 'setMyView'
-	status: 'progress' | 'done' | 'cancelled'
-	info: string
-}
-
-export function UserMessageHistoryItem({ item }: { item: UserMessageHistoryItem }) {
-	return (
-		<div>
-			<div className="user-message">
-				{item.contextItems.length > 0 && (
-					<div className="user-message-context-items">
-						{item.contextItems.map((contextItem, i) => {
-							return <UserMessageContextItem key={'context-item-' + i} contextItem={contextItem} />
-						})}
-					</div>
-				)}
-				{item.message.split('\n').map((line, i, arr) => (
-					<span key={i}>
-						{line}
-						{i < arr.length - 1 && <br />}
-					</span>
-				))}
-			</div>
-		</div>
-	)
-}
-
-function UserMessageContextItem({ contextItem }: { contextItem: ContextItem }) {
-	const contextTypeDefinition = CONTEXT_TYPE_DEFINITIONS[contextItem.type]
-	const icon = contextTypeDefinition.icon(contextItem)
-	const name = contextTypeDefinition.name(contextItem)
-	return (
-		<div className="context-item-preview">
-			{icon} {name}
-		</div>
-	)
-}
 
 export function AgentMessageHistoryItem({ item }: { item: AgentMessageHistoryItem }) {
 	return <div className="agent-chat-message">{item.message}</div>
@@ -329,77 +239,4 @@ export function StatusThinkingHistoryItem({ item }: { item: StatusThinkingHistor
 			</p>
 		</div>
 	)
-}
-
-export function AgentRawHistoryItem({ item }: { item: AgentRawHistoryItem }) {
-	return null
-	const values = Object.entries(item.change).map(([key, value]) => {
-		if (key === 'type' || key === 'complete') return null
-		if (typeof value === 'object') return JSON.stringify(value, null, 2)
-		return value
-	})
-	return (
-		<div className="agent-raw-message">
-			{item.status === 'cancelled' ? 'Cancelled' : values.join('\n')}
-		</div>
-	)
-}
-
-export interface AgentActionDefinition {
-	icon: React.ReactNode
-	message: { progress: string; done: string; cancelled: string }
-}
-
-export const ACTION_HISTORY_ITEM_DEFINITIONS: Record<
-	AgentActionHistoryItem['action'],
-	AgentActionDefinition
-> = {
-	thinking: {
-		icon: <BrainIcon />,
-		message: {
-			progress: 'Thinking: ',
-			done: 'Thought: ',
-			cancelled: 'Thought cancelled. ',
-		},
-	},
-	creating: {
-		icon: <PencilIcon />,
-		message: {
-			progress: 'Creating: ',
-			done: 'Created: ',
-			cancelled: 'Creation cancelled. ',
-		},
-	},
-	deleting: {
-		icon: <TrashIcon />,
-		message: {
-			progress: 'Deleting: ',
-			done: 'Deleted: ',
-			cancelled: 'Deletion cancelled. ',
-		},
-	},
-	updating: {
-		icon: <RefreshIcon />,
-		message: {
-			progress: 'Updating: ',
-			done: 'Updated: ',
-			cancelled: 'Update cancelled. ',
-		},
-	},
-	schedule: {
-		icon: <SearchIcon />,
-		message: {
-			progress: 'Scheduling: ',
-			done: 'Scheduled: ',
-			cancelled: 'Scheduling cancelled. ',
-		},
-	},
-	setMyView: {
-		icon: <EyeIcon />,
-		message: {
-			progress: 'Setting my view: ',
-			done: 'Set my view: ',
-			cancelled: 'Setting my view cancelled. ',
-		},
-	},
 }

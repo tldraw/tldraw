@@ -1,8 +1,8 @@
 import { TLAiSerializedPrompt } from '@tldraw/ai'
-import { Streaming, TLAgentChange } from '../client/AgentChange'
+import { Streaming, TLAgentChange } from '../client/types/AgentChange'
 import { Environment } from './types'
 
-export abstract class TldrawAiBaseService {
+export abstract class TldrawAgentBaseService {
 	constructor(public env: Environment) {}
 
 	abstract generate(prompt: TLAiSerializedPrompt): Promise<TLAgentChange[]>

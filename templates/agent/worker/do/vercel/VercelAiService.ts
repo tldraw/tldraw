@@ -3,16 +3,16 @@ import { createGoogleGenerativeAI, GoogleGenerativeAIProvider } from '@ai-sdk/go
 import { createOpenAI, OpenAIProvider } from '@ai-sdk/openai'
 import { TLAiSerializedPrompt } from '@tldraw/ai'
 import { generateObject, LanguageModel, streamObject } from 'ai'
-import { Streaming, TLAgentChange } from '../../../client/AgentChange'
+import { Streaming, TLAgentChange } from '../../../client/types/AgentChange'
 import { getTLAgentModelDefinition, TLAgentModelName } from '../../models'
 import { getTldrawAgentChangesFromSimpleEvents } from '../../simple/getTldrawAgentChangesFromSimpleEvents'
 import { IModelResponse, ISimpleEvent, ModelResponse } from '../../simple/schema'
 import { SIMPLE_SYSTEM_PROMPT } from '../../simple/system-prompt'
-import { TldrawAiBaseService } from '../../TldrawAiBaseService'
+import { TldrawAgentBaseService } from '../../TldrawAgentBaseService'
 import { Environment } from '../../types'
 import { buildMessages } from './prompt'
 
-export class VercelAiService extends TldrawAiBaseService {
+export class VercelAiService extends TldrawAgentBaseService {
 	openai: OpenAIProvider
 	anthropic: AnthropicProvider
 	google: GoogleGenerativeAIProvider

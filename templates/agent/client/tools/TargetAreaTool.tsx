@@ -1,11 +1,11 @@
-import { Box, BoxModel, doesGeometryOverlapPolygon, StateNode, TLShape, VecModel } from 'tldraw'
-import { addToContext } from './Context'
+import { BoxModel, StateNode, VecModel } from 'tldraw'
+import { addToContext } from '../contextItems'
 
-export class TargetShapeTool extends StateNode {
-	static override id = 'target-shape'
+export class TargetAreaTool extends StateNode {
+	static override id = 'target-area'
 	static override initial = 'idle'
 	static override children() {
-		return [TargetShapeIdle, TargetShapePointing, TargetShapeDragging]
+		return [TargetAreaIdle, TargetAreaPointing, TargetAreaDragging]
 	}
 
 	override isLockable = false
@@ -31,38 +31,23 @@ export class TargetShapeTool extends StateNode {
 	}
 }
 
-class TargetShapeIdle extends StateNode {
+class TargetAreaIdle extends StateNode {
 	static override id = 'idle'
 
-	override onPointerMove() {
-		const { currentPagePoint } = this.editor.inputs
-		const shape = this.editor.getShapeAtPoint(currentPagePoint, { hitInside: true })
-		if (shape) {
-			this.editor.setHintingShapes([shape])
-		} else {
-			this.editor.setHintingShapes([])
-		}
-	}
-
 	override onPointerDown() {
-		const shape = this.editor.getShapeAtPoint(this.editor.inputs.currentPagePoint, {
-			hitInside: true,
-		})
-		this.parent.transition('pointing', { shape })
+		this.parent.transition('pointing')
 	}
 }
 
-class TargetShapePointing extends StateNode {
+class TargetAreaPointing extends StateNode {
 	static override id = 'pointing'
 
-	private shape: TLShape | undefined = undefined
 	private initialScreenPoint: VecModel | undefined = undefined
 	private initialPagePoint: VecModel | undefined = undefined
 
-	override onEnter({ shape }: { shape: TLShape }) {
+	override onEnter() {
 		this.initialScreenPoint = this.editor.inputs.currentScreenPoint.clone()
 		this.initialPagePoint = this.editor.inputs.currentPagePoint.clone()
-		this.shape = shape
 	}
 
 	override onPointerMove() {
@@ -74,24 +59,23 @@ class TargetShapePointing extends StateNode {
 	}
 
 	override onPointerUp() {
-		this.editor.setHintingShapes([])
-		if (this.shape) {
-			addToContext({ type: 'shape', shape: this.shape, source: 'user' })
-		}
+		addToContext({
+			type: 'point',
+			point: this.editor.inputs.currentPagePoint.clone(),
+			source: 'user',
+		})
 		this.editor.setCurrentTool('select')
 	}
 }
 
-class TargetShapeDragging extends StateNode {
+class TargetAreaDragging extends StateNode {
 	static override id = 'dragging'
 
-	private shapes: TLShape[] = []
 	private initialPagePoint: VecModel | undefined = undefined
 	private bounds: BoxModel | undefined = undefined
 
 	override onEnter(props: { initialPagePoint: VecModel }) {
 		this.initialPagePoint = props.initialPagePoint
-		this.editor.setHintingShapes([])
 		this.updateBounds()
 	}
 
@@ -100,15 +84,12 @@ class TargetShapeDragging extends StateNode {
 	}
 
 	override onPointerUp() {
-		this.editor.setHintingShapes([])
 		this.editor.updateInstanceState({
 			brush: null,
 		})
 
 		if (!this.bounds) throw new Error('Bounds not set')
-		for (const shape of this.shapes) {
-			addToContext({ type: 'shape', shape, source: 'user' })
-		}
+		addToContext({ type: 'area', bounds: this.bounds, source: 'user' })
 		this.editor.setCurrentTool('select')
 	}
 
@@ -125,17 +106,5 @@ class TargetShapeDragging extends StateNode {
 		})
 
 		this.bounds = { x, y, w, h }
-
-		const bounds = new Box(x, y, w, h)
-		const shapesInBounds = this.editor.getCurrentPageShapesSorted().filter((shape) => {
-			const geometry = this.editor.getShapeGeometry(shape)
-			const pageTransform = this.editor.getShapePageTransform(shape)
-			const shapeTransform = pageTransform.clone().invert()
-			const boundsInShapeSpace = shapeTransform.applyToPoints(bounds.corners)
-			return doesGeometryOverlapPolygon(geometry, boundsInShapeSpace)
-		})
-
-		this.shapes = shapesInBounds
-		this.editor.setHintingShapes(shapesInBounds)
 	}
 }
