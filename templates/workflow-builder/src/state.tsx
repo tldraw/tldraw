@@ -41,8 +41,8 @@ export interface ExecutionState {
 export const executionState = new EditorState<ExecutionState>('execution state', () => ({
 	runningGraph: null,
 }))
-export async function startExecution(editor: Editor, startingNodeId: TLShapeId) {
-	const graph = new ExecutionGraph(editor, startingNodeId)
+export async function startExecution(editor: Editor, startingNodeIds: Set<TLShapeId>) {
+	const graph = new ExecutionGraph(editor, startingNodeIds)
 	executionState.update(editor, (state) => ({
 		...state,
 		runningGraph: graph,
