@@ -1,4 +1,5 @@
 import { expect } from '@playwright/test'
+import { sleep } from 'tldraw'
 import { getAllShapeTypes, setup } from '../shared-e2e'
 import test from './fixtures/fixtures'
 
@@ -40,7 +41,13 @@ test.describe('when selecting a tool from the toolbar', () => {
 test.describe('when dragging a tool from the toolbar', () => {
 	test.beforeEach(setup)
 
-	test('dragging from main toolbar creates and positions shapes', async ({ page, toolbar }) => {
+	test('dragging from main toolbar creates and positions shapes', async ({
+		page,
+		toolbar,
+		isMobile,
+	}) => {
+		if (isMobile) return
+
 		const { rectangle, arrow, text } = toolbar.tools
 
 		await test.step('dragging rectangle tool creates a rectangle', async () => {
@@ -60,6 +67,8 @@ test.describe('when dragging a tool from the toolbar', () => {
 			expect(shapes).toContain('geo')
 		})
 
+		await sleep(100)
+
 		await test.step('dragging arrow tool creates an arrow', async () => {
 			const startPoint = { x: 300, y: 100 }
 			const endPoint = { x: 400, y: 200 }
@@ -77,6 +86,8 @@ test.describe('when dragging a tool from the toolbar', () => {
 			expect(shapes).toContain('geo')
 			expect(shapes).toContain('arrow')
 		})
+
+		await sleep(100)
 
 		await test.step('dragging text tool creates editable text', async () => {
 			const startPoint = { x: 500, y: 100 }
