@@ -256,3 +256,52 @@ body {
 		pointer-events: all;
 	}
 }
+
+.AddNodeRowButton {
+	pointer-events: all;
+	opacity: 0;
+	position: absolute;
+	bottom: -24px;
+	height: 36px;
+	border-bottom-left-radius: 100% 66px;
+	border-bottom-right-radius: 100% 66px;
+	width: 100%;
+	display: flex;
+	align-items: flex-start;
+	justify-content: center;
+
+	&:hover,
+	&.AddNodeRowButton_forceShow {
+		opacity: 1;
+	}
+
+	.AddNodeRowButton-button {
+		cursor: pointer;
+		background: none;
+		border: none;
+		outline: none;
+		padding: 3px 12px 12px;
+		border-bottom-left-radius: 100%;
+		border-bottom-right-radius: 100%;
+	}
+
+	.AddNodeRowButton-icon {
+		width: 19px;
+		height: 19px;
+		border-radius: 50%;
+		background: var(--color-panel);
+		box-shadow:
+			0 0 0 1px rgba(0, 0, 0, 0.04),
+			0 1px 3px rgba(0, 0, 0, 0.12);
+		pointer-events: all;
+		display: flex;
+		align-items: center;
+		justify-content: center;
+	}
+
+	.AddNodeRowButton-button:hover .AddNodeRowButton-icon {
+		box-shadow:
+			0 0 0 1px var(--color-selected),
+			0 1px 3px rgba(0, 0, 0, 0.12);
+	}
+}
