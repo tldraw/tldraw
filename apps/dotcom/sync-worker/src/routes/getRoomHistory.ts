@@ -157,12 +157,12 @@ export async function getRoomHistory(
 
 			allTimestamps.push(...filteredTimestamps)
 
+			currentMonth = getPreviousMonth(currentMonth)
+			monthsCollected++
+
 			if (allTimestamps.length >= targetEntryCount) {
 				break
 			}
-
-			currentMonth = getPreviousMonth(currentMonth)
-			monthsCollected++
 		}
 
 		allTimestamps = allTimestamps.sort((a, b) => b.localeCompare(a)).slice(0, targetEntryCount)
