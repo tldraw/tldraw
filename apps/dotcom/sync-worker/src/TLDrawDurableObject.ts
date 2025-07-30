@@ -750,22 +750,24 @@ export class TLDrawDurableObject extends DurableObject {
 		key: string
 	) {
 		// Upload to rooms bucket first
-		await this._uploadSnapshotToBucket(this.r2.rooms, snapshot, key, room)
+		const roomSizeMB = await this._uploadSnapshotToBucket(this.r2.rooms, snapshot, key)
 
 		// Then upload to version cache
 		const versionKey = `${key}/${new Date().toISOString()}`
-		await this._uploadSnapshotToBucket(this.r2.versionCache, snapshot, versionKey, room)
+		await this._uploadSnapshotToBucket(this.r2.versionCache, snapshot, versionKey)
+
+		// Update storage percentage once with the room size
+		await this.addRoomStorageUsedPercentage(room, roomSizeMB, true)
 	}
 
 	private async _uploadSnapshotToBucket(
 		bucket: R2Bucket,
 		snapshot: RoomSnapshot,
-		key: string,
-		room: TLSocketRoom<TLRecord, SessionMeta>
-	) {
+		key: string
+	): Promise<number> {
 		try {
 			// Try multipart upload first
-			await this._uploadSnapshotToBucketMultipart(bucket, snapshot, key, room)
+			return await this._uploadSnapshotToBucketMultipart(bucket, snapshot, key)
 		} catch (multipartError) {
 			this.reportError(
 				new Error(
@@ -773,16 +775,15 @@ export class TLDrawDurableObject extends DurableObject {
 				)
 			)
 			// Fallback to simple PUT
-			await this._uploadSnapshotToBucketSimple(bucket, snapshot, key, room)
+			return await this._uploadSnapshotToBucketSimple(bucket, snapshot, key)
 		}
 	}
 
 	private async _uploadSnapshotToBucketMultipart(
 		bucket: R2Bucket,
 		snapshot: RoomSnapshot,
-		key: string,
-		room: TLSocketRoom<TLRecord, SessionMeta>
-	) {
+		key: string
+	): Promise<number> {
 		const out = await bucket.createMultipartUpload(key)
 
 		try {
@@ -825,10 +826,11 @@ export class TLDrawDurableObject extends DurableObject {
 				await uploadBuffer(buffer.subarray(0, offset))
 			}
 
-			const object = await out.complete(parts)
-			if (object && bucket === this.r2.rooms) {
-				await this.addRoomStorageUsedPercentage(room, object.size / MB, true)
+			const result = await out.complete(parts)
+			if (result) {
+				return result.size / MB
 			}
+			return 0
 		} catch (e) {
 			await out.abort()
 			throw e
@@ -838,14 +840,15 @@ export class TLDrawDurableObject extends DurableObject {
 	private async _uploadSnapshotToBucketSimple(
 		bucket: R2Bucket,
 		snapshot: RoomSnapshot,
-		key: string,
-		room: TLSocketRoom<TLRecord, SessionMeta>
-	) {
+		key: string
+	): Promise<number> {
 		const serialized = JSON.stringify(snapshot)
-		const object = await bucket.put(key, serialized)
-		if (object && bucket === this.r2.rooms) {
-			await this.addRoomStorageUsedPercentage(room, object.size / MB, true)
+		const result = await bucket.put(key, serialized)
+		if (result) {
+			return result.size / MB
 		}
+
+		return 0
 	}
 
 	private reportError(e: unknown) {
