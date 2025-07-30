@@ -201,22 +201,10 @@ body {
 	.OnCanvasComponentPicker-content {
 		position: absolute;
 		margin-top: calc(-1 * var(--top));
-		width: 180px;
-		padding-top: 4px;
+		width: 155px;
 		border-radius: var(--radius-3);
 		background: var(--color-panel);
 		box-shadow: var(--node-shadow-highlight);
-		display: grid;
-		grid-template-columns: repeat(2, 1fr);
-	}
-
-	button {
-		height: auto;
-		aspect-ratio: 1;
-		display: flex;
-		flex-direction: column;
-		align-items: center;
-		justify-content: center;
 	}
 
 	.OnCanvasComponentPicker-icon {

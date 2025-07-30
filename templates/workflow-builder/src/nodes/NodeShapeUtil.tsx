@@ -166,7 +166,7 @@ function NodeShape({ shape }: { shape: NodeShape }) {
 			})}
 		>
 			<div className="NodeShape-heading">
-				<div className="NodeShape-label">{nodeDefinition.title}</div>
+				<div className="NodeShape-label">{nodeDefinition.heading ?? nodeDefinition.title}</div>
 				{output !== undefined && (
 					<>
 						<div className="NodeShape-output">

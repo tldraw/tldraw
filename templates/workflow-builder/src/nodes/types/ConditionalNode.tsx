@@ -57,7 +57,8 @@ export type ConditionalNode = T.TypeOf<typeof ConditionalNodeType>
 export const ConditionalNode: NodeDefinition<ConditionalNode> = {
 	type: 'conditional',
 	validator: ConditionalNodeType,
-	title: 'If',
+	title: 'Conditional',
+	heading: 'If',
 	icon: <ConditionalIcon />,
 	getDefault: () => ({
 		type: 'conditional',
