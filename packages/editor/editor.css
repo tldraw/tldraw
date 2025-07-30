@@ -894,6 +894,29 @@ input,
 	list-style: revert;
 }
 
+.tl-rich-text ul li::marker,
+.tl-rich-text ol li::marker {
+	margin-right: 1ch;
+}
+
+.tl-text-wrapper[data-align='middle'] .tl-rich-text ul,
+.tl-text-wrapper[data-align='middle'] .tl-rich-text ol {
+	text-align: center;
+	padding-left: 0;
+	list-style-position: inside;
+}
+
+.tl-text-wrapper[data-align='end'] .tl-rich-text ul,
+.tl-text-wrapper[data-align='end'] .tl-rich-text ol {
+	text-align: right;
+	padding-left: 0;
+	list-style-position: inside;
+}
+
+.tl-rich-text ul p {
+	display: inline;
+}
+
 .tl-rich-text ol:has(> li:nth-child(10)) {
 	padding-left: 4.25ch;
 }
