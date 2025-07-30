@@ -184,14 +184,32 @@ a {
 }
 
 .board-history__list {
-	padding: 16px;
-	display: flex;
-	flex-direction: column;
-	gap: 8px;
+	list-style: none;
+	padding: 0;
+	margin: 0;
+}
+
+.board-history__list > .board-history__month-group:first-child {
+	margin-top: 24px;
+}
+
+.board-history__month-group {
+	margin-bottom: 32px;
+}
+
+.board-history__month-header {
+	font-size: 16px;
+	font-weight: 600;
+	color: var(--color-text-1);
+	margin: 0 0 8px 0;
+	padding: 0;
 }
 
 .board-history__list a {
-	padding: 8px 8px 8px 0px;
+	color: var(--color-text);
+	text-decoration: none;
+	padding: 8px 0;
+	display: block;
 }
 
 .board-history__list a:hover {

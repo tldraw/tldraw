@@ -82,7 +82,7 @@ export function Component({ error: _error }: { error?: unknown }) {
 	}
 
 	return (
-		<>
+		<div>
 			{error ? (
 				<TlaFileError error={error} />
 			) : (
@@ -95,6 +95,6 @@ export function Component({ error: _error }: { error?: unknown }) {
 					/>
 				</TlaAnonLayout>
 			)}
-		</>
+		</div>
 	)
 }
