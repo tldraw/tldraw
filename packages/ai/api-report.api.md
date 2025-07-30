@@ -146,7 +146,7 @@ export interface TldrawAi {
     // (undocumented)
     cancel(): void;
     // (undocumented)
-    prompt(message: TldrawAiPromptOptions): {
+    prompt(options: TldrawAiPromptOptions): {
         cancel(): void;
         promise: Promise<void>;
     };

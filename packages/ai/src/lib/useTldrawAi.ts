@@ -12,7 +12,7 @@ import { TLAiChange, TLAiPrompt, TLAiSerializedPrompt } from './types'
 
 /** @public */
 export interface TldrawAi {
-	prompt(message: TldrawAiPromptOptions): { promise: Promise<void>; cancel(): void }
+	prompt(options: TldrawAiPromptOptions): { promise: Promise<void>; cancel(): void }
 	repeat(): { promise: Promise<void>; cancel: (() => void) | null }
 	cancel(): void
 }
@@ -52,9 +52,7 @@ export interface TldrawAiOptions extends Omit<TldrawAiModuleOptions, 'editor'> {
 }
 
 /** @public */
-export type TldrawAiPromptOptions =
-	| string
-	| (Partial<TLAiPrompt> & { stream?: boolean; message: string })
+export type TldrawAiPromptOptions = string | (Partial<TLAiPrompt> & { stream?: boolean })
 
 /** @public */
 export function useTldrawAi(opts: TldrawAiOptions): TldrawAi {
@@ -90,13 +88,13 @@ export function useTldrawAi(opts: TldrawAiOptions): TldrawAi {
 	 * @returns An object with a promise that will resolve when all changes have been applied and a cancel function to abort the work.
 	 */
 	const prompt = useCallback(
-		(message: TldrawAiPromptOptions) => {
+		(options: TldrawAiPromptOptions) => {
 			let cancelled = false
 			const controller = new AbortController()
 			const signal = controller.signal
 
 			// Pull out options, keeping in mind that the argument may be just a string
-			const opts = typeof message === 'string' ? { message } : message
+			const opts = typeof options === 'string' ? { message: options } : options
 			const { stream = false, meta = {} } = opts
 
 			const markId = 'generating_' + uniqueId()
