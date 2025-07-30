@@ -2,7 +2,7 @@ import classNames from 'classnames'
 import { TLShapeId, useEditor, useValue, VecModel } from 'tldraw'
 import { getNodePortConnections, getNodePorts } from '../nodes/nodePorts'
 import { NodeShape } from '../nodes/NodeShapeUtil'
-import { portState } from '../state'
+import { portState } from './portState'
 
 export type PortId = string
 

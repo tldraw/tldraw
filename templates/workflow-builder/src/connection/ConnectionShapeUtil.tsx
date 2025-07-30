@@ -20,6 +20,7 @@ import {
 	useValue,
 	vecModelValidator,
 } from 'tldraw'
+import { onCanvasComponentPickerState } from '../components/OnCanvasComponentPicker'
 import {
 	CONNECTION_CENTER_HANDLE_HOVER_SIZE_PX,
 	CONNECTION_CENTER_HANDLE_SIZE_PX,
@@ -27,7 +28,7 @@ import {
 import { getAllConnectedNodes, getNodeOutputPortValues, getNodePorts } from '../nodes/nodePorts'
 import { STOP_EXECUTION } from '../nodes/types/shared'
 import { getPortAtPoint } from '../ports/getPortAtPoint'
-import { onCanvasComponentPickerState, updatePortState } from '../state'
+import { updatePortState } from '../ports/portState'
 import {
 	createOrUpdateConnectionBinding,
 	getConnectionBindingPositionInPageSpace,

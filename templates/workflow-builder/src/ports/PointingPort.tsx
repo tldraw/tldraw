@@ -1,4 +1,5 @@
 import { createShapeId, StateNode, TLPointerEventInfo, TLShapeId } from 'tldraw'
+import { onCanvasComponentPickerState } from '../components/OnCanvasComponentPicker.tsx'
 import {
 	createOrUpdateConnectionBinding,
 	getConnectionBindings,
@@ -13,7 +14,6 @@ import {
 } from '../constants.tsx'
 import { getNodePortConnections, getNodePorts } from '../nodes/nodePorts'
 import { PortId } from '../ports/Port'
-import { onCanvasComponentPickerState } from '../state.tsx'
 
 interface PointingPortInfo {
 	shapeId: TLShapeId

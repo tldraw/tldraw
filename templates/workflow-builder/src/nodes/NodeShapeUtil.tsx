@@ -14,8 +14,8 @@ import {
 	useValue,
 } from 'tldraw'
 import { NODE_WIDTH_PX, PORT_RADIUS_PX } from '../constants'
+import { executionState } from '../execution/executionState'
 import { Port, ShapePort } from '../ports/Port'
-import { executionState } from '../state'
 import { getNodeOutputPortValues, getNodePorts } from './nodePorts'
 import {
 	getNodeDefinition,
