@@ -1,7 +1,6 @@
 import classNames from 'classnames'
 import {
 	Circle2d,
-	DefaultSpinner,
 	Group2d,
 	HTMLContainer,
 	RecordProps,
@@ -168,7 +167,6 @@ function NodeShape({ shape }: { shape: NodeShape }) {
 		>
 			<div className="NodeShape-heading">
 				<div className="NodeShape-label">{nodeDefinition.title}</div>
-				{isExecuting && <DefaultSpinner />}
 				{output !== undefined && (
 					<>
 						<div className="NodeShape-output">

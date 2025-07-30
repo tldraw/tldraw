@@ -274,3 +274,82 @@ body {
 		}
 	}
 }
+
+.WorkflowRegion {
+	position: absolute;
+	color: hsl(0, 0%, 70%);
+	border: 1px dashed currentColor;
+	border-radius: var(--radius-3);
+	pointer-events: none;
+
+	.WorkflowRegion-button {
+		position: absolute;
+		top: 0;
+		left: -60px;
+		width: 40px;
+		height: 40px;
+		border-radius: 50%;
+		color: inherit;
+		background: var(--color-panel);
+		border: 1px solid currentColor;
+		display: flex;
+		align-items: center;
+		justify-content: center;
+		cursor: pointer;
+
+		.tl-container[data-state='select.idle'] & {
+			pointer-events: all;
+		}
+
+		svg {
+			color: hsl(0, 0%, 60%);
+		}
+	}
+
+	&::after {
+		content: '';
+		display: block;
+		width: 20px;
+		height: 0px;
+		border-bottom: 1px dashed currentColor;
+		position: absolute;
+		top: 20px;
+		left: -20px;
+	}
+
+	&:has(.WorkflowRegion-button:hover) {
+		color: var(--color-selected);
+	}
+
+	&.WorkflowRegion_executing {
+		color: var(--color-selected);
+		border-style: solid;
+
+		&::after {
+			border-bottom-style: solid;
+		}
+
+		.WorkflowRegion-button {
+			border-width: 2px;
+			&::after {
+				content: '';
+				width: 8px;
+				height: 4px;
+				border-radius: 100%;
+				border: 2px solid var(--color-selected);
+				background: var(--color-panel);
+				position: absolute;
+				animation: WorkflowRegion-button-spin 1s linear infinite;
+			}
+		}
+	}
+}
+
+@keyframes WorkflowRegion-button-spin {
+	0% {
+		transform: rotate(0deg) translateY(-19px);
+	}
+	100% {
+		transform: rotate(360deg) translateY(-19px);
+	}
+}

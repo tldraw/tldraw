@@ -31,9 +31,9 @@ export class ExecutionGraph {
 
 	constructor(
 		private readonly editor: Editor,
-		private readonly startingNodeId: TLShapeId
+		private readonly startingNodeIds: Set<TLShapeId>
 	) {
-		const toVisit = [startingNodeId]
+		const toVisit = Array.from(startingNodeIds)
 
 		while (toVisit.length > 0) {
 			const nodeId = toVisit.pop()!
@@ -67,7 +67,11 @@ export class ExecutionGraph {
 
 		this.state = 'executing'
 		try {
-			await this.executeNodeIfReady(this.startingNodeId)
+			const promises = []
+			for (const nodeId of this.startingNodeIds) {
+				promises.push(this.executeNodeIfReady(nodeId))
+			}
+			await Promise.all(promises)
 		} finally {
 			this.state = 'stopped'
 		}
