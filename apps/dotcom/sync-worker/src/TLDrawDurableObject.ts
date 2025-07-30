@@ -752,18 +752,16 @@ export class TLDrawDurableObject extends DurableObject {
 		// Upload to rooms bucket first
 		const roomSizeMB = await this._uploadSnapshotToBucket(this.r2.rooms, snapshot, key)
 		// Update storage percentage
-		await this.addRoomStorageUsedPercentage(room, roomSizeMB, true)
+		if (roomSizeMB !== null) {
+			await this.addRoomStorageUsedPercentage(room, roomSizeMB, true)
+		}
 
 		// Then upload to version cache
 		const versionKey = `${key}/${new Date().toISOString()}`
 		await this._uploadSnapshotToBucket(this.r2.versionCache, snapshot, versionKey)
 	}
 
-	private async _uploadSnapshotToBucket(
-		bucket: R2Bucket,
-		snapshot: RoomSnapshot,
-		key: string
-	): Promise<number> {
+	private async _uploadSnapshotToBucket(bucket: R2Bucket, snapshot: RoomSnapshot, key: string) {
 		try {
 			// Try multipart upload first
 			return await this._uploadSnapshotToBucketMultipart(bucket, snapshot, key)
@@ -782,7 +780,7 @@ export class TLDrawDurableObject extends DurableObject {
 		bucket: R2Bucket,
 		snapshot: RoomSnapshot,
 		key: string
-	): Promise<number> {
+	) {
 		const out = await bucket.createMultipartUpload(key)
 
 		try {
@@ -829,7 +827,7 @@ export class TLDrawDurableObject extends DurableObject {
 			if (result) {
 				return result.size / MB
 			}
-			return 0
+			return null
 		} catch (e) {
 			await out.abort()
 			throw e
@@ -840,14 +838,14 @@ export class TLDrawDurableObject extends DurableObject {
 		bucket: R2Bucket,
 		snapshot: RoomSnapshot,
 		key: string
-	): Promise<number> {
+	) {
 		const serialized = JSON.stringify(snapshot)
 		const result = await bucket.put(key, serialized)
 		if (result) {
 			return result.size / MB
 		}
 
-		return 0
+		return null
 	}
 
 	private reportError(e: unknown) {
