@@ -767,9 +767,7 @@ export class TLDrawDurableObject extends DurableObject {
 			return await this._uploadSnapshotToBucketMultipart(bucket, snapshot, key)
 		} catch (multipartError) {
 			this.reportError(
-				new Error(
-					`Multipart upload failed for bucket ${key}, falling back to simple PUT: ${multipartError}`
-				)
+				new Error(`Multipart upload failed, falling back to simple PUT: ${multipartError}`)
 			)
 			// Fallback to simple PUT
 			return await this._uploadSnapshotToBucketSimple(bucket, snapshot, key)
