@@ -35,6 +35,7 @@ export const SliderNode: NodeDefinition<SliderNode> = {
 					label="Slider"
 					title="Slider"
 					onValueChange={(value) => {
+						editor.setSelectedShapes([shape.id])
 						updateNode<SliderNode>(editor, shape, (node) => ({ ...node, value }))
 					}}
 					onHistoryMark={() => {}}
