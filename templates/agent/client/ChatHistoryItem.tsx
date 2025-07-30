@@ -13,12 +13,10 @@ import { Streaming, TLAgentChange } from './AgentChange'
 import { $chatHistoryItems } from './ChatHistory'
 import { CONTEXT_TYPE_DEFINITIONS, ContextItem } from './Context'
 import { BrainIcon } from './icons/BrainIcon'
-import { CrossIcon } from './icons/CrossIcon'
 import { EyeIcon } from './icons/EyeIcon'
 import { PencilIcon } from './icons/PencilIcon'
 import { RefreshIcon } from './icons/RefreshIcon'
 import { SearchIcon } from './icons/SearchIcon'
-import { TickIcon } from './icons/TickIcon'
 import { TrashIcon } from './icons/TrashIcon'
 import TldrawViewer from './TldrawViewer'
 
@@ -78,8 +76,6 @@ export interface AgentActionHistoryItem {
 }
 
 export function UserMessageHistoryItem({ item }: { item: UserMessageHistoryItem }) {
-	const contextAttachments = item.contextItems.filter((item) => item.type === 'area')
-
 	return (
 		<div>
 			{/* <div className="user-message-context-attachments">
@@ -266,13 +262,11 @@ export function AgentChangeHistoryItems({
 					<span className="agent-change-message-acceptance-notice">Error</span>
 				) : (
 					<>
-						<button onClick={handleReject}>
-							{acceptance === 'rejected' && <CrossIcon />}
-							<p>Reject{acceptance === 'rejected' && 'ed'}</p>
+						<button onClick={handleReject} disabled={acceptance === 'rejected'}>
+							<p>{acceptance === 'rejected' ? 'Rejected' : 'Reject'}</p>
 						</button>
-						<button onClick={handleAccept}>
-							{acceptance === 'accepted' && <TickIcon />}
-							<p>Accept{acceptance === 'accepted' && 'ed'}</p>
+						<button onClick={handleAccept} disabled={acceptance === 'accepted'}>
+							<p>{acceptance === 'accepted' ? 'Accepted' : 'Accept'}</p>
 						</button>
 					</>
 				)}
