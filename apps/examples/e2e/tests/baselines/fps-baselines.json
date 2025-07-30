@@ -24,7 +24,7 @@
 				}
 			},
 			"resize_shapes": {
-				"avgFps": 24,
+				"avgFps": 37,
 				"minFps": 18,
 				"maxFps": 67,
 				"timestamp": "2025-07-21T14:28:23.924Z",
@@ -35,7 +35,7 @@
 				}
 			},
 			"canvas_panning": {
-				"avgFps": 54,
+				"avgFps": 38,
 				"minFps": 28,
 				"maxFps": 70,
 				"timestamp": "2025-07-21T14:28:13.302Z",
@@ -46,7 +46,7 @@
 				}
 			},
 			"canvas_zooming": {
-				"avgFps": 51,
+				"avgFps": 41,
 				"minFps": 19,
 				"maxFps": 67,
 				"timestamp": "2025-07-21T14:28:23.924Z",
@@ -56,23 +56,10 @@
 					"browser": "chromium"
 				}
 			}
-		},
-		"darwin-1280x720": {
-			"resize_shapes": {
-				"avgFps": 39,
-				"minFps": 34,
-				"maxFps": 42,
-				"timestamp": "2025-07-30T14:25:14.923Z",
-				"environment": {
-					"platform": "darwin",
-					"viewport": "1280x720",
-					"browser": "chromium"
-				}
-			}
 		}
 	},
 	"metadata": {
-		"lastUpdated": "2025-07-30T14:25:14.923Z",
+		"lastUpdated": "2025-07-30T15:08:48.454Z",
 		"version": "1.0.0"
 	}
 }
