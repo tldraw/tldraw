@@ -1,5 +1,4 @@
-
-import {reduce, isEqual} from 'es-toolkit/compat'
+import { isEqual, reduce } from 'es-toolkit/compat'
 import { useCallback, useEffect, useState } from 'react'
 import { Editor, TLEventMapHandler, Tldraw } from 'tldraw'
 import 'tldraw/tldraw.css'

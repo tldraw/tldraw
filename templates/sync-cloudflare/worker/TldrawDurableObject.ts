@@ -5,8 +5,8 @@ import {
 	// defaultBindingSchemas,
 	defaultShapeSchemas,
 } from '@tldraw/tlschema'
+import { throttle } from 'es-toolkit'
 import { AutoRouter, IRequest, error } from 'itty-router'
-import {throttle} from 'es-toolkit'
 
 // add custom shapes and bindings here if needed:
 const schema = createTLSchema({
