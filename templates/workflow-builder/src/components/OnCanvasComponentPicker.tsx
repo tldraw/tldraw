@@ -2,7 +2,10 @@ import { Dialog, VisuallyHidden } from 'radix-ui'
 import { useCallback, useMemo, useState } from 'react'
 import {
 	TldrawUiButton,
+	TldrawUiButtonIcon,
+	TldrawUiButtonLabel,
 	TldrawUiMenuContextProvider,
+	TldrawUiMenuGroup,
 	TLShapeId,
 	useEditor,
 	usePassThroughWheelEvents,
@@ -13,7 +16,13 @@ import {
 } from 'tldraw'
 import { ConnectionShape, getConnectionTerminals } from '../connection/ConnectionShapeUtil'
 import { NODE_WIDTH_PX } from '../constants'
-import { NodeDefinitions, NodeType } from '../nodes/nodeTypes'
+import { NodeType } from '../nodes/nodeTypes'
+import { AddNode } from '../nodes/types/AddNode'
+import { ConditionalNode } from '../nodes/types/ConditionalNode'
+import { DivideNode } from '../nodes/types/DivideNode'
+import { MultiplyNode } from '../nodes/types/MultiplyNode'
+import { NodeDefinition } from '../nodes/types/shared'
+import { SubtractNode } from '../nodes/types/SubtractNode'
 import { EditorState } from '../utils'
 
 export interface OnCanvasComponentPickerState {
@@ -30,19 +39,42 @@ export const onCanvasComponentPickerState = new EditorState<OnCanvasComponentPic
 
 export function OnCanvasComponentPicker() {
 	const editor = useEditor()
-	const location = useValue('location', () => onCanvasComponentPickerState.get(editor)?.location, [
-		editor,
-	])
-	const shouldRender = !!location
-	const [container, setContainer] = useState<HTMLDivElement | null>(null)
-	usePassThroughWheelEvents(useMemo(() => ({ current: container }), [container]))
-
 	const onClose = useCallback(() => {
 		const state = onCanvasComponentPickerState.get(editor)
 		if (!state) return
 		onCanvasComponentPickerState.set(editor, null)
 		state.onClose()
 	}, [editor])
+
+	return (
+		<OnCanvasComponentPickerDialog onClose={onClose}>
+			<TldrawUiMenuGroup id="math">
+				<OnCanvasComponentPickerItem definition={AddNode} onClose={onClose} />
+				<OnCanvasComponentPickerItem definition={SubtractNode} onClose={onClose} />
+				<OnCanvasComponentPickerItem definition={MultiplyNode} onClose={onClose} />
+				<OnCanvasComponentPickerItem definition={DivideNode} onClose={onClose} />
+			</TldrawUiMenuGroup>
+			<TldrawUiMenuGroup id="logic">
+				<OnCanvasComponentPickerItem definition={ConditionalNode} onClose={onClose} />
+			</TldrawUiMenuGroup>
+		</OnCanvasComponentPickerDialog>
+	)
+}
+
+function OnCanvasComponentPickerDialog({
+	children,
+	onClose,
+}: {
+	children: React.ReactNode
+	onClose: () => void
+}) {
+	const editor = useEditor()
+	const location = useValue('location', () => onCanvasComponentPickerState.get(editor)?.location, [
+		editor,
+	])
+	const shouldRender = !!location
+	const [container, setContainer] = useState<HTMLDivElement | null>(null)
+	usePassThroughWheelEvents(useMemo(() => ({ current: container }), [container]))
 
 	useQuickReactor(
 		'OnCanvasComponentPicker',
@@ -92,46 +124,55 @@ export function OnCanvasComponentPicker() {
 						<Dialog.Title>Insert Node</Dialog.Title>
 					</VisuallyHidden.Root>
 					<TldrawUiMenuContextProvider sourceId="dialog" type="menu">
-						{NodeDefinitions.map((definition) => (
-							<TldrawUiButton
-								key={definition.type}
-								type="menu"
-								className="OnCanvasComponentPicker-button"
-								onClick={() => {
-									const state = onCanvasComponentPickerState.get(editor)
-									if (!state) return
-
-									const connection = editor.getShape(state.connectionShapeId)
-									if (
-										!connection ||
-										!editor.isShapeOfType<ConnectionShape>(connection, 'connection')
-									) {
-										onClose()
-										return
-									}
-
-									const terminals = getConnectionTerminals(editor, connection)
-									const terminalInConnectionSpace =
-										state.location === 'middle'
-											? Vec.Lrp(terminals.start, terminals.end, 0.5)
-											: terminals[state.location]
-
-									const terminalInPageSpace = editor
-										.getShapePageTransform(connection)
-										.applyToPoint(terminalInConnectionSpace)
-
-									state.onPick(definition.getDefault(), terminalInPageSpace)
-
-									onClose()
-								}}
-							>
-								<div className="OnCanvasComponentPicker-icon">{definition.icon}</div>
-								<div>{definition.title}</div>
-							</TldrawUiButton>
-						))}
+						{children}
 					</TldrawUiMenuContextProvider>
 				</div>
 			</Dialog.Content>
 		</Dialog.Root>
+	)
+}
+
+function OnCanvasComponentPickerItem<T extends NodeType>({
+	definition,
+	onClose,
+}: {
+	definition: NodeDefinition<T>
+	onClose: () => void
+}) {
+	const editor = useEditor()
+
+	return (
+		<TldrawUiButton
+			key={definition.type}
+			type="menu"
+			className="OnCanvasComponentPicker-button"
+			onClick={() => {
+				const state = onCanvasComponentPickerState.get(editor)
+				if (!state) return
+
+				const connection = editor.getShape(state.connectionShapeId)
+				if (!connection || !editor.isShapeOfType<ConnectionShape>(connection, 'connection')) {
+					onClose()
+					return
+				}
+
+				const terminals = getConnectionTerminals(editor, connection)
+				const terminalInConnectionSpace =
+					state.location === 'middle'
+						? Vec.Lrp(terminals.start, terminals.end, 0.5)
+						: terminals[state.location]
+
+				const terminalInPageSpace = editor
+					.getShapePageTransform(connection)
+					.applyToPoint(terminalInConnectionSpace)
+
+				state.onPick(definition.getDefault(), terminalInPageSpace)
+
+				onClose()
+			}}
+		>
+			<TldrawUiButtonIcon icon={definition.icon} />
+			<TldrawUiButtonLabel>{definition.title}</TldrawUiButtonLabel>
+		</TldrawUiButton>
 	)
 }

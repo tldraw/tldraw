@@ -6,6 +6,7 @@ import {
 	TldrawUiButton,
 	TldrawUiButtonIcon,
 	TLShapeId,
+	TLUiIconJsx,
 	useEditor,
 	useValue,
 } from 'tldraw'
@@ -24,7 +25,8 @@ export interface NodeDefinition<Node extends { type: string }> {
 	type: Node['type']
 	validator: T.Validator<Node>
 	title: string
-	icon: React.ReactNode
+	heading?: string
+	icon: TLUiIconJsx
 	getDefault: () => Node
 	getBodyHeightPx: (node: Node) => number
 	getPorts: (node: Node) => Record<string, ShapePort>
