@@ -3,16 +3,30 @@ import { useCallback, useMemo, useState } from 'react'
 import {
 	TldrawUiButton,
 	TldrawUiMenuContextProvider,
+	TLShapeId,
 	useEditor,
 	usePassThroughWheelEvents,
 	useQuickReactor,
 	useValue,
 	Vec,
+	VecModel,
 } from 'tldraw'
 import { ConnectionShape, getConnectionTerminals } from '../connection/ConnectionShapeUtil'
 import { NODE_WIDTH_PX } from '../constants'
-import { NodeDefinitions } from '../nodes/nodeTypes'
-import { onCanvasComponentPickerState } from '../state'
+import { NodeDefinitions, NodeType } from '../nodes/nodeTypes'
+import { EditorState } from '../utils'
+
+export interface OnCanvasComponentPickerState {
+	connectionShapeId: TLShapeId
+	location: 'start' | 'end' | 'middle'
+	onPick: (nodeType: NodeType, position: VecModel) => void
+	onClose: () => void
+}
+
+export const onCanvasComponentPickerState = new EditorState<OnCanvasComponentPickerState | null>(
+	'on canvas component picker',
+	() => null
+)
 
 export function OnCanvasComponentPicker() {
 	const editor = useEditor()
