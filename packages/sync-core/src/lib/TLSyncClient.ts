@@ -7,7 +7,13 @@ import {
 	reverseRecordsDiff,
 	squashRecordDiffs,
 } from '@tldraw/store'
-import { exhaustiveSwitchError, isEqual, objectMapEntries, throttle, uniqueId } from '@tldraw/utils'
+import {
+	exhaustiveSwitchError,
+	fixedFpsThrottle,
+	isEqual,
+	objectMapEntries,
+	uniqueId,
+} from '@tldraw/utils'
 import { NetworkDiff, RecordOpType, applyObjectDiff, diffRecord, getNetworkDiff } from './diff'
 import { interval } from './interval'
 import {
@@ -527,29 +533,25 @@ export class TLSyncClient<R extends UnknownRecord, S extends Store<R> = Store<R>
 	}
 
 	/** Send any unsent push requests to the server */
-	private flushPendingPushRequests = throttle(
-		() => {
-			this.debug('flushing pending push requests', {
-				isConnectedToRoom: this.isConnectedToRoom,
-				pendingPushRequests: this.pendingPushRequests,
-			})
-			if (!this.isConnectedToRoom || this.store.isPossiblyCorrupted()) {
-				return
-			}
-			for (const pendingPushRequest of this.pendingPushRequests) {
-				if (!pendingPushRequest.sent) {
-					if (this.socket.connectionStatus !== 'online') {
-						// we went offline, so don't send anything
-						return
-					}
-					this.socket.sendMessage(pendingPushRequest.request)
-					pendingPushRequest.sent = true
+	private flushPendingPushRequests = fixedFpsThrottle(() => {
+		this.debug('flushing pending push requests', {
+			isConnectedToRoom: this.isConnectedToRoom,
+			pendingPushRequests: this.pendingPushRequests,
+		})
+		if (!this.isConnectedToRoom || this.store.isPossiblyCorrupted()) {
+			return
+		}
+		for (const pendingPushRequest of this.pendingPushRequests) {
+			if (!pendingPushRequest.sent) {
+				if (this.socket.connectionStatus !== 'online') {
+					// we went offline, so don't send anything
+					return
 				}
+				this.socket.sendMessage(pendingPushRequest.request)
+				pendingPushRequest.sent = true
 			}
-		},
-		30,
-		{ trailing: true }
-	)
+		}
+	}, 30)
 
 	/**
 	 * Applies a 'network' diff to the store this does value-based equality checking so that if the
@@ -657,5 +659,5 @@ export class TLSyncClient<R extends UnknownRecord, S extends Store<R> = Store<R>
 		}
 	}
 
-	private scheduleRebase = throttle(this.rebase, 30, { trailing: true })
+	private scheduleRebase = fixedFpsThrottle(this.rebase, 30)
 }

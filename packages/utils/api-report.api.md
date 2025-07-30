@@ -131,6 +131,15 @@ export function filterEntries<Key extends string, Value>(object: {
 };
 
 // @internal
+export function fixedFpsThrottle(fn: {
+    (): void;
+    cancel?(): void;
+}, fps: number): {
+    (): void;
+    cancel?(): void;
+};
+
+// @internal
 export function fpsThrottle(fn: {
     (): void;
     cancel?(): void;
