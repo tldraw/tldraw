@@ -159,13 +159,9 @@ export async function getRoomHistory(
 
 			currentMonth = getPreviousMonth(currentMonth)
 			monthsCollected++
-
-			if (allTimestamps.length >= targetEntryCount) {
-				break
-			}
 		}
 
-		allTimestamps = allTimestamps.sort((a, b) => b.localeCompare(a)).slice(0, targetEntryCount)
+		allTimestamps = allTimestamps.sort((a, b) => b.localeCompare(a))
 	}
 
 	let hasMore = false
