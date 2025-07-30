@@ -105,10 +105,12 @@ body {
 		}
 	}
 
-	&:hover,
-	&:has(input:focus) {
-		.NodeInputRow-buttons {
-			display: flex;
+	&:has(input:not(:disabled)) {
+		&:hover,
+		&:has(input:focus) {
+			.NodeInputRow-buttons {
+				display: flex;
+			}
 		}
 	}
 }
@@ -262,6 +264,10 @@ body {
 .SliderNode {
 	.tlui-slider__container {
 		padding: 0;
+
+		&:has(.tlui-slider__thumb:focus-visible) {
+			outline: none;
+		}
 
 		[data-state='select.idle'] & {
 			pointer-events: all;
