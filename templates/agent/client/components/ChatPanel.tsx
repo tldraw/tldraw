@@ -21,7 +21,7 @@ export function ChatPanel({ editor }: { editor: Editor }) {
 	useEffect(() => {
 		if (!editor) return
 		;(window as any).editor = editor
-		;(window as any).agent = ai
+		;(window as any).ai = ai
 	}, [ai, editor])
 
 	const toast = useToasts()
