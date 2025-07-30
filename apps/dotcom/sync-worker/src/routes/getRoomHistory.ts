@@ -106,7 +106,12 @@ export async function getRoomHistory(
 		}
 	} else {
 		// If we don't have an offset we can check if the room doesn't have too many entries
-		const allTimestampsForRoom = await fetchTimestampsForPrefix(versionCacheBucket, bucketKey, '')
+		const allTimestampsForRoom = await fetchTimestampsForPrefix(
+			versionCacheBucket,
+			bucketKey,
+			'',
+			1000
+		)
 
 		// If we have fewer than 1000 entries, return them all
 		if (allTimestampsForRoom.length < 1000) {
