@@ -96,9 +96,6 @@ Original Author: @${pr.user?.login}`,
 
 				nicelog(`Successfully merged hotfix PR #${createdPr.data.number}`)
 				break
-			} else if (prStatus.mergeable_state === 'blocked') {
-				nicelog(`PR #${createdPr.data.number} is blocked (likely failed checks)`)
-				throw new Error(`Hotfix PR #${createdPr.data.number} is blocked`)
 			} else if (prStatus.mergeable_state === 'unstable') {
 				nicelog(`PR #${createdPr.data.number} is unstable (some checks failed)`)
 				throw new Error(`Hotfix PR #${createdPr.data.number} is unstable`)

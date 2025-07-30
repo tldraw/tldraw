@@ -1,0 +1,70 @@
+{
+	"name": "create-tldraw",
+	"description": "tldraw infinite canvas SDK (create cli).",
+	"version": "3.15.0",
+	"author": {
+		"name": "tldraw Inc.",
+		"email": "hello@tldraw.com"
+	},
+	"homepage": "https://tldraw.dev",
+	"license": "SEE LICENSE IN LICENSE.md",
+	"repository": {
+		"type": "git",
+		"url": "https://github.com/tldraw/tldraw"
+	},
+	"bugs": {
+		"url": "https://github.com/tldraw/tldraw/issues"
+	},
+	"keywords": [
+		"tldraw",
+		"sdk",
+		"drawing",
+		"app",
+		"development",
+		"whiteboard",
+		"canvas",
+		"infinite"
+	],
+	"bin": "./cli.cjs",
+	"files": [
+		"dist-cjs",
+		"./cli.cjs"
+	],
+	"scripts": {
+		"dev": "./scripts/dev.sh",
+		"test-ci": "lazy inherit",
+		"test": "yarn run -T jest",
+		"test-coverage": "lazy inherit",
+		"build": "./scripts/build.sh",
+		"prepack": "yarn build",
+		"pack-tarball": "yarn pack",
+		"lint": "yarn run -T tsx ../../internal/scripts/lint.ts"
+	},
+	"devDependencies": {
+		"@bomb.sh/args": "^0.3.1",
+		"@clack/core": "^1.0.0-alpha.1",
+		"@clack/prompts": "^1.0.0-alpha.1",
+		"@tldraw/utils": "workspace:*",
+		"ansi-regex": "^6.1.0",
+		"ansi-styles": "^6.2.1",
+		"esbuild": "^0.25.6",
+		"lazyrepo": "0.0.0-alpha.27",
+		"picocolors": "^1.1.1",
+		"string-width": "^7.2.0",
+		"strip-ansi": "^7.1.0",
+		"tar": "^7.4.3"
+	},
+	"jest": {
+		"preset": "../../internal/config/jest/node/jest-preset.js",
+		"setupFiles": [
+			"raf/polyfill"
+		],
+		"moduleNameMapper": {
+			"^~(.*)": "<rootDir>/src/$1"
+		},
+		"transformIgnorePatterns": [
+			"node_modules/(?!(ansi-styles|string-width|strip-ansi|ansi-regex|get-east-asian-width)/)"
+		]
+	},
+	"// because this is bundled, all dependencies should be dev dependencies.": null
+}

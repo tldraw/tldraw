@@ -119,7 +119,7 @@ const SimpleArrowShape = z.object({
 	x2: z.number(),
 	y2: z.number(),
 	color: SimpleColor.optional(),
-	text: z.string().optional(),
+	text: SimpleLabel.optional(),
 })
 
 export type ISimpleArrowShape = z.infer<typeof SimpleArrowShape>

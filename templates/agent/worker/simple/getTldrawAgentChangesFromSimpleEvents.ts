@@ -212,7 +212,7 @@ function getTldrawAiChangesFromSimpleUpdateEvent(
 				y: startY,
 				props: {
 					color: update.color ? getTldrawColorFromFuzzyColor(update.color) : undefined,
-					text: update.text ?? undefined,
+					richText: update.text ? toRichTextIfNeeded(update.text) : undefined,
 					start: { x: 0, y: 0 },
 					end: { x: endX, y: endY },
 				},

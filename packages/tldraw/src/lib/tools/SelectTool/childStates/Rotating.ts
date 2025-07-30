@@ -109,6 +109,17 @@ export class Rotating extends StateNode {
 	}
 
 	private cancel() {
+		// Call onRotateCancel callback before bailing to mark
+		const { shapeSnapshots } = this.snapshot
+
+		shapeSnapshots.forEach(({ shape }) => {
+			const current = this.editor.getShape(shape.id)
+			if (current) {
+				const util = this.editor.getShapeUtil(shape)
+				util.onRotateCancel?.(shape, current)
+			}
+		})
+
 		this.editor.bailToMark(this.markId)
 		if (this.info.onInteractionEnd) {
 			this.editor.setCurrentTool(this.info.onInteractionEnd, this.info)
