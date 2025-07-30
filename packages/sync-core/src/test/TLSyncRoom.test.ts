@@ -76,6 +76,7 @@ const oldArrow: TLBaseShape<'arrow', Omit<TLArrowShapeProps, 'labelColor'>> = {
 		end: { x: 0, y: 0 },
 		arrowheadStart: 'none',
 		arrowheadEnd: 'arrow',
+		// @ts-ignore this is a legacy field
 		text: '',
 		font: 'draw',
 		labelPosition: 0.5,
@@ -123,6 +124,25 @@ describe('TLSyncRoom', () => {
 		expect(Object.keys(room.getSnapshot().tombstones ?? {})).toHaveLength(
 			MAX_TOMBSTONES - TOMBSTONE_PRUNE_BUFFER_SIZE
 		)
+	})
+
+	it('updates tombstoneHistoryStartsAtClock when pruning tombstones', () => {
+		const room = new TLSyncRoom({
+			schema,
+			snapshot: {
+				documents: [],
+				clock: MAX_TOMBSTONES + 100,
+				tombstones: Object.fromEntries(
+					Array.from({ length: MAX_TOMBSTONES + 100 }, (_, i) => [PageRecordType.createId(), i])
+				),
+			},
+		})
+
+		// After pruning, tombstoneHistoryStartsAtClock should be updated to the clock value
+		// of the oldest remaining tombstone
+		const remainingTombstones = Object.values(room.getSnapshot().tombstones ?? {})
+		const oldestRemainingClock = Math.min(...remainingTombstones)
+		expect(room.tombstoneHistoryStartsAtClock).toBe(oldestRemainingClock)
 	})
 
 	it('migrates the snapshot if it is dealing with old data', () => {
@@ -590,7 +610,7 @@ describe('isReadonly', () => {
 		// sessionA is readonly
 		room.handleMessage(sessionAId, push)
 
-		expect(room.state.get().documents['page:page_3']?.state).toBe(undefined)
+		expect(room.documents.get('page:page_3')?.state).toBe(undefined)
 		// should tell the session to discard it
 		expect(socketA.__lastMessage).toMatchInlineSnapshot(`
 		{
@@ -611,7 +631,7 @@ describe('isReadonly', () => {
 		// sessionB is not readonly
 		room.handleMessage(sessionBId, push)
 
-		expect(room.state.get().documents['page:page_3']?.state).not.toBe(undefined)
+		expect(room.documents.get('page:page_3')?.state).not.toBe(undefined)
 
 		// should tell the session to commit it
 		expect(socketB.__lastMessage).toMatchInlineSnapshot(`

@@ -149,13 +149,20 @@ exports[`putExcalidrawContent test fixtures bound-arrows.json 1`] = `
       "kind": "arc",
       "labelColor": "black",
       "labelPosition": 0.5,
+      "richText": {
+        "content": [
+          {
+            "type": "paragraph",
+          },
+        ],
+        "type": "doc",
+      },
       "scale": 1,
       "size": "m",
       "start": {
         "x": 0,
         "y": 0,
       },
-      "text": "",
     },
     "rotation": 0,
     "type": "arrow",
@@ -315,13 +322,20 @@ exports[`putExcalidrawContent test fixtures bound-elbow-arrows.json 1`] = `
       "kind": "elbow",
       "labelColor": "black",
       "labelPosition": 0.5,
+      "richText": {
+        "content": [
+          {
+            "type": "paragraph",
+          },
+        ],
+        "type": "doc",
+      },
       "scale": 1,
       "size": "m",
       "start": {
         "x": 0,
         "y": 0,
       },
-      "text": "",
     },
     "rotation": 0,
     "type": "arrow",

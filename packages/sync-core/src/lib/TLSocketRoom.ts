@@ -238,7 +238,7 @@ export class TLSocketRoom<R extends UnknownRecord = UnknownRecord, SessionMeta =
 	 * @returns the cloned record
 	 */
 	getRecord(id: string) {
-		return structuredClone(this.room.state.get().documents[id]?.state)
+		return structuredClone(this.room.documents.get(id)?.state)
 	}
 
 	/**
@@ -275,7 +275,7 @@ export class TLSocketRoom<R extends UnknownRecord = UnknownRecord, SessionMeta =
 	 */
 	getPresenceRecords() {
 		const result = {} as Record<string, UnknownRecord>
-		for (const document of Object.values(this.room.state.get().documents)) {
+		for (const document of this.room.documents.values()) {
 			if (document.state.typeName === this.room.presenceType?.typeName) {
 				result[document.state.id] = document.state
 			}

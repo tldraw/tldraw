@@ -1037,17 +1037,20 @@ export function ActionsProvider({ overrides, children }: ActionsProviderProps) {
 				id: 'rotate-cw',
 				label: 'action.rotate-cw',
 				icon: 'rotate-cw',
+				kbd: 'shift+.,shift+alt+.',
 				onSelect(source) {
 					if (!canApplySelectionAction()) return
 					if (mustGoBackToSelectToolFirst()) return
 
-					trackEvent('rotate-cw', { source })
+					const isFine = editor.inputs.altKey
+					trackEvent('rotate-cw', { source, fine: isFine })
 					editor.markHistoryStoppingPoint('rotate-cw')
 					editor.run(() => {
-						const offset = editor.getSelectionRotation() % (HALF_PI / 2)
-						const dontUseOffset = approximately(offset, 0) || approximately(offset, HALF_PI / 2)
+						const rotation = HALF_PI / (isFine ? 96 : 6)
+						const offset = editor.getSelectionRotation() % rotation
+						const dontUseOffset = approximately(offset, 0) || approximately(offset, rotation)
 						const selectedShapeIds = editor.getSelectedShapeIds()
-						editor.rotateShapesBy(selectedShapeIds, HALF_PI / 2 - (dontUseOffset ? 0 : offset))
+						editor.rotateShapesBy(selectedShapeIds, rotation - (dontUseOffset ? 0 : offset))
 						kickoutOccludedShapes(editor, selectedShapeIds)
 					})
 				},
@@ -1056,17 +1059,21 @@ export function ActionsProvider({ overrides, children }: ActionsProviderProps) {
 				id: 'rotate-ccw',
 				label: 'action.rotate-ccw',
 				icon: 'rotate-ccw',
+				// omg double comma
+				kbd: 'shift+,,shift+alt+,',
 				onSelect(source) {
 					if (!canApplySelectionAction()) return
 					if (mustGoBackToSelectToolFirst()) return
 
-					trackEvent('rotate-ccw', { source })
+					const isFine = editor.inputs.altKey
+					trackEvent('rotate-ccw', { source, fine: isFine })
 					editor.markHistoryStoppingPoint('rotate-ccw')
 					editor.run(() => {
-						const offset = editor.getSelectionRotation() % (HALF_PI / 2)
+						const rotation = HALF_PI / (isFine ? 96 : 6)
+						const offset = editor.getSelectionRotation() % rotation
 						const offsetCloseToZero = approximately(offset, 0)
 						const selectedShapeIds = editor.getSelectedShapeIds()
-						editor.rotateShapesBy(selectedShapeIds, offsetCloseToZero ? -(HALF_PI / 2) : -offset)
+						editor.rotateShapesBy(selectedShapeIds, offsetCloseToZero ? -rotation : -offset)
 						kickoutOccludedShapes(editor, selectedShapeIds)
 					})
 				},
