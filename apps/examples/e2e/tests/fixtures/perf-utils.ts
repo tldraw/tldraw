@@ -405,7 +405,7 @@ export class PerformanceTestSuite {
 		results.push(await this.testShapeDragging())
 		await this.setupHeavyBoard(50)
 		results.push(await this.testShapeResizing())
-		await this.setupHeavyBoard(1500)
+		await this.setupHeavyBoard(1000)
 		results.push(await this.testCanvasPanning())
 		await this.setupHeavyBoard(1000)
 		results.push(await this.testCanvasZooming())

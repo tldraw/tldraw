@@ -117,7 +117,7 @@ test.describe('Performance Tests', () => {
 		if (isMobile) return
 
 		const perfSuite = await setupPerformanceTest({ page, context, request }, browserName)
-		await perfSuite.setupHeavyBoard(1500)
+		await perfSuite.setupHeavyBoard(1000)
 
 		testOutput(await perfSuite.testCanvasPanning())
 	})

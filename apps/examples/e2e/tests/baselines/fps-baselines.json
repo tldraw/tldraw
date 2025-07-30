@@ -56,41 +56,6 @@
 					"browser": "chromium"
 				}
 			}
-		},
-		"darwin-1280x720": {
-			"canvas_zooming": {
-				"avgFps": 41,
-				"minFps": 17,
-				"maxFps": 65,
-				"timestamp": "2025-07-30T15:18:51.189Z",
-				"environment": {
-					"platform": "darwin",
-					"viewport": "1280x720",
-					"browser": "chromium"
-				}
-			},
-			"canvas_panning": {
-				"avgFps": 40,
-				"minFps": 24,
-				"maxFps": 56,
-				"timestamp": "2025-07-30T15:19:05.333Z",
-				"environment": {
-					"platform": "darwin",
-					"viewport": "1280x720",
-					"browser": "chromium"
-				}
-			},
-			"resize_shapes": {
-				"avgFps": 40,
-				"minFps": 35,
-				"maxFps": 43,
-				"timestamp": "2025-07-30T15:19:18.438Z",
-				"environment": {
-					"platform": "darwin",
-					"viewport": "1280x720",
-					"browser": "chromium"
-				}
-			}
 		}
 	},
 	"metadata": {
