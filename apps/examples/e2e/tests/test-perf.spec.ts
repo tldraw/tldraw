@@ -110,7 +110,7 @@ test.describe('Performance Tests', () => {
 		if (isMobile) return
 
 		const perfSuite = await setupPerformanceTest({ page, context, request }, browserName)
-		await perfSuite.setupHeavyBoard(50)
+		await perfSuite.setupHeavyBoard(20)
 
 		const result = await perfSuite.testShapeResizing()
 

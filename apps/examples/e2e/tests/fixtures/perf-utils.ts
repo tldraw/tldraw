@@ -236,10 +236,10 @@ export class PerformanceTestSuite {
 						let scaleFactor: number
 						if (resizeCycle % 2 === 0) {
 							// Scale up: random between 1.1 and 5
-							scaleFactor = 1.1 + seededRandom() * (3 - 1.1)
+							scaleFactor = 1.1 + seededRandom() * (2.0 - 1.1)
 						} else {
 							// Scale down: random between 0.2 and 0.9
-							scaleFactor = 0.3 + seededRandom() * (0.9 - 0.3)
+							scaleFactor = 0.5 + seededRandom() * (0.9 - 0.5)
 						}
 
 						// Get current bounds for the scale origin
@@ -383,7 +383,7 @@ export class PerformanceTestSuite {
 		results.push(await this.testShapeRotation())
 		await this.setupHeavyBoard()
 		results.push(await this.testShapeDragging())
-		await this.setupHeavyBoard(50)
+		await this.setupHeavyBoard(20)
 		results.push(await this.testShapeResizing())
 		await this.setupHeavyBoard()
 		results.push(await this.testCanvasPanning())

@@ -56,10 +56,23 @@
 					"browser": "chromium"
 				}
 			}
+		},
+		"darwin-1280x720": {
+			"resize_shapes": {
+				"avgFps": 39,
+				"minFps": 34,
+				"maxFps": 42,
+				"timestamp": "2025-07-30T14:25:14.923Z",
+				"environment": {
+					"platform": "darwin",
+					"viewport": "1280x720",
+					"browser": "chromium"
+				}
+			}
 		}
 	},
 	"metadata": {
-		"lastUpdated": "2025-07-28T14:10:46.922Z",
+		"lastUpdated": "2025-07-30T14:25:14.923Z",
 		"version": "1.0.0"
 	}
 }
