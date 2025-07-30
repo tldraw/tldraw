@@ -1,28 +1,27 @@
-import {
-	TLAiChange,
-	TLAiCreateBindingChange,
-	TLAiCreateShapeChange,
-	TLAiSerializedPrompt,
-	TLAiUpdateShapeChange,
-} from '@tldraw/ai'
+import { TLAiChange, TLAiSerializedPrompt } from '@tldraw/ai'
 import {
 	IndexKey,
-	TLArrowBinding,
 	TLArrowShape,
-	TLDefaultFillStyle,
+	TLBindingId,
 	TLGeoShape,
 	TLLineShape,
 	TLNoteShape,
 	TLRichText,
+	TLShape,
+	TLShapeId,
+	TLShapePartial,
 	TLTextShape,
 	toRichText,
 } from 'tldraw'
+import { simpleFillToShapeFill } from './conversions'
 import {
-	ISimpleCreateEvent,
+	ISimpleColor,
+	ISimpleCreateOrUpdateEvent,
 	ISimpleDeleteEvent,
 	ISimpleEvent,
-	ISimpleFill,
+	ISimpleLabelEvent,
 	ISimpleMoveEvent,
+	SimpleColor,
 } from './schema'
 
 function toRichTextIfNeeded(text: string | { type: string; content: any[] }): TLRichText {
@@ -36,10 +35,13 @@ export function getTldrawAiChangesFromSimpleEvents(
 	prompt: TLAiSerializedPrompt,
 	event: ISimpleEvent
 ): TLAiChange[] {
-	switch (event.type) {
-		case 'update':
+	console.log('event', JSON.stringify(event, null, 2))
+	switch (event._type) {
+		case 'update': {
+			return getTldrawAiChangesFromSimpleUpdateEvent(prompt, event)
+		}
 		case 'create': {
-			return getTldrawAiChangesFromSimpleCreateOrUpdateEvent(prompt, event)
+			return getTldrawAiChangesFromSimpleCreateEvent(prompt, event)
 		}
 		case 'delete': {
 			return getTldrawAiChangesFromSimpleDeleteEvent(prompt, event)
@@ -47,62 +49,340 @@ export function getTldrawAiChangesFromSimpleEvents(
 		case 'move': {
 			return getTldrawAiChangesFromSimpleMoveEvent(prompt, event)
 		}
+		case 'label': {
+			return getTldrawAiChangesFromSimpleLabelEvent(prompt, event)
+		}
 		case 'think': {
 			return []
 		}
 	}
 }
 
-const FILL_MAP: Record<ISimpleFill, TLDefaultFillStyle> = {
-	none: 'none',
-	solid: 'fill',
-	semi: 'semi',
-	tint: 'solid',
-	pattern: 'pattern',
-}
-
-function simpleFillToShapeFill(fill: ISimpleFill): TLDefaultFillStyle {
-	return FILL_MAP[fill]
-}
-
-function getTldrawAiChangesFromSimpleCreateOrUpdateEvent(
+function getTldrawAiChangesFromSimpleUpdateEvent(
 	prompt: TLAiSerializedPrompt,
-	event: ISimpleCreateEvent
+	event: ISimpleCreateOrUpdateEvent
 ): TLAiChange[] {
-	const { shape } = event
+	const changes: TLAiChange[] = []
+	const update = event.shape
 
+	switch (update._type) {
+		case 'text': {
+			const shapeOnCanvas = prompt.canvasContent.shapes.find((s) => s.id === update.shapeId)
+			if (!shapeOnCanvas) {
+				throw new Error(`Shape ${update.shapeId} not found in canvas`)
+			}
+
+			const mergedShape: TLShapePartial<TLTextShape> = {
+				id: update.shapeId as TLShapeId,
+				type: 'text',
+				x: update.x,
+				y: update.y,
+				props: {
+					color: update.color ? getTldrawColorFromFuzzyColor(update.color) : undefined,
+					richText: update.text ? toRichTextIfNeeded(update.text) : undefined,
+					textAlign: update.textAlign ?? 'start',
+				},
+				meta: {
+					note: update.note,
+				},
+			}
+
+			changes.push({
+				type: 'updateShape',
+				description: event.intent ?? '',
+				shape: mergedShape,
+			})
+			break
+		}
+		case 'line': {
+			const shapeOnCanvas = prompt.canvasContent.shapes.find((s) => s.id === update.shapeId)
+			if (!shapeOnCanvas) {
+				throw new Error(`Shape ${update.shapeId} not found in canvas`)
+			}
+
+			const startX = update.x1
+			const startY = update.y1
+			const endX = update.x2 - startX
+			const endY = update.y2 - startY
+
+			const points = {
+				a1: {
+					id: 'a1',
+					index: 'a1' as IndexKey,
+					x: 0,
+					y: 0,
+				},
+				a2: {
+					id: 'a2',
+					index: 'a2' as IndexKey,
+					x: endX,
+					y: endY,
+				},
+			}
+
+			const mergedShape: TLShapePartial<TLLineShape> = {
+				id: update.shapeId as TLShapeId,
+				type: 'line',
+				x: startX,
+				y: startY,
+				props: {
+					color: update.color ? getTldrawColorFromFuzzyColor(update.color) : undefined,
+					points,
+				},
+				meta: {
+					note: update.note,
+				},
+			}
+
+			changes.push({
+				type: 'updateShape',
+				description: event.intent ?? '',
+				shape: mergedShape,
+			})
+			break
+		}
+		case 'arrow': {
+			const shapeOnCanvas = prompt.canvasContent.shapes.find((s) => s.id === update.shapeId)
+			if (!shapeOnCanvas) {
+				throw new Error(`Shape ${update.shapeId} not found in canvas`)
+			}
+
+			const startX = update.x1
+			const startY = update.y1
+			const endX = update.x2 - startX
+			const endY = update.y2 - startY
+
+			const mergedShape: TLShapePartial<TLArrowShape> = {
+				id: update.shapeId as TLShapeId,
+				type: 'arrow',
+				x: startX,
+				y: startY,
+				props: {
+					color: update.color ? getTldrawColorFromFuzzyColor(update.color) : undefined,
+					richText: update.text ? toRichTextIfNeeded(update.text) : undefined,
+					start: { x: 0, y: 0 },
+					end: { x: endX, y: endY },
+				},
+				meta: {
+					note: update.note,
+				},
+			}
+
+			changes.push({
+				type: 'updateShape',
+				description: event.intent ?? '',
+				shape: mergedShape,
+			})
+
+			for (const binding of prompt.canvasContent.bindings.filter(
+				(b) => b.fromId === update.shapeId
+			)) {
+				changes.push({
+					type: 'deleteBinding',
+					description: 'Cleaning up old bindings',
+					bindingId: binding.id as TLBindingId,
+				})
+			}
+
+			// Does the arrow have a start shape? Then try to create the binding
+			const startShape = update.fromId
+				? prompt.canvasContent.shapes.find((s) => s.id === update.fromId)
+				: null
+			if (startShape) {
+				changes.push({
+					type: 'createBinding',
+					description: event.intent ?? '',
+					binding: {
+						type: 'arrow',
+						fromId: update.shapeId as TLShapeId,
+						toId: startShape.id as TLShapeId,
+						props: {
+							normalizedAnchor: { x: 0.5, y: 0.5 },
+							isExact: false,
+							isPrecise: false,
+							terminal: 'start',
+						},
+						meta: {},
+					},
+				})
+			}
+
+			// Does the arrow have an end shape? Then try to create the binding
+			const endShape = update.toId
+				? prompt.canvasContent.shapes.find((s) => s.id === update.toId)
+				: null
+			if (endShape) {
+				changes.push({
+					type: 'createBinding',
+					description: event.intent ?? '',
+					binding: {
+						type: 'arrow',
+						fromId: update.shapeId as TLShapeId,
+						toId: endShape.id as TLShapeId,
+						props: {
+							normalizedAnchor: { x: 0.5, y: 0.5 },
+							isExact: false,
+							isPrecise: false,
+							terminal: 'end',
+						},
+						meta: {},
+					},
+				})
+			}
+
+			break
+		}
+		case 'cloud':
+		case 'rectangle':
+		case 'triangle':
+		case 'diamond':
+		case 'hexagon':
+		case 'oval':
+		case 'x-box':
+		case 'pentagon':
+		case 'octagon':
+		case 'star':
+		case 'rhombus':
+		case 'rhombus-2':
+		case 'trapezoid':
+		case 'arrow-right':
+		case 'arrow-left':
+		case 'arrow-up':
+		case 'arrow-down':
+		case 'check-box':
+		case 'heart':
+		case 'ellipse': {
+			const shapeOnCanvas = prompt.canvasContent.shapes.find((s) => s.id === update.shapeId)
+			if (!shapeOnCanvas) {
+				throw new Error(`Shape ${update.shapeId} not found in canvas`)
+			}
+
+			// Create a merged shape object that starts with all properties from shapeOnCanvas  and overrides with any properties from the update. Returns undefined if there are no changes to that field, so the editor function won't try to update it.
+			const mergedShape: TLShapePartial<TLGeoShape> = {
+				id: update.shapeId as TLShapeId,
+				type: 'geo',
+				x: update.x,
+				y: update.y,
+				props: {
+					color: update.color ? getTldrawColorFromFuzzyColor(update.color) : undefined,
+					geo: update._type,
+					w: update.width,
+					h: update.height,
+					fill: update.fill ? simpleFillToShapeFill(update.fill) : undefined,
+					richText: update.text ? toRichTextIfNeeded(update.text) : undefined,
+				},
+				meta: {
+					note: update.note,
+				},
+			}
+
+			changes.push({
+				type: 'updateShape',
+				description: event.intent ?? '',
+				shape: mergedShape,
+			})
+
+			break
+		}
+		case 'note': {
+			const shapeOnCanvas = prompt.canvasContent.shapes.find((s) => s.id === update.shapeId)
+			if (!shapeOnCanvas) {
+				throw new Error(`Shape ${update.shapeId} not found in canvas`)
+			}
+
+			const mergedShape: TLShapePartial<TLNoteShape> = {
+				id: update.shapeId as TLShapeId,
+				type: 'note',
+				x: update.x,
+				y: update.y,
+				props: {
+					color: update.color ? getTldrawColorFromFuzzyColor(update.color) : undefined,
+					richText: update.text ? toRichTextIfNeeded(update.text) : undefined,
+				},
+				meta: {
+					note: update.note,
+				},
+			}
+
+			changes.push({
+				type: 'updateShape',
+				description: event.intent ?? '',
+				shape: mergedShape,
+			})
+
+			break
+		}
+		case 'unknown': {
+			const shapeOnCanvas = prompt.canvasContent.shapes.find((s) => s.id === update.shapeId)
+			if (!shapeOnCanvas) {
+				throw new Error(`Shape ${update.shapeId} not found in canvas`)
+			}
+
+			const mergedShape: TLShapePartial<TLShape> = {
+				id: update.shapeId as TLShapeId,
+				type: shapeOnCanvas.type,
+				x: update.x,
+				y: update.y,
+				meta: {
+					note: update.note,
+				},
+			}
+
+			changes.push({
+				type: 'updateShape',
+				description: event.intent ?? '',
+				shape: mergedShape,
+			})
+
+			break
+		}
+	}
+
+	return changes
+}
+
+function getTldrawAiChangesFromSimpleCreateEvent(
+	prompt: TLAiSerializedPrompt,
+	event: ISimpleCreateOrUpdateEvent
+): TLAiChange[] {
 	const changes: TLAiChange[] = []
 
-	const shapeEventType = event.type === 'create' ? 'createShape' : 'updateShape'
-
-	switch (shape.type) {
+	const shape = event.shape
+	switch (shape._type) {
 		case 'text': {
 			changes.push({
-				type: shapeEventType,
-				description: shape.note ?? '',
+				type: 'createShape',
+				description: event.intent ?? '',
 				shape: {
-					id: shape.shapeId as any,
+					id: shape.shapeId as TLShapeId,
 					type: 'text',
 					x: shape.x,
 					y: shape.y,
 					props: {
 						richText: toRichTextIfNeeded(shape.text ?? ''),
-						color: shape.color ?? 'black',
-						textAlign: shape.textAlign ?? 'middle',
+						color: getTldrawColorFromFuzzyColor(shape.color),
+						textAlign: shape.textAlign ?? 'start',
+					},
+					meta: {
+						note: shape.note ?? '',
 					},
 				},
-			} satisfies TLAiCreateShapeChange<TLTextShape> | TLAiUpdateShapeChange<TLTextShape>)
+			})
 			break
 		}
 		case 'line': {
-			const minX = Math.min(shape.x1, shape.x2)
-			const minY = Math.min(shape.y1, shape.y2)
+			const x1 = shape.x1 ?? 0
+			const y1 = shape.y1 ?? 0
+			const x2 = shape.x2 ?? 0
+			const y2 = shape.y2 ?? 0
+			const minX = Math.min(x1, x2)
+			const minY = Math.min(y1, y2)
 
 			changes.push({
-				type: shapeEventType,
-				description: shape.note ?? '',
+				type: 'createShape',
+				description: event.intent ?? '',
 				shape: {
-					id: shape.shapeId as any,
+					id: shape.shapeId as TLShapeId,
 					type: 'line',
 					x: minX,
 					y: minY,
@@ -111,53 +391,55 @@ function getTldrawAiChangesFromSimpleCreateOrUpdateEvent(
 							a1: {
 								id: 'a1',
 								index: 'a1' as IndexKey,
-								x: shape.x1 - minX,
-								y: shape.y1 - minY,
+								x: x1 - minX,
+								y: y1 - minY,
 							},
 							a2: {
 								id: 'a2',
 								index: 'a2' as IndexKey,
-								x: shape.x2 - minX,
-								y: shape.y2 - minY,
+								x: x2 - minX,
+								y: y2 - minY,
 							},
 						},
-						color: shape.color ?? 'black',
+						color: getTldrawColorFromFuzzyColor(shape.color),
+					},
+					meta: {
+						note: shape.note ?? '',
 					},
 				},
-			} satisfies TLAiCreateShapeChange<TLLineShape> | TLAiUpdateShapeChange<TLLineShape>)
+			})
 			break
 		}
 		case 'arrow': {
-			const { shapeId, fromId, toId, x1, x2, y1, y2 } = shape
+			const { shapeId, fromId, toId } = shape
+
+			const x1 = shape.x1 ?? 0
+			const y1 = shape.y1 ?? 0
+			const x2 = shape.x2 ?? 0
+			const y2 = shape.y2 ?? 0
+			const minX = Math.min(x1, x2)
+			const minY = Math.min(y1, y2)
 
 			// Make sure that the shape itself is the first change
 			changes.push({
-				type: shapeEventType,
-				description: shape.note ?? '',
+				type: 'createShape',
+				description: event.intent ?? '',
 				shape: {
-					id: shapeId as any,
+					id: shapeId as TLShapeId,
 					type: 'arrow',
-					x: 0,
-					y: 0,
+					x: minX,
+					y: minY,
 					props: {
-						color: shape.color ?? 'black',
+						color: getTldrawColorFromFuzzyColor(shape.color),
 						richText: toRichTextIfNeeded(shape.text ?? ''),
-						start: { x: x1, y: y1 },
-						end: { x: x2, y: y2 },
+						start: { x: x1 - minX, y: y1 - minY },
+						end: { x: x2 - minX, y: y2 - minY },
+					},
+					meta: {
+						note: shape.note ?? '',
 					},
 				},
-			} satisfies TLAiCreateShapeChange<TLArrowShape> | TLAiUpdateShapeChange<TLArrowShape>)
-
-			if (shapeEventType === 'updateShape') {
-				// Updating bindings is complicated, it's easier to just delete all bindings and recreate them
-				for (const binding of prompt.canvasContent.bindings.filter((b) => b.fromId === 'shapeId')) {
-					changes.push({
-						type: 'deleteBinding',
-						description: 'cleaning up old bindings',
-						bindingId: binding.id as any,
-					})
-				}
-			}
+			})
 
 			// Does the arrow have a start shape? Then try to create the binding
 			const startShape = fromId ? prompt.canvasContent.shapes.find((s) => s.id === fromId) : null
@@ -165,10 +447,10 @@ function getTldrawAiChangesFromSimpleCreateOrUpdateEvent(
 			if (startShape) {
 				changes.push({
 					type: 'createBinding',
-					description: shape.note ?? '',
+					description: event.intent ?? '',
 					binding: {
 						type: 'arrow',
-						fromId: shapeId as any,
+						fromId: shapeId as TLShapeId,
 						toId: startShape.id,
 						props: {
 							normalizedAnchor: { x: 0.5, y: 0.5 },
@@ -178,7 +460,7 @@ function getTldrawAiChangesFromSimpleCreateOrUpdateEvent(
 						},
 						meta: {},
 					},
-				} satisfies TLAiCreateBindingChange<TLArrowBinding>)
+				})
 			}
 
 			// Does the arrow have an end shape? Then try to create the binding
@@ -188,10 +470,10 @@ function getTldrawAiChangesFromSimpleCreateOrUpdateEvent(
 			if (endShape) {
 				changes.push({
 					type: 'createBinding',
-					description: shape.note ?? '',
+					description: event.intent ?? '',
 					binding: {
 						type: 'arrow',
-						fromId: shapeId as any,
+						fromId: shapeId as TLShapeId,
 						toId: endShape.id,
 						props: {
 							normalizedAnchor: { x: 0.5, y: 0.5 },
@@ -201,49 +483,72 @@ function getTldrawAiChangesFromSimpleCreateOrUpdateEvent(
 						},
 						meta: {},
 					},
-				} satisfies TLAiCreateBindingChange<TLArrowBinding>)
+				})
 			}
 			break
 		}
 		case 'cloud':
 		case 'rectangle':
+		case 'triangle':
+		case 'diamond':
+		case 'hexagon':
+		case 'oval':
+		case 'x-box':
+		case 'pentagon':
+		case 'octagon':
+		case 'star':
+		case 'rhombus':
+		case 'rhombus-2':
+		case 'trapezoid':
+		case 'arrow-right':
+		case 'arrow-left':
+		case 'arrow-up':
+		case 'arrow-down':
+		case 'check-box':
+		case 'heart':
 		case 'ellipse': {
 			changes.push({
-				type: shapeEventType,
-				description: shape.note ?? '',
+				type: 'createShape',
+				description: event.intent ?? '',
 				shape: {
-					id: shape.shapeId as any,
+					id: shape.shapeId as TLShapeId,
 					type: 'geo',
 					x: shape.x,
 					y: shape.y,
 					props: {
-						geo: shape.type,
+						geo: shape._type,
 						w: shape.width,
 						h: shape.height,
-						color: shape.color ?? 'black',
+						color: getTldrawColorFromFuzzyColor(shape.color),
 						fill: simpleFillToShapeFill(shape.fill ?? 'none'),
 						richText: toRichTextIfNeeded(shape.text ?? ''),
 					},
+					meta: {
+						note: shape.note ?? '',
+					},
 				},
-			} satisfies TLAiCreateShapeChange<TLGeoShape> | TLAiUpdateShapeChange<TLGeoShape>)
+			})
 			break
 		}
 
 		case 'note': {
 			changes.push({
-				type: shapeEventType,
-				description: shape.note ?? '',
+				type: 'createShape',
+				description: event.intent ?? '',
 				shape: {
-					id: shape.shapeId as any,
+					id: shape.shapeId as TLShapeId,
 					type: 'note',
 					x: shape.x,
 					y: shape.y,
 					props: {
-						color: shape.color ?? 'black',
+						color: getTldrawColorFromFuzzyColor(shape.color),
 						richText: toRichTextIfNeeded(shape.text ?? ''),
 					},
+					meta: {
+						note: shape.note ?? '',
+					},
 				},
-			} satisfies TLAiCreateShapeChange<TLNoteShape> | TLAiUpdateShapeChange<TLNoteShape>)
+			})
 			break
 		}
 
@@ -254,9 +559,14 @@ function getTldrawAiChangesFromSimpleCreateOrUpdateEvent(
 			if (!originalShape) break
 
 			changes.push({
-				type: shapeEventType,
-				description: shape.note ?? '',
-				shape: originalShape,
+				type: 'createShape',
+				description: event.intent ?? '',
+				shape: {
+					...originalShape,
+					meta: {
+						note: shape.note ?? '',
+					},
+				},
 			})
 			break
 		}
@@ -285,7 +595,7 @@ function getTldrawAiChangesFromSimpleDeleteEvent(
 		{
 			type: 'deleteShape',
 			description: intent ?? '',
-			shapeId: shapeId as any,
+			shapeId: shapeId as TLShapeId,
 		},
 	]
 }
@@ -294,16 +604,77 @@ function getTldrawAiChangesFromSimpleMoveEvent(
 	prompt: TLAiSerializedPrompt,
 	event: ISimpleMoveEvent
 ): TLAiChange[] {
-	const { shapeId, intent } = event
+	const { move, intent } = event
+	const { shapeId, x, y } = move
+
 	return [
 		{
 			type: 'updateShape',
 			description: intent ?? '',
 			shape: {
-				id: shapeId as any,
-				x: event.x,
-				y: event.y,
+				id: shapeId as TLShapeId,
+				x,
+				y,
 			},
 		},
 	]
+}
+
+function getTldrawAiChangesFromSimpleLabelEvent(
+	prompt: TLAiSerializedPrompt,
+	event: ISimpleLabelEvent
+): TLAiChange[] {
+	const { label, intent } = event
+
+	const shapeOnCanvas = prompt.canvasContent.shapes.find((s) => s.id === label.shapeId)
+	if (!shapeOnCanvas) {
+		throw new Error(`Shape ${label.shapeId} not found in canvas`)
+	}
+
+	let change: TLAiChange
+
+	if (shapeOnCanvas.type === 'arrow') {
+		// For arrows, set text, not richText
+		change = {
+			type: 'updateShape',
+			description: intent ?? '',
+			shape: {
+				id: label.shapeId as TLShapeId,
+				props: {
+					text: label.text ?? '',
+				},
+			},
+		}
+	} else {
+		// For all other shapes, set richText
+		change = {
+			type: 'updateShape',
+			description: intent ?? '',
+			shape: {
+				id: label.shapeId as TLShapeId,
+				props: {
+					richText: toRichTextIfNeeded(label.text ?? ''),
+				},
+			},
+		}
+	}
+
+	return [change]
+}
+
+function getTldrawColorFromFuzzyColor(simpleColor: any): ISimpleColor {
+	if (SimpleColor.safeParse(simpleColor).success) {
+		return simpleColor as ISimpleColor
+	}
+
+	switch (simpleColor) {
+		case 'pink': {
+			return 'light-violet'
+		}
+		case 'light-pink': {
+			return 'light-violet'
+		}
+	}
+
+	return 'black'
 }

@@ -415,12 +415,12 @@ const SIMPLE_SHAPES = [
 	SimpleHeartShape,
 	SimpleUnknownShape,
 ] as const
-
 export const SimpleShape = z.union(SIMPLE_SHAPES)
 
 export type ISimpleShape = z.infer<typeof SimpleShape>
 
-export const SimpleShapeUpdate = z.union(SIMPLE_SHAPES)
+const SimpleShapeUpdate = z.union(SIMPLE_SHAPES)
+
 export type ISimpleShapeUpdate = z.infer<typeof SimpleShapeUpdate>
 
 export interface ISimplePeripheralShape {
@@ -434,7 +434,6 @@ export interface ISimplePeripheralShape {
 
 export const SimpleCreateEvent = z.object({
 	_type: z.literal('create'),
-	// shapes: z.array(SimpleShape),
 	shape: SimpleShape,
 	intent: z.string(),
 })
@@ -443,7 +442,6 @@ export type ISimpleCreateEvent = z.infer<typeof SimpleCreateEvent>
 
 export const SimpleUpdateEvent = z.object({
 	_type: z.literal('update'),
-	// updates: z.array(SimpleShapeUpdate),
 	update: SimpleShapeUpdate,
 	intent: z.string(),
 })
@@ -452,13 +450,6 @@ export type ISimpleUpdateEvent = z.infer<typeof SimpleUpdateEvent>
 
 export const SimpleMoveEvent = z.object({
 	_type: z.literal('move'),
-	// moves: z.array(
-	// 	z.object({
-	// 		shapeId: z.string(),
-	// 		x: z.number(),
-	// 		y: z.number(),
-	// 	})
-	// ),
 	move: z.object({
 		shapeId: z.string(),
 		x: z.number(),
@@ -471,12 +462,6 @@ export type ISimpleLabelEvent = z.infer<typeof SimpleLabelEvent>
 
 export const SimpleLabelEvent = z.object({
 	_type: z.literal('label'),
-	// labels: z.array(
-	// 	z.object({
-	// 		shapeId: z.string(),
-	// 		text: z.string(),
-	// 	})
-	// ),
 	label: z.object({
 		shapeId: z.string(),
 		text: z.string(),
@@ -488,7 +473,6 @@ export type ISimpleMoveEvent = z.infer<typeof SimpleMoveEvent>
 
 const SimpleDeleteEvent = z.object({
 	_type: z.literal('delete'),
-	// shapeIds: z.array(z.string()),
 	shapeId: z.string(),
 	intent: z.string(),
 })
