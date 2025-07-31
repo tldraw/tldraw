@@ -142,7 +142,6 @@ function moveNodesIfNeeded(editor: Editor, newNodeId: TLShapeId, rootNodeId: TLS
 		nodeBounds.translate({ x: newNudgeAmount, y: 0 }).expandBy(DEFAULT_NODE_SPACING_PX)
 		for (const connection of Object.values(getNodePortConnections(editor, node))) {
 			if (!connection || connection.terminal !== 'start') continue
-			console.log('visiting', connection, 'from', nodeId)
 			visit(connection.connectedShapeId, nodeBounds)
 		}
 	}

@@ -15,4 +15,4 @@ if [ ! -d "templates/$template_name" ]; then
     exit 1
 fi
 
-LAZYREPO_PRETTY_OUTPUT=0 lazy run dev --filter="templates/$template_name" --filter='packages/tldraw' --filter='apps/bemo-worker' --filter='apps/bemo-worker-api'
+LAZYREPO_PRETTY_OUTPUT=0 lazy run dev --filter="templates/$template_name" --filter='packages/tldraw' --filter='apps/bemo-worker'
