@@ -162,6 +162,13 @@ export class TLSyncClient<R extends UnknownRecord, S extends Store<R> = Store<R>
 	 */
 	public readonly onAfterConnect?: (self: this, details: { isReadonly: boolean }) => void
 
+	/**
+	 * If true, the client will not send any presence updates to the server as well
+	 * as lowering the rebase rate.
+	 */
+	// TODO TODO TODO
+	public isSoloMode = false
+
 	private isDebugging = false
 	private debug(...args: any[]) {
 		if (this.isDebugging) {
@@ -193,6 +200,8 @@ export class TLSyncClient<R extends UnknownRecord, S extends Store<R> = Store<R>
 		this.store = config.store
 		this.socket = config.socket
 		this.onAfterConnect = config.onAfterConnect
+		// TODO TODO TODO
+		this.isSoloMode = false
 
 		let didLoad = false
 
@@ -533,25 +542,28 @@ export class TLSyncClient<R extends UnknownRecord, S extends Store<R> = Store<R>
 	}
 
 	/** Send any unsent push requests to the server */
-	private flushPendingPushRequests = fpsThrottle(() => {
-		this.debug('flushing pending push requests', {
-			isConnectedToRoom: this.isConnectedToRoom,
-			pendingPushRequests: this.pendingPushRequests,
-		})
-		if (!this.isConnectedToRoom || this.store.isPossiblyCorrupted()) {
-			return
-		}
-		for (const pendingPushRequest of this.pendingPushRequests) {
-			if (!pendingPushRequest.sent) {
-				if (this.socket.connectionStatus !== 'online') {
-					// we went offline, so don't send anything
-					return
-				}
-				this.socket.sendMessage(pendingPushRequest.request)
-				pendingPushRequest.sent = true
+	private flushPendingPushRequests = fpsThrottle(
+		() => {
+			this.debug('flushing pending push requests', {
+				isConnectedToRoom: this.isConnectedToRoom,
+				pendingPushRequests: this.pendingPushRequests,
+			})
+			if (!this.isConnectedToRoom || this.store.isPossiblyCorrupted()) {
+				return
 			}
-		}
-	})
+			for (const pendingPushRequest of this.pendingPushRequests) {
+				if (!pendingPushRequest.sent) {
+					if (this.socket.connectionStatus !== 'online') {
+						// we went offline, so don't send anything
+						return
+					}
+					this.socket.sendMessage(pendingPushRequest.request)
+					pendingPushRequest.sent = true
+				}
+			}
+		},
+		() => (this.isSoloMode ? 1 : 30)
+	)
 
 	/**
 	 * Applies a 'network' diff to the store this does value-based equality checking so that if the
@@ -659,5 +671,5 @@ export class TLSyncClient<R extends UnknownRecord, S extends Store<R> = Store<R>
 		}
 	}
 
-	private scheduleRebase = fpsThrottle(this.rebase)
+	private scheduleRebase = fpsThrottle(this.rebase, () => (this.isSoloMode ? 1 : 30))
 }

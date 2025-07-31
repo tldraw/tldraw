@@ -4,7 +4,16 @@ const isTest = () =>
 	// @ts-expect-error
 	!globalThis.__FORCE_RAF_IN_TESTS__
 
-const fpsQueue: Array<() => void> = []
+// Ordered queue for items that should maintain FIFO order (default adaptive FPS)
+const orderedQueue: Array<() => void> = []
+
+// Unordered queue for items with custom timing that can execute out of order
+interface TimingBasedItem {
+	fn(): void
+	getTargetFps(): number
+	lastRunTime: number
+}
+const timingBasedQueue: Array<TimingBasedItem> = []
 
 // Adaptive FPS system
 const MIN_FPS = 30
@@ -17,9 +26,8 @@ const getTargetTimePerFrame = (fps: number) => Math.floor(1000 / fps) * (fps >= 
 
 let targetFps = DEFAULT_FPS
 let targetTimePerFrame = getTargetTimePerFrame(targetFps)
-let frameRaf: undefined | number
-let flushRaf: undefined | number
 let lastFlushTime = -targetTimePerFrame
+let frameRaf: undefined | number
 
 // Performance monitoring - tracks maximum detected FPS (device's natural refresh rate)
 const FPS_MEASUREMENT_WINDOW = 250
@@ -95,7 +103,11 @@ const startFrameTimingMeasurement = () => {
 		// Continue measuring for a reasonable period even if queue is empty
 		// This ensures we collect enough data for adaptive FPS decisions
 		const timeSinceStart = now - measurementStartTime
-		if (fpsQueue.length > 0 || timeSinceStart < MEASUREMENT_DURATION) {
+		if (
+			orderedQueue.length > 0 ||
+			timingBasedQueue.length > 0 ||
+			timeSinceStart < MEASUREMENT_DURATION
+		) {
 			// eslint-disable-next-line no-restricted-globals
 			frameTimingRaf = requestAnimationFrame(measureFrame)
 		} else {
@@ -115,59 +127,93 @@ const stopFrameTimingMeasurement = () => {
 	isFrameTimingActive = false
 }
 
-const flush = () => {
-	const queue = fpsQueue.splice(0, fpsQueue.length)
-	for (const fn of queue) {
-		fn()
+const flushOrderedQueue = () => {
+	const now = Date.now()
+	const elapsed = now - lastFlushTime
+
+	if (elapsed >= targetTimePerFrame) {
+		// Flush entire ordered queue maintaining FIFO order
+		const queue = orderedQueue.splice(0, orderedQueue.length)
+		for (const fn of queue) {
+			fn()
+		}
+		lastFlushTime = now
+
+		// Start measuring actual browser frame timing
+		if (!isTest() && queue.length > 0) {
+			startFrameTimingMeasurement()
+		}
+	}
+}
+
+const flushTimingBasedQueue = () => {
+	const now = Date.now()
+	const itemsToRun: TimingBasedItem[] = []
+	const itemsToKeep: TimingBasedItem[] = []
+
+	for (const item of timingBasedQueue) {
+		const targetTimePerFrame = getTargetTimePerFrame(item.getTargetFps())
+		const elapsed = now - item.lastRunTime
+
+		if (elapsed >= targetTimePerFrame) {
+			item.lastRunTime = now
+			itemsToRun.push(item)
+		} else {
+			itemsToKeep.push(item)
+		}
+	}
+
+	// Update the queue with items that aren't ready to run yet
+	timingBasedQueue.splice(0, timingBasedQueue.length, ...itemsToKeep)
+
+	// Execute functions that are ready to run (potentially out of order)
+	for (const item of itemsToRun) {
+		item.fn()
 	}
 
 	// Start measuring actual browser frame timing
-	if (!isTest()) {
+	if (!isTest() && itemsToRun.length > 0) {
 		startFrameTimingMeasurement()
 	}
 }
 
-function tick(isOnNextFrame = false) {
-	if (frameRaf) return
+const flush = () => {
+	// First flush ordered queue (maintains FIFO order)
+	flushOrderedQueue()
 
-	const now = Date.now()
-	const elapsed = now - lastFlushTime
+	// Then flush timing-based queue (can execute out of order)
+	flushTimingBasedQueue()
 
-	if (elapsed < targetTimePerFrame) {
-		// If we're too early to flush, we need to wait until the next frame to try and flush again.
-		// eslint-disable-next-line no-restricted-globals
-		frameRaf = requestAnimationFrame(() => {
-			frameRaf = undefined
-			tick(true)
-		})
-		return
-	}
-
-	if (isOnNextFrame) {
-		// If we've already waited for the next frame to run the tick, then we can flush immediately
-		if (flushRaf) return // ...though if there's a flush raf, that means we'll be flushing on this frame already, so we can do nothing here.
-		lastFlushTime = now
-		flush()
-	} else {
-		// If we haven't already waited for the next frame to run the tick, we need to wait until the next frame to flush.
-		if (flushRaf) return // ...though if there's a flush raf, that means we'll be flushing on the next frame already, so we can do nothing here.
-		// eslint-disable-next-line no-restricted-globals
-		flushRaf = requestAnimationFrame(() => {
-			flushRaf = undefined
-			lastFlushTime = now
-			flush()
-		})
+	// Schedule next flush if there are items still waiting
+	if (orderedQueue.length > 0 || timingBasedQueue.length > 0) {
+		scheduleFlush()
 	}
 }
 
+const scheduleFlush = () => {
+	if (frameRaf) return
+
+	// eslint-disable-next-line no-restricted-globals
+	frameRaf = requestAnimationFrame(() => {
+		frameRaf = undefined
+		flush()
+	})
+}
+
 /**
- * Returns a throttled version of the function that will only be called max once per frame.
- * The target frame rate is adaptive (30-120fps, starting at 60fps).
- * @param fn - the fun to return a throttled version of
- * @returns
+ * Returns a throttled version of the function.
+ *
+ * - Without getTargetFps: Uses adaptive FPS and maintains execution order (FIFO)
+ * - With getTargetFps: Uses custom FPS timing and may execute out of order for better performance
+ *
+ * @param fn - the function to return a throttled version of
+ * @param getTargetFps - optional function that returns the current target FPS rate. When provided, the function may execute out of order.
  * @internal
  */
-export function fpsThrottle(fn: { (): void; cancel?(): void }): {
+export function fpsThrottle(
+	fn: { (): void; cancel?(): void },
+	getTargetFps?: () => number
+): {
 	(): void
 	cancel?(): void
 } {
@@ -177,34 +223,59 @@ export function fpsThrottle(fn: { (): void; cancel?(): void }): {
 				cancelAnimationFrame(frameRaf)
 				frameRaf = undefined
 			}
-			if (flushRaf) {
-				cancelAnimationFrame(flushRaf)
-				flushRaf = undefined
-			}
 		}
 		return fn
 	}
 
-	const throttledFn = () => {
-		if (fpsQueue.includes(fn)) {
-			return
+	if (getTargetFps) {
+		// Custom FPS timing - may execute out of order
+		const throttledFn = () => {
+			// Find existing item in queue, or add new item
+			const existingIndex = timingBasedQueue.findIndex((item) => item.fn === fn)
+
+			if (existingIndex !== -1) {
+				// Item already in queue, don't add again
+				return
+			}
+
+			// Add new item to timing-based queue
+			timingBasedQueue.push({ fn, getTargetFps, lastRunTime: Date.now() })
+			scheduleFlush()
 		}
-		fpsQueue.push(fn)
-		tick()
-	}
-	throttledFn.cancel = () => {
-		const index = fpsQueue.indexOf(fn)
-		if (index > -1) {
-			fpsQueue.splice(index, 1)
+
+		throttledFn.cancel = () => {
+			const index = timingBasedQueue.findIndex((item) => item.fn === fn)
+			if (index > -1) {
+				timingBasedQueue.splice(index, 1)
+			}
 		}
+
+		return throttledFn
+	} else {
+		// Default adaptive FPS - maintains execution order
+		const throttledFn = () => {
+			if (orderedQueue.includes(fn)) {
+				return
+			}
+			orderedQueue.push(fn)
+			scheduleFlush()
+		}
+
+		throttledFn.cancel = () => {
+			const index = orderedQueue.indexOf(fn)
+			if (index > -1) {
+				orderedQueue.splice(index, 1)
+			}
+		}
+
+		return throttledFn
 	}
-	return throttledFn
 }
 
 /**
- * Calls the function on the next frame. The target frame rate adapts to the device's natural maximum FPS (30-120fps, starting at 60fps).
+ * Calls the function on the next frame using adaptive FPS. Maintains execution order (FIFO).
  * If the same fn is passed again before the next frame, it will still be called only once.
- * @param fn - the fun to call on the next frame
+ * @param fn - the function to call on the next frame
  * @returns a function that will cancel the call if called before the next frame
  * @internal
  */
@@ -214,15 +285,15 @@ export function throttleToNextFrame(fn: () => void): () => void {
 		return () => void null // noop
 	}
 
-	if (!fpsQueue.includes(fn)) {
-		fpsQueue.push(fn)
-		tick()
+	if (!orderedQueue.includes(fn)) {
+		orderedQueue.push(fn)
+		scheduleFlush()
 	}
 
 	return () => {
-		const index = fpsQueue.indexOf(fn)
+		const index = orderedQueue.indexOf(fn)
 		if (index > -1) {
-			fpsQueue.splice(index, 1)
+			orderedQueue.splice(index, 1)
 		}
 	}
 }
@@ -244,6 +315,7 @@ export function getCurrentFps(): number {
 export function resetAdaptiveFps(): void {
 	targetFps = DEFAULT_FPS
 	targetTimePerFrame = getTargetTimePerFrame(targetFps)
+	lastFlushTime = -targetTimePerFrame
 	fpsCheckHistory = []
 	framesInCurrentWindow = 0
 	windowStartTime = 0
