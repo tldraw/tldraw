@@ -53,8 +53,9 @@ export function getTldrawAgentChangesFromSimpleEvents(
 			return [{ ...change, type: _type }]
 		}
 		case 'schedule': {
+			//the model thinks this event is called "schedule", but when we translate it into a TLAgentChange, we call it "review". Specifically TLAgentScheduleReviewChange
 			const { _type, ...change } = event
-			return [{ ...change, type: _type }]
+			return [{ ...change, type: 'review' }]
 		}
 		case 'setMyView': {
 			const { _type, ...change } = event

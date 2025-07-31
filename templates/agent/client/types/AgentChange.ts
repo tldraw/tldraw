@@ -7,8 +7,8 @@ export type TLAgentChange =
 	| TLAiChange
 	| TLAgentMessageChange
 	| TLAgentThinkChange
-	| TLAgentScheduleChange
-	| TLAgentSetMyViewChange
+	| TLAgentScheduleReviewChange
+	| TLAgentScheduleSetMyViewChange
 	| TLAgentRawChange
 
 export interface TLAgentMessageChange {
@@ -21,8 +21,8 @@ export interface TLAgentThinkChange {
 	text: string
 }
 
-export interface TLAgentScheduleChange {
-	type: 'schedule'
+export interface TLAgentScheduleReviewChange {
+	type: 'review'
 	intent: string
 	x: number
 	y: number
@@ -30,7 +30,7 @@ export interface TLAgentScheduleChange {
 	h: number
 }
 
-export interface TLAgentSetMyViewChange {
+export interface TLAgentScheduleSetMyViewChange {
 	type: 'setMyView'
 	intent: string
 	x: number

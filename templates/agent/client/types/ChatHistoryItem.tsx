@@ -59,7 +59,7 @@ export interface AgentRawHistoryItem {
 
 export interface AgentActionHistoryItem {
 	type: 'agent-action'
-	action: 'thinking' | 'creating' | 'deleting' | 'updating' | 'schedule' | 'setMyView'
+	action: 'thinking' | 'creating' | 'deleting' | 'updating' | 'review' | 'setMyView'
 	status: 'progress' | 'done' | 'cancelled'
 	info: string
 }
@@ -105,12 +105,12 @@ export const ACTION_HISTORY_ITEM_DEFINITIONS: Record<
 			cancelled: 'Update cancelled. ',
 		},
 	},
-	schedule: {
+	review: {
 		icon: <SearchIcon />,
 		message: {
-			progress: 'Scheduling: ',
-			done: 'Scheduled: ',
-			cancelled: 'Scheduling cancelled. ',
+			progress: 'Reviewing: ',
+			done: 'Reviewed: ',
+			cancelled: 'Review cancelled. ',
 		},
 	},
 	setMyView: {

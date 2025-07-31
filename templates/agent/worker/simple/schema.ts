@@ -263,9 +263,9 @@ const SimpleScheduleReviewEvent = z.object({
 	x: z.number(),
 	y: z.number(),
 })
-export type ISimpleScheduleEvent = z.infer<typeof SimpleScheduleReviewEvent>
+export type ISimpleScheduleReviewEvent = z.infer<typeof SimpleScheduleReviewEvent>
 
-const SimpleSetMyViewEvent = z.object({
+const SimpleScheduleSetMyViewEvent = z.object({
 	_type: z.literal('setMyView'),
 	h: z.number(),
 	intent: z.string(),
@@ -273,7 +273,7 @@ const SimpleSetMyViewEvent = z.object({
 	x: z.number(),
 	y: z.number(),
 })
-export type ISimpleSetMyViewEvent = z.infer<typeof SimpleSetMyViewEvent>
+export type ISimpleScheduleSetMyViewEvent = z.infer<typeof SimpleScheduleSetMyViewEvent>
 
 export const SimpleEvent = z.union([
 	SimpleThinkEvent,
@@ -283,7 +283,7 @@ export const SimpleEvent = z.union([
 	SimpleMoveEvent,
 	SimpleLabelEvent,
 	SimpleScheduleReviewEvent,
-	SimpleSetMyViewEvent,
+	SimpleScheduleSetMyViewEvent,
 ])
 
 export type ISimpleEvent = z.infer<typeof SimpleEvent>
