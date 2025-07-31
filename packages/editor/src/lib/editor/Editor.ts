@@ -5159,7 +5159,6 @@ export class Editor extends EventEmitter<TLEventMap> {
 		opts = {} as {
 			renderingOnly?: boolean
 			margin?: number | [number, number] // [inside, outside]
-			insideMargin?: number
 			hitInside?: boolean
 			hitLocked?: boolean
 			// TODO: we probably need to rename this, we don't quite _always_
@@ -5167,7 +5166,6 @@ export class Editor extends EventEmitter<TLEventMap> {
 			hitLabels?: boolean
 			hitFrameInside?: boolean
 			filter?(shape: TLShape): boolean
-			debug?: boolean
 		}
 	): TLShape | undefined {
 		const zoomLevel = this.getZoomLevel()
