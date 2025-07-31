@@ -1,9 +1,9 @@
 import { MigrationSequence, Store } from '@tldraw/store'
 import { TLShape, TLStore, TLStoreSnapshot } from '@tldraw/tlschema'
-import { Required, annotateError } from '@tldraw/utils'
+import { annotateError, Required } from '@tldraw/utils'
 import React, {
-	ReactNode,
 	memo,
+	ReactNode,
 	useCallback,
 	useEffect,
 	useLayoutEffect,
@@ -15,13 +15,13 @@ import React, {
 
 import classNames from 'classnames'
 import { version } from '../version'
-import { OptionalErrorBoundary } from './components/ErrorBoundary'
 import { DefaultErrorFallback } from './components/default-components/DefaultErrorFallback'
-import { TLEditorSnapshot } from './config/TLEditorSnapshot'
+import { OptionalErrorBoundary } from './components/ErrorBoundary'
 import { TLStoreBaseOptions } from './config/createTLStore'
-import { TLUser, createTLUser } from './config/createTLUser'
+import { createTLUser, TLUser } from './config/createTLUser'
 import { TLAnyBindingUtilConstructor } from './config/defaultBindings'
 import { TLAnyShapeUtilConstructor } from './config/defaultShapes'
+import { TLEditorSnapshot } from './config/TLEditorSnapshot'
 import { Editor } from './editor/Editor'
 import { TLStateNodeConstructor } from './editor/tools/StateNode'
 import { TLCameraOptions } from './editor/types/misc-types'
@@ -39,6 +39,7 @@ import { useForceUpdate } from './hooks/useForceUpdate'
 import { useShallowObjectIdentity } from './hooks/useIdentity'
 import { useLocalStore } from './hooks/useLocalStore'
 import { useRefState } from './hooks/useRefState'
+import { useStateAttribute } from './hooks/useStateAttribute'
 import { useZoomCss } from './hooks/useZoomCss'
 import { LicenseProvider } from './license/LicenseProvider'
 import { Watermark } from './license/Watermark'
@@ -646,6 +647,7 @@ function Layout({ children, onMount }: { children: ReactNode; onMount?: TLOnMoun
 	useCursor()
 	useDarkMode()
 	useForceUpdate()
+	useStateAttribute()
 	useOnMount((editor) => {
 		const teardownStore = editor.store.props.onMount(editor)
 		const teardownCallback = onMount?.(editor)

@@ -111,12 +111,12 @@ export class PerformanceTestSuite {
 						if (selectedShapes.length > 0) {
 							editor.rotateShapesBy(selectedShapes, rotateStep)
 							totalRotations += degreesPerStep / 360 // Track full rotations
+							;(window as any).__totalRotations = totalRotations
 						}
 					}, 16) // ~60fps rotation updates
 
 					// Store interval ID and stats so we can clean it up
 					;(window as any).__rotationInterval = rotateInterval
-					;(window as any).__totalRotations = totalRotations
 				})
 			},
 			{ warmupMs, measureMs }
@@ -236,10 +236,10 @@ export class PerformanceTestSuite {
 						let scaleFactor: number
 						if (resizeCycle % 2 === 0) {
 							// Scale up: random between 1.1 and 5
-							scaleFactor = 1.1 + seededRandom() * (3 - 1.1)
+							scaleFactor = 1.1 + seededRandom() * (2.0 - 1.1)
 						} else {
 							// Scale down: random between 0.2 and 0.9
-							scaleFactor = 0.3 + seededRandom() * (0.9 - 0.3)
+							scaleFactor = 0.5 + seededRandom() * (0.9 - 0.5)
 						}
 
 						// Get current bounds for the scale origin
@@ -289,46 +289,66 @@ export class PerformanceTestSuite {
 			async () => {
 				const page = this.getPage()
 
-				// Pan around the canvas using space + drag
-				await page.keyboard.down('Space')
+				// Pan around the canvas using Editor camera API
+				await page.evaluate(() => {
+					const editor: Editor = (window as any).editor
+					if (!editor) return
 
-				const centerX = 960
-				const centerY = 540
-				await page.mouse.move(centerX, centerY)
-				await page.mouse.down()
+					// Get initial camera position
+					const initialCamera = editor.getCamera()
+					let panCycle = 0
 
-				// Pan in different directions
-				const panMovements = [
-					[centerX - 300, centerY - 200],
-					[centerX + 400, centerY - 300],
-					[centerX + 200, centerY + 300],
-					[centerX - 400, centerY + 200],
-					[centerX, centerY],
-					[centerX - 3600, centerY - 3600],
-					[centerX - 400, centerY - 500],
-					[centerX - 400, centerY + 300],
-					[centerX + 300, centerY + 200],
-					[centerX - 300, centerY - 200],
-					[centerX + 400, centerY - 300],
-					[centerX + 200, centerY + 300],
-					[centerX - 400, centerY + 200],
-					[centerX, centerY],
-					[centerX - 3600, centerY - 3600],
-					[centerX - 400, centerY - 500],
-					[centerX - 400, centerY + 300],
-					[centerX + 300, centerY + 200],
-				]
+					// Define pan movements as offsets from initial position
+					const panOffsets = [
+						{ x: -1800, y: -200 },
+						{ x: 400, y: -1800 },
+						{ x: 800, y: 1200 },
+						{ x: -900, y: 800 },
+						{ x: 0, y: 0 },
+						{ x: -3600, y: -3600 },
+						{ x: -900, y: -1900 },
+						{ x: -900, y: 1200 },
+						{ x: 300, y: 800 },
+						{ x: -1800, y: -800 },
+						{ x: 400, y: -1800 },
+						{ x: 800, y: 1200 },
+						{ x: -900, y: 800 },
+						{ x: 0, y: 0 },
+						{ x: -3600, y: -3600 },
+						{ x: -900, y: -1900 },
+						{ x: -900, y: 1200 },
+						{ x: 300, y: 800 },
+					]
 
-				for (const [x, y] of panMovements) {
-					await page.mouse.move(x, y, { steps: 15 })
-					await page.waitForTimeout(16) // ~60fps
-				}
+					const panInterval = setInterval(() => {
+						const offsetIndex = panCycle % panOffsets.length
+						const offset = panOffsets[offsetIndex]
 
-				await page.mouse.up()
-				await page.keyboard.up('Space')
+						// Set camera position to initial position plus offset
+						editor.setCamera({
+							x: initialCamera.x + offset.x,
+							y: initialCamera.y + offset.y,
+							z: initialCamera.z,
+						})
+
+						panCycle++
+					}, 16) // Update every 16ms for ~60fps
+
+					;(window as any).__panInterval = panInterval
+				})
 			},
 			{ warmupMs, measureMs }
 		)
+
+		// Stop the pan interval
+		const page = this.getPage()
+		await page.evaluate(() => {
+			const interval = (window as any).__panInterval
+			if (interval) {
+				clearInterval(interval)
+				delete (window as any).__panInterval
+			}
+		})
 
 		return this.finalizeTestResult('canvas_panning', metrics, expectMinFps)
 	}
@@ -385,7 +405,7 @@ export class PerformanceTestSuite {
 		results.push(await this.testShapeDragging())
 		await this.setupHeavyBoard(50)
 		results.push(await this.testShapeResizing())
-		await this.setupHeavyBoard()
+		await this.setupHeavyBoard(1000)
 		results.push(await this.testCanvasPanning())
 		await this.setupHeavyBoard()
 		results.push(await this.testCanvasZooming())
