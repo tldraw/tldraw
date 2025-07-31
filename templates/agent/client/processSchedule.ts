@@ -9,12 +9,17 @@ import { $requestsSchedule } from './atoms/requestsSchedule'
 import { $contextBoundsHighlight } from './components/highlights/ContextBoundsHighlights'
 import { ContextItem } from './types/ContextItem'
 
-export async function processSchedule(
-	editor: Editor,
-	modelName: TLAgentModelName,
-	ai: TldrawAi,
+export async function processSchedule({
+	editor,
+	modelName,
+	ai,
+	rCancelFn,
+}: {
+	editor: Editor
+	modelName: TLAgentModelName
+	ai: TldrawAi
 	rCancelFn: React.MutableRefObject<(() => void) | null>
-) {
+}) {
 	const eventSchedule = $requestsSchedule.get()
 
 	if (!eventSchedule || eventSchedule.length === 0) {
@@ -74,7 +79,7 @@ export async function processSchedule(
 		rCancelFn.current = null
 
 		// Recursively process the next event
-		await processSchedule(editor, modelName, ai, rCancelFn)
+		await processSchedule({ editor, modelName, ai, rCancelFn })
 	} catch (e) {
 		rCancelFn.current = null
 		// Remove the failed request from the schedule

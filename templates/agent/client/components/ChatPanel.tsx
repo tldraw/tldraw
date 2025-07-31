@@ -82,7 +82,7 @@ export function ChatPanel({ editor }: { editor: Editor }) {
 
 			setIsGenerating(true)
 			try {
-				await processSchedule(editor, modelName, ai, rCancelFn)
+				processSchedule({ editor, modelName, ai, rCancelFn })
 			} catch (e) {
 				toast.addToast({
 					title: 'Error',
