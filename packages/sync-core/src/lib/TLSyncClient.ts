@@ -8,12 +8,16 @@ import {
 	squashRecordDiffs,
 } from '@tldraw/store'
 import {
+	ExecutionQueue,
+	assert,
 	exhaustiveSwitchError,
 	fpsThrottle,
+	getFromLocalStorage,
 	isEqual,
 	objectMapEntries,
 	uniqueId,
 } from '@tldraw/utils'
+import { decompressBase64JSON } from './base64'
 import { NetworkDiff, RecordOpType, applyObjectDiff, diffRecord, getNetworkDiff } from './diff'
 import { interval } from './interval'
 import {
@@ -104,6 +108,8 @@ export interface TLPersistentClientSocket<R extends UnknownRecord = UnknownRecor
 
 const PING_INTERVAL = 5000
 const MAX_TIME_TO_WAIT_FOR_SERVER_INTERACTION_BEFORE_RESETTING_CONNECTION = PING_INTERVAL * 2
+
+const disableCompression = getFromLocalStorage('__tldraw__noCompression') === 'true'
 
 // Should connect support chunking the response to allow for large payloads?
 
@@ -196,7 +202,25 @@ export class TLSyncClient<R extends UnknownRecord, S extends Store<R> = Store<R>
 
 		let didLoad = false
 
+		const syncHandleEvent = (msg: TLSocketServerSentEvent<R>) => {
+			if (this.didCancel?.()) return this.close()
+			assert(
+				msg.type !== 'connect' || typeof msg.diff === 'object',
+				'diff must be an object by this point'
+			)
+			this.handleServerEvent(msg)
+			// the first time we receive a message from the server, we should trigger
+
+			// one of the load callbacks
+			if (!didLoad) {
+				didLoad = true
+				config.onLoad(this)
+			}
+		}
+
 		this.presenceState = config.presence
+
+		const queue = new ExecutionQueue()
 
 		this.disposables.push(
 			// when local 'user' changes are made, send them to the server
@@ -211,15 +235,16 @@ export class TLSyncClient<R extends UnknownRecord, S extends Store<R> = Store<R>
 			),
 			// when the server sends us events, handle them
 			this.socket.onReceiveMessage((msg) => {
-				if (this.didCancel?.()) return this.close()
 				this.debug('received message from server', msg)
-				this.handleServerEvent(msg)
-				// the first time we receive a message from the server, we should trigger
-
-				// one of the load callbacks
-				if (!didLoad) {
-					didLoad = true
-					config.onLoad(this)
+				if (process.env.NODE_ENV !== 'test') {
+					queue.push(async () => {
+						if (msg.type === 'connect' && typeof msg.diff === 'string') {
+							msg.diff = await decompressBase64JSON(msg.diff)
+						}
+						syncHandleEvent(msg)
+					})
+				} else {
+					syncHandleEvent(msg)
 				}
 			}),
 			// handle switching between online and offline
@@ -305,6 +330,10 @@ export class TLSyncClient<R extends UnknownRecord, S extends Store<R> = Store<R>
 			schema: this.store.schema.serialize(),
 			protocolVersion: getTlsyncProtocolVersion(),
 			lastServerClock: this.lastServerClock,
+			supportsCompression:
+				typeof CompressionStream !== 'undefined' &&
+				process.env.NODE_ENV !== 'test' &&
+				!disableCompression,
 		})
 	}
 
@@ -379,6 +408,8 @@ export class TLSyncClient<R extends UnknownRecord, S extends Store<R> = Store<R>
 					}
 				}
 
+				assert(typeof event.diff === 'object', 'diff must be an object by this point')
+
 				// then apply the upstream changes
 				this.applyNetworkDiff({ ...wipeDiff, ...event.diff }, true)
 
@@ -443,6 +474,7 @@ export class TLSyncClient<R extends UnknownRecord, S extends Store<R> = Store<R>
 	close() {
 		this.debug('closing')
 		this.disposables.forEach((dispose) => dispose())
+		this.disposables = []
 		this.flushPendingPushRequests.cancel?.()
 		this.scheduleRebase.cancel?.()
 	}

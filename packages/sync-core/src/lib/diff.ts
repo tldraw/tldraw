@@ -1,5 +1,6 @@
 import { RecordsDiff, UnknownRecord } from '@tldraw/store'
 import { isEqual, objectMapEntries, objectMapValues } from '@tldraw/utils'
+import { Base64EncodeStream } from './base64'
 
 /** @internal */
 export const RecordOpType = {
@@ -262,4 +263,48 @@ export function applyObjectDiff<T extends object>(object: T, objectDiff: ObjectD
 	}
 
 	return newObject ?? object
+}
+
+function* networkDiffChunks(diff: NetworkDiff<any>): Generator<Uint8Array> {
+	const encoder = new TextEncoder()
+
+	yield encoder.encode(`{`)
+	const entries = Object.entries(diff)
+	for (let i = 0; i < entries.length; i++) {
+		if (i > 0) {
+			yield encoder.encode(`,`)
+		}
+		const [id, op] = entries[i]
+		yield encoder.encode(`"${id}":`)
+		yield encoder.encode(JSON.stringify(op))
+	}
+	yield encoder.encode(`}`)
+}
+
+function getNetworkDiffStream(diff: NetworkDiff<any>) {
+	const chunks = networkDiffChunks(diff)
+	return new ReadableStream({
+		pull(controller) {
+			const chunk = chunks.next()
+			if (chunk.done) {
+				controller.close()
+				return
+			}
+			controller.enqueue(chunk.value)
+		},
+	})
+}
+
+export async function getBase64ZippedNetworkDiffString(diff: NetworkDiff<any>) {
+	const stream = getNetworkDiffStream(diff)
+		.pipeThrough(new CompressionStream('gzip'))
+		.pipeThrough(new Base64EncodeStream())
+	let result = ''
+	const reader = stream.getReader()
+	while (true) {
+		const { done, value } = await reader.read()
+		if (done) break
+		result += value
+	}
+	return result
 }

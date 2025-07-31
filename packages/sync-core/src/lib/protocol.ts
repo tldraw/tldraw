@@ -34,7 +34,7 @@ export type TLSocketServerSentEvent<R extends UnknownRecord> =
 			connectRequestId: string
 			protocolVersion: number
 			schema: SerializedSchema
-			diff: NetworkDiff<R>
+			diff: string | NetworkDiff<R>
 			serverClock: number
 			isReadonly: boolean
 	  }
@@ -78,6 +78,7 @@ export interface TLConnectRequest {
 	lastServerClock: number
 	protocolVersion: number
 	schema: SerializedSchema
+	supportsCompression?: boolean
 }
 
 /** @internal */

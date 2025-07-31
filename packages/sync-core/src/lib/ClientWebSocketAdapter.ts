@@ -59,7 +59,7 @@ export class ClientWebSocketAdapter implements TLPersistentClientSocket<TLRecord
 		this._ws?.close()
 	}
 
-	constructor(getUri: () => Promise<string> | string) {
+	constructor(private getUri: () => Promise<string> | string) {
 		this._reconnectManager = new ReconnectManager(this, getUri)
 	}
 
@@ -100,7 +100,7 @@ export class ClientWebSocketAdapter implements TLPersistentClientSocket<TLRecord
 				break
 		}
 
-		if (closeCode === 1006 && !didOpen) {
+		if (closeCode === 1006 && !didOpen && process.env.NODE_ENV !== 'test') {
 			warnOnce(
 				"Could not open WebSocket connection. This might be because you're trying to load a URL that doesn't support websockets. Check the URL you're trying to connect to."
 			)
