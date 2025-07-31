@@ -1,9 +1,9 @@
 import { FormEventHandler, useCallback, useEffect, useRef, useState } from 'react'
-import { Box, BoxModel, Editor, useLocalStorageState, useToasts } from 'tldraw'
-import { DEFAULT_MODEL_NAME, TLAgentModelName } from '../../worker/models'
+import { Box, BoxModel, Editor, useToasts, useValue } from 'tldraw'
 import { getSimpleContentFromCanvasContent } from '../../worker/simple/getSimpleContentFromCanvasContent'
 import { $chatHistoryItems } from '../atoms/chatHistoryItems'
 import { $contextItems, $pendingContextItems } from '../atoms/contextItems'
+import { $modelName } from '../atoms/modelName'
 import { $requestsSchedule } from '../atoms/requestsSchedule'
 import { UserMessageHistoryItem } from '../types/ChatHistoryItem'
 import { ContextItem } from '../types/ContextItem'
@@ -17,7 +17,7 @@ export function ChatPanel({ editor }: { editor: Editor }) {
 	const [isGenerating, setIsGenerating] = useState(false)
 	const rCancelFn = useRef<(() => void) | null>(null)
 	const inputRef = useRef<HTMLTextAreaElement>(null)
-	const [modelName] = useLocalStorageState<TLAgentModelName>('model-name', DEFAULT_MODEL_NAME)
+	const modelName = useValue('modelName', () => $modelName.get(), [$modelName])
 
 	useEffect(() => {
 		if (!editor) return

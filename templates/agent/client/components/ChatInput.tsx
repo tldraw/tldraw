@@ -1,7 +1,8 @@
 import { FormEventHandler, useCallback, useEffect, useState } from 'react'
-import { Editor, useLocalStorageState, useReactor, useValue } from 'tldraw'
-import { AGENT_MODEL_DEFINITIONS, DEFAULT_MODEL_NAME, TLAgentModelName } from '../../worker/models'
+import { Editor, useReactor, useValue } from 'tldraw'
+import { AGENT_MODEL_DEFINITIONS, TLAgentModelName } from '../../worker/models'
 import { $contextItems, addToContext, removeFromContext } from '../atoms/contextItems'
+import { $modelName } from '../atoms/modelName'
 import { AtIcon } from '../icons/AtIcon'
 import { BrainIcon } from '../icons/BrainIcon'
 import { ChevronDownIcon } from '../icons/ChevronDownIcon'
@@ -85,10 +86,7 @@ export function ChatInput({
 
 	const contextItems = useValue('contextItems', () => $contextItems.get(), [$contextItems])
 
-	const [modelName, setModelName] = useLocalStorageState<TLAgentModelName>(
-		'model-name',
-		DEFAULT_MODEL_NAME
-	)
+	const modelName = useValue('modelName', () => $modelName.get(), [$modelName])
 
 	useEffect(() => {
 		const localContextItems = localStorage.getItem('context-items')
@@ -107,6 +105,14 @@ export function ChatInput({
 			localStorage.setItem('context-items', JSON.stringify($contextItems.get()))
 		},
 		[$contextItems]
+	)
+
+	useReactor(
+		'stash model name locally',
+		() => {
+			localStorage.setItem('model-name', JSON.stringify($modelName.get()))
+		},
+		[$modelName]
 	)
 
 	return (
@@ -190,7 +196,7 @@ export function ChatInput({
 							</div>
 							<select
 								value={modelName}
-								onChange={(e) => setModelName(e.target.value as TLAgentModelName)}
+								onChange={(e) => $modelName.set(e.target.value as TLAgentModelName)}
 							>
 								{Object.values(AGENT_MODEL_DEFINITIONS).map((model) => (
 									<option key={model.name} value={model.name}>
