@@ -1,20 +1,44 @@
 import { useCallback, useMemo, useRef } from 'react'
-import {
-	Editor,
-	exhaustiveSwitchError,
-	TLShapeId,
-	TLShapePartial,
-	uniqueId,
-	useMaybeEditor,
-} from 'tldraw'
+import { Editor, uniqueId, useMaybeEditor } from 'tldraw'
+import { defaultApplyChange } from './defaultApplyChange'
 import { TldrawAiModule, TldrawAiModuleOptions } from './TldrawAiModule'
 import { TLAiChange, TLAiPrompt, TLAiSerializedPrompt } from './types'
 
-/** @public */
+/**
+ * An object that contains methods for interacting with the tldraw AI module.
+ *
+ * @public
+ */
 export interface TldrawAi {
+	/**
+	 * Prompt the AI for a response. If the stream flag is set to true, the call will stream changes as they are ready.
+	 *
+	 * @param message - The message to prompt the AI with OR an object with the message and stream flag.
+	 *
+	 * @returns An object with a promise that will resolve when all changes have been applied and a cancel function to abort the work.
+	 *
+	 * @public
+	 */
 	prompt(options: TldrawAiPromptOptions): { promise: Promise<void>; cancel(): void }
-	repeat(): { promise: Promise<void>; cancel: (() => void) | null }
+
+	/**
+	 * Cancel the current request.
+	 *
+	 * @public
+	 */
 	cancel(): void
+
+	/**
+	 * Repeat the previous prompt and changes.
+	 *
+	 * This is useful for when you want to re-run the same prompt and changes
+	 * without having to re-generate the prompt. Mainly used for debugging.
+	 *
+	 * @returns A promise that resolves when all changes have been applied.
+	 *
+	 * @public
+	 */
+	repeat(): { promise: Promise<void>; cancel: (() => void) | null }
 }
 
 /**
@@ -80,13 +104,6 @@ export function useTldrawAi(opts: TldrawAiOptions): TldrawAi {
 	const rPreviousArguments = useRef<TldrawAiPromptOptions>('')
 	const rPreviousChanges = useRef<TLAiChange[]>([])
 
-	/**
-	 * Prompt the AI for a response. If the stream flag is set to true, the call will stream changes as they are ready.
-	 *
-	 * @param message - The message to prompt the AI with OR an object with the message and stream flag.
-	 *
-	 * @returns An object with a promise that will resolve when all changes have been applied and a cancel function to abort the work.
-	 */
 	const prompt = useCallback(
 		(options: TldrawAiPromptOptions) => {
 			let cancelled = false
@@ -221,14 +238,6 @@ export function useTldrawAi(opts: TldrawAiOptions): TldrawAi {
 		[ai, editor, generateFn, streamFn, applyFn]
 	)
 
-	/**
-	 * Repeat the previous prompt and changes.
-	 *
-	 * This is useful for when you want to re-run the same prompt and changes
-	 * without having to re-generate the prompt. Mainly used for debugging.
-	 *
-	 * @returns A promise that resolves when all changes have been applied.
-	 */
 	const repeat = useCallback(() => {
 		async function runChanges() {
 			if (!editor) throw Error('tldraw editor not found')
@@ -275,55 +284,4 @@ export function useTldrawAi(opts: TldrawAiOptions): TldrawAi {
 	}, [])
 
 	return { prompt, repeat, cancel }
-}
-
-/**
- * The default apply function for the AI module.
- *
- * @param change - The change to apply
- * @param editor - The editor to apply the change to
- *
- * @public
- */
-export function defaultApplyChange({ change, editor }: { change: TLAiChange; editor: Editor }) {
-	if (editor.isDisposed) return
-
-	try {
-		switch (change.type) {
-			case 'createShape': {
-				const util = editor.getShapeUtil(change.shape.type)
-				const shape = {
-					...change.shape,
-					opacity: 1,
-					props: { ...util?.getDefaultProps(), ...change.shape.props },
-				}
-				editor.createShape(shape as TLShapePartial)
-				break
-			}
-			case 'updateShape': {
-				editor.updateShape(change.shape as TLShapePartial)
-				break
-			}
-			case 'deleteShape': {
-				editor.deleteShape(change.shapeId as TLShapeId)
-				break
-			}
-			case 'createBinding': {
-				editor.createBinding(change.binding)
-				break
-			}
-			case 'updateBinding': {
-				editor.updateBinding(change.binding)
-				break
-			}
-			case 'deleteBinding': {
-				editor.deleteBinding(change.bindingId)
-				break
-			}
-			default:
-				exhaustiveSwitchError(change)
-		}
-	} catch (e) {
-		console.error('Error handling change:', e)
-	}
 }

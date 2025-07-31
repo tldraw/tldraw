@@ -141,16 +141,13 @@ export interface TLAiUpdateShapeChange<T extends TLShape = TLShape> {
     type: 'updateShape';
 }
 
-// @public (undocumented)
+// @public
 export interface TldrawAi {
-    // (undocumented)
     cancel(): void;
-    // (undocumented)
     prompt(options: TldrawAiPromptOptions): {
         cancel(): void;
         promise: Promise<void>;
     };
-    // (undocumented)
     repeat(): {
         cancel: (() => void) | null;
         promise: Promise<void>;

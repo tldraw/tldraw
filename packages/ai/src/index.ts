@@ -5,10 +5,10 @@ import { registerTldrawLibraryVersion } from 'tldraw'
 // eslint-disable-next-line local/no-export-star
 export type * from './lib/types'
 
+export { defaultApplyChange } from './lib/defaultApplyChange'
 export { TldrawAiModule, type TldrawAiModuleOptions } from './lib/TldrawAiModule'
 export { TldrawAiTransform, type TldrawAiTransformConstructor } from './lib/TldrawAiTransform'
 export {
-	defaultApplyChange,
 	useTldrawAi,
 	type TldrawAi,
 	type TldrawAiApplyFn,
