@@ -36,7 +36,7 @@ export type TLAiMessages = string | TLAiMessage | TLAiMessage[]
  */
 export interface TLAiPrompt {
 	/** The user's written prompt or an array of messages */
-	message: TLAiMessages
+	message: string | TLAiMessage[]
 	/** A screenshot */
 	image?: string
 	/** The content pulled from the editor */

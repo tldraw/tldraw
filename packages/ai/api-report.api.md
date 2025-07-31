@@ -94,7 +94,7 @@ export interface TLAiPrompt {
     canvasContent: TLAiContent;
     contextBounds: Box;
     image?: string;
-    message: TLAiMessages;
+    message: string | TLAiMessage[];
     meta?: any;
     promptBounds: Box;
 }
