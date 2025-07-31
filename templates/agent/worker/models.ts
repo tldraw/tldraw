@@ -7,6 +7,9 @@ export interface TLAgentModelDefinition {
 	name: TLAgentModelName
 	id: string
 	provider: TLAgentModelProvider
+
+	// Overrides the default thinking behavior for that provider
+	thinking?: boolean
 }
 
 export function getTLAgentModelDefinition(modelName: TLAgentModelName): TLAgentModelDefinition {
@@ -32,6 +35,7 @@ export const AGENT_MODEL_DEFINITIONS = {
 		name: 'gemini-2.5-pro',
 		id: 'gemini-2.5-pro',
 		provider: 'google',
+		thinking: true,
 	},
 	'gpt-4o': {
 		name: 'gpt-4o',
