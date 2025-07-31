@@ -1,4 +1,4 @@
-import { atom, Box, Vec } from 'tldraw'
+import { atom, Box, structuredClone, Vec } from 'tldraw'
 import { ContextItem } from '../types/ContextItem'
 
 export const $contextItems = atom<ContextItem[]>('context items', [])
@@ -8,7 +8,7 @@ export function addToContext(item: ContextItem) {
 	$contextItems.update((items) => {
 		const existingItem = items.find((v) => areContextItemsEquivalent(v, item))
 		if (existingItem) return items
-		return [...items, item]
+		return [...items, structuredClone(item)]
 	})
 }
 
