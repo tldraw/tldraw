@@ -1,7 +1,7 @@
-import type { TLAiSerializedPrompt } from '@tldraw/ai'
 import { DurableObject } from 'cloudflare:workers'
 import { AutoRouter, error } from 'itty-router'
-import { Streaming, TLAgentChange } from '../../client/types/AgentChange'
+import { Streaming, TLAgentChange } from '../../client/types/TLAgentChange'
+import { TLAgentSerializedPrompt } from '../../client/types/TLAgentPrompt'
 import { TldrawAgentBaseService } from '../TldrawAgentBaseService'
 import { Environment } from '../types'
 import { VercelAiService } from './vercel/VercelAiService'
@@ -50,7 +50,7 @@ export class TldrawAiDurableObject extends DurableObject<Environment> {
 	 */
 	private async generate(request: Request) {
 		try {
-			const prompt = (await request.json()) as TLAiSerializedPrompt
+			const prompt = (await request.json()) as TLAgentSerializedPrompt
 			const response = await this.service.generate(prompt)
 
 			return new Response(JSON.stringify(response), {
@@ -80,9 +80,9 @@ export class TldrawAiDurableObject extends DurableObject<Environment> {
 
 		;(async () => {
 			try {
-				const prompt = await request.json()
+				const prompt = (await request.json()) as TLAgentSerializedPrompt
 
-				for await (const change of this.service.stream(prompt as TLAiSerializedPrompt)) {
+				for await (const change of this.service.stream(prompt)) {
 					response.changes.push(change)
 					const data = `data: ${JSON.stringify(change)}\n\n`
 					await writer.write(encoder.encode(data))

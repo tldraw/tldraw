@@ -6,8 +6,8 @@ import { PencilIcon } from '../icons/PencilIcon'
 import { RefreshIcon } from '../icons/RefreshIcon'
 import { SearchIcon } from '../icons/SearchIcon'
 import { TrashIcon } from '../icons/TrashIcon'
-import { Streaming, TLAgentChange } from './AgentChange'
 import { ContextItem } from './ContextItem'
+import { Streaming, TLAgentChange } from './TLAgentChange'
 
 export type ChatHistoryItem =
 	| UserMessageHistoryItem

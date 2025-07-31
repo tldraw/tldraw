@@ -5,7 +5,7 @@ import { applyAiChange } from './applyAiChange'
 import { AutomaticIds } from './transforms/AutomaticIds'
 import { RoundedCoordinates } from './transforms/RoundedCoordinates'
 import { SimpleText } from './transforms/SimpleText'
-import { Streaming, TLAgentChange } from './types/AgentChange'
+import { Streaming, TLAgentChange } from './types/TLAgentChange'
 
 /**
  * A hook that calls `useTldrawAi` with static options.

@@ -1,9 +1,9 @@
 import { AnthropicProvider, createAnthropic } from '@ai-sdk/anthropic'
 import { createGoogleGenerativeAI, GoogleGenerativeAIProvider } from '@ai-sdk/google'
 import { createOpenAI, OpenAIProvider } from '@ai-sdk/openai'
-import { TLAiSerializedPrompt } from '@tldraw/ai'
 import { generateObject, LanguageModel, streamObject } from 'ai'
-import { Streaming, TLAgentChange } from '../../../client/types/AgentChange'
+import { Streaming, TLAgentChange } from '../../../client/types/TLAgentChange'
+import { TLAgentSerializedPrompt } from '../../../client/types/TLAgentPrompt'
 import { getTLAgentModelDefinition, TLAgentModelName } from '../../models'
 import { getTldrawAgentChangesFromSimpleEvents } from '../../simple/getTldrawAgentChangesFromSimpleEvents'
 import { IModelResponse, ISimpleEvent, ModelResponse } from '../../simple/schema'
@@ -30,7 +30,7 @@ export class VercelAiService extends TldrawAgentBaseService {
 		return this[provider](modelDefinition.id)
 	}
 
-	async generate(prompt: TLAiSerializedPrompt): Promise<TLAgentChange[]> {
+	async generate(prompt: TLAgentSerializedPrompt): Promise<TLAgentChange[]> {
 		try {
 			const model = this.getModel(prompt.meta.modelName)
 			const events = await generateEventsVercel(model, prompt)
@@ -45,7 +45,7 @@ export class VercelAiService extends TldrawAgentBaseService {
 		}
 	}
 
-	async *stream(prompt: TLAiSerializedPrompt): AsyncGenerator<Streaming<TLAgentChange>> {
+	async *stream(prompt: TLAgentSerializedPrompt): AsyncGenerator<Streaming<TLAgentChange>> {
 		try {
 			const model = this.getModel(prompt.meta.modelName)
 			for await (const event of streamEventsVercel(model, prompt)) {
@@ -62,7 +62,7 @@ export class VercelAiService extends TldrawAgentBaseService {
 
 async function* streamEventsVercel(
 	model: LanguageModel,
-	prompt: TLAiSerializedPrompt
+	prompt: TLAgentSerializedPrompt
 ): AsyncGenerator<ISimpleEvent & { complete: boolean }> {
 	try {
 		const { partialObjectStream } = streamObject<IModelResponse>({
@@ -116,7 +116,7 @@ async function* streamEventsVercel(
 
 async function generateEventsVercel(
 	model: LanguageModel,
-	prompt: TLAiSerializedPrompt
+	prompt: TLAgentSerializedPrompt
 ): Promise<(ISimpleEvent & { complete: boolean })[]> {
 	try {
 		const response = await generateObject({

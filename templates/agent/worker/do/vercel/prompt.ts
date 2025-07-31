@@ -1,13 +1,14 @@
-import { asMessage, TLAiSerializedPrompt } from '@tldraw/ai'
+import { asMessage } from '@tldraw/ai'
 import { CoreMessage, UserContent } from 'ai'
 import {
 	ACTION_HISTORY_ITEM_DEFINITIONS,
 	ChatHistoryItem,
 } from '../../../client/types/ChatHistoryItem'
+import { TLAgentSerializedPrompt } from '../../../client/types/TLAgentPrompt'
 import { getSimpleContentFromCanvasContent } from '../../simple/getSimpleContentFromCanvasContent'
 import { getSimplePeripheralContentFromCanvasContent } from '../../simple/getSimplePeripheralContentFromCanvasContent'
 
-export function buildMessages(prompt: TLAiSerializedPrompt): CoreMessage[] {
+export function buildMessages(prompt: TLAgentSerializedPrompt): CoreMessage[] {
 	const messages: CoreMessage[] = []
 
 	const historyMessages = buildHistoryMessages(prompt)
@@ -17,18 +18,19 @@ export function buildMessages(prompt: TLAiSerializedPrompt): CoreMessage[] {
 	const userMessage = buildUserMessage(prompt)
 
 	messages.push(...historyMessages)
-	messages.push(...contextShapesMessages)
 	messages.push(...contextAreasMessages)
 	messages.push(...contextPointsMessages)
+	messages.push(...contextShapesMessages)
 	messages.push(userMessage)
 
 	return messages
 }
 
-function buildContextAreasMessages(prompt: TLAiSerializedPrompt): CoreMessage[] {
+function buildContextAreasMessages(prompt: TLAgentSerializedPrompt): CoreMessage[] {
 	const review = prompt.meta.type === 'review'
 
-	const areas = prompt.meta.contextItems.areas
+	const areaContextItems = prompt.meta.contextItems.filter((item) => item.type === 'area')
+	const areas = areaContextItems.map((item) => item.bounds)
 	if (areas.length === 0) {
 		return []
 	}
@@ -56,8 +58,9 @@ function buildContextAreasMessages(prompt: TLAiSerializedPrompt): CoreMessage[] 
 	return [{ role: 'user', content }]
 }
 
-function buildContextPointsMessages(prompt: TLAiSerializedPrompt): CoreMessage[] {
-	const points = prompt.meta.contextItems.points
+function buildContextPointsMessages(prompt: TLAgentSerializedPrompt): CoreMessage[] {
+	const pointContextItems = prompt.meta.contextItems.filter((item) => item.type === 'point')
+	const points = pointContextItems.map((item) => item.point)
 	if (points.length === 0) {
 		return []
 	}
@@ -78,8 +81,14 @@ function buildContextPointsMessages(prompt: TLAiSerializedPrompt): CoreMessage[]
 	return [{ role: 'user', content }]
 }
 
-function buildContextShapesMessages(prompt: TLAiSerializedPrompt): CoreMessage[] {
-	const shapes = prompt.meta.contextItems.shapes
+function buildContextShapesMessages(prompt: TLAgentSerializedPrompt): CoreMessage[] {
+	const shapeContextItems = prompt.meta.contextItems.filter((item) => item.type === 'shape')
+	const shapes = getSimpleContentFromCanvasContent({
+		shapes: shapeContextItems.map((item) => item.shape),
+		bindings: [],
+		assets: [],
+	}).shapes
+
 	if (shapes.length === 0) {
 		return []
 	}
@@ -100,7 +109,7 @@ function buildContextShapesMessages(prompt: TLAiSerializedPrompt): CoreMessage[]
 	return [{ role: 'user', content }]
 }
 
-function buildHistoryMessages(prompt: TLAiSerializedPrompt): CoreMessage[] {
+function buildHistoryMessages(prompt: TLAgentSerializedPrompt): CoreMessage[] {
 	const historyItems = prompt.meta.historyItems
 	const messages: CoreMessage[] = []
 
@@ -204,7 +213,7 @@ function buildHistoryItemMessage(item: ChatHistoryItem): CoreMessage | null {
 /**
  * Build the user messages.
  */
-function buildUserMessage(prompt: TLAiSerializedPrompt): CoreMessage {
+function buildUserMessage(prompt: TLAgentSerializedPrompt): CoreMessage {
 	const content: UserContent = []
 
 	// Add agent's current viewport
@@ -237,7 +246,7 @@ function buildUserMessage(prompt: TLAiSerializedPrompt): CoreMessage {
 		content.push(
 			{
 				type: 'text',
-				text: "Here is a screenshot of your current viewport on the canvas. It's what you will be editing or adding to.", // It's what the user can see.",
+				text: 'Here is a screenshot of your current viewport on the canvas. It is not a reference image. It is what you will be editing or adding to.', // It's what the user can see.",
 			},
 			{
 				type: 'image',

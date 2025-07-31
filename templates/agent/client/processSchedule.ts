@@ -1,13 +1,12 @@
 // import { useCallback } from 'react'
 import { TldrawAi } from '@tldraw/ai'
-import { Box, BoxModel, Editor } from 'tldraw'
+import { Box, Editor } from 'tldraw'
 import { TLAgentModelName } from '../worker/models'
-import { getSimpleContentFromCanvasContent } from '../worker/simple/getSimpleContentFromCanvasContent'
 import { $chatHistoryItems } from './atoms/chatHistoryItems'
 import { $pendingContextItems } from './atoms/contextItems'
 import { $requestsSchedule } from './atoms/requestsSchedule'
 import { $contextBoundsHighlight } from './components/highlights/ContextBoundsHighlights'
-import { ContextItem } from './types/ContextItem'
+import { TLAgentPromptMeta } from './types/TLAgentPrompt'
 
 export async function processSchedule({
 	editor,
@@ -36,19 +35,21 @@ export async function processSchedule({
 	$contextBoundsHighlight.set(bounds)
 
 	try {
+		const meta: TLAgentPromptMeta = {
+			modelName,
+			historyItems: $chatHistoryItems.get().filter((item) => item.type !== 'status-thinking'),
+			contextItems: request.contextItems,
+			currentPageShapes: editor.getCurrentPageShapesSorted().map((v) => ({ ...v })),
+			currentUserViewportBounds: editor.getViewportPageBounds(),
+			type: request.type,
+		}
+
 		const { promise, cancel } = ai.prompt({
 			message: intent,
 			stream: true,
 			contextBounds: bounds,
 			promptBounds: bounds,
-			meta: {
-				modelName,
-				historyItems: $chatHistoryItems.get().filter((item) => item.type !== 'status-thinking'),
-				contextItems: getSimpleContextItemsFromContextItems(request.contextItems),
-				currentPageShapes: editor.getCurrentPageShapesSorted().map((v) => ({ ...v })),
-				currentUserViewportBounds: editor.getViewportPageBounds(),
-				type: request.type,
-			},
+			meta,
 		})
 
 		$chatHistoryItems.update((prev) => [
@@ -88,31 +89,4 @@ export async function processSchedule({
 		console.error(e)
 		throw e
 	}
-}
-
-function getSimpleContextItemsFromContextItems(contextItems: ContextItem[]) {
-	const shapeContextItems = contextItems.filter((item) => item.type === 'shape')
-	const areaContextItems = contextItems.filter((item) => item.type === 'area')
-	const pointContextItems = contextItems.filter((item) => item.type === 'point')
-
-	const simpleContent = getSimpleContentFromCanvasContent({
-		shapes: shapeContextItems.map((item) => item.shape),
-		bindings: [],
-		assets: [],
-	})
-
-	return {
-		shapes: simpleContent.shapes,
-		areas: areaContextItems.map((area) => roundBox(area.bounds)),
-		points: pointContextItems.map((point) => point.point),
-	}
-}
-
-function roundBox(box: BoxModel) {
-	const b = { ...box }
-	b.x = Math.round(b.x)
-	b.y = Math.round(b.y)
-	b.w = Math.round(b.w)
-	b.h = Math.round(b.h)
-	return b
 }
