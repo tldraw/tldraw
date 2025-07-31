@@ -1,4 +1,4 @@
-import { FormEventHandler, useCallback, useEffect, useState } from 'react'
+import { FormEventHandler, useEffect, useState } from 'react'
 import { Editor, useReactor, useValue } from 'tldraw'
 import { AGENT_MODEL_DEFINITIONS, TLAgentModelName } from '../../worker/models'
 import { $contextItems, addToContext, removeFromContext } from '../atoms/contextItems'
@@ -7,51 +7,8 @@ import { AtIcon } from '../icons/AtIcon'
 import { BrainIcon } from '../icons/BrainIcon'
 import { ChevronDownIcon } from '../icons/ChevronDownIcon'
 import { CommentIcon } from '../icons/CommentIcon'
-import { CursorIcon } from '../icons/CursorIcon'
-import { CONTEXT_TYPE_DEFINITIONS, ContextItem } from '../types/ContextItem'
-
-const ADD_CONTEXT_ACTIONS = [
-	{
-		name: 'Pick Shapes',
-		onSelect: (editor: Editor) => {
-			editor.setCurrentTool('target-shape')
-			editor.focus()
-		},
-	},
-	{
-		name: 'Pick Area',
-		onSelect: (editor: Editor) => {
-			editor.setCurrentTool('target-area')
-			editor.focus()
-		},
-	},
-	{
-		name: ' ',
-		onSelect: (editor: Editor) => {
-			const currentTool = editor.getCurrentTool()
-			if (currentTool.id === 'target-area' || currentTool.id === 'target-shape') {
-				editor.setCurrentTool('select')
-			}
-		},
-	},
-]
-
-export function ContextPreview({
-	contextItem,
-	onClick,
-}: {
-	contextItem: ContextItem
-	onClick(): void
-}) {
-	const definition = CONTEXT_TYPE_DEFINITIONS[contextItem.type]
-	const name = definition.name(contextItem)
-	const icon = definition.icon(contextItem)
-	return (
-		<button type="button" className="context-item-preview" onClick={onClick}>
-			{icon} {name}
-		</button>
-	)
-}
+import { ContextPreview } from './ContextPreview'
+import { SelectionContextPreview } from './SelectionContextPreview'
 
 export function ChatInput({
 	handleSubmit,
@@ -151,7 +108,7 @@ export function ChatInput({
 							})}
 						</select>
 					</div>
-					{<LiveSelectionIndicator editor={editor} />}
+					<SelectionContextPreview editor={editor} />
 					{contextItems.map(
 						(item, i) =>
 							item.source === 'user' && (
@@ -214,22 +171,30 @@ export function ChatInput({
 			</form>
 		</div>
 	)
-
-	function LiveSelectionIndicator({ editor }: { editor: Editor }) {
-		const shapes = useValue('shapes', () => editor.getSelectedShapes(), [editor])
-
-		const handleClick = useCallback(() => {
-			editor.selectNone()
-		}, [editor])
-
-		if (shapes.length === 0) {
-			return null
-		}
-
-		return (
-			<button type="button" className="context-item-preview" onClick={handleClick}>
-				<CursorIcon /> Selection {shapes.length > 1 && `(${shapes.length})`}
-			</button>
-		)
-	}
 }
+
+const ADD_CONTEXT_ACTIONS = [
+	{
+		name: 'Pick Shapes',
+		onSelect: (editor: Editor) => {
+			editor.setCurrentTool('target-shape')
+			editor.focus()
+		},
+	},
+	{
+		name: 'Pick Area',
+		onSelect: (editor: Editor) => {
+			editor.setCurrentTool('target-area')
+			editor.focus()
+		},
+	},
+	{
+		name: ' ',
+		onSelect: (editor: Editor) => {
+			const currentTool = editor.getCurrentTool()
+			if (currentTool.id === 'target-area' || currentTool.id === 'target-shape') {
+				editor.setCurrentTool('select')
+			}
+		},
+	},
+]
