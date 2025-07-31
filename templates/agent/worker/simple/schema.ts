@@ -195,8 +195,8 @@ export const SimpleShape = z.union(SIMPLE_SHAPES)
 export type ISimpleShape = z.infer<typeof SimpleShape>
 
 export interface ISimplePeripheralShape {
-	h: number
-	w: number
+	h?: number
+	w?: number
 	x: number
 	y: number
 }

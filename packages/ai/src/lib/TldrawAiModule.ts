@@ -108,7 +108,7 @@ export class TldrawAiModule {
 	/**
 	 * Get the content from the current page.
 	 *
-	 * @param bounds - The bounds to get the content for.
+	 * @param bounds - The bounds to get the content for
 	 */
 	private getContent(bounds: Box): TLAiContent {
 		const { editor } = this.opts

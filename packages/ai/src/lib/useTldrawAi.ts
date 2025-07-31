@@ -31,8 +31,7 @@ export interface TldrawAi {
 	/**
 	 * Repeat the previous prompt and changes.
 	 *
-	 * This is useful for when you want to re-run the same prompt and changes
-	 * without having to re-generate the prompt. Mainly used for debugging.
+	 * This is useful for when you want to re-run the same prompt and changes without having to re-generate the prompt. Mainly used for debugging.
 	 *
 	 * @returns A promise that resolves when all changes have been applied.
 	 *
@@ -62,7 +61,7 @@ export type TldrawAiStreamFn = (opts: {
 }) => AsyncGenerator<TLAiChange>
 
 /**
- * The function signature for applying changes to the editor.
+ * The function signature for applying a change to the editor.
  * @public
  */
 export type TldrawAiApplyFn = (opts: { change: TLAiChange; editor: Editor }) => void
@@ -84,8 +83,8 @@ export function useTldrawAi(opts: TldrawAiOptions): TldrawAi {
 		editor: _editor,
 		generate: generateFn,
 		stream: streamFn,
-		transforms,
 		apply: applyFn = defaultApplyChange,
+		transforms,
 	} = opts
 
 	// If the editor is provided as a prop, use that. Otherwise, use the editor in react context and throw if not present.
@@ -129,7 +128,7 @@ export function useTldrawAi(opts: TldrawAiOptions): TldrawAi {
 					.then(async ({ handleChange, prompt }) => {
 						const serializedPrompt: TLAiSerializedPrompt = {
 							...prompt,
-							meta: meta ? JSON.parse(JSON.stringify(meta)) : undefined,
+							meta,
 							promptBounds: prompt.promptBounds.toJson(),
 							contextBounds: prompt.contextBounds.toJson(),
 						}

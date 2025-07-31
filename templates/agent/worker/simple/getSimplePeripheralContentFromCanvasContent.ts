@@ -21,9 +21,8 @@ export function getSimplePeripheralContentFromCanvasContent(
 	)
 
 	const peripheralContentWithIds = wholePageLessViewportContent.map((shape) => {
-		// Handle different shape types
+		// For lines, use the bounding box
 		if (shape._type === 'line') {
-			// For lines, use the bounding box
 			const minX = Math.min(shape.x1, shape.x2)
 			const maxX = Math.max(shape.x1, shape.x2)
 			const minY = Math.min(shape.y1, shape.y2)
@@ -38,8 +37,8 @@ export function getSimplePeripheralContentFromCanvasContent(
 			}
 		}
 
+		// For arrows, use the bounding box
 		if (shape._type === 'arrow') {
-			// For arrows, use the bounding box
 			const minX = Math.min(shape.x1, shape.x2)
 			const maxX = Math.max(shape.x1, shape.x2)
 			const minY = Math.min(shape.y1, shape.y2)
@@ -54,12 +53,21 @@ export function getSimplePeripheralContentFromCanvasContent(
 			}
 		}
 
-		if (shape._type === 'note' || shape._type === 'text' || shape._type === 'unknown') {
-			// For shapes without dimensions, use default size
+		// Notes have a fixed size
+		if (shape._type === 'note') {
 			return {
-				h: 100, // default height
+				h: 100,
 				shapeId: shape.shapeId,
-				w: 100, // default width
+				w: 100,
+				x: Math.round(shape.x),
+				y: Math.round(shape.y),
+			}
+		}
+
+		// Shapes without dimensions
+		if (shape._type === 'text' || shape._type === 'unknown') {
+			return {
+				shapeId: shape.shapeId,
 				x: Math.round(shape.x),
 				y: Math.round(shape.y),
 			}
@@ -67,9 +75,9 @@ export function getSimplePeripheralContentFromCanvasContent(
 
 		// For all other shapes (rectangle, ellipse, etc.), use their actual dimensions
 		return {
-			h: Math.round(shape.height ?? 100), // fallback for optional height (rhombus)
+			h: Math.round(shape.height),
 			shapeId: shape.shapeId,
-			w: Math.round(shape.width ?? 100), // fallback for optional width (rhombus)
+			w: Math.round(shape.width),
 			x: Math.round(shape.x),
 			y: Math.round(shape.y),
 		}

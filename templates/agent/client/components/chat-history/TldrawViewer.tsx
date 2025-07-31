@@ -12,7 +12,7 @@ function TldrawViewer({
 	const [isVisible, setIsVisible] = useState(false)
 	const containerRef = useRef<HTMLDivElement>(null)
 
-	// Intersection Observer to track visibility
+	// Hide the component if it's outside of the current scroll area
 	useEffect(() => {
 		const observer = new IntersectionObserver(
 			([entry]) => {
@@ -45,7 +45,6 @@ function TldrawViewer({
 		editor.setCameraOptions({ isLocked: true })
 	}, [shapes, editor, isVisible])
 
-	// Return null if component is not visible
 	if (!isVisible) {
 		return <div ref={containerRef} className="tldraw-viewer" />
 	}
