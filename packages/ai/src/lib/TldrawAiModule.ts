@@ -51,9 +51,22 @@ export class TldrawAiModule {
 			this.applyChange(change)
 		}
 
+		const handleChanges = (changes: TLAiChange[]) => {
+			for (const transform of transforms) {
+				if (transform.transformChanges) {
+					changes = transform.transformChanges(changes)
+				}
+			}
+
+			for (const change of changes) {
+				this.applyChange(change)
+			}
+		}
+
 		return {
 			prompt,
 			handleChange,
+			handleChanges,
 		}
 	}
 

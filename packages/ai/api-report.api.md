@@ -175,6 +175,7 @@ export class TldrawAiModule {
     dispose(): void;
     generate(options: TldrawAiPromptOptions): Promise<{
         handleChange: (change: TLAiChange) => void;
+        handleChanges: (changes: TLAiChange[]) => void;
         prompt: TLAiPrompt;
     }>;
     getPrompt(options: TldrawAiPromptOptions): Promise<TLAiPrompt>;
