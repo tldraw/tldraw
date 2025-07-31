@@ -109,7 +109,7 @@ export function useTldrawAi(opts: TldrawAiOptions): TldrawAi {
 					.then(async ({ handleChange, prompt }) => {
 						const serializedPrompt: TLAiSerializedPrompt = {
 							...prompt,
-							meta,
+							meta: meta ? JSON.parse(JSON.stringify(meta)) : undefined,
 							promptBounds: prompt.promptBounds.toJson(),
 							contextBounds: prompt.contextBounds.toJson(),
 						}
