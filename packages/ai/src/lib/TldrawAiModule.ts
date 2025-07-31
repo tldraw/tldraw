@@ -2,6 +2,7 @@ import { Box, Editor, FileHelpers, structuredClone } from 'tldraw'
 import { TldrawAiTransformConstructor } from './TldrawAiTransform'
 import { TLAiChange, TLAiContent, TLAiPrompt } from './types'
 import { TldrawAiApplyFn, TldrawAiPromptOptions } from './useTldrawAi'
+import { asMessage } from './utils'
 
 /** @public */
 export interface TldrawAiModuleOptions {
@@ -80,7 +81,7 @@ export class TldrawAiModule {
 	}
 
 	/**
-	 * Create a full prompt to be sent to the AI.
+	 * Create the prompt to be sent to the AI.
 	 *
 	 * @param options - The options to generate the prompt
 	 */
@@ -91,12 +92,12 @@ export class TldrawAiModule {
 
 		const contextBounds = _options.contextBounds ?? editor.getViewportPageBounds()
 		const promptBounds = _options.promptBounds ?? editor.getViewportPageBounds()
-		const canvasContent = _options.canvasContent ?? this.getContent(contextBounds)
-		const image = _options.image ?? (await this.getImage(canvasContent))
+		const content = _options.canvasContent ?? this.getContent(contextBounds)
+		const image = _options.image ?? (await this.getImage(content))
 
 		return {
-			message: _options.message ?? '',
-			canvasContent,
+			message: asMessage(_options.message ?? ''),
+			canvasContent: content,
 			contextBounds: roundBox(contextBounds),
 			promptBounds: roundBox(promptBounds),
 			image,
@@ -107,28 +108,20 @@ export class TldrawAiModule {
 	/**
 	 * Get the content from the current page.
 	 *
-	 * @param bounds - The bounds to get the content for. If not provided, includes the entire page.
+	 * @param bounds - The bounds to get the content for.
 	 */
-	private getContent(bounds?: Box): TLAiContent {
+	private getContent(bounds: Box): TLAiContent {
 		const { editor } = this.opts
-
-		let shapesToInclude
-
-		if (!bounds) {
-			// No bounds provided, include all shapes on the current page
-			shapesToInclude = editor.getCurrentPageShapesSorted()
-		} else {
-			// Only include shapes within or colliding with the provided bounds
-			shapesToInclude = editor
-				.getCurrentPageShapesSorted()
-				.filter((s) => bounds.includes(editor.getShapeMaskedPageBounds(s)!))
-		}
 
 		let content: TLAiContent | undefined = {
 			bindings: [],
 			shapes: [],
 			assets: [],
-			...editor.getContentFromCurrentPage(shapesToInclude),
+			...editor.getContentFromCurrentPage(
+				editor
+					.getCurrentPageShapesSorted()
+					.filter((s) => bounds.includes(editor.getShapeMaskedPageBounds(s)!))
+			),
 		}
 
 		// If we don't have content, it's either an empty page or an empty section of the page.
