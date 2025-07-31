@@ -19,7 +19,6 @@ import {
 	ISimpleCreateOrUpdateEvent,
 	ISimpleDeleteEvent,
 	ISimpleEvent,
-	ISimpleLabelEvent,
 	ISimpleMoveEvent,
 	SimpleColor,
 } from './schema'
@@ -47,9 +46,6 @@ export function getTldrawAiChangesFromSimpleEvents(
 		}
 		case 'move': {
 			return getTldrawAiChangesFromSimpleMoveEvent(prompt, event)
-		}
-		case 'label': {
-			return getTldrawAiChangesFromSimpleLabelEvent(prompt, event)
 		}
 		case 'think': {
 			return []
@@ -617,48 +613,6 @@ function getTldrawAiChangesFromSimpleMoveEvent(
 			},
 		},
 	]
-}
-
-function getTldrawAiChangesFromSimpleLabelEvent(
-	prompt: TLAiSerializedPrompt,
-	event: ISimpleLabelEvent
-): TLAiChange[] {
-	const { label, intent } = event
-
-	const shapeOnCanvas = prompt.canvasContent.shapes.find((s) => s.id === label.shapeId)
-	if (!shapeOnCanvas) {
-		throw new Error(`Shape ${label.shapeId} not found in canvas`)
-	}
-
-	let change: TLAiChange
-
-	if (shapeOnCanvas.type === 'arrow') {
-		// For arrows, set text, not richText
-		change = {
-			type: 'updateShape',
-			description: intent ?? '',
-			shape: {
-				id: label.shapeId as TLShapeId,
-				props: {
-					text: label.text ?? '',
-				},
-			},
-		}
-	} else {
-		// For all other shapes, set richText
-		change = {
-			type: 'updateShape',
-			description: intent ?? '',
-			shape: {
-				id: label.shapeId as TLShapeId,
-				props: {
-					richText: toRichTextIfNeeded(label.text ?? ''),
-				},
-			},
-		}
-	}
-
-	return [change]
 }
 
 function getTldrawColorFromFuzzyColor(simpleColor: any): ISimpleColor {
