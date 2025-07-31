@@ -166,12 +166,12 @@ export function useSync(opts: UseSyncOptions & TLStoreSchemaOptions): RemoteTLSt
 			})
 		})
 
-		const otherUserPresences = store.query.records('instance_presence', () => ({
+		const otherUserPresences = store.query.ids('instance_presence', () => ({
 			userId: { neq: userPreferences.get().id },
 		}))
 
 		const presenceMode = computed<TLPresenceMode>('presenceMode', () => {
-			if (otherUserPresences.get().length === 0) return 'solo'
+			if (otherUserPresences.get().size === 0) return 'solo'
 			return 'full'
 		})
 
