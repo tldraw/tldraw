@@ -1,4 +1,4 @@
-import { TLAiSerializedPrompt } from '@tldraw/ai'
+import { TLAiChange, TLAiSerializedPrompt } from '@tldraw/ai'
 import {
 	IndexKey,
 	TLArrowShape,
@@ -39,19 +39,19 @@ export function getTldrawAgentChangesFromSimpleEvents(
 ): Streaming<TLAgentChange>[] {
 	switch (event._type) {
 		case 'update': {
-			return getTldrawAgentChangesFromSimpleUpdateEvent(prompt, event)
+			return getTldrawAiChangesFromSimpleUpdateEvent(prompt, event)
 		}
 		case 'create': {
-			return getTldrawAgentChangesFromSimpleCreateEvent(prompt, event)
+			return getTldrawAiChangesFromSimpleCreateEvent(prompt, event)
 		}
 		case 'delete': {
-			return getTldrawAgentChangesFromSimpleDeleteEvent(prompt, event)
+			return getTldrawAiChangesFromSimpleDeleteEvent(prompt, event)
 		}
 		case 'move': {
-			return getTldrawAgentChangesFromSimpleMoveEvent(prompt, event)
+			return getTldrawAiChangesFromSimpleMoveEvent(prompt, event)
 		}
 		case 'label': {
-			return getTldrawAgentChangesFromSimpleLabelEvent(prompt, event)
+			return getTldrawAiChangesFromSimpleLabelEvent(prompt, event)
 		}
 		case 'message': {
 			const { _type, ...change } = event
@@ -75,11 +75,11 @@ export function getTldrawAgentChangesFromSimpleEvents(
 	}
 }
 
-function getTldrawAgentChangesFromSimpleUpdateEvent(
+function getTldrawAiChangesFromSimpleUpdateEvent(
 	prompt: TLAiSerializedPrompt,
 	event: Streaming<ISimpleUpdateEvent>
-): Streaming<TLAgentChange>[] {
-	const changes: Streaming<TLAgentChange>[] = []
+): Streaming<TLAiChange>[] {
+	const changes: Streaming<TLAiChange>[] = []
 	if (!event.complete) {
 		const update = event.update
 
@@ -383,11 +383,11 @@ function getTldrawAgentChangesFromSimpleUpdateEvent(
 	return changes
 }
 
-function getTldrawAgentChangesFromSimpleCreateEvent(
+function getTldrawAiChangesFromSimpleCreateEvent(
 	prompt: TLAiSerializedPrompt,
 	event: Streaming<ISimpleCreateEvent>
-): Streaming<TLAgentChange>[] {
-	const changes: Streaming<TLAgentChange>[] = []
+): Streaming<TLAiChange>[] {
+	const changes: Streaming<TLAiChange>[] = []
 	if (!event.complete) {
 		const shape = event.shape
 		changes.push({
@@ -651,11 +651,11 @@ function getTldrawAgentChangesFromSimpleCreateEvent(
 	return changes
 }
 
-function getTldrawAgentChangesFromSimpleDeleteEvent(
+function getTldrawAiChangesFromSimpleDeleteEvent(
 	prompt: TLAiSerializedPrompt,
 	event: Streaming<ISimpleDeleteEvent>
-): Streaming<TLAgentChange>[] {
-	const changes: Streaming<TLAgentChange>[] = []
+): Streaming<TLAiChange>[] {
+	const changes: Streaming<TLAiChange>[] = []
 
 	if (!event.complete) {
 		changes.push({
@@ -679,11 +679,11 @@ function getTldrawAgentChangesFromSimpleDeleteEvent(
 	return changes
 }
 
-function getTldrawAgentChangesFromSimpleMoveEvent(
+function getTldrawAiChangesFromSimpleMoveEvent(
 	prompt: TLAiSerializedPrompt,
 	event: Streaming<ISimpleMoveEvent>
-): Streaming<TLAgentChange>[] {
-	const changes: Streaming<TLAgentChange>[] = []
+): Streaming<TLAiChange>[] {
+	const changes: Streaming<TLAiChange>[] = []
 
 	if (!event.complete) {
 		return changes
@@ -706,11 +706,11 @@ function getTldrawAgentChangesFromSimpleMoveEvent(
 	return changes
 }
 
-function getTldrawAgentChangesFromSimpleLabelEvent(
+function getTldrawAiChangesFromSimpleLabelEvent(
 	prompt: TLAiSerializedPrompt,
 	event: Streaming<ISimpleLabelEvent>
-): Streaming<TLAgentChange>[] {
-	const changes: Streaming<TLAgentChange>[] = []
+): Streaming<TLAiChange>[] {
+	const changes: Streaming<TLAiChange>[] = []
 
 	if (!event.complete) {
 		return changes
