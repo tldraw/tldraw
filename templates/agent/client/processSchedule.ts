@@ -83,10 +83,13 @@ export async function processSchedule({
 		await processSchedule({ editor, modelName, ai, rCancelFn })
 	} catch (e) {
 		rCancelFn.current = null
-		// Remove the failed request from the schedule
-		$requestsSchedule.update((prev) => prev.filter((_, i) => i !== 0))
-		// Continue processing the next request
-		console.error(e)
+		$requestsSchedule.set([])
+		if (
+			e === 'Cancelled by user' ||
+			(e instanceof Error && e.message === 'BodyStreamBuffer was aborted')
+		) {
+			return
+		}
 		throw e
 	}
 }

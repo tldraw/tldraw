@@ -84,9 +84,10 @@ export function ChatPanel({ editor }: { editor: Editor }) {
 			try {
 				await processSchedule({ editor, modelName, ai, rCancelFn })
 			} catch (e) {
+				const message = typeof e === 'string' ? e : e instanceof Error && e.message
 				toast.addToast({
 					title: 'Error',
-					description: e instanceof Error ? e.message : 'An error occurred',
+					description: message || 'An error occurred',
 					severity: 'error',
 				})
 				console.error(e)
