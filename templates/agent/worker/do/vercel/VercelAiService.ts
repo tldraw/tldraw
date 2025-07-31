@@ -1,5 +1,9 @@
 import { AnthropicProvider, createAnthropic } from '@ai-sdk/anthropic'
-import { createGoogleGenerativeAI, GoogleGenerativeAIProvider } from '@ai-sdk/google'
+import {
+	createGoogleGenerativeAI,
+	GoogleGenerativeAIProvider,
+	GoogleGenerativeAIProviderOptions,
+} from '@ai-sdk/google'
 import { createOpenAI, OpenAIProvider } from '@ai-sdk/openai'
 import { generateObject, LanguageModel, streamObject } from 'ai'
 import { Streaming, TLAgentChange } from '../../../client/types/TLAgentChange'
@@ -74,6 +78,13 @@ async function* streamEventsVercel(
 				console.error('Stream object error:', e)
 				throw e
 			},
+			providerOptions: {
+				google: {
+					thinkingConfig: { thinkingBudget: 0 },
+				} satisfies GoogleGenerativeAIProviderOptions,
+				//anthropic doesnt allow thinking for tool use, which structured outputs forces to be enabled
+				//the openai models we use dont support thinking anyway
+			},
 		})
 
 		let cursor = 0
@@ -124,6 +135,13 @@ async function generateEventsVercel(
 			system: SIMPLE_SYSTEM_PROMPT,
 			messages: buildMessages(prompt),
 			schema: ModelResponse,
+			providerOptions: {
+				google: {
+					thinkingConfig: { thinkingBudget: 0 },
+				} satisfies GoogleGenerativeAIProviderOptions,
+				//anthropic doesnt allow thinking for tool use, which structured outputs forces to be enabled
+				//the openai models we use dont support thinking anyway
+			},
 		})
 
 		return response.object.events.map((event) => ({ ...event, complete: true }))
