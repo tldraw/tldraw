@@ -420,10 +420,6 @@ export const SimpleShape = z.union(SIMPLE_SHAPES)
 
 export type ISimpleShape = z.infer<typeof SimpleShape>
 
-const SimpleShapeUpdate = z.union(SIMPLE_SHAPES)
-
-export type ISimpleShapeUpdate = z.infer<typeof SimpleShapeUpdate>
-
 // Events
 
 const SimpleCreateOrUpdateEvent = z.object({
