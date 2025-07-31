@@ -95,7 +95,6 @@ export function updateArrowTargetState({
 		hitInside: true,
 		hitFrameInside: true,
 		margin: arrowKind === 'elbow' ? 8 : [8, 0],
-		debug: true,
 		filter: (targetShape) => {
 			return (
 				!targetShape.isLocked &&
