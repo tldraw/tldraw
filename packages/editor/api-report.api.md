@@ -1245,12 +1245,14 @@ export class Editor extends EventEmitter<TLEventMap> {
     getShapeAncestors(shape: TLShape | TLShapeId, acc?: TLShape[]): TLShape[];
     getShapeAndDescendantIds(ids: TLShapeId[]): Set<TLShapeId>;
     getShapeAtPoint(point: VecLike, opts?: {
+        debug?: boolean;
         filter?(shape: TLShape): boolean;
         hitFrameInside?: boolean;
         hitInside?: boolean;
         hitLabels?: boolean;
         hitLocked?: boolean;
-        margin?: number;
+        insideMargin?: number;
+        margin?: [number, number] | number;
         renderingOnly?: boolean;
     }): TLShape | undefined;
     getShapeClipPath(shape: TLShape | TLShapeId): string | undefined;

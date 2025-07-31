@@ -5158,7 +5158,8 @@ export class Editor extends EventEmitter<TLEventMap> {
 		point: VecLike,
 		opts = {} as {
 			renderingOnly?: boolean
-			margin?: number
+			margin?: number | [number, number] // [inside, outside]
+			insideMargin?: number
 			hitInside?: boolean
 			hitLocked?: boolean
 			// TODO: we probably need to rename this, we don't quite _always_
@@ -5166,6 +5167,7 @@ export class Editor extends EventEmitter<TLEventMap> {
 			hitLabels?: boolean
 			hitFrameInside?: boolean
 			filter?(shape: TLShape): boolean
+			debug?: boolean
 		}
 	): TLShape | undefined {
 		const zoomLevel = this.getZoomLevel()
@@ -5178,6 +5180,8 @@ export class Editor extends EventEmitter<TLEventMap> {
 			hitInside = false,
 			hitFrameInside = false,
 		} = opts
+
+		const [innerMargin, outerMargin] = Array.isArray(margin) ? margin : [margin, margin]
 
 		let inHollowSmallestArea = Infinity
 		let inHollowSmallestAreaHit: TLShape | null = null
@@ -5224,13 +5228,13 @@ export class Editor extends EventEmitter<TLEventMap> {
 				}
 			}
 
-			if (this.isShapeOfType(shape, 'frame')) {
+			if (this.isShapeOfType<TLFrameShape>(shape, 'frame')) {
 				// On the rare case that we've hit a frame (not its label), test again hitInside to be forced true;
 				// this prevents clicks from passing through the body of a frame to shapes behind it.
 
 				// If the hit is within the frame's outer margin, then select the frame
 				const distance = geometry.distanceToPoint(pointInShapeSpace, hitInside)
-				if (Math.abs(distance) <= margin) {
+				if (distance < outerMargin || distance > -innerMargin) {
 					return inMarginClosestToEdgeHit || shape
 				}
 
@@ -5273,7 +5277,7 @@ export class Editor extends EventEmitter<TLEventMap> {
 					distance = geometry.distanceToPoint(pointInShapeSpace, hitInside)
 				} else {
 					// Broad phase
-					if (geometry.bounds.containsPoint(pointInShapeSpace, margin)) {
+					if (geometry.bounds.containsPoint(pointInShapeSpace, outerMargin)) {
 						// Narrow phase (actual distance)
 						distance = geometry.distanceToPoint(pointInShapeSpace, hitInside)
 					} else {
@@ -5288,7 +5292,8 @@ export class Editor extends EventEmitter<TLEventMap> {
 				// the shape or negative if inside of the shape. If the distance
 				// is greater than the margin, then it's a miss. Otherwise...
 
-				if (distance <= margin) {
+				// Are we close to the shape's edge?
+				if (distance < outerMargin || (hitInside && distance < 0 && distance > -innerMargin)) {
 					if (geometry.isFilled || (isGroup && geometry.children[0].isFilled)) {
 						// If the shape is filled, then it's a hit. Remember, we're
 						// starting from the TOP-MOST shape in z-index order, so any
@@ -5298,11 +5303,21 @@ export class Editor extends EventEmitter<TLEventMap> {
 						// If the shape is bigger than the viewport, then skip it.
 						if (this.getShapePageBounds(shape)!.contains(viewportPageBounds)) continue
 
-						// For hollow shapes...
-						if (Math.abs(distance) < margin) {
-							// We want to preference shapes where we're inside of the
-							// shape margin; and we would want to hit the shape with the
-							// edge closest to the point.
+						// If we're close to the edge of the shape, and if it's the closest edge among
+						// all the edges that we've gotten close to so far, then we will want to hit the
+						// shape unless we hit something else or closer in later iterations.
+						if (
+							hitInside
+								? // On hitInside, the distance will be negative for hits inside
+									// If the distance is positive, check against the outer margin
+									(distance >= 0 && distance < outerMargin) ||
+									// If the distance is negative, check against the inner margin
+									(distance < 0 && distance > -innerMargin)
+								: // If hitInside is false, then sadly _we do not know_ whether the
+									// point is inside or outside of the shape, so we check against
+									// the max of the two margins
+									Math.abs(distance) < Math.max(innerMargin, outerMargin)
+						) {
 							if (Math.abs(distance) < inMarginClosestToEdgeDistance) {
 								inMarginClosestToEdgeDistance = Math.abs(distance)
 								inMarginClosestToEdgeHit = shape
@@ -5324,6 +5339,7 @@ export class Editor extends EventEmitter<TLEventMap> {
 			} else {
 				// For open shapes (e.g. lines or draw shapes) always use the margin.
 				// If the distance is less than the margin, return the shape as the hit.
+				// Use the editor's configurable hit test margin.
 				if (distance < this.options.hitTestMargin / zoomLevel) {
 					return shape
 				}
