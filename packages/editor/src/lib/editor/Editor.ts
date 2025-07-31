@@ -5232,7 +5232,18 @@ export class Editor extends EventEmitter<TLEventMap> {
 
 				// If the hit is within the frame's outer margin, then select the frame
 				const distance = geometry.distanceToPoint(pointInShapeSpace, hitInside)
-				if (distance < outerMargin || distance > -innerMargin) {
+				if (
+					hitFrameInside
+						? // On hitInside, the distance will be negative for hits inside
+							// If the distance is positive, check against the outer margin
+							(distance >= 0 && distance < outerMargin) ||
+							// If the distance is negative, check against the inner margin
+							(distance < 0 && distance > -innerMargin)
+						: // If hitInside is false, then sadly _we do not know_ whether the
+							// point is inside or outside of the shape, so we check against
+							// the max of the two margins
+							distance < outerMargin
+				) {
 					return inMarginClosestToEdgeHit || shape
 				}
 
