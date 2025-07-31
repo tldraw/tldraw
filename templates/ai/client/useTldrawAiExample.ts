@@ -1,6 +1,6 @@
 import { TLAiChange, TLAiResult, TldrawAiOptions, useTldrawAi } from '@tldraw/ai'
 import { Editor } from 'tldraw'
-import { ShapeDescriptions } from './transforms/ShapeDescriptions'
+import { ShapeIntents } from './transforms/ShapeIntents'
 import { SimpleCoordinates } from './transforms/SimpleCoordinates'
 import { SimpleIds } from './transforms/SimpleIds'
 import { SimpleText } from './transforms/SimpleText'
@@ -17,7 +17,7 @@ export function useTldrawAiExample(editor?: Editor) {
 const STATIC_TLDRAWAI_OPTIONS: TldrawAiOptions = {
 	// Transforms that will be applied to the prompt before it's
 	// sent and to changes as they're received.
-	transforms: [SimpleIds, ShapeDescriptions, SimpleCoordinates, SimpleText],
+	transforms: [SimpleIds, ShapeIntents, SimpleCoordinates, SimpleText],
 	// A function that calls the backend and return generated changes.
 	// See worker/do/OpenAiService.ts#generate for the backend part.
 	generate: async ({ prompt, signal }) => {
