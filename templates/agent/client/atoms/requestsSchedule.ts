@@ -1,5 +1,5 @@
 import { atom, BoxModel } from 'tldraw'
-import { ContextItem } from './types/ContextItem'
+import { ContextItem } from '../types/ContextItem'
 
 export interface ScheduledRequest {
 	message: string

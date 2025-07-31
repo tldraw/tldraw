@@ -1,5 +1,5 @@
 import { createOrUpdateHistoryItem } from './atoms/chatHistoryItems'
-import { $requestsSchedule, ScheduledRequest } from './requestsSchedule'
+import { $requestsSchedule, ScheduledRequest } from './atoms/requestsSchedule'
 import { Streaming, TLAgentChange } from './types/AgentChange'
 import { AreaContextItem } from './types/ContextItem'
 
