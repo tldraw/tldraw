@@ -1,7 +1,7 @@
 import { TLAiChange, TldrawAiTransform } from '@tldraw/ai'
 import { createBindingId, TLShapeId } from '@tldraw/tlschema'
 
-export class SimplishIds extends TldrawAiTransform {
+export class AutomaticIds extends TldrawAiTransform {
 	override transformChange = (change: TLAiChange): TLAiChange => {
 		switch (change.type) {
 			case 'createShape': {

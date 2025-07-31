@@ -4,7 +4,7 @@ import { Box, TLShapePartial } from 'tldraw'
 // This transform does *not* change the offset of the shapes, it only rounds positions to the nearest integer.
 // This is important in the agent usecase because the agent was sometimes 'leaking' coordinates into chat history via thoughts and messages,
 // which confused the model later on after we changed the coordinates of the shapes.
-export class SimplishCoordinates extends TldrawAiTransform {
+export class RoundedCoordinates extends TldrawAiTransform {
 	diff: Record<string, number> = {}
 	bounds = {} as Box
 
