@@ -20,6 +20,12 @@ import type { TLShapePartial } from 'tldraw';
 export function asMessage(message: TLAiMessages): TLAiMessage[];
 
 // @public
+export function defaultApplyChange({ change, editor }: {
+    change: TLAiChange;
+    editor: Editor;
+}): void;
+
+// @public
 export type TLAiChange = TLAiCreateBindingChange | TLAiCreateShapeChange | TLAiDeleteBindingChange | TLAiDeleteShapeChange | TLAiUpdateBindingChange | TLAiUpdateShapeChange;
 
 // @public (undocumented)
@@ -136,6 +142,25 @@ export interface TLAiUpdateShapeChange<T extends TLShape = TLShape> {
 }
 
 // @public
+export interface TldrawAi {
+    cancel(): void;
+    prompt(options: TldrawAiPromptOptions): {
+        cancel(): void;
+        promise: Promise<void>;
+    };
+    repeat(): {
+        cancel: (() => void) | null;
+        promise: Promise<void>;
+    };
+}
+
+// @public
+export type TldrawAiApplyFn = (opts: {
+    change: TLAiChange;
+    editor: Editor;
+}) => void;
+
+// @public
 export type TldrawAiGenerateFn = (opts: {
     editor: Editor;
     prompt: TLAiSerializedPrompt;
@@ -148,15 +173,12 @@ export class TldrawAiModule {
     applyChange(change: TLAiChange): void;
     // (undocumented)
     dispose(): void;
-    generate(prompt: {
-        message: TLAiMessages;
-        stream?: boolean;
-    } | string): Promise<{
+    generate(options: TldrawAiPromptOptions): Promise<{
         handleChange: (change: TLAiChange) => void;
         handleChanges: (changes: TLAiChange[]) => void;
         prompt: TLAiPrompt;
     }>;
-    getPrompt(prompt: TLAiMessages, options?: Partial<Pick<TLAiPrompt, "canvasContent" | "contextBounds" | "promptBounds">>): Promise<TLAiPrompt>;
+    getPrompt(options: TldrawAiPromptOptions): Promise<TLAiPrompt>;
     // (undocumented)
     readonly opts: TldrawAiModuleOptions;
 }
@@ -164,13 +186,17 @@ export class TldrawAiModule {
 // @public (undocumented)
 export interface TldrawAiModuleOptions {
     // (undocumented)
+    apply: TldrawAiApplyFn;
+    // (undocumented)
     editor: Editor;
     // (undocumented)
     transforms?: TldrawAiTransformConstructor[];
 }
 
 // @public (undocumented)
-export interface TldrawAiOptions extends Omit<TldrawAiModuleOptions, 'editor'> {
+export interface TldrawAiOptions extends Omit<TldrawAiModuleOptions, 'apply' | 'editor'> {
+    // (undocumented)
+    apply?: TldrawAiApplyFn;
     // (undocumented)
     editor?: Editor;
     // (undocumented)
@@ -180,10 +206,9 @@ export interface TldrawAiOptions extends Omit<TldrawAiModuleOptions, 'editor'> {
 }
 
 // @public (undocumented)
-export type TldrawAiPromptOptions = {
-    message: TLAiPrompt['message'];
+export type TldrawAiPromptOptions = (Partial<TLAiPrompt> & {
     stream?: boolean;
-} | string;
+}) | string;
 
 // @public
 export type TldrawAiStreamFn = (opts: {
@@ -209,17 +234,7 @@ export interface TldrawAiTransformConstructor {
 }
 
 // @public (undocumented)
-export function useTldrawAi(opts: TldrawAiOptions): {
-    cancel: () => void;
-    prompt: (message: TldrawAiPromptOptions) => {
-        cancel: () => void;
-        promise: Promise<void>;
-    };
-    repeat: () => {
-        cancel: (() => void) | null;
-        promise: Promise<void>;
-    };
-};
+export function useTldrawAi(opts: TldrawAiOptions): TldrawAi;
 
 // (No @packageDocumentation comment for this package)
 
