@@ -1,12 +1,11 @@
 import { FormEventHandler, useCallback, useEffect, useRef, useState } from 'react'
-import { Box, BoxModel, Editor, useToasts, useValue } from 'tldraw'
-import { getSimpleContentFromCanvasContent } from '../../worker/simple/getSimpleContentFromCanvasContent'
+import { Editor, useToasts, useValue } from 'tldraw'
 import { $chatHistoryItems } from '../atoms/chatHistoryItems'
 import { $contextItems, $pendingContextItems } from '../atoms/contextItems'
 import { $modelName } from '../atoms/modelName'
 import { $requestsSchedule } from '../atoms/requestsSchedule'
+import { processSchedule } from '../processSchedule'
 import { UserMessageHistoryItem } from '../types/ChatHistoryItem'
-import { ContextItem } from '../types/ContextItem'
 import { useTldrawAgent } from '../useTldrawAgent'
 import { ChatHistory } from './chat-history/ChatHistory'
 import { ChatInput } from './ChatInput'
@@ -17,6 +16,7 @@ export function ChatPanel({ editor }: { editor: Editor }) {
 	const [isGenerating, setIsGenerating] = useState(false)
 	const rCancelFn = useRef<(() => void) | null>(null)
 	const inputRef = useRef<HTMLTextAreaElement>(null)
+	const toast = useToasts()
 	const modelName = useValue('modelName', () => $modelName.get(), [$modelName])
 
 	useEffect(() => {
@@ -24,84 +24,6 @@ export function ChatPanel({ editor }: { editor: Editor }) {
 		;(window as any).editor = editor
 		;(window as any).ai = ai
 	}, [ai, editor])
-
-	const toast = useToasts()
-
-	const processSchedule = useCallback(async () => {
-		// Process all requests in the schedule sequentially
-		while (true) {
-			const eventSchedule = $requestsSchedule.get()
-
-			if (!eventSchedule || eventSchedule.length === 0) {
-				return // Base case - no more events to process
-			}
-
-			// The next scheduled request
-			const request = eventSchedule[0]
-			const intent = request.message
-
-			$pendingContextItems.set(request.contextItems)
-			const bounds = Box.From(request.bounds)
-
-			$contextBoundsHighlight.set(bounds)
-
-			try {
-				const { promise, cancel } = ai.prompt({
-					message: intent,
-					stream: true,
-					contextBounds: bounds,
-					promptBounds: bounds,
-					meta: {
-						modelName,
-						historyItems: $chatHistoryItems.get().filter((item) => item.type !== 'status-thinking'),
-						contextItems: getSimpleContextItemsFromContextItems(request.contextItems),
-						currentPageShapes: editor.getCurrentPageShapesSorted().map((v) => ({ ...v })),
-						currentUserViewportBounds: editor.getViewportPageBounds(),
-						type: request.type,
-					},
-				})
-
-				$chatHistoryItems.update((prev) => [
-					...prev,
-					{
-						type: 'status-thinking',
-						message: request.type === 'review' ? 'Reviewing' : 'Generating', //TODO handle this more gracefully once we have more scheduled requests
-						status: 'progress',
-					},
-				])
-
-				rCancelFn.current = cancel
-				await promise
-
-				// Only remove the event after successful processing
-				$requestsSchedule.update((prev) => prev.filter((_, i) => i !== 0))
-
-				// Set previous status-thinking to done
-				// this assume only one status-thinking at a time. not a bad assumption for now?
-				$chatHistoryItems.update((prev) => {
-					const lastStatusThinkingIndex = [...prev]
-						.reverse()
-						.findIndex((item) => item.type === 'status-thinking' && item.status === 'progress')
-					if (lastStatusThinkingIndex === -1) return prev
-					const idx = prev.length - 1 - lastStatusThinkingIndex
-					return prev.map((item, i) => (i === idx ? { ...item, status: 'done' } : item))
-				})
-
-				rCancelFn.current = null
-			} catch (e) {
-				toast.addToast({
-					title: 'Error',
-					description: e instanceof Error ? e.message : 'An error occurred',
-					severity: 'error',
-				})
-				rCancelFn.current = null
-				// Remove the failed request from the schedule
-				$requestsSchedule.update((prev) => prev.filter((_, i) => i !== 0))
-				// Continue processing the next request
-				console.error(e)
-			}
-		}
-	}, [ai, modelName, editor, toast])
 
 	const handleSubmit = useCallback<FormEventHandler<HTMLFormElement>>(
 		async (e) => {
@@ -159,13 +81,22 @@ export function ChatPanel({ editor }: { editor: Editor }) {
 			$contextBoundsHighlight.set(intitialBounds)
 
 			setIsGenerating(true)
-			await processSchedule()
+			try {
+				await processSchedule(editor, modelName, ai, rCancelFn)
+			} catch (e) {
+				toast.addToast({
+					title: 'Error',
+					description: e instanceof Error ? e.message : 'An error occurred',
+					severity: 'error',
+				})
+				console.error(e)
+			}
 			setIsGenerating(false)
 
 			$pendingContextItems.set([])
 			$contextBoundsHighlight.set(null)
 		},
-		[processSchedule, editor]
+		[ai, modelName, editor, rCancelFn, toast]
 	)
 
 	function handleNewChat() {
@@ -204,31 +135,4 @@ export function ChatPanel({ editor }: { editor: Editor }) {
 			/>
 		</div>
 	)
-}
-
-function getSimpleContextItemsFromContextItems(contextItems: ContextItem[]) {
-	const shapeContextItems = contextItems.filter((item) => item.type === 'shape')
-	const areaContextItems = contextItems.filter((item) => item.type === 'area')
-	const pointContextItems = contextItems.filter((item) => item.type === 'point')
-
-	const simpleContent = getSimpleContentFromCanvasContent({
-		shapes: shapeContextItems.map((item) => item.shape),
-		bindings: [],
-		assets: [],
-	})
-
-	return {
-		shapes: simpleContent.shapes,
-		areas: areaContextItems.map((area) => roundBox(area.bounds)),
-		points: pointContextItems.map((point) => point.point),
-	}
-}
-
-function roundBox(box: BoxModel) {
-	const b = { ...box }
-	b.x = Math.round(b.x)
-	b.y = Math.round(b.y)
-	b.w = Math.round(b.w)
-	b.h = Math.round(b.h)
-	return b
 }
