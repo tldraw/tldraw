@@ -184,14 +184,32 @@ a {
 }
 
 .board-history__list {
-	padding: 16px;
-	display: flex;
-	flex-direction: column;
-	gap: 8px;
+	list-style: none;
+	padding: 0;
+	margin: 0;
+}
+
+.board-history__list > .board-history__month-group:first-child {
+	margin-top: 24px;
+}
+
+.board-history__month-group {
+	margin-bottom: 32px;
+}
+
+.board-history__month-header {
+	font-size: 16px;
+	font-weight: 600;
+	color: var(--color-text-1);
+	margin: 0 0 8px 0;
+	padding: 0;
 }
 
 .board-history__list a {
-	padding: 8px 8px 8px 0px;
+	color: var(--color-text);
+	text-decoration: none;
+	padding: 8px 0;
+	display: block;
 }
 
 .board-history__list a:hover {
@@ -202,6 +220,38 @@ a {
 	position: fixed;
 	top: 8px;
 	right: 8px;
+}
+
+.board-history__load-more {
+	display: flex;
+	justify-content: center;
+	padding: 16px;
+}
+
+.board-history__load-more-button {
+	font-family: inherit;
+	font-size: inherit;
+	height: 36px;
+	border: 2px solid var(--color-selected);
+	border-radius: 8px;
+	background-color: var(--color-selected);
+	color: var(--color-selected-contrast);
+	text-shadow: none;
+	pointer-events: all;
+	position: relative;
+	font-weight: 600;
+	cursor: pointer;
+	transition: all 0.2s ease;
+}
+
+.board-history__load-more-button:hover:not(:disabled) {
+	background-color: var(--color-selected);
+	opacity: 0.9;
+}
+
+.board-history__load-more-button:disabled {
+	opacity: 0.5;
+	cursor: not-allowed;
 }
 
 /* ----------------- Iframe warning ----------------- */

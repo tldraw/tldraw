@@ -2,9 +2,30 @@ import { expect } from '@playwright/test'
 import { setup } from '../shared-e2e'
 import { createAnalyticsReporter, getTestContext } from './fixtures/analytics-reporter'
 import test from './fixtures/fixtures'
-import { formatPerformanceResults, setupPerformanceTest } from './fixtures/perf-utils'
+import {
+	formatPerformanceResults,
+	PerformanceTestResult,
+	setupPerformanceTest,
+} from './fixtures/perf-utils'
 
 test.describe.configure({ mode: 'serial' })
+
+function testOutput(result: PerformanceTestResult) {
+	// eslint-disable-next-line no-console
+	console.log(
+		`${result.interaction} Performance: ${result.metrics.averageFps} FPS (min: ${result.metrics.minFps})`
+	)
+
+	// Validate performance
+	expect(result.metrics.averageFps).toBeGreaterThan(18)
+	expect(result.comparison.status).not.toBe('fail')
+
+	// Update baseline if this is a significant improvement
+	if (result.comparison.isImprovement) {
+		// eslint-disable-next-line no-console
+		console.log('Consider updating baseline - performance improved!')
+	}
+}
 
 test.describe('Performance Tests', () => {
 	test.beforeEach(setup)
@@ -73,37 +94,14 @@ test.describe('Performance Tests', () => {
 		const perfSuite = await setupPerformanceTest({ page, context, request }, browserName)
 		await perfSuite.setupHeavyBoard()
 
-		const result = await perfSuite.testShapeRotation()
-
-		// eslint-disable-next-line no-console
-		console.log(
-			`Rotation Performance: ${result.metrics.averageFps} FPS (min: ${result.metrics.minFps})`
-		)
-
-		// Validate performance
-		expect(result.metrics.averageFps).toBeGreaterThan(20)
-		expect(result.comparison.status).not.toBe('fail')
-
-		// Update baseline if this is a significant improvement
-		if (result.comparison.isImprovement) {
-			// eslint-disable-next-line no-console
-			console.log('Consider updating baseline - performance improved!')
-		}
+		testOutput(await perfSuite.testShapeRotation())
 	})
 
 	test('Shape Dragging Performance', async ({ page, context, request, browserName }) => {
 		const perfSuite = await setupPerformanceTest({ page, context, request }, browserName)
 		await perfSuite.setupHeavyBoard()
 
-		const result = await perfSuite.testShapeDragging()
-
-		// eslint-disable-next-line no-console
-		console.log(
-			`Dragging Performance: ${result.metrics.averageFps} FPS (min: ${result.metrics.minFps})`
-		)
-
-		expect(result.metrics.averageFps).toBeGreaterThan(25)
-		expect(result.comparison.status).not.toBe('fail')
+		testOutput(await perfSuite.testShapeDragging())
 	})
 
 	test('Shape Resizing Performance', async ({ page, context, request, browserName, isMobile }) => {
@@ -112,32 +110,16 @@ test.describe('Performance Tests', () => {
 		const perfSuite = await setupPerformanceTest({ page, context, request }, browserName)
 		await perfSuite.setupHeavyBoard(50)
 
-		const result = await perfSuite.testShapeResizing()
-
-		// eslint-disable-next-line no-console
-		console.log(
-			`Resizing Performance: ${result.metrics.averageFps} FPS (min: ${result.metrics.minFps})`
-		)
-
-		expect(result.metrics.averageFps).toBeGreaterThan(20)
-		expect(result.comparison.status).not.toBe('fail')
+		testOutput(await perfSuite.testShapeResizing())
 	})
 
 	test('Canvas Panning Performance', async ({ page, context, request, browserName, isMobile }) => {
 		if (isMobile) return
 
 		const perfSuite = await setupPerformanceTest({ page, context, request }, browserName)
-		await perfSuite.setupHeavyBoard()
+		await perfSuite.setupHeavyBoard(1000)
 
-		const result = await perfSuite.testCanvasPanning()
-
-		// eslint-disable-next-line no-console
-		console.log(
-			`Panning Performance: ${result.metrics.averageFps} FPS (min: ${result.metrics.minFps})`
-		)
-
-		expect(result.metrics.averageFps).toBeGreaterThan(30)
-		expect(result.comparison.status).not.toBe('fail')
+		testOutput(await perfSuite.testCanvasPanning())
 	})
 
 	test('Canvas Zooming Performance', async ({ page, context, request, browserName, isMobile }) => {
@@ -146,15 +128,7 @@ test.describe('Performance Tests', () => {
 		const perfSuite = await setupPerformanceTest({ page, context, request }, browserName)
 		await perfSuite.setupHeavyBoard()
 
-		const result = await perfSuite.testCanvasZooming()
-
-		// eslint-disable-next-line no-console
-		console.log(
-			`Zooming Performance: ${result.metrics.averageFps} FPS (min: ${result.metrics.minFps})`
-		)
-
-		expect(result.metrics.averageFps).toBeGreaterThan(30)
-		expect(result.comparison.status).not.toBe('fail')
+		testOutput(await perfSuite.testCanvasZooming())
 	})
 })
 

@@ -40,6 +40,11 @@ export interface GetReadonlySlugResponseBody {
 	isLegacy: boolean
 }
 
+export interface HistoryResponseBody {
+	timestamps: string[]
+	hasMore: boolean
+}
+
 /* ----------------------- App ---------------------- */
 
 export interface CreateFilesRequestBody {
