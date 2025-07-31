@@ -10,7 +10,7 @@ import {
 import { ChatPanel } from './components/ChatPanel'
 import { ContextBoundsHighlights } from './components/highlights/ContextBoundsHighlights'
 import { ContextHighlights } from './components/highlights/ContextHighlights'
-import { overrideFillStyleWithLinedFillStyle } from './LinedFillStyle'
+import { overrideFillStyleWithLinedFillStyle } from './linedFillStyle'
 import { TargetAreaTool } from './tools/TargetAreaTool'
 import { TargetShapeTool } from './tools/TargetShapeTool'
 
