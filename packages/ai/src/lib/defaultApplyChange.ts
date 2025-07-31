@@ -2,8 +2,8 @@ import { Editor, TLShapeId, TLShapePartial, exhaustiveSwitchError } from 'tldraw
 import { TLAiChange } from './types'
 
 /**
- * The default apply function for the AI module.
- * Apply all changes to the editor immediately.
+ * Apply an AI change to the canvas.
+ * This is the default apply function for the AI module.
  *
  * @param change - The change to apply
  * @param editor - The editor to apply the change to
