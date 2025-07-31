@@ -25,304 +25,79 @@ export type ISimpleFill = z.infer<typeof SimpleFill>
 
 const SimpleLabel = z.string()
 
-const SimpleRectangleShape = z.object({
-	_type: z.literal('rectangle'),
-	shapeId: z.string(),
-	note: z.string(),
-	x: z.number(),
-	y: z.number(),
-	width: z.number(),
-	height: z.number(),
-	color: SimpleColor,
-	fill: SimpleFill,
-	text: SimpleLabel.optional(),
-})
+function GeoShape<T extends string>(name: T) {
+	return z.object({
+		_type: z.literal(name),
+		shapeId: z.string(),
+		note: z.string(),
+		x: z.number(),
+		y: z.number(),
+		width: z.number(),
+		height: z.number(),
+		color: SimpleColor,
+		fill: SimpleFill,
+		text: SimpleLabel.optional(),
+	})
+}
 
+const SimpleRectangleShape = GeoShape('rectangle')
 export type ISimpleRectangleShape = z.infer<typeof SimpleRectangleShape>
 
-const SimpleEllipseShape = z.object({
-	_type: z.literal('ellipse'),
-	shapeId: z.string(),
-	note: z.string(),
-	x: z.number(),
-	y: z.number(),
-	width: z.number(),
-	height: z.number(),
-	color: SimpleColor,
-	fill: SimpleFill,
-	text: SimpleLabel.optional(),
-})
-
+const SimpleEllipseShape = GeoShape('ellipse')
 export type ISimpleEllipseShape = z.infer<typeof SimpleEllipseShape>
 
-const SimpleTriangleShape = z.object({
-	_type: z.literal('triangle'),
-	shapeId: z.string(),
-	note: z.string(),
-	x: z.number(),
-	y: z.number(),
-	width: z.number(),
-	height: z.number(),
-	color: SimpleColor,
-	fill: SimpleFill,
-	text: SimpleLabel.optional(),
-})
-
+const SimpleTriangleShape = GeoShape('triangle')
 export type ISimpleTriangleShape = z.infer<typeof SimpleTriangleShape>
 
-const SimpleDiamondShape = z.object({
-	_type: z.literal('diamond'),
-	shapeId: z.string(),
-	note: z.string(),
-	x: z.number(),
-	y: z.number(),
-	width: z.number(),
-	height: z.number(),
-	color: SimpleColor,
-	fill: SimpleFill,
-	text: SimpleLabel.optional(),
-})
-
+const SimpleDiamondShape = GeoShape('diamond')
 export type ISimpleDiamondShape = z.infer<typeof SimpleDiamondShape>
 
-const SimpleHexagonShape = z.object({
-	_type: z.literal('hexagon'),
-	shapeId: z.string(),
-	note: z.string(),
-	x: z.number(),
-	y: z.number(),
-	width: z.number(),
-	height: z.number(),
-	color: SimpleColor,
-	fill: SimpleFill,
-	text: SimpleLabel.optional(),
-})
-
+const SimpleHexagonShape = GeoShape('hexagon')
 export type ISimpleHexagonShape = z.infer<typeof SimpleHexagonShape>
 
-const SimpleOvalShape = z.object({
-	_type: z.literal('oval'),
-	shapeId: z.string(),
-	note: z.string(),
-	x: z.number(),
-	y: z.number(),
-	width: z.number(),
-	height: z.number(),
-	color: SimpleColor,
-	fill: SimpleFill,
-	text: SimpleLabel.optional(),
-})
-
+const SimpleOvalShape = GeoShape('oval')
 export type ISimpleOvalShape = z.infer<typeof SimpleOvalShape>
 
-const SimpleCloudShape = z.object({
-	_type: z.literal('cloud'),
-	shapeId: z.string(),
-	note: z.string(),
-	x: z.number(),
-	y: z.number(),
-	width: z.number(),
-	height: z.number(),
-	color: SimpleColor,
-	fill: SimpleFill,
-	text: SimpleLabel.optional(),
-})
-
+const SimpleCloudShape = GeoShape('cloud')
 export type ISimpleCloudShape = z.infer<typeof SimpleCloudShape>
 
-const SimpleXBoxShape = z.object({
-	_type: z.literal('x-box'),
-	shapeId: z.string(),
-	note: z.string(),
-	x: z.number(),
-	y: z.number(),
-	width: z.number(),
-	height: z.number(),
-	color: SimpleColor,
-	fill: SimpleFill,
-	text: SimpleLabel.optional(),
-})
-
+const SimpleXBoxShape = GeoShape('x-box')
 export type ISimpleXBoxShape = z.infer<typeof SimpleXBoxShape>
 
-const SimplePentagonShape = z.object({
-	_type: z.literal('pentagon'),
-	shapeId: z.string(),
-	note: z.string(),
-	x: z.number(),
-	y: z.number(),
-	width: z.number(),
-	height: z.number(),
-	color: SimpleColor,
-	fill: SimpleFill,
-	text: SimpleLabel.optional(),
-})
-
+const SimplePentagonShape = GeoShape('pentagon')
 export type ISimplePentagonShape = z.infer<typeof SimplePentagonShape>
 
-const SimpleOctagonShape = z.object({
-	_type: z.literal('octagon'),
-	shapeId: z.string(),
-	note: z.string(),
-	x: z.number(),
-	y: z.number(),
-	width: z.number(),
-	height: z.number(),
-	color: SimpleColor,
-	fill: SimpleFill,
-	text: SimpleLabel.optional(),
-})
-
+const SimpleOctagonShape = GeoShape('octagon')
 export type ISimpleOctagonShape = z.infer<typeof SimpleOctagonShape>
 
-const SimpleStarShape = z.object({
-	_type: z.literal('star'),
-	shapeId: z.string(),
-	note: z.string(),
-	x: z.number(),
-	y: z.number(),
-	width: z.number(),
-	height: z.number(),
-	color: SimpleColor,
-	fill: SimpleFill,
-	text: SimpleLabel.optional(),
-})
-
+const SimpleStarShape = GeoShape('star')
 export type ISimpleStarShape = z.infer<typeof SimpleStarShape>
 
-const SimpleRhombusShape = z.object({
-	_type: z.literal('rhombus'),
-	shapeId: z.string(),
-	note: z.string(),
-	x: z.number(),
-	y: z.number(),
-	width: z.number().optional(),
-	height: z.number().optional(),
-	color: SimpleColor.optional(),
-	fill: SimpleFill.optional(),
-	text: SimpleLabel.optional(),
-})
-
+const SimpleRhombusShape = GeoShape('rhombus')
 export type ISimpleRhombusShape = z.infer<typeof SimpleRhombusShape>
 
-const SimpleRhombus2Shape = z.object({
-	_type: z.literal('rhombus-2'),
-	shapeId: z.string(),
-	note: z.string(),
-	x: z.number(),
-	y: z.number(),
-	width: z.number(),
-	height: z.number(),
-	color: SimpleColor,
-	fill: SimpleFill,
-	text: SimpleLabel.optional(),
-})
-
+const SimpleRhombus2Shape = GeoShape('rhombus-2')
 export type ISimpleRhombus2Shape = z.infer<typeof SimpleRhombus2Shape>
 
-const SimpleTrapezoidShape = z.object({
-	_type: z.literal('trapezoid'),
-	shapeId: z.string(),
-	note: z.string(),
-	x: z.number(),
-	y: z.number(),
-	width: z.number(),
-	height: z.number(),
-	color: SimpleColor,
-	fill: SimpleFill,
-	text: SimpleLabel.optional(),
-})
-
+const SimpleTrapezoidShape = GeoShape('trapezoid')
 export type ISimpleTrapezoidShape = z.infer<typeof SimpleTrapezoidShape>
 
-const SimpleArrowRightShape = z.object({
-	_type: z.literal('arrow-right'),
-	shapeId: z.string(),
-	note: z.string(),
-	x: z.number(),
-	y: z.number(),
-	width: z.number(),
-	height: z.number(),
-	color: SimpleColor,
-	fill: SimpleFill,
-	text: SimpleLabel.optional(),
-})
-
+const SimpleArrowRightShape = GeoShape('arrow-right')
 export type ISimpleArrowRightShape = z.infer<typeof SimpleArrowRightShape>
 
-const SimpleArrowLeftShape = z.object({
-	_type: z.literal('arrow-left'),
-	shapeId: z.string(),
-	note: z.string(),
-	x: z.number(),
-	y: z.number(),
-	width: z.number(),
-	height: z.number(),
-	color: SimpleColor,
-	fill: SimpleFill,
-	text: SimpleLabel.optional(),
-})
-
+const SimpleArrowLeftShape = GeoShape('arrow-left')
 export type ISimpleArrowLeftShape = z.infer<typeof SimpleArrowLeftShape>
 
-const SimpleArrowUpShape = z.object({
-	_type: z.literal('arrow-up'),
-	shapeId: z.string(),
-	note: z.string(),
-	x: z.number(),
-	y: z.number(),
-	width: z.number(),
-	height: z.number(),
-	color: SimpleColor,
-	fill: SimpleFill,
-	text: SimpleLabel.optional(),
-})
-
+const SimpleArrowUpShape = GeoShape('arrow-up')
 export type ISimpleArrowUpShape = z.infer<typeof SimpleArrowUpShape>
 
-const SimpleArrowDownShape = z.object({
-	_type: z.literal('arrow-down'),
-	shapeId: z.string(),
-	note: z.string(),
-	x: z.number(),
-	y: z.number(),
-	width: z.number(),
-	height: z.number(),
-	color: SimpleColor,
-	fill: SimpleFill,
-	text: SimpleLabel.optional(),
-})
-
+const SimpleArrowDownShape = GeoShape('arrow-down')
 export type ISimpleArrowDownShape = z.infer<typeof SimpleArrowDownShape>
 
-const SimpleCheckBoxShape = z.object({
-	_type: z.literal('check-box'),
-	shapeId: z.string(),
-	note: z.string(),
-	x: z.number(),
-	y: z.number(),
-	width: z.number(),
-	height: z.number(),
-	color: SimpleColor,
-	fill: SimpleFill,
-	text: SimpleLabel.optional(),
-})
-
+const SimpleCheckBoxShape = GeoShape('check-box')
 export type ISimpleCheckBoxShape = z.infer<typeof SimpleCheckBoxShape>
 
-const SimpleHeartShape = z.object({
-	_type: z.literal('heart'),
-	shapeId: z.string(),
-	note: z.string(),
-	x: z.number(),
-	y: z.number(),
-	width: z.number(),
-	height: z.number(),
-	color: SimpleColor,
-	fill: SimpleFill,
-	text: SimpleLabel.optional(),
-})
-
+const SimpleHeartShape = GeoShape('heart')
 export type ISimpleHeartShape = z.infer<typeof SimpleHeartShape>
 
 const SimpleLineShape = z.object({
@@ -420,12 +195,7 @@ export const SimpleShape = z.union(SIMPLE_SHAPES)
 
 export type ISimpleShape = z.infer<typeof SimpleShape>
 
-const SimpleShapeUpdate = z.union(SIMPLE_SHAPES)
-
-export type ISimpleShapeUpdate = z.infer<typeof SimpleShapeUpdate>
-
 // Events
-
 const SimpleCreateOrUpdateEvent = z.object({
 	_type: z.enum(['create', 'update']),
 	shape: SimpleShape,
