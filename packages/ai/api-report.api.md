@@ -170,10 +170,11 @@ export type TldrawAiGenerateFn = (opts: {
 // @public
 export class TldrawAiModule {
     constructor(opts?: TldrawAiModuleOptions);
+    applyChange(change: TLAiChange): void;
     // (undocumented)
     dispose(): void;
     generate(options: TldrawAiPromptOptions): Promise<{
-        handleChange: (change: TLAiChange, apply: TldrawAiApplyFn) => void;
+        handleChange: (change: TLAiChange) => void;
         prompt: TLAiPrompt;
     }>;
     getPrompt(options: TldrawAiPromptOptions): Promise<TLAiPrompt>;
@@ -184,13 +185,15 @@ export class TldrawAiModule {
 // @public (undocumented)
 export interface TldrawAiModuleOptions {
     // (undocumented)
+    apply: TldrawAiApplyFn;
+    // (undocumented)
     editor: Editor;
     // (undocumented)
     transforms?: TldrawAiTransformConstructor[];
 }
 
 // @public (undocumented)
-export interface TldrawAiOptions extends Omit<TldrawAiModuleOptions, 'editor'> {
+export interface TldrawAiOptions extends Omit<TldrawAiModuleOptions, 'apply' | 'editor'> {
     // (undocumented)
     apply?: TldrawAiApplyFn;
     // (undocumented)

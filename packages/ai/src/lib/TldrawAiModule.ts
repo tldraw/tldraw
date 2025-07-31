@@ -7,6 +7,7 @@ import { TldrawAiApplyFn, TldrawAiPromptOptions } from './useTldrawAi'
 export interface TldrawAiModuleOptions {
 	editor: Editor
 	transforms?: TldrawAiTransformConstructor[]
+	apply: TldrawAiApplyFn
 }
 
 /**
@@ -41,19 +42,28 @@ export class TldrawAiModule {
 
 		transforms.reverse()
 
-		const handleChange = (change: TLAiChange, apply: TldrawAiApplyFn) => {
+		const handleChange = (change: TLAiChange) => {
 			for (const transform of transforms) {
 				if (transform.transformChange) {
 					change = transform.transformChange(change)
 				}
 			}
-			apply({ change, editor: this.opts.editor })
+			this.applyChange(change)
 		}
 
 		return {
 			prompt,
 			handleChange,
 		}
+	}
+
+	/**
+	 * Apply a change to the editor.
+	 *
+	 * @param change - The change to apply
+	 */
+	applyChange(change: TLAiChange) {
+		this.opts.apply({ change, editor: this.opts.editor })
 	}
 
 	/**

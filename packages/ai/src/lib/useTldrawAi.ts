@@ -68,7 +68,7 @@ export type TldrawAiStreamFn = (opts: {
 export type TldrawAiApplyFn = (opts: { change: TLAiChange; editor: Editor }) => void
 
 /** @public */
-export interface TldrawAiOptions extends Omit<TldrawAiModuleOptions, 'editor'> {
+export interface TldrawAiOptions extends Omit<TldrawAiModuleOptions, 'editor' | 'apply'> {
 	editor?: Editor
 	generate?: TldrawAiGenerateFn
 	stream?: TldrawAiStreamFn
@@ -98,7 +98,10 @@ export function useTldrawAi(opts: TldrawAiOptions): TldrawAi {
 		)
 	}
 
-	const ai = useMemo(() => new TldrawAiModule({ editor, transforms }), [editor, transforms])
+	const ai = useMemo(
+		() => new TldrawAiModule({ editor, transforms, apply: applyFn }),
+		[editor, transforms, applyFn]
+	)
 
 	const rCancelFunction = useRef<(() => void) | null>(null)
 	const rPreviousArguments = useRef<TldrawAiPromptOptions>('')
@@ -152,7 +155,7 @@ export function useTldrawAi(opts: TldrawAiOptions): TldrawAi {
 									try {
 										editor.run(
 											() => {
-												handleChange(change, applyFn)
+												handleChange(change)
 											},
 											{
 												ignoreShapeLock: false, // ? should this be true?
@@ -192,7 +195,7 @@ export function useTldrawAi(opts: TldrawAiOptions): TldrawAi {
 										() => {
 											for (const change of changes) {
 												pendingChanges.push(change)
-												handleChange(change, applyFn)
+												handleChange(change)
 											}
 										},
 										{
@@ -235,7 +238,7 @@ export function useTldrawAi(opts: TldrawAiOptions): TldrawAi {
 				cancel: rCancelFunction.current,
 			}
 		},
-		[ai, editor, generateFn, streamFn, applyFn]
+		[ai, editor, generateFn, streamFn]
 	)
 
 	const repeat = useCallback(() => {
@@ -249,7 +252,7 @@ export function useTldrawAi(opts: TldrawAiOptions): TldrawAi {
 			editor.run(
 				() => {
 					for (const change of rPreviousChanges.current) {
-						handleChange(change, applyFn)
+						handleChange(change)
 					}
 				},
 				{
@@ -277,7 +280,7 @@ export function useTldrawAi(opts: TldrawAiOptions): TldrawAi {
 			promise,
 			cancel: rCancelFunction.current,
 		}
-	}, [ai, editor, applyFn])
+	}, [ai, editor])
 
 	const cancel = useCallback(() => {
 		rCancelFunction.current?.()
