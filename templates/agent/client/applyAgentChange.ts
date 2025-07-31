@@ -22,10 +22,10 @@ export function applyAgentChange(change: Streaming<TLAgentChange>) {
 			})
 			return
 		}
-		case 'schedule': {
+		case 'review': {
 			createOrUpdateHistoryItem({
 				type: 'agent-action',
-				action: 'schedule',
+				action: 'review',
 				status: change.complete ? 'done' : 'progress',
 				info: change.intent ?? '',
 			})
