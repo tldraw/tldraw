@@ -1,5 +1,5 @@
 import { TLDefaultFillStyle } from 'tldraw'
-import { ISimpleFill } from './schema'
+import { ISimpleColor, ISimpleFill, SimpleColor } from './schema'
 
 const SIMPLE_TO_SHAPE_FILLS: Record<ISimpleFill, TLDefaultFillStyle> = {
 	none: 'none',
@@ -23,4 +23,21 @@ export function simpleFillToShapeFill(fill: ISimpleFill): TLDefaultFillStyle {
 
 export function shapeFillToSimpleFill(fill: TLDefaultFillStyle): ISimpleFill {
 	return SHAPE_TO_SIMPLE_FILLS[fill]
+}
+
+export function stringToSimpleColor(color: string): ISimpleColor {
+	if (SimpleColor.safeParse(color).success) {
+		return color as ISimpleColor
+	}
+
+	switch (color) {
+		case 'pink': {
+			return 'light-violet'
+		}
+		case 'light-pink': {
+			return 'light-violet'
+		}
+	}
+
+	return 'black'
 }

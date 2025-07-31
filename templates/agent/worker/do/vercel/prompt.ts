@@ -4,10 +4,8 @@ import {
 	ACTION_HISTORY_ITEM_DEFINITIONS,
 	ChatHistoryItem,
 } from '../../../client/types/ChatHistoryItem'
-import {
-	getSimpleContentFromCanvasContent,
-	getSimplePeripheralContentFromCanvasContent,
-} from '../../simple/getSimpleContentFromCanvasContent'
+import { getSimpleContentFromCanvasContent } from '../../simple/getSimpleContentFromCanvasContent'
+import { getSimplePeripheralContentFromCanvasContent } from '../../simple/getSimplePeripheralContentFromCanvasContent'
 import { getReviewPrompt } from './review-prompt'
 import { getSetMyViewPrompt } from './set-my-view-prompt'
 
