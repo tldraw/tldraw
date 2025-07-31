@@ -11,6 +11,7 @@ export interface DraggableToolbarItemProps {
 	onDragStart?: (shapeId: TLShapeId, position: Vec, toolId: string) => void
 }
 
+// Wrapper component that makes any toolbar item draggable for shape creation
 export function DraggableToolbarItem({
 	children,
 	toolId,
@@ -21,7 +22,7 @@ export function DraggableToolbarItem({
 	const tools = useTools()
 	const tool = tools[toolId]
 
-	// Default shape creation for basic tools
+	// Default shape creation function for basic tldraw tools
 	const defaultCreateShape = (shapeId: TLShapeId, center: Vec, toolId: string) => {
 		const markId = editor.markHistoryStoppingPoint(`create ${toolId}`)
 
@@ -31,7 +32,7 @@ export function DraggableToolbarItem({
 				tool.onSelect('toolbar')
 			}
 
-			// For geometry tools, create the shape directly
+			// Handle geometry shapes (rectangle, ellipse, etc.) specially
 			if (GeoShapeGeoStyle.values.includes(toolId as TLGeoShapeGeoStyle)) {
 				editor.createShape({
 					id: shapeId,
@@ -46,6 +47,7 @@ export function DraggableToolbarItem({
 				})
 				editor.select(shapeId)
 			} else {
+				// For other tools, create the shape with the tool's type
 				editor.createShape({
 					id: shapeId,
 					type: toolId,
@@ -54,9 +56,11 @@ export function DraggableToolbarItem({
 					props: {},
 				})
 				editor.select(shapeId)
+				// Switch to the appropriate tool after creation
 				editor.setCurrentTool(toolId === 'note' ? 'select' : toolId)
 			}
 
+			// Nudge the shape to center it on the drop point
 			const shapeBounds = editor.getShapePageBounds(shapeId)!
 			const nudgeAmount = Vec.Sub(center, shapeBounds.center)
 			editor.nudgeShapes([shapeId], nudgeAmount)
@@ -82,7 +86,7 @@ export function DraggableToolbarItem({
 	return (
 		<div
 			onPointerDown={(e: React.PointerEvent) => {
-				// Check if it's a left click
+				// Only handle left mouse button for dragging
 				if (e.button === 0) {
 					handlePointerDown(e, toolId)
 				}

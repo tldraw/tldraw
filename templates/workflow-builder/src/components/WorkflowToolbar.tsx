@@ -41,6 +41,7 @@ import { MathematicalToolbarItem } from './MathematicalToolbarItem'
 
 export function WorkflowToolbar() {
 	const ref = useRef<HTMLDivElement>(null)
+	// Allow wheel events to pass through to the canvas
 	usePassThroughWheelEvents(ref)
 	const popoverId = 'toolbar overflow'
 	const msg = useTranslation()
@@ -97,6 +98,7 @@ export function WorkflowToolbar() {
 									label={msg('tool-panel.more')}
 									id={`${id}_more`}
 									onClick={() => {
+										// Close the menu when a tool is selected
 										tlmenus.deleteOpenMenu(popoverId, editor.contextId)
 										setIsOpen(false)
 									}}

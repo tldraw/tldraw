@@ -17,12 +17,17 @@ import { onNodePortConnect, onNodePortDisconnect } from '../nodes/nodeTypes'
 import { PortId } from '../ports/Port'
 import { ConnectionShape } from './ConnectionShapeUtil'
 
-export interface ConnectionBindingProps {
-	portId: PortId
-	terminal: 'start' | 'end'
-}
-
-export type ConnectionBinding = TLBaseBinding<'connection', ConnectionBindingProps>
+/**
+ * A connection binding is a binding between a connection shape and a node shape. Usually, each
+ * connection shape has two bindings: one for each end of the connection.
+ */
+export type ConnectionBinding = TLBaseBinding<
+	'connection',
+	{
+		portId: PortId
+		terminal: 'start' | 'end'
+	}
+>
 
 export class ConnectionBindingUtil extends BindingUtil<ConnectionBinding> {
 	static override type = 'connection' as const
@@ -36,20 +41,24 @@ export class ConnectionBindingUtil extends BindingUtil<ConnectionBinding> {
 	}
 
 	onBeforeIsolateToShape({ binding }: BindingOnShapeIsolateOptions<ConnectionBinding>): void {
+		// When we're duplicating a node but not its connection, delete the connection
 		this.editor.deleteShapes([binding.fromId])
 	}
 
 	onBeforeDeleteToShape({ binding }: BindingOnShapeDeleteOptions<ConnectionBinding>): void {
+		// When we're deleting a node, delete any connections that are bound to it
 		this.editor.deleteShapes([binding.fromId])
 	}
 
 	onAfterCreate({ binding }: BindingOnCreateOptions<ConnectionBinding>): void {
+		// Our ports system has an `onConnect` callback - call it when we create a connection
 		const node = this.editor.getShape(binding.toId)
 		if (!node || !this.editor.isShapeOfType<NodeShape>(node, 'node')) return
 		onNodePortConnect(this.editor, node, binding.props.portId)
 	}
 
 	onAfterChange({ bindingBefore, bindingAfter }: BindingOnChangeOptions<ConnectionBinding>): void {
+		// We also might need to call the connection callbacks if we change the thing this connection is binding to.
 		if (
 			bindingBefore.props.portId !== bindingAfter.props.portId ||
 			bindingBefore.toId !== bindingAfter.toId
@@ -70,10 +79,26 @@ export class ConnectionBindingUtil extends BindingUtil<ConnectionBinding> {
 	}
 
 	onAfterDelete({ binding }: BindingOnDeleteOptions<ConnectionBinding>): void {
+		// When we're deleting a connection, we need to call the node's port disconnect callback
 		const node = this.editor.getShape(binding.toId)
 		if (!node || !this.editor.isShapeOfType<NodeShape>(node, 'node')) return
 		onNodePortDisconnect(this.editor, node, binding.props.portId)
 	}
+}
+
+/** The bindings associated with a specific connection shape. */
+export interface ConnectionBindings {
+	start?: ConnectionBinding
+	end?: ConnectionBinding
+}
+
+/** Get the bindings associated with a specific connection shape. */
+export function getConnectionBindings(
+	editor: Editor,
+	shape: ConnectionShape | TLShapeId
+): ConnectionBindings {
+	// we cache the bindings so we don't have to recompute them every time - this function gets called a lot.
+	return connectionBindingsCache.get(editor, typeof shape === 'string' ? shape : shape.id) ?? {}
 }
 
 const connectionBindingsCache = createComputedCache(
@@ -98,34 +123,32 @@ const connectionBindingsCache = createComputedCache(
 	}
 )
 
-export interface ConnectionBindings {
-	start?: ConnectionBinding
-	end?: ConnectionBinding
-}
-
-export function getConnectionBindings(
-	editor: Editor,
-	shape: ConnectionShape | TLShapeId
-): ConnectionBindings {
-	return connectionBindingsCache.get(editor, typeof shape === 'string' ? shape : shape.id) ?? {}
-}
-
+/** Get the position of a connection binding in page space. */
 export function getConnectionBindingPositionInPageSpace(
 	editor: Editor,
 	binding: ConnectionBinding
 ) {
+	// Find the shape that this binding is bound to
 	const targetShape = editor.getShape(binding.toId)
 	if (!targetShape || !editor.isShapeOfType<NodeShape>(targetShape, 'node')) return null
+
+	// Find the port in the shape that the connection is bound to
 	const port = getNodePorts(editor, targetShape)?.[binding.props.portId]
 	if (!port) return null
+
+	// Transform the port position from shape space to page space
 	return editor.getShapePageTransform(targetShape).applyToPoint(port)
 }
 
+/**
+ * Create or update a connection binding. This utility makes sure that there are only ever two
+ * connection bindings per connection shape - a start and an end.
+ */
 export function createOrUpdateConnectionBinding(
 	editor: Editor,
 	connection: ConnectionShape | TLShapeId,
 	target: NodeShape | TLShapeId,
-	props: ConnectionBindingProps
+	props: ConnectionBinding['props']
 ) {
 	const connectionId = typeof connection === 'string' ? connection : connection.id
 	const targetId = typeof target === 'string' ? target : target.id
@@ -156,6 +179,7 @@ export function createOrUpdateConnectionBinding(
 	}
 }
 
+/** Remove a connection binding. */
 export function removeConnectionBinding(
 	editor: Editor,
 	connection: ConnectionShape,

@@ -6,18 +6,29 @@ import { portState } from './portState'
 
 export type PortId = string
 
+/**
+ * Port ids are unique within a shape. To identify a port we need both the shape id and the port id.
+ */
 export interface PortIdentifier {
-	portId: PortId
 	shapeId: TLShapeId
+	portId: PortId
 }
 
+/**
+ * Shapes define their ports with a position, id, and whether they're the start (an output) or end
+ * (an input). of a connection.
+ */
 export interface ShapePort extends VecModel {
 	id: PortId
 	terminal: 'start' | 'end'
 }
 
+/**
+ * This react component renders a port.
+ */
 export function Port({ shapeId, portId }: { shapeId: TLShapeId; portId: PortId }) {
 	const editor = useEditor()
+	// get the port from the the node definition:
 	const port = useValue(
 		'port',
 		() => {
@@ -29,6 +40,8 @@ export function Port({ shapeId, portId }: { shapeId: TLShapeId; portId: PortId }
 	)
 	if (!port) throw new Error(`Port ${portId} not found on shape ${shapeId}`)
 
+	// isHinting is true if the user is currently dragging a connection to this port. it means we
+	// should highlight this port.
 	const isHinting = useValue(
 		'isHinting',
 		() => {
@@ -38,6 +51,8 @@ export function Port({ shapeId, portId }: { shapeId: TLShapeId; portId: PortId }
 		[editor, shapeId, portId]
 	)
 
+	// isEligible is true if the the user is currently dragging a connection, and this port is one
+	// that the connection can be connected to.
 	const isEligible = useValue(
 		'isEligible',
 		() => {

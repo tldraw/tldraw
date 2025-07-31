@@ -26,8 +26,10 @@ import {
 } from './nodeTypes'
 import { NodeValue } from './types/shared'
 
+// Define our custom node shape type that extends tldraw's base shape system
 export type NodeShape = TLBaseShape<'node', { node: NodeType }>
 
+// This class extends tldraw's ShapeUtil to define how our custom node shapes behave
 export class NodeShapeUtil extends ShapeUtil<NodeShape> {
 	static override type = 'node' as const
 	static override props: RecordProps<NodeShape> = {
@@ -67,6 +69,7 @@ export class NodeShapeUtil extends ShapeUtil<NodeShape> {
 		}
 	}
 
+	// Define the geometry of our node shape including ports
 	getGeometry(shape: NodeShape) {
 		const ports = getNodePorts(this.editor, shape)
 
@@ -107,11 +110,13 @@ export class NodeShapeUtil extends ShapeUtil<NodeShape> {
 	}
 }
 
+// SVG indicator component that shows selection bounds and ports
 function NodeShapeIndicator({ shape, ports }: { shape: NodeShape; ports: ShapePort[] }) {
 	const id = useUniqueSafeId()
 
 	return (
 		<>
+			{/* Create a mask to show ports as holes in the selection bounds */}
 			<mask id={id}>
 				<rect
 					width={NODE_WIDTH_PX + 10}
@@ -144,13 +149,18 @@ function NodeShapeIndicator({ shape, ports }: { shape: NodeShape; ports: ShapePo
 	)
 }
 
+// Main node component that renders the HTML content
 function NodeShape({ shape }: { shape: NodeShape }) {
 	const editor = useEditor()
+
+	// Get the node's output value
 	const output = useValue(
 		'output',
 		() => getNodeOutputPortValues(editor, shape.id)?.output ?? undefined,
 		[editor, shape.id]
 	)
+
+	// Check if this node is currently executing using our execution state
 	const isExecuting = useValue(
 		'is executing',
 		() => executionState.get(editor).runningGraph?.getNodeStatus(shape.id) === 'executing',

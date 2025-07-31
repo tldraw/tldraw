@@ -3,12 +3,15 @@ import { MultiplyIcon } from '../../components/icons/MultiplyIcon'
 import { NODE_HEADER_HEIGHT_PX, NODE_ROW_HEADER_GAP_PX, NODE_ROW_HEIGHT_PX } from '../../constants'
 import { NodeDefinition, NodeInputRow, outputPort, updateNode } from './shared'
 
+/**
+ * The multiply node multiplies its two inputs.
+ */
+export type MultiplyNode = T.TypeOf<typeof MultiplyNodeType>
 export const MultiplyNodeType = T.object({
 	type: T.literal('multiply'),
 	a: T.number,
 	b: T.number,
 })
-export type MultiplyNode = T.TypeOf<typeof MultiplyNodeType>
 
 export const MultiplyNode: NodeDefinition<MultiplyNode> = {
 	type: 'multiply',

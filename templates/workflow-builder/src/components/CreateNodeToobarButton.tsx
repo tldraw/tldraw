@@ -1,9 +1,10 @@
-import { TLShapeId, TLShapePartial, TldrawUiToolbarButton, Vec, useEditor } from 'tldraw'
+import { TLShapeId, TldrawUiToolbarButton, Vec, useEditor } from 'tldraw'
 import { useDragToCreate } from '../hooks/useDragToCreate'
 import { NodeShape } from '../nodes/NodeShapeUtil'
 import { NodeType } from '../nodes/nodeTypes'
 import { NodeDefinition } from '../nodes/types/shared'
 
+// Toolbar button component that allows dragging to create nodes on the canvas
 export function CreateNodeToolbarButton<T extends NodeType>({
 	definition,
 	type,
@@ -15,22 +16,29 @@ export function CreateNodeToolbarButton<T extends NodeType>({
 }) {
 	const editor = useEditor()
 
-	// Create a shape function for the drag hook
 	const createNodeShape = (shapeId: TLShapeId, center: Vec, node: NodeType) => {
+		// Mark a history stopping point for undo/redo
 		const markId = editor.markHistoryStoppingPoint('create node')
 		onClose?.()
+
 		editor.run(() => {
-			const partial: TLShapePartial<NodeShape> = {
+			// Create the shape with the node definition
+			editor.createShape<NodeShape>({
 				id: shapeId,
 				type: 'node',
 				props: { node },
-			}
-			editor.createShape(partial)
+			})
+
+			// Get the created shape and its bounds
 			const shape = editor.getShape<NodeShape>(shapeId)!
 			const shapeBounds = editor.getShapePageBounds(shapeId)!
+
+			// Position the shape so its center aligns with the drop point
 			const x = center.x - shapeBounds.width / 2
 			const y = center.y - shapeBounds.height / 2
 			editor.updateShape({ ...shape, x, y })
+
+			// Select the newly created shape
 			editor.select(shapeId)
 		})
 		return markId

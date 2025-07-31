@@ -16,8 +16,21 @@ export interface DragToCreateConfig<T = any> {
 	createShape?: (shapeId: TLShapeId, center: Vec, data: T) => string // returns markId
 }
 
-type DragState = { name: 'pointing' } | { name: 'dragging'; shapeId: TLShapeId } | { name: 'done' }
+// State machine for tracking drag interaction phases
+type DragState =
+	| {
+			name: 'pointing'
+	  }
+	| {
+			name: 'dragging'
+			shapeId: TLShapeId
+	  }
+	| {
+			name: 'done'
+	  }
 
+// Custom hook that integrates with tldraw's interaction system to enable dragging items out of the
+// UI and onto the canvas
 export function useDragToCreate<T = any>(config: DragToCreateConfig<T>) {
 	const editor = useEditor()
 
@@ -40,6 +53,7 @@ export function useDragToCreate<T = any>(config: DragToCreateConfig<T>) {
 				const dx = move.clientX - down.clientX
 				const dy = move.clientY - down.clientY
 
+				// Check if we've moved enough to start dragging
 				if (
 					state.name === 'pointing' &&
 					dx ** 2 + dy ** 2 > editor.options.dragDistanceSquared * 2
@@ -52,10 +66,12 @@ export function useDragToCreate<T = any>(config: DragToCreateConfig<T>) {
 
 						let markId: string | void = undefined
 
+						// Create shape immediately if configured to do so
 						if (config.createShapeOnDrag && config.createShape) {
 							markId = config.createShape(shapeId, editor.screenToPage(position), data)
 						}
 
+						// Call custom drag start handler
 						if (config.onDragStart) {
 							const result = config.onDragStart(shapeId, position, data)
 							if (result) markId = result
@@ -63,6 +79,7 @@ export function useDragToCreate<T = any>(config: DragToCreateConfig<T>) {
 
 						// Set up drag behavior if a shape was created
 						if (config.createShapeOnDrag && editor.getShape(shapeId)) {
+							// Create a pointer event info object that tldraw expects
 							const pointerInfo: TLPointerEventInfo = {
 								type: 'pointer',
 								shiftKey: move.shiftKey,
@@ -79,9 +96,11 @@ export function useDragToCreate<T = any>(config: DragToCreateConfig<T>) {
 								shape: editor.getShape(shapeId)!,
 							}
 
+							// Flush the event to tldraw's event system
 							editor._flushEventForTick(pointerInfo)
 							editor.inputs.isDragging = true
 
+							// Switch to translating mode to handle the drag
 							editor.select(shapeId).setCurrentTool('select.translating', {
 								...pointerInfo,
 								isCreating: true,
@@ -93,6 +112,7 @@ export function useDragToCreate<T = any>(config: DragToCreateConfig<T>) {
 								},
 							} as any)
 
+							// Listen for events that should cancel the drag
 							function listenForBailEvents() {
 								if (!editor.isIn('select.translating') || !editor.getShape(shapeId)) {
 									editor.setCurrentTool('select.idle')
@@ -145,7 +165,7 @@ export function useDragToCreate<T = any>(config: DragToCreateConfig<T>) {
 				el.removeEventListener('pointerup', onUp)
 				el.style.opacity = ''
 
-				// Move the pointer capture to the canvas
+				// Move the pointer capture to the canvas so tldraw can handle subsequent events
 				const cvs = document.querySelector('.tl-canvas') as HTMLDivElement
 				if (cvs) cvs.setPointerCapture(down.pointerId)
 			}

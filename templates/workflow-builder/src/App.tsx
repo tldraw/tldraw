@@ -17,9 +17,12 @@ import { keepConnectionsAtBottom } from './connection/keepConnectionsAtBottom'
 import { NodeShapeUtil } from './nodes/NodeShapeUtil'
 import { PointingPort } from './ports/PointingPort'
 
+// Define custom shape utilities that extend tldraw's shape system
 const shapeUtils = [NodeShapeUtil, ConnectionShapeUtil]
+// Define binding utilities that handle relationships between shapes
 const bindingUtils = [ConnectionBindingUtil]
 
+// Customize tldraw's UI components to add workflow-specific functionality
 const components: TLComponents = {
 	InFrontOfTheCanvas: () => (
 		<>
@@ -44,6 +47,7 @@ const components: TLComponents = {
 	StylePanel: () => {
 		const editor = useEditor()
 		const currentShape = useValue('currentShape', () => editor.getOnlySelectedShape(), [editor])
+		// Hide style panel for workflow shapes (nodes and connections)
 		if (['node', 'connection'].includes(currentShape?.type ?? '')) return null
 		return <DefaultStylePanel />
 	},
@@ -64,8 +68,13 @@ function App() {
 					}
 
 					editor.user.updateUserPreferences({ isSnapMode: true })
+
+					// Add our custom pointing port tool to the select tool's state machine
+					// This allows users to create connections by pointing at ports
 					editor.getStateDescendant('select')!.addChild(PointingPort)
 
+					// Ensure connections always stay at the bottom of the shape stack
+					// This prevents them from covering other shapes
 					keepConnectionsAtBottom(editor)
 				}}
 			/>

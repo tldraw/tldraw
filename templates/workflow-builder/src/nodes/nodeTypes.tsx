@@ -14,6 +14,7 @@ import { NodeDefinition, STOP_EXECUTION } from './types/shared'
 import { SliderNode } from './types/SliderNode'
 import { SubtractNode } from './types/SubtractNode'
 
+/** All our node types */
 export const NodeDefinitions = [
 	AddNode,
 	SubtractNode,
@@ -27,13 +28,19 @@ const NodeDefinitionMap = Object.fromEntries(NodeDefinitions.map((type) => [type
 	[NodeDefinition in (typeof NodeDefinitions)[number] as NodeDefinition['type']]: NodeDefinition
 }
 
+/**
+ * A union type of all our node types.
+ */
+export type NodeType = T.TypeOf<typeof NodeType>
 export const NodeType = T.union(
 	'type',
 	Object.fromEntries(NodeDefinitions.map((type) => [type.type, type.validator])) as {
 		[NodeDefinition in (typeof NodeDefinitions)[number] as NodeDefinition['type']]: NodeDefinition['validator']
 	}
 )
-export type NodeType = T.TypeOf<typeof NodeType>
+
+// the other functions in this file are wrappers around the node definitions, dispatching to the
+// correct definition for a given node.
 
 export function getNodeDefinition(node: NodeType | NodeType['type']): NodeDefinition<NodeType> {
 	return NodeDefinitionMap[typeof node === 'string' ? node : node.type] as NodeDefinition<NodeType>

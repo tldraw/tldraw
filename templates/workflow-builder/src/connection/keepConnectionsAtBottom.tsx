@@ -1,23 +1,23 @@
-import {
-	computed,
-	Computed,
-	Editor,
-	getIndexBetween,
-	getIndicesBetween,
-	IndexKey,
-	TLParentId,
-	WeakCache,
-} from 'tldraw'
+import { Editor, getIndexBetween, getIndicesBetween, TLParentId } from 'tldraw'
 
+/**
+ * This function registers side effects that will make sure connection shapes are always below all
+ * other shapes in the same parent. We do this because we don't want to connections on top of nodes,
+ * which might be distracting.
+ */
 export function keepConnectionsAtBottom(editor: Editor) {
 	// whenever an operation happens, we'll keep track of the parent ids that we might need to
-	// re-sort the children of:
+	// re-sort the children of. An operation is any atomic change to the tldraw store.
 	let pendingChangedParentIds = new Set<TLParentId>()
 
+	// whenever a shape is created, we'll add the parent id to the set of parent ids that we might
+	// need to re-sort the children of.
 	editor.sideEffects.registerAfterCreateHandler('shape', (shape, source) => {
 		if (source === 'remote') return
 		pendingChangedParentIds.add(shape.parentId)
 	})
+	// whenever a shape's index or parent id changes, we'll add the parent id to the set of parent
+	// ids that we might need to re-sort the children of.
 	editor.sideEffects.registerAfterChangeHandler('shape', (oldShape, newShape, source) => {
 		if (source === 'remote') return
 		if (oldShape.parentId === newShape.parentId && oldShape.index === newShape.index) return
@@ -28,6 +28,7 @@ export function keepConnectionsAtBottom(editor: Editor) {
 	editor.sideEffects.registerOperationCompleteHandler(() => {
 		if (pendingChangedParentIds.size === 0) return
 
+		// reset the set of pending changed parent ids
 		const changedParentIds = pendingChangedParentIds
 		pendingChangedParentIds = new Set()
 
@@ -97,31 +98,28 @@ export function keepConnectionsAtBottom(editor: Editor) {
 	})
 }
 
-const connectionIndexComputedCache = new WeakCache<Editor, Computed<IndexKey>>()
+/**
+ * Get the index of the next connection shape in the given parent. This will be above all other
+ * connections, but the connections should be below all other shapes.
+ */
 export function getNextConnectionIndex(
 	editor: Editor,
 	parentId: TLParentId = editor.getCurrentPageId()
 ) {
-	return connectionIndexComputedCache
-		.get(editor, () => {
-			return computed('next connection index', () => {
-				const childIds = editor.getSortedChildIdsForParent(parentId)
+	const childIds = editor.getSortedChildIdsForParent(parentId)
 
-				let prevIndex = null
-				let highestConnectionIndex = null
-				for (let i = childIds.length - 1; i >= 0; i--) {
-					const child = editor.getShape(childIds[i])
-					if (!child) continue
+	let prevIndex = null
+	let highestConnectionIndex = null
+	for (let i = childIds.length - 1; i >= 0; i--) {
+		const child = editor.getShape(childIds[i])
+		if (!child) continue
 
-					if (child.type === 'connection') {
-						highestConnectionIndex = child.index
-						break
-					}
-					prevIndex = child.index
-				}
+		if (child.type === 'connection') {
+			highestConnectionIndex = child.index
+			break
+		}
+		prevIndex = child.index
+	}
 
-				return getIndexBetween(highestConnectionIndex, prevIndex)
-			})
-		})
-		.get()
+	return getIndexBetween(highestConnectionIndex, prevIndex)
 }
