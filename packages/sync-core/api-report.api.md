@@ -264,6 +264,9 @@ export interface TLPingRequest {
 }
 
 // @internal (undocumented)
+export type TLPresenceMode = 'full' | 'solo';
+
+// @internal (undocumented)
 export interface TLPushRequest<R extends UnknownRecord> {
     // (undocumented)
     clientClock: number;
@@ -439,6 +442,7 @@ export class TLSyncClient<R extends UnknownRecord, S extends Store<R> = Store<R>
         onLoad(self: TLSyncClient<R, S>): void;
         onSyncError(reason: string): void;
         presence: Signal<null | R>;
+        presenceMode?: Signal<TLPresenceMode>;
         socket: TLPersistentClientSocket<R>;
         store: S;
     });
@@ -457,6 +461,8 @@ export class TLSyncClient<R extends UnknownRecord, S extends Store<R> = Store<R>
     readonly onAfterConnect?: (self: this, details: {
         isReadonly: boolean;
     }) => void;
+    // (undocumented)
+    readonly presenceMode: Signal<TLPresenceMode> | undefined;
     // (undocumented)
     readonly presenceState: Signal<null | R> | undefined;
     // (undocumented)
