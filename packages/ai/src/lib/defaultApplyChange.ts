@@ -18,8 +18,8 @@ export function defaultApplyChange({ change, editor }: { change: TLAiChange; edi
 			case 'createShape': {
 				const util = editor.getShapeUtil(change.shape.type)
 				const shape = {
-					...change.shape,
 					opacity: 1,
+					...change.shape,
 					props: { ...util?.getDefaultProps(), ...change.shape.props },
 				}
 				editor.createShape(shape as TLShapePartial)
