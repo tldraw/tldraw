@@ -28,15 +28,15 @@ const SimpleLabel = z.string()
 function GeoShape<T extends string>(name: T) {
 	return z.object({
 		_type: z.literal(name),
-		shapeId: z.string(),
-		note: z.string(),
-		x: z.number(),
-		y: z.number(),
-		width: z.number(),
-		height: z.number(),
 		color: SimpleColor,
 		fill: SimpleFill,
+		height: z.number(),
+		note: z.string(),
+		shapeId: z.string(),
 		text: SimpleLabel.optional(),
+		width: z.number(),
+		x: z.number(),
+		y: z.number(),
 	})
 }
 
@@ -102,62 +102,62 @@ export type ISimpleHeartShape = z.infer<typeof SimpleHeartShape>
 
 const SimpleLineShape = z.object({
 	_type: z.literal('line'),
-	shapeId: z.string(),
+	color: SimpleColor,
 	note: z.string(),
+	shapeId: z.string(),
 	x1: z.number(),
 	x2: z.number(),
 	y1: z.number(),
 	y2: z.number(),
-	color: SimpleColor,
 })
 
 export type ISimpleLineShape = z.infer<typeof SimpleLineShape>
 
 const SimpleNoteShape = z.object({
 	_type: z.literal('note'),
-	shapeId: z.string(),
+	color: SimpleColor,
 	note: z.string(),
+	shapeId: z.string(),
+	text: SimpleLabel.optional(),
 	x: z.number(),
 	y: z.number(),
-	color: SimpleColor,
-	text: SimpleLabel.optional(),
 })
 
 export type ISimpleNoteShape = z.infer<typeof SimpleNoteShape>
 
 const SimpleTextShape = z.object({
 	_type: z.literal('text'),
-	shapeId: z.string(),
-	note: z.string(),
-	x: z.number(),
-	y: z.number(),
 	color: SimpleColor,
+	note: z.string(),
+	shapeId: z.string(),
 	text: SimpleLabel.optional(),
 	textAlign: z.enum(['start', 'middle', 'end']).optional(),
+	x: z.number(),
+	y: z.number(),
 })
 
 export type ISimpleTextShape = z.infer<typeof SimpleTextShape>
 
 const SimpleArrowShape = z.object({
 	_type: z.literal('arrow'),
-	shapeId: z.string(),
-	note: z.string(),
+	color: SimpleColor,
 	fromId: z.string().nullable(),
+	note: z.string(),
+	shapeId: z.string(),
+	text: SimpleLabel.optional(),
 	toId: z.string().nullable(),
 	x1: z.number(),
-	y1: z.number(),
 	x2: z.number(),
+	y1: z.number(),
 	y2: z.number(),
-	color: SimpleColor,
-	text: SimpleLabel.optional(),
 })
 
 export type ISimpleArrowShape = z.infer<typeof SimpleArrowShape>
 
 const SimpleUnknownShape = z.object({
 	_type: z.literal('unknown'),
-	shapeId: z.string(),
 	note: z.string(),
+	shapeId: z.string(),
 	x: z.number(),
 	y: z.number(),
 })
@@ -198,35 +198,35 @@ export type ISimpleShape = z.infer<typeof SimpleShape>
 // Events
 const SimpleCreateOrUpdateEvent = z.object({
 	_type: z.enum(['create', 'update']),
-	shape: SimpleShape,
 	intent: z.string(),
+	shape: SimpleShape,
 })
 
 export type ISimpleCreateOrUpdateEvent = z.infer<typeof SimpleCreateOrUpdateEvent>
 
 export const SimpleMoveEvent = z.object({
 	_type: z.literal('move'),
+	intent: z.string(),
 	move: z.object({
 		shapeId: z.string(),
 		x: z.number(),
 		y: z.number(),
 	}),
-	intent: z.string(),
 })
 
 export type ISimpleMoveEvent = z.infer<typeof SimpleMoveEvent>
 
 const SimpleDeleteEvent = z.object({
 	_type: z.literal('delete'),
-	shapeId: z.string(),
 	intent: z.string(),
+	shapeId: z.string(),
 })
 export type ISimpleDeleteEvent = z.infer<typeof SimpleDeleteEvent>
 
 const SimpleThinkEvent = z.object({
 	_type: z.literal('think'),
-	text: z.string(),
 	intent: z.string(),
+	text: z.string(),
 })
 export type ISimpleThinkEvent = z.infer<typeof SimpleThinkEvent>
 
