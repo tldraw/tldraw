@@ -194,10 +194,6 @@ export const SimpleShape = z.union(SIMPLE_SHAPES)
 
 export type ISimpleShape = z.infer<typeof SimpleShape>
 
-const SimpleShapeUpdate = z.union(SIMPLE_SHAPES)
-
-export type ISimpleShapeUpdate = z.infer<typeof SimpleShapeUpdate>
-
 export interface ISimplePeripheralShape {
 	h: number
 	w: number
@@ -218,7 +214,7 @@ export type ISimpleCreateEvent = z.infer<typeof SimpleCreateEvent>
 export const SimpleUpdateEvent = z.object({
 	_type: z.literal('update'),
 	intent: z.string(),
-	update: SimpleShapeUpdate,
+	update: SimpleShape,
 })
 
 export type ISimpleUpdateEvent = z.infer<typeof SimpleUpdateEvent>
