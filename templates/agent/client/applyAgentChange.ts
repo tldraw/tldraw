@@ -1,7 +1,8 @@
 import { createOrUpdateHistoryItem } from './atoms/chatHistoryItems'
-import { $requestsSchedule, ScheduledRequest } from './atoms/requestsSchedule'
+import { $requestsSchedule } from './atoms/requestsSchedule'
 import { Streaming, TLAgentChange } from './types/AgentChange'
 import { AreaContextItem } from './types/ContextItem'
+import { ScheduledRequest } from './types/ScheduledRequest'
 
 export function applyAgentChange(change: Streaming<TLAgentChange>) {
 	switch (change.type) {
