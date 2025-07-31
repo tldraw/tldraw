@@ -37,6 +37,15 @@ import {
 } from './ConnectionBindingUtil'
 import { insertNodeWithinConnection } from './insertNodeWithinConnection'
 
+/**
+ * A connection shape is a directed connection between two node shapes. It has a start point, and an
+ * end point. These are called "terminals" in the code.
+ *
+ * Usually, a connection will also have two ConnectionBindings. These bind each end of the shape to
+ * the nodes it's connected to. The `start` and `end` properties are the positions of each end of
+ * the connection, but only when there isn't a binding (ie while dragging the connection). When the
+ * ends are bound, the position is derived from the connected shape instead.
+ */
 export type ConnectionShape = TLBaseShape<
 	'connection',
 	{
@@ -78,14 +87,17 @@ export class ConnectionShapeUtil extends ShapeUtil<ConnectionShape> {
 		return true
 	}
 	override canSnap() {
+		// disable snapping this shape to other shapes
 		return false
 	}
 	override getBoundsSnapGeometry() {
 		return {
+			// disable snapping other shape to this shape
 			points: [],
 		}
 	}
 
+	// Define the geometry of our connection shape as a cubic bezier curve
 	getGeometry(connection: ConnectionShape) {
 		const { start, end } = getConnectionTerminals(this.editor, connection)
 		const [cp1, cp2] = getConnectionControlPoints(start, end)
@@ -98,6 +110,7 @@ export class ConnectionShapeUtil extends ShapeUtil<ConnectionShape> {
 	}
 
 	getHandles(connection: ConnectionShape): TLHandle[] {
+		// Handles are draggable points on a shape. In our connection shape, we have a handle at each end.
 		const { start, end } = getConnectionTerminals(this.editor, connection)
 		return [
 			{
@@ -117,29 +130,38 @@ export class ConnectionShapeUtil extends ShapeUtil<ConnectionShape> {
 		]
 	}
 
+	// Handle dragging of connection terminals to connect/disconnect from ports
 	onHandleDrag(connection: ConnectionShape, { handle }: TLHandleDragInfo<ConnectionShape>) {
+		// First, get some info about the connection and the terminal we're dragging
 		const existingBindings = getConnectionBindings(this.editor, connection)
 		const draggingTerminal = handle.id as 'start' | 'end'
 		const oppositeTerminal = draggingTerminal === 'start' ? 'end' : 'start'
 		const oppositeTerminalShapeId = existingBindings[oppositeTerminal]?.toId
 
+		// Find the new position of the handle in page space
 		const shapeTransform = this.editor.getShapePageTransform(connection)
 		const handlePagePosition = shapeTransform.applyToPoint(handle)
 
+		// Find the port at the new position
 		const target = getPortAtPoint(this.editor, handlePagePosition, {
 			margin: 8,
-			filter: (s) => s.id !== connection.id && s.id !== existingBindings[oppositeTerminal]?.toId,
 			terminal: handle.id as 'start' | 'end',
 		})
 
+		// only 'start' ports (outputs) can have multiple connections
 		const allowsMultipleConnections = draggingTerminal === 'start'
-		const hasExistingConnection =
-			target?.existingConnection && target.existingConnection.connectionId !== connection.id
 
+		// does this port have an existing connection (excluding this one)?
+		const hasExistingConnection =
+			target?.existingConnections.some((c) => c.connectionId !== connection.id) ?? false
+
+		// find out which nodes would create a cycle based on what the other end of the connection
+		// is bound to
 		const nodesWhichWouldCreateACycle = oppositeTerminalShapeId
 			? getAllConnectedNodes(this.editor, oppositeTerminalShapeId, draggingTerminal)
 			: null
 
+		// update our port UI state to highlight which ports are eligible to connect to
 		updatePortState(this.editor, {
 			eligiblePorts: {
 				terminal: draggingTerminal,
@@ -147,12 +169,16 @@ export class ConnectionShapeUtil extends ShapeUtil<ConnectionShape> {
 			},
 		})
 
+		// if for whatever reason we can't connect to this port...
 		const wouldCreateACycle = (target && nodesWhichWouldCreateACycle?.has(target.shape.id)) ?? false
-
 		if (!target || (hasExistingConnection && !allowsMultipleConnections) || wouldCreateACycle) {
+			// ... update our port ui state to not highlight any ports...
 			updatePortState(this.editor, { hintingPort: null })
+
+			// ... remove any existing binding for this connection terminal...
 			removeConnectionBinding(this.editor, connection, draggingTerminal)
 
+			// ... and return the connection with the new position.
 			return {
 				...connection,
 				props: {
@@ -161,47 +187,54 @@ export class ConnectionShapeUtil extends ShapeUtil<ConnectionShape> {
 			}
 		}
 
+		// if we can connect to this port, update our port ui state to highlight the port we're
+		// connecting to
 		updatePortState(this.editor, {
 			hintingPort: { portId: target.port.id, shapeId: target.shape.id },
 		})
+
+		// create or update the connection binding for this connection terminal
 		createOrUpdateConnectionBinding(this.editor, connection, target.shape, {
 			portId: target.port.id,
 			terminal: draggingTerminal,
 		})
 
-		return {
-			...connection,
-		}
+		// return the connection unmodified because we only need to update the binding.
+		return connection
 	}
 
+	// Handle the end of dragging a connection terminal
 	onHandleDragEnd(
 		connection: ConnectionShape,
 		{ handle, isCreatingShape }: TLHandleDragInfo<ConnectionShape>
 	) {
+		// clear our port UI state
 		updatePortState(this.editor, { hintingPort: null, eligiblePorts: null })
 
 		const draggingTerminal = handle.id as 'start' | 'end'
 
+		// if we successfully connected & now have a binding, we're done!
 		const bindings = getConnectionBindings(this.editor, connection)
 		if (bindings[draggingTerminal]) {
-			// we successfully connected the shape, so we're done!
 			return
 		}
 
+		// If we were creating a new connection and didn't attach it to anything, open the component
+		// picker to let the user choose a node to create.
 		if (isCreatingShape && draggingTerminal === 'end') {
-			// if we were creating a new connection and didn't attach it to anything, open the
-			// component picker at the end of this connection.
 			this.editor.selectNone()
 			onCanvasComponentPickerState.set(this.editor, {
 				connectionShapeId: connection.id,
 				location: draggingTerminal,
 				onClose: () => {
+					// if we didn't attach the connection to anything, delete it
 					const bindings = getConnectionBindings(this.editor, connection)
 					if (!bindings.start || !bindings.end) {
 						this.editor.deleteShapes([connection.id])
 					}
 				},
 				onPick: (nodeType, terminalInPageSpace) => {
+					// create the node based on the user's selection:
 					const newNodeId = createShapeId()
 					this.editor.createShape({
 						type: 'node',
@@ -214,6 +247,7 @@ export class ConnectionShapeUtil extends ShapeUtil<ConnectionShape> {
 					})
 					this.editor.select(newNodeId)
 
+					// Position the node so its input port aligns with the connection end
 					const ports = getNodePorts(this.editor, newNodeId)
 					const firstInputPort = Object.values(ports).find((p) => p.terminal === 'end')
 					if (firstInputPort) {
@@ -224,6 +258,7 @@ export class ConnectionShapeUtil extends ShapeUtil<ConnectionShape> {
 							y: terminalInPageSpace.y - firstInputPort.y,
 						})
 
+						// bind the connection to the node's first input port
 						createOrUpdateConnectionBinding(this.editor, connection, newNodeId, {
 							portId: firstInputPort.id,
 							terminal: draggingTerminal,
@@ -232,8 +267,8 @@ export class ConnectionShapeUtil extends ShapeUtil<ConnectionShape> {
 				},
 			})
 		} else {
-			// if we're not creating a new connection and we just let go, there must be
-			// bindings. If not, let's interpret this as the user disconnecting the shape.
+			// if we're not creating a new connection and we just let go, there must be bindings. If
+			// not, let's interpret this as the user disconnecting the shape.
 			if (!bindings.start || !bindings.end) {
 				this.editor.deleteShapes([connection.id])
 			}
@@ -241,6 +276,7 @@ export class ConnectionShapeUtil extends ShapeUtil<ConnectionShape> {
 	}
 
 	onHandleDragCancel() {
+		// if we cancel a drag part way through, we need to clear out our port UI state.
 		updatePortState(this.editor, { hintingPort: null, eligiblePorts: null })
 	}
 
@@ -259,13 +295,17 @@ export class ConnectionShapeUtil extends ShapeUtil<ConnectionShape> {
 	}
 }
 
+// Main connection component that renders the SVG path
 function ConnectionShape({ connection }: { connection: ConnectionShape }) {
 	const editor = useEditor()
+
+	// Get the connection terminals
 	const { start, end } = useValue('terminals', () => getConnectionTerminals(editor, connection), [
 		editor,
 		connection,
 	])
 
+	// Check if this connection is inactive (carrying STOP_EXECUTION signal)
 	const isInactive = useValue(
 		'isInactive',
 		() => {
@@ -289,6 +329,7 @@ function ConnectionShape({ connection }: { connection: ConnectionShape }) {
 	)
 }
 
+// Center handle component that allows inserting nodes in the middle of connections
 function ConnectionCenterHandle({
 	connection,
 	center,
@@ -298,6 +339,7 @@ function ConnectionCenterHandle({
 }) {
 	const editor = useEditor()
 
+	// Only show the center handle when zoomed in and the connection is fully bound
 	const shouldShowCenterHandle = useValue(
 		'shouldShowCenterHandle',
 		() => {
@@ -336,6 +378,7 @@ function ConnectionCenterHandle({
 	)
 }
 
+// Calculate control points for smooth bezier curves
 function getConnectionControlPoints(start: VecLike, end: VecLike): [Vec, Vec] {
 	const distance = end.x - start.x
 	const adjustedDistance = Math.max(
@@ -345,16 +388,19 @@ function getConnectionControlPoints(start: VecLike, end: VecLike): [Vec, Vec] {
 	return [new Vec(start.x + adjustedDistance, start.y), new Vec(end.x - adjustedDistance, end.y)]
 }
 
+// Generate SVG path for the connection
 function getConnectionPath(start: VecLike, end: VecLike) {
 	const [cp1, cp2] = getConnectionControlPoints(start, end)
 	return `M ${start.x} ${start.y} C ${cp1.x} ${cp1.y} ${cp2.x} ${cp2.y} ${end.x} ${end.y}`
 }
 
+// Get the actual start and end points of a connection, considering its bindings
 export function getConnectionTerminals(editor: Editor, connection: ConnectionShape) {
+	let start, end
+
+	// if possible, set the start and end points based on the bindings
 	const bindings = getConnectionBindings(editor, connection)
 	const shapeTransform = Mat.Inverse(editor.getShapePageTransform(connection))
-
-	let start, end
 	if (bindings.start) {
 		const inPageSpace = getConnectionBindingPositionInPageSpace(editor, bindings.start)
 		if (inPageSpace) {
@@ -367,6 +413,9 @@ export function getConnectionTerminals(editor: Editor, connection: ConnectionSha
 			end = Mat.applyToPoint(shapeTransform, inPageSpace)
 		}
 	}
+
+	// if we couldn't set the start and end points based on the bindings, use the values stored on
+	// the shape itself
 	if (!start) start = connection.props.start
 	if (!end) end = connection.props.end
 

@@ -10,6 +10,9 @@ import {
 import { Port } from '../../ports/Port'
 import { NodeDefinition, NodeInputRow, NodeRow, STOP_EXECUTION, updateNode } from './shared'
 
+/**
+ * The operators that can be used in the conditional node.
+ */
 export const operators = {
 	'==': {
 		title: 'is equal to',
@@ -46,13 +49,18 @@ export const operators = {
 type Operator = keyof typeof operators
 const Operator = T.literalEnum(...(Object.keys(operators) as Operator[]))
 
+/**
+ * The conditional node has a condition (two inputs and an operator), and two outputs. If the
+ * condition evaluates to true, the first output port gets a value and the other stops execution. If
+ * the condition evaluates to false, it's the other way around.
+ */
+export type ConditionalNode = T.TypeOf<typeof ConditionalNodeType>
 export const ConditionalNodeType = T.object({
 	type: T.literal('conditional'),
 	lhs: T.number,
 	rhs: T.number,
 	operator: Operator,
 })
-export type ConditionalNode = T.TypeOf<typeof ConditionalNodeType>
 
 export const ConditionalNode: NodeDefinition<ConditionalNode> = {
 	type: 'conditional',
@@ -66,7 +74,9 @@ export const ConditionalNode: NodeDefinition<ConditionalNode> = {
 		rhs: 0,
 		operator: '==',
 	}),
+	// There are 5 rows in the conditional, but we have less padding at the bottom than usual.
 	getBodyHeightPx: () => NODE_ROW_HEIGHT_PX * 5 - NODE_ROW_BOTTOM_PADDING_PX,
+	// We need a port for each input and output.
 	getPorts: () => ({
 		lhs: {
 			id: 'lhs',
@@ -93,6 +103,8 @@ export const ConditionalNode: NodeDefinition<ConditionalNode> = {
 			terminal: 'start',
 		},
 	}),
+	// The output of the conditional node is the value of the first output port, or STOP_EXECUTION
+	// if the condition is false.
 	computeOutput: (node, inputs) => {
 		const lhs = inputs.lhs ?? node.lhs
 		const rhs = inputs.rhs ?? node.rhs

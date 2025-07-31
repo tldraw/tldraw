@@ -23,7 +23,7 @@ import { DivideNode } from '../nodes/types/DivideNode'
 import { MultiplyNode } from '../nodes/types/MultiplyNode'
 import { NodeDefinition } from '../nodes/types/shared'
 import { SubtractNode } from '../nodes/types/SubtractNode'
-import { EditorState } from '../utils'
+import { EditorAtom } from '../utils'
 
 export interface OnCanvasComponentPickerState {
 	connectionShapeId: TLShapeId
@@ -32,11 +32,12 @@ export interface OnCanvasComponentPickerState {
 	onClose: () => void
 }
 
-export const onCanvasComponentPickerState = new EditorState<OnCanvasComponentPickerState | null>(
+export const onCanvasComponentPickerState = new EditorAtom<OnCanvasComponentPickerState | null>(
 	'on canvas component picker',
 	() => null
 )
 
+// Component picker that appears when users drag connection handles without connecting to existing ports
 export function OnCanvasComponentPicker() {
 	const editor = useEditor()
 	const onClose = useCallback(() => {
@@ -61,6 +62,7 @@ export function OnCanvasComponentPicker() {
 	)
 }
 
+// Dialog component that positions itself at the connection terminal
 function OnCanvasComponentPickerDialog({
 	children,
 	onClose,
@@ -74,8 +76,10 @@ function OnCanvasComponentPickerDialog({
 	])
 	const shouldRender = !!location
 	const [container, setContainer] = useState<HTMLDivElement | null>(null)
+	// Allow wheel events to pass through to the canvas
 	usePassThroughWheelEvents(useMemo(() => ({ current: container }), [container]))
 
+	// Reactively update the dialog position when the connection or viewport changes
 	useQuickReactor(
 		'OnCanvasComponentPicker',
 		() => {
@@ -90,16 +94,19 @@ function OnCanvasComponentPickerDialog({
 				return
 			}
 
+			// Get the connection terminals in connection space
 			const terminals = getConnectionTerminals(editor, connection)
 			const terminalInConnectionSpace =
 				state.location === 'middle'
 					? Vec.Lrp(terminals.start, terminals.end, 0.5)
 					: terminals[state.location]
 
+			// Transform the position from connection space to page space
 			const terminalInPageSpace = editor
 				.getShapePageTransform(connection)
 				.applyToPoint(terminalInConnectionSpace)
 
+			// Transform from page space to viewport space for positioning the dialog
 			const terminalInViewportSpace = editor.pageToViewport(terminalInPageSpace)
 			container.style.transform = `translate(${terminalInViewportSpace.x}px, ${terminalInViewportSpace.y}px) scale(${editor.getZoomLevel()}) `
 		},
@@ -132,6 +139,7 @@ function OnCanvasComponentPickerDialog({
 	)
 }
 
+// Individual menu item for selecting a node type
 function OnCanvasComponentPickerItem<T extends NodeType>({
 	definition,
 	onClose,
@@ -156,16 +164,19 @@ function OnCanvasComponentPickerItem<T extends NodeType>({
 					return
 				}
 
+				// Calculate the position where the new node should be created
 				const terminals = getConnectionTerminals(editor, connection)
 				const terminalInConnectionSpace =
 					state.location === 'middle'
 						? Vec.Lrp(terminals.start, terminals.end, 0.5)
 						: terminals[state.location]
 
+				// Transform from connection space to page space
 				const terminalInPageSpace = editor
 					.getShapePageTransform(connection)
 					.applyToPoint(terminalInConnectionSpace)
 
+				// Call the pick handler with the node type and position
 				state.onPick(definition.getDefault(), terminalInPageSpace)
 
 				onClose()

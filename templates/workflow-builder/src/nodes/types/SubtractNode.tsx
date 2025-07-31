@@ -3,12 +3,15 @@ import { SubtractIcon } from '../../components/icons/SubtractIcon'
 import { NODE_HEADER_HEIGHT_PX, NODE_ROW_HEADER_GAP_PX, NODE_ROW_HEIGHT_PX } from '../../constants'
 import { NodeDefinition, NodeInputRow, outputPort, updateNode } from './shared'
 
+/**
+ * The subtract node subtracts its two inputs.
+ */
+export type SubtractNode = T.TypeOf<typeof SubtractNodeType>
 export const SubtractNodeType = T.object({
 	type: T.literal('subtract'),
 	a: T.number,
 	b: T.number,
 })
-export type SubtractNode = T.TypeOf<typeof SubtractNodeType>
 
 export const SubtractNode: NodeDefinition<SubtractNode> = {
 	type: 'subtract',

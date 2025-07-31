@@ -3,12 +3,15 @@ import { DivideIcon } from '../../components/icons/DivideIcon'
 import { NODE_HEADER_HEIGHT_PX, NODE_ROW_HEADER_GAP_PX, NODE_ROW_HEIGHT_PX } from '../../constants'
 import { NodeDefinition, NodeInputRow, outputPort, updateNode } from './shared'
 
+/**
+ * The divide node divides its two inputs.
+ */
+export type DivideNode = T.TypeOf<typeof DivideNodeType>
 export const DivideNodeType = T.object({
 	type: T.literal('divide'),
 	a: T.number,
 	b: T.number,
 })
-export type DivideNode = T.TypeOf<typeof DivideNodeType>
 
 export const DivideNode: NodeDefinition<DivideNode> = {
 	type: 'divide',

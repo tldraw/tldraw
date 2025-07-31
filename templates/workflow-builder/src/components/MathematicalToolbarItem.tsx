@@ -16,6 +16,7 @@ import { SubtractNode } from '../nodes/types/SubtractNode'
 import { CreateNodeToolbarButton } from './CreateNodeToobarButton'
 import { MathematicalIcon } from './icons/MathematicalIcon'
 
+// Custom toolbar item that provides mathematical operation nodeslity
 export function MathematicalToolbarItem() {
 	const id = 'mathematical'
 	const labelStr = 'Math'
@@ -45,6 +46,7 @@ export function MathematicalToolbarItem() {
 					label={labelStr}
 					id={`${id}_math`}
 					onClick={() => {
+						// Close the menu when a tool is selected
 						tlmenus.deleteOpenMenu(popoverId, editor.contextId)
 						setIsOpen(false)
 					}}
