@@ -4,6 +4,7 @@ import { applyAgentChange } from './applyAgentChange'
 import { applyAiChange } from './applyAiChange'
 import { AutomaticIds } from './transforms/AutomaticIds'
 import { RoundedCoordinates } from './transforms/RoundedCoordinates'
+import { SimpleText } from './transforms/SimpleText'
 import { Streaming, TLAgentChange } from './types/AgentChange'
 
 /**
@@ -16,7 +17,7 @@ export function useTldrawAgent(editor?: Editor) {
 }
 
 const STATIC_TLDRAWAI_OPTIONS: TldrawAiOptions = {
-	transforms: [AutomaticIds, RoundedCoordinates],
+	transforms: [AutomaticIds, RoundedCoordinates, SimpleText],
 	apply: applyAiChange,
 
 	// A function that calls the backend and return generated changes.

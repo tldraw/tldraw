@@ -1,4 +1,4 @@
-import { useCallback, useState } from 'react'
+import { useState } from 'react'
 import {
 	Editor,
 	ErrorBoundary,
@@ -51,21 +51,10 @@ const components: TLComponents = {
 	),
 }
 
+const tools = [TargetShapeTool, TargetAreaTool]
+
 function App() {
 	const [editor, setEditor] = useState<Editor | undefined>()
-
-	const handleMount = useCallback((editor: Editor) => {
-		setEditor(editor)
-		editor.sideEffects.registerBeforeChangeHandler('shape', (_prev, next, source) => {
-			if (source !== 'user') return next
-			const shapeUtil = editor.getShapeUtil(next.type)
-			const text = shapeUtil.getText(next)
-			if (text === undefined) return next
-			return { ...next, meta: { ...next.meta, text } }
-		})
-	}, [])
-
-	const tools = [TargetShapeTool, TargetAreaTool]
 
 	return (
 		<TldrawUiToastsProvider>
@@ -73,7 +62,7 @@ function App() {
 				<div className="tldraw-canvas">
 					<Tldraw
 						persistenceKey="tldraw-agent-demo"
-						onMount={handleMount}
+						onMount={setEditor}
 						tools={tools}
 						overrides={overrides}
 						components={components}
