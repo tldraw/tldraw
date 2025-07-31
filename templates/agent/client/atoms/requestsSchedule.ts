@@ -1,6 +1,8 @@
 import { atom, BoxModel } from 'tldraw'
 import { ContextItem } from '../types/ContextItem'
 
+export const $requestsSchedule = atom<ScheduledRequest[]>('requestsSchedule', [])
+
 export interface ScheduledRequest {
 	message: string
 	type: ScheduledRequestType
@@ -9,5 +11,3 @@ export interface ScheduledRequest {
 }
 
 export type ScheduledRequestType = 'review' | 'setMyView' | 'user'
-
-export const $requestsSchedule = atom<ScheduledRequest[]>('requestsSchedule', [])
