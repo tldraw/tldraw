@@ -72,6 +72,7 @@ const components: TLComponents = {
 		return (
 			<DefaultRichTextToolbar>
 				<select
+					className="rich-text-font-extension-select"
 					value={currentFontFamily}
 					onPointerDown={stopEventPropagation}
 					onChange={(e) => {
@@ -85,6 +86,7 @@ const components: TLComponents = {
 					))}
 				</select>
 				<select
+					className="rich-text-font-extension-select"
 					value={currentFontSize}
 					onPointerDown={stopEventPropagation}
 					onChange={(e) => {

@@ -24,6 +24,7 @@ import { Geometry2dFilters } from '@tldraw/editor';
 import { Geometry2dOptions } from '@tldraw/editor';
 import { Group2d } from '@tldraw/editor';
 import { HandleSnapGeometry } from '@tldraw/editor';
+import { HTMLAttributes } from 'react';
 import { IndexKey } from '@tldraw/editor';
 import { JsonObject } from '@tldraw/editor';
 import { JSX as JSX_2 } from 'react/jsx-runtime';
@@ -3034,6 +3035,9 @@ export function TldrawUiDropdownMenuTrigger({ children, ...rest }: TLUiDropdownM
 export function TldrawUiEventsProvider({ onEvent, children }: EventsProviderProps): JSX_2.Element;
 
 // @public (undocumented)
+export function TldrawUiGrid({ asChild, className, ...props }: TLUiLayoutProps): JSX_2.Element;
+
+// @public (undocumented)
 export const TldrawUiIcon: NamedExoticComponent<TLUiIconProps>;
 
 // @public (undocumented)
@@ -3067,7 +3071,7 @@ export function TldrawUiMenuSubmenu<Translation extends string = string>({ id, d
 export function TldrawUiMenuToolItem({ toolId, ...rest }: TLUiMenuToolItemProps): JSX_2.Element | null;
 
 // @public (undocumented)
-export function TldrawUiPopover({ id, children, onOpenChange, open }: TLUiPopoverProps): JSX_2.Element;
+export function TldrawUiPopover({ id, children, onOpenChange, open, className }: TLUiPopoverProps): JSX_2.Element;
 
 // @public (undocumented)
 export function TldrawUiPopoverContent({ side, children, align, sideOffset, alignOffset, disableEscapeKeyDown, autoFocusFirstButton, }: TLUiPopoverContentProps): JSX_2.Element;
@@ -3083,6 +3087,9 @@ export interface TldrawUiProps extends TLUiContextProviderProps {
     hideUi?: boolean;
     renderDebugMenuItems?(): React_3.ReactNode;
 }
+
+// @public (undocumented)
+export function TldrawUiRow({ asChild, className, ...props }: TLUiLayoutProps): JSX_2.Element;
 
 // @public (undocumented)
 export const TldrawUiSlider: React_3.ForwardRefExoticComponent<TLUiSliderProps & React_3.RefAttributes<HTMLDivElement>>;
@@ -3953,6 +3960,14 @@ export type TLUiKeyboardShortcutsDialogProps = TLUiDialogProps & {
 };
 
 // @public (undocumented)
+export interface TLUiLayoutProps extends HTMLAttributes<HTMLDivElement> {
+    // (undocumented)
+    asChild?: boolean;
+    // (undocumented)
+    children: ReactNode;
+}
+
+// @public (undocumented)
 export interface TLUiMainMenuProps {
     // (undocumented)
     children?: ReactNode;
@@ -4096,6 +4111,8 @@ export interface TLUiPopoverProps {
     // (undocumented)
     children: React_3.ReactNode;
     // (undocumented)
+    className?: string;
+    // (undocumented)
     id: string;
     // (undocumented)
     onOpenChange?(isOpen: boolean): void;
@@ -4237,6 +4254,8 @@ export interface TLUiToolbarProps extends React_3.HTMLAttributes<HTMLDivElement>
     dir?: 'ltr' | 'rtl';
     // (undocumented)
     label: string;
+    // (undocumented)
+    orientation: 'grid' | 'horizontal';
 }
 
 // @public (undocumented)

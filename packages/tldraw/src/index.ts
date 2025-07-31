@@ -25,6 +25,11 @@ export { DefaultA11yAnnouncer, useSelectedShapesAnnouncer } from './lib/ui/compo
 export { ColorSchemeMenu } from './lib/ui/components/ColorSchemeMenu'
 export { DefaultDialogs } from './lib/ui/components/Dialogs'
 export {
+	TldrawUiGrid,
+	TldrawUiRow,
+	type TLUiLayoutProps,
+} from './lib/ui/components/primitives/layout'
+export {
 	TldrawUiMenuActionCheckboxItem,
 	type TLUiMenuActionCheckboxItemProps,
 } from './lib/ui/components/primitives/menus/TldrawUiMenuActionCheckboxItem'

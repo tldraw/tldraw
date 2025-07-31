@@ -207,7 +207,7 @@
 
 /* Tool lock button */
 
-.tlui-toolbar__lock-button {
+.tlui-main-toolbar__lock-button {
 	position: absolute;
 	top: 4px;
 	right: 0px;
@@ -218,7 +218,7 @@
 	border-radius: var(--radius-2);
 }
 
-.tlui-toolbar__lock-button::after {
+.tlui-main-toolbar__lock-button::after {
 	top: 4px;
 	left: 8px;
 	inset: 4px;
@@ -270,45 +270,44 @@
 	width: 16px;
 }
 
-/* Button Row */
+/* Row layout */
 
-.tlui-buttons__horizontal {
+.tlui-row {
 	display: flex;
 	flex-direction: row;
 }
-.tlui-buttons__horizontal > * {
+.tlui-row > * {
 	margin-left: -2px;
 	margin-right: -2px;
 }
-.tlui-buttons__horizontal > *:nth-child(1) {
+.tlui-row > *:nth-child(1) {
 	margin-left: 0px;
 }
-.tlui-buttons__horizontal > *:nth-last-child(1) {
+.tlui-row > *:nth-last-child(1) {
 	margin-right: 0px;
 }
 
-/* Button Grid */
+/* Grid layout */
 
-.tlui-buttons__grid {
+.tlui-grid {
 	display: grid;
 	grid-template-columns: repeat(4, auto);
 	grid-auto-flow: row;
 	overflow: hidden;
 }
-.tlui-buttons__grid > .tlui-button {
+.tlui-grid > .tlui-button {
 	margin: -2px;
 }
-.tlui-buttons__grid > .tlui-button:nth-of-type(4n),
-.tlui-buttons__vertical-align > .tlui-button:nth-of-type(3n) {
+.tlui-grid > .tlui-button:nth-of-type(4n) {
 	margin-right: 0px;
 }
-.tlui-buttons__grid > .tlui-button:nth-of-type(4n - 3) {
+.tlui-grid > .tlui-button:nth-of-type(4n - 3) {
 	margin-left: 0px;
 }
-.tlui-buttons__grid > .tlui-button:nth-of-type(-n + 4) {
+.tlui-grid > .tlui-button:nth-of-type(-n + 4) {
 	margin-top: 0px;
 }
-.tlui-buttons__grid > .tlui-button:nth-last-of-type(-n + 4) {
+.tlui-grid > .tlui-button:nth-last-of-type(-n + 4) {
 	margin-bottom: 0px;
 }
 
@@ -1027,12 +1026,8 @@
 	border-bottom: 1px solid var(--color-divider);
 }
 
-.tlui-style-panel__row {
-	display: flex;
-}
-/* Only really used for the alignment picker */
-.tlui-style-panel__row__extra-button {
-	margin-left: -2px;
+.tlui-style-panel__dropdown-picker:only-child {
+	width: 100%;
 }
 
 .tlui-style-panel__double-select-picker {
@@ -1128,7 +1123,7 @@
 /* --------------------- Toolbar -------------------- */
 
 /* Wide container */
-.tlui-toolbar {
+.tlui-main-toolbar {
 	grid-column: 1 / span 3;
 	grid-row: 1;
 	display: flex;
@@ -1139,7 +1134,7 @@
 }
 
 /* Centered Content */
-.tlui-toolbar__inner {
+.tlui-main-toolbar__inner {
 	position: relative;
 	width: fit-content;
 	display: flex;
@@ -1147,12 +1142,12 @@
 	align-items: flex-end;
 }
 
-.tlui-toolbar__left {
+.tlui-main-toolbar__left {
 	width: fit-content;
 }
 
 /* Row of controls + lock button */
-.tlui-toolbar__extras {
+.tlui-main-toolbar__extras {
 	position: relative;
 	z-index: var(--layer-above);
 	width: 100%;
@@ -1161,11 +1156,11 @@
 	height: 48px;
 }
 
-.tlui-toolbar__extras:empty {
+.tlui-main-toolbar__extras:empty {
 	display: none;
 }
 
-.tlui-toolbar__extras__controls {
+.tlui-main-toolbar__extras__controls {
 	display: flex;
 	position: relative;
 	flex-direction: row;
@@ -1180,7 +1175,7 @@
 	width: fit-content;
 }
 
-.tlui-toolbar__tools {
+.tlui-main-toolbar__tools {
 	display: flex;
 	flex-direction: row;
 	align-items: center;
@@ -1191,35 +1186,31 @@
 	background: var(--color-panel);
 	box-shadow: var(--shadow-2);
 }
-.tlui-toolbar__tools__list {
+.tlui-main-toolbar__tools__list {
 	display: flex;
 	flex-direction: row;
 	align-items: center;
 }
 
-.tlui-toolbar__overflow {
+.tlui-main-toolbar__overflow {
 	width: 40px;
 }
 
-.tlui-layout__mobile .tlui-toolbar__overflow {
+.tlui-layout__mobile .tlui-main-toolbar__overflow {
 	width: 32px;
 	padding: 0px;
 }
 
-.tlui-toolbar *[data-state='open']::after {
+.tlui-main-toolbar *[data-state='open']::after {
 	background: linear-gradient(0deg, rgba(144, 144, 144, 0) 0%, var(--color-muted-2) 100%);
 	opacity: 1;
 }
 
 @media (hover: hover) {
-	.tlui-toolbar *[data-state='open']:not(:hover)::after {
+	.tlui-main-toolbar *[data-state='open']:not(:hover)::after {
 		background: linear-gradient(0deg, rgba(144, 144, 144, 0) 0%, var(--color-muted-2) 100%);
 		opacity: 1;
 	}
-}
-
-.tlui-layout__mobile .tlui-toolbar {
-	transition: transform 0.15s ease-out 0.05s;
 }
 
 /* ------------------- Debug panel ------------------ */

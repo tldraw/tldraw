@@ -62,8 +62,9 @@ export const DefaultActionsMenu = memo(function DefaultActionsMenu({
 				<TldrawUiToolbar
 					ref={ref}
 					label={msg('actions-menu.title')}
-					className="tlui-actions-menu tlui-buttons__grid"
+					className="tlui-actions-menu"
 					data-testid="actions-menu.content"
+					orientation="grid"
 				>
 					<TldrawUiMenuContextProvider type="icons" sourceId="actions-menu">
 						{content}

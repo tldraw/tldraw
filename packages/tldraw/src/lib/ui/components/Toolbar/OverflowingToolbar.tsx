@@ -158,12 +158,13 @@ export function OverflowingToolbar({ children }: OverflowingToolbarProps) {
 		<>
 			<style nonce={editor.options.nonce}>{css}</style>
 			<TldrawUiToolbar
-				className={classNames('tlui-toolbar__tools', {
-					'tlui-toolbar__tools__mobile': breakpoint < PORTRAIT_BREAKPOINT.TABLET_SM,
+				orientation="horizontal"
+				className={classNames('tlui-main-toolbar__tools', {
+					'tlui-main-toolbar__tools__mobile': breakpoint < PORTRAIT_BREAKPOINT.TABLET_SM,
 				})}
 				label={msg('tool-panel.title')}
 			>
-				<div id={`${id}_main`} ref={mainToolsRef} className="tlui-toolbar__tools__list">
+				<div id={`${id}_main`} ref={mainToolsRef} className="tlui-main-toolbar__tools__list">
 					<TldrawUiMenuContextProvider type="toolbar" sourceId="toolbar">
 						{children}
 					</TldrawUiMenuContextProvider>
@@ -176,7 +177,7 @@ export function OverflowingToolbar({ children }: OverflowingToolbarProps) {
 								<TldrawUiToolbarButton
 									title={msg('tool-panel.more')}
 									type="tool"
-									className="tlui-toolbar__overflow"
+									className="tlui-main-toolbar__overflow"
 									data-testid="tools.more-button"
 								>
 									<TldrawUiButtonIcon icon="chevron-up" />
@@ -184,7 +185,7 @@ export function OverflowingToolbar({ children }: OverflowingToolbarProps) {
 							</TldrawUiPopoverTrigger>
 							<TldrawUiPopoverContent side="top" align="center">
 								<TldrawUiToolbar
-									className="tlui-buttons__grid"
+									orientation="grid"
 									data-testid="tools.more-content"
 									label={msg('tool-panel.more')}
 									id={`${id}_more`}
