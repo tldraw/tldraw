@@ -161,12 +161,6 @@
 	}
 }
 
-/* Panel button */
-
-.tlui-button__panel {
-	position: relative;
-}
-
 /* Menu button */
 
 .tlui-button__menu {
