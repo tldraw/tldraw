@@ -68,6 +68,8 @@ async function* streamEventsVercel(
 	model: LanguageModel,
 	prompt: TLAgentSerializedPrompt
 ): AsyncGenerator<ISimpleEvent & { complete: boolean }> {
+	const geminiThinkingBudget = model.modelId === 'gemini-2.5-pro' ? 128 : 0
+
 	try {
 		const { partialObjectStream } = streamObject<IModelResponse>({
 			model,
@@ -80,7 +82,7 @@ async function* streamEventsVercel(
 			},
 			providerOptions: {
 				google: {
-					thinkingConfig: { thinkingBudget: 0 },
+					thinkingConfig: { thinkingBudget: geminiThinkingBudget },
 				} satisfies GoogleGenerativeAIProviderOptions,
 				//anthropic doesnt allow thinking for tool use, which structured outputs forces to be enabled
 				//the openai models we use dont support thinking anyway
@@ -129,6 +131,8 @@ async function generateEventsVercel(
 	model: LanguageModel,
 	prompt: TLAgentSerializedPrompt
 ): Promise<(ISimpleEvent & { complete: boolean })[]> {
+	const geminiThinkingBudget = model.modelId === 'gemini-2.5-pro' ? 128 : 0
+
 	try {
 		const response = await generateObject({
 			model,
@@ -137,7 +141,7 @@ async function generateEventsVercel(
 			schema: ModelResponse,
 			providerOptions: {
 				google: {
-					thinkingConfig: { thinkingBudget: 0 },
+					thinkingConfig: { thinkingBudget: geminiThinkingBudget },
 				} satisfies GoogleGenerativeAIProviderOptions,
 				//anthropic doesnt allow thinking for tool use, which structured outputs forces to be enabled
 				//the openai models we use dont support thinking anyway
