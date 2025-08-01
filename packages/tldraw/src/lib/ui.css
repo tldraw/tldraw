@@ -266,6 +266,23 @@
 	margin-right: -2px;
 }
 
+/* Column layout */
+
+.tlui-column {
+	display: flex;
+	flex-direction: column;
+}
+.tlui-column > * {
+	margin-top: -2px;
+	margin-bottom: -2px;
+}
+.tlui-column > *:nth-child(1) {
+	margin-top: 0px;
+}
+.tlui-column > *:nth-last-child(1) {
+	margin-bottom: 0px;
+}
+
 /* Grid layout */
 
 .tlui-grid {
@@ -1125,6 +1142,13 @@
 	justify-content: center;
 	flex-grow: 2;
 	padding-bottom: calc(var(--space-3) + var(--sab));
+}
+
+.tlui-main-toolbar--vertical {
+	position: absolute;
+	left: 0;
+	top: 0;
+	bottom: 0;
 }
 
 /* Centered Content */

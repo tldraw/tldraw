@@ -21,6 +21,16 @@ export const TldrawUiRow = forwardRef<HTMLDivElement, TLUiLayoutProps>(
 )
 
 /**
+ * A column, usually of UI controls like buttons, select dropdown, checkboxes, etc.
+ *
+ * @public @react
+ */
+export function TldrawUiColumn({ asChild, className, ...props }: TLUiLayoutProps) {
+	const Component = asChild ? Slot.Root : 'div'
+	return <Component className={classNames('tlui-column', className)} {...props} />
+}
+
+/**
  * A tight grid 4 elements wide, usually of UI controls like buttons, select dropdown, checkboxes,
  * etc.
  *
