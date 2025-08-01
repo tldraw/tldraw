@@ -5200,7 +5200,7 @@ export class Editor extends EventEmitter<TLEventMap> {
 				return false
 			const pageMask = this.getShapeMask(shape)
 			if (pageMask && !pointInPolygon(point, pageMask)) return false
-			if (filter) return filter(shape)
+			if (filter && !filter(shape)) return false
 			return true
 		})
 
@@ -5231,18 +5231,18 @@ export class Editor extends EventEmitter<TLEventMap> {
 				// this prevents clicks from passing through the body of a frame to shapes behind it.
 
 				// If the hit is within the frame's outer margin, then select the frame
-				const distance = geometry.distanceToPoint(pointInShapeSpace, hitInside)
+				const distance = geometry.distanceToPoint(pointInShapeSpace, hitFrameInside)
 				if (
 					hitFrameInside
 						? // On hitInside, the distance will be negative for hits inside
 							// If the distance is positive, check against the outer margin
-							(distance >= 0 && distance < outerMargin) ||
+							(distance > 0 && distance <= outerMargin) ||
 							// If the distance is negative, check against the inner margin
-							(distance < 0 && distance > -innerMargin)
+							(distance <= 0 && distance > -innerMargin)
 						: // If hitInside is false, then sadly _we do not know_ whether the
 							// point is inside or outside of the shape, so we check against
 							// the max of the two margins
-							distance < outerMargin
+							distance <= outerMargin
 				) {
 					return inMarginClosestToEdgeHit || shape
 				}
@@ -5296,13 +5296,15 @@ export class Editor extends EventEmitter<TLEventMap> {
 				}
 			}
 
+			if (!distance) distance = 0
+
 			if (geometry.isClosed) {
 				// For closed shapes, the distance will be positive if outside of
 				// the shape or negative if inside of the shape. If the distance
 				// is greater than the margin, then it's a miss. Otherwise...
 
 				// Are we close to the shape's edge?
-				if (distance < outerMargin || (hitInside && distance < 0 && distance > -innerMargin)) {
+				if (distance <= outerMargin || (hitInside && distance <= 0 && distance > -innerMargin)) {
 					if (geometry.isFilled || (isGroup && geometry.children[0].isFilled)) {
 						// If the shape is filled, then it's a hit. Remember, we're
 						// starting from the TOP-MOST shape in z-index order, so any
@@ -5319,13 +5321,13 @@ export class Editor extends EventEmitter<TLEventMap> {
 							hitInside
 								? // On hitInside, the distance will be negative for hits inside
 									// If the distance is positive, check against the outer margin
-									(distance >= 0 && distance < outerMargin) ||
+									(distance > 0 && distance <= outerMargin) ||
 									// If the distance is negative, check against the inner margin
-									(distance < 0 && distance > -innerMargin)
+									(distance <= 0 && distance > -innerMargin)
 								: // If hitInside is false, then sadly _we do not know_ whether the
 									// point is inside or outside of the shape, so we check against
 									// the max of the two margins
-									Math.abs(distance) < Math.max(innerMargin, outerMargin)
+									Math.abs(distance) <= Math.max(innerMargin, outerMargin)
 						) {
 							if (Math.abs(distance) < inMarginClosestToEdgeDistance) {
 								inMarginClosestToEdgeDistance = Math.abs(distance)
@@ -7405,7 +7407,6 @@ export class Editor extends EventEmitter<TLEventMap> {
 			if (
 				!this.getShapeUtil(shape).canBeLaidOut?.(shape, {
 					type: 'stretch',
-					shapes: shapesToStretchFirstPass,
 				})
 			) {
 				continue
