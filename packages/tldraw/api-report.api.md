@@ -2979,6 +2979,9 @@ export function TldrawUiButtonLabel({ children }: TLUiButtonLabelProps): JSX_2.E
 export const TldrawUiButtonPicker: <T extends string>(props: TLUiButtonPickerProps<T>) => ReactElement;
 
 // @public (undocumented)
+export const TldrawUiColumn: ForwardRefExoticComponent<TLUiLayoutProps & RefAttributes<HTMLDivElement>>;
+
+// @public (undocumented)
 export function TldrawUiComponentsProvider({ overrides, children, }: TLUiComponentsProviderProps): JSX_2.Element;
 
 // @public (undocumented)

@@ -26,6 +26,7 @@ export { AccessibilityMenu } from './lib/ui/components/AccessibilityMenu'
 export { ColorSchemeMenu } from './lib/ui/components/ColorSchemeMenu'
 export { DefaultDialogs } from './lib/ui/components/Dialogs'
 export {
+	TldrawUiColumn,
 	TldrawUiGrid,
 	TldrawUiRow,
 	type TLUiLayoutProps,
