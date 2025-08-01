@@ -5156,17 +5156,53 @@ export class Editor extends EventEmitter<TLEventMap> {
 	 */
 	getShapeAtPoint(
 		point: VecLike,
-		opts = {} as {
-			renderingOnly?: boolean
-			margin?: number | [number, number] // [inside, outside]
-			hitInside?: boolean
-			hitLocked?: boolean
-			// TODO: we probably need to rename this, we don't quite _always_
-			// respect this esp. in the part below that does "Check labels first"
-			hitLabels?: boolean
-			hitFrameInside?: boolean
-			filter?(shape: TLShape): boolean
-		}
+		opts = {} as Partial<{
+			/**
+			 * The margin to apply to the shape.
+			 * If a number, it will be applied to both the inside and outside of the shape.
+			 * If an array, the first element will be applied to the inside of the shape, and the second element will be applied to the outside.
+			 *
+			 * @example
+			 * ```ts
+			 * // Get the shape at the center of the screen
+			 * const shape = editor.getShapeAtProps({
+			 *   margin: 10,
+			 * })
+			 *
+			 * // Get the shape at the center of the screen with a 10px inner margin and a 5px outer margin
+			 * const shape = editor.getShapeAtProps({
+			 *   margin: [10, 5],
+			 * })
+			 * ```
+			 */
+			margin: number | [number, number]
+			/**
+			 * Whether to register hits inside of shapes (beyond the margin), such as the inside of a solid shape.
+			 */
+			hitInside: boolean
+			/**
+			 * Whether to register hits on locked shapes.
+			 */
+			hitLocked: boolean
+			/**
+			 * Whether to register hits on labels.
+			 */
+			hitLabels: boolean
+			/**
+			 * Whether to only return hits on shapes that are currently being rendered.
+			 * todo: rename this to hitCulled or hitNotRendering
+			 */
+			renderingOnly: boolean
+			/**
+			 * Whether to register hits on the inside of frame shapes.
+			 * todo: rename this to hitInsideFrames
+			 */
+			hitFrameInside: boolean
+			/**
+			 * A filter function to apply to the shapes.
+			 */
+			filter(shape: TLShape): boolean
+		}>
 	): TLShape | undefined {
 		const zoomLevel = this.getZoomLevel()
 		const viewportPageBounds = this.getViewportPageBounds()

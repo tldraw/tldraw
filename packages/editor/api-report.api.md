@@ -1244,15 +1244,15 @@ export class Editor extends EventEmitter<TLEventMap> {
     getShape<T extends TLShape = TLShape>(shape: TLParentId | TLShape): T | undefined;
     getShapeAncestors(shape: TLShape | TLShapeId, acc?: TLShape[]): TLShape[];
     getShapeAndDescendantIds(ids: TLShapeId[]): Set<TLShapeId>;
-    getShapeAtPoint(point: VecLike, opts?: {
-        filter?(shape: TLShape): boolean;
-        hitFrameInside?: boolean;
-        hitInside?: boolean;
-        hitLabels?: boolean;
-        hitLocked?: boolean;
-        margin?: [number, number] | number;
-        renderingOnly?: boolean;
-    }): TLShape | undefined;
+    getShapeAtPoint(point: VecLike, opts?: Partial<{
+        filter(shape: TLShape): boolean;
+        margin: [number, number] | number;
+        renderingOnly: boolean;
+        hitInside: boolean;
+        hitLabels: boolean;
+        hitLocked: boolean;
+        hitFrameInside: boolean;
+    }>): TLShape | undefined;
     getShapeClipPath(shape: TLShape | TLShapeId): string | undefined;
     getShapeGeometry<T extends Geometry2d>(shape: TLShape | TLShapeId, opts?: TLGeometryOpts): T;
     getShapeHandles<T extends TLShape>(shape: T | T['id']): TLHandle[] | undefined;
