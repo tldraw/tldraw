@@ -8,13 +8,21 @@ export interface TLUiLayoutProps extends HTMLAttributes<HTMLDivElement> {
 	asChild?: boolean
 }
 
-/** @public @react */
+/**
+ * A row, usually of UI controls like buttons, select dropdown, checkboxes, etc.
+ *
+ * @public @react
+ */
 export function TldrawUiRow({ asChild, className, ...props }: TLUiLayoutProps) {
 	const Component = asChild ? Slot.Root : 'div'
 	return <Component className={classNames('tlui-row', className)} {...props} />
 }
 
-/** @public @react */
+/**
+ * A tight grid 4 elements wide, usually of UI controls like buttons, select dropdown, checkboxes,
+ * etc.
+ *
+ * @public @react */
 export function TldrawUiGrid({ asChild, className, ...props }: TLUiLayoutProps) {
 	const Component = asChild ? Slot.Root : 'div'
 	return <Component className={classNames('tlui-grid', className)} {...props} />

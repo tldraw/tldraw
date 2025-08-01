@@ -3034,7 +3034,7 @@ export function TldrawUiDropdownMenuTrigger({ children, ...rest }: TLUiDropdownM
 // @public (undocumented)
 export function TldrawUiEventsProvider({ onEvent, children }: EventsProviderProps): JSX_2.Element;
 
-// @public (undocumented)
+// @public
 export function TldrawUiGrid({ asChild, className, ...props }: TLUiLayoutProps): JSX_2.Element;
 
 // @public (undocumented)
@@ -3088,7 +3088,7 @@ export interface TldrawUiProps extends TLUiContextProviderProps {
     renderDebugMenuItems?(): React_3.ReactNode;
 }
 
-// @public (undocumented)
+// @public
 export function TldrawUiRow({ asChild, className, ...props }: TLUiLayoutProps): JSX_2.Element;
 
 // @public (undocumented)
