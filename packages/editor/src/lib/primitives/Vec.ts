@@ -33,7 +33,6 @@ export class Vec {
 	}
 
 	rot(r: number) {
-		if (r === 0) return this
 		const { x, y } = this
 		const s = Math.sin(r)
 		const c = Math.cos(r)
@@ -43,7 +42,6 @@ export class Vec {
 	}
 
 	rotWith(C: VecLike, r: number) {
-		if (r === 0) return this
 		const x = this.x - C.x
 		const y = this.y - C.y
 		const s = Math.sin(r)
