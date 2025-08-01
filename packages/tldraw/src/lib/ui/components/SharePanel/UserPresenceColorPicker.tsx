@@ -5,6 +5,7 @@ import { useUiEvents } from '../../context/events'
 import { useTranslation } from '../../hooks/useTranslation/useTranslation'
 import { TldrawUiButton } from '../primitives/Button/TldrawUiButton'
 import { TldrawUiButtonIcon } from '../primitives/Button/TldrawUiButtonIcon'
+import { TldrawUiGrid } from '../primitives/layout'
 
 export const UserPresenceColorPicker = track(function UserPresenceColorPicker() {
 	const editor = useEditor()
@@ -100,7 +101,7 @@ export const UserPresenceColorPicker = track(function UserPresenceColorPicker() 
 					side="left"
 					sideOffset={8}
 				>
-					<div className={'tlui-buttons__grid'}>
+					<TldrawUiGrid>
 						{USER_COLORS.map((item: string) => (
 							<TldrawUiButton
 								type="icon"
@@ -120,7 +121,7 @@ export const UserPresenceColorPicker = track(function UserPresenceColorPicker() 
 								<TldrawUiButtonIcon icon="color" />
 							</TldrawUiButton>
 						))}
-					</div>
+					</TldrawUiGrid>
 				</_Popover.Content>
 			</_Popover.Portal>
 		</_Popover.Root>
