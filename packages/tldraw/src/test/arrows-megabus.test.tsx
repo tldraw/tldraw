@@ -288,11 +288,13 @@ describe('When shapes are overlapping', () => {
 		editor.pointerDown(0, 50) // over nothing
 		editor.pointerMove(125, 50) // over box1 only
 		expect(bindings().end).toMatchObject({ toId: ids.box1 })
-		editor.pointerMove(175, 50) // box2 is higher but box1 is filled?
+		editor.pointerMove(175, 50) // box2 is higher but box1 is filled, but we're on the edge ofd box 2
+		expect(bindings().end).toMatchObject({ toId: ids.box2 })
+		editor.pointerMove(175, 70) // box2 is higher but box1 is filled, and we're inside of box2
 		expect(bindings().end).toMatchObject({ toId: ids.box1 })
-		editor.pointerMove(225, 50) // box3 is higher
+		editor.pointerMove(225, 70) // box3 is higher
 		expect(bindings().end).toMatchObject({ toId: ids.box3 })
-		editor.pointerMove(275, 50) // box4 is higher but box 3 is filled
+		editor.pointerMove(275, 70) // box4 is higher but box 3 is filled
 		expect(bindings().end).toMatchObject({ toId: ids.box3 })
 	})
 
@@ -304,14 +306,18 @@ describe('When shapes are overlapping', () => {
 		])
 		editor.setCurrentTool('arrow')
 		editor.pointerDown(0, 50)
-		editor.pointerMove(175, 50) // box1 is smaller even though it's behind box2
+		editor.pointerMove(175, 50) // box1 is smaller even though it's behind box2, but we're on the edge of box 2
+		expect(bindings().end).toMatchObject({ toId: ids.box2 })
+		editor.pointerMove(175, 70) // box1 is smaller even though it's behind box2
 		expect(bindings().end).toMatchObject({ toId: ids.box1 })
-		editor.pointerMove(150, 90) // box3 is smaller and at the front
+		editor.pointerMove(150, 90) // box3 is smaller and at the front but we're on the edge of box 2
+		expect(bindings().end).toMatchObject({ toId: ids.box2 })
+		editor.pointerMove(160, 90) // box3 is smaller and at the front and we're in box1 and box 3 and box 2
 		expect(bindings().end).toMatchObject({ toId: ids.box3 })
 		editor.sendToBack([ids.box3])
 		editor.pointerMove(149, 90) // box3 is smaller, even when at the back
 		expect(bindings().end).toMatchObject({ toId: ids.box3 })
-		editor.pointerMove(175, 50)
+		editor.pointerMove(175, 60) // inside of box1 and box 2, but box 1 is smaller
 		expect(bindings().end).toMatchObject({ toId: ids.box1 })
 	})
 })
