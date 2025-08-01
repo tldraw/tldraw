@@ -15,6 +15,12 @@ export function TldrawUiRow({ asChild, className, ...props }: TLUiLayoutProps) {
 }
 
 /** @public @react */
+export function TldrawUiColumn({ asChild, className, ...props }: TLUiLayoutProps) {
+	const Component = asChild ? Slot.Root : 'div'
+	return <Component className={classNames('tlui-column', className)} {...props} />
+}
+
+/** @public @react */
 export function TldrawUiGrid({ asChild, className, ...props }: TLUiLayoutProps) {
 	const Component = asChild ? Slot.Root : 'div'
 	return <Component className={classNames('tlui-grid', className)} {...props} />

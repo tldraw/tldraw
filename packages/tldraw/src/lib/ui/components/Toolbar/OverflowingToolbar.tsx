@@ -40,10 +40,14 @@ const NUMBERED_SHORTCUT_KEYS: Record<string, number> = {
 /** @public */
 export interface OverflowingToolbarProps {
 	children: React.ReactNode
+	orientation?: 'horizontal' | 'vertical'
 }
 
 /** @public @react */
-export function OverflowingToolbar({ children }: OverflowingToolbarProps) {
+export function OverflowingToolbar({
+	children,
+	orientation = 'horizontal',
+}: OverflowingToolbarProps) {
 	const editor = useEditor()
 	const id = useUniqueSafeId()
 	const breakpoint = useBreakpoint()
@@ -158,7 +162,7 @@ export function OverflowingToolbar({ children }: OverflowingToolbarProps) {
 		<>
 			<style nonce={editor.options.nonce}>{css}</style>
 			<TldrawUiToolbar
-				orientation="horizontal"
+				orientation={orientation}
 				className={classNames('tlui-main-toolbar__tools', {
 					'tlui-main-toolbar__tools__mobile': breakpoint < PORTRAIT_BREAKPOINT.TABLET_SM,
 				})}
