@@ -2018,7 +2018,13 @@ export function LockGroup(): JSX_2.Element;
 export function MiscMenuGroup(): JSX_2.Element;
 
 // @public (undocumented)
-export function MobileStylePanel(): JSX_2.Element | null;
+export function MobileStylePanel({ orientation }: MobileStylePanelProps): JSX_2.Element | null;
+
+// @public (undocumented)
+export interface MobileStylePanelProps {
+    // (undocumented)
+    orientation?: 'horizontal' | 'vertical';
+}
 
 // @public (undocumented)
 export function MoveToPageMenu(): JSX_2.Element | null;

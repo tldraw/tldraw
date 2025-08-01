@@ -252,12 +252,12 @@
 	opacity: 1;
 }
 
-.tlui-layout__mobile .tlui-button__tool {
+.tlui-layout__mobile .tlui-main-toolbar--horizontal .tlui-button__tool {
 	height: 48px;
 	width: 43px;
 }
 
-.tlui-layout__mobile .tlui-button__tool > .tlui-icon {
+.tlui-layout__mobile .tlui-main-toolbar--horizontal .tlui-button__tool > .tlui-icon {
 	height: 16px;
 	width: 16px;
 }
@@ -1167,7 +1167,11 @@
 	width: fit-content;
 	display: flex;
 	gap: var(--space-3);
-	align-items: flex-end;
+	align-items: flex-start;
+}
+
+.tlui-main-toolbar--vertical .tlui-main-toolbar__inner {
+	flex-direction: column;
 }
 
 .tlui-main-toolbar--horizontal .tlui-main-toolbar__left {
@@ -1245,11 +1249,6 @@
 
 .tlui-layout__mobile .tlui-main-toolbar--horizontal .tlui-main-toolbar__overflow {
 	width: 32px;
-	padding: 0px;
-}
-
-.tlui-layout__mobile .tlui-main-toolbar--vertical .tlui-main-toolbar__overflow {
-	height: 32px;
 	padding: 0px;
 }
 

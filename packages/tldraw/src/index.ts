@@ -310,7 +310,7 @@ export {
 	ZoomToSelectionMenuItem,
 } from './lib/ui/components/menu-items'
 export { DefaultMinimap } from './lib/ui/components/Minimap/DefaultMinimap'
-export { MobileStylePanel } from './lib/ui/components/MobileStylePanel'
+export { MobileStylePanel, type MobileStylePanelProps } from './lib/ui/components/MobileStylePanel'
 export { DefaultNavigationPanel } from './lib/ui/components/NavigationPanel/DefaultNavigationPanel'
 export { OfflineIndicator } from './lib/ui/components/OfflineIndicator/OfflineIndicator'
 export { DefaultPageMenu } from './lib/ui/components/PageMenu/DefaultPageMenu'
