@@ -4255,7 +4255,7 @@ export interface TLUiToolbarProps extends React_3.HTMLAttributes<HTMLDivElement>
     // (undocumented)
     label: string;
     // (undocumented)
-    orientation: 'grid' | 'horizontal';
+    orientation?: 'grid' | 'horizontal';
 }
 
 // @public (undocumented)
