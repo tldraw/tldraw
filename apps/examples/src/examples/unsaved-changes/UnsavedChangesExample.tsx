@@ -16,6 +16,7 @@ import 'tldraw/tldraw.css'
 function SaveButton() {
 	const editor = useEditor()
 	const [hasUnsavedChanges, setHasUnsavedChanges] = useState(false)
+
 	const rUnsavedChanges = useRef<RecordsDiff<TLRecord>>({
 		added: {},
 		removed: {},
