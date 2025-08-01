@@ -25,6 +25,7 @@ export { DefaultA11yAnnouncer, useSelectedShapesAnnouncer } from './lib/ui/compo
 export { ColorSchemeMenu } from './lib/ui/components/ColorSchemeMenu'
 export { DefaultDialogs } from './lib/ui/components/Dialogs'
 export {
+	TldrawUiColumn,
 	TldrawUiGrid,
 	TldrawUiRow,
 	type TLUiLayoutProps,
@@ -307,7 +308,7 @@ export {
 	ZoomToSelectionMenuItem,
 } from './lib/ui/components/menu-items'
 export { DefaultMinimap } from './lib/ui/components/Minimap/DefaultMinimap'
-export { MobileStylePanel } from './lib/ui/components/MobileStylePanel'
+export { MobileStylePanel, type MobileStylePanelProps } from './lib/ui/components/MobileStylePanel'
 export { DefaultNavigationPanel } from './lib/ui/components/NavigationPanel/DefaultNavigationPanel'
 export { OfflineIndicator } from './lib/ui/components/OfflineIndicator/OfflineIndicator'
 export { DefaultPageMenu } from './lib/ui/components/PageMenu/DefaultPageMenu'

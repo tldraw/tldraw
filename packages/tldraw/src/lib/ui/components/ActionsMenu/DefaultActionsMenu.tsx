@@ -17,11 +17,13 @@ import { DefaultActionsMenuContent } from './DefaultActionsMenuContent'
 /** @public */
 export interface TLUiActionsMenuProps {
 	children?: ReactNode
+	orientation?: 'horizontal' | 'vertical'
 }
 
 /** @public @react */
 export const DefaultActionsMenu = memo(function DefaultActionsMenu({
 	children,
+	orientation = 'horizontal',
 }: TLUiActionsMenuProps) {
 	const msg = useTranslation()
 	const breakpoint = useBreakpoint()
@@ -52,11 +54,20 @@ export const DefaultActionsMenu = memo(function DefaultActionsMenu({
 					data-testid="actions-menu.button"
 					title={msg('actions-menu.title')}
 				>
-					<TldrawUiButtonIcon icon="dots-vertical" small />
+					<TldrawUiButtonIcon
+						icon={orientation === 'horizontal' ? 'dots-vertical' : 'dots-horizontal'}
+						small
+					/>
 				</TldrawUiToolbarButton>
 			</TldrawUiPopoverTrigger>
 			<TldrawUiPopoverContent
-				side={breakpoint >= PORTRAIT_BREAKPOINT.TABLET ? 'bottom' : 'top'}
+				side={
+					orientation === 'horizontal'
+						? breakpoint >= PORTRAIT_BREAKPOINT.TABLET
+							? 'bottom'
+							: 'top'
+						: 'right'
+				}
 				sideOffset={6}
 			>
 				<TldrawUiToolbar
