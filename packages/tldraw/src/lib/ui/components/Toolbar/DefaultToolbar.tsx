@@ -61,13 +61,15 @@ export const DefaultToolbar = memo(function DefaultToolbar({
 									label={msg('actions-menu.title')}
 								>
 									{QuickActions && <QuickActions />}
-									{ActionsMenu && <ActionsMenu />}
+									{ActionsMenu && <ActionsMenu orientation={orientation} />}
 								</TldrawUiToolbar>
 							)}
 							<ToggleToolLockedButton activeToolId={activeToolId} />
 						</div>
 					)}
-					<OverflowingToolbar>{children ?? <DefaultToolbarContent />}</OverflowingToolbar>
+					<OverflowingToolbar orientation={orientation}>
+						{children ?? <DefaultToolbarContent />}
+					</OverflowingToolbar>
 				</div>
 				{breakpoint < PORTRAIT_BREAKPOINT.TABLET_SM && !isReadonlyMode && (
 					<div className="tlui-main-toolbar__tools">
