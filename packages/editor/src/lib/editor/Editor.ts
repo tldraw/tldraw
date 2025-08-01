@@ -5282,7 +5282,7 @@ export class Editor extends EventEmitter<TLEventMap> {
 				// If the margin is zero and the geometry has a very small width or height,
 				// then check the actual distance. This is to prevent a bug where straight
 				// lines would never pass the broad phase (point-in-bounds) check.
-				if (margin === 0 && (geometry.bounds.w < 1 || geometry.bounds.h < 1)) {
+				if (outerMargin === 0 && (geometry.bounds.w < 1 || geometry.bounds.h < 1)) {
 					distance = geometry.distanceToPoint(pointInShapeSpace, hitInside)
 				} else {
 					// Broad phase
@@ -5295,8 +5295,6 @@ export class Editor extends EventEmitter<TLEventMap> {
 					}
 				}
 			}
-
-			if (!distance) distance = 0
 
 			if (geometry.isClosed) {
 				// For closed shapes, the distance will be positive if outside of
