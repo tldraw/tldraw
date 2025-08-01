@@ -25,6 +25,7 @@ export { DefaultA11yAnnouncer, useSelectedShapesAnnouncer } from './lib/ui/compo
 export { ColorSchemeMenu } from './lib/ui/components/ColorSchemeMenu'
 export { DefaultDialogs } from './lib/ui/components/Dialogs'
 export {
+	TldrawUiColumn,
 	TldrawUiGrid,
 	TldrawUiRow,
 	type TLUiLayoutProps,
