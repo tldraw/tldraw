@@ -12,6 +12,7 @@ import {
 	READ_ONLY_PREFIX,
 	ROOM_OPEN_MODE,
 	ROOM_PREFIX,
+	ROOM_SIZE_LIMIT_MB,
 	SNAPSHOT_PREFIX,
 	TlaFile,
 	type RoomOpenMode,
@@ -84,7 +85,6 @@ async function canAccessTestProductionFile(
 }
 
 const MB = 1024 * 1024
-const ROOM_SIZE_LIMIT_MB = 25
 
 export class TLDrawDurableObject extends DurableObject {
 	// A unique identifier for this instance of the Durable Object

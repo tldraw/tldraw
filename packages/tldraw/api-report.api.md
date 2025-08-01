@@ -2983,7 +2983,7 @@ export function TldrawUiButtonLabel({ children }: TLUiButtonLabelProps): JSX_2.E
 // @public (undocumented)
 export const TldrawUiButtonPicker: <T extends string>(props: TLUiButtonPickerProps<T>) => ReactElement;
 
-// @public (undocumented)
+// @public
 export const TldrawUiColumn: ForwardRefExoticComponent<TLUiLayoutProps & RefAttributes<HTMLDivElement>>;
 
 // @public (undocumented)
@@ -3043,7 +3043,7 @@ export function TldrawUiDropdownMenuTrigger({ children, ...rest }: TLUiDropdownM
 // @public (undocumented)
 export function TldrawUiEventsProvider({ onEvent, children }: EventsProviderProps): JSX_2.Element;
 
-// @public (undocumented)
+// @public
 export const TldrawUiGrid: ForwardRefExoticComponent<TLUiLayoutProps & RefAttributes<HTMLDivElement>>;
 
 // @public (undocumented)
@@ -3097,7 +3097,7 @@ export interface TldrawUiProps extends TLUiContextProviderProps {
     renderDebugMenuItems?(): React_3.ReactNode;
 }
 
-// @public (undocumented)
+// @public
 export const TldrawUiRow: ForwardRefExoticComponent<TLUiLayoutProps & RefAttributes<HTMLDivElement>>;
 
 // @public (undocumented)
@@ -4266,7 +4266,7 @@ export interface TLUiToolbarProps extends React_3.HTMLAttributes<HTMLDivElement>
     // (undocumented)
     label: string;
     // (undocumented)
-    orientation: 'grid' | 'horizontal' | 'vertical';
+    orientation?: 'grid' | 'horizontal' | 'vertical';
 }
 
 // @public (undocumented)
