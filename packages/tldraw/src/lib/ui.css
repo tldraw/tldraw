@@ -97,7 +97,7 @@
 	opacity: 1;
 }
 
-.tlui-button[aria-expanded='true'][data-direction='left']::after {
+.tlui-button[aria-expanded='true'][data-direction='left'] {
 	background: linear-gradient(270deg, rgba(144, 144, 144, 0) 0%, var(--color-muted-2) 100%);
 	opacity: 1;
 }
@@ -1000,6 +1000,12 @@
 	max-width: 148px;
 }
 
+.tlui-style-panel[data-show-ui-labels='true'] .tlui-button[data-isactive='true'] {
+	border-radius: 10px;
+	outline: 2px solid var(--color-text);
+	outline-offset: -5px;
+}
+
 .tlui-style-panel::-webkit-scrollbar {
 	display: none;
 }
@@ -1062,6 +1068,26 @@
 		opacity: 1;
 		background: linear-gradient(270deg, rgba(144, 144, 144, 0) 0%, var(--color-muted-2) 100%);
 	}
+}
+
+/* Accessibility subheadings */
+
+.tlui-style-panel__section .tlui-style-panel__subheading,
+.tlui-style-panel__section__common .tlui-style-panel__subheading,
+.tlui-style-panel__subheading + .tlui-slider__container {
+	margin: 0;
+	padding: var(--space-2) var(--space-3) 0px var(--space-4);
+	font-size: 12px;
+	font-weight: inherit;
+	line-height: inherit;
+}
+
+.tlui-style-panel .tlui-style-panel__subheading:nth-of-type(1) {
+	padding-top: var(--space-3);
+}
+
+.tlui-style-panel__subheading + .tlui-slider__container {
+	padding-top: 0px;
 }
 
 /* --------------------- Bottom --------------------- */
@@ -1220,6 +1246,36 @@
 
 .tlui-layout__mobile .tlui-toolbar {
 	transition: transform 0.15s ease-out 0.05s;
+}
+
+/* ------------------- Tooltip -------------------- */
+
+.tlui-tooltip {
+	font-size: 12px;
+	padding: 2px 8px;
+	border-radius: 4px;
+	background-color: var(--color-tooltip);
+	box-shadow: none;
+	color: var(--color-text-shadow);
+	max-width: 400px;
+	width: fit-content;
+	text-align: center;
+	pointer-events: none;
+	will-change: transform, opacity;
+	z-index: 2;
+}
+
+.tlui-tooltip__arrow {
+	fill: var(--color-tooltip);
+	will-change: opacity;
+}
+
+[data-radix-popper-content-wrapper]:has(.tlui-tooltip) {
+	z-index: var(--layer-toasts) !important;
+}
+
+[data-radix-popper-content-wrapper]:has(.tlui-tooltip[data-should-animate='true']) {
+	transition: all 0.1s ease-out;
 }
 
 /* ------------------- Debug panel ------------------ */
