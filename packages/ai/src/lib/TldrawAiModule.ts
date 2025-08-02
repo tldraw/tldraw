@@ -153,9 +153,9 @@ export class TldrawAiModule {
 
 		const result = await this.opts.editor.toImage(content.shapes, {
 			format: 'jpeg',
-			background: false,
+			background: true, // important!
 			darkMode: false,
-			padding: 10, // will the context bounds take into account the padding?
+			padding: 0, // will the context bounds take into account the padding?
 		})
 
 		return await FileHelpers.blobToDataUrl(result.blob)

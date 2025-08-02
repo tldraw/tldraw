@@ -12,7 +12,6 @@ import {
 } from 'tldraw'
 import { $chatHistoryItems } from '../../atoms/chatHistoryItems'
 import { AgentChangeHistoryItem } from '../../types/ChatHistoryItem'
-import TldrawViewer from './TldrawViewer'
 
 export function AgentChangeHistoryItems({
 	items,
@@ -83,7 +82,7 @@ export function AgentChangeHistoryItems({
 					</>
 				)}
 			</div>
-			<TldrawViewer shapes={diffShapes} components={{ ShapeWrapper: DiffShapeWrapper }} />
+			{/* <TldrawViewer shapes={diffShapes} components={{ ShapeWrapper: DiffShapeWrapper }} /> */}
 		</div>
 	)
 }

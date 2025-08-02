@@ -186,6 +186,7 @@ function getTldrawAiChangesFromSimpleUpdateEvent(
 			const startY = update.y1
 			const endX = update.x2 - startX
 			const endY = update.y2 - startY
+			const bend = update.bend ?? 0
 
 			const mergedShape: TLShapePartial<TLArrowShape> = {
 				id: update.shapeId as TLShapeId,
@@ -197,6 +198,7 @@ function getTldrawAiChangesFromSimpleUpdateEvent(
 					richText: update.text ? toRichTextIfNeeded(update.text) : undefined,
 					start: { x: 0, y: 0 },
 					end: { x: endX, y: endY },
+					bend,
 				},
 				meta: {
 					note: update.note,

@@ -103,6 +103,7 @@ export function getSimpleContentFromCanvasContent(content: TLAiContent): {
 						text: (s.meta?.text as string) ?? '',
 						toId: endBinding?.toId ?? null,
 						note: (s.meta?.note as string) ?? '',
+						bend: s.props.bend,
 						x1: s.props.start.x + s.x,
 						x2: s.props.end.x + s.x,
 						y1: s.props.start.y + s.y,

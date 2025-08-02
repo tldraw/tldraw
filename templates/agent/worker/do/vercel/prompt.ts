@@ -241,20 +241,6 @@ function buildUserMessage(prompt: TLAgentSerializedPrompt): CoreMessage {
 				: 'Your current viewport is empty.',
 	})
 
-	// Add the screenshot of the agent's current viewport
-	if (prompt.image) {
-		content.push(
-			{
-				type: 'text',
-				text: 'Here is a screenshot of your current viewport on the canvas. It is not a reference image. It is what you will be editing or adding to.', // It's what the user can see.",
-			},
-			{
-				type: 'image',
-				image: prompt.image,
-			}
-		)
-	}
-
 	// Add the content from the agent's peripheral vision
 	if (peripheralContent.shapes.length > 0) {
 		content.push({
@@ -326,6 +312,20 @@ function buildUserMessage(prompt: TLAgentSerializedPrompt): CoreMessage {
 				})
 			}
 		}
+	}
+
+	// Add the screenshot of the agent's current viewport
+	if (prompt.image) {
+		content.push(
+			{
+				type: 'text',
+				text: 'Here is a screenshot of your current viewport on the canvas. Compare this against the textual description of the canvas. It is not a reference image.', // It's what the user can see.",
+			},
+			{
+				type: 'image',
+				image: prompt.image,
+			}
+		)
 	}
 
 	return {
