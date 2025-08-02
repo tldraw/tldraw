@@ -450,6 +450,7 @@ export {
 	setPointerCapture,
 	stopEventPropagation,
 } from './lib/utils/dom'
+export { EditorAtom } from './lib/utils/EditorAtom'
 export { getIncrementedName } from './lib/utils/getIncrementedName'
 export { getPointerInfo } from './lib/utils/getPointerInfo'
 export { getSvgPathFromPoints } from './lib/utils/getSvgPathFromPoints'
