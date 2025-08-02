@@ -38,6 +38,7 @@ export {
 	type SubscribingFn,
 	type TLPersistentClientSocket,
 	type TLPersistentClientSocketStatus,
+	type TLPresenceMode,
 	type TlSocketStatusChangeEvent,
 	type TLSocketStatusListener,
 } from './lib/TLSyncClient'

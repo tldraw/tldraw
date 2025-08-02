@@ -2,6 +2,7 @@ import { atom, isSignal, transact } from '@tldraw/state'
 import { useAtom } from '@tldraw/state-react'
 import {
 	ClientWebSocketAdapter,
+	TLPresenceMode,
 	TLRemoteSyncError,
 	TLSyncClient,
 	TLSyncErrorCloseEventReason,
@@ -165,6 +166,15 @@ export function useSync(opts: UseSyncOptions & TLStoreSchemaOptions): RemoteTLSt
 			})
 		})
 
+		const otherUserPresences = store.query.ids('instance_presence', () => ({
+			userId: { neq: userPreferences.get().id },
+		}))
+
+		const presenceMode = computed<TLPresenceMode>('presenceMode', () => {
+			if (otherUserPresences.get().size === 0) return 'solo'
+			return 'full'
+		})
+
 		const client = new TLSyncClient({
 			store,
 			socket,
@@ -210,6 +220,7 @@ export function useSync(opts: UseSyncOptions & TLStoreSchemaOptions): RemoteTLSt
 				})
 			},
 			presence,
+			presenceMode,
 		})
 
 		return () => {
