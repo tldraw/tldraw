@@ -1,7 +1,7 @@
 {
 	"compilerOptions": {
 		"outDir": "./.tsbuild",
-		"types": ["@cloudflare/workers-types", "node"],
+		"types": ["@cloudflare/workers-types", "node", "jest"],
 		"composite": true,
 		"declaration": true,
 		"declarationMap": true,
@@ -30,7 +30,7 @@
 		"noImplicitOverride": true
 	},
 	"exclude": ["node_modules"],
-	"include": ["client", "shared", "worker"],
+	"include": ["client", "shared", "worker", "xml"],
 	"files": ["./vite.config.ts"],
 	"references": [
 		{ "path": "../../packages/ai" },

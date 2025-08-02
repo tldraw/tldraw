@@ -18,6 +18,9 @@
 		"build": "vite build",
 		"dev": "vite",
 		"preview": "vite preview",
+		"test": "yarn run -T jest",
+		"test-ci": "lazy inherit",
+		"test-coverage": "lazy inherit",
 		"lint": "yarn run -T tsx ../../internal/scripts/lint.ts"
 	},
 	"dependencies": {
@@ -42,10 +45,25 @@
 	},
 	"devDependencies": {
 		"@cloudflare/workers-types": "^4.20250703.0",
+		"@types/jest": "^29.5.14",
 		"@types/react": "^18.3.18",
 		"@types/react-dom": "^18.3.5",
 		"@vitejs/plugin-react-swc": "^3.10.2",
+		"jest-environment-jsdom": "^29.7.0",
 		"typescript": "^5.8.3",
 		"vite": "^7.0.1"
+	},
+	"jest": {
+		"preset": "../../internal/config/jest/node/jest-preset.js",
+		"testEnvironment": "jsdom",
+		"roots": [
+			"<rootDir>/xml"
+		],
+		"setupFiles": [
+			"raf/polyfill"
+		],
+		"moduleNameMapper": {
+			"^~(.*)": "<rootDir>/xml/$1"
+		}
 	}
 }
