@@ -1293,7 +1293,7 @@ input,
 	border-bottom: 1px solid var(--color-muted-2);
 }
 
-.tl-bookmark__copy_container {
+.tl-bookmark__link-wrapper {
 	background-color: var(--color-muted-0);
 	padding: var(--space-4);
 	pointer-events: all;
@@ -1343,13 +1343,19 @@ input,
 .tl-bookmark__description + .tl-bookmark__link {
 	margin-top: var(--space-3);
 }
+
+.tl-bookmark__link-wrapper,
 .tl-bookmark__link {
 	font-size: 12px;
 	pointer-events: all;
-	display: flex;
-	color: var(--color-text-2);
-	align-items: center;
 	cursor: var(--tl-cursor-pointer);
+	color: var(--color-text-2);
+	text-decoration: none;
+}
+
+.tl-bookmark__link {
+	display: flex;
+	align-items: center;
 	width: fit-content;
 	max-width: 100%;
 }
@@ -1745,7 +1751,7 @@ it from receiving any pointer events or affecting the cursor. */
 		fill: var(--color-selection-fill);
 	}
 
-	.tl-bookmark__link:hover {
+	.tl-bookmark__link-wrapper:hover {
 		color: var(--color-selected);
 	}
 
