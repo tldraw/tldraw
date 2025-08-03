@@ -6,6 +6,20 @@ import { useLocation } from 'react-router-dom'
 import { useValue, warnOnce } from 'tldraw'
 import { useApp } from '../tla/hooks/useAppState'
 
+// Extend global window interface for analytics
+declare global {
+	interface Window {
+		TL_GA4_MEASUREMENT_ID: string | undefined
+		TL_GOOGLE_ADS_ID?: string
+		tlanalytics?: {
+			openPrivacySettings(): void
+			track(name: string, data?: { [key: string]: any }): void
+			gtag(...args: any[]): void
+			page(): void
+		}
+	}
+}
+
 export type AnalyticsOptions =
 	| {
 			optedIn: true
@@ -194,7 +208,92 @@ export function SignedOutAnalytics() {
 
 	useTrackPageViews()
 
+	return (
+		<>
+			{/* 
+				Load consent banner for logged-out users on tldraw.com
+				This shows a cookie consent banner that allows users to opt-in/out
+				of analytics tracking before they create an account.
+			*/}
+			<ConsentBannerScript />
+		</>
+	)
+}
+
+function ConsentBannerScript() {
+	useEffect(() => {
+		// Set environment variables that the analytics script expects
+		window.TL_GA4_MEASUREMENT_ID = process.env.VITE_GA4_MEASUREMENT_ID
+		window.TL_GOOGLE_ADS_ID = process.env.VITE_GOOGLE_ADS_ID
+	}, [])
+
+	useEffect(() => {
+		// Check if user already has a consent preference
+		const hasExistingConsent = () => {
+			const allowTracking = getCookie('allowTracking')
+			return allowTracking === 'true' || allowTracking === 'false'
+		}
+
+		// Only load the consent banner script if:
+		// 1. It's not already loaded
+		// 2. User hasn't already made a consent choice
+		if (document.getElementById('tldraw-consent-banner-script') || hasExistingConsent()) {
+			return
+		}
+
+		const script = document.createElement('script')
+		script.id = 'tldraw-consent-banner-script'
+		script.type = 'text/javascript'
+		script.async = true
+		script.defer = true
+		script.src = 'https://analytics.tldraw.com/tl-analytics.js'
+
+		// Add error handling
+		script.onerror = () => {
+			console.warn('Failed to load tldraw analytics consent banner')
+		}
+
+		document.head.appendChild(script)
+
+		return () => {
+			// Cleanup on unmount
+			const existingScript = document.getElementById('tldraw-consent-banner-script')
+			if (existingScript) {
+				existingScript.remove()
+			}
+		}
+	}, [])
+
 	return null
+}
+
+// Utility function to get cookie value
+function getCookie(name: string): string | null {
+	if (typeof document === 'undefined') return null
+
+	const nameEQ = name + '='
+	const cookies = document.cookie.split(';')
+
+	for (let cookie of cookies) {
+		cookie = cookie.trim()
+		if (cookie.indexOf(nameEQ) === 0) {
+			return cookie.substring(nameEQ.length)
+		}
+	}
+
+	return null
+}
+
+/**
+ * Opens the privacy settings dialog if the analytics script is loaded
+ * This can be used in privacy policy links or settings menus
+ */
+export function openPrivacySettings() {
+	if (window.tlanalytics?.openPrivacySettings) {
+		window.tlanalytics.openPrivacySettings()
+	} else {
+		console.warn('Analytics script not loaded - cannot open privacy settings')
+	}
 }
 
 function setupReo(options: AnalyticsOptions) {
