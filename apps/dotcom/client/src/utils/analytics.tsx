@@ -297,13 +297,7 @@ export function openPrivacySettings() {
 }
 
 // Bottom-right cookie banner for signed-in users
-function SignedInCookieBanner({
-	onAccept,
-	onReject,
-}: {
-	onAccept: () => void
-	onReject: () => void
-}) {
+function SignedInCookieBanner({ onAccept, onReject }: { onAccept(): void; onReject(): void }) {
 	return (
 		<div className="tl-signed-in-cookie-banner">
 			<p>
