@@ -260,7 +260,7 @@ describe('XmlResponseParser', () => {
 		expect(parser.parseNewChunk(chunk5)).toEqual([
 			{
 				type: 'create-shape',
-				shape: { id: '124', type: 'geo', x: 300, y: 200, text: '' },
+				shape: { id: '124', type: 'geo', x: 300, y: 200, text: '', width: 150, height: 100 },
 			},
 		])
 		expect(parser.getCompletedItems()).toEqual([
@@ -271,7 +271,7 @@ describe('XmlResponseParser', () => {
 			},
 			{
 				type: 'create-shape',
-				shape: { id: '124', type: 'geo', x: 300, y: 200, text: '' },
+				shape: { id: '124', type: 'geo', x: 300, y: 200, text: '', width: 150, height: 100 },
 			},
 		])
 	})
@@ -796,7 +796,7 @@ describe('XmlResponseParser', () => {
 			])
 		})
 
-		test.only('parseCompletedStream calls are independent (no state preservation)', () => {
+		test('parseCompletedStream calls are independent (no state preservation)', () => {
 			const xmlInput = `
 				<response>
 									<actions>
