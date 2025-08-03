@@ -5224,7 +5224,7 @@ export class Editor extends EventEmitter<TLEventMap> {
 					hitFrameInside
 						? (distance > 0 && distance <= outerMargin) ||
 							(distance <= 0 && distance > -innerMargin)
-						: distance <= outerMargin
+						: distance > 0 && distance <= outerMargin
 				) {
 					return inMarginClosestToEdgeHit || shape
 				}
