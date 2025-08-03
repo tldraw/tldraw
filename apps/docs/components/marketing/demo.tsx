@@ -32,7 +32,7 @@ export function Demo() {
 	const handleSkeletonClick = useCallback(() => {
 		setIsLoading(true)
 		setShowCanvas(true)
-		track('cta', { location: 'hero', type: 'demo' })
+		track('conversion.demo_clicked', { source: 'hero' })
 	}, [])
 
 	return (

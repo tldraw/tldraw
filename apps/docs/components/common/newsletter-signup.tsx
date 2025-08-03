@@ -34,7 +34,7 @@ export function NewsletterSignup({
 			if (formState !== 'idle') return
 			e.preventDefault()
 			setFormState('loading')
-			track('newsletter-signup')
+			track('docs.newsletter_signup', { source: 'newsletter_form' })
 			try {
 				const _email = new FormData(e.currentTarget)?.get('email') as string
 				const hubspotCookie = document.cookie

@@ -17,7 +17,7 @@ export function PricingButton({
 		<Link
 			href={tier.href}
 			aria-describedby={tier.id}
-			onClick={() => track('pricing', { tier: tier.id })}
+			onClick={() => track('conversion.pricing_clicked', { tier: tier.id, source: 'pricing' })}
 			className={clsx(
 				'mt-10 block rounded-md px-3 py-2 text-center text-sm/6 font-semibold shadow-sm',
 				{

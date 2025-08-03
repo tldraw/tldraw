@@ -3,6 +3,18 @@ import { createRoot } from 'react-dom/client'
 import Analytics, { gtag, identify, page, PrivacySettings, track } from './analytics'
 import styles from './styles.css?inline'
 
+// Export standardized event types
+export { enrichEventData, getAppContext, getUserType } from './events'
+export type {
+	AppContext,
+	BaseEventProperties,
+	TldrawEventData,
+	TldrawEventName,
+	TldrawEvents,
+	TldrawEventSource,
+	UserType,
+} from './events'
+
 // Inject styles
 const style = document.createElement('style')
 style.textContent = styles

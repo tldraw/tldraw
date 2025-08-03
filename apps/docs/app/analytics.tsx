@@ -15,7 +15,7 @@ export default function Analytics() {
 			if (isWithinCodeBlock) {
 				const copiedText = window.getSelection()?.toString() || ''
 				const isInstall = copiedText.trim() === 'npm install tldraw'
-				track('docs.copy.code-block', { isInstall })
+				track('docs.code_copied', { is_install: isInstall, source: 'docs' })
 
 				// Track Google Ads conversion for code block copies
 				if (window.tlanalytics?.gtag) {
