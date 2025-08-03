@@ -1541,6 +1541,19 @@ export class Editor extends EventEmitter<TLEventMap> {
     zoomToUser(userId: string, opts?: TLCameraMoveOptions): this;
 }
 
+// @public
+export class EditorAtom<T> {
+    constructor(name: string, getInitialState: (editor: Editor) => T);
+    // (undocumented)
+    get(editor: Editor): T;
+    // (undocumented)
+    getAtom(editor: Editor): Atom<T>;
+    // (undocumented)
+    set(editor: Editor, state: T): T;
+    // (undocumented)
+    update(editor: Editor, update: (state: T) => T): T;
+}
+
 // @public (undocumented)
 export const EditorContext: React_3.Context<Editor | null>;
 

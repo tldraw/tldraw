@@ -23,6 +23,7 @@ import {
 } from 'tldraw'
 import { ThemeUpdater } from '../../../components/ThemeUpdater/ThemeUpdater'
 import { useOpenUrlAndTrack } from '../../../hooks/useOpenUrlAndTrack'
+import { useRoomLoadTracking } from '../../../hooks/useRoomLoadTracking'
 import { useHandleUiEvents } from '../../../utils/analytics'
 import { assetUrls } from '../../../utils/assetUrls'
 import { MULTIPLAYER_SERVER } from '../../../utils/config'
@@ -128,8 +129,11 @@ function TlaEditorInner({ fileSlug, deepLinks }: TlaEditorProps) {
 		})
 	}, [hideAllShapes])
 
+	const trackRoomLoaded = useRoomLoadTracking()
+
 	const handleMount = useCallback(
 		(editor: Editor) => {
+			trackRoomLoaded(editor)
 			;(window as any).app = app
 			;(window as any).editor = editor
 			// Register the editor globally
@@ -185,7 +189,7 @@ function TlaEditorInner({ fileSlug, deepLinks }: TlaEditorProps) {
 				cleanup()
 			}
 		},
-		[addDialog, app, fileId, remountImageShapes, setIsReady]
+		[addDialog, trackRoomLoaded, app, fileId, remountImageShapes, setIsReady]
 	)
 
 	const user = useTldrawUser()
