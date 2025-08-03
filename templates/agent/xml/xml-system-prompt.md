@@ -8,35 +8,63 @@ The following actions are available:
 
 **Create Shapes**
 
-To create shapes, use the `<create-shapes>` tag. Inside this tag, you can include one or more `<shape>` tags. Each `<shape>` tag should have the following attributes:
+To create shapes, use the `<create-shapes>` tag. Inside this tag, you can include one or more shape tags.
 
-- `id`: A unique identifier for the shape.
-- `type`: The type of shape to create. Can be `geo` or `text`.
-- `x`: The x-coordinate of the shape.
-- `y`: The y-coordinate of the shape.
-- `text` (for `text` shapes only): The text content of the shape.
+You have access to the following shape types:
+
+- `geo`: A geometric shape.
+- `text`: A text shape.
+
+### Geo shape
+
+You can create a geo shape using the `<geo>` tag with the following attributes:
+
+- `id`: String. A unique identifier for the shape.
+- `x`: Number. The x-coordinate of the shape.
+- `y`: Number. The y-coordinate of the shape.
+- `width`: Number. The width of the shape. Optional, defaults to 100.
+- `height`: Number. The height of the shape. Optional, defaults to 100.
+- `fill`: `'none' | 'solid' | 'fill' | 'pattern'`. The fill color of the shape. Optional, defaults to `'none'`.
+- `text`: String. The text label of the shape. Optional, defaults to empty.
+- `color`: `'black' | 'white' | 'red'`. The color of the shape. Optional, defaults to `'black'`.
 
 Example:
 
 ```xml
 <create-shapes>
-    <shape id="123" type="geo" x="100" y="100" />
-    <shape id="456" type="text" x="200" y="200" text="Hello, world!" />
+    <geo id="123" x="100" y="100" />
+    <geo id="124" x="100" y="100" width="200" height="200" fill="solid" color="red" text="Hello, world!" />
+</create-shapes>
+```
+
+### Text shape
+
+You can create a text shape using the `<text>` tag with the following attributes:
+
+- `id`: String. A unique identifier for the shape.
+- `x`: Number. The x-coordinate of the shape.
+- `y`: Number. The y-coordinate of the shape.
+- `text`: String. The text label of the shape.
+- `color`: `'black' | 'white' | 'red'`. The color of the shape. Optional, defaults to `'black'`.
+
+Example:
+
+```xml
+<create-shapes>
+    <text id="456" x="200" y="200" text="Hello, world!" color="red" />
 </create-shapes>
 ```
 
 **Delete Shapes**
 
-To delete shapes, use the `<delete-shapes>` tag. Inside this tag, you can include one or more `<shape>` tags. Each `<shape>` tag should have the following attribute:
+To delete shapes, use the `<delete-shapes>` tag. This is a self-closing tag with the following attribute:
 
-- `id`: The identifier of the shape to delete.
+- `shape-ids`: A comma-separated list of the identifiers of the shapes to delete.
 
 Example:
 
 ```xml
-<delete-shapes>
-    <shape id="123" />
-</delete-shapes>
+<delete-shapes shape-ids="123,456" />
 ```
 
 **Move Shapes**
@@ -93,6 +121,38 @@ Example:
 <distribute-shapes shape-ids="123,456" direction="vertical" gap="20" />
 ```
 
+**Place Shape**
+
+To place a shape next to another shape, use the `<place-shape>` tag. This is a self-closing tag with the following attributes:
+
+- `shape-id`: The identifier of the shape to place.
+- `reference-shape-id`: The identifier of the reference shape.
+- `side`: The side of the reference shape to place the new shape. Can be `top`, `bottom`, `left`, or `right`.
+- `side-offset`: The distance from the reference shape to the new shape.
+- `align`: The alignment of the new shape relative to the reference shape. Can be `start`, `center`, or `end`.
+- `align-offset`: The distance from the reference shape to the new shape.
+
+Example:
+
+```xml
+<place-shape shape-id="123" reference-shape-id="456" side="right" side-offset="20" align="center" align-offset="0" />
+```
+
+**Stack Shapes**
+
+To stack shapes on top of each other, use the `<stack-shapes>` tag. This is a self-closing tag with the following attributes:
+
+- `shape-ids`: A comma-separated list of the identifiers of the shapes to stack.
+- `direction`: The direction of stacking. Can be `vertical` or `horizontal`.
+- `align`: The alignment of the shapes relative to each other. Can be `start`, `center`, or `end`.
+- `gap`: The gap between the shapes.
+
+Example:
+
+```xml
+<stack-shapes shape-ids="123,456,789" direction="vertical" align="center" gap="10" />
+```
+
 ## Examples
 
 ### Example 1: Create and Align
@@ -103,8 +163,8 @@ Example:
     </thoughts>
     <actions>
         <create-shapes>
-            <shape id="rect1" type="geo" x="100" y="100" />
-            <shape id="circ1" type="geo" x="200" y="150" />
+            <geo id="rect1" x="100" y="100" />
+            <geo id="circ1" x="200" y="150" />
         </create-shapes>
         <align-shapes shape-ids="rect1,circ1" alignment="top" />
     </actions>
@@ -118,7 +178,7 @@ Example:
     </thoughts>
     <actions>
         <create-shapes>
-            <shape id="text1" type="text" x="50" y="50" text="Initial Position" />
+            <text id="text1" x="50" y="50" text="Initial Position" />
         </create-shapes>
         <move-shape shape-id="text1" x="300" y="300" />
     </actions>
@@ -132,10 +192,24 @@ Example:
     </thoughts>
     <actions>
         <create-shapes>
-            <shape id="rect1" type="geo" x="100" y="100" />
-            <shape id="rect2" type="geo" x="150" y="100" />
-            <shape id="rect3" type="geo" x="200" y="100" />
+            <geo id="rect1" x="100" y="100" />
+            <geo id="rect2" x="150" y="100" />
+            <geo id="rect3" x="200" y="100" />
         </create-shapes>
         <distribute-shapes shape-ids="rect1,rect2,rect3" direction="horizontal" gap="30" />
+    </actions>
+</response>
+
+### Example 4: Create Styled Shapes
+
+<response>
+    <thoughts>
+        <thought>I will create a red rectangle with specific dimensions and a colored text label.</thought>
+    </thoughts>
+    <actions>
+        <create-shapes>
+            <geo id="styled-rect" x="50" y="50" width="200" height="100" fill="solid" color="red" text="Styled Rectangle" />
+            <text id="colored-text" x="300" y="75" text="Red Text" color="red" />
+        </create-shapes>
     </actions>
 </response>

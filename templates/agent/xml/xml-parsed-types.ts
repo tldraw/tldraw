@@ -5,6 +5,10 @@ export interface IThought {
 	text: string
 }
 
+export interface IXmlThoughtActionAttributes {
+	text: string
+}
+
 // Shapes
 
 export type IShapeId = string
@@ -15,18 +19,46 @@ interface IBaseShape {
 	y: number
 }
 
+// Geo shape
+
 export interface IGeoShape extends IBaseShape {
 	id: IShapeId
 	type: 'geo'
 	x: number
 	y: number
+	width?: number
+	height?: number
+	fill?: string
+	color?: string
 	text?: string
 }
+
+export interface IXmlGeoShapeAttributes {
+	id: string
+	x: string
+	y: string
+	width?: string
+	height?: string
+	fill?: string
+	text?: string
+	color?: string
+}
+
+// Text shape
 
 export interface ITextShape extends IBaseShape {
 	id: IShapeId
 	type: 'text'
 	text: string
+	color?: string
+}
+
+export interface IXmlTextShapeAttributes {
+	id: string
+	x: string
+	y: string
+	text: string
+	color?: string
 }
 
 export type IShape = IGeoShape | ITextShape
@@ -42,11 +74,15 @@ export interface ICreateShapeAction {
 }
 
 /**
- * Delete a shape.
+ * Delete shapes.
  */
-export interface IDeleteShapeAction {
-	type: 'delete-shape'
-	shapeId: IShapeId
+export interface IDeleteShapesAction {
+	type: 'delete-shapes'
+	shapeIds: IShapeId[]
+}
+
+export interface IXmlDeleteShapesActionAttributes {
+	'shape-ids': string
 }
 
 /**
@@ -59,6 +95,12 @@ export interface IMoveShapeAction {
 	y: number
 }
 
+export interface IXmlMoveShapeActionAttributes {
+	'shape-id': string
+	x: string
+	y: string
+}
+
 /**
  * Add a label to a shape. In the canvas, this should either set the shape's text (if it has a
  * text property) or else create a new text shape and place it next to the shape.
@@ -66,6 +108,11 @@ export interface IMoveShapeAction {
 export interface ILabelShapeAction {
 	type: 'label-shape'
 	shapeId: IShapeId
+	text: string
+}
+
+export interface IXmlLabelShapeActionAttributes {
+	'shape-id': string
 	text: string
 }
 
@@ -87,6 +134,15 @@ export interface IPlaceShapeAction {
 	alignOffset: number
 }
 
+export interface IXmlPlaceShapeActionAttributes {
+	'shape-id': string
+	'reference-shape-id': string
+	side: 'top' | 'bottom' | 'left' | 'right'
+	'side-offset': string
+	align: 'start' | 'center' | 'end'
+	'align-offset': string
+}
+
 /**
  * Align multiple shapes to each other. In the canvas, this should align the shapes to each other
  * based on the alignment parameter. The alignment parameter can be one of the following:
@@ -99,6 +155,11 @@ export interface IPlaceShapeAction {
 export interface IAlignShapesAction {
 	type: 'align-shapes'
 	shapeIds: IShapeId[]
+	alignment: 'top' | 'bottom' | 'left' | 'right' | 'center-x' | 'center-y'
+}
+
+export interface IXmlAlignShapesActionAttributes {
+	'shape-ids': string
 	alignment: 'top' | 'bottom' | 'left' | 'right' | 'center-x' | 'center-y'
 }
 
@@ -115,6 +176,13 @@ export interface IStackShapesAction {
 	gap: number
 }
 
+export interface IXmlStackShapesActionAttributes {
+	'shape-ids': string
+	direction: 'vertical' | 'horizontal'
+	align: 'start' | 'center' | 'end'
+	gap: string
+}
+
 /**
  * Distribute multiple shapes evenly across the canvas. In the canvas, this should distribute the
  * shapes evenly across the canvas based on the direction parameter. The min and max dimensions of
@@ -128,9 +196,15 @@ export interface IDistributeShapesAction {
 	gap: number
 }
 
+export interface IXmlDistributeShapesActionAttributes {
+	'shape-ids': string
+	direction: 'vertical' | 'horizontal'
+	gap: string
+}
+
 export type IAction =
 	| ICreateShapeAction
-	| IDeleteShapeAction
+	| IDeleteShapesAction
 	| IMoveShapeAction
 	| ILabelShapeAction
 	| IPlaceShapeAction
@@ -141,3 +215,17 @@ export type IAction =
 // Response
 
 export type IResponse = (IThought | IAction)[]
+
+// XML Attributes
+
+export type IXMLAttributes =
+	| IXmlThoughtActionAttributes
+	| IXmlDeleteShapesActionAttributes
+	| IXmlMoveShapeActionAttributes
+	| IXmlLabelShapeActionAttributes
+	| IXmlPlaceShapeActionAttributes
+	| IXmlAlignShapesActionAttributes
+	| IXmlStackShapesActionAttributes
+	| IXmlDistributeShapesActionAttributes
+	| IXmlGeoShapeAttributes
+	| IXmlTextShapeAttributes
