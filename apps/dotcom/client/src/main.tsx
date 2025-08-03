@@ -7,6 +7,7 @@ import '../styles/globals.css'
 import { Head } from './components/Head/Head'
 import { routes } from './routeDefs'
 import { router } from './routes'
+import { cleanCurrentUrlUtmParams } from './utils/utm'
 
 const browserRouter = createBrowserRouter(router)
 
@@ -16,6 +17,9 @@ const PUBLISHABLE_KEY = import.meta.env.VITE_CLERK_PUBLISHABLE_KEY
 if (!PUBLISHABLE_KEY) {
 	throw new Error('Missing VITE_CLERK_PUBLISHABLE_KEY in .env.local')
 }
+
+// Clean UTM parameters from the URL on app initialization to prevent pollution
+cleanCurrentUrlUtmParams()
 
 createRoot(document.getElementById('root')!).render(
 	<ClerkProvider

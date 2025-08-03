@@ -1,4 +1,5 @@
 import { assert } from 'tldraw'
+import { cleanUtmSearchParams } from './utils/utm'
 
 export const ROUTES = {
 	tlaOptIn: '/preview',
@@ -68,7 +69,12 @@ function compilePath(
 	routeParams: string | Record<string, string> | null,
 	options?: PathOptions
 ) {
-	const search = new URLSearchParams(options?.searchParams).toString()
+	// Clean UTM parameters from search params to prevent pollution in internal navigation
+	const cleanedSearchParams = options?.searchParams
+		? cleanUtmSearchParams(new URLSearchParams(options.searchParams))
+		: new URLSearchParams()
+	const search = cleanedSearchParams.toString()
+
 	if (!path.includes(':')) {
 		assert(
 			routeParams === null || Object.keys(routeParams).length === 0,

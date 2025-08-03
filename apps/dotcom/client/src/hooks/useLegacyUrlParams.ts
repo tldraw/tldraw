@@ -1,5 +1,6 @@
 import { useLayoutEffect } from 'react'
 import { Box, PageRecordType, createDeepLinkString } from 'tldraw'
+import { cleanUtmSearchParams } from '../utils/utm'
 
 const PARAMS = {
 	// deprecated
@@ -29,6 +30,10 @@ export function useLegacyUrlParams() {
 		url.searchParams.delete(PARAMS.page)
 		url.searchParams.delete(PARAMS.v)
 		url.searchParams.delete(PARAMS.p)
+
+		// Clean UTM parameters while we're updating the URL
+		const cleanedParams = cleanUtmSearchParams(url.searchParams)
+		url.search = cleanedParams.toString()
 
 		const viewport = Box.From(viewportFromString(viewportString))
 		const pageId = PageRecordType.isId(pageString)
