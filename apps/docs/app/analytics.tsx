@@ -9,6 +9,69 @@ export default function Analytics() {
 		window.TL_GOOGLE_ADS_ID = process.env.NEXT_PUBLIC_GOOGLE_ADS_ID
 	}, [])
 
+	// Track page views manually using the proper page() function
+	useEffect(() => {
+		const handleAnalyticsLoaded = () => {
+			// Send initial page view using the dedicated page() function
+			if (window.tlanalytics && typeof window.tlanalytics.page === 'function') {
+				window.tlanalytics.page()
+			}
+		}
+
+		// Check if analytics is already loaded
+		if (window.tlanalytics) {
+			handleAnalyticsLoaded()
+			return // No cleanup needed if already loaded
+		}
+
+		// Wait for analytics script to load
+		const checkAnalytics = setInterval(() => {
+			if (window.tlanalytics) {
+				clearInterval(checkAnalytics)
+				handleAnalyticsLoaded()
+			}
+		}, 100)
+
+		return () => clearInterval(checkAnalytics)
+	}, [])
+
+	// Track route changes in Next.js
+	useEffect(() => {
+		const handleRouteChange = () => {
+			if (window.tlanalytics && typeof window.tlanalytics.page === 'function') {
+				window.tlanalytics.page()
+			}
+		}
+
+		// Listen for Next.js route changes
+		const handlePathnameChange = () => {
+			// Use setTimeout to ensure the new page is rendered before tracking
+			setTimeout(handleRouteChange, 0)
+		}
+
+		// Since this is Next.js App Router, we need to listen for navigation changes
+		const originalPushState = history.pushState
+		const originalReplaceState = history.replaceState
+
+		history.pushState = function (...args) {
+			originalPushState.apply(history, args)
+			handlePathnameChange()
+		}
+
+		history.replaceState = function (...args) {
+			originalReplaceState.apply(history, args)
+			handlePathnameChange()
+		}
+
+		window.addEventListener('popstate', handlePathnameChange)
+
+		return () => {
+			history.pushState = originalPushState
+			history.replaceState = originalReplaceState
+			window.removeEventListener('popstate', handlePathnameChange)
+		}
+	}, [])
+
 	useEffect(() => {
 		const handleCopy = (copyEvent: ClipboardEvent) => {
 			const isWithinCodeBlock = (copyEvent.target as HTMLElement | null)?.closest('pre, code')
@@ -53,6 +116,7 @@ declare global {
 			openPrivacySettings(): void
 			track(name: string, data?: { [key: string]: any }): void
 			gtag(...args: any[]): void
+			page(): void
 		}
 		TL_GA4_MEASUREMENT_ID: string | undefined
 		TL_GOOGLE_ADS_ID?: string
