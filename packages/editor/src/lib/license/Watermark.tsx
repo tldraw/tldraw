@@ -3,6 +3,9 @@ import { memo, useRef } from 'react'
 import { useCanvasEvents } from '../hooks/useCanvasEvents'
 import { useEditor } from '../hooks/useEditor'
 import { usePassThroughWheelEvents } from '../hooks/usePassThroughWheelEvents'
+// Note: useUiEvents is only available in the tldraw package, not editor
+// For now, we'll use a simpler approach without the transition tracking in the watermark
+// The main tracking will be in the dotcom client where useUiEvents is available
 import { preventDefault, stopEventPropagation } from '../utils/dom'
 import { runtime } from '../utils/runtime'
 import { watermarkDesktopSvg, watermarkMobileSvg } from '../watermarks'

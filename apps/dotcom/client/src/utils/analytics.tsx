@@ -249,6 +249,7 @@ export function SignedInAnalytics() {
 	}, [user.allowAnalyticsCookie, user.email, user.id, user.name])
 
 	useTrackPageViews()
+	useTrackTransitionEvents()
 
 	return null
 }
@@ -258,4 +259,82 @@ function useTrackPageViews() {
 	useEffect(() => {
 		trackEvent('$pageview')
 	}, [location])
+}
+
+function useTrackTransitionEvents() {
+	const location = useLocation()
+
+	useEffect(() => {
+		const handleComToDevTransition = (event: CustomEvent) => {
+			const { source, url, utm_source, utm_medium, utm_campaign, context } = event.detail
+
+			// Track with PostHog
+			getPosthog()?.capture('com_to_dev_transition', {
+				source,
+				url,
+				utm_source,
+				utm_medium,
+				utm_campaign,
+				context,
+				current_url: location.pathname,
+			})
+
+			// Track with GA4
+			getGA4()?.event('com_to_dev_transition', {
+				event_category: 'navigation',
+				event_label: source,
+				custom_parameters: {
+					source,
+					destination_domain: 'tldraw.dev',
+					utm_source,
+					utm_medium,
+					utm_campaign,
+					context,
+				},
+			})
+		}
+
+		const handleVscodeToDevTransition = (event: CustomEvent) => {
+			const { source, url, context } = event.detail
+
+			// Track with PostHog
+			getPosthog()?.capture('vscode_to_dev_transition', {
+				source,
+				url,
+				context,
+			})
+
+			// Track with GA4
+			getGA4()?.event('vscode_to_dev_transition', {
+				event_category: 'navigation',
+				event_label: source,
+				custom_parameters: {
+					source,
+					destination_domain: 'tldraw.dev',
+					context,
+				},
+			})
+		}
+
+		// Add event listeners
+		window.addEventListener(
+			'tldraw-com-to-dev-transition',
+			handleComToDevTransition as EventListener
+		)
+		window.addEventListener(
+			'tldraw-vscode-to-dev-transition',
+			handleVscodeToDevTransition as EventListener
+		)
+
+		return () => {
+			window.removeEventListener(
+				'tldraw-com-to-dev-transition',
+				handleComToDevTransition as EventListener
+			)
+			window.removeEventListener(
+				'tldraw-vscode-to-dev-transition',
+				handleVscodeToDevTransition as EventListener
+			)
+		}
+	}, [location.pathname])
 }
