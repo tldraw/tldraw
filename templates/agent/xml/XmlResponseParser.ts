@@ -13,7 +13,7 @@ import {
 	IXmlStatementActionAttributes,
 	IXmlTextShapeAttributes,
 	IXmlThoughtActionAttributes,
-} from './xml-parsed-types'
+} from './xml-types'
 
 export class XmlResponseParser {
 	private readonly parser = new DOMParser()
@@ -223,12 +223,7 @@ export class XmlResponseParser {
 
 								const shapeIds = attributes['shape-ids'].split(',')
 
-								if (
-									!attributes['shape-ids'] ||
-									!attributes['direction'] ||
-									!attributes['gap'] ||
-									shapeIds.length < 2
-								) {
+								if (!attributes['shape-ids'] || !attributes['direction'] || shapeIds.length < 2) {
 									// console.warn(
 									// 	`Distribute shapes missing required attributes. Received: ${JSON.stringify(attributes, null, 2)}`
 									// )
@@ -239,7 +234,6 @@ export class XmlResponseParser {
 									type: 'distribute-shapes' as const,
 									shapeIds,
 									direction: attributes['direction'],
-									gap: +attributes['gap'],
 								})
 								break
 							}

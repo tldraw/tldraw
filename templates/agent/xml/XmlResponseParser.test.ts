@@ -1,5 +1,5 @@
 import { XmlResponseParser } from './XmlResponseParser'
-import { IResponse } from './xml-parsed-types'
+import { IResponse } from './xml-types'
 
 describe('XmlResponseParser', () => {
 	let parser: XmlResponseParser
@@ -508,7 +508,7 @@ describe('XmlResponseParser', () => {
 				<response>
 									<actions>
 					<align-shapes shape-ids="a,b" alignment="left" />
-					<align-shapes shape-ids="c,d,e" alignment="center-x" />
+					<align-shapes shape-ids="c,d,e" alignment="center-horizontal" />
 				</actions>
 				</response>
 			`
@@ -524,13 +524,13 @@ describe('XmlResponseParser', () => {
 				{
 					type: 'align-shapes',
 					shapeIds: ['c', 'd', 'e'],
-					alignment: 'center-x',
+					alignment: 'center-horizontal',
 				},
 			])
 		})
 
 		test('supports all alignment types', () => {
-			const alignments = ['top', 'bottom', 'left', 'right', 'center-x', 'center-y']
+			const alignments = ['top', 'bottom', 'left', 'right', 'center-horizontal', 'center-vertical']
 
 			for (const alignment of alignments) {
 				const xmlInput = `
@@ -652,7 +652,7 @@ describe('XmlResponseParser', () => {
 			const xmlInput = `
 				<response>
 									<actions>
-					<align-shapes shape-ids="a,b" alignment="center-y" />
+					<align-shapes shape-ids="a,b" alignment="center-vertical" />
 				</actions>
 				</response>
 			`
@@ -665,7 +665,7 @@ describe('XmlResponseParser', () => {
 				{
 					type: 'align-shapes',
 					shapeIds: ['a', 'b'],
-					alignment: 'center-y',
+					alignment: 'center-vertical',
 				},
 			]
 
@@ -906,4 +906,31 @@ describe('XmlResponseParser', () => {
 
 		test.todo('parseStream handles incomplete XML ending mid-shape')
 	})
+})
+
+test('parses complicated string with multiple move-shape actions', () => {
+	const xmlInput =
+		'<thoughts>\n    <thought>The user wants to spread out the overlapping shapes. There are seven shapes on the canvas, all clustered together. I need to move them so they are no longer overlapping. I will arrange them in a grid to make them easy to see. A 3x3 grid would be suitable for seven shapes. I will move each shape to a new position on the canvas, leaving space between them.</thought>\n</thoughts>\n<actions>\n    <move-shape shape-id="shape:0Q1GTkxghzV4DpPlTKvG0" x="50" y="50" />\n    <move-shape shape-id="shape:OhDkIUiDpfF5zIZIC_D5Z" x="170" y="50" />\n    <move-shape shape-id="shape:hTLHHOanerkvZU2g2pF2b" x="290" y="50" />\n    <move-shape shape-id="shape:g7YN2JayUWjOFhxM8VlNq" x="50" y="170" />\n    <move-shape shape-id="shape:lkfVDSQn6kYrWCeGg3qKR" x="170" y="170" />\n    <move-shape shape-id="shape:bHCm3ntLyw3H2NO1uMUKd" x="290" y="170" />\n    <move-shape shape-id="shape:mBo9eQdAuc-uNM-bdaxMw" x="170" y="290" />\n</actions>'
+	const parser = new XmlResponseParser()
+	const result = parser.parseCompletedStream(xmlInput)
+	expect(result).toEqual([
+		{
+			type: 'thought',
+			text: 'The user wants to spread out the overlapping shapes. There are seven shapes on the canvas, all clustered together. I need to move them so they are no longer overlapping. I will arrange them in a grid to make them easy to see. A 3x3 grid would be suitable for seven shapes. I will move each shape to a new position on the canvas, leaving space between them.',
+		},
+		{ type: 'move-shape', shapeId: 'shape:0Q1GTkxghzV4DpPlTKvG0', x: 50, y: 50 },
+		{ type: 'move-shape', shapeId: 'shape:OhDkIUiDpfF5zIZIC_D5Z', x: 170, y: 50 },
+		{ type: 'move-shape', shapeId: 'shape:hTLHHOanerkvZU2g2pF2b', x: 290, y: 50 },
+		{ type: 'move-shape', shapeId: 'shape:g7YN2JayUWjOFhxM8VlNq', x: 50, y: 170 },
+		{ type: 'move-shape', shapeId: 'shape:lkfVDSQn6kYrWCeGg3qKR', x: 170, y: 170 },
+		{ type: 'move-shape', shapeId: 'shape:bHCm3ntLyw3H2NO1uMUKd', x: 290, y: 170 },
+		{ type: 'move-shape', shapeId: 'shape:mBo9eQdAuc-uNM-bdaxMw', x: 170, y: 290 },
+	])
+})
+
+test('parses a complicated statement', () => {
+	const xmlInput = ``
+	const parser = new XmlResponseParser()
+	const result = parser.parseCompletedStream(xmlInput)
+	expect(result).toEqual([])
 })

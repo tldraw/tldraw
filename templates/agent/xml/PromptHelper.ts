@@ -3,27 +3,10 @@ import {
 	FileHelpers,
 	renderPlaintextFromRichText,
 	TLGeoShapeProps,
-	TLShape,
 	TLShapeId,
 	TLTextShapeProps,
 } from 'tldraw'
-
-export interface IPromptInfo {
-	image: string
-	viewport: { id: string; minX: number; minY: number; maxX: number; maxY: number }
-	contents: IShapeStub[]
-	prompt: string
-}
-
-export interface IShapeStub {
-	id: TLShapeId
-	type: TLShape['type']
-	index: number
-	minX: number
-	minY: number
-	maxX: number
-	maxY: number
-}
+import { IPromptInfo, IShapeStub } from './xml-types'
 
 export class PromptHelper {
 	constructor(

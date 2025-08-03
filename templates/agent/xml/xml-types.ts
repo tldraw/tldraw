@@ -1,3 +1,5 @@
+import { TLShape } from 'tldraw'
+
 // Thoughts
 
 export interface IThought {
@@ -22,6 +24,21 @@ export interface IXmlStatementActionAttributes {
 
 // Shapes
 
+export type IColor =
+	| 'black'
+	| 'grey'
+	| 'light-violet'
+	| 'violet'
+	| 'blue'
+	| 'light-blue'
+	| 'yellow'
+	| 'orange'
+	| 'green'
+	| 'light-green'
+	| 'light-red'
+	| 'red'
+	| 'white'
+
 export type IShapeId = string
 
 interface IBaseShape {
@@ -40,7 +57,7 @@ export interface IGeoShape extends IBaseShape {
 	width?: number
 	height?: number
 	fill?: string
-	color?: string
+	color?: IColor
 	text?: string
 }
 
@@ -52,7 +69,7 @@ export interface IXmlGeoShapeAttributes {
 	height?: string
 	fill?: string
 	text?: string
-	color?: string
+	color?: IColor
 }
 
 // Text shape
@@ -61,7 +78,7 @@ export interface ITextShape extends IBaseShape {
 	id: IShapeId
 	type: 'text'
 	text: string
-	color?: string
+	color?: IColor
 }
 
 export interface IXmlTextShapeAttributes {
@@ -69,7 +86,7 @@ export interface IXmlTextShapeAttributes {
 	x: string
 	y: string
 	text: string
-	color?: string
+	color?: IColor
 }
 
 export type IShape = IGeoShape | ITextShape
@@ -161,17 +178,18 @@ export interface IXmlPlaceShapeActionAttributes {
  * - 'bottom': Align the shapes to the bottom of each other.
  * - 'left': Align the shapes to the left of each other.
  * - 'right': Align the shapes to the right of each other.
- * - 'center-x': Align the shapes to the center of the x-axis.
+ * - 'center-horizontal': Align the shapes to the center of the x-axis.
+ * - 'center-vertical': Align the shapes to the center of the y-axis.
  */
 export interface IAlignShapesAction {
 	type: 'align-shapes'
 	shapeIds: IShapeId[]
-	alignment: 'top' | 'bottom' | 'left' | 'right' | 'center-x' | 'center-y'
+	alignment: 'top' | 'bottom' | 'left' | 'right' | 'center-horizontal' | 'center-vertical'
 }
 
 export interface IXmlAlignShapesActionAttributes {
 	'shape-ids': string
-	alignment: 'top' | 'bottom' | 'left' | 'right' | 'center-x' | 'center-y'
+	alignment: 'top' | 'bottom' | 'left' | 'right' | 'center-horizontal' | 'center-vertical'
 }
 
 /**
@@ -204,13 +222,11 @@ export interface IDistributeShapesAction {
 	type: 'distribute-shapes'
 	shapeIds: IShapeId[]
 	direction: 'vertical' | 'horizontal'
-	gap: number
 }
 
 export interface IXmlDistributeShapesActionAttributes {
 	'shape-ids': string
 	direction: 'vertical' | 'horizontal'
-	gap: string
 }
 
 export type IAction =
@@ -241,3 +257,22 @@ export type IXMLAttributes =
 	| IXmlDistributeShapesActionAttributes
 	| IXmlGeoShapeAttributes
 	| IXmlTextShapeAttributes
+
+// Prompt
+
+export interface IPromptInfo {
+	image: string
+	viewport: { id: string; minX: number; minY: number; maxX: number; maxY: number }
+	contents: IShapeStub[]
+	prompt: string
+}
+
+export interface IShapeStub {
+	id: string
+	type: TLShape['type']
+	index: number
+	minX: number
+	minY: number
+	maxX: number
+	maxY: number
+}

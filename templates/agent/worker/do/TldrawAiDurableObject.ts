@@ -1,16 +1,21 @@
+import { createGoogleGenerativeAI, GoogleGenerativeAIProvider } from '@ai-sdk/google'
 import { DurableObject } from 'cloudflare:workers'
 import { AutoRouter, error } from 'itty-router'
 import { Streaming, TLAgentChange } from '../../client/types/TLAgentChange'
 import { TLAgentSerializedPrompt } from '../../client/types/TLAgentPrompt'
+import { IPromptInfo } from '../../xml/xml-types'
 import { TldrawAgentBaseService } from '../TldrawAgentBaseService'
 import { Environment } from '../types'
 import { VercelAiService } from './vercel/VercelAiService'
+import { generateXmlVercel } from './xml/vercel'
 
 export class TldrawAiDurableObject extends DurableObject<Environment> {
 	service: TldrawAgentBaseService
+	google: GoogleGenerativeAIProvider
 
 	constructor(ctx: DurableObjectState, env: Environment) {
 		super(ctx, env)
+		this.google = createGoogleGenerativeAI({ apiKey: env.GOOGLE_API_KEY })
 		this.service = new VercelAiService(this.env) // swap this with your own service
 	}
 
@@ -23,6 +28,7 @@ export class TldrawAiDurableObject extends DurableObject<Environment> {
 		// when we get a connection request, we stash the room id if needed and handle the connection
 		.post('/generate', (request) => this.generate(request))
 		.post('/stream', (request) => this.stream(request))
+		.post('/generate-xml', (request) => this.generateXml(request))
 		.post('/cancel', (request) => this.cancel(request))
 
 	// `fetch` is the entry point for all requests to the Durable Object
@@ -52,6 +58,29 @@ export class TldrawAiDurableObject extends DurableObject<Environment> {
 		try {
 			const prompt = (await request.json()) as TLAgentSerializedPrompt
 			const response = await this.service.generate(prompt)
+
+			return new Response(JSON.stringify(response), {
+				headers: { 'Content-Type': 'application/json' },
+			})
+		} catch (error: any) {
+			console.error('AI response error:', error)
+			return new Response(JSON.stringify({ error: error.message }), {
+				status: 500,
+				headers: { 'Content-Type': 'application/json' },
+			})
+		}
+	}
+
+	/**
+	 * Generate a set of changes from the model.
+	 *
+	 * @param request - The request object containing the prompt.
+	 * @returns A Promise that resolves to a Response object containing the generated changes.
+	 */
+	private async generateXml(request: Request) {
+		try {
+			const prompt = (await request.json()) as IPromptInfo
+			const response = await generateXmlVercel(this.google('gemini-2.5-pro'), prompt)
 
 			return new Response(JSON.stringify(response), {
 				headers: { 'Content-Type': 'application/json' },
