@@ -9,7 +9,6 @@ import {
 import { defineMessages, useMsg } from '../../../utils/i18n'
 import { TlaIcon } from '../../TlaIcon/TlaIcon'
 import {
-	CookieConsentMenuItem,
 	GiveUsFeedbackMenuItem,
 	LegalSummaryMenuItem,
 	UserManualMenuItem,
@@ -41,7 +40,6 @@ export function TlaSidebarHelpMenu() {
 					</TldrawUiMenuGroup>
 					<TldrawUiMenuGroup id="legal">
 						<LegalSummaryMenuItem />
-						<CookieConsentMenuItem />
 					</TldrawUiMenuGroup>
 				</TldrawUiDropdownMenuContent>
 			</TldrawUiMenuContextProvider>

@@ -27,9 +27,9 @@
 .tl-analytics-banner {
 	position: fixed;
 	bottom: 8px;
-	left: 8px;
+	right: 8px;
 	z-index: 1000;
-	max-width: 100%;
+	max-width: 320px;
 	padding: 12px;
 	border-radius: 8px;
 	box-shadow: var(--tl-analytics-shadow);

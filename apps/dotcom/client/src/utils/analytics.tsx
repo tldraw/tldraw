@@ -296,6 +296,123 @@ export function openPrivacySettings() {
 	}
 }
 
+// Bottom-right cookie banner for signed-in users
+function SignedInCookieBanner({
+	onAccept,
+	onReject,
+}: {
+	onAccept: () => void
+	onReject: () => void
+}) {
+	return (
+		<div className="tl-signed-in-cookie-banner">
+			<p>
+				We use cookies on this website.
+				<br /> Learn more in our{' '}
+				<a href="https://tldraw.notion.site/devcookiepolicy" target="_blank" rel="noreferrer">
+					Cookie Policy
+				</a>
+				.
+			</p>
+			<div className="tl-signed-in-cookie-buttons">
+				<button
+					className="tl-signed-in-cookie-button tl-signed-in-cookie-button-secondary"
+					onClick={onReject}
+				>
+					Opt out
+				</button>
+				<button
+					className="tl-signed-in-cookie-button tl-signed-in-cookie-button-primary"
+					onClick={onAccept}
+				>
+					Accept
+				</button>
+			</div>
+			<style>{`
+				.tl-signed-in-cookie-banner {
+					position: fixed;
+					bottom: 8px;
+					right: 8px;
+					z-index: 1000;
+					max-width: 320px;
+					padding: 12px;
+					border-radius: 8px;
+					box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+					border: 1px solid #e5e7eb;
+					background-color: white;
+					display: flex;
+					flex-direction: column;
+					gap: 12px;
+					font-size: 12px;
+					line-height: 1.5;
+					font-family: system-ui, -apple-system, sans-serif;
+				}
+				.tl-signed-in-cookie-banner p {
+					color: #111827;
+					margin: 0;
+				}
+				.tl-signed-in-cookie-banner a {
+					color: #3b82f6;
+					text-decoration: none;
+				}
+				.tl-signed-in-cookie-banner a:hover {
+					color: #2563eb;
+				}
+				.tl-signed-in-cookie-buttons {
+					display: flex;
+					gap: 16px;
+					justify-content: space-between;
+				}
+				.tl-signed-in-cookie-button {
+					font-size: 14px;
+					cursor: pointer;
+					text-decoration: none;
+					border: none;
+					padding: 8px 16px;
+					border-radius: 9999px;
+				}
+				.tl-signed-in-cookie-button-primary {
+					background-color: #3b82f6;
+					color: white;
+					font-weight: bold;
+				}
+				.tl-signed-in-cookie-button-primary:hover {
+					background-color: #2563eb;
+				}
+				.tl-signed-in-cookie-button-secondary {
+					background: none;
+					color: #111827;
+				}
+				.tl-signed-in-cookie-button-secondary:hover {
+					color: #374151;
+				}
+				@media (prefers-color-scheme: dark) {
+					.tl-signed-in-cookie-banner {
+						background-color: #18181b;
+						border-color: #27272a;
+						box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.3), 0 2px 4px -1px rgba(0, 0, 0, 0.2);
+					}
+					.tl-signed-in-cookie-banner p {
+						color: #f4f4f5;
+					}
+					.tl-signed-in-cookie-banner a {
+						color: #60a5fa;
+					}
+					.tl-signed-in-cookie-banner a:hover {
+						color: #93c5fd;
+					}
+					.tl-signed-in-cookie-button-secondary {
+						color: #f4f4f5;
+					}
+					.tl-signed-in-cookie-button-secondary:hover {
+						color: #a1a1aa;
+					}
+				}
+			`}</style>
+		</div>
+	)
+}
+
 function setupReo(options: AnalyticsOptions) {
 	if (options.optedIn === false) return
 
@@ -349,7 +466,17 @@ export function SignedInAnalytics() {
 
 	useTrackPageViews()
 
-	return null
+	return (
+		<>
+			{/* Show bottom-right cookie banner for signed-in users who haven't made a choice */}
+			{user.allowAnalyticsCookie === null && (
+				<SignedInCookieBanner
+					onAccept={() => app.updateUser({ id: user.id, allowAnalyticsCookie: true })}
+					onReject={() => app.updateUser({ id: user.id, allowAnalyticsCookie: false })}
+				/>
+			)}
+		</>
+	)
 }
 
 function useTrackPageViews() {
