@@ -223,8 +223,8 @@ export function SignedOutAnalytics() {
 function ConsentBannerScript() {
 	useEffect(() => {
 		// Set environment variables that the analytics script expects
-		window.TL_GA4_MEASUREMENT_ID = process.env.VITE_GA4_MEASUREMENT_ID
-		window.TL_GOOGLE_ADS_ID = process.env.VITE_GOOGLE_ADS_ID
+		window.TL_GA4_MEASUREMENT_ID = import.meta.env.VITE_GA4_MEASUREMENT_ID
+		window.TL_GOOGLE_ADS_ID = import.meta.env.VITE_GOOGLE_ADS_ID
 	}, [])
 
 	useEffect(() => {
