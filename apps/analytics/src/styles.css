@@ -1,23 +1,29 @@
 :root {
-	--tl-analytics-bg: white;
-	--tl-analytics-text: #111827;
-	--tl-analytics-text-secondary: #374151;
-	--tl-analytics-border: #e5e7eb;
-	--tl-analytics-link: #3b82f6;
-	--tl-analytics-link-hover: #2563eb;
+	--tl-analytics-bg: hsl(0, 0%, 99%);
+	--tl-analytics-contrast: hsl(0, 0%, 100%);
+	--tl-analytics-text: hsl(0, 0%, 18%);
+	--tl-analytics-text-secondary: hsl(204, 4%, 45%);
+	--tl-analytics-link: hsl(214, 84%, 55%);
+	--tl-analytics-link-text: hsl(0, 0%, 100%);
+	--tl-analytics-link-hover: hsl(214, 78%, 52%);
 	--tl-analytics-overlay: rgba(255, 255, 255, 0.9);
-	--tl-analytics-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+	--tl-analytics-shadow:
+		0px 1px 2px hsl(0, 0%, 0%, 28%), 0px 2px 6px hsl(0, 0%, 0%, 14%),
+		inset 0px 0px 0px 1px var(--tl-analytics-contrast);
 }
 
 [data-theme='dark'] {
-	--tl-analytics-bg: #18181b;
-	--tl-analytics-text: #f4f4f5;
-	--tl-analytics-text-secondary: #a1a1aa;
-	--tl-analytics-border: #27272a;
-	--tl-analytics-link: #60a5fa;
-	--tl-analytics-link-hover: #93c5fd;
+	--tl-analytics-bg: hsl(235, 6.8%, 13.5%);
+	--tl-analytics-contrast: hsl(245, 12%, 23%);
+	--tl-analytics-text: hsl(210, 17%, 98%);
+	--tl-analytics-text-secondary: hsl(204, 4%, 75%);
+	--tl-analytics-link: hsl(214, 84%, 56%);
+	--tl-analytics-link-text: hsl(0, 0%, 100%);
+	--tl-analytics-link-hover: hsl(214, 84%, 66%);
 	--tl-analytics-overlay: rgba(0, 0, 0, 0.9);
-	--tl-analytics-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.3), 0 2px 4px -1px rgba(0, 0, 0, 0.2);
+	--tl-analytics-shadow:
+		0px 1px 3px hsl(0, 0%, 0%, 50%), 0px 2px 12px hsl(0, 0%, 0%, 50%),
+		inset 0px 0px 0px 1px var(--tl-analytics-contrast);
 }
 
 #tl-analytics-root {
@@ -26,14 +32,13 @@
 
 .tl-analytics-banner {
 	position: fixed;
-	bottom: 8px;
-	right: 8px;
+	bottom: 4px;
+	right: 4px;
 	z-index: 1000;
 	max-width: 320px;
 	padding: 12px;
-	border-radius: 8px;
+	border-radius: 9px;
 	box-shadow: var(--tl-analytics-shadow);
-	border: 1px solid var(--tl-analytics-border);
 	background-color: var(--tl-analytics-bg);
 	display: flex;
 	flex-direction: column;
@@ -88,7 +93,7 @@
 
 .tl-analytics-button-primary {
 	background-color: var(--tl-analytics-link);
-	color: white;
+	color: var(--tl-analytics-link-text);
 	font-weight: bold;
 }
 

@@ -296,30 +296,6 @@ export function openPrivacySettings() {
 	}
 }
 
-// Bottom-right cookie banner for signed-in users - using same styling as signed-out banner
-function SignedInCookieBanner({ onAccept, onReject }: { onAccept(): void; onReject(): void }) {
-	return (
-		<div className="tl-analytics-banner">
-			<p>
-				We use cookies on this website.
-				<br /> Learn more in our{' '}
-				<a href="https://tldraw.notion.site/devcookiepolicy" target="_blank" rel="noreferrer">
-					Cookie Policy
-				</a>
-				.
-			</p>
-			<div className="tl-analytics-buttons">
-				<button className="tl-analytics-button tl-analytics-button-secondary" onClick={onReject}>
-					Opt out
-				</button>
-				<button className="tl-analytics-button tl-analytics-button-primary" onClick={onAccept}>
-					Accept
-				</button>
-			</div>
-		</div>
-	)
-}
-
 function setupReo(options: AnalyticsOptions) {
 	if (options.optedIn === false) return
 
@@ -376,12 +352,7 @@ export function SignedInAnalytics() {
 	return (
 		<>
 			{/* Show bottom-right cookie banner for signed-in users who haven't made a choice */}
-			{user.allowAnalyticsCookie === null && (
-				<SignedInCookieBanner
-					onAccept={() => app.updateUser({ id: user.id, allowAnalyticsCookie: true })}
-					onReject={() => app.updateUser({ id: user.id, allowAnalyticsCookie: false })}
-				/>
-			)}
+			{user.allowAnalyticsCookie === null && <ConsentBannerScript />}
 		</>
 	)
 }
