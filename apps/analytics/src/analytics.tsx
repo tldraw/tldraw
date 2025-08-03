@@ -59,7 +59,7 @@ export default function Analytics() {
 				api_host: 'https://analytics.tldraw.com/i',
 				ui_host: 'https://eu.i.posthog.com',
 				persistence: 'memory',
-				capture_pageview: 'history_change',
+				capture_pageview: false,
 			})
 
 			if (window.TL_GA4_MEASUREMENT_ID) {
@@ -82,7 +82,7 @@ export default function Analytics() {
 					ReactGA.gtag('config', window.TL_GOOGLE_ADS_ID)
 				}
 
-				ReactGA.send('pageview')
+				// Initial pageview will be sent via page() function to avoid duplicates
 			}
 
 			isConfigured = true
