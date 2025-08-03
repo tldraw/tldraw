@@ -8,603 +8,478 @@ describe('XmlResponseParser', () => {
 		parser = new XmlResponseParser()
 	})
 
-	test('parses complete XML response with thoughts and actions', () => {
-		const xmlInput = `
-			<response>
-				<thoughts>
-					<thought>I need to create a rectangle</thought>
-				</thoughts>
-				<actions>
-					<create-shapes>
-						<geo id="123" x="100" y="100" />
-						<geo id="124" x="300" y="200" />
-					</create-shapes>
-				</actions>
-				<thoughts>
-					<thought>I need to create some text</thought>
-				</thoughts>
-				<actions>
-					<create-shapes>
-						<text id="456" x="200" y="200" text="Hello, world!" />
-					</create-shapes>
-				</actions>
-				<thoughts>
-					<thought>I need to delete the rectangle</thought>
-				</thoughts>
-				<actions>
-					<delete-shapes shape-ids="123" />
-				</actions>
-			</response>
-		`
+	describe('basic parsing', () => {
+		test('parses complete XML response with thoughts and actions', () => {
+			const xmlInput = `
+				<response>
+					<thoughts>
+						<thought>I need to create a rectangle</thought>
+					</thoughts>
+					<actions>
+						<create-shapes>
+							<geo id="123" x="100" y="100" />
+							<geo id="124" x="300" y="200" />
+						</create-shapes>
+					</actions>
+					<thoughts>
+						<thought>I need to create some text</thought>
+					</thoughts>
+					<actions>
+						<create-shapes>
+							<text id="456" x="200" y="200" text="Hello, world!" />
+						</create-shapes>
+					</actions>
+					<thoughts>
+						<thought>I need to delete the rectangle</thought>
+					</thoughts>
+					<actions>
+						<delete-shapes shape-ids="123" />
+					</actions>
+				</response>
+			`
 
-		const result = parser.parseCompletedStream(xmlInput)
+			const result = parser.parseCompletedStream(xmlInput)
 
-		const expected: IResponse = [
-			{ type: 'thought', text: 'I need to create a rectangle' },
-			{
-				type: 'create-shape',
-				shape: { id: '123', type: 'geo', x: 100, y: 100, text: '' },
-			},
-			{
-				type: 'create-shape',
-				shape: { id: '124', type: 'geo', x: 300, y: 200, text: '' },
-			},
-			{ type: 'thought', text: 'I need to create some text' },
-			{
-				type: 'create-shape',
-				shape: { id: '456', type: 'text', x: 200, y: 200, text: 'Hello, world!' },
-			},
-			{ type: 'thought', text: 'I need to delete the rectangle' },
-			{
-				type: 'delete-shapes',
-				shapeIds: ['123'],
-			},
-		]
+			const expected: IResponse = [
+				{ type: 'thought', text: 'I need to create a rectangle' },
+				{
+					type: 'create-shape',
+					shape: { id: '123', type: 'geo', x: 100, y: 100, text: '' },
+				},
+				{
+					type: 'create-shape',
+					shape: { id: '124', type: 'geo', x: 300, y: 200, text: '' },
+				},
+				{ type: 'thought', text: 'I need to create some text' },
+				{
+					type: 'create-shape',
+					shape: { id: '456', type: 'text', x: 200, y: 200, text: 'Hello, world!' },
+				},
+				{ type: 'thought', text: 'I need to delete the rectangle' },
+				{
+					type: 'delete-shapes',
+					shapeIds: ['123'],
+				},
+			]
 
-		expect(result).toEqual(expected)
+			expect(result).toEqual(expected)
+		})
+
+		test('handles multiple shapes in single action', () => {
+			const xmlInput = `
+				<response>
+					<actions>
+						<create-shapes>
+							<geo id="1" x="0" y="0" />
+							<text id="2" x="50" y="50" text="Test" />
+						</create-shapes>
+					</actions>
+				</response>
+			`
+
+			const result = parser.parseCompletedStream(xmlInput)
+
+			expect(result).toEqual([
+				{
+					type: 'create-shape',
+					shape: { id: '1', type: 'geo', x: 0, y: 0, text: '' },
+				},
+				{
+					type: 'create-shape',
+					shape: { id: '2', type: 'text', x: 50, y: 50, text: 'Test' },
+				},
+			])
+		})
+
+		test('handles empty response', () => {
+			const xmlInput = '<response></response>'
+
+			const result = parser.parseCompletedStream(xmlInput)
+
+			expect(result).toEqual([])
+		})
 	})
 
-	test('handles multiple shapes in single action', () => {
-		const xmlInput = `
-			<response>
-				<actions>
-					<create-shapes>
-						<geo id="1" x="0" y="0" />
-						<text id="2" x="50" y="50" text="Test" />
-					</create-shapes>
-				</actions>
-			</response>
-		`
+	describe('thoughts parsing', () => {
+		test('handles multiple thoughts in single thoughts block', () => {
+			const xmlInput = `
+				<response>
+					<thoughts>
+						<thought>First thought</thought>
+						<thought>Second thought</thought>
+					</thoughts>
+				</response>
+			`
 
-		const result = parser.parseCompletedStream(xmlInput)
+			const result = parser.parseCompletedStream(xmlInput)
 
-		expect(result).toEqual([
-			{
-				type: 'create-shape',
-				shape: { id: '1', type: 'geo', x: 0, y: 0, text: '' },
-			},
-			{
-				type: 'create-shape',
-				shape: { id: '2', type: 'text', x: 50, y: 50, text: 'Test' },
-			},
-		])
+			expect(result).toEqual([
+				{ type: 'thought', text: 'First thought' },
+				{ type: 'thought', text: 'Second thought' },
+			])
+		})
 	})
 
-	test('handles multiple thoughts in single thoughts block', () => {
-		const xmlInput = `
-			<response>
-				<thoughts>
-					<thought>First thought</thought>
-					<thought>Second thought</thought>
-				</thoughts>
-			</response>
-		`
+	describe('statements parsing', () => {
+		test('handles statements', () => {
+			const xmlInput = `
+				<response>
+					<actions>
+						<statement>This is a statement</statement>
+					</actions>
+				</response>
+			`
 
-		const result = parser.parseCompletedStream(xmlInput)
+			const result = parser.parseCompletedStream(xmlInput)
 
-		expect(result).toEqual([
-			{ type: 'thought', text: 'First thought' },
-			{ type: 'thought', text: 'Second thought' },
-		])
+			expect(result).toEqual([{ type: 'statement', text: 'This is a statement' }])
+		})
+
+		test('handles multiple statements', () => {
+			const xmlInput = `
+				<response>
+					<actions>
+						<statement>First statement</statement>
+						<statement>Second statement</statement>
+					</actions>
+				</response>
+			`
+
+			const result = parser.parseCompletedStream(xmlInput)
+
+			expect(result).toEqual([
+				{ type: 'statement', text: 'First statement' },
+				{ type: 'statement', text: 'Second statement' },
+			])
+		})
+
+		test('handles mixed thoughts and statements', () => {
+			const xmlInput = `
+				<response>
+					<thoughts>
+						<thought>A thought</thought>
+					</thoughts>
+					<actions>
+						<statement>A statement</statement>
+					</actions>
+				</response>
+			`
+
+			const result = parser.parseCompletedStream(xmlInput)
+
+			expect(result).toEqual([
+				{ type: 'thought', text: 'A thought' },
+				{ type: 'statement', text: 'A statement' },
+			])
+		})
 	})
 
-	test('parses shapes with all style attributes', () => {
-		const xmlInput = `
-			<response>
-				<actions>
-					<create-shapes>
-						<geo id="styled-geo" x="100" y="100" width="200" height="150" fill="solid" color="red" text="Styled Geo" />
-						<text id="styled-text" x="300" y="200" text="Colored Text" color="blue" />
-					</create-shapes>
-				</actions>
-			</response>
-		`
+	describe('shape creation', () => {
+		test('parses shapes with all style attributes', () => {
+			const xmlInput = `
+				<response>
+					<actions>
+						<create-shapes>
+							<geo id="styled-geo" x="100" y="100" width="200" height="150" fill="solid" color="red" text="Styled Geo" />
+							<text id="styled-text" x="300" y="200" text="Colored Text" color="blue" />
+						</create-shapes>
+					</actions>
+				</response>
+			`
 
-		const result = parser.parseCompletedStream(xmlInput)
+			const result = parser.parseCompletedStream(xmlInput)
 
-		expect(result).toEqual([
-			{
-				type: 'create-shape',
-				shape: {
-					id: 'styled-geo',
-					type: 'geo',
+			expect(result).toEqual([
+				{
+					type: 'create-shape',
+					shape: {
+						id: 'styled-geo',
+						type: 'geo',
+						x: 100,
+						y: 100,
+						width: 200,
+						height: 150,
+						fill: 'solid',
+						color: 'red',
+						text: 'Styled Geo',
+					},
+				},
+				{
+					type: 'create-shape',
+					shape: {
+						id: 'styled-text',
+						type: 'text',
+						x: 300,
+						y: 200,
+						text: 'Colored Text',
+						color: 'blue',
+					},
+				},
+			])
+		})
+
+		test('skips invalid shapes without required attributes', () => {
+			const xmlInput = `
+				<response>
+					<actions>
+						<create-shapes>
+							<geo id="valid" x="100" y="100" />
+							<geo x="100" y="100" />
+						</create-shapes>
+					</actions>
+				</response>
+			`
+
+			const result = parser.parseCompletedStream(xmlInput)
+
+			expect(result).toEqual([
+				{
+					type: 'create-shape',
+					shape: { id: 'valid', type: 'geo', x: 100, y: 100, text: '' },
+				},
+			])
+		})
+	})
+
+	describe('shape manipulation actions', () => {
+		test('parses move-shape actions in complete XML response', () => {
+			const xmlInput = `
+				<response>
+					<thoughts>
+						<thought>I need to move some shapes</thought>
+					</thoughts>
+					<actions>
+						<move-shape shape-id="123" x="150" y="200" />
+						<move-shape shape-id="456" x="300" y="400" />
+					</actions>
+				</response>
+			`
+
+			const result = parser.parseCompletedStream(xmlInput)
+
+			const expected: IResponse = [
+				{ type: 'thought', text: 'I need to move some shapes' },
+				{
+					type: 'move-shape',
+					shapeId: '123',
+					x: 150,
+					y: 200,
+				},
+				{
+					type: 'move-shape',
+					shapeId: '456',
+					x: 300,
+					y: 400,
+				},
+			]
+
+			expect(result).toEqual(expected)
+		})
+
+		test('handles multiple move actions for same shape to different positions', () => {
+			const xmlInput = `
+				<response>
+					<actions>
+						<move-shape shape-id="123" x="100" y="100" />
+						<move-shape shape-id="123" x="200" y="200" />
+					</actions>
+				</response>
+			`
+
+			const result = parser.parseCompletedStream(xmlInput)
+
+			expect(result).toEqual([
+				{
+					type: 'move-shape',
+					shapeId: '123',
 					x: 100,
 					y: 100,
-					width: 200,
-					height: 150,
-					fill: 'solid',
-					color: 'red',
-					text: 'Styled Geo',
 				},
-			},
-			{
-				type: 'create-shape',
-				shape: {
-					id: 'styled-text',
-					type: 'text',
-					x: 300,
+				{
+					type: 'move-shape',
+					shapeId: '123',
+					x: 200,
 					y: 200,
-					text: 'Colored Text',
-					color: 'blue',
 				},
-			},
-		])
-	})
+			])
+		})
 
-	test('throws error for no attributes', () => {
-		const invalidXml = '<geo/>'
+		test('parses label-shape actions in complete XML response', () => {
+			const xmlInput = `
+				<response>
+					<thoughts>
+						<thought>I need to add labels to some shapes</thought>
+					</thoughts>
+					<actions>
+						<label-shape shape-id="123" text="Rectangle" />
+						<label-shape shape-id="456" text="Circle" />
+					</actions>
+				</response>
+			`
 
-		expect(() => {
-			parser.parseCompletedStream(invalidXml)
-		}).toThrow('Unexpected closing tag')
-	})
+			const result = parser.parseCompletedStream(xmlInput)
 
-	test('throws error for unknown tags', () => {
-		const invalidXml = '<response><unclosed /></response>'
+			const expected: IResponse = [
+				{ type: 'thought', text: 'I need to add labels to some shapes' },
+				{
+					type: 'label-shape',
+					shapeId: '123',
+					text: 'Rectangle',
+				},
+				{
+					type: 'label-shape',
+					shapeId: '456',
+					text: 'Circle',
+				},
+			]
 
-		expect(parser.parseCompletedStream(invalidXml)).toEqual([])
-	})
+			expect(result).toEqual(expected)
+		})
 
-	test('throws error for missing response element', () => {
-		const xmlWithoutResponse = '<root><thoughts><thought>test</thought></thoughts></root>'
+		test('handles multiple label actions for same shape with different text', () => {
+			const xmlInput = `
+				<response>
+					<actions>
+						<label-shape shape-id="123" text="First Label" />
+						<label-shape shape-id="123" text="Updated Label" />
+					</actions>
+				</response>
+			`
 
-		expect(parser.parseCompletedStream(xmlWithoutResponse)).toEqual([])
-	})
+			const result = parser.parseCompletedStream(xmlInput)
 
-	test('skips invalid shapes without required attributes', () => {
-		const xmlInput = `
-			<response>
-				<actions>
-					<create-shapes>
-						<geo id="valid" x="100" y="100" />
-						<geo x="100" y="100" />
-					</create-shapes>
-				</actions>
-			</response>
-		`
+			expect(result).toEqual([
+				{
+					type: 'label-shape',
+					shapeId: '123',
+					text: 'First Label',
+				},
+				{
+					type: 'label-shape',
+					shapeId: '123',
+					text: 'Updated Label',
+				},
+			])
+		})
 
-		const result = parser.parseCompletedStream(xmlInput)
+		test('handles empty text labels', () => {
+			const xmlInput = `
+				<response>
+					<actions>
+						<label-shape shape-id="123" text="Label 1" />
+						<label-shape shape-id="456" text="Label 2" />
+					</actions>
+				</response>
+			`
 
-		expect(result).toEqual([
-			{
-				type: 'create-shape',
-				shape: { id: 'valid', type: 'geo', x: 100, y: 100, text: '' },
-			},
-		])
-	})
+			const result = parser.parseCompletedStream(xmlInput)
 
-	test('handles empty response', () => {
-		const xmlInput = '<response></response>'
+			expect(result).toEqual([
+				{
+					type: 'label-shape',
+					shapeId: '123',
+					text: 'Label 1',
+				},
+				{
+					type: 'label-shape',
+					shapeId: '456',
+					text: 'Label 2',
+				},
+			])
+		})
 
-		const result = parser.parseCompletedStream(xmlInput)
+		test('handles mixed create, delete, and move actions', () => {
+			const xmlInput = `
+				<response>
+					<actions>
+						<create-shapes>
+							<geo id="new1" x="50" y="50" />
+						</create-shapes>
+						<move-shape shape-id="existing1" x="150" y="150" />
+						<delete-shapes shape-ids="old1" />
+					</actions>
+				</response>
+			`
 
-		expect(result).toEqual([])
-	})
+			const result = parser.parseCompletedStream(xmlInput)
 
-	test.todo('parseStream handles incomplete XML ending mid-shape')
+			expect(result).toEqual([
+				{
+					type: 'create-shape',
+					shape: { id: 'new1', type: 'geo', x: 50, y: 50, text: '' },
+				},
+				{
+					type: 'move-shape',
+					shapeId: 'existing1',
+					x: 150,
+					y: 150,
+				},
+				{
+					type: 'delete-shapes',
+					shapeIds: ['old1'],
+				},
+			])
+		})
 
-	test('parseStream should build message chunk-by-chunk and extract completed items incrementally', () => {
-		// Ensure fresh parser state
-		parser.reset()
+		test('handles complete mixed create, delete, move, and label actions', () => {
+			const xmlInput = `
+				<response>
+					<actions>
+						<create-shapes>
+							<geo id="new1" x="50" y="50" />
+						</create-shapes>
+						<move-shape shape-id="existing1" x="150" y="150" />
+						<label-shape shape-id="existing1" text="Moved Shape" />
+						<delete-shapes shape-ids="old1" />
+					</actions>
+				</response>
+			`
 
-		// Chunk 1: Opening response and incomplete thought
-		// After chunk1: incomplete thought, should return nothing
-		const chunk1 = '<response><thoughts><thought>I need to create tw'
-		expect(parser.parseNewChunk(chunk1)).toEqual([])
-		expect(parser.getCompletedItems()).toEqual([])
+			const result = parser.parseCompletedStream(xmlInput)
 
-		// Chunk 2: Complete the thought and start actions
-		// After chunk2: thought is now complete, should return it
-		const chunk2 = 'o rectangles</thought></thoughts><actions><create-shapes>'
-		expect(parser.parseNewChunk(chunk2)).toEqual([
-			{ type: 'thought', text: 'I need to create two rectangles' },
-		])
-		expect(parser.getCompletedItems()).toEqual([
-			{ type: 'thought', text: 'I need to create two rectangles' },
-		])
+			expect(result).toEqual([
+				{
+					type: 'create-shape',
+					shape: { id: 'new1', type: 'geo', x: 50, y: 50, text: '' },
+				},
+				{
+					type: 'move-shape',
+					shapeId: 'existing1',
+					x: 150,
+					y: 150,
+				},
+				{
+					type: 'label-shape',
+					shapeId: 'existing1',
+					text: 'Moved Shape',
+				},
+				{
+					type: 'delete-shapes',
+					shapeIds: ['old1'],
+				},
+			])
+		})
 
-		// Chunk 3: First complete shape
-		// After chunk3: first shape is complete, should return individual create-shape action
-		const chunk3 = '<geo id="123" x="100" y="100" />'
-		expect(parser.parseNewChunk(chunk3)).toEqual([
-			{
-				type: 'create-shape',
-				shape: { id: '123', type: 'geo', x: 100, y: 100, text: '' },
-			},
-		])
+		test('skips label shapes without id attribute', () => {
+			const xmlInput = `
+				<response>
+					<actions>
+						<label-shape shape-id="valid" text="Valid Label" />
+						<label-shape text="Invalid - No ID" />
+					</actions>
+				</response>
+			`
 
-		// Chunk 4: Second shape starts but incomplete
-		expect(parser.getCompletedItems()).toEqual([
-			{ type: 'thought', text: 'I need to create two rectangles' },
-			{
-				type: 'create-shape',
-				shape: { id: '123', type: 'geo', x: 100, y: 100, text: '' },
-			},
-		])
+			const result = parser.parseCompletedStream(xmlInput)
 
-		// Chunk 4: Second shape starts but incomplete
-		// After chunk4: second shape incomplete, should return nothing
-		const chunk4 = '<geo id="124" x="300" y="200" wid'
-		expect(parser.parseNewChunk(chunk4)).toEqual([])
-		expect(parser.getCompletedItems()).toEqual([
-			{ type: 'thought', text: 'I need to create two rectangles' },
-			{
-				type: 'create-shape',
-				shape: { id: '123', type: 'geo', x: 100, y: 100, text: '' },
-			},
-		])
-
-		// Chunk 5: Complete the second shape and close everything
-		// After chunk5: second shape is now complete, should return individual create-shape action
-		const chunk5 = 'th="150" height="100" /></create-shapes></actions></response>'
-		expect(parser.parseNewChunk(chunk5)).toEqual([
-			{
-				type: 'create-shape',
-				shape: { id: '124', type: 'geo', x: 300, y: 200, text: '', width: 150, height: 100 },
-			},
-		])
-		expect(parser.getCompletedItems()).toEqual([
-			{ type: 'thought', text: 'I need to create two rectangles' },
-			{
-				type: 'create-shape',
-				shape: { id: '123', type: 'geo', x: 100, y: 100, text: '' },
-			},
-			{
-				type: 'create-shape',
-				shape: { id: '124', type: 'geo', x: 300, y: 200, text: '', width: 150, height: 100 },
-			},
-		])
-	})
-
-	test('parses move-shape actions in complete XML response', () => {
-		const xmlInput = `
-			<response>
-				<thoughts>
-					<thought>I need to move some shapes</thought>
-				</thoughts>
-				<actions>
-					<move-shape shape-id="123" x="150" y="200" />
-					<move-shape shape-id="456" x="300" y="400" />
-				</actions>
-			</response>
-		`
-
-		const result = parser.parseCompletedStream(xmlInput)
-
-		const expected: IResponse = [
-			{ type: 'thought', text: 'I need to move some shapes' },
-			{
-				type: 'move-shape',
-				shapeId: '123',
-				x: 150,
-				y: 200,
-			},
-			{
-				type: 'move-shape',
-				shapeId: '456',
-				x: 300,
-				y: 400,
-			},
-		]
-
-		expect(result).toEqual(expected)
-	})
-
-	test('parseStream should emit move-shape actions as shapes complete', () => {
-		// Ensure fresh parser state
-		parser.reset()
-
-		// Chunk 1: Opening response with thought
-		const chunk1 = '<response><thoughts><thought>Moving shapes</thought></thoughts><actions>'
-		expect(parser.parseNewChunk(chunk1)).toEqual([{ type: 'thought', text: 'Moving shapes' }])
-
-		// Chunk 2: First complete move-shape action
-		const chunk2 = '<move-shape shape-id="shape1" x="100" y="200" />'
-		expect(parser.parseNewChunk(chunk2)).toEqual([
-			{
-				type: 'move-shape',
-				shapeId: 'shape1',
-				x: 100,
-				y: 200,
-			},
-		])
-
-		// Chunk 3: Second move-shape action
-		const chunk3 = '<move-shape shape-id="shape2" x="300" y="400" />'
-		expect(parser.parseNewChunk(chunk3)).toEqual([
-			{
-				type: 'move-shape',
-				shapeId: 'shape2',
-				x: 300,
-				y: 400,
-			},
-		])
-
-		// Verify completed items
-		expect(parser.getCompletedItems()).toEqual([
-			{ type: 'thought', text: 'Moving shapes' },
-			{
-				type: 'move-shape',
-				shapeId: 'shape1',
-				x: 100,
-				y: 200,
-			},
-			{
-				type: 'move-shape',
-				shapeId: 'shape2',
-				x: 300,
-				y: 400,
-			},
-		])
-	})
-
-	test('handles multiple move actions for same shape to different positions', () => {
-		const xmlInput = `
-			<response>
-				<actions>
-					<move-shape shape-id="123" x="100" y="100" />
-					<move-shape shape-id="123" x="200" y="200" />
-				</actions>
-			</response>
-		`
-
-		const result = parser.parseCompletedStream(xmlInput)
-
-		expect(result).toEqual([
-			{
-				type: 'move-shape',
-				shapeId: '123',
-				x: 100,
-				y: 100,
-			},
-			{
-				type: 'move-shape',
-				shapeId: '123',
-				x: 200,
-				y: 200,
-			},
-		])
-	})
-
-	test('handles mixed create, delete, and move actions', () => {
-		const xmlInput = `
-			<response>
-				<actions>
-					<create-shapes>
-						<geo id="new1" x="50" y="50" />
-					</create-shapes>
-					<move-shape shape-id="existing1" x="150" y="150" />
-					<delete-shapes shape-ids="old1" />
-				</actions>
-			</response>
-		`
-
-		const result = parser.parseCompletedStream(xmlInput)
-
-		expect(result).toEqual([
-			{
-				type: 'create-shape',
-				shape: { id: 'new1', type: 'geo', x: 50, y: 50, text: '' },
-			},
-			{
-				type: 'move-shape',
-				shapeId: 'existing1',
-				x: 150,
-				y: 150,
-			},
-			{
-				type: 'delete-shapes',
-				shapeIds: ['old1'],
-			},
-		])
-	})
-
-	test('parses label-shape actions in complete XML response', () => {
-		const xmlInput = `
-			<response>
-				<thoughts>
-					<thought>I need to add labels to some shapes</thought>
-				</thoughts>
-				<actions>
-					<label-shape shape-id="123" text="Rectangle" />
-					<label-shape shape-id="456" text="Circle" />
-				</actions>
-			</response>
-		`
-
-		const result = parser.parseCompletedStream(xmlInput)
-
-		const expected: IResponse = [
-			{ type: 'thought', text: 'I need to add labels to some shapes' },
-			{
-				type: 'label-shape',
-				shapeId: '123',
-				text: 'Rectangle',
-			},
-			{
-				type: 'label-shape',
-				shapeId: '456',
-				text: 'Circle',
-			},
-		]
-
-		expect(result).toEqual(expected)
-	})
-
-	test('parseStream should emit label-shape actions as shapes complete', () => {
-		// Ensure fresh parser state
-		parser.reset()
-
-		// Chunk 1: Opening response with thought
-		const chunk1 = '<response><thoughts><thought>Labeling shapes</thought></thoughts><actions>'
-		expect(parser.parseNewChunk(chunk1)).toEqual([{ type: 'thought', text: 'Labeling shapes' }])
-
-		// Chunk 2: First complete label-shape action
-		const chunk2 = '<label-shape shape-id="shape1" text="First Label" />'
-		expect(parser.parseNewChunk(chunk2)).toEqual([
-			{
-				type: 'label-shape',
-				shapeId: 'shape1',
-				text: 'First Label',
-			},
-		])
-
-		// Chunk 3: Second label-shape action
-		const chunk3 = '<label-shape shape-id="shape2" text="Second Label" />'
-		expect(parser.parseNewChunk(chunk3)).toEqual([
-			{
-				type: 'label-shape',
-				shapeId: 'shape2',
-				text: 'Second Label',
-			},
-		])
-
-		// Verify completed items
-		expect(parser.getCompletedItems()).toEqual([
-			{ type: 'thought', text: 'Labeling shapes' },
-			{
-				type: 'label-shape',
-				shapeId: 'shape1',
-				text: 'First Label',
-			},
-			{
-				type: 'label-shape',
-				shapeId: 'shape2',
-				text: 'Second Label',
-			},
-		])
-	})
-
-	test('handles multiple label actions for same shape with different text', () => {
-		const xmlInput = `
-			<response>
-				<actions>
-					<label-shape shape-id="123" text="First Label" />
-					<label-shape shape-id="123" text="Updated Label" />
-				</actions>
-			</response>
-		`
-
-		const result = parser.parseCompletedStream(xmlInput)
-
-		expect(result).toEqual([
-			{
-				type: 'label-shape',
-				shapeId: '123',
-				text: 'First Label',
-			},
-			{
-				type: 'label-shape',
-				shapeId: '123',
-				text: 'Updated Label',
-			},
-		])
-	})
-
-	test('handles empty text labels', () => {
-		const xmlInput = `
-			<response>
-				<actions>
-					<label-shape shape-id="123" text="Label 1" />
-					<label-shape shape-id="456" text="Label 2" />
-				</actions>
-			</response>
-		`
-
-		const result = parser.parseCompletedStream(xmlInput)
-
-		expect(result).toEqual([
-			{
-				type: 'label-shape',
-				shapeId: '123',
-				text: 'Label 1',
-			},
-			{
-				type: 'label-shape',
-				shapeId: '456',
-				text: 'Label 2',
-			},
-		])
-	})
-
-	test('handles complete mixed create, delete, move, and label actions', () => {
-		const xmlInput = `
-			<response>
-				<actions>
-					<create-shapes>
-						<geo id="new1" x="50" y="50" />
-					</create-shapes>
-					<move-shape shape-id="existing1" x="150" y="150" />
-					<label-shape shape-id="existing1" text="Moved Shape" />
-					<delete-shapes shape-ids="old1" />
-				</actions>
-			</response>
-		`
-
-		const result = parser.parseCompletedStream(xmlInput)
-
-		expect(result).toEqual([
-			{
-				type: 'create-shape',
-				shape: { id: 'new1', type: 'geo', x: 50, y: 50, text: '' },
-			},
-			{
-				type: 'move-shape',
-				shapeId: 'existing1',
-				x: 150,
-				y: 150,
-			},
-			{
-				type: 'label-shape',
-				shapeId: 'existing1',
-				text: 'Moved Shape',
-			},
-			{
-				type: 'delete-shapes',
-				shapeIds: ['old1'],
-			},
-		])
-	})
-
-	test('skips label shapes without id attribute', () => {
-		const xmlInput = `
-			<response>
-				<actions>
-					<label-shape shape-id="valid" text="Valid Label" />
-					<label-shape text="Invalid - No ID" />
-				</actions>
-			</response>
-		`
-
-		const result = parser.parseCompletedStream(xmlInput)
-
-		expect(result).toEqual([
-			{
-				type: 'label-shape',
-				shapeId: 'valid',
-				text: 'Valid Label',
-			},
-		])
+			expect(result).toEqual([
+				{
+					type: 'label-shape',
+					shapeId: 'valid',
+					text: 'Valid Label',
+				},
+			])
+		})
 	})
 
 	describe('align shapes parsing', () => {
@@ -737,29 +612,6 @@ describe('XmlResponseParser', () => {
 			expect(result).toEqual([])
 		})
 
-		test('parses incomplete align blocks (streaming)', () => {
-			// Test streaming parsing with incomplete align block
-			let result = parser.parseNewChunk(
-				'<response><actions><align-shapes shape-ids="shape1,shape2" alignment="bottom" />'
-			)
-			expect(result).toEqual([
-				{
-					type: 'align-shapes',
-					shapeIds: ['shape1', 'shape2'],
-					alignment: 'bottom',
-				},
-			])
-
-			result = parser.parseNewChunk('<align-shapes shape-ids="shape3,shape4" alignment="top" />')
-			expect(result).toEqual([
-				{
-					type: 'align-shapes',
-					shapeIds: ['shape3', 'shape4'],
-					alignment: 'top',
-				},
-			])
-		})
-
 		test('handles mixed actions with align shapes', () => {
 			const xmlInput = `
 				<response>
@@ -820,5 +672,238 @@ describe('XmlResponseParser', () => {
 			expect(result1).toEqual(expectedResult)
 			expect(result2).toEqual(expectedResult) // Should return the same result
 		})
+	})
+
+	describe('streaming/incremental parsing', () => {
+		test('parseStream should handle statements incrementally', () => {
+			// Ensure fresh parser state
+			parser.reset()
+
+			// Chunk 1: Opening response and incomplete statement
+			const chunk1 = '<response><actions><statement>This is a par'
+			expect(parser.parseNewChunk(chunk1)).toEqual([])
+			expect(parser.getCompletedItems()).toEqual([])
+
+			// Chunk 2: Complete the statement
+			const chunk2 = 'tial statement</statement></actions></response>'
+			expect(parser.parseNewChunk(chunk2)).toEqual([
+				{ type: 'statement', text: 'This is a partial statement' },
+			])
+			expect(parser.getCompletedItems()).toEqual([
+				{ type: 'statement', text: 'This is a partial statement' },
+			])
+		})
+
+		test('parseStream should build message chunk-by-chunk and extract completed items incrementally', () => {
+			// Ensure fresh parser state
+			parser.reset()
+
+			// Chunk 1: Opening response and incomplete thought
+			// After chunk1: incomplete thought, should return nothing
+			const chunk1 = '<response><thoughts><thought>I need to create tw'
+			expect(parser.parseNewChunk(chunk1)).toEqual([])
+			expect(parser.getCompletedItems()).toEqual([])
+
+			// Chunk 2: Complete the thought and start actions
+			// After chunk2: thought is now complete, should return it
+			const chunk2 = 'o rectangles</thought></thoughts><actions><create-shapes>'
+			expect(parser.parseNewChunk(chunk2)).toEqual([
+				{ type: 'thought', text: 'I need to create two rectangles' },
+			])
+			expect(parser.getCompletedItems()).toEqual([
+				{ type: 'thought', text: 'I need to create two rectangles' },
+			])
+
+			// Chunk 3: First complete shape
+			// After chunk3: first shape is complete, should return individual create-shape action
+			const chunk3 = '<geo id="123" x="100" y="100" />'
+			expect(parser.parseNewChunk(chunk3)).toEqual([
+				{
+					type: 'create-shape',
+					shape: { id: '123', type: 'geo', x: 100, y: 100, text: '' },
+				},
+			])
+
+			// Chunk 4: Second shape starts but incomplete
+			expect(parser.getCompletedItems()).toEqual([
+				{ type: 'thought', text: 'I need to create two rectangles' },
+				{
+					type: 'create-shape',
+					shape: { id: '123', type: 'geo', x: 100, y: 100, text: '' },
+				},
+			])
+
+			// Chunk 4: Second shape starts but incomplete
+			// After chunk4: second shape incomplete, should return nothing
+			const chunk4 = '<geo id="124" x="300" y="200" wid'
+			expect(parser.parseNewChunk(chunk4)).toEqual([])
+			expect(parser.getCompletedItems()).toEqual([
+				{ type: 'thought', text: 'I need to create two rectangles' },
+				{
+					type: 'create-shape',
+					shape: { id: '123', type: 'geo', x: 100, y: 100, text: '' },
+				},
+			])
+
+			// Chunk 5: Complete the second shape and close everything
+			// After chunk5: second shape is now complete, should return individual create-shape action
+			const chunk5 = 'th="150" height="100" /></create-shapes></actions></response>'
+			expect(parser.parseNewChunk(chunk5)).toEqual([
+				{
+					type: 'create-shape',
+					shape: { id: '124', type: 'geo', x: 300, y: 200, text: '', width: 150, height: 100 },
+				},
+			])
+			expect(parser.getCompletedItems()).toEqual([
+				{ type: 'thought', text: 'I need to create two rectangles' },
+				{
+					type: 'create-shape',
+					shape: { id: '123', type: 'geo', x: 100, y: 100, text: '' },
+				},
+				{
+					type: 'create-shape',
+					shape: { id: '124', type: 'geo', x: 300, y: 200, text: '', width: 150, height: 100 },
+				},
+			])
+		})
+
+		test('parseStream should emit move-shape actions as shapes complete', () => {
+			// Ensure fresh parser state
+			parser.reset()
+
+			// Chunk 1: Opening response with thought
+			const chunk1 = '<response><thoughts><thought>Moving shapes</thought></thoughts><actions>'
+			expect(parser.parseNewChunk(chunk1)).toEqual([{ type: 'thought', text: 'Moving shapes' }])
+
+			// Chunk 2: First complete move-shape action
+			const chunk2 = '<move-shape shape-id="shape1" x="100" y="200" />'
+			expect(parser.parseNewChunk(chunk2)).toEqual([
+				{
+					type: 'move-shape',
+					shapeId: 'shape1',
+					x: 100,
+					y: 200,
+				},
+			])
+
+			// Chunk 3: Second move-shape action
+			const chunk3 = '<move-shape shape-id="shape2" x="300" y="400" />'
+			expect(parser.parseNewChunk(chunk3)).toEqual([
+				{
+					type: 'move-shape',
+					shapeId: 'shape2',
+					x: 300,
+					y: 400,
+				},
+			])
+
+			// Verify completed items
+			expect(parser.getCompletedItems()).toEqual([
+				{ type: 'thought', text: 'Moving shapes' },
+				{
+					type: 'move-shape',
+					shapeId: 'shape1',
+					x: 100,
+					y: 200,
+				},
+				{
+					type: 'move-shape',
+					shapeId: 'shape2',
+					x: 300,
+					y: 400,
+				},
+			])
+		})
+
+		test('parseStream should emit label-shape actions as shapes complete', () => {
+			// Ensure fresh parser state
+			parser.reset()
+
+			// Chunk 1: Opening response with thought
+			const chunk1 = '<response><thoughts><thought>Labeling shapes</thought></thoughts><actions>'
+			expect(parser.parseNewChunk(chunk1)).toEqual([{ type: 'thought', text: 'Labeling shapes' }])
+
+			// Chunk 2: First complete label-shape action
+			const chunk2 = '<label-shape shape-id="shape1" text="First Label" />'
+			expect(parser.parseNewChunk(chunk2)).toEqual([
+				{
+					type: 'label-shape',
+					shapeId: 'shape1',
+					text: 'First Label',
+				},
+			])
+
+			// Chunk 3: Second label-shape action
+			const chunk3 = '<label-shape shape-id="shape2" text="Second Label" />'
+			expect(parser.parseNewChunk(chunk3)).toEqual([
+				{
+					type: 'label-shape',
+					shapeId: 'shape2',
+					text: 'Second Label',
+				},
+			])
+
+			// Verify completed items
+			expect(parser.getCompletedItems()).toEqual([
+				{ type: 'thought', text: 'Labeling shapes' },
+				{
+					type: 'label-shape',
+					shapeId: 'shape1',
+					text: 'First Label',
+				},
+				{
+					type: 'label-shape',
+					shapeId: 'shape2',
+					text: 'Second Label',
+				},
+			])
+		})
+
+		test('parses incomplete align blocks (streaming)', () => {
+			// Test streaming parsing with incomplete align block
+			let result = parser.parseNewChunk(
+				'<response><actions><align-shapes shape-ids="shape1,shape2" alignment="bottom" />'
+			)
+			expect(result).toEqual([
+				{
+					type: 'align-shapes',
+					shapeIds: ['shape1', 'shape2'],
+					alignment: 'bottom',
+				},
+			])
+
+			result = parser.parseNewChunk('<align-shapes shape-ids="shape3,shape4" alignment="top" />')
+			expect(result).toEqual([
+				{
+					type: 'align-shapes',
+					shapeIds: ['shape3', 'shape4'],
+					alignment: 'top',
+				},
+			])
+		})
+	})
+
+	describe('error handling and edge cases', () => {
+		test('throws error for no attributes', () => {
+			const invalidXml = '<geo/>'
+
+			expect(() => {
+				parser.parseCompletedStream(invalidXml)
+			}).toThrow('Unexpected closing tag')
+		})
+
+		test('throws error for unknown tags', () => {
+			const invalidXml = '<response><unclosed /></response>'
+
+			expect(parser.parseCompletedStream(invalidXml)).toEqual([])
+		})
+
+		test('throws error for missing response element', () => {
+			const xmlWithoutResponse = '<root><thoughts><thought>test</thought></thoughts></root>'
+
+			expect(parser.parseCompletedStream(xmlWithoutResponse)).toEqual([])
+		})
+
+		test.todo('parseStream handles incomplete XML ending mid-shape')
 	})
 })

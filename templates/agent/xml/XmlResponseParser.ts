@@ -10,6 +10,7 @@ import {
 	IXmlMoveShapeActionAttributes,
 	IXmlPlaceShapeActionAttributes,
 	IXmlStackShapesActionAttributes,
+	IXmlStatementActionAttributes,
 	IXmlTextShapeAttributes,
 	IXmlThoughtActionAttributes,
 } from './xml-parsed-types'
@@ -71,6 +72,12 @@ export class XmlResponseParser {
 			(_, p1) => `<thought text="${p1}" />`
 		)
 
+		// replace <statement>something</statement> with <statement text="something" />
+		flatMessage = flatMessage.replace(
+			/<statement>(.*?)<\/statement>/gs,
+			(_, p1) => `<statement text="${p1}" />`
+		)
+
 		// All remaining tags are self-closing tags in order
 		for (const char of flatMessage) {
 			switch (state) {
@@ -114,6 +121,21 @@ export class XmlResponseParser {
 								}
 
 								completedItems.push({ type: 'thought', text: attributes.text || '' })
+								break
+							}
+							// statements
+							case 'statement': {
+								const attributes =
+									this.parseAttributesFromXmlTag<IXmlStatementActionAttributes>(currentTag)
+
+								if (!attributes.text) {
+									// console.warn(
+									// 	`Statement missing required attributes. Received: ${JSON.stringify(attributes, null, 2)}`
+									// )
+									break
+								}
+
+								completedItems.push({ type: 'statement', text: attributes.text || '' })
 								break
 							}
 							// delete-shapes

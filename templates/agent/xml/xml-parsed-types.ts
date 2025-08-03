@@ -9,6 +9,17 @@ export interface IXmlThoughtActionAttributes {
 	text: string
 }
 
+// Statements
+
+export interface IStatement {
+	type: 'statement'
+	text: string
+}
+
+export interface IXmlStatementActionAttributes {
+	text: string
+}
+
 // Shapes
 
 export type IShapeId = string
@@ -214,12 +225,13 @@ export type IAction =
 
 // Response
 
-export type IResponse = (IThought | IAction)[]
+export type IResponse = (IThought | IStatement | IAction)[]
 
 // XML Attributes
 
 export type IXMLAttributes =
 	| IXmlThoughtActionAttributes
+	| IXmlStatementActionAttributes
 	| IXmlDeleteShapesActionAttributes
 	| IXmlMoveShapeActionAttributes
 	| IXmlLabelShapeActionAttributes
