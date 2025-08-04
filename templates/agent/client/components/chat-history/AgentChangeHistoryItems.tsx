@@ -87,7 +87,7 @@ export function AgentChangeHistoryItems({
 				)}
 			</div>
 
-			<ChangeIntents items={items} />
+			<ChangeIntents items={itemsInAgentChangeGroup} />
 			<TldrawViewer shapes={diffShapes} components={{ ShapeWrapper: DiffShapeWrapper }} />
 		</div>
 	)
