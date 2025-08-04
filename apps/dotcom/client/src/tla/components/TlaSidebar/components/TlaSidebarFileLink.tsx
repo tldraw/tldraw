@@ -13,6 +13,7 @@ import {
 import { routes } from '../../../../routeDefs'
 import { useApp } from '../../../hooks/useAppState'
 import { useCanUpdateFile } from '../../../hooks/useCanUpdateFile'
+import { useHasFlag } from '../../../hooks/useHasFlag'
 import { useIsFileOwner } from '../../../hooks/useIsFileOwner'
 import { useFileSidebarFocusContext } from '../../../providers/FileInputFocusProvider'
 import { useTldrawAppUiEvents } from '../../../utils/app-ui-events'
@@ -28,6 +29,7 @@ import {
 	TlaTooltipRoot,
 	TlaTooltipTrigger,
 } from '../../TlaTooltip/TlaTooltip'
+import { PresenceBadges } from '../TempGroupsUi'
 import styles from '../sidebar.module.css'
 import { TlaSidebarFileLinkMenu } from './TlaSidebarFileLinkMenu'
 import { TlaSidebarRenameInline } from './TlaSidebarRenameInline'
@@ -155,6 +157,8 @@ export function TlaSidebarFileLinkInner({
 		linkRef.current.focus()
 	}, [isActive, linkRef])
 
+	const hasGroups = useHasFlag('groups')
+
 	const file = useValue('file', () => app.getFile(fileId), [fileId, app])
 	if (!file) return null
 
@@ -206,6 +210,13 @@ export function TlaSidebarFileLinkInner({
 					{fileName}
 				</div>
 				{!isOwnFile && <GuestBadge file={file} href={href} />}
+				{hasGroups && (
+					<PresenceBadges
+						fileId={fileId}
+						className={styles.sidebarFileListItemPresenceBadges}
+						badgeClassName={styles.sidebarFileListItemPresenceBadge}
+					/>
+				)}
 			</div>
 			<TlaSidebarFileLinkMenu fileId={fileId} onRenameAction={handleRenameAction} />
 		</div>
