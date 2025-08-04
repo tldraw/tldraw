@@ -147,11 +147,39 @@ function buildHistoryItemMessage(item: ChatHistoryItem): CoreMessage | null {
 			]
 			if (item.contextItems.length > 0) {
 				for (const contextItem of item.contextItems) {
-					content.push({
-						type: 'text',
-						// text: `Previous context item to focus on from the user: ${JSON.stringify(contextItem, null, 2)}`,
-						text: `[CONTEXT]: ${JSON.stringify(contextItem, null, 2)}`,
-					})
+					switch (contextItem.type) {
+						case 'shape': {
+							const simpleShape = getSimpleContentFromCanvasContent({
+								shapes: [contextItem.shape],
+								bindings: [],
+								assets: [],
+							}).shapes[0]
+							content.push({
+								type: 'text',
+								text: `[CONTEXT]: ${JSON.stringify(simpleShape, null, 2)}`,
+							})
+							break
+						}
+						case 'shapes': {
+							const simpleShapes = getSimpleContentFromCanvasContent({
+								shapes: contextItem.shapes,
+								bindings: [],
+								assets: [],
+							}).shapes
+							content.push({
+								type: 'text',
+								text: `[CONTEXT]: ${JSON.stringify(simpleShapes, null, 2)}`,
+							})
+							break
+						}
+						default: {
+							content.push({
+								type: 'text',
+								text: `[CONTEXT]: ${JSON.stringify(contextItem, null, 2)}`,
+							})
+							break
+						}
+					}
 				}
 			}
 			return {
