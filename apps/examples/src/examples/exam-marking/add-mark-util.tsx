@@ -18,7 +18,17 @@ export class ExamMarkUtil extends ShapeUtil<IExamMarkShape> {
 		score: T.number,
 	}
 
+	override getDefaultProps(): IExamMarkShape['props'] {
+		return {
+			w: 90,
+			h: 40,
+			score: 0,
+		}
+	}
+
+	// [1]
 	override component(shape: IExamMarkShape) {
+		// [a]
 		// eslint-disable-next-line react-hooks/rules-of-hooks
 		const [score, setScore] = useState<number | string>(shape.props.score)
 
@@ -26,29 +36,39 @@ export class ExamMarkUtil extends ShapeUtil<IExamMarkShape> {
 			<HTMLContainer id={shape.id} style={{ pointerEvents: 'all' }}>
 				<div
 					style={{
-						// width: '100%',
-						// height: '100%',
+						height: '100%',
 						fontSize: '1.5em',
 						display: 'flex',
-						flexDirection: 'column',
-						alignItems: 'flex-start',
-						gap: 12,
-						background: 'white',
-						border: '1px solid black',
-						padding: 12,
+						alignItems: 'center',
 					}}
 				>
-					<span>Question score:</span>
+					<div
+						style={{
+							width: 24,
+							height: 24,
+							padding: '0 6px',
+							cursor: 'grab',
+							display: 'flex',
+							alignItems: 'center',
+							justifyContent: 'center',
+							userSelect: 'none',
+						}}
+						title="Drag to move"
+					>
+						<span style={{ fontSize: '1.1em', color: '#888' }}>⠿</span>
+					</div>
 					<input
 						type="number"
 						value={score}
 						style={{
-							width: 120,
+							width: '100%',
 							fontSize: '1.25em',
 							padding: '6px 10px',
 							borderRadius: 4,
 							border: '1px solid #ccc',
+							opacity: 0.7,
 						}}
+						// [b]
 						onChange={(e) => {
 							const value = e.target.value
 							setScore(value)
@@ -63,6 +83,10 @@ export class ExamMarkUtil extends ShapeUtil<IExamMarkShape> {
 								})
 							}
 						}}
+						// [c]
+						onPointerDown={(e) => e.stopPropagation()}
+						onTouchStart={(e) => e.stopPropagation()}
+						onTouchEnd={(e) => e.stopPropagation()}
 					/>
 				</div>
 			</HTMLContainer>
@@ -71,14 +95,6 @@ export class ExamMarkUtil extends ShapeUtil<IExamMarkShape> {
 
 	override indicator(shape: IExamMarkShape) {
 		return <rect width={shape.props.w} height={shape.props.h} />
-	}
-
-	override getDefaultProps(): IExamMarkShape['props'] {
-		return {
-			w: 160,
-			h: 70,
-			score: 0,
-		}
 	}
 
 	getGeometry(shape: IExamMarkShape) {
@@ -94,6 +110,24 @@ export class ExamMarkUtil extends ShapeUtil<IExamMarkShape> {
 	}
 
 	override canResize(_shape: IExamMarkShape): boolean {
-		return true
+		return false
 	}
 }
+
+/* 
+A utility class for the exam mark shape. This is where you define the shape's behavior, 
+how it renders (its component and indicator), and how it handles different events.
+
+[1]
+Render method — the React component that will be rendered for the shape. It takes the 
+shape as an argument. HTMLContainer is just a div that's being used to wrap the input.
+
+ - [a] The important part of this shape utility is how it handles the score input. We know we want the ExamScoreLabel component to be able to access the score of the shape, so we want the score to be a prop for the shape. 
+ Annoying: eslint sometimes thinks this is a class component, but it's not.
+
+ - [b] We want to be able to edit the score of the shape, so we need to be able to update the shape's props. We do this by using the editor.updateShape method when we detect that the score is a number.
+
+ - [c] We need to stop the pointer down event on the input.
+
+For notes on the the other parts of this shape utility, check out the `custom-config` example.
+*/

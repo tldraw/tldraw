@@ -47,12 +47,19 @@ async function exportPdf(
 	const pageShapeIds = new Set(pages.map((page) => page.shapeId))
 	const allIds = Array.from(editor.getCurrentPageShapeIds()).filter((id) => !pageShapeIds.has(id))
 
+	const filteredIds = allIds.filter((id) => {
+		const shape = editor.getShape(id)
+		if (!shape) return false
+		if (shape.type === 'exam-mark') return false
+		return true
+	})
+
 	for (let i = 0; i < pages.length; i++) {
 		const page = pages[i]
 		const pdfPage = pdfPages[i]
 
 		const bounds = page.bounds
-		const shapesInBounds = allIds.filter((id) => {
+		const shapesInBounds = filteredIds.filter((id) => {
 			const shapePageBounds = editor.getShapePageBounds(id)
 			if (!shapePageBounds) return false
 			return shapePageBounds.collides(bounds)
@@ -64,7 +71,7 @@ async function exportPdf(
 			continue
 		}
 
-		const exportedPng = await editor.toImage(allIds, {
+		const exportedPng = await editor.toImage(filteredIds, {
 			format: 'png',
 			background: false,
 			bounds: page.bounds,

@@ -156,6 +156,7 @@ export function PdfEditor({ pdf }: { pdf: Pdf }) {
 			}}
 			components={pdfEditorComponents}
 			tools={customTools}
+			initialState="mark" // set the initial tool to the exam marking tool
 			shapeUtils={customShapeUtils}
 			overrides={uiOverrides}
 		/>

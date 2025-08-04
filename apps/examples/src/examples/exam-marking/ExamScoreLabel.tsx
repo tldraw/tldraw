@@ -1,36 +1,36 @@
-import { useEditor, useValue } from 'tldraw'
+import { useEffect, useState } from 'react'
+import { useEditor } from 'tldraw'
 import { IExamMarkShape } from './add-mark-util'
-
-// interface IExamMarkShape {
-//     type: 'exam-mark'
-//     props: {
-//         score: number
-//     }
-// }
 
 export function ExamScoreLabel() {
 	const editor = useEditor()
 
-	// Compute score reactively whenever shapes change
-	const score = useValue(
-		'examScore',
-		() => {
+	const [score, setScore] = useState(0)
+
+	// [1]
+	useEffect(() => {
+		const updateScore = () => {
 			const shapeIds = editor.getCurrentPageShapeIds()
 			const examMarks = Array.from(shapeIds).filter((id) => {
 				const shape = editor.getShape(id)
 				return shape?.type === 'exam-mark'
 			})
-
-			return examMarks.reduce((acc, id) => {
+			const newScore = examMarks.reduce((acc, id) => {
 				const shape = editor.getShape(id)
 				if (shape?.type === 'exam-mark') {
 					return acc + ((shape as IExamMarkShape).props.score || 0)
 				}
 				return acc
 			}, 0)
-		},
-		[editor]
-	)
+			setScore(newScore)
+		}
+
+		updateScore()
+
+		const unlisten = editor.store.listen(updateScore, { scope: 'document' })
+
+		return unlisten
+	}, [editor])
 
 	return (
 		<div
@@ -45,3 +45,11 @@ export function ExamScoreLabel() {
 		</div>
 	)
 }
+
+/*
+
+[1]
+This is a simple widget that shows the total exam score. It's an example of how to use the editor
+instance to compute a value that depends on the shapes on the page.
+
+*/
