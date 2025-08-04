@@ -562,6 +562,10 @@ body {
 	overflow-y: auto;
 }
 
+.agent-change-message-intent:last-child {
+	border-radius: 4px 0px 4px 4px;
+}
+
 .agent-change-message-intent-item {
 	display: flex;
 	align-items: flex-start;
@@ -569,17 +573,4 @@ body {
 	font-size: 12px;
 	font-family: 'Inter', sans-serif;
 	font-weight: 400;
-}
-
-.agent-change-message-no-changes {
-	font-size: 12px;
-	font-family: 'Inter', sans-serif;
-	font-weight: 400;
-	font-style: italic;
-	height: 40px;
-	display: flex;
-	align-items: center;
-	justify-content: center;
-	color: var(--color-text-2);
-	background-color: var(--color-muted-2);
 }
