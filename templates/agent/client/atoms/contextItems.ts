@@ -94,5 +94,9 @@ function areContextItemsEquivalentOrAlreadyInContext(a: ContextItem, b: ContextI
 		return a.shapes.some((s) => s.id === b.shape.id)
 	}
 
+	if (a.type !== b.type) {
+		return false
+	}
+
 	throw new Error('Unknown context item type')
 }

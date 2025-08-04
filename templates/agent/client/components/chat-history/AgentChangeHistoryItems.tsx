@@ -8,25 +8,28 @@ import {
 	TLShape,
 	TLShapeId,
 	TLShapeWrapperProps,
-	useValue,
 } from 'tldraw'
 import { $chatHistoryItems } from '../../atoms/chatHistoryItems'
 import { AgentChangeHistoryItem } from '../../types/ChatHistoryItem'
 import TldrawViewer from './TldrawViewer'
 
+// The model returns changes individually, but we group them together in this component for UX reasons, namely so the user can see all changes done at once together, and so they can accept or reject them all at once
 export function AgentChangeHistoryItems({
-	items,
+	items: itemsInAgentChangeGroup,
 	editor,
 }: {
 	items: AgentChangeHistoryItem[]
 	editor: Editor
 }) {
-	const diffShapes = items.map((item) => getDiffShapesFromDiff({ diff: item.diff })).flat()
+	const diffShapes = itemsInAgentChangeGroup.flatMap((item) =>
+		getDiffShapesFromDiff({ diff: item.diff })
+	)
 
+	// Because we accept and reject changes as groups, when the changes represented by this group are accepted (or rejected), we need to go through each item in the group and update its acceptance status individually
 	const handleAccept = useCallback(() => {
-		$chatHistoryItems.update((oldItems) => {
-			const newItems = [...oldItems]
-			for (const item of items) {
+		$chatHistoryItems.update((currentChatHistoryItems) => {
+			const newItems = [...currentChatHistoryItems]
+			for (const item of itemsInAgentChangeGroup) {
 				const index = newItems.findIndex((v) => v === item)
 				if (index !== -1) {
 					// If the item was previously rejected, we need to re-apply the original diff
@@ -38,12 +41,12 @@ export function AgentChangeHistoryItems({
 			}
 			return newItems
 		})
-	}, [items, editor])
+	}, [itemsInAgentChangeGroup, editor])
 
 	const handleReject = useCallback(() => {
-		$chatHistoryItems.update((oldItems) => {
-			const newItems = [...oldItems]
-			for (const item of items) {
+		$chatHistoryItems.update((currentChatHistoryItems) => {
+			const newItems = [...currentChatHistoryItems]
+			for (const item of itemsInAgentChangeGroup) {
 				const index = newItems.findIndex((v) => v === item)
 				if (index !== -1) {
 					newItems[index] = { ...item, acceptance: 'rejected', status: 'done' }
@@ -56,15 +59,15 @@ export function AgentChangeHistoryItems({
 			}
 			return newItems
 		})
-	}, [items, editor])
+	}, [itemsInAgentChangeGroup, editor])
 
 	const acceptance = useMemo<AgentChangeHistoryItem['acceptance']>(
-		() => items[0].acceptance,
-		[items]
+		() => itemsInAgentChangeGroup[0].acceptance,
+		[itemsInAgentChangeGroup]
 	)
 	const acceptanceConsensus = useMemo(
-		() => items.every((item) => item.acceptance === acceptance),
-		[items, acceptance]
+		() => itemsInAgentChangeGroup.every((item) => item.acceptance === acceptance),
+		[itemsInAgentChangeGroup, acceptance]
 	)
 
 	return (
@@ -164,7 +167,7 @@ const DiffShapeWrapper = forwardRef(function DiffShapeWrapper(
 	{ children, shape, isBackground }: TLShapeWrapperProps,
 	ref: React.Ref<HTMLDivElement>
 ) {
-	const changeType = useValue('change type', () => shape.meta.changeType, [shape])
+	const changeType = shape.meta.changeType
 
 	return (
 		<DefaultShapeWrapper
