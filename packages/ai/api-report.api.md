@@ -186,7 +186,7 @@ export class TldrawAiModule {
 // @public (undocumented)
 export interface TldrawAiModuleOptions {
     // (undocumented)
-    apply: TldrawAiApplyFn;
+    apply?: TldrawAiApplyFn;
     // (undocumented)
     editor: Editor;
     // (undocumented)

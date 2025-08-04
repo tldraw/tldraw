@@ -1,6 +1,5 @@
 import { useCallback, useMemo, useRef } from 'react'
 import { Editor, uniqueId, useMaybeEditor } from 'tldraw'
-import { defaultApplyChange } from './defaultApplyChange'
 import { TldrawAiModule, TldrawAiModuleOptions } from './TldrawAiModule'
 import { TLAiChange, TLAiPrompt, TLAiSerializedPrompt } from './types'
 
@@ -83,7 +82,7 @@ export function useTldrawAi(opts: TldrawAiOptions): TldrawAi {
 		editor: _editor,
 		generate: generateFn,
 		stream: streamFn,
-		apply: applyFn = defaultApplyChange,
+		apply: applyFn,
 		transforms,
 	} = opts
 

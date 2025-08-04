@@ -1,4 +1,5 @@
 import { Box, Editor, FileHelpers, structuredClone } from 'tldraw'
+import { defaultApplyChange } from './defaultApplyChange'
 import { TldrawAiTransformConstructor } from './TldrawAiTransform'
 import { TLAiChange, TLAiContent, TLAiPrompt } from './types'
 import { TldrawAiApplyFn, TldrawAiPromptOptions } from './useTldrawAi'
@@ -8,7 +9,7 @@ import { asMessage } from './utils'
 export interface TldrawAiModuleOptions {
 	editor: Editor
 	transforms?: TldrawAiTransformConstructor[]
-	apply: TldrawAiApplyFn
+	apply?: TldrawAiApplyFn
 }
 
 /**
@@ -77,7 +78,8 @@ export class TldrawAiModule {
 	 * @param change - The change to apply
 	 */
 	applyChange(change: TLAiChange) {
-		this.opts.apply({ change, editor: this.opts.editor })
+		const applyFn = this.opts.apply ?? defaultApplyChange
+		applyFn({ change, editor: this.opts.editor })
 	}
 
 	/**
