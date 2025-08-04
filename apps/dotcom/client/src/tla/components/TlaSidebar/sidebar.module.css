@@ -726,7 +726,7 @@
 
 .sidebarFileSectionGroups {
 	margin-top: 24px;
-	border-top: 1px solid var(--tla-color-border);
+	border-top: 1px solid var(--color-low-border);
 }
 
 .sidebarFileSectionTitleText {
@@ -734,4 +734,77 @@
 	white-space: nowrap;
 	overflow: hidden;
 	text-overflow: ellipsis;
+}
+
+/* ------------------- Group Item ------------------- */
+
+.sidebarGroupItem {
+	background-color: var(--tla-color-sidebar);
+	position: relative;
+	width: 100%;
+}
+
+.sidebarGroupItemHeader {
+	background: none;
+	border: none;
+	position: relative;
+	width: 100%;
+	height: 36px;
+	padding: 0px 8px 0px 8px;
+	display: flex;
+	flex-direction: row;
+	align-items: center;
+	justify-content: flex-start;
+	overflow: hidden;
+	gap: 8px;
+	cursor: pointer;
+	color: var(--tla-color-text-3);
+}
+
+.sidebarGroupItemHeader::after {
+	display: block;
+	content: '';
+	position: absolute;
+	top: 2px;
+	left: 0px;
+	right: 0px;
+	bottom: 2px;
+	border-radius: 4px;
+	background-color: var(--tla-color-hover-1);
+	z-index: 0;
+	pointer-events: none;
+	visibility: hidden;
+}
+
+@media (hover: hover) {
+	.sidebarGroupItemHeader:hover {
+		color: var(--tla-color-text-1);
+	}
+
+	.sidebarGroupItemHeader:hover::after {
+		visibility: visible;
+	}
+}
+
+.sidebarGroupItemCaret {
+	color: var(--tla-color-text-3);
+	flex: 0 0 16px;
+	width: 16px;
+	height: 16px;
+}
+
+.sidebarGroupItemTitle {
+	flex: 0 1 auto;
+	white-space: nowrap;
+	overflow: hidden;
+	text-overflow: ellipsis;
+	position: relative;
+	z-index: 1;
+	text-align: left;
+}
+
+.sidebarGroupItemContent {
+	display: flex;
+	flex-direction: column;
+	margin-bottom: 24px;
 }

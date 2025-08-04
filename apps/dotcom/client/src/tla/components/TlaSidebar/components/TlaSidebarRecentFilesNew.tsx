@@ -3,9 +3,10 @@ import { uniqueId, useValue } from 'tldraw'
 import { useApp } from '../../../hooks/useAppState'
 import { F } from '../../../utils/i18n'
 import styles from '../sidebar.module.css'
+import { RecentFile } from './sidebar-shared'
 import { TlaSidebarFileLink } from './TlaSidebarFileLink'
 import { TlaSidebarFileSection } from './TlaSidebarFileSection'
-import { RecentFile } from './sidebar-shared'
+import { TlaSidebarGroupItem } from './TlaSidebarGroupItem'
 
 export function TlaSidebarRecentFilesNew() {
 	const app = useApp()
@@ -98,7 +99,7 @@ export function TlaSidebarRecentFilesNew() {
 					}}
 				>
 					{groupMemberships.map((group) => (
-						<div key={group.group.id}>{group.group.name}</div>
+						<TlaSidebarGroupItem key={group.group.id} groupId={group.group.id} />
 					))}
 				</TlaSidebarFileSection>
 			)}
