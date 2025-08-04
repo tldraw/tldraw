@@ -1,5 +1,6 @@
 import { memo, useCallback, useEffect, useRef } from 'react'
 import { preventDefault } from 'tldraw'
+import { useHasFlag } from '../../hooks/useHasFlag'
 import { useTldrFileDrop } from '../../hooks/useTldrFileDrop'
 import { useTldrawAppUiEvents } from '../../utils/app-ui-events'
 import { F } from '../../utils/i18n'
@@ -10,11 +11,11 @@ import {
 	useIsSidebarOpen,
 	useIsSidebarOpenMobile,
 } from '../../utils/local-session-state'
-import { TempGroupsUi } from './TempGroupsUi'
 import { TlaSidebarCookieConsent } from './components/TlaSidebarCookieConsent'
 import { TlaSidebarCreateFileButton } from './components/TlaSidebarCreateFileButton'
 import { TlaSidebarHelpMenu } from './components/TlaSidebarHelpMenu'
 import { TlaSidebarRecentFiles } from './components/TlaSidebarRecentFiles'
+import { TlaSidebarRecentFilesNew } from './components/TlaSidebarRecentFilesNew'
 import { TlaUserSettingsMenu } from './components/TlaSidebarUserSettingsMenu'
 import { TlaSidebarWorkspaceLink } from './components/TlaSidebarWorkspaceLink'
 import styles from './sidebar.module.css'
@@ -63,6 +64,8 @@ export const TlaSidebar = memo(function TlaSidebar() {
 
 	const { onDrop, onDragOver, onDragEnter, onDragLeave, isDraggingOver } = useTldrFileDrop()
 
+	const hasGroups = useHasFlag('groups')
+
 	return (
 		<nav
 			ref={sidebarRef}
@@ -94,9 +97,8 @@ export const TlaSidebar = memo(function TlaSidebar() {
 					<TlaSidebarCreateFileButton />
 				</div>
 				<div className={styles.sidebarContent}>
-					<TlaSidebarRecentFiles />
+					{hasGroups ? <NewSidebarLayout /> : <LegacySidebarLayout />}
 				</div>
-				<TempGroupsUi />
 
 				<div className={styles.sidebarBottomArea}>
 					<TlaSidebarCookieConsent />
@@ -109,3 +111,11 @@ export const TlaSidebar = memo(function TlaSidebar() {
 		</nav>
 	)
 })
+
+function LegacySidebarLayout() {
+	return <TlaSidebarRecentFiles />
+}
+
+function NewSidebarLayout() {
+	return <TlaSidebarRecentFilesNew />
+}

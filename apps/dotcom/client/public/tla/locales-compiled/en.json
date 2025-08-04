@@ -589,6 +589,12 @@
       "value": "Rename file"
     }
   ],
+  "891ad007e2": [
+    {
+      "type": 0,
+      "value": "See more"
+    }
+  ],
   "8b1946f965": [
     {
       "type": 0,
@@ -701,6 +707,12 @@
     {
       "type": 0,
       "value": "Export image"
+    }
+  ],
+  "a37ede2939": [
+    {
+      "type": 0,
+      "value": "Groups"
     }
   ],
   "a3debabee7": [
@@ -969,6 +981,12 @@
     {
       "type": 0,
       "value": "Save your work"
+    }
+  ],
+  "dae52b8071": [
+    {
+      "type": 0,
+      "value": "Recent"
     }
   ],
   "db4c2dab9a": [

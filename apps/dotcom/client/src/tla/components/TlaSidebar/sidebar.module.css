@@ -698,3 +698,40 @@
 .sidebarFileListItemPresenceBadge:not(:first-child) {
 	margin-left: -4px; /* Creates overlap between badges */
 }
+
+/* ------------------- Show all button ------------------- */
+
+.showAllButton {
+	background: none;
+	border: none;
+	padding: 0px 8px;
+	margin-top: 12px;
+	color: var(--tla-color-text-3);
+	font-size: 12px;
+	cursor: pointer;
+	text-decoration: none;
+	white-space: nowrap;
+	border-radius: 4px;
+	flex-shrink: 0;
+	text-align: left;
+}
+
+.showAllButton:hover {
+	color: var(--tla-color-text-1);
+}
+
+.sidebarFileSectionRecent {
+	margin-top: 12px;
+}
+
+.sidebarFileSectionGroups {
+	margin-top: 24px;
+	border-top: 1px solid var(--tla-color-border);
+}
+
+.sidebarFileSectionTitleText {
+	flex: 1 1 auto;
+	white-space: nowrap;
+	overflow: hidden;
+	text-overflow: ellipsis;
+}
