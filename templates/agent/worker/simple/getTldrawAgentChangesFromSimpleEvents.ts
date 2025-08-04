@@ -743,37 +743,23 @@ function getTldrawAiChangesFromSimpleLabelEvent(
 	const shapeOnCanvas =
 		prompt.canvasContent.shapes.find((s) => s.id === label.shapeId) ??
 		prompt.meta.currentPageShapes?.find((s: TLShape) => s.id === label.shapeId)
+	console.log('label', label)
+	console.log('shapeOnCanvas', shapeOnCanvas)
 	if (!shapeOnCanvas) {
 		throw new Error(`Shape ${label.shapeId} not found in canvas`)
 	}
 
-	if (shapeOnCanvas.type === 'arrow') {
-		// For arrows, set text, not richText
-		changes.push({
-			complete: event.complete,
-			type: 'updateShape',
-			description: intent ?? '',
-			shape: {
-				id: label.shapeId as TLShapeId,
-				props: {
-					richText: toRichTextIfNeeded(label.text ?? ''),
-				},
+	changes.push({
+		complete: event.complete,
+		type: 'updateShape',
+		description: intent ?? '',
+		shape: {
+			id: label.shapeId as TLShapeId,
+			props: {
+				richText: toRichTextIfNeeded(label.text ?? ''),
 			},
-		})
-	} else {
-		// For all other shapes, set richText
-		changes.push({
-			complete: event.complete,
-			type: 'updateShape',
-			description: intent ?? '',
-			shape: {
-				id: label.shapeId as TLShapeId,
-				props: {
-					richText: toRichTextIfNeeded(label.text ?? ''),
-				},
-			},
-		})
-	}
+		},
+	})
 
 	return changes
 }

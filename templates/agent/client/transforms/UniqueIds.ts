@@ -17,6 +17,16 @@ export class UniqueIds extends TldrawAiTransform {
 					shape,
 				}
 			}
+			case 'updateShape': {
+				const { shape } = change
+				const id = this.idMap.get(shape.id) ?? shape.id
+				shape.id = id
+
+				return {
+					...change,
+					shape,
+				}
+			}
 			case 'createBinding': {
 				const { binding } = change
 				binding.id = createBindingId(binding.id)
