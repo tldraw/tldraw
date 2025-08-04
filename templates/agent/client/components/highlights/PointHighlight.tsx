@@ -10,7 +10,7 @@ export function PointHighlight({
 	className?: string
 }) {
 	const editor = useEditor()
-	const screenPoint = useValue('screenPoint', () => editor.pageToScreen(pagePoint), [])
+	const screenPoint = useValue('screenPoint', () => editor.pageToViewport(pagePoint), [])
 	const r = 3
 	return (
 		<SVGContainer

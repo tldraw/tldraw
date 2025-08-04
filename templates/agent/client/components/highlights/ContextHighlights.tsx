@@ -9,7 +9,7 @@ export function ContextHighlights() {
 	const pendingContextItems = useValue('pendingContextItems', () => $pendingContextItems.get(), [])
 
 	const areaBounds = useValue(
-		'screenSpaceAreaBounds',
+		'areaBounds',
 		() => {
 			const areaItems = contextItems.filter((item) => item.type === 'area')
 			return areaItems.map((item) => item.bounds).filter((item) => item !== null)
@@ -18,7 +18,7 @@ export function ContextHighlights() {
 	)
 
 	const pendingAreaBounds = useValue(
-		'pendingScreenSpaceAreaBounds',
+		'pendingAreaBounds',
 		() => {
 			const pendingAreaItems = pendingContextItems.filter((item) => item.type === 'area')
 			return pendingAreaItems.map((item) => item.bounds).filter((item) => item !== null)
@@ -27,7 +27,7 @@ export function ContextHighlights() {
 	)
 
 	const shapesBounds = useValue(
-		'screenSpaceShapesBounds',
+		'shapesBounds',
 		() => {
 			const shapeItems = contextItems.filter((item) => item.type === 'shapes')
 			return shapeItems
@@ -41,7 +41,7 @@ export function ContextHighlights() {
 	)
 
 	const pendingShapesBounds = useValue(
-		'pendingScreenSpaceShapesBounds',
+		'pendingShapesBounds',
 		() => {
 			const pendingShapeItems = pendingContextItems.filter((item) => item.type === 'shapes')
 			return pendingShapeItems
@@ -55,7 +55,7 @@ export function ContextHighlights() {
 	)
 
 	const shapeBounds = useValue(
-		'screenSpaceShapeBounds',
+		'shapeBounds',
 		() => {
 			const shapeItems = contextItems.filter((item) => item.type === 'shape')
 			return shapeItems
@@ -66,7 +66,7 @@ export function ContextHighlights() {
 	)
 
 	const pendingShapeBounds = useValue(
-		'pendingScreenSpaceShapeBounds',
+		'pendingShapeBounds',
 		() => {
 			const pendingShapeItems = pendingContextItems.filter((item) => item.type === 'shape')
 			return pendingShapeItems

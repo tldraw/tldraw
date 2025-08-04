@@ -16,7 +16,7 @@ export function AreaHighlight({
 			if (!pageBounds) return null
 			const expandedPageBounds = Box.From(pageBounds).expandBy(4)
 			const screenCorners = expandedPageBounds.corners.map((corner) => {
-				return editor.pageToScreen(corner)
+				return editor.pageToViewport(corner)
 			})
 			return Box.FromPoints(screenCorners)
 		},
