@@ -41,7 +41,7 @@ const STATIC_TLDRAWAI_OPTIONS: TldrawAiOptions = {
 
 		// Check if the response contains an error
 		if ('error' in agentChanges) {
-			throw new Error((agentChanges as any).error)
+			throw new Error(agentChanges.error as string)
 		}
 
 		for (const change of agentChanges) {

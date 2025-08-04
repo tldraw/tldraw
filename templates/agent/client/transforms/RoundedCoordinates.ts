@@ -1,5 +1,5 @@
 import { TLAiChange, TldrawAiTransform } from '@tldraw/ai'
-import { Box, TLShapePartial } from 'tldraw'
+import { Box, TLShape, TLShapePartial } from 'tldraw'
 import { TLAgentPrompt } from '../types/TLAgentPrompt'
 
 // This transform does *not* change the offset of the shapes, it only rounds positions to the nearest integer.
@@ -27,6 +27,10 @@ export class RoundedCoordinates extends TldrawAiTransform {
 			const roundedY = Math.floor(shape.y)
 			this.setRoundingDiff(shape.id, 'x', roundedX - shape.x)
 			this.setRoundingDiff(shape.id, 'y', roundedY - shape.y)
+
+			this.roundAndSaveProp(shape, 'w')
+			this.roundAndSaveProp(shape, 'h')
+
 			shape.x = roundedX
 			shape.y = roundedY
 		}
@@ -36,6 +40,8 @@ export class RoundedCoordinates extends TldrawAiTransform {
 			const roundedY = Math.floor(shape.y)
 			shape.x = roundedX
 			shape.y = roundedY
+			this.roundProp(shape, 'w')
+			this.roundProp(shape, 'h')
 		}
 
 		for (const contextItem of contextItems) {
@@ -48,6 +54,8 @@ export class RoundedCoordinates extends TldrawAiTransform {
 					this.setRoundingDiff(shape.id, 'y', roundedY - shape.y)
 					shape.x = roundedX
 					shape.y = roundedY
+					this.roundAndSaveProp(shape, 'w')
+					this.roundAndSaveProp(shape, 'h')
 					break
 				}
 				case 'area': {
@@ -81,6 +89,27 @@ export class RoundedCoordinates extends TldrawAiTransform {
 		}
 
 		return input
+	}
+
+	roundAndSaveProp(shape: TLShape, prop: string) {
+		const diff = this.roundProp(shape, prop)
+		if (diff === null) return
+		this.setRoundingDiff(shape.id, prop, diff)
+	}
+
+	/**
+	 * If a prop exists on a shape, update the shape with the rounded prop.
+	 * @param shape
+	 * @param prop
+	 * @returns The difference between the rounded and unrounded value, or null if the prop does not exist or is not a number
+	 */
+	roundProp(shape: TLShape, prop: string) {
+		if (!(prop in shape.props)) return null
+		const value = (shape.props as any)[prop]
+		if (typeof value !== 'number') return null
+		const roundedValue = Math.floor(value)
+		;(shape.props as any)[prop] = roundedValue
+		return roundedValue - value
 	}
 
 	override transformChange = (change: TLAiChange) => {

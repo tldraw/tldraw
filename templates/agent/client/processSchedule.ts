@@ -1,6 +1,6 @@
 // import { useCallback } from 'react'
 import { TldrawAi } from '@tldraw/ai'
-import { Box, Editor } from 'tldraw'
+import { Box, Editor, structuredClone } from 'tldraw'
 import { TLAgentModelName } from '../worker/models'
 import { $chatHistoryItems } from './atoms/chatHistoryItems'
 import { $pendingContextItems } from './atoms/contextItems'
@@ -39,7 +39,7 @@ export async function processSchedule({
 			modelName,
 			historyItems: $chatHistoryItems.get().filter((item) => item.type !== 'status-thinking'),
 			contextItems: request.contextItems,
-			currentPageShapes: editor.getCurrentPageShapesSorted().map((v) => ({ ...v })),
+			currentPageShapes: editor.getCurrentPageShapesSorted().map((v) => structuredClone(v)),
 			currentUserViewportBounds: editor.getViewportPageBounds(),
 			type: request.type,
 		}
