@@ -17,8 +17,8 @@ describe('XmlResponseParser', () => {
 					</thoughts>
 					<actions>
 						<create-shapes>
-							<geo id="123" x="100" y="100" />
-							<geo id="124" x="300" y="200" />
+							<rectangle id="123" x="100" y="100" />
+							<rectangle id="124" x="300" y="200" />
 						</create-shapes>
 					</actions>
 					<thoughts>
@@ -44,11 +44,11 @@ describe('XmlResponseParser', () => {
 				{ type: 'thought', text: 'I need to create a rectangle' },
 				{
 					type: 'create-shape',
-					shape: { id: '123', type: 'geo', x: 100, y: 100, text: '' },
+					shape: { id: '123', type: 'geo', x: 100, y: 100, text: '', geo: 'rectangle' },
 				},
 				{
 					type: 'create-shape',
-					shape: { id: '124', type: 'geo', x: 300, y: 200, text: '' },
+					shape: { id: '124', type: 'geo', x: 300, y: 200, text: '', geo: 'rectangle' },
 				},
 				{ type: 'thought', text: 'I need to create some text' },
 				{
@@ -70,7 +70,7 @@ describe('XmlResponseParser', () => {
 				<response>
 					<actions>
 						<create-shapes>
-							<geo id="1" x="0" y="0" />
+							<rectangle id="1" x="0" y="0" />
 							<text id="2" x="50" y="50" text="Test" />
 						</create-shapes>
 					</actions>
@@ -82,7 +82,7 @@ describe('XmlResponseParser', () => {
 			expect(result).toEqual([
 				{
 					type: 'create-shape',
-					shape: { id: '1', type: 'geo', x: 0, y: 0, text: '' },
+					shape: { id: '1', type: 'geo', x: 0, y: 0, text: '', geo: 'rectangle' },
 				},
 				{
 					type: 'create-shape',
@@ -175,12 +175,104 @@ describe('XmlResponseParser', () => {
 	})
 
 	describe('shape creation', () => {
+		test('parses individual geometric shape types', () => {
+			const xmlInput = `
+				<response>
+					<actions>
+						<create-shapes>
+							<rectangle id="rect1" x="100" y="100" width="200" height="150" fill="solid" color="blue" text="Rectangle" />
+							<ellipse id="circle1" x="300" y="100" width="100" height="100" fill="semi" color="green" text="Circle" />
+							<star id="star1" x="500" y="100" fill="solid" color="yellow" size="l" text="Star!" />
+							<heart id="heart1" x="700" y="100" fill="pattern" color="red" scale="1.5" />
+							<arrow-right id="arrow1" x="100" y="250" color="blue" dash="dashed" text="Arrow" />
+						</create-shapes>
+					</actions>
+				</response>
+			`
+
+			const result = parser.parseCompletedStream(xmlInput)
+
+			expect(result).toEqual([
+				{
+					type: 'create-shape',
+					shape: {
+						id: 'rect1',
+						type: 'geo',
+						x: 100,
+						y: 100,
+						width: 200,
+						height: 150,
+						fill: 'solid',
+						color: 'blue',
+						text: 'Rectangle',
+						geo: 'rectangle',
+					},
+				},
+				{
+					type: 'create-shape',
+					shape: {
+						id: 'circle1',
+						type: 'geo',
+						x: 300,
+						y: 100,
+						width: 100,
+						height: 100,
+						fill: 'semi',
+						color: 'green',
+						text: 'Circle',
+						geo: 'ellipse',
+					},
+				},
+				{
+					type: 'create-shape',
+					shape: {
+						id: 'star1',
+						type: 'geo',
+						x: 500,
+						y: 100,
+						fill: 'solid',
+						color: 'yellow',
+						size: 'l',
+						text: 'Star!',
+						geo: 'star',
+					},
+				},
+				{
+					type: 'create-shape',
+					shape: {
+						id: 'heart1',
+						type: 'geo',
+						x: 700,
+						y: 100,
+						fill: 'pattern',
+						color: 'red',
+						scale: 1.5,
+						text: '',
+						geo: 'heart',
+					},
+				},
+				{
+					type: 'create-shape',
+					shape: {
+						id: 'arrow1',
+						type: 'geo',
+						x: 100,
+						y: 250,
+						color: 'blue',
+						dash: 'dashed',
+						text: 'Arrow',
+						geo: 'arrow-right',
+					},
+				},
+			])
+		})
+
 		test('parses shapes with all style attributes', () => {
 			const xmlInput = `
 				<response>
 					<actions>
 						<create-shapes>
-							<geo id="styled-geo" x="100" y="100" width="200" height="150" fill="solid" color="red" text="Styled Geo" />
+							<rectangle id="styled-rect" x="100" y="100" width="200" height="150" fill="solid" color="red" text="Styled Rectangle" />
 							<text id="styled-text" x="300" y="200" text="Colored Text" color="blue" />
 						</create-shapes>
 					</actions>
@@ -193,7 +285,7 @@ describe('XmlResponseParser', () => {
 				{
 					type: 'create-shape',
 					shape: {
-						id: 'styled-geo',
+						id: 'styled-rect',
 						type: 'geo',
 						x: 100,
 						y: 100,
@@ -201,7 +293,8 @@ describe('XmlResponseParser', () => {
 						height: 150,
 						fill: 'solid',
 						color: 'red',
-						text: 'Styled Geo',
+						text: 'Styled Rectangle',
+						geo: 'rectangle',
 					},
 				},
 				{
@@ -218,13 +311,12 @@ describe('XmlResponseParser', () => {
 			])
 		})
 
-		test('skips invalid shapes without required attributes', () => {
+		test('parses note shapes with all attributes', () => {
 			const xmlInput = `
 				<response>
 					<actions>
 						<create-shapes>
-							<geo id="valid" x="100" y="100" />
-							<geo x="100" y="100" />
+							<note id="note1" x="100" y="100" text="Important note!" color="yellow" labelColor="black" size="m" font="sans" fontSizeAdjustment="2" align="start" verticalAlign="top" scale="1.2" growY="5" url="https://example.com" />
 						</create-shapes>
 					</actions>
 				</response>
@@ -235,7 +327,230 @@ describe('XmlResponseParser', () => {
 			expect(result).toEqual([
 				{
 					type: 'create-shape',
-					shape: { id: 'valid', type: 'geo', x: 100, y: 100, text: '' },
+					shape: {
+						id: 'note1',
+						type: 'note',
+						x: 100,
+						y: 100,
+						text: 'Important note!',
+						color: 'yellow',
+						labelColor: 'black',
+						size: 'm',
+						font: 'sans',
+						fontSizeAdjustment: 2,
+						align: 'start',
+						verticalAlign: 'top',
+						scale: 1.2,
+						growY: 5,
+						url: 'https://example.com',
+					},
+				},
+			])
+		})
+
+		test('parses frame shapes with all attributes', () => {
+			const xmlInput = `
+				<response>
+					<actions>
+						<create-shapes>
+							<frame id="frame1" x="50" y="50" width="400" height="300" name="Main Content" color="blue" />
+						</create-shapes>
+					</actions>
+				</response>
+			`
+
+			const result = parser.parseCompletedStream(xmlInput)
+
+			expect(result).toEqual([
+				{
+					type: 'create-shape',
+					shape: {
+						id: 'frame1',
+						type: 'frame',
+						x: 50,
+						y: 50,
+						width: 400,
+						height: 300,
+						name: 'Main Content',
+						color: 'blue',
+					},
+				},
+			])
+		})
+
+		test('parses line shapes with start/end points', () => {
+			const xmlInput = `
+				<response>
+					<actions>
+						<create-shapes>
+							<line id="line1" x="100" y="100" startX="0" startY="0" endX="150" endY="75" color="blue" dash="dashed" size="m" spline="cubic" scale="1.5" />
+						</create-shapes>
+					</actions>
+				</response>
+			`
+
+			const result = parser.parseCompletedStream(xmlInput)
+
+			expect(result).toEqual([
+				{
+					type: 'create-shape',
+					shape: {
+						id: 'line1',
+						type: 'line',
+						x: 100,
+						y: 100,
+						points: [
+							{ id: 'line1_start', x: 0, y: 0 },
+							{ id: 'line1_end', x: 150, y: 75 },
+						],
+						color: 'blue',
+						dash: 'dashed',
+						size: 'm',
+						spline: 'cubic',
+						scale: 1.5,
+					},
+				},
+			])
+		})
+
+		test('parses highlight shapes with all attributes', () => {
+			const xmlInput = `
+				<response>
+					<actions>
+						<create-shapes>
+							<highlight id="highlight1" x="100" y="100" color="yellow" size="l" scale="1.2" isComplete="true" isPen="false" />
+						</create-shapes>
+					</actions>
+				</response>
+			`
+
+			const result = parser.parseCompletedStream(xmlInput)
+
+			expect(result).toEqual([
+				{
+					type: 'create-shape',
+					shape: {
+						id: 'highlight1',
+						type: 'highlight',
+						x: 100,
+						y: 100,
+						points: [],
+						color: 'yellow',
+						size: 'l',
+						scale: 1.2,
+						isComplete: true,
+						isPen: false,
+					},
+				},
+			])
+		})
+
+		test('parses mixed new shape types in single action', () => {
+			const xmlInput = `
+				<response>
+					<actions>
+						<create-shapes>
+							<note id="note1" x="50" y="50" text="To-do item" color="orange" />
+							<frame id="frame1" x="200" y="50" width="300" height="200" name="Container" />
+							<line id="line1" x="100" y="300" endX="100" endY="50" color="green" />
+							<highlight id="highlight1" x="250" y="100" color="yellow" />
+						</create-shapes>
+					</actions>
+				</response>
+			`
+
+			const result = parser.parseCompletedStream(xmlInput)
+
+			expect(result).toEqual([
+				{
+					type: 'create-shape',
+					shape: {
+						id: 'note1',
+						type: 'note',
+						x: 50,
+						y: 50,
+						text: 'To-do item',
+						color: 'orange',
+					},
+				},
+				{
+					type: 'create-shape',
+					shape: {
+						id: 'frame1',
+						type: 'frame',
+						x: 200,
+						y: 50,
+						width: 300,
+						height: 200,
+						name: 'Container',
+					},
+				},
+				{
+					type: 'create-shape',
+					shape: {
+						id: 'line1',
+						type: 'line',
+						x: 100,
+						y: 300,
+						points: [
+							{ id: 'line1_start', x: 0, y: 0 },
+							{ id: 'line1_end', x: 100, y: 50 },
+						],
+						color: 'green',
+					},
+				},
+				{
+					type: 'create-shape',
+					shape: {
+						id: 'highlight1',
+						type: 'highlight',
+						x: 250,
+						y: 100,
+						points: [],
+						color: 'yellow',
+					},
+				},
+			])
+		})
+
+		test('skips invalid shapes without required attributes', () => {
+			const xmlInput = `
+				<response>
+					<actions>
+						<create-shapes>
+							<rectangle id="valid" x="100" y="100" />
+							<rectangle x="100" y="100" />
+							<note id="valid-note" x="200" y="200" />
+							<note x="200" y="200" />
+							<frame id="valid-frame" x="300" y="300" />
+							<frame x="300" y="300" />
+						</create-shapes>
+					</actions>
+				</response>
+			`
+
+			const result = parser.parseCompletedStream(xmlInput)
+
+			expect(result).toEqual([
+				{
+					type: 'create-shape',
+					shape: { id: 'valid', type: 'geo', x: 100, y: 100, text: '', geo: 'rectangle' },
+				},
+				{
+					type: 'create-shape',
+					shape: { id: 'valid-note', type: 'note', x: 200, y: 200, text: '' },
+				},
+				{
+					type: 'create-shape',
+					shape: {
+						id: 'valid-frame',
+						type: 'frame',
+						x: 300,
+						y: 300,
+						width: 100,
+						height: 100,
+						name: '',
+					},
 				},
 			])
 		})
@@ -393,7 +708,9 @@ describe('XmlResponseParser', () => {
 				<response>
 					<actions>
 						<create-shapes>
-							<geo id="new1" x="50" y="50" />
+							<rectangle id="new1" x="50" y="50" />
+							<note id="new2" x="100" y="50" text="Note" />
+							<frame id="new3" x="150" y="50" width="200" height="100" />
 						</create-shapes>
 						<move-shape shape-id="existing1" x="150" y="150" />
 						<delete-shapes shape-ids="old1" />
@@ -406,7 +723,15 @@ describe('XmlResponseParser', () => {
 			expect(result).toEqual([
 				{
 					type: 'create-shape',
-					shape: { id: 'new1', type: 'geo', x: 50, y: 50, text: '' },
+					shape: { id: 'new1', type: 'geo', x: 50, y: 50, text: '', geo: 'rectangle' },
+				},
+				{
+					type: 'create-shape',
+					shape: { id: 'new2', type: 'note', x: 100, y: 50, text: 'Note' },
+				},
+				{
+					type: 'create-shape',
+					shape: { id: 'new3', type: 'frame', x: 150, y: 50, width: 200, height: 100, name: '' },
 				},
 				{
 					type: 'move-shape',
@@ -426,7 +751,7 @@ describe('XmlResponseParser', () => {
 				<response>
 					<actions>
 						<create-shapes>
-							<geo id="new1" x="50" y="50" />
+							<rectangle id="new1" x="50" y="50" />
 						</create-shapes>
 						<move-shape shape-id="existing1" x="150" y="150" />
 						<label-shape shape-id="existing1" text="Moved Shape" />
@@ -440,7 +765,7 @@ describe('XmlResponseParser', () => {
 			expect(result).toEqual([
 				{
 					type: 'create-shape',
-					shape: { id: 'new1', type: 'geo', x: 50, y: 50, text: '' },
+					shape: { id: 'new1', type: 'geo', x: 50, y: 50, text: '', geo: 'rectangle' },
 				},
 				{
 					type: 'move-shape',
@@ -620,10 +945,11 @@ describe('XmlResponseParser', () => {
 					</thoughts>
 					<actions>
 						<create-shapes>
-							<geo id="rect1" x="100" y="100" />
-							<geo id="rect2" x="200" y="150" />
+							<rectangle id="rect1" x="100" y="100" />
+							<rectangle id="rect2" x="200" y="150" />
+							<note id="note1" x="300" y="125" text="Aligned note" />
 						</create-shapes>
-						<align-shapes shape-ids="rect1,rect2" alignment="top" />
+						<align-shapes shape-ids="rect1,rect2,note1" alignment="top" />
 					</actions>	
 				</response>
 			`
@@ -634,15 +960,19 @@ describe('XmlResponseParser', () => {
 				{ type: 'thought', text: 'Let me create and align some shapes' },
 				{
 					type: 'create-shape',
-					shape: { id: 'rect1', type: 'geo', x: 100, y: 100, text: '' },
+					shape: { id: 'rect1', type: 'geo', x: 100, y: 100, text: '', geo: 'rectangle' },
 				},
 				{
 					type: 'create-shape',
-					shape: { id: 'rect2', type: 'geo', x: 200, y: 150, text: '' },
+					shape: { id: 'rect2', type: 'geo', x: 200, y: 150, text: '', geo: 'rectangle' },
+				},
+				{
+					type: 'create-shape',
+					shape: { id: 'note1', type: 'note', x: 300, y: 125, text: 'Aligned note' },
 				},
 				{
 					type: 'align-shapes',
-					shapeIds: ['rect1', 'rect2'],
+					shapeIds: ['rect1', 'rect2', 'note1'],
 					alignment: 'top',
 				},
 			])
@@ -716,11 +1046,11 @@ describe('XmlResponseParser', () => {
 
 			// Chunk 3: First complete shape
 			// After chunk3: first shape is complete, should return individual create-shape action
-			const chunk3 = '<geo id="123" x="100" y="100" />'
+			const chunk3 = '<rectangle id="123" x="100" y="100" />'
 			expect(parser.parseNewChunk(chunk3)).toEqual([
 				{
 					type: 'create-shape',
-					shape: { id: '123', type: 'geo', x: 100, y: 100, text: '' },
+					shape: { id: '123', type: 'geo', x: 100, y: 100, text: '', geo: 'rectangle' },
 				},
 			])
 
@@ -729,19 +1059,19 @@ describe('XmlResponseParser', () => {
 				{ type: 'thought', text: 'I need to create two rectangles' },
 				{
 					type: 'create-shape',
-					shape: { id: '123', type: 'geo', x: 100, y: 100, text: '' },
+					shape: { id: '123', type: 'geo', x: 100, y: 100, text: '', geo: 'rectangle' },
 				},
 			])
 
 			// Chunk 4: Second shape starts but incomplete
 			// After chunk4: second shape incomplete, should return nothing
-			const chunk4 = '<geo id="124" x="300" y="200" wid'
+			const chunk4 = '<rectangle id="124" x="300" y="200" wid'
 			expect(parser.parseNewChunk(chunk4)).toEqual([])
 			expect(parser.getCompletedItems()).toEqual([
 				{ type: 'thought', text: 'I need to create two rectangles' },
 				{
 					type: 'create-shape',
-					shape: { id: '123', type: 'geo', x: 100, y: 100, text: '' },
+					shape: { id: '123', type: 'geo', x: 100, y: 100, text: '', geo: 'rectangle' },
 				},
 			])
 
@@ -751,18 +1081,36 @@ describe('XmlResponseParser', () => {
 			expect(parser.parseNewChunk(chunk5)).toEqual([
 				{
 					type: 'create-shape',
-					shape: { id: '124', type: 'geo', x: 300, y: 200, text: '', width: 150, height: 100 },
+					shape: {
+						id: '124',
+						type: 'geo',
+						x: 300,
+						y: 200,
+						text: '',
+						width: 150,
+						height: 100,
+						geo: 'rectangle',
+					},
 				},
 			])
 			expect(parser.getCompletedItems()).toEqual([
 				{ type: 'thought', text: 'I need to create two rectangles' },
 				{
 					type: 'create-shape',
-					shape: { id: '123', type: 'geo', x: 100, y: 100, text: '' },
+					shape: { id: '123', type: 'geo', x: 100, y: 100, text: '', geo: 'rectangle' },
 				},
 				{
 					type: 'create-shape',
-					shape: { id: '124', type: 'geo', x: 300, y: 200, text: '', width: 150, height: 100 },
+					shape: {
+						id: '124',
+						type: 'geo',
+						x: 300,
+						y: 200,
+						text: '',
+						width: 150,
+						height: 100,
+						geo: 'rectangle',
+					},
 				},
 			])
 		})
@@ -881,6 +1229,145 @@ describe('XmlResponseParser', () => {
 				},
 			])
 		})
+
+		test('parseStream should handle new shape types incrementally', () => {
+			// Ensure fresh parser state
+			parser.reset()
+
+			// Chunk 1: Opening response with thought
+			const chunk1 =
+				'<response><thoughts><thought>Creating new shapes</thought></thoughts><actions><create-shapes>'
+			expect(parser.parseNewChunk(chunk1)).toEqual([
+				{ type: 'thought', text: 'Creating new shapes' },
+			])
+
+			// Chunk 2: Complete note shape
+			const chunk2 = '<note id="note1" x="100" y="100" text="Test note" color="yellow" />'
+			expect(parser.parseNewChunk(chunk2)).toEqual([
+				{
+					type: 'create-shape',
+					shape: {
+						id: 'note1',
+						type: 'note',
+						x: 100,
+						y: 100,
+						text: 'Test note',
+						color: 'yellow',
+					},
+				},
+			])
+
+			// Chunk 3: Complete frame shape
+			const chunk3 =
+				'<frame id="frame1" x="200" y="200" width="300" height="200" name="Container" />'
+			expect(parser.parseNewChunk(chunk3)).toEqual([
+				{
+					type: 'create-shape',
+					shape: {
+						id: 'frame1',
+						type: 'frame',
+						x: 200,
+						y: 200,
+						width: 300,
+						height: 200,
+						name: 'Container',
+					},
+				},
+			])
+
+			// Chunk 4: Incomplete line shape
+			const chunk4 = '<line id="line1" x="50" y="50" startX="0" startY="0" end'
+			expect(parser.parseNewChunk(chunk4)).toEqual([])
+
+			// Chunk 5: Complete the line shape
+			const chunk5 = 'X="100" endY="50" color="blue" />'
+			expect(parser.parseNewChunk(chunk5)).toEqual([
+				{
+					type: 'create-shape',
+					shape: {
+						id: 'line1',
+						type: 'line',
+						x: 50,
+						y: 50,
+						points: [
+							{ id: 'line1_start', x: 0, y: 0 },
+							{ id: 'line1_end', x: 100, y: 50 },
+						],
+						color: 'blue',
+					},
+				},
+			])
+
+			// Chunk 6: Complete highlight and close
+			const chunk6 =
+				'<highlight id="highlight1" x="150" y="150" color="yellow" /></create-shapes></actions></response>'
+			expect(parser.parseNewChunk(chunk6)).toEqual([
+				{
+					type: 'create-shape',
+					shape: {
+						id: 'highlight1',
+						type: 'highlight',
+						x: 150,
+						y: 150,
+						points: [],
+						color: 'yellow',
+					},
+				},
+			])
+
+			// Verify all completed items
+			expect(parser.getCompletedItems()).toEqual([
+				{ type: 'thought', text: 'Creating new shapes' },
+				{
+					type: 'create-shape',
+					shape: {
+						id: 'note1',
+						type: 'note',
+						x: 100,
+						y: 100,
+						text: 'Test note',
+						color: 'yellow',
+					},
+				},
+				{
+					type: 'create-shape',
+					shape: {
+						id: 'frame1',
+						type: 'frame',
+						x: 200,
+						y: 200,
+						width: 300,
+						height: 200,
+						name: 'Container',
+					},
+				},
+				{
+					type: 'create-shape',
+					shape: {
+						id: 'line1',
+						type: 'line',
+						x: 50,
+						y: 50,
+						points: [
+							{ id: 'line1_start', x: 0, y: 0 },
+							{ id: 'line1_end', x: 100, y: 50 },
+						],
+						color: 'blue',
+					},
+				},
+				{
+					type: 'create-shape',
+					shape: {
+						id: 'highlight1',
+						type: 'highlight',
+						x: 150,
+						y: 150,
+						points: [],
+						color: 'yellow',
+					},
+				},
+			])
+		})
 	})
 
 	describe('error handling and edge cases', () => {
@@ -902,6 +1389,106 @@ describe('XmlResponseParser', () => {
 			const xmlWithoutResponse = '<root><thoughts><thought>test</thought></thoughts></root>'
 
 			expect(parser.parseCompletedStream(xmlWithoutResponse)).toEqual([])
+		})
+
+		test('handles line shape with default points when start/end not provided', () => {
+			const xmlInput = `
+				<response>
+					<actions>
+						<create-shapes>
+							<line id="line1" x="100" y="100" color="blue" />
+						</create-shapes>
+					</actions>
+				</response>
+			`
+
+			const result = parser.parseCompletedStream(xmlInput)
+
+			expect(result).toEqual([
+				{
+					type: 'create-shape',
+					shape: {
+						id: 'line1',
+						type: 'line',
+						x: 100,
+						y: 100,
+						points: [
+							{ id: 'line1_start', x: 0, y: 0 },
+							{ id: 'line1_end', x: 100, y: 0 },
+						],
+						color: 'blue',
+					},
+				},
+			])
+		})
+
+		test('handles frame shape with default dimensions when width/height not provided', () => {
+			const xmlInput = `
+				<response>
+					<actions>
+						<create-shapes>
+							<frame id="frame1" x="100" y="100" name="Default Frame" />
+						</create-shapes>
+					</actions>
+				</response>
+			`
+
+			const result = parser.parseCompletedStream(xmlInput)
+
+			expect(result).toEqual([
+				{
+					type: 'create-shape',
+					shape: {
+						id: 'frame1',
+						type: 'frame',
+						x: 100,
+						y: 100,
+						width: 100,
+						height: 100,
+						name: 'Default Frame',
+					},
+				},
+			])
+		})
+
+		test('handles highlight shape boolean parsing for isComplete and isPen', () => {
+			const xmlInput = `
+				<response>
+					<actions>
+						<create-shapes>
+							<highlight id="highlight1" x="100" y="100" isComplete="false" isPen="true" />
+							<highlight id="highlight2" x="200" y="200" />
+						</create-shapes>
+					</actions>
+				</response>
+			`
+
+			const result = parser.parseCompletedStream(xmlInput)
+
+			expect(result).toEqual([
+				{
+					type: 'create-shape',
+					shape: {
+						id: 'highlight1',
+						type: 'highlight',
+						x: 100,
+						y: 100,
+						points: [],
+						isComplete: false,
+						isPen: true,
+					},
+				},
+				{
+					type: 'create-shape',
+					shape: {
+						id: 'highlight2',
+						type: 'highlight',
+						x: 200,
+						y: 200,
+						points: [],
+					},
+				},
+			])
 		})
 
 		test.todo('parseStream handles incomplete XML ending mid-shape')

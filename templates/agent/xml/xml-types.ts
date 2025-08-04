@@ -1,3 +1,14 @@
+import {
+	TLDefaultColorStyle,
+	TLDefaultDashStyle,
+	TLDefaultFillStyle,
+	TLDefaultFontStyle,
+	TLDefaultHorizontalAlignStyle,
+	TLDefaultSizeStyle,
+	TLDefaultVerticalAlignStyle,
+	TLGeoShapeGeoStyle,
+	TLLineShapeSplineStyle,
+} from '@tldraw/tlschema'
 import { TLShape } from 'tldraw'
 
 // Thoughts
@@ -24,20 +35,16 @@ export interface IXmlStatementActionAttributes {
 
 // Shapes
 
-export type IColor =
-	| 'black'
-	| 'grey'
-	| 'light-violet'
-	| 'violet'
-	| 'blue'
-	| 'light-blue'
-	| 'yellow'
-	| 'orange'
-	| 'green'
-	| 'light-green'
-	| 'light-red'
-	| 'red'
-	| 'white'
+// Use types from tldraw schema instead of defining our own
+export type IColor = TLDefaultColorStyle
+export type IGeoType = TLGeoShapeGeoStyle
+export type ISize = TLDefaultSizeStyle
+export type IDashStyle = TLDefaultDashStyle
+export type IFillStyle = TLDefaultFillStyle
+export type IFontStyle = TLDefaultFontStyle
+export type IAlignStyle = TLDefaultHorizontalAlignStyle
+export type IVerticalAlignStyle = TLDefaultVerticalAlignStyle
+export type ISplineStyle = TLLineShapeSplineStyle
 
 export type IShapeId = string
 
@@ -56,20 +63,76 @@ export interface IGeoShape extends IBaseShape {
 	y: number
 	width?: number
 	height?: number
-	fill?: string
+	// Geometry properties
+	geo?: IGeoType
+	// Styling properties
+	fill?: IFillStyle
 	color?: IColor
+	labelColor?: IColor
+	dash?: IDashStyle
+	size?: ISize
+	// Text properties
 	text?: string
+	font?: IFontStyle
+	align?: IAlignStyle
+	verticalAlign?: IVerticalAlignStyle
+	// Transform properties
+	scale?: number
+	growY?: number
+	// URL property
+	url?: string
 }
 
-export interface IXmlGeoShapeAttributes {
+// Base interface for all geo shape XML attributes
+interface IXmlBaseGeoShapeAttributes {
 	id: string
 	x: string
 	y: string
 	width?: string
 	height?: string
-	fill?: string
-	text?: string
+	// Styling properties
+	fill?: IFillStyle
 	color?: IColor
+	labelColor?: IColor
+	dash?: IDashStyle
+	size?: ISize
+	// Text properties
+	text?: string
+	font?: IFontStyle
+	align?: IAlignStyle
+	verticalAlign?: IVerticalAlignStyle
+	// Transform properties
+	scale?: string
+	growY?: string
+	// URL property
+	url?: string
+}
+
+// Individual geo type interfaces (type aliases to avoid empty interface linting errors)
+export type IXmlRectangleShapeAttributes = IXmlBaseGeoShapeAttributes
+export type IXmlEllipseShapeAttributes = IXmlBaseGeoShapeAttributes
+export type IXmlTriangleShapeAttributes = IXmlBaseGeoShapeAttributes
+export type IXmlDiamondShapeAttributes = IXmlBaseGeoShapeAttributes
+export type IXmlPentagonShapeAttributes = IXmlBaseGeoShapeAttributes
+export type IXmlHexagonShapeAttributes = IXmlBaseGeoShapeAttributes
+export type IXmlOctagonShapeAttributes = IXmlBaseGeoShapeAttributes
+export type IXmlStarShapeAttributes = IXmlBaseGeoShapeAttributes
+export type IXmlRhombusShapeAttributes = IXmlBaseGeoShapeAttributes
+export type IXmlRhombus2ShapeAttributes = IXmlBaseGeoShapeAttributes
+export type IXmlOvalShapeAttributes = IXmlBaseGeoShapeAttributes
+export type IXmlTrapezoidShapeAttributes = IXmlBaseGeoShapeAttributes
+export type IXmlArrowRightShapeAttributes = IXmlBaseGeoShapeAttributes
+export type IXmlArrowLeftShapeAttributes = IXmlBaseGeoShapeAttributes
+export type IXmlArrowUpShapeAttributes = IXmlBaseGeoShapeAttributes
+export type IXmlArrowDownShapeAttributes = IXmlBaseGeoShapeAttributes
+export type IXmlXBoxShapeAttributes = IXmlBaseGeoShapeAttributes
+export type IXmlCheckBoxShapeAttributes = IXmlBaseGeoShapeAttributes
+export type IXmlHeartShapeAttributes = IXmlBaseGeoShapeAttributes
+export type IXmlCloudShapeAttributes = IXmlBaseGeoShapeAttributes
+
+// Legacy geo interface for backward compatibility
+export interface IXmlGeoShapeAttributes extends IXmlBaseGeoShapeAttributes {
+	geo?: IGeoType
 }
 
 // Text shape
@@ -89,7 +152,152 @@ export interface IXmlTextShapeAttributes {
 	color?: IColor
 }
 
-export type IShape = IGeoShape | ITextShape
+// Note shape
+
+export interface INoteShape extends IBaseShape {
+	id: IShapeId
+	type: 'note'
+	x: number
+	y: number
+	// Styling properties
+	color?: IColor
+	labelColor?: IColor
+	size?: ISize
+	font?: IFontStyle
+	fontSizeAdjustment?: number
+	align?: IAlignStyle
+	verticalAlign?: IVerticalAlignStyle
+	// Transform properties
+	growY?: number
+	scale?: number
+	// Content properties
+	text?: string
+	url?: string
+}
+
+export interface IXmlNoteShapeAttributes {
+	id: string
+	x: string
+	y: string
+	// Styling properties
+	color?: IColor
+	labelColor?: IColor
+	size?: ISize
+	font?: IFontStyle
+	fontSizeAdjustment?: string
+	align?: IAlignStyle
+	verticalAlign?: IVerticalAlignStyle
+	// Transform properties
+	growY?: string
+	scale?: string
+	// Content properties
+	text?: string
+	url?: string
+}
+
+// Frame shape
+
+export interface IFrameShape extends IBaseShape {
+	id: IShapeId
+	type: 'frame'
+	x: number
+	y: number
+	width?: number
+	height?: number
+	name?: string
+	color?: IColor
+}
+
+export interface IXmlFrameShapeAttributes {
+	id: string
+	x: string
+	y: string
+	width?: string
+	height?: string
+	name?: string
+	color?: IColor
+}
+
+// Line shape
+
+export interface ILinePoint {
+	id: string
+	x: number
+	y: number
+}
+
+export interface ILineShape extends IBaseShape {
+	id: IShapeId
+	type: 'line'
+	x: number
+	y: number
+	// Styling properties
+	color?: IColor
+	dash?: IDashStyle
+	size?: ISize
+	spline?: ISplineStyle
+	scale?: number
+	// Points defining the line
+	points?: ILinePoint[]
+}
+
+export interface IXmlLineShapeAttributes {
+	id: string
+	x: string
+	y: string
+	// Styling properties
+	color?: IColor
+	dash?: IDashStyle
+	size?: ISize
+	spline?: ISplineStyle
+	scale?: string
+	// Points as simplified attributes (start and end)
+	startX?: string
+	startY?: string
+	endX?: string
+	endY?: string
+}
+
+// Highlight shape
+
+export interface IHighlightShape extends IBaseShape {
+	id: IShapeId
+	type: 'highlight'
+	x: number
+	y: number
+	// Styling properties
+	color?: IColor
+	size?: ISize
+	scale?: number
+	// Drawing properties
+	isComplete?: boolean
+	isPen?: boolean
+	// Points defining the highlight path (simplified)
+	points?: ILinePoint[]
+}
+
+export interface IXmlHighlightShapeAttributes {
+	id: string
+	x: string
+	y: string
+	// Styling properties
+	color?: IColor
+	size?: ISize
+	scale?: string
+	// Drawing properties
+	isComplete?: string
+	isPen?: string
+	// Simplified path definition
+	path?: string
+}
+
+export type IShape =
+	| IGeoShape
+	| ITextShape
+	| INoteShape
+	| IFrameShape
+	| ILineShape
+	| IHighlightShape
 
 // Actions
 

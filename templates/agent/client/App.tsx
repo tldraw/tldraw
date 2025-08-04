@@ -1,15 +1,14 @@
 import { useEffect, useState } from 'react'
 import {
-	compact,
 	Editor,
 	ErrorBoundary,
-	FileHelpers,
 	TLComponents,
 	Tldraw,
 	TldrawUiToastsProvider,
 	TLUiOverrides,
 } from 'tldraw'
 import { handleResponseItem } from '../xml/handleResponseItem'
+import { PromptHelper } from '../xml/PromptHelper'
 import { IPromptInfo } from '../xml/xml-types'
 import { XmlResponseParser } from '../xml/XmlResponseParser'
 import { ChatPanel } from './components/ChatPanel'
@@ -22,45 +21,14 @@ import { TargetShapeTool } from './tools/TargetShapeTool'
 
 overrideFillStyleWithLinedFillStyle()
 
-const PLACEHOLDER_PROMPT = 'Draw a cat using rectangles.'
+const PLACEHOLDER_PROMPT = 'Draw a cat.'
 
 async function streamXml(message = PLACEHOLDER_PROMPT) {
 	console.log('streaming xml...')
 	const editor = (window as any).editor as Editor
 
-	const vpb = editor.getViewportPageBounds()
-	const viewport: IPromptInfo['viewport'] = {
-		id: 'viewport',
-		minX: vpb.minX,
-		minY: vpb.minY,
-		maxX: vpb.maxX,
-		maxY: vpb.maxY,
-	}
-	const contents: IPromptInfo['contents'] = compact(
-		editor.getCurrentPageShapesSorted().map((s, i) => {
-			const pageBounds = editor.getShapePageBounds(s.id)
-			if (!pageBounds) return null
-			return {
-				id: s.id.split(':')[1],
-				type: s.type,
-				index: i,
-				minX: pageBounds.minX,
-				minY: pageBounds.minY,
-				maxX: pageBounds.maxX,
-				maxY: pageBounds.maxY,
-			}
-		})
-	)
-
-	const result = await editor.toImage(editor.getCurrentPageRenderingShapesSorted().map((s) => s.id))
-	const image = await FileHelpers.blobToDataUrl(result.blob)
-
-	const prompt: IPromptInfo = {
-		image,
-		viewport,
-		contents,
-		prompt: message,
-	}
+	const promptHelper = new PromptHelper(editor, message)
+	const prompt: IPromptInfo = await promptHelper.getPromptInfo()
 
 	const res = await fetch('/stream-xml', {
 		method: 'POST',
@@ -127,39 +95,8 @@ async function generateXml(message = PLACEHOLDER_PROMPT) {
 	console.log('generating xml...')
 	const editor = (window as any).editor as Editor
 
-	const vpb = editor.getViewportPageBounds()
-	const viewport: IPromptInfo['viewport'] = {
-		id: 'viewport',
-		minX: vpb.minX,
-		minY: vpb.minY,
-		maxX: vpb.maxX,
-		maxY: vpb.maxY,
-	}
-	const contents: IPromptInfo['contents'] = compact(
-		editor.getCurrentPageShapesSorted().map((s, i) => {
-			const pageBounds = editor.getShapePageBounds(s.id)
-			if (!pageBounds) return null
-			return {
-				id: s.id.split(':')[1],
-				type: s.type,
-				index: i,
-				minX: pageBounds.minX,
-				minY: pageBounds.minY,
-				maxX: pageBounds.maxX,
-				maxY: pageBounds.maxY,
-			}
-		})
-	)
-
-	const result = await editor.toImage(editor.getCurrentPageRenderingShapesSorted().map((s) => s.id))
-	const image = await FileHelpers.blobToDataUrl(result.blob)
-
-	const prompt: IPromptInfo = {
-		image,
-		viewport,
-		contents,
-		prompt: message,
-	}
+	const promptHelper = new PromptHelper(editor, message)
+	const prompt: IPromptInfo = await promptHelper.getPromptInfo()
 
 	const res = await fetch('/generate-xml', {
 		method: 'POST',
@@ -175,9 +112,9 @@ async function generateXml(message = PLACEHOLDER_PROMPT) {
 	}
 
 	const text = JSON.parse(await res.text())
+	console.log(text)
 	const parser = new XmlResponseParser()
 	const items = parser.parseCompletedStream(text)
-	console.log(text)
 	console.log(items)
 
 	editor.markHistoryStoppingPoint()

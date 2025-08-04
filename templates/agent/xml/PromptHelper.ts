@@ -29,12 +29,16 @@ export class PromptHelper {
 			return vpb.includes(bounds)
 		})
 
-		const imageResult = await editor.toImage(shapesIdsInViewport, {
-			background: true,
-			darkMode: false,
-			quality: 0.8,
-		})
-		const imageSrc = await FileHelpers.blobToDataUrl(imageResult.blob)
+		let imageSrc = ''
+
+		if (shapesIdsInViewport.length > 0) {
+			const imageResult = await editor.toImage(shapesIdsInViewport, {
+				background: true,
+				darkMode: false,
+				quality: 0.8,
+			})
+			imageSrc = await FileHelpers.blobToDataUrl(imageResult.blob)
+		}
 
 		return {
 			image: imageSrc,

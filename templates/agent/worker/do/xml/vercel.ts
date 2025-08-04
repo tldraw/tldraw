@@ -1,14 +1,13 @@
 import { GoogleGenerativeAIProviderOptions } from '@ai-sdk/google'
 import { generateText, LanguageModel, streamText } from 'ai'
+import systemPromptText from '../../../xml/xml-system-prompt.md?raw'
 import { IPromptInfo } from '../../../xml/xml-types'
 
 export async function generateXmlVercel(model: LanguageModel, info: IPromptInfo): Promise<string> {
 	const geminiThinkingBudget = model.modelId === 'gemini-2.5-pro' ? 128 : 0
 
-	// get the prompt from `xml-system-prompt.md` gist
-	const systemPrompt = await fetch(
-		'https://gist.githubusercontent.com/steveruizok/bd8726cafae16ed73d1a72265de8d9c9/raw/33d16ace3f584829f726c5a8b63f5144de0eacfd/xml-system-prompt.md'
-	).then((res) => res.text())
+	// use the local xml-system-prompt.md file
+	const systemPrompt = systemPromptText
 
 	const xmlPrompt = [
 		`<canvas-context>`,
@@ -33,16 +32,23 @@ export async function generateXmlVercel(model: LanguageModel, info: IPromptInfo)
 			messages: [
 				{
 					role: 'user',
-					content: [
-						{
-							type: 'image',
-							image: info.image,
-						},
-						{
-							type: 'text',
-							text: xmlPrompt,
-						},
-					],
+					content: info.image
+						? [
+								{
+									type: 'image',
+									image: info.image,
+								},
+								{
+									type: 'text',
+									text: xmlPrompt,
+								},
+							]
+						: [
+								{
+									type: 'text',
+									text: xmlPrompt,
+								},
+							],
 				},
 			],
 			providerOptions: {
@@ -67,10 +73,8 @@ export async function* streamXmlVercel(
 ): AsyncGenerator<string, void, unknown> {
 	const geminiThinkingBudget = model.modelId === 'gemini-2.5-pro' ? 128 : 0
 
-	// get the prompt from `xml-system-prompt.md` gist
-	const systemPrompt = await fetch(
-		'https://gist.githubusercontent.com/steveruizok/bd8726cafae16ed73d1a72265de8d9c9/raw/33d16ace3f584829f726c5a8b63f5144de0eacfd/xml-system-prompt.md'
-	).then((res) => res.text())
+	// use the local xml-system-prompt.md file
+	const systemPrompt = systemPromptText
 
 	const xmlPrompt = [
 		`<canvas-context>`,
@@ -89,22 +93,29 @@ export async function* streamXmlVercel(
 	].join('\n')
 
 	try {
-		const result = await streamText({
+		const result = streamText({
 			model,
 			system: systemPrompt,
 			messages: [
 				{
 					role: 'user',
-					content: [
-						{
-							type: 'image',
-							image: info.image,
-						},
-						{
-							type: 'text',
-							text: xmlPrompt,
-						},
-					],
+					content: info.image
+						? [
+								{
+									type: 'image',
+									image: info.image,
+								},
+								{
+									type: 'text',
+									text: xmlPrompt,
+								},
+							]
+						: [
+								{
+									type: 'text',
+									text: xmlPrompt,
+								},
+							],
 				},
 			],
 			providerOptions: {

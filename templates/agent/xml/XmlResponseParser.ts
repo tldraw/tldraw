@@ -1,18 +1,48 @@
 import {
+	IFrameShape,
+	IGeoShape,
+	IHighlightShape,
+	ILineShape,
+	INoteShape,
 	IResponse,
 	IShape,
+	ITextShape,
 	IXmlAlignShapesActionAttributes,
+	IXmlArrowDownShapeAttributes,
+	IXmlArrowLeftShapeAttributes,
+	IXmlArrowRightShapeAttributes,
+	IXmlArrowUpShapeAttributes,
 	IXMLAttributes,
+	IXmlCheckBoxShapeAttributes,
+	IXmlCloudShapeAttributes,
 	IXmlDeleteShapesActionAttributes,
+	IXmlDiamondShapeAttributes,
 	IXmlDistributeShapesActionAttributes,
-	IXmlGeoShapeAttributes,
+	IXmlEllipseShapeAttributes,
+	IXmlFrameShapeAttributes,
+	IXmlHeartShapeAttributes,
+	IXmlHexagonShapeAttributes,
+	IXmlHighlightShapeAttributes,
 	IXmlLabelShapeActionAttributes,
+	IXmlLineShapeAttributes,
 	IXmlMoveShapeActionAttributes,
+	IXmlNoteShapeAttributes,
+	IXmlOctagonShapeAttributes,
+	IXmlOvalShapeAttributes,
+	IXmlPentagonShapeAttributes,
 	IXmlPlaceShapeActionAttributes,
+	// Individual geo type interfaces
+	IXmlRectangleShapeAttributes,
+	IXmlRhombus2ShapeAttributes,
+	IXmlRhombusShapeAttributes,
 	IXmlStackShapesActionAttributes,
+	IXmlStarShapeAttributes,
 	IXmlStatementActionAttributes,
 	IXmlTextShapeAttributes,
 	IXmlThoughtActionAttributes,
+	IXmlTrapezoidShapeAttributes,
+	IXmlTriangleShapeAttributes,
+	IXmlXBoxShapeAttributes,
 } from './xml-types'
 
 export class XmlResponseParser {
@@ -296,36 +326,286 @@ export class XmlResponseParser {
 								})
 								break
 							}
-							// create-shapes
-							case 'geo': {
+							// create-shapes (legacy geo tag removed - use individual shape tags instead)
+							// Individual geo types
+							case 'rectangle': {
 								const attributes =
-									this.parseAttributesFromXmlTag<IXmlGeoShapeAttributes>(currentTag)
-
-								if (!attributes.id || !attributes.x || !attributes.y) {
-									// console.warn(
-									// 	`Geo shape missing required attributes. Received: ${JSON.stringify(attributes, null, 2)}`
-									// )
-									break
+									this.parseAttributesFromXmlTag<IXmlRectangleShapeAttributes>(currentTag)
+								try {
+									const shape = this.createGeoShape(attributes, 'rectangle')
+									completedItems.push({
+										type: 'create-shape',
+										shape: shape as IShape,
+									})
+								} catch (_error) {
+									// Skip invalid shapes
 								}
-
-								const shape: any = {
-									id: attributes.id,
-									type: 'geo',
-									x: +attributes.x,
-									y: +attributes.y,
-									text: attributes.text || '',
+								break
+							}
+							case 'ellipse': {
+								const attributes =
+									this.parseAttributesFromXmlTag<IXmlEllipseShapeAttributes>(currentTag)
+								try {
+									const shape = this.createGeoShape(attributes, 'ellipse')
+									completedItems.push({
+										type: 'create-shape',
+										shape: shape as IShape,
+									})
+								} catch (_error) {
+									// Skip invalid shapes
 								}
-
-								// Add optional attributes if present
-								if (attributes.width) shape.width = +attributes.width
-								if (attributes.height) shape.height = +attributes.height
-								if (attributes.fill) shape.fill = attributes.fill
-								if (attributes.color) shape.color = attributes.color
-
-								completedItems.push({
-									type: 'create-shape',
-									shape: shape as IShape,
-								})
+								break
+							}
+							case 'triangle': {
+								const attributes =
+									this.parseAttributesFromXmlTag<IXmlTriangleShapeAttributes>(currentTag)
+								try {
+									const shape = this.createGeoShape(attributes, 'triangle')
+									completedItems.push({
+										type: 'create-shape',
+										shape: shape as IShape,
+									})
+								} catch (_error) {
+									// Skip invalid shapes
+								}
+								break
+							}
+							case 'diamond': {
+								const attributes =
+									this.parseAttributesFromXmlTag<IXmlDiamondShapeAttributes>(currentTag)
+								try {
+									const shape = this.createGeoShape(attributes, 'diamond')
+									completedItems.push({
+										type: 'create-shape',
+										shape: shape as IShape,
+									})
+								} catch (_error) {
+									// Skip invalid shapes
+								}
+								break
+							}
+							case 'pentagon': {
+								const attributes =
+									this.parseAttributesFromXmlTag<IXmlPentagonShapeAttributes>(currentTag)
+								try {
+									const shape = this.createGeoShape(attributes, 'pentagon')
+									completedItems.push({
+										type: 'create-shape',
+										shape: shape as IShape,
+									})
+								} catch (_error) {
+									// Skip invalid shapes
+								}
+								break
+							}
+							case 'hexagon': {
+								const attributes =
+									this.parseAttributesFromXmlTag<IXmlHexagonShapeAttributes>(currentTag)
+								try {
+									const shape = this.createGeoShape(attributes, 'hexagon')
+									completedItems.push({
+										type: 'create-shape',
+										shape: shape as IShape,
+									})
+								} catch (_error) {
+									// Skip invalid shapes
+								}
+								break
+							}
+							case 'octagon': {
+								const attributes =
+									this.parseAttributesFromXmlTag<IXmlOctagonShapeAttributes>(currentTag)
+								try {
+									const shape = this.createGeoShape(attributes, 'octagon')
+									completedItems.push({
+										type: 'create-shape',
+										shape: shape as IShape,
+									})
+								} catch (_error) {
+									// Skip invalid shapes
+								}
+								break
+							}
+							case 'star': {
+								const attributes =
+									this.parseAttributesFromXmlTag<IXmlStarShapeAttributes>(currentTag)
+								try {
+									const shape = this.createGeoShape(attributes, 'star')
+									completedItems.push({
+										type: 'create-shape',
+										shape: shape as IShape,
+									})
+								} catch (_error) {
+									// Skip invalid shapes
+								}
+								break
+							}
+							case 'rhombus': {
+								const attributes =
+									this.parseAttributesFromXmlTag<IXmlRhombusShapeAttributes>(currentTag)
+								try {
+									const shape = this.createGeoShape(attributes, 'rhombus')
+									completedItems.push({
+										type: 'create-shape',
+										shape: shape as IShape,
+									})
+								} catch (_error) {
+									// Skip invalid shapes
+								}
+								break
+							}
+							case 'rhombus-2': {
+								const attributes =
+									this.parseAttributesFromXmlTag<IXmlRhombus2ShapeAttributes>(currentTag)
+								try {
+									const shape = this.createGeoShape(attributes, 'rhombus-2')
+									completedItems.push({
+										type: 'create-shape',
+										shape: shape as IShape,
+									})
+								} catch (_error) {
+									// Skip invalid shapes
+								}
+								break
+							}
+							case 'oval': {
+								const attributes =
+									this.parseAttributesFromXmlTag<IXmlOvalShapeAttributes>(currentTag)
+								try {
+									const shape = this.createGeoShape(attributes, 'oval')
+									completedItems.push({
+										type: 'create-shape',
+										shape: shape as IShape,
+									})
+								} catch (_error) {
+									// Skip invalid shapes
+								}
+								break
+							}
+							case 'trapezoid': {
+								const attributes =
+									this.parseAttributesFromXmlTag<IXmlTrapezoidShapeAttributes>(currentTag)
+								try {
+									const shape = this.createGeoShape(attributes, 'trapezoid')
+									completedItems.push({
+										type: 'create-shape',
+										shape: shape as IShape,
+									})
+								} catch (_error) {
+									// Skip invalid shapes
+								}
+								break
+							}
+							case 'arrow-right': {
+								const attributes =
+									this.parseAttributesFromXmlTag<IXmlArrowRightShapeAttributes>(currentTag)
+								try {
+									const shape = this.createGeoShape(attributes, 'arrow-right')
+									completedItems.push({
+										type: 'create-shape',
+										shape: shape as IShape,
+									})
+								} catch (_error) {
+									// Skip invalid shapes
+								}
+								break
+							}
+							case 'arrow-left': {
+								const attributes =
+									this.parseAttributesFromXmlTag<IXmlArrowLeftShapeAttributes>(currentTag)
+								try {
+									const shape = this.createGeoShape(attributes, 'arrow-left')
+									completedItems.push({
+										type: 'create-shape',
+										shape: shape as IShape,
+									})
+								} catch (_error) {
+									// Skip invalid shapes
+								}
+								break
+							}
+							case 'arrow-up': {
+								const attributes =
+									this.parseAttributesFromXmlTag<IXmlArrowUpShapeAttributes>(currentTag)
+								try {
+									const shape = this.createGeoShape(attributes, 'arrow-up')
+									completedItems.push({
+										type: 'create-shape',
+										shape: shape as IShape,
+									})
+								} catch (_error) {
+									// Skip invalid shapes
+								}
+								break
+							}
+							case 'arrow-down': {
+								const attributes =
+									this.parseAttributesFromXmlTag<IXmlArrowDownShapeAttributes>(currentTag)
+								try {
+									const shape = this.createGeoShape(attributes, 'arrow-down')
+									completedItems.push({
+										type: 'create-shape',
+										shape: shape as IShape,
+									})
+								} catch (_error) {
+									// Skip invalid shapes
+								}
+								break
+							}
+							case 'x-box': {
+								const attributes =
+									this.parseAttributesFromXmlTag<IXmlXBoxShapeAttributes>(currentTag)
+								try {
+									const shape = this.createGeoShape(attributes, 'x-box')
+									completedItems.push({
+										type: 'create-shape',
+										shape: shape as IShape,
+									})
+								} catch (_error) {
+									// Skip invalid shapes
+								}
+								break
+							}
+							case 'check-box': {
+								const attributes =
+									this.parseAttributesFromXmlTag<IXmlCheckBoxShapeAttributes>(currentTag)
+								try {
+									const shape = this.createGeoShape(attributes, 'check-box')
+									completedItems.push({
+										type: 'create-shape',
+										shape: shape as IShape,
+									})
+								} catch (_error) {
+									// Skip invalid shapes
+								}
+								break
+							}
+							case 'heart': {
+								const attributes =
+									this.parseAttributesFromXmlTag<IXmlHeartShapeAttributes>(currentTag)
+								try {
+									const shape = this.createGeoShape(attributes, 'heart')
+									completedItems.push({
+										type: 'create-shape',
+										shape: shape as IShape,
+									})
+								} catch (_error) {
+									// Skip invalid shapes
+								}
+								break
+							}
+							case 'cloud': {
+								const attributes =
+									this.parseAttributesFromXmlTag<IXmlCloudShapeAttributes>(currentTag)
+								try {
+									const shape = this.createGeoShape(attributes, 'cloud')
+									completedItems.push({
+										type: 'create-shape',
+										shape: shape as IShape,
+									})
+								} catch (_error) {
+									// Skip invalid shapes
+								}
 								break
 							}
 							case 'text': {
@@ -339,7 +619,7 @@ export class XmlResponseParser {
 									break
 								}
 
-								const shape: any = {
+								const shape: ITextShape = {
 									id: attributes.id,
 									type: 'text',
 									x: +attributes.x,
@@ -349,6 +629,150 @@ export class XmlResponseParser {
 
 								// Add optional attributes if present
 								if (attributes.color) shape.color = attributes.color
+
+								completedItems.push({
+									type: 'create-shape',
+									shape: shape as IShape,
+								})
+								break
+							}
+							case 'note': {
+								const attributes =
+									this.parseAttributesFromXmlTag<IXmlNoteShapeAttributes>(currentTag)
+
+								if (!attributes.id || !attributes.x || !attributes.y) {
+									// console.warn(
+									// 	`Note shape missing required attributes. Received: ${JSON.stringify(attributes, null, 2)}`
+									// )
+									break
+								}
+
+								const shape: INoteShape = {
+									id: attributes.id,
+									type: 'note',
+									x: +attributes.x,
+									y: +attributes.y,
+									text: attributes.text || '',
+								}
+
+								// Add optional attributes if present
+								if (attributes.color) shape.color = attributes.color
+								if (attributes.labelColor) shape.labelColor = attributes.labelColor
+								if (attributes.size) shape.size = attributes.size
+								if (attributes.font) shape.font = attributes.font
+								if (attributes.fontSizeAdjustment)
+									shape.fontSizeAdjustment = +attributes.fontSizeAdjustment
+								if (attributes.align) shape.align = attributes.align
+								if (attributes.verticalAlign) shape.verticalAlign = attributes.verticalAlign
+								if (attributes.scale) shape.scale = +attributes.scale
+								if (attributes.growY) shape.growY = +attributes.growY
+								if (attributes.url) shape.url = attributes.url
+
+								completedItems.push({
+									type: 'create-shape',
+									shape: shape as IShape,
+								})
+								break
+							}
+							case 'frame': {
+								const attributes =
+									this.parseAttributesFromXmlTag<IXmlFrameShapeAttributes>(currentTag)
+
+								if (!attributes.id || !attributes.x || !attributes.y) {
+									// console.warn(
+									// 	`Frame shape missing required attributes. Received: ${JSON.stringify(attributes, null, 2)}`
+									// )
+									break
+								}
+
+								const shape: IFrameShape = {
+									id: attributes.id,
+									type: 'frame',
+									x: +attributes.x,
+									y: +attributes.y,
+									width: attributes.width ? +attributes.width : 100,
+									height: attributes.height ? +attributes.height : 100,
+									name: attributes.name || '',
+								}
+
+								// Add optional attributes if present
+								if (attributes.color) shape.color = attributes.color
+
+								completedItems.push({
+									type: 'create-shape',
+									shape: shape as IShape,
+								})
+								break
+							}
+							case 'line': {
+								const attributes =
+									this.parseAttributesFromXmlTag<IXmlLineShapeAttributes>(currentTag)
+
+								if (!attributes.id || !attributes.x || !attributes.y) {
+									// console.warn(
+									// 	`Line shape missing required attributes. Received: ${JSON.stringify(attributes, null, 2)}`
+									// )
+									break
+								}
+
+								const shape: ILineShape = {
+									id: attributes.id,
+									type: 'line',
+									x: +attributes.x,
+									y: +attributes.y,
+									points: [
+										{
+											id: `${attributes.id}_start`,
+											x: attributes.startX ? +attributes.startX : 0,
+											y: attributes.startY ? +attributes.startY : 0,
+										},
+										{
+											id: `${attributes.id}_end`,
+											x: attributes.endX ? +attributes.endX : 100,
+											y: attributes.endY ? +attributes.endY : 0,
+										},
+									],
+								}
+
+								// Add optional attributes if present
+								if (attributes.color) shape.color = attributes.color
+								if (attributes.dash) shape.dash = attributes.dash
+								if (attributes.size) shape.size = attributes.size
+								if (attributes.spline) shape.spline = attributes.spline
+								if (attributes.scale) shape.scale = +attributes.scale
+
+								completedItems.push({
+									type: 'create-shape',
+									shape: shape as IShape,
+								})
+								break
+							}
+							case 'highlight': {
+								const attributes =
+									this.parseAttributesFromXmlTag<IXmlHighlightShapeAttributes>(currentTag)
+
+								if (!attributes.id || !attributes.x || !attributes.y) {
+									// console.warn(
+									// 	`Highlight shape missing required attributes. Received: ${JSON.stringify(attributes, null, 2)}`
+									// )
+									break
+								}
+
+								const shape: IHighlightShape = {
+									id: attributes.id,
+									type: 'highlight',
+									x: +attributes.x,
+									y: +attributes.y,
+									points: [],
+								}
+
+								// Add optional attributes if present
+								if (attributes.color) shape.color = attributes.color
+								if (attributes.size) shape.size = attributes.size
+								if (attributes.scale) shape.scale = +attributes.scale
+								if (attributes.isComplete !== undefined)
+									shape.isComplete = attributes.isComplete === 'true'
+								if (attributes.isPen !== undefined) shape.isPen = attributes.isPen === 'true'
 
 								completedItems.push({
 									type: 'create-shape',
@@ -396,5 +820,42 @@ export class XmlResponseParser {
 		}
 
 		return result
+	}
+
+	/**
+	 * Helper function to create a geo shape from attributes and geo type
+	 */
+	private createGeoShape(attributes: any, geoType: string): IGeoShape {
+		if (!attributes.id || !attributes.x || !attributes.y) {
+			throw new Error(
+				`Geo shape missing required attributes. Received: ${JSON.stringify(attributes, null, 2)}`
+			)
+		}
+
+		const shape: IGeoShape = {
+			id: attributes.id,
+			type: 'geo',
+			x: +attributes.x,
+			y: +attributes.y,
+			text: attributes.text || '',
+			geo: geoType as any, // Set the geo type based on the XML tag
+		}
+
+		// Add optional attributes if present
+		if (attributes.width) shape.width = +attributes.width
+		if (attributes.height) shape.height = +attributes.height
+		if (attributes.fill) shape.fill = attributes.fill
+		if (attributes.color) shape.color = attributes.color
+		if (attributes.labelColor) shape.labelColor = attributes.labelColor
+		if (attributes.dash) shape.dash = attributes.dash
+		if (attributes.size) shape.size = attributes.size
+		if (attributes.font) shape.font = attributes.font
+		if (attributes.align) shape.align = attributes.align
+		if (attributes.verticalAlign) shape.verticalAlign = attributes.verticalAlign
+		if (attributes.scale) shape.scale = +attributes.scale
+		if (attributes.growY) shape.growY = +attributes.growY
+		if (attributes.url) shape.url = attributes.url
+
+		return shape
 	}
 }

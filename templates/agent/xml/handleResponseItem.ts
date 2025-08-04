@@ -152,11 +152,27 @@ export function handleResponseItem(editor: Editor, item: IResponse[number]) {
 						x: item.shape.x,
 						y: item.shape.y,
 						props: {
+							// Basic dimensions
 							w: item.shape.width ?? 100,
 							h: item.shape.height ?? 100,
-							richText: toRichText(item.shape.text ?? ''),
-							color: item.shape.color ?? 'black',
+							// Geometry type
+							geo: item.shape.geo ?? 'rectangle',
+							// Styling properties
 							fill: item.shape.fill ?? 'none',
+							color: item.shape.color ?? 'black',
+							labelColor: item.shape.labelColor ?? 'black',
+							dash: item.shape.dash ?? 'draw',
+							size: item.shape.size ?? 'm',
+							// Text properties
+							richText: toRichText(item.shape.text ?? ''),
+							font: item.shape.font ?? 'draw',
+							align: item.shape.align ?? 'middle',
+							verticalAlign: item.shape.verticalAlign ?? 'middle',
+							// Transform properties
+							scale: item.shape.scale ?? 1,
+							growY: item.shape.growY ?? 0,
+							// URL property
+							url: item.shape.url ?? '',
 						},
 					})
 					break
@@ -169,6 +185,106 @@ export function handleResponseItem(editor: Editor, item: IResponse[number]) {
 						props: {
 							color: item.shape.color ?? 'black',
 							richText: toRichText(item.shape.text ?? ''),
+						},
+					})
+					break
+				}
+				case 'note': {
+					editor.createShape({
+						type: 'note',
+						x: item.shape.x,
+						y: item.shape.y,
+						props: {
+							// Styling properties
+							color: item.shape.color ?? 'black',
+							labelColor: item.shape.labelColor ?? 'black',
+							size: item.shape.size ?? 'm',
+							font: item.shape.font ?? 'draw',
+							fontSizeAdjustment: item.shape.fontSizeAdjustment ?? 0,
+							align: item.shape.align ?? 'middle',
+							verticalAlign: item.shape.verticalAlign ?? 'middle',
+							// Transform properties
+							growY: item.shape.growY ?? 0,
+							scale: item.shape.scale ?? 1,
+							// Content properties
+							richText: toRichText(item.shape.text ?? ''),
+							url: item.shape.url ?? '',
+						},
+					})
+					break
+				}
+				case 'frame': {
+					editor.createShape({
+						type: 'frame',
+						x: item.shape.x,
+						y: item.shape.y,
+						props: {
+							w: item.shape.width ?? 100,
+							h: item.shape.height ?? 100,
+							name: item.shape.name ?? '',
+							color: item.shape.color ?? 'black',
+						},
+					})
+					break
+				}
+				case 'line': {
+					// Create a simple two-point line
+					const lineShape = item.shape as any // Cast to access XML attributes
+					const startX = lineShape.startX ?? 0
+					const startY = lineShape.startY ?? 0
+					const endX = lineShape.endX ?? 100
+					const endY = lineShape.endY ?? 0
+
+					editor.createShape({
+						type: 'line',
+						x: item.shape.x,
+						y: item.shape.y,
+						props: {
+							color: item.shape.color ?? 'black',
+							dash: item.shape.dash ?? 'draw',
+							size: item.shape.size ?? 'm',
+							spline: item.shape.spline ?? 'line',
+							scale: item.shape.scale ?? 1,
+							points: {
+								start: {
+									id: 'start',
+									index: 'a1' as any,
+									x: startX,
+									y: startY,
+								},
+								end: {
+									id: 'end',
+									index: 'a2' as any,
+									x: endX,
+									y: endY,
+								},
+							},
+						},
+					})
+					break
+				}
+				case 'highlight': {
+					// Create a simple highlight with basic path
+					const highlightShape = item.shape as any // Cast to access XML attributes
+					editor.createShape({
+						type: 'highlight',
+						x: item.shape.x,
+						y: item.shape.y,
+						props: {
+							color: item.shape.color ?? 'yellow',
+							size: item.shape.size ?? 'm',
+							scale: item.shape.scale ?? 1,
+							isComplete: highlightShape.isComplete ?? true,
+							isPen: highlightShape.isPen ?? false,
+							segments: [
+								{
+									type: 'free',
+									points: [
+										{ x: 0, y: 0, z: 0.5 },
+										{ x: 50, y: 0, z: 0.5 },
+									],
+								},
+							],
 						},
 					})
 					break
