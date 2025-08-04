@@ -1,17 +1,15 @@
 import { useEffect, useState } from 'react'
 import {
 	compact,
-	createShapeId,
 	Editor,
 	ErrorBoundary,
 	FileHelpers,
 	TLComponents,
 	Tldraw,
 	TldrawUiToastsProvider,
-	TLShapeId,
 	TLUiOverrides,
-	toRichText,
 } from 'tldraw'
+import { handleResponseItem } from '../xml/handleResponseItem'
 import { IPromptInfo } from '../xml/xml-types'
 import { XmlResponseParser } from '../xml/XmlResponseParser'
 import { ChatPanel } from './components/ChatPanel'
@@ -25,6 +23,105 @@ import { TargetShapeTool } from './tools/TargetShapeTool'
 overrideFillStyleWithLinedFillStyle()
 
 const PLACEHOLDER_PROMPT = 'Draw a cat using rectangles.'
+
+async function streamXml(message = PLACEHOLDER_PROMPT) {
+	console.log('streaming xml...')
+	const editor = (window as any).editor as Editor
+
+	const vpb = editor.getViewportPageBounds()
+	const viewport: IPromptInfo['viewport'] = {
+		id: 'viewport',
+		minX: vpb.minX,
+		minY: vpb.minY,
+		maxX: vpb.maxX,
+		maxY: vpb.maxY,
+	}
+	const contents: IPromptInfo['contents'] = compact(
+		editor.getCurrentPageShapesSorted().map((s, i) => {
+			const pageBounds = editor.getShapePageBounds(s.id)
+			if (!pageBounds) return null
+			return {
+				id: s.id.split(':')[1],
+				type: s.type,
+				index: i,
+				minX: pageBounds.minX,
+				minY: pageBounds.minY,
+				maxX: pageBounds.maxX,
+				maxY: pageBounds.maxY,
+			}
+		})
+	)
+
+	const result = await editor.toImage(editor.getCurrentPageRenderingShapesSorted().map((s) => s.id))
+	const image = await FileHelpers.blobToDataUrl(result.blob)
+
+	const prompt: IPromptInfo = {
+		image,
+		viewport,
+		contents,
+		prompt: message,
+	}
+
+	const res = await fetch('/stream-xml', {
+		method: 'POST',
+		body: JSON.stringify(prompt),
+		headers: {
+			'Content-Type': 'application/json',
+		},
+	})
+
+	if (!res.ok) {
+		const errorData = (await res.json().catch(() => ({ error: 'Unknown error' }))) as any
+		throw new Error(errorData.error || `HTTP ${res.status}: ${res.statusText}`)
+	}
+
+	if (!res.body) {
+		throw new Error('No response body')
+	}
+
+	const parser = new XmlResponseParser()
+	const reader = res.body.getReader()
+	const decoder = new TextDecoder()
+
+	editor.markHistoryStoppingPoint()
+
+	try {
+		while (true) {
+			const { done, value } = await reader.read()
+			if (done) break
+
+			const chunk = decoder.decode(value, { stream: true })
+			const lines = chunk.split('\n')
+
+			for (const line of lines) {
+				if (line.startsWith('data: ')) {
+					const data = line.slice(6)
+					if (data.trim() === '') continue
+
+					try {
+						const jsonData = JSON.parse(data)
+						if (jsonData.error) {
+							throw new Error(jsonData.error)
+						}
+
+						// Parse the new chunk and get any new items
+						const newItems = parser.parseNewChunk(jsonData)
+
+						// Process each new item as it becomes available
+						for (const item of newItems) {
+							console.log(item)
+							handleResponseItem(editor, item)
+						}
+					} catch (parseError) {
+						console.error('Error parsing chunk:', parseError)
+					}
+				}
+			}
+		}
+	} finally {
+		reader.releaseLock()
+	}
+}
 
 async function generateXml(message = PLACEHOLDER_PROMPT) {
 	console.log('generating xml...')
@@ -85,190 +182,7 @@ async function generateXml(message = PLACEHOLDER_PROMPT) {
 
 	editor.markHistoryStoppingPoint()
 	for (const item of items) {
-		try {
-			switch (item.type) {
-				case 'statement': {
-					console.log('Statement:', item.text)
-					break
-				}
-				case 'move-shape': {
-					const shape = editor.getShape(item.shapeId as TLShapeId)
-					if (!shape) continue
-					editor.updateShape({
-						id: createShapeId(item.shapeId),
-						type: shape.type,
-						x: item.x,
-						y: item.y,
-					})
-					break
-				}
-				case 'distribute-shapes': {
-					const shapes = compact(item.shapeIds.map((id) => editor.getShape(createShapeId(id))))
-					editor.distributeShapes(shapes, item.direction)
-					break
-				}
-				case 'stack-shapes': {
-					const shapes = compact(item.shapeIds.map((id) => editor.getShape(createShapeId(id))))
-					editor.stackShapes(shapes, item.direction, item.gap)
-					break
-				}
-				case 'align-shapes': {
-					const shapes = compact(item.shapeIds.map((id) => editor.getShape(createShapeId(id))))
-					editor.alignShapes(shapes, item.alignment)
-					break
-				}
-				case 'label-shape': {
-					const shape = editor.getShape(createShapeId(item.shapeId))
-					if (!shape) continue
-					if (shape.type === 'text' || shape.type === 'geo') {
-						editor.updateShape({
-							id: shape.id,
-							type: shape.type,
-							props: {
-								...shape.props,
-								richText: toRichText(item.text),
-							},
-						})
-					}
-					break
-				}
-				case 'place-shape': {
-					const shape = editor.getShape(createShapeId(item.shapeId))
-					if (!shape) continue
-					const referenceShape = editor.getShape(createShapeId(item.referenceShapeId))
-					if (!referenceShape) continue
-					const bbA = editor.getShapePageBounds(shape.id)!
-					const bbR = editor.getShapePageBounds(referenceShape.id)!
-					if (item.side === 'top' && item.align === 'start') {
-						editor.updateShape({
-							id: shape.id,
-							type: shape.type,
-							x: bbR.minX + item.alignOffset,
-							y: bbR.minY - bbA.height - item.sideOffset,
-						})
-					} else if (item.side === 'top' && item.align === 'center') {
-						editor.updateShape({
-							id: shape.id,
-							type: shape.type,
-							x: bbR.midX - bbA.width / 2 + item.alignOffset,
-							y: bbR.minY - bbA.height - item.sideOffset,
-						})
-					} else if (item.side === 'top' && item.align === 'end') {
-						editor.updateShape({
-							id: shape.id,
-							type: shape.type,
-							x: bbR.maxX - bbA.width - item.alignOffset,
-							y: bbR.minY - bbA.height - item.sideOffset,
-						})
-					} else if (item.side === 'bottom' && item.align === 'start') {
-						editor.updateShape({
-							id: shape.id,
-							type: shape.type,
-							x: bbR.minX + item.alignOffset,
-							y: bbR.maxY + item.sideOffset,
-						})
-					} else if (item.side === 'bottom' && item.align === 'center') {
-						editor.updateShape({
-							id: shape.id,
-							type: shape.type,
-							x: bbR.midX - bbA.width / 2 + item.alignOffset,
-							y: bbR.maxY + item.sideOffset,
-						})
-					} else if (item.side === 'bottom' && item.align === 'end') {
-						editor.updateShape({
-							id: shape.id,
-							type: shape.type,
-							x: bbR.maxX - bbA.width - item.alignOffset,
-							y: bbR.maxY + item.sideOffset,
-						})
-						// LEFT SIDE (corrected)
-					} else if (item.side === 'left' && item.align === 'start') {
-						editor.updateShape({
-							id: shape.id,
-							type: shape.type,
-							x: bbR.minX - bbA.width - item.sideOffset,
-							y: bbR.minY + item.alignOffset,
-						})
-					} else if (item.side === 'left' && item.align === 'center') {
-						editor.updateShape({
-							id: shape.id,
-							type: shape.type,
-							x: bbR.minX - bbA.width - item.sideOffset,
-							y: bbR.midY - bbA.height / 2 + item.alignOffset,
-						})
-					} else if (item.side === 'left' && item.align === 'end') {
-						editor.updateShape({
-							id: shape.id,
-							type: shape.type,
-							x: bbR.minX - bbA.width - item.sideOffset,
-							y: bbR.maxY - bbA.height - item.alignOffset,
-						})
-						// RIGHT SIDE (corrected)
-					} else if (item.side === 'right' && item.align === 'start') {
-						editor.updateShape({
-							id: shape.id,
-							type: shape.type,
-							x: bbR.maxX + item.sideOffset,
-							y: bbR.minY + item.alignOffset,
-						})
-					} else if (item.side === 'right' && item.align === 'center') {
-						editor.updateShape({
-							id: shape.id,
-							type: shape.type,
-							x: bbR.maxX + item.sideOffset,
-							y: bbR.midY - bbA.height / 2 + item.alignOffset,
-						})
-					} else if (item.side === 'right' && item.align === 'end') {
-						editor.updateShape({
-							id: shape.id,
-							type: shape.type,
-							x: bbR.maxX + item.sideOffset,
-							y: bbR.maxY - bbA.height - item.alignOffset,
-						})
-					}
-					break
-				}
-				case 'create-shape': {
-					switch (item.shape.type) {
-						case 'geo': {
-							editor.createShape({
-								type: 'geo',
-								x: item.shape.x,
-								y: item.shape.y,
-								props: {
-									w: item.shape.width ?? 100,
-									h: item.shape.height ?? 100,
-									richText: toRichText(item.shape.text ?? ''),
-									color: item.shape.color ?? 'black',
-									fill: item.shape.fill ?? 'none',
-								},
-							})
-							break
-						}
-						case 'text': {
-							editor.createShape({
-								type: 'text',
-								x: item.shape.x,
-								y: item.shape.y,
-								props: {
-									color: item.shape.color ?? 'black',
-									richText: toRichText(item.shape.text ?? ''),
-								},
-							})
-							break
-						}
-					}
-					break
-				}
-				case 'delete-shapes': {
-					const shapes = compact(item.shapeIds.map((id) => editor.getShape(createShapeId(id))))
-					editor.deleteShapes(shapes)
-					break
-				}
-			}
-		} catch (error) {
-			console.error(error)
-		}
+		handleResponseItem(editor, item)
 	}
 }
 
@@ -282,6 +196,14 @@ const overrides: TLUiOverrides = {
 				kbd: 'shift+x',
 				async onSelect() {
 					generateXml()
+				},
+			},
+			'stream-xml': {
+				id: 'stream-xml',
+				label: 'Stream XML',
+				kbd: 'shift+s',
+				async onSelect() {
+					streamXml()
 				},
 			},
 		}
@@ -327,6 +249,7 @@ function App() {
 
 	useEffect(() => {
 		;(window as any).generateXml = generateXml
+		;(window as any).streamXml = streamXml
 	}, [editor])
 
 	return (

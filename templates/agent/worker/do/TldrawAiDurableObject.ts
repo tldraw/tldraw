@@ -7,7 +7,7 @@ import { IPromptInfo } from '../../xml/xml-types'
 import { TldrawAgentBaseService } from '../TldrawAgentBaseService'
 import { Environment } from '../types'
 import { VercelAiService } from './vercel/VercelAiService'
-import { generateXmlVercel } from './xml/vercel'
+import { generateXmlVercel, streamXmlVercel } from './xml/vercel'
 
 export class TldrawAiDurableObject extends DurableObject<Environment> {
 	service: TldrawAgentBaseService
@@ -29,6 +29,7 @@ export class TldrawAiDurableObject extends DurableObject<Environment> {
 		.post('/generate', (request) => this.generate(request))
 		.post('/stream', (request) => this.stream(request))
 		.post('/generate-xml', (request) => this.generateXml(request))
+		.post('/stream-xml', (request) => this.streamXml(request))
 		.post('/cancel', (request) => this.cancel(request))
 
 	// `fetch` is the entry point for all requests to the Durable Object
@@ -92,6 +93,55 @@ export class TldrawAiDurableObject extends DurableObject<Environment> {
 				headers: { 'Content-Type': 'application/json' },
 			})
 		}
+	}
+
+	/**
+	 * Stream XML generation from the model.
+	 *
+	 * @param request - The request object containing the prompt.
+	 * @returns A Promise that resolves to a Response object containing the streamed XML.
+	 */
+	private async streamXml(request: Request): Promise<Response> {
+		const encoder = new TextEncoder()
+		const { readable, writable } = new TransformStream()
+		const writer = writable.getWriter()
+
+		;(async () => {
+			try {
+				const prompt = (await request.json()) as IPromptInfo
+
+				for await (const chunk of streamXmlVercel(this.google('gemini-2.5-pro'), prompt)) {
+					const data = `data: ${JSON.stringify(chunk)}\n\n`
+					await writer.write(encoder.encode(data))
+					await writer.ready
+				}
+				await writer.close()
+			} catch (error: any) {
+				console.error('Stream XML error:', error)
+
+				// Send error through the stream
+				const errorData = `data: ${JSON.stringify({ error: error.message })}\n\n`
+				try {
+					await writer.write(encoder.encode(errorData))
+					await writer.close()
+				} catch (writeError) {
+					await writer.abort(writeError)
+				}
+			}
+		})()
+
+		return new Response(readable, {
+			headers: {
+				'Content-Type': 'text/event-stream',
+				'Cache-Control': 'no-cache, no-transform',
+				Connection: 'keep-alive',
+				'X-Accel-Buffering': 'no',
+				'Transfer-Encoding': 'chunked',
+				'Access-Control-Allow-Origin': '*',
+				'Access-Control-Allow-Methods': 'POST, OPTIONS',
+				'Access-Control-Allow-Headers': 'Content-Type',
+			},
+		})
 	}
 
 	/**
