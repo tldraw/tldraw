@@ -105,6 +105,18 @@
       "value": "Tänään"
     }
   ],
+  "20976e7bec": [
+    {
+      "type": 0,
+      "value": "Huone on täynnä"
+    }
+  ],
+  "21bfb2dc2e": [
+    {
+      "type": 0,
+      "value": "Tämä huone lähestyy kokorajoitustaan. Harkitse sisällön poistamista tai uuden tiedoston aloittamista."
+    }
+  ],
   "22d84a12fd": [
     {
       "type": 0,
@@ -127,6 +139,12 @@
     {
       "type": 0,
       "value": "Miro, mutta hyvä ja ilmainen"
+    }
+  ],
+  "2deec2cb74": [
+    {
+      "type": 0,
+      "value": "Tämä huone on saavuttanut kokorajoituksensa, eikä muutoksia ehkä enää tallenneta. Poista sisältöä tai aloita uusi tiedosto."
     }
   ],
   "31246941ad": [
@@ -301,6 +319,12 @@
       "value": "Jakaa"
     }
   ],
+  "5bb6cf3b53": [
+    {
+      "type": 0,
+      "value": "Huone kasvaa suureksi"
+    }
+  ],
   "5bcc12ace8": [
     {
       "type": 0,
@@ -443,6 +467,12 @@
     {
       "type": 0,
       "value": "Virheellinen pyyntö."
+    }
+  ],
+  "78e9815992": [
+    {
+      "type": 0,
+      "value": "Selvä"
     }
   ],
   "797799f35e": [

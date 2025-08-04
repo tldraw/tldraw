@@ -50,6 +50,12 @@
   "1dd1c5fb7f": {
     "translation": "Ma"
   },
+  "20976e7bec": {
+    "translation": "A szoba tele van"
+  },
+  "21bfb2dc2e": {
+    "translation": "Ez a szoba közeledik a méretkorlátjához. Fontolja meg néhány tartalom eltávolítását vagy új fájl létrehozását."
+  },
   "22d84a12fd": {
     "translation": "Figjam, de tldraw"
   },
@@ -61,6 +67,9 @@
   },
   "2c61d18599": {
     "translation": "Miro, de jó és ingyenes"
+  },
+  "2deec2cb74": {
+    "translation": "Ez a szoba elérte a méretkorlátját, és előfordulhat, hogy a módosítások már nem menthetők. Távolítson el néhány tartalmat, vagy hozzon létre egy új fájlt."
   },
   "31246941ad": {
     "translation": "A fájl megtekintéséhez be kell jelentkeznie."
@@ -143,6 +152,9 @@
   "5a95a425f7": {
     "translation": "Részesedés"
   },
+  "5bb6cf3b53": {
+    "translation": "Egyre nagyobb lesz a szoba"
+  },
   "5bcc12ace8": {
     "translation": "Ez a szoba mostantól írásvédett"
   },
@@ -214,6 +226,9 @@
   },
   "777f9e90cf": {
     "translation": "Érvénytelen kérés."
+  },
+  "78e9815992": {
+    "translation": "Értem"
   },
   "797799f35e": {
     "translation": "Probléma benyújtása a GitHubon"

@@ -105,6 +105,18 @@
       "value": "Heute"
     }
   ],
+  "20976e7bec": [
+    {
+      "type": 0,
+      "value": "Der Raum ist voll"
+    }
+  ],
+  "21bfb2dc2e": [
+    {
+      "type": 0,
+      "value": "Dieser Raum erreicht seine maximale Größe. Entfernen Sie ggf. Inhalte oder erstellen Sie eine neue Datei."
+    }
+  ],
   "22d84a12fd": [
     {
       "type": 0,
@@ -127,6 +139,12 @@
     {
       "type": 0,
       "value": "Miro aber gut und kostenlos"
+    }
+  ],
+  "2deec2cb74": [
+    {
+      "type": 0,
+      "value": "Dieser Raum hat seine Größenbeschränkung erreicht und Änderungen können möglicherweise nicht mehr gespeichert werden. Entfernen Sie Inhalte oder beginnen Sie eine neue Datei."
     }
   ],
   "31246941ad": [
@@ -301,6 +319,12 @@
       "value": "Teilen"
     }
   ],
+  "5bb6cf3b53": [
+    {
+      "type": 0,
+      "value": "Das Zimmer wird größer"
+    }
+  ],
   "5bcc12ace8": [
     {
       "type": 0,
@@ -443,6 +467,12 @@
     {
       "type": 0,
       "value": "Ungültige Anfrage."
+    }
+  ],
+  "78e9815992": [
+    {
+      "type": 0,
+      "value": "Habe es"
     }
   ],
   "797799f35e": [

@@ -50,6 +50,12 @@
   "1dd1c5fb7f": {
     "translation": "오늘"
   },
+  "20976e7bec": {
+    "translation": "방이 꽉 찼습니다"
+  },
+  "21bfb2dc2e": {
+    "translation": "이 방의 크기 제한에 거의 도달했습니다. 일부 콘텐츠를 삭제하거나 새 파일을 만들어 보세요."
+  },
   "22d84a12fd": {
     "translation": "Figjam이지만 tldraw"
   },
@@ -61,6 +67,9 @@
   },
   "2c61d18599": {
     "translation": "미로지만 좋고 무료입니다"
+  },
+  "2deec2cb74": {
+    "translation": "이 채팅방은 크기 제한에 도달하여 변경 사항이 더 이상 저장되지 않을 수 있습니다. 일부 콘텐츠를 삭제하거나 새 파일을 시작하세요."
   },
   "31246941ad": {
     "translation": "이 파일을 보려면 로그인해야 합니다."
@@ -143,6 +152,9 @@
   "5a95a425f7": {
     "translation": "공유"
   },
+  "5bb6cf3b53": {
+    "translation": "방이 넓어지고 있어요"
+  },
   "5bcc12ace8": {
     "translation": "이 방은 이제 읽기 전용입니다."
   },
@@ -214,6 +226,9 @@
   },
   "777f9e90cf": {
     "translation": "유효하지 않은 요청입니다."
+  },
+  "78e9815992": {
+    "translation": "알았어요"
   },
   "797799f35e": {
     "translation": "GitHub에 이슈 제출"
