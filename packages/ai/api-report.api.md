@@ -194,9 +194,7 @@ export interface TldrawAiModuleOptions {
 }
 
 // @public (undocumented)
-export interface TldrawAiOptions extends Omit<TldrawAiModuleOptions, 'apply' | 'editor'> {
-    // (undocumented)
-    apply?: TldrawAiApplyFn;
+export interface TldrawAiOptions extends Omit<TldrawAiModuleOptions, 'editor'> {
     // (undocumented)
     editor?: Editor;
     // (undocumented)

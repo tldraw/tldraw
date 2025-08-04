@@ -66,11 +66,10 @@ export type TldrawAiStreamFn = (opts: {
 export type TldrawAiApplyFn = (opts: { change: TLAiChange; editor: Editor }) => void
 
 /** @public */
-export interface TldrawAiOptions extends Omit<TldrawAiModuleOptions, 'editor' | 'apply'> {
+export interface TldrawAiOptions extends Omit<TldrawAiModuleOptions, 'editor'> {
 	editor?: Editor
 	generate?: TldrawAiGenerateFn
 	stream?: TldrawAiStreamFn
-	apply?: TldrawAiApplyFn
 }
 
 /** @public */
