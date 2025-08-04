@@ -1,6 +1,5 @@
 import { useCallback, useMemo, useRef } from 'react'
 import { Editor, uniqueId, useMaybeEditor } from 'tldraw'
-import { defaultApplyChange } from './defaultApplyChange'
 import { TldrawAiModule, TldrawAiModuleOptions } from './TldrawAiModule'
 import { TLAiChange, TLAiPrompt, TLAiSerializedPrompt } from './types'
 
@@ -67,11 +66,10 @@ export type TldrawAiStreamFn = (opts: {
 export type TldrawAiApplyFn = (opts: { change: TLAiChange; editor: Editor }) => void
 
 /** @public */
-export interface TldrawAiOptions extends Omit<TldrawAiModuleOptions, 'editor' | 'apply'> {
+export interface TldrawAiOptions extends Omit<TldrawAiModuleOptions, 'editor'> {
 	editor?: Editor
 	generate?: TldrawAiGenerateFn
 	stream?: TldrawAiStreamFn
-	apply?: TldrawAiApplyFn
 }
 
 /** @public */
@@ -83,7 +81,7 @@ export function useTldrawAi(opts: TldrawAiOptions): TldrawAi {
 		editor: _editor,
 		generate: generateFn,
 		stream: streamFn,
-		apply: applyFn = defaultApplyChange,
+		apply: applyFn,
 		transforms,
 	} = opts
 
