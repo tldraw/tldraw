@@ -1,7 +1,7 @@
 import { BoxModel, TLGeoShape, TLShape, VecModel } from 'tldraw'
 import { TargetIcon } from '../icons/TargetIcon'
 
-export type ContextItem = ShapeContextItem | AreaContextItem | PointContextItem
+export type ContextItem = ShapeContextItem | AreaContextItem | PointContextItem | ShapesContextItem
 
 export const CONTEXT_TYPE_DEFINITIONS: Record<
 	ContextItem['type'],
@@ -24,6 +24,12 @@ export const CONTEXT_TYPE_DEFINITIONS: Record<
 	},
 	point: {
 		name: () => 'Point',
+		icon: () => <TargetIcon />,
+	},
+	shapes: {
+		name: (item: ShapesContextItem) => {
+			return item.shapes.length + ' shapes'
+		},
 		icon: () => <TargetIcon />,
 	},
 }

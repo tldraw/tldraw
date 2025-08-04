@@ -26,6 +26,34 @@ export function ContextHighlights() {
 		[pendingContextItems]
 	)
 
+	const shapesBounds = useValue(
+		'screenSpaceShapesBounds',
+		() => {
+			const shapeItems = contextItems.filter((item) => item.type === 'shapes')
+			return shapeItems
+				.map((item) => {
+					const bounds = editor.getShapesPageBounds(item.shapes.map((shape) => shape.id))
+					return bounds
+				})
+				.filter((bounds) => bounds !== null)
+		},
+		[contextItems]
+	)
+
+	const pendingShapesBounds = useValue(
+		'pendingScreenSpaceShapesBounds',
+		() => {
+			const pendingShapeItems = pendingContextItems.filter((item) => item.type === 'shapes')
+			return pendingShapeItems
+				.map((item) => {
+					const bounds = editor.getShapesPageBounds(item.shapes.map((shape) => shape.id))
+					return bounds
+				})
+				.filter((bounds) => bounds !== null)
+		},
+		[pendingContextItems]
+	)
+
 	const shapeBounds = useValue(
 		'screenSpaceShapeBounds',
 		() => {
@@ -75,6 +103,13 @@ export function ContextHighlights() {
 					color="var(--color-selected)"
 				/>
 			))}
+			{shapesBounds.map((item, i) => (
+				<AreaHighlight
+					key={'context-highlight-' + i}
+					pageBounds={item}
+					color="var(--color-selected)"
+				/>
+			))}
 			{shapeBounds.map((item, i) => (
 				<AreaHighlight
 					key={'context-highlight-' + i}
@@ -83,6 +118,14 @@ export function ContextHighlights() {
 				/>
 			))}
 			{pendingAreaBounds.map((item, i) => (
+				<AreaHighlight
+					key={'context-highlight-' + i}
+					pageBounds={item}
+					color="var(--color-selected)"
+					className="generating"
+				/>
+			))}
+			{pendingShapesBounds.map((item, i) => (
 				<AreaHighlight
 					key={'context-highlight-' + i}
 					pageBounds={item}
