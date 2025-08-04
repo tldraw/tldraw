@@ -273,6 +273,30 @@ Example:
 </create-shapes>
 ```
 
+### Update shapes
+
+To update existing shapes, use the `<update-shapes>` tag. Inside this tag, you can include one or more shape tags that reference existing shapes by their `id`. This allows you to modify properties of shapes that are already on the canvas, such as changing their position, size, color, text, or other attributes.
+
+**Important:** The shape must already exist on the canvas. You reference existing shapes by using their `id` attribute. All the same shape types and attributes from the create-shapes section are available for updates.
+
+Example:
+
+```xml
+<update-shapes>
+    <rectangle id="existing-rect" x="200" y="200" color="blue" fill="solid" />
+    <text id="existing-text" x="100" y="300" text="Updated text" color="red" />
+    <note id="existing-note" color="green" text="Updated note content" />
+</update-shapes>
+```
+
+You can update any combination of properties:
+
+- **Position**: Change `x` and `y` coordinates to move the shape
+- **Size**: Change `width` and `height` to resize the shape
+- **Styling**: Update `color`, `fill`, `dash`, `size`, etc.
+- **Text**: Change the `text` content and text-related properties
+- **Other properties**: Any property available during shape creation can be updated
+
 ### Delete shapes
 
 To delete shapes, use the `<delete-shapes>` tag. This is a self-closing tag with the following attribute:

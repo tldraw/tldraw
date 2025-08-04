@@ -63,8 +63,8 @@ export class PromptHelper {
 				continue
 			}
 			stubs.push({
-				id: shape.id,
-				type: shape.type,
+				id: shape.id.split(':')[1],
+				type: shape.type === 'geo' ? (shape.props as TLGeoShapeProps).geo : shape.type,
 				index: i,
 				minX: boundingBox.minX,
 				minY: boundingBox.minY,

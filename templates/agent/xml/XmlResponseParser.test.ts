@@ -556,6 +556,147 @@ describe('XmlResponseParser', () => {
 		})
 	})
 
+	describe('shape updates', () => {
+		test('parses update-shapes with geometric shapes', () => {
+			const xmlInput = `
+				<response>
+					<actions>
+						<update-shapes>
+							<rectangle id="existing-rect" x="200" y="200" color="blue" fill="solid" />
+							<ellipse id="existing-circle" x="300" y="300" width="150" height="150" color="red" />
+						</update-shapes>
+					</actions>
+				</response>
+			`
+
+			const result = parser.parseCompletedStream(xmlInput)
+
+			expect(result).toEqual([
+				{
+					type: 'update-shape',
+					shape: {
+						id: 'existing-rect',
+						type: 'geo',
+						x: 200,
+						y: 200,
+						color: 'blue',
+						fill: 'solid',
+						text: '',
+						geo: 'rectangle',
+					},
+				},
+				{
+					type: 'update-shape',
+					shape: {
+						id: 'existing-circle',
+						type: 'geo',
+						x: 300,
+						y: 300,
+						width: 150,
+						height: 150,
+						color: 'red',
+						text: '',
+						geo: 'ellipse',
+					},
+				},
+			])
+		})
+
+		test('parses update-shapes with mixed shape types', () => {
+			const xmlInput = `
+				<response>
+					<actions>
+						<update-shapes>
+							<text id="existing-text" x="100" y="300" text="Updated text" color="red" />
+							<note id="existing-note" color="green" text="Updated note content" />
+							<frame id="existing-frame" x="400" y="400" width="250" height="200" name="Updated Frame" />
+						</update-shapes>
+					</actions>
+				</response>
+			`
+
+			const result = parser.parseCompletedStream(xmlInput)
+
+			expect(result).toEqual([
+				{
+					type: 'update-shape',
+					shape: {
+						id: 'existing-text',
+						type: 'text',
+						x: 100,
+						y: 300,
+						text: 'Updated text',
+						color: 'red',
+					},
+				},
+				{
+					type: 'update-shape',
+					shape: {
+						id: 'existing-note',
+						type: 'note',
+						color: 'green',
+						text: 'Updated note content',
+					},
+				},
+				{
+					type: 'update-shape',
+					shape: {
+						id: 'existing-frame',
+						type: 'frame',
+						x: 400,
+						y: 400,
+						width: 250,
+						height: 200,
+						name: 'Updated Frame',
+					},
+				},
+			])
+		})
+
+		test('parses mixed create-shapes and update-shapes in same response', () => {
+			const xmlInput = `
+				<response>
+					<actions>
+						<create-shapes>
+							<rectangle id="new-rect" x="100" y="100" />
+						</create-shapes>
+						<update-shapes>
+							<rectangle id="existing-rect" x="200" y="200" color="blue" />
+						</update-shapes>
+					</actions>
+				</response>
+			`
+
+			const result = parser.parseCompletedStream(xmlInput)
+
+			expect(result).toEqual([
+				{
+					type: 'create-shape',
+					shape: {
+						id: 'new-rect',
+						type: 'geo',
+						x: 100,
+						y: 100,
+						text: '',
+						geo: 'rectangle',
+					},
+				},
+				{
+					type: 'update-shape',
+					shape: {
+						id: 'existing-rect',
+						type: 'geo',
+						x: 200,
+						y: 200,
+						color: 'blue',
+						text: '',
+						geo: 'rectangle',
+					},
+				},
+			])
+		})
+	})
+
 	describe('shape manipulation actions', () => {
 		test('parses move-shape actions in complete XML response', () => {
 			const xmlInput = `

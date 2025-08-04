@@ -437,6 +437,11 @@ export interface IXmlDistributeShapesActionAttributes {
 	direction: 'vertical' | 'horizontal'
 }
 
+export interface IUpdateShapeAction {
+	type: 'update-shape'
+	shape: IShape
+}
+
 export type IAction =
 	| ICreateShapeAction
 	| IDeleteShapesAction
@@ -446,6 +451,7 @@ export type IAction =
 	| IAlignShapesAction
 	| IStackShapesAction
 	| IDistributeShapesAction
+	| IUpdateShapeAction
 
 // Response
 

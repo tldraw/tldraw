@@ -1,13 +1,14 @@
 import { GoogleGenerativeAIProviderOptions } from '@ai-sdk/google'
 import { generateText, LanguageModel, streamText } from 'ai'
-import systemPromptText from '../../../xml/xml-system-prompt.md?raw'
 import { IPromptInfo } from '../../../xml/xml-types'
 
 export async function generateXmlVercel(model: LanguageModel, info: IPromptInfo): Promise<string> {
 	const geminiThinkingBudget = model.modelId === 'gemini-2.5-pro' ? 128 : 0
 
-	// use the local xml-system-prompt.md file
-	const systemPrompt = systemPromptText
+	// get the prompt from `xml-system-prompt.md` gist
+	const systemPrompt = await fetch(
+		'https://gist.githubusercontent.com/steveruizok/bd8726cafae16ed73d1a72265de8d9c9/raw/53522bd6842bf230d1a8ed832d55d2f9e307749f/xml-system-prompt.md'
+	).then((res) => res.text())
 
 	const xmlPrompt = [
 		`<canvas-context>`,
@@ -73,8 +74,10 @@ export async function* streamXmlVercel(
 ): AsyncGenerator<string, void, unknown> {
 	const geminiThinkingBudget = model.modelId === 'gemini-2.5-pro' ? 128 : 0
 
-	// use the local xml-system-prompt.md file
-	const systemPrompt = systemPromptText
+	// get the prompt from `xml-system-prompt.md` gist
+	const systemPrompt = await fetch(
+		'https://gist.githubusercontent.com/steveruizok/bd8726cafae16ed73d1a72265de8d9c9/raw/53522bd6842bf230d1a8ed832d55d2f9e307749f/xml-system-prompt.md'
+	).then((res) => res.text())
 
 	const xmlPrompt = [
 		`<canvas-context>`,

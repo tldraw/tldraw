@@ -3,7 +3,6 @@ import {
 	IGeoShape,
 	IHighlightShape,
 	ILineShape,
-	INoteShape,
 	IResponse,
 	IShape,
 	ITextShape,
@@ -85,14 +84,22 @@ export class XmlResponseParser {
 		let prevChar = ''
 		let currentTagName = ''
 		let currentTag = ''
+		let shapeActionType: 'create-shape' | 'update-shape' = 'create-shape'
 
 		let state = 'searching' as 'searching' | 'in-tag-name' | 'in-tag-attributes'
 
 		// flatten the xml tree by removing enclosing tags (response, create-shapes, thoughts, actions)
 
-		// remove the following strings: <response>, <create-shapes>, <thoughts>, <actions>, </response>, </create-shapes>, </thoughts>, </actions>
-		let flatMessage = message.replace(
-			/<(response|create-shapes|thoughts|actions|\/response|\/create-shapes|\/thoughts|\/actions)>/gs,
+		// replace create-shapes and update-shapes with self-closing context markers
+		let flatMessage = message
+			.replace(/<create-shapes>/g, '<create-context />')
+			.replace(/<\/create-shapes>/g, '')
+			.replace(/<update-shapes>/g, '<update-context />')
+			.replace(/<\/update-shapes>/g, '')
+
+		// remove the following strings: <response>, <thoughts>, <actions>, </response>, </thoughts>, </actions>
+		flatMessage = flatMessage.replace(
+			/<(response|thoughts|actions|\/response|\/thoughts|\/actions)>/gs,
 			''
 		)
 
@@ -326,6 +333,15 @@ export class XmlResponseParser {
 								})
 								break
 							}
+							// Context markers for create-shapes and update-shapes
+							case 'create-context': {
+								shapeActionType = 'create-shape'
+								break
+							}
+							case 'update-context': {
+								shapeActionType = 'update-shape'
+								break
+							}
 							// create-shapes (legacy geo tag removed - use individual shape tags instead)
 							// Individual geo types
 							case 'rectangle': {
@@ -334,7 +350,7 @@ export class XmlResponseParser {
 								try {
 									const shape = this.createGeoShape(attributes, 'rectangle')
 									completedItems.push({
-										type: 'create-shape',
+										type: shapeActionType,
 										shape: shape as IShape,
 									})
 								} catch (_error) {
@@ -348,7 +364,7 @@ export class XmlResponseParser {
 								try {
 									const shape = this.createGeoShape(attributes, 'ellipse')
 									completedItems.push({
-										type: 'create-shape',
+										type: shapeActionType,
 										shape: shape as IShape,
 									})
 								} catch (_error) {
@@ -362,7 +378,7 @@ export class XmlResponseParser {
 								try {
 									const shape = this.createGeoShape(attributes, 'triangle')
 									completedItems.push({
-										type: 'create-shape',
+										type: shapeActionType,
 										shape: shape as IShape,
 									})
 								} catch (_error) {
@@ -376,7 +392,7 @@ export class XmlResponseParser {
 								try {
 									const shape = this.createGeoShape(attributes, 'diamond')
 									completedItems.push({
-										type: 'create-shape',
+										type: shapeActionType,
 										shape: shape as IShape,
 									})
 								} catch (_error) {
@@ -390,7 +406,7 @@ export class XmlResponseParser {
 								try {
 									const shape = this.createGeoShape(attributes, 'pentagon')
 									completedItems.push({
-										type: 'create-shape',
+										type: shapeActionType,
 										shape: shape as IShape,
 									})
 								} catch (_error) {
@@ -404,7 +420,7 @@ export class XmlResponseParser {
 								try {
 									const shape = this.createGeoShape(attributes, 'hexagon')
 									completedItems.push({
-										type: 'create-shape',
+										type: shapeActionType,
 										shape: shape as IShape,
 									})
 								} catch (_error) {
@@ -418,7 +434,7 @@ export class XmlResponseParser {
 								try {
 									const shape = this.createGeoShape(attributes, 'octagon')
 									completedItems.push({
-										type: 'create-shape',
+										type: shapeActionType,
 										shape: shape as IShape,
 									})
 								} catch (_error) {
@@ -432,7 +448,7 @@ export class XmlResponseParser {
 								try {
 									const shape = this.createGeoShape(attributes, 'star')
 									completedItems.push({
-										type: 'create-shape',
+										type: shapeActionType,
 										shape: shape as IShape,
 									})
 								} catch (_error) {
@@ -446,7 +462,7 @@ export class XmlResponseParser {
 								try {
 									const shape = this.createGeoShape(attributes, 'rhombus')
 									completedItems.push({
-										type: 'create-shape',
+										type: shapeActionType,
 										shape: shape as IShape,
 									})
 								} catch (_error) {
@@ -460,7 +476,7 @@ export class XmlResponseParser {
 								try {
 									const shape = this.createGeoShape(attributes, 'rhombus-2')
 									completedItems.push({
-										type: 'create-shape',
+										type: shapeActionType,
 										shape: shape as IShape,
 									})
 								} catch (_error) {
@@ -474,7 +490,7 @@ export class XmlResponseParser {
 								try {
 									const shape = this.createGeoShape(attributes, 'oval')
 									completedItems.push({
-										type: 'create-shape',
+										type: shapeActionType,
 										shape: shape as IShape,
 									})
 								} catch (_error) {
@@ -488,7 +504,7 @@ export class XmlResponseParser {
 								try {
 									const shape = this.createGeoShape(attributes, 'trapezoid')
 									completedItems.push({
-										type: 'create-shape',
+										type: shapeActionType,
 										shape: shape as IShape,
 									})
 								} catch (_error) {
@@ -502,7 +518,7 @@ export class XmlResponseParser {
 								try {
 									const shape = this.createGeoShape(attributes, 'arrow-right')
 									completedItems.push({
-										type: 'create-shape',
+										type: shapeActionType,
 										shape: shape as IShape,
 									})
 								} catch (_error) {
@@ -516,7 +532,7 @@ export class XmlResponseParser {
 								try {
 									const shape = this.createGeoShape(attributes, 'arrow-left')
 									completedItems.push({
-										type: 'create-shape',
+										type: shapeActionType,
 										shape: shape as IShape,
 									})
 								} catch (_error) {
@@ -530,7 +546,7 @@ export class XmlResponseParser {
 								try {
 									const shape = this.createGeoShape(attributes, 'arrow-up')
 									completedItems.push({
-										type: 'create-shape',
+										type: shapeActionType,
 										shape: shape as IShape,
 									})
 								} catch (_error) {
@@ -544,7 +560,7 @@ export class XmlResponseParser {
 								try {
 									const shape = this.createGeoShape(attributes, 'arrow-down')
 									completedItems.push({
-										type: 'create-shape',
+										type: shapeActionType,
 										shape: shape as IShape,
 									})
 								} catch (_error) {
@@ -558,7 +574,7 @@ export class XmlResponseParser {
 								try {
 									const shape = this.createGeoShape(attributes, 'x-box')
 									completedItems.push({
-										type: 'create-shape',
+										type: shapeActionType,
 										shape: shape as IShape,
 									})
 								} catch (_error) {
@@ -572,7 +588,7 @@ export class XmlResponseParser {
 								try {
 									const shape = this.createGeoShape(attributes, 'check-box')
 									completedItems.push({
-										type: 'create-shape',
+										type: shapeActionType,
 										shape: shape as IShape,
 									})
 								} catch (_error) {
@@ -586,7 +602,7 @@ export class XmlResponseParser {
 								try {
 									const shape = this.createGeoShape(attributes, 'heart')
 									completedItems.push({
-										type: 'create-shape',
+										type: shapeActionType,
 										shape: shape as IShape,
 									})
 								} catch (_error) {
@@ -600,7 +616,7 @@ export class XmlResponseParser {
 								try {
 									const shape = this.createGeoShape(attributes, 'cloud')
 									completedItems.push({
-										type: 'create-shape',
+										type: shapeActionType,
 										shape: shape as IShape,
 									})
 								} catch (_error) {
@@ -631,7 +647,7 @@ export class XmlResponseParser {
 								if (attributes.color) shape.color = attributes.color
 
 								completedItems.push({
-									type: 'create-shape',
+									type: shapeActionType,
 									shape: shape as IShape,
 								})
 								break
@@ -640,20 +656,22 @@ export class XmlResponseParser {
 								const attributes =
 									this.parseAttributesFromXmlTag<IXmlNoteShapeAttributes>(currentTag)
 
-								if (!attributes.id || !attributes.x || !attributes.y) {
+								if (!attributes.id) {
 									// console.warn(
 									// 	`Note shape missing required attributes. Received: ${JSON.stringify(attributes, null, 2)}`
 									// )
 									break
 								}
 
-								const shape: INoteShape = {
+								const shape: any = {
 									id: attributes.id,
 									type: 'note',
-									x: +attributes.x,
-									y: +attributes.y,
 									text: attributes.text || '',
 								}
+
+								// Only include x and y if they are provided
+								if (attributes.x !== undefined) shape.x = +attributes.x
+								if (attributes.y !== undefined) shape.y = +attributes.y
 
 								// Add optional attributes if present
 								if (attributes.color) shape.color = attributes.color
@@ -669,7 +687,7 @@ export class XmlResponseParser {
 								if (attributes.url) shape.url = attributes.url
 
 								completedItems.push({
-									type: 'create-shape',
+									type: shapeActionType,
 									shape: shape as IShape,
 								})
 								break
@@ -699,7 +717,7 @@ export class XmlResponseParser {
 								if (attributes.color) shape.color = attributes.color
 
 								completedItems.push({
-									type: 'create-shape',
+									type: shapeActionType,
 									shape: shape as IShape,
 								})
 								break
@@ -742,7 +760,7 @@ export class XmlResponseParser {
 								if (attributes.scale) shape.scale = +attributes.scale
 
 								completedItems.push({
-									type: 'create-shape',
+									type: shapeActionType,
 									shape: shape as IShape,
 								})
 								break
@@ -775,7 +793,7 @@ export class XmlResponseParser {
 								if (attributes.isPen !== undefined) shape.isPen = attributes.isPen === 'true'
 
 								completedItems.push({
-									type: 'create-shape',
+									type: shapeActionType,
 									shape: shape as IShape,
 								})
 								break
