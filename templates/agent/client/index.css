@@ -558,7 +558,7 @@ body {
 	margin: 0px 0px;
 	border-radius: 4px 0px 0px 0px;
 	color: var(--color-text-2);
-	max-height: 105px;
+	max-height: 88px;
 	overflow-y: auto;
 }
 
@@ -569,4 +569,17 @@ body {
 	font-size: 12px;
 	font-family: 'Inter', sans-serif;
 	font-weight: 400;
+}
+
+.agent-change-message-no-changes {
+	font-size: 12px;
+	font-family: 'Inter', sans-serif;
+	font-weight: 400;
+	font-style: italic;
+	height: 40px;
+	display: flex;
+	align-items: center;
+	justify-content: center;
+	color: var(--color-text-2);
+	background-color: var(--color-muted-2);
 }

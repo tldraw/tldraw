@@ -88,7 +88,11 @@ export function AgentChangeHistoryItems({
 			</div>
 
 			<ChangeIntents items={itemsInAgentChangeGroup} />
-			<TldrawViewer shapes={diffShapes} components={{ ShapeWrapper: DiffShapeWrapper }} />
+			{diffShapes.length > 0 ? (
+				<TldrawViewer shapes={diffShapes} components={{ ShapeWrapper: DiffShapeWrapper }} />
+			) : (
+				<div className="agent-change-message-no-changes">It stayed the same.</div>
+			)}
 		</div>
 	)
 }
