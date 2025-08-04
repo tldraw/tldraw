@@ -486,10 +486,10 @@ export function handleResponseItem(editor: Editor, item: IResponse[number]) {
 				break
 			}
 			case 'delete-shapes': {
-				const shapes = compact(
-					item.shapeIds.map((id: string) => editor.getShape(createShapeId(id)))
-				)
-				editor.deleteShapes(shapes)
+				for (const id of item.shapeIds) {
+					if (!editor.getShape(createShapeId(id))) console.error(`Shape ${id} not found`)
+					editor.deleteShape(createShapeId(id))
+				}
 				break
 			}
 		}
