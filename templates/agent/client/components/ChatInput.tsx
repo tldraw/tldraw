@@ -78,9 +78,7 @@ export function ChatInput({
 				onSubmit={(e) => {
 					e.preventDefault()
 					const shapes = editor.getSelectedShapes()
-					for (const shape of shapes) {
-						addToContext({ type: 'shape', shape, source: 'user' })
-					}
+					addToContext({ type: 'shapes', shapes, source: 'user' })
 					setInputValue('')
 					handleSubmit(e)
 				}}

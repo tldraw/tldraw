@@ -58,6 +58,18 @@ export class RoundedCoordinates extends TldrawAiTransform {
 					this.roundAndSaveProp(shape, 'h')
 					break
 				}
+				case 'shapes': {
+					const shapes = contextItem.shapes
+					for (const shape of shapes) {
+						const roundedX = Math.floor(shape.x)
+						const roundedY = Math.floor(shape.y)
+						this.setRoundingDiff(shape.id, 'x', roundedX - shape.x)
+						this.setRoundingDiff(shape.id, 'y', roundedY - shape.y)
+						shape.x = roundedX
+						shape.y = roundedY
+					}
+					break
+				}
 				case 'area': {
 					const bounds = contextItem.bounds
 					const roundedX = Math.floor(bounds.x)

@@ -106,8 +106,12 @@ class TargetShapeDragging extends StateNode {
 		})
 
 		if (!this.bounds) throw new Error('Bounds not set')
-		for (const shape of this.shapes) {
-			addToContext({ type: 'shape', shape, source: 'user' })
+		if (this.shapes.length <= 3) {
+			for (const shape of this.shapes) {
+				addToContext({ type: 'shape', shape, source: 'user' })
+			}
+		} else {
+			addToContext({ type: 'shapes', shapes: this.shapes, source: 'user' })
 		}
 		this.editor.setCurrentTool('select')
 	}

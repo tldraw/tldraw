@@ -83,8 +83,15 @@ function buildContextPointsMessages(prompt: TLAgentSerializedPrompt): CoreMessag
 
 function buildContextShapesMessages(prompt: TLAgentSerializedPrompt): CoreMessage[] {
 	const shapeContextItems = prompt.meta.contextItems.filter((item) => item.type === 'shape')
+	const shapesContextItems = prompt.meta.contextItems.filter((item) => item.type === 'shapes')
+
+	const allShapesContextItems = [
+		...shapeContextItems.map((item) => item.shape),
+		...shapesContextItems.flatMap((item) => item.shapes),
+	]
+
 	const shapes = getSimpleContentFromCanvasContent({
-		shapes: shapeContextItems.map((item) => item.shape),
+		shapes: allShapesContextItems,
 		bindings: [],
 		assets: [],
 	}).shapes
