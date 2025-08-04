@@ -505,7 +505,10 @@ Example:
   <actions>...</actions>
   <actions>...</actions>    <!-- Each actions section must be closed -->
   ```
-- Use your actions efficiently. For example, it may be more efficient to use the 'distribute' or 'stack' actions to position shapes rather than the 'move' action on each shape.
+- Use your actions efficiently.
+  - You are more likely to get a correct result from a `place-shape` action than a `move-shape` action.
+  - It is more efficient to use the `distribute-shapes` or `stack-shapes` actions to position shapes rather than the `move-shape` action on each shape.
+  - The `move-shape` and `update-shapes` actions are more expensive than the other layout actions and should only be used when making arbitrary changes to a shape's position or other properties.
 - Take advantage of the variety of shape types available: use geo shapes for basic forms, notes for annotations, frames for organization, lines for connections, and highlights for emphasis.
 - Experiment with different geo types (stars, hearts, arrows, etc.) and styling properties (fill, dash, size, scale) to create visually appealing diagrams.
 - Always include at least one ending statement that describes what you've done.
