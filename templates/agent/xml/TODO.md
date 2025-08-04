@@ -16,8 +16,8 @@ Currently only supports basic geo rectangles and text shapes. The following shap
 
 ### Advanced Shapes
 
-- [ ] **Draw/freehand shapes** - Add support for drawing/freehand shapes
-- [ ] **Image shapes** - Add image shape creation support (from URLs or base64)
+- [ ] **Draw/freehand shapes** - (BLOCKED) Add support for drawing/freehand shapes
+- [ ] **Image shapes** - (BLOCKED) Add image shape creation support (from URLs or base64)
 - [ ] **Embed shapes** - Add embed shape creation for external content (YouTube, Figma, etc.)
 
 ### Enhanced Geo Shapes
@@ -68,14 +68,13 @@ Currently supports: move, distribute, stack, align, label, place, delete. Add th
 - [ ] **Measurement actions** - Add measurement and calculation actions (get distance, area, center point)
 - [ ] **Shape queries** - Add shape query actions (find-shapes-by-type, find-overlapping-shapes, etc.)
 
-### Layout & Animation
+### Layout
 
 - [ ] **Advanced layout** - Add advanced layout actions (grid layout, radial layout, flowchart layout)
-- [ ] **Animation support** - Add animation/transition support for smooth shape movements
 
 ### System Improvements
 
-- [ ] **Undo/redo** - Add explicit undo/redo action support
+- [ ] **Undo/redo** - Add explicit mark/undo/redo action support
 - [ ] **Error handling** - Improve error handling with try-catch-continue semantics
 
 ## 📝 Implementation Notes
