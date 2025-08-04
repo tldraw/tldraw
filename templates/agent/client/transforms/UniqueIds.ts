@@ -1,7 +1,9 @@
 import { TLAiChange, TldrawAiTransform } from '@tldraw/ai'
 import { createBindingId, TLShapeId } from '@tldraw/tlschema'
 
-export class AutomaticIds extends TldrawAiTransform {
+export class UniqueIds extends TldrawAiTransform {
+	idMap = new Map<string, TLShapeId>()
+
 	override transformChange = (change: TLAiChange): TLAiChange => {
 		switch (change.type) {
 			case 'createShape': {
@@ -19,12 +21,27 @@ export class AutomaticIds extends TldrawAiTransform {
 				const { binding } = change
 				binding.id = createBindingId(binding.id)
 
+				if (binding.fromId) {
+					binding.fromId = this.idMap.get(binding.fromId) ?? binding.fromId
+				}
+				if (binding.toId) {
+					binding.toId = this.idMap.get(binding.toId) ?? binding.toId
+				}
+
 				return {
 					...change,
 					binding,
 				}
 			}
 			case 'updateBinding': {
+				const { binding } = change
+				if (binding.fromId) {
+					binding.fromId = this.idMap.get(binding.fromId) ?? binding.fromId
+				}
+				if (binding.toId) {
+					binding.toId = this.idMap.get(binding.toId) ?? binding.toId
+				}
+
 				return change
 			}
 			case 'deleteBinding': {
@@ -48,6 +65,8 @@ export class AutomaticIds extends TldrawAiTransform {
 				: `${id}-1`
 			existingShape = this.editor.getShape(id as TLShapeId)
 		}
+
+		this.idMap.set(key, id as TLShapeId)
 
 		return id as TLShapeId
 	}
