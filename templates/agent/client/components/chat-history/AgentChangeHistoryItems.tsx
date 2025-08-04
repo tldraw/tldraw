@@ -11,7 +11,7 @@ import {
 	useValue,
 } from 'tldraw'
 import { $chatHistoryItems } from '../../atoms/chatHistoryItems'
-import { AgentChangeHistoryItem } from '../../types/ChatHistoryItem'
+import { AGENT_CHANGE_TYPE_DEFINITIONS, AgentChangeHistoryItem } from '../../types/ChatHistoryItem'
 import TldrawViewer from './TldrawViewer'
 
 export function AgentChangeHistoryItems({
@@ -83,7 +83,36 @@ export function AgentChangeHistoryItems({
 					</>
 				)}
 			</div>
+
+			<ChangeIntents items={items} />
 			<TldrawViewer shapes={diffShapes} components={{ ShapeWrapper: DiffShapeWrapper }} />
+		</div>
+	)
+}
+
+function ChangeIntents({ items }: { items: AgentChangeHistoryItem[] }) {
+	let previousIntentMessage = ''
+	return (
+		<div className="agent-change-message-intent">
+			{items.map((item, i) => {
+				const change = item.change
+				const definition = AGENT_CHANGE_TYPE_DEFINITIONS[change.type]
+				if (!definition) return null
+				const icon = definition.icon
+				let intent = ''
+				if ('intent' in change) {
+					intent = change.intent
+				} else if ('description' in change) {
+					intent = change.description
+				}
+				if (intent === previousIntentMessage) return null
+				previousIntentMessage = intent
+				return (
+					<div className="agent-change-message-intent-item" key={'intent-' + i}>
+						<span className="agent-change-message-intent-item-icon">{icon}</span> {intent}
+					</div>
+				)
+			})}
 		</div>
 	)
 }

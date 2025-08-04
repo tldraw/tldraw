@@ -276,6 +276,44 @@ const SimpleScheduleSetMyViewEvent = z.object({
 })
 export type ISimpleScheduleSetMyViewEvent = z.infer<typeof SimpleScheduleSetMyViewEvent>
 
+const SimpleDistributeEvent = z.object({
+	_type: z.literal('distribute'),
+	direction: z.enum(['horizontal', 'vertical']),
+	intent: z.string(),
+	shapeIds: z.array(z.string()),
+})
+export type ISimpleDistributeEvent = z.infer<typeof SimpleDistributeEvent>
+
+const SimpleStackEvent = z.object({
+	_type: z.literal('stack'),
+	direction: z.enum(['vertical', 'horizontal']),
+	gap: z.number(),
+	intent: z.string(),
+	shapeIds: z.array(z.string()),
+})
+export type ISimpleStackEvent = z.infer<typeof SimpleStackEvent>
+
+const SimpleAlignEvent = z.object({
+	_type: z.literal('align'),
+	alignment: z.enum(['top', 'bottom', 'left', 'right', 'center-horizontal', 'center-vertical']),
+	gap: z.number(),
+	intent: z.string(),
+	shapeIds: z.array(z.string()),
+})
+export type ISimpleAlignEvent = z.infer<typeof SimpleAlignEvent>
+
+const SimplePlaceEvent = z.object({
+	_type: z.literal('place'),
+	intent: z.string(),
+	shapeId: z.string(),
+	referenceShapeId: z.string(),
+	side: z.enum(['top', 'bottom', 'left', 'right']),
+	sideOffset: z.number(),
+	align: z.enum(['start', 'center', 'end']),
+	alignOffset: z.number(),
+})
+export type ISimplePlaceEvent = z.infer<typeof SimplePlaceEvent>
+
 export const SimpleEvent = z.union([
 	SimpleThinkEvent,
 	SimpleCreateEvent,
@@ -283,6 +321,10 @@ export const SimpleEvent = z.union([
 	SimpleDeleteEvent,
 	SimpleMoveEvent,
 	SimpleLabelEvent,
+	SimpleDistributeEvent,
+	SimpleStackEvent,
+	SimpleAlignEvent,
+	SimplePlaceEvent,
 	SimpleScheduleReviewEvent,
 	SimpleScheduleSetMyViewEvent,
 ])

@@ -1,10 +1,11 @@
-import { TLAiChange } from '@tldraw/ai'
 import { RecordsDiff, TLRecord } from 'tldraw'
 import { BrainIcon } from '../icons/BrainIcon'
+import { CursorIcon } from '../icons/CursorIcon'
 import { EyeIcon } from '../icons/EyeIcon'
 import { PencilIcon } from '../icons/PencilIcon'
 import { RefreshIcon } from '../icons/RefreshIcon'
 import { SearchIcon } from '../icons/SearchIcon'
+import { TargetIcon } from '../icons/TargetIcon'
 import { TrashIcon } from '../icons/TrashIcon'
 import { ContextItem } from './ContextItem'
 import { Streaming, TLAgentChange } from './TLAgentChange'
@@ -40,7 +41,7 @@ export interface AgentMessageHistoryItem {
 export interface AgentChangeHistoryItem {
 	type: 'agent-change'
 	diff: RecordsDiff<TLRecord>
-	change: TLAiChange
+	change: TLAgentChange
 	status: 'progress' | 'done' | 'cancelled'
 	acceptance: 'accepted' | 'rejected' | 'pending'
 }
@@ -67,6 +68,10 @@ export interface AgentActionHistoryItem {
 export interface AgentActionDefinition {
 	icon: React.ReactNode
 	message: { progress: string; done: string; cancelled: string }
+}
+
+export interface AgentChangeDefinition {
+	icon: React.ReactNode
 }
 
 export const ACTION_HISTORY_ITEM_DEFINITIONS: Record<
@@ -120,5 +125,40 @@ export const ACTION_HISTORY_ITEM_DEFINITIONS: Record<
 			done: 'Set my view: ',
 			cancelled: 'Setting my view cancelled. ',
 		},
+	},
+}
+
+export const AGENT_CHANGE_TYPE_DEFINITIONS: Partial<
+	Record<TLAgentChange['type'], AgentChangeDefinition>
+> = {
+	distribute: {
+		icon: <CursorIcon />,
+	},
+	stack: {
+		icon: <CursorIcon />,
+	},
+	align: {
+		icon: <CursorIcon />,
+	},
+	place: {
+		icon: <TargetIcon />,
+	},
+	createShape: {
+		icon: <PencilIcon />,
+	},
+	updateShape: {
+		icon: <CursorIcon />,
+	},
+	deleteShape: {
+		icon: <TrashIcon />,
+	},
+	createBinding: {
+		icon: <PencilIcon />,
+	},
+	updateBinding: {
+		icon: <CursorIcon />,
+	},
+	deleteBinding: {
+		icon: <TrashIcon />,
 	},
 }

@@ -22,7 +22,7 @@ const STATIC_TLDRAWAI_OPTIONS: TldrawAiOptions = {
 
 	// A function that calls the backend and return generated changes.
 	// See worker/do/OpenAiService.ts#generate for the backend part.
-	generate: async ({ prompt, signal }) => {
+	generate: async ({ editor, prompt, signal }) => {
 		const res = await fetch('/generate', {
 			method: 'POST',
 			body: JSON.stringify(prompt),
@@ -45,14 +45,14 @@ const STATIC_TLDRAWAI_OPTIONS: TldrawAiOptions = {
 		}
 
 		for (const change of agentChanges) {
-			applyAgentChange({ ...change, complete: true })
+			applyAgentChange({ editor, change: { ...change, complete: true } })
 		}
 		return getAiChangesFromAgentChanges(agentChanges)
 	},
 	// A function similar to `generate` but that will stream changes from
 	// the AI as they are ready. See worker/do/OpenAiService.ts#stream for
 	// the backend part.
-	stream: async function* ({ prompt, signal }) {
+	stream: async function* ({ editor, prompt, signal }) {
 		const res = await fetch('/stream', {
 			method: 'POST',
 			body: JSON.stringify(prompt),
@@ -92,7 +92,7 @@ const STATIC_TLDRAWAI_OPTIONS: TldrawAiOptions = {
 
 							// Otherwise, it's a regular agent change
 							const agentChange: Streaming<TLAgentChange> = data
-							applyAgentChange(agentChange)
+							applyAgentChange({ editor, change: agentChange })
 
 							const aiChange = getAiChangeFromAgentChange(agentChange)
 							if (aiChange) {

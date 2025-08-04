@@ -551,3 +551,22 @@ body {
 		stroke-dashoffset: -2000;
 	}
 }
+
+.agent-change-message-intent {
+	background-color: var(--color-muted-1);
+	padding: 6px 8px;
+	margin: 0px 0px;
+	border-radius: 4px 0px 0px 0px;
+	color: var(--color-text-2);
+	max-height: 105px;
+	overflow-y: auto;
+}
+
+.agent-change-message-intent-item {
+	display: flex;
+	align-items: flex-start;
+	gap: 4px;
+	font-size: 12px;
+	font-family: 'Inter', sans-serif;
+	font-weight: 400;
+}

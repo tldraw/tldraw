@@ -44,6 +44,22 @@ export function getTldrawAgentChangesFromSimpleEvents(
 		case 'label': {
 			return getTldrawAiChangesFromSimpleLabelEvent(prompt, event)
 		}
+		case 'distribute': {
+			const { _type, ...change } = event
+			return [{ ...change, type: _type }]
+		}
+		case 'stack': {
+			const { _type, ...change } = event
+			return [{ ...change, type: _type }]
+		}
+		case 'align': {
+			const { _type, ...change } = event
+			return [{ ...change, type: _type }]
+		}
+		case 'place': {
+			const { _type, ...change } = event
+			return [{ ...change, type: _type }]
+		}
 		case 'message': {
 			const { _type, ...change } = event
 			return [{ ...change, type: _type }]

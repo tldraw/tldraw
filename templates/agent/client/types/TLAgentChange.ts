@@ -1,5 +1,11 @@
 import { TLAiChange } from '@tldraw/ai'
-import { ISimpleEvent } from '../../worker/simple/schema'
+import {
+	ISimpleAlignEvent,
+	ISimpleDistributeEvent,
+	ISimpleEvent,
+	ISimplePlaceEvent,
+	ISimpleStackEvent,
+} from '../../worker/simple/schema'
 
 export type Streaming<T> = (Partial<T> & { complete: false }) | (T & { complete: true })
 
@@ -10,6 +16,10 @@ export type TLAgentChange =
 	| TLAgentScheduleReviewChange
 	| TLAgentScheduleSetMyViewChange
 	| TLAgentRawChange
+	| TLAgentDistributeChange
+	| TLAgentStackChange
+	| TLAgentAlignChange
+	| TLAgentPlaceChange
 
 export interface TLAgentMessageChange {
 	type: 'message'
@@ -42,4 +52,20 @@ export interface TLAgentScheduleSetMyViewChange {
 export interface TLAgentRawChange {
 	type: 'raw'
 	event: Streaming<ISimpleEvent>
+}
+
+export interface TLAgentDistributeChange extends Omit<ISimpleDistributeEvent, '_type'> {
+	type: 'distribute'
+}
+
+export interface TLAgentStackChange extends Omit<ISimpleStackEvent, '_type'> {
+	type: 'stack'
+}
+
+export interface TLAgentAlignChange extends Omit<ISimpleAlignEvent, '_type'> {
+	type: 'align'
+}
+
+export interface TLAgentPlaceChange extends Omit<ISimplePlaceEvent, '_type'> {
+	type: 'place'
 }

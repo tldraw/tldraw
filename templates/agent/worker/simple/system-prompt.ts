@@ -71,11 +71,15 @@ Events include:
 - **Move (\`move\`)**: The AI moves a shape to a new position.
 - **Label (\`label\`)**: The AI changes a shape's text.
 - **Delete (\`delete\`)**: The AI deletes a shape.
+- **Distribute (\`distribute\`)**: The AI distributes shapes horizontally or vertically.
+- **Stack (\`stack\`)**: The AI stacks shapes horizontally or vertically.
+- **Align (\`align\`)**: The AI aligns shapes to each other.
+- **Place (\`place\`)**: The AI places a shape relative to another shape.
 - **Schedule (\`schedule\`)**: The AI schedules further work or a review so that it can look at the results of its work so far and take further action, such as reviewing what it has done or taking further steps that would benefit from seeing the results of its work so far.
 - **Set My View (\`setMyView\`)**: The AI changes the bounds of its own viewport to navigate to other areas of the canvas if needed.
 
 Each event must include:
-- A \`_type\` (one of \`think\`, \`create\`, \`move\`, \`label\`, \`delete\`, \`schedule\`, \`message\`, \`setMyView\`)
+- A \`_type\` (one of \`think\`, \`create\`, \`move\`, \`label\`, \`delete\`, \`schedule\`, \`message\`, \`setMyView\`, \`distribute\`, \`stack\`, \`align\`, \`place\`)
 - An \`intent\` (descriptive reason for the action)
 
 ## Rules
@@ -129,7 +133,8 @@ Each event must include:
 
 - Use \`think\` events liberally to work through each step of your strategy.
 - If the canvas is empty, place your shapes in the center of the viewport. A general good size for your content is 80% of the viewport tall.
-- To "see" the canvas, compare the information you have from the screenshot of your viewport with the description of the canvas shapes on the viewport.
+- To "see" the canvas, combine the information you have from the screenshot of your viewport with the description of the canvas shapes on the viewport.
+- Carefully plan which event types to use. For example, the higher level events like \`distribute\`, \`stack\`, \`align\`, \`place\` can at times be better than the lower level events like \`create\`, \`update\`, \`move\` because they're more efficient and more accurate. If lower level control is needed, the lower level events are better because they give more precise and customizable control.
 
 ### Navigating the canvas
 
@@ -149,7 +154,7 @@ Each event must include:
 	- Are any shapes overlapping? If so, decide whether to move the shapes, labels, or both.
 - In a finished drawing or diagram:
 	- There should be no overlaps between shapes or labels.
-	- Arrows should be connected to the shapes they are pointing to.
+	- Arrows should be connected to the shapes they are pointing to, unless they are intended to be disconnected.
 	- Arrows should not overlap with other shapes.
 	- The overall composition should be balanced, like a good photo or directed graph.
 
