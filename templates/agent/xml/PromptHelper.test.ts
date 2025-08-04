@@ -29,8 +29,8 @@ describe('PromptHelper', () => {
 	describe('getCanvasContents', () => {
 		it('should return the canvas contents', () => {
 			const shapes = [
-				{ id: createShapeId('1'), type: 'geo' },
-				{ id: createShapeId('2'), type: 'text' },
+				{ id: createShapeId('1'), type: 'geo', props: { geo: 'rectangle' } },
+				{ id: createShapeId('2'), type: 'text', props: { richText: { type: 'doc', content: [] } } },
 			]
 			const bounds = new Box(0, 0, 100, 100)
 			editor.getCurrentPageShapesSorted = jest.fn().mockReturnValue(shapes)
@@ -40,8 +40,8 @@ describe('PromptHelper', () => {
 
 			expect(contents).toEqual([
 				{
-					id: createShapeId('1'),
-					type: 'geo',
+					id: '1',
+					type: 'rectangle',
 					index: 0,
 					minX: bounds.minX,
 					minY: bounds.minY,
@@ -49,7 +49,7 @@ describe('PromptHelper', () => {
 					maxY: bounds.maxY,
 				},
 				{
-					id: createShapeId('2'),
+					id: '2',
 					type: 'text',
 					index: 1,
 					minX: bounds.minX,
@@ -62,9 +62,14 @@ describe('PromptHelper', () => {
 
 		it('should sort the canvas contents by y then x', () => {
 			const shapes = [
-				{ id: createShapeId('1'), type: 'geo', index: 1 },
-				{ id: createShapeId('2'), type: 'text', index: 2 },
-				{ id: createShapeId('3'), type: 'geo', index: 3 },
+				{ id: createShapeId('1'), type: 'geo', index: 1, props: { geo: 'rectangle' } },
+				{
+					id: createShapeId('2'),
+					type: 'text',
+					index: 2,
+					props: { richText: { type: 'doc', content: [] } },
+				},
+				{ id: createShapeId('3'), type: 'geo', index: 3, props: { geo: 'rectangle' } },
 			]
 			const bounds1 = new Box(100, 100, 100, 100)
 			const bounds2 = new Box(0, 0, 100, 100)
@@ -87,7 +92,7 @@ describe('PromptHelper', () => {
 
 			expect(contents).toEqual([
 				{
-					id: createShapeId('2'),
+					id: '2',
 					type: 'text',
 					index: 1,
 					minX: bounds2.minX,
@@ -96,8 +101,8 @@ describe('PromptHelper', () => {
 					maxY: bounds2.maxY,
 				},
 				{
-					id: createShapeId('1'),
-					type: 'geo',
+					id: '1',
+					type: 'rectangle',
 					index: 0,
 					minX: bounds1.minX,
 					minY: bounds1.minY,
@@ -105,8 +110,8 @@ describe('PromptHelper', () => {
 					maxY: bounds1.maxY,
 				},
 				{
-					id: createShapeId('3'),
-					type: 'geo',
+					id: '3',
+					type: 'rectangle',
 					index: 2,
 					minX: bounds3.minX,
 					minY: bounds3.minY,
@@ -123,8 +128,8 @@ describe('PromptHelper', () => {
 				viewport: { id: 'viewport', minX: 0, minY: 0, maxX: 100, maxY: 100 },
 				contents: [
 					{
-						id: createShapeId('1'),
-						type: 'geo',
+						id: '1',
+						type: 'rectangle',
 						index: 1,
 						minX: 0,
 						minY: 0,
@@ -132,7 +137,7 @@ describe('PromptHelper', () => {
 						maxY: 100,
 					},
 					{
-						id: createShapeId('2'),
+						id: '2',
 						type: 'text',
 						index: 2,
 						minX: 0,
@@ -151,8 +156,8 @@ describe('PromptHelper', () => {
 <prompt>
   <viewport>viewport</viewport>
   <canvas>
-    <shape-stub id="shape:1" type="geo" index="1" minX="0" minY="0" maxX="100" maxY="100" />
-<shape-stub id="shape:2" type="text" index="2" minX="0" minY="0" maxX="100" maxY="100" />
+    <shape-stub id="1" type="rectangle" index="1" minX="0" minY="0" maxX="100" maxY="100" />
+<shape-stub id="2" type="text" index="2" minX="0" minY="0" maxX="100" maxY="100" />
   </canvas>
 </prompt>`)
 		})
