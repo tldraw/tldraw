@@ -85,35 +85,109 @@ function buildContextShapesMessages(prompt: TLAgentSerializedPrompt): CoreMessag
 	const shapeContextItems = prompt.meta.contextItems.filter((item) => item.type === 'shape')
 	const shapesContextItems = prompt.meta.contextItems.filter((item) => item.type === 'shapes')
 
-	const allShapesContextItems = [
-		...shapeContextItems.map((item) => item.shape),
-		...shapesContextItems.flatMap((item) => item.shapes),
-	]
+	const userSelectedShapes = prompt.meta.userSelectedShapes
 
-	const shapes = getSimpleContentFromCanvasContent({
-		shapes: allShapesContextItems,
-		bindings: [],
-		assets: [],
-	}).shapes
+	const messages: CoreMessage[] = []
 
-	if (shapes.length === 0) {
-		return []
+	let hasHandledSelectedShapes = false
+
+	// Handle individual shape context items - group them all into one message
+	if (shapeContextItems.length > 0) {
+		const individualShapes = getSimpleContentFromCanvasContent({
+			shapes: shapeContextItems.map((item) => item.shape),
+			bindings: [],
+			assets: [],
+		}).shapes
+
+		if (individualShapes.length > 0) {
+			const userSelectedShapeIds = new Set(prompt.meta.userSelectedShapes.map((shape) => shape.id))
+
+			const content: UserContent = [
+				{
+					type: 'text',
+					text: `The user has specifically brought your attention to these ${individualShapes.length} shapes individually in this request. Make sure to focus your task on these shapes where applicable:`,
+				},
+			]
+
+			for (const shape of individualShapes) {
+				const isSelected = userSelectedShapeIds.has(shape.shapeId as any)
+				if (isSelected) {
+					hasHandledSelectedShapes = true
+				}
+				const shapeText = isSelected
+					? `The user has this shape selected: ${JSON.stringify(shape, null, 2)}`
+					: JSON.stringify(shape, null, 2)
+
+				content.push({
+					type: 'text',
+					text: shapeText,
+				})
+			}
+
+			messages.push({ role: 'user', content })
+		}
 	}
 
-	const content: UserContent = []
-	content.push({
-		type: 'text',
-		text: 'The user has specifically brought your attention to the following shapes in this request. Make sure to focus your task on these shapes:',
-	})
+	// Handle groups of shapes context items - each group gets its own message
+	for (const contextItem of shapesContextItems) {
+		const shapes = getSimpleContentFromCanvasContent({
+			shapes: contextItem.shapes,
+			bindings: [],
+			assets: [],
+		}).shapes
 
-	for (const shape of shapes) {
-		content.push({
-			type: 'text',
-			text: JSON.stringify(shape, null, 2),
+		if (shapes.length > 0) {
+			// Check if user selection matches exactly with this group of shapes
+			const userSelectedShapeIds = new Set(prompt.meta.userSelectedShapes.map((shape) => shape.id))
+			const groupShapeIds = new Set(shapes.map((shape) => shape.shapeId))
+
+			const isExactGroupMatch =
+				userSelectedShapeIds.size === groupShapeIds.size &&
+				Array.from(userSelectedShapeIds).every((id) => groupShapeIds.has(id))
+
+			if (isExactGroupMatch) {
+				hasHandledSelectedShapes = true
+			}
+
+			const content: UserContent = [
+				{
+					type: 'text',
+					text: isExactGroupMatch
+						? `The user has selected this group of ${shapes.length} shapes and brought it to your attention. Focus your task on these specific shapes:`
+						: `The user has specifically brought your attention to the following group of ${shapes.length} shapes in this request. Make sure to focus your task on these shapes where applicable:`,
+				},
+			]
+
+			content.push({
+				type: 'text',
+				text: shapes.map((shape) => JSON.stringify(shape, null, 2)).join('\n'),
+			})
+
+			messages.push({ role: 'user', content })
+		}
+	}
+
+	if (!hasHandledSelectedShapes && userSelectedShapes.length > 0) {
+		const simeUserSelectedShapes = getSimpleContentFromCanvasContent({
+			shapes: userSelectedShapes,
+			bindings: [],
+			assets: [],
+		}).shapes
+
+		messages.push({
+			role: 'user',
+			content: [
+				{
+					type: 'text',
+					text:
+						'The user has selected these shapes. Focus your task on these shapes where applicable:\n' +
+						simeUserSelectedShapes.map((shape) => JSON.stringify(shape, null, 2)).join('\n'),
+				},
+			],
 		})
 	}
 
-	return [{ role: 'user', content }]
+	return messages
 }
 
 function buildHistoryMessages(prompt: TLAgentSerializedPrompt): CoreMessage[] {
@@ -354,7 +428,7 @@ function buildUserMessage(prompt: TLAgentSerializedPrompt): CoreMessage {
 		content.push(
 			{
 				type: 'text',
-				text: 'Here is a screenshot of your current viewport on the canvas. Compare this against the textual description of the canvas. It is not a reference image.', // It's what the user can see.",
+				text: 'Here is a screenshot of your current viewport on the canvas. It is what you can see right at this moment. It is not a reference image.',
 			},
 			{
 				type: 'image',

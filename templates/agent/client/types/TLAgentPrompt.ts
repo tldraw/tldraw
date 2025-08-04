@@ -18,5 +18,6 @@ export interface TLAgentPromptMeta {
 	contextItems: ContextItem[]
 	currentPageShapes: TLShape[]
 	currentUserViewportBounds: BoxModel
+	userSelectedShapes: TLShape[]
 	type: ScheduledRequest['type']
 }

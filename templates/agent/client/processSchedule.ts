@@ -41,6 +41,7 @@ export async function processSchedule({
 			contextItems: request.contextItems,
 			currentPageShapes: editor.getCurrentPageShapesSorted().map((v) => structuredClone(v)),
 			currentUserViewportBounds: editor.getViewportPageBounds(),
+			userSelectedShapes: editor.getSelectedShapes().map((v) => structuredClone(v)),
 			type: request.type,
 		}
 

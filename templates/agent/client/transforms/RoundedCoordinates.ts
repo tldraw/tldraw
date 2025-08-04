@@ -19,7 +19,7 @@ export class RoundedCoordinates extends TldrawAiTransform {
 
 	override transformPrompt = (input: TLAgentPrompt) => {
 		const { canvasContent, meta } = input
-		const { currentPageShapes, currentUserViewportBounds, contextItems } = meta
+		const { currentPageShapes, currentUserViewportBounds, contextItems, userSelectedShapes } = meta
 
 		// Save the original coordinates of all shapes
 		for (const shape of canvasContent.shapes) {
@@ -36,6 +36,15 @@ export class RoundedCoordinates extends TldrawAiTransform {
 		}
 
 		for (const shape of currentPageShapes) {
+			const roundedX = Math.floor(shape.x)
+			const roundedY = Math.floor(shape.y)
+			shape.x = roundedX
+			shape.y = roundedY
+			this.roundProp(shape, 'w')
+			this.roundProp(shape, 'h')
+		}
+
+		for (const shape of userSelectedShapes) {
 			const roundedX = Math.floor(shape.x)
 			const roundedY = Math.floor(shape.y)
 			shape.x = roundedX
@@ -67,6 +76,8 @@ export class RoundedCoordinates extends TldrawAiTransform {
 						this.setRoundingDiff(shape.id, 'y', roundedY - shape.y)
 						shape.x = roundedX
 						shape.y = roundedY
+						this.roundAndSaveProp(shape, 'w')
+						this.roundAndSaveProp(shape, 'h')
 					}
 					break
 				}
