@@ -6,6 +6,7 @@ import {
 	structuredClone,
 } from '@tldraw/utils'
 import { UnknownRecord } from './BaseRecord'
+import { ImmutableSet } from './ImmutableSet'
 import { RecordType } from './RecordType'
 import { SerializedStore, Store, StoreSnapshot } from './Store'
 import {
@@ -173,7 +174,7 @@ export class StoreSchema<R extends UnknownRecord, P = unknown> {
 			return upgradeResult
 		}
 		const schema = upgradeResult.value
-		const sequenceIdsToInclude = new Set(
+		let sequenceIdsToInclude = ImmutableSet.create(
 			// start with any shared sequences
 			Object.keys(schema.sequences).filter((sequenceId) => this.migrations[sequenceId])
 		)
@@ -181,18 +182,18 @@ export class StoreSchema<R extends UnknownRecord, P = unknown> {
 		// also include any sequences that are not in the persisted schema but are marked as postHoc
 		for (const sequenceId in this.migrations) {
 			if (schema.sequences[sequenceId] === undefined && this.migrations[sequenceId].retroactive) {
-				sequenceIdsToInclude.add(sequenceId)
+				sequenceIdsToInclude = sequenceIdsToInclude.add(sequenceId)
 			}
 		}
 
-		if (sequenceIdsToInclude.size === 0) {
+		if (sequenceIdsToInclude.size() === 0) {
 			const result = Result.ok([])
 			// Cache the empty result
 			this.migrationCache.set(persistedSchema, result)
 			return result
 		}
 
-		const allMigrationsToInclude = new Set<MigrationId>()
+		let allMigrationsToInclude = ImmutableSet.create<MigrationId>()
 		for (const sequenceId of sequenceIdsToInclude) {
 			const theirVersion = schema.sequences[sequenceId]
 			if (
@@ -200,7 +201,7 @@ export class StoreSchema<R extends UnknownRecord, P = unknown> {
 				theirVersion === 0
 			) {
 				for (const migration of this.migrations[sequenceId].sequence) {
-					allMigrationsToInclude.add(migration.id)
+					allMigrationsToInclude = allMigrationsToInclude.add(migration.id)
 				}
 				continue
 			}
@@ -214,7 +215,7 @@ export class StoreSchema<R extends UnknownRecord, P = unknown> {
 				return result
 			}
 			for (const migration of this.migrations[sequenceId].sequence.slice(idx + 1)) {
-				allMigrationsToInclude.add(migration.id)
+				allMigrationsToInclude = allMigrationsToInclude.add(migration.id)
 			}
 		}
 

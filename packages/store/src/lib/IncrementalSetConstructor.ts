@@ -1,4 +1,12 @@
+import { ImmutableSet } from './ImmutableSet'
 import { CollectionDiff } from './Store'
+
+/**
+ * Helper function to create a properly typed ImmutableSet
+ */
+function createImmutableSet<T>(items: Iterable<T>): ImmutableSet<T> {
+	return ImmutableSet.create(items)
+}
 
 /**
  * A class that can be used to incrementally construct a set of records.
@@ -11,7 +19,7 @@ export class IncrementalSetConstructor<T> {
 	 *
 	 * @internal
 	 */
-	private nextValue?: Set<T>
+	private nextValue?: ImmutableSet<T>
 
 	/**
 	 * The diff of the set.
@@ -27,7 +35,7 @@ export class IncrementalSetConstructor<T> {
 		 * @internal
 		 * @readonly
 		 */
-		private readonly previousValue: Set<T>
+		private readonly previousValue: ImmutableSet<T>
 	) {}
 
 	/**
@@ -36,8 +44,8 @@ export class IncrementalSetConstructor<T> {
 	 * @public
 	 */
 	public get() {
-		const numRemoved = this.diff?.removed?.size ?? 0
-		const numAdded = this.diff?.added?.size ?? 0
+		const numRemoved = this.diff?.removed?.size() ?? 0
+		const numAdded = this.diff?.added?.size() ?? 0
 		if (numRemoved === 0 && numAdded === 0) {
 			return undefined
 		}
@@ -52,15 +60,16 @@ export class IncrementalSetConstructor<T> {
 	 * @internal
 	 */
 	private _add(item: T, wasAlreadyPresent: boolean) {
-		this.nextValue ??= new Set(this.previousValue)
-		this.nextValue.add(item)
+		this.nextValue ??= this.previousValue
+		this.nextValue = this.nextValue.add(item)
 
 		this.diff ??= {}
 		if (wasAlreadyPresent) {
-			this.diff.removed?.delete(item)
+			if (this.diff.removed) {
+				this.diff.removed = this.diff.removed.delete(item)
+			}
 		} else {
-			this.diff.added ??= new Set()
-			this.diff.added.add(item)
+			this.diff.added = this.diff.added?.add(item) ?? createImmutableSet([item])
 		}
 	}
 
@@ -93,17 +102,18 @@ export class IncrementalSetConstructor<T> {
 	 * @internal
 	 */
 	private _remove(item: T, wasAlreadyPresent: boolean) {
-		this.nextValue ??= new Set(this.previousValue)
-		this.nextValue.delete(item)
+		this.nextValue ??= this.previousValue
+		this.nextValue = this.nextValue.delete(item)
 
 		this.diff ??= {}
 		if (wasAlreadyPresent) {
 			// it was in the original set, so we need to add it to the removed diff
-			this.diff.removed ??= new Set()
-			this.diff.removed.add(item)
+			this.diff.removed = this.diff.removed?.add(item) ?? createImmutableSet([item])
 		} else {
 			// if it was added during the lifetime of this set constructor, we need to remove it from the added diff
-			this.diff.added?.delete(item)
+			if (this.diff.added) {
+				this.diff.added = this.diff.added.delete(item)
+			}
 		}
 	}
 

@@ -1,5 +1,6 @@
 import { assert, objectMapEntries } from '@tldraw/utils'
 import { UnknownRecord } from './BaseRecord'
+import { ImmutableSet } from './ImmutableSet'
 import { SerializedStore } from './Store'
 
 let didWarn = false
@@ -202,13 +203,13 @@ export interface MigrationSequence {
 export function sortMigrations(migrations: Migration[]): Migration[] {
 	// we do a topological sort using dependsOn and implicit dependencies between migrations in the same sequence
 	const byId = new Map(migrations.map((m) => [m.id, m]))
-	const isProcessing = new Set<MigrationId>()
+	let isProcessing = ImmutableSet.create<MigrationId>()
 
 	const result: Migration[] = []
 
 	function process(m: Migration) {
 		assert(!isProcessing.has(m.id), `Circular dependency in migrations: ${m.id}`)
-		isProcessing.add(m.id)
+		isProcessing = isProcessing.add(m.id)
 
 		const { version, sequenceId } = parseMigrationId(m.id)
 		const parent = byId.get(`${sequenceId}/${version - 1}`)

@@ -266,6 +266,10 @@ export class ImmutableMap<K, V> {
 		return this.__ownerID ? this : this.__ensureOwner(new OwnerID())
 	}
 
+	asImmutable(): ImmutableMap<K, V> {
+		return this.__ownerID ? this.__ensureOwner(new OwnerID()) : this
+	}
+
 	[Symbol.iterator](): Iterator<[K, V]> {
 		return this.entries()[Symbol.iterator]()
 	}

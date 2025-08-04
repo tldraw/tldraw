@@ -1,5 +1,6 @@
 import { Expand, objectMapEntries, structuredClone, uniqueId } from '@tldraw/utils'
 import { IdOf, UnknownRecord } from './BaseRecord'
+import { ImmutableSet } from './ImmutableSet'
 import { StoreValidator } from './Store'
 
 export type RecordTypeRecord<R extends RecordType<any, any>> = ReturnType<R['create']>
@@ -28,7 +29,7 @@ export class RecordType<
 	readonly createDefaultProperties: () => Exclude<Omit<R, 'id' | 'typeName'>, RequiredProperties>
 	readonly validator: StoreValidator<R>
 	readonly ephemeralKeys?: { readonly [K in Exclude<keyof R, 'id' | 'typeName'>]: boolean }
-	readonly ephemeralKeySet: ReadonlySet<string>
+	readonly ephemeralKeySet: ImmutableSet<string>
 	readonly scope: RecordScope
 
 	constructor(
@@ -55,10 +56,10 @@ export class RecordType<
 		this.scope = config.scope ?? 'document'
 		this.ephemeralKeys = config.ephemeralKeys
 
-		const ephemeralKeySet = new Set<string>()
+		let ephemeralKeySet = ImmutableSet.create<string>()
 		if (config.ephemeralKeys) {
 			for (const [key, isEphemeral] of objectMapEntries(config.ephemeralKeys)) {
-				if (isEphemeral) ephemeralKeySet.add(key)
+				if (isEphemeral) ephemeralKeySet = ephemeralKeySet.add(key)
 			}
 		}
 		this.ephemeralKeySet = ephemeralKeySet

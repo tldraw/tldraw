@@ -1,3 +1,4 @@
+import { ImmutableSet } from './ImmutableSet'
 import { CollectionDiff } from './Store'
 
 /**
@@ -5,15 +6,15 @@ import { CollectionDiff } from './Store'
  *
  * @param sets - The sets to combine.
  */
-export function intersectSets<T>(sets: Set<T>[]) {
-	if (sets.length === 0) return new Set<T>()
+export function intersectSets<T>(sets: ImmutableSet<T>[]) {
+	if (sets.length === 0) return ImmutableSet.create<T>()
 	const first = sets[0]
 	const rest = sets.slice(1)
-	const result = new Set<T>()
+	let result = ImmutableSet.create<T>()
 
 	for (const val of first) {
 		if (rest.every((set) => set.has(val))) {
-			result.add(val)
+			result = result.add(val)
 		}
 	}
 
@@ -26,20 +27,21 @@ export function intersectSets<T>(sets: Set<T>[]) {
  * @param prev - The previous set
  * @param next - The next set
  */
-export function diffSets<T>(prev: Set<T>, next: Set<T>): CollectionDiff<T> | undefined {
+export function diffSets<T>(
+	prev: ImmutableSet<T>,
+	next: ImmutableSet<T>
+): CollectionDiff<T> | undefined {
 	const result: CollectionDiff<T> = {}
 
 	for (const val of next) {
 		if (!prev.has(val)) {
-			result.added ??= new Set()
-			result.added.add(val)
+			result.added = result.added?.add(val) ?? ImmutableSet.create([val])
 		}
 	}
 
 	for (const val of prev) {
 		if (!next.has(val)) {
-			result.removed ??= new Set()
-			result.removed.add(val)
+			result.removed = result.removed?.add(val) ?? ImmutableSet.create([val])
 		}
 	}
 

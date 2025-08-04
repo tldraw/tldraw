@@ -278,14 +278,28 @@ describe('Store', () => {
 		store.put([Author.create({ name: 'J.R.R Tolkein', id: Author.createId('tolkein') })])
 
 		expect(lastIdDiff).toMatchInlineSnapshot(`
-		      [
-		        {
-		          "added": Set {
-		            "author:tolkein",
-		          },
+		[
+		  {
+		    "added": ImmutableSet {
+		      "map": ImmutableMap {
+		        "__altered": false,
+		        "__hash": undefined,
+		        "__ownerID": undefined,
+		        "_root": ArrayMapNode {
+		          "entries": [
+		            [
+		              "author:tolkein",
+		              true,
+		            ],
+		          ],
+		          "ownerID": OwnerID {},
 		        },
-		      ]
-	    `)
+		        "size": 1,
+		      },
+		    },
+		  },
+		]
+	`)
 
 		transact(() => {
 			store.put([Author.create({ name: 'James McAvoy', id: Author.createId('mcavoy') })])
@@ -294,18 +308,49 @@ describe('Store', () => {
 		})
 
 		expect(lastIdDiff).toMatchInlineSnapshot(`
-		      [
-		        {
-		          "added": Set {
-		            "author:mcavoy",
-		            "author:cassidy",
-		          },
-		          "removed": Set {
-		            "author:tolkein",
-		          },
+		[
+		  {
+		    "added": ImmutableSet {
+		      "map": ImmutableMap {
+		        "__altered": false,
+		        "__hash": undefined,
+		        "__ownerID": undefined,
+		        "_root": ArrayMapNode {
+		          "entries": [
+		            [
+		              "author:mcavoy",
+		              true,
+		            ],
+		            [
+		              "author:cassidy",
+		              true,
+		            ],
+		          ],
+		          "ownerID": undefined,
 		        },
-		      ]
-	    `)
+		        "size": 2,
+		      },
+		    },
+		    "removed": ImmutableSet {
+		      "map": ImmutableMap {
+		        "__altered": false,
+		        "__hash": undefined,
+		        "__ownerID": undefined,
+		        "_root": ArrayMapNode {
+		          "entries": [
+		            [
+		              "author:tolkein",
+		              true,
+		            ],
+		          ],
+		          "ownerID": OwnerID {},
+		        },
+		        "size": 1,
+		      },
+		    },
+		  },
+		]
+	`)
 	})
 
 	it('supports listening for changes to the whole store', async () => {

@@ -13,6 +13,7 @@ import {
 } from '@tldraw/utils'
 import { AtomMap } from './AtomMap'
 import { IdOf, RecordId, UnknownRecord } from './BaseRecord'
+import { ImmutableSet } from './ImmutableSet'
 import { RecordScope } from './RecordType'
 import { RecordsDiff, squashRecordDiffs } from './RecordsDiff'
 import { StoreQueries } from './StoreQueries'
@@ -30,8 +31,8 @@ export type RecordFromId<K extends RecordId<UnknownRecord>> =
  * @public
  */
 export interface CollectionDiff<T> {
-	added?: Set<T>
-	removed?: Set<T>
+	added?: ImmutableSet<T>
+	removed?: ImmutableSet<T>
 }
 
 /** @public */
@@ -182,7 +183,7 @@ export class Store<R extends UnknownRecord = UnknownRecord, Props = unknown> {
 
 	readonly props: Props
 
-	public readonly scopedTypes: { readonly [K in RecordScope]: ReadonlySet<R['typeName']> }
+	public readonly scopedTypes: { readonly [K in RecordScope]: ImmutableSet<R['typeName']> }
 
 	public readonly sideEffects = new StoreSideEffects<R>(this)
 
@@ -228,17 +229,17 @@ export class Store<R extends UnknownRecord = UnknownRecord, Props = unknown> {
 			{ scheduleEffect: (cb) => (this.cancelHistoryReactor = throttleToNextFrame(cb)) }
 		)
 		this.scopedTypes = {
-			document: new Set(
+			document: ImmutableSet.create(
 				objectMapValues(this.schema.types)
 					.filter((t) => t.scope === 'document')
 					.map((t) => t.typeName)
 			),
-			session: new Set(
+			session: ImmutableSet.create(
 				objectMapValues(this.schema.types)
 					.filter((t) => t.scope === 'session')
 					.map((t) => t.typeName)
 			),
-			presence: new Set(
+			presence: ImmutableSet.create(
 				objectMapValues(this.schema.types)
 					.filter((t) => t.scope === 'presence')
 					.map((t) => t.typeName)
@@ -418,7 +419,7 @@ export class Store<R extends UnknownRecord = UnknownRecord, Props = unknown> {
 	 */
 	remove(ids: IdOf<R>[]): void {
 		this.atomic(() => {
-			const toDelete = new Set<IdOf<R>>(ids)
+			let toDelete = ImmutableSet.create<IdOf<R>>(ids)
 			const source = this.isMergingRemoteChanges ? 'remote' : 'user'
 
 			if (this.sideEffects.isEnabled()) {
@@ -427,7 +428,7 @@ export class Store<R extends UnknownRecord = UnknownRecord, Props = unknown> {
 					if (!record) continue
 
 					if (this.sideEffects.handleBeforeDelete(record, source) === false) {
-						toDelete.delete(id)
+						toDelete = toDelete.delete(id)
 					}
 				}
 			}
@@ -708,7 +709,7 @@ export class Store<R extends UnknownRecord = UnknownRecord, Props = unknown> {
 
 			for (const [_from, to] of objectMapValues(diff.updated)) {
 				const type = this.schema.getType(to.typeName)
-				if (ignoreEphemeralKeys && type.ephemeralKeySet.size) {
+				if (ignoreEphemeralKeys && type.ephemeralKeySet.size()) {
 					const existing = this.get(to.id)
 					if (!existing) {
 						toPut.push(to)
