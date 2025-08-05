@@ -1,6 +1,7 @@
 import { TLAiChange } from '@tldraw/ai'
 import {
 	ISimpleAlignEvent,
+	ISimpleDeleteEvent,
 	ISimpleDistributeEvent,
 	ISimpleEvent,
 	ISimpleLabelEvent,
@@ -24,6 +25,7 @@ export type TLAgentChange =
 	| TLAgentPlaceChange
 	| TLAgentLabelChange
 	| TLAgentMoveChange
+	| TLAgentDeleteChange
 
 export interface TLAgentMessageChange {
 	type: 'message'
@@ -80,4 +82,8 @@ export interface TLAgentLabelChange extends Omit<ISimpleLabelEvent, '_type'> {
 
 export interface TLAgentMoveChange extends Omit<ISimpleMoveEvent, '_type'> {
 	type: 'move'
+}
+
+export interface TLAgentDeleteChange extends Omit<ISimpleDeleteEvent, '_type'> {
+	type: 'delete'
 }

@@ -233,6 +233,20 @@ export function applyAgentChange({
 			})
 			return
 		}
+		case 'delete': {
+			if (!change.complete) return
+			const diff = editor.store.extractingChanges(() => {
+				editor.deleteShape(change.shapeId as TLShapeId)
+			})
+			createOrUpdateHistoryItem({
+				type: 'agent-change',
+				diff,
+				change,
+				status: 'done',
+				acceptance: 'pending',
+			})
+			return
+		}
 		default: {
 			createOrUpdateHistoryItem({
 				type: 'agent-raw',

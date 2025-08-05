@@ -144,6 +144,7 @@ export const AGENT_CHANGE_TYPE_DEFINITIONS: Record<
 	deleteBinding: { icon: <TrashIcon /> },
 	label: { icon: <PencilIcon /> },
 	move: { icon: <CursorIcon /> },
+	delete: { icon: <TrashIcon /> },
 	review: null,
 	setMyView: null,
 	message: null,
