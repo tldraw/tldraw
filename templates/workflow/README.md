@@ -5,7 +5,7 @@
 	</picture>
 </div>
 
-This repo contains a starter-kit for making a workflow builder type application using [tldraw](https://github.com/tldraw/tldraw).
+This repo contains a starter-kit for making a workflow type application using [tldraw](https://github.com/tldraw/tldraw).
 
 ## Local development
 
