@@ -1,33 +1,35 @@
-import { useState } from 'react'
 import {
-	TldrawUiMenuContextProvider,
 	TldrawUiPopover,
 	TldrawUiPopoverContent,
 	TldrawUiPopoverTrigger,
 	TldrawUiToolbar,
 	TldrawUiToolbarButton,
 	tlmenus,
+	ToolbarItem,
 	useEditor,
+	useValue,
 } from 'tldraw'
-import { AddNode } from '../nodes/types/AddNode'
-import { DivideNode } from '../nodes/types/DivideNode'
-import { MultiplyNode } from '../nodes/types/MultiplyNode'
-import { SubtractNode } from '../nodes/types/SubtractNode'
-import { CreateNodeToolbarButton } from './CreateNodeToobarButton'
 import { MathematicalIcon } from './icons/MathematicalIcon'
+
+export const MATH_MENU_ID = 'toolbar mathematical'
 
 // Custom toolbar item that provides mathematical operation nodeslity
 export function MathematicalToolbarItem() {
 	const id = 'mathematical'
 	const labelStr = 'Math'
-	const popoverId = 'toolbar mathematical'
-	const [isOpen, setIsOpen] = useState(false)
 	const editor = useEditor()
-
-	const onClose = () => setIsOpen(false)
+	const isOpen = useValue('isOpen', () => tlmenus.isMenuOpen(MATH_MENU_ID, editor.contextId), [
+		editor,
+	])
 
 	return (
-		<TldrawUiPopover id={popoverId} open={isOpen} onOpenChange={setIsOpen}>
+		<TldrawUiPopover
+			id={MATH_MENU_ID}
+			open={isOpen}
+			onOpenChange={() => {
+				tlmenus.addOpenMenu(MATH_MENU_ID, editor.contextId)
+			}}
+		>
 			<TldrawUiPopoverTrigger>
 				<TldrawUiToolbarButton
 					aria-label={labelStr}
@@ -40,23 +42,11 @@ export function MathematicalToolbarItem() {
 				</TldrawUiToolbarButton>
 			</TldrawUiPopoverTrigger>
 			<TldrawUiPopoverContent side="right" align="center">
-				<TldrawUiToolbar
-					className="tlui-buttons__grid"
-					data-testid="tools.math-options"
-					label={labelStr}
-					id={`${id}_math`}
-					onClick={() => {
-						// Close the menu when a tool is selected
-						tlmenus.deleteOpenMenu(popoverId, editor.contextId)
-						setIsOpen(false)
-					}}
-				>
-					<TldrawUiMenuContextProvider type="toolbar-overflow" sourceId="toolbar">
-						<CreateNodeToolbarButton definition={AddNode} onClose={onClose} type="menu" />
-						<CreateNodeToolbarButton definition={SubtractNode} onClose={onClose} type="menu" />
-						<CreateNodeToolbarButton definition={MultiplyNode} onClose={onClose} type="menu" />
-						<CreateNodeToolbarButton definition={DivideNode} onClose={onClose} type="menu" />
-					</TldrawUiMenuContextProvider>
+				<TldrawUiToolbar label={labelStr} id={`${id}_math`}>
+					<ToolbarItem tool="node-add" />
+					<ToolbarItem tool="node-subtract" />
+					<ToolbarItem tool="node-multiply" />
+					<ToolbarItem tool="node-divide" />
 				</TldrawUiToolbar>
 			</TldrawUiPopoverContent>
 		</TldrawUiPopover>

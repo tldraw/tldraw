@@ -4,13 +4,14 @@ import {
 	DefaultStylePanel,
 	TLComponents,
 	Tldraw,
+	TldrawOptions,
 	TldrawUiToolbar,
 	useEditor,
 	useValue,
 } from 'tldraw'
 import { OnCanvasComponentPicker } from './components/OnCanvasComponentPicker.tsx'
 import { WorkflowRegions } from './components/WorkflowRegions.tsx'
-import { WorkflowToolbar } from './components/WorkflowToolbar.tsx'
+import { overrides, WorkflowToolbar } from './components/WorkflowToolbar.tsx'
 import { ConnectionBindingUtil } from './connection/ConnectionBindingUtil'
 import { ConnectionShapeUtil } from './connection/ConnectionShapeUtil'
 import { keepConnectionsAtBottom } from './connection/keepConnectionsAtBottom'
@@ -31,18 +32,17 @@ const components: TLComponents = {
 		</>
 	),
 	Toolbar: () => (
-		<div style={{ display: 'flex', alignItems: 'flex-end', flexGrow: 2 }}>
+		<>
 			<WorkflowToolbar />
-			<div style={{ flex: 2 }} />
-			<div className="tlui-toolbar">
-				<TldrawUiToolbar className="tlui-toolbar__tools tlui-buttons__horizontal" label="Actions">
+			<div className="tlui-main-toolbar tlui-main-toolbar--horizontal">
+				<TldrawUiToolbar className="tlui-main-toolbar__tools" label="Actions">
 					<DefaultQuickActions />
 					<DefaultActionsMenu />
 				</TldrawUiToolbar>
 			</div>
-			<div style={{ flex: 2 }} />
-		</div>
+		</>
 	),
+
 	MenuPanel: () => null,
 	StylePanel: () => {
 		const editor = useEditor()
@@ -53,11 +53,17 @@ const components: TLComponents = {
 	},
 }
 
+const options: Partial<TldrawOptions> = {
+	actionShortcutsLocation: 'menu',
+}
+
 function App() {
 	return (
 		<div style={{ position: 'fixed', inset: 0 }}>
 			<Tldraw
 				persistenceKey="workflow"
+				options={options}
+				overrides={overrides}
 				shapeUtils={shapeUtils}
 				bindingUtils={bindingUtils}
 				components={components}
