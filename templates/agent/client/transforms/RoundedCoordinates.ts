@@ -1,11 +1,12 @@
-import { TLAiChange, TldrawAiTransform } from '@tldraw/ai'
+import { TLAiChange } from '@tldraw/ai'
 import { Box, TLShape, TLShapePartial } from 'tldraw'
-import { TLAgentPrompt } from '../types/TLAgentPrompt'
+import { TLAgentPrompt } from '../useTldrawAgent'
+import { TldrawAgentTransform } from './TldrawAgentTransform'
 
 // This transform does *not* change the offset of the shapes, it only rounds positions to the nearest integer.
 // This is important in the agent usecase because the agent was sometimes 'leaking' coordinates into chat history via thoughts and messages,
 // which confused the model later on after we changed the coordinates of the shapes.
-export class RoundedCoordinates extends TldrawAiTransform {
+export class RoundedCoordinates extends TldrawAgentTransform {
 	diff: Record<string, number> = {}
 	bounds = {} as Box
 

@@ -4,11 +4,11 @@ import {
 	ACTION_HISTORY_ITEM_DEFINITIONS,
 	ChatHistoryItem,
 } from '../../../client/types/ChatHistoryItem'
-import { TLAgentSerializedPrompt } from '../../../client/types/TLAgentPrompt'
+import { TLAgentPrompt } from '../../../client/useTldrawAgent'
 import { getSimpleContentFromCanvasContent } from '../../simple/getSimpleContentFromCanvasContent'
 import { getSimplePeripheralContentFromCanvasContent } from '../../simple/getSimplePeripheralContentFromCanvasContent'
 
-export function buildMessages(prompt: TLAgentSerializedPrompt): CoreMessage[] {
+export function buildMessages(prompt: TLAgentPrompt): CoreMessage[] {
 	const messages: CoreMessage[] = []
 
 	const historyMessages = buildHistoryMessages(prompt)
@@ -26,7 +26,7 @@ export function buildMessages(prompt: TLAgentSerializedPrompt): CoreMessage[] {
 	return messages
 }
 
-function buildContextAreasMessages(prompt: TLAgentSerializedPrompt): CoreMessage[] {
+function buildContextAreasMessages(prompt: TLAgentPrompt): CoreMessage[] {
 	const review = prompt.meta.type === 'review'
 
 	const areaContextItems = prompt.meta.contextItems.filter((item) => item.type === 'area')
@@ -58,7 +58,7 @@ function buildContextAreasMessages(prompt: TLAgentSerializedPrompt): CoreMessage
 	return [{ role: 'user', content }]
 }
 
-function buildContextPointsMessages(prompt: TLAgentSerializedPrompt): CoreMessage[] {
+function buildContextPointsMessages(prompt: TLAgentPrompt): CoreMessage[] {
 	const pointContextItems = prompt.meta.contextItems.filter((item) => item.type === 'point')
 	const points = pointContextItems.map((item) => item.point)
 	if (points.length === 0) {
@@ -81,7 +81,7 @@ function buildContextPointsMessages(prompt: TLAgentSerializedPrompt): CoreMessag
 	return [{ role: 'user', content }]
 }
 
-function buildContextShapesMessages(prompt: TLAgentSerializedPrompt): CoreMessage[] {
+function buildContextShapesMessages(prompt: TLAgentPrompt): CoreMessage[] {
 	const shapeContextItems = prompt.meta.contextItems.filter((item) => item.type === 'shape')
 	const shapesContextItems = prompt.meta.contextItems.filter((item) => item.type === 'shapes')
 
@@ -96,7 +96,6 @@ function buildContextShapesMessages(prompt: TLAgentSerializedPrompt): CoreMessag
 		const individualShapes = getSimpleContentFromCanvasContent({
 			shapes: shapeContextItems.map((item) => item.shape),
 			bindings: [],
-			assets: [],
 		}).shapes
 
 		if (individualShapes.length > 0) {
@@ -133,7 +132,6 @@ function buildContextShapesMessages(prompt: TLAgentSerializedPrompt): CoreMessag
 		const shapes = getSimpleContentFromCanvasContent({
 			shapes: contextItem.shapes,
 			bindings: [],
-			assets: [],
 		}).shapes
 
 		if (shapes.length > 0) {
@@ -171,7 +169,6 @@ function buildContextShapesMessages(prompt: TLAgentSerializedPrompt): CoreMessag
 		const simeUserSelectedShapes = getSimpleContentFromCanvasContent({
 			shapes: userSelectedShapes,
 			bindings: [],
-			assets: [],
 		}).shapes
 
 		messages.push({
@@ -190,7 +187,7 @@ function buildContextShapesMessages(prompt: TLAgentSerializedPrompt): CoreMessag
 	return messages
 }
 
-function buildHistoryMessages(prompt: TLAgentSerializedPrompt): CoreMessage[] {
+function buildHistoryMessages(prompt: TLAgentPrompt): CoreMessage[] {
 	const historyItems = prompt.meta.historyItems
 	const messages: CoreMessage[] = []
 
@@ -226,7 +223,6 @@ function buildHistoryItemMessage(item: ChatHistoryItem): CoreMessage | null {
 							const simpleShape = getSimpleContentFromCanvasContent({
 								shapes: [contextItem.shape],
 								bindings: [],
-								assets: [],
 							}).shapes[0]
 							content.push({
 								type: 'text',
@@ -238,7 +234,6 @@ function buildHistoryItemMessage(item: ChatHistoryItem): CoreMessage | null {
 							const simpleShapes = getSimpleContentFromCanvasContent({
 								shapes: contextItem.shapes,
 								bindings: [],
-								assets: [],
 							}).shapes
 							content.push({
 								type: 'text',
@@ -322,7 +317,7 @@ function buildHistoryItemMessage(item: ChatHistoryItem): CoreMessage | null {
 /**
  * Build the user messages.
  */
-function buildUserMessage(prompt: TLAgentSerializedPrompt): CoreMessage {
+function buildUserMessage(prompt: TLAgentPrompt): CoreMessage {
 	const content: UserContent = []
 
 	// Add agent's current viewport

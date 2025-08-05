@@ -5,8 +5,7 @@ import { $chatHistoryItems } from './atoms/chatHistoryItems'
 import { $pendingContextItems } from './atoms/contextItems'
 import { $requestsSchedule } from './atoms/requestsSchedule'
 import { $contextBoundsHighlight } from './components/highlights/ContextBoundsHighlights'
-import { TLAgentPromptMeta } from './types/TLAgentPrompt'
-import { TldrawAgent } from './useTldrawAgent'
+import { TLAgentPromptMeta, TldrawAgent } from './useTldrawAgent'
 
 export async function processSchedule({
 	editor,

@@ -1,11 +1,11 @@
-import { TLAiContent } from '@tldraw/ai'
 import { TLShape } from 'tldraw'
+import { TLAgentContent } from '../../client/useTldrawAgent'
 import { getSimpleContentFromCanvasContent } from './getSimpleContentFromCanvasContent'
 import { ISimplePeripheralShape } from './schema'
 
 export function getSimplePeripheralContentFromCanvasContent(
 	wholePageShapes: TLShape[],
-	viewportContent: TLAiContent
+	viewportContent: TLAgentContent
 ): {
 	shapes: ISimplePeripheralShape[]
 } {
@@ -13,7 +13,6 @@ export function getSimplePeripheralContentFromCanvasContent(
 	const simpleWholePageContent = getSimpleContentFromCanvasContent({
 		shapes: wholePageShapes,
 		bindings: [],
-		assets: [],
 	})
 
 	const wholePageLessViewportContent = simpleWholePageContent.shapes.filter(

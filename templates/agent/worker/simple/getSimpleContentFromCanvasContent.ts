@@ -1,4 +1,3 @@
-import { TLAiContent } from '@tldraw/ai'
 import {
 	TLArrowBinding,
 	TLArrowShape,
@@ -7,10 +6,11 @@ import {
 	TLNoteShape,
 	TLTextShape,
 } from 'tldraw'
+import { TLAgentContent } from '../../client/useTldrawAgent'
 import { shapeFillToSimpleFill } from './color'
 import { ISimpleShape } from './schema'
 
-export function getSimpleContentFromCanvasContent(content: TLAiContent): {
+export function getSimpleContentFromCanvasContent(content: TLAgentContent): {
 	shapes: ISimpleShape[]
 } {
 	return {

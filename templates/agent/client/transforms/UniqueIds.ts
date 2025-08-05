@@ -1,10 +1,11 @@
-import { TLAiChange, TldrawAiTransform } from '@tldraw/ai'
 import { createBindingId, TLShapeId } from '@tldraw/tlschema'
+import { TLAgentChange } from '../types/TLAgentChange'
+import { TldrawAgentTransform } from './TldrawAgentTransform'
 
-export class UniqueIds extends TldrawAiTransform {
+export class UniqueIds extends TldrawAgentTransform {
 	idMap = new Map<string, TLShapeId>()
 
-	override transformChange = (change: TLAiChange): TLAiChange => {
+	override transformChange = (change: TLAgentChange): TLAgentChange => {
 		switch (change.type) {
 			case 'createShape': {
 				const { shape } = change

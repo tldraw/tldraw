@@ -7,7 +7,7 @@ import {
 import { createOpenAI, OpenAIProvider } from '@ai-sdk/openai'
 import { generateObject, LanguageModel, streamObject } from 'ai'
 import { Streaming, TLAgentChange } from '../../../client/types/TLAgentChange'
-import { TLAgentSerializedPrompt } from '../../../client/types/TLAgentPrompt'
+import { TLAgentPrompt } from '../../../client/useTldrawAgent'
 import { getTLAgentModelDefinition, TLAgentModelName } from '../../models'
 import { getTldrawAgentChangesFromSimpleEvents } from '../../simple/getTldrawAgentChangesFromSimpleEvents'
 import { IModelResponse, ISimpleEvent, ModelResponse } from '../../simple/schema'
@@ -34,7 +34,7 @@ export class VercelAiService extends TldrawAgentBaseService {
 		return this[provider](modelDefinition.id)
 	}
 
-	async generate(prompt: TLAgentSerializedPrompt): Promise<TLAgentChange[]> {
+	async generate(prompt: TLAgentPrompt): Promise<TLAgentChange[]> {
 		try {
 			const model = this.getModel(prompt.meta.modelName)
 			const events = await generateEventsVercel(model, prompt)
@@ -49,7 +49,7 @@ export class VercelAiService extends TldrawAgentBaseService {
 		}
 	}
 
-	async *stream(prompt: TLAgentSerializedPrompt): AsyncGenerator<Streaming<TLAgentChange>> {
+	async *stream(prompt: TLAgentPrompt): AsyncGenerator<Streaming<TLAgentChange>> {
 		try {
 			const model = this.getModel(prompt.meta.modelName)
 			for await (const event of streamEventsVercel(model, prompt)) {
@@ -66,7 +66,7 @@ export class VercelAiService extends TldrawAgentBaseService {
 
 async function* streamEventsVercel(
 	model: LanguageModel,
-	prompt: TLAgentSerializedPrompt
+	prompt: TLAgentPrompt
 ): AsyncGenerator<ISimpleEvent & { complete: boolean }> {
 	const geminiThinkingBudget = model.modelId === 'gemini-2.5-pro' ? 128 : 0
 
@@ -129,7 +129,7 @@ async function* streamEventsVercel(
 
 async function generateEventsVercel(
 	model: LanguageModel,
-	prompt: TLAgentSerializedPrompt
+	prompt: TLAgentPrompt
 ): Promise<(ISimpleEvent & { complete: boolean })[]> {
 	const geminiThinkingBudget = model.modelId === 'gemini-2.5-pro' ? 128 : 0
 
