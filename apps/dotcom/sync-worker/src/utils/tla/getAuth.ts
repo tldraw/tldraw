@@ -63,6 +63,7 @@ export async function requireWriteAccessToFile(
 		const file = await db
 			.selectFrom('file')
 			.select('ownerId')
+			.select('owningGroupId')
 			.select('shared')
 			.select('sharedLinkType')
 			.where('id', '=', roomId)
@@ -75,6 +76,20 @@ export async function requireWriteAccessToFile(
 		// If the user is the owner of the file, they have write access
 		if (file.ownerId === auth.userId) {
 			return
+		}
+
+		// If the file is owned by a group, check if user is a member
+		if (file.owningGroupId) {
+			const groupMember = await db
+				.selectFrom('group_user')
+				.select('role')
+				.where('groupId', '=', file.owningGroupId)
+				.where('userId', '=', auth.userId)
+				.executeTakeFirst()
+
+			if (groupMember) {
+				return
+			}
 		}
 
 		// If the file is not shared, the user does not have write access

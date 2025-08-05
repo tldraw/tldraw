@@ -12,6 +12,7 @@ import {
 } from 'tldraw'
 import { routes } from '../../../../routeDefs'
 import { useApp } from '../../../hooks/useAppState'
+import { useCanUpdateFile } from '../../../hooks/useCanUpdateFile'
 import { useIsFileOwner } from '../../../hooks/useIsFileOwner'
 import { useFileSidebarFocusContext } from '../../../providers/FileInputFocusProvider'
 import { useTldrawAppUiEvents } from '../../../utils/app-ui-events'
@@ -45,7 +46,6 @@ export function TlaSidebarFileLink({ item, testId }: { item: RecentFile; testId:
 	const intl = useIntl()
 	const { fileSlug } = useParams<{ fileSlug: string }>()
 	const { fileId } = item
-	const isOwnFile = useIsFileOwner(fileId)
 	const isActive = fileSlug === fileId
 	const fileName = useValue('file name', () => app.getFileName(fileId), [fileId, app])
 	const isMobile = getIsCoarsePointer()
@@ -77,7 +77,6 @@ export function TlaSidebarFileLink({ item, testId }: { item: RecentFile; testId:
 					fileName={fileName}
 					testId={testId}
 					isActive={isActive}
-					isOwnFile={isOwnFile}
 					href={routes.tlaFile(fileId)}
 					onClose={() => setIsRenaming(false)}
 					isRenaming={isRenaming}
@@ -110,7 +109,6 @@ export function TlaSidebarFileLinkInner({
 	testId,
 	fileId,
 	isActive,
-	isOwnFile,
 	// owner,
 	fileName,
 	href,
@@ -121,7 +119,6 @@ export function TlaSidebarFileLinkInner({
 	fileId: string
 	testId: string | number
 	isActive: boolean
-	isOwnFile: boolean
 	fileName: string
 	href: string
 	isRenaming: boolean
@@ -133,6 +130,9 @@ export function TlaSidebarFileLinkInner({
 	const app = useApp()
 	const focusCtx = useFileSidebarFocusContext()
 	const isSidebarOpenMobile = useIsSidebarOpenMobile()
+
+	const canUpdateFile = useCanUpdateFile(fileId)
+	const isOwnFile = useIsFileOwner(fileId)
 
 	useEffect(() => {
 		// on mount, trigger rename action if this is a new file.
@@ -169,7 +169,7 @@ export function TlaSidebarFileLinkInner({
 			data-element="file-link"
 			data-testid={testId}
 			data-is-own-file={isOwnFile}
-			onDoubleClick={isOwnFile ? handleRenameAction : undefined}
+			onDoubleClick={canUpdateFile ? handleRenameAction : undefined}
 			// We use this id to scroll the active file link into view when creating or deleting files.
 			id={isActive ? ACTIVE_FILE_LINK_ID : undefined}
 			role="listitem"
@@ -230,6 +230,8 @@ function GuestBadge({ file, href }: { file: TlaFile; href: string }) {
 		[navigate, href]
 	)
 
+	const ownedByGroup = !!file.owningGroupId
+
 	return (
 		<div className={styles.sidebarFileListItemGuestBadge} data-testid={testId}>
 			<TlaTooltipRoot disableHoverableContent>
@@ -239,14 +241,17 @@ function GuestBadge({ file, href }: { file: TlaFile; href: string }) {
 					onClick={handleToolTipClick}
 					className={styles.sidebarFileListItemGuestBadgeTrigger}
 				>
-					<TlaIcon icon="group" className="tlui-guest-icon" />
+					<TlaIcon icon={'group'} className="tlui-guest-icon" />
 				</TlaTooltipTrigger>
 				<TlaTooltipPortal container={container}>
 					<TlaTooltipContent
 						// this is also needed to prevent the tooltip from closing when clicking the badge
 						onPointerDownOutside={preventDefault}
 					>
-						{ownerName ? (
+						{ownerName && ownedByGroup ? (
+							// <F defaultMessage={`In group {ownerName}`} values={{ ownerName }} />
+							`In group ${ownerName}`
+						) : ownerName ? (
 							<F defaultMessage={`Shared by {ownerName}`} values={{ ownerName }} />
 						) : (
 							<F defaultMessage="Shared with you" />

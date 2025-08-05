@@ -1,9 +1,13 @@
 import {
 	TlaFile,
 	TlaFileState,
+	TlaGroup,
+	TlaGroupFile,
+	TlaGroupUser,
 	TlaRow,
 	TlaUser,
 	TlaUserMutationNumber,
+	TlaUserPresence,
 	ZTable,
 } from '@tldraw/dotcom-shared'
 import { exhaustiveSwitchError } from '@tldraw/utils'
@@ -39,7 +43,7 @@ export function getTopics(row: TlaRow, event: ReplicationEvent): Topic[] {
 		case 'file': {
 			const file = row as TlaFile
 			// File events notify both the file topic AND the file owner's user topic
-			return [`file:${file.id}`, `user:${file.ownerId}`]
+			return [`file:${file.id}`]
 		}
 		case 'file_state': {
 			const fileState = row as TlaFileState
@@ -47,6 +51,14 @@ export function getTopics(row: TlaRow, event: ReplicationEvent): Topic[] {
 		}
 		case 'user_mutation_number':
 			return [`user:${(row as any as TlaUserMutationNumber).userId}`]
+		case 'group':
+			return [`group:${(row as TlaGroup).id}`]
+		case 'group_user':
+			return [`group:${(row as TlaGroupUser).groupId}`, `user:${(row as TlaGroupUser).userId}`]
+		case 'user_presence':
+			return [`file:${(row as TlaUserPresence).fileId}`]
+		case 'group_file':
+			return [`group:${(row as TlaGroupFile).groupId}`, `file:${(row as TlaGroupFile).fileId}`]
 		default: {
 			exhaustiveSwitchError(event.table)
 			return [] // just in case

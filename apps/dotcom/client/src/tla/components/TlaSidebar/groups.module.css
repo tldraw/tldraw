@@ -1,0 +1,91 @@
+.groupsSection {
+	padding: 8px 0;
+}
+
+.groupsTitle {
+	font-size: 12px;
+	font-weight: 600;
+	color: var(--tla-color-text-3);
+	padding: 4px 8px;
+}
+
+.group {
+	padding: 4px 8px;
+	display: flex;
+	flex-direction: column;
+	gap: 4px;
+}
+
+.groupHeader {
+	display: flex;
+	align-items: center;
+	gap: 8px;
+	padding: 4px;
+	border-radius: 4px;
+}
+
+.groupHeader:hover {
+	background-color: var(--tla-color-hover-1);
+}
+
+.groupName {
+	flex: 1;
+	font-size: 13px;
+}
+
+.membersButton {
+	background: none;
+	border: none;
+	padding: 4px 8px;
+	border-radius: 4px;
+	font-size: 12px;
+	cursor: pointer;
+	color: var(--tla-color-text-3);
+}
+
+.membersButton:hover {
+	background-color: var(--tla-color-hover-2);
+	color: var(--tla-color-text-1);
+}
+
+.fileItem {
+	display: flex;
+	align-items: center;
+	gap: 8px;
+	padding: 4px 8px;
+	border-left: 1px solid var(--tla-color-border);
+	position: relative;
+}
+
+.fileItem:hover {
+	background-color: var(--tla-color-hover-1);
+}
+
+.fileName {
+	font-size: 13px;
+	flex: 1;
+}
+
+.presenceBadges {
+	display: flex;
+	align-items: center;
+	margin-left: auto;
+}
+
+.presenceBadge {
+	position: relative;
+}
+
+.presenceBadge:not(:first-child) {
+	margin-left: -4px; /* Creates overlap between badges */
+}
+
+.fileButton {
+	position: absolute;
+	inset: 0;
+	background: none;
+	border: none;
+	cursor: pointer;
+	width: 100%;
+	height: 100%;
+}

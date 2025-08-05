@@ -12,7 +12,7 @@ import {
 	schema,
 } from '@tldraw/dotcom-shared'
 import { TLSyncErrorCloseEventCode, TLSyncErrorCloseEventReason } from '@tldraw/sync-core'
-import { ExecutionQueue, assert, assertExists, mapObjectMapValues, sleep } from '@tldraw/utils'
+import { ExecutionQueue, assert, mapObjectMapValues, sleep } from '@tldraw/utils'
 import { createSentry } from '@tldraw/worker-shared'
 import { DurableObject } from 'cloudflare:workers'
 import { IRequest, Router } from 'itty-router'
@@ -166,7 +166,7 @@ export class TLUserDurableObject extends DurableObject<Environment> {
 	private makeQuery(client: PoolClient, signal: AbortSignal): SchemaQuery<TlaSchema> {
 		return mapObjectMapValues(
 			schema.tables,
-			(tableName) => new ServerQuery(signal, client, true, tableName) as any
+			(tableName) => new ServerQuery(signal, client, false, tableName) as any
 		)
 	}
 
@@ -311,7 +311,6 @@ export class TLUserDurableObject extends DurableObject<Environment> {
 
 	private async rejectMutation(socket: WebSocket, mutationId: string, errorCode: ZErrorCode) {
 		this.assertCache()
-		assertExists(this.sockets.get(socket), 'Socket not found')
 		this.logEvent({ type: 'reject_mutation', id: this.userId! })
 		this.cache.store.rejectMutation(mutationId)
 		this.cache.mutations = this.cache.mutations.filter((m) => m.mutationId !== mutationId)
@@ -328,6 +327,7 @@ export class TLUserDurableObject extends DurableObject<Environment> {
 	private pool: Pool
 
 	private async _doMutate(msg: ZClientSentMessage) {
+		assert(msg.type === 'mutator', 'Invalid message type')
 		this.assertCache()
 		const client = await this.pool.connect()
 
@@ -411,6 +411,7 @@ export class TLUserDurableObject extends DurableObject<Environment> {
 		}
 		this.log.debug('mutation', this.userId, msg)
 		try {
+			assert(msg.type === 'mutator', 'Invalid message type')
 			// we connect to pg via a pooler, so in the case that the pool is exhausted
 			// we need to retry the connection. (also in the case that a neon branch is asleep apparently?)
 			await retryOnConnectionFailure(

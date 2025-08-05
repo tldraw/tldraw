@@ -95,6 +95,7 @@ export const TlaSidebar = memo(function TlaSidebar() {
 				<div className={styles.sidebarContent}>
 					<TlaSidebarRecentFiles />
 				</div>
+
 				<div className={styles.sidebarBottomArea}>
 					<TlaSidebarCookieConsent />
 					<div className={styles.sidebarBottomRow}>
