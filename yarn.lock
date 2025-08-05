@@ -28514,9 +28514,9 @@ __metadata:
   languageName: unknown
   linkType: soft
 
-"tldraw-workflow-builder@workspace:templates/workflow-builder":
+"tldraw-workflow@workspace:templates/workflow":
   version: 0.0.0-use.local
-  resolution: "tldraw-workflow-builder@workspace:templates/workflow-builder"
+  resolution: "tldraw-workflow@workspace:templates/workflow"
   dependencies:
     "@types/react": "npm:^18.3.18"
     "@types/react-dom": "npm:^18.3.5"

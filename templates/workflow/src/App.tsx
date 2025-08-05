@@ -57,7 +57,7 @@ function App() {
 	return (
 		<div style={{ position: 'fixed', inset: 0 }}>
 			<Tldraw
-				persistenceKey="workflow-builder"
+				persistenceKey="workflow"
 				shapeUtils={shapeUtils}
 				bindingUtils={bindingUtils}
 				components={components}
