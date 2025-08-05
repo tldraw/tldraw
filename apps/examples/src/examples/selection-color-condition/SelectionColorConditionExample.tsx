@@ -1,6 +1,5 @@
-import { Tldraw, react } from 'tldraw'
+import { TLGeoShape, Tldraw, react } from 'tldraw'
 import 'tldraw/tldraw.css'
-import './selection-color-condition.css'
 
 // There's a guide at the bottom of this file!
 
@@ -8,18 +7,28 @@ import './selection-color-condition.css'
 export default function SelectionColorConditionExample() {
 	return (
 		<div className="tldraw__editor">
+			<style>{`
+				/* Custom selection color for rectangle shapes */
+				.tl-container.rectangle-selection {
+					--color-selection: #ff4444;
+					--color-selection-stroke: #cc0000;
+				}
+			`}</style>
+
 			<Tldraw
-				persistenceKey="selection-color-condition"
 				onMount={(editor) => {
 					// [2]
 					const stopListening = react('update selection classname', () => {
 						const selectedShapes = editor.getSelectedShapes()
-						
+
 						// [3]
-						const allAreRectangles = selectedShapes.length > 0 && selectedShapes.every(shape => 
-							shape.type === 'geo' && shape.props.geo === 'rectangle'
-						)
-						
+						const allAreRectangles =
+							selectedShapes.length > 0 &&
+							selectedShapes.every(
+								(shape) =>
+									editor.isShapeOfType<TLGeoShape>(shape, 'geo') && shape.props.geo === 'rectangle'
+							)
+
 						// [4]
 						if (allAreRectangles) {
 							editor.getContainer().classList.add('rectangle-selection')
@@ -27,6 +36,16 @@ export default function SelectionColorConditionExample() {
 							editor.getContainer().classList.remove('rectangle-selection')
 						}
 					})
+
+					// [5]
+					editor
+						.createShapes<TLGeoShape>([
+							{ type: 'geo', x: 0, y: 0 },
+							{ type: 'geo', x: 120, y: 0 },
+						])
+						.selectAll()
+						.zoomToSelection()
+						.createShape<TLGeoShape>({ type: 'geo', x: 60, y: 120, props: { geo: 'ellipse' } })
 
 					return stopListening
 				}}
@@ -60,5 +79,8 @@ to check for any shape type or combination. For example:
 [4]
 Based on our condition, we add or remove a CSS class from the editor's container. The CSS
 file (selection-color-condition.css) defines the custom colors for the .rectangle-selection class.
+
+[5]
+We create some shapes to test our condition.
 
 */

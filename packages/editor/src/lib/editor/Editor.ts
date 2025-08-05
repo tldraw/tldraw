@@ -1842,6 +1842,7 @@ export class Editor extends EventEmitter<TLEventMap> {
 
 		// Select all the unlocked shapes within the parent
 		const ids = this.getSortedChildIdsForParent(parentToSelectWithinId)
+		console.log(ids)
 		if (ids.length <= 0) return this
 		this.setSelectedShapes(this._getUnlockedShapeIds(ids))
 		return this
