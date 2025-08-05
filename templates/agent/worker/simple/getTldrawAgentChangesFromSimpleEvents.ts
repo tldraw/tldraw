@@ -15,13 +15,7 @@ import {
 import { Streaming, TLAgentChange } from '../../client/types/TLAgentChange'
 import { TLAgentPrompt } from '../../client/types/TLAgentPrompt'
 import { simpleFillToShapeFill, stringToSimpleColor } from './color'
-import {
-	ISimpleCreateEvent,
-	ISimpleDeleteEvent,
-	ISimpleEvent,
-	ISimpleMoveEvent,
-	ISimpleUpdateEvent,
-} from './schema'
+import { ISimpleCreateEvent, ISimpleDeleteEvent, ISimpleEvent, ISimpleUpdateEvent } from './schema'
 
 export function getTldrawAgentChangesFromSimpleEvents(
 	prompt: TLAgentPrompt,
@@ -38,10 +32,10 @@ export function getTldrawAgentChangesFromSimpleEvents(
 			return getTldrawAgentChangesFromSimpleDeleteEvent(prompt, event)
 		}
 		case 'move': {
-			return getTldrawAgentChangesFromSimpleMoveEvent(prompt, event)
+			const { _type, ...change } = event
+			return [{ ...change, type: _type }]
 		}
 		case 'label': {
-			// return getTldrawAgentChangesFromSimpleLabelEvent(prompt, event)
 			const { _type, ...change } = event
 			return [{ ...change, type: _type }]
 		}
@@ -698,33 +692,6 @@ function getTldrawAgentChangesFromSimpleDeleteEvent(
 		type: 'deleteShape',
 		description: intent ?? '',
 		shapeId: shapeId as TLShapeId,
-	})
-
-	return changes
-}
-
-function getTldrawAgentChangesFromSimpleMoveEvent(
-	prompt: TLAgentPrompt,
-	event: Streaming<ISimpleMoveEvent>
-): Streaming<TLAgentChange>[] {
-	const changes: Streaming<TLAgentChange>[] = []
-
-	if (!event.complete) {
-		return changes
-	}
-
-	const { move, intent } = event
-	const { shapeId, x, y } = move
-
-	changes.push({
-		complete: event.complete,
-		type: 'updateShape',
-		description: intent ?? '',
-		shape: {
-			id: shapeId as TLShapeId,
-			x,
-			y,
-		},
 	})
 
 	return changes

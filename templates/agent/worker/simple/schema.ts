@@ -223,11 +223,9 @@ export type ISimpleUpdateEvent = z.infer<typeof SimpleUpdateEvent>
 export const SimpleMoveEvent = z.object({
 	_type: z.literal('move'),
 	intent: z.string(),
-	move: z.object({
-		shapeId: z.string(),
-		x: z.number(),
-		y: z.number(),
-	}),
+	shapeId: z.string(),
+	x: z.number(),
+	y: z.number(),
 })
 
 export type ISimpleLabelEvent = z.infer<typeof SimpleLabelEvent>

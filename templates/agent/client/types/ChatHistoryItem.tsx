@@ -143,6 +143,7 @@ export const AGENT_CHANGE_TYPE_DEFINITIONS: Record<
 	updateBinding: { icon: <CursorIcon /> },
 	deleteBinding: { icon: <TrashIcon /> },
 	label: { icon: <PencilIcon /> },
+	move: { icon: <CursorIcon /> },
 	review: null,
 	setMyView: null,
 	message: null,

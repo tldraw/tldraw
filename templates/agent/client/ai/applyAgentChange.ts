@@ -195,10 +195,33 @@ export function applyAgentChange({
 		case 'label': {
 			if (!change.complete) return
 			const diff = editor.store.extractingChanges(() => {
+				const shape = editor.getShape(change.shapeId as TLShapeId)
+				if (!shape) return
 				editor.updateShape({
 					id: change.shapeId as TLShapeId,
-					type: 'text',
+					type: shape.type,
 					props: { richText: toRichTextIfNeeded(change.text ?? '') },
+				})
+			})
+			createOrUpdateHistoryItem({
+				type: 'agent-change',
+				diff,
+				change,
+				status: 'done',
+				acceptance: 'pending',
+			})
+			return
+		}
+		case 'move': {
+			if (!change.complete) return
+			const diff = editor.store.extractingChanges(() => {
+				const shape = editor.getShape(change.shapeId as TLShapeId)
+				if (!shape) return
+				editor.updateShape({
+					id: change.shapeId as TLShapeId,
+					type: shape.type,
+					x: change.x,
+					y: change.y,
 				})
 			})
 			createOrUpdateHistoryItem({
