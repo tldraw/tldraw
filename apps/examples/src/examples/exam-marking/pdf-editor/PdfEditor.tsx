@@ -12,12 +12,12 @@ import {
 	track,
 	useEditor,
 } from 'tldraw'
-import { MarkingTool } from './add-mark-tool'
-import { ExamMarkUtil } from './add-mark-util'
-import { ExamScoreLabel } from './ExamScoreLabel'
+import { MarkingTool } from '../add-mark-tool'
+import { ExamMarkUtil } from '../add-mark-util'
+import { ExamScoreLabel } from '../ExamScoreLabel'
+import { components, uiOverrides } from '../ui-overrides'
 import { ExportPdfButton } from './ExportPdfButton'
 import { Pdf } from './PdfPicker'
-import { components, uiOverrides } from './ui-overrides'
 
 const customShapeUtils = [ExamMarkUtil]
 const customTools = [MarkingTool]

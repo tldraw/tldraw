@@ -1,6 +1,6 @@
 import { useState } from 'react'
 import { AssetRecordType, Box, TLAssetId, TLShapeId, createShapeId } from 'tldraw'
-import examPdf from './assets/biologyExamExample.pdf'
+import examPdf from '../assets/biologyExamExample.pdf'
 
 export interface PdfPage {
 	src: string

@@ -65,7 +65,7 @@ export class ExamMarkUtil extends ShapeUtil<IExamMarkShape> {
 							fontSize: '1.25em',
 							padding: '6px 10px',
 							borderRadius: 4,
-							border: '1px solid #ccc',
+							border: '1px solid blue',
 							opacity: 0.7,
 						}}
 						// [b]
@@ -115,14 +115,12 @@ export class ExamMarkUtil extends ShapeUtil<IExamMarkShape> {
 }
 
 /* 
-A utility class for the exam mark shape. This is where you define the shape's behavior, 
-how it renders (its component and indicator), and how it handles different events.
+A utility class for the exam mark shape. This is where you define the shape's behavior, how it renders (its component and indicator), and how it handles different events. For more details on how to create a custom shape utility, check out the `custom-config` example.
 
 [1]
-Render method — the React component that will be rendered for the shape. It takes the 
-shape as an argument. HTMLContainer is just a div that's being used to wrap the input.
+Render method — the React component that will be rendered for the shape. It takes the shape as an argument. HTMLContainer is just a div that's being used to wrap the input.
 
- - [a] The important part of this shape utility is how it handles the score input. We know we want the ExamScoreLabel component to be able to access the score of the shape, so we want the score to be a prop for the shape. 
+ - [a] The important part of this shape utility is how it handles the score input. We know we want the ExamScoreLabel component to be able to access the score of the shape,so we want the score to be a prop for the shape. 
  Annoying: eslint sometimes thinks this is a class component, but it's not.
 
  - [b] We want to be able to edit the score of the shape, so we need to be able to update the shape's props. We do this by using the editor.updateShape method when we detect that the score is a number.
