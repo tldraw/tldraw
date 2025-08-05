@@ -1,5 +1,5 @@
 import { defaultApplyChange } from '@tldraw/ai'
-import { Editor, TLShapeId } from 'tldraw'
+import { Editor, TLRichText, TLShapeId, toRichText } from 'tldraw'
 import { createOrUpdateHistoryItem } from '../atoms/chatHistoryItems'
 import { $requestsSchedule } from '../atoms/requestsSchedule'
 import { AreaContextItem } from '../types/ContextItem'
@@ -192,6 +192,24 @@ export function applyAgentChange({
 			})
 			return
 		}
+		case 'label': {
+			if (!change.complete) return
+			const diff = editor.store.extractingChanges(() => {
+				editor.updateShape({
+					id: change.shapeId as TLShapeId,
+					type: 'text',
+					props: { richText: toRichTextIfNeeded(change.text ?? '') },
+				})
+			})
+			createOrUpdateHistoryItem({
+				type: 'agent-change',
+				diff,
+				change,
+				status: 'done',
+				acceptance: 'pending',
+			})
+			return
+		}
 		default: {
 			createOrUpdateHistoryItem({
 				type: 'agent-raw',
@@ -200,6 +218,13 @@ export function applyAgentChange({
 			})
 		}
 	}
+}
+
+function toRichTextIfNeeded(text: string | TLRichText): TLRichText {
+	if (typeof text === 'string') {
+		return toRichText(text)
+	}
+	return text
 }
 
 function placeShape(editor: Editor, change: Streaming<TLAgentPlaceChange>) {

@@ -19,7 +19,6 @@ import {
 	ISimpleCreateEvent,
 	ISimpleDeleteEvent,
 	ISimpleEvent,
-	ISimpleLabelEvent,
 	ISimpleMoveEvent,
 	ISimpleUpdateEvent,
 } from './schema'
@@ -30,19 +29,21 @@ export function getTldrawAgentChangesFromSimpleEvents(
 ): Streaming<TLAgentChange>[] {
 	switch (event._type) {
 		case 'update': {
-			return getTldrawAiChangesFromSimpleUpdateEvent(prompt, event)
+			return getTldrawAgentChangesFromSimpleUpdateEvent(prompt, event)
 		}
 		case 'create': {
-			return getTldrawAiChangesFromSimpleCreateEvent(prompt, event)
+			return getTldrawAgentChangesFromSimpleCreateEvent(prompt, event)
 		}
 		case 'delete': {
-			return getTldrawAiChangesFromSimpleDeleteEvent(prompt, event)
+			return getTldrawAgentChangesFromSimpleDeleteEvent(prompt, event)
 		}
 		case 'move': {
-			return getTldrawAiChangesFromSimpleMoveEvent(prompt, event)
+			return getTldrawAgentChangesFromSimpleMoveEvent(prompt, event)
 		}
 		case 'label': {
-			return getTldrawAiChangesFromSimpleLabelEvent(prompt, event)
+			// return getTldrawAgentChangesFromSimpleLabelEvent(prompt, event)
+			const { _type, ...change } = event
+			return [{ ...change, type: _type }]
 		}
 		case 'distribute': {
 			const { _type, ...change } = event
@@ -83,7 +84,7 @@ export function getTldrawAgentChangesFromSimpleEvents(
 	}
 }
 
-function getTldrawAiChangesFromSimpleUpdateEvent(
+function getTldrawAgentChangesFromSimpleUpdateEvent(
 	prompt: TLAgentPrompt,
 	event: Streaming<ISimpleUpdateEvent>
 ): Streaming<TLAgentChange>[] {
@@ -406,7 +407,7 @@ function getTldrawAiChangesFromSimpleUpdateEvent(
 	return changes
 }
 
-function getTldrawAiChangesFromSimpleCreateEvent(
+function getTldrawAgentChangesFromSimpleCreateEvent(
 	prompt: TLAgentPrompt,
 	event: Streaming<ISimpleCreateEvent>
 ): Streaming<TLAgentChange>[] {
@@ -674,7 +675,7 @@ function getTldrawAiChangesFromSimpleCreateEvent(
 	return changes
 }
 
-function getTldrawAiChangesFromSimpleDeleteEvent(
+function getTldrawAgentChangesFromSimpleDeleteEvent(
 	prompt: TLAgentPrompt,
 	event: Streaming<ISimpleDeleteEvent>
 ): Streaming<TLAgentChange>[] {
@@ -702,7 +703,7 @@ function getTldrawAiChangesFromSimpleDeleteEvent(
 	return changes
 }
 
-function getTldrawAiChangesFromSimpleMoveEvent(
+function getTldrawAgentChangesFromSimpleMoveEvent(
 	prompt: TLAgentPrompt,
 	event: Streaming<ISimpleMoveEvent>
 ): Streaming<TLAgentChange>[] {
@@ -723,39 +724,6 @@ function getTldrawAiChangesFromSimpleMoveEvent(
 			id: shapeId as TLShapeId,
 			x,
 			y,
-		},
-	})
-
-	return changes
-}
-
-function getTldrawAiChangesFromSimpleLabelEvent(
-	prompt: TLAgentPrompt,
-	event: Streaming<ISimpleLabelEvent>
-): Streaming<TLAgentChange>[] {
-	const changes: Streaming<TLAgentChange>[] = []
-
-	if (!event.complete) {
-		return changes
-	}
-
-	const { label, intent } = event
-	const shapeOnCanvas =
-		prompt.canvasContent.shapes.find((s) => s.id === label.shapeId) ??
-		prompt.meta.currentPageShapes?.find((s: TLShape) => s.id === label.shapeId)
-	if (!shapeOnCanvas) {
-		throw new Error(`Shape ${label.shapeId} not found in canvas`)
-	}
-
-	changes.push({
-		complete: event.complete,
-		type: 'updateShape',
-		description: intent ?? '',
-		shape: {
-			id: label.shapeId as TLShapeId,
-			props: {
-				richText: toRichTextIfNeeded(label.text ?? ''),
-			},
 		},
 	})
 

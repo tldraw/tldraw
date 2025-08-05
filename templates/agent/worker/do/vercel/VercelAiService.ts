@@ -5,18 +5,18 @@ import {
 	GoogleGenerativeAIProviderOptions,
 } from '@ai-sdk/google'
 import { createOpenAI, OpenAIProvider } from '@ai-sdk/openai'
-import { generateObject, LanguageModel, streamObject } from 'ai'
+import { LanguageModel, streamObject } from 'ai'
 import { Streaming, TLAgentChange } from '../../../client/types/TLAgentChange'
 import { TLAgentPrompt } from '../../../client/types/TLAgentPrompt'
 import { getTLAgentModelDefinition, TLAgentModelName } from '../../models'
+import { buildMessages } from '../../prompt/prompt'
+import { SIMPLE_SYSTEM_PROMPT } from '../../prompt/system-prompt'
 import { getTldrawAgentChangesFromSimpleEvents } from '../../simple/getTldrawAgentChangesFromSimpleEvents'
 import { IModelResponse, ISimpleEvent, ModelResponse } from '../../simple/schema'
-import { SIMPLE_SYSTEM_PROMPT } from '../../simple/system-prompt'
-import { TldrawAgentBaseService } from '../../TldrawAgentBaseService'
 import { Environment } from '../../types'
-import { buildMessages } from './prompt'
+import { TldrawAgentService } from './TldrawAgentBaseService'
 
-export class VercelAiService extends TldrawAgentBaseService {
+export class VercelAiService extends TldrawAgentService {
 	openai: OpenAIProvider
 	anthropic: AnthropicProvider
 	google: GoogleGenerativeAIProvider
@@ -32,21 +32,6 @@ export class VercelAiService extends TldrawAgentBaseService {
 		const modelDefinition = getTLAgentModelDefinition(modelName)
 		const provider = modelDefinition.provider
 		return this[provider](modelDefinition.id)
-	}
-
-	async generate(prompt: TLAgentPrompt): Promise<TLAgentChange[]> {
-		try {
-			const model = this.getModel(prompt.meta.modelName)
-			const events = await generateEventsVercel(model, prompt)
-			const changes = events
-				.map((event) => getTldrawAgentChangesFromSimpleEvents(prompt, event))
-				.flat()
-				.filter((change) => change.complete)
-			return changes
-		} catch (error: any) {
-			console.error('Generate error:', error)
-			throw error
-		}
 	}
 
 	async *stream(prompt: TLAgentPrompt): AsyncGenerator<Streaming<TLAgentChange>> {
@@ -123,34 +108,6 @@ async function* streamEventsVercel(
 		}
 	} catch (error: any) {
 		console.error('streamEventsVercel error:', error)
-		throw error
-	}
-}
-
-async function generateEventsVercel(
-	model: LanguageModel,
-	prompt: TLAgentPrompt
-): Promise<(ISimpleEvent & { complete: boolean })[]> {
-	const geminiThinkingBudget = model.modelId === 'gemini-2.5-pro' ? 128 : 0
-
-	try {
-		const response = await generateObject({
-			model,
-			system: SIMPLE_SYSTEM_PROMPT,
-			messages: buildMessages(prompt),
-			schema: ModelResponse,
-			providerOptions: {
-				google: {
-					thinkingConfig: { thinkingBudget: geminiThinkingBudget },
-				} satisfies GoogleGenerativeAIProviderOptions,
-				//anthropic doesnt allow thinking for tool use, which structured outputs forces to be enabled
-				//the openai models we use dont support thinking anyway
-			},
-		})
-
-		return response.object.events.map((event) => ({ ...event, complete: true }))
-	} catch (error: any) {
-		console.error('generateEventsVercel error:', error)
 		throw error
 	}
 }

@@ -235,10 +235,8 @@ export type ISimpleLabelEvent = z.infer<typeof SimpleLabelEvent>
 export const SimpleLabelEvent = z.object({
 	_type: z.literal('label'),
 	intent: z.string(),
-	label: z.object({
-		shapeId: z.string(),
-		text: z.string(),
-	}),
+	shapeId: z.string(),
+	text: z.string(),
 })
 
 export type ISimpleMoveEvent = z.infer<typeof SimpleMoveEvent>

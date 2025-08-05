@@ -128,37 +128,24 @@ export const ACTION_HISTORY_ITEM_DEFINITIONS: Record<
 	},
 }
 
-export const AGENT_CHANGE_TYPE_DEFINITIONS: Partial<
-	Record<TLAgentChange['type'], AgentChangeDefinition>
+export const AGENT_CHANGE_TYPE_DEFINITIONS: Record<
+	TLAgentChange['type'],
+	AgentChangeDefinition | null
 > = {
-	distribute: {
-		icon: <CursorIcon />,
-	},
-	stack: {
-		icon: <CursorIcon />,
-	},
-	align: {
-		icon: <CursorIcon />,
-	},
-	place: {
-		icon: <TargetIcon />,
-	},
-	createShape: {
-		icon: <PencilIcon />,
-	},
-	updateShape: {
-		icon: <CursorIcon />,
-	},
-	deleteShape: {
-		icon: <TrashIcon />,
-	},
-	createBinding: {
-		icon: <PencilIcon />,
-	},
-	updateBinding: {
-		icon: <CursorIcon />,
-	},
-	deleteBinding: {
-		icon: <TrashIcon />,
-	},
+	distribute: { icon: <CursorIcon /> },
+	stack: { icon: <CursorIcon /> },
+	align: { icon: <CursorIcon /> },
+	place: { icon: <TargetIcon /> },
+	createShape: { icon: <PencilIcon /> },
+	updateShape: { icon: <CursorIcon /> },
+	deleteShape: { icon: <TrashIcon /> },
+	createBinding: { icon: <PencilIcon /> },
+	updateBinding: { icon: <CursorIcon /> },
+	deleteBinding: { icon: <TrashIcon /> },
+	label: { icon: <PencilIcon /> },
+	review: null,
+	setMyView: null,
+	message: null,
+	think: null,
+	raw: null,
 }

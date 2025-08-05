@@ -2,12 +2,12 @@ import { DurableObject } from 'cloudflare:workers'
 import { AutoRouter, error } from 'itty-router'
 import { Streaming, TLAgentChange } from '../../client/types/TLAgentChange'
 import { TLAgentPrompt } from '../../client/types/TLAgentPrompt'
-import { TldrawAgentBaseService } from '../TldrawAgentBaseService'
 import { Environment } from '../types'
+import { TldrawAgentService } from './vercel/TldrawAgentBaseService'
 import { VercelAiService } from './vercel/VercelAiService'
 
 export class TldrawAiDurableObject extends DurableObject<Environment> {
-	service: TldrawAgentBaseService
+	service: TldrawAgentService
 
 	constructor(ctx: DurableObjectState, env: Environment) {
 		super(ctx, env)
@@ -19,50 +19,11 @@ export class TldrawAiDurableObject extends DurableObject<Environment> {
 			console.error(e)
 			return error(e)
 		},
-	})
-		// when we get a connection request, we stash the room id if needed and handle the connection
-		.post('/generate', (request) => this.generate(request))
-		.post('/stream', (request) => this.stream(request))
-		.post('/cancel', (request) => this.cancel(request))
+	}).post('/stream', (request) => this.stream(request))
 
 	// `fetch` is the entry point for all requests to the Durable Object
 	override fetch(request: Request): Response | Promise<Response> {
 		return this.router.fetch(request)
-	}
-
-	/**
-	 * Cancel the current stream.
-	 *
-	 * @param _request - The request object containing the prompt.
-	 * @returns A Promise that resolves to a Response object containing the cancelled response.
-	 */
-	cancel(_request: Request) {
-		return new Response('Not implemented', {
-			status: 501,
-		})
-	}
-
-	/**
-	 * Generate a set of changes from the model.
-	 *
-	 * @param request - The request object containing the prompt.
-	 * @returns A Promise that resolves to a Response object containing the generated changes.
-	 */
-	private async generate(request: Request) {
-		try {
-			const prompt = (await request.json()) as TLAgentPrompt
-			const response = await this.service.generate(prompt)
-
-			return new Response(JSON.stringify(response), {
-				headers: { 'Content-Type': 'application/json' },
-			})
-		} catch (error: any) {
-			console.error('AI response error:', error)
-			return new Response(JSON.stringify({ error: error.message }), {
-				status: 500,
-				headers: { 'Content-Type': 'application/json' },
-			})
-		}
 	}
 
 	/**

@@ -3,6 +3,7 @@ import {
 	ISimpleAlignEvent,
 	ISimpleDistributeEvent,
 	ISimpleEvent,
+	ISimpleLabelEvent,
 	ISimplePlaceEvent,
 	ISimpleStackEvent,
 } from '../../worker/simple/schema'
@@ -20,6 +21,7 @@ export type TLAgentChange =
 	| TLAgentStackChange
 	| TLAgentAlignChange
 	| TLAgentPlaceChange
+	| TLAgentLabelChange
 
 export interface TLAgentMessageChange {
 	type: 'message'
@@ -68,4 +70,8 @@ export interface TLAgentAlignChange extends Omit<ISimpleAlignEvent, '_type'> {
 
 export interface TLAgentPlaceChange extends Omit<ISimplePlaceEvent, '_type'> {
 	type: 'place'
+}
+
+export interface TLAgentLabelChange extends Omit<ISimpleLabelEvent, '_type'> {
+	type: 'label'
 }

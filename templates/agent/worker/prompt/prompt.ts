@@ -3,10 +3,10 @@ import { CoreMessage, UserContent } from 'ai'
 import {
 	ACTION_HISTORY_ITEM_DEFINITIONS,
 	ChatHistoryItem,
-} from '../../../client/types/ChatHistoryItem'
-import { TLAgentPrompt } from '../../../client/types/TLAgentPrompt'
-import { getSimpleContentFromCanvasContent } from '../../simple/getSimpleContentFromCanvasContent'
-import { getSimplePeripheralContentFromCanvasContent } from '../../simple/getSimplePeripheralContentFromCanvasContent'
+} from '../../client/types/ChatHistoryItem'
+import { TLAgentPrompt } from '../../client/types/TLAgentPrompt'
+import { getSimpleContentFromCanvasContent } from '../simple/getSimpleContentFromCanvasContent'
+import { getSimplePeripheralContentFromCanvasContent } from '../simple/getSimplePeripheralContentFromCanvasContent'
 
 export function buildMessages(prompt: TLAgentPrompt): CoreMessage[] {
 	const messages: CoreMessage[] = []
