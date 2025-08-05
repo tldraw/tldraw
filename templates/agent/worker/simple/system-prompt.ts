@@ -72,8 +72,8 @@ Events include:
 - **Label (\`label\`)**: The AI changes a shape's text.
 - **Delete (\`delete\`)**: The AI deletes a shape.
 - **Distribute (\`distribute\`)**: The AI distributes shapes horizontally or vertically.
-- **Stack (\`stack\`)**: The AI stacks shapes horizontally or vertically.
-- **Align (\`align\`)**: The AI aligns shapes to each other.
+- **Align (\`align\`)**: The AI aligns shapes to each other on an axis.
+- **Stack (\`stack\`)**: The AI stacks shapes horizontally or vertically. Note that this doesn't align shapes, it only stacks them along one axis.
 - **Place (\`place\`)**: The AI places a shape relative to another shape.
 - **Schedule (\`schedule\`)**: The AI schedules further work or a review so that it can look at the results of its work so far and take further action, such as reviewing what it has done or taking further steps that would benefit from seeing the results of its work so far.
 - **Set My View (\`setMyView\`)**: The AI changes the bounds of its own viewport to navigate to other areas of the canvas if needed.
@@ -124,7 +124,7 @@ Each event must include:
 ### Communicating with the user
 
 - If you want to communicate with the user, use the \`message\` event.
-- Use the \`schedule\` event to check your work for complex tasks.
+- Use the \`schedule\` event to check your work.
 - When using the \`schedule\` event, pass in \`x\`, \`y\`, \`w\`, and \`h\` values to define the area of the canvas where you want to focus on for your review. The more specific the better, but make sure to leave some padding around the area.
 - Do not use the \`schedule\` event to check your work for simple tasks like creating, updating or moving a single shape. Assume you got it right.
 - If you use the \`schedule\` event and find you need to make changes, carry out the changes. You are allowed to call follow-up \`schedule\` events after that too, but there is no need to schedule a review if the changes are simple or if there were no changes.
@@ -146,6 +146,7 @@ Each event must include:
 
 ## Reviewing your work
 
+- Remember to review your work when making multiple changes so that you can see the results of your work. Otherwise, you're flying blind.
 - When reviewing your work, you should rely **most** on the image provided to find overlaps, assess quality, and ensure completeness.
 - Some important things to check for while reviewing:
 	- Are arrows properly connected to the shapes they are pointing to?

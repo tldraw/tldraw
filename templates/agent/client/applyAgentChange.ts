@@ -126,9 +126,7 @@ export function applyAgentChange({
 			if (!change.complete) return
 			const { direction, shapeIds, gap } = change
 			const diff = editor.store.extractingChanges(() => {
-				const alignOperation = direction === 'vertical' ? 'center-vertical' : 'center-horizontal'
-				editor.alignShapes(shapeIds as TLShapeId[], alignOperation)
-				editor.stackShapes(shapeIds as TLShapeId[], direction, Math.max(gap, 1))
+				editor.stackShapes(shapeIds as TLShapeId[], direction, Math.min(gap, 1))
 			})
 			createOrUpdateHistoryItem({
 				type: 'agent-change',
