@@ -1,5 +1,4 @@
 // import { useCallback } from 'react'
-import { TldrawAi } from '@tldraw/ai'
 import { Box, Editor, structuredClone } from 'tldraw'
 import { TLAgentModelName } from '../worker/models'
 import { $chatHistoryItems } from './atoms/chatHistoryItems'
@@ -7,16 +6,17 @@ import { $pendingContextItems } from './atoms/contextItems'
 import { $requestsSchedule } from './atoms/requestsSchedule'
 import { $contextBoundsHighlight } from './components/highlights/ContextBoundsHighlights'
 import { TLAgentPromptMeta } from './types/TLAgentPrompt'
+import { TldrawAgent } from './useTldrawAgent'
 
 export async function processSchedule({
 	editor,
 	modelName,
-	ai,
+	agent,
 	rCancelFn,
 }: {
 	editor: Editor
 	modelName: TLAgentModelName
-	ai: TldrawAi
+	agent: TldrawAgent
 	rCancelFn: React.MutableRefObject<(() => void) | null>
 }) {
 	const eventSchedule = $requestsSchedule.get()
@@ -45,9 +45,8 @@ export async function processSchedule({
 			type: request.type,
 		}
 
-		const { promise, cancel } = ai.prompt({
+		const { promise, cancel } = agent.prompt({
 			message: intent,
-			stream: true,
 			contextBounds: bounds,
 			promptBounds: bounds,
 			meta,
@@ -81,7 +80,7 @@ export async function processSchedule({
 		rCancelFn.current = null
 
 		// Recursively process the next event
-		await processSchedule({ editor, modelName, ai, rCancelFn })
+		await processSchedule({ editor, modelName, agent, rCancelFn })
 	} catch (e) {
 		rCancelFn.current = null
 		$requestsSchedule.set([])
