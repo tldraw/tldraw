@@ -1,0 +1,20 @@
+/* Custom selection color for rectangle shapes */
+.tl-container.rectangle-selection {
+	--color-selection: #ff4444;
+	--color-selection-stroke: #cc0000;
+}
+
+/* You can add more conditions for different shape types */
+/* Example for circle shapes:
+.tl-container.circle-selection {
+	--color-selection: #44ff44;
+	--color-selection-stroke: #00cc00;
+}
+*/
+
+/* Example for text shapes:
+.tl-container.text-selection {
+	--color-selection: #4444ff;
+	--color-selection-stroke: #0000cc;
+}
+*/
