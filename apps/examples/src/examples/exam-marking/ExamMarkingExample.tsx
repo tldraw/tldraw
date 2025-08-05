@@ -1,6 +1,6 @@
 import { useState } from 'react'
 import 'tldraw/tldraw.css'
-import './pdf-editor//pdf-editor.css'
+import './pdf-editor/pdf-editor.css'
 import { PdfEditor } from './pdf-editor/PdfEditor'
 import { Pdf, PdfPicker } from './pdf-editor/PdfPicker'
 
@@ -35,8 +35,8 @@ export default function ExamMarkingExample() {
 /*
 Introduction:
 
-This example of an exam marking tool is built on top of the `pdf-editor` example. The files specifc to the pdf-editor live in the `pdf-editor` folder in this directory. 
-What this adds on top of the pdf editor is a custom tool that allows you to add exam marks to the page, and a widget that shows the total exam score.
+This example of an exam marking tool is built on top of the `pdf-editor` example. The files specific to the pdf-editor live in the `pdf-editor` folder in this directory.
+What this adds on top of the pdf editor is a custom shape that allows you mark individual questions and have their score tallied, and a custom tool that allows you create that shape.
 
 File structure:
 `add-mark-util.tsx` is a shape utility that defines the exam mark shape.
