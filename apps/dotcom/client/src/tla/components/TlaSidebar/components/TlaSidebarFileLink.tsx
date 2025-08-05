@@ -209,7 +209,7 @@ export function TlaSidebarFileLinkInner({
 				>
 					{fileName}
 				</div>
-				{!isOwnFile && <GuestBadge file={file} href={href} />}
+				{!isOwnFile && !file.owningGroupId && <GuestBadge file={file} href={href} />}
 				{hasGroups && (
 					<PresenceBadges
 						fileId={fileId}

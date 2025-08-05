@@ -83,11 +83,16 @@ export function TlaSidebarRecentFilesNew() {
 					))}
 				</TlaSidebarFileSection>
 			) : null}
-			{isOverflowing && !isShowingAll && (
-				<button className={styles.showAllButton} onClick={() => setIsShowingAll(true)}>
-					<F defaultMessage="See more" />
-				</button>
-			)}
+			{isOverflowing &&
+				(isShowingAll ? (
+					<button className={styles.showAllButton} onClick={() => setIsShowingAll(false)}>
+						<F defaultMessage="See less" />
+					</button>
+				) : (
+					<button className={styles.showAllButton} onClick={() => setIsShowingAll(true)}>
+						<F defaultMessage="See more" />
+					</button>
+				))}
 			{groupMemberships.length > 0 && (
 				<TlaSidebarFileSection
 					className={styles.sidebarFileSectionGroups}

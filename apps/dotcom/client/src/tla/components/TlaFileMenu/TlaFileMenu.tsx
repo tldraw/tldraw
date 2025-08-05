@@ -1,7 +1,7 @@
 /* ---------------------- Menu ---------------------- */
 
 import { FILE_PREFIX, TlaFile } from '@tldraw/dotcom-shared'
-import { Fragment, ReactNode, useCallback } from 'react'
+import { Fragment, ReactNode, useCallback, useId } from 'react'
 import { useNavigate } from 'react-router-dom'
 import {
 	TLDRAW_FILE_EXTENSION,
@@ -70,8 +70,9 @@ export function TlaFileMenu({
 	onRenameAction(): void
 	trigger: ReactNode
 }) {
+	const id = useId()
 	return (
-		<TldrawUiDropdownMenuRoot id={`file-menu-${fileId}-${source}`}>
+		<TldrawUiDropdownMenuRoot id={`file-menu-${fileId}-${source}-${id}`}>
 			<TldrawUiMenuContextProvider type="menu" sourceId="dialog">
 				<TldrawUiDropdownMenuTrigger>{trigger}</TldrawUiDropdownMenuTrigger>
 				<TldrawUiDropdownMenuContent side="bottom" align="start" alignOffset={0} sideOffset={0}>

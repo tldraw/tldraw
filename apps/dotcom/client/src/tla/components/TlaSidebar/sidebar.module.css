@@ -761,28 +761,9 @@
 	color: var(--tla-color-text-3);
 }
 
-.sidebarGroupItemHeader::after {
-	display: block;
-	content: '';
-	position: absolute;
-	top: 2px;
-	left: 0px;
-	right: 0px;
-	bottom: 2px;
-	border-radius: 4px;
-	background-color: var(--tla-color-hover-1);
-	z-index: 0;
-	pointer-events: none;
-	visibility: hidden;
-}
-
 @media (hover: hover) {
 	.sidebarGroupItemHeader:hover {
 		color: var(--tla-color-text-1);
-	}
-
-	.sidebarGroupItemHeader:hover::after {
-		visibility: visible;
 	}
 }
 

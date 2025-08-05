@@ -5,9 +5,18 @@ import { F } from '../../../utils/i18n'
 import styles from '../sidebar.module.css'
 import { TlaSidebarFileLink } from './TlaSidebarFileLink'
 
-const TriangleIcon = () => {
+const TriangleIcon = ({ angle = 0 }: { angle?: number }) => {
 	return (
-		<svg width="16" height="16" viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg">
+		<svg
+			width="16"
+			height="16"
+			viewBox="0 0 16 16"
+			fill="none"
+			xmlns="http://www.w3.org/2000/svg"
+			style={{
+				transform: `rotate(${angle + 180}deg)`,
+			}}
+		>
 			<path d="M4.5 6.5H11.5L8 11L4.5 6.5Z" fill="currentColor" />
 		</svg>
 	)
@@ -36,7 +45,7 @@ export function TlaSidebarGroupItem({ groupId }: { groupId: string }) {
 			>
 				<span className={styles.sidebarGroupItemTitle}>{group.group.name}</span>
 
-				<TriangleIcon />
+				<TriangleIcon angle={isCollapsed ? 90 : 180} />
 			</button>
 
 			{!isCollapsed && (
