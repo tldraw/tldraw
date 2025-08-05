@@ -1,5 +1,5 @@
 import { Streaming, TLAgentChange } from '../client/types/TLAgentChange'
-import { TLAgentPrompt } from '../client/useTldrawAgent'
+import { TLAgentPrompt } from '../client/types/TLAgentPrompt'
 import { Environment } from './types'
 
 export abstract class TldrawAgentBaseService {

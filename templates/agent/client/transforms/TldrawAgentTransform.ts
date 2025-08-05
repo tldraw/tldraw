@@ -1,6 +1,6 @@
 import { Editor } from 'tldraw'
 import { Streaming, TLAgentChange } from '../types/TLAgentChange'
-import { TLAgentPrompt } from '../useTldrawAgent'
+import { TLAgentPrompt } from '../types/TLAgentPrompt'
 
 /** @public */
 export abstract class TldrawAgentTransform {

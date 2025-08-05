@@ -1,5 +1,5 @@
 import { TLShape } from 'tldraw'
-import { TLAgentPrompt } from '../useTldrawAgent'
+import { TLAgentPrompt } from '../types/TLAgentPrompt'
 import { TldrawAgentTransform } from './TldrawAgentTransform'
 
 // This transform converts a shape's rich text property to a single string, which is a much easier format for the model to deal with.

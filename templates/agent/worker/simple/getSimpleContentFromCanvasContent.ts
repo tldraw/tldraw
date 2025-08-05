@@ -6,7 +6,7 @@ import {
 	TLNoteShape,
 	TLTextShape,
 } from 'tldraw'
-import { TLAgentContent } from '../../client/useTldrawAgent'
+import { TLAgentContent } from '../../client/types/TLAgentPrompt'
 import { shapeFillToSimpleFill } from './color'
 import { ISimpleShape } from './schema'
 

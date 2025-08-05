@@ -1,6 +1,6 @@
 import { DefaultColorThemePalette } from 'tldraw'
 
-export function overrideFillStyleWithLinedFillStyle() {
+export function enableLinedFillStyle() {
 	DefaultColorThemePalette.lightMode['black'].fill = '#363636'
 	DefaultColorThemePalette.lightMode['blue'].fill = '#6580ec'
 	DefaultColorThemePalette.lightMode['light-blue'].fill = '#7abaf5'

@@ -13,7 +13,7 @@ import {
 	toRichText,
 } from 'tldraw'
 import { Streaming, TLAgentChange } from '../../client/types/TLAgentChange'
-import { TLAgentPrompt } from '../../client/useTldrawAgent'
+import { TLAgentPrompt } from '../../client/types/TLAgentPrompt'
 import { simpleFillToShapeFill, stringToSimpleColor } from './color'
 import {
 	ISimpleCreateEvent,

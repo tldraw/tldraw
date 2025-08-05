@@ -1,5 +1,5 @@
 import { TLShape } from 'tldraw'
-import { TLAgentContent } from '../../client/useTldrawAgent'
+import { TLAgentContent } from '../../client/types/TLAgentPrompt'
 import { getSimpleContentFromCanvasContent } from './getSimpleContentFromCanvasContent'
 import { ISimplePeripheralShape } from './schema'
 

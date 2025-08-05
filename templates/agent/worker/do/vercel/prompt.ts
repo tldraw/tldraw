@@ -4,7 +4,7 @@ import {
 	ACTION_HISTORY_ITEM_DEFINITIONS,
 	ChatHistoryItem,
 } from '../../../client/types/ChatHistoryItem'
-import { TLAgentPrompt } from '../../../client/useTldrawAgent'
+import { TLAgentPrompt } from '../../../client/types/TLAgentPrompt'
 import { getSimpleContentFromCanvasContent } from '../../simple/getSimpleContentFromCanvasContent'
 import { getSimplePeripheralContentFromCanvasContent } from '../../simple/getSimplePeripheralContentFromCanvasContent'
 

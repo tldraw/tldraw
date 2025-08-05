@@ -1,7 +1,7 @@
 import { DurableObject } from 'cloudflare:workers'
 import { AutoRouter, error } from 'itty-router'
 import { Streaming, TLAgentChange } from '../../client/types/TLAgentChange'
-import { TLAgentPrompt } from '../../client/useTldrawAgent'
+import { TLAgentPrompt } from '../../client/types/TLAgentPrompt'
 import { TldrawAgentBaseService } from '../TldrawAgentBaseService'
 import { Environment } from '../types'
 import { VercelAiService } from './vercel/VercelAiService'

@@ -1,6 +1,6 @@
 import { Box, TLShape, TLShapePartial } from 'tldraw'
 import { Streaming, TLAgentChange } from '../types/TLAgentChange'
-import { TLAgentPrompt } from '../useTldrawAgent'
+import { TLAgentPrompt } from '../types/TLAgentPrompt'
 import { TldrawAgentTransform } from './TldrawAgentTransform'
 
 // This transform does *not* change the offset of the shapes, it only rounds positions to the nearest integer.

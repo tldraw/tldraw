@@ -11,11 +11,11 @@ import { ChatPanel } from './components/ChatPanel'
 import { ChatPanelFallback } from './components/ChatPanelFallback'
 import { ContextBoundsHighlights } from './components/highlights/ContextBoundsHighlights'
 import { ContextHighlights } from './components/highlights/ContextHighlights'
-import { overrideFillStyleWithLinedFillStyle } from './linedFillStyle'
+import { enableLinedFillStyle } from './enableLinedFillStyle'
 import { TargetAreaTool } from './tools/TargetAreaTool'
 import { TargetShapeTool } from './tools/TargetShapeTool'
 
-overrideFillStyleWithLinedFillStyle()
+enableLinedFillStyle()
 
 const overrides: TLUiOverrides = {
 	tools: (editor, tools) => {

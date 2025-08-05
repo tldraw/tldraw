@@ -7,7 +7,7 @@ import {
 import { createOpenAI, OpenAIProvider } from '@ai-sdk/openai'
 import { generateObject, LanguageModel, streamObject } from 'ai'
 import { Streaming, TLAgentChange } from '../../../client/types/TLAgentChange'
-import { TLAgentPrompt } from '../../../client/useTldrawAgent'
+import { TLAgentPrompt } from '../../../client/types/TLAgentPrompt'
 import { getTLAgentModelDefinition, TLAgentModelName } from '../../models'
 import { getTldrawAgentChangesFromSimpleEvents } from '../../simple/getTldrawAgentChangesFromSimpleEvents'
 import { IModelResponse, ISimpleEvent, ModelResponse } from '../../simple/schema'
