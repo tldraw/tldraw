@@ -19,11 +19,13 @@ import { CSSProperties } from 'react';
 import { Editor } from '@tldraw/editor';
 import { Extension } from '@tiptap/core';
 import { Extensions } from '@tiptap/core';
+import { ForwardRefExoticComponent } from 'react';
 import { Geometry2d } from '@tldraw/editor';
 import { Geometry2dFilters } from '@tldraw/editor';
 import { Geometry2dOptions } from '@tldraw/editor';
 import { Group2d } from '@tldraw/editor';
 import { HandleSnapGeometry } from '@tldraw/editor';
+import { HTMLAttributes } from 'react';
 import { IndexKey } from '@tldraw/editor';
 import { JsonObject } from '@tldraw/editor';
 import { JSX as JSX_2 } from 'react/jsx-runtime';
@@ -43,6 +45,7 @@ import { ReadonlySharedStyleMap } from '@tldraw/editor';
 import { RecordProps } from '@tldraw/editor';
 import { Rectangle2d } from '@tldraw/editor';
 import { RecursivePartial } from '@tldraw/editor';
+import { RefAttributes } from 'react';
 import { RefObject } from 'react';
 import { Result } from '@tldraw/editor';
 import { RichTextFontVisitorState } from '@tldraw/editor';
@@ -980,6 +983,8 @@ export function DefaultToolbarContent(): JSX_2.Element;
 export interface DefaultToolbarProps {
     // (undocumented)
     children?: ReactNode;
+    // (undocumented)
+    orientation?: 'horizontal' | 'vertical';
 }
 
 // @public (undocumented)
@@ -2009,7 +2014,13 @@ export function LockGroup(): JSX_2.Element;
 export function MiscMenuGroup(): JSX_2.Element;
 
 // @public (undocumented)
-export function MobileStylePanel(): JSX_2.Element | null;
+export function MobileStylePanel({ orientation }: MobileStylePanelProps): JSX_2.Element | null;
+
+// @public (undocumented)
+export interface MobileStylePanelProps {
+    // (undocumented)
+    orientation?: 'horizontal' | 'vertical';
+}
 
 // @public (undocumented)
 export function MoveToPageMenu(): JSX_2.Element | null;
@@ -2147,6 +2158,15 @@ export function NoteToolbarItem(): JSX_2.Element;
 // @public (undocumented)
 export function OfflineIndicator(): JSX_2.Element;
 
+// @public
+export function onDragFromToolbarToCreateShape(editor: Editor, info: TLPointerEventInfo, opts: OnDragFromToolbarToCreateShapesOpts): void;
+
+// @public
+export interface OnDragFromToolbarToCreateShapesOpts {
+    createShape(id: TLShapeId): void;
+    onDragEnd?(id: TLShapeId): void;
+}
+
 // @public (undocumented)
 export function OpacitySlider(): JSX_2.Element | null;
 
@@ -2154,12 +2174,14 @@ export function OpacitySlider(): JSX_2.Element | null;
 export function OvalToolbarItem(): JSX_2.Element;
 
 // @public (undocumented)
-export function OverflowingToolbar({ children }: OverflowingToolbarProps): JSX_2.Element;
+export function OverflowingToolbar({ children, orientation }: OverflowingToolbarProps): JSX_2.Element;
 
 // @public (undocumented)
 export interface OverflowingToolbarProps {
     // (undocumented)
     children: React.ReactNode;
+    // (undocumented)
+    orientation: 'horizontal' | 'vertical';
 }
 
 // @public (undocumented)
@@ -2967,6 +2989,9 @@ export function TldrawUiButtonLabel({ children }: TLUiButtonLabelProps): JSX_2.E
 // @public (undocumented)
 export const TldrawUiButtonPicker: <T extends string>(props: TLUiButtonPickerProps<T>) => ReactElement;
 
+// @public
+export const TldrawUiColumn: ForwardRefExoticComponent<TLUiLayoutProps & RefAttributes<HTMLDivElement>>;
+
 // @public (undocumented)
 export function TldrawUiComponentsProvider({ overrides, children, }: TLUiComponentsProviderProps): JSX_2.Element;
 
@@ -3024,6 +3049,9 @@ export function TldrawUiDropdownMenuTrigger({ children, ...rest }: TLUiDropdownM
 // @public (undocumented)
 export function TldrawUiEventsProvider({ onEvent, children }: EventsProviderProps): JSX_2.Element;
 
+// @public
+export const TldrawUiGrid: ForwardRefExoticComponent<TLUiLayoutProps & RefAttributes<HTMLDivElement>>;
+
 // @public (undocumented)
 export const TldrawUiIcon: NamedExoticComponent<TLUiIconProps>;
 
@@ -3049,7 +3077,7 @@ export function TldrawUiMenuContextProvider({ type, sourceId, children, }: TLUiM
 export function TldrawUiMenuGroup({ id, label, className, children }: TLUiMenuGroupProps): boolean | JSX_2.Element | Iterable<ReactNode> | null | number | string | undefined;
 
 // @public (undocumented)
-export function TldrawUiMenuItem<TranslationKey extends string = string, IconType extends string = string>({ disabled, spinner, readonlyOk, id, kbd, label, icon, iconLeft, onSelect, noClose, isSelected, }: TLUiMenuItemProps<TranslationKey, IconType>): JSX_2.Element | null;
+export function TldrawUiMenuItem<TranslationKey extends string = string, IconType extends string = string>({ disabled, spinner, readonlyOk, id, kbd, label, icon, iconLeft, onSelect, noClose, isSelected, onDragStart, }: TLUiMenuItemProps<TranslationKey, IconType>): JSX_2.Element | null;
 
 // @public (undocumented)
 export function TldrawUiMenuSubmenu<Translation extends string = string>({ id, disabled, label, size, children, }: TLUiMenuSubmenuProps<Translation>): boolean | JSX_2.Element | Iterable<ReactNode> | null | number | string | undefined;
@@ -3058,7 +3086,7 @@ export function TldrawUiMenuSubmenu<Translation extends string = string>({ id, d
 export function TldrawUiMenuToolItem({ toolId, ...rest }: TLUiMenuToolItemProps): JSX_2.Element | null;
 
 // @public (undocumented)
-export function TldrawUiPopover({ id, children, onOpenChange, open }: TLUiPopoverProps): JSX_2.Element;
+export function TldrawUiPopover({ id, children, onOpenChange, open, className }: TLUiPopoverProps): JSX_2.Element;
 
 // @public (undocumented)
 export function TldrawUiPopoverContent({ side, children, align, sideOffset, alignOffset, disableEscapeKeyDown, autoFocusFirstButton, }: TLUiPopoverContentProps): JSX_2.Element;
@@ -3074,6 +3102,9 @@ export interface TldrawUiProps extends TLUiContextProviderProps {
     hideUi?: boolean;
     renderDebugMenuItems?(): React_3.ReactNode;
 }
+
+// @public
+export const TldrawUiRow: ForwardRefExoticComponent<TLUiLayoutProps & RefAttributes<HTMLDivElement>>;
 
 // @public (undocumented)
 export const TldrawUiSlider: React_3.ForwardRefExoticComponent<TLUiSliderProps & React_3.RefAttributes<HTMLDivElement>>;
@@ -3246,6 +3277,8 @@ export type TLUiActionsContextType = Record<string, TLUiActionItem>;
 export interface TLUiActionsMenuProps {
     // (undocumented)
     children?: ReactNode;
+    // (undocumented)
+    orientation?: 'horizontal' | 'vertical';
 }
 
 // @public (undocumented)
@@ -3646,6 +3679,10 @@ export interface TLUiEventMap {
     // (undocumented)
     'download-original': null;
     // (undocumented)
+    'drag-tool': {
+        id: string;
+    };
+    // (undocumented)
     'duplicate-page': null;
     // (undocumented)
     'duplicate-shapes': null;
@@ -3940,6 +3977,14 @@ export type TLUiKeyboardShortcutsDialogProps = TLUiDialogProps & {
 };
 
 // @public (undocumented)
+export interface TLUiLayoutProps extends HTMLAttributes<HTMLDivElement> {
+    // (undocumented)
+    asChild?: boolean;
+    // (undocumented)
+    children: ReactNode;
+}
+
+// @public (undocumented)
 export interface TLUiMainMenuProps {
     // (undocumented)
     children?: ReactNode;
@@ -4020,6 +4065,7 @@ export interface TLUiMenuItemProps<TranslationKey extends string = string, IconT
         [key: string]: TranslationKey;
     } | TranslationKey;
     noClose?: boolean;
+    onDragStart?(source: TLUiEventSource, info: TLPointerEventInfo): void;
     onSelect(source: TLUiEventSource): Promise<void> | void;
     readonlyOk?: boolean;
     spinner?: boolean;
@@ -4081,6 +4127,8 @@ export interface TLUiPopoverContentProps {
 export interface TLUiPopoverProps {
     // (undocumented)
     children: React_3.ReactNode;
+    // (undocumented)
+    className?: string;
     // (undocumented)
     id: string;
     // (undocumented)
@@ -4224,7 +4272,7 @@ export interface TLUiToolbarProps extends React_3.HTMLAttributes<HTMLDivElement>
     // (undocumented)
     label: string;
     // (undocumented)
-    orientation?: 'horizontal' | 'vertical';
+    orientation?: 'grid' | 'horizontal' | 'vertical';
 }
 
 // @public (undocumented)
@@ -4268,6 +4316,8 @@ export interface TLUiToolItem<TranslationKey extends string = string, IconType e
     meta?: {
         [key: string]: any;
     };
+    // (undocumented)
+    onDragStart?(source: TLUiEventSource, info: TLPointerEventInfo): void;
     // (undocumented)
     onSelect(source: TLUiEventSource): void;
     // (undocumented)

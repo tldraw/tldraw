@@ -1,4 +1,5 @@
 import { useEditor, usePassThroughWheelEvents, useValue } from '@tldraw/editor'
+import classNames from 'classnames'
 import { ReactNode, memo, useRef } from 'react'
 import { PORTRAIT_BREAKPOINT } from '../../constants'
 import { useBreakpoint } from '../../context/breakpoints'
@@ -14,6 +15,7 @@ import { ToggleToolLockedButton } from './ToggleToolLockedButton'
 /** @public */
 export interface DefaultToolbarProps {
 	children?: ReactNode
+	orientation?: 'horizontal' | 'vertical'
 }
 
 /**
@@ -24,7 +26,10 @@ export interface DefaultToolbarProps {
  * @public
  * @react
  */
-export const DefaultToolbar = memo(function DefaultToolbar({ children }: DefaultToolbarProps) {
+export const DefaultToolbar = memo(function DefaultToolbar({
+	children,
+	orientation = 'horizontal',
+}: DefaultToolbarProps) {
 	const editor = useEditor()
 	const msg = useTranslation()
 	const breakpoint = useBreakpoint()
@@ -44,28 +49,31 @@ export const DefaultToolbar = memo(function DefaultToolbar({ children }: Default
 				: breakpoint < PORTRAIT_BREAKPOINT.TABLET
 
 	return (
-		<div ref={ref} className="tlui-toolbar">
-			<div className="tlui-toolbar__inner">
-				<div className="tlui-toolbar__left">
+		<div ref={ref} className={classNames('tlui-main-toolbar', `tlui-main-toolbar--${orientation}`)}>
+			<div className="tlui-main-toolbar__inner">
+				<div className="tlui-main-toolbar__left">
 					{!isReadonlyMode && (
-						<div className="tlui-toolbar__extras">
+						<div className="tlui-main-toolbar__extras">
 							{showQuickActions && (
 								<TldrawUiToolbar
-									className="tlui-toolbar__extras__controls tlui-buttons__horizontal"
+									orientation={orientation}
+									className="tlui-main-toolbar__extras__controls"
 									label={msg('actions-menu.title')}
 								>
 									{QuickActions && <QuickActions />}
-									{ActionsMenu && <ActionsMenu />}
+									{ActionsMenu && <ActionsMenu orientation={orientation} />}
 								</TldrawUiToolbar>
 							)}
 							<ToggleToolLockedButton activeToolId={activeToolId} />
 						</div>
 					)}
-					<OverflowingToolbar>{children ?? <DefaultToolbarContent />}</OverflowingToolbar>
+					<OverflowingToolbar orientation={orientation}>
+						{children ?? <DefaultToolbarContent />}
+					</OverflowingToolbar>
 				</div>
 				{breakpoint < PORTRAIT_BREAKPOINT.TABLET_SM && !isReadonlyMode && (
-					<div className="tlui-toolbar__tools">
-						<MobileStylePanel />
+					<div className="tlui-main-toolbar__tools">
+						<MobileStylePanel orientation={orientation} />
 					</div>
 				)}
 			</div>

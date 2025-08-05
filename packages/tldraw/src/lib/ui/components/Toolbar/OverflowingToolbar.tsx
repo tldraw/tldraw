@@ -20,6 +20,7 @@ import {
 	TldrawUiPopoverTrigger,
 } from '../primitives/TldrawUiPopover'
 import { TldrawUiToolbar, TldrawUiToolbarButton } from '../primitives/TldrawUiToolbar'
+import { TldrawUiColumn, TldrawUiRow } from '../primitives/layout'
 import { TldrawUiMenuContextProvider } from '../primitives/menus/TldrawUiMenuContext'
 
 export const IsInOverflowContext = createContext(false)
@@ -40,10 +41,11 @@ const NUMBERED_SHORTCUT_KEYS: Record<string, number> = {
 /** @public */
 export interface OverflowingToolbarProps {
 	children: React.ReactNode
+	orientation: 'horizontal' | 'vertical'
 }
 
 /** @public @react */
-export function OverflowingToolbar({ children }: OverflowingToolbarProps) {
+export function OverflowingToolbar({ children, orientation }: OverflowingToolbarProps) {
 	const editor = useEditor()
 	const id = useUniqueSafeId()
 	const breakpoint = useBreakpoint()
@@ -154,20 +156,23 @@ export function OverflowingToolbar({ children }: OverflowingToolbarProps) {
 	}, [editor])
 
 	const popoverId = 'toolbar overflow'
+
+	const Layout = orientation === 'horizontal' ? TldrawUiRow : TldrawUiColumn
 	return (
 		<>
 			<style nonce={editor.options.nonce}>{css}</style>
 			<TldrawUiToolbar
-				className={classNames('tlui-toolbar__tools', {
-					'tlui-toolbar__tools__mobile': breakpoint < PORTRAIT_BREAKPOINT.TABLET_SM,
+				orientation={orientation}
+				className={classNames('tlui-main-toolbar__tools', {
+					'tlui-main-toolbar__tools__mobile': breakpoint < PORTRAIT_BREAKPOINT.TABLET_SM,
 				})}
 				label={msg('tool-panel.title')}
 			>
-				<div id={`${id}_main`} ref={mainToolsRef} className="tlui-toolbar__tools__list">
+				<Layout id={`${id}_main`} ref={mainToolsRef}>
 					<TldrawUiMenuContextProvider type="toolbar" sourceId="toolbar">
 						{children}
 					</TldrawUiMenuContextProvider>
-				</div>
+				</Layout>
 				{/* There is a +1 because if the menu is just one item, it's not necessary. */}
 				{totalItems > overflowIndex + 1 && (
 					<IsInOverflowContext.Provider value={true}>
@@ -176,15 +181,20 @@ export function OverflowingToolbar({ children }: OverflowingToolbarProps) {
 								<TldrawUiToolbarButton
 									title={msg('tool-panel.more')}
 									type="tool"
-									className="tlui-toolbar__overflow"
+									className="tlui-main-toolbar__overflow"
 									data-testid="tools.more-button"
 								>
-									<TldrawUiButtonIcon icon="chevron-up" />
+									<TldrawUiButtonIcon
+										icon={orientation === 'horizontal' ? 'chevron-up' : 'chevron-right'}
+									/>
 								</TldrawUiToolbarButton>
 							</TldrawUiPopoverTrigger>
-							<TldrawUiPopoverContent side="top" align="center">
+							<TldrawUiPopoverContent
+								side={orientation === 'horizontal' ? 'top' : 'right'}
+								align={orientation === 'horizontal' ? 'center' : 'end'}
+							>
 								<TldrawUiToolbar
-									className="tlui-buttons__grid"
+									orientation="grid"
 									data-testid="tools.more-content"
 									label={msg('tool-panel.more')}
 									id={`${id}_more`}
