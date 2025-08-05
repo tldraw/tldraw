@@ -2,6 +2,8 @@ import { useMemo } from 'react'
 import {
 	Box,
 	SVGContainer,
+	StateNode,
+	TLClickEventInfo,
 	TLComponents,
 	TLImageShape,
 	TLShapePartial,
@@ -13,7 +15,7 @@ import {
 	useEditor,
 } from 'tldraw'
 import { MarkingTool } from '../add-mark-tool'
-import { ExamMarkUtil } from '../add-mark-util'
+import { ExamMarkUtil, IExamMarkShape, examMarkShapeDefaultProps } from '../add-mark-util'
 import { ExamScoreLabel } from '../ExamScoreLabel'
 import { components, uiOverrides } from '../ui-overrides'
 import { ExportPdfButton } from './ExportPdfButton'
@@ -49,6 +51,27 @@ export function PdfEditor({ pdf }: { pdf: Pdf }) {
 	return (
 		<Tldraw
 			onMount={(editor) => {
+				// See the custom-double-click-behavior example for more details on this
+				type IdleStateNode = StateNode & {
+					handleDoubleClickOnCanvas(info: TLClickEventInfo): void
+				}
+
+				const selectIdleState = editor.getStateDescendant<IdleStateNode>('select.idle')
+				if (!selectIdleState) throw Error('SelectTool Idle state not found')
+
+				function customDoubleClickOnCanvasHandler(_info: TLClickEventInfo) {
+					const { w, h } = examMarkShapeDefaultProps
+
+					editor.createShape<IExamMarkShape>({
+						type: 'exam-mark',
+						x: editor.inputs.currentPagePoint.x - w / 2,
+						y: editor.inputs.currentPagePoint.y - h / 2,
+					})
+				}
+
+				selectIdleState.handleDoubleClickOnCanvas =
+					customDoubleClickOnCanvasHandler.bind(selectIdleState)
+
 				editor.createAssets(
 					pdf.pages.map((page) => ({
 						id: page.assetId,

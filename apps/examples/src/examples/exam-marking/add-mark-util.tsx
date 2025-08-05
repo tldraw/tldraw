@@ -1,4 +1,4 @@
-import { useState } from 'react'
+import { useEffect, useRef, useState } from 'react'
 import { HTMLContainer, RecordProps, Rectangle2d, ShapeUtil, T, TLBaseShape } from 'tldraw'
 
 export type IExamMarkShape = TLBaseShape<
@@ -10,6 +10,12 @@ export type IExamMarkShape = TLBaseShape<
 	}
 >
 
+export const examMarkShapeDefaultProps: IExamMarkShape['props'] = {
+	w: 80,
+	h: 40,
+	score: 0,
+}
+
 export class ExamMarkUtil extends ShapeUtil<IExamMarkShape> {
 	static override type = 'exam-mark' as const
 	static override props: RecordProps<IExamMarkShape> = {
@@ -19,21 +25,51 @@ export class ExamMarkUtil extends ShapeUtil<IExamMarkShape> {
 	}
 
 	override getDefaultProps(): IExamMarkShape['props'] {
-		return {
-			w: 90,
-			h: 40,
-			score: 0,
-		}
+		return examMarkShapeDefaultProps
 	}
 
 	// [1]
+	override canEdit(_shape: IExamMarkShape): boolean {
+		return true
+	}
+
+	// [2]
 	override component(shape: IExamMarkShape) {
 		// [a]
-		// eslint-disable-next-line react-hooks/rules-of-hooks
+		const isEditing = this.editor.getEditingShapeId() === shape.id
+
+		// [b]
+		/* eslint-disable react-hooks/rules-of-hooks */
 		const [score, setScore] = useState<number | string>(shape.props.score)
 
+		const inputRef = useRef<HTMLInputElement>(null)
+
+		// [c]
+		useEffect(() => {
+			if (isEditing && inputRef.current) {
+				inputRef.current.focus()
+			}
+		}, [isEditing])
+		/* eslint-enable react-hooks/rules-of-hooks */
+
+		// [d]
+		const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+			const value = e.target.value
+			setScore(value)
+			const num = Number(value)
+			if (!isNaN(num)) {
+				this.editor.updateShape({
+					id: shape.id,
+					type: 'exam-mark',
+					props: {
+						score: num,
+					},
+				})
+			}
+		}
+
 		return (
-			<HTMLContainer id={shape.id} style={{ pointerEvents: 'all' }}>
+			<HTMLContainer id={shape.id}>
 				<div
 					style={{
 						height: '100%',
@@ -42,22 +78,8 @@ export class ExamMarkUtil extends ShapeUtil<IExamMarkShape> {
 						alignItems: 'center',
 					}}
 				>
-					<div
-						style={{
-							width: 24,
-							height: 24,
-							padding: '0 6px',
-							cursor: 'grab',
-							display: 'flex',
-							alignItems: 'center',
-							justifyContent: 'center',
-							userSelect: 'none',
-						}}
-						title="Drag to move"
-					>
-						<span style={{ fontSize: '1.1em', color: '#888' }}>⠿</span>
-					</div>
 					<input
+						ref={inputRef}
 						type="number"
 						value={score}
 						style={{
@@ -68,25 +90,10 @@ export class ExamMarkUtil extends ShapeUtil<IExamMarkShape> {
 							border: '1px solid blue',
 							opacity: 0.7,
 						}}
-						// [b]
-						onChange={(e) => {
-							const value = e.target.value
-							setScore(value)
-							const num = Number(value)
-							if (!isNaN(num)) {
-								this.editor.updateShape({
-									id: shape.id,
-									type: 'exam-mark',
-									props: {
-										score: num,
-									},
-								})
-							}
+						onChange={handleChange}
+						onBlur={() => {
+							this.editor.setEditingShape(null)
 						}}
-						// [c]
-						onPointerDown={(e) => e.stopPropagation()}
-						onTouchStart={(e) => e.stopPropagation()}
-						onTouchEnd={(e) => e.stopPropagation()}
 					/>
 				</div>
 			</HTMLContainer>
@@ -105,7 +112,10 @@ export class ExamMarkUtil extends ShapeUtil<IExamMarkShape> {
 		})
 	}
 
-	override canEdit(_shape: IExamMarkShape): boolean {
+	override hideSelectionBoundsBg() {
+		return true
+	}
+	override hideSelectionBoundsFg() {
 		return true
 	}
 
@@ -117,15 +127,18 @@ export class ExamMarkUtil extends ShapeUtil<IExamMarkShape> {
 /* 
 A utility class for the exam mark shape. This is where you define the shape's behavior, how it renders (its component and indicator), and how it handles different events. For more details on how to create a custom shape utility, check out the `custom-config` example.
 
-[1]
-Render method — the React component that will be rendered for the shape. It takes the shape as an argument. HTMLContainer is just a div that's being used to wrap the input.
+[1] We allow this component to be editable. This gives us some behavior for free, namely double clicking the shape will start editing the shape, which we can access using `editor.getEditingShapeId()`. With this, we can focus the input when the shape is double clicked. See [1][a] and [1][c] for more details.
 
- - [a] The important part of this shape utility is how it handles the score input. We know we want the ExamScoreLabel component to be able to access the score of the shape, so we want the score to be a prop for the shape. 
+[2] Render method — the React component that will be rendered for the shape. It takes the shape as an argument. HTMLContainer is just a div that's being used to wrap the input. 
+
+ - [a] To control behavior, we need to know if the shape is being edited. We can access this using `editor.getEditingShapeId()`.
+
+ - [b] The important part of this shape utility is how it handles the score input. We know we want the ExamScoreLabel component to be able to access the score of the shape, so we want the score to be a prop for the shape. 
  Annoying: eslint sometimes thinks this is a class component, but it's not.
 
- - [b] We want to be able to edit the score of the shape, so we need to be able to update the shape's props. We do this by using the editor.updateShape method when we detect that the score is a number.
+ - [c] Focus the input when the the shape is being edited, i.e. when it's double clicked
 
- - [c] We need to stop the pointer down event on the input.
+ - [d] We want to be able to edit the score of the shape, so we need to be able to update the shape's props. We do this by using the editor.updateShape method when we detect that the score is a number.
 
 For notes on the other parts of this shape utility, check out the `custom-config` example.
 */
