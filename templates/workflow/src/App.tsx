@@ -46,9 +46,17 @@ const components: TLComponents = {
 	MenuPanel: () => null,
 	StylePanel: () => {
 		const editor = useEditor()
-		const currentShape = useValue('currentShape', () => editor.getOnlySelectedShape(), [editor])
-		// Hide style panel for workflow shapes (nodes and connections)
-		if (['node', 'connection'].includes(currentShape?.type ?? '')) return null
+		const shouldShowStylePanel = useValue(
+			'shouldShowStylePanel',
+			() => {
+				return (
+					!editor.isIn('select') ||
+					editor.getSelectedShapes().some((s) => s.type !== 'node' && s.type !== 'connection')
+				)
+			},
+			[editor]
+		)
+		if (!shouldShowStylePanel) return
 		return <DefaultStylePanel />
 	},
 }
