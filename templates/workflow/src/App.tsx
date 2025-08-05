@@ -15,6 +15,7 @@ import { overrides, WorkflowToolbar } from './components/WorkflowToolbar.tsx'
 import { ConnectionBindingUtil } from './connection/ConnectionBindingUtil'
 import { ConnectionShapeUtil } from './connection/ConnectionShapeUtil'
 import { keepConnectionsAtBottom } from './connection/keepConnectionsAtBottom'
+import { disableTransparency } from './disableTransparency.tsx'
 import { NodeShapeUtil } from './nodes/NodeShapeUtil'
 import { PointingPort } from './ports/PointingPort'
 
@@ -90,6 +91,9 @@ function App() {
 					// Ensure connections always stay at the bottom of the shape stack
 					// This prevents them from covering other shapes
 					keepConnectionsAtBottom(editor)
+
+					// Disable transparency for workflow shapes
+					disableTransparency(editor, ['node', 'connection'])
 				}}
 			/>
 		</div>
