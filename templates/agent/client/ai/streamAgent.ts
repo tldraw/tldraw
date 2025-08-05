@@ -1,5 +1,5 @@
-import { Streaming, TLAgentChange } from './types/TLAgentChange'
-import { TLAgentPrompt } from './types/TLAgentPrompt'
+import { Streaming, TLAgentChange } from '../types/TLAgentChange'
+import { TLAgentPrompt } from '../types/TLAgentPrompt'
 
 /**
  * Stream a response from the model.

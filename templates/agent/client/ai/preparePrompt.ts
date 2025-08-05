@@ -1,6 +1,6 @@
 import { Box, BoxModel, Editor, FileHelpers, structuredClone, TLShape } from 'tldraw'
-import { Streaming, TLAgentChange } from './types/TLAgentChange'
-import { TLAgentContent, TLAgentPrompt, TLAgentPromptOptions } from './types/TLAgentPrompt'
+import { Streaming, TLAgentChange } from '../types/TLAgentChange'
+import { TLAgentContent, TLAgentPrompt, TLAgentPromptOptions } from '../types/TLAgentPrompt'
 
 /**
  * Get a full prompt based on the provided prompt options, transformed by

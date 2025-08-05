@@ -1,11 +1,16 @@
 import { defaultApplyChange } from '@tldraw/ai'
 import { Editor, TLShapeId } from 'tldraw'
-import { createOrUpdateHistoryItem } from './atoms/chatHistoryItems'
-import { $requestsSchedule } from './atoms/requestsSchedule'
-import { AreaContextItem } from './types/ContextItem'
-import { ScheduledRequest } from './types/ScheduledRequest'
-import { Streaming, TLAgentChange, TLAgentPlaceChange } from './types/TLAgentChange'
+import { createOrUpdateHistoryItem } from '../atoms/chatHistoryItems'
+import { $requestsSchedule } from '../atoms/requestsSchedule'
+import { AreaContextItem } from '../types/ContextItem'
+import { ScheduledRequest } from '../types/ScheduledRequest'
+import { Streaming, TLAgentChange, TLAgentPlaceChange } from '../types/TLAgentChange'
 
+/**
+ * Apply a change to the app. This might mean making a change to the canvas. It
+ * might also mean updating the chat history, or adding a new request to the
+ * schedule.
+ */
 export function applyAgentChange({
 	editor,
 	change,
@@ -18,6 +23,26 @@ export function applyAgentChange({
 	}
 
 	switch (change.type) {
+		case 'createShape':
+		case 'updateShape':
+		case 'deleteShape':
+		case 'createBinding':
+		case 'updateBinding':
+		case 'deleteBinding': {
+			if (!change.complete) return
+			const diff = editor.store.extractingChanges(() => {
+				defaultApplyChange({ change, editor })
+			})
+
+			createOrUpdateHistoryItem({
+				type: 'agent-change',
+				diff,
+				change,
+				status: 'done',
+				acceptance: 'pending',
+			})
+			return
+		}
 		case 'message': {
 			createOrUpdateHistoryItem({
 				type: 'agent-message',
@@ -158,28 +183,6 @@ export function applyAgentChange({
 			const diff = editor.store.extractingChanges(() => {
 				placeShape(editor, change)
 			})
-			createOrUpdateHistoryItem({
-				type: 'agent-change',
-				diff,
-				change,
-				status: 'done',
-				acceptance: 'pending',
-			})
-			return
-		}
-		// Ignore all AI changes
-		// We'll handle them after transforms are applied
-		case 'createShape':
-		case 'updateShape':
-		case 'deleteShape':
-		case 'createBinding':
-		case 'updateBinding':
-		case 'deleteBinding': {
-			if (!change.complete) return
-			const diff = editor.store.extractingChanges(() => {
-				defaultApplyChange({ change, editor })
-			})
-
 			createOrUpdateHistoryItem({
 				type: 'agent-change',
 				diff,

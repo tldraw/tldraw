@@ -1,11 +1,12 @@
 import { uniqueId } from 'tldraw'
+import { TLAgentPromptOptions } from '../types/TLAgentPrompt'
 import { applyAgentChange } from './applyAgentChange'
 import { preparePrompt } from './preparePrompt'
 import { streamAgent } from './streamAgent'
-import { TLAgentPromptOptions } from './types/TLAgentPrompt'
 
 /**
- * Prompt the agent with a request. The agent's response will be streamed back to the chat panel and editor.
+ * Prompt the agent with a request. The agent's response will be streamed back
+ * to the chat panel and editor.
  *
  * @returns A promise that resolves when the prompt is complete.
  */
