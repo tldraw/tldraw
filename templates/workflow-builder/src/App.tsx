@@ -17,6 +17,8 @@ import { keepConnectionsAtBottom } from './connection/keepConnectionsAtBottom'
 import { NodeShapeUtil } from './nodes/NodeShapeUtil'
 import { PointingPort } from './ports/PointingPort'
 
+// hello i am sergio
+
 // Define custom shape utilities that extend tldraw's shape system
 const shapeUtils = [NodeShapeUtil, ConnectionShapeUtil]
 // Define binding utilities that handle relationships between shapes
