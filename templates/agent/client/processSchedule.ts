@@ -1,11 +1,11 @@
 // import { useCallback } from 'react'
-import { Box, Editor, structuredClone } from 'tldraw'
+import { Box, Editor } from 'tldraw'
 import { TLAgentModelName } from '../worker/models'
 import { $chatHistoryItems } from './atoms/chatHistoryItems'
 import { $pendingContextItems } from './atoms/contextItems'
 import { $requestsSchedule } from './atoms/requestsSchedule'
 import { $contextBoundsHighlight } from './components/highlights/ContextBoundsHighlights'
-import { TLAgentPromptMeta, TldrawAgent } from './useTldrawAgent'
+import { TldrawAgent } from './useTldrawAgent'
 
 export async function processSchedule({
 	editor,
@@ -34,21 +34,19 @@ export async function processSchedule({
 	$contextBoundsHighlight.set(bounds)
 
 	try {
-		const meta: TLAgentPromptMeta = {
-			modelName,
-			historyItems: $chatHistoryItems.get().filter((item) => item.type !== 'status-thinking'),
-			contextItems: request.contextItems,
-			currentPageShapes: editor.getCurrentPageShapesSorted().map((v) => structuredClone(v)),
-			currentUserViewportBounds: editor.getViewportPageBounds(),
-			userSelectedShapes: editor.getSelectedShapes().map((v) => structuredClone(v)),
-			type: request.type,
-		}
-
 		const { promise, cancel } = agent.prompt({
 			message: intent,
 			contextBounds: bounds,
 			promptBounds: bounds,
-			meta,
+			// meta: {
+			// 	modelName,
+			// 	historyItems: $chatHistoryItems.get().filter((item) => item.type !== 'status-thinking'),
+			// 	contextItems: request.contextItems,
+			// 	currentPageShapes: editor.getCurrentPageShapesSorted().map((v) => structuredClone(v)),
+			// 	currentUserViewportBounds: editor.getViewportPageBounds(),
+			// 	userSelectedShapes: editor.getSelectedShapes().map((v) => structuredClone(v)),
+			// 	type: request.type,
+			// },
 		})
 
 		$chatHistoryItems.update((prev) => [
