@@ -42,10 +42,15 @@ const NUMBERED_SHORTCUT_KEYS: Record<string, number> = {
 export interface OverflowingToolbarProps {
 	children: React.ReactNode
 	orientation: 'horizontal' | 'vertical'
+	maxItems?: number
 }
 
 /** @public @react */
-export function OverflowingToolbar({ children, orientation }: OverflowingToolbarProps) {
+export function OverflowingToolbar({
+	children,
+	orientation,
+	maxItems = 8,
+}: OverflowingToolbarProps) {
 	const editor = useEditor()
 	const id = useUniqueSafeId()
 	const breakpoint = useBreakpoint()
@@ -53,7 +58,7 @@ export function OverflowingToolbar({ children, orientation }: OverflowingToolbar
 	const rButtons = useRef<HTMLElement[]>([])
 	const [isOpen, setIsOpen] = useState(false)
 
-	const overflowIndex = Math.min(8, 5 + breakpoint)
+	const overflowIndex = Math.min(maxItems, 5 + breakpoint)
 
 	const [totalItems, setTotalItems] = useState(0)
 	const mainToolsRef = useRef<HTMLDivElement>(null)

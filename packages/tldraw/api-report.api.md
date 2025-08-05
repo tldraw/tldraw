@@ -984,6 +984,8 @@ export interface DefaultToolbarProps {
     // (undocumented)
     children?: ReactNode;
     // (undocumented)
+    maxItems?: number;
+    // (undocumented)
     orientation?: 'horizontal' | 'vertical';
 }
 
@@ -2174,12 +2176,14 @@ export function OpacitySlider(): JSX_2.Element | null;
 export function OvalToolbarItem(): JSX_2.Element;
 
 // @public (undocumented)
-export function OverflowingToolbar({ children, orientation }: OverflowingToolbarProps): JSX_2.Element;
+export function OverflowingToolbar({ children, orientation, maxItems, }: OverflowingToolbarProps): JSX_2.Element;
 
 // @public (undocumented)
 export interface OverflowingToolbarProps {
     // (undocumented)
     children: React.ReactNode;
+    // (undocumented)
+    maxItems?: number;
     // (undocumented)
     orientation: 'horizontal' | 'vertical';
 }

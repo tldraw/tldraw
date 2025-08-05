@@ -216,18 +216,6 @@ body {
 	}
 }
 
-.WorkflowToolbar {
-	position: fixed;
-	left: 0;
-	top: 50%;
-	justify-content: flex-start;
-
-	.tlui-toolbar__tools {
-		transform: translateY(-50%);
-		margin-left: 8px;
-	}
-}
-
 .ConditionalNode-output {
 	justify-content: flex-end;
 }

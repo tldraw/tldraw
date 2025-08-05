@@ -16,6 +16,7 @@ import { ToggleToolLockedButton } from './ToggleToolLockedButton'
 export interface DefaultToolbarProps {
 	children?: ReactNode
 	orientation?: 'horizontal' | 'vertical'
+	maxItems?: number
 }
 
 /**
@@ -29,6 +30,7 @@ export interface DefaultToolbarProps {
 export const DefaultToolbar = memo(function DefaultToolbar({
 	children,
 	orientation = 'horizontal',
+	maxItems,
 }: DefaultToolbarProps) {
 	const editor = useEditor()
 	const msg = useTranslation()
@@ -67,7 +69,7 @@ export const DefaultToolbar = memo(function DefaultToolbar({
 							<ToggleToolLockedButton activeToolId={activeToolId} />
 						</div>
 					)}
-					<OverflowingToolbar orientation={orientation}>
+					<OverflowingToolbar orientation={orientation} maxItems={maxItems}>
 						{children ?? <DefaultToolbarContent />}
 					</OverflowingToolbar>
 				</div>

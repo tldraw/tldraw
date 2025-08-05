@@ -1,10 +1,12 @@
-import { useRef, useState } from 'react'
 import {
 	AssetToolbarItem,
 	CheckBoxToolbarItem,
 	CloudToolbarItem,
+	createShapeId,
+	DefaultToolbar,
 	DiamondToolbarItem,
 	DrawToolbarItem,
+	Editor,
 	EllipseToolbarItem,
 	HandToolbarItem,
 	HeartToolbarItem,
@@ -12,149 +14,137 @@ import {
 	HighlightToolbarItem,
 	LaserToolbarItem,
 	NoteToolbarItem,
+	onDragFromToolbarToCreateShape,
 	OvalToolbarItem,
 	RectangleToolbarItem,
 	RhombusToolbarItem,
 	SelectToolbarItem,
 	StarToolbarItem,
 	TextToolbarItem,
-	TldrawUiButtonIcon,
-	TldrawUiMenuContextProvider,
-	TldrawUiPopover,
-	TldrawUiPopoverContent,
-	TldrawUiPopoverTrigger,
-	TldrawUiToolbar,
-	TldrawUiToolbarButton,
 	tlmenus,
+	TLShapeId,
+	TLUiOverrides,
+	ToolbarItem,
 	TriangleToolbarItem,
-	useEditor,
-	usePassThroughWheelEvents,
-	useTranslation,
-	useUniqueSafeId,
+	Vec,
 	XBoxToolbarItem,
 } from 'tldraw'
-import { ConditionalNode } from '../nodes/types/ConditionalNode'
-import { SliderNode } from '../nodes/types/SliderNode'
-import { CreateNodeToolbarButton } from './CreateNodeToobarButton'
-import { DraggableToolbarItem } from './DraggableToolbarItem'
-import { MathematicalToolbarItem } from './MathematicalToolbarItem'
+import { NodeShape } from '../nodes/NodeShapeUtil'
+import { NodeDefinitions, NodeType } from '../nodes/nodeTypes'
+import { MATH_MENU_ID, MathematicalToolbarItem } from './MathematicalToolbarItem'
+
+function createNodeShape(editor: Editor, shapeId: TLShapeId, center: Vec, node: NodeType) {
+	// Mark a history stopping point for undo/redo
+	const markId = editor.markHistoryStoppingPoint('create node')
+
+	editor.run(() => {
+		// Create the shape with the node definition
+		editor.createShape<NodeShape>({
+			id: shapeId,
+			type: 'node',
+			props: { node },
+		})
+
+		// Get the created shape and its bounds
+		const shape = editor.getShape<NodeShape>(shapeId)!
+		const shapeBounds = editor.getShapePageBounds(shapeId)!
+
+		// Position the shape so its center aligns with the drop point
+		const x = center.x - shapeBounds.width / 2
+		const y = center.y - shapeBounds.height / 2
+		editor.updateShape({ ...shape, x, y })
+
+		// Select the newly created shape
+		editor.select(shapeId)
+	})
+
+	return markId
+}
+
+export const overrides: TLUiOverrides = {
+	tools: (editor, tools, _) => {
+		for (const nodeDef of NodeDefinitions) {
+			tools[`node-${nodeDef.type}`] = {
+				id: `node-${nodeDef.type}`,
+				label: nodeDef.title,
+				icon: nodeDef.icon,
+				onSelect: () => {
+					createNodeShape(
+						editor,
+						createShapeId(),
+						editor.getViewportPageBounds().center,
+						nodeDef.getDefault()
+					)
+					tlmenus.deleteOpenMenu(MATH_MENU_ID, editor.contextId)
+				},
+				onDragStart: (_, info) => {
+					onDragFromToolbarToCreateShape(editor, info, {
+						createShape: (id) =>
+							editor.createShape<NodeShape>({
+								id,
+								type: 'node',
+								props: { node: nodeDef.getDefault() },
+							}),
+						onDragEnd: () => {
+							tlmenus.deleteOpenMenu(MATH_MENU_ID, editor.contextId)
+						},
+					})
+				},
+			}
+		}
+		return tools
+	},
+}
 
 export function WorkflowToolbar() {
-	const ref = useRef<HTMLDivElement>(null)
-	// Allow wheel events to pass through to the canvas
-	usePassThroughWheelEvents(ref)
-	const popoverId = 'toolbar overflow'
-	const msg = useTranslation()
-	const [isOpen, setIsOpen] = useState(false)
-	const id = useUniqueSafeId()
-	const editor = useEditor()
-
 	return (
-		<div ref={ref} className="WorkflowToolbar tlui-toolbar tlui-toolbar__vertical">
-			<div className="tlui-toolbar__inner">
-				<TldrawUiToolbar
-					className="tlui-toolbar__tools"
-					label={msg('tool-panel.title')}
-					orientation="vertical"
-				>
-					<div id={`${id}_main`} className="tlui-toolbar__tools__list tlui-buttons__vertical">
-						<TldrawUiMenuContextProvider type="toolbar" sourceId="toolbar">
-							<SelectToolbarItem />
-							<HandToolbarItem />
-							<DrawToolbarItem />
-							<DraggableToolbarItem toolId="note">
-								<NoteToolbarItem />
-							</DraggableToolbarItem>
+		<DefaultToolbar orientation="vertical" maxItems={9}>
+			<SelectToolbarItem />
+			<HandToolbarItem />
+			<DrawToolbarItem />
+			<NoteToolbarItem />
 
-							<div
-								style={{
-									width: '100%',
-									height: 1,
-									margin: '2px 0',
-									backgroundColor: 'var(--color-muted-2)',
-								}}
-							/>
+			<div
+				style={{
+					width: '100%',
+					height: 1,
+					margin: '2px 0',
+					backgroundColor: 'var(--color-muted-2)',
+				}}
+			/>
 
-							<MathematicalToolbarItem />
+			<MathematicalToolbarItem />
+			<ToolbarItem tool="node-slider" />
+			<ToolbarItem tool="node-conditional" />
 
-							<CreateNodeToolbarButton definition={SliderNode} type="tool" />
-							<CreateNodeToolbarButton definition={ConditionalNode} type="tool" />
-						</TldrawUiMenuContextProvider>
+			<div
+				style={{
+					width: '100%',
+					height: 1,
+					margin: '2px 0',
+					backgroundColor: 'var(--color-muted-2)',
+				}}
+			/>
 
-						<TldrawUiPopover id={popoverId} open={isOpen} onOpenChange={setIsOpen}>
-							<TldrawUiPopoverTrigger>
-								<TldrawUiToolbarButton
-									title={msg('tool-panel.more')}
-									type="tool"
-									data-testid="tools.more-button"
-								>
-									<TldrawUiButtonIcon icon="chevron-right" />
-								</TldrawUiToolbarButton>
-							</TldrawUiPopoverTrigger>
-							<TldrawUiPopoverContent side="right" align="center">
-								<TldrawUiToolbar
-									className="tlui-buttons__grid"
-									data-testid="tools.more-content"
-									label={msg('tool-panel.more')}
-									id={`${id}_more`}
-									onClick={() => {
-										// Close the menu when a tool is selected
-										tlmenus.deleteOpenMenu(popoverId, editor.contextId)
-										setIsOpen(false)
-									}}
-								>
-									<TldrawUiMenuContextProvider type="toolbar-overflow" sourceId="toolbar">
-										<DraggableToolbarItem toolId="text">
-											<TextToolbarItem />
-										</DraggableToolbarItem>
-										<AssetToolbarItem />
-										<HighlightToolbarItem />
-										<LaserToolbarItem />
+			<RectangleToolbarItem />
+			<EllipseToolbarItem />
+			<TriangleToolbarItem />
+			<DiamondToolbarItem />
 
-										<DraggableToolbarItem toolId="rectangle">
-											<RectangleToolbarItem />
-										</DraggableToolbarItem>
-										<DraggableToolbarItem toolId="ellipse">
-											<EllipseToolbarItem />
-										</DraggableToolbarItem>
-										<DraggableToolbarItem toolId="triangle">
-											<TriangleToolbarItem />
-										</DraggableToolbarItem>
-										<DraggableToolbarItem toolId="diamond">
-											<DiamondToolbarItem />
-										</DraggableToolbarItem>
+			<HexagonToolbarItem />
+			<OvalToolbarItem />
+			<RhombusToolbarItem />
+			<StarToolbarItem />
 
-										<DraggableToolbarItem toolId="hexagon">
-											<HexagonToolbarItem />
-										</DraggableToolbarItem>
-										<DraggableToolbarItem toolId="oval">
-											<OvalToolbarItem />
-										</DraggableToolbarItem>
-										<DraggableToolbarItem toolId="rhombus">
-											<RhombusToolbarItem />
-										</DraggableToolbarItem>
-										<DraggableToolbarItem toolId="star">
-											<StarToolbarItem />
-										</DraggableToolbarItem>
-										<DraggableToolbarItem toolId="cloud">
-											<CloudToolbarItem />
-										</DraggableToolbarItem>
-										<DraggableToolbarItem toolId="heart">
-											<HeartToolbarItem />
-										</DraggableToolbarItem>
-										<DraggableToolbarItem toolId="x-box">
-											<XBoxToolbarItem />
-										</DraggableToolbarItem>
-										<DraggableToolbarItem toolId="check-box">
-											<CheckBoxToolbarItem />
-										</DraggableToolbarItem>
-									</TldrawUiMenuContextProvider>
-								</TldrawUiToolbar>
-							</TldrawUiPopoverContent>
-						</TldrawUiPopover>
-					</div>
-				</TldrawUiToolbar>
-			</div>
-		</div>
+			<CloudToolbarItem />
+			<HeartToolbarItem />
+			<XBoxToolbarItem />
+			<CheckBoxToolbarItem />
+
+			<TextToolbarItem />
+			<AssetToolbarItem />
+			<HighlightToolbarItem />
+			<LaserToolbarItem />
+		</DefaultToolbar>
 	)
 }
