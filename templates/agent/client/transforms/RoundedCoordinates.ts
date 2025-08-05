@@ -1,5 +1,5 @@
-import { TLAiChange } from '@tldraw/ai'
 import { Box, TLShape, TLShapePartial } from 'tldraw'
+import { Streaming, TLAgentChange } from '../types/TLAgentChange'
 import { TLAgentPrompt } from '../useTldrawAgent'
 import { TldrawAgentTransform } from './TldrawAgentTransform'
 
@@ -136,7 +136,9 @@ export class RoundedCoordinates extends TldrawAgentTransform {
 		return roundedValue - value
 	}
 
-	override transformChange = (change: TLAiChange) => {
+	override transformChange = (change: Streaming<TLAgentChange>) => {
+		if (!change.complete) return change
+
 		switch (change.type) {
 			case 'createShape':
 			case 'updateShape': {

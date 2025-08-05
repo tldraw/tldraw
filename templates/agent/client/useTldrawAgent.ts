@@ -11,7 +11,10 @@ import {
 } from 'tldraw'
 import { DEFAULT_MODEL_NAME, TLAgentModelName } from '../worker/models'
 import { applyAgentChange } from './applyAgentChange'
+import { RoundedCoordinates } from './transforms/RoundedCoordinates'
+import { SimpleText } from './transforms/SimpleText'
 import { TldrawAgentTransformConstructor } from './transforms/TldrawAgentTransform'
+import { UniqueIds } from './transforms/UniqueIds'
 import { ChatHistoryItem } from './types/ChatHistoryItem'
 import { ContextItem } from './types/ContextItem'
 import { ScheduledRequest } from './types/ScheduledRequest'
@@ -61,7 +64,7 @@ export function useTldrawAgent({ editor }: { editor: Editor }): TldrawAgent {
 		(options: Partial<TLAgentPromptOptions>) => {
 			return promptAgent({
 				editor: options.editor ?? editor,
-				transforms: options.transforms ?? [],
+				transforms: options.transforms ?? [RoundedCoordinates, SimpleText, UniqueIds],
 				message: options.message ?? '',
 				contextBounds: options.contextBounds ?? editor.getViewportPageBounds(),
 				promptBounds: options.promptBounds ?? editor.getViewportPageBounds(),
@@ -102,7 +105,6 @@ function promptAgent(promptOptions: TLAgentPromptOptions) {
 
 				editor.markHistoryStoppingPoint(markId)
 				for await (const change of stream({
-					editor,
 					prompt,
 					signal,
 				})) {
@@ -110,8 +112,8 @@ function promptAgent(promptOptions: TLAgentPromptOptions) {
 					try {
 						editor.run(
 							() => {
-								if (!change) return
-								const _transformedChange = transformChange(change)
+								const transformedChange = transformChange(change)
+								applyAgentChange({ editor, change: transformedChange })
 							},
 							{
 								ignoreShapeLock: false, // ? should this be true?
@@ -153,15 +155,7 @@ function promptAgent(promptOptions: TLAgentPromptOptions) {
  *
  * @returns An async generator that yields the changes as they come in.
  */
-async function* stream({
-	editor,
-	prompt,
-	signal,
-}: {
-	editor: Editor
-	prompt: TLAgentPrompt
-	signal: AbortSignal
-}) {
+async function* stream({ prompt, signal }: { prompt: TLAgentPrompt; signal: AbortSignal }) {
 	const res = await fetch('/stream', {
 		method: 'POST',
 		body: JSON.stringify(prompt),
@@ -199,13 +193,8 @@ async function* stream({
 							throw new Error(data.error)
 						}
 
-						// Otherwise, it's a regular agent change
 						const agentChange: Streaming<TLAgentChange> = data
-						applyAgentChange({ editor, change: agentChange })
-
-						if (agentChange.complete) {
-							yield agentChange
-						}
+						yield agentChange
 					} catch (err: any) {
 						throw new Error(err.message)
 					}
@@ -252,12 +241,13 @@ async function preparePrompt(promptOptions: TLAgentPromptOptions) {
 
 	transforms.reverse()
 
-	const transformChange = (change: TLAgentChange) => {
+	const transformChange = (change: Streaming<TLAgentChange>) => {
 		for (const transform of transforms) {
 			if (transform.transformChange) {
 				change = transform.transformChange(change)
 			}
 		}
+		return change
 	}
 
 	return {

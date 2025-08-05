@@ -1,5 +1,5 @@
 // import { useCallback } from 'react'
-import { Box, Editor } from 'tldraw'
+import { Box, Editor, structuredClone } from 'tldraw'
 import { TLAgentModelName } from '../worker/models'
 import { $chatHistoryItems } from './atoms/chatHistoryItems'
 import { $pendingContextItems } from './atoms/contextItems'
@@ -38,15 +38,15 @@ export async function processSchedule({
 			message: intent,
 			contextBounds: bounds,
 			promptBounds: bounds,
-			// meta: {
-			// 	modelName,
-			// 	historyItems: $chatHistoryItems.get().filter((item) => item.type !== 'status-thinking'),
-			// 	contextItems: request.contextItems,
-			// 	currentPageShapes: editor.getCurrentPageShapesSorted().map((v) => structuredClone(v)),
-			// 	currentUserViewportBounds: editor.getViewportPageBounds(),
-			// 	userSelectedShapes: editor.getSelectedShapes().map((v) => structuredClone(v)),
-			// 	type: request.type,
-			// },
+			meta: {
+				modelName,
+				historyItems: $chatHistoryItems.get().filter((item) => item.type !== 'status-thinking'),
+				contextItems: request.contextItems,
+				currentPageShapes: editor.getCurrentPageShapesSorted().map((v) => structuredClone(v)),
+				currentUserViewportBounds: editor.getViewportPageBounds(),
+				userSelectedShapes: editor.getSelectedShapes().map((v) => structuredClone(v)),
+				type: request.type,
+			},
 		})
 
 		$chatHistoryItems.update((prev) => [

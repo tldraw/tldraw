@@ -1,11 +1,13 @@
 import { createBindingId, TLShapeId } from '@tldraw/tlschema'
-import { TLAgentChange } from '../types/TLAgentChange'
+import { Streaming, TLAgentChange } from '../types/TLAgentChange'
 import { TldrawAgentTransform } from './TldrawAgentTransform'
 
 export class UniqueIds extends TldrawAgentTransform {
 	idMap = new Map<string, TLShapeId>()
 
-	override transformChange = (change: TLAgentChange): TLAgentChange => {
+	override transformChange = (change: Streaming<TLAgentChange>): Streaming<TLAgentChange> => {
+		if (!change.complete) return change
+
 		switch (change.type) {
 			case 'createShape': {
 				const { shape } = change

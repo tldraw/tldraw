@@ -1,5 +1,5 @@
 import { Editor } from 'tldraw'
-import { TLAgentChange } from '../types/TLAgentChange'
+import { Streaming, TLAgentChange } from '../types/TLAgentChange'
 import { TLAgentPrompt } from '../useTldrawAgent'
 
 /** @public */
@@ -16,7 +16,7 @@ export abstract class TldrawAgentTransform {
 	 * @param change - The change to transform
 	 * @returns The transformed change
 	 */
-	transformChange?(change: TLAgentChange): TLAgentChange
+	transformChange?(change: Streaming<TLAgentChange>): Streaming<TLAgentChange>
 }
 
 /** @public */
