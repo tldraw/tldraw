@@ -6,13 +6,13 @@ import { $modelName } from '../atoms/modelName'
 import { $requestsSchedule } from '../atoms/requestsSchedule'
 import { processSchedule } from '../processSchedule'
 import { UserMessageHistoryItem } from '../types/ChatHistoryItem'
-import { useTldrawAgent } from '../useTldrawAgent'
+import { useAgent } from '../useAgent'
 import { ChatHistory } from './chat-history/ChatHistory'
 import { ChatInput } from './ChatInput'
 import { $contextBoundsHighlight } from './highlights/ContextBoundsHighlights'
 
 export function ChatPanel({ editor }: { editor: Editor }) {
-	const ai = useTldrawAgent(editor)
+	const ai = useAgent(editor)
 	const [isGenerating, setIsGenerating] = useState(false)
 	const rCancelFn = useRef<(() => void) | null>(null)
 	const inputRef = useRef<HTMLTextAreaElement>(null)

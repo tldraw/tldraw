@@ -1,4 +1,4 @@
-import { TLAiChange, TldrawAiOptions, useTldrawAi } from '@tldraw/ai'
+import { TLAiChange, TldrawAi, TldrawAiOptions, useTldrawAi } from '@tldraw/ai'
 import { Editor } from 'tldraw'
 import { applyAgentChange } from './applyAgentChange'
 import { applyAiChange } from './applyAiChange'
@@ -12,7 +12,7 @@ import { Streaming, TLAgentChange } from './types/TLAgentChange'
  *
  * @param editor - (optional) The editor instance to use. If not provided, the hook will try to use the editor from React context.
  */
-export function useTldrawAgent(editor?: Editor) {
+export function useAgent(editor?: Editor): TldrawAi {
 	return useTldrawAi({ editor, ...STATIC_TLDRAWAI_OPTIONS })
 }
 
