@@ -146,7 +146,7 @@ export class Erasing extends StateNode {
 		}
 
 		// If the user is holding the meta / ctrl key, we should only erase the first shape we hit
-		if (this._isHoldingAccelKey) {
+		if (this._isHoldingAccelKey && this._firstErasingShapeId) {
 			const erasingShapeId = this._firstErasingShapeId
 			if (erasingShapeId && this.editor.getShape(erasingShapeId)) {
 				editor.setErasingShapes([erasingShapeId])
@@ -164,6 +164,8 @@ export class Erasing extends StateNode {
 		const { editor } = this
 		editor.deleteShapes(editor.getCurrentPageState().erasingShapeIds)
 		this.parent.transition('idle')
+		this._erasingShapeIds = []
+		this._firstErasingShapeId = null
 	}
 
 	cancel() {
