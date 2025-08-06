@@ -14,7 +14,7 @@ export function TlaSidebarRecentFilesNew() {
 	const app = useApp()
 
 	const [isShowingAll, setIsShowingAll] = useState(false)
-	const [isCreatingGroup, setIsCreatingGroup] = useState(true)
+	const [isCreatingGroup, setIsCreatingGroup] = useState(false)
 	const groupMemberships = useValue('groupMemberships', () => app.getGroupMemberships(), [app])
 
 	const results = useValue(

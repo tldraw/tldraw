@@ -255,7 +255,7 @@
 	display: flex;
 	align-items: center;
 	justify-content: center;
-	color: var(--tla-color-text-1);
+	color: inherit;
 	flex-shrink: 0;
 	padding: 0px;
 	z-index: 10;
@@ -729,6 +729,7 @@
 .sidebarFileSectionGroups {
 	margin-top: 24px;
 	border-top: 1px solid var(--color-low-border);
+	color: var(--tla-color-text-3);
 }
 
 .sidebarFileSectionTitleText {
