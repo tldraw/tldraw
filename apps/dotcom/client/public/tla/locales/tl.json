@@ -50,6 +50,12 @@
   "1dd1c5fb7f": {
     "translation": "Ngayong araw"
   },
+  "20976e7bec": {
+    "translation": "Puno ang kwarto"
+  },
+  "21bfb2dc2e": {
+    "translation": "Papalapit na ang kwartong ito sa limitasyon ng laki nito. Pag-isipang mag-alis ng ilang content o magsimula ng bagong file."
+  },
   "22d84a12fd": {
     "translation": "Figjam pero tldraw"
   },
@@ -61,6 +67,9 @@
   },
   "2c61d18599": {
     "translation": "Miro ngunit mabuti at libre"
+  },
+  "2deec2cb74": {
+    "translation": "Naabot na ng kwartong ito ang limitasyon sa laki nito at maaaring hindi na ma-save ang mga pagbabago. Mag-alis ng ilang content o magsimula ng bagong file."
   },
   "31246941ad": {
     "translation": "Kailangan mong mag-sign in upang tingnan ang file na ito."
@@ -143,6 +152,9 @@
   "5a95a425f7": {
     "translation": "Ibahagi"
   },
+  "5bb6cf3b53": {
+    "translation": "Lumalaki ang kwarto"
+  },
   "5bcc12ace8": {
     "translation": "Read-only na ang kwartong ito"
   },
@@ -214,6 +226,9 @@
   },
   "777f9e90cf": {
     "translation": "Di-wastong kahilingan."
+  },
+  "78e9815992": {
+    "translation": "Nakuha ko"
   },
   "797799f35e": {
     "translation": "Magsumite ng isyu sa GitHub"

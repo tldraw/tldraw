@@ -105,6 +105,18 @@
       "value": "Ma"
     }
   ],
+  "20976e7bec": [
+    {
+      "type": 0,
+      "value": "A szoba tele van"
+    }
+  ],
+  "21bfb2dc2e": [
+    {
+      "type": 0,
+      "value": "Ez a szoba közeledik a méretkorlátjához. Fontolja meg néhány tartalom eltávolítását vagy új fájl létrehozását."
+    }
+  ],
   "22d84a12fd": [
     {
       "type": 0,
@@ -127,6 +139,12 @@
     {
       "type": 0,
       "value": "Miro, de jó és ingyenes"
+    }
+  ],
+  "2deec2cb74": [
+    {
+      "type": 0,
+      "value": "Ez a szoba elérte a méretkorlátját, és előfordulhat, hogy a módosítások már nem menthetők. Távolítson el néhány tartalmat, vagy hozzon létre egy új fájlt."
     }
   ],
   "31246941ad": [
@@ -301,6 +319,12 @@
       "value": "Részesedés"
     }
   ],
+  "5bb6cf3b53": [
+    {
+      "type": 0,
+      "value": "Egyre nagyobb lesz a szoba"
+    }
+  ],
   "5bcc12ace8": [
     {
       "type": 0,
@@ -443,6 +467,12 @@
     {
       "type": 0,
       "value": "Érvénytelen kérés."
+    }
+  ],
+  "78e9815992": [
+    {
+      "type": 0,
+      "value": "Értem"
     }
   ],
   "797799f35e": [

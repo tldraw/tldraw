@@ -105,6 +105,18 @@
       "value": "Idag"
     }
   ],
+  "20976e7bec": [
+    {
+      "type": 0,
+      "value": "Rummet är fullt"
+    }
+  ],
+  "21bfb2dc2e": [
+    {
+      "type": 0,
+      "value": "Det här rummet närmar sig sin storleksgräns. Överväg att ta bort en del innehåll eller starta en ny fil."
+    }
+  ],
   "22d84a12fd": [
     {
       "type": 0,
@@ -127,6 +139,12 @@
     {
       "type": 0,
       "value": "Miro men bra och fri"
+    }
+  ],
+  "2deec2cb74": [
+    {
+      "type": 0,
+      "value": "Det här rummet har nått sin storleksgräns och ändringarna kanske inte längre sparas. Ta bort en del innehåll eller skapa en ny fil."
     }
   ],
   "31246941ad": [
@@ -301,6 +319,12 @@
       "value": "Dela"
     }
   ],
+  "5bb6cf3b53": [
+    {
+      "type": 0,
+      "value": "Rummet blir stort"
+    }
+  ],
   "5bcc12ace8": [
     {
       "type": 0,
@@ -443,6 +467,12 @@
     {
       "type": 0,
       "value": "Ogiltig begäran."
+    }
+  ],
+  "78e9815992": [
+    {
+      "type": 0,
+      "value": "Förstod"
     }
   ],
   "797799f35e": [

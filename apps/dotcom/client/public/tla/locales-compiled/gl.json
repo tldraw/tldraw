@@ -105,6 +105,18 @@
       "value": "Hoxe"
     }
   ],
+  "20976e7bec": [
+    {
+      "type": 0,
+      "value": "A sala está chea"
+    }
+  ],
+  "21bfb2dc2e": [
+    {
+      "type": 0,
+      "value": "Esta sala está a chegar ao seu límite de tamaño. Considera eliminar parte do contido ou comezar un novo ficheiro."
+    }
+  ],
   "22d84a12fd": [
     {
       "type": 0,
@@ -127,6 +139,12 @@
     {
       "type": 0,
       "value": "Miro pero bo e gratuíto"
+    }
+  ],
+  "2deec2cb74": [
+    {
+      "type": 0,
+      "value": "Esta sala alcanzou o seu límite de tamaño e é posible que os cambios xa non se garden. Elimina parte do contido ou comeza un ficheiro novo."
     }
   ],
   "31246941ad": [
@@ -301,6 +319,12 @@
       "value": "Compartir"
     }
   ],
+  "5bb6cf3b53": [
+    {
+      "type": 0,
+      "value": "A habitación faise grande"
+    }
+  ],
   "5bcc12ace8": [
     {
       "type": 0,
@@ -443,6 +467,12 @@
     {
       "type": 0,
       "value": "Solicitude non válida."
+    }
+  ],
+  "78e9815992": [
+    {
+      "type": 0,
+      "value": "Entendido"
     }
   ],
   "797799f35e": [
