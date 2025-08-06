@@ -1,4 +1,4 @@
-import { Box, SVGContainer, Tldraw, useEditor } from 'tldraw'
+import { Box, createShapeId, Tldraw, useEditor } from 'tldraw'
 
 function ZoomToBoundsButton({ box, color }: { box: Box; color: string }) {
 	const editor = useEditor()
@@ -13,7 +13,8 @@ function ZoomToBoundsButton({ box, color }: { box: Box; color: string }) {
 				pointerEvents: 'all',
 				backgroundColor: color,
 			}}
-			onClick={() => editor.zoomToBounds(box, { inset: 32 })}
+			// Zoom to bounds!
+			onClick={() => editor.zoomToBounds(box, { inset: 72 })}
 		>
 			Zoom to {color} box
 		</button>
@@ -27,32 +28,40 @@ export default function ZoomToBoundsExample() {
 	return (
 		<div className="tldraw__editor">
 			<Tldraw
+				onMount={(editor) => {
+					editor.createShapes([
+						{
+							id: createShapeId(),
+							type: 'geo',
+							x: zoomBox1.x,
+							y: zoomBox1.y,
+							isLocked: true,
+							props: {
+								w: zoomBox1.w,
+								h: zoomBox1.h,
+								color: 'violet',
+							},
+						},
+						{
+							id: createShapeId(),
+							type: 'geo',
+							x: zoomBox2.x,
+							y: zoomBox2.y,
+							isLocked: true,
+							props: {
+								w: zoomBox2.w,
+								h: zoomBox2.h,
+								color: 'blue',
+							},
+						},
+					])
+				}}
 				components={{
 					TopPanel: () => (
 						<>
 							<ZoomToBoundsButton box={zoomBox1} color="purple" />
 							<ZoomToBoundsButton box={zoomBox2} color="blue" />
 						</>
-					),
-					OnTheCanvas: () => (
-						<SVGContainer>
-							<rect
-								x={zoomBox1.x}
-								y={zoomBox1.y}
-								width={zoomBox1.w}
-								height={zoomBox1.h}
-								fill="none"
-								stroke="purple"
-							/>
-							<rect
-								x={zoomBox2.x}
-								y={zoomBox2.y}
-								width={zoomBox2.w}
-								height={zoomBox2.h}
-								fill="none"
-								stroke="blue"
-							/>
-						</SVGContainer>
 					),
 				}}
 			/>
