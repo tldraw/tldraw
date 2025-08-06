@@ -82,7 +82,10 @@
 	display: flex;
 	flex-direction: column;
 	flex: 1 1 auto;
-	padding-bottom: 40px;
+	margin: 0px -12px;
+	padding: 0px 12px 40px 12px;
+	overflow-y: scroll;
+	overflow-x: visible;
 	-ms-overflow-style: none; /* IE and Edge */
 	scrollbar-width: none; /* Firefox */
 }
@@ -801,4 +804,13 @@
 	display: flex;
 	flex-direction: column;
 	margin-bottom: 24px;
+}
+
+.sidebarGroupCreateInput {
+	font-size: 12px !important;
+	line-height: 1.3;
+}
+
+.sidebarGroupCreateInputWrapper {
+	margin-bottom: 8px;
 }

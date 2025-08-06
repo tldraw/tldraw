@@ -97,7 +97,9 @@ export const TlaSidebar = memo(function TlaSidebar() {
 					<TlaSidebarCreateFileButton />
 				</div>
 				<div className={styles.sidebarContent}>
-					{hasGroups ? <NewSidebarLayout /> : <LegacySidebarLayout />}
+					<div className={styles.sidebarContentInner}>
+						{hasGroups ? <NewSidebarLayout /> : <LegacySidebarLayout />}
+					</div>
 				</div>
 
 				<div className={styles.sidebarBottomArea}>

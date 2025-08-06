@@ -1,17 +1,20 @@
 import { Fragment, useState } from 'react'
 import { uniqueId, useValue } from 'tldraw'
 import { useApp } from '../../../hooks/useAppState'
+import { getIsCoarsePointer } from '../../../utils/getIsCoarsePointer'
 import { F } from '../../../utils/i18n'
 import styles from '../sidebar.module.css'
 import { RecentFile } from './sidebar-shared'
 import { TlaSidebarFileLink } from './TlaSidebarFileLink'
 import { TlaSidebarFileSection } from './TlaSidebarFileSection'
 import { TlaSidebarGroupItem } from './TlaSidebarGroupItem'
+import { TlaSidebarInlineInput } from './TlaSidebarInlineInput'
 
 export function TlaSidebarRecentFilesNew() {
 	const app = useApp()
 
 	const [isShowingAll, setIsShowingAll] = useState(false)
+	const [isCreatingGroup, setIsCreatingGroup] = useState(true)
 	const groupMemberships = useValue('groupMemberships', () => app.getGroupMemberships(), [app])
 
 	const results = useValue(
@@ -45,9 +48,23 @@ export function TlaSidebarRecentFilesNew() {
 	)
 
 	const handleCreateGroup = () => {
-		const name = window.prompt('Enter a name for the new group')
-		if (!name) return
+		const isMobile = getIsCoarsePointer()
+		if (isMobile) {
+			const name = window.prompt('Enter a name for the new group')
+			if (!name) return
+			app.z.mutate.group.create({ id: uniqueId(), name })
+		} else {
+			setIsCreatingGroup(true)
+		}
+	}
+
+	const handleGroupCreateComplete = (name: string) => {
 		app.z.mutate.group.create({ id: uniqueId(), name })
+		setIsCreatingGroup(false)
+	}
+
+	const handleGroupCreateCancel = () => {
+		setIsCreatingGroup(false)
 	}
 
 	if (!results) throw Error('Could not get files')
@@ -100,12 +117,27 @@ export function TlaSidebarRecentFilesNew() {
 				<TlaSidebarFileSection
 					className={styles.sidebarFileSectionGroups}
 					title={<F defaultMessage="Groups" />}
-					iconButton={{
-						icon: 'plus',
-						onClick: handleCreateGroup,
-						title: 'Create new group',
-					}}
+					iconButton={
+						isCreatingGroup
+							? undefined
+							: {
+									icon: 'plus',
+									onClick: handleCreateGroup,
+									title: 'Create new group',
+								}
+					}
 				>
+					{isCreatingGroup && (
+						<TlaSidebarInlineInput
+							data-testid="tla-sidebar-create-group-input"
+							defaultValue="New group"
+							placeholder="Enter group name..."
+							onComplete={handleGroupCreateComplete}
+							onCancel={handleGroupCreateCancel}
+							className={styles.sidebarGroupCreateInput}
+							wrapperClassName={styles.sidebarGroupCreateInputWrapper}
+						/>
+					)}
 					{groupMemberships.map((group) => (
 						<TlaSidebarGroupItem key={group.group.id} groupId={group.group.id} />
 					))}
