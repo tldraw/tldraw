@@ -40,7 +40,7 @@ export const DefaultMainMenu = memo(function DefaultMainMenu({ children }: TLUiM
 					alignOffset={0}
 					sideOffset={6}
 				>
-					<TldrawUiMenuContextProvider type="menu" sourceId="main-menu">
+					<TldrawUiMenuContextProvider context={{ type: 'menu', sourceId: 'main-menu' }}>
 						{content}
 					</TldrawUiMenuContextProvider>
 				</_DropdownMenu.Content>

@@ -116,7 +116,9 @@ export const DefaultContextMenu = memo(function DefaultContextMenu({
 						collisionPadding={4}
 						onContextMenu={preventDefault}
 					>
-						<TldrawUiMenuContextProvider type="context-menu" sourceId="context-menu">
+						<TldrawUiMenuContextProvider
+							context={{ type: 'context-menu', sourceId: 'context-menu' }}
+						>
 							{content}
 						</TldrawUiMenuContextProvider>
 					</_ContextMenu.Content>

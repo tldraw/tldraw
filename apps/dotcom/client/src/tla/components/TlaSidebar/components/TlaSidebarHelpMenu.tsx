@@ -24,7 +24,7 @@ export function TlaSidebarHelpMenu() {
 	const msg = useMsg(messages.help)
 	return (
 		<TldrawUiDropdownMenuRoot id={`help-menu-sidebar`}>
-			<TldrawUiMenuContextProvider type="menu" sourceId="dialog">
+			<TldrawUiMenuContextProvider context={{ type: 'menu', sourceId: 'dialog' }}>
 				<TldrawUiDropdownMenuTrigger>
 					<button
 						title={msg}

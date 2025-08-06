@@ -279,16 +279,11 @@
 .tlui-column {
 	display: flex;
 	flex-direction: column;
+	padding: 2px 0;
 }
 .tlui-column > * {
 	margin-top: -2px;
 	margin-bottom: -2px;
-}
-.tlui-column > *:nth-child(1) {
-	margin-top: 0px;
-}
-.tlui-column > *:nth-last-child(1) {
-	margin-bottom: 0px;
 }
 
 /* Grid layout */
@@ -1237,6 +1232,10 @@
 	box-shadow: var(--shadow-2);
 }
 
+.tlui-main-toolbar__mobile-style-panel {
+	align-self: flex-end;
+}
+
 /* TODO(alex): do we actually need this? check with steve */
 .tlui-main-toolbar--horizontal .tlui-main-toolbar__overflow {
 	width: 40px;
@@ -1259,6 +1258,24 @@
 .tlui-main-toolbar--vertical *[data-state='open']::after {
 	background: linear-gradient(90deg, rgba(144, 144, 144, 0) 0%, var(--color-muted-2) 100%);
 	opacity: 1;
+}
+
+.tlui-main-toolbar__group:empty {
+	display: none;
+}
+.tlui-row.tlui-main-toolbar__group:not(:last-child) {
+	border-right: 1px solid var(--color-divider);
+	margin-right: 2px;
+}
+.tlui-column.tlui-main-toolbar__group:not(:last-child) {
+	border-bottom: 1px solid var(--color-divider);
+	margin-bottom: 2px;
+}
+.tlui-grid.tlui-main-toolbar__group {
+	grid-column: 1 / span 4;
+}
+.tlui-grid.tlui-main-toolbar__group:not(:last-child) {
+	border-bottom: 1px solid var(--color-divider);
 }
 
 @media (hover: hover) {

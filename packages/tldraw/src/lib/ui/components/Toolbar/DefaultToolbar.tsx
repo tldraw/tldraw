@@ -16,6 +16,10 @@ import { ToggleToolLockedButton } from './ToggleToolLockedButton'
 export interface DefaultToolbarProps {
 	children?: ReactNode
 	orientation?: 'horizontal' | 'vertical'
+	minItems?: number
+	minSizePx?: number
+	maxItems?: number
+	maxSizePx?: number
 }
 
 /**
@@ -29,6 +33,10 @@ export interface DefaultToolbarProps {
 export const DefaultToolbar = memo(function DefaultToolbar({
 	children,
 	orientation = 'horizontal',
+	minItems = 4,
+	minSizePx = 300,
+	maxItems = 8,
+	maxSizePx = 500,
 }: DefaultToolbarProps) {
 	const editor = useEditor()
 	const msg = useTranslation()
@@ -67,12 +75,19 @@ export const DefaultToolbar = memo(function DefaultToolbar({
 							<ToggleToolLockedButton activeToolId={activeToolId} />
 						</div>
 					)}
-					<OverflowingToolbar orientation={orientation}>
+					<OverflowingToolbar
+						orientation={orientation}
+						sizingParentClassName="tlui-main-toolbar"
+						minItems={minItems}
+						maxItems={maxItems}
+						minSizePx={minSizePx}
+						maxSizePx={maxSizePx}
+					>
 						{children ?? <DefaultToolbarContent />}
 					</OverflowingToolbar>
 				</div>
 				{breakpoint < PORTRAIT_BREAKPOINT.TABLET_SM && !isReadonlyMode && (
-					<div className="tlui-main-toolbar__tools">
+					<div className="tlui-main-toolbar__tools tlui-main-toolbar__mobile-style-panel">
 						<MobileStylePanel orientation={orientation} />
 					</div>
 				)}

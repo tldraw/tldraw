@@ -1,5 +1,7 @@
 import {
 	activeElementShouldCaptureKeys,
+	assert,
+	modulate,
 	preventDefault,
 	tlmenus,
 	useEditor,
@@ -7,7 +9,7 @@ import {
 	useUniqueSafeId,
 } from '@tldraw/editor'
 import classNames from 'classnames'
-import { createContext, useEffect, useLayoutEffect, useMemo, useRef, useState } from 'react'
+import { createContext, useEffect, useLayoutEffect, useRef, useState } from 'react'
 import { PORTRAIT_BREAKPOINT } from '../../constants'
 import { useBreakpoint } from '../../context/breakpoints'
 import { areShortcutsDisabled } from '../../hooks/useKeyboardShortcuts'
@@ -42,10 +44,23 @@ const NUMBERED_SHORTCUT_KEYS: Record<string, number> = {
 export interface OverflowingToolbarProps {
 	children: React.ReactNode
 	orientation: 'horizontal' | 'vertical'
+	sizingParentClassName: string
+	minItems: number
+	minSizePx: number
+	maxItems: number
+	maxSizePx: number
 }
 
 /** @public @react */
-export function OverflowingToolbar({ children, orientation }: OverflowingToolbarProps) {
+export function OverflowingToolbar({
+	children,
+	orientation,
+	sizingParentClassName,
+	minItems,
+	minSizePx,
+	maxItems,
+	maxSizePx,
+}: OverflowingToolbarProps) {
 	const editor = useEditor()
 	const id = useUniqueSafeId()
 	const breakpoint = useBreakpoint()
@@ -53,27 +68,132 @@ export function OverflowingToolbar({ children, orientation }: OverflowingToolbar
 	const rButtons = useRef<HTMLElement[]>([])
 	const [isOpen, setIsOpen] = useState(false)
 
-	const overflowIndex = Math.min(8, 5 + breakpoint)
-
-	const [totalItems, setTotalItems] = useState(0)
 	const mainToolsRef = useRef<HTMLDivElement>(null)
+
+	// we have to use state instead of a ref here so that we get
+	// an update when the overflow popover mounts / unmounts
+	const [overflowTools, setOverflowTools] = useState<HTMLDivElement | null>(null)
+
 	const [lastActiveOverflowItem, setLastActiveOverflowItem] = useState<string | null>(null)
 
-	const css = useMemo(() => {
-		const activeCss = lastActiveOverflowItem ? `:not([data-value="${lastActiveOverflowItem}"])` : ''
+	// const css = useMemo(() => {
+	// 	const activeCss = lastActiveOverflowItem ? `:not([data-value="${lastActiveOverflowItem}"])` : ''
 
-		return `
-			#${id}_main > *:nth-of-type(n + ${overflowIndex + (lastActiveOverflowItem ? 1 : 2)}):not([data-radix-popper-content-wrapper])${activeCss} {
-				display: none;
-			}
-			#${id}_more > *:nth-of-type(-n + ${overflowIndex}):not([data-radix-popper-content-wrapper]) {
-				display: none;
-			}
-        `
-	}, [lastActiveOverflowItem, id, overflowIndex])
+	// 	return `
+	// 		#${id}_main > *:nth-of-type(n + ${overflowIndex + (lastActiveOverflowItem ? 1 : 2)}):not([data-radix-popper-content-wrapper])${activeCss} {
+	// 			display: none;
+	// 		}
+	// 		#${id}_more > *:nth-of-type(-n + ${overflowIndex}):not([data-radix-popper-content-wrapper]) {
+	// 			display: none;
+	// 		}
+	//     `
+	// }, [lastActiveOverflowItem, id, overflowIndex])
 
 	const onDomUpdate = useEvent(() => {
 		if (!mainToolsRef.current) return
+
+		const sizeProp = orientation === 'horizontal' ? 'offsetWidth' : 'offsetHeight'
+
+		type Items = (
+			| { type: 'item'; element: HTMLElement }
+			| { type: 'group'; items: Items; element: HTMLElement }
+		)[]
+		function collectItems(collection: HTMLCollection) {
+			const items: Items = []
+			for (const child of collection) {
+				if (child.classList.contains('tlui-main-toolbar__group')) {
+					items.push({
+						type: 'group',
+						items: collectItems(child.children),
+						element: child as HTMLElement,
+					})
+				} else {
+					items.push({ type: 'item', element: child as HTMLElement })
+				}
+			}
+
+			return items
+		}
+
+		const mainItems = collectItems(mainToolsRef.current.children)
+		const overflowItems = overflowTools ? collectItems(overflowTools.children) : null
+
+		const sizingParent = findParentWithClassName(mainToolsRef.current, sizingParentClassName)
+		const size = sizingParent[sizeProp]
+		const itemsToShow = Math.floor(
+			modulate(size, [minSizePx, maxSizePx], [minItems, maxItems], true)
+		)
+
+		console.log({ sizingParent, mainItems, size, itemsToShow })
+
+		let mainItemCount = 0
+		let newActiveOverflowItem: string | null = null
+		function visitItems(
+			mainItems: Items,
+			overflowItems: Items | null
+		): {
+			didShowAnyInMain: boolean
+			didShowAnyInOverflow: boolean
+		} {
+			if (overflowItems) assert(mainItems.length === overflowItems.length)
+
+			let didShowAnyInMain = false
+			let didShowAnyInOverflow = false
+
+			for (let i = 0; i < mainItems.length; i++) {
+				const mainItem = mainItems[i]
+				const overflowItem = overflowItems?.[i]
+				if (mainItem.type === 'item') {
+					let shouldShowInMain
+					if (lastActiveOverflowItem) {
+						shouldShowInMain =
+							mainItemCount < itemsToShow ||
+							mainItem.element.getAttribute('data-value') === lastActiveOverflowItem
+					} else {
+						shouldShowInMain = mainItemCount <= itemsToShow
+					}
+					const shouldShowInOverflow = mainItemCount >= itemsToShow
+
+					didShowAnyInMain ||= shouldShowInMain
+					didShowAnyInOverflow ||= shouldShowInOverflow
+
+					mainItem.element.style.display = shouldShowInMain ? '' : 'none'
+					if (overflowItem) {
+						assert(overflowItem.type === 'item')
+						overflowItem.element.style.display = shouldShowInOverflow ? '' : 'none'
+					}
+					if (shouldShowInOverflow && mainItem.element.getAttribute('aria-pressed') === 'true') {
+						newActiveOverflowItem = mainItem.element.getAttribute('data-value')
+					}
+					mainItemCount++
+				} else {
+					let result, overflowGroup
+					if (overflowItem) {
+						assert(overflowItem.type === 'group')
+						overflowGroup = overflowItem
+						result = visitItems(mainItem.items, overflowGroup.items)
+					} else {
+						result = visitItems(mainItem.items, null)
+					}
+
+					didShowAnyInMain ||= result.didShowAnyInMain
+					didShowAnyInOverflow ||= result.didShowAnyInOverflow
+
+					mainItem.element.style.display = result.didShowAnyInMain ? '' : 'none'
+					if (overflowGroup) {
+						overflowGroup.element.style.display = result.didShowAnyInOverflow ? '' : 'none'
+					}
+				}
+			}
+			return { didShowAnyInMain, didShowAnyInOverflow }
+		}
+
+		visitItems(mainItems, overflowItems)
+		if (newActiveOverflowItem) {
+			setLastActiveOverflowItem(newActiveOverflowItem)
+		}
+
+		return
 
 		const children = Array.from(mainToolsRef.current.children)
 		setTotalItems(children.length)
@@ -123,13 +243,17 @@ export function OverflowingToolbar({ children, orientation }: OverflowingToolbar
 		mutationObserver.observe(mainToolsRef.current, {
 			childList: true,
 			subtree: true,
-			attributeFilter: ['data-value', 'aria-pressed'],
 		})
+
+		const sizingParent = findParentWithClassName(mainToolsRef.current, sizingParentClassName)
+		const resizeObserver = new ResizeObserver(onDomUpdate)
+		resizeObserver.observe(sizingParent)
 
 		return () => {
 			mutationObserver.disconnect()
+			resizeObserver.disconnect()
 		}
-	}, [onDomUpdate])
+	}, [onDomUpdate, sizingParentClassName])
 
 	useEffect(() => {
 		if (!editor.options.enableToolbarKeyboardShortcuts) return
@@ -157,7 +281,6 @@ export function OverflowingToolbar({ children, orientation }: OverflowingToolbar
 	const Layout = orientation === 'horizontal' ? TldrawUiRow : TldrawUiColumn
 	return (
 		<>
-			<style nonce={editor.options.nonce}>{css}</style>
 			<TldrawUiToolbar
 				orientation={orientation}
 				className={classNames('tlui-main-toolbar__tools', {
@@ -166,48 +289,54 @@ export function OverflowingToolbar({ children, orientation }: OverflowingToolbar
 				label={msg('tool-panel.title')}
 			>
 				<Layout id={`${id}_main`} ref={mainToolsRef}>
-					<TldrawUiMenuContextProvider type="toolbar" sourceId="toolbar">
+					<TldrawUiMenuContextProvider
+						context={{ type: 'toolbar', sourceId: 'toolbar', orientation }}
+					>
 						{children}
 					</TldrawUiMenuContextProvider>
 				</Layout>
-				{/* There is a +1 because if the menu is just one item, it's not necessary. */}
-				{totalItems > overflowIndex + 1 && (
-					<IsInOverflowContext.Provider value={true}>
-						<TldrawUiPopover id={popoverId} open={isOpen} onOpenChange={setIsOpen}>
-							<TldrawUiPopoverTrigger>
-								<TldrawUiToolbarButton
-									title={msg('tool-panel.more')}
-									type="tool"
-									className="tlui-main-toolbar__overflow"
-									data-testid="tools.more-button"
-								>
-									<TldrawUiButtonIcon
-										icon={orientation === 'horizontal' ? 'chevron-up' : 'chevron-right'}
-									/>
-								</TldrawUiToolbarButton>
-							</TldrawUiPopoverTrigger>
-							<TldrawUiPopoverContent
-								side={orientation === 'horizontal' ? 'top' : 'right'}
-								align={orientation === 'horizontal' ? 'center' : 'end'}
+				<IsInOverflowContext.Provider value={true}>
+					<TldrawUiPopover id={popoverId} open={isOpen} onOpenChange={setIsOpen}>
+						<TldrawUiPopoverTrigger>
+							<TldrawUiToolbarButton
+								title={msg('tool-panel.more')}
+								type="tool"
+								className="tlui-main-toolbar__overflow"
+								data-testid="tools.more-button"
 							>
-								<TldrawUiToolbar
-									orientation="grid"
-									data-testid="tools.more-content"
-									label={msg('tool-panel.more')}
-									id={`${id}_more`}
-									onClick={() => {
-										tlmenus.deleteOpenMenu(popoverId, editor.contextId)
-										setIsOpen(false)
+								<TldrawUiButtonIcon
+									icon={orientation === 'horizontal' ? 'chevron-up' : 'chevron-right'}
+								/>
+							</TldrawUiToolbarButton>
+						</TldrawUiPopoverTrigger>
+						<TldrawUiPopoverContent
+							side={orientation === 'horizontal' ? 'top' : 'right'}
+							align={orientation === 'horizontal' ? 'center' : 'end'}
+						>
+							<TldrawUiToolbar
+								orientation="grid"
+								ref={setOverflowTools}
+								data-testid="tools.more-content"
+								label={msg('tool-panel.more')}
+								id={`${id}_more`}
+								onClick={() => {
+									tlmenus.deleteOpenMenu(popoverId, editor.contextId)
+									setIsOpen(false)
+								}}
+							>
+								<TldrawUiMenuContextProvider
+									context={{
+										type: 'toolbar-overflow',
+										sourceId: 'toolbar',
+										orientation,
 									}}
 								>
-									<TldrawUiMenuContextProvider type="toolbar-overflow" sourceId="toolbar">
-										{children}
-									</TldrawUiMenuContextProvider>
-								</TldrawUiToolbar>
-							</TldrawUiPopoverContent>
-						</TldrawUiPopover>
-					</IsInOverflowContext.Provider>
-				)}
+									{children}
+								</TldrawUiMenuContextProvider>
+							</TldrawUiToolbar>
+						</TldrawUiPopoverContent>
+					</TldrawUiPopover>
+				</IsInOverflowContext.Provider>
 			</TldrawUiToolbar>
 		</>
 	)
@@ -221,4 +350,15 @@ export const isActiveTLUiToolItem = (
 	return item.meta?.geo
 		? activeToolId === 'geo' && geoState === item.meta?.geo
 		: activeToolId === item.id
+}
+
+function findParentWithClassName(startingElement: HTMLElement, className: string): HTMLElement {
+	let element: HTMLElement | null = startingElement
+	while (element) {
+		if (element.classList.contains(className)) {
+			return element
+		}
+		element = element.parentElement
+	}
+	throw new Error('Could not find parent with class name ' + className)
 }

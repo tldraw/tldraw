@@ -12,7 +12,7 @@ export function DefaultHelperButtons({ children }: TLUiHelperButtonsProps) {
 	const content = children ?? <DefaultHelperButtonsContent />
 	return (
 		<div className="tlui-helper-buttons">
-			<TldrawUiMenuContextProvider type="helper-buttons" sourceId="helper-buttons">
+			<TldrawUiMenuContextProvider context={{ type: 'helper-buttons', sourceId: 'helper-buttons' }}>
 				{content}
 			</TldrawUiMenuContextProvider>
 		</div>

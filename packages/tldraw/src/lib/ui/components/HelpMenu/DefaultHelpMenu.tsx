@@ -42,7 +42,7 @@ export const DefaultHelpMenu = memo(function DefaultHelpMenu({ children }: TLUiH
 					</TldrawUiButton>
 				</TldrawUiDropdownMenuTrigger>
 				<TldrawUiDropdownMenuContent side="top" align="end" alignOffset={0} sideOffset={8}>
-					<TldrawUiMenuContextProvider type="menu" sourceId="help-menu">
+					<TldrawUiMenuContextProvider context={{ type: 'menu', sourceId: 'help-menu' }}>
 						{content}
 					</TldrawUiMenuContextProvider>
 				</TldrawUiDropdownMenuContent>

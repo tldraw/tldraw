@@ -77,7 +77,7 @@ export const DefaultActionsMenu = memo(function DefaultActionsMenu({
 					data-testid="actions-menu.content"
 					orientation="grid"
 				>
-					<TldrawUiMenuContextProvider type="icons" sourceId="actions-menu">
+					<TldrawUiMenuContextProvider context={{ type: 'icons', sourceId: 'actions-menu' }}>
 						{content}
 					</TldrawUiMenuContextProvider>
 				</TldrawUiToolbar>

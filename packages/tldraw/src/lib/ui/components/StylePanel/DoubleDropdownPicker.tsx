@@ -87,7 +87,7 @@ function DoubleDropdownPickerInner<T extends string>({
 					</TldrawUiPopoverTrigger>
 					<TldrawUiPopoverContent side="left" align="center" sideOffset={80} alignOffset={0}>
 						<TldrawUiToolbar orientation="grid" label={msg(labelA)}>
-							<TldrawUiMenuContextProvider type="icons" sourceId="style-panel">
+							<TldrawUiMenuContextProvider context={{ type: 'icons', sourceId: 'style-panel' }}>
 								{itemsA.map((item) => {
 									return (
 										<TldrawUiToolbarButton
@@ -127,7 +127,7 @@ function DoubleDropdownPickerInner<T extends string>({
 					</TldrawUiPopoverTrigger>
 					<TldrawUiPopoverContent side="left" align="center" sideOffset={116} alignOffset={0}>
 						<TldrawUiToolbar orientation="grid" label={msg(labelB)}>
-							<TldrawUiMenuContextProvider type="icons" sourceId="style-panel">
+							<TldrawUiMenuContextProvider context={{ type: 'icons', sourceId: 'style-panel' }}>
 								{itemsB.map((item) => {
 									return (
 										<TldrawUiToolbarButton

@@ -69,7 +69,7 @@ export function TlaFileMenu({
 }) {
 	return (
 		<TldrawUiDropdownMenuRoot id={`file-menu-${fileId}-${source}`}>
-			<TldrawUiMenuContextProvider type="menu" sourceId="dialog">
+			<TldrawUiMenuContextProvider context={{ type: 'menu', sourceId: 'dialog' }}>
 				<TldrawUiDropdownMenuTrigger>{trigger}</TldrawUiDropdownMenuTrigger>
 				<TldrawUiDropdownMenuContent side="bottom" align="start" alignOffset={0} sideOffset={0}>
 					<FileItemsWrapper showAsSubMenu={!!children}>

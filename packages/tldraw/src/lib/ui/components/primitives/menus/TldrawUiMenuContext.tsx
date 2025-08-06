@@ -13,10 +13,34 @@ export type TLUiMenuContextType =
 	| 'toolbar'
 	| 'toolbar-overflow'
 
-const menuContext = createContext<{
+/** @public */
+export interface TLUiMenuContextBase {
 	type: TLUiMenuContextType
 	sourceId: TLUiEventSource
-} | null>(null)
+}
+
+/** @public */
+export interface TLUiMenuContextWithOrientation extends TLUiMenuContextBase {
+	type: 'toolbar' | 'toolbar-overflow'
+	orientation: 'horizontal' | 'vertical'
+}
+
+/** @public */
+export interface TLUiMenuContextWithoutOrientation extends TLUiMenuContextBase {
+	type:
+		| 'panel'
+		| 'menu'
+		| 'small-icons'
+		| 'context-menu'
+		| 'icons'
+		| 'keyboard-shortcuts'
+		| 'helper-buttons'
+}
+
+/** @public */
+export type TLUiMenuContext = TLUiMenuContextWithoutOrientation | TLUiMenuContextWithOrientation
+
+const menuContext = createContext<TLUiMenuContext | null>(null)
 
 /** @public */
 export function useTldrawUiMenuContext() {
@@ -29,16 +53,11 @@ export function useTldrawUiMenuContext() {
 
 /** @public */
 export interface TLUiMenuContextProviderProps {
-	type: TLUiMenuContextType
-	sourceId: TLUiEventSource
+	context: TLUiMenuContext
 	children: React.ReactNode
 }
 
 /** @public @react */
-export function TldrawUiMenuContextProvider({
-	type,
-	sourceId,
-	children,
-}: TLUiMenuContextProviderProps) {
-	return <menuContext.Provider value={{ type, sourceId }}>{children}</menuContext.Provider>
+export function TldrawUiMenuContextProvider({ context, children }: TLUiMenuContextProviderProps) {
+	return <menuContext.Provider value={context}>{children}</menuContext.Provider>
 }
