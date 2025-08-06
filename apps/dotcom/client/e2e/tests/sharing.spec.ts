@@ -241,7 +241,7 @@ test.describe('signed in user on someone elses file', () => {
 		await expect(newPage.getByTestId('tla-error-icon')).not.toBeVisible()
 		// We should also see the file in the sidebar and a guest badge icon next to it
 		await expect(newPage.getByTestId('tla-sidebar').getByText(newName)).toBeVisible()
-		await expect(newPage.getByTestId(`guest-badge-${newName}`).getByRole('button')).toBeVisible()
+		await expect(newPage.getByTestId(`guest-badge-${newName}`)).toBeVisible()
 	})
 
 	test('tabs work correctly', async ({ browser, sidebar, shareMenu }) => {

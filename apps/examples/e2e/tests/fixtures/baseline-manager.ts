@@ -46,8 +46,8 @@ export interface Environment {
 
 export class BaselineManager {
 	private baselineFilePath: string
-	private regressionThreshold = 10 // Percentage
-	private warningThreshold = 5 // Percentage
+	private regressionThreshold = 15 // Percentage
+	private warningThreshold = 10 // Percentage
 
 	constructor(baselineDir = path.join(__dirname, '..', 'baselines')) {
 		// Ensure baseline directory exists

@@ -50,6 +50,12 @@
   "1dd1c5fb7f": {
     "translation": "Aujourd'hui"
   },
+  "20976e7bec": {
+    "translation": "La salle est pleine"
+  },
+  "21bfb2dc2e": {
+    "translation": "Cette salle approche de sa taille maximale. Envisagez de supprimer du contenu ou de créer un nouveau fichier."
+  },
   "22d84a12fd": {
     "translation": "Figjam mais tldraw"
   },
@@ -61,6 +67,9 @@
   },
   "2c61d18599": {
     "translation": "Miro mais bon et gratuit"
+  },
+  "2deec2cb74": {
+    "translation": "Cette salle a atteint sa taille maximale et les modifications risquent de ne plus être enregistrées. Supprimez du contenu ou créez un nouveau fichier."
   },
   "31246941ad": {
     "translation": "Vous devez vous connecter pour consulter ce fichier."
@@ -143,6 +152,9 @@
   "5a95a425f7": {
     "translation": "Partager"
   },
+  "5bb6cf3b53": {
+    "translation": "La pièce devient grande"
+  },
   "5bcc12ace8": {
     "translation": "Cette salle est désormais en lecture seule"
   },
@@ -214,6 +226,9 @@
   },
   "777f9e90cf": {
     "translation": "Demande invalide."
+  },
+  "78e9815992": {
+    "translation": "J'ai compris"
   },
   "797799f35e": {
     "translation": "Soumettre un problème sur GitHub"

@@ -61,13 +61,13 @@ export function OverflowingToolbar({ children }: OverflowingToolbarProps) {
 		const activeCss = lastActiveOverflowItem ? `:not([data-value="${lastActiveOverflowItem}"])` : ''
 
 		return `
-			#${id}_main > *:nth-child(n + ${overflowIndex + (lastActiveOverflowItem ? 1 : 2)})${activeCss} {
+			#${id}_main > *:nth-of-type(n + ${overflowIndex + (lastActiveOverflowItem ? 1 : 2)}):not([data-radix-popper-content-wrapper])${activeCss} {
 				display: none;
 			}
-			#${id}_more > *:nth-child(-n + ${overflowIndex}) {
+			#${id}_more > *:nth-of-type(-n + ${overflowIndex}):not([data-radix-popper-content-wrapper]) {
 				display: none;
 			}
-			#${id}_more > *:nth-child(-n + ${overflowIndex + 4}) {
+			#${id}_more > *:nth-of-type(-n + ${overflowIndex + 4}):not([data-radix-popper-content-wrapper]) {
 				margin-top: 0;
 			}
         `

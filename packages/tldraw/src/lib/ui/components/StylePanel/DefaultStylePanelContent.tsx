@@ -35,6 +35,11 @@ import { TldrawUiToolbar, TldrawUiToolbarButton } from '../primitives/TldrawUiTo
 import { DoubleDropdownPicker } from './DoubleDropdownPicker'
 import { DropdownPicker } from './DropdownPicker'
 
+// Local component for style panel subheadings
+function StylePanelSubheading({ children }: { children: React.ReactNode }) {
+	return <h3 className="tlui-style-panel__subheading">{children}</h3>
+}
+
 /** @public */
 export interface TLUiStylePanelContentProps {
 	styles: ReturnType<typeof useRelevantStyles>
@@ -115,6 +120,7 @@ export function CommonStylePickerSet({ styles, theme }: ThemeStylePickerSetProps
 	const editor = useEditor()
 
 	const onHistoryMark = useCallback((id: string) => editor.markHistoryStoppingPoint(id), [editor])
+	const showUiLabels = useValue('showUiLabels', () => editor.user.getShowUiLabels(), [editor])
 
 	const handleValueChange = useStyleChangeCallback()
 
@@ -129,70 +135,90 @@ export function CommonStylePickerSet({ styles, theme }: ThemeStylePickerSetProps
 		<>
 			<div className="tlui-style-panel__section__common" data-testid="style.panel">
 				{color === undefined ? null : (
-					<TldrawUiToolbar label={msg('style-panel.color')}>
-						<TldrawUiButtonPicker
-							title={msg('style-panel.color')}
-							uiType="color"
-							style={DefaultColorStyle}
-							items={STYLES.color}
-							value={color}
-							onValueChange={handleValueChange}
-							theme={theme}
-							onHistoryMark={onHistoryMark}
-						/>
-					</TldrawUiToolbar>
+					<>
+						{showUiLabels && (
+							<StylePanelSubheading>{msg('style-panel.color')}</StylePanelSubheading>
+						)}
+						<TldrawUiToolbar label={msg('style-panel.color')}>
+							<TldrawUiButtonPicker
+								title={msg('style-panel.color')}
+								uiType="color"
+								style={DefaultColorStyle}
+								items={STYLES.color}
+								value={color}
+								onValueChange={handleValueChange}
+								theme={theme}
+								onHistoryMark={onHistoryMark}
+							/>
+						</TldrawUiToolbar>
+					</>
 				)}
 				<OpacitySlider />
 			</div>
 			{showPickers && (
 				<div className="tlui-style-panel__section">
 					{fill === undefined ? null : (
-						<TldrawUiToolbar label={msg('style-panel.fill')}>
-							<TldrawUiButtonPicker
-								title={msg('style-panel.fill')}
-								uiType="fill"
-								style={DefaultFillStyle}
-								items={STYLES.fill}
-								value={fill}
-								onValueChange={handleValueChange}
-								theme={theme}
-								onHistoryMark={onHistoryMark}
-							/>
-						</TldrawUiToolbar>
+						<>
+							{showUiLabels && (
+								<StylePanelSubheading>{msg('style-panel.fill')}</StylePanelSubheading>
+							)}
+							<TldrawUiToolbar label={msg('style-panel.fill')}>
+								<TldrawUiButtonPicker
+									title={msg('style-panel.fill')}
+									uiType="fill"
+									style={DefaultFillStyle}
+									items={STYLES.fill}
+									value={fill}
+									onValueChange={handleValueChange}
+									theme={theme}
+									onHistoryMark={onHistoryMark}
+								/>
+							</TldrawUiToolbar>
+						</>
 					)}
 					{dash === undefined ? null : (
-						<TldrawUiToolbar label={msg('style-panel.dash')}>
-							<TldrawUiButtonPicker
-								title={msg('style-panel.dash')}
-								uiType="dash"
-								style={DefaultDashStyle}
-								items={STYLES.dash}
-								value={dash}
-								onValueChange={handleValueChange}
-								theme={theme}
-								onHistoryMark={onHistoryMark}
-							/>
-						</TldrawUiToolbar>
+						<>
+							{showUiLabels && (
+								<StylePanelSubheading>{msg('style-panel.dash')}</StylePanelSubheading>
+							)}
+							<TldrawUiToolbar label={msg('style-panel.dash')}>
+								<TldrawUiButtonPicker
+									title={msg('style-panel.dash')}
+									uiType="dash"
+									style={DefaultDashStyle}
+									items={STYLES.dash}
+									value={dash}
+									onValueChange={handleValueChange}
+									theme={theme}
+									onHistoryMark={onHistoryMark}
+								/>
+							</TldrawUiToolbar>
+						</>
 					)}
 					{size === undefined ? null : (
-						<TldrawUiToolbar label={msg('style-panel.size')}>
-							<TldrawUiButtonPicker
-								title={msg('style-panel.size')}
-								uiType="size"
-								style={DefaultSizeStyle}
-								items={STYLES.size}
-								value={size}
-								onValueChange={(style, value) => {
-									handleValueChange(style, value)
-									const selectedShapeIds = editor.getSelectedShapeIds()
-									if (selectedShapeIds.length > 0) {
-										kickoutOccludedShapes(editor, selectedShapeIds)
-									}
-								}}
-								theme={theme}
-								onHistoryMark={onHistoryMark}
-							/>
-						</TldrawUiToolbar>
+						<>
+							{showUiLabels && (
+								<StylePanelSubheading>{msg('style-panel.size')}</StylePanelSubheading>
+							)}
+							<TldrawUiToolbar label={msg('style-panel.size')}>
+								<TldrawUiButtonPicker
+									title={msg('style-panel.size')}
+									uiType="size"
+									style={DefaultSizeStyle}
+									items={STYLES.size}
+									value={size}
+									onValueChange={(style, value) => {
+										handleValueChange(style, value)
+										const selectedShapeIds = editor.getSelectedShapeIds()
+										if (selectedShapeIds.length > 0) {
+											kickoutOccludedShapes(editor, selectedShapeIds)
+										}
+									}}
+									theme={theme}
+									onHistoryMark={onHistoryMark}
+								/>
+							</TldrawUiToolbar>
+						</>
 					)}
 				</div>
 			)}
@@ -207,6 +233,8 @@ export function TextStylePickerSet({ theme, styles }: ThemeStylePickerSetProps) 
 
 	const editor = useEditor()
 	const onHistoryMark = useCallback((id: string) => editor.markHistoryStoppingPoint(id), [editor])
+	const showUiLabels = useValue('showUiLabels', () => editor.user.getShowUiLabels(), [editor])
+	const labelStr = showUiLabels && msg('style-panel.font')
 
 	const font = styles.get(DefaultFontStyle)
 	const textAlign = styles.get(DefaultTextAlignStyle)
@@ -219,59 +247,38 @@ export function TextStylePickerSet({ theme, styles }: ThemeStylePickerSetProps) 
 	return (
 		<div className="tlui-style-panel__section">
 			{font === undefined ? null : (
-				<TldrawUiToolbar label={msg('style-panel.font')}>
-					<TldrawUiButtonPicker
-						title={msg('style-panel.font')}
-						uiType="font"
-						style={DefaultFontStyle}
-						items={STYLES.font}
-						value={font}
-						onValueChange={handleValueChange}
-						theme={theme}
-						onHistoryMark={onHistoryMark}
-					/>
-				</TldrawUiToolbar>
+				<>
+					{labelStr && <StylePanelSubheading>{labelStr}</StylePanelSubheading>}
+					<TldrawUiToolbar label={msg('style-panel.font')}>
+						<TldrawUiButtonPicker
+							title={msg('style-panel.font')}
+							uiType="font"
+							style={DefaultFontStyle}
+							items={STYLES.font}
+							value={font}
+							onValueChange={handleValueChange}
+							theme={theme}
+							onHistoryMark={onHistoryMark}
+						/>
+					</TldrawUiToolbar>
+				</>
 			)}
 
 			{textAlign === undefined ? null : (
-				<TldrawUiToolbar label={msg('style-panel.align')} className="tlui-style-panel__row">
-					<TldrawUiButtonPicker
-						title={msg('style-panel.align')}
-						uiType="align"
-						style={DefaultTextAlignStyle}
-						items={STYLES.textAlign}
-						value={textAlign}
-						onValueChange={handleValueChange}
-						theme={theme}
-						onHistoryMark={onHistoryMark}
-					/>
-					<div className="tlui-style-panel__row__extra-button">
-						<TldrawUiToolbarButton
-							type="icon"
-							title={msg('style-panel.vertical-align')}
-							data-testid="vertical-align"
-							disabled
-						>
-							<TldrawUiButtonIcon icon="vertical-align-middle" />
-						</TldrawUiToolbarButton>
-					</div>
-				</TldrawUiToolbar>
-			)}
-
-			{labelAlign === undefined ? null : (
-				<TldrawUiToolbar label={msg('style-panel.label-align')} className="tlui-style-panel__row">
-					<TldrawUiButtonPicker
-						title={msg('style-panel.label-align')}
-						uiType="align"
-						style={DefaultHorizontalAlignStyle}
-						items={STYLES.horizontalAlign}
-						value={labelAlign}
-						onValueChange={handleValueChange}
-						theme={theme}
-						onHistoryMark={onHistoryMark}
-					/>
-					<div className="tlui-style-panel__row__extra-button">
-						{verticalLabelAlign === undefined ? (
+				<>
+					{showUiLabels && <StylePanelSubheading>{msg('style-panel.align')}</StylePanelSubheading>}
+					<TldrawUiToolbar label={msg('style-panel.align')} className="tlui-style-panel__row">
+						<TldrawUiButtonPicker
+							title={msg('style-panel.align')}
+							uiType="align"
+							style={DefaultTextAlignStyle}
+							items={STYLES.textAlign}
+							value={textAlign}
+							onValueChange={handleValueChange}
+							theme={theme}
+							onHistoryMark={onHistoryMark}
+						/>
+						<div className="tlui-style-panel__row__extra-button">
 							<TldrawUiToolbarButton
 								type="icon"
 								title={msg('style-panel.vertical-align')}
@@ -280,20 +287,52 @@ export function TextStylePickerSet({ theme, styles }: ThemeStylePickerSetProps) 
 							>
 								<TldrawUiButtonIcon icon="vertical-align-middle" />
 							</TldrawUiToolbarButton>
-						) : (
-							<DropdownPicker
-								type="icon"
-								id="geo-vertical-alignment"
-								uiType="verticalAlign"
-								stylePanelType="vertical-align"
-								style={DefaultVerticalAlignStyle}
-								items={STYLES.verticalAlign}
-								value={verticalLabelAlign}
-								onValueChange={handleValueChange}
-							/>
-						)}
-					</div>
-				</TldrawUiToolbar>
+						</div>
+					</TldrawUiToolbar>
+				</>
+			)}
+
+			{labelAlign === undefined ? null : (
+				<>
+					{showUiLabels && (
+						<StylePanelSubheading>{msg('style-panel.label-align')}</StylePanelSubheading>
+					)}
+					<TldrawUiToolbar label={msg('style-panel.label-align')} className="tlui-style-panel__row">
+						<TldrawUiButtonPicker
+							title={msg('style-panel.label-align')}
+							uiType="align"
+							style={DefaultHorizontalAlignStyle}
+							items={STYLES.horizontalAlign}
+							value={labelAlign}
+							onValueChange={handleValueChange}
+							theme={theme}
+							onHistoryMark={onHistoryMark}
+						/>
+						<div className="tlui-style-panel__row__extra-button">
+							{verticalLabelAlign === undefined ? (
+								<TldrawUiToolbarButton
+									type="icon"
+									title={msg('style-panel.vertical-align')}
+									data-testid="vertical-align"
+									disabled
+								>
+									<TldrawUiButtonIcon icon="vertical-align-middle" />
+								</TldrawUiToolbarButton>
+							) : (
+								<DropdownPicker
+									type="icon"
+									id="geo-vertical-alignment"
+									uiType="verticalAlign"
+									stylePanelType="vertical-align"
+									style={DefaultVerticalAlignStyle}
+									items={STYLES.verticalAlign}
+									value={verticalLabelAlign}
+									onValueChange={handleValueChange}
+								/>
+							)}
+						</div>
+					</TldrawUiToolbar>
+				</>
 			)}
 		</div>
 	)
@@ -410,6 +449,7 @@ export function OpacitySlider() {
 	const editor = useEditor()
 
 	const onHistoryMark = useCallback((id: string) => editor.markHistoryStoppingPoint(id), [editor])
+	const showUiLabels = useValue('showUiLabels', () => editor.user.getShowUiLabels(), [editor])
 
 	const opacity = useValue('opacity', () => editor.getSharedOpacity(), [editor])
 	const trackEvent = useUiEvents()
@@ -443,15 +483,18 @@ export function OpacitySlider() {
 				)
 
 	return (
-		<TldrawUiSlider
-			data-testid="style.opacity"
-			value={opacityIndex >= 0 ? opacityIndex : tldrawSupportedOpacities.length - 1}
-			label={opacity.type === 'mixed' ? 'style-panel.mixed' : `opacity-style.${opacity.value}`}
-			onValueChange={handleOpacityValueChange}
-			steps={tldrawSupportedOpacities.length - 1}
-			title={msg('style-panel.opacity')}
-			onHistoryMark={onHistoryMark}
-			ariaValueModifier={25}
-		/>
+		<>
+			{showUiLabels && <StylePanelSubheading>{msg('style-panel.opacity')}</StylePanelSubheading>}
+			<TldrawUiSlider
+				data-testid="style.opacity"
+				value={opacityIndex >= 0 ? opacityIndex : tldrawSupportedOpacities.length - 1}
+				label={opacity.type === 'mixed' ? 'style-panel.mixed' : `opacity-style.${opacity.value}`}
+				onValueChange={handleOpacityValueChange}
+				steps={tldrawSupportedOpacities.length - 1}
+				title={msg('style-panel.opacity')}
+				onHistoryMark={onHistoryMark}
+				ariaValueModifier={25}
+			/>
+		</>
 	)
 }

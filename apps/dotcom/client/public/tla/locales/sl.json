@@ -50,6 +50,12 @@
   "1dd1c5fb7f": {
     "translation": "Danes"
   },
+  "20976e7bec": {
+    "translation": "Soba je polna"
+  },
+  "21bfb2dc2e": {
+    "translation": "Ta soba se bliža svoji omejitvi velikosti. Razmislite o odstranitvi nekaj vsebine ali ustvarjanju nove datoteke."
+  },
   "22d84a12fd": {
     "translation": "Figjam, ampak tldraw"
   },
@@ -61,6 +67,9 @@
   },
   "2c61d18599": {
     "translation": "Miro, ampak dober in brezplačen"
+  },
+  "2deec2cb74": {
+    "translation": "Ta soba je dosegla omejitev velikosti in spremembe morda ne bodo več shranjene. Odstranite nekaj vsebine ali začnite novo datoteko."
   },
   "31246941ad": {
     "translation": "Za ogled te datoteke se morate prijaviti."
@@ -143,6 +152,9 @@
   "5a95a425f7": {
     "translation": "Deli"
   },
+  "5bb6cf3b53": {
+    "translation": "Soba postaja velika"
+  },
   "5bcc12ace8": {
     "translation": "Ta soba je zdaj samo za branje"
   },
@@ -214,6 +226,9 @@
   },
   "777f9e90cf": {
     "translation": "Neveljavna zahteva."
+  },
+  "78e9815992": {
+    "translation": "Razumem"
   },
   "797799f35e": {
     "translation": "Predložite težavo na GitHub"

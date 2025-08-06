@@ -39,6 +39,7 @@ import { useForceUpdate } from './hooks/useForceUpdate'
 import { useShallowObjectIdentity } from './hooks/useIdentity'
 import { useLocalStore } from './hooks/useLocalStore'
 import { useRefState } from './hooks/useRefState'
+import { useStateAttribute } from './hooks/useStateAttribute'
 import { useZoomCss } from './hooks/useZoomCss'
 import { LicenseProvider } from './license/LicenseProvider'
 import { Watermark } from './license/Watermark'
@@ -646,6 +647,7 @@ function Layout({ children, onMount }: { children: ReactNode; onMount?: TLOnMoun
 	useCursor()
 	useDarkMode()
 	useForceUpdate()
+	useStateAttribute()
 	useOnMount((editor) => {
 		const teardownStore = editor.store.props.onMount(editor)
 		const teardownCallback = onMount?.(editor)
