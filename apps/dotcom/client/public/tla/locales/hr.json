@@ -50,6 +50,12 @@
   "1dd1c5fb7f": {
     "translation": "Danas"
   },
+  "20976e7bec": {
+    "translation": "Soba je puna"
+  },
+  "21bfb2dc2e": {
+    "translation": "Ova soba se približava ograničenju veličine. Razmislite o uklanjanju dijela sadržaja ili pokretanju nove datoteke."
+  },
   "22d84a12fd": {
     "translation": "Figjam ali tldraw"
   },
@@ -61,6 +67,9 @@
   },
   "2c61d18599": {
     "translation": "Miro, ali dobar i besplatan"
+  },
+  "2deec2cb74": {
+    "translation": "Ova je soba dosegla ograničenje veličine i promjene se možda više neće moći spremiti. Uklonite dio sadržaja ili započnite novu datoteku."
   },
   "31246941ad": {
     "translation": "Morate se prijaviti da vidite ovu datoteku."
@@ -143,6 +152,9 @@
   "5a95a425f7": {
     "translation": "Udio"
   },
+  "5bb6cf3b53": {
+    "translation": "Soba postaje velika"
+  },
   "5bcc12ace8": {
     "translation": "Ova soba je sada samo za čitanje"
   },
@@ -214,6 +226,9 @@
   },
   "777f9e90cf": {
     "translation": "Neispravan zahtjev."
+  },
+  "78e9815992": {
+    "translation": "Shvatio/la sam"
   },
   "797799f35e": {
     "translation": "Pošaljite problem na GitHub"

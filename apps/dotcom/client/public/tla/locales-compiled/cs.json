@@ -105,6 +105,18 @@
       "value": "Dnes"
     }
   ],
+  "20976e7bec": [
+    {
+      "type": 0,
+      "value": "Místnost je plná"
+    }
+  ],
+  "21bfb2dc2e": [
+    {
+      "type": 0,
+      "value": "Tato místnost se blíží svému limitu velikosti. Zkuste odstranit část obsahu nebo vytvořit nový soubor."
+    }
+  ],
   "22d84a12fd": [
     {
       "type": 0,
@@ -127,6 +139,12 @@
     {
       "type": 0,
       "value": "Miro, ale dobrý a svobodný"
+    }
+  ],
+  "2deec2cb74": [
+    {
+      "type": 0,
+      "value": "Tato místnost dosáhla limitu velikosti a změny se již nemusí ukládat. Odstraňte část obsahu nebo začněte vytvářet nový soubor."
     }
   ],
   "31246941ad": [
@@ -301,6 +319,12 @@
       "value": "Podíl"
     }
   ],
+  "5bb6cf3b53": [
+    {
+      "type": 0,
+      "value": "Místnost se zvětšuje"
+    }
+  ],
   "5bcc12ace8": [
     {
       "type": 0,
@@ -443,6 +467,12 @@
     {
       "type": 0,
       "value": "Neplatný požadavek."
+    }
+  ],
+  "78e9815992": [
+    {
+      "type": 0,
+      "value": "Rozumím"
     }
   ],
   "797799f35e": [
