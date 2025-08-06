@@ -2,7 +2,7 @@ import { DurableObject } from 'cloudflare:workers'
 import { AutoRouter, error } from 'itty-router'
 import { Streaming } from '../../client/types/Streaming'
 import { TLAgentPrompt } from '../../client/types/TLAgentPrompt'
-import { ISimpleEvent } from '../prompt/schema'
+import { IAgentEvent } from '../prompt/AgentEvent'
 import { Environment } from '../types'
 import { TldrawAgentService } from './vercel/TldrawAgentService'
 import { VercelAiService } from './vercel/VercelAiService'
@@ -38,7 +38,7 @@ export class TldrawAiDurableObject extends DurableObject<Environment> {
 		const { readable, writable } = new TransformStream()
 		const writer = writable.getWriter()
 
-		const response: { changes: Streaming<ISimpleEvent>[] } = { changes: [] }
+		const response: { changes: Streaming<IAgentEvent>[] } = { changes: [] }
 
 		;(async () => {
 			try {

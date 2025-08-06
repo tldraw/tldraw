@@ -1,4 +1,4 @@
-import { SimpleShape } from './schema'
+import { SimpleShape } from '../simple/SimpleShape'
 
 const shapeTypeNames = SimpleShape._def.options
 	.map((option) => {

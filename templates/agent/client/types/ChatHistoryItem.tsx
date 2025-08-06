@@ -1,5 +1,5 @@
 import { RecordsDiff, TLRecord } from 'tldraw'
-import { ISimpleEvent } from '../../worker/prompt/schema'
+import { IAgentEvent } from '../../worker/prompt/AgentEvent'
 import { BrainIcon } from '../icons/BrainIcon'
 import { CursorIcon } from '../icons/CursorIcon'
 import { EyeIcon } from '../icons/EyeIcon'
@@ -42,7 +42,7 @@ export interface AgentMessageHistoryItem {
 export interface AgentChangeHistoryItem {
 	type: 'agent-change'
 	diff: RecordsDiff<TLRecord>
-	change: ISimpleEvent
+	change: IAgentEvent
 	status: 'progress' | 'done' | 'cancelled'
 	acceptance: 'accepted' | 'rejected' | 'pending'
 }
@@ -55,7 +55,7 @@ export interface AgentChangeGroupHistoryItem {
 
 export interface AgentRawHistoryItem {
 	type: 'agent-raw'
-	change: Streaming<ISimpleEvent>
+	change: Streaming<IAgentEvent>
 	status: 'progress' | 'done' | 'cancelled'
 }
 
@@ -130,7 +130,7 @@ export const ACTION_HISTORY_ITEM_DEFINITIONS: Record<
 }
 
 export const AGENT_CHANGE_TYPE_DEFINITIONS: Record<
-	ISimpleEvent['_type'],
+	IAgentEvent['_type'],
 	AgentChangeDefinition | null
 > = {
 	distribute: { icon: <CursorIcon /> },

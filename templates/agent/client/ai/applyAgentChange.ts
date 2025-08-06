@@ -15,11 +15,11 @@ import {
 	toRichText,
 } from 'tldraw'
 import {
-	ISimpleCreateEvent,
-	ISimpleEvent,
-	ISimplePlaceEvent,
-	ISimpleUpdateEvent,
-} from '../../worker/prompt/schema'
+	IAgentCreateEvent,
+	IAgentEvent,
+	IAgentPlaceEvent,
+	IAgentUpdateEvent,
+} from '../../worker/prompt/AgentEvent'
 import { simpleFillToShapeFill, stringToSimpleColor } from '../../worker/simple/color'
 import { createOrUpdateHistoryItem } from '../atoms/chatHistoryItems'
 import { $requestsSchedule } from '../atoms/requestsSchedule'
@@ -37,7 +37,7 @@ export function applySimpleEvent({
 	change,
 }: {
 	editor: Editor
-	change: Streaming<ISimpleEvent>
+	change: Streaming<IAgentEvent>
 }) {
 	if (change.complete) {
 		console.log('AGENT CHANGE', change)
@@ -299,7 +299,7 @@ function getTldrawAiChangesFromUpdateEvent({
 	agentChange,
 }: {
 	editor: Editor
-	agentChange: Streaming<ISimpleUpdateEvent>
+	agentChange: Streaming<IAgentUpdateEvent>
 }): TLAiChange[] {
 	const changes: TLAiChange[] = []
 	if (!agentChange.complete) {
@@ -598,7 +598,7 @@ function getTldrawAiChangesFromCreateEvent({
 	agentChange,
 }: {
 	editor: Editor
-	agentChange: Streaming<ISimpleCreateEvent>
+	agentChange: Streaming<IAgentCreateEvent>
 }): TLAiChange[] {
 	const changes: TLAiChange[] = []
 	if (!agentChange.complete) return changes
@@ -818,7 +818,7 @@ function toRichTextIfNeeded(text: string | TLRichText): TLRichText {
 	return text
 }
 
-function placeShape(editor: Editor, change: Streaming<ISimplePlaceEvent>) {
+function placeShape(editor: Editor, change: Streaming<IAgentPlaceEvent>) {
 	const { shapeId, referenceShapeId, side, sideOffset = 0, align, alignOffset = 0 } = change
 
 	if (!shapeId || !referenceShapeId) return

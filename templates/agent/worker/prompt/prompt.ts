@@ -6,7 +6,7 @@ import {
 } from '../../client/types/ChatHistoryItem'
 import { TLAgentPrompt } from '../../client/types/TLAgentPrompt'
 import { getSimpleContentFromCanvasContent } from '../simple/getSimpleContentFromCanvasContent'
-import { getSimplePeripheralContentFromCanvasContent } from '../simple/getSimplePeripheralContentFromCanvasContent'
+import { getPeripheralShapesFromCanvasContent } from '../simple/getSimplePeripheralContentFromCanvasContent'
 
 export function buildMessages(prompt: TLAgentPrompt): CoreMessage[] {
 	const messages: CoreMessage[] = []
@@ -332,7 +332,7 @@ function buildUserMessage(prompt: TLAgentPrompt): CoreMessage {
 	const simplifiedAgentViewportContent = getSimpleContentFromCanvasContent(prompt.canvasContent)
 
 	// Add the content from outside the agent's current viewport
-	const peripheralContent = getSimplePeripheralContentFromCanvasContent(
+	const peripheralContent = getPeripheralShapesFromCanvasContent(
 		currentPageShapes,
 		prompt.canvasContent
 	)

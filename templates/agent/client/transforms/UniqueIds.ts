@@ -1,12 +1,12 @@
 import { TLShapeId } from '@tldraw/tlschema'
-import { ISimpleEvent } from '../../worker/prompt/schema'
+import { IAgentEvent } from '../../worker/prompt/AgentEvent'
 import { Streaming } from '../types/Streaming'
 import { TldrawAgentTransform } from './TldrawAgentTransform'
 
 export class UniqueIds extends TldrawAgentTransform {
 	idMap = new Map<string, TLShapeId>()
 
-	override transformChange = (change: Streaming<ISimpleEvent>): Streaming<ISimpleEvent> => {
+	override transformChange = (change: Streaming<IAgentEvent>): Streaming<IAgentEvent> => {
 		if (!change.complete) return change
 
 		switch (change._type) {

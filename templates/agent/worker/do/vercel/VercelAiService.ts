@@ -9,8 +9,9 @@ import { LanguageModel, streamObject } from 'ai'
 import { Streaming } from '../../../client/types/Streaming'
 import { TLAgentPrompt } from '../../../client/types/TLAgentPrompt'
 import { getTLAgentModelDefinition, TLAgentModelName } from '../../models'
+import { IAgentEvent } from '../../prompt/AgentEvent'
 import { buildMessages } from '../../prompt/prompt'
-import { IModelResponse, ISimpleEvent, ModelResponse } from '../../prompt/schema'
+import { IModelResponse, ModelResponse } from '../../prompt/schema'
 import { SIMPLE_SYSTEM_PROMPT } from '../../prompt/system-prompt'
 import { Environment } from '../../types'
 import { TldrawAgentService } from './TldrawAgentService'
@@ -33,7 +34,7 @@ export class VercelAiService extends TldrawAgentService {
 		return this[provider](modelDefinition.id)
 	}
 
-	async *stream(prompt: TLAgentPrompt): AsyncGenerator<Streaming<ISimpleEvent>> {
+	async *stream(prompt: TLAgentPrompt): AsyncGenerator<Streaming<IAgentEvent>> {
 		try {
 			const model = this.getModel(prompt.meta.modelName)
 			for await (const event of streamEventsVercel(model, prompt)) {
@@ -49,7 +50,7 @@ export class VercelAiService extends TldrawAgentService {
 async function* streamEventsVercel(
 	model: LanguageModel,
 	prompt: TLAgentPrompt
-): AsyncGenerator<ISimpleEvent & { complete: boolean }> {
+): AsyncGenerator<IAgentEvent & { complete: boolean }> {
 	const geminiThinkingBudget = model.modelId === 'gemini-2.5-pro' ? 128 : 0
 
 	try {
@@ -72,7 +73,7 @@ async function* streamEventsVercel(
 		})
 
 		let cursor = 0
-		let maybeIncompleteEvent: ISimpleEvent | null = null
+		let maybeIncompleteEvent: IAgentEvent | null = null
 
 		for await (const partialObject of partialObjectStream) {
 			const events = partialObject.events
@@ -82,7 +83,7 @@ async function* streamEventsVercel(
 			// If the events list is ahead of the cursor, we know we've completed the current event
 			// We can complete the event and move the cursor forward
 			if (events.length > cursor) {
-				const event = events[cursor - 1] as ISimpleEvent
+				const event = events[cursor - 1] as IAgentEvent
 				if (event) {
 					yield { ...event, complete: true }
 					maybeIncompleteEvent = null
@@ -92,7 +93,7 @@ async function* streamEventsVercel(
 
 			// Now let's check the (potentially new) current event
 			// And let's yield it in its (potentially incomplete) state
-			const event = events[cursor - 1] as ISimpleEvent
+			const event = events[cursor - 1] as IAgentEvent
 			if (event) {
 				yield { ...event, complete: false }
 				maybeIncompleteEvent = event

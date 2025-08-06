@@ -1,5 +1,5 @@
 import { Editor } from 'tldraw'
-import { ISimpleEvent } from '../../worker/prompt/schema'
+import { IAgentEvent } from '../../worker/prompt/AgentEvent'
 import { Streaming } from '../types/Streaming'
 import { TLAgentPrompt } from '../types/TLAgentPrompt'
 
@@ -17,7 +17,7 @@ export abstract class TldrawAgentTransform {
 	 * @param change - The change to transform
 	 * @returns The transformed change
 	 */
-	transformChange?(change: Streaming<ISimpleEvent>): Streaming<ISimpleEvent>
+	transformChange?(change: Streaming<IAgentEvent>): Streaming<IAgentEvent>
 }
 
 /** @public */

@@ -7,8 +7,8 @@ import {
 	TLTextShape,
 } from 'tldraw'
 import { TLAgentContent } from '../../client/types/TLAgentPrompt'
-import { ISimpleShape } from '../prompt/schema'
 import { shapeFillToSimpleFill } from './color'
+import { ISimpleShape } from './SimpleShape'
 
 export function getSimpleContentFromCanvasContent(content: TLAgentContent): {
 	shapes: ISimpleShape[]
