@@ -1,5 +1,6 @@
 import { Box, BoxModel, Editor, FileHelpers, structuredClone, TLShape } from 'tldraw'
-import { Streaming, TLAgentChange } from '../types/TLAgentChange'
+import { ISimpleEvent } from '../../worker/simple/schema'
+import { Streaming } from '../types/Streaming'
 import { TLAgentContent, TLAgentPrompt, TLAgentPromptOptions } from '../types/TLAgentPrompt'
 
 /**
@@ -37,7 +38,7 @@ export async function preparePrompt(promptOptions: TLAgentPromptOptions) {
 
 	transforms.reverse()
 
-	const transformChange = (change: Streaming<TLAgentChange>) => {
+	const transformChange = (change: Streaming<ISimpleEvent>) => {
 		for (const transform of transforms) {
 			if (transform.transformChange) {
 				change = transform.transformChange(change)

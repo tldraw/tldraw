@@ -1,9 +1,10 @@
-import { Streaming, TLAgentChange } from '../../../client/types/TLAgentChange'
+import { Streaming } from '../../../client/types/Streaming'
 import { TLAgentPrompt } from '../../../client/types/TLAgentPrompt'
+import { ISimpleEvent } from '../../simple/schema'
 import { Environment } from '../../types'
 
 export abstract class TldrawAgentService {
 	constructor(public env: Environment) {}
 
-	abstract stream(prompt: TLAgentPrompt): AsyncGenerator<Streaming<TLAgentChange>>
+	abstract stream(prompt: TLAgentPrompt): AsyncGenerator<Streaming<ISimpleEvent>>
 }

@@ -15,38 +15,38 @@ import {
 	toRichText,
 } from 'tldraw'
 import { simpleFillToShapeFill, stringToSimpleColor } from '../../worker/simple/color'
+import {
+	ISimpleCreateEvent,
+	ISimpleEvent,
+	ISimplePlaceEvent,
+	ISimpleUpdateEvent,
+} from '../../worker/simple/schema'
 import { createOrUpdateHistoryItem } from '../atoms/chatHistoryItems'
 import { $requestsSchedule } from '../atoms/requestsSchedule'
 import { AreaContextItem } from '../types/ContextItem'
 import { ScheduledRequest } from '../types/ScheduledRequest'
-import {
-	Streaming,
-	TLAgentChange,
-	TLAgentCreateChange,
-	TLAgentPlaceChange,
-	TLAgentUpdateChange,
-} from '../types/TLAgentChange'
+import { Streaming } from '../types/Streaming'
 
 /**
  * Apply a change to the app. This might mean making a change to the canvas. It
  * might also mean updating the chat history, or adding a new request to the
  * schedule.
  */
-export function applyAgentChange({
+export function applySimpleEvent({
 	editor,
 	change,
 }: {
 	editor: Editor
-	change: Streaming<TLAgentChange>
+	change: Streaming<ISimpleEvent>
 }) {
 	if (change.complete) {
 		console.log('AGENT CHANGE', change)
 	}
 
-	switch (change.type) {
+	switch (change._type) {
 		case 'create': {
 			if (!change.complete) return
-			const aiChanges = getTldrawAiChangesFromCreateAgentChange({ editor, agentChange: change })
+			const aiChanges = getTldrawAiChangesFromCreateEvent({ editor, agentChange: change })
 			const diff = editor.store.extractingChanges(() => {
 				for (const aiChange of aiChanges) {
 					defaultApplyChange({ change: aiChange, editor })
@@ -64,7 +64,7 @@ export function applyAgentChange({
 		}
 		case 'update': {
 			if (!change.complete) return
-			const aiChanges = getTldrawAiChangesFromUpdateAgentChange({ editor, agentChange: change })
+			const aiChanges = getTldrawAiChangesFromUpdateEvent({ editor, agentChange: change })
 			const diff = editor.store.extractingChanges(() => {
 				for (const aiChange of aiChanges) {
 					defaultApplyChange({ change: aiChange, editor })
@@ -294,12 +294,12 @@ export function applyAgentChange({
 	}
 }
 
-function getTldrawAiChangesFromUpdateAgentChange({
+function getTldrawAiChangesFromUpdateEvent({
 	editor,
 	agentChange,
 }: {
 	editor: Editor
-	agentChange: Streaming<TLAgentUpdateChange>
+	agentChange: Streaming<ISimpleUpdateEvent>
 }): TLAiChange[] {
 	const changes: TLAiChange[] = []
 	if (!agentChange.complete) {
@@ -593,12 +593,12 @@ function getTldrawAiChangesFromUpdateAgentChange({
 	return changes
 }
 
-function getTldrawAiChangesFromCreateAgentChange({
+function getTldrawAiChangesFromCreateEvent({
 	editor,
 	agentChange,
 }: {
 	editor: Editor
-	agentChange: Streaming<TLAgentCreateChange>
+	agentChange: Streaming<ISimpleCreateEvent>
 }): TLAiChange[] {
 	const changes: TLAiChange[] = []
 	if (!agentChange.complete) return changes
@@ -818,7 +818,7 @@ function toRichTextIfNeeded(text: string | TLRichText): TLRichText {
 	return text
 }
 
-function placeShape(editor: Editor, change: Streaming<TLAgentPlaceChange>) {
+function placeShape(editor: Editor, change: Streaming<ISimplePlaceEvent>) {
 	const { shapeId, referenceShapeId, side, sideOffset = 0, align, alignOffset = 0 } = change
 
 	if (!shapeId || !referenceShapeId) return

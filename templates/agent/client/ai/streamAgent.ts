@@ -1,4 +1,5 @@
-import { Streaming, TLAgentChange } from '../types/TLAgentChange'
+import { ISimpleEvent } from '../../worker/simple/schema'
+import { Streaming } from '../types/Streaming'
 import { TLAgentPrompt } from '../types/TLAgentPrompt'
 
 /**
@@ -51,7 +52,7 @@ export async function* streamAgent({
 							throw new Error(data.error)
 						}
 
-						const agentChange: Streaming<TLAgentChange> = data
+						const agentChange: Streaming<ISimpleEvent> = data
 						yield agentChange
 					} catch (err: any) {
 						throw new Error(err.message)

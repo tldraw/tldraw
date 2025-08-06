@@ -100,7 +100,7 @@ function ChangeIntents({ items }: { items: AgentChangeHistoryItem[] }) {
 		<div className="agent-change-message-intent">
 			{items.map((item, i) => {
 				const change = item.change
-				const definition = AGENT_CHANGE_TYPE_DEFINITIONS[change.type]
+				const definition = AGENT_CHANGE_TYPE_DEFINITIONS[change._type]
 				if (!definition) return null
 				const icon = definition.icon
 				let intent = ''

@@ -253,7 +253,7 @@ const SimpleThinkEvent = z.object({
 export type ISimpleThinkEvent = z.infer<typeof SimpleThinkEvent>
 
 const SimpleScheduleReviewEvent = z.object({
-	_type: z.literal('schedule'),
+	_type: z.literal('review'),
 	h: z.number(),
 	intent: z.string(),
 	w: z.number(),

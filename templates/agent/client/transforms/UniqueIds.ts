@@ -1,14 +1,15 @@
 import { TLShapeId } from '@tldraw/tlschema'
-import { Streaming, TLAgentChange } from '../types/TLAgentChange'
+import { ISimpleEvent } from '../../worker/simple/schema'
+import { Streaming } from '../types/Streaming'
 import { TldrawAgentTransform } from './TldrawAgentTransform'
 
 export class UniqueIds extends TldrawAgentTransform {
 	idMap = new Map<string, TLShapeId>()
 
-	override transformChange = (change: Streaming<TLAgentChange>): Streaming<TLAgentChange> => {
+	override transformChange = (change: Streaming<ISimpleEvent>): Streaming<ISimpleEvent> => {
 		if (!change.complete) return change
 
-		switch (change.type) {
+		switch (change._type) {
 			case 'create': {
 				const { shape } = change
 				const id = this.getIncrementedId(shape.shapeId)

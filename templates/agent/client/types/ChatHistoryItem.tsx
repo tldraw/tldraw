@@ -1,4 +1,5 @@
 import { RecordsDiff, TLRecord } from 'tldraw'
+import { ISimpleEvent } from '../../worker/simple/schema'
 import { BrainIcon } from '../icons/BrainIcon'
 import { CursorIcon } from '../icons/CursorIcon'
 import { EyeIcon } from '../icons/EyeIcon'
@@ -8,7 +9,7 @@ import { SearchIcon } from '../icons/SearchIcon'
 import { TargetIcon } from '../icons/TargetIcon'
 import { TrashIcon } from '../icons/TrashIcon'
 import { ContextItem } from './ContextItem'
-import { Streaming, TLAgentChange } from './TLAgentChange'
+import { Streaming } from './Streaming'
 
 export type ChatHistoryItem =
 	| UserMessageHistoryItem
@@ -41,7 +42,7 @@ export interface AgentMessageHistoryItem {
 export interface AgentChangeHistoryItem {
 	type: 'agent-change'
 	diff: RecordsDiff<TLRecord>
-	change: TLAgentChange
+	change: ISimpleEvent
 	status: 'progress' | 'done' | 'cancelled'
 	acceptance: 'accepted' | 'rejected' | 'pending'
 }
@@ -54,7 +55,7 @@ export interface AgentChangeGroupHistoryItem {
 
 export interface AgentRawHistoryItem {
 	type: 'agent-raw'
-	change: Streaming<TLAgentChange>
+	change: Streaming<ISimpleEvent>
 	status: 'progress' | 'done' | 'cancelled'
 }
 
@@ -129,7 +130,7 @@ export const ACTION_HISTORY_ITEM_DEFINITIONS: Record<
 }
 
 export const AGENT_CHANGE_TYPE_DEFINITIONS: Record<
-	TLAgentChange['type'],
+	ISimpleEvent['_type'],
 	AgentChangeDefinition | null
 > = {
 	distribute: { icon: <CursorIcon /> },
@@ -145,5 +146,4 @@ export const AGENT_CHANGE_TYPE_DEFINITIONS: Record<
 	setMyView: null,
 	message: null,
 	think: null,
-	raw: null,
 }

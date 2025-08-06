@@ -1,5 +1,6 @@
 import { Box, TLShape } from 'tldraw'
-import { Streaming, TLAgentChange } from '../types/TLAgentChange'
+import { ISimpleEvent } from '../../worker/simple/schema'
+import { Streaming } from '../types/Streaming'
 import { TLAgentPrompt } from '../types/TLAgentPrompt'
 import { TldrawAgentTransform } from './TldrawAgentTransform'
 
@@ -136,7 +137,7 @@ export class RoundedCoordinates extends TldrawAgentTransform {
 		return roundedValue - value
 	}
 
-	override transformChange = (change: Streaming<TLAgentChange>) => {
+	override transformChange = (change: Streaming<ISimpleEvent>) => {
 		// For now, don't unround coordinates.
 		// TODO: Replace this whole thing with the new event-based approach.
 		// See https://linear.app/tldraw/issue/INT-2081/refactor-towards-an-event-definition-approach

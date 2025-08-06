@@ -6,15 +6,14 @@ import {
 } from '@ai-sdk/google'
 import { createOpenAI, OpenAIProvider } from '@ai-sdk/openai'
 import { LanguageModel, streamObject } from 'ai'
-import { Streaming, TLAgentChange } from '../../../client/types/TLAgentChange'
+import { Streaming } from '../../../client/types/Streaming'
 import { TLAgentPrompt } from '../../../client/types/TLAgentPrompt'
 import { getTLAgentModelDefinition, TLAgentModelName } from '../../models'
 import { buildMessages } from '../../prompt/prompt'
 import { SIMPLE_SYSTEM_PROMPT } from '../../prompt/system-prompt'
-import { getTldrawAgentChangesFromSimpleEvents } from '../../simple/getTldrawAgentChangesFromSimpleEvents'
 import { IModelResponse, ISimpleEvent, ModelResponse } from '../../simple/schema'
 import { Environment } from '../../types'
-import { TldrawAgentService } from './TldrawAgentBaseService'
+import { TldrawAgentService } from './TldrawAgentService'
 
 export class VercelAiService extends TldrawAgentService {
 	openai: OpenAIProvider
@@ -34,13 +33,11 @@ export class VercelAiService extends TldrawAgentService {
 		return this[provider](modelDefinition.id)
 	}
 
-	async *stream(prompt: TLAgentPrompt): AsyncGenerator<Streaming<TLAgentChange>> {
+	async *stream(prompt: TLAgentPrompt): AsyncGenerator<Streaming<ISimpleEvent>> {
 		try {
 			const model = this.getModel(prompt.meta.modelName)
 			for await (const event of streamEventsVercel(model, prompt)) {
-				for (const change of getTldrawAgentChangesFromSimpleEvents(prompt, event)) {
-					yield change
-				}
+				yield event
 			}
 		} catch (error: any) {
 			console.error('Stream error:', error)
