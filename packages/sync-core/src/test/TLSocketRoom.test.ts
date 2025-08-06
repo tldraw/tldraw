@@ -1,4 +1,4 @@
-import { createTLSchema, createTLStore } from 'tldraw'
+import { createTLSchema, createTLStore, PageRecordType, ZERO_INDEX_KEY } from 'tldraw'
 import { TLSocketRoom } from '../lib/TLSocketRoom'
 
 function getStore() {
@@ -96,5 +96,29 @@ describe(TLSocketRoom, () => {
 		  },
 		]
 	`)
+	})
+
+	it('passes onDataChange handler through', async () => {
+		const addPage = (room: TLSocketRoom) =>
+			room.updateStore((store) => {
+				store.put(
+					PageRecordType.create({ id: PageRecordType.createId(), name: '', index: ZERO_INDEX_KEY })
+				)
+			})
+		const store = getStore()
+		store.ensureStoreIsUsable()
+		let called = 0
+
+		const room = new TLSocketRoom({ onDataChange: () => ++called })
+		expect(called).toEqual(0)
+
+		await addPage(room)
+		expect(called).toEqual(1)
+
+		room.loadSnapshot(room.getCurrentSnapshot())
+		expect(called).toEqual(1)
+
+		await addPage(room)
+		expect(called).toEqual(2)
 	})
 })
