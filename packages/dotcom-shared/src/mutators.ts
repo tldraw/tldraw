@@ -299,6 +299,23 @@ export function createMutators(userId: string) {
 					updatedAt: Date.now(),
 				})
 			},
+			ungroupFile: async (tx, { fileId }: { fileId: string }) => {
+				await assertUserHasFlag(tx, userId, 'groups')
+				assert(fileId, ZErrorCode.bad_request)
+				const file = await tx.query.file.where('id', '=', fileId).one().run()
+				assert(file, ZErrorCode.bad_request)
+				assert(file.owningGroupId, ZErrorCode.bad_request)
+				// make sure user has group access to the file
+				const hasGroupAccess = await tx.query.group_user
+					.where('userId', '=', userId)
+					.where('groupId', '=', file.owningGroupId)
+					.one()
+					.run()
+				assert(hasGroupAccess, ZErrorCode.forbidden)
+				await tx.mutate.file.update({ id: fileId, owningGroupId: null, ownerId: userId })
+				await tx.mutate.group_file.delete({ fileId, groupId: file.owningGroupId })
+				// todo: delete file_states for other users who no longer have access to the file?
+			},
 		},
 	} as const satisfies CustomMutatorDefs<TlaSchema>
 }

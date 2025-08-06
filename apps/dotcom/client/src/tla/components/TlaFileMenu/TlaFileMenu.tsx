@@ -44,8 +44,9 @@ const messages = defineMessages({
 	forget: { defaultMessage: 'Forget' },
 	rename: { defaultMessage: 'Rename' },
 	copy: { defaultMessage: 'Copy' },
-	pin: { defaultMessage: 'Pin' },
-	unpin: { defaultMessage: 'Unpin' },
+	pin: { defaultMessage: 'Add to favorites' },
+	unpin: { defaultMessage: 'Remove from favorites' },
+	myFiles: { defaultMessage: 'My files' },
 })
 
 function getDuplicateName(file: TlaFile, app: TldrawApp) {
@@ -171,6 +172,7 @@ export function FileItems({
 	const deleteOrForgetMsg = useMsg(isOwner ? messages.delete : messages.forget)
 	const canUpdateFile = useCanUpdateFile(fileId)
 	const downloadFile = useMsg(editorMessages.downloadFile)
+	const myFilesMsg = useMsg(messages.myFiles)
 
 	return (
 		<Fragment>
@@ -220,7 +222,16 @@ export function FileItems({
 			</TldrawUiMenuGroup>
 			{hasGroups && groupMembers.length > 0 && (
 				<TldrawUiMenuGroup id="file-groups">
-					<TldrawUiMenuSubmenu id="move-to-group" label={'Move to group'} size="small">
+					<TldrawUiMenuSubmenu id="move-to-group" label={'Move to'} size="small">
+						<TldrawUiMenuItem
+							key="my-files"
+							label={myFilesMsg}
+							id="my-files"
+							readonlyOk
+							onSelect={() => {
+								app.z.mutate.group.ungroupFile({ fileId })
+							}}
+						/>
 						{groupMembers.map((groupUser) => (
 							<TldrawUiMenuItem
 								key={groupUser.groupId}
@@ -229,19 +240,6 @@ export function FileItems({
 								readonlyOk
 								onSelect={() => {
 									app.z.mutate.group.moveFileToGroup({ fileId, groupId: groupUser.groupId })
-								}}
-							/>
-						))}
-					</TldrawUiMenuSubmenu>
-					<TldrawUiMenuSubmenu id="link-in-group" label={'Link in group'} size="small">
-						{groupMembers.map((groupUser) => (
-							<TldrawUiMenuItem
-								key={groupUser.groupId}
-								label={groupUser.group.name}
-								id={`link-in-group-${groupUser.groupId}`}
-								readonlyOk
-								onSelect={() => {
-									app.z.mutate.group.linkFileInGroup({ fileId, groupId: groupUser.groupId })
 								}}
 							/>
 						))}

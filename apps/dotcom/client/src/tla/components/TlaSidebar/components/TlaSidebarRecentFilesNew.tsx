@@ -12,6 +12,7 @@ export function TlaSidebarRecentFilesNew() {
 	const app = useApp()
 
 	const [isShowingAll, setIsShowingAll] = useState(false)
+	const groupMemberships = useValue('groupMemberships', () => app.getGroupMemberships(), [app])
 
 	const results = useValue(
 		'recent user files',
@@ -26,7 +27,11 @@ export function TlaSidebarRecentFilesNew() {
 				const { isPinned } = item
 				if (isPinned) {
 					pinnedFiles.push(item)
-				} else {
+				} else if (
+					!groupMemberships.some(
+						(group) => group.group.id === app.getFile(item.fileId)?.owningGroupId
+					)
+				) {
 					otherFiles.push(item)
 				}
 			}
@@ -38,8 +43,6 @@ export function TlaSidebarRecentFilesNew() {
 		},
 		[app]
 	)
-
-	const groupMemberships = useValue('groupMemberships', () => app.getGroupMemberships(), [app])
 
 	const handleCreateGroup = () => {
 		const name = window.prompt('Enter a name for the new group')
@@ -59,7 +62,7 @@ export function TlaSidebarRecentFilesNew() {
 	return (
 		<Fragment>
 			{results.pinnedFiles.length ? (
-				<TlaSidebarFileSection title={<F defaultMessage="Pinned" />} onePixelOfPaddingAtTheTop>
+				<TlaSidebarFileSection title={<F defaultMessage="Favorites" />} onePixelOfPaddingAtTheTop>
 					{results.pinnedFiles.map((item, i) => (
 						<TlaSidebarFileLink
 							key={'file_link_pinned_' + item.fileId}
@@ -72,7 +75,7 @@ export function TlaSidebarRecentFilesNew() {
 			{filesToShow.length ? (
 				<TlaSidebarFileSection
 					className={styles.sidebarFileSectionRecent}
-					title={<F defaultMessage="Recent" />}
+					title={<F defaultMessage="My files" />}
 				>
 					{filesToShow.map((item, i) => (
 						<TlaSidebarFileLink

@@ -925,4 +925,8 @@ export class TldrawApp {
 
 		return this.createFile({ id, name })
 	}
+
+	sidebarState = atom('sidebar state', {
+		expandedGroups: new Set<string>(),
+	})
 }

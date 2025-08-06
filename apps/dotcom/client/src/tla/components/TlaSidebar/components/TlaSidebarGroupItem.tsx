@@ -1,4 +1,4 @@
-import { useState } from 'react'
+import { useCallback, useState } from 'react'
 import { useValue } from 'tldraw'
 import { useApp } from '../../../hooks/useAppState'
 import { F } from '../../../utils/i18n'
@@ -8,9 +8,9 @@ import { TlaSidebarFileLink } from './TlaSidebarFileLink'
 const TriangleIcon = ({ angle = 0 }: { angle?: number }) => {
 	return (
 		<svg
-			width="16"
-			height="16"
-			viewBox="0 0 16 16"
+			width="8"
+			height="8"
+			viewBox="4 4 8 8"
 			fill="none"
 			xmlns="http://www.w3.org/2000/svg"
 			style={{
@@ -24,7 +24,23 @@ const TriangleIcon = ({ angle = 0 }: { angle?: number }) => {
 
 export function TlaSidebarGroupItem({ groupId }: { groupId: string }) {
 	const app = useApp()
-	const [isCollapsed, setIsCollapsed] = useState(false)
+	const isExpanded = useValue(
+		'isExpanded',
+		() => app.sidebarState.get().expandedGroups.has(groupId),
+		[app, groupId]
+	)
+	const setIsExpanded = useCallback(
+		(isExpanded: boolean) => {
+			const expandedGroups = new Set(app.sidebarState.get().expandedGroups)
+			if (isExpanded) {
+				expandedGroups.add(groupId)
+			} else {
+				expandedGroups.delete(groupId)
+			}
+			app.sidebarState.set({ expandedGroups })
+		},
+		[app, groupId]
+	)
 	const [isShowingAll, setIsShowingAll] = useState(false)
 
 	const group = useValue('group', () => app.getGroupMembership(groupId), [app, groupId])
@@ -37,22 +53,22 @@ export function TlaSidebarGroupItem({ groupId }: { groupId: string }) {
 	const filesToShow = isShowingAll || !isOverflowing ? files : files.slice(0, MAX_FILES_TO_SHOW)
 
 	return (
-		<div className={styles.sidebarGroupItem}>
+		<div className={styles.sidebarGroupItem} data-expanded={isExpanded}>
 			<button
 				className={styles.sidebarGroupItemHeader}
-				onClick={() => setIsCollapsed(!isCollapsed)}
-				aria-expanded={!isCollapsed}
+				onClick={() => setIsExpanded(!isExpanded)}
+				aria-expanded={isExpanded}
 			>
 				<span className={styles.sidebarGroupItemTitle}>{group.group.name}</span>
-
-				<TriangleIcon angle={isCollapsed ? 90 : 180} />
+				<TriangleIcon angle={isExpanded ? 180 : 90} />
 			</button>
 
-			{!isCollapsed && (
+			{isExpanded && (
 				<div className={styles.sidebarGroupItemContent}>
 					{filesToShow.map((file, i) => (
 						<TlaSidebarFileLink
 							key={`group-file-${file.id}`}
+							className={styles.sidebarGroupItemFile}
 							item={{
 								fileId: file.id,
 								date: file.updatedAt,

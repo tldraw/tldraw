@@ -43,7 +43,15 @@ function scrollActiveFileLinkIntoView() {
 	}
 }
 
-export function TlaSidebarFileLink({ item, testId }: { item: RecentFile; testId: string }) {
+export function TlaSidebarFileLink({
+	item,
+	testId,
+	className,
+}: {
+	item: RecentFile
+	testId: string
+	className?: string
+}) {
 	const app = useApp()
 	const intl = useIntl()
 	const { fileSlug } = useParams<{ fileSlug: string }>()
@@ -83,6 +91,7 @@ export function TlaSidebarFileLink({ item, testId }: { item: RecentFile; testId:
 					onClose={() => setIsRenaming(false)}
 					isRenaming={isRenaming}
 					handleRenameAction={handleRenameAction}
+					className={className}
 				/>
 			</_ContextMenu.Trigger>
 			<_ContextMenu.Content className="tlui-menu tlui-scrollable">
@@ -117,6 +126,7 @@ export function TlaSidebarFileLinkInner({
 	isRenaming,
 	handleRenameAction,
 	onClose,
+	className,
 }: {
 	fileId: string
 	testId: string | number
@@ -126,6 +136,7 @@ export function TlaSidebarFileLinkInner({
 	isRenaming: boolean
 	handleRenameAction(): void
 	onClose(): void
+	className?: string
 }) {
 	const trackEvent = useTldrawAppUiEvents()
 	const linkRef = useRef<HTMLAnchorElement | null>(null)
@@ -168,7 +179,7 @@ export function TlaSidebarFileLinkInner({
 
 	return (
 		<div
-			className={classNames(styles.sidebarFileListItem, styles.hoverable)}
+			className={classNames(styles.sidebarFileListItem, styles.hoverable, className)}
 			data-active={isActive}
 			data-element="file-link"
 			data-testid={testId}
