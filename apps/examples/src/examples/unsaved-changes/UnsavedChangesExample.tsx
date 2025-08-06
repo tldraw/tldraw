@@ -17,27 +17,21 @@ function SaveButton() {
 	const editor = useEditor()
 	const [hasUnsavedChanges, setHasUnsavedChanges] = useState(false)
 
-	const rUnsavedChanges = useRef<RecordsDiff<TLRecord>>({
-		added: {},
-		removed: {},
-		updated: {},
-	})
+	const rUnsavedChanges = useRef<RecordsDiff<TLRecord>>({ added: {}, removed: {}, updated: {} })
 
 	useEffect(() => {
 		// [1]
 		const handleDocumentChange: TLEventMapHandler<'change'> = (diff) => {
-			const prevUnsavedChanges = rUnsavedChanges.current
-			rUnsavedChanges.current = squashRecordDiffs([diff.changes, prevUnsavedChanges])
-			setHasUnsavedChanges(true)
+			squashRecordDiffs([rUnsavedChanges.current, diff.changes], { mutateFirstDiff: true })
+			setHasUnsavedChanges(
+				!isPlainObjectEmpty(rUnsavedChanges.current.added) ||
+					!isPlainObjectEmpty(rUnsavedChanges.current.removed) ||
+					!isPlainObjectEmpty(rUnsavedChanges.current.updated)
+			)
 		}
 
 		// [2]
-		const cleanupFunction = editor.store.listen(handleDocumentChange, {
-			source: 'user',
-			scope: 'document',
-		})
-
-		return cleanupFunction
+		return editor.store.listen(handleDocumentChange, { scope: 'document' })
 	}, [editor])
 
 	// [3]
@@ -69,6 +63,7 @@ function SaveButton() {
 			style={{
 				pointerEvents: 'all',
 				padding: '8px 16px',
+				marginTop: '6px',
 				backgroundColor: hasUnsavedChanges ? '#2d7d32' : '#ccc',
 				color: hasUnsavedChanges ? 'white' : '#666',
 				border: 'none',
@@ -82,8 +77,13 @@ function SaveButton() {
 	)
 }
 
-const saveChanges = (_diff: RecordsDiff<TLRecord>, _snapshot: TLEditorSnapshot) => {
+function saveChanges(_diff: RecordsDiff<TLRecord>, _snapshot: TLEditorSnapshot) {
 	// todo: do something with the diff, or save the whole document snapshot somewhere
+}
+
+function isPlainObjectEmpty(obj: object) {
+	for (const key in obj) return false
+	return true
 }
 
 // [4]
@@ -113,8 +113,7 @@ us a complete picture of what has changed without storing redundant intermediate
 [2]
 We listen to store changes with the 'document' scope, which means we only get notified 
 about changes to document content (shapes, pages, etc.) and not to instance data like 
-camera position or selected shapes. We also filter to only 'user' changes, excluding 
-programmatic changes.
+camera position or selected shapes. 
 
 [3]
 The save function demonstrates how you might handle saving in a real application. We 
