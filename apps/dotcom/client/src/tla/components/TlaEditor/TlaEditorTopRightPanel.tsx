@@ -57,7 +57,7 @@ export function TlaEditorTopRightPanel({
 							})
 						}
 					>
-						<F defaultMessage={ctaString} />
+						<F {...ctaMessages.signInToShare} />
 					</TlaCtaButton>
 				</SignInButton>
 			</div>
