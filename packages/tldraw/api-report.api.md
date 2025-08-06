@@ -2147,15 +2147,6 @@ export function NoteToolbarItem(): JSX_2.Element;
 // @public (undocumented)
 export function OfflineIndicator(): JSX_2.Element;
 
-// @public
-export function onDragFromToolbarToCreateShape(editor: Editor, info: TLPointerEventInfo, opts: OnDragFromToolbarToCreateShapesOpts): void;
-
-// @public
-export interface OnDragFromToolbarToCreateShapesOpts {
-    createShape(id: TLShapeId): void;
-    onDragEnd?(id: TLShapeId): void;
-}
-
 // @public (undocumented)
 export function OpacitySlider(): JSX_2.Element | null;
 
@@ -3058,7 +3049,7 @@ export function TldrawUiMenuContextProvider({ type, sourceId, children, }: TLUiM
 export function TldrawUiMenuGroup({ id, label, className, children }: TLUiMenuGroupProps): boolean | JSX_2.Element | Iterable<ReactNode> | null | number | string | undefined;
 
 // @public (undocumented)
-export function TldrawUiMenuItem<TranslationKey extends string = string, IconType extends string = string>({ disabled, spinner, readonlyOk, id, kbd, label, icon, iconLeft, onSelect, noClose, isSelected, onDragStart, }: TLUiMenuItemProps<TranslationKey, IconType>): JSX_2.Element | null;
+export function TldrawUiMenuItem<TranslationKey extends string = string, IconType extends string = string>({ disabled, spinner, readonlyOk, id, kbd, label, icon, iconLeft, onSelect, noClose, isSelected, }: TLUiMenuItemProps<TranslationKey, IconType>): JSX_2.Element | null;
 
 // @public (undocumented)
 export function TldrawUiMenuSubmenu<Translation extends string = string>({ id, disabled, label, size, children, }: TLUiMenuSubmenuProps<Translation>): boolean | JSX_2.Element | Iterable<ReactNode> | null | number | string | undefined;
@@ -3655,10 +3646,6 @@ export interface TLUiEventMap {
     // (undocumented)
     'download-original': null;
     // (undocumented)
-    'drag-tool': {
-        id: string;
-    };
-    // (undocumented)
     'duplicate-page': null;
     // (undocumented)
     'duplicate-shapes': null;
@@ -4033,7 +4020,6 @@ export interface TLUiMenuItemProps<TranslationKey extends string = string, IconT
         [key: string]: TranslationKey;
     } | TranslationKey;
     noClose?: boolean;
-    onDragStart?(source: TLUiEventSource, info: TLPointerEventInfo): void;
     onSelect(source: TLUiEventSource): Promise<void> | void;
     readonlyOk?: boolean;
     spinner?: boolean;
@@ -4280,8 +4266,6 @@ export interface TLUiToolItem<TranslationKey extends string = string, IconType e
     meta?: {
         [key: string]: any;
     };
-    // (undocumented)
-    onDragStart?(source: TLUiEventSource, info: TLPointerEventInfo): void;
     // (undocumented)
     onSelect(source: TLUiEventSource): void;
     // (undocumented)

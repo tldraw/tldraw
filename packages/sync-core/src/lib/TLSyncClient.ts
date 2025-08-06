@@ -82,6 +82,9 @@ export type TLSocketStatusListener = (params: TlSocketStatusChangeEvent) => void
 
 /** @internal */
 export type TLPersistentClientSocketStatus = 'online' | 'offline' | 'error'
+
+/** @internal */
+export type TLPresenceMode = 'solo' | 'full'
 /**
  * A socket that can be used to send and receive messages to the server. It should handle staying
  * open and reconnecting when the connection is lost. In actual client code this will be a wrapper
@@ -139,6 +142,7 @@ export class TLSyncClient<R extends UnknownRecord, S extends Store<R> = Store<R>
 	readonly socket: TLPersistentClientSocket<R>
 
 	readonly presenceState: Signal<R | null> | undefined
+	readonly presenceMode: Signal<TLPresenceMode> | undefined
 
 	// isOnline is true when we have an open socket connection and we have
 	// established a connection with the server room (i.e. we have received a 'connect' message)
@@ -178,6 +182,7 @@ export class TLSyncClient<R extends UnknownRecord, S extends Store<R> = Store<R>
 		store: S
 		socket: TLPersistentClientSocket<R>
 		presence: Signal<R | null>
+		presenceMode?: Signal<TLPresenceMode>
 		onLoad(self: TLSyncClient<R, S>): void
 		onSyncError(reason: string): void
 		onAfterConnect?(self: TLSyncClient<R, S>, details: { isReadonly: boolean }): void
@@ -197,6 +202,7 @@ export class TLSyncClient<R extends UnknownRecord, S extends Store<R> = Store<R>
 		let didLoad = false
 
 		this.presenceState = config.presence
+		this.presenceMode = config.presenceMode
 
 		this.disposables.push(
 			// when local 'user' changes are made, send them to the server
@@ -274,6 +280,8 @@ export class TLSyncClient<R extends UnknownRecord, S extends Store<R> = Store<R>
 			this.disposables.push(
 				react('pushPresence', () => {
 					if (this.didCancel?.()) return this.close()
+					const mode = this.presenceMode?.get()
+					if (mode !== 'full') return
 					this.pushPresence(this.presenceState!.get())
 				})
 			)
@@ -399,6 +407,10 @@ export class TLSyncClient<R extends UnknownRecord, S extends Store<R> = Store<R>
 			// this.store.applyDiff(stashedChanges, false)
 
 			this.onAfterConnect?.(this, { isReadonly: event.isReadonly })
+			const presence = this.presenceState?.get()
+			if (presence) {
+				this.pushPresence(presence)
+			}
 		})
 
 		this.lastServerClock = event.serverClock
