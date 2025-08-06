@@ -1,4 +1,4 @@
-import { Box, TLShape, TLShapePartial } from 'tldraw'
+import { Box, TLShape } from 'tldraw'
 import { Streaming, TLAgentChange } from '../types/TLAgentChange'
 import { TLAgentPrompt } from '../types/TLAgentPrompt'
 import { TldrawAgentTransform } from './TldrawAgentTransform'
@@ -137,31 +137,36 @@ export class RoundedCoordinates extends TldrawAgentTransform {
 	}
 
 	override transformChange = (change: Streaming<TLAgentChange>) => {
-		if (!change.complete) return change
+		// For now, don't unround coordinates.
+		// TODO: Replace this whole thing with the new event-based approach.
+		// See https://linear.app/tldraw/issue/INT-2081/refactor-towards-an-event-definition-approach
+		return change
 
-		switch (change.type) {
-			case 'createShape':
-			case 'updateShape': {
-				const { shape } = change
+		// if (!change.complete) return change
 
-				const diffX = this.getRoundingDiff(shape.id, 'x') ?? 0
-				const diffY = this.getRoundingDiff(shape.id, 'y') ?? 0
+		// switch (change.type) {
+		// 	case 'createShape':
+		// 	case 'updateShape': {
+		// 		const { shape } = change
 
-				if (shape.x !== undefined) {
-					shape.x = shape.x + diffX
-				}
-				if (shape.y !== undefined) {
-					shape.y = shape.y + diffY
-				}
+		// 		const diffX = this.getRoundingDiff(shape.id, 'x') ?? 0
+		// 		const diffY = this.getRoundingDiff(shape.id, 'y') ?? 0
 
-				return {
-					...change,
-					shape: shape as TLShapePartial,
-				}
-			}
-			default: {
-				return change
-			}
-		}
+		// 		if (shape.x !== undefined) {
+		// 			shape.x = shape.x + diffX
+		// 		}
+		// 		if (shape.y !== undefined) {
+		// 			shape.y = shape.y + diffY
+		// 		}
+
+		// 		return {
+		// 			...change,
+		// 			shape: shape as TLShapePartial,
+		// 		}
+		// 	}
+		// 	default: {
+		// 		return change
+		// 	}
+		// }
 	}
 }

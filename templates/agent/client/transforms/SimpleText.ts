@@ -5,6 +5,7 @@ import { TldrawAgentTransform } from './TldrawAgentTransform'
 // This transform converts a shape's rich text property to a single string, which is a much easier format for the model to deal with.
 // We add the string to the shape's meta so that the model access it later on.
 export class SimpleText extends TldrawAgentTransform {
+	// TODO: Transform to-and-from markdown and rich text
 	override transformPrompt = (input: TLAgentPrompt) => {
 		const { canvasContent, meta } = input
 		const { currentPageShapes, contextItems, userSelectedShapes } = meta

@@ -1,6 +1,6 @@
-import { TLAiChange } from '@tldraw/ai'
 import {
 	ISimpleAlignEvent,
+	ISimpleCreateEvent,
 	ISimpleDeleteEvent,
 	ISimpleDistributeEvent,
 	ISimpleEvent,
@@ -8,12 +8,12 @@ import {
 	ISimpleMoveEvent,
 	ISimplePlaceEvent,
 	ISimpleStackEvent,
+	ISimpleUpdateEvent,
 } from '../../worker/simple/schema'
 
 export type Streaming<T> = (Partial<T> & { complete: false }) | (T & { complete: true })
 
 export type TLAgentChange =
-	| TLAiChange
 	| TLAgentMessageChange
 	| TLAgentThinkChange
 	| TLAgentScheduleReviewChange
@@ -26,6 +26,8 @@ export type TLAgentChange =
 	| TLAgentLabelChange
 	| TLAgentMoveChange
 	| TLAgentDeleteChange
+	| TLAgentCreateChange
+	| TLAgentUpdateChange
 
 export interface TLAgentMessageChange {
 	type: 'message'
@@ -86,4 +88,12 @@ export interface TLAgentMoveChange extends Omit<ISimpleMoveEvent, '_type'> {
 
 export interface TLAgentDeleteChange extends Omit<ISimpleDeleteEvent, '_type'> {
 	type: 'delete'
+}
+
+export interface TLAgentCreateChange extends Omit<ISimpleCreateEvent, '_type'> {
+	type: 'create'
+}
+
+export interface TLAgentUpdateChange extends Omit<ISimpleUpdateEvent, '_type'> {
+	type: 'update'
 }

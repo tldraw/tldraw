@@ -106,8 +106,6 @@ function ChangeIntents({ items }: { items: AgentChangeHistoryItem[] }) {
 				let intent = ''
 				if ('intent' in change) {
 					intent = change.intent
-				} else if ('description' in change) {
-					intent = change.description
 				}
 				if (intent === previousIntentMessage) return null
 				previousIntentMessage = intent

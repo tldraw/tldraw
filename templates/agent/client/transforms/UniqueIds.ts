@@ -1,4 +1,4 @@
-import { createBindingId, TLShapeId } from '@tldraw/tlschema'
+import { TLShapeId } from '@tldraw/tlschema'
 import { Streaming, TLAgentChange } from '../types/TLAgentChange'
 import { TldrawAgentTransform } from './TldrawAgentTransform'
 
@@ -9,57 +9,59 @@ export class UniqueIds extends TldrawAgentTransform {
 		if (!change.complete) return change
 
 		switch (change.type) {
-			case 'createShape': {
+			case 'create': {
 				const { shape } = change
-				const id = this.getIncrementedId(shape.id)
+				const id = this.getIncrementedId(shape.shapeId)
 
-				shape.id = id
+				shape.shapeId = id
 
 				return {
 					...change,
 					shape,
 				}
 			}
-			case 'updateShape': {
-				const { shape } = change
-				const id = this.idMap.get(shape.id) ?? shape.id
-				shape.id = id
+			case 'update': {
+				const { update } = change
+				const id = this.idMap.get(update.shapeId) ?? update.shapeId
+				update.shapeId = id
 
 				return {
 					...change,
-					shape,
+					update,
 				}
 			}
-			case 'createBinding': {
-				const { binding } = change
-				binding.id = createBindingId(binding.id)
+			// TODO: Restore this after the refactor
+			// See https://linear.app/tldraw/issue/INT-2081/refactor-towards-an-event-definition-approach
+			// case 'createBinding': {
+			// 	const { binding } = change
+			// 	binding.id = createBindingId(binding.id)
 
-				if (binding.fromId) {
-					binding.fromId = this.idMap.get(binding.fromId) ?? binding.fromId
-				}
-				if (binding.toId) {
-					binding.toId = this.idMap.get(binding.toId) ?? binding.toId
-				}
+			// 	if (binding.fromId) {
+			// 		binding.fromId = this.idMap.get(binding.fromId) ?? binding.fromId
+			// 	}
+			// 	if (binding.toId) {
+			// 		binding.toId = this.idMap.get(binding.toId) ?? binding.toId
+			// 	}
 
-				return {
-					...change,
-					binding,
-				}
-			}
-			case 'updateBinding': {
-				const { binding } = change
-				if (binding.fromId) {
-					binding.fromId = this.idMap.get(binding.fromId) ?? binding.fromId
-				}
-				if (binding.toId) {
-					binding.toId = this.idMap.get(binding.toId) ?? binding.toId
-				}
+			// 	return {
+			// 		...change,
+			// 		binding,
+			// 	}
+			// }
+			// case 'updateBinding': {
+			// 	const { binding } = change
+			// 	if (binding.fromId) {
+			// 		binding.fromId = this.idMap.get(binding.fromId) ?? binding.fromId
+			// 	}
+			// 	if (binding.toId) {
+			// 		binding.toId = this.idMap.get(binding.toId) ?? binding.toId
+			// 	}
 
-				return change
-			}
-			case 'deleteBinding': {
-				return change
-			}
+			// 	return change
+			// }
+			// case 'deleteBinding': {
+			// 	return change
+			// }
 			default: {
 				return change
 			}
