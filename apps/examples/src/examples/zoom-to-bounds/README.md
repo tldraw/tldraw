@@ -6,7 +6,7 @@ priority: 1
 keywords: [zoom, camera, bounds, inset]
 ---
 
-Demonstrate zooming the camera to specific bounds using the editor's `zoomToBounds` function.
+Zoom the camera to specific bounds using the editor's `zoomToBounds` function.
 
 ---
 
