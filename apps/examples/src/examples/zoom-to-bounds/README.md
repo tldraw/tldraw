@@ -2,11 +2,11 @@
 title: Zoom to bounds
 component: ./ZoomToBoundsExample.tsx
 category: editor-api
-priority: 0.5
-keywords: [zoom, camera, bounds, lock, animation, force]
+priority: 1
+keywords: [zoom, camera, bounds, lock, animation, force,]
 ---
 
-Demonstrate camera zooming to specific bounds with locking controls and forced zooming.
+Demonstrate zooming the camera to specific bounds using the editor's `zoomToBounds` function.
 
 ---
 
