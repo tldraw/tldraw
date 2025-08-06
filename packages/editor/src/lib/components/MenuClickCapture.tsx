@@ -50,6 +50,12 @@ export function MenuClickCapture() {
 			// Do nothing unless we're pointing
 			if (!rPointerState.current.isDown) return
 
+			// If we're already dragging, pass on the event as it is
+			if (rPointerState.current.isDragging) {
+				canvasEvents.onPointerMove?.(e)
+				return
+			}
+
 			if (
 				// We're pointing, but are we dragging?
 				Vec.Dist2(rPointerState.current.start, new Vec(e.clientX, e.clientY)) >
@@ -69,6 +75,8 @@ export function MenuClickCapture() {
 					clientY: y,
 					button: 0,
 				})
+				// call the pointer move with the current pointer position
+				canvasEvents.onPointerMove?.(e)
 			}
 		},
 		[canvasEvents, editor]
