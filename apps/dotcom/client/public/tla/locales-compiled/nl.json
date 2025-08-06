@@ -105,6 +105,18 @@
       "value": "Vandaag"
     }
   ],
+  "20976e7bec": [
+    {
+      "type": 0,
+      "value": "Kamer is vol"
+    }
+  ],
+  "21bfb2dc2e": [
+    {
+      "type": 0,
+      "value": "Deze ruimte nadert zijn maximale grootte. Overweeg om wat inhoud te verwijderen of een nieuw bestand te maken."
+    }
+  ],
   "22d84a12fd": [
     {
       "type": 0,
@@ -127,6 +139,12 @@
     {
       "type": 0,
       "value": "Miro maar dan goed en gratis"
+    }
+  ],
+  "2deec2cb74": [
+    {
+      "type": 0,
+      "value": "Deze ruimte heeft de maximale bestandsgrootte bereikt en wijzigingen worden mogelijk niet meer opgeslagen. Verwijder wat inhoud of begin een nieuw bestand."
     }
   ],
   "31246941ad": [
@@ -301,6 +319,12 @@
       "value": "Deel"
     }
   ],
+  "5bb6cf3b53": [
+    {
+      "type": 0,
+      "value": "Kamer wordt groot"
+    }
+  ],
   "5bcc12ace8": [
     {
       "type": 0,
@@ -443,6 +467,12 @@
     {
       "type": 0,
       "value": "Ongeldig verzoek."
+    }
+  ],
+  "78e9815992": [
+    {
+      "type": 0,
+      "value": "Ik heb het"
     }
   ],
   "797799f35e": [

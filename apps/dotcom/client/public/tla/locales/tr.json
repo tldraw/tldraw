@@ -50,6 +50,12 @@
   "1dd1c5fb7f": {
     "translation": "Bugün"
   },
+  "20976e7bec": {
+    "translation": "Oda dolu"
+  },
+  "21bfb2dc2e": {
+    "translation": "Bu oda boyut sınırına yaklaşıyor. İçeriğin bir kısmını kaldırmayı veya yeni bir dosya başlatmayı düşünün."
+  },
   "22d84a12fd": {
     "translation": "Figjam ama tldraw"
   },
@@ -61,6 +67,9 @@
   },
   "2c61d18599": {
     "translation": "Miro ama iyi ve özgür"
+  },
+  "2deec2cb74": {
+    "translation": "Bu oda boyut sınırına ulaştı ve değişiklikler artık kaydedilemeyebilir. İçeriğin bir kısmını kaldırın veya yeni bir dosya başlatın."
   },
   "31246941ad": {
     "translation": "Bu dosyayı görüntülemek için oturum açmanız gerekiyor."
@@ -143,6 +152,9 @@
   "5a95a425f7": {
     "translation": "Paylaş"
   },
+  "5bb6cf3b53": {
+    "translation": "Oda büyüyor"
+  },
   "5bcc12ace8": {
     "translation": "Bu oda artık salt okunur"
   },
@@ -214,6 +226,9 @@
   },
   "777f9e90cf": {
     "translation": "Geçersiz istek"
+  },
+  "78e9815992": {
+    "translation": "Anladım"
   },
   "797799f35e": {
     "translation": "GitHub'da bir sorun bildirin"

@@ -50,6 +50,12 @@
   "1dd1c5fb7f": {
     "translation": "Hoxe"
   },
+  "20976e7bec": {
+    "translation": "A sala está chea"
+  },
+  "21bfb2dc2e": {
+    "translation": "Esta sala está a chegar ao seu límite de tamaño. Considera eliminar parte do contido ou comezar un novo ficheiro."
+  },
   "22d84a12fd": {
     "translation": "Atasco de figuras pero debuxo rápido"
   },
@@ -61,6 +67,9 @@
   },
   "2c61d18599": {
     "translation": "Miro pero bo e gratuíto"
+  },
+  "2deec2cb74": {
+    "translation": "Esta sala alcanzou o seu límite de tamaño e é posible que os cambios xa non se garden. Elimina parte do contido ou comeza un ficheiro novo."
   },
   "31246941ad": {
     "translation": "Debes iniciar sesión para ver este ficheiro."
@@ -143,6 +152,9 @@
   "5a95a425f7": {
     "translation": "Compartir"
   },
+  "5bb6cf3b53": {
+    "translation": "A habitación faise grande"
+  },
   "5bcc12ace8": {
     "translation": "Esta sala agora é de só lectura"
   },
@@ -214,6 +226,9 @@
   },
   "777f9e90cf": {
     "translation": "Solicitude non válida."
+  },
+  "78e9815992": {
+    "translation": "Entendido"
   },
   "797799f35e": {
     "translation": "Envía un problema en GitHub"

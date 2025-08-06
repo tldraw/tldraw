@@ -50,6 +50,12 @@
   "1dd1c5fb7f": {
     "translation": "Vandaag"
   },
+  "20976e7bec": {
+    "translation": "Kamer is vol"
+  },
+  "21bfb2dc2e": {
+    "translation": "Deze ruimte nadert zijn maximale grootte. Overweeg om wat inhoud te verwijderen of een nieuw bestand te maken."
+  },
   "22d84a12fd": {
     "translation": "Figjam maar tldraw"
   },
@@ -61,6 +67,9 @@
   },
   "2c61d18599": {
     "translation": "Miro maar dan goed en gratis"
+  },
+  "2deec2cb74": {
+    "translation": "Deze ruimte heeft de maximale bestandsgrootte bereikt en wijzigingen worden mogelijk niet meer opgeslagen. Verwijder wat inhoud of begin een nieuw bestand."
   },
   "31246941ad": {
     "translation": "U moet zijn aangemeld om dit bestand te kunnen bekijken."
@@ -143,6 +152,9 @@
   "5a95a425f7": {
     "translation": "Deel"
   },
+  "5bb6cf3b53": {
+    "translation": "Kamer wordt groot"
+  },
   "5bcc12ace8": {
     "translation": "Deze kamer is nu alleen-lezen"
   },
@@ -214,6 +226,9 @@
   },
   "777f9e90cf": {
     "translation": "Ongeldig verzoek."
+  },
+  "78e9815992": {
+    "translation": "Ik heb het"
   },
   "797799f35e": {
     "translation": "Een probleem melden op GitHub"

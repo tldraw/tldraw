@@ -105,6 +105,18 @@
       "value": "Astăzi"
     }
   ],
+  "20976e7bec": [
+    {
+      "type": 0,
+      "value": "Camera este plină"
+    }
+  ],
+  "21bfb2dc2e": [
+    {
+      "type": 0,
+      "value": "Această cameră se apropie de limita de dimensiune. Luați în considerare eliminarea unei părți din conținut sau începerea unui fișier nou."
+    }
+  ],
   "22d84a12fd": [
     {
       "type": 0,
@@ -127,6 +139,12 @@
     {
       "type": 0,
       "value": "Miro, dar bun și gratuit"
+    }
+  ],
+  "2deec2cb74": [
+    {
+      "type": 0,
+      "value": "Această cameră a atins limita de dimensiune și este posibil ca modificările să nu mai fie salvate. Eliminați o parte din conținut sau începeți un fișier nou."
     }
   ],
   "31246941ad": [
@@ -301,6 +319,12 @@
       "value": "Distribuie"
     }
   ],
+  "5bb6cf3b53": [
+    {
+      "type": 0,
+      "value": "Camera devine mare"
+    }
+  ],
   "5bcc12ace8": [
     {
       "type": 0,
@@ -443,6 +467,12 @@
     {
       "type": 0,
       "value": "Solicitare nevalidă."
+    }
+  ],
+  "78e9815992": [
+    {
+      "type": 0,
+      "value": "Am înţeles"
     }
   ],
   "797799f35e": [

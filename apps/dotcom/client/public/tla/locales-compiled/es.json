@@ -105,6 +105,18 @@
       "value": "Hoy"
     }
   ],
+  "20976e7bec": [
+    {
+      "type": 0,
+      "value": "La habitación está llena"
+    }
+  ],
+  "21bfb2dc2e": [
+    {
+      "type": 0,
+      "value": "Esta sala está llegando a su límite de tamaño. Considere eliminar contenido o crear un nuevo archivo."
+    }
+  ],
   "22d84a12fd": [
     {
       "type": 0,
@@ -127,6 +139,12 @@
     {
       "type": 0,
       "value": "Miro pero bueno y gratis"
+    }
+  ],
+  "2deec2cb74": [
+    {
+      "type": 0,
+      "value": "Esta sala ha alcanzado su límite de tamaño y es posible que los cambios ya no se guarden. Elimina contenido o crea un nuevo archivo."
     }
   ],
   "31246941ad": [
@@ -301,6 +319,12 @@
       "value": "Compartir"
     }
   ],
+  "5bb6cf3b53": [
+    {
+      "type": 0,
+      "value": "La habitación se está haciendo grande"
+    }
+  ],
   "5bcc12ace8": [
     {
       "type": 0,
@@ -443,6 +467,12 @@
     {
       "type": 0,
       "value": "Solicitud no válida."
+    }
+  ],
+  "78e9815992": [
+    {
+      "type": 0,
+      "value": "Entiendo"
     }
   ],
   "797799f35e": [
