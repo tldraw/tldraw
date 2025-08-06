@@ -14,7 +14,7 @@ export async function* streamAgent({
 }: {
 	prompt: TLAgentPrompt
 	signal: AbortSignal
-}) {
+}): AsyncGenerator<Streaming<IAgentEvent>> {
 	const res = await fetch('/stream', {
 		method: 'POST',
 		body: JSON.stringify(prompt),

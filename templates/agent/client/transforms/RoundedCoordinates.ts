@@ -137,7 +137,7 @@ export class RoundedCoordinates extends TldrawAgentTransform {
 		return roundedValue - value
 	}
 
-	override transformChange = (change: Streaming<IAgentEvent>) => {
+	override transformEvent = (change: Streaming<IAgentEvent>) => {
 		// For now, don't unround coordinates.
 		// TODO: Replace this whole thing with the new event-based approach.
 		// See https://linear.app/tldraw/issue/INT-2081/refactor-towards-an-event-definition-approach

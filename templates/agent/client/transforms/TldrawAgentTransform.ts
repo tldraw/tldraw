@@ -13,11 +13,11 @@ export abstract class TldrawAgentTransform {
 	 */
 	transformPrompt?(prompt: TLAgentPrompt): TLAgentPrompt
 	/**
-	 * Will run after each change is received.
-	 * @param change - The change to transform
-	 * @returns The transformed change
+	 * Will run after each event is received.
+	 * @param event - The event to transform
+	 * @returns The transformed event
 	 */
-	transformChange?(change: Streaming<IAgentEvent>): Streaming<IAgentEvent>
+	transformEvent?(event: Streaming<IAgentEvent>): Streaming<IAgentEvent>
 }
 
 /** @public */

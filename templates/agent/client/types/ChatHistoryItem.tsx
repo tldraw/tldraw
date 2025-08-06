@@ -42,7 +42,7 @@ export interface AgentMessageHistoryItem {
 export interface AgentChangeHistoryItem {
 	type: 'agent-change'
 	diff: RecordsDiff<TLRecord>
-	change: IAgentEvent
+	event: IAgentEvent
 	status: 'progress' | 'done' | 'cancelled'
 	acceptance: 'accepted' | 'rejected' | 'pending'
 }
@@ -55,7 +55,7 @@ export interface AgentChangeGroupHistoryItem {
 
 export interface AgentRawHistoryItem {
 	type: 'agent-raw'
-	change: Streaming<IAgentEvent>
+	event: Streaming<IAgentEvent>
 	status: 'progress' | 'done' | 'cancelled'
 }
 

@@ -281,20 +281,20 @@ function buildHistoryItemMessage(item: ChatHistoryItem): CoreMessage | null {
 				content: [
 					{
 						type: 'text',
-						text: '[ACTION]: ' + JSON.stringify(item.change),
+						text: '[ACTION]: ' + JSON.stringify(item.event),
 						// text: 'A previous change from agent.',
 					},
 				],
 			}
 		}
 		case 'agent-change-group': {
-			const changes = item.items.map((item) => item.change)
+			const events = item.items.map((item) => item.event)
 			return {
 				role: 'assistant',
 				content: [
 					{
 						type: 'text',
-						text: '[ACTION]: ' + JSON.stringify(changes),
+						text: '[ACTION]: ' + JSON.stringify(events),
 						// text: 'Previous changes from agent.',
 					},
 				],
@@ -306,7 +306,7 @@ function buildHistoryItemMessage(item: ChatHistoryItem): CoreMessage | null {
 				content: [
 					{
 						type: 'text',
-						text: '[OUTPUT]: ' + JSON.stringify(item.change),
+						text: '[OUTPUT]: ' + JSON.stringify(item.event),
 					},
 				],
 			}

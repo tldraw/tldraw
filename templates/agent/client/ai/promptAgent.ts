@@ -1,6 +1,6 @@
 import { uniqueId } from 'tldraw'
 import { TLAgentPromptOptions } from '../types/TLAgentPrompt'
-import { applySimpleEvent } from './applyAgentChange'
+import { applyAgentEvent } from './applyAgentEvent'
 import { preparePrompt } from './preparePrompt'
 import { streamAgent } from './streamAgent'
 
@@ -19,12 +19,12 @@ export function promptAgent(promptOptions: TLAgentPromptOptions) {
 
 	const promise = new Promise<void>((resolve, reject) => {
 		preparePrompt(promptOptions)
-			.then(async ({ transformChange, prompt }) => {
+			.then(async ({ transformEvent, prompt }) => {
 				// Handle a stream of changes
 				// todo: consider history while streaming... we could keep track of all of the changes that were made, apply them as they come in; and then once completed, revert those changes, make a history entry, and then reapply them all
 
 				editor.markHistoryStoppingPoint(markId)
-				for await (const change of streamAgent({
+				for await (const event of streamAgent({
 					prompt,
 					signal,
 				})) {
@@ -32,8 +32,7 @@ export function promptAgent(promptOptions: TLAgentPromptOptions) {
 					try {
 						editor.run(
 							() => {
-								const transformedChange = transformChange(change)
-								applySimpleEvent({ editor, change: transformedChange })
+								applyAgentEvent({ editor, event, transformEvent })
 							},
 							{
 								ignoreShapeLock: false, // ? should this be true?

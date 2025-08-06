@@ -6,7 +6,7 @@ import { TldrawAgentTransform } from './TldrawAgentTransform'
 export class UniqueIds extends TldrawAgentTransform {
 	idMap = new Map<string, TLShapeId>()
 
-	override transformChange = (change: Streaming<IAgentEvent>): Streaming<IAgentEvent> => {
+	override transformEvent = (change: Streaming<IAgentEvent>): Streaming<IAgentEvent> => {
 		if (!change.complete) return change
 
 		switch (change._type) {

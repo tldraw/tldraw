@@ -38,18 +38,18 @@ export async function preparePrompt(promptOptions: TLAgentPromptOptions) {
 
 	transforms.reverse()
 
-	const transformChange = (change: Streaming<IAgentEvent>) => {
+	const transformEvent = (event: Streaming<IAgentEvent>) => {
 		for (const transform of transforms) {
-			if (transform.transformChange) {
-				change = transform.transformChange(change)
+			if (transform.transformEvent) {
+				event = transform.transformEvent(event)
 			}
 		}
-		return change
+		return event
 	}
 
 	return {
 		prompt,
-		transformChange,
+		transformEvent,
 	}
 }
 

@@ -28,25 +28,29 @@ import { ScheduledRequest } from '../types/ScheduledRequest'
 import { Streaming } from '../types/Streaming'
 
 /**
- * Apply a change to the app. This might mean making a change to the canvas. It
+ * Apply an event to the app. This might mean making an event to the canvas. It
  * might also mean updating the chat history, or adding a new request to the
  * schedule.
  */
-export function applySimpleEvent({
+export function applyAgentEvent({
 	editor,
-	change,
+	event,
+	transformEvent,
 }: {
 	editor: Editor
-	change: Streaming<IAgentEvent>
+	event: Streaming<IAgentEvent>
+	transformEvent(event: Streaming<IAgentEvent>): Streaming<IAgentEvent>
 }) {
-	if (change.complete) {
-		console.log('AGENT CHANGE', change)
+	if (event.complete) {
+		console.log('AGENT CHANGE', event)
 	}
 
-	switch (change._type) {
+	event = transformEvent(event)
+
+	switch (event._type) {
 		case 'create': {
-			if (!change.complete) return
-			const aiChanges = getTldrawAiChangesFromCreateEvent({ editor, agentChange: change })
+			if (!event.complete) return
+			const aiChanges = getTldrawAiChangesFromCreateEvent({ editor, agentChange: event })
 			const diff = editor.store.extractingChanges(() => {
 				for (const aiChange of aiChanges) {
 					defaultApplyChange({ change: aiChange, editor })
@@ -56,15 +60,15 @@ export function applySimpleEvent({
 			createOrUpdateHistoryItem({
 				type: 'agent-change',
 				diff,
-				change,
+				event,
 				status: 'done',
 				acceptance: 'pending',
 			})
 			return
 		}
 		case 'update': {
-			if (!change.complete) return
-			const aiChanges = getTldrawAiChangesFromUpdateEvent({ editor, agentChange: change })
+			if (!event.complete) return
+			const aiChanges = getTldrawAiChangesFromUpdateEvent({ editor, agentChange: event })
 			const diff = editor.store.extractingChanges(() => {
 				for (const aiChange of aiChanges) {
 					defaultApplyChange({ change: aiChange, editor })
@@ -74,7 +78,7 @@ export function applySimpleEvent({
 			createOrUpdateHistoryItem({
 				type: 'agent-change',
 				diff,
-				change,
+				event,
 				status: 'done',
 				acceptance: 'pending',
 			})
@@ -83,8 +87,8 @@ export function applySimpleEvent({
 		case 'message': {
 			createOrUpdateHistoryItem({
 				type: 'agent-message',
-				message: change.text ?? '',
-				status: change.complete ? 'done' : 'progress',
+				message: event.text ?? '',
+				status: event.complete ? 'done' : 'progress',
 			})
 			return
 		}
@@ -92,8 +96,8 @@ export function applySimpleEvent({
 			createOrUpdateHistoryItem({
 				type: 'agent-action',
 				action: 'thinking',
-				status: change.complete ? 'done' : 'progress',
-				info: change.text ?? '',
+				status: event.complete ? 'done' : 'progress',
+				info: event.text ?? '',
 			})
 			return
 		}
@@ -101,18 +105,18 @@ export function applySimpleEvent({
 			createOrUpdateHistoryItem({
 				type: 'agent-action',
 				action: 'review',
-				status: change.complete ? 'done' : 'progress',
-				info: change.intent ?? '',
+				status: event.complete ? 'done' : 'progress',
+				info: event.intent ?? '',
 			})
 			$requestsSchedule.update((prev) => {
-				if (!change.complete) return prev
+				if (!event.complete) return prev
 				const contextArea: AreaContextItem = {
 					type: 'area',
 					bounds: {
-						x: change.x,
-						y: change.y,
-						w: change.w,
-						h: change.h,
+						x: event.x,
+						y: event.y,
+						w: event.w,
+						h: event.h,
 					},
 					source: 'agent',
 				}
@@ -121,10 +125,10 @@ export function applySimpleEvent({
 				// Otherwise use the scheduled review's bounds
 				const prevRequest = prev[prev.length - 1] ?? {
 					bounds: {
-						x: change.x,
-						y: change.y,
-						w: change.w,
-						h: change.h,
+						x: event.x,
+						y: event.y,
+						w: event.w,
+						h: event.h,
 					},
 				}
 
@@ -132,7 +136,7 @@ export function applySimpleEvent({
 					...prev,
 					{
 						type: 'review',
-						message: change.intent ?? '',
+						message: event.intent ?? '',
 						contextItems: [contextArea],
 						bounds: prevRequest.bounds,
 					},
@@ -145,24 +149,24 @@ export function applySimpleEvent({
 			createOrUpdateHistoryItem({
 				type: 'agent-action',
 				action: 'setMyView',
-				status: change.complete ? 'done' : 'progress',
-				info: change.intent ?? '',
+				status: event.complete ? 'done' : 'progress',
+				info: event.intent ?? '',
 			})
 
 			$requestsSchedule.update((prev) => {
-				if (!change.complete) return prev
+				if (!event.complete) return prev
 
 				const schedule: ScheduledRequest[] = [
 					...prev,
 					{
 						type: 'setMyView',
-						message: change.intent ?? '',
+						message: event.intent ?? '',
 						contextItems: [],
 						bounds: {
-							x: change.x,
-							y: change.y,
-							w: change.w,
-							h: change.h,
+							x: event.x,
+							y: event.y,
+							w: event.w,
+							h: event.h,
 						},
 					},
 				]
@@ -171,114 +175,114 @@ export function applySimpleEvent({
 			return
 		}
 		case 'distribute': {
-			if (!change.complete) return
-			const { direction, shapeIds } = change
+			if (!event.complete) return
+			const { direction, shapeIds } = event
 			const diff = editor.store.extractingChanges(() => {
 				editor.distributeShapes(shapeIds as TLShapeId[], direction)
 			})
 			createOrUpdateHistoryItem({
 				type: 'agent-change',
 				diff,
-				change,
+				event,
 				status: 'done',
 				acceptance: 'pending',
 			})
 			return
 		}
 		case 'stack': {
-			if (!change.complete) return
-			const { direction, shapeIds, gap } = change
+			if (!event.complete) return
+			const { direction, shapeIds, gap } = event
 			const diff = editor.store.extractingChanges(() => {
 				editor.stackShapes(shapeIds as TLShapeId[], direction, Math.min(gap, 1))
 			})
 			createOrUpdateHistoryItem({
 				type: 'agent-change',
 				diff,
-				change,
+				event,
 				status: 'done',
 				acceptance: 'pending',
 			})
 			return
 		}
 		case 'align': {
-			if (!change.complete) return
-			const { alignment, shapeIds } = change
+			if (!event.complete) return
+			const { alignment, shapeIds } = event
 			const diff = editor.store.extractingChanges(() => {
 				editor.alignShapes(shapeIds as TLShapeId[], alignment)
 			})
 			createOrUpdateHistoryItem({
 				type: 'agent-change',
 				diff,
-				change,
+				event,
 				status: 'done',
 				acceptance: 'pending',
 			})
 			return
 		}
 		case 'place': {
-			if (!change.complete) return
+			if (!event.complete) return
 			const diff = editor.store.extractingChanges(() => {
-				placeShape(editor, change)
+				placeShape(editor, event)
 			})
 			createOrUpdateHistoryItem({
 				type: 'agent-change',
 				diff,
-				change,
+				event,
 				status: 'done',
 				acceptance: 'pending',
 			})
 			return
 		}
 		case 'label': {
-			if (!change.complete) return
+			if (!event.complete) return
 			const diff = editor.store.extractingChanges(() => {
-				const shape = editor.getShape(change.shapeId as TLShapeId)
+				const shape = editor.getShape(event.shapeId as TLShapeId)
 				if (!shape) return
 				editor.updateShape({
-					id: change.shapeId as TLShapeId,
+					id: event.shapeId as TLShapeId,
 					type: shape.type,
-					props: { richText: toRichTextIfNeeded(change.text ?? '') },
+					props: { richText: toRichTextIfNeeded(event.text ?? '') },
 				})
 			})
 			createOrUpdateHistoryItem({
 				type: 'agent-change',
 				diff,
-				change,
+				event,
 				status: 'done',
 				acceptance: 'pending',
 			})
 			return
 		}
 		case 'move': {
-			if (!change.complete) return
+			if (!event.complete) return
 			const diff = editor.store.extractingChanges(() => {
-				const shape = editor.getShape(change.shapeId as TLShapeId)
+				const shape = editor.getShape(event.shapeId as TLShapeId)
 				if (!shape) return
 				editor.updateShape({
-					id: change.shapeId as TLShapeId,
+					id: event.shapeId as TLShapeId,
 					type: shape.type,
-					x: change.x,
-					y: change.y,
+					x: event.x,
+					y: event.y,
 				})
 			})
 			createOrUpdateHistoryItem({
 				type: 'agent-change',
 				diff,
-				change,
+				event,
 				status: 'done',
 				acceptance: 'pending',
 			})
 			return
 		}
 		case 'delete': {
-			if (!change.complete) return
+			if (!event.complete) return
 			const diff = editor.store.extractingChanges(() => {
-				editor.deleteShape(change.shapeId as TLShapeId)
+				editor.deleteShape(event.shapeId as TLShapeId)
 			})
 			createOrUpdateHistoryItem({
 				type: 'agent-change',
 				diff,
-				change,
+				event,
 				status: 'done',
 				acceptance: 'pending',
 			})
@@ -287,8 +291,8 @@ export function applySimpleEvent({
 		default: {
 			createOrUpdateHistoryItem({
 				type: 'agent-raw',
-				change,
-				status: change.complete ? 'done' : 'progress',
+				event,
+				status: event.complete ? 'done' : 'progress',
 			})
 		}
 	}
@@ -676,7 +680,7 @@ function getTldrawAiChangesFromCreateEvent({
 			const minX = Math.min(x1, x2)
 			const minY = Math.min(y1, y2)
 
-			// Make sure that the shape itself is the first change
+			// Make sure that the shape itself is the first event
 			changes.push({
 				type: 'createShape',
 				description: agentChange.intent ?? '',
@@ -818,8 +822,8 @@ function toRichTextIfNeeded(text: string | TLRichText): TLRichText {
 	return text
 }
 
-function placeShape(editor: Editor, change: Streaming<IAgentPlaceEvent>) {
-	const { shapeId, referenceShapeId, side, sideOffset = 0, align, alignOffset = 0 } = change
+function placeShape(editor: Editor, event: Streaming<IAgentPlaceEvent>) {
+	const { shapeId, referenceShapeId, side, sideOffset = 0, align, alignOffset = 0 } = event
 
 	if (!shapeId || !referenceShapeId) return
 	const shape = editor.getShape(shapeId as TLShapeId)
