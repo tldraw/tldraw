@@ -715,6 +715,7 @@
 	border-radius: 4px;
 	flex-shrink: 0;
 	text-align: left;
+	width: 100%;
 }
 
 .showAllButton:hover {
