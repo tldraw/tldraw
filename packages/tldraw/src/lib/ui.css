@@ -224,16 +224,6 @@
 	position: relative;
 	height: 48px;
 	width: 48px;
-	margin-left: -2px;
-	margin-right: -2px;
-}
-
-.tlui-button__tool:nth-of-type(1) {
-	margin-left: 0px;
-}
-
-.tlui-button__tool:nth-last-of-type(1) {
-	margin-right: 0px;
 }
 
 .tlui-button__tool::after {
@@ -269,40 +259,24 @@
 .tlui-row {
 	display: flex;
 	flex-direction: row;
+	padding: 0 2px;
 }
 .tlui-row > * {
 	margin-left: -2px;
 	margin-right: -2px;
-}
-.tlui-row > *:nth-child(1) {
-	margin-left: 0px;
-}
-.tlui-row > *:nth-last-child(1) {
-	margin-right: 0px;
 }
 
 /* Grid layout */
 
 .tlui-grid {
 	display: grid;
-	grid-template-columns: repeat(4, auto);
+	grid-template-columns: repeat(4, 1fr);
 	grid-auto-flow: row;
 	overflow: hidden;
+	padding: 2px;
 }
-.tlui-grid > .tlui-button {
+.tlui-grid > * {
 	margin: -2px;
-}
-.tlui-grid > .tlui-button:nth-of-type(4n) {
-	margin-right: 0px;
-}
-.tlui-grid > .tlui-button:nth-of-type(4n - 3) {
-	margin-left: 0px;
-}
-.tlui-grid > .tlui-button:nth-of-type(-n + 4) {
-	margin-top: 0px;
-}
-.tlui-grid > .tlui-button:nth-last-of-type(-n + 4) {
-	margin-bottom: 0px;
 }
 
 /* Zoom button */
@@ -1206,14 +1180,10 @@
 	background: var(--color-panel);
 	box-shadow: var(--shadow-2);
 }
-.tlui-main-toolbar__tools__list {
-	display: flex;
-	flex-direction: row;
-	align-items: center;
-}
 
 .tlui-main-toolbar__overflow {
 	width: 40px;
+	margin-left: 2px;
 }
 
 .tlui-layout__mobile .tlui-main-toolbar__overflow {
@@ -1231,6 +1201,36 @@
 		background: linear-gradient(0deg, rgba(144, 144, 144, 0) 0%, var(--color-muted-2) 100%);
 		opacity: 1;
 	}
+}
+
+/* ------------------- Tooltip -------------------- */
+
+.tlui-tooltip {
+	font-size: 12px;
+	padding: 2px 8px;
+	border-radius: 4px;
+	background-color: var(--color-tooltip);
+	box-shadow: none;
+	color: var(--color-text-shadow);
+	max-width: 400px;
+	width: fit-content;
+	text-align: center;
+	pointer-events: none;
+	will-change: transform, opacity;
+	z-index: 2;
+}
+
+.tlui-tooltip__arrow {
+	fill: var(--color-tooltip);
+	will-change: opacity;
+}
+
+[data-radix-popper-content-wrapper]:has(.tlui-tooltip) {
+	z-index: var(--layer-toasts) !important;
+}
+
+[data-radix-popper-content-wrapper]:has(.tlui-tooltip[data-should-animate='true']) {
+	transition: all 0.1s ease-out;
 }
 
 /* ------------------- Debug panel ------------------ */

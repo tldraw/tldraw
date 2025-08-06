@@ -6,7 +6,6 @@ import {
 	TLDefaultColorTheme,
 	useEditor,
 } from '@tldraw/editor'
-import classNames from 'classnames'
 import { ReactElement, memo, useMemo, useRef } from 'react'
 import { StyleValuesForUi } from '../../../styles'
 import { PORTRAIT_BREAKPOINT } from '../../constants'
@@ -139,7 +138,6 @@ export const TldrawUiButtonPicker = memo(function TldrawUiButtonPicker<T extends
 							data-state={value.type === 'shared' && value.value === item.value ? 'on' : 'off'}
 							data-isactive={value.type === 'shared' && value.value === item.value}
 							title={label}
-							className={classNames('tlui-button-grid__button')}
 							style={
 								style === (DefaultColorStyle as StyleProp<unknown>)
 									? { color: theme[item.value as TLDefaultColorStyle].solid }

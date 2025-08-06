@@ -111,7 +111,6 @@ export const UserPresenceColorPicker = track(function UserPresenceColorPicker() 
 								aria-label={item}
 								isActive={value === item}
 								title={item}
-								className={'tlui-button-grid__button'}
 								style={{ color: item }}
 								onPointerEnter={handleButtonPointerEnter}
 								onPointerDown={handleButtonPointerDown}

@@ -20,6 +20,7 @@ import {
 	TldrawUiPopoverTrigger,
 } from '../primitives/TldrawUiPopover'
 import { TldrawUiToolbar, TldrawUiToolbarButton } from '../primitives/TldrawUiToolbar'
+import { TldrawUiRow } from '../primitives/layout'
 import { TldrawUiMenuContextProvider } from '../primitives/menus/TldrawUiMenuContext'
 
 export const IsInOverflowContext = createContext(false)
@@ -66,9 +67,6 @@ export function OverflowingToolbar({ children }: OverflowingToolbarProps) {
 			}
 			#${id}_more > *:nth-of-type(-n + ${overflowIndex}):not([data-radix-popper-content-wrapper]) {
 				display: none;
-			}
-			#${id}_more > *:nth-of-type(-n + ${overflowIndex + 4}):not([data-radix-popper-content-wrapper]) {
-				margin-top: 0;
 			}
         `
 	}, [lastActiveOverflowItem, id, overflowIndex])
@@ -164,11 +162,11 @@ export function OverflowingToolbar({ children }: OverflowingToolbarProps) {
 				})}
 				label={msg('tool-panel.title')}
 			>
-				<div id={`${id}_main`} ref={mainToolsRef} className="tlui-main-toolbar__tools__list">
+				<TldrawUiRow id={`${id}_main`} ref={mainToolsRef}>
 					<TldrawUiMenuContextProvider type="toolbar" sourceId="toolbar">
 						{children}
 					</TldrawUiMenuContextProvider>
-				</div>
+				</TldrawUiRow>
 				{/* There is a +1 because if the menu is just one item, it's not necessary. */}
 				{totalItems > overflowIndex + 1 && (
 					<IsInOverflowContext.Provider value={true}>
