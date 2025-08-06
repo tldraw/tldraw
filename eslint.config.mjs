@@ -400,6 +400,7 @@ export default [
 			'local/prefer-class-methods': 'off',
 			'no-restricted-syntax': 'off',
 			'no-console': 'off',
+			'@typescript-eslint/method-signature-style': 'off',
 		},
 	},
 ]

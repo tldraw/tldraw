@@ -12,7 +12,7 @@
 	"dependencies": {
 		"js-cookie": "^3.0.5",
 		"posthog-js": "^1.248.1",
-		"radix-ui": "^1.3.4",
+		"radix-ui": "^1.4.2",
 		"react": "^18.3.1",
 		"react-dom": "^18.3.1",
 		"react-ga4": "^2.1.0"

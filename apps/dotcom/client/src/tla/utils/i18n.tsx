@@ -1,5 +1,6 @@
 /* eslint-disable no-restricted-imports */
-
+import { FormatXMLElementFn } from 'intl-messageformat'
+import { ComponentPropsWithoutRef } from 'react'
 import {
 	FormattedMessage,
 	IntlConfig,
@@ -11,9 +12,6 @@ import {
 	defineMessages as originalDefineMessages,
 	useIntl,
 } from 'react-intl'
-
-import { FormatXMLElementFn } from 'intl-messageformat'
-import { ComponentPropsWithoutRef } from 'react'
 
 // Re-export everything and override below what we want to override.
 // eslint-disable-next-line
