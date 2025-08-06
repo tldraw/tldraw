@@ -1,5 +1,5 @@
 import { InstancePresenceRecordType, PageRecordType } from '@tldraw/tlschema'
-import { createTLSchema, createTLStore } from 'tldraw'
+import { createTLSchema, createTLStore, ZERO_INDEX_KEY } from 'tldraw'
 import { WebSocketMinimal } from '../lib/ServerSocketAdapter'
 import { TLSocketRoom } from '../lib/TLSocketRoom'
 import { RecordOpType } from '../lib/diff'
@@ -240,5 +240,29 @@ describe(TLSocketRoom, () => {
 			(id) => presenceRecords[id].typeName === 'document'
 		)
 		expect(documentRecordIds).toHaveLength(0)
+	})
+
+	it('passes onDataChange handler through', async () => {
+		const addPage = (room: TLSocketRoom) =>
+			room.updateStore((store) => {
+				store.put(
+					PageRecordType.create({ id: PageRecordType.createId(), name: '', index: ZERO_INDEX_KEY })
+				)
+			})
+		const store = getStore()
+		store.ensureStoreIsUsable()
+		let called = 0
+
+		const room = new TLSocketRoom({ onDataChange: () => ++called })
+		expect(called).toEqual(0)
+
+		await addPage(room)
+		expect(called).toEqual(1)
+
+		room.loadSnapshot(room.getCurrentSnapshot())
+		expect(called).toEqual(1)
+
+		await addPage(room)
+		expect(called).toEqual(2)
 	})
 })
