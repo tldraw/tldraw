@@ -14,13 +14,13 @@ import {
 	TLTextShape,
 	toRichText,
 } from 'tldraw'
-import { simpleFillToShapeFill, stringToSimpleColor } from '../../worker/simple/color'
 import {
 	ISimpleCreateEvent,
 	ISimpleEvent,
 	ISimplePlaceEvent,
 	ISimpleUpdateEvent,
-} from '../../worker/simple/schema'
+} from '../../worker/prompt/schema'
+import { simpleFillToShapeFill, stringToSimpleColor } from '../../worker/simple/color'
 import { createOrUpdateHistoryItem } from '../atoms/chatHistoryItems'
 import { $requestsSchedule } from '../atoms/requestsSchedule'
 import { AreaContextItem } from '../types/ContextItem'

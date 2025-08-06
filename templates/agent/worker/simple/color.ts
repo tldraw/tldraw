@@ -1,5 +1,5 @@
 import { TLDefaultFillStyle } from 'tldraw'
-import { ISimpleColor, ISimpleFill, SimpleColor } from './schema'
+import { ISimpleColor, ISimpleFill, SimpleColor } from '../prompt/schema'
 
 const SIMPLE_TO_SHAPE_FILLS: Record<ISimpleFill, TLDefaultFillStyle> = {
 	none: 'none',

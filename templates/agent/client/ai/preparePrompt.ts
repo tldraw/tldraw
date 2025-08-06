@@ -1,5 +1,5 @@
 import { Box, BoxModel, Editor, FileHelpers, structuredClone, TLShape } from 'tldraw'
-import { ISimpleEvent } from '../../worker/simple/schema'
+import { ISimpleEvent } from '../../worker/prompt/schema'
 import { Streaming } from '../types/Streaming'
 import { TLAgentContent, TLAgentPrompt, TLAgentPromptOptions } from '../types/TLAgentPrompt'
 

@@ -1,5 +1,5 @@
 import { TLShapeId } from '@tldraw/tlschema'
-import { ISimpleEvent } from '../../worker/simple/schema'
+import { ISimpleEvent } from '../../worker/prompt/schema'
 import { Streaming } from '../types/Streaming'
 import { TldrawAgentTransform } from './TldrawAgentTransform'
 

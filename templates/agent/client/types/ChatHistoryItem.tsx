@@ -1,5 +1,5 @@
 import { RecordsDiff, TLRecord } from 'tldraw'
-import { ISimpleEvent } from '../../worker/simple/schema'
+import { ISimpleEvent } from '../../worker/prompt/schema'
 import { BrainIcon } from '../icons/BrainIcon'
 import { CursorIcon } from '../icons/CursorIcon'
 import { EyeIcon } from '../icons/EyeIcon'

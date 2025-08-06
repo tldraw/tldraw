@@ -1,7 +1,7 @@
 import { TLShape } from 'tldraw'
 import { TLAgentContent } from '../../client/types/TLAgentPrompt'
+import { ISimplePeripheralShape } from '../prompt/schema'
 import { getSimpleContentFromCanvasContent } from './getSimpleContentFromCanvasContent'
-import { ISimplePeripheralShape } from './schema'
 
 export function getSimplePeripheralContentFromCanvasContent(
 	wholePageShapes: TLShape[],

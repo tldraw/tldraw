@@ -1,5 +1,5 @@
 import { Editor } from 'tldraw'
-import { ISimpleEvent } from '../../worker/simple/schema'
+import { ISimpleEvent } from '../../worker/prompt/schema'
 import { Streaming } from '../types/Streaming'
 import { TLAgentPrompt } from '../types/TLAgentPrompt'
 
