@@ -1219,6 +1219,7 @@
 	border-top-right-radius: var(--radius-4);
 	border-bottom-right-radius: var(--radius-4);
 	margin-top: 8px;
+	margin-left: -2px;
 	margin-bottom: 0px;
 	width: fit-content;
 }
@@ -1279,6 +1280,7 @@
 }
 .tlui-grid.tlui-main-toolbar__group:not(:last-child) {
 	border-bottom: 1px solid var(--color-divider);
+	margin-bottom: 2px;
 }
 
 @media (hover: hover) {

@@ -3002,7 +3002,7 @@ export function TldrawUiButtonLabel({ children }: TLUiButtonLabelProps): JSX_2.E
 export const TldrawUiButtonPicker: <T extends string>(props: TLUiButtonPickerProps<T>) => ReactElement;
 
 // @public
-export function TldrawUiColumn({ asChild, className, tooltipSide, ...props }: TLUiLayoutProps): JSX_2.Element;
+export const TldrawUiColumn: ForwardRefExoticComponent<TLUiLayoutProps & RefAttributes<HTMLDivElement>>;
 
 // @public (undocumented)
 export function TldrawUiComponentsProvider({ overrides, children, }: TLUiComponentsProviderProps): JSX_2.Element;
@@ -3137,7 +3137,7 @@ export const TldrawUiToolbarToggleGroup: ({ children, className, type, ...props 
 export const TldrawUiToolbarToggleItem: ({ children, className, type, value, tooltip, ...props }: TLUiToolbarToggleItemProps) => JSX_2.Element;
 
 // @public (undocumented)
-export function TldrawUiTooltip({ children, content, side, sideOffset, disabled, }: TldrawUiTooltipProps): JSX_2.Element;
+export const TldrawUiTooltip: React_3.ForwardRefExoticComponent<TldrawUiTooltipProps & React_3.RefAttributes<HTMLButtonElement>>;
 
 // @public (undocumented)
 export interface TldrawUiTooltipProps {

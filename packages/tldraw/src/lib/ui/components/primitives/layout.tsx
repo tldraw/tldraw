@@ -73,14 +73,16 @@ export const TldrawUiRow = forwardRef<HTMLDivElement, TLUiLayoutProps>(
  *
  * @public @react
  */
-export function TldrawUiColumn({ asChild, className, tooltipSide, ...props }: TLUiLayoutProps) {
-	const Component = asChild ? Slot.Root : 'div'
-	return (
-		<TldrawUiOrientationProvider orientation="vertical" tooltipSide={tooltipSide}>
-			<Component className={classNames('tlui-column', className)} {...props} />
-		</TldrawUiOrientationProvider>
-	)
-}
+export const TldrawUiColumn = forwardRef<HTMLDivElement, TLUiLayoutProps>(
+	({ asChild, className, tooltipSide, ...props }, ref) => {
+		const Component = asChild ? Slot.Root : 'div'
+		return (
+			<TldrawUiOrientationProvider orientation="vertical" tooltipSide={tooltipSide}>
+				<Component ref={ref} className={classNames('tlui-column', className)} {...props} />
+			</TldrawUiOrientationProvider>
+		)
+	}
+)
 
 /**
  * A tight grid 4 elements wide, usually of UI controls like buttons, select dropdown, checkboxes,

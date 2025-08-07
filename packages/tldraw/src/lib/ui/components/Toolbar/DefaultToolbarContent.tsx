@@ -1,21 +1,18 @@
 import { GeoShapeGeoStyle, useEditor, useValue } from '@tldraw/editor'
 import { TLUiToolItem, useTools } from '../../hooks/useTools'
-import { TldrawUiMenuGroup } from '../primitives/menus/TldrawUiMenuGroup'
 import { TldrawUiMenuToolItem } from '../primitives/menus/TldrawUiMenuToolItem'
 
 /** @public @react */
 export function DefaultToolbarContent() {
 	return (
 		<>
-			<TldrawUiMenuGroup id="beep-boop">
-				<SelectToolbarItem />
-				<HandToolbarItem />
-				<DrawToolbarItem />
-				<EraserToolbarItem />
-				<ArrowToolbarItem />
-				<TextToolbarItem />
-				<NoteToolbarItem />
-			</TldrawUiMenuGroup>
+			<SelectToolbarItem />
+			<HandToolbarItem />
+			<DrawToolbarItem />
+			<EraserToolbarItem />
+			<ArrowToolbarItem />
+			<TextToolbarItem />
+			<NoteToolbarItem />
 			<AssetToolbarItem />
 
 			<RectangleToolbarItem />

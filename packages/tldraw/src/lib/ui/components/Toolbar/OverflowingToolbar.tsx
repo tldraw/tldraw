@@ -79,12 +79,19 @@ export function OverflowingToolbar({
 	const onDomUpdate = useEvent(() => {
 		if (!mainToolsRef.current) return
 
+		// whenever we get an update, we need to re-calculate the number of items to show and update
+		// the component accordingly.
 		const sizeProp = orientation === 'horizontal' ? 'offsetWidth' : 'offsetHeight'
 
+		// toolbars can contain both single items and groups. we need to keep track of both.
 		type Items = (
 			| { type: 'item'; element: HTMLElement }
 			| { type: 'group'; items: Items; element: HTMLElement }
 		)[]
+
+		// walk through the dom and collect items so we can calculate what to show/hide
+		const mainItems = collectItems(mainToolsRef.current.children)
+		const overflowItems = overflowTools ? collectItems(overflowTools.children) : null
 		function collectItems(collection: HTMLCollection) {
 			const items: Items = []
 			for (const child of collection) {
@@ -102,22 +109,29 @@ export function OverflowingToolbar({
 			return items
 		}
 
-		const mainItems = collectItems(mainToolsRef.current.children)
-		const overflowItems = overflowTools ? collectItems(overflowTools.children) : null
-
+		// the number of items to show is based on the space available to the toolbar.
 		const sizingParent = findParentWithClassName(mainToolsRef.current, sizingParentClassName)
 		const size = sizingParent[sizeProp]
 		const itemsToShow = Math.floor(
 			modulate(size, [minSizePx, maxSizePx], [minItems, maxItems], true)
 		)
 
+		// now we know how many items to show, we need to walk through the items we found and show /
+		// hide them accordingly. We need to keep track of:
+		// the number of item's we've shown in the main content so far
 		let mainItemCount = 0
+		// the item that is currently active in the overflow content (if any)
 		let newActiveOverflowItem: string | null = null
+		// whether the last active overflow item is actually still in the overflow content
+		let shouldInvalidateLastActiveOverflowItem = false
+		// the buttons visible in the main content
 		const numberedButtons: HTMLButtonElement[] = []
 		function visitItems(
 			mainItems: Items,
 			overflowItems: Items | null
 		): {
+			// for each group of items we visit, we need to know whether we showed anything in
+			// either section
 			didShowAnyInMain: boolean
 			didShowAnyInOverflow: boolean
 		} {
@@ -129,12 +143,16 @@ export function OverflowingToolbar({
 			for (let i = 0; i < mainItems.length; i++) {
 				const mainItem = mainItems[i]
 				const overflowItem = overflowItems?.[i]
+
 				if (mainItem.type === 'item') {
+					const isLastActiveOverflowItem =
+						mainItem.element.getAttribute('data-value') === lastActiveOverflowItem
+
+					// for single items, we show them in main if we have space, or if they're the
+					// last-used item from the overflow.
 					let shouldShowInMain
 					if (lastActiveOverflowItem) {
-						shouldShowInMain =
-							mainItemCount < itemsToShow ||
-							mainItem.element.getAttribute('data-value') === lastActiveOverflowItem
+						shouldShowInMain = mainItemCount < itemsToShow || isLastActiveOverflowItem
 					} else {
 						shouldShowInMain = mainItemCount <= itemsToShow
 					}
@@ -154,8 +172,13 @@ export function OverflowingToolbar({
 					if (shouldShowInMain && mainItem.element.tagName === 'BUTTON') {
 						numberedButtons.push(mainItem.element as HTMLButtonElement)
 					}
+					if (!shouldShowInOverflow && isLastActiveOverflowItem) {
+						shouldInvalidateLastActiveOverflowItem = true
+					}
 					mainItemCount++
 				} else {
+					// for groups, we show them in main if we have space, or if they're the
+					// last-used item from the overflow.
 					let result, overflowGroup
 					if (overflowItem) {
 						assert(overflowItem.type === 'group')
@@ -181,6 +204,8 @@ export function OverflowingToolbar({
 		setShouldShowOverflow(didShowAnyInOverflow)
 		if (newActiveOverflowItem) {
 			setLastActiveOverflowItem(newActiveOverflowItem)
+		} else if (shouldInvalidateLastActiveOverflowItem) {
+			setLastActiveOverflowItem(null)
 		}
 
 		rButtons.current = numberedButtons
