@@ -106,43 +106,41 @@ export function TlaSidebarRecentFilesNew() {
 			{isOverflowing &&
 				(isShowingAll ? (
 					<button className={styles.showAllButton} onClick={() => setIsShowingAll(false)}>
-						<F defaultMessage="See less" />
+						<F defaultMessage="Show less" />
 					</button>
 				) : (
 					<button className={styles.showAllButton} onClick={() => setIsShowingAll(true)}>
-						<F defaultMessage="See more" />
+						<F defaultMessage="Show more" />
 					</button>
 				))}
-			{groupMemberships.length > 0 && (
-				<TlaSidebarFileSection
-					className={styles.sidebarFileSectionGroups}
-					title={<F defaultMessage="Groups" />}
-					iconButton={
-						isCreatingGroup
-							? undefined
-							: {
-									icon: 'plus',
-									onClick: handleCreateGroup,
-									title: 'Create new group',
-								}
-					}
-				>
-					{isCreatingGroup && (
-						<TlaSidebarInlineInput
-							data-testid="tla-sidebar-create-group-input"
-							defaultValue="New group"
-							placeholder="Enter group name..."
-							onComplete={handleGroupCreateComplete}
-							onCancel={handleGroupCreateCancel}
-							className={styles.sidebarGroupCreateInput}
-							wrapperClassName={styles.sidebarGroupCreateInputWrapper}
-						/>
-					)}
-					{groupMemberships.map((group) => (
-						<TlaSidebarGroupItem key={group.group.id} groupId={group.group.id} />
-					))}
-				</TlaSidebarFileSection>
-			)}
+			<TlaSidebarFileSection
+				className={styles.sidebarFileSectionGroups}
+				title={<F defaultMessage="Groups" />}
+				iconButton={
+					isCreatingGroup
+						? undefined
+						: {
+								icon: 'plus',
+								onClick: handleCreateGroup,
+								title: 'Create new group',
+							}
+				}
+			>
+				{isCreatingGroup && (
+					<TlaSidebarInlineInput
+						data-testid="tla-sidebar-create-group-input"
+						defaultValue="New group"
+						placeholder="Enter group name..."
+						onComplete={handleGroupCreateComplete}
+						onCancel={handleGroupCreateCancel}
+						className={styles.sidebarGroupCreateInput}
+						wrapperClassName={styles.sidebarGroupCreateInputWrapper}
+					/>
+				)}
+				{groupMemberships.map((group) => (
+					<TlaSidebarGroupItem key={group.group.id} groupId={group.group.id} />
+				))}
+			</TlaSidebarFileSection>
 		</Fragment>
 	)
 }

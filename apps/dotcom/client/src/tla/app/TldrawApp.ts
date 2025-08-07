@@ -363,6 +363,9 @@ export class TldrawApp {
 	getUserRecentFiles() {
 		const myFiles = objectMapFromEntries(this.getUserOwnFiles().map((f) => [f.id, f]))
 		const myStates = objectMapFromEntries(this.getUserFileStates().map((f) => [f.fileId, f]))
+		const myGroupMemberships = objectMapFromEntries(
+			this.getGroupMemberships().map((g) => [g.groupId, g])
+		)
 
 		const myFileIds = new Set<string>([...objectMapKeys(myFiles), ...objectMapKeys(myStates)])
 
@@ -376,6 +379,12 @@ export class TldrawApp {
 			const file = myFiles[fileId]
 			let state: (typeof myStates)[string] | undefined = myStates[fileId]
 			if (!file) continue
+			if (file.owningGroupId && myGroupMemberships[file.owningGroupId]) {
+				// if the file is in a group, we want to show it in the recent files
+				// but we don't want to show it in the recent files if the user is not a member of the group
+				continue
+			}
+
 			if (!state && !file.isDeleted && file.ownerId === this.userId) {
 				// create a file state for this file
 				// this allows us to 'undelete' soft-deleted files by manually toggling 'isDeleted' in the backend
@@ -421,6 +430,16 @@ export class TldrawApp {
 		})
 	}
 
+	async createGroupFile(groupId: string) {
+		const fileId = uniqueId()
+		this.z.mutate.file.createGroupFile({
+			fileId,
+			groupId,
+			name: this.getFallbackFileName(Date.now()),
+		})
+		return Result.ok({ fileId })
+	}
+
 	async createFile(
 		fileOrId?: string | Partial<TlaFile>
 	): Promise<Result<{ file: TlaFile }, 'max number of files reached'>> {
@@ -428,6 +447,10 @@ export class TldrawApp {
 			this.showMaxFilesToast()
 			return Result.err('max number of files reached')
 		}
+		const isGroupFile =
+			typeof fileOrId === 'object' && 'owningGroupId' in fileOrId && fileOrId.owningGroupId !== null
+
+		assert(!isGroupFile, 'isGroupFile should be false')
 
 		const file: TlaFile = {
 			id: typeof fileOrId === 'string' ? fileOrId : uniqueId(),

@@ -705,7 +705,7 @@
 .showAllButton {
 	background: none;
 	border: none;
-	padding: 0px 8px;
+	padding: 0px 8px 8px;
 	margin-top: 12px;
 	color: var(--tla-color-text-3);
 	font-size: 12px;
@@ -732,6 +732,10 @@
 	color: var(--tla-color-text-3);
 }
 
+.sidebarFileSectionGroups .sidebarFileSectionTitle {
+	margin-bottom: 4px;
+}
+
 .sidebarFileSectionTitleText {
 	flex: 1 1 auto;
 	white-space: nowrap;
@@ -756,7 +760,7 @@
 	right: -4px;
 	bottom: -2px;
 	border-radius: 4px;
-	background-color: hsl(204, 16%, 4%, 2%);
+	background-color: hsl(204, 16%, 4%, 2.5%);
 	z-index: 0;
 	pointer-events: none;
 	visibility: visible;
@@ -806,6 +810,59 @@
 	display: flex;
 	flex-direction: column;
 	margin-bottom: 24px;
+}
+
+.sidebarGroupItemButtons {
+	display: flex;
+	flex-direction: row;
+	align-items: center;
+	gap: 4px;
+	margin-left: auto;
+	opacity: 0;
+	transition: opacity 0.15s ease-in-out;
+}
+
+@media (hover: hover) {
+	.sidebarGroupItem:hover .sidebarGroupItemButtons {
+		opacity: 1;
+	}
+}
+
+@media (max-width: 767px) {
+	.sidebarGroupItemButtons {
+		opacity: 1;
+	}
+}
+
+.sidebarGroupItemButton {
+	background: none;
+	border: none;
+	display: flex;
+	align-items: center;
+	justify-content: center;
+	width: 20px;
+	height: 20px;
+	border-radius: 4px;
+	color: var(--tla-color-text-3);
+	cursor: pointer;
+	position: relative;
+	z-index: 1;
+}
+
+.sidebarGroupItemButton::before {
+	position: absolute;
+	inset: -8px -8px -8px -2px;
+	content: '';
+	pointer-events: auto;
+}
+
+.sidebarGroupItemButton:hover {
+	color: var(--tla-color-text-1);
+}
+
+.sidebarGroupItemButton:focus-visible {
+	outline: 2px solid var(--tla-color-focus);
+	outline-offset: 2px;
 }
 
 .sidebarGroupCreateInput {

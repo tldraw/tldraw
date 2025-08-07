@@ -325,12 +325,6 @@
       "value": "Privacy policy"
     }
   ],
-  "58de647698": [
-    {
-      "type": 0,
-      "value": "See less"
-    }
-  ],
   "5a95a425f7": [
     {
       "type": 0,
@@ -611,12 +605,6 @@
     {
       "type": 0,
       "value": "Rename file"
-    }
-  ],
-  "891ad007e2": [
-    {
-      "type": 0,
-      "value": "See more"
     }
   ],
   "8b1946f965": [
@@ -927,6 +915,12 @@
     {
       "type": 0,
       "value": "Invite"
+    }
+  ],
+  "c74ea6dbff": [
+    {
+      "type": 0,
+      "value": "Show less"
     }
   ],
   "c87aacf567": [

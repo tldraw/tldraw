@@ -155,9 +155,6 @@
   "56c34c6410": {
     "translation": "Privacy policy"
   },
-  "58de647698": {
-    "translation": "See less"
-  },
   "5a95a425f7": {
     "translation": "Share"
   },
@@ -280,9 +277,6 @@
   },
   "86c66437fd": {
     "translation": "Rename file"
-  },
-  "891ad007e2": {
-    "translation": "See more"
   },
   "8b1946f965": {
     "translation": "To continue editing please copy the room to your files."
@@ -416,6 +410,9 @@
   },
   "c6a00f137b": {
     "translation": "Invite"
+  },
+  "c74ea6dbff": {
+    "translation": "Show less"
   },
   "c87aacf567": {
     "translation": "Sign out"
