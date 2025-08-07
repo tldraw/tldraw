@@ -1,12 +1,12 @@
-import { useCallback, useRef, useState } from 'react'
+import { memo, useCallback, useRef, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { tltime, useValue } from 'tldraw'
 import { routes } from '../../../../routeDefs'
 import { useApp } from '../../../hooks/useAppState'
-import { useFileSidebarFocusContext } from '../../../providers/FileInputFocusProvider'
 import { useTldrawAppUiEvents } from '../../../utils/app-ui-events'
 import { getIsCoarsePointer } from '../../../utils/getIsCoarsePointer'
 import { F } from '../../../utils/i18n'
+import { Collapse } from '../../Collapse/Collapse'
 import { TlaIcon } from '../../TlaIcon/TlaIcon'
 import styles from '../sidebar.module.css'
 import { TlaSidebarFileLink } from './TlaSidebarFileLink'
@@ -31,11 +31,67 @@ const TriangleIcon = ({ angle = 0 }: { angle?: number }) => {
 	)
 }
 
+const GroupFileList = memo(function GroupFileList({ groupId }: { groupId: string }) {
+	const app = useApp()
+	const group = useValue('group', () => app.getGroupMembership(groupId), [app, groupId])
+	const [isShowingAll, setIsShowingAll] = useState(false)
+
+	if (!group) return null
+
+	let files = group.groupFiles.map((gf) => gf.file)
+	files = files.slice().sort((a, b) => b.updatedAt - a.updatedAt)
+
+	const MAX_FILES_TO_SHOW = 4
+	const isOverflowing = files.length > MAX_FILES_TO_SHOW
+	const filesToShow = files.slice(0, MAX_FILES_TO_SHOW)
+	const hiddenFiles = files.slice(MAX_FILES_TO_SHOW)
+
+	return (
+		<>
+			{filesToShow.map((file) => (
+				<TlaSidebarFileLink
+					key={`group-file-${file.id}`}
+					className={styles.sidebarGroupItemFile}
+					item={{
+						fileId: file.id,
+						date: file.updatedAt,
+						isPinned: false,
+					}}
+					testId={`tla-group-file-${file.id}`}
+				/>
+			))}
+			<Collapse open={isShowingAll}>
+				{hiddenFiles.map((file) => (
+					<TlaSidebarFileLink
+						key={`group-file-${file.id}`}
+						className={styles.sidebarGroupItemFile}
+						item={{
+							fileId: file.id,
+							date: file.updatedAt,
+							isPinned: false,
+						}}
+						testId={`tla-group-file-${file.id}`}
+					/>
+				))}
+			</Collapse>
+			{isOverflowing &&
+				(isShowingAll ? (
+					<button className={styles.showAllButton} onClick={() => setIsShowingAll(false)}>
+						<F defaultMessage="Show less" />
+					</button>
+				) : (
+					<button className={styles.showAllButton} onClick={() => setIsShowingAll(true)}>
+						<F defaultMessage="Show more" />
+					</button>
+				))}
+		</>
+	)
+})
+
 export function TlaSidebarGroupItem({ groupId }: { groupId: string }) {
 	const app = useApp()
 	const navigate = useNavigate()
 	const trackEvent = useTldrawAppUiEvents()
-	const focusCtx = useFileSidebarFocusContext()
 	const rCanCreate = useRef(true)
 
 	const isExpanded = useValue(
@@ -51,11 +107,10 @@ export function TlaSidebarGroupItem({ groupId }: { groupId: string }) {
 			} else {
 				expandedGroups.delete(groupId)
 			}
-			app.sidebarState.set({ expandedGroups })
+			app.sidebarState.update((state) => ({ ...state, expandedGroups }))
 		},
 		[app, groupId]
 	)
-	const [isShowingAll, setIsShowingAll] = useState(false)
 
 	const group = useValue('group', () => app.getGroupMembership(groupId), [app, groupId])
 
@@ -67,22 +122,17 @@ export function TlaSidebarGroupItem({ groupId }: { groupId: string }) {
 		if (res.ok) {
 			const isMobile = getIsCoarsePointer()
 			if (!isMobile) {
-				focusCtx.shouldRenameNextNewFile = true
+				app.sidebarState.update((state) => ({ ...state, renamingFileId: res.value.fileId }))
 			}
 			navigate(routes.tlaFile(res.value.fileId))
+			setIsExpanded(true)
 			trackEvent('create-file', { source: 'sidebar' })
 			rCanCreate.current = false
 			tltime.setTimeout('can create again', () => (rCanCreate.current = true), 1000)
 		}
-	}, [app, groupId, navigate, trackEvent, focusCtx])
+	}, [app, groupId, navigate, trackEvent, setIsExpanded])
 
 	if (!group) return null
-
-	let files = group.groupFiles.map((gf) => gf.file)
-	files = files.slice().sort((a, b) => b.updatedAt - a.updatedAt)
-	const MAX_FILES_TO_SHOW = 4
-	const isOverflowing = files.length > MAX_FILES_TO_SHOW
-	const filesToShow = isShowingAll || !isOverflowing ? files : files.slice(0, MAX_FILES_TO_SHOW)
 
 	return (
 		<div className={styles.sidebarGroupItem} data-expanded={isExpanded}>
@@ -119,32 +169,9 @@ export function TlaSidebarGroupItem({ groupId }: { groupId: string }) {
 				</div>
 			</button>
 
-			{isExpanded && (
-				<div className={styles.sidebarGroupItemContent}>
-					{filesToShow.map((file, i) => (
-						<TlaSidebarFileLink
-							key={`group-file-${file.id}`}
-							className={styles.sidebarGroupItemFile}
-							item={{
-								fileId: file.id,
-								date: file.updatedAt,
-								isPinned: false,
-							}}
-							testId={`tla-group-file-${i}`}
-						/>
-					))}
-					{isOverflowing &&
-						(isShowingAll ? (
-							<button className={styles.showAllButton} onClick={() => setIsShowingAll(false)}>
-								<F defaultMessage="Show less" />
-							</button>
-						) : (
-							<button className={styles.showAllButton} onClick={() => setIsShowingAll(true)}>
-								<F defaultMessage="Show more" />
-							</button>
-						))}
-				</div>
-			)}
+			<Collapse open={isExpanded}>
+				<GroupFileList groupId={groupId} />
+			</Collapse>
 		</div>
 	)
 }

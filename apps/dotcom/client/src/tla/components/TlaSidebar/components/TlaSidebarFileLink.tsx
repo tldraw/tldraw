@@ -15,7 +15,6 @@ import { useApp } from '../../../hooks/useAppState'
 import { useCanUpdateFile } from '../../../hooks/useCanUpdateFile'
 import { useHasFlag } from '../../../hooks/useHasFlag'
 import { useIsFileOwner } from '../../../hooks/useIsFileOwner'
-import { useFileSidebarFocusContext } from '../../../providers/FileInputFocusProvider'
 import { useTldrawAppUiEvents } from '../../../utils/app-ui-events'
 import { getIsCoarsePointer } from '../../../utils/getIsCoarsePointer'
 import { F, defineMessages, useIntl } from '../../../utils/i18n'
@@ -141,20 +140,25 @@ export function TlaSidebarFileLinkInner({
 	const trackEvent = useTldrawAppUiEvents()
 	const linkRef = useRef<HTMLAnchorElement | null>(null)
 	const app = useApp()
-	const focusCtx = useFileSidebarFocusContext()
 	const isSidebarOpenMobile = useIsSidebarOpenMobile()
 
 	const canUpdateFile = useCanUpdateFile(fileId)
 	const isOwnFile = useIsFileOwner(fileId)
 
+	const shouldRename = useValue(
+		'shouldRename',
+		() => app.sidebarState.get().renamingFileId === fileId,
+		[fileId, app]
+	)
+
 	useEffect(() => {
 		// on mount, trigger rename action if this is a new file.
-		if (isActive && focusCtx.shouldRenameNextNewFile) {
-			focusCtx.shouldRenameNextNewFile = false
+		if (shouldRename) {
 			handleRenameAction()
+			app.sidebarState.update((state) => ({ ...state, renamingFileId: null }))
 		}
 		// eslint-disable-next-line react-hooks/exhaustive-deps
-	}, [])
+	}, [shouldRename])
 
 	const handleKeyDown = (e: KeyboardEvent) => {
 		if (!isActive) return

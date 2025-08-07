@@ -27,7 +27,6 @@ import { useCurrentFileId } from '../../hooks/useCurrentFileId'
 import { useHasFlag } from '../../hooks/useHasFlag'
 import { useIsFileOwner } from '../../hooks/useIsFileOwner'
 import { useIsFilePinned } from '../../hooks/useIsFilePinned'
-import { useFileSidebarFocusContext } from '../../providers/FileInputFocusProvider'
 import { TLAppUiEventSource, useTldrawAppUiEvents } from '../../utils/app-ui-events'
 import { copyTextToClipboard } from '../../utils/copy'
 import { defineMessages, useMsg } from '../../utils/i18n'
@@ -125,8 +124,6 @@ export function FileItems({
 		app.pinOrUnpinFile(fileId)
 	}, [app, fileId])
 
-	const focusCtx = useFileSidebarFocusContext()
-
 	const handleDuplicateClick = useCallback(async () => {
 		const newFileId = uniqueId()
 		const file = app.getFile(fileId)
@@ -144,10 +141,10 @@ export function FileItems({
 			lastSessionState: prevState?.lastSessionState,
 		})
 		if (res.ok) {
-			focusCtx.shouldRenameNextNewFile = true
+			app.sidebarState.update((state) => ({ ...state, renamingFileId: newFileId }))
 			navigate(routes.tlaFile(newFileId))
 		}
-	}, [app, fileId, focusCtx, navigate, trackEvent, source])
+	}, [app, fileId, navigate, trackEvent, source])
 
 	const handleDeleteClick = useCallback(() => {
 		addDialog({

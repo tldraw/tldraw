@@ -3,6 +3,7 @@ import { uniqueId, useValue } from 'tldraw'
 import { useApp } from '../../../hooks/useAppState'
 import { getIsCoarsePointer } from '../../../utils/getIsCoarsePointer'
 import { F } from '../../../utils/i18n'
+import { Collapse } from '../../Collapse/Collapse'
 import styles from '../sidebar.module.css'
 import { RecentFile } from './sidebar-shared'
 import { TlaSidebarFileLink } from './TlaSidebarFileLink'
@@ -71,10 +72,8 @@ export function TlaSidebarRecentFilesNew() {
 
 	const MAX_FILES_TO_SHOW = groupMemberships.length > 0 ? 6 : +Infinity
 	const isOverflowing = results.otherFiles.length > MAX_FILES_TO_SHOW
-	const filesToShow =
-		isShowingAll || !isOverflowing
-			? results.otherFiles
-			: results.otherFiles.slice(0, MAX_FILES_TO_SHOW)
+	const filesToShow = results.otherFiles.slice(0, MAX_FILES_TO_SHOW)
+	const hiddenFiles = results.otherFiles.slice(MAX_FILES_TO_SHOW)
 
 	return (
 		<Fragment>
@@ -103,6 +102,15 @@ export function TlaSidebarRecentFilesNew() {
 					))}
 				</TlaSidebarFileSection>
 			) : null}
+			<Collapse open={isShowingAll}>
+				{hiddenFiles.map((item, i) => (
+					<TlaSidebarFileLink
+						key={'file_link_today_' + item.fileId}
+						item={item}
+						testId={`tla-file-link-today-${i}`}
+					/>
+				))}
+			</Collapse>
 			{isOverflowing &&
 				(isShowingAll ? (
 					<button className={styles.showAllButton} onClick={() => setIsShowingAll(false)}>

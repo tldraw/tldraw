@@ -951,5 +951,6 @@ export class TldrawApp {
 
 	sidebarState = atom('sidebar state', {
 		expandedGroups: new Set<string>(),
+		renamingFileId: null as null | string,
 	})
 }
