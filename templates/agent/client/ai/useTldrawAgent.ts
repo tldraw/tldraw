@@ -5,6 +5,7 @@ import { RoundedCoordinates } from '../transforms/RoundedCoordinates'
 import { SimpleText } from '../transforms/SimpleText'
 import { UniqueIds } from '../transforms/UniqueIds'
 import { TLAgentPromptOptions } from '../types/TLAgentPrompt'
+import { applyAgentEvent } from './applyAgentEvent'
 import { promptAgent } from './promptAgent'
 
 export interface TldrawAgent {
@@ -26,21 +27,35 @@ export interface TldrawAgent {
 export function useTldrawAgent({ editor }: { editor: Editor }): TldrawAgent {
 	const prompt = useCallback(
 		(options: Partial<TLAgentPromptOptions>) => {
+			const {
+				transforms = [RoundedCoordinates, SimpleText, UniqueIds],
+				apply = applyAgentEvent,
+				message = '',
+				contextBounds = editor.getViewportPageBounds(),
+				promptBounds = editor.getViewportPageBounds(),
+				modelName = DEFAULT_MODEL_NAME,
+				historyItems = [],
+				contextItems = [],
+				currentPageShapes = editor.getCurrentPageShapesSorted(),
+				currentUserViewportBounds = editor.getViewportPageBounds(),
+				userSelectedShapes = editor.getSelectedShapes(),
+				type = 'user',
+			} = options
+
 			return promptAgent({
 				editor: options.editor ?? editor,
-				transforms: options.transforms ?? [RoundedCoordinates, SimpleText, UniqueIds],
-				message: options.message ?? '',
-				contextBounds: options.contextBounds ?? editor.getViewportPageBounds(),
-				promptBounds: options.promptBounds ?? editor.getViewportPageBounds(),
-				meta: options.meta ?? {
-					modelName: DEFAULT_MODEL_NAME,
-					historyItems: [],
-					contextItems: [],
-					currentPageShapes: editor.getCurrentPageShapesSorted(),
-					currentUserViewportBounds: editor.getViewportPageBounds(),
-					userSelectedShapes: editor.getSelectedShapes(),
-					type: 'user',
-				},
+				transforms,
+				apply,
+				message,
+				contextBounds,
+				promptBounds,
+				modelName,
+				historyItems,
+				contextItems,
+				currentPageShapes,
+				currentUserViewportBounds,
+				userSelectedShapes,
+				type,
 			})
 		},
 		[editor]

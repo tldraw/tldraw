@@ -21,11 +21,10 @@ export async function preparePrompt(promptOptions: TLAgentPromptOptions) {
 		bounds: promptOptions.contextBounds,
 	})
 
+	const { editor: _editor, transforms: _transforms, apply: _apply, ...rest } = promptOptions
+
 	let prompt: TLAgentPrompt = {
-		message: promptOptions.message,
-		contextBounds: promptOptions.contextBounds,
-		promptBounds: promptOptions.promptBounds,
-		meta: promptOptions.meta,
+		...rest,
 		canvasContent,
 		image,
 	}

@@ -27,9 +27,9 @@ export function buildMessages(prompt: TLAgentPrompt): CoreMessage[] {
 }
 
 function buildContextAreasMessages(prompt: TLAgentPrompt): CoreMessage[] {
-	const review = prompt.meta.type === 'review'
+	const review = prompt.type === 'review'
 
-	const areaContextItems = prompt.meta.contextItems.filter((item) => item.type === 'area')
+	const areaContextItems = prompt.contextItems.filter((item) => item.type === 'area')
 	const areas = areaContextItems.map((item) => item.bounds)
 	if (areas.length === 0) {
 		return []
@@ -59,7 +59,7 @@ function buildContextAreasMessages(prompt: TLAgentPrompt): CoreMessage[] {
 }
 
 function buildContextPointsMessages(prompt: TLAgentPrompt): CoreMessage[] {
-	const pointContextItems = prompt.meta.contextItems.filter((item) => item.type === 'point')
+	const pointContextItems = prompt.contextItems.filter((item) => item.type === 'point')
 	const points = pointContextItems.map((item) => item.point)
 	if (points.length === 0) {
 		return []
@@ -82,10 +82,10 @@ function buildContextPointsMessages(prompt: TLAgentPrompt): CoreMessage[] {
 }
 
 function buildContextShapesMessages(prompt: TLAgentPrompt): CoreMessage[] {
-	const shapeContextItems = prompt.meta.contextItems.filter((item) => item.type === 'shape')
-	const shapesContextItems = prompt.meta.contextItems.filter((item) => item.type === 'shapes')
+	const shapeContextItems = prompt.contextItems.filter((item) => item.type === 'shape')
+	const shapesContextItems = prompt.contextItems.filter((item) => item.type === 'shapes')
 
-	const userSelectedShapes = prompt.meta.userSelectedShapes
+	const userSelectedShapes = prompt.userSelectedShapes
 
 	const messages: CoreMessage[] = []
 
@@ -99,7 +99,7 @@ function buildContextShapesMessages(prompt: TLAgentPrompt): CoreMessage[] {
 		}).shapes
 
 		if (individualShapes.length > 0) {
-			const userSelectedShapeIds = new Set(prompt.meta.userSelectedShapes.map((shape) => shape.id))
+			const userSelectedShapeIds = new Set(prompt.userSelectedShapes.map((shape) => shape.id))
 
 			const content: UserContent = [
 				{
@@ -136,7 +136,7 @@ function buildContextShapesMessages(prompt: TLAgentPrompt): CoreMessage[] {
 
 		if (shapes.length > 0) {
 			// Check if user selection matches exactly with this group of shapes
-			const userSelectedShapeIds = new Set(prompt.meta.userSelectedShapes.map((shape) => shape.id))
+			const userSelectedShapeIds = new Set(prompt.userSelectedShapes.map((shape) => shape.id))
 			const groupShapeIds = new Set(shapes.map((shape) => shape.shapeId))
 
 			const isExactGroupMatch =
@@ -188,7 +188,7 @@ function buildContextShapesMessages(prompt: TLAgentPrompt): CoreMessage[] {
 }
 
 function buildHistoryMessages(prompt: TLAgentPrompt): CoreMessage[] {
-	const historyItems = prompt.meta.historyItems
+	const historyItems = prompt.historyItems
 	const messages: CoreMessage[] = []
 
 	// If the last message is from the user, skip it
@@ -326,7 +326,7 @@ function buildUserMessage(prompt: TLAgentPrompt): CoreMessage {
 		text: `Your current viewport is:\n${JSON.stringify(prompt.contextBounds)}`,
 	})
 
-	const currentPageShapes = prompt.meta.currentPageShapes
+	const currentPageShapes = prompt.currentPageShapes
 
 	// Add the content from the agent's current viewport
 	const simplifiedAgentViewportContent = getSimpleContentFromCanvasContent(prompt.canvasContent)
@@ -354,7 +354,7 @@ function buildUserMessage(prompt: TLAgentPrompt): CoreMessage {
 	}
 
 	// Add the user's viewport bounds if they're more than 5% different from the agent's viewport bounds (maybe a bad heuristic, not sure)
-	const currentUserViewportBounds = prompt.meta.currentUserViewportBounds
+	const currentUserViewportBounds = prompt.currentUserViewportBounds
 	const withinPercent = (a: number, b: number, percent: number) => {
 		const max = Math.max(Math.abs(a), Math.abs(b), 1)
 		return Math.abs(a - b) <= (percent / 100) * max
@@ -373,7 +373,7 @@ function buildUserMessage(prompt: TLAgentPrompt): CoreMessage {
 	}
 
 	// Add followup messages
-	if (prompt.meta.type === 'review') {
+	if (prompt.type === 'review') {
 		// Review mode
 		const messages = asMessage(prompt.message)
 		const intent = messages[0]
@@ -384,7 +384,7 @@ function buildUserMessage(prompt: TLAgentPrompt): CoreMessage {
 			type: 'text',
 			text: getReviewPrompt(intent.text),
 		})
-	} else if (prompt.meta.type === 'setMyView') {
+	} else if (prompt.type === 'setMyView') {
 		// Set my view mode
 		const messages = asMessage(prompt.message)
 		const intent = messages[0]

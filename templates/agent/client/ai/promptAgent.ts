@@ -1,6 +1,5 @@
 import { uniqueId } from 'tldraw'
 import { TLAgentPromptOptions } from '../types/TLAgentPrompt'
-import { applyAgentEvent } from './applyAgentEvent'
 import { preparePrompt } from './preparePrompt'
 import { streamAgent } from './streamAgent'
 
@@ -32,7 +31,7 @@ export function promptAgent(promptOptions: TLAgentPromptOptions) {
 					try {
 						editor.run(
 							() => {
-								applyAgentEvent({ editor, event, transformEvent })
+								promptOptions.apply({ editor, event, transformEvent })
 							},
 							{
 								ignoreShapeLock: false, // ? should this be true?

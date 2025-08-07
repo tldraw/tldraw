@@ -20,8 +20,13 @@ export class RoundedCoordinates extends TldrawAgentTransform {
 	}
 
 	override transformPrompt = (input: TLAgentPrompt) => {
-		const { canvasContent, meta } = input
-		const { currentPageShapes, currentUserViewportBounds, contextItems, userSelectedShapes } = meta
+		const {
+			canvasContent,
+			currentPageShapes,
+			currentUserViewportBounds,
+			contextItems,
+			userSelectedShapes,
+		} = input
 
 		// Save the original coordinates of all shapes
 		for (const shape of canvasContent.shapes) {

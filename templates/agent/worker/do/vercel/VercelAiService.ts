@@ -36,7 +36,7 @@ export class VercelAiService extends TldrawAgentService {
 
 	async *stream(prompt: TLAgentPrompt): AsyncGenerator<Streaming<IAgentEvent>> {
 		try {
-			const model = this.getModel(prompt.meta.modelName)
+			const model = this.getModel(prompt.modelName)
 			for await (const event of streamEventsVercel(model, prompt)) {
 				yield event
 			}

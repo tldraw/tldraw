@@ -7,8 +7,7 @@ import { TldrawAgentTransform } from './TldrawAgentTransform'
 export class SimpleText extends TldrawAgentTransform {
 	// TODO: Transform to-and-from markdown and rich text
 	override transformPrompt = (input: TLAgentPrompt) => {
-		const { canvasContent, meta } = input
-		const { currentPageShapes, contextItems, userSelectedShapes } = meta
+		const { canvasContent, currentPageShapes, contextItems, userSelectedShapes } = input
 
 		for (const shape of canvasContent.shapes) {
 			shape.meta.text = this.getSimpleTextFromShape(shape)

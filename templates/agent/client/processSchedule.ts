@@ -38,15 +38,13 @@ export async function processSchedule({
 			message: intent,
 			contextBounds: bounds,
 			promptBounds: bounds,
-			meta: {
-				modelName,
-				historyItems: $chatHistoryItems.get().filter((item) => item.type !== 'status-thinking'),
-				contextItems: request.contextItems,
-				currentPageShapes: editor.getCurrentPageShapesSorted().map((v) => structuredClone(v)),
-				currentUserViewportBounds: editor.getViewportPageBounds(),
-				userSelectedShapes: editor.getSelectedShapes().map((v) => structuredClone(v)),
-				type: request.type,
-			},
+			modelName,
+			historyItems: $chatHistoryItems.get().filter((item) => item.type !== 'status-thinking'),
+			contextItems: request.contextItems,
+			currentPageShapes: editor.getCurrentPageShapesSorted().map((v) => structuredClone(v)),
+			currentUserViewportBounds: editor.getViewportPageBounds(),
+			userSelectedShapes: editor.getSelectedShapes().map((v) => structuredClone(v)),
+			type: request.type,
 		})
 
 		$chatHistoryItems.update((prev) => [
