@@ -9356,6 +9356,7 @@ __metadata:
     "@eslint/compat": "npm:^1.2.5"
     "@eslint/eslintrc": "npm:^3.2.0"
     "@eslint/js": "npm:^9.19.0"
+    "@heroicons/react": "npm:^2.2.0"
     "@lingual/i18n-check": "npm:^0.5.5"
     "@microsoft/api-extractor": "npm:^7.49.1"
     "@next/eslint-plugin-next": "npm:^15.1.6"
@@ -28491,6 +28492,7 @@ __metadata:
   version: 0.0.0-use.local
   resolution: "tldraw@workspace:packages/tldraw"
   dependencies:
+    "@heroicons/react": "npm:^2.2.0"
     "@peculiar/webcrypto": "npm:^1.5.0"
     "@testing-library/jest-dom": "npm:^5.17.0"
     "@testing-library/react": "npm:^15.0.7"

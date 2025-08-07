@@ -1,4 +1,6 @@
+import { MoonIcon, SunIcon } from '@heroicons/react/24/solid'
 import { useEditor, useValue } from '@tldraw/editor'
+import { useActions } from '../../context/actions'
 import {
 	useCanRedo,
 	useCanUndo,
@@ -6,6 +8,7 @@ import {
 	useUnlockedSelectedShapesCount,
 } from '../../hooks/menu-hooks'
 import { useReadonly } from '../../hooks/useReadonly'
+import { TldrawUiButton } from '../primitives/Button/TldrawUiButton'
 import { TldrawUiMenuActionItem } from '../primitives/menus/TldrawUiMenuActionItem'
 
 /** @public @react */
@@ -26,6 +29,7 @@ export function DefaultQuickActionsContent() {
 		<>
 			<UndoRedoGroup />
 			<DeleteDuplicateGroup />
+			<ThemeToggleGroup />
 		</>
 	)
 }
@@ -50,5 +54,27 @@ function UndoRedoGroup() {
 			<TldrawUiMenuActionItem actionId="undo" disabled={!canUndo} />
 			<TldrawUiMenuActionItem actionId="redo" disabled={!canRedo} />
 		</>
+	)
+}
+
+function ThemeToggleGroup() {
+	const editor = useEditor()
+	const isDarkMode = useValue('isDarkMode', () => editor.user.getIsDarkMode(), [editor])
+	const actions = useActions()
+	const toggleDarkModeAction = actions['toggle-dark-mode']
+
+	return (
+		<TldrawUiButton
+			type="icon"
+			title={isDarkMode ? 'Switch to light mode' : 'Switch to dark mode'}
+			onClick={() => toggleDarkModeAction?.onSelect('quick-actions')}
+			data-testid="quick-actions.toggle-dark-mode"
+		>
+			{isDarkMode ? (
+				<MoonIcon style={{ width: '18px', height: '18px' }} />
+			) : (
+				<SunIcon style={{ width: '18px', height: '18px' }} />
+			)}
+		</TldrawUiButton>
 	)
 }

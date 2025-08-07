@@ -137,6 +137,7 @@
 		"@types/node": "^22.15.31"
 	},
 	"dependencies": {
+		"@heroicons/react": "^2.2.0",
 		"@sentry/cli": "^2.41.1",
 		"@yarnpkg/types": "^4.0.0",
 		"cross-env": "^7.0.3",
