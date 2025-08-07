@@ -10156,7 +10156,7 @@ export class Editor extends EventEmitter<TLEventMap> {
 	private _restoreToolId = 'select'
 
 	/** @internal */
-	private _pinchStart = 1
+	private _pinchStartZ = 1
 
 	/** @internal */
 	private _didPinch = false
@@ -10299,7 +10299,7 @@ export class Editor extends EventEmitter<TLEventMap> {
 						if (inputs.isPinching) return
 
 						if (!inputs.isEditing) {
-							this._pinchStart = this.getCamera().z
+							this._pinchStartZ = this.getCamera().z
 							if (!this._selectedShapeIdsAtPointerDown.length) {
 								this._selectedShapeIdsAtPointerDown = [...pageState.selectedShapeIds]
 							}
@@ -10317,8 +10317,7 @@ export class Editor extends EventEmitter<TLEventMap> {
 						if (!inputs.isPinching) return
 
 						const {
-							point: { z = 1 },
-							delta: { x: dx, y: dy },
+							delta: { x: dx, y: dy, z: dz },
 						} = info
 
 						// The center of the pinch in screen space
@@ -10334,13 +10333,14 @@ export class Editor extends EventEmitter<TLEventMap> {
 						}
 
 						const { x: cx, y: cy, z: cz } = unsafe__withoutCapture(() => this.getCamera())
+						const { panSpeed, zoomSpeed } = cameraOptions
+						const zoom = cz + (dz ?? 0) * zoomSpeed
 
-						const { panSpeed } = cameraOptions
 						this._setCamera(
 							new Vec(
-								cx + (dx * panSpeed) / cz - x / cz + x / z,
-								cy + (dy * panSpeed) / cz - y / cz + y / z,
-								z
+								cx + (dx * panSpeed) / cz + x / zoom - x / cz,
+								cy + (dy * panSpeed) / cz + y / zoom - y / cz,
+								zoom
 							),
 							{ immediate: true }
 						)
@@ -10377,7 +10377,6 @@ export class Editor extends EventEmitter<TLEventMap> {
 			}
 			case 'wheel': {
 				if (cameraOptions.isLocked) return
-
 				this._updateInputsFromEvent(info)
 
 				const { panSpeed, zoomSpeed, wheelBehavior } = cameraOptions
