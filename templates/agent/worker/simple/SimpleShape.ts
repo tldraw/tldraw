@@ -129,7 +129,7 @@ const SimpleTextShape = z.object({
 	color: SimpleColor,
 	note: z.string(),
 	shapeId: z.string(),
-	text: SimpleLabel.optional(),
+	text: SimpleLabel,
 	textAlign: z.enum(['start', 'middle', 'end']).optional(),
 	x: z.number(),
 	y: z.number(),
