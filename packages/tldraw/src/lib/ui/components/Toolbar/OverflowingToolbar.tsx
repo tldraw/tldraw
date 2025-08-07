@@ -73,21 +73,8 @@ export function OverflowingToolbar({
 	// we have to use state instead of a ref here so that we get
 	// an update when the overflow popover mounts / unmounts
 	const [overflowTools, setOverflowTools] = useState<HTMLDivElement | null>(null)
-
 	const [lastActiveOverflowItem, setLastActiveOverflowItem] = useState<string | null>(null)
-
-	// const css = useMemo(() => {
-	// 	const activeCss = lastActiveOverflowItem ? `:not([data-value="${lastActiveOverflowItem}"])` : ''
-
-	// 	return `
-	// 		#${id}_main > *:nth-of-type(n + ${overflowIndex + (lastActiveOverflowItem ? 1 : 2)}):not([data-radix-popper-content-wrapper])${activeCss} {
-	// 			display: none;
-	// 		}
-	// 		#${id}_more > *:nth-of-type(-n + ${overflowIndex}):not([data-radix-popper-content-wrapper]) {
-	// 			display: none;
-	// 		}
-	//     `
-	// }, [lastActiveOverflowItem, id, overflowIndex])
+	const [shouldShowOverflow, setShouldShowOverflow] = useState(false)
 
 	const onDomUpdate = useEvent(() => {
 		if (!mainToolsRef.current) return
@@ -124,10 +111,9 @@ export function OverflowingToolbar({
 			modulate(size, [minSizePx, maxSizePx], [minItems, maxItems], true)
 		)
 
-		console.log({ sizingParent, mainItems, size, itemsToShow })
-
 		let mainItemCount = 0
 		let newActiveOverflowItem: string | null = null
+		const numberedButtons: HTMLButtonElement[] = []
 		function visitItems(
 			mainItems: Items,
 			overflowItems: Items | null
@@ -165,6 +151,9 @@ export function OverflowingToolbar({
 					if (shouldShowInOverflow && mainItem.element.getAttribute('aria-pressed') === 'true') {
 						newActiveOverflowItem = mainItem.element.getAttribute('data-value')
 					}
+					if (shouldShowInMain && mainItem.element.tagName === 'BUTTON') {
+						numberedButtons.push(mainItem.element as HTMLButtonElement)
+					}
 					mainItemCount++
 				} else {
 					let result, overflowGroup
@@ -188,48 +177,13 @@ export function OverflowingToolbar({
 			return { didShowAnyInMain, didShowAnyInOverflow }
 		}
 
-		visitItems(mainItems, overflowItems)
+		const { didShowAnyInOverflow } = visitItems(mainItems, overflowItems)
+		setShouldShowOverflow(didShowAnyInOverflow)
 		if (newActiveOverflowItem) {
 			setLastActiveOverflowItem(newActiveOverflowItem)
 		}
 
-		return
-
-		const children = Array.from(mainToolsRef.current.children)
-		setTotalItems(children.length)
-
-		// If the last active overflow item is no longer in the overflow, clear it
-		const lastActiveElementIdx = children.findIndex(
-			(el) => el.getAttribute('data-value') === lastActiveOverflowItem
-		)
-		if (lastActiveElementIdx <= overflowIndex) {
-			setLastActiveOverflowItem(null)
-		}
-
-		// But if there's a new active item...
-		const activeElementIdx = Array.from(mainToolsRef.current.children).findIndex(
-			(el) => el.getAttribute('aria-pressed') === 'true'
-		)
-		if (activeElementIdx === -1) return
-
-		// ...and it's in the overflow, set it as the last active overflow item
-		if (activeElementIdx >= overflowIndex) {
-			setLastActiveOverflowItem(children[activeElementIdx].getAttribute('data-value'))
-		}
-
-		// Save the buttons that are actually visible
-		rButtons.current = Array.from(mainToolsRef.current?.children ?? []).filter(
-			(el): el is HTMLElement => {
-				// only count html elements...
-				if (!(el instanceof HTMLElement)) return false
-
-				// ...that are buttons...
-				if (el.tagName.toLowerCase() !== 'button') return false
-
-				// ...that are actually visible
-				return !!(el.offsetWidth || el.offsetHeight)
-			}
-		)
+		rButtons.current = numberedButtons
 	})
 
 	useLayoutEffect(() => {
@@ -289,54 +243,48 @@ export function OverflowingToolbar({
 				label={msg('tool-panel.title')}
 			>
 				<Layout id={`${id}_main`} ref={mainToolsRef}>
-					<TldrawUiMenuContextProvider
-						context={{ type: 'toolbar', sourceId: 'toolbar', orientation }}
-					>
+					<TldrawUiMenuContextProvider type="toolbar" sourceId="toolbar">
 						{children}
 					</TldrawUiMenuContextProvider>
 				</Layout>
-				<IsInOverflowContext.Provider value={true}>
-					<TldrawUiPopover id={popoverId} open={isOpen} onOpenChange={setIsOpen}>
-						<TldrawUiPopoverTrigger>
-							<TldrawUiToolbarButton
-								title={msg('tool-panel.more')}
-								type="tool"
-								className="tlui-main-toolbar__overflow"
-								data-testid="tools.more-button"
+				{shouldShowOverflow && (
+					<IsInOverflowContext.Provider value={true}>
+						<TldrawUiPopover id={popoverId} open={isOpen} onOpenChange={setIsOpen}>
+							<TldrawUiPopoverTrigger>
+								<TldrawUiToolbarButton
+									title={msg('tool-panel.more')}
+									type="tool"
+									className="tlui-main-toolbar__overflow"
+									data-testid="tools.more-button"
+								>
+									<TldrawUiButtonIcon
+										icon={orientation === 'horizontal' ? 'chevron-up' : 'chevron-right'}
+									/>
+								</TldrawUiToolbarButton>
+							</TldrawUiPopoverTrigger>
+							<TldrawUiPopoverContent
+								side={orientation === 'horizontal' ? 'top' : 'right'}
+								align={orientation === 'horizontal' ? 'center' : 'end'}
 							>
-								<TldrawUiButtonIcon
-									icon={orientation === 'horizontal' ? 'chevron-up' : 'chevron-right'}
-								/>
-							</TldrawUiToolbarButton>
-						</TldrawUiPopoverTrigger>
-						<TldrawUiPopoverContent
-							side={orientation === 'horizontal' ? 'top' : 'right'}
-							align={orientation === 'horizontal' ? 'center' : 'end'}
-						>
-							<TldrawUiToolbar
-								orientation="grid"
-								ref={setOverflowTools}
-								data-testid="tools.more-content"
-								label={msg('tool-panel.more')}
-								id={`${id}_more`}
-								onClick={() => {
-									tlmenus.deleteOpenMenu(popoverId, editor.contextId)
-									setIsOpen(false)
-								}}
-							>
-								<TldrawUiMenuContextProvider
-									context={{
-										type: 'toolbar-overflow',
-										sourceId: 'toolbar',
-										orientation,
+								<TldrawUiToolbar
+									orientation="grid"
+									ref={setOverflowTools}
+									data-testid="tools.more-content"
+									label={msg('tool-panel.more')}
+									id={`${id}_more`}
+									onClick={() => {
+										tlmenus.deleteOpenMenu(popoverId, editor.contextId)
+										setIsOpen(false)
 									}}
 								>
-									{children}
-								</TldrawUiMenuContextProvider>
-							</TldrawUiToolbar>
-						</TldrawUiPopoverContent>
-					</TldrawUiPopover>
-				</IsInOverflowContext.Provider>
+									<TldrawUiMenuContextProvider type="toolbar-overflow" sourceId="toolbar">
+										{children}
+									</TldrawUiMenuContextProvider>
+								</TldrawUiToolbar>
+							</TldrawUiPopoverContent>
+						</TldrawUiPopover>
+					</IsInOverflowContext.Provider>
+				)}
 			</TldrawUiToolbar>
 		</>
 	)

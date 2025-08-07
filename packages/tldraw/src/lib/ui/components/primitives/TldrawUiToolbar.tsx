@@ -11,6 +11,7 @@ export interface TLUiToolbarProps extends React.HTMLAttributes<HTMLDivElement> {
 	dir?: 'ltr' | 'rtl'
 	label: string
 	orientation?: 'horizontal' | 'vertical' | 'grid'
+	tooltipSide?: 'top' | 'right' | 'bottom' | 'left'
 }
 
 const LayoutByOrientation = {
@@ -21,10 +22,20 @@ const LayoutByOrientation = {
 
 /** @public @react */
 export const TldrawUiToolbar = React.forwardRef<HTMLDivElement, TLUiToolbarProps>(
-	({ children, className, label, orientation = 'horizontal', ...props }: TLUiToolbarProps, ref) => {
+	(
+		{
+			children,
+			className,
+			label,
+			orientation = 'horizontal',
+			tooltipSide,
+			...props
+		}: TLUiToolbarProps,
+		ref
+	) => {
 		const Layout = LayoutByOrientation[orientation]
 		return (
-			<Layout asChild>
+			<Layout asChild tooltipSide={tooltipSide}>
 				<_Toolbar.Root
 					ref={ref}
 					{...props}

@@ -16,6 +16,7 @@ import {
 	TldrawUiPopoverContent,
 	TldrawUiPopoverTrigger,
 } from './primitives/TldrawUiPopover'
+import { TldrawUiTooltip } from './primitives/TldrawUiTooltip'
 
 /** @public */
 export interface MobileStylePanelProps {
@@ -55,19 +56,21 @@ export function MobileStylePanel({ orientation = 'horizontal' }: MobileStylePane
 	return (
 		<TldrawUiPopover id="mobile style menu" onOpenChange={handleStylesOpenChange}>
 			<TldrawUiPopoverTrigger>
-				<TldrawUiButton
-					type="tool"
-					data-testid="mobile-styles.button"
-					style={{
-						color: disableStylePanel ? 'var(--color-muted-1)' : currentColor,
-					}}
-					title={msg('style-panel.title')}
-					disabled={disableStylePanel}
-				>
-					<TldrawUiButtonIcon
-						icon={disableStylePanel ? 'blob' : color?.type === 'mixed' ? 'mixed' : 'blob'}
-					/>
-				</TldrawUiButton>
+				<TldrawUiTooltip content={msg('style-panel.title')}>
+					<TldrawUiButton
+						type="tool"
+						data-testid="mobile-styles.button"
+						style={{
+							color: disableStylePanel ? 'var(--color-muted-1)' : currentColor,
+						}}
+						title={msg('style-panel.title')}
+						disabled={disableStylePanel}
+					>
+						<TldrawUiButtonIcon
+							icon={disableStylePanel ? 'blob' : color?.type === 'mixed' ? 'mixed' : 'blob'}
+						/>
+					</TldrawUiButton>
+				</TldrawUiTooltip>
 			</TldrawUiPopoverTrigger>
 			<TldrawUiPopoverContent side={orientation === 'horizontal' ? 'top' : 'right'} align="end">
 				{StylePanel && <StylePanel isMobile />}

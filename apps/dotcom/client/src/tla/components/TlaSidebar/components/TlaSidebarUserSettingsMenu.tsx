@@ -31,7 +31,7 @@ export function TlaUserSettingsMenu() {
 
 	return (
 		<TldrawUiDropdownMenuRoot id={`user-settings-sidebar`}>
-			<TldrawUiMenuContextProvider context={{ type: 'menu', sourceId: 'dialog' }}>
+			<TldrawUiMenuContextProvider type="menu" sourceId="dialog">
 				<TldrawUiDropdownMenuTrigger>
 					<button
 						className={classNames(styles.sidebarUserSettingsTrigger, styles.hoverable)}

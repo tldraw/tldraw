@@ -3,7 +3,7 @@ import { ReactNode } from 'react'
 import { unwrapLabel } from '../../../context/actions'
 import { TLUiTranslationKey } from '../../../hooks/useTranslation/TLUiTranslationKey'
 import { useTranslation } from '../../../hooks/useTranslation/useTranslation'
-import { TldrawUiColumn, TldrawUiGrid, TldrawUiRow } from '../layout'
+import { TldrawUiColumn, TldrawUiGrid, TldrawUiRow, useTldrawUiOrientation } from '../layout'
 import { TldrawUiDropdownMenuGroup } from '../TldrawUiDropdownMenu'
 import { useTldrawUiMenuContext } from './TldrawUiMenuContext'
 
@@ -21,6 +21,7 @@ export interface TLUiMenuGroupProps<TranslationKey extends string = string> {
 /** @public @react */
 export function TldrawUiMenuGroup({ id, label, className, children }: TLUiMenuGroupProps) {
 	const menu = useTldrawUiMenuContext()
+	const { orientation } = useTldrawUiOrientation()
 	const msg = useTranslation()
 	const labelToUse = unwrapLabel(label, menu.type)
 	const labelStr = labelToUse ? msg(labelToUse as TLUiTranslationKey) : undefined
@@ -67,7 +68,7 @@ export function TldrawUiMenuGroup({ id, label, className, children }: TLUiMenuGr
 			)
 		}
 		case 'toolbar': {
-			const Layout = menu.orientation === 'horizontal' ? TldrawUiRow : TldrawUiColumn
+			const Layout = orientation === 'horizontal' ? TldrawUiRow : TldrawUiColumn
 			return (
 				<Layout className="tlui-main-toolbar__group" data-testid={`${menu.sourceId}-group.${id}`}>
 					{children}

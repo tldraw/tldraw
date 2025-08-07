@@ -29,6 +29,7 @@ import {
 	TldrawUiMenuItem,
 	TLUiContextMenuProps,
 	TLUiKeyboardShortcutsDialogProps,
+	TLUiQuickActionsProps,
 	TLUiStylePanelProps,
 	useEditor,
 	useIsToolSelected,
@@ -178,9 +179,9 @@ function CustomPageMenu() {
 	)
 }
 //[9]
-function CustomQuickActions() {
+function CustomQuickActions(props: TLUiQuickActionsProps) {
 	return (
-		<DefaultQuickActions>
+		<DefaultQuickActions {...props}>
 			<DefaultQuickActionsContent />
 			<div style={{ backgroundColor: 'thistle' }}>
 				<TldrawUiMenuItem id="code" icon="code" onSelect={() => window.alert('code')} />

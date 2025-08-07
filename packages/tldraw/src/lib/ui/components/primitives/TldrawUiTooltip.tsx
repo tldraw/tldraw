@@ -2,6 +2,7 @@ import { Editor, uniqueId, useMaybeEditor, Vec } from '@tldraw/editor'
 import { Tooltip as _Tooltip } from 'radix-ui'
 import React, { createContext, useContext, useEffect, useRef, useState } from 'react'
 import { usePrefersReducedMotion } from '../../../shapes/shared/usePrefersReducedMotion'
+import { useTldrawUiOrientation } from './layout'
 
 const DEFAULT_TOOLTIP_DELAY_MS = 700
 
@@ -69,18 +70,23 @@ class TooltipManager {
 		this.notify()
 	}
 
-	hideTooltip(tooltipId: string) {
+	hideTooltip(tooltipId: string, instant: boolean = false) {
+		const hide = () => {
+			this.currentTooltipId = null
+			this.currentContent = ''
+			this.activeElement = null
+			this.destroyTimeoutId = null
+			this.notify()
+		}
 		// Only hide if this is the current tooltip
 		if (this.currentTooltipId === tooltipId) {
 			// Start destroy timeout (1 second)
 			if (this.editor) {
-				this.destroyTimeoutId = this.editor.timers.setTimeout(() => {
-					this.currentTooltipId = null
-					this.currentContent = ''
-					this.activeElement = null
-					this.destroyTimeoutId = null
-					this.notify()
-				}, 300)
+				if (instant) {
+					hide()
+				} else {
+					this.destroyTimeoutId = this.editor.timers.setTimeout(hide, 300)
+				}
 			}
 		}
 	}
@@ -238,13 +244,25 @@ function TooltipSingleton() {
 export function TldrawUiTooltip({
 	children,
 	content,
-	side = 'bottom',
+	side,
 	sideOffset = 5,
 	disabled = false,
 }: TldrawUiTooltipProps) {
 	const editor = useMaybeEditor()
 	const tooltipId = useRef<string>(uniqueId())
 	const hasProvider = useContext(TooltipSingletonContext)
+
+	const orientationCtx = useTldrawUiOrientation()
+	const sideToUse = side ?? orientationCtx.tooltipSide
+
+	useEffect(() => {
+		const currentTooltipId = tooltipId.current
+		return () => {
+			if (hasProvider) {
+				tooltipManager.hideTooltip(currentTooltipId, true)
+			}
+		}
+	}, [hasProvider])
 
 	// Don't show tooltip if disabled, no content, or UI labels are disabled
 	if (disabled || !content) {
@@ -261,7 +279,7 @@ export function TldrawUiTooltip({
 				<_Tooltip.Trigger asChild>{children}</_Tooltip.Trigger>
 				<_Tooltip.Content
 					className="tlui-tooltip"
-					side={side}
+					side={sideToUse}
 					sideOffset={sideOffset}
 					avoidCollisions
 					collisionPadding={8}
@@ -279,7 +297,7 @@ export function TldrawUiTooltip({
 			tooltipId.current,
 			content,
 			event.currentTarget as HTMLElement,
-			side,
+			sideToUse,
 			sideOffset
 		)
 	}
@@ -293,7 +311,7 @@ export function TldrawUiTooltip({
 			tooltipId.current,
 			content,
 			event.currentTarget as HTMLElement,
-			side,
+			sideToUse,
 			sideOffset
 		)
 	}

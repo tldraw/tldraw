@@ -75,7 +75,7 @@ function DropdownPickerInner<T extends string>({
 			</TldrawUiPopoverTrigger>
 			<TldrawUiPopoverContent side="left" align="center">
 				<TldrawUiToolbar orientation="grid" label={labelStr}>
-					<TldrawUiMenuContextProvider context={{ type: 'icons', sourceId: 'style-panel' }}>
+					<TldrawUiMenuContextProvider type="icons" sourceId="style-panel">
 						{items.map((item) => {
 							return (
 								<TldrawUiToolbarButton

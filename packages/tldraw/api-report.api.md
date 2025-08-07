@@ -20,7 +20,6 @@ import { Editor } from '@tldraw/editor';
 import { Extension } from '@tiptap/core';
 import { Extensions } from '@tiptap/core';
 import { ForwardRefExoticComponent } from 'react';
-import { ForwardRefExoticComponent } from 'react';
 import { Geometry2d } from '@tldraw/editor';
 import { Geometry2dFilters } from '@tldraw/editor';
 import { Geometry2dOptions } from '@tldraw/editor';
@@ -987,6 +986,14 @@ export function DefaultToolbarContent(): JSX_2.Element;
 export interface DefaultToolbarProps {
     // (undocumented)
     children?: ReactNode;
+    // (undocumented)
+    maxItems?: number;
+    // (undocumented)
+    maxSizePx?: number;
+    // (undocumented)
+    minItems?: number;
+    // (undocumented)
+    minSizePx?: number;
     // (undocumented)
     orientation?: 'horizontal' | 'vertical';
 }
@@ -2169,14 +2176,24 @@ export function OpacitySlider(): JSX_2.Element | null;
 export function OvalToolbarItem(): JSX_2.Element;
 
 // @public (undocumented)
-export function OverflowingToolbar({ children, orientation }: OverflowingToolbarProps): JSX_2.Element;
+export function OverflowingToolbar({ children, orientation, sizingParentClassName, minItems, minSizePx, maxItems, maxSizePx, }: OverflowingToolbarProps): JSX_2.Element;
 
 // @public (undocumented)
 export interface OverflowingToolbarProps {
     // (undocumented)
     children: React.ReactNode;
     // (undocumented)
+    maxItems: number;
+    // (undocumented)
+    maxSizePx: number;
+    // (undocumented)
+    minItems: number;
+    // (undocumented)
+    minSizePx: number;
+    // (undocumented)
     orientation: 'horizontal' | 'vertical';
+    // (undocumented)
+    sizingParentClassName: string;
 }
 
 // @public (undocumented)
@@ -2984,8 +3001,8 @@ export function TldrawUiButtonLabel({ children }: TLUiButtonLabelProps): JSX_2.E
 // @public (undocumented)
 export const TldrawUiButtonPicker: <T extends string>(props: TLUiButtonPickerProps<T>) => ReactElement;
 
-// @public (undocumented)
-export const TldrawUiColumn: ForwardRefExoticComponent<TLUiLayoutProps & RefAttributes<HTMLDivElement>>;
+// @public
+export function TldrawUiColumn({ asChild, className, tooltipSide, ...props }: TLUiLayoutProps): JSX_2.Element;
 
 // @public (undocumented)
 export function TldrawUiComponentsProvider({ overrides, children, }: TLUiComponentsProviderProps): JSX_2.Element;
@@ -3298,8 +3315,6 @@ export type TLUiActionsContextType = Record<string, TLUiActionItem>;
 export interface TLUiActionsMenuProps {
     // (undocumented)
     children?: ReactNode;
-    // (undocumented)
-    orientation?: 'horizontal' | 'vertical';
 }
 
 // @public (undocumented)
@@ -4001,6 +4016,8 @@ export interface TLUiLayoutProps extends HTMLAttributes<HTMLDivElement> {
     asChild?: boolean;
     // (undocumented)
     children: ReactNode;
+    // (undocumented)
+    tooltipSide?: 'bottom' | 'left' | 'right' | 'top';
 }
 
 // @public (undocumented)
@@ -4293,6 +4310,8 @@ export interface TLUiToolbarProps extends React_3.HTMLAttributes<HTMLDivElement>
     label: string;
     // (undocumented)
     orientation?: 'grid' | 'horizontal' | 'vertical';
+    // (undocumented)
+    tooltipSide?: 'bottom' | 'left' | 'right' | 'top';
 }
 
 // @public (undocumented)

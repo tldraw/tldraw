@@ -39,7 +39,7 @@ export const DefaultKeyboardShortcutsDialog = memo(function DefaultKeyboardShort
 					'tlui-shortcuts-dialog__body__tablet': breakpoint <= PORTRAIT_BREAKPOINT.TABLET,
 				})}
 			>
-				<TldrawUiMenuContextProvider context={{ type: 'keyboard-shortcuts', sourceId: 'kbd' }}>
+				<TldrawUiMenuContextProvider type="keyboard-shortcuts" sourceId="kbd">
 					{content}
 				</TldrawUiMenuContextProvider>
 			</TldrawUiDialogBody>

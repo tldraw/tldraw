@@ -11,23 +11,23 @@ import {
 	TldrawUiPopoverTrigger,
 } from '../primitives/TldrawUiPopover'
 import { TldrawUiToolbar, TldrawUiToolbarButton } from '../primitives/TldrawUiToolbar'
+import { useTldrawUiOrientation } from '../primitives/layout'
 import { TldrawUiMenuContextProvider } from '../primitives/menus/TldrawUiMenuContext'
 import { DefaultActionsMenuContent } from './DefaultActionsMenuContent'
 
 /** @public */
 export interface TLUiActionsMenuProps {
 	children?: ReactNode
-	orientation?: 'horizontal' | 'vertical'
 }
 
 /** @public @react */
 export const DefaultActionsMenu = memo(function DefaultActionsMenu({
 	children,
-	orientation = 'horizontal',
 }: TLUiActionsMenuProps) {
 	const msg = useTranslation()
 	const breakpoint = useBreakpoint()
 	const isReadonlyMode = useReadonly()
+	const { orientation } = useTldrawUiOrientation()
 
 	const ref = useRef<HTMLDivElement>(null)
 	usePassThroughWheelEvents(ref)
@@ -77,7 +77,7 @@ export const DefaultActionsMenu = memo(function DefaultActionsMenu({
 					data-testid="actions-menu.content"
 					orientation="grid"
 				>
-					<TldrawUiMenuContextProvider context={{ type: 'icons', sourceId: 'actions-menu' }}>
+					<TldrawUiMenuContextProvider type="icons" sourceId="actions-menu">
 						{content}
 					</TldrawUiMenuContextProvider>
 				</TldrawUiToolbar>

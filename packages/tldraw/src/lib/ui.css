@@ -1232,8 +1232,11 @@
 	box-shadow: var(--shadow-2);
 }
 
-.tlui-main-toolbar__mobile-style-panel {
+.tlui-main-toolbar--horizontal .tlui-main-toolbar__mobile-style-panel {
 	align-self: flex-end;
+}
+.tlui-main-toolbar--vertical .tlui-main-toolbar__mobile-style-panel {
+	align-self: flex-start;
 }
 
 /* TODO(alex): do we actually need this? check with steve */

@@ -80,7 +80,7 @@ export function TlaSidebarFileLink({ item, testId }: { item: RecentFile; testId:
 			<_ContextMenu.Content className="tlui-menu tlui-scrollable">
 				{/* Don't show the context menu on mobile */}
 				{!isMobile && (
-					<TldrawUiMenuContextProvider context={{ type: 'context-menu', sourceId: 'context-menu' }}>
+					<TldrawUiMenuContextProvider type="context-menu" sourceId="context-menu">
 						<FileItemsWrapper showAsSubMenu={false}>
 							<FileItems
 								source="sidebar-context-menu"

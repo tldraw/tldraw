@@ -26,7 +26,7 @@ export function DefaultDebugMenu({ children }: TLUiDebugMenuProps) {
 				</TldrawUiButton>
 			</TldrawUiDropdownMenuTrigger>
 			<TldrawUiDropdownMenuContent side="top" align="end" alignOffset={0}>
-				<TldrawUiMenuContextProvider context={{ type: 'menu', sourceId: 'debug-panel' }}>
+				<TldrawUiMenuContextProvider type="menu" sourceId="debug-panel">
 					{content}
 				</TldrawUiMenuContextProvider>
 			</TldrawUiDropdownMenuContent>

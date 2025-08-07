@@ -113,7 +113,7 @@ export function TlaEditorTopLeftPanelAnonymous() {
 				</>
 			)}
 			<TldrawUiDropdownMenuRoot id={`file-menu-anon`}>
-				<TldrawUiMenuContextProvider context={{ type: 'menu', sourceId: 'dialog' }}>
+				<TldrawUiMenuContextProvider type="menu" sourceId="dialog">
 					<TldrawUiDropdownMenuTrigger>
 						<button
 							className={styles.topLeftMainMenuTrigger}

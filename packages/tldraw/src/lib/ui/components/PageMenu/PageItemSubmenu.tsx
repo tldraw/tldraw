@@ -61,7 +61,7 @@ export const PageItemSubmenu = track(function PageItemSubmenu({
 				</TldrawUiButton>
 			</TldrawUiDropdownMenuTrigger>
 			<TldrawUiDropdownMenuContent alignOffset={0} side="right" sideOffset={-4}>
-				<TldrawUiMenuContextProvider context={{ type: 'menu', sourceId: 'page-menu' }}>
+				<TldrawUiMenuContextProvider type="menu" sourceId="page-menu">
 					<TldrawUiMenuGroup id="modify">
 						{onRename && (
 							<TldrawUiMenuItem id="rename" label="page-menu.submenu.rename" onSelect={onRename} />

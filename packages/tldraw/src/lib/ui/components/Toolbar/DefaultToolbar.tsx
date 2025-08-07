@@ -7,6 +7,7 @@ import { useTldrawUiComponents } from '../../context/components'
 import { useReadonly } from '../../hooks/useReadonly'
 import { useTranslation } from '../../hooks/useTranslation/useTranslation'
 import { MobileStylePanel } from '../MobileStylePanel'
+import { TldrawUiOrientationProvider } from '../primitives/layout'
 import { TldrawUiToolbar } from '../primitives/TldrawUiToolbar'
 import { DefaultToolbarContent } from './DefaultToolbarContent'
 import { OverflowingToolbar } from './OverflowingToolbar'
@@ -57,41 +58,49 @@ export const DefaultToolbar = memo(function DefaultToolbar({
 				: breakpoint < PORTRAIT_BREAKPOINT.TABLET
 
 	return (
-		<div ref={ref} className={classNames('tlui-main-toolbar', `tlui-main-toolbar--${orientation}`)}>
-			<div className="tlui-main-toolbar__inner">
-				<div className="tlui-main-toolbar__left">
-					{!isReadonlyMode && (
-						<div className="tlui-main-toolbar__extras">
-							{showQuickActions && (
-								<TldrawUiToolbar
-									orientation={orientation}
-									className="tlui-main-toolbar__extras__controls"
-									label={msg('actions-menu.title')}
-								>
-									{QuickActions && <QuickActions />}
-									{ActionsMenu && <ActionsMenu orientation={orientation} />}
-								</TldrawUiToolbar>
-							)}
-							<ToggleToolLockedButton activeToolId={activeToolId} />
+		<TldrawUiOrientationProvider
+			orientation={orientation}
+			tooltipSide={orientation === 'horizontal' ? 'top' : 'right'}
+		>
+			<div
+				ref={ref}
+				className={classNames('tlui-main-toolbar', `tlui-main-toolbar--${orientation}`)}
+			>
+				<div className="tlui-main-toolbar__inner">
+					<div className="tlui-main-toolbar__left">
+						{!isReadonlyMode && (
+							<div className="tlui-main-toolbar__extras">
+								{showQuickActions && (
+									<TldrawUiToolbar
+										orientation={orientation}
+										className="tlui-main-toolbar__extras__controls"
+										label={msg('actions-menu.title')}
+									>
+										{QuickActions && <QuickActions />}
+										{ActionsMenu && <ActionsMenu />}
+									</TldrawUiToolbar>
+								)}
+								<ToggleToolLockedButton activeToolId={activeToolId} />
+							</div>
+						)}
+						<OverflowingToolbar
+							orientation={orientation}
+							sizingParentClassName="tlui-main-toolbar"
+							minItems={minItems}
+							maxItems={maxItems}
+							minSizePx={minSizePx}
+							maxSizePx={maxSizePx}
+						>
+							{children ?? <DefaultToolbarContent />}
+						</OverflowingToolbar>
+					</div>
+					{breakpoint < PORTRAIT_BREAKPOINT.TABLET_SM && !isReadonlyMode && (
+						<div className="tlui-main-toolbar__tools tlui-main-toolbar__mobile-style-panel">
+							<MobileStylePanel orientation={orientation} />
 						</div>
 					)}
-					<OverflowingToolbar
-						orientation={orientation}
-						sizingParentClassName="tlui-main-toolbar"
-						minItems={minItems}
-						maxItems={maxItems}
-						minSizePx={minSizePx}
-						maxSizePx={maxSizePx}
-					>
-						{children ?? <DefaultToolbarContent />}
-					</OverflowingToolbar>
 				</div>
-				{breakpoint < PORTRAIT_BREAKPOINT.TABLET_SM && !isReadonlyMode && (
-					<div className="tlui-main-toolbar__tools tlui-main-toolbar__mobile-style-panel">
-						<MobileStylePanel orientation={orientation} />
-					</div>
-				)}
 			</div>
-		</div>
+		</TldrawUiOrientationProvider>
 	)
 })

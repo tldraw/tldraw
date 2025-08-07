@@ -36,7 +36,7 @@ export const DefaultZoomMenu = memo(function DefaultZoomMenu({ children }: TLUiZ
 					sideOffset={8}
 					collisionPadding={4}
 				>
-					<TldrawUiMenuContextProvider context={{ type: 'menu', sourceId: 'zoom-menu' }}>
+					<TldrawUiMenuContextProvider type="menu" sourceId="zoom-menu">
 						{content}
 					</TldrawUiMenuContextProvider>
 				</_DropdownMenu.Content>
