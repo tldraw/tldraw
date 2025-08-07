@@ -232,7 +232,6 @@ export function TldrawUiMenuItem<
 					aria-label={labelStr}
 					aria-pressed={isSelected ? 'true' : 'false'}
 					isActive={isSelected}
-					className="tlui-button-grid__button"
 					data-testid={`tools.more.${id}`}
 					data-value={id}
 					disabled={disabled}
