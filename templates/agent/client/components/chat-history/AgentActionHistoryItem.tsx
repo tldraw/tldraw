@@ -2,6 +2,7 @@ import {
 	ACTION_HISTORY_ITEM_DEFINITIONS,
 	AgentActionHistoryItem,
 } from '../../types/ChatHistoryItem'
+import { AgentIcon } from './AgentIcon'
 
 export function AgentActionHistoryItem({ item }: { item: AgentActionHistoryItem }) {
 	const actionDefinition = ACTION_HISTORY_ITEM_DEFINITIONS[item.action]
@@ -10,7 +11,9 @@ export function AgentActionHistoryItem({ item }: { item: AgentActionHistoryItem 
 
 	return (
 		<div className="agent-action-message">
-			<span>{icon}</span>
+			<span>
+				<AgentIcon type={icon} />
+			</span>
 			<span>
 				<strong>{message}</strong>
 				<span>{item.info ?? ''}</span>

@@ -1,5 +1,6 @@
 import { UserMessageHistoryItem } from '../../types/ChatHistoryItem'
 import { CONTEXT_TYPE_DEFINITIONS, ContextItem } from '../../types/ContextItem'
+import { AgentIcon } from './AgentIcon'
 
 export function UserMessageHistoryItem({ item }: { item: UserMessageHistoryItem }) {
 	return (
@@ -25,11 +26,11 @@ export function UserMessageHistoryItem({ item }: { item: UserMessageHistoryItem 
 
 function UserMessageContextItem({ contextItem }: { contextItem: ContextItem }) {
 	const contextTypeDefinition = CONTEXT_TYPE_DEFINITIONS[contextItem.type]
-	const icon = contextTypeDefinition.icon(contextItem)
+	const icon = contextTypeDefinition.icon
 	const name = contextTypeDefinition.name(contextItem)
 	return (
 		<div className="context-item-preview">
-			{icon} {name}
+			<AgentIcon type={icon} /> {name}
 		</div>
 	)
 }

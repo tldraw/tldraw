@@ -1,13 +1,6 @@
 import { RecordsDiff, TLRecord } from 'tldraw'
 import { IAgentEvent } from '../../worker/prompt/AgentEvent'
-import { BrainIcon } from '../icons/BrainIcon'
-import { CursorIcon } from '../icons/CursorIcon'
-import { EyeIcon } from '../icons/EyeIcon'
-import { PencilIcon } from '../icons/PencilIcon'
-import { RefreshIcon } from '../icons/RefreshIcon'
-import { SearchIcon } from '../icons/SearchIcon'
-import { TargetIcon } from '../icons/TargetIcon'
-import { TrashIcon } from '../icons/TrashIcon'
+import { AgentIconType } from '../components/chat-history/AgentIcon'
 import { ContextItem } from './ContextItem'
 import { Streaming } from './Streaming'
 
@@ -42,7 +35,7 @@ export interface AgentMessageHistoryItem {
 export interface AgentChangeHistoryItem {
 	type: 'agent-change'
 	diff: RecordsDiff<TLRecord>
-	event: IAgentEvent
+	event: Streaming<IAgentEvent>
 	status: 'progress' | 'done' | 'cancelled'
 	acceptance: 'accepted' | 'rejected' | 'pending'
 }
@@ -67,7 +60,7 @@ export interface AgentActionHistoryItem {
 }
 
 export interface AgentActionDefinition {
-	icon: React.ReactNode
+	icon: AgentIconType
 	message: { progress: string; done: string; cancelled: string }
 }
 
@@ -80,7 +73,7 @@ export const ACTION_HISTORY_ITEM_DEFINITIONS: Record<
 	AgentActionDefinition
 > = {
 	thinking: {
-		icon: <BrainIcon />,
+		icon: 'brain',
 		message: {
 			progress: 'Thinking: ',
 			done: 'Thought: ',
@@ -88,7 +81,7 @@ export const ACTION_HISTORY_ITEM_DEFINITIONS: Record<
 		},
 	},
 	creating: {
-		icon: <PencilIcon />,
+		icon: 'pencil',
 		message: {
 			progress: 'Creating: ',
 			done: 'Created: ',
@@ -96,7 +89,7 @@ export const ACTION_HISTORY_ITEM_DEFINITIONS: Record<
 		},
 	},
 	deleting: {
-		icon: <TrashIcon />,
+		icon: 'trash',
 		message: {
 			progress: 'Deleting: ',
 			done: 'Deleted: ',
@@ -104,7 +97,7 @@ export const ACTION_HISTORY_ITEM_DEFINITIONS: Record<
 		},
 	},
 	updating: {
-		icon: <RefreshIcon />,
+		icon: 'refresh',
 		message: {
 			progress: 'Updating: ',
 			done: 'Updated: ',
@@ -112,7 +105,7 @@ export const ACTION_HISTORY_ITEM_DEFINITIONS: Record<
 		},
 	},
 	review: {
-		icon: <SearchIcon />,
+		icon: 'search',
 		message: {
 			progress: 'Reviewing: ',
 			done: 'Reviewed: ',
@@ -120,7 +113,7 @@ export const ACTION_HISTORY_ITEM_DEFINITIONS: Record<
 		},
 	},
 	setMyView: {
-		icon: <EyeIcon />,
+		icon: 'eye',
 		message: {
 			progress: 'Setting my view: ',
 			done: 'Set my view: ',
@@ -129,21 +122,14 @@ export const ACTION_HISTORY_ITEM_DEFINITIONS: Record<
 	},
 }
 
-export const AGENT_CHANGE_TYPE_DEFINITIONS: Record<
-	IAgentEvent['_type'],
-	AgentChangeDefinition | null
-> = {
-	distribute: { icon: <CursorIcon /> },
-	stack: { icon: <CursorIcon /> },
-	align: { icon: <CursorIcon /> },
-	place: { icon: <TargetIcon /> },
-	label: { icon: <PencilIcon /> },
-	move: { icon: <CursorIcon /> },
-	delete: { icon: <TrashIcon /> },
-	create: { icon: <PencilIcon /> },
-	update: { icon: <CursorIcon /> },
-	review: null,
-	setMyView: null,
-	message: null,
-	think: null,
+export const AGENT_EVENT_ICONS: Partial<Record<IAgentEvent['_type'], AgentIconType>> = {
+	distribute: 'cursor',
+	stack: 'cursor',
+	align: 'cursor',
+	place: 'target',
+	label: 'pencil',
+	move: 'cursor',
+	delete: 'trash',
+	create: 'pencil',
+	update: 'cursor',
 }

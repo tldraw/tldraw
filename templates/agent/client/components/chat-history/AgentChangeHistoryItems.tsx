@@ -10,7 +10,8 @@ import {
 	TLShapeWrapperProps,
 } from 'tldraw'
 import { $chatHistoryItems } from '../../atoms/chatHistoryItems'
-import { AGENT_CHANGE_TYPE_DEFINITIONS, AgentChangeHistoryItem } from '../../types/ChatHistoryItem'
+import { AGENT_EVENT_ICONS, AgentChangeHistoryItem } from '../../types/ChatHistoryItem'
+import { AgentIcon } from './AgentIcon'
 import TldrawViewer from './TldrawViewer'
 
 // The model returns changes individually, but we group them together in this component for UX reasons, namely so the user can see all changes done at once together, and so they can accept or reject them all at once
@@ -78,10 +79,10 @@ export function AgentChangeHistoryItems({
 				) : (
 					<>
 						<button onClick={handleReject} disabled={acceptance === 'rejected'}>
-							<p>{acceptance === 'rejected' ? 'Rejected' : 'Reject'}</p>
+							{acceptance === 'rejected' ? 'Rejected' : 'Reject'}
 						</button>
 						<button onClick={handleAccept} disabled={acceptance === 'accepted'}>
-							<p>{acceptance === 'accepted' ? 'Accepted' : 'Accept'}</p>
+							{acceptance === 'accepted' ? 'Accepted' : 'Accept'}
 						</button>
 					</>
 				)}
@@ -100,18 +101,21 @@ function ChangeIntents({ items }: { items: AgentChangeHistoryItem[] }) {
 		<div className="agent-change-message-intent">
 			{items.map((item, i) => {
 				const event = item.event
-				const definition = AGENT_CHANGE_TYPE_DEFINITIONS[event._type]
-				if (!definition) return null
-				const icon = definition.icon
+				const icon = event._type ? AGENT_EVENT_ICONS[event._type] : 'ellipsis'
 				let intent = ''
 				if ('intent' in event) {
-					intent = event.intent
+					intent = event.intent ?? ''
 				}
 				if (intent === previousIntentMessage) return null
 				previousIntentMessage = intent
 				return (
 					<div className="agent-change-message-intent-item" key={'intent-' + i}>
-						<span className="agent-change-message-intent-item-icon">{icon}</span> {intent}
+						{icon && (
+							<span className="agent-change-message-intent-item-icon">
+								<AgentIcon type={icon} />
+							</span>
+						)}
+						{intent}
 					</div>
 				)
 			})}

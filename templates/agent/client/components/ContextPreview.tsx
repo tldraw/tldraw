@@ -1,4 +1,5 @@
 import { CONTEXT_TYPE_DEFINITIONS, ContextItem } from '../types/ContextItem'
+import { AgentIcon } from './chat-history/AgentIcon'
 
 export function ContextPreview({
 	contextItem,
@@ -9,10 +10,10 @@ export function ContextPreview({
 }) {
 	const definition = CONTEXT_TYPE_DEFINITIONS[contextItem.type]
 	const name = definition.name(contextItem)
-	const icon = definition.icon(contextItem)
+	const icon = definition.icon
 	return (
 		<button type="button" className="context-item-preview" onClick={onClick}>
-			{icon} {name}
+			<AgentIcon type={icon} /> {name}
 		</button>
 	)
 }

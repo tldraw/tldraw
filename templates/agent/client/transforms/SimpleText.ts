@@ -1,4 +1,4 @@
-import { TLShape } from 'tldraw'
+import { TLRichText, TLShape, toRichText } from 'tldraw'
 import { TLAgentPrompt } from '../types/TLAgentPrompt'
 import { TldrawAgentTransform } from './TldrawAgentTransform'
 
@@ -46,4 +46,11 @@ export class SimpleText extends TldrawAgentTransform {
 		if (text === undefined) return undefined
 		return text
 	}
+}
+
+export function asRichText(text: string | TLRichText): TLRichText {
+	if (typeof text === 'string') {
+		return toRichText(text)
+	}
+	return text
 }

@@ -1,11 +1,8 @@
 import { useCallback } from 'react'
 import { Editor } from 'tldraw'
 import { DEFAULT_MODEL_NAME } from '../../worker/models'
-import { RoundedCoordinates } from '../transforms/RoundedCoordinates'
-import { SimpleText } from '../transforms/SimpleText'
-import { UniqueIds } from '../transforms/UniqueIds'
+import { handleAgentEvent } from '../events/handleAgentEvent'
 import { TLAgentPromptOptions } from '../types/TLAgentPrompt'
-import { applyAgentEvent } from './applyAgentEvent'
 import { promptAgent } from './promptAgent'
 
 export interface TldrawAgent {
@@ -28,9 +25,9 @@ export function useTldrawAgent({ editor }: { editor: Editor }): TldrawAgent {
 	const prompt = useCallback(
 		(options: Partial<TLAgentPromptOptions>) => {
 			const {
-				transforms = [RoundedCoordinates, SimpleText, UniqueIds],
-				apply = applyAgentEvent,
 				message = '',
+				transforms = [],
+				handleEvent = handleAgentEvent,
 				contextBounds = editor.getViewportPageBounds(),
 				promptBounds = editor.getViewportPageBounds(),
 				modelName = DEFAULT_MODEL_NAME,
@@ -45,7 +42,7 @@ export function useTldrawAgent({ editor }: { editor: Editor }): TldrawAgent {
 			return promptAgent({
 				editor: options.editor ?? editor,
 				transforms,
-				apply,
+				handleEvent,
 				message,
 				contextBounds,
 				promptBounds,

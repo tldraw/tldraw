@@ -18,7 +18,7 @@ export function promptAgent(promptOptions: TLAgentPromptOptions) {
 
 	const promise = new Promise<void>((resolve, reject) => {
 		preparePrompt(promptOptions)
-			.then(async ({ transformEvent, prompt }) => {
+			.then(async (prompt) => {
 				// Handle a stream of changes
 				// todo: consider history while streaming... we could keep track of all of the changes that were made, apply them as they come in; and then once completed, revert those changes, make a history entry, and then reapply them all
 
@@ -31,7 +31,7 @@ export function promptAgent(promptOptions: TLAgentPromptOptions) {
 					try {
 						editor.run(
 							() => {
-								promptOptions.apply({ editor, event, transformEvent })
+								promptOptions.handleEvent(editor, event)
 							},
 							{
 								ignoreShapeLock: false, // ? should this be true?

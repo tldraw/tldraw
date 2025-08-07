@@ -1,6 +1,4 @@
 import { Box, BoxModel, Editor, FileHelpers, structuredClone, TLShape } from 'tldraw'
-import { IAgentEvent } from '../../worker/prompt/AgentEvent'
-import { Streaming } from '../types/Streaming'
 import { TLAgentContent, TLAgentPrompt, TLAgentPromptOptions } from '../types/TLAgentPrompt'
 
 /**
@@ -11,9 +9,9 @@ import { TLAgentContent, TLAgentPrompt, TLAgentPromptOptions } from '../types/TL
  * the changes that come back from the agent.
  */
 export async function preparePrompt(promptOptions: TLAgentPromptOptions) {
-	const { editor, transforms: transformConstructors } = promptOptions
-	const transforms = transformConstructors.map((v) => new v(editor))
+	const { editor, ...rest } = promptOptions
 
+	// TODO: Replace these hardcoded things with custom prompt parts
 	const canvasContent = getCanvasContent({ editor, bounds: promptOptions.contextBounds })
 	const image = await getScreenshot({
 		editor,
@@ -21,35 +19,30 @@ export async function preparePrompt(promptOptions: TLAgentPromptOptions) {
 		bounds: promptOptions.contextBounds,
 	})
 
-	const { editor: _editor, transforms: _transforms, apply: _apply, ...rest } = promptOptions
-
-	let prompt: TLAgentPrompt = {
+	const prompt: TLAgentPrompt = {
 		...rest,
 		canvasContent,
 		image,
 	}
 
-	for (const transform of transforms) {
-		if (transform.transformPrompt) {
-			prompt = transform.transformPrompt(prompt)
-		}
-	}
+	// for (const transform of transforms) {
+	// 	if (transform.transformPrompt) {
+	// 		prompt = transform.transformPrompt(prompt)
+	// 	}
+	// }
 
-	transforms.reverse()
+	// transforms.reverse()
 
-	const transformEvent = (event: Streaming<IAgentEvent>) => {
-		for (const transform of transforms) {
-			if (transform.transformEvent) {
-				event = transform.transformEvent(event)
-			}
-		}
-		return event
-	}
+	// const transformEvent = (event: Streaming<IAgentEvent>) => {
+	// 	for (const transform of transforms) {
+	// 		if (transform.transformEvent) {
+	// 			event = transform.transformEvent(event)
+	// 		}
+	// 	}
+	// 	return event
+	// }
 
-	return {
-		prompt,
-		transformEvent,
-	}
+	return prompt
 }
 
 /**

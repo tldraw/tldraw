@@ -376,14 +376,6 @@ body {
 	cursor: default;
 }
 
-.agent-change-message-actions button:first-child svg {
-	color: red;
-}
-
-.agent-change-message-actions button:last-child svg {
-	color: green;
-}
-
 .agent-change-message-actions button:first-child {
 	border-radius: 4px 0px 0px 0px;
 }
@@ -564,6 +556,7 @@ body {
 
 .agent-change-message-intent:last-child {
 	border-radius: 4px 0px 4px 4px;
+	max-height: 100%;
 }
 
 .agent-change-message-intent-item {
