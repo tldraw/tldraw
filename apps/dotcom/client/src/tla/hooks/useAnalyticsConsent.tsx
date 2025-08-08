@@ -10,6 +10,7 @@ import { useMaybeApp } from '../hooks/useAppState'
 
 /**
  * Custom hook to track analytics consent changes
+ * Consent can be either a boolean (user has set their preference) or null (user has not set their preference yet)
  * @returns [consent, updateConsent] - The current consent state and function to update it
  */
 export function useAnalyticsConsent() {
