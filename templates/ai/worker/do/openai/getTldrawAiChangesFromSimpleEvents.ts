@@ -141,7 +141,7 @@ function getTldrawAiChangesFromSimpleCreateOrUpdateEvent(
 					x: 0,
 					y: 0,
 					props: {
-						color: (shape.color ?? 'black') as TLDefaultColorStyle,
+						color: shape.color ?? 'black',
 						richText: toRichTextIfNeeded(shape.text ?? ''),
 						start: { x: x1, y: y1 },
 						end: { x: x2, y: y2 },
@@ -221,7 +221,7 @@ function getTldrawAiChangesFromSimpleCreateOrUpdateEvent(
 						geo: shape.type,
 						w: shape.width,
 						h: shape.height,
-						color: (shape.color ?? 'black') as TLDefaultColorStyle,
+						color: shape.color ?? 'black',
 						fill: simpleFillToShapeFill(shape.fill ?? 'none'),
 						richText: toRichTextIfNeeded(shape.text ?? ''),
 					},
@@ -240,7 +240,7 @@ function getTldrawAiChangesFromSimpleCreateOrUpdateEvent(
 					x: shape.x,
 					y: shape.y,
 					props: {
-						color: (shape.color ?? 'black') as TLDefaultColorStyle,
+						color: shape.color ?? 'black',
 						richText: toRichTextIfNeeded(shape.text ?? ''),
 					},
 				},
