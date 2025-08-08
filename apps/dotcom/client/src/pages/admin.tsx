@@ -1,17 +1,96 @@
+import { ZStoreData } from '@tldraw/dotcom-shared'
 import { useCallback, useEffect, useRef, useState } from 'react'
 import { Navigate } from 'react-router-dom'
 import { fetch } from 'tldraw'
+import { TlaButton } from '../tla/components/TlaButton/TlaButton'
 import { useTldrawUser } from '../tla/hooks/useUser'
+import styles from './admin.module.css'
+
+// Helper component for structured data display
+function StructuredDataDisplay({ data }: { data: ZStoreData }) {
+	const [copied, setCopied] = useState(false)
+
+	const handleCopy = async () => {
+		try {
+			await navigator.clipboard.writeText(JSON.stringify(data, null, 2))
+			setCopied(true)
+			setTimeout(() => setCopied(false), 2000)
+		} catch (err) {
+			console.error('Failed to copy:', err)
+		}
+	}
+
+	return (
+		<div className={styles.structuredData}>
+			<TlaButton onClick={handleCopy} variant="secondary" className={styles.copyButton}>
+				{copied ? 'Copied!' : 'Copy JSON'}
+			</TlaButton>
+			<pre className={styles.dataDisplay}>{JSON.stringify(data, null, 2)}</pre>
+		</div>
+	)
+}
+
+// Helper component for user data summary
+function UserDataSummary({ userData }: { userData: any }) {
+	const getUserInfo = () => {
+		const user = userData?.USER?.[0] || userData?.user || userData
+		const files = userData?.FILE || []
+		const deletedFiles = files.filter((f: any) => f.deletedAt)
+		const activeFiles = files.filter((f: any) => !f.deletedAt)
+
+		return {
+			name: user?.name || user?.displayName || 'Unknown',
+			email: user?.email || 'No email',
+			activeFiles: activeFiles.length,
+			deletedFiles: deletedFiles.length,
+		}
+	}
+
+	const info = getUserInfo()
+
+	return (
+		<div className={styles.userSummary}>
+			<div className={styles.summaryGrid}>
+				<div className={styles.summaryItem}>
+					<span className={styles.fieldLabel}>Name:</span>
+					<span className={styles.fieldValue}>{info.name}</span>
+				</div>
+				<div className={styles.summaryItem}>
+					<span className={styles.fieldLabel}>Email:</span>
+					<span className={styles.fieldValue}>{info.email}</span>
+				</div>
+				<div className={styles.summaryItem}>
+					<span className={styles.fieldLabel}>Active Files:</span>
+					<span className={styles.fieldValue}>{info.activeFiles}</span>
+				</div>
+				<div className={styles.summaryItem}>
+					<span className={styles.fieldLabel}>Deleted Files:</span>
+					<span className={styles.fieldValue}>{info.deletedFiles}</span>
+				</div>
+			</div>
+		</div>
+	)
+}
 
 export function Component() {
 	const user = useTldrawUser()
-	const [data, setData] = useState(null)
+	const [data, setData] = useState<any>(null)
 	const [error, setError] = useState(null as string | null)
 	const [replicatorData, setReplicatorData] = useState(null)
 	const [isRebooting, setIsRebooting] = useState(false)
+	const [successMessage, setSuccessMessage] = useState(null as string | null)
 	const inputRef = useRef<HTMLInputElement>(null)
+
 	const loadData = useCallback(async () => {
 		const q = inputRef.current?.value?.trim() ?? ''
+		if (!q) {
+			setError('Please enter an email or ID')
+			return
+		}
+
+		setError(null)
+		setSuccessMessage(null)
+
 		const res = await fetch(`/api/app/admin/user?${new URLSearchParams({ q })}`)
 		if (!res.ok) {
 			setError(res.statusText + ': ' + (await res.text()))
@@ -23,7 +102,13 @@ export function Component() {
 
 	const doReboot = useCallback(async () => {
 		const q = inputRef.current?.value?.trim() ?? ''
+		if (!q) {
+			setError('Please enter an email or ID')
+			return
+		}
+
 		setIsRebooting(true)
+		setError(null)
 		try {
 			const res = await fetch(`/api/app/admin/user/reboot?${new URLSearchParams({ q })}`, {
 				method: 'POST',
@@ -34,6 +119,7 @@ export function Component() {
 			}
 			setError(null)
 			loadData()
+			setSuccessMessage('User rebooted successfully')
 		} finally {
 			setIsRebooting(false)
 		}
@@ -56,52 +142,100 @@ export function Component() {
 		}
 	}, [user?.isTldraw])
 
+	// Clear success message after 3 seconds
+	useEffect(() => {
+		if (successMessage) {
+			const timer = setTimeout(() => setSuccessMessage(null), 3000)
+			return () => clearTimeout(timer)
+		}
+	}, [successMessage])
+
 	if (!user?.isTldraw) {
 		return <Navigate to="/" replace />
 	}
+
 	return (
-		<div
-			style={{
-				display: 'flex',
-				flexDirection: 'column',
-				overflow: 'scroll',
-				userSelect: 'text',
-				padding: '16px',
-				gap: '16px',
-			}}
-		>
-			<h1>Very secret admin page</h1>
-			<div style={{ display: 'flex' }}>
-				<input ref={inputRef} type="text" placeholder="Email or id" />
-				<button onClick={loadData}>Find user</button>
-			</div>
-			{error && <div style={{ color: 'red' }}>{error}</div>}
-			{data && (
-				<>
-					<button
-						onClick={() => {
-							navigator.clipboard.writeText(JSON.stringify(data, null, 2))
-						}}
-					>
-						copy data to clipboard
-					</button>
-					<button disabled={isRebooting} onClick={doReboot}>
-						force reboot
-					</button>
-				</>
-			)}
-			<h2>Replicator data</h2>
-			{replicatorData && (
-				<pre style={{ userSelect: 'text' }}>{JSON.stringify(replicatorData, null, 2)}</pre>
-			)}
-			<div>
-				<h2>User data</h2>
-				{data && <pre style={{ userSelect: 'text' }}>{JSON.stringify(data, null, 2)}</pre>}
-			</div>
-			<DownloadTldrFile legacy={false} />
-			<DownloadTldrFile legacy={true} />
-			<CreateLegacyFile />
-			<HardDeleteFile />
+		<div className={styles.adminContainer}>
+			<header className={styles.adminHeader}>
+				<h1 className="tla-text_ui__big">Admin Panel</h1>
+			</header>
+
+			<main className={styles.adminContent}>
+				{/* User Search Section */}
+				<section className={styles.adminSection}>
+					<h2 className="tla-text_ui__title">User Management</h2>
+					<div className={styles.searchContainer}>
+						<input
+							ref={inputRef}
+							type="text"
+							placeholder="Email or ID"
+							onKeyDown={(e) => {
+								if (e.key === 'Enter') {
+									loadData()
+								}
+							}}
+							className={styles.searchInput}
+						/>
+						<TlaButton onClick={loadData} variant="primary">
+							Find User
+						</TlaButton>
+					</div>
+					{error && <div className={styles.errorMessage}>{error}</div>}
+					{successMessage && <div className={styles.successMessage}>{successMessage}</div>}
+				</section>
+
+				{/* User Data Section */}
+				{data && (
+					<section className={styles.adminSection}>
+						<h3 className="tla-text_ui__title">User Data</h3>
+						<UserDataSummary userData={data.user[0]} />
+						<div className={styles.userActions}>
+							<TlaButton
+								onClick={() => {
+									navigator.clipboard.writeText(JSON.stringify(data, null, 2))
+									setSuccessMessage('User data copied to clipboard')
+								}}
+								variant="secondary"
+							>
+								Copy Data
+							</TlaButton>
+							<TlaButton
+								disabled={isRebooting}
+								onClick={doReboot}
+								variant="warning"
+								isLoading={isRebooting}
+							>
+								Force Reboot
+							</TlaButton>
+						</div>
+						<StructuredDataDisplay data={data} />
+					</section>
+				)}
+
+				{/* System Data Section */}
+				{replicatorData && (
+					<section className={styles.adminSection}>
+						<h3 className="tla-text_ui__title">System Health</h3>
+						<StructuredDataDisplay data={replicatorData} />
+					</section>
+				)}
+
+				{/* File Operations Section */}
+				<section className={styles.adminSection}>
+					<h3 className="tla-text_ui__title">File Operations</h3>
+					<div className={styles.fileOperations}>
+						<DownloadTldrFile legacy={false} />
+						<DownloadTldrFile legacy={true} />
+						<CreateLegacyFile />
+					</div>
+				</section>
+
+				{/* Danger Zone Section */}
+				<section className={styles.adminSection}>
+					<h3 className="tla-text_ui__title">Danger Zone</h3>
+					<HardDeleteFile />
+				</section>
+			</main>
 		</div>
 	)
 }
@@ -109,6 +243,8 @@ export function Component() {
 function HardDeleteFile() {
 	const inputRef = useRef<HTMLInputElement>(null)
 	const [error, setError] = useState(null as string | null)
+	const [successMessage, setSuccessMessage] = useState(null as string | null)
+
 	const onDelete = useCallback(async () => {
 		const fileId = inputRef.current?.value
 		if (!fileId) {
@@ -125,6 +261,7 @@ function HardDeleteFile() {
 		}
 
 		setError(null)
+		setSuccessMessage(null)
 		const res = await fetch(`/api/app/admin/hard_delete_file/${fileId}`, {
 			method: 'POST',
 		})
@@ -132,39 +269,65 @@ function HardDeleteFile() {
 			setError(res.statusText + ': ' + (await res.text()))
 			return
 		} else {
-			alert('File deleted! 🧹')
+			setSuccessMessage('File deleted successfully! 🧹')
+			inputRef.current!.value = ''
 		}
 	}, [])
+
+	// Clear success message after 3 seconds
+	useEffect(() => {
+		if (successMessage) {
+			const timer = setTimeout(() => setSuccessMessage(null), 3000)
+			return () => clearTimeout(timer)
+		}
+	}, [successMessage])
+
 	return (
-		<div>
-			<h2>Hard delete file</h2>
-			{error && <div style={{ color: 'red' }}>{error}</div>}
-			<div style={{ display: 'flex', gap: '8px' }}>
-				<input type="text" placeholder="file id" ref={inputRef} />
-				<button
-					onClick={onDelete}
-					style={{ border: 'none', backgroundColor: '#ff4444', color: 'white' }}
-				>
+		<div className={styles.dangerZone}>
+			{error && <div className={styles.errorMessage}>{error}</div>}
+			{successMessage && <div className={styles.successMessage}>{successMessage}</div>}
+			<div className={styles.deleteContainer}>
+				<input type="text" placeholder="File ID" ref={inputRef} className={styles.searchInput} />
+				<TlaButton onClick={onDelete} variant="warning" className={styles.deleteButton}>
 					Delete (cannot be undone)
-				</button>
+				</TlaButton>
 			</div>
 		</div>
 	)
 }
 
 function CreateLegacyFile() {
+	const [isCreating, setIsCreating] = useState(false)
+	const [successMessage, setSuccessMessage] = useState(null as string | null)
+
+	const handleCreate = useCallback(async () => {
+		setIsCreating(true)
+		setSuccessMessage(null)
+		try {
+			const res = await fetch(`/api/app/admin/create_legacy_file`, { method: 'POST' })
+			const { slug } = await res.json()
+			window.open(`/r/${slug}`, '_blank')?.focus()
+		} catch (err) {
+			console.error('Failed to create legacy file:', err)
+		} finally {
+			setIsCreating(false)
+		}
+	}, [])
+
+	// Clear success message after 3 seconds
+	useEffect(() => {
+		if (successMessage) {
+			const timer = setTimeout(() => setSuccessMessage(null), 3000)
+			return () => clearTimeout(timer)
+		}
+	}, [successMessage])
+
 	return (
-		<div>
-			<h2>Create legacy file</h2>
-			<button
-				onClick={() =>
-					fetch(`/api/app/admin/create_legacy_file`, { method: 'POST' })
-						.then((res) => res.json())
-						.then(({ slug }) => window.open(`/r/${slug}`, '_blank')?.focus())
-				}
-			>
-				Create legacy file
-			</button>
+		<div className={styles.fileOperation}>
+			{successMessage && <div className={styles.successMessage}>{successMessage}</div>}
+			<TlaButton onClick={handleCreate} variant="secondary" isLoading={isCreating}>
+				Create Legacy File
+			</TlaButton>
 		</div>
 	)
 }
@@ -172,8 +335,12 @@ function CreateLegacyFile() {
 function DownloadTldrFile({ legacy }: { legacy: boolean }) {
 	const inputRef = useRef<HTMLInputElement>(null)
 	const [error, setError] = useState(null as string | null)
+	const [isDownloading, setIsDownloading] = useState(false)
+	const [successMessage, setSuccessMessage] = useState(null as string | null)
+
 	const onDownload = useCallback(async () => {
 		setError(null)
+		setSuccessMessage(null)
 		const fileSlug = inputRef.current?.value
 		if (!fileSlug) {
 			setError('Please enter a file slug')
@@ -181,30 +348,49 @@ function DownloadTldrFile({ legacy }: { legacy: boolean }) {
 		}
 		const path = legacy ? 'download-legacy-tldr' : 'download-tldr'
 
-		const res = await fetch(`/api/app/admin/${path}/${fileSlug}`)
-		if (!res.ok) {
-			setError(res.statusText + ': ' + (await res.text()))
-			return
-		}
+		setIsDownloading(true)
+		try {
+			const res = await fetch(`/api/app/admin/${path}/${fileSlug}`)
+			if (!res.ok) {
+				setError(res.statusText + ': ' + (await res.text()))
+				return
+			}
 
-		// Create a blob from the response and trigger download
-		const blob = await res.blob()
-		const url = window.URL.createObjectURL(blob)
-		const a = document.createElement('a')
-		a.href = url
-		a.download = `${fileSlug}.tldr`
-		document.body.appendChild(a)
-		a.click()
-		window.URL.revokeObjectURL(url)
-		document.body.removeChild(a)
+			// Create a blob from the response and trigger download
+			const blob = await res.blob()
+			const url = window.URL.createObjectURL(blob)
+			const a = document.createElement('a')
+			a.href = url
+			a.download = `${fileSlug}.tldr`
+			document.body.appendChild(a)
+			a.click()
+			window.URL.revokeObjectURL(url)
+			document.body.removeChild(a)
+		} finally {
+			setIsDownloading(false)
+		}
 	}, [legacy])
+
+	// Clear success message after 3 seconds
+	useEffect(() => {
+		if (successMessage) {
+			const timer = setTimeout(() => setSuccessMessage(null), 3000)
+			return () => clearTimeout(timer)
+		}
+	}, [successMessage])
+
 	return (
-		<div>
-			<h2>{legacy ? 'Download legacy .tldr file' : 'Download .tldr file'}</h2>
-			{error && <div style={{ color: 'red' }}>{error}</div>}
-			<div style={{ display: 'flex', gap: '8px' }}>
-				<input type="text" placeholder="file id" ref={inputRef} />
-				<button onClick={onDownload}>Download</button>
+		<div className={styles.fileOperation}>
+			<h4 className="tla-text_ui__medium">
+				{legacy ? 'Download Legacy .tldr File' : 'Download .tldr File'}
+			</h4>
+			{error && <div className={styles.errorMessage}>{error}</div>}
+			{successMessage && <div className={styles.successMessage}>{successMessage}</div>}
+			<div className={styles.downloadContainer}>
+				<input type="text" placeholder="File ID" ref={inputRef} className={styles.searchInput} />
+				<TlaButton onClick={onDownload} variant="primary" isLoading={isDownloading}>
+					Download
+				</TlaButton>
 			</div>
 		</div>
 	)
