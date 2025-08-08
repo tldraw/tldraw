@@ -14,14 +14,14 @@ export const TlaCookieConsent = memo(function TlaSidebarCookieConsent() {
 	const auth = useAuth()
 
 	const user = useValue('user id', () => app?.getUser(), [app])
-	const isSignedIn = auth.isSignedIn
+	const isSignedIn = !!auth.isSignedIn
 
 	const handleAccept = useCallback(() => {
-		handleConsentChange(true, !!isSignedIn, user, app)
+		handleConsentChange(true, isSignedIn, user, app)
 	}, [app, user, isSignedIn])
 
 	const handleReject = useCallback(() => {
-		handleConsentChange(false, !!isSignedIn, user, app)
+		handleConsentChange(false, isSignedIn, user, app)
 	}, [app, user, isSignedIn])
 
 	const handleCustomize = useCallback(() => {
