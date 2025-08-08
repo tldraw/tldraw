@@ -85,6 +85,52 @@ export function createMutators(userId: string) {
 				await tx.mutate.file.insert(file)
 				await tx.mutate.file_state.insert(fileState)
 			},
+			createGroupFile: async (
+				tx,
+				{ fileId, groupId, name }: { fileId: string; groupId: string; name: string }
+			) => {
+				const file = await tx.query.file.where('id', '=', fileId).one().run()
+				assert(!file, ZErrorCode.bad_request)
+				assertValidId(fileId)
+				assertValidId(groupId)
+				assert(name, ZErrorCode.bad_request)
+				const hasGroupAccess = await tx.query.group_user
+					.where('userId', '=', userId)
+					.where('groupId', '=', groupId)
+					.one()
+					.run()
+				assert(hasGroupAccess, ZErrorCode.forbidden)
+				// create file row, group_file row, file_state row
+				await tx.mutate.file.insert({
+					id: fileId,
+					name,
+					ownerId: null,
+					owningGroupId: groupId,
+					ownerName: '',
+					ownerAvatar: '',
+					thumbnail: '',
+					shared: true,
+					sharedLinkType: 'edit',
+					isEmpty: true,
+					published: false,
+					lastPublished: 0,
+					publishedSlug: uniqueId(),
+					createdAt: Date.now(),
+					updatedAt: Date.now(),
+					isDeleted: false,
+					createSource: null,
+				})
+				await tx.mutate.group_file.insert({
+					fileId,
+					groupId,
+					createdAt: Date.now(),
+					updatedAt: Date.now(),
+				})
+				await tx.mutate.file_state.insert({
+					fileId,
+					userId,
+				})
+			},
 			deleteOrForget: async (tx, { fileId }: { fileId: string }) => {
 				const file = await tx.query.file.where('id', '=', fileId).one().run()
 				assert(file, ZErrorCode.bad_request)
@@ -298,6 +344,23 @@ export function createMutators(userId: string) {
 					createdAt: Date.now(),
 					updatedAt: Date.now(),
 				})
+			},
+			ungroupFile: async (tx, { fileId }: { fileId: string }) => {
+				await assertUserHasFlag(tx, userId, 'groups')
+				assert(fileId, ZErrorCode.bad_request)
+				const file = await tx.query.file.where('id', '=', fileId).one().run()
+				assert(file, ZErrorCode.bad_request)
+				assert(file.owningGroupId, ZErrorCode.bad_request)
+				// make sure user has group access to the file
+				const hasGroupAccess = await tx.query.group_user
+					.where('userId', '=', userId)
+					.where('groupId', '=', file.owningGroupId)
+					.one()
+					.run()
+				assert(hasGroupAccess, ZErrorCode.forbidden)
+				await tx.mutate.file.update({ id: fileId, owningGroupId: null, ownerId: userId })
+				await tx.mutate.group_file.delete({ fileId, groupId: file.owningGroupId })
+				// todo: delete file_states for other users who no longer have access to the file?
 			},
 		},
 	} as const satisfies CustomMutatorDefs<TlaSchema>

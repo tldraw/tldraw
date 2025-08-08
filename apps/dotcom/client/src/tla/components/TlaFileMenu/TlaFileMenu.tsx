@@ -1,10 +1,11 @@
 /* ---------------------- Menu ---------------------- */
 
 import { FILE_PREFIX, TlaFile } from '@tldraw/dotcom-shared'
-import { Fragment, ReactNode, useCallback } from 'react'
+import { Fragment, ReactNode, useCallback, useId } from 'react'
 import { useNavigate } from 'react-router-dom'
 import {
 	TLDRAW_FILE_EXTENSION,
+	TldrawUiButtonCheck,
 	TldrawUiDropdownMenuContent,
 	TldrawUiDropdownMenuRoot,
 	TldrawUiDropdownMenuTrigger,
@@ -17,21 +18,23 @@ import {
 	useDialogs,
 	useMaybeEditor,
 	useToasts,
+	useValue,
 } from 'tldraw'
 import { routes } from '../../../routeDefs'
 import { TldrawApp } from '../../app/TldrawApp'
 import { useApp } from '../../hooks/useAppState'
 import { useCanUpdateFile } from '../../hooks/useCanUpdateFile'
 import { useCurrentFileId } from '../../hooks/useCurrentFileId'
+import { useHasFlag } from '../../hooks/useHasFlag'
 import { useIsFileOwner } from '../../hooks/useIsFileOwner'
 import { useIsFilePinned } from '../../hooks/useIsFilePinned'
-import { useFileSidebarFocusContext } from '../../providers/FileInputFocusProvider'
 import { TLAppUiEventSource, useTldrawAppUiEvents } from '../../utils/app-ui-events'
 import { copyTextToClipboard } from '../../utils/copy'
 import { defineMessages, useMsg } from '../../utils/i18n'
+import { TlaDeleteFileDialog } from '../dialogs/TlaDeleteFileDialog'
 import { editorMessages } from '../TlaEditor/editor-messages'
 import { download } from '../TlaEditor/useFileEditorOverrides'
-import { TlaDeleteFileDialog } from '../dialogs/TlaDeleteFileDialog'
+import { TlaIcon } from '../TlaIcon/TlaIcon'
 
 const messages = defineMessages({
 	copied: { defaultMessage: 'Copied link' },
@@ -42,8 +45,9 @@ const messages = defineMessages({
 	forget: { defaultMessage: 'Forget' },
 	rename: { defaultMessage: 'Rename' },
 	copy: { defaultMessage: 'Copy' },
-	pin: { defaultMessage: 'Pin' },
-	unpin: { defaultMessage: 'Unpin' },
+	pin: { defaultMessage: 'Add to favorites' },
+	unpin: { defaultMessage: 'Remove from favorites' },
+	myFiles: { defaultMessage: 'My files' },
 })
 
 function getDuplicateName(file: TlaFile, app: TldrawApp) {
@@ -68,8 +72,9 @@ export function TlaFileMenu({
 	onRenameAction(): void
 	trigger: ReactNode
 }) {
+	const id = useId()
 	return (
-		<TldrawUiDropdownMenuRoot id={`file-menu-${fileId}-${source}`}>
+		<TldrawUiDropdownMenuRoot id={`file-menu-${fileId}-${source}-${id}`}>
 			<TldrawUiMenuContextProvider type="menu" sourceId="dialog">
 				<TldrawUiDropdownMenuTrigger>{trigger}</TldrawUiDropdownMenuTrigger>
 				<TldrawUiDropdownMenuContent side="bottom" align="start" alignOffset={0} sideOffset={0}>
@@ -102,6 +107,12 @@ export function FileItems({
 	const isOwner = useIsFileOwner(fileId)
 	const isPinned = useIsFilePinned(fileId)
 	const isActive = useCurrentFileId() === fileId
+	const hasGroups = useHasFlag('groups')
+
+	const file = useValue('file', () => app.getFile(fileId), [app, fileId])
+
+	// Get groups data
+	const groupMembers = useValue('groupMembers', () => app.getGroupMemberships(), [app])
 
 	const handleCopyLinkClick = useCallback(() => {
 		const url = routes.tlaFile(fileId, { asUrl: true })
@@ -116,8 +127,6 @@ export function FileItems({
 	const handlePinUnpinClick = useCallback(async () => {
 		app.pinOrUnpinFile(fileId)
 	}, [app, fileId])
-
-	const focusCtx = useFileSidebarFocusContext()
 
 	const handleDuplicateClick = useCallback(async () => {
 		const newFileId = uniqueId()
@@ -136,10 +145,10 @@ export function FileItems({
 			lastSessionState: prevState?.lastSessionState,
 		})
 		if (res.ok) {
-			focusCtx.shouldRenameNextNewFile = true
+			app.sidebarState.update((state) => ({ ...state, renamingFileId: newFileId }))
 			navigate(routes.tlaFile(newFileId))
 		}
-	}, [app, fileId, focusCtx, navigate, trackEvent, source])
+	}, [app, fileId, navigate, trackEvent, source])
 
 	const handleDeleteClick = useCallback(() => {
 		addDialog({
@@ -164,6 +173,7 @@ export function FileItems({
 	const deleteOrForgetMsg = useMsg(isOwner ? messages.delete : messages.forget)
 	const canUpdateFile = useCanUpdateFile(fileId)
 	const downloadFile = useMsg(editorMessages.downloadFile)
+	const myFilesMsg = useMsg(messages.myFiles)
 
 	return (
 		<Fragment>
@@ -204,6 +214,72 @@ export function FileItems({
 				/>
 			</TldrawUiMenuGroup>
 			<TldrawUiMenuGroup id="file-delete">
+				{hasGroups && (
+					<TldrawUiMenuSubmenu id="move-to-group" label={'Move to'} size="small">
+						<TldrawUiMenuGroup id="my-files">
+							<TldrawUiMenuItem
+								key="my-files"
+								label={myFilesMsg}
+								id="my-files"
+								iconLeft={
+									<TldrawUiButtonCheck
+										checked={
+											!groupMembers.some((groupUser) => groupUser.group.id === file?.owningGroupId)
+										}
+									/>
+								}
+								readonlyOk
+								onSelect={() => {
+									app.z.mutate.group.ungroupFile({ fileId })
+								}}
+							/>
+						</TldrawUiMenuGroup>
+						{groupMembers.length > 0 && (
+							<TldrawUiMenuGroup id="my-groups">
+								{groupMembers.map((groupUser) => (
+									<TldrawUiMenuItem
+										key={groupUser.groupId}
+										label={groupUser.group.name}
+										id={`group-${groupUser.groupId}`}
+										iconLeft={
+											<TldrawUiButtonCheck checked={groupUser.group.id === file?.owningGroupId} />
+										}
+										readonlyOk
+										onSelect={() => {
+											app.z.mutate.group.moveFileToGroup({ fileId, groupId: groupUser.groupId })
+											app.sidebarState.update((state) => ({
+												...state,
+												expandedGroups: new Set(state.expandedGroups).add(groupUser.groupId),
+											}))
+										}}
+									/>
+								))}
+							</TldrawUiMenuGroup>
+						)}
+						<TldrawUiMenuGroup id="create-new-group">
+							<TldrawUiMenuItem
+								label="New group"
+								id="create-new-group"
+								readonlyOk
+								icon={<TlaIcon icon="plus" />}
+								onSelect={() => {
+									const name = prompt('Enter a name for the new group')
+									if (name) {
+										const id = uniqueId()
+										app.z.mutate.group.create({ id, name })
+										app.z.mutate.group.moveFileToGroup({ fileId, groupId: id })
+										setTimeout(() => {
+											app.sidebarState.update((state) => ({
+												...state,
+												expandedGroups: new Set(state.expandedGroups).add(id),
+											}))
+										}, 100)
+									}
+								}}
+							/>
+						</TldrawUiMenuGroup>
+					</TldrawUiMenuSubmenu>
+				)}
 				<TldrawUiMenuItem
 					label={deleteOrForgetMsg}
 					id="delete"

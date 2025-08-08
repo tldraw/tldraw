@@ -376,6 +376,7 @@ export class TldrawApp {
 			const file = myFiles[fileId]
 			let state: (typeof myStates)[string] | undefined = myStates[fileId]
 			if (!file) continue
+
 			if (!state && !file.isDeleted && file.ownerId === this.userId) {
 				// create a file state for this file
 				// this allows us to 'undelete' soft-deleted files by manually toggling 'isDeleted' in the backend
@@ -421,6 +422,16 @@ export class TldrawApp {
 		})
 	}
 
+	async createGroupFile(groupId: string) {
+		const fileId = uniqueId()
+		this.z.mutate.file.createGroupFile({
+			fileId,
+			groupId,
+			name: this.getFallbackFileName(Date.now()),
+		})
+		return Result.ok({ fileId })
+	}
+
 	async createFile(
 		fileOrId?: string | Partial<TlaFile>
 	): Promise<Result<{ file: TlaFile }, 'max number of files reached'>> {
@@ -428,6 +439,10 @@ export class TldrawApp {
 			this.showMaxFilesToast()
 			return Result.err('max number of files reached')
 		}
+		const isGroupFile =
+			typeof fileOrId === 'object' && 'owningGroupId' in fileOrId && fileOrId.owningGroupId !== null
+
+		assert(!isGroupFile, 'isGroupFile should be false')
 
 		const file: TlaFile = {
 			id: typeof fileOrId === 'string' ? fileOrId : uniqueId(),
@@ -925,4 +940,12 @@ export class TldrawApp {
 
 		return this.createFile({ id, name })
 	}
+
+	sidebarState = atom('sidebar state', {
+		expandedGroups: new Set<string>(),
+		renameState: null as null | {
+			fileId: string
+			context: 'my-files' | 'group-files'
+		},
+	})
 }
