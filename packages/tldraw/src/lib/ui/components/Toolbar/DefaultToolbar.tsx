@@ -35,9 +35,9 @@ export const DefaultToolbar = memo(function DefaultToolbar({
 	children,
 	orientation = 'horizontal',
 	minItems = 4,
-	minSizePx = orientation === 'horizontal' ? 300 : 400,
+	minSizePx = orientation === 'horizontal' ? 310 : 400,
 	maxItems = 8,
-	maxSizePx = orientation === 'horizontal' ? 500 : 650,
+	maxSizePx = orientation === 'horizontal' ? 470 : 650,
 }: DefaultToolbarProps) {
 	const editor = useEditor()
 	const msg = useTranslation()

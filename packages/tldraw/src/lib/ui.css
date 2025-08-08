@@ -1077,6 +1077,8 @@
 
 .tlui-layout__bottom {
 	grid-row: 2;
+	width: 100%;
+	overflow: hidden;
 }
 
 .tlui-layout__bottom__main {
@@ -1146,6 +1148,7 @@
 
 .tlui-main-toolbar--horizontal {
 	padding-bottom: calc(var(--space-3) + var(--sab));
+	max-width: 100%;
 }
 
 .tlui-main-toolbar--vertical {
