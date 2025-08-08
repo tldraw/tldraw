@@ -1,9 +1,11 @@
+import { TlaUser } from '@tldraw/dotcom-shared'
 import posthog, { PostHogConfig, Properties } from 'posthog-js'
 import 'posthog-js/dist/web-vitals'
 import { useEffect } from 'react'
 import ReactGA from 'react-ga4'
 import { useLocation } from 'react-router-dom'
 import { getFromLocalStorage, setInLocalStorage, useValue, warnOnce } from 'tldraw'
+import { TldrawApp } from '../tla/app/TldrawApp'
 import { useApp } from '../tla/hooks/useAppState'
 
 // Local storage key for analytics consent
@@ -67,6 +69,8 @@ export function getStoredAnalyticsConsent(): boolean | null {
 export function setStoredAnalyticsConsent(consent: boolean): void {
 	try {
 		setInLocalStorage(ANALYTICS_CONSENT_KEY, consent.toString())
+		// Dispatch custom event to notify components of consent change
+		window.dispatchEvent(new CustomEvent('analytics-consent-changed'))
 	} catch {
 		// Ignore localStorage errors
 	}
@@ -92,6 +96,26 @@ export function configureAnalytics(
 			optedIn: consent,
 			user,
 		})
+	}
+}
+
+// Utility function to handle consent changes for both signed-in and signed-out users
+export function handleConsentChange(
+	newConsent: boolean,
+	isSignedIn: boolean | undefined,
+	user?: TlaUser,
+	app?: TldrawApp | null
+) {
+	if (isSignedIn && user && app) {
+		app.updateUser({ id: user.id, allowAnalyticsCookie: newConsent })
+		// Also update localStorage to keep them in sync
+		setStoredAnalyticsConsent(newConsent)
+		// Immediately configure analytics
+		configureAnalytics(newConsent, { id: user.id, name: user.name, email: user.email })
+	} else {
+		setStoredAnalyticsConsent(newConsent)
+		// Immediately configure analytics for signed-out users
+		configureAnalytics(newConsent)
 	}
 }
 

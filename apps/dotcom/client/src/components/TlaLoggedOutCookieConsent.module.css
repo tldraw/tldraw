@@ -4,4 +4,5 @@
 	left: 12px;
 	right: 0;
 	z-index: 1000;
+	width: fit-content;
 }

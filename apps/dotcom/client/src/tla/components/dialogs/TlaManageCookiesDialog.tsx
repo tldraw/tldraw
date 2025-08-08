@@ -1,6 +1,5 @@
 import { useAuth } from '@clerk/clerk-react'
 import { Tooltip as _Tooltip } from 'radix-ui'
-import { useState } from 'react'
 import {
 	TldrawUiDialogBody,
 	TldrawUiDialogCloseButton,
@@ -8,11 +7,8 @@ import {
 	TldrawUiDialogTitle,
 	useValue,
 } from 'tldraw'
-import {
-	configureAnalytics,
-	getStoredAnalyticsConsent,
-	setStoredAnalyticsConsent,
-} from '../../../utils/analytics'
+import { handleConsentChange } from '../../../utils/analytics'
+import { useAnalyticsConsent } from '../../hooks/useAnalyticsConsent'
 import { useMaybeApp } from '../../hooks/useAppState'
 import { F } from '../../utils/i18n'
 import {
@@ -26,42 +22,12 @@ import styles from './dialogs.module.css'
 
 const COOKIE_POLICY_URL = 'https://tldraw.notion.site/cookie-policy'
 
-export function TlaManageCookiesDialog({ onChange }: { onChange?(): void }) {
+export function TlaManageCookiesDialog() {
 	const app = useMaybeApp()
 	const auth = useAuth()
 	const user = useValue('user', () => app?.getUser(), [app])
-	const isSignedIn = auth.isSignedIn
-
-	// Get current consent status
-	const getCurrentConsent = () => {
-		if (isSignedIn && user && app) {
-			return user.allowAnalyticsCookie
-		} else {
-			return getStoredAnalyticsConsent()
-		}
-	}
-
-	// Initialize local state with current consent
-	const [localConsent, setLocalConsent] = useState(getCurrentConsent())
-
-	// Handle consent change
-	const handleConsentChange = (newConsent: boolean) => {
-		onChange?.()
-		// Update local state immediately for UI responsiveness
-		setLocalConsent(newConsent)
-
-		if (isSignedIn && user && app) {
-			app.updateUser({ id: user.id, allowAnalyticsCookie: newConsent })
-			// Also update localStorage to keep them in sync
-			setStoredAnalyticsConsent(newConsent)
-			// Immediately configure analytics
-			configureAnalytics(newConsent, { id: user.id, name: user.name, email: user.email })
-		} else {
-			setStoredAnalyticsConsent(newConsent)
-			// Immediately configure analytics for signed-out users
-			configureAnalytics(newConsent)
-		}
-	}
+	const isSignedIn = !!auth.isSignedIn
+	const consent = useAnalyticsConsent(isSignedIn, user, app)
 
 	return (
 		<_Tooltip.Provider>
@@ -103,8 +69,8 @@ export function TlaManageCookiesDialog({ onChange }: { onChange?(): void }) {
 								<F defaultMessage="We use analytics cookies to make tldraw better." />
 							</TlaMenuControlInfoTooltip>
 							<TlaMenuSwitch
-								checked={localConsent === true}
-								onChange={() => handleConsentChange(!localConsent)}
+								checked={consent === true}
+								onChange={() => handleConsentChange(!(consent === true), isSignedIn, user, app)}
 							/>
 						</TlaMenuControl>
 					</TlaMenuControlGroup>
