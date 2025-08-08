@@ -1,4 +1,4 @@
-import { ZStoreData } from '@tldraw/dotcom-shared'
+import { TlaFile, ZStoreData } from '@tldraw/dotcom-shared'
 import { useCallback, useEffect, useRef, useState } from 'react'
 import { Navigate } from 'react-router-dom'
 import { fetch } from 'tldraw'
@@ -31,15 +31,15 @@ function StructuredDataDisplay({ data }: { data: ZStoreData }) {
 }
 
 // Helper component for user data summary
-function UserDataSummary({ userData }: { userData: any }) {
+function UserDataSummary({ data }: { data: ZStoreData }) {
 	const getUserInfo = () => {
-		const user = userData?.USER?.[0] || userData?.user || userData
-		const files = userData?.FILE || []
-		const deletedFiles = files.filter((f: any) => f.deletedAt)
-		const activeFiles = files.filter((f: any) => !f.deletedAt)
+		const user = data.user[0]
+		const files = data.file || []
+		const deletedFiles = files.filter((f: TlaFile) => f.isDeleted)
+		const activeFiles = files.filter((f: TlaFile) => !f.isDeleted)
 
 		return {
-			name: user?.name || user?.displayName || 'Unknown',
+			name: user?.name || 'Unknown',
 			email: user?.email || 'No email',
 			activeFiles: activeFiles.length,
 			deletedFiles: deletedFiles.length,
@@ -188,7 +188,7 @@ export function Component() {
 				{data && (
 					<section className={styles.adminSection}>
 						<h3 className="tla-text_ui__title">User Data</h3>
-						<UserDataSummary userData={data.user[0]} />
+						<UserDataSummary data={data} />
 						<div className={styles.userActions}>
 							<TlaButton
 								onClick={() => {
