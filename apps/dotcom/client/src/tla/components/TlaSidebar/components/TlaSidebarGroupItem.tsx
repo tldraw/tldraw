@@ -50,6 +50,7 @@ const GroupFileList = memo(function GroupFileList({ groupId }: { groupId: string
 		<Collapsible.Root open={isShowingAll}>
 			{filesToShow.map((file) => (
 				<TlaSidebarFileLink
+					context="group-files"
 					key={`group-file-${file.id}`}
 					className={styles.sidebarGroupItemFile}
 					item={{
@@ -63,6 +64,7 @@ const GroupFileList = memo(function GroupFileList({ groupId }: { groupId: string
 			<Collapsible.Content className={styles.CollapsibleContent}>
 				{hiddenFiles.map((file) => (
 					<TlaSidebarFileLink
+						context="group-files"
 						key={`group-file-${file.id}`}
 						className={styles.sidebarGroupItemFile}
 						item={{

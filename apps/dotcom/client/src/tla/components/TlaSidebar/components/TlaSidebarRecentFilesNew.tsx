@@ -81,6 +81,7 @@ export function TlaSidebarRecentFilesNew() {
 				<TlaSidebarFileSection title={<F defaultMessage="Favorites" />} onePixelOfPaddingAtTheTop>
 					{results.pinnedFiles.map((item, i) => (
 						<TlaSidebarFileLink
+							context="my-files"
 							key={'file_link_pinned_' + item.fileId}
 							item={item}
 							testId={`tla-file-link-pinned-${i}`}
@@ -95,6 +96,7 @@ export function TlaSidebarRecentFilesNew() {
 				>
 					{filesToShow.map((item, i) => (
 						<TlaSidebarFileLink
+							context="my-files"
 							key={'file_link_today_' + item.fileId}
 							item={item}
 							testId={`tla-file-link-today-${i}`}
@@ -106,6 +108,7 @@ export function TlaSidebarRecentFilesNew() {
 				<Collapsible.Content className={styles.CollapsibleContent}>
 					{hiddenFiles.map((item, i) => (
 						<TlaSidebarFileLink
+							context="my-files"
 							key={'file_link_today_' + item.fileId}
 							item={item}
 							testId={`tla-file-link-today-${i}`}

@@ -70,6 +70,7 @@ export function TlaSidebarRecentFiles() {
 				>
 					{results.pinnedFiles.map((item, i) => (
 						<TlaSidebarFileLink
+							context="my-files"
 							key={'file_link_pinned_' + item.fileId}
 							item={item}
 							testId={`tla-file-link-pinned-${i}`}
@@ -81,6 +82,7 @@ export function TlaSidebarRecentFiles() {
 				<TlaSidebarFileSection title={<F defaultMessage="Today" />}>
 					{results.todayFiles.map((item, i) => (
 						<TlaSidebarFileLink
+							context="my-files"
 							key={'file_link_today_' + item.fileId}
 							item={item}
 							testId={`tla-file-link-today-${i}`}
@@ -92,6 +94,7 @@ export function TlaSidebarRecentFiles() {
 				<TlaSidebarFileSection title={<F defaultMessage="Yesterday" />}>
 					{results.yesterdayFiles.map((item, i) => (
 						<TlaSidebarFileLink
+							context="my-files"
 							key={'file_link_yesterday_' + item.fileId}
 							item={item}
 							testId={`tla-file-link-yesterday-${i}`}
@@ -103,6 +106,7 @@ export function TlaSidebarRecentFiles() {
 				<TlaSidebarFileSection title={<F defaultMessage="This week" />}>
 					{results.thisWeekFiles.map((item, i) => (
 						<TlaSidebarFileLink
+							context="my-files"
 							key={'file_link_this-week_' + item.fileId}
 							item={item}
 							testId={`tla-file-link-this-week-${i}`}
@@ -114,6 +118,7 @@ export function TlaSidebarRecentFiles() {
 				<TlaSidebarFileSection title={<F defaultMessage="This month" />}>
 					{results.thisMonthFiles.map((item, i) => (
 						<TlaSidebarFileLink
+							context="my-files"
 							key={'file_link_this-month_' + item.fileId}
 							item={item}
 							testId={`tla-file-link-this-month-${i}`}
@@ -127,6 +132,7 @@ export function TlaSidebarRecentFiles() {
 						.sort((a, b) => b.date - a.date)
 						.map((item, i) => (
 							<TlaSidebarFileLink
+								context="my-files"
 								key={'file_link_older' + item.fileId}
 								item={item}
 								testId={`tla-file-link-older-${i}`}

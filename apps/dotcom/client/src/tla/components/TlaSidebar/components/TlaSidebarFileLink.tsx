@@ -1,10 +1,11 @@
 import { TlaFile } from '@tldraw/dotcom-shared'
 import classNames from 'classnames'
 import { ContextMenu as _ContextMenu } from 'radix-ui'
-import { KeyboardEvent, MouseEvent, useCallback, useEffect, useRef, useState } from 'react'
+import { KeyboardEvent, MouseEvent, useCallback, useEffect, useRef } from 'react'
 import { Link, useNavigate, useParams } from 'react-router-dom'
 import {
 	TldrawUiMenuContextProvider,
+	isEqual,
 	preventDefault,
 	useContainer,
 	useMenuIsOpen,
@@ -46,10 +47,12 @@ export function TlaSidebarFileLink({
 	item,
 	testId,
 	className,
+	context,
 }: {
 	item: RecentFile
 	testId: string
 	className?: string
+	context: 'my-files' | 'group-files'
 }) {
 	const app = useApp()
 	const intl = useIntl()
@@ -64,7 +67,12 @@ export function TlaSidebarFileLink({
 		}
 	}, [isActive])
 
-	const [isRenaming, setIsRenaming] = useState(false)
+	const isRenaming = useValue(
+		'shouldRename',
+		() => isEqual(app.sidebarState.get().renameState, { fileId, context }),
+		[fileId, app]
+	)
+
 	const handleRenameAction = () => {
 		if (isMobile) {
 			const newName = prompt(intl.formatMessage(sidebarMessages.renameFile), fileName)?.trim()
@@ -72,7 +80,7 @@ export function TlaSidebarFileLink({
 				app.updateFile(fileId, { name: newName })
 			}
 		} else {
-			setIsRenaming(true)
+			app.sidebarState.update((state) => ({ ...state, renameState: { fileId, context } }))
 		}
 	}
 
@@ -87,7 +95,7 @@ export function TlaSidebarFileLink({
 					testId={testId}
 					isActive={isActive}
 					href={routes.tlaFile(fileId)}
-					onClose={() => setIsRenaming(false)}
+					onClose={() => app.sidebarState.update((state) => ({ ...state, renameState: null }))}
 					isRenaming={isRenaming}
 					handleRenameAction={handleRenameAction}
 					className={className}
@@ -144,21 +152,6 @@ export function TlaSidebarFileLinkInner({
 
 	const canUpdateFile = useCanUpdateFile(fileId)
 	const isOwnFile = useIsFileOwner(fileId)
-
-	const shouldRename = useValue(
-		'shouldRename',
-		() => app.sidebarState.get().renamingFileId === fileId,
-		[fileId, app]
-	)
-
-	useEffect(() => {
-		// on mount, trigger rename action if this is a new file.
-		if (shouldRename) {
-			handleRenameAction()
-			app.sidebarState.update((state) => ({ ...state, renamingFileId: null }))
-		}
-		// eslint-disable-next-line react-hooks/exhaustive-deps
-	}, [shouldRename])
 
 	const handleKeyDown = (e: KeyboardEvent) => {
 		if (!isActive) return

@@ -363,9 +363,6 @@ export class TldrawApp {
 	getUserRecentFiles() {
 		const myFiles = objectMapFromEntries(this.getUserOwnFiles().map((f) => [f.id, f]))
 		const myStates = objectMapFromEntries(this.getUserFileStates().map((f) => [f.fileId, f]))
-		const myGroupMemberships = objectMapFromEntries(
-			this.getGroupMemberships().map((g) => [g.groupId, g])
-		)
 
 		const myFileIds = new Set<string>([...objectMapKeys(myFiles), ...objectMapKeys(myStates)])
 
@@ -379,11 +376,6 @@ export class TldrawApp {
 			const file = myFiles[fileId]
 			let state: (typeof myStates)[string] | undefined = myStates[fileId]
 			if (!file) continue
-			if (file.owningGroupId && myGroupMemberships[file.owningGroupId]) {
-				// if the file is in a group, we want to show it in the recent files
-				// but we don't want to show it in the recent files if the user is not a member of the group
-				continue
-			}
 
 			if (!state && !file.isDeleted && file.ownerId === this.userId) {
 				// create a file state for this file
@@ -951,6 +943,9 @@ export class TldrawApp {
 
 	sidebarState = atom('sidebar state', {
 		expandedGroups: new Set<string>(),
-		renamingFileId: null as null | string,
+		renameState: null as null | {
+			fileId: string
+			context: 'my-files' | 'group-files'
+		},
 	})
 }

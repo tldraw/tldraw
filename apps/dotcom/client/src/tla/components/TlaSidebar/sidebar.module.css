@@ -749,6 +749,11 @@
 	position: relative;
 	overflow: visible;
 	width: 100%;
+	margin-bottom: 0px;
+	transition: margin-bottom 0.15s cubic-bezier(0.4, 0, 0.2, 1);
+}
+.sidebarGroupItem[data-state='open'] {
+	margin-bottom: 12px;
 }
 
 .sidebarGroupItem:hover::after {
