@@ -1240,7 +1240,6 @@
 	align-self: flex-start;
 }
 
-/* TODO(alex): do we actually need this? check with steve */
 .tlui-main-toolbar--horizontal .tlui-main-toolbar__overflow {
 	width: 40px;
 	margin-left: 2px;
@@ -1292,36 +1291,6 @@
 		background: linear-gradient(90deg, rgba(144, 144, 144, 0) 0%, var(--color-muted-2) 100%);
 		opacity: 1;
 	}
-}
-
-/* ------------------- Tooltip -------------------- */
-
-.tlui-tooltip {
-	font-size: 12px;
-	padding: 2px 8px;
-	border-radius: 4px;
-	background-color: var(--color-tooltip);
-	box-shadow: none;
-	color: var(--color-text-shadow);
-	max-width: 400px;
-	width: fit-content;
-	text-align: center;
-	pointer-events: none;
-	will-change: transform, opacity;
-	z-index: 2;
-}
-
-.tlui-tooltip__arrow {
-	fill: var(--color-tooltip);
-	will-change: opacity;
-}
-
-[data-radix-popper-content-wrapper]:has(.tlui-tooltip) {
-	z-index: var(--layer-toasts) !important;
-}
-
-[data-radix-popper-content-wrapper]:has(.tlui-tooltip[data-should-animate='true']) {
-	transition: all 0.1s ease-out;
 }
 
 /* ------------------- Tooltip -------------------- */

@@ -28,7 +28,11 @@ export { DefaultDialogs } from './lib/ui/components/Dialogs'
 export {
 	TldrawUiColumn,
 	TldrawUiGrid,
+	TldrawUiOrientationProvider,
 	TldrawUiRow,
+	useTldrawUiOrientation,
+	type TldrawUiOrientationContext,
+	type TldrawUiOrientationProviderProps,
 	type TLUiLayoutProps,
 } from './lib/ui/components/primitives/layout'
 export {
@@ -310,7 +314,7 @@ export {
 	ZoomToSelectionMenuItem,
 } from './lib/ui/components/menu-items'
 export { DefaultMinimap } from './lib/ui/components/Minimap/DefaultMinimap'
-export { MobileStylePanel, type MobileStylePanelProps } from './lib/ui/components/MobileStylePanel'
+export { MobileStylePanel } from './lib/ui/components/MobileStylePanel'
 export { DefaultNavigationPanel } from './lib/ui/components/NavigationPanel/DefaultNavigationPanel'
 export { OfflineIndicator } from './lib/ui/components/OfflineIndicator/OfflineIndicator'
 export { DefaultPageMenu } from './lib/ui/components/PageMenu/DefaultPageMenu'

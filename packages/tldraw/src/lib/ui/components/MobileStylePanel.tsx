@@ -17,17 +17,13 @@ import {
 	TldrawUiPopoverTrigger,
 } from './primitives/TldrawUiPopover'
 import { TldrawUiTooltip } from './primitives/TldrawUiTooltip'
-
-/** @public */
-export interface MobileStylePanelProps {
-	orientation?: 'horizontal' | 'vertical'
-}
+import { useTldrawUiOrientation } from './primitives/layout'
 
 /** @public @react */
-export function MobileStylePanel({ orientation = 'horizontal' }: MobileStylePanelProps) {
+export function MobileStylePanel() {
 	const editor = useEditor()
 	const msg = useTranslation()
-
+	const { orientation } = useTldrawUiOrientation()
 	const relevantStyles = useRelevantStyles()
 	const color = relevantStyles?.get(DefaultColorStyle)
 	const theme = getDefaultColorTheme({ isDarkMode: editor.user.getIsDarkMode() })

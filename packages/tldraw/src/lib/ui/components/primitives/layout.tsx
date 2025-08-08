@@ -19,6 +19,7 @@ export interface TldrawUiOrientationProviderProps {
 	orientation: 'horizontal' | 'vertical'
 	tooltipSide?: 'top' | 'right' | 'bottom' | 'left'
 }
+/** @public @react */
 export function TldrawUiOrientationProvider({
 	children,
 	orientation,

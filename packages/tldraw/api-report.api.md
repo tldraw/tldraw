@@ -2025,13 +2025,7 @@ export function LockGroup(): JSX_2.Element;
 export function MiscMenuGroup(): JSX_2.Element;
 
 // @public (undocumented)
-export function MobileStylePanel({ orientation }: MobileStylePanelProps): JSX_2.Element | null;
-
-// @public (undocumented)
-export interface MobileStylePanelProps {
-    // (undocumented)
-    orientation?: 'horizontal' | 'vertical';
-}
+export function MobileStylePanel(): JSX_2.Element | null;
 
 // @public (undocumented)
 export function MoveToPageMenu(): JSX_2.Element | null;
@@ -3096,6 +3090,27 @@ export function TldrawUiMenuSubmenu<Translation extends string = string>({ id, d
 
 // @public (undocumented)
 export function TldrawUiMenuToolItem({ toolId, ...rest }: TLUiMenuToolItemProps): JSX_2.Element | null;
+
+// @public (undocumented)
+export interface TldrawUiOrientationContext {
+    // (undocumented)
+    orientation: 'horizontal' | 'vertical';
+    // (undocumented)
+    tooltipSide: 'bottom' | 'left' | 'right' | 'top';
+}
+
+// @public (undocumented)
+export function TldrawUiOrientationProvider({ children, orientation, tooltipSide, }: TldrawUiOrientationProviderProps): JSX_2.Element;
+
+// @public (undocumented)
+export interface TldrawUiOrientationProviderProps {
+    // (undocumented)
+    children: ReactNode;
+    // (undocumented)
+    orientation: 'horizontal' | 'vertical';
+    // (undocumented)
+    tooltipSide?: 'bottom' | 'left' | 'right' | 'top';
+}
 
 // @public (undocumented)
 export function TldrawUiPopover({ id, children, onOpenChange, open, className }: TLUiPopoverProps): JSX_2.Element;
@@ -5107,6 +5122,9 @@ export function useShowCollaborationUi(): boolean;
 
 // @public (undocumented)
 export function useTldrawUiComponents(): TLUiComponents;
+
+// @public (undocumented)
+export function useTldrawUiOrientation(): TldrawUiOrientationContext;
 
 // @public (undocumented)
 export function useToasts(): TLUiToastsContextType;

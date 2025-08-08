@@ -96,7 +96,7 @@ export const DefaultToolbar = memo(function DefaultToolbar({
 					</div>
 					{breakpoint < PORTRAIT_BREAKPOINT.TABLET_SM && !isReadonlyMode && (
 						<div className="tlui-main-toolbar__tools tlui-main-toolbar__mobile-style-panel">
-							<MobileStylePanel orientation={orientation} />
+							<MobileStylePanel />
 						</div>
 					)}
 				</div>
