@@ -474,7 +474,7 @@ export const DefaultLabelColorStyle = StyleProp.defineEnum('tldraw:labelColor', 
 })
 
 /** @public */
-export type TLDefaultColorStyle = T.TypeOf<typeof DefaultColorStyle> | string
+export type TLDefaultColorStyle = T.TypeOf<typeof DefaultColorStyle>
 
 const defaultColorNamesSet = new Set(defaultColorNames)
 
@@ -488,7 +488,7 @@ export function isDefaultThemeColor(
 /** @public */
 export function getColorValue(
 	theme: TLDefaultColorTheme,
-	color: TLDefaultColorStyle | string,
+	color: TLDefaultColorStyle,
 	variant: keyof TLDefaultColorThemeColor
 ): string {
 	if (!isDefaultThemeColor(color)) {

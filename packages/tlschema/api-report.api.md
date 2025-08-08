@@ -314,7 +314,7 @@ export const geoShapeMigrations: TLPropsMigrations;
 export const geoShapeProps: RecordProps<TLGeoShape>;
 
 // @public (undocumented)
-export function getColorValue(theme: TLDefaultColorTheme, color: string | TLDefaultColorStyle, variant: keyof TLDefaultColorThemeColor): string;
+export function getColorValue(theme: TLDefaultColorTheme, color: TLDefaultColorStyle, variant: keyof TLDefaultColorThemeColor): string;
 
 // @public (undocumented)
 export function getDefaultColorTheme(opts: {
@@ -915,7 +915,7 @@ export type TLCursorType = SetValue<typeof TL_CURSOR_TYPES>;
 export type TLDefaultBinding = TLArrowBinding;
 
 // @public (undocumented)
-export type TLDefaultColorStyle = string | T.TypeOf<typeof DefaultColorStyle>;
+export type TLDefaultColorStyle = T.TypeOf<typeof DefaultColorStyle>;
 
 // @public (undocumented)
 export type TLDefaultColorTheme = Expand<{
