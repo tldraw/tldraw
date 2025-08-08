@@ -32,7 +32,11 @@ export function useAnalyticsConsent() {
 	// Update consent when external state changes
 	useEffect(() => {
 		const checkConsent = () => {
-			setConsent(getCurrentConsent())
+			const newConsent = getCurrentConsent()
+			// Only update if the consent value has actually changed
+			if (newConsent !== consent) {
+				setConsent(newConsent)
+			}
 		}
 
 		// Check on mount and when dependencies change
@@ -59,7 +63,7 @@ export function useAnalyticsConsent() {
 			window.removeEventListener('storage', handleStorageChange)
 			window.removeEventListener('analytics-consent-changed', handleCustomStorageChange)
 		}
-	}, [getCurrentConsent])
+	}, [getCurrentConsent, consent])
 
 	// Function to update consent
 	const updateConsent = useCallback(
