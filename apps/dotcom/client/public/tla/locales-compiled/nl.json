@@ -87,12 +87,6 @@
       "value": "Exporteren als"
     }
   ],
-  "1460ab5e78": [
-    {
-      "type": 0,
-      "value": "Gratis tldraws"
-    }
-  ],
   "181b90f889": [
     {
       "type": 0,
@@ -109,6 +103,18 @@
     {
       "type": 0,
       "value": "Vandaag"
+    }
+  ],
+  "20976e7bec": [
+    {
+      "type": 0,
+      "value": "Kamer is vol"
+    }
+  ],
+  "21bfb2dc2e": [
+    {
+      "type": 0,
+      "value": "Deze ruimte nadert zijn maximale grootte. Overweeg om wat inhoud te verwijderen of een nieuw bestand te maken."
     }
   ],
   "22d84a12fd": [
@@ -135,6 +141,12 @@
       "value": "Miro maar dan goed en gratis"
     }
   ],
+  "2deec2cb74": [
+    {
+      "type": 0,
+      "value": "Deze ruimte heeft de maximale bestandsgrootte bereikt en wijzigingen worden mogelijk niet meer opgeslagen. Verwijder wat inhoud of begin een nieuw bestand."
+    }
+  ],
   "31246941ad": [
     {
       "type": 0,
@@ -157,6 +169,12 @@
     {
       "type": 0,
       "value": "Editor"
+    }
+  ],
+  "37b3dca331": [
+    {
+      "type": 0,
+      "value": "Meld u aan"
     }
   ],
   "3bd1b98dbd": [
@@ -231,16 +249,10 @@
       "value": "Opnieuw laden"
     }
   ],
-  "4e029798f2": [
+  "4ea0bb66f7": [
     {
       "type": 0,
-      "value": "Gratis aandelen"
-    }
-  ],
-  "4e875b8d8e": [
-    {
-      "type": 0,
-      "value": "Gratis opslaan"
+      "value": "Een account zou leuk zijn"
     }
   ],
   "50db1b7e1e": [
@@ -307,6 +319,12 @@
       "value": "Deel"
     }
   ],
+  "5bb6cf3b53": [
+    {
+      "type": 0,
+      "value": "Kamer wordt groot"
+    }
+  ],
   "5bcc12ace8": [
     {
       "type": 0,
@@ -317,6 +335,12 @@
     {
       "type": 0,
       "value": "Oude browser gedetecteerd. Werk uw browser bij om deze app te gebruiken."
+    }
+  ],
+  "5bef23eb7e": [
+    {
+      "type": 0,
+      "value": "Maak uw account aan"
     }
   ],
   "5d26ae7550": [
@@ -335,12 +359,6 @@
     {
       "type": 0,
       "value": "Kopiëren"
-    }
-  ],
-  "5ff75742e0": [
-    {
-      "type": 0,
-      "value": "Meld je gratis aan"
     }
   ],
   "61057a0c84": [
@@ -451,6 +469,12 @@
       "value": "Ongeldig verzoek."
     }
   ],
+  "78e9815992": [
+    {
+      "type": 0,
+      "value": "Ik heb het"
+    }
+  ],
   "797799f35e": [
     {
       "type": 0,
@@ -467,6 +491,12 @@
     {
       "type": 0,
       "value": "Versie herstellen"
+    }
+  ],
+  "7c7d5d493e": [
+    {
+      "type": 0,
+      "value": "Meld je aan"
     }
   ],
   "7cb5f8b4a5": [
@@ -723,6 +753,12 @@
       "value": "Gastgebruiker"
     }
   ],
+  "b52dc007ac": [
+    {
+      "type": 0,
+      "value": "Aanmelden (gratis en goed)"
+    }
+  ],
   "b6d4223e60": [
     {
       "type": 0,
@@ -859,6 +895,12 @@
       "value": "Afmelden"
     }
   ],
+  "c8c6a6504a": [
+    {
+      "type": 0,
+      "value": "Je moet je aanmelden"
+    }
+  ],
   "cceaefbc20": [
     {
       "type": 0,
@@ -905,6 +947,12 @@
     {
       "type": 0,
       "value": "Probeer het opnieuw"
+    }
+  ],
+  "d8a50c79a7": [
+    {
+      "type": 0,
+      "value": "Kom met mij mee om te tekenen"
     }
   ],
   "d9100f3e10": [

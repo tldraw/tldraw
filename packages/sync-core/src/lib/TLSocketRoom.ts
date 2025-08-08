@@ -24,6 +24,10 @@ export class TLSocketRoom<R extends UnknownRecord = UnknownRecord, SessionMeta =
 		{ assembler: JsonChunkAssembler; socket: WebSocketMinimal; unlisten: () => void }
 	>()
 	readonly log?: TLSyncLog
+	private readonly syncCallbacks: {
+		onDataChange?(): void
+		onPresenceChange?(): void
+	}
 
 	constructor(
 		public readonly opts: {
@@ -65,11 +69,14 @@ export class TLSocketRoom<R extends UnknownRecord = UnknownRecord, SessionMeta =
 				? convertStoreSnapshotToRoomSnapshot(opts.initialSnapshot!)
 				: opts.initialSnapshot
 
-		this.room = new TLSyncRoom<R, SessionMeta>({
-			schema: opts.schema ?? (createTLSchema() as any),
-			snapshot: initialSnapshot,
+		this.syncCallbacks = {
 			onDataChange: opts.onDataChange,
 			onPresenceChange: opts.onPresenceChange,
+		}
+		this.room = new TLSyncRoom<R, SessionMeta>({
+			...this.syncCallbacks,
+			schema: opts.schema ?? (createTLSchema() as any),
+			snapshot: initialSnapshot,
 			log: opts.log,
 		})
 		this.room.events.on('session_removed', (args) => {
@@ -238,7 +245,7 @@ export class TLSocketRoom<R extends UnknownRecord = UnknownRecord, SessionMeta =
 	 * @returns the cloned record
 	 */
 	getRecord(id: string) {
-		return structuredClone(this.room.state.get().documents[id]?.state)
+		return structuredClone(this.room.documents.get(id)?.state)
 	}
 
 	/**
@@ -275,7 +282,7 @@ export class TLSocketRoom<R extends UnknownRecord = UnknownRecord, SessionMeta =
 	 */
 	getPresenceRecords() {
 		const result = {} as Record<string, UnknownRecord>
-		for (const document of Object.values(this.room.state.get().documents)) {
+		for (const document of this.room.documents.values()) {
 			if (document.state.typeName === this.room.presenceType?.typeName) {
 				result[document.state.id] = document.state
 			}
@@ -314,6 +321,7 @@ export class TLSocketRoom<R extends UnknownRecord = UnknownRecord, SessionMeta =
 		})
 
 		const newRoom = new TLSyncRoom<R, SessionMeta>({
+			...this.syncCallbacks,
 			schema: oldRoom.schema,
 			snapshot: {
 				clock: oldRoom.clock + 1,

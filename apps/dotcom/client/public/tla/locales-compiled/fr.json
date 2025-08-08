@@ -87,12 +87,6 @@
       "value": "Exporter en tant que"
     }
   ],
-  "1460ab5e78": [
-    {
-      "type": 0,
-      "value": "Tirages au sort gratuits"
-    }
-  ],
   "181b90f889": [
     {
       "type": 0,
@@ -109,6 +103,18 @@
     {
       "type": 0,
       "value": "Aujourd'hui"
+    }
+  ],
+  "20976e7bec": [
+    {
+      "type": 0,
+      "value": "La salle est pleine"
+    }
+  ],
+  "21bfb2dc2e": [
+    {
+      "type": 0,
+      "value": "Cette salle approche de sa taille maximale. Envisagez de supprimer du contenu ou de créer un nouveau fichier."
     }
   ],
   "22d84a12fd": [
@@ -135,6 +141,12 @@
       "value": "Miro mais bon et gratuit"
     }
   ],
+  "2deec2cb74": [
+    {
+      "type": 0,
+      "value": "Cette salle a atteint sa taille maximale et les modifications risquent de ne plus être enregistrées. Supprimez du contenu ou créez un nouveau fichier."
+    }
+  ],
   "31246941ad": [
     {
       "type": 0,
@@ -157,6 +169,12 @@
     {
       "type": 0,
       "value": "Éditeur"
+    }
+  ],
+  "37b3dca331": [
+    {
+      "type": 0,
+      "value": "Veuillez vous connecter"
     }
   ],
   "3bd1b98dbd": [
@@ -231,16 +249,10 @@
       "value": "Recharger"
     }
   ],
-  "4e029798f2": [
+  "4ea0bb66f7": [
     {
       "type": 0,
-      "value": "Actions gratuites"
-    }
-  ],
-  "4e875b8d8e": [
-    {
-      "type": 0,
-      "value": "Sauvegardes gratuites"
+      "value": "Un compte serait bien"
     }
   ],
   "50db1b7e1e": [
@@ -307,6 +319,12 @@
       "value": "Partager"
     }
   ],
+  "5bb6cf3b53": [
+    {
+      "type": 0,
+      "value": "La pièce devient grande"
+    }
+  ],
   "5bcc12ace8": [
     {
       "type": 0,
@@ -317,6 +335,12 @@
     {
       "type": 0,
       "value": "Ancien navigateur détecté. Veuillez mettre à jour votre navigateur pour utiliser cette application."
+    }
+  ],
+  "5bef23eb7e": [
+    {
+      "type": 0,
+      "value": "Créez votre compte"
     }
   ],
   "5d26ae7550": [
@@ -335,12 +359,6 @@
     {
       "type": 0,
       "value": "Copier"
-    }
-  ],
-  "5ff75742e0": [
-    {
-      "type": 0,
-      "value": "Inscrivez-vous gratuitement"
     }
   ],
   "61057a0c84": [
@@ -451,6 +469,12 @@
       "value": "Demande invalide."
     }
   ],
+  "78e9815992": [
+    {
+      "type": 0,
+      "value": "J'ai compris"
+    }
+  ],
   "797799f35e": [
     {
       "type": 0,
@@ -467,6 +491,12 @@
     {
       "type": 0,
       "value": "Restaurer la version"
+    }
+  ],
+  "7c7d5d493e": [
+    {
+      "type": 0,
+      "value": "Veuillez vous inscrire"
     }
   ],
   "7cb5f8b4a5": [
@@ -727,6 +757,12 @@
       "value": "Utilisateur invité"
     }
   ],
+  "b52dc007ac": [
+    {
+      "type": 0,
+      "value": "Inscrivez-vous (gratuit et bon)"
+    }
+  ],
   "b6d4223e60": [
     {
       "type": 0,
@@ -863,6 +899,12 @@
       "value": "Se déconnecter"
     }
   ],
+  "c8c6a6504a": [
+    {
+      "type": 0,
+      "value": "Vous devriez vous inscrire"
+    }
+  ],
   "cceaefbc20": [
     {
       "type": 0,
@@ -909,6 +951,12 @@
     {
       "type": 0,
       "value": "Réessayer"
+    }
+  ],
+  "d8a50c79a7": [
+    {
+      "type": 0,
+      "value": "Viens avec moi pour dessiner"
     }
   ],
   "d9100f3e10": [

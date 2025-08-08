@@ -41,9 +41,6 @@
   "13ddd375ad": {
     "translation": "Xuất dưới dạng"
   },
-  "1460ab5e78": {
-    "translation": "Rút tiền miễn phí"
-  },
   "181b90f889": {
     "translation": "Tạo tệp"
   },
@@ -52,6 +49,12 @@
   },
   "1dd1c5fb7f": {
     "translation": "Hôm nay"
+  },
+  "20976e7bec": {
+    "translation": "Phòng đã đầy"
+  },
+  "21bfb2dc2e": {
+    "translation": "Phòng này sắp đạt đến giới hạn kích thước. Hãy cân nhắc xóa bớt nội dung hoặc tạo một tệp mới."
   },
   "22d84a12fd": {
     "translation": "Figjam nhưng tldraw"
@@ -65,6 +68,9 @@
   "2c61d18599": {
     "translation": "Miro nhưng tốt và miễn phí"
   },
+  "2deec2cb74": {
+    "translation": "Phòng này đã đạt đến giới hạn kích thước và các thay đổi có thể không còn được lưu nữa. Hãy xóa bớt nội dung hoặc tạo một tệp mới."
+  },
   "31246941ad": {
     "translation": "Bạn cần đăng nhập để xem tệp này."
   },
@@ -76,6 +82,9 @@
   },
   "344a7f427f": {
     "translation": "Biên tập viên"
+  },
+  "37b3dca331": {
+    "translation": "Vui lòng đăng nhập"
   },
   "3bd1b98dbd": {
     "translation": "Không thể xuất bản các thay đổi này."
@@ -113,11 +122,8 @@
   "4d1c8263ba": {
     "translation": "Tải lại"
   },
-  "4e029798f2": {
-    "translation": "Cổ phiếu miễn phí"
-  },
-  "4e875b8d8e": {
-    "translation": "Lưu miễn phí"
+  "4ea0bb66f7": {
+    "translation": "Một tài khoản sẽ tốt hơn"
   },
   "50db1b7e1e": {
     "translation": "Không thể hủy xuất bản tệp này."
@@ -146,11 +152,17 @@
   "5a95a425f7": {
     "translation": "Chia sẻ"
   },
+  "5bb6cf3b53": {
+    "translation": "Phòng đang trở nên rộng hơn"
+  },
   "5bcc12ace8": {
     "translation": "Phòng này hiện chỉ có thể đọc"
   },
   "5bec508475": {
     "translation": "Đã phát hiện trình duyệt cũ. Vui lòng cập nhật trình duyệt của bạn để sử dụng ứng dụng này."
+  },
+  "5bef23eb7e": {
+    "translation": "Tạo tài khoản của bạn"
   },
   "5d26ae7550": {
     "translation": "Chúng tôi không tải lên được một số nội dung bạn đã tạo trước khi bạn đăng nhập."
@@ -160,9 +172,6 @@
   },
   "5fb63579fc": {
     "translation": "Sao chép"
-  },
-  "5ff75742e0": {
-    "translation": "Đăng ký miễn phí"
   },
   "61057a0c84": {
     "translation": "Để sau"
@@ -218,6 +227,9 @@
   "777f9e90cf": {
     "translation": "Yêu cầu không hợp lệ."
   },
+  "78e9815992": {
+    "translation": "Hiểu rồi"
+  },
   "797799f35e": {
     "translation": "Gửi vấn đề trên GitHub"
   },
@@ -226,6 +238,9 @@
   },
   "7be10fc592": {
     "translation": "Khôi phục phiên bản"
+  },
+  "7c7d5d493e": {
+    "translation": "Vui lòng đăng ký"
   },
   "7cb5f8b4a5": {
     "translation": "Quên"
@@ -336,6 +351,9 @@
   "b028909917": {
     "translation": "Người dùng khách"
   },
+  "b52dc007ac": {
+    "translation": "Đăng ký (miễn phí và tốt)"
+  },
   "b6d4223e60": {
     "translation": "Đăng nhập"
   },
@@ -384,6 +402,9 @@
   "c87aacf567": {
     "translation": "Đăng xuất"
   },
+  "c8c6a6504a": {
+    "translation": "Bạn nên đăng ký"
+  },
   "cceaefbc20": {
     "translation": "Chia sẻ tệp này"
   },
@@ -407,6 +428,9 @@
   },
   "d876a9fe1a": {
     "translation": "Thử lại"
+  },
+  "d8a50c79a7": {
+    "translation": "Hãy cùng tôi vẽ nhé"
   },
   "d9100f3e10": {
     "translation": "Vào đây để xem nội dung"

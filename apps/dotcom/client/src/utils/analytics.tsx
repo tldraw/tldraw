@@ -58,7 +58,7 @@ function configurePosthog(options: AnalyticsOptions) {
 	const sessionID = hashParams.get('session_id')
 	const distinctID = hashParams.get('distinct_id')
 	const config: Partial<PostHogConfig> = {
-		api_host: 'https://analytics.tldraw.com/ingest',
+		api_host: 'https://analytics.tldraw.com/i',
 		ui_host: 'https://eu.i.posthog.com',
 		capture_pageview: false,
 		persistence: options.optedIn ? 'localStorage+cookie' : 'memory',
@@ -178,6 +178,12 @@ function getGA4() {
 
 export function trackEvent(name: string, data?: { [key: string]: any }) {
 	getPosthog()?.capture(name, data)
+
+	// For GA4, rename 'source' to 'event_source' to avoid session attribution
+	if (data) {
+		const { source, ...rest } = data
+		data = source !== undefined ? { ...rest, event_source: source } : rest
+	}
 	getGA4()?.event(name, data)
 }
 

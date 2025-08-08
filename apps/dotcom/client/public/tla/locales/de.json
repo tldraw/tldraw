@@ -41,9 +41,6 @@
   "13ddd375ad": {
     "translation": "Exportieren als"
   },
-  "1460ab5e78": {
-    "translation": "Kostenlose tldraws"
-  },
   "181b90f889": {
     "translation": "Datei erstellen"
   },
@@ -52,6 +49,12 @@
   },
   "1dd1c5fb7f": {
     "translation": "Heute"
+  },
+  "20976e7bec": {
+    "translation": "Der Raum ist voll"
+  },
+  "21bfb2dc2e": {
+    "translation": "Dieser Raum erreicht seine maximale Größe. Entfernen Sie ggf. Inhalte oder erstellen Sie eine neue Datei."
   },
   "22d84a12fd": {
     "translation": "Figjam aber tldraw"
@@ -65,6 +68,9 @@
   "2c61d18599": {
     "translation": "Miro aber gut und kostenlos"
   },
+  "2deec2cb74": {
+    "translation": "Dieser Raum hat seine Größenbeschränkung erreicht und Änderungen können möglicherweise nicht mehr gespeichert werden. Entfernen Sie Inhalte oder beginnen Sie eine neue Datei."
+  },
   "31246941ad": {
     "translation": "Um diese Datei anzuzeigen, müssen Sie sich anmelden."
   },
@@ -76,6 +82,9 @@
   },
   "344a7f427f": {
     "translation": "Editor"
+  },
+  "37b3dca331": {
+    "translation": "Bitte anmelden"
   },
   "3bd1b98dbd": {
     "translation": "Die Änderungen können nicht veröffentlicht werden."
@@ -113,11 +122,8 @@
   "4d1c8263ba": {
     "translation": "Neu laden"
   },
-  "4e029798f2": {
-    "translation": "Kostenlose Aktien"
-  },
-  "4e875b8d8e": {
-    "translation": "Kostenlose Speicherungen"
+  "4ea0bb66f7": {
+    "translation": "Ein Account wäre nett"
   },
   "50db1b7e1e": {
     "translation": "Die Veröffentlichung für diese Datei kann nicht aufgehoben werden."
@@ -146,11 +152,17 @@
   "5a95a425f7": {
     "translation": "Teilen"
   },
+  "5bb6cf3b53": {
+    "translation": "Das Zimmer wird größer"
+  },
   "5bcc12ace8": {
     "translation": "Dieser Raum ist jetzt schreibgeschützt"
   },
   "5bec508475": {
     "translation": "Alter Browser erkannt. Bitte aktualisieren Sie Ihren Browser, um diese App zu verwenden."
+  },
+  "5bef23eb7e": {
+    "translation": "Erstellen Sie Ihr Konto"
   },
   "5d26ae7550": {
     "translation": "Wir konnten den von Ihnen vor Ihrer Anmeldung erstellten Inhalt teilweise nicht hochladen."
@@ -160,9 +172,6 @@
   },
   "5fb63579fc": {
     "translation": "Kopieren"
-  },
-  "5ff75742e0": {
-    "translation": "Kostenlos registrieren"
   },
   "61057a0c84": {
     "translation": "Später"
@@ -218,6 +227,9 @@
   "777f9e90cf": {
     "translation": "Ungültige Anfrage."
   },
+  "78e9815992": {
+    "translation": "Habe es"
+  },
   "797799f35e": {
     "translation": "Senden Sie ein Problem auf GitHub"
   },
@@ -226,6 +238,9 @@
   },
   "7be10fc592": {
     "translation": "Version wiederherstellen"
+  },
+  "7c7d5d493e": {
+    "translation": "Bitte anmelden"
   },
   "7cb5f8b4a5": {
     "translation": "Vergessen"
@@ -336,6 +351,9 @@
   "b028909917": {
     "translation": "Gastbenutzer"
   },
+  "b52dc007ac": {
+    "translation": "Anmelden (kostenlos und gut)"
+  },
   "b6d4223e60": {
     "translation": "Anmelden"
   },
@@ -384,6 +402,9 @@
   "c87aacf567": {
     "translation": "Abmelden"
   },
+  "c8c6a6504a": {
+    "translation": "Sie sollten sich anmelden"
+  },
   "cceaefbc20": {
     "translation": "Diese Datei teilen"
   },
@@ -407,6 +428,9 @@
   },
   "d876a9fe1a": {
     "translation": "Erneut versuchen"
+  },
+  "d8a50c79a7": {
+    "translation": "Komm mit mir zum Zeichnen"
   },
   "d9100f3e10": {
     "translation": "Hier können Sie den Inhalt sehen"

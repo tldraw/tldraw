@@ -366,7 +366,9 @@ export interface SerializedSchemaV2 {
 export type SerializedStore<R extends UnknownRecord> = Record<IdOf<R>, R>;
 
 // @public
-export function squashRecordDiffs<T extends UnknownRecord>(diffs: RecordsDiff<T>[]): RecordsDiff<T>;
+export function squashRecordDiffs<T extends UnknownRecord>(diffs: RecordsDiff<T>[], options?: {
+    mutateFirstDiff?: boolean;
+}): RecordsDiff<T>;
 
 // @internal
 export function squashRecordDiffsMutable<T extends UnknownRecord>(target: RecordsDiff<T>, diffs: RecordsDiff<T>[]): void;
@@ -567,7 +569,9 @@ export class StoreSchema<R extends UnknownRecord, P = unknown> {
     // (undocumented)
     migratePersistedRecord(record: R, persistedSchema: SerializedSchema, direction?: 'down' | 'up'): MigrationResult<R>;
     // (undocumented)
-    migrateStoreSnapshot(snapshot: StoreSnapshot<R>): MigrationResult<SerializedStore<R>>;
+    migrateStoreSnapshot(snapshot: StoreSnapshot<R>, opts?: {
+        mutateInputStore?: boolean;
+    }): MigrationResult<SerializedStore<R>>;
     // (undocumented)
     readonly migrations: Record<string, MigrationSequence>;
     // (undocumented)

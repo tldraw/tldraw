@@ -56,7 +56,7 @@ export default function Analytics() {
 	useEffect(() => {
 		if (!isConfigured) {
 			posthog.init('phc_i8oKgMzgV38sn3GfjswW9mevQ3gFlo7bJXekZFeDN6', {
-				api_host: 'https://analytics.tldraw.com/ingest',
+				api_host: 'https://analytics.tldraw.com/i',
 				ui_host: 'https://eu.i.posthog.com',
 				persistence: 'memory',
 				capture_pageview: 'history_change',

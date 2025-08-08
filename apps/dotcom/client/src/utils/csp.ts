@@ -13,6 +13,9 @@ export const cspDirectives: { [key: string]: string[] } = {
 		`https://*.ingest.sentry.io`,
 		`https://*.ingest.us.sentry.io`,
 		'https://*.analytics.google.com',
+		'https://www.google-analytics.com',
+		'https://*.googletagmanager.com',
+		'https://www.googletagmanager.com',
 		// for thumbnail server
 		'http://localhost:5002',
 		'https://*.clerk.accounts.dev',
@@ -26,6 +29,7 @@ export const cspDirectives: { [key: string]: string[] } = {
 		'https://stats.g.doubleclick.net',
 		'https://*.google-analytics.com',
 		'https://api.reo.dev',
+		'https://fonts.googleapis.com',
 	],
 	'font-src': [`'self'`, `https://fonts.googleapis.com`, `https://fonts.gstatic.com`, 'data:'],
 	'frame-src': [`'self'`, `https:`],
@@ -40,6 +44,9 @@ export const cspDirectives: { [key: string]: string[] } = {
 		// embeds that have scripts
 		'https://gist.github.com',
 		'https://www.googletagmanager.com',
+		'https://*.googletagmanager.com',
+		'https://www.google-analytics.com',
+		'https://*.google-analytics.com',
 		'https://analytics.tldraw.com',
 		'https://static.reo.dev',
 	],

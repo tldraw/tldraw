@@ -87,12 +87,6 @@
       "value": "Exportați ca"
     }
   ],
-  "1460ab5e78": [
-    {
-      "type": 0,
-      "value": "TLDRAW-uri gratuite"
-    }
-  ],
   "181b90f889": [
     {
       "type": 0,
@@ -109,6 +103,18 @@
     {
       "type": 0,
       "value": "Astăzi"
+    }
+  ],
+  "20976e7bec": [
+    {
+      "type": 0,
+      "value": "Camera este plină"
+    }
+  ],
+  "21bfb2dc2e": [
+    {
+      "type": 0,
+      "value": "Această cameră se apropie de limita de dimensiune. Luați în considerare eliminarea unei părți din conținut sau începerea unui fișier nou."
     }
   ],
   "22d84a12fd": [
@@ -135,6 +141,12 @@
       "value": "Miro, dar bun și gratuit"
     }
   ],
+  "2deec2cb74": [
+    {
+      "type": 0,
+      "value": "Această cameră a atins limita de dimensiune și este posibil ca modificările să nu mai fie salvate. Eliminați o parte din conținut sau începeți un fișier nou."
+    }
+  ],
   "31246941ad": [
     {
       "type": 0,
@@ -157,6 +169,12 @@
     {
       "type": 0,
       "value": "Editor"
+    }
+  ],
+  "37b3dca331": [
+    {
+      "type": 0,
+      "value": "Vă rugăm să vă conectați"
     }
   ],
   "3bd1b98dbd": [
@@ -231,16 +249,10 @@
       "value": "Reîncărcați"
     }
   ],
-  "4e029798f2": [
+  "4ea0bb66f7": [
     {
       "type": 0,
-      "value": "Acțiuni gratuite"
-    }
-  ],
-  "4e875b8d8e": [
-    {
-      "type": 0,
-      "value": "Salvări gratuite"
+      "value": "Un cont ar fi binevenit"
     }
   ],
   "50db1b7e1e": [
@@ -307,6 +319,12 @@
       "value": "Distribuie"
     }
   ],
+  "5bb6cf3b53": [
+    {
+      "type": 0,
+      "value": "Camera devine mare"
+    }
+  ],
   "5bcc12ace8": [
     {
       "type": 0,
@@ -317,6 +335,12 @@
     {
       "type": 0,
       "value": "Browser vechi detectat. Vă rugăm să actualizați browserul pentru a utiliza această aplicație."
+    }
+  ],
+  "5bef23eb7e": [
+    {
+      "type": 0,
+      "value": "Creează-ți contul"
     }
   ],
   "5d26ae7550": [
@@ -335,12 +359,6 @@
     {
       "type": 0,
       "value": "Copie"
-    }
-  ],
-  "5ff75742e0": [
-    {
-      "type": 0,
-      "value": "Înregistrează-te gratuit"
     }
   ],
   "61057a0c84": [
@@ -451,6 +469,12 @@
       "value": "Solicitare nevalidă."
     }
   ],
+  "78e9815992": [
+    {
+      "type": 0,
+      "value": "Am înţeles"
+    }
+  ],
   "797799f35e": [
     {
       "type": 0,
@@ -467,6 +491,12 @@
     {
       "type": 0,
       "value": "Restaurați versiunea"
+    }
+  ],
+  "7c7d5d493e": [
+    {
+      "type": 0,
+      "value": "Vă rugăm să vă înscrieți"
     }
   ],
   "7cb5f8b4a5": [
@@ -727,6 +757,12 @@
       "value": "Utilizator invitat"
     }
   ],
+  "b52dc007ac": [
+    {
+      "type": 0,
+      "value": "Înregistrare (gratuită și bună)"
+    }
+  ],
   "b6d4223e60": [
     {
       "type": 0,
@@ -867,6 +903,12 @@
       "value": "Sign out"
     }
   ],
+  "c8c6a6504a": [
+    {
+      "type": 0,
+      "value": "Ar trebui să te înscrii"
+    }
+  ],
   "cceaefbc20": [
     {
       "type": 0,
@@ -913,6 +955,12 @@
     {
       "type": 0,
       "value": "Încearcă din nou"
+    }
+  ],
+  "d8a50c79a7": [
+    {
+      "type": 0,
+      "value": "Vino cu mine să desenăm"
     }
   ],
   "d9100f3e10": [

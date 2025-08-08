@@ -20,6 +20,7 @@ import {
 	TldrawUiPopoverTrigger,
 } from '../primitives/TldrawUiPopover'
 import { TldrawUiToolbar, TldrawUiToolbarButton } from '../primitives/TldrawUiToolbar'
+import { TldrawUiRow } from '../primitives/layout'
 import { TldrawUiMenuContextProvider } from '../primitives/menus/TldrawUiMenuContext'
 
 export const IsInOverflowContext = createContext(false)
@@ -61,14 +62,11 @@ export function OverflowingToolbar({ children }: OverflowingToolbarProps) {
 		const activeCss = lastActiveOverflowItem ? `:not([data-value="${lastActiveOverflowItem}"])` : ''
 
 		return `
-			#${id}_main > *:nth-child(n + ${overflowIndex + (lastActiveOverflowItem ? 1 : 2)})${activeCss} {
+			#${id}_main > *:nth-of-type(n + ${overflowIndex + (lastActiveOverflowItem ? 1 : 2)}):not([data-radix-popper-content-wrapper])${activeCss} {
 				display: none;
 			}
-			#${id}_more > *:nth-child(-n + ${overflowIndex}) {
+			#${id}_more > *:nth-of-type(-n + ${overflowIndex}):not([data-radix-popper-content-wrapper]) {
 				display: none;
-			}
-			#${id}_more > *:nth-child(-n + ${overflowIndex + 4}) {
-				margin-top: 0;
 			}
         `
 	}, [lastActiveOverflowItem, id, overflowIndex])
@@ -158,16 +156,17 @@ export function OverflowingToolbar({ children }: OverflowingToolbarProps) {
 		<>
 			<style nonce={editor.options.nonce}>{css}</style>
 			<TldrawUiToolbar
-				className={classNames('tlui-toolbar__tools', {
-					'tlui-toolbar__tools__mobile': breakpoint < PORTRAIT_BREAKPOINT.TABLET_SM,
+				orientation="horizontal"
+				className={classNames('tlui-main-toolbar__tools', {
+					'tlui-main-toolbar__tools__mobile': breakpoint < PORTRAIT_BREAKPOINT.TABLET_SM,
 				})}
 				label={msg('tool-panel.title')}
 			>
-				<div id={`${id}_main`} ref={mainToolsRef} className="tlui-toolbar__tools__list">
+				<TldrawUiRow id={`${id}_main`} ref={mainToolsRef}>
 					<TldrawUiMenuContextProvider type="toolbar" sourceId="toolbar">
 						{children}
 					</TldrawUiMenuContextProvider>
-				</div>
+				</TldrawUiRow>
 				{/* There is a +1 because if the menu is just one item, it's not necessary. */}
 				{totalItems > overflowIndex + 1 && (
 					<IsInOverflowContext.Provider value={true}>
@@ -176,7 +175,7 @@ export function OverflowingToolbar({ children }: OverflowingToolbarProps) {
 								<TldrawUiToolbarButton
 									title={msg('tool-panel.more')}
 									type="tool"
-									className="tlui-toolbar__overflow"
+									className="tlui-main-toolbar__overflow"
 									data-testid="tools.more-button"
 								>
 									<TldrawUiButtonIcon icon="chevron-up" />
@@ -184,7 +183,7 @@ export function OverflowingToolbar({ children }: OverflowingToolbarProps) {
 							</TldrawUiPopoverTrigger>
 							<TldrawUiPopoverContent side="top" align="center">
 								<TldrawUiToolbar
-									className="tlui-buttons__grid"
+									orientation="grid"
 									data-testid="tools.more-content"
 									label={msg('tool-panel.more')}
 									id={`${id}_more`}

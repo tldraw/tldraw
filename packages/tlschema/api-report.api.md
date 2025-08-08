@@ -56,6 +56,7 @@ export const arrowShapeVersions: {
     readonly AddIsPrecise: "com.tldraw.shape.arrow/2";
     readonly AddLabelColor: "com.tldraw.shape.arrow/1";
     readonly AddLabelPosition: "com.tldraw.shape.arrow/3";
+    readonly AddRichText: "com.tldraw.shape.arrow/7";
     readonly AddScale: "com.tldraw.shape.arrow/5";
     readonly ExtractBindings: "com.tldraw.shape.arrow/4";
 };
@@ -732,13 +733,13 @@ export interface TLArrowShapeProps {
     // (undocumented)
     labelPosition: number;
     // (undocumented)
+    richText: TLRichText;
+    // (undocumented)
     scale: number;
     // (undocumented)
     size: TLDefaultSizeStyle;
     // (undocumented)
     start: VecModel;
-    // (undocumented)
-    text: string;
 }
 
 // @public (undocumented)

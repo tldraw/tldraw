@@ -6,7 +6,6 @@ import {
 	TLDefaultColorTheme,
 	useEditor,
 } from '@tldraw/editor'
-import classNames from 'classnames'
 import { memo, ReactElement, useMemo, useRef } from 'react'
 import { StyleValuesForUi } from '../../../styles'
 import { PORTRAIT_BREAKPOINT } from '../../constants'
@@ -15,6 +14,7 @@ import { TLUiTranslationKey } from '../../hooks/useTranslation/TLUiTranslationKe
 import { useTranslation } from '../../hooks/useTranslation/useTranslation'
 import { TldrawUiButtonIcon } from './Button/TldrawUiButtonIcon'
 import { TldrawUiToolbarToggleGroup, TldrawUiToolbarToggleItem } from './TldrawUiToolbar'
+import { TldrawUiGrid, TldrawUiRow } from './layout'
 
 /** @public */
 export interface TLUiButtonPickerProps<T extends string> {
@@ -116,41 +116,43 @@ export const TldrawUiButtonPicker = memo(function TldrawUiButtonPicker<T extends
 		}
 	}, [editor, breakpoint, value, onHistoryMark, onValueChange, style])
 
+	const Wrapper = items.length > 4 ? TldrawUiGrid : TldrawUiRow
+
 	return (
-		<TldrawUiToolbarToggleGroup
-			data-testid={`style.${uiType}`}
-			type="single"
-			className={classNames('tlui-buttons__grid')}
-			value={value.type === 'shared' ? value.value : undefined}
-		>
-			{items.map((item) => {
-				const label = title + ' — ' + msg(`${uiType}-style.${item.value}` as TLUiTranslationKey)
-				return (
-					<TldrawUiToolbarToggleItem
-						type="icon"
-						key={item.value}
-						data-id={item.value}
-						data-testid={`style.${uiType}.${item.value}`}
-						aria-label={label}
-						value={item.value}
-						data-state={value.type === 'shared' && value.value === item.value ? 'on' : 'off'}
-						data-isactive={value.type === 'shared' && value.value === item.value}
-						title={label}
-						className={classNames('tlui-button-grid__button')}
-						style={
-							style === (DefaultColorStyle as StyleProp<unknown>)
-								? { color: getColorValue(theme, item.value, 'solid') }
-								: undefined
-						}
-						onPointerEnter={handleButtonPointerEnter}
-						onPointerDown={handleButtonPointerDown}
-						onPointerUp={handleButtonPointerUp}
-						onClick={handleButtonClick}
-					>
-						<TldrawUiButtonIcon icon={item.icon} />
-					</TldrawUiToolbarToggleItem>
-				)
-			})}
-		</TldrawUiToolbarToggleGroup>
+		<Wrapper asChild>
+			<TldrawUiToolbarToggleGroup
+				data-testid={`style.${uiType}`}
+				type="single"
+				value={value.type === 'shared' ? value.value : undefined}
+			>
+				{items.map((item) => {
+					const label = title + ' — ' + msg(`${uiType}-style.${item.value}` as TLUiTranslationKey)
+					return (
+						<TldrawUiToolbarToggleItem
+							type="icon"
+							key={item.value}
+							data-id={item.value}
+							data-testid={`style.${uiType}.${item.value}`}
+							aria-label={label}
+							value={item.value}
+							data-state={value.type === 'shared' && value.value === item.value ? 'on' : 'off'}
+							data-isactive={value.type === 'shared' && value.value === item.value}
+							title={label}
+							style={
+								style === (DefaultColorStyle as StyleProp<unknown>)
+									? { color: getColorValue(theme, item.value, 'solid') }
+									: undefined
+							}
+							onPointerEnter={handleButtonPointerEnter}
+							onPointerDown={handleButtonPointerDown}
+							onPointerUp={handleButtonPointerUp}
+							onClick={handleButtonClick}
+						>
+							<TldrawUiButtonIcon icon={item.icon} />
+						</TldrawUiToolbarToggleItem>
+					)
+				})}
+			</TldrawUiToolbarToggleGroup>
+		</Wrapper>
 	)
 }) as <T extends string>(props: TLUiButtonPickerProps<T>) => ReactElement

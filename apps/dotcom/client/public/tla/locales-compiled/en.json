@@ -33,12 +33,6 @@
       "value": "Auto"
     }
   ],
-  "0776e18496": [
-    {
-      "type": 0,
-      "value": "Save and share"
-    }
-  ],
   "07dbd11b21": [
     {
       "type": 0,
@@ -105,10 +99,16 @@
       "value": "Today"
     }
   ],
-  "22d84a12fd": [
+  "20976e7bec": [
     {
       "type": 0,
-      "value": "Figjam but tldraw"
+      "value": "Room is full"
+    }
+  ],
+  "21bfb2dc2e": [
+    {
+      "type": 0,
+      "value": "This room is approaching its size limit. Consider removing some content or starting a new file."
     }
   ],
   "250ddea65c": [
@@ -123,10 +123,10 @@
       "value": "Upload failed"
     }
   ],
-  "2c61d18599": [
+  "2deec2cb74": [
     {
       "type": 0,
-      "value": "Miro but good and free"
+      "value": "This room has reached its size limit and changes might no longer be saved. Remove some content or start a new file."
     }
   ],
   "31246941ad": [
@@ -153,12 +153,6 @@
       "value": "Editor"
     }
   ],
-  "37b3dca331": [
-    {
-      "type": 0,
-      "value": "Please sign in"
-    }
-  ],
   "3bd1b98dbd": [
     {
       "type": 0,
@@ -177,22 +171,10 @@
       "value": "Accept all"
     }
   ],
-  "3fc6d0c83a": [
-    {
-      "type": 0,
-      "value": "Add friend"
-    }
-  ],
   "42e53c47c1": [
     {
       "type": 0,
       "value": "Contact the owner to request access."
-    }
-  ],
-  "44281ab6e5": [
-    {
-      "type": 0,
-      "value": "Log up"
     }
   ],
   "44db318ee5": [
@@ -229,12 +211,6 @@
     {
       "type": 0,
       "value": "Reload"
-    }
-  ],
-  "4ea0bb66f7": [
-    {
-      "type": 0,
-      "value": "An account would be nice"
     }
   ],
   "50db1b7e1e": [
@@ -301,6 +277,12 @@
       "value": "Share"
     }
   ],
+  "5bb6cf3b53": [
+    {
+      "type": 0,
+      "value": "Room getting large"
+    }
+  ],
   "5bcc12ace8": [
     {
       "type": 0,
@@ -311,12 +293,6 @@
     {
       "type": 0,
       "value": "Old browser detected. Please update your browser to use this app."
-    }
-  ],
-  "5bef23eb7e": [
-    {
-      "type": 0,
-      "value": "Create your account"
     }
   ],
   "5d26ae7550": [
@@ -359,12 +335,6 @@
     {
       "type": 0,
       "value": "A new version of tldraw is available. Please reload the page to continue."
-    }
-  ],
-  "697c59072d": [
-    {
-      "type": 0,
-      "value": "Sign in to save"
     }
   ],
   "6a26f54883": [
@@ -445,6 +415,12 @@
       "value": "Invalid request."
     }
   ],
+  "78e9815992": [
+    {
+      "type": 0,
+      "value": "Got it"
+    }
+  ],
   "797799f35e": [
     {
       "type": 0,
@@ -461,12 +437,6 @@
     {
       "type": 0,
       "value": "Restore version"
-    }
-  ],
-  "7c7d5d493e": [
-    {
-      "type": 0,
-      "value": "Please sign up"
     }
   ],
   "7cb5f8b4a5": [
@@ -527,12 +497,6 @@
       "value": "."
     }
   ],
-  "84c89d47c7": [
-    {
-      "type": 0,
-      "value": "Share for free"
-    }
-  ],
   "85a082de1b": [
     {
       "type": 0,
@@ -563,12 +527,6 @@
     {
       "type": 0,
       "value": "To continue editing please copy the room to your files."
-    }
-  ],
-  "8ea211024d": [
-    {
-      "type": 0,
-      "value": "Create a free account"
     }
   ],
   "8eb2c00e96": [
@@ -727,12 +685,6 @@
       "value": "Guest user"
     }
   ],
-  "b52dc007ac": [
-    {
-      "type": 0,
-      "value": "Sign up (free and good)"
-    }
-  ],
   "b6d4223e60": [
     {
       "type": 0,
@@ -815,28 +767,10 @@
       "value": "Upload .tldr files"
     }
   ],
-  "bffe9a3c9a": [
-    {
-      "type": 0,
-      "value": "Log in"
-    }
-  ],
-  "c079282475": [
-    {
-      "type": 0,
-      "value": "Share your work"
-    }
-  ],
   "c2276c9127": [
     {
       "type": 0,
       "value": "Learn more about sharing."
-    }
-  ],
-  "c24e43cd1a": [
-    {
-      "type": 0,
-      "value": "You'll sign up, won't you?"
     }
   ],
   "c303bd1095": [
@@ -869,12 +803,6 @@
       "value": "Sign out"
     }
   ],
-  "c8c6a6504a": [
-    {
-      "type": 0,
-      "value": "You should sign up"
-    }
-  ],
   "cceaefbc20": [
     {
       "type": 0,
@@ -891,12 +819,6 @@
     {
       "type": 0,
       "value": "Learn more about publishing."
-    }
-  ],
-  "d0eedb7995": [
-    {
-      "type": 0,
-      "value": "Hey"
     }
   ],
   "d3d2e61733": [
@@ -923,28 +845,10 @@
       "value": "Try Again"
     }
   ],
-  "d8a50c79a7": [
-    {
-      "type": 0,
-      "value": "Come with me to tldraw"
-    }
-  ],
   "d9100f3e10": [
     {
       "type": 0,
       "value": "Go here to see the content"
-    }
-  ],
-  "da404df474": [
-    {
-      "type": 0,
-      "value": "Save your work"
-    }
-  ],
-  "db4c2dab9a": [
-    {
-      "type": 0,
-      "value": "Not Excalidraw"
     }
   ],
   "dbbebf3c03": [
@@ -1079,12 +983,6 @@
     {
       "type": 0,
       "value": "Are you sure you want to delete this file?"
-    }
-  ],
-  "fd27891570": [
-    {
-      "type": 0,
-      "value": "Join the waitlist"
     }
   ],
   "fed5ec05eb": [

@@ -87,12 +87,6 @@
       "value": "Eksporter som"
     }
   ],
-  "1460ab5e78": [
-    {
-      "type": 0,
-      "value": "Gratis tldraws"
-    }
-  ],
   "181b90f889": [
     {
       "type": 0,
@@ -109,6 +103,18 @@
     {
       "type": 0,
       "value": "I dag"
+    }
+  ],
+  "20976e7bec": [
+    {
+      "type": 0,
+      "value": "Rummet er fuldt"
+    }
+  ],
+  "21bfb2dc2e": [
+    {
+      "type": 0,
+      "value": "Dette rum nærmer sig sin størrelsesgrænse. Overvej at fjerne noget indhold eller starte en ny fil."
     }
   ],
   "22d84a12fd": [
@@ -135,6 +141,12 @@
       "value": "Miro, men god og fri"
     }
   ],
+  "2deec2cb74": [
+    {
+      "type": 0,
+      "value": "Dette rum har nået sin størrelsesgrænse, og ændringerne kan muligvis ikke længere gemmes. Fjern noget indhold, eller start en ny fil."
+    }
+  ],
   "31246941ad": [
     {
       "type": 0,
@@ -157,6 +169,12 @@
     {
       "type": 0,
       "value": "Redaktør"
+    }
+  ],
+  "37b3dca331": [
+    {
+      "type": 0,
+      "value": "Log venligst ind"
     }
   ],
   "3bd1b98dbd": [
@@ -231,16 +249,10 @@
       "value": "Genindlæs"
     }
   ],
-  "4e029798f2": [
+  "4ea0bb66f7": [
     {
       "type": 0,
-      "value": "Gratis aktier"
-    }
-  ],
-  "4e875b8d8e": [
-    {
-      "type": 0,
-      "value": "Gratis gemmesteder"
+      "value": "En konto ville være dejligt"
     }
   ],
   "50db1b7e1e": [
@@ -307,6 +319,12 @@
       "value": "Dele"
     }
   ],
+  "5bb6cf3b53": [
+    {
+      "type": 0,
+      "value": "Rummet bliver stort"
+    }
+  ],
   "5bcc12ace8": [
     {
       "type": 0,
@@ -317,6 +335,12 @@
     {
       "type": 0,
       "value": "Gammel browser fundet. Opdater venligst din browser for at bruge denne app."
+    }
+  ],
+  "5bef23eb7e": [
+    {
+      "type": 0,
+      "value": "Opret din konto"
     }
   ],
   "5d26ae7550": [
@@ -335,12 +359,6 @@
     {
       "type": 0,
       "value": "Kopi"
-    }
-  ],
-  "5ff75742e0": [
-    {
-      "type": 0,
-      "value": "Tilmeld dig gratis"
     }
   ],
   "61057a0c84": [
@@ -451,6 +469,12 @@
       "value": "Ugyldig anmodning."
     }
   ],
+  "78e9815992": [
+    {
+      "type": 0,
+      "value": "Forstået"
+    }
+  ],
   "797799f35e": [
     {
       "type": 0,
@@ -467,6 +491,12 @@
     {
       "type": 0,
       "value": "Gendan version"
+    }
+  ],
+  "7c7d5d493e": [
+    {
+      "type": 0,
+      "value": "Tilmeld dig venligst"
     }
   ],
   "7cb5f8b4a5": [
@@ -727,6 +757,12 @@
       "value": "Gæstebruger"
     }
   ],
+  "b52dc007ac": [
+    {
+      "type": 0,
+      "value": "Tilmelding (gratis og godt)"
+    }
+  ],
   "b6d4223e60": [
     {
       "type": 0,
@@ -863,6 +899,12 @@
       "value": "Log ud"
     }
   ],
+  "c8c6a6504a": [
+    {
+      "type": 0,
+      "value": "Du bør tilmelde dig"
+    }
+  ],
   "cceaefbc20": [
     {
       "type": 0,
@@ -909,6 +951,12 @@
     {
       "type": 0,
       "value": "Prøv igen"
+    }
+  ],
+  "d8a50c79a7": [
+    {
+      "type": 0,
+      "value": "Kom med mig til tldraw"
     }
   ],
   "d9100f3e10": [

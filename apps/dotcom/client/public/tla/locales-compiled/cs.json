@@ -87,12 +87,6 @@
       "value": "Exportovat jako"
     }
   ],
-  "1460ab5e78": [
-    {
-      "type": 0,
-      "value": "Zdarma tldraws"
-    }
-  ],
   "181b90f889": [
     {
       "type": 0,
@@ -109,6 +103,18 @@
     {
       "type": 0,
       "value": "Dnes"
+    }
+  ],
+  "20976e7bec": [
+    {
+      "type": 0,
+      "value": "Místnost je plná"
+    }
+  ],
+  "21bfb2dc2e": [
+    {
+      "type": 0,
+      "value": "Tato místnost se blíží svému limitu velikosti. Zkuste odstranit část obsahu nebo vytvořit nový soubor."
     }
   ],
   "22d84a12fd": [
@@ -135,6 +141,12 @@
       "value": "Miro, ale dobrý a svobodný"
     }
   ],
+  "2deec2cb74": [
+    {
+      "type": 0,
+      "value": "Tato místnost dosáhla limitu velikosti a změny se již nemusí ukládat. Odstraňte část obsahu nebo začněte vytvářet nový soubor."
+    }
+  ],
   "31246941ad": [
     {
       "type": 0,
@@ -157,6 +169,12 @@
     {
       "type": 0,
       "value": "Editor"
+    }
+  ],
+  "37b3dca331": [
+    {
+      "type": 0,
+      "value": "Přihlaste se prosím"
     }
   ],
   "3bd1b98dbd": [
@@ -231,16 +249,10 @@
       "value": "Znovu načíst"
     }
   ],
-  "4e029798f2": [
+  "4ea0bb66f7": [
     {
       "type": 0,
-      "value": "Bezplatné sdílení"
-    }
-  ],
-  "4e875b8d8e": [
-    {
-      "type": 0,
-      "value": "Ukládání zdarma"
+      "value": "Účet by se hodil"
     }
   ],
   "50db1b7e1e": [
@@ -307,6 +319,12 @@
       "value": "Podíl"
     }
   ],
+  "5bb6cf3b53": [
+    {
+      "type": 0,
+      "value": "Místnost se zvětšuje"
+    }
+  ],
   "5bcc12ace8": [
     {
       "type": 0,
@@ -317,6 +335,12 @@
     {
       "type": 0,
       "value": "Byl detekován starý prohlížeč. Pro použití této aplikace prosím aktualizujte prohlížeč."
+    }
+  ],
+  "5bef23eb7e": [
+    {
+      "type": 0,
+      "value": "Vytvořte si účet"
     }
   ],
   "5d26ae7550": [
@@ -335,12 +359,6 @@
     {
       "type": 0,
       "value": "Kopie"
-    }
-  ],
-  "5ff75742e0": [
-    {
-      "type": 0,
-      "value": "Zaregistrujte se zdarma"
     }
   ],
   "61057a0c84": [
@@ -451,6 +469,12 @@
       "value": "Neplatný požadavek."
     }
   ],
+  "78e9815992": [
+    {
+      "type": 0,
+      "value": "Rozumím"
+    }
+  ],
   "797799f35e": [
     {
       "type": 0,
@@ -467,6 +491,12 @@
     {
       "type": 0,
       "value": "Obnovit verzi"
+    }
+  ],
+  "7c7d5d493e": [
+    {
+      "type": 0,
+      "value": "Prosím, zaregistrujte se"
     }
   ],
   "7cb5f8b4a5": [
@@ -727,6 +757,12 @@
       "value": "Hostující uživatel"
     }
   ],
+  "b52dc007ac": [
+    {
+      "type": 0,
+      "value": "Registrace (zdarma a dobrá)"
+    }
+  ],
   "b6d4223e60": [
     {
       "type": 0,
@@ -871,6 +907,12 @@
       "value": "Odhlaste se"
     }
   ],
+  "c8c6a6504a": [
+    {
+      "type": 0,
+      "value": "Měl by ses zaregistrovat"
+    }
+  ],
   "cceaefbc20": [
     {
       "type": 0,
@@ -917,6 +959,12 @@
     {
       "type": 0,
       "value": "Zkuste to znovu"
+    }
+  ],
+  "d8a50c79a7": [
+    {
+      "type": 0,
+      "value": "Pojď se mnou kreslit"
     }
   ],
   "d9100f3e10": [
