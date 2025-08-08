@@ -1,5 +1,6 @@
 import { useAtom, useValue } from '@tldraw/state-react'
 import {
+	TLArrowShape,
 	TLFrameShape,
 	TLGroupShape,
 	TLShape,
@@ -34,6 +35,7 @@ import { useEvent } from '../hooks/useEvent'
 import { suffixSafeId, useUniqueSafeId } from '../hooks/useSafeId'
 import { Box } from '../primitives/Box'
 import { Mat } from '../primitives/Mat'
+import { Geometry2dFilters } from '../primitives/geometry/Geometry2d'
 import { ExportDelay } from './ExportDelay'
 
 export function getSvgJsx(editor: Editor, ids: TLShapeId[], opts: TLImageExportOptions = {}) {
@@ -63,6 +65,14 @@ export function getSvgJsx(editor: Editor, ids: TLShapeId[], opts: TLImageExportO
 		for (const { id } of renderingShapes) {
 			const maskedPageBounds = editor.getShapeMaskedPageBounds(id)
 			if (!maskedPageBounds) continue
+			if (editor.isShapeOfType<TLArrowShape>(editor.getShape(id)!, 'arrow')) {
+				// For arrows, apply a bounding box that includes the label.
+				const geometry = editor.getShapeGeometry(id)
+				const vertices = geometry.getVertices(Geometry2dFilters.INCLUDE_ALL)
+				const pageTransform = editor.getShapePageTransform(id)
+				const box = Box.FromPoints(pageTransform.applyToPoints(vertices))
+				maskedPageBounds.union(box)
+			}
 			if (bbox) {
 				bbox.union(maskedPageBounds)
 			} else {
