@@ -268,10 +268,12 @@ export function FileItems({
 										const id = uniqueId()
 										app.z.mutate.group.create({ id, name })
 										app.z.mutate.group.moveFileToGroup({ fileId, groupId: id })
-										app.sidebarState.update((state) => ({
-											...state,
-											expandedGroups: new Set(state.expandedGroups).add(id),
-										}))
+										setTimeout(() => {
+											app.sidebarState.update((state) => ({
+												...state,
+												expandedGroups: new Set(state.expandedGroups).add(id),
+											}))
+										}, 100)
 									}
 								}}
 							/>

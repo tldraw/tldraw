@@ -1,3 +1,4 @@
+import { Collapsible } from 'radix-ui'
 import { memo, useCallback, useRef, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { tltime, useValue } from 'tldraw'
@@ -6,7 +7,6 @@ import { useApp } from '../../../hooks/useAppState'
 import { useTldrawAppUiEvents } from '../../../utils/app-ui-events'
 import { getIsCoarsePointer } from '../../../utils/getIsCoarsePointer'
 import { F } from '../../../utils/i18n'
-import { Collapse } from '../../Collapse/Collapse'
 import { TlaIcon } from '../../TlaIcon/TlaIcon'
 import styles from '../sidebar.module.css'
 import { TlaSidebarFileLink } from './TlaSidebarFileLink'
@@ -47,7 +47,7 @@ const GroupFileList = memo(function GroupFileList({ groupId }: { groupId: string
 	const hiddenFiles = files.slice(MAX_FILES_TO_SHOW)
 
 	return (
-		<>
+		<Collapsible.Root open={isShowingAll}>
 			{filesToShow.map((file) => (
 				<TlaSidebarFileLink
 					key={`group-file-${file.id}`}
@@ -60,7 +60,7 @@ const GroupFileList = memo(function GroupFileList({ groupId }: { groupId: string
 					testId={`tla-group-file-${file.id}`}
 				/>
 			))}
-			<Collapse open={isShowingAll}>
+			<Collapsible.Content className={styles.CollapsibleContent}>
 				{hiddenFiles.map((file) => (
 					<TlaSidebarFileLink
 						key={`group-file-${file.id}`}
@@ -73,18 +73,20 @@ const GroupFileList = memo(function GroupFileList({ groupId }: { groupId: string
 						testId={`tla-group-file-${file.id}`}
 					/>
 				))}
-			</Collapse>
-			{isOverflowing &&
-				(isShowingAll ? (
-					<button className={styles.showAllButton} onClick={() => setIsShowingAll(false)}>
-						<F defaultMessage="Show less" />
-					</button>
-				) : (
-					<button className={styles.showAllButton} onClick={() => setIsShowingAll(true)}>
-						<F defaultMessage="Show more" />
-					</button>
-				))}
-		</>
+			</Collapsible.Content>
+			<Collapsible.Trigger asChild>
+				{isOverflowing &&
+					(isShowingAll ? (
+						<button className={styles.showAllButton} onClick={() => setIsShowingAll(false)}>
+							<F defaultMessage="Show less" />
+						</button>
+					) : (
+						<button className={styles.showAllButton} onClick={() => setIsShowingAll(true)}>
+							<F defaultMessage="Show more" />
+						</button>
+					))}
+			</Collapsible.Trigger>
+		</Collapsible.Root>
 	)
 })
 
@@ -135,43 +137,44 @@ export function TlaSidebarGroupItem({ groupId }: { groupId: string }) {
 	if (!group) return null
 
 	return (
-		<div className={styles.sidebarGroupItem} data-expanded={isExpanded}>
-			<button
-				className={styles.sidebarGroupItemHeader}
-				onClick={() => setIsExpanded(!isExpanded)}
-				aria-expanded={isExpanded}
-			>
-				<span className={styles.sidebarGroupItemTitle}>{group.group.name}</span>
-				<TriangleIcon angle={isExpanded ? 180 : 90} />
-				<div className={styles.sidebarGroupItemButtons}>
-					<button
-						className={styles.sidebarGroupItemButton}
-						onClick={(e) => {
-							e.stopPropagation()
-							// TODO: Implement menu functionality
-						}}
-						title="More options"
-						type="button"
-					>
-						<TlaIcon icon="dots-vertical-strong" />
-					</button>
-					<button
-						className={styles.sidebarGroupItemButton}
-						onClick={(e) => {
-							e.stopPropagation()
-							handleCreateFile()
-						}}
-						title="New file"
-						type="button"
-					>
-						<TlaIcon icon="edit" />
-					</button>
-				</div>
-			</button>
-
-			<Collapse open={isExpanded}>
+		<Collapsible.Root className={styles.sidebarGroupItem} open={isExpanded}>
+			<Collapsible.Trigger asChild>
+				<button
+					className={styles.sidebarGroupItemHeader}
+					onClick={() => setIsExpanded(!isExpanded)}
+					aria-expanded={isExpanded}
+				>
+					<span className={styles.sidebarGroupItemTitle}>{group.group.name}</span>
+					<TriangleIcon angle={isExpanded ? 180 : 90} />
+					<div className={styles.sidebarGroupItemButtons}>
+						<button
+							className={styles.sidebarGroupItemButton}
+							onClick={(e) => {
+								e.stopPropagation()
+								// TODO: Implement menu functionality
+							}}
+							title="More options"
+							type="button"
+						>
+							<TlaIcon icon="dots-vertical-strong" />
+						</button>
+						<button
+							className={styles.sidebarGroupItemButton}
+							onClick={(e) => {
+								e.stopPropagation()
+								handleCreateFile()
+							}}
+							title="New file"
+							type="button"
+						>
+							<TlaIcon icon="edit" />
+						</button>
+					</div>
+				</button>
+			</Collapsible.Trigger>
+			<Collapsible.Content className={styles.CollapsibleContent}>
 				<GroupFileList groupId={groupId} />
-			</Collapse>
-		</div>
+			</Collapsible.Content>
+		</Collapsible.Root>
 	)
 }
