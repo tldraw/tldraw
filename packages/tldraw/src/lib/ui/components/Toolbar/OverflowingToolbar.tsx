@@ -154,6 +154,8 @@ export function OverflowingToolbar({
 					if (lastActiveOverflowItem) {
 						shouldShowInMain = mainItemCount < itemsToShow || isLastActiveOverflowItem
 					} else {
+						// we use <= here because if there is no last active overflow item, we want
+						// to show at least one item in the main toolbar.
 						shouldShowInMain = mainItemCount <= itemsToShow
 					}
 					const shouldShowInOverflow = mainItemCount >= itemsToShow
