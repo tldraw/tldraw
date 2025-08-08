@@ -1,23 +1,20 @@
 import { zodResponseFormat } from 'openai/helpers/zod'
 import { z } from 'zod'
 
-const SimpleColor = z.union([
-	z.string(),
-	z.enum([
-		'red',
-		'light-red',
-		'green',
-		'light-green',
-		'blue',
-		'light-blue',
-		'orange',
-		'yellow',
-		'black',
-		'violet',
-		'light-violet',
-		'grey',
-		'white',
-	]),
+const SimpleColor = z.enum([
+	'red',
+	'light-red',
+	'green',
+	'light-green',
+	'blue',
+	'light-blue',
+	'orange',
+	'yellow',
+	'black',
+	'violet',
+	'light-violet',
+	'grey',
+	'white',
 ])
 
 export type ISimpleColor = z.infer<typeof SimpleColor>
