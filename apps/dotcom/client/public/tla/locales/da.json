@@ -50,6 +50,12 @@
   "1dd1c5fb7f": {
     "translation": "I dag"
   },
+  "20976e7bec": {
+    "translation": "Rummet er fuldt"
+  },
+  "21bfb2dc2e": {
+    "translation": "Dette rum nærmer sig sin størrelsesgrænse. Overvej at fjerne noget indhold eller starte en ny fil."
+  },
   "22d84a12fd": {
     "translation": "Figjam men tldraw"
   },
@@ -61,6 +67,9 @@
   },
   "2c61d18599": {
     "translation": "Miro, men god og fri"
+  },
+  "2deec2cb74": {
+    "translation": "Dette rum har nået sin størrelsesgrænse, og ændringerne kan muligvis ikke længere gemmes. Fjern noget indhold, eller start en ny fil."
   },
   "31246941ad": {
     "translation": "Du skal logge ind for at se denne fil."
@@ -143,6 +152,9 @@
   "5a95a425f7": {
     "translation": "Dele"
   },
+  "5bb6cf3b53": {
+    "translation": "Rummet bliver stort"
+  },
   "5bcc12ace8": {
     "translation": "Dette rum er nu skrivebeskyttet"
   },
@@ -214,6 +226,9 @@
   },
   "777f9e90cf": {
     "translation": "Ugyldig anmodning."
+  },
+  "78e9815992": {
+    "translation": "Forstået"
   },
   "797799f35e": {
     "translation": "Indsend et problem på GitHub"

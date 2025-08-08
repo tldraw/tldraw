@@ -68,7 +68,7 @@ function DoubleDropdownPickerInner<T extends string>({
 			<div title={msg(label)} className="tlui-style-panel__double-select-picker-label">
 				{msg(label)}
 			</div>
-			<TldrawUiToolbar label={msg(label)} className="tlui-buttons__horizontal">
+			<TldrawUiToolbar orientation="horizontal" label={msg(label)}>
 				<TldrawUiPopover id={idA} open={isOpenA} onOpenChange={setIsOpenA}>
 					<TldrawUiPopoverTrigger>
 						<TldrawUiToolbarButton
@@ -86,7 +86,7 @@ function DoubleDropdownPickerInner<T extends string>({
 						</TldrawUiToolbarButton>
 					</TldrawUiPopoverTrigger>
 					<TldrawUiPopoverContent side="left" align="center" sideOffset={80} alignOffset={0}>
-						<TldrawUiToolbar label={msg(labelA)} className="tlui-buttons__grid">
+						<TldrawUiToolbar orientation="grid" label={msg(labelA)}>
 							<TldrawUiMenuContextProvider type="icons" sourceId="style-panel">
 								{itemsA.map((item) => {
 									return (
@@ -126,7 +126,7 @@ function DoubleDropdownPickerInner<T extends string>({
 						</TldrawUiToolbarButton>
 					</TldrawUiPopoverTrigger>
 					<TldrawUiPopoverContent side="left" align="center" sideOffset={116} alignOffset={0}>
-						<TldrawUiToolbar label={msg(labelB)} className="tlui-buttons__grid">
+						<TldrawUiToolbar orientation="grid" label={msg(labelB)}>
 							<TldrawUiMenuContextProvider type="icons" sourceId="style-panel">
 								{itemsB.map((item) => {
 									return (

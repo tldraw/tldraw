@@ -50,6 +50,12 @@
   "1dd1c5fb7f": {
     "translation": "Avui"
   },
+  "20976e7bec": {
+    "translation": "La sala és plena"
+  },
+  "21bfb2dc2e": {
+    "translation": "Aquesta sala s'acosta al seu límit de mida. Penseu en la possibilitat d'eliminar part del contingut o iniciar un fitxer nou."
+  },
   "22d84a12fd": {
     "translation": "Figjam però tldraw"
   },
@@ -61,6 +67,9 @@
   },
   "2c61d18599": {
     "translation": "Miro però bo i gratuït"
+  },
+  "2deec2cb74": {
+    "translation": "Aquesta sala ha arribat al límit de mida i és possible que els canvis ja no es puguin desar. Elimina part del contingut o inicia un fitxer nou."
   },
   "31246941ad": {
     "translation": "Heu d'iniciar la sessió per veure aquest fitxer."
@@ -143,6 +152,9 @@
   "5a95a425f7": {
     "translation": "Comparteix"
   },
+  "5bb6cf3b53": {
+    "translation": "L'habitació s'està fent gran"
+  },
   "5bcc12ace8": {
     "translation": "Aquesta sala ara és de només lectura"
   },
@@ -214,6 +226,9 @@
   },
   "777f9e90cf": {
     "translation": "Sol·licitud no vàlida."
+  },
+  "78e9815992": {
+    "translation": "Ho entenc"
   },
   "797799f35e": {
     "translation": "Envieu un problema a GitHub"

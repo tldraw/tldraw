@@ -50,6 +50,12 @@
   "1dd1c5fb7f": {
     "translation": "Oggi"
   },
+  "20976e7bec": {
+    "translation": "La stanza è piena"
+  },
+  "21bfb2dc2e": {
+    "translation": "Questa stanza sta per raggiungere il limite di dimensioni. Valuta la possibilità di rimuovere alcuni contenuti o di creare un nuovo file."
+  },
   "22d84a12fd": {
     "translation": "Figjam ma tldraw"
   },
@@ -61,6 +67,9 @@
   },
   "2c61d18599": {
     "translation": "Miro ma buono e libero"
+  },
+  "2deec2cb74": {
+    "translation": "Questa stanza ha raggiunto il limite di dimensioni e le modifiche potrebbero non essere più salvate. Rimuovi alcuni contenuti o crea un nuovo file."
   },
   "31246941ad": {
     "translation": "Per vedere questo file devi accedere."
@@ -143,6 +152,9 @@
   "5a95a425f7": {
     "translation": "Condividi"
   },
+  "5bb6cf3b53": {
+    "translation": "La stanza sta diventando grande"
+  },
   "5bcc12ace8": {
     "translation": "Questa stanza è ora di sola lettura"
   },
@@ -214,6 +226,9 @@
   },
   "777f9e90cf": {
     "translation": "Richiesta non valida."
+  },
+  "78e9815992": {
+    "translation": "Fatto"
   },
   "797799f35e": {
     "translation": "Segnala un problema su GitHub"

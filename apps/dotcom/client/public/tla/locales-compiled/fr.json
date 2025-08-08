@@ -105,6 +105,18 @@
       "value": "Aujourd'hui"
     }
   ],
+  "20976e7bec": [
+    {
+      "type": 0,
+      "value": "La salle est pleine"
+    }
+  ],
+  "21bfb2dc2e": [
+    {
+      "type": 0,
+      "value": "Cette salle approche de sa taille maximale. Envisagez de supprimer du contenu ou de créer un nouveau fichier."
+    }
+  ],
   "22d84a12fd": [
     {
       "type": 0,
@@ -127,6 +139,12 @@
     {
       "type": 0,
       "value": "Miro mais bon et gratuit"
+    }
+  ],
+  "2deec2cb74": [
+    {
+      "type": 0,
+      "value": "Cette salle a atteint sa taille maximale et les modifications risquent de ne plus être enregistrées. Supprimez du contenu ou créez un nouveau fichier."
     }
   ],
   "31246941ad": [
@@ -301,6 +319,12 @@
       "value": "Partager"
     }
   ],
+  "5bb6cf3b53": [
+    {
+      "type": 0,
+      "value": "La pièce devient grande"
+    }
+  ],
   "5bcc12ace8": [
     {
       "type": 0,
@@ -443,6 +467,12 @@
     {
       "type": 0,
       "value": "Demande invalide."
+    }
+  ],
+  "78e9815992": [
+    {
+      "type": 0,
+      "value": "J'ai compris"
     }
   ],
   "797799f35e": [

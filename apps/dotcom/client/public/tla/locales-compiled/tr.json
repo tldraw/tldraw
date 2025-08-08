@@ -105,6 +105,18 @@
       "value": "Bugün"
     }
   ],
+  "20976e7bec": [
+    {
+      "type": 0,
+      "value": "Oda dolu"
+    }
+  ],
+  "21bfb2dc2e": [
+    {
+      "type": 0,
+      "value": "Bu oda boyut sınırına yaklaşıyor. İçeriğin bir kısmını kaldırmayı veya yeni bir dosya başlatmayı düşünün."
+    }
+  ],
   "22d84a12fd": [
     {
       "type": 0,
@@ -127,6 +139,12 @@
     {
       "type": 0,
       "value": "Miro ama iyi ve özgür"
+    }
+  ],
+  "2deec2cb74": [
+    {
+      "type": 0,
+      "value": "Bu oda boyut sınırına ulaştı ve değişiklikler artık kaydedilemeyebilir. İçeriğin bir kısmını kaldırın veya yeni bir dosya başlatın."
     }
   ],
   "31246941ad": [
@@ -301,6 +319,12 @@
       "value": "Paylaş"
     }
   ],
+  "5bb6cf3b53": [
+    {
+      "type": 0,
+      "value": "Oda büyüyor"
+    }
+  ],
   "5bcc12ace8": [
     {
       "type": 0,
@@ -443,6 +467,12 @@
     {
       "type": 0,
       "value": "Geçersiz istek"
+    }
+  ],
+  "78e9815992": [
+    {
+      "type": 0,
+      "value": "Anladım"
     }
   ],
   "797799f35e": [

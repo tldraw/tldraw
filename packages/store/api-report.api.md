@@ -366,7 +366,9 @@ export interface SerializedSchemaV2 {
 export type SerializedStore<R extends UnknownRecord> = Record<IdOf<R>, R>;
 
 // @public
-export function squashRecordDiffs<T extends UnknownRecord>(diffs: RecordsDiff<T>[]): RecordsDiff<T>;
+export function squashRecordDiffs<T extends UnknownRecord>(diffs: RecordsDiff<T>[], options?: {
+    mutateFirstDiff?: boolean;
+}): RecordsDiff<T>;
 
 // @internal
 export function squashRecordDiffsMutable<T extends UnknownRecord>(target: RecordsDiff<T>, diffs: RecordsDiff<T>[]): void;

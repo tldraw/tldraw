@@ -105,6 +105,18 @@
       "value": "Hôm nay"
     }
   ],
+  "20976e7bec": [
+    {
+      "type": 0,
+      "value": "Phòng đã đầy"
+    }
+  ],
+  "21bfb2dc2e": [
+    {
+      "type": 0,
+      "value": "Phòng này sắp đạt đến giới hạn kích thước. Hãy cân nhắc xóa bớt nội dung hoặc tạo một tệp mới."
+    }
+  ],
   "22d84a12fd": [
     {
       "type": 0,
@@ -127,6 +139,12 @@
     {
       "type": 0,
       "value": "Miro nhưng tốt và miễn phí"
+    }
+  ],
+  "2deec2cb74": [
+    {
+      "type": 0,
+      "value": "Phòng này đã đạt đến giới hạn kích thước và các thay đổi có thể không còn được lưu nữa. Hãy xóa bớt nội dung hoặc tạo một tệp mới."
     }
   ],
   "31246941ad": [
@@ -301,6 +319,12 @@
       "value": "Chia sẻ"
     }
   ],
+  "5bb6cf3b53": [
+    {
+      "type": 0,
+      "value": "Phòng đang trở nên rộng hơn"
+    }
+  ],
   "5bcc12ace8": [
     {
       "type": 0,
@@ -443,6 +467,12 @@
     {
       "type": 0,
       "value": "Yêu cầu không hợp lệ."
+    }
+  ],
+  "78e9815992": [
+    {
+      "type": 0,
+      "value": "Hiểu rồi"
     }
   ],
   "797799f35e": [

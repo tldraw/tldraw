@@ -50,6 +50,12 @@
   "1dd1c5fb7f": {
     "translation": "Dnes"
   },
+  "20976e7bec": {
+    "translation": "Místnost je plná"
+  },
+  "21bfb2dc2e": {
+    "translation": "Tato místnost se blíží svému limitu velikosti. Zkuste odstranit část obsahu nebo vytvořit nový soubor."
+  },
   "22d84a12fd": {
     "translation": "Figjam, ale tldraw"
   },
@@ -61,6 +67,9 @@
   },
   "2c61d18599": {
     "translation": "Miro, ale dobrý a svobodný"
+  },
+  "2deec2cb74": {
+    "translation": "Tato místnost dosáhla limitu velikosti a změny se již nemusí ukládat. Odstraňte část obsahu nebo začněte vytvářet nový soubor."
   },
   "31246941ad": {
     "translation": "Chcete-li zobrazit tento soubor, musíte se přihlásit."
@@ -143,6 +152,9 @@
   "5a95a425f7": {
     "translation": "Podíl"
   },
+  "5bb6cf3b53": {
+    "translation": "Místnost se zvětšuje"
+  },
   "5bcc12ace8": {
     "translation": "Tato místnost je nyní pouze pro čtení"
   },
@@ -214,6 +226,9 @@
   },
   "777f9e90cf": {
     "translation": "Neplatný požadavek."
+  },
+  "78e9815992": {
+    "translation": "Rozumím"
   },
   "797799f35e": {
     "translation": "Odešlete problém na GitHub"

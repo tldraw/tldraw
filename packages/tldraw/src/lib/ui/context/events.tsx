@@ -108,6 +108,7 @@ export interface TLUiEventMap {
 	'toggle-lock': null
 	'toggle-reduce-motion': null
 	'toggle-keyboard-shortcuts': null
+	'toggle-ui-labels': null
 	'toggle-edge-scrolling': null
 	'color-scheme': { value: string }
 	'exit-pen-mode': null
@@ -126,7 +127,6 @@ export interface TLUiEventMap {
 	'open-context-menu': null
 	'adjust-shape-styles': null
 	'copy-link': null
-	'drag-tool': { id: string }
 	'image-replace': null
 	'video-replace': null
 	'open-kbd-shortcuts': null

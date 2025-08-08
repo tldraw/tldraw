@@ -105,6 +105,18 @@
       "value": "Ngayong araw"
     }
   ],
+  "20976e7bec": [
+    {
+      "type": 0,
+      "value": "Puno ang kwarto"
+    }
+  ],
+  "21bfb2dc2e": [
+    {
+      "type": 0,
+      "value": "Papalapit na ang kwartong ito sa limitasyon ng laki nito. Pag-isipang mag-alis ng ilang content o magsimula ng bagong file."
+    }
+  ],
   "22d84a12fd": [
     {
       "type": 0,
@@ -127,6 +139,12 @@
     {
       "type": 0,
       "value": "Miro ngunit mabuti at libre"
+    }
+  ],
+  "2deec2cb74": [
+    {
+      "type": 0,
+      "value": "Naabot na ng kwartong ito ang limitasyon sa laki nito at maaaring hindi na ma-save ang mga pagbabago. Mag-alis ng ilang content o magsimula ng bagong file."
     }
   ],
   "31246941ad": [
@@ -301,6 +319,12 @@
       "value": "Ibahagi"
     }
   ],
+  "5bb6cf3b53": [
+    {
+      "type": 0,
+      "value": "Lumalaki ang kwarto"
+    }
+  ],
   "5bcc12ace8": [
     {
       "type": 0,
@@ -443,6 +467,12 @@
     {
       "type": 0,
       "value": "Di-wastong kahilingan."
+    }
+  ],
+  "78e9815992": [
+    {
+      "type": 0,
+      "value": "Nakuha ko"
     }
   ],
   "797799f35e": [

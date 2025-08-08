@@ -716,6 +716,7 @@ export const defaultTldrawOptions: {
     readonly nonce: undefined;
     readonly temporaryAssetPreviewLifetimeMs: 180000;
     readonly textShadowLod: 0.35;
+    readonly tooltipDelayMs: 700;
 };
 
 // @public (undocumented)
@@ -731,6 +732,7 @@ export const defaultUserPreferences: Readonly<{
     isWrapMode: false;
     locale: "ar" | "bn" | "ca" | "cs" | "da" | "de" | "el" | "en" | "es" | "fa" | "fi" | "fr" | "gl" | "gu-in" | "he" | "hi-in" | "hr" | "hu" | "id" | "it" | "ja" | "km-kh" | "kn" | "ko-kr" | "ml" | "mr" | "ms" | "ne" | "nl" | "no" | "pa" | "pl" | "pt-br" | "pt-pt" | "ro" | "ru" | "sl" | "so" | "sv" | "ta" | "te" | "th" | "tl" | "tr" | "uk" | "ur" | "vi" | "zh-cn" | "zh-tw";
     name: "";
+    showUiLabels: false;
 }>;
 
 // @public
@@ -1244,15 +1246,7 @@ export class Editor extends EventEmitter<TLEventMap> {
     getShape<T extends TLShape = TLShape>(shape: TLParentId | TLShape): T | undefined;
     getShapeAncestors(shape: TLShape | TLShapeId, acc?: TLShape[]): TLShape[];
     getShapeAndDescendantIds(ids: TLShapeId[]): Set<TLShapeId>;
-    getShapeAtPoint(point: VecLike, opts?: {
-        filter?(shape: TLShape): boolean;
-        hitFrameInside?: boolean;
-        hitInside?: boolean;
-        hitLabels?: boolean;
-        hitLocked?: boolean;
-        margin?: number;
-        renderingOnly?: boolean;
-    }): TLShape | undefined;
+    getShapeAtPoint(point: VecLike, opts?: TLGetShapeAtPointOptions): TLShape | undefined;
     getShapeClipPath(shape: TLShape | TLShapeId): string | undefined;
     getShapeGeometry<T extends Geometry2d>(shape: TLShape | TLShapeId, opts?: TLGeometryOpts): T;
     getShapeHandles<T extends TLShape>(shape: T | T['id']): TLHandle[] | undefined;
@@ -3320,6 +3314,8 @@ export interface TldrawOptions {
     readonly temporaryAssetPreviewLifetimeMs: number;
     // (undocumented)
     readonly textShadowLod: number;
+    // (undocumented)
+    readonly tooltipDelayMs: number;
 }
 
 // @public (undocumented)
@@ -3674,6 +3670,17 @@ export interface TLFontFaceSource {
 // @public
 export interface TLGeometryOpts {
     context?: string;
+}
+
+// @public
+export interface TLGetShapeAtPointOptions {
+    filter?(shape: TLShape): boolean;
+    hitFrameInside?: boolean;
+    hitInside?: boolean;
+    hitLabels?: boolean;
+    hitLocked?: boolean;
+    margin?: [number, number] | number;
+    renderingOnly?: boolean;
 }
 
 // @public (undocumented)
@@ -4349,6 +4356,8 @@ export interface TLUserPreferences {
     locale?: null | string;
     // (undocumented)
     name?: null | string;
+    // (undocumented)
+    showUiLabels?: boolean | null;
 }
 
 // @public (undocumented)
@@ -4521,6 +4530,8 @@ export class UserPreferencesManager {
     // (undocumented)
     getName(): string;
     // (undocumented)
+    getShowUiLabels(): boolean;
+    // (undocumented)
     getUserPreferences(): {
         animationSpeed: number;
         areKeyboardShortcutsEnabled: boolean;
@@ -4533,6 +4544,7 @@ export class UserPreferencesManager {
         isWrapMode: boolean;
         locale: string;
         name: string;
+        showUiLabels: boolean;
     };
     // (undocumented)
     systemColorScheme: Atom<"dark" | "light", unknown>;
