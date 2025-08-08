@@ -4,7 +4,7 @@ import { useAnalyticsConsent } from '../tla/hooks/useAnalyticsConsent'
 import styles from './TlaLoggedOutCookieConsent.module.css'
 
 export const TlaLoggedOutCookieConsent = memo(function TlaLoggedOutCookieConsent() {
-	const consent = useAnalyticsConsent(false)
+	const [consent] = useAnalyticsConsent()
 	if (consent !== null) return null
 	return (
 		<div className={styles.loggedOutCookieConsent} data-testid="tla-logged-out-cookie-consent">

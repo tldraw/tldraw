@@ -1,16 +1,23 @@
-import { TlaUser } from '@tldraw/dotcom-shared'
+import { useAuth } from '@clerk/clerk-react'
 import { useCallback, useEffect, useState } from 'react'
-import { getStoredAnalyticsConsent } from '../../utils/analytics'
-import { TldrawApp } from '../app/TldrawApp'
+import { useValue } from 'tldraw'
+import {
+	configureAnalytics,
+	getStoredAnalyticsConsent,
+	setStoredAnalyticsConsent,
+} from '../../utils/analytics'
+import { useMaybeApp } from '../hooks/useAppState'
 
 /**
  * Custom hook to track analytics consent changes
- * @param isSignedIn - Whether the user is signed in
- * @param user - The user object (for signed-in users)
- * @param app - The app object (for signed-in users)
- * @returns The current consent state
+ * @returns [consent, updateConsent] - The current consent state and function to update it
  */
-export function useAnalyticsConsent(isSignedIn: boolean, user?: TlaUser, app?: TldrawApp | null) {
+export function useAnalyticsConsent() {
+	const app = useMaybeApp()
+	const auth = useAuth()
+	const user = useValue('user', () => app?.getUser(), [app])
+	const isSignedIn = !!auth.isSignedIn
+
 	const getCurrentConsent = useCallback(() => {
 		if (isSignedIn && user && app) {
 			return user.allowAnalyticsCookie
@@ -53,5 +60,23 @@ export function useAnalyticsConsent(isSignedIn: boolean, user?: TlaUser, app?: T
 		}
 	}, [getCurrentConsent])
 
-	return consent
+	// Function to update consent
+	const updateConsent = useCallback(
+		(newConsent: boolean) => {
+			if (isSignedIn && user && app) {
+				app.updateUser({ id: user.id, allowAnalyticsCookie: newConsent })
+				// Also update localStorage to keep them in sync
+				setStoredAnalyticsConsent(newConsent)
+				// Immediately configure analytics
+				configureAnalytics(newConsent, { id: user.id, name: user.name, email: user.email })
+			} else {
+				setStoredAnalyticsConsent(newConsent)
+				// Immediately configure analytics for signed-out users
+				configureAnalytics(newConsent, undefined)
+			}
+		},
+		[isSignedIn, user, app]
+	)
+
+	return [consent, updateConsent] as const
 }

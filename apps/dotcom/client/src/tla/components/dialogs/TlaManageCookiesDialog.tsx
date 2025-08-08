@@ -1,15 +1,11 @@
-import { useAuth } from '@clerk/clerk-react'
 import { Tooltip as _Tooltip } from 'radix-ui'
 import {
 	TldrawUiDialogBody,
 	TldrawUiDialogCloseButton,
 	TldrawUiDialogHeader,
 	TldrawUiDialogTitle,
-	useValue,
 } from 'tldraw'
-import { handleConsentChange } from '../../../utils/analytics'
 import { useAnalyticsConsent } from '../../hooks/useAnalyticsConsent'
-import { useMaybeApp } from '../../hooks/useAppState'
 import { F } from '../../utils/i18n'
 import {
 	TlaMenuControl,
@@ -23,11 +19,7 @@ import styles from './dialogs.module.css'
 const COOKIE_POLICY_URL = 'https://tldraw.notion.site/cookie-policy'
 
 export function TlaManageCookiesDialog() {
-	const app = useMaybeApp()
-	const auth = useAuth()
-	const user = useValue('user', () => app?.getUser(), [app])
-	const isSignedIn = !!auth.isSignedIn
-	const consent = useAnalyticsConsent(isSignedIn, user, app)
+	const [consent, updateConsent] = useAnalyticsConsent()
 
 	return (
 		<_Tooltip.Provider>
@@ -70,7 +62,7 @@ export function TlaManageCookiesDialog() {
 							</TlaMenuControlInfoTooltip>
 							<TlaMenuSwitch
 								checked={consent === true}
-								onChange={() => handleConsentChange(!(consent === true), isSignedIn, user, app)}
+								onChange={() => updateConsent(!(consent === true))}
 							/>
 						</TlaMenuControl>
 					</TlaMenuControlGroup>
