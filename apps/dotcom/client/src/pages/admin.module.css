@@ -135,6 +135,48 @@
 	border: 2px solid var(--tla-color-warning) !important;
 }
 
+/* Progress Log */
+.progressLog {
+	margin-top: 16px;
+	padding: 16px;
+	background-color: var(--tla-color-low);
+	border: 1px solid var(--tla-color-border);
+	border-radius: var(--tla-radius-2);
+}
+
+.progressLog h5 {
+	margin: 0 0 12px 0;
+	font-size: 12px;
+	font-weight: 600;
+	color: var(--tla-color-text-2);
+	text-transform: uppercase;
+	letter-spacing: 0.5px;
+}
+
+.logContainer {
+	max-height: 200px;
+	overflow-y: auto;
+	font-family: 'IBMPlexMono', monospace;
+	font-size: 11px;
+	line-height: 1.4;
+	color: var(--tla-color-text-1);
+	background-color: var(--tla-color-contrast);
+	border: 1px solid var(--tla-color-border);
+	border-radius: var(--tla-radius-2);
+	padding: 8px;
+}
+
+.logEntry {
+	margin-bottom: 4px;
+	padding: 2px 0;
+	border-bottom: 1px solid var(--tla-color-border);
+}
+
+.logEntry:last-child {
+	border-bottom: none;
+	margin-bottom: 0;
+}
+
 /* Structured Data Display */
 .structuredData {
 	position: relative;
