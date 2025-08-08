@@ -1,4 +1,4 @@
-import { Editor, uniqueId, useMaybeEditor, Vec } from '@tldraw/editor'
+import { assert, Editor, uniqueId, useMaybeEditor, Vec } from '@tldraw/editor'
 import { Tooltip as _Tooltip } from 'radix-ui'
 import React, { createContext, useContext, useEffect, useRef, useState } from 'react'
 import { usePrefersReducedMotion } from '../../../shapes/shared/usePrefersReducedMotion'
@@ -69,20 +69,32 @@ class TooltipManager {
 		this.notify()
 	}
 
-	hideTooltip(tooltipId: string) {
-		// Only hide if this is the current tooltip
-		if (this.currentTooltipId === tooltipId) {
-			// Start destroy timeout (1 second)
-			if (this.editor) {
-				this.destroyTimeoutId = this.editor.timers.setTimeout(() => {
-					this.currentTooltipId = null
-					this.currentContent = ''
-					this.activeElement = null
-					this.destroyTimeoutId = null
-					this.notify()
-				}, 300)
+	hideTooltip(tooltipId: string, instant: boolean = false) {
+		const hide = () => {
+			// Only hide if this is the current tooltip
+			if (this.currentTooltipId === tooltipId) {
+				this.currentTooltipId = null
+				this.currentContent = ''
+				this.activeElement = null
+				this.destroyTimeoutId = null
+				this.notify()
 			}
 		}
+
+		if (instant) {
+			hide()
+		} else if (this.editor) {
+			// Start destroy timeout (1 second)
+			this.destroyTimeoutId = this.editor.timers.setTimeout(hide, 300)
+		}
+	}
+
+	hideAllTooltips() {
+		this.currentTooltipId = null
+		this.currentContent = ''
+		this.activeElement = null
+		this.destroyTimeoutId = null
+		this.notify()
 	}
 
 	getCurrentTooltipData() {
@@ -96,7 +108,7 @@ class TooltipManager {
 	}
 }
 
-const tooltipManager = TooltipManager.getInstance()
+export const tooltipManager = TooltipManager.getInstance()
 
 // Context for the tooltip singleton
 const TooltipSingletonContext = createContext<boolean>(false)
@@ -274,7 +286,11 @@ export function TldrawUiTooltip({
 		)
 	}
 
+	const child = React.Children.only(children)
+	assert(React.isValidElement(child), 'TldrawUiTooltip children must be a single element')
+
 	const handleMouseEnter = (event: React.MouseEvent<HTMLElement>) => {
+		child.props.onMouseEnter?.(event)
 		tooltipManager.showTooltip(
 			tooltipId.current,
 			content,
@@ -284,11 +300,13 @@ export function TldrawUiTooltip({
 		)
 	}
 
-	const handleMouseLeave = () => {
+	const handleMouseLeave = (event: React.MouseEvent<HTMLElement>) => {
+		child.props.onMouseLeave?.(event)
 		tooltipManager.hideTooltip(tooltipId.current)
 	}
 
 	const handleFocus = (event: React.FocusEvent<HTMLElement>) => {
+		child.props.onFocus?.(event)
 		tooltipManager.showTooltip(
 			tooltipId.current,
 			content,
@@ -298,7 +316,8 @@ export function TldrawUiTooltip({
 		)
 	}
 
-	const handleBlur = () => {
+	const handleBlur = (event: React.FocusEvent<HTMLElement>) => {
+		child.props.onBlur?.(event)
 		tooltipManager.hideTooltip(tooltipId.current)
 	}
 

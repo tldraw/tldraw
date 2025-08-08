@@ -24,6 +24,7 @@ import { TldrawUiDropdownMenuItem } from '../TldrawUiDropdownMenu'
 import { TLUiIconJsx } from '../TldrawUiIcon'
 import { TldrawUiKbd } from '../TldrawUiKbd'
 import { TldrawUiToolbarButton } from '../TldrawUiToolbar'
+import { tooltipManager } from '../TldrawUiTooltip'
 import { useTldrawUiMenuContext } from './TldrawUiMenuContext'
 
 /** @public */
@@ -361,6 +362,8 @@ function useDraggableEvents(
 							...getPointerInfo(e),
 							point: screenSpaceStart,
 						})
+
+						tooltipManager.hideAllTooltips()
 					})
 				}
 			}
