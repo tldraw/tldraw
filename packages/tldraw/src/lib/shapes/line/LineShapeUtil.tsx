@@ -12,6 +12,7 @@ import {
 	WeakCache,
 	ZERO_INDEX_KEY,
 	assert,
+	getColorValue,
 	getIndexAbove,
 	getIndexBetween,
 	getIndices,
@@ -346,6 +347,10 @@ function LineShapeSvg({
 		strokeWidth,
 		forceSolid,
 		randomSeed: shape.id,
-		props: { transform: `scale(${scale})`, stroke: theme[color].solid, fill: 'none' },
+		props: {
+			transform: `scale(${scale})`,
+			stroke: getColorValue(theme, color, 'solid'),
+			fill: 'none',
+		},
 	})
 }
