@@ -77,7 +77,7 @@ export function TlaSidebarRecentFilesNew() {
 
 	return (
 		<Fragment>
-			{results.pinnedFiles.length ? (
+			{results.pinnedFiles.length > 0 && (
 				<TlaSidebarFileSection title={<F defaultMessage="Favorites" />} onePixelOfPaddingAtTheTop>
 					{results.pinnedFiles.map((item, i) => (
 						<TlaSidebarFileLink
@@ -88,8 +88,8 @@ export function TlaSidebarRecentFilesNew() {
 						/>
 					))}
 				</TlaSidebarFileSection>
-			) : null}
-			{filesToShow.length ? (
+			)}
+			{filesToShow.length > 0 && (
 				<TlaSidebarFileSection
 					className={styles.sidebarFileSectionRecent}
 					title={<F defaultMessage="My files" />}
@@ -103,31 +103,33 @@ export function TlaSidebarRecentFilesNew() {
 						/>
 					))}
 				</TlaSidebarFileSection>
-			) : null}
-			<Collapsible.Root open={isShowingAll}>
-				<Collapsible.Content className={styles.CollapsibleContent}>
-					{hiddenFiles.map((item, i) => (
-						<TlaSidebarFileLink
-							context="my-files"
-							key={'file_link_today_' + item.fileId}
-							item={item}
-							testId={`tla-file-link-today-${i}`}
-						/>
-					))}
-				</Collapsible.Content>
-				<Collapsible.Trigger asChild>
-					{isOverflowing &&
-						(isShowingAll ? (
-							<button className={styles.showAllButton} onClick={() => setIsShowingAll(false)}>
-								<F defaultMessage="Show less" />
-							</button>
-						) : (
-							<button className={styles.showAllButton} onClick={() => setIsShowingAll(true)}>
-								<F defaultMessage="Show more" />
-							</button>
+			)}
+			{hiddenFiles.length > 0 && (
+				<Collapsible.Root open={isShowingAll}>
+					<Collapsible.Content className={styles.CollapsibleContent}>
+						{hiddenFiles.map((item, i) => (
+							<TlaSidebarFileLink
+								context="my-files"
+								key={'file_link_today_' + item.fileId}
+								item={item}
+								testId={`tla-file-link-today-${i}`}
+							/>
 						))}
-				</Collapsible.Trigger>
-			</Collapsible.Root>
+					</Collapsible.Content>
+					<Collapsible.Trigger asChild>
+						{isOverflowing &&
+							(isShowingAll ? (
+								<button className={styles.showAllButton} onClick={() => setIsShowingAll(false)}>
+									<F defaultMessage="Show less" />
+								</button>
+							) : (
+								<button className={styles.showAllButton} onClick={() => setIsShowingAll(true)}>
+									<F defaultMessage="Show more" />
+								</button>
+							))}
+					</Collapsible.Trigger>
+				</Collapsible.Root>
+			)}
 			<TlaSidebarFileSection
 				className={styles.sidebarFileSectionGroups}
 				title={<F defaultMessage="Groups" />}

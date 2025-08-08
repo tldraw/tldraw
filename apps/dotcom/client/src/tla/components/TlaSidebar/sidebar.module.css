@@ -727,9 +727,12 @@
 }
 
 .sidebarFileSectionGroups {
+	color: var(--tla-color-text-3);
+}
+
+.sidebarFileSectionGroups:not(:first-child) {
 	margin-top: 24px;
 	border-top: 1px solid var(--color-low-border);
-	color: var(--tla-color-text-3);
 }
 
 .sidebarFileSectionGroups .sidebarFileSectionTitle {
