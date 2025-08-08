@@ -17,12 +17,12 @@ export class Toolbar {
 		this.tools = {
 			select: this.page.getByTestId('tools.select'),
 			draw: this.page.getByTestId('tools.draw'),
+			text: this.page.getByTestId('tools.text'),
 			arrow: this.page.getByTestId('tools.arrow'),
 			cloud: this.page.getByTestId('tools.cloud'),
 			eraser: this.page.getByTestId('tools.eraser'),
 			rectangle: this.page.getByTestId('tools.rectangle'),
 			hand: this.page.getByTestId('tools.hand'),
-			text: this.page.getByTestId('tools.text'),
 		}
 		this.popOverTools = {
 			popoverCloud: this.page.getByTestId('tools.more.cloud'),
