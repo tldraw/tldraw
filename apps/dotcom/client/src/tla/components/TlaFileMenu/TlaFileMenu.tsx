@@ -5,6 +5,7 @@ import { Fragment, ReactNode, useCallback, useId } from 'react'
 import { useNavigate } from 'react-router-dom'
 import {
 	TLDRAW_FILE_EXTENSION,
+	TldrawUiButtonCheck,
 	TldrawUiDropdownMenuContent,
 	TldrawUiDropdownMenuRoot,
 	TldrawUiDropdownMenuTrigger,
@@ -30,9 +31,10 @@ import { useIsFilePinned } from '../../hooks/useIsFilePinned'
 import { TLAppUiEventSource, useTldrawAppUiEvents } from '../../utils/app-ui-events'
 import { copyTextToClipboard } from '../../utils/copy'
 import { defineMessages, useMsg } from '../../utils/i18n'
+import { TlaDeleteFileDialog } from '../dialogs/TlaDeleteFileDialog'
 import { editorMessages } from '../TlaEditor/editor-messages'
 import { download } from '../TlaEditor/useFileEditorOverrides'
-import { TlaDeleteFileDialog } from '../dialogs/TlaDeleteFileDialog'
+import { TlaIcon } from '../TlaIcon/TlaIcon'
 
 const messages = defineMessages({
 	copied: { defaultMessage: 'Copied link' },
@@ -106,6 +108,8 @@ export function FileItems({
 	const isPinned = useIsFilePinned(fileId)
 	const isActive = useCurrentFileId() === fileId
 	const hasGroups = useHasFlag('groups')
+
+	const file = useValue('file', () => app.getFile(fileId), [app, fileId])
 
 	// Get groups data
 	const groupMembers = useValue('groupMembers', () => app.getGroupMemberships(), [app])
@@ -210,6 +214,70 @@ export function FileItems({
 				/>
 			</TldrawUiMenuGroup>
 			<TldrawUiMenuGroup id="file-delete">
+				{hasGroups && (
+					<TldrawUiMenuSubmenu id="move-to-group" label={'Move to'} size="small">
+						<TldrawUiMenuGroup id="my-files">
+							<TldrawUiMenuItem
+								key="my-files"
+								label={myFilesMsg}
+								id="my-files"
+								iconLeft={
+									<TldrawUiButtonCheck
+										checked={
+											!groupMembers.some((groupUser) => groupUser.group.id === file?.owningGroupId)
+										}
+									/>
+								}
+								readonlyOk
+								onSelect={() => {
+									app.z.mutate.group.ungroupFile({ fileId })
+								}}
+							/>
+						</TldrawUiMenuGroup>
+						{groupMembers.length > 0 && (
+							<TldrawUiMenuGroup id="my-groups">
+								{groupMembers.map((groupUser) => (
+									<TldrawUiMenuItem
+										key={groupUser.groupId}
+										label={groupUser.group.name}
+										id={`group-${groupUser.groupId}`}
+										iconLeft={
+											<TldrawUiButtonCheck checked={groupUser.group.id === file?.owningGroupId} />
+										}
+										readonlyOk
+										onSelect={() => {
+											app.z.mutate.group.moveFileToGroup({ fileId, groupId: groupUser.groupId })
+											app.sidebarState.update((state) => ({
+												...state,
+												expandedGroups: new Set(state.expandedGroups).add(groupUser.groupId),
+											}))
+										}}
+									/>
+								))}
+							</TldrawUiMenuGroup>
+						)}
+						<TldrawUiMenuGroup id="create-new-group">
+							<TldrawUiMenuItem
+								label="New group"
+								id="create-new-group"
+								readonlyOk
+								icon={<TlaIcon icon="plus" />}
+								onSelect={() => {
+									const name = prompt('Enter a name for the new group')
+									if (name) {
+										const id = uniqueId()
+										app.z.mutate.group.create({ id, name })
+										app.z.mutate.group.moveFileToGroup({ fileId, groupId: id })
+										app.sidebarState.update((state) => ({
+											...state,
+											expandedGroups: new Set(state.expandedGroups).add(id),
+										}))
+									}
+								}}
+							/>
+						</TldrawUiMenuGroup>
+					</TldrawUiMenuSubmenu>
+				)}
 				<TldrawUiMenuItem
 					label={deleteOrForgetMsg}
 					id="delete"
@@ -217,32 +285,6 @@ export function FileItems({
 					onSelect={handleDeleteClick}
 				/>
 			</TldrawUiMenuGroup>
-			{hasGroups && groupMembers.length > 0 && (
-				<TldrawUiMenuGroup id="file-groups">
-					<TldrawUiMenuSubmenu id="move-to-group" label={'Move to'} size="small">
-						<TldrawUiMenuItem
-							key="my-files"
-							label={myFilesMsg}
-							id="my-files"
-							readonlyOk
-							onSelect={() => {
-								app.z.mutate.group.ungroupFile({ fileId })
-							}}
-						/>
-						{groupMembers.map((groupUser) => (
-							<TldrawUiMenuItem
-								key={groupUser.groupId}
-								label={groupUser.group.name}
-								id={`group-${groupUser.groupId}`}
-								readonlyOk
-								onSelect={() => {
-									app.z.mutate.group.moveFileToGroup({ fileId, groupId: groupUser.groupId })
-								}}
-							/>
-						))}
-					</TldrawUiMenuSubmenu>
-				</TldrawUiMenuGroup>
-			)}
 		</Fragment>
 	)
 }
