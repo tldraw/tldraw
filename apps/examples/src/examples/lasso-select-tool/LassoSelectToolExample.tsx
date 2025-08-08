@@ -1,44 +1,32 @@
+import { useMemo } from 'react'
 import {
 	DefaultKeyboardShortcutsDialog,
 	DefaultKeyboardShortcutsDialogContent,
 	DefaultToolbar,
 	DefaultToolbarContent,
-	pointInPolygon,
-	StateNode,
+	getStrokePoints,
+	getSvgPathFromStrokePoints,
 	TLComponents,
 	Tldraw,
+	TldrawOverlays,
 	TldrawUiMenuItem,
-	TLPointerEventInfo,
-	TLShape,
 	TLUiOverrides,
+	useEditor,
 	useIsToolSelected,
 	useTools,
-	Vec,
-	VecModel,
+	useValue,
 } from 'tldraw'
+import { LassoingState, LassoSelectTool } from './LassoSelectTool'
+// There's a guide at the bottom of this file!
 
-export default function LassoSelectToolExample() {
-	return (
-		<div className="tldraw__editor">
-			<Tldraw
-				tools={[LassoSelectTool]}
-				overrides={uiOverrides}
-				components={components}
-				// initialState="lasso-select"
-				persistenceKey="lass-select-example"
-			/>
-		</div>
-	)
-}
-
+//[1]
 const uiOverrides: TLUiOverrides = {
 	tools(editor, tools) {
-		// Create a tool item in the ui's context.
 		tools['lasso-select'] = {
 			id: 'lasso-select',
-			icon: 'circle',
+			icon: 'color',
 			label: 'Lasso Select',
-			kbd: 'l',
+			kbd: 'w', //w for wrangle 🤠
 			onSelect: () => {
 				editor.setCurrentTool('lasso-select')
 			},
@@ -47,6 +35,7 @@ const uiOverrides: TLUiOverrides = {
 	},
 }
 
+//[2]
 const components: TLComponents = {
 	Toolbar: (props) => {
 		const tools = useTools()
@@ -67,193 +56,101 @@ const components: TLComponents = {
 			</DefaultKeyboardShortcutsDialog>
 		)
 	},
+	//[a]
+	Overlays: () => (
+		<>
+			<TldrawOverlays />
+			<LassoSelectSvgComponent />
+		</>
+	),
 }
 
-interface LassoSegment {
-	points: VecModel[]
-}
+//[3]
+function LassoSelectSvgComponent() {
+	const editor = useEditor()
+	// const { addToast } = useToasts()
 
-export class LassoSelectTool extends StateNode {
-	static override id = 'lasso-select'
-	static override children() {
-		return [IdleState, LassoingState]
-	}
-	static override initial = 'idle'
-}
-
-class IdleState extends StateNode {
-	static override id = 'idle'
-
-	override onPointerDown(info: TLPointerEventInfo) {
-		const { editor } = this
-
-		editor.selectNone()
-		this.parent.transition('lassoing', info)
-	}
-}
-
-class LassoingState extends StateNode {
-	static override id = 'lassoing'
-
-	info = {} as TLPointerEventInfo
-
-	pagePointWhereCurrentSegmentChanged = {} as Vec
-
-	pagePointWhereNextSegmentChanged = null as Vec | null
-
-	lastRecordedPoint = {} as Vec
-	mergeNextPoint = false
-	currentLineLength = 0
-
-	markId = null as null | string
-
-	segments: LassoSegment[] = [{ points: [] }]
-
-	isClosed = false
-
-	override onEnter(info: TLPointerEventInfo) {
-		this.segments = [{ points: [] }]
-		this.markId = null
-		this.info = info
-		this.lastRecordedPoint = this.editor.inputs.currentPagePoint.clone()
-		this.startLasso()
-	}
-
-	override onPointerUp(_info: TLPointerEventInfo): void {
-		this.complete()
-	}
-
-	override onPointerMove(_info: TLPointerEventInfo): void {
-		this.updateSelection()
-	}
-
-	private startLasso() {
-		const {
-			inputs: { originPagePoint },
-		} = this.editor
-
-		this.markId = this.editor.markHistoryStoppingPoint('lasso start')
-
-		this.lastRecordedPoint = originPagePoint.clone()
-
-		this.pagePointWhereCurrentSegmentChanged = originPagePoint.clone()
-
-		this.currentLineLength = 0
-	}
-
-	private updateSelection() {
-		const { inputs } = this.editor
-
-		const { segments } = this
-		const { x, y, z } = inputs.currentPagePoint.toFixed()
-		const newPoint = { x, y, z }
-		// console.log('newPoint', newPoint)
-
-		const newSegments = segments.slice()
-		const newSegment = newSegments[newSegments.length - 1]
-		const newPoints = [...newSegment.points]
-
-		if (newPoints.length && this.mergeNextPoint) {
-			newPoints[newPoints.length - 1] = {
-				x: newPoint.x,
-				y: newPoint.y,
-				z: newPoint.z,
+	//[a]
+	const lassoPoints = useValue(
+		'lasso points',
+		() => {
+			const currentTool = editor.getCurrentTool()
+			if (currentTool.id === 'lasso-select') {
+				const lassoTool = currentTool as LassoSelectTool
+				const currentState = lassoTool.getCurrent()
+				if (currentState?.id === 'lassoing') {
+					const lassoingState = currentState as LassoingState
+					return lassoingState.points.get(editor)
+				}
 			}
-		} else {
-			// console.log('adding new point', newPoints[newPoints.length - 1], newPoint)
-			this.currentLineLength += Vec.Dist(newPoints[newPoints.length - 1] ?? newPoint, newPoint)
-			newPoints.push(newPoint)
-		}
+			return []
+		},
+		[editor]
+	)
 
-		newSegments[newSegments.length - 1] = {
-			...newSegment,
-			points: newPoints,
-		}
+	//[b]
+	const svgPath = useMemo(() => {
+		const smoothedPoints = getStrokePoints(lassoPoints)
+		const svgPath = getSvgPathFromStrokePoints(smoothedPoints, true)
+		return svgPath
+	}, [lassoPoints])
 
-		if (this.currentLineLength < 32) {
-			this.currentLineLength = this.getLineLength(segments)
-		}
-
-		this.isClosed = this.getIsClosed(newSegments)
-		this.segments = newSegments
-	}
-
-	private getShapesInLasso() {
-		const { editor } = this
-		const shapes = editor.getCurrentPageRenderingShapesSorted()
-
-		const { segments } = this
-
-		const lasso = new LassoSelection2d(segments.flatMap((segment) => segment.points))
-
-		const shapesInLasso = shapes.filter((shape) => {
-			return this.doesLassoFullyContainShape(lasso, shape)
-		})
-
-		return shapesInLasso
-	}
-
-	private doesLassoFullyContainShape(lasso: LassoSelection2d, shape: TLShape): boolean {
-		const { editor } = this
-
-		// Get the shape's geometry
-		const geometry = editor.getShapeGeometry(shape)
-
-		// Get the shape's page transform to convert vertices to page space
-		const pageTransform = editor.getShapePageTransform(shape)
-
-		// Get the shape's vertices in page space
-		const shapeVertices = pageTransform.applyToPoints(geometry.vertices)
-
-		// Check if all vertices of the shape are inside the lasso polygon
-		return shapeVertices.every((vertex) => {
-			return pointInPolygon(vertex, lasso.points)
-		})
-	}
-
-	private getIsClosed(segments: LassoSegment[]) {
-		const firstPoint = segments[0].points[0]
-		const lastSegment = segments[segments.length - 1]
-		const lastPoint = lastSegment.points[lastSegment.points.length - 1]
-
-		return (
-			firstPoint !== lastPoint &&
-			this.currentLineLength > 32 &&
-			Vec.DistMin(firstPoint, lastPoint, 16)
-		)
-	}
-
-	private getLineLength(segments: LassoSegment[]) {
-		let length = 0
-
-		for (const segment of segments) {
-			for (let i = 0; i < segment.points.length - 1; i++) {
-				const A = segment.points[i]
-				const B = segment.points[i + 1]
-				length += Vec.Dist2(B, A)
-			}
-		}
-
-		return Math.sqrt(length)
-	}
-
-	override onComplete() {
-		this.complete()
-	}
-
-	complete() {
-		const shapesInLasso = this.getShapesInLasso()
-
-		this.editor.setSelectedShapes(shapesInLasso)
-
-		// this.parent.transition('idle', this.info)
-		this.editor.setCurrentTool('select')
-	}
+	//[c]
+	return (
+		<>
+			{lassoPoints.length > 0 && (
+				<svg className="tl-overlays__item" aria-hidden="true">
+					<path
+						d={svgPath}
+						fill="var(--color-selection-fill)"
+						opacity={0.5}
+						stroke="var(--color-selection-stroke)"
+						strokeWidth="calc(2px / var(--tl-zoom))"
+					/>
+				</svg>
+			)}
+		</>
+	)
 }
 
-class LassoSelection2d {
-	points: VecModel[]
-	constructor(points: VecModel[]) {
-		this.points = points
-	}
+export default function LassoSelectToolExample() {
+	return (
+		<div className="tldraw__editor">
+			<Tldraw
+				tools={[LassoSelectTool]}
+				overrides={uiOverrides}
+				components={components}
+				persistenceKey="lasso-select-example"
+			/>
+		</div>
+	)
 }
+
+/*
+This example shows how to build a lasso select tool using the StateNode and EditorAtom classes. For a simpler example of how to build a selection tool, see the `MiniSelectTool` in the only-editor example. If you want to see an even simpler select tool that doesn't implement any child states, see the `MicroSelectTool` in the same example. 
+
+[1]
+Here are the UI overrides for the lasso select tool, which we'll pass into the <Tldraw> component. It adds a new tool to the toolbar and keyboard shortcuts dialog, as well as sets the keyboard shortcut. More info about this in the 'add-tool-to-toolbar' and 'custom-config' examples.
+
+[2]
+This is the set of custom components for the lasso select tool, which we'll also pass into the <Tldraw> component. It adds a new toolbar and keyboard shortcuts dialog. More info  about this in the 'add-tool-to-toolbar' and 'custom-config' examples.
+
+	[a]
+	The `Overlays` component override is where we'll pass in the component that will draw the lasso. We need to make sure that we pass in the <TldrawOverlays /> component as well, so that we get all the tldraw default overlays. 
+	We use `Overlays` instead of `InFrontOfTheCanvas` because `Overlays` get camera transforms applied to them automatically, so the points will always render where we want them to.
+
+[3]
+This component reads the lasso points from the lasso select tool and draws the lasso itself onto the Overlays layer. It is worth noting that this is only necessary for rendering the lasso.
+
+	[a]
+	Here we're using the tldraw's `useValue` hook to read the lasso points from the tool's state. The thing that allows us to get these points reactively is the `lassoingState.points.get(editor)` call. This is because `LassoingState`'s `points` attribute is an instance of the `EditorAtom` class. `EditorAtom`s let you store state that is specific to an editor instance, which you can then access across components using a `useValue` hook. As you'll see in `LassoSelectTool.tsx`, we're using an `EditorAtom<VecModel[]>` to store the lasso points.
+
+	[b]
+	Here we're smoothing the lasso points using tldraw's freehand library's `getStrokePoints` function, then converting the smoothed points to an SVG path.
+
+	[c]
+	Here we're actually defining the SVG path that we use to draw the lasso onto the Overlays layer. There are a couple things to note here. 
+	- One is `className="tl-overlays__item"` and `aria-hidden="true"` attributes of the svg. This class name is necessary for the svg to render at all, and the aria hidden attribute makes it accessible to screen readers. 
+	- The other noteworthy line here is: `strokeWidth="calc(2px / var(--tl-zoom))"` which takes advantage of one of tldraw's global css variables to always draw the svg with the same apparent stroke width at different zoom levels.
+
+*/
