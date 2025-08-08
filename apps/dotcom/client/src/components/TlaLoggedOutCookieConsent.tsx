@@ -24,7 +24,7 @@ export const TlaLoggedOutCookieConsent = memo(function TlaLoggedOutCookieConsent
 	if (isSignedIn || hasConsentPreference || !isVisible) return null
 
 	return (
-		<div className={styles.standaloneCookieConsent} data-testid="tla-standalone-cookie-consent">
+		<div className={styles.loggedOutCookieConsent} data-testid="tla-logged-out-cookie-consent">
 			<TlaCookieConsent />
 		</div>
 	)
