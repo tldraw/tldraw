@@ -99,7 +99,7 @@ export function ActionsProvider({ overrides, children }: ActionsProviderProps) {
 	const _editor = useMaybeEditor()
 	const showCollaborationUi = useShowCollaborationUi()
 	const helpers = useDefaultHelpers()
-	const components = useTldrawUiComponents()
+	const { KeyboardShortcutsDialog } = useTldrawUiComponents()
 	const trackEvent = useUiEvents()
 	const a11y = useA11y()
 	const msg = useTranslation()
@@ -179,7 +179,7 @@ export function ActionsProvider({ overrides, children }: ActionsProviderProps) {
 				onSelect(source) {
 					trackEvent('open-kbd-shortcuts', { source })
 					helpers.addDialog({
-						component: components.KeyboardShortcutsDialog ?? DefaultKeyboardShortcutsDialog,
+						component: KeyboardShortcutsDialog ?? DefaultKeyboardShortcutsDialog,
 					})
 				},
 			},
