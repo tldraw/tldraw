@@ -1,7 +1,7 @@
 .standaloneCookieConsent {
 	position: fixed;
 	bottom: 0;
-	left: 8px;
+	left: 12px;
 	right: 0;
 	z-index: 1000;
 }
