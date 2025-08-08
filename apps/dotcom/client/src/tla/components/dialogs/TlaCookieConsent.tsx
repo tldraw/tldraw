@@ -8,7 +8,7 @@ import { TlaManageCookiesDialog } from './TlaManageCookiesDialog'
 
 export const TlaCookieConsent = memo(function TlaSidebarCookieConsent() {
 	const { addDialog } = useDialogs()
-	const [, updateConsent] = useAnalyticsConsent()
+	const [consent, updateConsent] = useAnalyticsConsent()
 
 	const handleAccept = useCallback(() => {
 		updateConsent(true)
@@ -23,6 +23,8 @@ export const TlaCookieConsent = memo(function TlaSidebarCookieConsent() {
 			component: () => <TlaManageCookiesDialog />,
 		})
 	}, [addDialog])
+
+	if (consent !== null) return null
 
 	return (
 		<div className={styles.sidebarCookieConsent} data-testid="tla-sidebar-cookie-consent">
