@@ -14,11 +14,13 @@ const ANALYTICS_CONSENT_KEY = 'tldraw_analytics_consent'
 export type AnalyticsOptions =
 	| {
 			optedIn: true
-			user: {
-				id: string
-				name: string
-				email: string
-			}
+			user:
+				| {
+						id: string
+						name: string
+						email: string
+				  }
+				| undefined
 	  }
 	| {
 			optedIn: false
@@ -79,7 +81,7 @@ export function setStoredAnalyticsConsent(consent: boolean): void {
 // Function to configure analytics when consent changes
 export function configureAnalytics(
 	consent: boolean,
-	user?: { id: string; name: string; email: string }
+	user: { id: string; name: string; email: string } | undefined
 ) {
 	configurePosthog({
 		optedIn: consent,
@@ -115,7 +117,7 @@ export function handleConsentChange(
 	} else {
 		setStoredAnalyticsConsent(newConsent)
 		// Immediately configure analytics for signed-out users
-		configureAnalytics(newConsent)
+		configureAnalytics(newConsent, undefined)
 	}
 }
 
@@ -268,7 +270,7 @@ export function useHandleUiEvents() {
 export function SignedOutAnalytics() {
 	useEffect(() => {
 		const storedConsent = getStoredAnalyticsConsent()
-		configureAnalytics(storedConsent === true)
+		configureAnalytics(storedConsent === true, undefined)
 		document.getElementById('reo-iframe-loader')?.remove()
 	}, [])
 
