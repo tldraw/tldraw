@@ -3,6 +3,7 @@ import classNames from 'classnames'
 import { memo, useCallback } from 'react'
 import { useDialogs, useValue } from 'tldraw'
 import { handleConsentChange } from '../../../utils/analytics'
+import { useAnalyticsConsent } from '../../hooks/useAnalyticsConsent'
 import { useMaybeApp } from '../../hooks/useAppState'
 import { F } from '../../utils/i18n'
 import styles from './dialogs.module.css'
@@ -15,6 +16,7 @@ export const TlaCookieConsent = memo(function TlaSidebarCookieConsent() {
 
 	const user = useValue('user id', () => app?.getUser(), [app])
 	const isSignedIn = !!auth.isSignedIn
+	const consent = useAnalyticsConsent(isSignedIn, user, app)
 
 	const handleAccept = useCallback(() => {
 		handleConsentChange(true, isSignedIn, user, app)
@@ -29,6 +31,8 @@ export const TlaCookieConsent = memo(function TlaSidebarCookieConsent() {
 			component: () => <TlaManageCookiesDialog />,
 		})
 	}, [addDialog])
+
+	if (consent !== null) return null
 
 	return (
 		<div className={styles.sidebarCookieConsent} data-testid="tla-sidebar-cookie-consent">
