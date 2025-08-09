@@ -1708,6 +1708,12 @@ export function getHitShapeOnCanvasPointerDown(editor: Editor, hitLabels?: boole
 export function getMediaAssetInfoPartial(file: File, assetId: TLAssetId, isImageType: boolean, isVideoType: boolean, maxImageDimension?: number): Promise<TLImageAsset | TLVideoAsset>;
 
 // @public
+export function getStrokePoints(rawInputPoints: VecLike[], options?: StrokeOptions): StrokePoint[];
+
+// @public
+export function getSvgPathFromStrokePoints(points: StrokePoint[], closed?: boolean): string;
+
+// @public
 export function getUncroppedSize(shapeSize: {
     h: number;
     w: number;
@@ -2598,6 +2604,46 @@ export function StarToolbarItem(): JSX_2.Element;
 
 // @public (undocumented)
 export const STROKE_SIZES: Record<TLDefaultSizeStyle, number>;
+
+// @public
+export interface StrokeOptions {
+    easing?(pressure: number): number;
+    end?: {
+        cap?: boolean;
+        easing?(distance: number): number;
+        taper?: boolean | number;
+    };
+    last?: boolean;
+    simulatePressure?: boolean;
+    size?: number;
+    smoothing?: number;
+    start?: {
+        cap?: boolean;
+        easing?(distance: number): number;
+        taper?: boolean | number;
+    };
+    // (undocumented)
+    streamline?: number;
+    thinning?: number;
+}
+
+// @public
+export interface StrokePoint {
+    // (undocumented)
+    distance: number;
+    // (undocumented)
+    input: Vec;
+    // (undocumented)
+    point: Vec;
+    // (undocumented)
+    pressure: number;
+    // (undocumented)
+    radius: number;
+    // (undocumented)
+    runningLength: number;
+    // (undocumented)
+    vector: Vec;
+}
 
 // @public (undocumented)
 export interface StylePickerSetProps {
