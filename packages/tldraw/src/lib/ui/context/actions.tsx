@@ -99,7 +99,7 @@ export function ActionsProvider({ overrides, children }: ActionsProviderProps) {
 	const _editor = useMaybeEditor()
 	const showCollaborationUi = useShowCollaborationUi()
 	const helpers = useDefaultHelpers()
-	const { KeyboardShortcutsDialog } = useTldrawUiComponents()
+	const components = useTldrawUiComponents()
 	const trackEvent = useUiEvents()
 	const a11y = useA11y()
 	const msg = useTranslation()
@@ -179,7 +179,7 @@ export function ActionsProvider({ overrides, children }: ActionsProviderProps) {
 				onSelect(source) {
 					trackEvent('open-kbd-shortcuts', { source })
 					helpers.addDialog({
-						component: KeyboardShortcutsDialog ?? DefaultKeyboardShortcutsDialog,
+						component: components.KeyboardShortcutsDialog ?? DefaultKeyboardShortcutsDialog,
 					})
 				},
 			},
@@ -1759,7 +1759,17 @@ export function ActionsProvider({ overrides, children }: ActionsProviderProps) {
 		}
 
 		return actions
-	}, [helpers, _editor, trackEvent, overrides, defaultDocumentName, showCollaborationUi, msg, a11y])
+	}, [
+		helpers,
+		_editor,
+		trackEvent,
+		overrides,
+		defaultDocumentName,
+		showCollaborationUi,
+		msg,
+		a11y,
+		components,
+	])
 
 	return <ActionsContext.Provider value={asActions(actions)}>{children}</ActionsContext.Provider>
 }
