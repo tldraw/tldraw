@@ -1,8 +1,8 @@
 import { TldrawUiMenuGroup, TldrawUiMenuItem } from 'tldraw'
-import { useOpenUrlAndTrack } from '../hooks/useOpenUrlAndTrack'
+import { useOpenUrlAndTrackWithTransitions } from '../hooks/useComToDevTransitions'
 
 export function LegacyLinks() {
-	const openAndTrack = useOpenUrlAndTrack('main-menu')
+	const openAndTrack = useOpenUrlAndTrackWithTransitions('main-menu')
 
 	return (
 		<>
@@ -35,7 +35,8 @@ export function LegacyLinks() {
 					readonlyOk
 					onSelect={() => {
 						openAndTrack(
-							'https://tldraw.dev/?utm_source=dotcom&utm_medium=organic&utm_campaign=learn-more'
+							'https://tldraw.dev/?utm_source=dotcom&utm_medium=organic&utm_campaign=learn-more',
+							'help-menu-about'
 						)
 					}}
 				/>
