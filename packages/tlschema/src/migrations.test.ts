@@ -2231,6 +2231,44 @@ describe('TLVideoAsset AddAutoplay', () => {
 	})
 })
 
+describe('Add support for arbitrary colors', () => {
+	const { up, down } = getTestMigration(rootShapeVersions.AddCustomColors)
+
+	test('down works as expected', () => {
+		expect(
+			up({
+				props: { color: 'black' },
+			})
+		).toEqual({
+			props: { color: 'black' },
+		})
+		expect(
+			down({
+				props: { color: '#ccc' },
+			})
+		).toEqual({
+			props: { color: 'black' },
+		})
+	})
+
+	test('down works as expected', () => {
+		expect(
+			up({
+				props: { color: 'black', labelColor: 'black' },
+			})
+		).toEqual({
+			props: { color: 'black', labelColor: 'black' },
+		})
+		expect(
+			down({
+				props: { color: '#ccc', labelColor: '#ccc' },
+			})
+		).toEqual({
+			props: { color: 'black', labelColor: 'black' },
+		})
+	})
+})
+
 /* ---  PUT YOUR MIGRATIONS TESTS ABOVE HERE --- */
 
 // check that all migrator fns were called at least once

@@ -28,21 +28,24 @@ import { TlaIcon } from '../TlaIcon/TlaIcon'
 import styles from './top.module.css'
 
 const ctaMessages = defineMessages({
-	signUp: { defaultMessage: 'Sign up for free' },
+	signInToShare: { defaultMessage: 'Sign in to share' },
 	signInToSave: { defaultMessage: 'Sign in to save' },
+	createFreeAccount: { defaultMessage: 'Create a free account' },
+	createYourAccount: { defaultMessage: 'Create your account' },
 	saveAndShare: { defaultMessage: 'Save and share' },
-	signInToSaveAndShare: { defaultMessage: 'Sign in to share' },
 	saveYourWork: { defaultMessage: 'Save your work' },
 	shareYourWork: { defaultMessage: 'Share your work' },
-	shareYourWorkForFree: { defaultMessage: 'Share for free' },
-	createFreeAccount: { defaultMessage: 'Create a free account' },
+	shareForFree: { defaultMessage: 'Share for free' },
 	signIn: { defaultMessage: 'Sign in' },
 	logIn: { defaultMessage: 'Log in' },
 	logUp: { defaultMessage: 'Log up' },
-	freeTldraws: { defaultMessage: 'Free tldraws' },
-	freeShares: { defaultMessage: 'Free shares' },
-	freeSaves: { defaultMessage: 'Free saves' },
-	getIn: { defaultMessage: "You'll sign up, won't you?" },
+	youShould: { defaultMessage: 'You should sign up' },
+	pleaseSignIn: { defaultMessage: 'Please sign in' },
+	pleaseSignUp: { defaultMessage: 'Please sign up' },
+	signUpFreeAndGood: { defaultMessage: 'Sign up (free and good)' },
+	youllSignUpWontYou: { defaultMessage: "You'll sign up, won't you?" },
+	anAccountWouldBeNice: { defaultMessage: 'An account would be nice' },
+	comeWithMe: { defaultMessage: 'Come with me to tldraw' },
 	betterThanMiro: { defaultMessage: 'Miro but good and free' },
 	betterThanExcalidraw: { defaultMessage: 'Not Excalidraw' },
 	betterThanFigjam: { defaultMessage: 'Figjam but tldraw' },
@@ -53,12 +56,12 @@ const ctaMessages = defineMessages({
 
 function useCtaMessage() {
 	const ctaMessage = useMemo(() => {
-		if (process.env.NODE_ENV === 'test') return ctaMessages.signUp
+		if (process.env.NODE_ENV === 'test') return ctaMessages.signInToShare
 
 		const isFirstTime = getFromLocalStorage('tla-has-been-here')
 		if (!isFirstTime) {
 			setInLocalStorage('tla-has-been-here', 'yep')
-			return ctaMessages.signUp
+			return ctaMessages.signInToShare
 		}
 
 		const LIKELIHOOD_START = 0.25
