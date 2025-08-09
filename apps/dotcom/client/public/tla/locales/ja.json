@@ -41,9 +41,6 @@
   "13ddd375ad": {
     "translation": "形式を選択してエクスポート"
   },
-  "1460ab5e78": {
-    "translation": "無料のtldraws"
-  },
   "181b90f889": {
     "translation": "ファイルを作成"
   },
@@ -52,6 +49,12 @@
   },
   "1dd1c5fb7f": {
     "translation": "今日"
+  },
+  "20976e7bec": {
+    "translation": "部屋は満室です"
+  },
+  "21bfb2dc2e": {
+    "translation": "このルームのサイズ制限に近づいています。一部のコンテンツを削除するか、新しいファイルを作成することを検討してください。"
   },
   "22d84a12fd": {
     "translation": "Figjamですがtldraw"
@@ -65,6 +68,9 @@
   "2c61d18599": {
     "translation": "ミロだが良いし無料"
   },
+  "2deec2cb74": {
+    "translation": "このルームはサイズ制限に達したため、変更内容が保存されない可能性があります。コンテンツの一部を削除するか、新しいファイルを作成してください。"
+  },
   "31246941ad": {
     "translation": "このファイルを閲覧するにはサインインしてください。"
   },
@@ -76,6 +82,9 @@
   },
   "344a7f427f": {
     "translation": "エディタ"
+  },
+  "37b3dca331": {
+    "translation": "サインインしてください"
   },
   "3bd1b98dbd": {
     "translation": "変更内容を公開できません。"
@@ -113,11 +122,8 @@
   "4d1c8263ba": {
     "translation": "再読み込み"
   },
-  "4e029798f2": {
-    "translation": "無料株"
-  },
-  "4e875b8d8e": {
-    "translation": "無料保存"
+  "4ea0bb66f7": {
+    "translation": "アカウントがあればいいな"
   },
   "50db1b7e1e": {
     "translation": "ファイルの公開を取り消しできません。"
@@ -146,11 +152,17 @@
   "5a95a425f7": {
     "translation": "共有"
   },
+  "5bb6cf3b53": {
+    "translation": "部屋が広くなる"
+  },
   "5bcc12ace8": {
     "translation": "この部屋は現在読み取り専用です"
   },
   "5bec508475": {
     "translation": "古いブラウザが検出されました。このアプリを使用するにはブラウザを更新してください。"
+  },
+  "5bef23eb7e": {
+    "translation": "アカウントを作成する"
   },
   "5d26ae7550": {
     "translation": "サインイン前に作成されたコンテンツの一部のアップロードに失敗しました。"
@@ -160,9 +172,6 @@
   },
   "5fb63579fc": {
     "translation": "コピー"
-  },
-  "5ff75742e0": {
-    "translation": "無料で登録する"
   },
   "61057a0c84": {
     "translation": "後で"
@@ -218,6 +227,9 @@
   "777f9e90cf": {
     "translation": "無効なリクエストです。"
   },
+  "78e9815992": {
+    "translation": "わかった"
+  },
   "797799f35e": {
     "translation": "GitHubで問題を提出する"
   },
@@ -226,6 +238,9 @@
   },
   "7be10fc592": {
     "translation": "バージョンを復元"
+  },
+  "7c7d5d493e": {
+    "translation": "ぜひご登録ください"
   },
   "7cb5f8b4a5": {
     "translation": "無視する"
@@ -336,6 +351,9 @@
   "b028909917": {
     "translation": "ゲストユーザー"
   },
+  "b52dc007ac": {
+    "translation": "サインアップ（無料、お得です）"
+  },
   "b6d4223e60": {
     "translation": "サインイン"
   },
@@ -384,6 +402,9 @@
   "c87aacf567": {
     "translation": "サインアウト"
   },
+  "c8c6a6504a": {
+    "translation": "登録してください"
+  },
   "cceaefbc20": {
     "translation": "このファイルを共有"
   },
@@ -407,6 +428,9 @@
   },
   "d876a9fe1a": {
     "translation": "再試行"
+  },
+  "d8a50c79a7": {
+    "translation": "私と一緒にtldrawへ行きましょう"
   },
   "d9100f3e10": {
     "translation": "コンテンツを見るにはこちらへ移動してください"

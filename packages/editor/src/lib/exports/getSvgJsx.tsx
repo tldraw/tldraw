@@ -4,8 +4,8 @@ import {
 	TLGroupShape,
 	TLShape,
 	TLShapeId,
+	getColorValue,
 	getDefaultColorTheme,
-	isDefaultColor,
 } from '@tldraw/tlschema'
 import { hasOwnProperty, promiseWithResolve, uniqueId } from '@tldraw/utils'
 import {
@@ -374,10 +374,7 @@ function SvgExport({
 			| { options: { showColors: boolean } }
 		if (frameShapeUtil?.options.showColors) {
 			const shape = editor.getShape(singleFrameShapeId)! as TLFrameShape
-			const color = isDefaultColor(shape.props.color)
-				? theme[shape.props.color]
-				: { frame: { fill: shape.props.color } }
-			backgroundColor = color.frame.fill
+			backgroundColor = getColorValue(theme, shape.props.color, 'frameFill')
 		} else {
 			backgroundColor = theme.solid
 		}

@@ -19,8 +19,8 @@ import {
 	compact,
 	frameShapeMigrations,
 	frameShapeProps,
+	getColorValue,
 	getDefaultColorTheme,
-	isDefaultColor,
 	lerp,
 	resizeBox,
 	toDomPrecision,
@@ -221,32 +221,12 @@ export class FrameShapeUtil extends BaseBoxShapeUtil<TLFrameShape> {
 		)
 
 		const showFrameColors = this.options.showColors
-
-		const {
-			frame: {
-				fill: frameFillColor,
-				stroke: frameStrokeColor,
-				headingStroke: frameHeadingStrokeColor,
-				headingFill: frameHeadingFillColor,
-				text: frameHeadingTextColor,
-			},
-		} = isDefaultColor(shape.props.color)
-			? theme[shape.props.color]
-			: {
-					frame: {
-						fill: shape.props.color,
-						stroke: shape.props.color,
-						headingStroke: shape.props.color,
-						headingFill: shape.props.color,
-						text: shape.props.color,
-					},
-				}
-
-		const frameFill = showFrameColors ? frameFillColor : theme.black.frame.fill
-		const frameStroke = showFrameColors ? frameStrokeColor : theme.black.frame.stroke
-		const frameHeadingStroke = showFrameColors ? frameHeadingStrokeColor : theme.background
-		const frameHeadingFill = showFrameColors ? frameHeadingFillColor : theme.background
-		const frameHeadingText = showFrameColors ? frameHeadingTextColor : theme.text
+		const colorToUse = showFrameColors ? shape.props.color : 'black'
+		const frameFill = getColorValue(theme, colorToUse, 'frameFill')
+		const frameStroke = getColorValue(theme, colorToUse, 'frameStroke')
+		const frameHeadingStroke = getColorValue(theme, colorToUse, 'frameHeadingStroke')
+		const frameHeadingFill = getColorValue(theme, colorToUse, 'frameHeadingFill')
+		const frameHeadingText = getColorValue(theme, colorToUse, 'frameText')
 
 		return (
 			<>
@@ -297,32 +277,12 @@ export class FrameShapeUtil extends BaseBoxShapeUtil<TLFrameShape> {
 		const text = createTextJsxFromSpans(this.editor, spans, opts)
 
 		const showFrameColors = this.options.showColors
-
-		const {
-			frame: {
-				fill: frameFillColor,
-				stroke: frameStrokeColor,
-				headingStroke: frameHeadingStrokeColor,
-				headingFill: frameHeadingFillColor,
-				text: frameHeadingTextColor,
-			},
-		} = isDefaultColor(shape.props.color)
-			? theme[shape.props.color]
-			: {
-					frame: {
-						fill: shape.props.color,
-						stroke: shape.props.color,
-						headingStroke: shape.props.color,
-						headingFill: shape.props.color,
-						text: shape.props.color,
-					},
-				}
-
-		const frameFill = showFrameColors ? frameFillColor : theme.black.frame.fill
-		const frameStroke = showFrameColors ? frameStrokeColor : theme.black.frame.stroke
-		const frameHeadingStroke = showFrameColors ? frameHeadingStrokeColor : theme.background
-		const frameHeadingFill = showFrameColors ? frameHeadingFillColor : theme.background
-		const frameHeadingText = showFrameColors ? frameHeadingTextColor : theme.text
+		const colorToUse = showFrameColors ? shape.props.color : 'black'
+		const frameFill = getColorValue(theme, colorToUse, 'frameFill')
+		const frameStroke = getColorValue(theme, colorToUse, 'frameStroke')
+		const frameHeadingStroke = getColorValue(theme, colorToUse, 'frameHeadingStroke')
+		const frameHeadingFill = getColorValue(theme, colorToUse, 'frameHeadingFill')
+		const frameHeadingText = getColorValue(theme, colorToUse, 'frameText')
 
 		return (
 			<>

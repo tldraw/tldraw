@@ -87,12 +87,6 @@
       "value": "Exportera som"
     }
   ],
-  "1460ab5e78": [
-    {
-      "type": 0,
-      "value": "Gratis tldraws"
-    }
-  ],
   "181b90f889": [
     {
       "type": 0,
@@ -109,6 +103,18 @@
     {
       "type": 0,
       "value": "Idag"
+    }
+  ],
+  "20976e7bec": [
+    {
+      "type": 0,
+      "value": "Rummet är fullt"
+    }
+  ],
+  "21bfb2dc2e": [
+    {
+      "type": 0,
+      "value": "Det här rummet närmar sig sin storleksgräns. Överväg att ta bort en del innehåll eller starta en ny fil."
     }
   ],
   "22d84a12fd": [
@@ -135,6 +141,12 @@
       "value": "Miro men bra och fri"
     }
   ],
+  "2deec2cb74": [
+    {
+      "type": 0,
+      "value": "Det här rummet har nått sin storleksgräns och ändringarna kanske inte längre sparas. Ta bort en del innehåll eller skapa en ny fil."
+    }
+  ],
   "31246941ad": [
     {
       "type": 0,
@@ -157,6 +169,12 @@
     {
       "type": 0,
       "value": "Redigeringsverktyg"
+    }
+  ],
+  "37b3dca331": [
+    {
+      "type": 0,
+      "value": "Vänligen logga in"
     }
   ],
   "3bd1b98dbd": [
@@ -231,16 +249,10 @@
       "value": "Ladda om"
     }
   ],
-  "4e029798f2": [
+  "4ea0bb66f7": [
     {
       "type": 0,
-      "value": "Gratis aktier"
-    }
-  ],
-  "4e875b8d8e": [
-    {
-      "type": 0,
-      "value": "Gratis sparningar"
+      "value": "Ett konto vore trevligt"
     }
   ],
   "50db1b7e1e": [
@@ -307,6 +319,12 @@
       "value": "Dela"
     }
   ],
+  "5bb6cf3b53": [
+    {
+      "type": 0,
+      "value": "Rummet blir stort"
+    }
+  ],
   "5bcc12ace8": [
     {
       "type": 0,
@@ -317,6 +335,12 @@
     {
       "type": 0,
       "value": "Gammal webbläsare upptäckt. Uppdatera din webbläsare för att använda den här appen."
+    }
+  ],
+  "5bef23eb7e": [
+    {
+      "type": 0,
+      "value": "Skapa ditt konto"
     }
   ],
   "5d26ae7550": [
@@ -335,12 +359,6 @@
     {
       "type": 0,
       "value": "Kopiera"
-    }
-  ],
-  "5ff75742e0": [
-    {
-      "type": 0,
-      "value": "Registrera dig gratis"
     }
   ],
   "61057a0c84": [
@@ -451,6 +469,12 @@
       "value": "Ogiltig begäran."
     }
   ],
+  "78e9815992": [
+    {
+      "type": 0,
+      "value": "Förstod"
+    }
+  ],
   "797799f35e": [
     {
       "type": 0,
@@ -467,6 +491,12 @@
     {
       "type": 0,
       "value": "Återställ version"
+    }
+  ],
+  "7c7d5d493e": [
+    {
+      "type": 0,
+      "value": "Vänligen registrera dig"
     }
   ],
   "7cb5f8b4a5": [
@@ -727,6 +757,12 @@
       "value": "Gästanvändare"
     }
   ],
+  "b52dc007ac": [
+    {
+      "type": 0,
+      "value": "Registrera dig (gratis och bra)"
+    }
+  ],
   "b6d4223e60": [
     {
       "type": 0,
@@ -863,6 +899,12 @@
       "value": "Logga ut"
     }
   ],
+  "c8c6a6504a": [
+    {
+      "type": 0,
+      "value": "Du borde registrera dig"
+    }
+  ],
   "cceaefbc20": [
     {
       "type": 0,
@@ -909,6 +951,12 @@
     {
       "type": 0,
       "value": "Försök igen"
+    }
+  ],
+  "d8a50c79a7": [
+    {
+      "type": 0,
+      "value": "Kom med mig till tldraw"
     }
   ],
   "d9100f3e10": [

@@ -14,7 +14,7 @@ import {
 	VecLike,
 	drawShapeMigrations,
 	drawShapeProps,
-	isDefaultColor,
+	getColorValue,
 	last,
 	lerp,
 	rng,
@@ -272,9 +272,7 @@ function DrawShapeSvg({ shape, zoomOverride }: { shape: TLDrawShape; zoomOverrid
 
 	const options = getFreehandOptions(shape.props, sw, showAsComplete, forceSolid)
 
-	const { solid: solidColor } = isDefaultColor(shape.props.color)
-		? theme[shape.props.color]
-		: { solid: shape.props.color }
+	const solidColor = getColorValue(theme, shape.props.color, 'solid')
 
 	if (!forceSolid && shape.props.dash === 'draw') {
 		return (

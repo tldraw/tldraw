@@ -41,9 +41,6 @@
   "13ddd375ad": {
     "translation": "Exporteren als"
   },
-  "1460ab5e78": {
-    "translation": "Gratis tldraws"
-  },
   "181b90f889": {
     "translation": "Bestand aanmaken"
   },
@@ -52,6 +49,12 @@
   },
   "1dd1c5fb7f": {
     "translation": "Vandaag"
+  },
+  "20976e7bec": {
+    "translation": "Kamer is vol"
+  },
+  "21bfb2dc2e": {
+    "translation": "Deze ruimte nadert zijn maximale grootte. Overweeg om wat inhoud te verwijderen of een nieuw bestand te maken."
   },
   "22d84a12fd": {
     "translation": "Figjam maar tldraw"
@@ -65,6 +68,9 @@
   "2c61d18599": {
     "translation": "Miro maar dan goed en gratis"
   },
+  "2deec2cb74": {
+    "translation": "Deze ruimte heeft de maximale bestandsgrootte bereikt en wijzigingen worden mogelijk niet meer opgeslagen. Verwijder wat inhoud of begin een nieuw bestand."
+  },
   "31246941ad": {
     "translation": "U moet zijn aangemeld om dit bestand te kunnen bekijken."
   },
@@ -76,6 +82,9 @@
   },
   "344a7f427f": {
     "translation": "Editor"
+  },
+  "37b3dca331": {
+    "translation": "Meld u aan"
   },
   "3bd1b98dbd": {
     "translation": "De wijzigingen konden niet worden gepubliceerd."
@@ -113,11 +122,8 @@
   "4d1c8263ba": {
     "translation": "Opnieuw laden"
   },
-  "4e029798f2": {
-    "translation": "Gratis aandelen"
-  },
-  "4e875b8d8e": {
-    "translation": "Gratis opslaan"
+  "4ea0bb66f7": {
+    "translation": "Een account zou leuk zijn"
   },
   "50db1b7e1e": {
     "translation": "De publicatie van het bestand kan niet ongedaan worden gemaakt."
@@ -146,11 +152,17 @@
   "5a95a425f7": {
     "translation": "Deel"
   },
+  "5bb6cf3b53": {
+    "translation": "Kamer wordt groot"
+  },
   "5bcc12ace8": {
     "translation": "Deze kamer is nu alleen-lezen"
   },
   "5bec508475": {
     "translation": "Oude browser gedetecteerd. Werk uw browser bij om deze app te gebruiken."
+  },
+  "5bef23eb7e": {
+    "translation": "Maak uw account aan"
   },
   "5d26ae7550": {
     "translation": "Een deel van de content die u hebt gemaakt voordat u zich aanmeldde, is niet geüpload."
@@ -160,9 +172,6 @@
   },
   "5fb63579fc": {
     "translation": "Kopiëren"
-  },
-  "5ff75742e0": {
-    "translation": "Meld je gratis aan"
   },
   "61057a0c84": {
     "translation": "Later"
@@ -218,6 +227,9 @@
   "777f9e90cf": {
     "translation": "Ongeldig verzoek."
   },
+  "78e9815992": {
+    "translation": "Ik heb het"
+  },
   "797799f35e": {
     "translation": "Een probleem melden op GitHub"
   },
@@ -226,6 +238,9 @@
   },
   "7be10fc592": {
     "translation": "Versie herstellen"
+  },
+  "7c7d5d493e": {
+    "translation": "Meld je aan"
   },
   "7cb5f8b4a5": {
     "translation": "Vergeten"
@@ -336,6 +351,9 @@
   "b028909917": {
     "translation": "Gastgebruiker"
   },
+  "b52dc007ac": {
+    "translation": "Aanmelden (gratis en goed)"
+  },
   "b6d4223e60": {
     "translation": "Aanmelden"
   },
@@ -384,6 +402,9 @@
   "c87aacf567": {
     "translation": "Afmelden"
   },
+  "c8c6a6504a": {
+    "translation": "Je moet je aanmelden"
+  },
   "cceaefbc20": {
     "translation": "Deel dit bestand"
   },
@@ -407,6 +428,9 @@
   },
   "d876a9fe1a": {
     "translation": "Probeer het opnieuw"
+  },
+  "d8a50c79a7": {
+    "translation": "Kom met mij mee om te tekenen"
   },
   "d9100f3e10": {
     "translation": "Ga hierheen om de inhoud te bekijken"

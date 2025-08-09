@@ -87,12 +87,6 @@
       "value": "Eksportuj jako"
     }
   ],
-  "1460ab5e78": [
-    {
-      "type": 0,
-      "value": "Darmowe tldraws"
-    }
-  ],
   "181b90f889": [
     {
       "type": 0,
@@ -109,6 +103,18 @@
     {
       "type": 0,
       "value": "Dzisiaj"
+    }
+  ],
+  "20976e7bec": [
+    {
+      "type": 0,
+      "value": "Pokój jest pełny"
+    }
+  ],
+  "21bfb2dc2e": [
+    {
+      "type": 0,
+      "value": "Ten pokój zbliża się do limitu rozmiaru. Rozważ usunięcie części zawartości lub utworzenie nowego pliku."
     }
   ],
   "22d84a12fd": [
@@ -135,6 +141,12 @@
       "value": "Miro, ale dobry i wolny"
     }
   ],
+  "2deec2cb74": [
+    {
+      "type": 0,
+      "value": "Ten pokój osiągnął limit rozmiaru i zmiany mogą nie zostać zapisane. Usuń część zawartości lub utwórz nowy plik."
+    }
+  ],
   "31246941ad": [
     {
       "type": 0,
@@ -157,6 +169,12 @@
     {
       "type": 0,
       "value": "Edytor"
+    }
+  ],
+  "37b3dca331": [
+    {
+      "type": 0,
+      "value": "Proszę się zalogować"
     }
   ],
   "3bd1b98dbd": [
@@ -231,16 +249,10 @@
       "value": "Załaduj ponownie"
     }
   ],
-  "4e029798f2": [
+  "4ea0bb66f7": [
     {
       "type": 0,
-      "value": "Darmowe akcje"
-    }
-  ],
-  "4e875b8d8e": [
-    {
-      "type": 0,
-      "value": "Darmowe zapisy"
+      "value": "Konto byłoby miłe"
     }
   ],
   "50db1b7e1e": [
@@ -307,6 +319,12 @@
       "value": "Podziel się"
     }
   ],
+  "5bb6cf3b53": [
+    {
+      "type": 0,
+      "value": "Pokój staje się większy"
+    }
+  ],
   "5bcc12ace8": [
     {
       "type": 0,
@@ -317,6 +335,12 @@
     {
       "type": 0,
       "value": "Wykryto starą przeglądarkę. Zaktualizuj przeglądarkę, aby korzystać z tej aplikacji."
+    }
+  ],
+  "5bef23eb7e": [
+    {
+      "type": 0,
+      "value": "Utwórz swoje konto"
     }
   ],
   "5d26ae7550": [
@@ -335,12 +359,6 @@
     {
       "type": 0,
       "value": "Kopia"
-    }
-  ],
-  "5ff75742e0": [
-    {
-      "type": 0,
-      "value": "Zarejestruj się za darmo"
     }
   ],
   "61057a0c84": [
@@ -451,6 +469,12 @@
       "value": "Nieprawidłowe żądanie."
     }
   ],
+  "78e9815992": [
+    {
+      "type": 0,
+      "value": "Zrozumiałem"
+    }
+  ],
   "797799f35e": [
     {
       "type": 0,
@@ -467,6 +491,12 @@
     {
       "type": 0,
       "value": "Przywróć wersję"
+    }
+  ],
+  "7c7d5d493e": [
+    {
+      "type": 0,
+      "value": "Proszę się zarejestrować"
     }
   ],
   "7cb5f8b4a5": [
@@ -727,6 +757,12 @@
       "value": "Użytkownik gość"
     }
   ],
+  "b52dc007ac": [
+    {
+      "type": 0,
+      "value": "Zarejestruj się (bezpłatnie i dobrze)"
+    }
+  ],
   "b6d4223e60": [
     {
       "type": 0,
@@ -871,6 +907,12 @@
       "value": "Wyloguj się"
     }
   ],
+  "c8c6a6504a": [
+    {
+      "type": 0,
+      "value": "Powinieneś się zapisać"
+    }
+  ],
   "cceaefbc20": [
     {
       "type": 0,
@@ -917,6 +959,12 @@
     {
       "type": 0,
       "value": "Spróbuj ponownie"
+    }
+  ],
+  "d8a50c79a7": [
+    {
+      "type": 0,
+      "value": "Chodź ze mną na tldraw"
     }
   ],
   "d9100f3e10": [

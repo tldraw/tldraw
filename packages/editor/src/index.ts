@@ -68,6 +68,10 @@ export {
 	type TLShapeIndicatorsProps,
 } from './lib/components/default-components/DefaultShapeIndicators'
 export {
+	DefaultShapeWrapper,
+	type TLShapeWrapperProps,
+} from './lib/components/default-components/DefaultShapeWrapper'
+export {
 	DefaultSnapIndicator,
 	type TLSnapIndicatorProps,
 } from './lib/components/default-components/DefaultSnapIndictor'
@@ -261,9 +265,11 @@ export {
 	type TLCameraMoveOptions,
 	type TLCameraOptions,
 	type TLExportType,
+	type TLGetShapeAtPointOptions,
 	type TLImageExportOptions,
 	type TLSvgExportOptions,
 	type TLSvgOptions,
+	type TLUpdatePointerOptions,
 } from './lib/editor/types/misc-types'
 export {
 	type TLAdjacentDirection,
@@ -445,6 +451,7 @@ export {
 	setPointerCapture,
 	stopEventPropagation,
 } from './lib/utils/dom'
+export { EditorAtom } from './lib/utils/EditorAtom'
 export { getIncrementedName } from './lib/utils/getIncrementedName'
 export { getPointerInfo } from './lib/utils/getPointerInfo'
 export { getSvgPathFromPoints } from './lib/utils/getSvgPathFromPoints'

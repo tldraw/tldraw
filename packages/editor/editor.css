@@ -163,6 +163,7 @@
 	--color-selected: hsl(214, 84%, 56%);
 	--color-selected-contrast: hsl(0, 0%, 100%);
 	--color-focus: hsl(219, 65%, 50%);
+	--color-tooltip: hsla(200, 14%, 4%, 1);
 	/* Text */
 	--color-text: hsl(0, 0%, 0%);
 	--color-text-0: hsl(0, 0%, 11%);
@@ -218,6 +219,7 @@
 	--color-selected: hsl(217, 89%, 61%);
 	--color-selected-contrast: hsl(0, 0%, 100%);
 	--color-focus: hsl(217, 76%, 80%);
+	--color-tooltip: hsla(0, 0%, 100%, 1);
 	/* Text */
 	--color-text: hsl(210, 17%, 98%);
 	--color-text-0: hsl(0, 9%, 94%);
@@ -774,8 +776,7 @@ input,
 	position: static;
 }
 
-.tl-text-wrapper[data-isediting='false'] .tl-text-input,
-.tl-arrow-label[data-isediting='false'] .tl-text-input {
+.tl-text-wrapper[data-isediting='false'] .tl-text-input {
 	opacity: 0;
 	cursor: var(--tl-cursor-default);
 }
@@ -968,19 +969,32 @@ input,
 	font-size: 14px;
 	font-weight: 500;
 	opacity: 0;
-	animation: fade-in 0.2s ease-in-out forwards;
+	animation: tl-fade-in 0.2s ease-in-out forwards;
 	animation-delay: 0.2s;
 	position: absolute;
 	inset: 0px;
 	z-index: var(--layer-canvas-blocker);
 }
 
-@keyframes fade-in {
+@keyframes tl-fade-in {
 	0% {
 		opacity: 0;
 	}
 	100% {
 		opacity: 1;
+	}
+}
+
+.tl-spinner {
+	animation: tl-spin 1s linear infinite;
+}
+
+@keyframes tl-spin {
+	0% {
+		transform: rotate(0deg);
+	}
+	100% {
+		transform: rotate(360deg);
 	}
 }
 
@@ -1175,7 +1189,7 @@ input,
 
 /* --------------------- Arrow shape -------------------- */
 
-.tl-arrow-label {
+.tl-shape[data-shape-type='arrow'] .tl-text-label {
 	position: absolute;
 	top: -1px;
 	left: -1px;
@@ -1190,33 +1204,15 @@ input,
 	text-shadow: var(--tl-text-outline);
 }
 
-.tl-arrow-label[data-isediting='true'] p {
-	opacity: 0;
-}
-
-.tl-arrow-label__inner {
+.tl-shape[data-shape-type='arrow'] .tl-text-label__inner {
 	border-radius: var(--radius-1);
 	box-sizing: content-box;
-	position: relative;
 	height: max-content;
 	width: max-content;
-	pointer-events: none;
-	display: flex;
-	justify-content: center;
-	align-items: center;
 }
 
-.tl-arrow-label .tl-arrow {
-	position: relative;
+.tl-shape[data-shape-type='arrow'] .tl-text {
 	height: max-content;
-	padding: inherit;
-	overflow: visible;
-}
-
-.tl-arrow-label textarea {
-	padding: inherit;
-	/* Don't allow textarea to be zero width */
-	min-width: 4px;
 }
 
 .tl-arrow-hint {

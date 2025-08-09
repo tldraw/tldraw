@@ -44,14 +44,15 @@ export const DefaultToolbar = memo(function DefaultToolbar({ children }: Default
 				: breakpoint < PORTRAIT_BREAKPOINT.TABLET
 
 	return (
-		<div ref={ref} className="tlui-toolbar">
-			<div className="tlui-toolbar__inner">
-				<div className="tlui-toolbar__left">
+		<div ref={ref} className="tlui-main-toolbar">
+			<div className="tlui-main-toolbar__inner">
+				<div className="tlui-main-toolbar__left">
 					{!isReadonlyMode && (
-						<div className="tlui-toolbar__extras">
+						<div className="tlui-main-toolbar__extras">
 							{showQuickActions && (
 								<TldrawUiToolbar
-									className="tlui-toolbar__extras__controls tlui-buttons__horizontal"
+									orientation="horizontal"
+									className="tlui-main-toolbar__extras__controls"
 									label={msg('actions-menu.title')}
 								>
 									{QuickActions && <QuickActions />}
@@ -64,7 +65,7 @@ export const DefaultToolbar = memo(function DefaultToolbar({ children }: Default
 					<OverflowingToolbar>{children ?? <DefaultToolbarContent />}</OverflowingToolbar>
 				</div>
 				{breakpoint < PORTRAIT_BREAKPOINT.TABLET_SM && !isReadonlyMode && (
-					<div className="tlui-toolbar__tools">
+					<div className="tlui-main-toolbar__tools">
 						<MobileStylePanel />
 					</div>
 				)}

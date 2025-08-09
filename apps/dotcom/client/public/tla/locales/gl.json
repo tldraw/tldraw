@@ -41,9 +41,6 @@
   "13ddd375ad": {
     "translation": "Exportar como"
   },
-  "1460ab5e78": {
-    "translation": "tldraws gratuítos"
-  },
   "181b90f889": {
     "translation": "Crear ficheiro"
   },
@@ -52,6 +49,12 @@
   },
   "1dd1c5fb7f": {
     "translation": "Hoxe"
+  },
+  "20976e7bec": {
+    "translation": "A sala está chea"
+  },
+  "21bfb2dc2e": {
+    "translation": "Esta sala está a chegar ao seu límite de tamaño. Considera eliminar parte do contido ou comezar un novo ficheiro."
   },
   "22d84a12fd": {
     "translation": "Atasco de figuras pero debuxo rápido"
@@ -65,6 +68,9 @@
   "2c61d18599": {
     "translation": "Miro pero bo e gratuíto"
   },
+  "2deec2cb74": {
+    "translation": "Esta sala alcanzou o seu límite de tamaño e é posible que os cambios xa non se garden. Elimina parte do contido ou comeza un ficheiro novo."
+  },
   "31246941ad": {
     "translation": "Debes iniciar sesión para ver este ficheiro."
   },
@@ -76,6 +82,9 @@
   },
   "344a7f427f": {
     "translation": "Editor"
+  },
+  "37b3dca331": {
+    "translation": "Inicia sesión"
   },
   "3bd1b98dbd": {
     "translation": "Non se poden publicar os cambios."
@@ -113,11 +122,8 @@
   "4d1c8263ba": {
     "translation": "Recarga"
   },
-  "4e029798f2": {
-    "translation": "Accións gratuítas"
-  },
-  "4e875b8d8e": {
-    "translation": "Gardadas gratuítas"
+  "4ea0bb66f7": {
+    "translation": "Unha conta estaría ben"
   },
   "50db1b7e1e": {
     "translation": "Non se puido anular a publicación do ficheiro."
@@ -146,11 +152,17 @@
   "5a95a425f7": {
     "translation": "Compartir"
   },
+  "5bb6cf3b53": {
+    "translation": "A habitación faise grande"
+  },
   "5bcc12ace8": {
     "translation": "Esta sala agora é de só lectura"
   },
   "5bec508475": {
     "translation": "Detectouse un navegador antigo. Actualízao para usar esta aplicación."
+  },
+  "5bef23eb7e": {
+    "translation": "Crea a túa conta"
   },
   "5d26ae7550": {
     "translation": "Non puidemos cargar parte do contido que creaches antes de iniciar sesión."
@@ -160,9 +172,6 @@
   },
   "5fb63579fc": {
     "translation": "Copiar"
-  },
-  "5ff75742e0": {
-    "translation": "Rexístrate gratis"
   },
   "61057a0c84": {
     "translation": "Máis tarde"
@@ -218,6 +227,9 @@
   "777f9e90cf": {
     "translation": "Solicitude non válida."
   },
+  "78e9815992": {
+    "translation": "Entendido"
+  },
   "797799f35e": {
     "translation": "Envía un problema en GitHub"
   },
@@ -226,6 +238,9 @@
   },
   "7be10fc592": {
     "translation": "Restaurar versión"
+  },
+  "7c7d5d493e": {
+    "translation": "Rexístrate"
   },
   "7cb5f8b4a5": {
     "translation": "Esquece"
@@ -336,6 +351,9 @@
   "b028909917": {
     "translation": "Usuario convidado"
   },
+  "b52dc007ac": {
+    "translation": "Rexistrarse (gratuíto e bo)"
+  },
   "b6d4223e60": {
     "translation": "Inicia sesión"
   },
@@ -384,6 +402,9 @@
   "c87aacf567": {
     "translation": "Pechar sesión"
   },
+  "c8c6a6504a": {
+    "translation": "Deberías rexistrarte"
+  },
   "cceaefbc20": {
     "translation": "Comparte este ficheiro"
   },
@@ -407,6 +428,9 @@
   },
   "d876a9fe1a": {
     "translation": "Téntao de novo"
+  },
+  "d8a50c79a7": {
+    "translation": "Ven comigo a debuxar"
   },
   "d9100f3e10": {
     "translation": "Entra aquí para ver o contido"

@@ -87,12 +87,6 @@
       "value": "Vie nimellä"
     }
   ],
-  "1460ab5e78": [
-    {
-      "type": 0,
-      "value": "Ilmaiset tldraw-tiedostot"
-    }
-  ],
   "181b90f889": [
     {
       "type": 0,
@@ -109,6 +103,18 @@
     {
       "type": 0,
       "value": "Tänään"
+    }
+  ],
+  "20976e7bec": [
+    {
+      "type": 0,
+      "value": "Huone on täynnä"
+    }
+  ],
+  "21bfb2dc2e": [
+    {
+      "type": 0,
+      "value": "Tämä huone lähestyy kokorajoitustaan. Harkitse sisällön poistamista tai uuden tiedoston aloittamista."
     }
   ],
   "22d84a12fd": [
@@ -135,6 +141,12 @@
       "value": "Miro, mutta hyvä ja ilmainen"
     }
   ],
+  "2deec2cb74": [
+    {
+      "type": 0,
+      "value": "Tämä huone on saavuttanut kokorajoituksensa, eikä muutoksia ehkä enää tallenneta. Poista sisältöä tai aloita uusi tiedosto."
+    }
+  ],
   "31246941ad": [
     {
       "type": 0,
@@ -157,6 +169,12 @@
     {
       "type": 0,
       "value": "Toimittaja"
+    }
+  ],
+  "37b3dca331": [
+    {
+      "type": 0,
+      "value": "Kirjaudu sisään"
     }
   ],
   "3bd1b98dbd": [
@@ -231,16 +249,10 @@
       "value": "Lataa uudelleen"
     }
   ],
-  "4e029798f2": [
+  "4ea0bb66f7": [
     {
       "type": 0,
-      "value": "Ilmaiset osakkeet"
-    }
-  ],
-  "4e875b8d8e": [
-    {
-      "type": 0,
-      "value": "Ilmaiset tallennukset"
+      "value": "Tili olisi kiva"
     }
   ],
   "50db1b7e1e": [
@@ -307,6 +319,12 @@
       "value": "Jakaa"
     }
   ],
+  "5bb6cf3b53": [
+    {
+      "type": 0,
+      "value": "Huone kasvaa suureksi"
+    }
+  ],
   "5bcc12ace8": [
     {
       "type": 0,
@@ -317,6 +335,12 @@
     {
       "type": 0,
       "value": "Vanha selain havaittu. Päivitä selaimesi käyttääksesi tätä sovellusta."
+    }
+  ],
+  "5bef23eb7e": [
+    {
+      "type": 0,
+      "value": "Luo tili"
     }
   ],
   "5d26ae7550": [
@@ -335,12 +359,6 @@
     {
       "type": 0,
       "value": "Kopioida"
-    }
-  ],
-  "5ff75742e0": [
-    {
-      "type": 0,
-      "value": "Rekisteröidy ilmaiseksi"
     }
   ],
   "61057a0c84": [
@@ -451,6 +469,12 @@
       "value": "Virheellinen pyyntö."
     }
   ],
+  "78e9815992": [
+    {
+      "type": 0,
+      "value": "Selvä"
+    }
+  ],
   "797799f35e": [
     {
       "type": 0,
@@ -467,6 +491,12 @@
     {
       "type": 0,
       "value": "Palauta versio"
+    }
+  ],
+  "7c7d5d493e": [
+    {
+      "type": 0,
+      "value": "Ole hyvä ja rekisteröidy"
     }
   ],
   "7cb5f8b4a5": [
@@ -727,6 +757,12 @@
       "value": "Vieraskäyttäjä"
     }
   ],
+  "b52dc007ac": [
+    {
+      "type": 0,
+      "value": "Rekisteröidy (ilmainen ja hyvä)"
+    }
+  ],
   "b6d4223e60": [
     {
       "type": 0,
@@ -863,6 +899,12 @@
       "value": "Kirjaudu ulos"
     }
   ],
+  "c8c6a6504a": [
+    {
+      "type": 0,
+      "value": "Sinun pitäisi rekisteröityä"
+    }
+  ],
   "cceaefbc20": [
     {
       "type": 0,
@@ -909,6 +951,12 @@
     {
       "type": 0,
       "value": "Yritä uudelleen"
+    }
+  ],
+  "d8a50c79a7": [
+    {
+      "type": 0,
+      "value": "Tule kanssani piirtämään"
     }
   ],
   "d9100f3e10": [

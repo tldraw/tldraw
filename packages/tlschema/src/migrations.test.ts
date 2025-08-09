@@ -1385,6 +1385,7 @@ describe('Add rich text', () => {
 		['text shape', getTestMigration(textShapeVersions.AddRichText)],
 		['geo shape', getTestMigration(geoShapeVersions.AddRichText)],
 		['note shape', getTestMigration(noteShapeVersions.AddRichText)],
+		['arrow shape', getTestMigration(arrowShapeVersions.AddRichText)],
 	] as const
 
 	for (const [shapeName, { up }] of migrations) {

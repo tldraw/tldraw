@@ -41,9 +41,6 @@
   "13ddd375ad": {
     "translation": "Exporter en tant que"
   },
-  "1460ab5e78": {
-    "translation": "Tirages au sort gratuits"
-  },
   "181b90f889": {
     "translation": "Créer un fichier"
   },
@@ -52,6 +49,12 @@
   },
   "1dd1c5fb7f": {
     "translation": "Aujourd'hui"
+  },
+  "20976e7bec": {
+    "translation": "La salle est pleine"
+  },
+  "21bfb2dc2e": {
+    "translation": "Cette salle approche de sa taille maximale. Envisagez de supprimer du contenu ou de créer un nouveau fichier."
   },
   "22d84a12fd": {
     "translation": "Figjam mais tldraw"
@@ -65,6 +68,9 @@
   "2c61d18599": {
     "translation": "Miro mais bon et gratuit"
   },
+  "2deec2cb74": {
+    "translation": "Cette salle a atteint sa taille maximale et les modifications risquent de ne plus être enregistrées. Supprimez du contenu ou créez un nouveau fichier."
+  },
   "31246941ad": {
     "translation": "Vous devez vous connecter pour consulter ce fichier."
   },
@@ -76,6 +82,9 @@
   },
   "344a7f427f": {
     "translation": "Éditeur"
+  },
+  "37b3dca331": {
+    "translation": "Veuillez vous connecter"
   },
   "3bd1b98dbd": {
     "translation": "Impossible de publier les modifications."
@@ -113,11 +122,8 @@
   "4d1c8263ba": {
     "translation": "Recharger"
   },
-  "4e029798f2": {
-    "translation": "Actions gratuites"
-  },
-  "4e875b8d8e": {
-    "translation": "Sauvegardes gratuites"
+  "4ea0bb66f7": {
+    "translation": "Un compte serait bien"
   },
   "50db1b7e1e": {
     "translation": "Impossible d'annuler la publication du fichier."
@@ -146,11 +152,17 @@
   "5a95a425f7": {
     "translation": "Partager"
   },
+  "5bb6cf3b53": {
+    "translation": "La pièce devient grande"
+  },
   "5bcc12ace8": {
     "translation": "Cette salle est désormais en lecture seule"
   },
   "5bec508475": {
     "translation": "Ancien navigateur détecté. Veuillez mettre à jour votre navigateur pour utiliser cette application."
+  },
+  "5bef23eb7e": {
+    "translation": "Créez votre compte"
   },
   "5d26ae7550": {
     "translation": "Nous n'avons pas réussi à importer une partie du contenu que vous avez créé avant de vous connecter."
@@ -160,9 +172,6 @@
   },
   "5fb63579fc": {
     "translation": "Copier"
-  },
-  "5ff75742e0": {
-    "translation": "Inscrivez-vous gratuitement"
   },
   "61057a0c84": {
     "translation": "Plus tard"
@@ -218,6 +227,9 @@
   "777f9e90cf": {
     "translation": "Demande invalide."
   },
+  "78e9815992": {
+    "translation": "J'ai compris"
+  },
   "797799f35e": {
     "translation": "Soumettre un problème sur GitHub"
   },
@@ -226,6 +238,9 @@
   },
   "7be10fc592": {
     "translation": "Restaurer la version"
+  },
+  "7c7d5d493e": {
+    "translation": "Veuillez vous inscrire"
   },
   "7cb5f8b4a5": {
     "translation": "Oublier"
@@ -336,6 +351,9 @@
   "b028909917": {
     "translation": "Utilisateur invité"
   },
+  "b52dc007ac": {
+    "translation": "Inscrivez-vous (gratuit et bon)"
+  },
   "b6d4223e60": {
     "translation": "Se connecter"
   },
@@ -384,6 +402,9 @@
   "c87aacf567": {
     "translation": "Se déconnecter"
   },
+  "c8c6a6504a": {
+    "translation": "Vous devriez vous inscrire"
+  },
   "cceaefbc20": {
     "translation": "Partager ce fichier"
   },
@@ -407,6 +428,9 @@
   },
   "d876a9fe1a": {
     "translation": "Réessayer"
+  },
+  "d8a50c79a7": {
+    "translation": "Viens avec moi pour dessiner"
   },
   "d9100f3e10": {
     "translation": "Le contenu se trouve ici"

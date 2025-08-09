@@ -87,12 +87,6 @@
       "value": "I-export bilang"
     }
   ],
-  "1460ab5e78": [
-    {
-      "type": 0,
-      "value": "Libreng tldraws"
-    }
-  ],
   "181b90f889": [
     {
       "type": 0,
@@ -109,6 +103,18 @@
     {
       "type": 0,
       "value": "Ngayong araw"
+    }
+  ],
+  "20976e7bec": [
+    {
+      "type": 0,
+      "value": "Puno ang kwarto"
+    }
+  ],
+  "21bfb2dc2e": [
+    {
+      "type": 0,
+      "value": "Papalapit na ang kwartong ito sa limitasyon ng laki nito. Pag-isipang mag-alis ng ilang content o magsimula ng bagong file."
     }
   ],
   "22d84a12fd": [
@@ -135,6 +141,12 @@
       "value": "Miro ngunit mabuti at libre"
     }
   ],
+  "2deec2cb74": [
+    {
+      "type": 0,
+      "value": "Naabot na ng kwartong ito ang limitasyon sa laki nito at maaaring hindi na ma-save ang mga pagbabago. Mag-alis ng ilang content o magsimula ng bagong file."
+    }
+  ],
   "31246941ad": [
     {
       "type": 0,
@@ -157,6 +169,12 @@
     {
       "type": 0,
       "value": "Editor"
+    }
+  ],
+  "37b3dca331": [
+    {
+      "type": 0,
+      "value": "Mangyaring mag-sign in"
     }
   ],
   "3bd1b98dbd": [
@@ -231,16 +249,10 @@
       "value": "I-reload"
     }
   ],
-  "4e029798f2": [
+  "4ea0bb66f7": [
     {
       "type": 0,
-      "value": "Libreng pagbabahagi"
-    }
-  ],
-  "4e875b8d8e": [
-    {
-      "type": 0,
-      "value": "Libreng pagtitipid"
+      "value": "Ang isang account ay magiging maganda"
     }
   ],
   "50db1b7e1e": [
@@ -307,6 +319,12 @@
       "value": "Ibahagi"
     }
   ],
+  "5bb6cf3b53": [
+    {
+      "type": 0,
+      "value": "Lumalaki ang kwarto"
+    }
+  ],
   "5bcc12ace8": [
     {
       "type": 0,
@@ -317,6 +335,12 @@
     {
       "type": 0,
       "value": "Nakita ang lumang browser. Mangyaring i-update ang iyong browser upang magamit ang app na ito."
+    }
+  ],
+  "5bef23eb7e": [
+    {
+      "type": 0,
+      "value": "Lumikha ng iyong account"
     }
   ],
   "5d26ae7550": [
@@ -335,12 +359,6 @@
     {
       "type": 0,
       "value": "Kopyahin"
-    }
-  ],
-  "5ff75742e0": [
-    {
-      "type": 0,
-      "value": "Mag-sign up nang libre"
     }
   ],
   "61057a0c84": [
@@ -451,6 +469,12 @@
       "value": "Di-wastong kahilingan."
     }
   ],
+  "78e9815992": [
+    {
+      "type": 0,
+      "value": "Nakuha ko"
+    }
+  ],
   "797799f35e": [
     {
       "type": 0,
@@ -467,6 +491,12 @@
     {
       "type": 0,
       "value": "Ibalik ang bersyon"
+    }
+  ],
+  "7c7d5d493e": [
+    {
+      "type": 0,
+      "value": "Mangyaring mag-sign up"
     }
   ],
   "7cb5f8b4a5": [
@@ -727,6 +757,12 @@
       "value": "Guest user"
     }
   ],
+  "b52dc007ac": [
+    {
+      "type": 0,
+      "value": "Mag-sign up (libre at mabuti)"
+    }
+  ],
   "b6d4223e60": [
     {
       "type": 0,
@@ -879,6 +915,12 @@
       "value": "Mag-sign out"
     }
   ],
+  "c8c6a6504a": [
+    {
+      "type": 0,
+      "value": "Dapat kang mag-sign up"
+    }
+  ],
   "cceaefbc20": [
     {
       "type": 0,
@@ -925,6 +967,12 @@
     {
       "type": 0,
       "value": "Subukan Muli"
+    }
+  ],
+  "d8a50c79a7": [
+    {
+      "type": 0,
+      "value": "Sumama ka sa akin sa tldraw"
     }
   ],
   "d9100f3e10": [

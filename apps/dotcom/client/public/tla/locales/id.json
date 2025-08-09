@@ -41,9 +41,6 @@
   "13ddd375ad": {
     "translation": "Ekspor sebagai"
   },
-  "1460ab5e78": {
-    "translation": "Tldraw gratis"
-  },
   "181b90f889": {
     "translation": "Buat file"
   },
@@ -52,6 +49,12 @@
   },
   "1dd1c5fb7f": {
     "translation": "Hari ini"
+  },
+  "20976e7bec": {
+    "translation": "Kamar sudah penuh"
+  },
+  "21bfb2dc2e": {
+    "translation": "Ruangan ini hampir mencapai batas ukurannya. Pertimbangkan untuk menghapus beberapa konten atau memulai berkas baru."
   },
   "22d84a12fd": {
     "translation": "Figjam tapi tldraw"
@@ -65,6 +68,9 @@
   "2c61d18599": {
     "translation": "Miro tapi bagus dan gratis"
   },
+  "2deec2cb74": {
+    "translation": "Ruangan ini telah mencapai batas ukuran dan perubahan mungkin tidak dapat disimpan lagi. Hapus beberapa konten atau buat berkas baru."
+  },
   "31246941ad": {
     "translation": "Anda harus masuk untuk melihat file ini."
   },
@@ -76,6 +82,9 @@
   },
   "344a7f427f": {
     "translation": "Editor"
+  },
+  "37b3dca331": {
+    "translation": "Silakan masuk"
   },
   "3bd1b98dbd": {
     "translation": "Tidak dapat menerbitkan perubahan."
@@ -113,11 +122,8 @@
   "4d1c8263ba": {
     "translation": "Muat ulang"
   },
-  "4e029798f2": {
-    "translation": "Saham gratis"
-  },
-  "4e875b8d8e": {
-    "translation": "Penyimpanan gratis"
+  "4ea0bb66f7": {
+    "translation": "Sebuah akun akan lebih baik"
   },
   "50db1b7e1e": {
     "translation": "Tidak dapat membatalkan penerbitan file."
@@ -146,11 +152,17 @@
   "5a95a425f7": {
     "translation": "Bagikan"
   },
+  "5bb6cf3b53": {
+    "translation": "Ruangan menjadi besar"
+  },
   "5bcc12ace8": {
     "translation": "Ruangan ini sekarang hanya bisa dibaca"
   },
   "5bec508475": {
     "translation": "Browser lama terdeteksi. Harap perbarui browser Anda untuk menggunakan aplikasi ini."
+  },
+  "5bef23eb7e": {
+    "translation": "Buat akun Anda"
   },
   "5d26ae7550": {
     "translation": "Kami gagal mengunggah beberapa konten yang Anda buat sebelum masuk."
@@ -160,9 +172,6 @@
   },
   "5fb63579fc": {
     "translation": "Salin"
-  },
-  "5ff75742e0": {
-    "translation": "Daftar gratis"
   },
   "61057a0c84": {
     "translation": "Nanti"
@@ -218,6 +227,9 @@
   "777f9e90cf": {
     "translation": "Permintaan tidak valid."
   },
+  "78e9815992": {
+    "translation": "Mengerti"
+  },
   "797799f35e": {
     "translation": "Kirimkan masalah di GitHub"
   },
@@ -226,6 +238,9 @@
   },
   "7be10fc592": {
     "translation": "Pulihkan versi"
+  },
+  "7c7d5d493e": {
+    "translation": "Silakan mendaftar"
   },
   "7cb5f8b4a5": {
     "translation": "Abaikan"
@@ -336,6 +351,9 @@
   "b028909917": {
     "translation": "Pengguna tamu"
   },
+  "b52dc007ac": {
+    "translation": "Daftar (gratis dan bagus)"
+  },
   "b6d4223e60": {
     "translation": "Masuk"
   },
@@ -384,6 +402,9 @@
   "c87aacf567": {
     "translation": "Keluar"
   },
+  "c8c6a6504a": {
+    "translation": "Anda harus mendaftar"
+  },
   "cceaefbc20": {
     "translation": "Bagikan file ini"
   },
@@ -407,6 +428,9 @@
   },
   "d876a9fe1a": {
     "translation": "Coba Lagi"
+  },
+  "d8a50c79a7": {
+    "translation": "Ayo ikut aku menggambar"
   },
   "d9100f3e10": {
     "translation": "Klik di sini untuk melihat konten"

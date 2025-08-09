@@ -87,12 +87,6 @@
       "value": "Exportar como"
     }
   ],
-  "1460ab5e78": [
-    {
-      "type": 0,
-      "value": "Dibujos gratuitos"
-    }
-  ],
   "181b90f889": [
     {
       "type": 0,
@@ -109,6 +103,18 @@
     {
       "type": 0,
       "value": "Hoy"
+    }
+  ],
+  "20976e7bec": [
+    {
+      "type": 0,
+      "value": "La habitación está llena"
+    }
+  ],
+  "21bfb2dc2e": [
+    {
+      "type": 0,
+      "value": "Esta sala está llegando a su límite de tamaño. Considere eliminar contenido o crear un nuevo archivo."
     }
   ],
   "22d84a12fd": [
@@ -135,6 +141,12 @@
       "value": "Miro pero bueno y gratis"
     }
   ],
+  "2deec2cb74": [
+    {
+      "type": 0,
+      "value": "Esta sala ha alcanzado su límite de tamaño y es posible que los cambios ya no se guarden. Elimina contenido o crea un nuevo archivo."
+    }
+  ],
   "31246941ad": [
     {
       "type": 0,
@@ -157,6 +169,12 @@
     {
       "type": 0,
       "value": "Editor"
+    }
+  ],
+  "37b3dca331": [
+    {
+      "type": 0,
+      "value": "Por favor, inicia sesión"
     }
   ],
   "3bd1b98dbd": [
@@ -231,16 +249,10 @@
       "value": "Volver a cargar"
     }
   ],
-  "4e029798f2": [
+  "4ea0bb66f7": [
     {
       "type": 0,
-      "value": "Acciones gratuitas"
-    }
-  ],
-  "4e875b8d8e": [
-    {
-      "type": 0,
-      "value": "Guardados gratuitos"
+      "value": "Una cuenta estaría bien"
     }
   ],
   "50db1b7e1e": [
@@ -307,6 +319,12 @@
       "value": "Compartir"
     }
   ],
+  "5bb6cf3b53": [
+    {
+      "type": 0,
+      "value": "La habitación se está haciendo grande"
+    }
+  ],
   "5bcc12ace8": [
     {
       "type": 0,
@@ -317,6 +335,12 @@
     {
       "type": 0,
       "value": "Se detectó un navegador antiguo. Actualice su navegador para usar esta aplicación."
+    }
+  ],
+  "5bef23eb7e": [
+    {
+      "type": 0,
+      "value": "Crea tu cuenta"
     }
   ],
   "5d26ae7550": [
@@ -335,12 +359,6 @@
     {
       "type": 0,
       "value": "Copiar"
-    }
-  ],
-  "5ff75742e0": [
-    {
-      "type": 0,
-      "value": "Regístrate gratis"
     }
   ],
   "61057a0c84": [
@@ -451,6 +469,12 @@
       "value": "Solicitud no válida."
     }
   ],
+  "78e9815992": [
+    {
+      "type": 0,
+      "value": "Entiendo"
+    }
+  ],
   "797799f35e": [
     {
       "type": 0,
@@ -467,6 +491,12 @@
     {
       "type": 0,
       "value": "Restaurar versión"
+    }
+  ],
+  "7c7d5d493e": [
+    {
+      "type": 0,
+      "value": "Por favor regístrate"
     }
   ],
   "7cb5f8b4a5": [
@@ -727,6 +757,12 @@
       "value": "Usuario invitado"
     }
   ],
+  "b52dc007ac": [
+    {
+      "type": 0,
+      "value": "Regístrate (gratis y gratis)"
+    }
+  ],
   "b6d4223e60": [
     {
       "type": 0,
@@ -863,6 +899,12 @@
       "value": "Cerrar sesión"
     }
   ],
+  "c8c6a6504a": [
+    {
+      "type": 0,
+      "value": "Deberías registrarte"
+    }
+  ],
   "cceaefbc20": [
     {
       "type": 0,
@@ -909,6 +951,12 @@
     {
       "type": 0,
       "value": "Inténtelo de nuevo"
+    }
+  ],
+  "d8a50c79a7": [
+    {
+      "type": 0,
+      "value": "Ven conmigo a dibujar"
     }
   ],
   "d9100f3e10": [

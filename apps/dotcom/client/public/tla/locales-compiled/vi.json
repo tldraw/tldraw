@@ -87,12 +87,6 @@
       "value": "Xuất dưới dạng"
     }
   ],
-  "1460ab5e78": [
-    {
-      "type": 0,
-      "value": "Rút tiền miễn phí"
-    }
-  ],
   "181b90f889": [
     {
       "type": 0,
@@ -109,6 +103,18 @@
     {
       "type": 0,
       "value": "Hôm nay"
+    }
+  ],
+  "20976e7bec": [
+    {
+      "type": 0,
+      "value": "Phòng đã đầy"
+    }
+  ],
+  "21bfb2dc2e": [
+    {
+      "type": 0,
+      "value": "Phòng này sắp đạt đến giới hạn kích thước. Hãy cân nhắc xóa bớt nội dung hoặc tạo một tệp mới."
     }
   ],
   "22d84a12fd": [
@@ -135,6 +141,12 @@
       "value": "Miro nhưng tốt và miễn phí"
     }
   ],
+  "2deec2cb74": [
+    {
+      "type": 0,
+      "value": "Phòng này đã đạt đến giới hạn kích thước và các thay đổi có thể không còn được lưu nữa. Hãy xóa bớt nội dung hoặc tạo một tệp mới."
+    }
+  ],
   "31246941ad": [
     {
       "type": 0,
@@ -157,6 +169,12 @@
     {
       "type": 0,
       "value": "Biên tập viên"
+    }
+  ],
+  "37b3dca331": [
+    {
+      "type": 0,
+      "value": "Vui lòng đăng nhập"
     }
   ],
   "3bd1b98dbd": [
@@ -231,16 +249,10 @@
       "value": "Tải lại"
     }
   ],
-  "4e029798f2": [
+  "4ea0bb66f7": [
     {
       "type": 0,
-      "value": "Cổ phiếu miễn phí"
-    }
-  ],
-  "4e875b8d8e": [
-    {
-      "type": 0,
-      "value": "Lưu miễn phí"
+      "value": "Một tài khoản sẽ tốt hơn"
     }
   ],
   "50db1b7e1e": [
@@ -307,6 +319,12 @@
       "value": "Chia sẻ"
     }
   ],
+  "5bb6cf3b53": [
+    {
+      "type": 0,
+      "value": "Phòng đang trở nên rộng hơn"
+    }
+  ],
   "5bcc12ace8": [
     {
       "type": 0,
@@ -317,6 +335,12 @@
     {
       "type": 0,
       "value": "Đã phát hiện trình duyệt cũ. Vui lòng cập nhật trình duyệt của bạn để sử dụng ứng dụng này."
+    }
+  ],
+  "5bef23eb7e": [
+    {
+      "type": 0,
+      "value": "Tạo tài khoản của bạn"
     }
   ],
   "5d26ae7550": [
@@ -335,12 +359,6 @@
     {
       "type": 0,
       "value": "Sao chép"
-    }
-  ],
-  "5ff75742e0": [
-    {
-      "type": 0,
-      "value": "Đăng ký miễn phí"
     }
   ],
   "61057a0c84": [
@@ -451,6 +469,12 @@
       "value": "Yêu cầu không hợp lệ."
     }
   ],
+  "78e9815992": [
+    {
+      "type": 0,
+      "value": "Hiểu rồi"
+    }
+  ],
   "797799f35e": [
     {
       "type": 0,
@@ -467,6 +491,12 @@
     {
       "type": 0,
       "value": "Khôi phục phiên bản"
+    }
+  ],
+  "7c7d5d493e": [
+    {
+      "type": 0,
+      "value": "Vui lòng đăng ký"
     }
   ],
   "7cb5f8b4a5": [
@@ -727,6 +757,12 @@
       "value": "Người dùng khách"
     }
   ],
+  "b52dc007ac": [
+    {
+      "type": 0,
+      "value": "Đăng ký (miễn phí và tốt)"
+    }
+  ],
   "b6d4223e60": [
     {
       "type": 0,
@@ -855,6 +891,12 @@
       "value": "Đăng xuất"
     }
   ],
+  "c8c6a6504a": [
+    {
+      "type": 0,
+      "value": "Bạn nên đăng ký"
+    }
+  ],
   "cceaefbc20": [
     {
       "type": 0,
@@ -901,6 +943,12 @@
     {
       "type": 0,
       "value": "Thử lại"
+    }
+  ],
+  "d8a50c79a7": [
+    {
+      "type": 0,
+      "value": "Hãy cùng tôi vẽ nhé"
     }
   ],
   "d9100f3e10": [

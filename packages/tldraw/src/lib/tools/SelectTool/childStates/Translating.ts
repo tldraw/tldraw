@@ -28,7 +28,6 @@ export type TranslatingInfo = TLPointerEventInfo & {
 	isCreating?: boolean
 	creatingMarkId?: string
 	onCreate?(): void
-	didStartInPit?: boolean
 	onInteractionEnd?: string
 }
 
@@ -203,6 +202,17 @@ export class Translating extends StateNode {
 	}
 
 	private cancel() {
+		// Call onTranslateCancel callback before resetting
+		const { movingShapes } = this.snapshot
+
+		movingShapes.forEach((shape) => {
+			const current = this.editor.getShape(shape.id)
+			if (current) {
+				const util = this.editor.getShapeUtil(shape)
+				util.onTranslateCancel?.(shape, current)
+			}
+		})
+
 		this.reset()
 		if (this.info.onInteractionEnd) {
 			this.editor.setCurrentTool(this.info.onInteractionEnd)

@@ -87,12 +87,6 @@
       "value": "Izvozi kot"
     }
   ],
-  "1460ab5e78": [
-    {
-      "type": 0,
-      "value": "Brezplačni tldraws"
-    }
-  ],
   "181b90f889": [
     {
       "type": 0,
@@ -109,6 +103,18 @@
     {
       "type": 0,
       "value": "Danes"
+    }
+  ],
+  "20976e7bec": [
+    {
+      "type": 0,
+      "value": "Soba je polna"
+    }
+  ],
+  "21bfb2dc2e": [
+    {
+      "type": 0,
+      "value": "Ta soba se bliža svoji omejitvi velikosti. Razmislite o odstranitvi nekaj vsebine ali ustvarjanju nove datoteke."
     }
   ],
   "22d84a12fd": [
@@ -135,6 +141,12 @@
       "value": "Miro, ampak dober in brezplačen"
     }
   ],
+  "2deec2cb74": [
+    {
+      "type": 0,
+      "value": "Ta soba je dosegla omejitev velikosti in spremembe morda ne bodo več shranjene. Odstranite nekaj vsebine ali začnite novo datoteko."
+    }
+  ],
   "31246941ad": [
     {
       "type": 0,
@@ -157,6 +169,12 @@
     {
       "type": 0,
       "value": "Urednik"
+    }
+  ],
+  "37b3dca331": [
+    {
+      "type": 0,
+      "value": "Prosim, prijavite se"
     }
   ],
   "3bd1b98dbd": [
@@ -231,16 +249,10 @@
       "value": "Ponovno naloži"
     }
   ],
-  "4e029798f2": [
+  "4ea0bb66f7": [
     {
       "type": 0,
-      "value": "Brezplačne delitve"
-    }
-  ],
-  "4e875b8d8e": [
-    {
-      "type": 0,
-      "value": "Brezplačna shranjevanja"
+      "value": "Račun bi bil dober"
     }
   ],
   "50db1b7e1e": [
@@ -307,6 +319,12 @@
       "value": "Deli"
     }
   ],
+  "5bb6cf3b53": [
+    {
+      "type": 0,
+      "value": "Soba postaja velika"
+    }
+  ],
   "5bcc12ace8": [
     {
       "type": 0,
@@ -317,6 +335,12 @@
     {
       "type": 0,
       "value": "Zaznan je bil star brskalnik. Za uporabo te aplikacije posodobite brskalnik."
+    }
+  ],
+  "5bef23eb7e": [
+    {
+      "type": 0,
+      "value": "Ustvarite svoj račun"
     }
   ],
   "5d26ae7550": [
@@ -335,12 +359,6 @@
     {
       "type": 0,
       "value": "Kopiraj"
-    }
-  ],
-  "5ff75742e0": [
-    {
-      "type": 0,
-      "value": "Prijavite se brezplačno"
     }
   ],
   "61057a0c84": [
@@ -451,6 +469,12 @@
       "value": "Neveljavna zahteva."
     }
   ],
+  "78e9815992": [
+    {
+      "type": 0,
+      "value": "Razumem"
+    }
+  ],
   "797799f35e": [
     {
       "type": 0,
@@ -467,6 +491,12 @@
     {
       "type": 0,
       "value": "Obnovi različico"
+    }
+  ],
+  "7c7d5d493e": [
+    {
+      "type": 0,
+      "value": "Prosim, prijavite se"
     }
   ],
   "7cb5f8b4a5": [
@@ -727,6 +757,12 @@
       "value": "Gostujoči uporabnik"
     }
   ],
+  "b52dc007ac": [
+    {
+      "type": 0,
+      "value": "Prijava (brezplačna in dobra)"
+    }
+  ],
   "b6d4223e60": [
     {
       "type": 0,
@@ -871,6 +907,12 @@
       "value": "Odjava"
     }
   ],
+  "c8c6a6504a": [
+    {
+      "type": 0,
+      "value": "Prijaviti se moraš"
+    }
+  ],
   "cceaefbc20": [
     {
       "type": 0,
@@ -917,6 +959,12 @@
     {
       "type": 0,
       "value": "Poskusi znova"
+    }
+  ],
+  "d8a50c79a7": [
+    {
+      "type": 0,
+      "value": "Pridi z mano risati"
     }
   ],
   "d9100f3e10": [

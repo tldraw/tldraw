@@ -41,9 +41,6 @@
   "13ddd375ad": {
     "translation": "Izvozi kot"
   },
-  "1460ab5e78": {
-    "translation": "Brezplačni tldraws"
-  },
   "181b90f889": {
     "translation": "Ustvari datoteko"
   },
@@ -52,6 +49,12 @@
   },
   "1dd1c5fb7f": {
     "translation": "Danes"
+  },
+  "20976e7bec": {
+    "translation": "Soba je polna"
+  },
+  "21bfb2dc2e": {
+    "translation": "Ta soba se bliža svoji omejitvi velikosti. Razmislite o odstranitvi nekaj vsebine ali ustvarjanju nove datoteke."
   },
   "22d84a12fd": {
     "translation": "Figjam, ampak tldraw"
@@ -65,6 +68,9 @@
   "2c61d18599": {
     "translation": "Miro, ampak dober in brezplačen"
   },
+  "2deec2cb74": {
+    "translation": "Ta soba je dosegla omejitev velikosti in spremembe morda ne bodo več shranjene. Odstranite nekaj vsebine ali začnite novo datoteko."
+  },
   "31246941ad": {
     "translation": "Za ogled te datoteke se morate prijaviti."
   },
@@ -76,6 +82,9 @@
   },
   "344a7f427f": {
     "translation": "Urednik"
+  },
+  "37b3dca331": {
+    "translation": "Prosim, prijavite se"
   },
   "3bd1b98dbd": {
     "translation": "Ni mogoče objaviti sprememb."
@@ -113,11 +122,8 @@
   "4d1c8263ba": {
     "translation": "Ponovno naloži"
   },
-  "4e029798f2": {
-    "translation": "Brezplačne delitve"
-  },
-  "4e875b8d8e": {
-    "translation": "Brezplačna shranjevanja"
+  "4ea0bb66f7": {
+    "translation": "Račun bi bil dober"
   },
   "50db1b7e1e": {
     "translation": "Ni mogoče preklicati objave datoteke."
@@ -146,11 +152,17 @@
   "5a95a425f7": {
     "translation": "Deli"
   },
+  "5bb6cf3b53": {
+    "translation": "Soba postaja velika"
+  },
   "5bcc12ace8": {
     "translation": "Ta soba je zdaj samo za branje"
   },
   "5bec508475": {
     "translation": "Zaznan je bil star brskalnik. Za uporabo te aplikacije posodobite brskalnik."
+  },
+  "5bef23eb7e": {
+    "translation": "Ustvarite svoj račun"
   },
   "5d26ae7550": {
     "translation": "Nekatere vsebine, ki ste jo ustvarili, preden ste se prijavili, nismo uspeli naložiti."
@@ -160,9 +172,6 @@
   },
   "5fb63579fc": {
     "translation": "Kopiraj"
-  },
-  "5ff75742e0": {
-    "translation": "Prijavite se brezplačno"
   },
   "61057a0c84": {
     "translation": "Kasneje"
@@ -218,6 +227,9 @@
   "777f9e90cf": {
     "translation": "Neveljavna zahteva."
   },
+  "78e9815992": {
+    "translation": "Razumem"
+  },
   "797799f35e": {
     "translation": "Predložite težavo na GitHub"
   },
@@ -226,6 +238,9 @@
   },
   "7be10fc592": {
     "translation": "Obnovi različico"
+  },
+  "7c7d5d493e": {
+    "translation": "Prosim, prijavite se"
   },
   "7cb5f8b4a5": {
     "translation": "Pozabi"
@@ -336,6 +351,9 @@
   "b028909917": {
     "translation": "Gostujoči uporabnik"
   },
+  "b52dc007ac": {
+    "translation": "Prijava (brezplačna in dobra)"
+  },
   "b6d4223e60": {
     "translation": "Prijava"
   },
@@ -384,6 +402,9 @@
   "c87aacf567": {
     "translation": "Odjava"
   },
+  "c8c6a6504a": {
+    "translation": "Prijaviti se moraš"
+  },
   "cceaefbc20": {
     "translation": "Delite to datoteko"
   },
@@ -407,6 +428,9 @@
   },
   "d876a9fe1a": {
     "translation": "Poskusi znova"
+  },
+  "d8a50c79a7": {
+    "translation": "Pridi z mano risati"
   },
   "d9100f3e10": {
     "translation": "Za ogled vsebine pojdite sem"

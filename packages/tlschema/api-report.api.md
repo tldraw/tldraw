@@ -56,6 +56,7 @@ export const arrowShapeVersions: {
     readonly AddIsPrecise: "com.tldraw.shape.arrow/2";
     readonly AddLabelColor: "com.tldraw.shape.arrow/1";
     readonly AddLabelPosition: "com.tldraw.shape.arrow/3";
+    readonly AddRichText: "com.tldraw.shape.arrow/7";
     readonly AddScale: "com.tldraw.shape.arrow/5";
     readonly ExtractBindings: "com.tldraw.shape.arrow/4";
 };
@@ -321,6 +322,9 @@ export const geoShapeMigrations: TLPropsMigrations;
 export const geoShapeProps: RecordProps<TLGeoShape>;
 
 // @public (undocumented)
+export function getColorValue(theme: TLDefaultColorTheme, color: TLDefaultColorStyle, variant: keyof TLDefaultColorThemeColor): string;
+
+// @public (undocumented)
 export function getDefaultColorTheme(opts: {
     isDarkMode: boolean;
 }): TLDefaultColorTheme;
@@ -395,7 +399,7 @@ export function isBinding(record?: UnknownRecord): record is TLBinding;
 export function isBindingId(id?: string): id is TLBindingId;
 
 // @public (undocumented)
-export function isDefaultColor(color: string): color is (typeof defaultColorNames)[number];
+export function isDefaultThemeColor(color: TLDefaultColorStyle): color is (typeof defaultColorNames)[number];
 
 // @public (undocumented)
 export function isDocument(record?: UnknownRecord): record is TLDocument;
@@ -744,13 +748,13 @@ export interface TLArrowShapeProps {
     // (undocumented)
     labelPosition: number;
     // (undocumented)
+    richText: TLRichText;
+    // (undocumented)
     scale: number;
     // (undocumented)
     size: TLDefaultSizeStyle;
     // (undocumented)
     start: VecModel;
-    // (undocumented)
-    text: string;
 }
 
 // @public (undocumented)
@@ -926,7 +930,7 @@ export type TLCursorType = SetValue<typeof TL_CURSOR_TYPES>;
 export type TLDefaultBinding = TLArrowBinding;
 
 // @public (undocumented)
-export type TLDefaultColorStyle = string | T.TypeOf<typeof DefaultColorStyle>;
+export type TLDefaultColorStyle = T.TypeOf<typeof DefaultColorStyle>;
 
 // @public (undocumented)
 export type TLDefaultColorTheme = Expand<{
@@ -941,23 +945,23 @@ export interface TLDefaultColorThemeColor {
     // (undocumented)
     fill: string;
     // (undocumented)
-    frame: {
-        fill: string;
-        headingFill: string;
-        headingStroke: string;
-        stroke: string;
-        text: string;
-    };
+    frameFill: string;
     // (undocumented)
-    highlight: {
-        p3: string;
-        srgb: string;
-    };
+    frameHeadingFill: string;
     // (undocumented)
-    note: {
-        fill: string;
-        text: string;
-    };
+    frameHeadingStroke: string;
+    // (undocumented)
+    frameStroke: string;
+    // (undocumented)
+    frameText: string;
+    // (undocumented)
+    highlightP3: string;
+    // (undocumented)
+    highlightSrgb: string;
+    // (undocumented)
+    noteFill: string;
+    // (undocumented)
+    noteText: string;
     // (undocumented)
     pattern: string;
     // (undocumented)

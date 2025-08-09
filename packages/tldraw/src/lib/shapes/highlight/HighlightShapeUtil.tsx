@@ -10,9 +10,9 @@ import {
 	TLHighlightShapeProps,
 	TLResizeInfo,
 	VecLike,
+	getColorValue,
 	highlightShapeMigrations,
 	highlightShapeProps,
-	isDefaultColor,
 	last,
 	lerp,
 	rng,
@@ -290,9 +290,12 @@ function HighlightRenderer({
 			: getShapeDot(shape.props.segments[0].points[0])
 
 	const colorSpace = useColorSpace()
-	const color = isDefaultColor(shape.props.color)
-		? theme[shape.props.color].highlight[colorSpace]
-		: shape.props.color
+
+	const color = getColorValue(
+		theme,
+		shape.props.color,
+		colorSpace === 'p3' ? 'highlightP3' : 'highlightSrgb'
+	)
 
 	return (
 		<path

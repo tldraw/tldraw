@@ -87,12 +87,6 @@
       "value": "Eksport sebagai"
     }
   ],
-  "1460ab5e78": [
-    {
-      "type": 0,
-      "value": "tldraw percuma"
-    }
-  ],
   "181b90f889": [
     {
       "type": 0,
@@ -109,6 +103,18 @@
     {
       "type": 0,
       "value": "Hari ini"
+    }
+  ],
+  "20976e7bec": [
+    {
+      "type": 0,
+      "value": "Bilik penuh"
+    }
+  ],
+  "21bfb2dc2e": [
+    {
+      "type": 0,
+      "value": "Bilik ini menghampiri had saiznya. Pertimbangkan untuk mengalih keluar beberapa kandungan atau memulakan fail baharu."
     }
   ],
   "22d84a12fd": [
@@ -135,6 +141,12 @@
       "value": "Miro tetapi bagus dan percuma"
     }
   ],
+  "2deec2cb74": [
+    {
+      "type": 0,
+      "value": "Bilik ini telah mencapai had saiznya dan perubahan mungkin tidak disimpan lagi. Alih keluar beberapa kandungan atau mulakan fail baharu."
+    }
+  ],
   "31246941ad": [
     {
       "type": 0,
@@ -157,6 +169,12 @@
     {
       "type": 0,
       "value": "Editor"
+    }
+  ],
+  "37b3dca331": [
+    {
+      "type": 0,
+      "value": "Sila log masuk"
     }
   ],
   "3bd1b98dbd": [
@@ -231,16 +249,10 @@
       "value": "Muat semula"
     }
   ],
-  "4e029798f2": [
+  "4ea0bb66f7": [
     {
       "type": 0,
-      "value": "Saham percuma"
-    }
-  ],
-  "4e875b8d8e": [
-    {
-      "type": 0,
-      "value": "Penjimatan percuma"
+      "value": "Akaun akan menjadi bagus"
     }
   ],
   "50db1b7e1e": [
@@ -307,6 +319,12 @@
       "value": "Kongsi"
     }
   ],
+  "5bb6cf3b53": [
+    {
+      "type": 0,
+      "value": "Bilik semakin besar"
+    }
+  ],
   "5bcc12ace8": [
     {
       "type": 0,
@@ -317,6 +335,12 @@
     {
       "type": 0,
       "value": "Pelayar lama dikesan. Sila kemas kini pelayar anda untuk menggunakan aplikasi ini."
+    }
+  ],
+  "5bef23eb7e": [
+    {
+      "type": 0,
+      "value": "Buat akaun anda"
     }
   ],
   "5d26ae7550": [
@@ -335,12 +359,6 @@
     {
       "type": 0,
       "value": "salin"
-    }
-  ],
-  "5ff75742e0": [
-    {
-      "type": 0,
-      "value": "Daftar secara percuma"
     }
   ],
   "61057a0c84": [
@@ -451,6 +469,12 @@
       "value": "Permintaan tidak sah."
     }
   ],
+  "78e9815992": [
+    {
+      "type": 0,
+      "value": "faham"
+    }
+  ],
   "797799f35e": [
     {
       "type": 0,
@@ -467,6 +491,12 @@
     {
       "type": 0,
       "value": "Pulihkan versi"
+    }
+  ],
+  "7c7d5d493e": [
+    {
+      "type": 0,
+      "value": "Sila daftar"
     }
   ],
   "7cb5f8b4a5": [
@@ -727,6 +757,12 @@
       "value": "Pengguna tetamu"
     }
   ],
+  "b52dc007ac": [
+    {
+      "type": 0,
+      "value": "Daftar (percuma dan bagus)"
+    }
+  ],
   "b6d4223e60": [
     {
       "type": 0,
@@ -855,6 +891,12 @@
       "value": "Log keluar"
     }
   ],
+  "c8c6a6504a": [
+    {
+      "type": 0,
+      "value": "Anda harus mendaftar"
+    }
+  ],
   "cceaefbc20": [
     {
       "type": 0,
@@ -901,6 +943,12 @@
     {
       "type": 0,
       "value": "Cuba Lagi"
+    }
+  ],
+  "d8a50c79a7": [
+    {
+      "type": 0,
+      "value": "Mari bersama saya untuk tldraw"
     }
   ],
   "d9100f3e10": [

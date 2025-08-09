@@ -87,12 +87,6 @@
       "value": "Exporta com a"
     }
   ],
-  "1460ab5e78": [
-    {
-      "type": 0,
-      "value": "tldraws gratuïts"
-    }
-  ],
   "181b90f889": [
     {
       "type": 0,
@@ -109,6 +103,18 @@
     {
       "type": 0,
       "value": "Avui"
+    }
+  ],
+  "20976e7bec": [
+    {
+      "type": 0,
+      "value": "La sala és plena"
+    }
+  ],
+  "21bfb2dc2e": [
+    {
+      "type": 0,
+      "value": "Aquesta sala s'acosta al seu límit de mida. Penseu en la possibilitat d'eliminar part del contingut o iniciar un fitxer nou."
     }
   ],
   "22d84a12fd": [
@@ -135,6 +141,12 @@
       "value": "Miro però bo i gratuït"
     }
   ],
+  "2deec2cb74": [
+    {
+      "type": 0,
+      "value": "Aquesta sala ha arribat al límit de mida i és possible que els canvis ja no es puguin desar. Elimina part del contingut o inicia un fitxer nou."
+    }
+  ],
   "31246941ad": [
     {
       "type": 0,
@@ -157,6 +169,12 @@
     {
       "type": 0,
       "value": "Editor"
+    }
+  ],
+  "37b3dca331": [
+    {
+      "type": 0,
+      "value": "Si us plau, inicia la sessió"
     }
   ],
   "3bd1b98dbd": [
@@ -231,16 +249,10 @@
       "value": "Torna a carregar"
     }
   ],
-  "4e029798f2": [
+  "4ea0bb66f7": [
     {
       "type": 0,
-      "value": "Accions gratuïtes"
-    }
-  ],
-  "4e875b8d8e": [
-    {
-      "type": 0,
-      "value": "Guardats gratuïts"
+      "value": "Un compte estaria bé"
     }
   ],
   "50db1b7e1e": [
@@ -307,6 +319,12 @@
       "value": "Comparteix"
     }
   ],
+  "5bb6cf3b53": [
+    {
+      "type": 0,
+      "value": "L'habitació s'està fent gran"
+    }
+  ],
   "5bcc12ace8": [
     {
       "type": 0,
@@ -317,6 +335,12 @@
     {
       "type": 0,
       "value": "S'ha detectat un navegador antic. Actualitzeu el navegador per utilitzar aquesta aplicació."
+    }
+  ],
+  "5bef23eb7e": [
+    {
+      "type": 0,
+      "value": "Crea el teu compte"
     }
   ],
   "5d26ae7550": [
@@ -335,12 +359,6 @@
     {
       "type": 0,
       "value": "Còpia"
-    }
-  ],
-  "5ff75742e0": [
-    {
-      "type": 0,
-      "value": "Registra't gratuïtament"
     }
   ],
   "61057a0c84": [
@@ -451,6 +469,12 @@
       "value": "Sol·licitud no vàlida."
     }
   ],
+  "78e9815992": [
+    {
+      "type": 0,
+      "value": "Ho entenc"
+    }
+  ],
   "797799f35e": [
     {
       "type": 0,
@@ -467,6 +491,12 @@
     {
       "type": 0,
       "value": "Restaurar versió"
+    }
+  ],
+  "7c7d5d493e": [
+    {
+      "type": 0,
+      "value": "Si us plau, registreu-vos"
     }
   ],
   "7cb5f8b4a5": [
@@ -727,6 +757,12 @@
       "value": "Usuari convidat"
     }
   ],
+  "b52dc007ac": [
+    {
+      "type": 0,
+      "value": "Registra't (gratuït i bo)"
+    }
+  ],
   "b6d4223e60": [
     {
       "type": 0,
@@ -863,6 +899,12 @@
       "value": "Tanca la sessió"
     }
   ],
+  "c8c6a6504a": [
+    {
+      "type": 0,
+      "value": "T'hauries de registrar"
+    }
+  ],
   "cceaefbc20": [
     {
       "type": 0,
@@ -909,6 +951,12 @@
     {
       "type": 0,
       "value": "Torna-ho a provar"
+    }
+  ],
+  "d8a50c79a7": [
+    {
+      "type": 0,
+      "value": "Vine amb mi a dibuixar"
     }
   ],
   "d9100f3e10": [

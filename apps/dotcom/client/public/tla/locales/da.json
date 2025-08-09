@@ -41,9 +41,6 @@
   "13ddd375ad": {
     "translation": "Eksporter som"
   },
-  "1460ab5e78": {
-    "translation": "Gratis tldraws"
-  },
   "181b90f889": {
     "translation": "Opret fil"
   },
@@ -52,6 +49,12 @@
   },
   "1dd1c5fb7f": {
     "translation": "I dag"
+  },
+  "20976e7bec": {
+    "translation": "Rummet er fuldt"
+  },
+  "21bfb2dc2e": {
+    "translation": "Dette rum nærmer sig sin størrelsesgrænse. Overvej at fjerne noget indhold eller starte en ny fil."
   },
   "22d84a12fd": {
     "translation": "Figjam men tldraw"
@@ -65,6 +68,9 @@
   "2c61d18599": {
     "translation": "Miro, men god og fri"
   },
+  "2deec2cb74": {
+    "translation": "Dette rum har nået sin størrelsesgrænse, og ændringerne kan muligvis ikke længere gemmes. Fjern noget indhold, eller start en ny fil."
+  },
   "31246941ad": {
     "translation": "Du skal logge ind for at se denne fil."
   },
@@ -76,6 +82,9 @@
   },
   "344a7f427f": {
     "translation": "Redaktør"
+  },
+  "37b3dca331": {
+    "translation": "Log venligst ind"
   },
   "3bd1b98dbd": {
     "translation": "Ændringerne kunne ikke offentliggøres."
@@ -113,11 +122,8 @@
   "4d1c8263ba": {
     "translation": "Genindlæs"
   },
-  "4e029798f2": {
-    "translation": "Gratis aktier"
-  },
-  "4e875b8d8e": {
-    "translation": "Gratis gemmesteder"
+  "4ea0bb66f7": {
+    "translation": "En konto ville være dejligt"
   },
   "50db1b7e1e": {
     "translation": "Filen kunne ikke fjernes."
@@ -146,11 +152,17 @@
   "5a95a425f7": {
     "translation": "Dele"
   },
+  "5bb6cf3b53": {
+    "translation": "Rummet bliver stort"
+  },
   "5bcc12ace8": {
     "translation": "Dette rum er nu skrivebeskyttet"
   },
   "5bec508475": {
     "translation": "Gammel browser fundet. Opdater venligst din browser for at bruge denne app."
+  },
+  "5bef23eb7e": {
+    "translation": "Opret din konto"
   },
   "5d26ae7550": {
     "translation": "Vi kunne ikke uploade noget af det indhold, du oprettede, før du loggede ind."
@@ -160,9 +172,6 @@
   },
   "5fb63579fc": {
     "translation": "Kopi"
-  },
-  "5ff75742e0": {
-    "translation": "Tilmeld dig gratis"
   },
   "61057a0c84": {
     "translation": "Senere"
@@ -218,6 +227,9 @@
   "777f9e90cf": {
     "translation": "Ugyldig anmodning."
   },
+  "78e9815992": {
+    "translation": "Forstået"
+  },
   "797799f35e": {
     "translation": "Indsend et problem på GitHub"
   },
@@ -226,6 +238,9 @@
   },
   "7be10fc592": {
     "translation": "Gendan version"
+  },
+  "7c7d5d493e": {
+    "translation": "Tilmeld dig venligst"
   },
   "7cb5f8b4a5": {
     "translation": "Glemme"
@@ -336,6 +351,9 @@
   "b028909917": {
     "translation": "Gæstebruger"
   },
+  "b52dc007ac": {
+    "translation": "Tilmelding (gratis og godt)"
+  },
   "b6d4223e60": {
     "translation": "Log ind"
   },
@@ -384,6 +402,9 @@
   "c87aacf567": {
     "translation": "Log ud"
   },
+  "c8c6a6504a": {
+    "translation": "Du bør tilmelde dig"
+  },
   "cceaefbc20": {
     "translation": "Del denne fil"
   },
@@ -407,6 +428,9 @@
   },
   "d876a9fe1a": {
     "translation": "Prøv igen"
+  },
+  "d8a50c79a7": {
+    "translation": "Kom med mig til tldraw"
   },
   "d9100f3e10": {
     "translation": "Gå her for at se indholdet"

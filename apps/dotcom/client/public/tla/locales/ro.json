@@ -41,9 +41,6 @@
   "13ddd375ad": {
     "translation": "Exportați ca"
   },
-  "1460ab5e78": {
-    "translation": "TLDRAW-uri gratuite"
-  },
   "181b90f889": {
     "translation": "Creați fișier"
   },
@@ -52,6 +49,12 @@
   },
   "1dd1c5fb7f": {
     "translation": "Astăzi"
+  },
+  "20976e7bec": {
+    "translation": "Camera este plină"
+  },
+  "21bfb2dc2e": {
+    "translation": "Această cameră se apropie de limita de dimensiune. Luați în considerare eliminarea unei părți din conținut sau începerea unui fișier nou."
   },
   "22d84a12fd": {
     "translation": "Figjam dar tldraw"
@@ -65,6 +68,9 @@
   "2c61d18599": {
     "translation": "Miro, dar bun și gratuit"
   },
+  "2deec2cb74": {
+    "translation": "Această cameră a atins limita de dimensiune și este posibil ca modificările să nu mai fie salvate. Eliminați o parte din conținut sau începeți un fișier nou."
+  },
   "31246941ad": {
     "translation": "Trebuie să vă conectați pentru a vedea acest fișier."
   },
@@ -76,6 +82,9 @@
   },
   "344a7f427f": {
     "translation": "Editor"
+  },
+  "37b3dca331": {
+    "translation": "Vă rugăm să vă conectați"
   },
   "3bd1b98dbd": {
     "translation": "Nu se pot publica modificările."
@@ -113,11 +122,8 @@
   "4d1c8263ba": {
     "translation": "Reîncărcați"
   },
-  "4e029798f2": {
-    "translation": "Acțiuni gratuite"
-  },
-  "4e875b8d8e": {
-    "translation": "Salvări gratuite"
+  "4ea0bb66f7": {
+    "translation": "Un cont ar fi binevenit"
   },
   "50db1b7e1e": {
     "translation": "Nu se poate anula publicarea fișierului."
@@ -146,11 +152,17 @@
   "5a95a425f7": {
     "translation": "Distribuie"
   },
+  "5bb6cf3b53": {
+    "translation": "Camera devine mare"
+  },
   "5bcc12ace8": {
     "translation": "Această cameră este acum doar pentru citire"
   },
   "5bec508475": {
     "translation": "Browser vechi detectat. Vă rugăm să actualizați browserul pentru a utiliza această aplicație."
+  },
+  "5bef23eb7e": {
+    "translation": "Creează-ți contul"
   },
   "5d26ae7550": {
     "translation": "Nu am reușit să încărcăm o parte din conținutul pe care l-ați creat înainte de a vă conecta."
@@ -160,9 +172,6 @@
   },
   "5fb63579fc": {
     "translation": "Copie"
-  },
-  "5ff75742e0": {
-    "translation": "Înregistrează-te gratuit"
   },
   "61057a0c84": {
     "translation": "Mai târziu"
@@ -218,6 +227,9 @@
   "777f9e90cf": {
     "translation": "Solicitare nevalidă."
   },
+  "78e9815992": {
+    "translation": "Am înţeles"
+  },
   "797799f35e": {
     "translation": "Trimiteți o problemă pe GitHub"
   },
@@ -226,6 +238,9 @@
   },
   "7be10fc592": {
     "translation": "Restaurați versiunea"
+  },
+  "7c7d5d493e": {
+    "translation": "Vă rugăm să vă înscrieți"
   },
   "7cb5f8b4a5": {
     "translation": "Uita"
@@ -336,6 +351,9 @@
   "b028909917": {
     "translation": "Utilizator invitat"
   },
+  "b52dc007ac": {
+    "translation": "Înregistrare (gratuită și bună)"
+  },
   "b6d4223e60": {
     "translation": "Conectare"
   },
@@ -384,6 +402,9 @@
   "c87aacf567": {
     "translation": "Sign out"
   },
+  "c8c6a6504a": {
+    "translation": "Ar trebui să te înscrii"
+  },
   "cceaefbc20": {
     "translation": "Distribuiți acest fișier"
   },
@@ -407,6 +428,9 @@
   },
   "d876a9fe1a": {
     "translation": "Încearcă din nou"
+  },
+  "d8a50c79a7": {
+    "translation": "Vino cu mine să desenăm"
   },
   "d9100f3e10": {
     "translation": "Intră aici pentru a vedea conținutul"

@@ -1,5 +1,5 @@
 import {
-	isDefaultColor,
+	getColorValue,
 	TLDefaultColorStyle,
 	TLDefaultColorTheme,
 	TLDefaultFillStyle,
@@ -25,9 +25,8 @@ export const ShapeFill = React.memo(function ShapeFill({
 	fill,
 	scale,
 }: ShapeFillProps) {
-	const { semi, fill: fillColor } = isDefaultColor(color)
-		? theme[color]
-		: { semi: color, fill: color }
+	const semi = getColorValue(theme, color, 'semi')
+	const fillColor = getColorValue(theme, color, 'fill')
 
 	switch (fill) {
 		case 'none': {
@@ -37,7 +36,7 @@ export const ShapeFill = React.memo(function ShapeFill({
 			return <path fill={semi} d={d} />
 		}
 		case 'semi': {
-			return <path fill={theme.solid} d={d} />
+			return <path fill={getColorValue(theme, color, 'solid')} d={d} />
 		}
 		case 'fill': {
 			return <path fill={fillColor} d={d} />
@@ -56,7 +55,8 @@ export function PatternFill({ d, color, theme }: ShapeFillProps) {
 
 	const teenyTiny = editor.getZoomLevel() <= 0.18
 
-	const { semi, pattern } = isDefaultColor(color) ? theme[color] : { semi: color, pattern: color }
+	const semi = getColorValue(theme, color, 'semi')
+	const pattern = getColorValue(theme, color, 'pattern')
 
 	return (
 		<>

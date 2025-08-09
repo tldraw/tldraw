@@ -87,12 +87,6 @@
       "value": "Exportieren als"
     }
   ],
-  "1460ab5e78": [
-    {
-      "type": 0,
-      "value": "Kostenlose tldraws"
-    }
-  ],
   "181b90f889": [
     {
       "type": 0,
@@ -109,6 +103,18 @@
     {
       "type": 0,
       "value": "Heute"
+    }
+  ],
+  "20976e7bec": [
+    {
+      "type": 0,
+      "value": "Der Raum ist voll"
+    }
+  ],
+  "21bfb2dc2e": [
+    {
+      "type": 0,
+      "value": "Dieser Raum erreicht seine maximale Größe. Entfernen Sie ggf. Inhalte oder erstellen Sie eine neue Datei."
     }
   ],
   "22d84a12fd": [
@@ -135,6 +141,12 @@
       "value": "Miro aber gut und kostenlos"
     }
   ],
+  "2deec2cb74": [
+    {
+      "type": 0,
+      "value": "Dieser Raum hat seine Größenbeschränkung erreicht und Änderungen können möglicherweise nicht mehr gespeichert werden. Entfernen Sie Inhalte oder beginnen Sie eine neue Datei."
+    }
+  ],
   "31246941ad": [
     {
       "type": 0,
@@ -157,6 +169,12 @@
     {
       "type": 0,
       "value": "Editor"
+    }
+  ],
+  "37b3dca331": [
+    {
+      "type": 0,
+      "value": "Bitte anmelden"
     }
   ],
   "3bd1b98dbd": [
@@ -231,16 +249,10 @@
       "value": "Neu laden"
     }
   ],
-  "4e029798f2": [
+  "4ea0bb66f7": [
     {
       "type": 0,
-      "value": "Kostenlose Aktien"
-    }
-  ],
-  "4e875b8d8e": [
-    {
-      "type": 0,
-      "value": "Kostenlose Speicherungen"
+      "value": "Ein Account wäre nett"
     }
   ],
   "50db1b7e1e": [
@@ -307,6 +319,12 @@
       "value": "Teilen"
     }
   ],
+  "5bb6cf3b53": [
+    {
+      "type": 0,
+      "value": "Das Zimmer wird größer"
+    }
+  ],
   "5bcc12ace8": [
     {
       "type": 0,
@@ -317,6 +335,12 @@
     {
       "type": 0,
       "value": "Alter Browser erkannt. Bitte aktualisieren Sie Ihren Browser, um diese App zu verwenden."
+    }
+  ],
+  "5bef23eb7e": [
+    {
+      "type": 0,
+      "value": "Erstellen Sie Ihr Konto"
     }
   ],
   "5d26ae7550": [
@@ -335,12 +359,6 @@
     {
       "type": 0,
       "value": "Kopieren"
-    }
-  ],
-  "5ff75742e0": [
-    {
-      "type": 0,
-      "value": "Kostenlos registrieren"
     }
   ],
   "61057a0c84": [
@@ -451,6 +469,12 @@
       "value": "Ungültige Anfrage."
     }
   ],
+  "78e9815992": [
+    {
+      "type": 0,
+      "value": "Habe es"
+    }
+  ],
   "797799f35e": [
     {
       "type": 0,
@@ -467,6 +491,12 @@
     {
       "type": 0,
       "value": "Version wiederherstellen"
+    }
+  ],
+  "7c7d5d493e": [
+    {
+      "type": 0,
+      "value": "Bitte anmelden"
     }
   ],
   "7cb5f8b4a5": [
@@ -723,6 +753,12 @@
       "value": "Gastbenutzer"
     }
   ],
+  "b52dc007ac": [
+    {
+      "type": 0,
+      "value": "Anmelden (kostenlos und gut)"
+    }
+  ],
   "b6d4223e60": [
     {
       "type": 0,
@@ -863,6 +899,12 @@
       "value": "Abmelden"
     }
   ],
+  "c8c6a6504a": [
+    {
+      "type": 0,
+      "value": "Sie sollten sich anmelden"
+    }
+  ],
   "cceaefbc20": [
     {
       "type": 0,
@@ -909,6 +951,12 @@
     {
       "type": 0,
       "value": "Erneut versuchen"
+    }
+  ],
+  "d8a50c79a7": [
+    {
+      "type": 0,
+      "value": "Komm mit mir zum Zeichnen"
     }
   ],
   "d9100f3e10": [
