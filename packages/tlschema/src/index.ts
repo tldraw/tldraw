@@ -235,6 +235,7 @@ export {
 	defaultColorNames,
 	DefaultColorStyle,
 	DefaultColorThemePalette,
+	extendDefaultColorTheme,
 	getColorValue,
 	getDefaultColorTheme,
 	isDefaultThemeColor,

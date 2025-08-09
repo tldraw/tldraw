@@ -456,6 +456,37 @@ export const DefaultColorThemePalette: {
 	},
 }
 
+/** @public
+ * Extend the default color theme with new colors. Note that this will not work with TypeScript in all instances; as far as TypeScript knows, the colors you add do not exist. We'll improve this in the future.
+ *
+ * @example
+ * ```tsx
+ * extendDefaultColorTheme({
+ * 	aqua: { lightMode: { solid: '#1d1d1d', ... }, darkMode: { solid: '#1d1d1d', ...} },
+ * })
+ * ```
+ *
+ * @public
+ */
+export function extendDefaultColorTheme(
+	newColors: Record<
+		string,
+		{ lightMode: TLDefaultColorThemeColor; darkMode: TLDefaultColorThemeColor }
+	>
+) {
+	for (const [color, colorTheme] of Object.entries(newColors)) {
+		;(DefaultColorThemePalette as any).lightMode[color] = {
+			...(DefaultColorThemePalette as any).lightMode[color],
+			...colorTheme.lightMode,
+		}
+		;(DefaultColorThemePalette as any).darkMode[color] = {
+			...(DefaultColorThemePalette as any).darkMode[color],
+			...colorTheme.darkMode,
+		}
+		defaultColorNamesSet.add(color as any)
+	}
+}
+
 /** @public */
 export function getDefaultColorTheme(opts: { isDarkMode: boolean }): TLDefaultColorTheme {
 	return opts.isDarkMode ? DefaultColorThemePalette.darkMode : DefaultColorThemePalette.lightMode
@@ -506,11 +537,8 @@ export function getColorValue(
 	color: TLDefaultColorStyle,
 	variant?: keyof TLDefaultColorThemeColor
 ): string {
-	if (isDefaultThemeColor(color)) {
-		if (!variant) {
-			throw new Error(`Variant is required when using default theme color '${color}'`)
-		}
-		return theme[color][variant]
+	if (variant) {
+		return (theme as any)[color]?.[variant]
 	}
 
 	return color

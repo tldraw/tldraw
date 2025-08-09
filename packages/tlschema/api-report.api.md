@@ -306,6 +306,12 @@ export class EnumStylePropOrString<T> extends StyleProp<string | T> {
     readonly values: readonly T[];
 }
 
+// @public
+export function extendDefaultColorTheme(newColors: Record<string, {
+    darkMode: TLDefaultColorThemeColor;
+    lightMode: TLDefaultColorThemeColor;
+}>): void;
+
 // @public (undocumented)
 export const frameShapeMigrations: TLPropsMigrations;
 
