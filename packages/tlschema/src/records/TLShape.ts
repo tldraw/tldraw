@@ -24,8 +24,8 @@ import { TLNoteShape } from '../shapes/TLNoteShape'
 import { TLTextShape } from '../shapes/TLTextShape'
 import { TLVideoShape } from '../shapes/TLVideoShape'
 import { StyleProp } from '../styles/StyleProp'
-import { TLPageId } from './TLPage'
 import { isDefaultThemeColor } from '../styles/TLColorStyle'
+import { TLPageId } from './TLPage'
 
 /**
  * The default set of shapes that are available in the editor.
