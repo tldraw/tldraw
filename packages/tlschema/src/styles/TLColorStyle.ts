@@ -485,15 +485,33 @@ export function isDefaultThemeColor(
 	return defaultColorNamesSet.has(color as (typeof defaultColorNames)[number])
 }
 
-/** @public */
+/**
+ * Get a color value based on a theme, a color, and a variant.
+ *
+ * Since the TLDefaultColorStyle is unioned with a regular string, many color references in tldraw's default shapes accept either a specific color and variant (such as black.noteFill) or a string (such as '#ccceee'). This helper function handles both cases: if the color is a default theme color, then we'll use the provided variant; otherwise, we'll return the color itself.
+ *
+ * @example
+ * ```tsx
+ * shape.props.color // red
+ * const color = getColorValue(theme, shape.props.color, 'noteFill') // theme.red.noteFill
+ *
+ * // or...
+ * shape.props.color // '#cccceee'
+ * const color = getColorValue(theme, shape.props.color, 'noteFill') // '#cccceee'
+ * ```
+ *
+ * @public */
 export function getColorValue(
 	theme: TLDefaultColorTheme,
 	color: TLDefaultColorStyle,
-	variant: keyof TLDefaultColorThemeColor
+	variant?: keyof TLDefaultColorThemeColor
 ): string {
-	if (!isDefaultThemeColor(color)) {
-		return color
+	if (isDefaultThemeColor(color)) {
+		if (!variant) {
+			throw new Error(`Variant is required when using default theme color '${color}'`)
+		}
+		return theme[color][variant]
 	}
 
-	return theme[color][variant]
+	return color
 }

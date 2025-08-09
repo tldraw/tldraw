@@ -321,8 +321,8 @@ export const geoShapeMigrations: TLPropsMigrations;
 // @public (undocumented)
 export const geoShapeProps: RecordProps<TLGeoShape>;
 
-// @public (undocumented)
-export function getColorValue(theme: TLDefaultColorTheme, color: TLDefaultColorStyle, variant: keyof TLDefaultColorThemeColor): string;
+// @public
+export function getColorValue(theme: TLDefaultColorTheme, color: TLDefaultColorStyle, variant?: keyof TLDefaultColorThemeColor): string;
 
 // @public (undocumented)
 export function getDefaultColorTheme(opts: {
