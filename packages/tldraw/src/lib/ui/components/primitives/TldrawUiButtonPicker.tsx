@@ -141,7 +141,7 @@ export const TldrawUiButtonPicker = memo(function TldrawUiButtonPicker<T extends
 							title={label}
 							style={
 								style === (DefaultColorStyle as StyleProp<unknown>)
-									? { color: getColorValue(theme, item.value as any, 'solid') }
+									? { color: getColorValue(theme, item.value, 'solid') }
 									: undefined
 							}
 							onPointerEnter={handleButtonPointerEnter}

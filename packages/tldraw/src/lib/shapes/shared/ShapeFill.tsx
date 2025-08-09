@@ -55,18 +55,15 @@ export function PatternFill({ d, color, theme }: ShapeFillProps) {
 
 	const teenyTiny = editor.getZoomLevel() <= 0.18
 
-	const semi = getColorValue(theme, color, 'semi')
-	const pattern = getColorValue(theme, color, 'pattern')
-
 	return (
 		<>
-			<path fill={pattern} d={d} />
+			<path fill={getColorValue(theme, color, 'pattern')} d={d} />
 			<path
 				fill={
 					svgExport
 						? `url(#${getHashPatternZoomName(1, theme.id)})`
 						: teenyTiny
-							? semi
+							? getColorValue(theme, color, 'semi')
 							: `url(#${getHashPatternZoomName(zoomLevel, theme.id)})`
 				}
 				d={d}
