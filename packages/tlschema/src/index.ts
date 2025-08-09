@@ -237,7 +237,7 @@ export {
 	DefaultColorThemePalette,
 	getColorValue,
 	getDefaultColorTheme,
-	isDefaultColor,
+	isDefaultThemeColor,
 	type TLDefaultColorStyle,
 	type TLDefaultColorTheme,
 	type TLDefaultColorThemeColor,
