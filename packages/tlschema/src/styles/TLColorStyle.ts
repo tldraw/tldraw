@@ -456,19 +456,50 @@ export const DefaultColorThemePalette: {
 	},
 }
 
+/** @public
+ * Extend the default color theme with new colors. Note that this will not work with TypeScript in all instances; as far as TypeScript knows, the colors you add do not exist. We'll improve this in the future.
+ *
+ * @example
+ * ```tsx
+ * extendDefaultColorTheme({
+ * 	aqua: { lightMode: { solid: '#1d1d1d', ... }, darkMode: { solid: '#1d1d1d', ...} },
+ * })
+ * ```
+ *
+ * @public
+ */
+export function extendDefaultColorTheme(
+	newColors: Record<
+		string,
+		{ lightMode: TLDefaultColorThemeColor; darkMode: TLDefaultColorThemeColor }
+	>
+) {
+	for (const [color, colorTheme] of Object.entries(newColors)) {
+		;(DefaultColorThemePalette as any).lightMode[color] = {
+			...(DefaultColorThemePalette as any).lightMode[color],
+			...colorTheme.lightMode,
+		}
+		;(DefaultColorThemePalette as any).darkMode[color] = {
+			...(DefaultColorThemePalette as any).darkMode[color],
+			...colorTheme.darkMode,
+		}
+		defaultColorNamesSet.add(color as any)
+	}
+}
+
 /** @public */
 export function getDefaultColorTheme(opts: { isDarkMode: boolean }): TLDefaultColorTheme {
 	return opts.isDarkMode ? DefaultColorThemePalette.darkMode : DefaultColorThemePalette.lightMode
 }
 
 /** @public */
-export const DefaultColorStyle = StyleProp.defineEnum('tldraw:color', {
+export const DefaultColorStyle = StyleProp.defineEnumOrString('tldraw:color', {
 	defaultValue: 'black',
 	values: defaultColorNames,
 })
 
 /** @public */
-export const DefaultLabelColorStyle = StyleProp.defineEnum('tldraw:labelColor', {
+export const DefaultLabelColorStyle = StyleProp.defineEnumOrString('tldraw:labelColor', {
 	defaultValue: 'black',
 	values: defaultColorNames,
 })
@@ -485,15 +516,30 @@ export function isDefaultThemeColor(
 	return defaultColorNamesSet.has(color as (typeof defaultColorNames)[number])
 }
 
-/** @public */
+/**
+ * Get a color value based on a theme, a color, and a variant.
+ *
+ * Since the TLDefaultColorStyle is unioned with a regular string, many color references in tldraw's default shapes accept either a specific color and variant (such as black.noteFill) or a string (such as '#ccceee'). This helper function handles both cases: if the color is a default theme color, then we'll use the provided variant; otherwise, we'll return the color itself.
+ *
+ * @example
+ * ```tsx
+ * shape.props.color // red
+ * const color = getColorValue(theme, shape.props.color, 'noteFill') // theme.red.noteFill
+ *
+ * // or...
+ * shape.props.color // '#cccceee'
+ * const color = getColorValue(theme, shape.props.color, 'noteFill') // '#cccceee'
+ * ```
+ *
+ * @public */
 export function getColorValue(
 	theme: TLDefaultColorTheme,
 	color: TLDefaultColorStyle,
-	variant: keyof TLDefaultColorThemeColor
+	variant?: keyof TLDefaultColorThemeColor
 ): string {
-	if (!isDefaultThemeColor(color)) {
-		return color
+	if (variant) {
+		return (theme as any)[color]?.[variant]
 	}
 
-	return theme[color][variant]
+	return color
 }

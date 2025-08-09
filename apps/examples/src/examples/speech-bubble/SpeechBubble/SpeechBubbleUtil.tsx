@@ -184,15 +184,12 @@ export class SpeechBubbleUtil extends ShapeUtil<SpeechBubbleShape> {
 		// eslint-disable-next-line react-hooks/rules-of-hooks
 		const theme = useDefaultColorTheme()
 
+		const { solid } = { solid: getColorValue(theme, color, 'solid') }
+
 		return (
 			<>
 				<svg className="tl-svg-container">
-					<path
-						d={pathData}
-						strokeWidth={STROKE_SIZES[size]}
-						stroke={getColorValue(theme, color, 'solid')}
-						fill={'none'}
-					/>
+					<path d={pathData} strokeWidth={STROKE_SIZES[size]} stroke={solid} fill={'none'} />
 				</svg>
 				<PlainTextLabel
 					shapeId={id}
@@ -204,7 +201,7 @@ export class SpeechBubbleUtil extends ShapeUtil<SpeechBubbleShape> {
 					align={align}
 					verticalAlign="start"
 					text={text}
-					labelColor={getColorValue(theme, color, 'solid')}
+					labelColor={solid}
 					isSelected={isSelected}
 					wrap
 				/>
