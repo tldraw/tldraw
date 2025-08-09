@@ -171,8 +171,8 @@ export default function Analytics() {
 }
 
 export function page() {
-	posthog.capture('$pageview')
-	ReactGA.send('pageview')
+	// Use standardized event name for page views
+	track('page.viewed', { source: 'navigation' })
 }
 
 export function identify(userId: string, properties?: { [key: string]: any }) {
@@ -194,8 +194,26 @@ export function identify(userId: string, properties?: { [key: string]: any }) {
 }
 
 export function track(name: string, data?: { [key: string]: any }) {
-	posthog.capture(name, data)
-	ReactGA.event(name, data)
+	// Add standard custom dimensions to all events
+	const enrichedData = {
+		...data,
+		app_context: getAppContext(),
+		timestamp: Date.now(),
+		user_type: storedHasConsent === 'opted-in' && storedUserId ? 'signed_in' : 'anonymous',
+	}
+
+	posthog.capture(name, enrichedData)
+	ReactGA.event(name, enrichedData)
+}
+
+function getAppContext() {
+	if (typeof window === 'undefined') return 'unknown'
+
+	const hostname = window.location.hostname
+	if (hostname.includes('tldraw.dev')) return 'docs'
+	if (hostname.includes('tldraw.com')) return 'dotcom'
+	if (hostname.includes('vscode')) return 'vscode'
+	return 'dotcom' // default
 }
 
 export function gtag(...args: any[]) {
