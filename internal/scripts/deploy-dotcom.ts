@@ -116,7 +116,7 @@ async function main() {
 
 	await discord.step('setting up deploy', async () => {
 		// make sure the tldraw .css files are built:
-		await exec('yarn', ['lazy', 'prebuild'])
+		await exec('pnpm', ['run', 'lazy', 'prebuild'])
 
 		// link to vercel and supabase projects:
 		await vercelCli('link', ['--project', env.VERCEL_PROJECT_ID])
@@ -207,7 +207,7 @@ function getZeroUrl() {
 
 async function prepareDotcomApp() {
 	// pre-build the app:
-	await exec('yarn', ['build-app'], {
+	await exec('pnpm', ['run', 'build-app'], {
 		env: {
 			NEXT_PUBLIC_TLDRAW_RELEASE_INFO: `${env.RELEASE_COMMIT_HASH} ${new Date().toISOString()}`,
 			ASSET_UPLOAD: env.ASSET_UPLOAD,
@@ -260,17 +260,21 @@ async function deployTlsyncWorker({ dryRun }: { dryRun: boolean }) {
 		}
 		if (!dryRun) {
 			try {
-				await exec('yarn', ['wrangler', 'queues', 'info', queueName], { pwd: worker })
+				await exec('pnpm', ['run', 'wrangler', 'queues', 'info', queueName], { pwd: worker })
 			} catch (_e) {
-				await exec('yarn', ['wrangler', 'queues', 'create', queueName], { pwd: worker })
+				await exec('pnpm', ['run', 'wrangler', 'queues', 'create', queueName], { pwd: worker })
 			}
 		}
 	}
-	await exec('yarn', ['workspace', '@tldraw/zero-cache', 'migrate', dryRun ? '--dry-run' : null], {
-		env: {
-			BOTCOM_POSTGRES_POOLED_CONNECTION_STRING: env.BOTCOM_POSTGRES_POOLED_CONNECTION_STRING,
-		},
-	})
+	await exec(
+		'pnpm',
+		['run', 'workspace', '@tldraw/zero-cache', 'migrate', dryRun ? '--dry-run' : null],
+		{
+			env: {
+				BOTCOM_POSTGRES_POOLED_CONNECTION_STRING: env.BOTCOM_POSTGRES_POOLED_CONNECTION_STRING,
+			},
+		}
+	)
 	// Deploy zero after the migrations but before the sync worker
 	if (!dryRun && deployZero !== false) {
 		await deployZeroBackend()
@@ -352,7 +356,7 @@ async function deployHealthWorker({ dryRun }: { dryRun: boolean }) {
 type ExecOpts = NonNullable<Parameters<typeof exec>[2]>
 async function vercelCli(command: string, args: string[], opts?: ExecOpts) {
 	return exec(
-		'yarn',
+		'pnpm',
 		[
 			'run',
 			'-T',
@@ -380,7 +384,8 @@ async function vercelCli(command: string, args: string[], opts?: ExecOpts) {
 
 async function deployZeroViaSst() {
 	const stage = previewId ? previewId : env.TLDRAW_ENV
-	await exec('yarn', [
+	await exec('pnpm', [
+		'run',
 		'sst',
 		'secret',
 		'set',
@@ -389,11 +394,20 @@ async function deployZeroViaSst() {
 		'--stage',
 		stage,
 	])
-	await exec('yarn', ['sst', 'secret', 'set', 'ZeroAuthSecret', clerkJWKSUrl, '--stage', stage])
-	await exec('yarn', ['sst', 'secret', 'set', 'ZeroPushUrl', zeroPushUrl, '--stage', stage])
-	await exec('yarn', ['sst', 'unlock', '--stage', stage])
-	await exec('yarn', ['bundle-schema'], { pwd: zeroCacheFolder })
-	await exec('yarn', ['sst', 'deploy', '--stage', stage, '--verbose'])
+	await exec('pnpm', [
+		'run',
+		'sst',
+		'secret',
+		'set',
+		'ZeroAuthSecret',
+		clerkJWKSUrl,
+		'--stage',
+		stage,
+	])
+	await exec('pnpm', ['run', 'sst', 'secret', 'set', 'ZeroPushUrl', zeroPushUrl, '--stage', stage])
+	await exec('pnpm', ['run', 'sst', 'unlock', '--stage', stage])
+	await exec('pnpm', ['run', 'bundle-schema'], { pwd: zeroCacheFolder })
+	await exec('pnpm', ['run', 'sst', 'deploy', '--stage', stage, '--verbose'])
 }
 
 function updateFlyioToml(appName: string): void {
@@ -480,7 +494,7 @@ const sentryEnv = {
 }
 
 const execSentry = (command: string, args: string[]) =>
-	exec(`yarn`, ['run', '-T', 'sentry-cli', command, ...args], { env: sentryEnv })
+	exec(`pnpm`, ['run', '-T', 'sentry-cli', command, ...args], { env: sentryEnv })
 
 async function createSentryRelease() {
 	await execSentry('releases', ['new', sentryReleaseName])

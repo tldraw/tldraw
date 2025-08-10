@@ -13,7 +13,7 @@
 	"scripts": {
 		"dev": "pnpm -w tsx ../../internal/scripts/workers/dev.ts",
 		"test-ci": "lazy inherit",
-		"test": "pnpm -w jest",
+		"test": "jest",
 		"test-coverage": "lazy inherit",
 		"check-bundle-size": "pnpm -w tsx ../../internal/scripts/check-worker-bundle.ts --entry src/worker.ts --size-limit-bytes 350000",
 		"lint": "pnpm -w tsx ../../internal/scripts/lint.ts"

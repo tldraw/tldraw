@@ -8,15 +8,23 @@ async function main() {
 
 	try {
 		await exec(
-			'yarn',
-			['prettier', shouldFix ? '--write' : '--check', '--log-level=warn', '--cache', relativeCwd],
+			'pnpm',
+			[
+				'run',
+				'prettier',
+				shouldFix ? '--write' : '--check',
+				'--log-level=warn',
+				'--cache',
+				relativeCwd,
+			],
 			{
 				pwd: REPO_ROOT,
 			}
 		)
 		await exec(
-			'yarn',
+			'pnpm',
 			[
+				'run',
 				'eslint',
 				'--report-unused-disable-directives',
 				'--no-error-on-unmatched-pattern',

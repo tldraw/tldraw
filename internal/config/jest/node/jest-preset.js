@@ -33,6 +33,12 @@ module.exports = {
 		'<rootDir>/.tsbuild',
 		'<rootDir>/.tsbuild-dev',
 		'<rootDir>/.tsbuild-pub',
+		'<rootDir>/.lazy',
+	],
+	testPathIgnorePatterns: [
+		'<rootDir>/.lazy',
+		'<rootDir>/.tsbuild',
+		'\\.d\\.ts$'
 	],
 	collectCoverageFrom: ['<rootDir>/src/**/*.{ts,tsx}'],
 }

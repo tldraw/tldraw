@@ -59,13 +59,15 @@ export async function setAllVersions(version: string, options?: { stageChanges?:
 		)
 	}
 
-	await exec('yarn', ['refresh-assets', '--force'], { env: { ALLOW_REFRESH_ASSETS_CHANGES: '1' } })
+	await exec('pnpm', ['run', 'refresh-assets', '--force'], {
+		env: { ALLOW_REFRESH_ASSETS_CHANGES: '1' },
+	})
 
 	const lernaJson = JSON.parse(readFileSync('lerna.json', 'utf8'))
 	lernaJson.version = version
 	writeFileSync('lerna.json', JSON.stringify(lernaJson, null, '\t') + '\n')
 
-	execSync('yarn')
+	execSync('pnpm install')
 
 	if (options?.stageChanges) {
 		await stageAllPackageJsonChanges()
@@ -158,7 +160,7 @@ export async function publish(distTag?: string) {
 				let output = ''
 				try {
 					await exec(
-						`yarn`,
+						`pnpm run`,
 						['npm', 'publish', '--tag', String(tag), '--tolerate-republish', '--access', 'public'],
 						{
 							pwd: packageDetails.dir,

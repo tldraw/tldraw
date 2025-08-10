@@ -93,8 +93,8 @@ async function main() {
 		await discord.step(`Ensuring no SDK changes are present`, async () => {
 			// run pnpm again before building packages to make sure everything is ready
 			// in case HEAD included dev dependency changes
-			await exec('yarn', ['install'])
-			await exec('yarn', ['refresh-assets', '--force'])
+			await exec('pnpm', ['install'])
+			await exec('pnpm', ['run', 'refresh-assets', '--force'])
 
 			const diff = await getAnyPackageDiff()
 			if (diff) {
@@ -117,8 +117,8 @@ async function main() {
 		})
 	} else {
 		await discord.step('Running sdk tests', async () => {
-			await exec('yarn', ['install'])
-			await exec('yarn', ['test', '--filter=packages/*'])
+			await exec('pnpm', ['install'])
+			await exec('pnpm', ['run', 'test', '--filter=packages/*'])
 		})
 	}
 

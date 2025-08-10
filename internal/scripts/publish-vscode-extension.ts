@@ -76,16 +76,16 @@ async function copyExtensionToReleaseFolder(version: string) {
 }
 
 async function packageAndPublish(version: string) {
-	await exec('yarn', ['lazy', 'run', 'build', '--filter=packages/*'])
+	await exec('pnpm', ['run', 'lazy', 'run', 'build', '--filter=packages/*'])
 	switch (env.TLDRAW_ENV) {
 		case 'production':
-			await exec('yarn', ['package'], { pwd: EXTENSION_DIR })
+			await exec('pnpm', ['run', 'package'], { pwd: EXTENSION_DIR })
 			await copyExtensionToReleaseFolder(version)
-			await exec('yarn', ['publish'], { pwd: EXTENSION_DIR })
+			await exec('pnpm', ['run', 'publish'], { pwd: EXTENSION_DIR })
 			return
 		case 'staging':
-			await exec('yarn', ['package', '--pre-release'], { pwd: EXTENSION_DIR })
-			await exec('yarn', ['publish', '--pre-release'], { pwd: EXTENSION_DIR })
+			await exec('pnpm', ['run', 'package', '--pre-release'], { pwd: EXTENSION_DIR })
+			await exec('pnpm', ['run', 'publish', '--pre-release'], { pwd: EXTENSION_DIR })
 			return
 		default:
 			throw new Error('Workflow triggered from a branch other than main or production.')

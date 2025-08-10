@@ -52,7 +52,8 @@ async function checkBundleSize() {
 	rmSync(bundleMetaFileName, { force: true })
 
 	console.log('checking bundle size')
-	await exec('yarn', [
+	await exec('pnpm', [
+		'run',
 		'esbuild',
 		entry,
 		'--bundle',

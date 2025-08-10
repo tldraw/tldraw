@@ -37,5 +37,4 @@ rm -rf {packages,apps}/vscode/extension/editor
 rm -rf apps/docs/content.json
 rm -rf apps/dotcom/client/e2e/.auth
 
-npm i -g corepack
-yarn
+pnpm i

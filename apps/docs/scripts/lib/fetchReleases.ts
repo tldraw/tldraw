@@ -12,7 +12,7 @@ const CHANGELOG_END_TAG = '{/* END AUTO-GENERATED CHANGELOG */}'
 
 export async function fetchReleases() {
 	try {
-		const RELEASES_DIRECTORY = path.join(process.cwd(), 'content', 'releases')
+		const RELEASES_DIRECTORY = path.join(process.cwd(), 'apps', 'docs', 'content', 'releases')
 
 		if (fs.existsSync(RELEASES_DIRECTORY)) {
 			fs.rmSync(RELEASES_DIRECTORY, { recursive: true })
@@ -88,6 +88,8 @@ export async function fetchReleases() {
 
 			const releasesPagePath = path.join(
 				process.cwd(),
+				'apps',
+				'docs',
 				'content',
 				'getting-started',
 				'releases-versioning.mdx'

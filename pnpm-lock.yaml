@@ -597,6 +597,12 @@ importers:
       '@sentry/cli':
         specifier: ^2.41.1
         version: 2.51.1(encoding@0.1.13)
+      '@swc/core':
+        specifier: ^1.13.3
+        version: 1.13.3(@swc/helpers@0.5.17)
+      '@swc/jest':
+        specifier: ^0.2.39
+        version: 0.2.39(@swc/core@1.13.3(@swc/helpers@0.5.17))
       '@swc/plugin-formatjs':
         specifier: ^5.1.1
         version: 5.1.3
@@ -992,9 +998,6 @@ importers:
       lazyrepo:
         specifier: 0.0.0-alpha.27
         version: 0.0.0-alpha.27
-      lodash:
-        specifier: ^4.17.21
-        version: 4.17.21
       mocha:
         specifier: ^9.2.2
         version: 9.2.2

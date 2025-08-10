@@ -13,6 +13,15 @@ async function buildApi(sourcePackageDir: string) {
 
 	// we need to copy the .tsbuild dir to another location so we can edit it without busting the cache
 	await rimraf(path.join(sourcePackageDir, '.tsbuild-api'))
+	
+	// Check if .tsbuild directory exists before copying
+	const tsbuildPath = path.join(sourcePackageDir, '.tsbuild')
+	const fs = await import('fs')
+	if (!fs.existsSync(tsbuildPath)) {
+		console.log(`Warning: .tsbuild directory not found in ${sourcePackageDir}, skipping API extraction`)
+		return
+	}
+	
 	await exec('cp', ['-R', './.tsbuild', './.tsbuild-api'], { pwd: sourcePackageDir })
 
 	sortUnions(path.join(sourcePackageDir, '.tsbuild-api'))

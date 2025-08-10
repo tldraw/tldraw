@@ -219,7 +219,7 @@ async function listAmazonClusters() {
 }
 
 async function deleteSstPreviewApp(stage: string) {
-	await exec('yarn', ['sst', 'remove', '--stage', stage])
+	await exec('pnpm', ['run', 'sst', 'remove', '--stage', stage])
 }
 
 const deletionErrors: string[] = []

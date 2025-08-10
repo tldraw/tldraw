@@ -6,8 +6,9 @@ const { log: nicelog } = console
 
 export async function fetchApiSource() {
 	try {
-		const API_DIRECTORY = path.join(process.cwd(), 'api')
-		const REPO_ROOT = path.normalize(path.join(process.cwd(), '../../'))
+		// When running with pnpm -w tsx, we need to find the repo root
+		const REPO_ROOT = path.resolve(process.cwd(), fs.existsSync('apps') ? '.' : '../..')
+		const API_DIRECTORY = path.join(REPO_ROOT, 'apps', 'docs', 'api')
 
 		if (fs.existsSync(API_DIRECTORY)) {
 			fs.rmSync(API_DIRECTORY, { recursive: true })

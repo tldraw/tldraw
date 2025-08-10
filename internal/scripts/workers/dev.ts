@@ -109,7 +109,7 @@ class SizeReporter {
 
 	start() {
 		console.log('Spawning size reporter...')
-		const proc = spawn('yarn', [
+		const proc = spawn('pnpm', [
 			'run',
 			'-T',
 			'esbuild',

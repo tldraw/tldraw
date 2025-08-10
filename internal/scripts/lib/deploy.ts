@@ -94,8 +94,9 @@ export async function wranglerDeploy({
 	}
 
 	const out = await exec(
-		'yarn',
+		'pnpm',
 		[
+			'run',
 			'wrangler',
 			'deploy',
 			dryRun ? '--dry-run' : null,
@@ -138,14 +139,14 @@ export async function wranglerDeploy({
 		}
 
 		// create a sentry release:
-		await exec('yarn', ['run', '-T', 'sentry-cli', 'releases', 'new', release], {
+		await exec('pnpm', ['run', '-T', 'sentry-cli', 'releases', 'new', release], {
 			pwd: location,
 			env: sentryEnv,
 		})
 
 		// upload sourcemaps to the release:
 		await exec(
-			'yarn',
+			'pnpm',
 			[
 				'run',
 				'-T',

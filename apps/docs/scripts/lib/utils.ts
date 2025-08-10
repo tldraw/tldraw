@@ -15,9 +15,9 @@ import { slug as githubSlug } from 'github-slugger'
 import path from 'path'
 import prettier from 'prettier'
 
-export const API_DIR = path.join(process.cwd(), 'api')
-export const CONTENT_DIR = path.join(process.cwd(), 'content')
-export const PUBLIC_DIR = path.join(process.cwd(), 'public')
+export const API_DIR = path.join(process.cwd(), 'apps', 'docs', 'api')
+export const CONTENT_DIR = path.join(process.cwd(), 'apps', 'docs', 'content')
+export const PUBLIC_DIR = path.join(process.cwd(), 'apps', 'docs', 'public')
 
 function isOnParentPage(itemKind: ApiItemKind) {
 	switch (itemKind) {
