@@ -163,21 +163,21 @@ function ExampleSidebarListItem({
 	isActive?: boolean
 	showDescriptionWhenInactive?: boolean
 }) {
-	const ref = useRef<HTMLLIElement>(null)
+	const rListContainer = useRef<HTMLLIElement>(null)
 	const { setExampleDialog } = useContext(dialogContext)
 
 	useEffect(() => {
 		if (isActive) {
-			if (!ref.current) return
-			const rect = ref.current.getBoundingClientRect()
+			if (!rListContainer.current) return
+			const rect = rListContainer.current.getBoundingClientRect()
 			if (rect.top < 0 || rect.bottom > window.innerHeight) {
-				ref.current.scrollIntoView({ behavior: 'instant', block: 'start' })
+				rListContainer.current.scrollIntoView({ behavior: 'instant', block: 'start' })
 			}
 		}
 	}, [isActive])
 
 	return (
-		<li ref={ref} className="examples__sidebar__item" data-active={isActive}>
+		<li ref={rListContainer} className="examples__sidebar__item" data-active={isActive}>
 			<Link to={example.path} className="examples__sidebar__item__link">
 				<span className="examples__sidebar__item__title">{example.title}</span>
 			</Link>

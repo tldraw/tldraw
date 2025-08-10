@@ -170,6 +170,14 @@ li.examples__sidebar__item {
 	height: 32px;
 }
 
+.example__sidebar__item {
+	position: absolute;
+	padding-right: 8px;
+	right: 0px;
+}
+
+
+
 .examples__sidebar__item__title {
 	flex-grow: 2;
 	overflow: hidden;
@@ -218,6 +226,11 @@ li.examples__sidebar__item {
 	opacity: 1;
 }
 
+.examples__sidebar__item[data-active='true'] .examples__sidebar__item__link {
+	padding-right: 64px;
+}
+
+
 /* -------------------- List Item ------------------- */
 
 .example__sidebar__item__buttons {
@@ -229,6 +242,9 @@ li.examples__sidebar__item {
 	position: relative;
 	z-index: 20;
 	flex-shrink: 0;
+	position: absolute;
+	padding-right: 8px;
+	right: 0px;
 }
 
 .example__sidebar__item__button {
@@ -251,6 +267,7 @@ li.examples__sidebar__item {
 .example__sidebar__item__button:nth-of-type(n + 1) {
 	margin-left: -4px;
 }
+
 
 
 .example {
