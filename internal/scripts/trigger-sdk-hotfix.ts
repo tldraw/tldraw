@@ -1,5 +1,5 @@
+import { Octokit } from '@octokit/rest'
 import kleur from 'kleur'
-import { Octokit } from 'octokit'
 import * as semver from 'semver'
 import { formatDiff, getAnyPackageDiff } from './lib/didAnyPackageChange'
 import { Discord } from './lib/discord'
@@ -91,7 +91,7 @@ async function main() {
 
 	if (triggerType === 'docs') {
 		await discord.step(`Ensuring no SDK changes are present`, async () => {
-			// run yarn again before building packages to make sure everything is ready
+			// run pnpm again before building packages to make sure everything is ready
 			// in case HEAD included dev dependency changes
 			await exec('yarn', ['install'])
 			await exec('yarn', ['refresh-assets', '--force'])

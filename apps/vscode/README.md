@@ -12,7 +12,7 @@ This folder contains the source for the tldraw VS Code extension.
 
 In the root folder:
 
-- Run `yarn dev-vscode`.
+- Run `pnpm dev-vscode`.
 
 This will start the development server for the `apps/vscode/editor` project and open the `apps/vscode/extension` folder in a new VS Code window.
 
@@ -40,8 +40,8 @@ To publish:
 
 In the `apps/vscode/extension` folder:
 
-- Run `yarn package`
-- Run `yarn publish`
+- Run `pnpm package`
+- Run `pnpm publish`
 
 ## Project overview
 

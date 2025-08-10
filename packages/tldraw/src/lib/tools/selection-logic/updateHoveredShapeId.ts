@@ -32,7 +32,7 @@ function _updateHoveredShapeId(editor: Editor) {
 }
 
 /** @internal */
-export const updateHoveredShapeId = throttle(
+export const updateHoveredShapeId: (editor: Editor) => { cancel(): void } = throttle(
 	_updateHoveredShapeId,
 	process.env.NODE_ENV === 'test' ? 0 : 32
 )

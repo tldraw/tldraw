@@ -72,9 +72,9 @@ jobs:
           git config --global user.name 'huppy-bot[bot]'
           git config --global user.email '128400622+huppy-bot[bot]@users.noreply.github.com'
           if [[ "${{ inputs.bump_type }}" == "override" ]]; then
-            yarn tsx ./internal/scripts/publish-new.ts --bump ${{ inputs.version_override }} --release_notes_url ${{ inputs.release_notes_url }}
+            pnpm tsx ./internal/scripts/publish-new.ts --bump ${{ inputs.version_override }} --release_notes_url ${{ inputs.release_notes_url }}
           else
-            yarn tsx ./internal/scripts/publish-new.ts --bump ${{ inputs.bump_type }} --release_notes_url ${{ inputs.release_notes_url }}
+            pnpm tsx ./internal/scripts/publish-new.ts --bump ${{ inputs.bump_type }} --release_notes_url ${{ inputs.release_notes_url }}
           fi
         env:
           GH_TOKEN: ${{ steps.generate_token.outputs.token }}

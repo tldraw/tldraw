@@ -123,11 +123,11 @@
 	},
 	"scripts": {
 		"dev": "tsx scripts/dev.ts",
-		"build": "cd ../editor && yarn build && cd ../extension && tsx scripts/build.ts",
+		"build": "cd ../editor && pnpm build && cd ../extension && tsx scripts/build.ts",
 		"get-info": "vsce show tldraw-org.tldraw-vscode --json > extension.json",
-		"package": "yarn build && tsx scripts/package.ts",
+		"package": "pnpm build && tsx scripts/package.ts",
 		"publish": "tsx scripts/publish.ts",
-		"lint": "yarn run -T tsx ../../../internal/scripts/lint.ts",
+		"lint": "pnpm -w tsx ../../../internal/scripts/lint.ts",
 		"clean": "rm -rf .turbo && rm -rf node_modules && rm -rf dist && rm -rf editor && rm -rf temp & yarn"
 	},
 	"devDependencies": {
@@ -140,7 +140,6 @@
 		"esbuild": "^0.25.6",
 		"fs-extra": "^11.3.0",
 		"lazyrepo": "0.0.0-alpha.27",
-		"lodash": "^4.17.21",
 		"mocha": "^9.2.2",
 		"process": "^0.11.10",
 		"react": "^18.3.1",

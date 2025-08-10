@@ -4,10 +4,10 @@ FPS performance tests for tldraw to detect regressions and track improvements.
 
 ```bash
 # Run all performance tests
-yarn e2e-perf
+pnpm e2e-perf
 
 # With UI
-yarn e2e-perf-ui
+pnpm e2e-perf-ui
 ```
 
 Baselines are automatically created on first run.

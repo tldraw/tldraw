@@ -16,7 +16,7 @@ import { ReactElement } from 'react'
 export async function renderTldrawComponent(
 	element: ReactElement,
 	{ waitForPatterns }: { waitForPatterns: boolean }
-) {
+): Promise<any> {
 	const result = render(element)
 	await result.findAllByTestId('canvas')
 	if (waitForPatterns) await result.findByTestId('ready-pattern-fill-defs')

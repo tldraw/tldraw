@@ -124,7 +124,7 @@ export class UserDataSyncer {
 	lastStashEpoch = 0
 	mutations: { mutationNumber: number; mutationId: string; timestamp: number }[] = []
 
-	sentry
+	sentry: ReturnType<typeof createSentry>
 	private captureException(exception: unknown, extras?: Record<string, unknown>) {
 		// eslint-disable-next-line @typescript-eslint/no-deprecated
 		this.sentry?.withScope((scope) => {

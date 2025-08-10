@@ -1,9 +1,8 @@
-import { isEqual } from 'lodash'
+import { isEqual, UnknownRecord } from 'tldraw'
 import * as vscode from 'vscode'
 import { TLDrawDocument } from './TldrawDocument'
 import { loadFile } from './file'
 
-import { UnknownRecord } from 'tldraw'
 // @ts-ignore
 import type { VscodeMessage } from '../../messages'
 import { getMimeTypeFromPath } from './media'

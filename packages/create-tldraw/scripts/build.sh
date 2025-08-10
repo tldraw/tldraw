@@ -2,7 +2,7 @@
 
 set -eux
 
-yarn run -T tsx ../../internal/scripts/refresh-create-templates.ts
+pnpm -w tsx ../../internal/scripts/refresh-create-templates.ts
 
 esbuild src/main.ts \
     --bundle \

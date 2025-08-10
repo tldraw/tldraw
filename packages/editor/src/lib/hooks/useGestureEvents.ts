@@ -1,4 +1,4 @@
-import type { AnyHandlerEventTypes, EventTypes, GestureKey, Handler } from '@use-gesture/core/types'
+import type { AnyHandlerEventTypes, EventTypes, GestureKey, Handler } from '@use-gesture/react'
 import { createUseGesture, pinchAction, wheelAction } from '@use-gesture/react'
 import * as React from 'react'
 import { TLWheelEventInfo } from '../editor/types/event-types'
@@ -81,7 +81,7 @@ export function useGestureEvents(ref: React.RefObject<HTMLDivElement>) {
 	const events = React.useMemo(() => {
 		let pinchState = 'not sure' as 'not sure' | 'zooming' | 'panning'
 
-		const onWheel: Handler<'wheel', WheelEvent> = ({ event }) => {
+		const onWheel: Handler<'wheel', WheelEvent> = ({ event }: { event: WheelEvent }) => {
 			if (!editor.getInstanceState().isFocused) {
 				return
 			}

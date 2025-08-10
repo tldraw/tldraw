@@ -49,7 +49,7 @@ jobs:
           git config --global user.name 'huppy-bot[bot]'
           git config --global user.email '128400622+huppy-bot[bot]@users.noreply.github.com'
           git log --oneline -10
-          yarn tsx internal/scripts/trigger-dotcom-hotfix.ts
+          pnpm tsx internal/scripts/trigger-dotcom-hotfix.ts
         env:
           GITHUB_TOKEN: ${{ steps.generate_token.outputs.token }}
           DISCORD_DEPLOY_WEBHOOK_URL: ${{ secrets.DISCORD_DEPLOY_WEBHOOK_URL }}

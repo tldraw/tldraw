@@ -57,6 +57,6 @@ jobs:
 
           for template in $all_templates; do
             echo "::group::Exporting $template"
-            yarn tsx ./internal/scripts/export-template.ts $template
+            pnpm tsx ./internal/scripts/export-template.ts $template
             echo "::endgroup::"
           done

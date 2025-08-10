@@ -27,16 +27,16 @@
 		"infinite"
 	],
 	"scripts": {
-		"lint": "yarn run -T tsx ../scripts/lint.ts",
+		"lint": "pnpm -w tsx ../scripts/lint.ts",
 		"glogin": "clasp login",
 		"glogout": "clasp logout",
 		"gcreate": "clasp create --type standalone --title \"tldraw.com\" --rootDir ./dist",
-		"gpull": "yarn build && clasp pull",
-		"gpush": "yarn build && clasp push",
-		"gpull:staging": "yarn build:staging && clasp pull",
-		"gpush:staging": "yarn build:staging && clasp push",
-		"build": "IS_PRODUCTION=1 yarn run -T tsx build-workspace-app.ts",
-		"build:staging": "yarn run -T tsx build-workspace-app.ts"
+		"gpull": "pnpm build && clasp pull",
+		"gpush": "pnpm build && clasp push",
+		"gpull:staging": "pnpm build:staging && clasp pull",
+		"gpush:staging": "pnpm build:staging && clasp push",
+		"build": "IS_PRODUCTION=1 tsx build-workspace-app.ts",
+		"build:staging": "tsx build-workspace-app.ts"
 	},
 	"dependencies": {
 		"@google/clasp": "^2.5.0"

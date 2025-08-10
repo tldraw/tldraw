@@ -1,4 +1,4 @@
-import { Octokit } from 'octokit'
+import { Octokit } from '@octokit/rest'
 import { exec } from './exec'
 import { nicelog } from './nicelog'
 

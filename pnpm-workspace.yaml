@@ -1,0 +1,7 @@
+packages:
+  - "packages/*"
+  - "apps/*"
+  - "apps/vscode/*"
+  - "apps/dotcom/*"
+  - "internal/*"
+  - "templates/*"

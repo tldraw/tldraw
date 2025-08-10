@@ -1,11 +1,23 @@
-import { expect } from '@jest/globals'
-import type { MatcherFunction } from 'expect'
 import { join } from 'path'
 import { ReactElement } from 'react'
 import { Route, RouteObject, createRoutesFromElements } from 'react-router-dom'
 import { router } from './routes'
 
-const toMatchAny: MatcherFunction<[regexes: unknown]> = function (actual, regexes) {
+type MatcherFunction<T extends readonly unknown[] = readonly unknown[]> = (
+	this: any,
+	actual: unknown,
+	...expected: T
+) => { message(): string; pass: boolean }
+
+declare global {
+	namespace jest {
+		interface Matchers<R> {
+			toMatchAny(regexes: string[]): R
+		}
+	}
+}
+
+const toMatchAny: MatcherFunction<[regexes: any]> = function (this: any, actual: any, regexes: any) {
 	if (
 		typeof actual !== 'string' ||
 		!Array.isArray(regexes) ||

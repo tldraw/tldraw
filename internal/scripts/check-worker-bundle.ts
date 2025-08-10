@@ -8,7 +8,7 @@ const args = minimist(process.argv.slice(2))
 const sizeLimit = Number(args['size-limit-bytes'])
 if (!isFinite(sizeLimit) || sizeLimit < 1) {
 	console.error(
-		'Invalid usage. Usage: yarn tsx check-worker-bundle.ts --size-limit-bytes <size> --entry <entry>'
+		'Invalid usage. Usage: pnpm tsx check-worker-bundle.ts --size-limit-bytes <size> --entry <entry>'
 	)
 	process.exit(1)
 }

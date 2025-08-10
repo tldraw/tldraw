@@ -29,7 +29,7 @@ jobs:
         uses: ./.github/actions/setup
 
       - name: Cleanup test files
-        run: yarn tsx internal/scripts/dotcom/cleanup-test-files.ts
+        run: pnpm tsx internal/scripts/dotcom/cleanup-test-files.ts
         env:
           CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
           R2_ACCESS_KEY_ID: ${{ secrets.R2_ACCESS_KEY_ID }}

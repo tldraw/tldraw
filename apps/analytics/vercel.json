@@ -1,8 +1,8 @@
 {
 	"version": 2,
 	"public": true,
-	"installCommand": "yarn workspaces focus @tldraw/analytics @tldraw/monorepo config",
-	"buildCommand": "yarn build",
+	"installCommand": "pnpm workspaces focus @tldraw/analytics @tldraw/monorepo config",
+	"buildCommand": "pnpm build",
 	"outputDirectory": "public",
 	"headers": [
 		{

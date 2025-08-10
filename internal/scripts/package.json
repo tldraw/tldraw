@@ -52,11 +52,14 @@
 		"typescript": "^5.8.3"
 	},
 	"scripts": {
-		"lint": "yarn run -T tsx lint.ts"
+		"lint": "pnpm -w tsx lint.ts"
 	},
 	"dependencies": {
 		"@lokalise/node-api": "^12.8.0",
 		"@octokit/rest": "^20.1.1",
+		"@tldraw/dotcom-shared": "workspace:*",
+		"@tldraw/utils": "workspace:*",
+		"@tldraw/validate": "workspace:*",
 		"@types/minimist": "^1.2.5",
 		"@types/proper-lockfile": "^4.1.4",
 		"@types/tmp": "^0.2.6",
@@ -65,6 +68,7 @@
 		"jszip": "^3.10.1",
 		"minimist": "^1.2.8",
 		"proper-lockfile": "^4.1.2",
+		"strip-ansi": "^7.1.0",
 		"tar": "^7.4.3",
 		"tmp": "^0.2.3",
 		"toml": "^3.0.0"

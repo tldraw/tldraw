@@ -20,6 +20,8 @@ interface EditingShapeInfo {
 export class EditingShape extends StateNode {
 	static override id = 'editing_shape'
 
+	_cancel: { cancel(): void } | undefined
+
 	hitShapeForPointerUp: TLShape | null = null
 	private info = {} as EditingShapeInfo
 
@@ -34,7 +36,7 @@ export class EditingShape extends StateNode {
 			this.parent.setCurrentToolIdMask('text')
 		}
 
-		updateHoveredShapeId(this.editor)
+		this._cancel = updateHoveredShapeId(this.editor)
 		this.editor.select(editingShape)
 	}
 
@@ -45,7 +47,8 @@ export class EditingShape extends StateNode {
 		// Clear the editing shape
 		this.editor.setEditingShape(null)
 
-		updateHoveredShapeId.cancel()
+		this._cancel?.cancel()
+		this._cancel = undefined
 
 		if (this.info.isCreatingTextWhileToolLocked) {
 			this.parent.setCurrentToolIdMask(undefined)

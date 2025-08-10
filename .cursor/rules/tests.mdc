@@ -14,7 +14,7 @@ For example, selection logic cuts across many files, so it's tested in `src/test
 
 When testing the editor, if you need tldraw's default shapes and tools, write your tests in the tldraw workspace, not the editor workspace.
 
-Tests for a specific package should be run using `yarn test` within that workspace's directory - ie in `packages/editor` to run editor tests.
+Tests for a specific package should be run using `pnpm test` within that workspace's directory - ie in `packages/editor` to run editor tests.
 This is an alias for running `jest`, so you can filter down the tests you're running if needed.
-Running `yarn test` from the repo root will run all the tests for the entire repo.
+Running `pnpm test` from the repo root will run all the tests for the entire repo.
 This can be slow, and can't be filtered as usual, so don't use it unless you have a good reason.

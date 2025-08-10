@@ -6,5 +6,10 @@
 		"emitDeclarationOnly": false,
 		"noEmit": true
 	},
-	"include": ["**/*"]
+	"include": ["**/*"],
+	"references": [
+		{ "path": "../../packages/dotcom-shared" },
+		{ "path": "../../packages/utils" },
+		{ "path": "../../packages/validate" }
+	]
 }

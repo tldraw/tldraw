@@ -9,11 +9,11 @@
 	},
 	"main": "src/index.ts",
 	"scripts": {
-		"dev": "yarn run -T tsx ../../../internal/scripts/workers/dev.ts --persist-to tmp-assets --inspector-port 9449",
+		"dev": "pnpm -w tsx ../../../internal/scripts/workers/dev.ts --persist-to tmp-assets --inspector-port 9449",
 		"test-ci": "lazy inherit --passWithNoTests",
-		"test": "yarn run -T jest --passWithNoTests",
+		"test": "pnpm -w jest --passWithNoTests",
 		"test-coverage": "lazy inherit --passWithNoTests",
-		"lint": "yarn run -T tsx ../../../internal/scripts/lint.ts"
+		"lint": "pnpm -w tsx ../../../internal/scripts/lint.ts"
 	},
 	"dependencies": {
 		"@tldraw/worker-shared": "workspace:*",

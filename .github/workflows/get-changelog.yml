@@ -32,8 +32,8 @@ jobs:
 
       - name: Generate changelog
         run: |
-          yarn auto changelog --dry-run --base-branch ${{ inputs.version }}
-          yarn auto changelog --dry-run --base-branch ${{ inputs.version }} > changelog.md
+          pnpm auto changelog --dry-run --base-branch ${{ inputs.version }}
+          pnpm auto changelog --dry-run --base-branch ${{ inputs.version }} > changelog.md
         env:
           GH_TOKEN: ${{ github.token }}
 

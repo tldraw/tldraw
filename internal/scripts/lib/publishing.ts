@@ -140,8 +140,8 @@ export async function publish(distTag?: string) {
 		throw new Error('NPM_TOKEN not set')
 	}
 
-	execSync(`yarn config set npmAuthToken ${npmToken}`, { stdio: 'inherit' })
-	execSync(`yarn config set npmRegistryServer https://registry.npmjs.org`, { stdio: 'inherit' })
+	execSync(`pnpm config set npmAuthToken ${npmToken}`, { stdio: 'inherit' })
+	execSync(`pnpm config set npmRegistryServer https://registry.npmjs.org`, { stdio: 'inherit' })
 
 	const packages = await getAllPackageDetails()
 

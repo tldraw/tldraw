@@ -4,7 +4,7 @@ alwaysApply: true
 
 This is the monorepo for tldraw, an infinite canvas whiteboard SDK.
 
-The monorepo uses yarn berry, and is organized using workspaces.
+The monorepo uses pnpm, and is organized using workspaces.
 
 The workspaces are:
 
@@ -33,4 +33,4 @@ The workspaces are:
 - packages/validate: lightweight zod-inspired validation library.
 - templates/\*: starting points for building tldraw applications. some of these are minimal starters showing tldraw in different frameworks, but other are more comprehensive mini-apps showing how tldraw can be adapted to a specific domain / vertical.
 
-Tldraw is written in typescript. If you want to check types, you can run `yarn typecheck` from the root of the repo.
+Tldraw is written in typescript. If you want to check types, you can run `pnpm typecheck` from the root of the repo.

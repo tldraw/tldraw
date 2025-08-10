@@ -65,7 +65,7 @@ apps/examples/www/fonts
 apps/examples/www/icons
 apps/examples/www/translations
 
-# yarn v2
+# pnpm v2
 .pnp.*
 .yarn/*
 !.yarn/patches

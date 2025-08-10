@@ -58,7 +58,7 @@ jobs:
         run: npx playwright install --with-deps chromium chrome
 
       - name: Run Playwright tests & update snapshots
-        run: 'yarn e2e --update-snapshots'
+        run: 'pnpm e2e --update-snapshots'
         working-directory: 'apps/examples'
 
       - name: Commit and push changes

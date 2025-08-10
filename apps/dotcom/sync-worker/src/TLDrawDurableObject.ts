@@ -50,7 +50,7 @@ import { getRoomDurableObject } from './utils/durableObjects'
 import { isRateLimited } from './utils/rateLimit'
 import { getSlug } from './utils/roomOpenMode'
 import { throttle } from './utils/throttle'
-import { getAuth, requireAdminAccess, requireWriteAccessToFile } from './utils/tla/getAuth'
+import { getAuth, requireAdminAccess, requireWriteAccessToFile, SignedInAuth } from './utils/tla/getAuth'
 import { getLegacyRoomData } from './utils/tla/getLegacyRoomData'
 import { isTestFile } from './utils/tla/isTestFile'
 
@@ -74,7 +74,7 @@ interface SessionMeta {
 
 async function canAccessTestProductionFile(
 	env: Environment,
-	auth: { userId: string } | null
+	auth: SignedInAuth | null
 ): Promise<boolean> {
 	try {
 		await requireAdminAccess(env, auth)
@@ -414,7 +414,7 @@ export class TLDrawDurableObject extends DurableObject {
 					if (rateLimited) {
 						this.logEvent({
 							type: 'client',
-							userId: auth?.userId,
+							userId: auth?.userId || undefined,
 							localClientId: storeId,
 							name: 'rate_limited',
 						})

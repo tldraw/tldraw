@@ -5,14 +5,14 @@ import { execPromise } from '@auto-it/core'
 import { execSync } from 'child_process'
 import { writeFileSync } from 'fs'
 
-// Use `yarn workspace list` to get all the packages in the monorepo
+// Use `pnpm workspace list` to get all the packages in the monorepo
 async function main() {
 	const devOnly = process.argv.includes('--dev')
 	const prodOnly = process.argv.includes('--prod')
 
 	const htmlTables: { title: string; content: string }[] = []
 
-	const workspaceList = execSync('yarn workspaces list', {
+	const workspaceList = execSync('pnpm workspaces list', {
 		encoding: 'utf-8',
 	})
 	const lines = workspaceList.split('\n')
@@ -22,7 +22,7 @@ async function main() {
 		try {
 			console.log('running license-report in', location)
 			const report = await execPromise(
-				`yarn license-report --package=${location}/package.json --department.value=tldraw  --relatedTo.label=Package --relatedTo.value=${location} --output=html --only=${devOnly ? 'dev' : prodOnly ? 'prod' : 'dev,prod,peer,opt'}`
+				`pnpm license-report --package=${location}/package.json --department.value=tldraw  --relatedTo.label=Package --relatedTo.value=${location} --output=html --only=${devOnly ? 'dev' : prodOnly ? 'prod' : 'dev,prod,peer,opt'}`
 			)
 			// Extract the <table> contents from the report
 			const table = report.match(/<tbody>.*<\/tbody>/gs)

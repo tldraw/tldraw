@@ -4,7 +4,7 @@ template_name="$1"
 workspace_root="$(git rev-parse --show-toplevel)"
 
 if [ -z "$template_name" ]; then
-    echo "Usage: yarn dev-template <template_name>"
+    echo "Usage: pnpm dev-template <template_name>"
     echo "Available templates: $(ls templates | awk 'ORS=", "' | sed 's/, $//')"
     exit 1
 fi

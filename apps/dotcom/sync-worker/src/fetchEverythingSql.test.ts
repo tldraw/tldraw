@@ -144,7 +144,7 @@ function escapeForTemplateLiteral(str: string) {
 }
 
 const tsFile = `// This file is auto-generated. Do not edit it directly.
-// Instead, edit the fetchEverythingSql.test.ts file and run yarn test -u
+// Instead, edit the fetchEverythingSql.test.ts file and run pnpm test -u
 
 export const fetchEverythingSql = \`
 ${escapeForTemplateLiteral(fetchEverythingSql)}
@@ -152,10 +152,10 @@ ${escapeForTemplateLiteral(fetchEverythingSql)}
 
 export const columnNamesByAlias = ${JSON.stringify(columnNamesByAlias, null, 2)}
 `
-test('fetchEverythingSql snapshot (RUN `yarn test -u` IF THIS FAILS)', async () => {
+test('fetchEverythingSql snapshot (RUN `pnpm test -u` IF THIS FAILS)', async () => {
 	const tmpFile = './src/.fetchEverythingSql.tmp.ts'
 	writeFileSync(tmpFile, tsFile, 'utf-8')
-	execSync('yarn run -T prettier --write ' + tmpFile, {
+	execSync('pnpm -w prettier --write ' + tmpFile, {
 		stdio: 'inherit',
 		env: {
 			...process.env,

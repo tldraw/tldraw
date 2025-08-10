@@ -88,7 +88,7 @@ jobs:
         if: github.event_name == 'pull_request'
 
       - name: Build types
-        run: yarn build-types
+        run: pnpm build-types
 
       - name: Configure AWS credentials using OIDC
         if: env.DEPLOY_ZERO == 'sst'
@@ -108,7 +108,7 @@ jobs:
           sudo apt-get install -y postgresql-client
 
       - name: Deploy
-        run: yarn tsx internal/scripts/deploy-dotcom.ts
+        run: pnpm tsx internal/scripts/deploy-dotcom.ts
         env:
           RELEASE_COMMIT_HASH: ${{ github.sha }}
           GH_TOKEN: ${{ github.token }}

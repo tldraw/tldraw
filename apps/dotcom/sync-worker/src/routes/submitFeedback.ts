@@ -37,6 +37,9 @@ export async function submitFeedback(req: IRequest, env: Environment) {
 		return new Response('Invalid JSON', { status: 400 })
 	}
 
+	if (!auth.userId) {
+		return new Response('Not authenticated', { status: 401 })
+	}
 	const userId = allowContact ? await getUserEmail(env, auth.userId) : '~' + auth.userId.slice(-4)
 
 	const payload = {

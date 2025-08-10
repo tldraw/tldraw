@@ -182,7 +182,7 @@ export class BemoDO extends DurableObject<Environment> {
 
 	triggerPersistSchedule = throttle(() => {
 		this.schedulePersist()
-	}, 2000)
+	}, 2000) as () => void
 
 	async loadFromDatabase(persistenceKey: string): Promise<DBLoadResult> {
 		try {

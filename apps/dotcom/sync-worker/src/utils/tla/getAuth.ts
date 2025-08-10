@@ -106,7 +106,7 @@ export async function requireWriteAccessToFile(
 	}
 }
 
-export async function requireAdminAccess(env: Environment, auth: { userId: string } | null) {
+export async function requireAdminAccess(env: Environment, auth: SignedInAuth | null) {
 	if (!auth?.userId) {
 		throw new StatusError(403, 'Unauthorized')
 	}

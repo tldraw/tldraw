@@ -3,12 +3,13 @@ import { updateHoveredShapeId } from '../../../tools/selection-logic/updateHover
 
 export class Idle extends StateNode {
 	static override id = 'idle'
+	_cancel: { cancel(): void } | undefined
 
 	override onPointerMove(info: TLPointerEventInfo) {
 		switch (info.target) {
 			case 'shape':
 			case 'canvas': {
-				updateHoveredShapeId(this.editor)
+				this._cancel = updateHoveredShapeId(this.editor)
 			}
 		}
 	}
@@ -22,7 +23,8 @@ export class Idle extends StateNode {
 	}
 
 	override onExit() {
-		updateHoveredShapeId.cancel()
+		this._cancel?.cancel()
+		this._cancel = undefined
 	}
 
 	override onKeyDown(info: TLKeyboardEventInfo) {

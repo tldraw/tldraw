@@ -1,5 +1,5 @@
 // This file is auto-generated. Do not edit it directly.
-// Instead, edit the fetchEverythingSql.test.ts file and run yarn test -u
+// Instead, edit the fetchEverythingSql.test.ts file and run pnpm test -u
 
 export const fetchEverythingSql = `
 WITH

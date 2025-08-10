@@ -11,20 +11,20 @@
 		"defaults"
 	],
 	"scripts": {
-		"dev": "./wait-for-postgres.sh && yarn run -T tsx scripts/dev-app.ts",
-		"build": "yarn run -T tsx scripts/build.ts",
-		"build-i18n": "yarn i18n:extract && yarn i18n:compile",
-		"start": "VITE_PREVIEW=1 yarn run -T tsx scripts/dev-app.ts",
-		"lint": "yarn run -T tsx ../../../internal/scripts/lint.ts",
+		"dev": "./wait-for-postgres.sh && pnpm -w tsx scripts/dev-app.ts",
+		"build": "pnpm -w tsx scripts/build.ts",
+		"build-i18n": "pnpm i18n:extract && pnpm i18n:compile",
+		"start": "VITE_PREVIEW=1 pnpm -w tsx scripts/dev-app.ts",
+		"lint": "pnpm -w tsx ../../../internal/scripts/lint.ts",
 		"test-ci": "lazy inherit",
-		"test": "yarn run -T jest",
+		"test": "pnpm -w jest",
 		"i18n:extract": "formatjs extract 'src/{tla,pages,components}/**/*.ts*' --out-file public/tla/locales/en.json --additional-component-names F --id-interpolation-pattern '[md5:contenthash:hex:10]' --format lokalise",
 		"i18n:compile": "formatjs compile-folder public/tla/locales public/tla/locales-compiled --format lokalise --ast",
-		"e2e": "rm -rf 'e2e/.auth' && yarn playwright test --project=chromium",
-		"e2e-x10": "yarn playwright test --project=chromium --repeat-each=10",
-		"e2e-debug": "yarn playwright test --project=chromium --debug",
-		"e2e-ui": "yarn playwright test --project=chromium --ui",
-		"e2e-staging": "yarn playwright test --project=staging"
+		"e2e": "rm -rf 'e2e/.auth' && pnpm playwright test --project=chromium",
+		"e2e-x10": "pnpm playwright test --project=chromium --repeat-each=10",
+		"e2e-debug": "pnpm playwright test --project=chromium --debug",
+		"e2e-ui": "pnpm playwright test --project=chromium --ui",
+		"e2e-staging": "pnpm playwright test --project=staging"
 	},
 	"dependencies": {
 		"@clerk/clerk-react": "^5.22.8",

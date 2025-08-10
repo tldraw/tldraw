@@ -1,3 +1,6 @@
+// Import Jest globals to ensure proper TypeScript support
+import '@jest/globals'
+
 global.crypto ??= new (require('@peculiar/webcrypto').Crypto)()
 
 process.env.MULTIPLAYER_SERVER = 'https://localhost:8787'

@@ -72,7 +72,7 @@ export class TLPostgresReplicator extends DurableObject<Environment> {
 	// use a queue per user
 	private userDispatchQueues: Map<string, ExecutionQueue> = new Map()
 
-	sentry
+	sentry: ReturnType<typeof createSentry>
 	// eslint-disable-next-line local/prefer-class-methods
 	private captureException = (exception: unknown, extras?: Record<string, unknown>) => {
 		// eslint-disable-next-line @typescript-eslint/no-deprecated

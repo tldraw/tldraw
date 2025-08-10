@@ -104,6 +104,16 @@ export default [
 			react: {
 				version: 'detect',
 			},
+			'import/resolver': {
+				typescript: {
+					alwaysTryTypes: true,
+					project: ['./tsconfig.json', './packages/*/tsconfig.json', './apps/*/tsconfig.json'],
+				},
+				node: {
+					extensions: ['.js', '.jsx', '.ts', '.tsx'],
+					moduleDirectory: ['node_modules', 'packages', 'apps'],
+				},
+			},
 		},
 
 		rules: {

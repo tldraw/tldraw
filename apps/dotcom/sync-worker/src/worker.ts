@@ -22,7 +22,7 @@ import {
 	PostgresJSConnection,
 	PushProcessor,
 	ZQLDatabase,
-} from '../../../../node_modules/@rocicorp/zero/out/zero/src/pg'
+} from '@rocicorp/zero/out/zero-pg/src/mod'
 import { adminRoutes } from './adminRoutes'
 import { POSTHOG_URL } from './config'
 import { healthCheckRoutes } from './healthCheckRoutes'
@@ -88,8 +88,7 @@ const router = createRouter<Environment>()
 		// forward req to the user durable object
 		const auth = await getAuth(req, env)
 		if (!auth) {
-			// eslint-disable-next-line no-console
-			console.log('auth not found')
+			console.warn('auth not found')
 			return notFound()
 		}
 
@@ -97,6 +96,10 @@ const router = createRouter<Environment>()
 			return notFound()
 		}
 
+		if (!auth.userId) {
+			console.warn('userId not found')
+			return notFound()
+		}
 		const stub = getUserDurableObject(env, auth.userId)
 		return stub.fetch(req)
 	})
@@ -160,6 +163,7 @@ const router = createRouter<Environment>()
 			new ZQLDatabase(new PostgresJSConnection(makePostgresConnector(env)), schema),
 			'debug'
 		)
+		if (!auth.userId) throw Error('User not authenticated')
 		const result = await processor.process(createMutators(auth.userId), req)
 		return json(result)
 	})

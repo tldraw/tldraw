@@ -38,7 +38,7 @@ them faster.
 
 ## Development
 
-To install dependencies, run `yarn`. To start a local development server, run `yarn dev`. This will
+To install dependencies, run `pnpm i`. To start a local development server, run `pnpm dev`. This will
 start a [`vite`](https://vitejs.dev/) dev server running both your application frontend, and the
 cloudflare workers backend via the [cloudflare vite
 plugin](https://developers.cloudflare.com/workers/vite-plugin/). The app & server should now be
@@ -91,7 +91,7 @@ To deploy this example, you'll need to create a cloudflare account and create an
 your data. Update `bucket_name = 'tldraw-content'` in [`wrangler.toml`](./wrangler.toml) with the
 name of your new bucket.
 
-To actually deploy the app, first create a production build using `yarn build`. Then, run `yarn
+To actually deploy the app, first create a production build using `pnpm build`. Then, run `pnpm
 wrangler deploy`. This will deploy the backend worker along with the frontend app to cloudflare.
 This should give you a workers.dev URL, but you can also [configure a custom
 domain](https://developers.cloudflare.com/workers/configuration/routing/custom-domains/).

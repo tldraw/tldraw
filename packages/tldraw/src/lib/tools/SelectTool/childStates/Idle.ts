@@ -38,16 +38,18 @@ export class Idle extends StateNode {
 	static override id = 'idle'
 
 	selectedShapesOnKeyDown: TLShape[] = []
+	_cancel: { cancel(): void } | undefined = undefined
 
 	override onEnter() {
 		this.parent.setCurrentToolIdMask(undefined)
-		updateHoveredShapeId(this.editor)
+		this._cancel = updateHoveredShapeId(this.editor)
 		this.selectedShapesOnKeyDown = []
 		this.editor.setCursor({ type: 'default', rotation: 0 })
 	}
 
 	override onExit() {
-		updateHoveredShapeId.cancel()
+		this._cancel?.cancel()
+		this._cancel = undefined
 	}
 
 	override onPointerMove() {
@@ -475,15 +477,7 @@ export class Idle extends StateNode {
 					// If it's not locked or anything
 					this.shouldStartEditingShape(onlySelectedShape)
 				) {
-					this.startEditingShape(
-						onlySelectedShape,
-						{
-							...info,
-							target: 'shape',
-							shape: onlySelectedShape,
-						},
-						true /* select all */
-					)
+					this.startEditingShape(onlySelectedShape, info, true /* select all */)
 					return
 				}
 			}
@@ -537,15 +531,7 @@ export class Idle extends StateNode {
 				// If the only selected shape is editable, then begin editing it
 				const onlySelectedShape = this.editor.getOnlySelectedShape()
 				if (onlySelectedShape && this.shouldStartEditingShape(onlySelectedShape)) {
-					this.startEditingShape(
-						onlySelectedShape,
-						{
-							...info,
-							target: 'shape',
-							shape: onlySelectedShape,
-						},
-						true /* select all */
-					)
+					this.startEditingShape(onlySelectedShape, info, true /* select all */)
 					return
 				}
 

@@ -82,7 +82,7 @@ async function exportPdf(
 		tickProgress()
 	}
 
-	const url = URL.createObjectURL(new Blob([await pdf.save()], { type: 'application/pdf' }))
+	const url = URL.createObjectURL(new Blob([new Uint8Array(await pdf.save())], { type: 'application/pdf' }))
 	tickProgress()
 	const a = document.createElement('a')
 	a.href = url

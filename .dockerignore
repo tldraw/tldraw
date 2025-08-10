@@ -59,7 +59,7 @@ api-md
 apps/webdriver/www
 !apps/webdriver/www/index.html
 
-# yarn v2
+# pnpm v2
 .pnp.*
 .yarn/*
 !.yarn/patches

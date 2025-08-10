@@ -88,7 +88,7 @@ export function getRunCommand(manager: PackageManager, command: string): string 
 		case 'pnpm':
 			return `pnpm run ${command}`
 		case 'yarn':
-			return `yarn ${command}`
+			return `pnpm ${command}`
 		case 'npm':
 			return `npm run ${command}`
 	}
