@@ -525,13 +525,6 @@ export function getColorValue(
 /** @public
  * Extend the default color theme with new colors. Note that this will not work with TypeScript in all instances; as far as TypeScript knows, the colors you add do not exist. We'll improve this in the future.
  *
- * @example
- * ```tsx
- * extendDefaultColorTheme({
- * 	aqua: { lightMode: { solid: '#1d1d1d', ... }, darkMode: { solid: '#1d1d1d', ...} },
- * })
- * ```
- *
  * @public
  */
 export function extendDefaultColorTheme(
