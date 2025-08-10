@@ -338,7 +338,7 @@ export class NoteShapeUtil extends ShapeUtil<TLNoteShape> {
 	}
 
 	override toSvg(shape: TLNoteShape, ctx: SvgExportContext) {
-		const theme = getDefaultColorTheme({ isDarkMode: ctx.isDarkMode })
+		const theme = getDefaultColorTheme({ colorScheme: ctx.isDarkMode ? 'dark' : 'light' })
 		const bounds = getBoundsForSVG(shape)
 
 		const textLabel = (

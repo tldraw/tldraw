@@ -179,10 +179,7 @@ export const defaultColorNames: readonly ["black", "grey", "light-violet", "viol
 export const DefaultColorStyle: EnumStylePropOrString<"black" | "blue" | "green" | "grey" | "light-blue" | "light-green" | "light-red" | "light-violet" | "orange" | "red" | "violet" | "white" | "yellow">;
 
 // @public (undocumented)
-export const DefaultColorThemePalette: {
-    darkMode: TLDefaultColorTheme;
-    lightMode: TLDefaultColorTheme;
-};
+export const DefaultColorThemePalette: Record<string, TLDefaultColorTheme>;
 
 // @public (undocumented)
 export const DefaultDashStyle: EnumStyleProp<"dashed" | "dotted" | "draw" | "solid">;
@@ -307,9 +304,8 @@ export class EnumStylePropOrString<T> extends StyleProp<string | T> {
 }
 
 // @public
-export function extendDefaultColorTheme(newColors: Record<string, {
-    darkMode: TLDefaultColorThemeColor;
-    lightMode: TLDefaultColorThemeColor;
+export function extendDefaultColorTheme(newColors: Record<string, Partial<TLDefaultColorTheme> & {
+    colors: Record<string, Partial<TLDefaultColorThemeColor>>;
 }>): void;
 
 // @public (undocumented)
@@ -332,7 +328,7 @@ export function getColorValue(theme: TLDefaultColorTheme, color: TLDefaultColorS
 
 // @public (undocumented)
 export function getDefaultColorTheme(opts: {
-    isDarkMode: boolean;
+    colorScheme: keyof typeof DefaultColorThemePalette;
 }): TLDefaultColorTheme;
 
 // @public (undocumented)
@@ -941,10 +937,11 @@ export type TLDefaultColorStyle = T.TypeOf<typeof DefaultColorStyle>;
 // @public (undocumented)
 export type TLDefaultColorTheme = Expand<{
     background: string;
-    id: 'dark' | 'light';
+    colors: Record<string, TLDefaultColorThemeColor>;
+    id: string;
     solid: string;
     text: string;
-} & Record<(typeof defaultColorNames)[number], TLDefaultColorThemeColor>>;
+}>;
 
 // @public (undocumented)
 export interface TLDefaultColorThemeColor {

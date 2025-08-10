@@ -25,21 +25,18 @@ export const ShapeFill = React.memo(function ShapeFill({
 	fill,
 	scale,
 }: ShapeFillProps) {
-	const semi = getColorValue(theme, color, 'semi')
-	const fillColor = getColorValue(theme, color, 'fill')
-
 	switch (fill) {
 		case 'none': {
 			return null
 		}
 		case 'solid': {
-			return <path fill={semi} d={d} />
+			return <path fill={getColorValue(theme, color, 'semi')} d={d} />
 		}
 		case 'semi': {
 			return <path fill={getColorValue(theme, color, 'solid')} d={d} />
 		}
 		case 'fill': {
-			return <path fill={fillColor} d={d} />
+			return <path fill={getColorValue(theme, color, 'fill')} d={d} />
 		}
 		case 'pattern': {
 			return <PatternFill theme={theme} color={color} fill={fill} d={d} scale={scale} />

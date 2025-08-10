@@ -924,7 +924,7 @@ export class ArrowShapeUtil extends ShapeUtil<TLArrowShape> {
 
 	override toSvg(shape: TLArrowShape, ctx: SvgExportContext) {
 		ctx.addExportDef(getFillDefForExport(shape.props.fill))
-		const theme = getDefaultColorTheme(ctx)
+		const theme = getDefaultColorTheme({ colorScheme: ctx.isDarkMode ? 'dark' : 'light' })
 		const scaleFactor = 1 / shape.props.scale
 
 		return (

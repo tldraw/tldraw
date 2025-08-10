@@ -20,7 +20,6 @@ import {
 	kickoutOccludedShapes,
 	minBy,
 	useEditor,
-	useIsDarkMode,
 	useValue,
 } from '@tldraw/editor'
 import React, { useCallback } from 'react'
@@ -47,9 +46,11 @@ export interface TLUiStylePanelContentProps {
 
 /** @public @react */
 export function DefaultStylePanelContent({ styles }: TLUiStylePanelContentProps) {
-	const isDarkMode = useIsDarkMode()
+	const editor = useEditor()
 
 	if (!styles) return null
+
+	const theme = getDefaultColorTheme({ colorScheme: editor.user.getColorScheme() })
 
 	const geo = styles.get(GeoShapeGeoStyle)
 	const arrowheadEnd = styles.get(ArrowShapeArrowheadEndStyle)
@@ -63,8 +64,6 @@ export function DefaultStylePanelContent({ styles }: TLUiStylePanelContentProps)
 	const hideSpline = spline === undefined
 	const hideArrowKind = arrowKind === undefined
 	const hideText = font === undefined
-
-	const theme = getDefaultColorTheme({ isDarkMode: isDarkMode })
 
 	return (
 		<>
@@ -144,7 +143,9 @@ export function CommonStylePickerSet({ styles, theme }: ThemeStylePickerSetProps
 								title={msg('style-panel.color')}
 								uiType="color"
 								style={DefaultColorStyle}
-								items={STYLES.color}
+								items={DefaultColorStyle.values
+									.filter((color) => color !== 'white')
+									.map((color) => ({ value: color, icon: 'color' }))}
 								value={color}
 								onValueChange={handleValueChange}
 								theme={theme}

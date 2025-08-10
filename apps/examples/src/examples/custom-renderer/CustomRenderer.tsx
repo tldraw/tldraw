@@ -32,7 +32,7 @@ export function CustomRenderer() {
 			ctx.translate(camera.x, camera.y)
 
 			const renderingShapes = editor.getRenderingShapes()
-			const theme = getDefaultColorTheme({ isDarkMode: editor.user.getIsDarkMode() })
+			const theme = getDefaultColorTheme({ colorScheme: editor.user.getColorScheme() })
 			const currentPageId = editor.getCurrentPageId()
 
 			for (const { shape, opacity } of renderingShapes) {

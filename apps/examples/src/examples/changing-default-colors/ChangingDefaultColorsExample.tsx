@@ -4,7 +4,7 @@ import 'tldraw/tldraw.css'
 // There's a guide at the bottom of this file!
 
 // [1]
-DefaultColorThemePalette.lightMode.black.solid = 'aqua'
+DefaultColorThemePalette.light.colors.black.solid = 'aqua'
 
 export default function ChangingDefaultColorsExample() {
 	return (

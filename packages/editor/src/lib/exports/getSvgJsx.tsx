@@ -146,7 +146,7 @@ function SvgExport({
 	waitUntil(promise: Promise<void>): void
 }) {
 	const masksId = useUniqueSafeId()
-	const theme = getDefaultColorTheme({ isDarkMode })
+	const theme = getDefaultColorTheme({ colorScheme: isDarkMode ? 'dark' : 'light' })
 
 	const stateAtom = useAtom<{
 		defsById: Record<

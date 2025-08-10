@@ -25,7 +25,7 @@ export function MobileStylePanel() {
 
 	const relevantStyles = useRelevantStyles()
 	const color = relevantStyles?.get(DefaultColorStyle)
-	const theme = getDefaultColorTheme({ isDarkMode: editor.user.getIsDarkMode() })
+	const theme = getDefaultColorTheme({ colorScheme: editor.user.getColorScheme() })
 	const currentColor =
 		color?.type === 'shared'
 			? getColorValue(theme, color.value as TLDefaultColorStyle, 'solid')
