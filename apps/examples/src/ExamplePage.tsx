@@ -236,9 +236,13 @@ function Dialogs() {
 				onPointerDown={() => setExampleDialog(null)}
 			/>
 			<_AlertDialog.Content className="example__dialog__content">
-				<h1>{example.title}</h1>
-				<Markdown sanitizedHtml={example.description} className="example__dialog__markdown" />
-				<Markdown sanitizedHtml={example.details} className="example__dialog__markdown" />
+				<_AlertDialog.Title className="example__dialog__title">{example.title}</_AlertDialog.Title>
+				<_AlertDialog.Description asChild>
+					<div>
+						<Markdown sanitizedHtml={example.description} className="example__dialog__markdown" />
+						<Markdown sanitizedHtml={example.details} className="example__dialog__markdown" />
+					</div>
+				</_AlertDialog.Description>
 				<div className="example__dialog__actions">
 					<a href={example.codeUrl}>
 						View Source <ExternalLinkIcon />
