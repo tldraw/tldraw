@@ -4,6 +4,7 @@
 
 ```ts
 
+import { Atom } from '@tldraw/state';
 import { BaseRecord } from '@tldraw/store';
 import { Expand } from '@tldraw/utils';
 import { IndexKey } from '@tldraw/utils';
@@ -179,7 +180,13 @@ export const defaultColorNames: readonly ["black", "grey", "light-violet", "viol
 export const DefaultColorStyle: EnumStylePropOrString<"black" | "blue" | "green" | "grey" | "light-blue" | "light-green" | "light-red" | "light-violet" | "orange" | "red" | "violet" | "white" | "yellow">;
 
 // @public (undocumented)
-export const DefaultColorThemePalette: Record<string, TLDefaultColorTheme>;
+export const DefaultColorThemePalette: Atom<Record<string, {
+background: string;
+colors: Record<string, TLDefaultColorThemeColor>;
+id: string;
+solid: string;
+text: string;
+}>, unknown>;
 
 // @public (undocumented)
 export const DefaultDashStyle: EnumStyleProp<"dashed" | "dotted" | "draw" | "solid">;
@@ -304,9 +311,7 @@ export class EnumStylePropOrString<T> extends StyleProp<string | T> {
 }
 
 // @public
-export function extendDefaultColorTheme(newColors: Record<string, Partial<TLDefaultColorTheme> & {
-    colors: Record<string, Partial<TLDefaultColorThemeColor>>;
-}>): void;
+export function extendDefaultColorTheme(updater: (themes: Record<string, TLDefaultColorTheme>) => Record<string, TLDefaultColorTheme>): void;
 
 // @public (undocumented)
 export const frameShapeMigrations: TLPropsMigrations;
@@ -324,11 +329,11 @@ export const geoShapeMigrations: TLPropsMigrations;
 export const geoShapeProps: RecordProps<TLGeoShape>;
 
 // @public
-export function getColorValue(theme: TLDefaultColorTheme, color: TLDefaultColorStyle, variant?: keyof TLDefaultColorThemeColor): string;
+export function getColorValue(theme: TLDefaultColorTheme, color: string | TLDefaultColorStyle, variant?: keyof TLDefaultColorThemeColor): string;
 
 // @public (undocumented)
 export function getDefaultColorTheme(opts: {
-    colorScheme: keyof typeof DefaultColorThemePalette;
+    colorScheme: string;
 }): TLDefaultColorTheme;
 
 // @public (undocumented)
@@ -401,7 +406,7 @@ export function isBinding(record?: UnknownRecord): record is TLBinding;
 export function isBindingId(id?: string): id is TLBindingId;
 
 // @public (undocumented)
-export function isDefaultThemeColor(color: TLDefaultColorStyle): color is (typeof defaultColorNames)[number];
+export function isDefaultThemeColor(color: string | TLDefaultColorStyle): color is (typeof defaultColorNames)[number];
 
 // @public (undocumented)
 export function isDocument(record?: UnknownRecord): record is TLDocument;
@@ -932,7 +937,7 @@ export type TLCursorType = SetValue<typeof TL_CURSOR_TYPES>;
 export type TLDefaultBinding = TLArrowBinding;
 
 // @public (undocumented)
-export type TLDefaultColorStyle = T.TypeOf<typeof DefaultColorStyle>;
+export type TLDefaultColorStyle = (typeof defaultColorNames)[number] | string;
 
 // @public (undocumented)
 export type TLDefaultColorTheme = Expand<{

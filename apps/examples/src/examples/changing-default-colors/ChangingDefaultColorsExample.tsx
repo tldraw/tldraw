@@ -1,10 +1,21 @@
-import { DefaultColorThemePalette, Tldraw } from 'tldraw'
+import { extendDefaultColorTheme, Tldraw } from 'tldraw'
 import 'tldraw/tldraw.css'
 
 // There's a guide at the bottom of this file!
 
 // [1]
-DefaultColorThemePalette.light.colors.black.solid = 'aqua'
+extendDefaultColorTheme((themes) => {
+	return {
+		...themes,
+		light: {
+			...themes.light,
+			colors: {
+				...themes.light.colors,
+				black: { ...themes.light.colors.black, solid: 'aqua' },
+			},
+		},
+	}
+})
 
 export default function ChangingDefaultColorsExample() {
 	return (
