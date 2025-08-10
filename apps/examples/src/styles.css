@@ -176,8 +176,6 @@ li.examples__sidebar__item {
 	right: 0px;
 }
 
-
-
 .examples__sidebar__item__title {
 	flex-grow: 2;
 	overflow: hidden;
@@ -230,7 +228,6 @@ li.examples__sidebar__item {
 	padding-right: 64px;
 }
 
-
 /* -------------------- List Item ------------------- */
 
 .example__sidebar__item__buttons {
@@ -267,8 +264,6 @@ li.examples__sidebar__item {
 .example__sidebar__item__button:nth-of-type(n + 1) {
 	margin-left: -4px;
 }
-
-
 
 .example {
 	position: absolute;
