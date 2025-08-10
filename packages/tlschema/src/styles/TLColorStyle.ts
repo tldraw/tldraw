@@ -562,6 +562,6 @@ export function extendDefaultColorTheme(
 
 		// Update the default color style values
 		// @ts-expect-error - a style's values are supposed to be readonly
-		DefaultColorStyle.values = Array.from(Array.from(defaultColorNamesSet))
+		DefaultColorStyle.values = Array.from(defaultColorNamesSet.get())
 	})
 }

@@ -180,7 +180,7 @@ export const defaultColorNames: readonly ["black", "grey", "light-violet", "viol
 export const DefaultColorStyle: EnumStylePropOrString<"black" | "blue" | "green" | "grey" | "light-blue" | "light-green" | "light-red" | "light-violet" | "orange" | "red" | "violet" | "white" | "yellow">;
 
 // @public (undocumented)
-export const DefaultColorThemePalette: Atom<Record<string, {
+export const DefaultColorThemes: Atom<Record<string, {
 background: string;
 colors: Record<string, TLDefaultColorThemeColor>;
 id: string;

@@ -576,6 +576,71 @@ describe('UserPreferencesManager', () => {
 		})
 	})
 
+	describe('getColorScheme', () => {
+		it('should return explicit dark color scheme', () => {
+			userPreferencesManager = new UserPreferencesManager(mockUser, false)
+			userPreferencesManager.updateUserPreferences({ colorScheme: 'dark' })
+
+			expect(userPreferencesManager.getColorScheme()).toBe('dark')
+		})
+
+		it('should return explicit light color scheme', () => {
+			userPreferencesManager = new UserPreferencesManager(mockUser, false)
+			userPreferencesManager.updateUserPreferences({ colorScheme: 'light' })
+
+			expect(userPreferencesManager.getColorScheme()).toBe('light')
+		})
+
+		it('should return system color scheme when colorScheme is system', () => {
+			userPreferencesManager = new UserPreferencesManager(mockUser, false)
+			userPreferencesManager.updateUserPreferences({ colorScheme: 'system' })
+			userPreferencesManager.systemColorScheme.set('dark')
+
+			expect(userPreferencesManager.getColorScheme()).toBe('dark')
+
+			userPreferencesManager.systemColorScheme.set('light')
+			expect(userPreferencesManager.getColorScheme()).toBe('light')
+		})
+
+		it('should return system color scheme when inferDarkMode is true and colorScheme is invalid', () => {
+			userPreferencesManager = new UserPreferencesManager(mockUser, true)
+			userPreferencesManager.updateUserPreferences({ colorScheme: 'invalid' as any })
+			userPreferencesManager.systemColorScheme.set('dark')
+
+			expect(userPreferencesManager.getColorScheme()).toBe('dark')
+
+			userPreferencesManager.systemColorScheme.set('light')
+			expect(userPreferencesManager.getColorScheme()).toBe('light')
+		})
+
+		it('should return light when inferDarkMode is false and colorScheme is invalid', () => {
+			userPreferencesManager = new UserPreferencesManager(mockUser, false)
+			userPreferencesManager.updateUserPreferences({ colorScheme: 'invalid' as any })
+
+			expect(userPreferencesManager.getColorScheme()).toBe('light')
+		})
+
+		it('should handle undefined colorScheme gracefully', () => {
+			userPreferencesManager = new UserPreferencesManager(mockUser, false)
+			// Simulate undefined colorScheme
+			const originalGet = mockUser.userPreferences.get
+			mockUser.userPreferences.get = jest.fn(() => ({
+				...mockUserPreferences,
+				colorScheme: undefined,
+			}))
+
+			expect(userPreferencesManager.getColorScheme()).toBe('light')
+
+			// Test with inferDarkMode true
+			userPreferencesManager = new UserPreferencesManager(mockUser, true)
+			userPreferencesManager.systemColorScheme.set('dark')
+			expect(userPreferencesManager.getColorScheme()).toBe('dark')
+
+			// Restore original mock
+			mockUser.userPreferences.get = originalGet
+		})
+	})
+
 	describe('integration scenarios', () => {
 		it('should work with real-world preference scenarios', () => {
 			userPreferencesManager = new UserPreferencesManager(mockUser, true)
