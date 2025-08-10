@@ -537,7 +537,7 @@ export function getColorValue(
 	color: TLDefaultColorStyle,
 	variant?: keyof TLDefaultColorThemeColor
 ): string {
-	if (variant) {
+	if (variant && isDefaultThemeColor(color)) {
 		return (theme as any)[color]?.[variant]
 	}
 

@@ -230,6 +230,7 @@ li.examples__sidebar__item {
 	z-index: 20;
 	flex-shrink: 0;
 }
+
 .example__sidebar__item__button {
 	all: unset;
 	cursor: pointer;
@@ -250,6 +251,7 @@ li.examples__sidebar__item {
 .example__sidebar__item__button:nth-of-type(n + 1) {
 	margin-left: -4px;
 }
+
 
 .example {
 	position: absolute;
