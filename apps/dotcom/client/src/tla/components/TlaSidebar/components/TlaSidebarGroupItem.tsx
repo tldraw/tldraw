@@ -10,6 +10,7 @@ import { F } from '../../../utils/i18n'
 import { TlaIcon } from '../../TlaIcon/TlaIcon'
 import styles from '../sidebar.module.css'
 import { TlaSidebarFileLink } from './TlaSidebarFileLink'
+import { messages } from './sidebar-shared'
 
 const TriangleIcon = ({ angle = 0 }: { angle?: number }) => {
 	return (
@@ -31,6 +32,28 @@ const TriangleIcon = ({ angle = 0 }: { angle?: number }) => {
 	)
 }
 
+function GroupEmptyState() {
+	return (
+		<div className={styles.sidebarGroupItemEmpty}>
+			<F
+				{...messages.groupEmpty}
+				values={{
+					create: (chunks) => (
+						<button className={styles.sidebarGroupItemButtonInline}>
+							{chunks} <TlaIcon icon="edit" className={styles.sidebarGroupEmptyStateIcon} />
+						</button>
+					),
+					invite: (chunks) => (
+						<button className={styles.sidebarGroupItemButtonInline}>
+							{chunks} <TlaIcon icon="copy" className={styles.sidebarGroupEmptyStateIcon} />
+						</button>
+					),
+				}}
+			/>
+		</div>
+	)
+}
+
 const GroupFileList = memo(function GroupFileList({ groupId }: { groupId: string }) {
 	const app = useApp()
 	const group = useValue('group', () => app.getGroupMembership(groupId), [app, groupId])
@@ -39,12 +62,13 @@ const GroupFileList = memo(function GroupFileList({ groupId }: { groupId: string
 	if (!group) return null
 
 	let files = group.groupFiles.map((gf) => gf.file)
-	files = files.slice().sort((a, b) => b.updatedAt - a.updatedAt)
+	files = files.slice().sort((a, b) => b.createdAt - a.createdAt)
 
 	const MAX_FILES_TO_SHOW = 4
 	const isOverflowing = files.length > MAX_FILES_TO_SHOW
 	const filesToShow = files.slice(0, MAX_FILES_TO_SHOW)
 	const hiddenFiles = files.slice(MAX_FILES_TO_SHOW)
+	if (filesToShow.length === 0) return <GroupEmptyState />
 
 	return (
 		<Collapsible.Root open={isShowingAll}>
@@ -55,7 +79,7 @@ const GroupFileList = memo(function GroupFileList({ groupId }: { groupId: string
 					className={styles.sidebarGroupItemFile}
 					item={{
 						fileId: file.id,
-						date: file.updatedAt,
+						date: file.createdAt,
 						isPinned: false,
 					}}
 					testId={`tla-group-file-${file.id}`}
@@ -69,7 +93,7 @@ const GroupFileList = memo(function GroupFileList({ groupId }: { groupId: string
 						className={styles.sidebarGroupItemFile}
 						item={{
 							fileId: file.id,
-							date: file.updatedAt,
+							date: file.createdAt,
 							isPinned: false,
 						}}
 						testId={`tla-group-file-${file.id}`}
@@ -126,7 +150,10 @@ export function TlaSidebarGroupItem({ groupId }: { groupId: string }) {
 		if (res.ok) {
 			const isMobile = getIsCoarsePointer()
 			if (!isMobile) {
-				app.sidebarState.update((state) => ({ ...state, renamingFileId: res.value.fileId }))
+				app.sidebarState.update((state) => ({
+					...state,
+					renameState: { fileId: res.value.fileId, context: 'group-files' },
+				}))
 			}
 			navigate(routes.tlaFile(res.value.fileId))
 			setIsExpanded(true)

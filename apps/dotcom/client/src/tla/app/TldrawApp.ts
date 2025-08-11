@@ -378,8 +378,6 @@ export class TldrawApp {
 			if (!file) continue
 
 			if (!state && !file.isDeleted && file.ownerId === this.userId) {
-				// create a file state for this file
-				// this allows us to 'undelete' soft-deleted files by manually toggling 'isDeleted' in the backend
 				state = this.fileStates$.get().find((fs) => fs.fileId === fileId)
 			}
 			if (!state) {

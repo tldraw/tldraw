@@ -25,7 +25,10 @@ export function TlaSidebarCreateFileButton() {
 		if (res.ok) {
 			const isMobile = getIsCoarsePointer()
 			if (!isMobile) {
-				app.sidebarState.update((state) => ({ ...state, renamingFileId: res.value.file.id }))
+				app.sidebarState.update((state) => ({
+					...state,
+					renameState: { fileId: res.value.file.id, context: 'my-files' },
+				}))
 			}
 			const { file } = res.value
 			navigate(routes.tlaFile(file.id))

@@ -16,11 +16,20 @@ export function TlaSidebarRecentFilesNew() {
 
 	const [isShowingAll, setIsShowingAll] = useState(false)
 	const [isCreatingGroup, setIsCreatingGroup] = useState(false)
-	const groupMemberships = useValue('groupMemberships', () => app.getGroupMemberships(), [app])
+	const groupMemberships = useValue(
+		'groupMemberships',
+		() =>
+			app
+				.getGroupMemberships()
+				.slice(0)
+				.sort((a, b) => b.createdAt - a.createdAt),
+		[app]
+	)
 
 	const results = useValue(
 		'recent user files',
 		() => {
+			const groupMemberships = app.getGroupMemberships()
 			const recentFiles = app.getUserRecentFiles()
 			if (!recentFiles) return null
 
@@ -60,8 +69,13 @@ export function TlaSidebarRecentFilesNew() {
 	}
 
 	const handleGroupCreateComplete = (name: string) => {
-		app.z.mutate.group.create({ id: uniqueId(), name })
+		const id = uniqueId()
+		app.z.mutate.group.create({ id, name })
 		setIsCreatingGroup(false)
+		app.sidebarState.update((state) => ({
+			...state,
+			expandedGroups: new Set(state.expandedGroups).add(id),
+		}))
 	}
 
 	const handleGroupCreateCancel = () => {
