@@ -14,9 +14,6 @@
   "06b9281e39": {
     "translation": "Auto"
   },
-  "0776e18496": {
-    "translation": "Salva e condividi"
-  },
   "07dbd11b21": {
     "translation": "File senza titolo"
   },
@@ -56,17 +53,11 @@
   "21bfb2dc2e": {
     "translation": "Questa stanza sta per raggiungere il limite di dimensioni. Valuta la possibilità di rimuovere alcuni contenuti o di creare un nuovo file."
   },
-  "22d84a12fd": {
-    "translation": "Figjam ma tldraw"
-  },
   "250ddea65c": {
     "translation": "Informazioni su tldraw"
   },
   "299cb00a7a": {
     "translation": "Caricamento non riuscito"
-  },
-  "2c61d18599": {
-    "translation": "Miro ma buono e libero"
   },
   "2deec2cb74": {
     "translation": "Questa stanza ha raggiunto il limite di dimensioni e le modifiche potrebbero non essere più salvate. Rimuovi alcuni contenuti o crea un nuovo file."
@@ -83,9 +74,6 @@
   "344a7f427f": {
     "translation": "Editor"
   },
-  "37b3dca331": {
-    "translation": "Per favore accedi"
-  },
   "3bd1b98dbd": {
     "translation": "Impossibile pubblicare le modifiche."
   },
@@ -95,14 +83,8 @@
   "3d0238bf16": {
     "translation": "Accetta tutto"
   },
-  "3fc6d0c83a": {
-    "translation": "Aggiungi amico"
-  },
   "42e53c47c1": {
     "translation": "Contatta il proprietario per richiedere l'accesso."
-  },
-  "44281ab6e5": {
-    "translation": "Accedi"
   },
   "44db318ee5": {
     "translation": "Chiedi aiuto su Discord"
@@ -121,9 +103,6 @@
   },
   "4d1c8263ba": {
     "translation": "Ricarica"
-  },
-  "4ea0bb66f7": {
-    "translation": "Un account sarebbe bello"
   },
   "50db1b7e1e": {
     "translation": "Impossibile annullare la pubblicazione del file."
@@ -161,9 +140,6 @@
   "5bec508475": {
     "translation": "Rilevato browser obsoleto. Aggiorna il browser per utilizzare questa app."
   },
-  "5bef23eb7e": {
-    "translation": "Crea il tuo account"
-  },
   "5d26ae7550": {
     "translation": "Impossibile caricare alcuni dei contenuti che hai creato prima di accedere."
   },
@@ -184,9 +160,6 @@
   },
   "6637a98151": {
     "translation": "È disponibile una nuova versione di tldraw. Ricarica la pagina per continuare."
-  },
-  "697c59072d": {
-    "translation": "Accedi per salvare"
   },
   "6a26f54883": {
     "translation": "Aiuto"
@@ -239,9 +212,6 @@
   "7be10fc592": {
     "translation": "Ripristina versione"
   },
-  "7c7d5d493e": {
-    "translation": "Per favore, registrati"
-  },
   "7cb5f8b4a5": {
     "translation": "Dimentica"
   },
@@ -257,9 +227,6 @@
   "815e116a2e": {
     "translation": "Hai un bug, un problema o un'idea per tldraw? Faccelo sapere! Compila questo modulo e ti contatteremo via email se necessario. Puoi anche <discord>chattare con noi su Discord</discord> o <github>segnalare un problema su GitHub</github>."
   },
-  "84c89d47c7": {
-    "translation": "Condividi gratuitamente"
-  },
   "85a082de1b": {
     "translation": "Ricarica la pagina per ottenere l'ultima versione di tldraw."
   },
@@ -271,9 +238,6 @@
   },
   "8b1946f965": {
     "translation": "Per continuare la modifica, copia la stanza nei tuoi file."
-  },
-  "8ea211024d": {
-    "translation": "Crea un account gratuito"
   },
   "8eb2c00e96": {
     "translation": "Condivisi con te"
@@ -351,9 +315,6 @@
   "b028909917": {
     "translation": "Utente ospite"
   },
-  "b52dc007ac": {
-    "translation": "Iscriviti (gratuito e valido)"
-  },
   "b6d4223e60": {
     "translation": "Accedi"
   },
@@ -375,17 +336,8 @@
   "bcb62136a3": {
     "translation": "Carica file .tldr"
   },
-  "bffe9a3c9a": {
-    "translation": "Login"
-  },
-  "c079282475": {
-    "translation": "Condividi il tuo lavoro"
-  },
   "c2276c9127": {
     "translation": "Maggiori informazioni sulla condivisione."
-  },
-  "c24e43cd1a": {
-    "translation": "Ti iscriverai, vero?"
   },
   "c303bd1095": {
     "translation": "Impossibile pubblicare il file."
@@ -402,9 +354,6 @@
   "c87aacf567": {
     "translation": "Esci"
   },
-  "c8c6a6504a": {
-    "translation": "Dovresti iscriverti"
-  },
   "cceaefbc20": {
     "translation": "Condividi questo file"
   },
@@ -413,9 +362,6 @@
   },
   "cea291e45e": {
     "translation": "Maggiori informazioni sulla pubblicazione."
-  },
-  "d0eedb7995": {
-    "translation": "EHI"
   },
   "d3d2e61733": {
     "translation": "Chiudi"
@@ -429,17 +375,8 @@
   "d876a9fe1a": {
     "translation": "Riprova"
   },
-  "d8a50c79a7": {
-    "translation": "Vieni con me a tldraw"
-  },
   "d9100f3e10": {
     "translation": "Vai qui per vedere i contenuti"
-  },
-  "da404df474": {
-    "translation": "Salva il tuo lavoro"
-  },
-  "db4c2dab9a": {
-    "translation": "Non Excalidraw"
   },
   "dbbebf3c03": {
     "translation": "Solo su invito"
@@ -500,9 +437,6 @@
   },
   "fd1be3efcf": {
     "translation": "Confermi di voler eliminare questo file?"
-  },
-  "fd27891570": {
-    "translation": "Unisciti alla lista d'attesa"
   },
   "fed5ec05eb": {
     "translation": "Link copiato"
