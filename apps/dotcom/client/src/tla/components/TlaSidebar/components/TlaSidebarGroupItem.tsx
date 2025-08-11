@@ -1,4 +1,4 @@
-import { Collapsible } from 'radix-ui'
+import { Collapsible, ContextMenu as _ContextMenu } from 'radix-ui'
 import { memo, useCallback, useRef, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import {
@@ -136,6 +136,23 @@ const GroupFileList = memo(function GroupFileList({ groupId }: { groupId: string
 })
 
 function TlaSidebarGroupMenu({ groupId }: { groupId: string }) {
+	return (
+		<TldrawUiDropdownMenuRoot id={`group-menu-${groupId}-sidebar`}>
+			<TldrawUiMenuContextProvider type="menu" sourceId="dialog">
+				<TldrawUiDropdownMenuTrigger>
+					<button className={styles.sidebarGroupItemButton} title="More options" type="button">
+						<TlaIcon icon="dots-vertical-strong" />
+					</button>
+				</TldrawUiDropdownMenuTrigger>
+				<TldrawUiDropdownMenuContent side="bottom" align="start" alignOffset={0} sideOffset={0}>
+					<GroupMenuContent groupId={groupId} />
+				</TldrawUiDropdownMenuContent>
+			</TldrawUiMenuContextProvider>
+		</TldrawUiDropdownMenuRoot>
+	)
+}
+
+function GroupMenuContent({ groupId }: { groupId: string }) {
 	const app = useApp()
 	const { addToast } = useToasts()
 	const trackEvent = useTldrawAppUiEvents()
@@ -175,60 +192,46 @@ function TlaSidebarGroupMenu({ groupId }: { groupId: string }) {
 	}, [trackEvent])
 
 	return (
-		<div
-			// prevent clicks from bubbling up to the collapse handler
-			onClick={(e) => {
-				e.stopPropagation()
-			}}
-		>
-			<TldrawUiDropdownMenuRoot id={`group-menu-${groupId}-sidebar`}>
-				<TldrawUiMenuContextProvider type="menu" sourceId="dialog">
-					<TldrawUiDropdownMenuTrigger>
-						<button className={styles.sidebarGroupItemButton} title="More options" type="button">
-							<TlaIcon icon="dots-vertical-strong" />
-						</button>
-					</TldrawUiDropdownMenuTrigger>
-					<TldrawUiDropdownMenuContent side="bottom" align="start" alignOffset={0} sideOffset={0}>
-						<TldrawUiMenuGroup id="group-actions">
-							<TldrawUiMenuItem
-								label={copyInviteLinkMsg}
-								id="copy-invite-link"
-								readonlyOk
-								onSelect={handleCopyInviteLinkClick}
-							/>
-						</TldrawUiMenuGroup>
-						<TldrawUiMenuGroup id="group-settings">
-							<TldrawUiMenuItem
-								label={settingsMsg}
-								id="settings"
-								readonlyOk
-								onSelect={handleSettingsClick}
-							/>
-						</TldrawUiMenuGroup>
-						<TldrawUiMenuGroup id="group-import-file-actions">
-							<TldrawUiMenuItem
-								label={importFilesMsg}
-								id="import-files"
-								readonlyOk
-								onSelect={handleImportFilesClick}
-							/>
-							<TldrawUiMenuItem
-								label={addLinkToSharedFileMsg}
-								id="add-link-to-shared-file"
-								readonlyOk
-								onSelect={handleAddLinkToSharedFileClick}
-							/>
-						</TldrawUiMenuGroup>
-					</TldrawUiDropdownMenuContent>
-				</TldrawUiMenuContextProvider>
-			</TldrawUiDropdownMenuRoot>
-		</div>
+		<>
+			<TldrawUiMenuGroup id="group-actions">
+				<TldrawUiMenuItem
+					label={copyInviteLinkMsg}
+					id="copy-invite-link"
+					readonlyOk
+					onSelect={handleCopyInviteLinkClick}
+				/>
+			</TldrawUiMenuGroup>
+			<TldrawUiMenuGroup id="group-settings">
+				<TldrawUiMenuItem
+					label={settingsMsg}
+					id="settings"
+					readonlyOk
+					onSelect={handleSettingsClick}
+				/>
+			</TldrawUiMenuGroup>
+			<TldrawUiMenuGroup id="group-import-file-actions">
+				<TldrawUiMenuItem
+					label={importFilesMsg}
+					id="import-files"
+					readonlyOk
+					onSelect={handleImportFilesClick}
+				/>
+				<TldrawUiMenuItem
+					label={addLinkToSharedFileMsg}
+					id="add-link-to-shared-file"
+					readonlyOk
+					onSelect={handleAddLinkToSharedFileClick}
+				/>
+			</TldrawUiMenuGroup>
+		</>
 	)
 }
 
 export function TlaSidebarGroupItem({ groupId }: { groupId: string }) {
 	const [menuIsOpen] = useMenuIsOpen(`group-menu-${groupId}-sidebar`)
+	const [contextMenuIsOpen] = useMenuIsOpen(`group-context-menu-${groupId}`)
 	const app = useApp()
+	const [_, handleContextMenuOpenChange] = useMenuIsOpen(`group-context-menu-${groupId}`)
 	const navigate = useNavigate()
 	const trackEvent = useTldrawAppUiEvents()
 	const rCanCreate = useRef(true)
@@ -277,38 +280,44 @@ export function TlaSidebarGroupItem({ groupId }: { groupId: string }) {
 	if (!group) return null
 
 	return (
-		<Collapsible.Root
-			className={styles.sidebarGroupItem}
-			open={isExpanded}
-			data-menu-open={menuIsOpen}
-		>
-			<Collapsible.Trigger asChild>
-				<button
-					className={styles.sidebarGroupItemHeader}
-					onClick={() => setIsExpanded(!isExpanded)}
-					aria-expanded={isExpanded}
+		<_ContextMenu.Root onOpenChange={handleContextMenuOpenChange} modal={false}>
+			<_ContextMenu.Trigger>
+				<Collapsible.Root
+					className={styles.sidebarGroupItem}
+					open={isExpanded}
+					data-menu-open={menuIsOpen || contextMenuIsOpen}
 				>
-					<span className={styles.sidebarGroupItemTitle}>{group.group.name}</span>
-					<TriangleIcon angle={isExpanded ? 180 : 90} />
-					<div className={styles.sidebarGroupItemButtons}>
-						<TlaSidebarGroupMenu groupId={groupId} />
+					<Collapsible.Trigger asChild>
 						<button
-							className={styles.sidebarGroupItemButton}
-							onClick={(e) => {
-								e.stopPropagation()
-								handleCreateFile()
-							}}
-							title="New file"
-							type="button"
+							className={styles.sidebarGroupItemHeader}
+							onClick={() => setIsExpanded(!isExpanded)}
+							aria-expanded={isExpanded}
 						>
-							<TlaIcon icon="edit" />
+							<span className={styles.sidebarGroupItemTitle}>{group.group.name}</span>
+							<TriangleIcon angle={isExpanded ? 180 : 90} />
+							<div className={styles.sidebarGroupItemButtons} onClick={(e) => e.stopPropagation()}>
+								<TlaSidebarGroupMenu groupId={groupId} />
+								<button
+									className={styles.sidebarGroupItemButton}
+									onClick={handleCreateFile}
+									title="New file"
+									type="button"
+								>
+									<TlaIcon icon="edit" />
+								</button>
+							</div>
 						</button>
-					</div>
-				</button>
-			</Collapsible.Trigger>
-			<Collapsible.Content className={styles.CollapsibleContent}>
-				<GroupFileList groupId={groupId} />
-			</Collapsible.Content>
-		</Collapsible.Root>
+					</Collapsible.Trigger>
+					<Collapsible.Content className={styles.CollapsibleContent}>
+						<GroupFileList groupId={groupId} />
+					</Collapsible.Content>
+				</Collapsible.Root>
+			</_ContextMenu.Trigger>
+			<_ContextMenu.Content className="tlui-menu tlui-scrollable">
+				<TldrawUiMenuContextProvider type="context-menu" sourceId="context-menu">
+					<GroupMenuContent groupId={groupId} />
+				</TldrawUiMenuContextProvider>
+			</_ContextMenu.Content>
+		</_ContextMenu.Root>
 	)
 }
