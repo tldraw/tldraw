@@ -15,36 +15,21 @@ import {
 	toRichText,
 } from 'tldraw'
 import { IAgentUpdateEvent } from '../../worker/prompt/AgentEvent'
-import { simpleFillToShapeFill, stringToSimpleColor } from '../../worker/simple/color'
+import { asColor, simpleFillToShapeFill } from '../../worker/simple/color'
 import { Streaming } from '../types/Streaming'
 
 export function getTldrawAiChangesFromUpdateEvent({
 	editor,
-	agentChange,
+	event,
 }: {
 	editor: Editor
-	agentChange: Streaming<IAgentUpdateEvent>
+	event: Streaming<IAgentUpdateEvent>
 }): TLAiChange[] {
 	const changes: TLAiChange[] = []
-	if (!agentChange.complete) {
-		const update = agentChange.update
+	if (!event.complete) return changes
 
-		changes.push({
-			type: 'updateShape',
-			description: agentChange.intent ?? '',
-			shape: {
-				id: (update?.shapeId ?? '') as TLShapeId,
-				type: '',
-				meta: {
-					note: update?.note ?? '',
-				},
-			},
-		})
-
-		return changes
-	}
-
-	const update = agentChange.update
+	const update = event.update
+	update.shapeId = `shape:${update.shapeId}`
 
 	switch (update._type) {
 		case 'text': {
@@ -59,7 +44,7 @@ export function getTldrawAiChangesFromUpdateEvent({
 				x: update.x,
 				y: update.y,
 				props: {
-					color: update.color ? stringToSimpleColor(update.color) : undefined,
+					color: update.color ? asColor(update.color) : undefined,
 					richText: update.text ? toRichTextIfNeeded(update.text) : undefined,
 				},
 				meta: {
@@ -69,7 +54,7 @@ export function getTldrawAiChangesFromUpdateEvent({
 
 			changes.push({
 				type: 'updateShape',
-				description: agentChange.intent ?? '',
+				description: event.intent ?? '',
 				shape: mergedShape,
 			})
 			break
@@ -106,7 +91,7 @@ export function getTldrawAiChangesFromUpdateEvent({
 				x: startX,
 				y: startY,
 				props: {
-					color: update.color ? stringToSimpleColor(update.color) : undefined,
+					color: update.color ? asColor(update.color) : undefined,
 					points,
 				},
 				meta: {
@@ -116,7 +101,7 @@ export function getTldrawAiChangesFromUpdateEvent({
 
 			changes.push({
 				type: 'updateShape',
-				description: agentChange.intent ?? '',
+				description: event.intent ?? '',
 				shape: mergedShape,
 			})
 			break
@@ -139,7 +124,7 @@ export function getTldrawAiChangesFromUpdateEvent({
 				x: startX,
 				y: startY,
 				props: {
-					color: update.color ? stringToSimpleColor(update.color) : undefined,
+					color: update.color ? asColor(update.color) : undefined,
 					richText: update.text ? toRichTextIfNeeded(update.text) : undefined,
 					start: { x: 0, y: 0 },
 					end: { x: endX, y: endY },
@@ -152,7 +137,7 @@ export function getTldrawAiChangesFromUpdateEvent({
 
 			changes.push({
 				type: 'updateShape',
-				description: agentChange.intent ?? '',
+				description: event.intent ?? '',
 				shape: mergedShape,
 			})
 
@@ -170,7 +155,7 @@ export function getTldrawAiChangesFromUpdateEvent({
 			if (startShape) {
 				changes.push({
 					type: 'createBinding',
-					description: agentChange.intent ?? '',
+					description: event.intent ?? '',
 					binding: {
 						type: 'arrow',
 						fromId: update.shapeId as TLShapeId,
@@ -191,7 +176,7 @@ export function getTldrawAiChangesFromUpdateEvent({
 			if (endShape) {
 				changes.push({
 					type: 'createBinding',
-					description: agentChange.intent ?? '',
+					description: event.intent ?? '',
 					binding: {
 						type: 'arrow',
 						fromId: update.shapeId as TLShapeId,
@@ -240,7 +225,7 @@ export function getTldrawAiChangesFromUpdateEvent({
 				id: update.shapeId as TLShapeId,
 				type: 'geo',
 				props: {
-					color: update.color ? stringToSimpleColor(update.color) : undefined,
+					color: update.color ? asColor(update.color) : undefined,
 					geo: update._type,
 					w: update.width,
 					h: update.height,
@@ -254,7 +239,7 @@ export function getTldrawAiChangesFromUpdateEvent({
 
 			changes.push({
 				type: 'updateShape',
-				description: agentChange.intent ?? '',
+				description: event.intent ?? '',
 				shape: mergedShape,
 			})
 
@@ -272,7 +257,7 @@ export function getTldrawAiChangesFromUpdateEvent({
 				x: update.x,
 				y: update.y,
 				props: {
-					color: update.color ? stringToSimpleColor(update.color) : undefined,
+					color: update.color ? asColor(update.color) : undefined,
 					richText: update.text ? toRichTextIfNeeded(update.text) : undefined,
 				},
 				meta: {
@@ -282,7 +267,7 @@ export function getTldrawAiChangesFromUpdateEvent({
 
 			changes.push({
 				type: 'updateShape',
-				description: agentChange.intent ?? '',
+				description: event.intent ?? '',
 				shape: mergedShape,
 			})
 
@@ -306,7 +291,7 @@ export function getTldrawAiChangesFromUpdateEvent({
 
 			changes.push({
 				type: 'updateShape',
-				description: agentChange.intent ?? '',
+				description: event.intent ?? '',
 				shape: mergedShape,
 			})
 

@@ -2,11 +2,9 @@ import { Box, BoxModel, Editor, FileHelpers, structuredClone, TLShape } from 'tl
 import { TLAgentContent, TLAgentPrompt, TLAgentPromptOptions } from '../types/TLAgentPrompt'
 
 /**
- * Get a full prompt based on the provided prompt options, transformed by
- * the specified transforms.
+ * Get a full prompt based on the provided prompt options.
  *
- * @returns The fully transformed prompt, and a function to transform back
- * the changes that come back from the agent.
+ * @returns The fully assembled prompt.
  */
 export async function preparePrompt(promptOptions: TLAgentPromptOptions) {
 	const { editor, ...rest } = promptOptions

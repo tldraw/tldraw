@@ -1,6 +1,4 @@
-import { Editor } from 'tldraw'
 import z from 'zod'
-import { Streaming } from '../../client/types/Streaming'
 import { SimpleShape } from '../simple/SimpleShape'
 
 export const AgentCreateEvent = z.object({
@@ -47,11 +45,18 @@ const AgentDeleteEvent = z.object({
 export type IAgentDeleteEvent = z.infer<typeof AgentDeleteEvent>
 
 const AgentThinkEvent = z.object({
-	_type: z.enum(['think', 'message']),
+	_type: z.enum(['think']),
 	text: z.string(),
 })
 
 export type IAgentThinkEvent = z.infer<typeof AgentThinkEvent>
+
+const AgentMessageEvent = z.object({
+	_type: z.literal('message'),
+	text: z.string(),
+})
+
+export type IAgentMessageEvent = z.infer<typeof AgentMessageEvent>
 
 const AgentReviewEvent = z.object({
 	_type: z.literal('review'),
@@ -116,6 +121,7 @@ export type IAgentPlaceEvent = z.infer<typeof AgentPlaceEvent>
 
 export const AgentEvent = z.union([
 	AgentThinkEvent,
+	AgentMessageEvent,
 	AgentCreateEvent,
 	AgentUpdateEvent,
 	AgentDeleteEvent,
@@ -130,5 +136,3 @@ export const AgentEvent = z.union([
 ])
 
 export type IAgentEvent = z.infer<typeof AgentEvent>
-
-export type AgentEventHandler = (editor: Editor, event: Streaming<IAgentEvent>) => void

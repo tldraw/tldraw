@@ -3,10 +3,11 @@ import { IAgentPlaceEvent } from '../../worker/prompt/AgentEvent'
 import { Streaming } from '../types/Streaming'
 
 export function placeShape(editor: Editor, event: Streaming<IAgentPlaceEvent>) {
-	const { shapeId, referenceShapeId, side, sideOffset = 0, align, alignOffset = 0 } = event
+	const { referenceShapeId, side, sideOffset = 0, align, alignOffset = 0 } = event
+	const shapeId = `shape:${event.shapeId}` as TLShapeId
 
-	if (!shapeId || !referenceShapeId) return
-	const shape = editor.getShape(shapeId as TLShapeId)
+	if (!referenceShapeId) return
+	const shape = editor.getShape(shapeId)
 	if (!shape) return
 	const referenceShape = editor.getShape(referenceShapeId as TLShapeId)
 	if (!referenceShape) return

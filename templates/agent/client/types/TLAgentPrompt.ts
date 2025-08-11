@@ -1,15 +1,13 @@
 import { BoxModel, Editor, TLBinding, TLShape } from 'tldraw'
 import { TLAgentModelName } from '../../worker/models'
-import { AgentEventHandler } from '../../worker/prompt/AgentEvent'
-import { TldrawAgentTransform } from '../transforms/TldrawAgentTransform'
+import { AgentEventHandlerConstructor } from '../events/AgentEventHandler'
 import { ChatHistoryItem } from './ChatHistoryItem'
 import { ContextItem } from './ContextItem'
 import { ScheduledRequest } from './ScheduledRequest'
 
 export interface TLAgentPromptOptions {
 	editor: Editor
-	transforms: TldrawAgentTransform[]
-	handleEvent: AgentEventHandler
+	events: AgentEventHandlerConstructor[]
 
 	message: string
 	contextBounds: BoxModel

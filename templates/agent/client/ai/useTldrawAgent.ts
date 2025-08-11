@@ -1,7 +1,17 @@
 import { useCallback } from 'react'
 import { Editor } from 'tldraw'
 import { DEFAULT_MODEL_NAME } from '../../worker/models'
-import { handleAgentEvent } from '../events/handleAgentEvent'
+import { AlignEventHandler } from '../events/AlignEventHandler'
+import { CreateEventHandler } from '../events/CreateEventHandler'
+import { DeleteEventHandler } from '../events/DeleteEventHandler'
+import { DistributeEventHandler } from '../events/DistributeEventHandler'
+import { LabelEventHandler } from '../events/LabelEventHandler'
+import { MoveEventHandler } from '../events/MoveEventHandler'
+import { PlaceEventHandler } from '../events/PlaceEventHandler'
+import { ReviewEventHandler } from '../events/ReviewEventHandler'
+import { SetMyViewEventHandler } from '../events/SetMyViewEventHandler'
+import { StackEventHandler } from '../events/StackEventHandler'
+import { UpdateEventHandler } from '../events/UpdateEventHandler'
 import { TLAgentPromptOptions } from '../types/TLAgentPrompt'
 import { promptAgent } from './promptAgent'
 
@@ -26,8 +36,6 @@ export function useTldrawAgent({ editor }: { editor: Editor }): TldrawAgent {
 		(options: Partial<TLAgentPromptOptions>) => {
 			const {
 				message = '',
-				transforms = [],
-				handleEvent = handleAgentEvent,
 				contextBounds = editor.getViewportPageBounds(),
 				promptBounds = editor.getViewportPageBounds(),
 				modelName = DEFAULT_MODEL_NAME,
@@ -41,8 +49,19 @@ export function useTldrawAgent({ editor }: { editor: Editor }): TldrawAgent {
 
 			return promptAgent({
 				editor: options.editor ?? editor,
-				transforms,
-				handleEvent,
+				events: [
+					AlignEventHandler,
+					CreateEventHandler,
+					DeleteEventHandler,
+					DistributeEventHandler,
+					LabelEventHandler,
+					MoveEventHandler,
+					PlaceEventHandler,
+					ReviewEventHandler,
+					SetMyViewEventHandler,
+					StackEventHandler,
+					UpdateEventHandler,
+				],
 				message,
 				contextBounds,
 				promptBounds,

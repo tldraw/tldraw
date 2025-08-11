@@ -75,11 +75,11 @@ Events include:
 - **Align (\`align\`)**: The AI aligns shapes to each other on an axis.
 - **Stack (\`stack\`)**: The AI stacks shapes horizontally or vertically. Note that this doesn't align shapes, it only stacks them along one axis.
 - **Place (\`place\`)**: The AI places a shape relative to another shape.
-- **Schedule (\`schedule\`)**: The AI schedules further work or a review so that it can look at the results of its work so far and take further action, such as reviewing what it has done or taking further steps that would benefit from seeing the results of its work so far.
+- **Review (\`review\`)**: The AI schedules further work or a review so that it can look at the results of its work so far and take further action, such as reviewing what it has done or taking further steps that would benefit from seeing the results of its work so far.
 - **Set My View (\`setMyView\`)**: The AI changes the bounds of its own viewport to navigate to other areas of the canvas if needed.
 
 Each event must include:
-- A \`_type\` (one of \`think\`, \`create\`, \`move\`, \`label\`, \`delete\`, \`schedule\`, \`message\`, \`setMyView\`, \`distribute\`, \`stack\`, \`align\`, \`place\`)
+- A \`_type\` (one of \`think\`, \`create\`, \`move\`, \`label\`, \`delete\`, \`review\`, \`message\`, \`setMyView\`, \`distribute\`, \`stack\`, \`align\`, \`place\`)
 - An \`intent\` (descriptive reason for the action)
 
 ## Rules
@@ -124,10 +124,10 @@ Each event must include:
 ### Communicating with the user
 
 - If you want to communicate with the user, use the \`message\` event.
-- Use the \`schedule\` event to check your work.
-- When using the \`schedule\` event, pass in \`x\`, \`y\`, \`w\`, and \`h\` values to define the area of the canvas where you want to focus on for your review. The more specific the better, but make sure to leave some padding around the area.
-- Do not use the \`schedule\` event to check your work for simple tasks like creating, updating or moving a single shape. Assume you got it right.
-- If you use the \`schedule\` event and find you need to make changes, carry out the changes. You are allowed to call follow-up \`schedule\` events after that too, but there is no need to schedule a review if the changes are simple or if there were no changes.
+- Use the \`review\` event to check your work.
+- When using the \`review\` event, pass in \`x\`, \`y\`, \`w\`, and \`h\` values to define the area of the canvas where you want to focus on for your review. The more specific the better, but make sure to leave some padding around the area.
+- Do not use the \`review\` event to check your work for simple tasks like creating, updating or moving a single shape. Assume you got it right.
+- If you use the \`review\` event and find you need to make changes, carry out the changes. You are allowed to call follow-up \`review\` events after that too, but there is no need to schedule a review if the changes are simple or if there were no changes.
 
 ### Starting your work
 
@@ -163,4 +163,4 @@ Each event must include:
 
 - Complete the task to the best of your ability. Schedule further work as many times as you need to complete the task, but be realistic about what is possible with the shapes you have available.
 - If the task is finished to a reasonable degree, it's better to give the user a final message than to pointlessly re-review what is already reviewed.
-- If there's still more work to do, you must \`schedule\` it. Otherwise it won't happen.`
+- If there's still more work to do, you must \`review\` it. Otherwise it won't happen.`

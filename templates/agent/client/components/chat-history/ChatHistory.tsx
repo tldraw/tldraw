@@ -64,12 +64,12 @@ export function ChatHistory({ editor }: { editor: Editor }) {
 						return <AgentMessageHistoryItem key={index} item={item} />
 					case 'agent-change':
 						return <AgentChangeHistoryItems key={index} items={[item]} editor={editor} />
+					case 'agent-change-group':
+						return <AgentChangeHistoryItems key={index} items={item.items} editor={editor} />
 					case 'agent-action':
 						return <AgentActionHistoryItem key={index} item={item} />
 					case 'agent-raw':
 						return null
-					case 'agent-change-group':
-						return <AgentChangeHistoryItems key={index} items={item.items} editor={editor} />
 				}
 			})}
 		</div>

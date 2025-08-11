@@ -25,7 +25,7 @@ export function shapeFillToSimpleFill(fill: TLDefaultFillStyle): ISimpleFill {
 	return SHAPE_TO_SIMPLE_FILLS[fill]
 }
 
-export function stringToSimpleColor(color: string): ISimpleColor {
+export function asColor(color: string): ISimpleColor {
 	if (SimpleColor.safeParse(color).success) {
 		return color as ISimpleColor
 	}

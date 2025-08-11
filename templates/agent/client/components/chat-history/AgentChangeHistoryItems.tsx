@@ -11,7 +11,7 @@ import {
 } from 'tldraw'
 import { $chatHistoryItems } from '../../atoms/chatHistoryItems'
 import { AGENT_EVENT_ICONS, AgentChangeHistoryItem } from '../../types/ChatHistoryItem'
-import { AgentIcon } from './AgentIcon'
+import { AgentIcon, AgentIconType } from './AgentIcon'
 import TldrawViewer from './TldrawViewer'
 
 // The model returns changes individually, but we group them together in this component for UX reasons, namely so the user can see all changes done at once together, and so they can accept or reject them all at once
@@ -71,6 +71,20 @@ export function AgentChangeHistoryItems({
 		[itemsInAgentChangeGroup, acceptance]
 	)
 
+	const intentItems = useMemo(() => {
+		return itemsInAgentChangeGroup.map((item) => {
+			const event = item.event
+			const icon = event._type ? AGENT_EVENT_ICONS[event._type] : 'ellipsis'
+			let intent = ''
+			if ('intent' in event) {
+				intent = event.intent ?? ''
+			} else if ('text' in event) {
+				intent = event.text ?? ''
+			}
+			return { icon, intent }
+		})
+	}, [itemsInAgentChangeGroup])
+
 	return (
 		<div className="agent-change-message">
 			<div className="agent-change-message-actions">
@@ -87,7 +101,7 @@ export function AgentChangeHistoryItems({
 					</>
 				)}
 			</div>
-			<ChangeIntents items={itemsInAgentChangeGroup} />
+			<ChangeIntents intentItems={intentItems} />
 			{diffShapes.length > 0 && (
 				<TldrawViewer shapes={diffShapes} components={{ ShapeWrapper: DiffShapeWrapper }} />
 			)}
@@ -95,27 +109,26 @@ export function AgentChangeHistoryItems({
 	)
 }
 
-function ChangeIntents({ items }: { items: AgentChangeHistoryItem[] }) {
+function ChangeIntents({
+	intentItems,
+}: {
+	intentItems: { intent: string; icon: AgentIconType | undefined }[]
+}) {
 	let previousIntentMessage = ''
 	return (
 		<div className="agent-change-message-intent">
-			{items.map((item, i) => {
-				const event = item.event
-				const icon = event._type ? AGENT_EVENT_ICONS[event._type] : 'ellipsis'
-				let intent = ''
-				if ('intent' in event) {
-					intent = event.intent ?? ''
-				}
-				if (intent === previousIntentMessage) return null
-				previousIntentMessage = intent
+			{intentItems.map((item, i) => {
+				// Don't show duplicate intents
+				if (item.intent === previousIntentMessage) return null
+				previousIntentMessage = item.intent
 				return (
 					<div className="agent-change-message-intent-item" key={'intent-' + i}>
-						{icon && (
+						{item.icon && (
 							<span className="agent-change-message-intent-item-icon">
-								<AgentIcon type={icon} />
+								<AgentIcon type={item.icon} />
 							</span>
 						)}
-						{intent}
+						{item.intent}
 					</div>
 				)
 			})}
