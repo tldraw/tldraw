@@ -1,6 +1,6 @@
 import { tlenv, useEditor, useReactor, useValue } from '@tldraw/editor'
 import classNames from 'classnames'
-import React, { ReactNode, useRef, useState } from 'react'
+import React, { ReactNode, useMemo, useRef, useState } from 'react'
 import { TLUiAssetUrlOverrides } from './assetUrls'
 import { SkipToMainContent } from './components/A11y'
 import { FollowingIndicator } from './components/FollowingIndicator'
@@ -160,15 +160,18 @@ const TldrawUiContent = React.memo(function TldrawUI() {
 
 	const { 'toggle-focus-mode': toggleFocus } = useActions()
 
-	const breakpointsAbove = []
-	const breakpointsBelow = []
-	for (let bp = 0; bp < PORTRAIT_BREAKPOINTS.length; bp++) {
-		if (bp <= breakpoint) {
-			breakpointsAbove.push(bp)
-		} else {
-			breakpointsBelow.push(bp)
+	const { breakpointsAbove, breakpointsBelow } = useMemo(() => {
+		const breakpointsAbove = []
+		const breakpointsBelow = []
+		for (let bp = 0; bp < PORTRAIT_BREAKPOINTS.length; bp++) {
+			if (bp <= breakpoint) {
+				breakpointsAbove.push(bp)
+			} else {
+				breakpointsBelow.push(bp)
+			}
 		}
-	}
+		return { breakpointsAbove, breakpointsBelow }
+	}, [breakpoint])
 
 	return (
 		<div
