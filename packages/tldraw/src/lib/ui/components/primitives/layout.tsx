@@ -26,6 +26,11 @@ export function TldrawUiOrientationProvider({
 	tooltipSide,
 }: TldrawUiOrientationProviderProps) {
 	const prevContext = useTldrawUiOrientation()
+	// generally, we want tooltip side to cascade down through the layout - apart from when the
+	// orientation changes. If the tooltip side is "bottom", and then I include some vertical layout
+	// elements, keeping the tooltip side as bottom will cause the tooltip to overlap elements
+	// stacked on top of each other. In the absence of a tooltip side, we pick a default side based
+	// on the orientation whenever the orientation changes.
 	const tooltipSideToUse =
 		tooltipSide ??
 		(orientation === prevContext.orientation
