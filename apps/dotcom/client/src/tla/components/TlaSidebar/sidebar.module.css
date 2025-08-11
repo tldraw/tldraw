@@ -759,7 +759,8 @@
 	margin-bottom: 12px;
 }
 
-.sidebarGroupItem:hover::after {
+.sidebarGroupItem:hover::after,
+.sidebarGroupItem[data-menu-open='true']::after {
 	display: block;
 	content: '';
 	position: absolute;
@@ -832,6 +833,10 @@
 
 @media (hover: hover) {
 	.sidebarGroupItem:hover .sidebarGroupItemButtons {
+		opacity: 1;
+	}
+
+	.sidebarGroupItem[data-menu-open='true'] .sidebarGroupItemButtons {
 		opacity: 1;
 	}
 }

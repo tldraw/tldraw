@@ -1,16 +1,35 @@
 import { Collapsible } from 'radix-ui'
 import { memo, useCallback, useRef, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
-import { tltime, useValue } from 'tldraw'
+import {
+	TldrawUiDropdownMenuContent,
+	TldrawUiDropdownMenuRoot,
+	TldrawUiDropdownMenuTrigger,
+	TldrawUiMenuContextProvider,
+	TldrawUiMenuGroup,
+	TldrawUiMenuItem,
+	tltime,
+	useMenuIsOpen,
+	useToasts,
+	useValue,
+} from 'tldraw'
 import { routes } from '../../../../routeDefs'
 import { useApp } from '../../../hooks/useAppState'
 import { useTldrawAppUiEvents } from '../../../utils/app-ui-events'
 import { getIsCoarsePointer } from '../../../utils/getIsCoarsePointer'
-import { F } from '../../../utils/i18n'
+import { F, defineMessages, useMsg } from '../../../utils/i18n'
 import { TlaIcon } from '../../TlaIcon/TlaIcon'
 import styles from '../sidebar.module.css'
 import { TlaSidebarFileLink } from './TlaSidebarFileLink'
 import { messages } from './sidebar-shared'
+
+const groupMessages = defineMessages({
+	copyInviteLink: { defaultMessage: 'Copy invite link' },
+	settings: { defaultMessage: 'Settings' },
+	importFiles: { defaultMessage: 'Import file…' },
+	addLinkToSharedFile: { defaultMessage: 'Add file link…' },
+	copied: { defaultMessage: 'Copied invite link' },
+})
 
 const TriangleIcon = ({ angle = 0 }: { angle?: number }) => {
 	return (
@@ -116,7 +135,99 @@ const GroupFileList = memo(function GroupFileList({ groupId }: { groupId: string
 	)
 })
 
+function TlaSidebarGroupMenu({ groupId }: { groupId: string }) {
+	const app = useApp()
+	const { addToast } = useToasts()
+	const trackEvent = useTldrawAppUiEvents()
+	const copiedMsg = useMsg(groupMessages.copied)
+	const copyInviteLinkMsg = useMsg(groupMessages.copyInviteLink)
+	const settingsMsg = useMsg(groupMessages.settings)
+	const importFilesMsg = useMsg(groupMessages.importFiles)
+	const addLinkToSharedFileMsg = useMsg(groupMessages.addLinkToSharedFile)
+
+	const group = useValue('group', () => app.getGroupMembership(groupId), [app, groupId])
+
+	const handleCopyInviteLinkClick = useCallback(() => {
+		if (!group?.group.inviteSecret) return
+
+		const inviteText = `app.z.mutate.group.acceptInvite({ inviteSecret: '${group.group.inviteSecret}' })`
+		navigator.clipboard.writeText(inviteText)
+		addToast({
+			id: 'copied-invite-link',
+			title: copiedMsg,
+		})
+		trackEvent('copy-share-link', { source: 'sidebar' })
+	}, [group, addToast, copiedMsg, trackEvent])
+
+	const handleSettingsClick = useCallback(() => {
+		// TODO: Implement group settings dialog
+		trackEvent('open-share-menu', { source: 'sidebar' })
+	}, [trackEvent])
+
+	const handleImportFilesClick = useCallback(() => {
+		// TODO: Implement file import functionality
+		trackEvent('create-file', { source: 'sidebar' })
+	}, [trackEvent])
+
+	const handleAddLinkToSharedFileClick = useCallback(() => {
+		// TODO: Implement add link to shared file functionality
+		trackEvent('copy-file-link', { source: 'sidebar' })
+	}, [trackEvent])
+
+	return (
+		<div
+			// prevent clicks from bubbling up to the collapse handler
+			onClick={(e) => {
+				e.stopPropagation()
+			}}
+		>
+			<TldrawUiDropdownMenuRoot id={`group-menu-${groupId}-sidebar`}>
+				<TldrawUiMenuContextProvider type="menu" sourceId="dialog">
+					<TldrawUiDropdownMenuTrigger>
+						<button className={styles.sidebarGroupItemButton} title="More options" type="button">
+							<TlaIcon icon="dots-vertical-strong" />
+						</button>
+					</TldrawUiDropdownMenuTrigger>
+					<TldrawUiDropdownMenuContent side="bottom" align="start" alignOffset={0} sideOffset={0}>
+						<TldrawUiMenuGroup id="group-actions">
+							<TldrawUiMenuItem
+								label={copyInviteLinkMsg}
+								id="copy-invite-link"
+								readonlyOk
+								onSelect={handleCopyInviteLinkClick}
+							/>
+						</TldrawUiMenuGroup>
+						<TldrawUiMenuGroup id="group-settings">
+							<TldrawUiMenuItem
+								label={settingsMsg}
+								id="settings"
+								readonlyOk
+								onSelect={handleSettingsClick}
+							/>
+						</TldrawUiMenuGroup>
+						<TldrawUiMenuGroup id="group-import-file-actions">
+							<TldrawUiMenuItem
+								label={importFilesMsg}
+								id="import-files"
+								readonlyOk
+								onSelect={handleImportFilesClick}
+							/>
+							<TldrawUiMenuItem
+								label={addLinkToSharedFileMsg}
+								id="add-link-to-shared-file"
+								readonlyOk
+								onSelect={handleAddLinkToSharedFileClick}
+							/>
+						</TldrawUiMenuGroup>
+					</TldrawUiDropdownMenuContent>
+				</TldrawUiMenuContextProvider>
+			</TldrawUiDropdownMenuRoot>
+		</div>
+	)
+}
+
 export function TlaSidebarGroupItem({ groupId }: { groupId: string }) {
+	const [menuIsOpen] = useMenuIsOpen(`group-menu-${groupId}-sidebar`)
 	const app = useApp()
 	const navigate = useNavigate()
 	const trackEvent = useTldrawAppUiEvents()
@@ -166,7 +277,11 @@ export function TlaSidebarGroupItem({ groupId }: { groupId: string }) {
 	if (!group) return null
 
 	return (
-		<Collapsible.Root className={styles.sidebarGroupItem} open={isExpanded}>
+		<Collapsible.Root
+			className={styles.sidebarGroupItem}
+			open={isExpanded}
+			data-menu-open={menuIsOpen}
+		>
 			<Collapsible.Trigger asChild>
 				<button
 					className={styles.sidebarGroupItemHeader}
@@ -176,17 +291,7 @@ export function TlaSidebarGroupItem({ groupId }: { groupId: string }) {
 					<span className={styles.sidebarGroupItemTitle}>{group.group.name}</span>
 					<TriangleIcon angle={isExpanded ? 180 : 90} />
 					<div className={styles.sidebarGroupItemButtons}>
-						<button
-							className={styles.sidebarGroupItemButton}
-							onClick={(e) => {
-								e.stopPropagation()
-								// TODO: Implement menu functionality
-							}}
-							title="More options"
-							type="button"
-						>
-							<TlaIcon icon="dots-vertical-strong" />
-						</button>
+						<TlaSidebarGroupMenu groupId={groupId} />
 						<button
 							className={styles.sidebarGroupItemButton}
 							onClick={(e) => {
