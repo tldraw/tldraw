@@ -1154,9 +1154,13 @@
 .tlui-main-toolbar--vertical {
 	position: absolute;
 	left: 0;
-	top: 0;
-	bottom: 0;
+	top: 90px; /* height of page menu + 'back to content' button */
+	bottom: 140px; /* height of expanded mini-map */
 	padding-left: calc(var(--space-3) + var(--sab));
+}
+
+[data-breakpoints-below*='6'] .tlui-main-toolbar--vertical {
+	bottom: 90px; /* collapsed mini-map, but same as top to keep things looking even */
 }
 
 /* Centered Content */
@@ -1266,21 +1270,28 @@
 	opacity: 1;
 }
 
+.tlui-main-toolbar__tools [data-toolbar-visible='false'],
+.tlui-main-toolbar__overflow-content [data-toolbar-visible='false'] {
+	display: none;
+}
+
 .tlui-main-toolbar__group:empty {
 	display: none;
 }
-.tlui-row.tlui-main-toolbar__group:not(:last-child) {
+.tlui-row.tlui-main-toolbar__group:not(:nth-last-child(-n + 1 of [data-toolbar-visible='true'])) {
 	border-right: 1px solid var(--color-divider);
 	margin-right: 2px;
 }
-.tlui-column.tlui-main-toolbar__group:not(:last-child) {
+.tlui-column.tlui-main-toolbar__group:not(
+		:nth-last-child(-n + 1 of [data-toolbar-visible='true'])
+	) {
 	border-bottom: 1px solid var(--color-divider);
 	margin-bottom: 2px;
 }
 .tlui-grid.tlui-main-toolbar__group {
 	grid-column: 1 / span 4;
 }
-.tlui-grid.tlui-main-toolbar__group:not(:last-child) {
+.tlui-grid.tlui-main-toolbar__group:not(:nth-last-child(-n + 1 of [data-toolbar-visible='true'])) {
 	border-bottom: 1px solid var(--color-divider);
 	margin-bottom: 2px;
 }

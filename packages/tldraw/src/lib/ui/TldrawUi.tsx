@@ -6,7 +6,7 @@ import { SkipToMainContent } from './components/A11y'
 import { FollowingIndicator } from './components/FollowingIndicator'
 import { TldrawUiButton } from './components/primitives/Button/TldrawUiButton'
 import { TldrawUiButtonIcon } from './components/primitives/Button/TldrawUiButtonIcon'
-import { PORTRAIT_BREAKPOINT } from './constants'
+import { PORTRAIT_BREAKPOINT, PORTRAIT_BREAKPOINTS } from './constants'
 import {
 	TLUiContextProviderProps,
 	TldrawUiContextProvider,
@@ -160,6 +160,16 @@ const TldrawUiContent = React.memo(function TldrawUI() {
 
 	const { 'toggle-focus-mode': toggleFocus } = useActions()
 
+	const breakpointsAbove = []
+	const breakpointsBelow = []
+	for (let bp = 0; bp < PORTRAIT_BREAKPOINTS.length; bp++) {
+		if (bp <= breakpoint) {
+			breakpointsAbove.push(bp)
+		} else {
+			breakpointsBelow.push(bp)
+		}
+	}
+
 	return (
 		<div
 			className={classNames('tlui-layout', {
@@ -169,6 +179,8 @@ const TldrawUiContent = React.memo(function TldrawUI() {
 			// But when the virtual keyboard is closing we want to wait a bit before showing it again.
 			data-iseditinganything={hideToolbarWhileEditing}
 			data-breakpoint={breakpoint}
+			data-breakpoints-above={breakpointsAbove.join(' ')}
+			data-breakpoints-below={breakpointsBelow.join(' ')}
 		>
 			<SkipToMainContent />
 			{isFocusMode ? (

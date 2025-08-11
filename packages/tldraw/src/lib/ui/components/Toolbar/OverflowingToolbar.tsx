@@ -163,10 +163,18 @@ export function OverflowingToolbar({
 					didShowAnyInMain ||= shouldShowInMain
 					didShowAnyInOverflow ||= shouldShowInOverflow
 
-					mainItem.element.style.display = shouldShowInMain ? '' : 'none'
+					setAttribute(
+						mainItem.element,
+						'data-toolbar-visible',
+						shouldShowInMain ? 'true' : 'false'
+					)
 					if (overflowItem) {
 						assert(overflowItem.type === 'item')
-						overflowItem.element.style.display = shouldShowInOverflow ? '' : 'none'
+						setAttribute(
+							overflowItem.element,
+							'data-toolbar-visible',
+							shouldShowInOverflow ? 'true' : 'false'
+						)
 					}
 					if (shouldShowInOverflow && mainItem.element.getAttribute('aria-pressed') === 'true') {
 						newActiveOverflowItem = mainItem.element.getAttribute('data-value')
@@ -193,9 +201,17 @@ export function OverflowingToolbar({
 					didShowAnyInMain ||= result.didShowAnyInMain
 					didShowAnyInOverflow ||= result.didShowAnyInOverflow
 
-					mainItem.element.style.display = result.didShowAnyInMain ? '' : 'none'
+					setAttribute(
+						mainItem.element,
+						'data-toolbar-visible',
+						result.didShowAnyInMain ? 'true' : 'false'
+					)
 					if (overflowGroup) {
-						overflowGroup.element.style.display = result.didShowAnyInOverflow ? '' : 'none'
+						setAttribute(
+							overflowGroup.element,
+							'data-toolbar-visible',
+							result.didShowAnyInOverflow ? 'true' : 'false'
+						)
 					}
 				}
 			}
@@ -224,6 +240,8 @@ export function OverflowingToolbar({
 		mutationObserver.observe(mainToolsRef.current, {
 			childList: true,
 			subtree: true,
+			attributes: true,
+			// characterData: true,
 		})
 
 		const sizingParent = findParentWithClassName(mainToolsRef.current, sizingParentClassName)
@@ -240,8 +258,13 @@ export function OverflowingToolbar({
 		if (!editor.options.enableToolbarKeyboardShortcuts) return
 
 		function handleKeyDown(event: KeyboardEvent) {
-			if (areShortcutsDisabled(editor) || activeElementShouldCaptureKeys(true /* allow buttons */))
+			if (
+				areShortcutsDisabled(editor) ||
+				activeElementShouldCaptureKeys(true /* allow buttons */)
+			) {
 				return
+			}
+
 			// no accelerator keys
 			if (event.ctrlKey || event.metaKey || event.altKey || event.shiftKey) return
 			const index = NUMBERED_SHORTCUT_KEYS[event.key]
@@ -295,6 +318,7 @@ export function OverflowingToolbar({
 							>
 								<TldrawUiToolbar
 									orientation="grid"
+									className="tlui-main-toolbar__overflow-content"
 									ref={setOverflowTools}
 									data-testid="tools.more-content"
 									label={msg('tool-panel.more')}
@@ -336,4 +360,9 @@ function findParentWithClassName(startingElement: HTMLElement, className: string
 		element = element.parentElement
 	}
 	throw new Error('Could not find parent with class name ' + className)
+}
+
+function setAttribute(element: HTMLElement, name: string, value: string) {
+	if (element.getAttribute(name) === value) return
+	element.setAttribute(name, value)
 }
