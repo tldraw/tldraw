@@ -203,13 +203,21 @@
 
 .tlui-main-toolbar__lock-button {
 	position: absolute;
-	top: 4px;
-	right: 0px;
 	pointer-events: all;
 	height: 40px;
 	width: 40px;
-	min-width: 0px;
 	border-radius: var(--radius-2);
+}
+
+.tlui-main-toolbar--horizontal .tlui-main-toolbar__lock-button {
+	top: 4px;
+	right: 0px;
+	min-width: 0px;
+}
+
+.tlui-main-toolbar--vertical .tlui-main-toolbar__lock-button {
+	bottom: 0px;
+	min-height: 0px;
 }
 
 .tlui-main-toolbar__lock-button::after {
@@ -244,12 +252,12 @@
 	opacity: 1;
 }
 
-.tlui-layout__mobile .tlui-button__tool {
+.tlui-layout__mobile .tlui-main-toolbar--horizontal .tlui-button__tool {
 	height: 48px;
 	width: 43px;
 }
 
-.tlui-layout__mobile .tlui-button__tool > .tlui-icon {
+.tlui-layout__mobile .tlui-main-toolbar--horizontal .tlui-button__tool > .tlui-icon {
 	height: 16px;
 	width: 16px;
 }
@@ -264,6 +272,18 @@
 .tlui-row > * {
 	margin-left: -2px;
 	margin-right: -2px;
+}
+
+/* Column layout */
+
+.tlui-column {
+	display: flex;
+	flex-direction: column;
+	padding: 2px 0;
+}
+.tlui-column > * {
+	margin-top: -2px;
+	margin-bottom: -2px;
 }
 
 /* Grid layout */
@@ -1057,11 +1077,12 @@
 
 .tlui-layout__bottom {
 	grid-row: 2;
+	width: 100%;
+	overflow: hidden;
 }
 
 .tlui-layout__bottom__main {
 	width: 100%;
-	position: relative;
 	display: flex;
 	align-items: flex-end;
 	justify-content: center;
@@ -1077,7 +1098,6 @@
 	pointer-events: all;
 	position: absolute;
 	left: 0px;
-	bottom: 0px;
 }
 
 .tlui-navigation-panel::before {
@@ -1124,7 +1144,23 @@
 	align-items: center;
 	justify-content: center;
 	flex-grow: 2;
+}
+
+.tlui-main-toolbar--horizontal {
 	padding-bottom: calc(var(--space-3) + var(--sab));
+	max-width: 100%;
+}
+
+.tlui-main-toolbar--vertical {
+	position: absolute;
+	left: 0;
+	top: 90px; /* height of page menu + 'back to content' button */
+	bottom: 140px; /* height of expanded mini-map */
+	padding-left: calc(var(--space-3) + var(--sab));
+}
+
+[data-breakpoints-below*='6'] .tlui-main-toolbar--vertical {
+	bottom: 90px; /* collapsed mini-map, but same as top to keep things looking even */
 }
 
 /* Centered Content */
@@ -1133,46 +1169,69 @@
 	width: fit-content;
 	display: flex;
 	gap: var(--space-3);
-	align-items: flex-end;
+	align-items: flex-start;
 }
 
-.tlui-main-toolbar__left {
+.tlui-main-toolbar--vertical .tlui-main-toolbar__inner {
+	flex-direction: column;
+}
+
+.tlui-main-toolbar--horizontal .tlui-main-toolbar__left {
 	width: fit-content;
+}
+.tlui-main-toolbar--vertical .tlui-main-toolbar__left {
+	display: flex;
+	height: fit-content;
 }
 
 /* Row of controls + lock button */
 .tlui-main-toolbar__extras {
 	position: relative;
 	z-index: var(--layer-above);
-	width: 100%;
 	pointer-events: none;
-	top: 6px;
-	height: 48px;
+	align-self: stretch;
 }
 
 .tlui-main-toolbar__extras:empty {
 	display: none;
 }
 
+.tlui-main-toolbar--horizontal .tlui-main-toolbar__extras {
+	height: 48px;
+	top: 6px;
+}
+
+.tlui-main-toolbar--vertical .tlui-main-toolbar__extras {
+	width: 48px;
+	order: 1;
+}
+
 .tlui-main-toolbar__extras__controls {
-	display: flex;
 	position: relative;
-	flex-direction: row;
 	z-index: var(--layer-above);
 	background-color: var(--color-low);
+	border: 2px solid var(--color-background);
+	pointer-events: all;
+}
+
+.tlui-main-toolbar--horizontal .tlui-main-toolbar__extras__controls {
 	border-top-left-radius: var(--radius-4);
 	border-top-right-radius: var(--radius-4);
-	border: 2px solid var(--color-background);
 	margin-left: 8px;
 	margin-right: 0px;
-	pointer-events: all;
+	width: fit-content;
+}
+
+.tlui-main-toolbar--vertical .tlui-main-toolbar__extras__controls {
+	border-top-right-radius: var(--radius-4);
+	border-bottom-right-radius: var(--radius-4);
+	margin-top: 8px;
+	margin-left: -2px;
+	margin-bottom: 0px;
 	width: fit-content;
 }
 
 .tlui-main-toolbar__tools {
-	display: flex;
-	flex-direction: row;
-	align-items: center;
 	border-radius: var(--radius-4);
 	z-index: var(--layer-panels);
 	pointer-events: all;
@@ -1181,24 +1240,69 @@
 	box-shadow: var(--shadow-2);
 }
 
-.tlui-main-toolbar__overflow {
+.tlui-main-toolbar--horizontal .tlui-main-toolbar__mobile-style-panel {
+	align-self: flex-end;
+}
+.tlui-main-toolbar--vertical .tlui-main-toolbar__mobile-style-panel {
+	align-self: flex-start;
+}
+
+.tlui-main-toolbar--horizontal .tlui-main-toolbar__overflow {
 	width: 40px;
 	margin-left: 2px;
 }
+.tlui-main-toolbar--vertical .tlui-main-toolbar__overflow {
+	height: 40px;
+	margin-top: 2px;
+}
 
-.tlui-layout__mobile .tlui-main-toolbar__overflow {
+.tlui-layout__mobile .tlui-main-toolbar--horizontal .tlui-main-toolbar__overflow {
 	width: 32px;
 	padding: 0px;
 }
 
-.tlui-main-toolbar *[data-state='open']::after {
+.tlui-main-toolbar--horizontal *[data-state='open']::after {
 	background: linear-gradient(0deg, rgba(144, 144, 144, 0) 0%, var(--color-muted-2) 100%);
 	opacity: 1;
 }
+.tlui-main-toolbar--vertical *[data-state='open']::after {
+	background: linear-gradient(90deg, rgba(144, 144, 144, 0) 0%, var(--color-muted-2) 100%);
+	opacity: 1;
+}
+
+.tlui-main-toolbar__tools [data-toolbar-visible='false'],
+.tlui-main-toolbar__overflow-content [data-toolbar-visible='false'] {
+	display: none;
+}
+
+.tlui-main-toolbar__group:empty {
+	display: none;
+}
+.tlui-row.tlui-main-toolbar__group:not(:nth-last-child(-n + 1 of [data-toolbar-visible='true'])) {
+	border-right: 1px solid var(--color-divider);
+	margin-right: 2px;
+}
+.tlui-column.tlui-main-toolbar__group:not(
+		:nth-last-child(-n + 1 of [data-toolbar-visible='true'])
+	) {
+	border-bottom: 1px solid var(--color-divider);
+	margin-bottom: 2px;
+}
+.tlui-grid.tlui-main-toolbar__group {
+	grid-column: 1 / span 4;
+}
+.tlui-grid.tlui-main-toolbar__group:not(:nth-last-child(-n + 1 of [data-toolbar-visible='true'])) {
+	border-bottom: 1px solid var(--color-divider);
+	margin-bottom: 2px;
+}
 
 @media (hover: hover) {
-	.tlui-main-toolbar *[data-state='open']:not(:hover)::after {
+	.tlui-main-toolbar--horizontal *[data-state='open']:not(:hover)::after {
 		background: linear-gradient(0deg, rgba(144, 144, 144, 0) 0%, var(--color-muted-2) 100%);
+		opacity: 1;
+	}
+	.tlui-main-toolbar--vertical *[data-state='open']:not(:hover)::after {
+		background: linear-gradient(90deg, rgba(144, 144, 144, 0) 0%, var(--color-muted-2) 100%);
 		opacity: 1;
 	}
 }

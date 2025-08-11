@@ -1,7 +1,8 @@
 import { assert, Editor, uniqueId, useMaybeEditor, Vec } from '@tldraw/editor'
 import { Tooltip as _Tooltip } from 'radix-ui'
-import React, { createContext, useContext, useEffect, useRef, useState } from 'react'
+import React, { createContext, forwardRef, useContext, useEffect, useRef, useState } from 'react'
 import { usePrefersReducedMotion } from '../../../shapes/shared/usePrefersReducedMotion'
+import { useTldrawUiOrientation } from './layout'
 
 const DEFAULT_TOOLTIP_DELAY_MS = 700
 
@@ -247,86 +248,96 @@ function TooltipSingleton() {
 }
 
 /** @public @react */
-export function TldrawUiTooltip({
-	children,
-	content,
-	side = 'bottom',
-	sideOffset = 5,
-	disabled = false,
-}: TldrawUiTooltipProps) {
-	const editor = useMaybeEditor()
-	const tooltipId = useRef<string>(uniqueId())
-	const hasProvider = useContext(TooltipSingletonContext)
+export const TldrawUiTooltip = forwardRef<HTMLButtonElement, TldrawUiTooltipProps>(
+	({ children, content, side, sideOffset = 5, disabled = false }, ref) => {
+		const editor = useMaybeEditor()
+		const tooltipId = useRef<string>(uniqueId())
+		const hasProvider = useContext(TooltipSingletonContext)
 
-	// Don't show tooltip if disabled, no content, or UI labels are disabled
-	if (disabled || !content) {
-		return <>{children}</>
-	}
+		const orientationCtx = useTldrawUiOrientation()
+		const sideToUse = side ?? orientationCtx.tooltipSide
 
-	// Fallback to old behavior if no provider
-	if (!hasProvider) {
-		return (
-			<_Tooltip.Root
-				delayDuration={editor?.options.tooltipDelayMs || DEFAULT_TOOLTIP_DELAY_MS}
-				disableHoverableContent
-			>
-				<_Tooltip.Trigger asChild>{children}</_Tooltip.Trigger>
-				<_Tooltip.Content
-					className="tlui-tooltip"
-					side={side}
-					sideOffset={sideOffset}
-					avoidCollisions
-					collisionPadding={8}
-					dir="ltr"
+		useEffect(() => {
+			const currentTooltipId = tooltipId.current
+			return () => {
+				if (hasProvider) {
+					tooltipManager.hideTooltip(currentTooltipId, true)
+				}
+			}
+		}, [hasProvider])
+
+		// Don't show tooltip if disabled, no content, or UI labels are disabled
+		if (disabled || !content) {
+			return <>{children}</>
+		}
+
+		// Fallback to old behavior if no provider
+		if (!hasProvider) {
+			return (
+				<_Tooltip.Root
+					delayDuration={editor?.options.tooltipDelayMs || DEFAULT_TOOLTIP_DELAY_MS}
+					disableHoverableContent
 				>
-					{content}
-					<_Tooltip.Arrow className="tlui-tooltip__arrow" />
-				</_Tooltip.Content>
-			</_Tooltip.Root>
-		)
+					<_Tooltip.Trigger asChild ref={ref}>
+						{children}
+					</_Tooltip.Trigger>
+					<_Tooltip.Content
+						className="tlui-tooltip"
+						side={sideToUse}
+						sideOffset={sideOffset}
+						avoidCollisions
+						collisionPadding={8}
+						dir="ltr"
+					>
+						{content}
+						<_Tooltip.Arrow className="tlui-tooltip__arrow" />
+					</_Tooltip.Content>
+				</_Tooltip.Root>
+			)
+		}
+
+		const child = React.Children.only(children)
+		assert(React.isValidElement(child), 'TldrawUiTooltip children must be a single element')
+
+		const handleMouseEnter = (event: React.MouseEvent<HTMLElement>) => {
+			child.props.onMouseEnter?.(event)
+			tooltipManager.showTooltip(
+				tooltipId.current,
+				content,
+				event.currentTarget as HTMLElement,
+				sideToUse,
+				sideOffset
+			)
+		}
+
+		const handleMouseLeave = (event: React.MouseEvent<HTMLElement>) => {
+			child.props.onMouseLeave?.(event)
+			tooltipManager.hideTooltip(tooltipId.current)
+		}
+
+		const handleFocus = (event: React.FocusEvent<HTMLElement>) => {
+			child.props.onFocus?.(event)
+			tooltipManager.showTooltip(
+				tooltipId.current,
+				content,
+				event.currentTarget as HTMLElement,
+				sideToUse,
+				sideOffset
+			)
+		}
+
+		const handleBlur = (event: React.FocusEvent<HTMLElement>) => {
+			child.props.onBlur?.(event)
+			tooltipManager.hideTooltip(tooltipId.current)
+		}
+
+		const childrenWithHandlers = React.cloneElement(children as React.ReactElement, {
+			onMouseEnter: handleMouseEnter,
+			onMouseLeave: handleMouseLeave,
+			onFocus: handleFocus,
+			onBlur: handleBlur,
+		})
+
+		return childrenWithHandlers
 	}
-
-	const child = React.Children.only(children)
-	assert(React.isValidElement(child), 'TldrawUiTooltip children must be a single element')
-
-	const handleMouseEnter = (event: React.MouseEvent<HTMLElement>) => {
-		child.props.onMouseEnter?.(event)
-		tooltipManager.showTooltip(
-			tooltipId.current,
-			content,
-			event.currentTarget as HTMLElement,
-			side,
-			sideOffset
-		)
-	}
-
-	const handleMouseLeave = (event: React.MouseEvent<HTMLElement>) => {
-		child.props.onMouseLeave?.(event)
-		tooltipManager.hideTooltip(tooltipId.current)
-	}
-
-	const handleFocus = (event: React.FocusEvent<HTMLElement>) => {
-		child.props.onFocus?.(event)
-		tooltipManager.showTooltip(
-			tooltipId.current,
-			content,
-			event.currentTarget as HTMLElement,
-			side,
-			sideOffset
-		)
-	}
-
-	const handleBlur = (event: React.FocusEvent<HTMLElement>) => {
-		child.props.onBlur?.(event)
-		tooltipManager.hideTooltip(tooltipId.current)
-	}
-
-	const childrenWithHandlers = React.cloneElement(children as React.ReactElement, {
-		onMouseEnter: handleMouseEnter,
-		onMouseLeave: handleMouseLeave,
-		onFocus: handleFocus,
-		onBlur: handleBlur,
-	})
-
-	return childrenWithHandlers
-}
+)
