@@ -21,6 +21,7 @@ import {
 	SelectToolbarItem,
 	StarToolbarItem,
 	TextToolbarItem,
+	TldrawUiMenuGroup,
 	tlmenus,
 	TLShapeId,
 	TLUiOverrides,
@@ -98,53 +99,41 @@ export const overrides: TLUiOverrides = {
 
 export function WorkflowToolbar() {
 	return (
-		<DefaultToolbar orientation="vertical" maxItems={9}>
-			<SelectToolbarItem />
-			<HandToolbarItem />
-			<DrawToolbarItem />
-			<NoteToolbarItem />
+		<DefaultToolbar orientation="vertical" maxItems={7}>
+			<TldrawUiMenuGroup id="selection">
+				<SelectToolbarItem />
+				<HandToolbarItem />
+				<DrawToolbarItem />
+				<NoteToolbarItem />
+			</TldrawUiMenuGroup>
 
-			<div
-				style={{
-					width: '100%',
-					height: 1,
-					margin: '2px 0',
-					backgroundColor: 'var(--color-muted-2)',
-				}}
-			/>
+			<TldrawUiMenuGroup id="nodes">
+				<MathematicalToolbarItem />
+				<ToolbarItem tool="node-slider" />
+				<ToolbarItem tool="node-conditional" />
+			</TldrawUiMenuGroup>
 
-			<MathematicalToolbarItem />
-			<ToolbarItem tool="node-slider" />
-			<ToolbarItem tool="node-conditional" />
+			<TldrawUiMenuGroup id="shapes">
+				<RectangleToolbarItem />
+				<EllipseToolbarItem />
+				<TriangleToolbarItem />
+				<DiamondToolbarItem />
 
-			<div
-				style={{
-					width: '100%',
-					height: 1,
-					margin: '2px 0',
-					backgroundColor: 'var(--color-muted-2)',
-				}}
-			/>
+				<HexagonToolbarItem />
+				<OvalToolbarItem />
+				<RhombusToolbarItem />
+				<StarToolbarItem />
 
-			<RectangleToolbarItem />
-			<EllipseToolbarItem />
-			<TriangleToolbarItem />
-			<DiamondToolbarItem />
+				<CloudToolbarItem />
+				<HeartToolbarItem />
+				<XBoxToolbarItem />
+				<CheckBoxToolbarItem />
 
-			<HexagonToolbarItem />
-			<OvalToolbarItem />
-			<RhombusToolbarItem />
-			<StarToolbarItem />
-
-			<CloudToolbarItem />
-			<HeartToolbarItem />
-			<XBoxToolbarItem />
-			<CheckBoxToolbarItem />
-
-			<TextToolbarItem />
-			<AssetToolbarItem />
-			<HighlightToolbarItem />
-			<LaserToolbarItem />
+				<TextToolbarItem />
+				<AssetToolbarItem />
+				<HighlightToolbarItem />
+				<LaserToolbarItem />
+			</TldrawUiMenuGroup>
 		</DefaultToolbar>
 	)
 }

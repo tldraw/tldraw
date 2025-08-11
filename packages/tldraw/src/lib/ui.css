@@ -1163,10 +1163,6 @@
 	bottom: 90px; /* collapsed mini-map, but same as top to keep things looking even */
 }
 
-.tlui-toolbar.tlui-toolbar__vertical {
-	align-items: flex-start;
-}
-
 /* Centered Content */
 .tlui-main-toolbar__inner {
 	position: relative;
