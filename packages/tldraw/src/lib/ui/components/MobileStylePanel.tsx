@@ -1,6 +1,7 @@
 import {
 	DefaultColorStyle,
 	TLDefaultColorStyle,
+	getColorValue,
 	getDefaultColorTheme,
 	useEditor,
 	useValue,
@@ -26,9 +27,10 @@ export function MobileStylePanel() {
 	const relevantStyles = useRelevantStyles()
 	const color = relevantStyles?.get(DefaultColorStyle)
 	const theme = getDefaultColorTheme({ isDarkMode: editor.user.getIsDarkMode() })
-	const currentColor = (
-		color?.type === 'shared' ? theme[color.value as TLDefaultColorStyle] : theme.black
-	).solid
+	const currentColor =
+		color?.type === 'shared'
+			? getColorValue(theme, color.value as TLDefaultColorStyle, 'solid')
+			: getColorValue(theme, 'black', 'solid')
 
 	const disableStylePanel = useValue(
 		'disable style panel',
