@@ -241,7 +241,7 @@ export function OverflowingToolbar({
 			childList: true,
 			subtree: true,
 			attributes: true,
-			// characterData: true,
+			characterData: true,
 		})
 
 		const sizingParent = findParentWithClassName(mainToolsRef.current, sizingParentClassName)
