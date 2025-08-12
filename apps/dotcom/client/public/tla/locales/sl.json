@@ -14,6 +14,9 @@
   "06b9281e39": {
     "translation": "Auto"
   },
+  "0776e18496": {
+    "translation": "Shrani in deli"
+  },
   "07dbd11b21": {
     "translation": "Datoteka brez naslova"
   },
@@ -47,11 +50,26 @@
   "1dd1c5fb7f": {
     "translation": "Danes"
   },
+  "20976e7bec": {
+    "translation": "Soba je polna"
+  },
+  "21bfb2dc2e": {
+    "translation": "Ta soba se bliža svoji omejitvi velikosti. Razmislite o odstranitvi nekaj vsebine ali ustvarjanju nove datoteke."
+  },
+  "22d84a12fd": {
+    "translation": "Figjam, ampak tldraw"
+  },
   "250ddea65c": {
     "translation": "O tldrawu"
   },
   "299cb00a7a": {
     "translation": "Nalaganje ni uspelo"
+  },
+  "2c61d18599": {
+    "translation": "Miro, ampak dober in brezplačen"
+  },
+  "2deec2cb74": {
+    "translation": "Ta soba je dosegla omejitev velikosti in spremembe morda ne bodo več shranjene. Odstranite nekaj vsebine ali začnite novo datoteko."
   },
   "31246941ad": {
     "translation": "Za ogled te datoteke se morate prijaviti."
@@ -65,6 +83,9 @@
   "344a7f427f": {
     "translation": "Urednik"
   },
+  "37b3dca331": {
+    "translation": "Prosim, prijavite se"
+  },
   "3bd1b98dbd": {
     "translation": "Ni mogoče objaviti sprememb."
   },
@@ -74,8 +95,14 @@
   "3d0238bf16": {
     "translation": "Sprejmi vse"
   },
+  "3fc6d0c83a": {
+    "translation": "Dodaj prijatelja"
+  },
   "42e53c47c1": {
     "translation": "Za dostop zaprosite lastnika."
+  },
+  "44281ab6e5": {
+    "translation": "Prijava"
   },
   "44db318ee5": {
     "translation": "Poiščite pomoč pri Discordu"
@@ -94,6 +121,9 @@
   },
   "4d1c8263ba": {
     "translation": "Ponovno naloži"
+  },
+  "4ea0bb66f7": {
+    "translation": "Račun bi bil dober"
   },
   "50db1b7e1e": {
     "translation": "Ni mogoče preklicati objave datoteke."
@@ -122,8 +152,17 @@
   "5a95a425f7": {
     "translation": "Deli"
   },
+  "5bb6cf3b53": {
+    "translation": "Soba postaja velika"
+  },
+  "5bcc12ace8": {
+    "translation": "Ta soba je zdaj samo za branje"
+  },
   "5bec508475": {
     "translation": "Zaznan je bil star brskalnik. Za uporabo te aplikacije posodobite brskalnik."
+  },
+  "5bef23eb7e": {
+    "translation": "Ustvarite svoj račun"
   },
   "5d26ae7550": {
     "translation": "Nekatere vsebine, ki ste jo ustvarili, preden ste se prijavili, nismo uspeli naložiti."
@@ -145,6 +184,9 @@
   },
   "6637a98151": {
     "translation": "Na voljo je nova različica tldraw. Za nadaljevanje znova naložite stran."
+  },
+  "697c59072d": {
+    "translation": "Prijavite se za shranjevanje"
   },
   "6a26f54883": {
     "translation": "Pomoč"
@@ -185,6 +227,9 @@
   "777f9e90cf": {
     "translation": "Neveljavna zahteva."
   },
+  "78e9815992": {
+    "translation": "Razumem"
+  },
   "797799f35e": {
     "translation": "Predložite težavo na GitHub"
   },
@@ -193,6 +238,9 @@
   },
   "7be10fc592": {
     "translation": "Obnovi različico"
+  },
+  "7c7d5d493e": {
+    "translation": "Prosim, prijavite se"
   },
   "7cb5f8b4a5": {
     "translation": "Pozabi"
@@ -209,6 +257,9 @@
   "815e116a2e": {
     "translation": "Imate hrošča, težavo ali idejo za tldraw? Sporočite nam! Izpolnite ta obrazec in po potrebi se vam bomo oglasili po e-pošti. Lahko pa tudi <discord>klepetate z nami na Discordu</discord> ali <github>oddate težavo na GitHubu</github>."
   },
+  "84c89d47c7": {
+    "translation": "Delite brezplačno"
+  },
   "85a082de1b": {
     "translation": "Prosimo, osvežite stran, da dobite najnovejšo različico tldraw."
   },
@@ -217,6 +268,12 @@
   },
   "86c66437fd": {
     "translation": "Preimenuj datoteko"
+  },
+  "8b1946f965": {
+    "translation": "Za nadaljevanje urejanja kopirajte sobo v svoje datoteke."
+  },
+  "8ea211024d": {
+    "translation": "Ustvarite brezplačen račun"
   },
   "8eb2c00e96": {
     "translation": "V skupni rabi z vami"
@@ -241,6 +298,9 @@
   },
   "9bef626805": {
     "translation": "Izbriši datoteko"
+  },
+  "9c258b8f88": {
+    "translation": "Ta anonimna soba za več igralcev tldraw je zdaj samo za branje. Če želite nadaljevati z urejanjem, se prijavite in jo kopirajte v svoje datoteke."
   },
   "9ceb927baa": {
     "translation": "Objavite to datoteko"
@@ -291,11 +351,17 @@
   "b028909917": {
     "translation": "Gostujoči uporabnik"
   },
+  "b52dc007ac": {
+    "translation": "Prijava (brezplačna in dobra)"
+  },
   "b6d4223e60": {
     "translation": "Prijava"
   },
   "b758336699": {
     "translation": "Kopiraj povezavo"
+  },
+  "ba0318cb81": {
+    "translation": "Prijavite se za skupno rabo"
   },
   "bb792693e2": {
     "translation": "Odpni"
@@ -309,8 +375,17 @@
   "bcb62136a3": {
     "translation": "Naložite datoteke .tldr"
   },
+  "bffe9a3c9a": {
+    "translation": "Prijava"
+  },
+  "c079282475": {
+    "translation": "Delite svoje delo"
+  },
   "c2276c9127": {
     "translation": "Preberite več o skupni rabi."
+  },
+  "c24e43cd1a": {
+    "translation": "Prijavil se boš, kajne?"
   },
   "c303bd1095": {
     "translation": "Datoteke ni mogoče objaviti."
@@ -327,8 +402,8 @@
   "c87aacf567": {
     "translation": "Odjava"
   },
-  "cbef7ba103": {
-    "translation": "Ta soba bo kmalu samo za branje"
+  "c8c6a6504a": {
+    "translation": "Prijaviti se moraš"
   },
   "cceaefbc20": {
     "translation": "Delite to datoteko"
@@ -338,6 +413,9 @@
   },
   "cea291e45e": {
     "translation": "Preberite več o objavljanju."
+  },
+  "d0eedb7995": {
+    "translation": "Hej"
   },
   "d3d2e61733": {
     "translation": "Zapri"
@@ -351,8 +429,17 @@
   "d876a9fe1a": {
     "translation": "Poskusi znova"
   },
+  "d8a50c79a7": {
+    "translation": "Pridi z mano risati"
+  },
   "d9100f3e10": {
     "translation": "Za ogled vsebine pojdite sem"
+  },
+  "da404df474": {
+    "translation": "Shranite svoje delo"
+  },
+  "db4c2dab9a": {
+    "translation": "Ne Excalidraw"
   },
   "dbbebf3c03": {
     "translation": "Samo povabljeni"
@@ -368,9 +455,6 @@
   },
   "e78e14c5f1": {
     "translation": "Pin"
-  },
-  "ea2301d01c": {
-    "translation": "Po 1. juliju 2025 bo ta anonimna soba za več igralcev tldraw postala samo za branje. Če želite v prihodnje nadaljevati z urejanjem, se prijavite in jo kopirajte v svoje datoteke."
   },
   "ea4788705e": {
     "translation": "Prekliči"
@@ -416,6 +500,9 @@
   },
   "fd1be3efcf": {
     "translation": "Ali ste prepričani, da želite izbrisati to datoteko?"
+  },
+  "fd27891570": {
+    "translation": "Pridružite se čakalnemu seznamu"
   },
   "fed5ec05eb": {
     "translation": "Povezava kopirana"

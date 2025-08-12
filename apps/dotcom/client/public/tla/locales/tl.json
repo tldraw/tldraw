@@ -14,6 +14,9 @@
   "06b9281e39": {
     "translation": "Auto"
   },
+  "0776e18496": {
+    "translation": "I-save at ibahagi"
+  },
   "07dbd11b21": {
     "translation": "Walang pamagat na file"
   },
@@ -47,11 +50,26 @@
   "1dd1c5fb7f": {
     "translation": "Ngayong araw"
   },
+  "20976e7bec": {
+    "translation": "Puno ang kwarto"
+  },
+  "21bfb2dc2e": {
+    "translation": "Papalapit na ang kwartong ito sa limitasyon ng laki nito. Pag-isipang mag-alis ng ilang content o magsimula ng bagong file."
+  },
+  "22d84a12fd": {
+    "translation": "Figjam pero tldraw"
+  },
   "250ddea65c": {
     "translation": "Tungkol sa tldraw"
   },
   "299cb00a7a": {
     "translation": "Nabigo ang pag-upload"
+  },
+  "2c61d18599": {
+    "translation": "Miro ngunit mabuti at libre"
+  },
+  "2deec2cb74": {
+    "translation": "Naabot na ng kwartong ito ang limitasyon sa laki nito at maaaring hindi na ma-save ang mga pagbabago. Mag-alis ng ilang content o magsimula ng bagong file."
   },
   "31246941ad": {
     "translation": "Kailangan mong mag-sign in upang tingnan ang file na ito."
@@ -65,6 +83,9 @@
   "344a7f427f": {
     "translation": "Editor"
   },
+  "37b3dca331": {
+    "translation": "Mangyaring mag-sign in"
+  },
   "3bd1b98dbd": {
     "translation": "Hindi ma-publish ang mga pagbabago."
   },
@@ -74,8 +95,14 @@
   "3d0238bf16": {
     "translation": "Tanggapin lahat"
   },
+  "3fc6d0c83a": {
+    "translation": "Magdagdag ng kaibigan"
+  },
   "42e53c47c1": {
     "translation": "Makipag-ugnayan sa may-ari para humiling ng access."
+  },
+  "44281ab6e5": {
+    "translation": "Mag-log up"
   },
   "44db318ee5": {
     "translation": "Humingi ng tulong sa Discord"
@@ -94,6 +121,9 @@
   },
   "4d1c8263ba": {
     "translation": "I-reload"
+  },
+  "4ea0bb66f7": {
+    "translation": "Ang isang account ay magiging maganda"
   },
   "50db1b7e1e": {
     "translation": "Hindi ma-unpublish ang file."
@@ -122,8 +152,17 @@
   "5a95a425f7": {
     "translation": "Ibahagi"
   },
+  "5bb6cf3b53": {
+    "translation": "Lumalaki ang kwarto"
+  },
+  "5bcc12ace8": {
+    "translation": "Read-only na ang kwartong ito"
+  },
   "5bec508475": {
     "translation": "Nakita ang lumang browser. Mangyaring i-update ang iyong browser upang magamit ang app na ito."
+  },
+  "5bef23eb7e": {
+    "translation": "Lumikha ng iyong account"
   },
   "5d26ae7550": {
     "translation": "Nabigo kaming mag-upload ng ilan sa nilalamang ginawa mo bago ka mag-sign in."
@@ -145,6 +184,9 @@
   },
   "6637a98151": {
     "translation": "Available ang bagong bersyon ng tldraw. Paki-reload ang page para magpatuloy."
+  },
+  "697c59072d": {
+    "translation": "Mag-sign in para i-save"
   },
   "6a26f54883": {
     "translation": "Tulong"
@@ -185,6 +227,9 @@
   "777f9e90cf": {
     "translation": "Di-wastong kahilingan."
   },
+  "78e9815992": {
+    "translation": "Nakuha ko"
+  },
   "797799f35e": {
     "translation": "Magsumite ng isyu sa GitHub"
   },
@@ -193,6 +238,9 @@
   },
   "7be10fc592": {
     "translation": "Ibalik ang bersyon"
+  },
+  "7c7d5d493e": {
+    "translation": "Mangyaring mag-sign up"
   },
   "7cb5f8b4a5": {
     "translation": "Kalimutan"
@@ -209,6 +257,9 @@
   "815e116a2e": {
     "translation": "May bug, isyu, o ideya para sa tldraw? Ipaalam sa amin! Punan ang form na ito at susubaybayan namin ang email kung kinakailangan. Maaari ka ring <discord>makipag-chat sa amin sa Discord</discord> o <github>magsumite ng isyu sa GitHub</github>."
   },
+  "84c89d47c7": {
+    "translation": "Ibahagi nang libre"
+  },
   "85a082de1b": {
     "translation": "Paki-refresh ang page para makuha ang pinakabagong bersyon ng tldraw."
   },
@@ -217,6 +268,12 @@
   },
   "86c66437fd": {
     "translation": "Palitan ang pangalan ng file"
+  },
+  "8b1946f965": {
+    "translation": "Para magpatuloy sa pag-edit, pakikopya ang kwarto sa iyong mga file."
+  },
+  "8ea211024d": {
+    "translation": "Lumikha ng isang libreng account"
   },
   "8eb2c00e96": {
     "translation": "Ibinahagi sa iyo"
@@ -241,6 +298,9 @@
   },
   "9bef626805": {
     "translation": "Tanggalin ang file"
+  },
+  "9c258b8f88": {
+    "translation": "Read-only na ang anonymous na tldraw multiplayer room na ito. Upang magpatuloy sa pag-edit, mangyaring mag-sign in at kopyahin ito sa iyong mga file."
   },
   "9ceb927baa": {
     "translation": "I-publish ang file na ito"
@@ -291,11 +351,17 @@
   "b028909917": {
     "translation": "Guest user"
   },
+  "b52dc007ac": {
+    "translation": "Mag-sign up (libre at mabuti)"
+  },
   "b6d4223e60": {
     "translation": "Mag-sign in"
   },
   "b758336699": {
     "translation": "Kopyahin ang link"
+  },
+  "ba0318cb81": {
+    "translation": "Mag-sign in upang ibahagi"
   },
   "bb792693e2": {
     "translation": "I-unpin"
@@ -309,8 +375,17 @@
   "bcb62136a3": {
     "translation": "Mag-upload ng mga .tldr na file"
   },
+  "bffe9a3c9a": {
+    "translation": "Mag-log in"
+  },
+  "c079282475": {
+    "translation": "Ibahagi ang iyong trabaho"
+  },
   "c2276c9127": {
     "translation": "Matuto pa tungkol sa pagbabahagi."
+  },
+  "c24e43cd1a": {
+    "translation": "Magpaparehistro ka, hindi ba?"
   },
   "c303bd1095": {
     "translation": "Hindi ma-publish ang file."
@@ -327,8 +402,8 @@
   "c87aacf567": {
     "translation": "Mag-sign out"
   },
-  "cbef7ba103": {
-    "translation": "Malapit nang maging read-only ang kwartong ito"
+  "c8c6a6504a": {
+    "translation": "Dapat kang mag-sign up"
   },
   "cceaefbc20": {
     "translation": "Ibahagi ang file na ito"
@@ -338,6 +413,9 @@
   },
   "cea291e45e": {
     "translation": "Matuto pa tungkol sa pag-publish."
+  },
+  "d0eedb7995": {
+    "translation": "Hey"
   },
   "d3d2e61733": {
     "translation": "Isara"
@@ -351,8 +429,17 @@
   "d876a9fe1a": {
     "translation": "Subukan Muli"
   },
+  "d8a50c79a7": {
+    "translation": "Sumama ka sa akin sa tldraw"
+  },
   "d9100f3e10": {
     "translation": "Pumunta dito upang makita ang nilalaman"
+  },
+  "da404df474": {
+    "translation": "I-save ang iyong trabaho"
+  },
+  "db4c2dab9a": {
+    "translation": "Hindi Excalidraw"
   },
   "dbbebf3c03": {
     "translation": "Mag-imbita lang"
@@ -368,9 +455,6 @@
   },
   "e78e14c5f1": {
     "translation": "Pin"
-  },
-  "ea2301d01c": {
-    "translation": "Pagkatapos ng Hulyo 1, 2025, magiging read-only ang anonymous na tldraw multiplayer room na ito. Upang magpatuloy sa pag-edit sa hinaharap mangyaring mag-sign in at kopyahin ito sa iyong mga file."
   },
   "ea4788705e": {
     "translation": "Kanselahin"
@@ -416,6 +500,9 @@
   },
   "fd1be3efcf": {
     "translation": "Sigurado ka bang gusto mong tanggalin ang file na ito?"
+  },
+  "fd27891570": {
+    "translation": "Sumali sa waitlist"
   },
   "fed5ec05eb": {
     "translation": "Kinopya ang link"

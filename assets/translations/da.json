@@ -94,6 +94,7 @@
 	"action.toggle-focus-mode.menu": "Fokusfunktion",
 	"action.toggle-grid": "Slå grid til/fra",
 	"action.toggle-grid.menu": "Vis grid",
+	"action.toggle-keyboard-shortcuts.menu": "Tastaturgenveje",
 	"action.toggle-lock": "Slå lås til/fra",
 	"action.toggle-paste-at-cursor": "Slå indsæt ved markør til/fra",
 	"action.toggle-paste-at-cursor.menu": "Indsæt ved markør",

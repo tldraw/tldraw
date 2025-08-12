@@ -13,6 +13,7 @@ export interface TLUiSliderProps {
 	onValueChange(value: number): void
 	onHistoryMark(id: string): void
 	'data-testid'?: string
+	ariaValueModifier?: number
 }
 
 /** @public @react */
@@ -26,6 +27,7 @@ export const TldrawUiSlider = React.forwardRef<HTMLDivElement, TLUiSliderProps>(
 		label,
 		onValueChange,
 		['data-testid']: testId,
+		ariaValueModifier = 1,
 	}: TLUiSliderProps,
 	ref
 ) {
@@ -81,7 +83,10 @@ export const TldrawUiSlider = React.forwardRef<HTMLDivElement, TLUiSliderProps>(
 				</_Slider.Track>
 				{value !== null && (
 					<_Slider.Thumb
-						aria-label={msg('style-panel.opacity')}
+						aria-valuemin={(min ?? 0) * ariaValueModifier}
+						aria-valuenow={value * ariaValueModifier}
+						aria-valuemax={steps * ariaValueModifier}
+						aria-label={title + ' — ' + msg(label as TLUiTranslationKey)}
 						className="tlui-slider__thumb"
 						dir="ltr"
 						ref={ref}

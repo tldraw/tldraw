@@ -59,6 +59,21 @@ export function objectMapEntries<Key extends string, Value>(object: {
 }
 
 /**
+ * Returns the entries of an object as an iterable iterator.
+ * Useful when working with large collections, to avoid allocating an array.
+ *
+ * @internal
+ */
+export function* objectMapEntriesIterable<Key extends string, Value>(object: {
+	[K in Key]: Value
+}): IterableIterator<[Key, Value]> {
+	for (const key in object) {
+		if (!Object.prototype.hasOwnProperty.call(object, key)) continue
+		yield [key, object[key]]
+	}
+}
+
+/**
  * An alias for `Object.fromEntries` that treats the object as a map and so preserves the type of the
  * keys.
  *
@@ -101,9 +116,9 @@ export function mapObjectMapValues<Key extends string, ValueBefore, ValueAfter>(
 	mapper: (key: Key, value: ValueBefore) => ValueAfter
 ): { [K in Key]: ValueAfter } {
 	const result = {} as { [K in Key]: ValueAfter }
-	for (const [key, value] of objectMapEntries(object)) {
-		const newValue = mapper(key, value)
-		result[key] = newValue
+	for (const key in object) {
+		if (!Object.prototype.hasOwnProperty.call(object, key)) continue
+		result[key] = mapper(key, object[key])
 	}
 	return result
 }

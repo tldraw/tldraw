@@ -47,11 +47,20 @@
   "1dd1c5fb7f": {
     "translation": "Today"
   },
+  "20976e7bec": {
+    "translation": "Room is full"
+  },
+  "21bfb2dc2e": {
+    "translation": "This room is approaching its size limit. Consider removing some content or starting a new file."
+  },
   "250ddea65c": {
     "translation": "About tldraw"
   },
   "299cb00a7a": {
     "translation": "Upload failed"
+  },
+  "2deec2cb74": {
+    "translation": "This room has reached its size limit and changes might no longer be saved. Remove some content or start a new file."
   },
   "31246941ad": {
     "translation": "You need to sign in to view this file."
@@ -122,6 +131,9 @@
   "5a95a425f7": {
     "translation": "Share"
   },
+  "5bb6cf3b53": {
+    "translation": "Room getting large"
+  },
   "5bcc12ace8": {
     "translation": "This room is now read-only"
   },
@@ -187,6 +199,9 @@
   },
   "777f9e90cf": {
     "translation": "Invalid request."
+  },
+  "78e9815992": {
+    "translation": "Got it"
   },
   "797799f35e": {
     "translation": "Submit an issue on GitHub"
@@ -305,6 +320,9 @@
   },
   "b758336699": {
     "translation": "Copy link"
+  },
+  "ba0318cb81": {
+    "translation": "Sign in to share"
   },
   "bb792693e2": {
     "translation": "Unpin"

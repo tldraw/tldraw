@@ -94,7 +94,7 @@ export function updateArrowTargetState({
 	const target = editor.getShapeAtPoint(pointInPageSpace, {
 		hitInside: true,
 		hitFrameInside: true,
-		margin: arrowKind === 'elbow' ? 8 : 0,
+		margin: arrowKind === 'elbow' ? 8 : [8, 0],
 		filter: (targetShape) => {
 			return (
 				!targetShape.isLocked &&
@@ -187,6 +187,7 @@ export function updateArrowTargetState({
 	}
 
 	const shouldSnapCenter = !isExact && precise && targetGeometryInTargetSpace.isClosed
+	// const shouldSnapEdges = !isExact && (precise || !targetGeometryInTargetSpace.isClosed)
 	const shouldSnapEdges =
 		!isExact && ((precise && arrowKind === 'elbow') || !targetGeometryInTargetSpace.isClosed)
 	const shouldSnapEdgePoints =

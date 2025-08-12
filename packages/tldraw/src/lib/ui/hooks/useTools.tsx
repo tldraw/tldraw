@@ -1,6 +1,16 @@
-import { Editor, GeoShapeGeoStyle, useMaybeEditor } from '@tldraw/editor'
+import {
+	assertExists,
+	createShapeId,
+	Editor,
+	GeoShapeGeoStyle,
+	TLPointerEventInfo,
+	TLShapeId,
+	toRichText,
+	useMaybeEditor,
+} from '@tldraw/editor'
 import * as React from 'react'
 import { EmbedDialog } from '../components/EmbedDialog'
+import { TLUiIconJsx } from '../components/primitives/TldrawUiIcon'
 import { useA11y } from '../context/a11y'
 import { TLUiEventSource, useUiEvents } from '../context/events'
 import { TLUiIconType } from '../icon-types'
@@ -16,8 +26,9 @@ export interface TLUiToolItem<
 	id: string
 	label: TranslationKey
 	shortcutsLabel?: TranslationKey
-	icon: IconType
+	icon: IconType | TLUiIconJsx
 	onSelect(source: TLUiEventSource): void
+	onDragStart?(source: TLUiEventSource, info: TLPointerEventInfo): void
 	/**
 	 * The keyboard shortcut for this tool. This is a string that can be a single key,
 	 * or a combination of keys.
@@ -125,20 +136,26 @@ export function ToolsProvider({ overrides, children }: TLUiToolsProviderProps) {
 					onToolSelect(source, this)
 				},
 			},
-			...[...GeoShapeGeoStyle.values].map((id) => ({
-				id,
-				label: `tool.${id}` as TLUiTranslationKey,
+			...[...GeoShapeGeoStyle.values].map((geo) => ({
+				id: geo,
+				label: `tool.${geo}` as TLUiTranslationKey,
 				meta: {
-					geo: id,
+					geo,
 				},
-				kbd: id === 'rectangle' ? 'r' : id === 'ellipse' ? 'o' : undefined,
-				icon: ('geo-' + id) as TLUiIconType,
+				kbd: geo === 'rectangle' ? 'r' : geo === 'ellipse' ? 'o' : undefined,
+				icon: ('geo-' + geo) as TLUiIconType,
 				onSelect(source: TLUiEventSource) {
 					editor.run(() => {
-						editor.setStyleForNextShapes(GeoShapeGeoStyle, id)
+						editor.setStyleForNextShapes(GeoShapeGeoStyle, geo)
 						editor.setCurrentTool('geo')
-						onToolSelect(source, this, `geo-${id}`)
+						onToolSelect(source, this, `geo-${geo}`)
 					})
+				},
+				onDragStart(source: TLUiEventSource, info: TLPointerEventInfo) {
+					onDragFromToolbarToCreateShape(editor, info, {
+						createShape: (id) => editor.createShape({ id, type: 'geo', props: { geo } }),
+					})
+					trackEvent('drag-tool', { source, id: 'geo' })
 				},
 			})),
 			{
@@ -149,6 +166,17 @@ export function ToolsProvider({ overrides, children }: TLUiToolsProviderProps) {
 				onSelect(source) {
 					editor.setCurrentTool('arrow')
 					onToolSelect(source, this)
+				},
+				onDragStart(source: TLUiEventSource, info: TLPointerEventInfo) {
+					onDragFromToolbarToCreateShape(editor, info, {
+						createShape: (id) =>
+							editor.createShape({
+								id,
+								type: 'arrow',
+								props: { start: { x: 0, y: 0 }, end: { x: 200, y: 0 } },
+							}),
+					})
+					trackEvent('drag-tool', { source, id: 'arrow' })
 				},
 			},
 			{
@@ -170,6 +198,12 @@ export function ToolsProvider({ overrides, children }: TLUiToolsProviderProps) {
 					editor.setCurrentTool('frame')
 					onToolSelect(source, this)
 				},
+				onDragStart(source, info) {
+					onDragFromToolbarToCreateShape(editor, info, {
+						createShape: (id) => editor.createShape({ id, type: 'frame' }),
+					})
+					trackEvent('drag-tool', { source, id: 'frame' })
+				},
 			},
 			{
 				id: 'text',
@@ -179,6 +213,17 @@ export function ToolsProvider({ overrides, children }: TLUiToolsProviderProps) {
 				onSelect(source) {
 					editor.setCurrentTool('text')
 					onToolSelect(source, this)
+				},
+				onDragStart(source, info) {
+					onDragFromToolbarToCreateShape(editor, info, {
+						createShape: (id) =>
+							editor.createShape({ id, type: 'text', props: { richText: toRichText('Text') } }),
+						onDragEnd: (id) => {
+							editor.emit('select-all-text', { shapeId: id })
+							editor.setEditingShape(id)
+						},
+					})
+					trackEvent('drag-tool', { source, id: 'text' })
 				},
 			},
 			{
@@ -199,6 +244,16 @@ export function ToolsProvider({ overrides, children }: TLUiToolsProviderProps) {
 				onSelect(source) {
 					editor.setCurrentTool('note')
 					onToolSelect(source, this)
+				},
+				onDragStart(source, info) {
+					onDragFromToolbarToCreateShape(editor, info, {
+						createShape: (id) => editor.createShape({ id, type: 'note' }),
+						onDragEnd: (id) => {
+							editor.emit('select-all-text', { shapeId: id })
+							editor.setEditingShape(id)
+						},
+					})
+					trackEvent('drag-tool', { source, id: 'note' })
 				},
 			},
 			{
@@ -243,7 +298,7 @@ export function ToolsProvider({ overrides, children }: TLUiToolsProviderProps) {
 		}
 
 		return tools
-	}, [overrides, editor, helpers, onToolSelect])
+	}, [overrides, editor, helpers, onToolSelect, trackEvent])
 
 	return <ToolsContext.Provider value={tools}>{children}</ToolsContext.Provider>
 }
@@ -257,4 +312,58 @@ export function useTools() {
 	}
 
 	return ctx
+}
+
+/**
+ * Options for {@link onDragFromToolbarToCreateShape}.
+ * @public
+ */
+export interface OnDragFromToolbarToCreateShapesOpts {
+	/**
+	 * Create the shape being dragged. You don't need to worry about positioning it, as it'll be
+	 * immediately updated with the correct position.
+	 */
+	createShape(id: TLShapeId): void
+	/**
+	 * Called once the drag interaction has finished.
+	 */
+	onDragEnd?(id: TLShapeId): void
+}
+
+/**
+ * A helper method to use in {@link TLUiToolItem#onDragStart} to create a shape by dragging it from
+ * the toolbar.
+ * @public
+ */
+export function onDragFromToolbarToCreateShape(
+	editor: Editor,
+	info: TLPointerEventInfo,
+	opts: OnDragFromToolbarToCreateShapesOpts
+) {
+	const { x, y } = editor.inputs.currentPagePoint
+
+	const stoppingPoint = editor.markHistoryStoppingPoint('drag shape tool')
+	editor.setCurrentTool('select.translating')
+
+	const id = createShapeId()
+	opts.createShape(id)
+	const shape = assertExists(editor.getShape(id), 'Shape not found')
+
+	const { w, h } = editor.getShapePageBounds(id)!
+	editor.updateShape({ id, type: shape.type, x: x - w / 2, y: y - h / 2 })
+	editor.select(id)
+
+	editor.setCurrentTool('select.translating', {
+		...info,
+		target: 'shape',
+		shape: editor.getShape(id),
+		isCreating: true,
+		creatingMarkId: stoppingPoint,
+		onCreate() {
+			editor.setCurrentTool('select.idle')
+			editor.select(id)
+			opts.onDragEnd?.(id)
+		},
+	})
+	editor.getCurrentTool().setCurrentToolIdMask(shape.type)
 }

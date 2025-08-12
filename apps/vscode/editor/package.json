@@ -18,6 +18,7 @@
 	},
 	"keywords": [
 		"tldraw",
+		"sdk",
 		"drawing",
 		"app",
 		"development",
@@ -41,7 +42,7 @@
 		"concurrently": "^9.1.2",
 		"create-serve": "1.0.1",
 		"dotenv": "^16.4.7",
-		"esbuild": "^0.25.0",
+		"esbuild": "^0.25.6",
 		"fs-extra": "^11.3.0",
 		"lazyrepo": "0.0.0-alpha.27",
 		"react": "^18.3.1",

@@ -94,6 +94,7 @@
 	"action.toggle-focus-mode.menu": "フォーカスモード",
 	"action.toggle-grid": "グリッドを表示",
 	"action.toggle-grid.menu": "グリッドを表示",
+	"action.toggle-keyboard-shortcuts.menu": "キーボードショートカット",
 	"action.toggle-lock": "ロック切り替え",
 	"action.toggle-paste-at-cursor": "カーソル位置での貼り付けを切り替え",
 	"action.toggle-paste-at-cursor.menu": "カーソル位置に貼り付け",

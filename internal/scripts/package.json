@@ -18,6 +18,7 @@
 	},
 	"keywords": [
 		"tldraw",
+		"sdk",
 		"drawing",
 		"app",
 		"development",
@@ -36,7 +37,7 @@
 		"@typescript-eslint/utils": "^8.21.0",
 		"ast-types": "^0.14.2",
 		"cross-fetch": "^3.2.0",
-		"esbuild": "^0.25.0",
+		"esbuild": "^0.25.6",
 		"eslint": "^9.19.0",
 		"glob": "^8.1.0",
 		"gray-matter": "^4.0.3",

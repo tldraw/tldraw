@@ -1,6 +1,6 @@
 {
 	"name": "examples.tldraw.com",
-	"description": "A tiny little drawing app (examples).",
+	"description": "tldraw infinite canvas SDK (examples).",
 	"version": "0.0.0",
 	"private": true,
 	"author": {
@@ -18,6 +18,7 @@
 	},
 	"keywords": [
 		"tldraw",
+		"sdk",
 		"drawing",
 		"app",
 		"development",
@@ -29,8 +30,10 @@
 		"dev": "vite --host",
 		"build": "vite build",
 		"lint": "yarn run -T tsx ../../internal/scripts/lint.ts",
-		"e2e": "playwright test -c ./e2e/playwright.config.ts",
-		"e2e-ui": "playwright test --ui -c ./e2e/playwright.config.ts"
+		"e2e": "playwright test -c ./e2e/playwright.config.ts ./e2e/tests/!(test-perf).spec.ts",
+		"e2e-ui": "playwright test --ui -c ./e2e/playwright.config.ts ./e2e/tests/!(test-perf).spec.ts",
+		"e2e-perf": "playwright test --workers=1 -c ./e2e/playwright.config.ts ./e2e/tests/test-perf.spec.ts",
+		"e2e-perf-ui": "playwright test --ui -c ./e2e/playwright.config.ts ./e2e/tests/test-perf.spec.ts"
 	},
 	"dependencies": {
 		"@playwright/test": "^1.50.0",

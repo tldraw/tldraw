@@ -14,6 +14,9 @@
   "06b9281e39": {
     "translation": "Auto"
   },
+  "0776e18496": {
+    "translation": "Tallenna ja jaa"
+  },
   "07dbd11b21": {
     "translation": "Nimetön tiedosto"
   },
@@ -47,11 +50,26 @@
   "1dd1c5fb7f": {
     "translation": "Tänään"
   },
+  "20976e7bec": {
+    "translation": "Huone on täynnä"
+  },
+  "21bfb2dc2e": {
+    "translation": "Tämä huone lähestyy kokorajoitustaan. Harkitse sisällön poistamista tai uuden tiedoston aloittamista."
+  },
+  "22d84a12fd": {
+    "translation": "Figjam, mutta tldraw"
+  },
   "250ddea65c": {
     "translation": "Tietoja tldraw'sta"
   },
   "299cb00a7a": {
     "translation": "Lataus epäonnistui"
+  },
+  "2c61d18599": {
+    "translation": "Miro, mutta hyvä ja ilmainen"
+  },
+  "2deec2cb74": {
+    "translation": "Tämä huone on saavuttanut kokorajoituksensa, eikä muutoksia ehkä enää tallenneta. Poista sisältöä tai aloita uusi tiedosto."
   },
   "31246941ad": {
     "translation": "Sinun on kirjauduttava sisään nähdäksesi tämän tiedoston."
@@ -65,6 +83,9 @@
   "344a7f427f": {
     "translation": "Toimittaja"
   },
+  "37b3dca331": {
+    "translation": "Kirjaudu sisään"
+  },
   "3bd1b98dbd": {
     "translation": "Muutoksia ei voi julkaista."
   },
@@ -74,8 +95,14 @@
   "3d0238bf16": {
     "translation": "Hyväksy kaikki"
   },
+  "3fc6d0c83a": {
+    "translation": "Lisää ystävä"
+  },
   "42e53c47c1": {
     "translation": "Pyydä käyttöoikeutta ottamalla yhteyttä omistajaan."
+  },
+  "44281ab6e5": {
+    "translation": "Kirjaudu sisään"
   },
   "44db318ee5": {
     "translation": "Hanki apua Discordissa"
@@ -94,6 +121,9 @@
   },
   "4d1c8263ba": {
     "translation": "Lataa uudelleen"
+  },
+  "4ea0bb66f7": {
+    "translation": "Tili olisi kiva"
   },
   "50db1b7e1e": {
     "translation": "Tiedoston julkaisua ei voi peruuttaa."
@@ -122,8 +152,17 @@
   "5a95a425f7": {
     "translation": "Jakaa"
   },
+  "5bb6cf3b53": {
+    "translation": "Huone kasvaa suureksi"
+  },
+  "5bcc12ace8": {
+    "translation": "Tämä huone on nyt vain luku -tilassa"
+  },
   "5bec508475": {
     "translation": "Vanha selain havaittu. Päivitä selaimesi käyttääksesi tätä sovellusta."
+  },
+  "5bef23eb7e": {
+    "translation": "Luo tili"
   },
   "5d26ae7550": {
     "translation": "Emme pystyneet lataamaan osaa sisällöstä, jonka loit ennen kirjautumista."
@@ -145,6 +184,9 @@
   },
   "6637a98151": {
     "translation": "Uusi versio tldraw:sta on saatavilla. Jatka lataamalla sivu uudelleen."
+  },
+  "697c59072d": {
+    "translation": "Kirjaudu sisään tallentaaksesi"
   },
   "6a26f54883": {
     "translation": "Auttaa"
@@ -185,6 +227,9 @@
   "777f9e90cf": {
     "translation": "Virheellinen pyyntö."
   },
+  "78e9815992": {
+    "translation": "Selvä"
+  },
   "797799f35e": {
     "translation": "Lähetä ongelma GitHubissa"
   },
@@ -193,6 +238,9 @@
   },
   "7be10fc592": {
     "translation": "Palauta versio"
+  },
+  "7c7d5d493e": {
+    "translation": "Ole hyvä ja rekisteröidy"
   },
   "7cb5f8b4a5": {
     "translation": "Unohtaa"
@@ -209,6 +257,9 @@
   "815e116a2e": {
     "translation": "Onko sinulla bugi, ongelma tai idea tldraw'hun liittyen? Kerro meille! Täytä tämä lomake, niin otamme sinuun tarvittaessa yhteyttä sähköpostitse. Voit myös <discord>chattailla kanssamme Discordissa</discord> tai <github>lähettää ongelman GitHubissa</github>."
   },
+  "84c89d47c7": {
+    "translation": "Jaa ilmaiseksi"
+  },
   "85a082de1b": {
     "translation": "Päivitä sivu saadaksesi tldraw:n uusimman version."
   },
@@ -217,6 +268,12 @@
   },
   "86c66437fd": {
     "translation": "Nimeä tiedosto uudelleen"
+  },
+  "8b1946f965": {
+    "translation": "Jatkaaksesi muokkaamista, kopioi huone tiedostoihisi."
+  },
+  "8ea211024d": {
+    "translation": "Luo ilmainen tili"
   },
   "8eb2c00e96": {
     "translation": "Jaettu kanssasi"
@@ -241,6 +298,9 @@
   },
   "9bef626805": {
     "translation": "Poista tiedosto"
+  },
+  "9c258b8f88": {
+    "translation": "Tämä anonyymi tldraw-moninpelihuone on nyt vain luku -tilassa. Jatkaaksesi muokkaamista, kirjaudu sisään ja kopioi se tiedostoihisi."
   },
   "9ceb927baa": {
     "translation": "Julkaise tämä tiedosto"
@@ -291,11 +351,17 @@
   "b028909917": {
     "translation": "Vieraskäyttäjä"
   },
+  "b52dc007ac": {
+    "translation": "Rekisteröidy (ilmainen ja hyvä)"
+  },
   "b6d4223e60": {
     "translation": "Kirjaudu sisään"
   },
   "b758336699": {
     "translation": "Kopioi linkki"
+  },
+  "ba0318cb81": {
+    "translation": "Kirjaudu sisään jakaaksesi"
   },
   "bb792693e2": {
     "translation": "Irrota kiinnitys"
@@ -309,8 +375,17 @@
   "bcb62136a3": {
     "translation": "Lataa .tldr-tiedostoja"
   },
+  "bffe9a3c9a": {
+    "translation": "Kirjaudu sisään"
+  },
+  "c079282475": {
+    "translation": "Jaa työsi"
+  },
   "c2276c9127": {
     "translation": "Lisätietoja jakamisesta."
+  },
+  "c24e43cd1a": {
+    "translation": "Ilmoittauduthan mukaan, eikö niin?"
   },
   "c303bd1095": {
     "translation": "Tiedostoa ei voi julkaista."
@@ -327,8 +402,8 @@
   "c87aacf567": {
     "translation": "Kirjaudu ulos"
   },
-  "cbef7ba103": {
-    "translation": "Tämä huone on pian vain luku -tilassa"
+  "c8c6a6504a": {
+    "translation": "Sinun pitäisi rekisteröityä"
   },
   "cceaefbc20": {
     "translation": "Jaa tämä tiedosto"
@@ -338,6 +413,9 @@
   },
   "cea291e45e": {
     "translation": "Lisätietoja julkaisemisesta."
+  },
+  "d0eedb7995": {
+    "translation": "Hei"
   },
   "d3d2e61733": {
     "translation": "Lähellä"
@@ -351,8 +429,17 @@
   "d876a9fe1a": {
     "translation": "Yritä uudelleen"
   },
+  "d8a50c79a7": {
+    "translation": "Tule kanssani piirtämään"
+  },
   "d9100f3e10": {
     "translation": "Siirry tänne nähdäksesi sisällön"
+  },
+  "da404df474": {
+    "translation": "Tallenna työsi"
+  },
+  "db4c2dab9a": {
+    "translation": "Ei Excalidraw"
   },
   "dbbebf3c03": {
     "translation": "Vain kutsu"
@@ -368,9 +455,6 @@
   },
   "e78e14c5f1": {
     "translation": "Pin"
-  },
-  "ea2301d01c": {
-    "translation": "1. heinäkuuta 2025 jälkeen tästä anonyymistä tldraw-moninpelihuoneesta tulee vain luku -tilassa oleva. Jos haluat jatkaa muokkaamista tulevaisuudessa, kirjaudu sisään ja kopioi se tiedostoihisi."
   },
   "ea4788705e": {
     "translation": "Peruuttaa"
@@ -416,6 +500,9 @@
   },
   "fd1be3efcf": {
     "translation": "Haluatko varmasti poistaa tämän tiedoston?"
+  },
+  "fd27891570": {
+    "translation": "Liity odotuslistalle"
   },
   "fed5ec05eb": {
     "translation": "Linkki kopioitu"

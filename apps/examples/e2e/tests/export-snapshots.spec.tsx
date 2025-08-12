@@ -30,6 +30,7 @@ import {
 	manCrop,
 	manCropAsCircle,
 	richText,
+	richTextForArrow,
 } from './export-snapshots-data'
 import test, { ApiFixture } from './fixtures/fixtures'
 
@@ -148,7 +149,7 @@ const snapshots: Snapshots = {
 						start={{ x: 0, y: 0 }}
 						end={{ x: 100, y: 100 }}
 						bend={20}
-						text="test"
+						richText={toRichText('test')}
 					/>
 				),
 				note: <TL.note font={font} color="violet" richText={toRichText('test')} />,
@@ -521,7 +522,7 @@ const snapshots: Snapshots = {
 					size="xl"
 					arrowheadStart="pipe"
 					arrowheadEnd="diamond"
-					text="with text"
+					richText={richTextForArrow}
 				/>
 			),
 			Arrow4: (
@@ -552,6 +553,25 @@ const snapshots: Snapshots = {
 					<TL.text richText={toRichText('the text')} x={-60} y={50} scale={2} />
 					<TL.text richText={toRichText('the text')} x={-90} y={100} scale={3} />
 				</TL.frame>
+			),
+		},
+		'#6391': {
+			'Circles at 45deg from each other': (
+				<>
+					<TL.geo geo="ellipse" ref="a" w={40} h={40} />
+					<TL.geo geo="ellipse" ref="b" w={40} h={40} x={80} y={80} />
+					<TL.arrow>
+						<TL.binding.arrow to="a" terminal="start" />
+						<TL.binding.arrow to="b" terminal="end" />
+					</TL.arrow>
+
+					<TL.geo geo="ellipse" ref="c" w={40} h={40} x={200} />
+					<TL.geo geo="ellipse" ref="d" w={40} h={40} x={280} y={80} />
+					<TL.arrow bend={10}>
+						<TL.binding.arrow to="c" terminal="start" />
+						<TL.binding.arrow to="d" terminal="end" />
+					</TL.arrow>
+				</>
 			),
 		},
 	},

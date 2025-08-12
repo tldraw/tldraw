@@ -22,8 +22,19 @@ export {
 } from './lib/shapes/shared/PathBuilder'
 export { usePrefersReducedMotion } from './lib/shapes/shared/usePrefersReducedMotion'
 export { DefaultA11yAnnouncer, useSelectedShapesAnnouncer } from './lib/ui/components/A11y'
+export { AccessibilityMenu } from './lib/ui/components/AccessibilityMenu'
 export { ColorSchemeMenu } from './lib/ui/components/ColorSchemeMenu'
 export { DefaultDialogs } from './lib/ui/components/Dialogs'
+export {
+	TldrawUiColumn,
+	TldrawUiGrid,
+	TldrawUiOrientationProvider,
+	TldrawUiRow,
+	useTldrawUiOrientation,
+	type TldrawUiOrientationContext,
+	type TldrawUiOrientationProviderProps,
+	type TLUiLayoutProps,
+} from './lib/ui/components/primitives/layout'
 export {
 	TldrawUiMenuActionCheckboxItem,
 	type TLUiMenuActionCheckboxItemProps,
@@ -41,6 +52,7 @@ export { TldrawUiTranslationProvider } from './lib/ui/hooks/useTranslation/useTr
 // eslint-disable-next-line local/no-export-star
 export * from '@tldraw/editor'
 export { ArrowBindingUtil } from './lib/bindings/arrow/ArrowBindingUtil'
+export { TldrawCropHandles, type TldrawCropHandlesProps } from './lib/canvas/TldrawCropHandles'
 export { TldrawHandles } from './lib/canvas/TldrawHandles'
 export { TldrawArrowHints, TldrawOverlays } from './lib/canvas/TldrawOverlays'
 export { TldrawScribble } from './lib/canvas/TldrawScribble'
@@ -71,6 +83,7 @@ export {
 	defaultHandleExternalTldrawContent,
 	defaultHandleExternalUrlAsset,
 	defaultHandleExternalUrlContent,
+	getAssetInfo,
 	getMediaAssetInfoPartial,
 	registerDefaultExternalContentHandlers,
 	type TLDefaultExternalContentHandlerOpts,
@@ -183,6 +196,7 @@ export { TldrawImage, type TldrawImageProps } from './lib/TldrawImage'
 export { EraserTool } from './lib/tools/EraserTool/EraserTool'
 export { HandTool } from './lib/tools/HandTool/HandTool'
 export { LaserTool } from './lib/tools/LaserTool/LaserTool'
+export { getHitShapeOnCanvasPointerDown } from './lib/tools/selection-logic/getHitShapeOnCanvasPointerDown'
 export { SelectTool } from './lib/tools/SelectTool/SelectTool'
 export { ZoomTool } from './lib/tools/ZoomTool/ZoomTool'
 export {
@@ -250,6 +264,7 @@ export {
 	EditSubmenu,
 	ExportFileContentSubMenu,
 	ExtrasGroup,
+	LockGroup,
 	MiscMenuGroup,
 	PreferencesGroup,
 	UndoRedoGroup,
@@ -290,6 +305,7 @@ export {
 	ToggleSnapModeItem,
 	ToggleToolLockItem,
 	ToggleTransparentBgMenuItem,
+	ToggleUiLabelsItem,
 	ToggleWrapModeItem,
 	UngroupMenuItem,
 	UnlockAllMenuItem,
@@ -382,7 +398,11 @@ export {
 	type TLUiDropdownMenuSubTriggerProps,
 	type TLUiDropdownMenuTriggerProps,
 } from './lib/ui/components/primitives/TldrawUiDropdownMenu'
-export { TldrawUiIcon, type TLUiIconProps } from './lib/ui/components/primitives/TldrawUiIcon'
+export {
+	TldrawUiIcon,
+	type TLUiIconJsx,
+	type TLUiIconProps,
+} from './lib/ui/components/primitives/TldrawUiIcon'
 export { TldrawUiInput, type TLUiInputProps } from './lib/ui/components/primitives/TldrawUiInput'
 export { TldrawUiKbd, type TLUiKbdProps } from './lib/ui/components/primitives/TldrawUiKbd'
 export {
@@ -404,6 +424,12 @@ export {
 	type TLUiToolbarToggleGroupProps,
 	type TLUiToolbarToggleItemProps,
 } from './lib/ui/components/primitives/TldrawUiToolbar'
+export {
+	TldrawUiTooltip,
+	TldrawUiTooltipProvider,
+	type TldrawUiTooltipProps,
+	type TldrawUiTooltipProviderProps,
+} from './lib/ui/components/primitives/TldrawUiTooltip'
 export {
 	DefaultQuickActions,
 	type TLUiQuickActionsProps,
@@ -464,6 +490,7 @@ export {
 	EraserToolbarItem,
 	FrameToolbarItem,
 	HandToolbarItem,
+	HeartToolbarItem,
 	HexagonToolbarItem,
 	HighlightToolbarItem,
 	LaserToolbarItem,
@@ -494,6 +521,10 @@ export {
 	OverflowingToolbar,
 	type OverflowingToolbarProps,
 } from './lib/ui/components/Toolbar/OverflowingToolbar'
+export {
+	ToggleToolLockedButton,
+	type ToggleToolLockedButtonProps,
+} from './lib/ui/components/Toolbar/ToggleToolLockedButton'
 export {
 	CenteredTopPanelContainer,
 	type CenteredTopPanelContainerProps,
@@ -563,7 +594,7 @@ export {
 	type TLUiToastsContextType,
 	type TLUiToastsProviderProps,
 } from './lib/ui/context/toasts'
-export { useCanRedo, useCanUndo } from './lib/ui/hooks/menu-hooks'
+export { useCanRedo, useCanUndo, useUnlockedSelectedShapesCount } from './lib/ui/hooks/menu-hooks'
 export { useMenuClipboardEvents, useNativeClipboardEvents } from './lib/ui/hooks/useClipboardEvents'
 export {
 	useCollaborationStatus,
@@ -577,7 +608,9 @@ export { useMenuIsOpen } from './lib/ui/hooks/useMenuIsOpen'
 export { useReadonly } from './lib/ui/hooks/useReadonly'
 export { useRelevantStyles } from './lib/ui/hooks/useRelevantStyles'
 export {
+	onDragFromToolbarToCreateShape,
 	useTools,
+	type OnDragFromToolbarToCreateShapesOpts,
 	type TLUiToolItem,
 	type TLUiToolsContextType,
 	type TLUiToolsProviderProps,

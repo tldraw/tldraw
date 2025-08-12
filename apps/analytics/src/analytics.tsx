@@ -56,7 +56,7 @@ export default function Analytics() {
 	useEffect(() => {
 		if (!isConfigured) {
 			posthog.init('phc_i8oKgMzgV38sn3GfjswW9mevQ3gFlo7bJXekZFeDN6', {
-				api_host: 'https://analytics.tldraw.com/ingest',
+				api_host: 'https://analytics.tldraw.com/i',
 				ui_host: 'https://eu.i.posthog.com',
 				persistence: 'memory',
 				capture_pageview: 'history_change',
@@ -76,6 +76,12 @@ export default function Analytics() {
 						anonymize_ip: true,
 					},
 				})
+
+				// Add Google Ads configuration if present
+				if (window.TL_GOOGLE_ADS_ID) {
+					ReactGA.gtag('config', window.TL_GOOGLE_ADS_ID)
+				}
+
 				ReactGA.send('pageview')
 			}
 
@@ -190,6 +196,12 @@ export function identify(userId: string, properties?: { [key: string]: any }) {
 export function track(name: string, data?: { [key: string]: any }) {
 	posthog.capture(name, data)
 	ReactGA.event(name, data)
+}
+
+export function gtag(...args: any[]) {
+	if (storedHasConsent !== 'opted-in') return
+	// @ts-ignore - ReactGA.gtag accepts variable arguments
+	ReactGA.gtag(...args)
 }
 
 export function PrivacySettings() {

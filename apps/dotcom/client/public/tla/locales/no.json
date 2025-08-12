@@ -14,6 +14,9 @@
   "06b9281e39": {
     "translation": "Auto"
   },
+  "0776e18496": {
+    "translation": "Lagre og del"
+  },
   "07dbd11b21": {
     "translation": "Unavngitt fil"
   },
@@ -47,11 +50,26 @@
   "1dd1c5fb7f": {
     "translation": "I dag"
   },
+  "20976e7bec": {
+    "translation": "Rommet er fullt"
+  },
+  "21bfb2dc2e": {
+    "translation": "Dette rommet nærmer seg størrelsesgrensen. Vurder å fjerne noe innhold eller starte en ny fil."
+  },
+  "22d84a12fd": {
+    "translation": "Figjam men tldraw"
+  },
   "250ddea65c": {
     "translation": "Om tldraw"
   },
   "299cb00a7a": {
     "translation": "Opplasting mislyktes"
+  },
+  "2c61d18599": {
+    "translation": "Miro, men god og fri"
+  },
+  "2deec2cb74": {
+    "translation": "Dette rommet har nådd størrelsesgrensen, og endringene kan kanskje ikke lenger lagres. Fjern noe innhold eller start en ny fil."
   },
   "31246941ad": {
     "translation": "Du må logge på for å se denne filen."
@@ -65,6 +83,9 @@
   "344a7f427f": {
     "translation": "Redaktør"
   },
+  "37b3dca331": {
+    "translation": "Vennligst logg inn"
+  },
   "3bd1b98dbd": {
     "translation": "Kan ikke publisere endringene."
   },
@@ -74,8 +95,14 @@
   "3d0238bf16": {
     "translation": "Godta alle"
   },
+  "3fc6d0c83a": {
+    "translation": "Legg til venn"
+  },
   "42e53c47c1": {
     "translation": "Kontakt eieren for å be om tilgang."
+  },
+  "44281ab6e5": {
+    "translation": "Logg deg på"
   },
   "44db318ee5": {
     "translation": "Få hjelp på Discord"
@@ -94,6 +121,9 @@
   },
   "4d1c8263ba": {
     "translation": "Last inn på nytt"
+  },
+  "4ea0bb66f7": {
+    "translation": "En konto hadde vært fint"
   },
   "50db1b7e1e": {
     "translation": "Kan ikke oppheve publiseringen av filen."
@@ -122,8 +152,17 @@
   "5a95a425f7": {
     "translation": "Dele"
   },
+  "5bb6cf3b53": {
+    "translation": "Rommet blir stort"
+  },
+  "5bcc12ace8": {
+    "translation": "Dette rommet er nå skrivebeskyttet"
+  },
   "5bec508475": {
     "translation": "Gammel nettleser oppdaget. Oppdater nettleseren din for å bruke denne appen."
+  },
+  "5bef23eb7e": {
+    "translation": "Opprett kontoen din"
   },
   "5d26ae7550": {
     "translation": "Vi klarte ikke å laste opp noe av innholdet du opprettet før du logget på."
@@ -145,6 +184,9 @@
   },
   "6637a98151": {
     "translation": "En ny versjon av tldraw er tilgjengelig. Last inn siden på nytt for å fortsette."
+  },
+  "697c59072d": {
+    "translation": "Logg inn for å lagre"
   },
   "6a26f54883": {
     "translation": "Hjelp"
@@ -185,6 +227,9 @@
   "777f9e90cf": {
     "translation": "Ugyldig forespørsel."
   },
+  "78e9815992": {
+    "translation": "Forstått"
+  },
   "797799f35e": {
     "translation": "Send inn et problem på GitHub"
   },
@@ -193,6 +238,9 @@
   },
   "7be10fc592": {
     "translation": "Gjenopprett versjon"
+  },
+  "7c7d5d493e": {
+    "translation": "Vennligst registrer deg"
   },
   "7cb5f8b4a5": {
     "translation": "Glemme"
@@ -209,6 +257,9 @@
   "815e116a2e": {
     "translation": "Har du en feil, et problem eller en idé for tldraw? Gi oss beskjed! Fyll ut dette skjemaet, så følger vi opp via e-post om nødvendig. Du kan også <discord>chatte med oss ​​på Discord</discord> eller <github>sende inn et problem på GitHub</github>."
   },
+  "84c89d47c7": {
+    "translation": "Del gratis"
+  },
   "85a082de1b": {
     "translation": "Oppdater siden for å få den nyeste versjonen av tldraw."
   },
@@ -217,6 +268,12 @@
   },
   "86c66437fd": {
     "translation": "Gi nytt navn til filen"
+  },
+  "8b1946f965": {
+    "translation": "For å fortsette redigeringen, kopier rommet til filene dine."
+  },
+  "8ea211024d": {
+    "translation": "Opprett en gratis konto"
   },
   "8eb2c00e96": {
     "translation": "Delt med deg"
@@ -241,6 +298,9 @@
   },
   "9bef626805": {
     "translation": "Slett fil"
+  },
+  "9c258b8f88": {
+    "translation": "Dette anonyme tldraw-flerspillerrommet er nå skrivebeskyttet. For å fortsette redigeringen, vennligst logg inn og kopier det til filene dine."
   },
   "9ceb927baa": {
     "translation": "Publiser denne filen"
@@ -291,11 +351,17 @@
   "b028909917": {
     "translation": "Gjestebruker"
   },
+  "b52dc007ac": {
+    "translation": "Registrer deg (gratis og bra)"
+  },
   "b6d4223e60": {
     "translation": "Logg på"
   },
   "b758336699": {
     "translation": "Kopier lenken"
+  },
+  "ba0318cb81": {
+    "translation": "Logg inn for å dele"
   },
   "bb792693e2": {
     "translation": "Løsne"
@@ -309,8 +375,17 @@
   "bcb62136a3": {
     "translation": "Last opp .tldr-filer"
   },
+  "bffe9a3c9a": {
+    "translation": "Logg inn"
+  },
+  "c079282475": {
+    "translation": "Del arbeidet ditt"
+  },
   "c2276c9127": {
     "translation": "Finn ut mer om deling."
+  },
+  "c24e43cd1a": {
+    "translation": "Du melder deg på, ikke sant?"
   },
   "c303bd1095": {
     "translation": "Kan ikke publisere filen."
@@ -327,8 +402,8 @@
   "c87aacf567": {
     "translation": "Logg ut"
   },
-  "cbef7ba103": {
-    "translation": "Dette rommet vil snart være skrivebeskyttet"
+  "c8c6a6504a": {
+    "translation": "Du burde registrere deg"
   },
   "cceaefbc20": {
     "translation": "Del denne filen"
@@ -338,6 +413,9 @@
   },
   "cea291e45e": {
     "translation": "Finn ut mer om publisering."
+  },
+  "d0eedb7995": {
+    "translation": "Hei"
   },
   "d3d2e61733": {
     "translation": "Lukke"
@@ -351,8 +429,17 @@
   "d876a9fe1a": {
     "translation": "Prøv igjen"
   },
+  "d8a50c79a7": {
+    "translation": "Bli med meg på tldraw"
+  },
   "d9100f3e10": {
     "translation": "Gå hit for å se innholdet"
+  },
+  "da404df474": {
+    "translation": "Lagre arbeidet ditt"
+  },
+  "db4c2dab9a": {
+    "translation": "Ikke Excalidraw"
   },
   "dbbebf3c03": {
     "translation": "Kun invitasjon"
@@ -368,9 +455,6 @@
   },
   "e78e14c5f1": {
     "translation": "Pin"
-  },
-  "ea2301d01c": {
-    "translation": "Etter 1. juli 2025 vil dette anonyme tldraw-flerspillerrommet bli skrivebeskyttet. For å fortsette å redigere i fremtiden, vennligst logg inn og kopier det til filene dine."
   },
   "ea4788705e": {
     "translation": "Kansellere"
@@ -416,6 +500,9 @@
   },
   "fd1be3efcf": {
     "translation": "Er du sikker på at du vil slette denne filen?"
+  },
+  "fd27891570": {
+    "translation": "Bli med på ventelisten"
   },
   "fed5ec05eb": {
     "translation": "Kopiert lenke"

@@ -709,6 +709,7 @@ export class TldrawApp {
 			isWrapMode: restOfPreferences.isWrapMode ?? null,
 			isDynamicSizeMode: restOfPreferences.isDynamicSizeMode ?? null,
 			isPasteAtCursorMode: restOfPreferences.isPasteAtCursorMode ?? null,
+			showUiLabels: restOfPreferences.showUiLabels ?? null,
 		})
 		if (didCreate) {
 			opts.trackEvent('create-user', { source: 'app' })
@@ -756,7 +757,7 @@ export class TldrawApp {
 				severity: 'info',
 				title: this.getIntl().formatMessage(this.messages.uploadingTldrFiles, {
 					total: totalFiles,
-					uploaded: uploadedFiles,
+					uploaded: uploadedFiles + 1,
 				}),
 
 				description: `${getApproxPercentage()}%`,

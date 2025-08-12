@@ -40,7 +40,7 @@ export const Shape = memo(function Shape({
 }) {
 	const editor = useEditor()
 
-	const { ShapeErrorFallback } = useEditorComponents()
+	const { ShapeErrorFallback, ShapeWrapper } = useEditorComponents()
 
 	const containerRef = useRef<HTMLDivElement>(null)
 	const bgContainerRef = useRef<HTMLDivElement>(null)
@@ -145,37 +145,22 @@ export const Shape = memo(function Shape({
 		[editor]
 	)
 
-	if (!shape) return null
-
-	const isFilledShape = 'fill' in shape.props && shape.props.fill !== 'none'
+	if (!shape || !ShapeWrapper) return null
 
 	return (
 		<>
 			{util.backgroundComponent && (
-				<div
-					ref={bgContainerRef}
-					className="tl-shape tl-shape-background"
-					data-shape-type={shape.type}
-					data-shape-id={shape.id}
-					draggable={false}
-				>
+				<ShapeWrapper ref={bgContainerRef} shape={shape} isBackground={true}>
 					<OptionalErrorBoundary fallback={ShapeErrorFallback} onError={annotateError}>
 						<InnerShapeBackground shape={shape} util={util} />
 					</OptionalErrorBoundary>
-				</div>
+				</ShapeWrapper>
 			)}
-			<div
-				ref={containerRef}
-				className="tl-shape"
-				data-shape-type={shape.type}
-				data-shape-is-filled={isFilledShape}
-				data-shape-id={shape.id}
-				draggable={false}
-			>
+			<ShapeWrapper ref={containerRef} shape={shape} isBackground={false}>
 				<OptionalErrorBoundary fallback={ShapeErrorFallback as any} onError={annotateError}>
 					<InnerShape shape={shape} util={util} />
 				</OptionalErrorBoundary>
-			</div>
+			</ShapeWrapper>
 		</>
 	)
 })

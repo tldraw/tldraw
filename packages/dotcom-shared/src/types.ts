@@ -40,6 +40,11 @@ export interface GetReadonlySlugResponseBody {
 	isLegacy: boolean
 }
 
+export interface HistoryResponseBody {
+	timestamps: string[]
+	hasMore: boolean
+}
+
 /* ----------------------- App ---------------------- */
 
 export interface CreateFilesRequestBody {
@@ -122,16 +127,7 @@ export type ZErrorCode = keyof typeof ZErrorCode
 // increment this to force clients to reload
 // e.g. if we make backwards-incompatible changes to the schema
 export const Z_PROTOCOL_VERSION = 2
-export const MIN_Z_PROTOCOL_VERSION = 1
-
-export function downgradeZStoreData(data: ZStoreData): ZStoreDataV1 {
-	return {
-		files: data.file,
-		fileStates: data.file_state,
-		user: data.user[0] ?? null,
-		lsn: data.lsn,
-	}
-}
+export const MIN_Z_PROTOCOL_VERSION = 2
 
 export type ZServerSentPacket =
 	| {
@@ -154,18 +150,12 @@ export type ZServerSentPacket =
 
 export type ZServerSentMessage = ZServerSentPacket[]
 
-export type ZClientSentMessage =
-	| {
-			type: 'mutate'
-			mutationId: string
-			updates: ZRowUpdate[]
-	  }
-	| {
-			type: 'mutator'
-			mutationId: string
-			name: string
-			props: object
-	  }
+export interface ZClientSentMessage {
+	type: 'mutator'
+	mutationId: string
+	name: string
+	props: object
+}
 
 export const UserPreferencesKeys = [
 	'locale',
@@ -177,6 +167,7 @@ export const UserPreferencesKeys = [
 	'isWrapMode',
 	'isDynamicSizeMode',
 	'isPasteAtCursorMode',
+	'showUiLabels',
 	'name',
 	'color',
 ] as const satisfies Array<keyof TlaUser>
