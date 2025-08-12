@@ -1,7 +1,6 @@
-import { TLShapeId } from 'tldraw'
+import { TLShapeId, toRichText } from 'tldraw'
 import { IAgentLabelEvent } from '../../worker/prompt/AgentEvent'
 import { AgentTransform } from '../transforms/AgentTransform'
-import { asRichText } from '../transforms/SimpleText'
 import { Streaming } from '../types/Streaming'
 import { AgentEventUtil } from './AgentEventUtil'
 
@@ -33,9 +32,9 @@ export class LabelEventUtil extends AgentEventUtil<IAgentLabelEvent> {
 		const shape = editor.getShape(`shape:${event.shapeId}` as TLShapeId)
 		if (!shape) return
 		editor.updateShape({
-			id: event.shapeId as TLShapeId,
+			id: shape.id as TLShapeId,
 			type: shape.type,
-			props: { richText: asRichText(event.text ?? '') },
+			props: { richText: toRichText(event.text ?? '') },
 		})
 	}
 }
