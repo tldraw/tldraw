@@ -111,6 +111,9 @@ describe('LicenseManager', () => {
 			isPerpetualLicense: false,
 			isPerpetualLicenseExpired: false,
 			isInternalLicense: false,
+			isEvaluationLicense: false,
+			isEvaluationLicenseExpired: false,
+			daysSinceExpiry: 0,
 		} as ValidLicenseKeyResult)
 	})
 
@@ -382,6 +385,68 @@ describe('LicenseManager', () => {
 		)) as ValidLicenseKeyResult
 		expect(result.isLicensedWithWatermark).toBe(true)
 	})
+
+	it('Checks for evaluation license', async () => {
+		const evaluationLicenseInfo = JSON.parse(STANDARD_LICENSE_INFO)
+		evaluationLicenseInfo[PROPERTIES.FLAGS] = FLAGS.EVALUATION_LICENSE
+		const evaluationLicenseKey = await generateLicenseKey(
+			JSON.stringify(evaluationLicenseInfo),
+			keyPair
+		)
+		const result = (await licenseManager.getLicenseFromKey(
+			evaluationLicenseKey
+		)) as ValidLicenseKeyResult
+		expect(result.isEvaluationLicense).toBe(true)
+		expect(result.isEvaluationLicenseExpired).toBe(false)
+	})
+
+	it('Detects when evaluation license has expired', async () => {
+		const expiredEvaluationLicenseInfo = JSON.parse(STANDARD_LICENSE_INFO)
+		expiredEvaluationLicenseInfo[PROPERTIES.FLAGS] = FLAGS.EVALUATION_LICENSE
+		const expiredDate = new Date(now.getFullYear(), now.getMonth(), now.getDate() - 1) // 1 day ago
+		expiredEvaluationLicenseInfo[PROPERTIES.EXPIRY_DATE] = expiredDate.toISOString()
+
+		const expiredEvaluationLicenseKey = await generateLicenseKey(
+			JSON.stringify(expiredEvaluationLicenseInfo),
+			keyPair
+		)
+
+		// The getLicenseFromKey should return the expired state
+		const result = (await licenseManager.getLicenseFromKey(
+			expiredEvaluationLicenseKey
+		)) as ValidLicenseKeyResult
+		expect(result.isEvaluationLicense).toBe(true)
+		expect(result.isEvaluationLicenseExpired).toBe(true)
+	})
+
+	it('Calculates days since expiry correctly', async () => {
+		const expiredLicenseInfo = JSON.parse(STANDARD_LICENSE_INFO)
+		const expiredDate = new Date(now.getFullYear(), now.getMonth(), now.getDate() - 15) // 15 days ago
+		expiredLicenseInfo[PROPERTIES.EXPIRY_DATE] = expiredDate.toISOString()
+
+		const expiredLicenseKey = await generateLicenseKey(JSON.stringify(expiredLicenseInfo), keyPair)
+
+		const result = (await licenseManager.getLicenseFromKey(
+			expiredLicenseKey
+		)) as ValidLicenseKeyResult
+		expect(result.daysSinceExpiry).toBe(15)
+	})
+
+	it('Handles grace period correctly - 0-30 days expired should be licensed', async () => {
+		const expiredLicenseInfo = JSON.parse(STANDARD_LICENSE_INFO)
+		const expiredDate = new Date(now.getFullYear(), now.getMonth(), now.getDate() - 20) // 20 days ago
+		expiredLicenseInfo[PROPERTIES.EXPIRY_DATE] = expiredDate.toISOString()
+
+		const expiredLicenseKey = await generateLicenseKey(JSON.stringify(expiredLicenseInfo), keyPair)
+
+		// Test the getLicenseFromKey method to verify grace period calculation
+		const result = (await licenseManager.getLicenseFromKey(
+			expiredLicenseKey
+		)) as ValidLicenseKeyResult
+		expect(result.isAnnualLicense).toBe(true)
+		expect(result.isAnnualLicenseExpired).toBe(true)
+		expect(result.daysSinceExpiry).toBe(20)
+	})
 })
 
 async function generateLicenseKey(
@@ -473,6 +538,9 @@ function getDefaultLicenseResult(overrides: Partial<ValidLicenseKeyResult>): Val
 		isPerpetualLicenseExpired: false,
 		isLicenseParseable: true as const,
 		isLicensedWithWatermark: false,
+		isEvaluationLicense: false,
+		isEvaluationLicenseExpired: false,
+		daysSinceExpiry: 0,
 		// WatermarkManager does not check these fields, it relies on the calculated values like isAnnualLicenseExpired
 		license: {
 			id: 'id',
@@ -595,5 +663,23 @@ describe(isEditorUnlicensed, () => {
 			isLicensedWithWatermark: true,
 		})
 		expect(isEditorUnlicensed(licenseResult)).toBe(false)
+	})
+
+	it('evaluation license should be considered licensed (not unlicensed)', () => {
+		const licenseResult = getDefaultLicenseResult({
+			isEvaluationLicense: true,
+			isLicensedWithWatermark: false, // Evaluation license doesn't need WITH_WATERMARK flag
+			isAnnualLicense: false,
+			isPerpetualLicense: false,
+		})
+
+		// Evaluation license should not be considered "unlicensed"
+		expect(isEditorUnlicensed(licenseResult)).toBe(false)
+
+		// Verify evaluation license properties
+		expect(licenseResult.isEvaluationLicense).toBe(true)
+		expect(licenseResult.isLicensedWithWatermark).toBe(false) // No explicit watermark flag needed
+		expect(licenseResult.isAnnualLicense).toBe(false)
+		expect(licenseResult.isPerpetualLicense).toBe(false)
 	})
 })

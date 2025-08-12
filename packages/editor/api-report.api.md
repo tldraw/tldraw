@@ -2091,7 +2091,7 @@ export class LicenseManager {
     // (undocumented)
     isTest: boolean;
     // (undocumented)
-    state: Atom<"licensed-with-watermark" | "licensed" | "pending" | "unlicensed", unknown>;
+    state: Atom<"expired" | "licensed-with-watermark" | "licensed" | "pending" | "unlicensed", unknown>;
     // (undocumented)
     verbose: boolean;
 }
@@ -4598,6 +4598,8 @@ export function useViewportHeight(): number;
 // @internal (undocumented)
 export interface ValidLicenseKeyResult {
     // (undocumented)
+    daysSinceExpiry: number;
+    // (undocumented)
     expiryDate: Date;
     // (undocumented)
     isAnnualLicense: boolean;
@@ -4607,6 +4609,10 @@ export interface ValidLicenseKeyResult {
     isDevelopment: boolean;
     // (undocumented)
     isDomainValid: boolean;
+    // (undocumented)
+    isEvaluationLicense: boolean;
+    // (undocumented)
+    isEvaluationLicenseExpired: boolean;
     // (undocumented)
     isInternalLicense: boolean;
     // (undocumented)
