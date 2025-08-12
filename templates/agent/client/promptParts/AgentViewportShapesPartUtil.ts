@@ -1,12 +1,12 @@
 import { Box } from 'tldraw'
-import { convertShapeToSimpleShape } from '../ai/promptConstruction/translateFromDrawishToModelish'
+import { convertShapeToSimpleShape } from '../ai/promptConstruction/translateFromDrawishToSimplish'
 import { TLAgentPromptOptions } from '../types/TLAgentPrompt'
-import { PromptPartHandler } from './PromptPartHandler'
+import { PromptPartUtil } from './PromptPartUitl'
 
-export class AgentViewportShapesPromptPart extends PromptPartHandler {
+export class AgentViewportShapesPartUtil extends PromptPartUtil {
 	static override type = 'agentViewportShapes' as const
 
-	override async getPromptPart(options: TLAgentPromptOptions) {
+	override async getPart(options: TLAgentPromptOptions) {
 		const { currentPageContent, contextBounds } = options
 		const shapes = currentPageContent.shapes
 			.map((shape) => {

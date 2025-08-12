@@ -4,21 +4,19 @@ import { TLAgentPrompt, TLAgentPromptOptions } from '../types/TLAgentPrompt'
 /**
  * Get a full prompt based on the provided prompt options.
  *
- * @returns The fully assembled prompt.
+ * @returns The fully assembled prompt. (in worker-ish)
  */
 export async function preparePrompt(
 	promptOptions: TLAgentPromptOptions,
 	transform: AgentTransform
 ): Promise<TLAgentPrompt> {
 	const {
-		editor,
-
 		modelName,
 		type,
 
 		historyItems,
 
-		promptParts,
+		promptPartUtils,
 	} = promptOptions
 
 	const prompt: Partial<TLAgentPrompt> = {
@@ -28,19 +26,18 @@ export async function preparePrompt(
 		historyItems,
 	}
 
-	// Generate prompt parts using handlers
-	for (const promptPartConstructor of promptParts) {
-		const handler = new promptPartConstructor(editor, transform)
-		const promptPart = await handler.getPromptPart(promptOptions)
+	// Generate prompt parts using utils
+	for (const [_type, promptPartUtil] of promptPartUtils) {
+		const part = await promptPartUtil.getPart(promptOptions)
 
-		// If the handler has a transformPromptPart method, use it; otherwise, just assign the promptPart
-		const transformedPart =
-			typeof handler.transformPromptPart === 'function'
-				? handler.transformPromptPart(promptPart, promptOptions)
-				: promptPart
+		// If the util has a transformPromptPart method, use it; otherwise, just assign the promptPart
+		const maybeTransformedPart =
+			typeof promptPartUtil.transformPromptPart === 'function'
+				? promptPartUtil.transformPromptPart(part, transform)
+				: part
 
-		if (transformedPart) {
-			Object.assign(prompt, transformedPart)
+		if (maybeTransformedPart) {
+			Object.assign(prompt, maybeTransformedPart)
 		}
 	}
 

@@ -1,5 +1,5 @@
 import { ISimpleShape } from '../../worker/simple/SimpleShape'
-import { convertShapeToSimpleShape } from '../ai/promptConstruction/translateFromDrawishToModelish'
+import { convertShapeToSimpleShape } from '../ai/promptConstruction/translateFromDrawishToSimplish'
 import { AgentIconType } from '../components/icons/AgentIcon'
 import {
 	AreaContextItem,
@@ -9,12 +9,12 @@ import {
 	ShapesContextItem,
 } from '../types/ContextItem'
 import { TLAgentPrompt, TLAgentPromptOptions } from '../types/TLAgentPrompt'
-import { PromptPartHandler } from './PromptPartHandler'
+import { PromptPartUtil } from './PromptPartUitl'
 
-export class ContextItemsPromptPart extends PromptPartHandler {
+export class ContextItemsPartUtil extends PromptPartUtil {
 	static override type = 'contextItems' as const
 
-	override async getPromptPart(options: TLAgentPromptOptions): Promise<Partial<TLAgentPrompt>> {
+	override async getPart(options: TLAgentPromptOptions): Promise<Partial<TLAgentPrompt>> {
 		const { contextItems } = options
 		if (!contextItems || contextItems.length === 0) {
 			return { contextItems: [] }

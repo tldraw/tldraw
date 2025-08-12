@@ -2,20 +2,17 @@ import { Editor } from 'tldraw'
 import { AgentTransform } from '../AgentTransform'
 import { TLAgentPrompt, TLAgentPromptOptions } from '../types/TLAgentPrompt'
 
-export abstract class PromptPartHandler {
+export abstract class PromptPartUtil {
 	static type: string
 
-	constructor(
-		public editor: Editor,
-		public transform: AgentTransform
-	) {}
+	constructor(public editor: Editor) {}
 
 	/**
 	 * Generate the prompt part based on the options.
 	 * This is where the actual prompt part logic goes.
 	 * Can be async for operations like taking screenshots.
 	 */
-	async getPromptPart(_options: TLAgentPromptOptions): Promise<Partial<TLAgentPrompt>> {
+	async getPart(_options: TLAgentPromptOptions): Promise<Partial<TLAgentPrompt>> {
 		return {}
 	}
 
@@ -26,13 +23,13 @@ export abstract class PromptPartHandler {
 	 */
 	transformPromptPart(
 		prompt: Partial<TLAgentPrompt>,
-		_options: TLAgentPromptOptions
+		_transform: AgentTransform
 	): Partial<TLAgentPrompt> | null {
 		return prompt
 	}
 }
 
-export interface PromptPartHandlerConstructor {
-	new (editor: Editor, transform: AgentTransform): PromptPartHandler
+export interface PromptPartUtilConstructor {
+	new (editor: Editor): PromptPartUtil
 	type: string
 }

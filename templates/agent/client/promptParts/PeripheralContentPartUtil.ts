@@ -1,12 +1,12 @@
 import { Box } from 'tldraw'
 import { convertShapeToPeripheralContent } from '../ai/promptConstruction/translateFromDrawishToModelish'
 import { TLAgentPromptOptions } from '../types/TLAgentPrompt'
-import { PromptPartHandler } from './PromptPartHandler'
+import { PromptPartUtil } from './PromptPartUitl'
 
-export class PeripheralContentPromptPart extends PromptPartHandler {
+export class PeripheralContentPartUtil extends PromptPartUtil {
 	static override type = 'peripheralContent' as const
 
-	override async getPromptPart(options: TLAgentPromptOptions) {
+	override async getPart(options: TLAgentPromptOptions) {
 		const { currentPageContent, contextBounds } = options
 		const shapes = currentPageContent.shapes
 			.map((shape) => {

@@ -1,10 +1,10 @@
 import { TLAgentPromptOptions } from '../types/TLAgentPrompt'
-import { PromptPartHandler } from './PromptPartHandler'
+import { PromptPartUtil } from './PromptPartUitl'
 
-export class CurrentUserViewportBoundsPromptPart extends PromptPartHandler {
+export class CurrentUserViewportBoundsPartUtil extends PromptPartUtil {
 	static override type = 'currentUserViewportBounds' as const
 
-	override async getPromptPart(options: TLAgentPromptOptions) {
+	override async getPart(options: TLAgentPromptOptions) {
 		const { currentUserViewportBounds } = options
 		return { currentUserViewportBounds }
 	}
