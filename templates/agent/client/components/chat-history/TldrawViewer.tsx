@@ -1,9 +1,12 @@
 import { useEffect, useRef, useState } from 'react'
 import {
+	defaultAddFontsFromNode,
 	defaultBindingUtils,
+	defaultEditorAssetUrls,
 	defaultShapeUtils,
 	Editor,
 	StateNode,
+	tipTapDefaultExtensions,
 	TLComponents,
 	TldrawEditor,
 	TLShape,
@@ -67,6 +70,8 @@ export function TldrawViewer({
 				shapeUtils={defaultShapeUtils}
 				bindingUtils={defaultBindingUtils}
 				tools={tools}
+				textOptions={defaultTextOptions}
+				assetUrls={defaultEditorAssetUrls}
 				initialState="inspect"
 			/>
 		</div>
@@ -78,3 +83,10 @@ class InspectTool extends StateNode {
 }
 
 const tools = [InspectTool]
+
+const defaultTextOptions = {
+	tipTapConfig: {
+		extensions: tipTapDefaultExtensions,
+	},
+	addFontsFromNode: defaultAddFontsFromNode,
+}
