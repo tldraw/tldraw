@@ -80,12 +80,13 @@ export const overrides: TLUiOverrides = {
 				},
 				onDragStart: (_, info) => {
 					onDragFromToolbarToCreateShape(editor, info, {
-						createShape: (id) =>
+						createShape: (id) => {
 							editor.createShape<NodeShape>({
 								id,
 								type: 'node',
 								props: { node: nodeDef.getDefault() },
-							}),
+							})
+						},
 						onDragEnd: () => {
 							tlmenus.deleteOpenMenu(MATH_MENU_ID, editor.contextId)
 						},

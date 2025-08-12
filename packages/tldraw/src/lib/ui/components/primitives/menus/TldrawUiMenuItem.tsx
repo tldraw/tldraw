@@ -364,6 +364,7 @@ function useDraggableEvents(
 						})
 
 						tooltipManager.hideAllTooltips()
+						editor.getContainer().focus()
 					})
 				}
 			}
