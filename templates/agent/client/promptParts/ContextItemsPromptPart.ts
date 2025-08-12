@@ -1,14 +1,14 @@
+import { ISimpleShape } from '../../worker/simple/SimpleShape'
 import { convertShapeToSimpleShape } from '../ai/promptConstruction/translateFromDrawishToModelish'
-import { ContextItem } from '../types/ContextItem'
+import { AgentIconType } from '../components/icons/AgentIcon'
 import {
-	SimpleAreaContextItem,
-	SimpleContextItem,
-	SimplePointContextItem,
-	SimpleShapeContextItem,
-	SimpleShapesContextItem,
-	TLAgentPrompt,
-	TLAgentPromptOptions,
-} from '../types/TLAgentPrompt'
+	AreaContextItem,
+	ContextItem,
+	PointContextItem,
+	ShapeContextItem,
+	ShapesContextItem,
+} from '../types/ContextItem'
+import { TLAgentPrompt, TLAgentPromptOptions } from '../types/TLAgentPrompt'
 import { PromptPartHandler } from './PromptPartHandler'
 
 export class ContextItemsPromptPart extends PromptPartHandler {
@@ -101,4 +101,26 @@ export class ContextItemsPromptPart extends PromptPartHandler {
 			source: item.source,
 		}
 	}
+}
+
+export type SimpleContextItem =
+	| SimpleShapeContextItem
+	| SimpleShapesContextItem
+	| SimpleAreaContextItem
+	| SimplePointContextItem
+
+export type SimpleShapeContextItem = Omit<ShapeContextItem, 'shape'> & {
+	shape: ISimpleShape
+}
+
+export type SimpleShapesContextItem = Omit<ShapesContextItem, 'shapes'> & {
+	shapes: ISimpleShape[]
+}
+
+export type SimpleAreaContextItem = AreaContextItem
+export type SimplePointContextItem = PointContextItem
+
+export interface SimpleContextItemDefinition {
+	name(item: SimpleContextItem): string
+	icon: AgentIconType
 }

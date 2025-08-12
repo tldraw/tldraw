@@ -3,16 +3,10 @@ import { TLAgentModelName } from '../../worker/models'
 import { IAgentEvent } from '../../worker/prompt/AgentEvent'
 import { ISimpleShape } from '../../worker/simple/SimpleShape'
 import { AgentHistoryItem } from '../components/chat-history/AgentHistoryItem'
-import { AgentIconType } from '../components/icons/AgentIcon'
 import { AgentEventUtil } from '../events/AgentEventUtil'
+import { SimpleContextItem } from '../promptParts/ContextItemsPromptPart'
 import { PromptPartHandlerConstructor } from '../promptParts/PromptPartHandler'
-import {
-	AreaContextItem,
-	ContextItem,
-	PointContextItem,
-	ShapeContextItem,
-	ShapesContextItem,
-} from './ContextItem'
+import { ContextItem } from './ContextItem'
 import { ScheduledRequest } from './ScheduledRequest'
 
 // TLAgentPromptOptions contains the information needed to construct a prompt, such as all the events and prompt parts, and raw data from the editor / chat state.
@@ -56,27 +50,4 @@ export interface TLAgentPrompt {
 export interface TLAgentContent {
 	shapes: TLShape[]
 	bindings: TLBinding[]
-}
-
-//simple context items (these will move at some point)
-export type SimpleContextItem =
-	| SimpleShapeContextItem
-	| SimpleShapesContextItem
-	| SimpleAreaContextItem
-	| SimplePointContextItem
-
-export type SimpleShapeContextItem = Omit<ShapeContextItem, 'shape'> & {
-	shape: ISimpleShape
-}
-
-export type SimpleShapesContextItem = Omit<ShapesContextItem, 'shapes'> & {
-	shapes: ISimpleShape[]
-}
-
-export type SimpleAreaContextItem = AreaContextItem
-export type SimplePointContextItem = PointContextItem
-
-export interface SimpleContextItemDefinition {
-	name(item: SimpleContextItem): string
-	icon: AgentIconType
 }
