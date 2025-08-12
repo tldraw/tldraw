@@ -9,7 +9,7 @@
 - **Fine-grained reactivity** - Only re-runs computations when their actual dependencies change
 - **High performance** - Lazy evaluation and efficient dependency tracking
 - **Automatic updates** - Derived values and side effects update automatically
-- **Time travel** - Built-in history tracking and transactions with rollback support  
+- **Time travel** - Built-in history tracking and transactions with rollback support
 - **Framework agnostic** - Works with any JavaScript framework or vanilla JS
 - **TypeScript first** - Excellent type safety with full TypeScript support
 
@@ -32,12 +32,12 @@ const count = atom('count', 0)
 
 // Derive values automatically
 const greeting = computed('greeting', () => {
-  return `Hello, ${name.get()}! Count: ${count.get()}`
+	return `Hello, ${name.get()}! Count: ${count.get()}`
 })
 
 // React to changes
 react('logger', () => {
-  console.log(greeting.get())
+	console.log(greeting.get())
 })
 // Logs: "Hello, World! Count: 0"
 
@@ -66,7 +66,7 @@ const theme = atom('theme', 'light')
 console.log(user.get().name) // 'Alice'
 
 // Update values
-user.update(current => ({ ...current, age: 31 }))
+user.update((current) => ({ ...current, age: 31 }))
 theme.set('dark')
 ```
 
@@ -81,7 +81,7 @@ const firstName = atom('firstName', 'John')
 const lastName = atom('lastName', 'Doe')
 
 const fullName = computed('fullName', () => {
-  return `${firstName.get()} ${lastName.get()}`
+	return `${firstName.get()} ${lastName.get()}`
 })
 
 console.log(fullName.get()) // "John Doe"
@@ -101,8 +101,8 @@ const selectedId = atom('selectedId', null)
 
 // Update UI when selection changes
 const stop = react('update-selection-ui', () => {
-  const id = selectedId.get()
-  document.getElementById('selected').textContent = id || 'None'
+	const id = selectedId.get()
+	document.getElementById('selected').textContent = id || 'None'
 })
 
 selectedId.set('shape-123')
@@ -128,9 +128,9 @@ react('log-position', () => console.log(position.get()))
 // Logs: "(0, 0)"
 
 transact(() => {
-  x.set(10)
-  y.set(20)
-  // Reaction runs only once after transaction
+	x.set(10)
+	y.set(20)
+	// Reaction runs only once after transaction
 })
 // Logs: "(10, 20)"
 ```
@@ -142,13 +142,17 @@ transact(() => {
 Track changes over time for undo/redo functionality:
 
 ```ts
-const canvas = atom('canvas', { shapes: [] }, {
-  historyLength: 100,
-  computeDiff: (prev, next) => ({ prev, next })
-})
+const canvas = atom(
+	'canvas',
+	{ shapes: [] },
+	{
+		historyLength: 100,
+		computeDiff: (prev, next) => ({ prev, next }),
+	}
+)
 
 // Make changes...
-canvas.update(state => ({ shapes: [...state.shapes, newShape] }))
+canvas.update((state) => ({ shapes: [...state.shapes, newShape] }))
 
 // Get diffs since a point in time
 const startTime = getGlobalEpoch()
@@ -162,12 +166,12 @@ Use `unsafe_withoutCapture` to read values without creating dependencies:
 
 ```ts
 const expensiveComputed = computed('expensive', () => {
-  const important = importantValue.get()
-  
-  // Read this without making it a dependency
-  const metadata = unsafe_withoutCapture(() => metadataAtom.get())
-  
-  return computeExpensiveValue(important, metadata)
+	const important = importantValue.get()
+
+	// Read this without making it a dependency
+	const metadata = unsafe_withoutCapture(() => metadataAtom.get())
+
+	return computeExpensiveValue(important, metadata)
 })
 ```
 
@@ -177,8 +181,8 @@ Use `whyAmIRunning()` to understand what triggered an update:
 
 ```ts
 react('debug-reaction', () => {
-  whyAmIRunning() // Logs dependency tree to console
-  // Your reaction code...
+	whyAmIRunning() // Logs dependency tree to console
+	// Your reaction code...
 })
 ```
 
@@ -192,13 +196,13 @@ const editor = useEditor()
 
 // Create reactive state that works with tldraw
 const selectedShapes = computed('selectedShapes', () => {
-  return editor.getSelectedShapeIds().map(id => editor.getShape(id))
+	return editor.getSelectedShapeIds().map((id) => editor.getShape(id))
 })
 
-// React to selection changes  
+// React to selection changes
 react('update-property-panel', () => {
-  const shapes = selectedShapes.get()
-  updatePropertyPanel(shapes)
+	const shapes = selectedShapes.get()
+	updatePropertyPanel(shapes)
 })
 ```
 
@@ -214,16 +218,16 @@ npm install @tldraw/state-react
 import { useAtom, useComputed } from '@tldraw/state-react'
 
 function Counter() {
-  const [count, setCount] = useAtom(countAtom)
-  const doubled = useComputed(() => count * 2, [count])
-  
-  return (
-    <div>
-      <p>Count: {count}</p>
-      <p>Doubled: {doubled}</p>
-      <button onClick={() => setCount(count + 1)}>+</button>
-    </div>
-  )
+	const [count, setCount] = useAtom(countAtom)
+	const doubled = useComputed(() => count * 2, [count])
+
+	return (
+		<div>
+			<p>Count: {count}</p>
+			<p>Doubled: {doubled}</p>
+			<button onClick={() => setCount(count + 1)}>+</button>
+		</div>
+	)
 }
 ```
 
@@ -235,7 +239,7 @@ For complete API documentation, see [DOCS.md](./DOCS.md).
 
 - `atom(name, initialValue, options?)` - Create a reactive state container
 - `computed(name, computeFn, options?)` - Create a derived value
-- `react(name, effectFn, options?)` - Create a side effect  
+- `react(name, effectFn, options?)` - Create a side effect
 - `transact(fn)` - Batch state updates
 
 ### Class-based APIs
@@ -253,7 +257,7 @@ For complete API documentation, see [DOCS.md](./DOCS.md).
 ## Related Packages
 
 - **[@tldraw/state-react](../state-react)** - React bindings for @tldraw/state
-- **[@tldraw/store](../store)** - Record storage built on @tldraw/state  
+- **[@tldraw/store](../store)** - Record storage built on @tldraw/state
 - **[@tldraw/editor](../editor)** - The tldraw canvas editor
 - **[@tldraw/tldraw](../tldraw)** - Complete tldraw UI components
 
