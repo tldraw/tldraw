@@ -1,7 +1,15 @@
 import { useEffect, useRef, useState } from 'react'
-import { Editor, TLComponents, Tldraw, TLShape } from 'tldraw'
+import {
+	defaultBindingUtils,
+	defaultShapeUtils,
+	Editor,
+	StateNode,
+	TLComponents,
+	TldrawEditor,
+	TLShape,
+} from 'tldraw'
 
-function TldrawViewer({
+export function TldrawViewer({
 	shapes,
 	components = {},
 }: {
@@ -51,15 +59,22 @@ function TldrawViewer({
 
 	return (
 		<div ref={containerRef} className="tldraw-viewer">
-			<Tldraw
+			<TldrawEditor
 				autoFocus={false}
-				hideUi
 				components={components ?? {}}
 				inferDarkMode={false}
 				onMount={setEditor}
+				shapeUtils={defaultShapeUtils}
+				bindingUtils={defaultBindingUtils}
+				tools={tools}
+				initialState="inspect"
 			/>
 		</div>
 	)
 }
 
-export default TldrawViewer
+class InspectTool extends StateNode {
+	static override id = 'inspect'
+}
+
+const tools = [InspectTool]
