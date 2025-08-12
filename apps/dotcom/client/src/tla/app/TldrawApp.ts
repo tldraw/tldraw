@@ -66,6 +66,8 @@ import { createIntl, defineMessages, setupCreateIntl } from '../utils/i18n'
 import { updateLocalSessionState } from '../utils/local-session-state'
 import { Zero as ZeroPolyfill } from './zero-polyfill'
 
+export type SidebarFileContext = 'my-files' | 'group-files' | 'my-files-pinned'
+
 export const TLDR_FILE_ENDPOINT = `/api/app/tldr`
 export const PUBLISH_ENDPOINT = `/api/app/publish`
 
@@ -943,7 +945,12 @@ export class TldrawApp {
 		expandedGroups: new Set<string>(),
 		renameState: null as null | {
 			fileId: string
-			context: 'my-files' | 'group-files'
+			context: SidebarFileContext
+		},
+		dragState: null as null | {
+			fileId: string
+			context: SidebarFileContext
+			sourceGroupId?: string
 		},
 	})
 }

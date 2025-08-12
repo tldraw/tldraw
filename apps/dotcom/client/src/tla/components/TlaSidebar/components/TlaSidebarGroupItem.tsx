@@ -20,6 +20,7 @@ import { getIsCoarsePointer } from '../../../utils/getIsCoarsePointer'
 import { F, defineMessages, useMsg } from '../../../utils/i18n'
 import { TlaIcon } from '../../TlaIcon/TlaIcon'
 import styles from '../sidebar.module.css'
+import { TlaSidebarDropZone } from './TlaSidebarDropZone'
 import { TlaSidebarFileLink } from './TlaSidebarFileLink'
 import { messages } from './sidebar-shared'
 
@@ -57,6 +58,7 @@ function GroupEmptyState() {
 			<F
 				{...messages.groupEmpty}
 				values={{
+					br: () => <br />,
 					create: (chunks) => (
 						<button className={styles.sidebarGroupItemButtonInline}>
 							{chunks} <TlaIcon icon="edit" className={styles.sidebarGroupEmptyStateIcon} />
@@ -81,7 +83,7 @@ const GroupFileList = memo(function GroupFileList({ groupId }: { groupId: string
 	if (!group) return null
 
 	let files = group.groupFiles.map((gf) => gf.file)
-	files = files.slice().sort((a, b) => b.createdAt - a.createdAt)
+	files = files.slice().sort((a, b) => b.updatedAt - a.updatedAt)
 
 	const MAX_FILES_TO_SHOW = 4
 	const isOverflowing = files.length > MAX_FILES_TO_SHOW
@@ -238,7 +240,18 @@ export function TlaSidebarGroupItem({ groupId }: { groupId: string }) {
 
 	const isExpanded = useValue(
 		'isExpanded',
-		() => app.sidebarState.get().expandedGroups.has(groupId),
+		() => {
+			const isExpanded = app.sidebarState.get().expandedGroups.has(groupId)
+			const dragState = app.sidebarState.get().dragState
+			if (!dragState) return isExpanded
+			const groupFiles = app.getGroupMembership(groupId)?.groupFiles
+			if (!groupFiles) return isExpanded
+			const isOnlyGroupFileDragging =
+				groupFiles.length === 1 &&
+				dragState.context === 'group-files' &&
+				groupFiles[0].fileId === dragState.fileId
+			return isExpanded && !isOnlyGroupFileDragging
+		},
 		[app, groupId]
 	)
 	const setIsExpanded = useCallback(
@@ -282,36 +295,48 @@ export function TlaSidebarGroupItem({ groupId }: { groupId: string }) {
 	return (
 		<_ContextMenu.Root onOpenChange={handleContextMenuOpenChange} modal={false}>
 			<_ContextMenu.Trigger>
-				<Collapsible.Root
-					className={styles.sidebarGroupItem}
-					open={isExpanded}
-					data-menu-open={menuIsOpen || contextMenuIsOpen}
-				>
-					<Collapsible.Trigger asChild>
-						<button
-							className={styles.sidebarGroupItemHeader}
-							onClick={() => setIsExpanded(!isExpanded)}
-							aria-expanded={isExpanded}
-						>
-							<span className={styles.sidebarGroupItemTitle}>{group.group.name}</span>
-							<TriangleIcon angle={isExpanded ? 180 : 90} />
-							<div className={styles.sidebarGroupItemButtons} onClick={(e) => e.stopPropagation()}>
-								<TlaSidebarGroupMenu groupId={groupId} />
-								<button
-									className={styles.sidebarGroupItemButton}
-									onClick={handleCreateFile}
-									title="New file"
-									type="button"
+				<TlaSidebarDropZone id={`group-${groupId}-drop-zone`}>
+					<Collapsible.Root
+						className={styles.sidebarGroupItem}
+						open={isExpanded}
+						data-menu-open={menuIsOpen || contextMenuIsOpen}
+					>
+						<Collapsible.Trigger asChild>
+							<div
+								className={styles.sidebarGroupItemHeader}
+								onClick={() => setIsExpanded(!isExpanded)}
+								aria-expanded={isExpanded}
+								role="button"
+								tabIndex={0}
+								onKeyDown={(e) => {
+									if (e.key === 'Enter') {
+										setIsExpanded(!isExpanded)
+									}
+								}}
+							>
+								<span className={styles.sidebarGroupItemTitle}>{group.group.name}</span>
+								<TriangleIcon angle={isExpanded ? 180 : 90} />
+								<div
+									className={styles.sidebarGroupItemButtons}
+									onClick={(e) => e.stopPropagation()}
 								>
-									<TlaIcon icon="edit" />
-								</button>
+									<TlaSidebarGroupMenu groupId={groupId} />
+									<button
+										className={styles.sidebarGroupItemButton}
+										onClick={handleCreateFile}
+										title="New file"
+										type="button"
+									>
+										<TlaIcon icon="edit" />
+									</button>
+								</div>
 							</div>
-						</button>
-					</Collapsible.Trigger>
-					<Collapsible.Content className={styles.CollapsibleContent}>
-						<GroupFileList groupId={groupId} />
-					</Collapsible.Content>
-				</Collapsible.Root>
+						</Collapsible.Trigger>
+						<Collapsible.Content className={styles.CollapsibleContent}>
+							<GroupFileList groupId={groupId} />
+						</Collapsible.Content>
+					</Collapsible.Root>
+				</TlaSidebarDropZone>
 			</_ContextMenu.Trigger>
 			<_ContextMenu.Content className="tlui-menu tlui-scrollable">
 				<TldrawUiMenuContextProvider type="context-menu" sourceId="context-menu">

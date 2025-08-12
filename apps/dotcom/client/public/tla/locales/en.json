@@ -155,6 +155,9 @@
   "56c34c6410": {
     "translation": "Privacy policy"
   },
+  "5a86b22fa0": {
+    "translation": "Drag files here, <create>create a file</create>, or <invite>copy invite link</invite> to get started."
+  },
   "5a95a425f7": {
     "translation": "Share"
   },
@@ -301,6 +304,9 @@
   },
   "91e49bb0eb": {
     "translation": "Copy to my files"
+  },
+  "930390d222": {
+    "translation": "Copied invite link"
   },
   "96165d6df5": {
     "translation": "This month"
@@ -465,6 +471,9 @@
   "dfdb78a4e4": {
     "translation": "App debug flags"
   },
+  "e2198d6228": {
+    "translation": "Copy invite link"
+  },
   "e2ae80a510": {
     "translation": "Legal summary"
   },
@@ -521,6 +530,9 @@
   },
   "fed5ec05eb": {
     "translation": "Copied link"
+  },
+  "ff7a814974": {
+    "translation": "Add file link…"
   },
   "ffcd73e997": {
     "translation": "Import file…"

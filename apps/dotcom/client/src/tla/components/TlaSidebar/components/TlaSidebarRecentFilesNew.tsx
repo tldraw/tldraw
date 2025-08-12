@@ -6,6 +6,7 @@ import { getIsCoarsePointer } from '../../../utils/getIsCoarsePointer'
 import { F } from '../../../utils/i18n'
 import styles from '../sidebar.module.css'
 import { RecentFile } from './sidebar-shared'
+import { TlaSidebarDropZone } from './TlaSidebarDropZone'
 import { TlaSidebarFileLink } from './TlaSidebarFileLink'
 import { TlaSidebarFileSection } from './TlaSidebarFileSection'
 import { TlaSidebarGroupItem } from './TlaSidebarGroupItem'
@@ -92,31 +93,35 @@ export function TlaSidebarRecentFilesNew() {
 	return (
 		<Fragment>
 			{results.pinnedFiles.length > 0 && (
-				<TlaSidebarFileSection title={<F defaultMessage="Favorites" />} onePixelOfPaddingAtTheTop>
-					{results.pinnedFiles.map((item, i) => (
-						<TlaSidebarFileLink
-							context="my-files"
-							key={'file_link_pinned_' + item.fileId}
-							item={item}
-							testId={`tla-file-link-pinned-${i}`}
-						/>
-					))}
-				</TlaSidebarFileSection>
+				<TlaSidebarDropZone id="my-files-pinned-drop-zone">
+					<TlaSidebarFileSection title={<F defaultMessage="Favorites" />} onePixelOfPaddingAtTheTop>
+						{results.pinnedFiles.map((item, i) => (
+							<TlaSidebarFileLink
+								context="my-files-pinned"
+								key={'file_link_pinned_' + item.fileId}
+								item={item}
+								testId={`tla-file-link-pinned-${i}`}
+							/>
+						))}
+					</TlaSidebarFileSection>
+				</TlaSidebarDropZone>
 			)}
 			{filesToShow.length > 0 && (
-				<TlaSidebarFileSection
-					className={styles.sidebarFileSectionRecent}
-					title={<F defaultMessage="My files" />}
-				>
-					{filesToShow.map((item, i) => (
-						<TlaSidebarFileLink
-							context="my-files"
-							key={'file_link_today_' + item.fileId}
-							item={item}
-							testId={`tla-file-link-today-${i}`}
-						/>
-					))}
-				</TlaSidebarFileSection>
+				<TlaSidebarDropZone id="my-files-drop-zone">
+					<TlaSidebarFileSection
+						className={styles.sidebarFileSectionRecent}
+						title={<F defaultMessage="My files" />}
+					>
+						{filesToShow.map((item, i) => (
+							<TlaSidebarFileLink
+								context="my-files"
+								key={'file_link_today_' + item.fileId}
+								item={item}
+								testId={`tla-file-link-today-${i}`}
+							/>
+						))}
+					</TlaSidebarFileSection>
+				</TlaSidebarDropZone>
 			)}
 			{hiddenFiles.length > 0 && (
 				<Collapsible.Root open={isShowingAll}>

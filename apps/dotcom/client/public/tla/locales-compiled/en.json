@@ -325,6 +325,40 @@
       "value": "Privacy policy"
     }
   ],
+  "5a86b22fa0": [
+    {
+      "type": 0,
+      "value": "Drag files here, "
+    },
+    {
+      "children": [
+        {
+          "type": 0,
+          "value": "create a file"
+        }
+      ],
+      "type": 8,
+      "value": "create"
+    },
+    {
+      "type": 0,
+      "value": ", or "
+    },
+    {
+      "children": [
+        {
+          "type": 0,
+          "value": "copy invite link"
+        }
+      ],
+      "type": 8,
+      "value": "invite"
+    },
+    {
+      "type": 0,
+      "value": " to get started."
+    }
+  ],
   "5a95a425f7": [
     {
       "type": 0,
@@ -653,6 +687,12 @@
     {
       "type": 0,
       "value": "Copy to my files"
+    }
+  ],
+  "930390d222": [
+    {
+      "type": 0,
+      "value": "Copied invite link"
     }
   ],
   "96165d6df5": [
@@ -1025,6 +1065,12 @@
       "value": "App debug flags"
     }
   ],
+  "e2198d6228": [
+    {
+      "type": 0,
+      "value": "Copy invite link"
+    }
+  ],
   "e2ae80a510": [
     {
       "type": 0,
@@ -1151,6 +1197,12 @@
     {
       "type": 0,
       "value": "Copied link"
+    }
+  ],
+  "ff7a814974": [
+    {
+      "type": 0,
+      "value": "Add file link…"
     }
   ],
   "ffcd73e997": [

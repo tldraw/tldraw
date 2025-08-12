@@ -322,7 +322,12 @@ export function createMutators(userId: string) {
 				}
 
 				// Transfer file ownership from user to group
-				await tx.mutate.file.update({ id: fileId, owningGroupId: groupId, ownerId: null })
+				await tx.mutate.file.update({
+					id: fileId,
+					owningGroupId: groupId,
+					ownerId: null,
+					updatedAt: Date.now(),
+				})
 				await tx.mutate.group_file.insert({
 					fileId,
 					groupId,

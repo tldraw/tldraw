@@ -873,7 +873,7 @@
 }
 
 .sidebarGroupEmptyStateIcon {
-	margin-left: 4px;
+	margin-left: 2px;
 	margin-right: 1px;
 	scale: 0.8;
 }
@@ -922,10 +922,10 @@
 	overflow: hidden;
 }
 .CollapsibleContent[data-state='open'] {
-	animation: slideDown 230ms cubic-bezier(0.4, 0, 0.2, 1);
+	animation: slideDown 250ms cubic-bezier(0.4, 0, 0.2, 1);
 }
 .CollapsibleContent[data-state='closed'] {
-	animation: slideUp 230ms cubic-bezier(0.4, 0, 0.2, 1);
+	animation: slideUp 250ms cubic-bezier(0.4, 0, 0.2, 1);
 }
 
 @keyframes slideDown {
@@ -950,4 +950,39 @@
 	color: var(--tla-color-text-4);
 	font-size: 12px;
 	padding: 8px;
+}
+
+/* -------------------- Drop Zone Styles ------------------- */
+
+.sidebarDropZone {
+	position: relative;
+}
+
+.sidebarDropZoneActive::after {
+	display: block;
+	content: '';
+	position: absolute;
+	inset: -2px;
+	border: 1px dashed var(--tla-color-primary);
+	border-radius: 5px;
+	opacity: 0.75;
+}
+
+.sidebarDropZoneActive .sidebarFileSection {
+	opacity: 0.7;
+}
+
+/* -------------------- Drag Overlay Styles ------------------- */
+
+/* Drag overlay uses the same styles as file list items */
+/* Ensure drag overlay doesn't interfere with clicks */
+[data-dnd-kit-drag-overlay] {
+	pointer-events: none !important;
+	user-select: none !important;
+}
+
+/* -------------------- Dragging State Styles ------------------- */
+
+.sidebarFileListItemDragging {
+	pointer-events: none;
 }
