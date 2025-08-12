@@ -58,6 +58,8 @@ async function* streamEventsVercel(
 			model,
 			system: SIMPLE_SYSTEM_PROMPT,
 			messages: buildMessages(prompt),
+			maxTokens: 8192,
+			temperature: 0,
 			schema: ModelResponse,
 			onError: (e) => {
 				console.error('Stream object error:', e)
