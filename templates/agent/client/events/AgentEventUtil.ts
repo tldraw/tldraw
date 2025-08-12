@@ -1,8 +1,8 @@
 import { Editor } from 'tldraw'
 import { IAgentEvent } from '../../worker/prompt/AgentEvent'
-import { AgentHistoryItemStatus } from '../components/chat-history/AgentHistoryItem'
+import { AgentTransform } from '../AgentTransform'
 import { AgentIconType } from '../components/chat-history/AgentIcon'
-import { AgentTransform } from '../transforms/AgentTransform'
+import { AgentHistoryItemStatus } from '../components/chat-history/AgentHistoryItem'
 import { Streaming } from '../types/Streaming'
 
 export abstract class AgentEventUtil<T extends IAgentEvent = IAgentEvent> {

@@ -1,5 +1,5 @@
 import { Editor, TLShapeId } from 'tldraw'
-import { ISimpleShape } from '../../worker/simple/SimpleShape'
+import { ISimpleShape } from '../worker/simple/SimpleShape'
 
 /**
  * A class that helps to transform events received from the model.

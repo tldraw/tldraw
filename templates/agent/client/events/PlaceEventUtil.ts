@@ -1,6 +1,6 @@
 import { TLShapeId } from 'tldraw'
 import { IAgentPlaceEvent } from '../../worker/prompt/AgentEvent'
-import { AgentTransform } from '../transforms/AgentTransform'
+import { AgentTransform } from '../AgentTransform'
 import { Streaming } from '../types/Streaming'
 import { AgentEventUtil } from './AgentEventUtil'
 

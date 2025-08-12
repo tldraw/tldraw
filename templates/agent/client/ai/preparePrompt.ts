@@ -1,4 +1,4 @@
-import { AgentTransform } from '../transforms/AgentTransform'
+import { AgentTransform } from '../AgentTransform'
 import { TLAgentPrompt, TLAgentPromptOptions } from '../types/TLAgentPrompt'
 
 /**

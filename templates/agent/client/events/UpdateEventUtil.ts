@@ -13,7 +13,7 @@ import {
 } from 'tldraw'
 import { IAgentUpdateEvent } from '../../worker/prompt/AgentEvent'
 import { asColor, simpleFillToShapeFill } from '../../worker/simple/color'
-import { AgentTransform } from '../transforms/AgentTransform'
+import { AgentTransform } from '../AgentTransform'
 import { Streaming } from '../types/Streaming'
 import { AgentEventUtil } from './AgentEventUtil'
 
