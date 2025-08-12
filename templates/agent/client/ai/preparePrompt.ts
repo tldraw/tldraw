@@ -31,7 +31,6 @@ export async function preparePrompt(
 	// Generate prompt parts using handlers
 	for (const promptPartConstructor of promptParts) {
 		const handler = new promptPartConstructor(editor, transform)
-		console.log('handler', promptPartConstructor.type)
 		const promptPart = await handler.getPromptPart(promptOptions)
 
 		// If the handler has a transformPromptPart method, use it; otherwise, just assign the promptPart
@@ -45,6 +44,6 @@ export async function preparePrompt(
 		}
 	}
 
-	console.log(prompt)
+	console.log('PROMPT', prompt)
 	return prompt as TLAgentPrompt
 }

@@ -18,8 +18,6 @@ export function buildMessages(prompt: TLAgentPrompt): CoreMessage[] {
 	messages.push(...contextShapesMessages)
 	messages.push(userMessage)
 
-	console.log('messages', JSON.stringify(messages, null, 2))
-
 	return messages
 }
 
