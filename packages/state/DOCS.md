@@ -1,12 +1,12 @@
-# **tldraw state** Documentation
+# @tldraw/state Documentation
 
 ## 1. Introduction
 
-### What is **tldraw state**?
+### What is @tldraw/state?
 
-**tldraw state** is a powerful and lightweight TypeScript library for managing state using reactive values called **signals**. Its fine-grained reactive system allows you to build complex, performant, and predictable user interfaces and data models.
+@tldraw/state is a powerful and lightweight TypeScript library for managing state using reactive values called **signals**. Its fine-grained reactive system allows you to build complex, performant, and predictable user interfaces and data models.
 
-This library provides the core of tldraw's reactivity system. Its sister library, **tldraw state-react**, provides bindings for [React](https://react.dev/).
+This library provides the core of tldraw's reactivity system. Its sister library, @tldraw/state-react, provides bindings for [React](https://react.dev/).
 
 ### Installation
 
@@ -16,7 +16,7 @@ npm install @tldraw/state
 
 ### TypeScript
 
-**tldraw state** is written in TypeScript and provides excellent type safety out of the box. No additional types package needed.
+@tldraw/state is written in TypeScript and provides excellent type safety out of the box. No additional types package needed.
 
 ### Quick Example
 
@@ -45,7 +45,7 @@ In just a few lines, you've created reactive state that automatically alerts the
 
 A **signal** is a reactive container for a value that can change over time.
 
-In **tldraw state**, there are two types of signals:
+In @tldraw/state, there are two types of signals:
 
 - An **Atom** is the basic type of signal that acts as a container for a single value.
 - A **Computed** is a signal that derives its value from several other signals (atoms or other computeds).
@@ -345,7 +345,7 @@ console.log(lastName.get()) // "Doe" // The change was rolled back
 
 ### History and Diffs
 
-**tldraw state** can automatically track the history of changes to a signal, which is invaluable for features like undo/redo or creating sync engines.
+@tldraw/state can automatically track the history of changes to a signal, which is invaluable for features like undo/redo or creating sync engines.
 
 To enable history, you must provide the `historyLength` option when creating an atom or computed.
 
@@ -483,11 +483,11 @@ const stop = react(
 
 ### Performance Optimization
 
-While **tldraw state** is fast by default, there are tools for fine-tuning performance in demanding situations.
+While @tldraw/state is fast by default, there are tools for fine-tuning performance in demanding situations.
 
-#### unsafe_withoutCapture()
+#### unsafe__withoutCapture()
 
-As explained earlier, when a computed or reaction runs, it automatically captures any signals you `.get()` as dependencies. Sometimes, however, you need to read a signal's value _without_ creating this dependency. `unsafe_withoutCapture` lets you step out of the current capture phase to do exactly that.
+As explained earlier, when a computed or reaction runs, it automatically captures any signals you `.get()` as dependencies. Sometimes, however, you need to read a signal's value _without_ creating this dependency. `unsafe__withoutCapture` lets you step out of the current capture phase to do exactly that.
 
 ```ts
 const frequentlyChangingValue = atom('frequent', 0)
@@ -497,7 +497,7 @@ react('log important changes', () => {
 	console.log(`Important value changed to ${importantValue.get()}`)
 
 	// We read this value, but don't create a dependency on it.
-	const otherValue = unsafe_withoutCapture(() => frequentlyChangingValue.get())
+	const otherValue = unsafe__withoutCapture(() => frequentlyChangingValue.get())
 	console.log(`(The other value was ${otherValue} at the time)`)
 })
 
@@ -515,7 +515,7 @@ The library exports several type guard functions to help you work with signals i
 
 ## 5. Debugging
 
-Because **tldraw state** manages a graph of dependencies, it can sometimes be tricky to understand why a particular reaction or computed signal is re-running. The library provides a powerful utility to help with this.
+Because @tldraw/state manages a graph of dependencies, it can sometimes be tricky to understand why a particular reaction or computed signal is re-running. The library provides a powerful utility to help with this.
 
 ### whyAmIRunning()
 
@@ -560,4 +560,4 @@ This makes it much easier to trace the flow of data and updates through your app
 
 ## 6. Integrations with React
 
-In addition to the core library, **tldraw state** provides a separate package, **tldraw state**-react, for integrating with the React framework. This library is documented separately.
+In addition to the core library, @tldraw/state provides a separate package, @tldraw/state-react, for integrating with the React framework. This library is documented separately.

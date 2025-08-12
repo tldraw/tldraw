@@ -162,14 +162,14 @@ const diffs = canvas.getDiffSince(startTime)
 
 ### Performance Optimization
 
-Use `unsafe_withoutCapture` to read values without creating dependencies:
+Use `unsafe__withoutCapture` to read values without creating dependencies:
 
 ```ts
 const expensiveComputed = computed('expensive', () => {
 	const important = importantValue.get()
 
 	// Read this without making it a dependency
-	const metadata = unsafe_withoutCapture(() => metadataAtom.get())
+	const metadata = unsafe__withoutCapture(() => metadataAtom.get())
 
 	return computeExpensiveValue(important, metadata)
 })
@@ -249,7 +249,7 @@ For complete API documentation, see [DOCS.md](./DOCS.md).
 ### Advanced
 
 - `reactor(name, effectFn)` - Create a controllable reaction
-- `unsafe_withoutCapture(fn)` - Read state without creating dependencies
+- `unsafe__withoutCapture(fn)` - Read state without creating dependencies
 - `whyAmIRunning()` - Debug what triggered an update
 - `getComputedInstance(obj, prop)` - Get underlying computed instance
 - `getGlobalEpoch()` - Get current time for history tracking
@@ -266,8 +266,6 @@ For complete API documentation, see [DOCS.md](./DOCS.md).
 Looking for more examples? Check out:
 
 - [tldraw SDK examples](https://github.com/tldraw/tldraw/tree/main/apps/examples) - Real-world usage in tldraw applications
-- [State patterns guide](./PATTERNS.md) - Common reactive patterns and best practices
-- [Quick start guide](./QUICK_START.md) - Step-by-step tutorial
 
 ## Contributing
 
@@ -283,7 +281,7 @@ Copyright (c) 2024-present tldraw Inc. The tldraw name and logo are trademarks o
 
 ## Contact
 
-Find us on Twitter/X at [@tldraw](https://twitter.com/tldraw).
+Find us on Twitter/X at [@tldraw](https://twitter.com/tldraw). You can contact us by email at [hello@tldraw.com](mailto:hello@tldraw.com).
 
 ## Community
 
