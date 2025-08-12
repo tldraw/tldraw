@@ -1,9 +1,8 @@
 import { defaultApplyChange, TLAiChange } from '@tldraw/ai'
-import { Editor, IndexKey, TLShapeId } from 'tldraw'
+import { Editor, IndexKey, TLShapeId, toRichText } from 'tldraw'
 import { IAgentCreateEvent } from '../../worker/prompt/AgentEvent'
 import { asColor, simpleFillToShapeFill } from '../../worker/simple/color'
 import { AgentTransform } from '../transforms/AgentTransform'
-import { asRichText } from '../transforms/SimpleText'
 import { Streaming } from '../types/Streaming'
 import { AgentEventUtil } from './AgentEventUtil'
 
@@ -61,7 +60,7 @@ export function getTldrawAiChangesFromCreateEvent({
 					x: shape.x,
 					y: shape.y,
 					props: {
-						richText: asRichText(shape.text),
+						richText: toRichText(shape.text),
 						color: asColor(shape.color),
 						textAlign: 'start',
 					},
@@ -133,7 +132,7 @@ export function getTldrawAiChangesFromCreateEvent({
 					y: minY,
 					props: {
 						color: asColor(shape.color),
-						richText: asRichText(shape.text),
+						richText: toRichText(shape.text ?? ''),
 						start: { x: x1 - minX, y: y1 - minY },
 						end: { x: x2 - minX, y: y2 - minY },
 					},
@@ -222,7 +221,7 @@ export function getTldrawAiChangesFromCreateEvent({
 						h: shape.height,
 						color: asColor(shape.color ?? 'black'),
 						fill: simpleFillToShapeFill(shape.fill ?? 'none'),
-						richText: asRichText(shape.text),
+						richText: toRichText(shape.text ?? ''),
 					},
 					meta: {
 						note: shape.note ?? '',
@@ -243,7 +242,7 @@ export function getTldrawAiChangesFromCreateEvent({
 					y: shape.y,
 					props: {
 						color: asColor(shape.color),
-						richText: asRichText(shape.text),
+						richText: toRichText(shape.text ?? ''),
 					},
 					meta: {
 						note: shape.note ?? '',

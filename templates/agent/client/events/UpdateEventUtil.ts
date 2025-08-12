@@ -14,7 +14,6 @@ import {
 import { IAgentUpdateEvent } from '../../worker/prompt/AgentEvent'
 import { asColor, simpleFillToShapeFill } from '../../worker/simple/color'
 import { AgentTransform } from '../transforms/AgentTransform'
-import { asRichText } from '../transforms/SimpleText'
 import { Streaming } from '../types/Streaming'
 import { AgentEventUtil } from './AgentEventUtil'
 
@@ -147,7 +146,7 @@ export function getTldrawAiChangesFromUpdateEvent({
 			const bend = update.bend ?? 0
 
 			const color = update.color ? asColor(update.color) : shapeOnCanvas.props.color
-			const richText = update.text ? asRichText(update.text) : shapeOnCanvas.props.richText
+			const richText = update.text ? toRichText(update.text) : shapeOnCanvas.props.richText
 
 			changes.push({
 				type: 'updateShape',
