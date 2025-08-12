@@ -22,14 +22,11 @@ export function MathematicalToolbarItem() {
 		editor,
 	])
 
-	console.log('isOpen', isOpen, editor.contextId)
-
 	return (
 		<TldrawUiPopover
 			id={MATH_MENU_ID}
 			open={isOpen}
 			onOpenChange={() => {
-				console.log('onOpenChange', editor.contextId)
 				tlmenus.addOpenMenu(MATH_MENU_ID, editor.contextId)
 			}}
 		>

@@ -1,4 +1,13 @@
-import { atom, Atom, Editor, getIndexAbove, getIndices, IndexKey, WeakCache } from 'tldraw'
+import {
+	atom,
+	Atom,
+	Editor,
+	getIndexAbove,
+	getIndices,
+	IndexKey,
+	WeakCache,
+	ZERO_INDEX_KEY,
+} from 'tldraw'
 
 /**
  * EditorAtom is an atom (tldraw's reactive signal) that is scoped to a specific editor. It's useful
@@ -70,7 +79,7 @@ export function indexListLength<T>(list: IndexList<T>) {
  */
 export function appendToIndexList<T>(list: IndexList<T>, value: T) {
 	const entries = indexListEntries(list)
-	const lastIndex = entries[entries.length - 1][0]
+	const lastIndex = entries[entries.length - 1]?.[0] ?? ZERO_INDEX_KEY
 	entries.push([getIndexAbove(lastIndex), value])
 	return Object.fromEntries(entries)
 }

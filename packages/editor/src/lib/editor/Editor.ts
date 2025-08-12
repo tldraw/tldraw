@@ -6253,9 +6253,12 @@ export class Editor extends EventEmitter<TLEventMap> {
 			const shapeIdSet = this.getShapeAndDescendantIds(ids)
 
 			const orderedShapeIds = [...shapeIdSet].reverse()
-			const shapeIds = new Map<TLShapeId, TLShapeId>()
-			for (const shapeId of shapeIdSet) {
-				shapeIds.set(shapeId, createShapeId())
+			const oldToNewShapeIds = new Map<TLShapeId, TLShapeId>()
+			const newToOldShapeIds = new Map<TLShapeId, TLShapeId>()
+			for (const oldShapeId of orderedShapeIds) {
+				const newShapeId = createShapeId()
+				oldToNewShapeIds.set(oldShapeId, newShapeId)
+				newToOldShapeIds.set(newShapeId, oldShapeId)
 			}
 
 			const { shapesToCreateWithOriginals, bindingsToCreate } = withIsolatedShapes(
@@ -6271,14 +6274,14 @@ export class Editor extends EventEmitter<TLEventMap> {
 						bindingsToCreate.push({
 							...originalBinding,
 							id: duplicatedId,
-							fromId: assertExists(shapeIds.get(originalBinding.fromId)),
-							toId: assertExists(shapeIds.get(originalBinding.toId)),
+							fromId: assertExists(oldToNewShapeIds.get(originalBinding.fromId)),
+							toId: assertExists(oldToNewShapeIds.get(originalBinding.toId)),
 						})
 					}
 
 					const shapesToCreateWithOriginals: { shape: TLShape; originalShape: TLShape }[] = []
 					for (const originalId of orderedShapeIds) {
-						const duplicatedId = assertExists(shapeIds.get(originalId))
+						const duplicatedId = assertExists(oldToNewShapeIds.get(originalId))
 						const originalShape = this.getShape(originalId)
 						if (!originalShape) continue
 
@@ -6301,7 +6304,8 @@ export class Editor extends EventEmitter<TLEventMap> {
 								// Use a dummy index for now, it will get updated outside of the `withIsolatedShapes`
 								index: 'a1' as IndexKey,
 								parentId:
-									shapeIds.get(originalShape.parentId as TLShapeId) ?? originalShape.parentId,
+									oldToNewShapeIds.get(originalShape.parentId as TLShapeId) ??
+									originalShape.parentId,
 							},
 							originalShape,
 						})
@@ -6333,7 +6337,16 @@ export class Editor extends EventEmitter<TLEventMap> {
 
 			this.createShapes(shapesToCreate)
 			this.createBindings(bindingsToCreate)
-			this.setSelectedShapes(compact(shapesToCreate.map((shape) => shape.id)))
+
+			const shapesToSelect = []
+			for (const shape of shapesToCreate) {
+				const oldShapeId = newToOldShapeIds.get(shape.id)
+				if (!oldShapeId) continue
+				if (!initialIds.has(oldShapeId)) continue
+				if (!this.getShape(shape.id)) continue
+				shapesToSelect.push(shape.id)
+			}
+			this.setSelectedShapes(shapesToSelect)
 
 			if (offset !== undefined) {
 				// If we've offset the duplicated shapes, check to see whether their new bounds is entirely
