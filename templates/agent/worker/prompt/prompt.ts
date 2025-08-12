@@ -155,8 +155,6 @@ function buildContextShapesMessages(prompt: TLAgentPrompt): CoreMessage[] {
 	}
 
 	if (!hasHandledSelectedShapes && userSelectedShapes.length > 0) {
-		// const simeUserSelectedShapes = userSelectedShapes
-
 		messages.push({
 			role: 'user',
 			content: [

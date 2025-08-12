@@ -1,18 +1,18 @@
-import { AnthropicProvider, createAnthropic } from '@ai-sdk/anthropic'
+import { AnthropicProvider, AnthropicProviderOptions, createAnthropic } from '@ai-sdk/anthropic'
 import {
 	createGoogleGenerativeAI,
 	GoogleGenerativeAIProvider,
 	GoogleGenerativeAIProviderOptions,
 } from '@ai-sdk/google'
 import { createOpenAI, OpenAIProvider } from '@ai-sdk/openai'
-import { LanguageModel, streamObject } from 'ai'
+import { LanguageModel, streamObject, streamText } from 'ai'
 import { Streaming } from '../../../client/types/Streaming'
 import { TLAgentPrompt } from '../../../client/types/TLAgentPrompt'
 import { getTLAgentModelDefinition, TLAgentModelName } from '../../models'
 import { IAgentEvent } from '../../prompt/AgentEvent'
 import { buildMessages } from '../../prompt/prompt'
 import { IModelResponse, ModelResponse } from '../../prompt/schema'
-import { SIMPLE_SYSTEM_PROMPT } from '../../prompt/system-prompt'
+import { SIMPLE_SYSTEM_PROMPT, SIMPLE_SYSTEM_PROMPT_WITH_SCHEMA } from '../../prompt/system-prompt'
 import { Environment } from '../../types'
 import { TldrawAgentService } from './TldrawAgentService'
 
@@ -54,60 +54,182 @@ async function* streamEventsVercel(
 	const geminiThinkingBudget = model.modelId === 'gemini-2.5-pro' ? 128 : 0
 
 	try {
-		const { partialObjectStream } = streamObject<IModelResponse>({
-			model,
-			system: SIMPLE_SYSTEM_PROMPT,
-			messages: buildMessages(prompt),
-			maxTokens: 8192,
-			temperature: 0,
-			schema: ModelResponse,
-			onError: (e) => {
-				console.error('Stream object error:', e)
-				throw e
-			},
-			providerOptions: {
-				google: {
-					thinkingConfig: { thinkingBudget: geminiThinkingBudget },
-				} satisfies GoogleGenerativeAIProviderOptions,
-				//anthropic doesnt allow thinking for tool use, which structured outputs forces to be enabled
-				//the openai models we use dont support thinking anyway
-			},
-		})
+		if (model.provider === 'anthropic.messages') {
+			const messages = buildMessages(prompt)
+			messages.push({
+				role: 'assistant',
+				content: '{"events": [{"_type":',
+			})
+			const { textStream } = streamText({
+				model,
+				system: SIMPLE_SYSTEM_PROMPT_WITH_SCHEMA,
+				messages,
+				maxTokens: 8192,
+				temperature: 0,
+				providerOptions: {
+					anthropic: {
+						thinking: { type: 'disabled' },
+					} satisfies AnthropicProviderOptions,
+				},
+				onError: (e) => {
+					console.error('Stream text error:', e)
+					throw e
+				},
+			})
 
-		let cursor = 0
-		let maybeIncompleteEvent: IAgentEvent | null = null
+			let buffer = '{"events": [{"_type":'
 
-		for await (const partialObject of partialObjectStream) {
-			const events = partialObject.events
-			if (!Array.isArray(events)) continue
-			if (events.length === 0) continue
+			let cursor = 0
+			let maybeIncompleteEvent: IAgentEvent | null = null
 
-			// If the events list is ahead of the cursor, we know we've completed the current event
-			// We can complete the event and move the cursor forward
-			if (events.length > cursor) {
+			for await (const text of textStream) {
+				buffer += text
+
+				const partialObject = closeAndParseJson(buffer)
+				if (!partialObject) continue
+
+				const events = partialObject.events
+				if (!Array.isArray(events)) continue
+				if (events.length === 0) continue
+
+				// If the events list is ahead of the cursor, we know we've completed the current event
+				// We can complete the event and move the cursor forward
+				if (events.length > cursor) {
+					const event = events[cursor - 1] as IAgentEvent
+					if (event) {
+						yield { ...event, complete: true }
+						maybeIncompleteEvent = null
+					}
+					cursor++
+				}
+
+				// Now let's check the (potentially new) current event
+				// And let's yield it in its (potentially incomplete) state
 				const event = events[cursor - 1] as IAgentEvent
 				if (event) {
-					yield { ...event, complete: true }
-					maybeIncompleteEvent = null
+					yield { ...event, complete: false }
+					maybeIncompleteEvent = event
 				}
-				cursor++
 			}
 
-			// Now let's check the (potentially new) current event
-			// And let's yield it in its (potentially incomplete) state
-			const event = events[cursor - 1] as IAgentEvent
-			if (event) {
-				yield { ...event, complete: false }
-				maybeIncompleteEvent = event
+			// If we've finished receiving events, but there's still an incomplete event, we need to complete it
+			if (maybeIncompleteEvent) {
+				yield { ...maybeIncompleteEvent, complete: true }
 			}
-		}
+		} else {
+			const { partialObjectStream } = streamObject<IModelResponse>({
+				model,
+				system: SIMPLE_SYSTEM_PROMPT,
+				messages: buildMessages(prompt),
+				maxTokens: 8192,
+				temperature: 0,
+				schema: ModelResponse,
+				onError: (e) => {
+					console.error('Stream object error:', e)
+					throw e
+				},
+				providerOptions: {
+					google: {
+						thinkingConfig: { thinkingBudget: geminiThinkingBudget },
+					} satisfies GoogleGenerativeAIProviderOptions,
+					//anthropic doesnt allow thinking for tool use, which structured outputs forces to be enabled
+					//the openai models we use dont support thinking anyway
+				},
+			})
 
-		// If we've finished receiving events, but there's still an incomplete event, we need to complete it
-		if (maybeIncompleteEvent) {
-			yield { ...maybeIncompleteEvent, complete: true }
+			let cursor = 0
+			let maybeIncompleteEvent: IAgentEvent | null = null
+
+			for await (const partialObject of partialObjectStream) {
+				const events = partialObject.events
+				if (!Array.isArray(events)) continue
+				if (events.length === 0) continue
+
+				// If the events list is ahead of the cursor, we know we've completed the current event
+				// We can complete the event and move the cursor forward
+				if (events.length > cursor) {
+					const event = events[cursor - 1] as IAgentEvent
+					if (event) {
+						yield { ...event, complete: true }
+						maybeIncompleteEvent = null
+					}
+					cursor++
+				}
+
+				// Now let's check the (potentially new) current event
+				// And let's yield it in its (potentially incomplete) state
+				const event = events[cursor - 1] as IAgentEvent
+				if (event) {
+					yield { ...event, complete: false }
+					maybeIncompleteEvent = event
+				}
+			}
+
+			// If we've finished receiving events, but there's still an incomplete event, we need to complete it
+			if (maybeIncompleteEvent) {
+				yield { ...maybeIncompleteEvent, complete: true }
+			}
 		}
 	} catch (error: any) {
 		console.error('streamEventsVercel error:', error)
 		throw error
+	}
+}
+
+/**
+ * JSON helper. Given a potentially incomplete JSON string, return the parsed object.
+ * The string might be missing closing braces, brackets, or other characters like quotation marks.
+ * @param string - The string to parse.
+ * @returns The parsed object.
+ */
+function closeAndParseJson(string: string) {
+	const stackOfOpenings = []
+	for (const char of string) {
+		const lastOpening = stackOfOpenings.at(-1)
+		if (char === '"') {
+			if (lastOpening === '"') {
+				stackOfOpenings.pop()
+			} else {
+				stackOfOpenings.push('"')
+			}
+		}
+
+		if (lastOpening === '"') {
+			continue
+		}
+
+		if (char === '{' || char === '[') {
+			stackOfOpenings.push(char)
+		}
+
+		if (char === '}' && lastOpening === '{') {
+			stackOfOpenings.pop()
+		}
+
+		if (char === ']' && lastOpening === '[') {
+			stackOfOpenings.pop()
+		}
+	}
+
+	// Now close all unclosed openings
+	for (let i = stackOfOpenings.length - 1; i >= 0; i--) {
+		const opening = stackOfOpenings[i]
+		if (opening === '{') {
+			string += '}'
+		}
+
+		if (opening === '[') {
+			string += ']'
+		}
+
+		if (opening === '"') {
+			string += '"'
+		}
+	}
+
+	try {
+		return JSON.parse(string)
+	} catch (_e) {
+		return null
 	}
 }

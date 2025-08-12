@@ -1,15 +1,31 @@
-import { SimpleShape } from '../simple/SimpleShape'
+import { RESPONSE_FORMAT } from './schema'
 
-const shapeTypeNames = SimpleShape._def.options
-	.map((option) => {
-		const typeField = option.shape._type
-		if (typeField._def.typeName === 'ZodLiteral') {
-			return typeField._def.value
-		}
-		return null
-	})
-	.filter((type) => !!type)
-	.filter((type) => !['unknown'].includes(type))
+const shapeTypeNames = [
+	'rectangle',
+	'ellipse',
+	'triangle',
+	'diamond',
+	'hexagon',
+	'oval',
+	'cloud',
+	'line',
+	'pentagon',
+	'octagon',
+	'star',
+	'rhombus',
+	'rhombus-2',
+	'trapezoid',
+	'arrow-right',
+	'arrow-left',
+	'arrow-up',
+	'arrow-down',
+	'x-box',
+	'text',
+	'arrow',
+	'note',
+	'check-box',
+	'heart',
+]
 
 export const SIMPLE_SYSTEM_PROMPT = `# System Prompt
 
@@ -163,4 +179,16 @@ Each event must include:
 
 - Complete the task to the best of your ability. Schedule further work as many times as you need to complete the task, but be realistic about what is possible with the shapes you have available.
 - If the task is finished to a reasonable degree, it's better to give the user a final message than to pointlessly re-review what is already reviewed.
-- If there's still more work to do, you must \`review\` it. Otherwise it won't happen.`
+- If there's still more work to do, you must \`review\` it. Otherwise it won't happen.
+- It's nice to speak to the user (with a \`message\` event) to let them know what you've done.`
+
+export const SIMPLE_SYSTEM_PROMPT_WITH_SCHEMA =
+	SIMPLE_SYSTEM_PROMPT +
+	`
+
+## Schema
+
+This is the schema for the events you can return. You must conform to this schema.
+
+${JSON.stringify(RESPONSE_FORMAT, null, 2)}
+`

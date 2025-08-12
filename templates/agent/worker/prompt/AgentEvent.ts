@@ -45,7 +45,7 @@ const AgentDeleteEvent = z.object({
 export type IAgentDeleteEvent = z.infer<typeof AgentDeleteEvent>
 
 const AgentThinkEvent = z.object({
-	_type: z.enum(['think']),
+	_type: z.literal('think'),
 	text: z.string(),
 })
 
