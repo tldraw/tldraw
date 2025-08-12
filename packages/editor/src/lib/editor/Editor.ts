@@ -6333,7 +6333,7 @@ export class Editor extends EventEmitter<TLEventMap> {
 
 			this.createShapes(shapesToCreate)
 			this.createBindings(bindingsToCreate)
-			this.setSelectedShapes(compact(ids.map((id) => shapeIds.get(id))))
+			this.setSelectedShapes(compact(shapesToCreate.map((shape) => shape.id)))
 
 			if (offset !== undefined) {
 				// If we've offset the duplicated shapes, check to see whether their new bounds is entirely
