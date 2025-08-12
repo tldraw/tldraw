@@ -53,7 +53,7 @@
 
 @media (min-width: 768px) {
 	.sidebar {
-		border-right: 1px solid var(--color-low);
+		border-right: 1px solid var(--tl-color-low);
 	}
 	.sidebar[data-visible='true'] {
 		transform: translate(100%, 0px);
@@ -170,7 +170,7 @@
 .sidebarToggle:focus-visible {
 	border-radius: 8px;
 	outline-offset: -4px;
-	outline: 2px solid var(--color-focus);
+	outline: 2px solid var(--tl-color-focus);
 }
 
 @media (hover: hover) {
@@ -541,7 +541,7 @@
 
 .sidebarFileListItemRenameInputWrapper {
 	background-color: var(--tla-color-sidebar);
-	outline: 1px solid var(--color-primary);
+	outline: 1px solid var(--tl-color-primary);
 	outline-offset: -2px;
 	border-radius: 6px;
 }
@@ -636,7 +636,7 @@
 
 .sidebarFileLinkRenameInputWrapper {
 	background-color: var(--tla-color-sidebar);
-	outline: 1px solid var(--color-primary);
+	outline: 1px solid var(--tl-color-primary);
 	outline-offset: -2px;
 	border-radius: 6px;
 }
