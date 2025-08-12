@@ -1,6 +1,6 @@
 import { useCallback } from 'react'
 import { Editor, useValue } from 'tldraw'
-import { CursorIcon } from '../icons/CursorIcon'
+import { CursorIcon } from './icons/CursorIcon'
 
 export function SelectionContextPreview({ editor }: { editor: Editor }) {
 	const shapes = useValue('shapes', () => editor.getSelectedShapes(), [editor])

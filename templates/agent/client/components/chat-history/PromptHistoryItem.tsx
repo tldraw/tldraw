@@ -1,6 +1,6 @@
 import { CONTEXT_TYPE_DEFINITIONS, ContextItem } from '../../types/ContextItem'
+import { AgentIcon } from '../icons/AgentIcon'
 import { PromptHistoryItem } from './AgentHistoryItem'
-import { AgentIcon } from './AgentIcon'
 
 export function PromptHistoryItem({ item }: { item: PromptHistoryItem }) {
 	return (

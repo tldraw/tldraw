@@ -2,7 +2,7 @@ import { RecordsDiff, TLRecord } from 'tldraw'
 import { IAgentEvent } from '../../../worker/prompt/AgentEvent'
 import { ContextItem } from '../../types/ContextItem'
 import { Streaming } from '../../types/Streaming'
-import { AgentIconType } from './AgentIcon'
+import { AgentIconType } from '../icons/AgentIcon'
 
 export type AgentHistoryItem =
 	| EventHistoryItem

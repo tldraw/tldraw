@@ -1,6 +1,6 @@
 import { TLAgent } from '../../ai/useAgent'
+import { AgentIcon } from '../icons/AgentIcon'
 import { EventHistoryItem } from './AgentHistoryItem'
-import { AgentIcon } from './AgentIcon'
 
 export function EventHistoryItem({ item, agent }: { item: EventHistoryItem; agent: TLAgent }) {
 	const { event } = item

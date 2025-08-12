@@ -1,5 +1,5 @@
 import { BoxModel, TLGeoShape, TLShape, VecModel } from 'tldraw'
-import { AgentIconType } from '../components/chat-history/AgentIcon'
+import { AgentIconType } from '../components/icons/AgentIcon'
 
 export type ContextItem = ShapeContextItem | AreaContextItem | PointContextItem | ShapesContextItem
 

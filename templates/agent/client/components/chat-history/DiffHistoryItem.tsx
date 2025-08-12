@@ -11,8 +11,8 @@ import {
 } from 'tldraw'
 import { TLAgent } from '../../ai/useAgent'
 import { $chatHistoryItems } from '../../atoms/chatHistoryItems'
+import { AgentIcon, AgentIconType } from '../icons/AgentIcon'
 import { ChangeHistoryItem } from './AgentHistoryItem'
-import { AgentIcon, AgentIconType } from './AgentIcon'
 import TldrawViewer from './TldrawViewer'
 
 // The model returns changes individually, but we group them together in this component for UX reasons, namely so the user can see all changes done at once together, and so they can accept or reject them all at once

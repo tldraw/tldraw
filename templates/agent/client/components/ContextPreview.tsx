@@ -1,5 +1,5 @@
 import { CONTEXT_TYPE_DEFINITIONS, ContextItem } from '../types/ContextItem'
-import { AgentIcon } from './chat-history/AgentIcon'
+import { AgentIcon } from './icons/AgentIcon'
 
 export function ContextPreview({
 	contextItem,
