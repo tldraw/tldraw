@@ -95,15 +95,6 @@ export function getStoredCookieConsent(): CookieConsent | null {
 	}
 }
 
-export function getStoredAnalyticsConsent(): boolean | null {
-	try {
-		const consent = getStoredCookieConsent()
-		return consent?.analytics ?? null
-	} catch {
-		return null
-	}
-}
-
 export function setStoredCookieConsent(consent: Partial<CookieConsent>): void {
 	const existing = cookieConsent.get() || {}
 	const updated = { ...existing, ...consent }
