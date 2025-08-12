@@ -4,22 +4,15 @@ import { DEFAULT_MODEL_NAME } from '../../worker/models'
 import { IAgentEvent } from '../../worker/prompt/AgentEvent'
 import { AgentEventUtil, AgentEventUtilConstructor } from '../events/AgentEventUtil'
 import { UnknownEventUtil } from '../events/UnknownEventUtil'
-import { AgentViewportScreenshotPromptPart } from '../promptParts/AgentViewportScreenshotPromptPart'
-import { AgentViewportShapesPromptPart } from '../promptParts/AgentViewportShapesPromptPart'
-import { ContextBoundsPromptPart } from '../promptParts/ContextBoundsPromptPart'
-import { ContextItemsPromptPart } from '../promptParts/ContextItemsPromptPart'
-import { CurrentUserViewportBoundsPromptPart } from '../promptParts/CurrentUserViewportBoundsPromptPart'
-import { MessagePromptPart } from '../promptParts/MessagePromptPart'
-import { PeripheralContentPromptPart } from '../promptParts/PeripheralContentPromptPart'
-import { PromptBoundsPromptPart } from '../promptParts/PromptBoundsPromptPart'
-import { UserSelectedShapesPromptPart } from '../promptParts/UserSelectedShapesPromptPart'
+import { PromptPartUtil, PromptPartUtilConstructor } from '../promptParts/PromptPartUitl'
 import { TLAgentPromptOptions } from '../types/TLAgentPrompt'
 import { promptAgent } from './promptAgent'
-import { getWholePageContent } from './promptConstruction/translateFromDrawishToModelish'
+import { getWholePageContent } from './promptConstruction/getWholePageContent'
 
 export interface TLAgent {
 	prompt(options: Partial<TLAgentPromptOptions>): { promise: Promise<void>; cancel(): void }
 	getEventUtil(type?: string): AgentEventUtil
+	getPromptPartUtil(type: string): PromptPartUtil
 }
 
 /**
@@ -37,9 +30,11 @@ export interface TLAgent {
 export function useAgent({
 	editor,
 	eventUtils = [],
+	promptPartUtils = [],
 }: {
 	editor: Editor
 	eventUtils: AgentEventUtilConstructor[]
+	promptPartUtils: PromptPartUtilConstructor[]
 }): TLAgent {
 	const eventUtilsMap = useMemo(() => {
 		const eventUtilsMap = new Map<IAgentEvent['_type'], AgentEventUtil>()
@@ -64,6 +59,26 @@ export function useAgent({
 		[eventUtilsMap, unknownEventUtil]
 	)
 
+	const promptPartsUtilsMap = useMemo(() => {
+		const promptPartsUtilsMap = new Map<PromptPartUtilConstructor['type'], PromptPartUtil>()
+		for (const promptPartUtil of promptPartUtils) {
+			promptPartsUtilsMap.set(promptPartUtil.type, new promptPartUtil(editor))
+		}
+		return promptPartsUtilsMap
+	}, [editor, promptPartUtils])
+
+	const getPromptPartUtil = useCallback(
+		(type: string) => {
+			const promptPartUtil = promptPartsUtilsMap.get(type as PromptPartUtilConstructor['type'])
+			if (!promptPartUtil) {
+				//these are defined by the developer and so shouldn't ever result in an unknown type
+				throw new Error(`Prompt part util not found for type: ${type}`)
+			}
+			return promptPartUtil
+		},
+		[promptPartsUtilsMap]
+	)
+
 	const prompt = useCallback(
 		(options: Partial<TLAgentPromptOptions>) => {
 			const {
@@ -82,17 +97,7 @@ export function useAgent({
 			return promptAgent({
 				editor: options.editor ?? editor,
 				eventUtils: eventUtilsMap,
-				promptParts: [
-					AgentViewportScreenshotPromptPart,
-					AgentViewportShapesPromptPart,
-					ContextBoundsPromptPart,
-					ContextItemsPromptPart,
-					CurrentUserViewportBoundsPromptPart,
-					MessagePromptPart,
-					PeripheralContentPromptPart,
-					PromptBoundsPromptPart,
-					UserSelectedShapesPromptPart,
-				],
+				promptPartUtils: promptPartsUtilsMap,
 				message,
 				contextBounds,
 				promptBounds,
@@ -105,8 +110,8 @@ export function useAgent({
 				type,
 			})
 		},
-		[editor, eventUtilsMap]
+		[editor, eventUtilsMap, promptPartsUtilsMap]
 	)
 
-	return { prompt, getEventUtil }
+	return { prompt, getEventUtil, getPromptPartUtil }
 }

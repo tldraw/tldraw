@@ -1,11 +1,11 @@
 import { Box, FileHelpers, TLShape } from 'tldraw'
 import { TLAgentPromptOptions } from '../types/TLAgentPrompt'
-import { PromptPartHandler } from './PromptPartHandler'
+import { PromptPartUtil } from './PromptPartUitl'
 
-export class AgentViewportScreenshotPromptPart extends PromptPartHandler {
+export class AgentViewportScreenshotPartUtil extends PromptPartUtil {
 	static override type = 'agentViewportScreenshot' as const
 
-	override async getPromptPart(options: TLAgentPromptOptions) {
+	override async getPart(options: TLAgentPromptOptions) {
 		const { contextBounds } = options
 		const shapes = this.editor.getCurrentPageShapesSorted().filter((shape) => {
 			const bounds = this.editor.getShapeMaskedPageBounds(shape)

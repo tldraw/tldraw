@@ -1,7 +1,7 @@
 // import { useCallback } from 'react'
 import { Box, Editor, structuredClone } from 'tldraw'
 import { TLAgentModelName } from '../worker/models'
-import { getWholePageContent } from './ai/promptConstruction/translateFromDrawishToModelish'
+import { getWholePageContent } from './ai/promptConstruction/getWholePageContent'
 import { TLAgent } from './ai/useAgent'
 import { $chatHistoryItems } from './atoms/chatHistoryItems'
 import { $pendingContextItems } from './atoms/contextItems'

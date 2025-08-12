@@ -4,8 +4,8 @@ import { IAgentEvent } from '../../worker/prompt/AgentEvent'
 import { ISimpleShape } from '../../worker/simple/SimpleShape'
 import { AgentHistoryItem } from '../components/chat-history/AgentHistoryItem'
 import { AgentEventUtil } from '../events/AgentEventUtil'
-import { SimpleContextItem } from '../promptParts/ContextItemsPromptPart'
-import { PromptPartHandlerConstructor } from '../promptParts/PromptPartHandler'
+import { SimpleContextItem } from '../promptParts/ContextItemsPartUtil'
+import { PromptPartUtil, PromptPartUtilConstructor } from '../promptParts/PromptPartUitl'
 import { ContextItem } from './ContextItem'
 import { ScheduledRequest } from './ScheduledRequest'
 
@@ -13,7 +13,7 @@ import { ScheduledRequest } from './ScheduledRequest'
 export interface TLAgentPromptOptions {
 	editor: Editor
 	eventUtils: Map<IAgentEvent['_type'], AgentEventUtil>
-	promptParts: PromptPartHandlerConstructor[]
+	promptPartUtils: Map<PromptPartUtilConstructor['type'], PromptPartUtil>
 
 	message: string
 	contextBounds: BoxModel

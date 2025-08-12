@@ -1,11 +1,11 @@
-import { convertShapeToSimpleShape } from '../ai/promptConstruction/translateFromDrawishToModelish'
+import { convertShapeToSimpleShape } from '../ai/promptConstruction/translateFromDrawishToSimplish'
 import { TLAgentPromptOptions } from '../types/TLAgentPrompt'
-import { PromptPartHandler } from './PromptPartHandler'
+import { PromptPartUtil } from './PromptPartUitl'
 
-export class UserSelectedShapesPromptPart extends PromptPartHandler {
+export class UserSelectedShapesPartUtil extends PromptPartUtil {
 	static override type = 'userSelectedShapes' as const
 
-	override async getPromptPart(options: TLAgentPromptOptions) {
+	override async getPart(options: TLAgentPromptOptions) {
 		const { userSelectedShapeIds } = options
 		const shapes = []
 

@@ -35,7 +35,7 @@ export function promptAgent(promptOptions: TLAgentPromptOptions) {
 							() => {
 								const eventUtil = event._type ? eventUtils.get(event._type) : null
 
-								// If no event handler found, or the model hasn't specified an event type yet, add the raw event to the chat history.
+								// If no event util is found, or the model hasn't specified an event type yet, add the raw event to the chat history.
 								// This helps make the agent feel more responsive, as it causes the chat history to be populated as soon as possible.
 								// On the other hand, displaying a raw event can be unhelpful, or look broken, so it's a trade-off.
 								// We might want to remove this or replace it with something cleaner.

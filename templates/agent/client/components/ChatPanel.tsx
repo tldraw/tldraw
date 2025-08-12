@@ -19,6 +19,15 @@ import { StackEventUtil } from '../events/StackEventUtil'
 import { ThinkEventUtil } from '../events/ThinkEventUtil'
 import { UpdateEventUtil } from '../events/UpdateEventUtil'
 import { processSchedule } from '../processSchedule'
+import { AgentViewportScreenshotPartUtil } from '../promptParts/AgentViewportScreenshotPartUtil'
+import { AgentViewportShapesPartUtil } from '../promptParts/AgentViewportShapesPartUtil'
+import { ContextBoundsPartUtil } from '../promptParts/ContextBoundsPartUtil'
+import { ContextItemsPartUtil } from '../promptParts/ContextItemsPartUtil'
+import { CurrentUserViewportBoundsPartUtil } from '../promptParts/CurrentUserViewportBoundsPartUtil'
+import { MessagePartUtil } from '../promptParts/MessagePartUtil'
+import { PeripheralContentPartUtil } from '../promptParts/PeripheralContentPartUtil'
+import { PromptBoundsPartUtil } from '../promptParts/PromptBoundsPartUtil'
+import { UserSelectedShapesPartUtil } from '../promptParts/UserSelectedShapesPartUtil'
 import { ChatHistory } from './chat-history/AgentHistory'
 import { PromptHistoryItem } from './chat-history/AgentHistoryItem'
 import { ChatInput } from './ChatInput'
@@ -41,6 +50,17 @@ export function ChatPanel({ editor }: { editor: Editor }) {
 			LabelEventUtil,
 			ThinkEventUtil,
 			MessageEventUtil,
+		],
+		promptPartUtils: [
+			AgentViewportScreenshotPartUtil,
+			AgentViewportShapesPartUtil,
+			ContextBoundsPartUtil,
+			ContextItemsPartUtil,
+			CurrentUserViewportBoundsPartUtil,
+			MessagePartUtil,
+			PeripheralContentPartUtil,
+			PromptBoundsPartUtil,
+			UserSelectedShapesPartUtil,
 		],
 	})
 	const [isGenerating, setIsGenerating] = useState(false)
