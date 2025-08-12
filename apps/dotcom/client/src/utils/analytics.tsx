@@ -184,7 +184,7 @@ export function trackEvent(name: string, data?: { [key: string]: any }) {
 
 	// Send pageviews to both platforms, but other app-specific events only to PostHog
 	if (name === '$pageview') {
-		getGA4()?.event('$pageview', data)
+		getGA4()?.event('page_view', data)
 	}
 }
 
