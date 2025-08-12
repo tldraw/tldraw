@@ -1,20 +1,21 @@
 import { BoxModel, Editor, TLBinding, TLShape } from 'tldraw'
 import { TLAgentModelName } from '../../worker/models'
-import { AgentEventHandlerConstructor } from '../events/AgentEventHandler'
-import { ChatHistoryItem } from './ChatHistoryItem'
+import { IAgentEvent } from '../../worker/prompt/AgentEvent'
+import { AgentEventUtil } from '../events/AgentEventUtil'
+import { AgentHistoryItem } from './AgentHistoryItem'
 import { ContextItem } from './ContextItem'
 import { ScheduledRequest } from './ScheduledRequest'
 
 export interface TLAgentPromptOptions {
 	editor: Editor
-	events: AgentEventHandlerConstructor[]
+	eventUtils: Map<IAgentEvent['_type'], AgentEventUtil>
 
 	message: string
 	contextBounds: BoxModel
 	promptBounds: BoxModel
 
 	modelName: TLAgentModelName
-	historyItems: ChatHistoryItem[]
+	historyItems: AgentHistoryItem[]
 	contextItems: ContextItem[]
 	currentPageShapes: TLShape[]
 	currentUserViewportBounds: BoxModel
@@ -28,7 +29,7 @@ export interface TLAgentPrompt {
 	promptBounds: BoxModel
 
 	modelName: TLAgentModelName
-	historyItems: ChatHistoryItem[]
+	historyItems: AgentHistoryItem[]
 	contextItems: ContextItem[]
 	currentPageShapes: TLShape[]
 	currentUserViewportBounds: BoxModel

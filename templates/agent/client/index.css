@@ -567,3 +567,7 @@ body {
 	font-family: 'Inter', sans-serif;
 	font-weight: 400;
 }
+
+.agent-action-type-message {
+	color: var(--color-text-1);
+}

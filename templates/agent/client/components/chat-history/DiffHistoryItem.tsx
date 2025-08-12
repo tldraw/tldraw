@@ -9,28 +9,29 @@ import {
 	TLShapeId,
 	TLShapeWrapperProps,
 } from 'tldraw'
+import { TLAgent } from '../../ai/useAgent'
 import { $chatHistoryItems } from '../../atoms/chatHistoryItems'
-import { AGENT_EVENT_ICONS, AgentChangeHistoryItem } from '../../types/ChatHistoryItem'
+import { ChangeHistoryItem } from '../../types/AgentHistoryItem'
 import { AgentIcon, AgentIconType } from './AgentIcon'
 import TldrawViewer from './TldrawViewer'
 
 // The model returns changes individually, but we group them together in this component for UX reasons, namely so the user can see all changes done at once together, and so they can accept or reject them all at once
-export function AgentChangeHistoryItems({
-	items: itemsInAgentChangeGroup,
+export function DiffHistoryItem({
+	items: itemsInGroup,
 	editor,
+	agent,
 }: {
-	items: AgentChangeHistoryItem[]
+	items: ChangeHistoryItem[]
 	editor: Editor
+	agent: TLAgent
 }) {
-	const diffShapes = itemsInAgentChangeGroup.flatMap((item) =>
-		getDiffShapesFromDiff({ diff: item.diff })
-	)
+	const diffShapes = itemsInGroup.flatMap((item) => getDiffShapesFromDiff({ diff: item.diff }))
 
 	// Because we accept and reject changes as groups, when the changes represented by this group are accepted (or rejected), we need to go through each item in the group and update its acceptance status individually
 	const handleAccept = useCallback(() => {
 		$chatHistoryItems.update((currentChatHistoryItems) => {
 			const newItems = [...currentChatHistoryItems]
-			for (const item of itemsInAgentChangeGroup) {
+			for (const item of itemsInGroup) {
 				const index = newItems.findIndex((v) => v === item)
 				if (index !== -1) {
 					// If the item was previously rejected, we need to re-apply the original diff
@@ -42,12 +43,12 @@ export function AgentChangeHistoryItems({
 			}
 			return newItems
 		})
-	}, [itemsInAgentChangeGroup, editor])
+	}, [itemsInGroup, editor])
 
 	const handleReject = useCallback(() => {
 		$chatHistoryItems.update((currentChatHistoryItems) => {
 			const newItems = [...currentChatHistoryItems]
-			for (const item of itemsInAgentChangeGroup) {
+			for (const item of itemsInGroup) {
 				const index = newItems.findIndex((v) => v === item)
 				if (index !== -1) {
 					newItems[index] = { ...item, acceptance: 'rejected', status: 'done' }
@@ -60,30 +61,28 @@ export function AgentChangeHistoryItems({
 			}
 			return newItems
 		})
-	}, [itemsInAgentChangeGroup, editor])
+	}, [itemsInGroup, editor])
 
-	const acceptance = useMemo<AgentChangeHistoryItem['acceptance']>(
-		() => itemsInAgentChangeGroup[0].acceptance,
-		[itemsInAgentChangeGroup]
+	const acceptance = useMemo<ChangeHistoryItem['acceptance']>(
+		() => itemsInGroup[0].acceptance,
+		[itemsInGroup]
 	)
 	const acceptanceConsensus = useMemo(
-		() => itemsInAgentChangeGroup.every((item) => item.acceptance === acceptance),
-		[itemsInAgentChangeGroup, acceptance]
+		() => itemsInGroup.every((item) => item.acceptance === acceptance),
+		[itemsInGroup, acceptance]
 	)
 
-	const intentItems = useMemo(() => {
-		return itemsInAgentChangeGroup.map((item) => {
-			const event = item.event
-			const icon = event._type ? AGENT_EVENT_ICONS[event._type] : 'ellipsis'
-			let intent = ''
-			if ('intent' in event) {
-				intent = event.intent ?? ''
-			} else if ('text' in event) {
-				intent = event.text ?? ''
+	const steps = useMemo(() => {
+		return itemsInGroup.map((item) => {
+			const { event } = item
+			const eventUtil = agent.getEventUtil(event._type)
+			return {
+				icon: eventUtil.getIcon(event),
+				label: eventUtil.getLabel(event, item.status),
+				description: eventUtil.getDescription(event, item.status),
 			}
-			return { icon, intent }
 		})
-	}, [itemsInAgentChangeGroup])
+	}, [itemsInGroup, agent])
 
 	return (
 		<div className="agent-change-message">
@@ -101,7 +100,7 @@ export function AgentChangeHistoryItems({
 					</>
 				)}
 			</div>
-			<ChangeIntents intentItems={intentItems} />
+			<DiffSteps steps={steps} />
 			{diffShapes.length > 0 && (
 				<TldrawViewer shapes={diffShapes} components={{ ShapeWrapper: DiffShapeWrapper }} />
 			)}
@@ -109,26 +108,29 @@ export function AgentChangeHistoryItems({
 	)
 }
 
-function ChangeIntents({
-	intentItems,
-}: {
-	intentItems: { intent: string; icon: AgentIconType | undefined }[]
-}) {
-	let previousIntentMessage = ''
+interface DiffStep {
+	icon: AgentIconType | null
+	label: string | null
+	description: string | null
+}
+function DiffSteps({ steps }: { steps: DiffStep[] }) {
+	let previousDescription = ''
 	return (
 		<div className="agent-change-message-intent">
-			{intentItems.map((item, i) => {
+			{steps.map((step, i) => {
+				if (!step.description) return null
+
 				// Don't show duplicate intents
-				if (item.intent === previousIntentMessage) return null
-				previousIntentMessage = item.intent
+				if (step.description === previousDescription) return null
+				previousDescription = step.description
 				return (
 					<div className="agent-change-message-intent-item" key={'intent-' + i}>
-						{item.icon && (
+						{step.icon && (
 							<span className="agent-change-message-intent-item-icon">
-								<AgentIcon type={item.icon} />
+								<AgentIcon type={step.icon} />
 							</span>
 						)}
-						{item.intent}
+						{step.description}
 					</div>
 				)
 			})}

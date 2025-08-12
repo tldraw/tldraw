@@ -1,15 +1,24 @@
 import { TLShapeId } from 'tldraw'
 import { IAgentMoveEvent } from '../../worker/prompt/AgentEvent'
+import { AgentTransform } from '../transforms/AgentTransform'
 import { Streaming } from '../types/Streaming'
-import { AgentEventHandler } from './AgentEventHandler'
+import { AgentEventUtil } from './AgentEventUtil'
 
-export class MoveEventHandler extends AgentEventHandler<IAgentMoveEvent> {
+export class MoveEventUtil extends AgentEventUtil<IAgentMoveEvent> {
 	static override type = 'move' as const
 
-	override transformEvent(event: Streaming<IAgentMoveEvent>) {
+	override getIcon() {
+		return 'cursor' as const
+	}
+
+	override getDescription(event: Streaming<IAgentMoveEvent>) {
+		return event.intent ?? ''
+	}
+
+	override transformEvent(event: Streaming<IAgentMoveEvent>, transform: AgentTransform) {
 		if (!event.complete) return event
 
-		const shapeId = this.transform.sanitizeExistingShapeId(event.shapeId)
+		const shapeId = transform.sanitizeExistingShapeId(event.shapeId)
 		if (!shapeId) return null
 
 		event.shapeId = shapeId

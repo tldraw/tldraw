@@ -1,9 +1,41 @@
-import { TLAiChange } from '@tldraw/ai'
+import { defaultApplyChange, TLAiChange } from '@tldraw/ai'
 import { Editor, IndexKey, TLShapeId } from 'tldraw'
 import { IAgentCreateEvent } from '../../worker/prompt/AgentEvent'
 import { asColor, simpleFillToShapeFill } from '../../worker/simple/color'
+import { AgentTransform } from '../transforms/AgentTransform'
 import { asRichText } from '../transforms/SimpleText'
 import { Streaming } from '../types/Streaming'
+import { AgentEventUtil } from './AgentEventUtil'
+
+export class CreateEventUtil extends AgentEventUtil<IAgentCreateEvent> {
+	static override type = 'create' as const
+
+	override getIcon() {
+		return 'pencil' as const
+	}
+
+	override getDescription(event: Streaming<IAgentCreateEvent>) {
+		return event.intent ?? ''
+	}
+
+	override transformEvent(event: Streaming<IAgentCreateEvent>, transform: AgentTransform) {
+		if (!event.complete) return event
+
+		event.shape = transform.sanitizeNewShape(event.shape)
+
+		return event
+	}
+
+	override applyEvent(event: Streaming<IAgentCreateEvent>) {
+		if (!event.complete) return
+		const { editor } = this
+
+		const aiChanges = getTldrawAiChangesFromCreateEvent({ editor, event: event })
+		for (const aiChange of aiChanges) {
+			defaultApplyChange({ change: aiChange, editor })
+		}
+	}
+}
 
 export function getTldrawAiChangesFromCreateEvent({
 	editor,
@@ -29,7 +61,7 @@ export function getTldrawAiChangesFromCreateEvent({
 					x: shape.x,
 					y: shape.y,
 					props: {
-						richText: asRichText(shape.text ?? ''),
+						richText: asRichText(shape.text),
 						color: asColor(shape.color),
 						textAlign: 'start',
 					},
@@ -101,7 +133,7 @@ export function getTldrawAiChangesFromCreateEvent({
 					y: minY,
 					props: {
 						color: asColor(shape.color),
-						richText: asRichText(shape.text ?? ''),
+						richText: asRichText(shape.text),
 						start: { x: x1 - minX, y: y1 - minY },
 						end: { x: x2 - minX, y: y2 - minY },
 					},
@@ -190,7 +222,7 @@ export function getTldrawAiChangesFromCreateEvent({
 						h: shape.height,
 						color: asColor(shape.color ?? 'black'),
 						fill: simpleFillToShapeFill(shape.fill ?? 'none'),
-						richText: asRichText(shape.text ?? ''),
+						richText: asRichText(shape.text),
 					},
 					meta: {
 						note: shape.note ?? '',
@@ -211,7 +243,7 @@ export function getTldrawAiChangesFromCreateEvent({
 					y: shape.y,
 					props: {
 						color: asColor(shape.color),
-						richText: asRichText(shape.text ?? ''),
+						richText: asRichText(shape.text),
 					},
 					meta: {
 						note: shape.note ?? '',

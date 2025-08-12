@@ -1,9 +1,6 @@
 import { asMessage } from '@tldraw/ai'
 import { CoreMessage, UserContent } from 'ai'
-import {
-	ACTION_HISTORY_ITEM_DEFINITIONS,
-	ChatHistoryItem,
-} from '../../client/types/ChatHistoryItem'
+import { AgentHistoryItem } from '../../client/types/AgentHistoryItem'
 import { TLAgentPrompt } from '../../client/types/TLAgentPrompt'
 import { getSimpleContentFromCanvasContent } from '../simple/getSimpleContentFromCanvasContent'
 import { getPeripheralShapesFromCanvasContent } from '../simple/getSimplePeripheralContentFromCanvasContent'
@@ -194,7 +191,7 @@ function buildHistoryMessages(prompt: TLAgentPrompt): CoreMessage[] {
 	// If the last message is from the user, skip it
 	const lastIndex = historyItems.length - 1
 	let end = historyItems.length
-	if (end > 0 && historyItems[lastIndex].type === 'user-message') {
+	if (end > 0 && historyItems[lastIndex].type === 'prompt') {
 		end = lastIndex
 	}
 
@@ -209,9 +206,9 @@ function buildHistoryMessages(prompt: TLAgentPrompt): CoreMessage[] {
 	return messages
 }
 
-function buildHistoryItemMessage(item: ChatHistoryItem): CoreMessage | null {
+function buildHistoryItemMessage(item: AgentHistoryItem): CoreMessage | null {
 	switch (item.type) {
-		case 'user-message': {
+		case 'prompt': {
 			const content: UserContent = [
 				// { type: 'text', text: 'Previous message from user: ' + item.message },
 				{ type: 'text', text: item.message },
@@ -256,57 +253,30 @@ function buildHistoryItemMessage(item: ChatHistoryItem): CoreMessage | null {
 				content,
 			}
 		}
-		// We're filtering out status-thinking from the history items before sending to the models, so they should never see this
-		case 'status-thinking': {
-			return null
-		}
-		case 'agent-action': {
-			// const text = `Previous action from agent: ${ACTION_HISTORY_ITEM_DEFINITIONS[item.action].message.done}${item.info}`
-			const text = `${ACTION_HISTORY_ITEM_DEFINITIONS[item.action].message.done}${item.info}`
+		case 'event': {
 			return {
 				role: 'assistant',
-				content: [{ type: 'text', text }],
+				content: [{ type: 'text', text: '[AGENT ACTED]: ' + JSON.stringify(item.event) }],
 			}
 		}
-		case 'agent-message': {
-			return {
-				role: 'assistant',
-				// content: [{ type: 'text', text: 'Previous message from agent: ' + item.message }],
-				content: [{ type: 'text', text: item.message }],
-			}
-		}
-		case 'agent-change': {
+		case 'change': {
 			return {
 				role: 'assistant',
 				content: [
 					{
 						type: 'text',
-						text: '[ACTION]: ' + JSON.stringify(item.event),
-						// text: 'A previous change from agent.',
+						text: '[AGENT CHANGED THE CANVAS]: ' + JSON.stringify(item.event),
 					},
 				],
 			}
 		}
-		case 'agent-change-group': {
-			const events = item.items.map((item) => item.event)
+		case 'group': {
 			return {
 				role: 'assistant',
 				content: [
 					{
 						type: 'text',
-						text: '[ACTION]: ' + JSON.stringify(events),
-						// text: 'Previous changes from agent.',
-					},
-				],
-			}
-		}
-		case 'agent-raw': {
-			return {
-				role: 'assistant',
-				content: [
-					{
-						type: 'text',
-						text: '[OUTPUT]: ' + JSON.stringify(item.event),
+						text: '[AGENT CHANGED THE CANVAS]: ' + JSON.stringify(item.items),
 					},
 				],
 			}

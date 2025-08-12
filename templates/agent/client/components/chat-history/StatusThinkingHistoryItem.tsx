@@ -1,7 +1,7 @@
 import { useEffect, useState } from 'react'
-import { StatusThinkingHistoryItem } from '../../types/ChatHistoryItem'
 
-export function StatusThinkingHistoryItem({ item }: { item: StatusThinkingHistoryItem }) {
+// TODO: Reintroduce this
+export function StatusThinkingHistoryItem({ item }: { item: any }) {
 	const [startTime] = useState(() => new Date())
 	const [endTime, setEndTime] = useState<Date | null>(null)
 	const [currentTime, setCurrentTime] = useState(() => new Date())

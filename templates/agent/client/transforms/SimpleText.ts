@@ -48,7 +48,7 @@ export class SimpleText extends TldrawAgentTransform {
 	}
 }
 
-export function asRichText(text: string | TLRichText): TLRichText {
+export function asRichText(text: string | TLRichText = ''): TLRichText {
 	if (typeof text === 'string') {
 		return toRichText(text)
 	}

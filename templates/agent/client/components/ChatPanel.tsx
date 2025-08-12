@@ -1,18 +1,48 @@
 import { FormEventHandler, useCallback, useEffect, useRef, useState } from 'react'
 import { Editor, useToasts, useValue } from 'tldraw'
-import { useTldrawAgent } from '../ai/useTldrawAgent'
+import { useAgent } from '../ai/useAgent'
 import { $chatHistoryItems } from '../atoms/chatHistoryItems'
 import { $contextItems, $pendingContextItems } from '../atoms/contextItems'
 import { $modelName } from '../atoms/modelName'
 import { $requestsSchedule } from '../atoms/requestsSchedule'
+import { AlignEventUtil } from '../events/AlignEventUtil'
+import { CreateEventUtil } from '../events/CreateEventUtil'
+import { DeleteEventUtil } from '../events/DeleteEventUtil'
+import { DistributeEventUtil } from '../events/DistributeEventUtil'
+import { LabelEventUtil } from '../events/LabelEventUtil'
+import { MessageEventUtil } from '../events/MessageEventUtil'
+import { MoveEventUtil } from '../events/MoveEventUtil'
+import { PlaceEventUtil } from '../events/PlaceEventUtil'
+import { ReviewEventUtil } from '../events/ReviewEventUtil'
+import { SetMyViewEventUtil } from '../events/SetMyViewEventUtil'
+import { StackEventUtil } from '../events/StackEventUtil'
+import { ThinkEventUtil } from '../events/ThinkEventUtil'
+import { UpdateEventUtil } from '../events/UpdateEventUtil'
 import { processSchedule } from '../processSchedule'
-import { UserMessageHistoryItem } from '../types/ChatHistoryItem'
+import { PromptHistoryItem } from '../types/AgentHistoryItem'
 import { ChatHistory } from './chat-history/ChatHistory'
 import { ChatInput } from './ChatInput'
 import { $contextBoundsHighlight } from './highlights/ContextBoundsHighlights'
 
 export function ChatPanel({ editor }: { editor: Editor }) {
-	const agent = useTldrawAgent({ editor })
+	const agent = useAgent({
+		editor,
+		eventUtils: [
+			UpdateEventUtil,
+			DeleteEventUtil,
+			CreateEventUtil,
+			MoveEventUtil,
+			PlaceEventUtil,
+			StackEventUtil,
+			AlignEventUtil,
+			ReviewEventUtil,
+			SetMyViewEventUtil,
+			DistributeEventUtil,
+			LabelEventUtil,
+			ThinkEventUtil,
+			MessageEventUtil,
+		],
+	})
 	const [isGenerating, setIsGenerating] = useState(false)
 	const rCancelFn = useRef<(() => void) | null>(null)
 	const inputRef = useRef<HTMLTextAreaElement>(null)
@@ -54,16 +84,16 @@ export function ChatPanel({ editor }: { editor: Editor }) {
 			// Submit the user's message to the agent
 			if (inputRef.current) inputRef.current.value = ''
 
-			const userMessageHistoryItem: UserMessageHistoryItem = {
-				type: 'user-message',
+			const promptHistoryItem: PromptHistoryItem = {
+				type: 'prompt',
 				message: value,
 				status: 'done',
 				contextItems: $contextItems.get(),
 			}
 
-			$pendingContextItems.set(userMessageHistoryItem.contextItems)
+			$pendingContextItems.set(promptHistoryItem.contextItems)
 			$contextItems.set([])
-			$chatHistoryItems.update((prev) => [...prev, userMessageHistoryItem])
+			$chatHistoryItems.update((prev) => [...prev, promptHistoryItem])
 
 			// TODO once we implement letting the agent move, we can get those bounds and lock them here instead of using the viewport
 			const intitialBounds = editor.getViewportPageBounds()
@@ -71,8 +101,8 @@ export function ChatPanel({ editor }: { editor: Editor }) {
 			$requestsSchedule.update((prev) => [
 				...prev,
 				{
-					message: userMessageHistoryItem.message,
-					contextItems: userMessageHistoryItem.contextItems,
+					message: promptHistoryItem.message,
+					contextItems: promptHistoryItem.contextItems,
 					type: 'user',
 					bounds: intitialBounds,
 				},
@@ -127,7 +157,7 @@ export function ChatPanel({ editor }: { editor: Editor }) {
 			<div className="chat-header">
 				<NewChatButton />
 			</div>
-			<ChatHistory editor={editor} />
+			<ChatHistory editor={editor} agent={agent} />
 			<ChatInput
 				handleSubmit={handleSubmit}
 				inputRef={inputRef}

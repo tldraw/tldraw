@@ -1,4 +1,4 @@
-import { TLAiChange } from '@tldraw/ai'
+import { defaultApplyChange, TLAiChange } from '@tldraw/ai'
 import {
 	Editor,
 	IndexKey,
@@ -7,16 +7,45 @@ import {
 	TLGeoShape,
 	TLLineShape,
 	TLNoteShape,
-	TLRichText,
 	TLShape,
 	TLShapeId,
 	TLShapePartial,
 	TLTextShape,
-	toRichText,
 } from 'tldraw'
 import { IAgentUpdateEvent } from '../../worker/prompt/AgentEvent'
 import { asColor, simpleFillToShapeFill } from '../../worker/simple/color'
+import { AgentTransform } from '../transforms/AgentTransform'
+import { asRichText } from '../transforms/SimpleText'
 import { Streaming } from '../types/Streaming'
+import { AgentEventUtil } from './AgentEventUtil'
+
+export class UpdateEventUtil extends AgentEventUtil<IAgentUpdateEvent> {
+	static override type = 'update' as const
+
+	override transformEvent(event: Streaming<IAgentUpdateEvent>, transform: AgentTransform) {
+		if (!event.complete) return event
+
+		const update = transform.sanitizeExistingShape(event.update)
+		if (!update) return null
+		event.update = update
+
+		return event
+	}
+
+	override getDescription(event: Streaming<IAgentUpdateEvent>) {
+		return event.intent ?? ''
+	}
+
+	override applyEvent(event: Streaming<IAgentUpdateEvent>) {
+		if (!event.complete) return
+		const { editor } = this
+
+		const aiChanges = getTldrawAiChangesFromUpdateEvent({ editor, event: event })
+		for (const aiChange of aiChanges) {
+			defaultApplyChange({ change: aiChange, editor })
+		}
+	}
+}
 
 export function getTldrawAiChangesFromUpdateEvent({
 	editor,
@@ -45,7 +74,7 @@ export function getTldrawAiChangesFromUpdateEvent({
 				y: update.y,
 				props: {
 					color: update.color ? asColor(update.color) : undefined,
-					richText: update.text ? toRichTextIfNeeded(update.text) : undefined,
+					richText: update.text ? asRichText(update.text) : undefined,
 				},
 				meta: {
 					note: update.note,
@@ -125,7 +154,7 @@ export function getTldrawAiChangesFromUpdateEvent({
 				y: startY,
 				props: {
 					color: update.color ? asColor(update.color) : undefined,
-					richText: update.text ? toRichTextIfNeeded(update.text) : undefined,
+					richText: update.text ? asRichText(update.text) : undefined,
 					start: { x: 0, y: 0 },
 					end: { x: endX, y: endY },
 					bend,
@@ -230,7 +259,7 @@ export function getTldrawAiChangesFromUpdateEvent({
 					w: update.width,
 					h: update.height,
 					fill: update.fill ? simpleFillToShapeFill(update.fill) : undefined,
-					richText: update.text ? toRichTextIfNeeded(update.text) : undefined,
+					richText: update.text ? asRichText(update.text) : undefined,
 				},
 				meta: {
 					note: update.note,
@@ -258,7 +287,7 @@ export function getTldrawAiChangesFromUpdateEvent({
 				y: update.y,
 				props: {
 					color: update.color ? asColor(update.color) : undefined,
-					richText: update.text ? toRichTextIfNeeded(update.text) : undefined,
+					richText: update.text ? asRichText(update.text) : undefined,
 				},
 				meta: {
 					note: update.note,
@@ -300,11 +329,4 @@ export function getTldrawAiChangesFromUpdateEvent({
 	}
 
 	return changes
-}
-
-function toRichTextIfNeeded(text: string | TLRichText): TLRichText {
-	if (typeof text === 'string') {
-		return toRichText(text)
-	}
-	return text
 }

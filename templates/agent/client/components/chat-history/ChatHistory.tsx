@@ -1,14 +1,13 @@
 import { useEffect, useRef } from 'react'
 import { Editor, useReactor, useValue } from 'tldraw'
+import { TLAgent } from '../../ai/useAgent'
 import { $chatHistoryItems } from '../../atoms/chatHistoryItems'
-import { AgentChangeGroupHistoryItem, ChatHistoryItem } from '../../types/ChatHistoryItem'
-import { AgentActionHistoryItem } from './AgentActionHistoryItem'
-import { AgentChangeHistoryItems } from './AgentChangeHistoryItems'
-import { AgentMessageHistoryItem } from './AgentMessageHistoryItem'
-import { StatusThinkingHistoryItem } from './StatusThinkingHistoryItem'
+import { AgentHistoryItem, GroupHistoryItem } from '../../types/AgentHistoryItem'
+import { ActionHistoryItem } from './ActionHistoryIcon'
+import { DiffHistoryItem } from './DiffHistoryItem'
 import { UserMessageHistoryItem } from './UserMessageHistoryItem'
 
-export function ChatHistory({ editor }: { editor: Editor }) {
+export function ChatHistory({ editor, agent }: { editor: Editor; agent: TLAgent }) {
 	const items = useValue($chatHistoryItems)
 	const scrollContainerRef = useRef<HTMLDivElement>(null)
 	const previousScrollDistanceFromBottomRef = useRef(0)
@@ -56,20 +55,14 @@ export function ChatHistory({ editor }: { editor: Editor }) {
 		<div className="chat-history" ref={scrollContainerRef} onScroll={handleScroll}>
 			{mergedItems.map((item, index) => {
 				switch (item.type) {
-					case 'user-message':
+					case 'prompt':
 						return <UserMessageHistoryItem key={index} item={item} />
-					case 'status-thinking':
-						return <StatusThinkingHistoryItem key={index} item={item} />
-					case 'agent-message':
-						return <AgentMessageHistoryItem key={index} item={item} />
-					case 'agent-change':
-						return <AgentChangeHistoryItems key={index} items={[item]} editor={editor} />
-					case 'agent-change-group':
-						return <AgentChangeHistoryItems key={index} items={item.items} editor={editor} />
-					case 'agent-action':
-						return <AgentActionHistoryItem key={index} item={item} />
-					case 'agent-raw':
-						return null
+					case 'change':
+						return <DiffHistoryItem key={index} items={[item]} editor={editor} agent={agent} />
+					case 'group':
+						return <DiffHistoryItem key={index} items={item.items} editor={editor} agent={agent} />
+					case 'event':
+						return <ActionHistoryItem key={index} item={item} agent={agent} />
 				}
 			})}
 		</div>
@@ -79,9 +72,9 @@ export function ChatHistory({ editor }: { editor: Editor }) {
 function getChatHistoryWithMergedAdjacentItems({
 	items,
 }: {
-	items: ChatHistoryItem[]
-}): ChatHistoryItem[] {
-	const newItems: ChatHistoryItem[] = []
+	items: AgentHistoryItem[]
+}): AgentHistoryItem[] {
+	const newItems: AgentHistoryItem[] = []
 	for (let i = 0; i < items.length; i++) {
 		const currentItem = newItems[newItems.length - 1]
 		const nextItem = items[i]
@@ -90,26 +83,26 @@ function getChatHistoryWithMergedAdjacentItems({
 			continue
 		}
 
-		// Merge together pending diffs
+		// Merge together diffs with the same acceptance status
 		if (
-			currentItem.type === 'agent-change' &&
-			nextItem.type === 'agent-change' &&
+			currentItem.type === 'change' &&
+			nextItem.type === 'change' &&
 			nextItem.acceptance === currentItem.acceptance
 		) {
-			const mergedItem: AgentChangeGroupHistoryItem = {
-				type: 'agent-change-group',
+			const mergedItem: GroupHistoryItem = {
+				type: 'group',
 				items: [currentItem, nextItem],
-				status: nextItem.status,
+				status: 'progress',
 			}
 			newItems[newItems.length - 1] = mergedItem
 			continue
 		}
 
-		if (currentItem.type === 'agent-change-group' && nextItem.type === 'agent-change') {
-			const mergedItem: AgentChangeGroupHistoryItem = {
-				type: 'agent-change-group',
+		if (currentItem.type === 'group' && nextItem.type === 'change') {
+			const mergedItem: GroupHistoryItem = {
+				type: 'group',
 				items: [...currentItem.items, nextItem],
-				status: nextItem.status,
+				status: 'progress',
 			}
 			newItems[newItems.length - 1] = mergedItem
 			continue

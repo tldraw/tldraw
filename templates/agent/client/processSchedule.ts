@@ -1,7 +1,7 @@
 // import { useCallback } from 'react'
 import { Box, Editor, structuredClone } from 'tldraw'
 import { TLAgentModelName } from '../worker/models'
-import { TldrawAgent } from './ai/useTldrawAgent'
+import { TLAgent } from './ai/useAgent'
 import { $chatHistoryItems } from './atoms/chatHistoryItems'
 import { $pendingContextItems } from './atoms/contextItems'
 import { $requestsSchedule } from './atoms/requestsSchedule'
@@ -15,7 +15,7 @@ export async function processSchedule({
 }: {
 	editor: Editor
 	modelName: TLAgentModelName
-	agent: TldrawAgent
+	agent: TLAgent
 	rCancelFn: React.MutableRefObject<(() => void) | null>
 }) {
 	const eventSchedule = $requestsSchedule.get()
@@ -39,7 +39,7 @@ export async function processSchedule({
 			contextBounds: bounds,
 			promptBounds: bounds,
 			modelName,
-			historyItems: $chatHistoryItems.get().filter((item) => item.type !== 'status-thinking'),
+			historyItems: $chatHistoryItems.get(),
 			contextItems: request.contextItems,
 			currentPageShapes: editor.getCurrentPageShapesSorted().map((v) => structuredClone(v)),
 			currentUserViewportBounds: editor.getViewportPageBounds(),
@@ -47,30 +47,11 @@ export async function processSchedule({
 			type: request.type,
 		})
 
-		$chatHistoryItems.update((prev) => [
-			...prev,
-			{
-				type: 'status-thinking',
-				message: request.type === 'review' ? 'Reviewing' : 'Generating',
-				status: 'progress',
-			},
-		])
-
 		rCancelFn.current = cancel
 		await promise
 
 		// Only remove the event after successful processing
 		$requestsSchedule.update((prev) => prev.filter((_, i) => i !== 0))
-
-		// Set previous status-thinking to done
-		$chatHistoryItems.update((prev) => {
-			const lastStatusThinkingIndex = [...prev]
-				.reverse()
-				.findIndex((item) => item.type === 'status-thinking' && item.status === 'progress')
-			if (lastStatusThinkingIndex === -1) return prev
-			const idx = prev.length - 1 - lastStatusThinkingIndex
-			return prev.map((item, i) => (i === idx ? { ...item, status: 'done' } : item))
-		})
 
 		rCancelFn.current = null
 

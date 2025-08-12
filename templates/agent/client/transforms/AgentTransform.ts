@@ -14,13 +14,37 @@ export class AgentTransform {
 	shapeIdMap = new Map<string, string>()
 
 	/**
-	 * Ensure that a simple shape is valid.
+	 * Ensure that a new simple shape is valid.
 	 * If it isn't valid, fix it.
 	 * @returns The sanitized shape.
 	 */
-	sanitizeShape(shape: ISimpleShape): ISimpleShape {
+	sanitizeNewShape(shape: ISimpleShape): ISimpleShape {
 		if (shape.shapeId) {
 			shape.shapeId = this.sanitizeNewShapeId(shape.shapeId)
+		}
+
+		if (shape._type === 'arrow') {
+			if (shape.fromId) {
+				shape.fromId = this.sanitizeExistingShapeId(shape.fromId)
+			}
+			if (shape.toId) {
+				shape.toId = this.sanitizeExistingShapeId(shape.toId)
+			}
+		}
+
+		return shape
+	}
+
+	/**
+	 * Ensure that an existing simple shape is valid.
+	 * If it isn't valid, fix it.
+	 * @returns The sanitized shape, or null if the shape is invalid.
+	 */
+	sanitizeExistingShape(shape: ISimpleShape): ISimpleShape | null {
+		if (shape.shapeId) {
+			const shapeId = this.sanitizeExistingShapeId(shape.shapeId)
+			if (!shapeId) return null
+			shape.shapeId = shapeId
 		}
 
 		if (shape._type === 'arrow') {
@@ -94,7 +118,7 @@ export class AgentTransform {
 		// If there's an existing shape with this ID, use that
 		const existingShape = this.editor.getShape(`shape:${id}` as TLShapeId)
 		if (existingShape) {
-			return existingShape.id
+			return id
 		}
 
 		// Otherwise, give up

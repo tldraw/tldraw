@@ -1,6 +1,5 @@
 import { structuredClone, uniqueId } from 'tldraw'
 import { createOrUpdateHistoryItem } from '../atoms/chatHistoryItems'
-import { AgentEventHandler } from '../events/AgentEventHandler'
 import { AgentTransform } from '../transforms/AgentTransform'
 import { TLAgentPromptOptions } from '../types/TLAgentPrompt'
 import { preparePrompt } from './preparePrompt'
@@ -13,18 +12,13 @@ import { streamAgent } from './streamAgent'
  * @returns A promise that resolves when the prompt is complete.
  */
 export function promptAgent(promptOptions: TLAgentPromptOptions) {
-	const { editor } = promptOptions
+	const { editor, eventUtils } = promptOptions
 	let cancelled = false
 	const controller = new AbortController()
 	const signal = controller.signal
 	const markId = 'generating_' + uniqueId()
 
 	const transform = new AgentTransform(editor)
-
-	const eventHandlers = new Map<string, AgentEventHandler>()
-	for (const eventHandlerConstructor of promptOptions.events) {
-		eventHandlers.set(eventHandlerConstructor.type, new eventHandlerConstructor(editor, transform))
-	}
 
 	const promise = new Promise<void>((resolve, reject) => {
 		preparePrompt(promptOptions)
@@ -39,18 +33,18 @@ export function promptAgent(promptOptions: TLAgentPromptOptions) {
 					try {
 						editor.run(
 							() => {
-								const eventHandler = event._type ? eventHandlers.get(event._type) : null
+								const eventUtil = event._type ? eventUtils.get(event._type) : null
 
 								// If no event handler found, or the model hasn't specified an event type yet, add the raw event to the chat history.
 								// This helps make the agent feel more responsive, as it causes the chat history to be populated as soon as possible.
 								// On the other hand, displaying a raw event can be unhelpful, or look broken, so it's a trade-off.
 								// We might want to remove this or replace it with something cleaner.
-								if (!eventHandler) {
+								if (!eventUtil) {
 									if (event.complete) {
 										console.log('UNHANDLED EVENT: ', event)
 									}
 									createOrUpdateHistoryItem({
-										type: 'agent-raw',
+										type: 'event',
 										event,
 										status: event.complete ? 'done' : 'progress',
 									})
@@ -58,7 +52,7 @@ export function promptAgent(promptOptions: TLAgentPromptOptions) {
 								}
 
 								// Transform the event
-								const transformedEvent = eventHandler.transformEvent(event)
+								const transformedEvent = eventUtil.transformEvent(event, transform)
 
 								if (!transformedEvent) {
 									if (event.complete) {
@@ -78,17 +72,29 @@ export function promptAgent(promptOptions: TLAgentPromptOptions) {
 
 								// Apply the event to the app and editor
 								const diff = editor.store.extractingChanges(() => {
-									eventHandler.applyEvent(transformedEvent)
+									eventUtil.applyEvent(transformedEvent, transform)
 								})
 
-								// If any canvas changes were made, add their diff to the chat history
-								createOrUpdateHistoryItem({
-									type: 'agent-change',
-									diff,
-									event,
-									status: event.complete ? 'done' : 'progress',
-									acceptance: 'pending',
-								})
+								if (
+									Object.keys(diff.updated).length > 0 ||
+									Object.keys(diff.removed).length > 0 ||
+									Object.keys(diff.added).length > 0
+								) {
+									// If any canvas changes were made, add their diff to the chat history
+									createOrUpdateHistoryItem({
+										type: 'change',
+										diff,
+										event,
+										acceptance: 'pending',
+										status: event.complete ? 'done' : 'progress',
+									})
+								} else {
+									createOrUpdateHistoryItem({
+										type: 'event',
+										event: transformedEvent,
+										status: event.complete ? 'done' : 'progress',
+									})
+								}
 							},
 							{
 								ignoreShapeLock: false,

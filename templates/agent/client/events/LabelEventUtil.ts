@@ -1,16 +1,25 @@
 import { TLShapeId } from 'tldraw'
 import { IAgentLabelEvent } from '../../worker/prompt/AgentEvent'
+import { AgentTransform } from '../transforms/AgentTransform'
 import { asRichText } from '../transforms/SimpleText'
 import { Streaming } from '../types/Streaming'
-import { AgentEventHandler } from './AgentEventHandler'
+import { AgentEventUtil } from './AgentEventUtil'
 
-export class LabelEventHandler extends AgentEventHandler<IAgentLabelEvent> {
+export class LabelEventUtil extends AgentEventUtil<IAgentLabelEvent> {
 	static override type = 'label' as const
 
-	override transformEvent(event: Streaming<IAgentLabelEvent>) {
+	override getIcon() {
+		return 'pencil' as const
+	}
+
+	override getDescription(event: Streaming<IAgentLabelEvent>) {
+		return event.intent ?? ''
+	}
+
+	override transformEvent(event: Streaming<IAgentLabelEvent>, transform: AgentTransform) {
 		if (!event.complete) return event
 
-		const shapeId = this.transform.sanitizeExistingShapeId(event.shapeId)
+		const shapeId = transform.sanitizeExistingShapeId(event.shapeId)
 		if (!shapeId) return null
 
 		event.shapeId = shapeId
