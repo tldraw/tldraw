@@ -1,12 +1,10 @@
 import { useAuth } from '@clerk/clerk-react'
-import { useCallback, useEffect, useState } from 'react'
+import { useCallback } from 'react'
 import { useValue } from 'tldraw'
 import {
-	COOKIE_CONSENT_CHANGED_EVENT,
-	COOKIE_CONSENT_KEY,
 	configureAnalytics,
-	getStoredAnalyticsConsent,
 	setStoredAnalyticsConsent,
+	useAnalyticsConsentValue,
 } from '../../utils/analytics'
 import { useMaybeApp } from '../hooks/useAppState'
 
@@ -21,58 +19,14 @@ export function useAnalyticsConsent() {
 	const user = useValue('user', () => app?.getUser(), [app])
 	const isSignedIn = !!auth.isSignedIn
 
-	const getCurrentConsent = useCallback(() => {
-		if (isSignedIn && user && app) {
-			return user.allowAnalyticsCookie
-		} else {
-			return getStoredAnalyticsConsent()
-		}
-	}, [isSignedIn, user, app])
+	const storedConsent = useAnalyticsConsentValue()
+	const currentConsent = isSignedIn && user && app ? user.allowAnalyticsCookie : storedConsent
 
-	const [consent, setConsent] = useState<boolean | null>(getCurrentConsent)
-
-	// Update consent when external state changes
-	useEffect(() => {
-		const checkConsent = () => {
-			const newConsent = getCurrentConsent()
-			// Only update if the consent value has actually changed
-			if (newConsent !== consent) {
-				setConsent(newConsent)
-			}
-		}
-
-		// Check on mount and when dependencies change
-		checkConsent()
-
-		// Listen for storage events (when localStorage changes in other tabs/windows)
-		const handleStorageChange = (e: StorageEvent) => {
-			if (e.key === COOKIE_CONSENT_KEY) {
-				checkConsent()
-			}
-		}
-
-		window.addEventListener('storage', handleStorageChange)
-
-		// Create a custom event listener for same-tab changes
-		const handleCustomStorageChange = () => {
-			checkConsent()
-		}
-
-		// Listen for custom events that can be dispatched when consent changes
-		window.addEventListener(COOKIE_CONSENT_CHANGED_EVENT, handleCustomStorageChange)
-
-		return () => {
-			window.removeEventListener('storage', handleStorageChange)
-			window.removeEventListener(COOKIE_CONSENT_CHANGED_EVENT, handleCustomStorageChange)
-		}
-	}, [getCurrentConsent, consent])
-
-	// Function to update consent
 	const updateConsent = useCallback(
 		(newConsent: boolean) => {
 			if (isSignedIn && user && app) {
 				app.updateUser({ id: user.id, allowAnalyticsCookie: newConsent })
-				// Also update localStorage to keep them in sync
+				// Also update localStorage and atom to keep them in sync
 				setStoredAnalyticsConsent(newConsent)
 				// Immediately configure analytics
 				configureAnalytics(newConsent, { id: user.id, name: user.name, email: user.email })
@@ -85,5 +39,5 @@ export function useAnalyticsConsent() {
 		[isSignedIn, user, app]
 	)
 
-	return [consent, updateConsent] as const
+	return [currentConsent, updateConsent] as const
 }
