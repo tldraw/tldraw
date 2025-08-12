@@ -9,6 +9,7 @@ import {
 	tipTapDefaultExtensions,
 	TLComponents,
 	TldrawEditor,
+	TldrawUiContextProvider,
 	TLShape,
 } from 'tldraw'
 
@@ -62,18 +63,20 @@ export function TldrawViewer({
 
 	return (
 		<div ref={containerRef} className="tldraw-viewer">
-			<TldrawEditor
-				autoFocus={false}
-				components={components ?? {}}
-				inferDarkMode={false}
-				onMount={setEditor}
-				shapeUtils={defaultShapeUtils}
-				bindingUtils={defaultBindingUtils}
-				tools={tools}
-				textOptions={defaultTextOptions}
-				assetUrls={defaultEditorAssetUrls}
-				initialState="inspect"
-			/>
+			<TldrawUiContextProvider>
+				<TldrawEditor
+					autoFocus={false}
+					components={components ?? {}}
+					inferDarkMode={false}
+					onMount={setEditor}
+					shapeUtils={defaultShapeUtils}
+					bindingUtils={defaultBindingUtils}
+					tools={tools}
+					textOptions={defaultTextOptions}
+					assetUrls={defaultEditorAssetUrls}
+					initialState="inspect"
+				/>
+			</TldrawUiContextProvider>
 		</div>
 	)
 }
