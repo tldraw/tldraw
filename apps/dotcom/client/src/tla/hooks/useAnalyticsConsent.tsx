@@ -2,6 +2,8 @@ import { useAuth } from '@clerk/clerk-react'
 import { useCallback, useEffect, useState } from 'react'
 import { useValue } from 'tldraw'
 import {
+	COOKIE_CONSENT_CHANGED_EVENT,
+	COOKIE_CONSENT_KEY,
 	configureAnalytics,
 	getStoredAnalyticsConsent,
 	setStoredAnalyticsConsent,
@@ -44,7 +46,7 @@ export function useAnalyticsConsent() {
 
 		// Listen for storage events (when localStorage changes in other tabs/windows)
 		const handleStorageChange = (e: StorageEvent) => {
-			if (e.key === 'tldraw_cookie_consent') {
+			if (e.key === COOKIE_CONSENT_KEY) {
 				checkConsent()
 			}
 		}
@@ -57,11 +59,11 @@ export function useAnalyticsConsent() {
 		}
 
 		// Listen for custom events that can be dispatched when consent changes
-		window.addEventListener('cookie-consent-changed', handleCustomStorageChange)
+		window.addEventListener(COOKIE_CONSENT_CHANGED_EVENT, handleCustomStorageChange)
 
 		return () => {
 			window.removeEventListener('storage', handleStorageChange)
-			window.removeEventListener('cookie-consent-changed', handleCustomStorageChange)
+			window.removeEventListener(COOKIE_CONSENT_CHANGED_EVENT, handleCustomStorageChange)
 		}
 	}, [getCurrentConsent, consent])
 

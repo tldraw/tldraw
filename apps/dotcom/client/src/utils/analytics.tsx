@@ -7,7 +7,10 @@ import { getFromLocalStorage, setInLocalStorage, useValue, warnOnce } from 'tldr
 import { useApp } from '../tla/hooks/useAppState'
 
 // Local storage key for cookie consent
-const COOKIE_CONSENT_KEY = 'tldraw_cookie_consent'
+export const COOKIE_CONSENT_KEY = 'tldraw_cookie_consent'
+
+// Custom event name for cookie consent changes
+export const COOKIE_CONSENT_CHANGED_EVENT = 'cookie-consent-changed'
 
 // Cookie consent structure
 interface CookieConsent {
@@ -88,7 +91,7 @@ export function setStoredCookieConsent(consent: Partial<CookieConsent>): void {
 		const updated = { ...existing, ...consent }
 		setInLocalStorage(COOKIE_CONSENT_KEY, JSON.stringify(updated))
 		// Dispatch custom event to notify components of consent change
-		window.dispatchEvent(new CustomEvent('cookie-consent-changed'))
+		window.dispatchEvent(new CustomEvent(COOKIE_CONSENT_CHANGED_EVENT))
 	} catch {
 		// Ignore localStorage errors
 	}
