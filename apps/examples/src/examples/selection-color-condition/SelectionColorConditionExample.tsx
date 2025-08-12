@@ -10,8 +10,8 @@ export default function SelectionColorConditionExample() {
 			<style>{`
 				/* Custom selection color for rectangle shapes */
 				.tl-container.rectangle-selection {
-					--color-selection: #ff4444;
-					--color-selection-stroke: #cc0000;
+					--tl-color-selection: #ff4444;
+					--tl-color-selection-stroke: #cc0000;
 				}
 			`}</style>
 

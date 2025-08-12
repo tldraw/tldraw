@@ -1,30 +1,30 @@
 import classNames from 'classnames'
 import { memo, useCallback } from 'react'
-import { useDialogs, useValue } from 'tldraw'
-import { useApp } from '../../../hooks/useAppState'
-import { F } from '../../../utils/i18n'
-import { TlaManageCookiesDialog } from '../../dialogs/TlaManageCookiesDialog'
-import styles from '../sidebar.module.css'
+import { useDialogs } from 'tldraw'
+import { useAnalyticsConsent } from '../../hooks/useAnalyticsConsent'
+import { F } from '../../utils/i18n'
+import styles from './dialogs.module.css'
+import { TlaManageCookiesDialog } from './TlaManageCookiesDialog'
 
-export const TlaSidebarCookieConsent = memo(function TlaSidebarCookieConsent() {
-	const app = useApp()
+export const TlaCookieConsent = memo(function TlaSidebarCookieConsent() {
 	const { addDialog } = useDialogs()
-
-	const user = useValue('user id', () => app.getUser(), [app])
+	const [consent, updateConsent] = useAnalyticsConsent()
 
 	const handleAccept = useCallback(() => {
-		app.updateUser({ id: user.id, allowAnalyticsCookie: true })
-	}, [app, user.id])
+		updateConsent(true)
+	}, [updateConsent])
 
 	const handleReject = useCallback(() => {
-		app.updateUser({ id: user.id, allowAnalyticsCookie: false })
-	}, [app, user.id])
+		updateConsent(false)
+	}, [updateConsent])
 
 	const handleCustomize = useCallback(() => {
-		addDialog({ component: () => <TlaManageCookiesDialog /> })
+		addDialog({
+			component: () => <TlaManageCookiesDialog />,
+		})
 	}, [addDialog])
 
-	if (user.allowAnalyticsCookie !== null) return null
+	if (consent !== null) return null
 
 	return (
 		<div className={styles.sidebarCookieConsent} data-testid="tla-sidebar-cookie-consent">
