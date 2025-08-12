@@ -7,6 +7,7 @@ import {
 	stopEventPropagation,
 	TLShapeId,
 	useEditor,
+	usePassThroughWheelEvents,
 	useQuickReactor,
 	useValue,
 } from 'tldraw'
@@ -146,6 +147,8 @@ function WorkflowRegion({ workflow }: { workflow: WorkflowRegion }) {
 		},
 		[workflow, editor]
 	)
+
+	usePassThroughWheelEvents(ref)
 
 	return (
 		<div

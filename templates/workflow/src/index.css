@@ -16,23 +16,23 @@ body {
 }
 
 .NodeShape {
-	border-radius: var(--radius-3);
-	background: var(--color-panel);
+	border-radius: var(--tl-radius-3);
+	background: var(--tl-color-panel);
 	box-shadow: var(--node-shadow-border);
 	width: 100%;
 	height: fit-content;
 	display: flex;
 	flex-direction: column;
-	padding-bottom: var(--space-3);
+	padding-bottom: var(--tl-space-3);
 
 	.NodeShape-heading {
-		padding: 0 var(--space-4);
+		padding: 0 var(--tl-space-4);
 		display: flex;
 		align-items: center;
 		justify-content: center;
-		gap: var(--space-4);
+		gap: var(--tl-space-4);
 		height: 40px;
-		margin-bottom: var(--space-2);
+		margin-bottom: var(--tl-space-2);
 	}
 
 	.NodeShape-label {
@@ -46,7 +46,7 @@ body {
 
 	&.NodeShape_executing {
 		box-shadow:
-			0 0 0 calc(2px / var(--tl-zoom)) var(--color-selected),
+			0 0 0 calc(2px / var(--tl-zoom)) var(--tl-color-selected),
 			0 2px 6px rgba(0, 0, 0, 0.08),
 			0 1px 2px rgba(0, 0, 0, 0.04);
 	}
@@ -58,22 +58,22 @@ body {
 	align-items: center;
 	justify-content: flex-start;
 	height: 44px;
-	gap: var(--space-4);
-	padding: var(--space-2) var(--space-4);
+	gap: var(--tl-space-4);
+	padding: var(--tl-space-2) var(--tl-space-4);
 
 	input,
 	select {
 		align-self: stretch;
 		flex: 1 1 auto;
-		border: 1px solid var(--color-hint);
-		padding: 0 var(--space-4);
-		border-radius: var(--radius-3);
+		border: 1px solid var(--tl-color-hint);
+		padding: 0 var(--tl-space-4);
+		border-radius: var(--tl-radius-3);
 		background: none;
 		font: inherit;
 		outline: none;
 
 		&:focus {
-			border-color: var(--color-selected);
+			border-color: var(--tl-color-selected);
 		}
 
 		[data-state='select.idle'] & {
@@ -87,7 +87,7 @@ body {
 		appearance: none;
 		background-image: url("data:image/svg+xml;utf8,<svg width='30' height='30' viewBox='0 0 30 30' fill='none' xmlns='http://www.w3.org/2000/svg'><path fill-rule='evenodd' clip-rule='evenodd' d='M6.27047 12.3161C6.6482 11.9131 7.28103 11.8927 7.68394 12.2705L15 19.1293L22.3161 12.2705C22.719 11.8927 23.3518 11.9131 23.7295 12.3161C24.1073 12.719 24.0869 13.3518 23.6839 13.7295L15.6839 21.2295C15.2993 21.5902 14.7007 21.5902 14.3161 21.2295L6.31606 13.7295C5.91315 13.3518 5.89274 12.719 6.27047 12.3161Z' fill='black'/></svg>");
 		background-repeat: no-repeat;
-		background-position: right var(--space-4) center;
+		background-position: right var(--tl-space-4) center;
 		background-size: 16px;
 	}
 }
@@ -120,7 +120,7 @@ body {
 	width: 12px;
 	height: 12px;
 	border-radius: 50%;
-	background: var(--color-panel);
+	background: var(--tl-color-panel);
 	box-sizing: border-box;
 	z-index: 2;
 	box-shadow:
@@ -134,7 +134,7 @@ body {
 	}
 
 	&.Port_hinting {
-		background: var(--color-selected);
+		background: var(--tl-color-selected);
 	}
 
 	&.Port_end {
@@ -147,7 +147,7 @@ body {
 
 	&.Port_eligible {
 		box-shadow:
-			0 0 0 calc(1px / var(--tl-zoom)) var(--color-selected),
+			0 0 0 calc(1px / var(--tl-zoom)) var(--tl-color-selected),
 			0 0 0 1px rgba(0, 0, 0, 0.04),
 			0 1px 3px rgba(0, 0, 0, 0.12);
 	}
@@ -155,7 +155,7 @@ body {
 
 .ConnectionShape {
 	stroke-width: 2px;
-	stroke: var(--color-text-3);
+	stroke: var(--tl-color-text-3);
 	fill: none;
 }
 
@@ -175,18 +175,18 @@ body {
 		}
 
 		&:hover {
-			fill: var(--color-selection-fill);
+			fill: var(--tl-color-selection-fill);
 		}
 	}
 
 	.ConnectionCenterHandle-ring {
 		stroke: none;
-		fill: var(--color-selected);
+		fill: var(--tl-color-selected);
 	}
 
 	.ConnectionCenterHandle-icon {
 		stroke-width: 2px;
-		stroke: var(--color-selected-contrast);
+		stroke: var(--tl-color-selected-contrast);
 	}
 }
 
@@ -194,7 +194,7 @@ body {
 	position: absolute;
 	top: 0;
 	left: 0;
-	z-index: var(--layer-overlays);
+	z-index: var(--tl-layer-overlays);
 	--top: 66px;
 	transform-origin: 0 0;
 
@@ -202,8 +202,8 @@ body {
 		position: absolute;
 		margin-top: calc(-1 * var(--top));
 		width: 150px;
-		border-radius: var(--radius-3);
-		background: var(--color-panel);
+		border-radius: var(--tl-radius-3);
+		background: var(--tl-color-panel);
 		box-shadow: var(--node-shadow-highlight);
 	}
 
@@ -221,11 +221,11 @@ body {
 }
 
 .ConditionalNode-output-false {
-	background: var(--color-muted-0);
-	border-top: 1px solid var(--color-divider);
-	margin-bottom: calc(-1 * var(--space-3));
-	border-bottom-left-radius: var(--radius-3);
-	border-bottom-right-radius: var(--radius-3);
+	background: var(--tl-color-muted-0);
+	border-top: 1px solid var(--tl-color-divider);
+	margin-bottom: calc(-1 * var(--tl-space-3));
+	border-bottom-left-radius: var(--tl-radius-3);
+	border-bottom-right-radius: var(--tl-radius-3);
 }
 
 .NodeValue_placeholder {
@@ -254,7 +254,7 @@ body {
 	position: absolute;
 	color: hsl(0, 0%, 70%);
 	border: 1px dashed currentColor;
-	border-radius: var(--radius-3);
+	border-radius: var(--tl-radius-3);
 	pointer-events: none;
 
 	.WorkflowRegion-button {
@@ -265,7 +265,7 @@ body {
 		height: 40px;
 		border-radius: 50%;
 		color: inherit;
-		background: var(--color-panel);
+		background: var(--tl-color-panel);
 		border: 1px solid currentColor;
 		display: flex;
 		align-items: center;
@@ -293,11 +293,11 @@ body {
 	}
 
 	&:has(.WorkflowRegion-button:hover) {
-		color: var(--color-selected);
+		color: var(--tl-color-selected);
 	}
 
 	&.WorkflowRegion_executing {
-		color: var(--color-selected);
+		color: var(--tl-color-selected);
 		border-style: solid;
 
 		&::after {
@@ -311,8 +311,8 @@ body {
 				width: 8px;
 				height: 4px;
 				border-radius: 100%;
-				border: 2px solid var(--color-selected);
-				background: var(--color-panel);
+				border: 2px solid var(--tl-color-selected);
+				background: var(--tl-color-panel);
 				position: absolute;
 				animation: WorkflowRegion-button-spin 1s linear infinite;
 			}
