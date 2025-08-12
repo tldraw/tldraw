@@ -21,7 +21,7 @@ export function promptAgent(promptOptions: TLAgentPromptOptions) {
 	const transform = new AgentTransform(editor)
 
 	const promise = new Promise<void>((resolve, reject) => {
-		preparePrompt(promptOptions)
+		preparePrompt(promptOptions, transform)
 			.then(async (prompt) => {
 				editor.markHistoryStoppingPoint(markId)
 				for await (const event of streamAgent({

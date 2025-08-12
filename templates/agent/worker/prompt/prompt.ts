@@ -2,8 +2,6 @@ import { asMessage } from '@tldraw/ai'
 import { CoreMessage, UserContent } from 'ai'
 import { AgentHistoryItem } from '../../client/components/chat-history/AgentHistoryItem'
 import { TLAgentPrompt } from '../../client/types/TLAgentPrompt'
-import { getSimpleContentFromCanvasContent } from '../simple/getSimpleContentFromCanvasContent'
-import { getPeripheralShapesFromCanvasContent } from '../simple/getSimplePeripheralContentFromCanvasContent'
 
 export function buildMessages(prompt: TLAgentPrompt): CoreMessage[] {
 	const messages: CoreMessage[] = []
@@ -19,6 +17,8 @@ export function buildMessages(prompt: TLAgentPrompt): CoreMessage[] {
 	messages.push(...contextPointsMessages)
 	messages.push(...contextShapesMessages)
 	messages.push(userMessage)
+
+	console.log('messages', JSON.stringify(messages, null, 2))
 
 	return messages
 }
@@ -90,13 +90,10 @@ function buildContextShapesMessages(prompt: TLAgentPrompt): CoreMessage[] {
 
 	// Handle individual shape context items - group them all into one message
 	if (shapeContextItems.length > 0) {
-		const individualShapes = getSimpleContentFromCanvasContent({
-			shapes: shapeContextItems.map((item) => item.shape),
-			bindings: [],
-		}).shapes
+		const individualShapes = shapeContextItems.map((item) => item.shape)
 
 		if (individualShapes.length > 0) {
-			const userSelectedShapeIds = new Set(prompt.userSelectedShapes.map((shape) => shape.id))
+			const userSelectedShapeIds = new Set(prompt.userSelectedShapes.map((shape) => shape.shapeId))
 
 			const content: UserContent = [
 				{
@@ -126,14 +123,11 @@ function buildContextShapesMessages(prompt: TLAgentPrompt): CoreMessage[] {
 
 	// Handle groups of shapes context items - each group gets its own message
 	for (const contextItem of shapesContextItems) {
-		const shapes = getSimpleContentFromCanvasContent({
-			shapes: contextItem.shapes,
-			bindings: [],
-		}).shapes
+		const shapes = contextItem.shapes
 
 		if (shapes.length > 0) {
 			// Check if user selection matches exactly with this group of shapes
-			const userSelectedShapeIds = new Set(prompt.userSelectedShapes.map((shape) => shape.id))
+			const userSelectedShapeIds = new Set(prompt.userSelectedShapes.map((shape) => shape.shapeId))
 			const groupShapeIds = new Set(shapes.map((shape) => shape.shapeId))
 
 			const isExactGroupMatch =
@@ -163,10 +157,7 @@ function buildContextShapesMessages(prompt: TLAgentPrompt): CoreMessage[] {
 	}
 
 	if (!hasHandledSelectedShapes && userSelectedShapes.length > 0) {
-		const simeUserSelectedShapes = getSimpleContentFromCanvasContent({
-			shapes: userSelectedShapes,
-			bindings: [],
-		}).shapes
+		// const simeUserSelectedShapes = userSelectedShapes
 
 		messages.push({
 			role: 'user',
@@ -175,7 +166,7 @@ function buildContextShapesMessages(prompt: TLAgentPrompt): CoreMessage[] {
 					type: 'text',
 					text:
 						'The user has selected these shapes. Focus your task on these shapes where applicable:\n' +
-						simeUserSelectedShapes.map((shape) => JSON.stringify(shape, null, 2)).join('\n'),
+						userSelectedShapes.map((shape) => JSON.stringify(shape, null, 2)).join('\n'),
 				},
 			],
 		})
@@ -217,10 +208,7 @@ function buildHistoryItemMessage(item: AgentHistoryItem): CoreMessage | null {
 				for (const contextItem of item.contextItems) {
 					switch (contextItem.type) {
 						case 'shape': {
-							const simpleShape = getSimpleContentFromCanvasContent({
-								shapes: [contextItem.shape],
-								bindings: [],
-							}).shapes[0]
+							const simpleShape = contextItem.shape
 							content.push({
 								type: 'text',
 								text: `[CONTEXT]: ${JSON.stringify(simpleShape, null, 2)}`,
@@ -228,10 +216,7 @@ function buildHistoryItemMessage(item: AgentHistoryItem): CoreMessage | null {
 							break
 						}
 						case 'shapes': {
-							const simpleShapes = getSimpleContentFromCanvasContent({
-								shapes: contextItem.shapes,
-								bindings: [],
-							}).shapes
+							const simpleShapes = contextItem.shapes
 							content.push({
 								type: 'text',
 								text: `[CONTEXT]: ${JSON.stringify(simpleShapes, null, 2)}`,
@@ -288,52 +273,49 @@ function buildHistoryItemMessage(item: AgentHistoryItem): CoreMessage | null {
  * Build the user messages.
  */
 function buildUserMessage(prompt: TLAgentPrompt): CoreMessage {
+	const {
+		agentViewportShapes,
+		peripheralContent,
+		contextBounds,
+		currentUserViewportBounds,
+		type,
+		agentViewportScreenshot,
+		message,
+	} = prompt
+
 	const content: UserContent = []
 
-	// Add agent's current viewport
 	content.push({
 		type: 'text',
-		text: `Your current viewport is:\n${JSON.stringify(prompt.contextBounds)}`,
+		text: `Your current viewport is:\n${JSON.stringify(contextBounds)}`,
 	})
-
-	const currentPageShapes = prompt.currentPageShapes
-
-	// Add the content from the agent's current viewport
-	const simplifiedAgentViewportContent = getSimpleContentFromCanvasContent(prompt.canvasContent)
-
-	// Add the content from outside the agent's current viewport
-	const peripheralContent = getPeripheralShapesFromCanvasContent(
-		currentPageShapes,
-		prompt.canvasContent
-	)
 
 	content.push({
 		type: 'text',
 		text:
-			simplifiedAgentViewportContent.shapes.length > 0
-				? `Here are the shapes in your current viewport:\n${JSON.stringify(simplifiedAgentViewportContent.shapes).replaceAll('\n', ' ')}`
+			agentViewportShapes.length > 0
+				? `Here are the shapes in your current viewport:\n${JSON.stringify(agentViewportShapes).replaceAll('\n', ' ')}`
 				: 'Your current viewport is empty.',
 	})
 
 	// Add the content from the agent's peripheral vision
-	if (peripheralContent.shapes.length > 0) {
+	if (peripheralContent.length > 0) {
 		content.push({
 			type: 'text',
-			text: `Here are the shapes in your peripheral vision, outside the viewport. You can only see their position and size, not their content. If you want to see their content, you need to get closer.\n${JSON.stringify(peripheralContent.shapes)}`,
+			text: `Here are the shapes in your peripheral vision, outside the viewport. You can only see their position and size, not their content. If you want to see their content, you need to get closer.\n${JSON.stringify(peripheralContent)}`,
 		})
 	}
 
 	// Add the user's viewport bounds if they're more than 5% different from the agent's viewport bounds (maybe a bad heuristic, not sure)
-	const currentUserViewportBounds = prompt.currentUserViewportBounds
 	const withinPercent = (a: number, b: number, percent: number) => {
 		const max = Math.max(Math.abs(a), Math.abs(b), 1)
 		return Math.abs(a - b) <= (percent / 100) * max
 	}
 	const doUserAndAgentShareViewport =
-		withinPercent(prompt.contextBounds.x, currentUserViewportBounds.x, 5) &&
-		withinPercent(prompt.contextBounds.y, currentUserViewportBounds.y, 5) &&
-		withinPercent(prompt.contextBounds.w, currentUserViewportBounds.w, 5) &&
-		withinPercent(prompt.contextBounds.h, currentUserViewportBounds.h, 5)
+		withinPercent(contextBounds.x, currentUserViewportBounds.x, 5) &&
+		withinPercent(contextBounds.y, currentUserViewportBounds.y, 5) &&
+		withinPercent(contextBounds.w, currentUserViewportBounds.w, 5) &&
+		withinPercent(contextBounds.h, currentUserViewportBounds.h, 5)
 
 	if (!doUserAndAgentShareViewport) {
 		content.push({
@@ -343,9 +325,9 @@ function buildUserMessage(prompt: TLAgentPrompt): CoreMessage {
 	}
 
 	// Add followup messages
-	if (prompt.type === 'review') {
+	if (type === 'review') {
 		// Review mode
-		const messages = asMessage(prompt.message)
+		const messages = asMessage(message)
 		const intent = messages[0]
 		if (messages.length !== 1 || intent.type !== 'text') {
 			throw new Error('Review message must be a single text message')
@@ -354,9 +336,9 @@ function buildUserMessage(prompt: TLAgentPrompt): CoreMessage {
 			type: 'text',
 			text: getReviewPrompt(intent.text),
 		})
-	} else if (prompt.type === 'setMyView') {
+	} else if (type === 'setMyView') {
 		// Set my view mode
-		const messages = asMessage(prompt.message)
+		const messages = asMessage(message)
 		const intent = messages[0]
 		if (messages.length !== 1 || intent.type !== 'text') {
 			throw new Error('Review message must be a single text message')
@@ -373,23 +355,23 @@ function buildUserMessage(prompt: TLAgentPrompt): CoreMessage {
 		})
 
 		// If it's an array, push each message as a separate message
-		for (const message of asMessage(prompt.message)) {
-			if (message.type === 'image') {
+		for (const msg of asMessage(message)) {
+			if (msg.type === 'image') {
 				content.push({
 					type: 'image',
-					image: message.src!,
+					image: msg.src!,
 				})
 			} else {
 				content.push({
 					type: 'text',
-					text: message.text,
+					text: msg.text,
 				})
 			}
 		}
 	}
 
 	// Add the screenshot of the agent's current viewport
-	if (prompt.image) {
+	if (agentViewportScreenshot) {
 		content.push(
 			{
 				type: 'text',
@@ -397,7 +379,7 @@ function buildUserMessage(prompt: TLAgentPrompt): CoreMessage {
 			},
 			{
 				type: 'image',
-				image: prompt.image,
+				image: agentViewportScreenshot,
 			}
 		)
 	}

@@ -1,11 +1,21 @@
 import { useCallback, useMemo } from 'react'
-import { Editor } from 'tldraw'
+import { Editor, structuredClone } from 'tldraw'
 import { DEFAULT_MODEL_NAME } from '../../worker/models'
 import { IAgentEvent } from '../../worker/prompt/AgentEvent'
 import { AgentEventUtil, AgentEventUtilConstructor } from '../events/AgentEventUtil'
 import { UnknownEventUtil } from '../events/UnknownEventUtil'
+import { AgentViewportScreenshotPromptPart } from '../promptParts/AgentViewportScreenshotPromptPart'
+import { AgentViewportShapesPromptPart } from '../promptParts/AgentViewportShapesPromptPart'
+import { ContextBoundsPromptPart } from '../promptParts/ContextBoundsPromptPart'
+import { ContextItemsPromptPart } from '../promptParts/ContextItemsPromptPart'
+import { CurrentUserViewportBoundsPromptPart } from '../promptParts/CurrentUserViewportBoundsPromptPart'
+import { MessagePromptPart } from '../promptParts/MessagePromptPart'
+import { PeripheralContentPromptPart } from '../promptParts/PeripheralContentPromptPart'
+import { PromptBoundsPromptPart } from '../promptParts/PromptBoundsPromptPart'
+import { UserSelectedShapesPromptPart } from '../promptParts/UserSelectedShapesPromptPart'
 import { TLAgentPromptOptions } from '../types/TLAgentPrompt'
 import { promptAgent } from './promptAgent'
+import { getWholePageContent } from './promptConstruction/translateFromDrawishToModelish'
 
 export interface TLAgent {
 	prompt(options: Partial<TLAgentPromptOptions>): { promise: Promise<void>; cancel(): void }
@@ -63,24 +73,35 @@ export function useAgent({
 				modelName = DEFAULT_MODEL_NAME,
 				historyItems = [],
 				contextItems = [],
-				currentPageShapes = editor.getCurrentPageShapesSorted(),
+				currentPageContent = getWholePageContent({ editor }),
 				currentUserViewportBounds = editor.getViewportPageBounds(),
-				userSelectedShapes = editor.getSelectedShapes(),
+				userSelectedShapeIds = editor.getSelectedShapeIds().map((v) => structuredClone(v)) ?? [],
 				type = 'user',
 			} = options
 
 			return promptAgent({
 				editor: options.editor ?? editor,
 				eventUtils: eventUtilsMap,
+				promptParts: [
+					AgentViewportScreenshotPromptPart,
+					AgentViewportShapesPromptPart,
+					ContextBoundsPromptPart,
+					ContextItemsPromptPart,
+					CurrentUserViewportBoundsPromptPart,
+					MessagePromptPart,
+					PeripheralContentPromptPart,
+					PromptBoundsPromptPart,
+					UserSelectedShapesPromptPart,
+				],
 				message,
 				contextBounds,
 				promptBounds,
 				modelName,
 				historyItems,
 				contextItems,
-				currentPageShapes,
+				currentPageContent,
 				currentUserViewportBounds,
-				userSelectedShapes,
+				userSelectedShapeIds,
 				type,
 			})
 		},

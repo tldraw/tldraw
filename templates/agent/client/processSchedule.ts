@@ -1,6 +1,7 @@
 // import { useCallback } from 'react'
 import { Box, Editor, structuredClone } from 'tldraw'
 import { TLAgentModelName } from '../worker/models'
+import { getWholePageContent } from './ai/promptConstruction/translateFromDrawishToModelish'
 import { TLAgent } from './ai/useAgent'
 import { $chatHistoryItems } from './atoms/chatHistoryItems'
 import { $pendingContextItems } from './atoms/contextItems'
@@ -41,9 +42,9 @@ export async function processSchedule({
 			modelName,
 			historyItems: $chatHistoryItems.get(),
 			contextItems: request.contextItems,
-			currentPageShapes: editor.getCurrentPageShapesSorted().map((v) => structuredClone(v)),
+			currentPageContent: getWholePageContent({ editor }),
 			currentUserViewportBounds: editor.getViewportPageBounds(),
-			userSelectedShapes: editor.getSelectedShapes().map((v) => structuredClone(v)),
+			userSelectedShapeIds: editor.getSelectedShapeIds().map((v) => structuredClone(v)) ?? [],
 			type: request.type,
 		})
 

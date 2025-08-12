@@ -1,100 +1,50 @@
-import { Box, BoxModel, Editor, FileHelpers, structuredClone, TLShape } from 'tldraw'
-import { TLAgentContent, TLAgentPrompt, TLAgentPromptOptions } from '../types/TLAgentPrompt'
+import { AgentTransform } from '../transforms/AgentTransform'
+import { TLAgentPrompt, TLAgentPromptOptions } from '../types/TLAgentPrompt'
 
 /**
  * Get a full prompt based on the provided prompt options.
  *
  * @returns The fully assembled prompt.
  */
-export async function preparePrompt(promptOptions: TLAgentPromptOptions) {
-	const { editor, ...rest } = promptOptions
-
-	// TODO: Replace these hardcoded things with custom prompt parts
-	const canvasContent = getCanvasContent({ editor, bounds: promptOptions.contextBounds })
-	const image = await getScreenshot({
+export async function preparePrompt(
+	promptOptions: TLAgentPromptOptions,
+	transform: AgentTransform
+): Promise<TLAgentPrompt> {
+	const {
 		editor,
-		shapes: canvasContent.shapes,
-		bounds: promptOptions.contextBounds,
-	})
 
-	const prompt: TLAgentPrompt = {
-		...rest,
-		canvasContent,
-		image,
+		modelName,
+		type,
+
+		historyItems,
+
+		promptParts,
+	} = promptOptions
+
+	const prompt: Partial<TLAgentPrompt> = {
+		type,
+		modelName,
+
+		historyItems,
 	}
 
-	// for (const transform of transforms) {
-	// 	if (transform.transformPrompt) {
-	// 		prompt = transform.transformPrompt(prompt)
-	// 	}
-	// }
+	// Generate prompt parts using handlers
+	for (const promptPartConstructor of promptParts) {
+		const handler = new promptPartConstructor(editor, transform)
+		console.log('handler', promptPartConstructor.type)
+		const promptPart = await handler.getPromptPart(promptOptions)
 
-	// transforms.reverse()
+		// If the handler has a transformPromptPart method, use it; otherwise, just assign the promptPart
+		const transformedPart =
+			typeof handler.transformPromptPart === 'function'
+				? handler.transformPromptPart(promptPart, promptOptions)
+				: promptPart
 
-	// const transformEvent = (event: Streaming<IAgentEvent>) => {
-	// 	for (const transform of transforms) {
-	// 		if (transform.transformEvent) {
-	// 			event = transform.transformEvent(event)
-	// 		}
-	// 	}
-	// 	return event
-	// }
-
-	return prompt
-}
-
-/**
- * Get all the shapes and bindings from a given area in the current page.
- *
- * @returns An object containing the shapes and bindings.
- */
-function getCanvasContent({
-	editor,
-	bounds,
-}: {
-	editor: Editor
-	bounds: BoxModel
-}): TLAgentContent {
-	const contentFromCurrentPage = editor.getContentFromCurrentPage(
-		editor
-			.getCurrentPageShapesSorted()
-			.filter((s) => Box.From(bounds).includes(editor.getShapeMaskedPageBounds(s)!))
-	)
-
-	if (contentFromCurrentPage) {
-		return {
-			shapes: structuredClone(contentFromCurrentPage.shapes),
-			bindings: structuredClone(contentFromCurrentPage.bindings ?? []),
+		if (transformedPart) {
+			Object.assign(prompt, transformedPart)
 		}
 	}
 
-	return {
-		shapes: [],
-		bindings: [],
-	}
-}
-
-/**
- * Get an image of the canvas content.
- * *
- * @returns The image data URL.
- */
-async function getScreenshot({
-	editor,
-	shapes,
-	bounds,
-}: {
-	editor: Editor
-	shapes: TLShape[]
-	bounds: BoxModel
-}) {
-	if (shapes.length === 0) return undefined
-	const result = await editor.toImage(shapes, {
-		format: 'jpeg',
-		background: true,
-		bounds: Box.From(bounds),
-		padding: 0,
-	})
-
-	return await FileHelpers.blobToDataUrl(result.blob)
+	console.log(prompt)
+	return prompt as TLAgentPrompt
 }
