@@ -1,8 +1,8 @@
-import { PromptHistoryItem } from '../../types/AgentHistoryItem'
 import { CONTEXT_TYPE_DEFINITIONS, ContextItem } from '../../types/ContextItem'
+import { PromptHistoryItem } from './AgentHistoryItem'
 import { AgentIcon } from './AgentIcon'
 
-export function UserMessageHistoryItem({ item }: { item: PromptHistoryItem }) {
+export function PromptHistoryItem({ item }: { item: PromptHistoryItem }) {
 	return (
 		<div>
 			<div className="user-message">

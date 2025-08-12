@@ -1,6 +1,6 @@
 import { IAgentReviewEvent } from '../../worker/prompt/AgentEvent'
 import { $requestsSchedule } from '../atoms/requestsSchedule'
-import { AgentHistoryItemStatus } from '../types/AgentHistoryItem'
+import { AgentHistoryItemStatus } from '../components/chat-history/AgentHistoryItem'
 import { AreaContextItem } from '../types/ContextItem'
 import { ScheduledRequest } from '../types/ScheduledRequest'
 import { Streaming } from '../types/Streaming'

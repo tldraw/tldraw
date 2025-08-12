@@ -1,5 +1,5 @@
 import { atom } from 'tldraw'
-import { AgentHistoryItem } from '../types/AgentHistoryItem'
+import { AgentHistoryItem } from '../components/chat-history/AgentHistoryItem'
 
 export const $chatHistoryItems = atom<AgentHistoryItem[]>('chatHistoryItems', [])
 

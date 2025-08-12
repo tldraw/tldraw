@@ -1,11 +1,11 @@
 import { useEffect, useRef } from 'react'
-import { Editor, useReactor, useValue } from 'tldraw'
+import { DefaultSpinner, Editor, useReactor, useValue } from 'tldraw'
 import { TLAgent } from '../../ai/useAgent'
 import { $chatHistoryItems } from '../../atoms/chatHistoryItems'
-import { AgentHistoryItem, GroupHistoryItem } from '../../types/AgentHistoryItem'
-import { ActionHistoryItem } from './ActionHistoryIcon'
+import { AgentHistoryItem, GroupHistoryItem } from './AgentHistoryItem'
 import { DiffHistoryItem } from './DiffHistoryItem'
-import { UserMessageHistoryItem } from './UserMessageHistoryItem'
+import { EventHistoryItem } from './EventHistoryItem'
+import { PromptHistoryItem } from './PromptHistoryItem'
 
 export function ChatHistory({ editor, agent }: { editor: Editor; agent: TLAgent }) {
 	const items = useValue($chatHistoryItems)
@@ -50,21 +50,23 @@ export function ChatHistory({ editor, agent }: { editor: Editor; agent: TLAgent 
 	}
 
 	const mergedItems = getChatHistoryWithMergedAdjacentItems({ items })
+	const shouldShowSpinner = mergedItems.at(-1)?.type === 'prompt'
 
 	return (
 		<div className="chat-history" ref={scrollContainerRef} onScroll={handleScroll}>
 			{mergedItems.map((item, index) => {
 				switch (item.type) {
 					case 'prompt':
-						return <UserMessageHistoryItem key={index} item={item} />
+						return <PromptHistoryItem key={index} item={item} />
 					case 'change':
 						return <DiffHistoryItem key={index} items={[item]} editor={editor} agent={agent} />
 					case 'group':
 						return <DiffHistoryItem key={index} items={item.items} editor={editor} agent={agent} />
 					case 'event':
-						return <ActionHistoryItem key={index} item={item} agent={agent} />
+						return <EventHistoryItem key={index} item={item} agent={agent} />
 				}
 			})}
+			{shouldShowSpinner && <DefaultSpinner />}
 		</div>
 	)
 }

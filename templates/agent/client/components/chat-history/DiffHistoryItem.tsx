@@ -11,7 +11,7 @@ import {
 } from 'tldraw'
 import { TLAgent } from '../../ai/useAgent'
 import { $chatHistoryItems } from '../../atoms/chatHistoryItems'
-import { ChangeHistoryItem } from '../../types/AgentHistoryItem'
+import { ChangeHistoryItem } from './AgentHistoryItem'
 import { AgentIcon, AgentIconType } from './AgentIcon'
 import TldrawViewer from './TldrawViewer'
 

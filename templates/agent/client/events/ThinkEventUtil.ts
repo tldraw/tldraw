@@ -1,5 +1,5 @@
 import { IAgentThinkEvent } from '../../worker/prompt/AgentEvent'
-import { AgentHistoryItemStatus } from '../types/AgentHistoryItem'
+import { AgentHistoryItemStatus } from '../components/chat-history/AgentHistoryItem'
 import { Streaming } from '../types/Streaming'
 import { AgentEventUtil } from './AgentEventUtil'
 

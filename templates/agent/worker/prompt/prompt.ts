@@ -1,6 +1,6 @@
 import { asMessage } from '@tldraw/ai'
 import { CoreMessage, UserContent } from 'ai'
-import { AgentHistoryItem } from '../../client/types/AgentHistoryItem'
+import { AgentHistoryItem } from '../../client/components/chat-history/AgentHistoryItem'
 import { TLAgentPrompt } from '../../client/types/TLAgentPrompt'
 import { getSimpleContentFromCanvasContent } from '../simple/getSimpleContentFromCanvasContent'
 import { getPeripheralShapesFromCanvasContent } from '../simple/getSimplePeripheralContentFromCanvasContent'

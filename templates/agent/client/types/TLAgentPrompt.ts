@@ -1,8 +1,8 @@
 import { BoxModel, Editor, TLBinding, TLShape } from 'tldraw'
 import { TLAgentModelName } from '../../worker/models'
 import { IAgentEvent } from '../../worker/prompt/AgentEvent'
+import { AgentHistoryItem } from '../components/chat-history/AgentHistoryItem'
 import { AgentEventUtil } from '../events/AgentEventUtil'
-import { AgentHistoryItem } from './AgentHistoryItem'
 import { ContextItem } from './ContextItem'
 import { ScheduledRequest } from './ScheduledRequest'
 
