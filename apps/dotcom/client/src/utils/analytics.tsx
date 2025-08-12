@@ -6,8 +6,16 @@ import { useLocation } from 'react-router-dom'
 import { getFromLocalStorage, setInLocalStorage, useValue, warnOnce } from 'tldraw'
 import { useApp } from '../tla/hooks/useAppState'
 
-// Local storage key for analytics consent
-const ANALYTICS_CONSENT_KEY = 'tldraw_analytics_consent'
+// Local storage key for cookie consent
+const COOKIE_CONSENT_KEY = 'tldraw_cookie_consent'
+
+// Cookie consent structure
+interface CookieConsent {
+	analytics: boolean
+	// Future consent types can be added here
+	// marketing?: boolean
+	// functional?: boolean
+}
 
 export type AnalyticsOptions =
 	| {
@@ -55,25 +63,39 @@ function filterProperties(value: { [key: string]: any }) {
 }
 
 // Helper functions for localStorage consent management
-export function getStoredAnalyticsConsent(): boolean | null {
+export function getStoredCookieConsent(): CookieConsent | null {
 	try {
-		const stored = getFromLocalStorage(ANALYTICS_CONSENT_KEY)
-		if (stored === 'true') return true
-		if (stored === 'false') return false
-		return null
+		const stored = getFromLocalStorage(COOKIE_CONSENT_KEY)
+		if (!stored) return null
+		return JSON.parse(stored) as CookieConsent
 	} catch {
 		return null
 	}
 }
 
-export function setStoredAnalyticsConsent(consent: boolean): void {
+export function getStoredAnalyticsConsent(): boolean | null {
 	try {
-		setInLocalStorage(ANALYTICS_CONSENT_KEY, consent.toString())
+		const consent = getStoredCookieConsent()
+		return consent?.analytics ?? null
+	} catch {
+		return null
+	}
+}
+
+export function setStoredCookieConsent(consent: Partial<CookieConsent>): void {
+	try {
+		const existing = getStoredCookieConsent() || {}
+		const updated = { ...existing, ...consent }
+		setInLocalStorage(COOKIE_CONSENT_KEY, JSON.stringify(updated))
 		// Dispatch custom event to notify components of consent change
-		window.dispatchEvent(new CustomEvent('analytics-consent-changed'))
+		window.dispatchEvent(new CustomEvent('cookie-consent-changed'))
 	} catch {
 		// Ignore localStorage errors
 	}
+}
+
+export function setStoredAnalyticsConsent(consent: boolean): void {
+	setStoredCookieConsent({ analytics: consent })
 }
 
 // Function to configure analytics when consent changes

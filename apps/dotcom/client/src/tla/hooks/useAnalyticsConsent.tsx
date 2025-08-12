@@ -44,7 +44,7 @@ export function useAnalyticsConsent() {
 
 		// Listen for storage events (when localStorage changes in other tabs/windows)
 		const handleStorageChange = (e: StorageEvent) => {
-			if (e.key === 'tldraw_analytics_consent') {
+			if (e.key === 'tldraw_cookie_consent') {
 				checkConsent()
 			}
 		}
@@ -57,11 +57,11 @@ export function useAnalyticsConsent() {
 		}
 
 		// Listen for custom events that can be dispatched when consent changes
-		window.addEventListener('analytics-consent-changed', handleCustomStorageChange)
+		window.addEventListener('cookie-consent-changed', handleCustomStorageChange)
 
 		return () => {
 			window.removeEventListener('storage', handleStorageChange)
-			window.removeEventListener('analytics-consent-changed', handleCustomStorageChange)
+			window.removeEventListener('cookie-consent-changed', handleCustomStorageChange)
 		}
 	}, [getCurrentConsent, consent])
 
