@@ -229,7 +229,7 @@ function Counter() {
 
 ## API Reference
 
-For complete API documentation, see [docs.md](./docs.md).
+For complete API documentation, see [DOCS.md](./DOCS.md).
 
 ### Core Functions
 
@@ -237,17 +237,17 @@ For complete API documentation, see [docs.md](./docs.md).
 - `computed(name, computeFn, options?)` - Create a derived value
 - `react(name, effectFn, options?)` - Create a side effect  
 - `transact(fn)` - Batch state updates
-- `whyAmIRunning()` - Debug what triggered an update
 
 ### Class-based APIs
 
 - `@computed` - Decorator for computed class properties
-- `getComputedInstance(obj, prop)` - Get underlying computed instance
 
 ### Advanced
 
 - `reactor(name, effectFn)` - Create a controllable reaction
 - `unsafe_withoutCapture(fn)` - Read state without creating dependencies
+- `whyAmIRunning()` - Debug what triggered an update
+- `getComputedInstance(obj, prop)` - Get underlying computed instance
 - `getGlobalEpoch()` - Get current time for history tracking
 
 ## Related Packages
