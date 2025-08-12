@@ -64,6 +64,7 @@ const components: TLComponents = {
 
 const options: Partial<TldrawOptions> = {
 	actionShortcutsLocation: 'menu',
+	maxPages: 1,
 }
 
 function App() {
