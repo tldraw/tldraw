@@ -7,10 +7,9 @@ import {
 	TLGeoShape,
 	TLLineShape,
 	TLNoteShape,
-	TLShape,
 	TLShapeId,
-	TLShapePartial,
 	TLTextShape,
+	toRichText,
 } from 'tldraw'
 import { IAgentUpdateEvent } from '../../worker/prompt/AgentEvent'
 import { asColor, simpleFillToShapeFill } from '../../worker/simple/color'
@@ -62,34 +61,35 @@ export function getTldrawAiChangesFromUpdateEvent({
 
 	switch (update._type) {
 		case 'text': {
-			const shapeOnCanvas = editor.getShape(update.shapeId as TLShapeId)
+			const shapeOnCanvas = editor.getShape<TLTextShape>(update.shapeId as TLShapeId)
 			if (!shapeOnCanvas) {
 				throw new Error(`Shape ${update.shapeId} not found in canvas`)
 			}
 
-			const mergedShape: TLShapePartial<TLTextShape> = {
-				id: update.shapeId as TLShapeId,
-				type: 'text',
-				x: update.x,
-				y: update.y,
-				props: {
-					color: update.color ? asColor(update.color) : undefined,
-					richText: update.text ? asRichText(update.text) : undefined,
-				},
-				meta: {
-					note: update.note,
-				},
-			}
+			const color = update.color ? asColor(update.color) : shapeOnCanvas.props.color
+			const richText = update.text ? toRichText(update.text) : shapeOnCanvas.props.richText
 
 			changes.push({
 				type: 'updateShape',
 				description: event.intent ?? '',
-				shape: mergedShape,
+				shape: {
+					id: update.shapeId as TLShapeId,
+					type: 'text',
+					x: update.x,
+					y: update.y,
+					props: {
+						color,
+						richText,
+					},
+					meta: {
+						note: update.note,
+					},
+				},
 			})
 			break
 		}
 		case 'line': {
-			const shapeOnCanvas = editor.getShape(update.shapeId as TLShapeId)
+			const shapeOnCanvas = editor.getShape<TLLineShape>(update.shapeId as TLShapeId)
 			if (!shapeOnCanvas) {
 				throw new Error(`Shape ${update.shapeId} not found in canvas`)
 			}
@@ -114,29 +114,28 @@ export function getTldrawAiChangesFromUpdateEvent({
 				},
 			}
 
-			const mergedShape: TLShapePartial<TLLineShape> = {
-				id: update.shapeId as TLShapeId,
-				type: 'line',
-				x: startX,
-				y: startY,
-				props: {
-					color: update.color ? asColor(update.color) : undefined,
-					points,
-				},
-				meta: {
-					note: update.note,
-				},
-			}
-
+			const color = update.color ? asColor(update.color) : shapeOnCanvas.props.color
 			changes.push({
 				type: 'updateShape',
 				description: event.intent ?? '',
-				shape: mergedShape,
+				shape: {
+					id: update.shapeId as TLShapeId,
+					type: 'line',
+					x: startX,
+					y: startY,
+					props: {
+						color,
+						points,
+					},
+					meta: {
+						note: update.note,
+					},
+				},
 			})
 			break
 		}
 		case 'arrow': {
-			const shapeOnCanvas = editor.getShape(update.shapeId as TLShapeId)
+			const shapeOnCanvas = editor.getShape<TLArrowShape>(update.shapeId as TLShapeId)
 			if (!shapeOnCanvas) {
 				throw new Error(`Shape ${update.shapeId} not found in canvas`)
 			}
@@ -147,27 +146,28 @@ export function getTldrawAiChangesFromUpdateEvent({
 			const endY = update.y2 - startY
 			const bend = update.bend ?? 0
 
-			const mergedShape: TLShapePartial<TLArrowShape> = {
-				id: update.shapeId as TLShapeId,
-				type: 'arrow',
-				x: startX,
-				y: startY,
-				props: {
-					color: update.color ? asColor(update.color) : undefined,
-					richText: update.text ? asRichText(update.text) : undefined,
-					start: { x: 0, y: 0 },
-					end: { x: endX, y: endY },
-					bend,
-				},
-				meta: {
-					note: update.note,
-				},
-			}
+			const color = update.color ? asColor(update.color) : shapeOnCanvas.props.color
+			const richText = update.text ? asRichText(update.text) : shapeOnCanvas.props.richText
 
 			changes.push({
 				type: 'updateShape',
 				description: event.intent ?? '',
-				shape: mergedShape,
+				shape: {
+					id: update.shapeId as TLShapeId,
+					type: 'arrow',
+					x: startX,
+					y: startY,
+					props: {
+						color,
+						richText,
+						start: { x: 0, y: 0 },
+						end: { x: endX, y: endY },
+						bend,
+					},
+					meta: {
+						note: update.note,
+					},
+				},
 			})
 
 			const bindings = editor.getBindingsFromShape(update.shapeId as TLShapeId, 'arrow')
@@ -243,61 +243,62 @@ export function getTldrawAiChangesFromUpdateEvent({
 		case 'check-box':
 		case 'heart':
 		case 'ellipse': {
-			const shapeOnCanvas = editor.getShape(update.shapeId as TLShapeId)
-
+			const shapeOnCanvas = editor.getShape<TLGeoShape>(update.shapeId as TLShapeId)
 			if (!shapeOnCanvas) {
 				throw new Error(`Shape ${update.shapeId} not found in canvas`)
 			}
 
-			// Create a merged shape object that starts with all properties from shapeOnCanvas and overrides with any properties from the update. Returns undefined if there are no changes to that field, so the editor function won't try to update it.
-			const mergedShape: TLShapePartial<TLGeoShape> = {
-				id: update.shapeId as TLShapeId,
-				type: 'geo',
-				props: {
-					color: update.color ? asColor(update.color) : undefined,
-					geo: update._type,
-					w: update.width,
-					h: update.height,
-					fill: update.fill ? simpleFillToShapeFill(update.fill) : undefined,
-					richText: update.text ? asRichText(update.text) : undefined,
-				},
-				meta: {
-					note: update.note,
-				},
-			}
+			const color = update.color ? asColor(update.color) : shapeOnCanvas.props.color
+			const richText = update.text ? toRichText(update.text) : shapeOnCanvas.props.richText
+			const fill = update.fill ? simpleFillToShapeFill(update.fill) : shapeOnCanvas.props.fill
 
 			changes.push({
 				type: 'updateShape',
 				description: event.intent ?? '',
-				shape: mergedShape,
+				shape: {
+					id: update.shapeId as TLShapeId,
+					type: 'geo',
+					props: {
+						color,
+						geo: update._type,
+						w: update.width,
+						h: update.height,
+						fill,
+						richText,
+					},
+					meta: {
+						note: update.note,
+					},
+				},
 			})
 
 			break
 		}
 		case 'note': {
-			const shapeOnCanvas = editor.getShape(update.shapeId as TLShapeId)
+			const shapeOnCanvas = editor.getShape<TLNoteShape>(update.shapeId as TLShapeId)
 			if (!shapeOnCanvas) {
 				throw new Error(`Shape ${update.shapeId} not found in canvas`)
 			}
 
-			const mergedShape: TLShapePartial<TLNoteShape> = {
-				id: update.shapeId as TLShapeId,
-				type: 'note',
-				x: update.x,
-				y: update.y,
-				props: {
-					color: update.color ? asColor(update.color) : undefined,
-					richText: update.text ? asRichText(update.text) : undefined,
-				},
-				meta: {
-					note: update.note,
-				},
-			}
+			const color = update.color ? asColor(update.color) : shapeOnCanvas.props.color
+			const richText = update.text ? toRichText(update.text) : shapeOnCanvas.props.richText
 
 			changes.push({
 				type: 'updateShape',
 				description: event.intent ?? '',
-				shape: mergedShape,
+				shape: {
+					id: update.shapeId as TLShapeId,
+					type: 'note',
+					x: update.x,
+					y: update.y,
+					props: {
+						color,
+						richText,
+					},
+					meta: {
+						note: update.note,
+					},
+				},
 			})
 
 			break
@@ -308,20 +309,18 @@ export function getTldrawAiChangesFromUpdateEvent({
 				throw new Error(`Shape ${update.shapeId} not found in canvas`)
 			}
 
-			const mergedShape: TLShapePartial<TLShape> = {
-				id: update.shapeId as TLShapeId,
-				type: shapeOnCanvas.type,
-				x: update.x,
-				y: update.y,
-				meta: {
-					note: update.note,
-				},
-			}
-
 			changes.push({
 				type: 'updateShape',
 				description: event.intent ?? '',
-				shape: mergedShape,
+				shape: {
+					id: update.shapeId as TLShapeId,
+					type: shapeOnCanvas.type,
+					x: update.x,
+					y: update.y,
+					meta: {
+						note: update.note,
+					},
+				},
 			})
 
 			break
