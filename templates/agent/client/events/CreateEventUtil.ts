@@ -60,6 +60,7 @@ export function getTldrawAiChangesFromCreateEvent({
 					x: shape.x,
 					y: shape.y,
 					props: {
+						size: 's',
 						richText: toRichText(shape.text),
 						color: asColor(shape.color),
 						textAlign: 'start',
@@ -88,6 +89,7 @@ export function getTldrawAiChangesFromCreateEvent({
 					x: minX,
 					y: minY,
 					props: {
+						size: 's',
 						points: {
 							a1: {
 								id: 'a1',
@@ -131,6 +133,7 @@ export function getTldrawAiChangesFromCreateEvent({
 					x: minX,
 					y: minY,
 					props: {
+						size: 's',
 						color: asColor(shape.color),
 						richText: toRichText(shape.text ?? ''),
 						start: { x: x1 - minX, y: y1 - minY },
@@ -216,6 +219,7 @@ export function getTldrawAiChangesFromCreateEvent({
 					x: shape.x,
 					y: shape.y,
 					props: {
+						size: 's',
 						geo: shape._type,
 						w: shape.width,
 						h: shape.height,
