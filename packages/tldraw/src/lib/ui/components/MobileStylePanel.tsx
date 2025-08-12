@@ -17,12 +17,13 @@ import {
 	TldrawUiPopoverContent,
 	TldrawUiPopoverTrigger,
 } from './primitives/TldrawUiPopover'
+import { useTldrawUiOrientation } from './primitives/layout'
 
 /** @public @react */
 export function MobileStylePanel() {
 	const editor = useEditor()
 	const msg = useTranslation()
-
+	const { orientation } = useTldrawUiOrientation()
 	const relevantStyles = useRelevantStyles()
 	const color = relevantStyles?.get(DefaultColorStyle)
 	const theme = getDefaultColorTheme({ isDarkMode: editor.user.getIsDarkMode() })
@@ -66,7 +67,7 @@ export function MobileStylePanel() {
 					/>
 				</TldrawUiButton>
 			</TldrawUiPopoverTrigger>
-			<TldrawUiPopoverContent side="top" align="end">
+			<TldrawUiPopoverContent side={orientation === 'horizontal' ? 'top' : 'right'} align="end">
 				{StylePanel && <StylePanel isMobile />}
 			</TldrawUiPopoverContent>
 		</TldrawUiPopover>

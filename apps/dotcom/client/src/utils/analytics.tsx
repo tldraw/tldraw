@@ -121,8 +121,11 @@ function configureGA4(options: AnalyticsOptions) {
 			wait_for_update: 500,
 		})
 
-		ReactGA.initialize(GA4_MEASUREMENT_ID)
-		ReactGA.send('pageview')
+		ReactGA.initialize(GA4_MEASUREMENT_ID, {
+			gtagOptions: {
+				send_page_view: false,
+			},
+		})
 	}
 
 	if (options.optedIn) {
@@ -179,12 +182,10 @@ function getGA4() {
 export function trackEvent(name: string, data?: { [key: string]: any }) {
 	getPosthog()?.capture(name, data)
 
-	// For GA4, rename 'source' to 'event_source' to avoid session attribution
-	if (data) {
-		const { source, ...rest } = data
-		data = source !== undefined ? { ...rest, event_source: source } : rest
+	// Send pageviews to both platforms, but other app-specific events only to PostHog
+	if (name === '$pageview') {
+		getGA4()?.event('page_view', data)
 	}
-	getGA4()?.event(name, data)
 }
 
 export function useHandleUiEvents() {

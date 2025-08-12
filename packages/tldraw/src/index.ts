@@ -26,8 +26,13 @@ export { AccessibilityMenu } from './lib/ui/components/AccessibilityMenu'
 export { ColorSchemeMenu } from './lib/ui/components/ColorSchemeMenu'
 export { DefaultDialogs } from './lib/ui/components/Dialogs'
 export {
+	TldrawUiColumn,
 	TldrawUiGrid,
+	TldrawUiOrientationProvider,
 	TldrawUiRow,
+	useTldrawUiOrientation,
+	type TldrawUiOrientationContext,
+	type TldrawUiOrientationProviderProps,
 	type TLUiLayoutProps,
 } from './lib/ui/components/primitives/layout'
 export {
