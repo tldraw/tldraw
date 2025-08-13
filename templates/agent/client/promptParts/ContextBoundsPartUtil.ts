@@ -1,3 +1,5 @@
+import { BoxModel } from 'tldraw'
+import { AgentTransform } from '../AgentTransform'
 import { AgentPrompt, AgentPromptOptions } from '../types/AgentPrompt'
 import { PromptPartUtil } from './PromptPartUitl'
 
@@ -14,7 +16,15 @@ export class ContextBoundsPartUtil extends PromptPartUtil {
 		return contextBounds
 	}
 
-	static override buildContent(_prompt: AgentPrompt, contextBounds: any): string[] {
+	override transformPromptPart(
+		promptPart: BoxModel,
+		transform: AgentTransform,
+		_prompt: Partial<AgentPrompt>
+	): BoxModel {
+		return transform.roundBoxModel(promptPart)
+	}
+
+	static override buildContent(_prompt: AgentPrompt, contextBounds: BoxModel): string[] {
 		return [`Your current context bounds are:`, JSON.stringify(contextBounds)]
 	}
 }

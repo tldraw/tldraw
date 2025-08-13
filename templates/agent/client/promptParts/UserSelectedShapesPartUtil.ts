@@ -1,4 +1,6 @@
 import { structuredClone } from 'tldraw'
+import { ISimpleShape } from '../../worker/simple/SimpleShape'
+import { AgentTransform } from '../AgentTransform'
 import { convertShapeToSimpleShape } from '../ai/promptConstruction/translateFromDrawishToSimplish'
 import { AgentPrompt, AgentPromptOptions } from '../types/AgentPrompt'
 import { PromptPartUtil } from './PromptPartUitl'
@@ -27,7 +29,17 @@ export class UserSelectedShapesPartUtil extends PromptPartUtil {
 		return shapes
 	}
 
-	static override buildContent(_prompt: AgentPrompt, userSelectedShapes: any[]): string[] {
+	override transformPromptPart(
+		promptPart: ISimpleShape[],
+		transform: AgentTransform,
+		_prompt: Partial<AgentPrompt>
+	): ISimpleShape[] {
+		return promptPart
+			.map((shape) => transform.sanitizeExistingShape(shape))
+			.filter((shape): shape is ISimpleShape => shape !== null)
+	}
+
+	static override buildContent(_prompt: AgentPrompt, userSelectedShapes: ISimpleShape[]): string[] {
 		if (!userSelectedShapes || userSelectedShapes.length === 0) {
 			return []
 		}

@@ -1,4 +1,5 @@
 import { ISimpleShape } from '../../worker/simple/SimpleShape'
+import { AgentTransform } from '../AgentTransform'
 import { convertShapeToSimpleShape } from '../ai/promptConstruction/translateFromDrawishToSimplish'
 import { AgentIconType } from '../components/icons/AgentIcon'
 import { AgentPrompt, AgentPromptOptions } from '../types/AgentPrompt'
@@ -27,6 +28,14 @@ export class ContextItemsPartUtil extends PromptPartUtil {
 			.filter((item): item is SimpleContextItem => item !== null)
 
 		return processedContextItems
+	}
+
+	override transformPromptPart(
+		promptPart: SimpleContextItem[],
+		transform: AgentTransform,
+		_prompt: Partial<AgentPrompt>
+	): SimpleContextItem[] {
+		return promptPart.map((item) => transformContextItem(item, transform))
 	}
 
 	static override buildContent(_prompt: AgentPrompt, contextItems: SimpleContextItem[]): string[] {
@@ -105,6 +114,51 @@ export type SimplePointContextItem = PointContextItem
 export interface SimpleContextItemDefinition {
 	name(item: SimpleContextItem): string
 	icon: AgentIconType
+}
+
+/**
+ * Transforms context items by sanitizing any shapes within them using the provided AgentTransform.
+ * This function handles both individual shape context items and groups of shapes context items.
+ *
+ * @param contextItems - Array of SimpleContextItem to transform
+ * @param transform - AgentTransform instance used for sanitizing shapes
+ * @returns Array of transformed SimpleContextItem with sanitized shapes
+ */
+export function transformContextItem(
+	contextItem: SimpleContextItem,
+	transform: AgentTransform
+): SimpleContextItem {
+	switch (contextItem.type) {
+		case 'shape': {
+			return {
+				...contextItem,
+				shape: transform.sanitizeExistingShape(contextItem.shape) as ISimpleShape,
+			}
+		}
+		case 'shapes': {
+			return {
+				...contextItem,
+				shapes: contextItem.shapes.map(
+					(shape) => transform.sanitizeExistingShape(shape) as ISimpleShape
+				),
+			}
+		}
+		case 'area': {
+			return {
+				...contextItem,
+				bounds: transform.roundBoxModel(contextItem.bounds),
+			}
+		}
+		case 'point': {
+			return {
+				...contextItem,
+				point: transform.roundVecModel(contextItem.point),
+			}
+		}
+		default: {
+			return contextItem
+		}
+	}
 }
 
 export function processContextItem(item: ContextItem, editor: any): SimpleContextItem | null {

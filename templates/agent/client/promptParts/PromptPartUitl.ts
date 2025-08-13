@@ -19,11 +19,6 @@ export abstract class PromptPartUtil {
 
 	constructor(public editor: Editor) {}
 
-	// Get priority for this prompt part util - must be implemented by subclasses
-	static getPriority(_prompt: AgentPrompt): number {
-		throw new Error('getPriority must be implemented by subclasses')
-	}
-
 	/**
 	 * Generate the prompt part based on the options.
 	 * This is where the actual prompt part logic goes.
@@ -39,8 +34,18 @@ export abstract class PromptPartUtil {
 	 * Useful for sanitizing or modifying prompt parts.
 	 * @returns The transformed prompt part, or null to reject the part
 	 */
-	transformPromptPart(prompt: any, _transform: AgentTransform): any | null {
-		return prompt
+	transformPromptPart(
+		promptPart: any,
+		_transform: AgentTransform,
+		_prompt: Partial<AgentPrompt>
+	): any | null {
+		return promptPart
+	}
+
+	// Static methods are the only ones that can be called by the worker because we can't make instances of these without the editor, which can't be on the worker
+
+	static getPriority(_prompt: AgentPrompt): number {
+		throw new Error('getPriority must be implemented by subclasses')
 	}
 
 	// Build content for this prompt part (strings and image data)

@@ -1,5 +1,14 @@
-import { Editor, TLShapeId } from 'tldraw'
+import { BoxModel, Editor, TLShapeId, VecModel } from 'tldraw'
 import { ISimpleShape } from '../worker/simple/SimpleShape'
+
+// Utility type to extract keys that have number values from any member of a union
+type NumberKeys<T> = T extends any
+	? {
+			[K in keyof T]: T[K] extends number ? K : never
+		}[keyof T]
+	: never
+
+type ISimpleShapeNumberKeys = NumberKeys<ISimpleShape>
 
 /**
  * A class that helps to transform events received from the model.
@@ -32,6 +41,8 @@ export class AgentTransform {
 			}
 		}
 
+		shape = this.sanitizeShapeNumbers(shape)
+
 		return shape
 	}
 
@@ -56,6 +67,7 @@ export class AgentTransform {
 			}
 		}
 
+		shape = this.sanitizeShapeNumbers(shape)
 		return shape
 	}
 
@@ -123,5 +135,61 @@ export class AgentTransform {
 
 		// Otherwise, give up
 		return null
+	}
+
+	numberDiffMap = new Map<string, number>()
+
+	sanitizeShapeNumbers(shape: ISimpleShape): ISimpleShape {
+		// TODO check for cache hit in numberDiffMap first
+		shape = this.roundAndSaveShapeCoordinates(shape)
+		shape = this.roundAndSaveShapeSize(shape)
+		return shape
+	}
+
+	roundAndSaveShapeCoordinates(shape: ISimpleShape): ISimpleShape {
+		if (shape._type === 'arrow' || shape._type === 'line') {
+			shape = this.roundAndSaveShapeNumberProperty(shape, 'x1')
+			shape = this.roundAndSaveShapeNumberProperty(shape, 'y1')
+			shape = this.roundAndSaveShapeNumberProperty(shape, 'x2')
+			shape = this.roundAndSaveShapeNumberProperty(shape, 'y2')
+		} else {
+			shape = this.roundAndSaveShapeNumberProperty(shape, 'x')
+			shape = this.roundAndSaveShapeNumberProperty(shape, 'y')
+		}
+		return shape
+	}
+
+	roundAndSaveShapeSize(shape: ISimpleShape): ISimpleShape {
+		shape = this.roundAndSaveShapeNumberProperty(shape, 'width')
+		shape = this.roundAndSaveShapeNumberProperty(shape, 'height')
+		return shape
+	}
+
+	roundAndSaveShapeNumberProperty(
+		shape: ISimpleShape,
+		property: ISimpleShapeNumberKeys
+	): ISimpleShape {
+		if (!property) return shape
+		const value = (shape as any)[property] as number
+		if (value === undefined) return shape
+
+		const diff = Math.round(value) - value
+		;(shape as any)[property] = diff + value
+		this.numberDiffMap.set(shape.shapeId + '_' + property, diff)
+		return shape
+	}
+
+	roundBoxModel(boxModel: BoxModel): BoxModel {
+		boxModel.x = Math.round(boxModel.x)
+		boxModel.y = Math.round(boxModel.y)
+		boxModel.w = Math.round(boxModel.w)
+		boxModel.h = Math.round(boxModel.h)
+		return boxModel
+	}
+
+	roundVecModel(vecModel: VecModel): VecModel {
+		vecModel.x = Math.round(vecModel.x)
+		vecModel.y = Math.round(vecModel.y)
+		return vecModel
 	}
 }
