@@ -1,4 +1,4 @@
-export const DEFAULT_MODEL_NAME = 'gemini-2.5-flash'
+export const DEFAULT_MODEL_NAME = 'claude-4-sonnet'
 
 export type TLAgentModelName = keyof typeof AGENT_MODEL_DEFINITIONS
 export type TLAgentModelProvider = 'openai' | 'anthropic' | 'google'
@@ -57,14 +57,14 @@ export const AGENT_MODEL_DEFINITIONS = {
 		id: 'claude-sonnet-4-0',
 		provider: 'anthropic',
 	},
-	'claude-3.5-sonnet': {
-		name: 'claude-3.5-sonnet',
-		id: 'claude-3-5-sonnet-latest',
-		provider: 'anthropic',
-	},
 	'claude-3.7-sonnet': {
 		name: 'claude-3.7-sonnet',
 		id: 'claude-3-7-sonnet-latest',
+		provider: 'anthropic',
+	},
+	'claude-3.5-sonnet': {
+		name: 'claude-3.5-sonnet',
+		id: 'claude-3-5-sonnet-latest',
 		provider: 'anthropic',
 	},
 	'claude-3.5-haiku': {
