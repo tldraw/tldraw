@@ -1,45 +1,39 @@
 import { structuredClone } from 'tldraw'
 import { ISimpleShape } from '../../worker/simple/SimpleShape'
 import { AgentTransform } from '../AgentTransform'
-import { convertShapeToSimpleShape } from '../ai/promptConstruction/translateFromDrawishToSimplish'
-import { AgentPrompt, AgentPromptOptions } from '../types/AgentPrompt'
+import { convertTldrawShapeToSimpleShape } from '../ai/promptConstruction/convertTldrawShapeToSimpleShape'
+import { AgentPromptOptions } from '../types/AgentPrompt'
 import { PromptPartUtil } from './PromptPartUitl'
 
-export class UserSelectedShapesPartUtil extends PromptPartUtil {
+export class UserSelectedShapesPartUtil extends PromptPartUtil<ISimpleShape[]> {
 	static override type = 'userSelectedShapes' as const
 
-	static override getPriority(_prompt: AgentPrompt): number {
+	override getPriority() {
 		return 55 // selected shapes after context items (low priority)
 	}
 
-	override async getPart(_options: AgentPromptOptions) {
-		const userSelectedShapes = this.editor.getSelectedShapes().map((v) => structuredClone(v)) ?? []
-		if (!userSelectedShapes) return undefined
+	override async getPart(options: AgentPromptOptions) {
+		const userSelectedShapes =
+			options.editor.getSelectedShapes().map((v) => structuredClone(v)) ?? []
 
-		const shapes = []
-
+		const simpleShapes: ISimpleShape[] = []
 		for (const shape of userSelectedShapes) {
 			if (!shape) continue
-			const simpleShape = convertShapeToSimpleShape(shape, this.editor)
+			const simpleShape = convertTldrawShapeToSimpleShape(shape, options.editor)
 			if (simpleShape) {
-				shapes.push(simpleShape)
+				simpleShapes.push(simpleShape)
 			}
 		}
-
-		return shapes
+		return simpleShapes
 	}
 
-	override transformPromptPart(
-		promptPart: ISimpleShape[],
-		transform: AgentTransform,
-		_prompt: Partial<AgentPrompt>
-	): ISimpleShape[] {
-		return promptPart
+	override transformPart(part: ISimpleShape[], transform: AgentTransform) {
+		return part
 			.map((shape) => transform.sanitizeExistingShape(shape))
 			.filter((shape): shape is ISimpleShape => shape !== null)
 	}
 
-	static override buildContent(_prompt: AgentPrompt, userSelectedShapes: ISimpleShape[]): string[] {
+	override buildContent(userSelectedShapes: ISimpleShape[]) {
 		if (!userSelectedShapes || userSelectedShapes.length === 0) {
 			return []
 		}

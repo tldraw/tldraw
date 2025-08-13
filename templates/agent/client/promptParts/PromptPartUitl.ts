@@ -14,48 +14,59 @@ export interface AgentMessageContent {
 	image?: string
 }
 
-export abstract class PromptPartUtil {
+export abstract class PromptPartUtil<T = any> {
 	static type: string
 
-	constructor(public editor: Editor) {}
+	constructor() {}
 
 	/**
-	 * Generate the prompt part based on the options.
-	 * This is where the actual prompt part logic goes.
-	 * Can be async for operations like taking screenshots.
+	 * Get some data to add to the prompt.
+	 * This is what gets added to chat history.
+	 * @returns The prompt part, or undefined to add nothing to the prompt.
 	 */
-	async getPart(_options: AgentPromptOptions): Promise<any> {
-		// TODO shouldnt be any?
-		return {}
-	}
+	async getPart?(_options: AgentPromptOptions): Promise<T>
 
 	/**
 	 * Transform the prompt part before it's added to the final prompt.
-	 * Useful for sanitizing or modifying prompt parts.
 	 * @returns The transformed prompt part, or null to reject the part
 	 */
-	transformPromptPart(
-		promptPart: any,
+	transformPart(
+		promptPart: T,
 		_transform: AgentTransform,
 		_prompt: Partial<AgentPrompt>
-	): any | null {
+	): T | null {
 		return promptPart
 	}
 
-	// Static methods are the only ones that can be called by the worker because we can't make instances of these without the editor, which can't be on the worker
-
-	static getPriority(_prompt: AgentPrompt): number {
-		throw new Error('getPriority must be implemented by subclasses')
+	/**
+	 * Get priority for this prompt part to determine its position in the prompt.
+	 * Lower numbers have higher priority.
+	 *
+	 * This function gets used by the default `buildMessages` function.
+	 * @returns The priority.
+	 */
+	getPriority(_part: T, _prompt: AgentPrompt): number {
+		return 0
 	}
 
-	// Build content for this prompt part (strings and image data)
-	static buildContent(_prompt: AgentPrompt, _promptPart: any): string[] {
+	/**
+	 * Build an array of text or image content for this prompt part.
+	 *
+	 * This function gets used by the default `buildMessages` function.
+	 * @returns An array of text or image content.
+	 */
+	buildContent(_part: T, _prompt: AgentPrompt): string[] {
 		return []
 	}
 
-	// Build messages for this prompt part (calls buildContent by default)
-	static buildMessages(prompt: AgentPrompt, promptPart: any): AgentMessage[] {
-		const content = this.buildContent(prompt, promptPart)
+	/**
+	 * Build an array of messages to send to the model.
+	 * Note: Overriding this function can bypass the `buildContent` and `getPriority` functions.
+	 *
+	 * @returns An array of messages.
+	 */
+	buildMessages(part: T, prompt: AgentPrompt): AgentMessage[] {
+		const content = this.buildContent(part, prompt)
 		if (!content || content.length === 0) {
 			return []
 		}
@@ -75,14 +86,11 @@ export abstract class PromptPartUtil {
 			}
 		}
 
-		return [{ role: 'user', content: messageContent, priority: this.getPriority(prompt) }]
+		return [{ role: 'user', content: messageContent, priority: this.getPriority(part, prompt) }]
 	}
 }
 
-export interface PromptPartUtilConstructor {
-	new (editor: Editor): PromptPartUtil
+export interface PromptPartUtilConstructor<T = any> {
+	new (editor: Editor): PromptPartUtil<T>
 	type: string
-	getPriority(prompt: AgentPrompt): number
-	buildContent(prompt: AgentPrompt, promptPart: any): string[]
-	buildMessages(prompt: AgentPrompt, promptPart: any): AgentMessage[]
 }

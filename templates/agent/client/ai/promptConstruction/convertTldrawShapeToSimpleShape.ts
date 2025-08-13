@@ -10,12 +10,29 @@ import {
 } from 'tldraw'
 import { ISimpleShape } from '../../../worker/simple/SimpleShape'
 import { shapeFillToSimpleFill } from '../../../worker/simple/color'
-import { AgentContent } from '../../types/AgentPrompt'
+
+// Main shape converter function
+export function convertTldrawShapeToSimpleShape(shape: TLShape, editor: Editor): ISimpleShape {
+	switch (shape.type) {
+		case 'text':
+			return convertTextShape(shape as TLTextShape)
+		case 'geo':
+			return convertGeoShape(shape as TLGeoShape)
+		case 'line':
+			return convertLineShape(shape as TLLineShape)
+		case 'arrow':
+			return convertArrowShape(shape as TLArrowShape, editor)
+		case 'note':
+			return convertNoteShape(shape as TLNoteShape)
+		default:
+			return convertUnknownShape(shape)
+	}
+}
 
 // Individual shape converter functions
 function convertTextShape(shape: TLTextShape): ISimpleShape {
 	return {
-		shapeId: shape.id,
+		shapeId: shape.id.slice('shape:'.length),
 		_type: 'text',
 		text: (shape.meta?.text as string) ?? '',
 		x: shape.x,
@@ -25,37 +42,10 @@ function convertTextShape(shape: TLTextShape): ISimpleShape {
 	}
 }
 
-function convertGeoShape(shape: TLGeoShape): ISimpleShape | null {
-	const supportedGeos = [
-		'rectangle',
-		'ellipse',
-		'cloud',
-		'triangle',
-		'diamond',
-		'hexagon',
-		'oval',
-		'x-box',
-		'pentagon',
-		'octagon',
-		'star',
-		'rhombus',
-		'rhombus-2',
-		'trapezoid',
-		'arrow-right',
-		'arrow-left',
-		'arrow-up',
-		'arrow-down',
-		'check-box',
-		'heart',
-	] as const
-
-	if (!supportedGeos.includes(shape.props.geo as any)) {
-		return null
-	}
-
+function convertGeoShape(shape: TLGeoShape): ISimpleShape {
 	return {
-		shapeId: shape.id,
-		_type: shape.props.geo as any,
+		shapeId: shape.id.slice('shape:'.length),
+		_type: shape.props.geo,
 		x: shape.x,
 		y: shape.y,
 		width: shape.props.w,
@@ -73,7 +63,7 @@ function convertLineShape(shape: TLLineShape): ISimpleShape {
 		_type: 'line',
 		color: shape.props.color,
 		note: (shape.meta?.note as string) ?? '',
-		shapeId: shape.id,
+		shapeId: shape.id.slice('shape:'.length),
 		x1: points[0].x + shape.x,
 		x2: points[1].x + shape.x,
 		y1: points[0].y + shape.y,
@@ -93,7 +83,7 @@ function convertArrowShape(shape: TLArrowShape, editor: Editor): ISimpleShape {
 		_type: 'arrow',
 		color: shape.props.color,
 		fromId: startBinding?.toId ?? null,
-		shapeId: shape.id,
+		shapeId: shape.id.slice('shape:'.length),
 		text: (shape.meta?.text as string) ?? '',
 		toId: endBinding?.toId ?? null,
 		note: (shape.meta?.note as string) ?? '',
@@ -107,7 +97,7 @@ function convertArrowShape(shape: TLArrowShape, editor: Editor): ISimpleShape {
 
 function convertNoteShape(shape: TLNoteShape): ISimpleShape {
 	return {
-		shapeId: shape.id,
+		shapeId: shape.id.slice('shape:'.length),
 		_type: 'note',
 		x: shape.x,
 		y: shape.y,
@@ -119,43 +109,10 @@ function convertNoteShape(shape: TLNoteShape): ISimpleShape {
 
 function convertUnknownShape(shape: TLShape): ISimpleShape {
 	return {
-		shapeId: shape.id,
+		shapeId: shape.id.slice('shape:'.length),
 		_type: 'unknown',
 		note: (shape.meta?.note as string) ?? '',
 		x: shape.x,
 		y: shape.y,
 	}
-}
-
-// Main shape converter function
-export function convertShapeToSimpleShape(shape: TLShape, editor: Editor): ISimpleShape | null {
-	switch (shape.type) {
-		case 'text':
-			return convertTextShape(shape as TLTextShape)
-		case 'geo':
-			return convertGeoShape(shape as TLGeoShape)
-		case 'line':
-			return convertLineShape(shape as TLLineShape)
-		case 'arrow':
-			return convertArrowShape(shape as TLArrowShape, editor)
-		case 'note':
-			return convertNoteShape(shape as TLNoteShape)
-		default:
-			return convertUnknownShape(shape)
-	}
-}
-
-export function getSimpleContentFromCanvasContent(
-	content: AgentContent,
-	editor: Editor
-): {
-	shapes: ISimpleShape[]
-} {
-	return {
-		shapes: compact(content.shapes.map((shape) => convertShapeToSimpleShape(shape, editor))),
-	}
-}
-
-function compact<T>(arr: T[]): Exclude<T, undefined | null>[] {
-	return arr.filter(Boolean) as Exclude<T, undefined | null>[]
 }

@@ -11,7 +11,7 @@ import { promptAgent } from './promptAgent'
 export interface TLAgent {
 	prompt(options: Partial<AgentPromptOptions>): { promise: Promise<void>; cancel(): void }
 	getEventUtil(type?: string): AgentEventUtil
-	getPromptPartUtil(type: string): PromptPartUtil
+	getPromptPartUtil<T = any>(type: string): PromptPartUtil<T>
 }
 
 /**

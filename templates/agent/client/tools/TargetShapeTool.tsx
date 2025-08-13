@@ -1,4 +1,5 @@
 import { Box, BoxModel, doesGeometryOverlapPolygon, StateNode, TLShape, VecModel } from 'tldraw'
+import { convertTldrawShapeToSimpleShape } from '../ai/promptConstruction/convertTldrawShapeToSimpleShape'
 import { addToContext } from '../atoms/contextItems'
 
 export class TargetShapeTool extends StateNode {
@@ -75,7 +76,11 @@ class TargetShapePointing extends StateNode {
 	override onPointerUp() {
 		this.editor.setHintingShapes([])
 		if (this.shape) {
-			addToContext({ type: 'shape', shape: this.shape, source: 'user' })
+			addToContext({
+				type: 'shape',
+				shape: convertTldrawShapeToSimpleShape(this.shape, this.editor),
+				source: 'user',
+			})
 		}
 		this.editor.setCurrentTool('select')
 	}
@@ -107,10 +112,18 @@ class TargetShapeDragging extends StateNode {
 		if (!this.bounds) throw new Error('Bounds not set')
 		if (this.shapes.length <= 3) {
 			for (const shape of this.shapes) {
-				addToContext({ type: 'shape', shape, source: 'user' })
+				addToContext({
+					type: 'shape',
+					shape: convertTldrawShapeToSimpleShape(shape, this.editor),
+					source: 'user',
+				})
 			}
 		} else {
-			addToContext({ type: 'shapes', shapes: this.shapes, source: 'user' })
+			addToContext({
+				type: 'shapes',
+				shapes: this.shapes.map((shape) => convertTldrawShapeToSimpleShape(shape, this.editor)),
+				source: 'user',
+			})
 		}
 		this.editor.setCurrentTool('select')
 	}

@@ -1,4 +1,4 @@
-import { useEditor, useValue } from 'tldraw'
+import { TLShapeId, useEditor, useValue } from 'tldraw'
 import { $contextItems, $pendingContextItems } from '../../atoms/contextItems'
 import { AreaHighlight } from './AreaHighlight'
 import { PointHighlight } from './PointHighlight'
@@ -32,7 +32,9 @@ export function ContextHighlights() {
 			const shapeItems = contextItems.filter((item) => item.type === 'shapes')
 			return shapeItems
 				.map((item) => {
-					const bounds = editor.getShapesPageBounds(item.shapes.map((shape) => shape.id))
+					const bounds = editor.getShapesPageBounds(
+						item.shapes.map((shape) => `shape:${shape.shapeId}` as TLShapeId)
+					)
 					return bounds
 				})
 				.filter((bounds) => bounds !== null)
@@ -46,7 +48,9 @@ export function ContextHighlights() {
 			const pendingShapeItems = pendingContextItems.filter((item) => item.type === 'shapes')
 			return pendingShapeItems
 				.map((item) => {
-					const bounds = editor.getShapesPageBounds(item.shapes.map((shape) => shape.id))
+					const bounds = editor.getShapesPageBounds(
+						item.shapes.map((shape) => `shape:${shape.shapeId}` as TLShapeId)
+					)
 					return bounds
 				})
 				.filter((bounds) => bounds !== null)
@@ -59,7 +63,7 @@ export function ContextHighlights() {
 		() => {
 			const shapeItems = contextItems.filter((item) => item.type === 'shape')
 			return shapeItems
-				.map((item) => editor.getShapePageBounds(item.shape))
+				.map((item) => editor.getShapePageBounds(`shape:${item.shape.shapeId}` as TLShapeId))
 				.filter((item) => item !== undefined)
 		},
 		[contextItems]
@@ -70,7 +74,7 @@ export function ContextHighlights() {
 		() => {
 			const pendingShapeItems = pendingContextItems.filter((item) => item.type === 'shape')
 			return pendingShapeItems
-				.map((item) => editor.getShapePageBounds(item.shape))
+				.map((item) => editor.getShapePageBounds(`shape:${item.shape.shapeId}` as TLShapeId))
 				.filter((item) => item !== undefined)
 		},
 		[pendingContextItems]

@@ -1,22 +1,20 @@
 import { ModelMessage, UserContent } from 'ai'
 import { AgentMessage } from '../../client/promptParts/PromptPartUitl'
-import { PROMPT_PART_UTILS } from '../../client/promptParts/promptPartUtils'
+import { PROMPT_PART_UTIL_CONSTRUCTORS } from '../../client/promptParts/promptPartUtils'
 import { AgentPrompt } from '../../client/types/AgentPrompt'
 
 export function buildMessages(prompt: AgentPrompt): ModelMessage[] {
 	const { parts } = prompt
-	const promptPartTypes = Object.keys(parts)
 
+	const utils = Object.fromEntries(PROMPT_PART_UTIL_CONSTRUCTORS.map((v) => [v.type, new v()]))
 	const allMessages: AgentMessage[] = []
 
-	for (const partType of promptPartTypes) {
-		const utilClass = PROMPT_PART_UTILS[partType as keyof typeof PROMPT_PART_UTILS]
-		if (utilClass && typeof utilClass.buildMessages === 'function') {
-			const partMessages = utilClass.buildMessages(prompt, parts[partType])
-			if (Array.isArray(partMessages) && partMessages.length > 0) {
-				allMessages.push(...partMessages)
-			}
-		}
+	for (const type in parts) {
+		const util = utils[type]
+		if (!util) continue
+		const part = parts[type]
+		const messages = util.buildMessages(part, prompt)
+		allMessages.push(...messages)
 	}
 
 	allMessages.sort((a, b) => b.priority - a.priority)
@@ -38,12 +36,12 @@ export function buildMessages(prompt: AgentPrompt): ModelMessage[] {
 /**
  * Convert AgentMessage[] to CoreMessage[] for the AI SDK
  */
-function constructCoreMessages(tlMessages: AgentMessage[]): ModelMessage[] {
-	if (!tlMessages || tlMessages.length === 0) {
+function constructCoreMessages(agentMessages: AgentMessage[]): ModelMessage[] {
+	if (!agentMessages || agentMessages.length === 0) {
 		return []
 	}
 
-	return tlMessages.map((tlMessage) => {
+	return agentMessages.map((tlMessage) => {
 		const content: UserContent = []
 
 		for (const contentItem of tlMessage.content) {

@@ -1,28 +1,23 @@
+import { AgentViewportBoundsPartUtil } from './AgentViewportBoundsPartUtil'
 import { AgentViewportScreenshotPartUtil } from './AgentViewportScreenshotPartUtil'
 import { AgentViewportShapesPartUtil } from './AgentViewportShapesPartUtil'
-import { ContextBoundsPartUtil } from './ContextBoundsPartUtil'
 import { ContextItemsPartUtil } from './ContextItemsPartUtil'
-import { CurrentUserViewportBoundsPartUtil } from './CurrentUserViewportBoundsPartUtil'
 import { HistoryItemPartUtil } from './HistoryItemPartUtil'
 import { MessagePartUtil } from './MessagePartUtil'
-import { PeripheralContentPartUtil } from './PeripheralContentPartUtil'
+import { PeripheralShapesPartUtil } from './PeripheralShapesPartUtil'
 import { PromptBoundsPartUtil } from './PromptBoundsPartUtil'
-import { PromptPartUtilConstructor } from './PromptPartUitl'
 import { UserSelectedShapesPartUtil } from './UserSelectedShapesPartUtil'
+import { UserViewportBoundsPartUtil } from './UserViewportBoundsPartUtil'
 
-const promptPartUtils = [
+export const PROMPT_PART_UTIL_CONSTRUCTORS = [
 	AgentViewportScreenshotPartUtil,
 	AgentViewportShapesPartUtil,
-	ContextBoundsPartUtil,
+	AgentViewportBoundsPartUtil,
 	ContextItemsPartUtil,
-	CurrentUserViewportBoundsPartUtil,
+	UserViewportBoundsPartUtil,
 	HistoryItemPartUtil,
 	MessagePartUtil,
-	PeripheralContentPartUtil,
+	PeripheralShapesPartUtil,
 	PromptBoundsPartUtil,
 	UserSelectedShapesPartUtil,
 ] as const
-
-export const PROMPT_PART_UTILS: Record<string, PromptPartUtilConstructor> = Object.fromEntries(
-	promptPartUtils.map((util) => [util.type, util])
-)

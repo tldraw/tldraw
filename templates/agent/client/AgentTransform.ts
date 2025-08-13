@@ -67,6 +67,8 @@ export class AgentTransform {
 			}
 		}
 
+		// TODO: move this to a separate function. we don't need to round numbers we receive from the model
+		// We only want to round numbers that we send to it.
 		shape = this.sanitizeShapeNumbers(shape)
 		return shape
 	}

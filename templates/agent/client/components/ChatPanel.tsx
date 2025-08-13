@@ -19,16 +19,16 @@ import { StackEventUtil } from '../events/StackEventUtil'
 import { ThinkEventUtil } from '../events/ThinkEventUtil'
 import { UpdateEventUtil } from '../events/UpdateEventUtil'
 import { processSchedule } from '../processSchedule'
+import { AgentViewportBoundsPartUtil } from '../promptParts/AgentViewportBoundsPartUtil'
 import { AgentViewportScreenshotPartUtil } from '../promptParts/AgentViewportScreenshotPartUtil'
 import { AgentViewportShapesPartUtil } from '../promptParts/AgentViewportShapesPartUtil'
-import { ContextBoundsPartUtil } from '../promptParts/ContextBoundsPartUtil'
 import { ContextItemsPartUtil } from '../promptParts/ContextItemsPartUtil'
-import { CurrentUserViewportBoundsPartUtil } from '../promptParts/CurrentUserViewportBoundsPartUtil'
 import { HistoryItemPartUtil } from '../promptParts/HistoryItemPartUtil'
 import { MessagePartUtil } from '../promptParts/MessagePartUtil'
-import { PeripheralContentPartUtil } from '../promptParts/PeripheralContentPartUtil'
+import { PeripheralShapesPartUtil } from '../promptParts/PeripheralShapesPartUtil'
 import { PromptBoundsPartUtil } from '../promptParts/PromptBoundsPartUtil'
 import { UserSelectedShapesPartUtil } from '../promptParts/UserSelectedShapesPartUtil'
+import { UserViewportBoundsPartUtil } from '../promptParts/UserViewportBoundsPartUtil'
 import { AgentHistory } from './chat-history/AgentHistory'
 import { PromptHistoryItem } from './chat-history/AgentHistoryItem'
 import { ChatInput } from './ChatInput'
@@ -40,12 +40,12 @@ export function ChatPanel({ editor }: { editor: Editor }) {
 		promptPartUtils: [
 			AgentViewportScreenshotPartUtil,
 			AgentViewportShapesPartUtil,
-			ContextBoundsPartUtil,
+			AgentViewportBoundsPartUtil,
 			ContextItemsPartUtil,
-			CurrentUserViewportBoundsPartUtil,
+			UserViewportBoundsPartUtil,
 			HistoryItemPartUtil,
 			MessagePartUtil,
-			PeripheralContentPartUtil,
+			PeripheralShapesPartUtil,
 			PromptBoundsPartUtil,
 			UserSelectedShapesPartUtil,
 		],

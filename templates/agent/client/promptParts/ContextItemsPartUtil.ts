@@ -1,44 +1,25 @@
 import { ISimpleShape } from '../../worker/simple/SimpleShape'
 import { AgentTransform } from '../AgentTransform'
-import { convertShapeToSimpleShape } from '../ai/promptConstruction/translateFromDrawishToSimplish'
-import { AgentIconType } from '../components/icons/AgentIcon'
-import { AgentPrompt, AgentPromptOptions } from '../types/AgentPrompt'
-import {
-	AreaContextItem,
-	ContextItem,
-	PointContextItem,
-	ShapeContextItem,
-	ShapesContextItem,
-} from '../types/ContextItem'
+import { AgentPromptOptions } from '../types/AgentPrompt'
+import { ContextItem } from '../types/ContextItem'
 import { PromptPartUtil } from './PromptPartUitl'
 
-export class ContextItemsPartUtil extends PromptPartUtil {
+export class ContextItemsPartUtil extends PromptPartUtil<ContextItem[]> {
 	static override type = 'contextItems' as const
 
-	static override getPriority(_prompt: AgentPrompt): number {
+	override getPriority() {
 		return 60 // context items in middle (low priority)
 	}
 
 	override async getPart(options: AgentPromptOptions) {
-		const contextItems = options.request?.contextItems
-		if (!contextItems) return undefined
-
-		const processedContextItems = contextItems
-			.map((item) => processContextItem(item, options.editor))
-			.filter((item): item is SimpleContextItem => item !== null)
-
-		return processedContextItems
+		return options.request.contextItems
 	}
 
-	override transformPromptPart(
-		promptPart: SimpleContextItem[],
-		transform: AgentTransform,
-		_prompt: Partial<AgentPrompt>
-	): SimpleContextItem[] {
-		return promptPart.map((item) => transformContextItem(item, transform))
+	override transformPart(part: ContextItem[], transform: AgentTransform): ContextItem[] {
+		return part.map((item) => transformContextItem(item, transform))
 	}
 
-	static override buildContent(_prompt: AgentPrompt, contextItems: SimpleContextItem[]): string[] {
+	override buildContent(contextItems: ContextItem[]): string[] {
 		const messages: string[] = []
 
 		const shapeItems = contextItems.filter((item) => item.type === 'shape')
@@ -94,28 +75,6 @@ export class ContextItemsPartUtil extends PromptPartUtil {
 	}
 }
 
-export type SimpleContextItem =
-	| SimpleShapeContextItem
-	| SimpleShapesContextItem
-	| SimpleAreaContextItem
-	| SimplePointContextItem
-
-export type SimpleShapeContextItem = Omit<ShapeContextItem, 'shape'> & {
-	shape: ISimpleShape
-}
-
-export type SimpleShapesContextItem = Omit<ShapesContextItem, 'shapes'> & {
-	shapes: ISimpleShape[]
-}
-
-export type SimpleAreaContextItem = AreaContextItem
-export type SimplePointContextItem = PointContextItem
-
-export interface SimpleContextItemDefinition {
-	name(item: SimpleContextItem): string
-	icon: AgentIconType
-}
-
 /**
  * Transforms context items by sanitizing any shapes within them using the provided AgentTransform.
  * This function handles both individual shape context items and groups of shapes context items.
@@ -125,9 +84,9 @@ export interface SimpleContextItemDefinition {
  * @returns Array of transformed SimpleContextItem with sanitized shapes
  */
 export function transformContextItem(
-	contextItem: SimpleContextItem,
+	contextItem: ContextItem,
 	transform: AgentTransform
-): SimpleContextItem {
+): ContextItem {
 	switch (contextItem.type) {
 		case 'shape': {
 			return {
@@ -158,86 +117,5 @@ export function transformContextItem(
 		default: {
 			return contextItem
 		}
-	}
-}
-
-export function processContextItem(item: ContextItem, editor: any): SimpleContextItem | null {
-	switch (item.type) {
-		case 'shape':
-			return processShapeContextItem(item, editor)
-		case 'shapes':
-			return processShapesContextItem(item, editor)
-		case 'area':
-			return processAreaContextItem(item)
-		case 'point':
-			return processPointContextItem(item)
-		default:
-			console.warn('Unknown context item type:', item)
-			return null
-	}
-}
-
-export function processShapeContextItem(
-	item: ContextItem,
-	editor: any
-): SimpleShapeContextItem | null {
-	if (item.type !== 'shape') return null
-
-	const simpleShape = convertShapeToSimpleShape(item.shape, editor)
-	if (!simpleShape) return null
-
-	return {
-		type: 'shape',
-		shape: simpleShape,
-		source: item.source,
-	}
-}
-
-export function processShapesContextItem(
-	item: ContextItem,
-	editor: any
-): SimpleShapesContextItem | null {
-	if (item.type !== 'shapes') return null
-
-	const simpleShapes = item.shapes
-		.map((shape: any) => convertShapeToSimpleShape(shape, editor))
-		.filter((shape): shape is NonNullable<typeof shape> => shape !== null)
-
-	if (simpleShapes.length === 0) return null
-
-	return {
-		type: 'shapes',
-		shapes: simpleShapes,
-		source: item.source,
-	}
-}
-
-export function processAreaContextItem(item: ContextItem): SimpleAreaContextItem {
-	if (item.type !== 'area') throw new Error('Expected area context item')
-
-	const { bounds } = item
-	return {
-		type: 'area',
-		bounds: {
-			x: bounds.x,
-			y: bounds.y,
-			w: bounds.w,
-			h: bounds.h,
-		},
-		source: item.source,
-	}
-}
-
-export function processPointContextItem(item: ContextItem): SimplePointContextItem {
-	if (item.type !== 'point') throw new Error('Expected point context item')
-
-	const { point } = item
-	return {
-		type: 'point',
-		point: {
-			x: point.x,
-			y: point.y,
-		},
-		source: item.source,
 	}
 }

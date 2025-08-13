@@ -19,17 +19,12 @@ export async function preparePrompt(
 	}
 
 	for (const [_type, promptPartUtil] of promptPartUtils) {
-		const part = await promptPartUtil.getPart(promptOptions)
-
-		// If the util has a transformPromptPart method, use it; otherwise, assign the promptPart
-		const maybeTransformedPart =
-			typeof promptPartUtil.transformPromptPart === 'function'
-				? promptPartUtil.transformPromptPart(part, transform, prompt)
-				: part
-
-		if (maybeTransformedPart) {
-			;(prompt.parts as any)[_type] = maybeTransformedPart
+		if (!promptPartUtil.getPart) {
+			continue
 		}
+		const untransformedPart = await promptPartUtil.getPart(promptOptions)
+		const transformedPart = promptPartUtil.transformPart(untransformedPart, transform, prompt)
+		;(prompt.parts as any)[_type] = transformedPart
 	}
 
 	console.log('PROMPT', prompt)

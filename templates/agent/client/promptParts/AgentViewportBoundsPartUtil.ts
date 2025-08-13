@@ -3,11 +3,11 @@ import { AgentTransform } from '../AgentTransform'
 import { AgentPromptOptions } from '../types/AgentPrompt'
 import { PromptPartUtil } from './PromptPartUitl'
 
-export class PromptBoundsPartUtil extends PromptPartUtil<BoxModel> {
-	static override type = 'promptBounds' as const
+export class AgentViewportBoundsPartUtil extends PromptPartUtil<BoxModel> {
+	static override type = 'agentViewportBounds' as const
 
 	override getPriority() {
-		return 80 // same as context bounds (low priority)
+		return 80 // viewport bounds should appear early (low priority)
 	}
 
 	override async getPart(options: AgentPromptOptions) {
@@ -18,7 +18,7 @@ export class PromptBoundsPartUtil extends PromptPartUtil<BoxModel> {
 		return transform.roundBoxModel(part)
 	}
 
-	override buildContent(promptBounds: BoxModel) {
-		return [`Your current prompt bounds are:`, JSON.stringify(promptBounds)]
+	override buildContent(contextBounds: BoxModel): string[] {
+		return [`Your current visible bounds are:`, JSON.stringify(contextBounds)]
 	}
 }

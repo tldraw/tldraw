@@ -1,17 +1,18 @@
-import { BoxModel, TLGeoShape, TLShape, VecModel } from 'tldraw'
+import { BoxModel, VecModel } from 'tldraw'
+import { ISimpleShape } from '../../worker/simple/SimpleShape'
 import { AgentIconType } from '../components/icons/AgentIcon'
 
 export type ContextItem = ShapeContextItem | AreaContextItem | PointContextItem | ShapesContextItem
 
 export interface ShapeContextItem {
 	type: 'shape'
-	shape: TLShape
+	shape: ISimpleShape
 	source: 'agent' | 'user'
 }
 
 export interface ShapesContextItem {
 	type: 'shapes'
-	shapes: TLShape[]
+	shapes: ISimpleShape[]
 	source: 'agent' | 'user'
 }
 
@@ -35,11 +36,10 @@ export interface ContextItemDefinition {
 export const CONTEXT_TYPE_DEFINITIONS: Record<ContextItem['type'], ContextItemDefinition> = {
 	shape: {
 		name: (item: ShapeContextItem) => {
-			if (item.shape.meta.note) {
-				return item.shape.meta.note as string
+			if (item.shape.note) {
+				return item.shape.note
 			}
-			const name =
-				item.shape.type === 'geo' ? (item.shape as TLGeoShape).props.geo : item.shape.type
+			const name = item.shape._type
 			return name[0].toUpperCase() + name.slice(1)
 		},
 		icon: 'target',

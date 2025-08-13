@@ -1,26 +1,62 @@
-import { atom, Box, structuredClone, TLShape, Vec } from 'tldraw'
-import { ContextItem, ShapesContextItem } from '../types/ContextItem'
+import { atom, Box, exhaustiveSwitchError, structuredClone, Vec } from 'tldraw'
+import { ISimpleShape } from '../../worker/simple/SimpleShape'
+import {
+	AreaContextItem,
+	ContextItem,
+	PointContextItem,
+	ShapeContextItem,
+	ShapesContextItem,
+} from '../types/ContextItem'
 
 export const $contextItems = atom<ContextItem[]>('context items', [])
 export const $pendingContextItems = atom<ContextItem[]>('pending context items', [])
 
-function processShapesGroup(item: ShapesContextItem, existingItems: ContextItem[]): ContextItem[] {
+export function addToContext(item: ContextItem) {
+	$contextItems.update((items) => {
+		if (item.type === 'shapes') {
+			const newItems = stripDuplicateShapesFromContextItem(item, items)
+			return [...items, ...newItems]
+		}
+
+		if (contextItemIsAlreadyContainedInContext(item, items)) {
+			return items
+		}
+		return [...items, structuredClone(item)]
+	})
+}
+
+export function removeFromContext(item: ContextItem) {
+	$contextItems.update((items) => items.filter((v) => item !== v))
+}
+
+/**
+ * Remove duplicate shapes from a shapes context item.
+ * If there's only one shape left, return it as a shape item instead.
+ *
+ * @param item - The shapes context item to strip duplicates from.
+ * @param existingItems - The existing context items to check against.
+ * @returns The new context items with duplicates removed.
+ */
+function stripDuplicateShapesFromContextItem(
+	item: ShapesContextItem,
+	existingItems: ContextItem[]
+): ContextItem[] {
 	// Get all shape IDs that are already in the context
 	const existingShapeIds = new Set<string>()
 
 	// Check individual shapes
 	existingItems.forEach((contextItem) => {
 		if (contextItem.type === 'shape') {
-			existingShapeIds.add(contextItem.shape.id)
+			existingShapeIds.add(contextItem.shape.shapeId)
 		} else if (contextItem.type === 'shapes') {
-			contextItem.shapes.forEach((shape: TLShape) => {
-				existingShapeIds.add(shape.id)
+			contextItem.shapes.forEach((shape: ISimpleShape) => {
+				existingShapeIds.add(shape.shapeId)
 			})
 		}
 	})
 
 	// Filter out shapes that are already in the context
-	const newShapes = item.shapes.filter((shape) => !existingShapeIds.has(shape.id))
+	const newShapes = item.shapes.filter((shape) => !existingShapeIds.has(shape.shapeId))
 
 	// Only add if there are remaining shapes
 	if (newShapes.length > 0) {
@@ -47,56 +83,50 @@ function processShapesGroup(item: ShapesContextItem, existingItems: ContextItem[
 	return []
 }
 
-export function addToContext(item: ContextItem) {
-	$contextItems.update((items) => {
-		if (item.type === 'shapes') {
-			const newItems = processShapesGroup(item, items)
-			return [...items, ...newItems]
-		}
+function contextItemIsAlreadyContainedInContext(
+	item: Exclude<ContextItem, { type: 'shapes' }>,
+	items: ContextItem[]
+): boolean {
+	if (items.some((v) => areContextItemsEquivalent(v, item))) {
+		return true
+	}
 
-		const existingItem = items.find((v) => areContextItemsEquivalentOrAlreadyInContext(v, item))
-		if (existingItem) return items
-		return [...items, structuredClone(item)]
-	})
+	if (item.type === 'shape') {
+		for (const existingItem of items) {
+			if (existingItem.type === 'shapes') {
+				if (existingItem.shapes.some((shape) => shape.shapeId === item.shape.shapeId)) {
+					return true
+				}
+			}
+		}
+	}
+
+	return false
 }
 
-export function removeFromContext(item: ContextItem) {
-	$contextItems.update((items) =>
-		items.filter((v) => !areContextItemsEquivalentOrAlreadyInContext(v, item))
-	)
-}
+function areContextItemsEquivalent(a: ContextItem, b: ContextItem): boolean {
+	if (a.type !== b.type) return false
 
-function areContextItemsEquivalentOrAlreadyInContext(a: ContextItem, b: ContextItem) {
-	if (a.type === b.type) {
-		if (a.type === 'shape') {
-			return a.shape.id === (b as any).shape.id
+	switch (a.type) {
+		case 'shape': {
+			const _b = b as ShapeContextItem
+			return a.shape.shapeId === _b.shape.shapeId
 		}
-		if (a.type === 'area') {
-			return Box.Equals(a.bounds, (b as any).bounds)
+		case 'shapes': {
+			const _b = b as ShapesContextItem
+			if (a.shapes.length !== _b.shapes.length) return false
+			return a.shapes.every((shape) => _b.shapes.find((s) => s.shapeId === shape.shapeId))
 		}
-		if (a.type === 'point') {
-			return Vec.Equals(a.point, (b as any).point)
+		case 'area': {
+			const _b = b as AreaContextItem
+			return Box.Equals(a.bounds, _b.bounds)
 		}
-		if (a.type === 'shapes') {
-			const aShapes = a.shapes
-			const bShapes = (b as any).shapes
-			return (
-				aShapes.length === bShapes.length &&
-				aShapes.every((shape) => bShapes.some((s: any) => s.id === shape.id))
-			)
+		case 'point': {
+			const _b = b as PointContextItem
+			return Vec.Equals(a.point, _b.point)
+		}
+		default: {
+			exhaustiveSwitchError(a)
 		}
 	}
-
-	if (a.type === 'shape' && b.type === 'shapes') {
-		return b.shapes.some((s) => s.id === a.shape.id)
-	}
-	if (a.type === 'shapes' && b.type === 'shape') {
-		return a.shapes.some((s) => s.id === b.shape.id)
-	}
-
-	if (a.type !== b.type) {
-		return false
-	}
-
-	throw new Error('Unknown context item type')
 }
