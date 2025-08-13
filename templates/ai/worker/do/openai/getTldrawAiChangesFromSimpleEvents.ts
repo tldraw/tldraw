@@ -23,13 +23,6 @@ import {
 	SimpleColor,
 } from './schema'
 
-function toRichTextIfNeeded(text: string | { type: string; content: any[] }): TLRichText {
-	if (typeof text === 'string') {
-		return toRichText(text)
-	}
-	return text
-}
-
 export function getTldrawAiChangesFromSimpleEvents(
 	prompt: TLAiSerializedPrompt,
 	event: ISimpleEvent
@@ -73,8 +66,8 @@ function getTldrawAiChangesFromSimpleUpdateEvent(
 				x: update.x,
 				y: update.y,
 				props: {
-					color: update.color ? getTldrawColorFromFuzzyColor(update.color) : undefined,
-					richText: update.text ? toRichTextIfNeeded(update.text) : undefined,
+					color: update.color ? asColor(update.color) : undefined,
+					richText: update.text ? asRichText(update.text) : undefined,
 					textAlign: update.textAlign ?? 'start',
 				},
 				meta: {
@@ -121,7 +114,7 @@ function getTldrawAiChangesFromSimpleUpdateEvent(
 				x: startX,
 				y: startY,
 				props: {
-					color: update.color ? getTldrawColorFromFuzzyColor(update.color) : undefined,
+					color: update.color ? asColor(update.color) : undefined,
 					points,
 				},
 				meta: {
@@ -153,8 +146,8 @@ function getTldrawAiChangesFromSimpleUpdateEvent(
 				x: startX,
 				y: startY,
 				props: {
-					color: update.color ? getTldrawColorFromFuzzyColor(update.color) : undefined,
-					richText: update.text ? toRichTextIfNeeded(update.text) : undefined,
+					color: update.color ? asColor(update.color) : undefined,
+					richText: update.text ? asRichText(update.text) : undefined,
 					start: { x: 0, y: 0 },
 					end: { x: endX, y: endY },
 				},
@@ -259,12 +252,12 @@ function getTldrawAiChangesFromSimpleUpdateEvent(
 				x: update.x,
 				y: update.y,
 				props: {
-					color: update.color ? getTldrawColorFromFuzzyColor(update.color) : undefined,
+					color: update.color ? asColor(update.color) : undefined,
 					geo: update._type,
 					w: update.width,
 					h: update.height,
 					fill: update.fill ? simpleFillToShapeFill(update.fill) : undefined,
-					richText: update.text ? toRichTextIfNeeded(update.text) : undefined,
+					richText: update.text ? asRichText(update.text) : undefined,
 				},
 				meta: {
 					note: update.note,
@@ -291,8 +284,8 @@ function getTldrawAiChangesFromSimpleUpdateEvent(
 				x: update.x,
 				y: update.y,
 				props: {
-					color: update.color ? getTldrawColorFromFuzzyColor(update.color) : undefined,
-					richText: update.text ? toRichTextIfNeeded(update.text) : undefined,
+					color: update.color ? asColor(update.color) : undefined,
+					richText: update.text ? asRichText(update.text) : undefined,
 				},
 				meta: {
 					note: update.note,
@@ -354,8 +347,8 @@ function getTldrawAiChangesFromSimpleCreateEvent(
 					x: shape.x,
 					y: shape.y,
 					props: {
-						richText: toRichTextIfNeeded(shape.text ?? ''),
-						color: getTldrawColorFromFuzzyColor(shape.color),
+						richText: asRichText(shape.text ?? ''),
+						color: asColor(shape.color),
 						textAlign: shape.textAlign ?? 'start',
 					},
 					meta: {
@@ -396,7 +389,7 @@ function getTldrawAiChangesFromSimpleCreateEvent(
 								y: y2 - minY,
 							},
 						},
-						color: getTldrawColorFromFuzzyColor(shape.color),
+						color: asColor(shape.color),
 					},
 					meta: {
 						note: shape.note ?? '',
@@ -425,8 +418,8 @@ function getTldrawAiChangesFromSimpleCreateEvent(
 					x: minX,
 					y: minY,
 					props: {
-						color: getTldrawColorFromFuzzyColor(shape.color),
-						richText: toRichTextIfNeeded(shape.text ?? ''),
+						color: asColor(shape.color),
+						richText: asRichText(shape.text ?? ''),
 						start: { x: x1 - minX, y: y1 - minY },
 						end: { x: x2 - minX, y: y2 - minY },
 					},
@@ -514,9 +507,9 @@ function getTldrawAiChangesFromSimpleCreateEvent(
 						geo: shape._type,
 						w: shape.width,
 						h: shape.height,
-						color: getTldrawColorFromFuzzyColor(shape.color),
+						color: asColor(shape.color),
 						fill: simpleFillToShapeFill(shape.fill ?? 'none'),
-						richText: toRichTextIfNeeded(shape.text ?? ''),
+						richText: asRichText(shape.text ?? ''),
 					},
 					meta: {
 						note: shape.note ?? '',
@@ -536,8 +529,8 @@ function getTldrawAiChangesFromSimpleCreateEvent(
 					x: shape.x,
 					y: shape.y,
 					props: {
-						color: getTldrawColorFromFuzzyColor(shape.color),
-						richText: toRichTextIfNeeded(shape.text ?? ''),
+						color: asColor(shape.color),
+						richText: asRichText(shape.text ?? ''),
 					},
 					meta: {
 						note: shape.note ?? '',
@@ -615,7 +608,14 @@ function getTldrawAiChangesFromSimpleMoveEvent(
 	]
 }
 
-function getTldrawColorFromFuzzyColor(simpleColor: any): ISimpleColor {
+function asRichText(text: string | { type: string; content: any[] }): TLRichText {
+	if (typeof text === 'string') {
+		return toRichText(text)
+	}
+	return text
+}
+
+function asColor(simpleColor: any): ISimpleColor {
 	if (SimpleColor.safeParse(simpleColor).success) {
 		return simpleColor as ISimpleColor
 	}
