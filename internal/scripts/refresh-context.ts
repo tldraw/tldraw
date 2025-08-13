@@ -142,20 +142,34 @@ async function reviewContextFile(contextFile: string): Promise<ContextReviewResu
 
 	// Package.json is available but not needed for the current implementation
 
-	// First, check if updates are needed
-	const reviewPrompt = `Review this CONTEXT.md file for "${packageName}" package. Respond only with JSON:
+	// First, check if updates are needed - focus only on critical accuracy issues
+	const reviewPrompt = `Review this CONTEXT.md file for "${packageName}" package for CRITICAL ACCURACY issues only. Respond only with JSON:
 
 CONTEXT.md:
 \`\`\`
 ${contextContent.length > 8000 ? contextContent.substring(0, 8000) + '...[truncated]' : contextContent}
 \`\`\`
 
+ONLY flag issues if they are:
+1. **Factually incorrect code examples** that won't work
+2. **Missing critical concepts** that are essential for understanding this package
+3. **Outdated API references** to functions/classes that no longer exist
+4. **Wrong architectural descriptions** that misrepresent how the package works
+5. **Missing key exports** that developers would need to know about
+
+DO NOT flag:
+- Style/formatting preferences
+- Minor wording improvements  
+- Suggestions for "more examples"
+- Completeness of documentation (unless truly essential concepts are missing)
+- Truncated content at the end of files
+
 Return JSON with:
 - "status": "valid" | "needs_update" | "error"
-- "issues": string[] (problems found)  
-- "suggestions": string[] (improvements)
+- "issues": string[] (only critical factual problems)  
+- "suggestions": string[] (only critical missing concepts)
 
-Check accuracy, completeness, structure, and code examples.`
+Be very conservative - only flag issues that would genuinely mislead a developer trying to understand or use this package.`
 
 	try {
 		// Use Claude Code CLI to review the file
@@ -163,7 +177,7 @@ Check accuracy, completeness, structure, and code examples.`
 			input: reviewPrompt,
 			cwd: packageDir,
 			encoding: 'utf-8',
-			timeout: 60000, // 60 second timeout
+			timeout: 300000, // 5 minute timeout for review
 		})
 
 		// Try to parse Claude's response as JSON
@@ -183,12 +197,12 @@ Check accuracy, completeness, structure, and code examples.`
 
 		// If needs update, generate the updated content
 		if (reviewResult.status === 'needs_update') {
-			const updatePrompt = `Please update this CONTEXT.md file for the "${packageName}" package to fix the issues found:
+			const updatePrompt = `Fix ONLY the critical accuracy issues in this CONTEXT.md file for "${packageName}" package:
 
-Issues to fix:
+Critical issues to fix:
 ${reviewResult.issues.map((issue: string) => `- ${issue}`).join('\n')}
 
-Suggestions to implement:
+Critical missing concepts to add:
 ${reviewResult.suggestions.map((suggestion: string) => `- ${suggestion}`).join('\n')}
 
 Current CONTEXT.md:
@@ -196,14 +210,24 @@ Current CONTEXT.md:
 ${contextContent}
 \`\`\`
 
-Please provide the complete updated CONTEXT.md file. Respond with only the updated markdown content, no additional text or formatting.`
+IMPORTANT: Make MINIMAL changes. Only fix factual errors, update outdated APIs, and add truly essential missing concepts. Do not:
+- Rewrite sections for style
+- Add minor improvements  
+- Change formatting (no markdown code fences, etc.)
+- Add "nice to have" examples
+- Fix typos or grammar unless they cause confusion
+- Add completeness improvements
+
+PRESERVE the original formatting, structure, and style exactly. Only change the specific factual errors mentioned in the issues.
+
+Provide the complete updated CONTEXT.md file with only the necessary critical fixes. Respond with only the updated markdown content, preserving all original formatting.`
 
 			try {
 				const updateResult = execSync('claude --print', {
 					input: updatePrompt,
 					cwd: packageDir,
 					encoding: 'utf-8',
-					timeout: 120000, // 2 minute timeout for updates
+					timeout: 600000, // 10 minute timeout for updates
 				})
 
 				// Write the updated content

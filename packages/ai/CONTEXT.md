@@ -1,3 +1,4 @@
+```markdown
 # AI Package Context
 
 ## Overview
@@ -472,3 +473,4 @@ const { prompt } = useTldrawAi({
 - **Multi-Modal Support**: Text and image inputs to AI models
 - **Custom Changes**: Define application-specific change types
 - **Service Agnostic**: Works with any AI provider or model
+```
