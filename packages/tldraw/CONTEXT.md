@@ -1,6 +1,7 @@
 # Tldraw Package Context
 
 ## Overview
+
 The `@tldraw/tldraw` package is the main "batteries included" SDK that provides a complete drawing application with UI, tools, shapes, and all functionality. It builds on top of the editor package to provide a fully-featured drawing experience out of the box.
 
 ## Architecture
@@ -8,20 +9,24 @@ The `@tldraw/tldraw` package is the main "batteries included" SDK that provides 
 ### Core Components
 
 #### `Tldraw.tsx` - Main Component
+
 The primary component that combines the editor with the complete UI system:
+
 ```typescript
 export function Tldraw(props: TldrawProps) {
-  // Merges default and custom:
-  // - Shape utilities (defaultShapeUtils + custom)
-  // - Tools (defaultTools + custom) 
-  // - Bindings (defaultBindingUtils + custom)
-  // - Side effects and external content handlers
-  // Returns <TldrawEditor> wrapped with <TldrawUi>
+	// Merges default and custom:
+	// - Shape utilities (defaultShapeUtils + custom)
+	// - Tools (defaultTools + custom)
+	// - Bindings (defaultBindingUtils + custom)
+	// - Side effects and external content handlers
+	// Returns <TldrawEditor> wrapped with <TldrawUi>
 }
 ```
 
 #### `TldrawUi.tsx` - UI System
+
 Comprehensive UI system with responsive layout:
+
 - Provider hierarchy for context, theming, translations, events
 - Responsive breakpoint system (mobile, tablet, desktop)
 - Layout zones: top (menu, helper buttons, top panel, share/style panels), bottom (navigation, toolbar, help)
@@ -31,7 +36,9 @@ Comprehensive UI system with responsive layout:
 ### Shape System
 
 #### Default Shape Utilities (`defaultShapeUtils.ts`)
+
 Complete set of shape implementations:
+
 - **Text**: Text editing with rich text support
 - **Draw**: Freehand drawing with stroke optimization
 - **Geo**: Geometric shapes (rectangle, ellipse, triangle, etc.)
@@ -46,6 +53,7 @@ Complete set of shape implementations:
 - **Video**: Video playback shapes
 
 Each shape has its own directory with:
+
 - `ShapeUtil.tsx`: Rendering, hit testing, bounds calculation
 - `ShapeTool.ts`: Creation tool with state machine
 - Tool states (Idle, Pointing, etc.)
@@ -54,7 +62,9 @@ Each shape has its own directory with:
 ### Tools System
 
 #### Default Tools (`defaultTools.ts`)
+
 Complete toolset:
+
 - **SelectTool**: Complex selection with multiple interaction modes
 - **Shape Tools**: One for each creatable shape type
 - **HandTool**: Pan/move canvas
@@ -63,7 +73,9 @@ Complete toolset:
 - **ZoomTool**: Zoom to specific areas
 
 #### SelectTool - Primary Interaction Tool
+
 Sophisticated state machine with child states:
+
 - **Idle**: Default state, handles shape selection
 - **Brushing**: Drag selection of multiple shapes
 - **Translating**: Moving selected shapes
@@ -76,12 +88,15 @@ Sophisticated state machine with child states:
 ### UI Component System
 
 #### Component Architecture
+
 Hierarchical component system with context providers:
+
 - **TldrawUiContextProvider**: Master provider with asset URLs, overrides, components
 - **Specialized Providers**: Tooltips, translations, events, dialogs, toasts, breakpoints
 - **Component Override System**: Every UI component can be replaced/customized
 
 #### Key UI Components
+
 - **Toolbar**: Main tool selection with overflow handling
 - **StylePanel**: Shape style controls (color, size, opacity, etc.)
 - **MenuPanel**: Application menu with actions
@@ -94,7 +109,9 @@ Hierarchical component system with context providers:
 ### External Content System
 
 #### Content Handlers (`defaultExternalContentHandlers.ts`)
+
 Comprehensive external content processing:
+
 - **Files**: Drag/drop and paste of images/videos with validation
 - **URLs**: Automatic bookmark creation with metadata extraction
 - **Text**: Smart text pasting with rich text support
@@ -104,6 +121,7 @@ Comprehensive external content processing:
 - **Excalidraw**: Import from Excalidraw format
 
 #### Asset Management
+
 - Size and type validation
 - Automatic image resizing and optimization
 - Hash-based deduplication
@@ -113,7 +131,9 @@ Comprehensive external content processing:
 ### Bindings System
 
 #### Arrow Bindings (`ArrowBindingUtil`)
+
 Smart arrow connections:
+
 - Automatic binding to shape edges
 - Dynamic arrow routing around obstacles
 - Binding preservation during shape updates
@@ -122,7 +142,9 @@ Smart arrow connections:
 ### State Management & Side Effects
 
 #### Default Side Effects (`defaultSideEffects.ts`)
+
 Reactive state management for UI behavior:
+
 - **Cropping Mode**: Auto-enter/exit crop mode based on state
 - **Text Editing**: Tool switching for text creation/editing
 - **Tool Locking**: Persistent tool state for rapid creation
@@ -130,20 +152,26 @@ Reactive state management for UI behavior:
 ### Utilities
 
 #### Export System (`utils/export/`)
+
 Multi-format export capabilities:
+
 - **Image Export**: PNG, JPG, SVG with various options
 - **Data Export**: JSON format for content preservation
 - **Print Support**: Optimized printing layouts
 - **Copy/Paste**: Clipboard integration
 
 #### Text Processing (`utils/text/`)
+
 Advanced text handling:
+
 - **Rich Text**: HTML to tldraw rich text conversion
 - **Text Direction**: RTL language detection and support
 - **Text Measurement**: Accurate text sizing for layout
 
 #### Asset Processing (`utils/assets/`)
+
 Asset optimization and management:
+
 - **Image Processing**: Resizing, format conversion
 - **Font Preloading**: Ensure consistent text rendering
 - **Size Constraints**: Automatic asset size management
@@ -151,7 +179,9 @@ Asset optimization and management:
 ### Canvas Overlays
 
 #### Visual Feedback Components (`canvas/`)
+
 Canvas-level visual elements:
+
 - **TldrawHandles**: Resize and rotate handles
 - **TldrawCropHandles**: Image cropping interface
 - **TldrawScribble**: Live drawing feedback
@@ -161,21 +191,25 @@ Canvas-level visual elements:
 ## Key Patterns
 
 ### Component Composition
+
 - Every UI component can be overridden via the components prop
 - Providers use context for dependency injection
 - Responsive design with breakpoint-based rendering
 
 ### State Machine Architecture
+
 - Tools implemented as hierarchical state machines
 - Clear separation between tool logic and rendering
 - Reactive state updates trigger automatic UI changes
 
 ### Asset Pipeline
+
 - Async asset processing with progress feedback
 - Automatic optimization and validation
 - Hash-based caching and deduplication
 
 ### Extension Points
+
 - Custom shapes via ShapeUtil classes
 - Custom tools via StateNode extensions
 - Custom UI via component overrides
@@ -184,17 +218,20 @@ Canvas-level visual elements:
 ## Integration
 
 ### With Editor Package
+
 - Wraps `@tldraw/editor` with complete UI
 - Extends editor with additional functionality
 - Provides default implementations for all extension points
 
 ### With External Systems
+
 - Clipboard integration for copy/paste
 - File system integration for drag/drop
 - URL handling for bookmarks and embeds
 - External service integration (YouTube, Figma, etc.)
 
 ### Responsive Design
+
 - Mobile-first breakpoint system
 - Touch-optimized interactions
 - Adaptive UI based on screen size
@@ -203,17 +240,20 @@ Canvas-level visual elements:
 ## Performance Considerations
 
 ### Canvas Rendering
+
 - WebGL-accelerated minimap
 - Optimized shape rendering with culling
 - Efficient hit testing and bounds calculation
 
 ### Asset Handling
+
 - Lazy loading of external content
 - Background processing of large files
 - Temporary previews during upload
 - Automatic cleanup of unused assets
 
 ### Memory Management
+
 - Proper cleanup of event listeners and reactors
 - Efficient state updates with batching
 - Asset deduplication to reduce memory usage
@@ -221,16 +261,19 @@ Canvas-level visual elements:
 ## Development Patterns
 
 ### Testing
+
 - Comprehensive test coverage for tools and shapes
 - Snapshot testing for complex rendering
 - Mock implementations for external dependencies
 
 ### TypeScript Integration
+
 - Full type safety for all APIs
 - Generic type parameters for extensibility
 - Proper inference for shape and tool types
 
 ### Error Handling
+
 - Graceful degradation for failed external content
 - User-friendly error messages via toast system
 - Comprehensive validation for all inputs
