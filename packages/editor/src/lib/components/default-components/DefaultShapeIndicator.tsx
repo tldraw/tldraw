@@ -87,7 +87,11 @@ export const DefaultShapeIndicator = memo(function DefaultShapeIndicator({
 
 	return (
 		<svg ref={rIndicator} className={classNames('tl-overlays__item', className)} aria-hidden="true">
-			<g className="tl-shape-indicator" stroke={color ?? 'var(--color-selected)'} opacity={opacity}>
+			<g
+				className="tl-shape-indicator"
+				stroke={color ?? 'var(--tl-color-selected)'}
+				opacity={opacity}
+			>
 				<InnerIndicator editor={editor} id={shapeId} />
 			</g>
 		</svg>

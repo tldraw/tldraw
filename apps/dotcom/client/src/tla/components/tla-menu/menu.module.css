@@ -42,12 +42,12 @@
 	flex-shrink: 0;
 	height: 40px;
 	width: 40px;
-	color: var(--color-text-3);
+	color: var(--tl-color-text-3);
 	cursor: pointer;
 }
 
 .menuInfoTrigger a {
-	color: var(--color-text-3);
+	color: var(--tl-color-text-3);
 	text-decoration: none;
 }
 
@@ -55,8 +55,8 @@
 	display: block;
 	content: '';
 	position: absolute;
-	border-radius: var(--radius-2);
-	background: var(--color-muted-2);
+	border-radius: var(--tl-radius-2);
+	background: var(--tl-color-muted-2);
 	inset: 6px;
 	border-radius: 100%;
 	opacity: 0;
@@ -64,7 +64,7 @@
 }
 
 .menuInfoTrigger:focus-visible {
-	outline: 2px solid var(--color-focus);
+	outline: 2px solid var(--tl-color-focus);
 	outline-offset: -10px;
 	border-radius: 100%;
 }
@@ -130,7 +130,7 @@
 	content: '';
 	display: block;
 	position: absolute;
-	background-color: var(--color-muted-2);
+	background-color: var(--tl-color-muted-2);
 	inset: -4px;
 	border-radius: 6px;
 	opacity: 0;
@@ -146,9 +146,9 @@ div:has(> .menuSelectContent) {
 }
 
 .menuSelectContent {
-	border-radius: var(--radius-3);
-	background-color: var(--color-panel);
-	box-shadow: var(--shadow-3);
+	border-radius: var(--tl-radius-3);
+	background-color: var(--tl-color-panel);
+	box-shadow: var(--tl-shadow-3);
 }
 
 .menuSelectOption {
@@ -176,7 +176,7 @@ div:has(> .menuSelectContent) {
 	inset: 4px;
 	display: block;
 	position: absolute;
-	background-color: var(--color-muted-2);
+	background-color: var(--tl-color-muted-2);
 	opacity: 0;
 	border-radius: 6px;
 }
@@ -197,7 +197,7 @@ div:has(> .menuSelectContent) {
 
 :global(.tl-container__focused:not(.tl-container__no-focus-ring)) .menuSelectOption:focus-visible {
 	border-radius: 10px;
-	outline: 2px solid var(--color-focus);
+	outline: 2px solid var(--tl-color-focus);
 	outline-offset: -5px;
 }
 
@@ -302,7 +302,7 @@ div:has(> .menuSelectContent) {
 
 .menuSwitchContainer:has(input:focus-visible) > div {
 	outline-offset: 2px;
-	outline: 2px solid var(--color-focus);
+	outline: 2px solid var(--tl-color-focus);
 }
 
 @media (hover: hover) {

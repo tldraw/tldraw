@@ -22,8 +22,19 @@ export {
 } from './lib/shapes/shared/PathBuilder'
 export { usePrefersReducedMotion } from './lib/shapes/shared/usePrefersReducedMotion'
 export { DefaultA11yAnnouncer, useSelectedShapesAnnouncer } from './lib/ui/components/A11y'
+export { AccessibilityMenu } from './lib/ui/components/AccessibilityMenu'
 export { ColorSchemeMenu } from './lib/ui/components/ColorSchemeMenu'
 export { DefaultDialogs } from './lib/ui/components/Dialogs'
+export {
+	TldrawUiColumn,
+	TldrawUiGrid,
+	TldrawUiOrientationProvider,
+	TldrawUiRow,
+	useTldrawUiOrientation,
+	type TldrawUiOrientationContext,
+	type TldrawUiOrientationProviderProps,
+	type TLUiLayoutProps,
+} from './lib/ui/components/primitives/layout'
 export {
 	TldrawUiMenuActionCheckboxItem,
 	type TLUiMenuActionCheckboxItemProps,
@@ -294,6 +305,7 @@ export {
 	ToggleSnapModeItem,
 	ToggleToolLockItem,
 	ToggleTransparentBgMenuItem,
+	ToggleUiLabelsItem,
 	ToggleWrapModeItem,
 	UngroupMenuItem,
 	UnlockAllMenuItem,
@@ -412,6 +424,12 @@ export {
 	type TLUiToolbarToggleGroupProps,
 	type TLUiToolbarToggleItemProps,
 } from './lib/ui/components/primitives/TldrawUiToolbar'
+export {
+	TldrawUiTooltip,
+	TldrawUiTooltipProvider,
+	type TldrawUiTooltipProps,
+	type TldrawUiTooltipProviderProps,
+} from './lib/ui/components/primitives/TldrawUiTooltip'
 export {
 	DefaultQuickActions,
 	type TLUiQuickActionsProps,

@@ -50,6 +50,12 @@
   "1dd1c5fb7f": {
     "translation": "Heute"
   },
+  "20976e7bec": {
+    "translation": "Der Raum ist voll"
+  },
+  "21bfb2dc2e": {
+    "translation": "Dieser Raum erreicht seine maximale Größe. Entfernen Sie ggf. Inhalte oder erstellen Sie eine neue Datei."
+  },
   "22d84a12fd": {
     "translation": "Figjam aber tldraw"
   },
@@ -61,6 +67,9 @@
   },
   "2c61d18599": {
     "translation": "Miro aber gut und kostenlos"
+  },
+  "2deec2cb74": {
+    "translation": "Dieser Raum hat seine Größenbeschränkung erreicht und Änderungen können möglicherweise nicht mehr gespeichert werden. Entfernen Sie Inhalte oder beginnen Sie eine neue Datei."
   },
   "31246941ad": {
     "translation": "Um diese Datei anzuzeigen, müssen Sie sich anmelden."
@@ -143,6 +152,9 @@
   "5a95a425f7": {
     "translation": "Teilen"
   },
+  "5bb6cf3b53": {
+    "translation": "Das Zimmer wird größer"
+  },
   "5bcc12ace8": {
     "translation": "Dieser Raum ist jetzt schreibgeschützt"
   },
@@ -214,6 +226,9 @@
   },
   "777f9e90cf": {
     "translation": "Ungültige Anfrage."
+  },
+  "78e9815992": {
+    "translation": "Habe es"
   },
   "797799f35e": {
     "translation": "Senden Sie ein Problem auf GitHub"

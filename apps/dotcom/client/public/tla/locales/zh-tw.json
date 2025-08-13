@@ -50,6 +50,12 @@
   "1dd1c5fb7f": {
     "translation": "今天"
   },
+  "20976e7bec": {
+    "translation": "房間已滿"
+  },
+  "21bfb2dc2e": {
+    "translation": "此房間已接近其大小限制。請考慮刪除一些內容或建立新檔案。"
+  },
   "22d84a12fd": {
     "translation": "Figjam 但 tldraw"
   },
@@ -61,6 +67,9 @@
   },
   "2c61d18599": {
     "translation": "米羅，但很好而且免費"
+  },
+  "2deec2cb74": {
+    "translation": "此房間已達到其大小限制，更改可能無法再儲存。請刪除部分內容或建立新檔案。"
   },
   "31246941ad": {
     "translation": "您必須登入才能檢視此檔案。"
@@ -143,6 +152,9 @@
   "5a95a425f7": {
     "translation": "共享"
   },
+  "5bb6cf3b53": {
+    "translation": "房間越來越大"
+  },
   "5bcc12ace8": {
     "translation": "此房間現在為唯讀"
   },
@@ -214,6 +226,9 @@
   },
   "777f9e90cf": {
     "translation": "無效的請求。"
+  },
+  "78e9815992": {
+    "translation": "知道了"
   },
   "797799f35e": {
     "translation": "在 GitHub 上提交問題"

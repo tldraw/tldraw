@@ -5,6 +5,7 @@ import {
 	TLPointerEventInfo,
 	useEditor,
 	Vec,
+	VecModel,
 } from '@tldraw/editor'
 import { ContextMenu as _ContextMenu } from 'radix-ui'
 import { useMemo, useState } from 'react'
@@ -23,6 +24,7 @@ import { TldrawUiDropdownMenuItem } from '../TldrawUiDropdownMenu'
 import { TLUiIconJsx } from '../TldrawUiIcon'
 import { TldrawUiKbd } from '../TldrawUiKbd'
 import { TldrawUiToolbarButton } from '../TldrawUiToolbar'
+import { tooltipManager } from '../TldrawUiTooltip'
 import { useTldrawUiMenuContext } from './TldrawUiMenuContext'
 
 /** @public */
@@ -274,7 +276,6 @@ export function TldrawUiMenuItem<
 					aria-label={labelStr}
 					aria-pressed={isSelected ? 'true' : 'false'}
 					isActive={isSelected}
-					className="tlui-button-grid__button"
 					data-testid={`tools.more.${id}`}
 					data-value={id}
 					disabled={disabled}
@@ -304,11 +305,11 @@ function useDraggableEvents(
 			  }
 			| {
 					name: 'pointing'
-					start: Vec
+					screenSpaceStart: VecModel
 			  }
 			| {
 					name: 'dragging'
-					start: Vec
+					screenSpaceStart: VecModel
 			  }
 			| {
 					name: 'dragged'
@@ -317,7 +318,7 @@ function useDraggableEvents(
 		function handlePointerDown(e: React.PointerEvent<HTMLButtonElement>) {
 			state = {
 				name: 'pointing',
-				start: editor.inputs.currentPagePoint.clone(),
+				screenSpaceStart: { x: e.clientX, y: e.clientY },
 			}
 
 			e.currentTarget.setPointerCapture(e.pointerId)
@@ -327,17 +328,17 @@ function useDraggableEvents(
 			if ((e as any).isSpecialRedispatchedEvent) return
 
 			if (state.name === 'pointing') {
-				const distance = Vec.Dist2(state.start, editor.inputs.currentPagePoint)
+				const distanceSq = Vec.Dist2(state.screenSpaceStart, { x: e.clientX, y: e.clientY })
 				if (
-					distance >
+					distanceSq >
 					(editor.getInstanceState().isCoarsePointer
 						? editor.options.coarseDragDistanceSquared
 						: editor.options.dragDistanceSquared)
 				) {
-					const start = state.start
+					const screenSpaceStart = state.screenSpaceStart
 					state = {
 						name: 'dragging',
-						start,
+						screenSpaceStart,
 					}
 
 					editor.run(() => {
@@ -347,7 +348,7 @@ function useDraggableEvents(
 							target: 'canvas',
 							name: 'pointer_down',
 							...getPointerInfo(e),
-							point: start,
+							point: screenSpaceStart,
 						})
 
 						// Pointer down potentially selects shapes, so we need to deselect them.
@@ -359,7 +360,10 @@ function useDraggableEvents(
 							target: 'canvas',
 							name: 'pointer_move',
 							...getPointerInfo(e),
+							point: screenSpaceStart,
 						})
+
+						tooltipManager.hideAllTooltips()
 					})
 				}
 			}

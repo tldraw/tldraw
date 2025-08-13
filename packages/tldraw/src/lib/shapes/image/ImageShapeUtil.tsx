@@ -314,9 +314,9 @@ const ImageShape = memo(function ImageShape({ shape }: { shape: TLImageShape }) 
 					overflow: 'hidden',
 					width: shape.props.w,
 					height: shape.props.h,
-					color: 'var(--color-text-3)',
-					backgroundColor: 'var(--color-low)',
-					border: '1px solid var(--color-low-border)',
+					color: 'var(--tl-color-text-3)',
+					backgroundColor: 'var(--tl-color-low)',
+					border: '1px solid var(--tl-color-low-border)',
 				}}
 			>
 				<div

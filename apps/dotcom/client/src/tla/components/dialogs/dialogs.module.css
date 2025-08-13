@@ -7,18 +7,18 @@
 .dialogBody {
 	display: flex;
 	flex-direction: column;
-	gap: var(--space-4);
+	gap: var(--tl-space-4);
 	max-width: 500px;
 }
 
 /* ----------------- Feedback dialog ---------------- */
 
 .feedbackDialogTextArea {
-	border: 1px solid var(--color-muted-2);
-	border-radius: var(--radius-2) var(--radius-2) 0px var(--radius-2);
-	background-color: var(--color-muted-0);
-	color: var(--color-text-0);
-	padding: var(--space-3) var(--space-4);
+	border: 1px solid var(--tl-color-muted-2);
+	border-radius: var(--tl-radius-2) var(--tl-radius-2) 0px var(--tl-radius-2);
+	background-color: var(--tl-color-muted-0);
+	color: var(--tl-color-text-0);
+	padding: var(--tl-space-3) var(--tl-space-4);
 	resize: vertical;
 	width: 100%;
 	min-height: 100px;
@@ -26,5 +26,68 @@
 }
 
 .feedbackDialogTextArea::placeholder {
-	color: var(--color-text-3);
+	color: var(--tl-color-text-3);
+}
+
+/* --------------------- Cookie --------------------- */
+
+.sidebarCookieConsent {
+	background: var(--tla-color-sidebar);
+	border-radius: 8px;
+	padding: 6px;
+	max-width: 240px;
+	box-shadow: var(--tla-shadow-3);
+	margin-bottom: 12px;
+}
+
+.sidebarCookieText {
+	padding: 8px;
+	padding-bottom: 12px;
+	font-size: 12px;
+	color: var(--tla-color-text-2);
+	line-height: 1.4;
+}
+
+.sidebarCookieText a {
+	color: var(--tla-color-primary);
+}
+
+.sidebarCookieButtonsRow {
+	display: flex;
+	gap: 4px;
+	justify-content: space-between;
+	flex-wrap: wrap;
+}
+
+.sidebarCookieButtons {
+	display: flex;
+	gap: 4px;
+	flex-wrap: wrap;
+	justify-content: space-between;
+}
+
+.sidebarCookieButton {
+	background: none;
+	position: relative;
+	border: none;
+	padding: 4px 8px;
+	color: var(--tla-color-text-3);
+	font-size: 12px;
+	cursor: pointer;
+	text-decoration: none;
+	white-space: nowrap;
+	border-radius: 4px;
+	flex-shrink: 0;
+}
+
+.sidebarCookieAcceptButton {
+	color: var(--tla-color-contrast);
+	background-color: var(--tla-color-primary);
+}
+
+@media (hover: hover) {
+	.sidebarCookieAcceptButton:hover {
+		color: var(--tla-color-contrast);
+		background-color: var(--tla-color-primary-hover);
+	}
 }

@@ -105,6 +105,18 @@
       "value": "Avui"
     }
   ],
+  "20976e7bec": [
+    {
+      "type": 0,
+      "value": "La sala és plena"
+    }
+  ],
+  "21bfb2dc2e": [
+    {
+      "type": 0,
+      "value": "Aquesta sala s'acosta al seu límit de mida. Penseu en la possibilitat d'eliminar part del contingut o iniciar un fitxer nou."
+    }
+  ],
   "22d84a12fd": [
     {
       "type": 0,
@@ -127,6 +139,12 @@
     {
       "type": 0,
       "value": "Miro però bo i gratuït"
+    }
+  ],
+  "2deec2cb74": [
+    {
+      "type": 0,
+      "value": "Aquesta sala ha arribat al límit de mida i és possible que els canvis ja no es puguin desar. Elimina part del contingut o inicia un fitxer nou."
     }
   ],
   "31246941ad": [
@@ -301,6 +319,12 @@
       "value": "Comparteix"
     }
   ],
+  "5bb6cf3b53": [
+    {
+      "type": 0,
+      "value": "L'habitació s'està fent gran"
+    }
+  ],
   "5bcc12ace8": [
     {
       "type": 0,
@@ -443,6 +467,12 @@
     {
       "type": 0,
       "value": "Sol·licitud no vàlida."
+    }
+  ],
+  "78e9815992": [
+    {
+      "type": 0,
+      "value": "Ho entenc"
     }
   ],
   "797799f35e": [
