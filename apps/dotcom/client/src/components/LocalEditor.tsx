@@ -10,7 +10,6 @@ import { createAssetFromUrl } from '../utils/createAssetFromUrl'
 import { getScratchPersistenceKey } from '../utils/scratch-persistence-key'
 import { SneakyOnDropOverride } from './SneakyOnDropOverride'
 import { ThemeUpdater } from './ThemeUpdater/ThemeUpdater'
-import { TlaLoggedOutCookieConsent } from './TlaLoggedOutCookieConsent'
 
 export function LocalEditor({
 	components,
@@ -53,7 +52,6 @@ export function LocalEditor({
 				<SneakyOnDropOverride isMultiplayer={false} />
 				<SneakyToolSwitcher />
 				<ThemeUpdater />
-				<TlaLoggedOutCookieConsent />
 				{children}
 			</Tldraw>
 		</div>

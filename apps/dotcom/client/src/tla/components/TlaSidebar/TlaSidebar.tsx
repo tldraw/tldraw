@@ -10,7 +10,6 @@ import {
 	useIsSidebarOpen,
 	useIsSidebarOpenMobile,
 } from '../../utils/local-session-state'
-import { TlaCookieConsent } from '../dialogs/TlaCookieConsent'
 import { TlaSidebarCreateFileButton } from './components/TlaSidebarCreateFileButton'
 import { TlaSidebarHelpMenu } from './components/TlaSidebarHelpMenu'
 import { TlaSidebarRecentFiles } from './components/TlaSidebarRecentFiles'
@@ -96,7 +95,6 @@ export const TlaSidebar = memo(function TlaSidebar() {
 					<TlaSidebarRecentFiles />
 				</div>
 				<div className={styles.sidebarBottomArea}>
-					<TlaCookieConsent />
 					<div className={styles.sidebarBottomRow}>
 						<TlaUserSettingsMenu />
 						<TlaSidebarHelpMenu />
