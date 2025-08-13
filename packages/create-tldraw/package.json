@@ -33,7 +33,7 @@
 	"scripts": {
 		"dev": "./scripts/dev.sh",
 		"test-ci": "lazy inherit",
-		"test": "yarn run -T jest",
+		"test": "yarn run -T vitest run",
 		"test-coverage": "lazy inherit",
 		"build": "./scripts/build.sh",
 		"prepack": "yarn build",
@@ -53,18 +53,6 @@
 		"string-width": "^7.2.0",
 		"strip-ansi": "^7.1.0",
 		"tar": "^7.4.3"
-	},
-	"jest": {
-		"preset": "../../internal/config/jest/node/jest-preset.js",
-		"setupFiles": [
-			"raf/polyfill"
-		],
-		"moduleNameMapper": {
-			"^~(.*)": "<rootDir>/src/$1"
-		},
-		"transformIgnorePatterns": [
-			"node_modules/(?!(ansi-styles|string-width|strip-ansi|ansi-regex|get-east-asian-width)/)"
-		]
 	},
 	"// because this is bundled, all dependencies should be dev dependencies.": null
 }
