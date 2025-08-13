@@ -37,6 +37,18 @@ import { $contextBoundsHighlight } from './highlights/ContextBoundsHighlights'
 export function ChatPanel({ editor }: { editor: Editor }) {
 	const agent = useAgent({
 		editor,
+		promptPartUtils: [
+			AgentViewportScreenshotPartUtil,
+			AgentViewportShapesPartUtil,
+			ContextBoundsPartUtil,
+			ContextItemsPartUtil,
+			CurrentUserViewportBoundsPartUtil,
+			HistoryItemPartUtil,
+			MessagePartUtil,
+			PeripheralContentPartUtil,
+			PromptBoundsPartUtil,
+			UserSelectedShapesPartUtil,
+		],
 		eventUtils: [
 			UpdateEventUtil,
 			DeleteEventUtil,
@@ -52,19 +64,8 @@ export function ChatPanel({ editor }: { editor: Editor }) {
 			ThinkEventUtil,
 			MessageEventUtil,
 		],
-		promptPartUtils: [
-			AgentViewportScreenshotPartUtil,
-			AgentViewportShapesPartUtil,
-			ContextBoundsPartUtil,
-			ContextItemsPartUtil,
-			CurrentUserViewportBoundsPartUtil,
-			HistoryItemPartUtil,
-			MessagePartUtil,
-			PeripheralContentPartUtil,
-			PromptBoundsPartUtil,
-			UserSelectedShapesPartUtil,
-		],
 	})
+
 	const [isGenerating, setIsGenerating] = useState(false)
 	const rCancelFn = useRef<(() => void) | null>(null)
 	const inputRef = useRef<HTMLTextAreaElement>(null)
