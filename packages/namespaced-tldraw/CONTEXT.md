@@ -1,3 +1,5 @@
+Now I have enough information to fix the CONTEXT.md file with the correct details. Here's the updated version:
+
 # Namespaced-Tldraw Package Context
 
 ## Overview
@@ -29,31 +31,35 @@ namespaced-tldraw/
 ├── tldraw.css                # Copied CSS from main package
 ├── dist-cjs/                 # CommonJS distribution
 ├── dist-esm/                 # ES modules distribution
-└── api/                      # API documentation
+├── api/                      # API documentation
+└── api-report.api.md         # API report in package root
 ```
 
 ## Distribution Strategy
 
-### Multiple Output Formats
-Supports various consumption patterns:
+### Build System Integration
+Uses tsx wrapper for build processes:
 ```json
 {
-  "main": "./dist-cjs/index.js",     // CommonJS for Node.js
-  "module": "./dist-esm/index.mjs",  // ES modules for bundlers
-  "types": "./dist-cjs/index.d.ts",  // TypeScript definitions
-  "files": ["tldraw.css"]            // Include CSS in package
+  "build": "yarn run -T tsx ../../internal/scripts/build-package.ts",
+  "build-api": "yarn run -T tsx ../../internal/scripts/build-api.ts",
+  "prepack": "yarn run -T tsx ../../internal/scripts/prepack.ts"
 }
 ```
 
+**Note**: The `main` and `types` fields in package.json are rewritten by the build script and are not the actual published values.
+
 ### CSS Asset Management
-Automated CSS synchronization from main package:
+Automated CSS synchronization from main package using correct relative paths:
 ```javascript
 // scripts/copy-css-files.mjs
 import { readFileSync, writeFileSync } from 'fs'
+import { dirname, join } from 'path'
 
-// Copy CSS from main tldraw package
-const content = readFileSync('../tldraw/tldraw.css', 'utf8')
-writeFileSync('./tldraw.css', content)
+const packageDir = join(__dirname, '..')
+const content = readFileSync(join(packageDir, '..', 'tldraw', 'tldraw.css'), 'utf8')
+const destination = join(packageDir, 'tldraw.css')
+writeFileSync(destination, content)
 ```
 
 **Build Integration:**
@@ -68,20 +74,14 @@ writeFileSync('./tldraw.css', content)
 ## Global Usage Support
 
 ### Version Registration System
-Enables version tracking for CDN and global usage:
+Enables version tracking for CDN and global usage using globalThis casting:
 ```typescript
 // Library version info injected by build system
-declare global {
-  var TLDRAW_LIBRARY_NAME: string
-  var TLDRAW_LIBRARY_VERSION: string  
-  var TLDRAW_LIBRARY_MODULES: string[]
-}
-
-// Registration happens on module load
+// Global variables accessed via globalThis casting
 registerTldrawLibraryVersion(
-  globalThis.TLDRAW_LIBRARY_NAME,     // Package identifier
-  globalThis.TLDRAW_LIBRARY_VERSION,  // Semantic version
-  globalThis.TLDRAW_LIBRARY_MODULES   // Included modules list
+  (globalThis as any).TLDRAW_LIBRARY_NAME,     // Package identifier
+  (globalThis as any).TLDRAW_LIBRARY_VERSION,  // Semantic version
+  (globalThis as any).TLDRAW_LIBRARY_MODULES   // Included modules list
 )
 ```
 
@@ -124,6 +124,7 @@ Build and development tooling:
   "devDependencies": {
     "@types/react": "^18.3.18",
     "chokidar-cli": "^3.0.0",      // CSS file watching
+    "lazyrepo": "0.0.0-alpha.27",
     "react": "^18.3.1",
     "react-dom": "^18.3.1"
   }
@@ -133,7 +134,7 @@ Build and development tooling:
 ## Build System
 
 ### Dual Package Exports
-Support for both CommonJS and ES modules:
+Support for both CommonJS and ES modules (built by tsx scripts):
 ```
 dist-cjs/
 ├── index.js          # CommonJS entry point
@@ -155,16 +156,21 @@ api/
 ├── internal.d.ts     # Internal API definitions
 └── temp/
     └── api-report.api.md  # Human-readable API report
+
+api-report.api.md     # Also exists in package root
 ```
 
-### CSS Synchronization
-Automatic CSS file copying with watch mode:
-```javascript
-// Development: Watch for CSS changes
-"dev": "chokidar '../tldraw/tldraw.css' -c 'node ./scripts/copy-css-files.mjs'"
+### CSS Distribution
+CSS file included in package files array:
+```json
+{
+  "files": ["tldraw.css"]
+}
+```
 
-// Build: Ensure CSS is current
-"prebuild": "node ./scripts/copy-css-files.mjs"
+**CSS Import**: Users import the CSS file directly from the package:
+```typescript
+import '@tldraw/tldraw/tldraw.css'
 ```
 
 ## Legacy Support
@@ -211,9 +217,9 @@ Applications that need to track tldraw version usage:
 ```typescript
 // Access version information at runtime
 const libraryInfo = {
-  name: window.TLDRAW_LIBRARY_NAME,
-  version: window.TLDRAW_LIBRARY_VERSION,
-  modules: window.TLDRAW_LIBRARY_MODULES
+  name: (globalThis as any).TLDRAW_LIBRARY_NAME,
+  version: (globalThis as any).TLDRAW_LIBRARY_VERSION,
+  modules: (globalThis as any).TLDRAW_LIBRARY_MODULES
 }
 
 // Useful for analytics, debugging, feature detection
@@ -232,12 +238,15 @@ yarn build  # Copies CSS before building distributions
 ```
 
 ### Testing Environment
-Inherited test configuration from main tldraw package:
+Jest configuration with correct testEnvironment path:
 ```json
 {
+  "preset": "../../internal/config/jest/node/jest-preset.js",
   "testEnvironment": "../../../packages/utils/patchedJestJsDom.js",
   "setupFiles": ["raf/polyfill", "jest-canvas-mock"],
+  "setupFilesAfterEnv": ["../../internal/config/setupJest.ts"],
   "moduleNameMapper": {
+    "^~(.*)": "<rootDir>/src/$1",
     "\\.(css|less|scss|sass)$": "identity-obj-proxy"
   }
 }
@@ -273,12 +282,12 @@ import 'tldraw/tldraw.css'
 
 ### Global Usage
 - **CDN Friendly**: Optimized for script tag inclusion
-- **Version Tracking**: Runtime version information available
+- **Version Tracking**: Runtime version information available via globalThis
 - **Namespace Safety**: Avoids global namespace conflicts
 - **Browser Compatibility**: Works in all modern browsers
 
 ### Maintenance
-- **Automated Sync**: CSS and exports stay current with main package
+- **Automated Sync**: CSS and exports stay current with main package via tsx build scripts
 - **Single Source**: No duplicate implementation to maintain
 - **Version Alignment**: Always matches main package version
 - **Testing Coverage**: Inherits test suite from main package
@@ -287,4 +296,4 @@ import 'tldraw/tldraw.css'
 - **NPM Compatibility**: Standard npm package structure
 - **Bundler Support**: Works with all major bundlers
 - **TypeScript Ready**: Full type safety maintained
-- **Documentation**: API docs generated automatically
+- **Documentation**: API docs generated automatically with reports in both api/temp/ and package root
