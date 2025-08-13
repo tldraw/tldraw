@@ -48,7 +48,7 @@ export abstract class PromptPartUtil {
 		return []
 	}
 
-	// Build TLMessages for this prompt part (calls buildContent by default)
+	// Build messages for this prompt part (calls buildContent by default)
 	static buildMessages(prompt: AgentPrompt, promptPart: any): AgentMessage[] {
 		const content = this.buildContent(prompt, promptPart)
 		if (!content || content.length === 0) {
