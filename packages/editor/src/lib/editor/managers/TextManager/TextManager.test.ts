@@ -1,17 +1,18 @@
+import { vi } from 'vitest'
 import { Editor } from '../../Editor'
 import { TextManager, TLMeasureTextSpanOpts } from './TextManager'
 
 // Create a simple mock DOM environment
 const mockElement = {
-	classList: { add: jest.fn() },
+	classList: { add: vi.fn() },
 	tabIndex: -1,
-	cloneNode: jest.fn(),
+	cloneNode: vi.fn(),
 	innerHTML: '',
 	textContent: '',
-	setAttribute: jest.fn(),
-	style: { setProperty: jest.fn() },
+	setAttribute: vi.fn(),
+	style: { setProperty: vi.fn() },
 	scrollWidth: 100,
-	getBoundingClientRect: jest.fn(() => ({
+	getBoundingClientRect: vi.fn(() => ({
 		width: 100,
 		height: 20,
 		left: 0,
@@ -19,22 +20,22 @@ const mockElement = {
 		right: 100,
 		bottom: 20,
 	})),
-	remove: jest.fn(),
-	insertAdjacentElement: jest.fn(),
+	remove: vi.fn(),
+	insertAdjacentElement: vi.fn(),
 	childNodes: [],
 }
 
 // Mock document.createElement to return our mock element
-const mockCreateElement = jest.fn(() => {
+const mockCreateElement = vi.fn(() => {
 	const element = { ...mockElement }
-	element.cloneNode = jest.fn(() => ({ ...element }))
+	element.cloneNode = vi.fn(() => ({ ...element }))
 	return element
 })
 
 // Mock editor
 const mockEditor = {
-	getContainer: jest.fn(() => ({
-		appendChild: jest.fn(),
+	getContainer: vi.fn(() => ({
+		appendChild: vi.fn(),
 	})),
 } as unknown as Editor
 
@@ -43,10 +44,10 @@ global.document = {
 	createElement: mockCreateElement,
 } as any
 
-global.Range = jest.fn(() => ({
-	setStart: jest.fn(),
-	setEnd: jest.fn(),
-	getClientRects: jest.fn(() => [
+global.Range = vi.fn(() => ({
+	setStart: vi.fn(),
+	setEnd: vi.fn(),
+	getClientRects: vi.fn(() => [
 		{
 			width: 10,
 			height: 16,
@@ -62,7 +63,7 @@ describe('TextManager', () => {
 	let textManager: TextManager
 
 	beforeEach(() => {
-		jest.clearAllMocks()
+		vi.clearAllMocks()
 		textManager = new TextManager(mockEditor)
 	})
 
@@ -86,13 +87,13 @@ describe('TextManager', () => {
 		}
 
 		it('should call measureHtml with normalized text', () => {
-			const spy = jest.spyOn(textManager, 'measureHtml')
+			const spy = vi.spyOn(textManager, 'measureHtml')
 			textManager.measureText('Hello World', defaultOpts)
 			expect(spy).toHaveBeenCalledWith('Hello World', defaultOpts)
 		})
 
 		it('should normalize line breaks', () => {
-			const spy = jest.spyOn(textManager, 'measureHtml')
+			const spy = vi.spyOn(textManager, 'measureHtml')
 			textManager.measureText('Hello\nWorld\r\nTest', defaultOpts)
 			// The text should be normalized to use consistent line breaks
 			expect(spy).toHaveBeenCalled()
@@ -247,7 +248,7 @@ describe('TextManager', () => {
 
 		it('should return array of text spans for non-empty text', () => {
 			// Mock measureElementTextNodeSpans to return some spans
-			jest.spyOn(textManager, 'measureElementTextNodeSpans').mockReturnValue({
+			vi.spyOn(textManager, 'measureElementTextNodeSpans').mockReturnValue({
 				spans: [
 					{
 						text: 'Hello World',
@@ -266,7 +267,7 @@ describe('TextManager', () => {
 		})
 
 		it('should handle wrap overflow', () => {
-			jest.spyOn(textManager, 'measureElementTextNodeSpans').mockReturnValue({
+			vi.spyOn(textManager, 'measureElementTextNodeSpans').mockReturnValue({
 				spans: [
 					{
 						text: 'Hello World',
@@ -284,8 +285,7 @@ describe('TextManager', () => {
 
 		it('should handle truncate-ellipsis overflow', () => {
 			// Mock the calls for ellipsis handling
-			jest
-				.spyOn(textManager, 'measureElementTextNodeSpans')
+			vi.spyOn(textManager, 'measureElementTextNodeSpans')
 				.mockReturnValueOnce({
 					spans: [
 						{
@@ -321,7 +321,7 @@ describe('TextManager', () => {
 		})
 
 		it('should handle truncate-clip overflow', () => {
-			jest.spyOn(textManager, 'measureElementTextNodeSpans').mockReturnValue({
+			vi.spyOn(textManager, 'measureElementTextNodeSpans').mockReturnValue({
 				spans: [
 					{
 						text: 'Hello Wo',
@@ -338,7 +338,7 @@ describe('TextManager', () => {
 		})
 
 		it('should handle different text alignments', () => {
-			jest.spyOn(textManager, 'measureElementTextNodeSpans').mockReturnValue({
+			vi.spyOn(textManager, 'measureElementTextNodeSpans').mockReturnValue({
 				spans: [
 					{
 						text: 'Test',
@@ -358,7 +358,7 @@ describe('TextManager', () => {
 		})
 
 		it('should handle custom font properties', () => {
-			jest.spyOn(textManager, 'measureElementTextNodeSpans').mockReturnValue({
+			vi.spyOn(textManager, 'measureElementTextNodeSpans').mockReturnValue({
 				spans: [
 					{
 						text: 'Test',
@@ -382,7 +382,7 @@ describe('TextManager', () => {
 		})
 
 		it('should handle other styles', () => {
-			jest.spyOn(textManager, 'measureElementTextNodeSpans').mockReturnValue({
+			vi.spyOn(textManager, 'measureElementTextNodeSpans').mockReturnValue({
 				spans: [
 					{
 						text: 'Test',

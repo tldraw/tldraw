@@ -9803,6 +9803,7 @@ __metadata:
     typescript: "npm:^5.8.3"
     vercel: "npm:^34.4.0"
     vitest: "npm:^2.1.8"
+    vitest-canvas-mock: "npm:^0.3.3"
   languageName: unknown
   linkType: soft
 
@@ -20292,7 +20293,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"jest-canvas-mock@npm:^2.5.2":
+"jest-canvas-mock@npm:^2.5.2, jest-canvas-mock@npm:~2.5.2":
   version: 2.5.2
   resolution: "jest-canvas-mock@npm:2.5.2"
   dependencies:
@@ -31184,6 +31185,17 @@ __metadata:
   bin:
     vite: bin/vite.js
   checksum: 10/c4f5be940e5794cae0a62528c7e4b636334eaa2a3dac41ba199cdb51c4048ffe6760ee85e7f20e141bb10338f8dd35d6e5154071db4f62ae4814a8f1b9af0393
+  languageName: node
+  linkType: hard
+
+"vitest-canvas-mock@npm:^0.3.3":
+  version: 0.3.3
+  resolution: "vitest-canvas-mock@npm:0.3.3"
+  dependencies:
+    jest-canvas-mock: "npm:~2.5.2"
+  peerDependencies:
+    vitest: "*"
+  checksum: 10/bf564fe0cb701f228eb20cacdbd3abb9eb83c948bebbbea7fe907082ef830b2f8d7865277eade77fd84806bd1ddccdf1426c85ad716b8da8a977ae6b82e4f85f
   languageName: node
   linkType: hard
 

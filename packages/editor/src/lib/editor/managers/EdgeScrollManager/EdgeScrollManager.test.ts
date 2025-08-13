@@ -1,19 +1,20 @@
+import { Mock, vi } from 'vitest'
 import { Box } from '../../../primitives/Box'
 import { Vec } from '../../../primitives/Vec'
 import { Editor } from '../../Editor'
 import { EdgeScrollManager } from './EdgeScrollManager'
 
 // Mock the Editor class
-jest.mock('../../Editor')
+vi.mock('../../Editor')
 
 describe('EdgeScrollManager', () => {
-	let editor: jest.Mocked<
+	let editor: vi.Mocked<
 		Editor & {
-			user: { getEdgeScrollSpeed: jest.Mock }
-			getCamera: jest.Mock
-			getCameraOptions: jest.Mock
-			getZoomLevel: jest.Mock
-			getViewportScreenBounds: jest.Mock
+			user: { getEdgeScrollSpeed: Mock }
+			getCamera: Mock
+			getCameraOptions: Mock
+			getZoomLevel: Mock
+			getViewportScreenBounds: Mock
 		}
 	>
 	let edgeScrollManager: EdgeScrollManager
@@ -33,33 +34,33 @@ describe('EdgeScrollManager', () => {
 				isPanning: false,
 			},
 			user: {
-				getEdgeScrollSpeed: jest.fn(() => 1),
+				getEdgeScrollSpeed: vi.fn(() => 1),
 			},
-			getViewportScreenBounds: jest.fn(() => new Box(0, 0, 1000, 600)),
-			getInstanceState: jest.fn(
+			getViewportScreenBounds: vi.fn(() => new Box(0, 0, 1000, 600)),
+			getInstanceState: vi.fn(
 				() =>
 					({
 						isCoarsePointer: false,
 						insets: [false, false, false, false], // [top, right, bottom, left]
 					}) as any
 			),
-			getCameraOptions: jest.fn(() => ({
+			getCameraOptions: vi.fn(() => ({
 				isLocked: false,
 				panSpeed: 1,
 				zoomSpeed: 1,
 				zoomSteps: [1],
 				wheelBehavior: 'pan' as const,
 			})),
-			getZoomLevel: jest.fn(() => 1),
-			getCamera: jest.fn(() => new Vec(0, 0, 1)),
-			setCamera: jest.fn(),
+			getZoomLevel: vi.fn(() => 1),
+			getCamera: vi.fn(() => new Vec(0, 0, 1)),
+			setCamera: vi.fn(),
 		} as any
 
 		edgeScrollManager = new EdgeScrollManager(editor as any)
 	})
 
 	afterEach(() => {
-		jest.clearAllMocks()
+		vi.clearAllMocks()
 	})
 
 	describe('constructor and initialization', () => {

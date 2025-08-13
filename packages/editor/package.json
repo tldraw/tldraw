@@ -35,7 +35,7 @@
 	],
 	"scripts": {
 		"test-ci": "lazy inherit",
-		"test": "yarn run -T jest",
+		"test": "yarn run -T vitest run",
 		"benchmark": "yarn run -T tsx ./internal/scripts/benchmark.ts",
 		"test-coverage": "lazy inherit",
 		"build": "yarn run -T tsx ../../internal/scripts/build-package.ts",
@@ -82,27 +82,5 @@
 		"react": "^18.3.1",
 		"react-dom": "^18.3.1",
 		"resize-observer-polyfill": "^1.5.1"
-	},
-	"jest": {
-		"preset": "../../internal/config/jest/node/jest-preset.js",
-		"testEnvironment": "../../../packages/utils/patchedJestJsDom.js",
-		"fakeTimers": {
-			"enableGlobally": true
-		},
-		"testPathIgnorePatterns": [
-			"^.+\\.*.css$"
-		],
-		"moduleNameMapper": {
-			"^~(.*)": "<rootDir>/src/$1",
-			"\\.(css|less|scss|sass)$": "identity-obj-proxy"
-		},
-		"setupFiles": [
-			"raf/polyfill",
-			"jest-canvas-mock",
-			"<rootDir>/setupTests.js"
-		],
-		"setupFilesAfterEnv": [
-			"../../internal/config/setupJest.ts"
-		]
 	}
 }

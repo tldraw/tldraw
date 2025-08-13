@@ -1,33 +1,34 @@
 import { TLScribble } from '@tldraw/tlschema'
+import { Mock, vi } from 'vitest'
 import { Editor } from '../../Editor'
 import { ScribbleItem, ScribbleManager } from './ScribbleManager'
 
 // Mock the Editor class
-jest.mock('../../Editor')
-jest.mock('@tldraw/utils', () => ({
-	uniqueId: jest.fn(() => 'test-id'),
+vi.mock('../../Editor')
+vi.mock('@tldraw/utils', () => ({
+	uniqueId: vi.fn(() => 'test-id'),
 }))
 
 describe('ScribbleManager', () => {
-	let editor: jest.Mocked<Editor>
+	let editor: vi.Mocked<Editor>
 	let scribbleManager: ScribbleManager
-	let mockUniqueId: jest.Mock
+	let mockUniqueId: Mock
 
-	beforeEach(() => {
+	beforeEach(async () => {
 		editor = {
-			updateInstanceState: jest.fn(),
-			run: jest.fn((fn) => fn()),
+			updateInstanceState: vi.fn(),
+			run: vi.fn((fn) => fn()),
 		} as any
 
-		const { uniqueId } = jest.requireMock('@tldraw/utils')
-		mockUniqueId = uniqueId
+		const { uniqueId } = await vi.importMock('@tldraw/utils')
+		mockUniqueId = uniqueId as Mock
 		mockUniqueId.mockReturnValue('test-id')
 
 		scribbleManager = new ScribbleManager(editor)
 	})
 
 	afterEach(() => {
-		jest.clearAllMocks()
+		vi.clearAllMocks()
 	})
 
 	describe('constructor and initialization', () => {

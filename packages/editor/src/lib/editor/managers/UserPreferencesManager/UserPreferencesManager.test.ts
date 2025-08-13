@@ -1,17 +1,18 @@
 import { atom } from '@tldraw/state'
+import { vi } from 'vitest'
 import { TLUserPreferences, defaultUserPreferences } from '../../../config/TLUserPreferences'
 import { TLUser } from '../../../config/createTLUser'
 import { UserPreferencesManager } from './UserPreferencesManager'
 
 // Mock window.matchMedia
-const mockMatchMedia = jest.fn()
+const mockMatchMedia = vi.fn()
 Object.defineProperty(window, 'matchMedia', {
 	writable: true,
 	value: mockMatchMedia,
 })
 
 describe('UserPreferencesManager', () => {
-	let mockUser: jest.Mocked<TLUser>
+	let mockUser: vi.Mocked<TLUser>
 	let mockUserPreferences: TLUserPreferences
 	let userPreferencesAtom: any
 	let userPreferencesManager: UserPreferencesManager
@@ -36,14 +37,14 @@ describe('UserPreferencesManager', () => {
 	})
 
 	beforeEach(() => {
-		jest.clearAllMocks()
+		vi.clearAllMocks()
 
 		mockUserPreferences = createMockUserPreferences()
 		userPreferencesAtom = atom('userPreferences', mockUserPreferences)
 
 		mockUser = {
 			userPreferences: userPreferencesAtom,
-			setUserPreferences: jest.fn((prefs) => {
+			setUserPreferences: vi.fn((prefs) => {
 				userPreferencesAtom.set(prefs)
 			}),
 		}
@@ -51,8 +52,8 @@ describe('UserPreferencesManager', () => {
 		// Default matchMedia mock - no dark mode preference
 		mockMatchMedia.mockReturnValue({
 			matches: false,
-			addEventListener: jest.fn(),
-			removeEventListener: jest.fn(),
+			addEventListener: vi.fn(),
+			removeEventListener: vi.fn(),
 		})
 	})
 
@@ -75,8 +76,8 @@ describe('UserPreferencesManager', () => {
 		it('should initialize with light system color scheme when dark mode not preferred', () => {
 			mockMatchMedia.mockReturnValue({
 				matches: false,
-				addEventListener: jest.fn(),
-				removeEventListener: jest.fn(),
+				addEventListener: vi.fn(),
+				removeEventListener: vi.fn(),
 			})
 
 			userPreferencesManager = new UserPreferencesManager(mockUser, false)
@@ -87,8 +88,8 @@ describe('UserPreferencesManager', () => {
 		it('should initialize with dark system color scheme when dark mode preferred', () => {
 			mockMatchMedia.mockReturnValue({
 				matches: true,
-				addEventListener: jest.fn(),
-				removeEventListener: jest.fn(),
+				addEventListener: vi.fn(),
+				removeEventListener: vi.fn(),
 			})
 
 			userPreferencesManager = new UserPreferencesManager(mockUser, false)
@@ -97,8 +98,8 @@ describe('UserPreferencesManager', () => {
 		})
 
 		it('should set up media query listener for color scheme changes', () => {
-			const mockAddEventListener = jest.fn()
-			const mockRemoveEventListener = jest.fn()
+			const mockAddEventListener = vi.fn()
+			const mockRemoveEventListener = vi.fn()
 
 			mockMatchMedia.mockReturnValue({
 				matches: false,
@@ -112,7 +113,7 @@ describe('UserPreferencesManager', () => {
 		})
 
 		it('should handle media query change events', () => {
-			const mockAddEventListener = jest.fn()
+			const mockAddEventListener = vi.fn()
 			let changeHandler: (e: MediaQueryListEvent) => void
 
 			mockMatchMedia.mockReturnValue({
@@ -123,7 +124,7 @@ describe('UserPreferencesManager', () => {
 					}
 					mockAddEventListener(event, handler)
 				},
-				removeEventListener: jest.fn(),
+				removeEventListener: vi.fn(),
 			})
 
 			userPreferencesManager = new UserPreferencesManager(mockUser, false)
@@ -153,11 +154,11 @@ describe('UserPreferencesManager', () => {
 
 	describe('dispose', () => {
 		it('should remove media query listener on dispose', () => {
-			const mockRemoveEventListener = jest.fn()
+			const mockRemoveEventListener = vi.fn()
 
 			mockMatchMedia.mockReturnValue({
 				matches: false,
-				addEventListener: jest.fn(),
+				addEventListener: vi.fn(),
 				removeEventListener: mockRemoveEventListener,
 			})
 
@@ -170,8 +171,8 @@ describe('UserPreferencesManager', () => {
 		it('should call all disposables', () => {
 			userPreferencesManager = new UserPreferencesManager(mockUser, false)
 
-			const mockDisposable1 = jest.fn()
-			const mockDisposable2 = jest.fn()
+			const mockDisposable1 = vi.fn()
+			const mockDisposable2 = vi.fn()
 
 			userPreferencesManager.disposables.add(mockDisposable1)
 			userPreferencesManager.disposables.add(mockDisposable2)

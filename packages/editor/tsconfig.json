@@ -1,12 +1,20 @@
 {
 	"extends": "../../internal/config/tsconfig.base.json",
-	"exclude": ["node_modules", "dist", "**/*.css", ".tsbuild*"],
+	"exclude": [
+		"node_modules",
+		"dist",
+		"**/*.css",
+		".tsbuild*",
+		"vitest.config.ts",
+		"setupVitest.js",
+		"**/*.test.ts"
+	],
 	"compilerOptions": {
 		"outDir": "./.tsbuild",
 		"rootDir": "src",
 		"noImplicitOverride": false,
 		"noImplicitReturns": false,
-		"types": ["node", "@types/jest"]
+		"types": ["node", "vitest/globals", "vitest"]
 	},
 	"references": [
 		{ "path": "../state" },

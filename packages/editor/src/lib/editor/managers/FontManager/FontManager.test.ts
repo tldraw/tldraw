@@ -1,30 +1,31 @@
 import { TLShape, TLShapeId, createShapeId } from '@tldraw/tlschema'
+import { Mock, vi } from 'vitest'
 import { Editor } from '../../Editor'
 import { FontManager, TLFontFace } from './FontManager'
 
 // Mock the Editor class
-jest.mock('../../Editor')
+vi.mock('../../Editor')
 
 // Mock globals
-global.FontFace = jest.fn().mockImplementation((family, src, descriptors) => ({
+global.FontFace = vi.fn().mockImplementation((family, src, descriptors) => ({
 	family,
 	src,
 	...descriptors,
-	load: jest.fn(() => Promise.resolve()),
+	load: vi.fn(() => Promise.resolve()),
 }))
 
 Object.defineProperty(global.document, 'fonts', {
 	value: {
-		add: jest.fn(),
-		[Symbol.iterator]: jest.fn(() => [].values()),
+		add: vi.fn(),
+		[Symbol.iterator]: vi.fn(() => [].values()),
 	},
 	configurable: true,
 })
 
-global.queueMicrotask = jest.fn((fn) => Promise.resolve().then(fn))
+global.queueMicrotask = vi.fn((fn) => Promise.resolve().then(fn))
 
 describe('FontManager', () => {
-	let editor: jest.Mocked<Editor>
+	let editor: vi.Mocked<Editor>
 	let fontManager: FontManager
 	let mockAssetUrls: { [key: string]: string }
 
@@ -50,30 +51,30 @@ describe('FontManager', () => {
 	})
 
 	beforeEach(() => {
-		jest.clearAllMocks()
+		vi.clearAllMocks()
 
 		mockAssetUrls = {
 			'test-font.woff2': 'https://example.com/fonts/test-font.woff2',
 		}
 
 		const mockShapeUtil = {
-			getFontFaces: jest.fn(() => []),
+			getFontFaces: vi.fn(() => []),
 		}
 
 		const mockStore = {
-			createComputedCache: jest.fn(() => ({
-				get: jest.fn(() => []),
+			createComputedCache: vi.fn(() => ({
+				get: vi.fn(() => []),
 			})),
-			createCache: jest.fn(() => ({
-				get: jest.fn(() => ({ get: jest.fn(() => []) })),
+			createCache: vi.fn(() => ({
+				get: vi.fn(() => ({ get: vi.fn(() => []) })),
 			})),
 		}
 
 		editor = {
 			store: mockStore,
-			getShapeUtil: jest.fn(() => mockShapeUtil),
-			getCurrentPageShapeIds: jest.fn(() => new Set()),
-			getShape: jest.fn(),
+			getShapeUtil: vi.fn(() => mockShapeUtil),
+			getCurrentPageShapeIds: vi.fn(() => new Set()),
+			getShape: vi.fn(),
 			isDisposed: false,
 		} as any
 
@@ -127,7 +128,7 @@ describe('FontManager', () => {
 			const shapes = shapeIds.map(createMockShape)
 
 			editor.getCurrentPageShapeIds.mockReturnValue(new Set(shapeIds))
-			editor.getShape.mockImplementation((id) => shapes.find((s) => s.id === id))
+			editor.getShape.mockImplementation((id: any) => shapes.find((s) => s.id === id))
 
 			await expect(fontManager.loadRequiredFontsForCurrentPage(3)).resolves.toBeUndefined()
 		})
@@ -150,12 +151,12 @@ describe('FontManager', () => {
 			const font = createMockFont()
 			const error = new Error('Font load failed')
 
-			;(global.FontFace as jest.Mock).mockReturnValue({
+			;(global.FontFace as Mock).mockReturnValue({
 				family: font.family,
-				load: jest.fn(() => Promise.reject(error)),
+				load: vi.fn(() => Promise.reject(error)),
 			})
 
-			const consoleSpy = jest.spyOn(console, 'error').mockImplementation()
+			const consoleSpy = vi.spyOn(console, 'error').mockImplementation(() => {})
 
 			await fontManager.ensureFontIsLoaded(font)
 
@@ -198,7 +199,7 @@ describe('FontManager', () => {
 
 			fontManager.requestFonts(fonts)
 
-			const callback = (queueMicrotask as jest.Mock).mock.calls[0][0]
+			const callback = (queueMicrotask as Mock).mock.calls[0][0]
 			expect(() => callback()).not.toThrow()
 		})
 	})
@@ -213,7 +214,7 @@ describe('FontManager', () => {
   src: url("mock-data-url");
 }`
 
-			jest.spyOn(fontManager, 'toEmbeddedCssDeclaration').mockResolvedValue(mockCssDeclaration)
+			vi.spyOn(fontManager, 'toEmbeddedCssDeclaration').mockResolvedValue(mockCssDeclaration)
 
 			const result = await fontManager.toEmbeddedCssDeclaration(font)
 
@@ -227,7 +228,7 @@ describe('FontManager', () => {
 			const font = createMockFont()
 
 			// Simple spy to verify the method is called
-			const spy = jest.spyOn(fontManager, 'toEmbeddedCssDeclaration').mockResolvedValue('mock-css')
+			const spy = vi.spyOn(fontManager, 'toEmbeddedCssDeclaration').mockResolvedValue('mock-css')
 
 			await fontManager.toEmbeddedCssDeclaration(font)
 
