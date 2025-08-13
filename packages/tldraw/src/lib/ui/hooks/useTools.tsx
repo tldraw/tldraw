@@ -3,6 +3,8 @@ import {
 	createShapeId,
 	Editor,
 	GeoShapeGeoStyle,
+	getIndicesBetween,
+	TLLineShape,
 	TLPointerEventInfo,
 	TLShapeId,
 	toRichText,
@@ -187,6 +189,24 @@ export function ToolsProvider({ overrides, children }: TLUiToolsProviderProps) {
 				onSelect(source) {
 					editor.setCurrentTool('line')
 					onToolSelect(source, this)
+				},
+				onDragStart(source, info) {
+					onDragFromToolbarToCreateShape(editor, info, {
+						createShape: (id) => {
+							const [start, end] = getIndicesBetween(null, null, 2)
+							editor.createShape<TLLineShape>({
+								id,
+								type: 'line',
+								props: {
+									points: {
+										[start]: { id: start, index: start, x: 0, y: 0 },
+										[end]: { id: end, index: end, x: 100, y: 100 },
+									},
+								},
+							})
+						},
+					})
+					trackEvent('drag-tool', { source, id: 'line' })
 				},
 			},
 			{
