@@ -13,6 +13,7 @@ export interface TldrawUiTooltipProps {
 	side?: 'top' | 'right' | 'bottom' | 'left'
 	sideOffset?: number
 	disabled?: boolean
+	delayDuration?: number
 }
 
 // Singleton tooltip manager
@@ -26,6 +27,7 @@ class TooltipManager {
 	private subscribers: Set<() => void> = new Set()
 	private activeElement: HTMLElement | null = null
 	private editor: Editor | null = null
+	private delayDuration: number | undefined = undefined
 
 	static getInstance(): TooltipManager {
 		if (!TooltipManager.instance) {
@@ -52,7 +54,8 @@ class TooltipManager {
 		content: string | React.ReactNode,
 		element: HTMLElement,
 		side: 'top' | 'right' | 'bottom' | 'left' = 'bottom',
-		sideOffset: number = 5
+		sideOffset: number = 5,
+		delayDuration?: number
 	) {
 		// Clear any existing destroy timeout
 		if (this.destroyTimeoutId) {
@@ -66,7 +69,7 @@ class TooltipManager {
 		this.currentSide = side
 		this.currentSideOffset = sideOffset
 		this.activeElement = element
-
+		this.delayDuration = delayDuration
 		this.notify()
 	}
 
@@ -105,6 +108,7 @@ class TooltipManager {
 			side: this.currentSide,
 			sideOffset: this.currentSideOffset,
 			element: this.activeElement,
+			delayDuration: this.delayDuration,
 		}
 	}
 }
@@ -206,7 +210,7 @@ function TooltipSingleton() {
 				showTimeoutRef.current = editor.timers.setTimeout(() => {
 					setIsOpen(true)
 					isFirstShowRef.current = false
-				}, editor.options.tooltipDelayMs)
+				}, tooltipData.delayDuration ?? editor.options.tooltipDelayMs)
 			} else {
 				// Subsequent tooltips show immediately
 				setIsOpen(true)
@@ -220,7 +224,7 @@ function TooltipSingleton() {
 			// Reset first show state after tooltip is hidden
 			isFirstShowRef.current = true
 		}
-	}, [tooltipData.id, tooltipData.element, editor, prefersReducedMotion])
+	}, [tooltipData.id, tooltipData.element, editor, prefersReducedMotion, tooltipData.delayDuration])
 
 	if (!tooltipData.id) {
 		return null
@@ -249,7 +253,7 @@ function TooltipSingleton() {
 
 /** @public @react */
 export const TldrawUiTooltip = forwardRef<HTMLButtonElement, TldrawUiTooltipProps>(
-	({ children, content, side, sideOffset = 5, disabled = false }, ref) => {
+	({ children, content, side, sideOffset = 5, disabled = false, delayDuration }, ref) => {
 		const editor = useMaybeEditor()
 		const tooltipId = useRef<string>(uniqueId())
 		const hasProvider = useContext(TooltipSingletonContext)
@@ -306,7 +310,8 @@ export const TldrawUiTooltip = forwardRef<HTMLButtonElement, TldrawUiTooltipProp
 				content,
 				event.currentTarget as HTMLElement,
 				sideToUse,
-				sideOffset
+				sideOffset,
+				delayDuration
 			)
 		}
 
@@ -322,7 +327,8 @@ export const TldrawUiTooltip = forwardRef<HTMLButtonElement, TldrawUiTooltipProp
 				content,
 				event.currentTarget as HTMLElement,
 				sideToUse,
-				sideOffset
+				sideOffset,
+				delayDuration
 			)
 		}
 

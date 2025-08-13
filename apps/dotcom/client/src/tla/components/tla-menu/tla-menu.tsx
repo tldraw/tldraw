@@ -52,7 +52,7 @@ export function TlaMenuControlInfoTooltip({
 
 	return (
 		<div className={styles.menuInfoTriggerContainer}>
-			<TldrawUiTooltip content={children}>
+			<TldrawUiTooltip content={children} delayDuration={0}>
 				{href ? (
 					<a
 						onClick={onClick}

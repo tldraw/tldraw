@@ -3170,6 +3170,8 @@ export interface TldrawUiTooltipProps {
     // (undocumented)
     content?: React_3.ReactNode | string;
     // (undocumented)
+    delayDuration?: number;
+    // (undocumented)
     disabled?: boolean;
     // (undocumented)
     side?: 'bottom' | 'left' | 'right' | 'top';
