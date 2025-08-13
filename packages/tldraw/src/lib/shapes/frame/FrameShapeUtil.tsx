@@ -284,8 +284,12 @@ export class FrameShapeUtil extends BaseBoxShapeUtil<TLFrameShape> {
 		const colorToUse = showFrameColors ? shape.props.color : 'black'
 		const frameFill = getColorValue(theme, colorToUse, 'frameFill')
 		const frameStroke = getColorValue(theme, colorToUse, 'frameStroke')
-		const frameHeadingStroke = getColorValue(theme, colorToUse, 'frameHeadingStroke')
-		const frameHeadingFill = getColorValue(theme, colorToUse, 'frameHeadingFill')
+		const frameHeadingStroke = showFrameColors
+			? getColorValue(theme, colorToUse, 'frameHeadingStroke')
+			: theme.background
+		const frameHeadingFill = showFrameColors
+			? getColorValue(theme, colorToUse, 'frameHeadingFill')
+			: theme.background
 		const frameHeadingText = getColorValue(theme, colorToUse, 'frameText')
 
 		return (
