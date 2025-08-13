@@ -95,7 +95,7 @@
 .cookieConsentWrapper {
 	position: fixed;
 	bottom: 0;
-	right: 12px;
+	right: var(--tl-space-4);
 	z-index: var(--tl-layer-menus);
 	width: fit-content;
 }
