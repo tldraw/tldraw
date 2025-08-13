@@ -32,7 +32,7 @@
 	"files": [],
 	"scripts": {
 		"test-ci": "lazy inherit",
-		"test": "yarn run -T jest",
+		"test": "yarn run -T vitest run",
 		"test-coverage": "lazy inherit",
 		"lint": "yarn run -T tsx ../../internal/scripts/lint.ts",
 		"build": "yarn run -T tsx ../../internal/scripts/build-package.ts",
@@ -48,19 +48,6 @@
 		"typescript": "^5.8.3",
 		"uuid-by-string": "^4.0.0",
 		"uuid-readable": "^0.0.2"
-	},
-	"jest": {
-		"preset": "../../internal/config/jest/node/jest-preset.js",
-		"testEnvironment": "../../../packages/utils/patchedJestJsDom.js",
-		"moduleNameMapper": {
-			"^~(.*)": "<rootDir>/src/$1"
-		},
-		"transformIgnorePatterns": [
-			"ignore everything. swc is fast enough to transform everything"
-		],
-		"setupFiles": [
-			"./setupJest.js"
-		]
 	},
 	"dependencies": {
 		"@tldraw/state": "workspace:*",

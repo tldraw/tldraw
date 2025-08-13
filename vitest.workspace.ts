@@ -14,5 +14,7 @@ export default defineWorkspace([
 	'packages/dotcom-shared/vitest.config.ts',
 	'packages/namespaced-tldraw/vitest.config.ts',
 	'packages/worker-shared/vitest.config.ts',
+	'packages/assets/vitest.config.ts',
+	'packages/sync/vitest.config.ts',
 	// Add more packages here as they're migrated
 ])
