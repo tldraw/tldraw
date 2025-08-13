@@ -41,8 +41,8 @@ import { Result, assert, exhaustiveSwitchError } from '@tldraw/utils'
 Type-safe array manipulation functions with complete TypeScript signatures:
 ```typescript
 // Array transformation and analysis
-rotateArray<T>(arr: readonly T[], offset: number): T[]
-dedupe<T>(input: readonly T[], equals?: (a: T, b: T) => boolean): T[]
+rotateArray<T>(arr: T[], offset: number): T[]
+dedupe<T>(input: T[], equals?: (a: any, b: any) => boolean): T[]
 partition<T>(arr: readonly T[], predicate: (item: T, index: number) => boolean): [T[], T[]]
 
 // Array search and comparison
@@ -84,8 +84,8 @@ areObjectsShallowEqual<T extends Record<string | number | symbol, unknown>>(obj1
 Error handling and async utilities:
 ```typescript
 // Result type for error handling without exceptions
-type OkResult<T> = { readonly ok: true; readonly value: T }
-type ErrorResult<E> = { readonly ok: false; readonly error: E }
+interface OkResult<T> { readonly ok: true; readonly value: T }
+interface ErrorResult<E> { readonly ok: false; readonly error: E }
 type Result<T, E> = OkResult<T> | ErrorResult<E>
 
 class Result {
@@ -114,12 +114,14 @@ type IndexKey = string & { __brand: 'indexKey' }
 const ZERO_INDEX_KEY = 'a0' as IndexKey
 
 // Generate indices for ordering - creates fractional indices between bounds
-getIndicesBetween(below: IndexKey | null, above: IndexKey | null, n: number): IndexKey[]
+getIndices(below: IndexKey | null, above: IndexKey | null, n: number): IndexKey[]
+getIndexBetween(below: IndexKey | null, above: IndexKey | null): IndexKey
 getIndexAbove(below: IndexKey | null): IndexKey
 getIndexBelow(above: IndexKey | null): IndexKey
+validateIndexKey(key: string): IndexKey
 
-// Sort items that have index properties
-sortByIndex<T extends {index: IndexKey}>(items: readonly T[]): T[]
+// Sort comparison function for items that have index properties
+sortByIndex<T extends { index: IndexKey }>(a: T, b: T): number
 ```
 
 #### Media Helpers (`media/media.ts`)
@@ -127,17 +129,25 @@ Media file processing and validation:
 ```typescript
 // Supported media types constants
 const DEFAULT_SUPPORTED_IMAGE_TYPES: readonly string[]
-const DEFAULT_SUPPORTED_VIDEO_TYPES: readonly string[]
+const DEFAULT_SUPPORT_VIDEO_TYPES: readonly string[]
 
 class MediaHelpers {
   // Image processing
   static async getImageSize(file: File): Promise<{w: number; h: number}>
+  static async getImageAndDimensions(file: File): Promise<{image: HTMLImageElement; w: number; h: number}>
+  static isImageType(mimeType: string): boolean
   static isStaticImageType(mimeType: string): boolean
+  static isVectorImageType(mimeType: string): boolean
+  static isAnimatedImageType(mimeType: string): boolean
   static async isAnimated(file: File): Promise<boolean>
   
   // Video processing  
   static async getVideoSize(file: File): Promise<{w: number; h: number}>
+  static async getVideoFrameAsDataUrl(file: File): Promise<string>
   static async loadVideo(url: string): Promise<HTMLVideoElement>
+  
+  // URL management
+  static usingObjectURL<T>(blob: Blob, fn: (url: string) => T): T
 }
 ```
 
@@ -357,8 +367,8 @@ const uniqueShapes = dedupe(shapes, (a, b) => a.id === b.id)
 const [selectedShapes, unselectedShapes] = partition(shapes, shape => shape.selected)
 
 // Reordering system for z-index management
-const newIndex = getIndexBetween(belowShape?.index ?? null, aboveShape?.index ?? null, 1)[0]
-const sortedShapes = sortByIndex(shapes)
+const newIndex = getIndexBetween(belowShape?.index ?? null, aboveShape?.index ?? null)
+const sortedShapes = shapes.sort(sortByIndex)
 ```
 
 ### In State Package
