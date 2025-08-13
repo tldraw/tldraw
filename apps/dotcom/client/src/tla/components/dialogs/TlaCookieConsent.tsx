@@ -6,7 +6,7 @@ import { F } from '../../utils/i18n'
 import styles from './dialogs.module.css'
 import { TlaManageCookiesDialog } from './TlaManageCookiesDialog'
 
-export const TlaCookieConsent = memo(function TlaSidebarCookieConsent() {
+export const TlaCookieConsent = memo(function TlaCookieConsent() {
 	const { addDialog } = useDialogs()
 	const [consent, updateConsent] = useAnalyticsConsent()
 
@@ -27,35 +27,37 @@ export const TlaCookieConsent = memo(function TlaSidebarCookieConsent() {
 	if (consent !== null) return null
 
 	return (
-		<div className={styles.sidebarCookieConsent} data-testid="tla-sidebar-cookie-consent">
-			<p className={styles.sidebarCookieText}>
-				<F defaultMessage="This site uses cookies to make the app work and to collect analytics." />
-			</p>
-			<div className={styles.sidebarCookieButtonsRow}>
-				<button
-					className={classNames('tla-button-text', styles.sidebarCookieButton, styles.hoverable)}
-					onClick={handleCustomize}
-				>
-					<F defaultMessage="Settings" />
-				</button>
-				<div className={styles.sidebarCookieButtons}>
+		<div className={styles.cookieConsentWrapper}>
+			<div className={styles.cookieConsent} data-testid="tla-cookie-consent">
+				<p className={styles.cookieText}>
+					<F defaultMessage="This site uses cookies to make the app work and to collect analytics." />
+				</p>
+				<div className={styles.cookieButtonsRow}>
 					<button
-						className={classNames('tla-button-text', styles.sidebarCookieButton, styles.hoverable)}
-						onClick={handleReject}
+						className={classNames('tla-button-text', styles.cookieButton, styles.hoverable)}
+						onClick={handleCustomize}
 					>
-						<F defaultMessage="Opt out" />
+						<F defaultMessage="Settings" />
 					</button>
-					<button
-						className={classNames(
-							'tla-button-text',
-							styles.sidebarCookieButton,
-							styles.sidebarCookieAcceptButton,
-							styles.hoverable
-						)}
-						onClick={handleAccept}
-					>
-						<F defaultMessage="Accept all" />
-					</button>
+					<div className={styles.cookieButtons}>
+						<button
+							className={classNames('tla-button-text', styles.cookieButton, styles.hoverable)}
+							onClick={handleReject}
+						>
+							<F defaultMessage="Opt out" />
+						</button>
+						<button
+							className={classNames(
+								'tla-button-text',
+								styles.cookieButton,
+								styles.cookieAcceptButton,
+								styles.hoverable
+							)}
+							onClick={handleAccept}
+						>
+							<F defaultMessage="Accept all" />
+						</button>
+					</div>
 				</div>
 			</div>
 		</div>

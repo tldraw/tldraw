@@ -1,8 +1,0 @@
-.loggedOutCookieConsent {
-	position: fixed;
-	bottom: 0;
-	left: 12px;
-	right: 0;
-	z-index: var(--tl-layer-menus);
-	width: fit-content;
-}
