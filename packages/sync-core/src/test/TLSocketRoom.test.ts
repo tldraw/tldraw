@@ -1,5 +1,6 @@
 import { InstancePresenceRecordType, PageRecordType } from '@tldraw/tlschema'
 import { createTLSchema, createTLStore, ZERO_INDEX_KEY } from 'tldraw'
+import { vi } from 'vitest'
 import { WebSocketMinimal } from '../lib/ServerSocketAdapter'
 import { TLSocketRoom } from '../lib/TLSocketRoom'
 import { RecordOpType } from '../lib/diff'
@@ -132,19 +133,19 @@ describe(TLSocketRoom, () => {
 
 		// Create mock sockets
 		const mockSocket1: WebSocketMinimal = {
-			send: jest.fn(),
-			close: jest.fn(),
+			send: vi.fn(),
+			close: vi.fn(),
 			readyState: 1, // WebSocket.OPEN
-			addEventListener: jest.fn(),
-			removeEventListener: jest.fn(),
+			addEventListener: vi.fn(),
+			removeEventListener: vi.fn(),
 		}
 
 		const mockSocket2: WebSocketMinimal = {
-			send: jest.fn(),
-			close: jest.fn(),
+			send: vi.fn(),
+			close: vi.fn(),
 			readyState: 1, // WebSocket.OPEN
-			addEventListener: jest.fn(),
-			removeEventListener: jest.fn(),
+			addEventListener: vi.fn(),
+			removeEventListener: vi.fn(),
 		}
 
 		// Add sessions to the room

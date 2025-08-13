@@ -17,5 +17,6 @@ export default defineWorkspace([
 	'packages/assets/vitest.config.ts',
 	'packages/sync/vitest.config.ts',
 	'packages/tlschema/vitest.config.ts',
+	'packages/sync-core/vitest.config.ts',
 	// Add more packages here as they're migrated
 ])
