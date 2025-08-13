@@ -3172,6 +3172,8 @@ export interface TldrawUiTooltipProps {
     // (undocumented)
     disabled?: boolean;
     // (undocumented)
+    showOnMobile?: boolean;
+    // (undocumented)
     side?: 'bottom' | 'left' | 'right' | 'top';
     // (undocumented)
     sideOffset?: number;
