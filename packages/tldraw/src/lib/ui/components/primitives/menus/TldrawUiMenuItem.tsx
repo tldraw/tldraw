@@ -326,6 +326,8 @@ function useDraggableEvents(
 					}
 
 					editor.run(() => {
+						editor.setCurrentTool('select')
+
 						// Set origin point
 						editor.dispatch({
 							type: 'pointer',
