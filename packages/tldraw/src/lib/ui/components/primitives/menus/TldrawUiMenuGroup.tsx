@@ -27,16 +27,6 @@ export function TldrawUiMenuGroup({ id, label, className, children }: TLUiMenuGr
 	const labelStr = labelToUse ? msg(labelToUse as TLUiTranslationKey) : undefined
 
 	switch (menu.type) {
-		case 'panel': {
-			return (
-				<div
-					className={classNames('tlui-menu__group', className)}
-					data-testid={`${menu.sourceId}-group.${id}`}
-				>
-					{children}
-				</div>
-			)
-		}
 		case 'menu': {
 			return (
 				<TldrawUiDropdownMenuGroup

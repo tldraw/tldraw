@@ -1078,7 +1078,6 @@
 .tlui-layout__bottom {
 	grid-row: 2;
 	width: 100%;
-	overflow: hidden;
 }
 
 .tlui-layout__bottom__main {
@@ -1319,7 +1318,6 @@
 	max-width: 400px;
 	width: fit-content;
 	text-align: center;
-	pointer-events: none;
 	will-change: transform, opacity;
 	z-index: 2;
 }
@@ -1331,10 +1329,7 @@
 
 [data-radix-popper-content-wrapper]:has(.tlui-tooltip) {
 	z-index: var(--tl-layer-toasts) !important;
-}
-
-[data-radix-popper-content-wrapper]:has(.tlui-tooltip[data-should-animate='true']) {
-	transition: all 0.1s ease-out;
+	pointer-events: none;
 }
 
 /* ------------------- Debug panel ------------------ */
