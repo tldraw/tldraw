@@ -100,6 +100,7 @@
 		"@types/semver": "^7.5.8",
 		"@typescript-eslint/eslint-plugin": "^8.21.0",
 		"@typescript-eslint/parser": "^8.21.0",
+		"@vitest/coverage-v8": "^2.1.8",
 		"auto": "^11.3.0",
 		"eslint": "^9.19.0",
 		"eslint-config-prettier": "^9.1.0",
@@ -111,6 +112,7 @@
 		"fs-extra": "^11.3.0",
 		"husky": "^8.0.3",
 		"jest": "30.0.0-alpha.2",
+		"jsdom": "^25.0.1",
 		"json5": "^2.2.3",
 		"lazyrepo": "0.0.0-alpha.27",
 		"license-report": "^6.7.1",
@@ -121,7 +123,8 @@
 		"tsutils": "^3.21.0",
 		"tsx": "^4.19.2",
 		"typescript": "^5.8.3",
-		"vercel": "^34.4.0"
+		"vercel": "^34.4.0",
+		"vitest": "^2.1.8"
 	},
 	"// resolutions.canvas": [
 		"our examples app depenends on pdf.js which pulls in canvas as an optional dependency.",

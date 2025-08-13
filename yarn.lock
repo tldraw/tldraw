@@ -9771,6 +9771,7 @@ __metadata:
     "@types/semver": "npm:^7.5.8"
     "@typescript-eslint/eslint-plugin": "npm:^8.21.0"
     "@typescript-eslint/parser": "npm:^8.21.0"
+    "@vitest/coverage-v8": "npm:^2.1.8"
     "@yarnpkg/types": "npm:^4.0.0"
     auto: "npm:^11.3.0"
     cross-env: "npm:^7.0.3"
@@ -9785,6 +9786,7 @@ __metadata:
     fs-extra: "npm:^11.3.0"
     husky: "npm:^8.0.3"
     jest: "npm:30.0.0-alpha.2"
+    jsdom: "npm:^25.0.1"
     json5: "npm:^2.2.3"
     lazyrepo: "npm:0.0.0-alpha.27"
     license-report: "npm:^6.7.1"
@@ -9800,6 +9802,7 @@ __metadata:
     tsx: "npm:^4.19.2"
     typescript: "npm:^5.8.3"
     vercel: "npm:^34.4.0"
+    vitest: "npm:^2.1.8"
   languageName: unknown
   linkType: soft
 
@@ -10007,15 +10010,12 @@ __metadata:
     "@types/lodash.isequalwith": "npm:^4.4.9"
     "@types/lodash.throttle": "npm:^4.1.9"
     "@types/lodash.uniq": "npm:^4.5.9"
-    "@vitest/coverage-v8": "npm:^2.1.8"
     fractional-indexing-jittered: "npm:^1.0.0"
-    jsdom: "npm:^25.0.1"
     lazyrepo: "npm:0.0.0-alpha.27"
     lodash.isequal: "npm:^4.5.0"
     lodash.isequalwith: "npm:^4.4.0"
     lodash.throttle: "npm:^4.1.1"
     lodash.uniq: "npm:^4.5.0"
-    vitest: "npm:^2.1.8"
   languageName: unknown
   linkType: soft
 
@@ -10024,10 +10024,7 @@ __metadata:
   resolution: "@tldraw/validate@workspace:packages/validate"
   dependencies:
     "@tldraw/utils": "workspace:*"
-    "@vitest/coverage-v8": "npm:^2.1.8"
-    jsdom: "npm:^25.0.1"
     lazyrepo: "npm:0.0.0-alpha.27"
-    vitest: "npm:^2.1.8"
   languageName: unknown
   linkType: soft
 

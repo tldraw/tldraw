@@ -32,8 +32,8 @@
 	"files": [],
 	"scripts": {
 		"test-ci": "lazy inherit",
-		"test": "vitest run",
-		"test-coverage": "vitest run --coverage",
+		"test": "yarn run -T vitest run",
+		"test-coverage": "lazy inherit",
 		"build": "yarn run -T tsx ../../internal/scripts/build-package.ts",
 		"build-api": "yarn run -T tsx ../../internal/scripts/build-api.ts",
 		"prepack": "yarn run -T tsx ../../internal/scripts/prepack.ts",
@@ -53,9 +53,6 @@
 		"@types/lodash.isequalwith": "^4.4.9",
 		"@types/lodash.throttle": "^4.1.9",
 		"@types/lodash.uniq": "^4.5.9",
-		"@vitest/coverage-v8": "^2.1.8",
-		"jsdom": "^25.0.1",
-		"lazyrepo": "0.0.0-alpha.27",
-		"vitest": "^2.1.8"
+		"lazyrepo": "0.0.0-alpha.27"
 	}
 }

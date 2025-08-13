@@ -1,23 +1,6 @@
 /// <reference types="vitest" />
-import { defineConfig } from 'vitest/config'
+import { mergeConfig } from 'vitest/config'
+import baseConfig from '../../internal/config/vitest/node-preset'
 
-export default defineConfig({
-	test: {
-		globals: true,
-		environment: 'jsdom',
-		setupFiles: ['./vitest.setup.ts'],
-		include: ['src/**/*.{test,spec}.{js,ts,jsx,tsx}'],
-		exclude: [
-			'**/node_modules/**',
-			'**/dist/**',
-			'**/.tsbuild/**',
-			'**/.tsbuild-dev/**',
-			'**/.tsbuild-pub/**',
-		],
-	},
-	resolve: {
-		alias: {
-			'~': '/src',
-		},
-	},
-})
+// Utils package uses the standard node preset with no overrides
+export default mergeConfig(baseConfig, {})
