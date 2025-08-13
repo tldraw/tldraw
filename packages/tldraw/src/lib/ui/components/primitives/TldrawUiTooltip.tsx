@@ -279,7 +279,9 @@ export const TldrawUiTooltip = forwardRef<HTMLButtonElement, TldrawUiTooltipProp
 		if (!hasProvider) {
 			return (
 				<_Tooltip.Root
-					delayDuration={editor?.options.tooltipDelayMs || DEFAULT_TOOLTIP_DELAY_MS}
+					delayDuration={
+						delayDuration ?? (editor?.options.tooltipDelayMs || DEFAULT_TOOLTIP_DELAY_MS)
+					}
 					disableHoverableContent
 				>
 					<_Tooltip.Trigger asChild ref={ref}>
