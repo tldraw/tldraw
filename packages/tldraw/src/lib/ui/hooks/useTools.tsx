@@ -155,7 +155,8 @@ export function ToolsProvider({ overrides, children }: TLUiToolsProviderProps) {
 				},
 				onDragStart(source: TLUiEventSource, info: TLPointerEventInfo) {
 					onDragFromToolbarToCreateShape(editor, info, {
-						createShape: (id) => editor.createShape({ id, type: 'geo', props: { geo } }),
+						createShape: (id) =>
+							editor.createShape({ id, type: 'geo', props: { w: 200, h: 200, geo } }),
 					})
 					trackEvent('drag-tool', { source, id: 'geo' })
 				},
@@ -199,8 +200,8 @@ export function ToolsProvider({ overrides, children }: TLUiToolsProviderProps) {
 								type: 'line',
 								props: {
 									points: {
-										[start]: { id: start, index: start, x: 0, y: 0 },
-										[end]: { id: end, index: end, x: 100, y: 100 },
+										[start]: { id: start, index: start, x: 0, y: 200 },
+										[end]: { id: end, index: end, x: 200, y: 0 },
 									},
 								},
 							})
@@ -385,5 +386,6 @@ export function onDragFromToolbarToCreateShape(
 			opts.onDragEnd?.(id)
 		},
 	})
+
 	editor.getCurrentTool().setCurrentToolIdMask(shape.type)
 }
