@@ -1,13 +1,20 @@
 import classNames from 'classnames'
 import { memo, useCallback } from 'react'
-import { useDialogs } from 'tldraw'
+import { useDialogs, useValue } from 'tldraw'
 import { useAnalyticsConsent } from '../../hooks/useAnalyticsConsent'
 import { F } from '../../utils/i18n'
 import styles from './dialogs.module.css'
 import { TlaManageCookiesDialog } from './TlaManageCookiesDialog'
 
+const MANAGE_COOKIES_DIALOG = 'manageCookiesDialog'
+
 export const TlaCookieConsent = memo(function TlaCookieConsent() {
-	const { addDialog } = useDialogs()
+	const { addDialog, dialogs } = useDialogs()
+	const isManageCookiesDialogShown = useValue(
+		'isManageCookiesDialogShown',
+		() => dialogs.get().some((d) => d.id === MANAGE_COOKIES_DIALOG),
+		[dialogs]
+	)
 	const [consent, updateConsent] = useAnalyticsConsent()
 
 	const handleAccept = useCallback(() => {
@@ -21,10 +28,11 @@ export const TlaCookieConsent = memo(function TlaCookieConsent() {
 	const handleCustomize = useCallback(() => {
 		addDialog({
 			component: () => <TlaManageCookiesDialog />,
+			id: MANAGE_COOKIES_DIALOG,
 		})
 	}, [addDialog])
 
-	if (consent !== null) return null
+	if (consent !== null || isManageCookiesDialogShown) return null
 
 	return (
 		<div className={styles.cookieConsentWrapper}>
