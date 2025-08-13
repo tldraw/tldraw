@@ -243,13 +243,11 @@ for (const point of DRAW_POINTS) {
 }
 
 function scalePoints(points: VecModel[], scale: number) {
-	if (scale === 1) return points
-	const next = [...points]
-	for (const point of next) {
-		point.x = point.x * scale
-		point.y = point.y * scale
-	}
-	return next
+	return points.map((p) => ({
+		x: p.x * scale,
+		y: p.y * scale,
+		z: p.z,
+	}))
 }
 
 const SCALES = {
