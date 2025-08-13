@@ -270,7 +270,7 @@ export const TldrawUiTooltip = forwardRef<HTMLButtonElement, TldrawUiTooltipProp
 
 		const handleMouseLeave = (event: React.MouseEvent<HTMLElement>) => {
 			child.props.onMouseLeave?.(event)
-			tooltipManager.hideTooltip(editor, tooltipId.current)
+			// tooltipManager.hideTooltip(editor, tooltipId.current)
 		}
 
 		const handleFocus = (event: React.FocusEvent<HTMLElement>) => {

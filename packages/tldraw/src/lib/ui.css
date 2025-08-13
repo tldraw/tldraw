@@ -1318,7 +1318,6 @@
 	max-width: 400px;
 	width: fit-content;
 	text-align: center;
-	pointer-events: none;
 	will-change: transform, opacity;
 	z-index: 2;
 }
@@ -1330,6 +1329,7 @@
 
 [data-radix-popper-content-wrapper]:has(.tlui-tooltip) {
 	z-index: var(--tl-layer-toasts) !important;
+	pointer-events: none;
 }
 
 /* ------------------- Debug panel ------------------ */
