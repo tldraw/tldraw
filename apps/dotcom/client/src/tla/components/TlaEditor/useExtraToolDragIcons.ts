@@ -77,7 +77,7 @@ export function useExtraDragIconOverrides() {
 							})
 						},
 					})
-					trackEvent('drag-tool', { source, id: 'text' })
+					trackEvent('drag-tool', { source, id: 'draw' })
 				}
 
 				return tools

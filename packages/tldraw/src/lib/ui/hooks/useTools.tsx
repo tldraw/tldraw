@@ -3,7 +3,7 @@ import {
 	createShapeId,
 	Editor,
 	GeoShapeGeoStyle,
-	IndexKey,
+	getIndicesBetween,
 	TLLineShape,
 	TLPointerEventInfo,
 	TLShapeId,
@@ -191,31 +191,23 @@ export function ToolsProvider({ overrides, children }: TLUiToolsProviderProps) {
 					editor.setCurrentTool('line')
 					onToolSelect(source, this)
 				},
-				onDragStart(source: TLUiEventSource, info: TLPointerEventInfo) {
+				onDragStart(source, info) {
 					onDragFromToolbarToCreateShape(editor, info, {
-						createShape: (id) =>
+						createShape: (id) => {
+							const [start, end] = getIndicesBetween(null, null, 2)
 							editor.createShape<TLLineShape>({
 								id,
 								type: 'line',
 								props: {
 									points: {
-										a1: {
-											id: 'a1',
-											index: 'a1' as IndexKey,
-											x: 0,
-											y: 200,
-										},
-										a240A: {
-											id: 'a2',
-											index: 'a2' as IndexKey,
-											x: 200,
-											y: 0,
-										},
+										[start]: { id: start, index: start, x: 0, y: 200 },
+										[end]: { id: end, index: end, x: 200, y: 0 },
 									},
 								},
-							}),
+							})
+						},
 					})
-					trackEvent('drag-tool', { source, id: 'arrow' })
+					trackEvent('drag-tool', { source, id: 'line' })
 				},
 			},
 			{
@@ -248,8 +240,8 @@ export function ToolsProvider({ overrides, children }: TLUiToolsProviderProps) {
 						createShape: (id) =>
 							editor.createShape({ id, type: 'text', props: { richText: toRichText('Text') } }),
 						onDragEnd: (id) => {
-							editor.emit('select-all-text', { shapeId: id })
 							editor.setEditingShape(id)
+							editor.emit('select-all-text', { shapeId: id })
 						},
 					})
 					trackEvent('drag-tool', { source, id: 'text' })
@@ -278,8 +270,8 @@ export function ToolsProvider({ overrides, children }: TLUiToolsProviderProps) {
 					onDragFromToolbarToCreateShape(editor, info, {
 						createShape: (id) => editor.createShape({ id, type: 'note' }),
 						onDragEnd: (id) => {
-							editor.emit('select-all-text', { shapeId: id })
 							editor.setEditingShape(id)
+							editor.emit('select-all-text', { shapeId: id })
 						},
 					})
 					trackEvent('drag-tool', { source, id: 'note' })
