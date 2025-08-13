@@ -28,7 +28,7 @@ import { MessagePartUtil } from '../promptParts/MessagePartUtil'
 import { PeripheralContentPartUtil } from '../promptParts/PeripheralContentPartUtil'
 import { PromptBoundsPartUtil } from '../promptParts/PromptBoundsPartUtil'
 import { UserSelectedShapesPartUtil } from '../promptParts/UserSelectedShapesPartUtil'
-import { ChatHistory } from './chat-history/AgentHistory'
+import { AgentHistory } from './chat-history/AgentHistory'
 import { PromptHistoryItem } from './chat-history/AgentHistoryItem'
 import { ChatInput } from './ChatInput'
 import { $contextBoundsHighlight } from './highlights/ContextBoundsHighlights'
@@ -177,7 +177,7 @@ export function ChatPanel({ editor }: { editor: Editor }) {
 			<div className="chat-header">
 				<NewChatButton />
 			</div>
-			<ChatHistory editor={editor} agent={agent} />
+			<AgentHistory editor={editor} agent={agent} isGenerating={isGenerating} />
 			<ChatInput
 				handleSubmit={handleSubmit}
 				inputRef={inputRef}

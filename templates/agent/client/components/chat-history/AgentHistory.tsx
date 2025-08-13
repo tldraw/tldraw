@@ -1,4 +1,4 @@
-import { useEffect, useRef } from 'react'
+import { useEffect, useMemo, useRef } from 'react'
 import { DefaultSpinner, Editor, useReactor, useValue } from 'tldraw'
 import { TLAgent } from '../../ai/useAgent'
 import { $chatHistoryItems } from '../../atoms/chatHistoryItems'
@@ -7,7 +7,15 @@ import { DiffHistoryItem } from './DiffHistoryItem'
 import { EventHistoryItem } from './EventHistoryItem'
 import { PromptHistoryItem } from './PromptHistoryItem'
 
-export function ChatHistory({ editor, agent }: { editor: Editor; agent: TLAgent }) {
+export function AgentHistory({
+	editor,
+	agent,
+	isGenerating,
+}: {
+	editor: Editor
+	agent: TLAgent
+	isGenerating: boolean
+}) {
 	const items = useValue($chatHistoryItems)
 	const scrollContainerRef = useRef<HTMLDivElement>(null)
 	const previousScrollDistanceFromBottomRef = useRef(0)
@@ -50,7 +58,10 @@ export function ChatHistory({ editor, agent }: { editor: Editor; agent: TLAgent 
 	}
 
 	const mergedItems = getChatHistoryWithMergedAdjacentItems({ items })
-	const shouldShowSpinner = mergedItems.at(-1)?.type === 'prompt'
+	const shouldShowSpinner = useMemo(
+		() => isGenerating && mergedItems.at(-1)?.type === 'prompt',
+		[isGenerating, mergedItems]
+	)
 
 	return (
 		<div className="chat-history" ref={scrollContainerRef} onScroll={handleScroll}>
