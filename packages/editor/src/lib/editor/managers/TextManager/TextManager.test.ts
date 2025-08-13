@@ -10,7 +10,10 @@ const mockElement = {
 	innerHTML: '',
 	textContent: '',
 	setAttribute: vi.fn(),
-	style: { setProperty: vi.fn() },
+	style: {
+		setProperty: vi.fn(),
+		getPropertyValue: vi.fn(() => ''),
+	},
 	scrollWidth: 100,
 	getBoundingClientRect: vi.fn(() => ({
 		width: 100,
@@ -29,6 +32,28 @@ const mockElement = {
 const mockCreateElement = vi.fn(() => {
 	const element = { ...mockElement }
 	element.cloneNode = vi.fn(() => ({ ...element }))
+
+	// Make textContent and innerHTML reactive like real DOM elements
+	let _textContent = ''
+	let _innerHTML = ''
+
+	Object.defineProperty(element, 'textContent', {
+		get: () => _textContent,
+		set: (value) => {
+			_textContent = value || ''
+			// When textContent is set, innerHTML should be the escaped version
+			_innerHTML = _textContent
+		},
+	})
+
+	Object.defineProperty(element, 'innerHTML', {
+		get: () => _innerHTML,
+		set: (value) => {
+			_innerHTML = value || ''
+			_textContent = _innerHTML // Simple approximation
+		},
+	})
+
 	return element
 })
 

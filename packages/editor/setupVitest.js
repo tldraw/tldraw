@@ -41,18 +41,16 @@ window.fetch = async (input, init) => {
 }
 
 // Window.matchMedia polyfill for media queries
-Object.defineProperty(window, 'matchMedia', {
-	writable: true,
-	value: (query) => ({
-		matches: false,
-		media: query,
-		onchange: null,
-		addListener: () => {},
-		removeListener: () => {},
-		addEventListener: () => {},
-		removeEventListener: () => {},
-		dispatchEvent: () => {},
-	}),
+// Use a conditional approach to avoid conflicts with jsdom
+window.matchMedia = (query) => ({
+	matches: false,
+	media: query,
+	onchange: null,
+	addListener: () => {},
+	removeListener: () => {},
+	addEventListener: () => {},
+	removeEventListener: () => {},
+	dispatchEvent: () => {},
 })
 
 // Enhanced DOM API mocking for CSSStyleDeclaration

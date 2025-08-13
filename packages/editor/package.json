@@ -76,8 +76,6 @@
 		"@types/wicg-file-system-access": "^2020.9.8",
 		"benchmark": "^2.1.4",
 		"fake-indexeddb": "^4.0.2",
-		"jest-canvas-mock": "^2.5.2",
-		"jest-environment-jsdom": "^29.7.0",
 		"lazyrepo": "0.0.0-alpha.27",
 		"react": "^18.3.1",
 		"react-dom": "^18.3.1",

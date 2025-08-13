@@ -1,18 +1,15 @@
 import { atom } from '@tldraw/state'
-import { vi } from 'vitest'
+import { Mocked, vi } from 'vitest'
 import { TLUserPreferences, defaultUserPreferences } from '../../../config/TLUserPreferences'
 import { TLUser } from '../../../config/createTLUser'
 import { UserPreferencesManager } from './UserPreferencesManager'
 
 // Mock window.matchMedia
 const mockMatchMedia = vi.fn()
-Object.defineProperty(window, 'matchMedia', {
-	writable: true,
-	value: mockMatchMedia,
-})
+window.matchMedia = mockMatchMedia
 
 describe('UserPreferencesManager', () => {
-	let mockUser: vi.Mocked<TLUser>
+	let mockUser: Mocked<TLUser>
 	let mockUserPreferences: TLUserPreferences
 	let userPreferencesAtom: any
 	let userPreferencesManager: UserPreferencesManager
@@ -67,10 +64,7 @@ describe('UserPreferencesManager', () => {
 			expect(userPreferencesManager.systemColorScheme.get()).toBe('light')
 
 			// Restore matchMedia
-			Object.defineProperty(window, 'matchMedia', {
-				writable: true,
-				value: mockMatchMedia,
-			})
+			window.matchMedia = mockMatchMedia
 		})
 
 		it('should initialize with light system color scheme when dark mode not preferred', () => {
