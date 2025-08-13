@@ -33,7 +33,7 @@ export class HistoryItemPartUtil extends PromptPartUtil {
 		return []
 	}
 
-	// Override buildMessages to return individual TLMessages for each history item
+	// Override buildMessages to return individual AgentMessages for each history item
 	static override buildMessages(
 		prompt: AgentPrompt,
 		historyItems: AgentHistoryItem[]
@@ -102,19 +102,23 @@ export class HistoryItemPartUtil extends PromptPartUtil {
 				}
 			}
 			case 'event': {
+				const { complete: _complete, ...eventWithoutComplete } = item.event || {}
 				return {
 					role: 'assistant',
-					content: [{ type: 'text', text: '[AGENT ACTED]: ' + JSON.stringify(item.event) }],
+					content: [
+						{ type: 'text', text: '[AGENT ACTED]: ' + JSON.stringify(eventWithoutComplete) },
+					],
 					priority: priority,
 				}
 			}
 			case 'change': {
+				const { complete: _complete, ...eventWithoutComplete } = item.event || {}
 				return {
 					role: 'assistant',
 					content: [
 						{
 							type: 'text',
-							text: '[AGENT CHANGED THE CANVAS]: ' + JSON.stringify(item.event),
+							text: '[AGENT CHANGED THE CANVAS]: ' + JSON.stringify(eventWithoutComplete),
 						},
 					],
 					priority: priority,
