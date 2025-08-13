@@ -1,9 +1,8 @@
 // import { useCallback } from 'react'
-import { Box, Editor, structuredClone } from 'tldraw'
+import { Box, Editor } from 'tldraw'
 import { TLAgentModelName } from '../worker/models'
-import { getWholePageContent } from './ai/promptConstruction/getWholePageContent'
 import { TLAgent } from './ai/useAgent'
-import { $chatHistoryItems } from './atoms/chatHistoryItems'
+// import { $chatHistoryItems } from './atoms/chatHistoryItems'
 import { $pendingContextItems } from './atoms/contextItems'
 import { $requestsSchedule } from './atoms/requestsSchedule'
 import { $contextBoundsHighlight } from './components/highlights/ContextBoundsHighlights'
@@ -27,25 +26,36 @@ export async function processSchedule({
 
 	// The next scheduled request
 	const request = eventSchedule[0]
-	const intent = request.message
+	// const intent = request.message
 
 	$pendingContextItems.set(request.contextItems)
 	const bounds = Box.From(request.bounds)
 
 	$contextBoundsHighlight.set(bounds)
 
+	/* request
+		type
+		message
+		contextBounds (bounds)
+		promptBounds (bounds)
+		contextItems
+	*/
 	try {
 		const { promise, cancel } = agent.prompt({
-			message: intent,
-			contextBounds: bounds,
-			promptBounds: bounds,
 			modelName,
-			historyItems: $chatHistoryItems.get(),
-			contextItems: request.contextItems,
-			currentPageContent: getWholePageContent({ editor }),
-			currentUserViewportBounds: editor.getViewportPageBounds(),
-			userSelectedShapeIds: editor.getSelectedShapeIds().map((v) => structuredClone(v)) ?? [],
-			type: request.type,
+			request,
+
+			// bye bye
+			// message: intent, //request.message
+			// contextBounds: bounds, //request.bounds
+			// promptBounds: bounds, //request.bounds
+			// contextItems: request.contextItems, //request.contextItems
+			// type: request.type, //request.type
+
+			// historyItems: $chatHistoryItems.get(), //bye bye
+			// currentPageContent: getWholePageContent({ editor }), //bye bye
+			// currentUserViewportBounds: editor.getViewportPageBounds(), //bye bye
+			// userSelectedShapeIds: editor.getSelectedShapeIds().map((v) => structuredClone(v)) ?? [], //bye bye
 		})
 
 		rCancelFn.current = cancel

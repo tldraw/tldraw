@@ -10,34 +10,24 @@ export async function preparePrompt(
 	promptOptions: TLAgentPromptOptions,
 	transform: AgentTransform
 ): Promise<TLAgentPrompt> {
-	const {
-		modelName,
-		type,
-
-		historyItems,
-
-		promptPartUtils,
-	} = promptOptions
+	const { modelName, request, promptPartUtils } = promptOptions
 
 	const prompt: Partial<TLAgentPrompt> = {
-		type,
+		type: request.type,
 		modelName,
-
-		historyItems,
+		parts: {} as TLAgentPrompt['parts'],
 	}
 
-	// Generate prompt parts using utils
 	for (const [_type, promptPartUtil] of promptPartUtils) {
 		const part = await promptPartUtil.getPart(promptOptions)
-
-		// If the util has a transformPromptPart method, use it; otherwise, just assign the promptPart
+		// If the util has a transformPromptPart method, use it; otherwise, assign the promptPart
 		const maybeTransformedPart =
 			typeof promptPartUtil.transformPromptPart === 'function'
 				? promptPartUtil.transformPromptPart(part, transform)
 				: part
 
 		if (maybeTransformedPart) {
-			Object.assign(prompt, maybeTransformedPart)
+			;(prompt.parts as any)[_type] = maybeTransformedPart
 		}
 	}
 

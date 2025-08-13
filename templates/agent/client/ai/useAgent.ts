@@ -1,5 +1,5 @@
 import { useCallback, useMemo } from 'react'
-import { Editor, structuredClone } from 'tldraw'
+import { Editor } from 'tldraw'
 import { DEFAULT_MODEL_NAME } from '../../worker/models'
 import { IAgentEvent } from '../../worker/prompt/AgentEvent'
 import { AgentEventUtil, AgentEventUtilConstructor } from '../events/AgentEventUtil'
@@ -7,7 +7,6 @@ import { UnknownEventUtil } from '../events/UnknownEventUtil'
 import { PromptPartUtil, PromptPartUtilConstructor } from '../promptParts/PromptPartUitl'
 import { TLAgentPromptOptions } from '../types/TLAgentPrompt'
 import { promptAgent } from './promptAgent'
-import { getWholePageContent } from './promptConstruction/getWholePageContent'
 
 export interface TLAgent {
 	prompt(options: Partial<TLAgentPromptOptions>): { promise: Promise<void>; cancel(): void }
@@ -71,7 +70,7 @@ export function useAgent({
 		(type: string) => {
 			const promptPartUtil = promptPartsUtilsMap.get(type as PromptPartUtilConstructor['type'])
 			if (!promptPartUtil) {
-				//these are defined by the developer and so shouldn't ever result in an unknown type
+				//these are defined by the developer and so shouldn't result in an unknown type
 				throw new Error(`Prompt part util not found for type: ${type}`)
 			}
 			return promptPartUtil
@@ -82,32 +81,62 @@ export function useAgent({
 	const prompt = useCallback(
 		(options: Partial<TLAgentPromptOptions>) => {
 			const {
-				message = '',
-				contextBounds = editor.getViewportPageBounds(),
-				promptBounds = editor.getViewportPageBounds(),
+				editor: editorFromOptions = editor,
+
 				modelName = DEFAULT_MODEL_NAME,
-				historyItems = [],
-				contextItems = [],
-				currentPageContent = getWholePageContent({ editor }),
-				currentUserViewportBounds = editor.getViewportPageBounds(),
-				userSelectedShapeIds = editor.getSelectedShapeIds().map((v) => structuredClone(v)) ?? [],
-				type = 'user',
+
+				request = {
+					type: 'user',
+					message: '',
+					bounds: editor.getViewportPageBounds(), // { x: Nan, y: Nan, w: Nan, h: Nan } ?? idk
+					contextItems: [],
+				},
+				// 	message = '',
+				// 	contextBounds = editor.getViewportPageBounds(),
+				// 	promptBounds = editor.getViewportPageBounds(),
+
+				// historyItems = [],
+				// contextItems = [],
+				// currentPageContent = getWholePageContent({ editor }),
+				// currentUserViewportBounds = editor.getViewportPageBounds(),
+				// userSelectedShapeIds = editor.getSelectedShapeIds().map((v) => structuredClone(v)) ?? [],
+				// type = 'user',
 			} = options
 
+			// const {
+			// 	type,
+			// 	message,
+			// 	contextBounds,
+			// 	promptBounds,
+			// 	contextItems,
+			// } = request ?? {
+			// 	type: 'user',
+			// 	message: '',
+			// 	contextBounds: null,
+			// 	promptBounds: null,
+			// 	contextItems: [],
+			// }
+
 			return promptAgent({
-				editor: options.editor ?? editor,
+				editor: editorFromOptions,
 				eventUtils: eventUtilsMap,
 				promptPartUtils: promptPartsUtilsMap,
-				message,
-				contextBounds,
-				promptBounds,
+
 				modelName,
-				historyItems,
-				contextItems,
-				currentPageContent,
-				currentUserViewportBounds,
-				userSelectedShapeIds,
-				type,
+
+				request,
+
+				// bye bye
+				// message,
+				// contextBounds,
+				// promptBounds,
+
+				// historyItems,
+				// contextItems,
+				// currentPageContent,
+				// currentUserViewportBounds,
+				// userSelectedShapeIds,
+				// type,
 			})
 		},
 		[editor, eventUtilsMap, promptPartsUtilsMap]

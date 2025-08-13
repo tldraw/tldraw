@@ -24,6 +24,7 @@ import { AgentViewportShapesPartUtil } from '../promptParts/AgentViewportShapesP
 import { ContextBoundsPartUtil } from '../promptParts/ContextBoundsPartUtil'
 import { ContextItemsPartUtil } from '../promptParts/ContextItemsPartUtil'
 import { CurrentUserViewportBoundsPartUtil } from '../promptParts/CurrentUserViewportBoundsPartUtil'
+import { HistoryItemPartUtil } from '../promptParts/HistoryItemPartUtil'
 import { MessagePartUtil } from '../promptParts/MessagePartUtil'
 import { PeripheralContentPartUtil } from '../promptParts/PeripheralContentPartUtil'
 import { PromptBoundsPartUtil } from '../promptParts/PromptBoundsPartUtil'
@@ -57,6 +58,7 @@ export function ChatPanel({ editor }: { editor: Editor }) {
 			ContextBoundsPartUtil,
 			ContextItemsPartUtil,
 			CurrentUserViewportBoundsPartUtil,
+			HistoryItemPartUtil,
 			MessagePartUtil,
 			PeripheralContentPartUtil,
 			PromptBoundsPartUtil,
