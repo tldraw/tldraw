@@ -16,6 +16,7 @@ import {
 	sortByIndex,
 	toRichText,
 } from '@tldraw/editor'
+import { beforeEach, describe, expect, it } from 'vitest'
 import { getArrowBindings } from '../lib/shapes/arrow/shared'
 import { TestEditor } from './TestEditor'
 import { TL } from './test-jsx'
@@ -1070,7 +1071,7 @@ describe('the select tool', () => {
 		// that we're doing hit testing manually—we'll catch that it was inside a shape
 
 		// editor.keyUp('Shift')
-		// jest.advanceTimersByTime(200)
+		// vi.advanceTimersByTime(200)
 
 		// expect(editor.selectedShapeIds.includes(ids.boxA)).toBe(false)
 		// expect(editor.selectedShapeIds.includes(ids.boxB)).toBe(true)

@@ -1,9 +1,10 @@
 import { DefaultTextAlignStyle, TLTextShape, toRichText } from '@tldraw/editor'
+import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 import { TestEditor } from '../../../test/TestEditor'
 import { TextShapeTool } from './TextShapeTool'
 
 let editor: TestEditor
-jest.useFakeTimers()
+vi.useFakeTimers()
 
 beforeEach(() => {
 	editor = new TestEditor()
@@ -115,7 +116,7 @@ describe('When in the pointing state', () => {
 
 		// Go back to start and wait a little to satisfy the time requirement
 		editor.pointerMove(0, 0)
-		jest.advanceTimersByTime(200)
+		vi.advanceTimersByTime(200)
 
 		// y axis doesn't matter
 		editor.pointerMove(0, 100)
@@ -187,7 +188,7 @@ describe('When resizing', () => {
 	it('bails on escape while resizing and returns to text.idle', () => {
 		editor.setCurrentTool('text')
 		editor.pointerDown(0, 0)
-		jest.advanceTimersByTime(200)
+		vi.advanceTimersByTime(200)
 		editor.pointerMove(100, 100)
 		editor.expectToBeIn('select.resizing')
 		editor.cancel()
@@ -198,7 +199,7 @@ describe('When resizing', () => {
 	it('does not bails on interrupt while resizing', () => {
 		editor.setCurrentTool('text')
 		editor.pointerDown(0, 0)
-		jest.advanceTimersByTime(200)
+		vi.advanceTimersByTime(200)
 		editor.pointerMove(100, 100)
 		editor.expectToBeIn('select.resizing')
 		editor.interrupt()
@@ -210,7 +211,7 @@ describe('When resizing', () => {
 		const x = 0
 		const y = 0
 		editor.pointerDown(x, y)
-		jest.advanceTimersByTime(200)
+		vi.advanceTimersByTime(200)
 		editor.pointerMove(x + 100, y + 100)
 		expect(editor.getCurrentPageShapes()[0]).toMatchObject({
 			x,

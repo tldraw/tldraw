@@ -12,6 +12,7 @@ import {
 	noop,
 } from '@tldraw/editor'
 import { StrictMode } from 'react'
+import { describe, expect, it, vi } from 'vitest'
 import { defaultShapeUtils } from '../lib/defaultShapeUtils'
 import { defaultTools } from '../lib/defaultTools'
 import { GeoShapeUtil } from '../lib/shapes/geo/GeoShapeUtil'
@@ -89,7 +90,7 @@ describe('<TldrawEditor />', () => {
 	})
 
 	it('throws if the store has different shapes to the ones passed in', async () => {
-		const spy = jest.spyOn(console, 'error').mockImplementation(noop)
+		const spy = vi.spyOn(console, 'error').mockImplementation(noop)
 		// expect(() =>
 		// 	render(
 		// 		<TldrawEditor
@@ -129,7 +130,7 @@ describe('<TldrawEditor />', () => {
 
 	it('Accepts fresh versions of store and calls `onMount` for each one', async () => {
 		const initialStore = createTLStore({ shapeUtils: [], bindingUtils: [] })
-		const onMount = jest.fn()
+		const onMount = vi.fn()
 		const rendered = await renderTldrawComponent(
 			<TldrawEditor
 				initialState="select"
@@ -139,8 +140,8 @@ describe('<TldrawEditor />', () => {
 			/>,
 			{ waitForPatterns: false }
 		)
-		const initialEditor = onMount.mock.lastCall[0]
-		jest.spyOn(initialEditor, 'dispose')
+		const initialEditor = onMount.mock.lastCall![0]
+		vi.spyOn(initialEditor, 'dispose')
 		expect(initialEditor.store).toBe(initialStore)
 		// re-render with the same store:
 		rendered.rerender(
@@ -161,7 +162,7 @@ describe('<TldrawEditor />', () => {
 		await rendered.findAllByTestId('canvas')
 		expect(initialEditor.dispose).toHaveBeenCalledTimes(1)
 		expect(onMount).toHaveBeenCalledTimes(2)
-		expect(onMount.mock.lastCall[0].store).toBe(newStore)
+		expect(onMount.mock.lastCall![0].store).toBe(newStore)
 	})
 
 	it('Renders the canvas and shapes', async () => {
@@ -227,7 +228,7 @@ describe('<TldrawEditor />', () => {
 
 	it('renders correctly in strict mode', async () => {
 		const editorInstances = new Set<Editor>()
-		const onMount = jest.fn((editor: Editor) => {
+		const onMount = vi.fn((editor: Editor) => {
 			editorInstances.add(editor)
 		})
 		await renderTldrawComponent(
@@ -245,7 +246,7 @@ describe('<TldrawEditor />', () => {
 
 	it('allows updating camera options without re-creating the editor', async () => {
 		const editors: Editor[] = []
-		const onMount = jest.fn((editor: Editor) => {
+		const onMount = vi.fn((editor: Editor) => {
 			if (!editors.includes(editor)) editors.push(editor)
 		})
 
@@ -361,7 +362,7 @@ describe('<TldrawEditor />', () => {
 	})
 
 	it('passes through the `assets` prop when creating its own in-memory store', async () => {
-		const myUploadFn = jest.fn()
+		const myUploadFn = vi.fn()
 		const assetStore: TLAssetStore = { upload: myUploadFn }
 
 		const { editor } = await renderTldrawComponentWithEditor(
@@ -375,7 +376,7 @@ describe('<TldrawEditor />', () => {
 	})
 
 	it('passes through the `assets` prop when using `persistenceKey`', async () => {
-		const myUploadFn = jest.fn()
+		const myUploadFn = vi.fn()
 		const assetStore: TLAssetStore = { upload: myUploadFn }
 
 		const { editor } = await renderTldrawComponentWithEditor(
@@ -394,7 +395,7 @@ describe('<TldrawEditor />', () => {
 	})
 
 	it('will not re-create the editor if re-rendered with identical options', async () => {
-		const onMount = jest.fn()
+		const onMount = vi.fn()
 
 		const renderer = await renderTldrawComponent(
 			<TldrawEditor onMount={onMount} options={{ maxPages: 1 }} />,

@@ -1,4 +1,5 @@
 import { createShapeId, TLArrowShape } from '@tldraw/editor'
+import { beforeEach, describe, expect, it, vi } from 'vitest'
 import { getArrowBindings } from '../../lib/shapes/arrow/shared'
 import { TestEditor } from '../TestEditor'
 
@@ -27,13 +28,13 @@ const doMockClipboard = () => {
 
 	Object.assign(window.navigator, {
 		clipboard: {
-			write: jest.fn((content: any) => {
+			write: vi.fn((content: any) => {
 				context.current = content
 			}),
 		},
 	})
 
-	globalThis.ClipboardItem = jest.fn((payload: any) => payload) as any
+	globalThis.ClipboardItem = vi.fn((payload: any) => payload) as any
 
 	return context
 }

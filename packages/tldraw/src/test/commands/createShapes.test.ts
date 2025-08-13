@@ -1,4 +1,5 @@
 import { DefaultColorStyle, TLArrowShape, TLGeoShape, createShapeId } from '@tldraw/editor'
+import { beforeEach, expect, it, vi } from 'vitest'
 import { TestEditor } from '../TestEditor'
 
 let editor: TestEditor
@@ -126,7 +127,7 @@ it('Throws out all shapes if any shape is invalid', () => {
 
 	expect(editor.getCurrentPageShapeIds().size).toBe(n + 1)
 
-	console.error = jest.fn()
+	console.error = vi.fn()
 
 	// But these will need to be thrown out
 	expect(() => {

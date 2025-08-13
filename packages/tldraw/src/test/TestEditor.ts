@@ -34,6 +34,7 @@ import {
 	rotateSelectionHandle,
 	tlenv,
 } from '@tldraw/editor'
+import { vi } from 'vitest'
 import { defaultBindingUtils } from '../lib/defaultBindingUtils'
 import { defaultShapeTools } from '../lib/defaultShapeTools'
 import { defaultShapeUtils } from '../lib/defaultShapeUtils'
@@ -42,7 +43,7 @@ import { defaultTools } from '../lib/defaultTools'
 import { defaultAddFontsFromNode, tipTapDefaultExtensions } from '../lib/utils/text/richText'
 import { shapesFromJsx } from './test-jsx'
 
-jest.useFakeTimers()
+vi.useFakeTimers()
 
 Object.assign(navigator, {
 	clipboard: {
@@ -82,8 +83,8 @@ export class TestEditor extends Editor {
 			right: 1080,
 		}
 		// make the app full screen for the sake of the insets property
-		jest.spyOn(document.body, 'scrollWidth', 'get').mockImplementation(() => bounds.width)
-		jest.spyOn(document.body, 'scrollHeight', 'get').mockImplementation(() => bounds.height)
+		vi.spyOn(document.body, 'scrollWidth', 'get').mockImplementation(() => bounds.width)
+		vi.spyOn(document.body, 'scrollHeight', 'get').mockImplementation(() => bounds.height)
 
 		elm.tabIndex = 0
 		elm.getBoundingClientRect = () => bounds as DOMRect

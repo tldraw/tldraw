@@ -1,4 +1,5 @@
 import { createShapeId } from '@tldraw/editor'
+import { beforeEach, describe, expect, it, vi } from 'vitest'
 import { TestEditor } from './TestEditor'
 
 let editor: TestEditor
@@ -54,7 +55,7 @@ describe('Shape navigation', () => {
 		])
 
 		// Mock canTabTo to return false for the second shape
-		jest.spyOn(editor.getShapeUtil('geo'), 'canTabTo').mockImplementation((shape) => {
+		vi.spyOn(editor.getShapeUtil('geo'), 'canTabTo').mockImplementation((shape) => {
 			return shape.id !== ids.box2
 		})
 
@@ -100,7 +101,7 @@ describe('Shape navigation', () => {
 		editor.select(ids.box1)
 
 		// Spy on zoomToSelectionIfOffscreen method
-		const zoomSpy = jest.spyOn(editor, 'zoomToSelectionIfOffscreen')
+		const zoomSpy = vi.spyOn(editor, 'zoomToSelectionIfOffscreen')
 
 		// Navigate to next shape (offscreen)
 		editor.selectAdjacentShape('next')
@@ -119,7 +120,7 @@ describe('Shape navigation', () => {
 		])
 
 		// Mock a culled shape (not rendered)
-		jest.spyOn(editor, 'getShapePageBounds').mockImplementation((shape: any) => {
+		vi.spyOn(editor, 'getShapePageBounds').mockImplementation((shape: any) => {
 			// Return normal bounds for box1, null for box2 as if it's culled/not rendered
 			if (shape?.id === ids.box2) {
 				// Still return bounds, but pretend it was calculated even though shape is culled
@@ -150,7 +151,7 @@ describe('Shape navigation', () => {
 			])
 
 			// Setup shape centers for the test
-			jest.spyOn(editor, 'getShapePageBounds').mockImplementation((shape: any) => {
+			vi.spyOn(editor, 'getShapePageBounds').mockImplementation((shape: any) => {
 				if (shape?.id === ids.boxA) {
 					return { center: { x: 10, y: 110 } } as any
 				}
@@ -182,7 +183,7 @@ describe('Shape navigation', () => {
 			])
 
 			// Setup shape centers for the test
-			jest.spyOn(editor, 'getShapePageBounds').mockImplementation((shape: any) => {
+			vi.spyOn(editor, 'getShapePageBounds').mockImplementation((shape: any) => {
 				if (shape?.id === ids.center) {
 					return { center: { x: 100, y: 100 } } as any
 				}
@@ -219,7 +220,7 @@ describe('Shape navigation', () => {
 			])
 
 			// Setup shape centers
-			jest.spyOn(editor, 'getShapePageBounds').mockImplementation((shape: any) => {
+			vi.spyOn(editor, 'getShapePageBounds').mockImplementation((shape: any) => {
 				if (shape?.id === ids.center) return { center: { x: 200, y: 200 } } as any
 				if (shape?.id === ids.right) return { center: { x: 300, y: 200 } } as any
 				if (shape?.id === ids.left) return { center: { x: 100, y: 200 } } as any
@@ -258,7 +259,7 @@ describe('Shape navigation', () => {
 			])
 
 			// Setup shape centers
-			jest.spyOn(editor, 'getShapePageBounds').mockImplementation((shape: any) => {
+			vi.spyOn(editor, 'getShapePageBounds').mockImplementation((shape: any) => {
 				if (shape?.id === ids.center) return { center: { x: 200, y: 200 } } as any
 				if (shape?.id === ids.nearRight) return { center: { x: 250, y: 200 } } as any
 				if (shape?.id === ids.farRight) return { center: { x: 350, y: 200 } } as any
@@ -284,7 +285,7 @@ describe('Shape navigation', () => {
 			])
 
 			// Setup shape centers
-			jest.spyOn(editor, 'getShapePageBounds').mockImplementation((shape: any) => {
+			vi.spyOn(editor, 'getShapePageBounds').mockImplementation((shape: any) => {
 				if (shape?.id === ids.box1) return { center: { x: 50, y: 50 } } as any
 				if (shape?.id === ids.box2) return { center: { x: 150, y: 50 } } as any
 				if (shape?.id === ids.box3) return { center: { x: 150, y: 150 } } as any
@@ -485,7 +486,7 @@ describe('Shape navigation', () => {
 			])
 
 			// Setup shape centers for consistent testing
-			jest.spyOn(editor, 'getShapePageBounds').mockImplementation((shape: any) => {
+			vi.spyOn(editor, 'getShapePageBounds').mockImplementation((shape: any) => {
 				const positions = {
 					[ids.box1]: { x: 25, y: 115 },
 					[ids.box2]: { x: 65, y: 115 },
@@ -612,7 +613,7 @@ describe('Shape navigation', () => {
 			])
 
 			// Setup shape centers for consistent testing
-			jest.spyOn(editor, 'getShapePageBounds').mockImplementation((shape: any) => {
+			vi.spyOn(editor, 'getShapePageBounds').mockImplementation((shape: any) => {
 				const positions = {
 					[ids.box1]: { x: 115, y: 25 },
 					[ids.box2]: { x: 115, y: 65 },
@@ -1006,7 +1007,7 @@ describe('Shape navigation', () => {
 			])
 
 			// Setup shape centers
-			jest.spyOn(editor, 'getShapePageBounds').mockImplementation((shape: any) => {
+			vi.spyOn(editor, 'getShapePageBounds').mockImplementation((shape: any) => {
 				if (shape?.id === ids.row1Shape1) return { center: { x: 50, y: 50 } } as any
 				if (shape?.id === ids.row1Shape2) return { center: { x: 150, y: 50 } } as any
 				if (shape?.id === ids.row1Shape3) return { center: { x: 250, y: 50 } } as any

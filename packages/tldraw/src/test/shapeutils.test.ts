@@ -1,4 +1,5 @@
 import { createShapeId, TLFrameShape, TLGeoShape, TLLineShape } from '@tldraw/editor'
+import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 import { TestEditor } from './TestEditor'
 
 let editor: TestEditor
@@ -155,7 +156,7 @@ describe('When interacting with a shape...', () => {
 	it('fires double click handler event', () => {
 		const util = editor.getShapeUtil<TLGeoShape>('geo')
 
-		const fnStart = jest.fn()
+		const fnStart = vi.fn()
 		util.onDoubleClick = fnStart
 
 		editor.doubleClick(50, 50, ids.box2)
@@ -353,7 +354,7 @@ describe('When interacting with a shape...', () => {
 	it('Uses the shape utils onClick handler', () => {
 		const util = editor.getShapeUtil<TLFrameShape>('frame')
 
-		const fnClick = jest.fn()
+		const fnClick = vi.fn()
 		util.onClick = fnClick
 
 		editor.pointerDown(50, 50, ids.frame1)
@@ -367,7 +368,7 @@ describe('When interacting with a shape...', () => {
 	it('Uses the shape utils onClick handler', () => {
 		const util = editor.getShapeUtil<TLFrameShape>('frame')
 
-		const fnClick = jest.fn((shape: any) => {
+		const fnClick = vi.fn((shape: any) => {
 			return {
 				...shape,
 				x: 100,

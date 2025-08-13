@@ -7,6 +7,7 @@ import {
 	createShapeId,
 	toRichText,
 } from '@tldraw/editor'
+import { beforeEach, describe, expect, it, vi } from 'vitest'
 import { TestEditor } from './TestEditor'
 
 let editor: TestEditor
@@ -18,7 +19,7 @@ const ids = {
 	arrow1: createShapeId('arrow1'),
 }
 
-jest.useFakeTimers()
+vi.useFakeTimers()
 
 beforeEach(() => {
 	editor = new TestEditor()
@@ -160,7 +161,7 @@ describe('TLSelectTool.Translating', () => {
 		// There's a timer here! We shouldn't end the clone until the timer is done
 		expect(editor.getCurrentPageShapes().length).toBe(2)
 
-		jest.advanceTimersByTime(250) // tick tock
+		vi.advanceTimersByTime(250) // tick tock
 
 		// Timer is done! We should have ended the clone.
 		expect(editor.getCurrentPageShapes().length).toBe(1)
