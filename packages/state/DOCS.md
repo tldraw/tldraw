@@ -485,7 +485,7 @@ const stop = react(
 
 While @tldraw/state is fast by default, there are tools for fine-tuning performance in demanding situations.
 
-#### unsafe__withoutCapture()
+#### unsafe\_\_withoutCapture()
 
 As explained earlier, when a computed or reaction runs, it automatically captures any signals you `.get()` as dependencies. Sometimes, however, you need to read a signal's value _without_ creating this dependency. `unsafe__withoutCapture` lets you step out of the current capture phase to do exactly that.
 
