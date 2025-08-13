@@ -1,6 +1,6 @@
 import { ModelMessage, UserContent } from 'ai'
-import { PROMPT_PART_UTILS } from '../../client/promptParts'
 import { AgentMessage } from '../../client/promptParts/PromptPartUitl'
+import { PROMPT_PART_UTILS } from '../../client/promptParts/promptPartUtils'
 import { AgentPrompt } from '../../client/types/AgentPrompt'
 
 export function buildMessages(prompt: AgentPrompt): ModelMessage[] {
