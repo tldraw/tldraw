@@ -118,3 +118,4 @@ Use the reactive signals system from `packages/state`:
 - Define shape type in `tlschema`
 - Create `ShapeUtil` in appropriate package
 - Add to default shape utils if part of core SDK
+- you can run typescript for the whole project with `yarn typecheck` in the root
