@@ -3,6 +3,8 @@ import {
 	createShapeId,
 	Editor,
 	GeoShapeGeoStyle,
+	IndexKey,
+	TLLineShape,
 	TLPointerEventInfo,
 	TLShapeId,
 	toRichText,
@@ -153,7 +155,8 @@ export function ToolsProvider({ overrides, children }: TLUiToolsProviderProps) {
 				},
 				onDragStart(source: TLUiEventSource, info: TLPointerEventInfo) {
 					onDragFromToolbarToCreateShape(editor, info, {
-						createShape: (id) => editor.createShape({ id, type: 'geo', props: { geo } }),
+						createShape: (id) =>
+							editor.createShape({ id, type: 'geo', props: { w: 200, h: 200, geo } }),
 					})
 					trackEvent('drag-tool', { source, id: 'geo' })
 				},
@@ -187,6 +190,32 @@ export function ToolsProvider({ overrides, children }: TLUiToolsProviderProps) {
 				onSelect(source) {
 					editor.setCurrentTool('line')
 					onToolSelect(source, this)
+				},
+				onDragStart(source: TLUiEventSource, info: TLPointerEventInfo) {
+					onDragFromToolbarToCreateShape(editor, info, {
+						createShape: (id) =>
+							editor.createShape<TLLineShape>({
+								id,
+								type: 'line',
+								props: {
+									points: {
+										a1: {
+											id: 'a1',
+											index: 'a1' as IndexKey,
+											x: 0,
+											y: 200,
+										},
+										a240A: {
+											id: 'a2',
+											index: 'a2' as IndexKey,
+											x: 200,
+											y: 0,
+										},
+									},
+								},
+							}),
+					})
+					trackEvent('drag-tool', { source, id: 'arrow' })
 				},
 			},
 			{
@@ -365,5 +394,6 @@ export function onDragFromToolbarToCreateShape(
 			opts.onDragEnd?.(id)
 		},
 	})
+
 	editor.getCurrentTool().setCurrentToolIdMask(shape.type)
 }

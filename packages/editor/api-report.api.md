@@ -3403,6 +3403,8 @@ export interface TLEditorOptions {
     getShapeVisibility?(shape: TLShape, editor: Editor): 'hidden' | 'inherit' | 'visible' | null | undefined;
     inferDarkMode?: boolean;
     initialState?: string;
+    // (undocumented)
+    isFun?: boolean;
     // @deprecated
     isShapeHidden?(shape: TLShape, editor: Editor): boolean;
     // (undocumented)
