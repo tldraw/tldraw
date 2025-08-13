@@ -32,8 +32,8 @@
 	"files": [],
 	"scripts": {
 		"test-ci": "lazy inherit",
-		"test": "yarn run -T jest",
-		"test-coverage": "lazy inherit",
+		"test": "vitest run",
+		"test-coverage": "vitest run --coverage",
 		"build": "yarn run -T tsx ../../internal/scripts/build-package.ts",
 		"build-api": "yarn run -T tsx ../../internal/scripts/build-api.ts",
 		"prepack": "yarn run -T tsx ../../internal/scripts/prepack.ts",
@@ -44,16 +44,10 @@
 	"dependencies": {
 		"@tldraw/utils": "workspace:*"
 	},
-	"jest": {
-		"preset": "../../internal/config/jest/node/jest-preset.js",
-		"setupFiles": [
-			"raf/polyfill"
-		],
-		"moduleNameMapper": {
-			"^~(.*)": "<rootDir>/src/$1"
-		}
-	},
 	"devDependencies": {
-		"lazyrepo": "0.0.0-alpha.27"
+		"@vitest/coverage-v8": "^2.1.8",
+		"jsdom": "^25.0.1",
+		"lazyrepo": "0.0.0-alpha.27",
+		"vitest": "^2.1.8"
 	}
 }

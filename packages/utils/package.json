@@ -32,23 +32,14 @@
 	"files": [],
 	"scripts": {
 		"test-ci": "lazy inherit",
-		"test": "yarn run -T jest",
-		"test-coverage": "lazy inherit",
+		"test": "vitest run",
+		"test-coverage": "vitest run --coverage",
 		"build": "yarn run -T tsx ../../internal/scripts/build-package.ts",
 		"build-api": "yarn run -T tsx ../../internal/scripts/build-api.ts",
 		"prepack": "yarn run -T tsx ../../internal/scripts/prepack.ts",
 		"postpack": "../../internal/scripts/postpack.sh",
 		"pack-tarball": "yarn pack",
 		"lint": "yarn run -T tsx ../../internal/scripts/lint.ts"
-	},
-	"jest": {
-		"preset": "../../internal/config/jest/node/jest-preset.js",
-		"setupFiles": [
-			"raf/polyfill"
-		],
-		"moduleNameMapper": {
-			"^~(.*)": "<rootDir>/src/$1"
-		}
 	},
 	"dependencies": {
 		"fractional-indexing-jittered": "^1.0.0",
@@ -62,7 +53,9 @@
 		"@types/lodash.isequalwith": "^4.4.9",
 		"@types/lodash.throttle": "^4.1.9",
 		"@types/lodash.uniq": "^4.5.9",
-		"jest-environment-jsdom": "^29.7.0",
-		"lazyrepo": "0.0.0-alpha.27"
+		"@vitest/coverage-v8": "^2.1.8",
+		"jsdom": "^25.0.1",
+		"lazyrepo": "0.0.0-alpha.27",
+		"vitest": "^2.1.8"
 	}
 }
