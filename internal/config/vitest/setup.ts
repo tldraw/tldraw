@@ -13,3 +13,9 @@ if (typeof globalThis.cancelAnimationFrame === 'undefined') {
 		clearTimeout(id)
 	}
 }
+
+// Crypto polyfill (needed for ai package)
+if (typeof globalThis.crypto === 'undefined') {
+	const { Crypto } = require('@peculiar/webcrypto')
+	globalThis.crypto = new Crypto()
+}

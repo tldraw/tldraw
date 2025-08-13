@@ -9,5 +9,6 @@ export default defineWorkspace([
 	'packages/state/vitest.config.ts',
 	'packages/state-react/vitest.config.ts',
 	'packages/store/vitest.config.ts',
+	'packages/ai/vitest.config.ts',
 	// Add more packages here as they're migrated
 ])
