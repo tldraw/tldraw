@@ -244,7 +244,6 @@ export interface TLEditorOptions {
 	options?: Partial<TldrawOptions>
 	licenseKey?: string
 	fontAssetUrls?: { [key: string]: string | undefined }
-	isFun?: boolean
 	/**
 	 * A predicate that should return true if the given shape should be hidden.
 	 *
