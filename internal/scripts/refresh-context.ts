@@ -1,7 +1,7 @@
 #!/usr/bin/env tsx
 
 import { execSync } from 'child_process'
-import { existsSync, readFileSync, writeFileSync } from 'fs'
+import { existsSync } from 'fs'
 import { glob } from 'glob'
 import { basename, dirname, relative, resolve } from 'path'
 import { nicelog } from './lib/nicelog'
@@ -11,7 +11,6 @@ interface ContextReviewResult {
 	status: 'valid' | 'needs_update' | 'error' | 'updated'
 	issues: string[]
 	suggestions: string[]
-	updatedContent?: string
 }
 
 async function main() {
@@ -127,28 +126,22 @@ async function reviewContextFile(contextFile: string): Promise<ContextReviewResu
 	const packageDir = dirname(contextFile)
 	const packageName = basename(packageDir)
 
-	// Read the context file
-	let contextContent: string
-	try {
-		contextContent = readFileSync(contextFile, 'utf-8')
-	} catch (error) {
+	// Verify the context file exists
+	if (!existsSync(contextFile)) {
 		return {
 			file: contextFile,
 			status: 'error',
-			issues: [`Cannot read file: ${error}`],
+			issues: ['CONTEXT.md file does not exist'],
 			suggestions: [],
 		}
 	}
 
-	// Package.json is available but not needed for the current implementation
-
 	// First, check if updates are needed - focus only on critical accuracy issues
-	const reviewPrompt = `Review this CONTEXT.md file for "${packageName}" package for CRITICAL ACCURACY issues only. Respond only with JSON:
+	const reviewPrompt = `Our repository uses CONTEXT.md files to help language models and agents quickly understand the codebase. We periodically check these files to ensure that they are accurate, free of omissions, and comprehensive. 
+	
+This is the "${packageName}" package. The CONTEXT.md file helps language models understand the codebase.
 
-CONTEXT.md:
-\`\`\`
-${contextContent.length > 8000 ? contextContent.substring(0, 8000) + '...[truncated]' : contextContent}
-\`\`\`
+Please read the CONTEXT.md file in this directory and review it for CRITICAL ACCURACY issues only.
 
 ONLY flag issues if they are:
 1. **Factually incorrect code examples** that won't work
@@ -164,12 +157,14 @@ DO NOT flag:
 - Completeness of documentation (unless truly essential concepts are missing)
 - Truncated content at the end of files
 
-Return JSON with:
+Feel free to read other files in this directory (or others, if needed) to verify accuracy (package.json, source files, etc.)
+
+Respond only with JSON:
 - "status": "valid" | "needs_update" | "error"
 - "issues": string[] (only critical factual problems)  
 - "suggestions": string[] (only critical missing concepts)
 
-Be very conservative - only flag issues that would genuinely mislead a developer trying to understand or use this package.`
+Be very conservative - only flag issues that would genuinely mislead a developer or agent trying to understand or use this package, such as: missing key exports, outdated API references, or factually wrong architectural descriptions.`
 
 	try {
 		// Use Claude Code CLI to review the file
@@ -197,7 +192,7 @@ Be very conservative - only flag issues that would genuinely mislead a developer
 
 		// If needs update, generate the updated content
 		if (reviewResult.status === 'needs_update') {
-			const updatePrompt = `Fix ONLY the critical accuracy issues in this CONTEXT.md file for "${packageName}" package:
+			const updatePrompt = `Please read the CONTEXT.md file in this directory and fix ONLY the critical accuracy issues for the "${packageName}" package:
 
 Critical issues to fix:
 ${reviewResult.issues.map((issue: string) => `- ${issue}`).join('\n')}
@@ -205,10 +200,7 @@ ${reviewResult.issues.map((issue: string) => `- ${issue}`).join('\n')}
 Critical missing concepts to add:
 ${reviewResult.suggestions.map((suggestion: string) => `- ${suggestion}`).join('\n')}
 
-Current CONTEXT.md:
-\`\`\`markdown
-${contextContent}
-\`\`\`
+Feel free to read other files in this directory to verify correct information (package.json, source files, etc.)
 
 IMPORTANT: Make MINIMAL changes. Only fix factual errors, update outdated APIs, and add truly essential missing concepts. Do not:
 - Rewrite sections for style
@@ -220,25 +212,21 @@ IMPORTANT: Make MINIMAL changes. Only fix factual errors, update outdated APIs, 
 
 PRESERVE the original formatting, structure, and style exactly. Only change the specific factual errors mentioned in the issues.
 
-Provide the complete updated CONTEXT.md file with only the necessary critical fixes. Respond with only the updated markdown content, preserving all original formatting.`
+Please write the complete updated CONTEXT.md file with only the necessary critical fixes.`
 
 			try {
-				const updateResult = execSync('claude --print', {
+				execSync('claude', {
 					input: updatePrompt,
 					cwd: packageDir,
 					encoding: 'utf-8',
 					timeout: 600000, // 10 minute timeout for updates
 				})
 
-				// Write the updated content
-				writeFileSync(contextFile, updateResult.trim(), 'utf-8')
-
 				return {
 					file: contextFile,
 					status: 'updated' as const,
 					issues: reviewResult.issues || [],
 					suggestions: reviewResult.suggestions || [],
-					updatedContent: updateResult.trim(),
 				}
 			} catch (_updateError) {
 				// If update fails, fall back to needs_update status
