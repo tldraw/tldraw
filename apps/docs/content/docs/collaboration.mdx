@@ -81,21 +81,15 @@ To use tldraw sync in production, you will need to self-host the tldraw sync ser
 
 ## Using other collaboration backends
 
-While **tldraw sync** is our recommended and best-supported backend for tldraw, we designed the tldraw SDK to work with any data solution.
-
-Whichever backend you choose, adding collaboration to tldraw will involve synchronizing data, sharing user presence, and handling user assets.
-
-### Third-party backends
-
-If for some reason the tldraw sync backend does not fit your project's requirements, you can still use the tldraw SDK .
-
-For example, here are two implementations using [Liveblocks](https://liveblocks.io/multiplayer-editing): [Liveblocks + Storage](https://liveblocks.io/examples/tldraw-whiteboard) and [Liveblocks + Yjs](https://liveblocks.io/examples/tldraw-whiteboard/nextjs-tldraw-whiteboard-yjs).
+While [tldraw sync](/docs/sync) is our recommended and best-supported backend for tldraw, we designed the tldraw SDK to work with any data solution. For example, Liveblocks offers a [tldraw starter](https://liveblocks.io/examples/tldraw-whiteboard), and many product teams have plugged tldraw into their own real-time data solutions. 
 
 ### Manual setup
 
+Collaboration in tldraw involves synchronizing data, sharing user presence, and handling user assets.
+
 #### Synchronizing data
 
-For more information about how to synchronize the tldraw editor's store with other processes (i.e. how to get data out and put data in, including from remote sources) see the [Persistence](/docs/persistence) page.
+For more information about how to synchronize the tldraw editor's store with other processes—how to get data out and put data in, including from remote sources—see the [Persistence](/docs/persistence) page.
 
 #### User presence
 
