@@ -11,7 +11,7 @@ import { TLAgentPrompt } from '../../../client/types/TLAgentPrompt'
 import { getTLAgentModelDefinition, TLAgentModelName } from '../../models'
 import { IAgentEvent } from '../../prompt/AgentEvent'
 import { buildMessages } from '../../prompt/prompt'
-import { IModelResponse, ModelResponse } from '../../prompt/schema'
+import { ModelResponse } from '../../prompt/schema'
 import { SIMPLE_SYSTEM_PROMPT, SIMPLE_SYSTEM_PROMPT_WITH_SCHEMA } from '../../prompt/system-prompt'
 import { Environment } from '../../types'
 import { TldrawAgentService } from './TldrawAgentService'
@@ -51,6 +51,10 @@ async function* streamEventsVercel(
 	model: LanguageModel,
 	prompt: TLAgentPrompt
 ): AsyncGenerator<IAgentEvent & { complete: boolean }> {
+	if (typeof model === 'string') {
+		throw new Error('Model is a string, not a LanguageModel')
+	}
+
 	const geminiThinkingBudget = model.modelId === 'gemini-2.5-pro' ? 128 : 0
 
 	try {
@@ -64,7 +68,7 @@ async function* streamEventsVercel(
 				model,
 				system: SIMPLE_SYSTEM_PROMPT_WITH_SCHEMA,
 				messages,
-				maxTokens: 8192,
+				maxOutputTokens: 8192,
 				temperature: 0,
 				providerOptions: {
 					anthropic: {
@@ -117,11 +121,12 @@ async function* streamEventsVercel(
 				yield { ...maybeIncompleteEvent, complete: true }
 			}
 		} else {
-			const { partialObjectStream } = streamObject<IModelResponse>({
+			console.log(ModelResponse)
+			const { partialObjectStream } = streamObject<typeof ModelResponse>({
 				model,
 				system: SIMPLE_SYSTEM_PROMPT,
 				messages: buildMessages(prompt),
-				maxTokens: 8192,
+				maxOutputTokens: 8192,
 				temperature: 0,
 				schema: ModelResponse,
 				onError: (e) => {
