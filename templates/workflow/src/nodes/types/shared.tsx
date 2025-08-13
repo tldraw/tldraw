@@ -119,8 +119,8 @@ export function NodeInputRow({
 
 	const onSpinner = (delta: number) => {
 		const newValue = value + delta
-		setPendingValue(null)
 		onChange(newValue)
+		setPendingValue(String(newValue))
 		inputRef.current?.focus()
 	}
 
@@ -137,12 +137,10 @@ export function NodeInputRow({
 					disabled={valueFromPort != null}
 					value={valueFromPort ?? pendingValue ?? value}
 					onChange={(e) => {
-						if (Number.isNaN(e.currentTarget.valueAsNumber)) {
-							setPendingValue(e.currentTarget.value)
-						} else {
-							setPendingValue(null)
-							onChange(e.currentTarget.valueAsNumber)
-						}
+						setPendingValue(e.currentTarget.value)
+						const asNumber = Number(e.currentTarget.value.trim())
+						if (Number.isNaN(asNumber)) return
+						onChange(asNumber)
 					}}
 					onPointerDown={onPointerDown}
 					onBlur={() => {
