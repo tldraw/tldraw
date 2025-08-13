@@ -11,16 +11,16 @@ import { PromptPartUtilConstructor } from './PromptPartUitl'
 import { UserSelectedShapesPartUtil } from './UserSelectedShapesPartUtil'
 
 const promptPartUtils = [
-	MessagePartUtil,
-	ContextItemsPartUtil,
-	UserSelectedShapesPartUtil,
-	PromptBoundsPartUtil,
-	CurrentUserViewportBoundsPartUtil,
+	AgentViewportScreenshotPartUtil,
 	AgentViewportShapesPartUtil,
 	ContextBoundsPartUtil,
-	AgentViewportScreenshotPartUtil,
+	ContextItemsPartUtil,
+	CurrentUserViewportBoundsPartUtil,
 	HistoryItemPartUtil,
+	MessagePartUtil,
 	PeripheralContentPartUtil,
+	PromptBoundsPartUtil,
+	UserSelectedShapesPartUtil,
 ] as const
 
 export const PROMPT_PART_UTILS: Record<string, PromptPartUtilConstructor> = Object.fromEntries(
