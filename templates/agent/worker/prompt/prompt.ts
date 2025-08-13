@@ -1,13 +1,13 @@
-import { CoreMessage, UserContent } from 'ai'
+import { ModelMessage, UserContent } from 'ai'
 import { PROMPT_PART_UTILS } from '../../client/promptParts'
-import { TLMessage } from '../../client/promptParts/PromptPartUitl'
-import { TLAgentPrompt } from '../../client/types/TLAgentPrompt'
+import { AgentMessage } from '../../client/promptParts/PromptPartUitl'
+import { AgentPrompt } from '../../client/types/AgentPrompt'
 
-export function buildMessages(prompt: TLAgentPrompt): CoreMessage[] {
+export function buildMessages(prompt: AgentPrompt): ModelMessage[] {
 	const { parts } = prompt
 	const promptPartTypes = Object.keys(parts)
 
-	const allTLMessages: TLMessage[] = []
+	const allTLMessages: AgentMessage[] = []
 
 	for (const partType of promptPartTypes) {
 		const utilClass = PROMPT_PART_UTILS[partType as keyof typeof PROMPT_PART_UTILS]
@@ -31,7 +31,7 @@ export function buildMessages(prompt: TLAgentPrompt): CoreMessage[] {
 /**
  * Convert TLMessage[] to CoreMessage[] for the AI SDK
  */
-function constructCoreMessages(tlMessages: TLMessage[]): CoreMessage[] {
+function constructCoreMessages(tlMessages: AgentMessage[]): ModelMessage[] {
 	if (!tlMessages || tlMessages.length === 0) {
 		return []
 	}
@@ -56,7 +56,7 @@ function constructCoreMessages(tlMessages: TLMessage[]): CoreMessage[] {
 		return {
 			role: tlMessage.role,
 			content,
-		} as CoreMessage
+		} as ModelMessage
 	})
 }
 

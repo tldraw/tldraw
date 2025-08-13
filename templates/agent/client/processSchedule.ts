@@ -1,6 +1,6 @@
 // import { useCallback } from 'react'
 import { Box, Editor } from 'tldraw'
-import { TLAgentModelName } from '../worker/models'
+import { AgentModelName } from '../worker/models'
 import { TLAgent } from './ai/useAgent'
 // import { $chatHistoryItems } from './atoms/chatHistoryItems'
 import { $pendingContextItems } from './atoms/contextItems'
@@ -14,7 +14,7 @@ export async function processSchedule({
 	rCancelFn,
 }: {
 	editor: Editor
-	modelName: TLAgentModelName
+	modelName: AgentModelName
 	agent: TLAgent
 	rCancelFn: React.MutableRefObject<(() => void) | null>
 }) {
@@ -26,36 +26,16 @@ export async function processSchedule({
 
 	// The next scheduled request
 	const request = eventSchedule[0]
-	// const intent = request.message
 
 	$pendingContextItems.set(request.contextItems)
 	const bounds = Box.From(request.bounds)
 
 	$contextBoundsHighlight.set(bounds)
 
-	/* request
-		type
-		message
-		contextBounds (bounds)
-		promptBounds (bounds)
-		contextItems
-	*/
 	try {
 		const { promise, cancel } = agent.prompt({
 			modelName,
 			request,
-
-			// bye bye
-			// message: intent, //request.message
-			// contextBounds: bounds, //request.bounds
-			// promptBounds: bounds, //request.bounds
-			// contextItems: request.contextItems, //request.contextItems
-			// type: request.type, //request.type
-
-			// historyItems: $chatHistoryItems.get(), //bye bye
-			// currentPageContent: getWholePageContent({ editor }), //bye bye
-			// currentUserViewportBounds: editor.getViewportPageBounds(), //bye bye
-			// userSelectedShapeIds: editor.getSelectedShapeIds().map((v) => structuredClone(v)) ?? [], //bye bye
 		})
 
 		rCancelFn.current = cancel

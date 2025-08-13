@@ -1,7 +1,7 @@
 import { DurableObject } from 'cloudflare:workers'
 import { AutoRouter, error } from 'itty-router'
+import { AgentPrompt } from '../../client/types/AgentPrompt'
 import { Streaming } from '../../client/types/Streaming'
-import { TLAgentPrompt } from '../../client/types/TLAgentPrompt'
 import { IAgentEvent } from '../prompt/AgentEvent'
 import { Environment } from '../types'
 import { TldrawAgentService } from './vercel/TldrawAgentService'
@@ -42,7 +42,7 @@ export class TldrawAiDurableObject extends DurableObject<Environment> {
 
 		;(async () => {
 			try {
-				const prompt = (await request.json()) as TLAgentPrompt
+				const prompt = (await request.json()) as AgentPrompt
 
 				for await (const change of this.service.stream(prompt)) {
 					response.changes.push(change)

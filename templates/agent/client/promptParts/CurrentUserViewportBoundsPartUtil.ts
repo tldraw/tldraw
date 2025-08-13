@@ -1,21 +1,21 @@
-import { TLAgentPrompt, TLAgentPromptOptions } from '../types/TLAgentPrompt'
+import { AgentPrompt, AgentPromptOptions } from '../types/AgentPrompt'
 import { PromptPartUtil } from './PromptPartUitl'
 
 export class CurrentUserViewportBoundsPartUtil extends PromptPartUtil {
 	static override type = 'currentUserViewportBounds' as const
 
-	static override getPriority(_prompt: TLAgentPrompt): number {
+	static override getPriority(_prompt: AgentPrompt): number {
 		return 75 // user viewport after context bounds (low priority)
 	}
 
-	override async getPart(options: TLAgentPromptOptions) {
+	override async getPart(options: AgentPromptOptions) {
 		const currentUserViewportBounds = options.editor.getViewportPageBounds()
 		if (!currentUserViewportBounds) return undefined
 		return currentUserViewportBounds
 	}
 
 	static override buildContent(
-		_prompt: TLAgentPrompt,
+		_prompt: AgentPrompt,
 		currentUserViewportBounds: any,
 		contextBounds?: any
 	): string[] {

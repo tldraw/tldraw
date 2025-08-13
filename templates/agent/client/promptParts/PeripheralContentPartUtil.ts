@@ -1,17 +1,17 @@
 import { Box } from 'tldraw'
 import { getWholePageContent } from '../ai/promptConstruction/getWholePageContent'
 import { convertShapeToPeripheralContent } from '../ai/promptConstruction/translateFromDrawishToModelish'
-import { TLAgentPrompt, TLAgentPromptOptions } from '../types/TLAgentPrompt'
+import { AgentPrompt, AgentPromptOptions } from '../types/AgentPrompt'
 import { PromptPartUtil } from './PromptPartUitl'
 
 export class PeripheralContentPartUtil extends PromptPartUtil {
 	static override type = 'peripheralContent' as const
 
-	static override getPriority(_prompt: TLAgentPrompt): number {
+	static override getPriority(_prompt: AgentPrompt): number {
 		return 65 // peripheral content after viewport shapes (low priority)
 	}
 
-	override async getPart(options: TLAgentPromptOptions) {
+	override async getPart(options: AgentPromptOptions) {
 		const currentPageContent = getWholePageContent({ editor: this.editor })
 		const contextBounds = options.request?.bounds
 		if (!contextBounds) return undefined
@@ -28,7 +28,7 @@ export class PeripheralContentPartUtil extends PromptPartUtil {
 		return shapes
 	}
 
-	static override buildContent(_prompt: TLAgentPrompt, peripheralContent: any[]): string[] {
+	static override buildContent(_prompt: AgentPrompt, peripheralContent: any[]): string[] {
 		if (!peripheralContent || peripheralContent.length === 0) {
 			return []
 		}

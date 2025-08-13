@@ -6,9 +6,9 @@ import {
 } from '@ai-sdk/google'
 import { createOpenAI, OpenAIProvider } from '@ai-sdk/openai'
 import { LanguageModel, streamObject, streamText } from 'ai'
+import { AgentPrompt } from '../../../client/types/AgentPrompt'
 import { Streaming } from '../../../client/types/Streaming'
-import { TLAgentPrompt } from '../../../client/types/TLAgentPrompt'
-import { getTLAgentModelDefinition, TLAgentModelName } from '../../models'
+import { AgentModelName, getTLAgentModelDefinition } from '../../models'
 import { IAgentEvent } from '../../prompt/AgentEvent'
 import { buildMessages } from '../../prompt/prompt'
 import { ModelResponse } from '../../prompt/schema'
@@ -28,13 +28,13 @@ export class VercelAiService extends TldrawAgentService {
 		this.google = createGoogleGenerativeAI({ apiKey: env.GOOGLE_API_KEY })
 	}
 
-	getModel(modelName: TLAgentModelName): LanguageModel {
+	getModel(modelName: AgentModelName): LanguageModel {
 		const modelDefinition = getTLAgentModelDefinition(modelName)
 		const provider = modelDefinition.provider
 		return this[provider](modelDefinition.id)
 	}
 
-	async *stream(prompt: TLAgentPrompt): AsyncGenerator<Streaming<IAgentEvent>> {
+	async *stream(prompt: AgentPrompt): AsyncGenerator<Streaming<IAgentEvent>> {
 		try {
 			const model = this.getModel(prompt.modelName)
 			for await (const event of streamEventsVercel(model, prompt)) {
@@ -49,7 +49,7 @@ export class VercelAiService extends TldrawAgentService {
 
 async function* streamEventsVercel(
 	model: LanguageModel,
-	prompt: TLAgentPrompt
+	prompt: AgentPrompt
 ): AsyncGenerator<IAgentEvent & { complete: boolean }> {
 	if (typeof model === 'string') {
 		throw new Error('Model is a string, not a LanguageModel')

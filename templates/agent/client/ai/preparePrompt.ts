@@ -1,5 +1,5 @@
 import { AgentTransform } from '../AgentTransform'
-import { TLAgentPrompt, TLAgentPromptOptions } from '../types/TLAgentPrompt'
+import { AgentPrompt, AgentPromptOptions } from '../types/AgentPrompt'
 
 /**
  * Get a full prompt based on the provided prompt options.
@@ -7,15 +7,15 @@ import { TLAgentPrompt, TLAgentPromptOptions } from '../types/TLAgentPrompt'
  * @returns The fully assembled prompt. (in worker-ish)
  */
 export async function preparePrompt(
-	promptOptions: TLAgentPromptOptions,
+	promptOptions: AgentPromptOptions,
 	transform: AgentTransform
-): Promise<TLAgentPrompt> {
+): Promise<AgentPrompt> {
 	const { modelName, request, promptPartUtils } = promptOptions
 
-	const prompt: Partial<TLAgentPrompt> = {
+	const prompt: Partial<AgentPrompt> = {
 		type: request.type,
 		modelName,
-		parts: {} as TLAgentPrompt['parts'],
+		parts: {} as AgentPrompt['parts'],
 	}
 
 	for (const [_type, promptPartUtil] of promptPartUtils) {
@@ -32,5 +32,5 @@ export async function preparePrompt(
 	}
 
 	console.log('PROMPT', prompt)
-	return prompt as TLAgentPrompt
+	return prompt as AgentPrompt
 }

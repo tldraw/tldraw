@@ -1,6 +1,6 @@
 import { FormEventHandler, useEffect, useState } from 'react'
 import { Editor, useReactor, useValue } from 'tldraw'
-import { AGENT_MODEL_DEFINITIONS, TLAgentModelName } from '../../worker/models'
+import { AGENT_MODEL_DEFINITIONS, AgentModelName } from '../../worker/models'
 import { $contextItems, addToContext, removeFromContext } from '../atoms/contextItems'
 import { $modelName } from '../atoms/modelName'
 import { ContextPreview } from './ContextPreview'
@@ -151,7 +151,7 @@ export function ChatInput({
 							</div>
 							<select
 								value={modelName}
-								onChange={(e) => $modelName.set(e.target.value as TLAgentModelName)}
+								onChange={(e) => $modelName.set(e.target.value as AgentModelName)}
 							>
 								{Object.values(AGENT_MODEL_DEFINITIONS).map((model) => (
 									<option key={model.name} value={model.name}>

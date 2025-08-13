@@ -1,7 +1,7 @@
 import { Editor, structuredClone } from 'tldraw'
-import { TLAgentContent } from '../../types/TLAgentPrompt'
+import { AgentContent } from '../../types/AgentPrompt'
 
-export function getWholePageContent({ editor }: { editor: Editor }): TLAgentContent {
+export function getWholePageContent({ editor }: { editor: Editor }): AgentContent {
 	const contentFromCurrentPage = editor.getContentFromCurrentPage(
 		editor.getCurrentPageShapesSorted()
 	)

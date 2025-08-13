@@ -1,18 +1,18 @@
 export const DEFAULT_MODEL_NAME = 'claude-4-sonnet'
 
-export type TLAgentModelName = keyof typeof AGENT_MODEL_DEFINITIONS
-export type TLAgentModelProvider = 'openai' | 'anthropic' | 'google'
+export type AgentModelName = keyof typeof AGENT_MODEL_DEFINITIONS
+export type AgentModelProvider = 'openai' | 'anthropic' | 'google'
 
-export interface TLAgentModelDefinition {
-	name: TLAgentModelName
+export interface AgentModelDefinition {
+	name: AgentModelName
 	id: string
-	provider: TLAgentModelProvider
+	provider: AgentModelProvider
 
 	// Overrides the default thinking behavior for that provider
 	thinking?: boolean
 }
 
-export function getTLAgentModelDefinition(modelName: TLAgentModelName): TLAgentModelDefinition {
+export function getTLAgentModelDefinition(modelName: AgentModelName): AgentModelDefinition {
 	const definition = AGENT_MODEL_DEFINITIONS[modelName]
 	if (!definition) {
 		throw new Error(`Model ${modelName} not found`)

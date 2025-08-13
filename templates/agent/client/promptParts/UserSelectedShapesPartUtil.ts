@@ -1,16 +1,16 @@
 import { structuredClone } from 'tldraw'
 import { convertShapeToSimpleShape } from '../ai/promptConstruction/translateFromDrawishToSimplish'
-import { TLAgentPrompt, TLAgentPromptOptions } from '../types/TLAgentPrompt'
+import { AgentPrompt, AgentPromptOptions } from '../types/AgentPrompt'
 import { PromptPartUtil } from './PromptPartUitl'
 
 export class UserSelectedShapesPartUtil extends PromptPartUtil {
 	static override type = 'userSelectedShapes' as const
 
-	static override getPriority(_prompt: TLAgentPrompt): number {
+	static override getPriority(_prompt: AgentPrompt): number {
 		return 55 // selected shapes after context items (low priority)
 	}
 
-	override async getPart(_options: TLAgentPromptOptions) {
+	override async getPart(_options: AgentPromptOptions) {
 		const userSelectedShapes = this.editor.getSelectedShapes().map((v) => structuredClone(v)) ?? []
 		if (!userSelectedShapes) return undefined
 
@@ -27,7 +27,7 @@ export class UserSelectedShapesPartUtil extends PromptPartUtil {
 		return shapes
 	}
 
-	static override buildContent(_prompt: TLAgentPrompt, userSelectedShapes: any[]): string[] {
+	static override buildContent(_prompt: AgentPrompt, userSelectedShapes: any[]): string[] {
 		if (!userSelectedShapes || userSelectedShapes.length === 0) {
 			return []
 		}

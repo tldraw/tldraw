@@ -1,20 +1,20 @@
-import { TLAgentPrompt, TLAgentPromptOptions } from '../types/TLAgentPrompt'
+import { AgentPrompt, AgentPromptOptions } from '../types/AgentPrompt'
 import { PromptPartUtil } from './PromptPartUitl'
 
 export class MessagePartUtil extends PromptPartUtil {
 	static override type = 'message' as const
 
-	static override getPriority(_prompt: TLAgentPrompt): number {
+	static override getPriority(_prompt: AgentPrompt): number {
 		return -Infinity // user message should be last (highest priority)
 	}
 
-	override async getPart(options: TLAgentPromptOptions) {
+	override async getPart(options: AgentPromptOptions) {
 		const message = options.request?.message
 		if (!message) return undefined
 		return message
 	}
 
-	static override buildContent(prompt: TLAgentPrompt, promptPart: string): string[] {
+	static override buildContent(prompt: AgentPrompt, promptPart: string): string[] {
 		const requestType = prompt.type
 
 		if (requestType === 'review') {

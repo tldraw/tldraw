@@ -1,6 +1,6 @@
 import { IAgentEvent } from '../../worker/prompt/AgentEvent'
+import { AgentPrompt } from '../types/AgentPrompt'
 import { Streaming } from '../types/Streaming'
-import { TLAgentPrompt } from '../types/TLAgentPrompt'
 
 /**
  * Stream a response from the model.
@@ -12,7 +12,7 @@ export async function* streamAgent({
 	prompt,
 	signal,
 }: {
-	prompt: TLAgentPrompt
+	prompt: AgentPrompt
 	signal: AbortSignal
 }): AsyncGenerator<Streaming<IAgentEvent>> {
 	const res = await fetch('/stream', {

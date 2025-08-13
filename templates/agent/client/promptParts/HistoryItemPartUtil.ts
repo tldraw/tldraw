@@ -1,17 +1,17 @@
 import { $chatHistoryItems } from '../atoms/chatHistoryItems'
 import { AgentHistoryItem } from '../components/chat-history/AgentHistoryItem'
-import { TLAgentPrompt, TLAgentPromptOptions } from '../types/TLAgentPrompt'
+import { AgentPrompt, AgentPromptOptions } from '../types/AgentPrompt'
 import { processContextItem } from './ContextItemsPartUtil'
-import { PromptPartUtil, TLMessage, TLMessageContent } from './PromptPartUitl'
+import { AgentMessage, AgentMessageContent, PromptPartUtil } from './PromptPartUitl'
 
 export class HistoryItemPartUtil extends PromptPartUtil {
 	static override type = 'historyItems' as const
 
-	static override getPriority(_prompt: TLAgentPrompt): number {
+	static override getPriority(_prompt: AgentPrompt): number {
 		return Infinity // history should appear early in the prompt (low priority)
 	}
 
-	override async getPart(options: Partial<TLAgentPromptOptions>) {
+	override async getPart(options: Partial<AgentPromptOptions>) {
 		const historyItems = $chatHistoryItems.get()
 		const processedHistoryItems = historyItems.map((item) => {
 			if (item.type === 'prompt') {
@@ -28,17 +28,17 @@ export class HistoryItemPartUtil extends PromptPartUtil {
 		return processedHistoryItems
 	}
 
-	static override buildContent(_prompt: TLAgentPrompt, _historyItems: any[]): string[] {
+	static override buildContent(_prompt: AgentPrompt, _historyItems: any[]): string[] {
 		// Default implementation - not used since we override buildMessages
 		return []
 	}
 
 	// Override buildMessages to return individual TLMessages for each history item
 	static override buildMessages(
-		prompt: TLAgentPrompt,
+		prompt: AgentPrompt,
 		historyItems: AgentHistoryItem[]
-	): TLMessage[] {
-		const messages: TLMessage[] = []
+	): AgentMessage[] {
+		const messages: AgentMessage[] = []
 		const priority = this.getPriority(prompt)
 
 		// If the last message is from the user, skip it
@@ -62,10 +62,10 @@ export class HistoryItemPartUtil extends PromptPartUtil {
 	private static buildHistoryItemMessage(
 		item: AgentHistoryItem,
 		priority: number
-	): TLMessage | null {
+	): AgentMessage | null {
 		switch (item.type) {
 			case 'prompt': {
-				const content: TLMessageContent[] = [{ type: 'text', text: item.message }]
+				const content: AgentMessageContent[] = [{ type: 'text', text: item.message }]
 				if (item.contextItems.length > 0) {
 					for (const contextItem of item.contextItems) {
 						switch (contextItem.type) {

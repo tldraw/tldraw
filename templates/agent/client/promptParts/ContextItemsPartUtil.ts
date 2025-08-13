@@ -1,6 +1,7 @@
 import { ISimpleShape } from '../../worker/simple/SimpleShape'
 import { convertShapeToSimpleShape } from '../ai/promptConstruction/translateFromDrawishToSimplish'
 import { AgentIconType } from '../components/icons/AgentIcon'
+import { AgentPrompt, AgentPromptOptions } from '../types/AgentPrompt'
 import {
 	AreaContextItem,
 	ContextItem,
@@ -8,17 +9,16 @@ import {
 	ShapeContextItem,
 	ShapesContextItem,
 } from '../types/ContextItem'
-import { TLAgentPrompt, TLAgentPromptOptions } from '../types/TLAgentPrompt'
 import { PromptPartUtil } from './PromptPartUitl'
 
 export class ContextItemsPartUtil extends PromptPartUtil {
 	static override type = 'contextItems' as const
 
-	static override getPriority(_prompt: TLAgentPrompt): number {
+	static override getPriority(_prompt: AgentPrompt): number {
 		return 60 // context items in middle (low priority)
 	}
 
-	override async getPart(options: TLAgentPromptOptions) {
+	override async getPart(options: AgentPromptOptions) {
 		const contextItems = options.request?.contextItems
 		if (!contextItems) return undefined
 
@@ -29,10 +29,7 @@ export class ContextItemsPartUtil extends PromptPartUtil {
 		return processedContextItems
 	}
 
-	static override buildContent(
-		_prompt: TLAgentPrompt,
-		contextItems: SimpleContextItem[]
-	): string[] {
+	static override buildContent(_prompt: AgentPrompt, contextItems: SimpleContextItem[]): string[] {
 		const messages: string[] = []
 
 		const shapeItems = contextItems.filter((item) => item.type === 'shape')

@@ -5,11 +5,11 @@ import { IAgentEvent } from '../../worker/prompt/AgentEvent'
 import { AgentEventUtil, AgentEventUtilConstructor } from '../events/AgentEventUtil'
 import { UnknownEventUtil } from '../events/UnknownEventUtil'
 import { PromptPartUtil, PromptPartUtilConstructor } from '../promptParts/PromptPartUitl'
-import { TLAgentPromptOptions } from '../types/TLAgentPrompt'
+import { AgentPromptOptions } from '../types/AgentPrompt'
 import { promptAgent } from './promptAgent'
 
 export interface TLAgent {
-	prompt(options: Partial<TLAgentPromptOptions>): { promise: Promise<void>; cancel(): void }
+	prompt(options: Partial<AgentPromptOptions>): { promise: Promise<void>; cancel(): void }
 	getEventUtil(type?: string): AgentEventUtil
 	getPromptPartUtil(type: string): PromptPartUtil
 }
@@ -79,7 +79,7 @@ export function useAgent({
 	)
 
 	const prompt = useCallback(
-		(options: Partial<TLAgentPromptOptions>) => {
+		(options: Partial<AgentPromptOptions>) => {
 			const {
 				editor: editorFromOptions = editor,
 

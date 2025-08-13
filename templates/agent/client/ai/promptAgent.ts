@@ -1,7 +1,7 @@
 import { structuredClone, uniqueId } from 'tldraw'
 import { AgentTransform } from '../AgentTransform'
 import { createOrUpdateHistoryItem } from '../atoms/chatHistoryItems'
-import { TLAgentPromptOptions } from '../types/TLAgentPrompt'
+import { AgentPromptOptions } from '../types/AgentPrompt'
 import { preparePrompt } from './preparePrompt'
 import { streamAgent } from './streamAgent'
 
@@ -11,7 +11,7 @@ import { streamAgent } from './streamAgent'
  *
  * @returns A promise that resolves when the prompt is complete.
  */
-export function promptAgent(promptOptions: TLAgentPromptOptions) {
+export function promptAgent(promptOptions: AgentPromptOptions) {
 	const { editor, eventUtils } = promptOptions
 	let cancelled = false
 	const controller = new AbortController()

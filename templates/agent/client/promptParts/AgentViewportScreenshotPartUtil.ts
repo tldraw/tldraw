@@ -1,15 +1,15 @@
 import { Box, FileHelpers, TLShape } from 'tldraw'
-import { TLAgentPrompt, TLAgentPromptOptions } from '../types/TLAgentPrompt'
+import { AgentPrompt, AgentPromptOptions } from '../types/AgentPrompt'
 import { PromptPartUtil } from './PromptPartUitl'
 
 export class AgentViewportScreenshotPartUtil extends PromptPartUtil {
 	static override type = 'agentViewportScreenshot' as const
 
-	static override getPriority(_prompt: TLAgentPrompt): number {
+	static override getPriority(_prompt: AgentPrompt): number {
 		return 40 // screenshot after text content (medium priority)
 	}
 
-	override async getPart(options: Partial<TLAgentPromptOptions>) {
+	override async getPart(options: Partial<AgentPromptOptions>) {
 		const contextBounds = options.request?.bounds
 
 		if (!contextBounds) return undefined
@@ -40,7 +40,7 @@ export class AgentViewportScreenshotPartUtil extends PromptPartUtil {
 		return await FileHelpers.blobToDataUrl(result.blob)
 	}
 
-	static override buildContent(_prompt: TLAgentPrompt, agentViewportScreenshot: string): string[] {
+	static override buildContent(_prompt: AgentPrompt, agentViewportScreenshot: string): string[] {
 		if (!agentViewportScreenshot) return ['']
 
 		return [

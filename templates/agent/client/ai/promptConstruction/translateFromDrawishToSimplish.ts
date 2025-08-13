@@ -10,7 +10,7 @@ import {
 } from 'tldraw'
 import { ISimpleShape } from '../../../worker/simple/SimpleShape'
 import { shapeFillToSimpleFill } from '../../../worker/simple/color'
-import { TLAgentContent } from '../../types/TLAgentPrompt'
+import { AgentContent } from '../../types/AgentPrompt'
 
 // Individual shape converter functions
 function convertTextShape(shape: TLTextShape): ISimpleShape {
@@ -146,7 +146,7 @@ export function convertShapeToSimpleShape(shape: TLShape, editor: Editor): ISimp
 }
 
 export function getSimpleContentFromCanvasContent(
-	content: TLAgentContent,
+	content: AgentContent,
 	editor: Editor
 ): {
 	shapes: ISimpleShape[]

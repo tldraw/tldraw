@@ -1,14 +1,14 @@
 import { Editor } from 'tldraw'
 import { AgentTransform } from '../AgentTransform'
-import { TLAgentPrompt, TLAgentPromptOptions } from '../types/TLAgentPrompt'
+import { AgentPrompt, AgentPromptOptions } from '../types/AgentPrompt'
 
-export interface TLMessage {
+export interface AgentMessage {
 	role: 'user' | 'assistant'
-	content: TLMessageContent[]
+	content: AgentMessageContent[]
 	priority: number // higher priority (lower numbers) appear later in the prompt
 }
 
-export interface TLMessageContent {
+export interface AgentMessageContent {
 	type: 'text' | 'image'
 	text?: string
 	image?: string
@@ -20,7 +20,7 @@ export abstract class PromptPartUtil {
 	constructor(public editor: Editor) {}
 
 	// Get priority for this prompt part util - must be implemented by subclasses
-	static getPriority(_prompt: TLAgentPrompt): number {
+	static getPriority(_prompt: AgentPrompt): number {
 		throw new Error('getPriority must be implemented by subclasses')
 	}
 
@@ -29,7 +29,7 @@ export abstract class PromptPartUtil {
 	 * This is where the actual prompt part logic goes.
 	 * Can be async for operations like taking screenshots.
 	 */
-	async getPart(_options: TLAgentPromptOptions): Promise<any> {
+	async getPart(_options: AgentPromptOptions): Promise<any> {
 		// TODO shouldnt be any?
 		return {}
 	}
@@ -44,18 +44,18 @@ export abstract class PromptPartUtil {
 	}
 
 	// Build content for this prompt part (strings and image data)
-	static buildContent(_prompt: TLAgentPrompt, _promptPart: any): string[] {
+	static buildContent(_prompt: AgentPrompt, _promptPart: any): string[] {
 		return []
 	}
 
 	// Build TLMessages for this prompt part (calls buildContent by default)
-	static buildMessages(prompt: TLAgentPrompt, promptPart: any): TLMessage[] {
+	static buildMessages(prompt: AgentPrompt, promptPart: any): AgentMessage[] {
 		const content = this.buildContent(prompt, promptPart)
 		if (!content || content.length === 0) {
 			return []
 		}
 
-		const messageContent: TLMessageContent[] = []
+		const messageContent: AgentMessageContent[] = []
 		for (const item of content) {
 			if (typeof item === 'string' && item.startsWith('data:image/')) {
 				messageContent.push({
@@ -77,7 +77,7 @@ export abstract class PromptPartUtil {
 export interface PromptPartUtilConstructor {
 	new (editor: Editor): PromptPartUtil
 	type: string
-	getPriority(prompt: TLAgentPrompt): number
-	buildContent(prompt: TLAgentPrompt, promptPart: any): string[]
-	buildMessages(prompt: TLAgentPrompt, promptPart: any): TLMessage[]
+	getPriority(prompt: AgentPrompt): number
+	buildContent(prompt: AgentPrompt, promptPart: any): string[]
+	buildMessages(prompt: AgentPrompt, promptPart: any): AgentMessage[]
 }
