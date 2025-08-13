@@ -19,7 +19,10 @@ export function TlaSidebarDragOverlay() {
 
 	return (
 		<DragOverlay dropAnimation={null}>
-			<div className={classNames(styles.sidebarFileListItem, styles.hoverable)}>
+			<div
+				data-dnd-kit-draggable-id={`${dragState.fileId}:${dragState.context}`}
+				className={classNames(styles.sidebarFileListItem, styles.hoverable)}
+			>
 				<div className={styles.sidebarFileListItemContent}>
 					<div
 						className={classNames(

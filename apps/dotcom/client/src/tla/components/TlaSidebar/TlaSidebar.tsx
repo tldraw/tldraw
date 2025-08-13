@@ -1,7 +1,14 @@
-import { DndContext, DragEndEvent, DragStartEvent, PointerSensor, useSensor } from '@dnd-kit/core'
+import {
+	DndContext,
+	DragEndEvent,
+	DragOverEvent,
+	DragStartEvent,
+	PointerSensor,
+	useSensor,
+} from '@dnd-kit/core'
 import { restrictToVerticalAxis } from '@dnd-kit/modifiers'
 import { memo, useCallback, useEffect, useRef } from 'react'
-import { preventDefault } from 'tldraw'
+import { Box, preventDefault } from 'tldraw'
 import { SidebarFileContext } from '../../app/TldrawApp'
 import { useApp } from '../../hooks/useAppState'
 import { useHasFlag } from '../../hooks/useHasFlag'
@@ -156,14 +163,73 @@ function NewSidebarLayout() {
 				return
 			}
 
+			// Find the drop zone that the drag started in
+			let originDropZoneId: string | undefined
+			const activeElement = event.activatorEvent.target as HTMLElement
+			if (activeElement) {
+				// Find the closest parent drop zone element
+				const dropZoneElement = activeElement.closest('[data-dnd-kit-droppable-id]')
+				if (dropZoneElement) {
+					originDropZoneId = dropZoneElement.getAttribute('data-dnd-kit-droppable-id') || undefined
+				}
+			}
+
 			app.sidebarState.update((state) => ({
 				...state,
 				dragState: {
 					fileId,
 					context: context as SidebarFileContext,
 					sourceGroupId,
+					originDropZoneId,
 				},
 			}))
+		},
+		[app]
+	)
+
+	const handleDragMove = useCallback(
+		(_event: DragOverEvent) => {
+			// We don't want to show the drop zone overlay on the originating drop zone until we've left it
+			// and come back.
+			// To achieve this we do our own collision detection here because amazingly dnd-kit's is not reliable
+			// or at least I couldn't figure out how to make it work without glitches where it would say it wasn't
+			// colliding with the origin drop zone but in fact it was.
+			const dragState = app.sidebarState.get().dragState
+			if (!dragState?.originDropZoneId) {
+				return
+			}
+			const dropZoneElement = document.querySelector(
+				`[data-dnd-kit-droppable-id="${dragState.originDropZoneId}"]`
+			)
+			const draggableElement = document.querySelector(
+				`[data-dnd-kit-draggable-id="${dragState.fileId}:${dragState.context}"]`
+			)
+			if (!dropZoneElement || !draggableElement) {
+				return
+			}
+			const dropZoneRect = dropZoneElement.getBoundingClientRect()
+			const draggableRect = draggableElement.getBoundingClientRect()
+			if (
+				!new Box(
+					dropZoneRect.left,
+					dropZoneRect.top,
+					dropZoneRect.width,
+					dropZoneRect.height
+				).collides(
+					new Box(draggableRect.left, draggableRect.top, draggableRect.width, draggableRect.height)
+				)
+			) {
+				// If we are no longer over the origin drop zone, clear it
+				app.sidebarState.update((state) => ({
+					...state,
+					dragState: state.dragState
+						? {
+								...state.dragState,
+								originDropZoneId: undefined,
+							}
+						: null,
+				}))
+			}
 		},
 		[app]
 	)
@@ -281,6 +347,7 @@ function NewSidebarLayout() {
 			onDragStart={handleDragStart}
 			onDragEnd={handleDragEnd}
 			onDragCancel={handleDragCancel}
+			onDragMove={handleDragMove}
 		>
 			<TlaSidebarRecentFilesNew />
 			<TlaSidebarDragOverlay />

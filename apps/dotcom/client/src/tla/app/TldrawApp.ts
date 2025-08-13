@@ -951,6 +951,7 @@ export class TldrawApp {
 			fileId: string
 			context: SidebarFileContext
 			sourceGroupId?: string
+			originDropZoneId?: string
 		},
 	})
 }
