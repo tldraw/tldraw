@@ -571,3 +571,7 @@ body {
 .agent-action-type-message {
 	color: var(--tl-color-text-1);
 }
+
+.tldraw-viewer .tlui-tooltip {
+	display: none;
+}
