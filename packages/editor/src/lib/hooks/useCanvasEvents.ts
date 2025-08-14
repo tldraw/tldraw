@@ -151,9 +151,6 @@ export function useCanvasEvents() {
 		let lastX: number, lastY: number
 
 		function onPointerMove(e: PointerEvent) {
-			if ((e as any).isKilled) return
-			;(e as any).isKilled = true
-
 			if (e.clientX === lastX && e.clientY === lastY) return
 			lastX = e.clientX
 			lastY = e.clientY
