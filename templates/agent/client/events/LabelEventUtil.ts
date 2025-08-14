@@ -29,10 +29,11 @@ export class LabelEventUtil extends AgentEventUtil<IAgentLabelEvent> {
 		if (!event.complete) return
 		const { editor } = this
 
-		const shape = editor.getShape(`shape:${event.shapeId}` as TLShapeId)
+		const shapeId = `shape:${event.shapeId}` as TLShapeId
+		const shape = editor.getShape(shapeId)
 		if (!shape) return
 		editor.updateShape({
-			id: shape.id as TLShapeId,
+			id: shapeId,
 			type: shape.type,
 			props: { richText: toRichText(event.text ?? '') },
 		})
