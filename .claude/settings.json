@@ -2,11 +2,11 @@
 	"hooks": {
 		"PostToolUse": [
 			{
-				"matcher": "Edit|Write|MultiEdit",
+				"matcher": "Edit|MultiEdit|Write",
 				"hooks": [
 					{
 						"type": "command",
-						"command": "prettier --write \"$CLAUDE_FILE_PATHS\""
+						"command": "jq -r '.tool_input.file_path' | { read file_path; npx prettier --write \"$file_path\"; }"
 					}
 				]
 			}
