@@ -1,7 +1,15 @@
-import { assert, Editor, uniqueId, useMaybeEditor, Vec } from '@tldraw/editor'
+import { assert, Atom, atom, Editor, uniqueId, useMaybeEditor, useValue } from '@tldraw/editor'
 import { Tooltip as _Tooltip } from 'radix-ui'
-import React, { createContext, useContext, useEffect, useRef, useState } from 'react'
-import { usePrefersReducedMotion } from '../../../shapes/shared/usePrefersReducedMotion'
+import React, {
+	createContext,
+	forwardRef,
+	ReactNode,
+	useContext,
+	useEffect,
+	useRef,
+	useState,
+} from 'react'
+import { useTldrawUiOrientation } from './layout'
 
 const DEFAULT_TOOLTIP_DELAY_MS = 700
 
@@ -12,19 +20,23 @@ export interface TldrawUiTooltipProps {
 	side?: 'top' | 'right' | 'bottom' | 'left'
 	sideOffset?: number
 	disabled?: boolean
+	showOnMobile?: boolean
+	delayDuration?: number
 }
 
 // Singleton tooltip manager
 class TooltipManager {
 	private static instance: TooltipManager | null = null
-	private currentTooltipId: string | null = null
-	private currentContent: string | React.ReactNode = ''
-	private currentSide: 'top' | 'right' | 'bottom' | 'left' = 'bottom'
-	private currentSideOffset: number = 5
+	private currentTooltip = atom<{
+		id: string
+		content: ReactNode
+		side: 'top' | 'right' | 'bottom' | 'left'
+		sideOffset: number
+		showOnMobile: boolean
+		targetElement: HTMLElement
+		delayDuration: number | undefined
+	} | null>('current tooltip', null)
 	private destroyTimeoutId: number | null = null
-	private subscribers: Set<() => void> = new Set()
-	private activeElement: HTMLElement | null = null
-	private editor: Editor | null = null
 
 	static getInstance(): TooltipManager {
 		if (!TooltipManager.instance) {
@@ -33,25 +45,14 @@ class TooltipManager {
 		return TooltipManager.instance
 	}
 
-	setEditor(editor: Editor | null) {
-		this.editor = editor
-	}
-
-	subscribe(callback: () => void): () => void {
-		this.subscribers.add(callback)
-		return () => this.subscribers.delete(callback)
-	}
-
-	private notify() {
-		this.subscribers.forEach((callback) => callback())
-	}
-
 	showTooltip(
 		tooltipId: string,
 		content: string | React.ReactNode,
-		element: HTMLElement,
-		side: 'top' | 'right' | 'bottom' | 'left' = 'bottom',
-		sideOffset: number = 5
+		targetElement: HTMLElement,
+		side: 'top' | 'right' | 'bottom' | 'left',
+		sideOffset: number,
+		showOnMobile: boolean,
+		delayDuration: number | undefined
 	) {
 		// Clear any existing destroy timeout
 		if (this.destroyTimeoutId) {
@@ -60,51 +61,57 @@ class TooltipManager {
 		}
 
 		// Update current tooltip
-		this.currentTooltipId = tooltipId
-		this.currentContent = content
-		this.currentSide = side
-		this.currentSideOffset = sideOffset
-		this.activeElement = element
-
-		this.notify()
+		this.currentTooltip.set({
+			id: tooltipId,
+			content,
+			side,
+			sideOffset,
+			showOnMobile,
+			targetElement,
+			delayDuration,
+		})
 	}
 
-	hideTooltip(tooltipId: string, instant: boolean = false) {
+	hideTooltip(editor: Editor | null, tooltipId: string, instant: boolean = false) {
 		const hide = () => {
 			// Only hide if this is the current tooltip
-			if (this.currentTooltipId === tooltipId) {
-				this.currentTooltipId = null
-				this.currentContent = ''
-				this.activeElement = null
+			if (this.currentTooltip.get()?.id === tooltipId) {
+				this.currentTooltip.set(null)
 				this.destroyTimeoutId = null
-				this.notify()
 			}
 		}
 
-		if (instant) {
-			hide()
-		} else if (this.editor) {
+		if (editor && !instant) {
 			// Start destroy timeout (1 second)
-			this.destroyTimeoutId = this.editor.timers.setTimeout(hide, 300)
+			this.destroyTimeoutId = editor.timers.setTimeout(hide, 300)
+		} else {
+			hide()
 		}
 	}
 
 	hideAllTooltips() {
-		this.currentTooltipId = null
-		this.currentContent = ''
-		this.activeElement = null
+		this.currentTooltip.set(null)
 		this.destroyTimeoutId = null
-		this.notify()
 	}
 
 	getCurrentTooltipData() {
-		return {
-			id: this.currentTooltipId,
-			content: this.currentContent,
-			side: this.currentSide,
-			sideOffset: this.currentSideOffset,
-			element: this.activeElement,
+		const currentTooltip = this.currentTooltip.get()
+		if (!currentTooltip) return null
+		if (!this.supportsHover() && !currentTooltip.showOnMobile) return null
+		return currentTooltip
+	}
+
+	private supportsHoverAtom: Atom<boolean> | null = null
+	supportsHover() {
+		if (!this.supportsHoverAtom) {
+			const mediaQuery = window.matchMedia('(hover: hover)')
+			const supportsHover = atom('has hover', mediaQuery.matches)
+			this.supportsHoverAtom = supportsHover
+			mediaQuery.addEventListener('change', (e) => {
+				supportsHover.set(e.matches)
+			})
 		}
+		return this.supportsHoverAtom.get()
 	}
 }
 
@@ -133,64 +140,29 @@ export function TldrawUiTooltipProvider({ children }: TldrawUiTooltipProviderPro
 // The singleton tooltip component that renders once
 function TooltipSingleton() {
 	const editor = useMaybeEditor()
-	const [, forceUpdate] = useState({})
 	const [isOpen, setIsOpen] = useState(false)
 	const triggerRef = useRef<HTMLDivElement>(null)
-	const previousPositionRef = useRef<{ x: number; y: number } | null>(null)
-	const prefersReducedMotion = usePrefersReducedMotion()
-	const [shouldAnimate, setShouldAnimate] = useState(false)
 	const isFirstShowRef = useRef(true)
 	const showTimeoutRef = useRef<number | null>(null)
 
-	// Set editor in tooltip manager
-	useEffect(() => {
-		tooltipManager.setEditor(editor)
-	}, [editor])
-
-	// Subscribe to tooltip manager updates
-	useEffect(() => {
-		const unsubscribe = tooltipManager.subscribe(() => {
-			forceUpdate({})
-		})
-		return unsubscribe
-	}, [])
-
-	const tooltipData = tooltipManager.getCurrentTooltipData()
+	const currentTooltip = useValue(
+		'current tooltip',
+		() => tooltipManager.getCurrentTooltipData(),
+		[]
+	)
 
 	// Update open state and trigger position
 	useEffect(() => {
-		const shouldBeOpen = Boolean(tooltipData.id && tooltipData.element)
-
 		// Clear any existing show timeout
 		if (showTimeoutRef.current) {
 			clearTimeout(showTimeoutRef.current)
 			showTimeoutRef.current = null
 		}
 
-		if (shouldBeOpen && tooltipData.element && triggerRef.current) {
+		if (currentTooltip && triggerRef.current) {
 			// Position the invisible trigger element over the active element
-			const activeRect = tooltipData.element.getBoundingClientRect()
+			const activeRect = currentTooltip.targetElement.getBoundingClientRect()
 			const trigger = triggerRef.current
-
-			const newPosition = {
-				x: activeRect.left + activeRect.width / 2,
-				y: activeRect.top + activeRect.height / 2,
-			}
-
-			// Determine if we should animate
-			let shouldAnimateCheck = false
-			if (previousPositionRef.current) {
-				const isNearPrevious = Vec.DistMin(previousPositionRef.current, newPosition, 200)
-				// Only animate if the distance is less than 200px (nearby tooltips)
-				shouldAnimateCheck =
-					!prefersReducedMotion &&
-					isNearPrevious &&
-					Math.abs(newPosition.y - previousPositionRef.current.y) < 50
-			}
-			// Don't animate on initial show (previousPositionRef.current is null)
-
-			setShouldAnimate(isFirstShowRef.current ? false : shouldAnimateCheck)
-			previousPositionRef.current = newPosition
 
 			trigger.style.position = 'fixed'
 			trigger.style.left = `${activeRect.left}px`
@@ -205,23 +177,20 @@ function TooltipSingleton() {
 				showTimeoutRef.current = editor.timers.setTimeout(() => {
 					setIsOpen(true)
 					isFirstShowRef.current = false
-				}, editor.options.tooltipDelayMs)
+				}, currentTooltip.delayDuration ?? editor.options.tooltipDelayMs)
 			} else {
 				// Subsequent tooltips show immediately
 				setIsOpen(true)
 			}
-		} else if (!shouldBeOpen) {
+		} else {
 			// Hide tooltip immediately
 			setIsOpen(false)
-			// Reset position tracking when tooltip closes
-			previousPositionRef.current = null
-			setShouldAnimate(false)
 			// Reset first show state after tooltip is hidden
 			isFirstShowRef.current = true
 		}
-	}, [tooltipData.id, tooltipData.element, editor, prefersReducedMotion])
+	}, [editor, currentTooltip])
 
-	if (!tooltipData.id) {
+	if (!currentTooltip) {
 		return null
 	}
 
@@ -232,14 +201,13 @@ function TooltipSingleton() {
 			</_Tooltip.Trigger>
 			<_Tooltip.Content
 				className="tlui-tooltip"
-				data-should-animate={shouldAnimate}
-				side={tooltipData.side}
-				sideOffset={tooltipData.sideOffset}
+				side={currentTooltip.side}
+				sideOffset={currentTooltip.sideOffset}
 				avoidCollisions
 				collisionPadding={8}
 				dir="ltr"
 			>
-				{tooltipData.content}
+				{currentTooltip.content}
 				<_Tooltip.Arrow className="tlui-tooltip__arrow" />
 			</_Tooltip.Content>
 		</_Tooltip.Root>
@@ -247,86 +215,113 @@ function TooltipSingleton() {
 }
 
 /** @public @react */
-export function TldrawUiTooltip({
-	children,
-	content,
-	side = 'bottom',
-	sideOffset = 5,
-	disabled = false,
-}: TldrawUiTooltipProps) {
-	const editor = useMaybeEditor()
-	const tooltipId = useRef<string>(uniqueId())
-	const hasProvider = useContext(TooltipSingletonContext)
+export const TldrawUiTooltip = forwardRef<HTMLButtonElement, TldrawUiTooltipProps>(
+	(
+		{
+			children,
+			content,
+			side,
+			sideOffset = 5,
+			disabled = false,
+			showOnMobile = false,
+			delayDuration,
+		},
+		ref
+	) => {
+		const editor = useMaybeEditor()
+		const tooltipId = useRef<string>(uniqueId())
+		const hasProvider = useContext(TooltipSingletonContext)
 
-	// Don't show tooltip if disabled, no content, or UI labels are disabled
-	if (disabled || !content) {
-		return <>{children}</>
-	}
+		const orientationCtx = useTldrawUiOrientation()
+		const sideToUse = side ?? orientationCtx.tooltipSide
 
-	// Fallback to old behavior if no provider
-	if (!hasProvider) {
-		return (
-			<_Tooltip.Root
-				delayDuration={editor?.options.tooltipDelayMs || DEFAULT_TOOLTIP_DELAY_MS}
-				disableHoverableContent
-			>
-				<_Tooltip.Trigger asChild>{children}</_Tooltip.Trigger>
-				<_Tooltip.Content
-					className="tlui-tooltip"
-					side={side}
-					sideOffset={sideOffset}
-					avoidCollisions
-					collisionPadding={8}
-					dir="ltr"
+		useEffect(() => {
+			const currentTooltipId = tooltipId.current
+			return () => {
+				if (hasProvider) {
+					tooltipManager.hideTooltip(editor, currentTooltipId, true)
+				}
+			}
+		}, [editor, hasProvider])
+
+		// Don't show tooltip if disabled, no content, or UI labels are disabled
+		if (disabled || !content) {
+			return <>{children}</>
+		}
+
+		// Fallback to old behavior if no provider
+		if (!hasProvider) {
+			return (
+				<_Tooltip.Root
+					delayDuration={
+						delayDuration ?? (editor?.options.tooltipDelayMs || DEFAULT_TOOLTIP_DELAY_MS)
+					}
+					disableHoverableContent
 				>
-					{content}
-					<_Tooltip.Arrow className="tlui-tooltip__arrow" />
-				</_Tooltip.Content>
-			</_Tooltip.Root>
-		)
+					<_Tooltip.Trigger asChild ref={ref}>
+						{children}
+					</_Tooltip.Trigger>
+					<_Tooltip.Content
+						className="tlui-tooltip"
+						side={sideToUse}
+						sideOffset={sideOffset}
+						avoidCollisions
+						collisionPadding={8}
+						dir="ltr"
+					>
+						{content}
+						<_Tooltip.Arrow className="tlui-tooltip__arrow" />
+					</_Tooltip.Content>
+				</_Tooltip.Root>
+			)
+		}
+
+		const child = React.Children.only(children)
+		assert(React.isValidElement(child), 'TldrawUiTooltip children must be a single element')
+
+		const handleMouseEnter = (event: React.MouseEvent<HTMLElement>) => {
+			child.props.onMouseEnter?.(event)
+			tooltipManager.showTooltip(
+				tooltipId.current,
+				content,
+				event.currentTarget as HTMLElement,
+				sideToUse,
+				sideOffset,
+				showOnMobile,
+				delayDuration
+			)
+		}
+
+		const handleMouseLeave = (event: React.MouseEvent<HTMLElement>) => {
+			child.props.onMouseLeave?.(event)
+			tooltipManager.hideTooltip(editor, tooltipId.current)
+		}
+
+		const handleFocus = (event: React.FocusEvent<HTMLElement>) => {
+			child.props.onFocus?.(event)
+			tooltipManager.showTooltip(
+				tooltipId.current,
+				content,
+				event.currentTarget as HTMLElement,
+				sideToUse,
+				sideOffset,
+				showOnMobile,
+				delayDuration
+			)
+		}
+
+		const handleBlur = (event: React.FocusEvent<HTMLElement>) => {
+			child.props.onBlur?.(event)
+			tooltipManager.hideTooltip(editor, tooltipId.current)
+		}
+
+		const childrenWithHandlers = React.cloneElement(children as React.ReactElement, {
+			onMouseEnter: handleMouseEnter,
+			onMouseLeave: handleMouseLeave,
+			onFocus: handleFocus,
+			onBlur: handleBlur,
+		})
+
+		return childrenWithHandlers
 	}
-
-	const child = React.Children.only(children)
-	assert(React.isValidElement(child), 'TldrawUiTooltip children must be a single element')
-
-	const handleMouseEnter = (event: React.MouseEvent<HTMLElement>) => {
-		child.props.onMouseEnter?.(event)
-		tooltipManager.showTooltip(
-			tooltipId.current,
-			content,
-			event.currentTarget as HTMLElement,
-			side,
-			sideOffset
-		)
-	}
-
-	const handleMouseLeave = (event: React.MouseEvent<HTMLElement>) => {
-		child.props.onMouseLeave?.(event)
-		tooltipManager.hideTooltip(tooltipId.current)
-	}
-
-	const handleFocus = (event: React.FocusEvent<HTMLElement>) => {
-		child.props.onFocus?.(event)
-		tooltipManager.showTooltip(
-			tooltipId.current,
-			content,
-			event.currentTarget as HTMLElement,
-			side,
-			sideOffset
-		)
-	}
-
-	const handleBlur = (event: React.FocusEvent<HTMLElement>) => {
-		child.props.onBlur?.(event)
-		tooltipManager.hideTooltip(tooltipId.current)
-	}
-
-	const childrenWithHandlers = React.cloneElement(children as React.ReactElement, {
-		onMouseEnter: handleMouseEnter,
-		onMouseLeave: handleMouseLeave,
-		onFocus: handleFocus,
-		onBlur: handleBlur,
-	})
-
-	return childrenWithHandlers
-}
+)

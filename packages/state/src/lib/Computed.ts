@@ -105,15 +105,15 @@ export interface ComputedOptions<Value, Diff> {
 	 */
 	historyLength?: number
 	/**
-	 * A method used to compute a diff between the atom's old and new values. If provided, it will not be used unless you also specify {@link AtomOptions.historyLength}.
+	 * A method used to compute a diff between the computed's old and new values. If provided, it will not be used unless you also specify {@link ComputedOptions.historyLength}.
 	 */
 	computeDiff?: ComputeDiff<Value, Diff>
 	/**
-	 * If provided, this will be used to compare the old and new values of the atom to determine if the value has changed.
+	 * If provided, this will be used to compare the old and new values of the computed to determine if the value has changed.
 	 * By default, values are compared using first using strict equality (`===`), then `Object.is`, and finally any `.equals` method present in the object's prototype chain.
 	 * @param a - The old value
 	 * @param b - The new value
-	 * @returns
+	 * @returns True if the values are equal, false otherwise.
 	 */
 	isEqual?(a: any, b: any): boolean
 }

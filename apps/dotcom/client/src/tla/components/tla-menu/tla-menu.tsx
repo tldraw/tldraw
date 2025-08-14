@@ -43,16 +43,18 @@ export function TlaMenuControlInfoTooltip({
 	href,
 	children,
 	onClick,
+	showOnMobile,
 }: {
 	href?: string
 	onClick?(): void
 	children: ReactNode
+	showOnMobile?: boolean
 }) {
 	const helpMsg = useMsg(messages.help)
 
 	return (
 		<div className={styles.menuInfoTriggerContainer}>
-			<TldrawUiTooltip content={children}>
+			<TldrawUiTooltip content={children} showOnMobile={showOnMobile} delayDuration={0}>
 				{href ? (
 					<a
 						onClick={onClick}
