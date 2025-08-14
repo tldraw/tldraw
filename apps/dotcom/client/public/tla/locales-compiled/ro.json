@@ -33,12 +33,6 @@
       "value": "Auto"
     }
   ],
-  "0776e18496": [
-    {
-      "type": 0,
-      "value": "Salvați și partajați"
-    }
-  ],
   "07dbd11b21": [
     {
       "type": 0,
@@ -117,12 +111,6 @@
       "value": "Această cameră se apropie de limita de dimensiune. Luați în considerare eliminarea unei părți din conținut sau începerea unui fișier nou."
     }
   ],
-  "22d84a12fd": [
-    {
-      "type": 0,
-      "value": "Figjam dar tldraw"
-    }
-  ],
   "250ddea65c": [
     {
       "type": 0,
@@ -133,12 +121,6 @@
     {
       "type": 0,
       "value": "Încărcarea nu a reușit"
-    }
-  ],
-  "2c61d18599": [
-    {
-      "type": 0,
-      "value": "Miro, dar bun și gratuit"
     }
   ],
   "2deec2cb74": [
@@ -171,12 +153,6 @@
       "value": "Editor"
     }
   ],
-  "37b3dca331": [
-    {
-      "type": 0,
-      "value": "Vă rugăm să vă conectați"
-    }
-  ],
   "3bd1b98dbd": [
     {
       "type": 0,
@@ -195,22 +171,10 @@
       "value": "Acceptă tot"
     }
   ],
-  "3fc6d0c83a": [
-    {
-      "type": 0,
-      "value": "Adaugă un prieten"
-    }
-  ],
   "42e53c47c1": [
     {
       "type": 0,
       "value": "Contactați proprietarul pentru a solicita acces."
-    }
-  ],
-  "44281ab6e5": [
-    {
-      "type": 0,
-      "value": "Autentificare"
     }
   ],
   "44db318ee5": [
@@ -247,12 +211,6 @@
     {
       "type": 0,
       "value": "Reîncărcați"
-    }
-  ],
-  "4ea0bb66f7": [
-    {
-      "type": 0,
-      "value": "Un cont ar fi binevenit"
     }
   ],
   "50db1b7e1e": [
@@ -337,12 +295,6 @@
       "value": "Browser vechi detectat. Vă rugăm să actualizați browserul pentru a utiliza această aplicație."
     }
   ],
-  "5bef23eb7e": [
-    {
-      "type": 0,
-      "value": "Creează-ți contul"
-    }
-  ],
   "5d26ae7550": [
     {
       "type": 0,
@@ -383,12 +335,6 @@
     {
       "type": 0,
       "value": "Este disponibilă o nouă versiune de tldraw. Vă rugăm să reîncărcați pagina pentru a continua."
-    }
-  ],
-  "697c59072d": [
-    {
-      "type": 0,
-      "value": "Conectați-vă pentru a salva"
     }
   ],
   "6a26f54883": [
@@ -493,12 +439,6 @@
       "value": "Restaurați versiunea"
     }
   ],
-  "7c7d5d493e": [
-    {
-      "type": 0,
-      "value": "Vă rugăm să vă înscrieți"
-    }
-  ],
   "7cb5f8b4a5": [
     {
       "type": 0,
@@ -557,12 +497,6 @@
       "value": "."
     }
   ],
-  "84c89d47c7": [
-    {
-      "type": 0,
-      "value": "Distribuie gratuit"
-    }
-  ],
   "85a082de1b": [
     {
       "type": 0,
@@ -593,12 +527,6 @@
     {
       "type": 0,
       "value": "Pentru a continua editarea, vă rugăm să copiați camera în fișierele dvs."
-    }
-  ],
-  "8ea211024d": [
-    {
-      "type": 0,
-      "value": "Creați un cont gratuit"
     }
   ],
   "8eb2c00e96": [
@@ -757,12 +685,6 @@
       "value": "Utilizator invitat"
     }
   ],
-  "b52dc007ac": [
-    {
-      "type": 0,
-      "value": "Înregistrare (gratuită și bună)"
-    }
-  ],
   "b6d4223e60": [
     {
       "type": 0,
@@ -849,28 +771,10 @@
       "value": "Încărcați fișiere .tldr"
     }
   ],
-  "bffe9a3c9a": [
-    {
-      "type": 0,
-      "value": "Log in"
-    }
-  ],
-  "c079282475": [
-    {
-      "type": 0,
-      "value": "Împărtășește-ți munca"
-    }
-  ],
   "c2276c9127": [
     {
       "type": 0,
       "value": "Aflați mai multe despre partajare."
-    }
-  ],
-  "c24e43cd1a": [
-    {
-      "type": 0,
-      "value": "Te vei înscrie, nu-i așa?"
     }
   ],
   "c303bd1095": [
@@ -903,12 +807,6 @@
       "value": "Sign out"
     }
   ],
-  "c8c6a6504a": [
-    {
-      "type": 0,
-      "value": "Ar trebui să te înscrii"
-    }
-  ],
   "cceaefbc20": [
     {
       "type": 0,
@@ -925,12 +823,6 @@
     {
       "type": 0,
       "value": "Aflați mai multe despre publicare."
-    }
-  ],
-  "d0eedb7995": [
-    {
-      "type": 0,
-      "value": "Hei"
     }
   ],
   "d3d2e61733": [
@@ -957,28 +849,10 @@
       "value": "Încearcă din nou"
     }
   ],
-  "d8a50c79a7": [
-    {
-      "type": 0,
-      "value": "Vino cu mine să desenăm"
-    }
-  ],
   "d9100f3e10": [
     {
       "type": 0,
       "value": "Intră aici pentru a vedea conținutul"
-    }
-  ],
-  "da404df474": [
-    {
-      "type": 0,
-      "value": "Salvați-vă munca"
-    }
-  ],
-  "db4c2dab9a": [
-    {
-      "type": 0,
-      "value": "Nu Excalidraw"
     }
   ],
   "dbbebf3c03": [
@@ -1113,12 +987,6 @@
     {
       "type": 0,
       "value": "Sigur doriți să ștergeți acest fișier?"
-    }
-  ],
-  "fd27891570": [
-    {
-      "type": 0,
-      "value": "Alătură-te listei de așteptare"
     }
   ],
   "fed5ec05eb": [

@@ -14,9 +14,6 @@
   "06b9281e39": {
     "translation": "Tự động"
   },
-  "0776e18496": {
-    "translation": "Lưu và chia sẻ"
-  },
   "07dbd11b21": {
     "translation": "Tệp không có tiêu đề"
   },
@@ -56,17 +53,11 @@
   "21bfb2dc2e": {
     "translation": "Phòng này sắp đạt đến giới hạn kích thước. Hãy cân nhắc xóa bớt nội dung hoặc tạo một tệp mới."
   },
-  "22d84a12fd": {
-    "translation": "Figjam nhưng tldraw"
-  },
   "250ddea65c": {
     "translation": "Giới thiệu về tldraw"
   },
   "299cb00a7a": {
     "translation": "Tải lên thất bại"
-  },
-  "2c61d18599": {
-    "translation": "Miro nhưng tốt và miễn phí"
   },
   "2deec2cb74": {
     "translation": "Phòng này đã đạt đến giới hạn kích thước và các thay đổi có thể không còn được lưu nữa. Hãy xóa bớt nội dung hoặc tạo một tệp mới."
@@ -83,9 +74,6 @@
   "344a7f427f": {
     "translation": "Biên tập viên"
   },
-  "37b3dca331": {
-    "translation": "Vui lòng đăng nhập"
-  },
   "3bd1b98dbd": {
     "translation": "Không thể xuất bản các thay đổi này."
   },
@@ -95,14 +83,8 @@
   "3d0238bf16": {
     "translation": "Chấp nhận tất cả"
   },
-  "3fc6d0c83a": {
-    "translation": "Thêm bạn bè"
-  },
   "42e53c47c1": {
     "translation": "Liên hệ với chủ sở hữu để yêu cầu quyền truy cập."
-  },
-  "44281ab6e5": {
-    "translation": "Đăng nhập"
   },
   "44db318ee5": {
     "translation": "Nhận trợ giúp trên Discord"
@@ -121,9 +103,6 @@
   },
   "4d1c8263ba": {
     "translation": "Tải lại"
-  },
-  "4ea0bb66f7": {
-    "translation": "Một tài khoản sẽ tốt hơn"
   },
   "50db1b7e1e": {
     "translation": "Không thể hủy xuất bản tệp này."
@@ -161,9 +140,6 @@
   "5bec508475": {
     "translation": "Đã phát hiện trình duyệt cũ. Vui lòng cập nhật trình duyệt của bạn để sử dụng ứng dụng này."
   },
-  "5bef23eb7e": {
-    "translation": "Tạo tài khoản của bạn"
-  },
   "5d26ae7550": {
     "translation": "Chúng tôi không tải lên được một số nội dung bạn đã tạo trước khi bạn đăng nhập."
   },
@@ -184,9 +160,6 @@
   },
   "6637a98151": {
     "translation": "Phiên bản mới của tldraw đã có sẵn. Vui lòng tải lại trang để tiếp tục."
-  },
-  "697c59072d": {
-    "translation": "Đăng nhập để lưu"
   },
   "6a26f54883": {
     "translation": "Trợ giúp"
@@ -239,9 +212,6 @@
   "7be10fc592": {
     "translation": "Khôi phục phiên bản"
   },
-  "7c7d5d493e": {
-    "translation": "Vui lòng đăng ký"
-  },
   "7cb5f8b4a5": {
     "translation": "Quên"
   },
@@ -257,9 +227,6 @@
   "815e116a2e": {
     "translation": "Bạn có lỗi, vấn đề hoặc ý tưởng cho tldraw? Hãy cho chúng tôi biết! Hãy điền vào biểu mẫu này và chúng tôi sẽ liên hệ qua email nếu cần. Bạn cũng có thể <discord>trò chuyện với chúng tôi trên Discord</discord> hoặc <github>gửi vấn đề trên GitHub</github>."
   },
-  "84c89d47c7": {
-    "translation": "Chia sẻ miễn phí"
-  },
   "85a082de1b": {
     "translation": "Vui lòng làm mới trang để tải phiên bản mới nhất của tldraw."
   },
@@ -271,9 +238,6 @@
   },
   "8b1946f965": {
     "translation": "Để tiếp tục chỉnh sửa, vui lòng sao chép phòng vào tệp của bạn."
-  },
-  "8ea211024d": {
-    "translation": "Tạo một tài khoản miễn phí"
   },
   "8eb2c00e96": {
     "translation": "Chia sẻ với bạn"
@@ -351,9 +315,6 @@
   "b028909917": {
     "translation": "Người dùng khách"
   },
-  "b52dc007ac": {
-    "translation": "Đăng ký (miễn phí và tốt)"
-  },
   "b6d4223e60": {
     "translation": "Đăng nhập"
   },
@@ -375,17 +336,8 @@
   "bcb62136a3": {
     "translation": "Tải lên các tệp .tldr."
   },
-  "bffe9a3c9a": {
-    "translation": "Đăng nhập"
-  },
-  "c079282475": {
-    "translation": "Chia sẻ công việc của bạn"
-  },
   "c2276c9127": {
     "translation": "Tìm hiểu thêm về chia sẻ."
-  },
-  "c24e43cd1a": {
-    "translation": "Bạn sẽ đăng ký chứ?"
   },
   "c303bd1095": {
     "translation": "Không thể xuất bản tệp này."
@@ -402,9 +354,6 @@
   "c87aacf567": {
     "translation": "Đăng xuất"
   },
-  "c8c6a6504a": {
-    "translation": "Bạn nên đăng ký"
-  },
   "cceaefbc20": {
     "translation": "Chia sẻ tệp này"
   },
@@ -413,9 +362,6 @@
   },
   "cea291e45e": {
     "translation": "Tìm hiểu thêm về xuất bản."
-  },
-  "d0eedb7995": {
-    "translation": "Chào"
   },
   "d3d2e61733": {
     "translation": "Đóng"
@@ -429,17 +375,8 @@
   "d876a9fe1a": {
     "translation": "Thử lại"
   },
-  "d8a50c79a7": {
-    "translation": "Hãy cùng tôi vẽ nhé"
-  },
   "d9100f3e10": {
     "translation": "Vào đây để xem nội dung"
-  },
-  "da404df474": {
-    "translation": "Lưu công việc của bạn"
-  },
-  "db4c2dab9a": {
-    "translation": "Không phải Excalidraw"
   },
   "dbbebf3c03": {
     "translation": "Chỉ mời"
@@ -500,9 +437,6 @@
   },
   "fd1be3efcf": {
     "translation": "Bạn có chắc muốn xóa tệp này?"
-  },
-  "fd27891570": {
-    "translation": "Tham gia danh sách chờ"
   },
   "fed5ec05eb": {
     "translation": "Đã sao chép liên kết"

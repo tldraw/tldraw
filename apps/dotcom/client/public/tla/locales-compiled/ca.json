@@ -33,12 +33,6 @@
       "value": "Automàtic"
     }
   ],
-  "0776e18496": [
-    {
-      "type": 0,
-      "value": "Desa i comparteix"
-    }
-  ],
   "07dbd11b21": [
     {
       "type": 0,
@@ -117,12 +111,6 @@
       "value": "Aquesta sala s'acosta al seu límit de mida. Penseu en la possibilitat d'eliminar part del contingut o iniciar un fitxer nou."
     }
   ],
-  "22d84a12fd": [
-    {
-      "type": 0,
-      "value": "Figjam però tldraw"
-    }
-  ],
   "250ddea65c": [
     {
       "type": 0,
@@ -133,12 +121,6 @@
     {
       "type": 0,
       "value": "La càrrega ha fallat"
-    }
-  ],
-  "2c61d18599": [
-    {
-      "type": 0,
-      "value": "Miro però bo i gratuït"
     }
   ],
   "2deec2cb74": [
@@ -171,12 +153,6 @@
       "value": "Editor"
     }
   ],
-  "37b3dca331": [
-    {
-      "type": 0,
-      "value": "Si us plau, inicia la sessió"
-    }
-  ],
   "3bd1b98dbd": [
     {
       "type": 0,
@@ -195,22 +171,10 @@
       "value": "Accepta-ho tot"
     }
   ],
-  "3fc6d0c83a": [
-    {
-      "type": 0,
-      "value": "Afegeix un amic"
-    }
-  ],
   "42e53c47c1": [
     {
       "type": 0,
       "value": "Contacta amb el propietari per sol·licitar accés."
-    }
-  ],
-  "44281ab6e5": [
-    {
-      "type": 0,
-      "value": "Inicia la sessió"
     }
   ],
   "44db318ee5": [
@@ -247,12 +211,6 @@
     {
       "type": 0,
       "value": "Torna a carregar"
-    }
-  ],
-  "4ea0bb66f7": [
-    {
-      "type": 0,
-      "value": "Un compte estaria bé"
     }
   ],
   "50db1b7e1e": [
@@ -337,12 +295,6 @@
       "value": "S'ha detectat un navegador antic. Actualitzeu el navegador per utilitzar aquesta aplicació."
     }
   ],
-  "5bef23eb7e": [
-    {
-      "type": 0,
-      "value": "Crea el teu compte"
-    }
-  ],
   "5d26ae7550": [
     {
       "type": 0,
@@ -383,12 +335,6 @@
     {
       "type": 0,
       "value": "Hi ha disponible una nova versió de tldraw. Torneu a carregar la pàgina per continuar."
-    }
-  ],
-  "697c59072d": [
-    {
-      "type": 0,
-      "value": "Inicia la sessió per desar"
     }
   ],
   "6a26f54883": [
@@ -493,12 +439,6 @@
       "value": "Restaurar versió"
     }
   ],
-  "7c7d5d493e": [
-    {
-      "type": 0,
-      "value": "Si us plau, registreu-vos"
-    }
-  ],
   "7cb5f8b4a5": [
     {
       "type": 0,
@@ -557,12 +497,6 @@
       "value": "."
     }
   ],
-  "84c89d47c7": [
-    {
-      "type": 0,
-      "value": "Comparteix gratuïtament"
-    }
-  ],
   "85a082de1b": [
     {
       "type": 0,
@@ -593,12 +527,6 @@
     {
       "type": 0,
       "value": "Per continuar editant, copieu la sala als vostres fitxers."
-    }
-  ],
-  "8ea211024d": [
-    {
-      "type": 0,
-      "value": "Crea un compte gratuït"
     }
   ],
   "8eb2c00e96": [
@@ -757,12 +685,6 @@
       "value": "Usuari convidat"
     }
   ],
-  "b52dc007ac": [
-    {
-      "type": 0,
-      "value": "Registra't (gratuït i bo)"
-    }
-  ],
   "b6d4223e60": [
     {
       "type": 0,
@@ -845,28 +767,10 @@
       "value": "Carregueu fitxers .tldr"
     }
   ],
-  "bffe9a3c9a": [
-    {
-      "type": 0,
-      "value": "Inicia la sessió"
-    }
-  ],
-  "c079282475": [
-    {
-      "type": 0,
-      "value": "Comparteix la teva feina"
-    }
-  ],
   "c2276c9127": [
     {
       "type": 0,
       "value": "Més informació sobre com compartir."
-    }
-  ],
-  "c24e43cd1a": [
-    {
-      "type": 0,
-      "value": "T'hi apuntaràs, oi?"
     }
   ],
   "c303bd1095": [
@@ -899,12 +803,6 @@
       "value": "Tanca la sessió"
     }
   ],
-  "c8c6a6504a": [
-    {
-      "type": 0,
-      "value": "T'hauries de registrar"
-    }
-  ],
   "cceaefbc20": [
     {
       "type": 0,
@@ -921,12 +819,6 @@
     {
       "type": 0,
       "value": "Més informació sobre la publicació."
-    }
-  ],
-  "d0eedb7995": [
-    {
-      "type": 0,
-      "value": "Ei"
     }
   ],
   "d3d2e61733": [
@@ -953,28 +845,10 @@
       "value": "Torna-ho a provar"
     }
   ],
-  "d8a50c79a7": [
-    {
-      "type": 0,
-      "value": "Vine amb mi a dibuixar"
-    }
-  ],
   "d9100f3e10": [
     {
       "type": 0,
       "value": "Entra aquí per veure el contingut"
-    }
-  ],
-  "da404df474": [
-    {
-      "type": 0,
-      "value": "Desa la teva feina"
-    }
-  ],
-  "db4c2dab9a": [
-    {
-      "type": 0,
-      "value": "No és Excalidraw"
     }
   ],
   "dbbebf3c03": [
@@ -1109,12 +983,6 @@
     {
       "type": 0,
       "value": "Esteu segur que voleu suprimir aquest fitxer?"
-    }
-  ],
-  "fd27891570": [
-    {
-      "type": 0,
-      "value": "Uneix-te a la llista d'espera"
     }
   ],
   "fed5ec05eb": [
