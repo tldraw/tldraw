@@ -63,7 +63,7 @@ Packages have clear dependency hierarchy:
 5. Apps depend on SDK packages
 
 ### Testing Structure
-- Jest tests: Unit tests alongside source files (`.test.ts`)
+- Vitest tests: Unit tests alongside source files (`.test.ts`)
 - Integration tests in `src/test/` directories
 - E2E tests using Playwright in `apps/examples/e2e/`
 - Run package-specific tests from within package directories
