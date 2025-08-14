@@ -104,28 +104,28 @@ export function ContextHighlights() {
 				<AreaHighlight
 					key={'context-highlight-' + i}
 					pageBounds={item}
-					color="var(--color-selected)"
+					color="var(--tl-color-selected)"
 				/>
 			))}
 			{shapesBounds.map((item, i) => (
 				<AreaHighlight
 					key={'context-highlight-' + i}
 					pageBounds={item}
-					color="var(--color-selected)"
+					color="var(--tl-color-selected)"
 				/>
 			))}
 			{shapeBounds.map((item, i) => (
 				<AreaHighlight
 					key={'context-highlight-' + i}
 					pageBounds={item}
-					color="var(--color-selected)"
+					color="var(--tl-color-selected)"
 				/>
 			))}
 			{pendingAreaBounds.map((item, i) => (
 				<AreaHighlight
 					key={'context-highlight-' + i}
 					pageBounds={item}
-					color="var(--color-selected)"
+					color="var(--tl-color-selected)"
 					className="generating"
 				/>
 			))}
@@ -133,7 +133,7 @@ export function ContextHighlights() {
 				<AreaHighlight
 					key={'context-highlight-' + i}
 					pageBounds={item}
-					color="var(--color-selected)"
+					color="var(--tl-color-selected)"
 					className="generating"
 				/>
 			))}
@@ -141,18 +141,22 @@ export function ContextHighlights() {
 				<AreaHighlight
 					key={'context-highlight-' + i}
 					pageBounds={item}
-					color="var(--color-selected)"
+					color="var(--tl-color-selected)"
 					className="generating"
 				/>
 			))}
 			{points.map((item, i) => (
-				<PointHighlight key={'context-point-' + i} pagePoint={item} color="var(--color-selected)" />
+				<PointHighlight
+					key={'context-point-' + i}
+					pagePoint={item}
+					color="var(--tl-color-selected)"
+				/>
 			))}
 			{pendingPoints.map((item, i) => (
 				<PointHighlight
 					key={'context-point-' + i}
 					pagePoint={item}
-					color="var(--color-selected)"
+					color="var(--tl-color-selected)"
 					className="generating"
 				/>
 			))}
