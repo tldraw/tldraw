@@ -1,0 +1,15 @@
+{
+	"hooks": {
+		"PostToolUse": [
+			{
+				"matcher": "Edit|Write|MultiEdit",
+				"hooks": [
+					{
+						"type": "command",
+						"command": "prettier --write \"$CLAUDE_FILE_PATHS\""
+					}
+				]
+			}
+		]
+	}
+}
