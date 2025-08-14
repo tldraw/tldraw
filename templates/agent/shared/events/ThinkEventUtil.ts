@@ -8,7 +8,7 @@ const AgentThinkEvent = z
 		_type: z.literal('think'),
 		text: z.string(),
 	})
-	.meta({ title: 'Thinkerrrr', description: 'The AI describes its intent or reasoning.' })
+	.meta({ title: 'Think', description: 'The AI describes its intent or reasoning.' })
 
 type IAgentThinkEvent = z.infer<typeof AgentThinkEvent>
 

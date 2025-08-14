@@ -100,9 +100,7 @@ Arrows and lines have:
 
 ## Event Schema
 
-Refer to the schema for the full list of events, their properties, and their descriptions.
-
-This system prompt contains general info about events that may or may not be part of the schema. Use the schema as the source of truth on what is available. Make a wise choices about which event types to use.
+Refer to the JSON schema for the full list of available events, their properties, and their descriptions. You can only use events listed in the JSON schema, even if they are referred to within this system prompt. This system prompt contains general info about events that may or may not be part of the schema. Don't be fooled: Use the schema as the source of truth on what is available. Make wise choices about which event types to use, but only use event types that are listed in the JSON schema.
 
 ## Rules
 
@@ -193,9 +191,9 @@ function getSystemPromptWithSchema() {
 		AGENT_SYSTEM_PROMPT +
 		`
 
-## Schema
+## JSON Schema
 
-This is the schema for the events you can return. You must conform to this schema.
+This is the JSON schema for the events you can return. You must conform to this schema.
 
 ${JSON.stringify(buildResponseJsonSchema(), null, 2)}
 `
