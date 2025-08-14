@@ -51,11 +51,13 @@ export class UpdateEventUtil extends AgentEventUtil<IAgentUpdateEvent> {
 		return event.intent ?? ''
 	}
 
-	override applyEvent(event: Streaming<IAgentUpdateEvent>) {
+	override applyEvent(event: Streaming<IAgentUpdateEvent>, transform: AgentTransform) {
 		if (!event.complete) return
 		const { editor } = this
 
-		const aiChanges = getTldrawAiChangesFromUpdateEvent({ editor, event: event })
+		event.update = transform.unroundShape(event.update)
+
+		const aiChanges = getTldrawAiChangesFromUpdateEvent({ editor, event })
 		for (const aiChange of aiChanges) {
 			defaultApplyChange({ change: aiChange, editor })
 		}

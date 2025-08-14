@@ -1,15 +1,6 @@
 import { BoxModel, Editor, TLShapeId, VecModel } from 'tldraw'
 import { ISimpleShape } from '../worker/simple/SimpleShape'
 
-// Utility type to extract keys that have number values from any member of a union
-type NumberKeys<T> = T extends any
-	? {
-			[K in keyof T]: T[K] extends number ? K : never
-		}[keyof T]
-	: never
-
-type ISimpleShapeNumberKeys = NumberKeys<ISimpleShape>
-
 /**
  * A class that helps to transform events received from the model.
  */
@@ -92,17 +83,43 @@ export class AgentTransform {
 	 */
 	roundShape(shape: ISimpleShape): ISimpleShape {
 		if (shape._type === 'arrow' || shape._type === 'line') {
-			shape = this.roundNumberProperty(shape, 'x1')
-			shape = this.roundNumberProperty(shape, 'y1')
-			shape = this.roundNumberProperty(shape, 'x2')
-			shape = this.roundNumberProperty(shape, 'y2')
+			shape = this.roundProperty(shape, 'x1')
+			shape = this.roundProperty(shape, 'y1')
+			shape = this.roundProperty(shape, 'x2')
+			shape = this.roundProperty(shape, 'y2')
 		} else {
-			shape = this.roundNumberProperty(shape, 'x')
-			shape = this.roundNumberProperty(shape, 'y')
+			shape = this.roundProperty(shape, 'x')
+			shape = this.roundProperty(shape, 'y')
 		}
 
-		shape = this.roundNumberProperty(shape, 'width')
-		shape = this.roundNumberProperty(shape, 'height')
+		if ('width' in shape) {
+			shape = this.roundProperty(shape, 'width')
+			shape = this.roundProperty(shape, 'height')
+		}
+
+		return shape
+	}
+
+	/**
+	 * Reverse the rounding of a shape that we did earlier.
+	 * This ensures that shape's don't do a tiny jitter when they are updated.
+	 * @param shape - The shape to unround.
+	 * @returns The unrounded shape.
+	 */
+	unroundShape(shape: ISimpleShape): ISimpleShape {
+		if (shape._type === 'arrow' || shape._type === 'line') {
+			shape = this.unroundProperty(shape, 'x1')
+			shape = this.unroundProperty(shape, 'y1')
+			shape = this.unroundProperty(shape, 'x2')
+			shape = this.unroundProperty(shape, 'y2')
+		} else {
+			shape = this.unroundProperty(shape, 'x')
+			shape = this.unroundProperty(shape, 'y')
+		}
+		if ('width' in shape) {
+			shape = this.unroundProperty(shape, 'width')
+			shape = this.unroundProperty(shape, 'height')
+		}
 		return shape
 	}
 
@@ -112,14 +129,32 @@ export class AgentTransform {
 	 * @param property - The property to round.
 	 * @returns The rounded shape.
 	 */
-	roundNumberProperty(shape: ISimpleShape, property: ISimpleShapeNumberKeys): ISimpleShape {
-		if (!property) return shape
-		const value = (shape as any)[property] as number
-		if (value === undefined) return shape
+	roundProperty<T extends ISimpleShape>(shape: T, property: keyof T): T {
+		if (typeof shape[property] !== 'number') return shape
 
-		const diff = Math.round(value) - value
-		;(shape as any)[property] = diff + value
-		this.roundingDiffMap.set(shape.shapeId + '_' + property, diff)
+		const value = shape[property]
+		const roundedValue = Math.round(value)
+		const diff = roundedValue - value
+		;(shape[property] as number) = roundedValue
+
+		const key = `${shape.shapeId}_${property as string}`
+		this.roundingDiffMap.set(key, diff)
+		return shape
+	}
+
+	/**
+	 * Reverse the rounding of a number property of a shape, and restore the original value.
+	 * @param shape - The shape to unround.
+	 * @param property - The property to unround.
+	 * @returns The unrounded shape.
+	 */
+	unroundProperty<T extends ISimpleShape>(shape: T, property: keyof T): T {
+		if (typeof shape[property] !== 'number') return shape
+
+		const key = `${shape.shapeId}_${property as string}`
+		const diff = this.roundingDiffMap.get(key)
+		if (diff === undefined) return shape
+		;(shape[property] as number) += diff
 		return shape
 	}
 }
