@@ -1,4 +1,25 @@
-import { AgentResponseJsonSchema } from './schema'
+import { getAgentModelDefinition } from '../../worker/models'
+import { buildResponseJsonSchema } from '../../worker/prompt/buildResponseJsonSchema'
+import { AgentPrompt } from '../types/AgentPrompt'
+import { PromptPartUtil } from './PromptPartUtil'
+
+export class SystemPromptPartUtil extends PromptPartUtil<null> {
+	static override type = 'system' as const
+
+	override async getPart() {
+		return null
+	}
+
+	override buildSystemMessage(_part: null, prompt: AgentPrompt) {
+		const modelName = prompt.modelName
+		const modelDefinition = getAgentModelDefinition(modelName)
+		if (modelDefinition.provider === 'anthropic') {
+			return getSystemPromptWithSchema()
+		} else {
+			return AGENT_SYSTEM_PROMPT
+		}
+	}
+}
 
 const shapeTypeNames = [
 	'rectangle',
@@ -27,7 +48,7 @@ const shapeTypeNames = [
 	'heart',
 ]
 
-export const AGENT_SYSTEM_PROMPT = `# System Prompt
+const AGENT_SYSTEM_PROMPT = `# System Prompt
 
 You are an AI agent that helps the user use a drawing / diagramming / whiteboarding program. You will be provided with a prompt that includes a description of the user's intent and the current state of the canvas, including a screenshot of the user's viewport (the part of the canvas that the user is viewing). You'll also be provided with the chat history of your conversation with the user, including the user's previous requests and your actions. Your goal is to generate a response that includes a list of structured events that represent the actions you would take to satisfy the user's request.
 
@@ -182,13 +203,16 @@ Each event must include:
 - If there's still more work to do, you must \`review\` it. Otherwise it won't happen.
 - It's nice to speak to the user (with a \`message\` event) to let them know what you've done.`
 
-export const AGENT_SYSTEM_PROMPT_WITH_SCHEMA =
-	AGENT_SYSTEM_PROMPT +
-	`
+function getSystemPromptWithSchema() {
+	return (
+		AGENT_SYSTEM_PROMPT +
+		`
 
 ## Schema
 
 This is the schema for the events you can return. You must conform to this schema.
 
-${JSON.stringify(AgentResponseJsonSchema, null, 2)}
+${JSON.stringify(buildResponseJsonSchema(), null, 2)}
 `
+	)
+}

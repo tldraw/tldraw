@@ -12,7 +12,7 @@ export interface AgentModelDefinition {
 	thinking?: boolean
 }
 
-export function getTLAgentModelDefinition(modelName: AgentModelName): AgentModelDefinition {
+export function getAgentModelDefinition(modelName: AgentModelName): AgentModelDefinition {
 	const definition = AGENT_MODEL_DEFINITIONS[modelName]
 	if (!definition) {
 		throw new Error(`Model ${modelName} not found`)

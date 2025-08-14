@@ -76,6 +76,14 @@ export abstract class PromptPartUtil<T = any> {
 
 		return [{ role: 'user', content: messageContent, priority: this.getPriority(part, prompt) }]
 	}
+
+	/**
+	 * Build a system message that gets concatenated with the other system messages.
+	 * @returns The system message, or null to not add anything to the system message.
+	 */
+	buildSystemMessage(_part: T, _prompt: AgentPrompt): string | null {
+		return null
+	}
 }
 
 export interface PromptPartUtilConstructor<T = any> {

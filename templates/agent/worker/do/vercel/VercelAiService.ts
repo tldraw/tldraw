@@ -9,10 +9,10 @@ import { LanguageModel, streamObject, streamText } from 'ai'
 import { AgentEvent } from '../../../shared/types/AgentEvent'
 import { AgentPrompt } from '../../../shared/types/AgentPrompt'
 import { Streaming } from '../../../shared/types/Streaming'
-import { AgentModelName, getTLAgentModelDefinition } from '../../models'
+import { AgentModelName, getAgentModelDefinition } from '../../models'
 import { buildMessages } from '../../prompt/buildMessages'
-import { AgentResponseZodSchema } from '../../prompt/schema'
-import { AGENT_SYSTEM_PROMPT, AGENT_SYSTEM_PROMPT_WITH_SCHEMA } from '../../prompt/system-prompt'
+import { buildResponseZodSchema } from '../../prompt/buildResponseZodSchema'
+import { buildSystemPrompt } from '../../prompt/buildSystemPrompt'
 import { Environment } from '../../types'
 import { TldrawAgentService } from './TldrawAgentService'
 
@@ -29,7 +29,7 @@ export class VercelAiService extends TldrawAgentService {
 	}
 
 	getModel(modelName: AgentModelName): LanguageModel {
-		const modelDefinition = getTLAgentModelDefinition(modelName)
+		const modelDefinition = getAgentModelDefinition(modelName)
 		const provider = modelDefinition.provider
 		return this[provider](modelDefinition.id)
 	}
@@ -57,16 +57,25 @@ async function* streamEventsVercel(
 
 	const geminiThinkingBudget = model.modelId === 'gemini-2.5-pro' ? 128 : 0
 
+	const messages = buildMessages(prompt)
+	const systemPrompt = buildSystemPrompt(prompt)
+
+	yield {
+		_type: 'debug',
+		complete: true,
+		label: 'SYSTEM',
+		data: { system: systemPrompt },
+	}
+
 	try {
 		if (model.provider === 'anthropic.messages') {
-			const messages = buildMessages(prompt)
 			messages.push({
 				role: 'assistant',
 				content: '{"events": [{"_type":',
 			})
 			const { textStream } = streamText({
 				model,
-				system: AGENT_SYSTEM_PROMPT_WITH_SCHEMA,
+				system: systemPrompt,
 				messages,
 				maxOutputTokens: 8192,
 				temperature: 0,
@@ -128,14 +137,14 @@ async function* streamEventsVercel(
 				yield { ...maybeIncompleteEvent, complete: true }
 			}
 		} else {
-			const messages = buildMessages(prompt)
-			const { partialObjectStream } = streamObject<typeof AgentResponseZodSchema>({
+			const schema = buildResponseZodSchema()
+			const { partialObjectStream } = streamObject<typeof schema>({
 				model,
-				system: AGENT_SYSTEM_PROMPT,
+				system: systemPrompt,
 				messages,
 				maxOutputTokens: 8192,
 				temperature: 0,
-				schema: AgentResponseZodSchema,
+				schema,
 				onError: (e) => {
 					console.error('Stream object error:', e)
 					throw e

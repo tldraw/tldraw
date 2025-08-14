@@ -53,7 +53,9 @@ export function promptAgent(promptOptions: AgentPromptOptions) {
 								}
 
 								if (transformedEvent.complete) {
-									console.log('EVENT: ', originalEvent, 'TRANSFORMED EVENT: ', transformedEvent)
+									if (transformedEvent._type !== 'debug') {
+										console.log('EVENT: ', originalEvent)
+									}
 								}
 
 								// Apply the event to the app and editor
