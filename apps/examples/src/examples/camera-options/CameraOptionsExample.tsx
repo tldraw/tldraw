@@ -72,7 +72,7 @@ const PaddingDisplay = track(() => {
 				left: px,
 				width: `calc(100% - ${px * 2}px)`,
 				height: `calc(100% - ${py * 2}px)`,
-				border: '1px dotted var(--color-text)',
+				border: '1px dotted var(--tl-color-text)',
 				pointerEvents: 'none',
 			}}
 		/>
@@ -105,7 +105,7 @@ const BoundsDisplay = track(() => {
 					width: w,
 					height: h,
 					// grey and white stripes
-					border: '1px dashed var(--color-text)',
+					border: '1px dashed var(--tl-color-text)',
 					backgroundImage: `
 			
 				`,

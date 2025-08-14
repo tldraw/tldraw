@@ -50,6 +50,12 @@
   "1dd1c5fb7f": {
     "translation": "Astăzi"
   },
+  "20976e7bec": {
+    "translation": "Camera este plină"
+  },
+  "21bfb2dc2e": {
+    "translation": "Această cameră se apropie de limita de dimensiune. Luați în considerare eliminarea unei părți din conținut sau începerea unui fișier nou."
+  },
   "22d84a12fd": {
     "translation": "Figjam dar tldraw"
   },
@@ -61,6 +67,9 @@
   },
   "2c61d18599": {
     "translation": "Miro, dar bun și gratuit"
+  },
+  "2deec2cb74": {
+    "translation": "Această cameră a atins limita de dimensiune și este posibil ca modificările să nu mai fie salvate. Eliminați o parte din conținut sau începeți un fișier nou."
   },
   "31246941ad": {
     "translation": "Trebuie să vă conectați pentru a vedea acest fișier."
@@ -143,6 +152,9 @@
   "5a95a425f7": {
     "translation": "Distribuie"
   },
+  "5bb6cf3b53": {
+    "translation": "Camera devine mare"
+  },
   "5bcc12ace8": {
     "translation": "Această cameră este acum doar pentru citire"
   },
@@ -214,6 +226,9 @@
   },
   "777f9e90cf": {
     "translation": "Solicitare nevalidă."
+  },
+  "78e9815992": {
+    "translation": "Am înţeles"
   },
   "797799f35e": {
     "translation": "Trimiteți o problemă pe GitHub"

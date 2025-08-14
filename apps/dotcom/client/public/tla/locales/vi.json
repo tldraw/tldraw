@@ -50,6 +50,12 @@
   "1dd1c5fb7f": {
     "translation": "Hôm nay"
   },
+  "20976e7bec": {
+    "translation": "Phòng đã đầy"
+  },
+  "21bfb2dc2e": {
+    "translation": "Phòng này sắp đạt đến giới hạn kích thước. Hãy cân nhắc xóa bớt nội dung hoặc tạo một tệp mới."
+  },
   "22d84a12fd": {
     "translation": "Figjam nhưng tldraw"
   },
@@ -61,6 +67,9 @@
   },
   "2c61d18599": {
     "translation": "Miro nhưng tốt và miễn phí"
+  },
+  "2deec2cb74": {
+    "translation": "Phòng này đã đạt đến giới hạn kích thước và các thay đổi có thể không còn được lưu nữa. Hãy xóa bớt nội dung hoặc tạo một tệp mới."
   },
   "31246941ad": {
     "translation": "Bạn cần đăng nhập để xem tệp này."
@@ -143,6 +152,9 @@
   "5a95a425f7": {
     "translation": "Chia sẻ"
   },
+  "5bb6cf3b53": {
+    "translation": "Phòng đang trở nên rộng hơn"
+  },
   "5bcc12ace8": {
     "translation": "Phòng này hiện chỉ có thể đọc"
   },
@@ -214,6 +226,9 @@
   },
   "777f9e90cf": {
     "translation": "Yêu cầu không hợp lệ."
+  },
+  "78e9815992": {
+    "translation": "Hiểu rồi"
   },
   "797799f35e": {
     "translation": "Gửi vấn đề trên GitHub"

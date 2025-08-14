@@ -294,7 +294,7 @@
 	button:not(.tla-button-text):focus-visible,
 .tl-container__focused:not(.tl-container__no-focus-ring) button:not(.tlui-button):focus-visible,
 .tl-container__focused:not(.tl-container__no-focus-ring) .tlui-layout__top a:focus-visible {
-	outline: 2px solid var(--color-focus);
+	outline: 2px solid var(--tl-color-focus);
 }
 
 /** We use tldraw components in some places, and menu sub-groups with checkbox items are also here. */
@@ -302,7 +302,7 @@
 	:is(.tlui-menu, .tlui-menu__group)
 	.tlui-button__menu:focus-visible {
 	border-radius: 10px;
-	outline: 2px solid var(--color-focus);
+	outline: 2px solid var(--tl-color-focus);
 	outline-offset: -5px;
 }
 
@@ -311,7 +311,7 @@
 	:is(nav, .tlui-popover__content, .tlui-dialog__overlay)
 	.tla-form-checkbox:has(input:focus-visible)
 	> label {
-	outline: 2px solid var(--color-focus);
+	outline: 2px solid var(--tl-color-focus);
 }
 
 /** Text buttons, specifically from the cookie consent */
@@ -319,7 +319,7 @@
 .tla:has(.tl-container__focused:not(.tl-container__no-focus-ring))
 	nav
 	.tla-button-text:focus-visible {
-	outline: 2px solid var(--color-focus);
+	outline: 2px solid var(--tl-color-focus);
 }
 
 /** Primary buttons in the top area (e.g. Share, Sign in) */

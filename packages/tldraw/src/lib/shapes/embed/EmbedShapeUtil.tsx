@@ -144,7 +144,7 @@ export class EmbedShapeUtil extends BaseBoxShapeUtil<TLEmbedShape> {
 							border: 0,
 							boxShadow: getRotatedBoxShadow(pageRotation),
 							borderRadius: embedInfo?.definition.overrideOutlineRadius ?? 8,
-							background: embedInfo?.definition.backgroundColor ?? 'var(--color-background)',
+							background: embedInfo?.definition.backgroundColor ?? 'var(--tl-color-background)',
 							width: w,
 							height: h,
 						}}

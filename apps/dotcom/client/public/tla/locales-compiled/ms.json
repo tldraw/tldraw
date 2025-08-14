@@ -105,6 +105,18 @@
       "value": "Hari ini"
     }
   ],
+  "20976e7bec": [
+    {
+      "type": 0,
+      "value": "Bilik penuh"
+    }
+  ],
+  "21bfb2dc2e": [
+    {
+      "type": 0,
+      "value": "Bilik ini menghampiri had saiznya. Pertimbangkan untuk mengalih keluar beberapa kandungan atau memulakan fail baharu."
+    }
+  ],
   "22d84a12fd": [
     {
       "type": 0,
@@ -127,6 +139,12 @@
     {
       "type": 0,
       "value": "Miro tetapi bagus dan percuma"
+    }
+  ],
+  "2deec2cb74": [
+    {
+      "type": 0,
+      "value": "Bilik ini telah mencapai had saiznya dan perubahan mungkin tidak disimpan lagi. Alih keluar beberapa kandungan atau mulakan fail baharu."
     }
   ],
   "31246941ad": [
@@ -301,6 +319,12 @@
       "value": "Kongsi"
     }
   ],
+  "5bb6cf3b53": [
+    {
+      "type": 0,
+      "value": "Bilik semakin besar"
+    }
+  ],
   "5bcc12ace8": [
     {
       "type": 0,
@@ -443,6 +467,12 @@
     {
       "type": 0,
       "value": "Permintaan tidak sah."
+    }
+  ],
+  "78e9815992": [
+    {
+      "type": 0,
+      "value": "faham"
     }
   ],
   "797799f35e": [

@@ -105,6 +105,18 @@
       "value": "Danes"
     }
   ],
+  "20976e7bec": [
+    {
+      "type": 0,
+      "value": "Soba je polna"
+    }
+  ],
+  "21bfb2dc2e": [
+    {
+      "type": 0,
+      "value": "Ta soba se bliža svoji omejitvi velikosti. Razmislite o odstranitvi nekaj vsebine ali ustvarjanju nove datoteke."
+    }
+  ],
   "22d84a12fd": [
     {
       "type": 0,
@@ -127,6 +139,12 @@
     {
       "type": 0,
       "value": "Miro, ampak dober in brezplačen"
+    }
+  ],
+  "2deec2cb74": [
+    {
+      "type": 0,
+      "value": "Ta soba je dosegla omejitev velikosti in spremembe morda ne bodo več shranjene. Odstranite nekaj vsebine ali začnite novo datoteko."
     }
   ],
   "31246941ad": [
@@ -301,6 +319,12 @@
       "value": "Deli"
     }
   ],
+  "5bb6cf3b53": [
+    {
+      "type": 0,
+      "value": "Soba postaja velika"
+    }
+  ],
   "5bcc12ace8": [
     {
       "type": 0,
@@ -443,6 +467,12 @@
     {
       "type": 0,
       "value": "Neveljavna zahteva."
+    }
+  ],
+  "78e9815992": [
+    {
+      "type": 0,
+      "value": "Razumem"
     }
   ],
   "797799f35e": [
