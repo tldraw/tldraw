@@ -48,7 +48,7 @@ export function TlaManageCookiesDialog() {
 							<TlaMenuControlLabel>
 								<F defaultMessage="Essential cookies" />
 							</TlaMenuControlLabel>
-							<TlaMenuControlInfoTooltip>
+							<TlaMenuControlInfoTooltip showOnMobile>
 								<F defaultMessage="We use these cookies to save your files and settings." />
 							</TlaMenuControlInfoTooltip>
 							<TlaMenuSwitch checked={true} disabled />
@@ -57,7 +57,7 @@ export function TlaManageCookiesDialog() {
 							<TlaMenuControlLabel>
 								<F defaultMessage="Analytics" />
 							</TlaMenuControlLabel>
-							<TlaMenuControlInfoTooltip>
+							<TlaMenuControlInfoTooltip showOnMobile>
 								<F defaultMessage="We use analytics cookies to make tldraw better." />
 							</TlaMenuControlInfoTooltip>
 							<TlaMenuSwitch

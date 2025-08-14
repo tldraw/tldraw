@@ -120,7 +120,6 @@ export function TldrawUiMenuItem<
 						type="menu"
 						data-testid={`${sourceId}.${id}`}
 						disabled={disabled}
-						title={titleStr}
 						onClick={(e) => {
 							if (noClose) {
 								preventDefault(e)
@@ -146,7 +145,6 @@ export function TldrawUiMenuItem<
 			return (
 				<_ContextMenu.Item
 					dir="ltr"
-					title={titleStr}
 					draggable={false}
 					className="tlui-button tlui-button__menu"
 					data-testid={`${sourceId}.${id}`}
@@ -166,20 +164,6 @@ export function TldrawUiMenuItem<
 					{kbd && <TldrawUiKbd>{kbd}</TldrawUiKbd>}
 					{spinner && <Spinner />}
 				</_ContextMenu.Item>
-			)
-		}
-		case 'panel': {
-			return (
-				<TldrawUiButton
-					data-testid={`${sourceId}.${id}`}
-					type="menu"
-					title={titleStr}
-					disabled={disabled}
-					onClick={() => onSelect(sourceId)}
-				>
-					<TldrawUiButtonLabel>{labelStr}</TldrawUiButtonLabel>
-					{spinner ? <Spinner /> : icon && <TldrawUiButtonIcon icon={icon} />}
-				</TldrawUiButton>
 			)
 		}
 		case 'small-icons':
@@ -342,6 +326,8 @@ function useDraggableEvents(
 					}
 
 					editor.run(() => {
+						editor.setCurrentTool('select')
+
 						// Set origin point
 						editor.dispatch({
 							type: 'pointer',

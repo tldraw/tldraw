@@ -2,120 +2,82 @@
 
 This file provides guidance to Claude Code (claude.ai/code) when working with code in this repository.
 
+## Essential Commands
+
+**Development:**
+- `yarn dev` - Runs examples app with hot reload (localhost:5420)
+- `yarn dev-app` - Runs dotcom client and workers
+- `yarn dev-docs` - Runs documentation site
+- `yarn dev-vscode` - Develops VS Code extension
+
+**Building & Testing:**
+- `yarn build` - Builds all packages
+- `yarn test run` - Runs all vitest tests (slow, use package-specific instead)
+- `yarn test-ci` - Runs CI test suite
+- `yarn typecheck` - Type checks entire codebase
+- `yarn lint` - Lints all code
+- `yarn format` - Formats code with Prettier
+
+**Package-specific commands:**
+- Run `yarn test run` within individual package directories for faster testing
+- Run `yarn build` within package directories for specific builds
+
 ## Architecture Overview
 
-Tldraw is a monorepo containing an infinite canvas SDK and the tldraw.com whiteboard application. The architecture consists of several key layers:
+This is a monorepo using Yarn workspaces with the following key components:
 
-### Core Architecture Layers
-- **State Management**: `packages/state` - Reactive signals library for state management
-- **Store Layer**: `packages/store` - Reactive client-side database for document storage
-- **Schema**: `packages/tlschema` - Type definitions, validators, and migrations
-- **Editor Core**: `packages/editor` - Core drawing editor functionality
-- **Tldraw SDK**: `packages/tldraw` - Complete SDK with shapes, tools, and UI
-- **Sync**: `packages/sync` + `packages/sync-core` - Real-time multiplayer functionality
+**Core SDK Packages:**
+- `packages/editor` - Core infinite canvas editor without shapes/tools
+- `packages/tldraw` - Complete editor with default shapes, tools, and UI
+- `packages/state` - Reactive signals library (like MobX/Solid)
+- `packages/store` - Reactive in-memory database for tldraw documents
+- `packages/tlschema` - Type definitions, validators, and migrations
+- `packages/utils` - Internal utilities and helpers
 
-### Key Workspaces
-- `packages/editor` - Core editor (camera, shapes, tools, primitives)
-- `packages/tldraw` - Main SDK with default shapes, tools, and UI
-- `packages/tlschema` - Data types and validation
-- `packages/state` - Reactive state management system
-- `packages/store` - Document storage and queries
-- `apps/dotcom/client` - The tldraw.com web application
-- `apps/examples` - SDK usage examples and development environment
+**Supporting Packages:**
+- `packages/assets` - Fonts, icons, translations, watermarks
+- `packages/sync` & `packages/sync-core` - Multiplayer SDK
+- `packages/ai` - AI integration module
+- `packages/validate` - Lightweight validation library
+
+**Applications:**
+- `apps/examples` - SDK examples and development environment
 - `apps/docs` - Documentation website (tldraw.dev)
+- `apps/dotcom/*` - The tldraw.com application and workers
+- `apps/vscode` - VS Code extension
 
-## Development Commands
+**Templates:**
+- Various starting points for different frameworks and use cases
 
-### Primary Development
-- `yarn dev` - Start examples app at localhost:5420 (most common for SDK development)
-- `yarn dev-app` - Start dotcom application with all workers
-- `yarn dev-docs` - Start documentation site
+## Key Development Patterns
 
-### Building and Testing
-- `yarn build` - Build all packages
-- `yarn typecheck` - Type check entire codebase
-- `yarn lint` - Lint all code
-- `yarn test` - Run all tests
-- `yarn test-ci` - Run tests in CI mode
-- `yarn e2e` - Run end-to-end tests for examples
-- `yarn e2e-dotcom` - Run end-to-end tests for dotcom
+**Monorepo Management:**
+- Uses `lazyrepo` for task orchestration and caching
+- Workspace dependencies use `workspace:*` protocol
+- Build system handles TypeScript compilation and API extraction
 
-### Package-Specific Commands
-Run commands in individual package directories:
-- `yarn test` - Run tests for specific package
-- `yarn build` - Build specific package
-- `yarn dev` - Development mode for specific package
+**State Management:**
+- Uses custom reactive signals (`@tldraw/state`) throughout
+- Editor state is managed via reactive derivations and atoms
+- Store manages document data with automatic persistence
 
-## Code Organization
+**Testing:**
+- vitest for unit tests with package-specific test commands
+- Playwright for E2E tests
+- Test files should be co-located with source files (`.test.ts`)
+- Integration tests go in `src/test/` directories
+- Use tldraw workspace for testing editor with default shapes
 
-### Lazy Build System
-The project uses `lazyrepo` for build orchestration. Configuration in `lazy.config.ts` defines:
-- Build dependencies between packages
-- Caching strategies
-- Script execution order
+**Examples Development:**
+- Examples live in `apps/examples/src/examples/`
+- Each example needs `README.md` with frontmatter and component file
+- Use footnote-style comments `// [1]` with explanations at bottom
+- Follow writing guide in `apps/examples/writing-examples.md`
 
-### Package Dependencies
-Packages have clear dependency hierarchy:
-1. `utils`, `validate`, `state` (foundation)
-2. `store`, `tlschema` (data layer)
-3. `editor` (core functionality)
-4. `tldraw` (complete SDK)
-5. Apps depend on SDK packages
+## Important Notes
 
-### Testing Structure
-- Vitest tests: Unit tests alongside source files (`.test.ts`)
-- Integration tests in `src/test/` directories
-- E2E tests using Playwright in `apps/examples/e2e/`
-- Run package-specific tests from within package directories
-
-## Working with Examples
-
-Examples are in `apps/examples/src/examples/`, each in its own folder with:
-- `README.md` with frontmatter (title, component, category, priority, keywords)
-- Main component file ending with "Example" (e.g., `CustomCanvasExample.tsx`)
-- Optional CSS and additional component files
-
-When creating examples, read `apps/examples/writing-examples.md` for detailed guidelines on:
-- Proper structure and naming
-- Comment formatting (use numbered footnotes)
-- Tight vs use-case examples
-- Layout and styling conventions
-
-## Build and Type System
-
-### TypeScript Configuration
-- Base config in `internal/config/tsconfig.base.json`
-- Individual `tsconfig.json` in each package
-- API extraction using `@microsoft/api-extractor`
-
-### Build Process
-1. `refresh-assets` - Copy assets and generate imports
-2. `build-types` - Generate TypeScript declarations
-3. `build-api` - Extract API documentation
-4. `build` - Build packages in dependency order
-
-### Code Style and Conventions
-- TypeScript throughout
-- React for UI components
-- Follow existing patterns in each package
-- Use the established state management patterns
-- Preserve "Made with tldraw" watermark in SDK usage
-
-## Common Development Patterns
-
-### State Management
-Use the reactive signals system from `packages/state`:
-- `useValue(signal)` for reactive React hooks
-- `computed()` for derived values
-- Atoms for mutable state
-
-### Editor Integration
-- Extend `StateNode` for custom tools
-- Extend `ShapeUtil` for custom shapes
-- Use `Editor` instance methods for programmatic control
-
-### Shape Development
-- Define shape type in `tlschema`
-- Create `ShapeUtil` in appropriate package
-- Add to default shape utils if part of core SDK
-- you can run typescript for the whole project with `yarn typecheck` in the root
+- Node.js ^20.0.0 required
+- Uses Yarn Berry (4.7.0+) - enable corepack
+- TypeScript project with strict type checking
+- CSS bundled separately (`tldraw.css`, `editor.css`)
+- Watermark licensing applies to commercial use
