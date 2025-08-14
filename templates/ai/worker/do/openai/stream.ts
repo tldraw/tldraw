@@ -4,7 +4,7 @@ import OpenAI from 'openai'
 import { buildPromptMessages } from './prompt'
 import { ISimpleEvent, RESPONSE_FORMAT, SimpleEvent } from './schema'
 
-const OPENAI_MODEL = 'gpt-4o-2024-08-06'
+const OPENAI_MODEL = 'gpt-4.1-2025-04-14'
 
 /**
  * Prompt the OpenAI model with the given prompt. Stream the events as they come back.

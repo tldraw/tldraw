@@ -1,0 +1,56 @@
+import { Box, BoxModel, Editor, TLShape } from 'tldraw'
+import { roundBox } from '../AgentTransform'
+import { AgentPromptOptions } from '../types/AgentPrompt'
+import { PromptPartUtil } from './PromptPartUtil'
+import { getWholePageContent } from './getWholePageContent'
+
+export class PeripheralShapesPartUtil extends PromptPartUtil<BoxModel[]> {
+	static override type = 'peripheralShapes' as const
+
+	override getPriority() {
+		return 65 // peripheral content after viewport shapes (low priority)
+	}
+
+	override async getPart(options: AgentPromptOptions) {
+		const { editor, request } = options
+		const currentPageContent = getWholePageContent({ editor })
+		const contextBounds = request.bounds
+
+		const shapes = currentPageContent.shapes
+			.map((shape) => {
+				const bounds = editor.getShapeMaskedPageBounds(shape)
+				if (!bounds) return
+				if (Box.From(contextBounds).includes(bounds)) return
+				return convertTldrawShapeToPeripheralShape(shape, editor)
+			})
+			.filter((s) => s !== undefined)
+
+		return shapes
+	}
+
+	override transformPart(part: BoxModel[]): BoxModel[] | null {
+		return part.map((shape) => roundBox(shape))
+	}
+
+	override buildContent(peripheralContent: BoxModel[]): string[] {
+		if (peripheralContent.length === 0) {
+			return []
+		}
+
+		return [
+			`Here are the shapes in your peripheral vision, outside the viewport. You can only see their position and size, not their content. If you want to see their content, you need to get closer.`,
+			JSON.stringify(peripheralContent),
+		]
+	}
+}
+
+function convertTldrawShapeToPeripheralShape(shape: TLShape, editor: Editor) {
+	const bounds = editor.getShapeMaskedPageBounds(shape)
+	if (!bounds) return
+	return {
+		x: bounds.x,
+		y: bounds.y,
+		w: bounds.w,
+		h: bounds.h,
+	}
+}
