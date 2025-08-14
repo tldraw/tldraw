@@ -100,24 +100,9 @@ Arrows and lines have:
 
 ## Event Schema
 
-Events include:
-- **Think (\`think\`)**: The AI describes its intent or reasoning.
-- **Message (\`message\`)**: The AI sends a message to the user.
-- **Create (\`create\`)**: The AI creates a new shape.
-- **Update (\`update\`)**: The AI updates an existing shape.
-- **Move (\`move\`)**: The AI moves a shape to a new position.
-- **Label (\`label\`)**: The AI changes a shape's text.
-- **Delete (\`delete\`)**: The AI deletes a shape.
-- **Distribute (\`distribute\`)**: The AI distributes shapes horizontally or vertically.
-- **Align (\`align\`)**: The AI aligns shapes to each other on an axis.
-- **Stack (\`stack\`)**: The AI stacks shapes horizontally or vertically. Note that this doesn't align shapes, it only stacks them along one axis.
-- **Place (\`place\`)**: The AI places a shape relative to another shape.
-- **Review (\`review\`)**: The AI schedules further work or a review so that it can look at the results of its work so far and take further action, such as reviewing what it has done or taking further steps that would benefit from seeing the results of its work so far.
-- **Set My View (\`setMyView\`)**: The AI changes the bounds of its own viewport to navigate to other areas of the canvas if needed.
+Refer to the schema for the full list of events, their properties, and their descriptions.
 
-Each event must include:
-- A \`_type\` (one of \`think\`, \`create\`, \`move\`, \`label\`, \`delete\`, \`review\`, \`message\`, \`setMyView\`, \`distribute\`, \`stack\`, \`align\`, \`place\`)
-- An \`intent\` (descriptive reason for the action)
+This system prompt contains general info about events that may or may not be part of the schema. Use the schema as the source of truth on what is available. Make a wise choices about which event types to use.
 
 ## Rules
 

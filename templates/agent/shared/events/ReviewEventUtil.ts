@@ -6,14 +6,20 @@ import { ScheduledRequest } from '../types/ScheduledRequest'
 import { Streaming } from '../types/Streaming'
 import { AgentEventUtil } from './AgentEventUtil'
 
-const AgentReviewEvent = z.object({
-	_type: z.literal('review'),
-	h: z.number(),
-	intent: z.string(),
-	w: z.number(),
-	x: z.number(),
-	y: z.number(),
-})
+const AgentReviewEvent = z
+	.object({
+		_type: z.literal('review'),
+		h: z.number(),
+		intent: z.string(),
+		w: z.number(),
+		x: z.number(),
+		y: z.number(),
+	})
+	.meta({
+		title: 'Review',
+		description:
+			'The AI schedules further work or a review so that it can look at the results of its work so far and take further action, such as reviewing what it has done or taking further steps that would benefit from seeing the results of its work so far.',
+	})
 
 type IAgentReviewEvent = z.infer<typeof AgentReviewEvent>
 

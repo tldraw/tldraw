@@ -4,12 +4,17 @@ import { AgentTransform } from '../AgentTransform'
 import { Streaming } from '../types/Streaming'
 import { AgentEventUtil } from './AgentEventUtil'
 
-const AgentDistributeEvent = z.object({
-	_type: z.literal('distribute'),
-	direction: z.enum(['horizontal', 'vertical']),
-	intent: z.string(),
-	shapeIds: z.array(z.string()),
-})
+const AgentDistributeEvent = z
+	.object({
+		_type: z.literal('distribute'),
+		direction: z.enum(['horizontal', 'vertical']),
+		intent: z.string(),
+		shapeIds: z.array(z.string()),
+	})
+	.meta({
+		title: 'Distribute',
+		description: 'The AI distributes shapes horizontally or vertically.',
+	})
 
 type IAgentDistributeEvent = z.infer<typeof AgentDistributeEvent>
 

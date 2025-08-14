@@ -7,11 +7,13 @@ import { AgentTransform } from '../AgentTransform'
 import { Streaming } from '../types/Streaming'
 import { AgentEventUtil } from './AgentEventUtil'
 
-const AgentCreateEvent = z.object({
-	_type: z.literal('create'),
-	intent: z.string(),
-	shape: SimpleShape,
-})
+const AgentCreateEvent = z
+	.object({
+		_type: z.literal('create'),
+		intent: z.string(),
+		shape: SimpleShape,
+	})
+	.meta({ title: 'Create', description: 'The AI creates a new shape.' })
 
 type IAgentCreateEvent = z.infer<typeof AgentCreateEvent>
 

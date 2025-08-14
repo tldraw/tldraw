@@ -4,12 +4,14 @@ import { AgentTransform } from '../AgentTransform'
 import { Streaming } from '../types/Streaming'
 import { AgentEventUtil } from './AgentEventUtil'
 
-const AgentLabelEvent = z.object({
-	_type: z.literal('label'),
-	intent: z.string(),
-	shapeId: z.string(),
-	text: z.string(),
-})
+const AgentLabelEvent = z
+	.object({
+		_type: z.literal('label'),
+		intent: z.string(),
+		shapeId: z.string(),
+		text: z.string(),
+	})
+	.meta({ title: 'Label', description: "The AI changes a shape's text." })
 
 type IAgentLabelEvent = z.infer<typeof AgentLabelEvent>
 

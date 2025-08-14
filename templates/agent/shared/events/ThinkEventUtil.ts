@@ -3,10 +3,12 @@ import { AgentHistoryItemStatus } from '../../client/components/chat-history/Age
 import { Streaming } from '../types/Streaming'
 import { AgentEventUtil } from './AgentEventUtil'
 
-const AgentThinkEvent = z.object({
-	_type: z.literal('think'),
-	text: z.string(),
-})
+const AgentThinkEvent = z
+	.object({
+		_type: z.literal('think'),
+		text: z.string(),
+	})
+	.meta({ title: 'Thinkerrrr', description: 'The AI describes its intent or reasoning.' })
 
 type IAgentThinkEvent = z.infer<typeof AgentThinkEvent>
 

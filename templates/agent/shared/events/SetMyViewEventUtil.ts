@@ -5,14 +5,20 @@ import { ScheduledRequest } from '../types/ScheduledRequest'
 import { Streaming } from '../types/Streaming'
 import { AgentEventUtil } from './AgentEventUtil'
 
-const AgentSetMyViewEvent = z.object({
-	_type: z.literal('setMyView'),
-	h: z.number(),
-	intent: z.string(),
-	w: z.number(),
-	x: z.number(),
-	y: z.number(),
-})
+const AgentSetMyViewEvent = z
+	.object({
+		_type: z.literal('setMyView'),
+		h: z.number(),
+		intent: z.string(),
+		w: z.number(),
+		x: z.number(),
+		y: z.number(),
+	})
+	.meta({
+		title: 'Set My View',
+		description:
+			'The AI changes the bounds of its own viewport to navigate to other areas of the canvas if needed.',
+	})
 
 type IAgentSetMyViewEvent = z.infer<typeof AgentSetMyViewEvent>
 

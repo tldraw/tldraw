@@ -18,11 +18,16 @@ import { AgentTransform } from '../AgentTransform'
 import { Streaming } from '../types/Streaming'
 import { AgentEventUtil } from './AgentEventUtil'
 
-const AgentUpdateEvent = z.object({
-	_type: z.literal('update'),
-	intent: z.string(),
-	update: SimpleShape,
-})
+const AgentUpdateEvent = z
+	.object({
+		_type: z.literal('update'),
+		intent: z.string(),
+		update: SimpleShape,
+	})
+	.meta({
+		title: 'Update',
+		description: 'The AI updates an existing shape.',
+	})
 
 type IAgentUpdateEvent = z.infer<typeof AgentUpdateEvent>
 

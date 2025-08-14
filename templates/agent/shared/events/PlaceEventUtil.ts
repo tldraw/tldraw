@@ -4,16 +4,18 @@ import { AgentTransform } from '../AgentTransform'
 import { Streaming } from '../types/Streaming'
 import { AgentEventUtil } from './AgentEventUtil'
 
-const AgentPlaceEvent = z.object({
-	_type: z.literal('place'),
-	intent: z.string(),
-	shapeId: z.string(),
-	referenceShapeId: z.string(),
-	side: z.enum(['top', 'bottom', 'left', 'right']),
-	sideOffset: z.number(),
-	align: z.enum(['start', 'center', 'end']),
-	alignOffset: z.number(),
-})
+const AgentPlaceEvent = z
+	.object({
+		_type: z.literal('place'),
+		intent: z.string(),
+		shapeId: z.string(),
+		referenceShapeId: z.string(),
+		side: z.enum(['top', 'bottom', 'left', 'right']),
+		sideOffset: z.number(),
+		align: z.enum(['start', 'center', 'end']),
+		alignOffset: z.number(),
+	})
+	.meta({ title: 'Place', description: 'The AI places a shape relative to another shape.' })
 
 type IAgentPlaceEvent = z.infer<typeof AgentPlaceEvent>
 

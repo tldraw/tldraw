@@ -4,13 +4,15 @@ import { AgentTransform } from '../AgentTransform'
 import { Streaming } from '../types/Streaming'
 import { AgentEventUtil } from './AgentEventUtil'
 
-const AgentAlignEvent = z.object({
-	_type: z.literal('align'),
-	alignment: z.enum(['top', 'bottom', 'left', 'right', 'center-horizontal', 'center-vertical']),
-	gap: z.number(),
-	intent: z.string(),
-	shapeIds: z.array(z.string()),
-})
+const AgentAlignEvent = z
+	.object({
+		_type: z.literal('align'),
+		alignment: z.enum(['top', 'bottom', 'left', 'right', 'center-horizontal', 'center-vertical']),
+		gap: z.number(),
+		intent: z.string(),
+		shapeIds: z.array(z.string()),
+	})
+	.meta({ title: 'Align', description: 'The AI aligns shapes to each other on an axis.' })
 
 type IAgentAlignEvent = z.infer<typeof AgentAlignEvent>
 

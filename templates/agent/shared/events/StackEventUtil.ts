@@ -4,13 +4,19 @@ import { AgentTransform } from '../AgentTransform'
 import { Streaming } from '../types/Streaming'
 import { AgentEventUtil } from './AgentEventUtil'
 
-const AgentStackEvent = z.object({
-	_type: z.literal('stack'),
-	direction: z.enum(['vertical', 'horizontal']),
-	gap: z.number(),
-	intent: z.string(),
-	shapeIds: z.array(z.string()),
-})
+const AgentStackEvent = z
+	.object({
+		_type: z.literal('stack'),
+		direction: z.enum(['vertical', 'horizontal']),
+		gap: z.number(),
+		intent: z.string(),
+		shapeIds: z.array(z.string()),
+	})
+	.meta({
+		title: 'Stack',
+		description:
+			"The AI stacks shapes horizontally or vertically. Note that this doesn't align shapes, it only stacks them along one axis.",
+	})
 
 type IAgentStackEvent = z.infer<typeof AgentStackEvent>
 

@@ -4,11 +4,13 @@ import { AgentTransform } from '../AgentTransform'
 import { Streaming } from '../types/Streaming'
 import { AgentEventUtil } from './AgentEventUtil'
 
-const AgentDeleteEvent = z.object({
-	_type: z.literal('delete'),
-	intent: z.string(),
-	shapeId: z.string(),
-})
+const AgentDeleteEvent = z
+	.object({
+		_type: z.literal('delete'),
+		intent: z.string(),
+		shapeId: z.string(),
+	})
+	.meta({ title: 'Delete', description: 'The AI deletes a shape.' })
 
 type IAgentDeleteEvent = z.infer<typeof AgentDeleteEvent>
 

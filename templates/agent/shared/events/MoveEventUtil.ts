@@ -4,13 +4,15 @@ import { AgentTransform } from '../AgentTransform'
 import { Streaming } from '../types/Streaming'
 import { AgentEventUtil } from './AgentEventUtil'
 
-const AgentMoveEvent = z.object({
-	_type: z.literal('move'),
-	intent: z.string(),
-	shapeId: z.string(),
-	x: z.number(),
-	y: z.number(),
-})
+const AgentMoveEvent = z
+	.object({
+		_type: z.literal('move'),
+		intent: z.string(),
+		shapeId: z.string(),
+		x: z.number(),
+		y: z.number(),
+	})
+	.meta({ title: 'Move', description: 'The AI moves a shape to a new position.' })
 
 type IAgentMoveEvent = z.infer<typeof AgentMoveEvent>
 
