@@ -1,5 +1,5 @@
 import { BoxModel } from 'tldraw'
-import { AgentTransform } from '../AgentTransform'
+import { roundBox } from '../AgentTransform'
 import { AgentPromptOptions } from '../types/AgentPrompt'
 import { PromptPartUtil } from './PromptPartUitl'
 
@@ -14,8 +14,8 @@ export class AgentViewportBoundsPartUtil extends PromptPartUtil<BoxModel> {
 		return options.request.bounds
 	}
 
-	override transformPart(part: BoxModel, transform: AgentTransform): BoxModel {
-		return transform.roundBoxModel(part)
+	override transformPart(part: BoxModel): BoxModel {
+		return roundBox(part)
 	}
 
 	override buildContent(contextBounds: BoxModel): string[] {

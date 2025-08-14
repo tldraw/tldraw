@@ -23,9 +23,22 @@ export class UpdateEventUtil extends AgentEventUtil<IAgentUpdateEvent> {
 	override transformEvent(event: Streaming<IAgentUpdateEvent>, transform: AgentTransform) {
 		if (!event.complete) return event
 
-		const update = transform.sanitizeExistingShape(event.update)
-		if (!update) return null
-		event.update = update
+		const { update } = event
+
+		// Ensure the shape ID refers to a real shape
+		const shapeId = transform.ensureShapeIdIsReal(update.shapeId)
+		if (!shapeId) return null
+		update.shapeId = shapeId
+
+		// If it's an arrow, ensure the from and to IDs refer to real shapes
+		if (update._type === 'arrow') {
+			if (update.fromId) {
+				update.fromId = transform.ensureShapeIdIsReal(update.fromId)
+			}
+			if (update.toId) {
+				update.toId = transform.ensureShapeIdIsReal(update.toId)
+			}
+		}
 
 		return event
 	}

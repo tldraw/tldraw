@@ -18,7 +18,7 @@ export class StackEventUtil extends AgentEventUtil<IAgentStackEvent> {
 	override transformEvent(event: Streaming<IAgentStackEvent>, transform: AgentTransform) {
 		if (!event.complete) return event
 
-		event.shapeIds = transform.sanitizeExistingShapeIds(event.shapeIds)
+		event.shapeIds = transform.ensureShapeIdsAreReal(event.shapeIds)
 
 		return event
 	}

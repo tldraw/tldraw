@@ -31,9 +31,7 @@ export class AgentViewportShapesPartUtil extends PromptPartUtil<ISimpleShape[]> 
 	}
 
 	override transformPart(part: ISimpleShape[], transform: AgentTransform): ISimpleShape[] {
-		return part
-			.map((shape) => transform.sanitizeExistingShape(shape))
-			.filter((shape): shape is ISimpleShape => shape !== null)
+		return part.map((shape) => transform.roundShape(shape))
 	}
 
 	override buildContent(agentViewportShapes: ISimpleShape[]): string[] {

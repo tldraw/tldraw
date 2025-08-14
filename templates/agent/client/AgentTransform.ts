@@ -23,74 +23,17 @@ export class AgentTransform {
 	shapeIdMap = new Map<string, string>()
 
 	/**
-	 * Ensure that a new simple shape is valid.
-	 * If it isn't valid, fix it.
-	 * @returns The sanitized shape.
+	 * A map of rounding diffs, stored by key.
+	 * These are used to restore the original values of rounded numbers.
 	 */
-	sanitizeNewShape(shape: ISimpleShape): ISimpleShape {
-		if (shape.shapeId) {
-			shape.shapeId = this.sanitizeNewShapeId(shape.shapeId)
-		}
-
-		if (shape._type === 'arrow') {
-			if (shape.fromId) {
-				shape.fromId = this.sanitizeExistingShapeId(shape.fromId)
-			}
-			if (shape.toId) {
-				shape.toId = this.sanitizeExistingShapeId(shape.toId)
-			}
-		}
-
-		shape = this.sanitizeShapeNumbers(shape)
-
-		return shape
-	}
+	roundingDiffMap = new Map<string, number>()
 
 	/**
-	 * Ensure that an existing simple shape is valid.
-	 * If it isn't valid, fix it.
-	 * @returns The sanitized shape, or null if the shape is invalid.
+	 * Ensure that a shape ID is unique.
+	 * @param id - The id to check.
+	 * @returns The unique id.
 	 */
-	sanitizeExistingShape(shape: ISimpleShape): ISimpleShape | null {
-		if (shape.shapeId) {
-			const shapeId = this.sanitizeExistingShapeId(shape.shapeId)
-			if (!shapeId) return null
-			shape.shapeId = shapeId
-		}
-
-		if (shape._type === 'arrow') {
-			if (shape.fromId) {
-				shape.fromId = this.sanitizeExistingShapeId(shape.fromId)
-			}
-			if (shape.toId) {
-				shape.toId = this.sanitizeExistingShapeId(shape.toId)
-			}
-		}
-
-		// TODO: move this to a separate function. we don't need to round numbers we receive from the model
-		// We only want to round numbers that we send to it.
-		shape = this.sanitizeShapeNumbers(shape)
-		return shape
-	}
-
-	/**
-	 * Ensure a shape ID does not have the 'shape:' prefix.
-	 * @param id - The id to sanitize.
-	 * @returns The sanitized id.
-	 */
-	sanitizeShapeIdPrefix(id: string): string {
-		// The model shouldn't use the 'shape:' prefix, but remove it if it does by accident.
-		return id.startsWith('shape:') ? id.slice('shape:'.length) : id
-	}
-
-	/**
-	 * Ensure that a shape ID is valid and unique.
-	 * @param id - The id to sanitize.
-	 * @returns The sanitized id.
-	 */
-	sanitizeNewShapeId(id: string): string {
-		id = this.sanitizeShapeIdPrefix(id)
-
+	ensureShapeIdIsUnique(id: string): string {
 		// Ensure the id is unique by incrementing a number at the end
 		let newId = id
 		let existingShape = this.editor.getShape(`shape:${newId}` as TLShapeId)
@@ -111,18 +54,12 @@ export class AgentTransform {
 		return newId
 	}
 
-	sanitizeExistingShapeIds(ids: string[]): string[] {
-		return ids.map((id) => this.sanitizeExistingShapeId(id)).filter((v) => v !== null)
-	}
-
 	/**
-	 * Ensure that an existing shape ID is valid.
-	 * @param id - The id to sanitize.
-	 * @returns The sanitized id.
+	 * Ensure that a shape ID refers to a real shape.
+	 * @param id - The id to check.
+	 * @returns The real id, or null if the shape doesn't exist.
 	 */
-	sanitizeExistingShapeId(id: string): string | null {
-		id = this.sanitizeShapeIdPrefix(id)
-
+	ensureShapeIdIsReal(id: string): string | null {
 		// If there's already a transformed ID, use that
 		const existingId = this.shapeIdMap.get(id)
 		if (existingId) {
@@ -139,59 +76,64 @@ export class AgentTransform {
 		return null
 	}
 
-	numberDiffMap = new Map<string, number>()
-
-	sanitizeShapeNumbers(shape: ISimpleShape): ISimpleShape {
-		// TODO check for cache hit in numberDiffMap first
-		shape = this.roundAndSaveShapeCoordinates(shape)
-		shape = this.roundAndSaveShapeSize(shape)
-		return shape
+	/**
+	 * Ensure that all shape IDs refer to real shapes.
+	 * @param ids - An array of ids to check.
+	 * @returns The array of ids, with imaginary ids removed.
+	 */
+	ensureShapeIdsAreReal(ids: string[]): string[] {
+		return ids.map((id) => this.ensureShapeIdIsReal(id)).filter((v) => v !== null)
 	}
 
-	roundAndSaveShapeCoordinates(shape: ISimpleShape): ISimpleShape {
+	/**
+	 * Round the numbers of a shape, and save the diffs so that it can be restored later.
+	 * @param shape - The shape to round.
+	 * @returns The rounded shape.
+	 */
+	roundShape(shape: ISimpleShape): ISimpleShape {
 		if (shape._type === 'arrow' || shape._type === 'line') {
-			shape = this.roundAndSaveShapeNumberProperty(shape, 'x1')
-			shape = this.roundAndSaveShapeNumberProperty(shape, 'y1')
-			shape = this.roundAndSaveShapeNumberProperty(shape, 'x2')
-			shape = this.roundAndSaveShapeNumberProperty(shape, 'y2')
+			shape = this.roundNumberProperty(shape, 'x1')
+			shape = this.roundNumberProperty(shape, 'y1')
+			shape = this.roundNumberProperty(shape, 'x2')
+			shape = this.roundNumberProperty(shape, 'y2')
 		} else {
-			shape = this.roundAndSaveShapeNumberProperty(shape, 'x')
-			shape = this.roundAndSaveShapeNumberProperty(shape, 'y')
+			shape = this.roundNumberProperty(shape, 'x')
+			shape = this.roundNumberProperty(shape, 'y')
 		}
+
+		shape = this.roundNumberProperty(shape, 'width')
+		shape = this.roundNumberProperty(shape, 'height')
 		return shape
 	}
 
-	roundAndSaveShapeSize(shape: ISimpleShape): ISimpleShape {
-		shape = this.roundAndSaveShapeNumberProperty(shape, 'width')
-		shape = this.roundAndSaveShapeNumberProperty(shape, 'height')
-		return shape
-	}
-
-	roundAndSaveShapeNumberProperty(
-		shape: ISimpleShape,
-		property: ISimpleShapeNumberKeys
-	): ISimpleShape {
+	/**
+	 * Round a number property of a shape, and save the diff so that it can be restored later.
+	 * @param shape - The shape to round.
+	 * @param property - The property to round.
+	 * @returns The rounded shape.
+	 */
+	roundNumberProperty(shape: ISimpleShape, property: ISimpleShapeNumberKeys): ISimpleShape {
 		if (!property) return shape
 		const value = (shape as any)[property] as number
 		if (value === undefined) return shape
 
 		const diff = Math.round(value) - value
 		;(shape as any)[property] = diff + value
-		this.numberDiffMap.set(shape.shapeId + '_' + property, diff)
+		this.roundingDiffMap.set(shape.shapeId + '_' + property, diff)
 		return shape
 	}
+}
 
-	roundBoxModel(boxModel: BoxModel): BoxModel {
-		boxModel.x = Math.round(boxModel.x)
-		boxModel.y = Math.round(boxModel.y)
-		boxModel.w = Math.round(boxModel.w)
-		boxModel.h = Math.round(boxModel.h)
-		return boxModel
-	}
+export function roundBox(boxModel: BoxModel): BoxModel {
+	boxModel.x = Math.round(boxModel.x)
+	boxModel.y = Math.round(boxModel.y)
+	boxModel.w = Math.round(boxModel.w)
+	boxModel.h = Math.round(boxModel.h)
+	return boxModel
+}
 
-	roundVecModel(vecModel: VecModel): VecModel {
-		vecModel.x = Math.round(vecModel.x)
-		vecModel.y = Math.round(vecModel.y)
-		return vecModel
-	}
+export function roundVec(vecModel: VecModel): VecModel {
+	vecModel.x = Math.round(vecModel.x)
+	vecModel.y = Math.round(vecModel.y)
+	return vecModel
 }

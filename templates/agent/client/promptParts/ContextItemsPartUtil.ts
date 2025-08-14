@@ -1,5 +1,4 @@
-import { ISimpleShape } from '../../worker/simple/SimpleShape'
-import { AgentTransform } from '../AgentTransform'
+import { AgentTransform, roundBox, roundVec } from '../AgentTransform'
 import { AgentPromptOptions } from '../types/AgentPrompt'
 import { ContextItem } from '../types/ContextItem'
 import { PromptPartUtil } from './PromptPartUitl'
@@ -16,7 +15,37 @@ export class ContextItemsPartUtil extends PromptPartUtil<ContextItem[]> {
 	}
 
 	override transformPart(part: ContextItem[], transform: AgentTransform): ContextItem[] {
-		return part.map((item) => transformContextItem(item, transform))
+		return part.map((contextItem) => {
+			switch (contextItem.type) {
+				case 'shape': {
+					return {
+						...contextItem,
+						shape: transform.roundShape(contextItem.shape),
+					}
+				}
+				case 'shapes': {
+					return {
+						...contextItem,
+						shapes: contextItem.shapes.map((shape) => transform.roundShape(shape)),
+					}
+				}
+				case 'area': {
+					return {
+						...contextItem,
+						bounds: roundBox(contextItem.bounds),
+					}
+				}
+				case 'point': {
+					return {
+						...contextItem,
+						point: roundVec(contextItem.point),
+					}
+				}
+				default: {
+					return contextItem
+				}
+			}
+		})
 	}
 
 	override buildContent(contextItems: ContextItem[]): string[] {
@@ -72,50 +101,5 @@ export class ContextItemsPartUtil extends PromptPartUtil<ContextItem[]> {
 		}
 
 		return messages
-	}
-}
-
-/**
- * Transforms context items by sanitizing any shapes within them using the provided AgentTransform.
- * This function handles both individual shape context items and groups of shapes context items.
- *
- * @param contextItems - Array of SimpleContextItem to transform
- * @param transform - AgentTransform instance used for sanitizing shapes
- * @returns Array of transformed SimpleContextItem with sanitized shapes
- */
-export function transformContextItem(
-	contextItem: ContextItem,
-	transform: AgentTransform
-): ContextItem {
-	switch (contextItem.type) {
-		case 'shape': {
-			return {
-				...contextItem,
-				shape: transform.sanitizeExistingShape(contextItem.shape) as ISimpleShape,
-			}
-		}
-		case 'shapes': {
-			return {
-				...contextItem,
-				shapes: contextItem.shapes.map(
-					(shape) => transform.sanitizeExistingShape(shape) as ISimpleShape
-				),
-			}
-		}
-		case 'area': {
-			return {
-				...contextItem,
-				bounds: transform.roundBoxModel(contextItem.bounds),
-			}
-		}
-		case 'point': {
-			return {
-				...contextItem,
-				point: transform.roundVecModel(contextItem.point),
-			}
-		}
-		default: {
-			return contextItem
-		}
 	}
 }

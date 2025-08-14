@@ -20,7 +20,20 @@ export class CreateEventUtil extends AgentEventUtil<IAgentCreateEvent> {
 	override transformEvent(event: Streaming<IAgentCreateEvent>, transform: AgentTransform) {
 		if (!event.complete) return event
 
-		event.shape = transform.sanitizeNewShape(event.shape)
+		const shape = event.shape
+
+		// Ensure the created shape has a unique ID
+		shape.shapeId = transform.ensureShapeIdIsUnique(shape.shapeId)
+
+		// If the shape is an arrow, ensure the from and to IDs are real shapes
+		if (shape._type === 'arrow') {
+			if (shape.fromId) {
+				shape.fromId = transform.ensureShapeIdIsReal(shape.fromId)
+			}
+			if (shape.toId) {
+				shape.toId = transform.ensureShapeIdIsReal(shape.toId)
+			}
+		}
 
 		return event
 	}

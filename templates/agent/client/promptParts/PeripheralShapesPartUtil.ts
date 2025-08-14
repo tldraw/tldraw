@@ -1,5 +1,5 @@
 import { Box, BoxModel } from 'tldraw'
-import { AgentTransform } from '../AgentTransform'
+import { roundBox } from '../AgentTransform'
 import { convertTldrawShapeToPeripheralShape } from '../ai/promptConstruction/convertTldrawShapeToPeripheralShape'
 import { getWholePageContent } from '../ai/promptConstruction/getWholePageContent'
 import { AgentPromptOptions } from '../types/AgentPrompt'
@@ -29,8 +29,8 @@ export class PeripheralShapesPartUtil extends PromptPartUtil<BoxModel[]> {
 		return shapes
 	}
 
-	override transformPart(part: BoxModel[], transform: AgentTransform): BoxModel[] | null {
-		return part.map((shape) => transform.roundBoxModel(shape))
+	override transformPart(part: BoxModel[]): BoxModel[] | null {
+		return part.map((shape) => roundBox(shape))
 	}
 
 	override buildContent(peripheralContent: BoxModel[]): string[] {

@@ -29,7 +29,7 @@ export class UserSelectedShapesPartUtil extends PromptPartUtil<ISimpleShape[]> {
 
 	override transformPart(part: ISimpleShape[], transform: AgentTransform) {
 		return part
-			.map((shape) => transform.sanitizeExistingShape(shape))
+			.map((shape) => transform.roundShape(shape))
 			.filter((shape): shape is ISimpleShape => shape !== null)
 	}
 

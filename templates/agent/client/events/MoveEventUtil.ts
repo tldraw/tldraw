@@ -18,7 +18,7 @@ export class MoveEventUtil extends AgentEventUtil<IAgentMoveEvent> {
 	override transformEvent(event: Streaming<IAgentMoveEvent>, transform: AgentTransform) {
 		if (!event.complete) return event
 
-		const shapeId = transform.sanitizeExistingShapeId(event.shapeId)
+		const shapeId = transform.ensureShapeIdIsReal(event.shapeId)
 		if (!shapeId) return null
 
 		event.shapeId = shapeId
