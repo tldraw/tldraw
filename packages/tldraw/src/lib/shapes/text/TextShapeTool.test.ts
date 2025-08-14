@@ -1,5 +1,5 @@
 import { DefaultTextAlignStyle, TLTextShape, toRichText } from '@tldraw/editor'
-import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
+import { vi } from 'vitest'
 import { TestEditor } from '../../../test/TestEditor'
 import { TextShapeTool } from './TextShapeTool'
 

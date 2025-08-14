@@ -13,10 +13,10 @@
 	"files": [],
 	"scripts": {
 		"dev": "./dev.sh",
-		"test-ci": "lazy inherit",
-		"test": "yarn run -T vitest run",
+		"test-ci": "yarn run -T vitest run --passWithNoTests",
+		"test": "yarn run -T vitest --passWithNoTests",
 		"clean": "rm -rf .wrangler/state",
-		"test-coverage": "lazy inherit",
+		"test-coverage": "yarn run -T vitest run --coverage --passWithNoTests",
 		"check-bundle-size": "yarn run -T tsx ../../../internal/scripts/check-worker-bundle.ts --entry src/worker.ts --size-limit-bytes 1250000",
 		"reset-db": "./reset-db.sh",
 		"lint": "yarn run -T tsx ../../../internal/scripts/lint.ts"
@@ -50,6 +50,7 @@
 		"esbuild": "^0.25.6",
 		"lazyrepo": "0.0.0-alpha.27",
 		"typescript": "^5.8.3",
+		"vitest": "^3.2.4",
 		"wrangler": "^4.23.0"
 	}
 }

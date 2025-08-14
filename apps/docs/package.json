@@ -44,8 +44,9 @@
 		"clean": "rm -rf node_modules .yarn",
 		"format": "yarn run -T prettier --write .",
 		"watch-content": "tsx ./watcher.ts",
-		"test-ci": "lazy inherit",
-		"test": "yarn run -T vitest run"
+		"test-ci": "yarn run -T vitest run --passWithNoTests",
+		"test": "yarn run -T vitest --passWithNoTests",
+		"test-coverage": "yarn run -T vitest run --coverage --passWithNoTests"
 	},
 	"dependencies": {
 		"@ariakit/react": "^0.4.15",

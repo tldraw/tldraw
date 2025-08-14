@@ -1,5 +1,5 @@
 import { noop } from '@tldraw/utils'
-import { afterEach, beforeEach, describe, expect, test, vi } from 'vitest'
+import { vi } from 'vitest'
 import { AlarmScheduler } from './AlarmScheduler'
 
 vi.useFakeTimers()

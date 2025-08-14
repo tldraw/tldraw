@@ -4,7 +4,6 @@ import { execSync } from 'child_process'
 import { readFileSync, unlinkSync, writeFileSync } from 'fs'
 import { dirname, join } from 'path'
 import { fileURLToPath } from 'url'
-import { expect, test } from 'vitest'
 
 const DIRNAME = dirname(fileURLToPath(import.meta.url))
 

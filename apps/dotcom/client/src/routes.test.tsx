@@ -1,7 +1,7 @@
 import { join } from 'path'
 import { ReactElement } from 'react'
 import { Route, RouteObject, createRoutesFromElements } from 'react-router-dom'
-import { describe, expect, it, test } from 'vitest'
+import 'vitest'
 import { router } from './routes'
 
 declare module 'vitest' {

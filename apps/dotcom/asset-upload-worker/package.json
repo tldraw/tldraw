@@ -10,9 +10,9 @@
 	"main": "src/index.ts",
 	"scripts": {
 		"dev": "yarn run -T tsx ../../../internal/scripts/workers/dev.ts --persist-to tmp-assets --inspector-port 9449",
-		"test-ci": "lazy inherit --passWithNoTests",
-		"test": "yarn run -T vitest run",
-		"test-coverage": "lazy inherit --passWithNoTests",
+		"test-ci": "yarn run -T vitest run --passWithNoTests",
+		"test": "yarn run -T vitest --passWithNoTests",
+		"test-coverage": "yarn run -T vitest run --coverage --passWithNoTests",
 		"lint": "yarn run -T tsx ../../../internal/scripts/lint.ts"
 	},
 	"dependencies": {

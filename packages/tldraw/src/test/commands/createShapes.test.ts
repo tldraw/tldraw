@@ -1,5 +1,5 @@
 import { DefaultColorStyle, TLArrowShape, TLGeoShape, createShapeId } from '@tldraw/editor'
-import { beforeEach, expect, it, vi } from 'vitest'
+import { vi } from 'vitest'
 import { TestEditor } from '../TestEditor'
 
 let editor: TestEditor

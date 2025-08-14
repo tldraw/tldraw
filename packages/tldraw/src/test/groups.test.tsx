@@ -16,7 +16,6 @@ import {
 	sortByIndex,
 	toRichText,
 } from '@tldraw/editor'
-import { beforeEach, describe, expect, it } from 'vitest'
 import { getArrowBindings } from '../lib/shapes/arrow/shared'
 import { TestEditor } from './TestEditor'
 import { TL } from './test-jsx'

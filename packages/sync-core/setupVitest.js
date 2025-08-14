@@ -1,6 +1,3 @@
-// Vitest setup file for sync-core package
-// Converted from setupJest.js to provide the same polyfills and global setup
-
 // IndexedDB polyfill for browser storage testing
 require('fake-indexeddb/auto')
 

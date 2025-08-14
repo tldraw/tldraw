@@ -29,9 +29,9 @@
 	"main": "./src/index.ts",
 	"types": "./.tsbuild/index.d.ts",
 	"scripts": {
-		"test-ci": "lazy inherit",
-		"test": "yarn run -T vitest run",
-		"test-coverage": "lazy inherit",
+		"test-ci": "yarn run -T vitest run --passWithNoTests",
+		"test": "yarn run -T vitest --passWithNoTests",
+		"test-coverage": "yarn run -T vitest run --coverage --passWithNoTests",
 		"predev": "node ./scripts/copy-css-files.mjs",
 		"dev": "chokidar '../tldraw/tldraw.css' -c 'node ./scripts/copy-css-files.mjs'",
 		"prebuild": "node ./scripts/copy-css-files.mjs",

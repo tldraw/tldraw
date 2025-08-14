@@ -43,10 +43,9 @@
 		"utils.d.ts"
 	],
 	"scripts": {
-		"test-ci": "lazy inherit",
-		"test": "yarn run -T vitest run",
 		"pack-tarball": "yarn pack",
-		"lint": "yarn run -T tsx ../../internal/scripts/lint.ts"
+		"lint": "yarn run -T tsx ../../internal/scripts/lint.ts",
+		"test-coverage": "yarn run -T vitest run --coverage --passWithNoTests"
 	},
 	"dependencies": {
 		"@tldraw/utils": "workspace:*"

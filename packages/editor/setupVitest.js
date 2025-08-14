@@ -1,5 +1,4 @@
 // Vitest setup file for editor package
-// Converted from setupTests.js to provide the same polyfills and global setup
 
 // IndexedDB polyfill for browser storage testing
 require('fake-indexeddb/auto')
@@ -28,9 +27,6 @@ document.fonts = {
 // Text encoding/decoding polyfills
 global.TextEncoder = require('util').TextEncoder
 global.TextDecoder = require('util').TextDecoder
-
-// Extract version from package.json (same as original setup)
-const { version } = require('./package.json')
 
 // Window fetch mock for network requests
 window.fetch = async (input, init) => {
@@ -72,7 +68,3 @@ if (typeof CSSStyleDeclaration !== 'undefined') {
 		}
 	}
 }
-
-// RAF polyfill is handled by Vitest automatically in jsdom environment
-// Canvas mock is handled by Vitest's built-in jsdom setup
-// No need to require('raf/polyfill') or 'jest-canvas-mock'

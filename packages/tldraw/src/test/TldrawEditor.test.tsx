@@ -12,7 +12,7 @@ import {
 	noop,
 } from '@tldraw/editor'
 import { StrictMode } from 'react'
-import { describe, expect, it, vi } from 'vitest'
+import { vi } from 'vitest'
 import { defaultShapeUtils } from '../lib/defaultShapeUtils'
 import { defaultTools } from '../lib/defaultTools'
 import { GeoShapeUtil } from '../lib/shapes/geo/GeoShapeUtil'

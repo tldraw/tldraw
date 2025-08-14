@@ -1,4 +1,4 @@
-import { afterEach, beforeEach, describe, it, vi } from 'vitest'
+import { vi } from 'vitest'
 import { TestEditor } from './TestEditor'
 
 vi.useFakeTimers()

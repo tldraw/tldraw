@@ -1,5 +1,5 @@
 import { TLShapePartial, Vec, createShapeId } from '@tldraw/editor'
-import { describe, it, vi } from 'vitest'
+import { vi } from 'vitest'
 import { TestEditor } from '../TestEditor'
 import { PerformanceMeasurer } from './PerformanceMeasurer'
 

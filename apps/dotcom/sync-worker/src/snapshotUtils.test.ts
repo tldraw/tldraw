@@ -1,6 +1,5 @@
 import { RoomSnapshot } from '@tldraw/sync-core'
 import { createTLSchema } from '@tldraw/tlschema'
-import { describe, expect, test } from 'vitest'
 import { generateSnapshotChunks } from './snapshotUtils'
 
 describe('generateSnapshotChunks', () => {

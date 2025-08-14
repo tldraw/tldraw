@@ -1,5 +1,5 @@
 import { HALF_PI, TLArrowShape, TLShapeId, createShapeId, toRichText } from '@tldraw/editor'
-import { beforeEach, describe, expect, it, vi } from 'vitest'
+import { vi } from 'vitest'
 import { TestEditor } from '../../../test/TestEditor'
 import { createOrUpdateArrowBinding, getArrowBindings } from './shared'
 

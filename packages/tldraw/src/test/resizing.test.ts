@@ -15,7 +15,7 @@ import {
 	rotateSelectionHandle,
 	toRichText,
 } from '@tldraw/editor'
-import { beforeEach, describe, expect, it, vi } from 'vitest'
+import { vi } from 'vitest'
 import { NoteShapeUtil } from '../lib/shapes/note/NoteShapeUtil'
 import { TestEditor } from './TestEditor'
 import { getSnapLines } from './getSnapLines'

@@ -11,7 +11,7 @@ import {
 	Vec,
 	createShapeId,
 } from '@tldraw/editor'
-import { beforeEach, describe, expect, it, vi } from 'vitest'
+import { vi } from 'vitest'
 import { getArrowBindings } from '../lib/shapes/arrow/shared'
 import { TranslatingInfo } from '../lib/tools/SelectTool/childStates/Translating'
 import { TestEditor } from './TestEditor'

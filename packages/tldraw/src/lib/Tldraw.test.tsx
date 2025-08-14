@@ -1,7 +1,6 @@
 import { act, screen } from '@testing-library/react'
 import { BaseBoxShapeUtil, Editor, StateNode, TLStateNodeConstructor } from '@tldraw/editor'
 import { useState } from 'react'
-import { describe, expect, it } from 'vitest'
 import { renderTldrawComponent } from '../test/testutils/renderTldrawComponent'
 import { Tldraw } from './Tldraw'
 

@@ -29,9 +29,9 @@
 	"main": "./src/index.ts",
 	"types": "./.tsbuild/index.d.ts",
 	"scripts": {
-		"test-ci": "lazy inherit",
-		"test": "yarn run -T vitest run",
-		"test-coverage": "lazy inherit",
+		"test-ci": "yarn run -T vitest run --passWithNoTests",
+		"test": "yarn run -T vitest --passWithNoTests",
+		"test-coverage": "yarn run -T vitest run --coverage --passWithNoTests",
 		"predev": "node ./scripts/copy-css-files.mjs",
 		"dev": "chokidar '../{editor/editor,tldraw/src/lib/ui}.css' -c 'node ./scripts/copy-css-files.mjs'",
 		"prebuild": "node ./scripts/copy-css-files.mjs",
@@ -75,6 +75,7 @@
 		"lazyrepo": "0.0.0-alpha.27",
 		"react": "^18.3.1",
 		"react-dom": "^18.3.1",
-		"resize-observer-polyfill": "^1.5.1"
+		"resize-observer-polyfill": "^1.5.1",
+		"vitest": "^3.2.4"
 	}
 }

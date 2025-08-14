@@ -61,19 +61,6 @@ const config = {
 		'e2e-x10': {
 			cache: 'none',
 		},
-		'test-ci': {
-			baseCommand: 'yarn run -T vitest run',
-			runsAfter: { 'refresh-assets': {} },
-			cache: {
-				inputs: {
-					exclude: ['*.tsbuildinfo'],
-				},
-			},
-		},
-		'test-coverage': {
-			baseCommand: 'yarn run -T vitest run --coverage',
-			runsAfter: { 'refresh-assets': {} },
-		},
 		lint: {
 			execution: 'independent',
 			runsAfter: { 'build-types': {} },

@@ -31,9 +31,9 @@
 	"/* GOTCHA */": "files will include ./dist and index.d.ts by default, add any others you want to include in here",
 	"files": [],
 	"scripts": {
-		"test-ci": "lazy inherit",
-		"test": "yarn run -T vitest run",
-		"test-coverage": "lazy inherit",
+		"test-ci": "yarn run -T vitest run --passWithNoTests",
+		"test": "yarn run -T vitest --passWithNoTests",
+		"test-coverage": "yarn run -T vitest run --coverage --passWithNoTests",
 		"build": "yarn run -T tsx ../../internal/scripts/build-package.ts",
 		"build-api": "yarn run -T tsx ../../internal/scripts/build-api.ts",
 		"prepack": "yarn run -T tsx ../../internal/scripts/prepack.ts",
@@ -51,7 +51,8 @@
 		"@types/react": "^18.3.18",
 		"lodash": "^4.17.21",
 		"react": "^18.3.1",
-		"react-dom": "^18.3.1"
+		"react-dom": "^18.3.1",
+		"vitest": "^3.2.4"
 	},
 	"peerDependencies": {
 		"react": "^18.2.0 || ^19.0.0",

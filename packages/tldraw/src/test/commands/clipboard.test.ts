@@ -1,5 +1,5 @@
 import { createShapeId, TLArrowShape } from '@tldraw/editor'
-import { beforeEach, describe, expect, it, vi } from 'vitest'
+import { vi } from 'vitest'
 import { getArrowBindings } from '../../lib/shapes/arrow/shared'
 import { TestEditor } from '../TestEditor'
 

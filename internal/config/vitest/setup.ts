@@ -1,6 +1,3 @@
-// Shared Vitest setup file - equivalent to setupFiles in Jest
-// This file is imported by all packages using the Vitest preset
-
 import { equals, getObjectSubset, iterableEquality, subsetEquality } from '@jest/expect-utils'
 import crypto from 'crypto'
 import {
@@ -11,7 +8,10 @@ import {
 	stringify,
 } from 'jest-matcher-utils'
 import { TextDecoder, TextEncoder } from 'util'
-import { expect } from 'vitest'
+
+if (typeof window !== 'undefined') {
+	await import('vitest-canvas-mock')
+}
 
 // Polyfill for requestAnimationFrame (equivalent to raf/polyfill)
 if (typeof globalThis.requestAnimationFrame === 'undefined') {
@@ -28,12 +28,14 @@ if (typeof globalThis.cancelAnimationFrame === 'undefined') {
 
 // Global polyfills
 global.TextEncoder = TextEncoder
-global.TextDecoder = TextDecoder
+global.TextDecoder = TextDecoder as any
+// @ts-expect-error - cannot delete non-optional property
 delete global.crypto
-global.crypto = crypto
+global.crypto = crypto as any
 
 // Crypto polyfill (needed for ai package)
 if (typeof globalThis.crypto === 'undefined') {
+	// eslint-disable-next-line @typescript-eslint/no-require-imports
 	const { Crypto } = require('@peculiar/webcrypto')
 	globalThis.crypto = new Crypto()
 }
@@ -48,7 +50,7 @@ if (typeof HTMLImageElement !== 'undefined') {
 	}
 }
 
-function convertNumbersInObject(obj: any, roundToNearest: number) {
+function convertNumbersInObject(obj: any, roundToNearest: number): any {
 	if (!obj) return obj
 	if (Array.isArray(obj)) {
 		return obj.map((x) => convertNumbersInObject(x, roundToNearest))

@@ -2,25 +2,19 @@
 import { mergeConfig } from 'vitest/config'
 import baseConfig from '../../internal/config/vitest/node-preset'
 
-// tldraw package needs jsdom environment, CSS mocking, and global fake timers
 export default mergeConfig(baseConfig, {
 	test: {
-		// Use jsdom environment like the original Jest setup
-		environment: 'jsdom',
 		// Configure jsdom URL to match what deep link tests expect
 		environmentOptions: {
 			jsdom: {
 				url: 'http://localhost/test',
 			},
 		},
-		// Setup files to replace setupFiles functionality
-		setupFiles: ['../../internal/config/vitest/setup.ts', 'vitest-canvas-mock', './setupVitest.js'],
+		setupFiles: ['../../internal/config/vitest/setup.ts', './setupVitest.js'],
 		// Global fake timers like Jest configuration
 		fakeTimers: {
 			toFake: ['setTimeout', 'clearTimeout', 'setInterval', 'clearInterval', 'Date'],
 		},
-		// Allow importing actual modules for partial mocking
-		globals: true,
 		// CSS module mocking (equivalent to identity-obj-proxy)
 		css: {
 			modules: {

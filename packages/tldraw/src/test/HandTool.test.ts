@@ -1,4 +1,4 @@
-import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
+import { vi } from 'vitest'
 import { HandTool } from '../lib/tools/HandTool/HandTool'
 import { TestEditor, createDefaultShapes } from './TestEditor'
 
