@@ -121,7 +121,6 @@ async function* streamEventsVercel(
 				yield { ...maybeIncompleteEvent, complete: true }
 			}
 		} else {
-			console.log(ModelResponse)
 			const { partialObjectStream } = streamObject<typeof ModelResponse>({
 				model,
 				system: SIMPLE_SYSTEM_PROMPT,
