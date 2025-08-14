@@ -33,10 +33,7 @@ export async function processSchedule({
 	$contextBoundsHighlight.set(bounds)
 
 	try {
-		const { promise, cancel } = agent.prompt({
-			modelName,
-			request,
-		})
+		const { promise, cancel } = agent.prompt(request)
 
 		rCancelFn.current = cancel
 		await promise

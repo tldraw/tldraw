@@ -12,7 +12,6 @@ export interface AgentPromptOptions {
 	promptPartUtils: Map<PromptPartUtilConstructor['type'], PromptPartUtil>
 
 	modelName: AgentModelName
-
 	request: ScheduledRequest
 }
 

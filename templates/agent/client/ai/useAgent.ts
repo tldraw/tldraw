@@ -1,15 +1,15 @@
 import { useCallback, useMemo } from 'react'
 import { Editor } from 'tldraw'
-import { DEFAULT_MODEL_NAME } from '../../worker/models'
 import { IAgentEvent } from '../../worker/prompt/AgentEvent'
+import { $modelName } from '../atoms/modelName'
 import { AgentEventUtil, AgentEventUtilConstructor } from '../events/AgentEventUtil'
 import { UnknownEventUtil } from '../events/UnknownEventUtil'
 import { PromptPartUtil, PromptPartUtilConstructor } from '../promptParts/PromptPartUitl'
-import { AgentPromptOptions } from '../types/AgentPrompt'
+import { ScheduledRequest } from '../types/ScheduledRequest'
 import { promptAgent } from './promptAgent'
 
 export interface TLAgent {
-	prompt(options: Partial<AgentPromptOptions>): { promise: Promise<void>; cancel(): void }
+	prompt(request: ScheduledRequest): { promise: Promise<void>; cancel(): void }
 	getEventUtil(type?: string): AgentEventUtil
 	getPromptPartUtil<T = any>(type: string): PromptPartUtil<T>
 }
@@ -79,64 +79,23 @@ export function useAgent({
 	)
 
 	const prompt = useCallback(
-		(options: Partial<AgentPromptOptions>) => {
-			const {
-				editor: editorFromOptions = editor,
-
-				modelName = DEFAULT_MODEL_NAME,
-
-				request = {
-					type: 'user',
-					message: '',
-					bounds: editor.getViewportPageBounds(), // { x: Nan, y: Nan, w: Nan, h: Nan } ?? idk
-					contextItems: [],
-				},
-				// 	message = '',
-				// 	contextBounds = editor.getViewportPageBounds(),
-				// 	promptBounds = editor.getViewportPageBounds(),
-
-				// historyItems = [],
-				// contextItems = [],
-				// currentPageContent = getWholePageContent({ editor }),
-				// currentUserViewportBounds = editor.getViewportPageBounds(),
-				// userSelectedShapeIds = editor.getSelectedShapeIds().map((v) => structuredClone(v)) ?? [],
-				// type = 'user',
-			} = options
-
-			// const {
-			// 	type,
-			// 	message,
-			// 	contextBounds,
-			// 	promptBounds,
-			// 	contextItems,
-			// } = request ?? {
-			// 	type: 'user',
-			// 	message: '',
-			// 	contextBounds: null,
-			// 	promptBounds: null,
-			// 	contextItems: [],
-			// }
-
+		({
+			message = '',
+			contextItems = [],
+			bounds = editor.getViewportPageBounds(),
+			type = 'user',
+		}: Partial<ScheduledRequest>) => {
 			return promptAgent({
-				editor: editorFromOptions,
+				editor,
 				eventUtils: eventUtilsMap,
 				promptPartUtils: promptPartsUtilsMap,
-
-				modelName,
-
-				request,
-
-				// bye bye
-				// message,
-				// contextBounds,
-				// promptBounds,
-
-				// historyItems,
-				// contextItems,
-				// currentPageContent,
-				// currentUserViewportBounds,
-				// userSelectedShapeIds,
-				// type,
+				modelName: $modelName.get(),
+				request: {
+					type,
+					message,
+					bounds,
+					contextItems,
+				},
 			})
 		},
 		[editor, eventUtilsMap, promptPartsUtilsMap]
