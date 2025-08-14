@@ -1,5 +1,5 @@
 import {
-	EditorAtom,
+	atom,
 	pointInPolygon,
 	polygonsIntersect,
 	StateNode,
@@ -38,10 +38,10 @@ export class LassoingState extends StateNode {
 	markId = null as null | string
 
 	//[a]
-	points = new EditorAtom<VecModel[]>('lasso points', () => [])
+	points = atom<VecModel[]>('lasso points', [])
 
 	override onEnter(info: TLPointerEventInfo) {
-		this.points.set(this.editor, [])
+		this.points.set([])
 		this.markId = null
 		this.info = info
 
@@ -63,7 +63,7 @@ export class LassoingState extends StateNode {
 		const { x, y, z } = inputs.currentPagePoint.toFixed()
 		const newPoint = { x, y, z }
 
-		this.points.update(this.editor, (points) => [...points, newPoint])
+		this.points.set([...this.points.get(), newPoint])
 	}
 
 	//[c]
@@ -71,7 +71,7 @@ export class LassoingState extends StateNode {
 		const { editor } = this
 
 		const shapes = editor.getCurrentPageRenderingShapesSorted()
-		const lassoPoints = this.points.get(this.editor)
+		const lassoPoints = this.points.get()
 		const shapesInLasso = shapes.filter((shape) => {
 			return this.doesLassoFullyContainShape(lassoPoints, shape)
 		})
@@ -133,7 +133,7 @@ For a general guide on how to built tools with child states, see the `MiniSelect
 The main meat of this tool is in the `LassoingState` class. This is the state that is active when the user has the tool selected and holds the mouse down.
 
     [a]
-    The `points` attribute is an instance of the `EditorAtom` class. This makes the entire thing work by allowing us to reactively read the lasso points from the `Overlays` layer (which we then use to draw the lasso). As the user moves the mouse, `points` will be updated.
+    The `points` attribute is an instance of the `atom` class. This makes the entire thing work by allowing us to reactively read the lasso points from the `Overlays` layer (which we then use to draw the lasso). As the user moves the mouse, `points` will be updated.
 
     [b]
     `onPointerMove()`, which is called when the user moves the mouse, calls `addPointToLasso()`, which adds the current mouse position in page space to `points`.

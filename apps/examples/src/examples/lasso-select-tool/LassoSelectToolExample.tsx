@@ -74,16 +74,9 @@ function LassoSelectSvgComponent() {
 	const lassoPoints = useValue(
 		'lasso points',
 		() => {
-			const currentTool = editor.getCurrentTool()
-			if (currentTool.id === 'lasso-select') {
-				const lassoTool = currentTool as LassoSelectTool
-				const currentState = lassoTool.getCurrent()
-				if (currentState?.id === 'lassoing') {
-					const lassoingState = currentState as LassoingState
-					return lassoingState.points.get(editor)
-				}
-			}
-			return []
+			if (!editor.isIn('lasso-select.lassoing')) return []
+			const lassoing = editor.getStateDescendant('lasso-select.lassoing') as LassoingState
+			return lassoing.points.get()
 		},
 		[editor]
 	)
@@ -143,7 +136,7 @@ This is the set of custom components for the lasso select tool, which we'll also
 This component reads the lasso points from the lasso select tool and draws the lasso itself onto the Overlays layer. It is worth noting that this is only necessary for rendering the lasso.
 
 	[a]
-	Here we're using the tldraw's `useValue` hook to read the lasso points from the tool's state. The thing that allows us to get these points reactively is the `lassoingState.points.get(editor)` call. This is because `LassoingState`'s `points` attribute is an instance of the `EditorAtom` class. `EditorAtom`s let you store state that is specific to an editor instance, which you can then access across components using a `useValue` hook. As you'll see in `LassoSelectTool.tsx`, we're using an `EditorAtom<VecModel[]>` to store the lasso points.
+	Here we're using the tldraw's `useValue` hook to read the lasso points from the tool's state. We use `editor.isIn()` to check if we're in the lassoing state, then `editor.getStateDescendant()` to get the lassoing state instance. The thing that allows us to get these points reactively is the `lassoing.points.get()` call. This is because `LassoingState`'s `points` attribute is an instance of the `atom` class. As you'll see in `LassoSelectTool.tsx`, we're using an `atom<VecModel[]>` to store the lasso points.
 
 	[b]
 	Here we're smoothing the lasso points using tldraw's freehand library's `getStrokePoints` function, then converting the smoothed points to an SVG path.
