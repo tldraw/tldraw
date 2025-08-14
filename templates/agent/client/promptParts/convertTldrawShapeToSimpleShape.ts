@@ -8,8 +8,8 @@ import {
 	TLShape,
 	TLTextShape,
 } from 'tldraw'
-import { ISimpleShape } from '../../../worker/simple/SimpleShape'
-import { shapeFillToSimpleFill } from '../../../worker/simple/color'
+import { shapeFillToSimpleFill } from '../../worker/simple/color'
+import { ISimpleShape } from '../../worker/simple/SimpleShape'
 
 // Main shape converter function
 export function convertTldrawShapeToSimpleShape(shape: TLShape, editor: Editor): ISimpleShape {

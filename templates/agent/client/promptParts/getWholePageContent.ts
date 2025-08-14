@@ -1,5 +1,5 @@
 import { Editor, structuredClone } from 'tldraw'
-import { AgentContent } from '../../types/AgentPrompt'
+import { AgentContent } from '../types/AgentPrompt'
 
 export function getWholePageContent({ editor }: { editor: Editor }): AgentContent {
 	const contentFromCurrentPage = editor.getContentFromCurrentPage(

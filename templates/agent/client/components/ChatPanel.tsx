@@ -1,72 +1,18 @@
 import { FormEventHandler, useCallback, useEffect, useRef, useState } from 'react'
 import { Editor, useToasts, useValue } from 'tldraw'
-import { useAgent } from '../ai/useAgent'
+import { useTldrawAgentExample } from '../ai/useTldrawAgentExample'
 import { $chatHistoryItems } from '../atoms/chatHistoryItems'
 import { $contextItems, $pendingContextItems } from '../atoms/contextItems'
 import { $modelName } from '../atoms/modelName'
 import { $requestsSchedule } from '../atoms/requestsSchedule'
-import { AlignEventUtil } from '../events/AlignEventUtil'
-import { CreateEventUtil } from '../events/CreateEventUtil'
-import { DebugEventUtil } from '../events/DebugEventUtil'
-import { DeleteEventUtil } from '../events/DeleteEventUtil'
-import { DistributeEventUtil } from '../events/DistributeEventUtil'
-import { LabelEventUtil } from '../events/LabelEventUtil'
-import { MessageEventUtil } from '../events/MessageEventUtil'
-import { MoveEventUtil } from '../events/MoveEventUtil'
-import { PlaceEventUtil } from '../events/PlaceEventUtil'
-import { ReviewEventUtil } from '../events/ReviewEventUtil'
-import { SetMyViewEventUtil } from '../events/SetMyViewEventUtil'
-import { StackEventUtil } from '../events/StackEventUtil'
-import { ThinkEventUtil } from '../events/ThinkEventUtil'
-import { UpdateEventUtil } from '../events/UpdateEventUtil'
 import { processSchedule } from '../processSchedule'
-import { AgentViewportBoundsPartUtil } from '../promptParts/AgentViewportBoundsPartUtil'
-import { AgentViewportScreenshotPartUtil } from '../promptParts/AgentViewportScreenshotPartUtil'
-import { AgentViewportShapesPartUtil } from '../promptParts/AgentViewportShapesPartUtil'
-import { ContextItemsPartUtil } from '../promptParts/ContextItemsPartUtil'
-import { HistoryItemPartUtil } from '../promptParts/HistoryItemPartUtil'
-import { MessagePartUtil } from '../promptParts/MessagePartUtil'
-import { PeripheralShapesPartUtil } from '../promptParts/PeripheralShapesPartUtil'
-import { PromptBoundsPartUtil } from '../promptParts/PromptBoundsPartUtil'
-import { UserSelectedShapesPartUtil } from '../promptParts/UserSelectedShapesPartUtil'
-import { UserViewportBoundsPartUtil } from '../promptParts/UserViewportBoundsPartUtil'
 import { AgentHistory } from './chat-history/AgentHistory'
 import { PromptHistoryItem } from './chat-history/AgentHistoryItem'
 import { ChatInput } from './ChatInput'
 import { $contextBoundsHighlight } from './highlights/ContextBoundsHighlights'
 
 export function ChatPanel({ editor }: { editor: Editor }) {
-	const agent = useAgent({
-		editor,
-		promptPartUtils: [
-			AgentViewportScreenshotPartUtil,
-			AgentViewportShapesPartUtil,
-			AgentViewportBoundsPartUtil,
-			ContextItemsPartUtil,
-			UserViewportBoundsPartUtil,
-			HistoryItemPartUtil,
-			MessagePartUtil,
-			PeripheralShapesPartUtil,
-			PromptBoundsPartUtil,
-			UserSelectedShapesPartUtil,
-		],
-		eventUtils: [
-			UpdateEventUtil,
-			DeleteEventUtil,
-			CreateEventUtil,
-			MoveEventUtil,
-			PlaceEventUtil,
-			StackEventUtil,
-			AlignEventUtil,
-			ReviewEventUtil,
-			SetMyViewEventUtil,
-			DistributeEventUtil,
-			LabelEventUtil,
-			ThinkEventUtil,
-			MessageEventUtil,
-			DebugEventUtil,
-		],
-	})
+	const agent = useTldrawAgentExample(editor)
 
 	const [isGenerating, setIsGenerating] = useState(false)
 	const rCancelFn = useRef<(() => void) | null>(null)

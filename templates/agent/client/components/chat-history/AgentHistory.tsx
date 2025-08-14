@@ -1,6 +1,6 @@
 import { useEffect, useMemo, useRef } from 'react'
 import { DefaultSpinner, Editor, useReactor, useValue } from 'tldraw'
-import { TLAgent } from '../../ai/useAgent'
+import { TLAgent } from '../../ai/useTldrawAgent'
 import { $chatHistoryItems } from '../../atoms/chatHistoryItems'
 import { AgentHistoryItem, GroupHistoryItem } from './AgentHistoryItem'
 import { DiffHistoryItem } from './DiffHistoryItem'

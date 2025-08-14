@@ -1,7 +1,7 @@
 // import { useCallback } from 'react'
 import { Box, Editor } from 'tldraw'
 import { AgentModelName } from '../worker/models'
-import { TLAgent } from './ai/useAgent'
+import { TLAgent } from './ai/useTldrawAgent'
 // import { $chatHistoryItems } from './atoms/chatHistoryItems'
 import { $pendingContextItems } from './atoms/contextItems'
 import { $requestsSchedule } from './atoms/requestsSchedule'

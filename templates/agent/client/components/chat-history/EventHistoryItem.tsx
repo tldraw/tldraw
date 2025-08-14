@@ -1,4 +1,4 @@
-import { TLAgent } from '../../ai/useAgent'
+import { TLAgent } from '../../ai/useTldrawAgent'
 import { AgentIcon } from '../icons/AgentIcon'
 import { EventHistoryItem } from './AgentHistoryItem'
 

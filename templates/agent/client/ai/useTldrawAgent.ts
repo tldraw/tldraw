@@ -8,32 +8,63 @@ import { PromptPartUtil, PromptPartUtilConstructor } from '../promptParts/Prompt
 import { ScheduledRequest } from '../types/ScheduledRequest'
 import { promptAgent } from './promptAgent'
 
+/**
+ * An object with helpers for getting an AI agent to edit the canvas.
+ */
 export interface TLAgent {
+	/**
+	 * Prompt the agent to edit the canvas.
+	 *
+	 * @example
+	 * ```tsx
+	 * const agent = useTldrawAgent({ editor })
+	 * agent.prompt({ message: 'Draw a snowman' })
+	 * ```
+	 *
+	 * @param request - The request to prompt the agent with.
+	 * @returns A promise that resolves when the agent has finished editing the canvas.
+	 */
 	prompt(request: ScheduledRequest): { promise: Promise<void>; cancel(): void }
+
+	/**
+	 * Get an event util for a specific event type.
+	 *
+	 * @param type - The type of event to get the util for.
+	 * @returns The event util.
+	 */
 	getEventUtil(type?: string): AgentEventUtil
-	getPromptPartUtil<T = any>(type: string): PromptPartUtil<T>
+
+	/**
+	 * Get a prompt part util for a specific prompt part type.
+	 *
+	 * @param type - The type of part to get the util for.
+	 * @returns The part util.
+	 */
+	getPartUtil<T = any>(type: string): PromptPartUtil<T>
 }
 
 /**
- * Get an agent object with helpers for interacting with an AI agent that can edit the canvas.
+ * Get an object with helpers for getting an AI agent to edit the canvas.
+ *
+ * Pass it an array of part utils to determine what gets sent to the agent.
+ * Pass it an array of event utils to decide how to handle the events that the agent returns.
  *
  * @example
  * ```tsx
- * const agent = useAgent({ editor })
+ * const agent = useTldrawAgent({ editor })
  * agent.prompt({ message: 'Draw a snowman' })
  * ```
  *
- * @param options - Options to override the defaults.
  * @returns An object with helpers.
  */
-export function useAgent({
+export function useTldrawAgent({
 	editor,
+	partUtils = [],
 	eventUtils = [],
-	promptPartUtils = [],
 }: {
 	editor: Editor
 	eventUtils: AgentEventUtilConstructor[]
-	promptPartUtils: PromptPartUtilConstructor[]
+	partUtils: PromptPartUtilConstructor[]
 }): TLAgent {
 	const eventUtilsMap = useMemo(() => {
 		const eventUtilsMap = new Map<IAgentEvent['_type'], AgentEventUtil>()
@@ -60,13 +91,13 @@ export function useAgent({
 
 	const promptPartsUtilsMap = useMemo(() => {
 		const promptPartsUtilsMap = new Map<PromptPartUtilConstructor['type'], PromptPartUtil>()
-		for (const promptPartUtil of promptPartUtils) {
+		for (const promptPartUtil of partUtils) {
 			promptPartsUtilsMap.set(promptPartUtil.type, new promptPartUtil(editor))
 		}
 		return promptPartsUtilsMap
-	}, [editor, promptPartUtils])
+	}, [editor, partUtils])
 
-	const getPromptPartUtil = useCallback(
+	const getPartUtil = useCallback(
 		(type: string) => {
 			const promptPartUtil = promptPartsUtilsMap.get(type as PromptPartUtilConstructor['type'])
 			if (!promptPartUtil) {
@@ -101,5 +132,5 @@ export function useAgent({
 		[editor, eventUtilsMap, promptPartsUtilsMap]
 	)
 
-	return { prompt, getEventUtil, getPromptPartUtil }
+	return { prompt, getEventUtil, getPartUtil }
 }

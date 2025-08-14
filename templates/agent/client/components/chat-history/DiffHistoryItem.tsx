@@ -9,7 +9,7 @@ import {
 	TLShapeId,
 	TLShapeWrapperProps,
 } from 'tldraw'
-import { TLAgent } from '../../ai/useAgent'
+import { TLAgent } from '../../ai/useTldrawAgent'
 import { $chatHistoryItems } from '../../atoms/chatHistoryItems'
 import { AgentIcon, AgentIconType } from '../icons/AgentIcon'
 import { ChangeHistoryItem } from './AgentHistoryItem'

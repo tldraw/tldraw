@@ -1,10 +1,10 @@
 import { Box } from 'tldraw'
 import { ISimpleShape } from '../../worker/simple/SimpleShape'
 import { AgentTransform } from '../AgentTransform'
-import { convertTldrawShapeToSimpleShape } from '../ai/promptConstruction/convertTldrawShapeToSimpleShape'
-import { getWholePageContent } from '../ai/promptConstruction/getWholePageContent'
 import { AgentPromptOptions } from '../types/AgentPrompt'
 import { PromptPartUtil } from './PromptPartUitl'
+import { convertTldrawShapeToSimpleShape } from './convertTldrawShapeToSimpleShape'
+import { getWholePageContent } from './getWholePageContent'
 
 export class AgentViewportShapesPartUtil extends PromptPartUtil<ISimpleShape[]> {
 	static override type = 'agentViewportShapes' as const

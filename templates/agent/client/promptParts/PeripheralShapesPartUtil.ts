@@ -1,9 +1,8 @@
-import { Box, BoxModel } from 'tldraw'
+import { Box, BoxModel, Editor, TLShape } from 'tldraw'
 import { roundBox } from '../AgentTransform'
-import { convertTldrawShapeToPeripheralShape } from '../ai/promptConstruction/convertTldrawShapeToPeripheralShape'
-import { getWholePageContent } from '../ai/promptConstruction/getWholePageContent'
 import { AgentPromptOptions } from '../types/AgentPrompt'
 import { PromptPartUtil } from './PromptPartUitl'
+import { getWholePageContent } from './getWholePageContent'
 
 export class PeripheralShapesPartUtil extends PromptPartUtil<BoxModel[]> {
 	static override type = 'peripheralShapes' as const
@@ -42,5 +41,16 @@ export class PeripheralShapesPartUtil extends PromptPartUtil<BoxModel[]> {
 			`Here are the shapes in your peripheral vision, outside the viewport. You can only see their position and size, not their content. If you want to see their content, you need to get closer.`,
 			JSON.stringify(peripheralContent),
 		]
+	}
+}
+
+function convertTldrawShapeToPeripheralShape(shape: TLShape, editor: Editor) {
+	const bounds = editor.getShapeMaskedPageBounds(shape)
+	if (!bounds) return
+	return {
+		x: bounds.x,
+		y: bounds.y,
+		w: bounds.w,
+		h: bounds.h,
 	}
 }
