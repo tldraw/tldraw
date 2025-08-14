@@ -1,7 +1,8 @@
-import { $chatHistoryItems } from '../atoms/chatHistoryItems'
-import { AgentHistoryItem } from '../components/chat-history/AgentHistoryItem'
+import { $chatHistoryItems } from '../../client/atoms/chatHistoryItems'
+import { AgentHistoryItem } from '../../client/components/chat-history/AgentHistoryItem'
+import { AgentMessage, AgentMessageContent } from '../types/AgentMessage'
 import { AgentPromptOptions } from '../types/AgentPrompt'
-import { AgentMessage, AgentMessageContent, PromptPartUtil } from './PromptPartUtil'
+import { PromptPartUtil } from './PromptPartUtil'
 
 export class HistoryItemPartUtil extends PromptPartUtil<AgentHistoryItem[]> {
 	static override type = 'historyItems' as const

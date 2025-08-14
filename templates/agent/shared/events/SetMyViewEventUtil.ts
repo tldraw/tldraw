@@ -1,25 +1,37 @@
-import { IAgentScheduleSetMyViewEvent } from '../../worker/prompt/AgentEvent'
-import { $requestsSchedule } from '../atoms/requestsSchedule'
-import { AgentHistoryItemStatus } from '../components/chat-history/AgentHistoryItem'
+import z from 'zod'
+import { $requestsSchedule } from '../../client/atoms/requestsSchedule'
+import { AgentHistoryItemStatus } from '../../client/components/chat-history/AgentHistoryItem'
 import { ScheduledRequest } from '../types/ScheduledRequest'
 import { Streaming } from '../types/Streaming'
 import { AgentEventUtil } from './AgentEventUtil'
 
-export class SetMyViewEventUtil extends AgentEventUtil<IAgentScheduleSetMyViewEvent> {
+const AgentSetMyViewEvent = z.object({
+	_type: z.literal('setMyView'),
+	h: z.number(),
+	intent: z.string(),
+	w: z.number(),
+	x: z.number(),
+	y: z.number(),
+})
+
+type IAgentSetMyViewEvent = z.infer<typeof AgentSetMyViewEvent>
+
+export class SetMyViewEventUtil extends AgentEventUtil<IAgentSetMyViewEvent> {
 	static override type = 'setMyView' as const
+
+	override getSchema() {
+		return AgentSetMyViewEvent
+	}
 
 	override getIcon() {
 		return 'eye' as const
 	}
 
-	override getDescription(event: Streaming<IAgentScheduleSetMyViewEvent>) {
+	override getDescription(event: Streaming<IAgentSetMyViewEvent>) {
 		return event.intent ?? ''
 	}
 
-	override getLabel(
-		_event: Streaming<IAgentScheduleSetMyViewEvent>,
-		status: AgentHistoryItemStatus
-	) {
+	override getLabel(_event: Streaming<IAgentSetMyViewEvent>, status: AgentHistoryItemStatus) {
 		switch (status) {
 			case 'progress':
 			case 'done':
@@ -29,7 +41,7 @@ export class SetMyViewEventUtil extends AgentEventUtil<IAgentScheduleSetMyViewEv
 		}
 	}
 
-	override applyEvent(event: Streaming<IAgentScheduleSetMyViewEvent>) {
+	override applyEvent(event: Streaming<IAgentSetMyViewEvent>) {
 		$requestsSchedule.update((prev) => {
 			if (!event.complete) return prev
 

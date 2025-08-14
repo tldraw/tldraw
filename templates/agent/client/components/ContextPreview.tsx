@@ -1,4 +1,4 @@
-import { CONTEXT_TYPE_DEFINITIONS, ContextItem } from '../types/ContextItem'
+import { CONTEXT_TYPE_DEFINITIONS, ContextItem } from '../../shared/types/ContextItem'
 import { AgentIcon } from './icons/AgentIcon'
 
 export function ContextPreview({

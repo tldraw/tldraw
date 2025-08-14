@@ -1,8 +1,8 @@
 import { DurableObject } from 'cloudflare:workers'
 import { AutoRouter, error } from 'itty-router'
-import { AgentPrompt } from '../../client/types/AgentPrompt'
-import { Streaming } from '../../client/types/Streaming'
-import { IAgentEvent } from '../prompt/AgentEvent'
+import { AgentEvent } from '../../shared/types/AgentEvent'
+import { AgentPrompt } from '../../shared/types/AgentPrompt'
+import { Streaming } from '../../shared/types/Streaming'
 import { Environment } from '../types'
 import { TldrawAgentService } from './vercel/TldrawAgentService'
 import { VercelAiService } from './vercel/VercelAiService'
@@ -38,7 +38,7 @@ export class TldrawAiDurableObject extends DurableObject<Environment> {
 		const { readable, writable } = new TransformStream()
 		const writer = writable.getWriter()
 
-		const response: { changes: Streaming<IAgentEvent>[] } = { changes: [] }
+		const response: { changes: Streaming<AgentEvent>[] } = { changes: [] }
 
 		;(async () => {
 			try {

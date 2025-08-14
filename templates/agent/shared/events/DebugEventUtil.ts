@@ -1,11 +1,17 @@
-import { IDebugEvent } from '../../worker/prompt/AgentEvent'
 import { Streaming } from '../types/Streaming'
 import { AgentEventUtil } from './AgentEventUtil'
 
-export class DebugEventUtil extends AgentEventUtil<IDebugEvent> {
+export interface DebugEvent {
+	_type: 'debug'
+	complete: boolean
+	label: string
+	data: any
+}
+
+export class DebugEventUtil extends AgentEventUtil<DebugEvent> {
 	static override type = 'debug' as const
 
-	override applyEvent(event: Streaming<IDebugEvent>) {
+	override applyEvent(event: Streaming<DebugEvent>) {
 		console.log(event.label + ':', event.data)
 	}
 

@@ -1,11 +1,24 @@
 import { TLShapeId, toRichText } from 'tldraw'
-import { IAgentLabelEvent } from '../../worker/prompt/AgentEvent'
+import z from 'zod'
 import { AgentTransform } from '../AgentTransform'
 import { Streaming } from '../types/Streaming'
 import { AgentEventUtil } from './AgentEventUtil'
 
+const AgentLabelEvent = z.object({
+	_type: z.literal('label'),
+	intent: z.string(),
+	shapeId: z.string(),
+	text: z.string(),
+})
+
+type IAgentLabelEvent = z.infer<typeof AgentLabelEvent>
+
 export class LabelEventUtil extends AgentEventUtil<IAgentLabelEvent> {
 	static override type = 'label' as const
+
+	override getSchema() {
+		return AgentLabelEvent
+	}
 
 	override getIcon() {
 		return 'pencil' as const
@@ -25,9 +38,9 @@ export class LabelEventUtil extends AgentEventUtil<IAgentLabelEvent> {
 		return event
 	}
 
-	override applyEvent(event: Streaming<IAgentLabelEvent>) {
+	override applyEvent(event: Streaming<IAgentLabelEvent>, transform: AgentTransform) {
 		if (!event.complete) return
-		const { editor } = this
+		const { editor } = transform
 
 		const shapeId = `shape:${event.shapeId}` as TLShapeId
 		const shape = editor.getShape(shapeId)

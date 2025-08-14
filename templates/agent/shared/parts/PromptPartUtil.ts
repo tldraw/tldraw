@@ -1,18 +1,6 @@
-import { Editor } from 'tldraw'
 import { AgentTransform } from '../AgentTransform'
+import { AgentMessage, AgentMessageContent } from '../types/AgentMessage'
 import { AgentPrompt, AgentPromptOptions } from '../types/AgentPrompt'
-
-export interface AgentMessage {
-	role: 'user' | 'assistant'
-	content: AgentMessageContent[]
-	priority: number // higher priority (lower numbers) appear later in the prompt
-}
-
-export interface AgentMessageContent {
-	type: 'text' | 'image'
-	text?: string
-	image?: string
-}
 
 export abstract class PromptPartUtil<T = any> {
 	static type: string
@@ -91,6 +79,6 @@ export abstract class PromptPartUtil<T = any> {
 }
 
 export interface PromptPartUtilConstructor<T = any> {
-	new (editor: Editor): PromptPartUtil<T>
+	new (): PromptPartUtil<T>
 	type: string
 }

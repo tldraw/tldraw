@@ -11,14 +11,27 @@ import {
 	TLTextShape,
 	toRichText,
 } from 'tldraw'
-import { IAgentUpdateEvent } from '../../worker/prompt/AgentEvent'
+import z from 'zod'
 import { asColor, simpleFillToShapeFill } from '../../worker/simple/color'
+import { SimpleShape } from '../../worker/simple/SimpleShape'
 import { AgentTransform } from '../AgentTransform'
 import { Streaming } from '../types/Streaming'
 import { AgentEventUtil } from './AgentEventUtil'
 
+const AgentUpdateEvent = z.object({
+	_type: z.literal('update'),
+	intent: z.string(),
+	update: SimpleShape,
+})
+
+type IAgentUpdateEvent = z.infer<typeof AgentUpdateEvent>
+
 export class UpdateEventUtil extends AgentEventUtil<IAgentUpdateEvent> {
 	static override type = 'update' as const
+
+	override getSchema() {
+		return AgentUpdateEvent
+	}
 
 	override getIcon() {
 		return 'cursor' as const
@@ -53,7 +66,7 @@ export class UpdateEventUtil extends AgentEventUtil<IAgentUpdateEvent> {
 
 	override applyEvent(event: Streaming<IAgentUpdateEvent>, transform: AgentTransform) {
 		if (!event.complete) return
-		const { editor } = this
+		const { editor } = transform
 
 		event.update = transform.unroundShape(event.update)
 

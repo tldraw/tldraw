@@ -1,11 +1,25 @@
 import { TLShapeId } from 'tldraw'
-import { IAgentStackEvent } from '../../worker/prompt/AgentEvent'
+import z from 'zod'
 import { AgentTransform } from '../AgentTransform'
 import { Streaming } from '../types/Streaming'
 import { AgentEventUtil } from './AgentEventUtil'
 
+const AgentStackEvent = z.object({
+	_type: z.literal('stack'),
+	direction: z.enum(['vertical', 'horizontal']),
+	gap: z.number(),
+	intent: z.string(),
+	shapeIds: z.array(z.string()),
+})
+
+type IAgentStackEvent = z.infer<typeof AgentStackEvent>
+
 export class StackEventUtil extends AgentEventUtil<IAgentStackEvent> {
 	static override type = 'stack' as const
+
+	override getSchema() {
+		return AgentStackEvent
+	}
 
 	override getIcon() {
 		return 'cursor' as const
@@ -23,9 +37,9 @@ export class StackEventUtil extends AgentEventUtil<IAgentStackEvent> {
 		return event
 	}
 
-	override applyEvent(event: Streaming<IAgentStackEvent>) {
+	override applyEvent(event: Streaming<IAgentStackEvent>, transform: AgentTransform) {
 		if (!event.complete) return
-		const { editor } = this
+		const { editor } = transform
 
 		editor.stackShapes(
 			event.shapeIds.map((id) => `shape:${id}` as TLShapeId),

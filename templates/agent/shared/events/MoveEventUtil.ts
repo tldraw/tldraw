@@ -1,11 +1,25 @@
 import { TLShapeId } from 'tldraw'
-import { IAgentMoveEvent } from '../../worker/prompt/AgentEvent'
+import z from 'zod'
 import { AgentTransform } from '../AgentTransform'
 import { Streaming } from '../types/Streaming'
 import { AgentEventUtil } from './AgentEventUtil'
 
+const AgentMoveEvent = z.object({
+	_type: z.literal('move'),
+	intent: z.string(),
+	shapeId: z.string(),
+	x: z.number(),
+	y: z.number(),
+})
+
+type IAgentMoveEvent = z.infer<typeof AgentMoveEvent>
+
 export class MoveEventUtil extends AgentEventUtil<IAgentMoveEvent> {
 	static override type = 'move' as const
+
+	override getSchema() {
+		return AgentMoveEvent
+	}
 
 	override getIcon() {
 		return 'cursor' as const
@@ -25,9 +39,9 @@ export class MoveEventUtil extends AgentEventUtil<IAgentMoveEvent> {
 		return event
 	}
 
-	override applyEvent(event: Streaming<IAgentMoveEvent>) {
+	override applyEvent(event: Streaming<IAgentMoveEvent>, transform: AgentTransform) {
 		if (!event.complete) return
-		const { editor } = this
+		const { editor } = transform
 
 		const shapeId = `shape:${event.shapeId}` as TLShapeId
 		const shape = editor.getShape(shapeId)

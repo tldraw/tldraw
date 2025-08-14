@@ -1,12 +1,12 @@
 import { atom, Box, exhaustiveSwitchError, structuredClone, Vec } from 'tldraw'
-import { ISimpleShape } from '../../worker/simple/SimpleShape'
 import {
 	AreaContextItem,
 	ContextItem,
 	PointContextItem,
 	ShapeContextItem,
 	ShapesContextItem,
-} from '../types/ContextItem'
+} from '../../shared/types/ContextItem'
+import { ISimpleShape } from '../../worker/simple/SimpleShape'
 
 export const $contextItems = atom<ContextItem[]>('context items', [])
 export const $pendingContextItems = atom<ContextItem[]>('pending context items', [])

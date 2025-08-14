@@ -1,7 +1,7 @@
 import { structuredClone, uniqueId } from 'tldraw'
-import { AgentTransform } from '../AgentTransform'
+import { AgentTransform } from '../../shared/AgentTransform'
+import { AgentPromptOptions } from '../../shared/types/AgentPrompt'
 import { createOrUpdateHistoryItem } from '../atoms/chatHistoryItems'
-import { AgentPromptOptions } from '../types/AgentPrompt'
 import { preparePrompt } from './preparePrompt'
 import { streamAgent } from './streamAgent'
 

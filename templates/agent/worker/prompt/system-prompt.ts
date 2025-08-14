@@ -1,4 +1,4 @@
-import { RESPONSE_FORMAT } from './schema'
+import { AgentResponseJsonSchema } from './schema'
 
 const shapeTypeNames = [
 	'rectangle',
@@ -27,7 +27,7 @@ const shapeTypeNames = [
 	'heart',
 ]
 
-export const SIMPLE_SYSTEM_PROMPT = `# System Prompt
+export const AGENT_SYSTEM_PROMPT = `# System Prompt
 
 You are an AI agent that helps the user use a drawing / diagramming / whiteboarding program. You will be provided with a prompt that includes a description of the user's intent and the current state of the canvas, including a screenshot of the user's viewport (the part of the canvas that the user is viewing). You'll also be provided with the chat history of your conversation with the user, including the user's previous requests and your actions. Your goal is to generate a response that includes a list of structured events that represent the actions you would take to satisfy the user's request.
 
@@ -182,13 +182,13 @@ Each event must include:
 - If there's still more work to do, you must \`review\` it. Otherwise it won't happen.
 - It's nice to speak to the user (with a \`message\` event) to let them know what you've done.`
 
-export const SIMPLE_SYSTEM_PROMPT_WITH_SCHEMA =
-	SIMPLE_SYSTEM_PROMPT +
+export const AGENT_SYSTEM_PROMPT_WITH_SCHEMA =
+	AGENT_SYSTEM_PROMPT +
 	`
 
 ## Schema
 
 This is the schema for the events you can return. You must conform to this schema.
 
-${JSON.stringify(RESPONSE_FORMAT, null, 2)}
+${JSON.stringify(AgentResponseJsonSchema, null, 2)}
 `

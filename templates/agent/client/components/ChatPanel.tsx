@@ -1,18 +1,19 @@
 import { FormEventHandler, useCallback, useEffect, useRef, useState } from 'react'
 import { Editor, useToasts, useValue } from 'tldraw'
-import { useTldrawAgentWithUtils } from '../ai/useTldrawAgentWithUtils'
+import { EVENT_UTILS, PART_UTILS } from '../../shared/AgentUtils'
+import { processSchedule } from '../ai/processSchedule'
+import { useTldrawAgent } from '../ai/useTldrawAgent'
 import { $chatHistoryItems } from '../atoms/chatHistoryItems'
 import { $contextItems, $pendingContextItems } from '../atoms/contextItems'
 import { $modelName } from '../atoms/modelName'
 import { $requestsSchedule } from '../atoms/requestsSchedule'
-import { processSchedule } from '../processSchedule'
 import { AgentHistory } from './chat-history/AgentHistory'
 import { PromptHistoryItem } from './chat-history/AgentHistoryItem'
 import { ChatInput } from './ChatInput'
 import { $contextBoundsHighlight } from './highlights/ContextBoundsHighlights'
 
 export function ChatPanel({ editor }: { editor: Editor }) {
-	const agent = useTldrawAgentWithUtils(editor)
+	const agent = useTldrawAgent({ editor, partUtils: PART_UTILS, eventUtils: EVENT_UTILS })
 
 	const [isGenerating, setIsGenerating] = useState(false)
 	const rCancelFn = useRef<(() => void) | null>(null)

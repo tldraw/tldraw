@@ -1,13 +1,28 @@
-import { IAgentReviewEvent } from '../../worker/prompt/AgentEvent'
-import { $requestsSchedule } from '../atoms/requestsSchedule'
-import { AgentHistoryItemStatus } from '../components/chat-history/AgentHistoryItem'
+import z from 'zod'
+import { $requestsSchedule } from '../../client/atoms/requestsSchedule'
+import { AgentHistoryItemStatus } from '../../client/components/chat-history/AgentHistoryItem'
 import { AreaContextItem } from '../types/ContextItem'
 import { ScheduledRequest } from '../types/ScheduledRequest'
 import { Streaming } from '../types/Streaming'
 import { AgentEventUtil } from './AgentEventUtil'
 
+const AgentReviewEvent = z.object({
+	_type: z.literal('review'),
+	h: z.number(),
+	intent: z.string(),
+	w: z.number(),
+	x: z.number(),
+	y: z.number(),
+})
+
+type IAgentReviewEvent = z.infer<typeof AgentReviewEvent>
+
 export class ReviewEventUtil extends AgentEventUtil<IAgentReviewEvent> {
 	static override type = 'review' as const
+
+	override getSchema() {
+		return AgentReviewEvent
+	}
 
 	override getIcon() {
 		return 'search' as const

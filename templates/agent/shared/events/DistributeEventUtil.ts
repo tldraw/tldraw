@@ -1,11 +1,24 @@
 import { TLShapeId } from 'tldraw'
-import { IAgentDistributeEvent } from '../../worker/prompt/AgentEvent'
+import z from 'zod'
 import { AgentTransform } from '../AgentTransform'
 import { Streaming } from '../types/Streaming'
 import { AgentEventUtil } from './AgentEventUtil'
 
+const AgentDistributeEvent = z.object({
+	_type: z.literal('distribute'),
+	direction: z.enum(['horizontal', 'vertical']),
+	intent: z.string(),
+	shapeIds: z.array(z.string()),
+})
+
+type IAgentDistributeEvent = z.infer<typeof AgentDistributeEvent>
+
 export class DistributeEventUtil extends AgentEventUtil<IAgentDistributeEvent> {
 	static override type = 'distribute' as const
+
+	override getSchema() {
+		return AgentDistributeEvent
+	}
 
 	override getIcon() {
 		return 'cursor' as const
@@ -23,9 +36,9 @@ export class DistributeEventUtil extends AgentEventUtil<IAgentDistributeEvent> {
 		return event
 	}
 
-	override applyEvent(event: Streaming<IAgentDistributeEvent>) {
+	override applyEvent(event: Streaming<IAgentDistributeEvent>, transform: AgentTransform) {
 		if (!event.complete) return
-		const { editor } = this
+		const { editor } = transform
 
 		editor.distributeShapes(
 			event.shapeIds.map((id) => `shape:${id}` as TLShapeId),

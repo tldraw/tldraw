@@ -1,13 +1,26 @@
 import { defaultApplyChange, TLAiChange } from '@tldraw/ai'
 import { Editor, IndexKey, TLShapeId, toRichText } from 'tldraw'
-import { IAgentCreateEvent } from '../../worker/prompt/AgentEvent'
+import z from 'zod'
 import { asColor, simpleFillToShapeFill } from '../../worker/simple/color'
+import { SimpleShape } from '../../worker/simple/SimpleShape'
 import { AgentTransform } from '../AgentTransform'
 import { Streaming } from '../types/Streaming'
 import { AgentEventUtil } from './AgentEventUtil'
 
+const AgentCreateEvent = z.object({
+	_type: z.literal('create'),
+	intent: z.string(),
+	shape: SimpleShape,
+})
+
+type IAgentCreateEvent = z.infer<typeof AgentCreateEvent>
+
 export class CreateEventUtil extends AgentEventUtil<IAgentCreateEvent> {
 	static override type = 'create' as const
+
+	override getSchema() {
+		return AgentCreateEvent
+	}
 
 	override getIcon() {
 		return 'pencil' as const
@@ -38,9 +51,9 @@ export class CreateEventUtil extends AgentEventUtil<IAgentCreateEvent> {
 		return event
 	}
 
-	override applyEvent(event: Streaming<IAgentCreateEvent>) {
+	override applyEvent(event: Streaming<IAgentCreateEvent>, transform: AgentTransform) {
 		if (!event.complete) return
-		const { editor } = this
+		const { editor } = transform
 
 		const aiChanges = getTldrawAiChangesFromCreateEvent({ editor, event })
 		for (const aiChange of aiChanges) {

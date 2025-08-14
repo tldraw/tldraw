@@ -1,5 +1,5 @@
-import { AgentTransform } from '../AgentTransform'
-import { AgentPrompt, AgentPromptOptions } from '../types/AgentPrompt'
+import { AgentTransform } from '../../shared/AgentTransform'
+import { AgentPrompt, AgentPromptOptions } from '../../shared/types/AgentPrompt'
 
 /**
  * Get a full prompt based on the provided prompt options.

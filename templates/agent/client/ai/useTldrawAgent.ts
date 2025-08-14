@@ -1,11 +1,10 @@
 import { useCallback, useMemo } from 'react'
 import { Editor } from 'tldraw'
-import { IAgentEvent } from '../../worker/prompt/AgentEvent'
+import { AgentEventUtil, AgentEventUtilConstructor } from '../../shared/events/AgentEventUtil'
+import { PromptPartUtil, PromptPartUtilConstructor } from '../../shared/parts/PromptPartUtil'
+import { AgentEvent } from '../../shared/types/AgentEvent'
+import { ScheduledRequest } from '../../shared/types/ScheduledRequest'
 import { $modelName } from '../atoms/modelName'
-import { AgentEventUtil, AgentEventUtilConstructor } from '../events/AgentEventUtil'
-import { UnknownEventUtil } from '../events/UnknownEventUtil'
-import { PromptPartUtil, PromptPartUtilConstructor } from '../promptParts/PromptPartUtil'
-import { ScheduledRequest } from '../types/ScheduledRequest'
 import { promptAgent } from './promptAgent'
 
 /**
@@ -63,24 +62,30 @@ export function useTldrawAgent({
 	eventUtils = [],
 }: {
 	editor: Editor
-	eventUtils: AgentEventUtilConstructor[]
+	eventUtils: AgentEventUtilConstructor<AgentEvent>[]
 	partUtils: PromptPartUtilConstructor[]
 }): TLAgent {
 	const eventUtilsMap = useMemo(() => {
-		const eventUtilsMap = new Map<IAgentEvent['_type'], AgentEventUtil>()
+		const eventUtilsMap = new Map<AgentEvent['_type'], AgentEventUtil<AgentEvent>>()
 		for (const eventUtil of eventUtils) {
-			eventUtilsMap.set(eventUtil.type, new eventUtil(editor))
+			eventUtilsMap.set(eventUtil.type, new eventUtil())
 		}
 		return eventUtilsMap
-	}, [editor, eventUtils])
+	}, [eventUtils])
 
 	const unknownEventUtil = useMemo(() => {
-		return new UnknownEventUtil(editor)
-	}, [editor])
+		const util = eventUtilsMap.get('unknown')
+		if (!util) {
+			throw new Error('Unknown event util not found')
+		}
+		return util
+	}, [eventUtilsMap])
+
+	// const schema = useMemo(() => {}, [])
 
 	const getEventUtil = useCallback(
-		(type?: string) => {
-			const eventUtil = eventUtilsMap.get(type as IAgentEvent['_type'])
+		(type: AgentEvent['_type']) => {
+			const eventUtil = eventUtilsMap.get(type)
 			if (!eventUtil) {
 				return unknownEventUtil
 			}
@@ -92,10 +97,10 @@ export function useTldrawAgent({
 	const promptPartsUtilsMap = useMemo(() => {
 		const promptPartsUtilsMap = new Map<PromptPartUtilConstructor['type'], PromptPartUtil>()
 		for (const promptPartUtil of partUtils) {
-			promptPartsUtilsMap.set(promptPartUtil.type, new promptPartUtil(editor))
+			promptPartsUtilsMap.set(promptPartUtil.type, new promptPartUtil())
 		}
 		return promptPartsUtilsMap
-	}, [editor, partUtils])
+	}, [partUtils])
 
 	const getPartUtil = useCallback(
 		(type: string) => {

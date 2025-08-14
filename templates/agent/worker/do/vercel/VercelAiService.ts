@@ -6,13 +6,13 @@ import {
 } from '@ai-sdk/google'
 import { createOpenAI, OpenAIProvider } from '@ai-sdk/openai'
 import { LanguageModel, streamObject, streamText } from 'ai'
-import { AgentPrompt } from '../../../client/types/AgentPrompt'
-import { Streaming } from '../../../client/types/Streaming'
+import { AgentEvent } from '../../../shared/types/AgentEvent'
+import { AgentPrompt } from '../../../shared/types/AgentPrompt'
+import { Streaming } from '../../../shared/types/Streaming'
 import { AgentModelName, getTLAgentModelDefinition } from '../../models'
-import { IAgentEvent } from '../../prompt/AgentEvent'
-import { buildMessages } from '../../prompt/prompt'
-import { ModelResponse } from '../../prompt/schema'
-import { SIMPLE_SYSTEM_PROMPT, SIMPLE_SYSTEM_PROMPT_WITH_SCHEMA } from '../../prompt/system-prompt'
+import { buildMessages } from '../../prompt/buildMessages'
+import { AgentResponseZodSchema } from '../../prompt/schema'
+import { AGENT_SYSTEM_PROMPT, AGENT_SYSTEM_PROMPT_WITH_SCHEMA } from '../../prompt/system-prompt'
 import { Environment } from '../../types'
 import { TldrawAgentService } from './TldrawAgentService'
 
@@ -34,7 +34,7 @@ export class VercelAiService extends TldrawAgentService {
 		return this[provider](modelDefinition.id)
 	}
 
-	async *stream(prompt: AgentPrompt): AsyncGenerator<Streaming<IAgentEvent>> {
+	async *stream(prompt: AgentPrompt): AsyncGenerator<Streaming<AgentEvent>> {
 		try {
 			const model = this.getModel(prompt.modelName)
 			for await (const event of streamEventsVercel(model, prompt)) {
@@ -50,7 +50,7 @@ export class VercelAiService extends TldrawAgentService {
 async function* streamEventsVercel(
 	model: LanguageModel,
 	prompt: AgentPrompt
-): AsyncGenerator<IAgentEvent & { complete: boolean }> {
+): AsyncGenerator<Streaming<AgentEvent>> {
 	if (typeof model === 'string') {
 		throw new Error('Model is a string, not a LanguageModel')
 	}
@@ -66,7 +66,7 @@ async function* streamEventsVercel(
 			})
 			const { textStream } = streamText({
 				model,
-				system: SIMPLE_SYSTEM_PROMPT_WITH_SCHEMA,
+				system: AGENT_SYSTEM_PROMPT_WITH_SCHEMA,
 				messages,
 				maxOutputTokens: 8192,
 				temperature: 0,
@@ -91,7 +91,7 @@ async function* streamEventsVercel(
 			let buffer = '{"events": [{"_type":'
 
 			let cursor = 0
-			let maybeIncompleteEvent: IAgentEvent | null = null
+			let maybeIncompleteEvent: AgentEvent | null = null
 
 			for await (const text of textStream) {
 				buffer += text
@@ -106,7 +106,7 @@ async function* streamEventsVercel(
 				// If the events list is ahead of the cursor, we know we've completed the current event
 				// We can complete the event and move the cursor forward
 				if (events.length > cursor) {
-					const event = events[cursor - 1] as IAgentEvent
+					const event = events[cursor - 1] as AgentEvent
 					if (event) {
 						yield { ...event, complete: true }
 						maybeIncompleteEvent = null
@@ -116,7 +116,7 @@ async function* streamEventsVercel(
 
 				// Now let's check the (potentially new) current event
 				// And let's yield it in its (potentially incomplete) state
-				const event = events[cursor - 1] as IAgentEvent
+				const event = events[cursor - 1] as AgentEvent
 				if (event) {
 					yield { ...event, complete: false }
 					maybeIncompleteEvent = event
@@ -129,13 +129,13 @@ async function* streamEventsVercel(
 			}
 		} else {
 			const messages = buildMessages(prompt)
-			const { partialObjectStream } = streamObject<typeof ModelResponse>({
+			const { partialObjectStream } = streamObject<typeof AgentResponseZodSchema>({
 				model,
-				system: SIMPLE_SYSTEM_PROMPT,
+				system: AGENT_SYSTEM_PROMPT,
 				messages,
 				maxOutputTokens: 8192,
 				temperature: 0,
-				schema: ModelResponse,
+				schema: AgentResponseZodSchema,
 				onError: (e) => {
 					console.error('Stream object error:', e)
 					throw e
@@ -157,7 +157,7 @@ async function* streamEventsVercel(
 			}
 
 			let cursor = 0
-			let maybeIncompleteEvent: IAgentEvent | null = null
+			let maybeIncompleteEvent: AgentEvent | null = null
 
 			for await (const partialObject of partialObjectStream) {
 				const events = partialObject.events
@@ -167,7 +167,7 @@ async function* streamEventsVercel(
 				// If the events list is ahead of the cursor, we know we've completed the current event
 				// We can complete the event and move the cursor forward
 				if (events.length > cursor) {
-					const event = events[cursor - 1] as IAgentEvent
+					const event = events[cursor - 1] as AgentEvent
 					if (event) {
 						yield { ...event, complete: true }
 						maybeIncompleteEvent = null
@@ -177,7 +177,7 @@ async function* streamEventsVercel(
 
 				// Now let's check the (potentially new) current event
 				// And let's yield it in its (potentially incomplete) state
-				const event = events[cursor - 1] as IAgentEvent
+				const event = events[cursor - 1] as AgentEvent
 				if (event) {
 					yield { ...event, complete: false }
 					maybeIncompleteEvent = event

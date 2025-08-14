@@ -1,11 +1,9 @@
-// import { useCallback } from 'react'
 import { Box, Editor } from 'tldraw'
-import { AgentModelName } from '../worker/models'
-import { TLAgent } from './ai/useTldrawAgent'
-// import { $chatHistoryItems } from './atoms/chatHistoryItems'
-import { $pendingContextItems } from './atoms/contextItems'
-import { $requestsSchedule } from './atoms/requestsSchedule'
-import { $contextBoundsHighlight } from './components/highlights/ContextBoundsHighlights'
+import { AgentModelName } from '../../worker/models'
+import { $pendingContextItems } from '../atoms/contextItems'
+import { $requestsSchedule } from '../atoms/requestsSchedule'
+import { $contextBoundsHighlight } from '../components/highlights/ContextBoundsHighlights'
+import { TLAgent } from './useTldrawAgent'
 
 export async function processSchedule({
 	editor,

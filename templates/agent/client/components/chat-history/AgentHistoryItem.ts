@@ -1,7 +1,7 @@
 import { RecordsDiff, TLRecord } from 'tldraw'
-import { IAgentEvent } from '../../../worker/prompt/AgentEvent'
-import { ContextItem } from '../../types/ContextItem'
-import { Streaming } from '../../types/Streaming'
+import { AgentEvent } from '../../../shared/types/AgentEvent'
+import { ContextItem } from '../../../shared/types/ContextItem'
+import { Streaming } from '../../../shared/types/Streaming'
 import { AgentIconType } from '../icons/AgentIcon'
 
 export type AgentHistoryItem =
@@ -14,13 +14,13 @@ export type AgentHistoryItemStatus = 'progress' | 'done' | 'cancelled'
 
 export interface EventHistoryItem {
 	type: 'event'
-	event: Streaming<IAgentEvent>
+	event: Streaming<AgentEvent>
 	status: AgentHistoryItemStatus
 }
 
 export interface ChangeHistoryItem {
 	type: 'change'
-	event: Streaming<IAgentEvent>
+	event: Streaming<AgentEvent>
 	diff: RecordsDiff<TLRecord>
 	acceptance: 'pending' | 'accepted' | 'rejected'
 	status: AgentHistoryItemStatus

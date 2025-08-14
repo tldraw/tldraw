@@ -1,11 +1,23 @@
 import { TLShapeId } from 'tldraw'
-import { IAgentDeleteEvent } from '../../worker/prompt/AgentEvent'
+import z from 'zod'
 import { AgentTransform } from '../AgentTransform'
 import { Streaming } from '../types/Streaming'
 import { AgentEventUtil } from './AgentEventUtil'
 
+const AgentDeleteEvent = z.object({
+	_type: z.literal('delete'),
+	intent: z.string(),
+	shapeId: z.string(),
+})
+
+type IAgentDeleteEvent = z.infer<typeof AgentDeleteEvent>
+
 export class DeleteEventUtil extends AgentEventUtil<IAgentDeleteEvent> {
 	static override type = 'delete' as const
+
+	override getSchema() {
+		return AgentDeleteEvent
+	}
 
 	override getIcon() {
 		return 'trash' as const
@@ -25,9 +37,9 @@ export class DeleteEventUtil extends AgentEventUtil<IAgentDeleteEvent> {
 		return event
 	}
 
-	override applyEvent(event: Streaming<IAgentDeleteEvent>) {
+	override applyEvent(event: Streaming<IAgentDeleteEvent>, transform: AgentTransform) {
 		if (!event.complete) return
-		const { editor } = this
+		const { editor } = transform
 
 		editor.deleteShape(`shape:${event.shapeId}` as TLShapeId)
 	}

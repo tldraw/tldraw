@@ -1,11 +1,28 @@
 import { TLShapeId } from 'tldraw'
-import { IAgentPlaceEvent } from '../../worker/prompt/AgentEvent'
+import z from 'zod'
 import { AgentTransform } from '../AgentTransform'
 import { Streaming } from '../types/Streaming'
 import { AgentEventUtil } from './AgentEventUtil'
 
+const AgentPlaceEvent = z.object({
+	_type: z.literal('place'),
+	intent: z.string(),
+	shapeId: z.string(),
+	referenceShapeId: z.string(),
+	side: z.enum(['top', 'bottom', 'left', 'right']),
+	sideOffset: z.number(),
+	align: z.enum(['start', 'center', 'end']),
+	alignOffset: z.number(),
+})
+
+type IAgentPlaceEvent = z.infer<typeof AgentPlaceEvent>
+
 export class PlaceEventUtil extends AgentEventUtil<IAgentPlaceEvent> {
 	static override type = 'place' as const
+
+	override getSchema() {
+		return AgentPlaceEvent
+	}
 
 	override getIcon() {
 		return 'target' as const
@@ -29,9 +46,9 @@ export class PlaceEventUtil extends AgentEventUtil<IAgentPlaceEvent> {
 		return event
 	}
 
-	override applyEvent(event: Streaming<IAgentPlaceEvent>) {
+	override applyEvent(event: Streaming<IAgentPlaceEvent>, transform: AgentTransform) {
 		if (!event.complete) return
-		const { editor } = this
+		const { editor } = transform
 
 		const { side, sideOffset = 0, align, alignOffset = 0 } = event
 		const referenceShapeId = `shape:${event.referenceShapeId}` as TLShapeId

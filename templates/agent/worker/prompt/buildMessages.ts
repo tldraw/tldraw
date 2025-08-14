@@ -1,7 +1,7 @@
 import { ModelMessage, UserContent } from 'ai'
-import { PART_UTILS } from '../../client/ai/useTldrawAgentWithUtils'
-import { AgentMessage } from '../../client/promptParts/PromptPartUtil'
-import { AgentPrompt } from '../../client/types/AgentPrompt'
+import { PART_UTILS } from '../../shared/AgentUtils'
+import { AgentMessage } from '../../shared/types/AgentMessage'
+import { AgentPrompt } from '../../shared/types/AgentPrompt'
 
 export function buildMessages(prompt: AgentPrompt): ModelMessage[] {
 	const { parts } = prompt

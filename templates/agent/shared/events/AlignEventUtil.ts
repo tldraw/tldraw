@@ -1,11 +1,25 @@
 import { TLShapeId } from 'tldraw'
-import { IAgentAlignEvent } from '../../worker/prompt/AgentEvent'
+import z from 'zod'
 import { AgentTransform } from '../AgentTransform'
 import { Streaming } from '../types/Streaming'
 import { AgentEventUtil } from './AgentEventUtil'
 
+const AgentAlignEvent = z.object({
+	_type: z.literal('align'),
+	alignment: z.enum(['top', 'bottom', 'left', 'right', 'center-horizontal', 'center-vertical']),
+	gap: z.number(),
+	intent: z.string(),
+	shapeIds: z.array(z.string()),
+})
+
+type IAgentAlignEvent = z.infer<typeof AgentAlignEvent>
+
 export class AlignEventUtil extends AgentEventUtil<IAgentAlignEvent> {
 	static override type = 'align' as const
+
+	override getSchema() {
+		return AgentAlignEvent
+	}
 
 	override getIcon() {
 		return 'cursor' as const
@@ -21,9 +35,9 @@ export class AlignEventUtil extends AgentEventUtil<IAgentAlignEvent> {
 		return event
 	}
 
-	override applyEvent(event: Streaming<IAgentAlignEvent>) {
+	override applyEvent(event: Streaming<IAgentAlignEvent>, transform: AgentTransform) {
 		if (!event.complete) return
-		const { editor } = this
+		const { editor } = transform
 
 		editor.alignShapes(
 			event.shapeIds.map((id) => `shape:${id}` as TLShapeId),
