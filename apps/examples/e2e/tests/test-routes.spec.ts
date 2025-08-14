@@ -13,6 +13,8 @@ const examplesWithoutCanvas = [
 	'image-annotator',
 	// starts by asking the user to open a pdf
 	'pdf-editor',
+	// starts by asking the user to select a pdf (built on pdf-editor)
+	'exam-marking',
 ]
 const exampelsToTest = examplesFolderList.filter((route) => !examplesWithoutCanvas.includes(route))
 
