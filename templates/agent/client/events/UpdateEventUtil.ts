@@ -20,6 +20,10 @@ import { AgentEventUtil } from './AgentEventUtil'
 export class UpdateEventUtil extends AgentEventUtil<IAgentUpdateEvent> {
 	static override type = 'update' as const
 
+	override getIcon() {
+		return 'cursor' as const
+	}
+
 	override transformEvent(event: Streaming<IAgentUpdateEvent>, transform: AgentTransform) {
 		if (!event.complete) return event
 
