@@ -9,7 +9,7 @@ export class DebugEventUtil extends AgentEventUtil<IDebugEvent> {
 		console.log(event.label + ':', event.data)
 	}
 
-	override getDescription() {
-		return null
+	override savesToHistory() {
+		return false
 	}
 }

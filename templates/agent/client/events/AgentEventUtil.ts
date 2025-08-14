@@ -50,6 +50,14 @@ export abstract class AgentEventUtil<T extends IAgentEvent = IAgentEvent> {
 	applyEvent(_event: Streaming<T>, _transform: AgentTransform): void {
 		// Do nothing by default
 	}
+
+	/**
+	 * Whether the event should be saved to chat history.
+	 * @returns Whether the event should be saved to chat history.
+	 */
+	savesToHistory(): boolean {
+		return true
+	}
 }
 
 export interface AgentEventUtilConstructor {

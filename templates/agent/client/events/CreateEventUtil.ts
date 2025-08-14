@@ -42,7 +42,7 @@ export class CreateEventUtil extends AgentEventUtil<IAgentCreateEvent> {
 		if (!event.complete) return
 		const { editor } = this
 
-		const aiChanges = getTldrawAiChangesFromCreateEvent({ editor, event: event })
+		const aiChanges = getTldrawAiChangesFromCreateEvent({ editor, event })
 		for (const aiChange of aiChanges) {
 			defaultApplyChange({ change: aiChange, editor })
 		}

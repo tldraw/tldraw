@@ -35,19 +35,10 @@ export function promptAgent(promptOptions: AgentPromptOptions) {
 							() => {
 								const eventUtil = event._type ? eventUtils.get(event._type) : null
 
-								// If no event util is found, or the model hasn't specified an event type yet, add the raw event to the chat history.
-								// This helps make the agent feel more responsive, as it causes the chat history to be populated as soon as possible.
-								// On the other hand, displaying a raw event can be unhelpful, or look broken, so it's a trade-off.
-								// We might want to remove this or replace it with something cleaner.
 								if (!eventUtil) {
 									if (event.complete) {
 										console.log('UNHANDLED EVENT: ', event)
 									}
-									createOrUpdateHistoryItem({
-										type: 'event',
-										event,
-										status: event.complete ? 'done' : 'progress',
-									})
 									return
 								}
 
@@ -62,38 +53,35 @@ export function promptAgent(promptOptions: AgentPromptOptions) {
 								}
 
 								if (transformedEvent.complete) {
-									console.log(
-										'EVENT: ',
-										originalEvent,
-										'TRANSFORMED EVENT: ',
-										structuredClone(transformedEvent)
-									)
+									console.log('EVENT: ', originalEvent, 'TRANSFORMED EVENT: ', transformedEvent)
 								}
 
 								// Apply the event to the app and editor
 								const diff = editor.store.extractingChanges(() => {
-									eventUtil.applyEvent(transformedEvent, transform)
+									eventUtil.applyEvent(structuredClone(transformedEvent), transform)
 								})
 
-								if (
-									Object.keys(diff.updated).length > 0 ||
-									Object.keys(diff.removed).length > 0 ||
-									Object.keys(diff.added).length > 0
-								) {
-									// If any canvas changes were made, add their diff to the chat history
-									createOrUpdateHistoryItem({
-										type: 'change',
-										diff,
-										event,
-										acceptance: 'pending',
-										status: event.complete ? 'done' : 'progress',
-									})
-								} else {
-									createOrUpdateHistoryItem({
-										type: 'event',
-										event: transformedEvent,
-										status: event.complete ? 'done' : 'progress',
-									})
+								if (eventUtil.savesToHistory()) {
+									if (
+										Object.keys(diff.updated).length > 0 ||
+										Object.keys(diff.removed).length > 0 ||
+										Object.keys(diff.added).length > 0
+									) {
+										// If any canvas changes were made, add their diff to the chat history
+										createOrUpdateHistoryItem({
+											type: 'change',
+											diff,
+											event: transformedEvent,
+											acceptance: 'pending',
+											status: event.complete ? 'done' : 'progress',
+										})
+									} else {
+										createOrUpdateHistoryItem({
+											type: 'event',
+											event: transformedEvent,
+											status: event.complete ? 'done' : 'progress',
+										})
+									}
 								}
 							},
 							{
