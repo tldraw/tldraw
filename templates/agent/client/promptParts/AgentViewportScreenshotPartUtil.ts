@@ -1,6 +1,6 @@
 import { Box, FileHelpers } from 'tldraw'
 import { AgentPromptOptions } from '../types/AgentPrompt'
-import { PromptPartUtil } from './PromptPartUitl'
+import { PromptPartUtil } from './PromptPartUtil'
 
 export class AgentViewportScreenshotPartUtil extends PromptPartUtil<string | null> {
 	static override type = 'agentViewportScreenshot' as const

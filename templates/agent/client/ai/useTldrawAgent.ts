@@ -4,7 +4,7 @@ import { IAgentEvent } from '../../worker/prompt/AgentEvent'
 import { $modelName } from '../atoms/modelName'
 import { AgentEventUtil, AgentEventUtilConstructor } from '../events/AgentEventUtil'
 import { UnknownEventUtil } from '../events/UnknownEventUtil'
-import { PromptPartUtil, PromptPartUtilConstructor } from '../promptParts/PromptPartUitl'
+import { PromptPartUtil, PromptPartUtilConstructor } from '../promptParts/PromptPartUtil'
 import { ScheduledRequest } from '../types/ScheduledRequest'
 import { promptAgent } from './promptAgent'
 

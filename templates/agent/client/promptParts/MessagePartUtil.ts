@@ -1,5 +1,5 @@
 import { AgentPrompt, AgentPromptOptions } from '../types/AgentPrompt'
-import { PromptPartUtil } from './PromptPartUitl'
+import { PromptPartUtil } from './PromptPartUtil'
 
 export class MessagePartUtil extends PromptPartUtil<string> {
 	static override type = 'message' as const

@@ -2,7 +2,7 @@ import { Box } from 'tldraw'
 import { ISimpleShape } from '../../worker/simple/SimpleShape'
 import { AgentTransform } from '../AgentTransform'
 import { AgentPromptOptions } from '../types/AgentPrompt'
-import { PromptPartUtil } from './PromptPartUitl'
+import { PromptPartUtil } from './PromptPartUtil'
 import { convertTldrawShapeToSimpleShape } from './convertTldrawShapeToSimpleShape'
 import { getWholePageContent } from './getWholePageContent'
 

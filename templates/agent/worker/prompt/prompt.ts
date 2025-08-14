@@ -1,5 +1,5 @@
 import { ModelMessage, UserContent } from 'ai'
-import { AgentMessage } from '../../client/promptParts/PromptPartUitl'
+import { AgentMessage } from '../../client/promptParts/PromptPartUtil'
 import { PROMPT_PART_UTIL_CONSTRUCTORS } from '../../client/promptParts/promptPartUtils'
 import { AgentPrompt } from '../../client/types/AgentPrompt'
 

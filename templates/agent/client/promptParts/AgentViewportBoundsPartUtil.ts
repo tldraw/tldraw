@@ -1,7 +1,7 @@
 import { BoxModel } from 'tldraw'
 import { roundBox } from '../AgentTransform'
 import { AgentPromptOptions } from '../types/AgentPrompt'
-import { PromptPartUtil } from './PromptPartUitl'
+import { PromptPartUtil } from './PromptPartUtil'
 
 export class AgentViewportBoundsPartUtil extends PromptPartUtil<BoxModel> {
 	static override type = 'agentViewportBounds' as const

@@ -2,7 +2,7 @@ import { Editor, TLBinding, TLShape } from 'tldraw'
 import { AgentModelName } from '../../worker/models'
 import { IAgentEvent } from '../../worker/prompt/AgentEvent'
 import { AgentEventUtil } from '../events/AgentEventUtil'
-import { PromptPartUtil, PromptPartUtilConstructor } from '../promptParts/PromptPartUitl'
+import { PromptPartUtil, PromptPartUtilConstructor } from '../promptParts/PromptPartUtil'
 import { ScheduledRequest } from './ScheduledRequest'
 
 // AgentPromptOptions contains the information needed to construct a prompt, such as all the events and prompt parts, and raw data from the editor / chat state.

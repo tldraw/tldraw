@@ -1,7 +1,7 @@
 import { Box, BoxModel, Editor, TLShape } from 'tldraw'
 import { roundBox } from '../AgentTransform'
 import { AgentPromptOptions } from '../types/AgentPrompt'
-import { PromptPartUtil } from './PromptPartUitl'
+import { PromptPartUtil } from './PromptPartUtil'
 import { getWholePageContent } from './getWholePageContent'
 
 export class PeripheralShapesPartUtil extends PromptPartUtil<BoxModel[]> {

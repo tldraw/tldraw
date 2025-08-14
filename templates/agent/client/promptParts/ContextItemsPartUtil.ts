@@ -1,7 +1,7 @@
 import { AgentTransform, roundBox, roundVec } from '../AgentTransform'
 import { AgentPromptOptions } from '../types/AgentPrompt'
 import { ContextItem } from '../types/ContextItem'
-import { PromptPartUtil } from './PromptPartUitl'
+import { PromptPartUtil } from './PromptPartUtil'
 
 export class ContextItemsPartUtil extends PromptPartUtil<ContextItem[]> {
 	static override type = 'contextItems' as const
