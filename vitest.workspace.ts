@@ -1,23 +1,17 @@
+import { existsSync } from 'fs'
+import { join } from 'path'
 import { defineWorkspace } from 'vitest/config'
+import { getAllWorkspacePackages } from './internal/scripts/lib/workspace'
+
+const packages = await getAllWorkspacePackages()
+
+const vitestPackages: string[] = []
+for (const pkg of packages) {
+	if (existsSync(join(pkg.path, 'vitest.config.ts'))) {
+		vitestPackages.push(join(pkg.relativePath, 'vitest.config.ts'))
+	}
+}
 
 // Vitest workspace configuration
 // This allows running tests across the entire monorepo from the root
-export default defineWorkspace([
-	// Include all packages that have vitest.config.ts files
-	'packages/utils/vitest.config.ts',
-	'packages/validate/vitest.config.ts',
-	'packages/state/vitest.config.ts',
-	'packages/state-react/vitest.config.ts',
-	'packages/store/vitest.config.ts',
-	'packages/ai/vitest.config.ts',
-	'packages/create-tldraw/vitest.config.ts',
-	'packages/dotcom-shared/vitest.config.ts',
-	'packages/namespaced-tldraw/vitest.config.ts',
-	'packages/worker-shared/vitest.config.ts',
-	'packages/assets/vitest.config.ts',
-	'packages/sync/vitest.config.ts',
-	'packages/tlschema/vitest.config.ts',
-	'packages/sync-core/vitest.config.ts',
-	'packages/editor/vitest.config.ts',
-	// Add more packages here as they're migrated
-])
+export default defineWorkspace(vitestPackages)

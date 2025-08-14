@@ -124,7 +124,7 @@
 		"tsx": "^4.19.2",
 		"typescript": "^5.8.3",
 		"vercel": "^34.4.0",
-		"vitest": "^2.1.8",
+		"vitest": "3.2.4",
 		"vitest-canvas-mock": "^0.3.3"
 	},
 	"// resolutions.canvas": [

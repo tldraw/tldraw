@@ -1,3 +1,4 @@
+import { expect, test } from 'vitest'
 import { parseMarkdown } from './parse-markdown'
 
 test('approximately', () => {

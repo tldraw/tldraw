@@ -2,6 +2,7 @@ import { ZColumn, schema } from '@tldraw/dotcom-shared'
 import { assert, assertExists, groupBy, structuredClone } from '@tldraw/utils'
 import { execSync } from 'child_process'
 import { readFileSync, unlinkSync, writeFileSync } from 'fs'
+import { expect, test } from 'vitest'
 
 const ourTypeToPostgresType: Record<ZColumn['type'], string> = {
 	string: 'text',
