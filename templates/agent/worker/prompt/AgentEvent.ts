@@ -135,4 +135,11 @@ export const AgentEvent = z.union([
 	AgentSetMyViewEvent,
 ])
 
-export type IAgentEvent = z.infer<typeof AgentEvent>
+export interface IDebugEvent {
+	_type: 'debug'
+	complete: boolean
+	label: string
+	data: any
+}
+
+export type IAgentEvent = z.infer<typeof AgentEvent> | IDebugEvent

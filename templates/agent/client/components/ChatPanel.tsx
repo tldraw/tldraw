@@ -7,6 +7,7 @@ import { $modelName } from '../atoms/modelName'
 import { $requestsSchedule } from '../atoms/requestsSchedule'
 import { AlignEventUtil } from '../events/AlignEventUtil'
 import { CreateEventUtil } from '../events/CreateEventUtil'
+import { DebugEventUtil } from '../events/DebugEventUtil'
 import { DeleteEventUtil } from '../events/DeleteEventUtil'
 import { DistributeEventUtil } from '../events/DistributeEventUtil'
 import { LabelEventUtil } from '../events/LabelEventUtil'
@@ -63,6 +64,7 @@ export function ChatPanel({ editor }: { editor: Editor }) {
 			LabelEventUtil,
 			ThinkEventUtil,
 			MessageEventUtil,
+			DebugEventUtil,
 		],
 	})
 

@@ -9,6 +9,7 @@ export function EventHistoryItem({ item, agent }: { item: EventHistoryItem; agen
 	const label = eventUtil.getLabel(event, item.status)
 	const description = eventUtil.getDescription(event, item.status)
 
+	if (!description) return null
 	return (
 		<div className={`agent-action-message agent-action-type-${event._type}`}>
 			{icon && (

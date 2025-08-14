@@ -81,6 +81,13 @@ async function* streamEventsVercel(
 				},
 			})
 
+			yield {
+				_type: 'debug',
+				complete: true,
+				label: 'MESSAGES',
+				data: messages,
+			}
+
 			let buffer = '{"events": [{"_type":'
 
 			let cursor = 0
@@ -121,10 +128,11 @@ async function* streamEventsVercel(
 				yield { ...maybeIncompleteEvent, complete: true }
 			}
 		} else {
+			const messages = buildMessages(prompt)
 			const { partialObjectStream } = streamObject<typeof ModelResponse>({
 				model,
 				system: SIMPLE_SYSTEM_PROMPT,
-				messages: buildMessages(prompt),
+				messages,
 				maxOutputTokens: 8192,
 				temperature: 0,
 				schema: ModelResponse,
@@ -140,6 +148,13 @@ async function* streamEventsVercel(
 					//the openai models we use dont support thinking anyway
 				},
 			})
+
+			yield {
+				_type: 'debug',
+				complete: true,
+				label: 'MESSAGES',
+				data: messages,
+			}
 
 			let cursor = 0
 			let maybeIncompleteEvent: IAgentEvent | null = null

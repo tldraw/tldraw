@@ -52,8 +52,8 @@ export async function* streamAgent({
 							throw new Error(data.error)
 						}
 
-						const agentChange: Streaming<IAgentEvent> = data
-						yield agentChange
+						const agentEvent: Streaming<IAgentEvent> = data
+						yield agentEvent
 					} catch (err: any) {
 						throw new Error(err.message)
 					}
