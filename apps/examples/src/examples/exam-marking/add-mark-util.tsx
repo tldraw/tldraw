@@ -1,26 +1,31 @@
 import { useEffect, useRef, useState } from 'react'
-import { HTMLContainer, RecordProps, Rectangle2d, ShapeUtil, T, TLBaseShape } from 'tldraw'
+import {
+	HTMLContainer,
+	RecordProps,
+	Rectangle2d,
+	ShapeUtil,
+	T,
+	TLBaseShape,
+	stopEventPropagation,
+} from 'tldraw'
+
+export const EXAM_MARK_WIDTH = 80
+export const EXAM_MARK_HEIGHT = 40
 
 export type IExamMarkShape = TLBaseShape<
 	'exam-mark',
 	{
-		w: number
-		h: number
 		score: number
 	}
 >
 
 export const examMarkShapeDefaultProps: IExamMarkShape['props'] = {
-	w: 80,
-	h: 40,
 	score: 0,
 }
 
 export class ExamMarkUtil extends ShapeUtil<IExamMarkShape> {
 	static override type = 'exam-mark' as const
 	static override props: RecordProps<IExamMarkShape> = {
-		w: T.number,
-		h: T.number,
 		score: T.number,
 	}
 
@@ -46,13 +51,19 @@ export class ExamMarkUtil extends ShapeUtil<IExamMarkShape> {
 
 		// [c]
 		useEffect(() => {
+			this.editor.setEditingShape(shape.id)
+		}, [shape.id])
+
+		// [d]
+		useEffect(() => {
 			if (isEditing && inputRef.current) {
 				inputRef.current.focus()
+				inputRef.current.select()
 			}
 		}, [isEditing])
 		/* eslint-enable react-hooks/rules-of-hooks */
 
-		// [d]
+		// [e]
 		const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
 			const value = e.target.value
 			setScore(value)
@@ -89,25 +100,29 @@ export class ExamMarkUtil extends ShapeUtil<IExamMarkShape> {
 							borderRadius: 4,
 							border: '1px solid blue',
 							opacity: 0.7,
+							pointerEvents: isEditing ? 'all' : 'none',
 						}}
 						onChange={handleChange}
 						onBlur={() => {
 							this.editor.setEditingShape(null)
 						}}
+						onPointerDown={isEditing ? stopEventPropagation : undefined}
+						onPointerUp={isEditing ? stopEventPropagation : undefined}
+						onPointerMove={isEditing ? stopEventPropagation : undefined}
 					/>
 				</div>
 			</HTMLContainer>
 		)
 	}
 
-	override indicator(shape: IExamMarkShape) {
-		return <rect width={shape.props.w} height={shape.props.h} />
+	override indicator() {
+		return <rect width={EXAM_MARK_WIDTH} height={EXAM_MARK_HEIGHT} rx={4} />
 	}
 
-	getGeometry(shape: IExamMarkShape) {
+	getGeometry() {
 		return new Rectangle2d({
-			width: shape.props.w,
-			height: shape.props.h,
+			width: EXAM_MARK_WIDTH,
+			height: EXAM_MARK_HEIGHT,
 			isFilled: true,
 		})
 	}
@@ -136,9 +151,11 @@ A utility class for the exam mark shape. This is where you define the shape's be
  - [b] The important part of this shape utility is how it handles the score input. We know we want the ExamScoreLabel component to be able to access the score of the shape, so we want the score to be a prop for the shape. 
  Annoying: eslint sometimes thinks this is a class component, but it's not.
 
- - [c] Focus the input when the the shape is being edited, i.e. when it's double clicked
+ - [c] When the shape is mounted, we set it to be in editing mode.
 
- - [d] We want to be able to edit the score of the shape, so we need to be able to update the shape's props. We do this by using the editor.updateShape method when we detect that the score is a number.
+ - [d] Focus the input when the the shape is being edited, i.e. when it's double clicked or when it's mounted. This means that when a shape is created, the text is immediately focused and selected.
+
+ - [e] We want to be able to edit the score of the shape, so we need to be able to update the shape's props. We do this by using the editor.updateShape method when we detect that the score is a number.
 
 For notes on the other parts of this shape utility, check out the `custom-config` example.
 */

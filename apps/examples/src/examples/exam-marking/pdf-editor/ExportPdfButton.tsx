@@ -9,7 +9,23 @@ export function ExportPdfButton({ pdf }: { pdf: Pdf }) {
 
 	return (
 		<button
-			className="ExportPdfButton"
+			style={{
+				font: 'inherit',
+				background: 'var(--tl-color-primary)',
+				border: 'none',
+				color: 'var(--tl-color-selected-contrast)',
+				fontSize: '1rem',
+				padding: '0.5rem 1rem',
+				borderRadius: '6px',
+				margin: '6px 0px',
+				marginBottom: 0,
+				pointerEvents: 'all',
+				zIndex: 'var(--tl-layer-panels)',
+				borderWidth: '2px',
+				borderStyle: 'solid',
+				borderColor: 'var(--tl-color-background)',
+				cursor: 'pointer',
+			}}
 			onClick={async () => {
 				setExportProgress(0)
 				try {
