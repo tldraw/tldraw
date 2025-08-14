@@ -1,4 +1,5 @@
 import { TLAsset } from 'tldraw'
+import { describe, expect, it } from 'vitest'
 import { multiplayerAssetStore } from './multiplayerAssetStore'
 
 const resolver = multiplayerAssetStore().resolve

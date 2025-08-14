@@ -69,7 +69,6 @@
 	},
 	"devDependencies": {
 		"@peculiar/webcrypto": "^1.5.0",
-		"@testing-library/jest-dom": "^5.17.0",
 		"@testing-library/react": "^15.0.7",
 		"@types/benchmark": "^2.1.5",
 		"@types/react": "^18.3.18",

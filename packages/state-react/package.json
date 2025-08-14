@@ -46,7 +46,6 @@
 		"@tldraw/utils": "workspace:*"
 	},
 	"devDependencies": {
-		"@testing-library/jest-dom": "^5.17.0",
 		"@testing-library/react": "^15.0.7",
 		"@types/lodash": "^4.17.14",
 		"@types/react": "^18.3.18",

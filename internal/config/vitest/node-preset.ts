@@ -1,7 +1,6 @@
 import path from 'path'
 import { defineConfig } from 'vitest/config'
 
-// Equivalent to internal/config/svgTransform.js for Vitest
 const svgTransform = {
 	name: 'svg-transform',
 	transform(_code: string, id: string) {
@@ -11,6 +10,7 @@ const svgTransform = {
 				map: null,
 			}
 		}
+		return undefined
 	},
 }
 
