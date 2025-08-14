@@ -156,7 +156,7 @@ ${escapeForTemplateLiteral(fetchEverythingSql)}
 
 export const columnNamesByAlias = ${JSON.stringify(columnNamesByAlias, null, 2)}
 `
-test('fetchEverythingSql snapshot (RUN `yarn test -u` IF THIS FAILS)', async () => {
+test('fetchEverythingSql snapshot (RUN `UPDATE_SNAPSHOTS=1 yarn test` IF THIS FAILS)', async () => {
 	const tmpFile = join(DIRNAME, '.fetchEverythingSql.tmp.ts')
 	writeFileSync(tmpFile, tsFile, 'utf-8')
 	execSync('yarn run -T prettier --write ' + tmpFile, {
@@ -168,7 +168,7 @@ test('fetchEverythingSql snapshot (RUN `yarn test -u` IF THIS FAILS)', async () 
 	const formattedCode = readFileSync(tmpFile, 'utf-8').toString()
 	unlinkSync(tmpFile)
 
-	const isUpdating = process.env.VITEST_UPDATE_SNAPSHOTS === 'true'
+	const isUpdating = !!process.env.UPDATE_SNAPSHOTS
 	if (isUpdating) {
 		writeFileSync(join(DIRNAME, 'fetchEverythingSql.snap.ts'), formattedCode, 'utf-8')
 		return

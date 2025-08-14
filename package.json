@@ -100,6 +100,7 @@
 		"@typescript-eslint/eslint-plugin": "^8.21.0",
 		"@typescript-eslint/parser": "^8.21.0",
 		"@vitest/coverage-v8": "^3.2.4",
+		"@vitest/ui": "3.2.4",
 		"auto": "^11.3.0",
 		"eslint": "^9.19.0",
 		"eslint-config-prettier": "^9.1.0",
