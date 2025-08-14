@@ -4,6 +4,7 @@ import {
 	TLGroupShape,
 	TLPointerEventInfo,
 	TLShapeId,
+	isAccelKey,
 	pointInPolygon,
 } from '@tldraw/editor'
 
@@ -15,7 +16,15 @@ export class Erasing extends StateNode {
 	private markId = ''
 	private excludedShapeIds = new Set<TLShapeId>()
 
+	_isHoldingAccelKey = false
+	_firstErasingShapeId: TLShapeId | null = null
+	_erasingShapeIds: TLShapeId[] = []
+
 	override onEnter(info: TLPointerEventInfo) {
+		this._isHoldingAccelKey = isAccelKey(this.editor.inputs)
+		this._firstErasingShapeId = this.editor.getErasingShapeIds()[0] // the first one should be the first one we hit... is it?
+		this._erasingShapeIds = this.editor.getErasingShapeIds()
+
 		this.markId = this.editor.markHistoryStoppingPoint('erase scribble begin')
 		this.info = info
 
@@ -76,6 +85,16 @@ export class Erasing extends StateNode {
 		this.complete()
 	}
 
+	override onKeyUp() {
+		this._isHoldingAccelKey = isAccelKey(this.editor.inputs)
+		this.update()
+	}
+
+	override onKeyDown() {
+		this._isHoldingAccelKey = isAccelKey(this.editor.inputs)
+		this.update()
+	}
+
 	update() {
 		const { editor, excludedShapeIds } = this
 		const erasingShapeIds = editor.getErasingShapeIds()
@@ -87,6 +106,7 @@ export class Erasing extends StateNode {
 
 		this.pushPointToScribble()
 
+		// Otherwise, erasing shapes are all the shapes that were hit before plus any new shapes that are hit
 		const erasing = new Set<TLShapeId>(erasingShapeIds)
 		const minDist = this.editor.options.hitTestMargin / zoomLevel
 
@@ -121,18 +141,31 @@ export class Erasing extends StateNode {
 			if (geometry.hitTestLineSegment(A, B, minDist)) {
 				erasing.add(editor.getOutermostSelectableShape(shape).id)
 			}
+
+			this._erasingShapeIds = [...erasing]
+		}
+
+		// If the user is holding the meta / ctrl key, we should only erase the first shape we hit
+		if (this._isHoldingAccelKey && this._firstErasingShapeId) {
+			const erasingShapeId = this._firstErasingShapeId
+			if (erasingShapeId && this.editor.getShape(erasingShapeId)) {
+				editor.setErasingShapes([erasingShapeId])
+			}
+			return
 		}
 
 		// Remove the hit shapes, except if they're in the list of excluded shapes
 		// (these excluded shapes will be any frames or groups the pointer was inside of
 		// when the user started erasing)
-		this.editor.setErasingShapes([...erasing].filter((id) => !excludedShapeIds.has(id)))
+		this.editor.setErasingShapes(this._erasingShapeIds.filter((id) => !excludedShapeIds.has(id)))
 	}
 
 	complete() {
 		const { editor } = this
 		editor.deleteShapes(editor.getCurrentPageState().erasingShapeIds)
 		this.parent.transition('idle')
+		this._erasingShapeIds = []
+		this._firstErasingShapeId = null
 	}
 
 	cancel() {
