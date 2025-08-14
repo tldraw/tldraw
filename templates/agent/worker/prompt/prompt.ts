@@ -1,12 +1,12 @@
 import { ModelMessage, UserContent } from 'ai'
+import { PART_UTILS } from '../../client/ai/useTldrawAgentWithUtils'
 import { AgentMessage } from '../../client/promptParts/PromptPartUtil'
-import { PROMPT_PART_UTIL_CONSTRUCTORS } from '../../client/promptParts/promptPartUtils'
 import { AgentPrompt } from '../../client/types/AgentPrompt'
 
 export function buildMessages(prompt: AgentPrompt): ModelMessage[] {
 	const { parts } = prompt
 
-	const utils = Object.fromEntries(PROMPT_PART_UTIL_CONSTRUCTORS.map((v) => [v.type, new v()]))
+	const utils = Object.fromEntries(PART_UTILS.map((v) => [v.type, new v()]))
 	const allMessages: AgentMessage[] = []
 
 	for (const type in parts) {

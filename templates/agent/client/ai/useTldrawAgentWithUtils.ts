@@ -25,36 +25,40 @@ import { UserSelectedShapesPartUtil } from '../promptParts/UserSelectedShapesPar
 import { UserViewportBoundsPartUtil } from '../promptParts/UserViewportBoundsPartUtil'
 import { useTldrawAgent } from './useTldrawAgent'
 
-export function useTldrawAgentExample(editor: Editor) {
+export const PART_UTILS = [
+	AgentViewportScreenshotPartUtil,
+	AgentViewportShapesPartUtil,
+	AgentViewportBoundsPartUtil,
+	ContextItemsPartUtil,
+	UserViewportBoundsPartUtil,
+	HistoryItemPartUtil,
+	MessagePartUtil,
+	PeripheralShapesPartUtil,
+	PromptBoundsPartUtil,
+	UserSelectedShapesPartUtil,
+]
+
+export const EVENT_UTILS = [
+	UpdateEventUtil,
+	DeleteEventUtil,
+	CreateEventUtil,
+	MoveEventUtil,
+	PlaceEventUtil,
+	StackEventUtil,
+	AlignEventUtil,
+	ReviewEventUtil,
+	SetMyViewEventUtil,
+	DistributeEventUtil,
+	LabelEventUtil,
+	ThinkEventUtil,
+	MessageEventUtil,
+	DebugEventUtil,
+]
+
+export function useTldrawAgentWithUtils(editor: Editor) {
 	return useTldrawAgent({
 		editor,
-		partUtils: [
-			AgentViewportScreenshotPartUtil,
-			AgentViewportShapesPartUtil,
-			AgentViewportBoundsPartUtil,
-			ContextItemsPartUtil,
-			UserViewportBoundsPartUtil,
-			HistoryItemPartUtil,
-			MessagePartUtil,
-			PeripheralShapesPartUtil,
-			PromptBoundsPartUtil,
-			UserSelectedShapesPartUtil,
-		],
-		eventUtils: [
-			UpdateEventUtil,
-			DeleteEventUtil,
-			CreateEventUtil,
-			MoveEventUtil,
-			PlaceEventUtil,
-			StackEventUtil,
-			AlignEventUtil,
-			ReviewEventUtil,
-			SetMyViewEventUtil,
-			DistributeEventUtil,
-			LabelEventUtil,
-			ThinkEventUtil,
-			MessageEventUtil,
-			DebugEventUtil,
-		],
+		partUtils: PART_UTILS,
+		eventUtils: EVENT_UTILS,
 	})
 }

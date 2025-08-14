@@ -1,6 +1,6 @@
 import { FormEventHandler, useCallback, useEffect, useRef, useState } from 'react'
 import { Editor, useToasts, useValue } from 'tldraw'
-import { useTldrawAgentExample } from '../ai/useTldrawAgentExample'
+import { useTldrawAgentWithUtils } from '../ai/useTldrawAgentWithUtils'
 import { $chatHistoryItems } from '../atoms/chatHistoryItems'
 import { $contextItems, $pendingContextItems } from '../atoms/contextItems'
 import { $modelName } from '../atoms/modelName'
@@ -12,7 +12,7 @@ import { ChatInput } from './ChatInput'
 import { $contextBoundsHighlight } from './highlights/ContextBoundsHighlights'
 
 export function ChatPanel({ editor }: { editor: Editor }) {
-	const agent = useTldrawAgentExample(editor)
+	const agent = useTldrawAgentWithUtils(editor)
 
 	const [isGenerating, setIsGenerating] = useState(false)
 	const rCancelFn = useRef<(() => void) | null>(null)
