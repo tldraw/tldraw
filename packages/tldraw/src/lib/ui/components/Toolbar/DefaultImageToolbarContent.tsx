@@ -272,7 +272,7 @@ export const DefaultImageToolbarContent = track(function DefaultImageToolbarCont
 					type="icon"
 					onClick={onManipulatingEnd}
 					data-testid="tool.image-confirm"
-					style={{ borderLeft: '1px solid var(--color-divider)', marginLeft: '2px' }}
+					style={{ borderLeft: '1px solid var(--tl-color-divider)', marginLeft: '2px' }}
 				>
 					<TldrawUiButtonIcon small icon="check" />
 				</TldrawUiButton>

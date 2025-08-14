@@ -26,6 +26,16 @@ export { AccessibilityMenu } from './lib/ui/components/AccessibilityMenu'
 export { ColorSchemeMenu } from './lib/ui/components/ColorSchemeMenu'
 export { DefaultDialogs } from './lib/ui/components/Dialogs'
 export {
+	TldrawUiColumn,
+	TldrawUiGrid,
+	TldrawUiOrientationProvider,
+	TldrawUiRow,
+	useTldrawUiOrientation,
+	type TldrawUiOrientationContext,
+	type TldrawUiOrientationProviderProps,
+	type TLUiLayoutProps,
+} from './lib/ui/components/primitives/layout'
+export {
 	TldrawUiMenuActionCheckboxItem,
 	type TLUiMenuActionCheckboxItemProps,
 } from './lib/ui/components/primitives/menus/TldrawUiMenuActionCheckboxItem'
@@ -598,7 +608,9 @@ export { useMenuIsOpen } from './lib/ui/hooks/useMenuIsOpen'
 export { useReadonly } from './lib/ui/hooks/useReadonly'
 export { useRelevantStyles } from './lib/ui/hooks/useRelevantStyles'
 export {
+	onDragFromToolbarToCreateShape,
 	useTools,
+	type OnDragFromToolbarToCreateShapesOpts,
 	type TLUiToolItem,
 	type TLUiToolsContextType,
 	type TLUiToolsProviderProps,

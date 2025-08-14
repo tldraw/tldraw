@@ -1,6 +1,7 @@
 import classnames from 'classnames'
 import { Toolbar as _Toolbar } from 'radix-ui'
 import React from 'react'
+import { TldrawUiColumn, TldrawUiGrid, TldrawUiRow } from './layout'
 import { TldrawUiTooltip } from './TldrawUiTooltip'
 
 /** @public */
@@ -9,20 +10,42 @@ export interface TLUiToolbarProps extends React.HTMLAttributes<HTMLDivElement> {
 	className?: string
 	dir?: 'ltr' | 'rtl'
 	label: string
+	orientation?: 'horizontal' | 'vertical' | 'grid'
+	tooltipSide?: 'top' | 'right' | 'bottom' | 'left'
+}
+
+const LayoutByOrientation = {
+	horizontal: TldrawUiRow,
+	vertical: TldrawUiColumn,
+	grid: TldrawUiGrid,
 }
 
 /** @public @react */
 export const TldrawUiToolbar = React.forwardRef<HTMLDivElement, TLUiToolbarProps>(
-	({ children, className, label, ...props }: TLUiToolbarProps, ref) => {
+	(
+		{
+			children,
+			className,
+			label,
+			orientation = 'horizontal',
+			tooltipSide,
+			...props
+		}: TLUiToolbarProps,
+		ref
+	) => {
+		const Layout = LayoutByOrientation[orientation]
 		return (
-			<_Toolbar.Root
-				ref={ref}
-				{...props}
-				className={classnames('tlui-toolbar-container', className)}
-				aria-label={label}
-			>
-				{children}
-			</_Toolbar.Root>
+			<Layout asChild tooltipSide={tooltipSide}>
+				<_Toolbar.Root
+					ref={ref}
+					{...props}
+					className={classnames('tlui-toolbar', className)}
+					aria-label={label}
+					orientation={orientation === 'grid' ? 'horizontal' : orientation}
+				>
+					{children}
+				</_Toolbar.Root>
+			</Layout>
 		)
 	}
 )

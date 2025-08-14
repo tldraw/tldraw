@@ -1,0 +1,15 @@
+{
+	"hooks": {
+		"PostToolUse": [
+			{
+				"matcher": "Edit|MultiEdit|Write",
+				"hooks": [
+					{
+						"type": "command",
+						"command": "jq -r '.tool_input.file_path' | { read file_path; npx prettier --write \"$file_path\"; }"
+					}
+				]
+			}
+		]
+	}
+}

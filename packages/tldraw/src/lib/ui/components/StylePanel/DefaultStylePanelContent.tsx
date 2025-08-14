@@ -139,7 +139,7 @@ export function CommonStylePickerSet({ styles, theme }: ThemeStylePickerSetProps
 						{showUiLabels && (
 							<StylePanelSubheading>{msg('style-panel.color')}</StylePanelSubheading>
 						)}
-						<TldrawUiToolbar label={msg('style-panel.color')}>
+						<TldrawUiToolbar orientation="horizontal" label={msg('style-panel.color')}>
 							<TldrawUiButtonPicker
 								title={msg('style-panel.color')}
 								uiType="color"
@@ -162,7 +162,7 @@ export function CommonStylePickerSet({ styles, theme }: ThemeStylePickerSetProps
 							{showUiLabels && (
 								<StylePanelSubheading>{msg('style-panel.fill')}</StylePanelSubheading>
 							)}
-							<TldrawUiToolbar label={msg('style-panel.fill')}>
+							<TldrawUiToolbar orientation="horizontal" label={msg('style-panel.fill')}>
 								<TldrawUiButtonPicker
 									title={msg('style-panel.fill')}
 									uiType="fill"
@@ -181,7 +181,7 @@ export function CommonStylePickerSet({ styles, theme }: ThemeStylePickerSetProps
 							{showUiLabels && (
 								<StylePanelSubheading>{msg('style-panel.dash')}</StylePanelSubheading>
 							)}
-							<TldrawUiToolbar label={msg('style-panel.dash')}>
+							<TldrawUiToolbar orientation="horizontal" label={msg('style-panel.dash')}>
 								<TldrawUiButtonPicker
 									title={msg('style-panel.dash')}
 									uiType="dash"
@@ -200,7 +200,7 @@ export function CommonStylePickerSet({ styles, theme }: ThemeStylePickerSetProps
 							{showUiLabels && (
 								<StylePanelSubheading>{msg('style-panel.size')}</StylePanelSubheading>
 							)}
-							<TldrawUiToolbar label={msg('style-panel.size')}>
+							<TldrawUiToolbar orientation="horizontal" label={msg('style-panel.size')}>
 								<TldrawUiButtonPicker
 									title={msg('style-panel.size')}
 									uiType="size"
@@ -249,7 +249,7 @@ export function TextStylePickerSet({ theme, styles }: ThemeStylePickerSetProps) 
 			{font === undefined ? null : (
 				<>
 					{labelStr && <StylePanelSubheading>{labelStr}</StylePanelSubheading>}
-					<TldrawUiToolbar label={msg('style-panel.font')}>
+					<TldrawUiToolbar orientation="horizontal" label={msg('style-panel.font')}>
 						<TldrawUiButtonPicker
 							title={msg('style-panel.font')}
 							uiType="font"
@@ -267,7 +267,7 @@ export function TextStylePickerSet({ theme, styles }: ThemeStylePickerSetProps) 
 			{textAlign === undefined ? null : (
 				<>
 					{showUiLabels && <StylePanelSubheading>{msg('style-panel.align')}</StylePanelSubheading>}
-					<TldrawUiToolbar label={msg('style-panel.align')} className="tlui-style-panel__row">
+					<TldrawUiToolbar orientation="horizontal" label={msg('style-panel.align')}>
 						<TldrawUiButtonPicker
 							title={msg('style-panel.align')}
 							uiType="align"
@@ -278,16 +278,14 @@ export function TextStylePickerSet({ theme, styles }: ThemeStylePickerSetProps) 
 							theme={theme}
 							onHistoryMark={onHistoryMark}
 						/>
-						<div className="tlui-style-panel__row__extra-button">
-							<TldrawUiToolbarButton
-								type="icon"
-								title={msg('style-panel.vertical-align')}
-								data-testid="vertical-align"
-								disabled
-							>
-								<TldrawUiButtonIcon icon="vertical-align-middle" />
-							</TldrawUiToolbarButton>
-						</div>
+						<TldrawUiToolbarButton
+							type="icon"
+							title={msg('style-panel.vertical-align')}
+							data-testid="vertical-align"
+							disabled
+						>
+							<TldrawUiButtonIcon icon="vertical-align-middle" />
+						</TldrawUiToolbarButton>
 					</TldrawUiToolbar>
 				</>
 			)}
@@ -297,7 +295,7 @@ export function TextStylePickerSet({ theme, styles }: ThemeStylePickerSetProps) 
 					{showUiLabels && (
 						<StylePanelSubheading>{msg('style-panel.label-align')}</StylePanelSubheading>
 					)}
-					<TldrawUiToolbar label={msg('style-panel.label-align')} className="tlui-style-panel__row">
+					<TldrawUiToolbar orientation="horizontal" label={msg('style-panel.label-align')}>
 						<TldrawUiButtonPicker
 							title={msg('style-panel.label-align')}
 							uiType="align"
@@ -308,29 +306,27 @@ export function TextStylePickerSet({ theme, styles }: ThemeStylePickerSetProps) 
 							theme={theme}
 							onHistoryMark={onHistoryMark}
 						/>
-						<div className="tlui-style-panel__row__extra-button">
-							{verticalLabelAlign === undefined ? (
-								<TldrawUiToolbarButton
-									type="icon"
-									title={msg('style-panel.vertical-align')}
-									data-testid="vertical-align"
-									disabled
-								>
-									<TldrawUiButtonIcon icon="vertical-align-middle" />
-								</TldrawUiToolbarButton>
-							) : (
-								<DropdownPicker
-									type="icon"
-									id="geo-vertical-alignment"
-									uiType="verticalAlign"
-									stylePanelType="vertical-align"
-									style={DefaultVerticalAlignStyle}
-									items={STYLES.verticalAlign}
-									value={verticalLabelAlign}
-									onValueChange={handleValueChange}
-								/>
-							)}
-						</div>
+						{verticalLabelAlign === undefined ? (
+							<TldrawUiToolbarButton
+								type="icon"
+								title={msg('style-panel.vertical-align')}
+								data-testid="vertical-align"
+								disabled
+							>
+								<TldrawUiButtonIcon icon="vertical-align-middle" />
+							</TldrawUiToolbarButton>
+						) : (
+							<DropdownPicker
+								type="icon"
+								id="geo-vertical-alignment"
+								uiType="verticalAlign"
+								stylePanelType="vertical-align"
+								style={DefaultVerticalAlignStyle}
+								items={STYLES.verticalAlign}
+								value={verticalLabelAlign}
+								onValueChange={handleValueChange}
+							/>
+						)}
 					</TldrawUiToolbar>
 				</>
 			)}
@@ -348,7 +344,7 @@ export function GeoStylePickerSet({ styles }: StylePickerSetProps) {
 	}
 
 	return (
-		<TldrawUiToolbar label={msg('style-panel.geo')}>
+		<TldrawUiToolbar orientation="horizontal" label={msg('style-panel.geo')}>
 			<DropdownPicker
 				id="geo"
 				type="menu"
@@ -374,7 +370,7 @@ export function SplineStylePickerSet({ styles }: StylePickerSetProps) {
 	}
 
 	return (
-		<TldrawUiToolbar label={msg('style-panel.spline')}>
+		<TldrawUiToolbar orientation="horizontal" label={msg('style-panel.spline')}>
 			<DropdownPicker
 				id="spline"
 				type="menu"
@@ -400,7 +396,7 @@ export function ArrowStylePickerSet({ styles }: StylePickerSetProps) {
 	}
 
 	return (
-		<TldrawUiToolbar label={msg('style-panel.arrow-kind')}>
+		<TldrawUiToolbar orientation="horizontal" label={msg('style-panel.arrow-kind')}>
 			<DropdownPicker
 				id="arrow-kind"
 				type="menu"

@@ -33,7 +33,7 @@ export const DefaultNavigationPanel = memo(function DefaultNavigationPanel() {
 
 	return (
 		<div ref={ref} className="tlui-navigation-panel">
-			<TldrawUiToolbar className="tlui-buttons__horizontal" label={msg('navigation-zone.title')}>
+			<TldrawUiToolbar orientation="horizontal" label={msg('navigation-zone.title')}>
 				{ZoomMenu && breakpoint < PORTRAIT_BREAKPOINT.TABLET ? (
 					<ZoomMenu />
 				) : (
