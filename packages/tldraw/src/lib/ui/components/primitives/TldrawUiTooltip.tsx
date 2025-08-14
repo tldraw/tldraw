@@ -21,6 +21,7 @@ export interface TldrawUiTooltipProps {
 	sideOffset?: number
 	disabled?: boolean
 	showOnMobile?: boolean
+	delayDuration?: number
 }
 
 // Singleton tooltip manager
@@ -33,6 +34,7 @@ class TooltipManager {
 		sideOffset: number
 		showOnMobile: boolean
 		targetElement: HTMLElement
+		delayDuration: number | undefined
 	} | null>('current tooltip', null)
 	private destroyTimeoutId: number | null = null
 
@@ -49,7 +51,8 @@ class TooltipManager {
 		targetElement: HTMLElement,
 		side: 'top' | 'right' | 'bottom' | 'left',
 		sideOffset: number,
-		showOnMobile: boolean
+		showOnMobile: boolean,
+		delayDuration: number | undefined
 	) {
 		// Clear any existing destroy timeout
 		if (this.destroyTimeoutId) {
@@ -65,6 +68,7 @@ class TooltipManager {
 			sideOffset,
 			showOnMobile,
 			targetElement,
+			delayDuration,
 		})
 	}
 
@@ -173,7 +177,7 @@ function TooltipSingleton() {
 				showTimeoutRef.current = editor.timers.setTimeout(() => {
 					setIsOpen(true)
 					isFirstShowRef.current = false
-				}, editor.options.tooltipDelayMs)
+				}, currentTooltip.delayDuration ?? editor.options.tooltipDelayMs)
 			} else {
 				// Subsequent tooltips show immediately
 				setIsOpen(true)
@@ -212,7 +216,18 @@ function TooltipSingleton() {
 
 /** @public @react */
 export const TldrawUiTooltip = forwardRef<HTMLButtonElement, TldrawUiTooltipProps>(
-	({ children, content, side, sideOffset = 5, disabled = false, showOnMobile = false }, ref) => {
+	(
+		{
+			children,
+			content,
+			side,
+			sideOffset = 5,
+			disabled = false,
+			showOnMobile = false,
+			delayDuration,
+		},
+		ref
+	) => {
 		const editor = useMaybeEditor()
 		const tooltipId = useRef<string>(uniqueId())
 		const hasProvider = useContext(TooltipSingletonContext)
@@ -238,7 +253,9 @@ export const TldrawUiTooltip = forwardRef<HTMLButtonElement, TldrawUiTooltipProp
 		if (!hasProvider) {
 			return (
 				<_Tooltip.Root
-					delayDuration={editor?.options.tooltipDelayMs || DEFAULT_TOOLTIP_DELAY_MS}
+					delayDuration={
+						delayDuration ?? (editor?.options.tooltipDelayMs || DEFAULT_TOOLTIP_DELAY_MS)
+					}
 					disableHoverableContent
 				>
 					<_Tooltip.Trigger asChild ref={ref}>
@@ -270,7 +287,8 @@ export const TldrawUiTooltip = forwardRef<HTMLButtonElement, TldrawUiTooltipProp
 				event.currentTarget as HTMLElement,
 				sideToUse,
 				sideOffset,
-				showOnMobile
+				showOnMobile,
+				delayDuration
 			)
 		}
 
@@ -287,7 +305,8 @@ export const TldrawUiTooltip = forwardRef<HTMLButtonElement, TldrawUiTooltipProp
 				event.currentTarget as HTMLElement,
 				sideToUse,
 				sideOffset,
-				showOnMobile
+				showOnMobile,
+				delayDuration
 			)
 		}
 
