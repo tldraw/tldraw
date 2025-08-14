@@ -37,7 +37,8 @@
 	padding: 6px;
 	max-width: 240px;
 	box-shadow: var(--tla-shadow-3);
-	margin-bottom: 12px;
+	margin-bottom: 4px;
+	margin-right: 4px;
 }
 
 .cookieText {
@@ -95,7 +96,7 @@
 .cookieConsentWrapper {
 	position: fixed;
 	bottom: 0;
-	right: var(--tl-space-4);
+	right: 0;
 	z-index: var(--tl-layer-menus);
 	width: fit-content;
 }
