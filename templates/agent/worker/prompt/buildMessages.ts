@@ -1,12 +1,12 @@
 import { ModelMessage, UserContent } from 'ai'
-import { PART_UTILS } from '../../shared/AgentUtils'
+import { PROMPT_PART_UTILS } from '../../shared/AgentUtils'
 import { AgentMessage } from '../../shared/types/AgentMessage'
 import { AgentPrompt } from '../../shared/types/AgentPrompt'
 
 export function buildMessages(prompt: AgentPrompt): ModelMessage[] {
 	const { parts } = prompt
 
-	const utils = Object.fromEntries(PART_UTILS.map((v) => [v.type, new v()]))
+	const utils = Object.fromEntries(PROMPT_PART_UTILS.map((v) => [v.type, new v()]))
 	const allMessages: AgentMessage[] = []
 
 	for (const type in parts) {

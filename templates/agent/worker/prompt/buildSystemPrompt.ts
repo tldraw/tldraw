@@ -1,10 +1,10 @@
-import { PART_UTILS } from '../../shared/AgentUtils'
+import { PROMPT_PART_UTILS } from '../../shared/AgentUtils'
 import { AgentPrompt } from '../../shared/types/AgentPrompt'
 
 export function buildSystemPrompt(prompt: AgentPrompt): string {
 	const { parts } = prompt
 
-	const utils = Object.fromEntries(PART_UTILS.map((v) => [v.type, new v()]))
+	const utils = Object.fromEntries(PROMPT_PART_UTILS.map((v) => [v.type, new v()]))
 	const messages: string[] = []
 
 	for (const type in parts) {

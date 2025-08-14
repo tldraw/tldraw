@@ -26,7 +26,7 @@ import { SystemPromptPartUtil } from './parts/SystemPromptPartUtil'
 import { UserSelectedShapesPartUtil } from './parts/UserSelectedShapesPartUtil'
 import { UserViewportBoundsPartUtil } from './parts/UserViewportBoundsPartUtil'
 
-export const PART_UTILS: PromptPartUtilConstructor[] = [
+export const PROMPT_PART_UTILS: PromptPartUtilConstructor[] = [
 	SystemPromptPartUtil,
 	AgentViewportScreenshotPartUtil,
 	AgentViewportShapesPartUtil,
