@@ -473,7 +473,7 @@ describe('When holding meta/ctrl key (accel key)', () => {
 		editor.pointerDown(-100, -100) // outside of any shapes
 		editor.pointerMove(99, 99) // next to box1 AND in box2
 
-		jest.advanceTimersByTime(16)
+		vi.advanceTimersByTime(16)
 		expect(editor.getInstanceState().scribbles.length).toBe(1)
 
 		// Should include all shapes hit initially
@@ -506,7 +506,7 @@ describe('When holding meta/ctrl key (accel key)', () => {
 		editor.pointerDown(-100, -100) // outside of any shapes
 		editor.pointerMove(99, 99) // next to box1 AND in box2
 
-		jest.advanceTimersByTime(16)
+		vi.advanceTimersByTime(16)
 		expect(editor.getInstanceState().scribbles.length).toBe(1)
 
 		// Should include all shapes hit initially
@@ -559,7 +559,7 @@ describe('When holding meta/ctrl key (accel key)', () => {
 		editor.pointerDown(-100, -100) // outside of any shapes
 		editor.pointerMove(99, 99) // next to box1 AND in box2
 
-		jest.advanceTimersByTime(16)
+		vi.advanceTimersByTime(16)
 		expect(editor.getInstanceState().scribbles.length).toBe(1)
 
 		// Should include all shapes hit initially
@@ -590,7 +590,7 @@ describe('When holding meta/ctrl key (accel key)', () => {
 		editor.pointerDown(-100, -100) // outside of any shapes
 		editor.pointerMove(99, 99) // next to box1 AND in box2
 
-		jest.advanceTimersByTime(16)
+		vi.advanceTimersByTime(16)
 		expect(editor.getInstanceState().scribbles.length).toBe(1)
 
 		// Should include all shapes hit initially
