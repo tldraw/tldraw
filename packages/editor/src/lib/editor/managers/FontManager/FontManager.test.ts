@@ -1,5 +1,5 @@
 import { TLShape, TLShapeId, createShapeId } from '@tldraw/tlschema'
-import { Mock, vi } from 'vitest'
+import { Mock, Mocked, vi } from 'vitest'
 import { Editor } from '../../Editor'
 import { FontManager, TLFontFace } from './FontManager'
 
@@ -25,7 +25,7 @@ Object.defineProperty(global.document, 'fonts', {
 global.queueMicrotask = vi.fn((fn) => Promise.resolve().then(fn))
 
 describe('FontManager', () => {
-	let editor: vi.Mocked<Editor>
+	let editor: Mocked<Editor>
 	let fontManager: FontManager
 	let mockAssetUrls: { [key: string]: string }
 

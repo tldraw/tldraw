@@ -1,6 +1,5 @@
 import { PageRecordType, TLStore, createShapeId } from '@tldraw/tlschema'
 import { IndexKey } from '@tldraw/utils'
-import { describe, expect, it } from 'vitest'
 import { Editor } from '../editor/Editor'
 import { Box } from '../primitives/Box'
 import { TLEditorSnapshot, getSnapshot, loadSnapshot } from './TLEditorSnapshot'

@@ -1,4 +1,4 @@
-import { Mock, vi } from 'vitest'
+import { Mock, Mocked, vi } from 'vitest'
 import { Editor } from '../../Editor'
 import { FocusManager } from './FocusManager'
 
@@ -6,7 +6,7 @@ import { FocusManager } from './FocusManager'
 vi.mock('../../Editor')
 
 describe('FocusManager', () => {
-	let editor: vi.Mocked<
+	let editor: Mocked<
 		Editor & {
 			sideEffects: {
 				registerAfterChangeHandler: Mock

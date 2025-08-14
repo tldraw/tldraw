@@ -1,5 +1,5 @@
 import { TLScribble } from '@tldraw/tlschema'
-import { Mock, vi } from 'vitest'
+import { Mock, Mocked, vi } from 'vitest'
 import { Editor } from '../../Editor'
 import { ScribbleItem, ScribbleManager } from './ScribbleManager'
 
@@ -10,7 +10,7 @@ vi.mock('@tldraw/utils', () => ({
 }))
 
 describe('ScribbleManager', () => {
-	let editor: vi.Mocked<Editor>
+	let editor: Mocked<Editor>
 	let scribbleManager: ScribbleManager
 	let mockUniqueId: Mock
 

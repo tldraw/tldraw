@@ -6,8 +6,7 @@
 		"**/*.css",
 		".tsbuild*",
 		"vitest.config.ts",
-		"setupVitest.js",
-		"**/*.test.ts"
+		"setupVitest.js"
 	],
 	"compilerOptions": {
 		"outDir": "./.tsbuild",

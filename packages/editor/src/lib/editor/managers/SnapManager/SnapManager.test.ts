@@ -1,5 +1,5 @@
 import { TLFrameShape, TLGroupShape, TLPageId, TLShapeId, createShapeId } from '@tldraw/tlschema'
-import { vi } from 'vitest'
+import { Mocked, vi } from 'vitest'
 import { Box } from '../../../primitives/Box'
 import { Vec } from '../../../primitives/Vec'
 import { Editor } from '../../Editor'
@@ -13,7 +13,7 @@ vi.mock('./BoundsSnaps')
 vi.mock('./HandleSnaps')
 
 describe('SnapManager', () => {
-	let editor: vi.Mocked<Editor>
+	let editor: Mocked<Editor>
 	let snapManager: SnapManager
 
 	const createMockShape = (

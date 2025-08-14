@@ -1,4 +1,4 @@
-import { Mock, vi } from 'vitest'
+import { Mock, Mocked, vi } from 'vitest'
 import { Vec } from '../../../primitives/Vec'
 import { Editor } from '../../Editor'
 import { TickManager } from './TickManager'
@@ -17,7 +17,7 @@ global.requestAnimationFrame = mockRequestAnimationFrame
 global.cancelAnimationFrame = mockCancelAnimationFrame
 
 describe('TickManager', () => {
-	let editor: vi.Mocked<Editor>
+	let editor: Mocked<Editor>
 	let tickManager: TickManager
 	let mockEmit: Mock
 	let mockDisposablesAdd: Mock

@@ -1,4 +1,4 @@
-import { vi } from 'vitest'
+import { Mocked, vi } from 'vitest'
 import { Editor } from '../../Editor'
 import { TLClickEventInfo, TLPointerEventInfo } from '../../types/event-types'
 import { ClickManager } from './ClickManager'
@@ -7,7 +7,7 @@ import { ClickManager } from './ClickManager'
 vi.mock('../../Editor')
 
 describe('ClickManager', () => {
-	let editor: vi.Mocked<Editor>
+	let editor: Mocked<Editor>
 	let clickManager: ClickManager
 	let mockTimers: any
 

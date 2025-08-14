@@ -1,4 +1,4 @@
-import { Mock, vi } from 'vitest'
+import { Mock, Mocked, vi } from 'vitest'
 import { Box } from '../../../primitives/Box'
 import { Vec } from '../../../primitives/Vec'
 import { Editor } from '../../Editor'
@@ -8,7 +8,7 @@ import { EdgeScrollManager } from './EdgeScrollManager'
 vi.mock('../../Editor')
 
 describe('EdgeScrollManager', () => {
-	let editor: vi.Mocked<
+	let editor: Mocked<
 		Editor & {
 			user: { getEdgeScrollSpeed: Mock }
 			getCamera: Mock
