@@ -316,8 +316,8 @@ function useDraggableEvents(
 				if (
 					distanceSq >
 					(editor.getInstanceState().isCoarsePointer
-						? editor.options.coarseDragDistanceSquared
-						: editor.options.dragDistanceSquared)
+						? editor.options.uiCoarseDragDistanceSquared
+						: editor.options.uiDragDistanceSquared)
 				) {
 					const screenSpaceStart = state.screenSpaceStart
 					state = {
