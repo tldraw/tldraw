@@ -1,4 +1,11 @@
-import { TLFrameShape, TLGroupShape, TLPageId, TLShapeId, createShapeId } from '@tldraw/tlschema'
+import {
+	TLFrameShape,
+	TLGroupShape,
+	TLPageId,
+	TLShape,
+	TLShapeId,
+	createShapeId,
+} from '@tldraw/tlschema'
 import { Mocked, vi } from 'vitest'
 import { Box } from '../../../primitives/Box'
 import { Vec } from '../../../primitives/Vec'
@@ -20,20 +27,21 @@ describe('SnapManager', () => {
 		id: TLShapeId,
 		type: string = 'geo',
 		parentId: TLShapeId | string = 'page:page'
-	) => ({
-		id,
-		type,
-		parentId,
-		x: 0,
-		y: 0,
-		rotation: 0,
-		index: 'a1' as const,
-		opacity: 1,
-		isLocked: false,
-		meta: {},
-		props: {},
-		typeName: 'shape' as const,
-	})
+	) =>
+		({
+			id,
+			type,
+			parentId,
+			x: 0,
+			y: 0,
+			rotation: 0,
+			index: 'a1' as const,
+			opacity: 1,
+			isLocked: false,
+			meta: {},
+			props: {},
+			typeName: 'shape' as const,
+		}) as TLShape
 
 	const createMockFrameShape = (id: TLShapeId): TLFrameShape =>
 		({
@@ -330,8 +338,8 @@ describe('SnapManager', () => {
 			const frameShape = createMockFrameShape(frameId)
 
 			editor.getSortedChildIdsForParent.mockReturnValue([frameId])
-			editor.getShape.mockReturnValue(frameShape as any)
-			editor.isShapeOfType.mockImplementation((_shape: any, type: any) => type === 'frame')
+			editor.getShape.mockReturnValue(frameShape)
+			editor.isShapeOfType.mockImplementation((_shape, type) => type === 'frame')
 			editor.getShapePageBounds.mockReturnValue(new Box(10, 10, 50, 50))
 
 			const result = snapManager.getSnappableShapes()
@@ -348,15 +356,13 @@ describe('SnapManager', () => {
 				.mockReturnValueOnce([groupId]) // Root level
 				.mockReturnValueOnce([childId]) // Inside group
 
-			editor.getShape.mockImplementation((id: any) => {
-				if (id === groupId) return groupShape as any
-				if (id === childId) return childShape as any
+			editor.getShape.mockImplementation((id) => {
+				if (id === groupId) return groupShape
+				if (id === childId) return childShape
 				return undefined
 			})
 
-			editor.isShapeOfType.mockImplementation(
-				(shape: any, type: any) => shape && (shape as any).type === type
-			)
+			editor.isShapeOfType.mockImplementation((shape: any, type) => shape && shape.type === type)
 
 			editor.getShapePageBounds.mockReturnValue(new Box(10, 10, 50, 50))
 
