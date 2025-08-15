@@ -1,6 +1,5 @@
 import { useSyncDemo } from '@tldraw/sync'
-import { useMemo } from 'react'
-import { Tldraw, useEditor, usePeerIds, useValue } from 'tldraw'
+import { Tldraw, useEditor, useValue } from 'tldraw'
 import 'tldraw/tldraw.css'
 
 // [1]
@@ -32,13 +31,9 @@ function CustomPeopleMenu() {
 	const myUserId = useValue('user', () => editor.user.getId(), [editor])
 
 	// [b]
-	const otherUserIds = usePeerIds()
-	const allPresences = useValue('presences', () => editor.getCollaborators(), [editor])
-	const otherUserInfo = useMemo(() => {
-		return allPresences.filter((presence) => otherUserIds.includes(presence.userId))
-	}, [allPresences, otherUserIds])
+	const allOtherPresences = useValue('presences', () => editor.getCollaborators(), [editor])
 
-	if (!otherUserInfo.length && !myUserName) return null
+	if (!allOtherPresences.length && !myUserName) return null
 
 	return (
 		<div
@@ -78,11 +73,11 @@ function CustomPeopleMenu() {
 			</div>
 
 			{/* [d] */}
-			{otherUserInfo.length > 0 && (
+			{allOtherPresences.length > 0 && (
 				<div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
 					<h4 style={{ margin: 0 }}>Other connected users:</h4>
 					<div style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
-						{otherUserInfo.map(({ userId, userName, color, cursor }) => (
+						{allOtherPresences.map(({ userId, userName, color, cursor }) => (
 							<div
 								key={userId}
 								style={{
@@ -131,7 +126,7 @@ The CustomPeopleMenu component displays information about all connected users. I
 	We use the useValue hook to reactively get the current user's information (color, name, and ID). These values will automatically update if the user changes their name or the system assigns a new color (note: the examlpe doesn't allow for name changing).
 
 	[b]
-	We get the list of other connected users using usePeerIds() and getCollaborators(). The usePeerIds hook gives us just the user IDs, while getCollaborators() gives us full presence information including names, colors, and cursor positions. We need to call getCollaborators() in a useValue hook in order for the presence info to be reactive.
+	We get the live presence of all other users information using the editor's getCollaborators() method. We need to call getCollaborators() in a useValue hook in order for the presence info to be reactive.
 
 	[c]
 	Display the current user's information with their color indicator and name. We show both the display name and the internal user ID for debugging purposes.
