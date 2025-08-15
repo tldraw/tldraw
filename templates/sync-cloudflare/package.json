@@ -32,15 +32,14 @@
 		"@tldraw/sync-core": "workspace:*",
 		"@tldraw/tlschema": "workspace:*",
 		"cloudflare-workers-unfurl": "^0.0.7",
+		"es-toolkit": "^1.39.7",
 		"itty-router": "^5.0.18",
-		"lodash.throttle": "^4.1.1",
 		"react": "^18.3.1",
 		"react-dom": "^18.3.1",
 		"tldraw": "workspace:*"
 	},
 	"devDependencies": {
 		"@cloudflare/vite-plugin": "^1.9.0",
-		"@types/lodash.throttle": "^4.1.9",
 		"@types/react": "^18.3.18",
 		"@types/react-dom": "^18.3.5",
 		"@vitejs/plugin-react-swc": "^3.10.2",
