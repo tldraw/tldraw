@@ -12,20 +12,39 @@ import { TlaSidebarFileSection } from './TlaSidebarFileSection'
 import { TlaSidebarGroupItem } from './TlaSidebarGroupItem'
 import { TlaSidebarInlineInput } from './TlaSidebarInlineInput'
 
+function GroupReorderCursor() {
+	const app = useApp()
+	const position = useValue(
+		'group reorder cursor position',
+		() => app.sidebarState.get().groupDragState?.cursorLineY,
+		[app]
+	)
+	if (position == null) return null
+
+	return (
+		<div
+			className={styles.dropCursorLine}
+			style={{
+				position: 'absolute',
+				top: position,
+				transform: 'translateY(-50%)',
+				left: 8,
+				width: 'calc(100% - 16px)',
+				zIndex: 1000,
+				pointerEvents: 'none',
+			}}
+		/>
+	)
+}
+
 export function TlaSidebarRecentFilesNew() {
 	const app = useApp()
 
 	const [isShowingAll, setIsShowingAll] = useState(false)
 	const [isCreatingGroup, setIsCreatingGroup] = useState(false)
-	const groupMemberships = useValue(
-		'groupMemberships',
-		() =>
-			app
-				.getGroupMemberships()
-				.slice(0)
-				.sort((a, b) => b.createdAt - a.createdAt),
-		[app]
-	)
+
+	// Get group memberships from the server
+	const groupMemberships = useValue('groupMemberships', () => app.getGroupMemberships(), [app])
 
 	const results = useValue(
 		'recent user files',
@@ -63,7 +82,8 @@ export function TlaSidebarRecentFilesNew() {
 		if (isMobile) {
 			const name = window.prompt('Enter a name for the new group')
 			if (!name) return
-			app.z.mutate.group.create({ id: uniqueId(), name })
+			const id = uniqueId()
+			app.z.mutate.group.create({ id, name })
 		} else {
 			setIsCreatingGroup(true)
 		}
@@ -162,6 +182,9 @@ export function TlaSidebarRecentFilesNew() {
 							}
 				}
 			>
+				{/* Global drag cursor for group reordering */}
+				<GroupReorderCursor />
+
 				{isCreatingGroup && (
 					<TlaSidebarInlineInput
 						data-testid="tla-sidebar-create-group-input"
@@ -173,8 +196,14 @@ export function TlaSidebarRecentFilesNew() {
 						wrapperClassName={styles.sidebarGroupCreateInputWrapper}
 					/>
 				)}
-				{groupMemberships.map((group) => (
-					<TlaSidebarGroupItem key={group.group.id} groupId={group.group.id} />
+				{groupMemberships.map((group, i) => (
+					// Include the array index in the key to force a remount when the order changes
+					// this prevents a bug where the collapsible open animation replays when react moves
+					// an open group item within the list. I guess the browser thinks it's a new dom node
+					// or whatever.
+					// If radix's Collapsible had 'opening' and 'closing' states instead of just 'open' and 'closed'
+					// we wouldn't need this.
+					<TlaSidebarGroupItem key={`group-${group.group.id}-${i}`} groupId={group.group.id} />
 				))}
 			</TlaSidebarFileSection>
 		</Fragment>

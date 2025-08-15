@@ -23,6 +23,7 @@ import {
 	schema as zeroSchema,
 } from '@tldraw/dotcom-shared'
 import {
+	IndexKey,
 	Result,
 	assert,
 	fetch,
@@ -30,6 +31,7 @@ import {
 	isEqual,
 	promiseWithResolve,
 	setInLocalStorage,
+	sortByIndex,
 	structuredClone,
 	throttle,
 	uniqueId,
@@ -308,8 +310,9 @@ export class TldrawApp {
 		return this.getUserFlags().has(flag)
 	}
 
+	@computed({ isEqual })
 	getGroupMemberships() {
-		return this.groupMemberships$.get()
+		return this.groupMemberships$.get().slice(0).sort(sortByIndex)
 	}
 
 	getGroupMembership(groupId: string) {
@@ -947,11 +950,15 @@ export class TldrawApp {
 			fileId: string
 			context: SidebarFileContext
 		},
-		dragState: null as null | {
+		fileDragState: null as null | {
 			fileId: string
 			context: SidebarFileContext
-			sourceGroupId?: string
 			originDropZoneId?: string
+		},
+		groupDragState: null as null | {
+			groupId: string
+			cursorLineY: number | null
+			nextIndex: IndexKey | null
 		},
 	})
 }

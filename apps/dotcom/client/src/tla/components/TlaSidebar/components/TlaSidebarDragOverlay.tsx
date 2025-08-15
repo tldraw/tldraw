@@ -7,7 +7,7 @@ import styles from '../sidebar.module.css'
 export function TlaSidebarDragOverlay() {
 	const app = useApp()
 
-	const dragState = useValue('dragState', () => app.sidebarState.get().dragState, [app])
+	const dragState = useValue('dragState', () => app.sidebarState.get().fileDragState, [app])
 
 	const fileName = useValue(
 		'file name',

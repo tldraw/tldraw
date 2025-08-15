@@ -1,8 +1,16 @@
 import type { CustomMutatorDefs } from '@rocicorp/zero'
 import type { Transaction } from '@rocicorp/zero/out/zql/src/mutate/custom'
-import { assert, uniqueId } from '@tldraw/utils'
+import {
+	assert,
+	getIndexAbove,
+	getIndexBelow,
+	IndexKey,
+	sortByIndex,
+	uniqueId,
+} from '@tldraw/utils'
 import { MAX_NUMBER_OF_FILES } from './constants'
 import {
+	immutableColumns,
 	TlaFile,
 	TlaFilePartial,
 	TlaFileState,
@@ -11,7 +19,6 @@ import {
 	TlaSchema,
 	TlaUser,
 	TlaUserPartial,
-	immutableColumns,
 } from './tlaSchema'
 import { ZErrorCode } from './types'
 
@@ -221,6 +228,22 @@ export function createMutators(userId: string) {
 					createdAt: Date.now(),
 					updatedAt: Date.now(),
 				})
+				// Get user's existing groups to determine position for new group
+				const existingGroups = await tx.query.group_user.where('userId', '=', userId).run()
+
+				// Use tldraw's fractional indexing to place new group at the top
+				let index: IndexKey
+				if (existingGroups.length === 0) {
+					// First group gets 'a1'
+					index = 'a1' as IndexKey
+				} else {
+					// Find the highest index and place above it using proper fractional indexing
+					const sortedGroups = existingGroups.sort(sortByIndex)
+					const lowest = sortedGroups[0]?.index as IndexKey | undefined
+					// Generate a new index above the current highest
+					index = getIndexBelow(lowest)
+				}
+
 				await tx.mutate.group_user.insert({
 					userId,
 					groupId: id,
@@ -230,6 +253,7 @@ export function createMutators(userId: string) {
 					role: 'owner',
 					createdAt: Date.now(),
 					updatedAt: Date.now(),
+					index,
 				})
 			},
 			leave: async (tx, { groupId }: { groupId: string }) => {
@@ -270,6 +294,22 @@ export function createMutators(userId: string) {
 				if (tx.location === 'client') return
 				const group = await tx.query.group.where('inviteSecret', '=', inviteSecret).one().run()
 				assert(group, ZErrorCode.bad_request)
+				// Get user's existing groups to determine position for new group
+				const existingGroups = await tx.query.group_user.where('userId', '=', userId).run()
+
+				// Use tldraw's fractional indexing to place new group at the top
+				let index: IndexKey
+				if (existingGroups.length === 0) {
+					// First group gets 'a1'
+					index = 'a1' as IndexKey
+				} else {
+					// Find the highest index and place above it using proper fractional indexing
+					const sortedGroups = existingGroups.sort((a, b) => b.index.localeCompare(a.index))
+					const highestIndex = sortedGroups[0]?.index as IndexKey | undefined
+					// Generate a new index above the current highest
+					index = getIndexAbove(highestIndex)
+				}
+
 				await tx.mutate.group_user.insert({
 					userId,
 					groupId: group.id,
@@ -278,6 +318,7 @@ export function createMutators(userId: string) {
 					role: 'admin',
 					createdAt: Date.now(),
 					updatedAt: Date.now(),
+					index,
 				})
 			},
 			moveFileToGroup: async (tx, { fileId, groupId }: { fileId: string; groupId: string }) => {
@@ -366,6 +407,24 @@ export function createMutators(userId: string) {
 				await tx.mutate.file.update({ id: fileId, owningGroupId: null, ownerId: userId })
 				await tx.mutate.group_file.delete({ fileId, groupId: file.owningGroupId })
 				// todo: delete file_states for other users who no longer have access to the file?
+			},
+			updateIndex: async (tx, { groupId, index }: { groupId: string; index: IndexKey }) => {
+				await assertUserHasFlag(tx, userId, 'groups')
+				assert(groupId, ZErrorCode.bad_request)
+				assert(typeof index === 'string', ZErrorCode.bad_request)
+				// Check if user is a member of the group
+				const groupUser = await tx.query.group_user
+					.where('userId', '=', userId)
+					.where('groupId', '=', groupId)
+					.one()
+					.run()
+				assert(groupUser, ZErrorCode.forbidden)
+
+				await tx.mutate.group_user.update({
+					userId,
+					groupId,
+					index,
+				})
 			},
 		},
 	} as const satisfies CustomMutatorDefs<TlaSchema>

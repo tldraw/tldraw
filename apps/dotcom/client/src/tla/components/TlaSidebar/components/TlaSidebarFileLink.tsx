@@ -164,7 +164,6 @@ export function TlaSidebarFileLinkInner({
 		data: {
 			type: 'file',
 			fileId,
-			sourceGroupId: context === 'group-files' ? file?.owningGroupId : undefined,
 		},
 		disabled: context === 'my-files-pinned',
 	})

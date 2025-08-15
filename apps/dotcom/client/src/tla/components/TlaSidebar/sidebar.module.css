@@ -729,6 +729,9 @@
 .sidebarFileSectionGroups {
 	color: var(--tla-color-text-3);
 }
+.sidebarFileSectionGroups button:hover {
+	color: var(--tla-color-text-1);
+}
 
 .sidebarFileSectionGroups:not(:first-child) {
 	margin-top: 24px;
@@ -755,12 +758,28 @@
 	margin-bottom: 0px;
 	transition: margin-bottom 0.15s cubic-bezier(0.4, 0, 0.2, 1);
 }
+
+.sidebarGroupItemDragging {
+	position: relative;
+}
+
+.dropCursorLine {
+	height: 2.5px;
+	background-color: rgba(0, 122, 255, 0.7);
+	border-radius: 1.5px;
+	width: calc(100% - 16px);
+	position: absolute;
+	left: 8px;
+	z-index: 1000;
+	pointer-events: none;
+}
 .sidebarGroupItem[data-state='open'] {
 	margin-bottom: 12px;
 }
 
 .sidebarGroupItem:hover::after,
-.sidebarGroupItem[data-menu-open='true']::after {
+.sidebarGroupItem[data-menu-open='true']::after,
+.sidebarGroupItem[data-dragging='true']::after {
 	display: block;
 	content: '';
 	position: absolute;
@@ -769,10 +788,29 @@
 	right: -4px;
 	bottom: -2px;
 	border-radius: 4px;
-	background-color: hsl(204, 16%, 4%, 2.5%);
+	background-color: var(--tla-color-drop-zone);
 	z-index: 0;
 	pointer-events: none;
 	visibility: visible;
+}
+.sidebarGroupItem[data-dragging='true']::after {
+	border: 0.5px solid var(--tla-color-primary);
+	background: transparent;
+}
+
+body[data-dragging-group='true'] .sidebarGroupItem,
+body[data-dragging-group='true'] .sidebarGroupItem * {
+	/* THORNY EDGE CASE: Disable all pointer events during group drag */
+	/* This prevents accidental clicks, hovers, and other interactions */
+	/* while the user is dragging, which could interfere with the drag operation */
+	pointer-events: none !important;
+}
+
+/* EDGE CASE: Set grabbing cursor globally during group drag */
+/* This gives visual feedback that a drag operation is in progress */
+body[data-dragging-group='true'],
+body[data-dragging-group='true'] * {
+	cursor: grabbing !important;
 }
 
 .sidebarGroupItemHeader {
@@ -793,7 +831,8 @@
 }
 
 @media (hover: hover) {
-	.sidebarGroupItemHeader:hover {
+	.sidebarGroupItemHeader:hover,
+	.sidebarGroupItem[data-dragging='true'] .sidebarGroupItemHeader {
 		color: var(--tla-color-text-1);
 	}
 }
@@ -832,11 +871,9 @@
 }
 
 @media (hover: hover) {
-	.sidebarGroupItem:hover .sidebarGroupItemButtons {
-		opacity: 1;
-	}
-
-	.sidebarGroupItem[data-menu-open='true'] .sidebarGroupItemButtons {
+	.sidebarGroupItem:hover .sidebarGroupItemButtons,
+	.sidebarGroupItem[data-menu-open='true'] .sidebarGroupItemButtons,
+	.sidebarGroupItem[data-dragging='true'] .sidebarGroupItemButtons {
 		opacity: 1;
 	}
 }
@@ -921,6 +958,8 @@
 .CollapsibleContent {
 	overflow: hidden;
 }
+
+/* Only animate when not during group reordering */
 .CollapsibleContent[data-state='open'] {
 	animation: slideDown 250ms cubic-bezier(0.4, 0, 0.2, 1);
 }
@@ -963,9 +1002,9 @@
 	content: '';
 	position: absolute;
 	inset: -2px;
-	border: 1px dashed var(--tla-color-primary);
+	border: 0.5px solid var(--tla-color-primary);
 	border-radius: 5px;
-	opacity: 0.75;
+	opacity: 1;
 }
 
 .sidebarDropZoneActive .sidebarFileSection {

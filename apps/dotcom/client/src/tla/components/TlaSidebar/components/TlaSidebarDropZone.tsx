@@ -18,11 +18,13 @@ export function TlaSidebarDropZone({
 }) {
 	const app = useApp()
 
-	// Check if this drop zone is the origin drop zone (where the drag started)
-	const dragState = useValue('dragState', () => app.sidebarState.get().dragState, [app])
+	// EDGE CASE: Prevent dropping files back into their origin drop zone
+	// This avoids confusing "no-op" drops where dragging a file and dropping it
+	// in the same place it started would do nothing
+	const dragState = useValue('dragState', () => app.sidebarState.get().fileDragState, [app])
 	const isOriginDropZone = dragState?.originDropZoneId === id
 
-	// Disable this drop zone if it's the origin drop zone or if it's explicitly disabled
+	// EDGE CASE: Combine explicit disable flag with origin detection
 	const isDisabled = disabled || isOriginDropZone
 
 	const { isOver, setNodeRef } = useDroppable({
@@ -34,6 +36,10 @@ export function TlaSidebarDropZone({
 		},
 	})
 
+	// EDGE CASE: Only show file drop zone styling when dragging files (not groups)
+	// Group drags use our custom cursor system, file drags use DndKit's drop zone styling
+	const shouldShowFileDropZone = dragState !== null
+
 	return (
 		<div
 			data-dnd-kit-droppable-id={id}
@@ -41,7 +47,7 @@ export function TlaSidebarDropZone({
 			className={classNames(
 				styles.sidebarDropZone,
 				{
-					[styles.sidebarDropZoneActive]: isOver && !isDisabled,
+					[styles.sidebarDropZoneActive]: isOver && !isDisabled && shouldShowFileDropZone,
 				},
 				className
 			)}

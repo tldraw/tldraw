@@ -7,8 +7,8 @@ import {
 	useSensor,
 } from '@dnd-kit/core'
 import { restrictToVerticalAxis } from '@dnd-kit/modifiers'
-import { memo, useCallback, useEffect, useRef } from 'react'
-import { Box, preventDefault } from 'tldraw'
+import { memo, MouseEvent, useCallback, useEffect, useRef } from 'react'
+import { Box, getIndexBetween, IndexKey, preventDefault, useValue } from 'tldraw'
 import { SidebarFileContext } from '../../app/TldrawApp'
 import { useApp } from '../../hooks/useAppState'
 import { useHasFlag } from '../../hooks/useHasFlag'
@@ -130,17 +130,102 @@ function LegacySidebarLayout() {
 	return <TlaSidebarRecentFiles />
 }
 
+export type DraggableItemData =
+	| {
+			type: 'group'
+			groupId: string
+			currentIndex: string
+	  }
+	| {
+			type: 'file'
+			fileId: string
+			context: SidebarFileContext
+	  }
+
+function getNearestDivs(mouseY: number): [HTMLElement | undefined, HTMLElement | undefined] {
+	const groupDivs = document.querySelectorAll('[data-group-id]') as NodeListOf<HTMLElement>
+
+	let minDistance = Infinity
+	let closestDivIndex = -1
+	let insertType = 'before' as 'before' | 'after'
+
+	for (let i = 0; i < groupDivs.length; i++) {
+		const groupDiv = groupDivs[i]
+		const groupDivRect = groupDiv.getBoundingClientRect()
+		const centerY = groupDivRect.top + groupDivRect.height / 2
+		const distance = Math.abs(centerY - mouseY)
+		if (distance < minDistance) {
+			minDistance = distance
+			closestDivIndex = i
+			insertType = centerY > mouseY ? 'before' : 'after'
+		}
+	}
+
+	const closestDiv = groupDivs[closestDivIndex]
+	const neighborDiv = groupDivs[closestDivIndex + (insertType === 'before' ? -1 : 1)]
+
+	return insertType === 'before' ? [neighborDiv, closestDiv] : [closestDiv, neighborDiv]
+}
+
+function getDragState(
+	groupId: string,
+	mouseY: number
+): { cursorLineY: number | null; nextIndex: IndexKey | null } {
+	const [before, after] = getNearestDivs(mouseY)
+	// if dropping here would not change the group's index, don't show the drag state
+	if (
+		before?.getAttribute('data-group-id') === groupId ||
+		after?.getAttribute('data-group-id') === groupId
+	) {
+		return {
+			cursorLineY: null,
+			nextIndex: null,
+		}
+	}
+	const nextIndex = getIndexBetween(
+		before?.getAttribute('data-group-index') as IndexKey | undefined,
+		after?.getAttribute('data-group-index') as IndexKey | undefined
+	)
+	const beforeRect = before?.getBoundingClientRect()
+	const afterRect = after?.getBoundingClientRect()
+	const margin = 2
+	const cursorLineY = !before
+		? afterRect!.top - margin
+		: !after
+			? beforeRect!.bottom + margin
+			: (beforeRect!.bottom + afterRect!.top) / 2
+
+	return {
+		cursorLineY,
+		nextIndex,
+	}
+}
+
 function NewSidebarLayout() {
 	const app = useApp()
 
 	const handleDragStart = useCallback(
 		(event: DragStartEvent) => {
 			const { active } = event
-			const [fileId, context] = active.id.toString().split(':') as [string, SidebarFileContext]
+			const data = active.data.current as DraggableItemData
+			if (!('clientX' in event.activatorEvent)) {
+				throw new Error('Drag start event must have clientX and clientY')
+			}
 
-			// Extract group ID if it's a group file
-			const sourceGroupId =
-				context === 'group-files' ? active.data.current?.sourceGroupId : undefined
+			// Check if this is a group drag (vs a file drag)
+			if (data.type === 'group') {
+				app.sidebarState.update((state) => ({
+					...state,
+					groupDragState: {
+						groupId: data.groupId,
+						...getDragState(data.groupId, (event.activatorEvent as any).clientY),
+					},
+				}))
+				return
+			}
+
+			// Handle file drags
+			const [fileId, context] = active.id.toString().split(':') as [string, SidebarFileContext]
 
 			// Validate that the user can move this file
 			const file = app.getFile(fileId)
@@ -176,10 +261,9 @@ function NewSidebarLayout() {
 
 			app.sidebarState.update((state) => ({
 				...state,
-				dragState: {
+				fileDragState: {
 					fileId,
 					context: context as SidebarFileContext,
-					sourceGroupId,
 					originDropZoneId,
 				},
 			}))
@@ -191,18 +275,19 @@ function NewSidebarLayout() {
 		(_event: DragOverEvent) => {
 			// We don't want to show the drop zone overlay on the originating drop zone until we've left it
 			// and come back.
-			// To achieve this we do our own collision detection here because amazingly dnd-kit's is not reliable
-			// or at least I couldn't figure out how to make it work without glitches where it would say it wasn't
-			// colliding with the origin drop zone but in fact it was.
-			const dragState = app.sidebarState.get().dragState
-			if (!dragState?.originDropZoneId) {
+			const fileDragState = app.sidebarState.get().fileDragState
+			const groupDragState = app.sidebarState.get().groupDragState
+			if (groupDragState) {
+				return
+			}
+			if (!fileDragState?.originDropZoneId) {
 				return
 			}
 			const dropZoneElement = document.querySelector(
-				`[data-dnd-kit-droppable-id="${dragState.originDropZoneId}"]`
+				`[data-dnd-kit-droppable-id="${fileDragState.originDropZoneId}"]`
 			)
 			const draggableElement = document.querySelector(
-				`[data-dnd-kit-draggable-id="${dragState.fileId}:${dragState.context}"]`
+				`[data-dnd-kit-draggable-id="${fileDragState.fileId}:${fileDragState.context}"]`
 			)
 			if (!dropZoneElement || !draggableElement) {
 				return
@@ -222,9 +307,9 @@ function NewSidebarLayout() {
 				// If we are no longer over the origin drop zone, clear it
 				app.sidebarState.update((state) => ({
 					...state,
-					dragState: state.dragState
+					fileDragState: state.fileDragState
 						? {
-								...state.dragState,
+								...state.fileDragState,
 								originDropZoneId: undefined,
 							}
 						: null,
@@ -238,10 +323,30 @@ function NewSidebarLayout() {
 		async (event: DragEndEvent) => {
 			const { active, over } = event
 
+			const groupDragState = app.sidebarState.get().groupDragState
+			if (groupDragState) {
+				// Clear drag state
+				app.sidebarState.update((state) => ({
+					...state,
+					groupDragState: null,
+				}))
+
+				if (!groupDragState.nextIndex) {
+					return
+				}
+
+				app.z.mutate.group.updateIndex({
+					groupId: groupDragState.groupId,
+					index: groupDragState.nextIndex,
+				})
+
+				return
+			}
+
 			// Clear drag state
 			app.sidebarState.update((state) => ({
 				...state,
-				dragState: null,
+				fileDragState: null,
 			}))
 
 			if (!over) return
@@ -304,7 +409,7 @@ function NewSidebarLayout() {
 
 					// File is being moved from "My files" to a group, or from one group to another
 					await app.z.mutate.group.moveFileToGroup({ fileId, groupId: targetGroupId })
-					await app.sidebarState.update((state) => ({
+					app.sidebarState.update((state) => ({
 						...state,
 						expandedGroups: new Set([...state.expandedGroups, targetGroupId]),
 					}))
@@ -349,8 +454,69 @@ function NewSidebarLayout() {
 			onDragCancel={handleDragCancel}
 			onDragMove={handleDragMove}
 		>
+			<HandleGroupDragging />
 			<TlaSidebarRecentFilesNew />
 			<TlaSidebarDragOverlay />
 		</DndContext>
 	)
+}
+
+/**
+ * Alas dnd-kit doesn't give us mouse positions in the onDragMove handler.
+ * It _does_ give the start position + delta, but it doesn't expose scroll position changes I don't think??
+ *
+ * @returns
+ */
+function HandleGroupDragging() {
+	const app = useApp()
+	const isDragging = useValue('isDragging', () => app.sidebarState.get().groupDragState != null, [
+		app,
+	])
+
+	useEffect(() => {
+		if (isDragging) {
+			document.body.setAttribute('data-dragging-group', 'true')
+		} else {
+			document.body.removeAttribute('data-dragging-group')
+		}
+	}, [isDragging])
+
+	const mousePosition = useRef({ clientX: 0, clientY: 0 })
+
+	useEffect(() => {
+		if (!isDragging) return
+		const handleMouseMove = (event: MouseEvent) => {
+			mousePosition.current = { clientX: event.clientX, clientY: event.clientY }
+		}
+		window.addEventListener('mousemove', handleMouseMove as any)
+		const updateDragState = () => {
+			try {
+				const groupDragState = app.sidebarState.get().groupDragState
+				if (!groupDragState) return
+				const nextDragState = getDragState(groupDragState.groupId, mousePosition.current.clientY)
+				if (
+					nextDragState.cursorLineY === groupDragState.cursorLineY &&
+					nextDragState.nextIndex === groupDragState.nextIndex
+				) {
+					return
+				}
+				app.sidebarState.update((state) => ({
+					...state,
+					groupDragState: {
+						groupId: groupDragState.groupId,
+						...getDragState(groupDragState.groupId, mousePosition.current.clientY),
+					},
+				}))
+			} finally {
+				raf = requestAnimationFrame(updateDragState)
+			}
+		}
+		let raf = requestAnimationFrame(updateDragState)
+		return () => {
+			window.removeEventListener('mousemove', handleMouseMove as any)
+			cancelAnimationFrame(raf)
+		}
+	}, [isDragging, app])
+
+	return null
 }

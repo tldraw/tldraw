@@ -1,3 +1,4 @@
+import { useDraggable } from '@dnd-kit/core'
 import { Collapsible, ContextMenu as _ContextMenu } from 'radix-ui'
 import { memo, useCallback, useRef, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
@@ -89,6 +90,7 @@ const GroupFileList = memo(function GroupFileList({ groupId }: { groupId: string
 	const isOverflowing = files.length > MAX_FILES_TO_SHOW
 	const filesToShow = files.slice(0, MAX_FILES_TO_SHOW)
 	const hiddenFiles = files.slice(MAX_FILES_TO_SHOW)
+
 	if (filesToShow.length === 0) return <GroupEmptyState />
 
 	return (
@@ -238,14 +240,26 @@ export function TlaSidebarGroupItem({ groupId }: { groupId: string }) {
 	const trackEvent = useTldrawAppUiEvents()
 	const rCanCreate = useRef(true)
 
+	const { attributes, listeners, setNodeRef, isDragging } = useDraggable({
+		id: groupId,
+		data: {
+			type: 'group',
+			groupId,
+		},
+	})
+
 	const isExpanded = useValue(
 		'isExpanded',
 		() => {
 			const isExpanded = app.sidebarState.get().expandedGroups.has(groupId)
-			const dragState = app.sidebarState.get().dragState
+			const dragState = app.sidebarState.get().fileDragState
 			if (!dragState) return isExpanded
 			const groupFiles = app.getGroupMembership(groupId)?.groupFiles
 			if (!groupFiles) return isExpanded
+
+			// THORNY EDGE CASE: Auto-collapse groups when their only file is being dragged
+			// If a group has only one file and that file is being dragged out,
+			// temporarily collapse the group to provide visual feedback that it's becoming empty
 			const isOnlyGroupFileDragging =
 				groupFiles.length === 1 &&
 				dragState.context === 'group-files' &&
@@ -254,6 +268,7 @@ export function TlaSidebarGroupItem({ groupId }: { groupId: string }) {
 		},
 		[app, groupId]
 	)
+
 	const setIsExpanded = useCallback(
 		(isExpanded: boolean) => {
 			const expandedGroups = new Set(app.sidebarState.get().expandedGroups)
@@ -293,56 +308,68 @@ export function TlaSidebarGroupItem({ groupId }: { groupId: string }) {
 	if (!group) return null
 
 	return (
-		<_ContextMenu.Root onOpenChange={handleContextMenuOpenChange} modal={false}>
-			<_ContextMenu.Trigger>
-				<TlaSidebarDropZone id={`group-${groupId}-drop-zone`}>
-					<Collapsible.Root
-						className={styles.sidebarGroupItem}
-						open={isExpanded}
-						data-menu-open={menuIsOpen || contextMenuIsOpen}
-					>
-						<Collapsible.Trigger asChild>
-							<div
-								className={styles.sidebarGroupItemHeader}
-								onClick={() => setIsExpanded(!isExpanded)}
-								aria-expanded={isExpanded}
-								role="button"
-								tabIndex={0}
-								onKeyDown={(e) => {
-									if (e.key === 'Enter') {
-										setIsExpanded(!isExpanded)
-									}
-								}}
-							>
-								<span className={styles.sidebarGroupItemTitle}>{group.group.name}</span>
-								<TriangleIcon angle={isExpanded ? 180 : 90} />
+		<div
+			ref={setNodeRef}
+			{...attributes}
+			className={isDragging ? styles.sidebarGroupItemDragging : undefined}
+			data-group-id={group.groupId}
+			data-group-index={group.index}
+		>
+			<_ContextMenu.Root onOpenChange={handleContextMenuOpenChange} modal={false}>
+				<_ContextMenu.Trigger>
+					<TlaSidebarDropZone id={`group-${groupId}-drop-zone`}>
+						<Collapsible.Root
+							className={styles.sidebarGroupItem}
+							open={isExpanded}
+							data-dragging={isDragging}
+							data-menu-open={menuIsOpen || contextMenuIsOpen}
+						>
+							<Collapsible.Trigger asChild>
 								<div
-									className={styles.sidebarGroupItemButtons}
-									onClick={(e) => e.stopPropagation()}
+									className={styles.sidebarGroupItemHeader}
+									onClick={() => setIsExpanded(!isExpanded)}
+									aria-expanded={isExpanded}
+									role="button"
+									tabIndex={0}
+									onKeyDown={(e) => {
+										if (e.key === 'Enter') {
+											setIsExpanded(!isExpanded)
+										}
+									}}
+									{...listeners}
+									style={{ cursor: 'default' }}
 								>
-									<TlaSidebarGroupMenu groupId={groupId} />
-									<button
-										className={styles.sidebarGroupItemButton}
-										onClick={handleCreateFile}
-										title="New file"
-										type="button"
+									<span className={styles.sidebarGroupItemTitle}>{group.group.name}</span>
+									<TriangleIcon angle={isExpanded ? 180 : 90} />
+									<div
+										className={styles.sidebarGroupItemButtons}
+										onClick={(e) => e.stopPropagation()}
+										style={{ cursor: 'default' }}
 									>
-										<TlaIcon icon="edit" />
-									</button>
+										<TlaSidebarGroupMenu groupId={groupId} />
+										<button
+											className={styles.sidebarGroupItemButton}
+											onClick={handleCreateFile}
+											title="New file"
+											type="button"
+										>
+											<TlaIcon icon="edit" />
+										</button>
+									</div>
 								</div>
-							</div>
-						</Collapsible.Trigger>
-						<Collapsible.Content className={styles.CollapsibleContent}>
-							<GroupFileList groupId={groupId} />
-						</Collapsible.Content>
-					</Collapsible.Root>
-				</TlaSidebarDropZone>
-			</_ContextMenu.Trigger>
-			<_ContextMenu.Content className="tlui-menu tlui-scrollable">
-				<TldrawUiMenuContextProvider type="context-menu" sourceId="context-menu">
-					<GroupMenuContent groupId={groupId} />
-				</TldrawUiMenuContextProvider>
-			</_ContextMenu.Content>
-		</_ContextMenu.Root>
+							</Collapsible.Trigger>
+							<Collapsible.Content className={styles.CollapsibleContent}>
+								<GroupFileList groupId={groupId} />
+							</Collapsible.Content>
+						</Collapsible.Root>
+					</TlaSidebarDropZone>
+				</_ContextMenu.Trigger>
+				<_ContextMenu.Content className="tlui-menu tlui-scrollable">
+					<TldrawUiMenuContextProvider type="context-menu" sourceId="context-menu">
+						<GroupMenuContent groupId={groupId} />
+					</TldrawUiMenuContextProvider>
+				</_ContextMenu.Content>
+			</_ContextMenu.Root>
+		</div>
 	)
 }
