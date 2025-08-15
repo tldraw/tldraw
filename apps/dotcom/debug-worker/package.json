@@ -1,0 +1,18 @@
+{
+	"name": "@tldraw/debug-worker",
+	"version": "0.0.0",
+	"private": true,
+	"type": "module",
+	"scripts": {
+		"dev:production": "wrangler dev --env production --remote",
+		"dev:staging": "wrangler dev --env staging --remote"
+	},
+	"dependencies": {
+		"itty-router": "^4.0.27"
+	},
+	"devDependencies": {
+		"@cloudflare/workers-types": "^4.20240208.0",
+		"typescript": "^5.3.3",
+		"wrangler": "^3.28.1"
+	}
+}
