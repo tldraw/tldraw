@@ -10,42 +10,41 @@ The format for these articles is:
 
 - Hero
   - Title
+  - Description copy (one punchy descriptive sentence ~15 words)
   - Image description
-  - Introductory copy
 - Key features (4 features)
   - Feature 1
-    - Title
-    - Copy
-    - Learn more link
+    - Title (<=3 words)
+    - Copy (one to two sentences, ~20 words)
   - ...
-- Advanced features (3 features)
-  - Advanced feature
-    - Title
-    - Description
-- Technical deep dive (3 topics)
-  - Topic
-    - Title
-    - Description
-    - Bullet point list of details (3)
-- Navigation
-  - Link to relevant topic from Customization L1 category
-  - Link to relevant topic from Programmatic Control L1 category
-  - Link to relevant topic from Integrations L1 category
-  - Link to relevant topic from Out of the Box Whiteboard L1 category
-  - Link to relevant guide from docs
-- Examples gallery (3 links to relevant examples)
-- Case studies (3 links to relevant case studies)
 - CTA
   - Title
-  - Copy related to article topic
+  - Copy related to article topic (1-2 sentences, ~30-45 words)
+  - Link to start
+  - Link to license
+- Technical deep dive
+  - Bold claim (punchy, rooted in developer pain points or tldraw's unique value propositions related to topic, <10 words)
+  - Topics (3)
+    - Title
+    - Description (3-4 sentences, 50-80 words total)
+- Navigation
+  - Title related to topic
+  - Customization subhead (1 sentence, ~30 words)
+  - Programmatic control subhead (1 sentence, ~30 words)
+- Examples gallery (3 links to relevant examples)
+  - Example
+    - Title (3-5 words)
+    - Description (10-20 words, phrased as "{verb (build, implement, customize)} {feature}, i.e. "Customize the tldraw user interface").
+- Case studies (3 links to relevant case studies)
+  - Case study
+    - Title (5-10 words, i.e. "How Cola-cola got to market in 2 weeks with tldraw")
+- CTA
+  - Title
+  - Copy related to article topic (1-2 sentences, ~30-45 words)
   - Link to start
   - Link to license
 
-Refer to these completed articles as reference:
-
-- https://www.notion.so/tldraw/Multimedia-content-24e3e4c324c080c0ae9ceaa3d1e2fb6a
-- https://www.notion.so/tldraw/Data-management-2313e4c324c0807aa54ff478bc7b74dc
-- https://www.notion.so/tldraw/Multiplayer-collaboration-2313e4c324c080bc9814dccd0a7a4644
+Be very mindful of the word limits here.
 
 Now I want you to write this article: $ARGUMENTS
 
@@ -54,3 +53,5 @@ Use the Notion page's title, description, and page-level comments. You can modif
 Remember that this is marketing copy for a technical product, not documentation. Since these articles are for both technical and non-technical audiences, avoid references to code directly. Use descriptions rather than the names of classes, components, etc.
 
 You should however use the code in this repository to ground your writing. Check the source code and other documentation to be sure that what you write is accurate and faithfully represents the features that are present in the tldraw SDK.
+
+In terms of style, for these articles, if 0 was technical documentation and 100 is narrative prose or pixar film, we're looking for a voice that hits 62.
