@@ -9,16 +9,48 @@ import {
 } from 'jest-matcher-utils'
 import { TextDecoder, TextEncoder } from 'util'
 
-global.TextEncoder = TextEncoder
-global.TextDecoder = TextDecoder
-delete global.crypto
-global.crypto = crypto
-
-Image.prototype.decode = async function () {
-	return true
+if (typeof window !== 'undefined') {
+	await import('vitest-canvas-mock')
 }
 
-function convertNumbersInObject(obj: any, roundToNearest: number) {
+// Polyfill for requestAnimationFrame (equivalent to raf/polyfill)
+if (typeof globalThis.requestAnimationFrame === 'undefined') {
+	globalThis.requestAnimationFrame = (cb: FrameRequestCallback) => {
+		return setTimeout(() => cb(Date.now()), 16) as unknown as number
+	}
+}
+
+if (typeof globalThis.cancelAnimationFrame === 'undefined') {
+	globalThis.cancelAnimationFrame = (id: number) => {
+		clearTimeout(id)
+	}
+}
+
+// Global polyfills
+global.TextEncoder = TextEncoder
+global.TextDecoder = TextDecoder as any
+// @ts-expect-error - cannot delete non-optional property
+delete global.crypto
+global.crypto = crypto as any
+
+// Crypto polyfill (needed for ai package)
+if (typeof globalThis.crypto === 'undefined') {
+	// eslint-disable-next-line @typescript-eslint/no-require-imports
+	const { Crypto } = require('@peculiar/webcrypto')
+	globalThis.crypto = new Crypto()
+}
+
+// Image.decode polyfill - this should be handled by individual package setups,
+// but including it here as a fallback
+if (typeof HTMLImageElement !== 'undefined') {
+	if (!HTMLImageElement.prototype.decode) {
+		HTMLImageElement.prototype.decode = function () {
+			return Promise.resolve()
+		}
+	}
+}
+
+function convertNumbersInObject(obj: any, roundToNearest: number): any {
 	if (!obj) return obj
 	if (Array.isArray(obj)) {
 		return obj.map((x) => convertNumbersInObject(x, roundToNearest))

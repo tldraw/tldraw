@@ -33,7 +33,10 @@
 		"e2e": "playwright test -c ./e2e/playwright.config.ts ./e2e/tests/!(test-perf).spec.ts",
 		"e2e-ui": "playwright test --ui -c ./e2e/playwright.config.ts ./e2e/tests/!(test-perf).spec.ts",
 		"e2e-perf": "playwright test --workers=1 -c ./e2e/playwright.config.ts ./e2e/tests/test-perf.spec.ts",
-		"e2e-perf-ui": "playwright test --ui -c ./e2e/playwright.config.ts ./e2e/tests/test-perf.spec.ts"
+		"e2e-perf-ui": "playwright test --ui -c ./e2e/playwright.config.ts ./e2e/tests/test-perf.spec.ts",
+		"test": "yarn run -T vitest --passWithNoTests",
+		"test-ci": "yarn run -T vitest run --passWithNoTests",
+		"test-coverage": "yarn run -T vitest run --coverage --passWithNoTests"
 	},
 	"dependencies": {
 		"@playwright/test": "^1.50.0",

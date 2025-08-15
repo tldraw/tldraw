@@ -12,14 +12,14 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 **Building & Testing:**
 - `yarn build` - Builds all packages
-- `yarn test` - Runs all Jest tests (slow, use package-specific instead)
+- `yarn test run` - Runs all vitest tests (slow, use package-specific instead)
 - `yarn test-ci` - Runs CI test suite
 - `yarn typecheck` - Type checks entire codebase
 - `yarn lint` - Lints all code
 - `yarn format` - Formats code with Prettier
 
 **Package-specific commands:**
-- Run `yarn test` within individual package directories for faster testing
+- Run `yarn test run` within individual package directories for faster testing
 - Run `yarn build` within package directories for specific builds
 
 ## Architecture Overview
@@ -62,7 +62,7 @@ This is a monorepo using Yarn workspaces with the following key components:
 - Store manages document data with automatic persistence
 
 **Testing:**
-- Jest for unit tests with package-specific test commands
+- vitest for unit tests with package-specific test commands
 - Playwright for E2E tests
 - Test files should be co-located with source files (`.test.ts`)
 - Integration tests go in `src/test/` directories

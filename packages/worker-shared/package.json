@@ -18,12 +18,9 @@
 		"typescript": "^5.8.3"
 	},
 	"scripts": {
-		"test-ci": "lazy inherit",
-		"test": "yarn run -T jest",
-		"lint": "yarn run -T tsx ../../internal/scripts/lint.ts"
-	},
-	"jest": {
-		"preset": "../../internal/config/jest/node/jest-preset.js",
-		"testEnvironment": "jsdom"
+		"test-ci": "yarn run -T vitest run --passWithNoTests",
+		"test": "yarn run -T vitest --passWithNoTests",
+		"lint": "yarn run -T tsx ../../internal/scripts/lint.ts",
+		"test-coverage": "yarn run -T vitest run --coverage --passWithNoTests"
 	}
 }

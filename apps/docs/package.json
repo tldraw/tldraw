@@ -44,8 +44,9 @@
 		"clean": "rm -rf node_modules .yarn",
 		"format": "yarn run -T prettier --write .",
 		"watch-content": "tsx ./watcher.ts",
-		"test-ci": "lazy inherit",
-		"test": "yarn run -T jest"
+		"test-ci": "yarn run -T vitest run --passWithNoTests",
+		"test": "yarn run -T vitest --passWithNoTests",
+		"test-coverage": "yarn run -T vitest run --coverage --passWithNoTests"
 	},
 	"dependencies": {
 		"@ariakit/react": "^0.4.15",
@@ -115,15 +116,5 @@
 		"typescript": "^5.8.3",
 		"vectra": "^0.4.4",
 		"ws": "^8.18.0"
-	},
-	"jest": {
-		"preset": "../../internal/config/jest/node/jest-preset.js",
-		"roots": [
-			"<rootDir>"
-		],
-		"testEnvironment": "../../../packages/utils/patchedJestJsDom.js",
-		"transformIgnorePatterns": [
-			"node_modules/(?!(.*)/)"
-		]
 	}
 }

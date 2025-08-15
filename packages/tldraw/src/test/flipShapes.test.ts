@@ -10,12 +10,13 @@ import {
 	createBindingId,
 	createShapeId,
 } from '@tldraw/editor'
+import { vi } from 'vitest'
 import { getArrowBindings } from '../lib/shapes/arrow/shared'
 import { TestEditor } from './TestEditor'
 
 let editor: TestEditor
 
-jest.useFakeTimers()
+vi.useFakeTimers()
 
 const ids = {
 	boxA: createShapeId('boxA'),
@@ -297,7 +298,7 @@ describe('When one shape is selected', () => {
 	})
 
 	it('Flips the direct child shape positions if the shape is a group', async () => {
-		const fn = jest.fn()
+		const fn = vi.fn()
 
 		editor.selectAll()
 		editor.groupShapes(editor.getSelectedShapeIds()) // this will also select the new group
@@ -306,7 +307,7 @@ describe('When one shape is selected', () => {
 		editor.flipShapes(editor.getSelectedShapeIds(), 'horizontal')
 
 		// The change event should have been called
-		jest.runOnlyPendingTimers()
+		vi.runOnlyPendingTimers()
 		expect(fn).toHaveBeenCalled()
 
 		editor.expectShapeToMatch(

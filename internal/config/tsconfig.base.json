@@ -28,7 +28,7 @@
 		"strictNullChecks": true,
 		"useDefineForClassFields": true,
 		"noImplicitOverride": true,
-		"types": ["node", "@types/jest"]
+		"types": ["node", "vitest/globals"]
 	},
 	"exclude": ["node_modules"]
 }

@@ -31,9 +31,9 @@
 	"/* GOTCHA */": "files will include ./dist and index.d.ts by default, add any others you want to include in here",
 	"files": [],
 	"scripts": {
-		"test-ci": "lazy inherit",
-		"test": "yarn run -T jest",
-		"test-coverage": "lazy inherit",
+		"test-ci": "yarn run -T vitest run --passWithNoTests",
+		"test": "yarn run -T vitest --passWithNoTests",
+		"test-coverage": "yarn run -T vitest run --coverage --passWithNoTests",
 		"format": "yarn run -T prettier --write --cache \"src/**/*.{ts,tsx,js,jsx,json,md}\"",
 		"build": "yarn run -T tsx ../../internal/scripts/build-package.ts",
 		"build-api": "yarn run -T tsx ../../internal/scripts/build-api.ts",
@@ -45,13 +45,8 @@
 	"devDependencies": {
 		"kleur": "^4.1.5",
 		"lazyrepo": "0.0.0-alpha.27",
-		"react": "^18.3.1"
-	},
-	"jest": {
-		"preset": "../../internal/config/jest/node/jest-preset.js",
-		"moduleNameMapper": {
-			"^~(.*)": "<rootDir>/src/$1"
-		}
+		"react": "^18.3.1",
+		"vitest": "^3.2.4"
 	},
 	"dependencies": {
 		"@tldraw/state": "workspace:*",
