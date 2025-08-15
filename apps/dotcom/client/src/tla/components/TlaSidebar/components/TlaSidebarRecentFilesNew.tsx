@@ -5,37 +5,13 @@ import { useApp } from '../../../hooks/useAppState'
 import { getIsCoarsePointer } from '../../../utils/getIsCoarsePointer'
 import { F } from '../../../utils/i18n'
 import styles from '../sidebar.module.css'
+import { ReorderCursor } from './ReorderCursor'
 import { RecentFile } from './sidebar-shared'
 import { TlaSidebarDropZone } from './TlaSidebarDropZone'
 import { TlaSidebarFileLink } from './TlaSidebarFileLink'
 import { TlaSidebarFileSection } from './TlaSidebarFileSection'
 import { TlaSidebarGroupItem } from './TlaSidebarGroupItem'
 import { TlaSidebarInlineInput } from './TlaSidebarInlineInput'
-
-function GroupReorderCursor() {
-	const app = useApp()
-	const position = useValue(
-		'group reorder cursor position',
-		() => app.sidebarState.get().groupDragState?.cursorLineY,
-		[app]
-	)
-	if (position == null) return null
-
-	return (
-		<div
-			className={styles.dropCursorLine}
-			style={{
-				position: 'absolute',
-				top: position,
-				transform: 'translateY(-50%)',
-				left: 8,
-				width: 'calc(100% - 16px)',
-				zIndex: 1000,
-				pointerEvents: 'none',
-			}}
-		/>
-	)
-}
 
 export function TlaSidebarRecentFilesNew() {
 	const app = useApp()
@@ -115,6 +91,13 @@ export function TlaSidebarRecentFilesNew() {
 			{results.pinnedFiles.length > 0 && (
 				<TlaSidebarDropZone id="my-files-pinned-drop-zone">
 					<TlaSidebarFileSection title={<F defaultMessage="Favorites" />} onePixelOfPaddingAtTheTop>
+						{/* Pinned files reorder cursor */}
+						<ReorderCursor
+							dragStateSelector={(app) => {
+								const dragState = app.sidebarState.get().dragState
+								return dragState?.type === 'pinned' ? dragState.cursorLineY : null
+							}}
+						/>
 						{results.pinnedFiles.map((item, i) => (
 							<TlaSidebarFileLink
 								context="my-files-pinned"
@@ -183,7 +166,12 @@ export function TlaSidebarRecentFilesNew() {
 				}
 			>
 				{/* Global drag cursor for group reordering */}
-				<GroupReorderCursor />
+				<ReorderCursor
+					dragStateSelector={(app) => {
+						const dragState = app.sidebarState.get().dragState
+						return dragState?.type === 'group' ? dragState.cursorLineY : null
+					}}
+				/>
 
 				{isCreatingGroup && (
 					<TlaSidebarInlineInput

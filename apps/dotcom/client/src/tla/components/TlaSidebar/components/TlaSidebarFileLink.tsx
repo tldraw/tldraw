@@ -160,12 +160,18 @@ export function TlaSidebarFileLinkInner({
 	const file = useValue('file', () => app.getFile(fileId), [fileId, app])
 
 	const dnd = useDraggable({
-		id: `${fileId}:${context}`,
-		data: {
-			type: 'file',
-			fileId,
-		},
-		disabled: context === 'my-files-pinned',
+		id: context === 'my-files-pinned' ? fileId : `${fileId}:${context}`,
+		data:
+			context === 'my-files-pinned'
+				? {
+						type: 'pinned',
+						fileId,
+					}
+				: {
+						type: 'file',
+						fileId,
+					},
+		disabled: false,
 	})
 
 	const handleKeyDown = (e: KeyboardEvent) => {
@@ -189,7 +195,7 @@ export function TlaSidebarFileLinkInner({
 	}
 
 	return (
-		<Collapse isOpen={!dnd.isDragging}>
+		<Collapse isOpen={!dnd.isDragging || context === 'my-files-pinned'}>
 			<div
 				className={classNames(
 					styles.sidebarFileListItem,
@@ -203,6 +209,10 @@ export function TlaSidebarFileLinkInner({
 				data-element="file-link"
 				data-testid={testId}
 				data-is-own-file={isOwnFile}
+				{...(context === 'my-files-pinned' && {
+					'data-pinned-file-id': fileId,
+					'data-pinned-index': app.getFileState(fileId)?.pinnedIndex || 'a0',
+				})}
 				onDoubleClick={canUpdateFile ? handleRenameAction : undefined}
 				// We use this id to scroll the active file link into view when creating or deleting files.
 				id={isActive ? ACTIVE_FILE_LINK_ID : undefined}

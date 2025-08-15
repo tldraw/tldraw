@@ -252,7 +252,8 @@ export function TlaSidebarGroupItem({ groupId }: { groupId: string }) {
 		'isExpanded',
 		() => {
 			const isExpanded = app.sidebarState.get().expandedGroups.has(groupId)
-			const dragState = app.sidebarState.get().fileDragState
+			const state = app.sidebarState.get().dragState
+			const dragState = state?.type === 'file' ? state : null
 			if (!dragState) return isExpanded
 			const groupFiles = app.getGroupMembership(groupId)?.groupFiles
 			if (!groupFiles) return isExpanded

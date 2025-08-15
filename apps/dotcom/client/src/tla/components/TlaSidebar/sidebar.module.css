@@ -481,6 +481,7 @@
 }
 
 .sidebarFileSection {
+	position: relative;
 	background: var(--tla-color-sidebar);
 }
 

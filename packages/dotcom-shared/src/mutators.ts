@@ -211,6 +211,24 @@ export function createMutators(userId: string) {
 				disallowImmutableMutations(fileState, immutableColumns.file_state)
 				await tx.mutate.file_state.update(fileState)
 			},
+			updatePinnedIndex: async (tx, { fileId, index }: { fileId: string; index: IndexKey }) => {
+				assert(fileId, ZErrorCode.bad_request)
+				assert(typeof index === 'string', ZErrorCode.bad_request)
+
+				const fileState = await tx.query.file_state
+					.where('userId', '=', userId)
+					.where('fileId', '=', fileId)
+					.one()
+					.run()
+				assert(fileState, ZErrorCode.bad_request)
+				assert(fileState.isPinned, ZErrorCode.bad_request)
+
+				await tx.mutate.file_state.update({
+					userId,
+					fileId,
+					pinnedIndex: index,
+				})
+			},
 			delete: async (tx, fileState: { fileId: string; userId: string }) => {
 				assert(fileState.userId === userId, ZErrorCode.forbidden)
 				await tx.mutate.file_state.delete({ fileId: fileState.fileId, userId: fileState.userId })

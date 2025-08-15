@@ -55,6 +55,7 @@ export const file_state = table('file_state')
 		lastVisitAt: number().optional(),
 		isFileOwner: boolean().optional(),
 		isPinned: boolean().optional(),
+		pinnedIndex: string<IndexKey>().optional(),
 	})
 	.primaryKey('userId', 'fileId')
 

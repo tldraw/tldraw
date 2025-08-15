@@ -21,7 +21,14 @@ export function TlaSidebarDropZone({
 	// EDGE CASE: Prevent dropping files back into their origin drop zone
 	// This avoids confusing "no-op" drops where dragging a file and dropping it
 	// in the same place it started would do nothing
-	const dragState = useValue('dragState', () => app.sidebarState.get().fileDragState, [app])
+	const dragState = useValue(
+		'dragState',
+		() => {
+			const state = app.sidebarState.get().dragState
+			return state?.type === 'file' ? state : null
+		},
+		[app]
+	)
 	const isOriginDropZone = dragState?.originDropZoneId === id
 
 	// EDGE CASE: Combine explicit disable flag with origin detection
