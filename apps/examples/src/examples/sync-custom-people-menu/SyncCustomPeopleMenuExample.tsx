@@ -33,8 +33,6 @@ function CustomPeopleMenu() {
 	// [b]
 	const allOtherPresences = useValue('presences', () => editor.getCollaborators(), [editor])
 
-	if (!allOtherPresences.length && !myUserName) return null
-
 	return (
 		<div
 			style={{
