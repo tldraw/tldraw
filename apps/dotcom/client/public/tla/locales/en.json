@@ -41,6 +41,9 @@
   "13ddd375ad": {
     "translation": "Export as"
   },
+  "146ffe2fd9": {
+    "translation": "Show more"
+  },
   "181b90f889": {
     "translation": "Create file"
   },
@@ -64,6 +67,9 @@
   },
   "299cb00a7a": {
     "translation": "Upload failed"
+  },
+  "2c3ef76333": {
+    "translation": "My files"
   },
   "2c61d18599": {
     "translation": "Miro but good and free"
@@ -149,6 +155,9 @@
   "56c34c6410": {
     "translation": "Privacy policy"
   },
+  "5a86b22fa0": {
+    "translation": "Drag files here, <create>create a file</create>, or <invite>copy invite link</invite> to get started."
+  },
   "5a95a425f7": {
     "translation": "Share"
   },
@@ -199,6 +208,9 @@
   },
   "70a6facb9d": {
     "translation": "This week"
+  },
+  "7188286e36": {
+    "translation": "Remove from favorites"
   },
   "71a29b007b": {
     "translation": "Have a bug, issue, or idea for tldraw? Let us know!"
@@ -287,8 +299,14 @@
   "904a830405": {
     "translation": "Rename"
   },
+  "910885435d": {
+    "translation": "Add to favorites"
+  },
   "91e49bb0eb": {
     "translation": "Copy to my files"
+  },
+  "930390d222": {
+    "translation": "Copied invite link"
   },
   "96165d6df5": {
     "translation": "This month"
@@ -325,6 +343,9 @@
   },
   "a239905023": {
     "translation": "Export image"
+  },
+  "a37ede2939": {
+    "translation": "Groups"
   },
   "a3debabee7": {
     "translation": "Cookie policy"
@@ -363,9 +384,6 @@
   "ba0318cb81": {
     "translation": "Sign in to share"
   },
-  "bb792693e2": {
-    "translation": "Unpin"
-  },
   "bbbcefd7ce": {
     "translation": "{total, plural, one {Uploading .tldr file…} other {Uploading {uploaded} of {total} .tldr files…}}"
   },
@@ -399,6 +417,9 @@
   "c6a00f137b": {
     "translation": "Invite"
   },
+  "c74ea6dbff": {
+    "translation": "Show less"
+  },
   "c87aacf567": {
     "translation": "Sign out"
   },
@@ -426,6 +447,9 @@
   "d721757161": {
     "translation": "Theme"
   },
+  "d789869473": {
+    "translation": "Favorites"
+  },
   "d876a9fe1a": {
     "translation": "Try Again"
   },
@@ -447,14 +471,14 @@
   "dfdb78a4e4": {
     "translation": "App debug flags"
   },
+  "e2198d6228": {
+    "translation": "Copy invite link"
+  },
   "e2ae80a510": {
     "translation": "Legal summary"
   },
   "e404559826": {
     "translation": "Terms of service"
-  },
-  "e78e14c5f1": {
-    "translation": "Pin"
   },
   "ea4788705e": {
     "translation": "Cancel"
@@ -506,6 +530,9 @@
   },
   "fed5ec05eb": {
     "translation": "Copied link"
+  },
+  "ff7a814974": {
+    "translation": "Add file link…"
   },
   "ffcd73e997": {
     "translation": "Import file…"

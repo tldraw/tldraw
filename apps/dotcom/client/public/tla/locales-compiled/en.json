@@ -87,6 +87,12 @@
       "value": "Export as"
     }
   ],
+  "146ffe2fd9": [
+    {
+      "type": 0,
+      "value": "Show more"
+    }
+  ],
   "181b90f889": [
     {
       "type": 0,
@@ -133,6 +139,12 @@
     {
       "type": 0,
       "value": "Upload failed"
+    }
+  ],
+  "2c3ef76333": [
+    {
+      "type": 0,
+      "value": "My files"
     }
   ],
   "2c61d18599": [
@@ -313,6 +325,40 @@
       "value": "Privacy policy"
     }
   ],
+  "5a86b22fa0": [
+    {
+      "type": 0,
+      "value": "Drag files here, "
+    },
+    {
+      "children": [
+        {
+          "type": 0,
+          "value": "create a file"
+        }
+      ],
+      "type": 8,
+      "value": "create"
+    },
+    {
+      "type": 0,
+      "value": ", or "
+    },
+    {
+      "children": [
+        {
+          "type": 0,
+          "value": "copy invite link"
+        }
+      ],
+      "type": 8,
+      "value": "invite"
+    },
+    {
+      "type": 0,
+      "value": " to get started."
+    }
+  ],
   "5a95a425f7": [
     {
       "type": 0,
@@ -413,6 +459,12 @@
     {
       "type": 0,
       "value": "This week"
+    }
+  ],
+  "7188286e36": [
+    {
+      "type": 0,
+      "value": "Remove from favorites"
     }
   ],
   "71a29b007b": [
@@ -625,10 +677,22 @@
       "value": "Rename"
     }
   ],
+  "910885435d": [
+    {
+      "type": 0,
+      "value": "Add to favorites"
+    }
+  ],
   "91e49bb0eb": [
     {
       "type": 0,
       "value": "Copy to my files"
+    }
+  ],
+  "930390d222": [
+    {
+      "type": 0,
+      "value": "Copied invite link"
     }
   ],
   "96165d6df5": [
@@ -701,6 +765,12 @@
     {
       "type": 0,
       "value": "Export image"
+    }
+  ],
+  "a37ede2939": [
+    {
+      "type": 0,
+      "value": "Groups"
     }
   ],
   "a3debabee7": [
@@ -779,12 +849,6 @@
     {
       "type": 0,
       "value": "Sign in to share"
-    }
-  ],
-  "bb792693e2": [
-    {
-      "type": 0,
-      "value": "Unpin"
     }
   ],
   "bbbcefd7ce": [
@@ -893,6 +957,12 @@
       "value": "Invite"
     }
   ],
+  "c74ea6dbff": [
+    {
+      "type": 0,
+      "value": "Show less"
+    }
+  ],
   "c87aacf567": [
     {
       "type": 0,
@@ -947,6 +1017,12 @@
       "value": "Theme"
     }
   ],
+  "d789869473": [
+    {
+      "type": 0,
+      "value": "Favorites"
+    }
+  ],
   "d876a9fe1a": [
     {
       "type": 0,
@@ -989,6 +1065,12 @@
       "value": "App debug flags"
     }
   ],
+  "e2198d6228": [
+    {
+      "type": 0,
+      "value": "Copy invite link"
+    }
+  ],
   "e2ae80a510": [
     {
       "type": 0,
@@ -999,12 +1081,6 @@
     {
       "type": 0,
       "value": "Terms of service"
-    }
-  ],
-  "e78e14c5f1": [
-    {
-      "type": 0,
-      "value": "Pin"
     }
   ],
   "ea4788705e": [
@@ -1121,6 +1197,12 @@
     {
       "type": 0,
       "value": "Copied link"
+    }
+  ],
+  "ff7a814974": [
+    {
+      "type": 0,
+      "value": "Add file link…"
     }
   ],
   "ffcd73e997": [

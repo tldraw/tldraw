@@ -1,20 +1,23 @@
+import { useDraggable } from '@dnd-kit/core'
 import { TlaFile } from '@tldraw/dotcom-shared'
 import classNames from 'classnames'
-import { ContextMenu as _ContextMenu } from 'radix-ui'
-import { KeyboardEvent, MouseEvent, useCallback, useEffect, useRef, useState } from 'react'
+import { Collapsible, ContextMenu as _ContextMenu } from 'radix-ui'
+import { KeyboardEvent, MouseEvent, PropsWithChildren, useCallback, useEffect, useRef } from 'react'
 import { Link, useNavigate, useParams } from 'react-router-dom'
 import {
 	TldrawUiMenuContextProvider,
+	isEqual,
 	preventDefault,
 	useContainer,
 	useMenuIsOpen,
 	useValue,
 } from 'tldraw'
 import { routes } from '../../../../routeDefs'
+import { SidebarFileContext } from '../../../app/TldrawApp'
 import { useApp } from '../../../hooks/useAppState'
 import { useCanUpdateFile } from '../../../hooks/useCanUpdateFile'
+import { useHasFlag } from '../../../hooks/useHasFlag'
 import { useIsFileOwner } from '../../../hooks/useIsFileOwner'
-import { useFileSidebarFocusContext } from '../../../providers/FileInputFocusProvider'
 import { useTldrawAppUiEvents } from '../../../utils/app-ui-events'
 import { getIsCoarsePointer } from '../../../utils/getIsCoarsePointer'
 import { F, defineMessages, useIntl } from '../../../utils/i18n'
@@ -28,6 +31,7 @@ import {
 	TlaTooltipRoot,
 	TlaTooltipTrigger,
 } from '../../TlaTooltip/TlaTooltip'
+import { PresenceBadges } from '../TempGroupsUi'
 import styles from '../sidebar.module.css'
 import { TlaSidebarFileLinkMenu } from './TlaSidebarFileLinkMenu'
 import { TlaSidebarRenameInline } from './TlaSidebarRenameInline'
@@ -41,7 +45,17 @@ function scrollActiveFileLinkIntoView() {
 	}
 }
 
-export function TlaSidebarFileLink({ item, testId }: { item: RecentFile; testId: string }) {
+export function TlaSidebarFileLink({
+	item,
+	testId,
+	className,
+	context,
+}: {
+	item: RecentFile
+	testId: string
+	className?: string
+	context: SidebarFileContext
+}) {
 	const app = useApp()
 	const intl = useIntl()
 	const { fileSlug } = useParams<{ fileSlug: string }>()
@@ -55,7 +69,12 @@ export function TlaSidebarFileLink({ item, testId }: { item: RecentFile; testId:
 		}
 	}, [isActive])
 
-	const [isRenaming, setIsRenaming] = useState(false)
+	const isRenaming = useValue(
+		'shouldRename',
+		() => isEqual(app.sidebarState.get().renameState, { fileId, context }),
+		[fileId, app]
+	)
+
 	const handleRenameAction = () => {
 		if (isMobile) {
 			const newName = prompt(intl.formatMessage(sidebarMessages.renameFile), fileName)?.trim()
@@ -63,7 +82,7 @@ export function TlaSidebarFileLink({ item, testId }: { item: RecentFile; testId:
 				app.updateFile(fileId, { name: newName })
 			}
 		} else {
-			setIsRenaming(true)
+			app.sidebarState.update((state) => ({ ...state, renameState: { fileId, context } }))
 		}
 	}
 
@@ -78,9 +97,11 @@ export function TlaSidebarFileLink({ item, testId }: { item: RecentFile; testId:
 					testId={testId}
 					isActive={isActive}
 					href={routes.tlaFile(fileId)}
-					onClose={() => setIsRenaming(false)}
+					onClose={() => app.sidebarState.update((state) => ({ ...state, renameState: null }))}
 					isRenaming={isRenaming}
 					handleRenameAction={handleRenameAction}
+					className={className}
+					context={context}
 				/>
 			</_ContextMenu.Trigger>
 			<_ContextMenu.Content className="tlui-menu tlui-scrollable">
@@ -115,6 +136,8 @@ export function TlaSidebarFileLinkInner({
 	isRenaming,
 	handleRenameAction,
 	onClose,
+	className,
+	context,
 }: {
 	fileId: string
 	testId: string | number
@@ -124,24 +147,32 @@ export function TlaSidebarFileLinkInner({
 	isRenaming: boolean
 	handleRenameAction(): void
 	onClose(): void
+	className?: string
+	context: SidebarFileContext
 }) {
 	const trackEvent = useTldrawAppUiEvents()
 	const linkRef = useRef<HTMLAnchorElement | null>(null)
 	const app = useApp()
-	const focusCtx = useFileSidebarFocusContext()
 	const isSidebarOpenMobile = useIsSidebarOpenMobile()
 
 	const canUpdateFile = useCanUpdateFile(fileId)
 	const isOwnFile = useIsFileOwner(fileId)
+	const file = useValue('file', () => app.getFile(fileId), [fileId, app])
 
-	useEffect(() => {
-		// on mount, trigger rename action if this is a new file.
-		if (isActive && focusCtx.shouldRenameNextNewFile) {
-			focusCtx.shouldRenameNextNewFile = false
-			handleRenameAction()
-		}
-		// eslint-disable-next-line react-hooks/exhaustive-deps
-	}, [])
+	const dnd = useDraggable({
+		id: context === 'my-files-pinned' ? fileId : `${fileId}:${context}`,
+		data:
+			context === 'my-files-pinned'
+				? {
+						type: 'pinned',
+						fileId,
+					}
+				: {
+						type: 'file',
+						fileId,
+					},
+		disabled: false,
+	})
 
 	const handleKeyDown = (e: KeyboardEvent) => {
 		if (!isActive) return
@@ -155,7 +186,8 @@ export function TlaSidebarFileLinkInner({
 		linkRef.current.focus()
 	}, [isActive, linkRef])
 
-	const file = useValue('file', () => app.getFile(fileId), [fileId, app])
+	const hasGroups = useHasFlag('groups')
+
 	if (!file) return null
 
 	if (isRenaming) {
@@ -163,52 +195,83 @@ export function TlaSidebarFileLinkInner({
 	}
 
 	return (
-		<div
-			className={classNames(styles.sidebarFileListItem, styles.hoverable)}
-			data-active={isActive}
-			data-element="file-link"
-			data-testid={testId}
-			data-is-own-file={isOwnFile}
-			onDoubleClick={canUpdateFile ? handleRenameAction : undefined}
-			// We use this id to scroll the active file link into view when creating or deleting files.
-			id={isActive ? ACTIVE_FILE_LINK_ID : undefined}
-			role="listitem"
-			draggable={false}
-		>
-			<Link
-				ref={linkRef}
-				onKeyDown={handleKeyDown}
-				aria-label={fileName}
-				onClick={(event) => {
-					// Don't navigate if we are already on the file page
-					// unless the user is holding ctrl or cmd to open in a new tab
-					if (isActive && !(event.ctrlKey || event.metaKey)) {
-						preventDefault(event)
-					}
-					if (isSidebarOpenMobile) {
-						toggleMobileSidebar(false)
-					}
-					trackEvent('click-file-link', { source: 'sidebar' })
-				}}
-				to={href}
-				className={styles.sidebarFileListItemButton}
+		<Collapse isOpen={!dnd.isDragging || context === 'my-files-pinned'}>
+			<div
+				className={classNames(
+					styles.sidebarFileListItem,
+					styles.hoverable,
+					{
+						[styles.sidebarFileListItemDragging]: dnd.isDragging,
+					},
+					className
+				)}
+				data-active={isActive}
+				data-element="file-link"
+				data-testid={testId}
+				data-is-own-file={isOwnFile}
+				{...(context === 'my-files-pinned' && {
+					'data-pinned-file-id': fileId,
+					'data-pinned-index': app.getFileState(fileId)?.pinnedIndex || 'a0',
+				})}
+				onDoubleClick={canUpdateFile ? handleRenameAction : undefined}
+				// We use this id to scroll the active file link into view when creating or deleting files.
+				id={isActive ? ACTIVE_FILE_LINK_ID : undefined}
+				{...dnd.attributes}
+				{...dnd.listeners}
+				ref={dnd.setNodeRef}
+				role="listitem"
 				draggable={false}
-			/>
-			<div className={styles.sidebarFileListItemContent}>
-				<div
-					className={classNames(
-						styles.sidebarFileListItemLabel,
-						'tla-text_ui__regular',
-						'notranslate'
+			>
+				<Link
+					ref={linkRef}
+					onKeyDown={handleKeyDown}
+					aria-label={fileName}
+					onClick={(event) => {
+						// Don't navigate if we are already on the file page
+						// unless the user is holding ctrl or cmd to open in a new tab
+						if (isActive && !(event.ctrlKey || event.metaKey)) {
+							preventDefault(event)
+						}
+						if (isSidebarOpenMobile) {
+							toggleMobileSidebar(false)
+						}
+						trackEvent('click-file-link', { source: 'sidebar' })
+					}}
+					to={href}
+					className={styles.sidebarFileListItemButton}
+					draggable={false}
+				/>
+				<div className={styles.sidebarFileListItemContent}>
+					<div
+						className={classNames(
+							styles.sidebarFileListItemLabel,
+							'tla-text_ui__regular',
+							'notranslate'
+						)}
+						data-testid={`${testId}-name`}
+					>
+						{fileName}
+					</div>
+					{!isOwnFile && !file.owningGroupId && <GuestBadge file={file} href={href} />}
+					{hasGroups && (
+						<PresenceBadges
+							fileId={fileId}
+							className={styles.sidebarFileListItemPresenceBadges}
+							badgeClassName={styles.sidebarFileListItemPresenceBadge}
+						/>
 					)}
-					data-testid={`${testId}-name`}
-				>
-					{fileName}
 				</div>
-				{!isOwnFile && <GuestBadge file={file} href={href} />}
+				<TlaSidebarFileLinkMenu fileId={fileId} onRenameAction={handleRenameAction} />
 			</div>
-			<TlaSidebarFileLinkMenu fileId={fileId} onRenameAction={handleRenameAction} />
-		</div>
+		</Collapse>
+	)
+}
+
+function Collapse({ children, isOpen }: PropsWithChildren<{ isOpen: boolean }>) {
+	return (
+		<Collapsible.Root open={isOpen} asChild>
+			<Collapsible.Content className={styles.CollapsibleContent}>{children}</Collapsible.Content>
+		</Collapsible.Root>
 	)
 }
 

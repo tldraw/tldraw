@@ -28,6 +28,9 @@
 	},
 	"dependencies": {
 		"@clerk/clerk-react": "^5.22.8",
+		"@dnd-kit/core": "^6.3.1",
+		"@dnd-kit/modifiers": "^9.0.0",
+		"@dnd-kit/utilities": "^3.2.2",
 		"@rocicorp/zero": "0.19.2025050203",
 		"@sentry/integrations": "^7.120.3",
 		"@sentry/react": "^7.120.3",

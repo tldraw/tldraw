@@ -1,5 +1,8 @@
-import { memo, useCallback, useEffect, useRef } from 'react'
-import { preventDefault } from 'tldraw'
+import { DndContext, PointerSensor, useSensor } from '@dnd-kit/core'
+import { restrictToVerticalAxis } from '@dnd-kit/modifiers'
+import { memo, useCallback, useEffect } from 'react'
+import { useHasFlag } from '../../hooks/useHasFlag'
+import { useSidebarDragHandling } from '../../hooks/useSidebarDragHandling'
 import { useTldrFileDrop } from '../../hooks/useTldrFileDrop'
 import { useTldrawAppUiEvents } from '../../utils/app-ui-events'
 import { F } from '../../utils/i18n'
@@ -10,10 +13,13 @@ import {
 	useIsSidebarOpen,
 	useIsSidebarOpenMobile,
 } from '../../utils/local-session-state'
+import { HandleReordering } from './components/HandleReordering'
 import { TlaSidebarCookieConsent } from './components/TlaSidebarCookieConsent'
 import { TlaSidebarCreateFileButton } from './components/TlaSidebarCreateFileButton'
+import { TlaSidebarDragOverlay } from './components/TlaSidebarDragOverlay'
 import { TlaSidebarHelpMenu } from './components/TlaSidebarHelpMenu'
 import { TlaSidebarRecentFiles } from './components/TlaSidebarRecentFiles'
+import { TlaSidebarRecentFilesNew } from './components/TlaSidebarRecentFilesNew'
 import { TlaUserSettingsMenu } from './components/TlaSidebarUserSettingsMenu'
 import { TlaSidebarWorkspaceLink } from './components/TlaSidebarWorkspaceLink'
 import styles from './sidebar.module.css'
@@ -21,7 +27,6 @@ import styles from './sidebar.module.css'
 export const TlaSidebar = memo(function TlaSidebar() {
 	const isSidebarOpen = useIsSidebarOpen()
 	const isSidebarOpenMobile = useIsSidebarOpenMobile()
-	const sidebarRef = useRef<HTMLDivElement>(null)
 	const trackEvent = useTldrawAppUiEvents()
 
 	useEffect(() => {
@@ -40,34 +45,16 @@ export const TlaSidebar = memo(function TlaSidebar() {
 		}
 	}, [trackEvent])
 
-	useEffect(() => {
-		const sidebarEl = sidebarRef.current
-		if (!sidebarEl) return
-
-		function handleWheel(e: WheelEvent) {
-			if (!sidebarEl) return
-			// Ctrl/Meta key indicates a pinch event (funny, eh?)
-			if (sidebarEl.contains(e.target as Node) && (e.ctrlKey || e.metaKey)) {
-				preventDefault(e)
-			}
-		}
-
-		sidebarEl.addEventListener('wheel', handleWheel, { passive: false })
-		return () => sidebarEl.removeEventListener('wheel', handleWheel)
-	}, [sidebarRef])
-
 	const handleOverlayClick = useCallback(() => {
 		updateLocalSessionState(() => ({ isSidebarOpenMobile: false }))
 	}, [])
 
 	const { onDrop, onDragOver, onDragEnter, onDragLeave, isDraggingOver } = useTldrFileDrop()
 
+	const hasGroups = useHasFlag('groups')
+
 	return (
-		<nav
-			ref={sidebarRef}
-			aria-hidden={!isSidebarOpen}
-			style={{ visibility: isSidebarOpen ? 'visible' : 'hidden' }}
-		>
+		<nav aria-hidden={!isSidebarOpen} style={{ visibility: isSidebarOpen ? 'visible' : 'hidden' }}>
 			<button
 				className={styles.sidebarOverlayMobile}
 				data-visiblemobile={isSidebarOpenMobile}
@@ -93,7 +80,9 @@ export const TlaSidebar = memo(function TlaSidebar() {
 					<TlaSidebarCreateFileButton />
 				</div>
 				<div className={styles.sidebarContent}>
-					<TlaSidebarRecentFiles />
+					<div className={styles.sidebarContentInner}>
+						{hasGroups ? <NewSidebarLayout /> : <LegacySidebarLayout />}
+					</div>
 				</div>
 
 				<div className={styles.sidebarBottomArea}>
@@ -107,3 +96,33 @@ export const TlaSidebar = memo(function TlaSidebar() {
 		</nav>
 	)
 })
+
+function LegacySidebarLayout() {
+	return <TlaSidebarRecentFiles />
+}
+
+function NewSidebarLayout() {
+	const { handleDragStart, handleDragMove, handleDragEnd, handleDragCancel } =
+		useSidebarDragHandling()
+
+	const pointerSensor = useSensor(PointerSensor, {
+		activationConstraint: {
+			distance: 5, // Only start dragging after moving 5px
+		},
+	})
+
+	return (
+		<DndContext
+			modifiers={[restrictToVerticalAxis]}
+			sensors={[pointerSensor]}
+			onDragStart={handleDragStart}
+			onDragEnd={handleDragEnd}
+			onDragCancel={handleDragCancel}
+			onDragMove={handleDragMove}
+		>
+			<HandleReordering />
+			<TlaSidebarRecentFilesNew />
+			<TlaSidebarDragOverlay />
+		</DndContext>
+	)
+}
