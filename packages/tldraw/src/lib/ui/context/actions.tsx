@@ -36,6 +36,7 @@ import { useTranslation } from '../hooks/useTranslation/useTranslation'
 import { TLUiIconType } from '../icon-types'
 import { TLUiOverrideHelpers, useDefaultHelpers } from '../overrides'
 import { useA11y } from './a11y'
+import { useTldrawUiComponents } from './components'
 import { TLUiEventSource, useUiEvents } from './events'
 
 /** @public */
@@ -98,6 +99,7 @@ export function ActionsProvider({ overrides, children }: ActionsProviderProps) {
 	const _editor = useMaybeEditor()
 	const showCollaborationUi = useShowCollaborationUi()
 	const helpers = useDefaultHelpers()
+	const components = useTldrawUiComponents()
 	const trackEvent = useUiEvents()
 	const a11y = useA11y()
 	const msg = useTranslation()
@@ -176,7 +178,9 @@ export function ActionsProvider({ overrides, children }: ActionsProviderProps) {
 				kbd: 'cmd+alt+/,ctrl+alt+/',
 				onSelect(source) {
 					trackEvent('open-kbd-shortcuts', { source })
-					helpers.addDialog({ component: DefaultKeyboardShortcutsDialog })
+					helpers.addDialog({
+						component: components.KeyboardShortcutsDialog ?? DefaultKeyboardShortcutsDialog,
+					})
 				},
 			},
 			{
@@ -1755,7 +1759,17 @@ export function ActionsProvider({ overrides, children }: ActionsProviderProps) {
 		}
 
 		return actions
-	}, [helpers, _editor, trackEvent, overrides, defaultDocumentName, showCollaborationUi, msg, a11y])
+	}, [
+		helpers,
+		_editor,
+		trackEvent,
+		overrides,
+		defaultDocumentName,
+		showCollaborationUi,
+		msg,
+		a11y,
+		components,
+	])
 
 	return <ActionsContext.Provider value={asActions(actions)}>{children}</ActionsContext.Provider>
 }
