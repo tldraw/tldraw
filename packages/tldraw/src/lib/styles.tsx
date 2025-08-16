@@ -8,20 +8,6 @@ export type StyleValuesForUi<T> = readonly {
 
 // todo: default styles prop?
 export const STYLES = {
-	color: [
-		{ value: 'black', icon: 'color' },
-		{ value: 'grey', icon: 'color' },
-		{ value: 'light-violet', icon: 'color' },
-		{ value: 'violet', icon: 'color' },
-		{ value: 'blue', icon: 'color' },
-		{ value: 'light-blue', icon: 'color' },
-		{ value: 'yellow', icon: 'color' },
-		{ value: 'orange', icon: 'color' },
-		{ value: 'green', icon: 'color' },
-		{ value: 'light-green', icon: 'color' },
-		{ value: 'light-red', icon: 'color' },
-		{ value: 'red', icon: 'color' },
-	],
 	fill: [
 		{ value: 'none', icon: 'fill-none' },
 		{ value: 'semi', icon: 'fill-semi' },

@@ -24,6 +24,7 @@ import { TLNoteShape } from '../shapes/TLNoteShape'
 import { TLTextShape } from '../shapes/TLTextShape'
 import { TLVideoShape } from '../shapes/TLVideoShape'
 import { StyleProp } from '../styles/StyleProp'
+import { isDefaultThemeColor } from '../styles/TLColorStyle'
 import { TLPageId } from './TLPage'
 
 /**
@@ -81,6 +82,7 @@ export const rootShapeVersions = createMigrationIds('com.tldraw.shape', {
 	HoistOpacity: 2,
 	AddMeta: 3,
 	AddWhite: 4,
+	AddCustomColors: 5,
 } as const)
 
 /** @public */
@@ -133,6 +135,21 @@ export const rootShapeMigrations = createRecordMigrationSequence({
 				if (record.props.color === 'white') {
 					record.props.color = 'black'
 				}
+			},
+		},
+		{
+			id: rootShapeVersions.AddCustomColors,
+			up: (record: any) => {
+				return record
+			},
+			down: (record: any) => {
+				if (record.props.color && !isDefaultThemeColor(record.props.color)) {
+					record.props.color = 'black'
+				}
+				if (record.props.labelColor && !isDefaultThemeColor(record.props.labelColor)) {
+					record.props.labelColor = 'black'
+				}
+				return record
 			},
 		},
 	],

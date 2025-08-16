@@ -1665,6 +1665,40 @@ describe('add white', () => {
 	})
 })
 
+describe('add custom colors', () => {
+	const { up, down } = getTestMigration(rootShapeVersions.AddCustomColors)
+
+	test('up works as expected (noop)', () => {
+		expect(
+			up({
+				props: { color: 'red', labelColor: 'blue' },
+			})
+		).toEqual({
+			props: { color: 'red', labelColor: 'blue' },
+		})
+	})
+
+	test('down resets non-default color and labelColor to black', () => {
+		expect(
+			down({
+				props: { color: '#123456', labelColor: '#abcdef' },
+			})
+		).toEqual({
+			props: { color: 'black', labelColor: 'black' },
+		})
+	})
+
+	test('down does not change default colors', () => {
+		expect(
+			down({
+				props: { color: 'red', labelColor: 'blue' },
+			})
+		).toEqual({
+			props: { color: 'red', labelColor: 'blue' },
+		})
+	})
+})
+
 describe('Add font size adjustment to notes', () => {
 	const { up, down } = getTestMigration(noteShapeVersions.AddFontSizeAdjustment)
 
@@ -2195,6 +2229,44 @@ describe('TLVideoAsset AddAutoplay', () => {
 	test('down works as expected', () => {
 		expect(up({ props: {} })).toEqual({ props: { autoplay: true } })
 		expect(down({ props: { autoplay: true } })).toEqual({ props: {} })
+	})
+})
+
+describe('Add support for arbitrary colors', () => {
+	const { up, down } = getTestMigration(rootShapeVersions.AddCustomColors)
+
+	test('down works as expected', () => {
+		expect(
+			up({
+				props: { color: 'black' },
+			})
+		).toEqual({
+			props: { color: 'black' },
+		})
+		expect(
+			down({
+				props: { color: '#ccc' },
+			})
+		).toEqual({
+			props: { color: 'black' },
+		})
+	})
+
+	test('down works as expected', () => {
+		expect(
+			up({
+				props: { color: 'black', labelColor: 'black' },
+			})
+		).toEqual({
+			props: { color: 'black', labelColor: 'black' },
+		})
+		expect(
+			down({
+				props: { color: '#ccc', labelColor: '#ccc' },
+			})
+		).toEqual({
+			props: { color: 'black', labelColor: 'black' },
+		})
 	})
 })
 
