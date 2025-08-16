@@ -1,5 +1,6 @@
 import { useState } from 'react'
 import {
+	DefaultSizeStyle,
 	Editor,
 	ErrorBoundary,
 	TLComponents,
@@ -16,6 +17,7 @@ import { TargetAreaTool } from './tools/TargetAreaTool'
 import { TargetShapeTool } from './tools/TargetShapeTool'
 
 enableLinedFillStyle()
+DefaultSizeStyle.setDefaultValue('s')
 
 const overrides: TLUiOverrides = {
 	tools: (editor, tools) => {

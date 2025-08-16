@@ -15,26 +15,28 @@ import { ISimpleShape } from '../../worker/simple/SimpleShape'
 export function convertTldrawShapeToSimpleShape(shape: TLShape, editor: Editor): ISimpleShape {
 	switch (shape.type) {
 		case 'text':
-			return convertTextShape(shape as TLTextShape)
+			return convertTextShape(shape as TLTextShape, editor)
 		case 'geo':
-			return convertGeoShape(shape as TLGeoShape)
+			return convertGeoShape(shape as TLGeoShape, editor)
 		case 'line':
 			return convertLineShape(shape as TLLineShape)
 		case 'arrow':
 			return convertArrowShape(shape as TLArrowShape, editor)
 		case 'note':
-			return convertNoteShape(shape as TLNoteShape)
+			return convertNoteShape(shape as TLNoteShape, editor)
 		default:
 			return convertUnknownShape(shape)
 	}
 }
 
 // Individual shape converter functions
-function convertTextShape(shape: TLTextShape): ISimpleShape {
+function convertTextShape(shape: TLTextShape, editor: Editor): ISimpleShape {
+	const util = editor.getShapeUtil(shape)
+	const text = util.getText(shape)
 	return {
 		shapeId: shape.id.slice('shape:'.length),
 		_type: 'text',
-		text: (shape.meta?.text as string) ?? '',
+		text: text ?? '',
 		x: shape.x,
 		y: shape.y,
 		color: shape.props.color,
@@ -42,7 +44,9 @@ function convertTextShape(shape: TLTextShape): ISimpleShape {
 	}
 }
 
-function convertGeoShape(shape: TLGeoShape): ISimpleShape {
+function convertGeoShape(shape: TLGeoShape, editor: Editor): ISimpleShape {
+	const util = editor.getShapeUtil(shape)
+	const text = util.getText(shape)
 	return {
 		shapeId: shape.id.slice('shape:'.length),
 		_type: shape.props.geo,
@@ -52,7 +56,7 @@ function convertGeoShape(shape: TLGeoShape): ISimpleShape {
 		height: shape.props.h,
 		color: shape.props.color,
 		fill: shapeFillToSimpleFill(shape.props.fill),
-		text: (shape.meta?.text as string) ?? '',
+		text: text ?? '',
 		note: (shape.meta?.note as string) ?? '',
 	}
 }
@@ -95,14 +99,16 @@ function convertArrowShape(shape: TLArrowShape, editor: Editor): ISimpleShape {
 	}
 }
 
-function convertNoteShape(shape: TLNoteShape): ISimpleShape {
+function convertNoteShape(shape: TLNoteShape, editor: Editor): ISimpleShape {
+	const util = editor.getShapeUtil(shape)
+	const text = util.getText(shape)
 	return {
 		shapeId: shape.id.slice('shape:'.length),
 		_type: 'note',
 		x: shape.x,
 		y: shape.y,
 		color: shape.props.color,
-		text: (shape.meta?.text as string) ?? '',
+		text: text ?? '',
 		note: (shape.meta?.note as string) ?? '',
 	}
 }
