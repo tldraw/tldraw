@@ -25,11 +25,12 @@ Review CONTEXT.md files for accuracy and completeness using Claude Code CLI.
 
 Arguments:
   directory    Path to directory containing CONTEXT.md file(s) (optional)
-               If not provided, reviews all packages/ directories
+               If not provided, reviews all packages/ directories and root CONTEXT.md
 
 Examples:
-  yarn refresh-context                    # Review all packages
+  yarn refresh-context                    # Review all packages and root CONTEXT.md
   yarn refresh-context ./packages/tldraw # Review specific package
+  yarn refresh-context .                 # Review root CONTEXT.md only
   yarn refresh-context --help            # Show this help
 `)
 		process.exit(0)
@@ -38,8 +39,8 @@ Examples:
 	let targetPath: string
 
 	if (args.length === 0) {
-		// Default: review all CONTEXT.md files in packages/
-		targetPath = resolve(process.cwd(), 'packages')
+		// Default: review all CONTEXT.md files in packages/ and root
+		targetPath = process.cwd() // Start from root to find all CONTEXT.md files
 	} else {
 		// Use provided directory argument
 		targetPath = resolve(process.cwd(), args[0])
@@ -54,10 +55,19 @@ Examples:
 		contextFiles = [resolve(targetPath, 'CONTEXT.md')]
 	} else {
 		// Directory mode - find all CONTEXT.md files
-		contextFiles = glob.sync('**/CONTEXT.md', {
-			cwd: targetPath,
-			absolute: true,
-		})
+		if (args.length === 0) {
+			// Default mode: find packages and root CONTEXT.md files
+			contextFiles = glob.sync('{packages/**/CONTEXT.md,CONTEXT.md}', {
+				cwd: targetPath,
+				absolute: true,
+			})
+		} else {
+			// Specific directory mode
+			contextFiles = glob.sync('**/CONTEXT.md', {
+				cwd: targetPath,
+				absolute: true,
+			})
+		}
 	}
 
 	if (contextFiles.length === 0) {
@@ -125,6 +135,7 @@ Examples:
 async function reviewContextFile(contextFile: string): Promise<ContextReviewResult> {
 	const packageDir = dirname(contextFile)
 	const packageName = basename(packageDir)
+	const isRootContext = basename(contextFile) === 'CONTEXT.md' && packageDir === process.cwd()
 
 	// Verify the context file exists
 	if (!existsSync(contextFile)) {
@@ -137,18 +148,44 @@ async function reviewContextFile(contextFile: string): Promise<ContextReviewResu
 	}
 
 	// First, check if updates are needed - focus only on critical accuracy issues
+	const contextDescription = isRootContext
+		? 'This is the root CONTEXT.md file for the entire tldraw monorepo. The CONTEXT.md file helps language models understand the overall codebase architecture and structure.'
+		: `This is the "${packageName}" package. The CONTEXT.md file helps language models understand the codebase.`
+
+	const expectedStructureGuidance = isRootContext
+		? `
+
+For the ROOT CONTEXT.md file, it should include these essential sections:
+- Repository Overview with purpose
+- Essential Commands (development, building, testing, code quality)
+- Testing Patterns (Vitest and Playwright guidance)
+- Development Workspace Structure (visual directory tree)
+- High-Level Architecture (core packages and patterns)
+- Key Development Notes (TypeScript, monorepo management, asset workflow)
+- Development Patterns (creating components, integration guidance)
+
+The root CONTEXT.md should provide both comprehensive architectural understanding and actionable workflow guidance for AI agents working in the codebase.`
+		: `
+
+For PACKAGE CONTEXT.md files, they should include:
+- Package overview and purpose
+- Architecture and key concepts specific to this package
+- API patterns and usage examples
+- Integration points with other packages
+- Development patterns specific to this package`
+
 	const reviewPrompt = `Our repository uses CONTEXT.md files to help language models and agents quickly understand the codebase. We periodically check these files to ensure that they are accurate, free of omissions, and comprehensive. 
 	
-This is the "${packageName}" package. The CONTEXT.md file helps language models understand the codebase.
+${contextDescription}${expectedStructureGuidance}
 
 Please read the CONTEXT.md file in this directory and review it for CRITICAL ACCURACY issues only.
 
 ONLY flag issues if they are:
 1. **Factually incorrect code examples** that won't work
-2. **Missing critical concepts** that are essential for understanding this package
+2. **Missing critical concepts** that are essential for understanding this ${isRootContext ? 'monorepo' : 'package'}
 3. **Outdated API references** to functions/classes that no longer exist
-4. **Wrong architectural descriptions** that misrepresent how the package works
-5. **Missing key exports** that developers would need to know about
+4. **Wrong architectural descriptions** that misrepresent how the ${isRootContext ? 'monorepo' : 'package'} works
+5. **Missing key exports** that developers would need to know about${isRootContext ? '\n6. **Missing essential sections** from the expected structure above that are critical for AI agent productivity' : ''}
 
 DO NOT flag:
 - Style/formatting preferences
@@ -164,7 +201,7 @@ Respond only with JSON:
 - "issues": string[] (only critical factual problems)  
 - "suggestions": string[] (only critical missing concepts)
 
-Be very conservative - only flag issues that would genuinely mislead a developer or agent trying to understand or use this package, such as: missing key exports, outdated API references, or factually wrong architectural descriptions.`
+Be very conservative - only flag issues that would genuinely mislead a developer or agent trying to understand or use this ${isRootContext ? 'monorepo' : 'package'}, such as: missing key exports, outdated API references, or factually wrong architectural descriptions.`
 
 	try {
 		// Use Claude Code CLI to review the file
@@ -192,13 +229,39 @@ Be very conservative - only flag issues that would genuinely mislead a developer
 
 		// If needs update, generate the updated content
 		if (reviewResult.status === 'needs_update') {
-			const updatePrompt = `Please read the CONTEXT.md file in this directory and fix ONLY the critical accuracy issues for the "${packageName}" package:
+			const updateTarget = isRootContext
+				? 'the tldraw monorepo root'
+				: `the "${packageName}" package`
+
+			const structuralGuidance = isRootContext
+				? `
+
+When updating the ROOT CONTEXT.md file, ensure it includes these essential sections:
+- Repository Overview with purpose
+- Essential Commands (development, building, testing, code quality)
+- Testing Patterns (Vitest and Playwright guidance)
+- Development Workspace Structure (visual directory tree)
+- High-Level Architecture (core packages and patterns) 
+- Key Development Notes (TypeScript, monorepo management, asset workflow)
+- Development Patterns (creating components, integration guidance)
+
+The root CONTEXT.md should provide both comprehensive architectural understanding and actionable workflow guidance for AI agents.`
+				: `
+
+When updating PACKAGE CONTEXT.md files, ensure they include:
+- Package overview and purpose
+- Architecture and key concepts specific to this package
+- API patterns and usage examples
+- Integration points with other packages
+- Development patterns specific to this package`
+
+			const updatePrompt = `Please read the CONTEXT.md file in this directory and fix ONLY the critical accuracy issues for ${updateTarget}:
 
 Critical issues to fix:
 ${reviewResult.issues.map((issue: string) => `- ${issue}`).join('\n')}
 
 Critical missing concepts to add:
-${reviewResult.suggestions.map((suggestion: string) => `- ${suggestion}`).join('\n')}
+${reviewResult.suggestions.map((suggestion: string) => `- ${suggestion}`).join('\n')}${structuralGuidance}
 
 Feel free to read other files in this directory to verify correct information (package.json, source files, etc.)
 
@@ -208,7 +271,7 @@ IMPORTANT: Make MINIMAL changes. Only fix factual errors, update outdated APIs, 
 - Change formatting (no markdown code fences, etc.)
 - Add "nice to have" examples
 - Fix typos or grammar unless they cause confusion
-- Add completeness improvements
+- Add completeness improvements unless they are critical missing sections
 
 PRESERVE the original formatting, structure, and style exactly. Only change the specific factual errors mentioned in the issues.
 
