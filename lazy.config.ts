@@ -70,6 +70,10 @@ const config = {
 				},
 			},
 		},
+		context: {
+			execution: 'independent',
+			cache: 'none',
+		},
 		'pack-tarball': {
 			parallel: false,
 		},

@@ -45,7 +45,8 @@
 	"scripts": {
 		"pack-tarball": "yarn pack",
 		"lint": "yarn run -T tsx ../../internal/scripts/lint.ts",
-		"test-coverage": "yarn run -T vitest run --coverage --passWithNoTests"
+		"test-coverage": "yarn run -T vitest run --coverage --passWithNoTests",
+		"context": "yarn run -T tsx ../../internal/scripts/context.ts"
 	},
 	"dependencies": {
 		"@tldraw/utils": "workspace:*"
