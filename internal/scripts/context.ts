@@ -36,11 +36,8 @@ async function findNearestContext(
 			// File doesn't exist, continue up the directory tree
 			const parentPath = path.dirname(currentPath)
 
-			// Stop if we've reached the repo root or filesystem root
-			if (
-				parentPath === currentPath ||
-				currentPath === repoRoot.split('/').slice(0, -1).join('/')
-			) {
+			// Stop if we've reached the filesystem root or gone above the repo root
+			if (parentPath === currentPath || currentPath === path.dirname(repoRoot)) {
 				return null
 			}
 
