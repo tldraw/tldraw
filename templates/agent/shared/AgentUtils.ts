@@ -1,4 +1,5 @@
 import { AlignEventUtil } from './events/AlignEventUtil'
+import { BringToFrontEventUtil } from './events/BringToFrontEventUtil'
 import { CreateEventUtil } from './events/CreateEventUtil'
 import { DebugEventUtil } from './events/DebugEventUtil'
 import { DeleteEventUtil } from './events/DeleteEventUtil'
@@ -8,6 +9,7 @@ import { MessageEventUtil } from './events/MessageEventUtil'
 import { MoveEventUtil } from './events/MoveEventUtil'
 import { PlaceEventUtil } from './events/PlaceEventUtil'
 import { ReviewEventUtil } from './events/ReviewEventUtil'
+import { SendToBackEventUtil } from './events/SendToBackEventUtil'
 import { SetMyViewEventUtil } from './events/SetMyViewEventUtil'
 import { StackEventUtil } from './events/StackEventUtil'
 import { ThinkEventUtil } from './events/ThinkEventUtil'
@@ -41,19 +43,28 @@ export const PROMPT_PART_UTILS: PromptPartUtilConstructor[] = [
 ]
 
 export const EVENT_UTILS = [
-	UpdateEventUtil,
-	DeleteEventUtil,
 	CreateEventUtil,
+	DeleteEventUtil,
+
+	UpdateEventUtil,
+	LabelEventUtil,
+
 	MoveEventUtil,
 	PlaceEventUtil,
-	StackEventUtil,
+	BringToFrontEventUtil,
+	SendToBackEventUtil,
+
 	AlignEventUtil,
+	DistributeEventUtil,
+	StackEventUtil,
+
 	ReviewEventUtil,
 	SetMyViewEventUtil,
-	DistributeEventUtil,
-	LabelEventUtil,
+
 	ThinkEventUtil,
 	MessageEventUtil,
 	DebugEventUtil,
+
+	// Required:
 	UnknownEventUtil,
 ]
