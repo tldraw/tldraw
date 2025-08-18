@@ -513,4 +513,28 @@ export class TLUserDurableObject extends DurableObject<Environment> {
 		}
 		return cache.store.getCommittedData()
 	}
+
+	async admin_delete(userId: string) {
+		// Close all websocket connections
+		for (const socket of this.sockets.keys()) {
+			socket.close()
+		}
+		this.sockets.clear()
+
+		// Clear the cache/state
+		if (this.cache) {
+			this.cache = null
+		}
+
+		// Delete R2 data snapshot
+		await this.env.USER_DO_SNAPSHOTS.delete(getUserDoSnapshotKey(this.env, userId))
+
+		// Clear any intervals
+		if (this.interval) {
+			clearInterval(this.interval)
+			this.interval = null
+		}
+
+		await this.db.destroy()
+	}
 }

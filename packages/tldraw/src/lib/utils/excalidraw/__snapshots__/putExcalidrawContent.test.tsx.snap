@@ -1,6 +1,6 @@
-// Jest Snapshot v1, https://goo.gl/fbAQLP
+// Vitest Snapshot v1, https://vitest.dev/guide/snapshot.html
 
-exports[`putExcalidrawContent test fixtures bound-arrows.json 1`] = `
+exports[`putExcalidrawContent test fixtures > bound-arrows.json 1`] = `
 {
   "binding:8": {
     "fromId": "shape:7",
@@ -173,7 +173,7 @@ exports[`putExcalidrawContent test fixtures bound-arrows.json 1`] = `
 }
 `;
 
-exports[`putExcalidrawContent test fixtures bound-elbow-arrows.json 1`] = `
+exports[`putExcalidrawContent test fixtures > bound-elbow-arrows.json 1`] = `
 {
   "binding:7": {
     "fromId": "shape:6",
@@ -346,7 +346,7 @@ exports[`putExcalidrawContent test fixtures bound-elbow-arrows.json 1`] = `
 }
 `;
 
-exports[`putExcalidrawContent test fixtures image.json 1`] = `
+exports[`putExcalidrawContent test fixtures > image.json 1`] = `
 {
   "asset:5": {
     "id": "asset:5",
@@ -404,7 +404,7 @@ exports[`putExcalidrawContent test fixtures image.json 1`] = `
 }
 `;
 
-exports[`putExcalidrawContent test fixtures line-drawing.json 1`] = `
+exports[`putExcalidrawContent test fixtures > line-drawing.json 1`] = `
 {
   "document:document": {
     "gridSize": 10,

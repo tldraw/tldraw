@@ -6333,7 +6333,17 @@ export class Editor extends EventEmitter<TLEventMap> {
 
 			this.createShapes(shapesToCreate)
 			this.createBindings(bindingsToCreate)
-			this.setSelectedShapes(compact(ids.map((id) => shapeIds.get(id))))
+
+			this.setSelectedShapes(
+				compact(
+					ids.map((oldId) => {
+						const newId = shapeIds.get(oldId)
+						if (!newId) return null
+						if (!this.getShape(newId)) return null
+						return newId
+					})
+				)
+			)
 
 			if (offset !== undefined) {
 				// If we've offset the duplicated shapes, check to see whether their new bounds is entirely
@@ -7857,25 +7867,32 @@ export class Editor extends EventEmitter<TLEventMap> {
 				) {
 					let parentId: TLParentId = this.getFocusedGroupId()
 
-					for (let i = currentPageShapesSorted.length - 1; i >= 0; i--) {
-						const parent = currentPageShapesSorted[i]
-						const util = this.getShapeUtil(parent)
-						if (
-							util.canReceiveNewChildrenOfType(parent, partial.type) &&
-							!this.isShapeHidden(parent) &&
-							this.isPointInShape(
-								parent,
-								// If no parent is provided, then we can treat the
-								// shape's provided x/y as being in the page's space.
-								{ x: partial.x ?? 0, y: partial.y ?? 0 },
-								{
-									margin: 0,
-									hitInside: true,
-								}
-							)
-						) {
-							parentId = parent.id
-							break
+					const isPositioned = partial.x !== undefined && partial.y !== undefined
+
+					// If the shape has been explicitly positioned, we'll try to find a parent at
+					// that position. If not, we'll assume the user isn't deliberately placing the
+					// shape and the positioning will be handled later by another system.
+					if (isPositioned) {
+						for (let i = currentPageShapesSorted.length - 1; i >= 0; i--) {
+							const parent = currentPageShapesSorted[i]
+							const util = this.getShapeUtil(parent)
+							if (
+								util.canReceiveNewChildrenOfType(parent, partial.type) &&
+								!this.isShapeHidden(parent) &&
+								this.isPointInShape(
+									parent,
+									// If no parent is provided, then we can treat the
+									// shape's provided x/y as being in the page's space.
+									{ x: partial.x ?? 0, y: partial.y ?? 0 },
+									{
+										margin: 0,
+										hitInside: true,
+									}
+								)
+							) {
+								parentId = parent.id
+								break
+							}
 						}
 					}
 

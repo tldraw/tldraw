@@ -1,6 +1,7 @@
 import { act, render, RenderResult } from '@testing-library/react'
 import { Atom, Computed } from '@tldraw/state'
 import { useState } from 'react'
+import { vi } from 'vitest'
 import { useAtom } from './useAtom'
 import { useComputed } from './useComputed'
 import { useValue } from './useValue'
@@ -76,7 +77,7 @@ test('useComputed allows optionally passing options', async () => {
 	let theComputed = null as null | Computed<number>
 	let theAtom = null as null | Atom<number>
 	let setCount = null as null | ((count: number) => void)
-	const isEqual = jest.fn((a, b) => a === b)
+	const isEqual = vi.fn((a, b) => a === b)
 	function Component() {
 		const [count, _setCount] = useState(0)
 		setCount = _setCount

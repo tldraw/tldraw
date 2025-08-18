@@ -2,6 +2,10 @@ import { ZColumn, schema } from '@tldraw/dotcom-shared'
 import { assert, assertExists, groupBy, structuredClone } from '@tldraw/utils'
 import { execSync } from 'child_process'
 import { readFileSync, unlinkSync, writeFileSync } from 'fs'
+import { dirname, join } from 'path'
+import { fileURLToPath } from 'url'
+
+const DIRNAME = dirname(fileURLToPath(import.meta.url))
 
 const ourTypeToPostgresType: Record<ZColumn['type'], string> = {
 	string: 'text',
@@ -152,8 +156,8 @@ ${escapeForTemplateLiteral(fetchEverythingSql)}
 
 export const columnNamesByAlias = ${JSON.stringify(columnNamesByAlias, null, 2)}
 `
-test('fetchEverythingSql snapshot (RUN `yarn test -u` IF THIS FAILS)', async () => {
-	const tmpFile = './src/.fetchEverythingSql.tmp.ts'
+test('fetchEverythingSql snapshot (RUN `UPDATE_SNAPSHOTS=1 yarn test` IF THIS FAILS)', async () => {
+	const tmpFile = join(DIRNAME, '.fetchEverythingSql.tmp.ts')
 	writeFileSync(tmpFile, tsFile, 'utf-8')
 	execSync('yarn run -T prettier --write ' + tmpFile, {
 		stdio: 'inherit',
@@ -164,12 +168,12 @@ test('fetchEverythingSql snapshot (RUN `yarn test -u` IF THIS FAILS)', async () 
 	const formattedCode = readFileSync(tmpFile, 'utf-8').toString()
 	unlinkSync(tmpFile)
 
-	const isUpdating = expect.getState().snapshotState._updateSnapshot === 'all'
+	const isUpdating = !!process.env.UPDATE_SNAPSHOTS
 	if (isUpdating) {
-		writeFileSync('./src/fetchEverythingSql.snap.ts', formattedCode, 'utf-8')
+		writeFileSync(join(DIRNAME, 'fetchEverythingSql.snap.ts'), formattedCode, 'utf-8')
 		return
 	}
 
-	const fileContents = readFileSync('./src/fetchEverythingSql.snap.ts', 'utf-8').toString()
+	const fileContents = readFileSync(join(DIRNAME, 'fetchEverythingSql.snap.ts'), 'utf-8').toString()
 	expect(formattedCode).toEqual(fileContents)
 })

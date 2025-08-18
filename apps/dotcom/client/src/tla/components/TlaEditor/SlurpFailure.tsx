@@ -35,7 +35,7 @@ export function SlurpFailure({
 					maxWidth: 350,
 					display: 'flex',
 					flexDirection: 'column',
-					gap: 'var(--space-4)',
+					gap: 'var(--tl-space-4)',
 				}}
 			>
 				<p>
