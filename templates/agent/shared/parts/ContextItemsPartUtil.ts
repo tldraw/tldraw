@@ -63,7 +63,7 @@ export class ContextItemsPartUtil extends PromptPartUtil<ContextItem[]> {
 				'The user has specifically brought your attention to the following areas in this request. The user might refer to them as the "area(s)" or perhaps "here" or "there", but either way, it\'s implied that you should focus on these areas in both your reasoning and actions. Make sure to focus your task on these areas:'
 			)
 			for (const area of areas) {
-				messages.push(JSON.stringify(area, null, 2))
+				messages.push(JSON.stringify(area))
 			}
 		}
 
@@ -74,7 +74,7 @@ export class ContextItemsPartUtil extends PromptPartUtil<ContextItem[]> {
 				'The user has specifically brought your attention to the following points in this request. The user might refer to them as the "point(s)" or perhaps "here" or "there", but either way, it\'s implied that you should focus on these points in both your reasoning and actions. Make sure to focus your task on these points:'
 			)
 			for (const point of points) {
-				messages.push(JSON.stringify(point, null, 2))
+				messages.push(JSON.stringify(point))
 			}
 		}
 
@@ -85,7 +85,7 @@ export class ContextItemsPartUtil extends PromptPartUtil<ContextItem[]> {
 				`The user has specifically brought your attention to these ${shapes.length} shapes individually in this request. Make sure to focus your task on these shapes where applicable:`
 			)
 			for (const shape of shapes) {
-				messages.push(JSON.stringify(shape, null, 2))
+				messages.push(JSON.stringify(shape))
 			}
 		}
 
@@ -96,7 +96,7 @@ export class ContextItemsPartUtil extends PromptPartUtil<ContextItem[]> {
 				messages.push(
 					`The user has specifically brought your attention to the following group of ${shapes.length} shapes in this request. Make sure to focus your task on these shapes where applicable:`
 				)
-				messages.push(shapes.map((shape) => JSON.stringify(shape, null, 2)).join('\n'))
+				messages.push(shapes.map((shape) => JSON.stringify(shape)).join('\n'))
 			}
 		}
 

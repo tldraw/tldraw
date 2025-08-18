@@ -222,3 +222,10 @@ export function ensureValueIsVec(value: any): VecModel | null {
 	if (x === null || y === null) return null
 	return { x, y }
 }
+
+export function sliceShapeIdPrefix(id: string): string {
+	if (id.startsWith('shape:')) {
+		return id.slice('shape:'.length)
+	}
+	return id
+}

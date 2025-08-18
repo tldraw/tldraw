@@ -20,12 +20,13 @@ import { UnknownEventUtil } from './events/UnknownEventUtil'
 import { UpdateEventUtil } from './events/UpdateEventUtil'
 import { AgentViewportBoundsPartUtil } from './parts/AgentViewportBoundsPartUtil'
 import { AgentViewportScreenshotPartUtil } from './parts/AgentViewportScreenshotPartUtil'
-import { AgentViewportShapesPartUtil } from './parts/AgentViewportShapesPartUtil'
+// import { AgentViewportSimpleShapesPartUtil } from './parts/AgentViewportSimpleShapesPartUtil'
+import { AgentViewportBlurryShapesPartUtil } from './parts/AgentViewportBlurryShapesPartUtil.ts'
 import { ContextItemsPartUtil } from './parts/ContextItemsPartUtil'
 import { HistoryItemPartUtil } from './parts/HistoryItemPartUtil'
 import { MessagePartUtil } from './parts/MessagePartUtil'
 import { PeripheralShapesPartUtil } from './parts/PeripheralShapesPartUtil'
-import { PromptBoundsPartUtil } from './parts/PromptBoundsPartUtil'
+// import { PromptBoundsPartUtil } from './parts/PromptBoundsPartUtil'
 import { PromptPartUtilConstructor } from './parts/PromptPartUtil'
 import { SystemPromptPartUtil } from './parts/SystemPromptPartUtil'
 import { UserSelectedShapesPartUtil } from './parts/UserSelectedShapesPartUtil'
@@ -33,15 +34,19 @@ import { UserViewportBoundsPartUtil } from './parts/UserViewportBoundsPartUtil'
 
 export const PROMPT_PART_UTILS: PromptPartUtilConstructor[] = [
 	SystemPromptPartUtil,
+
+	// The format of shape that the model is looking at
+	AgentViewportBlurryShapesPartUtil,
+	// AgentViewportSimpleShapesPartUtil,
+
 	AgentViewportScreenshotPartUtil,
-	AgentViewportShapesPartUtil,
 	AgentViewportBoundsPartUtil,
 	ContextItemsPartUtil,
 	UserViewportBoundsPartUtil,
 	HistoryItemPartUtil,
 	MessagePartUtil,
 	PeripheralShapesPartUtil,
-	PromptBoundsPartUtil,
+	// PromptBoundsPartUtil, //probably can be deleted, is vestigal from ai module and redundant with context bounds
 	UserSelectedShapesPartUtil,
 ]
 

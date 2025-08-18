@@ -6,7 +6,7 @@ import { PromptPartUtil } from './PromptPartUtil'
 import { convertTldrawShapeToSimpleShape } from './convertTldrawShapeToSimpleShape'
 import { getWholePageContent } from './getWholePageContent'
 
-export class AgentViewportShapesPartUtil extends PromptPartUtil<ISimpleShape[]> {
+export class AgentViewportSimpleShapesPartUtil extends PromptPartUtil<ISimpleShape[]> {
 	static override type = 'agentViewportShapes' as const
 
 	override getPriority() {
@@ -16,13 +16,14 @@ export class AgentViewportShapesPartUtil extends PromptPartUtil<ISimpleShape[]> 
 	override async getPart(options: AgentPromptOptions) {
 		const { editor, request } = options
 		const currentPageContent = getWholePageContent({ editor })
-		const contextBounds = request.bounds
+
+		const contextBoundsBox = Box.From(request.bounds)
 
 		const shapes = currentPageContent.shapes
 			.map((shape) => {
 				const bounds = editor.getShapeMaskedPageBounds(shape)
 				if (!bounds) return null
-				if (!Box.From(contextBounds).includes(bounds)) return null
+				if (!contextBoundsBox.includes(bounds)) return null
 				return convertTldrawShapeToSimpleShape(shape, editor)
 			})
 			.filter((s) => s !== null)
@@ -35,10 +36,8 @@ export class AgentViewportShapesPartUtil extends PromptPartUtil<ISimpleShape[]> 
 	}
 
 	override buildContent(agentViewportShapes: ISimpleShape[]): string[] {
-		return [
-			agentViewportShapes.length > 0
-				? `Here are the shapes in your current viewport:\n${JSON.stringify(agentViewportShapes).replaceAll('\n', ' ')}`
-				: 'Your current viewport is empty.',
-		]
+		if (agentViewportShapes.length === 0) return ['Your current viewport is empty.']
+
+		return [`Here are the shapes you can currently see:`, JSON.stringify(agentViewportShapes)]
 	}
 }

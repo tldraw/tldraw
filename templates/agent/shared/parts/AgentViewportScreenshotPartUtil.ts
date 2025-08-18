@@ -13,10 +13,12 @@ export class AgentViewportScreenshotPartUtil extends PromptPartUtil<string | nul
 		const { editor, request } = options
 		const contextBounds = request.bounds
 
+		const contextBoundsBox = Box.From(contextBounds)
+
 		const shapes = editor.getCurrentPageShapesSorted().filter((shape) => {
 			const bounds = editor.getShapeMaskedPageBounds(shape)
 			if (!bounds) return false
-			return Box.From(contextBounds).includes(bounds)
+			return contextBoundsBox.includes(bounds)
 		})
 
 		if (shapes.length === 0) return null
@@ -35,7 +37,7 @@ export class AgentViewportScreenshotPartUtil extends PromptPartUtil<string | nul
 		if (!agentViewportScreenshot) return []
 
 		return [
-			'Here is a screenshot of your current viewport on the canvas. It is what you can see right at this moment. It is not a reference image.',
+			'Here is the part of the canvas that you can currently see at this moment. It is not a reference image.',
 			agentViewportScreenshot,
 		]
 	}
