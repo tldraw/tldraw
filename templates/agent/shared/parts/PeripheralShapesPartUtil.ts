@@ -59,9 +59,6 @@ function findPeripheralShapeClusters(
 	if (shapes.length === 0) return []
 	const groups: { shapes: TLShape[]; bounds: Box; numberOfShapes: number }[] = []
 
-	const zoomLevel = editor.getZoomLevel()
-	console.log('zoomLevel', zoomLevel)
-
 	const expandedBounds = shapes.map((shape) => {
 		return {
 			shape,

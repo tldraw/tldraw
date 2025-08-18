@@ -13,10 +13,12 @@ export class AgentViewportScreenshotPartUtil extends PromptPartUtil<string | nul
 		const { editor, request } = options
 		const contextBounds = request.bounds
 
+		const contextBoundsBox = Box.From(contextBounds)
+
 		const shapes = editor.getCurrentPageShapesSorted().filter((shape) => {
 			const bounds = editor.getShapeMaskedPageBounds(shape)
 			if (!bounds) return false
-			return Box.From(contextBounds).includes(bounds)
+			return contextBoundsBox.includes(bounds)
 		})
 
 		if (shapes.length === 0) return null
