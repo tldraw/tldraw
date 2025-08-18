@@ -8,11 +8,12 @@ const AgentBringToFrontEvent = z
 	.object({
 		_type: z.literal('bringToFront'),
 		intent: z.string(),
-		shapeId: z.string(),
+		shapeIds: z.array(z.string()),
 	})
 	.meta({
 		title: 'Bring to Front',
-		description: 'The AI brings a shape to the front so that it appears in front of other shapes.',
+		description:
+			'The AI brings one or more shapes to the front so that they appear in front of everything else.',
 	})
 
 type IAgentBringToFrontEvent = z.infer<typeof AgentBringToFrontEvent>
@@ -35,10 +36,10 @@ export class BringToFrontEventUtil extends AgentEventUtil<IAgentBringToFrontEven
 	override transformEvent(event: Streaming<IAgentBringToFrontEvent>, transform: AgentTransform) {
 		if (!event.complete) return event
 
-		const shapeId = transform.ensureShapeIdIsReal(event.shapeId)
-		if (!shapeId) return null
+		const shapeIds = transform.ensureShapeIdsAreReal(event.shapeIds)
+		if (shapeIds.length === 0) return null
 
-		event.shapeId = shapeId
+		event.shapeIds = shapeIds
 		return event
 	}
 
@@ -46,7 +47,6 @@ export class BringToFrontEventUtil extends AgentEventUtil<IAgentBringToFrontEven
 		if (!event.complete) return
 		const { editor } = transform
 
-		const shapeId = `shape:${event.shapeId}` as TLShapeId
-		editor.bringToFront([shapeId])
+		editor.bringToFront(event.shapeIds.map((shapeId) => `shape:${shapeId}` as TLShapeId))
 	}
 }

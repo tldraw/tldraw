@@ -8,11 +8,12 @@ const AgentSendToBackEvent = z
 	.object({
 		_type: z.literal('sendToBack'),
 		intent: z.string(),
-		shapeId: z.string(),
+		shapeIds: z.array(z.string()),
 	})
 	.meta({
 		title: 'Send to Back',
-		description: 'The AI sends a shape to the back so that it appears behind other shapes.',
+		description:
+			'The AI sends one or more shapes to the back so that they appear behind everything else.',
 	})
 
 type IAgentSendToBackEvent = z.infer<typeof AgentSendToBackEvent>
@@ -35,10 +36,10 @@ export class SendToBackEventUtil extends AgentEventUtil<IAgentSendToBackEvent> {
 	override transformEvent(event: Streaming<IAgentSendToBackEvent>, transform: AgentTransform) {
 		if (!event.complete) return event
 
-		const shapeId = transform.ensureShapeIdIsReal(event.shapeId)
-		if (!shapeId) return null
+		const shapeIds = transform.ensureShapeIdsAreReal(event.shapeIds)
+		if (shapeIds.length === 0) return null
 
-		event.shapeId = shapeId
+		event.shapeIds = shapeIds
 		return event
 	}
 
@@ -46,7 +47,6 @@ export class SendToBackEventUtil extends AgentEventUtil<IAgentSendToBackEvent> {
 		if (!event.complete) return
 		const { editor } = transform
 
-		const shapeId = `shape:${event.shapeId}` as TLShapeId
-		editor.sendToBack([shapeId])
+		editor.sendToBack(event.shapeIds.map((shapeId) => `shape:${shapeId}` as TLShapeId))
 	}
 }
