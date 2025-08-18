@@ -1,3 +1,4 @@
+import { setIn } from 'bedit'
 import { MouseEvent, useEffect, useRef } from 'react'
 import { useValue } from 'tldraw'
 import { useApp } from '../../../hooks/useAppState'
@@ -41,6 +42,12 @@ export function HandleReordering() {
 		} else {
 			document.body.removeAttribute('data-dragging-pinned')
 		}
+
+		if (dragState?.type === 'file') {
+			document.body.setAttribute('data-dragging-file', 'true')
+		} else {
+			document.body.removeAttribute('data-dragging-file')
+		}
 	}, [dragState])
 
 	const mousePosition = useRef({ clientX: 0, clientY: 0 })
@@ -67,14 +74,11 @@ export function HandleReordering() {
 						nextDragState.cursorLineY !== dragState.cursorLineY ||
 						nextDragState.nextIndex !== dragState.nextIndex
 					) {
-						app.sidebarState.update((state) => ({
-							...state,
-							dragState: {
-								type: 'group',
-								itemId: dragState.itemId,
-								...nextDragState,
-							},
-						}))
+						setIn(app.sidebarState).dragState({
+							type: 'group',
+							itemId: dragState.itemId,
+							...nextDragState,
+						})
 					}
 				}
 
@@ -88,14 +92,11 @@ export function HandleReordering() {
 						nextDragState.cursorLineY !== dragState.cursorLineY ||
 						nextDragState.nextIndex !== dragState.nextIndex
 					) {
-						app.sidebarState.update((state) => ({
-							...state,
-							dragState: {
-								type: 'pinned',
-								itemId: dragState.itemId,
-								...nextDragState,
-							},
-						}))
+						setIn(app.sidebarState).dragState({
+							type: 'pinned',
+							itemId: dragState.itemId,
+							...nextDragState,
+						})
 					}
 				}
 			} finally {

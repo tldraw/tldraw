@@ -1,6 +1,7 @@
 /* ---------------------- Menu ---------------------- */
 
 import { FILE_PREFIX, TlaFile } from '@tldraw/dotcom-shared'
+import { setIn, updateIn } from 'bedit'
 import { Fragment, ReactNode, useCallback, useId } from 'react'
 import { useNavigate } from 'react-router-dom'
 import {
@@ -145,7 +146,7 @@ export function FileItems({
 			lastSessionState: prevState?.lastSessionState,
 		})
 		if (res.ok) {
-			app.sidebarState.update((state) => ({ ...state, renamingFileId: newFileId }))
+			setIn(app.sidebarState).renameState({ fileId: newFileId, context: 'my-files' })
 			navigate(routes.tlaFile(newFileId))
 		}
 	}, [app, fileId, navigate, trackEvent, source])
@@ -247,10 +248,7 @@ export function FileItems({
 										readonlyOk
 										onSelect={() => {
 											app.z.mutate.group.moveFileToGroup({ fileId, groupId: groupUser.groupId })
-											app.sidebarState.update((state) => ({
-												...state,
-												expandedGroups: new Set(state.expandedGroups).add(groupUser.groupId),
-											}))
+											updateIn(app.sidebarState).expandedGroups.add(groupUser.groupId)
 										}}
 									/>
 								))}
@@ -269,10 +267,7 @@ export function FileItems({
 										app.z.mutate.group.create({ id, name })
 										app.z.mutate.group.moveFileToGroup({ fileId, groupId: id })
 										setTimeout(() => {
-											app.sidebarState.update((state) => ({
-												...state,
-												expandedGroups: new Set(state.expandedGroups).add(id),
-											}))
+											updateIn(app.sidebarState).expandedGroups.add(id)
 										}, 100)
 									}
 								}}

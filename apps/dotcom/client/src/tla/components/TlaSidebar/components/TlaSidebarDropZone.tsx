@@ -29,14 +29,10 @@ export function TlaSidebarDropZone({
 		},
 		[app]
 	)
-	const isOriginDropZone = dragState?.originDropZoneId === id
-
-	// EDGE CASE: Combine explicit disable flag with origin detection
-	const isDisabled = disabled || isOriginDropZone
 
 	const { isOver, setNodeRef } = useDroppable({
 		id,
-		disabled: isDisabled,
+		disabled,
 		resizeObserverConfig: {
 			// specifying an empty array here means that all drop zones will be re-measured when this one resizes
 			updateMeasurementsFor: [],
@@ -54,7 +50,7 @@ export function TlaSidebarDropZone({
 			className={classNames(
 				styles.sidebarDropZone,
 				{
-					[styles.sidebarDropZoneActive]: isOver && !isDisabled && shouldShowFileDropZone,
+					[styles.sidebarDropZoneActive]: isOver && !disabled && shouldShowFileDropZone,
 				},
 				className
 			)}

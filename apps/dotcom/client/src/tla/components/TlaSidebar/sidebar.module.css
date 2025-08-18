@@ -516,6 +516,18 @@
 	padding: 0px 8px 0px 8px;
 }
 
+.sidebarFileListItem[data-dragging='true']::after {
+	content: '';
+	position: absolute;
+	inset: 2px 0px;
+	border-radius: 4px;
+	border: 0.5px solid var(--tla-color-primary);
+	background: transparent;
+	z-index: 1000;
+	pointer-events: none;
+	visibility: visible;
+}
+
 .sidebarFileListItemContent {
 	flex: 1 1 auto;
 	overflow: hidden;
@@ -765,7 +777,7 @@
 }
 
 .dropCursorLine {
-	height: 2.5px;
+	height: 2px;
 	background-color: rgba(0, 122, 255, 0.7);
 	border-radius: 1.5px;
 	width: calc(100% - 16px);
@@ -799,6 +811,8 @@
 	background: transparent;
 }
 
+body[data-dragging-file='true'] .sidebarGroupItem,
+body[data-dragging-file='true'] .sidebarGroupItem *,
 body[data-dragging-group='true'] .sidebarGroupItem,
 body[data-dragging-group='true'] .sidebarGroupItem * {
 	/* THORNY EDGE CASE: Disable all pointer events during group drag */
@@ -807,10 +821,12 @@ body[data-dragging-group='true'] .sidebarGroupItem * {
 	pointer-events: none !important;
 }
 
-/* EDGE CASE: Set grabbing cursor globally during group drag */
+/* EDGE CASE: Set grabbing cursor globally during drag operations */
 /* This gives visual feedback that a drag operation is in progress */
 body[data-dragging-group='true'],
-body[data-dragging-group='true'] * {
+body[data-dragging-group='true'] *,
+body[data-dragging-file='true'],
+body[data-dragging-file='true'] * {
 	cursor: grabbing !important;
 }
 
@@ -1002,9 +1018,9 @@ body[data-dragging-group='true'] * {
 	display: block;
 	content: '';
 	position: absolute;
-	inset: -2px;
-	border: 0.5px solid var(--tla-color-primary);
-	border-radius: 5px;
+	inset: -3px -5px;
+	border: 2px solid rgba(0, 122, 255, 0.7);
+	border-radius: 6px;
 	opacity: 1;
 }
 

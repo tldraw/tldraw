@@ -1,8 +1,9 @@
 import { useDraggable } from '@dnd-kit/core'
 import { TlaFile } from '@tldraw/dotcom-shared'
+import { setIn } from 'bedit'
 import classNames from 'classnames'
-import { Collapsible, ContextMenu as _ContextMenu } from 'radix-ui'
-import { KeyboardEvent, MouseEvent, PropsWithChildren, useCallback, useEffect, useRef } from 'react'
+import { ContextMenu as _ContextMenu } from 'radix-ui'
+import { KeyboardEvent, MouseEvent, useCallback, useEffect, useRef } from 'react'
 import { Link, useNavigate, useParams } from 'react-router-dom'
 import {
 	TldrawUiMenuContextProvider,
@@ -82,7 +83,7 @@ export function TlaSidebarFileLink({
 				app.updateFile(fileId, { name: newName })
 			}
 		} else {
-			app.sidebarState.update((state) => ({ ...state, renameState: { fileId, context } }))
+			setIn(app.sidebarState).renameState({ fileId, context })
 		}
 	}
 
@@ -97,7 +98,7 @@ export function TlaSidebarFileLink({
 					testId={testId}
 					isActive={isActive}
 					href={routes.tlaFile(fileId)}
-					onClose={() => app.sidebarState.update((state) => ({ ...state, renameState: null }))}
+					onClose={() => setIn(app.sidebarState).renameState(null)}
 					isRenaming={isRenaming}
 					handleRenameAction={handleRenameAction}
 					className={className}
@@ -195,83 +196,67 @@ export function TlaSidebarFileLinkInner({
 	}
 
 	return (
-		<Collapse isOpen={!dnd.isDragging || context === 'my-files-pinned'}>
-			<div
-				className={classNames(
-					styles.sidebarFileListItem,
-					styles.hoverable,
-					{
-						[styles.sidebarFileListItemDragging]: dnd.isDragging,
-					},
-					className
-				)}
-				data-active={isActive}
-				data-element="file-link"
-				data-testid={testId}
-				data-is-own-file={isOwnFile}
-				{...(context === 'my-files-pinned' && {
-					'data-pinned-file-id': fileId,
-					'data-pinned-index': app.getFileState(fileId)?.pinnedIndex || 'a0',
-				})}
-				onDoubleClick={canUpdateFile ? handleRenameAction : undefined}
-				// We use this id to scroll the active file link into view when creating or deleting files.
-				id={isActive ? ACTIVE_FILE_LINK_ID : undefined}
-				{...dnd.attributes}
-				{...dnd.listeners}
-				ref={dnd.setNodeRef}
-				role="listitem"
+		<div
+			className={classNames(styles.sidebarFileListItem, styles.hoverable, className)}
+			data-dragging={dnd.isDragging}
+			data-active={isActive}
+			data-element="file-link"
+			data-testid={testId}
+			data-is-own-file={isOwnFile}
+			{...(context === 'my-files-pinned' && {
+				'data-pinned-file-id': fileId,
+				'data-pinned-index': app.getFileState(fileId)?.pinnedIndex || 'a0',
+			})}
+			onDoubleClick={canUpdateFile ? handleRenameAction : undefined}
+			// We use this id to scroll the active file link into view when creating or deleting files.
+			id={isActive ? ACTIVE_FILE_LINK_ID : undefined}
+			{...dnd.attributes}
+			{...dnd.listeners}
+			ref={dnd.setNodeRef}
+			role="listitem"
+			draggable={false}
+		>
+			<Link
+				ref={linkRef}
+				onKeyDown={handleKeyDown}
+				aria-label={fileName}
+				onClick={(event) => {
+					// Don't navigate if we are already on the file page
+					// unless the user is holding ctrl or cmd to open in a new tab
+					if (isActive && !(event.ctrlKey || event.metaKey)) {
+						preventDefault(event)
+					}
+					if (isSidebarOpenMobile) {
+						toggleMobileSidebar(false)
+					}
+					trackEvent('click-file-link', { source: 'sidebar' })
+				}}
+				to={href}
+				className={styles.sidebarFileListItemButton}
 				draggable={false}
-			>
-				<Link
-					ref={linkRef}
-					onKeyDown={handleKeyDown}
-					aria-label={fileName}
-					onClick={(event) => {
-						// Don't navigate if we are already on the file page
-						// unless the user is holding ctrl or cmd to open in a new tab
-						if (isActive && !(event.ctrlKey || event.metaKey)) {
-							preventDefault(event)
-						}
-						if (isSidebarOpenMobile) {
-							toggleMobileSidebar(false)
-						}
-						trackEvent('click-file-link', { source: 'sidebar' })
-					}}
-					to={href}
-					className={styles.sidebarFileListItemButton}
-					draggable={false}
-				/>
-				<div className={styles.sidebarFileListItemContent}>
-					<div
-						className={classNames(
-							styles.sidebarFileListItemLabel,
-							'tla-text_ui__regular',
-							'notranslate'
-						)}
-						data-testid={`${testId}-name`}
-					>
-						{fileName}
-					</div>
-					{!isOwnFile && !file.owningGroupId && <GuestBadge file={file} href={href} />}
-					{hasGroups && (
-						<PresenceBadges
-							fileId={fileId}
-							className={styles.sidebarFileListItemPresenceBadges}
-							badgeClassName={styles.sidebarFileListItemPresenceBadge}
-						/>
+			/>
+			<div className={styles.sidebarFileListItemContent}>
+				<div
+					className={classNames(
+						styles.sidebarFileListItemLabel,
+						'tla-text_ui__regular',
+						'notranslate'
 					)}
+					data-testid={`${testId}-name`}
+				>
+					{fileName}
 				</div>
-				<TlaSidebarFileLinkMenu fileId={fileId} onRenameAction={handleRenameAction} />
+				{!isOwnFile && !file.owningGroupId && <GuestBadge file={file} href={href} />}
+				{hasGroups && (
+					<PresenceBadges
+						fileId={fileId}
+						className={styles.sidebarFileListItemPresenceBadges}
+						badgeClassName={styles.sidebarFileListItemPresenceBadge}
+					/>
+				)}
 			</div>
-		</Collapse>
-	)
-}
-
-function Collapse({ children, isOpen }: PropsWithChildren<{ isOpen: boolean }>) {
-	return (
-		<Collapsible.Root open={isOpen} asChild>
-			<Collapsible.Content className={styles.CollapsibleContent}>{children}</Collapsible.Content>
-		</Collapsible.Root>
+			<TlaSidebarFileLinkMenu fileId={fileId} onRenameAction={handleRenameAction} />
+		</div>
 	)
 }
 

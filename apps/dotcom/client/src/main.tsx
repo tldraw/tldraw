@@ -1,4 +1,5 @@
 import { ClerkProvider } from '@clerk/clerk-react'
+import { $beditStateContainer } from 'bedit/dist/symbols.mjs'
 import { createRoot } from 'react-dom/client'
 import { HelmetProvider } from 'react-helmet-async'
 import { RouterProvider, createBrowserRouter } from 'react-router-dom'
@@ -8,6 +9,23 @@ import { Head } from './components/Head/Head'
 import { routes } from './routeDefs'
 import { router } from './routes'
 
+declare module '@tldraw/state' {
+	// eslint-disable-next-line @typescript-eslint/no-unused-vars
+	interface Signal<Value, Diff = unknown> {
+		[$beditStateContainer]: {
+			get(): Value
+			set(v: Value): void
+		}
+	}
+}
+
+import { atom } from 'tldraw'
+const atomProto = Object.getPrototypeOf(atom('', ''))
+Object.assign(atomProto, {
+	get [$beditStateContainer]() {
+		return { set: (this as any).set.bind(this), get: (this as any).get.bind(this) }
+	},
+})
 const browserRouter = createBrowserRouter(router)
 
 // @ts-ignore this is fine

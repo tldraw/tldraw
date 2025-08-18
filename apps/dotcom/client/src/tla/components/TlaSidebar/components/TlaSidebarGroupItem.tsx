@@ -1,4 +1,5 @@
 import { useDraggable } from '@dnd-kit/core'
+import { setIn, updateIn } from 'bedit'
 import { Collapsible, ContextMenu as _ContextMenu } from 'radix-ui'
 import { memo, useCallback, useRef, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
@@ -272,13 +273,11 @@ export function TlaSidebarGroupItem({ groupId }: { groupId: string }) {
 
 	const setIsExpanded = useCallback(
 		(isExpanded: boolean) => {
-			const expandedGroups = new Set(app.sidebarState.get().expandedGroups)
 			if (isExpanded) {
-				expandedGroups.add(groupId)
+				updateIn(app.sidebarState).expandedGroups.add(groupId)
 			} else {
-				expandedGroups.delete(groupId)
+				updateIn(app.sidebarState).expandedGroups.delete(groupId)
 			}
-			app.sidebarState.update((state) => ({ ...state, expandedGroups }))
 		},
 		[app, groupId]
 	)
@@ -293,10 +292,7 @@ export function TlaSidebarGroupItem({ groupId }: { groupId: string }) {
 		if (res.ok) {
 			const isMobile = getIsCoarsePointer()
 			if (!isMobile) {
-				app.sidebarState.update((state) => ({
-					...state,
-					renameState: { fileId: res.value.fileId, context: 'group-files' },
-				}))
+				setIn(app.sidebarState).renameState({ fileId: res.value.fileId, context: 'group-files' })
 			}
 			navigate(routes.tlaFile(res.value.fileId))
 			setIsExpanded(true)

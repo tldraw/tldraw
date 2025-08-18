@@ -1,8 +1,7 @@
 import { DragOverlay } from '@dnd-kit/core'
-import classNames from 'classnames'
 import { useValue } from 'tldraw'
 import { useApp } from '../../../hooks/useAppState'
-import styles from '../sidebar.module.css'
+import { TlaIcon } from '../../TlaIcon/TlaIcon'
 
 export function TlaSidebarDragOverlay() {
 	const app = useApp()
@@ -16,31 +15,33 @@ export function TlaSidebarDragOverlay() {
 		[app]
 	)
 
-	const fileName = useValue(
-		'file name',
-		() => (dragState ? app.getFileName(dragState.fileId) : null),
-		[dragState?.fileId, app]
-	)
-
-	if (!dragState || !fileName) return null
+	if (!dragState) return null
+	return null
 
 	return (
-		<DragOverlay dropAnimation={null}>
+		<DragOverlay
+			dropAnimation={null}
+			adjustScale={false}
+			style={{
+				cursor: 'grabbing',
+			}}
+		>
 			<div
-				data-dnd-kit-draggable-id={`${dragState.fileId}:${dragState.context}`}
-				className={classNames(styles.sidebarFileListItem, styles.hoverable)}
+				style={{
+					width: 32,
+					height: 32,
+					backgroundColor: 'var(--tla-color-panel)',
+					border: '1px solid var(--tla-color-divider)',
+					borderRadius: '8px',
+					display: 'flex',
+					alignItems: 'center',
+					justifyContent: 'center',
+					boxShadow: '0 4px 12px rgba(0, 0, 0, 0.15)',
+					opacity: 0.9,
+					transform: 'translate(-50%, -50%)',
+				}}
 			>
-				<div className={styles.sidebarFileListItemContent}>
-					<div
-						className={classNames(
-							styles.sidebarFileListItemLabel,
-							'tla-text_ui__regular',
-							'notranslate'
-						)}
-					>
-						{fileName}
-					</div>
-				</div>
+				<TlaIcon icon="document" />
 			</div>
 		</DragOverlay>
 	)

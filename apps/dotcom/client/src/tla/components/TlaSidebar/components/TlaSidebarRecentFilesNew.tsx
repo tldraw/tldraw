@@ -1,3 +1,4 @@
+import { updateIn } from 'bedit'
 import { Collapsible } from 'radix-ui'
 import { Fragment, useState } from 'react'
 import { uniqueId, useValue } from 'tldraw'
@@ -69,10 +70,7 @@ export function TlaSidebarRecentFilesNew() {
 		const id = uniqueId()
 		app.z.mutate.group.create({ id, name })
 		setIsCreatingGroup(false)
-		app.sidebarState.update((state) => ({
-			...state,
-			expandedGroups: new Set(state.expandedGroups).add(id),
-		}))
+		updateIn(app.sidebarState).expandedGroups.add(id)
 	}
 
 	const handleGroupCreateCancel = () => {

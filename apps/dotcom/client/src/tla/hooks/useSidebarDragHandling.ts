@@ -1,4 +1,5 @@
 import { DragEndEvent, DragOverEvent, DragStartEvent } from '@dnd-kit/core'
+import { edit, setIn, updateIn } from 'bedit'
 import { useCallback } from 'react'
 import { Box } from 'tldraw'
 import { SidebarFileContext } from '../app/TldrawApp'
@@ -49,33 +50,27 @@ export function useSidebarDragHandling() {
 
 			// Check if this is a group drag
 			if (data.type === 'group') {
-				app.sidebarState.update((state) => ({
-					...state,
-					dragState: {
-						type: 'group',
-						itemId: data.groupId,
-						...groupsReordering.calculateDragState(
-							data.groupId,
-							(event.activatorEvent as any).clientY
-						),
-					},
-				}))
+				setIn(app.sidebarState).dragState({
+					type: 'group',
+					itemId: data.groupId,
+					...groupsReordering.calculateDragState(
+						data.groupId,
+						(event.activatorEvent as any).clientY
+					),
+				})
 				return
 			}
 
 			// Check if this is a pinned file drag
 			if (data.type === 'pinned') {
-				app.sidebarState.update((state) => ({
-					...state,
-					dragState: {
-						type: 'pinned',
-						itemId: data.fileId,
-						...pinnedReordering.calculateDragState(
-							data.fileId,
-							(event.activatorEvent as any).clientY
-						),
-					},
-				}))
+				setIn(app.sidebarState).dragState({
+					type: 'pinned',
+					itemId: data.fileId,
+					...pinnedReordering.calculateDragState(
+						data.fileId,
+						(event.activatorEvent as any).clientY
+					),
+				})
 				return
 			}
 
@@ -114,15 +109,12 @@ export function useSidebarDragHandling() {
 				}
 			}
 
-			app.sidebarState.update((state) => ({
-				...state,
-				dragState: {
-					type: 'file',
-					fileId,
-					context: context as SidebarFileContext,
-					originDropZoneId,
-				},
-			}))
+			setIn(app.sidebarState).dragState({
+				type: 'file',
+				fileId,
+				context: context as SidebarFileContext,
+				originDropZoneId,
+			})
 		},
 		[app]
 	)
@@ -160,16 +152,11 @@ export function useSidebarDragHandling() {
 				)
 			) {
 				// If we are no longer over the origin drop zone, clear it
-				app.sidebarState.update((state) => ({
-					...state,
-					dragState:
-						state.dragState && state.dragState.type === 'file'
-							? {
-									...state.dragState,
-									originDropZoneId: undefined,
-								}
-							: null,
-				}))
+				edit(app.sidebarState, (state) => {
+					if (state.dragState && state.dragState.type === 'file') {
+						state.dragState = setIn(state.dragState).originDropZoneId!(undefined)
+					}
+				})
 			}
 		},
 		[app]
@@ -185,10 +172,7 @@ export function useSidebarDragHandling() {
 			// Handle group reordering
 			if (dragState.type === 'group') {
 				// Clear drag state
-				app.sidebarState.update((state) => ({
-					...state,
-					dragState: null,
-				}))
+				setIn(app.sidebarState).dragState(null)
 
 				if (!dragState.nextIndex) {
 					return
@@ -205,10 +189,7 @@ export function useSidebarDragHandling() {
 			// Handle pinned file reordering
 			if (dragState.type === 'pinned') {
 				// Clear drag state
-				app.sidebarState.update((state) => ({
-					...state,
-					dragState: null,
-				}))
+				setIn(app.sidebarState).dragState(null)
 
 				if (!dragState.nextIndex) {
 					return
@@ -225,10 +206,7 @@ export function useSidebarDragHandling() {
 			// Handle file drag to drop zones (existing logic)
 			if (dragState.type === 'file') {
 				// Clear drag state
-				app.sidebarState.update((state) => ({
-					...state,
-					dragState: null,
-				}))
+				setIn(app.sidebarState).dragState(null)
 			}
 
 			if (!over) return
@@ -277,22 +255,14 @@ export function useSidebarDragHandling() {
 						app.getGroupMembership(file.owningGroupId!)?.groupFiles.length === 1 &&
 						app.getGroupMembership(file.owningGroupId!)?.groupFiles[0].fileId === fileId
 
-					if (wasOnlyGroupFile) {
+					if (wasOnlyGroupFile && file.owningGroupId) {
 						// make the closed state permanent
-						app.sidebarState.update((state) => ({
-							...state,
-							expandedGroups: new Set(
-								[...state.expandedGroups].filter((g) => g !== file.owningGroupId)
-							),
-						}))
+						updateIn(app.sidebarState).expandedGroups.delete(file.owningGroupId)
 					}
 
 					// File is being moved from "My files" to a group, or from one group to another
 					await app.z.mutate.group.moveFileToGroup({ fileId, groupId: targetGroupId })
-					app.sidebarState.update((state) => ({
-						...state,
-						expandedGroups: new Set([...state.expandedGroups, targetGroupId]),
-					}))
+					updateIn(app.sidebarState).expandedGroups.add(targetGroupId)
 				}
 			} else if (dropZoneId === 'my-files-pinned-drop-zone') {
 				// Moving file to "Pinned files"
@@ -313,10 +283,7 @@ export function useSidebarDragHandling() {
 
 	const handleDragCancel = useCallback(() => {
 		// Clear drag state when drag is cancelled
-		app.sidebarState.update((state) => ({
-			...state,
-			dragState: null,
-		}))
+		setIn(app.sidebarState).dragState(null)
 	}, [app])
 
 	return {

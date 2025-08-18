@@ -1,5 +1,4 @@
 import { DndContext, PointerSensor, useSensor } from '@dnd-kit/core'
-import { restrictToVerticalAxis } from '@dnd-kit/modifiers'
 import { memo, useCallback, useEffect } from 'react'
 import { useHasFlag } from '../../hooks/useHasFlag'
 import { useSidebarDragHandling } from '../../hooks/useSidebarDragHandling'
@@ -113,7 +112,6 @@ function NewSidebarLayout() {
 
 	return (
 		<DndContext
-			modifiers={[restrictToVerticalAxis]}
 			sensors={[pointerSensor]}
 			onDragStart={handleDragStart}
 			onDragEnd={handleDragEnd}

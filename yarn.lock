@@ -12666,6 +12666,13 @@ __metadata:
   languageName: node
   linkType: hard
 
+"bedit@npm:^0.0.11":
+  version: 0.0.11
+  resolution: "bedit@npm:0.0.11"
+  checksum: 10/f126fddae202d908169203ef7d5763f211a2cf85f2408750037aa3be92c2c99cfe88ca8a38415f5a85f160b46aaa6b11a6f5112a99fa9c2525c5717ec8ed8809
+  languageName: node
+  linkType: hard
+
 "before-after-hook@npm:^2.2.0":
   version: 2.2.3
   resolution: "before-after-hook@npm:2.2.3"
@@ -14824,6 +14831,7 @@ __metadata:
     "@types/regexgen": "npm:^1.3.3"
     "@vitejs/plugin-react-swc": "npm:^3.10.2"
     axe-core: "npm:^4.10.3"
+    bedit: "npm:^0.0.11"
     browser-fs-access: "npm:^0.35.0"
     classnames: "npm:^2.5.1"
     dotenv: "npm:^16.4.7"
