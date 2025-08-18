@@ -10,6 +10,7 @@ const createEditor = (store: TLStore) => {
 		store,
 		bindingUtils: [],
 		shapeUtils: [],
+		styleUtils: [],
 		getContainer: () => document.createElement('div'),
 		tools: [],
 	})

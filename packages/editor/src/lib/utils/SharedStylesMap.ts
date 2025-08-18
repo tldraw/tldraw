@@ -1,4 +1,5 @@
 import { StyleProp } from '@tldraw/tlschema'
+import { StyleProp2 } from '@tldraw/tlschema/src/styles/StyleProp'
 import { exhaustiveSwitchError } from '@tldraw/utils'
 
 /**
@@ -35,17 +36,17 @@ function sharedStyleEquals<T>(a: SharedStyle<T>, b: SharedStyle<T> | undefined) 
  */
 export class ReadonlySharedStyleMap {
 	/** @internal */
-	protected map: Map<StyleProp<any>, SharedStyle<unknown>>
+	protected map: Map<StyleProp<any> | StyleProp2<string>, SharedStyle<unknown>>
 
-	constructor(entries?: Iterable<[StyleProp<unknown>, SharedStyle<unknown>]>) {
+	constructor(entries?: Iterable<[StyleProp<unknown> | StyleProp2<string>, SharedStyle<unknown>]>) {
 		this.map = new Map(entries)
 	}
 
-	get<T>(prop: StyleProp<T>): SharedStyle<T> | undefined {
+	get<T>(prop: StyleProp<T> | StyleProp2<string>): SharedStyle<T> | undefined {
 		return this.map.get(prop) as SharedStyle<T> | undefined
 	}
 
-	getAsKnownValue<T>(prop: StyleProp<T>): T | undefined {
+	getAsKnownValue<T>(prop: StyleProp<T> | StyleProp2<string>): T | undefined {
 		const value = this.get(prop)
 		if (!value) return undefined
 		if (value.type === 'mixed') return undefined
@@ -92,11 +93,11 @@ export class ReadonlySharedStyleMap {
 
 /** @internal */
 export class SharedStyleMap extends ReadonlySharedStyleMap {
-	set<T>(prop: StyleProp<T>, value: SharedStyle<T>) {
+	set<T>(prop: StyleProp<T> | StyleProp2<string>, value: SharedStyle<T>) {
 		this.map.set(prop, value)
 	}
 
-	applyValue<T>(prop: StyleProp<T>, value: T) {
+	applyValue<T>(prop: StyleProp<T> | StyleProp2<string>, value: T) {
 		const existingValue = this.get(prop)
 
 		// if we don't have a value yet, set it

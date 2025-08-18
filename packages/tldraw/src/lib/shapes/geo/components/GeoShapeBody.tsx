@@ -1,6 +1,6 @@
-import { getColorValue, TLGeoShape } from '@tldraw/editor'
+import { getColorValue, TLGeoShape, useEditor } from '@tldraw/editor'
+import { SizeStyleUtil } from '../../../styles/TLSizeStyle'
 import { ShapeFill } from '../../shared/ShapeFill'
-import { STROKE_SIZES } from '../../shared/default-shape-constants'
 import { useDefaultColorTheme } from '../../shared/useDefaultColorTheme'
 import { getGeoShapePath } from '../getGeoShapePath'
 
@@ -17,9 +17,10 @@ export function GeoShapeBody({
 	const theme = useDefaultColorTheme()
 	const { props } = shape
 	const { color, fill, dash, size } = props
-	const strokeWidth = STROKE_SIZES[size] * scaleToUse
+	const editor = useEditor()
+	const strokeWidth = editor.getStyleUtil(SizeStyleUtil).toStrokeSizePx(size) * scaleToUse
 
-	const path = getGeoShapePath(shape)
+	const path = getGeoShapePath(editor, shape)
 	const fillPath =
 		dash === 'draw' && !forceSolid
 			? path.toDrawD({ strokeWidth, randomSeed: shape.id, passes: 1, offset: 0, onlyFilled: true })

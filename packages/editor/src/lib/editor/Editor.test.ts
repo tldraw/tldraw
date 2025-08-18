@@ -54,6 +54,7 @@ let editor: Editor
 beforeEach(() => {
 	editor = new Editor({
 		shapeUtils: [CustomShape],
+		styleUtils: [],
 		bindingUtils: [],
 		tools: [],
 		store: createTLStore({ shapeUtils: [CustomShape], bindingUtils: [] }),

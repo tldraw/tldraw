@@ -13,11 +13,13 @@ export class TestEditor extends Editor {
 
 		const shapeUtils = [...(options.shapeUtils ?? [])]
 		const bindingUtils = [...(options.bindingUtils ?? [])]
+		const styleUtils = [...(options.styleUtils ?? [])]
 
 		super({
 			...options,
 			shapeUtils,
 			bindingUtils,
+			styleUtils,
 			tools: [...(options.tools ?? [CustomTool])],
 			store: createTLStore({
 				shapeUtils,

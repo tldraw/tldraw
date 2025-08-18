@@ -7,6 +7,7 @@ import {
 	TLDefaultColorTheme,
 	useEditor,
 } from '@tldraw/editor'
+import { StyleProp2 } from '@tldraw/tlschema/src/styles/StyleProp'
 import { memo, ReactElement, useMemo, useRef } from 'react'
 import { StyleValuesForUi } from '../../../styles'
 import { PORTRAIT_BREAKPOINT } from '../../constants'
@@ -21,11 +22,11 @@ import { TldrawUiGrid, TldrawUiRow } from './layout'
 export interface TLUiButtonPickerProps<T extends string> {
 	title: string
 	uiType: string
-	style: StyleProp<T>
+	style: StyleProp<T> | StyleProp2<any>
 	value: SharedStyle<T>
 	items: StyleValuesForUi<T>
 	theme: TLDefaultColorTheme
-	onValueChange(style: StyleProp<T>, value: T): void
+	onValueChange(style: StyleProp<T> | StyleProp2<any>, value: T): void
 	onHistoryMark?(id: string): void
 }
 
