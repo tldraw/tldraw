@@ -1,6 +1,7 @@
 import { FormEventHandler, useCallback, useEffect, useRef, useState } from 'react'
 import { Editor, useToasts, useValue } from 'tldraw'
 import { EVENT_UTILS, PROMPT_PART_UTILS } from '../../shared/AgentUtils'
+import { $todoList } from '../../shared/parts/TodoListPromptPart'
 import { processSchedule } from '../ai/processSchedule'
 import { useTldrawAgent } from '../ai/useTldrawAgent'
 import { $chatHistoryItems } from '../atoms/chatHistoryItems'
@@ -66,6 +67,8 @@ export function ChatPanel({ editor }: { editor: Editor }) {
 			$pendingContextItems.set(promptHistoryItem.contextItems)
 			$contextItems.set([])
 			$chatHistoryItems.update((prev) => [...prev, promptHistoryItem])
+
+			$todoList.set(editor, []) // reset the todo list
 
 			// TODO once we implement letting the agent move, we can get those bounds and lock them here instead of using the viewport
 			const intitialBounds = editor.getViewportPageBounds()

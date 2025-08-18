@@ -27,8 +27,10 @@ import { HistoryItemPartUtil } from './parts/HistoryItemPartUtil'
 import { MessagePartUtil } from './parts/MessagePartUtil'
 import { PeripheralShapesPartUtil } from './parts/PeripheralShapesPartUtil'
 // import { PromptBoundsPartUtil } from './parts/PromptBoundsPartUtil'
+import { TodoListEventUtil } from './events/TodoListEventUtil'
 import { PromptPartUtilConstructor } from './parts/PromptPartUtil'
 import { SystemPromptPartUtil } from './parts/SystemPromptPartUtil'
+import { TodoListPromptPartUtil } from './parts/TodoListPromptPart'
 import { UserSelectedShapesPartUtil } from './parts/UserSelectedShapesPartUtil'
 import { UserViewportBoundsPartUtil } from './parts/UserViewportBoundsPartUtil'
 
@@ -48,6 +50,8 @@ export const PROMPT_PART_UTILS: PromptPartUtilConstructor[] = [
 	PeripheralShapesPartUtil,
 	// PromptBoundsPartUtil, //probably can be deleted, is vestigal from ai module and redundant with context bounds
 	UserSelectedShapesPartUtil,
+
+	TodoListPromptPartUtil,
 ]
 
 export const EVENT_UTILS = [
@@ -76,6 +80,8 @@ export const EVENT_UTILS = [
 	ThinkEventUtil,
 	MessageEventUtil,
 	DebugEventUtil,
+
+	TodoListEventUtil,
 
 	// Required:
 	UnknownEventUtil,

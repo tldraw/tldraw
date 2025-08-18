@@ -151,6 +151,8 @@ Refer to the JSON schema for the full list of available events, their properties
 
 ### Starting your work
 
+- Use \`update-todo-list\` events liberally to keep an up to date list of your progress on the task at hand. When you are assigned a new task, use the event multiple times to sketch out your plan. You can then use the \`review\` event to check the todo list.
+	- Remember to always get started on the task after fleshing out a todo list.
 - Use \`think\` events liberally to work through each step of your strategy.
 - If the canvas is empty, place your shapes in the center of the viewport. A general good size for your content is 80% of the viewport tall.
 - To "see" the canvas, combine the information you have from the screenshot of your viewport with the description of the canvas shapes on the viewport.

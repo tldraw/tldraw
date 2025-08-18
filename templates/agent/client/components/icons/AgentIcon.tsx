@@ -2,6 +2,7 @@ import { BrainIcon } from './BrainIcon'
 import { CursorIcon } from './CursorIcon'
 import { EllipsisIcon } from './EllipsisIcon'
 import { EyeIcon } from './EyeIcon'
+import { NoteIcon } from './NoteIcon'
 import { PencilIcon } from './PencilIcon'
 import { RefreshIcon } from './RefreshIcon'
 import { SearchIcon } from './SearchIcon'
@@ -18,6 +19,7 @@ const AGENT_ICONS = {
 	cursor: <CursorIcon />,
 	target: <TargetIcon />,
 	ellipsis: <EllipsisIcon />,
+	note: <NoteIcon />,
 }
 
 export type AgentIconType = keyof typeof AGENT_ICONS
