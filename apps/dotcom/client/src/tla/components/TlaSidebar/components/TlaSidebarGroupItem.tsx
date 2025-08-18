@@ -1,7 +1,7 @@
 import { useDraggable } from '@dnd-kit/core'
 import { setIn, updateIn } from 'bedit'
 import { Collapsible, ContextMenu as _ContextMenu } from 'radix-ui'
-import { memo, useCallback, useRef, useState } from 'react'
+import { memo, useCallback, useEffect, useRef, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import {
 	TldrawUiDropdownMenuContent,
@@ -252,24 +252,23 @@ export function TlaSidebarGroupItem({ groupId }: { groupId: string }) {
 	const isExpanded = useValue(
 		'isExpanded',
 		() => {
-			const isExpanded = app.sidebarState.get().expandedGroups.has(groupId)
-			const state = app.sidebarState.get().dragState
-			const dragState = state?.type === 'file' ? state : null
-			if (!dragState) return isExpanded
-			const groupFiles = app.getGroupMembership(groupId)?.groupFiles
-			if (!groupFiles) return isExpanded
-
-			// THORNY EDGE CASE: Auto-collapse groups when their only file is being dragged
-			// If a group has only one file and that file is being dragged out,
-			// temporarily collapse the group to provide visual feedback that it's becoming empty
-			const isOnlyGroupFileDragging =
-				groupFiles.length === 1 &&
-				dragState.context === 'group-files' &&
-				groupFiles[0].fileId === dragState.fileId
-			return isExpanded && !isOnlyGroupFileDragging
+			return app.sidebarState.get().expandedGroups.has(groupId)
 		},
 		[app, groupId]
 	)
+
+	const isNoAnimation = useValue(
+		'isNoAnimation',
+		() => app.sidebarState.get().noAnimationGroups.has(groupId),
+		[app, groupId]
+	)
+	useEffect(() => {
+		if (isNoAnimation) {
+			setTimeout(() => {
+				updateIn(app.sidebarState).noAnimationGroups.delete(groupId)
+			}, 350)
+		}
+	}, [isNoAnimation, app, groupId])
 
 	const setIsExpanded = useCallback(
 		(isExpanded: boolean) => {
@@ -311,6 +310,7 @@ export function TlaSidebarGroupItem({ groupId }: { groupId: string }) {
 			className={isDragging ? styles.sidebarGroupItemDragging : undefined}
 			data-group-id={group.groupId}
 			data-group-index={group.index}
+			data-no-animation={isNoAnimation}
 		>
 			<_ContextMenu.Root onOpenChange={handleContextMenuOpenChange} modal={false}>
 				<_ContextMenu.Trigger>

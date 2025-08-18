@@ -1,5 +1,5 @@
 import { ClerkProvider } from '@clerk/clerk-react'
-import { $beditStateContainer } from 'bedit/dist/symbols.mjs'
+import { $beditStateContainer } from 'bedit/symbols'
 import { createRoot } from 'react-dom/client'
 import { HelmetProvider } from 'react-helmet-async'
 import { RouterProvider, createBrowserRouter } from 'react-router-dom'
@@ -21,9 +21,9 @@ declare module '@tldraw/state' {
 
 import { atom } from 'tldraw'
 const atomProto = Object.getPrototypeOf(atom('', ''))
-Object.assign(atomProto, {
-	get [$beditStateContainer]() {
-		return { set: (this as any).set.bind(this), get: (this as any).get.bind(this) }
+Object.defineProperty(atomProto, $beditStateContainer, {
+	get() {
+		return { set: atomProto.set.bind(this), get: atomProto.get.bind(this) }
 	},
 })
 const browserRouter = createBrowserRouter(router)

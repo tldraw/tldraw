@@ -25,7 +25,7 @@ export function TlaSidebarDropZone({
 		'dragState',
 		() => {
 			const state = app.sidebarState.get().dragState
-			return state?.type === 'file' ? state : null
+			return state?.type === 'file' && state.originDropZoneId !== id ? state : null
 		},
 		[app]
 	)

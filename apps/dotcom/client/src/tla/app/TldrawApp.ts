@@ -1004,6 +1004,7 @@ export class TldrawApp {
 
 	sidebarState = atom('sidebar state', {
 		expandedGroups: new Set<string>(),
+		noAnimationGroups: new Set<string>(),
 		renameState: null as null | {
 			fileId: string
 			context: SidebarFileContext

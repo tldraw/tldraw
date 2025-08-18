@@ -258,6 +258,7 @@ export function useSidebarDragHandling() {
 					if (wasOnlyGroupFile && file.owningGroupId) {
 						// make the closed state permanent
 						updateIn(app.sidebarState).expandedGroups.delete(file.owningGroupId)
+						updateIn(app.sidebarState).noAnimationGroups.add(file.owningGroupId)
 					}
 
 					// File is being moved from "My files" to a group, or from one group to another
