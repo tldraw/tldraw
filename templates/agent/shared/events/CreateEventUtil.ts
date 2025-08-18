@@ -75,7 +75,7 @@ export function getTldrawAiChangesFromCreateEvent({
 	if (!event.complete) return changes
 
 	const { shape } = event
-	shape.shapeId = `shape:${shape.shapeId}`
+	const shapeId = `shape:${shape.shapeId}` as TLShapeId
 
 	switch (shape._type) {
 		case 'text': {
@@ -83,7 +83,7 @@ export function getTldrawAiChangesFromCreateEvent({
 				type: 'createShape',
 				description: event.intent ?? '',
 				shape: {
-					id: shape.shapeId as TLShapeId,
+					id: shapeId,
 					type: 'text',
 					x: shape.x,
 					y: shape.y,
@@ -112,7 +112,7 @@ export function getTldrawAiChangesFromCreateEvent({
 				type: 'createShape',
 				description: event.intent ?? '',
 				shape: {
-					id: shape.shapeId as TLShapeId,
+					id: shapeId,
 					type: 'line',
 					x: minX,
 					y: minY,
@@ -142,7 +142,8 @@ export function getTldrawAiChangesFromCreateEvent({
 			break
 		}
 		case 'arrow': {
-			const { shapeId, fromId, toId } = shape
+			const fromId = shape.fromId ? (`shape:${shape.fromId}` as TLShapeId) : null
+			const toId = shape.toId ? (`shape:${shape.toId}` as TLShapeId) : null
 
 			const x1 = shape.x1 ?? 0
 			const y1 = shape.y1 ?? 0
@@ -156,7 +157,7 @@ export function getTldrawAiChangesFromCreateEvent({
 				type: 'createShape',
 				description: event.intent ?? '',
 				shape: {
-					id: shapeId as TLShapeId,
+					id: shapeId,
 					type: 'arrow',
 					x: minX,
 					y: minY,
@@ -174,14 +175,14 @@ export function getTldrawAiChangesFromCreateEvent({
 			})
 
 			// Does the arrow have a start shape? Then try to create the binding
-			const startShape = fromId ? editor.getShape(fromId as TLShapeId) : null
+			const startShape = fromId ? editor.getShape(fromId) : null
 			if (startShape) {
 				changes.push({
 					type: 'createBinding',
 					description: event.intent ?? '',
 					binding: {
 						type: 'arrow',
-						fromId: shapeId as TLShapeId,
+						fromId: shapeId,
 						toId: startShape.id,
 						props: {
 							normalizedAnchor: { x: 0.5, y: 0.5 },
@@ -196,7 +197,7 @@ export function getTldrawAiChangesFromCreateEvent({
 
 			// Does the arrow have an end shape? Then try to create the binding
 
-			const endShape = toId ? editor.getShape(toId as TLShapeId) : null
+			const endShape = toId ? editor.getShape(toId) : null
 
 			if (endShape) {
 				changes.push({
@@ -204,7 +205,7 @@ export function getTldrawAiChangesFromCreateEvent({
 					description: event.intent ?? '',
 					binding: {
 						type: 'arrow',
-						fromId: shapeId as TLShapeId,
+						fromId: shapeId,
 						toId: endShape.id,
 						props: {
 							normalizedAnchor: { x: 0.5, y: 0.5 },
@@ -242,7 +243,7 @@ export function getTldrawAiChangesFromCreateEvent({
 				type: 'createShape',
 				description: event.intent ?? '',
 				shape: {
-					id: shape.shapeId as TLShapeId,
+					id: shapeId,
 					type: 'geo',
 					x: shape.x,
 					y: shape.y,
@@ -268,7 +269,7 @@ export function getTldrawAiChangesFromCreateEvent({
 				type: 'createShape',
 				description: event.intent ?? '',
 				shape: {
-					id: shape.shapeId as TLShapeId,
+					id: shapeId,
 					type: 'note',
 					x: shape.x,
 					y: shape.y,

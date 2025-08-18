@@ -93,11 +93,11 @@ export function getTldrawAiChangesFromUpdateEvent({
 	if (!event.complete) return changes
 
 	const update = event.update
-	update.shapeId = `shape:${update.shapeId}`
+	const shapeId = `shape:${update.shapeId}` as TLShapeId
 
 	switch (update._type) {
 		case 'text': {
-			const shapeOnCanvas = editor.getShape<TLTextShape>(update.shapeId as TLShapeId)
+			const shapeOnCanvas = editor.getShape<TLTextShape>(shapeId)
 			if (!shapeOnCanvas) {
 				throw new Error(`Shape ${update.shapeId} not found in canvas`)
 			}
@@ -109,7 +109,7 @@ export function getTldrawAiChangesFromUpdateEvent({
 				type: 'updateShape',
 				description: event.intent ?? '',
 				shape: {
-					id: update.shapeId as TLShapeId,
+					id: shapeId,
 					type: 'text',
 					x: update.x,
 					y: update.y,
@@ -125,7 +125,7 @@ export function getTldrawAiChangesFromUpdateEvent({
 			break
 		}
 		case 'line': {
-			const shapeOnCanvas = editor.getShape<TLLineShape>(update.shapeId as TLShapeId)
+			const shapeOnCanvas = editor.getShape<TLLineShape>(shapeId)
 			if (!shapeOnCanvas) {
 				throw new Error(`Shape ${update.shapeId} not found in canvas`)
 			}
@@ -155,7 +155,7 @@ export function getTldrawAiChangesFromUpdateEvent({
 				type: 'updateShape',
 				description: event.intent ?? '',
 				shape: {
-					id: update.shapeId as TLShapeId,
+					id: shapeId,
 					type: 'line',
 					x: startX,
 					y: startY,
@@ -171,7 +171,7 @@ export function getTldrawAiChangesFromUpdateEvent({
 			break
 		}
 		case 'arrow': {
-			const shapeOnCanvas = editor.getShape<TLArrowShape>(update.shapeId as TLShapeId)
+			const shapeOnCanvas = editor.getShape<TLArrowShape>(shapeId)
 			if (!shapeOnCanvas) {
 				throw new Error(`Shape ${update.shapeId} not found in canvas`)
 			}
@@ -189,7 +189,7 @@ export function getTldrawAiChangesFromUpdateEvent({
 				type: 'updateShape',
 				description: event.intent ?? '',
 				shape: {
-					id: update.shapeId as TLShapeId,
+					id: shapeId,
 					type: 'arrow',
 					x: startX,
 					y: startY,
@@ -206,7 +206,7 @@ export function getTldrawAiChangesFromUpdateEvent({
 				},
 			})
 
-			const bindings = editor.getBindingsFromShape(update.shapeId as TLShapeId, 'arrow')
+			const bindings = editor.getBindingsFromShape(shapeId, 'arrow')
 			for (const binding of bindings) {
 				changes.push({
 					type: 'deleteBinding',
@@ -215,16 +215,19 @@ export function getTldrawAiChangesFromUpdateEvent({
 				})
 			}
 
+			const fromId = update.fromId ? (`shape:${update.fromId}` as TLShapeId) : null
+			const toId = update.toId ? (`shape:${update.toId}` as TLShapeId) : null
+
 			// Does the arrow have a start shape? Then try to create the binding
-			const startShape = update.fromId ? editor.getShape(update.fromId as TLShapeId) : null
+			const startShape = fromId ? editor.getShape(fromId) : null
 			if (startShape) {
 				changes.push({
 					type: 'createBinding',
 					description: event.intent ?? '',
 					binding: {
 						type: 'arrow',
-						fromId: update.shapeId as TLShapeId,
-						toId: startShape.id as TLShapeId,
+						fromId: shapeId,
+						toId: startShape.id,
 						props: {
 							normalizedAnchor: { x: 0.5, y: 0.5 },
 							isExact: false,
@@ -237,15 +240,15 @@ export function getTldrawAiChangesFromUpdateEvent({
 			}
 
 			// Does the arrow have an end shape? Then try to create the binding
-			const endShape = update.toId ? editor.getShape(update.toId as TLShapeId) : null
+			const endShape = toId ? editor.getShape(toId) : null
 			if (endShape) {
 				changes.push({
 					type: 'createBinding',
 					description: event.intent ?? '',
 					binding: {
 						type: 'arrow',
-						fromId: update.shapeId as TLShapeId,
-						toId: endShape.id as TLShapeId,
+						fromId: shapeId,
+						toId: endShape.id,
 						props: {
 							normalizedAnchor: { x: 0.5, y: 0.5 },
 							isExact: false,
@@ -279,7 +282,7 @@ export function getTldrawAiChangesFromUpdateEvent({
 		case 'check-box':
 		case 'heart':
 		case 'ellipse': {
-			const shapeOnCanvas = editor.getShape<TLGeoShape>(update.shapeId as TLShapeId)
+			const shapeOnCanvas = editor.getShape<TLGeoShape>(shapeId)
 			if (!shapeOnCanvas) {
 				throw new Error(`Shape ${update.shapeId} not found in canvas`)
 			}
@@ -292,7 +295,7 @@ export function getTldrawAiChangesFromUpdateEvent({
 				type: 'updateShape',
 				description: event.intent ?? '',
 				shape: {
-					id: update.shapeId as TLShapeId,
+					id: shapeId,
 					type: 'geo',
 					props: {
 						color,
@@ -311,7 +314,7 @@ export function getTldrawAiChangesFromUpdateEvent({
 			break
 		}
 		case 'note': {
-			const shapeOnCanvas = editor.getShape<TLNoteShape>(update.shapeId as TLShapeId)
+			const shapeOnCanvas = editor.getShape<TLNoteShape>(shapeId)
 			if (!shapeOnCanvas) {
 				throw new Error(`Shape ${update.shapeId} not found in canvas`)
 			}
@@ -323,7 +326,7 @@ export function getTldrawAiChangesFromUpdateEvent({
 				type: 'updateShape',
 				description: event.intent ?? '',
 				shape: {
-					id: update.shapeId as TLShapeId,
+					id: shapeId,
 					type: 'note',
 					x: update.x,
 					y: update.y,
@@ -340,7 +343,7 @@ export function getTldrawAiChangesFromUpdateEvent({
 			break
 		}
 		case 'unknown': {
-			const shapeOnCanvas = editor.getShape(update.shapeId as TLShapeId)
+			const shapeOnCanvas = editor.getShape(shapeId)
 			if (!shapeOnCanvas) {
 				throw new Error(`Shape ${update.shapeId} not found in canvas`)
 			}
@@ -349,7 +352,7 @@ export function getTldrawAiChangesFromUpdateEvent({
 				type: 'updateShape',
 				description: event.intent ?? '',
 				shape: {
-					id: update.shapeId as TLShapeId,
+					id: shapeId,
 					type: shapeOnCanvas.type,
 					x: update.x,
 					y: update.y,
