@@ -48,7 +48,7 @@ export class HistoryItemPartUtil extends PromptPartUtil<AgentHistoryItem[]> {
 								const simpleShape = contextItem.shape
 								content.push({
 									type: 'text',
-									text: `[CONTEXT]: ${JSON.stringify(simpleShape, null, 2)}`,
+									text: `[CONTEXT]: ${JSON.stringify(simpleShape)}`,
 								})
 								break
 							}
@@ -56,14 +56,14 @@ export class HistoryItemPartUtil extends PromptPartUtil<AgentHistoryItem[]> {
 								const simpleShapes = contextItem.shapes
 								content.push({
 									type: 'text',
-									text: `[CONTEXT]: ${JSON.stringify(simpleShapes, null, 2)}`,
+									text: `[CONTEXT]: ${JSON.stringify(simpleShapes)}`,
 								})
 								break
 							}
 							default: {
 								content.push({
 									type: 'text',
-									text: `[CONTEXT]: ${JSON.stringify(contextItem, null, 2)}`,
+									text: `[CONTEXT]: ${JSON.stringify(contextItem)}`,
 								})
 								break
 							}

@@ -19,6 +19,9 @@ export class AgentViewportBoundsPartUtil extends PromptPartUtil<BoxModel> {
 	}
 
 	override buildContent(contextBounds: BoxModel): string[] {
-		return [`Your current visible bounds are:`, JSON.stringify(contextBounds)]
+		return [
+			`The bounds of the part of the canvas that you can currently see are:`,
+			JSON.stringify(contextBounds),
+		]
 	}
 }

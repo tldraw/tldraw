@@ -40,7 +40,7 @@ export class UserSelectedShapesPartUtil extends PromptPartUtil<ISimpleShape[]> {
 
 		return [
 			'The user has selected these shapes. Focus your task on these shapes where applicable:',
-			userSelectedShapes.map((shape) => JSON.stringify(shape, null, 2)).join('\n'),
+			userSelectedShapes.map((shape) => JSON.stringify(shape)).join('\n'),
 		]
 	}
 }

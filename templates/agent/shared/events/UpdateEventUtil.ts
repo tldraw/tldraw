@@ -118,7 +118,7 @@ export function getTldrawAiChangesFromUpdateEvent({
 						richText,
 					},
 					meta: {
-						note: update.note,
+						note: update.note ?? '',
 					},
 				},
 			})
@@ -164,7 +164,7 @@ export function getTldrawAiChangesFromUpdateEvent({
 						points,
 					},
 					meta: {
-						note: update.note,
+						note: update.note ?? '',
 					},
 				},
 			})
@@ -201,7 +201,7 @@ export function getTldrawAiChangesFromUpdateEvent({
 						bend,
 					},
 					meta: {
-						note: update.note,
+						note: update.note ?? '',
 					},
 				},
 			})
@@ -306,7 +306,7 @@ export function getTldrawAiChangesFromUpdateEvent({
 						richText,
 					},
 					meta: {
-						note: update.note,
+						note: update.note ?? '',
 					},
 				},
 			})
@@ -335,7 +335,7 @@ export function getTldrawAiChangesFromUpdateEvent({
 						richText,
 					},
 					meta: {
-						note: update.note,
+						note: update.note ?? '',
 					},
 				},
 			})
@@ -357,7 +357,7 @@ export function getTldrawAiChangesFromUpdateEvent({
 					x: update.x,
 					y: update.y,
 					meta: {
-						note: update.note,
+						note: update.note ?? '',
 					},
 				},
 			})

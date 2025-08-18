@@ -188,3 +188,10 @@ export function ensureValueIsFloat(value: number | string | undefined): number |
 
 	return null
 }
+
+export function sliceShapeIdPrefix(id: string): string {
+	if (id.startsWith('shape:')) {
+		return id.slice('shape:'.length)
+	}
+	return id
+}

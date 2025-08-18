@@ -37,7 +37,7 @@ export class AgentViewportScreenshotPartUtil extends PromptPartUtil<string | nul
 		if (!agentViewportScreenshot) return []
 
 		return [
-			'Here is a screenshot of your current viewport on the canvas. It is what you can see right at this moment. It is not a reference image.',
+			'Here is the part of the canvas that you can currently see at this moment. It is not a reference image.',
 			agentViewportScreenshot,
 		]
 	}
