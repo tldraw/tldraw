@@ -30,6 +30,7 @@
 		"test-ci": "yarn run -T vitest run --passWithNoTests",
 		"test": "yarn run -T vitest --passWithNoTests",
 		"lint": "yarn run -T tsx ../../internal/scripts/lint.ts",
-		"test-coverage": "yarn run -T vitest run --coverage --passWithNoTests"
+		"test-coverage": "yarn run -T vitest run --coverage --passWithNoTests",
+		"context": "yarn run -T tsx ../../internal/scripts/context.ts"
 	}
 }
