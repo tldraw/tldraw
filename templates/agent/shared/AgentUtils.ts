@@ -8,6 +8,7 @@ import { LabelEventUtil } from './events/LabelEventUtil'
 import { MessageEventUtil } from './events/MessageEventUtil'
 import { MoveEventUtil } from './events/MoveEventUtil'
 import { PlaceEventUtil } from './events/PlaceEventUtil'
+import { ResizeEventUtil } from './events/ResizeEventUtil'
 import { ReviewEventUtil } from './events/ReviewEventUtil'
 import { RotateEventUtil } from './events/RotateEventUtil'
 import { SendToBackEventUtil } from './events/SendToBackEventUtil'
@@ -55,6 +56,7 @@ export const EVENT_UTILS = [
 	BringToFrontEventUtil,
 	SendToBackEventUtil,
 	RotateEventUtil,
+	ResizeEventUtil,
 
 	AlignEventUtil,
 	DistributeEventUtil,
