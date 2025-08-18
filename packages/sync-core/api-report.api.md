@@ -234,6 +234,9 @@ export interface TLConnectRequest {
     type: 'connect';
 }
 
+// @public
+export type TLCustomMessageHandler = (this: null, data: any) => void;
+
 // @internal @deprecated (undocumented)
 export const TLIncompatibilityReason: {
     readonly ClientTooOld: "clientTooOld";
@@ -384,6 +387,8 @@ export class TLSocketRoom<R extends UnknownRecord = UnknownRecord, SessionMeta =
         }) => void;
         schema?: StoreSchema<R, any>;
     };
+    // (undocumented)
+    sendCustomMessage(sessionId: string, payload: any): Promise<void>;
     updateStore(updater: (store: RoomStoreMethods<R>) => Promise<void> | void): Promise<void>;
 }
 
@@ -412,6 +417,9 @@ export type TLSocketServerSentEvent<R extends UnknownRecord> = {
     serverClock: number;
     type: 'connect';
 } | {
+    data: Record<string, any>;
+    type: 'custom';
+} | {
     data: TLSocketServerSentDataEvent<R>[];
     type: 'data';
 } | {
@@ -439,6 +447,7 @@ export class TLSyncClient<R extends UnknownRecord, S extends Store<R> = Store<R>
         onAfterConnect?(self: TLSyncClient<R, S>, details: {
             isReadonly: boolean;
         }): void;
+        onCustomMessageReceived?: TLCustomMessageHandler;
         onLoad(self: TLSyncClient<R, S>): void;
         onSyncError(reason: string): void;
         presence: Signal<null | R>;
@@ -550,6 +559,7 @@ export class TLSyncRoom<R extends UnknownRecord, SessionMeta> {
     rejectSession(sessionId: string, fatalReason?: string | TLSyncErrorCloseEventReason): void;
     // (undocumented)
     readonly schema: StoreSchema<R, any>;
+    sendCustomMessage(sessionId: string, data: any): void;
     // (undocumented)
     readonly serializedSchema: SerializedSchema;
     // (undocumented)

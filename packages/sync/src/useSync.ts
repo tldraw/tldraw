@@ -78,6 +78,7 @@ export function useSync(opts: UseSyncOptions & TLStoreSchemaOptions): RemoteTLSt
 		trackAnalyticsEvent: track,
 		userInfo,
 		getUserPresence: _getUserPresence,
+		onCustomMessageReceived,
 		...schemaOpts
 	} = opts
 
@@ -219,6 +220,7 @@ export function useSync(opts: UseSyncOptions & TLStoreSchemaOptions): RemoteTLSt
 					store.ensureStoreIsUsable()
 				})
 			},
+			onCustomMessageReceived,
 			presence,
 			presenceMode,
 		})
@@ -229,7 +231,7 @@ export function useSync(opts: UseSyncOptions & TLStoreSchemaOptions): RemoteTLSt
 			socket.close()
 			setState(null)
 		}
-	}, [assets, onMount, userAtom, roomId, schema, setState, track, uri, getUserPresence])
+	}, [assets, onMount, userAtom, roomId, schema, setState, track, uri, getUserPresence, onCustomMessageReceived])
 
 	return useValue<RemoteTLStoreWithStatus>(
 		'remote synced store',
@@ -279,6 +281,11 @@ export interface UseSyncOptions {
 	 * Note that storing base64 blobs inline in JSON is very inefficient and will cause performance issues quickly with large images and videos.
 	 */
 	assets: TLAssetStore
+
+	/**
+	 * A handler for custom socket messages.
+	 */
+	onCustomMessageReceived?(data: any): void
 
 	/** @internal */
 	onMount?(editor: Editor): void

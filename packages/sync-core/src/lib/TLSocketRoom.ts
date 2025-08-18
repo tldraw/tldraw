@@ -365,6 +365,12 @@ export class TLSocketRoom<R extends UnknownRecord = UnknownRecord, SessionMeta =
 		return this.room.updateStore(updater)
 	}
 
+	// @todo copy docblock from room
+	// @todo payload type
+	async sendCustomMessage(sessionId: string, payload: any) {
+		this.room.sendCustomMessage(sessionId, payload)
+	}
+
 	/**
 	 * Immediately remove a session from the room, and close its socket if not already closed.
 	 *
