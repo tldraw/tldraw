@@ -24,7 +24,7 @@ import { ContextItemsPartUtil } from './parts/ContextItemsPartUtil'
 import { HistoryItemPartUtil } from './parts/HistoryItemPartUtil'
 import { MessagePartUtil } from './parts/MessagePartUtil'
 import { PeripheralShapesPartUtil } from './parts/PeripheralShapesPartUtil'
-import { PromptBoundsPartUtil } from './parts/PromptBoundsPartUtil'
+// import { PromptBoundsPartUtil } from './parts/PromptBoundsPartUtil'
 import { PromptPartUtilConstructor } from './parts/PromptPartUtil'
 import { SystemPromptPartUtil } from './parts/SystemPromptPartUtil'
 import { UserSelectedShapesPartUtil } from './parts/UserSelectedShapesPartUtil'
@@ -40,7 +40,7 @@ export const PROMPT_PART_UTILS: PromptPartUtilConstructor[] = [
 	HistoryItemPartUtil,
 	MessagePartUtil,
 	PeripheralShapesPartUtil,
-	PromptBoundsPartUtil,
+	// PromptBoundsPartUtil,
 	UserSelectedShapesPartUtil,
 ]
 
