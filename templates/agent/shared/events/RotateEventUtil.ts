@@ -8,12 +8,15 @@ const AgentRotateEvent = z
 	.object({
 		_type: z.literal('rotate'),
 		intent: z.string(),
-		shapeId: z.string(),
+		shapeIds: z.array(z.string()),
 		degrees: z.number(),
 		centerX: z.number(),
 		centerY: z.number(),
 	})
-	.meta({ title: 'Rotate', description: 'The AI rotates a shape around a center point.' })
+	.meta({
+		title: 'Rotate',
+		description: 'The AI rotates one or more shapes around a center point.',
+	})
 
 type IAgentRotateEvent = z.infer<typeof AgentRotateEvent>
 
@@ -35,10 +38,10 @@ export class RotateEventUtil extends AgentEventUtil<IAgentRotateEvent> {
 	override transformEvent(event: Streaming<IAgentRotateEvent>, transform: AgentTransform) {
 		if (!event.complete) return event
 
-		const shapeId = transform.ensureShapeIdIsReal(event.shapeId)
-		if (!shapeId) return null
+		const shapeIds = transform.ensureShapeIdsAreReal(event.shapeIds)
+		if (shapeIds.length === 0) return null
 
-		event.shapeId = shapeId
+		event.shapeIds = shapeIds
 		return event
 	}
 
@@ -46,11 +49,10 @@ export class RotateEventUtil extends AgentEventUtil<IAgentRotateEvent> {
 		if (!event.complete) return
 		const { editor } = transform
 
-		const shapeId = `shape:${event.shapeId}` as TLShapeId
-
+		const shapeIds = event.shapeIds.map((shapeId) => `shape:${shapeId}` as TLShapeId)
 		const radians = (event.degrees * Math.PI) / 180
 
-		editor.rotateShapesBy([shapeId], radians, {
+		editor.rotateShapesBy(shapeIds, radians, {
 			center: { x: event.centerX, y: event.centerY },
 		})
 	}
