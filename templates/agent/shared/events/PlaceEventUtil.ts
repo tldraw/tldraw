@@ -7,13 +7,13 @@ import { AgentEventUtil } from './AgentEventUtil'
 const AgentPlaceEvent = z
 	.object({
 		_type: z.literal('place'),
+		align: z.enum(['start', 'center', 'end']),
+		alignOffset: z.number(),
 		intent: z.string(),
-		shapeId: z.string(),
 		referenceShapeId: z.string(),
 		side: z.enum(['top', 'bottom', 'left', 'right']),
 		sideOffset: z.number(),
-		align: z.enum(['start', 'center', 'end']),
-		alignOffset: z.number(),
+		shapeId: z.string(),
 	})
 	.meta({ title: 'Place', description: 'The AI places a shape relative to another shape.' })
 

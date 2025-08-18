@@ -1,11 +1,11 @@
 import { useEffect, useMemo, useRef } from 'react'
-import { DefaultSpinner, Editor, useReactor, useValue } from 'tldraw'
+import { DefaultSpinner, Editor, isRecordsDiffEmpty, useReactor, useValue } from 'tldraw'
 import { TLAgent } from '../../ai/useTldrawAgent'
 import { $chatHistoryItems } from '../../atoms/chatHistoryItems'
-import { AgentHistoryItem, GroupHistoryItem } from './AgentHistoryItem'
-import { DiffHistoryItem } from './DiffHistoryItem'
-import { EventHistoryItem } from './EventHistoryItem'
-import { PromptHistoryItem } from './PromptHistoryItem'
+import { AgentHistoryGroup } from './AgentHistoryGroup'
+import { AgentHistoryItem } from './AgentHistoryItem'
+import { EventHistoryGroup } from './EventHistoryGroup'
+import { PromptHistoryGroup } from './PromptHistoryGroup'
 
 export function AgentHistory({
 	editor,
@@ -57,24 +57,21 @@ export function AgentHistory({
 		previousScrollDistanceFromBottomRef.current = scrollDistanceFromBottom
 	}
 
-	const mergedItems = getChatHistoryWithMergedAdjacentItems({ items })
+	const groups = getAgentHistoryGroups(items)
+
 	const shouldShowSpinner = useMemo(
-		() => isGenerating && mergedItems.at(-1)?.type === 'prompt',
-		[isGenerating, mergedItems]
+		() => isGenerating && groups.at(-1)?.type === 'prompt',
+		[isGenerating, groups]
 	)
 
 	return (
 		<div className="chat-history" ref={scrollContainerRef} onScroll={handleScroll}>
-			{mergedItems.map((item, index) => {
-				switch (item.type) {
+			{groups.map((group, index) => {
+				switch (group.type) {
 					case 'prompt':
-						return <PromptHistoryItem key={index} item={item} />
-					case 'change':
-						return <DiffHistoryItem key={index} items={[item]} editor={editor} agent={agent} />
-					case 'group':
-						return <DiffHistoryItem key={index} items={item.items} editor={editor} agent={agent} />
+						return <PromptHistoryGroup key={index} group={group} />
 					case 'event':
-						return <EventHistoryItem key={index} item={item} agent={agent} />
+						return <EventHistoryGroup key={index} group={group} editor={editor} agent={agent} />
 				}
 			})}
 			{shouldShowSpinner && <DefaultSpinner />}
@@ -82,47 +79,30 @@ export function AgentHistory({
 	)
 }
 
-function getChatHistoryWithMergedAdjacentItems({
-	items,
-}: {
-	items: AgentHistoryItem[]
-}): AgentHistoryItem[] {
-	const newItems: AgentHistoryItem[] = []
-	for (let i = 0; i < items.length; i++) {
-		const currentItem = newItems[newItems.length - 1]
-		const nextItem = items[i]
-		if (!currentItem) {
-			newItems.push(nextItem)
+function getAgentHistoryGroups(items: AgentHistoryItem[]): AgentHistoryGroup[] {
+	const groups: AgentHistoryGroup[] = []
+
+	for (const item of items) {
+		if (item.type === 'prompt') {
+			groups.push({ type: 'prompt', item })
 			continue
 		}
 
-		// Merge together diffs with the same acceptance status
+		const showDiff = !isRecordsDiffEmpty(item.diff)
+
+		const lastGroup = groups[groups.length - 1]
+		const lastGroupAcceptance = lastGroup.type === 'event' && lastGroup?.items[0]?.acceptance
 		if (
-			currentItem.type === 'change' &&
-			nextItem.type === 'change' &&
-			nextItem.acceptance === currentItem.acceptance
+			!lastGroup ||
+			lastGroup.type !== 'event' ||
+			lastGroup.showDiff !== showDiff ||
+			lastGroupAcceptance !== item.acceptance
 		) {
-			const mergedItem: GroupHistoryItem = {
-				type: 'group',
-				items: [currentItem, nextItem],
-				status: 'progress',
-			}
-			newItems[newItems.length - 1] = mergedItem
-			continue
+			groups.push({ type: 'event', items: [item], showDiff })
+		} else {
+			lastGroup.items.push(item)
 		}
-
-		if (currentItem.type === 'group' && nextItem.type === 'change') {
-			const mergedItem: GroupHistoryItem = {
-				type: 'group',
-				items: [...currentItem.items, nextItem],
-				status: 'progress',
-			}
-			newItems[newItems.length - 1] = mergedItem
-			continue
-		}
-
-		newItems.push(nextItem)
 	}
 
-	return newItems
+	return groups
 }

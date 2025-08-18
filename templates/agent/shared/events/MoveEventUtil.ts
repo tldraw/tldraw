@@ -1,6 +1,6 @@
 import { TLShapeId } from 'tldraw'
 import z from 'zod'
-import { AgentTransform, ensureValueIsFloat } from '../AgentTransform'
+import { AgentTransform, ensureValueIsNumber } from '../AgentTransform'
 import { Streaming } from '../types/Streaming'
 import { AgentEventUtil } from './AgentEventUtil'
 
@@ -37,8 +37,8 @@ export class MoveEventUtil extends AgentEventUtil<IAgentMoveEvent> {
 		const shapeId = transform.ensureShapeIdIsReal(event.shapeId)
 		if (!shapeId) return null
 
-		const floatX = ensureValueIsFloat(event.x)
-		const floatY = ensureValueIsFloat(event.y)
+		const floatX = ensureValueIsNumber(event.x)
+		const floatY = ensureValueIsNumber(event.y)
 		if (floatX === null || floatY === null) return null
 
 		event.x = floatX

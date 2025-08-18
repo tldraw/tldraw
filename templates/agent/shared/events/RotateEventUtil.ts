@@ -7,11 +7,11 @@ import { AgentEventUtil } from './AgentEventUtil'
 const AgentRotateEvent = z
 	.object({
 		_type: z.literal('rotate'),
-		intent: z.string(),
-		shapeIds: z.array(z.string()),
-		degrees: z.number(),
 		centerX: z.number(),
 		centerY: z.number(),
+		degrees: z.number(),
+		intent: z.string(),
+		shapeIds: z.array(z.string()),
 	})
 	.meta({
 		title: 'Rotate',

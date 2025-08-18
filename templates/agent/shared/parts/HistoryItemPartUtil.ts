@@ -86,31 +86,6 @@ export class HistoryItemPartUtil extends PromptPartUtil<AgentHistoryItem[]> {
 					priority: priority,
 				}
 			}
-			case 'change': {
-				const { complete: _complete, ...eventWithoutComplete } = item.event || {}
-				return {
-					role: 'assistant',
-					content: [
-						{
-							type: 'text',
-							text: '[AGENT CHANGED THE CANVAS]: ' + JSON.stringify(eventWithoutComplete),
-						},
-					],
-					priority: priority,
-				}
-			}
-			case 'group': {
-				return {
-					role: 'assistant',
-					content: [
-						{
-							type: 'text',
-							text: '[AGENT CHANGED THE CANVAS]: ' + JSON.stringify(item.items),
-						},
-					],
-					priority: priority,
-				}
-			}
 		}
 	}
 }

@@ -7,12 +7,12 @@ import { AgentEventUtil } from './AgentEventUtil'
 const AgentResizeEvent = z
 	.object({
 		_type: z.literal('resize'),
-		intent: z.string(),
-		shapeIds: z.array(z.string()),
-		scaleX: z.number(),
-		scaleY: z.number(),
 		centerX: z.number(),
 		centerY: z.number(),
+		intent: z.string(),
+		scaleX: z.number(),
+		scaleY: z.number(),
+		shapeIds: z.array(z.string()),
 	})
 	.meta({
 		title: 'Resize',

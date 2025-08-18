@@ -7,6 +7,7 @@ import { DistributeEventUtil } from './events/DistributeEventUtil'
 import { LabelEventUtil } from './events/LabelEventUtil'
 import { MessageEventUtil } from './events/MessageEventUtil'
 import { MoveEventUtil } from './events/MoveEventUtil'
+import { PenEventUtil } from './events/PenEventUtil'
 import { PlaceEventUtil } from './events/PlaceEventUtil'
 import { ResizeEventUtil } from './events/ResizeEventUtil'
 import { ReviewEventUtil } from './events/ReviewEventUtil'
@@ -64,6 +65,8 @@ export const EVENT_UTILS = [
 
 	ReviewEventUtil,
 	SetMyViewEventUtil,
+
+	PenEventUtil,
 
 	ThinkEventUtil,
 	MessageEventUtil,

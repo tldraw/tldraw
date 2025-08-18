@@ -64,26 +64,14 @@ export function promptAgent(promptOptions: AgentPromptOptions) {
 								})
 
 								if (eventUtil.savesToHistory()) {
-									if (
-										Object.keys(diff.updated).length > 0 ||
-										Object.keys(diff.removed).length > 0 ||
-										Object.keys(diff.added).length > 0
-									) {
-										// If any canvas changes were made, add their diff to the chat history
-										createOrUpdateHistoryItem({
-											type: 'change',
-											diff,
-											event: transformedEvent,
-											acceptance: 'pending',
-											status: event.complete ? 'done' : 'progress',
-										})
-									} else {
-										createOrUpdateHistoryItem({
-											type: 'event',
-											event: transformedEvent,
-											status: event.complete ? 'done' : 'progress',
-										})
-									}
+									// If any canvas changes were made, add their diff to the chat history
+									createOrUpdateHistoryItem({
+										type: 'event',
+										diff,
+										event: transformedEvent,
+										acceptance: 'pending',
+										status: event.complete ? 'done' : 'progress',
+									})
 								}
 							},
 							{

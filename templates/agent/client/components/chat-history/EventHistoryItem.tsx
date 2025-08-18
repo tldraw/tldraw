@@ -1,8 +1,8 @@
 import { TLAgent } from '../../ai/useTldrawAgent'
 import { AgentIcon } from '../icons/AgentIcon'
-import { EventHistoryItem } from './AgentHistoryItem'
+import { AgentEventHistoryItem } from './AgentHistoryItem'
 
-export function EventHistoryItem({ item, agent }: { item: EventHistoryItem; agent: TLAgent }) {
+export function EventHistoryItem({ item, agent }: { item: AgentEventHistoryItem; agent: TLAgent }) {
 	const { event } = item
 	const eventUtil = agent.getEventUtil(event._type)
 	const icon = eventUtil.getIcon(event)

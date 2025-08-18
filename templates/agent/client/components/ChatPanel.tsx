@@ -8,7 +8,7 @@ import { $contextItems, $pendingContextItems } from '../atoms/contextItems'
 import { $modelName } from '../atoms/modelName'
 import { $requestsSchedule } from '../atoms/requestsSchedule'
 import { AgentHistory } from './chat-history/AgentHistory'
-import { PromptHistoryItem } from './chat-history/AgentHistoryItem'
+import { AgentHistoryItem } from './chat-history/AgentHistoryItem'
 import { ChatInput } from './ChatInput'
 import { $contextBoundsHighlight } from './highlights/ContextBoundsHighlights'
 
@@ -56,7 +56,7 @@ export function ChatPanel({ editor }: { editor: Editor }) {
 			// Submit the user's message to the agent
 			if (inputRef.current) inputRef.current.value = ''
 
-			const promptHistoryItem: PromptHistoryItem = {
+			const promptHistoryItem: AgentHistoryItem = {
 				type: 'prompt',
 				message: value,
 				status: 'done',

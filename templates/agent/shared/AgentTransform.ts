@@ -1,4 +1,4 @@
-import { BoxModel, Editor, TLShapeId, VecModel } from 'tldraw'
+import { BoxModel, createShapeId, Editor, TLShapeId, VecModel } from 'tldraw'
 import { ISimpleShape } from '../worker/simple/SimpleShape'
 
 /**
@@ -18,6 +18,8 @@ export class AgentTransform {
 	 * These are used to restore the original values of rounded numbers.
 	 */
 	roundingDiffMap = new Map<string, number>()
+
+	streamingShapeId: TLShapeId | null = null
 
 	/**
 	 * Ensure that a shape ID is unique.
@@ -157,6 +159,27 @@ export class AgentTransform {
 		;(shape[property] as number) += diff
 		return shape
 	}
+
+	/**
+	 * Get a unique shape id for a streaming shape.
+	 * Make sure to call completeUniqueStreamingShapeId() when you've finished streaming the shape.
+	 * @returns The unique shape id.
+	 */
+	getUniqueStreamingShapeId(): TLShapeId {
+		if (this.streamingShapeId) {
+			return this.streamingShapeId
+		}
+		this.streamingShapeId = createShapeId()
+		return this.streamingShapeId
+	}
+
+	/**
+	 * Complete the unique shape id for a streaming shape.
+	 * This should be called when you've finished streaming the shape.
+	 */
+	completeUniqueStreamingShapeId(): void {
+		this.streamingShapeId = null
+	}
 }
 
 export function roundBox(boxModel: BoxModel): BoxModel {
@@ -173,7 +196,7 @@ export function roundVec(vecModel: VecModel): VecModel {
 	return vecModel
 }
 
-export function ensureValueIsFloat(value: number | string | undefined): number | null {
+export function ensureValueIsNumber(value: any): number | null {
 	if (typeof value === 'number') {
 		return value
 	}
@@ -187,4 +210,15 @@ export function ensureValueIsFloat(value: number | string | undefined): number |
 	}
 
 	return null
+}
+
+export function ensureValueIsVec(value: any): VecModel | null {
+	if (!value) return null
+	if (typeof value !== 'object') return null
+	if (!('x' in value) || !('y' in value)) return null
+
+	const x = ensureValueIsNumber(value.x)
+	const y = ensureValueIsNumber(value.y)
+	if (x === null || y === null) return null
+	return { x, y }
 }

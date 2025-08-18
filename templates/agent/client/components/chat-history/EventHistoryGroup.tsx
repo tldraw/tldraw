@@ -12,26 +12,76 @@ import {
 import { TLAgent } from '../../ai/useTldrawAgent'
 import { $chatHistoryItems } from '../../atoms/chatHistoryItems'
 import { AgentIcon, AgentIconType } from '../icons/AgentIcon'
-import { ChangeHistoryItem } from './AgentHistoryItem'
+import { AgentEventHistoryGroup } from './AgentHistoryGroup'
+import { AgentEventHistoryItem } from './AgentHistoryItem'
 import { TldrawViewer } from './TldrawViewer'
 
 // The model returns changes individually, but we group them together in this component for UX reasons, namely so the user can see all changes done at once together, and so they can accept or reject them all at once
-export function DiffHistoryItem({
-	items: itemsInGroup,
+export function EventHistoryGroup({
+	group,
 	editor,
 	agent,
 }: {
-	items: ChangeHistoryItem[]
+	group: AgentEventHistoryGroup
 	editor: Editor
 	agent: TLAgent
 }) {
-	const diffShapes = itemsInGroup.flatMap((item) => getDiffShapesFromDiff({ diff: item.diff }))
+	if (group.showDiff) {
+		return <EventHistoryGroupWithDiff group={group} editor={editor} agent={agent} />
+	}
+
+	return <EventHistoryGroupWithoutDiff group={group} agent={agent} />
+}
+
+function EventHistoryGroupWithoutDiff({
+	group,
+	agent,
+}: {
+	group: AgentEventHistoryGroup
+	agent: TLAgent
+}) {
+	const { items } = group
+	return items.map((item, i) => {
+		const { event } = item
+		const eventUtil = agent.getEventUtil(event._type)
+		const icon = eventUtil.getIcon(event)
+		const label = eventUtil.getLabel(event, item.status)
+		const description = eventUtil.getDescription(event, item.status)
+
+		if (!description) return null
+		return (
+			<div className={`agent-action-message agent-action-type-${event._type}`} key={'event-' + i}>
+				{icon && (
+					<span>
+						<AgentIcon type={icon} />
+					</span>
+				)}
+				<span>
+					{label && <strong>{label}: </strong>}
+					{description}
+				</span>
+			</div>
+		)
+	})
+}
+
+function EventHistoryGroupWithDiff({
+	group,
+	editor,
+	agent,
+}: {
+	group: AgentEventHistoryGroup
+	editor: Editor
+	agent: TLAgent
+}) {
+	const { items } = group
+	const diffShapes = items.flatMap((item) => getDiffShapesFromDiff({ diff: item.diff }))
 
 	// Because we accept and reject changes as groups, when the changes represented by this group are accepted (or rejected), we need to go through each item in the group and update its acceptance status individually
 	const handleAccept = useCallback(() => {
 		$chatHistoryItems.update((currentChatHistoryItems) => {
 			const newItems = [...currentChatHistoryItems]
-			for (const item of itemsInGroup) {
+			for (const item of items) {
 				const index = newItems.findIndex((v) => v === item)
 				if (index !== -1) {
 					// If the item was previously rejected, we need to re-apply the original diff
@@ -43,12 +93,12 @@ export function DiffHistoryItem({
 			}
 			return newItems
 		})
-	}, [itemsInGroup, editor])
+	}, [items, editor])
 
 	const handleReject = useCallback(() => {
 		$chatHistoryItems.update((currentChatHistoryItems) => {
 			const newItems = [...currentChatHistoryItems]
-			for (const item of itemsInGroup) {
+			for (const item of items) {
 				const index = newItems.findIndex((v) => v === item)
 				if (index !== -1) {
 					newItems[index] = { ...item, acceptance: 'rejected', status: 'done' }
@@ -61,19 +111,21 @@ export function DiffHistoryItem({
 			}
 			return newItems
 		})
-	}, [itemsInGroup, editor])
+	}, [items, editor])
 
-	const acceptance = useMemo<ChangeHistoryItem['acceptance']>(
-		() => itemsInGroup[0].acceptance,
-		[itemsInGroup]
-	)
-	const acceptanceConsensus = useMemo(
-		() => itemsInGroup.every((item) => item.acceptance === acceptance),
-		[itemsInGroup, acceptance]
-	)
+	const acceptance = useMemo<AgentEventHistoryItem['acceptance']>(() => {
+		if (items.length === 0) return 'pending'
+		const acceptance = items[0].acceptance
+		for (let i = 1; i < items.length; i++) {
+			if (items[i].acceptance !== acceptance) {
+				return 'pending'
+			}
+		}
+		return acceptance
+	}, [items])
 
 	const steps = useMemo(() => {
-		return itemsInGroup.map((item) => {
+		return items.map((item) => {
 			const { event } = item
 			const eventUtil = agent.getEventUtil(event._type)
 			return {
@@ -82,23 +134,17 @@ export function DiffHistoryItem({
 				description: eventUtil.getDescription(event, item.status),
 			}
 		})
-	}, [itemsInGroup, agent])
+	}, [items, agent])
 
 	return (
 		<div className="agent-change-message">
 			<div className="agent-change-message-actions">
-				{!acceptanceConsensus ? (
-					<span className="agent-change-message-acceptance-notice">Error</span>
-				) : (
-					<>
-						<button onClick={handleReject} disabled={acceptance === 'rejected'}>
-							{acceptance === 'rejected' ? 'Rejected' : 'Reject'}
-						</button>
-						<button onClick={handleAccept} disabled={acceptance === 'accepted'}>
-							{acceptance === 'accepted' ? 'Accepted' : 'Accept'}
-						</button>
-					</>
-				)}
+				<button onClick={handleReject} disabled={acceptance === 'rejected'}>
+					{acceptance === 'rejected' ? 'Rejected' : 'Reject'}
+				</button>
+				<button onClick={handleAccept} disabled={acceptance === 'accepted'}>
+					{acceptance === 'accepted' ? 'Accepted' : 'Accept'}
+				</button>
 			</div>
 			<DiffSteps steps={steps} />
 			{diffShapes.length > 0 && (

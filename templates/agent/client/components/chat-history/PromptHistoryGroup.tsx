@@ -1,8 +1,9 @@
 import { CONTEXT_TYPE_DEFINITIONS, ContextItem } from '../../../shared/types/ContextItem'
 import { AgentIcon } from '../icons/AgentIcon'
-import { PromptHistoryItem } from './AgentHistoryItem'
+import { AgentPromptHistoryGroup } from './AgentHistoryGroup'
 
-export function PromptHistoryItem({ item }: { item: PromptHistoryItem }) {
+export function PromptHistoryGroup({ group }: { group: AgentPromptHistoryGroup }) {
+	const { item } = group
 	return (
 		<div>
 			<div className="user-message">
