@@ -7,6 +7,14 @@
 		"linear": {
 			"command": "npx",
 			"args": ["-y", "mcp-remote", "https://mcp.linear.app/sse"]
+		},
+		"Context7": {
+			"command": "npx",
+			"args": ["-y", "@upstash/context7-mcp"]
+		},
+		"puppeteer": {
+			"command": "npx",
+			"args": ["-y", "@modelcontextprotocol/server-puppeteer"]
 		}
 	}
 }
