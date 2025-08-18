@@ -31,22 +31,10 @@ export function HandleReordering() {
 		dragState != null && (dragState.type === 'group' || dragState.type === 'pinned')
 
 	useEffect(() => {
-		if (dragState?.type === 'group') {
-			document.body.setAttribute('data-dragging-group', 'true')
+		if (dragState) {
+			document.body.setAttribute('data-dragging-type', dragState.type)
 		} else {
-			document.body.removeAttribute('data-dragging-group')
-		}
-
-		if (dragState?.type === 'pinned') {
-			document.body.setAttribute('data-dragging-pinned', 'true')
-		} else {
-			document.body.removeAttribute('data-dragging-pinned')
-		}
-
-		if (dragState?.type === 'file') {
-			document.body.setAttribute('data-dragging-file', 'true')
-		} else {
-			document.body.removeAttribute('data-dragging-file')
+			document.body.removeAttribute('data-dragging-type')
 		}
 	}, [dragState])
 

@@ -67,11 +67,10 @@ export function createReorderingSystem(config: ReorderingConfig) {
 
 		const beforeRect = before?.getBoundingClientRect()
 		const afterRect = after?.getBoundingClientRect()
-		const margin = 2
 		const cursorLineY = !before
-			? afterRect!.top - margin
+			? afterRect!.top
 			: !after
-				? beforeRect!.bottom + margin
+				? beforeRect!.bottom
 				: (beforeRect!.bottom + afterRect!.top) / 2
 
 		return {

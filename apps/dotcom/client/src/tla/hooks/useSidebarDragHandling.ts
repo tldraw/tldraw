@@ -264,6 +264,7 @@ export function useSidebarDragHandling() {
 					// File is being moved from "My files" to a group, or from one group to another
 					await app.z.mutate.group.moveFileToGroup({ fileId, groupId: targetGroupId })
 					updateIn(app.sidebarState).expandedGroups.add(targetGroupId)
+					updateIn(app.sidebarState).noAnimationGroups.add(targetGroupId)
 				}
 			} else if (dropZoneId === 'my-files-pinned-drop-zone') {
 				// Moving file to "Pinned files"

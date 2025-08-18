@@ -89,13 +89,6 @@ export function TlaSidebarRecentFilesNew() {
 			{results.pinnedFiles.length > 0 && (
 				<TlaSidebarDropZone id="my-files-pinned-drop-zone">
 					<TlaSidebarFileSection title={<F defaultMessage="Favorites" />} onePixelOfPaddingAtTheTop>
-						{/* Pinned files reorder cursor */}
-						<ReorderCursor
-							dragStateSelector={(app) => {
-								const dragState = app.sidebarState.get().dragState
-								return dragState?.type === 'pinned' ? dragState.cursorLineY : null
-							}}
-						/>
 						{results.pinnedFiles.map((item, i) => (
 							<TlaSidebarFileLink
 								context="my-files-pinned"
@@ -104,6 +97,13 @@ export function TlaSidebarRecentFilesNew() {
 								testId={`tla-file-link-pinned-${i}`}
 							/>
 						))}
+						{/* Pinned files reorder cursor */}
+						<ReorderCursor
+							dragStateSelector={(app) => {
+								const dragState = app.sidebarState.get().dragState
+								return dragState?.type === 'pinned' ? dragState.cursorLineY : null
+							}}
+						/>
 					</TlaSidebarFileSection>
 				</TlaSidebarDropZone>
 			)}
@@ -150,6 +150,7 @@ export function TlaSidebarRecentFilesNew() {
 					</Collapsible.Trigger>
 				</Collapsible.Root>
 			)}
+			<hr className={styles.sidebarFileSectionDivider} />
 			<TlaSidebarFileSection
 				className={styles.sidebarFileSectionGroups}
 				title={<F defaultMessage="Groups" />}
@@ -163,14 +164,6 @@ export function TlaSidebarRecentFilesNew() {
 							}
 				}
 			>
-				{/* Global drag cursor for group reordering */}
-				<ReorderCursor
-					dragStateSelector={(app) => {
-						const dragState = app.sidebarState.get().dragState
-						return dragState?.type === 'group' ? dragState.cursorLineY : null
-					}}
-				/>
-
 				{isCreatingGroup && (
 					<TlaSidebarInlineInput
 						data-testid="tla-sidebar-create-group-input"
@@ -191,6 +184,13 @@ export function TlaSidebarRecentFilesNew() {
 					// we wouldn't need this.
 					<TlaSidebarGroupItem key={`group-${group.group.id}-${i}`} groupId={group.group.id} />
 				))}
+				{/* Global drag cursor for group reordering */}
+				<ReorderCursor
+					dragStateSelector={(app) => {
+						const dragState = app.sidebarState.get().dragState
+						return dragState?.type === 'group' ? dragState.cursorLineY : null
+					}}
+				/>
 			</TlaSidebarFileSection>
 		</Fragment>
 	)
