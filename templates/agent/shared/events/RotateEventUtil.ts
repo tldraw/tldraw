@@ -48,7 +48,9 @@ export class RotateEventUtil extends AgentEventUtil<IAgentRotateEvent> {
 
 		const shapeId = `shape:${event.shapeId}` as TLShapeId
 
-		editor.rotateShapesBy([shapeId], event.degrees, {
+		const radians = (event.degrees * Math.PI) / 180
+
+		editor.rotateShapesBy([shapeId], radians, {
 			center: { x: event.centerX, y: event.centerY },
 		})
 	}
