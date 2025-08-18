@@ -9,6 +9,7 @@ import { MessageEventUtil } from './events/MessageEventUtil'
 import { MoveEventUtil } from './events/MoveEventUtil'
 import { PlaceEventUtil } from './events/PlaceEventUtil'
 import { ReviewEventUtil } from './events/ReviewEventUtil'
+import { RotateEventUtil } from './events/RotateEventUtil'
 import { SendToBackEventUtil } from './events/SendToBackEventUtil'
 import { SetMyViewEventUtil } from './events/SetMyViewEventUtil'
 import { StackEventUtil } from './events/StackEventUtil'
@@ -53,6 +54,7 @@ export const EVENT_UTILS = [
 	PlaceEventUtil,
 	BringToFrontEventUtil,
 	SendToBackEventUtil,
+	RotateEventUtil,
 
 	AlignEventUtil,
 	DistributeEventUtil,

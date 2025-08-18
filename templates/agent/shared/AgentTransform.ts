@@ -172,3 +172,19 @@ export function roundVec(vecModel: VecModel): VecModel {
 	vecModel.y = Math.round(vecModel.y)
 	return vecModel
 }
+
+export function ensureValueIsFloat(value: number | string | undefined): number | null {
+	if (typeof value === 'number') {
+		return value
+	}
+
+	if (typeof value === 'string') {
+		const parsedValue = parseFloat(value)
+		if (isNaN(parsedValue)) {
+			return null
+		}
+		return parsedValue
+	}
+
+	return null
+}
