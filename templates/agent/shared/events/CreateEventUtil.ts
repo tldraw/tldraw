@@ -277,6 +277,7 @@ export function getTldrawAiChangesFromCreateEvent({
 					props: {
 						color: asColor(shape.color),
 						richText: toRichText(shape.text ?? ''),
+						size: 's',
 					},
 					meta: {
 						note: shape.note ?? '',

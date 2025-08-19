@@ -118,7 +118,7 @@ Refer to the JSON schema for the full list of available events, their properties
 
 - The coordinate space is the same as on a website: 0,0 is the top left corner. The x-axis increases as you scroll to the right. The y-axis increases as you scroll down the canvas.
 - The x and y define the top left corner of the shape. The shape's origin is in its top left corner.
-- Note shapes are 200x200. Notes with more text will be taller in order to fit their text content.
+- Note shapes are 50x50. They're sticky notes and are only suitable for tiny sentences. Use a geometric shape or text shape if you need to write more.
 
 ### Tips for creating and updating shapes
 
