@@ -30,7 +30,7 @@ import { PeripheralShapesPartUtil } from './parts/PeripheralShapesPartUtil'
 import { TodoListEventUtil } from './events/TodoListEventUtil'
 import { PromptPartUtilConstructor } from './parts/PromptPartUtil'
 import { SystemPromptPartUtil } from './parts/SystemPromptPartUtil'
-import { TodoListPromptPartUtil } from './parts/TodoListPromptPart'
+import { TodoListPromptPartUtil } from './parts/TodoItemsPromptPart'
 import { UserSelectedShapesPartUtil } from './parts/UserSelectedShapesPartUtil'
 import { UserViewportBoundsPartUtil } from './parts/UserViewportBoundsPartUtil'
 

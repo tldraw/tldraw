@@ -4,6 +4,7 @@ import {
 	IndexKey,
 	TLArrowShape,
 	TLBindingId,
+	TLDrawShape,
 	TLGeoShape,
 	TLLineShape,
 	TLNoteShape,
@@ -112,14 +113,14 @@ export function getTldrawAiChangesFromUpdateEvent({
 				shape: {
 					id: shapeId,
 					type: 'text',
-					x: update.x,
-					y: update.y,
+					x: update.x ?? shapeOnCanvas.x,
+					y: update.y ?? shapeOnCanvas.y,
 					props: {
 						color,
 						richText,
 					},
 					meta: {
-						note: update.note ?? '',
+						note: update.note ?? shapeOnCanvas.meta.note,
 					},
 				},
 			})
@@ -165,7 +166,7 @@ export function getTldrawAiChangesFromUpdateEvent({
 						points,
 					},
 					meta: {
-						note: update.note ?? '',
+						note: update.note ?? shapeOnCanvas.meta.note,
 					},
 				},
 			})
@@ -181,7 +182,7 @@ export function getTldrawAiChangesFromUpdateEvent({
 			const startY = update.y1
 			const endX = update.x2 - startX
 			const endY = update.y2 - startY
-			const bend = update.bend ?? 0
+			const bend = update.bend ?? shapeOnCanvas.props.bend
 
 			const color = update.color ? asColor(update.color) : shapeOnCanvas.props.color
 			const richText = update.text ? toRichText(update.text) : shapeOnCanvas.props.richText
@@ -202,7 +203,7 @@ export function getTldrawAiChangesFromUpdateEvent({
 						bend,
 					},
 					meta: {
-						note: update.note ?? '',
+						note: update.note ?? shapeOnCanvas.meta.note,
 					},
 				},
 			})
@@ -300,16 +301,18 @@ export function getTldrawAiChangesFromUpdateEvent({
 				shape: {
 					id: shapeId,
 					type: 'geo',
+					x: update.x ?? shapeOnCanvas.x,
+					y: update.y ?? shapeOnCanvas.y,
 					props: {
 						color,
 						geo: update._type,
-						w: update.width,
-						h: update.height,
+						w: update.width ?? shapeOnCanvas.props.w,
+						h: update.height ?? shapeOnCanvas.props.h,
 						fill,
 						richText,
 					},
 					meta: {
-						note: update.note ?? '',
+						note: update.note ?? shapeOnCanvas.meta.note,
 					},
 				},
 			})
@@ -331,14 +334,43 @@ export function getTldrawAiChangesFromUpdateEvent({
 				shape: {
 					id: shapeId,
 					type: 'note',
-					x: update.x,
-					y: update.y,
+					x: update.x ?? shapeOnCanvas.x,
+					y: update.y ?? shapeOnCanvas.y,
 					props: {
 						color,
 						richText,
 					},
 					meta: {
-						note: update.note ?? '',
+						note: update.note ?? shapeOnCanvas.meta.note,
+					},
+				},
+			})
+
+			break
+		}
+		case 'pen': {
+			const shapeOnCanvas = editor.getShape<TLDrawShape>(shapeId)
+			if (!shapeOnCanvas) {
+				throw new Error(`Shape ${update.shapeId} not found in canvas`)
+			}
+
+			const color = update.color ? asColor(update.color) : shapeOnCanvas.props.color
+			const fill = update.fill
+				? convertSimpleFillToTldrawFill(update.fill)
+				: shapeOnCanvas.props.fill
+
+			changes.push({
+				type: 'updateShape',
+				description: event.intent ?? '',
+				shape: {
+					id: shapeId,
+					type: 'draw',
+					props: {
+						color,
+						fill,
+					},
+					meta: {
+						note: update.note ?? shapeOnCanvas.meta.note,
 					},
 				},
 			})
@@ -357,10 +389,10 @@ export function getTldrawAiChangesFromUpdateEvent({
 				shape: {
 					id: shapeId,
 					type: shapeOnCanvas.type,
-					x: update.x,
-					y: update.y,
+					x: update.x ?? shapeOnCanvas.x,
+					y: update.y ?? shapeOnCanvas.y,
 					meta: {
-						note: update.note ?? '',
+						note: update.note ?? shapeOnCanvas.meta.note,
 					},
 				},
 			})

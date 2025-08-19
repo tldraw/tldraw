@@ -1,6 +1,5 @@
 import { z } from 'zod'
-import { AgentTransform } from '../AgentTransform'
-import { $todoList } from '../parts/TodoListPromptPart'
+import { $todoItems } from '../../client/atoms/todoItems'
 import { Streaming } from '../types/Streaming'
 import { AgentEventUtil } from './AgentEventUtil'
 
@@ -33,28 +32,26 @@ export class TodoListEventUtil extends AgentEventUtil<IAgentTodoListEvent> {
 		return `Updated todo list item ${event.id} to ${event.text} with status ${event.status}`
 	}
 
-	override applyEvent(event: Streaming<IAgentTodoListEvent>, transform: AgentTransform) {
-		const { editor } = transform
-
-		const existingTodoListItem = $todoList.get(editor).find((item) => item.id === event.id)
+	override applyEvent(event: Streaming<IAgentTodoListEvent>) {
+		const existingTodoListItem = $todoItems.get().find((item) => item.id === event.id)
 		if (existingTodoListItem) {
-			$todoList.update(editor, (todoList) => {
-				const index = todoList.findIndex((item) => item.id === event.id)
+			$todoItems.update((todoItems) => {
+				const index = todoItems.findIndex((item) => item.id === event.id)
 				if (index !== -1) {
-					todoList[index] = {
+					todoItems[index] = {
 						...existingTodoListItem,
 						text: event.text ?? existingTodoListItem.text,
 						status: event.status ?? existingTodoListItem.status,
 					}
 				}
-				return todoList
+				return todoItems
 			})
 		} else {
-			$todoList.update(editor, (todoList) => {
+			$todoItems.update((todoItems) => {
 				const { id, text, status } = event
-				if (!id || !text || !status) return todoList
-				todoList.push({ id, text, status })
-				return todoList
+				if (!id || !text || !status) return todoItems
+				todoItems.push({ id, text, status })
+				return todoItems
 			})
 		}
 	}

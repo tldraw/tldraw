@@ -14,80 +14,117 @@ import { convertTldrawFillToSimpleFill, SimpleFill } from './SimpleFill'
 
 const SimpleLabel = z.string()
 
-function SimpleGeoShape<T extends string>(name: T) {
-	return z.object({
-		_type: z.literal(name),
-		color: SimpleColor,
-		fill: SimpleFill,
-		height: z.number(),
-		note: z.string(),
-		shapeId: z.string(),
-		text: SimpleLabel.optional(),
-		width: z.number(),
-		x: z.number(),
-		y: z.number(),
-	})
-}
+export const SimpleGeoShape = z.object({
+	_type: z.enum([
+		'rectangle',
+		'ellipse',
+		'triangle',
+		'diamond',
+		'hexagon',
+		'oval',
+		'cloud',
+		'x-box',
+		'check-box',
+		'heart',
+		'pentagon',
+		'octagon',
+		'star',
+		'rhombus',
+		'rhombus-2',
+		'trapezoid',
+		'arrow-right',
+		'arrow-left',
+		'arrow-up',
+		'arrow-down',
+	]),
+	color: SimpleColor,
+	fill: SimpleFill,
+	height: z.number(),
+	note: z.string(),
+	shapeId: z.string(),
+	text: SimpleLabel.optional(),
+	width: z.number(),
+	x: z.number(),
+	y: z.number(),
+})
 
-const SimpleRectangleShape = SimpleGeoShape('rectangle')
-export type ISimpleRectangleShape = z.infer<typeof SimpleRectangleShape>
+export type ISimpleGeoShape = z.infer<typeof SimpleGeoShape>
 
-const SimpleEllipseShape = SimpleGeoShape('ellipse')
-export type ISimpleEllipseShape = z.infer<typeof SimpleEllipseShape>
+// function simpleGeoShape<T extends TLGeoShapeGeoStyle>(name: T): z.ZodType<ISimpleGeoShape> {
+// 	return z.object({
+// 		_type: z.literal(name),
+// 		foo: z.literal('bar'),
+// 		color: SimpleColor,
+// 		fill: SimpleFill,
+// 		height: z.number(),
+// 		note: z.string(),
+// 		shapeId: z.string(),
+// 		text: SimpleLabel.optional(),
+// 		width: z.number(),
+// 		x: z.number(),
+// 		y: z.number(),
+// 	})
+// }
 
-const SimpleTriangleShape = SimpleGeoShape('triangle')
-export type ISimpleTriangleShape = z.infer<typeof SimpleTriangleShape>
+// const SimpleRectangleShape = simpleGeoShape('rectangle')
+// export type ISimpleRectangleShape = z.infer<typeof SimpleRectangleShape>
 
-const SimpleDiamondShape = SimpleGeoShape('diamond')
-export type ISimpleDiamondShape = z.infer<typeof SimpleDiamondShape>
+// const SimpleEllipseShape = simpleGeoShape('ellipse')
+// export type ISimpleEllipseShape = z.infer<typeof SimpleEllipseShape>
 
-const SimpleHexagonShape = SimpleGeoShape('hexagon')
-export type ISimpleHexagonShape = z.infer<typeof SimpleHexagonShape>
+// const SimpleTriangleShape = simpleGeoShape('triangle')
+// export type ISimpleTriangleShape = z.infer<typeof SimpleTriangleShape>
 
-const SimpleOvalShape = SimpleGeoShape('oval')
-export type ISimpleOvalShape = z.infer<typeof SimpleOvalShape>
+// const SimpleDiamondShape = simpleGeoShape('diamond')
+// export type ISimpleDiamondShape = z.infer<typeof SimpleDiamondShape>
 
-const SimpleCloudShape = SimpleGeoShape('cloud')
-export type ISimpleCloudShape = z.infer<typeof SimpleCloudShape>
+// const SimpleHexagonShape = simpleGeoShape('hexagon')
+// export type ISimpleHexagonShape = z.infer<typeof SimpleHexagonShape>
 
-const SimpleXBoxShape = SimpleGeoShape('x-box')
-export type ISimpleXBoxShape = z.infer<typeof SimpleXBoxShape>
+// const SimpleOvalShape = simpleGeoShape('oval')
+// export type ISimpleOvalShape = z.infer<typeof SimpleOvalShape>
 
-const SimplePentagonShape = SimpleGeoShape('pentagon')
-export type ISimplePentagonShape = z.infer<typeof SimplePentagonShape>
+// const SimpleCloudShape = simpleGeoShape('cloud')
+// export type ISimpleCloudShape = z.infer<typeof SimpleCloudShape>
 
-const SimpleOctagonShape = SimpleGeoShape('octagon')
-export type ISimpleOctagonShape = z.infer<typeof SimpleOctagonShape>
+// const SimpleXBoxShape = simpleGeoShape('x-box')
+// export type ISimpleXBoxShape = z.infer<typeof SimpleXBoxShape>
 
-const SimpleStarShape = SimpleGeoShape('star')
-export type ISimpleStarShape = z.infer<typeof SimpleStarShape>
+// const SimplePentagonShape = simpleGeoShape('pentagon')
+// export type ISimplePentagonShape = z.infer<typeof SimplePentagonShape>
 
-const SimpleRhombusShape = SimpleGeoShape('rhombus')
-export type ISimpleRhombusShape = z.infer<typeof SimpleRhombusShape>
+// const SimpleOctagonShape = simpleGeoShape('octagon')
+// export type ISimpleOctagonShape = z.infer<typeof SimpleOctagonShape>
 
-const SimpleRhombus2Shape = SimpleGeoShape('rhombus-2')
-export type ISimpleRhombus2Shape = z.infer<typeof SimpleRhombus2Shape>
+// const SimpleStarShape = simpleGeoShape('star')
+// export type ISimpleStarShape = z.infer<typeof SimpleStarShape>
 
-const SimpleTrapezoidShape = SimpleGeoShape('trapezoid')
-export type ISimpleTrapezoidShape = z.infer<typeof SimpleTrapezoidShape>
+// const SimpleRhombusShape = simpleGeoShape('rhombus')
+// export type ISimpleRhombusShape = z.infer<typeof SimpleRhombusShape>
 
-const SimpleArrowRightShape = SimpleGeoShape('arrow-right')
-export type ISimpleArrowRightShape = z.infer<typeof SimpleArrowRightShape>
+// const SimpleRhombus2Shape = simpleGeoShape('rhombus-2')
+// export type ISimpleRhombus2Shape = z.infer<typeof SimpleRhombus2Shape>
 
-const SimpleArrowLeftShape = SimpleGeoShape('arrow-left')
-export type ISimpleArrowLeftShape = z.infer<typeof SimpleArrowLeftShape>
+// const SimpleTrapezoidShape = simpleGeoShape('trapezoid')
+// export type ISimpleTrapezoidShape = z.infer<typeof SimpleTrapezoidShape>
 
-const SimpleArrowUpShape = SimpleGeoShape('arrow-up')
-export type ISimpleArrowUpShape = z.infer<typeof SimpleArrowUpShape>
+// const SimpleArrowRightShape = simpleGeoShape('arrow-right')
+// export type ISimpleArrowRightShape = z.infer<typeof SimpleArrowRightShape>
 
-const SimpleArrowDownShape = SimpleGeoShape('arrow-down')
-export type ISimpleArrowDownShape = z.infer<typeof SimpleArrowDownShape>
+// const SimpleArrowLeftShape = simpleGeoShape('arrow-left')
+// export type ISimpleArrowLeftShape = z.infer<typeof SimpleArrowLeftShape>
 
-const SimpleCheckBoxShape = SimpleGeoShape('check-box')
-export type ISimpleCheckBoxShape = z.infer<typeof SimpleCheckBoxShape>
+// const SimpleArrowUpShape = simpleGeoShape('arrow-up')
+// export type ISimpleArrowUpShape = z.infer<typeof SimpleArrowUpShape>
 
-const SimpleHeartShape = SimpleGeoShape('heart')
-export type ISimpleHeartShape = z.infer<typeof SimpleHeartShape>
+// const SimpleArrowDownShape = simpleGeoShape('arrow-down')
+// export type ISimpleArrowDownShape = z.infer<typeof SimpleArrowDownShape>
+
+// const SimpleCheckBoxShape = simpleGeoShape('check-box')
+// export type ISimpleCheckBoxShape = z.infer<typeof SimpleCheckBoxShape>
+
+// const SimpleHeartShape = simpleGeoShape('heart')
+// export type ISimpleHeartShape = z.infer<typeof SimpleHeartShape>
 
 const SimpleLineShape = z.object({
 	_type: z.literal('line'),
@@ -144,6 +181,22 @@ const SimpleArrowShape = z.object({
 
 export type ISimpleArrowShape = z.infer<typeof SimpleArrowShape>
 
+const SimplePenShape = z
+	.object({
+		_type: z.literal('pen'),
+		color: SimpleColor,
+		fill: SimpleFill.optional(),
+		note: z.string(),
+		shapeId: z.string(),
+	})
+	.meta({
+		title: 'Pen Shape',
+		description:
+			'A pen shape is a freeform shape that was drawn by the pen tool. To create new pen shapes, the AI must use the pen event because it gives more control.',
+	})
+
+export type ISimplePenShape = z.infer<typeof SimplePenShape>
+
 const SimpleUnknownShape = z.object({
 	_type: z.literal('unknown'),
 	note: z.string(),
@@ -155,30 +208,12 @@ const SimpleUnknownShape = z.object({
 export type ISimpleUnknownShape = z.infer<typeof SimpleUnknownShape>
 
 const SIMPLE_SHAPES = [
-	SimpleRectangleShape,
-	SimpleEllipseShape,
-	SimpleTriangleShape,
-	SimpleDiamondShape,
-	SimpleHexagonShape,
-	SimpleOvalShape,
-	SimpleCloudShape,
+	SimplePenShape,
+	SimpleGeoShape,
 	SimpleLineShape,
-	SimplePentagonShape,
-	SimpleOctagonShape,
-	SimpleStarShape,
-	SimpleRhombusShape,
-	SimpleRhombus2Shape,
-	SimpleTrapezoidShape,
-	SimpleArrowRightShape,
-	SimpleArrowLeftShape,
-	SimpleArrowUpShape,
-	SimpleArrowDownShape,
-	SimpleXBoxShape,
 	SimpleTextShape,
 	SimpleArrowShape,
 	SimpleNoteShape,
-	SimpleCheckBoxShape,
-	SimpleHeartShape,
 	SimpleUnknownShape,
 ] as const
 export const SimpleShape = z.union(SIMPLE_SHAPES)
@@ -221,9 +256,10 @@ function convertTextShape(shape: TLTextShape, editor: Editor): ISimpleShape {
 function convertGeoShape(shape: TLGeoShape, editor: Editor): ISimpleShape {
 	const util = editor.getShapeUtil(shape)
 	const text = util.getText(shape)
+
 	return {
+		_type: 'rectangle',
 		shapeId: shape.id.slice('shape:'.length),
-		_type: shape.props.geo,
 		x: shape.x,
 		y: shape.y,
 		width: shape.props.w,

@@ -40,7 +40,15 @@ export class HistoryItemPartUtil extends PromptPartUtil<AgentHistoryItem[]> {
 	private buildHistoryItemMessage(item: AgentHistoryItem, priority: number): AgentMessage | null {
 		switch (item.type) {
 			case 'prompt': {
-				const content: AgentMessageContent[] = [{ type: 'text', text: item.message }]
+				const content: AgentMessageContent[] = []
+
+				if (item.message.trim() !== '') {
+					content.push({
+						type: 'text',
+						text: item.message,
+					})
+				}
+
 				if (item.contextItems.length > 0) {
 					for (const contextItem of item.contextItems) {
 						switch (contextItem.type) {
@@ -70,6 +78,11 @@ export class HistoryItemPartUtil extends PromptPartUtil<AgentHistoryItem[]> {
 						}
 					}
 				}
+
+				if (content.length === 0) {
+					return null
+				}
+
 				return {
 					role: 'user',
 					content,

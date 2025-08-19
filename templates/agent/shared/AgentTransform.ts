@@ -1,4 +1,5 @@
 import { BoxModel, Editor, TLShapeId, VecModel } from 'tldraw'
+import { ISimpleFill, SimpleFill } from './format/SimpleFill'
 import { ISimpleShape } from './format/SimpleShape'
 
 /**
@@ -87,7 +88,7 @@ export class AgentTransform {
 			shape = this.roundProperty(shape, 'y1')
 			shape = this.roundProperty(shape, 'x2')
 			shape = this.roundProperty(shape, 'y2')
-		} else {
+		} else if (shape._type !== 'pen') {
 			shape = this.roundProperty(shape, 'x')
 			shape = this.roundProperty(shape, 'y')
 		}
@@ -112,7 +113,7 @@ export class AgentTransform {
 			shape = this.unroundProperty(shape, 'y1')
 			shape = this.unroundProperty(shape, 'x2')
 			shape = this.unroundProperty(shape, 'y2')
-		} else {
+		} else if (shape._type !== 'pen') {
 			shape = this.unroundProperty(shape, 'x')
 			shape = this.unroundProperty(shape, 'y')
 		}
@@ -209,4 +210,11 @@ export function ensureValueIsBoolean(value: any): boolean | null {
 
 export function removeShapeIdPrefix(id: TLShapeId): string {
 	return id.slice('shape:'.length)
+}
+
+export function ensureValueIsSimpleFill(value: any): ISimpleFill | null {
+	if (SimpleFill.safeParse(value).success) {
+		return value as ISimpleFill
+	}
+	return 'none'
 }

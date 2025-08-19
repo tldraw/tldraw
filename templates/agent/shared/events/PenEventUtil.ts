@@ -1,6 +1,11 @@
 import { createShapeId, TLDrawShape, TLDrawShapeSegment, Vec, VecModel } from 'tldraw'
 import z from 'zod'
-import { AgentTransform, ensureValueIsBoolean, ensureValueIsVec } from '../AgentTransform'
+import {
+	AgentTransform,
+	ensureValueIsBoolean,
+	ensureValueIsSimpleFill,
+	ensureValueIsVec,
+} from '../AgentTransform'
 import { asColor, SimpleColor } from '../format/SimpleColor'
 import { convertSimpleFillToTldrawFill, SimpleFill } from '../format/SimpleFill'
 import { Streaming } from '../types/Streaming'
@@ -53,6 +58,7 @@ export class PenEventUtil extends AgentEventUtil<IAgentPenEvent> {
 
 		event.points = validPoints
 		event.closed = ensureValueIsBoolean(event.closed) ?? false
+		event.fill = ensureValueIsSimpleFill(event.fill) ?? 'none'
 
 		return event
 	}
@@ -68,13 +74,11 @@ export class PenEventUtil extends AgentEventUtil<IAgentPenEvent> {
 			event.points.push(firstPoint)
 		}
 
-		const segments: TLDrawShapeSegment[] = []
-
-		const startX = event.points[0].x
-		const startY = event.points[0].y
+		const minX = Math.min(...event.points.map((p) => p.x))
+		const minY = Math.min(...event.points.map((p) => p.y))
 
 		const points: VecModel[] = []
-		const maxDistanceBetweenPoints = event.style === 'straight' ? 2 : 15
+		const maxDistanceBetweenPoints = event.style === 'smooth' ? 10 : 2
 		for (let i = 0; i < event.points.length - 1; i++) {
 			const point = event.points[i]
 			points.push(point)
@@ -95,20 +99,22 @@ export class PenEventUtil extends AgentEventUtil<IAgentPenEvent> {
 			return
 		}
 
-		segments.push({
-			type: 'free',
-			points: points.map((point) => ({
-				x: point.x - startX,
-				y: point.y - startY,
-				z: 0.75,
-			})),
-		})
+		const segments: TLDrawShapeSegment[] = [
+			{
+				type: 'free',
+				points: points.map((point) => ({
+					x: point.x - minX,
+					y: point.y - minY,
+					z: 0.75,
+				})),
+			},
+		]
 
 		editor.createShape<TLDrawShape>({
 			id: createShapeId(),
 			type: 'draw',
-			x: startX,
-			y: startY,
+			x: minX,
+			y: minY,
 			props: {
 				color: asColor(event.color ?? 'black'),
 				fill: convertSimpleFillToTldrawFill(event.fill ?? 'none'),

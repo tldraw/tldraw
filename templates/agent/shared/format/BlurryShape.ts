@@ -22,10 +22,10 @@ export function convertTldrawShapeToBlurryShape(
 	const shapeType = shape.type === 'geo' ? (shape.props as TLGeoShapeProps).geo : shape.type
 
 	return {
-		x: bounds.x,
-		y: bounds.y,
-		w: bounds.w,
-		h: bounds.h,
+		x: Math.round(bounds.x),
+		y: Math.round(bounds.y),
+		w: Math.round(bounds.w),
+		h: Math.round(bounds.h),
 		type: shapeType as ISimpleShape['_type'],
 		shapeId: removeShapeIdPrefix(shape.id),
 		text,

@@ -1,10 +1,13 @@
-import { atom, Box, useValue } from 'tldraw'
+import { atom, BoxModel, useValue } from 'tldraw'
 import { AreaHighlight } from './AreaHighlight'
 
-export const $contextBoundsHighlight = atom<Box | null>('contextBoundsHighlight', null)
+export const $contextBoundsHighlight = atom<BoxModel | null>('contextBoundsHighlight', null)
 
 export function ContextBoundsHighlights() {
-	const contextBounds = useValue('contextBounds', () => $contextBoundsHighlight.get(), [])
+	const contextBounds = useValue('contextBounds', () => $contextBoundsHighlight.get(), [
+		$contextBoundsHighlight,
+	])
+
 	if (!contextBounds) return null
 	return (
 		<AreaHighlight

@@ -46,6 +46,7 @@ const shapeTypeNames = [
 	'note',
 	'check-box',
 	'heart',
+	'pen',
 ]
 
 const AGENT_SYSTEM_PROMPT = `# System Prompt
@@ -56,11 +57,13 @@ You respond with structured JSON data based on a predefined schema.
 
 ## Schema Overview
 
-You are interacting with a system that models shapes (rectangles, ellipses,	triangles, text, and many more) and tracks events (creating, moving, labeling, deleting, or thinking). Your response should include:
+You are interacting with a system that models shapes (rectangles, ellipses,	triangles, text, and many more) and carries out actions defined by events (creating, moving, labeling, deleting, or thinking). Your response should include:
 
 - **A list of structured events** (\`events\`): Each event should correspond to an action that follows the schema.
 
-## Shape Schema
+For the full list of events, refer to the JSON schema.
+
+## Shapes
 
 Shapes can be:
 
@@ -113,9 +116,8 @@ Refer to the JSON schema for the full list of available events, their properties
 
 ### General tips about the canvas
 
-- The coordinate space is the same as on a website: 0,0 is the top left corner, and the x-axis increases to the right while the y-axis increases downwards.
+- The coordinate space is the same as on a website: 0,0 is the top left corner. The x-axis increases as you scroll to the right. The y-axis increases as you scroll down the canvas.
 - The x and y define the top left corner of the shape. The shape's origin is in its top left corner.
-- Geometric shapes (rectangles, triangles, ellipses, etc.) are 100x100 by default. 
 - Note shapes are 200x200. Notes with more text will be taller in order to fit their text content.
 
 ### Tips for creating and updating shapes
@@ -125,7 +127,7 @@ Refer to the JSON schema for the full list of available events, their properties
 - When updating shapes:
 	- Only output a single shape for each shape being updated. We know what it should update from its shapeId.
 - When creating shapes:
-	- Unless instructed otherwise, use simple shapes in place of accurate details for your drawings.
+	- If the shape you need is not available in the schema, use the pen to draw a custom shape. The pen can be helpful when you need more control over a shape's exact shape. This can be especially helpful when you need to create shapes that need to fit together precisely.
 	- Use the \`note\` field to provide context for each shape. This will help you in the future to understand the purpose of each shape.
 	- Never create "unknown" type shapes, though you can move unknown shapes if you need to.
 	- When creating shapes that are meant to be contained within other shapes, always ensure the shapes properly fit inside of the containing or background shape. If there are overlaps, decice between making the inside shapes smaller or the outside shape bigger.
@@ -175,6 +177,7 @@ Refer to the JSON schema for the full list of available events, their properties
 	- Are labels properly contained within their containing shapes?
 	- Are labels properly positioned?
 	- Are any shapes overlapping? If so, decide whether to move the shapes, labels, or both.
+	- Are shapes floating in the air that were intended to be touching other shapes?
 - In a finished drawing or diagram:
 	- There should be no overlaps between shapes or labels.
 	- Arrows should be connected to the shapes they are pointing to, unless they are intended to be disconnected.

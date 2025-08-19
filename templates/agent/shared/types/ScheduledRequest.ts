@@ -3,7 +3,7 @@ import { ContextItem } from './ContextItem'
 
 export interface ScheduledRequest {
 	message: string
-	type: 'review' | 'setMyView' | 'user'
+	type: 'review' | 'setMyView' | 'user' | 'continue'
 	contextItems: ContextItem[]
 	bounds: BoxModel
 }

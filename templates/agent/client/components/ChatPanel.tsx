@@ -1,14 +1,14 @@
 import { FormEventHandler, useCallback, useEffect, useRef, useState } from 'react'
 import { Editor, useToasts, useValue } from 'tldraw'
 import { EVENT_UTILS, PROMPT_PART_UTILS } from '../../shared/AgentUtils'
-import { $todoList } from '../../shared/parts/TodoListPromptPart'
 import { AgentHistoryItem } from '../../shared/types/AgentHistoryItem'
-import { processSchedule } from '../ai/processSchedule'
+import { advanceSchedule } from '../ai/advanceSchedule'
 import { useTldrawAgent } from '../ai/useTldrawAgent'
 import { $agentHistoryItems } from '../atoms/agentHistoryItems'
 import { $contextItems, $pendingContextItems } from '../atoms/contextItems'
 import { $modelName } from '../atoms/modelName'
-import { $requestsSchedule } from '../atoms/requestsSchedule'
+import { $scheduledRequests } from '../atoms/scheduledRequests'
+import { $todoItems } from '../atoms/todoItems'
 import { AgentHistory } from './chat-history/AgentHistory'
 import { ChatInput } from './ChatInput'
 import { $contextBoundsHighlight } from './highlights/ContextBoundsHighlights'
@@ -44,7 +44,7 @@ export function ChatPanel({ editor }: { editor: Editor }) {
 
 				$contextBoundsHighlight.set(null)
 
-				$requestsSchedule.set([])
+				$scheduledRequests.set([])
 				$pendingContextItems.set([])
 				$agentHistoryItems.update((prev) =>
 					prev.map((item) => (item.status === 'progress' ? { ...item, status: 'cancelled' } : item))
@@ -68,12 +68,9 @@ export function ChatPanel({ editor }: { editor: Editor }) {
 			$contextItems.set([])
 			$agentHistoryItems.update((prev) => [...prev, promptHistoryItem])
 
-			$todoList.set(editor, []) // reset the todo list
-
-			// TODO once we implement letting the agent move, we can get those bounds and lock them here instead of using the viewport
 			const intitialBounds = editor.getViewportPageBounds()
 
-			$requestsSchedule.update((prev) => [
+			$scheduledRequests.update((prev) => [
 				...prev,
 				{
 					message: promptHistoryItem.message,
@@ -87,7 +84,7 @@ export function ChatPanel({ editor }: { editor: Editor }) {
 
 			setIsGenerating(true)
 			try {
-				await processSchedule({ editor, modelName, agent, rCancelFn })
+				await advanceSchedule({ editor, modelName, agent, rCancelFn })
 			} catch (e) {
 				const message = typeof e === 'string' ? e : e instanceof Error && e.message
 				toast.addToast({
@@ -115,8 +112,9 @@ export function ChatPanel({ editor }: { editor: Editor }) {
 		$agentHistoryItems.set([])
 		$pendingContextItems.set([])
 		$contextItems.set([])
-		$requestsSchedule.set([])
+		$scheduledRequests.set([])
 		$contextBoundsHighlight.set(null)
+		$todoItems.set([])
 	}
 
 	function NewChatButton() {

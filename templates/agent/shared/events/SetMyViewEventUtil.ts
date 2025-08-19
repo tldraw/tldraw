@@ -1,5 +1,5 @@
 import z from 'zod'
-import { $requestsSchedule } from '../../client/atoms/requestsSchedule'
+import { $scheduledRequests } from '../../client/atoms/scheduledRequests'
 import { AgentHistoryItemStatus } from '../types/AgentHistoryItem'
 import { ScheduledRequest } from '../types/ScheduledRequest'
 import { Streaming } from '../types/Streaming'
@@ -48,7 +48,7 @@ export class SetMyViewEventUtil extends AgentEventUtil<IAgentSetMyViewEvent> {
 	}
 
 	override applyEvent(event: Streaming<IAgentSetMyViewEvent>) {
-		$requestsSchedule.update((prev) => {
+		$scheduledRequests.update((prev) => {
 			if (!event.complete) return prev
 
 			const schedule: ScheduledRequest[] = [
