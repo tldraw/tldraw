@@ -12,9 +12,10 @@ import {
 	toRichText,
 } from 'tldraw'
 import z from 'zod'
-import { asColor, simpleFillToShapeFill } from '../../worker/simple/color'
-import { SimpleShape } from '../../worker/simple/SimpleShape'
 import { AgentTransform } from '../AgentTransform'
+import { asColor } from '../format/SimpleColor'
+import { convertSimpleFillToTldrawFill } from '../format/SimpleFill'
+import { SimpleShape } from '../format/SimpleShape'
 import { Streaming } from '../types/Streaming'
 import { AgentEventUtil } from './AgentEventUtil'
 
@@ -289,7 +290,9 @@ export function getTldrawAiChangesFromUpdateEvent({
 
 			const color = update.color ? asColor(update.color) : shapeOnCanvas.props.color
 			const richText = update.text ? toRichText(update.text) : shapeOnCanvas.props.richText
-			const fill = update.fill ? simpleFillToShapeFill(update.fill) : shapeOnCanvas.props.fill
+			const fill = update.fill
+				? convertSimpleFillToTldrawFill(update.fill)
+				: shapeOnCanvas.props.fill
 
 			changes.push({
 				type: 'updateShape',

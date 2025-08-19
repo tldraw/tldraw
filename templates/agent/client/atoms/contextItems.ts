@@ -1,4 +1,5 @@
 import { atom, Box, exhaustiveSwitchError, structuredClone, Vec } from 'tldraw'
+import { ISimpleShape } from '../../shared/format/SimpleShape'
 import {
 	AreaContextItem,
 	ContextItem,
@@ -6,7 +7,6 @@ import {
 	ShapeContextItem,
 	ShapesContextItem,
 } from '../../shared/types/ContextItem'
-import { ISimpleShape } from '../../worker/simple/SimpleShape'
 import { persistAtomInLocalStorage } from './persistAtomInLocalStorage'
 
 export const $contextItems = atom<ContextItem[]>('context items', [])

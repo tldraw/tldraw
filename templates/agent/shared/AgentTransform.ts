@@ -1,5 +1,5 @@
 import { BoxModel, Editor, TLShapeId, VecModel } from 'tldraw'
-import { ISimpleShape } from '../worker/simple/SimpleShape'
+import { ISimpleShape } from './format/SimpleShape'
 
 /**
  * A class that helps to transform events received from the model.

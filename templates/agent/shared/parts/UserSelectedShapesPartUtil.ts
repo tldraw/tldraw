@@ -1,9 +1,8 @@
 import { structuredClone } from 'tldraw'
-import { ISimpleShape } from '../../worker/simple/SimpleShape'
 import { AgentTransform } from '../AgentTransform'
+import { convertTldrawShapeToSimpleShape, ISimpleShape } from '../format/SimpleShape'
 import { AgentPromptOptions } from '../types/AgentPrompt'
 import { PromptPartUtil } from './PromptPartUtil'
-import { convertTldrawShapeToSimpleShape } from './convertTldrawShapeToSimpleShape'
 
 export class UserSelectedShapesPartUtil extends PromptPartUtil<ISimpleShape[]> {
 	static override type = 'userSelectedShapes' as const

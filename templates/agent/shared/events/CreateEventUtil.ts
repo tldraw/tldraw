@@ -1,9 +1,10 @@
 import { defaultApplyChange, TLAiChange } from '@tldraw/ai'
 import { Editor, IndexKey, TLShapeId, toRichText } from 'tldraw'
 import z from 'zod'
-import { asColor, simpleFillToShapeFill } from '../../worker/simple/color'
-import { SimpleShape } from '../../worker/simple/SimpleShape'
 import { AgentTransform } from '../AgentTransform'
+import { asColor } from '../format/SimpleColor'
+import { convertSimpleFillToTldrawFill } from '../format/SimpleFill'
+import { SimpleShape } from '../format/SimpleShape'
 import { Streaming } from '../types/Streaming'
 import { AgentEventUtil } from './AgentEventUtil'
 
@@ -253,7 +254,7 @@ export function getTldrawAiChangesFromCreateEvent({
 						w: shape.width,
 						h: shape.height,
 						color: asColor(shape.color ?? 'black'),
-						fill: simpleFillToShapeFill(shape.fill ?? 'none'),
+						fill: convertSimpleFillToTldrawFill(shape.fill ?? 'none'),
 						richText: toRichText(shape.text ?? ''),
 					},
 					meta: {

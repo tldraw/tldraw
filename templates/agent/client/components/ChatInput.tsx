@@ -1,6 +1,6 @@
 import { FormEventHandler, useState } from 'react'
 import { Editor, useValue } from 'tldraw'
-import { convertTldrawShapeToSimpleShape } from '../../shared/parts/convertTldrawShapeToSimpleShape'
+import { convertTldrawShapeToSimpleShape } from '../../shared/format/SimpleShape'
 import { AGENT_MODEL_DEFINITIONS, AgentModelName } from '../../worker/models'
 import { $contextItems, addToContext, removeFromContext } from '../atoms/contextItems'
 import { $modelName } from '../atoms/modelName'

@@ -1,5 +1,5 @@
 import { Box, BoxModel, doesGeometryOverlapPolygon, StateNode, TLShape, VecModel } from 'tldraw'
-import { convertTldrawShapeToSimpleShape } from '../../shared/parts/convertTldrawShapeToSimpleShape'
+import { convertTldrawShapeToSimpleShape } from '../../shared/format/SimpleShape'
 import { addToContext } from '../atoms/contextItems'
 
 export class TargetShapeTool extends StateNode {

@@ -1,6 +1,6 @@
 import { BoxModel, Editor, TLGeoShapeProps, TLShape } from 'tldraw'
-import { ISimpleShape } from '../../worker/simple/SimpleShape'
 import { removeShapeIdPrefix } from '../AgentTransform'
+import { ISimpleShape } from './SimpleShape'
 
 export type BlurryShape = BoxModel & {
 	type: ISimpleShape['_type']

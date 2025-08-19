@@ -1,10 +1,8 @@
 import { Box } from 'tldraw'
-import { ISimpleShape } from '../../worker/simple/SimpleShape'
 import { AgentTransform } from '../AgentTransform'
+import { convertTldrawShapeToSimpleShape, ISimpleShape } from '../format/SimpleShape'
 import { AgentPromptOptions } from '../types/AgentPrompt'
 import { PromptPartUtil } from './PromptPartUtil'
-import { convertTldrawShapeToSimpleShape } from './convertTldrawShapeToSimpleShape'
-import { getWholePageContent } from './getWholePageContent'
 
 export class AgentViewportSimpleShapesPartUtil extends PromptPartUtil<ISimpleShape[]> {
 	static override type = 'agentViewportShapes' as const
@@ -15,11 +13,11 @@ export class AgentViewportSimpleShapesPartUtil extends PromptPartUtil<ISimpleSha
 
 	override async getPart(options: AgentPromptOptions) {
 		const { editor, request } = options
-		const currentPageContent = getWholePageContent({ editor })
+		const shapes = editor.getCurrentPageShapesSorted()
 
 		const contextBoundsBox = Box.From(request.bounds)
 
-		const shapes = currentPageContent.shapes
+		const simpleShapes = shapes
 			.map((shape) => {
 				const bounds = editor.getShapeMaskedPageBounds(shape)
 				if (!bounds) return null
@@ -28,7 +26,7 @@ export class AgentViewportSimpleShapesPartUtil extends PromptPartUtil<ISimpleSha
 			})
 			.filter((s) => s !== null)
 
-		return shapes
+		return simpleShapes
 	}
 
 	override transformPart(part: ISimpleShape[], transform: AgentTransform): ISimpleShape[] {

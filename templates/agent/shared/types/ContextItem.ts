@@ -1,6 +1,6 @@
 import { BoxModel, VecModel } from 'tldraw'
 import { AgentIconType } from '../../client/components/icons/AgentIcon'
-import { ISimpleShape } from '../../worker/simple/SimpleShape'
+import { ISimpleShape } from '../format/SimpleShape'
 
 export type ContextItem = ShapeContextItem | AreaContextItem | PointContextItem | ShapesContextItem
 

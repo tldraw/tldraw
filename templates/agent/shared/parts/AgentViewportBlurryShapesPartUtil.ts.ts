@@ -1,7 +1,6 @@
 import { Box } from 'tldraw'
+import { BlurryShape, convertTldrawShapeToBlurryShape } from '../format/BlurryShape'
 import { AgentPromptOptions } from '../types/AgentPrompt'
-import { BlurryShape, convertTldrawShapeToBlurryShape } from './convertTldrawShapeToBlurryShape'
-import { getWholePageContent } from './getWholePageContent'
 import { PromptPartUtil } from './PromptPartUtil'
 
 export class AgentViewportBlurryShapesPartUtil extends PromptPartUtil<BlurryShape[]> {
@@ -13,11 +12,11 @@ export class AgentViewportBlurryShapesPartUtil extends PromptPartUtil<BlurryShap
 
 	override async getPart(options: AgentPromptOptions) {
 		const { editor, request } = options
-		const currentPageContent = getWholePageContent({ editor })
+		const shapes = editor.getCurrentPageShapesSorted()
 
 		const contextBoundsBox = Box.From(request.bounds)
 
-		const blurryShapes = currentPageContent.shapes
+		const blurryShapes = shapes
 			.map((shape) => {
 				const bounds = editor.getShapeMaskedPageBounds(shape)
 				if (!bounds) return null

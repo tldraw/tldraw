@@ -2,7 +2,6 @@ import { Box, BoxModel, Editor, TLShape } from 'tldraw'
 import { roundBox } from '../AgentTransform'
 import { AgentPromptOptions } from '../types/AgentPrompt'
 import { PromptPartUtil } from './PromptPartUtil'
-import { getWholePageContent } from './getWholePageContent'
 
 export class PeripheralShapesPartUtil extends PromptPartUtil<BoxModel[]> {
 	static override type = 'peripheralShapes' as const
@@ -13,22 +12,20 @@ export class PeripheralShapesPartUtil extends PromptPartUtil<BoxModel[]> {
 
 	override async getPart(options: AgentPromptOptions) {
 		const { editor, request } = options
-		const currentPageContent = getWholePageContent({ editor })
+		const shapes = editor.getCurrentPageShapesSorted()
 		const contextBounds = request.bounds
 
 		const contextBoundsBox = Box.From(contextBounds)
 
 		// Get all shapes that are outside the context bounds (these are what we want to peripheralize)
-		const shapesToPeripheralize = currentPageContent.shapes.filter((shape) => {
+		const shapesToPeripheralize = shapes.filter((shape) => {
 			const bounds = editor.getShapeMaskedPageBounds(shape)
 			if (!bounds) return
 			if (contextBoundsBox.includes(bounds)) return
 			return true
 		})
 
-		const shapes = findPeripheralShapeClusters(editor, shapesToPeripheralize, 75)
-
-		return shapes
+		return findPeripheralShapeClusters(editor, shapesToPeripheralize, 75)
 	}
 
 	override transformPart(part: BoxModel[]): BoxModel[] | null {

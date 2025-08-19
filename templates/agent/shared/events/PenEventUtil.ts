@@ -1,13 +1,17 @@
 import { createShapeId, TLDrawShape, TLDrawShapeSegment, Vec, VecModel } from 'tldraw'
 import z from 'zod'
 import { AgentTransform, ensureValueIsBoolean, ensureValueIsVec } from '../AgentTransform'
+import { asColor, SimpleColor } from '../format/SimpleColor'
+import { convertSimpleFillToTldrawFill, SimpleFill } from '../format/SimpleFill'
 import { Streaming } from '../types/Streaming'
 import { AgentEventUtil } from './AgentEventUtil'
 
 const AgentPenEvent = z
 	.object({
 		_type: z.literal('pen'),
+		color: SimpleColor,
 		closed: z.boolean(),
+		fill: SimpleFill,
 		intent: z.string(),
 		points: z.array(
 			z.object({
@@ -106,8 +110,8 @@ export class PenEventUtil extends AgentEventUtil<IAgentPenEvent> {
 			x: startX,
 			y: startY,
 			props: {
-				color: 'black',
-				fill: 'none',
+				color: asColor(event.color ?? 'black'),
+				fill: convertSimpleFillToTldrawFill(event.fill ?? 'none'),
 				dash: 'draw',
 				segments,
 				isComplete: event.complete,
