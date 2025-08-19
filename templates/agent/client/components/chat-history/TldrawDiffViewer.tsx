@@ -22,8 +22,8 @@ function getDiffShapesFromDiff(diff: RecordsDiff<TLRecord>): TLShape[] {
 		Object.keys(diff.updated).length +
 		Object.keys(diff.removed).length
 
-	// If there are many shapes in the diff, use a border instead of a shadow for performance reasons
-	const mode = numberOfShapes > 20 ? 'border' : 'shadow'
+	// If there are many shapes in the diff, don't show shadows (for performance reasons)
+	const showShadows = numberOfShapes < 20
 
 	for (const key in diff.removed) {
 		const id = key as TLShapeId
@@ -31,8 +31,9 @@ function getDiffShapesFromDiff(diff: RecordsDiff<TLRecord>): TLShape[] {
 		if (prevShape.typeName !== 'shape') continue
 		const shape = {
 			...prevShape,
+			opacity: showShadows ? prevShape.opacity : prevShape.opacity / 2,
 			props: { ...prevShape.props },
-			meta: { ...prevShape.meta, changeType: 'delete-' + mode },
+			meta: { ...prevShape.meta, changeType: showShadows ? 'delete-shadow' : 'delete' },
 		}
 
 		if ('dash' in shape.props) {
@@ -54,13 +55,19 @@ function getDiffShapesFromDiff(diff: RecordsDiff<TLRecord>): TLShape[] {
 			id: (id + '-before') as TLShapeId,
 			opacity: prevAfter.opacity / 2,
 			props: { ...prevBefore.props },
-			meta: { ...prevBefore.meta, changeType: 'update-before-' + mode },
+			meta: {
+				...prevBefore.meta,
+				changeType: showShadows ? 'update-before-shadow' : 'update-before',
+			},
 		}
 
 		const after = {
 			...prevAfter,
 			props: { ...prevAfter.props },
-			meta: { ...prevAfter.meta, changeType: 'update-after-' + mode },
+			meta: {
+				...prevAfter.meta,
+				changeType: showShadows ? 'update-after-shadow' : 'update-after',
+			},
 		}
 
 		if ('dash' in before.props) {
@@ -84,7 +91,10 @@ function getDiffShapesFromDiff(diff: RecordsDiff<TLRecord>): TLShape[] {
 		const shape = {
 			...prevShape,
 			props: { ...prevShape.props },
-			meta: { ...prevShape.meta, changeType: 'create-' + mode },
+			meta: {
+				...prevShape.meta,
+				changeType: showShadows ? 'create-shadow' : 'create',
+			},
 		}
 		if ('dash' in shape.props) {
 			shape.props.dash = 'solid'
