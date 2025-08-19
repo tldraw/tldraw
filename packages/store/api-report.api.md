@@ -149,6 +149,43 @@ export interface HistoryEntry<R extends UnknownRecord = UnknownRecord> {
 // @public (undocumented)
 export type IdOf<R extends UnknownRecord> = R['id'];
 
+// @internal (undocumented)
+export class ImmutableSet<T> {
+    // (undocumented)
+    [Symbol.iterator](): Iterator<T>;
+    constructor(values?: Iterable<T> | null | undefined);
+    // (undocumented)
+    add(value: T): ImmutableSet<T>;
+    // (undocumented)
+    asImmutable(): ImmutableSet<T>;
+    // (undocumented)
+    asMutable(): ImmutableSet<T>;
+    // (undocumented)
+    clear(): ImmutableSet<T>;
+    // (undocumented)
+    delete(value: T): ImmutableSet<T>;
+    // (undocumented)
+    entries(): Iterable<[T, T]>;
+    // (undocumented)
+    forEach(callbackfn: (value: T, value2: T, set: ImmutableSet<T>) => void, thisArg?: any): void;
+    // (undocumented)
+    has(value: T): boolean;
+    // (undocumented)
+    intersect(other: ImmutableSet<T>): ImmutableSet<T>;
+    // (undocumented)
+    static intersectMany<T>(sets: ImmutableSet<T>[]): ImmutableSet<T>;
+    // (undocumented)
+    keys(): Iterable<T>;
+    // (undocumented)
+    get size(): number;
+    // (undocumented)
+    values(): Iterable<T>;
+    // (undocumented)
+    wasAltered(): boolean;
+    // (undocumented)
+    withMutations(fn: (mutable: ImmutableSet<T>) => void): ImmutableSet<T>;
+}
+
 // @internal
 export class IncrementalSetConstructor<T> {
     constructor(
@@ -333,8 +370,10 @@ export type RSIndex<R extends UnknownRecord, Property extends string & keyof R =
 // @public (undocumented)
 export type RSIndexDiff<R extends UnknownRecord, Property extends string & keyof R = string & keyof R> = Map<R[Property], CollectionDiff<IdOf<R>>>;
 
+// Warning: (ae-incompatible-release-tags) The symbol "RSIndexMap" is marked as @public, but its signature references "ImmutableSet" which is marked as @internal
+//
 // @public (undocumented)
-export type RSIndexMap<R extends UnknownRecord, Property extends string & keyof R = string & keyof R> = Map<R[Property], Set<IdOf<R>>>;
+export type RSIndexMap<R extends UnknownRecord, Property extends string & keyof R = string & keyof R> = Map<R[Property], ImmutableSet<IdOf<R>>>;
 
 // @public (undocumented)
 export type SerializedSchema = SerializedSchemaV1 | SerializedSchemaV2;
@@ -510,8 +549,14 @@ export type StoreOperationCompleteHandler = (source: 'remote' | 'user') => void;
 // @public
 export class StoreQueries<R extends UnknownRecord> {
     constructor(recordMap: AtomMap<IdOf<R>, R>, history: Atom<number, RecordsDiff<R>>);
-    // @internal
+    // @internal @deprecated
     __uncached_createIndex<TypeName extends R['typeName'], Property extends string & keyof Extract<R, {
+        typeName: TypeName;
+    }>>(typeName: TypeName, property: Property): RSIndex<Extract<R, {
+        typeName: TypeName;
+    }>, Property>;
+    // @internal
+    __uncached_createInternalIndex<TypeName extends R['typeName'], Property extends string & keyof Extract<R, {
         typeName: TypeName;
     }>>(typeName: TypeName, property: Property): RSIndex<Extract<R, {
         typeName: TypeName;
@@ -525,9 +570,10 @@ export class StoreQueries<R extends UnknownRecord> {
     filterHistory<TypeName extends R['typeName']>(typeName: TypeName): Computed<number, RecordsDiff<Extract<R, {
         typeName: TypeName;
     }>>>;
+    // Warning: (ae-incompatible-release-tags) The symbol "ids" is marked as @public, but its signature references "ImmutableSet" which is marked as @internal
     ids<TypeName extends R['typeName']>(typeName: TypeName, queryCreator?: () => QueryExpression<Extract<R, {
         typeName: TypeName;
-    }>>, name?: string): Computed<Set<IdOf<Extract<R, {
+    }>>, name?: string): Computed<ImmutableSet<IdOf<Extract<R, {
         typeName: TypeName;
     }>>>, CollectionDiff<IdOf<Extract<R, {
         typeName: TypeName;

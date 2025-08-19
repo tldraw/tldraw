@@ -1,5 +1,5 @@
 import { computed, isUninitialized, RESET_VALUE, withDiff } from '@tldraw/state'
-import { IncrementalSetConstructor } from '@tldraw/store'
+import { ImmutableSet, IncrementalSetConstructor } from '@tldraw/store'
 import {
 	isPageId,
 	isShape,
@@ -37,13 +37,14 @@ export const deriveShapeIdsInCurrentPage = (store: TLStore, getCurrentPageId: ()
 	const shapesIndex = store.query.ids('shape')
 	let lastPageId: null | TLPageId = null
 	function fromScratch() {
+		store.history.get()
 		const currentPageId = getCurrentPageId()
 		lastPageId = currentPageId
-		return new Set(
+		return new ImmutableSet(
 			[...shapesIndex.get()].filter((id) => isShapeInPage(store, currentPageId, store.get(id)!))
 		)
 	}
-	return computed<Set<TLShapeId>>('_shapeIdsInCurrentPage', (prevValue, lastComputedEpoch) => {
+	return computed<ImmutableSet<TLShapeId>>('_shapeI', (prevValue, lastComputedEpoch) => {
 		if (isUninitialized(prevValue)) {
 			return fromScratch()
 		}
@@ -60,9 +61,7 @@ export const deriveShapeIdsInCurrentPage = (store: TLStore, getCurrentPageId: ()
 			return fromScratch()
 		}
 
-		const builder = new IncrementalSetConstructor<TLShapeId>(
-			prevValue
-		) as IncrementalSetConstructor<TLShapeId>
+		const builder = new IncrementalSetConstructor<TLShapeId>(prevValue)
 
 		for (const changes of diff) {
 			for (const record of Object.values(changes.added)) {

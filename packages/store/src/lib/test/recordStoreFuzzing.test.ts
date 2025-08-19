@@ -1,6 +1,7 @@
 import { atom, EffectScheduler, RESET_VALUE } from '@tldraw/state'
 import { BaseRecord, IdOf, RecordId, UnknownRecord } from '../BaseRecord'
 import { executeQuery } from '../executeQuery'
+import { ImmutableSet } from '../ImmutableSet'
 import { createRecordType } from '../RecordType'
 import { CollectionDiff, Store } from '../Store'
 import { RSIndexDiff } from '../StoreQueries'
@@ -282,18 +283,18 @@ function getRandomOp(
 }
 
 function recreateIndexFromDiffs(diffs: RSIndexDiff<any>[]) {
-	const result = new Map<string, Set<IdOf<UnknownRecord>>>()
+	const result = new Map<string, ImmutableSet<IdOf<UnknownRecord>>>()
 	for (const diff of diffs) {
 		for (const [key, changes] of diff) {
-			const index = result.get(key) || new Set<IdOf<UnknownRecord>>()
+			let index = result.get(key) || new ImmutableSet<IdOf<UnknownRecord>>()
 			if (changes.added) {
 				for (const id of changes.added) {
-					index.add(id)
+					index = index.add(id)
 				}
 			}
 			if (changes.removed) {
 				for (const id of changes.removed) {
-					index.delete(id)
+					index = index.delete(id)
 				}
 			}
 			if (index.size === 0) {
@@ -307,16 +308,16 @@ function recreateIndexFromDiffs(diffs: RSIndexDiff<any>[]) {
 }
 
 function reacreateSetFromDiffs<T>(diffs: CollectionDiff<T>[]) {
-	const result = new Set<T>()
+	let result = new ImmutableSet<T>()
 	for (const diff of diffs) {
 		if (diff.added) {
 			for (const item of diff.added) {
-				result.add(item)
+				result = result.add(item)
 			}
 		}
 		if (diff.removed) {
 			for (const item of diff.removed) {
-				result.delete(item)
+				result = result.delete(item)
 			}
 		}
 	}
@@ -367,7 +368,7 @@ function runTest(seed: number) {
 	try {
 		let latestBooksByAuthorQueryResult: Book[] = []
 		let latestBooksByTitleQueryResult: Book[] = []
-		let latestAuthorIdsByNameQueryResult: Set<RecordId<Author>> = new Set()
+		let latestAuthorIdsByNameQueryResult: ImmutableSet<RecordId<Author>> = new ImmutableSet()
 		const authorIdsByNameDiffs: CollectionDiff<RecordId<Author>>[] = []
 		const effect = new EffectScheduler('', (lastReactedEpoch: number) => {
 			const authorNameIndexDiff = authorNameIndex.getDiffSince(lastReactedEpoch)
@@ -439,8 +440,19 @@ function runTest(seed: number) {
 				expect(authorIdIndex.get()).toEqual(authorIdIndexFromScratch)
 				// these tests recreate the index from scratch based on the diffs so far and
 				// check it against the gold standard version to make sure the diff logic matches.
-				expect(recreateIndexFromDiffs(authorNameIndexDiffs)).toEqual(authorNameIndexFromScratch)
-				expect(recreateIndexFromDiffs(authorIdIndexDiffs)).toEqual(authorIdIndexFromScratch)
+				// Convert to sorted arrays for comparison to handle ordering differences
+				const authorNameRecreated = recreateIndexFromDiffs(authorNameIndexDiffs)
+				const authorIdRecreated = recreateIndexFromDiffs(authorIdIndexDiffs)
+
+				// Compare maps by converting values to sorted arrays
+				expect(
+					[...authorNameRecreated.entries()].map(([k, v]) => [k, [...v].sort()]).sort()
+				).toEqual(
+					[...authorNameIndexFromScratch.entries()].map(([k, v]) => [k, [...v].sort()]).sort()
+				)
+				expect([...authorIdRecreated.entries()].map(([k, v]) => [k, [...v].sort()]).sort()).toEqual(
+					[...authorIdIndexFromScratch.entries()].map(([k, v]) => [k, [...v].sort()]).sort()
+				)
 				// these tests check the query results against filtering the whole record store from scratch
 				expect(latestBooksByAuthorQueryResult.sort(bookComparator)).toEqual(
 					store
@@ -450,8 +462,12 @@ function runTest(seed: number) {
 						)
 						.sort(bookComparator)
 				)
-				expect(new Set(latestBooksByAuthorQueryResult.map((b) => b.id))).toEqual(
-					executeQuery(store.query, 'book', { authorId: { eq: authorIdQueryParam.get() } })
+				expect(
+					[...new ImmutableSet(latestBooksByAuthorQueryResult.map((b) => b.id))].sort()
+				).toEqual(
+					[
+						...executeQuery(store.query, 'book', { authorId: { eq: authorIdQueryParam.get() } }),
+					].sort()
 				)
 				expect(latestBooksByTitleQueryResult.sort(bookComparator)).toEqual(
 					store
@@ -461,25 +477,34 @@ function runTest(seed: number) {
 						)
 						.sort(bookComparator)
 				)
-				expect(new Set(latestBooksByTitleQueryResult.map((b) => b.id))).toEqual(
-					executeQuery(store.query, 'book', { title: { eq: bookTitleQueryParam.get() } })
+				expect(
+					[...new ImmutableSet(latestBooksByTitleQueryResult.map((b) => b.id))].sort()
+				).toEqual(
+					[
+						...executeQuery(store.query, 'book', { title: { eq: bookTitleQueryParam.get() } }),
+					].sort()
 				)
-				expect(latestAuthorIdsByNameQueryResult).toEqual(
-					new Set(
-						store
-							.allRecords()
-							.filter(
-								(r): r is Author => r.typeName === 'author' && r.name !== authorNameQueryParam.get()
-							)
-							.map((r) => r.id)
-					)
+				expect([...latestAuthorIdsByNameQueryResult].sort()).toEqual(
+					[
+						...new ImmutableSet(
+							store
+								.allRecords()
+								.filter(
+									(r): r is Author =>
+										r.typeName === 'author' && r.name !== authorNameQueryParam.get()
+								)
+								.map((r) => r.id)
+						),
+					].sort()
 				)
-				expect(latestAuthorIdsByNameQueryResult).toEqual(
-					executeQuery(store.query, 'author', { name: { neq: authorNameQueryParam.get() } })
+				expect([...latestAuthorIdsByNameQueryResult].sort()).toEqual(
+					[
+						...executeQuery(store.query, 'author', { name: { neq: authorNameQueryParam.get() } }),
+					].sort()
 				)
 				// this test checks that the authorIdsByName set matches what you get when you reassemble it from the diffs
-				expect(reacreateSetFromDiffs(authorIdsByNameDiffs)).toEqual(
-					latestAuthorIdsByNameQueryResult
+				expect([...reacreateSetFromDiffs(authorIdsByNameDiffs)].sort()).toEqual(
+					[...latestAuthorIdsByNameQueryResult].sort()
 				)
 			}
 		}
@@ -498,6 +523,10 @@ for (let i = 0; i < NUM_TESTS; i++) {
 }
 
 // regression tests
+test('(regression) with seed 862126', () => {
+	runTest(862126)
+})
+
 test('(regression) with seed 128383', () => {
 	runTest(128383)
 })

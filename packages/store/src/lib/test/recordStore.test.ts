@@ -278,14 +278,14 @@ describe('Store', () => {
 		store.put([Author.create({ name: 'J.R.R Tolkein', id: Author.createId('tolkein') })])
 
 		expect(lastIdDiff).toMatchInlineSnapshot(`
-		      [
-		        {
-		          "added": Set {
-		            "author:tolkein",
-		          },
-		        },
-		      ]
-	    `)
+		[
+		  {
+		    "added": Set {
+		      "author:tolkein",
+		    },
+		  },
+		]
+	`)
 
 		transact(() => {
 			store.put([Author.create({ name: 'James McAvoy', id: Author.createId('mcavoy') })])
@@ -294,18 +294,18 @@ describe('Store', () => {
 		})
 
 		expect(lastIdDiff).toMatchInlineSnapshot(`
-		      [
-		        {
-		          "added": Set {
-		            "author:mcavoy",
-		            "author:cassidy",
-		          },
-		          "removed": Set {
-		            "author:tolkein",
-		          },
-		        },
-		      ]
-	    `)
+		[
+		  {
+		    "added": Set {
+		      "author:mcavoy",
+		      "author:cassidy",
+		    },
+		    "removed": Set {
+		      "author:tolkein",
+		    },
+		  },
+		]
+	`)
 	})
 
 	it('supports listening for changes to the whole store', async () => {

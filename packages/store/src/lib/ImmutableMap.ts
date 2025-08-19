@@ -197,7 +197,7 @@ export class ImmutableMap<K, V> {
 	// @ts-ignore
 	size: number
 	// @ts-ignore
-	__ownerID: OwnerID
+	__ownerID: OwnerID | null = null
 	// @ts-ignore
 	__hash: number | undefined
 	// @ts-ignore
@@ -217,7 +217,8 @@ export class ImmutableMap<K, V> {
 	}
 
 	get(k: K): V | undefined
-	get(k: K, notSetValue?: V): V {
+	get(k: K, notSetValue?: V): V
+	get(k: K, notSetValue?: V) {
 		return this._root ? this._root.get(0, undefined as any, k, notSetValue)! : notSetValue!
 	}
 
@@ -237,7 +238,7 @@ export class ImmutableMap<K, V> {
 		})
 	}
 
-	__ensureOwner(ownerID: OwnerID) {
+	__ensureOwner(ownerID: OwnerID | null) {
 		if (ownerID === this.__ownerID) {
 			return this
 		}
@@ -265,6 +266,9 @@ export class ImmutableMap<K, V> {
 	asMutable() {
 		return this.__ownerID ? this : this.__ensureOwner(new OwnerID())
 	}
+	asImmutable() {
+		return this.__ensureOwner(null)
+	}
 
 	[Symbol.iterator](): Iterator<[K, V]> {
 		return this.entries()[Symbol.iterator]()
@@ -281,6 +285,18 @@ export class ImmutableMap<K, V> {
 	values(): Iterable<V> {
 		return new MapIterator(this, ITERATE_VALUES, false)
 	}
+
+	equals(other: ImmutableMap<K, V>): boolean {
+		if (this === other) return true
+		if (this.size !== other.size) return false
+
+		for (const [key, value] of this.entries()) {
+			if (!is(other.get(key, NOT_SET as any), value)) {
+				return false
+			}
+		}
+		return true
+	}
 }
 
 type MapNode<K, V> =
@@ -294,7 +310,7 @@ type MapNode<K, V> =
 
 class ArrayMapNode<K, V> {
 	constructor(
-		public ownerID: OwnerID,
+		public ownerID: OwnerID | null,
 		public entries: Array<[K, V]>
 	) {}
 
@@ -309,7 +325,7 @@ class ArrayMapNode<K, V> {
 	}
 
 	update(
-		ownerID: OwnerID,
+		ownerID: OwnerID | null,
 		_shift: unknown,
 		_keyHash: unknown,
 		key: K,
@@ -370,7 +386,7 @@ class ArrayMapNode<K, V> {
 
 class BitmapIndexedNode<K, V> {
 	constructor(
-		public ownerID: OwnerID,
+		public ownerID: OwnerID | null,
 		public bitmap: number,
 		public nodes: Array<MapNode<K, V>>
 	) {}
@@ -387,7 +403,7 @@ class BitmapIndexedNode<K, V> {
 	}
 
 	update(
-		ownerID: OwnerID,
+		ownerID: OwnerID | null,
 		shift: number,
 		keyHash: number,
 		key: K,
@@ -437,7 +453,7 @@ class BitmapIndexedNode<K, V> {
 			return newNode
 		}
 
-		const isEditable = ownerID && ownerID === this.ownerID
+		const isEditable = (ownerID && ownerID === this.ownerID) ?? false
 		const newBitmap = exists ? (newNode ? bitmap : bitmap ^ bit) : bitmap | bit
 		const newNodes = exists
 			? newNode
@@ -457,7 +473,7 @@ class BitmapIndexedNode<K, V> {
 
 class HashArrayMapNode<K, V> {
 	constructor(
-		public ownerID: OwnerID,
+		public ownerID: OwnerID | null,
 		public count: number,
 		public nodes: Array<MapNode<K, V>>
 	) {}
@@ -472,7 +488,7 @@ class HashArrayMapNode<K, V> {
 	}
 
 	update(
-		ownerID: OwnerID,
+		ownerID: OwnerID | null,
 		shift: number,
 		keyHash: number,
 		key: K,
@@ -516,7 +532,7 @@ class HashArrayMapNode<K, V> {
 			}
 		}
 
-		const isEditable = ownerID && ownerID === this.ownerID
+		const isEditable = (ownerID && ownerID === this.ownerID) ?? false
 		const newNodes = setAt(nodes, idx, newNode!, isEditable)
 
 		if (isEditable) {
@@ -531,7 +547,7 @@ class HashArrayMapNode<K, V> {
 
 class HashCollisionNode<K, V> {
 	constructor(
-		public ownerID: OwnerID,
+		public ownerID: OwnerID | null,
 		public keyHash: number,
 		public entries: Array<[K, V]>
 	) {}
@@ -547,7 +563,7 @@ class HashCollisionNode<K, V> {
 	}
 
 	update(
-		ownerID: OwnerID,
+		ownerID: OwnerID | null,
 		shift: number,
 		keyHash: number,
 		key: K,
@@ -617,7 +633,7 @@ class HashCollisionNode<K, V> {
 
 class ValueNode<K, V> {
 	constructor(
-		public ownerID: OwnerID,
+		public ownerID: OwnerID | null,
 		public keyHash: number | undefined,
 		public entry: [K, V]
 	) {}
@@ -627,7 +643,7 @@ class ValueNode<K, V> {
 	}
 
 	update(
-		ownerID: OwnerID,
+		ownerID: OwnerID | null,
 		shift: number,
 		keyHash: number | undefined,
 		key: K,
@@ -806,7 +822,7 @@ function updateMap<K, V>(map: ImmutableMap<K, V>, k: K, v: V) {
 
 function updateNode<K, V>(
 	node: MapNode<K, V> | undefined,
-	ownerID: OwnerID,
+	ownerID: OwnerID | null,
 	shift: number,
 	keyHash: number | undefined,
 	key: K,
@@ -831,7 +847,7 @@ function isLeafNode(node: MapNode<unknown, unknown>) {
 
 function mergeIntoNode<K, V>(
 	node: any,
-	ownerID: OwnerID,
+	ownerID: OwnerID | null,
 	shift: number,
 	keyHash: number,
 	entry: [K, V]
@@ -853,7 +869,7 @@ function mergeIntoNode<K, V>(
 	return new BitmapIndexedNode(ownerID, (1 << idx1) | (1 << idx2), nodes)
 }
 
-function createNodes<K, V>(ownerID: OwnerID, entries: [K, V][], key: K, value: V) {
+function createNodes<K, V>(ownerID: OwnerID | null, entries: [K, V][], key: K, value: V) {
 	if (!ownerID) {
 		ownerID = new OwnerID()
 	}
@@ -866,7 +882,7 @@ function createNodes<K, V>(ownerID: OwnerID, entries: [K, V][], key: K, value: V
 }
 
 function packNodes<K, V>(
-	ownerID: OwnerID,
+	ownerID: OwnerID | null,
 	nodes: MapNode<K, V>[],
 	count: number,
 	excluding: number
@@ -885,7 +901,7 @@ function packNodes<K, V>(
 }
 
 function expandNodes<K, V>(
-	ownerID: OwnerID,
+	ownerID: OwnerID | null,
 	nodes: MapNode<K, V>[],
 	bitmap: number,
 	including: number,

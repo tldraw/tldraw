@@ -3,6 +3,7 @@ export { AtomMap } from './lib/AtomMap'
 export type { BaseRecord, IdOf, RecordId, UnknownRecord } from './lib/BaseRecord'
 export { devFreeze } from './lib/devFreeze'
 export { type QueryExpression, type QueryValueMatcher } from './lib/executeQuery'
+export { ImmutableSet } from './lib/ImmutableSet'
 export { IncrementalSetConstructor } from './lib/IncrementalSetConstructor'
 export {
 	createMigrationIds,

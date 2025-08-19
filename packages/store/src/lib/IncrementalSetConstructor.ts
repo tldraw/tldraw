@@ -1,3 +1,4 @@
+import { ImmutableSet } from './ImmutableSet'
 import { CollectionDiff } from './Store'
 
 /**
@@ -11,7 +12,7 @@ export class IncrementalSetConstructor<T> {
 	 *
 	 * @internal
 	 */
-	private nextValue?: Set<T>
+	private nextValue?: ImmutableSet<T>
 
 	/**
 	 * The diff of the set.
@@ -27,7 +28,7 @@ export class IncrementalSetConstructor<T> {
 		 * @internal
 		 * @readonly
 		 */
-		private readonly previousValue: Set<T>
+		private readonly previousValue: ImmutableSet<T>
 	) {}
 
 	/**
@@ -41,7 +42,7 @@ export class IncrementalSetConstructor<T> {
 		if (numRemoved === 0 && numAdded === 0) {
 			return undefined
 		}
-		return { value: this.nextValue!, diff: this.diff! }
+		return { value: this.nextValue!.asImmutable(), diff: this.diff! }
 	}
 
 	/**
@@ -52,8 +53,8 @@ export class IncrementalSetConstructor<T> {
 	 * @internal
 	 */
 	private _add(item: T, wasAlreadyPresent: boolean) {
-		this.nextValue ??= new Set(this.previousValue)
-		this.nextValue.add(item)
+		this.nextValue ??= this.previousValue.asMutable()
+		this.nextValue = this.nextValue.add(item)
 
 		this.diff ??= {}
 		if (wasAlreadyPresent) {
@@ -93,8 +94,8 @@ export class IncrementalSetConstructor<T> {
 	 * @internal
 	 */
 	private _remove(item: T, wasAlreadyPresent: boolean) {
-		this.nextValue ??= new Set(this.previousValue)
-		this.nextValue.delete(item)
+		this.nextValue ??= this.previousValue.asMutable()
+		this.nextValue = this.nextValue.delete(item)
 
 		this.diff ??= {}
 		if (wasAlreadyPresent) {

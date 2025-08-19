@@ -1,12 +1,12 @@
 import { Computed, computed, isUninitialized, RESET_VALUE } from '@tldraw/state'
-import { CollectionDiff, RecordsDiff } from '@tldraw/store'
+import { CollectionDiff, ImmutableSet, RecordsDiff } from '@tldraw/store'
 import { isShape, TLParentId, TLRecord, TLShape, TLShapeId, TLStore } from '@tldraw/tlschema'
 import { compact, sortByIndex } from '@tldraw/utils'
 
 type ParentShapeIdsToChildShapeIds = Record<TLParentId, TLShapeId[]>
 
 function fromScratch(
-	shapeIdsQuery: Computed<Set<TLShapeId>, CollectionDiff<TLShapeId>>,
+	shapeIdsQuery: Computed<ImmutableSet<TLShapeId>, CollectionDiff<TLShapeId>>,
 	store: TLStore
 ) {
 	const result: ParentShapeIdsToChildShapeIds = {}

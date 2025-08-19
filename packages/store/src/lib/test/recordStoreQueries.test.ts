@@ -87,27 +87,31 @@ describe('indexes', () => {
 	it('can be made on any property', () => {
 		const authorNameIndex = store.query.index('author', 'name')
 
-		expect(authorNameIndex.get().get('J.R.R. Tolkein')).toEqual(new Set([authors.tolkein.id]))
-		expect(authorNameIndex.get().get('David Mitchell')).toEqual(
+		expect(new Set(authorNameIndex.get().get('J.R.R. Tolkein'))).toEqual(
+			new Set([authors.tolkein.id])
+		)
+		expect(new Set(authorNameIndex.get().get('David Mitchell'))).toEqual(
 			new Set([authors.davidMitchellFunny.id, authors.davidMitchellSerious.id])
 		)
 
 		const bookTitleIndex = store.query.index('book', 'title')
-		expect(bookTitleIndex.get().get('Cloud Atlas')).toEqual(new Set([books.cloudAtlas.id]))
-		expect(bookTitleIndex.get().get('Lord of the Rings')).toEqual(new Set([books.lotr.id]))
+		expect(new Set(bookTitleIndex.get().get('Cloud Atlas'))).toEqual(new Set([books.cloudAtlas.id]))
+		expect(new Set(bookTitleIndex.get().get('Lord of the Rings'))).toEqual(new Set([books.lotr.id]))
 	})
 
 	it('can have things added when records are added', () => {
 		const authorNameIndex = store.query.index('author', 'name')
 		// deref to make it compute once
-		expect(authorNameIndex.get().get('J.R.R. Tolkein')).toEqual(new Set([authors.tolkein.id]))
+		expect(new Set(authorNameIndex.get().get('J.R.R. Tolkein'))).toEqual(
+			new Set([authors.tolkein.id])
+		)
 
 		let lastChangedEpoch = authorNameIndex.lastChangedEpoch
 		const newAuthor = Author.create({ name: 'New Author' })
 
 		store.put([newAuthor])
 
-		expect(authorNameIndex.get().get('New Author')).toEqual(new Set([newAuthor.id]))
+		expect(new Set(authorNameIndex.get().get('New Author'))).toEqual(new Set([newAuthor.id]))
 
 		const diff = authorNameIndex.getDiffSince(lastChangedEpoch)
 		if (diff === RESET_VALUE) throw new Error('should not be reset')
@@ -126,7 +130,7 @@ describe('indexes', () => {
 		lastChangedEpoch = authorNameIndex.lastChangedEpoch
 		store.put(moreNewAuthors)
 
-		expect(authorNameIndex.get().get('New Author')).toEqual(
+		expect(new Set(authorNameIndex.get().get('New Author'))).toEqual(
 			new Set([newAuthor.id, ...moreNewAuthors.map((a) => a.id)])
 		)
 
@@ -135,19 +139,23 @@ describe('indexes', () => {
 		if (diff2 === RESET_VALUE) throw new Error('should not be reset')
 
 		expect(diff2).toHaveLength(1)
-		expect(diff2[0].get('New Author')).toEqual({ added: new Set(moreNewAuthors.map((a) => a.id)) })
+		expect(diff2[0].get('New Author')).toEqual({
+			added: new Set(moreNewAuthors.map((a) => a.id)),
+		})
 	})
 
 	it('can have things added when records are updated', () => {
 		const authorNameIndex = store.query.index('author', 'name')
 
-		expect(authorNameIndex.get().get('J.R.R. Tolkein')).toEqual(new Set([authors.tolkein.id]))
+		expect(new Set(authorNameIndex.get().get('J.R.R. Tolkein'))).toEqual(
+			new Set([authors.tolkein.id])
+		)
 
 		let lastChangedEpoch = authorNameIndex.lastChangedEpoch
 
 		store.put([{ ...authors.bradbury, name: 'J.R.R. Tolkein' }])
 
-		expect(authorNameIndex.get().get('J.R.R. Tolkein')).toEqual(
+		expect(new Set(authorNameIndex.get().get('J.R.R. Tolkein'))).toEqual(
 			new Set([authors.tolkein.id, authors.bradbury.id])
 		)
 
@@ -169,7 +177,7 @@ describe('indexes', () => {
 			{ ...authors.davidMitchellSerious, name: 'J.R.R. Tolkein' },
 		])
 
-		expect(authorNameIndex.get().get('J.R.R. Tolkein')).toEqual(
+		expect(new Set(authorNameIndex.get().get('J.R.R. Tolkein'))).toEqual(
 			new Set([
 				authors.tolkein.id,
 				authors.bradbury.id,
@@ -197,7 +205,9 @@ describe('indexes', () => {
 	it('can have things removed when records are removed', () => {
 		const authorNameIndex = store.query.index('author', 'name')
 
-		expect(authorNameIndex.get().get('J.R.R. Tolkein')).toEqual(new Set([authors.tolkein.id]))
+		expect(new Set(authorNameIndex.get().get('J.R.R. Tolkein'))).toEqual(
+			new Set([authors.tolkein.id])
+		)
 
 		let lastChangedEpoch = authorNameIndex.lastChangedEpoch
 
@@ -241,14 +251,16 @@ describe('indexes', () => {
 
 	it('can have things removed when records are updated', () => {
 		const authorNameIndex = store.query.index('author', 'name')
-		expect(authorNameIndex.get().get('J.R.R. Tolkein')).toEqual(new Set([authors.tolkein.id]))
+		expect(new Set(authorNameIndex.get().get('J.R.R. Tolkein'))).toEqual(
+			new Set([authors.tolkein.id])
+		)
 
 		let lastChangedEpoch = authorNameIndex.lastChangedEpoch
 
 		store.put([{ ...authors.tolkein, name: 'Ray Bradbury' }])
 
-		expect(authorNameIndex.get().get('Ray Bradbury')).toEqual(
-			new Set([authors.tolkein.id, authors.bradbury.id])
+		expect([...authorNameIndex.get().get('Ray Bradbury')!].sort()).toEqual(
+			[authors.tolkein.id, authors.bradbury.id].sort()
 		)
 		expect(authorNameIndex.get().get('J.R.R. Tolkein')).toEqual(undefined)
 
@@ -270,13 +282,13 @@ describe('indexes', () => {
 			{ ...authors.davidMitchellSerious, name: 'Ray Bradbury' },
 		])
 
-		expect(authorNameIndex.get().get('Ray Bradbury')).toEqual(
-			new Set([
+		expect([...authorNameIndex.get().get('Ray Bradbury')!].sort()).toEqual(
+			[
 				authors.tolkein.id,
 				authors.bradbury.id,
 				authors.davidMitchellFunny.id,
 				authors.davidMitchellSerious.id,
-			])
+			].sort()
 		)
 		expect(authorNameIndex.get().get('David Mitchell')).toEqual(undefined)
 
@@ -298,7 +310,9 @@ describe('indexes', () => {
 
 	it('handles things being removed and added for the same value at the same time', () => {
 		const authorNameIndex = store.query.index('author', 'name')
-		expect(authorNameIndex.get().get('J.R.R. Tolkein')).toEqual(new Set([authors.tolkein.id]))
+		expect(new Set(authorNameIndex.get().get('J.R.R. Tolkein'))).toEqual(
+			new Set([authors.tolkein.id])
+		)
 
 		let lastChangedEpoch = authorNameIndex.lastChangedEpoch
 
@@ -307,7 +321,7 @@ describe('indexes', () => {
 		const newAuthor = Author.create({ name: 'J.R.R. Tolkein' })
 		store.put([newAuthor])
 
-		expect(authorNameIndex.get().get('J.R.R. Tolkein')).toEqual(new Set([newAuthor.id]))
+		expect(new Set(authorNameIndex.get().get('J.R.R. Tolkein'))).toEqual(new Set([newAuthor.id]))
 
 		const diff = authorNameIndex.getDiffSince(lastChangedEpoch)
 
@@ -326,11 +340,11 @@ describe('indexes', () => {
 		store.put([{ ...authors.davidMitchellFunny, name: 'Ray Bradbury' }])
 		store.put([{ ...authors.bradbury, name: 'David Mitchell' }])
 
-		expect(authorNameIndex.get().get('Ray Bradbury')).toEqual(
-			new Set([authors.davidMitchellFunny.id])
+		expect([...authorNameIndex.get().get('Ray Bradbury')!].sort()).toEqual(
+			[authors.davidMitchellFunny.id].sort()
 		)
-		expect(authorNameIndex.get().get('David Mitchell')).toEqual(
-			new Set([authors.bradbury.id, authors.davidMitchellSerious.id])
+		expect([...authorNameIndex.get().get('David Mitchell')!].sort()).toEqual(
+			[authors.bradbury.id, authors.davidMitchellSerious.id].sort()
 		)
 
 		const diff2 = authorNameIndex.getDiffSince(lastChangedEpoch)
@@ -354,13 +368,17 @@ describe('indexes', () => {
 	it('has the same value if nothing changed', () => {
 		const authorNameIndex = store.query.index('author', 'name')
 
-		expect(authorNameIndex.get().get('J.R.R. Tolkein')).toEqual(new Set([authors.tolkein.id]))
+		expect(new Set(authorNameIndex.get().get('J.R.R. Tolkein'))).toEqual(
+			new Set([authors.tolkein.id])
+		)
 
 		const lastChangedEpoch = authorNameIndex.lastChangedEpoch
 
 		store.put([{ ...authors.tolkein, age: 23 }])
 
-		expect(authorNameIndex.get().get('J.R.R. Tolkein')).toEqual(new Set([authors.tolkein.id]))
+		expect(new Set(authorNameIndex.get().get('J.R.R. Tolkein'))).toEqual(
+			new Set([authors.tolkein.id])
+		)
 
 		expect(lastChangedEpoch).toBe(authorNameIndex.lastChangedEpoch)
 	})
@@ -370,43 +388,43 @@ describe('queries for ids', () => {
 	it('can query for all values of a given type', () => {
 		const bookQuery = store.query.ids('book')
 
-		expect(bookQuery.get()).toEqual(
-			new Set([books.cloudAtlas.id, books.farenheit.id, books.lotr.id, books.myLifeInComedy.id])
+		expect([...bookQuery.get()].sort()).toEqual(
+			[books.cloudAtlas.id, books.farenheit.id, books.lotr.id, books.myLifeInComedy.id].sort()
 		)
 
 		const authorQuery = store.query.ids('author')
 
-		expect(authorQuery.get()).toEqual(
-			new Set([
+		expect([...authorQuery.get()].sort()).toEqual(
+			[
 				authors.bradbury.id,
 				authors.davidMitchellFunny.id,
 				authors.davidMitchellSerious.id,
 				authors.tolkein.id,
-			])
+			].sort()
 		)
 
 		const newAuthor = Author.create({ name: 'J.R.R. Tolkein' })
 		const newBook = Book.create({ title: 'The Hobbit', authorId: newAuthor.id })
 		store.put([newAuthor, newBook])
 
-		expect(bookQuery.get()).toEqual(
-			new Set([
+		expect([...bookQuery.get()].sort()).toEqual(
+			[
 				books.cloudAtlas.id,
 				books.farenheit.id,
 				books.lotr.id,
 				books.myLifeInComedy.id,
 				newBook.id,
-			])
+			].sort()
 		)
 
-		expect(authorQuery.get()).toEqual(
-			new Set([
+		expect([...authorQuery.get()].sort()).toEqual(
+			[
 				authors.bradbury.id,
 				authors.davidMitchellFunny.id,
 				authors.davidMitchellSerious.id,
 				authors.tolkein.id,
 				newAuthor.id,
-			])
+			].sort()
 		)
 	})
 
@@ -415,13 +433,13 @@ describe('queries for ids', () => {
 			name: { eq: 'J.R.R. Tolkein' },
 		}))
 
-		expect(jrr.get()).toEqual(new Set([authors.tolkein.id]))
+		expect(new Set(jrr.get())).toEqual(new Set([authors.tolkein.id]))
 
 		const mitchell = store.query.ids('author', () => ({
 			name: { eq: 'David Mitchell' },
 		}))
 
-		expect(mitchell.get()).toEqual(
+		expect(new Set(mitchell.get())).toEqual(
 			new Set([authors.davidMitchellFunny.id, authors.davidMitchellSerious.id])
 		)
 	})
@@ -434,7 +452,7 @@ describe('queries for ids', () => {
 			age: { eq: 30 },
 		}))
 
-		expect(mitchell30.get()).toEqual(new Set([authors.davidMitchellFunny.id]))
+		expect(new Set(mitchell30.get())).toEqual(new Set([authors.davidMitchellFunny.id]))
 	})
 
 	it('can use a reactive query', () => {
@@ -448,12 +466,12 @@ describe('queries for ids', () => {
 			age: { eq: currentAge.get() },
 		}))
 
-		expect(mitchell30.get()).toEqual(new Set([authors.davidMitchellFunny.id]))
+		expect(new Set(mitchell30.get())).toEqual(new Set([authors.davidMitchellFunny.id]))
 
 		let lastChangedEpoch = mitchell30.lastChangedEpoch
 		currentAge.set(23)
 
-		expect(mitchell30.get()).toEqual(new Set([authors.davidMitchellSerious.id]))
+		expect(new Set(mitchell30.get())).toEqual(new Set([authors.davidMitchellSerious.id]))
 
 		const diff = mitchell30.getDiffSince(lastChangedEpoch)
 
@@ -469,7 +487,7 @@ describe('queries for ids', () => {
 
 		lastChangedEpoch = mitchell30.lastChangedEpoch
 
-		expect(mitchell30.get()).toEqual(new Set([authors.tolkein.id]))
+		expect(new Set(mitchell30.get())).toEqual(new Set([authors.tolkein.id]))
 
 		const diff2 = mitchell30.getDiffSince(lastChangedEpoch)
 
@@ -489,13 +507,13 @@ describe('queries for ids', () => {
 			name: { neq: 'David Mitchell' },
 		}))
 
-		expect(mitchell.get()).toEqual(new Set([authors.tolkein.id, authors.bradbury.id]))
+		expect(new Set(mitchell.get())).toEqual(new Set([authors.tolkein.id, authors.bradbury.id]))
 
 		const ageNot23 = store.query.ids('author', () => ({
 			age: { neq: 23 },
 		}))
 
-		expect(ageNot23.get()).toEqual(new Set([authors.davidMitchellFunny.id]))
+		expect(new Set(ageNot23.get())).toEqual(new Set([authors.davidMitchellFunny.id]))
 	})
 
 	it('supports records being added', () => {
@@ -503,14 +521,14 @@ describe('queries for ids', () => {
 			name: { eq: 'David Mitchell' },
 		}))
 
-		expect(mitchell.get()).toEqual(
+		expect(new Set(mitchell.get())).toEqual(
 			new Set([authors.davidMitchellFunny.id, authors.davidMitchellSerious.id])
 		)
 
 		const newAuthor = Author.create({ name: 'David Mitchell' })
 		store.put([newAuthor])
 
-		expect(mitchell.get()).toEqual(
+		expect(new Set(mitchell.get())).toEqual(
 			new Set([authors.davidMitchellFunny.id, authors.davidMitchellSerious.id, newAuthor.id])
 		)
 	})
@@ -520,13 +538,13 @@ describe('queries for ids', () => {
 			name: { eq: 'David Mitchell' },
 		}))
 
-		expect(mitchell.get()).toEqual(
+		expect(new Set(mitchell.get())).toEqual(
 			new Set([authors.davidMitchellFunny.id, authors.davidMitchellSerious.id])
 		)
 
 		store.remove([authors.davidMitchellFunny.id])
 
-		expect(mitchell.get()).toEqual(new Set([authors.davidMitchellSerious.id]))
+		expect(new Set(mitchell.get())).toEqual(new Set([authors.davidMitchellSerious.id]))
 	})
 
 	it('supports records being updated', () => {
@@ -535,17 +553,17 @@ describe('queries for ids', () => {
 			age: { neq: 30 },
 		}))
 
-		expect(mitchell.get()).toEqual(
+		expect(new Set(mitchell.get())).toEqual(
 			new Set([authors.davidMitchellFunny.id, authors.davidMitchellSerious.id])
 		)
 
 		store.put([{ ...authors.davidMitchellFunny, age: 30 }])
 
-		expect(mitchell.get()).toEqual(new Set([authors.davidMitchellSerious.id]))
+		expect(new Set(mitchell.get())).toEqual(new Set([authors.davidMitchellSerious.id]))
 
 		store.put([{ ...authors.davidMitchellFunny, age: 23 }])
 
-		expect(mitchell.get()).toEqual(
+		expect(new Set(mitchell.get())).toEqual(
 			new Set([authors.davidMitchellSerious.id, authors.davidMitchellFunny.id])
 		)
 	})
@@ -555,7 +573,7 @@ describe('queries for ids', () => {
 			name: { eq: 'David Mitchell' },
 		}))
 
-		expect(mitchell.get()).toEqual(
+		expect(new Set(mitchell.get())).toEqual(
 			new Set([authors.davidMitchellFunny.id, authors.davidMitchellSerious.id])
 		)
 
@@ -580,7 +598,7 @@ describe('queries for ids', () => {
 			name: { eq: 'David Mitchell' },
 		}))
 
-		expect(mitchell.get()).toEqual(
+		expect(new Set(mitchell.get())).toEqual(
 			new Set([authors.davidMitchellFunny.id, authors.davidMitchellSerious.id])
 		)
 
@@ -604,7 +622,7 @@ describe('queries for ids', () => {
 			name: { eq: 'David Mitchell' },
 		}))
 
-		expect(mitchell.get()).toEqual(
+		expect(new Set(mitchell.get())).toEqual(
 			new Set([authors.davidMitchellFunny.id, authors.davidMitchellSerious.id])
 		)
 
@@ -623,7 +641,7 @@ describe('queries for ids', () => {
 			name: { eq: 'David Mitchell' },
 		}))
 
-		expect(mitchell.get()).toEqual(
+		expect(new Set(mitchell.get())).toEqual(
 			new Set([authors.davidMitchellFunny.id, authors.davidMitchellSerious.id])
 		)
 

@@ -11,6 +11,7 @@ import { areArraysShallowEqual, isEqual, objectMapValues } from '@tldraw/utils'
 import { AtomMap } from './AtomMap'
 import { IdOf, UnknownRecord } from './BaseRecord'
 import { executeQuery, objectMatchesQuery, QueryExpression } from './executeQuery'
+import { ImmutableSet } from './ImmutableSet'
 import { IncrementalSetConstructor } from './IncrementalSetConstructor'
 import { RecordsDiff } from './RecordsDiff'
 import { diffSets } from './setUtils'
@@ -26,7 +27,7 @@ export type RSIndexDiff<
 export type RSIndexMap<
 	R extends UnknownRecord,
 	Property extends string & keyof R = string & keyof R,
-> = Map<R[Property], Set<IdOf<R>>>
+> = Map<R[Property], ImmutableSet<IdOf<R>>>
 
 /** @public */
 export type RSIndex<
@@ -173,14 +174,13 @@ export class StoreQueries<R extends UnknownRecord> {
 		}
 
 		const index = this.__uncached_createIndex(typeName, property)
-
 		this.indexCache.set(cacheKey, index as any)
 
 		return index
 	}
 
 	/**
-	 * Create a derivation that returns an index on a property for the given type.
+	 * Create a derivation that returns an internal index using ImmutableSet.
 	 *
 	 * @param typeName - The name of the type?.
 	 * @param property - The name of the property?.
@@ -194,19 +194,22 @@ export class StoreQueries<R extends UnknownRecord> {
 
 		const typeHistory = this.filterHistory(typeName)
 
-		const fromScratch = () => {
+		const fromScratchCreateIndex = () => {
 			// deref typeHistory early so that the first time the incremental version runs
 			// it gets a diff to work with instead of having to bail to this from-scratch version
 			typeHistory.get()
-			const res = new Map<S[Property], Set<IdOf<S>>>()
+			const res = new Map<S[Property], ImmutableSet<IdOf<S>>>()
 			for (const record of this.recordMap.values()) {
 				if (record.typeName === typeName) {
 					const value = (record as S)[property]
-					if (!res.has(value)) {
-						res.set(value, new Set())
-					}
-					res.get(value)!.add(record.id)
+					const set = res.get(value) ?? new ImmutableSet<IdOf<S>>().asMutable()
+					res.set(value, set.add(record.id))
 				}
+			}
+
+			// Convert all mutable sets to immutable
+			for (const [key, mutableSet] of res) {
+				res.set(key, mutableSet.asImmutable())
 			}
 
 			return res
@@ -215,28 +218,31 @@ export class StoreQueries<R extends UnknownRecord> {
 		return computed<RSIndexMap<S, Property>, RSIndexDiff<S, Property>>(
 			'index:' + typeName + ':' + property,
 			(prevValue, lastComputedEpoch) => {
-				if (isUninitialized(prevValue)) return fromScratch()
+				if (isUninitialized(prevValue)) return fromScratchCreateIndex()
 
 				const history = typeHistory.getDiffSince(lastComputedEpoch)
 				if (history === RESET_VALUE) {
-					return fromScratch()
+					return fromScratchCreateIndex()
 				}
 
 				const setConstructors = new Map<any, IncrementalSetConstructor<IdOf<S>>>()
 
 				const add = (value: S[Property], id: IdOf<S>) => {
 					let setConstructor = setConstructors.get(value)
-					if (!setConstructor)
-						setConstructor = new IncrementalSetConstructor<IdOf<S>>(
-							prevValue.get(value) ?? new Set()
-						)
+					if (!setConstructor) {
+						const currentImmutableSet = prevValue.get(value) ?? new ImmutableSet()
+						setConstructor = new IncrementalSetConstructor<IdOf<S>>(currentImmutableSet)
+					}
 					setConstructor.add(id)
 					setConstructors.set(value, setConstructor)
 				}
 
 				const remove = (value: S[Property], id: IdOf<S>) => {
 					let set = setConstructors.get(value)
-					if (!set) set = new IncrementalSetConstructor<IdOf<S>>(prevValue.get(value) ?? new Set())
+					if (!set) {
+						const currentImmutableSet = prevValue.get(value) ?? new ImmutableSet()
+						set = new IncrementalSetConstructor<IdOf<S>>(currentImmutableSet)
+					}
 					set.remove(id)
 					setConstructors.set(value, set)
 				}
@@ -277,6 +283,7 @@ export class StoreQueries<R extends UnknownRecord> {
 					if (result.value.size === 0) {
 						nextValue.delete(value)
 					} else {
+						// Convert Set back to ImmutableSet
 						nextValue.set(value, result.value)
 					}
 					nextDiff.set(value, result.diff)
@@ -355,31 +362,33 @@ export class StoreQueries<R extends UnknownRecord> {
 		queryCreator: () => QueryExpression<Extract<R, { typeName: TypeName }>> = () => ({}),
 		name = 'ids:' + typeName + (queryCreator ? ':' + queryCreator.toString() : '')
 	): Computed<
-		Set<IdOf<Extract<R, { typeName: TypeName }>>>,
+		ImmutableSet<IdOf<Extract<R, { typeName: TypeName }>>>,
 		CollectionDiff<IdOf<Extract<R, { typeName: TypeName }>>>
 	> {
 		type S = Extract<R, { typeName: TypeName }>
 
 		const typeHistory = this.filterHistory(typeName)
 
-		const fromScratch = () => {
+		const fromScratchIds = () => {
 			// deref type history early to allow first incremental update to use diffs
 			typeHistory.get()
 			const query: QueryExpression<S> = queryCreator()
 			if (Object.keys(query).length === 0) {
-				const ids = new Set<IdOf<S>>()
+				let ids = new ImmutableSet<IdOf<S>>().asMutable()
 				for (const record of this.recordMap.values()) {
-					if (record.typeName === typeName) ids.add(record.id)
+					if (record.typeName === typeName) {
+						ids = ids.add(record.id)
+					}
 				}
-				return ids
+				return ids.asImmutable()
 			}
 
 			return executeQuery(this, typeName, query)
 		}
 
-		const fromScratchWithDiff = (prevValue: Set<IdOf<S>>) => {
-			const nextValue = fromScratch()
-			const diff = diffSets(prevValue, nextValue)
+		const fromScratchWithDiff = (prevValue: ImmutableSet<IdOf<S>>) => {
+			const nextValue = fromScratchIds()
+			const diff = diffSets(new Set(prevValue), new Set(nextValue))
 			if (diff) {
 				return withDiff(nextValue, diff)
 			} else {
@@ -395,7 +404,7 @@ export class StoreQueries<R extends UnknownRecord> {
 			(prevValue, lastComputedEpoch) => {
 				const query = cachedQuery.get()
 				if (isUninitialized(prevValue)) {
-					return fromScratch()
+					return fromScratchIds()
 				}
 
 				// if the query changed since last time this ran then we need to start again
@@ -442,7 +451,9 @@ export class StoreQueries<R extends UnknownRecord> {
 
 				return withDiff(result.value, result.diff)
 			},
-			{ historyLength: 50 }
+			{
+				historyLength: 50000,
+			}
 		)
 	}
 

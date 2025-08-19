@@ -1,5 +1,5 @@
 import { IdOf, UnknownRecord } from './BaseRecord'
-import { intersectSets } from './setUtils'
+import { ImmutableSet } from './ImmutableSet'
 import { StoreQueries } from './StoreQueries'
 
 /** @public */
@@ -30,8 +30,10 @@ export function executeQuery<R extends UnknownRecord, TypeName extends R['typeNa
 	store: StoreQueries<R>,
 	typeName: TypeName,
 	query: QueryExpression<Extract<R, { typeName: TypeName }>>
-): Set<IdOf<Extract<R, { typeName: TypeName }>>> {
-	const matchIds = Object.fromEntries(Object.keys(query).map((key) => [key, new Set()]))
+): ImmutableSet<IdOf<Extract<R, { typeName: TypeName }>>> {
+	const matchIds = Object.fromEntries(
+		Object.keys(query).map((key) => [key, new ImmutableSet().asMutable()])
+	)
 
 	for (const [k, matcher] of Object.entries(query)) {
 		if ('eq' in matcher) {
@@ -39,7 +41,7 @@ export function executeQuery<R extends UnknownRecord, TypeName extends R['typeNa
 			const ids = index.get().get(matcher.eq)
 			if (ids) {
 				for (const id of ids) {
-					matchIds[k].add(id)
+					matchIds[k] = matchIds[k].add(id)
 				}
 			}
 		} else if ('neq' in matcher) {
@@ -47,7 +49,7 @@ export function executeQuery<R extends UnknownRecord, TypeName extends R['typeNa
 			for (const [value, ids] of index.get()) {
 				if (value !== matcher.neq) {
 					for (const id of ids) {
-						matchIds[k].add(id)
+						matchIds[k] = matchIds[k].add(id)
 					}
 				}
 			}
@@ -56,12 +58,16 @@ export function executeQuery<R extends UnknownRecord, TypeName extends R['typeNa
 			for (const [value, ids] of index.get()) {
 				if (value > matcher.gt) {
 					for (const id of ids) {
-						matchIds[k].add(id)
+						matchIds[k] = matchIds[k].add(id)
 					}
 				}
 			}
 		}
 	}
 
-	return intersectSets(Object.values(matchIds)) as Set<IdOf<Extract<R, { typeName: TypeName }>>>
+	// Convert mutable sets to immutable before intersection
+	const immutableSets = Object.values(matchIds).map((mutableSet) => mutableSet.asImmutable())
+	return ImmutableSet.intersectMany(immutableSets) as ImmutableSet<
+		IdOf<Extract<R, { typeName: TypeName }>>
+	>
 }
