@@ -1,10 +1,10 @@
 import { useCallback, useMemo } from 'react'
 import { Editor, reverseRecordsDiff, squashRecordDiffs } from 'tldraw'
+import { AgentEventHistoryGroup } from '../../../shared/types/AgentHistoryGroup'
+import { AgentEventHistoryItem } from '../../../shared/types/AgentHistoryItem'
 import { TLAgent } from '../../ai/useTldrawAgent'
-import { $chatHistoryItems } from '../../atoms/chatHistoryItems'
+import { $agentHistoryItems } from '../../atoms/agentHistoryItems'
 import { AgentIcon, AgentIconType } from '../icons/AgentIcon'
-import { AgentEventHistoryGroup } from './AgentHistoryGroup'
-import { AgentEventHistoryItem } from './AgentHistoryItem'
 import { TldrawDiffViewer } from './TldrawDiffViewer'
 
 // The model returns changes individually, but we group them together in this component for UX reasons, namely so the user can see all changes done at once together, and so they can accept or reject them all at once
@@ -73,7 +73,7 @@ function EventHistoryGroupWithDiff({
 
 	// Because we accept and reject changes as groups, when the changes represented by this group are accepted (or rejected), we need to go through each item in the group and update its acceptance status individually
 	const handleAccept = useCallback(() => {
-		$chatHistoryItems.update((currentChatHistoryItems) => {
+		$agentHistoryItems.update((currentChatHistoryItems) => {
 			const newItems = [...currentChatHistoryItems]
 			for (const item of items) {
 				const index = newItems.findIndex((v) => v === item)
@@ -90,7 +90,7 @@ function EventHistoryGroupWithDiff({
 	}, [items, editor])
 
 	const handleReject = useCallback(() => {
-		$chatHistoryItems.update((currentChatHistoryItems) => {
+		$agentHistoryItems.update((currentChatHistoryItems) => {
 			const newItems = [...currentChatHistoryItems]
 			for (const item of items) {
 				const index = newItems.findIndex((v) => v === item)

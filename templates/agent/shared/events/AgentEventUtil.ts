@@ -1,7 +1,7 @@
 import z from 'zod'
-import { AgentHistoryItemStatus } from '../../client/components/chat-history/AgentHistoryItem'
 import { AgentIconType } from '../../client/components/icons/AgentIcon'
 import { AgentTransform } from '../AgentTransform'
+import { AgentHistoryItemStatus } from '../types/AgentHistoryItem'
 import { Streaming } from '../types/Streaming'
 
 export interface BaseAgentEvent {

@@ -1,5 +1,5 @@
-import { FormEventHandler, useEffect, useState } from 'react'
-import { Editor, useReactor, useValue } from 'tldraw'
+import { FormEventHandler, useState } from 'react'
+import { Editor, useValue } from 'tldraw'
 import { convertTldrawShapeToSimpleShape } from '../../shared/parts/convertTldrawShapeToSimpleShape'
 import { AGENT_MODEL_DEFINITIONS, AgentModelName } from '../../worker/models'
 import { $contextItems, addToContext, removeFromContext } from '../atoms/contextItems'
@@ -43,35 +43,7 @@ export function ChatInput({
 	)
 
 	const contextItems = useValue('contextItems', () => $contextItems.get(), [$contextItems])
-
 	const modelName = useValue('modelName', () => $modelName.get(), [$modelName])
-
-	useEffect(() => {
-		const localContextItems = localStorage.getItem('context-items')
-		if (localContextItems) {
-			try {
-				$contextItems.set(JSON.parse(localContextItems))
-			} catch (e) {
-				console.error(e)
-			}
-		}
-	}, [])
-
-	useReactor(
-		'stash locally',
-		() => {
-			localStorage.setItem('context-items', JSON.stringify($contextItems.get()))
-		},
-		[$contextItems]
-	)
-
-	useReactor(
-		'stash model name locally',
-		() => {
-			localStorage.setItem('model-name', JSON.stringify($modelName.get()))
-		},
-		[$modelName]
-	)
 
 	return (
 		<div className="chat-input">

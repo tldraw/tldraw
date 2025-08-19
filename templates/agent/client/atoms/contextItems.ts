@@ -7,20 +7,26 @@ import {
 	ShapesContextItem,
 } from '../../shared/types/ContextItem'
 import { ISimpleShape } from '../../worker/simple/SimpleShape'
+import { persistAtomInLocalStorage } from './persistAtomInLocalStorage'
 
 export const $contextItems = atom<ContextItem[]>('context items', [])
 export const $pendingContextItems = atom<ContextItem[]>('pending context items', [])
 
+persistAtomInLocalStorage($contextItems, 'context-items')
+
 export function addToContext(item: ContextItem) {
 	$contextItems.update((items) => {
+		// Don't add shapes that are already within context
 		if (item.type === 'shapes') {
 			const newItems = stripDuplicateShapesFromContextItem(item, items)
 			return [...items, ...newItems]
 		}
 
+		// Don't add items that are already in context
 		if (contextItemIsAlreadyContainedInContext(item, items)) {
 			return items
 		}
+
 		return [...items, structuredClone(item)]
 	})
 }

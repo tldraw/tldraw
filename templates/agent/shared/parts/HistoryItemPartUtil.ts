@@ -1,5 +1,5 @@
-import { $chatHistoryItems } from '../../client/atoms/chatHistoryItems'
-import { AgentHistoryItem } from '../../client/components/chat-history/AgentHistoryItem'
+import { $agentHistoryItems } from '../../client/atoms/agentHistoryItems'
+import { AgentHistoryItem } from '../types/AgentHistoryItem'
 import { AgentMessage, AgentMessageContent } from '../types/AgentMessage'
 import { AgentPromptOptions } from '../types/AgentPrompt'
 import { PromptPartUtil } from './PromptPartUtil'
@@ -12,7 +12,7 @@ export class HistoryItemPartUtil extends PromptPartUtil<AgentHistoryItem[]> {
 	}
 
 	override async getPart(_options: AgentPromptOptions) {
-		return $chatHistoryItems.get()
+		return $agentHistoryItems.get()
 	}
 
 	override buildMessages(historyItems: AgentHistoryItem[]): AgentMessage[] {

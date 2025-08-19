@@ -1,7 +1,8 @@
 import { RecordsDiff, reverseRecordsDiff, structuredClone, TLRecord, uniqueId } from 'tldraw'
 import { AgentTransform } from '../../shared/AgentTransform'
+import { AgentHistoryItem } from '../../shared/types/AgentHistoryItem'
 import { AgentPromptOptions } from '../../shared/types/AgentPrompt'
-import { addEventToHistory } from '../atoms/chatHistoryItems'
+import { $agentHistoryItems } from '../atoms/agentHistoryItems'
 import { preparePrompt } from './preparePrompt'
 import { streamAgent } from './streamAgent'
 
@@ -74,9 +75,29 @@ export function promptAgent(promptOptions: AgentPromptOptions) {
 								// The the event is incomplete, save the diff so that we can revert it in the future
 								prevDiff = transformedEvent.complete ? null : diff
 
-								// If any canvas changes were made, add their diff to the chat history
+								// Add the event to chat history
 								if (eventUtil.savesToHistory()) {
-									addEventToHistory(transformedEvent, diff)
+									const historyItem: AgentHistoryItem = {
+										type: 'event',
+										event,
+										diff,
+										acceptance: 'pending',
+										status: event.complete ? 'done' : 'progress',
+									}
+
+									$agentHistoryItems.update((items) => {
+										// If there are no items, start off the chat history with the first item
+										if (items.length === 0) return [historyItem]
+
+										// If the last item is still in progress, replace it with the new item
+										const lastItem = items.at(-1)
+										if (lastItem?.status === 'progress') {
+											return [...items.slice(0, -1), historyItem]
+										}
+
+										// Otherwise, just add the new item to the end of the list
+										return [...items, historyItem]
+									})
 								}
 							},
 							{

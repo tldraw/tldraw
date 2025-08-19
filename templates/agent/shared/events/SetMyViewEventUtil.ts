@@ -1,6 +1,6 @@
 import z from 'zod'
 import { $requestsSchedule } from '../../client/atoms/requestsSchedule'
-import { AgentHistoryItemStatus } from '../../client/components/chat-history/AgentHistoryItem'
+import { AgentHistoryItemStatus } from '../types/AgentHistoryItem'
 import { ScheduledRequest } from '../types/ScheduledRequest'
 import { Streaming } from '../types/Streaming'
 import { AgentEventUtil } from './AgentEventUtil'

@@ -1,8 +1,8 @@
 import { RecordsDiff, TLRecord } from 'tldraw'
-import { AgentEvent } from '../../../shared/types/AgentEvent'
-import { ContextItem } from '../../../shared/types/ContextItem'
-import { Streaming } from '../../../shared/types/Streaming'
-import { AgentIconType } from '../icons/AgentIcon'
+import { AgentIconType } from '../../client/components/icons/AgentIcon'
+import { AgentEvent } from './AgentEvent'
+import { ContextItem } from './ContextItem'
+import { Streaming } from './Streaming'
 
 export type AgentHistoryItem = AgentEventHistoryItem | AgentPromptHistoryItem
 

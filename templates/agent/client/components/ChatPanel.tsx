@@ -2,14 +2,14 @@ import { FormEventHandler, useCallback, useEffect, useRef, useState } from 'reac
 import { Editor, useToasts, useValue } from 'tldraw'
 import { EVENT_UTILS, PROMPT_PART_UTILS } from '../../shared/AgentUtils'
 import { $todoList } from '../../shared/parts/TodoListPromptPart'
+import { AgentHistoryItem } from '../../shared/types/AgentHistoryItem'
 import { processSchedule } from '../ai/processSchedule'
 import { useTldrawAgent } from '../ai/useTldrawAgent'
-import { $chatHistoryItems } from '../atoms/chatHistoryItems'
+import { $agentHistoryItems } from '../atoms/agentHistoryItems'
 import { $contextItems, $pendingContextItems } from '../atoms/contextItems'
 import { $modelName } from '../atoms/modelName'
 import { $requestsSchedule } from '../atoms/requestsSchedule'
 import { AgentHistory } from './chat-history/AgentHistory'
-import { AgentHistoryItem } from './chat-history/AgentHistoryItem'
 import { ChatInput } from './ChatInput'
 import { $contextBoundsHighlight } from './highlights/ContextBoundsHighlights'
 
@@ -46,7 +46,7 @@ export function ChatPanel({ editor }: { editor: Editor }) {
 
 				$requestsSchedule.set([])
 				$pendingContextItems.set([])
-				$chatHistoryItems.update((prev) =>
+				$agentHistoryItems.update((prev) =>
 					prev.map((item) => (item.status === 'progress' ? { ...item, status: 'cancelled' } : item))
 				)
 			}
@@ -66,7 +66,7 @@ export function ChatPanel({ editor }: { editor: Editor }) {
 
 			$pendingContextItems.set(promptHistoryItem.contextItems)
 			$contextItems.set([])
-			$chatHistoryItems.update((prev) => [...prev, promptHistoryItem])
+			$agentHistoryItems.update((prev) => [...prev, promptHistoryItem])
 
 			$todoList.set(editor, []) // reset the todo list
 
@@ -112,7 +112,7 @@ export function ChatPanel({ editor }: { editor: Editor }) {
 		}
 
 		setIsGenerating(false)
-		$chatHistoryItems.set([])
+		$agentHistoryItems.set([])
 		$pendingContextItems.set([])
 		$contextItems.set([])
 		$requestsSchedule.set([])

@@ -1,9 +1,9 @@
 import { useEffect, useMemo, useRef } from 'react'
-import { DefaultSpinner, Editor, isRecordsDiffEmpty, useReactor, useValue } from 'tldraw'
+import { DefaultSpinner, Editor, isRecordsDiffEmpty, useValue } from 'tldraw'
+import { AgentHistoryGroup } from '../../../shared/types/AgentHistoryGroup'
+import { AgentHistoryItem } from '../../../shared/types/AgentHistoryItem'
 import { TLAgent } from '../../ai/useTldrawAgent'
-import { $chatHistoryItems } from '../../atoms/chatHistoryItems'
-import { AgentHistoryGroup } from './AgentHistoryGroup'
-import { AgentHistoryItem } from './AgentHistoryItem'
+import { $agentHistoryItems } from '../../atoms/agentHistoryItems'
 import { EventHistoryGroup } from './EventHistoryGroup'
 import { PromptHistoryGroup } from './PromptHistoryGroup'
 
@@ -16,28 +16,9 @@ export function AgentHistory({
 	agent: TLAgent
 	isGenerating: boolean
 }) {
-	const items = useValue($chatHistoryItems)
+	const items = useValue($agentHistoryItems)
 	const scrollContainerRef = useRef<HTMLDivElement>(null)
 	const previousScrollDistanceFromBottomRef = useRef(0)
-
-	useEffect(() => {
-		const localHistoryItems = localStorage.getItem('chat-history-items')
-		if (localHistoryItems) {
-			try {
-				$chatHistoryItems.set(JSON.parse(localHistoryItems))
-			} catch (e) {
-				console.error(e)
-			}
-		}
-	}, [])
-
-	useReactor(
-		'stash locally',
-		() => {
-			localStorage.setItem('chat-history-items', JSON.stringify($chatHistoryItems.get()))
-		},
-		[$chatHistoryItems]
-	)
 
 	useEffect(() => {
 		if (!scrollContainerRef.current) return

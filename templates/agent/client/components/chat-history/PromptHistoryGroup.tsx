@@ -1,6 +1,6 @@
+import { AgentPromptHistoryGroup } from '../../../shared/types/AgentHistoryGroup'
 import { CONTEXT_TYPE_DEFINITIONS, ContextItem } from '../../../shared/types/ContextItem'
 import { AgentIcon } from '../icons/AgentIcon'
-import { AgentPromptHistoryGroup } from './AgentHistoryGroup'
 
 export function PromptHistoryGroup({ group }: { group: AgentPromptHistoryGroup }) {
 	const { item } = group

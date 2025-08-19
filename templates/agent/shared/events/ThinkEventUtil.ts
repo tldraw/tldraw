@@ -1,5 +1,5 @@
 import z from 'zod'
-import { AgentHistoryItemStatus } from '../../client/components/chat-history/AgentHistoryItem'
+import { AgentHistoryItemStatus } from '../types/AgentHistoryItem'
 import { Streaming } from '../types/Streaming'
 import { AgentEventUtil } from './AgentEventUtil'
 
