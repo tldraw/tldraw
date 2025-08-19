@@ -19,6 +19,9 @@ export class AgentTransform {
 	 */
 	roundingDiffMap = new Map<string, number>()
 
+	/**
+	 * The id of the currently streaming shape.
+	 */
 	streamingShapeId: TLShapeId | null = null
 
 	/**
@@ -223,9 +226,13 @@ export function ensureValueIsVec(value: any): VecModel | null {
 	return { x, y }
 }
 
-export function sliceShapeIdPrefix(id: string): string {
-	if (id.startsWith('shape:')) {
-		return id.slice('shape:'.length)
+export function ensureValueIsBoolean(value: any): boolean | null {
+	if (typeof value === 'boolean') {
+		return value
 	}
-	return id
+	return null
+}
+
+export function removeShapeIdPrefix(id: TLShapeId): string {
+	return id.slice('shape:'.length)
 }
