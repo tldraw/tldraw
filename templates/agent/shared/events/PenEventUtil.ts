@@ -15,7 +15,11 @@ const AgentPenEvent = z
 			})
 		),
 	})
-	.meta({ title: 'Pen', description: 'The AI draws a freeform line with a pen.' })
+	.meta({
+		title: 'Pen',
+		description:
+			'The AI draws a freeform line with a pen. This is useful for drawing custom paths that are not available with the other available shapes.',
+	})
 
 type IAgentPenEvent = z.infer<typeof AgentPenEvent>
 

@@ -1,7 +1,7 @@
 import { structuredClone, uniqueId } from 'tldraw'
 import { AgentTransform } from '../../shared/AgentTransform'
 import { AgentPromptOptions } from '../../shared/types/AgentPrompt'
-import { createOrUpdateHistoryItem } from '../atoms/chatHistoryItems'
+import { addEventToHistory } from '../atoms/chatHistoryItems'
 import { preparePrompt } from './preparePrompt'
 import { streamAgent } from './streamAgent'
 
@@ -63,15 +63,9 @@ export function promptAgent(promptOptions: AgentPromptOptions) {
 									eventUtil.applyEvent(structuredClone(transformedEvent), transform)
 								})
 
+								// If any canvas changes were made, add their diff to the chat history
 								if (eventUtil.savesToHistory()) {
-									// If any canvas changes were made, add their diff to the chat history
-									createOrUpdateHistoryItem({
-										type: 'event',
-										diff,
-										event: transformedEvent,
-										acceptance: 'pending',
-										status: event.complete ? 'done' : 'progress',
-									})
+									addEventToHistory(transformedEvent, diff)
 								}
 							},
 							{
