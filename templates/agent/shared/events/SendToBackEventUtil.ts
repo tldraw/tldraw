@@ -34,19 +34,14 @@ export class SendToBackEventUtil extends AgentEventUtil<IAgentSendToBackEvent> {
 	}
 
 	override transformEvent(event: Streaming<IAgentSendToBackEvent>, transform: AgentTransform) {
-		if (!event.complete) return event
-
-		const shapeIds = transform.ensureShapeIdsAreReal(event.shapeIds)
-		if (shapeIds.length === 0) return null
-
-		event.shapeIds = shapeIds
+		event.shapeIds = transform.ensureShapeIdsAreReal(event.shapeIds ?? [])
 		return event
 	}
 
 	override applyEvent(event: Streaming<IAgentSendToBackEvent>, transform: AgentTransform) {
-		if (!event.complete) return
 		const { editor } = transform
 
+		if (!event.shapeIds) return
 		editor.sendToBack(event.shapeIds.map((shapeId) => `shape:${shapeId}` as TLShapeId))
 	}
 }

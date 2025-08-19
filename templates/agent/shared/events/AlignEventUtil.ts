@@ -32,8 +32,7 @@ export class AlignEventUtil extends AgentEventUtil<IAgentAlignEvent> {
 	}
 
 	override transformEvent(event: Streaming<IAgentAlignEvent>, transform: AgentTransform) {
-		if (!event.complete) return event
-		event.shapeIds = transform.ensureShapeIdsAreReal(event.shapeIds)
+		event.shapeIds = transform.ensureShapeIdsAreReal(event.shapeIds ?? [])
 		return event
 	}
 

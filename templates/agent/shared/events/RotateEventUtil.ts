@@ -36,18 +36,16 @@ export class RotateEventUtil extends AgentEventUtil<IAgentRotateEvent> {
 	}
 
 	override transformEvent(event: Streaming<IAgentRotateEvent>, transform: AgentTransform) {
-		if (!event.complete) return event
-
-		const shapeIds = transform.ensureShapeIdsAreReal(event.shapeIds)
-		if (shapeIds.length === 0) return null
-
-		event.shapeIds = shapeIds
+		event.shapeIds = transform.ensureShapeIdsAreReal(event.shapeIds ?? [])
 		return event
 	}
 
 	override applyEvent(event: Streaming<IAgentRotateEvent>, transform: AgentTransform) {
-		if (!event.complete) return
 		const { editor } = transform
+
+		if (!event.shapeIds || !event.degrees || !event.centerX || !event.centerY) {
+			return
+		}
 
 		const shapeIds = event.shapeIds.map((shapeId) => `shape:${shapeId}` as TLShapeId)
 		const radians = (event.degrees * Math.PI) / 180

@@ -8,8 +8,8 @@ const AgentTodoListEvent = z
 	.object({
 		_type: z.literal('update-todo-list'),
 		id: z.number(),
-		text: z.string(),
 		status: z.enum(['todo', 'in-progress', 'done']),
+		text: z.string(),
 	})
 	.meta({
 		title: 'Update Todo List',

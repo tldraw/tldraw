@@ -34,10 +34,7 @@ export class DistributeEventUtil extends AgentEventUtil<IAgentDistributeEvent> {
 	}
 
 	override transformEvent(event: Streaming<IAgentDistributeEvent>, transform: AgentTransform) {
-		if (!event.complete) return event
-
-		event.shapeIds = transform.ensureShapeIdsAreReal(event.shapeIds)
-
+		event.shapeIds = transform.ensureShapeIdsAreReal(event.shapeIds ?? [])
 		return event
 	}
 

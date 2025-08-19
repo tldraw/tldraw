@@ -11,12 +11,19 @@ import { TldrawViewer } from './TldrawViewer'
 
 export function TldrawDiffViewer({ diff }: { diff: RecordsDiff<TLRecord> }) {
 	const diffShapes = useMemo(() => getDiffShapesFromDiff(diff), [diff])
-
 	return <TldrawViewer shapes={diffShapes} components={{ ShapeWrapper: DiffShapeWrapper }} />
 }
 
 function getDiffShapesFromDiff(diff: RecordsDiff<TLRecord>): TLShape[] {
 	const diffShapes: TLShape[] = []
+
+	const numberOfShapes =
+		Object.keys(diff.added).length +
+		Object.keys(diff.updated).length +
+		Object.keys(diff.removed).length
+
+	// If there are many shapes in the diff, use a border instead of a shadow for performance reasons
+	const mode = numberOfShapes > 20 ? 'border' : 'shadow'
 
 	for (const key in diff.removed) {
 		const id = key as TLShapeId
@@ -25,7 +32,7 @@ function getDiffShapesFromDiff(diff: RecordsDiff<TLRecord>): TLShape[] {
 		const shape = {
 			...prevShape,
 			props: { ...prevShape.props },
-			meta: { ...prevShape.meta, changeType: 'delete' },
+			meta: { ...prevShape.meta, changeType: 'delete-' + mode },
 		}
 
 		if ('dash' in shape.props) {
@@ -47,12 +54,13 @@ function getDiffShapesFromDiff(diff: RecordsDiff<TLRecord>): TLShape[] {
 			id: (id + '-before') as TLShapeId,
 			opacity: prevAfter.opacity / 2,
 			props: { ...prevBefore.props },
-			meta: { ...prevBefore.meta, changeType: 'update-before' },
+			meta: { ...prevBefore.meta, changeType: 'update-before-' + mode },
 		}
+
 		const after = {
 			...prevAfter,
 			props: { ...prevAfter.props },
-			meta: { ...prevAfter.meta, changeType: 'update-after' },
+			meta: { ...prevAfter.meta, changeType: 'update-after-' + mode },
 		}
 
 		if ('dash' in before.props) {
@@ -76,7 +84,7 @@ function getDiffShapesFromDiff(diff: RecordsDiff<TLRecord>): TLShape[] {
 		const shape = {
 			...prevShape,
 			props: { ...prevShape.props },
-			meta: { ...prevShape.meta, changeType: 'create' },
+			meta: { ...prevShape.meta, changeType: 'create-' + mode },
 		}
 		if ('dash' in shape.props) {
 			shape.props.dash = 'solid'

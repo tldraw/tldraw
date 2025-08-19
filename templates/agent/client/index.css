@@ -395,7 +395,24 @@ body {
 	position: relative;
 }
 
-.diff-shape-create {
+.diff-shape-create-border {
+	background-color: rgba(0, 200, 0, 30%);
+	outline: 10px solid rgba(0, 200, 0, 30%);
+	/* outline-offset: 10px; */
+}
+
+.diff-shape-delete-border {
+	background-color: rgba(200, 0, 0, 30%);
+	outline: 10px solid rgba(200, 0, 0, 30%);
+	opacity: 0.5;
+}
+
+.diff-shape-update-after-border {
+	background-color: rgba(0, 100, 255, 30%);
+	outline: 10px solid rgba(0, 100, 255, 30%);
+}
+
+.diff-shape-create-shadow {
 	filter: drop-shadow(
 			calc(var(--tl-scale) * 1px) calc(var(--tl-scale) * 1px) 0px rgba(0, 200, 0, 50%)
 		)
@@ -404,7 +421,7 @@ body {
 		drop-shadow(calc(var(--tl-scale) * -1px) calc(var(--tl-scale) * 1px) 0px rgba(0, 200, 0, 50%));
 }
 
-.diff-shape-delete {
+.diff-shape-delete-shadow {
 	filter: drop-shadow(
 			calc(var(--tl-scale) * 1px) calc(var(--tl-scale) * 1px) 0px rgba(200, 0, 0, 50%)
 		)
@@ -413,7 +430,7 @@ body {
 		drop-shadow(calc(var(--tl-scale) * -1px) calc(var(--tl-scale) * 1px) 0px rgba(200, 0, 0, 50%));
 }
 
-.diff-shape-update-after {
+.diff-shape-update-after-shadow {
 	filter: drop-shadow(
 			calc(var(--tl-scale) * 1px) calc(var(--tl-scale) * 1px) 0px rgba(0, 100, 255, 50%)
 		)
