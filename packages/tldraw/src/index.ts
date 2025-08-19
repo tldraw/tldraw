@@ -166,6 +166,9 @@ export {
 	type TLDefaultFont,
 	type TLDefaultFonts,
 } from './lib/shapes/shared/defaultFonts'
+export { getStrokePoints } from './lib/shapes/shared/freehand/getStrokePoints'
+export { getSvgPathFromStrokePoints } from './lib/shapes/shared/freehand/svg'
+export { type StrokeOptions, type StrokePoint } from './lib/shapes/shared/freehand/types'
 export {
 	PlainTextLabel,
 	TextLabel,

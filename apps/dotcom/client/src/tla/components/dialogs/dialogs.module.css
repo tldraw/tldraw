@@ -31,16 +31,17 @@
 
 /* --------------------- Cookie --------------------- */
 
-.sidebarCookieConsent {
+.cookieConsent {
 	background: var(--tla-color-sidebar);
 	border-radius: 8px;
 	padding: 6px;
 	max-width: 240px;
 	box-shadow: var(--tla-shadow-3);
-	margin-bottom: 12px;
+	margin-bottom: 4px;
+	margin-right: 4px;
 }
 
-.sidebarCookieText {
+.cookieText {
 	padding: 8px;
 	padding-bottom: 12px;
 	font-size: 12px;
@@ -48,25 +49,25 @@
 	line-height: 1.4;
 }
 
-.sidebarCookieText a {
+.cookieText a {
 	color: var(--tla-color-primary);
 }
 
-.sidebarCookieButtonsRow {
+.cookieButtonsRow {
 	display: flex;
 	gap: 4px;
 	justify-content: space-between;
 	flex-wrap: wrap;
 }
 
-.sidebarCookieButtons {
+.cookieButtons {
 	display: flex;
 	gap: 4px;
 	flex-wrap: wrap;
 	justify-content: space-between;
 }
 
-.sidebarCookieButton {
+.cookieButton {
 	background: none;
 	position: relative;
 	border: none;
@@ -80,14 +81,22 @@
 	flex-shrink: 0;
 }
 
-.sidebarCookieAcceptButton {
+.cookieAcceptButton {
 	color: var(--tla-color-contrast);
 	background-color: var(--tla-color-primary);
 }
 
 @media (hover: hover) {
-	.sidebarCookieAcceptButton:hover {
+	.cookieAcceptButton:hover {
 		color: var(--tla-color-contrast);
 		background-color: var(--tla-color-primary-hover);
 	}
+}
+
+.cookieConsentWrapper {
+	position: fixed;
+	bottom: 0;
+	right: 0;
+	z-index: var(--tl-layer-menus);
+	width: fit-content;
 }

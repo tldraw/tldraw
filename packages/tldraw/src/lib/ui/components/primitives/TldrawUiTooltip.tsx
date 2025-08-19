@@ -20,6 +20,8 @@ export interface TldrawUiTooltipProps {
 	side?: 'top' | 'right' | 'bottom' | 'left'
 	sideOffset?: number
 	disabled?: boolean
+	showOnMobile?: boolean
+	delayDuration?: number
 }
 
 // Singleton tooltip manager
@@ -30,10 +32,11 @@ class TooltipManager {
 		content: ReactNode
 		side: 'top' | 'right' | 'bottom' | 'left'
 		sideOffset: number
+		showOnMobile: boolean
 		targetElement: HTMLElement
+		delayDuration: number | undefined
 	} | null>('current tooltip', null)
 	private destroyTimeoutId: number | null = null
-	private subscribers: Set<() => void> = new Set()
 
 	static getInstance(): TooltipManager {
 		if (!TooltipManager.instance) {
@@ -46,8 +49,10 @@ class TooltipManager {
 		tooltipId: string,
 		content: string | React.ReactNode,
 		targetElement: HTMLElement,
-		side: 'top' | 'right' | 'bottom' | 'left' = 'bottom',
-		sideOffset: number = 5
+		side: 'top' | 'right' | 'bottom' | 'left',
+		sideOffset: number,
+		showOnMobile: boolean,
+		delayDuration: number | undefined
 	) {
 		// Clear any existing destroy timeout
 		if (this.destroyTimeoutId) {
@@ -61,7 +66,9 @@ class TooltipManager {
 			content,
 			side,
 			sideOffset,
+			showOnMobile,
 			targetElement,
+			delayDuration,
 		})
 	}
 
@@ -88,8 +95,10 @@ class TooltipManager {
 	}
 
 	getCurrentTooltipData() {
-		if (!this.supportsHover()) return null
-		return this.currentTooltip.get()
+		const currentTooltip = this.currentTooltip.get()
+		if (!currentTooltip) return null
+		if (!this.supportsHover() && !currentTooltip.showOnMobile) return null
+		return currentTooltip
 	}
 
 	private supportsHoverAtom: Atom<boolean> | null = null
@@ -168,7 +177,7 @@ function TooltipSingleton() {
 				showTimeoutRef.current = editor.timers.setTimeout(() => {
 					setIsOpen(true)
 					isFirstShowRef.current = false
-				}, editor.options.tooltipDelayMs)
+				}, currentTooltip.delayDuration ?? editor.options.tooltipDelayMs)
 			} else {
 				// Subsequent tooltips show immediately
 				setIsOpen(true)
@@ -207,7 +216,18 @@ function TooltipSingleton() {
 
 /** @public @react */
 export const TldrawUiTooltip = forwardRef<HTMLButtonElement, TldrawUiTooltipProps>(
-	({ children, content, side, sideOffset = 5, disabled = false }, ref) => {
+	(
+		{
+			children,
+			content,
+			side,
+			sideOffset = 5,
+			disabled = false,
+			showOnMobile = false,
+			delayDuration,
+		},
+		ref
+	) => {
 		const editor = useMaybeEditor()
 		const tooltipId = useRef<string>(uniqueId())
 		const hasProvider = useContext(TooltipSingletonContext)
@@ -233,7 +253,9 @@ export const TldrawUiTooltip = forwardRef<HTMLButtonElement, TldrawUiTooltipProp
 		if (!hasProvider) {
 			return (
 				<_Tooltip.Root
-					delayDuration={editor?.options.tooltipDelayMs || DEFAULT_TOOLTIP_DELAY_MS}
+					delayDuration={
+						delayDuration ?? (editor?.options.tooltipDelayMs || DEFAULT_TOOLTIP_DELAY_MS)
+					}
 					disableHoverableContent
 				>
 					<_Tooltip.Trigger asChild ref={ref}>
@@ -264,7 +286,9 @@ export const TldrawUiTooltip = forwardRef<HTMLButtonElement, TldrawUiTooltipProp
 				content,
 				event.currentTarget as HTMLElement,
 				sideToUse,
-				sideOffset
+				sideOffset,
+				showOnMobile,
+				delayDuration
 			)
 		}
 
@@ -280,7 +304,9 @@ export const TldrawUiTooltip = forwardRef<HTMLButtonElement, TldrawUiTooltipProp
 				content,
 				event.currentTarget as HTMLElement,
 				sideToUse,
-				sideOffset
+				sideOffset,
+				showOnMobile,
+				delayDuration
 			)
 		}
 

@@ -316,8 +316,8 @@ function useDraggableEvents(
 				if (
 					distanceSq >
 					(editor.getInstanceState().isCoarsePointer
-						? editor.options.coarseDragDistanceSquared
-						: editor.options.dragDistanceSquared)
+						? editor.options.uiCoarseDragDistanceSquared
+						: editor.options.uiDragDistanceSquared)
 				) {
 					const screenSpaceStart = state.screenSpaceStart
 					state = {
@@ -326,6 +326,8 @@ function useDraggableEvents(
 					}
 
 					editor.run(() => {
+						editor.setCurrentTool('select')
+
 						// Set origin point
 						editor.dispatch({
 							type: 'pointer',
@@ -348,6 +350,7 @@ function useDraggableEvents(
 						})
 
 						tooltipManager.hideAllTooltips()
+						editor.getContainer().focus()
 					})
 				}
 			}

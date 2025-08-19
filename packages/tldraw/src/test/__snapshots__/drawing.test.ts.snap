@@ -1,6 +1,6 @@
-// Jest Snapshot v1, https://goo.gl/fbAQLP
+// Vitest Snapshot v1, https://vitest.dev/guide/snapshot.html
 
-exports[`Draws a bunch: draw shape 1`] = `
+exports[`Draws a bunch > draw shape 1`] = `
 {
   "index": "a1",
   "isLocked": false,

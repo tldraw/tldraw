@@ -34,6 +34,7 @@ import {
 	rotateSelectionHandle,
 	tlenv,
 } from '@tldraw/editor'
+import { vi } from 'vitest'
 import { defaultBindingUtils } from '../lib/defaultBindingUtils'
 import { defaultShapeTools } from '../lib/defaultShapeTools'
 import { defaultShapeUtils } from '../lib/defaultShapeUtils'
@@ -42,7 +43,14 @@ import { defaultTools } from '../lib/defaultTools'
 import { defaultAddFontsFromNode, tipTapDefaultExtensions } from '../lib/utils/text/richText'
 import { shapesFromJsx } from './test-jsx'
 
-jest.useFakeTimers()
+declare module 'vitest' {
+	// eslint-disable-next-line @typescript-eslint/no-unused-vars
+	interface Matchers<T = any> {
+		toCloselyMatchObject(expected: any, roundToNearest?: number): void
+	}
+}
+
+vi.useFakeTimers()
 
 Object.assign(navigator, {
 	clipboard: {
@@ -54,16 +62,6 @@ Object.assign(navigator, {
 
 // @ts-expect-error
 window.ClipboardItem = class {}
-
-declare global {
-	// eslint-disable-next-line @typescript-eslint/no-namespace
-	namespace jest {
-		// eslint-disable-next-line @typescript-eslint/no-unused-vars
-		interface Matchers<R> {
-			toCloselyMatchObject(value: any, precision?: number): void
-		}
-	}
-}
 
 export class TestEditor extends Editor {
 	constructor(
@@ -82,8 +80,8 @@ export class TestEditor extends Editor {
 			right: 1080,
 		}
 		// make the app full screen for the sake of the insets property
-		jest.spyOn(document.body, 'scrollWidth', 'get').mockImplementation(() => bounds.width)
-		jest.spyOn(document.body, 'scrollHeight', 'get').mockImplementation(() => bounds.height)
+		vi.spyOn(document.body, 'scrollWidth', 'get').mockImplementation(() => bounds.width)
+		vi.spyOn(document.body, 'scrollHeight', 'get').mockImplementation(() => bounds.height)
 
 		elm.tabIndex = 0
 		elm.getBoundingClientRect = () => bounds as DOMRect
@@ -272,12 +270,12 @@ export class TestEditor extends Editor {
 	 * methods, or call mockRestore() to restore the actual implementation (e.g.
 	 * _transformPointerDownSpy.mockRestore())
 	 */
-	_transformPointerDownSpy = jest
+	_transformPointerDownSpy = vi
 		.spyOn(this._clickManager, 'handlePointerEvent')
 		.mockImplementation((info) => {
 			return info
 		})
-	_transformPointerUpSpy = jest
+	_transformPointerUpSpy = vi
 		.spyOn(this._clickManager, 'handlePointerEvent')
 		.mockImplementation((info) => {
 			return info

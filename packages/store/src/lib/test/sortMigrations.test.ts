@@ -34,18 +34,18 @@ describe(sortMigrations, () => {
 	it('should fail if a cycle is created', () => {
 		expect(() => {
 			sort([m('foo/1', { dependsOn: ['foo/1'] })])
-		}).toThrowErrorMatchingInlineSnapshot(`"Circular dependency in migrations: foo/1"`)
+		}).toThrowErrorMatchingInlineSnapshot(`[Error: Circular dependency in migrations: foo/1]`)
 
 		expect(() => {
 			sort([m('foo/1', { dependsOn: ['foo/2'] }), m('foo/2')])
-		}).toThrowErrorMatchingInlineSnapshot(`"Circular dependency in migrations: foo/1"`)
+		}).toThrowErrorMatchingInlineSnapshot(`[Error: Circular dependency in migrations: foo/1]`)
 
 		expect(() => {
 			sort([m('foo/1', { dependsOn: ['bar/1'] }), m('bar/1', { dependsOn: ['foo/1'] })])
-		}).toThrowErrorMatchingInlineSnapshot(`"Circular dependency in migrations: foo/1"`)
+		}).toThrowErrorMatchingInlineSnapshot(`[Error: Circular dependency in migrations: foo/1]`)
 
 		expect(() => {
 			sort([m('bar/1', { dependsOn: ['foo/1'] }), m('foo/1', { dependsOn: ['bar/1'] })])
-		}).toThrowErrorMatchingInlineSnapshot(`"Circular dependency in migrations: bar/1"`)
+		}).toThrowErrorMatchingInlineSnapshot(`[Error: Circular dependency in migrations: bar/1]`)
 	})
 })
