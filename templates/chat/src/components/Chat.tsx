@@ -1,9 +1,12 @@
 'use client'
 
 import { useChat } from '@ai-sdk/react'
-import { DefaultChatTransport } from 'ai'
+import { DefaultChatTransport, FileUIPart, TextUIPart } from 'ai'
+import { useEffect } from 'react'
+import { useScrollToBottom } from '../hooks/useScrollToBottom'
 import { ChatInput } from './ChatInput'
 import { MessageList } from './MessageList'
+import { WhiteboardImage } from './WhiteboardModal'
 
 export function Chat() {
 	const { messages, sendMessage, status } = useChat({
@@ -12,9 +15,23 @@ export function Chat() {
 		}),
 	})
 
-	const handleSendMessage = (text: string) => {
-		sendMessage({ text })
+	const handleSendMessage = (text: string, images: WhiteboardImage[]) => {
+		const parts: (TextUIPart | FileUIPart)[] = images.map(
+			(image): FileUIPart => ({ type: 'file', url: image.url, mediaType: image.type })
+		)
+		if (text.trim()) {
+			parts.push({ type: 'text', text })
+		}
+		sendMessage({
+			parts,
+		})
 	}
+
+	const scrollToBottom = useScrollToBottom()
+
+	useEffect(() => {
+		scrollToBottom()
+	}, [messages, scrollToBottom])
 
 	const hasMessages = messages.length > 0
 
@@ -28,6 +45,7 @@ export function Chat() {
 							onSendMessage={handleSendMessage}
 							disabled={status !== 'ready'}
 							autoFocus={true}
+							scrollToBottom={scrollToBottom}
 						/>
 					</div>
 				</div>
@@ -43,6 +61,7 @@ export function Chat() {
 					onSendMessage={handleSendMessage}
 					disabled={status !== 'ready'}
 					autoFocus={true}
+					scrollToBottom={scrollToBottom}
 				/>
 			</div>
 		</div>

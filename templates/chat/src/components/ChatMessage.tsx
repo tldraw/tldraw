@@ -6,11 +6,12 @@ interface ChatMessageProps {
 }
 
 export function ChatMessage({ message }: ChatMessageProps) {
-	// Check if message has any text content
-	const hasTextContent = message.parts.some((part) => part.type === 'text' && part.text.trim())
+	// Split the message parts into separate messages like iMessage
+	const textParts = message.parts.filter((part) => part.type === 'text' && part.text.trim())
+	const imageParts = message.parts.filter((part) => part.type === 'file')
 
 	// For AI messages with no content, show thinking state
-	if (message.role === 'assistant' && !hasTextContent) {
+	if (message.role === 'assistant' && textParts.length === 0 && imageParts.length === 0) {
 		return (
 			<div className="message assistant-message thinking-message">
 				<div className="thinking-text">Thinking…</div>
@@ -18,16 +19,23 @@ export function ChatMessage({ message }: ChatMessageProps) {
 		)
 	}
 
+	const groupClass = `message-group ${message.role === 'user' ? 'user-message' : 'assistant-message'}`
+
 	return (
-		<div className={`message ${message.role === 'user' ? 'user-message' : 'assistant-message'}`}>
-			<div className="message-content">
-				{message.parts.map((part, index) => {
-					if (part.type === 'text') {
-						return <ReactMarkdown key={index}>{part.text}</ReactMarkdown>
-					}
-					return null
-				})}
-			</div>
+		<div className={groupClass}>
+			{/* Render images first as separate message bubbles */}
+			{imageParts.map((part, index) => (
+				<img key={index} className="message message-image" src={part.url} alt="Whiteboard" />
+			))}
+
+			{/* Render text content in its own bubble */}
+			{textParts.length > 0 && (
+				<div className="message message-text">
+					{textParts.map((part, index) => (
+						<ReactMarkdown key={index}>{part.type === 'text' ? part.text : ''}</ReactMarkdown>
+					))}
+				</div>
+			)}
 		</div>
 	)
 }
