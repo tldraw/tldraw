@@ -1,5 +1,8 @@
 import { FormEvent, useEffect, useRef, useState } from 'react'
-import { DefaultSpinner } from 'tldraw'
+import { DefaultSpinner, TldrawUiTooltip } from 'tldraw'
+import { ImageIcon } from './icons/ImageIcon'
+import { SendIcon } from './icons/SendIcon'
+import { WhiteboardIcon } from './icons/WhiteboardIcon'
 
 interface ChatInputProps {
 	onSendMessage: (message: string) => void
@@ -44,9 +47,23 @@ export function ChatInput({ onSendMessage, disabled = false, autoFocus = false }
 					</div>
 				)}
 			</div>
-			<button type="submit" disabled={disabled || !input.trim()} className="send-button">
-				Send
-			</button>
+			<div className="chat-input-bottom">
+				<TldrawUiTooltip content="Upload an image">
+					<button type="button" className="icon-button" disabled={disabled}>
+						<ImageIcon />
+					</button>
+				</TldrawUiTooltip>
+				<TldrawUiTooltip content="Draw a sketch">
+					<button type="button" className="icon-button" disabled={disabled}>
+						<WhiteboardIcon />
+					</button>
+				</TldrawUiTooltip>
+				<TldrawUiTooltip content="Send message">
+					<button type="submit" disabled={disabled || !input.trim()} className="icon-button">
+						<SendIcon />
+					</button>
+				</TldrawUiTooltip>
+			</div>
 		</form>
 	)
 }
