@@ -37,9 +37,7 @@ export class ResizeEventUtil extends AgentEventUtil<IAgentResizeEvent> {
 	}
 
 	override transformEvent(event: Streaming<IAgentResizeEvent>, transform: AgentTransform) {
-		if (!event.complete) return event
-
-		const shapeIds = transform.ensureShapeIdsAreReal(event.shapeIds)
+		const shapeIds = transform.ensureShapeIdsAreReal(event.shapeIds ?? [])
 		if (shapeIds.length === 0) return null
 
 		event.shapeIds = shapeIds
@@ -47,8 +45,11 @@ export class ResizeEventUtil extends AgentEventUtil<IAgentResizeEvent> {
 	}
 
 	override applyEvent(event: Streaming<IAgentResizeEvent>, transform: AgentTransform) {
-		if (!event.complete) return
 		const { editor } = transform
+
+		if (!event.shapeIds || !event.scaleX || !event.scaleY || !event.centerX || !event.centerY) {
+			return
+		}
 
 		const shapeIds = event.shapeIds.map((shapeId) => `shape:${shapeId}` as TLShapeId)
 

@@ -1,4 +1,4 @@
-import { BoxModel, createShapeId, Editor, TLShapeId, VecModel } from 'tldraw'
+import { BoxModel, Editor, TLShapeId, VecModel } from 'tldraw'
 import { ISimpleShape } from '../worker/simple/SimpleShape'
 
 /**
@@ -18,11 +18,6 @@ export class AgentTransform {
 	 * These are used to restore the original values of rounded numbers.
 	 */
 	roundingDiffMap = new Map<string, number>()
-
-	/**
-	 * The id of the currently streaming shape.
-	 */
-	streamingShapeId: TLShapeId | null = null
 
 	/**
 	 * Ensure that a shape ID is unique.
@@ -161,27 +156,6 @@ export class AgentTransform {
 		if (diff === undefined) return shape
 		;(shape[property] as number) += diff
 		return shape
-	}
-
-	/**
-	 * Get a unique shape id for a streaming shape.
-	 * Make sure to call completeUniqueStreamingShapeId() when you've finished streaming the shape.
-	 * @returns The unique shape id.
-	 */
-	getUniqueStreamingShapeId(): TLShapeId {
-		if (this.streamingShapeId) {
-			return this.streamingShapeId
-		}
-		this.streamingShapeId = createShapeId()
-		return this.streamingShapeId
-	}
-
-	/**
-	 * Complete the unique shape id for a streaming shape.
-	 * This should be called when you've finished streaming the shape.
-	 */
-	completeUniqueStreamingShapeId(): void {
-		this.streamingShapeId = null
 	}
 }
 

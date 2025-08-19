@@ -1,4 +1,4 @@
-import { TLDrawShape, TLDrawShapeSegment, Vec, VecModel } from 'tldraw'
+import { createShapeId, TLDrawShape, TLDrawShapeSegment, Vec, VecModel } from 'tldraw'
 import z from 'zod'
 import { AgentTransform, ensureValueIsBoolean, ensureValueIsVec } from '../AgentTransform'
 import { Streaming } from '../types/Streaming'
@@ -48,7 +48,6 @@ export class PenEventUtil extends AgentEventUtil<IAgentPenEvent> {
 			.filter((v) => v !== null)
 
 		event.points = validPoints
-
 		event.closed = ensureValueIsBoolean(event.closed) ?? false
 
 		return event
@@ -60,17 +59,9 @@ export class PenEventUtil extends AgentEventUtil<IAgentPenEvent> {
 		if (!event.points) return
 		if (event.points.length === 0) return
 
-		const id = transform.getUniqueStreamingShapeId()
-		if (event.complete) {
-			transform.completeUniqueStreamingShapeId()
-		}
-
 		if (event.closed) {
-			const lastPoint = event.points[event.points.length - 1]
 			const firstPoint = event.points[0]
-			if (Vec.Dist(lastPoint, firstPoint) > 2) {
-				event.points.push(firstPoint)
-			}
+			event.points.push(firstPoint)
 		}
 
 		const segments: TLDrawShapeSegment[] = []
@@ -79,7 +70,7 @@ export class PenEventUtil extends AgentEventUtil<IAgentPenEvent> {
 		const startY = event.points[0].y
 
 		const points: VecModel[] = []
-		const maxDistanceBetweenPoints = 2
+		const maxDistanceBetweenPoints = event.style === 'straight' ? 2 : 15
 		for (let i = 0; i < event.points.length - 1; i++) {
 			const point = event.points[i]
 			points.push(point)
@@ -110,7 +101,7 @@ export class PenEventUtil extends AgentEventUtil<IAgentPenEvent> {
 		})
 
 		editor.createShape<TLDrawShape>({
-			id,
+			id: createShapeId(),
 			type: 'draw',
 			x: startX,
 			y: startY,
@@ -119,8 +110,8 @@ export class PenEventUtil extends AgentEventUtil<IAgentPenEvent> {
 				fill: 'none',
 				dash: 'draw',
 				segments,
-				isComplete: false,
-				isClosed: false,
+				isComplete: event.complete,
+				isClosed: event.closed,
 				isPen: true,
 			},
 		})

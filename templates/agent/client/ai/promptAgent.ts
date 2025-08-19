@@ -1,4 +1,4 @@
-import { structuredClone, uniqueId } from 'tldraw'
+import { RecordsDiff, reverseRecordsDiff, structuredClone, TLRecord, uniqueId } from 'tldraw'
 import { AgentTransform } from '../../shared/AgentTransform'
 import { AgentPromptOptions } from '../../shared/types/AgentPrompt'
 import { addEventToHistory } from '../atoms/chatHistoryItems'
@@ -24,6 +24,7 @@ export function promptAgent(promptOptions: AgentPromptOptions) {
 		preparePrompt(promptOptions, transform)
 			.then(async (prompt) => {
 				editor.markHistoryStoppingPoint(markId)
+				let prevDiff: RecordsDiff<TLRecord> | null = null
 				for await (const event of streamAgent({
 					prompt,
 					signal,
@@ -49,6 +50,7 @@ export function promptAgent(promptOptions: AgentPromptOptions) {
 									if (event.complete) {
 										console.log('REJECTED EVENT: ', event)
 									}
+									prevDiff = null
 									return
 								}
 
@@ -58,10 +60,19 @@ export function promptAgent(promptOptions: AgentPromptOptions) {
 									}
 								}
 
+								// If there was a diff from an incomplete event, revert it so that we can reapply the event
+								if (prevDiff) {
+									const inversePrevDiff = reverseRecordsDiff(prevDiff)
+									editor.store.applyDiff(inversePrevDiff)
+								}
+
 								// Apply the event to the app and editor
 								const diff = editor.store.extractingChanges(() => {
 									eventUtil.applyEvent(structuredClone(transformedEvent), transform)
 								})
+
+								// The the event is incomplete, save the diff so that we can revert it in the future
+								prevDiff = transformedEvent.complete ? null : diff
 
 								// If any canvas changes were made, add their diff to the chat history
 								if (eventUtil.savesToHistory()) {
