@@ -618,7 +618,6 @@ export class TLSyncRoom<R extends UnknownRecord, SessionMeta> {
 	 * @param data - The payload to send.
 	 */
 	sendCustomMessage(sessionId: string, data: any): void {
-		// @todo review: make sendMessage public instead?
 		this.sendMessage(sessionId, { type: 'custom', data })
 	}
 

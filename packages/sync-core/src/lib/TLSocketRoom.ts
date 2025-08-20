@@ -371,7 +371,7 @@ export class TLSocketRoom<R extends UnknownRecord = UnknownRecord, SessionMeta =
 	 * @param sessionId - The id of the session to send the message to.
 	 * @param data - The payload to send.
 	 */
-	async sendCustomMessage(sessionId: string, data: any) {
+	sendCustomMessage(sessionId: string, data: any) {
 		this.room.sendCustomMessage(sessionId, data)
 	}
 
