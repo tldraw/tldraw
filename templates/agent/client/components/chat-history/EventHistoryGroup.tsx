@@ -1,7 +1,10 @@
 import { useCallback, useMemo, useState } from 'react'
+import Markdown from 'react-markdown'
 import { Editor, reverseRecordsDiff, squashRecordDiffs } from 'tldraw'
+import { AgentEvent } from '../../../shared/types/AgentEvent'
 import { AgentEventHistoryGroup } from '../../../shared/types/AgentHistoryGroup'
 import { AgentEventHistoryItem } from '../../../shared/types/AgentHistoryItem'
+import { Streaming } from '../../../shared/types/Streaming'
 import { TLAgent } from '../../ai/useTldrawAgent'
 import { $agentHistoryItems } from '../../atoms/agentHistoryItems'
 import { AgentIcon, AgentIconType } from '../icons/AgentIcon'
@@ -38,7 +41,7 @@ function EventHistoryGroupWithoutDiff({
 	const nonEmptyItems = useMemo(() => {
 		return items.filter((item) => {
 			const eventUtil = agent.getEventUtil(item.event._type)
-			const description = eventUtil.getDescription(item.event, item.status)
+			const description = eventUtil.getDescription(item.event)
 			return description !== null
 		})
 	}, [items, agent])
@@ -64,7 +67,7 @@ function EventHistoryGroupWithoutDiff({
 	return (
 		<div className="agent-action-group">
 			{complete && (
-				<button onClick={() => setCollapsed(!collapsed)}>
+				<button className="agent-action-collapse-button" onClick={() => setCollapsed((v) => !v)}>
 					<span>{showContent ? <ChevronDownIcon /> : <ChevronRightIcon />}</span>
 					Thought for a while
 				</button>
@@ -72,7 +75,9 @@ function EventHistoryGroupWithoutDiff({
 			{showContent && (
 				<div className="agent-action-group-content">
 					{items.map((item, i) => {
-						return <EventHistoryGroupItem item={item} agent={agent} key={'event-' + i} />
+						return (
+							<EventHistoryGroupItemContent event={item.event} agent={agent} key={'event-' + i} />
+						)
 					})}
 				</div>
 			)}
@@ -83,11 +88,40 @@ function EventHistoryGroupWithoutDiff({
 function EventHistoryGroupItem({ item, agent }: { item: AgentEventHistoryItem; agent: TLAgent }) {
 	const { event } = item
 	const eventUtil = agent.getEventUtil(event._type)
-	const icon = eventUtil.getIcon(event)
-	const label = eventUtil.getLabel(event, item.status)
-	const description = eventUtil.getDescription(event, item.status)
+	const description = eventUtil.getDescription(event)
+	const summary = eventUtil.getSummary(event)
+	const collapsible = summary !== null
+	const [collapsed, setCollapsed] = useState(collapsible)
 
 	if (!description) return null
+
+	return (
+		<div className="agent-action-group-item">
+			{event.complete && collapsible && (
+				<button className="agent-action-collapse-button" onClick={() => setCollapsed((v) => !v)}>
+					<span>{collapsed ? <ChevronRightIcon /> : <ChevronDownIcon />}</span>
+					{summary}
+				</button>
+			)}
+
+			{(!collapsed || !event.complete) && (
+				<EventHistoryGroupItemContent event={event} agent={agent} />
+			)}
+		</div>
+	)
+}
+
+function EventHistoryGroupItemContent({
+	event,
+	agent,
+}: {
+	event: Streaming<AgentEvent>
+	agent: TLAgent
+}) {
+	const eventUtil = agent.getEventUtil(event._type)
+	const icon = eventUtil.getIcon(event)
+	const description = eventUtil.getDescription(event)
+
 	return (
 		<div className={`agent-action-message agent-action-type-${event._type}`}>
 			{icon && (
@@ -95,9 +129,8 @@ function EventHistoryGroupItem({ item, agent }: { item: AgentEventHistoryItem; a
 					<AgentIcon type={icon} />
 				</span>
 			)}
-			<span>
-				{label && <strong>{label}: </strong>}
-				{description}
+			<span className="agent-action-message-description">
+				<Markdown>{description}</Markdown>
 			</span>
 		</div>
 	)
@@ -171,8 +204,7 @@ function EventHistoryGroupWithDiff({
 			const eventUtil = agent.getEventUtil(event._type)
 			return {
 				icon: eventUtil.getIcon(event),
-				label: eventUtil.getLabel(event, item.status),
-				description: eventUtil.getDescription(event, item.status),
+				description: eventUtil.getDescription(event),
 			}
 		})
 	}, [items, agent])
@@ -195,7 +227,6 @@ function EventHistoryGroupWithDiff({
 
 interface DiffStep {
 	icon: AgentIconType | null
-	label: string | null
 	description: string | null
 }
 

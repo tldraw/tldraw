@@ -25,7 +25,7 @@ export class DeleteEventUtil extends AgentEventUtil<IAgentDeleteEvent> {
 		return 'trash' as const
 	}
 
-	override isCollapsible(event: Streaming<IAgentDeleteEvent>, other: Streaming<BaseAgentEvent>) {
+	override canGroup(event: Streaming<IAgentDeleteEvent>, other: Streaming<BaseAgentEvent>) {
 		return other._type === 'delete'
 	}
 

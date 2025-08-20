@@ -18,7 +18,7 @@ export class MessageEventUtil extends AgentEventUtil<IAgentMessageEvent> {
 		return AgentMessageEvent
 	}
 
-	override isCollapsible() {
+	override canGroup() {
 		return false
 	}
 

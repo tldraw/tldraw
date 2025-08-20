@@ -39,10 +39,7 @@ export function AgentHistory({
 		previousScrollDistanceFromBottomRef.current = scrollDistanceFromBottom
 	}
 
-	const shouldShowSpinner = useMemo(
-		() => isGenerating && groups.at(-1)?.type === 'prompt',
-		[isGenerating, groups]
-	)
+	const shouldShowSpinner = useMemo(() => isGenerating, [isGenerating])
 
 	return (
 		<div className="chat-history" ref={scrollContainerRef} onScroll={handleScroll}>
@@ -69,23 +66,27 @@ function getAgentHistoryGroups(items: AgentHistoryItem[], agent: TLAgent): Agent
 		}
 
 		const eventUtil = agent.getEventUtil(item.event._type)
-		const description = eventUtil.getDescription(item.event, item.status)
+		const description = eventUtil.getDescription(item.event)
 		if (description === null) {
 			continue
 		}
 
 		const group = groups[groups.length - 1]
-		if (group && group.type === 'event' && canActionBeCollapsedWithGroup({ item, group, agent })) {
+		if (group && group.type === 'event' && canActionBeGrouped({ item, group, agent })) {
 			group.items.push(item)
 		} else {
-			groups.push({ type: 'event', items: [item], showDiff: !isRecordsDiffEmpty(item.diff) })
+			groups.push({
+				type: 'event',
+				items: [item],
+				showDiff: !isRecordsDiffEmpty(item.diff) && item.event.complete,
+			})
 		}
 	}
 
 	return groups
 }
 
-function canActionBeCollapsedWithGroup({
+function canActionBeGrouped({
 	item,
 	group,
 	agent,
@@ -94,6 +95,7 @@ function canActionBeCollapsedWithGroup({
 	group: AgentHistoryGroup
 	agent: TLAgent
 }) {
+	if (item.status === 'progress') return false
 	if (!group) return false
 	if (group.type !== 'event') return false
 
@@ -109,8 +111,8 @@ function canActionBeCollapsedWithGroup({
 	if (
 		prevEvent &&
 		prevEventUtil &&
-		eventUtil.isCollapsible(item.event, prevEvent) &&
-		prevEventUtil.isCollapsible(prevEvent, item.event)
+		eventUtil.canGroup(item.event, prevEvent) &&
+		prevEventUtil.canGroup(prevEvent, item.event)
 	) {
 		return true
 	}

@@ -1,6 +1,5 @@
 import z from 'zod'
 import { $scheduledRequests } from '../../client/atoms/scheduledRequests'
-import { AgentHistoryItemStatus } from '../types/AgentHistoryItem'
 import { AreaContextItem } from '../types/ContextItem'
 import { ScheduledRequest } from '../types/ScheduledRequest'
 import { Streaming } from '../types/Streaming'
@@ -35,17 +34,9 @@ export class ReviewEventUtil extends AgentEventUtil<IAgentReviewEvent> {
 	}
 
 	override getDescription(event: Streaming<IAgentReviewEvent>) {
-		return event.intent ?? ''
-	}
-
-	override getLabel(_event: Streaming<IAgentReviewEvent>, status: AgentHistoryItemStatus) {
-		switch (status) {
-			case 'progress':
-			case 'done':
-				return 'Review'
-			case 'cancelled':
-				return 'Review cancelled'
-		}
+		const label = event.complete ? 'Review' : 'Reviewing'
+		const text = event.intent?.startsWith('#') ? `\n\n${event.intent}` : event.intent
+		return `**${label}**: ${text ?? ''}`
 	}
 
 	override applyEvent(event: Streaming<IAgentReviewEvent>) {

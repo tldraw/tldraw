@@ -24,25 +24,7 @@ export class TodoListEventUtil extends AgentEventUtil<IAgentTodoListEvent> {
 		return AgentTodoListEvent
 	}
 
-	override getIcon() {
-		return 'note' as const
-	}
-
-	override getLabel(event: Streaming<IAgentTodoListEvent>) {
-		if (event.status === 'in-progress') {
-			return `Begin Task #${event.id}`
-		}
-		return null
-	}
-
-	override isCollapsible() {
-		return false
-	}
-
-	override getDescription(event: Streaming<IAgentTodoListEvent>) {
-		if (event.status === 'in-progress') {
-			return event.text ?? ''
-		}
+	override getDescription() {
 		return null
 	}
 

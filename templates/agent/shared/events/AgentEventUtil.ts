@@ -1,7 +1,6 @@
 import z from 'zod'
 import { AgentIconType } from '../../client/components/icons/AgentIcon'
 import { AgentTransform } from '../AgentTransform'
-import { AgentHistoryItemStatus } from '../types/AgentHistoryItem'
 import { Streaming } from '../types/Streaming'
 
 export interface BaseAgentEvent {
@@ -30,18 +29,10 @@ export abstract class AgentEventUtil<T extends BaseAgentEvent = BaseAgentEvent> 
 	}
 
 	/**
-	 * Get a label to display within chat history.
-	 * @returns The label, or null to not show a label
-	 */
-	getLabel(_event: Streaming<T>, _status: AgentHistoryItemStatus): string | null {
-		return null
-	}
-
-	/**
 	 * Get a description of the eventto display within chat history.
 	 * @returns The description, or null to not show a description
 	 */
-	getDescription(_event: Streaming<T>, _status: AgentHistoryItemStatus): string | null {
+	getDescription(_event: Streaming<T>): string | null {
 		return JSON.stringify(_event, null, 2)
 	}
 
@@ -70,9 +61,17 @@ export abstract class AgentEventUtil<T extends BaseAgentEvent = BaseAgentEvent> 
 	}
 
 	/**
-	 * Whether the event should be automatically collapsed with another action.
+	 * Get a short summary that can be shown when the event is collapsed. Return null to disable collapsing.
+	 * @returns The string shown when collapsed, or null to not collapse.
 	 */
-	isCollapsible(_action: Streaming<T>, _other: Streaming<BaseAgentEvent>): boolean {
+	getSummary(_action: Streaming<T>): string | null {
+		return null
+	}
+
+	/**
+	 * Whether the action can be grouped together with another action.
+	 */
+	canGroup(_action: Streaming<T>, _other: Streaming<BaseAgentEvent>): boolean {
 		return true
 	}
 }

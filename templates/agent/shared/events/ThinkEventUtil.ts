@@ -1,5 +1,4 @@
 import z from 'zod'
-import { AgentHistoryItemStatus } from '../types/AgentHistoryItem'
 import { Streaming } from '../types/Streaming'
 import { AgentEventUtil } from './AgentEventUtil'
 
@@ -23,18 +22,11 @@ export class ThinkEventUtil extends AgentEventUtil<IAgentThinkEvent> {
 		return 'brain' as const
 	}
 
-	override getDescription(event: Streaming<IAgentThinkEvent>) {
-		return event.text ?? ''
+	override getSummary() {
+		return 'Thought for a while'
 	}
 
-	override getLabel(_event: Streaming<IAgentThinkEvent>, status: AgentHistoryItemStatus) {
-		switch (status) {
-			case 'progress':
-				return 'Thinking'
-			case 'done':
-				return 'Thought'
-			case 'cancelled':
-				return 'Thought cancelled'
-		}
+	override getDescription(event: Streaming<IAgentThinkEvent>) {
+		return event.text ?? (event.complete ? 'Thinking...' : null)
 	}
 }

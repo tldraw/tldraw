@@ -341,6 +341,7 @@ body {
 	flex-direction: column;
 	width: 100%;
 	margin-top: 4px;
+	margin-bottom: 4px;
 }
 
 .agent-change-message-actions {
@@ -551,7 +552,7 @@ body {
 	margin: 0px 0px;
 	border-radius: 4px 0px 0px 0px;
 	color: var(--tl-color-text-2);
-	max-height: 88px;
+	max-height: 70px;
 	overflow-y: auto;
 }
 
@@ -583,9 +584,15 @@ body {
 	gap: 10px;
 }
 
+.agent-action-group-item {
+	display: flex;
+	flex-direction: column;
+	gap: 10px;
+}
+
 /* This is the collapse/uncollapse button */
 /* It should look very similar to the other action messages */
-.agent-action-group > button {
+.agent-action-collapse-button {
 	display: flex;
 	align-items: center;
 	gap: 4px;
@@ -600,11 +607,11 @@ body {
 	cursor: pointer;
 }
 
-.agent-action-group > button:hover {
+.agent-action-collapse-button:hover {
 	color: var(--tl-color-text);
 }
 
-.agent-action-group > button:disabled {
+.agent-action-collapse-button:disabled {
 	color: var(--tl-color-text-1);
 	cursor: default;
 }
@@ -614,4 +621,33 @@ body {
 	flex-direction: column;
 	gap: 10px;
 	padding-top: 0px;
+}
+
+.agent-action-message-description {
+	/* white-space: pre-wrap; */
+	margin: 0;
+}
+
+.agent-action-message-description > p:first-child {
+	margin-top: 0;
+	/* white-space: pre-wrap; */
+}
+
+.agent-action-message-description > p:last-child {
+	margin-bottom: 0;
+}
+
+.agent-action-message-description p {
+	white-space: pre-wrap;
+}
+
+.agent-action-message-description ul,
+.agent-action-message-description ol {
+	padding-left: 20px;
+}
+
+.agent-action-message-description blockquote {
+	padding-left: 14px;
+	border-left: 2px solid var(--tl-color-text-2);
+	margin: 0;
 }

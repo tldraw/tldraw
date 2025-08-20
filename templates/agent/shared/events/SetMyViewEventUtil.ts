@@ -1,6 +1,5 @@
 import z from 'zod'
 import { $scheduledRequests } from '../../client/atoms/scheduledRequests'
-import { AgentHistoryItemStatus } from '../types/AgentHistoryItem'
 import { ScheduledRequest } from '../types/ScheduledRequest'
 import { Streaming } from '../types/Streaming'
 import { AgentEventUtil } from './AgentEventUtil'
@@ -34,17 +33,9 @@ export class SetMyViewEventUtil extends AgentEventUtil<IAgentSetMyViewEvent> {
 	}
 
 	override getDescription(event: Streaming<IAgentSetMyViewEvent>) {
-		return event.intent ?? ''
-	}
-
-	override getLabel(_event: Streaming<IAgentSetMyViewEvent>, status: AgentHistoryItemStatus) {
-		switch (status) {
-			case 'progress':
-			case 'done':
-				return 'Move camera'
-			case 'cancelled':
-				return 'Camera move cancelled'
-		}
+		const label = event.complete ? 'Move camera' : 'Moving camera'
+		const text = event.intent?.startsWith('#') ? `\n\n${event.intent}` : event.intent
+		return `**${label}**: ${text ?? ''}`
 	}
 
 	override applyEvent(event: Streaming<IAgentSetMyViewEvent>) {
