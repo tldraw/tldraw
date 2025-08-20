@@ -4,29 +4,30 @@ import { useChatInputState } from '../hooks/useChatInputState'
 import { ChatInputImage } from './ChatInputImage'
 import { ImageIcon } from './icons/ImageIcon'
 import { SendIcon } from './icons/SendIcon'
+import { UploadIcon } from './icons/UploadIcon'
 import { WhiteboardIcon } from './icons/WhiteboardIcon'
 import { WhiteboardImage, WhiteboardModal, WhiteboardModalResult } from './WhiteboardModal'
 
 interface ChatInputProps {
 	onSendMessage: (message: string, images: WhiteboardImage[]) => void
-	disabled?: boolean
-	autoFocus?: boolean
-	scrollToBottom?: (behavior?: ScrollBehavior) => void
+	waitingForResponse: boolean
+	scrollToBottom: (behavior?: ScrollBehavior) => void
 	state: ReturnType<typeof useChatInputState>[0]
 	dispatch: ReturnType<typeof useChatInputState>[1]
 }
 
 export function ChatInput({
 	onSendMessage,
-	disabled = false,
-	autoFocus = false,
+	waitingForResponse,
 	scrollToBottom,
 	state,
 	dispatch,
 }: ChatInputProps) {
-	const { input, images, openWhiteboard } = state
+	const { input, images, openWhiteboard, isDragging } = state
 	const textareaRef = useRef<HTMLTextAreaElement>(null)
 	const fileInputRef = useRef<HTMLInputElement>(null)
+
+	const disabled = waitingForResponse || isDragging
 
 	useEffect(() => {
 		if (!disabled && textareaRef.current) {
@@ -120,6 +121,14 @@ export function ChatInput({
 
 	return (
 		<form onSubmit={handleSubmit} className="chat-input-form">
+			{isDragging && (
+				<div className="drag-drop-indicator">
+					<svg className="outline">
+						<rect />
+					</svg>
+					<UploadIcon />
+				</div>
+			)}
 			{images.length > 0 && (
 				<div className="input-images">
 					{images.map((image) => (
@@ -146,10 +155,10 @@ export function ChatInput({
 					placeholder={disabled ? '' : 'Type your message...'}
 					className="chat-input"
 					disabled={disabled}
-					autoFocus={autoFocus}
+					autoFocus={true}
 					rows={1}
 				/>
-				{disabled && (
+				{waitingForResponse && (
 					<div className="input-spinner">
 						<DefaultSpinner />
 					</div>
@@ -184,7 +193,7 @@ export function ChatInput({
 					</button>
 				</TldrawUiTooltip>
 				<TldrawUiTooltip content="Send message">
-					<button type="submit" disabled={!canSend} className="icon-button">
+					<button type="submit" disabled={!canSend || disabled} className="icon-button">
 						<SendIcon />
 					</button>
 				</TldrawUiTooltip>

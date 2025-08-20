@@ -228,7 +228,7 @@ function ExportImageButton() {
 		}
 
 		const opts = {
-			padding: exportPadding ? editor.options.defaultSvgPadding : 0,
+			padding: exportPadding ? editor.options.defaultExportPadding : 0,
 			background: exportBackground,
 			darkMode: exportTheme === 'auto' ? undefined : exportTheme === 'dark',
 			format: exportFormat as TLExportType,
@@ -344,7 +344,7 @@ async function getEditorImage(
 	const result = await editor.toImage(shapes, {
 		scale,
 		format: 'png',
-		padding: exportPadding ? editor.options.defaultSvgPadding : 0,
+		padding: exportPadding ? editor.options.defaultExportPadding : 0,
 		background: exportBackground,
 		darkMode: exportTheme === 'auto' ? undefined : exportTheme === 'dark',
 	})

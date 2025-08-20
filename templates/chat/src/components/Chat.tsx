@@ -66,17 +66,55 @@ export function Chat() {
 	)
 
 	const hasMessages = messages.length > 0
+	const { openWhiteboard, isDragging } = chatInputState
+
+	const handleDragOver = useCallback(
+		(e: React.DragEvent) => {
+			e.preventDefault()
+			if (e.dataTransfer.types.includes('Files') && !openWhiteboard && !isDragging) {
+				chatInputDispatch({ type: 'DRAG_ENTER' })
+			}
+		},
+		[openWhiteboard, isDragging, chatInputDispatch]
+	)
+
+	const handleDragLeave = useCallback(
+		(e: React.DragEvent) => {
+			e.preventDefault()
+			if (!e.currentTarget.contains(e.relatedTarget as Node)) {
+				chatInputDispatch({ type: 'DRAG_LEAVE' })
+			}
+		},
+		[chatInputDispatch]
+	)
+
+	const handleDrop = useCallback(
+		(e: React.DragEvent) => {
+			e.preventDefault()
+			const file = e.dataTransfer.files[0]
+			if (file && file.type.startsWith('image/') && !openWhiteboard) {
+				chatInputDispatch({ type: 'DROP', payload: file })
+			} else {
+				chatInputDispatch({ type: 'DRAG_LEAVE' })
+			}
+		},
+		[chatInputDispatch, openWhiteboard]
+	)
 
 	if (!hasMessages) {
 		return (
-			<div className="empty-chat-container">
+			<div
+				className="empty-chat-container"
+				onDragOver={handleDragOver}
+				onDragLeave={handleDragLeave}
+				onDrop={handleDrop}
+			>
 				<div className="empty-chat-content">
 					<h1 className="empty-chat-title">How can I help?</h1>
 					<div className="centered-input">
 						<ChatInput
 							onSendMessage={handleSendMessage}
-							disabled={status !== 'ready'}
-							autoFocus={true}
+							waitingForResponse={status !== 'ready'}
 							scrollToBottom={scrollToBottom}
 							state={chatInputState}
 							dispatch={chatInputDispatch}
@@ -88,13 +126,17 @@ export function Chat() {
 	}
 
 	return (
-		<div className="chat-container">
+		<div
+			className="chat-container"
+			onDragOver={handleDragOver}
+			onDragLeave={handleDragLeave}
+			onDrop={handleDrop}
+		>
 			<MessageList messages={messages} onImageClick={handleImageClick} />
 			<div className="chat-footer">
 				<ChatInput
 					onSendMessage={handleSendMessage}
-					disabled={status !== 'ready'}
-					autoFocus={true}
+					waitingForResponse={status !== 'ready'}
 					scrollToBottom={scrollToBottom}
 					state={chatInputState}
 					dispatch={chatInputDispatch}

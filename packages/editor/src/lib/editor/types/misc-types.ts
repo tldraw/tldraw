@@ -1,6 +1,7 @@
 import { BoxModel, TLShape } from '@tldraw/tlschema'
 import { Box } from '../../primitives/Box'
 import { VecLike } from '../../primitives/Vec'
+import { Editor } from '../Editor'
 
 /** @public */
 export type RequiredKeys<T, K extends keyof T> = Required<Pick<T, K>> & Omit<T, K>
@@ -40,9 +41,13 @@ export interface TLSvgExportOptions {
 	background?: boolean
 
 	/**
-	 * How much padding to include around the bounds of exports? Defaults to 32px.
+	 * How much padding should be added to the exported image? This can be a number to add a fixed
+	 * number of pixels, or a function that takes a shape and returns a number to add a variable
+	 * amount of padding for each shape in the export.
+	 *
+	 * This defaults to `options.defaultExportPadding`: 32px, or 0 for image shapes.
 	 */
-	padding?: number
+	padding?: number | ((shape: TLShape, editor: Editor) => number)
 
 	/**
 	 * Should the export be rendered in dark mode (true) or light mode (false)? Defaults to the

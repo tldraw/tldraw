@@ -10,6 +10,7 @@ interface ChatInputState {
 		id?: string
 		uploadedFile?: File
 	} | null
+	isDragging: boolean
 }
 
 type ChatInputAction =
@@ -26,6 +27,9 @@ type ChatInputAction =
 			}
 	  }
 	| { type: 'CLOSE_WHITEBOARD' }
+	| { type: 'DRAG_ENTER' }
+	| { type: 'DRAG_LEAVE' }
+	| { type: 'DROP'; payload: File }
 
 function chatInputReducer(state: ChatInputState, action: ChatInputAction): ChatInputState {
 	switch (action.type) {
@@ -43,11 +47,21 @@ function chatInputReducer(state: ChatInputState, action: ChatInputAction): ChatI
 		case 'REMOVE_IMAGE':
 			return { ...state, images: state.images.filter((img) => img.id !== action.payload) }
 		case 'CLEAR':
-			return { input: '', images: [], openWhiteboard: null }
+			return { input: '', images: [], openWhiteboard: null, isDragging: false }
 		case 'OPEN_WHITEBOARD':
-			return { ...state, openWhiteboard: action.payload }
+			return { ...state, openWhiteboard: action.payload, isDragging: false }
 		case 'CLOSE_WHITEBOARD':
 			return { ...state, openWhiteboard: null }
+		case 'DRAG_ENTER':
+			return { ...state, isDragging: true }
+		case 'DRAG_LEAVE':
+			return { ...state, isDragging: false }
+		case 'DROP':
+			return {
+				...state,
+				isDragging: false,
+				openWhiteboard: { uploadedFile: action.payload },
+			}
 		default:
 			return state
 	}
@@ -58,6 +72,7 @@ export function useChatInputState(): [ChatInputState, React.Dispatch<ChatInputAc
 		input: '',
 		images: [],
 		openWhiteboard: null,
+		isDragging: false,
 	})
 
 	return [state, dispatch]
