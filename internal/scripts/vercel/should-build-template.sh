@@ -2,7 +2,8 @@
 set -eux
 
 SCRIPT_DIR=$(dirname "$0")
-REPO_ROOT="$SCRIPT_DIR/../../.."
+REPO_ROOT=$(realpath "$SCRIPT_DIR/../../..")
+cd "$REPO_ROOT"
 
 if [[ "$VERCEL_ENV" == "production" ]] ; then
   echo "Always build on production";
@@ -17,4 +18,4 @@ fi
 
 ## on PR builds, only rebuild if the template directory changed
 TEMPLATE_NAME="$1"
-git diff main HEAD --quiet "${REPO_ROOT}/templates/${TEMPLATE_NAME}/"
+git diff main HEAD --quiet "./templates/${TEMPLATE_NAME}/"
