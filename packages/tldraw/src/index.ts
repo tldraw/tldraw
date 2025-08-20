@@ -85,6 +85,7 @@ export {
 	defaultHandleExternalUrlContent,
 	getAssetInfo,
 	getMediaAssetInfoPartial,
+	notifyIfFileNotAllowed,
 	registerDefaultExternalContentHandlers,
 	type TLDefaultExternalContentHandlerOpts,
 	type TLExternalContentProps,
