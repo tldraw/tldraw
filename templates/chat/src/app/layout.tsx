@@ -1,8 +1,8 @@
 import './globals.css'
 
 export const metadata = {
-	title: 'tldraw Next.js app template',
-	description: 'An example of how to use tldraw in a Next.js app',
+	title: 'tldraw chat starter kit',
+	description: 'An example of how to use tldraw to provide visual context in a chat app',
 }
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {
