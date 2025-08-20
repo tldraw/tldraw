@@ -231,7 +231,18 @@ export function useSync(opts: UseSyncOptions & TLStoreSchemaOptions): RemoteTLSt
 			socket.close()
 			setState(null)
 		}
-	}, [assets, onMount, userAtom, roomId, schema, setState, track, uri, getUserPresence, onCustomMessageReceived])
+	}, [
+		assets,
+		onMount,
+		userAtom,
+		roomId,
+		schema,
+		setState,
+		track,
+		uri,
+		getUserPresence,
+		onCustomMessageReceived,
+	])
 
 	return useValue<RemoteTLStoreWithStatus>(
 		'remote synced store',
