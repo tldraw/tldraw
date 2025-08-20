@@ -148,6 +148,9 @@ export const TldrawUiButtonPicker = memo(function TldrawUiButtonPicker<T extends
 							onPointerDown={handleButtonPointerDown}
 							onPointerUp={handleButtonPointerUp}
 							onClick={handleButtonClick}
+							onContextMenu={(e) => {
+								e.preventDefault()
+							}}
 						>
 							<TldrawUiButtonIcon icon={item.icon} />
 						</TldrawUiToolbarToggleItem>
