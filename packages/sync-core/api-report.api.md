@@ -416,7 +416,7 @@ export type TLSocketServerSentEvent<R extends UnknownRecord> = {
     serverClock: number;
     type: 'connect';
 } | {
-    data: Record<string, any>;
+    data: any;
     type: 'custom';
 } | {
     data: TLSocketServerSentDataEvent<R>[];
