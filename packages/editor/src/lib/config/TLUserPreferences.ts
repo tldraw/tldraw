@@ -135,7 +135,7 @@ function getRandomColor() {
 
 /** @internal */
 export function userPrefersReducedMotion() {
-	if (typeof window !== 'undefined' && 'matchMedia' in window) {
+	if (typeof window !== 'undefined' && window.matchMedia) {
 		return window.matchMedia?.('(prefers-reduced-motion: reduce)')?.matches ?? false
 	}
 

@@ -1,6 +1,7 @@
 import { TLRecord, sleep } from 'tldraw'
+import { vi } from 'vitest'
 import { ClientWebSocketAdapter, INACTIVE_MIN_DELAY } from './ClientWebSocketAdapter'
-// NOTE: there is a hack in apps/dotcom/jestResolver.js to make this import work
+// NOTE: WebSocket resolution is handled by vitest.config.ts alias configuration
 import { WebSocketServer, WebSocket as WsWebSocket } from 'ws'
 import { TLSocketClientSentEvent, getTlsyncProtocolVersion } from './protocol'
 
@@ -11,28 +12,28 @@ async function waitFor(predicate: () => boolean) {
 			throw new Error('waitFor predicate timed out')
 		}
 		try {
-			jest.runAllTimers()
-			jest.useRealTimers()
+			vi.runAllTimers()
+			vi.useRealTimers()
 			await sleep(10)
 		} finally {
-			jest.useFakeTimers()
+			vi.useFakeTimers()
 		}
 	}
 }
 
-jest.useFakeTimers()
+vi.useFakeTimers()
 
 describe(ClientWebSocketAdapter, () => {
 	let adapter: ClientWebSocketAdapter
 	let wsServer: WebSocketServer
 	let connectedServerSocket: WsWebSocket
-	const connectMock = jest.fn<void, [socket: WsWebSocket]>((socket) => {
+	const connectMock = vi.fn((socket: WsWebSocket) => {
 		connectedServerSocket = socket
 	})
 	beforeEach(() => {
 		adapter = new ClientWebSocketAdapter(() => 'ws://localhost:2233')
 		wsServer = new WebSocketServer({ port: 2233 })
-		wsServer.on('connection', connectMock)
+		wsServer.on('connection', connectMock as any)
 	})
 	afterEach(() => {
 		adapter.close()
@@ -78,7 +79,7 @@ describe(ClientWebSocketAdapter, () => {
 	})
 	it('should call .close on the underlying socket if .close is called before the socket opens', async () => {
 		await waitFor(() => adapter._ws?.readyState === WebSocket.OPEN)
-		const closeSpy = jest.spyOn(adapter._ws!, 'close')
+		const closeSpy = vi.spyOn(adapter._ws!, 'close')
 		adapter.close()
 		await waitFor(() => closeSpy.mock.calls.length > 0)
 		expect(closeSpy).toHaveBeenCalled()
@@ -105,7 +106,7 @@ describe(ClientWebSocketAdapter, () => {
 
 	it('attempts to reconnect early if the tab becomes active', async () => {
 		await waitFor(() => adapter._ws?.readyState === WebSocket.OPEN)
-		const hiddenMock = jest.spyOn(document, 'hidden', 'get')
+		const hiddenMock = vi.spyOn(document, 'hidden', 'get')
 		hiddenMock.mockReturnValue(true)
 		// it's necessary to close the socket, as otherwise the websocket might stay half-open
 		connectedServerSocket.close()
@@ -119,9 +120,9 @@ describe(ClientWebSocketAdapter, () => {
 	})
 
 	it('supports receiving messages', async () => {
-		const onMessage = jest.fn()
+		const onMessage = vi.fn()
 		adapter.onReceiveMessage(onMessage)
-		connectMock.mockImplementationOnce((ws) => {
+		connectMock.mockImplementationOnce((ws: any) => {
 			ws.send('{ "type": "message", "data": "hello" }')
 		})
 
@@ -130,8 +131,8 @@ describe(ClientWebSocketAdapter, () => {
 	})
 
 	it('supports sending messages', async () => {
-		const onMessage = jest.fn()
-		connectMock.mockImplementationOnce((ws) => {
+		const onMessage = vi.fn()
+		connectMock.mockImplementationOnce((ws: any) => {
 			ws.on('message', onMessage)
 		})
 
@@ -153,7 +154,7 @@ describe(ClientWebSocketAdapter, () => {
 	})
 
 	it('signals status changes', async () => {
-		const onStatusChange = jest.fn()
+		const onStatusChange = vi.fn()
 		adapter.onStatusChange(onStatusChange)
 
 		await waitFor(() => adapter._ws?.readyState === WebSocket.OPEN)
@@ -175,7 +176,7 @@ describe(ClientWebSocketAdapter, () => {
 	})
 
 	it('signals the correct closeCode when a room is not found', async () => {
-		const onStatusChange = jest.fn()
+		const onStatusChange = vi.fn()
 		adapter.onStatusChange(onStatusChange)
 		await waitFor(() => adapter._ws?.readyState === WebSocket.OPEN)
 
@@ -185,7 +186,7 @@ describe(ClientWebSocketAdapter, () => {
 	})
 
 	it('signals status changes while restarting', async () => {
-		const onStatusChange = jest.fn()
+		const onStatusChange = vi.fn()
 		await waitFor(() => adapter._ws?.readyState === WebSocket.OPEN)
 
 		adapter.onStatusChange(onStatusChange)

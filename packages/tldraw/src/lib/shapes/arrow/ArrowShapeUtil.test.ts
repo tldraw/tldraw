@@ -1,4 +1,5 @@
 import { HALF_PI, TLArrowShape, TLShapeId, createShapeId, toRichText } from '@tldraw/editor'
+import { vi } from 'vitest'
 import { TestEditor } from '../../../test/TestEditor'
 import { createOrUpdateArrowBinding, getArrowBindings } from './shared'
 
@@ -12,7 +13,7 @@ const ids = {
 	arrow1: createShapeId('arrow1'),
 }
 
-jest.useFakeTimers()
+vi.useFakeTimers()
 
 window.requestAnimationFrame = function requestAnimationFrame(cb) {
 	return setTimeout(cb, 1000 / 60)
@@ -217,7 +218,7 @@ describe('Other cases when arrow are moved', () => {
 		// When box one is not selected, unbinds box1 and keeps binding to box2
 		editor.select(ids.arrow1, ids.box2, ids.box3)
 		editor.alignShapes(editor.getSelectedShapeIds(), 'right')
-		jest.advanceTimersByTime(1000)
+		vi.advanceTimersByTime(1000)
 
 		expect(bindings()).toMatchObject({
 			start: { toId: ids.box1, props: { isPrecise: false } },
@@ -227,7 +228,7 @@ describe('Other cases when arrow are moved', () => {
 		// maintains bindings if they would still be over the same shape (but makes them precise), but unbinds others
 		editor.select(ids.arrow1, ids.box3)
 		editor.alignShapes(editor.getSelectedShapeIds(), 'top')
-		jest.advanceTimersByTime(1000)
+		vi.advanceTimersByTime(1000)
 
 		expect(bindings()).toMatchObject({
 			start: { toId: ids.box1, props: { isPrecise: true } },
@@ -244,7 +245,7 @@ describe('Other cases when arrow are moved', () => {
 		// When box one is not selected, unbinds box1 and keeps binding to box2
 		editor.select(ids.arrow1, ids.box2, ids.box3)
 		editor.distributeShapes(editor.getSelectedShapeIds(), 'horizontal')
-		jest.advanceTimersByTime(1000)
+		vi.advanceTimersByTime(1000)
 
 		expect(bindings()).toMatchObject({
 			start: { toId: ids.box1, props: { isPrecise: false } },
@@ -254,7 +255,7 @@ describe('Other cases when arrow are moved', () => {
 		// unbinds when only the arrow is selected (not its bound shapes) if the arrow itself has moved
 		editor.select(ids.arrow1, ids.box3, ids.box4)
 		editor.distributeShapes(editor.getSelectedShapeIds(), 'vertical')
-		jest.advanceTimersByTime(1000)
+		vi.advanceTimersByTime(1000)
 
 		// The arrow didn't actually move
 		expect(bindings()).toMatchObject({
@@ -265,7 +266,7 @@ describe('Other cases when arrow are moved', () => {
 		// The arrow will not move because it is still bound to another shape
 		editor.updateShapes([{ id: ids.box4, type: 'geo', y: -600 }])
 		editor.distributeShapes(editor.getSelectedShapeIds(), 'vertical')
-		jest.advanceTimersByTime(1000)
+		vi.advanceTimersByTime(1000)
 
 		expect(bindings()).toMatchObject({
 			start: undefined,

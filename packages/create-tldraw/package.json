@@ -1,7 +1,7 @@
 {
 	"name": "create-tldraw",
 	"description": "tldraw infinite canvas SDK (create cli).",
-	"version": "3.15.1",
+	"version": "3.15.2",
 	"author": {
 		"name": "tldraw Inc.",
 		"email": "hello@tldraw.com"
@@ -32,13 +32,14 @@
 	],
 	"scripts": {
 		"dev": "./scripts/dev.sh",
-		"test-ci": "lazy inherit",
-		"test": "yarn run -T jest",
-		"test-coverage": "lazy inherit",
+		"test-ci": "yarn run -T vitest run --passWithNoTests",
+		"test": "yarn run -T vitest --passWithNoTests",
+		"test-coverage": "yarn run -T vitest run --coverage --passWithNoTests",
 		"build": "./scripts/build.sh",
 		"prepack": "yarn build",
 		"pack-tarball": "yarn pack",
-		"lint": "yarn run -T tsx ../../internal/scripts/lint.ts"
+		"lint": "yarn run -T tsx ../../internal/scripts/lint.ts",
+		"context": "yarn run -T tsx ../../internal/scripts/context.ts"
 	},
 	"devDependencies": {
 		"@bomb.sh/args": "^0.3.1",
@@ -53,18 +54,6 @@
 		"string-width": "^7.2.0",
 		"strip-ansi": "^7.1.0",
 		"tar": "^7.4.3"
-	},
-	"jest": {
-		"preset": "../../internal/config/jest/node/jest-preset.js",
-		"setupFiles": [
-			"raf/polyfill"
-		],
-		"moduleNameMapper": {
-			"^~(.*)": "<rootDir>/src/$1"
-		},
-		"transformIgnorePatterns": [
-			"node_modules/(?!(ansi-styles|string-width|strip-ansi|ansi-regex|get-east-asian-width)/)"
-		]
 	},
 	"// because this is bundled, all dependencies should be dev dependencies.": null
 }

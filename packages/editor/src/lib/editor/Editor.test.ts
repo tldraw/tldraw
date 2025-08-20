@@ -1,3 +1,4 @@
+import { vi } from 'vitest'
 import {
 	Box,
 	Geometry2d,
@@ -59,8 +60,8 @@ beforeEach(() => {
 		getContainer: () => document.body,
 	})
 	editor.setCameraOptions({ isLocked: true })
-	editor.setCamera = jest.fn()
-	editor.user.getAnimationSpeed = jest.fn()
+	editor.setCamera = vi.fn()
+	editor.user.getAnimationSpeed = vi.fn()
 })
 
 describe('centerOnPoint', () => {
@@ -94,13 +95,13 @@ describe('updateShape', () => {
 
 describe('zoomToFit', () => {
 	it('no-op when isLocked is set', () => {
-		editor.getCurrentPageShapeIds = jest.fn(() => new Set([createShapeId('box1')]))
+		editor.getCurrentPageShapeIds = vi.fn(() => new Set([createShapeId('box1')]))
 		editor.zoomToFit()
 		expect(editor.setCamera).not.toHaveBeenCalled()
 	})
 
 	it('sets camera when isLocked is set and force flag is set', () => {
-		editor.getCurrentPageShapeIds = jest.fn(() => new Set([createShapeId('box1')]))
+		editor.getCurrentPageShapeIds = vi.fn(() => new Set([createShapeId('box1')]))
 		editor.zoomToFit({ force: true })
 		expect(editor.setCamera).toHaveBeenCalled()
 	})
@@ -144,13 +145,13 @@ describe('zoomOut', () => {
 
 describe('zoomToSelection', () => {
 	it('no-op when isLocked is set', () => {
-		editor.getSelectionPageBounds = jest.fn(() => Box.From({ x: 0, y: 0, w: 100, h: 100 }))
+		editor.getSelectionPageBounds = vi.fn(() => Box.From({ x: 0, y: 0, w: 100, h: 100 }))
 		editor.zoomToSelection()
 		expect(editor.setCamera).not.toHaveBeenCalled()
 	})
 
 	it('sets camera when isLocked is set and force flag is set', () => {
-		editor.getSelectionPageBounds = jest.fn(() => Box.From({ x: 0, y: 0, w: 100, h: 100 }))
+		editor.getSelectionPageBounds = vi.fn(() => Box.From({ x: 0, y: 0, w: 100, h: 100 }))
 		editor.zoomToSelection({ force: true })
 		expect(editor.setCamera).toHaveBeenCalled()
 	})
@@ -286,7 +287,7 @@ describe('getShapesAtPoint', () => {
 
 	it('filters out hidden shapes', () => {
 		// Create a spy to mock isShapeHidden
-		const isShapeHiddenSpy = jest.spyOn(editor, 'isShapeHidden')
+		const isShapeHiddenSpy = vi.spyOn(editor, 'isShapeHidden')
 		isShapeHiddenSpy.mockImplementation((shape) => {
 			return typeof shape === 'string' ? shape === ids.shape3 : shape.id === ids.shape3
 		})
@@ -352,7 +353,7 @@ describe('getShapesAtPoint', () => {
 
 	it('returns empty array when all shapes are hidden', () => {
 		// Mock all shapes as hidden
-		const isShapeHiddenSpy = jest.spyOn(editor, 'isShapeHidden')
+		const isShapeHiddenSpy = vi.spyOn(editor, 'isShapeHidden')
 		isShapeHiddenSpy.mockReturnValue(true)
 
 		const shapes = editor.getShapesAtPoint({ x: 50, y: 50 })
@@ -692,7 +693,7 @@ describe('selectAll', () => {
 		const initialSelectedIds = editor.getSelectedShapeIds()
 
 		// Spy on setSelectedShapes to verify it's not called
-		const setSelectedShapesSpy = jest.spyOn(editor, 'setSelectedShapes')
+		const setSelectedShapesSpy = vi.spyOn(editor, 'setSelectedShapes')
 
 		// Call selectAll
 		editor.selectAll()
@@ -713,7 +714,7 @@ describe('selectAll', () => {
 		const initialSelectedIds = editor.getSelectedShapeIds()
 
 		// Spy on setSelectedShapes to verify it's not called
-		const setSelectedShapesSpy = jest.spyOn(editor, 'setSelectedShapes')
+		const setSelectedShapesSpy = vi.spyOn(editor, 'setSelectedShapes')
 
 		// Call selectAll
 		editor.selectAll()
@@ -818,7 +819,7 @@ describe('selectAll', () => {
 		const initialSelectedIds = Array.from(editor.getSelectedShapeIds())
 
 		// Spy on setSelectedShapes to verify it's not called
-		const setSelectedShapesSpy = jest.spyOn(editor, 'setSelectedShapes')
+		const setSelectedShapesSpy = vi.spyOn(editor, 'setSelectedShapes')
 
 		// Call selectAll
 		editor.selectAll()
