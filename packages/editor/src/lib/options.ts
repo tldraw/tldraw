@@ -1,4 +1,6 @@
+import { TLShape } from '@tldraw/tlschema'
 import { ComponentType, Fragment } from 'react'
+import { Editor } from './editor/Editor'
 
 /**
  * Options for configuring tldraw. For defaults, see {@link defaultTldrawOptions}.
@@ -29,7 +31,14 @@ export interface TldrawOptions {
 	readonly dragDistanceSquared: number
 	readonly uiDragDistanceSquared: number
 	readonly uiCoarseDragDistanceSquared: number
-	readonly defaultSvgPadding: number
+	/**
+	 * How much padding should be added to an exported image by default? This can be a number to add
+	 * a fixed number of pixels, or a function that takes a shape and returns a number to add a
+	 * variable amount of padding for each shape in the export.
+	 *
+	 * Defaults to 32px, or 0 for image shapes.
+	 */
+	readonly defaultExportPadding: number | ((shape: TLShape, editor: Editor) => number)
 	readonly cameraSlideFriction: number
 	readonly gridSteps: readonly {
 		readonly min: number
@@ -104,7 +113,7 @@ export const defaultTldrawOptions = {
 	// it's really easy to accidentally drag from the toolbar on mobile, so we use a much larger
 	// threshold than usual here to try and prevent accidental drags.
 	uiCoarseDragDistanceSquared: 625, // 25 squared
-	defaultSvgPadding: 32,
+	defaultExportPadding: (shape) => (shape.type === 'image' ? 0 : 32),
 	cameraSlideFriction: 0.09,
 	gridSteps: [
 		{ min: -1, mid: 0.15, step: 64 },
