@@ -23,13 +23,16 @@ import {
 	schema as zeroSchema,
 } from '@tldraw/dotcom-shared'
 import {
+	IndexKey,
 	Result,
 	assert,
 	fetch,
 	getFromLocalStorage,
+	getIndexBelow,
 	isEqual,
 	promiseWithResolve,
 	setInLocalStorage,
+	sortByIndex,
 	structuredClone,
 	throttle,
 	uniqueId,
@@ -65,6 +68,8 @@ import { getDateFormat } from '../utils/dates'
 import { createIntl, defineMessages, setupCreateIntl } from '../utils/i18n'
 import { updateLocalSessionState } from '../utils/local-session-state'
 import { Zero as ZeroPolyfill } from './zero-polyfill'
+
+export type SidebarFileContext = 'my-files' | 'group-files' | 'my-files-pinned'
 
 export const TLDR_FILE_ENDPOINT = `/api/app/tldr`
 export const PUBLISH_ENDPOINT = `/api/app/publish`
@@ -306,8 +311,9 @@ export class TldrawApp {
 		return this.getUserFlags().has(flag)
 	}
 
+	@computed({ isEqual })
 	getGroupMemberships() {
-		return this.groupMemberships$.get()
+		return this.groupMemberships$.get().slice(0).sort(sortByIndex)
 	}
 
 	getGroupMembership(groupId: string) {
@@ -376,9 +382,8 @@ export class TldrawApp {
 			const file = myFiles[fileId]
 			let state: (typeof myStates)[string] | undefined = myStates[fileId]
 			if (!file) continue
+
 			if (!state && !file.isDeleted && file.ownerId === this.userId) {
-				// create a file state for this file
-				// this allows us to 'undelete' soft-deleted files by manually toggling 'isDeleted' in the backend
 				state = this.fileStates$.get().find((fs) => fs.fileId === fileId)
 			}
 			if (!state) {
@@ -386,25 +391,63 @@ export class TldrawApp {
 				continue
 			}
 			const existing = this.lastRecentFileOrdering?.find((f) => f.fileId === fileId)
-			if (existing && existing.isPinned === state.isPinned) {
+			const isPinned = state.isPinned ?? false
+
+			if (existing && existing.isPinned === isPinned) {
+				// Preserve existing entry to maintain ordering
 				nextRecentFileOrdering.push(existing)
 				continue
 			}
 
-			nextRecentFileOrdering.push({
+			// For new entries or pinned status changes
+			const newEntry = {
 				fileId,
-				isPinned: state.isPinned ?? false,
+				isPinned,
 				date: state.lastEditAt ?? state.firstVisitAt ?? file.createdAt ?? 0,
-			})
+			}
+
+			// If this was previously unpinned and we have existing ordering,
+			// preserve its position in the unpinned section to avoid real-time reordering
+			if (!isPinned && existing && !existing.isPinned) {
+				// Keep the old date to preserve ordering in "My files"
+				newEntry.date = existing.date
+			}
+
+			nextRecentFileOrdering.push(newEntry)
 		}
 
-		// sort by date with most recent first
-		nextRecentFileOrdering.sort((a, b) => b.date - a.date)
+		// separate pinned and unpinned files
+		const pinnedFiles = nextRecentFileOrdering.filter((f) => f.isPinned)
+		const unpinnedFiles = nextRecentFileOrdering.filter((f) => !f.isPinned)
+
+		// sort pinned files by their pinnedIndex
+		pinnedFiles.sort((a, b) => {
+			const aState = myStates[a.fileId]
+			const bState = myStates[b.fileId]
+			const aIndex = aState?.pinnedIndex
+			const bIndex = bState?.pinnedIndex
+
+			// If both have indexes, sort by index
+			if (aIndex && bIndex) {
+				return aIndex < bIndex ? -1 : 1
+			}
+			// If only one has an index, it comes first
+			if (aIndex && !bIndex) return -1
+			if (!aIndex && bIndex) return 1
+			// If neither has an index, sort by date (fallback)
+			return b.date - a.date
+		})
+
+		// sort unpinned files by date with most recent first
+		unpinnedFiles.sort((a, b) => b.date - a.date)
+
+		// combine: pinned files first, then unpinned
+		const sortedFiles = [...pinnedFiles, ...unpinnedFiles]
 
 		// stash the ordering for next time
-		this.lastRecentFileOrdering = nextRecentFileOrdering
+		this.lastRecentFileOrdering = sortedFiles
 
-		return nextRecentFileOrdering
+		return sortedFiles
 	}
 
 	private canCreateNewFile() {
@@ -421,6 +464,16 @@ export class TldrawApp {
 		})
 	}
 
+	async createGroupFile(groupId: string) {
+		const fileId = uniqueId()
+		this.z.mutate.file.createGroupFile({
+			fileId,
+			groupId,
+			name: this.getFallbackFileName(Date.now()),
+		})
+		return Result.ok({ fileId })
+	}
+
 	async createFile(
 		fileOrId?: string | Partial<TlaFile>
 	): Promise<Result<{ file: TlaFile }, 'max number of files reached'>> {
@@ -428,6 +481,10 @@ export class TldrawApp {
 			this.showMaxFilesToast()
 			return Result.err('max number of files reached')
 		}
+		const isGroupFile =
+			typeof fileOrId === 'object' && 'owningGroupId' in fileOrId && fileOrId.owningGroupId !== null
+
+		assert(!isGroupFile, 'isGroupFile should be false')
 
 		const file: TlaFile = {
 			id: typeof fileOrId === 'string' ? fileOrId : uniqueId(),
@@ -464,7 +521,8 @@ export class TldrawApp {
 			lastEditAt: null,
 			lastSessionState: null,
 			lastVisitAt: null,
-		}
+			pinnedIndex: null,
+		} satisfies TlaFileState
 		this.z.mutate.file.insertWithFileState({ file, fileState })
 		// todo: add server error handling for real Zero
 		// .server.catch((res: { error: string; details: string }) => {
@@ -610,11 +668,28 @@ export class TldrawApp {
 
 		if (!fileState) return
 
-		return this.z.mutate.file_state.update({
+		const isPinning = !fileState.isPinned
+
+		// If pinning, assign an index for ordering
+		const updateData: any = {
 			fileId,
 			userId: this.userId,
-			isPinned: !fileState.isPinned,
-		})
+			isPinned: isPinning,
+		}
+
+		if (isPinning) {
+			// Get all currently pinned files to find the next index
+			const lowestIndex = this.getFileState(
+				this.getUserRecentFiles()?.find((f) => f.isPinned)?.fileId ?? ''
+			)?.pinnedIndex
+			const nextIndex = getIndexBelow(lowestIndex)
+			updateData.pinnedIndex = nextIndex
+		} else {
+			// When unpinning, remove the index
+			updateData.pinnedIndex = null
+		}
+
+		return this.z.mutate.file_state.update(updateData)
 	}
 
 	setFileSharedLinkType(fileId: string, sharedLinkType: TlaFile['sharedLinkType'] | 'no-access') {
@@ -658,6 +733,7 @@ export class TldrawApp {
 				// doesn't really matter what this is because it is
 				// overwritten by postgres
 				isFileOwner: false,
+				pinnedIndex: null,
 			}
 			this.z.mutate.file_state.insert(fs)
 		}
@@ -925,4 +1001,33 @@ export class TldrawApp {
 
 		return this.createFile({ id, name })
 	}
+
+	sidebarState = atom('sidebar state', {
+		expandedGroups: new Set<string>(),
+		noAnimationGroups: new Set<string>(),
+		renameState: null as null | {
+			fileId: string
+			context: SidebarFileContext
+		},
+		dragState: null as
+			| null
+			| {
+					type: 'file'
+					fileId: string
+					context: SidebarFileContext
+					originDropZoneId?: string
+			  }
+			| {
+					type: 'group'
+					itemId: string
+					cursorLineY: number | null
+					nextIndex: IndexKey | null
+			  }
+			| {
+					type: 'pinned'
+					fileId: string
+					cursorLineY: number | null
+					nextIndex: IndexKey | null
+			  },
+	})
 }

@@ -28,6 +28,9 @@
 	},
 	"dependencies": {
 		"@clerk/clerk-react": "^5.22.8",
+		"@dnd-kit/core": "^6.3.1",
+		"@dnd-kit/modifiers": "^9.0.0",
+		"@dnd-kit/utilities": "^3.2.2",
 		"@rocicorp/zero": "0.19.2025050203",
 		"@sentry/integrations": "^7.120.3",
 		"@sentry/react": "^7.120.3",
@@ -38,6 +41,7 @@
 		"@tldraw/utils": "workspace:*",
 		"@types/regexgen": "^1.3.3",
 		"axe-core": "^4.10.3",
+		"bedit": "^0.0.11",
 		"browser-fs-access": "^0.35.0",
 		"classnames": "^2.5.1",
 		"idb": "^7.1.1",

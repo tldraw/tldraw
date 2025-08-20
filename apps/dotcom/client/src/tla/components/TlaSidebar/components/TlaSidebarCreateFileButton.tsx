@@ -1,9 +1,9 @@
+import { setIn } from 'bedit'
 import { useCallback, useRef } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { tltime } from 'tldraw'
 import { routes } from '../../../../routeDefs'
 import { useApp } from '../../../hooks/useAppState'
-import { useFileSidebarFocusContext } from '../../../providers/FileInputFocusProvider'
 import { useTldrawAppUiEvents } from '../../../utils/app-ui-events'
 import { getIsCoarsePointer } from '../../../utils/getIsCoarsePointer'
 import { useMsg } from '../../../utils/i18n'
@@ -20,15 +20,13 @@ export function TlaSidebarCreateFileButton() {
 
 	const rCanCreate = useRef(true)
 
-	const focusCtx = useFileSidebarFocusContext()
-
 	const handleSidebarCreate = useCallback(async () => {
 		if (!rCanCreate.current) return
 		const res = await app.createFile()
 		if (res.ok) {
 			const isMobile = getIsCoarsePointer()
 			if (!isMobile) {
-				focusCtx.shouldRenameNextNewFile = true
+				setIn(app.sidebarState).renameState({ fileId: res.value.file.id, context: 'my-files' })
 			}
 			const { file } = res.value
 			navigate(routes.tlaFile(file.id))
@@ -39,7 +37,7 @@ export function TlaSidebarCreateFileButton() {
 				toggleMobileSidebar(false)
 			}
 		}
-	}, [app, focusCtx, navigate, trackEvent])
+	}, [app, navigate, trackEvent])
 
 	return (
 		<button
