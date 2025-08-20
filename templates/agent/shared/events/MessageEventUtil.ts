@@ -18,6 +18,10 @@ export class MessageEventUtil extends AgentEventUtil<IAgentMessageEvent> {
 		return AgentMessageEvent
 	}
 
+	override isCollapsible() {
+		return false
+	}
+
 	override getDescription(event: Streaming<IAgentMessageEvent>) {
 		return event.text ?? ''
 	}

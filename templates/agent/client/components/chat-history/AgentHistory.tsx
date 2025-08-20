@@ -1,7 +1,7 @@
 import { useEffect, useMemo, useRef } from 'react'
 import { DefaultSpinner, Editor, isRecordsDiffEmpty, useValue } from 'tldraw'
 import { AgentHistoryGroup } from '../../../shared/types/AgentHistoryGroup'
-import { AgentHistoryItem } from '../../../shared/types/AgentHistoryItem'
+import { AgentEventHistoryItem, AgentHistoryItem } from '../../../shared/types/AgentHistoryItem'
 import { TLAgent } from '../../ai/useTldrawAgent'
 import { $agentHistoryItems } from '../../atoms/agentHistoryItems'
 import { EventHistoryGroup } from './EventHistoryGroup'
@@ -17,6 +17,7 @@ export function AgentHistory({
 	isGenerating: boolean
 }) {
 	const items = useValue($agentHistoryItems)
+	const groups = getAgentHistoryGroups(items, agent)
 	const scrollContainerRef = useRef<HTMLDivElement>(null)
 	const previousScrollDistanceFromBottomRef = useRef(0)
 
@@ -38,8 +39,6 @@ export function AgentHistory({
 		previousScrollDistanceFromBottomRef.current = scrollDistanceFromBottom
 	}
 
-	const groups = getAgentHistoryGroups(items)
-
 	const shouldShowSpinner = useMemo(
 		() => isGenerating && groups.at(-1)?.type === 'prompt',
 		[isGenerating, groups]
@@ -60,7 +59,7 @@ export function AgentHistory({
 	)
 }
 
-function getAgentHistoryGroups(items: AgentHistoryItem[]): AgentHistoryGroup[] {
+function getAgentHistoryGroups(items: AgentHistoryItem[], agent: TLAgent): AgentHistoryGroup[] {
 	const groups: AgentHistoryGroup[] = []
 
 	for (const item of items) {
@@ -69,21 +68,52 @@ function getAgentHistoryGroups(items: AgentHistoryItem[]): AgentHistoryGroup[] {
 			continue
 		}
 
-		const showDiff = !isRecordsDiffEmpty(item.diff)
+		const eventUtil = agent.getEventUtil(item.event._type)
+		const description = eventUtil.getDescription(item.event, item.status)
+		if (description === null) {
+			continue
+		}
 
-		const lastGroup = groups[groups.length - 1]
-		const lastGroupAcceptance = lastGroup.type === 'event' && lastGroup?.items[0]?.acceptance
-		if (
-			!lastGroup ||
-			lastGroup.type !== 'event' ||
-			lastGroup.showDiff !== showDiff ||
-			lastGroupAcceptance !== item.acceptance
-		) {
-			groups.push({ type: 'event', items: [item], showDiff })
+		const group = groups[groups.length - 1]
+		if (group && group.type === 'event' && canActionBeCollapsedWithGroup({ item, group, agent })) {
+			group.items.push(item)
 		} else {
-			lastGroup.items.push(item)
+			groups.push({ type: 'event', items: [item], showDiff: !isRecordsDiffEmpty(item.diff) })
 		}
 	}
 
 	return groups
+}
+
+function canActionBeCollapsedWithGroup({
+	item,
+	group,
+	agent,
+}: {
+	item: AgentEventHistoryItem
+	group: AgentHistoryGroup
+	agent: TLAgent
+}) {
+	if (!group) return false
+	if (group.type !== 'event') return false
+
+	const showDiff = !isRecordsDiffEmpty(item.diff)
+	if (showDiff !== group.showDiff) return false
+
+	const groupAcceptance = group.items[0]?.acceptance
+	if (groupAcceptance !== item.acceptance) return false
+
+	const prevEvent = group.items.at(-1)?.event
+	const prevEventUtil = prevEvent ? agent.getEventUtil(prevEvent._type) : null
+	const eventUtil = agent.getEventUtil(item.event._type)
+	if (
+		prevEvent &&
+		prevEventUtil &&
+		eventUtil.isCollapsible(item.event, prevEvent) &&
+		prevEventUtil.isCollapsible(prevEvent, item.event)
+	) {
+		return true
+	}
+
+	return false
 }

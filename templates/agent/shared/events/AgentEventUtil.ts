@@ -64,9 +64,15 @@ export abstract class AgentEventUtil<T extends BaseAgentEvent = BaseAgentEvent> 
 
 	/**
 	 * Whether the event should be saved to chat history.
-	 * @returns Whether the event should be saved to chat history.
 	 */
 	savesToHistory(): boolean {
+		return true
+	}
+
+	/**
+	 * Whether the event should be automatically collapsed with another action.
+	 */
+	isCollapsible(_action: Streaming<T>, _other: Streaming<BaseAgentEvent>): boolean {
 		return true
 	}
 }

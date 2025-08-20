@@ -1,10 +1,12 @@
-import { useCallback, useMemo } from 'react'
+import { useCallback, useMemo, useState } from 'react'
 import { Editor, reverseRecordsDiff, squashRecordDiffs } from 'tldraw'
 import { AgentEventHistoryGroup } from '../../../shared/types/AgentHistoryGroup'
 import { AgentEventHistoryItem } from '../../../shared/types/AgentHistoryItem'
 import { TLAgent } from '../../ai/useTldrawAgent'
 import { $agentHistoryItems } from '../../atoms/agentHistoryItems'
 import { AgentIcon, AgentIconType } from '../icons/AgentIcon'
+import { ChevronDownIcon } from '../icons/ChevronDownIcon'
+import { ChevronRightIcon } from '../icons/ChevronRightIcon'
 import { TldrawDiffViewer } from './TldrawDiffViewer'
 
 // The model returns changes individually, but we group them together in this component for UX reasons, namely so the user can see all changes done at once together, and so they can accept or reject them all at once
@@ -32,28 +34,73 @@ function EventHistoryGroupWithoutDiff({
 	agent: TLAgent
 }) {
 	const { items } = group
-	return items.map((item, i) => {
-		const { event } = item
-		const eventUtil = agent.getEventUtil(event._type)
-		const icon = eventUtil.getIcon(event)
-		const label = eventUtil.getLabel(event, item.status)
-		const description = eventUtil.getDescription(event, item.status)
 
-		if (!description) return null
+	const nonEmptyItems = useMemo(() => {
+		return items.filter((item) => {
+			const eventUtil = agent.getEventUtil(item.event._type)
+			const description = eventUtil.getDescription(item.event, item.status)
+			return description !== null
+		})
+	}, [items, agent])
+
+	const [collapsed, setCollapsed] = useState(true)
+
+	const complete = useMemo(() => {
+		return items.every((item) => item.status === 'done')
+	}, [items])
+
+	if (nonEmptyItems.length < 2) {
 		return (
-			<div className={`agent-action-message agent-action-type-${event._type}`} key={'event-' + i}>
-				{icon && (
-					<span>
-						<AgentIcon type={icon} />
-					</span>
-				)}
-				<span>
-					{label && <strong>{label}: </strong>}
-					{description}
-				</span>
+			<div className="agent-action-group-content">
+				{nonEmptyItems.map((item, i) => {
+					return <EventHistoryGroupItem item={item} agent={agent} key={'event-' + i} />
+				})}
 			</div>
 		)
-	})
+	}
+
+	const showContent = !collapsed || !complete
+
+	return (
+		<div className="agent-action-group">
+			{complete && (
+				<button onClick={() => setCollapsed(!collapsed)}>
+					<span>{showContent ? <ChevronDownIcon /> : <ChevronRightIcon />}</span>
+					Thought for a while
+				</button>
+			)}
+			{showContent && (
+				<div className="agent-action-group-content">
+					{items.map((item, i) => {
+						return <EventHistoryGroupItem item={item} agent={agent} key={'event-' + i} />
+					})}
+				</div>
+			)}
+		</div>
+	)
+}
+
+function EventHistoryGroupItem({ item, agent }: { item: AgentEventHistoryItem; agent: TLAgent }) {
+	const { event } = item
+	const eventUtil = agent.getEventUtil(event._type)
+	const icon = eventUtil.getIcon(event)
+	const label = eventUtil.getLabel(event, item.status)
+	const description = eventUtil.getDescription(event, item.status)
+
+	if (!description) return null
+	return (
+		<div className={`agent-action-message agent-action-type-${event._type}`}>
+			{icon && (
+				<span>
+					<AgentIcon type={icon} />
+				</span>
+			)}
+			<span>
+				{label && <strong>{label}: </strong>}
+				{description}
+			</span>
+		</div>
+	)
 }
 
 function EventHistoryGroupWithDiff({
@@ -151,6 +198,7 @@ interface DiffStep {
 	label: string | null
 	description: string | null
 }
+
 function DiffSteps({ steps }: { steps: DiffStep[] }) {
 	let previousDescription = ''
 	return (
@@ -158,7 +206,6 @@ function DiffSteps({ steps }: { steps: DiffStep[] }) {
 			{steps.map((step, i) => {
 				if (!step.description) return null
 
-				// Don't show duplicate intents
 				if (step.description === previousDescription) return null
 				previousDescription = step.description
 				return (

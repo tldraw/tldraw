@@ -75,7 +75,7 @@ body {
 	overflow-y: auto;
 	display: flex;
 	flex-direction: column;
-	gap: 16px;
+	gap: 10px;
 }
 
 .chat-input {
@@ -340,6 +340,7 @@ body {
 	display: flex;
 	flex-direction: column;
 	width: 100%;
+	margin-top: 4px;
 }
 
 .agent-change-message-actions {
@@ -574,4 +575,43 @@ body {
 
 .tldraw-viewer .tlui-tooltip {
 	display: none;
+}
+
+.agent-action-group {
+	display: flex;
+	flex-direction: column;
+	gap: 10px;
+}
+
+/* This is the collapse/uncollapse button */
+/* It should look very similar to the other action messages */
+.agent-action-group > button {
+	display: flex;
+	align-items: center;
+	gap: 4px;
+	padding: 12px 0px;
+	margin: -12px 0px;
+	font-size: 12px;
+	font-family: 'Inter', sans-serif;
+	font-weight: 400;
+	color: var(--tl-color-text-2);
+	background-color: transparent;
+	border: none;
+	cursor: pointer;
+}
+
+.agent-action-group > button:hover {
+	color: var(--tl-color-text);
+}
+
+.agent-action-group > button:disabled {
+	color: var(--tl-color-text-1);
+	cursor: default;
+}
+
+.agent-action-group-content {
+	display: flex;
+	flex-direction: column;
+	gap: 10px;
+	padding-top: 0px;
 }

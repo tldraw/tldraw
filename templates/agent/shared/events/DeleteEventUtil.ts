@@ -2,7 +2,7 @@ import { TLShapeId } from 'tldraw'
 import z from 'zod'
 import { AgentTransform } from '../AgentTransform'
 import { Streaming } from '../types/Streaming'
-import { AgentEventUtil } from './AgentEventUtil'
+import { AgentEventUtil, BaseAgentEvent } from './AgentEventUtil'
 
 const AgentDeleteEvent = z
 	.object({
@@ -23,6 +23,10 @@ export class DeleteEventUtil extends AgentEventUtil<IAgentDeleteEvent> {
 
 	override getIcon() {
 		return 'trash' as const
+	}
+
+	override isCollapsible(event: Streaming<IAgentDeleteEvent>, other: Streaming<BaseAgentEvent>) {
+		return other._type === 'delete'
 	}
 
 	override getDescription(event: Streaming<IAgentDeleteEvent>) {
