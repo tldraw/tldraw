@@ -365,10 +365,14 @@ export class TLSocketRoom<R extends UnknownRecord = UnknownRecord, SessionMeta =
 		return this.room.updateStore(updater)
 	}
 
-	// @todo copy docblock from room
-	// @todo payload type
-	async sendCustomMessage(sessionId: string, payload: any) {
-		this.room.sendCustomMessage(sessionId, payload)
+	/**
+	 * Send a custom message to a connected client.
+	 *
+	 * @param sessionId - The id of the session to send the message to.
+	 * @param data - The payload to send.
+	 */
+	async sendCustomMessage(sessionId: string, data: any) {
+		this.room.sendCustomMessage(sessionId, data)
 	}
 
 	/**

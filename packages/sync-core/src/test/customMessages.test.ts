@@ -14,8 +14,8 @@ describe('custom messages', () => {
 	it('sends a message to a client', async () => {
 		const store = new Store({ schema, props: {} })
 
-		const server = new TestServer(schema)
 		const sessionId = 'test-session-1'
+		const server = new TestServer(schema)
 		const socketPair = new TestSocketPair(sessionId, server)
 		socketPair.connect()
 

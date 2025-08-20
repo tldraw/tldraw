@@ -387,8 +387,7 @@ export class TLSocketRoom<R extends UnknownRecord = UnknownRecord, SessionMeta =
         }) => void;
         schema?: StoreSchema<R, any>;
     };
-    // (undocumented)
-    sendCustomMessage(sessionId: string, payload: any): Promise<void>;
+    sendCustomMessage(sessionId: string, data: any): Promise<void>;
     updateStore(updater: (store: RoomStoreMethods<R>) => Promise<void> | void): Promise<void>;
 }
 

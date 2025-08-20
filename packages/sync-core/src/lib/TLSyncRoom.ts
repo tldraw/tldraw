@@ -465,7 +465,6 @@ export class TLSyncRoom<R extends UnknownRecord, SessionMeta> {
 			return
 		}
 		if (session.socket.isOpen) {
-			// @todo review: destructure type and invert condition for readability?
 			if (message.type !== 'patch' && message.type !== 'push_result') {
 				// this is not a data message
 				if (message.type !== 'pong') {
