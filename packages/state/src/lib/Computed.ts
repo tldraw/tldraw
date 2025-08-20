@@ -118,6 +118,18 @@ export interface ComputedOptions<Value, Diff> {
 	isEqual?(a: any, b: any): boolean
 }
 
+const stats: Record<string, number[]> = {
+}
+window.stats = stats
+window.logAverages = () => {
+	for (const [key, values] of Object.entries(stats)) {
+		const avg = values.reduce((a, b) => a + b, 0) / values.length
+		if (avg > 1) {
+			console.log(`${key}: ${avg}ms`)
+		}
+	}
+}
+
 /**
  * A computed signal created via `computed`.
  *
@@ -222,7 +234,11 @@ class __UNSAFE__Computed<Value, Diff = unknown> implements Computed<Value, Diff>
 
 		try {
 			startCapturingParents(this)
+			const start = performance.now()
 			const result = this.derive(this.state, this.lastCheckedEpoch)
+			const end = performance.now()
+			stats[this.name] ??= []
+			stats[this.name].push(end - start)
 			const newState = result instanceof WithDiff ? result.value : result
 			const isUninitialized = this.state === UNINITIALIZED
 			if (isUninitialized || !this.isEqual(newState, this.state)) {
