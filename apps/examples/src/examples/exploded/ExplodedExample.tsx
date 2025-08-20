@@ -29,7 +29,7 @@ import 'tldraw/tldraw.css'
 // There's a guide at the bottom of this file!
 
 // [1]
-const defaultComponents = {
+const components = {
 	Scribble: TldrawScribble,
 	ShapeIndicators: TldrawShapeIndicators,
 	CollaboratorScribble: TldrawScribble,
@@ -38,26 +38,31 @@ const defaultComponents = {
 	Overlays: TldrawOverlays,
 }
 
-const allDefaultTools = [...defaultTools, ...defaultShapeTools]
-const defaultTextOptions = {
+const shapeUtils = [...defaultShapeUtils]
+
+const bindingUtils = [...defaultBindingUtils]
+
+const tools = [...defaultTools, ...defaultShapeTools]
+
+const textOptions = {
 	tipTapConfig: {
 		extensions: tipTapDefaultExtensions,
 	},
 	addFontsFromNode: defaultAddFontsFromNode,
 }
 
-//[2]
+// [2]
 export default function ExplodedExample() {
 	return (
 		<div className="tldraw__editor">
 			<TldrawEditor
 				initialState="select"
-				shapeUtils={defaultShapeUtils}
-				bindingUtils={defaultBindingUtils}
-				tools={allDefaultTools}
-				components={defaultComponents}
 				persistenceKey="exploded-example"
-				textOptions={defaultTextOptions}
+				shapeUtils={shapeUtils}
+				bindingUtils={bindingUtils}
+				tools={tools}
+				textOptions={textOptions}
+				components={components}
 				assetUrls={defaultEditorAssetUrls}
 			>
 				<TldrawUi>
