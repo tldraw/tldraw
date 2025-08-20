@@ -47,17 +47,15 @@ export function createReorderingSystem(config: ReorderingConfig) {
 		itemId: string,
 		mouseY: number
 	): { cursorLineY: number | null; nextIndex: IndexKey | null } {
-		const [before, after] = getNearestItems(mouseY)
+		let [before, after] = getNearestItems(mouseY)
 
 		// If dropping here would not change the item's position, don't show drag state
 		if (
 			before?.getAttribute(config.itemIdAttribute) === itemId ||
 			after?.getAttribute(config.itemIdAttribute) === itemId
 		) {
-			return {
-				cursorLineY: null,
-				nextIndex: null,
-			}
+			before = before?.getAttribute(config.itemIdAttribute) === itemId ? before : after
+			after = undefined
 		}
 
 		const nextIndex = getIndexBetween(

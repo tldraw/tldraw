@@ -516,16 +516,23 @@
 	padding: 0px 8px 0px 8px;
 }
 
-.sidebarFileListItem[data-dragging='true']::after {
-	content: '';
-	position: absolute;
-	inset: 2px 0px;
-	border-radius: 4px;
-	border: 0.5px solid var(--tla-color-primary);
+.sidebarFileListItemDragOverlay {
+	background-color: transparent;
+	position: relative;
+	width: 100%;
+	display: flex;
+	font-size: 14px;
+	flex-direction: row;
+	align-items: center;
+	height: 36px;
+	padding: 0px 8px 0px 8px;
+}
+
+
+
+.sidebarFileListItem[data-dragging='true'] {
+	opacity: 0.5;
 	background: transparent;
-	z-index: 1000;
-	pointer-events: none;
-	visibility: visible;
 }
 
 .sidebarFileListItemContent {
@@ -630,7 +637,8 @@
 		display: flex;
 	}
 	:global(.tla:has(.tl-container__focused:not(.tl-container__no-focus-ring)))
-		.sidebarFileListItemMenuTrigger {
+		.sidebarFileListItemMenuTrigger,
+	.sidebarFileListItem[data-dragging='true'] .sidebarFileListItemMenuTrigger {
 		visibility: visible;
 		display: flex;
 	}
@@ -815,8 +823,10 @@
 	pointer-events: none;
 	visibility: visible;
 }
+.sidebarGroupItem[data-dragging='true'] {
+	opacity: 0.3;
+}
 .sidebarGroupItem[data-dragging='true']::after {
-	border: 0.5px solid var(--tla-color-primary);
 	background: transparent;
 }
 

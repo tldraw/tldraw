@@ -73,7 +73,7 @@ export function HandleReordering() {
 				// Handle pinned file dragging
 				if (dragState.type === 'pinned') {
 					const nextDragState = pinnedReordering.calculateDragState(
-						dragState.itemId,
+						dragState.fileId,
 						mousePosition.current.clientY
 					)
 					if (
@@ -82,7 +82,7 @@ export function HandleReordering() {
 					) {
 						setIn(app.sidebarState).dragState({
 							type: 'pinned',
-							itemId: dragState.itemId,
+							fileId: dragState.fileId,
 							...nextDragState,
 						})
 					}

@@ -65,7 +65,7 @@ export function useSidebarDragHandling() {
 			if (data.type === 'pinned') {
 				setIn(app.sidebarState).dragState({
 					type: 'pinned',
-					itemId: data.fileId,
+					fileId: data.fileId,
 					...pinnedReordering.calculateDragState(
 						data.fileId,
 						(event.activatorEvent as any).clientY
@@ -196,7 +196,7 @@ export function useSidebarDragHandling() {
 				}
 
 				app.z.mutate.file_state.updatePinnedIndex({
-					fileId: dragState.itemId,
+					fileId: dragState.fileId,
 					index: dragState.nextIndex,
 				})
 

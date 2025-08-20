@@ -100,6 +100,8 @@ function LegacySidebarLayout() {
 	return <TlaSidebarRecentFiles />
 }
 
+import { restrictToVerticalAxis } from '@dnd-kit/modifiers'
+
 function NewSidebarLayout() {
 	const { handleDragStart, handleDragMove, handleDragEnd, handleDragCancel } =
 		useSidebarDragHandling()
@@ -113,6 +115,7 @@ function NewSidebarLayout() {
 	return (
 		<DndContext
 			sensors={[pointerSensor]}
+			modifiers={[restrictToVerticalAxis]}
 			onDragStart={handleDragStart}
 			onDragEnd={handleDragEnd}
 			onDragCancel={handleDragCancel}

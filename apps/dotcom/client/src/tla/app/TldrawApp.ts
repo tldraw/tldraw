@@ -1025,7 +1025,7 @@ export class TldrawApp {
 			  }
 			| {
 					type: 'pinned'
-					itemId: string
+					fileId: string
 					cursorLineY: number | null
 					nextIndex: IndexKey | null
 			  },
