@@ -586,8 +586,13 @@ function TldrawEditorWithReadyStore({
 	if (editor !== fontLoadingState?.editor) {
 		fontLoadingState = null
 	}
-	useEffect(() => {
+	useLayoutEffect(() => {
 		if (!editor) return
+		if (editor.options.maxFontsToLoadBeforeRender === 0) {
+			setFontLoadingState({ editor, isLoaded: true })
+			return
+		}
+
 		let isCancelled = false
 
 		setFontLoadingState({ editor, isLoaded: false })
