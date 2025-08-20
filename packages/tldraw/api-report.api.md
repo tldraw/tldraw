@@ -3117,6 +3117,9 @@ export const TldrawUiGrid: ForwardRefExoticComponent<TLUiLayoutProps & RefAttrib
 export const TldrawUiIcon: NamedExoticComponent<TLUiIconProps>;
 
 // @public (undocumented)
+export function TldrawUiInFrontOfTheCanvas(): JSX_2.Element;
+
+// @public (undocumented)
 export const TldrawUiInput: React_2.ForwardRefExoticComponent<TLUiInputProps & React_2.RefAttributes<HTMLInputElement>>;
 
 // @public (undocumented)

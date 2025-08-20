@@ -223,13 +223,23 @@ const TldrawUiContent = React.memo(function TldrawUI() {
 					</div>
 				</>
 			)}
-			{RichTextToolbar && <RichTextToolbar />}
-			{ImageToolbar && <ImageToolbar />}
-			{VideoToolbar && <VideoToolbar />}
 			{Toasts && <Toasts />}
 			{Dialogs && <Dialogs />}
-			<FollowingIndicator />
-			{CursorChatBubble && <CursorChatBubble />}
 		</div>
 	)
 })
+
+/** @public @react */
+export function TldrawUiInFrontOfTheCanvas() {
+	const { RichTextToolbar, ImageToolbar, VideoToolbar, CursorChatBubble } = useTldrawUiComponents()
+
+	return (
+		<>
+			{RichTextToolbar && <RichTextToolbar />}
+			{ImageToolbar && <ImageToolbar />}
+			{VideoToolbar && <VideoToolbar />}
+			<FollowingIndicator />
+			{CursorChatBubble && <CursorChatBubble />}
+		</>
+	)
+}
