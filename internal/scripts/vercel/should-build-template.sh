@@ -15,7 +15,6 @@ if [[ "$VERCEL_GIT_COMMIT_REF" == "main" ]] ; then
   exit 1;
 fi
 
-## on PR builds, only rebuild if the docs directory changed
+## on PR builds, only rebuild if the template directory changed
 TEMPLATE_NAME="$1"
 git diff main HEAD --quiet "${REPO_ROOT}/templates/${TEMPLATE_NAME}/"
-
