@@ -28,8 +28,14 @@ export class TodoListEventUtil extends AgentEventUtil<IAgentTodoListEvent> {
 		return 'note' as const
 	}
 
+	override getLabel(event: Streaming<IAgentTodoListEvent>) {
+		const statusText =
+			event.status === 'todo' ? '' : event.status === 'in-progress' ? ' (in progress)' : ' (done)'
+		return `Todo #${event.id}${statusText}`
+	}
+
 	override getDescription(event: Streaming<IAgentTodoListEvent>) {
-		return `Updated todo list item ${event.id} to ${event.text} with status ${event.status}`
+		return event.text ?? ''
 	}
 
 	override applyEvent(event: Streaming<IAgentTodoListEvent>) {
