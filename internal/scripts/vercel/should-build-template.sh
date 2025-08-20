@@ -1,6 +1,10 @@
 #!/usr/bin/env bash
 set -eux
 
+SCRIPT_DIR=$(dirname "$0")
+REPO_ROOT=$(realpath "$SCRIPT_DIR/../../..")
+cd "$REPO_ROOT"
+
 if [[ "$VERCEL_ENV" == "production" ]] ; then
   echo "Always build on production";
   exit 1;
@@ -12,6 +16,6 @@ if [[ "$VERCEL_GIT_COMMIT_REF" == "main" ]] ; then
   exit 1;
 fi
 
-## on PR builds, only rebuild if the docs directory changed
+## on PR builds, only rebuild if the template directory changed
 TEMPLATE_NAME="$1"
-git diff main HEAD --quiet "./templates/${TEMPLATE_NAME}/"
+git diff HEAD^ HEAD --quiet "./templates/${TEMPLATE_NAME}/"
