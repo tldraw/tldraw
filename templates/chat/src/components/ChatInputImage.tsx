@@ -1,4 +1,3 @@
-import { EditIcon } from './icons/EditIcon'
 import { XIcon } from './icons/XIcon'
 import { WhiteboardImage } from './WhiteboardModal'
 
@@ -11,15 +10,12 @@ interface ChatInputImageProps {
 export function ChatInputImage({ image, onRemove, onEdit }: ChatInputImageProps) {
 	return (
 		<div className="input-image">
-			<img src={image.url} alt="Uploaded image" className="input-image-preview" />
-			<div className="input-image-actions">
-				<button type="button" className="input-image-action" onClick={onEdit}>
-					<EditIcon />
-				</button>
-				<button type="button" className="input-image-action" onClick={onRemove}>
-					<XIcon />
-				</button>
-			</div>
+			<button type="button" className="input-image-edit" onClick={onEdit}>
+				<img src={image.url} alt="Uploaded image" className="input-image-preview" />
+			</button>
+			<button type="button" className="input-image-remove" onClick={onRemove}>
+				<XIcon />
+			</button>
 		</div>
 	)
 }

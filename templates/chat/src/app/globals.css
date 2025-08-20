@@ -105,13 +105,21 @@ body {
 }
 
 .message-image {
-	overflow: hidden;
-	display: inline-block;
+	overflow: clip;
+	border: none;
+	background: none;
+	box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+	border: 1px solid #e2e8f0;
+	cursor: pointer;
+}
+
+.message-image-content {
+	display: block;
+	width: 100%;
+	height: 100%;
+	object-fit: contain;
 	max-width: 100%;
 	max-height: 400px;
-	object-fit: contain;
-	border: 1px solid #e2e8f0;
-	box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
 }
 
 .user-message .message {
@@ -188,7 +196,7 @@ body {
 	bottom: 0;
 	padding: 16px 4px;
 	padding-top: 32px;
-	background: linear-gradient(transparent 8px, white 48px);
+	background: linear-gradient(transparent 8px, white 32px);
 }
 
 .chat-footer > * {
@@ -234,15 +242,25 @@ body {
 	object-fit: contain;
 }
 
-.input-image-actions {
+.input-image-edit {
+	width: 100%;
+	height: 100%;
+	border: none;
+	background: none;
+	padding: 0;
+	cursor: pointer;
+	border-radius: 8px;
+	overflow: hidden;
+}
+
+.input-image-edit:hover {
+	opacity: 0.9;
+}
+
+.input-image-remove {
 	position: absolute;
 	top: 4px;
 	right: 4px;
-	display: flex;
-	gap: 4px;
-}
-
-.input-image-action {
 	padding: 4px;
 	border-radius: 50%;
 	background: rgba(0, 0, 0, 0.5);
@@ -252,32 +270,32 @@ body {
 	display: flex;
 	align-items: center;
 	justify-content: center;
-	position: relative;
+	z-index: 1;
 }
-.input-image-action::after {
+
+.input-image-remove::after {
 	content: '';
 	position: absolute;
 	inset: -4px;
 	border-radius: 50%;
 }
 
-.input-image-action:hover {
+.input-image-remove:hover {
 	background: rgba(0, 0, 0, 0.7);
-	z-index: 1;
 }
 
-.input-image-action svg {
+.input-image-remove svg {
 	width: 18px;
 	height: 18px;
 }
 
-/* Hide action buttons by default on hover-capable devices */
+/* Hide remove button by default on hover-capable devices */
 @media (hover: hover) {
-	.input-image-actions {
+	.input-image-remove {
 		opacity: 0;
 	}
 
-	.input-image:hover .input-image-actions {
+	.input-image:hover .input-image-remove {
 		opacity: 1;
 	}
 }
@@ -382,6 +400,10 @@ body {
 	container-type: size;
 }
 
+.modal-overlay .tl-container {
+	pointer-events: none;
+}
+
 .modal-overlay .tl-container__focused {
 	outline: none;
 }
@@ -396,6 +418,7 @@ body {
 
 .modal-overlay .tl-canvas {
 	background: var(--tl-color-background);
+	pointer-events: auto;
 }
 
 .modal-overlay .tl-loading {

@@ -36,7 +36,7 @@ const ContextualToolbarComponent = track(() => {
 
 	// [3]
 	const getSelectionBounds = () => {
-		const fullBounds = editor.getSelectionRotatedScreenBounds()
+		const fullBounds = editor.getSelectionRotatedViewportBounds()
 		if (!fullBounds) return undefined
 		return new Box(fullBounds.x, fullBounds.y, fullBounds.width, 0)
 	}

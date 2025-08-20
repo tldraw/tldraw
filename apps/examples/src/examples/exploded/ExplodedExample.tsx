@@ -11,6 +11,7 @@ import {
 	TldrawSelectionForeground,
 	TldrawShapeIndicators,
 	TldrawUi,
+	TldrawUiInFrontOfTheCanvas,
 	defaultAddFontsFromNode,
 	defaultBindingUtils,
 	defaultEditorAssetUrls,
@@ -36,6 +37,7 @@ const defaultComponents = {
 	SelectionForeground: TldrawSelectionForeground,
 	Handles: TldrawHandles,
 	Overlays: TldrawOverlays,
+	InFrontOfTheCanvas: TldrawUiInFrontOfTheCanvas,
 }
 
 const allDefaultTools = [...defaultTools, ...defaultShapeTools]

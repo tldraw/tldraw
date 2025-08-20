@@ -1,5 +1,6 @@
-import { FormEvent, useCallback, useEffect, useRef, useState } from 'react'
-import { DefaultSpinner, TldrawUiTooltip, TLEditorSnapshot } from 'tldraw'
+import { FormEvent, useCallback, useEffect, useRef } from 'react'
+import { DefaultSpinner, TldrawUiTooltip } from 'tldraw'
+import { useChatInputState } from '../hooks/useChatInputState'
 import { ChatInputImage } from './ChatInputImage'
 import { ImageIcon } from './icons/ImageIcon'
 import { SendIcon } from './icons/SendIcon'
@@ -11,6 +12,8 @@ interface ChatInputProps {
 	disabled?: boolean
 	autoFocus?: boolean
 	scrollToBottom?: (behavior?: ScrollBehavior) => void
+	state: ReturnType<typeof useChatInputState>[0]
+	dispatch: ReturnType<typeof useChatInputState>[1]
 }
 
 export function ChatInput({
@@ -18,14 +21,12 @@ export function ChatInput({
 	disabled = false,
 	autoFocus = false,
 	scrollToBottom,
+	state,
+	dispatch,
 }: ChatInputProps) {
-	const [input, setInput] = useState('')
-	const [images, setImages] = useState<WhiteboardImage[]>([])
-	const [openWhiteboard, setOpenWhiteboard] = useState<{
-		snapshot?: TLEditorSnapshot
-		id?: string
-	} | null>(null)
+	const { input, images, openWhiteboard } = state
 	const textareaRef = useRef<HTMLTextAreaElement>(null)
+	const fileInputRef = useRef<HTMLInputElement>(null)
 
 	useEffect(() => {
 		if (!disabled && textareaRef.current) {
@@ -60,8 +61,6 @@ export function ChatInput({
 	const submit = () => {
 		if (canSend) {
 			onSendMessage(input, images)
-			setInput('')
-			setImages([])
 		}
 	}
 	const handleSubmit = (e: FormEvent) => {
@@ -82,25 +81,42 @@ export function ChatInput({
 		}
 	}
 
-	const handleCloseWhiteboard = useCallback((result: WhiteboardModalResult) => {
-		setOpenWhiteboard(null)
-		if (result.type === 'accept') {
-			setImages((prev) => {
-				const newImages = [...prev]
-				const index = newImages.findIndex((img) => img.id === result.image.id)
-				if (index !== -1) {
-					newImages[index] = result.image
-				} else {
-					newImages.push(result.image)
+	const handleCloseWhiteboard = useCallback(
+		(result: WhiteboardModalResult) => {
+			dispatch({ type: 'CLOSE_WHITEBOARD' })
+			if (result.type === 'accept') {
+				dispatch({ type: 'SET_IMAGE', payload: result.image })
+				// Re-focus the input after adding an image
+				if (textareaRef.current) {
+					textareaRef.current.focus()
 				}
-				return newImages
-			})
-			// Re-focus the input after adding an image
-			if (textareaRef.current) {
-				textareaRef.current.focus()
 			}
-		}
+		},
+		[dispatch]
+	)
+
+	const handleImageUpload = useCallback(() => {
+		fileInputRef.current?.click()
 	}, [])
+
+	const handleFileChange = useCallback(
+		(e: React.ChangeEvent<HTMLInputElement>) => {
+			const file = e.target.files?.[0]
+			if (!file || !file.type.startsWith('image/')) return
+
+			// Open whiteboard with the uploaded file
+			dispatch({
+				type: 'OPEN_WHITEBOARD',
+				payload: {
+					uploadedFile: file,
+				},
+			})
+
+			// Clear the input
+			e.target.value = ''
+		},
+		[dispatch]
+	)
 
 	return (
 		<form onSubmit={handleSubmit} className="chat-input-form">
@@ -110,9 +126,12 @@ export function ChatInput({
 						<ChatInputImage
 							key={image.id}
 							image={image}
-							onRemove={() => setImages((prev) => prev.filter((img) => img.id !== image.id))}
+							onRemove={() => dispatch({ type: 'REMOVE_IMAGE', payload: image.id })}
 							onEdit={() => {
-								setOpenWhiteboard({ id: image.id, snapshot: image.snapshot })
+								dispatch({
+									type: 'OPEN_WHITEBOARD',
+									payload: { id: image.id, snapshot: image.snapshot },
+								})
 							}}
 						/>
 					))}
@@ -122,7 +141,7 @@ export function ChatInput({
 				<textarea
 					ref={textareaRef}
 					value={input}
-					onChange={(e) => setInput(e.target.value)}
+					onChange={(e) => dispatch({ type: 'SET_INPUT', payload: e.target.value })}
 					onKeyDown={handleKeyDown}
 					placeholder={disabled ? '' : 'Type your message...'}
 					className="chat-input"
@@ -138,16 +157,28 @@ export function ChatInput({
 			</div>
 			<div className="chat-input-bottom">
 				<TldrawUiTooltip content="Upload an image">
-					<button type="button" className="icon-button" disabled={disabled}>
+					<button
+						type="button"
+						className="icon-button"
+						disabled={disabled}
+						onClick={handleImageUpload}
+					>
 						<ImageIcon />
 					</button>
 				</TldrawUiTooltip>
+				<input
+					ref={fileInputRef}
+					type="file"
+					accept="image/*"
+					onChange={handleFileChange}
+					style={{ display: 'none' }}
+				/>
 				<TldrawUiTooltip content="Draw a sketch">
 					<button
 						type="button"
 						className="icon-button"
 						disabled={disabled}
-						onClick={() => setOpenWhiteboard({})}
+						onClick={() => dispatch({ type: 'OPEN_WHITEBOARD', payload: {} })}
 					>
 						<WhiteboardIcon />
 					</button>
@@ -162,6 +193,7 @@ export function ChatInput({
 				<WhiteboardModal
 					imageId={openWhiteboard.id}
 					initialSnapshot={openWhiteboard.snapshot}
+					uploadedFile={openWhiteboard.uploadedFile}
 					onClose={handleCloseWhiteboard}
 				/>
 			)}

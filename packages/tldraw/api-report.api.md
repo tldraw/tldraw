@@ -2166,6 +2166,9 @@ export class NoteShapeUtil extends ShapeUtil<TLNoteShape> {
 // @public (undocumented)
 export function NoteToolbarItem(): JSX_2.Element;
 
+// @public
+export function notifyIfFileNotAllowed(file: File, options: TLDefaultExternalContentHandlerOpts): boolean;
+
 // @public (undocumented)
 export function OfflineIndicator(): JSX_2.Element;
 
@@ -3115,6 +3118,9 @@ export const TldrawUiGrid: ForwardRefExoticComponent<TLUiLayoutProps & RefAttrib
 
 // @public (undocumented)
 export const TldrawUiIcon: NamedExoticComponent<TLUiIconProps>;
+
+// @public (undocumented)
+export function TldrawUiInFrontOfTheCanvas(): JSX_2.Element;
 
 // @public (undocumented)
 export const TldrawUiInput: React_2.ForwardRefExoticComponent<TLUiInputProps & React_2.RefAttributes<HTMLInputElement>>;

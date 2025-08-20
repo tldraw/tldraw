@@ -108,10 +108,6 @@ const TldrawUiContent = React.memo(function TldrawUI() {
 		NavigationPanel,
 		HelperButtons,
 		DebugPanel,
-		CursorChatBubble,
-		RichTextToolbar,
-		ImageToolbar,
-		VideoToolbar,
 		Toasts,
 		Dialogs,
 		A11y,
@@ -223,13 +219,23 @@ const TldrawUiContent = React.memo(function TldrawUI() {
 					</div>
 				</>
 			)}
-			{RichTextToolbar && <RichTextToolbar />}
-			{ImageToolbar && <ImageToolbar />}
-			{VideoToolbar && <VideoToolbar />}
 			{Toasts && <Toasts />}
 			{Dialogs && <Dialogs />}
-			<FollowingIndicator />
-			{CursorChatBubble && <CursorChatBubble />}
 		</div>
 	)
 })
+
+/** @public */
+export function TldrawUiInFrontOfTheCanvas() {
+	const { RichTextToolbar, ImageToolbar, VideoToolbar, CursorChatBubble } = useTldrawUiComponents()
+
+	return (
+		<>
+			{RichTextToolbar && <RichTextToolbar />}
+			{ImageToolbar && <ImageToolbar />}
+			{VideoToolbar && <VideoToolbar />}
+			<FollowingIndicator />
+			{CursorChatBubble && <CursorChatBubble />}
+		</>
+	)
+}
