@@ -18,4 +18,4 @@ fi
 
 ## on PR builds, only rebuild if the template directory changed
 TEMPLATE_NAME="$1"
-git diff main HEAD --quiet "./templates/${TEMPLATE_NAME}/"
+git diff HEAD^ HEAD --quiet "./templates/${TEMPLATE_NAME}/"
