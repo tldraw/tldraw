@@ -34,7 +34,7 @@ class TooltipManager {
 		sideOffset: number
 		showOnMobile: boolean
 		targetElement: HTMLElement
-		delayDuration: number | undefined
+		delayDuration: number
 	} | null>('current tooltip', null)
 	private destroyTimeoutId: number | null = null
 
@@ -52,7 +52,7 @@ class TooltipManager {
 		side: 'top' | 'right' | 'bottom' | 'left',
 		sideOffset: number,
 		showOnMobile: boolean,
-		delayDuration: number | undefined
+		delayDuration: number
 	) {
 		// Clear any existing destroy timeout
 		if (this.destroyTimeoutId) {
@@ -139,11 +139,9 @@ export function TldrawUiTooltipProvider({ children }: TldrawUiTooltipProviderPro
 
 // The singleton tooltip component that renders once
 function TooltipSingleton() {
-	const editor = useMaybeEditor()
 	const [isOpen, setIsOpen] = useState(false)
 	const triggerRef = useRef<HTMLDivElement>(null)
 	const isFirstShowRef = useRef(true)
-	const showTimeoutRef = useRef<number | null>(null)
 
 	const currentTooltip = useValue(
 		'current tooltip',
@@ -153,12 +151,7 @@ function TooltipSingleton() {
 
 	// Update open state and trigger position
 	useEffect(() => {
-		// Clear any existing show timeout
-		if (showTimeoutRef.current) {
-			clearTimeout(showTimeoutRef.current)
-			showTimeoutRef.current = null
-		}
-
+		let timer: ReturnType<typeof setTimeout> | null = null
 		if (currentTooltip && triggerRef.current) {
 			// Position the invisible trigger element over the active element
 			const activeRect = currentTooltip.targetElement.getBoundingClientRect()
@@ -173,11 +166,12 @@ function TooltipSingleton() {
 			trigger.style.zIndex = '9999'
 
 			// Handle delay for first show
-			if (isFirstShowRef.current && editor) {
-				showTimeoutRef.current = editor.timers.setTimeout(() => {
+			if (isFirstShowRef.current) {
+				// eslint-disable-next-line no-restricted-globals
+				timer = setTimeout(() => {
 					setIsOpen(true)
 					isFirstShowRef.current = false
-				}, currentTooltip.delayDuration ?? editor.options.tooltipDelayMs)
+				}, currentTooltip.delayDuration)
 			} else {
 				// Subsequent tooltips show immediately
 				setIsOpen(true)
@@ -188,7 +182,13 @@ function TooltipSingleton() {
 			// Reset first show state after tooltip is hidden
 			isFirstShowRef.current = true
 		}
-	}, [editor, currentTooltip])
+
+		return () => {
+			if (timer !== null) {
+				clearTimeout(timer)
+			}
+		}
+	}, [currentTooltip])
 
 	if (!currentTooltip) {
 		return null
@@ -249,13 +249,14 @@ export const TldrawUiTooltip = forwardRef<HTMLButtonElement, TldrawUiTooltipProp
 			return <>{children}</>
 		}
 
+		const delayDurationToUse =
+			delayDuration ?? (editor?.options.tooltipDelayMs || DEFAULT_TOOLTIP_DELAY_MS)
+
 		// Fallback to old behavior if no provider
 		if (!hasProvider) {
 			return (
 				<_Tooltip.Root
-					delayDuration={
-						delayDuration ?? (editor?.options.tooltipDelayMs || DEFAULT_TOOLTIP_DELAY_MS)
-					}
+					delayDuration={delayDurationToUse}
 					disableHoverableContent
 				>
 					<_Tooltip.Trigger asChild ref={ref}>
@@ -288,7 +289,7 @@ export const TldrawUiTooltip = forwardRef<HTMLButtonElement, TldrawUiTooltipProp
 				sideToUse,
 				sideOffset,
 				showOnMobile,
-				delayDuration
+				delayDurationToUse
 			)
 		}
 
@@ -306,7 +307,7 @@ export const TldrawUiTooltip = forwardRef<HTMLButtonElement, TldrawUiTooltipProp
 				sideToUse,
 				sideOffset,
 				showOnMobile,
-				delayDuration
+				delayDurationToUse
 			)
 		}
 
