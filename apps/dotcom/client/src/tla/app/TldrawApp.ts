@@ -432,13 +432,7 @@ export class TldrawApp {
 			lastSessionState: null,
 			lastVisitAt: null,
 		}
-		const creationSource = this.getCreationSourceForAnalytics(file.createSource)
-
-		// Store the creation start time and source for tracking
-		this.newRoomCreationStartTimes.set(file.id, {
-			startTime: creationStartTime,
-			source: creationSource,
-		})
+		this.storeNewRoomCreationTracking(file.id, file.createSource, creationStartTime)
 
 		this.z.mutate.file.insertWithFileState({ file, fileState })
 		// todo: add server error handling for real Zero
@@ -471,22 +465,32 @@ export class TldrawApp {
 	}
 
 	/**
-	 * Map createSource to analytics-friendly source names
+	 * Store new room creation timing data with analytics-friendly source mapping
 	 */
-	private getCreationSourceForAnalytics(createSource: string | null): string {
+	private storeNewRoomCreationTracking(
+		fileId: string,
+		createSource: string | null,
+		startTime: number
+	): void {
+		let analyticsSource: string
+
 		if (!createSource) {
-			return 'create-blank-file' // Default for button clicks
+			analyticsSource = 'create-blank-file' // Default for button clicks
+		} else if (createSource.startsWith(`${LOCAL_FILE_PREFIX}/`)) {
+			analyticsSource = 'slurp'
+		} else if (createSource.startsWith(`${FILE_PREFIX}/`)) {
+			analyticsSource = 'duplicate'
+		} else if (createSource.startsWith(`${ROOM_PREFIX}/`)) {
+			analyticsSource = 'legacy-import'
+		} else {
+			analyticsSource = 'other'
 		}
 
-		if (createSource.startsWith(`${LOCAL_FILE_PREFIX}/`)) {
-			return 'slurp'
-		} else if (createSource.startsWith(`${FILE_PREFIX}/`)) {
-			return 'duplicate'
-		} else if (createSource.startsWith(`${ROOM_PREFIX}/`)) {
-			return 'legacy-import'
-		} else {
-			return 'other'
-		}
+		// Store the creation start time and source for tracking
+		this.newRoomCreationStartTimes.set(fileId, {
+			startTime,
+			source: analyticsSource,
+		})
 	}
 
 	getFileName(file: TlaFile | string | null, useDateFallback: false): string | undefined
