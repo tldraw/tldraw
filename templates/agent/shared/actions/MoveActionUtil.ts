@@ -4,7 +4,7 @@ import { AgentTransform, ensureValueIsNumber } from '../AgentTransform'
 import { Streaming } from '../types/Streaming'
 import { AgentActionUtil } from './AgentActionUtil'
 
-const AgentMoveEvent = z
+const MoveAction = z
 	.object({
 		_type: z.literal('move'),
 		intent: z.string(),
@@ -14,24 +14,24 @@ const AgentMoveEvent = z
 	})
 	.meta({ title: 'Move', description: 'The AI moves a shape to a new position.' })
 
-type IAgentMoveEvent = z.infer<typeof AgentMoveEvent>
+type IMoveAction = z.infer<typeof MoveAction>
 
-export class MoveActionUtil extends AgentActionUtil<IAgentMoveEvent> {
+export class MoveActionUtil extends AgentActionUtil<IMoveAction> {
 	static override type = 'move' as const
 
 	override getSchema() {
-		return AgentMoveEvent
+		return MoveAction
 	}
 
 	override getIcon() {
 		return 'cursor' as const
 	}
 
-	override getDescription(event: Streaming<IAgentMoveEvent>) {
+	override getDescription(event: Streaming<IMoveAction>) {
 		return event.intent ?? ''
 	}
 
-	override transformEvent(event: Streaming<IAgentMoveEvent>, transform: AgentTransform) {
+	override transformEvent(event: Streaming<IMoveAction>, transform: AgentTransform) {
 		if (!event.complete) return event
 
 		const shapeId = transform.ensureShapeIdIsReal(event.shapeId)
@@ -48,7 +48,7 @@ export class MoveActionUtil extends AgentActionUtil<IAgentMoveEvent> {
 		return event
 	}
 
-	override applyEvent(event: Streaming<IAgentMoveEvent>, transform: AgentTransform) {
+	override applyEvent(event: Streaming<IMoveAction>, transform: AgentTransform) {
 		if (!event.complete) return
 		const { editor } = transform
 

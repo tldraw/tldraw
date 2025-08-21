@@ -4,7 +4,7 @@ import { AgentTransform } from '../AgentTransform'
 import { Streaming } from '../types/Streaming'
 import { AgentActionUtil } from './AgentActionUtil'
 
-const AgentSendToBackEvent = z
+const SendToBackAction = z
 	.object({
 		_type: z.literal('sendToBack'),
 		intent: z.string(),
@@ -16,29 +16,29 @@ const AgentSendToBackEvent = z
 			'The AI sends one or more shapes to the back so that they appear behind everything else.',
 	})
 
-type IAgentSendToBackEvent = z.infer<typeof AgentSendToBackEvent>
+type ISendToBackAction = z.infer<typeof SendToBackAction>
 
-export class SendToBackActionUtil extends AgentActionUtil<IAgentSendToBackEvent> {
+export class SendToBackActionUtil extends AgentActionUtil<ISendToBackAction> {
 	static override type = 'sendToBack' as const
 
 	override getSchema() {
-		return AgentSendToBackEvent
+		return SendToBackAction
 	}
 
 	override getIcon() {
 		return 'cursor' as const
 	}
 
-	override getDescription(event: Streaming<IAgentSendToBackEvent>) {
+	override getDescription(event: Streaming<ISendToBackAction>) {
 		return event.intent ?? ''
 	}
 
-	override transformEvent(event: Streaming<IAgentSendToBackEvent>, transform: AgentTransform) {
+	override transformEvent(event: Streaming<ISendToBackAction>, transform: AgentTransform) {
 		event.shapeIds = transform.ensureShapeIdsAreReal(event.shapeIds ?? [])
 		return event
 	}
 
-	override applyEvent(event: Streaming<IAgentSendToBackEvent>, transform: AgentTransform) {
+	override applyEvent(event: Streaming<ISendToBackAction>, transform: AgentTransform) {
 		const { editor } = transform
 
 		if (!event.shapeIds) return

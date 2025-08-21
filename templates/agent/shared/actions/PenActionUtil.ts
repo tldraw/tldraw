@@ -11,7 +11,7 @@ import { convertSimpleFillToTldrawFill, SimpleFill } from '../format/SimpleFill'
 import { Streaming } from '../types/Streaming'
 import { AgentActionUtil } from './AgentActionUtil'
 
-const AgentPenEvent = z
+const PenAction = z
 	.object({
 		_type: z.literal('pen'),
 		color: SimpleColor,
@@ -32,24 +32,24 @@ const AgentPenEvent = z
 			'The AI draws a freeform line with a pen. This is useful for drawing custom paths that are not available with the other available shapes. The "smooth" style will automatically smooth the line between points. The "straight" style will render a straight line between points. The "closed" property will determine if the drawn line gets automatically closed to form a complete shape or not. Remember that the pen will be *down* until the event is over. If you want to lift up the pen, start a new pen event.',
 	})
 
-type IAgentPenEvent = z.infer<typeof AgentPenEvent>
+type IPenAction = z.infer<typeof PenAction>
 
-export class PenActionUtil extends AgentActionUtil<IAgentPenEvent> {
+export class PenActionUtil extends AgentActionUtil<IPenAction> {
 	static override type = 'pen' as const
 
 	override getSchema() {
-		return AgentPenEvent
+		return PenAction
 	}
 
 	override getIcon() {
 		return 'pencil' as const
 	}
 
-	override getDescription(event: Streaming<IAgentPenEvent>) {
+	override getDescription(event: Streaming<IPenAction>) {
 		return event.intent ?? ''
 	}
 
-	override transformEvent(event: Streaming<IAgentPenEvent>) {
+	override transformEvent(event: Streaming<IPenAction>) {
 		if (!event.points) return event
 
 		const validPoints = event.points
@@ -63,7 +63,7 @@ export class PenActionUtil extends AgentActionUtil<IAgentPenEvent> {
 		return event
 	}
 
-	override applyEvent(event: Streaming<IAgentPenEvent>, transform: AgentTransform) {
+	override applyEvent(event: Streaming<IPenAction>, transform: AgentTransform) {
 		const { editor } = transform
 
 		if (!event.points) return

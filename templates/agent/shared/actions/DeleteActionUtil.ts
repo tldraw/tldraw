@@ -4,7 +4,7 @@ import { AgentTransform } from '../AgentTransform'
 import { Streaming } from '../types/Streaming'
 import { AgentActionUtil, BaseAgentAction } from './AgentActionUtil'
 
-const AgentDeleteEvent = z
+const DeleteAction = z
 	.object({
 		_type: z.literal('delete'),
 		intent: z.string(),
@@ -12,28 +12,28 @@ const AgentDeleteEvent = z
 	})
 	.meta({ title: 'Delete', description: 'The AI deletes a shape.' })
 
-type IAgentDeleteEvent = z.infer<typeof AgentDeleteEvent>
+type IDeleteAction = z.infer<typeof DeleteAction>
 
-export class DeleteActionUtil extends AgentActionUtil<IAgentDeleteEvent> {
+export class DeleteActionUtil extends AgentActionUtil<IDeleteAction> {
 	static override type = 'delete' as const
 
 	override getSchema() {
-		return AgentDeleteEvent
+		return DeleteAction
 	}
 
 	override getIcon() {
 		return 'trash' as const
 	}
 
-	override canGroup(event: Streaming<IAgentDeleteEvent>, other: Streaming<BaseAgentAction>) {
+	override canGroup(event: Streaming<IDeleteAction>, other: Streaming<BaseAgentAction>) {
 		return other._type === 'delete'
 	}
 
-	override getDescription(event: Streaming<IAgentDeleteEvent>) {
+	override getDescription(event: Streaming<IDeleteAction>) {
 		return event.intent ?? ''
 	}
 
-	override transformEvent(event: Streaming<IAgentDeleteEvent>, transform: AgentTransform) {
+	override transformEvent(event: Streaming<IDeleteAction>, transform: AgentTransform) {
 		if (!event.complete) return event
 
 		const shapeId = transform.ensureShapeIdIsReal(event.shapeId)
@@ -43,7 +43,7 @@ export class DeleteActionUtil extends AgentActionUtil<IAgentDeleteEvent> {
 		return event
 	}
 
-	override applyEvent(event: Streaming<IAgentDeleteEvent>, transform: AgentTransform) {
+	override applyEvent(event: Streaming<IDeleteAction>, transform: AgentTransform) {
 		if (!event.complete) return
 		const { editor } = transform
 

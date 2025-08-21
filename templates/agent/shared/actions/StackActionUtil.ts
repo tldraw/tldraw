@@ -4,7 +4,7 @@ import { AgentTransform } from '../AgentTransform'
 import { Streaming } from '../types/Streaming'
 import { AgentActionUtil } from './AgentActionUtil'
 
-const AgentStackEvent = z
+const StackAction = z
 	.object({
 		_type: z.literal('stack'),
 		direction: z.enum(['vertical', 'horizontal']),
@@ -18,13 +18,13 @@ const AgentStackEvent = z
 			"The AI stacks shapes horizontally or vertically. Note that this doesn't align shapes, it only stacks them along one axis.",
 	})
 
-type IAgentStackEvent = z.infer<typeof AgentStackEvent>
+type IAgentStackEvent = z.infer<typeof StackAction>
 
 export class StackActionUtil extends AgentActionUtil<IAgentStackEvent> {
 	static override type = 'stack' as const
 
 	override getSchema() {
-		return AgentStackEvent
+		return StackAction
 	}
 
 	override getIcon() {

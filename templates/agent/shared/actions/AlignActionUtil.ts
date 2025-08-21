@@ -4,7 +4,7 @@ import { AgentTransform } from '../AgentTransform'
 import { Streaming } from '../types/Streaming'
 import { AgentActionUtil } from './AgentActionUtil'
 
-const AgentAlignEvent = z
+const AlignAction = z
 	.object({
 		_type: z.literal('align'),
 		alignment: z.enum(['top', 'bottom', 'left', 'right', 'center-horizontal', 'center-vertical']),
@@ -14,29 +14,29 @@ const AgentAlignEvent = z
 	})
 	.meta({ title: 'Align', description: 'The AI aligns shapes to each other on an axis.' })
 
-type IAgentAlignEvent = z.infer<typeof AgentAlignEvent>
+type IAlignAction = z.infer<typeof AlignAction>
 
-export class AlignActionUtil extends AgentActionUtil<IAgentAlignEvent> {
+export class AlignActionUtil extends AgentActionUtil<IAlignAction> {
 	static override type = 'align' as const
 
 	override getSchema() {
-		return AgentAlignEvent
+		return AlignAction
 	}
 
 	override getIcon() {
 		return 'cursor' as const
 	}
 
-	override getDescription(event: Streaming<IAgentAlignEvent>) {
+	override getDescription(event: Streaming<IAlignAction>) {
 		return event.intent ?? ''
 	}
 
-	override transformEvent(event: Streaming<IAgentAlignEvent>, transform: AgentTransform) {
+	override transformEvent(event: Streaming<IAlignAction>, transform: AgentTransform) {
 		event.shapeIds = transform.ensureShapeIdsAreReal(event.shapeIds ?? [])
 		return event
 	}
 
-	override applyEvent(event: Streaming<IAgentAlignEvent>, transform: AgentTransform) {
+	override applyEvent(event: Streaming<IAlignAction>, transform: AgentTransform) {
 		if (!event.complete) return
 		const { editor } = transform
 

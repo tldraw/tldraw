@@ -20,7 +20,7 @@ import { SimpleShape } from '../format/SimpleShape'
 import { Streaming } from '../types/Streaming'
 import { AgentActionUtil } from './AgentActionUtil'
 
-const AgentUpdateEvent = z
+const UpdateAction = z
 	.object({
 		_type: z.literal('update'),
 		intent: z.string(),
@@ -31,20 +31,20 @@ const AgentUpdateEvent = z
 		description: 'The AI updates an existing shape.',
 	})
 
-type IAgentUpdateEvent = z.infer<typeof AgentUpdateEvent>
+type IUpdateAction = z.infer<typeof UpdateAction>
 
-export class UpdateActionUtil extends AgentActionUtil<IAgentUpdateEvent> {
+export class UpdateActionUtil extends AgentActionUtil<IUpdateAction> {
 	static override type = 'update' as const
 
 	override getSchema() {
-		return AgentUpdateEvent
+		return UpdateAction
 	}
 
 	override getIcon() {
 		return 'cursor' as const
 	}
 
-	override transformEvent(event: Streaming<IAgentUpdateEvent>, transform: AgentTransform) {
+	override transformEvent(event: Streaming<IUpdateAction>, transform: AgentTransform) {
 		if (!event.complete) return event
 
 		const { update } = event
@@ -67,11 +67,11 @@ export class UpdateActionUtil extends AgentActionUtil<IAgentUpdateEvent> {
 		return event
 	}
 
-	override getDescription(event: Streaming<IAgentUpdateEvent>) {
+	override getDescription(event: Streaming<IUpdateAction>) {
 		return event.intent ?? ''
 	}
 
-	override applyEvent(event: Streaming<IAgentUpdateEvent>, transform: AgentTransform) {
+	override applyEvent(event: Streaming<IUpdateAction>, transform: AgentTransform) {
 		if (!event.complete) return
 		const { editor } = transform
 
@@ -89,7 +89,7 @@ export function getTldrawAiChangesFromUpdateEvent({
 	event,
 }: {
 	editor: Editor
-	event: Streaming<IAgentUpdateEvent>
+	event: Streaming<IUpdateAction>
 }): TLAiChange[] {
 	const changes: TLAiChange[] = []
 	if (!event.complete) return changes

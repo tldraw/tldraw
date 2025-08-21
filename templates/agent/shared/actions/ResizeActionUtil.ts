@@ -4,7 +4,7 @@ import { AgentTransform } from '../AgentTransform'
 import { Streaming } from '../types/Streaming'
 import { AgentActionUtil } from './AgentActionUtil'
 
-const AgentResizeEvent = z
+const ResizeAction = z
 	.object({
 		_type: z.literal('resize'),
 		centerX: z.number(),
@@ -19,24 +19,24 @@ const AgentResizeEvent = z
 		description: 'The AI resizes one or more shapes around a center point.',
 	})
 
-type IAgentResizeEvent = z.infer<typeof AgentResizeEvent>
+type IResizeAction = z.infer<typeof ResizeAction>
 
-export class ResizeActionUtil extends AgentActionUtil<IAgentResizeEvent> {
+export class ResizeActionUtil extends AgentActionUtil<IResizeAction> {
 	static override type = 'resize' as const
 
 	override getSchema() {
-		return AgentResizeEvent
+		return ResizeAction
 	}
 
 	override getIcon() {
 		return 'cursor' as const
 	}
 
-	override getDescription(event: Streaming<IAgentResizeEvent>) {
+	override getDescription(event: Streaming<IResizeAction>) {
 		return event.intent ?? ''
 	}
 
-	override transformEvent(event: Streaming<IAgentResizeEvent>, transform: AgentTransform) {
+	override transformEvent(event: Streaming<IResizeAction>, transform: AgentTransform) {
 		const shapeIds = transform.ensureShapeIdsAreReal(event.shapeIds ?? [])
 		if (shapeIds.length === 0) return null
 
@@ -44,7 +44,7 @@ export class ResizeActionUtil extends AgentActionUtil<IAgentResizeEvent> {
 		return event
 	}
 
-	override applyEvent(event: Streaming<IAgentResizeEvent>, transform: AgentTransform) {
+	override applyEvent(event: Streaming<IResizeAction>, transform: AgentTransform) {
 		const { editor } = transform
 
 		if (!event.shapeIds || !event.scaleX || !event.scaleY || !event.centerX || !event.centerY) {

@@ -4,7 +4,7 @@ import { AgentTransform } from '../AgentTransform'
 import { Streaming } from '../types/Streaming'
 import { AgentActionUtil } from './AgentActionUtil'
 
-const AgentPlaceEvent = z
+const PlaceAction = z
 	.object({
 		_type: z.literal('place'),
 		align: z.enum(['start', 'center', 'end']),
@@ -17,24 +17,24 @@ const AgentPlaceEvent = z
 	})
 	.meta({ title: 'Place', description: 'The AI places a shape relative to another shape.' })
 
-type IAgentPlaceEvent = z.infer<typeof AgentPlaceEvent>
+type IPlaceAction = z.infer<typeof PlaceAction>
 
-export class PlaceActionUtil extends AgentActionUtil<IAgentPlaceEvent> {
+export class PlaceActionUtil extends AgentActionUtil<IPlaceAction> {
 	static override type = 'place' as const
 
 	override getSchema() {
-		return AgentPlaceEvent
+		return PlaceAction
 	}
 
 	override getIcon() {
 		return 'target' as const
 	}
 
-	override getDescription(event: Streaming<IAgentPlaceEvent>) {
+	override getDescription(event: Streaming<IPlaceAction>) {
 		return event.intent ?? ''
 	}
 
-	override transformEvent(event: Streaming<IAgentPlaceEvent>, transform: AgentTransform) {
+	override transformEvent(event: Streaming<IPlaceAction>, transform: AgentTransform) {
 		if (!event.complete) return event
 
 		const shapeId = transform.ensureShapeIdIsReal(event.shapeId)
@@ -48,7 +48,7 @@ export class PlaceActionUtil extends AgentActionUtil<IAgentPlaceEvent> {
 		return event
 	}
 
-	override applyEvent(event: Streaming<IAgentPlaceEvent>, transform: AgentTransform) {
+	override applyEvent(event: Streaming<IPlaceAction>, transform: AgentTransform) {
 		if (!event.complete) return
 		const { editor } = transform
 

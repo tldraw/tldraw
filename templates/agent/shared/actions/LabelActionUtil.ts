@@ -4,7 +4,7 @@ import { AgentTransform } from '../AgentTransform'
 import { Streaming } from '../types/Streaming'
 import { AgentActionUtil } from './AgentActionUtil'
 
-const AgentLabelEvent = z
+const LabelAction = z
 	.object({
 		_type: z.literal('label'),
 		intent: z.string(),
@@ -13,13 +13,13 @@ const AgentLabelEvent = z
 	})
 	.meta({ title: 'Label', description: "The AI changes a shape's text." })
 
-type IAgentLabelEvent = z.infer<typeof AgentLabelEvent>
+type IAgentLabelEvent = z.infer<typeof LabelAction>
 
 export class LabelActionUtil extends AgentActionUtil<IAgentLabelEvent> {
 	static override type = 'label' as const
 
 	override getSchema() {
-		return AgentLabelEvent
+		return LabelAction
 	}
 
 	override getIcon() {

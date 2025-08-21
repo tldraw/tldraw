@@ -5,7 +5,7 @@ import { ScheduledRequest } from '../types/ScheduledRequest'
 import { Streaming } from '../types/Streaming'
 import { AgentActionUtil } from './AgentActionUtil'
 
-const AgentReviewEvent = z
+const ReviewAction = z
 	.object({
 		_type: z.literal('review'),
 		h: z.number(),
@@ -20,26 +20,26 @@ const AgentReviewEvent = z
 			'The AI schedules further work or a review so that it can look at the results of its work so far and take further action, such as reviewing what it has done or taking further steps that would benefit from seeing the results of its work so far.',
 	})
 
-type IAgentReviewEvent = z.infer<typeof AgentReviewEvent>
+type IReviewAction = z.infer<typeof ReviewAction>
 
-export class ReviewActionUtil extends AgentActionUtil<IAgentReviewEvent> {
+export class ReviewActionUtil extends AgentActionUtil<IReviewAction> {
 	static override type = 'review' as const
 
 	override getSchema() {
-		return AgentReviewEvent
+		return ReviewAction
 	}
 
 	override getIcon() {
 		return 'search' as const
 	}
 
-	override getDescription(event: Streaming<IAgentReviewEvent>) {
+	override getDescription(event: Streaming<IReviewAction>) {
 		const label = event.complete ? 'Review' : 'Reviewing'
 		const text = event.intent?.startsWith('#') ? `\n\n${event.intent}` : event.intent
 		return `**${label}**: ${text ?? ''}`
 	}
 
-	override applyEvent(event: Streaming<IAgentReviewEvent>) {
+	override applyEvent(event: Streaming<IReviewAction>) {
 		$scheduledRequests.update((prev) => {
 			if (!event.complete) return prev
 			const contextArea: IAreaContextItem = {

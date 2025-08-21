@@ -12,6 +12,7 @@ import { $todoItems } from '../atoms/todoItems'
 import { ChatHistory } from './chat-history/ChatHistory'
 import { ChatInput } from './ChatInput'
 import { $contextBoundsHighlight } from './highlights/ContextBoundsHighlights'
+import { TodoList } from './TodoList'
 
 export function ChatPanel({ editor }: { editor: Editor }) {
 	const agent = useTldrawAgent({ editor, partUtils: PROMPT_PART_UTILS, eventUtils: EVENT_UTILS })
@@ -31,8 +32,6 @@ export function ChatPanel({ editor }: { editor: Editor }) {
 	const handleSubmit = useCallback<FormEventHandler<HTMLFormElement>>(
 		async (e) => {
 			e.preventDefault()
-
-			// Otherwise, submit the user's message to the agent
 			const formData = new FormData(e.currentTarget)
 			const value = formData.get('input') as string
 
@@ -40,7 +39,6 @@ export function ChatPanel({ editor }: { editor: Editor }) {
 			if (rCancelFn.current) {
 				rCancelFn.current()
 				rCancelFn.current = null
-				setIsGenerating(false)
 
 				$contextBoundsHighlight.set(null)
 
@@ -48,10 +46,16 @@ export function ChatPanel({ editor }: { editor: Editor }) {
 				$pendingContextItems.set([])
 			}
 
+			// If every todo item is done, clear the todo list
+			$todoItems.update((items) => {
+				if (items.every((item) => item.status === 'done')) {
+					return []
+				}
+				return items
+			})
+
 			// If the user's message is empty, do nothing
 			if (value === '') return
-
-			// Submit the user's message to the agent
 			if (inputRef.current) inputRef.current.value = ''
 
 			const promptHistoryItem: IChatHistoryItem = {
@@ -127,6 +131,7 @@ export function ChatPanel({ editor }: { editor: Editor }) {
 				<NewChatButton />
 			</div>
 			<ChatHistory editor={editor} agent={agent} isGenerating={isGenerating} />
+			<TodoList />
 			<ChatInput
 				handleSubmit={handleSubmit}
 				inputRef={inputRef}

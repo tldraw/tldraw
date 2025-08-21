@@ -8,7 +8,7 @@ import { SimpleShape } from '../format/SimpleShape'
 import { Streaming } from '../types/Streaming'
 import { AgentActionUtil } from './AgentActionUtil'
 
-const AgentCreateEvent = z
+const CreateAction = z
 	.object({
 		_type: z.literal('create'),
 		intent: z.string(),
@@ -16,24 +16,24 @@ const AgentCreateEvent = z
 	})
 	.meta({ title: 'Create', description: 'The AI creates a new shape.' })
 
-type IAgentCreateEvent = z.infer<typeof AgentCreateEvent>
+type ICreateAction = z.infer<typeof CreateAction>
 
-export class CreateActionUtil extends AgentActionUtil<IAgentCreateEvent> {
+export class CreateActionUtil extends AgentActionUtil<ICreateAction> {
 	static override type = 'create' as const
 
 	override getSchema() {
-		return AgentCreateEvent
+		return CreateAction
 	}
 
 	override getIcon() {
 		return 'pencil' as const
 	}
 
-	override getDescription(event: Streaming<IAgentCreateEvent>) {
+	override getDescription(event: Streaming<ICreateAction>) {
 		return event.intent ?? ''
 	}
 
-	override transformEvent(event: Streaming<IAgentCreateEvent>, transform: AgentTransform) {
+	override transformEvent(event: Streaming<ICreateAction>, transform: AgentTransform) {
 		if (!event.complete) return event
 
 		const shape = event.shape
@@ -54,7 +54,7 @@ export class CreateActionUtil extends AgentActionUtil<IAgentCreateEvent> {
 		return event
 	}
 
-	override applyEvent(event: Streaming<IAgentCreateEvent>, transform: AgentTransform) {
+	override applyEvent(event: Streaming<ICreateAction>, transform: AgentTransform) {
 		if (!event.complete) return
 		const { editor } = transform
 
@@ -70,7 +70,7 @@ export function getTldrawAiChangesFromCreateAction({
 	event,
 }: {
 	editor: Editor
-	event: Streaming<IAgentCreateEvent>
+	event: Streaming<ICreateAction>
 }): TLAiChange[] {
 	const changes: TLAiChange[] = []
 	if (!event.complete) return changes
