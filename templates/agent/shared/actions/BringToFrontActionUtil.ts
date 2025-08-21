@@ -2,7 +2,7 @@ import { TLShapeId } from 'tldraw'
 import z from 'zod'
 import { AgentTransform } from '../AgentTransform'
 import { Streaming } from '../types/Streaming'
-import { AgentEventUtil } from './AgentEventUtil'
+import { AgentActionUtil } from './AgentActionUtil'
 
 const AgentBringToFrontEvent = z
 	.object({
@@ -18,7 +18,7 @@ const AgentBringToFrontEvent = z
 
 type IAgentBringToFrontEvent = z.infer<typeof AgentBringToFrontEvent>
 
-export class BringToFrontEventUtil extends AgentEventUtil<IAgentBringToFrontEvent> {
+export class BringToFrontActionUtil extends AgentActionUtil<IAgentBringToFrontEvent> {
 	static override type = 'bringToFront' as const
 
 	override getSchema() {

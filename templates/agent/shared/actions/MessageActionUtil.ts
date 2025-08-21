@@ -1,6 +1,6 @@
 import z from 'zod'
 import { Streaming } from '../types/Streaming'
-import { AgentEventUtil } from './AgentEventUtil'
+import { AgentActionUtil } from './AgentActionUtil'
 
 const AgentMessageEvent = z
 	.object({
@@ -11,7 +11,7 @@ const AgentMessageEvent = z
 
 type IAgentMessageEvent = z.infer<typeof AgentMessageEvent>
 
-export class MessageEventUtil extends AgentEventUtil<IAgentMessageEvent> {
+export class MessageActionUtil extends AgentActionUtil<IAgentMessageEvent> {
 	static override type = 'message' as const
 
 	override getSchema() {

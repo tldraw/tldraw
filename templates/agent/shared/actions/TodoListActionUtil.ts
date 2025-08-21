@@ -1,7 +1,7 @@
 import { z } from 'zod'
 import { $todoItems } from '../../client/atoms/todoItems'
 import { Streaming } from '../types/Streaming'
-import { AgentEventUtil } from './AgentEventUtil'
+import { AgentActionUtil } from './AgentActionUtil'
 
 const AgentTodoListEvent = z
 	.object({
@@ -17,7 +17,7 @@ const AgentTodoListEvent = z
 
 type IAgentTodoListEvent = z.infer<typeof AgentTodoListEvent>
 
-export class TodoListEventUtil extends AgentEventUtil<IAgentTodoListEvent> {
+export class TodoListActionUtil extends AgentActionUtil<IAgentTodoListEvent> {
 	static override type = 'update-todo-list' as const
 
 	override getSchema() {

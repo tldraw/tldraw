@@ -2,7 +2,7 @@ import { TLShapeId } from 'tldraw'
 import z from 'zod'
 import { AgentTransform } from '../AgentTransform'
 import { Streaming } from '../types/Streaming'
-import { AgentEventUtil } from './AgentEventUtil'
+import { AgentActionUtil } from './AgentActionUtil'
 
 const AgentAlignEvent = z
 	.object({
@@ -16,7 +16,7 @@ const AgentAlignEvent = z
 
 type IAgentAlignEvent = z.infer<typeof AgentAlignEvent>
 
-export class AlignEventUtil extends AgentEventUtil<IAgentAlignEvent> {
+export class AlignActionUtil extends AgentActionUtil<IAgentAlignEvent> {
 	static override type = 'align' as const
 
 	override getSchema() {

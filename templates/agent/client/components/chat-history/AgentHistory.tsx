@@ -1,14 +1,14 @@
 import { useEffect, useRef } from 'react'
 import { DefaultSpinner, Editor, isRecordsDiffEmpty, useValue } from 'tldraw'
-import { AgentEventHistoryGroup, AgentHistoryGroup } from '../../../shared/types/AgentHistoryGroup'
+import { AgentActionHistoryGroup, AgentHistoryGroup } from '../../../shared/types/AgentHistoryGroup'
 import {
-	AgentEventHistoryItem,
+	AgentActionHistoryItem,
 	AgentHistoryItem,
 	AgentPromptHistoryItem,
 } from '../../../shared/types/AgentHistoryItem'
 import { TLAgent } from '../../ai/useTldrawAgent'
 import { $agentHistoryItems } from '../../atoms/agentHistoryItems'
-import { EventHistoryGroup } from './EventHistoryGroup'
+import { ActionHistoryGroup } from './ActionHistoryGroup'
 import { PromptHistoryGroup } from './PromptHistoryGroup'
 
 export function AgentHistory({
@@ -49,13 +49,13 @@ export function AgentHistory({
 		<div className="chat-history" ref={historyRef} onScroll={handleScroll}>
 			{sections.map((section, index) => {
 				const promptGroup = { type: 'prompt', item: section.prompt } as const
-				const eventGroups = getEventHistoryGroups(section.events, agent)
+				const eventGroups = getActionHistoryGroups(section.events, agent)
 				return (
 					<div key={'history-section-' + index} className="chat-history-section">
 						<PromptHistoryGroup group={promptGroup} />
 						{eventGroups.map((group, index) => {
 							return (
-								<EventHistoryGroup
+								<ActionHistoryGroup
 									key={'history-group-' + index}
 									group={group}
 									editor={editor}
@@ -72,7 +72,7 @@ export function AgentHistory({
 }
 interface AgentHistorySection {
 	prompt: AgentPromptHistoryItem
-	events: AgentEventHistoryItem[]
+	events: AgentActionHistoryItem[]
 }
 
 function getAgentHistorySections(items: AgentHistoryItem[]): AgentHistorySection[] {
@@ -90,27 +90,27 @@ function getAgentHistorySections(items: AgentHistoryItem[]): AgentHistorySection
 	return sections
 }
 
-function getEventHistoryGroups(
-	items: AgentEventHistoryItem[],
+function getActionHistoryGroups(
+	items: AgentActionHistoryItem[],
 	agent: TLAgent
-): AgentEventHistoryGroup[] {
-	const groups: AgentEventHistoryGroup[] = []
+): AgentActionHistoryGroup[] {
+	const groups: AgentActionHistoryGroup[] = []
 
 	for (const item of items) {
-		const eventUtil = agent.getEventUtil(item.event._type)
-		const description = eventUtil.getDescription(item.event)
+		const actionUtil = agent.getActionUtil(item.action._type)
+		const description = actionUtil.getDescription(item.action)
 		if (description === null) {
 			continue
 		}
 
 		const group = groups[groups.length - 1]
-		if (group && group.type === 'event' && canActionBeGrouped({ item, group, agent })) {
+		if (group && group.type === 'action' && canActionBeGrouped({ item, group, agent })) {
 			group.items.push(item)
 		} else {
 			groups.push({
-				type: 'event',
+				type: 'action',
 				items: [item],
-				showDiff: !isRecordsDiffEmpty(item.diff) && item.event.complete,
+				showDiff: !isRecordsDiffEmpty(item.diff) && item.action.complete,
 			})
 		}
 	}
@@ -123,13 +123,13 @@ function canActionBeGrouped({
 	group,
 	agent,
 }: {
-	item: AgentEventHistoryItem
+	item: AgentActionHistoryItem
 	group: AgentHistoryGroup
 	agent: TLAgent
 }) {
 	if (item.status === 'progress') return false
 	if (!group) return false
-	if (group.type !== 'event') return false
+	if (group.type !== 'action') return false
 
 	const showDiff = !isRecordsDiffEmpty(item.diff)
 	if (showDiff !== group.showDiff) return false
@@ -137,14 +137,14 @@ function canActionBeGrouped({
 	const groupAcceptance = group.items[0]?.acceptance
 	if (groupAcceptance !== item.acceptance) return false
 
-	const prevEvent = group.items.at(-1)?.event
-	const prevEventUtil = prevEvent ? agent.getEventUtil(prevEvent._type) : null
-	const eventUtil = agent.getEventUtil(item.event._type)
+	const prevEvent = group.items.at(-1)?.action
+	const prevActionUtil = prevEvent ? agent.getActionUtil(prevEvent._type) : null
+	const actionUtil = agent.getActionUtil(item.action._type)
 	if (
 		prevEvent &&
-		prevEventUtil &&
-		eventUtil.canGroup(item.event, prevEvent) &&
-		prevEventUtil.canGroup(prevEvent, item.event)
+		prevActionUtil &&
+		actionUtil.canGroup(item.action, prevEvent) &&
+		prevActionUtil.canGroup(prevEvent, item.action)
 	) {
 		return true
 	}

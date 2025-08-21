@@ -2,7 +2,7 @@ import { TLShapeId } from 'tldraw'
 import z from 'zod'
 import { AgentTransform } from '../AgentTransform'
 import { Streaming } from '../types/Streaming'
-import { AgentEventUtil } from './AgentEventUtil'
+import { AgentActionUtil } from './AgentActionUtil'
 
 const AgentPlaceEvent = z
 	.object({
@@ -19,7 +19,7 @@ const AgentPlaceEvent = z
 
 type IAgentPlaceEvent = z.infer<typeof AgentPlaceEvent>
 
-export class PlaceEventUtil extends AgentEventUtil<IAgentPlaceEvent> {
+export class PlaceActionUtil extends AgentActionUtil<IAgentPlaceEvent> {
 	static override type = 'place' as const
 
 	override getSchema() {

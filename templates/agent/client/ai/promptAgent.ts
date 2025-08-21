@@ -78,8 +78,8 @@ export function promptAgent(promptOptions: AgentPromptOptions) {
 								// Add the event to chat history
 								if (eventUtil.savesToHistory()) {
 									const historyItem: AgentHistoryItem = {
-										type: 'event',
-										event,
+										type: 'action',
+										action: event,
 										diff,
 										acceptance: 'pending',
 										status: event.complete ? 'done' : 'progress',

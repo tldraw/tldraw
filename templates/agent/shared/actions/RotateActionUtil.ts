@@ -2,7 +2,7 @@ import { TLShapeId } from 'tldraw'
 import z from 'zod'
 import { AgentTransform } from '../AgentTransform'
 import { Streaming } from '../types/Streaming'
-import { AgentEventUtil } from './AgentEventUtil'
+import { AgentActionUtil } from './AgentActionUtil'
 
 const AgentRotateEvent = z
 	.object({
@@ -20,7 +20,7 @@ const AgentRotateEvent = z
 
 type IAgentRotateEvent = z.infer<typeof AgentRotateEvent>
 
-export class RotateEventUtil extends AgentEventUtil<IAgentRotateEvent> {
+export class RotateActionUtil extends AgentActionUtil<IAgentRotateEvent> {
 	static override type = 'rotate' as const
 
 	override getSchema() {

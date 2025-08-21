@@ -9,7 +9,7 @@ import {
 import { asColor, SimpleColor } from '../format/SimpleColor'
 import { convertSimpleFillToTldrawFill, SimpleFill } from '../format/SimpleFill'
 import { Streaming } from '../types/Streaming'
-import { AgentEventUtil } from './AgentEventUtil'
+import { AgentActionUtil } from './AgentActionUtil'
 
 const AgentPenEvent = z
 	.object({
@@ -34,7 +34,7 @@ const AgentPenEvent = z
 
 type IAgentPenEvent = z.infer<typeof AgentPenEvent>
 
-export class PenEventUtil extends AgentEventUtil<IAgentPenEvent> {
+export class PenActionUtil extends AgentActionUtil<IAgentPenEvent> {
 	static override type = 'pen' as const
 
 	override getSchema() {

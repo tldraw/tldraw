@@ -2,7 +2,7 @@ import z from 'zod'
 import { $scheduledRequests } from '../../client/atoms/scheduledRequests'
 import { ScheduledRequest } from '../types/ScheduledRequest'
 import { Streaming } from '../types/Streaming'
-import { AgentEventUtil } from './AgentEventUtil'
+import { AgentActionUtil } from './AgentActionUtil'
 
 const AgentSetMyViewEvent = z
 	.object({
@@ -21,7 +21,7 @@ const AgentSetMyViewEvent = z
 
 type IAgentSetMyViewEvent = z.infer<typeof AgentSetMyViewEvent>
 
-export class SetMyViewEventUtil extends AgentEventUtil<IAgentSetMyViewEvent> {
+export class SetMyViewActionUtil extends AgentActionUtil<IAgentSetMyViewEvent> {
 	static override type = 'setMyView' as const
 
 	override getSchema() {

@@ -1,9 +1,9 @@
 import { useCallback, useMemo, useState } from 'react'
 import Markdown from 'react-markdown'
 import { Editor, reverseRecordsDiff, squashRecordDiffs } from 'tldraw'
-import { AgentEvent } from '../../../shared/types/AgentEvent'
-import { AgentEventHistoryGroup } from '../../../shared/types/AgentHistoryGroup'
-import { AgentEventHistoryItem } from '../../../shared/types/AgentHistoryItem'
+import { AgentAction } from '../../../shared/types/AgentAction'
+import { AgentActionHistoryGroup } from '../../../shared/types/AgentHistoryGroup'
+import { AgentActionHistoryItem } from '../../../shared/types/AgentHistoryItem'
 import { Streaming } from '../../../shared/types/Streaming'
 import { TLAgent } from '../../ai/useTldrawAgent'
 import { $agentHistoryItems } from '../../atoms/agentHistoryItems'
@@ -13,35 +13,35 @@ import { ChevronRightIcon } from '../icons/ChevronRightIcon'
 import { TldrawDiffViewer } from './TldrawDiffViewer'
 
 // The model returns changes individually, but we group them together in this component for UX reasons, namely so the user can see all changes done at once together, and so they can accept or reject them all at once
-export function EventHistoryGroup({
+export function ActionHistoryGroup({
 	group,
 	editor,
 	agent,
 }: {
-	group: AgentEventHistoryGroup
+	group: AgentActionHistoryGroup
 	editor: Editor
 	agent: TLAgent
 }) {
 	if (group.showDiff) {
-		return <EventHistoryGroupWithDiff group={group} editor={editor} agent={agent} />
+		return <ActionHistoryGroupWithDiff group={group} editor={editor} agent={agent} />
 	}
 
-	return <EventHistoryGroupWithoutDiff group={group} agent={agent} />
+	return <ActionHistoryGroupWithoutDiff group={group} agent={agent} />
 }
 
-function EventHistoryGroupWithoutDiff({
+function ActionHistoryGroupWithoutDiff({
 	group,
 	agent,
 }: {
-	group: AgentEventHistoryGroup
+	group: AgentActionHistoryGroup
 	agent: TLAgent
 }) {
 	const { items } = group
 
 	const nonEmptyItems = useMemo(() => {
 		return items.filter((item) => {
-			const eventUtil = agent.getEventUtil(item.event._type)
-			const description = eventUtil.getDescription(item.event)
+			const actionUtil = agent.getActionUtil(item.action._type)
+			const description = actionUtil.getDescription(item.action)
 			return description !== null
 		})
 	}, [items, agent])
@@ -56,7 +56,7 @@ function EventHistoryGroupWithoutDiff({
 		return (
 			<div className="agent-action-group-content">
 				{nonEmptyItems.map((item, i) => {
-					return <EventHistoryGroupItem item={item} agent={agent} key={'event-' + i} />
+					return <ActionHistoryGroupItem item={item} agent={agent} key={'action-' + i} />
 				})}
 			</div>
 		)
@@ -76,7 +76,11 @@ function EventHistoryGroupWithoutDiff({
 				<div className="agent-action-group-content">
 					{items.map((item, i) => {
 						return (
-							<EventHistoryGroupItemContent event={item.event} agent={agent} key={'event-' + i} />
+							<ActionHistoryGroupItemContent
+								event={item.action}
+								agent={agent}
+								key={'action-' + i}
+							/>
 						)
 					})}
 				</div>
@@ -85,11 +89,11 @@ function EventHistoryGroupWithoutDiff({
 	)
 }
 
-function EventHistoryGroupItem({ item, agent }: { item: AgentEventHistoryItem; agent: TLAgent }) {
-	const { event } = item
-	const eventUtil = agent.getEventUtil(event._type)
-	const description = eventUtil.getDescription(event)
-	const summary = eventUtil.getSummary(event)
+function ActionHistoryGroupItem({ item, agent }: { item: AgentActionHistoryItem; agent: TLAgent }) {
+	const { action: event } = item
+	const actionUtil = agent.getActionUtil(event._type)
+	const description = actionUtil.getDescription(event)
+	const summary = actionUtil.getSummary(event)
 	const collapsible = summary !== null
 	const [collapsed, setCollapsed] = useState(collapsible)
 
@@ -105,22 +109,22 @@ function EventHistoryGroupItem({ item, agent }: { item: AgentEventHistoryItem; a
 			)}
 
 			{(!collapsed || !event.complete) && (
-				<EventHistoryGroupItemContent event={event} agent={agent} />
+				<ActionHistoryGroupItemContent event={event} agent={agent} />
 			)}
 		</div>
 	)
 }
 
-function EventHistoryGroupItemContent({
+function ActionHistoryGroupItemContent({
 	event,
 	agent,
 }: {
-	event: Streaming<AgentEvent>
+	event: Streaming<AgentAction>
 	agent: TLAgent
 }) {
-	const eventUtil = agent.getEventUtil(event._type)
-	const icon = eventUtil.getIcon(event)
-	const description = eventUtil.getDescription(event)
+	const actionUtil = agent.getActionUtil(event._type)
+	const icon = actionUtil.getIcon(event)
+	const description = actionUtil.getDescription(event)
 
 	return (
 		<div className={`agent-action-message agent-action-type-${event._type}`}>
@@ -136,12 +140,12 @@ function EventHistoryGroupItemContent({
 	)
 }
 
-function EventHistoryGroupWithDiff({
+function ActionHistoryGroupWithDiff({
 	group,
 	editor,
 	agent,
 }: {
-	group: AgentEventHistoryGroup
+	group: AgentActionHistoryGroup
 	editor: Editor
 	agent: TLAgent
 }) {
@@ -187,7 +191,7 @@ function EventHistoryGroupWithDiff({
 		})
 	}, [items, editor])
 
-	const acceptance = useMemo<AgentEventHistoryItem['acceptance']>(() => {
+	const acceptance = useMemo<AgentActionHistoryItem['acceptance']>(() => {
 		if (items.length === 0) return 'pending'
 		const acceptance = items[0].acceptance
 		for (let i = 1; i < items.length; i++) {
@@ -200,11 +204,11 @@ function EventHistoryGroupWithDiff({
 
 	const steps = useMemo(() => {
 		return items.map((item) => {
-			const { event } = item
-			const eventUtil = agent.getEventUtil(event._type)
+			const { action: event } = item
+			const actionUtil = agent.getActionUtil(event._type)
 			return {
-				icon: eventUtil.getIcon(event),
-				description: eventUtil.getDescription(event),
+				icon: actionUtil.getIcon(event),
+				description: actionUtil.getDescription(event),
 			}
 		})
 	}, [items, agent])

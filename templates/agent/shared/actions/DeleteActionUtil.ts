@@ -2,7 +2,7 @@ import { TLShapeId } from 'tldraw'
 import z from 'zod'
 import { AgentTransform } from '../AgentTransform'
 import { Streaming } from '../types/Streaming'
-import { AgentEventUtil, BaseAgentEvent } from './AgentEventUtil'
+import { AgentActionUtil, BaseAgentAction } from './AgentActionUtil'
 
 const AgentDeleteEvent = z
 	.object({
@@ -14,7 +14,7 @@ const AgentDeleteEvent = z
 
 type IAgentDeleteEvent = z.infer<typeof AgentDeleteEvent>
 
-export class DeleteEventUtil extends AgentEventUtil<IAgentDeleteEvent> {
+export class DeleteActionUtil extends AgentActionUtil<IAgentDeleteEvent> {
 	static override type = 'delete' as const
 
 	override getSchema() {
@@ -25,7 +25,7 @@ export class DeleteEventUtil extends AgentEventUtil<IAgentDeleteEvent> {
 		return 'trash' as const
 	}
 
-	override canGroup(event: Streaming<IAgentDeleteEvent>, other: Streaming<BaseAgentEvent>) {
+	override canGroup(event: Streaming<IAgentDeleteEvent>, other: Streaming<BaseAgentAction>) {
 		return other._type === 'delete'
 	}
 

@@ -2,7 +2,7 @@ import { TLShapeId } from 'tldraw'
 import z from 'zod'
 import { AgentTransform, ensureValueIsNumber } from '../AgentTransform'
 import { Streaming } from '../types/Streaming'
-import { AgentEventUtil } from './AgentEventUtil'
+import { AgentActionUtil } from './AgentActionUtil'
 
 const AgentMoveEvent = z
 	.object({
@@ -16,7 +16,7 @@ const AgentMoveEvent = z
 
 type IAgentMoveEvent = z.infer<typeof AgentMoveEvent>
 
-export class MoveEventUtil extends AgentEventUtil<IAgentMoveEvent> {
+export class MoveActionUtil extends AgentActionUtil<IAgentMoveEvent> {
 	static override type = 'move' as const
 
 	override getSchema() {

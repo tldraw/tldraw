@@ -1,6 +1,6 @@
 import z from 'zod'
 import { Streaming } from '../types/Streaming'
-import { AgentEventUtil } from './AgentEventUtil'
+import { AgentActionUtil } from './AgentActionUtil'
 
 const AgentThinkEvent = z
 	.object({
@@ -11,7 +11,7 @@ const AgentThinkEvent = z
 
 type IAgentThinkEvent = z.infer<typeof AgentThinkEvent>
 
-export class ThinkEventUtil extends AgentEventUtil<IAgentThinkEvent> {
+export class ThinkActionUtil extends AgentActionUtil<IAgentThinkEvent> {
 	static override type = 'think' as const
 
 	override getSchema() {

@@ -2,7 +2,7 @@ import { TLShapeId } from 'tldraw'
 import z from 'zod'
 import { AgentTransform } from '../AgentTransform'
 import { Streaming } from '../types/Streaming'
-import { AgentEventUtil } from './AgentEventUtil'
+import { AgentActionUtil } from './AgentActionUtil'
 
 const AgentStackEvent = z
 	.object({
@@ -20,7 +20,7 @@ const AgentStackEvent = z
 
 type IAgentStackEvent = z.infer<typeof AgentStackEvent>
 
-export class StackEventUtil extends AgentEventUtil<IAgentStackEvent> {
+export class StackActionUtil extends AgentActionUtil<IAgentStackEvent> {
 	static override type = 'stack' as const
 
 	override getSchema() {

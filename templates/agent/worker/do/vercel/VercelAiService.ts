@@ -6,7 +6,7 @@ import {
 } from '@ai-sdk/google'
 import { createOpenAI, OpenAIProvider } from '@ai-sdk/openai'
 import { LanguageModel, streamObject, streamText } from 'ai'
-import { AgentEvent } from '../../../shared/types/AgentEvent'
+import { AgentAction } from '../../../shared/types/AgentAction'
 import { AgentPrompt } from '../../../shared/types/AgentPrompt'
 import { Streaming } from '../../../shared/types/Streaming'
 import { AgentModelName, getAgentModelDefinition } from '../../models'
@@ -34,7 +34,7 @@ export class VercelAiService extends TldrawAgentService {
 		return this[provider](modelDefinition.id)
 	}
 
-	async *stream(prompt: AgentPrompt): AsyncGenerator<Streaming<AgentEvent>> {
+	async *stream(prompt: AgentPrompt): AsyncGenerator<Streaming<AgentAction>> {
 		try {
 			const model = this.getModel(prompt.modelName)
 			for await (const event of streamEventsVercel(model, prompt)) {
@@ -50,7 +50,7 @@ export class VercelAiService extends TldrawAgentService {
 async function* streamEventsVercel(
 	model: LanguageModel,
 	prompt: AgentPrompt
-): AsyncGenerator<Streaming<AgentEvent>> {
+): AsyncGenerator<Streaming<AgentAction>> {
 	if (typeof model === 'string') {
 		throw new Error('Model is a string, not a LanguageModel')
 	}
@@ -100,7 +100,7 @@ async function* streamEventsVercel(
 			let buffer = '{"events": [{"_type":'
 
 			let cursor = 0
-			let maybeIncompleteEvent: AgentEvent | null = null
+			let maybeIncompleteEvent: AgentAction | null = null
 
 			for await (const text of textStream) {
 				buffer += text
@@ -115,7 +115,7 @@ async function* streamEventsVercel(
 				// If the events list is ahead of the cursor, we know we've completed the current event
 				// We can complete the event and move the cursor forward
 				if (events.length > cursor) {
-					const event = events[cursor - 1] as AgentEvent
+					const event = events[cursor - 1] as AgentAction
 					if (event) {
 						yield { ...event, complete: true }
 						maybeIncompleteEvent = null
@@ -125,7 +125,7 @@ async function* streamEventsVercel(
 
 				// Now let's check the (potentially new) current event
 				// And let's yield it in its (potentially incomplete) state
-				const event = events[cursor - 1] as AgentEvent
+				const event = events[cursor - 1] as AgentAction
 				if (event) {
 					yield { ...event, complete: false }
 					maybeIncompleteEvent = event
@@ -166,7 +166,7 @@ async function* streamEventsVercel(
 			}
 
 			let cursor = 0
-			let maybeIncompleteEvent: AgentEvent | null = null
+			let maybeIncompleteEvent: AgentAction | null = null
 
 			for await (const partialObject of partialObjectStream) {
 				const events = partialObject.events
@@ -176,7 +176,7 @@ async function* streamEventsVercel(
 				// If the events list is ahead of the cursor, we know we've completed the current event
 				// We can complete the event and move the cursor forward
 				if (events.length > cursor) {
-					const event = events[cursor - 1] as AgentEvent
+					const event = events[cursor - 1] as AgentAction
 					if (event) {
 						yield { ...event, complete: true }
 						maybeIncompleteEvent = null
@@ -186,7 +186,7 @@ async function* streamEventsVercel(
 
 				// Now let's check the (potentially new) current event
 				// And let's yield it in its (potentially incomplete) state
-				const event = events[cursor - 1] as AgentEvent
+				const event = events[cursor - 1] as AgentAction
 				if (event) {
 					yield { ...event, complete: false }
 					maybeIncompleteEvent = event

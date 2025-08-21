@@ -1,14 +1,14 @@
-import { AgentEventHistoryItem, AgentPromptHistoryItem } from './AgentHistoryItem'
+import { AgentActionHistoryItem, AgentPromptHistoryItem } from './AgentHistoryItem'
 
-export type AgentHistoryGroup = AgentPromptHistoryGroup | AgentEventHistoryGroup
+export type AgentHistoryGroup = AgentPromptHistoryGroup | AgentActionHistoryGroup
 
 export interface AgentPromptHistoryGroup {
 	type: 'prompt'
 	item: AgentPromptHistoryItem
 }
 
-export interface AgentEventHistoryGroup {
-	type: 'event'
-	items: AgentEventHistoryItem[]
+export interface AgentActionHistoryGroup {
+	type: 'action'
+	items: AgentActionHistoryItem[]
 	showDiff: boolean
 }

@@ -1,5 +1,5 @@
 import { Streaming } from '../types/Streaming'
-import { AgentEventUtil } from './AgentEventUtil'
+import { AgentActionUtil } from './AgentActionUtil'
 
 export interface DebugEvent {
 	_type: 'debug'
@@ -8,7 +8,7 @@ export interface DebugEvent {
 	data: any
 }
 
-export class DebugEventUtil extends AgentEventUtil<DebugEvent> {
+export class DebugActionUtil extends AgentActionUtil<DebugEvent> {
 	static override type = 'debug' as const
 
 	override applyEvent(event: Streaming<DebugEvent>) {

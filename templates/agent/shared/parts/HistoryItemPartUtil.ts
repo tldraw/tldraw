@@ -89,8 +89,8 @@ export class HistoryItemPartUtil extends PromptPartUtil<AgentHistoryItem[]> {
 					priority: priority,
 				}
 			}
-			case 'event': {
-				const { complete: _complete, ...eventWithoutComplete } = item.event || {}
+			case 'action': {
+				const { complete: _complete, ...eventWithoutComplete } = item.action || {}
 				return {
 					role: 'assistant',
 					content: [

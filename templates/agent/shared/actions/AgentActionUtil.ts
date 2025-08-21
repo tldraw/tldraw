@@ -3,11 +3,11 @@ import { AgentIconType } from '../../client/components/icons/AgentIcon'
 import { AgentTransform } from '../AgentTransform'
 import { Streaming } from '../types/Streaming'
 
-export interface BaseAgentEvent {
+export interface BaseAgentAction {
 	_type: string
 }
 
-export abstract class AgentEventUtil<T extends BaseAgentEvent = BaseAgentEvent> {
+export abstract class AgentActionUtil<T extends BaseAgentAction = BaseAgentAction> {
 	static type: string
 
 	constructor() {}
@@ -71,12 +71,12 @@ export abstract class AgentEventUtil<T extends BaseAgentEvent = BaseAgentEvent> 
 	/**
 	 * Whether the action can be grouped together with another action.
 	 */
-	canGroup(_action: Streaming<T>, _other: Streaming<BaseAgentEvent>): boolean {
+	canGroup(_action: Streaming<T>, _other: Streaming<BaseAgentAction>): boolean {
 		return true
 	}
 }
 
-export interface AgentEventUtilConstructor<T extends BaseAgentEvent = BaseAgentEvent> {
-	new (): AgentEventUtil<T>
+export interface AgentActionUtilConstructor<T extends BaseAgentAction = BaseAgentAction> {
+	new (): AgentActionUtil<T>
 	type: T['_type']
 }

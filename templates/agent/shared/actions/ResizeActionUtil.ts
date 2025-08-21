@@ -2,7 +2,7 @@ import { TLShapeId } from 'tldraw'
 import z from 'zod'
 import { AgentTransform } from '../AgentTransform'
 import { Streaming } from '../types/Streaming'
-import { AgentEventUtil } from './AgentEventUtil'
+import { AgentActionUtil } from './AgentActionUtil'
 
 const AgentResizeEvent = z
 	.object({
@@ -21,7 +21,7 @@ const AgentResizeEvent = z
 
 type IAgentResizeEvent = z.infer<typeof AgentResizeEvent>
 
-export class ResizeEventUtil extends AgentEventUtil<IAgentResizeEvent> {
+export class ResizeActionUtil extends AgentActionUtil<IAgentResizeEvent> {
 	static override type = 'resize' as const
 
 	override getSchema() {

@@ -1,6 +1,6 @@
 import { DurableObject } from 'cloudflare:workers'
 import { AutoRouter, error } from 'itty-router'
-import { AgentEvent } from '../../shared/types/AgentEvent'
+import { AgentAction } from '../../shared/types/AgentAction'
 import { AgentPrompt } from '../../shared/types/AgentPrompt'
 import { Streaming } from '../../shared/types/Streaming'
 import { Environment } from '../types'
@@ -38,7 +38,7 @@ export class TldrawAiDurableObject extends DurableObject<Environment> {
 		const { readable, writable } = new TransformStream()
 		const writer = writable.getWriter()
 
-		const response: { changes: Streaming<AgentEvent>[] } = { changes: [] }
+		const response: { changes: Streaming<AgentAction>[] } = { changes: [] }
 
 		;(async () => {
 			try {

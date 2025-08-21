@@ -1,4 +1,4 @@
-import { AgentEvent } from '../../shared/types/AgentEvent'
+import { AgentAction } from '../../shared/types/AgentAction'
 import { AgentPrompt } from '../../shared/types/AgentPrompt'
 import { Streaming } from '../../shared/types/Streaming'
 
@@ -14,7 +14,7 @@ export async function* streamAgent({
 }: {
 	prompt: AgentPrompt
 	signal: AbortSignal
-}): AsyncGenerator<Streaming<AgentEvent>> {
+}): AsyncGenerator<Streaming<AgentAction>> {
 	const res = await fetch('/stream', {
 		method: 'POST',
 		body: JSON.stringify(prompt),
@@ -52,7 +52,7 @@ export async function* streamAgent({
 							throw new Error(data.error)
 						}
 
-						const agentEvent: Streaming<AgentEvent> = data
+						const agentEvent: Streaming<AgentAction> = data
 						yield agentEvent
 					} catch (err: any) {
 						throw new Error(err.message)

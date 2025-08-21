@@ -2,7 +2,7 @@ import { TLShapeId } from 'tldraw'
 import z from 'zod'
 import { AgentTransform } from '../AgentTransform'
 import { Streaming } from '../types/Streaming'
-import { AgentEventUtil } from './AgentEventUtil'
+import { AgentActionUtil } from './AgentActionUtil'
 
 const AgentSendToBackEvent = z
 	.object({
@@ -18,7 +18,7 @@ const AgentSendToBackEvent = z
 
 type IAgentSendToBackEvent = z.infer<typeof AgentSendToBackEvent>
 
-export class SendToBackEventUtil extends AgentEventUtil<IAgentSendToBackEvent> {
+export class SendToBackActionUtil extends AgentActionUtil<IAgentSendToBackEvent> {
 	static override type = 'sendToBack' as const
 
 	override getSchema() {

@@ -3,7 +3,7 @@ import { $scheduledRequests } from '../../client/atoms/scheduledRequests'
 import { AreaContextItem } from '../types/ContextItem'
 import { ScheduledRequest } from '../types/ScheduledRequest'
 import { Streaming } from '../types/Streaming'
-import { AgentEventUtil } from './AgentEventUtil'
+import { AgentActionUtil } from './AgentActionUtil'
 
 const AgentReviewEvent = z
 	.object({
@@ -22,7 +22,7 @@ const AgentReviewEvent = z
 
 type IAgentReviewEvent = z.infer<typeof AgentReviewEvent>
 
-export class ReviewEventUtil extends AgentEventUtil<IAgentReviewEvent> {
+export class ReviewActionUtil extends AgentActionUtil<IAgentReviewEvent> {
 	static override type = 'review' as const
 
 	override getSchema() {

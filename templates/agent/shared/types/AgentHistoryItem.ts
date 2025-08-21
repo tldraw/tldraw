@@ -1,10 +1,10 @@
 import { RecordsDiff, TLRecord } from 'tldraw'
 import { AgentIconType } from '../../client/components/icons/AgentIcon'
-import { AgentEvent } from './AgentEvent'
+import { AgentAction } from './AgentAction'
 import { ContextItem } from './ContextItem'
 import { Streaming } from './Streaming'
 
-export type AgentHistoryItem = AgentEventHistoryItem | AgentPromptHistoryItem
+export type AgentHistoryItem = AgentActionHistoryItem | AgentPromptHistoryItem
 
 export type AgentHistoryItemStatus = 'progress' | 'done' | 'cancelled'
 
@@ -15,15 +15,15 @@ export interface AgentPromptHistoryItem {
 	status: AgentHistoryItemStatus
 }
 
-export interface AgentEventHistoryItem {
-	type: 'event'
-	event: Streaming<AgentEvent>
+export interface AgentActionHistoryItem {
+	type: 'action'
+	action: Streaming<AgentAction>
 	diff: RecordsDiff<TLRecord>
 	acceptance: 'pending' | 'accepted' | 'rejected'
 	status: AgentHistoryItemStatus
 }
 
-export interface AgentEventHistoryItemDefinition {
+export interface AgentActionHistoryItemDefinition {
 	icon?: AgentIconType
 	message?: { progress?: string; done?: string; cancelled?: string }
 }

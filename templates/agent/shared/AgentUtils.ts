@@ -1,23 +1,23 @@
-import { AlignEventUtil } from './events/AlignEventUtil'
-import { BringToFrontEventUtil } from './events/BringToFrontEventUtil'
-import { CreateEventUtil } from './events/CreateEventUtil'
-import { DebugEventUtil } from './events/DebugEventUtil'
-import { DeleteEventUtil } from './events/DeleteEventUtil'
-import { DistributeEventUtil } from './events/DistributeEventUtil'
-import { LabelEventUtil } from './events/LabelEventUtil'
-import { MessageEventUtil } from './events/MessageEventUtil'
-import { MoveEventUtil } from './events/MoveEventUtil'
-import { PenEventUtil } from './events/PenEventUtil'
-import { PlaceEventUtil } from './events/PlaceEventUtil'
-import { ResizeEventUtil } from './events/ResizeEventUtil'
-import { ReviewEventUtil } from './events/ReviewEventUtil'
-import { RotateEventUtil } from './events/RotateEventUtil'
-import { SendToBackEventUtil } from './events/SendToBackEventUtil'
-import { SetMyViewEventUtil } from './events/SetMyViewEventUtil'
-import { StackEventUtil } from './events/StackEventUtil'
-import { ThinkEventUtil } from './events/ThinkEventUtil'
-import { UnknownEventUtil } from './events/UnknownEventUtil'
-import { UpdateEventUtil } from './events/UpdateEventUtil'
+import { AlignActionUtil } from './actions/AlignActionUtil'
+import { BringToFrontActionUtil } from './actions/BringToFrontActionUtil'
+import { CreateActionUtil } from './actions/CreateActionUtil'
+import { DebugActionUtil } from './actions/DebugActionUtil'
+import { DeleteActionUtil } from './actions/DeleteActionUtil'
+import { DistributeActionUtil } from './actions/DistributeActionUtil'
+import { LabelActionUtil } from './actions/LabelActionUtil'
+import { MessageActionUtil } from './actions/MessageActionUtil'
+import { MoveActionUtil } from './actions/MoveActionUtil'
+import { PenActionUtil } from './actions/PenActionUtil'
+import { PlaceActionUtil } from './actions/PlaceActionUtil'
+import { ResizeActionUtil } from './actions/ResizeActionUtil'
+import { ReviewActionUtil } from './actions/ReviewActionUtil'
+import { RotateActionUtil } from './actions/RotateActionUtil'
+import { SendToBackActionUtil } from './actions/SendToBackActionUtil'
+import { SetMyViewActionUtil } from './actions/SetMyViewActionUtil'
+import { StackActionUtil } from './actions/StackActionUtil'
+import { ThinkActionUtil } from './actions/ThinkActionUtil'
+import { UnknownActionUtil } from './actions/UnknownActionUtil'
+import { UpdateActionUtil } from './actions/UpdateActionUtil'
 import { AgentViewportBoundsPartUtil } from './parts/AgentViewportBoundsPartUtil'
 import { AgentViewportScreenshotPartUtil } from './parts/AgentViewportScreenshotPartUtil'
 // import { AgentViewportSimpleShapesPartUtil } from './parts/AgentViewportSimpleShapesPartUtil'
@@ -27,7 +27,7 @@ import { HistoryItemPartUtil } from './parts/HistoryItemPartUtil'
 import { MessagePartUtil } from './parts/MessagePartUtil'
 import { PeripheralShapesPartUtil } from './parts/PeripheralShapesPartUtil'
 // import { PromptBoundsPartUtil } from './parts/PromptBoundsPartUtil'
-import { TodoListEventUtil } from './events/TodoListEventUtil'
+import { TodoListActionUtil } from './actions/TodoListActionUtil'
 import { PromptPartUtilConstructor } from './parts/PromptPartUtil'
 import { SystemPromptPartUtil } from './parts/SystemPromptPartUtil'
 import { TodoListPromptPartUtil } from './parts/TodoItemsPromptPart'
@@ -55,34 +55,34 @@ export const PROMPT_PART_UTILS: PromptPartUtilConstructor[] = [
 ]
 
 export const EVENT_UTILS = [
-	CreateEventUtil,
-	DeleteEventUtil,
+	CreateActionUtil,
+	DeleteActionUtil,
 
-	UpdateEventUtil,
-	LabelEventUtil,
+	UpdateActionUtil,
+	LabelActionUtil,
 
-	MoveEventUtil,
-	PlaceEventUtil,
-	BringToFrontEventUtil,
-	SendToBackEventUtil,
-	RotateEventUtil,
-	ResizeEventUtil,
+	MoveActionUtil,
+	PlaceActionUtil,
+	BringToFrontActionUtil,
+	SendToBackActionUtil,
+	RotateActionUtil,
+	ResizeActionUtil,
 
-	AlignEventUtil,
-	DistributeEventUtil,
-	StackEventUtil,
+	AlignActionUtil,
+	DistributeActionUtil,
+	StackActionUtil,
 
-	ReviewEventUtil,
-	SetMyViewEventUtil,
+	ReviewActionUtil,
+	SetMyViewActionUtil,
 
-	PenEventUtil,
+	PenActionUtil,
 
-	ThinkEventUtil,
-	MessageEventUtil,
-	DebugEventUtil,
+	ThinkActionUtil,
+	MessageActionUtil,
+	DebugActionUtil,
 
-	TodoListEventUtil,
+	TodoListActionUtil,
 
 	// Required:
-	UnknownEventUtil,
+	UnknownActionUtil,
 ]

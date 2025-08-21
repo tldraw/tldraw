@@ -2,7 +2,7 @@ import { TLShapeId } from 'tldraw'
 import z from 'zod'
 import { AgentTransform } from '../AgentTransform'
 import { Streaming } from '../types/Streaming'
-import { AgentEventUtil } from './AgentEventUtil'
+import { AgentActionUtil } from './AgentActionUtil'
 
 const AgentDistributeEvent = z
 	.object({
@@ -18,7 +18,7 @@ const AgentDistributeEvent = z
 
 type IAgentDistributeEvent = z.infer<typeof AgentDistributeEvent>
 
-export class DistributeEventUtil extends AgentEventUtil<IAgentDistributeEvent> {
+export class DistributeActionUtil extends AgentActionUtil<IAgentDistributeEvent> {
 	static override type = 'distribute' as const
 
 	override getSchema() {

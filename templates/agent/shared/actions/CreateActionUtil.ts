@@ -6,7 +6,7 @@ import { asColor } from '../format/SimpleColor'
 import { convertSimpleFillToTldrawFill } from '../format/SimpleFill'
 import { SimpleShape } from '../format/SimpleShape'
 import { Streaming } from '../types/Streaming'
-import { AgentEventUtil } from './AgentEventUtil'
+import { AgentActionUtil } from './AgentActionUtil'
 
 const AgentCreateEvent = z
 	.object({
@@ -18,7 +18,7 @@ const AgentCreateEvent = z
 
 type IAgentCreateEvent = z.infer<typeof AgentCreateEvent>
 
-export class CreateEventUtil extends AgentEventUtil<IAgentCreateEvent> {
+export class CreateActionUtil extends AgentActionUtil<IAgentCreateEvent> {
 	static override type = 'create' as const
 
 	override getSchema() {
