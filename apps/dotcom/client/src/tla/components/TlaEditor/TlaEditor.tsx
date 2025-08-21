@@ -137,7 +137,7 @@ function TlaEditorInner({ fileSlug, deepLinks }: TlaEditorProps) {
 	const handleMount = useCallback(
 		(editor: Editor) => {
 			trackRoomLoaded(editor)
-			trackNewRoomCreation(editor, app, fileId)
+			trackNewRoomCreation(app, fileId)
 			;(window as any).app = app
 			;(window as any).editor = editor
 			// Register the editor globally

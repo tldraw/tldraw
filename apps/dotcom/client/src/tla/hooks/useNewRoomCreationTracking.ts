@@ -1,9 +1,8 @@
-import { Editor } from 'tldraw'
 import { trackEvent } from '../../utils/analytics'
 import { TldrawApp } from '../app/TldrawApp'
 
 export function useNewRoomCreationTracking() {
-	return (editor: Editor, app: TldrawApp | null, fileId: string) => {
+	return (app: TldrawApp | null, fileId: string) => {
 		if (!app) return
 
 		const creationData = app.getAndClearNewRoomCreationStartTime(fileId)

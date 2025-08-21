@@ -431,19 +431,7 @@ export class TldrawApp {
 			lastSessionState: null,
 			lastVisitAt: null,
 		}
-		// Determine creation source for analytics
-		let creationSource = 'create-blank-file' // Default for button clicks
-		if (file.createSource) {
-			if (file.createSource.startsWith(`${LOCAL_FILE_PREFIX}/`)) {
-				creationSource = 'slurp'
-			} else if (file.createSource.startsWith(`${FILE_PREFIX}/`)) {
-				creationSource = 'duplicate'
-			} else if (file.createSource.startsWith('r/')) {
-				creationSource = 'legacy-import'
-			} else {
-				creationSource = 'other'
-			}
-		}
+		const creationSource = this.getCreationSourceForAnalytics(file.createSource)
 
 		// Store the creation start time and source for tracking
 		this.newRoomCreationStartTimes.set(file.id, {
@@ -479,6 +467,25 @@ export class TldrawApp {
 		const createdAt = new Date(time)
 		const format = getDateFormat(createdAt)
 		return this.getIntl().formatDate(createdAt, format)
+	}
+
+	/**
+	 * Map createSource to analytics-friendly source names
+	 */
+	private getCreationSourceForAnalytics(createSource: string | null): string {
+		if (!createSource) {
+			return 'create-blank-file' // Default for button clicks
+		}
+
+		if (createSource.startsWith(`${LOCAL_FILE_PREFIX}/`)) {
+			return 'slurp'
+		} else if (createSource.startsWith(`${FILE_PREFIX}/`)) {
+			return 'duplicate'
+		} else if (createSource.startsWith('r/')) {
+			return 'legacy-import'
+		} else {
+			return 'other'
+		}
 	}
 
 	getFileName(file: TlaFile | string | null, useDateFallback: false): string | undefined
