@@ -11,10 +11,10 @@ export const TEXT_PROPS = {
 
 /** @public */
 export const STROKE_SIZES: Record<TLDefaultSizeStyle, number> = {
-	s: 2,
-	m: 3.5,
-	l: 5,
-	xl: 10,
+	s: 1.5,
+	m: 2.5,
+	l: 4,
+	xl: 6,
 }
 
 /** @public */

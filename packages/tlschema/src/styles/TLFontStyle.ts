@@ -3,7 +3,7 @@ import { StyleProp } from './StyleProp'
 
 /** @public */
 export const DefaultFontStyle = StyleProp.defineEnum('tldraw:font', {
-	defaultValue: 'draw',
+	defaultValue: 'sans',
 	values: ['draw', 'sans', 'serif', 'mono'],
 })
 

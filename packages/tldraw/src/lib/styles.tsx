@@ -21,13 +21,17 @@ export const STYLES = {
 		{ value: 'light-green', icon: 'color' },
 		{ value: 'light-red', icon: 'color' },
 		{ value: 'red', icon: 'color' },
+		{ value: 'white', icon: 'color' },
+		{ value: 'brown', icon: 'color' },
+		{ value: 'pink', icon: 'color' },
+		{ value: 'cyan', icon: 'color' },
 	],
 	fill: [
 		{ value: 'none', icon: 'fill-none' },
 		{ value: 'semi', icon: 'fill-semi' },
 		{ value: 'solid', icon: 'fill-solid' },
 		{ value: 'pattern', icon: 'fill-pattern' },
-		// { value: 'fill', icon: 'fill-fill' },
+		{ value: 'fill', icon: 'fill-fill' },
 	],
 	dash: [
 		{ value: 'draw', icon: 'dash-draw' },

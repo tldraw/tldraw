@@ -173,10 +173,10 @@ export const defaultBindingSchemas: {
 };
 
 // @public (undocumented)
-export const defaultColorNames: readonly ["black", "grey", "light-violet", "violet", "blue", "light-blue", "yellow", "orange", "green", "light-green", "light-red", "red", "white"];
+export const defaultColorNames: readonly ["black", "grey", "light-violet", "violet", "blue", "light-blue", "yellow", "orange", "green", "light-green", "light-red", "red", "white", "brown", "pink", "cyan"];
 
 // @public (undocumented)
-export const DefaultColorStyle: EnumStyleProp<"black" | "blue" | "green" | "grey" | "light-blue" | "light-green" | "light-red" | "light-violet" | "orange" | "red" | "violet" | "white" | "yellow">;
+export const DefaultColorStyle: EnumStyleProp<"black" | "blue" | "brown" | "cyan" | "green" | "grey" | "light-blue" | "light-green" | "light-red" | "light-violet" | "orange" | "pink" | "red" | "violet" | "white" | "yellow">;
 
 // @public (undocumented)
 export const DefaultColorThemePalette: {
