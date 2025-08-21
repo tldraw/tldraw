@@ -22,27 +22,37 @@ export function AgentHistory({
 }) {
 	const items = useValue($agentHistoryItems)
 	const sections = getAgentHistorySections(items)
-	const spinnerRef = useRef<HTMLDivElement>(null)
 	const historyRef = useRef<HTMLDivElement>(null)
+	const previousScrollDistanceFromBottomRef = useRef(0)
 
 	useEffect(() => {
 		if (!historyRef.current) return
 		if (items.at(-1)?.type === 'prompt') {
 			historyRef.current.scrollTo(0, historyRef.current.scrollHeight)
+			previousScrollDistanceFromBottomRef.current = 0
+			return
+		}
+
+		if (previousScrollDistanceFromBottomRef.current <= 0) {
+			const scrollDistanceFromBottom =
+				historyRef.current.scrollHeight -
+				historyRef.current.scrollTop -
+				historyRef.current.clientHeight
+
+			if (scrollDistanceFromBottom > 0) {
+				historyRef.current.scrollTo(0, historyRef.current.scrollHeight)
+			}
 		}
 	}, [historyRef, items])
 
 	const handleScroll = () => {
 		if (!historyRef.current) return
-		console.log('handleScroll')
 		const scrollDistanceFromBottom =
 			historyRef.current.scrollHeight -
 			historyRef.current.scrollTop -
 			historyRef.current.clientHeight
 
-		if (scrollDistanceFromBottom < 100) {
-			spinnerRef.current?.scrollIntoView()
-		}
+		previousScrollDistanceFromBottomRef.current = scrollDistanceFromBottom
 	}
 
 	return (
