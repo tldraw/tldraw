@@ -8,6 +8,7 @@ import {
 	FILE_PREFIX,
 	LOCAL_FILE_PREFIX,
 	MAX_NUMBER_OF_FILES,
+	ROOM_PREFIX,
 	TlaFile,
 	TlaFileState,
 	TlaMutators,
@@ -481,7 +482,7 @@ export class TldrawApp {
 			return 'slurp'
 		} else if (createSource.startsWith(`${FILE_PREFIX}/`)) {
 			return 'duplicate'
-		} else if (createSource.startsWith('r/')) {
+		} else if (createSource.startsWith(`${ROOM_PREFIX}/`)) {
 			return 'legacy-import'
 		} else {
 			return 'other'
