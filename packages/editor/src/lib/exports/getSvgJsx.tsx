@@ -84,9 +84,13 @@ export function getSvgJsx(editor: Editor, ids: TLShapeId[], opts: TLImageExportO
 		ids.length === 1 && editor.isShapeOfType<TLFrameShape>(editor.getShape(ids[0])!, 'frame')
 			? ids[0]
 			: null
-	if (singleFrameShapeId) {
-		// when exporting a single frame, we want to use the frame's bounds, not the shapes inside it
-		bbox = editor.getShapeMaskedPageBounds(singleFrameShapeId)!
+	if (singleFrameShapeId && !opts.bounds) {
+		// when exporting a single frame without custom bounds, use the frame's bounds directly
+		// (this avoids including content that extends outside the frame)
+		const frameBounds = editor.getShapeMaskedPageBounds(singleFrameShapeId)!
+		const frameShape = editor.getShape(singleFrameShapeId)!
+		const paddingForFrame = typeof padding === 'function' ? padding(frameShape, editor) : padding
+		bbox = paddingForFrame === 0 ? frameBounds : frameBounds.clone().expandBy(paddingForFrame)
 	}
 
 	// We want the svg image to be BIGGER THAN USUAL to account for image quality
