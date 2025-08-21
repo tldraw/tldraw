@@ -1,9 +1,9 @@
 import { AgentTransform, roundBox, roundVec } from '../AgentTransform'
 import { AgentPromptOptions } from '../types/AgentPrompt'
-import { ContextItem } from '../types/ContextItem'
+import { IContextItem } from '../types/ContextItem'
 import { PromptPartUtil } from './PromptPartUtil'
 
-export class ContextItemsPartUtil extends PromptPartUtil<ContextItem[]> {
+export class ContextItemsPartUtil extends PromptPartUtil<IContextItem[]> {
 	static override type = 'contextItems' as const
 
 	override getPriority() {
@@ -14,7 +14,7 @@ export class ContextItemsPartUtil extends PromptPartUtil<ContextItem[]> {
 		return options.request.contextItems
 	}
 
-	override transformPart(part: ContextItem[], transform: AgentTransform): ContextItem[] {
+	override transformPart(part: IContextItem[], transform: AgentTransform): IContextItem[] {
 		return part.map((contextItem) => {
 			switch (contextItem.type) {
 				case 'shape': {
@@ -48,7 +48,7 @@ export class ContextItemsPartUtil extends PromptPartUtil<ContextItem[]> {
 		})
 	}
 
-	override buildContent(contextItems: ContextItem[]): string[] {
+	override buildContent(contextItems: IContextItem[]): string[] {
 		const messages: string[] = []
 
 		const shapeItems = contextItems.filter((item) => item.type === 'shape')

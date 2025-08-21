@@ -10,7 +10,7 @@ export function CrossIcon() {
 			strokeWidth="2"
 			strokeLinecap="round"
 			strokeLinejoin="round"
-			className="chat-input-icon lucide lucide-cross-icon lucide-cross"
+			className="chat-icon"
 		>
 			<path d="M18 6 6 18" />
 			<path d="m6 6 12 12" />

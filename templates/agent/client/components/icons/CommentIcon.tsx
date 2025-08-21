@@ -10,7 +10,7 @@ export function CommentIcon() {
 			strokeWidth="2"
 			strokeLinecap="round"
 			strokeLinejoin="round"
-			className="chat-input-icon lucide lucide-message-square-icon lucide-message-square"
+			className="chat-icon"
 		>
 			<path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z" />
 		</svg>

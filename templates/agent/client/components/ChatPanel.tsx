@@ -1,7 +1,7 @@
 import { FormEventHandler, useCallback, useEffect, useRef, useState } from 'react'
 import { Editor, useToasts, useValue } from 'tldraw'
 import { EVENT_UTILS, PROMPT_PART_UTILS } from '../../shared/AgentUtils'
-import { AgentHistoryItem } from '../../shared/types/AgentHistoryItem'
+import { IChatHistoryItem } from '../../shared/types/ChatHistoryItem'
 import { advanceSchedule } from '../ai/advanceSchedule'
 import { useTldrawAgent } from '../ai/useTldrawAgent'
 import { $agentHistoryItems } from '../atoms/agentHistoryItems'
@@ -9,7 +9,7 @@ import { $contextItems, $pendingContextItems } from '../atoms/contextItems'
 import { $modelName } from '../atoms/modelName'
 import { $scheduledRequests } from '../atoms/scheduledRequests'
 import { $todoItems } from '../atoms/todoItems'
-import { AgentHistory } from './chat-history/AgentHistory'
+import { ChatHistory } from './chat-history/ChatHistory'
 import { ChatInput } from './ChatInput'
 import { $contextBoundsHighlight } from './highlights/ContextBoundsHighlights'
 
@@ -46,9 +46,6 @@ export function ChatPanel({ editor }: { editor: Editor }) {
 
 				$scheduledRequests.set([])
 				$pendingContextItems.set([])
-				$agentHistoryItems.update((prev) =>
-					prev.map((item) => (item.status === 'progress' ? { ...item, status: 'cancelled' } : item))
-				)
 			}
 
 			// If the user's message is empty, do nothing
@@ -57,10 +54,9 @@ export function ChatPanel({ editor }: { editor: Editor }) {
 			// Submit the user's message to the agent
 			if (inputRef.current) inputRef.current.value = ''
 
-			const promptHistoryItem: AgentHistoryItem = {
+			const promptHistoryItem: IChatHistoryItem = {
 				type: 'prompt',
 				message: value,
-				status: 'done',
 				contextItems: $contextItems.get(),
 			}
 
@@ -130,7 +126,7 @@ export function ChatPanel({ editor }: { editor: Editor }) {
 			<div className="chat-header">
 				<NewChatButton />
 			</div>
-			<AgentHistory editor={editor} agent={agent} isGenerating={isGenerating} />
+			<ChatHistory editor={editor} agent={agent} isGenerating={isGenerating} />
 			<ChatInput
 				handleSubmit={handleSubmit}
 				inputRef={inputRef}

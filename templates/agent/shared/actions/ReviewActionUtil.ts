@@ -1,6 +1,6 @@
 import z from 'zod'
 import { $scheduledRequests } from '../../client/atoms/scheduledRequests'
-import { AreaContextItem } from '../types/ContextItem'
+import { IAreaContextItem } from '../types/ContextItem'
 import { ScheduledRequest } from '../types/ScheduledRequest'
 import { Streaming } from '../types/Streaming'
 import { AgentActionUtil } from './AgentActionUtil'
@@ -42,7 +42,7 @@ export class ReviewActionUtil extends AgentActionUtil<IAgentReviewEvent> {
 	override applyEvent(event: Streaming<IAgentReviewEvent>) {
 		$scheduledRequests.update((prev) => {
 			if (!event.complete) return prev
-			const contextArea: AreaContextItem = {
+			const contextArea: IAreaContextItem = {
 				type: 'area',
 				bounds: {
 					x: event.x,

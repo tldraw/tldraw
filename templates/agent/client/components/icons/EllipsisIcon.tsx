@@ -10,7 +10,7 @@ export function EllipsisIcon() {
 			strokeWidth="2"
 			strokeLinecap="round"
 			strokeLinejoin="round"
-			className="chat-input-icon lucide lucide-ellipsis-icon lucide-ellipsis"
+			className="chat-icon "
 		>
 			<path d="M12 12m-1 0a1 1 0 1 0 2 0a1 1 0 1 0 -2 0" />
 			<path d="M19 12m-1 0a1 1 0 1 0 2 0a1 1 0 1 0 -2 0" />

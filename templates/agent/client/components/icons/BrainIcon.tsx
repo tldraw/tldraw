@@ -10,7 +10,7 @@ export function BrainIcon() {
 			strokeWidth="2"
 			strokeLinecap="round"
 			strokeLinejoin="round"
-			className="chat-input-icon lucide lucide-brain-icon lucide-brain"
+			className="chat-icon"
 		>
 			<path d="M12 18V5" />
 			<path d="M15 13a4.17 4.17 0 0 1-3-4 4.17 4.17 0 0 1-3 4" />

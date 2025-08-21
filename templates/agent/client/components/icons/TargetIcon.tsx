@@ -10,7 +10,7 @@ export function TargetIcon() {
 			strokeWidth="2"
 			strokeLinecap="round"
 			strokeLinejoin="round"
-			className="chat-input-icon lucide lucide-target"
+			className="chat-icon"
 		>
 			<circle cx="12" cy="12" r="10" />
 			<line x1="12" y1="2" x2="12" y2="8" />

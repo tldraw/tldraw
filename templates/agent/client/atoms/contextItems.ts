@@ -1,20 +1,20 @@
 import { atom, Box, exhaustiveSwitchError, structuredClone, Vec } from 'tldraw'
 import { ISimpleShape } from '../../shared/format/SimpleShape'
 import {
-	AreaContextItem,
-	ContextItem,
-	PointContextItem,
-	ShapeContextItem,
-	ShapesContextItem,
+	IAreaContextItem,
+	IContextItem,
+	IPointContextItem,
+	IShapeContextItem,
+	IShapesContextItem,
 } from '../../shared/types/ContextItem'
 import { persistAtomInLocalStorage } from './persistAtomInLocalStorage'
 
-export const $contextItems = atom<ContextItem[]>('context items', [])
-export const $pendingContextItems = atom<ContextItem[]>('pending context items', [])
+export const $contextItems = atom<IContextItem[]>('context items', [])
+export const $pendingContextItems = atom<IContextItem[]>('pending context items', [])
 
 persistAtomInLocalStorage($contextItems, 'context-items')
 
-export function addToContext(item: ContextItem) {
+export function addToContext(item: IContextItem) {
 	$contextItems.update((items) => {
 		// Don't add shapes that are already within context
 		if (item.type === 'shapes') {
@@ -31,7 +31,7 @@ export function addToContext(item: ContextItem) {
 	})
 }
 
-export function removeFromContext(item: ContextItem) {
+export function removeFromContext(item: IContextItem) {
 	$contextItems.update((items) => items.filter((v) => item !== v))
 }
 
@@ -44,9 +44,9 @@ export function removeFromContext(item: ContextItem) {
  * @returns The new context items with duplicates removed.
  */
 function stripDuplicateShapesFromContextItem(
-	item: ShapesContextItem,
-	existingItems: ContextItem[]
-): ContextItem[] {
+	item: IShapesContextItem,
+	existingItems: IContextItem[]
+): IContextItem[] {
 	// Get all shape IDs that are already in the context
 	const existingShapeIds = new Set<string>()
 
@@ -68,7 +68,7 @@ function stripDuplicateShapesFromContextItem(
 	if (newShapes.length > 0) {
 		// If only one shape remains, add it as a single shape item
 		if (newShapes.length === 1) {
-			const newItem: ContextItem = {
+			const newItem: IContextItem = {
 				type: 'shape',
 				shape: newShapes[0],
 				source: item.source,
@@ -77,7 +77,7 @@ function stripDuplicateShapesFromContextItem(
 		}
 
 		// Otherwise add as a shapes group
-		const newItem: ContextItem = {
+		const newItem: IContextItem = {
 			type: 'shapes',
 			shapes: newShapes,
 			source: item.source,
@@ -90,8 +90,8 @@ function stripDuplicateShapesFromContextItem(
 }
 
 function contextItemIsAlreadyContainedInContext(
-	item: Exclude<ContextItem, { type: 'shapes' }>,
-	items: ContextItem[]
+	item: Exclude<IContextItem, { type: 'shapes' }>,
+	items: IContextItem[]
 ): boolean {
 	if (items.some((v) => areContextItemsEquivalent(v, item))) {
 		return true
@@ -110,26 +110,29 @@ function contextItemIsAlreadyContainedInContext(
 	return false
 }
 
-function areContextItemsEquivalent(a: ContextItem, b: ContextItem): boolean {
+function areContextItemsEquivalent(a: IContextItem, b: IContextItem): boolean {
 	if (a.type !== b.type) return false
 
 	switch (a.type) {
 		case 'shape': {
-			const _b = b as ShapeContextItem
+			const _b = b as IShapeContextItem
 			return a.shape.shapeId === _b.shape.shapeId
 		}
 		case 'shapes': {
-			const _b = b as ShapesContextItem
+			const _b = b as IShapesContextItem
 			if (a.shapes.length !== _b.shapes.length) return false
 			return a.shapes.every((shape) => _b.shapes.find((s) => s.shapeId === shape.shapeId))
 		}
 		case 'area': {
-			const _b = b as AreaContextItem
+			const _b = b as IAreaContextItem
 			return Box.Equals(a.bounds, _b.bounds)
 		}
 		case 'point': {
-			const _b = b as PointContextItem
+			const _b = b as IPointContextItem
 			return Vec.Equals(a.point, _b.point)
+		}
+		case 'selection': {
+			return true
 		}
 		default: {
 			exhaustiveSwitchError(a)

@@ -1,10 +1,10 @@
 import { $agentHistoryItems } from '../../client/atoms/agentHistoryItems'
-import { AgentHistoryItem } from '../types/AgentHistoryItem'
 import { AgentMessage, AgentMessageContent } from '../types/AgentMessage'
 import { AgentPromptOptions } from '../types/AgentPrompt'
+import { IChatHistoryItem } from '../types/ChatHistoryItem'
 import { PromptPartUtil } from './PromptPartUtil'
 
-export class HistoryItemPartUtil extends PromptPartUtil<AgentHistoryItem[]> {
+export class HistoryItemPartUtil extends PromptPartUtil<IChatHistoryItem[]> {
 	static override type = 'historyItems' as const
 
 	override getPriority() {
@@ -15,7 +15,7 @@ export class HistoryItemPartUtil extends PromptPartUtil<AgentHistoryItem[]> {
 		return $agentHistoryItems.get()
 	}
 
-	override buildMessages(historyItems: AgentHistoryItem[]): AgentMessage[] {
+	override buildMessages(historyItems: IChatHistoryItem[]): AgentMessage[] {
 		const messages: AgentMessage[] = []
 		const priority = this.getPriority()
 
@@ -37,7 +37,7 @@ export class HistoryItemPartUtil extends PromptPartUtil<AgentHistoryItem[]> {
 		return messages
 	}
 
-	private buildHistoryItemMessage(item: AgentHistoryItem, priority: number): AgentMessage | null {
+	private buildHistoryItemMessage(item: IChatHistoryItem, priority: number): AgentMessage | null {
 		switch (item.type) {
 			case 'prompt': {
 				const content: AgentMessageContent[] = []

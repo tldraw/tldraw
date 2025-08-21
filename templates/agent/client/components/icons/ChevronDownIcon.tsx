@@ -10,7 +10,7 @@ export function ChevronDownIcon() {
 			strokeWidth="2"
 			strokeLinecap="round"
 			strokeLinejoin="round"
-			className="chat-input-icon lucide lucide-chevron-down-icon lucide-chevron-down"
+			className="chat-icon"
 		>
 			<path d="m6 9 6 6 6-6" />
 		</svg>

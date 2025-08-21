@@ -1,9 +1,8 @@
 export function ChatPanelFallback() {
 	return (
-		<div className="chat-panel-fallback">
+		<div className="chat-fallback">
 			<p>Error loading chat history</p>
 			<button
-				className="chat-panel-fallback-button"
 				onClick={() => {
 					localStorage.removeItem('chat-history-items')
 					localStorage.removeItem('context-items')

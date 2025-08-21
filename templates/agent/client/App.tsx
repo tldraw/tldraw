@@ -61,7 +61,7 @@ function App() {
 
 	return (
 		<TldrawUiToastsProvider>
-			<div className="tldraw-ai-container">
+			<div className="tldraw-agent-container">
 				<div className="tldraw-canvas">
 					<Tldraw
 						persistenceKey="tldraw-agent-demo"

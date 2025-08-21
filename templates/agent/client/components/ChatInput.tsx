@@ -4,12 +4,11 @@ import { convertTldrawShapeToSimpleShape } from '../../shared/format/SimpleShape
 import { AGENT_MODEL_DEFINITIONS, AgentModelName } from '../../worker/models'
 import { $contextItems, addToContext, removeFromContext } from '../atoms/contextItems'
 import { $modelName } from '../atoms/modelName'
-import { ContextPreview } from './ContextPreview'
+import { ContextItemPreview } from './ContextPreview'
 import { AtIcon } from './icons/AtIcon'
 import { BrainIcon } from './icons/BrainIcon'
 import { ChevronDownIcon } from './icons/ChevronDownIcon'
 import { CommentIcon } from './icons/CommentIcon'
-import { SelectionContextPreview } from './SelectionContextPreview'
 
 export function ChatInput({
 	handleSubmit,
@@ -33,14 +32,8 @@ export function ChatInput({
 		[editor]
 	)
 
-	const someShapesSelected = useValue(
-		'someShapesSelected',
-		() => {
-			const shapes = editor.getSelectedShapes()
-			return shapes.length > 0
-		},
-		[editor]
-	)
+	const selectedShapes = useValue('selectedShapes', () => editor.getSelectedShapes(), [editor])
+	const someShapesSelected = selectedShapes.length > 0
 
 	const contextItems = useValue('contextItems', () => $contextItems.get(), [$contextItems])
 	const modelName = useValue('modelName', () => $modelName.get(), [$modelName])
@@ -60,9 +53,9 @@ export function ChatInput({
 					handleSubmit(e)
 				}}
 			>
-				<div className="chat-input-context-items">
+				<div className="chat-context">
 					<div className={'chat-context-select ' + (isContextToolActive ? 'active' : '')}>
-						<div className="chat-input-actions-label">
+						<div className="chat-context-select-label">
 							<AtIcon /> Add Context
 						</div>
 						<select
@@ -83,14 +76,24 @@ export function ChatInput({
 							})}
 						</select>
 					</div>
-					<SelectionContextPreview editor={editor} />
+					{someShapesSelected && (
+						<ContextItemPreview
+							editor={editor}
+							item={{
+								type: 'selection',
+								source: 'user',
+							}}
+							onClick={() => editor.selectNone()}
+						/>
+					)}
 					{contextItems.map(
 						(item, i) =>
 							item.source === 'user' && (
-								<ContextPreview
+								<ContextItemPreview
+									editor={editor}
 									onClick={() => removeFromContext(item)}
 									key={'context-item-' + i}
-									contextItem={item}
+									item={item}
 								/>
 							)
 					)}
@@ -115,15 +118,15 @@ export function ChatInput({
 						}
 					}}
 				/>
-				<span className="chat-input-actions">
-					<div className="chat-input-actions-left">
+				<span className="chat-actions">
+					<div className="chat-actions-left">
 						<div className="chat-mode-select">
 							<CommentIcon />
 							<span>Agent</span>
 							<ChevronDownIcon />
 						</div>
 						<div className="chat-model-select">
-							<div className="chat-input-actions-label">
+							<div className="chat-model-select-label">
 								<BrainIcon /> {modelName}
 							</div>
 							<select

@@ -10,7 +10,7 @@ export function TickIcon() {
 			strokeWidth="2"
 			strokeLinecap="round"
 			strokeLinejoin="round"
-			className="chat-input-icon lucide lucide-tick-icon lucide-tick"
+			className="chat-icon"
 		>
 			<path d="M20 6 9 17l-5-5" />
 		</svg>

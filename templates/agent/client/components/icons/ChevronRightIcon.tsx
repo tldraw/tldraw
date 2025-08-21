@@ -10,7 +10,7 @@ export function ChevronRightIcon() {
 			strokeWidth="2"
 			strokeLinecap="round"
 			strokeLinejoin="round"
-			className="chat-input-icon lucide lucide-chevron-right-icon lucide-chevron-right"
+			className="chat-icon"
 		>
 			<path d="m9 18 6-6-6-6" />
 		</svg>

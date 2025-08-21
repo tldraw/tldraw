@@ -10,7 +10,7 @@ body {
 	overscroll-behavior: none;
 }
 
-.tldraw-ai-container {
+.tldraw-agent-container {
 	position: fixed;
 	inset: 0;
 	display: grid;
@@ -18,11 +18,18 @@ body {
 }
 
 @media (max-width: 768px) {
-	.tldraw-ai-container {
+	.tldraw-agent-container {
 		grid-template-columns: 1fr;
 		grid-template-rows: 1fr auto;
 	}
 }
+
+.tldraw-canvas {
+	width: 100%;
+	height: 100%;
+}
+
+/* Chat Panel */
 
 .chat-panel.tl-theme__light {
 	--tl-color-text-2: hsl(0, 0%, 55%);
@@ -33,13 +40,6 @@ body {
 	--tl-color-text-2: hsl(0, 0%, 55%);
 	--tl-color-primary-hover: hsl(214, 84%, 50%);
 }
-
-.tldraw-canvas {
-	width: 100%;
-	height: 100%;
-}
-
-/* Chat Panel */
 
 .chat-panel {
 	display: flex;
@@ -73,28 +73,7 @@ body {
 	user-select: none;
 }
 
-.chat-history {
-	padding: 16px;
-	padding-top: 0px;
-	overflow-y: auto;
-	display: flex;
-	flex-direction: column;
-	gap: 10px;
-	height: 100%;
-	position: relative;
-	width: 100%;
-}
-
-.chat-history-section {
-	display: flex;
-	flex-direction: column;
-	gap: 10px;
-	flex-shrink: 0;
-}
-
-.chat-history-section:last-child {
-	min-height: calc(100% - 1px);
-}
+/* Chat Input */
 
 .chat-input {
 	padding: 0px 8px 8px 8px;
@@ -153,7 +132,6 @@ body {
 	outline: none;
 	width: 100%;
 	resize: none;
-	/* Make scrollbar background transparent */
 	scrollbar-color: var(--tl-color-text-3) transparent;
 }
 
@@ -165,20 +143,12 @@ body {
 	border-color: var(--tl-color-primary);
 }
 
-/* For Webkit browsers: transparent scrollbar background */
 .chat-input textarea::-webkit-scrollbar {
 	background: transparent;
 }
 
 .chat-input textarea::-webkit-scrollbar-thumb {
 	background: var(--tl-color-text-3);
-}
-
-.chat-input-actions-label {
-	display: flex;
-	align-items: center;
-	justify-content: center;
-	font-size: 10px;
 }
 
 .chat-input button {
@@ -210,54 +180,19 @@ body {
 	cursor: not-allowed;
 }
 
-.agent-action-message {
-	display: flex;
-	gap: 4px;
-	color: var(--tl-color-text-2);
-}
-
-.user-message-container {
-	position: sticky;
-	top: -6px;
-	padding: 8px;
-	margin: -8px;
-	z-index: 9999999;
-	background-color: var(--tl-color-panel);
-}
-
-.user-message {
-	background-color: var(--tl-color-muted-1);
-	box-shadow: var(--tl-shadow-1);
-	color: var(--tl-color-text-1);
-	width: 100%;
-	font-family: 'Inter', sans-serif;
-	font-weight: 400;
-	font-size: 12px;
-	padding: 8px;
-	border-radius: 8px;
-	display: flex;
-	flex-direction: column;
-	gap: 4px;
-}
-
-.user-message-context-items {
-	display: flex;
-	gap: 4px;
-}
-
-.chat-input-actions {
+.chat-actions {
 	display: flex;
 	gap: 8px;
 	width: 100%;
 	justify-content: space-between;
 }
 
-.chat-input-actions-left {
+.chat-actions-left {
 	display: flex;
 	gap: 0px;
 }
 
-.chat-input-icon {
+.chat-icon {
 	width: 11px;
 	height: 11px;
 	margin-right: 4px;
@@ -271,6 +206,46 @@ body {
 
 .chat-mode-select span {
 	margin-right: 4px;
+}
+
+.chat-context {
+	display: flex;
+	gap: 4px;
+	flex-wrap: wrap;
+	align-items: center;
+}
+
+.chat-context button {
+	border-radius: 1px;
+	background-color: transparent;
+	border: 1px solid var(--tl-color-text-2);
+	cursor: pointer;
+	padding: 0;
+	border-radius: 6px;
+	margin: 0;
+	width: 16px;
+	height: 16px;
+	box-shadow: none;
+	color: var(--tl-color-text-2);
+	font-family: 'Inter', sans-serif;
+	font-size: 10px;
+	width: fit-content;
+	padding: 8px 4px 8px 3px;
+	font-weight: 500;
+	color: var(--tl-color-text-2);
+}
+
+.chat-context button:hover {
+	color: var(--tl-color-text);
+	background-color: transparent;
+	border-color: var(--tl-color-text);
+}
+
+.chat-context-select-label {
+	display: flex;
+	align-items: center;
+	justify-content: center;
+	font-size: 10px;
 }
 
 .chat-model-select,
@@ -331,6 +306,85 @@ body {
 	border-color: var(--tl-color-text);
 }
 
+/* Chat History */
+
+.chat-history {
+	padding: 16px;
+	padding-top: 0px;
+	overflow-y: auto;
+	display: flex;
+	flex-direction: column;
+	gap: 10px;
+	height: 100%;
+	position: relative;
+	width: 100%;
+}
+
+.chat-history-section {
+	display: flex;
+	flex-direction: column;
+	gap: 14px;
+	flex-shrink: 0;
+}
+
+.chat-history-section:last-child {
+	min-height: calc(100% - 1px);
+}
+
+.agent-action-message {
+	display: flex;
+	gap: 4px;
+	color: var(--tl-color-text-2);
+}
+
+.chat-history-prompt-container {
+	position: sticky;
+	top: -6px;
+	padding: 8px;
+	margin: -8px;
+	z-index: 9999999;
+	background-color: var(--tl-color-panel);
+}
+
+.chat-history-prompt {
+	background-color: var(--tl-color-muted-1);
+	box-shadow: var(--tl-shadow-1);
+	color: var(--tl-color-text-1);
+	width: 100%;
+	font-family: 'Inter', sans-serif;
+	font-weight: 400;
+	font-size: 12px;
+	padding: 8px;
+	border-radius: 8px;
+	display: flex;
+	flex-direction: column;
+	gap: 4px;
+}
+
+.context-item-preview-container {
+	display: flex;
+	gap: 4px;
+	align-items: center;
+	flex-wrap: wrap;
+}
+
+.context-item-preview {
+	padding: 8px 4px;
+	border-radius: 6px;
+	font-size: 10px;
+	font-weight: 500;
+	height: 16px;
+	border: 1px solid var(--tl-color-text-2);
+	color: var(--tl-color-text-2);
+	line-height: 0;
+	display: flex;
+	align-items: center;
+	text-overflow: ellipsis;
+	overflow: hidden;
+	white-space: nowrap;
+	font-family: 'Inter', sans-serif;
+}
+
 .chat-header {
 	display: flex;
 	justify-content: flex-end;
@@ -354,38 +408,14 @@ body {
 	background-color: var(--tl-color-muted-2);
 }
 
-.agent-raw-message {
-	white-space: pre-wrap;
-}
-
-.status-thinking-message {
-	opacity: 0.8;
-	/* background-color: hsl(0, 0%, 95%); */
-	background-color: transparent;
-}
-
-.status-thinking-message-text {
-	font-style: italic;
-	color: var(--tl-color-text-2);
-	margin: 0;
-}
-
-.agent-change-message {
-	display: flex;
-	flex-direction: column;
-	width: 100%;
-	margin-top: 4px;
-	margin-bottom: 4px;
-}
-
-.agent-change-message-actions {
+.chat-history-change-acceptance {
 	display: flex;
 	justify-content: flex-end;
 	width: 100%;
 	gap: 2px;
 }
 
-.agent-change-message-actions button {
+.chat-history-change-acceptance button {
 	border: 0;
 	cursor: pointer;
 	background-color: var(--tl-color-muted-1);
@@ -403,32 +433,15 @@ body {
 	user-select: none;
 }
 
-.agent-change-message-actions button:hover {
-	color: var(--tl-color-text);
-}
-
-.agent-change-message-actions button:disabled {
-	color: var(--tl-color-text-1);
-	cursor: default;
-}
-
-.agent-change-message-actions button:first-child {
-	border-radius: 4px 0px 0px 0px;
-}
-
-.agent-change-message-actions button:last-child {
-	border-radius: 0px 4px 0px 0px;
-}
-
-.agent-change-message-acceptance-notice {
-	/* font-size: 10px; */
-	/* font-weight: 500; */
-	height: 20px;
-}
+/* Diff viewer */
 
 .tldraw-viewer {
 	height: 100px;
 	position: relative;
+}
+
+.tldraw-viewer .tlui-tooltip {
+	display: none;
 }
 
 .diff-shape-create-shadow {
@@ -460,63 +473,9 @@ body {
 		drop-shadow(calc(var(--tl-scale) * -1px) calc(var(--tl-scale) * 1px) 0px rgba(0, 100, 255, 50%));
 }
 
-.chat-input-context-items button {
-	border-radius: 1px;
-	background-color: transparent;
-	border: 1px solid var(--tl-color-text-2);
-	cursor: pointer;
-	padding: 0;
-	border-radius: 6px;
-	margin: 0;
-	width: 16px;
-	height: 16px;
-	box-shadow: none;
-	color: var(--tl-color-text-2);
-	font-family: 'Inter', sans-serif;
-	font-size: 10px;
-	width: fit-content;
-	padding: 8px 4px 8px 3px;
-	font-weight: 500;
-	color: var(--tl-color-text-2);
-}
+/* Fallback */
 
-.chat-input-context-items button:hover {
-	color: var(--tl-color-text);
-	background-color: transparent;
-	border-color: var(--tl-color-text);
-}
-
-.chat-input-context-items,
-.user-message-context-items {
-	display: flex;
-	gap: 4px;
-	align-items: center;
-	flex-wrap: wrap;
-}
-
-.chat-input-context {
-	display: flex;
-	gap: 4px;
-}
-
-.context-item-preview {
-	padding: 8px 4px;
-	border-radius: 6px;
-	font-size: 10px;
-	font-weight: 500;
-	height: 16px;
-	border: 1px solid var(--tl-color-text-2);
-	color: var(--tl-color-text-2);
-	line-height: 0;
-	display: flex;
-	align-items: center;
-	text-overflow: ellipsis;
-	overflow: hidden;
-	white-space: nowrap;
-	font-family: 'Inter', sans-serif;
-}
-
-.chat-panel-fallback {
+.chat-fallback {
 	padding: 10px;
 	display: flex;
 	align-items: center;
@@ -527,7 +486,7 @@ body {
 	font-size: 14px;
 }
 
-.chat-panel-fallback-button {
+.chat-fallback button {
 	background-color: hsl(214, 84%, 50%);
 	color: white;
 	border: none;
@@ -537,9 +496,11 @@ body {
 	cursor: pointer;
 }
 
-.chat-panel-fallback-button:hover {
+.chat-fallback button:hover {
 	background-color: hsl(214, 84%, 40%);
 }
+
+/* Context Highlights */
 
 .context-highlight,
 .context-point {
@@ -580,53 +541,64 @@ body {
 	}
 }
 
-.agent-change-message-intent {
-	background-color: var(--tl-color-muted-1);
-	padding: 6px 8px;
-	margin: 0px 0px;
-	border-radius: 4px 0px 0px 0px;
-	color: var(--tl-color-text-2);
-	max-height: 70px;
-	overflow-y: auto;
+/* Agent Actions */
+
+.chat-history-group {
+	display: flex;
+	flex-direction: column;
+	gap: 14px;
 }
 
-.agent-change-message-intent:last-child {
-	border-radius: 4px 0px 4px 4px;
-	max-height: 100%;
-}
-
-.agent-change-message-intent-item {
+.agent-action {
 	display: flex;
 	align-items: flex-start;
 	gap: 4px;
 	font-size: 12px;
 	font-family: 'Inter', sans-serif;
 	font-weight: 400;
+	color: var(--tl-color-text-2);
 }
 
-.agent-action-type-message {
-	color: var(--tl-color-text-1);
+.agent-action-description {
+	margin: 0;
+	width: 100%;
 }
 
-.tldraw-viewer .tlui-tooltip {
-	display: none;
+.agent-action-description > p:first-child {
+	margin-top: 0;
 }
 
-.agent-action-group {
+.agent-action-description > p:last-child {
+	margin-bottom: 0;
+}
+
+.agent-action-description p {
+	white-space: pre-wrap;
+}
+
+.agent-action-description ul,
+.agent-action-description ol {
+	padding-left: 20px;
+}
+
+.agent-action-description pre {
+	width: 100%;
+	overflow-x: scroll;
+}
+
+.agent-action-description blockquote {
+	padding-left: 14px;
+	border-left: 2px solid var(--tl-color-text-2);
+	margin: 0;
+}
+
+.agent-actions-container {
 	display: flex;
 	flex-direction: column;
 	gap: 10px;
 }
 
-.agent-action-group-item {
-	display: flex;
-	flex-direction: column;
-	gap: 10px;
-}
-
-/* This is the collapse/uncollapse button */
-/* It should look very similar to the other action messages */
-.agent-action-collapse-button {
+.chat-history-group button {
 	display: flex;
 	align-items: center;
 	gap: 4px;
@@ -641,51 +613,58 @@ body {
 	cursor: pointer;
 }
 
-.agent-action-collapse-button:hover {
+.chat-history-group button:hover {
 	color: var(--tl-color-text);
 }
 
-.agent-action-collapse-button:disabled {
+.chat-history-group button:disabled {
 	color: var(--tl-color-text-1);
 	cursor: default;
 }
 
-.agent-action-group-content {
+.chat-history-change-acceptance button:hover {
+	color: var(--tl-color-text);
+}
+
+.chat-history-change-acceptance button:disabled {
+	color: var(--tl-color-text-1);
+	cursor: default;
+}
+
+.chat-history-change-acceptance button:first-child {
+	border-radius: 4px 0px 0px 0px;
+}
+
+.chat-history-change-acceptance button:last-child {
+	border-radius: 0px 4px 0px 0px;
+}
+
+.agent-changes {
+	background-color: var(--tl-color-muted-1);
+	padding: 6px 8px;
+	margin: 0px 0px;
+	border-radius: 4px 0px 0px 0px;
+	color: var(--tl-color-text-2);
+	max-height: 70px;
+	overflow-y: auto;
+}
+
+.agent-changes:last-child {
+	border-radius: 4px 0px 4px 4px;
+	max-height: 100%;
+}
+
+.agent-change {
 	display: flex;
-	flex-direction: column;
-	gap: 10px;
-	padding-top: 0px;
+	align-items: flex-start;
+	gap: 4px;
+	font-size: 12px;
+	font-family: 'Inter', sans-serif;
+	font-weight: 400;
 }
 
-.agent-action-message-description {
-	margin: 0;
-	width: 100%;
-}
+/* Custom appearance for specific agent actions */
 
-.agent-action-message-description > p:first-child {
-	margin-top: 0;
-}
-
-.agent-action-message-description > p:last-child {
-	margin-bottom: 0;
-}
-
-.agent-action-message-description p {
-	white-space: pre-wrap;
-}
-
-.agent-action-message-description ul,
-.agent-action-message-description ol {
-	padding-left: 20px;
-}
-
-.agent-action-message-description pre {
-	width: 100%;
-	overflow-x: scroll;
-}
-
-.agent-action-message-description blockquote {
-	padding-left: 14px;
-	border-left: 2px solid var(--tl-color-text-2);
-	margin: 0;
+.agent-action-type-message {
+	color: var(--tl-color-text-1);
 }

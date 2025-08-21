@@ -1,61 +1,79 @@
-import { BoxModel, VecModel } from 'tldraw'
+import { BoxModel, Editor, VecModel } from 'tldraw'
 import { AgentIconType } from '../../client/components/icons/AgentIcon'
 import { ISimpleShape } from '../format/SimpleShape'
 
-export type ContextItem = ShapeContextItem | AreaContextItem | PointContextItem | ShapesContextItem
+export type IContextItem =
+	| IShapeContextItem
+	| IAreaContextItem
+	| IPointContextItem
+	| IShapesContextItem
+	| ISelectionContextItem
 
-export interface ShapeContextItem {
+export interface IShapeContextItem {
 	type: 'shape'
 	shape: ISimpleShape
 	source: 'agent' | 'user'
 }
 
-export interface ShapesContextItem {
+export interface IShapesContextItem {
 	type: 'shapes'
 	shapes: ISimpleShape[]
 	source: 'agent' | 'user'
 }
 
-export interface AreaContextItem {
+export interface IAreaContextItem {
 	type: 'area'
 	bounds: BoxModel
 	source: 'agent' | 'user'
 }
 
-export interface PointContextItem {
+export interface IPointContextItem {
 	type: 'point'
 	point: VecModel
 	source: 'agent' | 'user'
 }
 
-export interface ContextItemDefinition {
-	name(item: ContextItem): string
-	icon: AgentIconType
+export interface ISelectionContextItem {
+	type: 'selection'
+	source: 'agent' | 'user'
 }
 
-export const CONTEXT_TYPE_DEFINITIONS: Record<ContextItem['type'], ContextItemDefinition> = {
+export const CONTEXT_TYPE_DEFINITIONS: Record<
+	IContextItem['type'],
+	{
+		icon: AgentIconType
+		name(item: IContextItem, editor: Editor): string
+	}
+> = {
 	shape: {
-		name: (item: ShapeContextItem) => {
+		icon: 'target',
+		name: (item: IShapeContextItem) => {
 			if (item.shape.note) {
 				return item.shape.note
 			}
 			const name = item.shape._type
 			return name[0].toUpperCase() + name.slice(1)
 		},
-		icon: 'target',
 	},
 	area: {
-		name: () => 'Area',
 		icon: 'target',
+		name: () => 'Area',
 	},
 	point: {
-		name: () => 'Point',
 		icon: 'target',
+		name: () => 'Point',
 	},
 	shapes: {
-		name: (item: ShapesContextItem) => {
+		icon: 'target',
+		name: (item: IShapesContextItem) => {
 			return item.shapes.length + ' shapes'
 		},
-		icon: 'target',
+	},
+	selection: {
+		icon: 'cursor',
+		name: (_item: ISelectionContextItem, editor: Editor) => {
+			const shapes = editor.getSelectedShapes()
+			return shapes.length + ' shapes'
+		},
 	},
 }

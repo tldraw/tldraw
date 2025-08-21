@@ -1,7 +1,7 @@
 import { RecordsDiff, reverseRecordsDiff, structuredClone, TLRecord, uniqueId } from 'tldraw'
 import { AgentTransform } from '../../shared/AgentTransform'
-import { AgentHistoryItem } from '../../shared/types/AgentHistoryItem'
 import { AgentPromptOptions } from '../../shared/types/AgentPrompt'
+import { IChatHistoryItem } from '../../shared/types/ChatHistoryItem'
 import { $agentHistoryItems } from '../atoms/agentHistoryItems'
 import { preparePrompt } from './preparePrompt'
 import { streamAgent } from './streamAgent'
@@ -77,12 +77,11 @@ export function promptAgent(promptOptions: AgentPromptOptions) {
 
 								// Add the event to chat history
 								if (eventUtil.savesToHistory()) {
-									const historyItem: AgentHistoryItem = {
+									const historyItem: IChatHistoryItem = {
 										type: 'action',
 										action: event,
 										diff,
 										acceptance: 'pending',
-										status: event.complete ? 'done' : 'progress',
 									}
 
 									$agentHistoryItems.update((items) => {
@@ -91,7 +90,7 @@ export function promptAgent(promptOptions: AgentPromptOptions) {
 
 										// If the last item is still in progress, replace it with the new item
 										const lastItem = items.at(-1)
-										if (lastItem?.status === 'progress') {
+										if (lastItem && lastItem.type === 'action' && !lastItem.action.complete) {
 											return [...items.slice(0, -1), historyItem]
 										}
 

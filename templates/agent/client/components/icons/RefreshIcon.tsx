@@ -10,7 +10,7 @@ export function RefreshIcon() {
 			strokeWidth="2"
 			strokeLinecap="round"
 			strokeLinejoin="round"
-			className="chat-input-icon lucide lucide-refresh-ccw-icon lucide-refresh-ccw"
+			className="chat-icon"
 		>
 			<path d="M21 12a9 9 0 0 0-9-9 9.75 9.75 0 0 0-6.74 2.74L3 8" />
 			<path d="M3 3v5h5" />

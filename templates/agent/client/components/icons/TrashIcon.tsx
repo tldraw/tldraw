@@ -10,7 +10,7 @@ export function TrashIcon() {
 			strokeWidth="2"
 			strokeLinecap="round"
 			strokeLinejoin="round"
-			className="chat-input-icon lucide lucide-trash2-icon lucide-trash-2"
+			className="chat-icon"
 		>
 			<path d="M10 11v6" />
 			<path d="M14 11v6" />
