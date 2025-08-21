@@ -1,5 +1,5 @@
 import { useEffect, useRef } from 'react'
-import { DefaultSpinner, Editor, isRecordsDiffEmpty, useValue } from 'tldraw'
+import { Editor, isRecordsDiffEmpty, useValue } from 'tldraw'
 import { AgentActionHistoryGroup, AgentHistoryGroup } from '../../../shared/types/AgentHistoryGroup'
 import {
 	AgentActionHistoryItem,
@@ -10,6 +10,7 @@ import { TLAgent } from '../../ai/useTldrawAgent'
 import { $agentHistoryItems } from '../../atoms/agentHistoryItems'
 import { ActionHistoryGroup } from './ActionHistoryGroup'
 import { PromptHistoryGroup } from './PromptHistoryGroup'
+import { SmallSpinner } from './SmallSpinner'
 
 export function AgentHistory({
 	editor,
@@ -73,13 +74,14 @@ export function AgentHistory({
 								/>
 							)
 						})}
-						{index === sections.length - 1 && isGenerating && <DefaultSpinner />}
+						{index === sections.length - 1 && isGenerating && <SmallSpinner />}
 					</div>
 				)
 			})}
 		</div>
 	)
 }
+
 interface AgentHistorySection {
 	prompt: AgentPromptHistoryItem
 	events: AgentActionHistoryItem[]
