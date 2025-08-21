@@ -458,12 +458,6 @@ export class TldrawApp {
 		return creationData
 	}
 
-	getFallbackFileName(time: number) {
-		const createdAt = new Date(time)
-		const format = getDateFormat(createdAt)
-		return this.getIntl().formatDate(createdAt, format)
-	}
-
 	/**
 	 * Store new room creation timing data with analytics-friendly source mapping
 	 */
@@ -491,6 +485,12 @@ export class TldrawApp {
 			startTime,
 			source: analyticsSource,
 		})
+	}
+
+	getFallbackFileName(time: number) {
+		const createdAt = new Date(time)
+		const format = getDateFormat(createdAt)
+		return this.getIntl().formatDate(createdAt, format)
 	}
 
 	getFileName(file: TlaFile | string | null, useDateFallback: false): string | undefined
