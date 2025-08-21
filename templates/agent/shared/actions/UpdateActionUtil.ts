@@ -178,10 +178,13 @@ export function getTldrawAiChangesFromUpdateEvent({
 				throw new Error(`Shape ${update.shapeId} not found in canvas`)
 			}
 
-			const startX = update.x1
-			const startY = update.y1
-			const endX = update.x2 - startX
-			const endY = update.y2 - startY
+			const x1 = update.x1
+			const y1 = update.y1
+			const x2 = update.x2
+			const y2 = update.y2
+			const minX = Math.min(x1, x2)
+			const minY = Math.min(y1, y2)
+
 			const bend = update.bend ?? shapeOnCanvas.props.bend
 
 			const color = update.color ? asColor(update.color) : shapeOnCanvas.props.color
@@ -193,13 +196,13 @@ export function getTldrawAiChangesFromUpdateEvent({
 				shape: {
 					id: shapeId,
 					type: 'arrow',
-					x: startX,
-					y: startY,
+					x: minX,
+					y: minY,
 					props: {
 						color,
 						richText,
-						start: { x: 0, y: 0 },
-						end: { x: endX, y: endY },
+						start: { x: x1 - minX, y: y1 - minY },
+						end: { x: x2 - minX, y: y2 - minY },
 						bend,
 					},
 					meta: {
@@ -224,10 +227,15 @@ export function getTldrawAiChangesFromUpdateEvent({
 			const startShape = fromId ? editor.getShape(fromId) : null
 			const startShapePageBounds = startShape ? editor.getShapePageBounds(startShape) : null
 			if (startShape && startShapePageBounds) {
-				const pointInPageSpace = { x: startX, y: startY }
+				const pointInPageSpace = { x: x1, y: y1 }
 				const normalizedAnchor = {
 					x: (pointInPageSpace.x - startShapePageBounds.x) / startShapePageBounds.w,
 					y: (pointInPageSpace.y - startShapePageBounds.y) / startShapePageBounds.h,
+				}
+
+				const clampedNormalizedAnchor = {
+					x: Math.max(0, Math.min(1, normalizedAnchor.x)),
+					y: Math.max(0, Math.min(1, normalizedAnchor.y)),
 				}
 
 				changes.push({
@@ -238,9 +246,9 @@ export function getTldrawAiChangesFromUpdateEvent({
 						fromId: shapeId,
 						toId: startShape.id,
 						props: {
-							normalizedAnchor,
+							normalizedAnchor: clampedNormalizedAnchor,
 							isExact: false,
-							isPrecise: false,
+							isPrecise: true,
 							terminal: 'start',
 						},
 						meta: {},
@@ -252,11 +260,17 @@ export function getTldrawAiChangesFromUpdateEvent({
 			const endShape = toId ? editor.getShape(toId) : null
 			const endShapePageBounds = endShape ? editor.getShapePageBounds(endShape) : null
 			if (endShape && endShapePageBounds) {
-				const pointInPageSpace = { x: endX, y: endY }
+				const pointInPageSpace = { x: x2, y: y2 }
 				const normalizedAnchor = {
 					x: (pointInPageSpace.x - endShapePageBounds.x) / endShapePageBounds.w,
 					y: (pointInPageSpace.y - endShapePageBounds.y) / endShapePageBounds.h,
 				}
+
+				const clampedNormalizedAnchor = {
+					x: Math.max(0, Math.min(1, normalizedAnchor.x)),
+					y: Math.max(0, Math.min(1, normalizedAnchor.y)),
+				}
+
 				changes.push({
 					type: 'createBinding',
 					description: event.intent ?? '',
@@ -265,9 +279,9 @@ export function getTldrawAiChangesFromUpdateEvent({
 						fromId: shapeId,
 						toId: endShape.id,
 						props: {
-							normalizedAnchor,
+							normalizedAnchor: clampedNormalizedAnchor,
 							isExact: false,
-							isPrecise: false,
+							isPrecise: true,
 							terminal: 'end',
 						},
 						meta: {},

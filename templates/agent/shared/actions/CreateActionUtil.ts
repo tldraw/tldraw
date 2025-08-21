@@ -168,6 +168,7 @@ export function getTldrawAiChangesFromCreateAction({
 						richText: toRichText(shape.text ?? ''),
 						start: { x: x1 - minX, y: y1 - minY },
 						end: { x: x2 - minX, y: y2 - minY },
+						bend: shape.bend ?? 0,
 					},
 					meta: {
 						note: shape.note ?? '',
@@ -185,6 +186,11 @@ export function getTldrawAiChangesFromCreateAction({
 					y: (pointInPageSpace.y - startShapePageBounds.y) / startShapePageBounds.h,
 				}
 
+				const clampedNormalizedAnchor = {
+					x: Math.max(0, Math.min(1, normalizedAnchor.x)),
+					y: Math.max(0, Math.min(1, normalizedAnchor.y)),
+				}
+
 				changes.push({
 					type: 'createBinding',
 					description: event.intent ?? '',
@@ -193,7 +199,7 @@ export function getTldrawAiChangesFromCreateAction({
 						fromId: shapeId,
 						toId: startShape.id,
 						props: {
-							normalizedAnchor,
+							normalizedAnchor: clampedNormalizedAnchor,
 							isExact: false,
 							isPrecise: true,
 							terminal: 'start',
@@ -214,6 +220,11 @@ export function getTldrawAiChangesFromCreateAction({
 					y: (pointInPageSpace.y - endShapePageBounds.y) / endShapePageBounds.h,
 				}
 
+				const clampedNormalizedAnchor = {
+					x: Math.max(0, Math.min(1, normalizedAnchor.x)),
+					y: Math.max(0, Math.min(1, normalizedAnchor.y)),
+				}
+
 				changes.push({
 					type: 'createBinding',
 					description: event.intent ?? '',
@@ -222,7 +233,7 @@ export function getTldrawAiChangesFromCreateAction({
 						fromId: shapeId,
 						toId: endShape.id,
 						props: {
-							normalizedAnchor,
+							normalizedAnchor: clampedNormalizedAnchor,
 							isExact: false,
 							isPrecise: true,
 							terminal: 'end',
