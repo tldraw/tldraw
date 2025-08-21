@@ -1,6 +1,6 @@
-// Jest Snapshot v1, https://goo.gl/fbAQLP
+// Vitest Snapshot v1, https://vitest.dev/guide/snapshot.html
 
-exports[`buildFromV1Document test fixtures arrow-binding.tldr 1`] = `
+exports[`buildFromV1Document test fixtures > arrow-binding.tldr 1`] = `
 {
   "binding:12": {
     "fromId": "shape:11",
@@ -173,7 +173,7 @@ exports[`buildFromV1Document test fixtures arrow-binding.tldr 1`] = `
 }
 `;
 
-exports[`buildFromV1Document test fixtures exact-arrow-binding.tldr 1`] = `
+exports[`buildFromV1Document test fixtures > exact-arrow-binding.tldr 1`] = `
 {
   "binding:11": {
     "fromId": "shape:10",
@@ -346,7 +346,7 @@ exports[`buildFromV1Document test fixtures exact-arrow-binding.tldr 1`] = `
 }
 `;
 
-exports[`buildFromV1Document test fixtures incorrect-arrow-binding.tldr 1`] = `
+exports[`buildFromV1Document test fixtures > incorrect-arrow-binding.tldr 1`] = `
 {
   "binding:11": {
     "fromId": "shape:10",

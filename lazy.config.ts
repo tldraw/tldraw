@@ -61,19 +61,6 @@ const config = {
 		'e2e-x10': {
 			cache: 'none',
 		},
-		'test-ci': {
-			baseCommand: 'yarn run -T jest',
-			runsAfter: { 'refresh-assets': {} },
-			cache: {
-				inputs: {
-					exclude: ['*.tsbuildinfo'],
-				},
-			},
-		},
-		'test-coverage': {
-			baseCommand: 'yarn run -T jest --coverage',
-			runsAfter: { 'refresh-assets': {} },
-		},
 		lint: {
 			execution: 'independent',
 			runsAfter: { 'build-types': {} },
@@ -82,6 +69,10 @@ const config = {
 					exclude: ['*.tsbuildinfo'],
 				},
 			},
+		},
+		context: {
+			execution: 'independent',
+			cache: 'none',
 		},
 		'pack-tarball': {
 			parallel: false,

@@ -1,17 +1,18 @@
 import { noop } from '@tldraw/utils'
+import { vi } from 'vitest'
 import { AlarmScheduler } from './AlarmScheduler'
 
-jest.useFakeTimers()
+vi.useFakeTimers()
 
 function makeMockAlarmScheduler<Key extends string>(alarms: {
-	[K in Key]: jest.Mock<Promise<void>, []>
+	[K in Key]: ReturnType<typeof vi.fn>
 }) {
 	const data = new Map<string, number>()
 	let scheduledAlarm: number | null = null
 
 	const storage = {
 		getAlarm: async () => scheduledAlarm,
-		setAlarm: jest.fn((time: number | Date) => {
+		setAlarm: vi.fn((time: number | Date) => {
 			scheduledAlarm = typeof time === 'number' ? time : time.getTime()
 		}),
 		get: async (key: string) => data.get(key),
@@ -37,7 +38,7 @@ function makeMockAlarmScheduler<Key extends string>(alarms: {
 	})
 
 	const advanceTime = async (time: number) => {
-		jest.advanceTimersByTime(time)
+		vi.advanceTimersByTime(time)
 		if (scheduledAlarm !== null && scheduledAlarm <= Date.now()) {
 			scheduledAlarm = null
 			await scheduler.onAlarm()
@@ -56,17 +57,17 @@ function makeMockAlarmScheduler<Key extends string>(alarms: {
 
 describe('AlarmScheduler', () => {
 	beforeEach(() => {
-		jest.setSystemTime(1_000_000)
+		vi.setSystemTime(1_000_000)
 	})
 	afterEach(() => {
-		jest.resetAllMocks()
+		vi.resetAllMocks()
 	})
 
 	test('scheduling alarms', async () => {
 		const { scheduler, storage } = makeMockAlarmScheduler({
-			one: jest.fn(),
-			two: jest.fn(),
-			three: jest.fn(),
+			one: vi.fn(),
+			two: vi.fn(),
+			three: vi.fn(),
 		})
 
 		// when no alarms are scheduled, we always call storage.setAlarm
@@ -103,9 +104,9 @@ describe('AlarmScheduler', () => {
 
 	test('onAlarm - basic function', async () => {
 		const { scheduler, alarms, storage, advanceTime } = makeMockAlarmScheduler({
-			one: jest.fn(),
-			two: jest.fn(),
-			three: jest.fn(),
+			one: vi.fn(),
+			two: vi.fn(),
+			three: vi.fn(),
 		})
 
 		// schedule some alarms:
@@ -141,11 +142,11 @@ describe('AlarmScheduler', () => {
 
 	test('can schedule an alarm within an alarm', async () => {
 		const { scheduler, storage, advanceTime, alarms } = makeMockAlarmScheduler({
-			a: jest.fn(async () => {
+			a: vi.fn(async () => {
 				scheduler.scheduleAlarmAfter('b', 1000, { overwrite: 'always' })
 			}),
-			b: jest.fn(),
-			c: jest.fn(),
+			b: vi.fn(),
+			c: vi.fn(),
 		})
 
 		// sequence should be a -> c -> b:
@@ -210,7 +211,7 @@ describe('AlarmScheduler', () => {
 
 	test('can schedule the same alarm within an alarm', async () => {
 		const { scheduler, storage, advanceTime, alarms } = makeMockAlarmScheduler({
-			a: jest.fn(async () => {
+			a: vi.fn(async () => {
 				scheduler.scheduleAlarmAfter('a', 1000, { overwrite: 'always' })
 			}),
 		})
@@ -233,10 +234,10 @@ describe('AlarmScheduler', () => {
 
 	test('handles retries', async () => {
 		const { scheduler, advanceTime, storage, alarms } = await makeMockAlarmScheduler({
-			error: jest.fn(async () => {
+			error: vi.fn(async () => {
 				throw new Error('something went wrong')
 			}),
-			ok: jest.fn(),
+			ok: vi.fn(),
 		})
 
 		await scheduler.scheduleAlarmAfter('error', 1000, { overwrite: 'always' })
@@ -246,7 +247,7 @@ describe('AlarmScheduler', () => {
 			'alarm-ok': 1_001_000,
 		})
 
-		jest.spyOn(console, 'log').mockImplementation(noop)
+		vi.spyOn(console, 'log').mockImplementation(noop)
 		await expect(async () => advanceTime(1000)).rejects.toThrow(
 			'Some alarms failed to fire, scheduling retry'
 		)

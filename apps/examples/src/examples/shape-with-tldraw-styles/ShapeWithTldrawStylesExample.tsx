@@ -60,7 +60,7 @@ class MyShapeUtil extends BaseBoxShapeUtil<IMyShape> {
 		return (
 			<HTMLContainer
 				id={shape.id}
-				style={{ backgroundColor: 'var(--color-low-border)', overflow: 'hidden' }}
+				style={{ backgroundColor: 'var(--tl-color-low-border)', overflow: 'hidden' }}
 			>
 				<div
 					style={{

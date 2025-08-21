@@ -717,6 +717,8 @@ export const defaultTldrawOptions: {
     readonly temporaryAssetPreviewLifetimeMs: 180000;
     readonly textShadowLod: 0.35;
     readonly tooltipDelayMs: 700;
+    readonly uiCoarseDragDistanceSquared: 625;
+    readonly uiDragDistanceSquared: 16;
 };
 
 // @public (undocumented)
@@ -1495,6 +1497,11 @@ export class Editor extends EventEmitter<TLEventMap> {
     toImage(shapes: TLShape[] | TLShapeId[], opts?: TLImageExportOptions): Promise<{
         blob: Blob;
         height: number;
+        width: number;
+    }>;
+    toImageDataUrl(shapes: TLShape[] | TLShapeId[], opts?: TLImageExportOptions): Promise<{
+        height: number;
+        url: string;
         width: number;
     }>;
     undo(): this;
@@ -3316,6 +3323,10 @@ export interface TldrawOptions {
     readonly textShadowLod: number;
     // (undocumented)
     readonly tooltipDelayMs: number;
+    // (undocumented)
+    readonly uiCoarseDragDistanceSquared: number;
+    // (undocumented)
+    readonly uiDragDistanceSquared: number;
 }
 
 // @public (undocumented)

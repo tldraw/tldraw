@@ -16,6 +16,7 @@ import {
 	createTLSchema,
 } from '@tldraw/tlschema'
 import { IndexKey, ZERO_INDEX_KEY, mockUniqueId, promiseWithResolve, sortById } from '@tldraw/utils'
+import { vi } from 'vitest'
 import {
 	MAX_TOMBSTONES,
 	RoomSnapshot,
@@ -200,7 +201,7 @@ type MockSocket = TLRoomSocket<any> & { __lastMessage: null | TLSocketServerSent
 function makeSocket(): MockSocket {
 	const socket: MockSocket = {
 		__lastMessage: null,
-		sendMessage: jest.fn((msg) => {
+		sendMessage: vi.fn((msg) => {
 			socket.__lastMessage = msg
 		}),
 		close() {
@@ -445,29 +446,29 @@ describe('TLSyncRoom.updateStore', () => {
 		})
 		expect(() => {
 			store!.put(PageRecordType.create({ name: 'page 3', index: 'a0' as IndexKey }))
-		}).toThrowErrorMatchingInlineSnapshot(`"StoreUpdateContext is closed"`)
+		}).toThrowErrorMatchingInlineSnapshot(`[Error: StoreUpdateContext is closed]`)
 		expect(() => {
 			store!.delete('page:page_2')
-		}).toThrowErrorMatchingInlineSnapshot(`"StoreUpdateContext is closed"`)
+		}).toThrowErrorMatchingInlineSnapshot(`[Error: StoreUpdateContext is closed]`)
 		expect(() => {
 			store!.getAll()
-		}).toThrowErrorMatchingInlineSnapshot(`"StoreUpdateContext is closed"`)
+		}).toThrowErrorMatchingInlineSnapshot(`[Error: StoreUpdateContext is closed]`)
 		expect(() => {
 			store!.get('page:page_2')
-		}).toThrowErrorMatchingInlineSnapshot(`"StoreUpdateContext is closed"`)
+		}).toThrowErrorMatchingInlineSnapshot(`[Error: StoreUpdateContext is closed]`)
 	})
 
-	test('it fails if the room is closed', () => {
+	test('it fails if the room is closed', async () => {
 		room.close()
-		expect(
+		await expect(
 			room.updateStore(() => {
 				// noop
 			})
 		).rejects.toMatchInlineSnapshot(`[Error: Cannot update store on a closed room]`)
 	})
 
-	test('it fails if you try to add bad data', () => {
-		expect(
+	test('it fails if you try to add bad data', async () => {
+		await expect(
 			room.updateStore((store) => {
 				const page = store.get('page:page_2') as TLPage
 				page.index = 34 as any

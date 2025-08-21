@@ -986,6 +986,16 @@ export function DefaultToolbarContent(): JSX_2.Element;
 export interface DefaultToolbarProps {
     // (undocumented)
     children?: ReactNode;
+    // (undocumented)
+    maxItems?: number;
+    // (undocumented)
+    maxSizePx?: number;
+    // (undocumented)
+    minItems?: number;
+    // (undocumented)
+    minSizePx?: number;
+    // (undocumented)
+    orientation?: 'horizontal' | 'vertical';
 }
 
 // @public (undocumented)
@@ -1708,6 +1718,12 @@ export function getHitShapeOnCanvasPointerDown(editor: Editor, hitLabels?: boole
 export function getMediaAssetInfoPartial(file: File, assetId: TLAssetId, isImageType: boolean, isVideoType: boolean, maxImageDimension?: number): Promise<TLImageAsset | TLVideoAsset>;
 
 // @public
+export function getStrokePoints(rawInputPoints: VecLike[], options?: StrokeOptions): StrokePoint[];
+
+// @public
+export function getSvgPathFromStrokePoints(points: StrokePoint[], closed?: boolean): string;
+
+// @public
 export function getUncroppedSize(shapeSize: {
     h: number;
     w: number;
@@ -2150,6 +2166,9 @@ export class NoteShapeUtil extends ShapeUtil<TLNoteShape> {
 // @public (undocumented)
 export function NoteToolbarItem(): JSX_2.Element;
 
+// @public
+export function notifyIfFileNotAllowed(file: File, options: TLDefaultExternalContentHandlerOpts): boolean;
+
 // @public (undocumented)
 export function OfflineIndicator(): JSX_2.Element;
 
@@ -2169,12 +2188,24 @@ export function OpacitySlider(): JSX_2.Element | null;
 export function OvalToolbarItem(): JSX_2.Element;
 
 // @public (undocumented)
-export function OverflowingToolbar({ children }: OverflowingToolbarProps): JSX_2.Element;
+export function OverflowingToolbar({ children, orientation, sizingParentClassName, minItems, minSizePx, maxItems, maxSizePx, }: OverflowingToolbarProps): JSX_2.Element;
 
 // @public (undocumented)
 export interface OverflowingToolbarProps {
     // (undocumented)
     children: React.ReactNode;
+    // (undocumented)
+    maxItems: number;
+    // (undocumented)
+    maxSizePx: number;
+    // (undocumented)
+    minItems: number;
+    // (undocumented)
+    minSizePx: number;
+    // (undocumented)
+    orientation: 'horizontal' | 'vertical';
+    // (undocumented)
+    sizingParentClassName: string;
 }
 
 // @public (undocumented)
@@ -2599,6 +2630,46 @@ export function StarToolbarItem(): JSX_2.Element;
 // @public (undocumented)
 export const STROKE_SIZES: Record<TLDefaultSizeStyle, number>;
 
+// @public
+export interface StrokeOptions {
+    easing?(pressure: number): number;
+    end?: {
+        cap?: boolean;
+        easing?(distance: number): number;
+        taper?: boolean | number;
+    };
+    last?: boolean;
+    simulatePressure?: boolean;
+    size?: number;
+    smoothing?: number;
+    start?: {
+        cap?: boolean;
+        easing?(distance: number): number;
+        taper?: boolean | number;
+    };
+    // (undocumented)
+    streamline?: number;
+    thinning?: number;
+}
+
+// @public
+export interface StrokePoint {
+    // (undocumented)
+    distance: number;
+    // (undocumented)
+    input: Vec;
+    // (undocumented)
+    point: Vec;
+    // (undocumented)
+    pressure: number;
+    // (undocumented)
+    radius: number;
+    // (undocumented)
+    runningLength: number;
+    // (undocumented)
+    vector: Vec;
+}
+
 // @public (undocumented)
 export interface StylePickerSetProps {
     // (undocumented)
@@ -2982,6 +3053,9 @@ export function TldrawUiButtonLabel({ children }: TLUiButtonLabelProps): JSX_2.E
 // @public (undocumented)
 export const TldrawUiButtonPicker: <T extends string>(props: TLUiButtonPickerProps<T>) => ReactElement;
 
+// @public
+export const TldrawUiColumn: ForwardRefExoticComponent<TLUiLayoutProps & RefAttributes<HTMLDivElement>>;
+
 // @public (undocumented)
 export function TldrawUiComponentsProvider({ overrides, children, }: TLUiComponentsProviderProps): JSX_2.Element;
 
@@ -3076,6 +3150,27 @@ export function TldrawUiMenuSubmenu<Translation extends string = string>({ id, d
 export function TldrawUiMenuToolItem({ toolId, ...rest }: TLUiMenuToolItemProps): JSX_2.Element | null;
 
 // @public (undocumented)
+export interface TldrawUiOrientationContext {
+    // (undocumented)
+    orientation: 'horizontal' | 'vertical';
+    // (undocumented)
+    tooltipSide: 'bottom' | 'left' | 'right' | 'top';
+}
+
+// @public (undocumented)
+export function TldrawUiOrientationProvider({ children, orientation, tooltipSide, }: TldrawUiOrientationProviderProps): JSX_2.Element;
+
+// @public (undocumented)
+export interface TldrawUiOrientationProviderProps {
+    // (undocumented)
+    children: ReactNode;
+    // (undocumented)
+    orientation: 'horizontal' | 'vertical';
+    // (undocumented)
+    tooltipSide?: 'bottom' | 'left' | 'right' | 'top';
+}
+
+// @public (undocumented)
 export function TldrawUiPopover({ id, children, onOpenChange, open, className }: TLUiPopoverProps): JSX_2.Element;
 
 // @public (undocumented)
@@ -3115,7 +3210,7 @@ export const TldrawUiToolbarToggleGroup: ({ children, className, type, ...props 
 export const TldrawUiToolbarToggleItem: ({ children, className, type, value, tooltip, ...props }: TLUiToolbarToggleItemProps) => JSX_2.Element;
 
 // @public (undocumented)
-export function TldrawUiTooltip({ children, content, side, sideOffset, disabled, }: TldrawUiTooltipProps): JSX_2.Element;
+export const TldrawUiTooltip: React_3.ForwardRefExoticComponent<TldrawUiTooltipProps & React_3.RefAttributes<HTMLButtonElement>>;
 
 // @public (undocumented)
 export interface TldrawUiTooltipProps {
@@ -3124,7 +3219,11 @@ export interface TldrawUiTooltipProps {
     // (undocumented)
     content?: React_3.ReactNode | string;
     // (undocumented)
+    delayDuration?: number;
+    // (undocumented)
     disabled?: boolean;
+    // (undocumented)
+    showOnMobile?: boolean;
     // (undocumented)
     side?: 'bottom' | 'left' | 'right' | 'top';
     // (undocumented)
@@ -3998,6 +4097,8 @@ export interface TLUiLayoutProps extends HTMLAttributes<HTMLDivElement> {
     asChild?: boolean;
     // (undocumented)
     children: ReactNode;
+    // (undocumented)
+    tooltipSide?: 'bottom' | 'left' | 'right' | 'top';
 }
 
 // @public (undocumented)
@@ -4053,7 +4154,7 @@ export interface TLUiMenuContextProviderProps {
 }
 
 // @public (undocumented)
-export type TLUiMenuContextType = 'context-menu' | 'helper-buttons' | 'icons' | 'keyboard-shortcuts' | 'menu' | 'panel' | 'small-icons' | 'toolbar-overflow' | 'toolbar';
+export type TLUiMenuContextType = 'context-menu' | 'helper-buttons' | 'icons' | 'keyboard-shortcuts' | 'menu' | 'small-icons' | 'toolbar-overflow' | 'toolbar';
 
 // @public (undocumented)
 export interface TLUiMenuGroupProps<TranslationKey extends string = string> {
@@ -4290,7 +4391,9 @@ export interface TLUiToolbarProps extends React_3.HTMLAttributes<HTMLDivElement>
     // (undocumented)
     label: string;
     // (undocumented)
-    orientation?: 'grid' | 'horizontal';
+    orientation?: 'grid' | 'horizontal' | 'vertical';
+    // (undocumented)
+    tooltipSide?: 'bottom' | 'left' | 'right' | 'top';
 }
 
 // @public (undocumented)
@@ -5088,6 +5191,9 @@ export function useShowCollaborationUi(): boolean;
 
 // @public (undocumented)
 export function useTldrawUiComponents(): TLUiComponents;
+
+// @public (undocumented)
+export function useTldrawUiOrientation(): TldrawUiOrientationContext;
 
 // @public (undocumented)
 export function useToasts(): TLUiToastsContextType;

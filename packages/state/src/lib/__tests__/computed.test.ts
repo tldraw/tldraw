@@ -1,3 +1,4 @@
+import { vi } from 'vitest'
 import { atom } from '../Atom'
 import { Computed, _Computed, computed, getComputedInstance, isUninitialized } from '../Computed'
 import { reactor } from '../EffectScheduler'
@@ -11,7 +12,7 @@ function getLastCheckedEpoch(derivation: Computed<any>): number {
 
 describe('derivations', () => {
 	it('will cache a value forever if it has no parents', () => {
-		const derive = jest.fn(() => 1)
+		const derive = vi.fn(() => 1)
 		const startEpoch = getGlobalEpoch()
 		const derivation = computed('', derive)
 
@@ -45,7 +46,7 @@ describe('derivations', () => {
 
 	it('will update when parent atoms update', () => {
 		const a = atom('', 1)
-		const double = jest.fn(() => a.get() * 2)
+		const double = vi.fn(() => a.get() * 2)
 		const derivation = computed('', double)
 		const startEpoch = getGlobalEpoch()
 		expect(double).toHaveBeenCalledTimes(0)
@@ -122,7 +123,7 @@ describe('derivations', () => {
 		const startEpoch = getGlobalEpoch()
 		const a = atom('', 1)
 
-		const floor = jest.fn((n: number) => Math.floor(n))
+		const floor = vi.fn((n: number) => Math.floor(n))
 		const derivation = computed('', () => floor(a.get()), {
 			historyLength: 3,
 			computeDiff: (a, b) => {
@@ -162,7 +163,7 @@ describe('derivations', () => {
 		const startEpoch = getGlobalEpoch()
 		const a = atom('', 1)
 
-		const double = jest.fn(() => a.get() * 2)
+		const double = vi.fn(() => a.get() * 2)
 		const derivation = computed('', double)
 
 		derivation.get()
@@ -179,7 +180,7 @@ describe('derivations', () => {
 
 	it('receives UNINTIALIZED as the previousValue the first time it computes', () => {
 		const a = atom('', 1)
-		const double = jest.fn((_prevValue) => a.get() * 2)
+		const double = vi.fn((_prevValue) => a.get() * 2)
 		const derivation = computed('', double)
 
 		expect(derivation.get()).toBe(2)
@@ -195,7 +196,7 @@ describe('derivations', () => {
 
 	it('receives the lastChangedEpoch as the second parameter each time it recomputes', () => {
 		const a = atom('', 1)
-		const double = jest.fn((_prevValue, lastChangedEpoch) => {
+		const double = vi.fn((_prevValue, lastChangedEpoch) => {
 			expect(lastChangedEpoch).toBe(derivation.lastChangedEpoch)
 			return a.get() * 2
 		})
@@ -438,7 +439,7 @@ describe('incremental derivations', () => {
 			}
 		)
 
-		const mapper = jest.fn((val) => val * 2)
+		const mapper = vi.fn((val) => val * 2)
 
 		const doubledNodes = getIncrementalRecordMapper(nodes, mapper)
 
@@ -590,7 +591,7 @@ describe(getComputedInstance, () => {
 
 describe('computed isEqual', () => {
 	it('does not get called for the initialization', () => {
-		const isEqual = jest.fn((a, b) => a === b)
+		const isEqual = vi.fn((a, b) => a === b)
 
 		const a = atom('a', 1)
 		const b = computed('b', () => a.get() * 2, { isEqual })

@@ -26,8 +26,13 @@ export { AccessibilityMenu } from './lib/ui/components/AccessibilityMenu'
 export { ColorSchemeMenu } from './lib/ui/components/ColorSchemeMenu'
 export { DefaultDialogs } from './lib/ui/components/Dialogs'
 export {
+	TldrawUiColumn,
 	TldrawUiGrid,
+	TldrawUiOrientationProvider,
 	TldrawUiRow,
+	useTldrawUiOrientation,
+	type TldrawUiOrientationContext,
+	type TldrawUiOrientationProviderProps,
 	type TLUiLayoutProps,
 } from './lib/ui/components/primitives/layout'
 export {
@@ -80,6 +85,7 @@ export {
 	defaultHandleExternalUrlContent,
 	getAssetInfo,
 	getMediaAssetInfoPartial,
+	notifyIfFileNotAllowed,
 	registerDefaultExternalContentHandlers,
 	type TLDefaultExternalContentHandlerOpts,
 	type TLExternalContentProps,
@@ -161,6 +167,9 @@ export {
 	type TLDefaultFont,
 	type TLDefaultFonts,
 } from './lib/shapes/shared/defaultFonts'
+export { getStrokePoints } from './lib/shapes/shared/freehand/getStrokePoints'
+export { getSvgPathFromStrokePoints } from './lib/shapes/shared/freehand/svg'
+export { type StrokeOptions, type StrokePoint } from './lib/shapes/shared/freehand/types'
 export {
 	PlainTextLabel,
 	TextLabel,

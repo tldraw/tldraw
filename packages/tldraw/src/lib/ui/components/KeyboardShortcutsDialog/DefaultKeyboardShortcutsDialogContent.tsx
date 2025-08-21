@@ -123,7 +123,7 @@ export function DefaultKeyboardShortcutsDialogContent() {
 				<TldrawUiMenuItem
 					id="text-header"
 					label="tool.rich-text-header"
-					kbd="cmd+shift+[[1-6]]"
+					kbd="cmd+alt+[[1-6]]"
 					onSelect={() => {
 						/* do nothing */
 					}}
