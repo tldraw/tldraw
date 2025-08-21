@@ -58,14 +58,14 @@ export class CreateActionUtil extends AgentActionUtil<IAgentCreateEvent> {
 		if (!event.complete) return
 		const { editor } = transform
 
-		const aiChanges = getTldrawAiChangesFromCreateEvent({ editor, event })
+		const aiChanges = getTldrawAiChangesFromCreateAction({ editor, event })
 		for (const aiChange of aiChanges) {
 			defaultApplyChange({ change: aiChange, editor })
 		}
 	}
 }
 
-export function getTldrawAiChangesFromCreateEvent({
+export function getTldrawAiChangesFromCreateAction({
 	editor,
 	event,
 }: {
@@ -177,7 +177,14 @@ export function getTldrawAiChangesFromCreateEvent({
 
 			// Does the arrow have a start shape? Then try to create the binding
 			const startShape = fromId ? editor.getShape(fromId) : null
-			if (startShape) {
+			const startShapePageBounds = startShape ? editor.getShapePageBounds(startShape) : null
+			if (startShape && startShapePageBounds) {
+				const pointInPageSpace = { x: x1, y: y1 }
+				const normalizedAnchor = {
+					x: (pointInPageSpace.x - startShapePageBounds.x) / startShapePageBounds.w,
+					y: (pointInPageSpace.y - startShapePageBounds.y) / startShapePageBounds.h,
+				}
+
 				changes.push({
 					type: 'createBinding',
 					description: event.intent ?? '',
@@ -186,9 +193,9 @@ export function getTldrawAiChangesFromCreateEvent({
 						fromId: shapeId,
 						toId: startShape.id,
 						props: {
-							normalizedAnchor: { x: 0.5, y: 0.5 },
+							normalizedAnchor,
 							isExact: false,
-							isPrecise: false,
+							isPrecise: true,
 							terminal: 'start',
 						},
 						meta: {},
@@ -199,8 +206,14 @@ export function getTldrawAiChangesFromCreateEvent({
 			// Does the arrow have an end shape? Then try to create the binding
 
 			const endShape = toId ? editor.getShape(toId) : null
+			const endShapePageBounds = endShape ? editor.getShapePageBounds(endShape) : null
+			if (endShape && endShapePageBounds) {
+				const pointInPageSpace = { x: x2, y: y2 }
+				const normalizedAnchor = {
+					x: (pointInPageSpace.x - endShapePageBounds.x) / endShapePageBounds.w,
+					y: (pointInPageSpace.y - endShapePageBounds.y) / endShapePageBounds.h,
+				}
 
-			if (endShape) {
 				changes.push({
 					type: 'createBinding',
 					description: event.intent ?? '',
@@ -209,9 +222,9 @@ export function getTldrawAiChangesFromCreateEvent({
 						fromId: shapeId,
 						toId: endShape.id,
 						props: {
-							normalizedAnchor: { x: 0.5, y: 0.5 },
+							normalizedAnchor,
 							isExact: false,
-							isPrecise: false,
+							isPrecise: true,
 							terminal: 'end',
 						},
 						meta: {},

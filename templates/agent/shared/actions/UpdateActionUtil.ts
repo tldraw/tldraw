@@ -222,7 +222,14 @@ export function getTldrawAiChangesFromUpdateEvent({
 
 			// Does the arrow have a start shape? Then try to create the binding
 			const startShape = fromId ? editor.getShape(fromId) : null
-			if (startShape) {
+			const startShapePageBounds = startShape ? editor.getShapePageBounds(startShape) : null
+			if (startShape && startShapePageBounds) {
+				const pointInPageSpace = { x: startX, y: startY }
+				const normalizedAnchor = {
+					x: (pointInPageSpace.x - startShapePageBounds.x) / startShapePageBounds.w,
+					y: (pointInPageSpace.y - startShapePageBounds.y) / startShapePageBounds.h,
+				}
+
 				changes.push({
 					type: 'createBinding',
 					description: event.intent ?? '',
@@ -231,7 +238,7 @@ export function getTldrawAiChangesFromUpdateEvent({
 						fromId: shapeId,
 						toId: startShape.id,
 						props: {
-							normalizedAnchor: { x: 0.5, y: 0.5 },
+							normalizedAnchor,
 							isExact: false,
 							isPrecise: false,
 							terminal: 'start',
@@ -243,7 +250,13 @@ export function getTldrawAiChangesFromUpdateEvent({
 
 			// Does the arrow have an end shape? Then try to create the binding
 			const endShape = toId ? editor.getShape(toId) : null
-			if (endShape) {
+			const endShapePageBounds = endShape ? editor.getShapePageBounds(endShape) : null
+			if (endShape && endShapePageBounds) {
+				const pointInPageSpace = { x: endX, y: endY }
+				const normalizedAnchor = {
+					x: (pointInPageSpace.x - endShapePageBounds.x) / endShapePageBounds.w,
+					y: (pointInPageSpace.y - endShapePageBounds.y) / endShapePageBounds.h,
+				}
 				changes.push({
 					type: 'createBinding',
 					description: event.intent ?? '',
@@ -252,7 +265,7 @@ export function getTldrawAiChangesFromUpdateEvent({
 						fromId: shapeId,
 						toId: endShape.id,
 						props: {
-							normalizedAnchor: { x: 0.5, y: 0.5 },
+							normalizedAnchor,
 							isExact: false,
 							isPrecise: false,
 							terminal: 'end',
