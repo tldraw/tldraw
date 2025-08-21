@@ -52,6 +52,10 @@ function ActionHistoryGroupWithoutDiff({
 		return items.every((item) => item.status === 'done')
 	}, [items])
 
+	if (nonEmptyItems.length === 0) {
+		return null
+	}
+
 	if (nonEmptyItems.length < 2) {
 		return (
 			<div className="agent-action-group-content">
@@ -74,7 +78,7 @@ function ActionHistoryGroupWithoutDiff({
 			)}
 			{showContent && (
 				<div className="agent-action-group-content">
-					{items.map((item, i) => {
+					{nonEmptyItems.map((item, i) => {
 						return (
 							<ActionHistoryGroupItemContent
 								event={item.action}
