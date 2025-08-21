@@ -32,6 +32,7 @@ import { globalEditor } from '../../../utils/globalEditor'
 import { multiplayerAssetStore } from '../../../utils/multiplayerAssetStore'
 import { useMaybeApp } from '../../hooks/useAppState'
 import { ReadyWrapper, useSetIsReady } from '../../hooks/useIsReady'
+import { useNewRoomCreationTracking } from '../../hooks/useNewRoomCreationTracking'
 import { useTldrawUser } from '../../hooks/useUser'
 import { maybeSlurp } from '../../utils/slurping'
 import { A11yAudit } from './TlaDebug'
@@ -131,10 +132,12 @@ function TlaEditorInner({ fileSlug, deepLinks }: TlaEditorProps) {
 	}, [hideAllShapes])
 
 	const trackRoomLoaded = useRoomLoadTracking()
+	const trackNewRoomCreation = useNewRoomCreationTracking()
 
 	const handleMount = useCallback(
 		(editor: Editor) => {
 			trackRoomLoaded(editor)
+			trackNewRoomCreation(editor, app, fileId)
 			;(window as any).app = app
 			;(window as any).editor = editor
 			// Register the editor globally
@@ -190,7 +193,7 @@ function TlaEditorInner({ fileSlug, deepLinks }: TlaEditorProps) {
 				cleanup()
 			}
 		},
-		[addDialog, trackRoomLoaded, app, fileId, remountImageShapes, setIsReady]
+		[addDialog, trackRoomLoaded, trackNewRoomCreation, app, fileId, remountImageShapes, setIsReady]
 	)
 
 	const user = useTldrawUser()
