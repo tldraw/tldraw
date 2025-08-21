@@ -119,6 +119,7 @@ export class PenActionUtil extends AgentActionUtil<IAgentPenEvent> {
 				color: asColor(event.color ?? 'black'),
 				fill: convertSimpleFillToTldrawFill(event.fill ?? 'none'),
 				dash: 'draw',
+				size: 's',
 				segments,
 				isComplete: event.complete,
 				isClosed: event.closed,
