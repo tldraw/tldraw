@@ -15,6 +15,9 @@ const SimpleColor = z.enum([
 	'light-violet',
 	'grey',
 	'white',
+	'brown',
+	'pink',
+	'cyan',
 ])
 
 export type ISimpleColor = z.infer<typeof SimpleColor>
