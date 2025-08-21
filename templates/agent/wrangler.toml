@@ -9,6 +9,10 @@ bindings = [
     { name = "TLDRAW_AI_DURABLE_OBJECT", class_name = "TldrawAiDurableObject" },
 ]
 
+[[routes]]
+pattern = "agent.templates.tldraw.dev"
+custom_domain = true
+
 # Durable objects require migrations to create/modify/delete them
 [[migrations]]
 tag = "v1"
