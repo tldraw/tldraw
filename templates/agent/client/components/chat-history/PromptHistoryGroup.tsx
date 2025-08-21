@@ -5,7 +5,7 @@ import { AgentIcon } from '../icons/AgentIcon'
 export function PromptHistoryGroup({ group }: { group: AgentPromptHistoryGroup }) {
 	const { item } = group
 	return (
-		<div>
+		<div className="user-message-container">
 			<div className="user-message">
 				{item.contextItems.length > 0 && (
 					<div className="user-message-context-items">

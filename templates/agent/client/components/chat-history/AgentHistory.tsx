@@ -1,7 +1,11 @@
-import { useEffect, useMemo, useRef } from 'react'
+import { useEffect, useRef } from 'react'
 import { DefaultSpinner, Editor, isRecordsDiffEmpty, useValue } from 'tldraw'
-import { AgentHistoryGroup } from '../../../shared/types/AgentHistoryGroup'
-import { AgentEventHistoryItem, AgentHistoryItem } from '../../../shared/types/AgentHistoryItem'
+import { AgentEventHistoryGroup, AgentHistoryGroup } from '../../../shared/types/AgentHistoryGroup'
+import {
+	AgentEventHistoryItem,
+	AgentHistoryItem,
+	AgentPromptHistoryItem,
+} from '../../../shared/types/AgentHistoryItem'
 import { TLAgent } from '../../ai/useTldrawAgent'
 import { $agentHistoryItems } from '../../atoms/agentHistoryItems'
 import { EventHistoryGroup } from './EventHistoryGroup'
@@ -17,54 +21,82 @@ export function AgentHistory({
 	isGenerating: boolean
 }) {
 	const items = useValue($agentHistoryItems)
-	const groups = getAgentHistoryGroups(items, agent)
-	const scrollContainerRef = useRef<HTMLDivElement>(null)
-	const previousScrollDistanceFromBottomRef = useRef(0)
+	const sections = getAgentHistorySections(items)
+	const spinnerRef = useRef<HTMLDivElement>(null)
+	const historyRef = useRef<HTMLDivElement>(null)
 
 	useEffect(() => {
-		if (!scrollContainerRef.current) return
-		const scrollDistanceFromBottom = previousScrollDistanceFromBottomRef.current
-		if (scrollDistanceFromBottom < 5) {
-			scrollContainerRef.current.scrollTop = scrollContainerRef.current.scrollHeight
-			previousScrollDistanceFromBottomRef.current = 0
+		if (!historyRef.current) return
+		if (items.at(-1)?.type === 'prompt') {
+			historyRef.current.scrollTo(0, historyRef.current.scrollHeight)
 		}
-	}, [items])
+	}, [historyRef, items])
 
 	const handleScroll = () => {
-		if (!scrollContainerRef.current) return
+		if (!historyRef.current) return
+		console.log('handleScroll')
 		const scrollDistanceFromBottom =
-			scrollContainerRef.current.scrollHeight -
-			scrollContainerRef.current.scrollTop -
-			scrollContainerRef.current.clientHeight
-		previousScrollDistanceFromBottomRef.current = scrollDistanceFromBottom
+			historyRef.current.scrollHeight -
+			historyRef.current.scrollTop -
+			historyRef.current.clientHeight
+
+		if (scrollDistanceFromBottom < 100) {
+			spinnerRef.current?.scrollIntoView()
+		}
 	}
 
-	const shouldShowSpinner = useMemo(() => isGenerating, [isGenerating])
-
 	return (
-		<div className="chat-history" ref={scrollContainerRef} onScroll={handleScroll}>
-			{groups.map((group, index) => {
-				switch (group.type) {
-					case 'prompt':
-						return <PromptHistoryGroup key={index} group={group} />
-					case 'event':
-						return <EventHistoryGroup key={index} group={group} editor={editor} agent={agent} />
-				}
+		<div className="chat-history" ref={historyRef} onScroll={handleScroll}>
+			{sections.map((section, index) => {
+				const promptGroup = { type: 'prompt', item: section.prompt } as const
+				const eventGroups = getEventHistoryGroups(section.events, agent)
+				return (
+					<div key={'history-section-' + index} className="chat-history-section">
+						<PromptHistoryGroup group={promptGroup} />
+						{eventGroups.map((group, index) => {
+							return (
+								<EventHistoryGroup
+									key={'history-group-' + index}
+									group={group}
+									editor={editor}
+									agent={agent}
+								/>
+							)
+						})}
+						{index === sections.length - 1 && isGenerating && <DefaultSpinner />}
+					</div>
+				)
 			})}
-			{shouldShowSpinner && <DefaultSpinner />}
 		</div>
 	)
 }
+interface AgentHistorySection {
+	prompt: AgentPromptHistoryItem
+	events: AgentEventHistoryItem[]
+}
 
-function getAgentHistoryGroups(items: AgentHistoryItem[], agent: TLAgent): AgentHistoryGroup[] {
-	const groups: AgentHistoryGroup[] = []
+function getAgentHistorySections(items: AgentHistoryItem[]): AgentHistorySection[] {
+	const sections: AgentHistorySection[] = []
 
 	for (const item of items) {
 		if (item.type === 'prompt') {
-			groups.push({ type: 'prompt', item })
+			sections.push({ prompt: item, events: [] })
 			continue
 		}
 
+		sections[sections.length - 1].events.push(item)
+	}
+
+	return sections
+}
+
+function getEventHistoryGroups(
+	items: AgentEventHistoryItem[],
+	agent: TLAgent
+): AgentEventHistoryGroup[] {
+	const groups: AgentEventHistoryGroup[] = []
+
+	for (const item of items) {
 		const eventUtil = agent.getEventUtil(item.event._type)
 		const description = eventUtil.getDescription(item.event)
 		if (description === null) {

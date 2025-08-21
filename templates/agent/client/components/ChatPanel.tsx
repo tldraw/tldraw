@@ -126,7 +126,7 @@ export function ChatPanel({ editor }: { editor: Editor }) {
 	}
 
 	return (
-		<div className="chat-panel tl-container tl-theme__dark">
+		<div className="chat-panel tl-theme__dark">
 			<div className="chat-header">
 				<NewChatButton />
 			</div>

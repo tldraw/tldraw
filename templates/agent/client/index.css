@@ -61,6 +61,10 @@ body {
 	}
 }
 
+.chat-panel {
+	position: relative;
+}
+
 .chat-panel * {
 	user-select: text;
 }
@@ -70,16 +74,37 @@ body {
 }
 
 .chat-history {
-	flex: 1;
-	padding: 16px 16px;
+	padding: 16px;
+	padding-top: 0px;
 	overflow-y: auto;
 	display: flex;
 	flex-direction: column;
 	gap: 10px;
+	height: 100%;
+	position: relative;
+	width: 100%;
+}
+
+.chat-history-section {
+	display: flex;
+	flex-direction: column;
+	gap: 10px;
+	flex-shrink: 0;
+}
+
+.chat-history-section:last-child {
+	min-height: calc(100% - 1px);
 }
 
 .chat-input {
 	padding: 0px 8px 8px 8px;
+	flex-shrink: 0;
+	position: sticky;
+	bottom: 0;
+	border-radius: 12px;
+	margin: 0px 8px 8px 8px;
+	padding: 0px;
+	background-color: var(--tl-color-panel);
 }
 
 .chat-input form {
@@ -189,6 +214,15 @@ body {
 	display: flex;
 	gap: 4px;
 	color: var(--tl-color-text-2);
+}
+
+.user-message-container {
+	position: sticky;
+	top: -6px;
+	padding: 8px;
+	margin: -8px;
+	z-index: 9999999;
+	background-color: var(--tl-color-panel);
 }
 
 .user-message {
@@ -624,13 +658,12 @@ body {
 }
 
 .agent-action-message-description {
-	/* white-space: pre-wrap; */
 	margin: 0;
+	width: 100%;
 }
 
 .agent-action-message-description > p:first-child {
 	margin-top: 0;
-	/* white-space: pre-wrap; */
 }
 
 .agent-action-message-description > p:last-child {
@@ -644,6 +677,11 @@ body {
 .agent-action-message-description ul,
 .agent-action-message-description ol {
 	padding-left: 20px;
+}
+
+.agent-action-message-description pre {
+	width: 100%;
+	overflow-x: scroll;
 }
 
 .agent-action-message-description blockquote {
