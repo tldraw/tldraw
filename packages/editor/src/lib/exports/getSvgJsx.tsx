@@ -108,6 +108,23 @@ export function getSvgJsx(editor: Editor, ids: TLShapeId[], opts: TLImageExportO
 	return { jsx: svg, width: w, height: h, exportDelay }
 }
 
+/**
+ * Calculates the default bounds for an SVG export. This function handles:
+ * 1. Computing shape bounds with labels included (for better export coverage)
+ * 2. Applying shape masks to get the actual visible bounds
+ * 3. Container logic: if a shape is marked as an export bounds container and it
+ *    contains all other shapes, use its bounds and skip padding
+ * 4. Otherwise, create a union of all shape bounds and apply padding
+ *
+ * The container logic is useful for cases like annotating on an image - if the image
+ * contains all annotations, we want to export exactly the image bounds without extra padding.
+ *
+ * @param editor - The editor instance
+ * @param renderingShapes - The shapes to include in the export
+ * @param padding - Padding to add around the bounds (only applied if no container bounds)
+ * @param singleFrameShapeId - If exporting a single frame, this is its ID (skips padding)
+ * @returns The calculated bounds box, or null if no shapes to export
+ */
 export function getExportDefaultBounds(
 	editor: Editor,
 	renderingShapes: TLRenderingShape[],
@@ -121,31 +138,40 @@ export function getExportDefaultBounds(
 		const maskedPageBounds = editor.getShapeMaskedPageBounds(id)
 		if (!maskedPageBounds) continue
 
-		// Check if this shape is an export bounds container
+		// Check if this shape is an export bounds container (e.g., an image being annotated)
 		const shape = editor.getShape(id)!
 		const isContainer = editor.getShapeUtil(shape).isExportBoundsContainer(shape)
 
 		if (bbox) {
+			// Container logic: if this is a container and it contains all shapes processed so far,
+			// use the container's bounds instead of the union. This prevents extra padding around
+			// things like annotated images.
 			if (isContainer && Box.ContainsApproximately(maskedPageBounds, bbox)) {
 				isBoundedByContainer = true
 				bbox = maskedPageBounds
 			} else {
+				// If we were previously bounded by a container but this shape extends outside it,
+				// we're no longer bounded by a container
 				if (isBoundedByContainer && !Box.ContainsApproximately(bbox, maskedPageBounds)) {
 					isBoundedByContainer = false
 				}
+				// Expand the bounding box to include this shape
 				bbox.union(maskedPageBounds)
 			}
 		} else {
+			// First shape sets the initial bounds
 			isBoundedByContainer = isContainer
 			bbox = maskedPageBounds
 		}
 	}
 
-	// no unmasked shapes to export
+	// No unmasked shapes to export
 	if (!bbox) return null
 
+	// Only apply padding if:
+	// - Not exporting a single frame (frames have their own padding rules)
+	// - Not bounded by a container (containers define their own bounds precisely)
 	if (!singleFrameShapeId && !isBoundedByContainer) {
-		// Expand by an extra 32 pixels
 		bbox.expandBy(padding)
 	}
 
