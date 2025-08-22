@@ -348,8 +348,8 @@ export abstract class ShapeUtil<Shape extends TLUnknownShape = TLUnknownShape> {
 	 * useful in cases like annotating on top of an image, where you usually want to avoid extra
 	 * padding around the image if you don't need it.
 	 *
-	 * @param _shape
-	 * @returns
+	 * @param _shape - The shape to check
+	 * @returns True if this shape should be treated as an export bounds container
 	 */
 	isExportBoundsContainer(_shape: Shape): boolean {
 		return false

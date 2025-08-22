@@ -13,6 +13,12 @@
 		]
 	},
 	"permissions": {
-		"allow": ["Bash(gh pr:*)", "Bash(yarn test:*)", "Bash(yarn lint:*)", "Bash(yarn typecheck)"]
+		"allow": [
+			"Bash(gh pr:*)",
+			"Bash(yarn test:*)",
+			"Bash(yarn lint:*)",
+			"Bash(yarn typecheck)",
+			"Bash(git add:*)"
+		]
 	}
 }
