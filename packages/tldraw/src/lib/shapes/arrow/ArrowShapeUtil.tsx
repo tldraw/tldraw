@@ -223,6 +223,7 @@ export class ArrowShapeUtil extends ShapeUtil<TLArrowShape> {
 				height: labelPosition.box.h,
 				isFilled: true,
 				isLabel: true,
+				labelContributesToBounds: true,
 			})
 		}
 
