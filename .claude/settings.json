@@ -6,10 +6,13 @@
 				"hooks": [
 					{
 						"type": "command",
-						"command": "jq -r '.tool_input.file_path' | { read file_path; npx prettier --write \"$file_path\"; }"
+						"command": "jq -r '.tool_input.file_path' | { read file_path; yarn run -T prettier --write \"$file_path\"; }"
 					}
 				]
 			}
 		]
+	},
+	"permissions": {
+		"allow": ["Bash(gh pr:*)", "Bash(yarn test:*)", "Bash(yarn lint:*)", "Bash(yarn typecheck)"]
 	}
 }
