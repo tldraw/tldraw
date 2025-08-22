@@ -609,7 +609,7 @@ describe('Box', () => {
 				{ name: 'bottom edge', box: new Box(20, 20, 80, 95) }, // maxY too large (20+95=115 > 110)
 			]
 
-			testCases.forEach(({ name, box }) => {
+			testCases.forEach(({ box }) => {
 				expect(Box.ContainsApproximately(boxA, box, 1)).toBe(false) // tight precision
 			})
 		})
