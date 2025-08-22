@@ -8,7 +8,7 @@ export class HistoryItemPartUtil extends PromptPartUtil<IChatHistoryItem[]> {
 	static override type = 'historyItems' as const
 
 	override getPriority() {
-		return Infinity // history should appear early in the prompt (low priority)
+		return Infinity // history should appear first in the prompt (low priority)
 	}
 
 	override async getPart(_options: AgentPromptOptions) {
@@ -91,11 +91,13 @@ export class HistoryItemPartUtil extends PromptPartUtil<IChatHistoryItem[]> {
 			}
 			case 'action': {
 				const { complete: _complete, ...eventWithoutComplete } = item.action || {}
+				const eventWasMessage = eventWithoutComplete._type === 'message'
+				const textToSend = eventWasMessage
+					? eventWithoutComplete.text
+					: '[ACTION]: ' + JSON.stringify(eventWithoutComplete)
 				return {
 					role: 'assistant',
-					content: [
-						{ type: 'text', text: '[AGENT ACTED]: ' + JSON.stringify(eventWithoutComplete) },
-					],
+					content: [{ type: 'text', text: textToSend }],
 					priority: priority,
 				}
 			}

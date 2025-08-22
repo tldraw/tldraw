@@ -13,6 +13,7 @@ export class MessagePartUtil extends PromptPartUtil<string> {
 	}
 
 	override buildContent(promptPart: string, prompt: AgentPrompt) {
+		// console.log('prompt', prompt)
 		const requestType = prompt.type
 
 		if (requestType === 'review') {
@@ -20,6 +21,11 @@ export class MessagePartUtil extends PromptPartUtil<string> {
 			return [getReviewPrompt(promptPart)]
 		} else if (requestType === 'setMyView') {
 			// Set my view mode
+
+			console.log('moving camera')
+			console.log('from', prompt.parts.agentViewportBounds)
+			console.log('to', promptPart)
+
 			return [getSetMyViewPrompt(promptPart)]
 		} else {
 			// Normal mode

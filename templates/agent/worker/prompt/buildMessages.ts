@@ -6,6 +6,8 @@ import { AgentPrompt } from '../../shared/types/AgentPrompt'
 export function buildMessages(prompt: AgentPrompt): ModelMessage[] {
 	const { parts } = prompt
 
+	console.log('prompt', JSON.stringify(prompt, null, 2))
+
 	const utils = Object.fromEntries(PROMPT_PART_UTILS.map((v) => [v.type, new v()]))
 	const allMessages: AgentMessage[] = []
 
@@ -22,13 +24,13 @@ export function buildMessages(prompt: AgentPrompt): ModelMessage[] {
 	const allCoreMessages = constructCoreMessages(allMessages)
 
 	// Filter out images from console log for readability
-	// const messagesForLogging = allCoreMessages.map((message) => ({
-	// 	...message,
-	// 	content: Array.isArray(message.content)
-	// 		? message.content.filter((item: any) => item.type !== 'image')
-	// 		: message.content,
-	// }))
-	// console.log(JSON.stringify(messagesForLogging, null, 2))
+	const messagesForLogging = allCoreMessages.map((message) => ({
+		...message,
+		content: Array.isArray(message.content)
+			? message.content.filter((item: any) => item.type !== 'image')
+			: message.content,
+	}))
+	console.log(JSON.stringify(messagesForLogging, null, 2))
 
 	return allCoreMessages
 }
