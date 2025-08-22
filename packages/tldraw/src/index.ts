@@ -24,6 +24,7 @@ export { usePrefersReducedMotion } from './lib/shapes/shared/usePrefersReducedMo
 export { DefaultA11yAnnouncer, useSelectedShapesAnnouncer } from './lib/ui/components/A11y'
 export { AccessibilityMenu } from './lib/ui/components/AccessibilityMenu'
 export { ColorSchemeMenu } from './lib/ui/components/ColorSchemeMenu'
+export { DefaultFollowingIndicator } from './lib/ui/components/DefaultFollowingIndicator'
 export { DefaultDialogs } from './lib/ui/components/Dialogs'
 export {
 	TldrawUiColumn,
