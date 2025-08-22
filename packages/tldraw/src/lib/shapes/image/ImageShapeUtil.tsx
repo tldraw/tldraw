@@ -57,6 +57,9 @@ export class ImageShapeUtil extends BaseBoxShapeUtil<TLImageShape> {
 	override canCrop() {
 		return true
 	}
+	override isExportBoundsContainer(): boolean {
+		return true
+	}
 
 	override getDefaultProps(): TLImageShape['props'] {
 		return {
