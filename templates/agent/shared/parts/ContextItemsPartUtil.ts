@@ -1,5 +1,5 @@
 import { AgentTransform, roundBox, roundVec } from '../AgentTransform'
-import { AgentPromptOptions } from '../types/AgentPrompt'
+import { AgentPrompt, AgentPromptOptions } from '../types/AgentPrompt'
 import { IContextItem } from '../types/ContextItem'
 import { PromptPartUtil } from './PromptPartUtil'
 
@@ -48,7 +48,7 @@ export class ContextItemsPartUtil extends PromptPartUtil<IContextItem[]> {
 		})
 	}
 
-	override buildContent(contextItems: IContextItem[]): string[] {
+	override buildContent(contextItems: IContextItem[], prompt: AgentPrompt): string[] {
 		const messages: string[] = []
 
 		const shapeItems = contextItems.filter((item) => item.type === 'shape')
@@ -58,9 +58,12 @@ export class ContextItemsPartUtil extends PromptPartUtil<IContextItem[]> {
 
 		// Handle area context items
 		if (areaItems.length > 0) {
+			const isReview = prompt.type === 'review'
 			const areas = areaItems.map((item) => item.bounds)
 			messages.push(
-				'The user has specifically brought your attention to the following areas in this request. The user might refer to them as the "area(s)" or perhaps "here" or "there", but either way, it\'s implied that you should focus on these areas in both your reasoning and actions. Make sure to focus your task on these areas:'
+				isReview
+					? 'You are currently reviewing your work, and you have decided to focus your view on the following area. Make sure to focus your task here.'
+					: 'The user has specifically brought your attention to the following areas in this request. The user might refer to them as the "area(s)" or perhaps "here" or "there", but either way, it\'s implied that you should focus on these areas in both your reasoning and actions. Make sure to focus your task on these areas:'
 			)
 			for (const area of areas) {
 				messages.push(JSON.stringify(area))
