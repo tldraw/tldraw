@@ -1,5 +1,7 @@
 import { getAgentModelDefinition } from '../../worker/models'
 import { buildResponseJsonSchema } from '../../worker/prompt/buildResponseJsonSchema'
+import { BlurryShape } from '../format/BlurryShape'
+import { ISimpleShape } from '../format/SimpleShape'
 import { AgentPrompt } from '../types/AgentPrompt'
 import { PromptPartUtil } from './PromptPartUtil'
 
@@ -11,12 +13,29 @@ export class SystemPromptPartUtil extends PromptPartUtil<null> {
 	}
 
 	override buildSystemMessage(_part: null, prompt: AgentPrompt) {
-		const modelName = prompt.modelName
+		const { modelName, parts } = prompt
+
+		const systemPromptModifiers: string[] = []
+
+		// if there are user selected shapes add that to the system prompt modifiers
+		const userSelectedShapes: ISimpleShape[] | undefined = parts.userSelectedShapes
+		if (userSelectedShapes && userSelectedShapes.length > 0) {
+			systemPromptModifiers.push('user_selection')
+		}
+
+		// if there are arrows in the shapes on screen, add that to the system prompt modifiers
+		const blurryFormat: BlurryShape[] | undefined = parts.blurryFormat
+		if (blurryFormat && blurryFormat.length > 0) {
+			if (blurryFormat.some((shape) => shape.type === 'arrow')) {
+				systemPromptModifiers.push('contains_arrows')
+			}
+		}
+
 		const modelDefinition = getAgentModelDefinition(modelName)
 		if (modelDefinition.provider === 'anthropic') {
-			return getSystemPromptWithSchema()
+			return getSystemPromptWithSchema(systemPromptModifiers)
 		} else {
-			return AGENT_SYSTEM_PROMPT
+			return AGENT_SYSTEM_PROMPT(systemPromptModifiers)
 		}
 	}
 }
@@ -49,7 +68,7 @@ const shapeTypeNames = [
 	'pen',
 ]
 
-const AGENT_SYSTEM_PROMPT = `# System Prompt
+const AGENT_SYSTEM_PROMPT = (modifiers: string[]) => `# System Prompt
 
 You are an AI agent that helps the user use a drawing / diagramming / whiteboarding program. You will be provided with a prompt that includes a description of the user's intent and the current state of the canvas, including a screenshot of the user's viewport (the part of the canvas that the user is viewing). You'll also be provided with the chat history of your conversation with the user, including the user's previous requests and your actions. Your goal is to generate a response that includes a list of structured events that represent the actions you would take to satisfy the user's request.
 
@@ -136,6 +155,12 @@ Refer to the JSON schema for the full list of available events, their properties
 	- Always ensure they are properly connected with bindings.
 	- You can make the arrow curved by using the "bend" property. A positive bend will make the arrow curve to the right (in the direction of the arrow), and a negative bend will make the arrow curve to the left. The bend property defines how many pixels away from the center of an uncurved arrow the arrow will curve.
 	- Be sure not to create arrows twice—check for existing arrows that already connect the same shapes for the same purpose.
+${
+	modifiers.includes('contains_arrows')
+		? `
+	- Make sure your arrows are long enough to contain any labels you may add to them.`
+		: ''
+}
 - Labels and text
 	- Be careful with labels. Did the user ask for labels on their shapes? Did the user ask for a format where labels would be appropriate? If yes, add labels to shapes. If not, do not add labels to shapes. For example, a 'drawing of a cat' should not have the parts of the cat labelled; but a 'diagram of a cat' might have shapes labelled.
 	- When drawing a shape with a label, be sure that the text will fit inside of the label. Text is generally 32 points tall and each character is about 12 pixels wide.
@@ -160,6 +185,13 @@ Refer to the JSON schema for the full list of available events, their properties
 - If the canvas is empty, place your shapes in the center of the viewport. A general good size for your content is 80% of the viewport tall.
 - To "see" the canvas, combine the information you have from the screenshot of your viewport with the description of the canvas shapes on the viewport.
 - Carefully plan which event types to use. For example, the higher level events like \`distribute\`, \`stack\`, \`align\`, \`place\` can at times be better than the lower level events like \`create\`, \`update\`, \`move\` because they're more efficient and more accurate. If lower level control is needed, the lower level events are better because they give more precise and customizable control.
+${
+	modifiers.includes('user_selection')
+		? `
+- The user has selected shape(s). If they refer to 'this', or 'these' in their request, they are probably referring to the selected shapes.
+`
+		: ''
+}
 
 ### Navigating the canvas
 
@@ -192,9 +224,9 @@ Refer to the JSON schema for the full list of available events, their properties
 - If there's still more work to do, you must \`review\` it. Otherwise it won't happen.
 - It's nice to speak to the user (with a \`message\` event) to let them know what you've done.`
 
-function getSystemPromptWithSchema() {
+function getSystemPromptWithSchema(modifiers: string[]) {
 	return (
-		AGENT_SYSTEM_PROMPT +
+		AGENT_SYSTEM_PROMPT(modifiers) +
 		`
 
 ## JSON Schema
