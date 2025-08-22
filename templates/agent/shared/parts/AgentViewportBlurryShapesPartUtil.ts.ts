@@ -29,8 +29,8 @@ export class AgentViewportBlurryShapesPartUtil extends PromptPartUtil<BlurryShap
 	}
 
 	override buildContent(blurryShapes: BlurryShape[]): string[] {
-		if (blurryShapes.length === 0) return ['Your current viewport is empty.']
+		if (blurryShapes.length === 0) return ['There are no shapes in your view at the moment.']
 
-		return [`Here is a list of shapes you can currently see:`, JSON.stringify(blurryShapes)]
+		return [`These are the shapes you can currently see:`, JSON.stringify(blurryShapes)]
 	}
 }

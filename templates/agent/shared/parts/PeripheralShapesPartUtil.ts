@@ -38,7 +38,7 @@ export class PeripheralShapesPartUtil extends PromptPartUtil<BoxModel[]> {
 		}
 
 		return [
-			"There are some groups of shapes in your peripheral vision, outside the viewport. You can't make out their details or content. If you want to see their content, you need to get closer. The groups are as follows",
+			"There are some groups of shapes in your peripheral vision, outside the your main view. You can't make out their details or content. If you want to see their content, you need to get closer. The groups are as follows",
 			JSON.stringify(peripheralContent),
 		]
 	}

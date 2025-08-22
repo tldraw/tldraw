@@ -34,7 +34,7 @@ export class AgentViewportSimpleShapesPartUtil extends PromptPartUtil<ISimpleSha
 	}
 
 	override buildContent(agentViewportShapes: ISimpleShape[]): string[] {
-		if (agentViewportShapes.length === 0) return ['Your current viewport is empty.']
+		if (agentViewportShapes.length === 0) return ['There are no shapes in your view at the moment.']
 
 		return [`Here are the shapes you can currently see:`, JSON.stringify(agentViewportShapes)]
 	}

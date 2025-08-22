@@ -14,21 +14,7 @@ export class UserViewportBoundsPartUtil extends PromptPartUtil<BoxModel | null> 
 		const currentUserViewportBounds = options.editor.getViewportPageBounds()
 		if (!currentUserViewportBounds) return null
 
-		// Check if user and agent share viewport (from buildUserMessage logic)
-		const contextBounds = options.request.bounds
-		if (!contextBounds) return null
-
-		const doUserAndAgentShareViewport =
-			withinPercent(contextBounds.x, currentUserViewportBounds.x, 5) &&
-			withinPercent(contextBounds.y, currentUserViewportBounds.y, 5) &&
-			withinPercent(contextBounds.w, currentUserViewportBounds.w, 5) &&
-			withinPercent(contextBounds.h, currentUserViewportBounds.h, 5)
-
-		if (!doUserAndAgentShareViewport) {
-			return currentUserViewportBounds.toJson()
-		}
-
-		return null
+		return currentUserViewportBounds.toJson()
 	}
 
 	override transformPart(part: BoxModel | null): BoxModel | null {
@@ -43,6 +29,13 @@ export class UserViewportBoundsPartUtil extends PromptPartUtil<BoxModel | null> 
 
 		const agentViewportBounds: BoxModel = parts.agentViewportBounds
 
+		// all this stuff below is logic to give the agent a more detailed description of the user's view, helping it stay grounded on the canvas
+		const doUserAndAgentShareViewport =
+			withinPercent(agentViewportBounds.x, currentUserViewportBounds.x, 5) &&
+			withinPercent(agentViewportBounds.y, currentUserViewportBounds.y, 5) &&
+			withinPercent(agentViewportBounds.w, currentUserViewportBounds.w, 5) &&
+			withinPercent(agentViewportBounds.h, currentUserViewportBounds.h, 5)
+
 		const agentViewportBoundsBox = Box.From(agentViewportBounds)
 		const currentUserViewportBoundsBox = Box.From(currentUserViewportBounds)
 
@@ -50,21 +43,33 @@ export class UserViewportBoundsPartUtil extends PromptPartUtil<BoxModel | null> 
 		const userContainsAgent = currentUserViewportBoundsBox.contains(agentViewportBoundsBox)
 
 		let relativeViewportDescription: string = ''
-		if (agentContainsUser) {
-			relativeViewportDescription = 'contains'
-		} else if (userContainsAgent) {
-			relativeViewportDescription = 'is contained by'
+
+		if (doUserAndAgentShareViewport) {
+			relativeViewportDescription = 'is the same as'
 		} else {
-			relativeViewportDescription = getRelativePositionDescription(
-				agentViewportBounds,
-				currentUserViewportBounds
+			if (agentContainsUser) {
+				relativeViewportDescription = 'contains'
+			} else if (userContainsAgent) {
+				relativeViewportDescription = 'is contained by'
+			} else {
+				relativeViewportDescription = getRelativePositionDescription(
+					agentViewportBounds,
+					currentUserViewportBounds
+				)
+			}
+		}
+
+		const response = [`The user's view is ${relativeViewportDescription} your view.`]
+
+		if (!doUserAndAgentShareViewport) {
+			// if they share a viewport, we don't need to say anything about the bounds
+			response.push(
+				`The bounds of what the user can see are:`,
+				JSON.stringify(currentUserViewportBounds)
 			)
 		}
 
-		return [
-			`The user's viewport is ${relativeViewportDescription} the agent's viewport. The user's viewport is:`,
-			JSON.stringify(currentUserViewportBounds),
-		]
+		return response
 	}
 }
 
