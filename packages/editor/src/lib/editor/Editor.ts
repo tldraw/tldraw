@@ -9519,6 +9519,24 @@ export class Editor extends EventEmitter<TLEventMap> {
 		}
 	}
 
+	/**
+	 * Get an exported image of the given shapes as a data URL.
+	 *
+	 * @param shapes - The shapes (or shape ids) to export.
+	 * @param opts - Options for the export.
+	 *
+	 * @returns A data URL of the image.
+	 * @public
+	 */
+	async toImageDataUrl(shapes: TLShapeId[] | TLShape[], opts: TLImageExportOptions = {}) {
+		const { blob, width, height } = await this.toImage(shapes, opts)
+		return {
+			url: await FileHelpers.blobToDataUrl(blob),
+			width,
+			height,
+		}
+	}
+
 	/* --------------------- Events --------------------- */
 
 	/**

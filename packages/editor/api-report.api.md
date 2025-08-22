@@ -1499,6 +1499,11 @@ export class Editor extends EventEmitter<TLEventMap> {
         height: number;
         width: number;
     }>;
+    toImageDataUrl(shapes: TLShape[] | TLShapeId[], opts?: TLImageExportOptions): Promise<{
+        height: number;
+        url: string;
+        width: number;
+    }>;
     undo(): this;
     ungroupShapes(ids: TLShapeId[], opts?: Partial<{
         select: boolean;
