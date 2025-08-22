@@ -76,6 +76,12 @@ export abstract class Geometry2d {
 			isInternal = false,
 			labelContributesToBounds = false,
 		} = opts
+
+		// Validate that labelContributesToBounds can only be true if isLabel is also true
+		if (labelContributesToBounds && !isLabel) {
+			throw new Error('labelContributesToBounds can only be true if isLabel is also true')
+		}
+
 		this.isFilled = opts.isFilled
 		this.isClosed = opts.isClosed
 		this.debugColor = opts.debugColor
