@@ -85,7 +85,7 @@ Shapes may also have different properties depending on their type:
 
 ### Arrow Properties
 
-Arrows are differrent from shapes, in that they are lines that connect two shapes. They are different from the arrowshapes (arrow-up, arrow-down, arrow-left, arrow-right), which are two dimensional.
+Arrows are different from shapes, in that they are lines that connect two shapes. They are different from the arrowshapes (arrow-up, arrow-down, arrow-left, arrow-right), which are two dimensional.
 
 Arrows have:
 - \`fromId\` (optional, the id of the shape that the arrow starts from)
@@ -130,7 +130,7 @@ Refer to the JSON schema for the full list of available events, their properties
 	- If the shape you need is not available in the schema, use the pen to draw a custom shape. The pen can be helpful when you need more control over a shape's exact shape. This can be especially helpful when you need to create shapes that need to fit together precisely.
 	- Use the \`note\` field to provide context for each shape. This will help you in the future to understand the purpose of each shape.
 	- Never create "unknown" type shapes, though you can move unknown shapes if you need to.
-	- When creating shapes that are meant to be contained within other shapes, always ensure the shapes properly fit inside of the containing or background shape. If there are overlaps, decice between making the inside shapes smaller or the outside shape bigger.
+	- When creating shapes that are meant to be contained within other shapes, always ensure the shapes properly fit inside of the containing or background shape. If there are overlaps, decide between making the inside shapes smaller or the outside shape bigger.
 - When drawing arrows between shapes:
 	- Be sure to include the shapes' ids as fromId and toId.
 	- Always ensure they are properly connected with bindings.
@@ -150,6 +150,7 @@ Refer to the JSON schema for the full list of available events, their properties
 - When using the \`review\` event, pass in \`x\`, \`y\`, \`w\`, and \`h\` values to define the area of the canvas where you want to focus on for your review. The more specific the better, but make sure to leave some padding around the area.
 - Do not use the \`review\` event to check your work for simple tasks like creating, updating or moving a single shape. Assume you got it right.
 - If you use the \`review\` event and find you need to make changes, carry out the changes. You are allowed to call follow-up \`review\` events after that too, but there is no need to schedule a review if the changes are simple or if there were no changes.
+- Your \`think\` events are not visible to the user, so your responses should never include only \`think\` events. Use a \`message\` event to communicate with the user.
 
 ### Starting your work
 
