@@ -2,6 +2,7 @@ import { Slider as _Slider } from 'radix-ui'
 import React, { useCallback, useEffect, useState } from 'react'
 import { TLUiTranslationKey } from '../../hooks/useTranslation/TLUiTranslationKey'
 import { useTranslation } from '../../hooks/useTranslation/useTranslation'
+import { TldrawUiTooltip, tooltipManager } from './TldrawUiTooltip'
 
 /** @public */
 export interface TLUiSliderProps {
@@ -49,6 +50,7 @@ export const TldrawUiSlider = React.forwardRef<HTMLDivElement, TLUiSliderProps>(
 	)
 
 	const handlePointerDown = useCallback(() => {
+		tooltipManager.hideAllTooltips()
 		onHistoryMark('click slider')
 	}, [onHistoryMark])
 
@@ -62,38 +64,41 @@ export const TldrawUiSlider = React.forwardRef<HTMLDivElement, TLUiSliderProps>(
 		}
 	}, [])
 
+	const titleAndLabel = title + ' — ' + msg(label as TLUiTranslationKey)
+
 	return (
 		<div className="tlui-slider__container">
-			<_Slider.Root
-				data-testid={testId}
-				className="tlui-slider"
-				dir="ltr"
-				min={min ?? 0}
-				max={steps}
-				step={1}
-				value={value !== null ? [value] : undefined}
-				onPointerDown={handlePointerDown}
-				onValueChange={handleValueChange}
-				onKeyDownCapture={handleKeyEvent}
-				onKeyUpCapture={handleKeyEvent}
-				title={title + ' — ' + msg(label as TLUiTranslationKey)}
-			>
-				<_Slider.Track className="tlui-slider__track" dir="ltr">
-					{value !== null && <_Slider.Range className="tlui-slider__range" dir="ltr" />}
-				</_Slider.Track>
-				{value !== null && (
-					<_Slider.Thumb
-						aria-valuemin={(min ?? 0) * ariaValueModifier}
-						aria-valuenow={value * ariaValueModifier}
-						aria-valuemax={steps * ariaValueModifier}
-						aria-label={title + ' — ' + msg(label as TLUiTranslationKey)}
-						className="tlui-slider__thumb"
-						dir="ltr"
-						ref={ref}
-						tabIndex={tabIndex}
-					/>
-				)}
-			</_Slider.Root>
+			<TldrawUiTooltip content={titleAndLabel}>
+				<_Slider.Root
+					data-testid={testId}
+					className="tlui-slider"
+					dir="ltr"
+					min={min ?? 0}
+					max={steps}
+					step={1}
+					value={value !== null ? [value] : undefined}
+					onPointerDown={handlePointerDown}
+					onValueChange={handleValueChange}
+					onKeyDownCapture={handleKeyEvent}
+					onKeyUpCapture={handleKeyEvent}
+				>
+					<_Slider.Track className="tlui-slider__track" dir="ltr">
+						{value !== null && <_Slider.Range className="tlui-slider__range" dir="ltr" />}
+					</_Slider.Track>
+					{value !== null && (
+						<_Slider.Thumb
+							aria-valuemin={(min ?? 0) * ariaValueModifier}
+							aria-valuenow={value * ariaValueModifier}
+							aria-valuemax={steps * ariaValueModifier}
+							aria-label={titleAndLabel}
+							className="tlui-slider__thumb"
+							dir="ltr"
+							ref={ref}
+							tabIndex={tabIndex}
+						/>
+					)}
+				</_Slider.Root>
+			</TldrawUiTooltip>
 		</div>
 	)
 })
