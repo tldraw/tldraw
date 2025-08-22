@@ -93,9 +93,9 @@ export class AgentTransform {
 			shape = this.roundProperty(shape, 'y')
 		}
 
-		if ('width' in shape) {
-			shape = this.roundProperty(shape, 'width')
-			shape = this.roundProperty(shape, 'height')
+		if ('w' in shape) {
+			shape = this.roundProperty(shape, 'w')
+			shape = this.roundProperty(shape, 'h')
 		}
 
 		return shape
@@ -117,9 +117,9 @@ export class AgentTransform {
 			shape = this.unroundProperty(shape, 'x')
 			shape = this.unroundProperty(shape, 'y')
 		}
-		if ('width' in shape) {
-			shape = this.unroundProperty(shape, 'width')
-			shape = this.unroundProperty(shape, 'height')
+		if ('w' in shape) {
+			shape = this.unroundProperty(shape, 'w')
+			shape = this.unroundProperty(shape, 'h')
 		}
 		return shape
 	}

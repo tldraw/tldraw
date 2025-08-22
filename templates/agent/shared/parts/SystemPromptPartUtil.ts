@@ -77,7 +77,7 @@ Each shape has:
 
 Shapes may also have different properties depending on their type:
 
-- \`width\` and \`height\` (for shapes)
+- \`w\` and \`h\` (for shapes)
 - \`color\` (optional, chosen from predefined colors)
 - \`fill\` (optional, for shapes)
 - \`text\` (optional, for text elements) (visible to the user)

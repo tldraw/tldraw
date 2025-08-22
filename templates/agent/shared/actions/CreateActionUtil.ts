@@ -275,8 +275,8 @@ export function getTldrawAiChangesFromCreateAction({
 					props: {
 						size: 's',
 						geo: shape._type,
-						w: shape.width,
-						h: shape.height,
+						w: shape.w,
+						h: shape.h,
 						color: asColor(shape.color ?? 'black'),
 						fill: convertSimpleFillToTldrawFill(shape.fill ?? 'none'),
 						richText: toRichText(shape.text ?? ''),

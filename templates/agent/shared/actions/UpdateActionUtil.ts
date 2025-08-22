@@ -333,8 +333,8 @@ export function getTldrawAiChangesFromUpdateEvent({
 					props: {
 						color,
 						geo: update._type,
-						w: update.width ?? shapeOnCanvas.props.w,
-						h: update.height ?? shapeOnCanvas.props.h,
+						w: update.w ?? shapeOnCanvas.props.w,
+						h: update.h ?? shapeOnCanvas.props.h,
 						fill,
 						richText,
 					},
