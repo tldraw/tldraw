@@ -271,8 +271,8 @@ export abstract class Geometry2d {
 		return this._vertices
 	}
 
-	getBounds() {
-		return Box.FromPoints(this.vertices)
+	getBounds(filters?: Geometry2dFilters) {
+		return Box.FromPoints(filters ? this.getVertices(filters) : this.vertices)
 	}
 
 	private _bounds: Box | undefined
