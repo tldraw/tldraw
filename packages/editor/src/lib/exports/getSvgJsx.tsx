@@ -57,32 +57,20 @@ export function getSvgJsx(editor: Editor, ids: TLShapeId[], opts: TLImageExportO
 		.filter(({ id }) => shapeIdsToInclude.has(id))
 
 	// --- Common bounding box of all shapes
-	let bbox: null | Box = null
-	if (opts.bounds) {
-		bbox = opts.bounds
-	} else {
-		for (const { id } of renderingShapes) {
-			const maskedPageBounds = editor.getShapeMaskedPageBounds(id)
-			if (!maskedPageBounds) continue
-			if (bbox) {
-				bbox.union(maskedPageBounds)
-			} else {
-				bbox = maskedPageBounds.clone()
-			}
-		}
-	}
-
-	// no unmasked shapes to export
-	if (!bbox) return
-
 	const singleFrameShapeId =
 		ids.length === 1 && editor.isShapeOfType<TLFrameShape>(editor.getShape(ids[0])!, 'frame')
 			? ids[0]
 			: null
-	if (!singleFrameShapeId) {
-		// Expand by an extra 32 pixels
-		bbox.expandBy(padding)
+
+	let bbox: null | Box = null
+	if (opts.bounds) {
+		bbox = opts.bounds.clone().expandBy(padding)
+	} else {
+		bbox = getExportDefaultBounds(editor, renderingShapes, padding, singleFrameShapeId)
 	}
+
+	// no unmasked shapes to export
+	if (!bbox) return
 
 	// We want the svg image to be BIGGER THAN USUAL to account for image quality
 	const w = bbox.width * scale
@@ -118,6 +106,50 @@ export function getSvgJsx(editor: Editor, ids: TLShapeId[], opts: TLImageExportO
 	)
 
 	return { jsx: svg, width: w, height: h, exportDelay }
+}
+
+export function getExportDefaultBounds(
+	editor: Editor,
+	renderingShapes: TLRenderingShape[],
+	padding: number,
+	singleFrameShapeId: TLShapeId | null
+) {
+	let isBoundedByContainer = false
+	let bbox: null | Box = null
+
+	for (const { id } of renderingShapes) {
+		const maskedPageBounds = editor.getShapeMaskedPageBounds(id)
+		if (!maskedPageBounds) continue
+
+		// Check if this shape is an export bounds container
+		const shape = editor.getShape(id)!
+		const isContainer = editor.getShapeUtil(shape).isExportBoundsContainer(shape)
+
+		if (bbox) {
+			if (isContainer && Box.ContainsApproximately(maskedPageBounds, bbox)) {
+				isBoundedByContainer = true
+				bbox = maskedPageBounds
+			} else {
+				if (isBoundedByContainer && !Box.ContainsApproximately(bbox, maskedPageBounds)) {
+					isBoundedByContainer = false
+				}
+				bbox.union(maskedPageBounds)
+			}
+		} else {
+			isBoundedByContainer = isContainer
+			bbox = maskedPageBounds
+		}
+	}
+
+	// no unmasked shapes to export
+	if (!bbox) return null
+
+	if (!singleFrameShapeId && !isBoundedByContainer) {
+		// Expand by an extra 32 pixels
+		bbox.expandBy(padding)
+	}
+
+	return bbox
 }
 
 function SvgExport({

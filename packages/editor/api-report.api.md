@@ -286,6 +286,8 @@ export class Box {
     // (undocumented)
     contains(B: Box): boolean;
     // (undocumented)
+    static ContainsApproximately(A: Box, B: Box, precision?: number): boolean;
+    // (undocumented)
     static ContainsPoint(A: Box, B: VecLike, margin?: number): boolean;
     // (undocumented)
     containsPoint(V: VecLike, margin?: number): boolean;
@@ -2617,6 +2619,7 @@ export abstract class ShapeUtil<Shape extends TLUnknownShape = TLUnknownShape> {
     hideSelectionBoundsFg(_shape: Shape): boolean;
     abstract indicator(shape: Shape): any;
     isAspectRatioLocked(_shape: Shape): boolean;
+    isExportBoundsContainer(_shape: Shape): boolean;
     static migrations?: LegacyMigrations | MigrationSequence | TLPropsMigrations;
     onBeforeCreate?(next: Shape): Shape | void;
     onBeforeUpdate?(prev: Shape, next: Shape): Shape | void;
