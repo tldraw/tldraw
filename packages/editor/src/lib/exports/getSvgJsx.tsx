@@ -35,7 +35,7 @@ import { useEvent } from '../hooks/useEvent'
 import { suffixSafeId, useUniqueSafeId } from '../hooks/useSafeId'
 import { Box } from '../primitives/Box'
 import { Mat } from '../primitives/Mat'
-import { Vec } from '../primitives/Vec'
+import { Vec, VecLike } from '../primitives/Vec'
 import { intersectPolygonPolygon } from '../primitives/intersect'
 import { ExportDelay } from './ExportDelay'
 
@@ -128,7 +128,7 @@ function getExportDefaultBounds(editor: Editor, renderingShapes: TLRenderingShap
 
 		const pageMask = editor.getShapeMask(id)
 		let maskedPageBounds
-		if (pageMask && !pageBounds.corners.every((p, i) => p && Vec.Equals(p, pageMask[i]))) {
+		if (pageMask && !polygonMatchesBounds(pageMask, pageBounds)) {
 			const intersection = intersectPolygonPolygon(pageMask, pageBounds.corners)
 			if (!intersection) continue
 			maskedPageBounds = Box.FromPoints(intersection)
@@ -143,6 +143,10 @@ function getExportDefaultBounds(editor: Editor, renderingShapes: TLRenderingShap
 		}
 	}
 	return bbox
+}
+
+function polygonMatchesBounds(polygon: VecLike[], bounds: Box) {
+	return polygon.length === 4 && polygon.every((p, i) => p && Vec.Equals(p, bounds.corners[i]))
 }
 
 function SvgExport({
