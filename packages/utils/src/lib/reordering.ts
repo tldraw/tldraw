@@ -1,8 +1,15 @@
-import {
-	generateJitteredKeyBetween,
-	generateNJitteredKeysBetween,
-	generateNKeysBetween,
-} from 'fractional-indexing-jittered'
+import { generateKeyBetween, generateNKeysBetween } from 'jittered-fractional-indexing'
+
+// The default is 30 bits of jitter (0.742% chance of collision for 4000 shapes),
+// but we use 40 bits to avoid collisions (0.00072% of collision for 4000 shapes).
+
+const generateJitteredKeyBetween = (a: string | null, b: string | null) => {
+	return generateKeyBetween(a, b, { jitterBits: 40 })
+}
+
+const generateNJitteredKeysBetween = (a: string | null, b: string | null, n: number) => {
+	return generateNKeysBetween(a, b, n, { jitterBits: 40 })
+}
 
 const generateKeysFn =
 	process.env.NODE_ENV === 'test' ? generateNKeysBetween : generateNJitteredKeysBetween

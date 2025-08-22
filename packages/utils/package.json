@@ -43,7 +43,7 @@
 		"context": "yarn run -T tsx ../../internal/scripts/context.ts"
 	},
 	"dependencies": {
-		"fractional-indexing-jittered": "^1.0.0",
+		"jittered-fractional-indexing": "^1.0.0",
 		"lodash.isequal": "^4.5.0",
 		"lodash.isequalwith": "^4.4.0",
 		"lodash.throttle": "^4.1.1",
