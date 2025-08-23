@@ -11,6 +11,7 @@ export function usePassThroughWheelEvents(ref: RefObject<HTMLElement>) {
 
 	useEffect(() => {
 		function onWheel(e: WheelEvent) {
+			// Only pass through wheel events if the editor is focused
 			if (!editor?.getInstanceState().isFocused) return
 
 			if ((e as any).isSpecialRedispatchedEvent) return
