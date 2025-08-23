@@ -2,13 +2,14 @@ import { generateKeyBetween, generateNKeysBetween } from 'jittered-fractional-in
 
 // The default is 30 bits of jitter (0.742% chance of collision for 4000 shapes),
 // but we use 40 bits to avoid collisions (0.00072% of collision for 4000 shapes).
+const JITTER_BITS = 40
 
 const generateJitteredKeyBetween = (a: string | null, b: string | null) => {
-	return generateKeyBetween(a, b, { jitterBits: 40 })
+	return generateKeyBetween(a, b, { jitterBits: JITTER_BITS })
 }
 
 const generateNJitteredKeysBetween = (a: string | null, b: string | null, n: number) => {
-	return generateNKeysBetween(a, b, n, { jitterBits: 40 })
+	return generateNKeysBetween(a, b, n, { jitterBits: JITTER_BITS })
 }
 
 const generateKeysFn =
