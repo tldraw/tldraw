@@ -33,12 +33,6 @@
       "value": "Auto"
     }
   ],
-  "0776e18496": [
-    {
-      "type": 0,
-      "value": "Spremi i podijeli"
-    }
-  ],
   "07dbd11b21": [
     {
       "type": 0,
@@ -117,12 +111,6 @@
       "value": "Ova soba se približava ograničenju veličine. Razmislite o uklanjanju dijela sadržaja ili pokretanju nove datoteke."
     }
   ],
-  "22d84a12fd": [
-    {
-      "type": 0,
-      "value": "Figjam ali tldraw"
-    }
-  ],
   "250ddea65c": [
     {
       "type": 0,
@@ -133,12 +121,6 @@
     {
       "type": 0,
       "value": "Prijenos nije uspio"
-    }
-  ],
-  "2c61d18599": [
-    {
-      "type": 0,
-      "value": "Miro, ali dobar i besplatan"
     }
   ],
   "2deec2cb74": [
@@ -171,12 +153,6 @@
       "value": "Urednik"
     }
   ],
-  "37b3dca331": [
-    {
-      "type": 0,
-      "value": "Molimo prijavite se"
-    }
-  ],
   "3bd1b98dbd": [
     {
       "type": 0,
@@ -195,22 +171,10 @@
       "value": "Prihvati sve"
     }
   ],
-  "3fc6d0c83a": [
-    {
-      "type": 0,
-      "value": "Dodaj prijatelja"
-    }
-  ],
   "42e53c47c1": [
     {
       "type": 0,
       "value": "Kontaktirajte vlasnika da zatražite pristup."
-    }
-  ],
-  "44281ab6e5": [
-    {
-      "type": 0,
-      "value": "Prijava"
     }
   ],
   "44db318ee5": [
@@ -247,12 +211,6 @@
     {
       "type": 0,
       "value": "Ponovno učitaj"
-    }
-  ],
-  "4ea0bb66f7": [
-    {
-      "type": 0,
-      "value": "Račun bi bio dobar"
     }
   ],
   "50db1b7e1e": [
@@ -337,12 +295,6 @@
       "value": "Otkriven je stari preglednik. Ažurirajte preglednik da biste mogli koristiti ovu aplikaciju."
     }
   ],
-  "5bef23eb7e": [
-    {
-      "type": 0,
-      "value": "Izradite svoj račun"
-    }
-  ],
   "5d26ae7550": [
     {
       "type": 0,
@@ -383,12 +335,6 @@
     {
       "type": 0,
       "value": "Dostupna je nova verzija tldraw-a. Ponovno učitajte stranicu za nastavak."
-    }
-  ],
-  "697c59072d": [
-    {
-      "type": 0,
-      "value": "Prijavite se za spremanje"
     }
   ],
   "6a26f54883": [
@@ -493,12 +439,6 @@
       "value": "Vrati verziju"
     }
   ],
-  "7c7d5d493e": [
-    {
-      "type": 0,
-      "value": "Molimo vas da se prijavite"
-    }
-  ],
   "7cb5f8b4a5": [
     {
       "type": 0,
@@ -557,12 +497,6 @@
       "value": "."
     }
   ],
-  "84c89d47c7": [
-    {
-      "type": 0,
-      "value": "Podijeli besplatno"
-    }
-  ],
   "85a082de1b": [
     {
       "type": 0,
@@ -593,12 +527,6 @@
     {
       "type": 0,
       "value": "Za nastavak uređivanja kopirajte sobu u svoje datoteke."
-    }
-  ],
-  "8ea211024d": [
-    {
-      "type": 0,
-      "value": "Izradite besplatan račun"
     }
   ],
   "8eb2c00e96": [
@@ -757,12 +685,6 @@
       "value": "Gostujući korisnik"
     }
   ],
-  "b52dc007ac": [
-    {
-      "type": 0,
-      "value": "Registracija (besplatna i dobra)"
-    }
-  ],
   "b6d4223e60": [
     {
       "type": 0,
@@ -849,28 +771,10 @@
       "value": "Učitajte .tldr datoteke"
     }
   ],
-  "bffe9a3c9a": [
-    {
-      "type": 0,
-      "value": "Prijava"
-    }
-  ],
-  "c079282475": [
-    {
-      "type": 0,
-      "value": "Podijelite svoj rad"
-    }
-  ],
   "c2276c9127": [
     {
       "type": 0,
       "value": "Saznajte više o dijeljenju."
-    }
-  ],
-  "c24e43cd1a": [
-    {
-      "type": 0,
-      "value": "Prijavit ćeš se, zar ne?"
     }
   ],
   "c303bd1095": [
@@ -903,12 +807,6 @@
       "value": "Odjavi se"
     }
   ],
-  "c8c6a6504a": [
-    {
-      "type": 0,
-      "value": "Trebao/la bi se prijaviti"
-    }
-  ],
   "cceaefbc20": [
     {
       "type": 0,
@@ -925,12 +823,6 @@
     {
       "type": 0,
       "value": "Saznajte više o objavljivanju."
-    }
-  ],
-  "d0eedb7995": [
-    {
-      "type": 0,
-      "value": "Hej"
     }
   ],
   "d3d2e61733": [
@@ -957,28 +849,10 @@
       "value": "Pokušajte ponovno"
     }
   ],
-  "d8a50c79a7": [
-    {
-      "type": 0,
-      "value": "Pođi sa mnom crtati"
-    }
-  ],
   "d9100f3e10": [
     {
       "type": 0,
       "value": "Idite ovdje da vidite sadržaj"
-    }
-  ],
-  "da404df474": [
-    {
-      "type": 0,
-      "value": "Spremi svoj rad"
-    }
-  ],
-  "db4c2dab9a": [
-    {
-      "type": 0,
-      "value": "Nije Excalidraw"
     }
   ],
   "dbbebf3c03": [
@@ -1113,12 +987,6 @@
     {
       "type": 0,
       "value": "Jeste li sigurni da želite izbrisati ovu datoteku?"
-    }
-  ],
-  "fd27891570": [
-    {
-      "type": 0,
-      "value": "Pridružite se listi čekanja"
     }
   ],
   "fed5ec05eb": [

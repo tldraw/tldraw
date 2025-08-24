@@ -33,12 +33,6 @@
       "value": "Auto"
     }
   ],
-  "0776e18496": [
-    {
-      "type": 0,
-      "value": "Mentés és megosztás"
-    }
-  ],
   "07dbd11b21": [
     {
       "type": 0,
@@ -117,12 +111,6 @@
       "value": "Ez a szoba közeledik a méretkorlátjához. Fontolja meg néhány tartalom eltávolítását vagy új fájl létrehozását."
     }
   ],
-  "22d84a12fd": [
-    {
-      "type": 0,
-      "value": "Figjam, de tldraw"
-    }
-  ],
   "250ddea65c": [
     {
       "type": 0,
@@ -133,12 +121,6 @@
     {
       "type": 0,
       "value": "A feltöltés sikertelen"
-    }
-  ],
-  "2c61d18599": [
-    {
-      "type": 0,
-      "value": "Miro, de jó és ingyenes"
     }
   ],
   "2deec2cb74": [
@@ -171,12 +153,6 @@
       "value": "Szerkesztő"
     }
   ],
-  "37b3dca331": [
-    {
-      "type": 0,
-      "value": "Kérjük, jelentkezzen be"
-    }
-  ],
   "3bd1b98dbd": [
     {
       "type": 0,
@@ -195,22 +171,10 @@
       "value": "Összes elfogadása"
     }
   ],
-  "3fc6d0c83a": [
-    {
-      "type": 0,
-      "value": "Barát hozzáadása"
-    }
-  ],
   "42e53c47c1": [
     {
       "type": 0,
       "value": "Hozzáférés kéréséhez forduljon a tulajdonoshoz."
-    }
-  ],
-  "44281ab6e5": [
-    {
-      "type": 0,
-      "value": "Bejelentkezés"
     }
   ],
   "44db318ee5": [
@@ -247,12 +211,6 @@
     {
       "type": 0,
       "value": "Újratöltés"
-    }
-  ],
-  "4ea0bb66f7": [
-    {
-      "type": 0,
-      "value": "Jó lenne egy számla"
     }
   ],
   "50db1b7e1e": [
@@ -337,12 +295,6 @@
       "value": "Régi böngésző észlelve. Kérjük, frissítse böngészőjét az alkalmazás használatához."
     }
   ],
-  "5bef23eb7e": [
-    {
-      "type": 0,
-      "value": "Fiók létrehozása"
-    }
-  ],
   "5d26ae7550": [
     {
       "type": 0,
@@ -383,12 +335,6 @@
     {
       "type": 0,
       "value": "Elérhető a tldraw új verziója. A folytatáshoz töltse be újra az oldalt."
-    }
-  ],
-  "697c59072d": [
-    {
-      "type": 0,
-      "value": "Jelentkezzen be a mentéshez"
     }
   ],
   "6a26f54883": [
@@ -493,12 +439,6 @@
       "value": "Verzió visszaállítása"
     }
   ],
-  "7c7d5d493e": [
-    {
-      "type": 0,
-      "value": "Kérjük, regisztráljon"
-    }
-  ],
   "7cb5f8b4a5": [
     {
       "type": 0,
@@ -557,12 +497,6 @@
       "value": "."
     }
   ],
-  "84c89d47c7": [
-    {
-      "type": 0,
-      "value": "Megosztás ingyenesen"
-    }
-  ],
   "85a082de1b": [
     {
       "type": 0,
@@ -589,12 +523,6 @@
     {
       "type": 0,
       "value": "A szerkesztés folytatásához másold át a szobát a fájljaid közé."
-    }
-  ],
-  "8ea211024d": [
-    {
-      "type": 0,
-      "value": "Hozz létre egy ingyenes fiókot"
     }
   ],
   "8eb2c00e96": [
@@ -753,12 +681,6 @@
       "value": "Vendégfelhasználó"
     }
   ],
-  "b52dc007ac": [
-    {
-      "type": 0,
-      "value": "Regisztráció (ingyenes és jó)"
-    }
-  ],
   "b6d4223e60": [
     {
       "type": 0,
@@ -837,28 +759,10 @@
       "value": "Töltsön fel .tldr fájlokat"
     }
   ],
-  "bffe9a3c9a": [
-    {
-      "type": 0,
-      "value": "Bejelentkezés"
-    }
-  ],
-  "c079282475": [
-    {
-      "type": 0,
-      "value": "Oszd meg a munkádat"
-    }
-  ],
   "c2276c9127": [
     {
       "type": 0,
       "value": "További információ a megosztásról."
-    }
-  ],
-  "c24e43cd1a": [
-    {
-      "type": 0,
-      "value": "Jelentkezel majd, ugye?"
     }
   ],
   "c303bd1095": [
@@ -891,12 +795,6 @@
       "value": "Jelentkezzen ki"
     }
   ],
-  "c8c6a6504a": [
-    {
-      "type": 0,
-      "value": "Regisztrálnod kellene"
-    }
-  ],
   "cceaefbc20": [
     {
       "type": 0,
@@ -913,12 +811,6 @@
     {
       "type": 0,
       "value": "További információ a közzétételről."
-    }
-  ],
-  "d0eedb7995": [
-    {
-      "type": 0,
-      "value": "Hé"
     }
   ],
   "d3d2e61733": [
@@ -945,28 +837,10 @@
       "value": "Próbáld újra"
     }
   ],
-  "d8a50c79a7": [
-    {
-      "type": 0,
-      "value": "Gyere velem rajzolni"
-    }
-  ],
   "d9100f3e10": [
     {
       "type": 0,
       "value": "Menjen ide a tartalom megtekintéséhez"
-    }
-  ],
-  "da404df474": [
-    {
-      "type": 0,
-      "value": "Mentsd el a munkádat"
-    }
-  ],
-  "db4c2dab9a": [
-    {
-      "type": 0,
-      "value": "Nem Excalidraw"
     }
   ],
   "dbbebf3c03": [
@@ -1101,12 +975,6 @@
     {
       "type": 0,
       "value": "Biztosan törli ezt a fájlt?"
-    }
-  ],
-  "fd27891570": [
-    {
-      "type": 0,
-      "value": "Iratkozzon fel a várólistára"
     }
   ],
   "fed5ec05eb": [
