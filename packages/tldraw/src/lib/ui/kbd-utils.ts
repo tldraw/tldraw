@@ -31,9 +31,16 @@ export function kbd(str: string) {
 			)
 			.flat()
 			.map((sub, index) => {
-				if (sub === '__CTRL__') return 'Ctrl'
-				if (sub === '__ALT__') return 'Alt'
-				const modifiedKey = sub[0].toUpperCase() + sub.slice(1)
+				if (sub[0] === '+') return []
+
+				let modifiedKey
+				if (sub === '__CTRL__') {
+					modifiedKey = 'Ctrl'
+				} else if (sub === '__ALT__') {
+					modifiedKey = 'Alt'
+				} else {
+					modifiedKey = sub[0].toUpperCase() + sub.slice(1)
+				}
 				return tlenv.isDarwin || !index ? modifiedKey : ['+', modifiedKey]
 			})
 			.flat()
