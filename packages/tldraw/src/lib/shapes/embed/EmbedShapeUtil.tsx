@@ -182,6 +182,8 @@ export class EmbedShapeUtil extends BaseBoxShapeUtil<TLEmbedShape> {
 			...(embedInfo?.definition.overridePermissions ?? {}),
 		})
 
+		const referrerPolicy = embedInfo?.definition.referrerPolicy ?? 'no-referrer-when-downgrade'
+
 		return (
 			<HTMLContainer className="tl-embed-container" id={shape.id}>
 				{embedInfo?.definition ? (
@@ -194,7 +196,7 @@ export class EmbedShapeUtil extends BaseBoxShapeUtil<TLEmbedShape> {
 						draggable={false}
 						// eslint-disable-next-line @typescript-eslint/no-deprecated
 						frameBorder="0"
-						referrerPolicy="no-referrer-when-downgrade"
+						referrerPolicy={referrerPolicy}
 						tabIndex={isEditing ? 0 : -1}
 						style={{
 							border: 0,
