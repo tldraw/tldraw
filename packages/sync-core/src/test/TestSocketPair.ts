@@ -28,6 +28,14 @@ export class TestSocketPair<R extends UnknownRecord> {
 		})
 	}
 
+	async flushAllEvents() {
+		await Promise.resolve()
+		while (this.getNeedsFlushing()) {
+			this.flushClientSentEvents()
+			this.flushServerSentEvents()
+		}
+	}
+
 	getNeedsFlushing() {
 		return this.serverSentEventQueue.length > 0 || this.clientSentEventQueue.length > 0
 	}

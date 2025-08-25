@@ -366,6 +366,16 @@ export class TLSocketRoom<R extends UnknownRecord = UnknownRecord, SessionMeta =
 	}
 
 	/**
+	 * Send a custom message to a connected client.
+	 *
+	 * @param sessionId - The id of the session to send the message to.
+	 * @param data - The payload to send.
+	 */
+	sendCustomMessage(sessionId: string, data: any) {
+		this.room.sendCustomMessage(sessionId, data)
+	}
+
+	/**
 	 * Immediately remove a session from the room, and close its socket if not already closed.
 	 *
 	 * The client will attempt to reconnect unless you provide a `fatalReason` parameter.

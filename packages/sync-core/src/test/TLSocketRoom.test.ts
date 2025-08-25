@@ -4,6 +4,7 @@ import { vi } from 'vitest'
 import { WebSocketMinimal } from '../lib/ServerSocketAdapter'
 import { TLSocketRoom } from '../lib/TLSocketRoom'
 import { RecordOpType } from '../lib/diff'
+import { getTlsyncProtocolVersion } from '../lib/protocol'
 
 function getStore() {
 	const schema = createTLSchema()
@@ -265,5 +266,31 @@ describe(TLSocketRoom, () => {
 
 		await addPage(room)
 		expect(called).toEqual(2)
+	})
+
+	it('sends custom messages', async () => {
+		const json = JSON.stringify
+		const store = getStore()
+		const room = new TLSocketRoom({ initialSnapshot: store.getStoreSnapshot() })
+
+		const sessionId = 'test-session-1'
+		const send = vi.fn()
+
+		// Add session to the room
+		const mockSocket: WebSocketMinimal = { send, close: vi.fn(), readyState: WebSocket.OPEN }
+		room.handleSocketConnect({ sessionId, socket: mockSocket })
+
+		// Send connect message to establish the session
+		const connect = {
+			type: 'connect' as const,
+			connectRequestId: 'connect-1',
+			lastServerClock: 0,
+			protocolVersion: getTlsyncProtocolVersion(),
+			schema: store.schema.serialize(),
+		}
+		room.handleSocketMessage(sessionId, json(connect))
+
+		room.sendCustomMessage(sessionId, 'hello world')
+		expect(send.mock.lastCall).toEqual([json({ type: 'custom', data: 'hello world' })])
 	})
 })
