@@ -1,5 +1,5 @@
 import { useContainer, useValue } from '@tldraw/editor'
-import { Dialog as _Dialog } from 'radix-ui'
+import { Dialog as _Dialog, VisuallyHidden } from 'radix-ui'
 import { memo, useCallback, useRef } from 'react'
 import { TLUiDialog, useDialogs } from '../context/dialogs'
 
@@ -49,6 +49,7 @@ const TldrawUiDialog = ({
 						dir="ltr"
 						className="tlui-dialog__content"
 						aria-describedby={undefined}
+						aria-label="Dialog"
 						onMouseDown={() => (mouseDownInsideContentRef.current = true)}
 						onMouseUp={() => (mouseDownInsideContentRef.current = false)}
 						onInteractOutside={(e) => {
@@ -58,6 +59,9 @@ const TldrawUiDialog = ({
 							}
 						}}
 					>
+						<VisuallyHidden.Root>
+							<_Dialog.Title aria-hidden>Dialog</_Dialog.Title>
+						</VisuallyHidden.Root>
 						<ModalContent
 							onClose={() => {
 								mouseDownInsideContentRef.current = false
