@@ -2166,6 +2166,9 @@ export class NoteShapeUtil extends ShapeUtil<TLNoteShape> {
 // @public (undocumented)
 export function NoteToolbarItem(): JSX_2.Element;
 
+// @public
+export function notifyIfFileNotAllowed(file: File, options: TLDefaultExternalContentHandlerOpts): boolean;
+
 // @public (undocumented)
 export function OfflineIndicator(): JSX_2.Element;
 
