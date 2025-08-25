@@ -252,6 +252,7 @@ export type AssetUrls = {
 		google_calendar: string
 		google_maps: string
 		google_slides: string
+		hoppscotch: string
 		observable: string
 		replit: string
 		scratch: string

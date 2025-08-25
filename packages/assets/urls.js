@@ -332,6 +332,10 @@ export function getAssetUrlsByMetaUrl(opts) {
 				new URL('./embed-icons/google_slides.png', import.meta.url).href,
 				opts
 			),
+			hoppscotch: formatAssetUrl(
+				new URL('./embed-icons/hoppscotch.png', import.meta.url).href,
+				opts
+			),
 			observable: formatAssetUrl(
 				new URL('./embed-icons/observable.png', import.meta.url).href,
 				opts

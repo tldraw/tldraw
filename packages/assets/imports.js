@@ -16,6 +16,7 @@ import embedIconsGithubGistPng from './embed-icons/github_gist.png'
 import embedIconsGoogleCalendarPng from './embed-icons/google_calendar.png'
 import embedIconsGoogleMapsPng from './embed-icons/google_maps.png'
 import embedIconsGoogleSlidesPng from './embed-icons/google_slides.png'
+import embedIconsHoppscotchPng from './embed-icons/hoppscotch.png'
 import embedIconsObservablePng from './embed-icons/observable.png'
 import embedIconsReplitPng from './embed-icons/replit.png'
 import embedIconsScratchPng from './embed-icons/scratch.png'
@@ -350,6 +351,7 @@ export function getAssetUrlsByImport(opts) {
 			google_calendar: formatAssetUrl(embedIconsGoogleCalendarPng, opts),
 			google_maps: formatAssetUrl(embedIconsGoogleMapsPng, opts),
 			google_slides: formatAssetUrl(embedIconsGoogleSlidesPng, opts),
+			hoppscotch: formatAssetUrl(embedIconsHoppscotchPng, opts),
 			observable: formatAssetUrl(embedIconsObservablePng, opts),
 			replit: formatAssetUrl(embedIconsReplitPng, opts),
 			scratch: formatAssetUrl(embedIconsScratchPng, opts),

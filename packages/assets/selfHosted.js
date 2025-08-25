@@ -266,6 +266,7 @@ export function getAssetUrls(opts) {
 			google_calendar: formatAssetUrl('./embed-icons/google_calendar.png', opts),
 			google_maps: formatAssetUrl('./embed-icons/google_maps.png', opts),
 			google_slides: formatAssetUrl('./embed-icons/google_slides.png', opts),
+			hoppscotch: formatAssetUrl('./embed-icons/hoppscotch.png', opts),
 			observable: formatAssetUrl('./embed-icons/observable.png', opts),
 			replit: formatAssetUrl('./embed-icons/replit.png', opts),
 			scratch: formatAssetUrl('./embed-icons/scratch.png', opts),

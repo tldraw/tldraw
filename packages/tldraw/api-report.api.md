@@ -151,7 +151,7 @@ import { VecLike } from '@tldraw/editor';
 import { VecModel } from '@tldraw/editor';
 
 // @public (undocumented)
-export type A11yPriority = 'assertive' | 'polite';
+export type A11yPriority = 'polite' | 'assertive';
 
 // @public (undocumented)
 export interface A11yProviderProps {
@@ -171,7 +171,7 @@ export interface ActionsProviderProps {
 }
 
 // @public (undocumented)
-export type AlertSeverity = 'error' | 'info' | 'success' | 'warning';
+export type AlertSeverity = 'success' | 'info' | 'warning' | 'error';
 
 // @public (undocumented)
 export function AlignMenuItems(): JSX_2.Element;
@@ -599,6 +599,16 @@ export const DEFAULT_EMBED_DEFINITIONS: readonly [{
     readonly title: "tldraw";
     readonly toEmbedUrl: (url: string) => string | undefined;
     readonly type: "tldraw";
+    readonly width: 720;
+}, {
+    readonly doesResize: true;
+    readonly fromEmbedUrl: (url: string) => string | undefined;
+    readonly height: 500;
+    readonly hostnames: readonly ["hopp.sh"];
+    readonly instructionLink: "https://docs.hoppscotch.io/documentation/features/widgets#create-a-shared-request%3A";
+    readonly title: "Hoppscotch";
+    readonly toEmbedUrl: (url: string) => string | undefined;
+    readonly type: "hoppscotch";
     readonly width: 720;
 }, {
     readonly doesResize: true;
@@ -1050,8 +1060,8 @@ export function downloadFile(file: File): void;
 
 // @public
 export function downsizeImage(blob: Blob, width: number, height: number, opts?: {
-    quality?: number;
     type?: string;
+    quality?: number;
 }): Promise<Blob>;
 
 // @public (undocumented)
@@ -1437,8 +1447,8 @@ export function ExportFileContentSubMenu(): JSX_2.Element;
 // @public @deprecated
 export function exportToBlob({ editor, ids, format, opts, }: {
     editor: Editor;
-    format: TLExportType;
     ids: TLShapeId[];
+    format: TLExportType;
     opts?: TLImageExportOptions;
 }): Promise<Blob>;
 
@@ -2053,7 +2063,7 @@ export function MoveToPageMenu(): JSX_2.Element | null;
 // @internal (undocumented)
 export interface MoveToPathBuilderCommand extends PathBuilderCommandBase {
     // (undocumented)
-    closeIdx: null | number;
+    closeIdx: number | null;
     // (undocumented)
     opts?: PathBuilderLineOpts;
     // (undocumented)
@@ -2258,12 +2268,12 @@ export interface PageItemSubmenuProps {
 }
 
 // @internal (undocumented)
-export function parseAndLoadDocument(editor: Editor, document: string, msg: (id: Exclude<string, TLUiTranslationKey> | TLUiTranslationKey) => string, addToast: TLUiToastsContextType['addToast'], onV1FileLoad?: () => void, forceDarkMode?: boolean): Promise<void>;
+export function parseAndLoadDocument(editor: Editor, document: string, msg: (id: TLUiTranslationKey | Exclude<string, TLUiTranslationKey>) => string, addToast: TLUiToastsContextType['addToast'], onV1FileLoad?: () => void, forceDarkMode?: boolean): Promise<void>;
 
 // @public (undocumented)
 export function parseTldrawJsonFile({ json, schema, }: {
-    json: string;
     schema: TLSchema;
+    json: string;
 }): Result<TLStore, TldrawFileParseError>;
 
 // @public (undocumented)
@@ -2303,13 +2313,13 @@ export class PathBuilder {
     // (undocumented)
     toDrawD(opts: DrawPathBuilderDOpts): string;
     // (undocumented)
-    toGeometry(): Group2d | PathBuilderGeometry2d;
+    toGeometry(): PathBuilderGeometry2d | Group2d;
     // (undocumented)
     toSvg(opts: PathBuilderOpts): JSX_2.Element;
 }
 
 // @internal (undocumented)
-export type PathBuilderCommand = CubicBezierToPathBuilderCommand | LineToPathBuilderCommand | MoveToPathBuilderCommand;
+export type PathBuilderCommand = MoveToPathBuilderCommand | LineToPathBuilderCommand | CubicBezierToPathBuilderCommand;
 
 // @internal (undocumented)
 export interface PathBuilderCommandBase {
@@ -2364,11 +2374,11 @@ export interface PathBuilderLineOpts extends PathBuilderCommandOpts {
     // (undocumented)
     dashStart?: PerfectDashTerminal;
     // (undocumented)
-    geometry?: false | Omit<Geometry2dOptions, 'isClosed'>;
+    geometry?: Omit<Geometry2dOptions, 'isClosed'> | false;
 }
 
 // @public (undocumented)
-export type PathBuilderOpts = DashedPathBuilderOpts | DrawPathBuilderOpts | SolidPathBuilderOpts;
+export type PathBuilderOpts = SolidPathBuilderOpts | DashedPathBuilderOpts | DrawPathBuilderOpts;
 
 // @public (undocumented)
 export interface PathBuilderToDOpts {
@@ -2605,7 +2615,7 @@ export class SelectTool extends StateNode {
     // (undocumented)
     onExit(): void;
     // (undocumented)
-    reactor: (() => void) | undefined;
+    reactor: undefined | (() => void);
 }
 
 // @public (undocumented)
@@ -2692,8 +2702,8 @@ export interface StylePickerSetProps {
 
 // @public (undocumented)
 export type StyleValuesForUi<T> = readonly {
-    readonly icon: string | TLUiIconJsx;
     readonly value: T;
+    readonly icon: string | TLUiIconJsx;
 }[];
 
 // @public (undocumented)
@@ -2918,7 +2928,7 @@ export interface TLComponents extends TLEditorComponents, TLUiComponents {
 }
 
 // @public (undocumented)
-export type TLCopyType = 'png' | 'svg';
+export type TLCopyType = 'svg' | 'png';
 
 // @public (undocumented)
 export interface TLDefaultExternalContentHandlerOpts extends TLExternalContentProps {
@@ -2997,20 +3007,20 @@ export interface TldrawFile {
 
 // @public (undocumented)
 export type TldrawFileParseError = {
-    cause: unknown;
-    type: 'invalidRecords';
-} | {
-    cause: unknown;
-    type: 'notATldrawFile';
-} | {
-    data: any;
     type: 'v1File';
+    data: any;
 } | {
-    reason: MigrationFailureReason;
-    type: 'migrationFailed';
+    type: 'notATldrawFile';
+    cause: unknown;
 } | {
     type: 'fileFormatVersionTooNew';
     version: number;
+} | {
+    type: 'migrationFailed';
+    reason: MigrationFailureReason;
+} | {
+    type: 'invalidRecords';
+    cause: unknown;
 };
 
 // @public (undocumented)
@@ -3023,7 +3033,7 @@ export const TldrawImage: NamedExoticComponent<TldrawImageProps>;
 export interface TldrawImageProps extends TLImageExportOptions {
     assetUrls?: TLUiAssetUrlOverrides;
     bindingUtils?: readonly TLAnyBindingUtilConstructor[];
-    format?: 'png' | 'svg';
+    format?: 'svg' | 'png';
     licenseKey?: string;
     pageId?: TLPageId;
     shapeUtils?: readonly TLAnyShapeUtilConstructor[];
@@ -3152,13 +3162,13 @@ export function TldrawUiMenuCheckboxItem<TranslationKey extends string = string,
 export function TldrawUiMenuContextProvider({ type, sourceId, children, }: TLUiMenuContextProviderProps): JSX_2.Element;
 
 // @public (undocumented)
-export function TldrawUiMenuGroup({ id, label, className, children }: TLUiMenuGroupProps): boolean | JSX_2.Element | Iterable<ReactNode> | null | number | string | undefined;
+export function TldrawUiMenuGroup({ id, label, className, children }: TLUiMenuGroupProps): string | number | boolean | JSX_2.Element | Iterable<ReactNode> | null | undefined;
 
 // @public (undocumented)
 export function TldrawUiMenuItem<TranslationKey extends string = string, IconType extends string = string>({ disabled, spinner, readonlyOk, id, kbd, label, icon, iconLeft, onSelect, noClose, isSelected, onDragStart, }: TLUiMenuItemProps<TranslationKey, IconType>): JSX_2.Element | null;
 
 // @public (undocumented)
-export function TldrawUiMenuSubmenu<Translation extends string = string>({ id, disabled, label, size, children, }: TLUiMenuSubmenuProps<Translation>): boolean | JSX_2.Element | Iterable<ReactNode> | null | number | string | undefined;
+export function TldrawUiMenuSubmenu<Translation extends string = string>({ id, disabled, label, size, children, }: TLUiMenuSubmenuProps<Translation>): string | number | boolean | JSX_2.Element | Iterable<ReactNode> | null | undefined;
 
 // @public (undocumented)
 export function TldrawUiMenuToolItem({ toolId, ...rest }: TLUiMenuToolItemProps): JSX_2.Element | null;
@@ -3168,7 +3178,7 @@ export interface TldrawUiOrientationContext {
     // (undocumented)
     orientation: 'horizontal' | 'vertical';
     // (undocumented)
-    tooltipSide: 'bottom' | 'left' | 'right' | 'top';
+    tooltipSide: 'top' | 'right' | 'bottom' | 'left';
 }
 
 // @public (undocumented)
@@ -3181,7 +3191,7 @@ export interface TldrawUiOrientationProviderProps {
     // (undocumented)
     orientation: 'horizontal' | 'vertical';
     // (undocumented)
-    tooltipSide?: 'bottom' | 'left' | 'right' | 'top';
+    tooltipSide?: 'top' | 'right' | 'bottom' | 'left';
 }
 
 // @public (undocumented)
@@ -3231,7 +3241,7 @@ export interface TldrawUiTooltipProps {
     // (undocumented)
     children: React_3.ReactNode;
     // (undocumented)
-    content?: React_3.ReactNode | string;
+    content?: string | React_3.ReactNode;
     // (undocumented)
     delayDuration?: number;
     // (undocumented)
@@ -3239,7 +3249,7 @@ export interface TldrawUiTooltipProps {
     // (undocumented)
     showOnMobile?: boolean;
     // (undocumented)
-    side?: 'bottom' | 'left' | 'right' | 'top';
+    side?: 'top' | 'right' | 'bottom' | 'left';
     // (undocumented)
     sideOffset?: number;
 }
@@ -3260,23 +3270,23 @@ export function TldrawUiTranslationProvider({ overrides, locale, children, }: TL
 export interface TLEditorAssetUrls {
     // (undocumented)
     fonts?: {
-        [key: string]: string | undefined;
-        tldraw_draw_bold?: string;
-        tldraw_draw_italic_bold?: string;
-        tldraw_draw_italic?: string;
-        tldraw_draw?: string;
+        tldraw_mono?: string;
+        tldraw_mono_italic?: string;
         tldraw_mono_bold?: string;
         tldraw_mono_italic_bold?: string;
-        tldraw_mono_italic?: string;
-        tldraw_mono?: string;
-        tldraw_sans_bold?: string;
-        tldraw_sans_italic_bold?: string;
-        tldraw_sans_italic?: string;
-        tldraw_sans?: string;
+        tldraw_serif?: string;
+        tldraw_serif_italic?: string;
         tldraw_serif_bold?: string;
         tldraw_serif_italic_bold?: string;
-        tldraw_serif_italic?: string;
-        tldraw_serif?: string;
+        tldraw_sans?: string;
+        tldraw_sans_italic?: string;
+        tldraw_sans_bold?: string;
+        tldraw_sans_italic_bold?: string;
+        tldraw_draw?: string;
+        tldraw_draw_italic?: string;
+        tldraw_draw_bold?: string;
+        tldraw_draw_italic_bold?: string;
+        [key: string]: string | undefined;
     };
 }
 
@@ -3304,8 +3314,8 @@ export type TLEmbedDefinition = CustomEmbedDefinition | EmbedDefinition;
 // @public (undocumented)
 export type TLEmbedResult = {
     definition: TLEmbedDefinition;
-    embedUrl: string;
     url: string;
+    embedUrl: string;
 } | undefined;
 
 // @public (undocumented)
@@ -3390,9 +3400,9 @@ export interface TLUiActionItem<TransationKey extends string = string, IconType 
     // (undocumented)
     kbd?: string;
     // (undocumented)
-    label?: {
+    label?: TransationKey | {
         [key: string]: TransationKey;
-    } | TransationKey;
+    };
     // (undocumented)
     onSelect(source: TLUiEventSource): Promise<void> | void;
     // (undocumented)
@@ -3416,7 +3426,7 @@ export interface TLUiAssetUrls extends TLEditorAssetUrls {
     // (undocumented)
     embedIcons: Partial<Record<(typeof DEFAULT_EMBED_DEFINITIONS)[number]['type'], string>>;
     // (undocumented)
-    icons: Record<Exclude<string, TLUiIconType> | TLUiIconType, string>;
+    icons: Record<TLUiIconType | Exclude<string, TLUiIconType>, string>;
     // (undocumented)
     translations: Record<(typeof LANGUAGES)[number]['locale'], string>;
 }
@@ -3470,7 +3480,7 @@ export interface TLUiButtonProps extends React_2.HTMLAttributes<HTMLButtonElemen
     // (undocumented)
     isActive?: boolean;
     // (undocumented)
-    type: 'danger' | 'help' | 'icon' | 'low' | 'menu' | 'normal' | 'primary' | 'tool';
+    type: 'normal' | 'primary' | 'danger' | 'low' | 'icon' | 'tool' | 'menu' | 'help';
 }
 
 // @public (undocumented)
@@ -3671,7 +3681,7 @@ export interface TLUiDropdownMenuCheckboxItemProps {
 // @public (undocumented)
 export interface TLUiDropdownMenuContentProps {
     // (undocumented)
-    align?: 'center' | 'end' | 'start';
+    align?: 'start' | 'center' | 'end';
     // (undocumented)
     alignOffset?: number;
     // (undocumented)
@@ -3681,7 +3691,7 @@ export interface TLUiDropdownMenuContentProps {
     // (undocumented)
     id?: string;
     // (undocumented)
-    side?: 'bottom' | 'left' | 'right' | 'top';
+    side?: 'bottom' | 'top' | 'right' | 'left';
     // (undocumented)
     sideOffset?: number;
 }
@@ -3761,7 +3771,7 @@ export interface TLUiEventMap {
     'adjust-shape-styles': null;
     // (undocumented)
     'align-shapes': {
-        operation: 'bottom' | 'center-horizontal' | 'center-vertical' | 'left' | 'right' | 'top';
+        operation: 'left' | 'center-horizontal' | 'right' | 'top' | 'center-vertical' | 'bottom';
     };
     // (undocumented)
     'alt-text-start': null;
@@ -3771,7 +3781,7 @@ export interface TLUiEventMap {
     };
     // (undocumented)
     'change-page': {
-        direction?: 'next' | 'prev';
+        direction?: 'prev' | 'next';
     };
     // (undocumented)
     'change-user-name': null;
@@ -3789,7 +3799,7 @@ export interface TLUiEventMap {
     'convert-to-embed': null;
     // (undocumented)
     'copy-as': {
-        format: 'json' | 'png' | 'svg';
+        format: 'svg' | 'png' | 'json';
     };
     // (undocumented)
     'copy-link': null;
@@ -3821,11 +3831,11 @@ export interface TLUiEventMap {
     'exit-pen-mode': null;
     // (undocumented)
     'export-all-as': {
-        format: 'json' | 'png' | 'svg';
+        format: 'svg' | 'png' | 'json';
     };
     // (undocumented)
     'export-as': {
-        format: 'json' | 'png' | 'svg';
+        format: 'svg' | 'png' | 'json';
     };
     // (undocumented)
     'fit-frame-to-content': null;
@@ -3881,7 +3891,7 @@ export interface TLUiEventMap {
     'rename-page': null;
     // (undocumented)
     'reorder-shapes': {
-        operation: 'backward' | 'forward' | 'toBack' | 'toFront';
+        operation: 'toBack' | 'toFront' | 'forward' | 'backward';
     };
     // (undocumented)
     'replace-media': null;
@@ -3889,7 +3899,7 @@ export interface TLUiEventMap {
     'reset-zoom': null;
     // (undocumented)
     'rich-text': {
-        operation: 'bold' | 'bulletList' | 'heading' | 'link-edit' | 'link-remove' | 'link-visit' | 'link' | 'strike';
+        operation: 'bold' | 'strike' | 'link' | 'link-edit' | 'link-visit' | 'link-remove' | 'heading' | 'bulletList';
     };
     // (undocumented)
     'rotate-ccw': {
@@ -3903,7 +3913,7 @@ export interface TLUiEventMap {
     'save-project-to-file': null;
     // (undocumented)
     'select-adjacent-shape': {
-        direction: 'down' | 'left' | 'next' | 'prev' | 'right' | 'up';
+        direction: 'prev' | 'next' | 'left' | 'right' | 'up' | 'down';
     };
     // (undocumented)
     'select-all-shapes': null;
@@ -3920,7 +3930,7 @@ export interface TLUiEventMap {
     // (undocumented)
     'set-style': {
         id: string;
-        value: number | string;
+        value: string | number;
     };
     // (undocumented)
     'shrink-shapes': null;
@@ -4007,7 +4017,7 @@ export interface TLUiEventMap {
 }
 
 // @public (undocumented)
-export type TLUiEventSource = 'actions-menu' | 'context-menu' | 'debug-panel' | 'dialog' | 'document-name' | 'export-menu' | 'help-menu' | 'helper-buttons' | 'image-toolbar' | 'kbd' | 'main-menu' | 'menu' | 'navigation-zone' | 'page-menu' | 'people-menu' | 'quick-actions' | 'rich-text-menu' | 'share-menu' | 'style-panel' | 'toolbar' | 'unknown' | 'video-toolbar' | 'zoom-menu';
+export type TLUiEventSource = 'menu' | 'main-menu' | 'context-menu' | 'zoom-menu' | 'document-name' | 'navigation-zone' | 'quick-actions' | 'actions-menu' | 'kbd' | 'debug-panel' | 'page-menu' | 'share-menu' | 'export-menu' | 'toolbar' | 'people-menu' | 'dialog' | 'help-menu' | 'helper-buttons' | 'style-panel' | 'rich-text-menu' | 'image-toolbar' | 'video-toolbar' | 'unknown';
 
 // @public (undocumented)
 export interface TLUiHelperButtonsProps {
@@ -4033,7 +4043,7 @@ export interface TLUiIconProps extends React.HTMLAttributes<HTMLDivElement> {
     // (undocumented)
     crossOrigin?: 'anonymous' | 'use-credentials';
     // (undocumented)
-    icon: Exclude<string, TLUiIconType> | TLUiIconJsx | TLUiIconType;
+    icon: TLUiIconType | Exclude<string, TLUiIconType> | TLUiIconJsx;
     // (undocumented)
     invertIcon?: boolean;
     // (undocumented)
@@ -4068,13 +4078,13 @@ export interface TLUiInputProps {
     // (undocumented)
     disabled?: boolean;
     // (undocumented)
-    icon?: Exclude<string, TLUiIconType> | TLUiIconType;
+    icon?: TLUiIconType | Exclude<string, TLUiIconType>;
     // (undocumented)
-    iconLabel?: Exclude<string, TLUiTranslationKey> | TLUiTranslationKey;
+    iconLabel?: TLUiTranslationKey | Exclude<string, TLUiTranslationKey>;
     // (undocumented)
-    iconLeft?: Exclude<string, TLUiIconType> | TLUiIconType;
+    iconLeft?: TLUiIconType | Exclude<string, TLUiIconType>;
     // (undocumented)
-    label?: Exclude<string, TLUiTranslationKey> | TLUiTranslationKey;
+    label?: TLUiTranslationKey | Exclude<string, TLUiTranslationKey>;
     // (undocumented)
     onBlur?(value: string): void;
     // (undocumented)
@@ -4112,7 +4122,7 @@ export interface TLUiLayoutProps extends HTMLAttributes<HTMLDivElement> {
     // (undocumented)
     children: ReactNode;
     // (undocumented)
-    tooltipSide?: 'bottom' | 'left' | 'right' | 'top';
+    tooltipSide?: 'top' | 'right' | 'bottom' | 'left';
 }
 
 // @public (undocumented)
@@ -4124,7 +4134,7 @@ export interface TLUiMainMenuProps {
 // @public (undocumented)
 export type TLUiMenuActionCheckboxItemProps = {
     actionId?: string;
-} & Pick<TLUiMenuCheckboxItemProps, 'checked' | 'disabled' | 'toggle'>;
+} & Pick<TLUiMenuCheckboxItemProps, 'disabled' | 'checked' | 'toggle'>;
 
 // @public (undocumented)
 export type TLUiMenuActionItemProps = {
@@ -4144,9 +4154,9 @@ export interface TLUiMenuCheckboxItemProps<TranslationKey extends string = strin
     // (undocumented)
     kbd?: string;
     // (undocumented)
-    label?: {
+    label?: TranslationKey | {
         [key: string]: TranslationKey;
-    } | TranslationKey;
+    };
     // (undocumented)
     onSelect(source: TLUiEventSource): Promise<void> | void;
     // (undocumented)
@@ -4168,7 +4178,7 @@ export interface TLUiMenuContextProviderProps {
 }
 
 // @public (undocumented)
-export type TLUiMenuContextType = 'context-menu' | 'helper-buttons' | 'icons' | 'keyboard-shortcuts' | 'menu' | 'small-icons' | 'toolbar-overflow' | 'toolbar';
+export type TLUiMenuContextType = 'menu' | 'small-icons' | 'context-menu' | 'icons' | 'keyboard-shortcuts' | 'helper-buttons' | 'toolbar' | 'toolbar-overflow';
 
 // @public (undocumented)
 export interface TLUiMenuGroupProps<TranslationKey extends string = string> {
@@ -4178,9 +4188,9 @@ export interface TLUiMenuGroupProps<TranslationKey extends string = string> {
     className?: string;
     // (undocumented)
     id: string;
-    label?: {
+    label?: TranslationKey | {
         [key: string]: TranslationKey;
-    } | TranslationKey;
+    };
 }
 
 // @public (undocumented)
@@ -4192,9 +4202,9 @@ export interface TLUiMenuItemProps<TranslationKey extends string = string, IconT
     id: string;
     isSelected?: boolean;
     kbd?: string;
-    label?: {
+    label?: TranslationKey | {
         [key: string]: TranslationKey;
-    } | TranslationKey;
+    };
     noClose?: boolean;
     onDragStart?(source: TLUiEventSource, info: TLPointerEventInfo): void;
     onSelect(source: TLUiEventSource): Promise<void> | void;
@@ -4211,17 +4221,17 @@ export interface TLUiMenuSubmenuProps<Translation extends string = string> {
     // (undocumented)
     id: string;
     // (undocumented)
-    label?: {
+    label?: Translation | {
         [key: string]: Translation;
-    } | Translation;
+    };
     // (undocumented)
-    size?: 'medium' | 'small' | 'tiny' | 'wide';
+    size?: 'tiny' | 'small' | 'medium' | 'wide';
 }
 
 // @public (undocumented)
 export type TLUiMenuToolItemProps = {
     toolId?: string;
-} & Pick<TLUiMenuItemProps, 'disabled' | 'isSelected'>;
+} & Pick<TLUiMenuItemProps, 'isSelected' | 'disabled'>;
 
 // @public (undocumented)
 export type TLUiOverrideHelpers = ReturnType<typeof useDefaultHelpers>;
@@ -4239,7 +4249,7 @@ export interface TLUiOverrides {
 // @public (undocumented)
 export interface TLUiPopoverContentProps {
     // (undocumented)
-    align?: 'center' | 'end' | 'start';
+    align?: 'start' | 'center' | 'end';
     // (undocumented)
     alignOffset?: number;
     // (undocumented)
@@ -4249,7 +4259,7 @@ export interface TLUiPopoverContentProps {
     // (undocumented)
     disableEscapeKeyDown?: boolean;
     // (undocumented)
-    side: 'bottom' | 'left' | 'right' | 'top';
+    side: 'top' | 'bottom' | 'left' | 'right';
     // (undocumented)
     sideOffset?: number;
 }
@@ -4305,7 +4315,7 @@ export interface TLUiSliderProps {
     // (undocumented)
     title: string;
     // (undocumented)
-    value: null | number;
+    value: number | null;
 }
 
 // @public (undocumented)
@@ -4351,7 +4361,7 @@ export interface TLUiToastAction {
     // (undocumented)
     onClick(): void;
     // (undocumented)
-    type: 'danger' | 'normal' | 'primary';
+    type: 'primary' | 'danger' | 'normal';
 }
 
 // @public (undocumented)
@@ -4391,7 +4401,7 @@ export interface TLUiToolbarButtonProps extends React_3.HTMLAttributes<HTMLButto
     // (undocumented)
     tooltip?: string;
     // (undocumented)
-    type: 'icon' | 'menu' | 'tool';
+    type: 'icon' | 'tool' | 'menu';
 }
 
 // @public (undocumented)
@@ -4405,9 +4415,9 @@ export interface TLUiToolbarProps extends React_3.HTMLAttributes<HTMLDivElement>
     // (undocumented)
     label: string;
     // (undocumented)
-    orientation?: 'grid' | 'horizontal' | 'vertical';
+    orientation?: 'horizontal' | 'vertical' | 'grid';
     // (undocumented)
-    tooltipSide?: 'bottom' | 'left' | 'right' | 'top';
+    tooltipSide?: 'top' | 'right' | 'bottom' | 'left';
 }
 
 // @public (undocumented)
@@ -4421,7 +4431,7 @@ export interface TLUiToolbarToggleGroupProps extends React_3.HTMLAttributes<HTML
     // (undocumented)
     dir?: 'ltr' | 'rtl';
     // (undocumented)
-    type: 'multiple' | 'single';
+    type: 'single' | 'multiple';
     // (undocumented)
     value: any;
 }
@@ -4477,7 +4487,7 @@ export interface TLUiToolsProviderProps {
 // @public (undocumented)
 export interface TLUiTranslation {
     // (undocumented)
-    readonly dir: 'ltr' | 'rtl';
+    readonly dir: 'rtl' | 'ltr';
     // (undocumented)
     readonly label: string;
     // (undocumented)
@@ -4490,7 +4500,7 @@ export interface TLUiTranslation {
 export type TLUiTranslationContextType = TLUiTranslation;
 
 // @public (undocumented)
-export type TLUiTranslationKey = 'a11y.adjust-shape-styles' | 'a11y.enlarge-shape' | 'a11y.enter-leave-container' | 'a11y.move-shape-faster' | 'a11y.move-shape' | 'a11y.multiple-shapes' | 'a11y.open-context-menu' | 'a11y.open-keyboard-shortcuts' | 'a11y.pan-camera' | 'a11y.repeat-shape' | 'a11y.rotate-shape-ccw-fine' | 'a11y.rotate-shape-ccw' | 'a11y.rotate-shape-cw-fine' | 'a11y.rotate-shape-cw' | 'a11y.select-shape-direction' | 'a11y.select-shape' | 'a11y.shape-image' | 'a11y.shape-index' | 'a11y.shape-video' | 'a11y.shrink-shape' | 'a11y.skip-to-main-content' | 'a11y.status' | 'action.align-bottom' | 'action.align-center-horizontal.short' | 'action.align-center-horizontal' | 'action.align-center-vertical.short' | 'action.align-center-vertical' | 'action.align-left' | 'action.align-right' | 'action.align-top' | 'action.back-to-content' | 'action.bring-forward' | 'action.bring-to-front' | 'action.convert-to-bookmark' | 'action.convert-to-embed' | 'action.copy-as-png.short' | 'action.copy-as-png' | 'action.copy-as-svg.short' | 'action.copy-as-svg' | 'action.copy' | 'action.cut' | 'action.delete' | 'action.distribute-horizontal.short' | 'action.distribute-horizontal' | 'action.distribute-vertical.short' | 'action.distribute-vertical' | 'action.download-original' | 'action.duplicate' | 'action.edit-link' | 'action.exit-pen-mode' | 'action.export-all-as-png.short' | 'action.export-all-as-png' | 'action.export-all-as-svg.short' | 'action.export-all-as-svg' | 'action.export-as-png.short' | 'action.export-as-png' | 'action.export-as-svg.short' | 'action.export-as-svg' | 'action.fit-frame-to-content' | 'action.flatten-to-image' | 'action.flip-horizontal.short' | 'action.flip-horizontal' | 'action.flip-vertical.short' | 'action.flip-vertical' | 'action.fork-project-on-tldraw' | 'action.fork-project' | 'action.group' | 'action.insert-embed' | 'action.insert-media' | 'action.leave-shared-project' | 'action.new-project' | 'action.new-shared-project' | 'action.open-cursor-chat' | 'action.open-embed-link' | 'action.open-file' | 'action.open-kbd-shortcuts' | 'action.pack' | 'action.paste-error-description' | 'action.paste-error-title' | 'action.paste' | 'action.print' | 'action.redo' | 'action.remove-frame' | 'action.rename' | 'action.rotate-ccw' | 'action.rotate-cw' | 'action.save-copy' | 'action.select-all' | 'action.select-none' | 'action.send-backward' | 'action.send-to-back' | 'action.share-project' | 'action.stack-horizontal.short' | 'action.stack-horizontal' | 'action.stack-vertical.short' | 'action.stack-vertical' | 'action.stop-following' | 'action.stretch-horizontal.short' | 'action.stretch-horizontal' | 'action.stretch-vertical.short' | 'action.stretch-vertical' | 'action.toggle-auto-size' | 'action.toggle-dark-mode.menu' | 'action.toggle-dark-mode' | 'action.toggle-debug-mode.menu' | 'action.toggle-debug-mode' | 'action.toggle-dynamic-size-mode.menu' | 'action.toggle-dynamic-size-mode' | 'action.toggle-edge-scrolling.menu' | 'action.toggle-edge-scrolling' | 'action.toggle-focus-mode.menu' | 'action.toggle-focus-mode' | 'action.toggle-grid.menu' | 'action.toggle-grid' | 'action.toggle-keyboard-shortcuts.menu' | 'action.toggle-keyboard-shortcuts' | 'action.toggle-lock' | 'action.toggle-paste-at-cursor.menu' | 'action.toggle-paste-at-cursor' | 'action.toggle-reduce-motion.menu' | 'action.toggle-reduce-motion' | 'action.toggle-snap-mode.menu' | 'action.toggle-snap-mode' | 'action.toggle-tool-lock.menu' | 'action.toggle-tool-lock' | 'action.toggle-transparent.context-menu' | 'action.toggle-transparent.menu' | 'action.toggle-transparent' | 'action.toggle-ui-labels.menu' | 'action.toggle-ui-labels' | 'action.toggle-wrap-mode.menu' | 'action.toggle-wrap-mode' | 'action.undo' | 'action.ungroup' | 'action.unlock-all' | 'action.zoom-in' | 'action.zoom-out' | 'action.zoom-to-100' | 'action.zoom-to-fit' | 'action.zoom-to-selection' | 'actions-menu.title' | 'align-style.end' | 'align-style.justify' | 'align-style.middle' | 'align-style.start' | 'app.loading' | 'arrow-kind-style.arc' | 'arrow-kind-style.elbow' | 'arrowheadEnd-style.arrow' | 'arrowheadEnd-style.bar' | 'arrowheadEnd-style.diamond' | 'arrowheadEnd-style.dot' | 'arrowheadEnd-style.inverted' | 'arrowheadEnd-style.none' | 'arrowheadEnd-style.pipe' | 'arrowheadEnd-style.square' | 'arrowheadEnd-style.triangle' | 'arrowheadStart-style.arrow' | 'arrowheadStart-style.bar' | 'arrowheadStart-style.diamond' | 'arrowheadStart-style.dot' | 'arrowheadStart-style.inverted' | 'arrowheadStart-style.none' | 'arrowheadStart-style.pipe' | 'arrowheadStart-style.square' | 'arrowheadStart-style.triangle' | 'assets.files.amount-too-many' | 'assets.files.size-too-big' | 'assets.files.type-not-allowed' | 'assets.files.upload-failed' | 'assets.url.failed' | 'color-style.black' | 'color-style.blue' | 'color-style.green' | 'color-style.grey' | 'color-style.light-blue' | 'color-style.light-green' | 'color-style.light-red' | 'color-style.light-violet' | 'color-style.orange' | 'color-style.red' | 'color-style.violet' | 'color-style.white' | 'color-style.yellow' | 'context-menu.arrange' | 'context-menu.copy-as' | 'context-menu.edit' | 'context-menu.export-all-as' | 'context-menu.export-as' | 'context-menu.move-to-page' | 'context-menu.reorder' | 'context-menu.title' | 'context.pages.new-page' | 'cursor-chat.type-to-chat' | 'dash-style.dashed' | 'dash-style.dotted' | 'dash-style.draw' | 'dash-style.solid' | 'document-name-menu.copy-link' | 'document.default-name' | 'edit-link-dialog.cancel' | 'edit-link-dialog.clear' | 'edit-link-dialog.detail' | 'edit-link-dialog.external-link' | 'edit-link-dialog.invalid-url' | 'edit-link-dialog.save' | 'edit-link-dialog.title' | 'edit-link-dialog.url' | 'embed-dialog.back' | 'embed-dialog.cancel' | 'embed-dialog.create' | 'embed-dialog.instruction' | 'embed-dialog.invalid-url' | 'embed-dialog.title' | 'embed-dialog.url' | 'file-system.confirm-clear.cancel' | 'file-system.confirm-clear.continue' | 'file-system.confirm-clear.description' | 'file-system.confirm-clear.dont-show-again' | 'file-system.confirm-clear.title' | 'file-system.confirm-open.cancel' | 'file-system.confirm-open.description' | 'file-system.confirm-open.dont-show-again' | 'file-system.confirm-open.open' | 'file-system.confirm-open.title' | 'file-system.file-open-error.file-format-version-too-new' | 'file-system.file-open-error.generic-corrupted-file' | 'file-system.file-open-error.not-a-tldraw-file' | 'file-system.file-open-error.title' | 'file-system.shared-document-file-open-error.description' | 'file-system.shared-document-file-open-error.title' | 'fill-style.fill' | 'fill-style.none' | 'fill-style.pattern' | 'fill-style.semi' | 'fill-style.solid' | 'focus-mode.toggle-focus-mode' | 'font-style.draw' | 'font-style.mono' | 'font-style.sans' | 'font-style.serif' | 'geo-style.arrow-down' | 'geo-style.arrow-left' | 'geo-style.arrow-right' | 'geo-style.arrow-up' | 'geo-style.check-box' | 'geo-style.cloud' | 'geo-style.diamond' | 'geo-style.ellipse' | 'geo-style.heart' | 'geo-style.hexagon' | 'geo-style.octagon' | 'geo-style.oval' | 'geo-style.pentagon' | 'geo-style.rectangle' | 'geo-style.rhombus' | 'geo-style.star' | 'geo-style.trapezoid' | 'geo-style.triangle' | 'geo-style.x-box' | 'handle.crop.bottom-left' | 'handle.crop.bottom-right' | 'handle.crop.bottom' | 'handle.crop.left' | 'handle.crop.right' | 'handle.crop.top-left' | 'handle.crop.top-right' | 'handle.crop.top' | 'handle.resize-bottom-left' | 'handle.resize-bottom-right' | 'handle.resize-bottom' | 'handle.resize-left' | 'handle.resize-right' | 'handle.resize-top-left' | 'handle.resize-top-right' | 'handle.resize-top' | 'handle.rotate.bottom_left_rotate' | 'handle.rotate.bottom_right_rotate' | 'handle.rotate.mobile_rotate' | 'handle.rotate.top_left_rotate' | 'handle.rotate.top_right_rotate' | 'help-menu.about' | 'help-menu.discord' | 'help-menu.github' | 'help-menu.import-tldr-file' | 'help-menu.keyboard-shortcuts' | 'help-menu.privacy' | 'help-menu.terms' | 'help-menu.title' | 'help-menu.twitter' | 'menu.accessibility' | 'menu.copy-as' | 'menu.edit' | 'menu.export-as' | 'menu.file' | 'menu.language' | 'menu.preferences' | 'menu.theme' | 'menu.title' | 'menu.view' | 'navigation-zone.minimap' | 'navigation-zone.title' | 'navigation-zone.toggle-minimap' | 'navigation-zone.zoom' | 'opacity-style.0.1' | 'opacity-style.0.25' | 'opacity-style.0.5' | 'opacity-style.0.75' | 'opacity-style.1' | 'page-menu.create-new-page' | 'page-menu.edit-done' | 'page-menu.edit-start' | 'page-menu.go-to-page' | 'page-menu.max-page-count-reached' | 'page-menu.new-page-initial-name' | 'page-menu.submenu.delete' | 'page-menu.submenu.duplicate-page' | 'page-menu.submenu.move-down' | 'page-menu.submenu.move-up' | 'page-menu.submenu.rename' | 'page-menu.submenu.title' | 'page-menu.title' | 'people-menu.anonymous-user' | 'people-menu.avatar-color' | 'people-menu.change-color' | 'people-menu.change-name' | 'people-menu.follow' | 'people-menu.following' | 'people-menu.invite' | 'people-menu.leading' | 'people-menu.title' | 'people-menu.user' | 'share-menu.copied' | 'share-menu.copy-link-note' | 'share-menu.copy-link' | 'share-menu.copy-readonly-link-note' | 'share-menu.copy-readonly-link' | 'share-menu.create-snapshot-link' | 'share-menu.creating-project' | 'share-menu.fork-note' | 'share-menu.offline-note' | 'share-menu.project-too-large' | 'share-menu.save-note' | 'share-menu.share-project' | 'share-menu.snapshot-link-note' | 'share-menu.title' | 'share-menu.upload-failed' | 'sharing.confirm-leave.cancel' | 'sharing.confirm-leave.description' | 'sharing.confirm-leave.dont-show-again' | 'sharing.confirm-leave.leave' | 'sharing.confirm-leave.title' | 'shortcuts-dialog.a11y' | 'shortcuts-dialog.collaboration' | 'shortcuts-dialog.edit' | 'shortcuts-dialog.file' | 'shortcuts-dialog.preferences' | 'shortcuts-dialog.text-formatting' | 'shortcuts-dialog.title' | 'shortcuts-dialog.tools' | 'shortcuts-dialog.transform' | 'shortcuts-dialog.view' | 'size-style.l' | 'size-style.m' | 'size-style.s' | 'size-style.xl' | 'spline-style.cubic' | 'spline-style.line' | 'status.offline' | 'style-panel.align' | 'style-panel.arrow-kind' | 'style-panel.arrowhead-end' | 'style-panel.arrowhead-start' | 'style-panel.arrowheads' | 'style-panel.color' | 'style-panel.dash' | 'style-panel.fill' | 'style-panel.font' | 'style-panel.geo' | 'style-panel.label-align' | 'style-panel.mixed' | 'style-panel.opacity' | 'style-panel.position' | 'style-panel.size' | 'style-panel.spline' | 'style-panel.title' | 'style-panel.vertical-align' | 'theme.dark' | 'theme.light' | 'theme.system' | 'toast.close' | 'toast.error.copy-fail.desc' | 'toast.error.copy-fail.title' | 'toast.error.export-fail.desc' | 'toast.error.export-fail.title' | 'toast.error' | 'toast.info' | 'toast.success' | 'toast.warning' | 'tool-panel.more' | 'tool-panel.title' | 'tool.arrow-down' | 'tool.arrow-left' | 'tool.arrow-right' | 'tool.arrow-up' | 'tool.arrow' | 'tool.aspect-ratio.circle' | 'tool.aspect-ratio.landscape' | 'tool.aspect-ratio.original' | 'tool.aspect-ratio.portrait' | 'tool.aspect-ratio.square' | 'tool.aspect-ratio.wide' | 'tool.aspect-ratio' | 'tool.bookmark' | 'tool.check-box' | 'tool.cloud' | 'tool.diamond' | 'tool.draw' | 'tool.ellipse' | 'tool.embed' | 'tool.eraser' | 'tool.flip-horz' | 'tool.flip-vert' | 'tool.frame' | 'tool.hand' | 'tool.heart' | 'tool.hexagon' | 'tool.highlight' | 'tool.image-crop' | 'tool.image-toolbar-title' | 'tool.image-zoom' | 'tool.laser' | 'tool.line' | 'tool.media-alt-text-confirm' | 'tool.media-alt-text-desc' | 'tool.media-alt-text' | 'tool.media' | 'tool.note' | 'tool.octagon' | 'tool.oval' | 'tool.pentagon' | 'tool.pointer-down' | 'tool.rectangle' | 'tool.replace-media' | 'tool.rhombus' | 'tool.rich-text-bold' | 'tool.rich-text-bulletList' | 'tool.rich-text-code' | 'tool.rich-text-header' | 'tool.rich-text-highlight' | 'tool.rich-text-italic' | 'tool.rich-text-link-remove' | 'tool.rich-text-link-visit' | 'tool.rich-text-link' | 'tool.rich-text-orderedList' | 'tool.rich-text-strikethrough' | 'tool.rich-text-toolbar-title' | 'tool.rotate-cw' | 'tool.select' | 'tool.star' | 'tool.text' | 'tool.trapezoid' | 'tool.triangle' | 'tool.x-box' | 'ui.checked' | 'ui.close' | 'ui.unchecked' | 'verticalAlign-style.end' | 'verticalAlign-style.middle' | 'verticalAlign-style.start' | 'vscode.file-open.backup-failed' | 'vscode.file-open.backup-saved' | 'vscode.file-open.backup' | 'vscode.file-open.desc' | 'vscode.file-open.dont-show-again' | 'vscode.file-open.open';
+export type TLUiTranslationKey = 'action.convert-to-bookmark' | 'action.convert-to-embed' | 'action.open-embed-link' | 'action.align-bottom' | 'action.align-center-horizontal' | 'action.align-center-vertical' | 'action.align-center-horizontal.short' | 'action.align-center-vertical.short' | 'action.align-left' | 'action.align-right' | 'action.align-top' | 'action.back-to-content' | 'action.bring-forward' | 'action.bring-to-front' | 'action.copy-as-png.short' | 'action.copy-as-png' | 'action.copy-as-svg.short' | 'action.copy-as-svg' | 'action.copy' | 'action.cut' | 'action.delete' | 'action.unlock-all' | 'action.distribute-horizontal' | 'action.distribute-vertical' | 'action.distribute-horizontal.short' | 'action.distribute-vertical.short' | 'action.download-original' | 'action.duplicate' | 'action.edit-link' | 'action.exit-pen-mode' | 'action.export-as-png.short' | 'action.export-as-png' | 'action.export-as-svg.short' | 'action.export-as-svg' | 'action.export-all-as-png.short' | 'action.export-all-as-png' | 'action.export-all-as-svg.short' | 'action.export-all-as-svg' | 'action.fit-frame-to-content' | 'action.flip-horizontal' | 'action.flip-vertical' | 'action.flip-horizontal.short' | 'action.flip-vertical.short' | 'action.fork-project' | 'action.fork-project-on-tldraw' | 'action.group' | 'action.insert-embed' | 'action.insert-media' | 'action.leave-shared-project' | 'action.new-project' | 'action.new-shared-project' | 'action.open-cursor-chat' | 'action.open-kbd-shortcuts' | 'action.open-file' | 'action.pack' | 'action.paste' | 'action.paste-error-title' | 'action.paste-error-description' | 'action.print' | 'action.redo' | 'action.remove-frame' | 'action.rename' | 'action.rotate-ccw' | 'action.rotate-cw' | 'action.save-copy' | 'action.select-all' | 'action.select-none' | 'action.send-backward' | 'action.send-to-back' | 'action.share-project' | 'action.stack-horizontal' | 'action.stack-vertical' | 'action.stack-horizontal.short' | 'action.stack-vertical.short' | 'action.stop-following' | 'action.stretch-horizontal' | 'action.stretch-vertical' | 'action.stretch-horizontal.short' | 'action.stretch-vertical.short' | 'action.toggle-auto-size' | 'action.toggle-dark-mode.menu' | 'action.toggle-dark-mode' | 'action.toggle-paste-at-cursor.menu' | 'action.toggle-paste-at-cursor' | 'action.toggle-wrap-mode.menu' | 'action.toggle-wrap-mode' | 'action.toggle-reduce-motion.menu' | 'action.toggle-reduce-motion' | 'action.toggle-keyboard-shortcuts.menu' | 'action.toggle-keyboard-shortcuts' | 'action.toggle-ui-labels.menu' | 'action.toggle-ui-labels' | 'action.toggle-edge-scrolling.menu' | 'action.toggle-edge-scrolling' | 'action.toggle-debug-mode.menu' | 'action.toggle-debug-mode' | 'action.toggle-focus-mode.menu' | 'action.toggle-focus-mode' | 'action.toggle-dynamic-size-mode.menu' | 'action.toggle-dynamic-size-mode' | 'action.toggle-grid.menu' | 'action.toggle-grid' | 'action.toggle-lock' | 'action.flatten-to-image' | 'action.toggle-snap-mode.menu' | 'action.toggle-snap-mode' | 'action.toggle-tool-lock.menu' | 'action.toggle-tool-lock' | 'action.toggle-transparent.context-menu' | 'action.toggle-transparent.menu' | 'action.toggle-transparent' | 'action.undo' | 'action.ungroup' | 'action.zoom-in' | 'action.zoom-out' | 'action.zoom-to-100' | 'action.zoom-to-fit' | 'action.zoom-to-selection' | 'assets.files.size-too-big' | 'assets.files.type-not-allowed' | 'assets.files.upload-failed' | 'assets.files.amount-too-many' | 'assets.url.failed' | 'theme.dark' | 'theme.light' | 'theme.system' | 'color-style.white' | 'color-style.black' | 'color-style.blue' | 'color-style.green' | 'color-style.grey' | 'color-style.light-blue' | 'color-style.light-green' | 'color-style.light-red' | 'color-style.light-violet' | 'color-style.orange' | 'color-style.red' | 'color-style.violet' | 'color-style.yellow' | 'fill-style.none' | 'document.default-name' | 'fill-style.semi' | 'fill-style.solid' | 'fill-style.pattern' | 'fill-style.fill' | 'dash-style.dashed' | 'dash-style.dotted' | 'dash-style.draw' | 'dash-style.solid' | 'size-style.s' | 'size-style.m' | 'size-style.l' | 'size-style.xl' | 'opacity-style.0.1' | 'opacity-style.0.25' | 'opacity-style.0.5' | 'opacity-style.0.75' | 'opacity-style.1' | 'font-style.draw' | 'font-style.sans' | 'font-style.serif' | 'font-style.mono' | 'align-style.start' | 'align-style.middle' | 'align-style.end' | 'align-style.justify' | 'verticalAlign-style.start' | 'verticalAlign-style.middle' | 'verticalAlign-style.end' | 'geo-style.arrow-down' | 'geo-style.arrow-left' | 'geo-style.arrow-right' | 'geo-style.arrow-up' | 'geo-style.cloud' | 'geo-style.diamond' | 'geo-style.ellipse' | 'geo-style.heart' | 'geo-style.hexagon' | 'geo-style.octagon' | 'geo-style.oval' | 'geo-style.pentagon' | 'geo-style.rectangle' | 'geo-style.rhombus' | 'geo-style.star' | 'geo-style.trapezoid' | 'geo-style.triangle' | 'geo-style.x-box' | 'geo-style.check-box' | 'arrowheadStart-style.none' | 'arrowheadStart-style.arrow' | 'arrowheadStart-style.bar' | 'arrowheadStart-style.diamond' | 'arrowheadStart-style.dot' | 'arrowheadStart-style.inverted' | 'arrowheadStart-style.pipe' | 'arrowheadStart-style.square' | 'arrowheadStart-style.triangle' | 'arrowheadEnd-style.none' | 'arrowheadEnd-style.arrow' | 'arrowheadEnd-style.bar' | 'arrowheadEnd-style.diamond' | 'arrowheadEnd-style.dot' | 'arrowheadEnd-style.inverted' | 'arrowheadEnd-style.pipe' | 'arrowheadEnd-style.square' | 'arrowheadEnd-style.triangle' | 'spline-style.line' | 'spline-style.cubic' | 'arrow-kind-style.arc' | 'arrow-kind-style.elbow' | 'tool.select' | 'tool.hand' | 'tool.draw' | 'tool.eraser' | 'tool.arrow-down' | 'tool.arrow-left' | 'tool.arrow-right' | 'tool.arrow-up' | 'tool.arrow' | 'tool.cloud' | 'tool.diamond' | 'tool.ellipse' | 'tool.heart' | 'tool.hexagon' | 'tool.highlight' | 'tool.line' | 'tool.octagon' | 'tool.oval' | 'tool.pentagon' | 'tool.rectangle' | 'tool.rhombus' | 'tool.star' | 'tool.trapezoid' | 'tool.triangle' | 'tool.x-box' | 'tool.check-box' | 'tool.media' | 'tool.frame' | 'tool.note' | 'tool.laser' | 'tool.embed' | 'tool.text' | 'tool.pointer-down' | 'tool.image-zoom' | 'tool.replace-media' | 'tool.flip-horz' | 'tool.flip-vert' | 'tool.rotate-cw' | 'tool.aspect-ratio' | 'tool.aspect-ratio.original' | 'tool.aspect-ratio.square' | 'tool.aspect-ratio.circle' | 'tool.aspect-ratio.landscape' | 'tool.aspect-ratio.portrait' | 'tool.aspect-ratio.wide' | 'tool.image-toolbar-title' | 'tool.image-crop' | 'tool.media-alt-text' | 'tool.media-alt-text-desc' | 'tool.media-alt-text-confirm' | 'tool.rich-text-bold' | 'tool.rich-text-italic' | 'tool.rich-text-code' | 'tool.rich-text-highlight' | 'tool.rich-text-strikethrough' | 'tool.rich-text-link' | 'tool.rich-text-link-visit' | 'tool.rich-text-link-remove' | 'tool.rich-text-header' | 'tool.rich-text-bulletList' | 'tool.rich-text-toolbar-title' | 'tool.rich-text-orderedList' | 'tool.bookmark' | 'a11y.status' | 'a11y.skip-to-main-content' | 'a11y.shape-index' | 'a11y.shape-image' | 'a11y.shape-video' | 'a11y.multiple-shapes' | 'a11y.select-shape' | 'a11y.select-shape-direction' | 'a11y.enter-leave-container' | 'a11y.repeat-shape' | 'a11y.move-shape' | 'a11y.move-shape-faster' | 'a11y.rotate-shape-cw' | 'a11y.rotate-shape-ccw' | 'a11y.rotate-shape-cw-fine' | 'a11y.rotate-shape-ccw-fine' | 'a11y.enlarge-shape' | 'a11y.shrink-shape' | 'a11y.pan-camera' | 'a11y.adjust-shape-styles' | 'a11y.open-context-menu' | 'a11y.open-keyboard-shortcuts' | 'menu.title' | 'menu.theme' | 'menu.accessibility' | 'menu.copy-as' | 'menu.edit' | 'menu.export-as' | 'menu.file' | 'menu.language' | 'menu.preferences' | 'menu.view' | 'context-menu.title' | 'context-menu.edit' | 'context-menu.arrange' | 'context-menu.copy-as' | 'context-menu.export-as' | 'context-menu.export-all-as' | 'context-menu.move-to-page' | 'context-menu.reorder' | 'page-menu.title' | 'page-menu.create-new-page' | 'page-menu.max-page-count-reached' | 'page-menu.new-page-initial-name' | 'page-menu.edit-start' | 'page-menu.edit-done' | 'page-menu.go-to-page' | 'page-menu.submenu.rename' | 'page-menu.submenu.duplicate-page' | 'page-menu.submenu.title' | 'page-menu.submenu.move-down' | 'page-menu.submenu.move-up' | 'page-menu.submenu.delete' | 'share-menu.title' | 'share-menu.save-note' | 'share-menu.fork-note' | 'share-menu.share-project' | 'share-menu.copy-link' | 'share-menu.create-snapshot-link' | 'share-menu.snapshot-link-note' | 'share-menu.copy-readonly-link' | 'share-menu.offline-note' | 'share-menu.copy-link-note' | 'share-menu.copy-readonly-link-note' | 'share-menu.project-too-large' | 'share-menu.upload-failed' | 'share-menu.creating-project' | 'share-menu.copied' | 'document-name-menu.copy-link' | 'status.offline' | 'people-menu.title' | 'people-menu.change-name' | 'people-menu.avatar-color' | 'people-menu.change-color' | 'people-menu.follow' | 'people-menu.following' | 'people-menu.leading' | 'people-menu.user' | 'people-menu.invite' | 'people-menu.anonymous-user' | 'help-menu.import-tldr-file' | 'help-menu.title' | 'help-menu.about' | 'help-menu.discord' | 'help-menu.github' | 'help-menu.keyboard-shortcuts' | 'help-menu.twitter' | 'help-menu.terms' | 'help-menu.privacy' | 'actions-menu.title' | 'edit-link-dialog.title' | 'edit-link-dialog.invalid-url' | 'edit-link-dialog.detail' | 'edit-link-dialog.url' | 'edit-link-dialog.clear' | 'edit-link-dialog.save' | 'edit-link-dialog.cancel' | 'edit-link-dialog.external-link' | 'embed-dialog.title' | 'embed-dialog.back' | 'embed-dialog.create' | 'embed-dialog.cancel' | 'embed-dialog.url' | 'embed-dialog.instruction' | 'embed-dialog.invalid-url' | 'shortcuts-dialog.title' | 'shortcuts-dialog.edit' | 'shortcuts-dialog.file' | 'shortcuts-dialog.preferences' | 'shortcuts-dialog.tools' | 'shortcuts-dialog.transform' | 'shortcuts-dialog.view' | 'shortcuts-dialog.collaboration' | 'shortcuts-dialog.a11y' | 'shortcuts-dialog.text-formatting' | 'style-panel.title' | 'style-panel.align' | 'style-panel.label-align' | 'style-panel.vertical-align' | 'style-panel.position' | 'style-panel.arrowheads' | 'style-panel.arrowhead-start' | 'style-panel.arrowhead-end' | 'style-panel.arrow-kind' | 'style-panel.color' | 'style-panel.dash' | 'style-panel.fill' | 'style-panel.font' | 'style-panel.geo' | 'style-panel.mixed' | 'style-panel.opacity' | 'style-panel.size' | 'style-panel.spline' | 'tool-panel.title' | 'tool-panel.more' | 'navigation-zone.title' | 'navigation-zone.minimap' | 'navigation-zone.toggle-minimap' | 'navigation-zone.zoom' | 'focus-mode.toggle-focus-mode' | 'toast.close' | 'toast.success' | 'toast.error' | 'toast.info' | 'toast.warning' | 'file-system.file-open-error.title' | 'file-system.file-open-error.not-a-tldraw-file' | 'file-system.file-open-error.file-format-version-too-new' | 'file-system.file-open-error.generic-corrupted-file' | 'file-system.confirm-open.title' | 'file-system.confirm-open.description' | 'file-system.confirm-open.cancel' | 'file-system.confirm-open.open' | 'file-system.confirm-open.dont-show-again' | 'file-system.confirm-clear.title' | 'file-system.confirm-clear.description' | 'file-system.confirm-clear.cancel' | 'file-system.confirm-clear.continue' | 'file-system.confirm-clear.dont-show-again' | 'file-system.shared-document-file-open-error.title' | 'file-system.shared-document-file-open-error.description' | 'sharing.confirm-leave.title' | 'sharing.confirm-leave.description' | 'sharing.confirm-leave.cancel' | 'sharing.confirm-leave.leave' | 'sharing.confirm-leave.dont-show-again' | 'toast.error.export-fail.title' | 'toast.error.export-fail.desc' | 'toast.error.copy-fail.title' | 'toast.error.copy-fail.desc' | 'context.pages.new-page' | 'vscode.file-open.desc' | 'vscode.file-open.open' | 'vscode.file-open.backup' | 'vscode.file-open.backup-saved' | 'vscode.file-open.backup-failed' | 'vscode.file-open.dont-show-again' | 'cursor-chat.type-to-chat' | 'app.loading' | 'handle.resize-top' | 'handle.resize-bottom' | 'handle.resize-left' | 'handle.resize-right' | 'handle.resize-top-left' | 'handle.resize-top-right' | 'handle.resize-bottom-left' | 'handle.resize-bottom-right' | 'handle.rotate.top_left_rotate' | 'handle.rotate.top_right_rotate' | 'handle.rotate.bottom_left_rotate' | 'handle.rotate.bottom_right_rotate' | 'handle.rotate.mobile_rotate' | 'handle.crop.top' | 'handle.crop.bottom' | 'handle.crop.left' | 'handle.crop.right' | 'handle.crop.top-left' | 'handle.crop.top-right' | 'handle.crop.bottom-left' | 'handle.crop.bottom-right' | 'ui.close' | 'ui.checked' | 'ui.unchecked';
 
 // @public (undocumented)
 export interface TLUiTranslationProviderProps {
@@ -4541,15 +4551,15 @@ export interface TLV1ArrowShape extends TLV1BaseShape {
     bend: number;
     // (undocumented)
     decorations?: {
+        start?: TLV1Decoration;
         end?: TLV1Decoration;
         middle?: TLV1Decoration;
-        start?: TLV1Decoration;
     };
     // (undocumented)
     handles: {
+        start: TLV1Handle;
         bend: TLV1Handle;
         end: TLV1Handle;
-        start: TLV1Handle;
     };
     // (undocumented)
     label?: string;
@@ -4806,22 +4816,22 @@ export interface TLV1Page {
 // @internal (undocumented)
 export interface TLV1PageState {
     // (undocumented)
-    bindingId?: null | string;
+    bindingId?: string | null;
     // (undocumented)
-    brush?: null | TLV1Bounds;
+    brush?: TLV1Bounds | null;
     // (undocumented)
     camera: {
         point: number[];
         zoom: number;
     };
     // (undocumented)
-    editingId?: null | string;
+    editingId?: string | null;
     // (undocumented)
-    hoveredId?: null | string;
+    hoveredId?: string | null;
     // (undocumented)
     id: string;
     // (undocumented)
-    pointedId?: null | string;
+    pointedId?: string | null;
     // (undocumented)
     selectedIds: string[];
 }
@@ -4839,7 +4849,7 @@ export interface TLV1RectangleShape extends TLV1BaseShape {
 }
 
 // @internal (undocumented)
-export type TLV1Shape = TLV1ArrowShape | TLV1DrawShape | TLV1EllipseShape | TLV1GroupShape | TLV1ImageShape | TLV1RectangleShape | TLV1StickyShape | TLV1TextShape | TLV1TriangleShape | TLV1VideoShape;
+export type TLV1Shape = TLV1RectangleShape | TLV1EllipseShape | TLV1TriangleShape | TLV1DrawShape | TLV1ArrowShape | TLV1TextShape | TLV1GroupShape | TLV1StickyShape | TLV1ImageShape | TLV1VideoShape;
 
 // @internal (undocumented)
 export interface TLV1ShapeStyles {
@@ -5055,7 +5065,7 @@ export function useCanRedo(): boolean;
 export function useCanUndo(): boolean;
 
 // @public (undocumented)
-export function useCollaborationStatus(): "offline" | "online" | null;
+export function useCollaborationStatus(): "online" | "offline" | null;
 
 // @public (undocumented)
 export function useCopyAs(): (ids: TLShapeId[], format?: TLCopyType) => void;
@@ -5086,28 +5096,28 @@ export function useDefaultColorTheme(): {
 
 // @public (undocumented)
 export function useDefaultHelpers(): {
-    addDialog: (dialog: Omit<TLUiDialog, "id"> & {
-        id?: string;
-    }) => string;
     addToast: (toast: Omit<TLUiToast, "id"> & {
         id?: string;
     }) => string;
-    clearDialogs: () => void;
-    clearToasts: () => void;
-    copy: (source: TLUiEventSource) => Promise<void>;
-    copyAs: (ids: TLShapeId[], format?: TLCopyType) => void;
-    cut: (source: TLUiEventSource) => Promise<void>;
-    exportAs: (ids: TLShapeId[], format: TLExportType | undefined, name: string | undefined) => void;
-    getEmbedDefinition: (url: string) => TLEmbedResult;
-    insertMedia: () => Promise<void>;
-    isMobile: boolean;
-    msg: (id?: Exclude<string, TLUiTranslationKey> | string) => string;
-    paste: (data: ClipboardItem[] | DataTransfer, source: TLUiEventSource, point?: VecLike) => Promise<void>;
-    printSelectionOrPages: () => Promise<void>;
-    removeDialog: (id: string) => string;
     removeToast: (id: TLUiToast["id"]) => string;
+    clearToasts: () => void;
+    addDialog: (dialog: Omit<TLUiDialog, "id"> & {
+        id?: string;
+    }) => string;
+    removeDialog: (id: string) => string;
+    clearDialogs: () => void;
+    msg: (id?: Exclude<string, TLUiTranslationKey> | string) => string;
+    isMobile: boolean;
+    insertMedia: () => Promise<void>;
     replaceImage: () => Promise<void>;
     replaceVideo: () => Promise<void>;
+    printSelectionOrPages: () => Promise<void>;
+    cut: (source: TLUiEventSource) => Promise<void>;
+    copy: (source: TLUiEventSource) => Promise<void>;
+    paste: (data: DataTransfer | ClipboardItem[], source: TLUiEventSource, point?: VecLike) => Promise<void>;
+    copyAs: (ids: TLShapeId[], format?: TLCopyType) => void;
+    exportAs: (ids: TLShapeId[], format: TLExportType | undefined, name: string | undefined) => void;
+    getEmbedDefinition: (url: string) => TLEmbedResult;
 };
 
 // @public (undocumented)
@@ -5173,13 +5183,13 @@ export function useIsToolSelected(tool: TLUiToolItem | undefined): boolean;
 export function useKeyboardShortcuts(): void;
 
 // @public (undocumented)
-export function useLocalStorageState<T = any>(key: string, defaultValue: T): readonly [T, (setter: ((value: T) => T) | T) => void];
+export function useLocalStorageState<T = any>(key: string, defaultValue: T): readonly [T, (setter: T | ((value: T) => T)) => void];
 
 // @public (undocumented)
 export function useMenuClipboardEvents(): {
     copy: (source: TLUiEventSource) => Promise<void>;
     cut: (source: TLUiEventSource) => Promise<void>;
-    paste: (data: ClipboardItem[] | DataTransfer, source: TLUiEventSource, point?: VecLike) => Promise<void>;
+    paste: (data: DataTransfer | ClipboardItem[], source: TLUiEventSource, point?: VecLike) => Promise<void>;
 };
 
 // @public (undocumented)
@@ -5195,7 +5205,7 @@ export function usePrefersReducedMotion(): boolean;
 export function useReadonly(): boolean;
 
 // @public (undocumented)
-export function useRelevantStyles(stylesToCheck?: readonly StyleProp<any>[]): null | ReadonlySharedStyleMap;
+export function useRelevantStyles(stylesToCheck?: readonly StyleProp<any>[]): ReadonlySharedStyleMap | null;
 
 // @public (undocumented)
 export const useSelectedShapesAnnouncer: () => void;
@@ -5222,7 +5232,7 @@ export function useTranslation(): (id?: Exclude<string, TLUiTranslationKey> | st
 export function useUiEvents(): TLUiEventContextType;
 
 // @public
-export function useUnlockedSelectedShapesCount(min?: number, max?: number): boolean | number;
+export function useUnlockedSelectedShapesCount(min?: number, max?: number): number | boolean;
 
 // @public (undocumented)
 export interface VideoShapeOptions {
