@@ -11,6 +11,7 @@ export const FLAGS = {
 	PERPETUAL_LICENSE: 0x2,
 	INTERNAL_LICENSE: 0x4,
 	WITH_WATERMARK: 0x8,
+	EVALUATION_LICENSE: 0x10,
 }
 const HIGHEST_FLAG = Math.max(...Object.values(FLAGS))
 
@@ -61,6 +62,9 @@ export interface ValidLicenseKeyResult {
 	isPerpetualLicenseExpired: boolean
 	isInternalLicense: boolean
 	isLicensedWithWatermark: boolean
+	isEvaluationLicense: boolean
+	isEvaluationLicenseExpired: boolean
+	daysSinceExpiry: number
 }
 
 /** @internal */
@@ -73,7 +77,7 @@ export class LicenseManager {
 	public isDevelopment: boolean
 	public isTest: boolean
 	public isCryptoAvailable: boolean
-	state = atom<'pending' | 'licensed' | 'licensed-with-watermark' | 'unlicensed'>(
+	state = atom<'pending' | 'licensed' | 'licensed-with-watermark' | 'unlicensed' | 'expired'>(
 		'license state',
 		'pending'
 	)
@@ -98,10 +102,35 @@ export class LicenseManager {
 
 			if (isUnlicensed) {
 				this.state.set('unlicensed')
-			} else if ((result as ValidLicenseKeyResult).isLicensedWithWatermark) {
-				this.state.set('licensed-with-watermark')
 			} else {
-				this.state.set('licensed')
+				const validResult = result as ValidLicenseKeyResult
+
+				// Check if evaluation license is expired (no grace period)
+				if (validResult.isEvaluationLicense && validResult.isEvaluationLicenseExpired) {
+					this.state.set('expired')
+					throw new Error('License: Evaluation license has expired.')
+				}
+				// Check if regular license is in grace period or expired
+				else if (validResult.isAnnualLicenseExpired || validResult.isPerpetualLicenseExpired) {
+					const daysSinceExpiry = validResult.daysSinceExpiry
+					if (daysSinceExpiry <= 30) {
+						// 0-30 days: no watermark (still licensed)
+						this.state.set('licensed')
+					} else if (daysSinceExpiry <= 60) {
+						// 31-60 days: ugly watermark
+						this.state.set('licensed-with-watermark')
+					} else {
+						// 60+ days: expired
+						this.state.set('expired')
+						throw new Error('License: License has been expired for more than 60 days.')
+					}
+				}
+				// Check if has watermark flag or evaluation license (not expired)
+				else if (validResult.isLicensedWithWatermark || validResult.isEvaluationLicense) {
+					this.state.set('licensed-with-watermark')
+				} else {
+					this.state.set('licensed')
+				}
 			}
 		})
 	}
@@ -203,6 +232,9 @@ export class LicenseManager {
 			const isAnnualLicense = this.isFlagEnabled(licenseInfo.flags, FLAGS.ANNUAL_LICENSE)
 			const isPerpetualLicense = this.isFlagEnabled(licenseInfo.flags, FLAGS.PERPETUAL_LICENSE)
 
+			const isEvaluationLicense = this.isFlagEnabled(licenseInfo.flags, FLAGS.EVALUATION_LICENSE)
+			const daysSinceExpiry = this.getDaysSinceExpiry(expiryDate)
+
 			const result: ValidLicenseKeyResult = {
 				license: licenseInfo,
 				isLicenseParseable: true,
@@ -215,6 +247,10 @@ export class LicenseManager {
 				isPerpetualLicenseExpired: isPerpetualLicense && this.isPerpetualLicenseExpired(expiryDate),
 				isInternalLicense: this.isFlagEnabled(licenseInfo.flags, FLAGS.INTERNAL_LICENSE),
 				isLicensedWithWatermark: this.isFlagEnabled(licenseInfo.flags, FLAGS.WITH_WATERMARK),
+				isEvaluationLicense,
+				isEvaluationLicenseExpired:
+					isEvaluationLicense && this.isEvaluationLicenseExpired(expiryDate),
+				daysSinceExpiry,
 			}
 			this.outputLicenseInfoIfNeeded(result)
 
@@ -299,6 +335,21 @@ export class LicenseManager {
 		}
 		// We allow patch releases, but the major and minor releases should be within the expiration date
 		return dates.major >= expiration || dates.minor >= expiration
+	}
+
+	private getDaysSinceExpiry(expiryDate: Date): number {
+		const now = new Date()
+		const expiration = this.getExpirationDateWithoutGracePeriod(expiryDate)
+		const diffTime = now.getTime() - expiration.getTime()
+		const diffDays = Math.floor(diffTime / (1000 * 60 * 60 * 24))
+		return Math.max(0, diffDays)
+	}
+
+	private isEvaluationLicenseExpired(expiryDate: Date): boolean {
+		// Evaluation licenses have no grace period - they expire immediately
+		const now = new Date()
+		const expiration = this.getExpirationDateWithoutGracePeriod(expiryDate)
+		return now >= expiration
 	}
 
 	private isFlagEnabled(flags: number, flag: number) {
