@@ -38,6 +38,34 @@ export const DEFAULT_EMBED_DEFINITIONS = [
 		},
 	},
 	{
+		type: 'hoppscotch',
+		title: 'Hoppscotch',
+		hostnames: ['hopp.sh'],
+		width: 720,
+		height: 500,
+		doesResize: true,
+		instructionLink:
+			'https://docs.hoppscotch.io/documentation/features/widgets#create-a-shared-request%3A',
+		toEmbedUrl: (url) => {
+			const urlObj = safeParseUrl(url)
+			if (!urlObj) return
+			const matches = urlObj && urlObj.pathname.match(/\/r\/(.+)\/?/)
+			if (matches) {
+				return `https://hopp.sh/e/${matches[1]}`
+			}
+			return
+		},
+		fromEmbedUrl: (url) => {
+			const urlObj = safeParseUrl(url)
+			if (!urlObj) return
+			const matches = urlObj && urlObj.pathname.match(/\/e\/(.+)\/?/)
+			if (matches) {
+				return `https://hopp.sh/r/${matches[1]}`
+			}
+			return
+		},
+	},
+	{
 		type: 'datadog',
 		title: 'Datadog',
 		hostnames: ['p.datadoghq.eu', 'p.datadoghq.com'],
