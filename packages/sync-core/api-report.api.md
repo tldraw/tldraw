@@ -454,6 +454,7 @@ export class TLSyncClient<R extends UnknownRecord, S extends Store<R> = Store<R>
     incomingDiffBuffer: TLSocketServerSentDataEvent<R>[];
     // (undocumented)
     isConnectedToRoom: boolean;
+    isSoloMode: boolean;
     // (undocumented)
     lastPushedPresenceState: null | R;
     // (undocumented)
