@@ -243,6 +243,7 @@ export type AssetUrls = {
 	embedIcons: {
 		codepen: string
 		codesandbox: string
+		datadog: string
 		desmos: string
 		excalidraw: string
 		felt: string

@@ -25,6 +25,7 @@ import { Geometry2dFilters } from '@tldraw/editor';
 import { Geometry2dOptions } from '@tldraw/editor';
 import { Group2d } from '@tldraw/editor';
 import { HandleSnapGeometry } from '@tldraw/editor';
+import type { HTMLAttributeReferrerPolicy } from 'react';
 import { HTMLAttributes } from 'react';
 import { IndexKey } from '@tldraw/editor';
 import { JsonObject } from '@tldraw/editor';
@@ -598,6 +599,17 @@ export const DEFAULT_EMBED_DEFINITIONS: readonly [{
     readonly title: "tldraw";
     readonly toEmbedUrl: (url: string) => string | undefined;
     readonly type: "tldraw";
+    readonly width: 720;
+}, {
+    readonly doesResize: true;
+    readonly fromEmbedUrl: (url: string) => string;
+    readonly height: 500;
+    readonly hostnames: readonly ["p.datadoghq.eu", "p.datadoghq.com"];
+    readonly instructionLink: "https://docs.datadoghq.com/dashboards/sharing/shared_dashboards#embedded-shared-dashboards";
+    readonly referrerPolicy: "origin";
+    readonly title: "Datadog";
+    readonly toEmbedUrl: (url: string) => string;
+    readonly type: "datadog";
     readonly width: 720;
 }, {
     readonly doesResize: true;
@@ -1289,6 +1301,8 @@ export interface EmbedDefinition {
     readonly overrideOutlineRadius?: number;
     // (undocumented)
     readonly overridePermissions?: TLEmbedShapePermissions;
+    // (undocumented)
+    readonly referrerPolicy?: HTMLAttributeReferrerPolicy;
     // (undocumented)
     readonly title: string;
     // (undocumented)

@@ -308,6 +308,7 @@ export function getAssetUrlsByMetaUrl(opts) {
 				new URL('./embed-icons/codesandbox.png', import.meta.url).href,
 				opts
 			),
+			datadog: formatAssetUrl(new URL('./embed-icons/datadog.png', import.meta.url).href, opts),
 			desmos: formatAssetUrl(new URL('./embed-icons/desmos.png', import.meta.url).href, opts),
 			excalidraw: formatAssetUrl(
 				new URL('./embed-icons/excalidraw.png', import.meta.url).href,
