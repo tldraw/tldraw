@@ -1,4 +1,5 @@
 import { safeParseUrl } from '@tldraw/editor'
+import type { HTMLAttributeReferrerPolicy } from 'react'
 
 // Only allow multiplayer embeds. If we add additional routes later for example '/help' this won't match
 const TLDRAW_APP_RE = /(^\/[f|p|r|ro|s|v]\/[^/]+\/?$)/
@@ -35,6 +36,23 @@ export const DEFAULT_EMBED_DEFINITIONS = [
 			}
 			return
 		},
+	},
+	{
+		type: 'datadog',
+		title: 'Datadog',
+		hostnames: ['p.datadoghq.eu', 'p.datadoghq.com'],
+		width: 720,
+		height: 500,
+		doesResize: true,
+		instructionLink:
+			'https://docs.datadoghq.com/dashboards/sharing/shared_dashboards#embedded-shared-dashboards',
+		toEmbedUrl: (url) => {
+			return url
+		},
+		fromEmbedUrl: (url) => {
+			return url
+		},
+		referrerPolicy: 'origin',
 	},
 	{
 		type: 'figma',
@@ -679,6 +697,7 @@ export interface EmbedDefinition {
 	readonly toEmbedUrl: (url: string) => string | undefined
 	// eslint-disable-next-line @typescript-eslint/method-signature-style
 	readonly fromEmbedUrl: (url: string) => string | undefined
+	readonly referrerPolicy?: HTMLAttributeReferrerPolicy
 }
 
 /** @public */
