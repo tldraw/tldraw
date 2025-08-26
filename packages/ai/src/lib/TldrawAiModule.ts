@@ -1,19 +1,15 @@
-import {
-	Box,
-	Editor,
-	exhaustiveSwitchError,
-	FileHelpers,
-	structuredClone,
-	TLShapePartial,
-} from 'tldraw'
+import { Box, Editor, FileHelpers, structuredClone } from 'tldraw'
+import { defaultApplyChange } from './defaultApplyChange'
 import { TldrawAiTransformConstructor } from './TldrawAiTransform'
-import { TLAiChange, TLAiContent, TLAiMessages, TLAiPrompt } from './types'
+import { TLAiChange, TLAiContent, TLAiPrompt } from './types'
+import { TldrawAiApplyFn, TldrawAiPromptOptions } from './useTldrawAi'
 import { asMessage } from './utils'
 
 /** @public */
 export interface TldrawAiModuleOptions {
 	editor: Editor
 	transforms?: TldrawAiTransformConstructor[]
+	apply?: TldrawAiApplyFn
 }
 
 /**
@@ -32,18 +28,17 @@ export class TldrawAiModule {
 	 * Creates and prepare a prompt, returning the prompt
 	 * and a function to handle changes.
 	 *
-	 * @param prompt - The user's message or a configuration for the prompt
+	 * @param options - The user's message or a configuration for the prompt
 	 */
-	async generate(prompt: string | { message: TLAiMessages; stream?: boolean }) {
+	async generate(options: TldrawAiPromptOptions) {
 		const { transforms: _transformCtors = [] } = this.opts
 		const transforms = _transformCtors.map((ctor) => new ctor(this.opts.editor))
 
-		const message = typeof prompt === 'string' ? prompt : prompt.message
-		let _prompt = await this.getPrompt(message)
+		let prompt = await this.getPrompt(options)
 
 		for (const transform of transforms) {
 			if (transform.transformPrompt) {
-				_prompt = transform.transformPrompt(_prompt)
+				prompt = transform.transformPrompt(prompt)
 			}
 		}
 
@@ -64,10 +59,14 @@ export class TldrawAiModule {
 					changes = transform.transformChanges(changes)
 				}
 			}
+
+			for (const change of changes) {
+				this.applyChange(change)
+			}
 		}
 
 		return {
-			prompt: _prompt,
+			prompt,
 			handleChange,
 			handleChanges,
 		}
@@ -79,71 +78,32 @@ export class TldrawAiModule {
 	 * @param change - The change to apply
 	 */
 	applyChange(change: TLAiChange) {
-		const { editor } = this.opts
-
-		if (editor.isDisposed) return
-
-		try {
-			switch (change.type) {
-				case 'createShape': {
-					editor.createShape(change.shape)
-					break
-				}
-				case 'updateShape': {
-					editor.updateShape(change.shape as TLShapePartial)
-					break
-				}
-				case 'deleteShape': {
-					editor.deleteShape(change.shapeId)
-					break
-				}
-				case 'createBinding': {
-					editor.createBinding(change.binding)
-					break
-				}
-				case 'updateBinding': {
-					editor.updateBinding(change.binding)
-					break
-				}
-				case 'deleteBinding': {
-					editor.deleteBinding(change.bindingId)
-					break
-				}
-				default:
-					exhaustiveSwitchError(change)
-			}
-		} catch (e) {
-			console.error('Error handling change:', e)
-		}
+		const applyFn = this.opts.apply ?? defaultApplyChange
+		applyFn({ change, editor: this.opts.editor })
 	}
 
 	/**
 	 * Create the prompt to be sent to the AI.
 	 *
-	 * @param prompt - The user's prompt
-	 * @param options - Options to generate the input
+	 * @param options - The options to generate the prompt
 	 */
-	async getPrompt(
-		prompt: TLAiMessages,
-		options = {} as Partial<Pick<TLAiPrompt, 'canvasContent' | 'contextBounds' | 'promptBounds'>>
-	): Promise<TLAiPrompt> {
+	async getPrompt(options: TldrawAiPromptOptions): Promise<TLAiPrompt> {
 		const { editor } = this.opts
-		const {
-			contextBounds = editor.getViewportPageBounds(),
-			promptBounds = editor.getViewportPageBounds(),
-		} = options
 
-		const content = options.canvasContent ?? this.getContent(promptBounds)
+		const _options = typeof options === 'string' ? { message: options } : options
 
-		// Get image from the content
-		const image = await this.getImage(content)
+		const contextBounds = _options.contextBounds ?? editor.getViewportPageBounds()
+		const promptBounds = _options.promptBounds ?? editor.getViewportPageBounds()
+		const content = _options.canvasContent ?? this.getContent(contextBounds)
+		const image = _options.image ?? (await this.getImage(content))
 
 		return {
-			message: asMessage(prompt),
+			message: asMessage(_options.message ?? ''),
 			canvasContent: content,
 			contextBounds: roundBox(contextBounds),
 			promptBounds: roundBox(promptBounds),
 			image,
+			meta: _options.meta,
 		}
 	}
 
@@ -154,9 +114,6 @@ export class TldrawAiModule {
 	 */
 	private getContent(bounds: Box): TLAiContent {
 		const { editor } = this.opts
-
-		// Get the page content (same as what we put on the clipboard when a user copies) for the shapes
-		// that are included (contained or colliding with) the provided bounds
 
 		let content: TLAiContent | undefined = {
 			bindings: [],
@@ -198,7 +155,7 @@ export class TldrawAiModule {
 
 		const result = await this.opts.editor.toImage(content.shapes, {
 			format: 'jpeg',
-			background: false,
+			background: true, // important!
 			darkMode: false,
 			padding: 0, // will the context bounds take into account the padding?
 		})

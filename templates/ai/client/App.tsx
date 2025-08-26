@@ -3,7 +3,8 @@ import { DefaultSpinner, Editor, Tldraw } from 'tldraw'
 import { useTldrawAiExample } from './useTldrawAiExample'
 
 function App() {
-	const [editor, setEditor] = useState<Editor | null>(null) // [1]
+	const [editor, setEditor] = useState<Editor | null>(null)
+
 	return (
 		<div className="tldraw-ai-container">
 			<Tldraw persistenceKey="tldraw-ai-demo-2" onMount={setEditor} />

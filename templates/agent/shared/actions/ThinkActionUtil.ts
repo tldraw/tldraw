@@ -1,0 +1,32 @@
+import z from 'zod'
+import { Streaming } from '../types/Streaming'
+import { AgentActionUtil } from './AgentActionUtil'
+
+const ThinkAction = z
+	.object({
+		_type: z.literal('think'),
+		text: z.string(),
+	})
+	.meta({ title: 'Think', description: 'The AI describes its intent or reasoning.' })
+
+type IThinkAction = z.infer<typeof ThinkAction>
+
+export class ThinkActionUtil extends AgentActionUtil<IThinkAction> {
+	static override type = 'think' as const
+
+	override getSchema() {
+		return ThinkAction
+	}
+
+	override getIcon() {
+		return 'brain' as const
+	}
+
+	override getSummary() {
+		return 'Thought for a while'
+	}
+
+	override getDescription(event: Streaming<IThinkAction>) {
+		return event.text ?? (event.complete ? 'Thinking...' : null)
+	}
+}
