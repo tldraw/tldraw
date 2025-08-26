@@ -689,6 +689,23 @@ body {
 	animation: dash 100s linear infinite;
 }
 
+.agent-view-label {
+	position: absolute;
+	top: var(--top);
+	left: var(--left);
+	background: var(--tl-color-tooltip);
+	color: var(--tl-color-background);
+	border-radius: 999px;
+	padding: 3px 10px;
+	font-size: 12px;
+	font-weight: 400;
+	white-space: nowrap;
+	pointer-events: none;
+	display: flex;
+	align-items: center;
+	gap: 8px;
+}
+
 @keyframes dash {
 	to {
 		stroke-dashoffset: -2000;
