@@ -42,7 +42,16 @@ export const CONTEXT_TYPE_DEFINITIONS: Record<
 	shape: {
 		icon: 'target',
 		name: (item: IShapeContextItem) => {
-			const name = item.shape.note ? item.shape.note : item.shape._type
+			let name = item.shape.note
+			if (!name) {
+				name = item.shape._type
+				if (item.shape._type === 'draw') {
+					name = 'drawing'
+				} else if (item.shape._type === 'unknown') {
+					name = item.shape.subType
+				}
+			}
+
 			return name[0].toUpperCase() + name.slice(1)
 		},
 	},

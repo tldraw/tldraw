@@ -375,7 +375,7 @@ export function getTldrawAiChangesFromUpdateEvent({
 
 			break
 		}
-		case 'pen': {
+		case 'draw': {
 			const shapeOnCanvas = editor.getShape<TLDrawShape>(shapeId)
 			if (!shapeOnCanvas) {
 				throw new Error(`Shape ${update.shapeId} not found in canvas`)

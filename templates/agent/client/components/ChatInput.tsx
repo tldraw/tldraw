@@ -67,7 +67,7 @@ export function ChatInput({
 							})}
 						</select>
 					</div>
-					<SelectionTag count={selectedShapes.length} onClick={() => editor.selectNone()} />
+					{selectedShapes.length > 0 && <SelectionTag onClick={() => editor.selectNone()} />}
 					{contextItems.map((item, i) => (
 						<ContextItemTag
 							editor={editor}

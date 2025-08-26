@@ -563,6 +563,10 @@ button.prompt-tag:hover {
 	border-color: var(--tl-color-text);
 }
 
+button.prompt-tag span {
+	user-select: none;
+}
+
 .prompt-tag span {
 	text-overflow: ellipsis;
 	overflow: hidden;

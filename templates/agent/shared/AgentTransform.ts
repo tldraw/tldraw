@@ -83,12 +83,12 @@ export class AgentTransform {
 	 * @returns The rounded shape.
 	 */
 	roundShape(shape: ISimpleShape): ISimpleShape {
-		if (shape._type === 'arrow' || shape._type === 'line') {
+		if ('x1' in shape) {
 			shape = this.roundProperty(shape, 'x1')
 			shape = this.roundProperty(shape, 'y1')
 			shape = this.roundProperty(shape, 'x2')
 			shape = this.roundProperty(shape, 'y2')
-		} else if (shape._type !== 'pen') {
+		} else if ('x' in shape) {
 			shape = this.roundProperty(shape, 'x')
 			shape = this.roundProperty(shape, 'y')
 		}
@@ -108,15 +108,16 @@ export class AgentTransform {
 	 * @returns The unrounded shape.
 	 */
 	unroundShape(shape: ISimpleShape): ISimpleShape {
-		if (shape._type === 'arrow' || shape._type === 'line') {
+		if ('x1' in shape) {
 			shape = this.unroundProperty(shape, 'x1')
 			shape = this.unroundProperty(shape, 'y1')
 			shape = this.unroundProperty(shape, 'x2')
 			shape = this.unroundProperty(shape, 'y2')
-		} else if (shape._type !== 'pen') {
+		} else if ('x' in shape) {
 			shape = this.unroundProperty(shape, 'x')
 			shape = this.unroundProperty(shape, 'y')
 		}
+
 		if ('w' in shape) {
 			shape = this.unroundProperty(shape, 'w')
 			shape = this.unroundProperty(shape, 'h')

@@ -2,6 +2,7 @@ import {
 	Editor,
 	TLArrowBinding,
 	TLArrowShape,
+	TLDrawShape,
 	TLGeoShape,
 	TLLineShape,
 	TLNoteShape,
@@ -105,34 +106,41 @@ const SimpleArrowShape = z.object({
 
 export type ISimpleArrowShape = z.infer<typeof SimpleArrowShape>
 
-const SimplePenShape = z
+const SimpleDrawShape = z
 	.object({
-		_type: z.literal('pen'),
+		_type: z.literal('draw'),
 		color: SimpleColor,
 		fill: SimpleFill.optional(),
 		note: z.string(),
 		shapeId: z.string(),
 	})
 	.meta({
-		title: 'Pen Shape',
+		title: 'Draw Shape',
 		description:
-			'A pen shape is a freeform shape that was drawn by the pen tool. To create new pen shapes, the AI must use the pen event because it gives more control.',
+			'A draw shape is a freeform shape that was drawn by the pen tool. To create new draw shapes, the AI must use the pen event because it gives more control.',
 	})
 
-export type ISimplePenShape = z.infer<typeof SimplePenShape>
+export type ISimpleDrawShape = z.infer<typeof SimpleDrawShape>
 
-const SimpleUnknownShape = z.object({
-	_type: z.literal('unknown'),
-	note: z.string(),
-	shapeId: z.string(),
-	x: z.number(),
-	y: z.number(),
-})
+const SimpleUnknownShape = z
+	.object({
+		_type: z.literal('unknown'),
+		note: z.string(),
+		shapeId: z.string(),
+		subType: z.string(),
+		x: z.number(),
+		y: z.number(),
+	})
+	.meta({
+		title: 'Unknown Shape',
+		description:
+			"A special shape that is not represented by one of the canvas's core shape types. The AI cannot create these shapes, but it *can* interact with them. eg: The AI can move these shapes. The `subType` property contains the internal name of the shape's type.",
+	})
 
 export type ISimpleUnknownShape = z.infer<typeof SimpleUnknownShape>
 
 const SIMPLE_SHAPES = [
-	SimplePenShape,
+	SimpleDrawShape,
 	SimpleGeoShape,
 	SimpleLineShape,
 	SimpleTextShape,
@@ -157,45 +165,57 @@ export function convertTldrawShapeToSimpleShape(shape: TLShape, editor: Editor):
 			return convertArrowShape(shape as TLArrowShape, editor)
 		case 'note':
 			return convertNoteShape(shape as TLNoteShape, editor)
+		case 'draw':
+			return convertDrawShape(shape as TLDrawShape)
 		default:
 			return convertUnknownShape(shape)
 	}
 }
 
 // Individual shape converter functions
-function convertTextShape(shape: TLTextShape, editor: Editor): ISimpleShape {
-	const util = editor.getShapeUtil(shape)
-	const text = util.getText(shape)
+function convertDrawShape(shape: TLDrawShape): ISimpleDrawShape {
 	return {
-		shapeId: shape.id.slice('shape:'.length),
-		_type: 'text',
-		text: text ?? '',
-		x: shape.x,
-		y: shape.y,
+		_type: 'draw',
 		color: shape.props.color,
+		fill: convertTldrawFillToSimpleFill(shape.props.fill),
 		note: (shape.meta?.note as string) ?? '',
+		shapeId: shape.id.slice('shape:'.length),
 	}
 }
 
-function convertGeoShape(shape: TLGeoShape, editor: Editor): ISimpleShape {
+function convertTextShape(shape: TLTextShape, editor: Editor): ISimpleTextShape {
+	const util = editor.getShapeUtil(shape)
+	const text = util.getText(shape)
+	return {
+		_type: 'text',
+		color: shape.props.color,
+		note: (shape.meta?.note as string) ?? '',
+		shapeId: shape.id.slice('shape:'.length),
+		text: text ?? '',
+		x: shape.x,
+		y: shape.y,
+	}
+}
+
+function convertGeoShape(shape: TLGeoShape, editor: Editor): ISimpleGeoShape {
 	const util = editor.getShapeUtil(shape)
 	const text = util.getText(shape)
 
 	return {
 		_type: 'rectangle',
-		shapeId: shape.id.slice('shape:'.length),
-		x: shape.x,
-		y: shape.y,
-		w: shape.props.w,
-		h: shape.props.h,
 		color: shape.props.color,
 		fill: convertTldrawFillToSimpleFill(shape.props.fill),
-		text: text ?? '',
+		h: shape.props.h,
 		note: (shape.meta?.note as string) ?? '',
+		shapeId: shape.id.slice('shape:'.length),
+		text: text ?? '',
+		w: shape.props.w,
+		x: shape.x,
+		y: shape.y,
 	}
 }
 
-function convertLineShape(shape: TLLineShape): ISimpleShape {
+function convertLineShape(shape: TLLineShape): ISimpleLineShape {
 	const points = Object.values(shape.props.points).sort((a, b) => a.index.localeCompare(b.index))
 	return {
 		_type: 'line',
@@ -209,7 +229,7 @@ function convertLineShape(shape: TLLineShape): ISimpleShape {
 	}
 }
 
-function convertArrowShape(shape: TLArrowShape, editor: Editor): ISimpleShape {
+function convertArrowShape(shape: TLArrowShape, editor: Editor): ISimpleArrowShape {
 	const bindings = editor.store.query.records('binding').get()
 	const arrowBindings = bindings.filter(
 		(b) => b.type === 'arrow' && b.fromId === shape.id
@@ -219,13 +239,13 @@ function convertArrowShape(shape: TLArrowShape, editor: Editor): ISimpleShape {
 
 	return {
 		_type: 'arrow',
+		bend: shape.props.bend,
 		color: shape.props.color,
 		fromId: startBinding?.toId ?? null,
+		note: (shape.meta?.note as string) ?? '',
 		shapeId: shape.id.slice('shape:'.length),
 		text: (shape.meta?.text as string) ?? '',
 		toId: endBinding?.toId ?? null,
-		note: (shape.meta?.note as string) ?? '',
-		bend: shape.props.bend,
 		x1: shape.props.start.x + shape.x,
 		x2: shape.props.end.x + shape.x,
 		y1: shape.props.start.y + shape.y,
@@ -233,25 +253,26 @@ function convertArrowShape(shape: TLArrowShape, editor: Editor): ISimpleShape {
 	}
 }
 
-function convertNoteShape(shape: TLNoteShape, editor: Editor): ISimpleShape {
+function convertNoteShape(shape: TLNoteShape, editor: Editor): ISimpleNoteShape {
 	const util = editor.getShapeUtil(shape)
 	const text = util.getText(shape)
 	return {
-		shapeId: shape.id.slice('shape:'.length),
 		_type: 'note',
+		color: shape.props.color,
+		note: (shape.meta?.note as string) ?? '',
+		shapeId: shape.id.slice('shape:'.length),
+		text: text ?? '',
 		x: shape.x,
 		y: shape.y,
-		color: shape.props.color,
-		text: text ?? '',
-		note: (shape.meta?.note as string) ?? '',
 	}
 }
 
-function convertUnknownShape(shape: TLShape): ISimpleShape {
+function convertUnknownShape(shape: TLShape): ISimpleUnknownShape {
 	return {
-		shapeId: shape.id.slice('shape:'.length),
 		_type: 'unknown',
 		note: (shape.meta?.note as string) ?? '',
+		shapeId: shape.id.slice('shape:'.length),
+		subType: shape.type,
 		x: shape.x,
 		y: shape.y,
 	}

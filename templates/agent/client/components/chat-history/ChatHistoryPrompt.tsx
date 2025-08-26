@@ -19,7 +19,7 @@ export function ChatHistoryPrompt({
 			<div className="chat-history-prompt">
 				{showTags && (
 					<div className="prompt-tags">
-						<SelectionTag count={selectedShapes.length} />
+						{selectedShapes.length > 0 && <SelectionTag />}
 						{contextItems.map((contextItem, i) => (
 							<ContextItemTag editor={editor} key={'context-item-' + i} item={contextItem} />
 						))}
