@@ -1,6 +1,7 @@
 import { FormEventHandler, useCallback, useEffect, useRef, useState } from 'react'
 import { Editor, useToasts, useValue } from 'tldraw'
 import { EVENT_UTILS, PROMPT_PART_UTILS } from '../../shared/AgentUtils'
+import { convertTldrawShapeToSimpleShape } from '../../shared/format/SimpleShape'
 import { IChatHistoryItem } from '../../shared/types/ChatHistoryItem'
 import { advanceSchedule } from '../ai/advanceSchedule'
 import { useTldrawAgent } from '../ai/useTldrawAgent'
@@ -62,6 +63,9 @@ export function ChatPanel({ editor }: { editor: Editor }) {
 				type: 'prompt',
 				message: value,
 				contextItems: $contextItems.get(),
+				selectedShapes: editor
+					.getSelectedShapes()
+					.map((shape) => convertTldrawShapeToSimpleShape(shape, editor)),
 			}
 
 			$pendingContextItems.set(promptHistoryItem.contextItems)
