@@ -830,6 +830,9 @@ export let defaultEditorAssetUrls: TLEditorAssetUrls;
 export type DefaultEmbedDefinitionType = (typeof DEFAULT_EMBED_DEFINITIONS)[number]['type'];
 
 // @public (undocumented)
+export function DefaultFollowingIndicator(): JSX_2.Element | null;
+
+// @public (undocumented)
 export const DefaultFontFaces: TLDefaultFonts;
 
 // @public (undocumented)
@@ -3120,6 +3123,9 @@ export const TldrawUiGrid: ForwardRefExoticComponent<TLUiLayoutProps & RefAttrib
 export const TldrawUiIcon: NamedExoticComponent<TLUiIconProps>;
 
 // @public (undocumented)
+export function TldrawUiInFrontOfTheCanvas(): JSX_2.Element;
+
+// @public (undocumented)
 export const TldrawUiInput: React_2.ForwardRefExoticComponent<TLUiInputProps & React_2.RefAttributes<HTMLInputElement>>;
 
 // @public (undocumented)
@@ -3475,6 +3481,8 @@ export interface TLUiComponents {
     DebugPanel?: ComponentType | null;
     // (undocumented)
     Dialogs?: ComponentType | null;
+    // (undocumented)
+    FollowingIndicator?: ComponentType | null;
     // (undocumented)
     HelperButtons?: ComponentType<TLUiHelperButtonsProps> | null;
     // (undocumented)

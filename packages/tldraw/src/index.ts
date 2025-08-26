@@ -24,6 +24,7 @@ export { usePrefersReducedMotion } from './lib/shapes/shared/usePrefersReducedMo
 export { DefaultA11yAnnouncer, useSelectedShapesAnnouncer } from './lib/ui/components/A11y'
 export { AccessibilityMenu } from './lib/ui/components/AccessibilityMenu'
 export { ColorSchemeMenu } from './lib/ui/components/ColorSchemeMenu'
+export { DefaultFollowingIndicator } from './lib/ui/components/DefaultFollowingIndicator'
 export { DefaultDialogs } from './lib/ui/components/Dialogs'
 export {
 	TldrawUiColumn,
@@ -629,7 +630,7 @@ export {
 } from './lib/ui/hooks/useTranslation/useTranslation'
 export { type TLUiIconType } from './lib/ui/icon-types'
 export { useDefaultHelpers, type TLUiOverrideHelpers, type TLUiOverrides } from './lib/ui/overrides'
-export { TldrawUi, type TldrawUiProps } from './lib/ui/TldrawUi'
+export { TldrawUi, TldrawUiInFrontOfTheCanvas, type TldrawUiProps } from './lib/ui/TldrawUi'
 export { containBoxSize, downsizeImage, type BoxWidthHeight } from './lib/utils/assets/assets'
 export { preloadFont, type TLTypeFace } from './lib/utils/assets/preload-font'
 export { getEmbedInfo, type TLEmbedResult } from './lib/utils/embeds/embeds'

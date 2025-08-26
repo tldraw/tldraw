@@ -1,6 +1,7 @@
 import { useEditor, usePresence, useValue } from '@tldraw/editor'
 
-export function FollowingIndicator() {
+/** @public @react */
+export function DefaultFollowingIndicator() {
 	const editor = useEditor()
 	const followingUserId = useValue('follow', () => editor.getInstanceState().followingUserId, [
 		editor,

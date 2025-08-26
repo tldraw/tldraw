@@ -172,10 +172,12 @@ export function DefaultCanvas({ className }: TLCanvasComponentProps) {
 						<LiveCollaborators />
 					</div>
 				</div>
+				<div className="tl-canvas__in-front">
+					<InFrontOfTheCanvasWrapper />
+				</div>
 				<MovingCameraHitTestBlocker />
 			</div>
 			<MenuClickCapture />
-			<InFrontOfTheCanvasWrapper />
 		</>
 	)
 }
