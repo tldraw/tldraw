@@ -3,11 +3,12 @@ import { Editor, useValue } from 'tldraw'
 import { AGENT_MODEL_DEFINITIONS, AgentModelName } from '../../worker/models'
 import { $contextItems, removeFromContext } from '../atoms/contextItems'
 import { $modelName } from '../atoms/modelName'
-import { ContextItemPreview } from './ContextPreview'
+import { ContextItemTag } from './ContextItemTag'
 import { AtIcon } from './icons/AtIcon'
 import { BrainIcon } from './icons/BrainIcon'
 import { ChevronDownIcon } from './icons/ChevronDownIcon'
 import { CommentIcon } from './icons/CommentIcon'
+import { SelectionTag } from './SelectionTag'
 
 export function ChatInput({
 	handleSubmit,
@@ -32,8 +33,6 @@ export function ChatInput({
 	)
 
 	const selectedShapes = useValue('selectedShapes', () => editor.getSelectedShapes(), [editor])
-	const someShapesSelected = selectedShapes.length > 0
-
 	const contextItems = useValue('contextItems', () => $contextItems.get(), [$contextItems])
 	const modelName = useValue('modelName', () => $modelName.get(), [$modelName])
 
@@ -60,36 +59,23 @@ export function ChatInput({
 							}}
 						>
 							{ADD_CONTEXT_ACTIONS.map((action) => {
-								const disabled = action.name === 'Current Selection' && !someShapesSelected
 								return (
-									<option key={action.name} value={action.name} disabled={disabled}>
+									<option key={action.name} value={action.name}>
 										{action.name}
 									</option>
 								)
 							})}
 						</select>
 					</div>
-					{someShapesSelected && (
-						<ContextItemPreview
+					<SelectionTag count={selectedShapes.length} onClick={() => editor.selectNone()} />
+					{contextItems.map((item, i) => (
+						<ContextItemTag
 							editor={editor}
-							item={{
-								type: 'selection',
-								source: 'user',
-							}}
-							onClick={() => editor.selectNone()}
+							onClick={() => removeFromContext(item)}
+							key={'context-item-' + i}
+							item={item}
 						/>
-					)}
-					{contextItems.map(
-						(item, i) =>
-							item.source === 'user' && (
-								<ContextItemPreview
-									editor={editor}
-									onClick={() => removeFromContext(item)}
-									key={'context-item-' + i}
-									item={item}
-								/>
-							)
-					)}
+					))}
 				</div>
 
 				<textarea

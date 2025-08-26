@@ -7,7 +7,6 @@ export type IContextItem =
 	| IAreaContextItem
 	| IPointContextItem
 	| IShapesContextItem
-	| ISelectionContextItem
 
 export interface IShapeContextItem {
 	type: 'shape'
@@ -30,11 +29,6 @@ export interface IAreaContextItem {
 export interface IPointContextItem {
 	type: 'point'
 	point: VecModel
-	source: 'agent' | 'user'
-}
-
-export interface ISelectionContextItem {
-	type: 'selection'
 	source: 'agent' | 'user'
 }
 
@@ -67,14 +61,6 @@ export const CONTEXT_TYPE_DEFINITIONS: Record<
 		icon: 'target',
 		name: (item: IShapesContextItem) => {
 			const count = item.shapes.length
-			return count === 1 ? '1 shape' : `${count} shapes`
-		},
-	},
-	selection: {
-		icon: 'cursor',
-		name: (_item: ISelectionContextItem, editor: Editor) => {
-			const shapes = editor.getSelectedShapes()
-			const count = shapes.length
 			return count === 1 ? '1 shape' : `${count} shapes`
 		},
 	},

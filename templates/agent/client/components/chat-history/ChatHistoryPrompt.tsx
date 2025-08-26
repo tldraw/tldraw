@@ -1,7 +1,7 @@
 import { Editor } from 'tldraw'
 import { IChatHistoryPromptItem } from '../../../shared/types/ChatHistoryItem'
-import { ContextItems } from '../ContextPreview'
-import { SelectionPreview } from '../SelectionPreview'
+import { ContextItemTag } from '../ContextItemTag'
+import { SelectionTag } from '../SelectionTag'
 
 export function ChatHistoryPrompt({
 	item,
@@ -12,17 +12,20 @@ export function ChatHistoryPrompt({
 }) {
 	const { contextItems, message, selectedShapes } = item
 
+	const showTags = selectedShapes.length > 0 || contextItems.length > 0
+
 	return (
 		<div className="chat-history-prompt-container">
 			<div className="chat-history-prompt">
-				{contextItems.length > 0 && <ContextItems contextItems={contextItems} editor={editor} />}
-				{selectedShapes.length > 0 && <SelectionPreview selectedShapes={selectedShapes} />}
-				{message.split('\n').map((line, i, arr) => (
-					<span key={i}>
-						{line}
-						{i < arr.length - 1 && <br />}
-					</span>
-				))}
+				{showTags && (
+					<div className="prompt-tags">
+						<SelectionTag count={selectedShapes.length} />
+						{contextItems.map((contextItem, i) => (
+							<ContextItemTag editor={editor} key={'context-item-' + i} item={contextItem} />
+						))}
+					</div>
+				)}
+				{message}
 			</div>
 		</div>
 	)

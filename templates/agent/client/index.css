@@ -376,6 +376,7 @@ body {
 	display: flex;
 	flex-direction: column;
 	gap: 4px;
+	white-space: pre-wrap;
 }
 
 .chat-history-group {
@@ -560,16 +561,16 @@ body {
 	background-color: var(--black-transparent-light);
 }
 
-/* Context Items */
+/* Prompt Tags */
 
-.context-item-preview-container {
+.prompt-tags {
 	display: flex;
 	gap: 4px;
 	align-items: center;
 	flex-wrap: wrap;
 }
 
-.context-item-preview {
+.prompt-tag {
 	padding: 8px 4px;
 	border-radius: 6px;
 	font-size: 10px;

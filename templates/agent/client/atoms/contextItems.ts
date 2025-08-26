@@ -131,9 +131,6 @@ function areContextItemsEquivalent(a: IContextItem, b: IContextItem): boolean {
 			const _b = b as IPointContextItem
 			return Vec.Equals(a.point, _b.point)
 		}
-		case 'selection': {
-			return true
-		}
 		default: {
 			exhaustiveSwitchError(a)
 		}
