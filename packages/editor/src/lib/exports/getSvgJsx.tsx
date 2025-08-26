@@ -147,7 +147,7 @@ export function getExportDefaultBounds(
 			// things like annotated images.
 			if (isContainer && Box.ContainsApproximately(maskedPageBounds, bbox)) {
 				isBoundedByContainer = true
-				bbox = maskedPageBounds
+				bbox = maskedPageBounds.clone()
 			} else {
 				// If we were previously bounded by a container but this shape extends outside it,
 				// we're no longer bounded by a container
@@ -160,7 +160,7 @@ export function getExportDefaultBounds(
 		} else {
 			// First shape sets the initial bounds
 			isBoundedByContainer = isContainer
-			bbox = maskedPageBounds
+			bbox = maskedPageBounds.clone()
 		}
 	}
 
