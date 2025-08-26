@@ -14,9 +14,6 @@
   "06b9281e39": {
     "translation": "Otomatik"
   },
-  "0776e18496": {
-    "translation": "Kaydet ve paylaş"
-  },
   "07dbd11b21": {
     "translation": "İsimsiz dosya"
   },
@@ -56,17 +53,11 @@
   "21bfb2dc2e": {
     "translation": "Bu oda boyut sınırına yaklaşıyor. İçeriğin bir kısmını kaldırmayı veya yeni bir dosya başlatmayı düşünün."
   },
-  "22d84a12fd": {
-    "translation": "Figjam ama tldraw"
-  },
   "250ddea65c": {
     "translation": "tldraw hakkında"
   },
   "299cb00a7a": {
     "translation": "Yüklenemedi"
-  },
-  "2c61d18599": {
-    "translation": "Miro ama iyi ve özgür"
   },
   "2deec2cb74": {
     "translation": "Bu oda boyut sınırına ulaştı ve değişiklikler artık kaydedilemeyebilir. İçeriğin bir kısmını kaldırın veya yeni bir dosya başlatın."
@@ -83,9 +74,6 @@
   "344a7f427f": {
     "translation": "Düzenleyici"
   },
-  "37b3dca331": {
-    "translation": "Lütfen giriş yapın"
-  },
   "3bd1b98dbd": {
     "translation": "Değişiklikler yayınlanamıyor."
   },
@@ -95,14 +83,8 @@
   "3d0238bf16": {
     "translation": "Hepsini kabul et"
   },
-  "3fc6d0c83a": {
-    "translation": "Arkadaş ekle"
-  },
   "42e53c47c1": {
     "translation": "Erişim isteğinde bulunmak için sahibiyle iletişime geçin."
-  },
-  "44281ab6e5": {
-    "translation": "Giriş yap"
   },
   "44db318ee5": {
     "translation": "Discord'da yardım alın"
@@ -121,9 +103,6 @@
   },
   "4d1c8263ba": {
     "translation": "Tekrar yükle"
-  },
-  "4ea0bb66f7": {
-    "translation": "Bir hesap güzel olurdu"
   },
   "50db1b7e1e": {
     "translation": "Dosya yayından kaldırılamıyor."
@@ -161,9 +140,6 @@
   "5bec508475": {
     "translation": "Eski tarayıcı algılandı. Bu uygulamayı kullanmak için lütfen tarayıcınızı güncelleyin."
   },
-  "5bef23eb7e": {
-    "translation": "Hesabınızı oluşturun"
-  },
   "5d26ae7550": {
     "translation": "Oturum açmadan önce oluşturduğunuz bazı içerikleri yükleyemedik."
   },
@@ -184,9 +160,6 @@
   },
   "6637a98151": {
     "translation": "tldraw'ın yeni bir sürümü mevcut. Devam etmek için lütfen sayfayı yeniden yükleyin."
-  },
-  "697c59072d": {
-    "translation": "Kaydetmek için oturum açın"
   },
   "6a26f54883": {
     "translation": "Yardım"
@@ -239,9 +212,6 @@
   "7be10fc592": {
     "translation": "Sürümü geri yükle"
   },
-  "7c7d5d493e": {
-    "translation": "Lütfen kaydolun"
-  },
   "7cb5f8b4a5": {
     "translation": "Unut"
   },
@@ -257,9 +227,6 @@
   "815e116a2e": {
     "translation": "tldraw için bir hata, sorun veya fikriniz mi var? Bize bildirin! Bu formu doldurun ve gerekirse e-posta yoluyla takip edeceğiz. Ayrıca <discord>Discord'da bizimle sohbet edebilir</discord> veya <github>GitHub'da bir sorun gönderebilirsiniz</github>."
   },
-  "84c89d47c7": {
-    "translation": "Ücretsiz paylaşın"
-  },
   "85a082de1b": {
     "translation": "En güncel tldraw sürümü için lütfen sayfayı yenileyin."
   },
@@ -271,9 +238,6 @@
   },
   "8b1946f965": {
     "translation": "Düzenlemeye devam etmek için lütfen odayı dosyalarınıza kopyalayın."
-  },
-  "8ea211024d": {
-    "translation": "Ücretsiz bir hesap oluşturun"
   },
   "8eb2c00e96": {
     "translation": "Sizinle paylaşıldı"
@@ -351,9 +315,6 @@
   "b028909917": {
     "translation": "Misafir kullanıcı"
   },
-  "b52dc007ac": {
-    "translation": "Kayıt ol (ücretsiz ve iyi)"
-  },
   "b6d4223e60": {
     "translation": "Oturum aç"
   },
@@ -375,17 +336,8 @@
   "bcb62136a3": {
     "translation": ".tldr dosyalarını yükle"
   },
-  "bffe9a3c9a": {
-    "translation": "Giriş yapmak"
-  },
-  "c079282475": {
-    "translation": "Çalışmanızı paylaşın"
-  },
   "c2276c9127": {
     "translation": "Paylaşım hakkında daha fazla bilgi edinin."
-  },
-  "c24e43cd1a": {
-    "translation": "Kaydolacaksın değil mi?"
   },
   "c303bd1095": {
     "translation": "Bu dosya yayınlanamıyor."
@@ -402,9 +354,6 @@
   "c87aacf567": {
     "translation": "Oturumu kapat"
   },
-  "c8c6a6504a": {
-    "translation": "Kaydolmalısın"
-  },
   "cceaefbc20": {
     "translation": "Bu dosyayı paylaş"
   },
@@ -413,9 +362,6 @@
   },
   "cea291e45e": {
     "translation": "Yayınlama hakkında daha fazla bilgi edinin."
-  },
-  "d0eedb7995": {
-    "translation": "Hey"
   },
   "d3d2e61733": {
     "translation": "Kapat"
@@ -429,17 +375,8 @@
   "d876a9fe1a": {
     "translation": "Tekrar Dene"
   },
-  "d8a50c79a7": {
-    "translation": "Benimle tldraw'a gel"
-  },
   "d9100f3e10": {
     "translation": "İçeriği görmek için buraya gidin"
-  },
-  "da404df474": {
-    "translation": "Çalışmanızı kaydedin"
-  },
-  "db4c2dab9a": {
-    "translation": "Excalidraw değil"
   },
   "dbbebf3c03": {
     "translation": "Yalnızca davetle"
@@ -500,9 +437,6 @@
   },
   "fd1be3efcf": {
     "translation": "Bu dosyayı silmek istediğinizden emin misiniz?"
-  },
-  "fd27891570": {
-    "translation": "Bekleme listesine katılın"
   },
   "fed5ec05eb": {
     "translation": "Bağlantı kopyalandı"
