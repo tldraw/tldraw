@@ -33,12 +33,6 @@
       "value": "Auto"
     }
   ],
-  "0776e18496": [
-    {
-      "type": 0,
-      "value": "Lagre og del"
-    }
-  ],
   "07dbd11b21": [
     {
       "type": 0,
@@ -117,12 +111,6 @@
       "value": "Dette rommet nærmer seg størrelsesgrensen. Vurder å fjerne noe innhold eller starte en ny fil."
     }
   ],
-  "22d84a12fd": [
-    {
-      "type": 0,
-      "value": "Figjam men tldraw"
-    }
-  ],
   "250ddea65c": [
     {
       "type": 0,
@@ -133,12 +121,6 @@
     {
       "type": 0,
       "value": "Opplasting mislyktes"
-    }
-  ],
-  "2c61d18599": [
-    {
-      "type": 0,
-      "value": "Miro, men god og fri"
     }
   ],
   "2deec2cb74": [
@@ -171,12 +153,6 @@
       "value": "Redaktør"
     }
   ],
-  "37b3dca331": [
-    {
-      "type": 0,
-      "value": "Vennligst logg inn"
-    }
-  ],
   "3bd1b98dbd": [
     {
       "type": 0,
@@ -195,22 +171,10 @@
       "value": "Godta alle"
     }
   ],
-  "3fc6d0c83a": [
-    {
-      "type": 0,
-      "value": "Legg til venn"
-    }
-  ],
   "42e53c47c1": [
     {
       "type": 0,
       "value": "Kontakt eieren for å be om tilgang."
-    }
-  ],
-  "44281ab6e5": [
-    {
-      "type": 0,
-      "value": "Logg deg på"
     }
   ],
   "44db318ee5": [
@@ -247,12 +211,6 @@
     {
       "type": 0,
       "value": "Last inn på nytt"
-    }
-  ],
-  "4ea0bb66f7": [
-    {
-      "type": 0,
-      "value": "En konto hadde vært fint"
     }
   ],
   "50db1b7e1e": [
@@ -337,12 +295,6 @@
       "value": "Gammel nettleser oppdaget. Oppdater nettleseren din for å bruke denne appen."
     }
   ],
-  "5bef23eb7e": [
-    {
-      "type": 0,
-      "value": "Opprett kontoen din"
-    }
-  ],
   "5d26ae7550": [
     {
       "type": 0,
@@ -383,12 +335,6 @@
     {
       "type": 0,
       "value": "En ny versjon av tldraw er tilgjengelig. Last inn siden på nytt for å fortsette."
-    }
-  ],
-  "697c59072d": [
-    {
-      "type": 0,
-      "value": "Logg inn for å lagre"
     }
   ],
   "6a26f54883": [
@@ -493,12 +439,6 @@
       "value": "Gjenopprett versjon"
     }
   ],
-  "7c7d5d493e": [
-    {
-      "type": 0,
-      "value": "Vennligst registrer deg"
-    }
-  ],
   "7cb5f8b4a5": [
     {
       "type": 0,
@@ -557,12 +497,6 @@
       "value": "."
     }
   ],
-  "84c89d47c7": [
-    {
-      "type": 0,
-      "value": "Del gratis"
-    }
-  ],
   "85a082de1b": [
     {
       "type": 0,
@@ -593,12 +527,6 @@
     {
       "type": 0,
       "value": "For å fortsette redigeringen, kopier rommet til filene dine."
-    }
-  ],
-  "8ea211024d": [
-    {
-      "type": 0,
-      "value": "Opprett en gratis konto"
     }
   ],
   "8eb2c00e96": [
@@ -757,12 +685,6 @@
       "value": "Gjestebruker"
     }
   ],
-  "b52dc007ac": [
-    {
-      "type": 0,
-      "value": "Registrer deg (gratis og bra)"
-    }
-  ],
   "b6d4223e60": [
     {
       "type": 0,
@@ -845,28 +767,10 @@
       "value": "Last opp .tldr-filer"
     }
   ],
-  "bffe9a3c9a": [
-    {
-      "type": 0,
-      "value": "Logg inn"
-    }
-  ],
-  "c079282475": [
-    {
-      "type": 0,
-      "value": "Del arbeidet ditt"
-    }
-  ],
   "c2276c9127": [
     {
       "type": 0,
       "value": "Finn ut mer om deling."
-    }
-  ],
-  "c24e43cd1a": [
-    {
-      "type": 0,
-      "value": "Du melder deg på, ikke sant?"
     }
   ],
   "c303bd1095": [
@@ -899,12 +803,6 @@
       "value": "Logg ut"
     }
   ],
-  "c8c6a6504a": [
-    {
-      "type": 0,
-      "value": "Du burde registrere deg"
-    }
-  ],
   "cceaefbc20": [
     {
       "type": 0,
@@ -921,12 +819,6 @@
     {
       "type": 0,
       "value": "Finn ut mer om publisering."
-    }
-  ],
-  "d0eedb7995": [
-    {
-      "type": 0,
-      "value": "Hei"
     }
   ],
   "d3d2e61733": [
@@ -953,28 +845,10 @@
       "value": "Prøv igjen"
     }
   ],
-  "d8a50c79a7": [
-    {
-      "type": 0,
-      "value": "Bli med meg på tldraw"
-    }
-  ],
   "d9100f3e10": [
     {
       "type": 0,
       "value": "Gå hit for å se innholdet"
-    }
-  ],
-  "da404df474": [
-    {
-      "type": 0,
-      "value": "Lagre arbeidet ditt"
-    }
-  ],
-  "db4c2dab9a": [
-    {
-      "type": 0,
-      "value": "Ikke Excalidraw"
     }
   ],
   "dbbebf3c03": [
@@ -1109,12 +983,6 @@
     {
       "type": 0,
       "value": "Er du sikker på at du vil slette denne filen?"
-    }
-  ],
-  "fd27891570": [
-    {
-      "type": 0,
-      "value": "Bli med på ventelisten"
     }
   ],
   "fed5ec05eb": [
