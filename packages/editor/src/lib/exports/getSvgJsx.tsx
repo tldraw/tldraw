@@ -35,6 +35,8 @@ import { useEvent } from '../hooks/useEvent'
 import { suffixSafeId, useUniqueSafeId } from '../hooks/useSafeId'
 import { Box } from '../primitives/Box'
 import { Mat } from '../primitives/Mat'
+import { Vec, VecLike } from '../primitives/Vec'
+import { intersectPolygonPolygon } from '../primitives/intersect'
 import { ExportDelay } from './ExportDelay'
 
 export function getSvgJsx(editor: Editor, ids: TLShapeId[], opts: TLImageExportOptions = {}) {
@@ -61,15 +63,7 @@ export function getSvgJsx(editor: Editor, ids: TLShapeId[], opts: TLImageExportO
 	if (opts.bounds) {
 		bbox = opts.bounds
 	} else {
-		for (const { id } of renderingShapes) {
-			const maskedPageBounds = editor.getShapeMaskedPageBounds(id)
-			if (!maskedPageBounds) continue
-			if (bbox) {
-				bbox.union(maskedPageBounds)
-			} else {
-				bbox = maskedPageBounds.clone()
-			}
-		}
+		bbox = getExportDefaultBounds(editor, renderingShapes)
 	}
 
 	// no unmasked shapes to export
@@ -118,6 +112,41 @@ export function getSvgJsx(editor: Editor, ids: TLShapeId[], opts: TLImageExportO
 	)
 
 	return { jsx: svg, width: w, height: h, exportDelay }
+}
+
+function getExportDefaultBounds(editor: Editor, renderingShapes: TLRenderingShape[]) {
+	let bbox: null | Box = null
+	for (const { id } of renderingShapes) {
+		// instead of calling `getShapeMaskedPageBounds`, we compute the bounds ourselves. This is
+		// because usually page bounds exclude labels, but we want to explicitly include labels so
+		// they don't get cut off in the exported image.
+		const transform = editor.getShapePageTransform(id)
+		const pageBounds = editor
+			.getShapeGeometry(id)
+			.transform(transform)
+			.getBounds({ includeLabels: true, includeInternal: true })
+
+		const pageMask = editor.getShapeMask(id)
+		let maskedPageBounds
+		if (pageMask && !polygonMatchesBounds(pageMask, pageBounds)) {
+			const intersection = intersectPolygonPolygon(pageMask, pageBounds.corners)
+			if (!intersection) continue
+			maskedPageBounds = Box.FromPoints(intersection)
+		} else {
+			maskedPageBounds = pageBounds
+		}
+
+		if (bbox) {
+			bbox.union(maskedPageBounds)
+		} else {
+			bbox = maskedPageBounds.clone()
+		}
+	}
+	return bbox
+}
+
+function polygonMatchesBounds(polygon: VecLike[], bounds: Box) {
+	return polygon.length === 4 && polygon.every((p, i) => p && Vec.Equals(p, bounds.corners[i]))
 }
 
 function SvgExport({

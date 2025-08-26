@@ -1686,7 +1686,7 @@ export abstract class Geometry2d {
     // (undocumented)
     getArea(): number;
     // (undocumented)
-    getBounds(): Box;
+    getBounds(filters?: Geometry2dFilters): Box;
     // (undocumented)
     getLength(_filters?: Geometry2dFilters): number;
     // (undocumented)
