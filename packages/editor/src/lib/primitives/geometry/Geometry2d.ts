@@ -44,6 +44,7 @@ export const Geometry2dFilters: {
 /** @public */
 export interface TransformedGeometry2dOptions {
 	isLabel?: boolean
+	labelContributesToBounds?: boolean
 	isEmptyLabel?: boolean
 	isInternal?: boolean
 	debugColor?: string
@@ -62,13 +63,25 @@ export abstract class Geometry2d {
 	isFilled = false
 	isClosed = true
 	isLabel = false
+	labelContributesToBounds = false
 	isEmptyLabel = false
 	isInternal = false
 	debugColor?: string
 	ignore?: boolean
 
 	constructor(opts: Geometry2dOptions) {
-		const { isLabel = false, isEmptyLabel = false, isInternal = false } = opts
+		const {
+			isLabel = false,
+			isEmptyLabel = false,
+			isInternal = false,
+			labelContributesToBounds = false,
+		} = opts
+
+		// Validate that labelContributesToBounds can only be true if isLabel is also true
+		if (labelContributesToBounds && !isLabel) {
+			throw new Error('labelContributesToBounds can only be true if isLabel is also true')
+		}
+
 		this.isFilled = opts.isFilled
 		this.isClosed = opts.isClosed
 		this.debugColor = opts.debugColor
@@ -76,11 +89,12 @@ export abstract class Geometry2d {
 		this.isLabel = isLabel
 		this.isEmptyLabel = isEmptyLabel
 		this.isInternal = isInternal
+		this.labelContributesToBounds = labelContributesToBounds
 	}
 
 	isExcludedByFilter(filters?: Geometry2dFilters) {
 		if (!filters) return false
-		if (this.isLabel && !filters.includeLabels) return true
+		if (this.isLabel && !filters.includeLabels && !this.labelContributesToBounds) return true
 		if (this.isInternal && !filters.includeInternal) return true
 		return false
 	}

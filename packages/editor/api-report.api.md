@@ -1723,6 +1723,8 @@ export abstract class Geometry2d {
     // (undocumented)
     isPointInBounds(point: VecLike, margin?: number): boolean;
     // (undocumented)
+    labelContributesToBounds: boolean;
+    // (undocumented)
     get length(): number;
     // (undocumented)
     abstract nearestPoint(point: VecLike, _filters?: Geometry2dFilters): Vec;
@@ -4432,6 +4434,8 @@ export interface TransformedGeometry2dOptions {
     isInternal?: boolean;
     // (undocumented)
     isLabel?: boolean;
+    // (undocumented)
+    labelContributesToBounds?: boolean;
 }
 
 // @public (undocumented)
