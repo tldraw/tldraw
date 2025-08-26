@@ -21,18 +21,7 @@ export function buildMessages(prompt: AgentPrompt): ModelMessage[] {
 
 	allMessages.sort((a, b) => b.priority - a.priority)
 
-	const allCoreMessages = constructCoreMessages(allMessages)
-
-	// Filter out images from console log for readability
-	const messagesForLogging = allCoreMessages.map((message) => ({
-		...message,
-		content: Array.isArray(message.content)
-			? message.content.filter((item: any) => item.type !== 'image')
-			: message.content,
-	}))
-	console.log(JSON.stringify(messagesForLogging, null, 2))
-
-	return allCoreMessages
+	return constructCoreMessages(allMessages)
 }
 
 /**
