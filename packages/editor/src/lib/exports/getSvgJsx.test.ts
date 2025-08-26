@@ -1,6 +1,5 @@
 import {
 	Geometry2d,
-	Group2d,
 	RecordProps,
 	Rectangle2d,
 	ShapeUtil,
@@ -20,7 +19,6 @@ type ITestShape = TLBaseShape<
 		h: number
 		x: number
 		y: number
-		hasLabel?: boolean
 		isContainer?: boolean
 	}
 >
@@ -32,7 +30,6 @@ class TestShape extends ShapeUtil<ITestShape> {
 		h: T.number,
 		x: T.number,
 		y: T.number,
-		hasLabel: T.boolean.optional(),
 		isContainer: T.boolean.optional(),
 	}
 	getDefaultProps(): ITestShape['props'] {
@@ -41,35 +38,16 @@ class TestShape extends ShapeUtil<ITestShape> {
 			h: 100,
 			x: 0,
 			y: 0,
-			hasLabel: false,
 			isContainer: false,
 		}
 	}
 	getGeometry(shape: ITestShape): Geometry2d {
-		const mainRect = new Rectangle2d({
+		return new Rectangle2d({
 			width: shape.props.w,
 			height: shape.props.h,
 			x: shape.props.x,
 			y: shape.props.y,
 			isFilled: false,
-		})
-
-		if (!shape.props.hasLabel) {
-			return mainRect
-		}
-
-		// Add a label that extends beyond the main shape bounds
-		const labelRect = new Rectangle2d({
-			width: shape.props.w + 40, // 20px padding on each side
-			height: 20, // label height
-			x: shape.props.x - 20, // centered with padding
-			y: shape.props.y + shape.props.h + 5, // below the main shape
-			isFilled: true,
-			isLabel: true,
-		})
-
-		return new Group2d({
-			children: [mainRect, labelRect],
 		})
 	}
 
@@ -222,84 +200,18 @@ describe('getExportDefaultBounds', () => {
 		expect(result?.h).toBe(60 + 64) // 124 (32px on each side)
 	})
 
-	it('includes labels in bounds calculation', () => {
-		const shapeWithoutLabelId = createShapeId('test1')
-		const shapeWithLabelId = createShapeId('test2')
+	it('handles complex geometry with multiple shapes', () => {
+		const shape1Id = createShapeId('shape1')
+		const shape2Id = createShapeId('shape2')
+		const shape3Id = createShapeId('shape3')
 
-		// Create identical shapes, one with label, one without
-		editor.createShape({
-			id: shapeWithoutLabelId,
-			type: 'test-shape',
-			x: 10,
-			y: 20,
-			props: { w: 100, h: 80, x: 0, y: 0, hasLabel: false },
-		})
-
-		editor.createShape({
-			id: shapeWithLabelId,
-			type: 'test-shape',
-			x: 10,
-			y: 20,
-			props: { w: 100, h: 80, x: 0, y: 0, hasLabel: true },
-		})
-
-		const renderingShapes = editor.getUnorderedRenderingShapes(false)
-		const shapeWithoutLabel = renderingShapes.find((s) => s.id === shapeWithoutLabelId)!
-		const shapeWithLabel = renderingShapes.find((s) => s.id === shapeWithLabelId)!
-
-		const boundsWithoutLabel = getExportDefaultBounds(editor, [shapeWithoutLabel], 32, null)
-		const boundsWithLabel = getExportDefaultBounds(editor, [shapeWithLabel], 32, null)
-
-		expect(boundsWithoutLabel).toBeInstanceOf(Box)
-		expect(boundsWithLabel).toBeInstanceOf(Box)
-
-		// The shape with label should have larger bounds due to the label extending below
-		expect(boundsWithLabel!.h).toBeGreaterThan(boundsWithoutLabel!.h)
-		expect(boundsWithLabel!.w).toBeGreaterThan(boundsWithoutLabel!.w)
-
-		// Specifically, the labeled shape should extend 25 pixels further down (5px gap + 20px label height)
-		// and 40 pixels wider (20px padding on each side)
-		expect(boundsWithLabel!.h).toBe(boundsWithoutLabel!.h + 25)
-		expect(boundsWithLabel!.w).toBe(boundsWithoutLabel!.w + 40)
-		expect(boundsWithLabel!.x).toBe(boundsWithoutLabel!.x - 20) // label extends left
-	})
-
-	it('correctly uses includeLabels and includeInternal flags', () => {
-		const shapeId = createShapeId('test1')
-		editor.createShape({
-			id: shapeId,
-			type: 'test-shape',
-			x: 10,
-			y: 20,
-			props: { w: 100, h: 80, x: 0, y: 0, hasLabel: true },
-		})
-
-		const renderingShapes = editor.getUnorderedRenderingShapes(false)
-		const testShape = renderingShapes.find((s) => s.id === shapeId)!
-
-		const result = getExportDefaultBounds(editor, [testShape], 32, null)
-
-		// Verify that we get bounds that include the label plus padding
-		expect(result).toBeInstanceOf(Box)
-		// Raw label bounds: 140x105 at (-10, 20), with 32px padding on all sides
-		expect(result!.w).toBe(140 + 64) // 204 (140 + 32px on each side)
-		expect(result!.h).toBe(105 + 64) // 169 (105 + 32px on each side)
-		expect(result!.x).toBe(-10 - 32) // -42 (-10 - 32px padding)
-		expect(result!.y).toBe(20 - 32) // -12 (20 - 32px padding)
-	})
-
-	it('handles complex geometry with multiple labeled shapes', () => {
-		const shape1Id = createShapeId('labeled1')
-		const shape2Id = createShapeId('labeled2')
-		const shape3Id = createShapeId('unlabeled')
-
-		// Create shapes with different positions and label configurations
+		// Create shapes with different positions and sizes
 		editor.createShape({
 			id: shape1Id,
 			type: 'test-shape',
 			x: 0,
 			y: 0,
-			props: { w: 50, h: 50, x: 0, y: 0, hasLabel: true },
+			props: { w: 50, h: 50, x: 0, y: 0 },
 		})
 
 		editor.createShape({
@@ -307,7 +219,7 @@ describe('getExportDefaultBounds', () => {
 			type: 'test-shape',
 			x: 100,
 			y: 100,
-			props: { w: 60, h: 40, x: 0, y: 0, hasLabel: true },
+			props: { w: 60, h: 40, x: 0, y: 0 },
 		})
 
 		editor.createShape({
@@ -315,7 +227,7 @@ describe('getExportDefaultBounds', () => {
 			type: 'test-shape',
 			x: 200,
 			y: 50,
-			props: { w: 40, h: 80, x: 0, y: 0, hasLabel: false },
+			props: { w: 40, h: 80, x: 0, y: 0 },
 		})
 
 		const renderingShapes = editor.getUnorderedRenderingShapes(false)
@@ -326,14 +238,14 @@ describe('getExportDefaultBounds', () => {
 		expect(result).toBeInstanceOf(Box)
 
 		// The bounds should encompass:
-		// - shape1: (-20, 0) to (70, 75) [includes label padding and extension]
-		// - shape2: (80, 100) to (180, 165) [includes label padding and extension]
-		// - shape3: (200, 50) to (240, 130) [no label]
-		// Raw total bounds: (-20, 0) to (240, 165), with 32px padding on all sides
-		expect(result!.x).toBe(-20 - 32) // -52 (leftmost edge with padding)
+		// - shape1: (0, 0) to (50, 50)
+		// - shape2: (100, 100) to (160, 140)
+		// - shape3: (200, 50) to (240, 130)
+		// Raw total bounds: (0, 0) to (240, 140), with 32px padding on all sides
+		expect(result!.x).toBe(0 - 32) // -32 (leftmost edge with padding)
 		expect(result!.y).toBe(0 - 32) // -32 (topmost edge with padding)
-		expect(result!.w).toBe(260 + 64) // 324 (width + 32px on each side)
-		expect(result!.h).toBe(165 + 64) // 229 (height + 32px on each side)
+		expect(result!.w).toBe(240 + 64) // 304 (width + 32px on each side)
+		expect(result!.h).toBe(140 + 64) // 204 (height + 32px on each side)
 	})
 
 	it('handles empty rendering shapes array after filtering', () => {
@@ -587,12 +499,11 @@ describe('getExportDefaultBounds', () => {
 			expect(result?.h).toBe(100)
 		})
 
-		it('handles containers with labels correctly', () => {
+		it('handles containers with inner shapes correctly', () => {
 			const containerId = createShapeId('container')
-			const labeledShapeId = createShapeId('labeled')
+			const innerShapeId = createShapeId('inner')
 
-			// Container shape large enough to contain labeled shape
-			// Labeled shape (50,20,100,60) with label extends to (30,20) to (170,105)
+			// Container shape large enough to contain inner shape
 			editor.createShape({
 				id: containerId,
 				type: 'test-shape',
@@ -601,22 +512,22 @@ describe('getExportDefaultBounds', () => {
 				props: { w: 200, h: 120, x: 0, y: 0, isContainer: true },
 			})
 
-			// Shape with label inside container bounds (including label)
+			// Shape inside container bounds
 			editor.createShape({
-				id: labeledShapeId,
+				id: innerShapeId,
 				type: 'test-shape',
 				x: 50,
 				y: 20,
-				props: { w: 100, h: 60, x: 0, y: 0, hasLabel: true, isContainer: false },
+				props: { w: 100, h: 60, x: 0, y: 0, isContainer: false },
 			})
 
 			const renderingShapes = editor.getUnorderedRenderingShapes(false)
-			const testShapes = renderingShapes.filter((s) => [containerId, labeledShapeId].includes(s.id))
+			const testShapes = renderingShapes.filter((s) => [containerId, innerShapeId].includes(s.id))
 
 			const result = getExportDefaultBounds(editor, testShapes, 32, null)
 
 			expect(result).toBeInstanceOf(Box)
-			// Container (0,0,200,120) should contain labeled shape bounds,
+			// Container (0,0,200,120) should contain inner shape bounds,
 			// so no padding should be applied
 			expect(result?.x).toBe(0)
 			expect(result?.y).toBe(0)

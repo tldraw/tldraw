@@ -110,11 +110,10 @@ export function getSvgJsx(editor: Editor, ids: TLShapeId[], opts: TLImageExportO
 
 /**
  * Calculates the default bounds for an SVG export. This function handles:
- * 1. Computing shape bounds with labels included (for better export coverage)
- * 2. Applying shape masks to get the actual visible bounds
- * 3. Container logic: if a shape is marked as an export bounds container and it
+ * 1. Computing masked page bounds for each shape
+ * 2. Container logic: if a shape is marked as an export bounds container and it
  *    contains all other shapes, use its bounds and skip padding
- * 4. Otherwise, create a union of all shape bounds and apply padding
+ * 3. Otherwise, create a union of all shape bounds and apply padding
  *
  * The container logic is useful for cases like annotating on an image - if the image
  * contains all annotations, we want to export exactly the image bounds without extra padding.
