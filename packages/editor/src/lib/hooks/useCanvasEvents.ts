@@ -85,7 +85,7 @@ export function useCanvasEvents() {
 					!(editingShapeId && e.target.closest(`[data-shape-id="${editingShapeId}"]`)) &&
 					// and the target is not an clickable element
 					e.target.tagName !== 'A' &&
-					// or a text input ??
+					// or a TextArea.tsx ?
 					e.target.tagName !== 'TEXTAREA' &&
 					!e.target.isContentEditable
 				) {
