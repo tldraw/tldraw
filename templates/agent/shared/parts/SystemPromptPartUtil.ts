@@ -1,4 +1,3 @@
-import { getAgentModelDefinition } from '../../worker/models'
 import { buildResponseJsonSchema } from '../../worker/prompt/buildResponseJsonSchema'
 import { BlurryShape } from '../format/BlurryShape'
 import { ISimpleShape } from '../format/SimpleShape'
@@ -13,7 +12,7 @@ export class SystemPromptPartUtil extends PromptPartUtil<null> {
 	}
 
 	override buildSystemMessage(_part: null, prompt: AgentPrompt) {
-		const { modelName, parts } = prompt
+		const { parts } = prompt
 
 		const systemPromptModifiers: string[] = []
 
@@ -31,12 +30,7 @@ export class SystemPromptPartUtil extends PromptPartUtil<null> {
 			}
 		}
 
-		const modelDefinition = getAgentModelDefinition(modelName)
-		if (modelDefinition.provider === 'anthropic') {
-			return getSystemPromptWithSchema(systemPromptModifiers)
-		} else {
-			return AGENT_SYSTEM_PROMPT(systemPromptModifiers)
-		}
+		return getSystemPrompt(systemPromptModifiers)
 	}
 }
 
@@ -68,7 +62,8 @@ const shapeTypeNames = [
 	'pen',
 ]
 
-const AGENT_SYSTEM_PROMPT = (modifiers: string[]) => `# System Prompt
+function getSystemPrompt(modifiers: string[]) {
+	return `# System Prompt
 
 You are an AI agent that helps the user use a drawing / diagramming / whiteboarding program. You will be provided with a prompt that includes a description of the user's intent and the current state of the canvas, including a screenshot of the user's viewport (the part of the canvas that the user is viewing). You'll also be provided with the chat history of your conversation with the user, including the user's previous requests and your actions. Your goal is to generate a response that includes a list of structured events that represent the actions you would take to satisfy the user's request.
 
@@ -222,18 +217,11 @@ ${
 - Complete the task to the best of your ability. Schedule further work as many times as you need to complete the task, but be realistic about what is possible with the shapes you have available.
 - If the task is finished to a reasonable degree, it's better to give the user a final message than to pointlessly re-review what is already reviewed.
 - If there's still more work to do, you must \`review\` it. Otherwise it won't happen.
-- It's nice to speak to the user (with a \`message\` event) to let them know what you've done.`
-
-function getSystemPromptWithSchema(modifiers: string[]) {
-	return (
-		AGENT_SYSTEM_PROMPT(modifiers) +
-		`
+- It's nice to speak to the user (with a \`message\` event) to let them know what you've done.
 
 ## JSON Schema
 
 This is the JSON schema for the events you can return. You must conform to this schema.
 
-${JSON.stringify(buildResponseJsonSchema(), null, 2)}
-`
-	)
+${JSON.stringify(buildResponseJsonSchema(), null, 2)}`
 }

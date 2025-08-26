@@ -4,7 +4,7 @@ import { EVENT_UTILS, PROMPT_PART_UTILS } from '../../shared/AgentUtils'
 import { IChatHistoryItem } from '../../shared/types/ChatHistoryItem'
 import { advanceSchedule } from '../ai/advanceSchedule'
 import { useTldrawAgent } from '../ai/useTldrawAgent'
-import { $agentHistoryItems } from '../atoms/agentHistoryItems'
+import { $chatHistoryItems } from '../atoms/chatHistoryItems'
 import { $contextItems, $pendingContextItems } from '../atoms/contextItems'
 import { $modelName } from '../atoms/modelName'
 import { $scheduledRequests } from '../atoms/scheduledRequests'
@@ -66,7 +66,7 @@ export function ChatPanel({ editor }: { editor: Editor }) {
 
 			$pendingContextItems.set(promptHistoryItem.contextItems)
 			$contextItems.set([])
-			$agentHistoryItems.update((prev) => [...prev, promptHistoryItem])
+			$chatHistoryItems.update((prev) => [...prev, promptHistoryItem])
 
 			const intitialBounds = editor.getViewportPageBounds()
 
@@ -109,7 +109,7 @@ export function ChatPanel({ editor }: { editor: Editor }) {
 		}
 
 		setIsGenerating(false)
-		$agentHistoryItems.set([])
+		$chatHistoryItems.set([])
 		$pendingContextItems.set([])
 		$contextItems.set([])
 		$scheduledRequests.set([])

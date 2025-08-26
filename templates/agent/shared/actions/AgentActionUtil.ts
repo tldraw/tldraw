@@ -1,6 +1,7 @@
 import z from 'zod'
 import { AgentIconType } from '../../client/components/icons/AgentIcon'
 import { AgentTransform } from '../AgentTransform'
+import { AgentPrompt } from '../types/AgentPrompt'
 import { Streaming } from '../types/Streaming'
 
 export interface BaseAgentAction {
@@ -49,7 +50,7 @@ export abstract class AgentActionUtil<T extends BaseAgentAction = BaseAgentActio
 	 * Apply the event to the editor.
 	 * Any changes that happen during this function will be displayed as a diff.
 	 */
-	applyEvent(_event: Streaming<T>, _transform: AgentTransform): void {
+	applyEvent(_event: Streaming<T>, _transform: AgentTransform, _prompt: AgentPrompt): void {
 		// Do nothing by default
 	}
 

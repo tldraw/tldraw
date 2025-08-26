@@ -1,7 +1,7 @@
 import { useEffect, useRef } from 'react'
 import { Editor, useValue } from 'tldraw'
 import { TLAgent } from '../../ai/useTldrawAgent'
-import { $agentHistoryItems } from '../../atoms/agentHistoryItems'
+import { $chatHistoryItems } from '../../atoms/chatHistoryItems'
 import { ChatHistorySection, getAgentHistorySections } from './ChatHistorySection'
 
 /*
@@ -40,7 +40,7 @@ export function ChatHistory({
 	agent: TLAgent
 	isGenerating: boolean
 }) {
-	const items = useValue($agentHistoryItems)
+	const items = useValue($chatHistoryItems)
 	const sections = getAgentHistorySections(items)
 	const historyRef = useRef<HTMLDivElement>(null)
 	const previousScrollDistanceFromBottomRef = useRef(0)

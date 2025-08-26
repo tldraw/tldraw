@@ -2,7 +2,7 @@ import { RecordsDiff, reverseRecordsDiff, structuredClone, TLRecord, uniqueId } 
 import { AgentTransform } from '../../shared/AgentTransform'
 import { AgentPromptOptions } from '../../shared/types/AgentPrompt'
 import { IChatHistoryItem } from '../../shared/types/ChatHistoryItem'
-import { $agentHistoryItems } from '../atoms/agentHistoryItems'
+import { $chatHistoryItems } from '../atoms/chatHistoryItems'
 import { preparePrompt } from './preparePrompt'
 import { streamAgent } from './streamAgent'
 
@@ -69,7 +69,7 @@ export function promptAgent(promptOptions: AgentPromptOptions) {
 
 								// Apply the event to the app and editor
 								const diff = editor.store.extractingChanges(() => {
-									eventUtil.applyEvent(structuredClone(transformedEvent), transform)
+									eventUtil.applyEvent(structuredClone(transformedEvent), transform, prompt)
 								})
 
 								// The the event is incomplete, save the diff so that we can revert it in the future
@@ -84,7 +84,7 @@ export function promptAgent(promptOptions: AgentPromptOptions) {
 										acceptance: 'pending',
 									}
 
-									$agentHistoryItems.update((items) => {
+									$chatHistoryItems.update((items) => {
 										// If there are no items, start off the chat history with the first item
 										if (items.length === 0) return [historyItem]
 

@@ -2,6 +2,6 @@ import { atom } from 'tldraw'
 import { IChatHistoryItem } from '../../shared/types/ChatHistoryItem'
 import { persistAtomInLocalStorage } from './persistAtomInLocalStorage'
 
-export const $agentHistoryItems = atom<IChatHistoryItem[]>('agentHistoryItems', [])
+export const $chatHistoryItems = atom<IChatHistoryItem[]>('chatHistoryItems', [])
 
-persistAtomInLocalStorage($agentHistoryItems, 'agent-history-items')
+persistAtomInLocalStorage($chatHistoryItems, 'chat-history-items')

@@ -1,4 +1,4 @@
-import { RecordsDiff, TLRecord } from 'tldraw'
+import { BoxModel, RecordsDiff, TLRecord } from 'tldraw'
 import { AgentAction } from './AgentAction'
 import { IContextItem } from './ContextItem'
 import { Streaming } from './Streaming'
@@ -16,4 +16,10 @@ export interface IChatHistoryActionItem {
 	action: Streaming<AgentAction>
 	diff: RecordsDiff<TLRecord>
 	acceptance: 'pending' | 'accepted' | 'rejected'
+}
+
+export interface IChatHistoryMoveItem {
+	type: 'move'
+	from: BoxModel
+	to: BoxModel
 }
