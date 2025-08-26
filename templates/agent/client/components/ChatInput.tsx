@@ -1,8 +1,7 @@
 import { FormEventHandler, useState } from 'react'
 import { Editor, useValue } from 'tldraw'
-import { convertTldrawShapeToSimpleShape } from '../../shared/format/SimpleShape'
 import { AGENT_MODEL_DEFINITIONS, AgentModelName } from '../../worker/models'
-import { $contextItems, addToContext, removeFromContext } from '../atoms/contextItems'
+import { $contextItems, removeFromContext } from '../atoms/contextItems'
 import { $modelName } from '../atoms/modelName'
 import { ContextItemPreview } from './ContextPreview'
 import { AtIcon } from './icons/AtIcon'
@@ -43,12 +42,6 @@ export function ChatInput({
 			<form
 				onSubmit={(e) => {
 					e.preventDefault()
-					const shapes = editor.getSelectedShapes()
-					addToContext({
-						type: 'shapes',
-						shapes: shapes.map((v) => convertTldrawShapeToSimpleShape(v, editor)),
-						source: 'user',
-					})
 					setInputValue('')
 					handleSubmit(e)
 				}}

@@ -66,14 +66,16 @@ export const CONTEXT_TYPE_DEFINITIONS: Record<
 	shapes: {
 		icon: 'target',
 		name: (item: IShapesContextItem) => {
-			return item.shapes.length + ' shapes'
+			const count = item.shapes.length
+			return count === 1 ? '1 shape' : `${count} shapes`
 		},
 	},
 	selection: {
 		icon: 'cursor',
 		name: (_item: ISelectionContextItem, editor: Editor) => {
 			const shapes = editor.getSelectedShapes()
-			return shapes.length + ' shapes'
+			const count = shapes.length
+			return count === 1 ? '1 shape' : `${count} shapes`
 		},
 	},
 }

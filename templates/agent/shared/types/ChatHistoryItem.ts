@@ -1,4 +1,5 @@
 import { BoxModel, RecordsDiff, TLRecord } from 'tldraw'
+import { ISimpleShape } from '../format/SimpleShape'
 import { AgentAction } from './AgentAction'
 import { IContextItem } from './ContextItem'
 import { Streaming } from './Streaming'
@@ -9,6 +10,7 @@ export interface IChatHistoryPromptItem {
 	type: 'prompt'
 	message: string
 	contextItems: IContextItem[]
+	selectedShapes: ISimpleShape[]
 }
 
 export interface IChatHistoryActionItem {
