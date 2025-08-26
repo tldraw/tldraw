@@ -53,6 +53,19 @@ export class UserPreferencesManager {
 		}
 	}
 
+	@computed getColorScheme() {
+		const colorScheme = this.user.userPreferences.get().colorScheme
+		switch (colorScheme) {
+			case 'dark':
+			case 'light':
+				return colorScheme
+			case 'system':
+				return this.systemColorScheme.get()
+			default:
+				return this.inferDarkMode ? this.systemColorScheme.get() : 'light'
+		}
+	}
+
 	@computed getIsDarkMode() {
 		switch (this.user.userPreferences.get().colorScheme) {
 			case 'dark':

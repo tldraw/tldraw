@@ -4,6 +4,7 @@
 
 ```ts
 
+import { Atom } from '@tldraw/state';
 import { BaseRecord } from '@tldraw/store';
 import { Expand } from '@tldraw/utils';
 import { IndexKey } from '@tldraw/utils';
@@ -176,13 +177,16 @@ export const defaultBindingSchemas: {
 export const defaultColorNames: readonly ["black", "grey", "light-violet", "violet", "blue", "light-blue", "yellow", "orange", "green", "light-green", "light-red", "red", "white"];
 
 // @public (undocumented)
-export const DefaultColorStyle: EnumStyleProp<"black" | "blue" | "green" | "grey" | "light-blue" | "light-green" | "light-red" | "light-violet" | "orange" | "red" | "violet" | "white" | "yellow">;
+export const DefaultColorStyle: EnumStylePropOrString<"black" | "blue" | "green" | "grey" | "light-blue" | "light-green" | "light-red" | "light-violet" | "orange" | "red" | "violet" | "white" | "yellow">;
 
 // @public (undocumented)
-export const DefaultColorThemePalette: {
-    darkMode: TLDefaultColorTheme;
-    lightMode: TLDefaultColorTheme;
-};
+export const DefaultColorThemes: Atom<Record<string, {
+background: string;
+colors: Record<string, TLDefaultColorThemeColor>;
+id: string;
+solid: string;
+text: string;
+}>, unknown>;
 
 // @public (undocumented)
 export const DefaultDashStyle: EnumStyleProp<"dashed" | "dotted" | "draw" | "solid">;
@@ -298,6 +302,17 @@ export class EnumStyleProp<T> extends StyleProp<T> {
     readonly values: readonly T[];
 }
 
+// @public
+export class EnumStylePropOrString<T> extends StyleProp<string | T> {
+    // @internal
+    constructor(id: string, defaultValue: T, values: readonly T[]);
+    // (undocumented)
+    readonly values: readonly T[];
+}
+
+// @public
+export function extendDefaultColorTheme(updater: (themes: Record<string, TLDefaultColorTheme>) => Record<string, TLDefaultColorTheme>): void;
+
 // @public (undocumented)
 export const frameShapeMigrations: TLPropsMigrations;
 
@@ -313,12 +328,12 @@ export const geoShapeMigrations: TLPropsMigrations;
 // @public (undocumented)
 export const geoShapeProps: RecordProps<TLGeoShape>;
 
-// @public (undocumented)
-export function getColorValue(theme: TLDefaultColorTheme, color: TLDefaultColorStyle, variant: keyof TLDefaultColorThemeColor): string;
+// @public
+export function getColorValue(theme: TLDefaultColorTheme, color: string | TLDefaultColorStyle, variant?: keyof TLDefaultColorThemeColor): string;
 
 // @public (undocumented)
 export function getDefaultColorTheme(opts: {
-    isDarkMode: boolean;
+    colorScheme: string;
 }): TLDefaultColorTheme;
 
 // @public (undocumented)
@@ -389,6 +404,9 @@ export function isBinding(record?: UnknownRecord): record is TLBinding;
 
 // @public (undocumented)
 export function isBindingId(id?: string): id is TLBindingId;
+
+// @public (undocumented)
+export function isDefaultThemeColor(color: string | TLDefaultColorStyle): color is (typeof defaultColorNames)[number];
 
 // @public (undocumented)
 export function isDocument(record?: UnknownRecord): record is TLDocument;
@@ -649,6 +667,10 @@ export class StyleProp<Type> implements T.Validatable<Type> {
         defaultValue: Values[number];
         values: Values;
     }): EnumStyleProp<Values[number]>;
+    static defineEnumOrString<const Values extends readonly unknown[]>(uniqueId: string, options: {
+        defaultValue: Values[number];
+        values: Values;
+    }): EnumStylePropOrString<Values[number]>;
     // (undocumented)
     readonly id: string;
     // (undocumented)
@@ -915,15 +937,16 @@ export type TLCursorType = SetValue<typeof TL_CURSOR_TYPES>;
 export type TLDefaultBinding = TLArrowBinding;
 
 // @public (undocumented)
-export type TLDefaultColorStyle = T.TypeOf<typeof DefaultColorStyle>;
+export type TLDefaultColorStyle = (typeof defaultColorNames)[number] | string;
 
 // @public (undocumented)
 export type TLDefaultColorTheme = Expand<{
     background: string;
-    id: 'dark' | 'light';
+    colors: Record<string, TLDefaultColorThemeColor>;
+    id: string;
     solid: string;
     text: string;
-} & Record<(typeof defaultColorNames)[number], TLDefaultColorThemeColor>>;
+}>;
 
 // @public (undocumented)
 export interface TLDefaultColorThemeColor {
