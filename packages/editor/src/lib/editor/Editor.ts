@@ -63,6 +63,7 @@ import {
 	isPageId,
 	isShapeId,
 } from '@tldraw/tlschema'
+import { StyleProp2, StylePropMarker, isStyleProp2 } from '@tldraw/tlschema/src/styles/StyleProp'
 import {
 	FileHelpers,
 	IndexKey,
@@ -159,6 +160,7 @@ import { TextManager } from './managers/TextManager/TextManager'
 import { TickManager } from './managers/TickManager/TickManager'
 import { UserPreferencesManager } from './managers/UserPreferencesManager/UserPreferencesManager'
 import { ShapeUtil, TLGeometryOpts, TLResizeMode } from './shapes/ShapeUtil'
+import { StyleUtil, TLStyleUtilConstructor } from './styles/StyleUtil'
 import { RootState } from './tools/RootState'
 import { StateNode, TLStateNodeConstructor } from './tools/StateNode'
 import { TLContent } from './types/clipboard-types'
@@ -211,6 +213,7 @@ export interface TLEditorOptions {
 	 * An array of bindings to use in the editor. These will be used to create and manage bindings in the editor.
 	 */
 	bindingUtils: readonly TLAnyBindingUtilConstructor[]
+	styleUtils: readonly TLStyleUtilConstructor<any, any>[]
 	/**
 	 * An array of tools to use in the editor. These will be used to handle events and manage user interactions in the editor.
 	 */
@@ -301,6 +304,7 @@ export class Editor extends EventEmitter<TLEventMap> {
 		user,
 		shapeUtils,
 		bindingUtils,
+		styleUtils,
 		tools,
 		getContainer,
 		cameraOptions,
@@ -365,9 +369,16 @@ export class Editor extends EventEmitter<TLEventMap> {
 
 		const allShapeUtils = checkShapesAndAddCore(shapeUtils)
 
+		const _styleUtils = {} as Record<string, StyleUtil<any>>
 		const _shapeUtils = {} as Record<string, ShapeUtil<any>>
-		const _styleProps = {} as Record<string, Map<StyleProp<unknown>, string>>
+		const _styleProps = {} as Record<string, Map<StyleProp<unknown> | StyleProp2<string>, string>>
 		const allStylesById = new Map<string, StyleProp<unknown>>()
+
+		for (const Util of styleUtils) {
+			const util = new Util(this)
+			_styleUtils[Util.id] = util
+		}
+		this.styleUtils = _styleUtils
 
 		for (const Util of allShapeUtils) {
 			const util = new Util(this)
@@ -376,15 +387,16 @@ export class Editor extends EventEmitter<TLEventMap> {
 			const propKeysByStyle = getShapePropKeysByStyle(Util.props ?? {})
 			_styleProps[Util.type] = propKeysByStyle
 
-			for (const style of propKeysByStyle.keys()) {
-				if (!allStylesById.has(style.id)) {
-					allStylesById.set(style.id, style)
-				} else if (allStylesById.get(style.id) !== style) {
-					throw Error(
-						`Multiple style props with id "${style.id}" in use. Style prop IDs must be unique.`
-					)
-				}
-			}
+			// TODO: restore
+			// for (const style of propKeysByStyle.keys()) {
+			// 	if (!allStylesById.has(style.id)) {
+			// 		allStylesById.set(style.id, style)
+			// 	} else if (allStylesById.get(style.id) !== style) {
+			// 		throw Error(
+			// 			`Multiple style props with id "${style.id}" in use. Style prop IDs must be unique.`
+			// 		)
+			// 	}
+			// }
 		}
 
 		this.shapeUtils = _shapeUtils
@@ -976,7 +988,9 @@ export class Editor extends EventEmitter<TLEventMap> {
 	 */
 	shapeUtils: { readonly [K in string]?: ShapeUtil<TLUnknownShape> }
 
-	styleProps: { [key: string]: Map<StyleProp<any>, string> }
+	styleUtils: { readonly [K in string]?: StyleUtil<any> }
+
+	styleProps: { [key: string]: Map<StyleProp<any> | StyleProp2<string>, string> }
 
 	/**
 	 * Get a shape util from a shape itself.
@@ -1016,6 +1030,19 @@ export class Editor extends EventEmitter<TLEventMap> {
 	hasShapeUtil(arg: string | { type: string }): boolean {
 		const type = typeof arg === 'string' ? arg : arg.type
 		return hasOwnProperty(this.shapeUtils, type)
+	}
+
+	getStyleUtil<S extends (abstract new (...args: any[]) => StyleUtil<any>) & { id: string }>(
+		util: S
+	): InstanceType<S>
+	getStyleUtil(prop: StyleProp2<any>): StyleUtil<unknown>
+	getStyleUtil<S extends StyleUtil<any>>(style: S['id']): S
+	getStyleUtil(style: string | { id: string } | StyleProp2<string>): StyleUtil<any> {
+		const styleId =
+			typeof style === 'string' ? style : isStyleProp2(style) ? style[StylePropMarker] : style.id
+		const styleUtil = getOwnProperty(this.styleUtils, styleId)
+		assert(styleUtil, `No style util found for type "${styleId}"`)
+		return styleUtil
 	}
 
 	/* ------------------- Binding Utils ------------------ */
@@ -8532,9 +8559,14 @@ export class Editor extends EventEmitter<TLEventMap> {
 	 * @param style - The style to get.
 	 *
 	 * @public */
-	getStyleForNextShape<T>(style: StyleProp<T>): T {
-		const value = this.getInstanceState().stylesForNextShape[style.id]
-		return value === undefined ? style.defaultValue : (value as T)
+	getStyleForNextShape<T>(style: StyleProp<T> | StyleProp2<string>): T {
+		if (style instanceof StyleProp) {
+			const value = this.getInstanceState().stylesForNextShape[style.id]
+			return value === undefined ? style.defaultValue : (value as T)
+		}
+
+		const value = this.getInstanceState().stylesForNextShape[style[StylePropMarker]]
+		return value === undefined ? (this.getStyleUtil(style).getDefaultValue() as T) : (value as T)
 	}
 
 	getShapeStyleIfExists<T>(shape: TLShape, style: StyleProp<T>): T | undefined {
@@ -8578,7 +8610,8 @@ export class Editor extends EventEmitter<TLEventMap> {
 				!(this.getShapeUtil('frame')!.options as any).showColors
 			) {
 				for (const style of this.styleProps[currentTool.shapeType].keys()) {
-					if (style.id === 'tldraw:color') continue
+					const styleId = style instanceof StyleProp ? style.id : style[StylePropMarker]
+					if (styleId === 'tldraw:color') continue
 					styles.applyValue(style, this.getStyleForNextShape(style))
 				}
 			} else {
@@ -8712,14 +8745,15 @@ export class Editor extends EventEmitter<TLEventMap> {
 	 * @public
 	 */
 	setStyleForNextShapes<T>(
-		style: StyleProp<T>,
+		style: StyleProp<T> | StyleProp2<any>,
 		value: T,
 		historyOptions?: TLHistoryBatchOptions
 	): this {
 		const stylesForNextShape = this.getInstanceState().stylesForNextShape
 
+		const styleId = style instanceof StyleProp ? style.id : style[StylePropMarker]
 		this.updateInstanceState(
-			{ stylesForNextShape: { ...stylesForNextShape, [style.id]: value } },
+			{ stylesForNextShape: { ...stylesForNextShape, [styleId]: value } },
 			historyOptions
 		)
 
@@ -8739,7 +8773,10 @@ export class Editor extends EventEmitter<TLEventMap> {
 	 *
 	 * @public
 	 */
-	setStyleForSelectedShapes<S extends StyleProp<any>>(style: S, value: StylePropValue<S>): this {
+	setStyleForSelectedShapes<S extends StyleProp<any>>(
+		style: S | StyleProp2<any>,
+		value: StylePropValue<S>
+	): this {
 		const selectedShapes = this.getSelectedShapes()
 
 		if (selectedShapes.length > 0) {

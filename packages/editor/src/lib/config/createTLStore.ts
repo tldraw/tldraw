@@ -9,8 +9,9 @@ import {
 	TLStoreSnapshot,
 	createTLSchema,
 } from '@tldraw/tlschema'
-import { FileHelpers, assert } from '@tldraw/utils'
+import { FileHelpers, assert, objectMapFromEntries } from '@tldraw/utils'
 import { Editor } from '../editor/Editor'
+import { TLStyleUtilConstructor } from '../editor/styles/StyleUtil'
 import { TLEditorSnapshot, loadSnapshot } from './TLEditorSnapshot'
 import { TLAnyBindingUtilConstructor, checkBindings } from './defaultBindings'
 import { TLAnyShapeUtilConstructor, checkShapesAndAddCore } from './defaultShapes'
@@ -42,6 +43,7 @@ export type TLStoreSchemaOptions =
 			shapeUtils?: readonly TLAnyShapeUtilConstructor[]
 			migrations?: readonly MigrationSequence[]
 			bindingUtils?: readonly TLAnyBindingUtilConstructor[]
+			styleUtils?: readonly TLStyleUtilConstructor<any, any>[]
 	  }
 
 /** @public */
@@ -87,6 +89,11 @@ export function createTLSchemaFromUtils(
 		bindings:
 			'bindingUtils' in opts && opts.bindingUtils
 				? utilsToMap(checkBindings(opts.bindingUtils))
+				: undefined,
+		styles:
+			'styleUtils' in opts && opts.styleUtils
+				? // TODO(alex): better
+					objectMapFromEntries(opts.styleUtils.map((s) => [s.id, s]))
 				: undefined,
 		migrations: 'migrations' in opts ? opts.migrations : undefined,
 	})

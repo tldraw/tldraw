@@ -1,9 +1,10 @@
 import { BaseRecord } from '@tldraw/store'
-import { IndexKey, JsonObject } from '@tldraw/utils'
+import { hasOwnProperty, IndexKey, JsonObject, mapObjectMapValues } from '@tldraw/utils'
 import { T } from '@tldraw/validate'
-import { TLOpacityType, opacityValidator } from '../misc/TLOpacity'
+import { opacityValidator, TLOpacityType } from '../misc/TLOpacity'
 import { idValidator } from '../misc/id-validator'
 import { TLParentId, TLShapeId } from '../records/TLShape'
+import { isStyleProp2, StyleProp2, StylePropMarker } from '../styles/StyleProp'
 
 /** @public */
 export interface TLBaseShape<Type extends string, Props extends object>
@@ -38,8 +39,9 @@ export function createShapeValidator<
 	Meta extends JsonObject,
 >(
 	type: Type,
-	props?: { [K in keyof Props]: T.Validatable<Props[K]> },
-	meta?: { [K in keyof Meta]: T.Validatable<Meta[K]> }
+	props: { [K in keyof Props]: T.Validatable<Props[K]> | StyleProp2<string> } | undefined,
+	meta: { [K in keyof Meta]: T.Validatable<Meta[K]> } | undefined,
+	styles: Record<string, { validator: T.Validatable<any> }>
 ) {
 	return T.object<TLBaseShape<Type, Props>>({
 		id: shapeIdValidator,
@@ -52,7 +54,20 @@ export function createShapeValidator<
 		type: T.literal(type),
 		isLocked: T.boolean,
 		opacity: opacityValidator,
-		props: props ? T.object(props) : (T.jsonValue as any),
+		props: props
+			? T.object(
+					mapObjectMapValues(props, (_, value) => {
+						if (isStyleProp2(value)) {
+							const id = value[StylePropMarker]
+							if (!hasOwnProperty(styles, id)) {
+								throw new Error(`Style prop ${id} is not defined in the styles object`)
+							}
+							return styles[id]!.validator
+						}
+						return value
+					})
+				)
+			: (T.jsonValue as any),
 		meta: meta ? T.object(meta) : (T.jsonValue as any),
 	})
 }

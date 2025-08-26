@@ -1,5 +1,6 @@
 import { LegacyMigrations, MigrationSequence, StoreSchema, StoreValidator } from '@tldraw/store'
-import { objectMapValues } from '@tldraw/utils'
+import { hasOwnProperty, objectMapValues } from '@tldraw/utils'
+import { T } from '@tldraw/validate'
 import { TLStoreProps, createIntegrityChecker, onValidationFailure } from './TLStore'
 import { bookmarkAssetMigrations } from './assets/TLBookmarkAsset'
 import { imageAssetMigrations } from './assets/TLImageAsset'
@@ -37,12 +38,13 @@ import { noteShapeMigrations, noteShapeProps } from './shapes/TLNoteShape'
 import { textShapeMigrations, textShapeProps } from './shapes/TLTextShape'
 import { videoShapeMigrations, videoShapeProps } from './shapes/TLVideoShape'
 import { storeMigrations } from './store-migrations'
-import { StyleProp } from './styles/StyleProp'
+import { StyleProp, StyleProp2, StylePropMarker, isStyleProp2 } from './styles/StyleProp'
+import { DefaultSizeStyle } from './styles/TLSizeStyle'
 
 /** @public */
 export interface SchemaPropsInfo {
 	migrations?: LegacyMigrations | TLPropsMigrations | MigrationSequence
-	props?: Record<string, StoreValidator<any>>
+	props?: Record<string, StoreValidator<any> | StyleProp2<any>>
 	meta?: Record<string, StoreValidator<any>>
 }
 
@@ -71,6 +73,11 @@ export const defaultBindingSchemas = {
 	arrow: { migrations: arrowBindingMigrations, props: arrowBindingProps },
 } satisfies { [T in TLDefaultBinding['type']]: SchemaPropsInfo }
 
+/** @public */
+export const defaultStyleSchemas = {
+	'tldraw:size': { validator: DefaultSizeStyle },
+} satisfies Record<string, { validator: T.Validatable<any> }>
+
 /**
  * Create a TLSchema with custom shapes. Custom shapes cannot override default shapes.
  *
@@ -80,23 +87,33 @@ export const defaultBindingSchemas = {
 export function createTLSchema({
 	shapes = defaultShapeSchemas,
 	bindings = defaultBindingSchemas,
+	styles = defaultStyleSchemas,
 	migrations,
 }: {
 	shapes?: Record<string, SchemaPropsInfo>
 	bindings?: Record<string, SchemaPropsInfo>
+	styles?: Record<string, { validator: T.Validatable<any> }>
 	migrations?: readonly MigrationSequence[]
 } = {}): TLSchema {
-	const stylesById = new Map<string, StyleProp<unknown>>()
+	const stylesById = new Map<string, StyleProp<unknown> | T.Validatable<string>>()
 	for (const shape of objectMapValues(shapes)) {
 		for (const style of getShapePropKeysByStyle(shape.props ?? {}).keys()) {
-			if (stylesById.has(style.id) && stylesById.get(style.id) !== style) {
-				throw new Error(`Multiple StyleProp instances with the same id: ${style.id}`)
+			const styleId = style instanceof StyleProp ? style.id : style[StylePropMarker]
+			if (stylesById.has(styleId) && stylesById.get(styleId) !== style) {
+				// throw new Error(`Multiple StyleProp instances with the same id: ${styleId}`)
 			}
-			stylesById.set(style.id, style)
+			if (isStyleProp2(style)) {
+				if (!hasOwnProperty(styles, styleId)) {
+					throw new Error(`Style prop ${styleId} is not defined in the styles object`)
+				}
+				stylesById.set(styleId, styles[styleId]!.validator)
+			} else {
+				stylesById.set(styleId, style)
+			}
 		}
 	}
 
-	const ShapeRecordType = createShapeRecordType(shapes)
+	const ShapeRecordType = createShapeRecordType(shapes, styles)
 	const BindingRecordType = createBindingRecordType(bindings)
 	const InstanceRecordType = createInstanceRecordType(stylesById)
 

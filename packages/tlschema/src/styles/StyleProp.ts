@@ -1,5 +1,29 @@
 import { T } from '@tldraw/validate'
 
+export const StylePropMarker = Symbol('StyleProp')
+
+export function StyleProp2<const Id extends string>(id: Id): StyleProp2<Id> {
+	return { [StylePropMarker]: id }
+}
+
+export interface StyleProp2<Id extends string> {
+	[StylePropMarker]: Id
+}
+
+export function isStyleProp2(value: object): value is StyleProp2<string>
+export function isStyleProp2<const Id extends string>(
+	value: object,
+	id: Id
+): value is StyleProp2<Id>
+export function isStyleProp2(value: object, id?: string): value is StyleProp2<string> {
+	if (!(StylePropMarker in value)) return false
+	if (id) {
+		return value[StylePropMarker] === id
+	} else {
+		return value[StylePropMarker] !== undefined
+	}
+}
+
 /**
  * A `StyleProp` is a property of a shape that follows some special rules.
  *

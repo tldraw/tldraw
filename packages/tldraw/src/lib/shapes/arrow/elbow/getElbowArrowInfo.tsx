@@ -15,6 +15,7 @@ import {
 	VecLike,
 	VecModel,
 } from '@tldraw/editor'
+import { SizeStyleUtil } from '../../../styles/TLSizeStyle'
 import { ArrowShapeUtil } from '../ArrowShapeUtil'
 import { BOUND_ARROW_OFFSET, STROKE_SIZES, TLArrowBindings } from '../shared'
 import {
@@ -359,7 +360,10 @@ function getElbowArrowTerminalInfo(
 			if (arrow.props[arrowheadProp] !== 'none') {
 				const targetScale = 'scale' in target.props ? target.props.scale : 1
 				const targetStrokeSize =
-					'size' in target.props ? ((STROKE_SIZES[target.props.size] ?? 0) * targetScale) / 2 : 0
+					'size' in target.props
+						? (editor.getStyleUtil(SizeStyleUtil).toStrokeSizePx(target.props.size) * targetScale) /
+							2
+						: 0
 
 				arrowheadOffset =
 					arrowStrokeSize + targetStrokeSize + BOUND_ARROW_OFFSET * arrow.props.scale

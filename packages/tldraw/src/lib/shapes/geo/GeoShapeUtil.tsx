@@ -26,6 +26,7 @@ import {
 	toRichText,
 	useValue,
 } from '@tldraw/editor'
+import { SizeStyleUtil } from '../../styles/TLSizeStyle'
 import {
 	isEmptyRichText,
 	renderHtmlFromRichTextForMeasurement,
@@ -33,13 +34,7 @@ import {
 } from '../../utils/text/richText'
 import { HyperlinkButton } from '../shared/HyperlinkButton'
 import { RichTextLabel, RichTextSVG } from '../shared/RichTextLabel'
-import {
-	FONT_FAMILIES,
-	LABEL_FONT_SIZES,
-	LABEL_PADDING,
-	STROKE_SIZES,
-	TEXT_PROPS,
-} from '../shared/default-shape-constants'
+import { FONT_FAMILIES, LABEL_PADDING, TEXT_PROPS } from '../shared/default-shape-constants'
 import { getFillDefForCanvas, getFillDefForExport } from '../shared/defaultStyleDefs'
 import { useDefaultColorTheme } from '../shared/useDefaultColorTheme'
 import { useIsReadyForEditing } from '../shared/useEditablePlainText'
@@ -84,14 +79,16 @@ export class GeoShapeUtil extends BaseBoxShapeUtil<TLGeoShape> {
 		const w = Math.max(1, shape.props.w)
 		const h = Math.max(1, shape.props.h + shape.props.growY)
 
-		const path = getGeoShapePath(shape)
+		const path = getGeoShapePath(this.editor, shape)
 		const unscaledlabelSize = getUnscaledLabelSize(this.editor, shape)
 		// unscaled w and h
 		const unscaledW = w / shape.props.scale
 		const unscaledH = h / shape.props.scale
 		const unscaledminWidth = Math.min(100, unscaledW / 2)
 		const unscaledMinHeight = Math.min(
-			LABEL_FONT_SIZES[shape.props.size] * TEXT_PROPS.lineHeight + LABEL_PADDING * 2,
+			this.editor.getStyleUtil(SizeStyleUtil).toLabelFontSizePx(shape.props.size) *
+				TEXT_PROPS.lineHeight +
+				LABEL_PADDING * 2,
 			unscaledH / 2
 		)
 
@@ -213,7 +210,9 @@ export class GeoShapeUtil extends BaseBoxShapeUtil<TLGeoShape> {
 							shapeId={id}
 							type={type}
 							font={font}
-							fontSize={LABEL_FONT_SIZES[size] * shape.props.scale}
+							fontSize={
+								this.editor.getStyleUtil(SizeStyleUtil).toLabelFontSizePx(size) * shape.props.scale
+							}
 							lineHeight={TEXT_PROPS.lineHeight}
 							padding={LABEL_PADDING * shape.props.scale}
 							fill={fill}
@@ -237,9 +236,9 @@ export class GeoShapeUtil extends BaseBoxShapeUtil<TLGeoShape> {
 		])
 
 		const { size, dash, scale } = shape.props
-		const strokeWidth = STROKE_SIZES[size]
+		const strokeWidth = this.editor.getStyleUtil(SizeStyleUtil).toStrokeSizePx(size)
 
-		const path = getGeoShapePath(shape)
+		const path = getGeoShapePath(this.editor, shape)
 
 		return path.toSvg({
 			style: dash === 'draw' ? 'draw' : 'solid',
@@ -274,7 +273,7 @@ export class GeoShapeUtil extends BaseBoxShapeUtil<TLGeoShape> {
 			const bounds = new Box(0, 0, props.w, (shape.props.h + shape.props.growY) / scale)
 			textEl = (
 				<RichTextSVG
-					fontSize={LABEL_FONT_SIZES[props.size]}
+					fontSize={this.editor.getStyleUtil(SizeStyleUtil).toLabelFontSizePx(props.size)}
 					font={props.font}
 					align={props.align}
 					verticalAlign={props.verticalAlign}
@@ -556,19 +555,19 @@ export class GeoShapeUtil extends BaseBoxShapeUtil<TLGeoShape> {
 }
 
 // imperfect but good enough, should be the width of the W in the font / size combo
-const minWidths = {
-	s: 12,
-	m: 14,
-	l: 16,
-	xl: 20,
-}
+// const minWidths = {
+// 	s: 12,
+// 	m: 14,
+// 	l: 16,
+// 	xl: 20,
+// }
 
-const extraPaddings = {
-	s: 2,
-	m: 3.5,
-	l: 5,
-	xl: 10,
-}
+// const extraPaddings = {
+// 	s: 2,
+// 	m: 3.5,
+// 	l: 5,
+// 	xl: 10,
+// }
 
 function getUnscaledLabelSize(editor: Editor, shape: TLGeoShape) {
 	const { richText, font, size, w } = shape.props
@@ -578,19 +577,19 @@ function getUnscaledLabelSize(editor: Editor, shape: TLGeoShape) {
 	}
 
 	// way too expensive to be recomputing on every update
-	const minWidth = minWidths[size]
+	const minWidth = editor.getStyleUtil(SizeStyleUtil).toLabelFontSizePx(size) * 0.8
 
 	const html = renderHtmlFromRichTextForMeasurement(editor, richText)
 	const textSize = editor.textMeasure.measureHtml(html, {
 		...TEXT_PROPS,
 		fontFamily: FONT_FAMILIES[font],
-		fontSize: LABEL_FONT_SIZES[size],
+		fontSize: editor.getStyleUtil(SizeStyleUtil).toLabelFontSizePx(size),
 		minWidth: minWidth,
 		maxWidth: Math.max(
 			// Guard because a DOM nodes can't be less 0
 			0,
 			// A 'w' width that we're setting as the min-width
-			Math.ceil(minWidth + extraPaddings[size]),
+			Math.ceil(minWidth + editor.getStyleUtil(SizeStyleUtil).toStrokeSizePx(size)),
 			// The actual text size
 			Math.ceil(w / shape.props.scale - LABEL_PADDING * 2)
 		),

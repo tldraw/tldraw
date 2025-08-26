@@ -1,4 +1,5 @@
 import { Editor, Mat, MatModel, TLArrowShape, Vec, VecLike } from '@tldraw/editor'
+import { SizeStyleUtil } from '../../styles/TLSizeStyle'
 import { TLArrowInfo } from './arrow-types'
 import {
 	BOUND_ARROW_OFFSET,
@@ -124,7 +125,7 @@ export function getStraightArrowInfo(
 			strokeOffsetA =
 				STROKE_SIZES[shape.props.size] / 2 +
 				('size' in startShapeInfo.shape.props
-					? STROKE_SIZES[startShapeInfo.shape.props.size] / 2
+					? editor.getStyleUtil(SizeStyleUtil).toStrokeSizePx(startShapeInfo.shape.props.size) / 2
 					: 0)
 			offsetA = (BOUND_ARROW_OFFSET + strokeOffsetA) * shape.props.scale
 			minLength += strokeOffsetA * shape.props.scale
@@ -140,7 +141,9 @@ export function getStraightArrowInfo(
 		) {
 			strokeOffsetB =
 				STROKE_SIZES[shape.props.size] / 2 +
-				('size' in endShapeInfo.shape.props ? STROKE_SIZES[endShapeInfo.shape.props.size] / 2 : 0)
+				('size' in endShapeInfo.shape.props
+					? editor.getStyleUtil(SizeStyleUtil).toStrokeSizePx(endShapeInfo.shape.props.size) / 2
+					: 0)
 			offsetB = (BOUND_ARROW_OFFSET + strokeOffsetB) * shape.props.scale
 			minLength += strokeOffsetB * shape.props.scale
 		}

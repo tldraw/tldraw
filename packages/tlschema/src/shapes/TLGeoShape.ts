@@ -15,7 +15,7 @@ import {
 	DefaultHorizontalAlignStyle,
 	TLDefaultHorizontalAlignStyle,
 } from '../styles/TLHorizontalAlignStyle'
-import { DefaultSizeStyle, TLDefaultSizeStyle } from '../styles/TLSizeStyle'
+import { SizeStyle } from '../styles/TLSizeStyle'
 import {
 	DefaultVerticalAlignStyle,
 	TLDefaultVerticalAlignStyle,
@@ -66,7 +66,7 @@ export interface TLGeoShapeProps {
 	labelColor: TLDefaultColorStyle
 	color: TLDefaultColorStyle
 	fill: TLDefaultFillStyle
-	size: TLDefaultSizeStyle
+	size: unknown
 	font: TLDefaultFontStyle
 	align: TLDefaultHorizontalAlignStyle
 	verticalAlign: TLDefaultVerticalAlignStyle
@@ -90,7 +90,7 @@ export const geoShapeProps: RecordProps<TLGeoShape> = {
 	labelColor: DefaultLabelColorStyle,
 	color: DefaultColorStyle,
 	fill: DefaultFillStyle,
-	size: DefaultSizeStyle,
+	size: SizeStyle,
 	font: DefaultFontStyle,
 	align: DefaultHorizontalAlignStyle,
 	verticalAlign: DefaultVerticalAlignStyle,
