@@ -1,6 +1,5 @@
 import { createMigrationIds, createMigrationSequence } from '@tldraw/store'
 import { IndexKey, objectMapEntries } from '@tldraw/utils'
-import { TLHandle } from './misc/TLHandle'
 import { TLPage } from './records/TLPage'
 import { TLShape } from './records/TLShape'
 import { TLLineShape } from './shapes/TLLineShape'
@@ -72,8 +71,8 @@ export const storeMigrations = createMigrationSequence({
 			scope: 'store',
 			up: (store) => {
 				for (const [_, record] of objectMapEntries(store)) {
-					if (['shape', 'page', 'handle'].includes(record.typeName) && 'index' in record) {
-						const recordWithIndex = record as TLShape | TLPage | TLHandle
+					if (['shape', 'page'].includes(record.typeName) && 'index' in record) {
+						const recordWithIndex = record as TLShape | TLPage
 						// Our newer fractional indexed library (more correctly) validates that indices
 						// do not end with 0. ('a0' being an exception)
 						if (recordWithIndex.index.endsWith('0') && recordWithIndex.index !== 'a0') {
