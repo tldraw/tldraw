@@ -29,6 +29,7 @@
 	--tl-layer-watermark: 200;
 	--tl-layer-canvas-shapes: 300;
 	--tl-layer-canvas-overlays: 500;
+	--tl-layer-canvas-in-front: 600;
 	--tl-layer-canvas-blocker: 10000;
 
 	/* Canvas overlays z-index */
@@ -295,6 +296,10 @@ input,
 	content-visibility: auto;
 	touch-action: none;
 	contain: strict;
+}
+
+.tl-canvas__in-front {
+	z-index: var(--tl-layer-canvas-in-front);
 }
 
 .tl-shapes {

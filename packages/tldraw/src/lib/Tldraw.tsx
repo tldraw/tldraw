@@ -33,7 +33,7 @@ import { registerDefaultSideEffects } from './defaultSideEffects'
 import { defaultTools } from './defaultTools'
 import { EmbedShapeUtil } from './shapes/embed/EmbedShapeUtil'
 import { allDefaultFontFaces } from './shapes/shared/defaultFonts'
-import { TldrawUi, TldrawUiProps } from './ui/TldrawUi'
+import { TldrawUi, TldrawUiInFrontOfTheCanvas, TldrawUiProps } from './ui/TldrawUi'
 import { TLUiAssetUrlOverrides, useDefaultUiAssetUrlsWithOverrides } from './ui/assetUrls'
 import { LoadingScreen } from './ui/components/LoadingScreen'
 import { Spinner } from './ui/components/Spinner'
@@ -118,6 +118,19 @@ export function Tldraw(props: TldrawProps) {
 
 	const _components = useShallowObjectIdentity(components)
 
+	const CustomInFrontOfTheCanvas = components?.InFrontOfTheCanvas
+	const InFrontOfTheCanvas = useMemo(() => {
+		if (rest.hideUi) return CustomInFrontOfTheCanvas ?? null
+		if (!CustomInFrontOfTheCanvas) return TldrawUiInFrontOfTheCanvas
+
+		return () => (
+			<>
+				<TldrawUiInFrontOfTheCanvas />
+				<CustomInFrontOfTheCanvas />
+			</>
+		)
+	}, [rest.hideUi, CustomInFrontOfTheCanvas])
+
 	const componentsWithDefault = useMemo(
 		() => ({
 			Scribble: TldrawScribble,
@@ -128,9 +141,10 @@ export function Tldraw(props: TldrawProps) {
 			Overlays: TldrawOverlays,
 			Spinner,
 			LoadingScreen,
+			InFrontOfTheCanvas,
 			..._components,
 		}),
-		[_components]
+		[_components, InFrontOfTheCanvas]
 	)
 
 	const _shapeUtils = useShallowArrayIdentity(shapeUtils)

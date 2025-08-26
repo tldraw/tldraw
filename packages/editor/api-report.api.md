@@ -672,7 +672,7 @@ export const defaultTldrawOptions: {
     readonly collaboratorIdleTimeoutMs: 3000;
     readonly collaboratorInactiveTimeoutMs: 60000;
     readonly createTextOnCanvasDoubleClick: true;
-    readonly defaultSvgPadding: 32;
+    readonly defaultExportPadding: (shape: TLShape) => 0 | 32;
     readonly doubleClickDurationMs: 450;
     readonly dragDistanceSquared: 16;
     readonly edgeScrollDelay: 200;
@@ -1243,6 +1243,7 @@ export class Editor extends EventEmitter<TLEventMap> {
     getSelectionPageBounds(): Box | null;
     getSelectionRotatedPageBounds(): Box | undefined;
     getSelectionRotatedScreenBounds(): Box | undefined;
+    getSelectionRotatedViewportBounds(): Box | undefined;
     getSelectionRotation(): number;
     getSelectionScreenBounds(): Box | undefined;
     getShape<T extends TLShape = TLShape>(shape: TLParentId | TLShape): T | undefined;
@@ -3268,8 +3269,7 @@ export interface TldrawOptions {
     readonly collaboratorInactiveTimeoutMs: number;
     // (undocumented)
     readonly createTextOnCanvasDoubleClick: boolean;
-    // (undocumented)
-    readonly defaultSvgPadding: number;
+    readonly defaultExportPadding: ((shape: TLShape, editor: Editor) => number) | number;
     // (undocumented)
     readonly doubleClickDurationMs: number;
     // (undocumented)
@@ -4218,7 +4218,7 @@ export interface TLSvgExportOptions {
     background?: boolean;
     bounds?: Box;
     darkMode?: boolean;
-    padding?: number;
+    padding?: ((shape: TLShape, editor: Editor) => number) | number;
     pixelRatio?: number;
     preserveAspectRatio?: React.SVGAttributes<SVGSVGElement>['preserveAspectRatio'];
     scale?: number;

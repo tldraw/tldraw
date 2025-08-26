@@ -44,7 +44,7 @@ export function getSvgJsx(editor: Editor, ids: TLShapeId[], opts: TLImageExportO
 		scale = 1,
 		// should we include the background in the export? or is it transparent?
 		background = editor.getInstanceState().exportBackground,
-		padding = editor.options.defaultSvgPadding,
+		padding = editor.options.defaultExportPadding,
 		preserveAspectRatio,
 	} = opts
 
@@ -61,13 +61,18 @@ export function getSvgJsx(editor: Editor, ids: TLShapeId[], opts: TLImageExportO
 	if (opts.bounds) {
 		bbox = opts.bounds
 	} else {
-		for (const { id } of renderingShapes) {
+		for (const { id, shape } of renderingShapes) {
 			const maskedPageBounds = editor.getShapeMaskedPageBounds(id)
 			if (!maskedPageBounds) continue
+			const paddingForShape = typeof padding === 'function' ? padding(shape, editor) : padding
+			const expandedBounds =
+				paddingForShape === 0
+					? maskedPageBounds
+					: maskedPageBounds.clone().expandBy(paddingForShape)
 			if (bbox) {
-				bbox.union(maskedPageBounds)
+				bbox.union(expandedBounds)
 			} else {
-				bbox = maskedPageBounds.clone()
+				bbox = expandedBounds
 			}
 		}
 	}
@@ -79,9 +84,9 @@ export function getSvgJsx(editor: Editor, ids: TLShapeId[], opts: TLImageExportO
 		ids.length === 1 && editor.isShapeOfType<TLFrameShape>(editor.getShape(ids[0])!, 'frame')
 			? ids[0]
 			: null
-	if (!singleFrameShapeId) {
-		// Expand by an extra 32 pixels
-		bbox.expandBy(padding)
+	if (singleFrameShapeId) {
+		// when exporting a single frame, we want to use the frame's bounds, not the shapes inside it
+		bbox = editor.getShapeMaskedPageBounds(singleFrameShapeId)!
 	}
 
 	// We want the svg image to be BIGGER THAN USUAL to account for image quality
