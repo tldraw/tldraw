@@ -1497,6 +1497,8 @@ export class FrameShapeUtil extends BaseBoxShapeUtil<TLFrameShape> {
     // (undocumented)
     indicator(shape: TLFrameShape): JSX_2.Element;
     // (undocumented)
+    isExportBoundsContainer(): boolean;
+    // (undocumented)
     static migrations: TLPropsMigrations;
     // (undocumented)
     onDoubleClickCorner(shape: TLFrameShape): {
@@ -1856,6 +1858,8 @@ export class ImageShapeUtil extends BaseBoxShapeUtil<TLImageShape> {
     indicator(shape: TLImageShape): JSX_2.Element | null;
     // (undocumented)
     isAspectRatioLocked(): boolean;
+    // (undocumented)
+    isExportBoundsContainer(): boolean;
     // (undocumented)
     static migrations: TLPropsMigrations;
     // (undocumented)
