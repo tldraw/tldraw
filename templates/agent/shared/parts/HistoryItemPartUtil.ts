@@ -92,9 +92,17 @@ export class HistoryItemPartUtil extends PromptPartUtil<IChatHistoryItem[]> {
 			case 'action': {
 				const { complete: _complete, ...eventWithoutComplete } = item.action || {}
 				const eventWasMessage = eventWithoutComplete._type === 'message'
-				const textToSend = eventWasMessage
-					? eventWithoutComplete.text
-					: '[ACTION]: ' + JSON.stringify(eventWithoutComplete)
+				const eventWasThought = eventWithoutComplete._type === 'think'
+
+				let textToSend: string
+				if (eventWasMessage) {
+					textToSend = eventWithoutComplete.text || '<message data lost>' // the text here should probably never actually be undefined, but I figure this text is a more helpful fallback for the model than an empty string
+				} else if (eventWasThought) {
+					textToSend = '[THOUGHT]: ' + (eventWithoutComplete.text || '<thought data lost>') // ditto above
+				} else {
+					textToSend = '[ACTION]: ' + JSON.stringify(eventWithoutComplete)
+				}
+
 				return {
 					role: 'assistant',
 					content: [{ type: 'text', text: textToSend }],
