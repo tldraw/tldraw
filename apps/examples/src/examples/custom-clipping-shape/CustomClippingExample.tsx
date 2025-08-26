@@ -19,10 +19,13 @@ import { CircleClipShapeTool } from './CircleClipShapeTool'
 import { CircleClipShape, CircleClipShapeUtil, isClippingEnabled$ } from './CircleClipShapeUtil'
 import './CustomClipping.css'
 
+// There's a guide at the bottom of this file!
+
+// [1]
 const shapeUtils = [CircleClipShapeUtil]
 const tools = [CircleClipShapeTool]
 
-// Add the circle clip tool to the UI
+// [2]
 const customUiOverrides: TLUiOverrides = {
 	tools: (editor: any, tools: any) => {
 		return {
@@ -30,7 +33,7 @@ const customUiOverrides: TLUiOverrides = {
 			'circle-clip': {
 				id: 'circle-clip',
 				label: 'Circle Clip',
-				icon: 'geo-circle',
+				icon: 'color',
 				kbd: 'c',
 				onSelect() {
 					editor.setCurrentTool('circle-clip')
@@ -40,6 +43,7 @@ const customUiOverrides: TLUiOverrides = {
 	},
 }
 
+// [3]
 function ToggleClippingButton() {
 	const editor = useEditor()
 
@@ -61,6 +65,7 @@ function ToggleClippingButton() {
 	)
 }
 
+// [4]
 function CustomToolbar() {
 	const tools = useTools()
 	const isCircleClipSelected = useIsToolSelected(tools['circle-clip'])
@@ -73,11 +78,13 @@ function CustomToolbar() {
 	)
 }
 
+// [5]
 const components: TLComponents = {
 	Toolbar: CustomToolbar,
 	InFrontOfTheCanvas: ToggleClippingButton,
 }
 
+// [6]
 export default function CustomClippingExample() {
 	return (
 		<div className="tldraw__editor">
@@ -87,10 +94,8 @@ export default function CustomClippingExample() {
 				components={components}
 				overrides={customUiOverrides}
 				onMount={(editor) => {
-					// Set default tool
 					editor.setCurrentTool('select')
 
-					// Create initial demo content with clipping
 					const clipShapeId = createShapeId()
 					editor.createShape<CircleClipShape>({
 						id: clipShapeId,
@@ -103,7 +108,6 @@ export default function CustomClippingExample() {
 						},
 					})
 
-					// Add content that will be clipped
 					editor.createShape({
 						type: 'text',
 						x: 0,
@@ -131,10 +135,44 @@ export default function CustomClippingExample() {
 						} satisfies Partial<TLGeoShapeProps>,
 					})
 
-					// Zoom to fit the content
 					editor.zoomToFit()
 				}}
 			/>
 		</div>
 	)
 }
+
+/*
+Introduction:
+
+This example demonstrates the extensible clipping system in tldraw, showing how to create custom shapes 
+that can clip their children with any polygon geometry. The clipping system uses two key methods: 
+`getClipPath` to define the clip boundary and `shouldClipChild` to control which children get clipped.
+
+[1] 
+We define arrays to hold our custom shape util and tool. It's important to do this outside of any React 
+component so that these arrays don't get redefined on every render.
+
+[2]
+Here we define UI overrides to add our custom circle clip tool to the toolbar. The `tools` override 
+allows us to add new tools with custom icons, labels, and keyboard shortcuts.
+
+[3]
+The ToggleClippingButton component demonstrates how to create global state management for clipping. 
+It uses the `isClippingEnabled$` atom to toggle clipping on/off for all circle clip shapes.
+
+[4]
+The CustomToolbar component shows how to integrate custom tools into the main toolbar. We use 
+`useIsToolSelected` to highlight the active tool and `TldrawUiMenuItem` to render the tool button.
+
+[5]
+We define custom components to override the default toolbar and add our toggle button in front of 
+the canvas. The `components` prop allows us to customize various parts of the tldraw UI.
+
+[6]
+This is where we render the Tldraw component with our custom shape utils, tools, components, and 
+overrides. The onMount callback sets up the initial demo content.
+
+For more details on the clipping implementation, see CircleClipShapeUtil.tsx and CircleClipShapeTool.tsx.
+
+*/
