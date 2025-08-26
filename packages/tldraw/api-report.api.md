@@ -1497,6 +1497,8 @@ export class FrameShapeUtil extends BaseBoxShapeUtil<TLFrameShape> {
     // (undocumented)
     indicator(shape: TLFrameShape): JSX_2.Element;
     // (undocumented)
+    isExportBoundsContainer(): boolean;
+    // (undocumented)
     static migrations: TLPropsMigrations;
     // (undocumented)
     onDoubleClickCorner(shape: TLFrameShape): {
