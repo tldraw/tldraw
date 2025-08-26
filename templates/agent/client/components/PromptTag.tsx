@@ -11,11 +11,11 @@ export function PromptTag({
 }) {
 	return onClick ? (
 		<button type="button" className="prompt-tag" onClick={onClick}>
-			<AgentIcon type={icon} /> {text}
+			<AgentIcon type={icon} /> <span>{text}</span>
 		</button>
 	) : (
 		<div className="prompt-tag">
-			<AgentIcon type={icon} /> {text}
+			<AgentIcon type={icon} /> <span>{text}</span>
 		</div>
 	)
 }

@@ -58,6 +58,7 @@ body {
 @media (max-width: 768px) {
 	.chat-panel {
 		height: 50vh;
+		width: 100vw;
 	}
 }
 
@@ -174,7 +175,7 @@ body {
 	background: var(--tl-color-text-3);
 }
 
-.chat-input button {
+.chat-input-submit {
 	width: 16px;
 	height: 16px;
 	align-self: flex-end;
@@ -194,11 +195,11 @@ body {
 	border-radius: 100%;
 }
 
-.chat-input button:hover {
+.chat-input-submit:hover {
 	background: var(--tl-color-primary-hover);
 }
 
-.chat-input button:disabled {
+.chat-input-submit:disabled {
 	background: var(--tl-color-grid);
 	cursor: not-allowed;
 }
@@ -229,39 +230,6 @@ body {
 
 .chat-mode-select span {
 	margin-right: 4px;
-}
-
-.chat-context {
-	display: flex;
-	gap: 4px;
-	flex-wrap: wrap;
-	align-items: center;
-}
-
-.chat-context button {
-	border-radius: 1px;
-	background-color: transparent;
-	border: 1px solid var(--tl-color-text-2);
-	cursor: pointer;
-	padding: 0;
-	border-radius: 6px;
-	margin: 0;
-	width: 16px;
-	height: 16px;
-	box-shadow: none;
-	color: var(--tl-color-text-2);
-	font-family: 'Inter', sans-serif;
-	font-size: 10px;
-	width: fit-content;
-	padding: 8px 4px 8px 3px;
-	font-weight: 500;
-	color: var(--tl-color-text-2);
-}
-
-.chat-context button:hover {
-	color: var(--tl-color-text);
-	background-color: transparent;
-	border-color: var(--tl-color-text);
 }
 
 .chat-context-select-label {
@@ -571,20 +539,37 @@ body {
 }
 
 .prompt-tag {
-	padding: 8px 4px;
-	border-radius: 6px;
-	font-size: 10px;
-	font-weight: 500;
-	height: 16px;
-	border: 1px solid var(--tl-color-text-2);
-	color: var(--tl-color-text-2);
-	line-height: 0;
 	display: flex;
 	align-items: center;
-	text-overflow: ellipsis;
-	overflow: hidden;
+	border-radius: 6px;
+	background-color: transparent;
+	font-size: 10px;
+	border: 1px solid var(--tl-color-text-2);
+	padding: 8px 4px 8px 3px;
+	font-weight: 500;
+	height: 16px;
+	color: var(--tl-color-text-2);
 	white-space: nowrap;
 	font-family: 'Inter', sans-serif;
+	max-width: 100%;
+}
+
+button.prompt-tag {
+	cursor: pointer;
+}
+
+button.prompt-tag:hover {
+	color: var(--tl-color-text);
+	border-color: var(--tl-color-text);
+}
+
+.prompt-tag span {
+	text-overflow: ellipsis;
+	overflow: hidden;
+}
+
+.prompt-tag svg {
+	flex-shrink: 0;
 }
 
 /* Diff viewer */

@@ -45,13 +45,13 @@ export function ChatInput({
 					handleSubmit(e)
 				}}
 			>
-				<div className="chat-context">
+				<div className="prompt-tags">
 					<div className={'chat-context-select ' + (isContextToolActive ? 'active' : '')}>
 						<div className="chat-context-select-label">
 							<AtIcon /> Add Context
 						</div>
 						<select
-							id="add-context-select"
+							id="chat-context-select"
 							value=" "
 							onChange={(e) => {
 								const action = ADD_CONTEXT_ACTIONS.find((action) => action.name === e.target.value)
@@ -121,7 +121,7 @@ export function ChatInput({
 							<ChevronDownIcon />
 						</div>
 					</div>
-					<button disabled={inputValue === '' && !isGenerating}>
+					<button className="chat-input-submit" disabled={inputValue === '' && !isGenerating}>
 						{isGenerating && inputValue === '' ? '◼' : '⬆'}
 					</button>
 				</span>

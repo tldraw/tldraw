@@ -6,8 +6,6 @@ import { AgentPrompt } from '../../shared/types/AgentPrompt'
 export function buildMessages(prompt: AgentPrompt): ModelMessage[] {
 	const { parts } = prompt
 
-	console.log('prompt', JSON.stringify(prompt, null, 2))
-
 	const utils = Object.fromEntries(PROMPT_PART_UTILS.map((v) => [v.type, new v()]))
 	const allMessages: AgentMessage[] = []
 
@@ -21,17 +19,13 @@ export function buildMessages(prompt: AgentPrompt): ModelMessage[] {
 
 	allMessages.sort((a, b) => b.priority - a.priority)
 
-	return constructCoreMessages(allMessages)
+	return toModelMessages(allMessages)
 }
 
 /**
- * Convert AgentMessage[] to CoreMessage[] for the AI SDK
+ * Convert AgentMessage[] to ModelMessage[] for the AI SDK
  */
-function constructCoreMessages(agentMessages: AgentMessage[]): ModelMessage[] {
-	if (!agentMessages || agentMessages.length === 0) {
-		return []
-	}
-
+function toModelMessages(agentMessages: AgentMessage[]): ModelMessage[] {
 	return agentMessages.map((tlMessage) => {
 		const content: UserContent = []
 

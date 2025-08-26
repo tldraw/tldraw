@@ -42,10 +42,7 @@ export const CONTEXT_TYPE_DEFINITIONS: Record<
 	shape: {
 		icon: 'target',
 		name: (item: IShapeContextItem) => {
-			if (item.shape.note) {
-				return item.shape.note
-			}
-			const name = item.shape._type
+			const name = item.shape.note ? item.shape.note : item.shape._type
 			return name[0].toUpperCase() + name.slice(1)
 		},
 	},
@@ -59,9 +56,10 @@ export const CONTEXT_TYPE_DEFINITIONS: Record<
 	},
 	shapes: {
 		icon: 'target',
-		name: (item: IShapesContextItem) => {
+		name: (item: IShapesContextItem, editor: Editor) => {
 			const count = item.shapes.length
-			return count === 1 ? '1 shape' : `${count} shapes`
+			if (count === 1) return CONTEXT_TYPE_DEFINITIONS['shape'].name(item, editor)
+			return `${count} shapes`
 		},
 	},
 }

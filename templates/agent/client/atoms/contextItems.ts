@@ -11,7 +11,6 @@ import { persistAtomInLocalStorage } from './persistAtomInLocalStorage'
 
 export const $contextItems = atom<IContextItem[]>('context items', [])
 export const $pendingContextItems = atom<IContextItem[]>('pending context items', [])
-
 persistAtomInLocalStorage($contextItems, 'context-items')
 
 export function addToContext(item: IContextItem) {
@@ -23,7 +22,7 @@ export function addToContext(item: IContextItem) {
 		}
 
 		// Don't add items that are already in context
-		if (contextItemIsAlreadyContainedInContext(item, items)) {
+		if (isContextItemAlreadyContainedInContext(item, items)) {
 			return items
 		}
 
@@ -89,7 +88,7 @@ function stripDuplicateShapesFromContextItem(
 	return []
 }
 
-function contextItemIsAlreadyContainedInContext(
+function isContextItemAlreadyContainedInContext(
 	item: Exclude<IContextItem, { type: 'shapes' }>,
 	items: IContextItem[]
 ): boolean {
