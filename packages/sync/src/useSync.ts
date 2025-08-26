@@ -2,6 +2,7 @@ import { atom, isSignal, transact } from '@tldraw/state'
 import { useAtom } from '@tldraw/state-react'
 import {
 	ClientWebSocketAdapter,
+	TLCustomMessageHandler,
 	TLPresenceMode,
 	TLRemoteSyncError,
 	TLSyncClient,
@@ -26,6 +27,7 @@ import {
 	getDefaultUserPresence,
 	getUserPreferences,
 	uniqueId,
+	useEvent,
 	useReactiveEvent,
 	useRefState,
 	useShallowObjectIdentity,
@@ -34,6 +36,8 @@ import {
 } from 'tldraw'
 
 const MULTIPLAYER_EVENT_NAME = 'multiplayer.client'
+
+const defaultCustomMessageHandler: TLCustomMessageHandler = () => {}
 
 /** @public */
 export type RemoteTLStoreWithStatus = Exclude<
@@ -78,7 +82,7 @@ export function useSync(opts: UseSyncOptions & TLStoreSchemaOptions): RemoteTLSt
 		trackAnalyticsEvent: track,
 		userInfo,
 		getUserPresence: _getUserPresence,
-		onCustomMessageReceived,
+		onCustomMessageReceived: _onCustomMessageReceived,
 		...schemaOpts
 	} = opts
 
@@ -91,6 +95,7 @@ export function useSync(opts: UseSyncOptions & TLStoreSchemaOptions): RemoteTLSt
 
 	const prefs = useShallowObjectIdentity(userInfo)
 	const getUserPresence = useReactiveEvent(_getUserPresence ?? getDefaultUserPresence)
+	const onCustomMessageReceived = useEvent(_onCustomMessageReceived ?? defaultCustomMessageHandler)
 
 	const userAtom = useAtom<TLPresenceUserInfo | Signal<TLPresenceUserInfo> | undefined>(
 		'userAtom',
