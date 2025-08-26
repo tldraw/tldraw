@@ -335,6 +335,10 @@ export class FrameShapeUtil extends BaseBoxShapeUtil<TLFrameShape> {
 		return true
 	}
 
+	override getClipPath(shape: TLFrameShape) {
+		return this.editor.getShapeGeometry(shape.id).vertices
+	}
+
 	override canReceiveNewChildrenOfType(shape: TLShape) {
 		return !shape.isLocked
 	}
