@@ -31,6 +31,7 @@ import { TodoListActionUtil } from './actions/TodoListActionUtil'
 import { PromptPartUtilConstructor } from './parts/PromptPartUtil'
 import { SystemPromptPartUtil } from './parts/SystemPromptPartUtil'
 import { TodoListPromptPartUtil } from './parts/TodoItemsPromptPart'
+import { UserActionHistoryPartUtil } from './parts/UserActionHistoryPartUtil'
 import { UserSelectedShapesPartUtil } from './parts/UserSelectedShapesPartUtil'
 import { UserViewportBoundsPartUtil } from './parts/UserViewportBoundsPartUtil'
 
@@ -50,6 +51,7 @@ export const PROMPT_PART_UTILS: PromptPartUtilConstructor[] = [
 	PeripheralShapesPartUtil,
 	// PromptBoundsPartUtil, //probably can be deleted, is vestigal from ai module and redundant with context bounds
 	UserSelectedShapesPartUtil,
+	UserActionHistoryPartUtil,
 
 	TodoListPromptPartUtil,
 ]

@@ -9,6 +9,7 @@ import { $chatHistoryItems } from '../atoms/chatHistoryItems'
 import { $contextItems, $pendingContextItems } from '../atoms/contextItems'
 import { $modelName } from '../atoms/modelName'
 import { $scheduledRequests } from '../atoms/scheduledRequests'
+import { $userActionHistory, getUserActionHistory } from '../atoms/storeChanges'
 import { $todoItems } from '../atoms/todoItems'
 import { ChatHistory } from './chat-history/ChatHistory'
 import { ChatInput } from './ChatInput'
@@ -29,6 +30,15 @@ export function ChatPanel({ editor }: { editor: Editor }) {
 		;(window as any).editor = editor
 		;(window as any).agent = agent
 	}, [agent, editor])
+
+	useEffect(() => {
+		if (!editor) return
+		const cleanUp = getUserActionHistory(editor)
+
+		return () => {
+			cleanUp()
+		}
+	}, [editor])
 
 	const handleSubmit = useCallback<FormEventHandler<HTMLFormElement>>(
 		async (e) => {
@@ -99,6 +109,8 @@ export function ChatPanel({ editor }: { editor: Editor }) {
 				console.error(e)
 			}
 			setIsGenerating(false)
+
+			$userActionHistory.set([]) // TODO right now, we clear the changes when the agent finishes its turn. However, this loses all the changes that happened while the agent was working. We should make this more sophisticated.
 
 			$pendingContextItems.set([])
 			$contextBoundsHighlight.set(null)
