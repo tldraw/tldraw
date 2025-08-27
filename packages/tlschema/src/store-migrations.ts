@@ -68,24 +68,22 @@ export const storeMigrations = createMigrationSequence({
 		},
 		{
 			id: Versions.FixIndexKeys,
-			scope: 'store',
-			up: (store) => {
-				for (const [_, record] of objectMapEntries(store)) {
-					if (['shape', 'page'].includes(record.typeName) && 'index' in record) {
-						const recordWithIndex = record as TLShape | TLPage
-						// Our newer fractional indexed library (more correctly) validates that indices
-						// do not end with 0. ('a0' being an exception)
-						if (recordWithIndex.index.endsWith('0') && recordWithIndex.index !== 'a0') {
-							recordWithIndex.index = (recordWithIndex.index.slice(0, -1) +
-								getNRandomBase62Digits(3)) as IndexKey
-						}
-						// Line shapes have 'points' that have indices as well.
-						if (record.typeName === 'shape' && (recordWithIndex as TLShape).type === 'line') {
-							const lineShape = recordWithIndex as TLLineShape
-							for (const [_, point] of objectMapEntries(lineShape.props.points)) {
-								if (point.index.endsWith('0') && point.index !== 'a0') {
-									point.index = (point.index.slice(0, -1) + getNRandomBase62Digits(3)) as IndexKey
-								}
+			scope: 'record',
+			up: (record) => {
+				if (['shape', 'page'].includes(record.typeName) && 'index' in record) {
+					const recordWithIndex = record as TLShape | TLPage
+					// Our newer fractional indexed library (more correctly) validates that indices
+					// do not end with 0. ('a0' being an exception)
+					if (recordWithIndex.index.endsWith('0') && recordWithIndex.index !== 'a0') {
+						recordWithIndex.index = (recordWithIndex.index.slice(0, -1) +
+							getNRandomBase62Digits(3)) as IndexKey
+					}
+					// Line shapes have 'points' that have indices as well.
+					if (record.typeName === 'shape' && (recordWithIndex as TLShape).type === 'line') {
+						const lineShape = recordWithIndex as TLLineShape
+						for (const [_, point] of objectMapEntries(lineShape.props.points)) {
+							if (point.index.endsWith('0') && point.index !== 'a0') {
+								point.index = (point.index.slice(0, -1) + getNRandomBase62Digits(3)) as IndexKey
 							}
 						}
 					}

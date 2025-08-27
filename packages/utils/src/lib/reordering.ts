@@ -1,26 +1,11 @@
 import { generateKeyBetween, generateNKeysBetween } from 'jittered-fractional-indexing'
 
-// The default is 30 bits of jitter (0.742% chance of collision for 4000 shapes),
-// but we use 40 bits to avoid collisions (0.00072% of collision for 4000 shapes).
-// 4000 shapes being our current max number of shapes.
-const JITTER_BITS = 40
-
-const generateJitteredKeyBetween = (a: string | null, b: string | null) => {
-	return generateKeyBetween(a, b, { jitterBits: JITTER_BITS })
-}
-
-const generateNJitteredKeysBetween = (a: string | null, b: string | null, n: number) => {
-	return generateNKeysBetween(a, b, n, { jitterBits: JITTER_BITS })
-}
-
-const generateNJitteredKeyBetweenWithNoJitter = (a: string | null, b: string | null, n: number) => {
+const generateNKeysBetweenWithNoJitter = (a: string | null, b: string | null, n: number) => {
 	return generateNKeysBetween(a, b, n, { jitterBits: 0 })
 }
 
 const generateKeysFn =
-	process.env.NODE_ENV === 'test'
-		? generateNJitteredKeyBetweenWithNoJitter
-		: generateNJitteredKeysBetween
+	process.env.NODE_ENV === 'test' ? generateNKeysBetweenWithNoJitter : generateNKeysBetween
 
 /**
  * A string made up of an integer part followed by a fraction part. The fraction point consists of
@@ -40,7 +25,7 @@ export const ZERO_INDEX_KEY = 'a0' as IndexKey
 /** @internal */
 export function validateIndexKey(index: string): asserts index is IndexKey {
 	try {
-		generateJitteredKeyBetween(index, null)
+		generateKeyBetween(index, null)
 	} catch {
 		throw new Error('invalid index: ' + index)
 	}
