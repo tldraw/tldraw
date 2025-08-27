@@ -92,7 +92,7 @@ export class SlideShapeUtil extends ShapeUtil<SlideShape> {
 				<SVGContainer>
 					<g
 						style={{
-							stroke: 'var(--color-text)',
+							stroke: 'var(--tl-color-text)',
 							strokeWidth: 'calc(1px * var(--tl-scale))',
 							opacity: 0.25,
 						}}

@@ -100,6 +100,10 @@ export class FrameShapeUtil extends BaseBoxShapeUtil<TLFrameShape> {
 		return false
 	}
 
+	override isExportBoundsContainer(): boolean {
+		return true
+	}
+
 	override getDefaultProps(): TLFrameShape['props'] {
 		return { w: 160 * 2, h: 90 * 2, name: '', color: 'black' }
 	}
@@ -224,8 +228,12 @@ export class FrameShapeUtil extends BaseBoxShapeUtil<TLFrameShape> {
 		const colorToUse = showFrameColors ? shape.props.color : 'black'
 		const frameFill = getColorValue(theme, colorToUse, 'frameFill')
 		const frameStroke = getColorValue(theme, colorToUse, 'frameStroke')
-		const frameHeadingStroke = getColorValue(theme, colorToUse, 'frameHeadingStroke')
-		const frameHeadingFill = getColorValue(theme, colorToUse, 'frameHeadingFill')
+		const frameHeadingStroke = showFrameColors
+			? getColorValue(theme, colorToUse, 'frameHeadingStroke')
+			: theme.background
+		const frameHeadingFill = showFrameColors
+			? getColorValue(theme, colorToUse, 'frameHeadingFill')
+			: theme.background
 		const frameHeadingText = getColorValue(theme, colorToUse, 'frameText')
 
 		return (
@@ -280,8 +288,12 @@ export class FrameShapeUtil extends BaseBoxShapeUtil<TLFrameShape> {
 		const colorToUse = showFrameColors ? shape.props.color : 'black'
 		const frameFill = getColorValue(theme, colorToUse, 'frameFill')
 		const frameStroke = getColorValue(theme, colorToUse, 'frameStroke')
-		const frameHeadingStroke = getColorValue(theme, colorToUse, 'frameHeadingStroke')
-		const frameHeadingFill = getColorValue(theme, colorToUse, 'frameHeadingFill')
+		const frameHeadingStroke = showFrameColors
+			? getColorValue(theme, colorToUse, 'frameHeadingStroke')
+			: theme.background
+		const frameHeadingFill = showFrameColors
+			? getColorValue(theme, colorToUse, 'frameHeadingFill')
+			: theme.background
 		const frameHeadingText = getColorValue(theme, colorToUse, 'frameText')
 
 		return (

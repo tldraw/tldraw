@@ -67,6 +67,12 @@ export type TLSyncErrorCloseEventReason =
 	(typeof TLSyncErrorCloseEventReason)[keyof typeof TLSyncErrorCloseEventReason]
 
 /**
+ * Event handler for userland socket messages
+ * @public
+ */
+export type TLCustomMessageHandler = (this: null, data: any) => void
+
+/**
  * @internal
  */
 export type TlSocketStatusChangeEvent =
@@ -166,6 +172,8 @@ export class TLSyncClient<R extends UnknownRecord, S extends Store<R> = Store<R>
 	 */
 	public readonly onAfterConnect?: (self: this, details: { isReadonly: boolean }) => void
 
+	private readonly onCustomMessageReceived?: TLCustomMessageHandler
+
 	private isDebugging = false
 	private debug(...args: any[]) {
 		if (this.isDebugging) {
@@ -185,6 +193,7 @@ export class TLSyncClient<R extends UnknownRecord, S extends Store<R> = Store<R>
 		presenceMode?: Signal<TLPresenceMode>
 		onLoad(self: TLSyncClient<R, S>): void
 		onSyncError(reason: string): void
+		onCustomMessageReceived?: TLCustomMessageHandler
 		onAfterConnect?(self: TLSyncClient<R, S>, details: { isReadonly: boolean }): void
 		didCancel?(): boolean
 	}) {
@@ -198,6 +207,7 @@ export class TLSyncClient<R extends UnknownRecord, S extends Store<R> = Store<R>
 		this.store = config.store
 		this.socket = config.socket
 		this.onAfterConnect = config.onAfterConnect
+		this.onCustomMessageReceived = config.onCustomMessageReceived
 
 		let didLoad = false
 
@@ -447,6 +457,10 @@ export class TLSyncClient<R extends UnknownRecord, S extends Store<R> = Store<R>
 			case 'pong':
 				// noop, we only use ping/pong to set lastSeverInteractionTimestamp
 				break
+			case 'custom':
+				this.onCustomMessageReceived?.call(null, event.data)
+				break
+
 			default:
 				exhaustiveSwitchError(event)
 		}

@@ -128,7 +128,10 @@
 		"package": "yarn build && tsx scripts/package.ts",
 		"publish": "tsx scripts/publish.ts",
 		"lint": "yarn run -T tsx ../../../internal/scripts/lint.ts",
-		"clean": "rm -rf .turbo && rm -rf node_modules && rm -rf dist && rm -rf editor && rm -rf temp & yarn"
+		"clean": "rm -rf .turbo && rm -rf node_modules && rm -rf dist && rm -rf editor && rm -rf temp & yarn",
+		"test": "yarn run -T vitest --passWithNoTests",
+		"test-ci": "yarn run -T vitest run --passWithNoTests",
+		"test-coverage": "yarn run -T vitest run --coverage --passWithNoTests"
 	},
 	"devDependencies": {
 		"@tldraw/editor": "workspace:*",

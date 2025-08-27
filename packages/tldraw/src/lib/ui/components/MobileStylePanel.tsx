@@ -57,7 +57,7 @@ export function MobileStylePanel() {
 					type="tool"
 					data-testid="mobile-styles.button"
 					style={{
-						color: disableStylePanel ? 'var(--color-muted-1)' : currentColor,
+						color: disableStylePanel ? 'var(--tl-color-muted-1)' : currentColor,
 					}}
 					title={msg('style-panel.title')}
 					disabled={disableStylePanel}

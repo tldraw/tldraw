@@ -153,15 +153,15 @@ To remove the watermark, please purchase a license at tldraw.dev.
 
 	.${className} {
 		position: absolute;
-		bottom: var(--space-2);
-		right: var(--space-2);
+		bottom: var(--tl-space-2);
+		right: var(--tl-space-2);
 		width: 96px;
 		height: 32px;
 		display: flex;
 		align-items: center;
 		justify-content: center;
-		z-index: var(--layer-watermark) !important;
-		background-color: color-mix(in srgb, var(--color-background) 62%, transparent);
+		z-index: var(--tl-layer-watermark) !important;
+		background-color: color-mix(in srgb, var(--tl-color-background) 62%, transparent);
 		opacity: 1;
 		border-radius: 5px;
 		pointer-events: all;
@@ -175,7 +175,7 @@ To remove the watermark, please purchase a license at tldraw.dev.
 		height: 32px;
 		pointer-events: all;
 		cursor: inherit;
-		color: var(--color-text);
+		color: var(--tl-color-text);
 		opacity: .38;
 		border: 0;
 		padding: 0;
@@ -205,7 +205,7 @@ To remove the watermark, please purchase a license at tldraw.dev.
 		}
 
 		.${className}:hover {
-			background-color: var(--color-background);
+			background-color: var(--tl-color-background);
 			transition: background-color 0.2s ease-in-out;
 			transition-delay: 0.32s;
 		}

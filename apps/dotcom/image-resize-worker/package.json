@@ -10,9 +10,9 @@
 	"main": "src/index.ts",
 	"scripts": {
 		"dev": "yarn run -T tsx ../../../internal/scripts/workers/dev.ts --inspector-port 9339",
-		"test-ci": "lazy inherit --passWithNoTests",
-		"test": "yarn run -T jest --passWithNoTests",
-		"test-coverage": "lazy inherit --passWithNoTests",
+		"test-ci": "yarn run -T vitest run --passWithNoTests",
+		"test": "yarn run -T vitest --passWithNoTests",
+		"test-coverage": "yarn run -T vitest run --coverage --passWithNoTests",
 		"lint": "yarn run -T tsx ../../../internal/scripts/lint.ts"
 	},
 	"dependencies": {
@@ -27,11 +27,5 @@
 		"@cloudflare/workers-types": "^4.20250703.0",
 		"lazyrepo": "0.0.0-alpha.27",
 		"wrangler": "^4.23.0"
-	},
-	"jest": {
-		"preset": "../../../internal/config/jest/node/jest-preset.js",
-		"moduleNameMapper": {
-			"^~(.*)": "<rootDir>/src/$1"
-		}
 	}
 }

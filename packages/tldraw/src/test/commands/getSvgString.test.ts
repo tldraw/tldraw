@@ -1,4 +1,5 @@
 import { DefaultDashStyle, TLGeoShape, createShapeId, toRichText } from '@tldraw/editor'
+import { vi } from 'vitest'
 import { TestEditor } from '../TestEditor'
 
 let editor: TestEditor
@@ -14,7 +15,7 @@ function parseSvg({ svg }: { svg: string } = { svg: '' }) {
 	return parser.parseFromString(svg, 'image/svg+xml').firstElementChild as SVGSVGElement
 }
 
-jest.useRealTimers()
+vi.useRealTimers()
 
 beforeEach(() => {
 	editor = new TestEditor()

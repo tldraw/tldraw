@@ -186,6 +186,7 @@ export type TLUiTranslationKey =
 	| 'geo-style.pentagon'
 	| 'geo-style.rectangle'
 	| 'geo-style.rhombus'
+	| 'geo-style.rhombus-2'
 	| 'geo-style.star'
 	| 'geo-style.trapezoid'
 	| 'geo-style.triangle'

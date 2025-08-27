@@ -14,6 +14,7 @@ import {
 	loadSnapshot,
 	react,
 } from '@tldraw/editor'
+import { vi } from 'vitest'
 import { TestEditor } from './TestEditor'
 import { TL } from './test-jsx'
 
@@ -415,24 +416,24 @@ describe('isFocused', () => {
 	})
 
 	it('becomes true when the container div receives a focus event', () => {
-		jest.advanceTimersByTime(100)
+		vi.advanceTimersByTime(100)
 		expect(editor.getInstanceState().isFocused).toBe(false)
 
 		editor.elm.focus()
 
-		jest.advanceTimersByTime(100)
+		vi.advanceTimersByTime(100)
 		expect(editor.getInstanceState().isFocused).toBe(true)
 	})
 
 	it('becomes false when the container div receives a blur event', () => {
 		editor.elm.focus()
 
-		jest.advanceTimersByTime(100)
+		vi.advanceTimersByTime(100)
 		expect(editor.getInstanceState().isFocused).toBe(true)
 
 		editor.elm.blur()
 
-		jest.advanceTimersByTime(100)
+		vi.advanceTimersByTime(100)
 		expect(editor.getInstanceState().isFocused).toBe(false)
 	})
 
@@ -444,13 +445,13 @@ describe('isFocused', () => {
 		editor.elm.blur()
 		const child = document.createElement('div')
 		editor.elm.appendChild(child)
-		jest.advanceTimersByTime(100)
+		vi.advanceTimersByTime(100)
 		expect(editor.getInstanceState().isFocused).toBe(false)
 		child.dispatchEvent(new FocusEvent('focusin', { bubbles: true }))
-		jest.advanceTimersByTime(100)
+		vi.advanceTimersByTime(100)
 		expect(editor.getInstanceState().isFocused).toBe(true)
 		child.dispatchEvent(new FocusEvent('focusout', { bubbles: true }))
-		jest.advanceTimersByTime(100)
+		vi.advanceTimersByTime(100)
 		expect(editor.getInstanceState().isFocused).toBe(false)
 	})
 
@@ -466,7 +467,7 @@ describe('isFocused', () => {
 
 		child.dispatchEvent(new FocusEvent('focusout', { bubbles: true }))
 
-		jest.advanceTimersByTime(100)
+		vi.advanceTimersByTime(100)
 		expect(editor.getInstanceState().isFocused).toBe(false)
 	})
 })
@@ -520,13 +521,13 @@ describe('getShapeUtil', () => {
 	it('throws if that shape type isnt registered', () => {
 		const myMissingShape = { type: 'missing' } as TLShape
 		expect(() => editor.getShapeUtil(myMissingShape)).toThrowErrorMatchingInlineSnapshot(
-			`"No shape util found for type "missing""`
+			`[Error: No shape util found for type "missing"]`
 		)
 	})
 
 	it('throws if that type isnt registered', () => {
 		expect(() => editor.getShapeUtil('missing')).toThrowErrorMatchingInlineSnapshot(
-			`"No shape util found for type "missing""`
+			`[Error: No shape util found for type "missing"]`
 		)
 	})
 })
@@ -603,14 +604,14 @@ describe('snapshots', () => {
 
 describe('when the user prefers dark UI', () => {
 	beforeEach(() => {
-		window.matchMedia = jest.fn().mockImplementation((query) => {
+		window.matchMedia = vi.fn().mockImplementation((query) => {
 			return {
 				matches: query === '(prefers-color-scheme: dark)',
 				media: query,
 				onchange: null,
-				addEventListener: jest.fn(),
-				removeEventListener: jest.fn(),
-				dispatchEvent: jest.fn(),
+				addEventListener: vi.fn(),
+				removeEventListener: vi.fn(),
+				dispatchEvent: vi.fn(),
 			}
 		})
 	})
@@ -630,14 +631,14 @@ describe('when the user prefers dark UI', () => {
 
 describe('when the user prefers light UI', () => {
 	beforeEach(() => {
-		window.matchMedia = jest.fn().mockImplementation((query) => {
+		window.matchMedia = vi.fn().mockImplementation((query) => {
 			return {
 				matches: false,
 				media: query,
 				onchange: null,
-				addEventListener: jest.fn(),
-				removeEventListener: jest.fn(),
-				dispatchEvent: jest.fn(),
+				addEventListener: vi.fn(),
+				removeEventListener: vi.fn(),
+				dispatchEvent: vi.fn(),
 			}
 		})
 	})
@@ -722,7 +723,7 @@ describe('dragging', () => {
 })
 
 describe('getShapeVisibility', () => {
-	const getShapeVisibility = jest.fn(((shape: TLShape) => {
+	const getShapeVisibility = vi.fn(((shape: TLShape) => {
 		return shape.meta.visibility as any
 	}) satisfies TldrawEditorProps['getShapeVisibility'])
 

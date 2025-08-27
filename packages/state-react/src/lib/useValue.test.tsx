@@ -1,6 +1,7 @@
 import { RenderResult, act, render } from '@testing-library/react'
 import { Atom, Computed, atom } from '@tldraw/state'
 import { Component, ReactNode, useState } from 'react'
+import { vi } from 'vitest'
 import { useAtom } from './useAtom'
 import { useComputed } from './useComputed'
 import { useValue } from './useValue'
@@ -192,7 +193,7 @@ test('useValue throws synchronously during render when the computed throws', asy
 	// ignore console.error here because react will log the error to console.error
 	// even though it's caught by the error boundary
 	const originalError = console.error
-	console.error = jest.fn()
+	console.error = vi.fn()
 	try {
 		act(() => {
 			theAtom.set(new Error('test'))

@@ -33,12 +33,6 @@
       "value": "Auto"
     }
   ],
-  "0776e18496": [
-    {
-      "type": 0,
-      "value": "Spara och dela"
-    }
-  ],
   "07dbd11b21": [
     {
       "type": 0,
@@ -117,12 +111,6 @@
       "value": "Det här rummet närmar sig sin storleksgräns. Överväg att ta bort en del innehåll eller starta en ny fil."
     }
   ],
-  "22d84a12fd": [
-    {
-      "type": 0,
-      "value": "Figjam men tldraw"
-    }
-  ],
   "250ddea65c": [
     {
       "type": 0,
@@ -133,12 +121,6 @@
     {
       "type": 0,
       "value": "Uppladdningen misslyckades"
-    }
-  ],
-  "2c61d18599": [
-    {
-      "type": 0,
-      "value": "Miro men bra och fri"
     }
   ],
   "2deec2cb74": [
@@ -171,12 +153,6 @@
       "value": "Redigeringsverktyg"
     }
   ],
-  "37b3dca331": [
-    {
-      "type": 0,
-      "value": "Vänligen logga in"
-    }
-  ],
   "3bd1b98dbd": [
     {
       "type": 0,
@@ -195,22 +171,10 @@
       "value": "Acceptera alla"
     }
   ],
-  "3fc6d0c83a": [
-    {
-      "type": 0,
-      "value": "Lägg till vän"
-    }
-  ],
   "42e53c47c1": [
     {
       "type": 0,
       "value": "Kontakta ägaren för att begära åtkomst."
-    }
-  ],
-  "44281ab6e5": [
-    {
-      "type": 0,
-      "value": "Logga in"
     }
   ],
   "44db318ee5": [
@@ -247,12 +211,6 @@
     {
       "type": 0,
       "value": "Ladda om"
-    }
-  ],
-  "4ea0bb66f7": [
-    {
-      "type": 0,
-      "value": "Ett konto vore trevligt"
     }
   ],
   "50db1b7e1e": [
@@ -337,12 +295,6 @@
       "value": "Gammal webbläsare upptäckt. Uppdatera din webbläsare för att använda den här appen."
     }
   ],
-  "5bef23eb7e": [
-    {
-      "type": 0,
-      "value": "Skapa ditt konto"
-    }
-  ],
   "5d26ae7550": [
     {
       "type": 0,
@@ -383,12 +335,6 @@
     {
       "type": 0,
       "value": "En ny version av tldraw är tillgänglig. Ladda om sidan för att fortsätta."
-    }
-  ],
-  "697c59072d": [
-    {
-      "type": 0,
-      "value": "Logga in för att spara"
     }
   ],
   "6a26f54883": [
@@ -493,12 +439,6 @@
       "value": "Återställ version"
     }
   ],
-  "7c7d5d493e": [
-    {
-      "type": 0,
-      "value": "Vänligen registrera dig"
-    }
-  ],
   "7cb5f8b4a5": [
     {
       "type": 0,
@@ -557,12 +497,6 @@
       "value": "."
     }
   ],
-  "84c89d47c7": [
-    {
-      "type": 0,
-      "value": "Dela gratis"
-    }
-  ],
   "85a082de1b": [
     {
       "type": 0,
@@ -593,12 +527,6 @@
     {
       "type": 0,
       "value": "För att fortsätta redigera, kopiera rummet till dina filer."
-    }
-  ],
-  "8ea211024d": [
-    {
-      "type": 0,
-      "value": "Skapa ett gratis konto"
     }
   ],
   "8eb2c00e96": [
@@ -757,12 +685,6 @@
       "value": "Gästanvändare"
     }
   ],
-  "b52dc007ac": [
-    {
-      "type": 0,
-      "value": "Registrera dig (gratis och bra)"
-    }
-  ],
   "b6d4223e60": [
     {
       "type": 0,
@@ -845,28 +767,10 @@
       "value": "Ladda upp .tldr-filer"
     }
   ],
-  "bffe9a3c9a": [
-    {
-      "type": 0,
-      "value": "Logga in"
-    }
-  ],
-  "c079282475": [
-    {
-      "type": 0,
-      "value": "Dela ditt arbete"
-    }
-  ],
   "c2276c9127": [
     {
       "type": 0,
       "value": "Läs mer om delning."
-    }
-  ],
-  "c24e43cd1a": [
-    {
-      "type": 0,
-      "value": "Du anmäler dig, eller hur?"
     }
   ],
   "c303bd1095": [
@@ -899,12 +803,6 @@
       "value": "Logga ut"
     }
   ],
-  "c8c6a6504a": [
-    {
-      "type": 0,
-      "value": "Du borde registrera dig"
-    }
-  ],
   "cceaefbc20": [
     {
       "type": 0,
@@ -921,12 +819,6 @@
     {
       "type": 0,
       "value": "Läs mer om publicering."
-    }
-  ],
-  "d0eedb7995": [
-    {
-      "type": 0,
-      "value": "Hej"
     }
   ],
   "d3d2e61733": [
@@ -953,28 +845,10 @@
       "value": "Försök igen"
     }
   ],
-  "d8a50c79a7": [
-    {
-      "type": 0,
-      "value": "Kom med mig till tldraw"
-    }
-  ],
   "d9100f3e10": [
     {
       "type": 0,
       "value": "Gå hit för att se innehållet"
-    }
-  ],
-  "da404df474": [
-    {
-      "type": 0,
-      "value": "Spara ditt arbete"
-    }
-  ],
-  "db4c2dab9a": [
-    {
-      "type": 0,
-      "value": "Inte Excalidraw"
     }
   ],
   "dbbebf3c03": [
@@ -1109,12 +983,6 @@
     {
       "type": 0,
       "value": "Är du säker på att du vill ta bort den här filen?"
-    }
-  ],
-  "fd27891570": [
-    {
-      "type": 0,
-      "value": "Gå med i väntelistan"
     }
   ],
   "fed5ec05eb": [
