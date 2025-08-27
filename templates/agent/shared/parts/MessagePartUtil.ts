@@ -13,7 +13,6 @@ export class MessagePartUtil extends PromptPartUtil<string> {
 	}
 
 	override buildContent(promptPart: string, prompt: AgentPrompt) {
-		// console.log('prompt', prompt)
 		const requestType = prompt.type
 
 		if (requestType === 'review') {

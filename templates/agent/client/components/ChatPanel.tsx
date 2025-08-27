@@ -9,8 +9,11 @@ import { $chatHistoryItems } from '../atoms/chatHistoryItems'
 import { $contextItems, $pendingContextItems } from '../atoms/contextItems'
 import { $modelName } from '../atoms/modelName'
 import { $scheduledRequests } from '../atoms/scheduledRequests'
-import { $userActionHistory, getUserActionHistory } from '../atoms/storeChanges'
 import { $todoItems } from '../atoms/todoItems'
+import {
+	$userAndAgentActionHistory,
+	getUserAndAgentActionHistory,
+} from '../atoms/userAndAgentActionHistory'
 import { ChatHistory } from './chat-history/ChatHistory'
 import { ChatInput } from './ChatInput'
 import { $contextBoundsHighlight } from './highlights/ContextBoundsHighlights'
@@ -33,7 +36,7 @@ export function ChatPanel({ editor }: { editor: Editor }) {
 
 	useEffect(() => {
 		if (!editor) return
-		const cleanUp = getUserActionHistory(editor)
+		const cleanUp = getUserAndAgentActionHistory(editor)
 
 		return () => {
 			cleanUp()
@@ -110,7 +113,7 @@ export function ChatPanel({ editor }: { editor: Editor }) {
 			}
 			setIsGenerating(false)
 
-			$userActionHistory.set([]) // TODO right now, we clear the changes when the agent finishes its turn. However, this loses all the changes that happened while the agent was working. We should make this more sophisticated.
+			$userAndAgentActionHistory.set([]) // TODO right now, we clear the changes when the agent finishes its turn. However, this loses all the changes that happened while the agent was working. We should make this more sophisticated.
 
 			$pendingContextItems.set([])
 			$contextBoundsHighlight.set(null)

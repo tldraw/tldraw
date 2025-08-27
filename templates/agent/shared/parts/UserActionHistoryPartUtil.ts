@@ -1,88 +1,144 @@
-import { TLShapeId } from 'tldraw'
+import { isEqual, RecordsDiff, squashRecordDiffs, TLRecord, TLShape } from 'tldraw'
 import { $chatHistoryItems } from '../../client/atoms/chatHistoryItems'
-import { $userActionHistory } from '../../client/atoms/storeChanges'
-import { AgentPromptOptions } from '../types/AgentPrompt'
-import { UserActionHistory } from '../types/UserActionHistory'
+import { $userAndAgentActionHistory } from '../../client/atoms/userAndAgentActionHistory'
+import { convertTldrawShapeToSimpleShape, ISimpleShape } from '../format/SimpleShape'
+import { AgentPrompt, AgentPromptOptions } from '../types/AgentPrompt'
 import { PromptPartUtil } from './PromptPartUtil'
 
-export class UserActionHistoryPartUtil extends PromptPartUtil<UserActionHistory[]> {
+interface UserActionEntry {
+	type: 'create' | 'update' | 'delete'
+	initialShape: ISimpleShape | null
+	finalShape: ISimpleShape | null
+}
+
+type UserActionHistory = Record<string, UserActionEntry[]>
+
+export class UserActionHistoryPartUtil extends PromptPartUtil<UserActionHistory> {
 	static override type = 'userHistory' as const
 
 	override getPriority() {
 		return 40
 	}
 
-	override async getPart(_options: AgentPromptOptions): Promise<UserActionHistory[]> {
-		const chatHistory = $chatHistoryItems.get()
+	override async getPart(options: AgentPromptOptions): Promise<UserActionHistory> {
+		// Updates to the editor store done by the agent are unfortunately attributed to the user in the editor store history (ideally they're remote, or maybe even a new 'agent' source). So we have to filter out the agent's actions from the history.
+		const { editor } = options
 
-		const lastUserMessageIndex = (() => {
-			let found = 0
-			for (let i = chatHistory.length - 1; i >= 0; i--) {
-				if (chatHistory[i].type === 'prompt') {
-					found++
-					if (found === 2) return i
+		const rawStoreDiffs = $userAndAgentActionHistory.get()
+		if (rawStoreDiffs.length === 0) {
+			return {}
+		}
+
+		// Get the agent's diffs from the chat history
+		const agentActionDiffs = this.getAgentDiffs($chatHistoryItems.get())
+
+		const userActionDiffs = rawStoreDiffs.filter(
+			(diff) => !agentActionDiffs.some((agentDiff) => isEqual(diff, agentDiff))
+		)
+
+		const squashedUserActionDiff = squashRecordDiffs(userActionDiffs)
+
+		const userActionHistory: UserActionHistory = {}
+
+		// Convert shapes from RecordDiff<TLRecord> to UserActionEntry, which containts simmple shapes and we will use to describe the changes to the agent. While it may seems pointless to convert to simple shapes when we're just returning text later, it's important because we don't want to tell the model about properties that were changed that are not in simple shapes.
+		Object.values(squashedUserActionDiff.added)
+			.filter((record) => record.typeName === 'shape')
+			.forEach((record) => {
+				const shape = record as TLShape
+				const shapeId = shape.id
+				const simpleShape = convertTldrawShapeToSimpleShape(shape, editor)
+
+				const entry: UserActionEntry = {
+					type: 'create',
+					initialShape: null,
+					finalShape: simpleShape,
 				}
-			}
-			return -1
-		})()
 
-		const allAgentCreatedShapesSinceLastUserMessage = (() => {
-			const agentCreatedShapes = new Set<TLShapeId>()
-			for (let i = lastUserMessageIndex + 1; i < chatHistory.length; i++) {
-				const item = chatHistory[i]
-				if (
-					item.type === 'action' &&
-					item.action &&
-					item.action._type === 'create' &&
-					item.action.complete
-				) {
-					agentCreatedShapes.add(item.action.shape.shapeId as TLShapeId)
+				if (!userActionHistory[shapeId]) {
+					userActionHistory[shapeId] = []
 				}
-			}
-			return agentCreatedShapes
-		})()
-
-		const shapeChangesSinceLastUserMessage = $userActionHistory.get()
-
-		// Filter out agent-created shapes by removing 'create' StoreChange entries
-		const rectifiedShapeChanges = shapeChangesSinceLastUserMessage
-			.map((shapeHistory) => {
-				const isAgentCreated = allAgentCreatedShapesSinceLastUserMessage.has(
-					shapeHistory.shapeId as TLShapeId
-				)
-
-				if (isAgentCreated) {
-					// For agent-created shapes, filter out the 'create' StoreChange
-					const filteredChanges = shapeHistory.changes.filter((change) => change.type !== 'create')
-					return {
-						...shapeHistory,
-						changes: filteredChanges,
-					}
-				} else {
-					// For user-created shapes, keep all changes
-					return shapeHistory
-				}
+				userActionHistory[shapeId].push(entry)
 			})
-			.filter((shapeHistory) => shapeHistory.changes.length > 0) // Remove shapes with no remaining changes
 
-		return rectifiedShapeChanges
+		Object.values(squashedUserActionDiff.updated)
+			.filter(
+				(pair) =>
+					Array.isArray(pair) && pair[0].typeName === 'shape' && pair[1].typeName === 'shape'
+			)
+			.forEach((pair) => {
+				const [from, to] = pair
+				const fromShape = from as TLShape
+				const toShape = to as TLShape
+				const shapeId = toShape.id
+
+				const initialSimpleShape = convertTldrawShapeToSimpleShape(fromShape, editor)
+				const finalSimpleShape = convertTldrawShapeToSimpleShape(toShape, editor)
+
+				const entry: UserActionEntry = {
+					type: 'update',
+					initialShape: initialSimpleShape,
+					finalShape: finalSimpleShape,
+				}
+
+				if (!userActionHistory[shapeId]) {
+					userActionHistory[shapeId] = []
+				}
+				userActionHistory[shapeId].push(entry)
+			})
+
+		Object.values(squashedUserActionDiff.removed)
+			.filter((record) => record.typeName === 'shape')
+			.forEach((record) => {
+				const shape = record as TLShape
+				const shapeId = shape.id
+				const simpleShape = convertTldrawShapeToSimpleShape(shape, editor)
+
+				const entry: UserActionEntry = {
+					type: 'delete',
+					initialShape: simpleShape,
+					finalShape: null,
+				}
+
+				if (!userActionHistory[shapeId]) {
+					userActionHistory[shapeId] = []
+				}
+				userActionHistory[shapeId].push(entry)
+			})
+
+		return userActionHistory
 	}
 
-	override buildContent(part: UserActionHistory[]) {
+	override buildContent(part: UserActionHistory, _prompt: AgentPrompt): string[] {
+		if (Object.keys(part).length === 0) {
+			return []
+		}
+
+		const content = this.turnChangesIntoReadableText(part)
+		if (content === '') {
+			return []
+		}
+
 		return [
 			'Since sending their last message, the user has made the following changes to the canvas:',
-			this.turnChangesIntoReadableText(part),
+			content,
 		]
 	}
 
-	private turnChangesIntoReadableText(changes: UserActionHistory[]): string {
-		if (changes.length === 0) return ''
+	/**
+	 * Gets all diffs done by the agent in the chat history
+	 */
+	private getAgentDiffs(chatHistory: any[]): RecordsDiff<TLRecord>[] {
+		return chatHistory
+			.filter((item) => item.type === 'action' && item.diff)
+			.map((item) => item.diff)
+	}
+
+	private turnChangesIntoReadableText(changes: UserActionHistory): string {
+		if (Object.keys(changes).length === 0) return ''
 
 		const descriptions: string[] = []
 
-		for (const shapeHistory of changes) {
-			const { shapeId, changes: shapeChanges } = shapeHistory
-
+		for (const [shapeId, shapeChanges] of Object.entries(changes)) {
 			if (shapeChanges.length === 0) continue
 
 			const firstChange = shapeChanges[0]
@@ -95,13 +151,13 @@ export class UserActionHistoryPartUtil extends PromptPartUtil<UserActionHistory[
 
 			// Case 2: Shape was deleted (and not created then deleted)
 			if (lastChange.type === 'delete') {
-				descriptions.push(`Shape with id: ${shapeId} was deleted`)
+				descriptions.push(`User deleted shape with id: ${shapeId}`)
 				continue
 			}
 
 			// Case 3: Shape was only created, or created and updated (but not deleted)
 			if (firstChange.type === 'create') {
-				descriptions.push(`Shape with id: ${shapeId} was created`)
+				descriptions.push(`User created shape with id: ${shapeId}`)
 				continue
 			}
 
@@ -111,47 +167,48 @@ export class UserActionHistoryPartUtil extends PromptPartUtil<UserActionHistory[
 				const finalShape = lastChange.finalShape
 
 				if (initialShape && finalShape) {
-					const changedProperties = this.getChangedProperties(initialShape, finalShape)
+					// Find out which properties have changed, and return them as strings
+					const changedProperties = this.getChangedPropertiesAsStrings(initialShape, finalShape)
 
 					if (changedProperties.length > 0) {
-						const propertyDescriptions = changedProperties.map((prop) => {
-							const { name, fromValue, toValue } = prop
+						const propertyDescriptions = changedProperties.map((changedProperty) => {
+							const { name, fromValue, toValue } = changedProperty
 							return `${name} property changed from ${fromValue} to ${toValue}`
 						})
 
-						const description = `Shape with id: ${shapeId} had its ${propertyDescriptions.join('. It also had its ')}`
+						const description = `User updated shape with id: ${shapeId} to have its ${propertyDescriptions.join('. It also had its ')}`
 						descriptions.push(description)
 					} else {
-						descriptions.push(`Shape with id: ${shapeId} was updated`)
+						descriptions.push(`User updated shape with id: ${shapeId}`)
 					}
 				}
 			}
 		}
 
-		return descriptions.join('. ') + (descriptions.length > 0 ? '.' : '')
+		return descriptions.join('\n') + (descriptions.length > 0 ? '\n' : '')
 	}
 
-	private getChangedProperties(
-		initialShape: any,
-		finalShape: any
-	): Array<{ name: string; fromValue: any; toValue: any }> {
-		const changedProperties: Array<{ name: string; fromValue: any; toValue: any }> = []
+	private getChangedPropertiesAsStrings(
+		initialShape: Partial<ISimpleShape>,
+		finalShape: Partial<ISimpleShape>
+	): Array<{ name: string; fromValue: string; toValue: string }> {
+		const changedProperties: Array<{ name: string; fromValue: string; toValue: string }> = []
 
 		// Get all keys from both shapes
 		const allKeys = new Set([...Object.keys(initialShape), ...Object.keys(finalShape)])
 
 		for (const key of allKeys) {
 			// Skip internal properties that shouldn't be compared
-			if (key === 'shapeId' || key === '_type') continue
+			if (key === 'shapeId') continue
 
-			const initialValue = initialShape[key]
-			const finalValue = finalShape[key]
+			const initialValue = initialShape[key as keyof ISimpleShape]
+			const finalValue = finalShape[key as keyof ISimpleShape]
 
 			// Compare values (handling undefined/null cases)
 			if (initialValue !== finalValue) {
-				// Format values based on their type
-				const fromValue = this.formatValue(initialValue)
-				const toValue = this.formatValue(finalValue)
+				// Format values based on their type, returns strings
+				const fromValue = this.formatValueAsString(initialValue)
+				const toValue = this.formatValueAsString(finalValue)
 
 				changedProperties.push({
 					name: key,
@@ -164,7 +221,9 @@ export class UserActionHistoryPartUtil extends PromptPartUtil<UserActionHistory[
 		return changedProperties
 	}
 
-	private formatValue(value: any): string {
+	private formatValueAsString(
+		value: null | undefined | string | number | boolean | object
+	): string {
 		if (value === null || value === undefined) {
 			return 'undefined'
 		}
