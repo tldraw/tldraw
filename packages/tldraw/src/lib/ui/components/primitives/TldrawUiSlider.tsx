@@ -95,7 +95,6 @@ export const TldrawUiSlider = React.forwardRef<HTMLDivElement, TLUiSliderProps>(
 					onValueChange={handleValueChange}
 					onKeyDownCapture={handleKeyEvent}
 					onKeyUpCapture={handleKeyEvent}
-					autoFocus
 				>
 					<_Slider.Track className="tlui-slider__track" dir="ltr">
 						{value !== null && <_Slider.Range className="tlui-slider__range" dir="ltr" />}
