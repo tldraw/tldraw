@@ -157,6 +157,8 @@ function InsideOfTldrawContext({ uploadedFile }: { uploadedFile?: File }) {
 				.setSelectedShapes([shapeId])
 				.zoomToSelection()
 				.setCurrentTool('select.crop')
+
+			editor.getContainer().focus()
 		})()
 	}, [uploadedFile, toasts, msg, editor])
 
