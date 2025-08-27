@@ -1,15 +1,4 @@
 {
-	"permissions": {
-		"allow": [
-			"Bash(cp:*)",
-			"WebSearch",
-			"Bash(yarn install)",
-			"Bash(yarn test)",
-			"Bash(yarn typecheck)",
-			"mcp__Context7__resolve-library-id",
-			"mcp__Context7__get-library-docs"
-		]
-	},
 	"hooks": {
 		"PostToolUse": [
 			{
@@ -25,11 +14,15 @@
 	},
 	"permissions": {
 		"allow": [
+			"WebSearch",
 			"Bash(gh pr:*)",
+			"Bash(yarn install)",
 			"Bash(yarn test:*)",
 			"Bash(yarn lint:*)",
 			"Bash(yarn typecheck)",
-			"Bash(git add:*)"
+			"Bash(git add:*)",
+			"mcp__Context7__resolve-library-id",
+			"mcp__Context7__get-library-docs"
 		]
 	}
 }

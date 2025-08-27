@@ -17,10 +17,10 @@ Open `http://localhost:3000/` in your browser to see the app.
 
 ## Overview
 
-This starter kit demonstrates how to build an AI chat application enhanced with visual collaboration features using tldraw. The app features:
+This starter kit demonstrates how to build an AI chat application that uses tldraw to provide sketches and annotated image to the model. The app features:
 
 - Integrated whiteboard for providing visual context
-- Image annotation and markup capabilities
+- Image annotation and markup
 - Easy switching between text chat and visual canvas input
 
 Key interactions include:
