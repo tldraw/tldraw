@@ -27801,7 +27801,7 @@ __metadata:
     typescript: "npm:^5.8.3"
     vite: "npm:^7.0.1"
     wrangler: "npm:^4.23.0"
-    zod: "npm:^3.24.3"
+    zod: "npm:^4.0.17"
   languageName: unknown
   linkType: soft
 
@@ -30550,7 +30550,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"zod@npm:^3.21.4, zod@npm:^3.22.3, zod@npm:^3.23.8, zod@npm:^3.24.3":
+"zod@npm:^3.21.4, zod@npm:^3.22.3, zod@npm:^3.23.8":
   version: 3.25.67
   resolution: "zod@npm:3.25.67"
   checksum: 10/0e35432dcca7f053e63f5dd491a87c78abe0d981817547252c3b6d05f0f58788695d1a69724759c6501dff3fd62929be24c9f314a3625179bee889150f7a61fa
