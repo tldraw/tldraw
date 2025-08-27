@@ -286,6 +286,7 @@ export abstract class Geometry2d {
 
 	private _boundsVertices: Vec[] | undefined
 
+	// eslint-disable-next-line no-restricted-syntax
 	get boundsVertices(): Vec[] {
 		if (!this._boundsVertices) {
 			this._boundsVertices = this.getBoundsVertices()
