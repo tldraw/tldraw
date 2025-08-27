@@ -1,6 +1,6 @@
 import { isEqual, RecordsDiff, squashRecordDiffs, TLRecord, TLShape } from 'tldraw'
 import { $chatHistoryItems } from '../../client/atoms/chatHistoryItems'
-import { $userAndAgentActionHistory } from '../../client/atoms/userAndAgentActionHistory'
+import { $documentChanges } from '../../client/atoms/documentChanges'
 import { convertTldrawShapeToSimpleShape, ISimpleShape } from '../format/SimpleShape'
 import { AgentPrompt, AgentPromptOptions } from '../types/AgentPrompt'
 import { PromptPartUtil } from './PromptPartUtil'
@@ -24,7 +24,7 @@ export class UserActionHistoryPartUtil extends PromptPartUtil<UserActionHistory>
 		// Updates to the editor store done by the agent are unfortunately attributed to the user in the editor store history (ideally they're remote, or maybe even a new 'agent' source). So we have to filter out the agent's actions from the history.
 		const { editor } = options
 
-		const rawStoreDiffs = $userAndAgentActionHistory.get()
+		const rawStoreDiffs = $documentChanges.get(editor)
 		if (rawStoreDiffs.length === 0) {
 			return {}
 		}

@@ -35,8 +35,6 @@ export class AgentViewportScreenshotPartUtil extends PromptPartUtil<string | nul
 			scale,
 		})
 
-		console.log(result)
-
 		return await FileHelpers.blobToDataUrl(result.blob)
 	}
 
