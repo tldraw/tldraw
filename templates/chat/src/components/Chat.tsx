@@ -2,7 +2,7 @@
 
 import { useChat } from '@ai-sdk/react'
 import { DefaultChatTransport, FileUIPart, TextUIPart } from 'ai'
-import { useCallback, useEffect, useState } from 'react'
+import { useCallback, useEffect } from 'react'
 import { TLEditorSnapshot } from 'tldraw'
 import { useChatInputState } from '../hooks/useChatInputState'
 import { useScrollToBottom } from '../hooks/useScrollToBottom'
@@ -11,7 +11,6 @@ import { MessageList } from './MessageList'
 import { WhiteboardImage, WhiteboardModal, WhiteboardModalResult } from './WhiteboardModal'
 
 export function Chat() {
-	const [chatImageModal, setChatImageModal] = useState<{ snapshot: TLEditorSnapshot } | null>(null)
 	const [chatInputState, chatInputDispatch] = useChatInputState()
 
 	const { messages, sendMessage, status } = useChat({
@@ -39,7 +38,7 @@ export function Chat() {
 			})
 
 			// Clear chat input after sending
-			chatInputDispatch({ type: 'CLEAR' })
+			chatInputDispatch({ type: 'clear' })
 		},
 		[sendMessage, chatInputDispatch]
 	)
@@ -50,16 +49,19 @@ export function Chat() {
 		scrollToBottom()
 	}, [messages, scrollToBottom])
 
-	const handleImageClick = useCallback((snapshot: TLEditorSnapshot) => {
-		setChatImageModal({ snapshot })
-	}, [])
+	const handleImageClick = useCallback(
+		(snapshot: TLEditorSnapshot) => {
+			chatInputDispatch({ type: 'openWhiteboard', snapshot })
+		},
+		[chatInputDispatch]
+	)
 
-	const handleCloseChatImageModal = useCallback(
+	const handleCloseWhiteboard = useCallback(
 		(result: WhiteboardModalResult) => {
-			setChatImageModal(null)
+			chatInputDispatch({ type: 'closeWhiteboard' })
 			if (result.type === 'accept') {
 				// Add the modified image back to the chat input
-				chatInputDispatch({ type: 'SET_IMAGE', payload: result.image })
+				chatInputDispatch({ type: 'setImage', image: result.image })
 			}
 		},
 		[chatInputDispatch]
@@ -72,7 +74,7 @@ export function Chat() {
 		(e: React.DragEvent) => {
 			e.preventDefault()
 			if (e.dataTransfer.types.includes('Files') && !openWhiteboard && !isDragging) {
-				chatInputDispatch({ type: 'DRAG_ENTER' })
+				chatInputDispatch({ type: 'dragEnter' })
 			}
 		},
 		[openWhiteboard, isDragging, chatInputDispatch]
@@ -82,7 +84,7 @@ export function Chat() {
 		(e: React.DragEvent) => {
 			e.preventDefault()
 			if (!e.currentTarget.contains(e.relatedTarget as Node)) {
-				chatInputDispatch({ type: 'DRAG_LEAVE' })
+				chatInputDispatch({ type: 'dragLeave' })
 			}
 		},
 		[chatInputDispatch]
@@ -93,9 +95,9 @@ export function Chat() {
 			e.preventDefault()
 			const file = e.dataTransfer.files[0]
 			if (file && file.type.startsWith('image/') && !openWhiteboard) {
-				chatInputDispatch({ type: 'DROP', payload: file })
+				chatInputDispatch({ type: 'drop', file })
 			} else {
-				chatInputDispatch({ type: 'DRAG_LEAVE' })
+				chatInputDispatch({ type: 'dragLeave' })
 			}
 		},
 		[chatInputDispatch, openWhiteboard]
@@ -142,10 +144,12 @@ export function Chat() {
 					dispatch={chatInputDispatch}
 				/>
 			</div>
-			{chatImageModal && (
+			{openWhiteboard && (
 				<WhiteboardModal
-					initialSnapshot={chatImageModal.snapshot}
-					onClose={handleCloseChatImageModal}
+					imageId={openWhiteboard.id}
+					initialSnapshot={openWhiteboard.snapshot}
+					uploadedFile={openWhiteboard.uploadedFile}
+					onClose={handleCloseWhiteboard}
 				/>
 			)}
 		</div>

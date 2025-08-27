@@ -5,63 +5,51 @@
 	</picture>
 </div>
 
-# AI Chat Template
+This repo contains a starter-kit for making an AI chat application using [tldraw](https://github.com/tldraw/tldraw).
 
-This template provides an AI-powered chat interface built with [Next.js](https://nextjs.org/) and the [Vercel AI SDK](https://sdk.vercel.ai/). It features a clean, responsive design with real-time streaming responses.
+## Local development
 
-## Features
+Install dependencies with `yarn` or `npm install`.
 
-- 🤖 AI-powered chat with OpenAI GPT-4o-mini
-- 💬 Real-time message streaming
-- 📱 Responsive design for mobile and desktop
-- ⚡ Built with Next.js 15 and Vercel AI SDK v5
-- 🎨 Clean, modern UI with loading states
+Run the development server with `yarn dev` or `npm run dev`.
 
-## Setup
+Open `http://localhost:3000/` in your browser to see the app.
 
-1. **Install dependencies:**
+## Overview
 
-   ```bash
-   yarn install
-   # or
-   npm install
-   ```
+This starter kit demonstrates how to build an AI chat application enhanced with visual collaboration features using tldraw. The app features:
 
-2. **Set up environment variables:**
-   Copy `.env.example` to `.env.local` and add your OpenAI API key:
+- Integrated whiteboard for providing visual context
+- Image annotation and markup capabilities
+- Easy switching between text chat and visual canvas input
 
-   ```bash
-   cp .env.example .env.local
-   ```
+Key interactions include:
 
-   Edit `.env.local` and add your OpenAI API key:
+- Chat with AI using natural language
+- Click the whiteboard button to open the tldraw canvas
+- Draw, sketch, and create diagrams to supplement conversations
+- Annotate images and visual content directly on the canvas
 
-   ```
-   OPENAI_API_KEY=your_openai_api_key_here
-   ```
+## Environment Setup
 
-   Get your API key from [OpenAI Platform](https://platform.openai.com/account/api-keys).
+Create a `.env.local` file in the root directory and add your OpenAI API key:
 
-3. **Run the development server:**
+```
+OPENAI_API_KEY=your_openai_api_key_here
+```
 
-   ```bash
-   yarn dev
-   # or
-   npm run dev
-   ```
+Get your API key from [OpenAI Platform](https://platform.openai.com/account/api-keys).
 
-4. **Open the app:**
-   Open [http://localhost:3000](http://localhost:3000) in your browser to start chatting!
+## File structure
 
-## Architecture
-
-- **Components:** Modular React components in `src/components/`
-  - `Chat.tsx` - Main chat container with useChat hook
-  - `MessageList.tsx` - Scrollable message history
-  - `ChatMessage.tsx` - Individual message display
-  - `ChatInput.tsx` - Input field with send functionality
-- **API:** Next.js API route at `/api/chat` using Vercel AI SDK
-- **Styling:** CSS modules with responsive design
+- **`src/app/page.tsx`:** The main entry point that renders the chat interface
+- **`src/components/Chat.tsx`:** The main chat container using the Vercel AI SDK's useChat hook
+- **`src/components/MessageList.tsx`:** Scrollable message history with loading states
+- **`src/components/ChatMessage.tsx`:** Individual message display component
+- **`src/components/ChatInput.tsx`:** Input field with send functionality
+- **`src/components/WhiteboardModal.tsx`:** Modal component that integrates tldraw for drawing and sketching
+- **`src/app/api/chat/route.ts`:** Next.js API route using Vercel AI SDK for OpenAI integration
+- **`src/app/styles.css`:** CSS with responsive design for all components
 
 ## License
 

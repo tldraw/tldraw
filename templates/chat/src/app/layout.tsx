@@ -1,4 +1,4 @@
-import './globals.css'
+import './styles.css'
 
 export const metadata = {
 	title: 'tldraw chat starter kit',

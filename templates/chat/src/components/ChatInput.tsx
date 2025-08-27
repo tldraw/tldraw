@@ -6,7 +6,7 @@ import { ImageIcon } from './icons/ImageIcon'
 import { SendIcon } from './icons/SendIcon'
 import { UploadIcon } from './icons/UploadIcon'
 import { WhiteboardIcon } from './icons/WhiteboardIcon'
-import { WhiteboardImage, WhiteboardModal, WhiteboardModalResult } from './WhiteboardModal'
+import { WhiteboardImage } from './WhiteboardModal'
 
 interface ChatInputProps {
 	onSendMessage: (message: string, images: WhiteboardImage[]) => void
@@ -82,20 +82,6 @@ export function ChatInput({
 		}
 	}
 
-	const handleCloseWhiteboard = useCallback(
-		(result: WhiteboardModalResult) => {
-			dispatch({ type: 'CLOSE_WHITEBOARD' })
-			if (result.type === 'accept') {
-				dispatch({ type: 'SET_IMAGE', payload: result.image })
-				// Re-focus the input after adding an image
-				if (textareaRef.current) {
-					textareaRef.current.focus()
-				}
-			}
-		},
-		[dispatch]
-	)
-
 	const handleImageUpload = useCallback(() => {
 		fileInputRef.current?.click()
 	}, [])
@@ -107,10 +93,8 @@ export function ChatInput({
 
 			// Open whiteboard with the uploaded file
 			dispatch({
-				type: 'OPEN_WHITEBOARD',
-				payload: {
-					uploadedFile: file,
-				},
+				type: 'openWhiteboard',
+				uploadedFile: file,
 			})
 
 			// Clear the input
@@ -135,11 +119,12 @@ export function ChatInput({
 						<ChatInputImage
 							key={image.id}
 							image={image}
-							onRemove={() => dispatch({ type: 'REMOVE_IMAGE', payload: image.id })}
+							onRemove={() => dispatch({ type: 'removeImage', imageId: image.id })}
 							onEdit={() => {
 								dispatch({
-									type: 'OPEN_WHITEBOARD',
-									payload: { id: image.id, snapshot: image.snapshot },
+									type: 'openWhiteboard',
+									id: image.id,
+									snapshot: image.snapshot,
 								})
 							}}
 						/>
@@ -150,7 +135,7 @@ export function ChatInput({
 				<textarea
 					ref={textareaRef}
 					value={input}
-					onChange={(e) => dispatch({ type: 'SET_INPUT', payload: e.target.value })}
+					onChange={(e) => dispatch({ type: 'setInput', input: e.target.value })}
 					onKeyDown={handleKeyDown}
 					placeholder={disabled ? '' : 'Type your message...'}
 					className="chat-input"
@@ -187,7 +172,7 @@ export function ChatInput({
 						type="button"
 						className="icon-button"
 						disabled={disabled}
-						onClick={() => dispatch({ type: 'OPEN_WHITEBOARD', payload: {} })}
+						onClick={() => dispatch({ type: 'openWhiteboard' })}
 					>
 						<WhiteboardIcon />
 					</button>
@@ -198,14 +183,6 @@ export function ChatInput({
 					</button>
 				</TldrawUiTooltip>
 			</div>
-			{openWhiteboard && (
-				<WhiteboardModal
-					imageId={openWhiteboard.id}
-					initialSnapshot={openWhiteboard.snapshot}
-					uploadedFile={openWhiteboard.uploadedFile}
-					onClose={handleCloseWhiteboard}
-				/>
-			)}
 		</form>
 	)
 }
