@@ -16,6 +16,7 @@ import {
 
 export interface WhiteboardImage {
 	id: string
+	name: string
 	url: string
 	snapshot: TLEditorSnapshot
 	type: string
@@ -38,6 +39,7 @@ interface WhiteboardModalProps {
 	onClose: (result: WhiteboardModalResult) => void
 	imageId?: string
 	uploadedFile?: File
+	imageName?: string
 }
 
 const options: Partial<TldrawOptions> = {
@@ -52,6 +54,7 @@ export function WhiteboardModal({
 	onClose,
 	imageId,
 	uploadedFile,
+	imageName,
 }: WhiteboardModalProps) {
 	const components = useMemo(
 		(): TLComponents => ({
@@ -72,6 +75,7 @@ export function WhiteboardModal({
 									type: 'accept',
 									image: {
 										id: imageId ?? crypto.randomUUID(),
+										name: imageName ?? 'tldraw whiteboard.png',
 										snapshot: editor.getSnapshot(),
 										type: 'image/png',
 										...image,
@@ -85,7 +89,7 @@ export function WhiteboardModal({
 				)
 			},
 		}),
-		[onClose, imageId]
+		[onClose, imageId, imageName]
 	)
 
 	const handleOverlayClick = (e: React.MouseEvent) => {

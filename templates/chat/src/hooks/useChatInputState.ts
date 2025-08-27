@@ -9,6 +9,7 @@ interface ChatInputState {
 		snapshot?: TLEditorSnapshot
 		id?: string
 		uploadedFile?: File
+		imageName?: string
 	} | null
 	isDragging: boolean
 }
@@ -28,6 +29,7 @@ type ChatInputAction =
 			snapshot?: TLEditorSnapshot
 			id?: string
 			uploadedFile?: File
+			imageName?: string
 	  }
 	/** Closes the whiteboard modal */
 	| { type: 'closeWhiteboard' }
@@ -67,6 +69,7 @@ function chatInputReducer(state: ChatInputState, action: ChatInputAction): ChatI
 					snapshot: action.snapshot,
 					id: action.id,
 					uploadedFile: action.uploadedFile,
+					imageName: action.imageName,
 				},
 				isDragging: false,
 			}
@@ -80,7 +83,7 @@ function chatInputReducer(state: ChatInputState, action: ChatInputAction): ChatI
 			return {
 				...state,
 				isDragging: false,
-				openWhiteboard: { uploadedFile: action.file },
+				openWhiteboard: { uploadedFile: action.file, imageName: action.file.name },
 			}
 		default:
 			return state

@@ -4,7 +4,7 @@ import { ChatMessage } from './ChatMessage'
 
 interface MessageListProps {
 	messages: UIMessage[]
-	onImageClick: (snapshot: TLEditorSnapshot) => void
+	onImageClick: (snapshot: TLEditorSnapshot, imageName?: string) => void
 }
 
 export function MessageList({ messages, onImageClick }: MessageListProps) {

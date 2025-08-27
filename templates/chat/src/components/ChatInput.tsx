@@ -6,7 +6,7 @@ import { ImageIcon } from './icons/ImageIcon'
 import { SendIcon } from './icons/SendIcon'
 import { UploadIcon } from './icons/UploadIcon'
 import { WhiteboardIcon } from './icons/WhiteboardIcon'
-import { WhiteboardImage } from './WhiteboardModal'
+import { WhiteboardImage, WhiteboardModal, WhiteboardModalResult } from './WhiteboardModal'
 
 interface ChatInputProps {
 	onSendMessage: (message: string, images: WhiteboardImage[]) => void
@@ -95,10 +95,25 @@ export function ChatInput({
 			dispatch({
 				type: 'openWhiteboard',
 				uploadedFile: file,
+				imageName: file.name,
 			})
 
 			// Clear the input
 			e.target.value = ''
+		},
+		[dispatch]
+	)
+
+	const handleCloseWhiteboard = useCallback(
+		(result: WhiteboardModalResult) => {
+			dispatch({ type: 'closeWhiteboard' })
+			if (result.type === 'accept') {
+				dispatch({ type: 'setImage', image: result.image })
+				// Re-focus the input after adding an image
+				if (textareaRef.current) {
+					textareaRef.current.focus()
+				}
+			}
 		},
 		[dispatch]
 	)
@@ -125,6 +140,7 @@ export function ChatInput({
 									type: 'openWhiteboard',
 									id: image.id,
 									snapshot: image.snapshot,
+									imageName: image.name,
 								})
 							}}
 						/>
@@ -183,6 +199,15 @@ export function ChatInput({
 					</button>
 				</TldrawUiTooltip>
 			</div>
+			{openWhiteboard && (
+				<WhiteboardModal
+					imageId={openWhiteboard.id}
+					initialSnapshot={openWhiteboard.snapshot}
+					uploadedFile={openWhiteboard.uploadedFile}
+					imageName={openWhiteboard.imageName}
+					onClose={handleCloseWhiteboard}
+				/>
+			)}
 		</form>
 	)
 }

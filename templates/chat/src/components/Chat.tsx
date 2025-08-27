@@ -8,7 +8,7 @@ import { useChatInputState } from '../hooks/useChatInputState'
 import { useScrollToBottom } from '../hooks/useScrollToBottom'
 import { ChatInput } from './ChatInput'
 import { MessageList } from './MessageList'
-import { WhiteboardImage, WhiteboardModal, WhiteboardModalResult } from './WhiteboardModal'
+import { WhiteboardImage } from './WhiteboardModal'
 
 export function Chat() {
 	const [chatInputState, chatInputDispatch] = useChatInputState()
@@ -25,8 +25,12 @@ export function Chat() {
 				(image): FileUIPart => ({
 					type: 'file',
 					url: image.url,
+					filename: image.name,
 					mediaType: image.type,
-					providerMetadata: { tldrawSnapshot: image.snapshot as any },
+					providerMetadata: {
+						tldrawSnapshot: image.snapshot as any,
+						imageName: image.name as any,
+					},
 				})
 			)
 			if (text.trim()) {
@@ -50,19 +54,13 @@ export function Chat() {
 	}, [messages, scrollToBottom])
 
 	const handleImageClick = useCallback(
-		(snapshot: TLEditorSnapshot) => {
-			chatInputDispatch({ type: 'openWhiteboard', snapshot })
-		},
-		[chatInputDispatch]
-	)
-
-	const handleCloseWhiteboard = useCallback(
-		(result: WhiteboardModalResult) => {
-			chatInputDispatch({ type: 'closeWhiteboard' })
-			if (result.type === 'accept') {
-				// Add the modified image back to the chat input
-				chatInputDispatch({ type: 'setImage', image: result.image })
-			}
+		(snapshot: TLEditorSnapshot, imageName?: string) => {
+			// When viewing an image from chat history, preserve the name if available
+			chatInputDispatch({
+				type: 'openWhiteboard',
+				snapshot,
+				imageName: imageName || 'image.png',
+			})
 		},
 		[chatInputDispatch]
 	)
@@ -144,14 +142,6 @@ export function Chat() {
 					dispatch={chatInputDispatch}
 				/>
 			</div>
-			{openWhiteboard && (
-				<WhiteboardModal
-					imageId={openWhiteboard.id}
-					initialSnapshot={openWhiteboard.snapshot}
-					uploadedFile={openWhiteboard.uploadedFile}
-					onClose={handleCloseWhiteboard}
-				/>
-			)}
 		</div>
 	)
 }
