@@ -1487,6 +1487,8 @@ export class FrameShapeUtil extends BaseBoxShapeUtil<TLFrameShape> {
     // (undocumented)
     getAriaDescriptor(shape: TLFrameShape): string;
     // (undocumented)
+    getClipPath(shape: TLFrameShape): Vec[];
+    // (undocumented)
     getDefaultProps(): TLFrameShape['props'];
     // (undocumented)
     getGeometry(shape: TLFrameShape): Geometry2d;
