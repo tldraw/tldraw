@@ -14,7 +14,7 @@ function MaskWindow() {
 			if (!elm) return
 
 			const rotation = editor.getSelectionRotation()
-			const box = editor.getSelectionRotatedViewportBounds()
+			const box = editor.getSelectionRotatedScreenBounds()
 
 			if (!box) {
 				// If there's nothing selected, clear the clip path

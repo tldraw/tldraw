@@ -79,7 +79,7 @@ it('Gets the bounding box at the correct size', async () => {
 	const svg = await editor.getSvgString(editor.getSelectedShapeIds())
 	const parsed = parseSvg(svg!)
 	const bbox = editor.getSelectionRotatedPageBounds()!
-	const expanded = bbox.expandBy(32) // adds 32px padding by default
+	const expanded = bbox.expandBy(editor.options.defaultSvgPadding) // adds 32px padding
 
 	expect(parsed.getAttribute('width')).toMatch(expanded.width + '')
 	expect(parsed.getAttribute('height')).toMatch(expanded.height + '')

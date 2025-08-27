@@ -130,7 +130,6 @@ export function Tldraw(props: TldrawProps) {
 			</>
 		)
 	}, [rest.hideUi, CustomInFrontOfTheCanvas])
-
 	const componentsWithDefault = useMemo(
 		() => ({
 			Scribble: TldrawScribble,
@@ -141,8 +140,8 @@ export function Tldraw(props: TldrawProps) {
 			Overlays: TldrawOverlays,
 			Spinner,
 			LoadingScreen,
-			InFrontOfTheCanvas,
 			..._components,
+			InFrontOfTheCanvas,
 		}),
 		[_components, InFrontOfTheCanvas]
 	)

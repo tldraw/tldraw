@@ -286,6 +286,8 @@ export class Box {
     // (undocumented)
     contains(B: Box): boolean;
     // (undocumented)
+    static ContainsApproximately(A: Box, B: Box, precision?: number): boolean;
+    // (undocumented)
     static ContainsPoint(A: Box, B: VecLike, margin?: number): boolean;
     // (undocumented)
     containsPoint(V: VecLike, margin?: number): boolean;
@@ -672,7 +674,7 @@ export const defaultTldrawOptions: {
     readonly collaboratorIdleTimeoutMs: 3000;
     readonly collaboratorInactiveTimeoutMs: 60000;
     readonly createTextOnCanvasDoubleClick: true;
-    readonly defaultExportPadding: (shape: TLShape) => 0 | 32;
+    readonly defaultSvgPadding: 32;
     readonly doubleClickDurationMs: 450;
     readonly dragDistanceSquared: 16;
     readonly edgeScrollDelay: 200;
@@ -1243,7 +1245,6 @@ export class Editor extends EventEmitter<TLEventMap> {
     getSelectionPageBounds(): Box | null;
     getSelectionRotatedPageBounds(): Box | undefined;
     getSelectionRotatedScreenBounds(): Box | undefined;
-    getSelectionRotatedViewportBounds(): Box | undefined;
     getSelectionRotation(): number;
     getSelectionScreenBounds(): Box | undefined;
     getShape<T extends TLShape = TLShape>(shape: TLParentId | TLShape): T | undefined;
@@ -2618,6 +2619,7 @@ export abstract class ShapeUtil<Shape extends TLUnknownShape = TLUnknownShape> {
     hideSelectionBoundsFg(_shape: Shape): boolean;
     abstract indicator(shape: Shape): any;
     isAspectRatioLocked(_shape: Shape): boolean;
+    isExportBoundsContainer(_shape: Shape): boolean;
     static migrations?: LegacyMigrations | MigrationSequence | TLPropsMigrations;
     onBeforeCreate?(next: Shape): Shape | void;
     onBeforeUpdate?(prev: Shape, next: Shape): Shape | void;
@@ -3269,7 +3271,8 @@ export interface TldrawOptions {
     readonly collaboratorInactiveTimeoutMs: number;
     // (undocumented)
     readonly createTextOnCanvasDoubleClick: boolean;
-    readonly defaultExportPadding: ((shape: TLShape, editor: Editor) => number) | number;
+    // (undocumented)
+    readonly defaultSvgPadding: number;
     // (undocumented)
     readonly doubleClickDurationMs: number;
     // (undocumented)
@@ -4218,7 +4221,7 @@ export interface TLSvgExportOptions {
     background?: boolean;
     bounds?: Box;
     darkMode?: boolean;
-    padding?: ((shape: TLShape, editor: Editor) => number) | number;
+    padding?: number;
     pixelRatio?: number;
     preserveAspectRatio?: React.SVGAttributes<SVGSVGElement>['preserveAspectRatio'];
     scale?: number;

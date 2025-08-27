@@ -3,7 +3,6 @@ import classNames from 'classnames'
 import React, { ReactNode, useMemo, useRef, useState } from 'react'
 import { TLUiAssetUrlOverrides } from './assetUrls'
 import { SkipToMainContent } from './components/A11y'
-import { FollowingIndicator } from './components/FollowingIndicator'
 import { TldrawUiButton } from './components/primitives/Button/TldrawUiButton'
 import { TldrawUiButtonIcon } from './components/primitives/Button/TldrawUiButtonIcon'
 import { PORTRAIT_BREAKPOINT, PORTRAIT_BREAKPOINTS } from './constants'
@@ -225,16 +224,17 @@ const TldrawUiContent = React.memo(function TldrawUI() {
 	)
 })
 
-/** @public */
+/** @public @react */
 export function TldrawUiInFrontOfTheCanvas() {
-	const { RichTextToolbar, ImageToolbar, VideoToolbar, CursorChatBubble } = useTldrawUiComponents()
+	const { RichTextToolbar, ImageToolbar, VideoToolbar, CursorChatBubble, FollowingIndicator } =
+		useTldrawUiComponents()
 
 	return (
 		<>
 			{RichTextToolbar && <RichTextToolbar />}
 			{ImageToolbar && <ImageToolbar />}
 			{VideoToolbar && <VideoToolbar />}
-			<FollowingIndicator />
+			{FollowingIndicator && <FollowingIndicator />}
 			{CursorChatBubble && <CursorChatBubble />}
 		</>
 	)

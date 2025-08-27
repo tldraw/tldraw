@@ -21,7 +21,7 @@ function ExportCanvasButton() {
 	const [opts, setOpts] = useState<TLImageExportOptions>({
 		scale: 1,
 		background: false,
-		padding: 32,
+		padding: editor.options.defaultSvgPadding,
 	})
 
 	// [2]
@@ -69,7 +69,7 @@ function ExportCanvasButton() {
 				<Control
 					type="number"
 					name="padding"
-					value={opts.padding as number}
+					value={opts.padding}
 					onChange={(e) => {
 						setOpts({ ...opts, padding: Math.ceil(Number(e.target.value)) })
 					}}

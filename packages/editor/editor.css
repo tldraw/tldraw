@@ -299,6 +299,9 @@ input,
 }
 
 .tl-canvas__in-front {
+	position: absolute;
+	inset: 0;
+	pointer-events: none;
 	z-index: var(--tl-layer-canvas-in-front);
 }
 

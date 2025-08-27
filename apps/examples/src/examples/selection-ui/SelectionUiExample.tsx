@@ -18,15 +18,15 @@ const components: TLComponents = {
 			() => {
 				const screenBounds = editor.getViewportScreenBounds()
 				const rotation = editor.getSelectionRotation()
-				const rotatedViewportBounds = editor.getSelectionRotatedViewportBounds()
-				if (!rotatedViewportBounds) return
+				const rotatedScreenBounds = editor.getSelectionRotatedScreenBounds()
+				if (!rotatedScreenBounds) return
 				return {
 					// we really want the position within the
 					// tldraw component's bounds, not the screen itself
-					x: rotatedViewportBounds.x - screenBounds.x,
-					y: rotatedViewportBounds.y - screenBounds.y,
-					width: rotatedViewportBounds.width,
-					height: rotatedViewportBounds.height,
+					x: rotatedScreenBounds.x - screenBounds.x,
+					y: rotatedScreenBounds.y - screenBounds.y,
+					width: rotatedScreenBounds.width,
+					height: rotatedScreenBounds.height,
 					rotation: rotation,
 				}
 			},
