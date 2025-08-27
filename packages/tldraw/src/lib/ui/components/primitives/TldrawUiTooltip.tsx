@@ -235,6 +235,8 @@ export const TldrawUiTooltip = forwardRef<HTMLButtonElement, TldrawUiTooltipProp
 		const orientationCtx = useTldrawUiOrientation()
 		const sideToUse = side ?? orientationCtx.tooltipSide
 
+		const camera = useValue('camera', () => editor?.getCamera(), [])
+
 		useEffect(() => {
 			const currentTooltipId = tooltipId.current
 			return () => {
@@ -243,6 +245,10 @@ export const TldrawUiTooltip = forwardRef<HTMLButtonElement, TldrawUiTooltipProp
 				}
 			}
 		}, [editor, hasProvider])
+
+		useEffect(() => {
+			tooltipManager.hideTooltip(editor, tooltipId.current, true)
+		}, [editor, camera])
 
 		// Don't show tooltip if disabled, no content, or UI labels are disabled
 		if (disabled || !content) {
