@@ -1,20 +1,18 @@
 import { SVGContainer, VecModel, useEditor, useValue } from 'tldraw'
 
-export function PointHighlight({
-	pagePoint,
-	color,
-	className,
-}: {
+export interface PointHighlightProps {
 	pagePoint: VecModel
-	color?: string
-	className?: string
-}) {
+	color: string
+	generating: boolean
+}
+
+export function PointHighlight({ pagePoint, color, generating }: PointHighlightProps) {
 	const editor = useEditor()
 	const screenPoint = useValue('screenPoint', () => editor.pageToViewport(pagePoint), [])
 	const r = 3
 	return (
 		<SVGContainer
-			className={`context-point ${className}`}
+			className={`context-highlight ${generating ? 'context-highlight-generating' : ''}`}
 			style={{
 				top: screenPoint.y - r,
 				left: screenPoint.x - r,

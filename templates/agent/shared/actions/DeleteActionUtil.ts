@@ -25,28 +25,28 @@ export class DeleteActionUtil extends AgentActionUtil<IDeleteAction> {
 		return 'trash' as const
 	}
 
-	override canGroup(event: Streaming<IDeleteAction>, other: Streaming<BaseAgentAction>) {
+	override canGroup(action: Streaming<IDeleteAction>, other: Streaming<BaseAgentAction>) {
 		return other._type === 'delete'
 	}
 
-	override getDescription(event: Streaming<IDeleteAction>) {
-		return event.intent ?? ''
+	override getDescription(action: Streaming<IDeleteAction>) {
+		return action.intent ?? ''
 	}
 
-	override transformEvent(event: Streaming<IDeleteAction>, transform: AgentTransform) {
-		if (!event.complete) return event
+	override transformAction(action: Streaming<IDeleteAction>, transform: AgentTransform) {
+		if (!action.complete) return action
 
-		const shapeId = transform.ensureShapeIdIsReal(event.shapeId)
+		const shapeId = transform.ensureShapeIdIsReal(action.shapeId)
 		if (!shapeId) return null
 
-		event.shapeId = shapeId
-		return event
+		action.shapeId = shapeId
+		return action
 	}
 
-	override applyEvent(event: Streaming<IDeleteAction>, transform: AgentTransform) {
-		if (!event.complete) return
+	override applyAction(action: Streaming<IDeleteAction>, transform: AgentTransform) {
+		if (!action.complete) return
 		const { editor } = transform
 
-		editor.deleteShape(`shape:${event.shapeId}` as TLShapeId)
+		editor.deleteShape(`shape:${action.shapeId}` as TLShapeId)
 	}
 }

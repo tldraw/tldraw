@@ -28,17 +28,17 @@ export class TodoListActionUtil extends AgentActionUtil<ITodoListAction> {
 		return null
 	}
 
-	override applyEvent(event: Streaming<ITodoListAction>) {
-		if (!event.complete) return
+	override applyAction(action: Streaming<ITodoListAction>) {
+		if (!action.complete) return
 
 		const todoItem = {
-			id: event.id,
-			status: event.status,
-			text: event.text,
+			id: action.id,
+			status: action.status,
+			text: action.text,
 		}
 
 		$todoItems.update((todoItems) => {
-			const index = todoItems.findIndex((item) => item.id === event.id)
+			const index = todoItems.findIndex((item) => item.id === action.id)
 			if (index !== -1) {
 				return [...todoItems.slice(0, index), todoItem, ...todoItems.slice(index + 1)]
 			} else {

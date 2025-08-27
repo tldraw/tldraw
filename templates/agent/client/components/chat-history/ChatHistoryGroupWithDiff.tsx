@@ -80,7 +80,7 @@ export function ChatHistoryGroupWithDiff({
 	const steps = useMemo(() => {
 		return items.map((item) => {
 			const { action: event } = item
-			const actionUtil = agent.getActionUtil(event._type)
+			const actionUtil = agent.getAgentActionUtil(event._type)
 			return {
 				icon: actionUtil.getIcon(event),
 				description: actionUtil.getDescription(event),

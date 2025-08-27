@@ -27,22 +27,22 @@ export class AlignActionUtil extends AgentActionUtil<IAlignAction> {
 		return 'cursor' as const
 	}
 
-	override getDescription(event: Streaming<IAlignAction>) {
-		return event.intent ?? ''
+	override getDescription(action: Streaming<IAlignAction>) {
+		return action.intent ?? ''
 	}
 
-	override transformEvent(event: Streaming<IAlignAction>, transform: AgentTransform) {
-		event.shapeIds = transform.ensureShapeIdsAreReal(event.shapeIds ?? [])
-		return event
+	override transformAction(action: Streaming<IAlignAction>, transform: AgentTransform) {
+		action.shapeIds = transform.ensureShapeIdsAreReal(action.shapeIds ?? [])
+		return action
 	}
 
-	override applyEvent(event: Streaming<IAlignAction>, transform: AgentTransform) {
-		if (!event.complete) return
+	override applyAction(action: Streaming<IAlignAction>, transform: AgentTransform) {
+		if (!action.complete) return
 		const { editor } = transform
 
 		editor.alignShapes(
-			event.shapeIds.map((id) => `shape:${id}` as TLShapeId),
-			event.alignment
+			action.shapeIds.map((id) => `shape:${id}` as TLShapeId),
+			action.alignment
 		)
 	}
 }

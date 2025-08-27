@@ -2,17 +2,17 @@ import { FormEventHandler, useCallback, useEffect, useRef, useState } from 'reac
 import { Editor, useToasts, useValue } from 'tldraw'
 import { EVENT_UTILS, PROMPT_PART_UTILS } from '../../shared/AgentUtils'
 import { convertTldrawShapeToSimpleShape } from '../../shared/format/SimpleShape'
+import { AgentRequest } from '../../shared/types/AgentRequest'
 import { IChatHistoryItem } from '../../shared/types/ChatHistoryItem'
 import { advanceSchedule } from '../ai/advanceSchedule'
 import { useTldrawAgent } from '../ai/useTldrawAgent'
+import { $agentViewportBoundsHighlight } from '../atoms/agentViewportBoundsHighlight'
 import { $chatHistoryItems } from '../atoms/chatHistoryItems'
 import { $contextItems, $pendingContextItems } from '../atoms/contextItems'
 import { $modelName } from '../atoms/modelName'
-import { $scheduledRequests } from '../atoms/scheduledRequests'
 import { $todoItems } from '../atoms/todoItems'
 import { ChatHistory } from './chat-history/ChatHistory'
 import { ChatInput } from './ChatInput'
-import { $contextBoundsHighlight } from './highlights/ContextBoundsHighlights'
 import { TodoList } from './TodoList'
 
 export function ChatPanel({ editor }: { editor: Editor }) {
@@ -23,6 +23,19 @@ export function ChatPanel({ editor }: { editor: Editor }) {
 	const inputRef = useRef<HTMLTextAreaElement>(null)
 	const toast = useToasts()
 	const modelName = useValue('modelName', () => $modelName.get(), [$modelName])
+
+	const handleError = useCallback(
+		(e: any) => {
+			const message = typeof e === 'string' ? e : e instanceof Error && e.message
+			toast.addToast({
+				title: 'Error',
+				description: message || 'An error occurred',
+				severity: 'error',
+			})
+			console.error(e)
+		},
+		[toast]
+	)
 
 	useEffect(() => {
 		if (!editor) return
@@ -36,16 +49,19 @@ export function ChatPanel({ editor }: { editor: Editor }) {
 			const formData = new FormData(e.currentTarget)
 			const value = formData.get('input') as string
 
-			// If we're currently generating, cancel the current request and send the new one instead
+			// If we're currently generating, interrupt the current request
 			if (rCancelFn.current) {
 				rCancelFn.current()
 				rCancelFn.current = null
 
-				$contextBoundsHighlight.set(null)
-
-				$scheduledRequests.set([])
+				$agentViewportBoundsHighlight.set(null)
 				$pendingContextItems.set([])
+				setIsGenerating(false)
 			}
+
+			// If the user's message is empty, do nothing
+			if (value === '') return
+			if (inputRef.current) inputRef.current.value = ''
 
 			// If every todo item is done, clear the todo list
 			$todoItems.update((items) => {
@@ -54,10 +70,6 @@ export function ChatPanel({ editor }: { editor: Editor }) {
 				}
 				return items
 			})
-
-			// If the user's message is empty, do nothing
-			if (value === '') return
-			if (inputRef.current) inputRef.current.value = ''
 
 			const promptHistoryItem: IChatHistoryItem = {
 				type: 'prompt',
@@ -71,39 +83,25 @@ export function ChatPanel({ editor }: { editor: Editor }) {
 			$pendingContextItems.set(promptHistoryItem.contextItems)
 			$contextItems.set([])
 			$chatHistoryItems.update((prev) => [...prev, promptHistoryItem])
-
-			const intitialBounds = editor.getViewportPageBounds()
-
-			$scheduledRequests.update((prev) => [
-				...prev,
-				{
-					message: promptHistoryItem.message,
-					contextItems: promptHistoryItem.contextItems,
-					type: 'user',
-					bounds: intitialBounds,
-				},
-			])
-
-			$contextBoundsHighlight.set(intitialBounds)
-
 			setIsGenerating(true)
-			try {
-				await advanceSchedule({ editor, modelName, agent, rCancelFn })
-			} catch (e) {
-				const message = typeof e === 'string' ? e : e instanceof Error && e.message
-				toast.addToast({
-					title: 'Error',
-					description: message || 'An error occurred',
-					severity: 'error',
-				})
-				console.error(e)
+			const request: AgentRequest = {
+				message: promptHistoryItem.message,
+				contextItems: promptHistoryItem.contextItems,
+				bounds: editor.getViewportPageBounds(),
+				modelName,
 			}
+
+			const { promise, cancel } = advanceSchedule({ agent, request, onError: handleError })
+			rCancelFn.current = cancel
+			await promise
+			rCancelFn.current = null
+
 			setIsGenerating(false)
 
 			$pendingContextItems.set([])
-			$contextBoundsHighlight.set(null)
+			$agentViewportBoundsHighlight.set(null)
 		},
-		[agent, modelName, editor, rCancelFn, toast]
+		[agent, modelName, editor, rCancelFn, handleError]
 	)
 
 	function handleNewChat() {
@@ -116,8 +114,7 @@ export function ChatPanel({ editor }: { editor: Editor }) {
 		$chatHistoryItems.set([])
 		$pendingContextItems.set([])
 		$contextItems.set([])
-		$scheduledRequests.set([])
-		$contextBoundsHighlight.set(null)
+		$agentViewportBoundsHighlight.set(null)
 		$todoItems.set([])
 	}
 

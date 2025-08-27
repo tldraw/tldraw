@@ -1,7 +1,9 @@
+import { Box } from 'tldraw'
 import z from 'zod'
-import { $scheduledRequests } from '../../client/atoms/scheduledRequests'
+import { $scheduledRequest } from '../../client/atoms/scheduledRequest'
+import { AgentTransform } from '../AgentTransform'
+import { AgentRequest } from '../types/AgentRequest'
 import { IAreaContextItem } from '../types/ContextItem'
-import { ScheduledRequest } from '../types/ScheduledRequest'
 import { Streaming } from '../types/Streaming'
 import { AgentActionUtil } from './AgentActionUtil'
 
@@ -33,47 +35,53 @@ export class ReviewActionUtil extends AgentActionUtil<IReviewAction> {
 		return 'search' as const
 	}
 
-	override getDescription(event: Streaming<IReviewAction>) {
-		const label = event.complete ? 'Review' : 'Reviewing'
-		const text = event.intent?.startsWith('#') ? `\n\n${event.intent}` : event.intent
+	override getDescription(action: Streaming<IReviewAction>) {
+		const label = action.complete ? 'Review' : 'Reviewing'
+		const text = action.intent?.startsWith('#') ? `\n\n${action.intent}` : action.intent
 		return `**${label}**: ${text ?? ''}`
 	}
 
-	override applyEvent(event: Streaming<IReviewAction>) {
-		$scheduledRequests.update((prev) => {
-			if (!event.complete) return prev
-			const contextArea: IAreaContextItem = {
-				type: 'area',
-				bounds: {
-					x: event.x,
-					y: event.y,
-					w: event.w,
-					h: event.h,
-				},
-				source: 'agent',
+	override applyAction(
+		action: Streaming<IReviewAction>,
+		transform: AgentTransform,
+		originalRequest: AgentRequest
+	) {
+		if (!action.complete) return
+
+		const reviewBounds = {
+			x: action.x,
+			y: action.y,
+			w: action.w,
+			h: action.h,
+		}
+
+		const contextArea: IAreaContextItem = {
+			type: 'area',
+			bounds: reviewBounds,
+			source: 'agent',
+		}
+
+		$scheduledRequest.update((prev) => {
+			const request = prev ?? {
+				message: '',
+				contextItems: [],
+				bounds: originalRequest.bounds,
+				modelName: originalRequest.modelName,
 			}
 
-			// Use the previous request's view bounds if it exists
-			// Otherwise use the scheduled review's bounds
-			const prevRequest = prev[prev.length - 1] ?? {
-				bounds: {
-					x: event.x,
-					y: event.y,
-					w: event.w,
-					h: event.h,
-				},
+			// If the review bounds go outside the request bounds, grow the request bounds to include the review bounds
+			const reviewBoundsBox = Box.From(reviewBounds).expandBy(10)
+			const requestBoundsBox = Box.From(request.bounds)
+			const boundsContainReviewBounds = requestBoundsBox.contains(reviewBoundsBox)
+			if (!boundsContainReviewBounds) {
+				request.bounds = requestBoundsBox.union(reviewBoundsBox).toJson()
 			}
 
-			const schedule: ScheduledRequest[] = [
-				...prev,
-				{
-					type: 'review',
-					message: event.intent ?? '',
-					contextItems: [contextArea],
-					bounds: prevRequest.bounds,
-				},
-			]
-			return schedule
+			return {
+				...request,
+				message: request.message ? `${request.message}\n\n${action.intent}` : action.intent,
+				contextItems: [...(request.contextItems ?? []), contextArea],
+			}
 		})
 	}
 }

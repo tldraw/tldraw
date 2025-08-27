@@ -23,12 +23,19 @@ export class AgentViewportScreenshotPartUtil extends PromptPartUtil<string | nul
 
 		if (shapes.length === 0) return null
 
+		const largestDimension = Math.max(request.bounds.w, request.bounds.h)
+		const scale = largestDimension > 8000 ? 8000 / largestDimension : 1
+
 		const result = await editor.toImage(shapes, {
 			format: 'jpeg',
 			background: true,
 			bounds: Box.From(request.bounds),
 			padding: 0,
+			pixelRatio: 1,
+			scale,
 		})
+
+		console.log(result)
 
 		return await FileHelpers.blobToDataUrl(result.blob)
 	}

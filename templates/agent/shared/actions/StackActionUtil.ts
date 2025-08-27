@@ -31,26 +31,26 @@ export class StackActionUtil extends AgentActionUtil<IAgentStackEvent> {
 		return 'cursor' as const
 	}
 
-	override getDescription(event: Streaming<IAgentStackEvent>) {
-		return event.intent ?? ''
+	override getDescription(action: Streaming<IAgentStackEvent>) {
+		return action.intent ?? ''
 	}
 
-	override transformEvent(event: Streaming<IAgentStackEvent>, transform: AgentTransform) {
-		if (!event.complete) return event
+	override transformAction(action: Streaming<IAgentStackEvent>, transform: AgentTransform) {
+		if (!action.complete) return action
 
-		event.shapeIds = transform.ensureShapeIdsAreReal(event.shapeIds)
+		action.shapeIds = transform.ensureShapeIdsAreReal(action.shapeIds)
 
-		return event
+		return action
 	}
 
-	override applyEvent(event: Streaming<IAgentStackEvent>, transform: AgentTransform) {
-		if (!event.complete) return
+	override applyAction(action: Streaming<IAgentStackEvent>, transform: AgentTransform) {
+		if (!action.complete) return
 		const { editor } = transform
 
 		editor.stackShapes(
-			event.shapeIds.map((id) => `shape:${id}` as TLShapeId),
-			event.direction,
-			Math.min(event.gap, 1)
+			action.shapeIds.map((id) => `shape:${id}` as TLShapeId),
+			action.direction,
+			Math.min(action.gap, 1)
 		)
 	}
 }

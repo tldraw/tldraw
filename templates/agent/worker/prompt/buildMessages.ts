@@ -4,15 +4,13 @@ import { AgentMessage } from '../../shared/types/AgentMessage'
 import { AgentPrompt } from '../../shared/types/AgentPrompt'
 
 export function buildMessages(prompt: AgentPrompt): ModelMessage[] {
-	const { parts } = prompt
-
 	const utils = Object.fromEntries(PROMPT_PART_UTILS.map((v) => [v.type, new v()]))
 	const allMessages: AgentMessage[] = []
 
-	for (const type in parts) {
+	for (const type in prompt) {
 		const util = utils[type]
 		if (!util) continue
-		const part = parts[type]
+		const part = prompt[type]
 		const messages = util.buildMessages(part, prompt)
 		allMessages.push(...messages)
 	}

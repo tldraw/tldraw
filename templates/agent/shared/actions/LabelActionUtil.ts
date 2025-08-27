@@ -26,31 +26,31 @@ export class LabelActionUtil extends AgentActionUtil<IAgentLabelEvent> {
 		return 'pencil' as const
 	}
 
-	override getDescription(event: Streaming<IAgentLabelEvent>) {
-		return event.intent ?? ''
+	override getDescription(action: Streaming<IAgentLabelEvent>) {
+		return action.intent ?? ''
 	}
 
-	override transformEvent(event: Streaming<IAgentLabelEvent>, transform: AgentTransform) {
-		if (!event.complete) return event
+	override transformAction(action: Streaming<IAgentLabelEvent>, transform: AgentTransform) {
+		if (!action.complete) return action
 
-		const shapeId = transform.ensureShapeIdIsReal(event.shapeId)
+		const shapeId = transform.ensureShapeIdIsReal(action.shapeId)
 		if (!shapeId) return null
 
-		event.shapeId = shapeId
-		return event
+		action.shapeId = shapeId
+		return action
 	}
 
-	override applyEvent(event: Streaming<IAgentLabelEvent>, transform: AgentTransform) {
-		if (!event.complete) return
+	override applyAction(action: Streaming<IAgentLabelEvent>, transform: AgentTransform) {
+		if (!action.complete) return
 		const { editor } = transform
 
-		const shapeId = `shape:${event.shapeId}` as TLShapeId
+		const shapeId = `shape:${action.shapeId}` as TLShapeId
 		const shape = editor.getShape(shapeId)
 		if (!shape) return
 		editor.updateShape({
 			id: shapeId,
 			type: shape.type,
-			props: { richText: toRichText(event.text ?? '') },
+			props: { richText: toRichText(action.text ?? '') },
 		})
 	}
 }

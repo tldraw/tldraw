@@ -27,40 +27,40 @@ export class MoveActionUtil extends AgentActionUtil<IMoveAction> {
 		return 'cursor' as const
 	}
 
-	override getDescription(event: Streaming<IMoveAction>) {
-		return event.intent ?? ''
+	override getDescription(action: Streaming<IMoveAction>) {
+		return action.intent ?? ''
 	}
 
-	override transformEvent(event: Streaming<IMoveAction>, transform: AgentTransform) {
-		if (!event.complete) return event
+	override transformAction(action: Streaming<IMoveAction>, transform: AgentTransform) {
+		if (!action.complete) return action
 
-		const shapeId = transform.ensureShapeIdIsReal(event.shapeId)
+		const shapeId = transform.ensureShapeIdIsReal(action.shapeId)
 		if (!shapeId) return null
 
-		const floatX = ensureValueIsNumber(event.x)
-		const floatY = ensureValueIsNumber(event.y)
+		const floatX = ensureValueIsNumber(action.x)
+		const floatY = ensureValueIsNumber(action.y)
 		if (floatX === null || floatY === null) return null
 
-		event.x = floatX
-		event.y = floatY
+		action.x = floatX
+		action.y = floatY
 
-		event.shapeId = shapeId
-		return event
+		action.shapeId = shapeId
+		return action
 	}
 
-	override applyEvent(event: Streaming<IMoveAction>, transform: AgentTransform) {
-		if (!event.complete) return
+	override applyAction(action: Streaming<IMoveAction>, transform: AgentTransform) {
+		if (!action.complete) return
 		const { editor } = transform
 
-		const shapeId = `shape:${event.shapeId}` as TLShapeId
+		const shapeId = `shape:${action.shapeId}` as TLShapeId
 		const shape = editor.getShape(shapeId)
 
 		if (!shape) return
 		editor.updateShape({
 			id: shapeId,
 			type: shape.type,
-			x: event.x,
-			y: event.y,
+			x: action.x,
+			y: action.y,
 		})
 	}
 }

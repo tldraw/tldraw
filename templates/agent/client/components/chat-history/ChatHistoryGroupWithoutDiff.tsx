@@ -20,7 +20,7 @@ export function ChatHistoryGroupWithoutDiff({
 
 	const nonEmptyItems = useMemo(() => {
 		return items.filter((item) => {
-			const actionUtil = agent.getActionUtil(item.action._type)
+			const actionUtil = agent.getAgentActionUtil(item.action._type)
 			const description = actionUtil.getDescription(item.action)
 			return description !== null
 		})
@@ -69,7 +69,7 @@ export function ChatHistoryGroupWithoutDiff({
 
 function ChatHistoryItem({ item, agent }: { item: IChatHistoryActionItem; agent: TLAgent }) {
 	const { action: event } = item
-	const actionUtil = agent.getActionUtil(event._type)
+	const actionUtil = agent.getAgentActionUtil(event._type)
 	const description = actionUtil.getDescription(event)
 	const summary = actionUtil.getSummary(event)
 	const collapsible = summary !== null
@@ -98,7 +98,7 @@ function ChatHistoryItemExpanded({
 	event: Streaming<AgentAction>
 	agent: TLAgent
 }) {
-	const actionUtil = agent.getActionUtil(event._type)
+	const actionUtil = agent.getAgentActionUtil(event._type)
 	const icon = actionUtil.getIcon(event)
 	const description = actionUtil.getDescription(event)
 

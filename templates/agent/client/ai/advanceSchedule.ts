@@ -1,64 +1,64 @@
-import { Editor } from 'tldraw'
-import { AgentModelName } from '../../worker/models'
+import { AgentRequest } from '../../shared/types/AgentRequest'
+import { $agentViewportBoundsHighlight } from '../atoms/agentViewportBoundsHighlight'
 import { $pendingContextItems } from '../atoms/contextItems'
-import { $scheduledRequests } from '../atoms/scheduledRequests'
+import { $scheduledRequest } from '../atoms/scheduledRequest'
 import { $todoItems } from '../atoms/todoItems'
-import { $contextBoundsHighlight } from '../components/highlights/ContextBoundsHighlights'
 import { TLAgent } from './useTldrawAgent'
 
-export async function advanceSchedule({
-	editor,
-	modelName,
+export function advanceSchedule({
 	agent,
-	rCancelFn,
+	request,
+	onError,
 }: {
-	editor: Editor
-	modelName: AgentModelName
 	agent: TLAgent
-	rCancelFn: React.MutableRefObject<(() => void) | null>
+	request: AgentRequest
+	onError: (e: any) => void
 }) {
-	const request = $scheduledRequests.get()[0]
-	if (!request) {
-		return
-	}
-
-	$contextBoundsHighlight.set(request.bounds)
+	$agentViewportBoundsHighlight.set(request.bounds)
 	$pendingContextItems.set(request.contextItems)
 
-	try {
-		const { promise, cancel } = agent.prompt(request)
+	const current = {
+		promise: Promise.resolve(),
+		cancel: () => {},
+	}
 
-		rCancelFn.current = cancel
-		await promise
-		rCancelFn.current = null
+	const cancel = () => {
+		current.cancel()
+	}
 
-		// Only remove the event after successful processing
-		$scheduledRequests.update((prev) => prev.filter((_, i) => i !== 0))
+	const promise = new Promise<void>((resolve) => {
+		const result = agent.prompt(request)
+		current.promise = result.promise
+		current.cancel = result.cancel
 
-		const outstandingTodoItems = $todoItems.get().filter((item) => item.status !== 'done')
-		if ($scheduledRequests.get().length === 0 && outstandingTodoItems.length > 0) {
-			// If there are still outstanding todo items, we need to keep going!
-			$scheduledRequests.set([
-				{
+		current.promise.then(() => {
+			let scheduledRequest = $scheduledRequest.get()
+			if (!scheduledRequest) {
+				const todoItemsRemaining = $todoItems.get().filter((item) => item.status !== 'done')
+				if (todoItemsRemaining.length === 0) {
+					resolve()
+					return
+				}
+
+				scheduledRequest = {
 					message: 'There are still outstanding todo items. Please continue.',
 					contextItems: request.contextItems,
 					bounds: request.bounds,
-					type: 'continue',
-				},
-			])
-		}
+					modelName: request.modelName,
+				}
+			}
 
-		// Recursively process the next event
-		await advanceSchedule({ editor, modelName, agent, rCancelFn })
-	} catch (e) {
-		rCancelFn.current = null
-		$scheduledRequests.set([])
-		if (
-			e === 'Cancelled by user' ||
-			(e instanceof Error && e.message === 'BodyStreamBuffer was aborted')
-		) {
-			return
-		}
-		throw e
-	}
+			$scheduledRequest.set(null)
+			$agentViewportBoundsHighlight.set(null)
+			$pendingContextItems.set([])
+
+			const nextResult = advanceSchedule({ agent, request: scheduledRequest, onError })
+			current.promise = nextResult.promise
+			current.cancel = nextResult.cancel
+
+			current.promise.then(resolve)
+		})
+	})
+
+	return { promise, cancel }
 }

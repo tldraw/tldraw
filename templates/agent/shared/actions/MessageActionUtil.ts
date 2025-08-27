@@ -22,7 +22,7 @@ export class MessageActionUtil extends AgentActionUtil<IMessageAction> {
 		return false
 	}
 
-	override getDescription(event: Streaming<IMessageAction>) {
-		return event.text ?? ''
+	override getDescription(action: Streaming<IMessageAction>) {
+		return action.text ?? ''
 	}
 }

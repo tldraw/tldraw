@@ -1,29 +1,20 @@
-import { Editor, TLBinding, TLShape } from 'tldraw'
-import { AgentModelName } from '../../worker/models'
+import { Editor } from 'tldraw'
 import { AgentActionUtil } from '../actions/AgentActionUtil'
 import { PromptPartUtil, PromptPartUtilConstructor } from '../parts/PromptPartUtil'
 import { AgentAction } from './AgentAction'
-import { ScheduledRequest } from './ScheduledRequest'
+import { AgentRequest } from './AgentRequest'
 
-// AgentPromptOptions contains the information needed to construct a prompt, such as all the events and prompt parts, and raw data from the editor / chat state.
+/**
+ * AgentPromptOptions contains the information needed to construct all the parts of the prompt.
+ */
 export interface AgentPromptOptions {
 	editor: Editor
-	eventUtils: Map<AgentAction['_type'], AgentActionUtil<AgentAction>>
+	agentActionUtils: Map<AgentAction['_type'], AgentActionUtil<AgentAction>>
 	promptPartUtils: Map<PromptPartUtilConstructor['type'], PromptPartUtil>
-
-	modelName: AgentModelName
-	request: ScheduledRequest
+	request: AgentRequest
 }
 
-// TLAgentPrompt contains information that has been translated from drawl to modelish
-export interface AgentPrompt {
-	modelName: AgentModelName
-	type: ScheduledRequest['type']
-
-	parts: Record<PromptPartUtilConstructor['type'], any>
-}
-
-export interface AgentContent {
-	shapes: TLShape[]
-	bindings: TLBinding[]
-}
+/**
+ * An AgentPrompt contains all the parts created from prompt options.
+ */
+export type AgentPrompt = Record<PromptPartUtilConstructor['type'], any>

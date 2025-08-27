@@ -1,6 +1,7 @@
 import z from 'zod'
-import { $scheduledRequests } from '../../client/atoms/scheduledRequests'
-import { ScheduledRequest } from '../types/ScheduledRequest'
+import { $scheduledRequest } from '../../client/atoms/scheduledRequest'
+import { AgentTransform } from '../AgentTransform'
+import { AgentRequest } from '../types/AgentRequest'
 import { Streaming } from '../types/Streaming'
 import { AgentActionUtil } from './AgentActionUtil'
 
@@ -32,31 +33,36 @@ export class SetMyViewActionUtil extends AgentActionUtil<ISetMyViewAction> {
 		return 'eye' as const
 	}
 
-	override getDescription(event: Streaming<ISetMyViewAction>) {
-		const label = event.complete ? 'Move camera' : 'Moving camera'
-		const text = event.intent?.startsWith('#') ? `\n\n${event.intent}` : event.intent
+	override getDescription(action: Streaming<ISetMyViewAction>) {
+		const label = action.complete ? 'Move camera' : 'Moving camera'
+		const text = action.intent?.startsWith('#') ? `\n\n${action.intent}` : action.intent
 		return `**${label}**: ${text ?? ''}`
 	}
 
-	override applyEvent(event: Streaming<ISetMyViewAction>) {
-		$scheduledRequests.update((prev) => {
-			if (!event.complete) return prev
+	override applyAction(
+		action: Streaming<ISetMyViewAction>,
+		transform: AgentTransform,
+		originalRequest: AgentRequest
+	) {
+		if (!action.complete) return
 
-			const schedule: ScheduledRequest[] = [
-				...prev,
-				{
-					type: 'setMyView',
-					message: event.intent ?? '',
-					contextItems: [],
-					bounds: {
-						x: event.x,
-						y: event.y,
-						w: event.w,
-						h: event.h,
-					},
+		$scheduledRequest.update((prev) => {
+			const request = prev ?? {
+				message: '',
+				contextItems: [],
+				bounds: originalRequest.bounds,
+				modelName: originalRequest.modelName,
+			}
+
+			return {
+				...request,
+				bounds: {
+					x: action.x,
+					y: action.y,
+					w: action.w,
+					h: action.h,
 				},
-			]
-			return schedule
+			}
 		})
 	}
 }

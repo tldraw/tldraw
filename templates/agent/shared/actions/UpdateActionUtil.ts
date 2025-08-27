@@ -44,10 +44,10 @@ export class UpdateActionUtil extends AgentActionUtil<IUpdateAction> {
 		return 'cursor' as const
 	}
 
-	override transformEvent(event: Streaming<IUpdateAction>, transform: AgentTransform) {
-		if (!event.complete) return event
+	override transformAction(action: Streaming<IUpdateAction>, transform: AgentTransform) {
+		if (!action.complete) return action
 
-		const { update } = event
+		const { update } = action
 
 		// Ensure the shape ID refers to a real shape
 		const shapeId = transform.ensureShapeIdIsReal(update.shapeId)
@@ -64,20 +64,20 @@ export class UpdateActionUtil extends AgentActionUtil<IUpdateAction> {
 			}
 		}
 
-		return event
+		return action
 	}
 
-	override getDescription(event: Streaming<IUpdateAction>) {
-		return event.intent ?? ''
+	override getDescription(action: Streaming<IUpdateAction>) {
+		return action.intent ?? ''
 	}
 
-	override applyEvent(event: Streaming<IUpdateAction>, transform: AgentTransform) {
-		if (!event.complete) return
+	override applyAction(action: Streaming<IUpdateAction>, transform: AgentTransform) {
+		if (!action.complete) return
 		const { editor } = transform
 
-		event.update = transform.unroundShape(event.update)
+		action.update = transform.unroundShape(action.update)
 
-		const aiChanges = getTldrawAiChangesFromUpdateEvent({ editor, event })
+		const aiChanges = getTldrawAiChangesFromUpdateEvent({ editor, action })
 		for (const aiChange of aiChanges) {
 			defaultApplyChange({ change: aiChange, editor })
 		}
@@ -86,15 +86,15 @@ export class UpdateActionUtil extends AgentActionUtil<IUpdateAction> {
 
 export function getTldrawAiChangesFromUpdateEvent({
 	editor,
-	event,
+	action,
 }: {
 	editor: Editor
-	event: Streaming<IUpdateAction>
+	action: Streaming<IUpdateAction>
 }): TLAiChange[] {
 	const changes: TLAiChange[] = []
-	if (!event.complete) return changes
+	if (!action.complete) return changes
 
-	const update = event.update
+	const update = action.update
 	const shapeId = `shape:${update.shapeId}` as TLShapeId
 
 	switch (update._type) {
@@ -109,7 +109,7 @@ export function getTldrawAiChangesFromUpdateEvent({
 
 			changes.push({
 				type: 'updateShape',
-				description: event.intent ?? '',
+				description: action.intent ?? '',
 				shape: {
 					id: shapeId,
 					type: 'text',
@@ -155,7 +155,7 @@ export function getTldrawAiChangesFromUpdateEvent({
 			const color = update.color ? asColor(update.color) : shapeOnCanvas.props.color
 			changes.push({
 				type: 'updateShape',
-				description: event.intent ?? '',
+				description: action.intent ?? '',
 				shape: {
 					id: shapeId,
 					type: 'line',
@@ -192,7 +192,7 @@ export function getTldrawAiChangesFromUpdateEvent({
 
 			changes.push({
 				type: 'updateShape',
-				description: event.intent ?? '',
+				description: action.intent ?? '',
 				shape: {
 					id: shapeId,
 					type: 'arrow',
@@ -240,7 +240,7 @@ export function getTldrawAiChangesFromUpdateEvent({
 
 				changes.push({
 					type: 'createBinding',
-					description: event.intent ?? '',
+					description: action.intent ?? '',
 					binding: {
 						type: 'arrow',
 						fromId: shapeId,
@@ -273,7 +273,7 @@ export function getTldrawAiChangesFromUpdateEvent({
 
 				changes.push({
 					type: 'createBinding',
-					description: event.intent ?? '',
+					description: action.intent ?? '',
 					binding: {
 						type: 'arrow',
 						fromId: shapeId,
@@ -324,7 +324,7 @@ export function getTldrawAiChangesFromUpdateEvent({
 
 			changes.push({
 				type: 'updateShape',
-				description: event.intent ?? '',
+				description: action.intent ?? '',
 				shape: {
 					id: shapeId,
 					type: 'geo',
@@ -357,7 +357,7 @@ export function getTldrawAiChangesFromUpdateEvent({
 
 			changes.push({
 				type: 'updateShape',
-				description: event.intent ?? '',
+				description: action.intent ?? '',
 				shape: {
 					id: shapeId,
 					type: 'note',
@@ -388,7 +388,7 @@ export function getTldrawAiChangesFromUpdateEvent({
 
 			changes.push({
 				type: 'updateShape',
-				description: event.intent ?? '',
+				description: action.intent ?? '',
 				shape: {
 					id: shapeId,
 					type: 'draw',
@@ -412,7 +412,7 @@ export function getTldrawAiChangesFromUpdateEvent({
 
 			changes.push({
 				type: 'updateShape',
-				description: event.intent ?? '',
+				description: action.intent ?? '',
 				shape: {
 					id: shapeId,
 					type: shapeOnCanvas.type,

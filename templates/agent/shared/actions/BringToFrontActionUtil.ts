@@ -29,19 +29,19 @@ export class BringToFrontActionUtil extends AgentActionUtil<IBringToFrontAction>
 		return 'cursor' as const
 	}
 
-	override getDescription(event: Streaming<IBringToFrontAction>) {
-		return event.intent ?? ''
+	override getDescription(action: Streaming<IBringToFrontAction>) {
+		return action.intent ?? ''
 	}
 
-	override transformEvent(event: Streaming<IBringToFrontAction>, transform: AgentTransform) {
-		event.shapeIds = transform.ensureShapeIdsAreReal(event.shapeIds ?? [])
-		return event
+	override transformAction(action: Streaming<IBringToFrontAction>, transform: AgentTransform) {
+		action.shapeIds = transform.ensureShapeIdsAreReal(action.shapeIds ?? [])
+		return action
 	}
 
-	override applyEvent(event: Streaming<IBringToFrontAction>, transform: AgentTransform) {
+	override applyAction(action: Streaming<IBringToFrontAction>, transform: AgentTransform) {
 		const { editor } = transform
 
-		if (!event.shapeIds) return
-		editor.bringToFront(event.shapeIds.map((shapeId) => `shape:${shapeId}` as TLShapeId))
+		if (!action.shapeIds) return
+		editor.bringToFront(action.shapeIds.map((shapeId) => `shape:${shapeId}` as TLShapeId))
 	}
 }

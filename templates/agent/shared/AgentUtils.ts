@@ -10,7 +10,6 @@ import { MoveActionUtil } from './actions/MoveActionUtil'
 import { PenActionUtil } from './actions/PenActionUtil'
 import { PlaceActionUtil } from './actions/PlaceActionUtil'
 import { ResizeActionUtil } from './actions/ResizeActionUtil'
-import { ReviewActionUtil } from './actions/ReviewActionUtil'
 import { RotateActionUtil } from './actions/RotateActionUtil'
 import { SendToBackActionUtil } from './actions/SendToBackActionUtil'
 import { SetMyViewActionUtil } from './actions/SetMyViewActionUtil'
@@ -27,7 +26,9 @@ import { HistoryItemPartUtil } from './parts/HistoryItemPartUtil'
 import { MessagePartUtil } from './parts/MessagePartUtil'
 import { PeripheralShapesPartUtil } from './parts/PeripheralShapesPartUtil'
 // import { PromptBoundsPartUtil } from './parts/PromptBoundsPartUtil'
+import { ReviewActionUtil } from './actions/ReviewActionUtil'
 import { TodoListActionUtil } from './actions/TodoListActionUtil'
+import { ModelNamePartUtil } from './parts/ModelNamePartUtil'
 import { PromptPartUtilConstructor } from './parts/PromptPartUtil'
 import { SystemPromptPartUtil } from './parts/SystemPromptPartUtil'
 import { TodoListPromptPartUtil } from './parts/TodoItemsPromptPart'
@@ -36,10 +37,10 @@ import { UserViewportBoundsPartUtil } from './parts/UserViewportBoundsPartUtil'
 
 export const PROMPT_PART_UTILS: PromptPartUtilConstructor[] = [
 	SystemPromptPartUtil,
+	ModelNamePartUtil,
 
 	// The format of shape that the model is looking at
 	AgentViewportBlurryShapesPartUtil,
-	// AgentViewportSimpleShapesPartUtil,
 
 	AgentViewportScreenshotPartUtil,
 	AgentViewportBoundsPartUtil,
@@ -48,7 +49,6 @@ export const PROMPT_PART_UTILS: PromptPartUtilConstructor[] = [
 	HistoryItemPartUtil,
 	MessagePartUtil,
 	PeripheralShapesPartUtil,
-	// PromptBoundsPartUtil, //probably can be deleted, is vestigal from ai module and redundant with context bounds
 	UserSelectedShapesPartUtil,
 
 	TodoListPromptPartUtil,

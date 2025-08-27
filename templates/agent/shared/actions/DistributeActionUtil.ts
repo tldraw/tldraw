@@ -29,22 +29,22 @@ export class DistributeActionUtil extends AgentActionUtil<IDistributeAction> {
 		return 'cursor' as const
 	}
 
-	override getDescription(event: Streaming<IDistributeAction>) {
-		return event.intent ?? ''
+	override getDescription(action: Streaming<IDistributeAction>) {
+		return action.intent ?? ''
 	}
 
-	override transformEvent(event: Streaming<IDistributeAction>, transform: AgentTransform) {
-		event.shapeIds = transform.ensureShapeIdsAreReal(event.shapeIds ?? [])
-		return event
+	override transformAction(action: Streaming<IDistributeAction>, transform: AgentTransform) {
+		action.shapeIds = transform.ensureShapeIdsAreReal(action.shapeIds ?? [])
+		return action
 	}
 
-	override applyEvent(event: Streaming<IDistributeAction>, transform: AgentTransform) {
-		if (!event.complete) return
+	override applyAction(action: Streaming<IDistributeAction>, transform: AgentTransform) {
+		if (!action.complete) return
 		const { editor } = transform
 
 		editor.distributeShapes(
-			event.shapeIds.map((id) => `shape:${id}` as TLShapeId),
-			event.direction
+			action.shapeIds.map((id) => `shape:${id}` as TLShapeId),
+			action.direction
 		)
 	}
 }

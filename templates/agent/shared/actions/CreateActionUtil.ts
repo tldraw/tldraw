@@ -29,14 +29,14 @@ export class CreateActionUtil extends AgentActionUtil<ICreateAction> {
 		return 'pencil' as const
 	}
 
-	override getDescription(event: Streaming<ICreateAction>) {
-		return event.intent ?? ''
+	override getDescription(action: Streaming<ICreateAction>) {
+		return action.intent ?? ''
 	}
 
-	override transformEvent(event: Streaming<ICreateAction>, transform: AgentTransform) {
-		if (!event.complete) return event
+	override transformAction(action: Streaming<ICreateAction>, transform: AgentTransform) {
+		if (!action.complete) return action
 
-		const shape = event.shape
+		const shape = action.shape
 
 		// Ensure the created shape has a unique ID
 		shape.shapeId = transform.ensureShapeIdIsUnique(shape.shapeId)
@@ -51,14 +51,14 @@ export class CreateActionUtil extends AgentActionUtil<ICreateAction> {
 			}
 		}
 
-		return event
+		return action
 	}
 
-	override applyEvent(event: Streaming<ICreateAction>, transform: AgentTransform) {
-		if (!event.complete) return
+	override applyAction(action: Streaming<ICreateAction>, transform: AgentTransform) {
+		if (!action.complete) return
 		const { editor } = transform
 
-		const aiChanges = getTldrawAiChangesFromCreateAction({ editor, event })
+		const aiChanges = getTldrawAiChangesFromCreateAction({ editor, action })
 		for (const aiChange of aiChanges) {
 			defaultApplyChange({ change: aiChange, editor })
 		}
@@ -67,22 +67,22 @@ export class CreateActionUtil extends AgentActionUtil<ICreateAction> {
 
 export function getTldrawAiChangesFromCreateAction({
 	editor,
-	event,
+	action,
 }: {
 	editor: Editor
-	event: Streaming<ICreateAction>
+	action: Streaming<ICreateAction>
 }): TLAiChange[] {
 	const changes: TLAiChange[] = []
-	if (!event.complete) return changes
+	if (!action.complete) return changes
 
-	const { shape } = event
+	const { shape } = action
 	const shapeId = `shape:${shape.shapeId}` as TLShapeId
 
 	switch (shape._type) {
 		case 'text': {
 			changes.push({
 				type: 'createShape',
-				description: event.intent ?? '',
+				description: action.intent ?? '',
 				shape: {
 					id: shapeId,
 					type: 'text',
@@ -111,7 +111,7 @@ export function getTldrawAiChangesFromCreateAction({
 
 			changes.push({
 				type: 'createShape',
-				description: event.intent ?? '',
+				description: action.intent ?? '',
 				shape: {
 					id: shapeId,
 					type: 'line',
@@ -153,10 +153,10 @@ export function getTldrawAiChangesFromCreateAction({
 			const minX = Math.min(x1, x2)
 			const minY = Math.min(y1, y2)
 
-			// Make sure that the shape itself is the first event
+			// Make sure that the shape itself is the first action
 			changes.push({
 				type: 'createShape',
-				description: event.intent ?? '',
+				description: action.intent ?? '',
 				shape: {
 					id: shapeId,
 					type: 'arrow',
@@ -193,7 +193,7 @@ export function getTldrawAiChangesFromCreateAction({
 
 				changes.push({
 					type: 'createBinding',
-					description: event.intent ?? '',
+					description: action.intent ?? '',
 					binding: {
 						type: 'arrow',
 						fromId: shapeId,
@@ -227,7 +227,7 @@ export function getTldrawAiChangesFromCreateAction({
 
 				changes.push({
 					type: 'createBinding',
-					description: event.intent ?? '',
+					description: action.intent ?? '',
 					binding: {
 						type: 'arrow',
 						fromId: shapeId,
@@ -266,7 +266,7 @@ export function getTldrawAiChangesFromCreateAction({
 		case 'ellipse': {
 			changes.push({
 				type: 'createShape',
-				description: event.intent ?? '',
+				description: action.intent ?? '',
 				shape: {
 					id: shapeId,
 					type: 'geo',
@@ -292,7 +292,7 @@ export function getTldrawAiChangesFromCreateAction({
 		case 'note': {
 			changes.push({
 				type: 'createShape',
-				description: event.intent ?? '',
+				description: action.intent ?? '',
 				shape: {
 					id: shapeId,
 					type: 'note',

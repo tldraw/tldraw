@@ -29,19 +29,19 @@ export class SendToBackActionUtil extends AgentActionUtil<ISendToBackAction> {
 		return 'cursor' as const
 	}
 
-	override getDescription(event: Streaming<ISendToBackAction>) {
-		return event.intent ?? ''
+	override getDescription(action: Streaming<ISendToBackAction>) {
+		return action.intent ?? ''
 	}
 
-	override transformEvent(event: Streaming<ISendToBackAction>, transform: AgentTransform) {
-		event.shapeIds = transform.ensureShapeIdsAreReal(event.shapeIds ?? [])
-		return event
+	override transformAction(action: Streaming<ISendToBackAction>, transform: AgentTransform) {
+		action.shapeIds = transform.ensureShapeIdsAreReal(action.shapeIds ?? [])
+		return action
 	}
 
-	override applyEvent(event: Streaming<ISendToBackAction>, transform: AgentTransform) {
+	override applyAction(action: Streaming<ISendToBackAction>, transform: AgentTransform) {
 		const { editor } = transform
 
-		if (!event.shapeIds) return
-		editor.sendToBack(event.shapeIds.map((shapeId) => `shape:${shapeId}` as TLShapeId))
+		if (!action.shapeIds) return
+		editor.sendToBack(action.shapeIds.map((shapeId) => `shape:${shapeId}` as TLShapeId))
 	}
 }

@@ -25,9 +25,7 @@ export class UserViewportBoundsPartUtil extends PromptPartUtil<BoxModel | null> 
 	override buildContent(currentUserViewportBounds: BoxModel, prompt: AgentPrompt): string[] {
 		if (!currentUserViewportBounds) return []
 
-		const { parts } = prompt
-
-		const agentViewportBounds: BoxModel = parts.agentViewportBounds
+		const agentViewportBounds: BoxModel = prompt.agentViewportBounds
 
 		// all this stuff below is logic to give the agent a more detailed description of the user's view, helping it stay grounded on the canvas
 		const doUserAndAgentShareViewport =

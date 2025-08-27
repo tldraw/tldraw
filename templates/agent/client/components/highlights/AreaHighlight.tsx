@@ -1,14 +1,13 @@
 import { Box, BoxModel, SVGContainer, useEditor, useValue } from 'tldraw'
 
-export function AreaHighlight({
-	pageBounds,
-	color,
-	className,
-}: {
+export interface AreaHighlightProps {
 	pageBounds: BoxModel
-	color?: string
-	className?: string
-}) {
+	generating: boolean
+	color: string
+	label?: string
+}
+
+export function AreaHighlight({ pageBounds, color, generating, label }: AreaHighlightProps) {
 	const editor = useEditor()
 	const screenBounds = useValue(
 		'screenBounds',
@@ -30,27 +29,37 @@ export function AreaHighlight({
 	const maxY = screenBounds.maxY
 
 	return (
-		<SVGContainer
-			className={`context-highlight ${className}`}
-			style={{
-				top: minY,
-				left: minX,
-				width: maxX - minX,
-				height: maxY - minY,
-			}}
-		>
-			{screenBounds.sides.map((side, j) => {
-				return (
-					<line
-						key={'context-highlight-side-' + j}
-						x1={side[0].x - screenBounds.minX}
-						y1={side[0].y - screenBounds.minY}
-						x2={side[1].x - screenBounds.minX}
-						y2={side[1].y - screenBounds.minY}
-						stroke={color ? color : 'var(--color-selected)'}
-					/>
-				)
-			})}
-		</SVGContainer>
+		<>
+			<SVGContainer
+				className={`context-highlight ${generating ? 'context-highlight-generating' : ''}`}
+				style={{
+					top: minY,
+					left: minX,
+					width: maxX - minX,
+					height: maxY - minY,
+				}}
+			>
+				{screenBounds.sides.map((side, j) => {
+					return (
+						<line
+							key={'context-highlight-side-' + j}
+							x1={side[0].x - screenBounds.minX}
+							y1={side[0].y - screenBounds.minY}
+							x2={side[1].x - screenBounds.minX}
+							y2={side[1].y - screenBounds.minY}
+							stroke={color}
+						/>
+					)
+				})}
+			</SVGContainer>
+			{label && (
+				<div
+					className="context-highlight-label"
+					style={{ top: screenBounds.y, left: screenBounds.x, backgroundColor: color }}
+				>
+					{label}
+				</div>
+			)}
+		</>
 	)
 }

@@ -26,7 +26,7 @@ export class ThinkActionUtil extends AgentActionUtil<IThinkAction> {
 		return 'Thought for a while'
 	}
 
-	override getDescription(event: Streaming<IThinkAction>) {
-		return event.text ?? (event.complete ? 'Thinking...' : null)
+	override getDescription(action: Streaming<IThinkAction>) {
+		return action.text ?? (action.complete ? 'Thinking...' : null)
 	}
 }

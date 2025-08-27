@@ -31,27 +31,27 @@ export class RotateActionUtil extends AgentActionUtil<IRotateAction> {
 		return 'cursor' as const
 	}
 
-	override getDescription(event: Streaming<IRotateAction>) {
-		return event.intent ?? ''
+	override getDescription(action: Streaming<IRotateAction>) {
+		return action.intent ?? ''
 	}
 
-	override transformEvent(event: Streaming<IRotateAction>, transform: AgentTransform) {
-		event.shapeIds = transform.ensureShapeIdsAreReal(event.shapeIds ?? [])
-		return event
+	override transformAction(action: Streaming<IRotateAction>, transform: AgentTransform) {
+		action.shapeIds = transform.ensureShapeIdsAreReal(action.shapeIds ?? [])
+		return action
 	}
 
-	override applyEvent(event: Streaming<IRotateAction>, transform: AgentTransform) {
+	override applyAction(action: Streaming<IRotateAction>, transform: AgentTransform) {
 		const { editor } = transform
 
-		if (!event.shapeIds || !event.degrees || !event.centerX || !event.centerY) {
+		if (!action.shapeIds || !action.degrees || !action.centerX || !action.centerY) {
 			return
 		}
 
-		const shapeIds = event.shapeIds.map((shapeId) => `shape:${shapeId}` as TLShapeId)
-		const radians = (event.degrees * Math.PI) / 180
+		const shapeIds = action.shapeIds.map((shapeId) => `shape:${shapeId}` as TLShapeId)
+		const radians = (action.degrees * Math.PI) / 180
 
 		editor.rotateShapesBy(shapeIds, radians, {
-			center: { x: event.centerX, y: event.centerY },
+			center: { x: action.centerX, y: action.centerY },
 		})
 	}
 }

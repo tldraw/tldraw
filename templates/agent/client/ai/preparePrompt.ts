@@ -10,23 +10,29 @@ export async function preparePrompt(
 	promptOptions: AgentPromptOptions,
 	transform: AgentTransform
 ): Promise<AgentPrompt> {
-	const { modelName, request, promptPartUtils } = promptOptions
+	const { promptPartUtils } = promptOptions
 
-	const prompt: Partial<AgentPrompt> = {
-		type: request.type,
-		modelName,
-		parts: {} as AgentPrompt['parts'],
-	}
+	const untransformedParts: AgentPrompt = {}
+	const transformedParts: AgentPrompt = {}
 
-	for (const [_type, promptPartUtil] of promptPartUtils) {
-		if (!promptPartUtil.getPart) {
-			continue
-		}
+	for (const [type, promptPartUtil] of promptPartUtils) {
+		if (!promptPartUtil.getPart) continue
+
 		const untransformedPart = await promptPartUtil.getPart(promptOptions)
-		const transformedPart = promptPartUtil.transformPart(untransformedPart, transform, prompt)
-		;(prompt.parts as any)[_type] = transformedPart
+		untransformedParts[type] = untransformedPart
 	}
 
-	console.log('PROMPT', prompt)
-	return prompt as AgentPrompt
+	for (const [type, promptPartUtil] of promptPartUtils) {
+		if (!promptPartUtil.transformPart) continue
+
+		const transformedPart = promptPartUtil.transformPart(
+			untransformedParts[type],
+			transform,
+			untransformedParts
+		)
+		transformedParts[type] = transformedPart
+	}
+
+	console.log('PROMPT', transformedParts)
+	return transformedParts
 }

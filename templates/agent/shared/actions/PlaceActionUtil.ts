@@ -30,31 +30,31 @@ export class PlaceActionUtil extends AgentActionUtil<IPlaceAction> {
 		return 'target' as const
 	}
 
-	override getDescription(event: Streaming<IPlaceAction>) {
-		return event.intent ?? ''
+	override getDescription(action: Streaming<IPlaceAction>) {
+		return action.intent ?? ''
 	}
 
-	override transformEvent(event: Streaming<IPlaceAction>, transform: AgentTransform) {
-		if (!event.complete) return event
+	override transformAction(action: Streaming<IPlaceAction>, transform: AgentTransform) {
+		if (!action.complete) return action
 
-		const shapeId = transform.ensureShapeIdIsReal(event.shapeId)
+		const shapeId = transform.ensureShapeIdIsReal(action.shapeId)
 		if (!shapeId) return null
-		event.shapeId = shapeId
+		action.shapeId = shapeId
 
-		const referenceShapeId = transform.ensureShapeIdIsReal(event.referenceShapeId)
+		const referenceShapeId = transform.ensureShapeIdIsReal(action.referenceShapeId)
 		if (!referenceShapeId) return null
-		event.referenceShapeId = referenceShapeId
+		action.referenceShapeId = referenceShapeId
 
-		return event
+		return action
 	}
 
-	override applyEvent(event: Streaming<IPlaceAction>, transform: AgentTransform) {
-		if (!event.complete) return
+	override applyAction(action: Streaming<IPlaceAction>, transform: AgentTransform) {
+		if (!action.complete) return
 		const { editor } = transform
 
-		const { side, sideOffset = 0, align, alignOffset = 0 } = event
-		const referenceShapeId = `shape:${event.referenceShapeId}` as TLShapeId
-		const shapeId = `shape:${event.shapeId}` as TLShapeId
+		const { side, sideOffset = 0, align, alignOffset = 0 } = action
+		const referenceShapeId = `shape:${action.referenceShapeId}` as TLShapeId
+		const shapeId = `shape:${action.shapeId}` as TLShapeId
 
 		const shape = editor.getShape(shapeId)
 		const referenceShape = editor.getShape(referenceShapeId)

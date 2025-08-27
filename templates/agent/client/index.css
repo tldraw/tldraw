@@ -645,8 +645,7 @@ button.prompt-tag span {
 
 /* Context Highlights */
 
-.context-highlight,
-.context-point {
+.context-highlight {
 	pointer-events: none;
 }
 
@@ -656,43 +655,37 @@ button.prompt-tag span {
 	stroke-width: 1px;
 }
 
-.context-highlight.generating line {
+.context-highlight-generating line {
 	animation: dash 100s linear infinite;
 }
 
-.context-point circle {
+.context-highlight circle {
 	stroke-width: 1px;
 	pointer-events: none;
 	stroke-linecap: round;
 	stroke-linejoin: round;
 }
 
-.context-point.generating circle {
+.context-highlight-generating circle {
 	stroke-dasharray: 3px;
 	stroke-width: 2px;
 	fill: none;
 	animation: dash 100s linear infinite;
 }
 
-.context-highlight.generating circle {
-	animation: dash 100s linear infinite;
-}
-
-.agent-view-label {
+.context-highlight-label {
 	position: absolute;
-	top: var(--top);
-	left: var(--left);
-	background: var(--tl-color-tooltip);
-	color: var(--tl-color-background);
-	border-radius: 999px;
-	padding: 3px 10px;
+	color: var(--tl-color-text-shadow);
+	padding: 4px;
 	font-size: 12px;
-	font-weight: 400;
+	background-color: var(--tl-color-tooltip);
+	border-radius: 0px 0px 6px 0px;
+	font-weight: 500;
 	white-space: nowrap;
+	margin-top: -0.5px;
+	margin-left: -0.5px;
 	pointer-events: none;
-	display: flex;
-	align-items: center;
-	gap: 8px;
+	font-family: 'Inter', sans-serif;
 }
 
 @keyframes dash {

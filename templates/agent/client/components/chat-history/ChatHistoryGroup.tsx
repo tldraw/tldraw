@@ -35,7 +35,7 @@ export function getActionHistoryGroups(
 	const groups: IChatHistoryGroup[] = []
 
 	for (const item of items) {
-		const actionUtil = agent.getActionUtil(item.action._type)
+		const actionUtil = agent.getAgentActionUtil(item.action._type)
 		const description = actionUtil.getDescription(item.action)
 		if (description === null) {
 			continue
@@ -77,8 +77,8 @@ export function canActionBeGrouped({
 	if (groupAcceptance !== item.acceptance) return false
 
 	const prevEvent = group.items.at(-1)?.action
-	const prevActionUtil = prevEvent ? agent.getActionUtil(prevEvent._type) : null
-	const actionUtil = agent.getActionUtil(item.action._type)
+	const prevActionUtil = prevEvent ? agent.getAgentActionUtil(prevEvent._type) : null
+	const actionUtil = agent.getAgentActionUtil(item.action._type)
 	if (
 		prevEvent &&
 		prevActionUtil &&

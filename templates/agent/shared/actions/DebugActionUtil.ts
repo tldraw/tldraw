@@ -11,8 +11,8 @@ export interface DebugAction {
 export class DebugActionUtil extends AgentActionUtil<DebugAction> {
 	static override type = 'debug' as const
 
-	override applyEvent(event: Streaming<DebugAction>) {
-		console.log(event.label + ':', event.data)
+	override applyAction(action: Streaming<DebugAction>) {
+		console.log(action.label + ':', action.data)
 	}
 
 	override savesToHistory() {

@@ -32,33 +32,39 @@ export class ResizeActionUtil extends AgentActionUtil<IResizeAction> {
 		return 'cursor' as const
 	}
 
-	override getDescription(event: Streaming<IResizeAction>) {
-		return event.intent ?? ''
+	override getDescription(action: Streaming<IResizeAction>) {
+		return action.intent ?? ''
 	}
 
-	override transformEvent(event: Streaming<IResizeAction>, transform: AgentTransform) {
-		const shapeIds = transform.ensureShapeIdsAreReal(event.shapeIds ?? [])
+	override transformAction(action: Streaming<IResizeAction>, transform: AgentTransform) {
+		const shapeIds = transform.ensureShapeIdsAreReal(action.shapeIds ?? [])
 		if (shapeIds.length === 0) return null
 
-		event.shapeIds = shapeIds
-		return event
+		action.shapeIds = shapeIds
+		return action
 	}
 
-	override applyEvent(event: Streaming<IResizeAction>, transform: AgentTransform) {
+	override applyAction(action: Streaming<IResizeAction>, transform: AgentTransform) {
 		const { editor } = transform
 
-		if (!event.shapeIds || !event.scaleX || !event.scaleY || !event.centerX || !event.centerY) {
+		if (
+			!action.shapeIds ||
+			!action.scaleX ||
+			!action.scaleY ||
+			!action.centerX ||
+			!action.centerY
+		) {
 			return
 		}
 
-		const shapeIds = event.shapeIds.map((shapeId) => `shape:${shapeId}` as TLShapeId)
+		const shapeIds = action.shapeIds.map((shapeId) => `shape:${shapeId}` as TLShapeId)
 
 		for (const shapeId of shapeIds) {
 			editor.resizeShape(
 				shapeId,
-				{ x: event.scaleX, y: event.scaleY },
+				{ x: action.scaleX, y: action.scaleY },
 				{
-					scaleOrigin: { x: event.centerX, y: event.centerY },
+					scaleOrigin: { x: action.centerX, y: action.centerY },
 				}
 			)
 		}

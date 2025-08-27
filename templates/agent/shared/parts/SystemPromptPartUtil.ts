@@ -12,18 +12,16 @@ export class SystemPromptPartUtil extends PromptPartUtil<null> {
 	}
 
 	override buildSystemMessage(_part: null, prompt: AgentPrompt) {
-		const { parts } = prompt
-
 		const systemPromptModifiers: string[] = []
 
 		// if there are user selected shapes add that to the system prompt modifiers
-		const userSelectedShapes: ISimpleShape[] | undefined = parts.userSelectedShapes
+		const userSelectedShapes: ISimpleShape[] | undefined = prompt.userSelectedShapes
 		if (userSelectedShapes && userSelectedShapes.length > 0) {
 			systemPromptModifiers.push('user_selection')
 		}
 
 		// if there are arrows in the shapes on screen, add that to the system prompt modifiers
-		const blurryFormat: BlurryShape[] | undefined = parts.blurryFormat
+		const blurryFormat: BlurryShape[] | undefined = prompt.blurryFormat
 		if (blurryFormat && blurryFormat.length > 0) {
 			if (blurryFormat.some((shape) => shape.type === 'arrow')) {
 				systemPromptModifiers.push('contains_arrows')
