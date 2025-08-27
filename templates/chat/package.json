@@ -8,18 +8,6 @@
 	},
 	"homepage": "https://tldraw.dev",
 	"license": "MIT",
-	"tldraw_template": {
-		"publish": {
-			"repo": "tldraw/chat-template",
-			"name": "AI Chat",
-			"description": "AI chat interface built with Vercel AI SDK and Next.js.",
-			"category": "app",
-			"order": 3
-		},
-		"scripts": {
-			"lint": "next lint"
-		}
-	},
 	"scripts": {
 		"dev": "next dev",
 		"build": "next build",
