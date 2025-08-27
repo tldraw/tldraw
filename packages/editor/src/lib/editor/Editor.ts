@@ -4792,8 +4792,10 @@ export class Editor extends EventEmitter<TLEventMap> {
 		return this.store.createComputedCache<Box, TLShape>('pageBoundsCache', (shape) => {
 			const pageTransform = this.getShapePageTransform(shape)
 			if (!pageTransform) return undefined
-			const geometry = this.getShapeGeometry(shape)
-			return Box.FromPoints(pageTransform.applyToPoints(geometry.vertices))
+
+			return Box.FromPoints(
+				pageTransform.applyToPoints(this.getShapeGeometry(shape).boundsVertices)
+			)
 		})
 	}
 

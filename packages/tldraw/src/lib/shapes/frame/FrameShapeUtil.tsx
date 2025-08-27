@@ -192,6 +192,7 @@ export class FrameShapeUtil extends BaseBoxShapeUtil<TLFrameShape> {
 					height,
 					isFilled: true,
 					isLabel: true,
+					excludeFromShapeBounds: true,
 				}),
 			],
 		})

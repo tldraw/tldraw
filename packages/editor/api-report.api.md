@@ -1676,6 +1676,8 @@ export abstract class Geometry2d {
     // (undocumented)
     get bounds(): Box;
     // (undocumented)
+    get boundsVertices(): Vec[];
+    // (undocumented)
     get center(): Vec;
     // (undocumented)
     debugColor?: string;
@@ -1684,9 +1686,13 @@ export abstract class Geometry2d {
     // (undocumented)
     distanceToPoint(point: VecLike, hitInside?: boolean, filters?: Geometry2dFilters): number;
     // (undocumented)
+    excludeFromShapeBounds: boolean;
+    // (undocumented)
     getArea(): number;
     // (undocumented)
     getBounds(): Box;
+    // (undocumented)
+    getBoundsVertices(): Vec[];
     // (undocumented)
     getLength(_filters?: Geometry2dFilters): number;
     // (undocumented)
@@ -1866,6 +1872,8 @@ export class Group2d extends Geometry2d {
     distanceToPoint(point: VecLike, hitInside?: boolean, filters?: Geometry2dFilters): number;
     // (undocumented)
     getArea(): number;
+    // (undocumented)
+    getBoundsVertices(): Vec[];
     // (undocumented)
     getLength(filters?: Geometry2dFilters): number;
     // (undocumented)
@@ -4424,6 +4432,8 @@ export class TransformedGeometry2d extends Geometry2d {
 export interface TransformedGeometry2dOptions {
     // (undocumented)
     debugColor?: string;
+    // (undocumented)
+    excludeFromShapeBounds?: boolean;
     // (undocumented)
     ignore?: boolean;
     // (undocumented)

@@ -82,6 +82,7 @@ export class NodeShapeUtil extends ShapeUtil<NodeShape> {
 					isFilled: true,
 					// not a label, but this hack excludes them from the selection bounds which is useful
 					isLabel: true,
+					excludeFromShapeBounds: true,
 				})
 		)
 

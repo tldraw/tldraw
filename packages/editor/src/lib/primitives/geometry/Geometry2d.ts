@@ -48,6 +48,7 @@ export interface TransformedGeometry2dOptions {
 	isInternal?: boolean
 	debugColor?: string
 	ignore?: boolean
+	excludeFromShapeBounds?: boolean
 }
 
 /** @public */
@@ -64,11 +65,17 @@ export abstract class Geometry2d {
 	isLabel = false
 	isEmptyLabel = false
 	isInternal = false
+	excludeFromShapeBounds = false
 	debugColor?: string
 	ignore?: boolean
 
 	constructor(opts: Geometry2dOptions) {
-		const { isLabel = false, isEmptyLabel = false, isInternal = false } = opts
+		const {
+			isLabel = false,
+			isEmptyLabel = false,
+			isInternal = false,
+			excludeFromShapeBounds = false,
+		} = opts
 		this.isFilled = opts.isFilled
 		this.isClosed = opts.isClosed
 		this.debugColor = opts.debugColor
@@ -76,6 +83,7 @@ export abstract class Geometry2d {
 		this.isLabel = isLabel
 		this.isEmptyLabel = isEmptyLabel
 		this.isInternal = isInternal
+		this.excludeFromShapeBounds = excludeFromShapeBounds
 	}
 
 	isExcludedByFilter(filters?: Geometry2dFilters) {
@@ -271,8 +279,22 @@ export abstract class Geometry2d {
 		return this._vertices
 	}
 
+	getBoundsVertices(): Vec[] {
+		if (this.excludeFromShapeBounds) return []
+		return this.vertices
+	}
+
+	private _boundsVertices: Vec[] | undefined
+
+	get boundsVertices(): Vec[] {
+		if (!this._boundsVertices) {
+			this._boundsVertices = this.getBoundsVertices()
+		}
+		return this._boundsVertices
+	}
+
 	getBounds() {
-		return Box.FromPoints(this.vertices)
+		return Box.FromPoints(this.boundsVertices)
 	}
 
 	private _bounds: Box | undefined
