@@ -31,7 +31,7 @@
 		"@tldraw/sync": "workspace:*",
 		"@tldraw/sync-core": "workspace:*",
 		"@tldraw/tlschema": "workspace:*",
-		"cloudflare-workers-unfurl": "^0.0.7",
+		"cloudflare-workers-unfurl": "^0.0.8",
 		"itty-router": "^5.0.18",
 		"lodash.throttle": "^4.1.1",
 		"react": "^18.3.1",
