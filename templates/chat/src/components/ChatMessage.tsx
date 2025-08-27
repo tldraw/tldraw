@@ -1,6 +1,7 @@
 import { type UIMessage } from '@ai-sdk/react'
 import ReactMarkdown from 'react-markdown'
 import { TLEditorSnapshot } from 'tldraw'
+import { TldrawProviderMetadata } from './WhiteboardModal'
 
 interface ChatMessageProps {
 	message: UIMessage
@@ -27,8 +28,9 @@ export function ChatMessage({ message, onImageClick }: ChatMessageProps) {
 		<div className={groupClass}>
 			{/* Render images first as separate message bubbles */}
 			{imageParts.map((part, index) => {
-				const snapshot = part.providerMetadata?.tldrawSnapshot as unknown as TLEditorSnapshot
-				const imageName = part.providerMetadata?.imageName as unknown as string | undefined
+				const tldrawMetadata = part.providerMetadata?.tldraw as TldrawProviderMetadata | undefined
+				const snapshot = tldrawMetadata?.snapshot
+				const imageName = tldrawMetadata?.imageName
 				const handleImageClick = () => {
 					if (snapshot && onImageClick) {
 						onImageClick(snapshot as unknown as TLEditorSnapshot, imageName)

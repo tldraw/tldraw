@@ -14,6 +14,11 @@ import {
 	useTranslation,
 } from 'tldraw'
 
+export interface TldrawProviderMetadata {
+	snapshot: TLEditorSnapshot
+	imageName: string
+}
+
 export interface WhiteboardImage {
 	id: string
 	name: string
@@ -24,19 +29,10 @@ export interface WhiteboardImage {
 	height: number
 }
 
-export interface WhiteboardModalCloseResult {
-	type: 'close'
-}
-export interface WhiteBoardModalAcceptResult {
-	type: 'accept'
-	image: WhiteboardImage
-}
-
-export type WhiteboardModalResult = WhiteboardModalCloseResult | WhiteBoardModalAcceptResult
-
 interface WhiteboardModalProps {
 	initialSnapshot?: TLEditorSnapshot
-	onClose: (result: WhiteboardModalResult) => void
+	onCancel: () => void
+	onAccept: (image: WhiteboardImage) => void
 	imageId?: string
 	uploadedFile?: File
 	imageName?: string
@@ -51,7 +47,8 @@ const options: Partial<TldrawOptions> = {
 
 export function WhiteboardModal({
 	initialSnapshot,
-	onClose,
+	onCancel,
+	onAccept,
 	imageId,
 	uploadedFile,
 	imageName,
@@ -62,7 +59,7 @@ export function WhiteboardModal({
 				const editor = useEditor()
 				return (
 					<TldrawUiRow className="whiteboard-actions">
-						<TldrawUiButton type="normal" onClick={() => onClose({ type: 'close' })}>
+						<TldrawUiButton type="normal" onClick={onCancel}>
 							Cancel
 						</TldrawUiButton>
 						<TldrawUiButton
@@ -71,15 +68,12 @@ export function WhiteboardModal({
 								const image = await editor.toImageDataUrl(editor.getCurrentPageShapes(), {
 									format: 'png',
 								})
-								onClose({
-									type: 'accept',
-									image: {
-										id: imageId ?? crypto.randomUUID(),
-										name: imageName ?? 'tldraw whiteboard.png',
-										snapshot: editor.getSnapshot(),
-										type: 'image/png',
-										...image,
-									},
+								onAccept({
+									id: imageId ?? crypto.randomUUID(),
+									name: imageName ?? 'tldraw whiteboard.png',
+									snapshot: editor.getSnapshot(),
+									type: 'image/png',
+									...image,
 								})
 							}}
 						>
@@ -89,12 +83,12 @@ export function WhiteboardModal({
 				)
 			},
 		}),
-		[onClose, imageId, imageName]
+		[onCancel, onAccept, imageId, imageName]
 	)
 
 	const handleOverlayClick = (e: React.MouseEvent) => {
 		if (e.target === e.currentTarget) {
-			onClose({ type: 'close' })
+			onCancel()
 		}
 	}
 

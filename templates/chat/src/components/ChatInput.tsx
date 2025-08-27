@@ -6,7 +6,7 @@ import { ImageIcon } from './icons/ImageIcon'
 import { SendIcon } from './icons/SendIcon'
 import { UploadIcon } from './icons/UploadIcon'
 import { WhiteboardIcon } from './icons/WhiteboardIcon'
-import { WhiteboardImage, WhiteboardModal, WhiteboardModalResult } from './WhiteboardModal'
+import { WhiteboardImage, WhiteboardModal } from './WhiteboardModal'
 
 interface ChatInputProps {
 	onSendMessage: (message: string, images: WhiteboardImage[]) => void
@@ -104,15 +104,17 @@ export function ChatInput({
 		[dispatch]
 	)
 
-	const handleCloseWhiteboard = useCallback(
-		(result: WhiteboardModalResult) => {
+	const handleCancelWhiteboard = useCallback(() => {
+		dispatch({ type: 'closeWhiteboard' })
+	}, [dispatch])
+
+	const handleAcceptWhiteboard = useCallback(
+		(image: WhiteboardImage) => {
 			dispatch({ type: 'closeWhiteboard' })
-			if (result.type === 'accept') {
-				dispatch({ type: 'setImage', image: result.image })
-				// Re-focus the input after adding an image
-				if (textareaRef.current) {
-					textareaRef.current.focus()
-				}
+			dispatch({ type: 'setImage', image })
+			// Re-focus the input after adding an image
+			if (textareaRef.current) {
+				textareaRef.current.focus()
 			}
 		},
 		[dispatch]
@@ -205,7 +207,8 @@ export function ChatInput({
 					initialSnapshot={openWhiteboard.snapshot}
 					uploadedFile={openWhiteboard.uploadedFile}
 					imageName={openWhiteboard.imageName}
-					onClose={handleCloseWhiteboard}
+					onCancel={handleCancelWhiteboard}
+					onAccept={handleAcceptWhiteboard}
 				/>
 			)}
 		</form>

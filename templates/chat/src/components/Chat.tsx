@@ -8,7 +8,7 @@ import { useChatInputState } from '../hooks/useChatInputState'
 import { useScrollToBottom } from '../hooks/useScrollToBottom'
 import { ChatInput } from './ChatInput'
 import { MessageList } from './MessageList'
-import { WhiteboardImage } from './WhiteboardModal'
+import { TldrawProviderMetadata, WhiteboardImage } from './WhiteboardModal'
 
 export function Chat() {
 	const [chatInputState, chatInputDispatch] = useChatInputState()
@@ -21,18 +21,19 @@ export function Chat() {
 
 	const handleSendMessage = useCallback(
 		(text: string, images: WhiteboardImage[]) => {
-			const parts: (TextUIPart | FileUIPart)[] = images.map(
-				(image): FileUIPart => ({
+			const parts: (TextUIPart | FileUIPart)[] = images.map((image): FileUIPart => {
+				const tldrawMetadata: TldrawProviderMetadata = {
+					snapshot: image.snapshot,
+					imageName: image.name,
+				}
+				return {
 					type: 'file',
 					url: image.url,
 					filename: image.name,
 					mediaType: image.type,
-					providerMetadata: {
-						tldrawSnapshot: image.snapshot as any,
-						imageName: image.name as any,
-					},
-				})
-			)
+					providerMetadata: { tldraw: tldrawMetadata } as any,
+				}
+			})
 			if (text.trim()) {
 				parts.push({ type: 'text', text })
 			}
