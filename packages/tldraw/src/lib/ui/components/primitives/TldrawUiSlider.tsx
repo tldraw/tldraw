@@ -1,3 +1,4 @@
+import { tltime } from '@tldraw/editor'
 import { Slider as _Slider } from 'radix-ui'
 import React, { useCallback, useEffect, useState } from 'react'
 import { TLUiTranslationKey } from '../../hooks/useTranslation/TLUiTranslationKey'
@@ -33,6 +34,7 @@ export const TldrawUiSlider = React.forwardRef<HTMLDivElement, TLUiSliderProps>(
 	ref
 ) {
 	const msg = useTranslation()
+	const [titleAndLabel, setTitleAndLabel] = useState('')
 
 	// XXX: Radix starts out our slider with a tabIndex of 0
 	// This causes some tab focusing issues, most prevelant in MobileStylePanel,
@@ -54,6 +56,20 @@ export const TldrawUiSlider = React.forwardRef<HTMLDivElement, TLUiSliderProps>(
 		onHistoryMark('click slider')
 	}, [onHistoryMark])
 
+	// N.B. This is a bit silly. The Radix slider auto-focuses which
+	// triggers TldrawUiTooltip handleFocus when we dbl-click to edit an image,
+	// which in turn makes the tooltip display prematurely.
+	// This makes it wait until we've focused to show the tooltip.
+	useEffect(() => {
+		tltime.setTimeout(
+			'set title and label',
+			() => {
+				setTitleAndLabel(title + ' — ' + msg(label as TLUiTranslationKey))
+			},
+			0
+		)
+	}, [label, msg, title])
+
 	// N.B. Annoying. For a11y purposes, we need Tab to work.
 	// For some reason, Radix has some custom behavior here
 	// that interferes with tabbing past the slider and then
@@ -63,8 +79,6 @@ export const TldrawUiSlider = React.forwardRef<HTMLDivElement, TLUiSliderProps>(
 			event.stopPropagation()
 		}
 	}, [])
-
-	const titleAndLabel = title + ' — ' + msg(label as TLUiTranslationKey)
 
 	return (
 		<div className="tlui-slider__container">
@@ -81,6 +95,7 @@ export const TldrawUiSlider = React.forwardRef<HTMLDivElement, TLUiSliderProps>(
 					onValueChange={handleValueChange}
 					onKeyDownCapture={handleKeyEvent}
 					onKeyUpCapture={handleKeyEvent}
+					autoFocus
 				>
 					<_Slider.Track className="tlui-slider__track" dir="ltr">
 						{value !== null && <_Slider.Range className="tlui-slider__range" dir="ltr" />}

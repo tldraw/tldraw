@@ -261,6 +261,7 @@ export type TLUiTranslationKey =
 	| 'tool.aspect-ratio.wide'
 	| 'tool.image-toolbar-title'
 	| 'tool.image-crop'
+	| 'tool.image-crop-confirm'
 	| 'tool.media-alt-text'
 	| 'tool.media-alt-text-desc'
 	| 'tool.media-alt-text-confirm'
