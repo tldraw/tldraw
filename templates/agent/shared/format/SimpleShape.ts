@@ -202,7 +202,7 @@ function convertGeoShape(shape: TLGeoShape, editor: Editor): ISimpleGeoShape {
 	const text = util.getText(shape)
 
 	return {
-		_type: 'rectangle',
+		_type: shape.props.geo,
 		color: shape.props.color,
 		fill: convertTldrawFillToSimpleFill(shape.props.fill),
 		h: shape.props.h,

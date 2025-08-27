@@ -32,6 +32,7 @@ import { ModelNamePartUtil } from './parts/ModelNamePartUtil'
 import { PromptPartUtilConstructor } from './parts/PromptPartUtil'
 import { SystemPromptPartUtil } from './parts/SystemPromptPartUtil'
 import { TodoListPromptPartUtil } from './parts/TodoItemsPromptPart'
+import { UserActionHistoryPartUtil } from './parts/UserActionHistoryPartUtil'
 import { UserSelectedShapesPartUtil } from './parts/UserSelectedShapesPartUtil'
 import { UserViewportBoundsPartUtil } from './parts/UserViewportBoundsPartUtil'
 
@@ -50,6 +51,7 @@ export const PROMPT_PART_UTILS: PromptPartUtilConstructor[] = [
 	MessagePartUtil,
 	PeripheralShapesPartUtil,
 	UserSelectedShapesPartUtil,
+	UserActionHistoryPartUtil,
 
 	TodoListPromptPartUtil,
 ]
