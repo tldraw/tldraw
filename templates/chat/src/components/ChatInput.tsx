@@ -1,4 +1,4 @@
-import { FormEvent, useCallback, useEffect as useLayoutEffect, useRef } from 'react'
+import { FormEvent, useCallback, useEffect, useLayoutEffect, useRef } from 'react'
 import { DefaultSpinner, TldrawUiTooltip } from 'tldraw'
 import { useChatInputState } from '../hooks/useChatInputState'
 import { ChatInputImage } from './ChatInputImage'
@@ -28,7 +28,7 @@ export function ChatInput({
 
 	const textareaRef = useRef<HTMLTextAreaElement>(null)
 
-	useLayoutEffect(() => {
+	useEffect(() => {
 		if (!disabled && textareaRef.current) {
 			// focus the textarea when the input is enabled
 			textareaRef.current.focus()
