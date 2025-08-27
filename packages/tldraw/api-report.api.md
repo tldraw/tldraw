@@ -3867,7 +3867,7 @@ export interface TLUiEventMap {
     };
     // (undocumented)
     'open-url': {
-        url: string;
+        destinationUrl: string;
     };
     // (undocumented)
     'pack-shapes': null;
