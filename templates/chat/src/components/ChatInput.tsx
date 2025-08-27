@@ -1,4 +1,4 @@
-import { FormEvent, useCallback, useEffect, useRef } from 'react'
+import { FormEvent, useCallback, useEffect as useLayoutEffect, useRef } from 'react'
 import { DefaultSpinner, TldrawUiTooltip } from 'tldraw'
 import { useChatInputState } from '../hooks/useChatInputState'
 import { ChatInputImage } from './ChatInputImage'
@@ -24,19 +24,19 @@ export function ChatInput({
 	dispatch,
 }: ChatInputProps) {
 	const { input, images, openWhiteboard, isDragging } = state
-	const textareaRef = useRef<HTMLTextAreaElement>(null)
-	const fileInputRef = useRef<HTMLInputElement>(null)
-
 	const disabled = waitingForResponse || isDragging
 
-	useEffect(() => {
+	const textareaRef = useRef<HTMLTextAreaElement>(null)
+
+	useLayoutEffect(() => {
 		if (!disabled && textareaRef.current) {
+			// focus the textarea when the input is enabled
 			textareaRef.current.focus()
 		}
 	}, [disabled])
 
-	// Auto-resize textarea and scroll to bottom when content changes
-	useEffect(() => {
+	// Auto-resize textarea and scroll to bottom when content changes.
+	useLayoutEffect(() => {
 		if (textareaRef.current) {
 			// Reset height to auto to get the correct scrollHeight
 			textareaRef.current.style.height = 'auto'
@@ -51,24 +51,26 @@ export function ChatInput({
 		}
 	}, [input, scrollToBottom])
 
-	useEffect(() => {
+	// Scroll to bottom when images are added.
+	useLayoutEffect(() => {
 		if (scrollToBottom) {
 			scrollToBottom('instant')
 		}
 	}, [images, scrollToBottom])
 
+	// the user can only send a message if the input is not disabled and there are either images or
+	// text ready to send
 	const canSend = !disabled && (images.length > 0 || input.trim())
 
-	const submit = () => {
+	// when the user submits the form, we send the message.
+	const handleSubmit = (e: FormEvent) => {
+		e.preventDefault()
 		if (canSend) {
 			onSendMessage(input, images)
 		}
 	}
-	const handleSubmit = (e: FormEvent) => {
-		e.preventDefault()
-		submit()
-	}
 
+	// when the user presses enter, we send the message.
 	const handleKeyDown = (e: React.KeyboardEvent<HTMLTextAreaElement>) => {
 		if (e.key === 'Enter') {
 			if (e.shiftKey) {
@@ -77,18 +79,22 @@ export function ChatInput({
 			} else {
 				// Enter: submit form
 				e.preventDefault()
-				submit()
+				if (canSend) {
+					onSendMessage(input, images)
+				}
 			}
 		}
 	}
 
+	// when the user clicks the image upload button, we open a file input to allow them to select an
+	// image from their device.
 	const handleImageUpload = useCallback(() => {
-		fileInputRef.current?.click()
-	}, [])
-
-	const handleFileChange = useCallback(
-		(e: React.ChangeEvent<HTMLInputElement>) => {
-			const file = e.target.files?.[0]
+		const input = document.createElement('input')
+		input.type = 'file'
+		input.accept = 'image/*'
+		input.onchange = (e: Event) => {
+			const target = e.target as HTMLInputElement
+			const file = target.files?.[0]
 			if (!file || !file.type.startsWith('image/')) return
 
 			// Open whiteboard with the uploaded file
@@ -97,17 +103,16 @@ export function ChatInput({
 				uploadedFile: file,
 				imageName: file.name,
 			})
+		}
+		input.click()
+	}, [dispatch])
 
-			// Clear the input
-			e.target.value = ''
-		},
-		[dispatch]
-	)
-
+	// when the user cancels the whiteboard modal, we close it.
 	const handleCancelWhiteboard = useCallback(() => {
 		dispatch({ type: 'closeWhiteboard' })
 	}, [dispatch])
 
+	// when the user accepts the whiteboard modal, we add the image to the chat input & close it.
 	const handleAcceptWhiteboard = useCallback(
 		(image: WhiteboardImage) => {
 			dispatch({ type: 'closeWhiteboard' })
@@ -122,14 +127,21 @@ export function ChatInput({
 
 	return (
 		<form onSubmit={handleSubmit} className="chat-input-form">
+			{/* if the user is dragging an image over the input area, we show a visual indicator
+			hiding the normal input content. */}
 			{isDragging && (
 				<div className="drag-drop-indicator">
 					<svg className="outline">
+						{/* we use an svg to draw a dashed outline of the input area. svg allows us
+						to control the dash length in a way that for example a normal <div> with a
+						border would not. */}
 						<rect />
 					</svg>
 					<UploadIcon />
 				</div>
 			)}
+
+			{/* if the user has added images to the chat input, we show them above the input. */}
 			{images.length > 0 && (
 				<div className="input-images">
 					{images.map((image) => (
@@ -149,6 +161,8 @@ export function ChatInput({
 					))}
 				</div>
 			)}
+
+			{/* the main input is a text area. we resize it automatically to fit its content. */}
 			<div className="input-container">
 				<textarea
 					ref={textareaRef}
@@ -167,7 +181,10 @@ export function ChatInput({
 					</div>
 				)}
 			</div>
+
+			{/* below the input we have several controls: */}
 			<div className="chat-input-bottom">
+				{/* a button to upload an image */}
 				<TldrawUiTooltip content="Upload an image">
 					<button
 						type="button"
@@ -178,13 +195,7 @@ export function ChatInput({
 						<ImageIcon />
 					</button>
 				</TldrawUiTooltip>
-				<input
-					ref={fileInputRef}
-					type="file"
-					accept="image/*"
-					onChange={handleFileChange}
-					style={{ display: 'none' }}
-				/>
+				{/* a button to open the whiteboard modal */}
 				<TldrawUiTooltip content="Draw a sketch">
 					<button
 						type="button"
@@ -195,12 +206,15 @@ export function ChatInput({
 						<WhiteboardIcon />
 					</button>
 				</TldrawUiTooltip>
+				{/* a button to send the message */}
 				<TldrawUiTooltip content="Send message">
 					<button type="submit" disabled={!canSend || disabled} className="icon-button">
 						<SendIcon />
 					</button>
 				</TldrawUiTooltip>
 			</div>
+
+			{/* if the user has opened the whiteboard modal, we show it. */}
 			{openWhiteboard && (
 				<WhiteboardModal
 					imageId={openWhiteboard.id}

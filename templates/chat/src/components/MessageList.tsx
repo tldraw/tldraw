@@ -1,10 +1,10 @@
 import { type UIMessage } from '@ai-sdk/react'
-import { TLEditorSnapshot } from 'tldraw'
 import { ChatMessage } from './ChatMessage'
+import { TldrawProviderMetadata } from './WhiteboardModal'
 
 interface MessageListProps {
 	messages: UIMessage[]
-	onImageClick: (snapshot: TLEditorSnapshot, imageName?: string) => void
+	onImageClick: (tldrawMetadata: TldrawProviderMetadata) => void
 }
 
 export function MessageList({ messages, onImageClick }: MessageListProps) {

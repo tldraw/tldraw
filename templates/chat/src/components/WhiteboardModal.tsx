@@ -39,9 +39,11 @@ interface WhiteboardModalProps {
 }
 
 const options: Partial<TldrawOptions> = {
+	// disable the ability to create new pages:
 	maxPages: 1,
+	// make sure the action shortcuts are always in the top-right menu area, not on the toolbar:
 	actionShortcutsLocation: 'menu',
-	// disable font pre-loading to avoid the ui popping in after the modal appears
+	// disable font pre-loading to avoid the ui popping in after the modal appears:
 	maxFontsToLoadBeforeRender: 0,
 }
 
@@ -53,8 +55,12 @@ export function WhiteboardModal({
 	uploadedFile,
 	imageName,
 }: WhiteboardModalProps) {
+	// components are used to override parts of the tldraw ui. they shouldn't change often, so it's
+	// important that we memoize them or define them outside the tldraw component.
 	const components = useMemo(
 		(): TLComponents => ({
+			// The "SharePanel" is in the top-right of the editor. Here we want it to show our save
+			// and cancel buttons:
 			SharePanel: () => {
 				const editor = useEditor()
 				return (
@@ -65,13 +71,21 @@ export function WhiteboardModal({
 						<TldrawUiButton
 							type="primary"
 							onClick={async () => {
+								// when the user clicks save, we convert the current whiteboard to an image:
 								const image = await editor.toImageDataUrl(editor.getCurrentPageShapes(), {
 									format: 'png',
 								})
+
+								// we also take a snapshot of the editor state, so we can still edit
+								// it if we open it up again later:
+								const snapshot = editor.getSnapshot()
+
+								// we pass the image data and the snapshot to the parent component, so it
+								// can add it to the chat input:
 								onAccept({
 									id: imageId ?? crypto.randomUUID(),
 									name: imageName ?? 'tldraw whiteboard.png',
-									snapshot: editor.getSnapshot(),
+									snapshot,
 									type: 'image/png',
 									...image,
 								})
@@ -86,6 +100,7 @@ export function WhiteboardModal({
 		[onCancel, onAccept, imageId, imageName]
 	)
 
+	// when the user clicks outside the modal, we close it:
 	const handleOverlayClick = (e: React.MouseEvent) => {
 		if (e.target === e.currentTarget) {
 			onCancel()
@@ -103,6 +118,9 @@ export function WhiteboardModal({
 					editor.user.updateUserPreferences({ colorScheme: 'light' })
 				}}
 			>
+				{/* if the user uploaded a file, we insert it in a special component. this means we
+				can use hooks that depend on tldraw's ui to do things like show a toast if
+				something goes wrong. */}
 				<InsideOfTldrawContext uploadedFile={uploadedFile} />
 			</Tldraw>
 		</div>
@@ -121,12 +139,14 @@ function InsideOfTldrawContext({ uploadedFile }: { uploadedFile?: File }) {
 		if ((uploadedFile as any).didUpload) return
 		;(uploadedFile as any).didUpload = true
 		;(async () => {
+			// we check if the file is allowed to be uploaded:
 			const isOk = notifyIfFileNotAllowed(uploadedFile, {
 				toasts,
 				msg,
 			})
 			if (!isOk) return
 
+			// we get the asset for the uploaded file:
 			const asset = await editor.getAssetForExternalContent({
 				type: 'file',
 				file: uploadedFile,
@@ -138,7 +158,11 @@ function InsideOfTldrawContext({ uploadedFile }: { uploadedFile?: File }) {
 			const center = editor.getViewportPageBounds().center
 			const width = asset.props.w * scale
 			const height = asset.props.h * scale
+
+			// create an ID for the new shape so we can select it later:
 			const shapeId = createShapeId()
+
+			// create the shape, select it, make it fill the screen, and start cropping it:
 			editor
 				.createAssets([asset])
 				.createShape<TLImageShape>({

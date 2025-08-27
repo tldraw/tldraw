@@ -1,15 +1,14 @@
 import { type UIMessage } from '@ai-sdk/react'
 import ReactMarkdown from 'react-markdown'
-import { TLEditorSnapshot } from 'tldraw'
 import { TldrawProviderMetadata } from './WhiteboardModal'
 
 interface ChatMessageProps {
 	message: UIMessage
-	onImageClick: (snapshot: TLEditorSnapshot, imageName?: string) => void
+	onImageClick: (tldrawMetadata: TldrawProviderMetadata) => void
 }
 
 export function ChatMessage({ message, onImageClick }: ChatMessageProps) {
-	// Split the message parts into separate messages like iMessage
+	// Split the message parts into image and text ones
 	const textParts = message.parts.filter((part) => part.type === 'text' && part.text.trim())
 	const imageParts = message.parts.filter((part) => part.type === 'file')
 
@@ -22,18 +21,18 @@ export function ChatMessage({ message, onImageClick }: ChatMessageProps) {
 		)
 	}
 
-	const groupClass = `message-group ${message.role === 'user' ? 'user-message' : 'assistant-message'}`
-
 	return (
-		<div className={groupClass}>
+		<div
+			className={`message-group ${message.role === 'user' ? 'user-message' : 'assistant-message'}`}
+		>
 			{/* Render images first as separate message bubbles */}
 			{imageParts.map((part, index) => {
+				// we stash a snapshot of the tldraw document in the provider metadata:
 				const tldrawMetadata = part.providerMetadata?.tldraw as TldrawProviderMetadata | undefined
-				const snapshot = tldrawMetadata?.snapshot
-				const imageName = tldrawMetadata?.imageName
 				const handleImageClick = () => {
-					if (snapshot && onImageClick) {
-						onImageClick(snapshot as unknown as TLEditorSnapshot, imageName)
+					// if we have a tldraw snapshot, we open the tldraw modal when it's clicked:
+					if (tldrawMetadata) {
+						onImageClick(tldrawMetadata)
 					}
 				}
 
