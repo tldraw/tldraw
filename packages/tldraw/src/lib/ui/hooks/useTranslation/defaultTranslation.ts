@@ -187,6 +187,7 @@ export const DEFAULT_TRANSLATION = {
 	'geo-style.pentagon': 'Pentagon',
 	'geo-style.rectangle': 'Rectangle',
 	'geo-style.rhombus': 'Rhombus',
+	'geo-style.rhombus-2': 'Rhombus left',
 	'geo-style.star': 'Star',
 	'geo-style.trapezoid': 'Trapezoid',
 	'geo-style.triangle': 'Triangle',
