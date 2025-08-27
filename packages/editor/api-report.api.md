@@ -286,6 +286,8 @@ export class Box {
     // (undocumented)
     contains(B: Box): boolean;
     // (undocumented)
+    static ContainsApproximately(A: Box, B: Box, precision?: number): boolean;
+    // (undocumented)
     static ContainsPoint(A: Box, B: VecLike, margin?: number): boolean;
     // (undocumented)
     containsPoint(V: VecLike, margin?: number): boolean;
@@ -1499,6 +1501,11 @@ export class Editor extends EventEmitter<TLEventMap> {
         height: number;
         width: number;
     }>;
+    toImageDataUrl(shapes: TLShape[] | TLShapeId[], opts?: TLImageExportOptions): Promise<{
+        height: number;
+        url: string;
+        width: number;
+    }>;
     undo(): this;
     ungroupShapes(ids: TLShapeId[], opts?: Partial<{
         select: boolean;
@@ -2612,6 +2619,7 @@ export abstract class ShapeUtil<Shape extends TLUnknownShape = TLUnknownShape> {
     hideSelectionBoundsFg(_shape: Shape): boolean;
     abstract indicator(shape: Shape): any;
     isAspectRatioLocked(_shape: Shape): boolean;
+    isExportBoundsContainer(_shape: Shape): boolean;
     static migrations?: LegacyMigrations | MigrationSequence | TLPropsMigrations;
     onBeforeCreate?(next: Shape): Shape | void;
     onBeforeUpdate?(prev: Shape, next: Shape): Shape | void;

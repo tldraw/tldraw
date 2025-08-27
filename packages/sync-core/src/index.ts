@@ -36,6 +36,7 @@ export {
 	TLSyncErrorCloseEventCode,
 	TLSyncErrorCloseEventReason,
 	type SubscribingFn,
+	type TLCustomMessageHandler,
 	type TLPersistentClientSocket,
 	type TLPersistentClientSocketStatus,
 	type TLPresenceMode,

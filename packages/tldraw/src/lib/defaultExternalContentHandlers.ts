@@ -144,7 +144,7 @@ export async function defaultHandleExternalFileAsset(
 	{ file, assetId }: TLFileExternalAsset,
 	options: TLDefaultExternalContentHandlerOpts
 ) {
-	const isSuccess = runFileChecks(file, options)
+	const isSuccess = notifyIfFileNotAllowed(file, options)
 	if (!isSuccess) assert(false, 'File checks failed')
 
 	const assetInfo = await getAssetInfo(file, options, assetId)
@@ -161,7 +161,7 @@ export async function defaultHandleExternalFileReplaceContent(
 	{ file, shapeId, isImage }: TLFileReplaceExternalContent,
 	options: TLDefaultExternalContentHandlerOpts
 ) {
-	const isSuccess = runFileChecks(file, options)
+	const isSuccess = notifyIfFileNotAllowed(file, options)
 	if (!isSuccess) assert(false, 'File checks failed')
 
 	const shape = editor.getShape(shapeId)
@@ -399,7 +399,7 @@ export async function defaultHandleExternalFileContent(
 		file: File
 	}[] = []
 	for (const file of files) {
-		const isSuccess = runFileChecks(file, options)
+		const isSuccess = notifyIfFileNotAllowed(file, options)
 		if (!isSuccess) continue
 
 		const assetInfo = await getAssetInfo(file, options)
@@ -873,7 +873,15 @@ export function createEmptyBookmarkShape(
 	return editor.getShape(partial.id) as TLBookmarkShape
 }
 
-function runFileChecks(file: File, options: TLDefaultExternalContentHandlerOpts) {
+/**
+ * Checks if a file is allowed to be uploaded. If it is not, it will show a toast explaining why to the user.
+ *
+ * @param file - The file to check
+ * @param options - The options for the external content handler
+ * @returns True if the file is allowed, false otherwise
+ * @public
+ */
+export function notifyIfFileNotAllowed(file: File, options: TLDefaultExternalContentHandlerOpts) {
 	const {
 		acceptedImageMimeTypes = DEFAULT_SUPPORTED_IMAGE_TYPES,
 		acceptedVideoMimeTypes = DEFAULT_SUPPORT_VIDEO_TYPES,

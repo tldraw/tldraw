@@ -575,7 +575,7 @@ export class TLSyncRoom<R extends UnknownRecord, SessionMeta> {
 	}
 
 	/**
-	 * Broadcast a message to all connected clients except the one with the sessionId provided.
+	 * Broadcast a patch to all connected clients except the one with the sessionId provided.
 	 *
 	 * @param message - The message to broadcast.
 	 */
@@ -609,6 +609,16 @@ export class TLSyncRoom<R extends UnknownRecord, SessionMeta> {
 			})
 		})
 		return this
+	}
+
+	/**
+	 * Send a custom message to a connected client.
+	 *
+	 * @param sessionId - The id of the session to send the message to.
+	 * @param data - The payload to send.
+	 */
+	sendCustomMessage(sessionId: string, data: any): void {
+		this.sendMessage(sessionId, { type: 'custom', data })
 	}
 
 	/**
