@@ -34,3 +34,17 @@ test.describe('Internal License', () => {
 		expect(hasExpiredMessage).toBe(true)
 	})
 })
+
+test.describe('License with watermark', () => {
+	test('shows the watermark', async ({ page }) => {
+		// Don't set any license key - this should use our default license that shows the watermark
+		await page.goto('http://localhost:5420/end-to-end')
+		await page.waitForTimeout(2000)
+
+		// The editor should render normally
+		await expect(page.locator('.tl-canvas')).toBeVisible()
+
+		// The watermark should be visible
+		await expect(page.locator('.tl-watermark_SEE-LICENSE')).toBeVisible()
+	})
+})
