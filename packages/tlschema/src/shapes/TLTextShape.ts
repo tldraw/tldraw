@@ -2,7 +2,7 @@ import { T } from '@tldraw/validate'
 import { TLRichText, richTextValidator, toRichText } from '../misc/TLRichText'
 import { createShapePropsMigrationIds, createShapePropsMigrationSequence } from '../records/TLShape'
 import { RecordProps } from '../recordsWithProps'
-import { DefaultColorStyle, TLDefaultColorStyle } from '../styles/TLColorStyle'
+import { ColorStyle, TLColorStyle } from '../styles/TLColorStyle'
 import { DefaultFontStyle, TLDefaultFontStyle } from '../styles/TLFontStyle'
 import { DefaultSizeStyle, TLDefaultSizeStyle } from '../styles/TLSizeStyle'
 import { DefaultTextAlignStyle, TLDefaultTextAlignStyle } from '../styles/TLTextAlignStyle'
@@ -10,7 +10,7 @@ import { TLBaseShape } from './TLBaseShape'
 
 /** @public */
 export interface TLTextShapeProps {
-	color: TLDefaultColorStyle
+	color: TLColorStyle
 	size: TLDefaultSizeStyle
 	font: TLDefaultFontStyle
 	textAlign: TLDefaultTextAlignStyle
@@ -25,7 +25,7 @@ export type TLTextShape = TLBaseShape<'text', TLTextShapeProps>
 
 /** @public */
 export const textShapeProps: RecordProps<TLTextShape> = {
-	color: DefaultColorStyle,
+	color: ColorStyle,
 	size: DefaultSizeStyle,
 	font: DefaultFontStyle,
 	textAlign: DefaultTextAlignStyle,

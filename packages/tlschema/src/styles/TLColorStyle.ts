@@ -1,6 +1,11 @@
 import { Expand } from '@tldraw/utils'
 import { T } from '@tldraw/validate'
-import { StyleProp } from './StyleProp'
+import { StyleProp, StyleProp2 } from './StyleProp'
+
+/** @public */
+export const ColorStyle = StyleProp2('tldraw:color2')
+/** @public */
+export type TLColorStyle = StyleProp2<'tldraw:color2'>
 
 /** @public */
 export const defaultColorNames = [

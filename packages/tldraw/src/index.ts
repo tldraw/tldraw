@@ -93,9 +93,12 @@ export { defaultShapeTools } from './lib/defaultShapeTools'
 export { defaultShapeUtils } from './lib/defaultShapeUtils'
 export { registerDefaultSideEffects } from './lib/defaultSideEffects'
 export {
+	ColorStyleUtil,
+	DefaultColorStyleUtil,
 	DefaultSizeStyleUtil,
 	defaultStyleUtils,
 	SizeStyleUtil,
+	type DefaultColorStyleOptions,
 	type DefaultSizeStyleOptions,
 } from './lib/defaultStyleUtils'
 export { defaultTools } from './lib/defaultTools'

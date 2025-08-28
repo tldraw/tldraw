@@ -31,8 +31,6 @@ import {
 	clamp,
 	debugFlags,
 	exhaustiveSwitchError,
-	getColorValue,
-	getDefaultColorTheme,
 	getFontsFromRichText,
 	invLerp,
 	lerp,
@@ -49,6 +47,7 @@ import {
 } from '@tldraw/editor'
 import React, { useMemo } from 'react'
 import { updateArrowTerminal } from '../../bindings/arrow/ArrowBindingUtil'
+import { ColorStyleUtil } from '../../styles/TLColorStyle'
 import { SizeStyleUtil } from '../../styles/TLSizeStyle'
 import { isEmptyRichText, renderPlaintextFromRichText } from '../../utils/text/richText'
 import { PathBuilder } from '../shared/PathBuilder'
@@ -56,7 +55,6 @@ import { RichTextLabel, RichTextSVG } from '../shared/RichTextLabel'
 import { ShapeFill } from '../shared/ShapeFill'
 import { ARROW_LABEL_PADDING, TEXT_PROPS } from '../shared/default-shape-constants'
 import { getFillDefForCanvas, getFillDefForExport } from '../shared/defaultStyleDefs'
-import { useDefaultColorTheme } from '../shared/useDefaultColorTheme'
 import { getArrowBodyPath, getArrowHandlePath } from './ArrowPath'
 import { ArrowShapeOptions } from './arrow-types'
 import {
@@ -747,7 +745,7 @@ export class ArrowShapeUtil extends ShapeUtil<TLArrowShape> {
 
 	component(shape: TLArrowShape) {
 		// eslint-disable-next-line react-hooks/rules-of-hooks
-		const theme = useDefaultColorTheme()
+		const editor = useEditor()
 		const onlySelectedShape = this.editor.getOnlySelectedShape()
 		const shouldDisplayHandles =
 			this.editor.isInAny(
@@ -786,7 +784,9 @@ export class ArrowShapeUtil extends ShapeUtil<TLArrowShape> {
 						lineHeight={TEXT_PROPS.lineHeight}
 						align="middle"
 						verticalAlign="middle"
-						labelColor={getColorValue(theme, shape.props.labelColor, 'solid')}
+						labelColor={editor
+							.getStyleUtil(ColorStyleUtil)
+							.toCssColor(shape.props.labelColor, 'solid')}
 						richText={shape.props.richText}
 						textWidth={labelPosition.box.w - ARROW_LABEL_PADDING * 2 * shape.props.scale}
 						isSelected={isSelected}
@@ -925,7 +925,6 @@ export class ArrowShapeUtil extends ShapeUtil<TLArrowShape> {
 
 	override toSvg(shape: TLArrowShape, ctx: SvgExportContext) {
 		ctx.addExportDef(getFillDefForExport(shape.props.fill))
-		const theme = getDefaultColorTheme(ctx)
 		const scaleFactor = 1 / shape.props.scale
 
 		return (
@@ -936,7 +935,9 @@ export class ArrowShapeUtil extends ShapeUtil<TLArrowShape> {
 					font={shape.props.font}
 					align="middle"
 					verticalAlign="middle"
-					labelColor={getColorValue(theme, shape.props.labelColor, 'solid')}
+					labelColor={this.editor
+						.getStyleUtil(ColorStyleUtil)
+						.toCssColor(shape.props.labelColor, 'solid')}
 					richText={shape.props.richText}
 					bounds={getArrowLabelPosition(this.editor, shape)
 						.box.clone()
@@ -1001,7 +1002,6 @@ const ArrowSvg = track(function ArrowSvg({
 	shouldDisplayHandles: boolean
 }) {
 	const editor = useEditor()
-	const theme = useDefaultColorTheme()
 	const info = getArrowInfo(editor, shape)
 	const isForceSolid = useValue(
 		'force solid',
@@ -1080,7 +1080,7 @@ const ArrowSvg = track(function ArrowSvg({
 			</defs>
 			<g
 				fill="none"
-				stroke={getColorValue(theme, shape.props.color, 'solid')}
+				stroke={editor.getStyleUtil(ColorStyleUtil).toCssColor(shape.props.color, 'solid')}
 				strokeWidth={strokeWidth}
 				strokeLinejoin="round"
 				strokeLinecap="round"
@@ -1109,7 +1109,7 @@ const ArrowSvg = track(function ArrowSvg({
 				</g>
 				{as && clipStartArrowhead && shape.props.fill !== 'none' && (
 					<ShapeFill
-						theme={theme}
+						theme={undefined}
 						d={as}
 						color={shape.props.color}
 						fill={shape.props.fill}
@@ -1118,7 +1118,7 @@ const ArrowSvg = track(function ArrowSvg({
 				)}
 				{ae && clipEndArrowhead && shape.props.fill !== 'none' && (
 					<ShapeFill
-						theme={theme}
+						theme={undefined}
 						d={ae}
 						color={shape.props.color}
 						fill={shape.props.fill}

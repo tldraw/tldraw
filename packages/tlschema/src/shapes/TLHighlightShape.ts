@@ -1,14 +1,14 @@
 import { T } from '@tldraw/validate'
 import { createShapePropsMigrationIds, createShapePropsMigrationSequence } from '../records/TLShape'
 import { RecordProps } from '../recordsWithProps'
-import { DefaultColorStyle, TLDefaultColorStyle } from '../styles/TLColorStyle'
+import { ColorStyle, TLColorStyle } from '../styles/TLColorStyle'
 import { DefaultSizeStyle, TLDefaultSizeStyle } from '../styles/TLSizeStyle'
 import { TLBaseShape } from './TLBaseShape'
 import { DrawShapeSegment, TLDrawShapeSegment } from './TLDrawShape'
 
 /** @public */
 export interface TLHighlightShapeProps {
-	color: TLDefaultColorStyle
+	color: TLColorStyle
 	size: TLDefaultSizeStyle
 	segments: TLDrawShapeSegment[]
 	isComplete: boolean
@@ -21,7 +21,7 @@ export type TLHighlightShape = TLBaseShape<'highlight', TLHighlightShapeProps>
 
 /** @public */
 export const highlightShapeProps: RecordProps<TLHighlightShape> = {
-	color: DefaultColorStyle,
+	color: ColorStyle,
 	size: DefaultSizeStyle,
 	segments: T.arrayOf(DrawShapeSegment),
 	isComplete: T.boolean,

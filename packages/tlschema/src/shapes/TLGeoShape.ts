@@ -4,8 +4,9 @@ import { createShapePropsMigrationIds, createShapePropsMigrationSequence } from 
 import { RecordProps } from '../recordsWithProps'
 import { StyleProp } from '../styles/StyleProp'
 import {
-	DefaultColorStyle,
+	ColorStyle,
 	DefaultLabelColorStyle,
+	TLColorStyle,
 	TLDefaultColorStyle,
 } from '../styles/TLColorStyle'
 import { DefaultDashStyle, TLDefaultDashStyle } from '../styles/TLDashStyle'
@@ -64,7 +65,7 @@ export interface TLGeoShapeProps {
 
 	// Text properties
 	labelColor: TLDefaultColorStyle
-	color: TLDefaultColorStyle
+	color: TLColorStyle
 	fill: TLDefaultFillStyle
 	size: unknown
 	font: TLDefaultFontStyle
@@ -88,7 +89,7 @@ export const geoShapeProps: RecordProps<TLGeoShape> = {
 
 	// Text properties
 	labelColor: DefaultLabelColorStyle,
-	color: DefaultColorStyle,
+	color: ColorStyle,
 	fill: DefaultFillStyle,
 	size: SizeStyle,
 	font: DefaultFontStyle,

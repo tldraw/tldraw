@@ -28,7 +28,7 @@ export function GeoShapeBody({
 
 	return (
 		<>
-			<ShapeFill theme={theme} d={fillPath} color={color} fill={fill} scale={scaleToUse} />
+			<ShapeFill theme={undefined} d={fillPath} color={color} fill={fill} scale={scaleToUse} />
 			{path.toSvg({
 				style: dash,
 				strokeWidth,
