@@ -208,11 +208,9 @@ function GroupItem({ id }: { id: string }) {
 								)}
 								<TldrawUiMenuItem
 									id="leave"
-									label="Copy accept snippet"
+									label="Copy invite link"
 									onSelect={() => {
-										navigator.clipboard.writeText(
-											`app.z.mutate.group.acceptInvite({ inviteSecret: '${group?.group.inviteSecret}' })`
-										)
+										app.copyGroupInvite(id)
 									}}
 								/>
 							</TldrawUiMenuGroup>

@@ -2,6 +2,7 @@
 import { Zero } from '@rocicorp/zero'
 import { captureException } from '@sentry/react'
 import {
+	AcceptInviteResponseBody,
 	CreateFilesResponseBody,
 	CreateSnapshotRequestBody,
 	LOCAL_FILE_PREFIX,
@@ -32,12 +33,15 @@ import {
 	isEqual,
 	promiseWithResolve,
 	setInLocalStorage,
+	sleep,
 	sortByIndex,
 	structuredClone,
 	throttle,
 	uniqueId,
 } from '@tldraw/utils'
+import { editIn } from 'bedit'
 import pick from 'lodash.pick'
+import { useNavigate } from 'react-router-dom'
 import {
 	Atom,
 	Signal,
@@ -59,6 +63,7 @@ import {
 	react,
 	transact,
 } from 'tldraw'
+import { routes } from '../../routeDefs'
 import { trackEvent } from '../../utils/analytics'
 import { MULTIPLAYER_SERVER, ZERO_SERVER } from '../../utils/config'
 import { multiplayerAssetStore } from '../../utils/multiplayerAssetStore'
@@ -138,13 +143,18 @@ export class TldrawApp {
 	}
 
 	toasts: TLUiToastsContextType | null = null
+	trackEvent: TLAppUiContextType
+	navigate: ReturnType<typeof useNavigate>
 
 	private constructor(
 		public readonly userId: string,
 		getToken: () => Promise<string | undefined>,
 		onClientTooOld: () => void,
-		trackEvent: TLAppUiContextType
+		trackEvent: TLAppUiContextType,
+		navigate: ReturnType<typeof useNavigate>
 	) {
+		this.navigate = navigate
+		this.trackEvent = trackEvent
 		const sessionId = uniqueId()
 		this.z = useProperZero
 			? new Zero<TlaSchema, TlaMutators>({
@@ -783,13 +793,20 @@ export class TldrawApp {
 		getToken(): Promise<string | undefined>
 		onClientTooOld(): void
 		trackEvent: TLAppUiContextType
+		navigate: ReturnType<typeof useNavigate>
 	}) {
 		// This is an issue: we may have a user record but not in the store.
 		// Could be just old accounts since before the server had a version
 		// of the store... but we should probably identify that better.
 
 		const { id: _id, name: _name, color, ...restOfPreferences } = getUserPreferences()
-		const app = new TldrawApp(opts.userId, opts.getToken, opts.onClientTooOld, opts.trackEvent)
+		const app = new TldrawApp(
+			opts.userId,
+			opts.getToken,
+			opts.onClientTooOld,
+			opts.trackEvent,
+			opts.navigate
+		)
 		// @ts-expect-error
 		window.app = app
 		const didCreate = await app.preload({
@@ -1030,4 +1047,55 @@ export class TldrawApp {
 					nextIndex: IndexKey | null
 			  },
 	})
+
+	copyGroupInvite(groupId: string) {
+		const group = this.getGroupMembership(groupId)
+		if (!group?.group.inviteSecret) return
+
+		const inviteText = `${location.origin}/invite/${group.group.inviteSecret}`
+		navigator.clipboard.writeText(inviteText)
+
+		this.toasts?.addToast({
+			id: 'copied-invite-link',
+			title: 'Copied invite link',
+		})
+
+		this.trackEvent('copy-share-link', { source: 'sidebar' })
+	}
+
+	async acceptGroupInvite(inviteSecret: string) {
+		const response = await fetch(`/api/app/invite/${inviteSecret}/accept`, {
+			method: 'POST',
+		})
+
+		const payload = (await response.json()) as AcceptInviteResponseBody
+
+		if (payload.error || !response.ok) {
+			this.toasts?.addToast({
+				severity: 'error',
+				title: 'Error accepting invite',
+				description: payload.message,
+			})
+			this.navigate(routes.tlaRoot())
+			return
+		}
+
+		this.trackEvent('accept-group-invite', { source: 'sidebar' })
+
+		// wait for the group to appear in the store
+		while (!this.getGroupMembership(payload.groupId)) {
+			await sleep(50)
+		}
+
+		const membership = this.getGroupMembership(payload.groupId)!
+		editIn(this.sidebarState).expandedGroups((g) => {
+			g.add(payload.groupId)
+		})
+		const files = membership.groupFiles.map((f) => f.file).sort((a, b) => a.updatedAt - b.updatedAt)
+		if (!files.length) {
+			this.navigate(routes.tlaRoot())
+			return
+		}
+		this.navigate(routes.tlaFile(files[0].id))
+	}
 }

@@ -12,7 +12,6 @@ import {
 	TldrawUiMenuItem,
 	tltime,
 	useMenuIsOpen,
-	useToasts,
 	useValue,
 } from 'tldraw'
 import { routes } from '../../../../routeDefs'
@@ -54,7 +53,8 @@ const TriangleIcon = ({ angle = 0 }: { angle?: number }) => {
 	)
 }
 
-function GroupEmptyState() {
+function GroupEmptyState({ groupId, onCreateFile }: { groupId: string; onCreateFile(): void }) {
+	const app = useApp()
 	return (
 		<div className={styles.sidebarGroupItemEmpty}>
 			<F
@@ -62,12 +62,15 @@ function GroupEmptyState() {
 				values={{
 					br: () => <br />,
 					create: (chunks) => (
-						<button className={styles.sidebarGroupItemButtonInline}>
+						<button className={styles.sidebarGroupItemButtonInline} onClick={onCreateFile}>
 							{chunks} <TlaIcon icon="edit" className={styles.sidebarGroupEmptyStateIcon} />
 						</button>
 					),
 					invite: (chunks) => (
-						<button className={styles.sidebarGroupItemButtonInline}>
+						<button
+							className={styles.sidebarGroupItemButtonInline}
+							onClick={() => app.copyGroupInvite(groupId)}
+						>
 							{chunks} <TlaIcon icon="copy" className={styles.sidebarGroupEmptyStateIcon} />
 						</button>
 					),
@@ -77,7 +80,13 @@ function GroupEmptyState() {
 	)
 }
 
-const GroupFileList = memo(function GroupFileList({ groupId }: { groupId: string }) {
+const GroupFileList = memo(function GroupFileList({
+	groupId,
+	onCreateFile,
+}: {
+	groupId: string
+	onCreateFile(): void
+}) {
 	const app = useApp()
 	const group = useValue('group', () => app.getGroupMembership(groupId), [app, groupId])
 	const [isShowingAll, setIsShowingAll] = useState(false)
@@ -92,7 +101,8 @@ const GroupFileList = memo(function GroupFileList({ groupId }: { groupId: string
 	const filesToShow = files.slice(0, MAX_FILES_TO_SHOW)
 	const hiddenFiles = files.slice(MAX_FILES_TO_SHOW)
 
-	if (filesToShow.length === 0) return <GroupEmptyState />
+	if (filesToShow.length === 0)
+		return <GroupEmptyState groupId={groupId} onCreateFile={onCreateFile} />
 
 	return (
 		<Collapsible.Root open={isShowingAll}>
@@ -159,27 +169,15 @@ function TlaSidebarGroupMenu({ groupId }: { groupId: string }) {
 
 function GroupMenuContent({ groupId }: { groupId: string }) {
 	const app = useApp()
-	const { addToast } = useToasts()
 	const trackEvent = useTldrawAppUiEvents()
-	const copiedMsg = useMsg(groupMessages.copied)
 	const copyInviteLinkMsg = useMsg(groupMessages.copyInviteLink)
 	const settingsMsg = useMsg(groupMessages.settings)
 	const importFilesMsg = useMsg(groupMessages.importFiles)
 	const addLinkToSharedFileMsg = useMsg(groupMessages.addLinkToSharedFile)
 
-	const group = useValue('group', () => app.getGroupMembership(groupId), [app, groupId])
-
 	const handleCopyInviteLinkClick = useCallback(() => {
-		if (!group?.group.inviteSecret) return
-
-		const inviteText = `app.z.mutate.group.acceptInvite({ inviteSecret: '${group.group.inviteSecret}' })`
-		navigator.clipboard.writeText(inviteText)
-		addToast({
-			id: 'copied-invite-link',
-			title: copiedMsg,
-		})
-		trackEvent('copy-share-link', { source: 'sidebar' })
-	}, [group, addToast, copiedMsg, trackEvent])
+		app.copyGroupInvite(groupId)
+	}, [app, groupId])
 
 	const handleSettingsClick = useCallback(() => {
 		// TODO: Implement group settings dialog
@@ -356,7 +354,7 @@ export function TlaSidebarGroupItem({ groupId }: { groupId: string }) {
 								</div>
 							</Collapsible.Trigger>
 							<Collapsible.Content className={styles.CollapsibleContent}>
-								<GroupFileList groupId={groupId} />
+								<GroupFileList groupId={groupId} onCreateFile={handleCreateFile} />
 							</Collapsible.Content>
 						</Collapsible.Root>
 					</TlaSidebarDropZone>

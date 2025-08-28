@@ -1,13 +1,6 @@
 import type { CustomMutatorDefs } from '@rocicorp/zero'
 import type { Transaction } from '@rocicorp/zero/out/zql/src/mutate/custom'
-import {
-	assert,
-	getIndexAbove,
-	getIndexBelow,
-	IndexKey,
-	sortByIndex,
-	uniqueId,
-} from '@tldraw/utils'
+import { assert, getIndexBelow, IndexKey, sortByIndex, uniqueId } from '@tldraw/utils'
 import { MAX_NUMBER_OF_FILES } from './constants'
 import {
 	immutableColumns,
@@ -304,40 +297,6 @@ export function createMutators(userId: string) {
 					await tx.mutate.group.delete({ id })
 					await tx.mutate.group_user.delete({ userId, groupId: id })
 				}
-			},
-			acceptInvite: async (tx, { inviteSecret }: { inviteSecret: string }) => {
-				await assertUserHasFlag(tx, userId, 'groups')
-				// It only makes sense to run this on the server because the user doesn't have the
-				// group data on the client yet.
-				if (tx.location === 'client') return
-				const group = await tx.query.group.where('inviteSecret', '=', inviteSecret).one().run()
-				assert(group, ZErrorCode.bad_request)
-				// Get user's existing groups to determine position for new group
-				const existingGroups = await tx.query.group_user.where('userId', '=', userId).run()
-
-				// Use tldraw's fractional indexing to place new group at the top
-				let index: IndexKey
-				if (existingGroups.length === 0) {
-					// First group gets 'a1'
-					index = 'a1' as IndexKey
-				} else {
-					// Find the highest index and place above it using proper fractional indexing
-					const sortedGroups = existingGroups.sort((a, b) => b.index.localeCompare(a.index))
-					const highestIndex = sortedGroups[0]?.index as IndexKey | undefined
-					// Generate a new index above the current highest
-					index = getIndexAbove(highestIndex)
-				}
-
-				await tx.mutate.group_user.insert({
-					userId,
-					groupId: group.id,
-					userName: '',
-					userEmail: '',
-					role: 'admin',
-					createdAt: Date.now(),
-					updatedAt: Date.now(),
-					index,
-				})
 			},
 			moveFileToGroup: async (tx, { fileId, groupId }: { fileId: string; groupId: string }) => {
 				await assertUserHasFlag(tx, userId, 'groups')

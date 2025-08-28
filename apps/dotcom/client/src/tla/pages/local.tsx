@@ -1,18 +1,21 @@
 import { useEffect } from 'react'
-import { useNavigate } from 'react-router-dom'
-import { assert, react } from 'tldraw'
+import { useLocation, useNavigate } from 'react-router-dom'
+import { assert, react, useDialogs } from 'tldraw'
 import { LocalEditor } from '../../components/LocalEditor'
 import { routes } from '../../routeDefs'
 import { globalEditor } from '../../utils/globalEditor'
-import { components } from '../components/TlaEditor/TlaEditor'
+import { TlaInviteDialog } from '../components/dialogs/TlaInviteDialog'
 import { SneakyDarkModeSync } from '../components/TlaEditor/sneaky/SneakyDarkModeSync'
+import { components } from '../components/TlaEditor/TlaEditor'
 import { useMaybeApp } from '../hooks/useAppState'
+import { useInviteDetails } from '../hooks/useInviteDetails'
 import { TlaAnonLayout } from '../layouts/TlaAnonLayout/TlaAnonLayout'
 import { clearShouldSlurpFile, getShouldSlurpFile, setShouldSlurpFile } from '../utils/slurping'
 
 export function Component() {
 	const app = useMaybeApp()
 	const navigate = useNavigate()
+	const location = useLocation()
 
 	useEffect(() => {
 		const handleFileOperations = async () => {
@@ -24,6 +27,7 @@ export function Component() {
 					clearShouldSlurpFile()
 					navigate(routes.tlaFile(res.value.file.id), {
 						replace: true,
+						state: location.state,
 					})
 				} else {
 					// if the user has too many files we end up here.
@@ -42,16 +46,17 @@ export function Component() {
 				if (result.ok) {
 					navigate(routes.tlaFile(result.value.file.id), {
 						replace: true,
+						state: location.state,
 					})
 				}
 				return
 			}
 
-			navigate(routes.tlaFile(recentFiles[0].fileId), { replace: true })
+			navigate(routes.tlaFile(recentFiles[0].fileId), { replace: true, state: location.state })
 		}
 
 		handleFileOperations()
-	}, [app, navigate])
+	}, [app, navigate, location])
 
 	if (!app) return <LocalTldraw />
 
@@ -60,6 +65,17 @@ export function Component() {
 }
 
 function LocalTldraw() {
+	const inviteInfo = useInviteDetails()
+	const dialogs = useDialogs()
+
+	useEffect(() => {
+		if (inviteInfo && !inviteInfo.error) {
+			dialogs.addDialog({
+				component: ({ onClose }) => <TlaInviteDialog inviteInfo={inviteInfo} onClose={onClose} />,
+			})
+		}
+	}, [inviteInfo, dialogs])
+
 	return (
 		<TlaAnonLayout>
 			<LocalEditor

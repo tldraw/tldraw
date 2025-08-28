@@ -189,6 +189,40 @@
       "value": "Please sign in"
     }
   ],
+  "3952958a70": [
+    {
+      "type": 0,
+      "value": "Drag files here, "
+    },
+    {
+      "children": [
+        {
+          "type": 0,
+          "value": "Create a file"
+        }
+      ],
+      "type": 8,
+      "value": "create"
+    },
+    {
+      "type": 0,
+      "value": ", or "
+    },
+    {
+      "children": [
+        {
+          "type": 0,
+          "value": "Copy invite link"
+        }
+      ],
+      "type": 8,
+      "value": "invite"
+    },
+    {
+      "type": 0,
+      "value": " to get started."
+    }
+  ],
   "3bd1b98dbd": [
     {
       "type": 0,
@@ -325,40 +359,6 @@
       "value": "Privacy policy"
     }
   ],
-  "5a86b22fa0": [
-    {
-      "type": 0,
-      "value": "Drag files here, "
-    },
-    {
-      "children": [
-        {
-          "type": 0,
-          "value": "create a file"
-        }
-      ],
-      "type": 8,
-      "value": "create"
-    },
-    {
-      "type": 0,
-      "value": ", or "
-    },
-    {
-      "children": [
-        {
-          "type": 0,
-          "value": "copy invite link"
-        }
-      ],
-      "type": 8,
-      "value": "invite"
-    },
-    {
-      "type": 0,
-      "value": " to get started."
-    }
-  ],
   "5a95a425f7": [
     {
       "type": 0,
@@ -429,6 +429,24 @@
     {
       "type": 0,
       "value": "A new version of tldraw is available. Please reload the page to continue."
+    }
+  ],
+  "68257bb646": [
+    {
+      "type": 0,
+      "value": "You've been invited to group "
+    },
+    {
+      "children": [
+      ],
+      "type": 8,
+      "value": "br"
+    },
+    {
+      "children": [
+      ],
+      "type": 8,
+      "value": "groupName"
     }
   ],
   "697c59072d": [
@@ -641,6 +659,12 @@
       "value": "Rename file"
     }
   ],
+  "8ad4303b83": [
+    {
+      "type": 0,
+      "value": "No thanks"
+    }
+  ],
   "8b1946f965": [
     {
       "type": 0,
@@ -803,6 +827,12 @@
       "value": "Background"
     }
   ],
+  "aa916767cf": [
+    {
+      "type": 0,
+      "value": "Sign in to accept invitation"
+    }
+  ],
   "ab0df9ba36": [
     {
       "type": 0,
@@ -849,6 +879,12 @@
     {
       "type": 0,
       "value": "Sign in to share"
+    }
+  ],
+  "bb93a7590f": [
+    {
+      "type": 0,
+      "value": "Accept and join group"
     }
   ],
   "bbbcefd7ce": [

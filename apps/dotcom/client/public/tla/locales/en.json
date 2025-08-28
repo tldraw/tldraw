@@ -92,6 +92,9 @@
   "37b3dca331": {
     "translation": "Please sign in"
   },
+  "3952958a70": {
+    "translation": "Drag files here, <create>Create a file</create>, or <invite>Copy invite link</invite> to get started."
+  },
   "3bd1b98dbd": {
     "translation": "Unable to publish the changes."
   },
@@ -155,9 +158,6 @@
   "56c34c6410": {
     "translation": "Privacy policy"
   },
-  "5a86b22fa0": {
-    "translation": "Drag files here, <create>create a file</create>, or <invite>copy invite link</invite> to get started."
-  },
   "5a95a425f7": {
     "translation": "Share"
   },
@@ -193,6 +193,9 @@
   },
   "6637a98151": {
     "translation": "A new version of tldraw is available. Please reload the page to continue."
+  },
+  "68257bb646": {
+    "translation": "You've been invited to group <br></br><groupName></groupName>"
   },
   "697c59072d": {
     "translation": "Sign in to save"
@@ -281,6 +284,9 @@
   "86c66437fd": {
     "translation": "Rename file"
   },
+  "8ad4303b83": {
+    "translation": "No thanks"
+  },
   "8b1946f965": {
     "translation": "To continue editing please copy the room to your files."
   },
@@ -362,6 +368,9 @@
   "a9ded1e5ce": {
     "translation": "Background"
   },
+  "aa916767cf": {
+    "translation": "Sign in to accept invitation"
+  },
   "ab0df9ba36": {
     "translation": "File limit reached"
   },
@@ -383,6 +392,9 @@
   },
   "ba0318cb81": {
     "translation": "Sign in to share"
+  },
+  "bb93a7590f": {
+    "translation": "Accept and join group"
   },
   "bbbcefd7ce": {
     "translation": "{total, plural, one {Uploading .tldr file…} other {Uploading {uploaded} of {total} .tldr files…}}"

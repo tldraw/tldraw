@@ -23,7 +23,7 @@ export async function getAuth(request: IRequest, env: Environment): Promise<Sign
 	const clerk = getClerkClient(env)
 
 	const state = await clerk.authenticateRequest(request)
-	if (state.isSignedIn) return state.toAuth()
+	if (state.isSignedIn) return state.toAuth() as SignedInAuth
 
 	// we can't send headers with websockets, so for those connections we need to pass the token in
 	// the query string. `authenticateRequest` only works with headers/cookies though, so we need to
@@ -43,12 +43,12 @@ export async function getAuth(request: IRequest, env: Environment): Promise<Sign
 		return null
 	}
 
-	return res.toAuth()
+	return res.toAuth() as SignedInAuth
 }
 
 export type SignedInAuth = ReturnType<
 	Extract<Awaited<ReturnType<ClerkClient['authenticateRequest']>>, { isSignedIn: true }>['toAuth']
->
+> & { userId: string }
 
 export async function requireWriteAccessToFile(
 	request: IRequest,

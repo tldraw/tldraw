@@ -528,8 +528,6 @@
 	padding: 0px 8px 0px 8px;
 }
 
-
-
 .sidebarFileListItem[data-dragging='true'] {
 	opacity: 0.5;
 	background: transparent;
