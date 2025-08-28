@@ -4,15 +4,14 @@ import { AgentAction } from '../../shared/types/AgentAction'
 import { AgentPrompt } from '../../shared/types/AgentPrompt'
 import { Streaming } from '../../shared/types/Streaming'
 import { Environment } from '../types'
-import { TldrawAgentService } from './vercel/TldrawAgentService'
-import { VercelAiService } from './vercel/VercelAiService'
+import { AgentService } from './AgentService'
 
-export class TldrawAiDurableObject extends DurableObject<Environment> {
-	service: TldrawAgentService
+export class AgentDurableObject extends DurableObject<Environment> {
+	service: AgentService
 
 	constructor(ctx: DurableObjectState, env: Environment) {
 		super(ctx, env)
-		this.service = new VercelAiService(this.env) // swap this with your own service
+		this.service = new AgentService(this.env) // swap this with your own service
 	}
 
 	private readonly router = AutoRouter({

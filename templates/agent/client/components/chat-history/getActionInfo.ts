@@ -1,4 +1,5 @@
-import { BaseAgentAction, ChatHistoryInfo } from '../../../shared/actions/AgentActionUtil'
+import { AgentAction } from '../../../shared/types/AgentAction'
+import { ChatHistoryInfo } from '../../../shared/types/ChatHistoryInfo'
 import { Streaming } from '../../../shared/types/Streaming'
 import { TLAgent } from '../../ai/useTldrawAgent'
 
@@ -7,7 +8,7 @@ import { TLAgent } from '../../ai/useTldrawAgent'
  * This function adds default values for any unset properties.
  * If the action's util returns null, the action will not be shown in chat history.
  */
-export function getActionInfo(action: Streaming<BaseAgentAction>, agent: TLAgent): ChatHistoryInfo {
+export function getActionInfo(action: Streaming<AgentAction>, agent: TLAgent): ChatHistoryInfo {
 	const util = agent.getAgentActionUtil(action._type)
 	const info = util.getInfo(action) ?? { description: null }
 	const {

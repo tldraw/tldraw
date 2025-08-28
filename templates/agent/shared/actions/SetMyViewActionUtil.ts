@@ -51,6 +51,7 @@ export class SetMyViewActionUtil extends AgentActionUtil<ISetMyViewAction> {
 				contextItems: [],
 				bounds: originalRequest.bounds,
 				modelName: originalRequest.modelName,
+				type: 'setMyView',
 			}
 
 			return {

@@ -22,4 +22,9 @@ export interface AgentRequest {
 	 * Items that the agent should pay particular attention to.
 	 */
 	contextItems: IContextItem[]
+
+	/**
+	 * The type of request.
+	 */
+	type: 'user' | 'review' | 'setMyView' | 'continue'
 }

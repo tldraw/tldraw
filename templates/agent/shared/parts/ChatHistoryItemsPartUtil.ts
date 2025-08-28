@@ -1,33 +1,42 @@
+import { Editor } from 'tldraw'
 import { $chatHistoryItems } from '../../client/atoms/chatHistoryItems'
 import { AgentMessage, AgentMessageContent } from '../types/AgentMessage'
-import { AgentPromptOptions } from '../types/AgentPrompt'
+import { AgentRequest } from '../types/AgentRequest'
+import { BasePromptPart } from '../types/BasePromptPart'
 import { IChatHistoryItem } from '../types/ChatHistoryItem'
 import { PromptPartUtil } from './PromptPartUtil'
 
-export class HistoryItemPartUtil extends PromptPartUtil<IChatHistoryItem[]> {
+export interface ChatHistoryItemsPart extends BasePromptPart<'historyItems'> {
+	items: IChatHistoryItem[]
+}
+
+export class ChatHistoryItemsPartUtil extends PromptPartUtil<ChatHistoryItemsPart> {
 	static override type = 'historyItems' as const
 
 	override getPriority() {
 		return Infinity // history should appear first in the prompt (low priority)
 	}
 
-	override async getPart(_options: AgentPromptOptions) {
-		return $chatHistoryItems.get()
+	override getPart(_editor: Editor, _request: AgentRequest): ChatHistoryItemsPart {
+		return {
+			type: 'historyItems',
+			items: $chatHistoryItems.get(),
+		}
 	}
 
-	override buildMessages(historyItems: IChatHistoryItem[]): AgentMessage[] {
+	override buildMessages({ items }: ChatHistoryItemsPart): AgentMessage[] {
 		const messages: AgentMessage[] = []
 		const priority = this.getPriority()
 
 		// If the last message is from the user, skip it
-		const lastIndex = historyItems.length - 1
-		let end = historyItems.length
-		if (end > 0 && historyItems[lastIndex].type === 'prompt') {
+		const lastIndex = items.length - 1
+		let end = items.length
+		if (end > 0 && items[lastIndex].type === 'prompt') {
 			end = lastIndex
 		}
 
 		for (let i = 0; i < end; i++) {
-			const item = historyItems[i]
+			const item = items[i]
 			const message = this.buildHistoryItemMessage(item, priority)
 			if (message) {
 				messages.push(message)

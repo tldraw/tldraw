@@ -1,7 +1,7 @@
 import { useCallback, useMemo } from 'react'
 import { Editor, useToasts } from 'tldraw'
-import { AgentActionUtil, AgentActionUtilConstructor } from '../../shared/actions/AgentActionUtil'
-import { PromptPartUtil, PromptPartUtilConstructor } from '../../shared/parts/PromptPartUtil'
+import { AgentActionUtil } from '../../shared/actions/AgentActionUtil'
+import { getAgentActionUtilsRecord, getPromptPartUtilsRecord } from '../../shared/AgentUtils'
 import { AgentAction } from '../../shared/types/AgentAction'
 import { AgentRequest } from '../../shared/types/AgentRequest'
 import { $modelName } from '../atoms/modelName'
@@ -31,15 +31,7 @@ export interface TLAgent {
 	 * @param type - The type of action to get the util for.
 	 * @returns The action util.
 	 */
-	getAgentActionUtil(type?: string): AgentActionUtil
-
-	/**
-	 * Get a prompt part util for a specific prompt part type.
-	 *
-	 * @param type - The type of part to get the util for.
-	 * @returns The part util.
-	 */
-	getPromptPartUtil<T = any>(type: string): PromptPartUtil<T>
+	getAgentActionUtil(type?: string): AgentActionUtil<AgentAction>
 }
 
 /**
@@ -56,25 +48,22 @@ export interface TLAgent {
  *
  * @returns An object with helpers.
  */
-export function useTldrawAgent({
-	editor,
-	partUtils = [],
-	eventUtils = [],
-}: {
-	editor: Editor
-	eventUtils: AgentActionUtilConstructor<AgentAction>[]
-	partUtils: PromptPartUtilConstructor[]
-}): TLAgent {
-	const agentActionUtilsMap = useMemo(() => {
-		const map = new Map<AgentAction['_type'], AgentActionUtil<AgentAction>>()
-		for (const eventUtil of eventUtils) {
-			map.set(eventUtil.type, new eventUtil())
-		}
-		return map
-	}, [eventUtils])
+export function useTldrawAgent(editor: Editor): TLAgent {
+	const agentActionUtilsRecord = useMemo(() => getAgentActionUtilsRecord(), [])
+	const promptPartsUtilsRecord = useMemo(() => getPromptPartUtilsRecord(), [])
+	const unknownActionUtil = agentActionUtilsRecord.unknown
+
+	const getAgentActionUtil = useCallback(
+		(type?: string) => {
+			if (!type) return unknownActionUtil
+			const actionUtil = agentActionUtilsRecord[type as AgentAction['_type']]
+			if (!actionUtil) return unknownActionUtil
+			return actionUtil
+		},
+		[agentActionUtilsRecord, unknownActionUtil]
+	)
 
 	const toasts = useToasts()
-
 	const handleError = useCallback(
 		(e: any) => {
 			const message = typeof e === 'string' ? e : e instanceof Error && e.message
@@ -88,71 +77,30 @@ export function useTldrawAgent({
 		[toasts]
 	)
 
-	const unknownActionUtil = useMemo(() => {
-		const util = agentActionUtilsMap.get('unknown')
-		if (!util) {
-			throw new Error(
-				'An "unknown" agent action util must be provided so that the agent can handle unidentified actions.'
-			)
-		}
-		return util
-	}, [agentActionUtilsMap])
-
-	const getAgentActionUtil = useCallback(
-		(type: AgentAction['_type']) => {
-			const actionUtil = agentActionUtilsMap.get(type)
-			if (!actionUtil) {
-				return unknownActionUtil
-			}
-			return actionUtil
-		},
-		[agentActionUtilsMap, unknownActionUtil]
-	)
-
-	const promptPartsUtilsMap = useMemo(() => {
-		const promptPartsUtilsMap = new Map<PromptPartUtilConstructor['type'], PromptPartUtil>()
-		for (const promptPartUtil of partUtils) {
-			promptPartsUtilsMap.set(promptPartUtil.type, new promptPartUtil())
-		}
-		return promptPartsUtilsMap
-	}, [partUtils])
-
-	const getPromptPartUtil = useCallback(
-		(type: string) => {
-			const promptPartUtil = promptPartsUtilsMap.get(type as PromptPartUtilConstructor['type'])
-			if (!promptPartUtil) {
-				//these are defined by the developer and so shouldn't result in an unknown type
-				throw new Error(`Prompt part util not found for type: ${type}`)
-			}
-			return promptPartUtil
-		},
-		[promptPartsUtilsMap]
-	)
-
 	const prompt = useCallback(
 		({
 			message = '',
 			bounds = editor.getViewportPageBounds(),
 			contextItems = [],
 			modelName = $modelName.get(),
+			type = 'user',
 		}: Partial<AgentRequest>) => {
-			return promptAgent(
-				{
-					editor,
-					agentActionUtils: agentActionUtilsMap,
-					promptPartUtils: promptPartsUtilsMap,
-					request: {
-						message,
-						bounds,
-						modelName,
-						contextItems,
-					},
+			return promptAgent({
+				editor,
+				promptPartUtils: promptPartsUtilsRecord,
+				agentActionsUtils: agentActionUtilsRecord,
+				request: {
+					message,
+					bounds,
+					modelName,
+					contextItems,
+					type,
 				},
-				handleError
-			)
+				onError: handleError,
+			})
 		},
-		[editor, agentActionUtilsMap, promptPartsUtilsMap, handleError]
+		[editor, handleError, agentActionUtilsRecord, promptPartsUtilsRecord]
 	)
 
-	return { prompt, getAgentActionUtil, getPromptPartUtil }
+	return { prompt, getAgentActionUtil }
 }

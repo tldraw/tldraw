@@ -1,38 +1,37 @@
+import { Editor } from 'tldraw'
 import { AgentTransform } from '../../shared/AgentTransform'
-import { AgentPrompt, AgentPromptOptions } from '../../shared/types/AgentPrompt'
+import { PromptPartUtil } from '../../shared/parts/PromptPartUtil'
+import { AgentPrompt } from '../../shared/types/AgentPrompt'
+import { AgentRequest } from '../../shared/types/AgentRequest'
+import { PromptPart } from '../../shared/types/PromptPart'
 
 /**
  * Get a full prompt based on the provided prompt options.
  *
  * @returns The fully assembled prompt. (in worker-ish)
  */
-export async function preparePrompt(
-	promptOptions: AgentPromptOptions,
+export async function preparePrompt({
+	editor,
+	request,
+	transform,
+	promptPartUtils,
+}: {
+	editor: Editor
+	request: AgentRequest
 	transform: AgentTransform
-): Promise<AgentPrompt> {
-	const { promptPartUtils } = promptOptions
+	promptPartUtils: Record<PromptPart['type'], PromptPartUtil<PromptPart>>
+}): Promise<AgentPrompt> {
+	const transformedParts: PromptPart[] = []
 
-	const untransformedParts: AgentPrompt = {}
-	const transformedParts: AgentPrompt = {}
-
-	for (const [type, promptPartUtil] of promptPartUtils) {
-		if (!promptPartUtil.getPart) continue
-
-		const untransformedPart = await promptPartUtil.getPart(promptOptions)
-		untransformedParts[type] = untransformedPart
+	for (const util of Object.values(promptPartUtils)) {
+		const untransformedPart = await util.getPart(editor, request)
+		const transformedPart = util.transformPart(untransformedPart, transform)
+		if (!transformedPart) continue
+		transformedParts.push(transformedPart)
 	}
 
-	for (const [type, promptPartUtil] of promptPartUtils) {
-		if (!promptPartUtil.transformPart) continue
+	const agentPrompt = Object.fromEntries(transformedParts.map((part) => [part.type, part]))
 
-		const transformedPart = promptPartUtil.transformPart(
-			untransformedParts[type],
-			transform,
-			untransformedParts
-		)
-		transformedParts[type] = transformedPart
-	}
-
-	console.log('PROMPT', transformedParts)
-	return transformedParts
+	console.log('PROMPT', agentPrompt)
+	return agentPrompt as AgentPrompt
 }

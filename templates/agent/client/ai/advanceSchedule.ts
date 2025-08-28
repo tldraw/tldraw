@@ -41,10 +41,11 @@ export function advanceSchedule({
 				}
 
 				scheduledRequest = {
-					message: 'There are still outstanding todo items. Please continue.',
+					message: request.message,
 					contextItems: request.contextItems,
 					bounds: request.bounds,
 					modelName: request.modelName,
+					type: 'continue',
 				}
 			}
 

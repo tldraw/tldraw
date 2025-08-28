@@ -1,28 +1,23 @@
+import { Editor } from 'tldraw'
 import { AgentTransform } from '../AgentTransform'
 import { AgentMessage, AgentMessageContent } from '../types/AgentMessage'
-import { AgentPrompt, AgentPromptOptions } from '../types/AgentPrompt'
+import { AgentRequest } from '../types/AgentRequest'
+import { BasePromptPart } from '../types/BasePromptPart'
 
-export abstract class PromptPartUtil<T = any> {
+export abstract class PromptPartUtil<T extends BasePromptPart = BasePromptPart> {
 	static type: string
-
-	constructor() {}
 
 	/**
 	 * Get some data to add to the prompt.
-	 * This is what gets added to chat history.
-	 * @returns The prompt part, or undefined to add nothing to the prompt.
+	 * @returns The prompt part.
 	 */
-	async getPart?(_options: AgentPromptOptions): Promise<T>
+	abstract getPart(editor: Editor, request: AgentRequest): Promise<T> | T
 
 	/**
 	 * Transform the prompt part before it's added to the final prompt.
 	 * @returns The transformed prompt part, or null to reject the part
 	 */
-	transformPart(
-		promptPart: T,
-		_transform: AgentTransform,
-		_prompt: Partial<AgentPrompt>
-	): T | null {
+	transformPart(promptPart: T, _transform: AgentTransform): T | null {
 		return promptPart
 	}
 
@@ -33,7 +28,7 @@ export abstract class PromptPartUtil<T = any> {
 	 * This function gets used by the default `buildMessages` function.
 	 * @returns The priority.
 	 */
-	getPriority(_part: T, _prompt: AgentPrompt): number {
+	getPriority(_part: T): number {
 		return 0
 	}
 
@@ -43,7 +38,7 @@ export abstract class PromptPartUtil<T = any> {
 	 * This function gets used by the default `buildMessages` function.
 	 * @returns An array of text or image content.
 	 */
-	buildContent(_part: T, _prompt: AgentPrompt): string[] {
+	buildContent(_part: T): string[] {
 		return []
 	}
 
@@ -53,8 +48,8 @@ export abstract class PromptPartUtil<T = any> {
 	 *
 	 * @returns An array of messages.
 	 */
-	buildMessages(part: T, prompt: AgentPrompt): AgentMessage[] {
-		const content = this.buildContent(part, prompt)
+	buildMessages(part: T): AgentMessage[] {
+		const content = this.buildContent(part)
 		if (!content || content.length === 0) {
 			return []
 		}
@@ -74,19 +69,19 @@ export abstract class PromptPartUtil<T = any> {
 			}
 		}
 
-		return [{ role: 'user', content: messageContent, priority: this.getPriority(part, prompt) }]
+		return [{ role: 'user', content: messageContent, priority: this.getPriority(part) }]
 	}
 
 	/**
 	 * Build a system message that gets concatenated with the other system messages.
 	 * @returns The system message, or null to not add anything to the system message.
 	 */
-	buildSystemMessage(_part: T, _prompt: AgentPrompt): string | null {
+	buildSystemMessage(_part: T): string | null {
 		return null
 	}
 }
 
-export interface PromptPartUtilConstructor<T = any> {
+export interface PromptPartUtilConstructor<T extends BasePromptPart = BasePromptPart> {
 	new (): PromptPartUtil<T>
-	type: string
+	type: T['type']
 }

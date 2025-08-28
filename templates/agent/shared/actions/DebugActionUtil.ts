@@ -1,9 +1,8 @@
+import { BaseAgentAction } from '../types/BaseAgentAction'
 import { Streaming } from '../types/Streaming'
 import { AgentActionUtil } from './AgentActionUtil'
 
-export interface DebugAction {
-	_type: 'debug'
-	complete: boolean
+export interface DebugAction extends BaseAgentAction<'debug'> {
 	label: string
 	data: any
 }

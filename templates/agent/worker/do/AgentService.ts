@@ -6,22 +6,20 @@ import {
 } from '@ai-sdk/google'
 import { createOpenAI, OpenAIProvider } from '@ai-sdk/openai'
 import { LanguageModel, streamText } from 'ai'
-import { AgentAction } from '../../../shared/types/AgentAction'
-import { AgentPrompt } from '../../../shared/types/AgentPrompt'
-import { Streaming } from '../../../shared/types/Streaming'
-import { AgentModelName, getAgentModelDefinition } from '../../models'
-import { buildMessages } from '../../prompt/buildMessages'
-import { buildSystemPrompt } from '../../prompt/buildSystemPrompt'
-import { Environment } from '../../types'
-import { TldrawAgentService } from './TldrawAgentService'
+import { AgentAction } from '../../shared/types/AgentAction'
+import { AgentPrompt } from '../../shared/types/AgentPrompt'
+import { Streaming } from '../../shared/types/Streaming'
+import { AgentModelName, getAgentModelDefinition } from '../models'
+import { buildMessages } from '../prompt/buildMessages'
+import { buildSystemPrompt } from '../prompt/buildSystemPrompt'
+import { Environment } from '../types'
 
-export class VercelAiService extends TldrawAgentService {
+export class AgentService {
 	openai: OpenAIProvider
 	anthropic: AnthropicProvider
 	google: GoogleGenerativeAIProvider
 
 	constructor(env: Environment) {
-		super(env)
 		this.openai = createOpenAI({ apiKey: env.OPENAI_API_KEY })
 		this.anthropic = createAnthropic({ apiKey: env.ANTHROPIC_API_KEY })
 		this.google = createGoogleGenerativeAI({ apiKey: env.GOOGLE_API_KEY })
@@ -35,7 +33,7 @@ export class VercelAiService extends TldrawAgentService {
 
 	async *stream(prompt: AgentPrompt): AsyncGenerator<Streaming<AgentAction>> {
 		try {
-			const model = this.getModel(prompt.modelName ?? 'claude-4-sonnet')
+			const model = this.getModel(prompt.modelName?.name ?? 'claude-4-sonnet')
 			for await (const event of streamEventsVercel(model, prompt)) {
 				yield event
 			}
@@ -70,7 +68,7 @@ async function* streamEventsVercel(
 	try {
 		messages.push({
 			role: 'assistant',
-			content: '{"events": [{"_type":',
+			content: '{"actions": [{"_type":',
 		})
 		const { textStream } = streamText({
 			model,
@@ -102,9 +100,9 @@ async function* streamEventsVercel(
 
 		const canForceResponseStart =
 			model.provider === 'anthropic.messages' || model.provider === 'google.generative-ai'
-		let buffer = canForceResponseStart ? '{"events": [{"_type":' : ''
+		let buffer = canForceResponseStart ? '{"actions": [{"_type":' : ''
 		let cursor = 0
-		let maybeIncompleteEvent: AgentAction | null = null
+		let maybeIncompleteAction: AgentAction | null = null
 
 		let startTime = Date.now()
 		for await (const text of textStream) {
@@ -113,39 +111,39 @@ async function* streamEventsVercel(
 			const partialObject = closeAndParseJson(buffer)
 			if (!partialObject) continue
 
-			const events = partialObject.events
-			if (!Array.isArray(events)) continue
-			if (events.length === 0) continue
+			const actions = partialObject.actions
+			if (!Array.isArray(actions)) continue
+			if (actions.length === 0) continue
 
 			// If the events list is ahead of the cursor, we know we've completed the current event
 			// We can complete the event and move the cursor forward
-			if (events.length > cursor) {
-				const event = events[cursor - 1] as AgentAction
-				if (event) {
+			if (actions.length > cursor) {
+				const action = actions[cursor - 1] as AgentAction
+				if (action) {
 					yield {
-						...event,
+						...action,
 						complete: true,
 						time: Date.now() - startTime,
 					}
-					maybeIncompleteEvent = null
+					maybeIncompleteAction = null
 				}
 				cursor++
 			}
 
 			// Now let's check the (potentially new) current event
 			// And let's yield it in its (potentially incomplete) state
-			const event = events[cursor - 1] as AgentAction
-			if (event) {
+			const action = actions[cursor - 1] as AgentAction
+			if (action) {
 				// If we don't have an incomplete event yet, this is the start of a new one
-				if (!maybeIncompleteEvent) {
+				if (!maybeIncompleteAction) {
 					startTime = Date.now()
 				}
 
-				maybeIncompleteEvent = event
+				maybeIncompleteAction = action
 
 				// Yield the potentially incomplete event
 				yield {
-					...event,
+					...action,
 					complete: false,
 					time: Date.now() - startTime,
 				}
@@ -153,9 +151,9 @@ async function* streamEventsVercel(
 		}
 
 		// If we've finished receiving events, but there's still an incomplete event, we need to complete it
-		if (maybeIncompleteEvent) {
+		if (maybeIncompleteAction) {
 			yield {
-				...maybeIncompleteEvent,
+				...maybeIncompleteAction,
 				complete: true,
 				time: Date.now() - startTime,
 			}

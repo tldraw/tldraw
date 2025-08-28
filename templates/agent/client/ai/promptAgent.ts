@@ -1,7 +1,11 @@
-import { RecordsDiff, reverseRecordsDiff, structuredClone, TLRecord } from 'tldraw'
+import { Editor, RecordsDiff, reverseRecordsDiff, structuredClone, TLRecord } from 'tldraw'
+import { AgentActionUtil } from '../../shared/actions/AgentActionUtil'
 import { AgentTransform } from '../../shared/AgentTransform'
-import { AgentPromptOptions } from '../../shared/types/AgentPrompt'
+import { PromptPartUtil } from '../../shared/parts/PromptPartUtil'
+import { AgentAction } from '../../shared/types/AgentAction'
+import { AgentRequest } from '../../shared/types/AgentRequest'
 import { IChatHistoryItem } from '../../shared/types/ChatHistoryItem'
+import { PromptPart } from '../../shared/types/PromptPart'
 import { $chatHistoryItems } from '../atoms/chatHistoryItems'
 import { preparePrompt } from './preparePrompt'
 import { streamAgent } from './streamAgent'
@@ -12,15 +16,26 @@ import { streamAgent } from './streamAgent'
  *
  * @returns A promise that resolves when the prompt is complete and a cancel function to abort the request.
  */
-export function promptAgent(promptOptions: AgentPromptOptions, onError: (e: any) => void) {
-	const { editor, agentActionUtils } = promptOptions
+export function promptAgent({
+	editor,
+	agentActionsUtils,
+	promptPartUtils,
+	request,
+	onError,
+}: {
+	editor: Editor
+	agentActionsUtils: Record<AgentAction['_type'], AgentActionUtil<AgentAction>>
+	promptPartUtils: Record<PromptPart['type'], PromptPartUtil<PromptPart>>
+	request: AgentRequest
+	onError: (e: any) => void
+}) {
 	let cancelled = false
 	const controller = new AbortController()
 	const signal = controller.signal
 	const transform = new AgentTransform(editor)
 
 	const promise = new Promise<void>((resolve) => {
-		preparePrompt(promptOptions, transform).then(async (prompt) => {
+		preparePrompt({ editor, request, transform, promptPartUtils }).then(async (prompt) => {
 			let prevDiff: RecordsDiff<TLRecord> | null = null
 			try {
 				for await (const action of streamAgent({ prompt, signal })) {
@@ -28,7 +43,7 @@ export function promptAgent(promptOptions: AgentPromptOptions, onError: (e: any)
 					const originalAction = structuredClone(action)
 					editor.run(
 						() => {
-							const actionUtil = action._type ? agentActionUtils.get(action._type) : null
+							const actionUtil = action._type ? agentActionsUtils[action._type] : null
 
 							if (!actionUtil) {
 								if (action.complete) {
@@ -61,11 +76,7 @@ export function promptAgent(promptOptions: AgentPromptOptions, onError: (e: any)
 
 							// Apply the action to the app and editor
 							const diff = editor.store.extractingChanges(() => {
-								actionUtil.applyAction(
-									structuredClone(transformedAction),
-									transform,
-									promptOptions.request
-								)
+								actionUtil.applyAction(structuredClone(transformedAction), transform, request)
 							})
 
 							// The the action is incomplete, save the diff so that we can revert it in the future

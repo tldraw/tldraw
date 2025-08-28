@@ -6,7 +6,7 @@ assets = { not_found_handling = "single-page-application" }
 # Set up the durable object used for each tldraw room
 [durable_objects]
 bindings = [
-    { name = "TLDRAW_AI_DURABLE_OBJECT", class_name = "TldrawAiDurableObject" },
+    { name = "AGENT_DURABLE_OBJECT", class_name = "AgentDurableObject" },
 ]
 
 [[routes]]
@@ -16,4 +16,4 @@ custom_domain = true
 # Durable objects require migrations to create/modify/delete them
 [[migrations]]
 tag = "v1"
-new_classes = ["TldrawAiDurableObject"]
+new_classes = ["AgentDurableObject"]

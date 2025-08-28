@@ -1,3 +1,4 @@
+import { AgentActionUtil } from './actions/AgentActionUtil'
 import { AlignActionUtil } from './actions/AlignActionUtil'
 import { BringToFrontActionUtil } from './actions/BringToFrontActionUtil'
 import { CreateActionUtil } from './actions/CreateActionUtil'
@@ -10,81 +11,123 @@ import { MoveActionUtil } from './actions/MoveActionUtil'
 import { PenActionUtil } from './actions/PenActionUtil'
 import { PlaceActionUtil } from './actions/PlaceActionUtil'
 import { ResizeActionUtil } from './actions/ResizeActionUtil'
+import { ReviewActionUtil } from './actions/ReviewActionUtil'
 import { RotateActionUtil } from './actions/RotateActionUtil'
 import { SendToBackActionUtil } from './actions/SendToBackActionUtil'
 import { SetMyViewActionUtil } from './actions/SetMyViewActionUtil'
 import { StackActionUtil } from './actions/StackActionUtil'
 import { ThinkActionUtil } from './actions/ThinkActionUtil'
+import { TodoListActionUtil } from './actions/TodoListActionUtil'
 import { UnknownActionUtil } from './actions/UnknownActionUtil'
 import { UpdateActionUtil } from './actions/UpdateActionUtil'
 import { AgentViewportBoundsPartUtil } from './parts/AgentViewportBoundsPartUtil'
-import { AgentViewportScreenshotPartUtil } from './parts/AgentViewportScreenshotPartUtil'
-// import { AgentViewportSimpleShapesPartUtil } from './parts/AgentViewportSimpleShapesPartUtil'
-import { AgentViewportBlurryShapesPartUtil } from './parts/AgentViewportBlurryShapesPartUtil.ts'
+import { BlurryShapesPartUtil } from './parts/BlurryShapesPart'
+import { ChatHistoryItemsPartUtil } from './parts/ChatHistoryItemsPartUtil'
 import { ContextItemsPartUtil } from './parts/ContextItemsPartUtil'
-import { HistoryItemPartUtil } from './parts/HistoryItemPartUtil'
 import { MessagePartUtil } from './parts/MessagePartUtil'
-import { PeripheralShapesPartUtil } from './parts/PeripheralShapesPartUtil'
-// import { PromptBoundsPartUtil } from './parts/PromptBoundsPartUtil'
-import { ReviewActionUtil } from './actions/ReviewActionUtil'
-import { TodoListActionUtil } from './actions/TodoListActionUtil'
 import { ModelNamePartUtil } from './parts/ModelNamePartUtil'
-import { PromptPartUtilConstructor } from './parts/PromptPartUtil'
+import { PeripheralShapesPartUtil } from './parts/PeripheralShapesPartUtil'
+import { PromptPartUtil } from './parts/PromptPartUtil'
+import { ScreenshotPartUtil } from './parts/ScreenshotPartUtil'
+import { SelectedShapesPartUtil } from './parts/SelectedShapesPartUtil'
 import { SystemPromptPartUtil } from './parts/SystemPromptPartUtil'
-import { TodoListPromptPartUtil } from './parts/TodoItemsPromptPart'
-import { UserActionHistoryPartUtil } from './parts/UserActionHistoryPartUtil'
-import { UserSelectedShapesPartUtil } from './parts/UserSelectedShapesPartUtil'
+import { TodoListPartUtil } from './parts/TodoItemsPartUtil'
 import { UserViewportBoundsPartUtil } from './parts/UserViewportBoundsPartUtil'
+import { AgentAction } from './types/AgentAction'
+import { PromptPart } from './types/PromptPart'
 
-export const PROMPT_PART_UTILS: PromptPartUtilConstructor[] = [
+/**
+ * Prompt parts determine what information will be sent to the model.
+ *
+ * To stop sending something to the model, remove it from the list.
+ * To send something new to the model, either change one of the existing parts, or add your own.
+ */
+export const PROMPT_PART_UTILS = [
+	// Model
 	SystemPromptPartUtil,
 	ModelNamePartUtil,
 
-	// The format of shape that the model is looking at
-	AgentViewportBlurryShapesPartUtil,
-
-	AgentViewportScreenshotPartUtil,
+	// Viewport
+	ScreenshotPartUtil,
 	AgentViewportBoundsPartUtil,
-	ContextItemsPartUtil,
 	UserViewportBoundsPartUtil,
-	HistoryItemPartUtil,
-	MessagePartUtil,
-	PeripheralShapesPartUtil,
-	UserSelectedShapesPartUtil,
-	UserActionHistoryPartUtil,
 
-	TodoListPromptPartUtil,
+	// Shapes
+	BlurryShapesPartUtil,
+	PeripheralShapesPartUtil,
+	SelectedShapesPartUtil,
+
+	// Request
+	MessagePartUtil,
+	ContextItemsPartUtil,
+
+	// History
+	ChatHistoryItemsPartUtil,
+	// UserActionHistoryPartUtil,
+	TodoListPartUtil,
 ]
 
+/**
+ * Agent actions determine what actions the agent can take.
+ *
+ * To prevent the agent from doing an action, remove it from the list.
+ * To let the agent do more, either change one of the existing actions, or add your own.
+ */
 export const AGENT_ACTION_UTILS = [
+	// Communication
+	MessageActionUtil,
+
+	// Planning
+	ThinkActionUtil,
+	ReviewActionUtil,
+	TodoListActionUtil,
+	SetMyViewActionUtil,
+
+	// Individual shapes
 	CreateActionUtil,
 	DeleteActionUtil,
-
 	UpdateActionUtil,
 	LabelActionUtil,
-
 	MoveActionUtil,
+
+	// Groups of shapes
 	PlaceActionUtil,
 	BringToFrontActionUtil,
 	SendToBackActionUtil,
 	RotateActionUtil,
 	ResizeActionUtil,
-
 	AlignActionUtil,
 	DistributeActionUtil,
 	StackActionUtil,
 
-	ReviewActionUtil,
-	SetMyViewActionUtil,
-
+	// Drawing
 	PenActionUtil,
 
-	ThinkActionUtil,
-	MessageActionUtil,
+	// Internal (required)
 	DebugActionUtil,
-
-	TodoListActionUtil,
-
-	// Required:
 	UnknownActionUtil,
 ]
+
+/**
+ * Get an object containing all prompt part utils.
+ */
+export function getPromptPartUtilsRecord() {
+	const object = {} as Record<PromptPart['type'], PromptPartUtil<PromptPart>>
+	for (const util of PROMPT_PART_UTILS) {
+		// If this line errors, it means one of your prompt parts is invalid
+		object[util.type] = new util()
+	}
+	return object
+}
+
+/**
+ * Get an object containing all agent action utils.
+ */
+export function getAgentActionUtilsRecord() {
+	const object = {} as Record<AgentAction['_type'], AgentActionUtil<AgentAction>>
+	for (const util of AGENT_ACTION_UTILS) {
+		// If this line errors, it means one of your agent actions is invalid
+		object[util.type] = new util()
+	}
+	return object
+}

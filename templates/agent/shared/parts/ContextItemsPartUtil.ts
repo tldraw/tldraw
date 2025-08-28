@@ -1,21 +1,32 @@
+import { Editor } from 'tldraw'
 import { AgentTransform, roundBox, roundVec } from '../AgentTransform'
-import { AgentPrompt, AgentPromptOptions } from '../types/AgentPrompt'
+import { AgentRequest } from '../types/AgentRequest'
+import { BasePromptPart } from '../types/BasePromptPart'
 import { IContextItem } from '../types/ContextItem'
 import { PromptPartUtil } from './PromptPartUtil'
 
-export class ContextItemsPartUtil extends PromptPartUtil<IContextItem[]> {
+export interface ContextItemsPart extends BasePromptPart<'contextItems'> {
+	items: IContextItem[]
+	requestType: AgentRequest['type']
+}
+
+export class ContextItemsPartUtil extends PromptPartUtil<ContextItemsPart> {
 	static override type = 'contextItems' as const
 
 	override getPriority() {
 		return 60 // context items in middle (low priority)
 	}
 
-	override async getPart(options: AgentPromptOptions) {
-		return options.request.contextItems
+	override getPart(_editor: Editor, request: AgentRequest): ContextItemsPart {
+		return {
+			type: 'contextItems',
+			items: request.contextItems,
+			requestType: request.type,
+		}
 	}
 
-	override transformPart(part: IContextItem[], transform: AgentTransform): IContextItem[] {
-		return part.map((contextItem) => {
+	override transformPart(part: ContextItemsPart, transform: AgentTransform): ContextItemsPart {
+		const items = part.items.map((contextItem) => {
 			switch (contextItem.type) {
 				case 'shape': {
 					return {
@@ -46,19 +57,21 @@ export class ContextItemsPartUtil extends PromptPartUtil<IContextItem[]> {
 				}
 			}
 		})
+
+		return { ...part, items }
 	}
 
-	override buildContent(contextItems: IContextItem[], prompt: AgentPrompt): string[] {
+	override buildContent({ items, requestType }: ContextItemsPart): string[] {
 		const messages: string[] = []
 
-		const shapeItems = contextItems.filter((item) => item.type === 'shape')
-		const shapesItems = contextItems.filter((item) => item.type === 'shapes')
-		const areaItems = contextItems.filter((item) => item.type === 'area')
-		const pointItems = contextItems.filter((item) => item.type === 'point')
+		const shapeItems = items.filter((item) => item.type === 'shape')
+		const shapesItems = items.filter((item) => item.type === 'shapes')
+		const areaItems = items.filter((item) => item.type === 'area')
+		const pointItems = items.filter((item) => item.type === 'point')
 
 		// Handle area context items
 		if (areaItems.length > 0) {
-			const isReview = prompt.type === 'review'
+			const isReview = requestType === 'review'
 			const areas = areaItems.map((item) => item.bounds)
 			messages.push(
 				isReview

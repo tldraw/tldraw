@@ -68,6 +68,7 @@ export class ReviewActionUtil extends AgentActionUtil<IReviewAction> {
 				contextItems: [],
 				bounds: originalRequest.bounds,
 				modelName: originalRequest.modelName,
+				type: 'review',
 			}
 
 			// If the review bounds go outside the request bounds, grow the request bounds to include the review bounds

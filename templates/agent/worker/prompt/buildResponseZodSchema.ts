@@ -1,19 +1,15 @@
 import z from 'zod'
-import { AGENT_ACTION_UTILS } from '../../shared/AgentUtils'
+import { getAgentActionUtilsRecord } from '../../shared/AgentUtils'
 
 export function buildResponseZodSchema() {
-	const eventUtils = Object.fromEntries(AGENT_ACTION_UTILS.map((v) => [v.type, new v()]))
-	const eventSchemas = AGENT_ACTION_UTILS.map((v) => {
-		const util = eventUtils[v.type]
-		if (!util) return null
-		const schema = util.getSchema()
-		if (!schema) return null
-		return schema
-	}).filter((v) => v !== null)
+	const actionUtils = getAgentActionUtilsRecord()
+	const actionSchemas = Object.values(actionUtils)
+		.map((util) => util.getSchema())
+		.filter((schema) => schema !== null)
 
-	const eventSchema = z.union(eventSchemas)
+	const actionSchema = z.union(actionSchemas)
 
 	return z.object({
-		events: z.array(eventSchema),
+		actions: z.array(actionSchema),
 	})
 }

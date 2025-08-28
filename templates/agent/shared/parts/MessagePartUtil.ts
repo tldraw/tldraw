@@ -1,33 +1,48 @@
-import { AgentPrompt, AgentPromptOptions } from '../types/AgentPrompt'
+import { Editor } from 'tldraw'
+import { AgentRequest } from '../types/AgentRequest'
+import { BasePromptPart } from '../types/BasePromptPart'
 import { PromptPartUtil } from './PromptPartUtil'
 
-export class MessagePartUtil extends PromptPartUtil<string> {
+export interface MessagePart extends BasePromptPart<'message'> {
+	message: string
+	requestType: AgentRequest['type']
+}
+
+export class MessagePartUtil extends PromptPartUtil<MessagePart> {
 	static override type = 'message' as const
 
 	override getPriority() {
 		return -Infinity // user message should be last (highest priority)
 	}
 
-	override async getPart(options: AgentPromptOptions) {
-		return options.request.message
+	override getPart(_editor: Editor, request: AgentRequest): MessagePart {
+		return {
+			type: 'message',
+			message: request.message,
+			requestType: request.type,
+		}
 	}
 
-	override buildContent(promptPart: string, prompt: AgentPrompt) {
-		const requestType = prompt.type
-
+	override buildContent({ message, requestType }: MessagePart) {
 		if (requestType === 'review') {
-			// Review mode
-			return [getReviewPrompt(promptPart)]
-		} else if (requestType === 'setMyView') {
-			// Set my view mode
-			return [getSetMyViewPrompt(promptPart)]
-		} else {
-			// Normal mode
+			return [getReviewPrompt(message)]
+		}
+
+		if (requestType === 'setMyView') {
+			return [getSetMyViewPrompt(message)]
+		}
+
+		if (requestType === 'continue') {
 			return [
-				"Using the events provided in the response schema, here's what I want you to do:",
-				promptPart,
+				'There are still outstanding todo items. Please continue. For your reference, the most recent message I gave you was this:',
+				message,
 			]
 		}
+
+		return [
+			"Using the events provided in the response schema, here's what I want you to do:",
+			message,
+		]
 	}
 }
 

@@ -1,17 +1,26 @@
 import { Box, BoxModel, Editor, TLShape } from 'tldraw'
 import { roundBox } from '../AgentTransform'
-import { AgentPromptOptions } from '../types/AgentPrompt'
+import { AgentRequest } from '../types/AgentRequest'
+import { BasePromptPart } from '../types/BasePromptPart'
 import { PromptPartUtil } from './PromptPartUtil'
 
-export class PeripheralShapesPartUtil extends PromptPartUtil<BoxModel[]> {
+export interface PeripheralShapesPart extends BasePromptPart<'peripheralShapes'> {
+	clusters: PeripheralShapeCluster[]
+}
+
+export interface PeripheralShapeCluster {
+	bounds: BoxModel
+	numberOfShapes: number
+}
+
+export class PeripheralShapesPartUtil extends PromptPartUtil<PeripheralShapesPart> {
 	static override type = 'peripheralShapes' as const
 
 	override getPriority() {
 		return 65 // peripheral content after viewport shapes (low priority)
 	}
 
-	override async getPart(options: AgentPromptOptions) {
-		const { editor, request } = options
+	override getPart(editor: Editor, request: AgentRequest): PeripheralShapesPart {
 		const shapes = editor.getCurrentPageShapesSorted()
 		const contextBounds = request.bounds
 
@@ -25,27 +34,33 @@ export class PeripheralShapesPartUtil extends PromptPartUtil<BoxModel[]> {
 			return true
 		})
 
-		return findPeripheralShapeClusters(editor, shapesToPeripheralize, 75)
+		const clusters = findPeripheralShapeClusters(editor, shapesToPeripheralize, 75)
+		return {
+			type: 'peripheralShapes',
+			clusters,
+		}
 	}
 
-	override transformPart(part: BoxModel[]): BoxModel[] | null {
-		return part.map((shape) => roundBox(shape))
+	override transformPart(part: PeripheralShapesPart): PeripheralShapesPart | null {
+		const clusters = part.clusters.map((cluster) => {
+			return {
+				numberOfShapes: cluster.numberOfShapes,
+				bounds: roundBox(cluster.bounds),
+			}
+		})
+		return { ...part, clusters }
 	}
 
-	override buildContent(peripheralContent: BoxModel[]): string[] {
-		if (peripheralContent.length === 0) {
+	override buildContent({ clusters }: PeripheralShapesPart): string[] {
+		if (clusters.length === 0) {
 			return []
 		}
 
 		return [
 			"There are some groups of shapes in your peripheral vision, outside the your main view. You can't make out their details or content. If you want to see their content, you need to get closer. The groups are as follows",
-			JSON.stringify(peripheralContent),
+			JSON.stringify(clusters),
 		]
 	}
-}
-
-interface PeripheralShapeCluster extends BoxModel {
-	numberOfShapes: number
 }
 
 function findPeripheralShapeClusters(
@@ -94,10 +109,7 @@ function findPeripheralShapeClusters(
 	return groups.map((group) => {
 		const shrunkBounds = group.bounds.clone().expandBy(-boundsExpand)
 		return {
-			x: shrunkBounds.x,
-			y: shrunkBounds.y,
-			w: shrunkBounds.w,
-			h: shrunkBounds.h,
+			bounds: shrunkBounds,
 			numberOfShapes: group.numberOfShapes,
 		}
 	})

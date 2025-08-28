@@ -1,32 +1,33 @@
 import { buildResponseJsonSchema } from '../../worker/prompt/buildResponseJsonSchema'
-import { BlurryShape } from '../format/BlurryShape'
-import { ISimpleShape } from '../format/SimpleShape'
-import { AgentPrompt } from '../types/AgentPrompt'
+import { BasePromptPart } from '../types/BasePromptPart'
 import { PromptPartUtil } from './PromptPartUtil'
 
-export class SystemPromptPartUtil extends PromptPartUtil<null> {
+export type SystemPromptPart = BasePromptPart<'system'>
+
+export class SystemPromptPartUtil extends PromptPartUtil<SystemPromptPart> {
 	static override type = 'system' as const
 
-	override async getPart() {
-		return null
+	override getPart(): SystemPromptPart {
+		return { type: 'system' }
 	}
 
-	override buildSystemMessage(_part: null, prompt: AgentPrompt) {
+	override buildSystemMessage(_part: SystemPromptPart) {
 		const systemPromptModifiers: string[] = []
 
+		// TODO: Restore custom system prompt modifiers
 		// if there are user selected shapes add that to the system prompt modifiers
-		const userSelectedShapes: ISimpleShape[] | undefined = prompt.userSelectedShapes
-		if (userSelectedShapes && userSelectedShapes.length > 0) {
-			systemPromptModifiers.push('user_selection')
-		}
+		// const userSelectedShapes: ISimpleShape[] | undefined = prompt.userSelectedShapes
+		// if (userSelectedShapes && userSelectedShapes.length > 0) {
+		// 	systemPromptModifiers.push('user_selection')
+		// }
 
-		// if there are arrows in the shapes on screen, add that to the system prompt modifiers
-		const blurryFormat: BlurryShape[] | undefined = prompt.blurryFormat
-		if (blurryFormat && blurryFormat.length > 0) {
-			if (blurryFormat.some((shape) => shape.type === 'arrow')) {
-				systemPromptModifiers.push('contains_arrows')
-			}
-		}
+		// // if there are arrows in the shapes on screen, add that to the system prompt modifiers
+		// const blurryFormat: BlurryShape[] | undefined = prompt.blurryFormat
+		// if (blurryFormat && blurryFormat.length > 0) {
+		// 	if (blurryFormat.some((shape) => shape.type === 'arrow')) {
+		// 		systemPromptModifiers.push('contains_arrows')
+		// 	}
+		// }
 
 		return getSystemPrompt(systemPromptModifiers)
 	}

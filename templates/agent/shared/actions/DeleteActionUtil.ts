@@ -1,8 +1,9 @@
 import { TLShapeId } from 'tldraw'
 import z from 'zod'
 import { AgentTransform } from '../AgentTransform'
+import { BaseAgentAction } from '../types/BaseAgentAction'
 import { Streaming } from '../types/Streaming'
-import { AgentActionUtil, BaseAgentAction } from './AgentActionUtil'
+import { AgentActionUtil } from './AgentActionUtil'
 
 const DeleteAction = z
 	.object({

@@ -1,32 +1,34 @@
-import { isEqual, RecordsDiff, squashRecordDiffs, TLRecord, TLShape } from 'tldraw'
+import { Editor, isEqual, RecordsDiff, squashRecordDiffs, TLRecord, TLShape } from 'tldraw'
 import { $chatHistoryItems } from '../../client/atoms/chatHistoryItems'
 import { $documentChanges } from '../../client/atoms/documentChanges'
 import { convertTldrawShapeToSimpleShape, ISimpleShape } from '../format/SimpleShape'
-import { AgentPrompt, AgentPromptOptions } from '../types/AgentPrompt'
+import { BasePromptPart } from '../types/BasePromptPart'
 import { PromptPartUtil } from './PromptPartUtil'
 
+export interface UserActionHistoryPart extends BasePromptPart<'userActionHistory'> {
+	history: UserActionHistory
+}
+
+type UserActionHistory = Record<string, UserActionEntry[]>
 interface UserActionEntry {
 	type: 'create' | 'update' | 'delete'
 	initialShape: ISimpleShape | null
 	finalShape: ISimpleShape | null
 }
 
-type UserActionHistory = Record<string, UserActionEntry[]>
-
-export class UserActionHistoryPartUtil extends PromptPartUtil<UserActionHistory> {
-	static override type = 'userHistory' as const
+export class UserActionHistoryPartUtil extends PromptPartUtil<UserActionHistoryPart> {
+	static override type = 'userActionHistory'
 
 	override getPriority() {
 		return 40
 	}
 
-	override async getPart(options: AgentPromptOptions): Promise<UserActionHistory> {
+	override getPart(editor: Editor): UserActionHistoryPart {
 		// Updates to the editor store done by the agent are unfortunately attributed to the user in the editor store history (ideally they're remote, or maybe even a new 'agent' source). So we have to filter out the agent's actions from the history.
-		const { editor } = options
 
 		const rawStoreDiffs = $documentChanges.get(editor)
 		if (rawStoreDiffs.length === 0) {
-			return {}
+			return { type: 'userActionHistory', history: {} }
 		}
 
 		// Get the agent's diffs from the chat history
@@ -37,7 +39,6 @@ export class UserActionHistoryPartUtil extends PromptPartUtil<UserActionHistory>
 		)
 
 		const squashedUserActionDiff = squashRecordDiffs(userActionDiffs)
-
 		const userActionHistory: UserActionHistory = {}
 
 		// Convert shapes from RecordDiff<TLRecord> to UserActionEntry, which containts simmple shapes and we will use to describe the changes to the agent. While it may seems pointless to convert to simple shapes when we're just returning text later, it's important because we don't want to tell the model about properties that were changed that are not in simple shapes.
@@ -105,18 +106,21 @@ export class UserActionHistoryPartUtil extends PromptPartUtil<UserActionHistory>
 				userActionHistory[shapeId].push(entry)
 			})
 
-		return userActionHistory
+		return {
+			type: 'userActionHistory',
+			history: userActionHistory,
+		}
 	}
 
-	override buildContent(part: UserActionHistory, _prompt: AgentPrompt): string[] {
+	override buildContent({ history }: UserActionHistoryPart): string[] {
 		// TODO: Re-enable this. It's disabled because it's not clearing the history properly at the moment.
 		return []
 
-		if (Object.keys(part).length === 0) {
+		if (Object.keys(history).length === 0) {
 			return []
 		}
 
-		const content = this.turnChangesIntoReadableText(part)
+		const content = this.turnChangesIntoReadableText(history)
 		if (content === '') {
 			return []
 		}

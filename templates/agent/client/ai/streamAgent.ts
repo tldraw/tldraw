@@ -1,5 +1,5 @@
 import { AgentAction } from '../../shared/types/AgentAction'
-import { AgentPrompt } from '../../shared/types/AgentPrompt'
+import { BaseAgentPrompt } from '../../shared/types/AgentPrompt'
 import { Streaming } from '../../shared/types/Streaming'
 
 /**
@@ -12,7 +12,7 @@ export async function* streamAgent({
 	prompt,
 	signal,
 }: {
-	prompt: AgentPrompt
+	prompt: BaseAgentPrompt
 	signal: AbortSignal
 }): AsyncGenerator<Streaming<AgentAction>> {
 	const res = await fetch('/stream', {
