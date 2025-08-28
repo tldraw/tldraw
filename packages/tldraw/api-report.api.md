@@ -74,7 +74,6 @@ import { TLClickEventInfo } from '@tldraw/editor';
 import { TLContent } from '@tldraw/editor';
 import { TLCropInfo } from '@tldraw/editor';
 import { TLDefaultColorStyle } from '@tldraw/editor';
-import { TLDefaultColorTheme } from '@tldraw/editor';
 import { TLDefaultColorThemeColor } from '@tldraw/editor';
 import { TLDefaultDashStyle } from '@tldraw/editor';
 import { TLDefaultFillStyle } from '@tldraw/editor';
@@ -208,9 +207,6 @@ export class ArrowBindingUtil extends BindingUtil<TLArrowBinding> {
 
 // @public (undocumented)
 export function ArrowDownToolbarItem(): JSX_2.Element;
-
-// @public (undocumented)
-export function ArrowheadStylePickerSet({ styles }: StylePickerSetProps): JSX_2.Element | null;
 
 // @public (undocumented)
 export function ArrowLeftToolbarItem(): JSX_2.Element;
@@ -494,9 +490,6 @@ export function CloudToolbarItem(): JSX_2.Element;
 
 // @public (undocumented)
 export function ColorSchemeMenu(): JSX_2.Element;
-
-// @public (undocumented)
-export function CommonStylePickerSet({ styles, theme }: ThemeStylePickerSetProps): JSX_2.Element;
 
 // @public
 export function containBoxSize(originalSize: BoxWidthHeight, containBoxSize: BoxWidthHeight): BoxWidthHeight;
@@ -974,7 +967,7 @@ export function DefaultSharePanel(): JSX_2.Element;
 export const DefaultStylePanel: NamedExoticComponent<TLUiStylePanelProps>;
 
 // @public (undocumented)
-export function DefaultStylePanelContent({ styles }: TLUiStylePanelContentProps): JSX_2.Element | null;
+export function DefaultStylePanelContent(): JSX_2.Element | null;
 
 // @public (undocumented)
 export const DefaultToasts: NamedExoticComponent<object>;
@@ -1686,9 +1679,6 @@ export class GeoShapeUtil extends BaseBoxShapeUtil<TLGeoShape> {
 }
 
 // @public (undocumented)
-export function GeoStylePickerSet({ styles }: StylePickerSetProps): JSX_2.Element | null;
-
-// @public (undocumented)
 export function getArrowBindings(editor: Editor, shape: TLArrowShape): TLArrowBindings;
 
 // @public (undocumented)
@@ -2191,9 +2181,6 @@ export interface OnDragFromToolbarToCreateShapesOpts {
 }
 
 // @public (undocumented)
-export function OpacitySlider(): JSX_2.Element | null;
-
-// @public (undocumented)
 export function OvalToolbarItem(): JSX_2.Element;
 
 // @public (undocumented)
@@ -2628,9 +2615,6 @@ export interface SolidPathBuilderOpts extends BasePathBuilderOpts {
 export function Spinner(props: React_3.SVGProps<SVGSVGElement>): JSX_2.Element;
 
 // @public (undocumented)
-export function SplineStylePickerSet({ styles }: StylePickerSetProps): JSX_2.Element | null;
-
-// @public (undocumented)
 export function StackMenuItems(): JSX_2.Element;
 
 // @public (undocumented)
@@ -2680,10 +2664,149 @@ export interface StrokePoint {
 }
 
 // @public (undocumented)
-export interface StylePickerSetProps {
+export function StylePanelArrowheadPicker(): JSX_2.Element | null;
+
+// @public (undocumented)
+export function StylePanelArrowKindPicker(): JSX_2.Element | null;
+
+// @public (undocumented)
+export const StylePanelButtonPicker: <T extends string>(props: StylePanelButtonPickerProps<T>) => ReactElement;
+
+// @public (undocumented)
+export interface StylePanelButtonPickerProps<T extends string> {
+    // (undocumented)
+    items: StyleValuesForUi<T>;
+    // (undocumented)
+    onHistoryMark?(id: string): void;
+    // (undocumented)
+    onValueChange?(style: StyleProp<T>, value: T): void;
+    // (undocumented)
+    style: StyleProp<T>;
+    // (undocumented)
+    title: string;
+    // (undocumented)
+    uiType: string;
+    // (undocumented)
+    value: SharedStyle<T>;
+}
+
+// @public (undocumented)
+export function StylePanelColorPicker(): JSX_2.Element | null;
+
+// @public (undocumented)
+export interface StylePanelContext {
+    // (undocumented)
+    onHistoryMark(id: string): void;
+    // (undocumented)
+    onValueChange<T>(style: StyleProp<T>, value: T): void;
+    // (undocumented)
+    showUiLabels: boolean;
     // (undocumented)
     styles: ReadonlySharedStyleMap;
 }
+
+// @public (undocumented)
+export function StylePanelContextProvider({ children, styles }: StylePanelContextProviderProps): JSX_2.Element;
+
+// @public (undocumented)
+export interface StylePanelContextProviderProps {
+    // (undocumented)
+    children: React_3.ReactNode;
+    // (undocumented)
+    styles: null | ReadonlySharedStyleMap;
+}
+
+// @public (undocumented)
+export function StylePanelDashPicker(): JSX_2.Element | null;
+
+// @public (undocumented)
+export const StylePanelDoubleDropdownPicker: <T extends string>(props: StylePanelDoubleDropdownPickerProps<T>) => React_2.JSX.Element;
+
+// @public (undocumented)
+export interface StylePanelDoubleDropdownPickerProps<T extends string> {
+    // (undocumented)
+    itemsA: StyleValuesForUi<T>;
+    // (undocumented)
+    itemsB: StyleValuesForUi<T>;
+    // (undocumented)
+    label: Exclude<string, TLUiTranslationKey> | TLUiTranslationKey;
+    // (undocumented)
+    labelA: Exclude<string, TLUiTranslationKey> | TLUiTranslationKey;
+    // (undocumented)
+    labelB: Exclude<string, TLUiTranslationKey> | TLUiTranslationKey;
+    // (undocumented)
+    onValueChange?(style: StyleProp<T>, value: T): void;
+    // (undocumented)
+    styleA: StyleProp<T>;
+    // (undocumented)
+    styleB: StyleProp<T>;
+    // (undocumented)
+    uiTypeA: string;
+    // (undocumented)
+    uiTypeB: string;
+    // (undocumented)
+    valueA: SharedStyle<T>;
+    // (undocumented)
+    valueB: SharedStyle<T>;
+}
+
+// @public (undocumented)
+export const StylePanelDropdownPicker: <T extends string>(props: StylePanelDropdownPickerProps<T>) => React_2.JSX.Element;
+
+// @public (undocumented)
+export interface StylePanelDropdownPickerProps<T extends string> {
+    // (undocumented)
+    id: string;
+    // (undocumented)
+    items: StyleValuesForUi<T>;
+    // (undocumented)
+    label?: Exclude<string, TLUiTranslationKey> | TLUiTranslationKey;
+    // (undocumented)
+    onValueChange?(style: StyleProp<T>, value: T): void;
+    // (undocumented)
+    style: StyleProp<T>;
+    // (undocumented)
+    stylePanelType: string;
+    // (undocumented)
+    type: 'icon' | 'menu' | 'tool';
+    // (undocumented)
+    uiType: string;
+    // (undocumented)
+    value: SharedStyle<T>;
+}
+
+// @public (undocumented)
+export function StylePanelFillPicker(): JSX_2.Element | null;
+
+// @public (undocumented)
+export function StylePanelFontPicker(): JSX_2.Element | null;
+
+// @public (undocumented)
+export function StylePanelGeoShapePicker(): JSX_2.Element | null;
+
+// @public (undocumented)
+export function StylePanelLabelAlignPicker(): JSX_2.Element | null;
+
+// @public (undocumented)
+export function StylePanelOpacityPicker(): JSX_2.Element | null;
+
+// @public (undocumented)
+export function StylePanelSection({ children }: StylePanelSectionProps): JSX_2.Element;
+
+// @public (undocumented)
+export interface StylePanelSectionProps {
+    // (undocumented)
+    children: React_3.ReactNode;
+}
+
+// @public (undocumented)
+export function StylePanelSizePicker(): JSX_2.Element | null;
+
+// @public (undocumented)
+export function StylePanelSplinePicker(): JSX_2.Element | null;
+
+// @public (undocumented)
+export function StylePanelTextAlignPicker(): JSX_2.Element | null;
 
 // @public (undocumented)
 export type StyleValuesForUi<T> = readonly {
@@ -2835,18 +2958,7 @@ export class TextShapeUtil extends ShapeUtil<TLTextShape> {
 }
 
 // @public (undocumented)
-export function TextStylePickerSet({ theme, styles }: ThemeStylePickerSetProps): JSX_2.Element | null;
-
-// @public (undocumented)
 export function TextToolbarItem(): JSX_2.Element;
-
-// @public (undocumented)
-export interface ThemeStylePickerSetProps {
-    // (undocumented)
-    styles: ReadonlySharedStyleMap;
-    // (undocumented)
-    theme: TLDefaultColorTheme;
-}
 
 // @public
 export const tipTapDefaultExtensions: Extensions;
@@ -3059,9 +3171,6 @@ export function TldrawUiButtonIcon({ icon, small, invertIcon }: TLUiButtonIconPr
 // @public (undocumented)
 export function TldrawUiButtonLabel({ children }: TLUiButtonLabelProps): JSX_2.Element;
 
-// @public (undocumented)
-export const TldrawUiButtonPicker: <T extends string>(props: TLUiButtonPickerProps<T>) => ReactElement;
-
 // @public
 export const TldrawUiColumn: ForwardRefExoticComponent<TLUiLayoutProps & RefAttributes<HTMLDivElement>>;
 
@@ -3216,7 +3325,7 @@ export const TldrawUiToolbar: React_3.ForwardRefExoticComponent<TLUiToolbarProps
 export const TldrawUiToolbarButton: React_3.ForwardRefExoticComponent<TLUiToolbarButtonProps & React_3.RefAttributes<HTMLButtonElement>>;
 
 // @public (undocumented)
-export const TldrawUiToolbarToggleGroup: ({ children, className, type, ...props }: TLUiToolbarToggleGroupProps) => JSX_2.Element;
+export const TldrawUiToolbarToggleGroup: ({ children, className, type, asChild, ...props }: TLUiToolbarToggleGroupProps) => JSX_2.Element;
 
 // @public (undocumented)
 export const TldrawUiToolbarToggleItem: ({ children, className, type, value, tooltip, ...props }: TLUiToolbarToggleItemProps) => JSX_2.Element;
@@ -3439,26 +3548,6 @@ export interface TLUiButtonIconProps {
 export interface TLUiButtonLabelProps {
     // (undocumented)
     children?: ReactNode;
-}
-
-// @public (undocumented)
-export interface TLUiButtonPickerProps<T extends string> {
-    // (undocumented)
-    items: StyleValuesForUi<T>;
-    // (undocumented)
-    onHistoryMark?(id: string): void;
-    // (undocumented)
-    onValueChange(style: StyleProp<T>, value: T): void;
-    // (undocumented)
-    style: StyleProp<T>;
-    // (undocumented)
-    theme: TLDefaultColorTheme;
-    // (undocumented)
-    title: string;
-    // (undocumented)
-    uiType: string;
-    // (undocumented)
-    value: SharedStyle<T>;
 }
 
 // @public (undocumented)
@@ -4309,12 +4398,6 @@ export interface TLUiSliderProps {
 }
 
 // @public (undocumented)
-export interface TLUiStylePanelContentProps {
-    // (undocumented)
-    styles: ReturnType<typeof useRelevantStyles>;
-}
-
-// @public (undocumented)
 export interface TLUiStylePanelProps {
     // (undocumented)
     children?: ReactNode;
@@ -4412,6 +4495,8 @@ export interface TLUiToolbarProps extends React_3.HTMLAttributes<HTMLDivElement>
 
 // @public (undocumented)
 export interface TLUiToolbarToggleGroupProps extends React_3.HTMLAttributes<HTMLDivElement> {
+    // (undocumented)
+    asChild?: boolean;
     // (undocumented)
     children?: React_3.ReactNode;
     // (undocumented)
@@ -5202,6 +5287,9 @@ export const useSelectedShapesAnnouncer: () => void;
 
 // @public (undocumented)
 export function useShowCollaborationUi(): boolean;
+
+// @public (undocumented)
+export function useStylePanelContext(): StylePanelContext;
 
 // @public (undocumented)
 export function useTldrawUiComponents(): TLUiComponents;
