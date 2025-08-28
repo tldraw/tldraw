@@ -1,6 +1,6 @@
 import { FormEventHandler, useCallback, useEffect, useRef, useState } from 'react'
 import { Editor, useToasts, useValue } from 'tldraw'
-import { EVENT_UTILS, PROMPT_PART_UTILS } from '../../shared/AgentUtils'
+import { AGENT_ACTION_UTILS, PROMPT_PART_UTILS } from '../../shared/AgentUtils'
 import { convertTldrawShapeToSimpleShape } from '../../shared/format/SimpleShape'
 import { AgentRequest } from '../../shared/types/AgentRequest'
 import { IChatHistoryItem } from '../../shared/types/ChatHistoryItem'
@@ -17,7 +17,11 @@ import { ChatInput } from './ChatInput'
 import { TodoList } from './TodoList'
 
 export function ChatPanel({ editor }: { editor: Editor }) {
-	const agent = useTldrawAgent({ editor, partUtils: PROMPT_PART_UTILS, eventUtils: EVENT_UTILS })
+	const agent = useTldrawAgent({
+		editor,
+		partUtils: PROMPT_PART_UTILS,
+		eventUtils: AGENT_ACTION_UTILS,
+	})
 
 	const [isGenerating, setIsGenerating] = useState(false)
 	const rCancelFn = useRef<(() => void) | null>(null)

@@ -5,13 +5,12 @@ import {
 	GoogleGenerativeAIProviderOptions,
 } from '@ai-sdk/google'
 import { createOpenAI, OpenAIProvider } from '@ai-sdk/openai'
-import { LanguageModel, streamObject, streamText } from 'ai'
+import { LanguageModel, streamText } from 'ai'
 import { AgentAction } from '../../../shared/types/AgentAction'
 import { AgentPrompt } from '../../../shared/types/AgentPrompt'
 import { Streaming } from '../../../shared/types/Streaming'
 import { AgentModelName, getAgentModelDefinition } from '../../models'
 import { buildMessages } from '../../prompt/buildMessages'
-import { buildResponseZodSchema } from '../../prompt/buildResponseZodSchema'
 import { buildSystemPrompt } from '../../prompt/buildSystemPrompt'
 import { Environment } from '../../types'
 import { TldrawAgentService } from './TldrawAgentService'
@@ -36,7 +35,7 @@ export class VercelAiService extends TldrawAgentService {
 
 	async *stream(prompt: AgentPrompt): AsyncGenerator<Streaming<AgentAction>> {
 		try {
-			const model = this.getModel(prompt.modelName)
+			const model = this.getModel(prompt.modelName ?? 'claude-4-sonnet')
 			for await (const event of streamEventsVercel(model, prompt)) {
 				yield event
 			}
@@ -65,137 +64,100 @@ async function* streamEventsVercel(
 		complete: true,
 		label: 'SYSTEM',
 		data: { system: systemPrompt },
+		time: 0,
 	}
 
 	try {
-		if (model.provider === 'anthropic.messages') {
-			messages.push({
-				role: 'assistant',
-				content: '{"events": [{"_type":',
-			})
-			const { textStream } = streamText({
-				model,
-				system: systemPrompt,
-				messages,
-				maxOutputTokens: 8192,
-				temperature: 0,
-				providerOptions: {
-					anthropic: {
-						thinking: { type: 'disabled' },
-					} satisfies AnthropicProviderOptions,
-				},
-				onError: (e) => {
-					console.error('Stream text error:', e)
-					throw e
-				},
-			})
+		messages.push({
+			role: 'assistant',
+			content: '{"events": [{"_type":',
+		})
+		const { textStream } = streamText({
+			model,
+			system: systemPrompt,
+			messages,
+			maxOutputTokens: 8192,
+			temperature: 0,
+			providerOptions: {
+				anthropic: {
+					thinking: { type: 'disabled' },
+				} satisfies AnthropicProviderOptions,
+				google: {
+					thinkingConfig: { thinkingBudget: geminiThinkingBudget },
+				} satisfies GoogleGenerativeAIProviderOptions,
+			},
+			onError: (e) => {
+				console.error('Stream text error:', e)
+				throw e
+			},
+		})
 
-			yield {
-				_type: 'debug',
-				complete: true,
-				label: 'MESSAGES',
-				data: messages,
-			}
+		yield {
+			_type: 'debug',
+			complete: true,
+			label: 'MESSAGES',
+			data: messages,
+			time: 0,
+		}
 
-			let buffer = '{"events": [{"_type":'
+		const canForceResponseStart =
+			model.provider === 'anthropic.messages' || model.provider === 'google.generative-ai'
+		let buffer = canForceResponseStart ? '{"events": [{"_type":' : ''
+		let cursor = 0
+		let maybeIncompleteEvent: AgentAction | null = null
 
-			let cursor = 0
-			let maybeIncompleteEvent: AgentAction | null = null
+		let startTime = Date.now()
+		for await (const text of textStream) {
+			buffer += text
 
-			for await (const text of textStream) {
-				buffer += text
+			const partialObject = closeAndParseJson(buffer)
+			if (!partialObject) continue
 
-				const partialObject = closeAndParseJson(buffer)
-				if (!partialObject) continue
+			const events = partialObject.events
+			if (!Array.isArray(events)) continue
+			if (events.length === 0) continue
 
-				const events = partialObject.events
-				if (!Array.isArray(events)) continue
-				if (events.length === 0) continue
-
-				// If the events list is ahead of the cursor, we know we've completed the current event
-				// We can complete the event and move the cursor forward
-				if (events.length > cursor) {
-					const event = events[cursor - 1] as AgentAction
-					if (event) {
-						yield { ...event, complete: true }
-						maybeIncompleteEvent = null
-					}
-					cursor++
-				}
-
-				// Now let's check the (potentially new) current event
-				// And let's yield it in its (potentially incomplete) state
+			// If the events list is ahead of the cursor, we know we've completed the current event
+			// We can complete the event and move the cursor forward
+			if (events.length > cursor) {
 				const event = events[cursor - 1] as AgentAction
 				if (event) {
-					yield { ...event, complete: false }
-					maybeIncompleteEvent = event
-				}
-			}
-
-			// If we've finished receiving events, but there's still an incomplete event, we need to complete it
-			if (maybeIncompleteEvent) {
-				yield { ...maybeIncompleteEvent, complete: true }
-			}
-		} else {
-			const schema = buildResponseZodSchema()
-			const { partialObjectStream } = streamObject<typeof schema>({
-				model,
-				system: systemPrompt,
-				messages,
-				maxOutputTokens: 8192,
-				temperature: 0,
-				schema,
-				onError: (e) => {
-					console.error('Stream object error:', e)
-					throw e
-				},
-				providerOptions: {
-					google: {
-						thinkingConfig: { thinkingBudget: geminiThinkingBudget },
-					} satisfies GoogleGenerativeAIProviderOptions,
-					//anthropic doesnt allow thinking for tool use, which structured outputs forces to be enabled
-					//the openai models we use dont support thinking anyway
-				},
-			})
-
-			yield {
-				_type: 'debug',
-				complete: true,
-				label: 'MESSAGES',
-				data: messages,
-			}
-
-			let cursor = 0
-			let maybeIncompleteEvent: AgentAction | null = null
-
-			for await (const partialObject of partialObjectStream) {
-				const events = partialObject.events
-				if (!Array.isArray(events)) continue
-				if (events.length === 0) continue
-
-				// If the events list is ahead of the cursor, we know we've completed the current event
-				// We can complete the event and move the cursor forward
-				if (events.length > cursor) {
-					const event = events[cursor - 1] as AgentAction
-					if (event) {
-						yield { ...event, complete: true }
-						maybeIncompleteEvent = null
+					yield {
+						...event,
+						complete: true,
+						time: Date.now() - startTime,
 					}
-					cursor++
+					maybeIncompleteEvent = null
 				}
-
-				// Now let's check the (potentially new) current event
-				// And let's yield it in its (potentially incomplete) state
-				const event = events[cursor - 1] as AgentAction
-				if (event) {
-					yield { ...event, complete: false }
-					maybeIncompleteEvent = event
-				}
+				cursor++
 			}
 
-			// If we've finished receiving events, but there's still an incomplete event, we need to complete it
-			if (maybeIncompleteEvent) {
-				yield { ...maybeIncompleteEvent, complete: true }
+			// Now let's check the (potentially new) current event
+			// And let's yield it in its (potentially incomplete) state
+			const event = events[cursor - 1] as AgentAction
+			if (event) {
+				// If we don't have an incomplete event yet, this is the start of a new one
+				if (!maybeIncompleteEvent) {
+					startTime = Date.now()
+				}
+
+				maybeIncompleteEvent = event
+
+				// Yield the potentially incomplete event
+				yield {
+					...event,
+					complete: false,
+					time: Date.now() - startTime,
+				}
+			}
+		}
+
+		// If we've finished receiving events, but there's still an incomplete event, we need to complete it
+		if (maybeIncompleteEvent) {
+			yield {
+				...maybeIncompleteEvent,
+				complete: true,
+				time: Date.now() - startTime,
 			}
 		}
 	} catch (error: any) {

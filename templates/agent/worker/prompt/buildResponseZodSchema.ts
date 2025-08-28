@@ -1,9 +1,9 @@
 import z from 'zod'
-import { EVENT_UTILS } from '../../shared/AgentUtils'
+import { AGENT_ACTION_UTILS } from '../../shared/AgentUtils'
 
 export function buildResponseZodSchema() {
-	const eventUtils = Object.fromEntries(EVENT_UTILS.map((v) => [v.type, new v()]))
-	const eventSchemas = EVENT_UTILS.map((v) => {
+	const eventUtils = Object.fromEntries(AGENT_ACTION_UTILS.map((v) => [v.type, new v()]))
+	const eventSchemas = AGENT_ACTION_UTILS.map((v) => {
 		const util = eventUtils[v.type]
 		if (!util) return null
 		const schema = util.getSchema()

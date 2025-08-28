@@ -32,6 +32,13 @@ export function ChatHistoryGroupWithoutDiff({
 		return items.every((item) => item.action.complete)
 	}, [items])
 
+	const summary = useMemo(() => {
+		const time = Math.floor(items.reduce((acc, item) => acc + item.action.time, 0) / 1000)
+		if (time === 0) return 'Thought for less than a second'
+		if (time === 1) return 'Thought for 1 second'
+		return `Thought for ${time} seconds`
+	}, [items])
+
 	if (nonEmptyItems.length === 0) {
 		return null
 	}
@@ -53,7 +60,7 @@ export function ChatHistoryGroupWithoutDiff({
 			{complete && (
 				<button onClick={() => setCollapsed((v) => !v)}>
 					<span>{showContent ? <ChevronDownIcon /> : <ChevronRightIcon />}</span>
-					Thought for a while
+					{summary}
 				</button>
 			)}
 			{showContent && (

@@ -56,7 +56,7 @@ export const PROMPT_PART_UTILS: PromptPartUtilConstructor[] = [
 	TodoListPromptPartUtil,
 ]
 
-export const EVENT_UTILS = [
+export const AGENT_ACTION_UTILS = [
 	CreateActionUtil,
 	DeleteActionUtil,
 

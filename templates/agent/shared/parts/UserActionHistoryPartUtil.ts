@@ -109,6 +109,9 @@ export class UserActionHistoryPartUtil extends PromptPartUtil<UserActionHistory>
 	}
 
 	override buildContent(part: UserActionHistory, _prompt: AgentPrompt): string[] {
+		// TODO: Re-enable this. It's disabled because it's not clearing the history properly at the moment.
+		return []
+
 		if (Object.keys(part).length === 0) {
 			return []
 		}

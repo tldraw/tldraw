@@ -10,11 +10,11 @@ import { AgentActionUtil } from './AgentActionUtil'
 const ReviewAction = z
 	.object({
 		_type: z.literal('review'),
-		h: z.number(),
 		intent: z.string(),
-		w: z.number(),
 		x: z.number(),
 		y: z.number(),
+		w: z.number(),
+		h: z.number(),
 	})
 	.meta({
 		title: 'Review',
@@ -34,7 +34,7 @@ export class ReviewActionUtil extends AgentActionUtil<IReviewAction> {
 	override getInfo(action: Streaming<IReviewAction>) {
 		const label = action.complete ? 'Review' : 'Reviewing'
 		const text = action.intent?.startsWith('#') ? `\n\n${action.intent}` : action.intent
-		const description = `${label}: ${text ?? ''}`
+		const description = `**${label}:** ${text ?? ''}`
 
 		return {
 			icon: 'search' as const,
@@ -50,10 +50,10 @@ export class ReviewActionUtil extends AgentActionUtil<IReviewAction> {
 		if (!action.complete) return
 
 		const reviewBounds = {
-			x: action.x,
-			y: action.y,
-			w: action.w,
-			h: action.h,
+			x: action.x ?? originalRequest.bounds.x,
+			y: action.y ?? originalRequest.bounds.y,
+			w: action.w ?? originalRequest.bounds.w,
+			h: action.h ?? originalRequest.bounds.h,
 		}
 
 		const contextArea: IAreaContextItem = {
@@ -71,7 +71,7 @@ export class ReviewActionUtil extends AgentActionUtil<IReviewAction> {
 			}
 
 			// If the review bounds go outside the request bounds, grow the request bounds to include the review bounds
-			const reviewBoundsBox = Box.From(reviewBounds).expandBy(10)
+			const reviewBoundsBox = Box.From(reviewBounds)
 			const requestBoundsBox = Box.From(request.bounds)
 			const boundsContainReviewBounds = requestBoundsBox.contains(reviewBoundsBox)
 			if (!boundsContainReviewBounds) {
