@@ -22,7 +22,7 @@ test.describe('Internal License', () => {
 
 		await setupLicenseTest(page, expiredInternalLicenseKey)
 
-		await expect(page.getByTestId('license-expired')).toBeAttached()
+		await expect(page.getByTestId('tl-license-expired')).toBeAttached()
 
 		// The actual editor canvas should not be rendered
 		await expect(page.locator('.tl-canvas')).not.toBeVisible()
