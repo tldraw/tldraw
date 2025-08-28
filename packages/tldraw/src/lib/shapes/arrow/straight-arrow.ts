@@ -5,7 +5,6 @@ import {
 	BOUND_ARROW_OFFSET,
 	BoundShapeInfo,
 	MIN_ARROW_LENGTH,
-	STROKE_SIZES,
 	TLArrowBindings,
 	getArrowTerminalsInArrowSpace,
 	getBoundShapeInfoForTerminal,
@@ -123,7 +122,7 @@ export function getStraightArrowInfo(
 			!startShapeInfo.isExact
 		) {
 			strokeOffsetA =
-				STROKE_SIZES[shape.props.size] / 2 +
+				editor.getStyleUtil(SizeStyleUtil).toStrokeSizePx(shape.props.size) / 2 +
 				('size' in startShapeInfo.shape.props
 					? editor.getStyleUtil(SizeStyleUtil).toStrokeSizePx(startShapeInfo.shape.props.size) / 2
 					: 0)
@@ -140,7 +139,7 @@ export function getStraightArrowInfo(
 			!endShapeInfo.isExact
 		) {
 			strokeOffsetB =
-				STROKE_SIZES[shape.props.size] / 2 +
+				editor.getStyleUtil(SizeStyleUtil).toStrokeSizePx(shape.props.size) / 2 +
 				('size' in endShapeInfo.shape.props
 					? editor.getStyleUtil(SizeStyleUtil).toStrokeSizePx(endShapeInfo.shape.props.size) / 2
 					: 0)

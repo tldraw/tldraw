@@ -20,9 +20,6 @@ class MySizeStyleUtil extends SizeStyleUtil<number> {
 	override toLabelFontSizePx(value: number): number {
 		return value
 	}
-	override toArrowLabelFontSizePx(value: number): number {
-		return value * 0.8
-	}
 }
 
 function CustomSizePicker({

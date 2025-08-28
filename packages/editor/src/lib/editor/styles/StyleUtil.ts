@@ -1,6 +1,7 @@
 import { T } from '@tldraw/validate'
 import { Editor } from '../Editor'
 
+/** @public */
 export interface TLStyleUtilConstructor<
 	T,
 	Id extends string,
@@ -11,6 +12,7 @@ export interface TLStyleUtilConstructor<
 	validator: T.Validatable<T>
 }
 
+/** @public */
 export abstract class StyleUtil<Style, Id extends string = string> {
 	/** Configure this shape utils {@link ShapeUtil.options | `options`}. */
 	static configure<T extends TLStyleUtilConstructor<any, any>>(

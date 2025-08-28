@@ -408,6 +408,12 @@ export function isShape(record?: UnknownRecord): record is TLShape;
 export function isShapeId(id?: string): id is TLShapeId;
 
 // @public (undocumented)
+export function isStyleProp2(value: object): value is StyleProp2<string>;
+
+// @public (undocumented)
+export function isStyleProp2<const Id extends string>(value: object, id: Id): value is StyleProp2<Id>;
+
+// @public (undocumented)
 export const LANGUAGES: readonly [{
     readonly label: "Bahasa Indonesia";
     readonly locale: "id";
@@ -640,6 +646,9 @@ export type ShapeWithCrop = TLBaseShape<string, {
     w: number;
 }>;
 
+// @public (undocumented)
+export const SizeStyle: StyleProp2<"tldraw:size2">;
+
 // @public
 export class StyleProp<Type> implements T.Validatable<Type> {
     // @internal
@@ -665,6 +674,18 @@ export class StyleProp<Type> implements T.Validatable<Type> {
     // (undocumented)
     validateUsingKnownGoodVersion(prevValue: Type, newValue: unknown): Type;
 }
+
+// @public (undocumented)
+export function StyleProp2<const Id extends string>(id: Id): StyleProp2<Id>;
+
+// @public (undocumented)
+export interface StyleProp2<Id extends string> {
+    // (undocumented)
+    [StylePropMarker]: Id;
+}
+
+// @public (undocumented)
+export const StylePropMarker: unique symbol;
 
 // @public (undocumented)
 export type StylePropValue<T extends StyleProp<any>> = T extends StyleProp<infer U> ? U : never;
@@ -1506,6 +1527,9 @@ export type TLShapePartial<T extends TLShape = TLShape> = T extends T ? {
     props?: Partial<T['props']>;
     type: T['type'];
 } & Partial<Omit<T, 'id' | 'meta' | 'props' | 'type'>> : never;
+
+// @public (undocumented)
+export type TLSizeStyle = StyleProp2<'tldraw:size2'>;
 
 // @public (undocumented)
 export type TLStore = Store<TLRecord, TLStoreProps>;

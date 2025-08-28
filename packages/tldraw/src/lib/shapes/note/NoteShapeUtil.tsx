@@ -32,6 +32,7 @@ import {
 	useValue,
 } from '@tldraw/editor'
 import { useCallback } from 'react'
+import { SizeStyleUtil } from '../../styles/TLSizeStyle'
 import { startEditingShapeWithLabel } from '../../tools/SelectTool/selectHelpers'
 import { useCurrentTranslation } from '../../ui/hooks/useTranslation/useTranslation'
 import {
@@ -42,12 +43,7 @@ import {
 import { isRightToLeftLanguage } from '../../utils/text/text'
 import { HyperlinkButton } from '../shared/HyperlinkButton'
 import { RichTextLabel, RichTextSVG } from '../shared/RichTextLabel'
-import {
-	FONT_FAMILIES,
-	LABEL_FONT_SIZES,
-	LABEL_PADDING,
-	TEXT_PROPS,
-} from '../shared/default-shape-constants'
+import { FONT_FAMILIES, LABEL_PADDING, TEXT_PROPS } from '../shared/default-shape-constants'
 import { useDefaultColorTheme } from '../shared/useDefaultColorTheme'
 import { useIsReadyForEditing } from '../shared/useEditablePlainText'
 import {
@@ -303,7 +299,10 @@ export class NoteShapeUtil extends ShapeUtil<TLNoteShape> {
 							shapeId={id}
 							type={type}
 							font={font}
-							fontSize={(fontSizeAdjustment || LABEL_FONT_SIZES[size]) * scale}
+							fontSize={
+								(fontSizeAdjustment ||
+									this.editor.getStyleUtil(SizeStyleUtil).toLabelFontSizePx(size)) * scale
+							}
 							lineHeight={TEXT_PROPS.lineHeight}
 							align={align}
 							verticalAlign={verticalAlign}
@@ -343,7 +342,10 @@ export class NoteShapeUtil extends ShapeUtil<TLNoteShape> {
 
 		const textLabel = (
 			<RichTextSVG
-				fontSize={shape.props.fontSizeAdjustment || LABEL_FONT_SIZES[shape.props.size]}
+				fontSize={
+					shape.props.fontSizeAdjustment ||
+					this.editor.getStyleUtil(SizeStyleUtil).toLabelFontSizePx(shape.props.size)
+				}
 				font={shape.props.font}
 				align={shape.props.align}
 				verticalAlign={shape.props.verticalAlign}
@@ -424,11 +426,14 @@ function getNoteLabelSize(editor: Editor, shape: TLNoteShape) {
 	const { richText } = shape.props
 
 	if (isEmptyRichText(richText)) {
-		const minHeight = LABEL_FONT_SIZES[shape.props.size] * TEXT_PROPS.lineHeight + LABEL_PADDING * 2
+		const minHeight =
+			editor.getStyleUtil(SizeStyleUtil).toLabelFontSizePx(shape.props.size) *
+				TEXT_PROPS.lineHeight +
+			LABEL_PADDING * 2
 		return { labelHeight: minHeight, labelWidth: 100, fontSizeAdjustment: 0 }
 	}
 
-	const unadjustedFontSize = LABEL_FONT_SIZES[shape.props.size]
+	const unadjustedFontSize = editor.getStyleUtil(SizeStyleUtil).toLabelFontSizePx(shape.props.size)
 
 	let fontSizeAdjustment = 0
 	let iterations = 0

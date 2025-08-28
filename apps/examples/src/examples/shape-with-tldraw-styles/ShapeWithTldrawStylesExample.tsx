@@ -11,16 +11,10 @@ import {
 	Tldraw,
 	useDefaultColorTheme,
 } from 'tldraw'
+import { SizeStyleUtil } from 'tldraw/src/lib/styles/TLSizeStyle'
 import 'tldraw/tldraw.css'
 
 // There's a guide at the bottom of this file!
-
-const FONT_SIZES: Record<TLDefaultSizeStyle, number> = {
-	s: 14,
-	m: 25,
-	l: 38,
-	xl: 48,
-}
 
 type IMyShape = TLBaseShape<
 	'myshape',
@@ -65,7 +59,7 @@ class MyShapeUtil extends BaseBoxShapeUtil<IMyShape> {
 				<div
 					style={{
 						// [3]
-						fontSize: FONT_SIZES[shape.props.size],
+						fontSize: this.editor.getStyleUtil(SizeStyleUtil).toFontSizePx(shape.props.size),
 						color: getColorValue(theme, shape.props.color, 'solid'),
 					}}
 				>
@@ -115,7 +109,7 @@ styles of the user's selected shapes.)
 [3]
 Here in the component, we'll use the styles to change the way that our shape
 appears. The style values themselves are just strings, like 'xl' or 'black',
-so it's up to you to decide how to use them. In this example, we're using the
-size to set the text's font-size property, and also using the default theme
-(via the useDefaultColorTheme hook) to get the color for the text.
+so we use the SizeStyleUtil to convert the size value to pixels for the font-size
+property. We also use the default theme (via the useDefaultColorTheme hook) to 
+get the color for the text.
 */

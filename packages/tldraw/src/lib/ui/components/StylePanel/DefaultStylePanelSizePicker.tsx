@@ -1,20 +1,28 @@
-import { ReadonlySharedStyleMap, SharedStyle, TLDefaultColorTheme, useEditor } from '@tldraw/editor'
-import { StyleProp2 } from '@tldraw/tlschema/src/styles/StyleProp'
-import { SizeStyle, TLDefaultSizeStyle } from '@tldraw/tlschema/src/styles/TLSizeStyle'
+import {
+	ReadonlySharedStyleMap,
+	SharedStyle,
+	SizeStyle,
+	TLDefaultColorTheme,
+	TLDefaultSizeStyle,
+	TLSizeStyle,
+	useEditor,
+} from '@tldraw/editor'
 import { STYLES } from '../../../styles'
 import { DefaultSizeStyleUtil, SizeStyleUtil } from '../../../styles/TLSizeStyle'
 import { useTranslation } from '../../hooks/useTranslation/useTranslation'
 import { TldrawUiButtonPicker } from '../primitives/TldrawUiButtonPicker'
 import { TldrawUiToolbar } from '../primitives/TldrawUiToolbar'
 
+/** @public */
 export interface DefaultStylePanelSizePickerProps {
 	showUiLabels: boolean
 	styles: ReadonlySharedStyleMap
-	onChange(style: StyleProp2<any>, value: unknown): void
+	onChange(style: TLSizeStyle, value: unknown): void
 	onHistoryMark(id: string): void
 	theme: TLDefaultColorTheme
 }
 
+/** @public @react */
 export function DefaultStylePanelSizePicker({
 	showUiLabels,
 	styles,

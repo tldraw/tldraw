@@ -49,11 +49,12 @@ import {
 } from '@tldraw/editor'
 import React, { useMemo } from 'react'
 import { updateArrowTerminal } from '../../bindings/arrow/ArrowBindingUtil'
+import { SizeStyleUtil } from '../../styles/TLSizeStyle'
 import { isEmptyRichText, renderPlaintextFromRichText } from '../../utils/text/richText'
 import { PathBuilder } from '../shared/PathBuilder'
 import { RichTextLabel, RichTextSVG } from '../shared/RichTextLabel'
 import { ShapeFill } from '../shared/ShapeFill'
-import { ARROW_LABEL_PADDING, STROKE_SIZES, TEXT_PROPS } from '../shared/default-shape-constants'
+import { ARROW_LABEL_PADDING, TEXT_PROPS } from '../shared/default-shape-constants'
 import { getFillDefForCanvas, getFillDefForExport } from '../shared/defaultStyleDefs'
 import { useDefaultColorTheme } from '../shared/useDefaultColorTheme'
 import { getArrowBodyPath, getArrowHandlePath } from './ArrowPath'
@@ -90,17 +91,16 @@ export class ArrowShapeUtil extends ShapeUtil<TLArrowShape> {
 	static override migrations = arrowShapeMigrations
 
 	override options: ArrowShapeOptions = {
-		expandElbowLegLength: {
-			s: 28,
-			m: 36,
-			l: 44,
-			xl: 66,
+		getExpandElbowLegLength: (shape, editor) => {
+			return editor.getStyleUtil(SizeStyleUtil).toStrokeSizePx(shape.props.size) * 10
 		},
-		minElbowLegLength: {
-			s: STROKE_SIZES.s * 3,
-			m: STROKE_SIZES.m * 3,
-			l: STROKE_SIZES.l * 3,
-			xl: STROKE_SIZES.xl * 3,
+		getMinElbowLegLength: (shape, editor) => {
+			return editor.getStyleUtil(SizeStyleUtil).toStrokeSizePx(shape.props.size) * 3
+		},
+		getArrowLabelFontSize: (shape, editor) => {
+			return Math.round(
+				editor.getStyleUtil(SizeStyleUtil).toLabelFontSizePx(shape.props.size) * 0.9
+			)
 		},
 		minElbowHandleDistance: 16,
 
@@ -782,7 +782,7 @@ export class ArrowShapeUtil extends ShapeUtil<TLArrowShape> {
 						shapeId={shape.id}
 						type="arrow"
 						font={shape.props.font}
-						fontSize={getArrowLabelFontSize(shape)}
+						fontSize={getArrowLabelFontSize(this.editor, shape)}
 						lineHeight={TEXT_PROPS.lineHeight}
 						align="middle"
 						verticalAlign="middle"
@@ -818,7 +818,8 @@ export class ArrowShapeUtil extends ShapeUtil<TLArrowShape> {
 
 		if (Vec.Equals(start, end)) return null
 
-		const strokeWidth = STROKE_SIZES[shape.props.size] * shape.props.scale
+		const strokeWidth =
+			this.editor.getStyleUtil(SizeStyleUtil).toStrokeSizePx(shape.props.size) * shape.props.scale
 
 		const as = info.start.arrowhead && getArrowheadPathForType(info, 'start', strokeWidth)
 		const ae = info.end.arrowhead && getArrowheadPathForType(info, 'end', strokeWidth)
@@ -931,7 +932,7 @@ export class ArrowShapeUtil extends ShapeUtil<TLArrowShape> {
 			<g transform={`scale(${scaleFactor})`}>
 				<ArrowSvg shape={shape} shouldDisplayHandles={false} />
 				<RichTextSVG
-					fontSize={getArrowLabelFontSize(shape)}
+					fontSize={getArrowLabelFontSize(this.editor, shape)}
 					font={shape.props.font}
 					align="middle"
 					verticalAlign="middle"
@@ -1021,7 +1022,8 @@ const ArrowSvg = track(function ArrowSvg({
 
 	if (!info?.isValid) return null
 
-	const strokeWidth = STROKE_SIZES[shape.props.size] * shape.props.scale
+	const strokeWidth =
+		editor.getStyleUtil(SizeStyleUtil).toStrokeSizePx(shape.props.size) * shape.props.scale
 
 	const as = info.start.arrowhead && getArrowheadPathForType(info, 'start', strokeWidth)
 	const ae = info.end.arrowhead && getArrowheadPathForType(info, 'end', strokeWidth)

@@ -1,7 +1,7 @@
-import { DefaultSizeStyleUtil } from './styles/TLSizeStyle'
+import { DefaultSizeStyleOptions, DefaultSizeStyleUtil, SizeStyleUtil } from './styles/TLSizeStyle'
 
 /** @public */
 export const defaultStyleUtils = [DefaultSizeStyleUtil]
 
 /** @public */
-export { DefaultSizeStyleUtil }
+export { DefaultSizeStyleUtil, SizeStyleUtil, type DefaultSizeStyleOptions }

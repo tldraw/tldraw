@@ -517,6 +517,7 @@ function TldrawEditorWithReadyStore({
 			options,
 			shapeUtils,
 			store,
+			styleUtils,
 			tools,
 			user,
 			setEditor,

@@ -1,16 +1,21 @@
 import { T } from '@tldraw/validate'
 
+/** @public */
 export const StylePropMarker = Symbol('StyleProp')
 
+/** @public */
 export function StyleProp2<const Id extends string>(id: Id): StyleProp2<Id> {
 	return { [StylePropMarker]: id }
 }
 
+/** @public */
 export interface StyleProp2<Id extends string> {
 	[StylePropMarker]: Id
 }
 
+/** @public */
 export function isStyleProp2(value: object): value is StyleProp2<string>
+/** @public */
 export function isStyleProp2<const Id extends string>(
 	value: object,
 	id: Id

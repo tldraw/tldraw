@@ -20,6 +20,8 @@ import {
 	InstancePageStateRecordType,
 	PageRecordType,
 	StyleProp,
+	StyleProp2,
+	StylePropMarker,
 	StylePropValue,
 	TLArrowShape,
 	TLAsset,
@@ -62,8 +64,8 @@ import {
 	getShapePropKeysByStyle,
 	isPageId,
 	isShapeId,
+	isStyleProp2,
 } from '@tldraw/tlschema'
-import { StyleProp2, StylePropMarker, isStyleProp2 } from '@tldraw/tlschema/src/styles/StyleProp'
 import {
 	FileHelpers,
 	IndexKey,
@@ -372,7 +374,7 @@ export class Editor extends EventEmitter<TLEventMap> {
 		const _styleUtils = {} as Record<string, StyleUtil<any>>
 		const _shapeUtils = {} as Record<string, ShapeUtil<any>>
 		const _styleProps = {} as Record<string, Map<StyleProp<unknown> | StyleProp2<string>, string>>
-		const allStylesById = new Map<string, StyleProp<unknown>>()
+		const _allStylesById = new Map<string, StyleProp<unknown>>()
 
 		for (const Util of styleUtils) {
 			const util = new Util(this)

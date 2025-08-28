@@ -17,7 +17,7 @@ import {
 } from '@tldraw/editor'
 import { SizeStyleUtil } from '../../../styles/TLSizeStyle'
 import { ArrowShapeUtil } from '../ArrowShapeUtil'
-import { BOUND_ARROW_OFFSET, STROKE_SIZES, TLArrowBindings } from '../shared'
+import { BOUND_ARROW_OFFSET, TLArrowBindings } from '../shared'
 import {
 	ElbowArrowAxes,
 	ElbowArrowBox,
@@ -48,8 +48,8 @@ export function getElbowArrowInfo(
 	const shapeOptions = editor.getShapeUtil<ArrowShapeUtil>(arrow.type).options
 	const options: ElbowArrowOptions = {
 		elbowMidpoint: arrow.props.elbowMidPoint,
-		expandElbowLegLength: shapeOptions.expandElbowLegLength[arrow.props.size] * arrow.props.scale,
-		minElbowLegLength: shapeOptions.minElbowLegLength[arrow.props.size] * arrow.props.scale,
+		expandElbowLegLength: shapeOptions.getExpandElbowLegLength(arrow, editor) * arrow.props.scale,
+		minElbowLegLength: shapeOptions.getMinElbowLegLength(arrow, editor) * arrow.props.scale,
 	}
 
 	// Before we can do anything else, we need to find the start and end terminals of the arrow.
@@ -348,7 +348,8 @@ function getElbowArrowTerminalInfo(
 	binding: TLArrowBinding | undefined,
 	point: VecModel
 ): ElbowArrowTerminal {
-	const arrowStrokeSize = (STROKE_SIZES[arrow.props.size] * arrow.props.scale) / 2
+	const arrowStrokeSize =
+		(editor.getStyleUtil(SizeStyleUtil).toStrokeSizePx(arrow.props.size) * arrow.props.scale) / 2
 	const minEndSegmentLength = arrowStrokeSize * arrow.props.scale * 3
 
 	if (binding) {

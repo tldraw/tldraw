@@ -3,11 +3,12 @@ import {
 	DefaultColorStyle,
 	ReadonlySharedStyleMap,
 	SharedStyle,
+	StylePropMarker,
 	TLGeoShape,
 	TLGroupShape,
+	isStyleProp2,
 	toRichText,
 } from '@tldraw/editor'
-import { StylePropMarker, isStyleProp2 } from '@tldraw/tlschema/src/styles/StyleProp'
 import { TestEditor, createDefaultShapes, defaultShapesIds } from './TestEditor'
 import { TL } from './test-jsx'
 

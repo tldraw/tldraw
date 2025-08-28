@@ -3,11 +3,11 @@ import {
 	getColorValue,
 	SharedStyle,
 	StyleProp,
+	StyleProp2,
 	TLDefaultColorStyle,
 	TLDefaultColorTheme,
 	useEditor,
 } from '@tldraw/editor'
-import { StyleProp2 } from '@tldraw/tlschema/src/styles/StyleProp'
 import { memo, ReactElement, useMemo, useRef } from 'react'
 import { StyleValuesForUi } from '../../../styles'
 import { PORTRAIT_BREAKPOINT } from '../../constants'

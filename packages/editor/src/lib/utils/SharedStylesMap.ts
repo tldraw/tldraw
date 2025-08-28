@@ -1,5 +1,4 @@
-import { StyleProp } from '@tldraw/tlschema'
-import { StyleProp2 } from '@tldraw/tlschema/src/styles/StyleProp'
+import { StyleProp, StyleProp2 } from '@tldraw/tlschema'
 import { exhaustiveSwitchError } from '@tldraw/utils'
 
 /**

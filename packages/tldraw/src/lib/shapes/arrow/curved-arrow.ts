@@ -16,7 +16,6 @@ import { TLArcInfo, TLArrowInfo } from './arrow-types'
 import {
 	BOUND_ARROW_OFFSET,
 	MIN_ARROW_LENGTH,
-	STROKE_SIZES,
 	TLArrowBindings,
 	WAY_TOO_BIG_ARROW_BEND_FACTOR,
 	getArrowTerminalsInArrowSpace,
@@ -173,7 +172,7 @@ export function getCurvedArrowInfo(
 
 			if (arrowheadStart !== 'none') {
 				const strokeOffset =
-					STROKE_SIZES[shape.props.size] / 2 +
+					editor.getStyleUtil(SizeStyleUtil).toStrokeSizePx(shape.props.size) / 2 +
 					('size' in startShapeInfo.shape.props
 						? editor.getStyleUtil(SizeStyleUtil).toStrokeSizePx(startShapeInfo.shape.props.size) / 2
 						: 0)
@@ -253,7 +252,7 @@ export function getCurvedArrowInfo(
 
 			if (arrowheadEnd !== 'none') {
 				const strokeOffset =
-					STROKE_SIZES[shape.props.size] / 2 +
+					editor.getStyleUtil(SizeStyleUtil).toStrokeSizePx(shape.props.size) / 2 +
 					('size' in endShapeInfo.shape.props
 						? editor.getStyleUtil(SizeStyleUtil).toStrokeSizePx(endShapeInfo.shape.props.size) / 2
 						: 0)

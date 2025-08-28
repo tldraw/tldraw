@@ -169,7 +169,7 @@ export interface ElbowArrowEdge {
 	 */
 	value: number
 	/**
-	 * The co-ordinate of the edge, expanded by {@link ArrowShapeOptions.expandElbowLegLength}. May
+	 * The co-ordinate of the edge, expanded by {@link ArrowShapeOptions.getExpandElbowLegLength}. May
 	 * be null if the target is a point.
 	 */
 	expanded: number | null
@@ -207,7 +207,7 @@ export interface ElbowArrowBox {
 	/** The original bounding box */
 	original: Box
 	/**
-	 * The bounding box, expanded by {@link ArrowShapeOptions.expandElbowLegLength}.
+	 * The bounding box, expanded by {@link ArrowShapeOptions.getExpandElbowLegLength}.
 	 */
 	expanded: Box
 }

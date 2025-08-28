@@ -92,7 +92,12 @@ export {
 export { defaultShapeTools } from './lib/defaultShapeTools'
 export { defaultShapeUtils } from './lib/defaultShapeUtils'
 export { registerDefaultSideEffects } from './lib/defaultSideEffects'
-export { DefaultSizeStyleUtil, defaultStyleUtils } from './lib/defaultStyleUtils'
+export {
+	DefaultSizeStyleUtil,
+	defaultStyleUtils,
+	SizeStyleUtil,
+	type DefaultSizeStyleOptions,
+} from './lib/defaultStyleUtils'
 export { defaultTools } from './lib/defaultTools'
 export {
 	type ArrowShapeOptions,
@@ -153,14 +158,7 @@ export {
 	type ASPECT_RATIO_OPTION,
 	type CropBoxOptions,
 } from './lib/shapes/shared/crop'
-export {
-	ARROW_LABEL_FONT_SIZES,
-	FONT_FAMILIES,
-	FONT_SIZES,
-	LABEL_FONT_SIZES,
-	STROKE_SIZES,
-	TEXT_PROPS,
-} from './lib/shapes/shared/default-shape-constants'
+export { FONT_FAMILIES, TEXT_PROPS } from './lib/shapes/shared/default-shape-constants'
 export {
 	allDefaultFontFaces,
 	DefaultFontFaces,
@@ -458,6 +456,10 @@ export {
 	type ThemeStylePickerSetProps,
 	type TLUiStylePanelContentProps,
 } from './lib/ui/components/StylePanel/DefaultStylePanelContent'
+export {
+	DefaultStylePanelSizePicker,
+	type DefaultStylePanelSizePickerProps,
+} from './lib/ui/components/StylePanel/DefaultStylePanelSizePicker'
 export {
 	DefaultImageToolbar,
 	type TLUiImageToolbarProps,

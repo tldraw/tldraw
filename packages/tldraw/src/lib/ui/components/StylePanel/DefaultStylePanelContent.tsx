@@ -12,7 +12,10 @@ import {
 	GeoShapeGeoStyle,
 	LineShapeSplineStyle,
 	ReadonlySharedStyleMap,
+	SizeStyle,
 	StyleProp,
+	StyleProp2,
+	StylePropMarker,
 	TLArrowShapeArrowheadStyle,
 	TLDefaultColorTheme,
 	getDefaultColorTheme,
@@ -22,8 +25,6 @@ import {
 	useIsDarkMode,
 	useValue,
 } from '@tldraw/editor'
-import { StyleProp2, StylePropMarker } from '@tldraw/tlschema/src/styles/StyleProp'
-import { SizeStyle } from '@tldraw/tlschema/src/styles/TLSizeStyle'
 import React, { useCallback } from 'react'
 import { STYLES } from '../../../styles'
 import { useTldrawUiComponents } from '../../context/components'
