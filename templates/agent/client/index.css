@@ -478,6 +478,12 @@ body {
 	color: var(--tl-color-text-2);
 	max-height: 70px;
 	overflow-y: auto;
+	scrollbar-width: none;
+	-ms-overflow-style: none;
+}
+
+.agent-changes::-webkit-scrollbar {
+	display: none;
 }
 
 .agent-changes:last-child {
@@ -492,41 +498,6 @@ body {
 	font-size: 12px;
 	font-family: 'Inter', sans-serif;
 	font-weight: 400;
-}
-
-/* Scrollbar */
-
-.scroll-light {
-	scrollbar-width: thin;
-}
-
-.scroll-light::-webkit-scrollbar {
-	display: block;
-	width: 8px;
-	height: 8px;
-	position: absolute;
-	top: 0;
-	left: 0;
-	background-color: inherit;
-}
-
-.scroll-light::-webkit-scrollbar-button {
-	display: none;
-	width: 0;
-	height: 10px;
-}
-
-.scroll-light::-webkit-scrollbar-thumb {
-	background-clip: padding-box;
-	width: 0;
-	min-height: 36px;
-	border: 2px solid transparent;
-	border-radius: 6px;
-	background-color: var(--black-transparent-light);
-}
-
-.scroll-light::-webkit-scrollbar-thumb:hover {
-	background-color: var(--black-transparent-light);
 }
 
 /* Prompt Tags */

@@ -107,7 +107,7 @@ interface DiffStep {
 function DiffSteps({ steps }: { steps: DiffStep[] }) {
 	let previousDescription = ''
 	return (
-		<div className="agent-changes scroll-light">
+		<div className="agent-changes">
 			{steps.map((step, i) => {
 				if (!step.description) return null
 
