@@ -40,7 +40,7 @@
 		"react-dom": "^18.3.1",
 		"tldraw": "workspace:*",
 		"wrangler": "^4.23.0",
-		"zod": "^3.24.3"
+		"zod": "^4.0.17"
 	},
 	"devDependencies": {
 		"@cloudflare/workers-types": "^4.20250703.0",
