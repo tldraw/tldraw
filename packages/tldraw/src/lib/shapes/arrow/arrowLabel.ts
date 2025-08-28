@@ -17,6 +17,7 @@ import {
 	exhaustiveSwitchError,
 	getChangedKeys,
 	pointInPolygon,
+	toRichText,
 } from '@tldraw/editor'
 import { isEmptyRichText, renderHtmlFromRichTextForMeasurement } from '../../utils/text/richText'
 import {
@@ -53,6 +54,8 @@ export function getArrowBodyGeometry(editor: Editor, shape: TLArrowShape) {
 	}
 }
 
+const SIZES: Record<string, Vec> = {}
+
 const labelSizeCache = createComputedCache(
 	'arrow label size',
 	(editor: Editor, shape: TLArrowShape) => {
@@ -63,11 +66,19 @@ const labelSizeCache = createComputedCache(
 		const bodyGeom = getArrowBodyGeometry(editor, shape)
 		// We use 'i' as a default label to measure against as a minimum width.
 		const isEmpty = isEmptyRichText(shape.props.richText)
+
 		if (isEmpty) {
-			return new Vec(1, 1)
+			if (SIZES[shape.props.size]) {
+				return SIZES[shape.props.size]
+					.clone()
+					.addScalar(ARROW_LABEL_PADDING * 2 * shape.props.scale)
+			}
 		}
 
-		const html = renderHtmlFromRichTextForMeasurement(editor, shape.props.richText)
+		const html = renderHtmlFromRichTextForMeasurement(
+			editor,
+			isEmpty ? toRichText('i') : shape.props.richText
+		)
 
 		const bodyBounds = bodyGeom.bounds
 
@@ -80,6 +91,10 @@ const labelSizeCache = createComputedCache(
 			fontSize,
 			maxWidth: null,
 		})
+
+		if (isEmpty) {
+			SIZES[shape.props.size] = new Vec(w, h)
+		}
 
 		width = w
 		height = h
