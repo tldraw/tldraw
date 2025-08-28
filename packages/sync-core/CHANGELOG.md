@@ -1,3 +1,17 @@
+# v3.11.2 (Thu Aug 28 2025)
+
+#### 🐛 Bug Fix
+
+- [3.11.x] sync bug hotfix [#6667](https://github.com/tldraw/tldraw/pull/6667) ([@ds300](https://github.com/ds300))
+- Update CHANGELOG.md \[skip ci\] ([@huppy-bot[bot]](https://github.com/huppy-bot[bot]))
+
+#### Authors: 2
+
+- [@huppy-bot[bot]](https://github.com/huppy-bot[bot])
+- David Sheldrick ([@ds300](https://github.com/ds300))
+
+---
+
 # v3.11.0 (Thu Mar 20 2025)
 
 #### 🐛 Bug Fix

@@ -1,3 +1,47 @@
+# v3.11.2 (Thu Aug 28 2025)
+
+### Release Notes
+
+#### Alex/3.11.1 ([#5811](https://github.com/tldraw/tldraw/pull/5811))
+
+- Fix the zoomSpeed setting not being correctly applied to pinch gestures
+- Fix unexpected borders showing in exports from pages that use tailwindcss
+
+---
+
+#### 🐛 Bug Fix
+
+- Update clickup case study [#5873](https://github.com/tldraw/tldraw/pull/5873) ([@TodePond](https://github.com/TodePond))
+- Fix landing page issues [#5868](https://github.com/tldraw/tldraw/pull/5868) ([@TodePond](https://github.com/TodePond))
+- Fix case sensitive gif [#5867](https://github.com/tldraw/tldraw/pull/5867) ([@TodePond](https://github.com/TodePond))
+- series-a hotix pro experimental [#5860](https://github.com/tldraw/tldraw/pull/5860) ([@steveruizok](https://github.com/steveruizok))
+- fix examples [#5843](https://github.com/tldraw/tldraw/pull/5843) ([@SomeHats](https://github.com/SomeHats))
+- Update quick-start.mdx [#5836](https://github.com/tldraw/tldraw/pull/5836) ([@SomeHats](https://github.com/SomeHats))
+- Don't include json files in llms.txt outputs [#5763](https://github.com/tldraw/tldraw/pull/5763) ([@TodePond](https://github.com/TodePond))
+- Hotfix `llms.txt` (#5688) [#5752](https://github.com/tldraw/tldraw/pull/5752) ([@TodePond](https://github.com/TodePond))
+- `@tldraw/sync-core`
+  - [3.11.x] sync bug hotfix [#6667](https://github.com/tldraw/tldraw/pull/6667) ([@ds300](https://github.com/ds300))
+- `@tldraw/editor`, `tldraw`
+  - Alex/3.11.1 [#5811](https://github.com/tldraw/tldraw/pull/5811) ([@SomeHats](https://github.com/SomeHats))
+
+#### ⚠️ Pushed to `v3.11.x`
+
+- remove publish templates step ([@ds300](https://github.com/ds300))
+
+#### 🐛 Bug Fixes
+
+- Fix jobs link. [#5863](https://github.com/tldraw/tldraw/pull/5863) ([@MitjaBezensek](https://github.com/MitjaBezensek))
+
+#### Authors: 5
+
+- alex ([@SomeHats](https://github.com/SomeHats))
+- David Sheldrick ([@ds300](https://github.com/ds300))
+- Lu Wilson ([@TodePond](https://github.com/TodePond))
+- Mitja Bezenšek ([@MitjaBezensek](https://github.com/MitjaBezensek))
+- Steve Ruiz ([@steveruizok](https://github.com/steveruizok))
+
+---
+
 # v3.11.1 (Thu Apr 03 2025)
 
 ### Release Notes
