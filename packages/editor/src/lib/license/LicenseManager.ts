@@ -90,13 +90,13 @@ export class LicenseManager {
 
 		this.getLicenseFromKey(licenseKey)
 			.then((result) => {
-				const { unlicensed, internalExpired } = isEditorUnlicensed(result)
+				const { isUnlicensed, internalExpired } = isEditorUnlicensed(result)
 
-				if (!this.isDevelopment && unlicensed) {
+				if (!this.isDevelopment && isUnlicensed) {
 					fetch(WATERMARK_TRACK_SRC)
 				}
 
-				if (unlicensed) {
+				if (isUnlicensed) {
 					if (internalExpired) {
 						this.state.set('internal-expired')
 					} else {
@@ -376,17 +376,17 @@ export class LicenseManager {
 }
 
 export function isEditorUnlicensed(result: LicenseFromKeyResult): {
-	unlicensed: boolean
+	isUnlicensed: boolean
 	internalExpired: boolean
 } {
-	if (!result.isLicenseParseable) return { unlicensed: true, internalExpired: false }
+	if (!result.isLicenseParseable) return { isUnlicensed: true, internalExpired: false }
 	if (!result.isDomainValid && !result.isDevelopment)
-		return { unlicensed: true, internalExpired: false }
+		return { isUnlicensed: true, internalExpired: false }
 	if (result.isPerpetualLicenseExpired || result.isAnnualLicenseExpired) {
 		// Check if it's an expired internal license
 		const internalExpired = result.isInternalLicense && result.isDomainValid
-		return { unlicensed: true, internalExpired }
+		return { isUnlicensed: true, internalExpired }
 	}
 
-	return { unlicensed: false, internalExpired: false }
+	return { isUnlicensed: false, internalExpired: false }
 }

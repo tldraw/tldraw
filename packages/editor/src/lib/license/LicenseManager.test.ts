@@ -493,14 +493,14 @@ describe(isEditorUnlicensed, () => {
 			// @ts-ignore
 			isLicenseParseable: false,
 		})
-		expect(isEditorUnlicensed(licenseResult).unlicensed).toBe(true)
+		expect(isEditorUnlicensed(licenseResult).isUnlicensed).toBe(true)
 	})
 
 	it('shows watermark when domain is not valid', () => {
 		const licenseResult = getDefaultLicenseResult({
 			isDomainValid: false,
 		})
-		expect(isEditorUnlicensed(licenseResult).unlicensed).toBe(true)
+		expect(isEditorUnlicensed(licenseResult).isUnlicensed).toBe(true)
 	})
 
 	it('shows watermark when annual license has expired', () => {
@@ -508,7 +508,7 @@ describe(isEditorUnlicensed, () => {
 			isAnnualLicense: true,
 			isAnnualLicenseExpired: true,
 		})
-		expect(isEditorUnlicensed(licenseResult).unlicensed).toBe(true)
+		expect(isEditorUnlicensed(licenseResult).isUnlicensed).toBe(true)
 	})
 
 	it('shows watermark when annual license has expired, even if dev mode', () => {
@@ -517,7 +517,7 @@ describe(isEditorUnlicensed, () => {
 			isAnnualLicenseExpired: true,
 			isDevelopment: true,
 		})
-		expect(isEditorUnlicensed(licenseResult).unlicensed).toBe(true)
+		expect(isEditorUnlicensed(licenseResult).isUnlicensed).toBe(true)
 	})
 
 	it('shows watermark when perpetual license has expired', () => {
@@ -525,7 +525,7 @@ describe(isEditorUnlicensed, () => {
 			isPerpetualLicense: true,
 			isPerpetualLicenseExpired: true,
 		})
-		expect(isEditorUnlicensed(licenseResult).unlicensed).toBe(true)
+		expect(isEditorUnlicensed(licenseResult).isUnlicensed).toBe(true)
 	})
 
 	it('does not show watermark when license is valid and not expired', () => {
@@ -534,7 +534,7 @@ describe(isEditorUnlicensed, () => {
 			isAnnualLicenseExpired: false,
 			isInternalLicense: false,
 		})
-		expect(isEditorUnlicensed(licenseResult).unlicensed).toBe(false)
+		expect(isEditorUnlicensed(licenseResult).isUnlicensed).toBe(false)
 	})
 
 	it('does not show watermark when perpetual license is valid and not expired', () => {
@@ -543,14 +543,14 @@ describe(isEditorUnlicensed, () => {
 			isPerpetualLicenseExpired: false,
 			isInternalLicense: false,
 		})
-		expect(isEditorUnlicensed(licenseResult).unlicensed).toBe(false)
+		expect(isEditorUnlicensed(licenseResult).isUnlicensed).toBe(false)
 	})
 
 	it('does not show watermark when in development mode', () => {
 		const licenseResult = getDefaultLicenseResult({
 			isDevelopment: true,
 		})
-		expect(isEditorUnlicensed(licenseResult).unlicensed).toBe(false)
+		expect(isEditorUnlicensed(licenseResult).isUnlicensed).toBe(false)
 	})
 
 	it('does not show watermark when license is parseable and domain is valid', () => {
@@ -558,7 +558,7 @@ describe(isEditorUnlicensed, () => {
 			isLicenseParseable: true,
 			isDomainValid: true,
 		})
-		expect(isEditorUnlicensed(licenseResult).unlicensed).toBe(false)
+		expect(isEditorUnlicensed(licenseResult).isUnlicensed).toBe(false)
 	})
 
 	it('does not show watermark when license is parseable and domain is not valid and dev mode', () => {
@@ -567,7 +567,7 @@ describe(isEditorUnlicensed, () => {
 			isDomainValid: false,
 			isDevelopment: true,
 		})
-		expect(isEditorUnlicensed(licenseResult).unlicensed).toBe(false)
+		expect(isEditorUnlicensed(licenseResult).isUnlicensed).toBe(false)
 	})
 
 	it('returns true when an internal annual license has expired', () => {
@@ -580,7 +580,7 @@ describe(isEditorUnlicensed, () => {
 			expiryDate,
 		})
 		const result = isEditorUnlicensed(licenseResult)
-		expect(result.unlicensed).toBe(true)
+		expect(result.isUnlicensed).toBe(true)
 		expect(result.internalExpired).toBe(true)
 	})
 
@@ -594,7 +594,7 @@ describe(isEditorUnlicensed, () => {
 			expiryDate,
 		})
 		const result = isEditorUnlicensed(licenseResult)
-		expect(result.unlicensed).toBe(true)
+		expect(result.isUnlicensed).toBe(true)
 		expect(result.internalExpired).toBe(true)
 	})
 
@@ -602,7 +602,7 @@ describe(isEditorUnlicensed, () => {
 		const licenseResult = getDefaultLicenseResult({
 			isLicensedWithWatermark: true,
 		})
-		expect(isEditorUnlicensed(licenseResult).unlicensed).toBe(false)
+		expect(isEditorUnlicensed(licenseResult).isUnlicensed).toBe(false)
 	})
 
 	it('returns internalExpired=false for expired internal license with invalid domain', () => {
@@ -615,7 +615,7 @@ describe(isEditorUnlicensed, () => {
 			expiryDate,
 		})
 		const result = isEditorUnlicensed(licenseResult)
-		expect(result.unlicensed).toBe(true)
+		expect(result.isUnlicensed).toBe(true)
 		expect(result.internalExpired).toBe(false)
 	})
 })
