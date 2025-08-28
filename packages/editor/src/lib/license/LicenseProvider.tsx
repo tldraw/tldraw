@@ -21,7 +21,7 @@ export function LicenseProvider({
 
 	// If internal license has expired, don't render the editor at all
 	if (licenseState === 'internal-expired') {
-		return null
+		return <div data-testid="license-expired" style={{ display: 'none' }} />
 	}
 
 	return <LicenseContext.Provider value={licenseManager}>{children}</LicenseContext.Provider>
