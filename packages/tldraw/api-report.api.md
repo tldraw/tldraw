@@ -2726,9 +2726,6 @@ export interface TextAreaProps {
 // @public (undocumented)
 export const TextDirection: Extension<any, any>;
 
-// @public @deprecated (undocumented)
-export const TextLabel: React_3.NamedExoticComponent<PlainTextLabelProps>;
-
 // @public (undocumented)
 export interface TextShapeOptions {
     extraArrowHorizontalPadding: number;
@@ -5031,9 +5028,6 @@ export function useA11y(): TLUiA11yContextType;
 // @public (undocumented)
 export function useActions(): TLUiActionsContextType;
 
-// @public @deprecated (undocumented)
-export const useAsset: typeof useImageOrVideoAsset;
-
 // @internal (undocumented)
 export function useAssetUrls(): TLUiAssetUrls;
 
@@ -5138,9 +5132,6 @@ export function useEditableRichText(shapeId: TLShapeId, type: string, richText?:
     isReadyForEditing: boolean;
     rInput: RefObject<HTMLDivElement>;
 };
-
-// @public @deprecated (undocumented)
-export const useEditableText: typeof useEditablePlainText;
 
 // @public (undocumented)
 export function useExportAs(): (ids: TLShapeId[], format: TLExportType | undefined, name: string | undefined) => void;
