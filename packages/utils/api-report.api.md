@@ -110,8 +110,6 @@ export { fetch_2 as fetch }
 export class FileHelpers {
     static blobToDataUrl(file: Blob): Promise<string>;
     static blobToText(file: Blob): Promise<string>;
-    // @deprecated (undocumented)
-    static dataUrlToArrayBuffer(dataURL: string): Promise<ArrayBuffer>;
     // (undocumented)
     static rewriteMimeType(blob: Blob, newMimeType: string): Blob;
     // (undocumented)

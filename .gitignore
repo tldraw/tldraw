@@ -10,6 +10,9 @@ lerna-debug.log*
 
 .rooms
 
+# Temporary files
+*.tmp.ts
+
 node_modules
 dist
 dist-cjs

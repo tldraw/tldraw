@@ -268,7 +268,6 @@ export {
 	type TLGetShapeAtPointOptions,
 	type TLImageExportOptions,
 	type TLSvgExportOptions,
-	type TLSvgOptions,
 	type TLUpdatePointerOptions,
 } from './lib/editor/types/misc-types'
 export {
@@ -484,14 +483,6 @@ export { LocalIndexedDb, Table, type StoreName } from './lib/utils/sync/LocalInd
 export { type TLStoreWithStatus } from './lib/utils/sync/StoreWithStatus'
 export { uniq } from './lib/utils/uniq'
 export { openWindow } from './lib/utils/window-open'
-
-/**
- * @deprecated Licensing is now enabled in the tldraw SDK.
- * @public */
-export function debugEnableLicensing() {
-	// noop
-	return
-}
 
 registerTldrawLibraryVersion(
 	(globalThis as any).TLDRAW_LIBRARY_NAME,

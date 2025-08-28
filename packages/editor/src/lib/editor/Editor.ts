@@ -5839,11 +5839,6 @@ export class Editor extends EventEmitter<TLEventMap> {
 		return shapeIds
 	}
 
-	/** @deprecated Use {@link Editor.getDraggingOverShape} instead */
-	getDroppingOverShape(point: Vec, droppingShapes: TLShape[]): TLShape | undefined {
-		return this.getDraggingOverShape(point, droppingShapes)
-	}
-
 	/**
 	 * Get the shape that some shapes should be dropped on at a given point.
 	 *
@@ -9457,13 +9452,6 @@ export class Editor extends EventEmitter<TLEventMap> {
 			width: result.width,
 			height: result.height,
 		}
-	}
-
-	/** @deprecated Use {@link Editor.getSvgString} or {@link Editor.getSvgElement} instead. */
-	async getSvg(shapes: TLShapeId[] | TLShape[], opts: TLSvgExportOptions = {}) {
-		const result = await this.getSvgElement(shapes, opts)
-		if (!result) return undefined
-		return result.svg
 	}
 
 	/**

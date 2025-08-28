@@ -547,9 +547,6 @@ export class CubicSpline2d extends Geometry2d {
 // @public (undocumented)
 export function dataUrlToFile(url: string, filename: string, mimeType: string): Promise<File>;
 
-// @public @deprecated (undocumented)
-export function debugEnableLicensing(): void;
-
 // @internal (undocumented)
 export interface DebugFlag<T> extends DebugFlagDef<T>, Atom<T> {
     // (undocumented)
@@ -1199,8 +1196,6 @@ export class Editor extends EventEmitter<TLEventMap> {
     getCurrentToolId(): string;
     getDocumentSettings(): TLDocument;
     getDraggingOverShape(point: Vec, droppingShapes: TLShape[]): TLShape | undefined;
-    // @deprecated (undocumented)
-    getDroppingOverShape(point: Vec, droppingShapes: TLShape[]): TLShape | undefined;
     getEditingShape(): TLShape | undefined;
     getEditingShapeId(): null | TLShapeId;
     getErasingShapeIds(): TLShapeId[];
@@ -1287,8 +1282,6 @@ export class Editor extends EventEmitter<TLEventMap> {
     getSortedChildIdsForParent(parent: TLPage | TLParentId | TLShape): TLShapeId[];
     getStateDescendant<T extends StateNode>(path: string): T | undefined;
     getStyleForNextShape<T>(style: StyleProp<T>): T;
-    // @deprecated (undocumented)
-    getSvg(shapes: TLShape[] | TLShapeId[], opts?: TLSvgExportOptions): Promise<SVGSVGElement | undefined>;
     getSvgElement(shapes: TLShape[] | TLShapeId[], opts?: TLSvgExportOptions): Promise<{
         height: number;
         svg: SVGSVGElement;
@@ -1728,8 +1721,6 @@ export abstract class Geometry2d {
     get length(): number;
     // (undocumented)
     abstract nearestPoint(point: VecLike, _filters?: Geometry2dFilters): Vec;
-    // @deprecated (undocumented)
-    nearestPointOnLineSegment(A: VecLike, B: VecLike): Vec;
     // (undocumented)
     toSimpleSvgPath(): string;
     // (undocumented)
@@ -4229,9 +4220,6 @@ export interface TLSvgExportOptions {
     scale?: number;
 }
 
-// @public @deprecated (undocumented)
-export type TLSvgOptions = TLImageExportOptions;
-
 // @public (undocumented)
 export interface TLSvgTextExternalContent extends TLBaseExternalContent {
     // (undocumented)
@@ -4754,8 +4742,6 @@ export class Vec {
     static Neg(A: VecLike): Vec;
     // (undocumented)
     neg(): this;
-    // @deprecated (undocumented)
-    norm(): this;
     // (undocumented)
     static Nudge(A: VecLike, B: VecLike, distance: number): Vec;
     // (undocumented)
