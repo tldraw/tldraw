@@ -172,7 +172,12 @@ export const TldrawUiContextualToolbar = ({
 			className={classNames('tlui-contextual-toolbar', className)}
 			onPointerDown={stopEventPropagation}
 		>
-			<TldrawUiToolbar orientation="horizontal" className="tlui-menu" label={label}>
+			<TldrawUiToolbar
+				orientation="horizontal"
+				className="tlui-menu"
+				label={label}
+				tooltipSide="top"
+			>
 				{children}
 			</TldrawUiToolbar>
 		</div>
