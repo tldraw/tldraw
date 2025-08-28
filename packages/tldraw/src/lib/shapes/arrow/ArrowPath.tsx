@@ -10,8 +10,8 @@ export function getArrowBodyPath(shape: TLArrowShape, info: TLArrowInfo, opts: P
 				.moveTo(info.start.point.x, info.start.point.y, { offset: 0, roundness: 0 })
 				.lineTo(info.end.point.x, info.end.point.y, { offset: 0, roundness: 0 })
 				.toSvg(opts)
-		case 'arc': {
-			const path = new PathBuilder()
+		case 'arc':
+			return new PathBuilder()
 				.moveTo(info.start.point.x, info.start.point.y, { offset: 0, roundness: 0 })
 				.circularArcTo(
 					info.bodyArc.radius,
@@ -22,8 +22,6 @@ export function getArrowBodyPath(shape: TLArrowShape, info: TLArrowInfo, opts: P
 					{ offset: 0, roundness: 0 }
 				)
 				.toSvg(opts)
-			return path
-		}
 		case 'elbow': {
 			const path = new PathBuilder()
 			path.moveTo(info.start.point.x, info.start.point.y, {
