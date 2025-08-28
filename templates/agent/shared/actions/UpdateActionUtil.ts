@@ -16,7 +16,17 @@ import z from 'zod'
 import { AgentTransform } from '../AgentTransform'
 import { asColor } from '../format/SimpleColor'
 import { convertSimpleFillToTldrawFill } from '../format/SimpleFill'
-import { SimpleShape } from '../format/SimpleShape'
+import { convertSimpleGeoShapeTypeToTldrawGeoShapeGeoStyleOrUnknownIfNeeded } from '../format/SimpleGeoShapeType'
+import {
+	ISimpleArrowShape,
+	ISimpleDrawShape,
+	ISimpleGeoShape,
+	ISimpleLineShape,
+	ISimpleNoteShape,
+	ISimpleTextShape,
+	ISimpleUnknownShape,
+	SimpleShape,
+} from '../format/SimpleShape'
 import { Streaming } from '../types/Streaming'
 import { AgentActionUtil } from './AgentActionUtil'
 
@@ -96,15 +106,20 @@ export function getTldrawAiChangesFromUpdateEvent({
 	const update = action.update
 	const shapeId = `shape:${update.shapeId}` as TLShapeId
 
-	switch (update._type) {
+	const updateShapeType = convertSimpleGeoShapeTypeToTldrawGeoShapeGeoStyleOrUnknownIfNeeded(
+		update._type
+	)
+
+	switch (updateShapeType) {
 		case 'text': {
+			const textShape = update as ISimpleTextShape
 			const shapeOnCanvas = editor.getShape<TLTextShape>(shapeId)
 			if (!shapeOnCanvas) {
 				throw new Error(`Shape ${update.shapeId} not found in canvas`)
 			}
 
-			const color = update.color ? asColor(update.color) : shapeOnCanvas.props.color
-			const richText = update.text ? toRichText(update.text) : shapeOnCanvas.props.richText
+			const color = textShape.color ? asColor(textShape.color) : shapeOnCanvas.props.color
+			const richText = textShape.text ? toRichText(textShape.text) : shapeOnCanvas.props.richText
 
 			changes.push({
 				type: 'updateShape',
@@ -112,29 +127,30 @@ export function getTldrawAiChangesFromUpdateEvent({
 				shape: {
 					id: shapeId,
 					type: 'text',
-					x: update.x ?? shapeOnCanvas.x,
-					y: update.y ?? shapeOnCanvas.y,
+					x: textShape.x ?? shapeOnCanvas.x,
+					y: textShape.y ?? shapeOnCanvas.y,
 					props: {
 						color,
 						richText,
 					},
 					meta: {
-						note: update.note ?? shapeOnCanvas.meta.note,
+						note: textShape.note ?? shapeOnCanvas.meta.note,
 					},
 				},
 			})
 			break
 		}
 		case 'line': {
+			const lineShape = update as ISimpleLineShape
 			const shapeOnCanvas = editor.getShape<TLLineShape>(shapeId)
 			if (!shapeOnCanvas) {
 				throw new Error(`Shape ${update.shapeId} not found in canvas`)
 			}
 
-			const startX = update.x1
-			const startY = update.y1
-			const endX = update.x2 - startX
-			const endY = update.y2 - startY
+			const startX = lineShape.x1
+			const startY = lineShape.y1
+			const endX = lineShape.x2 - startX
+			const endY = lineShape.y2 - startY
 
 			const points = {
 				a1: {
@@ -151,7 +167,7 @@ export function getTldrawAiChangesFromUpdateEvent({
 				},
 			}
 
-			const color = update.color ? asColor(update.color) : shapeOnCanvas.props.color
+			const color = lineShape.color ? asColor(lineShape.color) : shapeOnCanvas.props.color
 			changes.push({
 				type: 'updateShape',
 				description: action.intent ?? '',
@@ -165,29 +181,30 @@ export function getTldrawAiChangesFromUpdateEvent({
 						points,
 					},
 					meta: {
-						note: update.note ?? shapeOnCanvas.meta.note,
+						note: lineShape.note ?? shapeOnCanvas.meta.note,
 					},
 				},
 			})
 			break
 		}
 		case 'arrow': {
+			const arrowShape = update as ISimpleArrowShape
 			const shapeOnCanvas = editor.getShape<TLArrowShape>(shapeId)
 			if (!shapeOnCanvas) {
 				throw new Error(`Shape ${update.shapeId} not found in canvas`)
 			}
 
-			const x1 = update.x1
-			const y1 = update.y1
-			const x2 = update.x2
-			const y2 = update.y2
+			const x1 = arrowShape.x1
+			const y1 = arrowShape.y1
+			const x2 = arrowShape.x2
+			const y2 = arrowShape.y2
 			const minX = Math.min(x1, x2)
 			const minY = Math.min(y1, y2)
 
-			const bend = update.bend ?? shapeOnCanvas.props.bend
+			const bend = arrowShape.bend ?? shapeOnCanvas.props.bend
 
-			const color = update.color ? asColor(update.color) : shapeOnCanvas.props.color
-			const richText = update.text ? toRichText(update.text) : shapeOnCanvas.props.richText
+			const color = arrowShape.color ? asColor(arrowShape.color) : shapeOnCanvas.props.color
+			const richText = arrowShape.text ? toRichText(arrowShape.text) : shapeOnCanvas.props.richText
 
 			changes.push({
 				type: 'updateShape',
@@ -205,7 +222,7 @@ export function getTldrawAiChangesFromUpdateEvent({
 						bend,
 					},
 					meta: {
-						note: update.note ?? shapeOnCanvas.meta.note,
+						note: arrowShape.note ?? shapeOnCanvas.meta.note,
 					},
 				},
 			})
@@ -219,8 +236,8 @@ export function getTldrawAiChangesFromUpdateEvent({
 				})
 			}
 
-			const fromId = update.fromId ? (`shape:${update.fromId}` as TLShapeId) : null
-			const toId = update.toId ? (`shape:${update.toId}` as TLShapeId) : null
+			const fromId = arrowShape.fromId ? (`shape:${arrowShape.fromId}` as TLShapeId) : null
+			const toId = arrowShape.toId ? (`shape:${arrowShape.toId}` as TLShapeId) : null
 
 			// Does the arrow have a start shape? Then try to create the binding
 			const startShape = fromId ? editor.getShape(fromId) : null
@@ -310,15 +327,16 @@ export function getTldrawAiChangesFromUpdateEvent({
 		case 'check-box':
 		case 'heart':
 		case 'ellipse': {
+			const geoShape = update as ISimpleGeoShape
 			const shapeOnCanvas = editor.getShape<TLGeoShape>(shapeId)
 			if (!shapeOnCanvas) {
 				throw new Error(`Shape ${update.shapeId} not found in canvas`)
 			}
 
-			const color = update.color ? asColor(update.color) : shapeOnCanvas.props.color
-			const richText = update.text ? toRichText(update.text) : shapeOnCanvas.props.richText
-			const fill = update.fill
-				? convertSimpleFillToTldrawFill(update.fill)
+			const color = geoShape.color ? asColor(geoShape.color) : shapeOnCanvas.props.color
+			const richText = geoShape.text ? toRichText(geoShape.text) : shapeOnCanvas.props.richText
+			const fill = geoShape.fill
+				? convertSimpleFillToTldrawFill(geoShape.fill)
 				: shapeOnCanvas.props.fill
 
 			changes.push({
@@ -327,18 +345,18 @@ export function getTldrawAiChangesFromUpdateEvent({
 				shape: {
 					id: shapeId,
 					type: 'geo',
-					x: update.x ?? shapeOnCanvas.x,
-					y: update.y ?? shapeOnCanvas.y,
+					x: geoShape.x ?? shapeOnCanvas.x,
+					y: geoShape.y ?? shapeOnCanvas.y,
 					props: {
 						color,
-						geo: update._type,
-						w: update.w ?? shapeOnCanvas.props.w,
-						h: update.h ?? shapeOnCanvas.props.h,
+						geo: updateShapeType,
+						w: geoShape.w ?? shapeOnCanvas.props.w,
+						h: geoShape.h ?? shapeOnCanvas.props.h,
 						fill,
 						richText,
 					},
 					meta: {
-						note: update.note ?? shapeOnCanvas.meta.note,
+						note: geoShape.note ?? shapeOnCanvas.meta.note,
 					},
 				},
 			})
@@ -346,13 +364,14 @@ export function getTldrawAiChangesFromUpdateEvent({
 			break
 		}
 		case 'note': {
+			const noteShape = update as ISimpleNoteShape
 			const shapeOnCanvas = editor.getShape<TLNoteShape>(shapeId)
 			if (!shapeOnCanvas) {
 				throw new Error(`Shape ${update.shapeId} not found in canvas`)
 			}
 
-			const color = update.color ? asColor(update.color) : shapeOnCanvas.props.color
-			const richText = update.text ? toRichText(update.text) : shapeOnCanvas.props.richText
+			const color = noteShape.color ? asColor(noteShape.color) : shapeOnCanvas.props.color
+			const richText = noteShape.text ? toRichText(noteShape.text) : shapeOnCanvas.props.richText
 
 			changes.push({
 				type: 'updateShape',
@@ -360,14 +379,14 @@ export function getTldrawAiChangesFromUpdateEvent({
 				shape: {
 					id: shapeId,
 					type: 'note',
-					x: update.x ?? shapeOnCanvas.x,
-					y: update.y ?? shapeOnCanvas.y,
+					x: noteShape.x ?? shapeOnCanvas.x,
+					y: noteShape.y ?? shapeOnCanvas.y,
 					props: {
 						color,
 						richText,
 					},
 					meta: {
-						note: update.note ?? shapeOnCanvas.meta.note,
+						note: noteShape.note ?? shapeOnCanvas.meta.note,
 					},
 				},
 			})
@@ -375,14 +394,15 @@ export function getTldrawAiChangesFromUpdateEvent({
 			break
 		}
 		case 'draw': {
+			const drawShape = update as ISimpleDrawShape
 			const shapeOnCanvas = editor.getShape<TLDrawShape>(shapeId)
 			if (!shapeOnCanvas) {
 				throw new Error(`Shape ${update.shapeId} not found in canvas`)
 			}
 
-			const color = update.color ? asColor(update.color) : shapeOnCanvas.props.color
-			const fill = update.fill
-				? convertSimpleFillToTldrawFill(update.fill)
+			const color = drawShape.color ? asColor(drawShape.color) : shapeOnCanvas.props.color
+			const fill = drawShape.fill
+				? convertSimpleFillToTldrawFill(drawShape.fill)
 				: shapeOnCanvas.props.fill
 
 			changes.push({
@@ -396,7 +416,7 @@ export function getTldrawAiChangesFromUpdateEvent({
 						fill,
 					},
 					meta: {
-						note: update.note ?? shapeOnCanvas.meta.note,
+						note: drawShape.note ?? shapeOnCanvas.meta.note,
 					},
 				},
 			})
@@ -404,6 +424,7 @@ export function getTldrawAiChangesFromUpdateEvent({
 			break
 		}
 		case 'unknown': {
+			const unknownShape = update as ISimpleUnknownShape
 			const shapeOnCanvas = editor.getShape(shapeId)
 			if (!shapeOnCanvas) {
 				throw new Error(`Shape ${update.shapeId} not found in canvas`)
@@ -415,10 +436,10 @@ export function getTldrawAiChangesFromUpdateEvent({
 				shape: {
 					id: shapeId,
 					type: shapeOnCanvas.type,
-					x: update.x ?? shapeOnCanvas.x,
-					y: update.y ?? shapeOnCanvas.y,
+					x: unknownShape.x ?? shapeOnCanvas.x,
+					y: unknownShape.y ?? shapeOnCanvas.y,
 					meta: {
-						note: update.note ?? shapeOnCanvas.meta.note,
+						note: unknownShape.note ?? shapeOnCanvas.meta.note,
 					},
 				},
 			})

@@ -4,7 +4,15 @@ import z from 'zod'
 import { AgentTransform } from '../AgentTransform'
 import { asColor } from '../format/SimpleColor'
 import { convertSimpleFillToTldrawFill } from '../format/SimpleFill'
-import { SimpleShape } from '../format/SimpleShape'
+import { convertSimpleGeoShapeTypeToTldrawGeoShapeGeoStyleOrUnknownIfNeeded } from '../format/SimpleGeoShapeType'
+import {
+	ISimpleArrowShape,
+	ISimpleGeoShape,
+	ISimpleLineShape,
+	ISimpleNoteShape,
+	ISimpleTextShape,
+	SimpleShape,
+} from '../format/SimpleShape'
 import { Streaming } from '../types/Streaming'
 import { AgentActionUtil } from './AgentActionUtil'
 
@@ -77,34 +85,38 @@ export function getTldrawAiChangesFromCreateAction({
 	const { shape } = action
 	const shapeId = `shape:${shape.shapeId}` as TLShapeId
 
-	switch (shape._type) {
+	const shapeType = convertSimpleGeoShapeTypeToTldrawGeoShapeGeoStyleOrUnknownIfNeeded(shape._type)
+
+	switch (shapeType) {
 		case 'text': {
+			const textShape = shape as ISimpleTextShape
 			changes.push({
 				type: 'createShape',
 				description: action.intent ?? '',
 				shape: {
 					id: shapeId,
 					type: 'text',
-					x: shape.x,
-					y: shape.y,
+					x: textShape.x,
+					y: textShape.y,
 					props: {
 						size: 's',
-						richText: toRichText(shape.text),
-						color: asColor(shape.color),
+						richText: toRichText(textShape.text),
+						color: asColor(textShape.color),
 						textAlign: 'start',
 					},
 					meta: {
-						note: shape.note ?? '',
+						note: textShape.note ?? '',
 					},
 				},
 			})
 			break
 		}
 		case 'line': {
-			const x1 = shape.x1 ?? 0
-			const y1 = shape.y1 ?? 0
-			const x2 = shape.x2 ?? 0
-			const y2 = shape.y2 ?? 0
+			const lineShape = shape as ISimpleLineShape
+			const x1 = lineShape.x1 ?? 0
+			const y1 = lineShape.y1 ?? 0
+			const x2 = lineShape.x2 ?? 0
+			const y2 = lineShape.y2 ?? 0
 			const minX = Math.min(x1, x2)
 			const minY = Math.min(y1, y2)
 
@@ -132,23 +144,24 @@ export function getTldrawAiChangesFromCreateAction({
 								y: y2 - minY,
 							},
 						},
-						color: asColor(shape.color),
+						color: asColor(lineShape.color),
 					},
 					meta: {
-						note: shape.note ?? '',
+						note: lineShape.note ?? '',
 					},
 				},
 			})
 			break
 		}
 		case 'arrow': {
-			const fromId = shape.fromId ? (`shape:${shape.fromId}` as TLShapeId) : null
-			const toId = shape.toId ? (`shape:${shape.toId}` as TLShapeId) : null
+			const arrowShape = shape as ISimpleArrowShape
+			const fromId = arrowShape.fromId ? (`shape:${arrowShape.fromId}` as TLShapeId) : null
+			const toId = arrowShape.toId ? (`shape:${arrowShape.toId}` as TLShapeId) : null
 
-			const x1 = shape.x1 ?? 0
-			const y1 = shape.y1 ?? 0
-			const x2 = shape.x2 ?? 0
-			const y2 = shape.y2 ?? 0
+			const x1 = arrowShape.x1 ?? 0
+			const y1 = arrowShape.y1 ?? 0
+			const x2 = arrowShape.x2 ?? 0
+			const y2 = arrowShape.y2 ?? 0
 			const minX = Math.min(x1, x2)
 			const minY = Math.min(y1, y2)
 
@@ -163,14 +176,14 @@ export function getTldrawAiChangesFromCreateAction({
 					y: minY,
 					props: {
 						size: 's',
-						color: asColor(shape.color),
-						richText: toRichText(shape.text ?? ''),
+						color: asColor(arrowShape.color),
+						richText: toRichText(arrowShape.text ?? ''),
 						start: { x: x1 - minX, y: y1 - minY },
 						end: { x: x2 - minX, y: y2 - minY },
-						bend: shape.bend ?? 0,
+						bend: arrowShape.bend ?? 0,
 					},
 					meta: {
-						note: shape.note ?? '',
+						note: arrowShape.note ?? '',
 					},
 				},
 			})
@@ -263,25 +276,26 @@ export function getTldrawAiChangesFromCreateAction({
 		case 'check-box':
 		case 'heart':
 		case 'ellipse': {
+			const geoShape = shape as ISimpleGeoShape
 			changes.push({
 				type: 'createShape',
 				description: action.intent ?? '',
 				shape: {
 					id: shapeId,
 					type: 'geo',
-					x: shape.x,
-					y: shape.y,
+					x: geoShape.x,
+					y: geoShape.y,
 					props: {
 						size: 's',
-						geo: shape._type,
-						w: shape.w,
-						h: shape.h,
-						color: asColor(shape.color ?? 'black'),
-						fill: convertSimpleFillToTldrawFill(shape.fill ?? 'none'),
-						richText: toRichText(shape.text ?? ''),
+						geo: shapeType,
+						w: geoShape.w,
+						h: geoShape.h,
+						color: asColor(geoShape.color ?? 'black'),
+						fill: convertSimpleFillToTldrawFill(geoShape.fill ?? 'none'),
+						richText: toRichText(geoShape.text ?? ''),
 					},
 					meta: {
-						note: shape.note ?? '',
+						note: geoShape.note ?? '',
 					},
 				},
 			})
@@ -289,21 +303,22 @@ export function getTldrawAiChangesFromCreateAction({
 		}
 
 		case 'note': {
+			const noteShape = shape as ISimpleNoteShape
 			changes.push({
 				type: 'createShape',
 				description: action.intent ?? '',
 				shape: {
 					id: shapeId,
 					type: 'note',
-					x: shape.x,
-					y: shape.y,
+					x: noteShape.x,
+					y: noteShape.y,
 					props: {
-						color: asColor(shape.color),
-						richText: toRichText(shape.text ?? ''),
+						color: asColor(noteShape.color),
+						richText: toRichText(noteShape.text ?? ''),
 						size: 's',
 					},
 					meta: {
-						note: shape.note ?? '',
+						note: noteShape.note ?? '',
 					},
 				},
 			})

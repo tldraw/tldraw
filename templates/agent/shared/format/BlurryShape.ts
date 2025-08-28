@@ -1,5 +1,6 @@
-import { BoxModel, Editor, TLGeoShapeProps, TLShape } from 'tldraw'
+import { BoxModel, Editor, TLDefaultShape, TLShape } from 'tldraw'
 import { removeShapeIdPrefix } from '../AgentTransform'
+import { convertTldrawGeoShapeGeoStyleOrUnknownToSimpleGeoShapeTypeIfNeeded } from './SimpleGeoShapeType'
 import { ISimpleShape } from './SimpleShape'
 
 export type BlurryShape = BoxModel & {
@@ -19,7 +20,9 @@ export function convertTldrawShapeToBlurryShape(
 	const util = editor.getShapeUtil(shape)
 	const text = util.getText(shape)
 
-	const shapeType = shape.type === 'geo' ? (shape.props as TLGeoShapeProps).geo : shape.type
+	const shapeType = convertTldrawGeoShapeGeoStyleOrUnknownToSimpleGeoShapeTypeIfNeeded(
+		shape.type as TLDefaultShape['type'] | 'unknown'
+	)
 
 	return {
 		x: Math.round(bounds.x),
