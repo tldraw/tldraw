@@ -513,11 +513,6 @@ export function ConvertToEmbedMenuItem(): JSX_2.Element | null;
 // @public
 export function copyAs(editor: Editor, ids: TLShapeId[], opts: CopyAsOptions): Promise<void>;
 
-// @public @deprecated (undocumented)
-export function copyAs(editor: Editor, ids: TLShapeId[], format: TLCopyType, opts?: TLImageExportOptions & {
-    format?: undefined;
-}): Promise<void>;
-
 // @public (undocumented)
 export function CopyAsMenuGroup(): JSX_2.Element;
 

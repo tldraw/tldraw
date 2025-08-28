@@ -244,16 +244,6 @@ export interface TLEditorOptions {
 	licenseKey?: string
 	fontAssetUrls?: { [key: string]: string | undefined }
 	/**
-	 * A predicate that should return true if the given shape should be hidden.
-	 *
-	 * @deprecated Use {@link Editor#getShapeVisibility} instead.
-	 *
-	 * @param shape - The shape to check.
-	 * @param editor - The editor instance.
-	 */
-	isShapeHidden?(shape: TLShape, editor: Editor): boolean
-
-	/**
 	 * Provides a way to hide shapes.
 	 *
 	 * @example
@@ -308,21 +298,12 @@ export class Editor extends EventEmitter<TLEventMap> {
 		autoFocus,
 		inferDarkMode,
 		options,
-		// eslint-disable-next-line @typescript-eslint/no-deprecated
-		isShapeHidden,
 		getShapeVisibility,
 		fontAssetUrls,
 	}: TLEditorOptions) {
 		super()
-		assert(
-			!(isShapeHidden && getShapeVisibility),
-			'Cannot use both isShapeHidden and getShapeVisibility'
-		)
 
-		this._getShapeVisibility = isShapeHidden
-			? // eslint-disable-next-line @typescript-eslint/no-deprecated
-				(shape: TLShape, editor: Editor) => (isShapeHidden(shape, editor) ? 'hidden' : 'inherit')
-			: getShapeVisibility
+		this._getShapeVisibility = getShapeVisibility
 
 		this.options = { ...defaultTldrawOptions, ...options }
 
@@ -1234,13 +1215,6 @@ export class Editor extends EventEmitter<TLEventMap> {
 		return this
 	}
 
-	/**
-	 * @deprecated Use `Editor.run` instead.
-	 */
-	batch(fn: () => void, opts?: TLEditorRunOptions): this {
-		return this.run(fn, opts)
-	}
-
 	/* --------------------- Errors --------------------- */
 
 	/** @internal */
@@ -1541,54 +1515,6 @@ export class Editor extends EventEmitter<TLEventMap> {
 	// Menus
 
 	menus = tlmenus.forContext(this.contextId)
-
-	/**
-	 * @deprecated Use `editor.menus.getOpenMenus` instead.
-	 *
-	 * @public
-	 */
-	@computed getOpenMenus(): string[] {
-		return this.menus.getOpenMenus()
-	}
-
-	/**
-	 * @deprecated Use `editor.menus.addOpenMenu` instead.
-	 *
-	 * @public
-	 */
-	addOpenMenu(id: string): this {
-		this.menus.addOpenMenu(id)
-		return this
-	}
-
-	/**
-	 * @deprecated Use `editor.menus.deleteOpenMenu` instead.
-	 *
-	 * @public
-	 */
-	deleteOpenMenu(id: string): this {
-		this.menus.deleteOpenMenu(id)
-		return this
-	}
-
-	/**
-	 * @deprecated Use `editor.menus.clearOpenMenus` instead.
-	 *
-	 * @public
-	 */
-	clearOpenMenus(): this {
-		this.menus.clearOpenMenus()
-		return this
-	}
-
-	/**
-	 * @deprecated Use `editor.menus.hasAnyOpenMenus` instead.
-	 *
-	 * @public
-	 */
-	@computed getIsMenuOpen(): boolean {
-		return this.menus.hasAnyOpenMenus()
-	}
 
 	/* --------------------- Cursor --------------------- */
 
