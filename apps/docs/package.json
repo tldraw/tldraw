@@ -70,6 +70,7 @@
 		"js-cookie": "^3.0.5",
 		"next": "^15.4.6",
 		"next-mdx-remote": "^5.0.0",
+		"next-mdx-remote-client": "^1.1.2",
 		"next-themes": "^0.3.0",
 		"openai": "^4.96.0",
 		"query-string": "^9.1.1",
