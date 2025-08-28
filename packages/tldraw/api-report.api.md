@@ -1411,9 +1411,6 @@ export interface ExampleDialogProps {
 // @public
 export function exportAs(editor: Editor, ids: TLShapeId[], opts: ExportAsOptions): Promise<void>;
 
-// @public @deprecated (undocumented)
-export function exportAs(editor: Editor, ids: TLShapeId[], format?: TLExportType, name?: string, opts?: TLImageExportOptions): Promise<void>;
-
 // @public (undocumented)
 export interface ExportAsOptions extends TLImageExportOptions {
     format: TLExportType;
@@ -5083,7 +5080,11 @@ export function useDefaultHelpers(): {
     copy: (source: TLUiEventSource) => Promise<void>;
     copyAs: (ids: TLShapeId[], format?: TLCopyType) => void;
     cut: (source: TLUiEventSource) => Promise<void>;
-    exportAs: (ids: TLShapeId[], format: TLExportType | undefined, name: string | undefined) => void;
+    exportAs: (ids: TLShapeId[], opts?: {
+        format?: TLExportType;
+        name?: string;
+        scale?: number;
+    }) => void;
     getEmbedDefinition: (url: string) => TLEmbedResult;
     insertMedia: () => Promise<void>;
     isMobile: boolean;
@@ -5134,7 +5135,11 @@ export function useEditableRichText(shapeId: TLShapeId, type: string, richText?:
 };
 
 // @public (undocumented)
-export function useExportAs(): (ids: TLShapeId[], format: TLExportType | undefined, name: string | undefined) => void;
+export function useExportAs(): (ids: TLShapeId[], opts?: {
+    format?: TLExportType;
+    name?: string;
+    scale?: number;
+}) => void;
 
 // @public
 export function useImageOrVideoAsset({ shapeId, assetId, width }: UseImageOrVideoAssetOptions): {
