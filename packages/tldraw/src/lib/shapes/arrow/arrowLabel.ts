@@ -17,7 +17,6 @@ import {
 	exhaustiveSwitchError,
 	getChangedKeys,
 	pointInPolygon,
-	toRichText,
 } from '@tldraw/editor'
 import { isEmptyRichText, renderHtmlFromRichTextForMeasurement } from '../../utils/text/richText'
 import {
@@ -64,10 +63,11 @@ const labelSizeCache = createComputedCache(
 		const bodyGeom = getArrowBodyGeometry(editor, shape)
 		// We use 'i' as a default label to measure against as a minimum width.
 		const isEmpty = isEmptyRichText(shape.props.richText)
-		const html = renderHtmlFromRichTextForMeasurement(
-			editor,
-			isEmpty ? toRichText('i') : shape.props.richText
-		)
+		if (isEmpty) {
+			return new Vec(1, 1)
+		}
+
+		const html = renderHtmlFromRichTextForMeasurement(editor, shape.props.richText)
 
 		const bodyBounds = bodyGeom.bounds
 
