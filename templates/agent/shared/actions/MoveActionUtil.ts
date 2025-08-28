@@ -23,12 +23,11 @@ export class MoveActionUtil extends AgentActionUtil<IMoveAction> {
 		return MoveAction
 	}
 
-	override getIcon() {
-		return 'cursor' as const
-	}
-
-	override getDescription(action: Streaming<IMoveAction>) {
-		return action.intent ?? ''
+	override getInfo(action: Streaming<IMoveAction>) {
+		return {
+			icon: 'cursor' as const,
+			description: action.intent ?? '',
+		}
 	}
 
 	override transformAction(action: Streaming<IMoveAction>, transform: AgentTransform) {

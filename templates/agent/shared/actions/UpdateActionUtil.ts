@@ -40,8 +40,11 @@ export class UpdateActionUtil extends AgentActionUtil<IUpdateAction> {
 		return UpdateAction
 	}
 
-	override getIcon() {
-		return 'cursor' as const
+	override getInfo(action: Streaming<IUpdateAction>) {
+		return {
+			icon: 'cursor' as const,
+			description: action.intent ?? '',
+		}
 	}
 
 	override transformAction(action: Streaming<IUpdateAction>, transform: AgentTransform) {
@@ -65,10 +68,6 @@ export class UpdateActionUtil extends AgentActionUtil<IUpdateAction> {
 		}
 
 		return action
-	}
-
-	override getDescription(action: Streaming<IUpdateAction>) {
-		return action.intent ?? ''
 	}
 
 	override applyAction(action: Streaming<IUpdateAction>, transform: AgentTransform) {

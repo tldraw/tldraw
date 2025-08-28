@@ -25,12 +25,11 @@ export class DistributeActionUtil extends AgentActionUtil<IDistributeAction> {
 		return DistributeAction
 	}
 
-	override getIcon() {
-		return 'cursor' as const
-	}
-
-	override getDescription(action: Streaming<IDistributeAction>) {
-		return action.intent ?? ''
+	override getInfo(action: Streaming<IDistributeAction>) {
+		return {
+			icon: 'cursor' as const,
+			description: action.intent ?? '',
+		}
 	}
 
 	override transformAction(action: Streaming<IDistributeAction>, transform: AgentTransform) {

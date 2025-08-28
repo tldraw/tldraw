@@ -29,14 +29,13 @@ export class SetMyViewActionUtil extends AgentActionUtil<ISetMyViewAction> {
 		return SetMyViewAction
 	}
 
-	override getIcon() {
-		return 'eye' as const
-	}
-
-	override getDescription(action: Streaming<ISetMyViewAction>) {
+	override getInfo(action: Streaming<ISetMyViewAction>) {
 		const label = action.complete ? 'Move camera' : 'Moving camera'
 		const text = action.intent?.startsWith('#') ? `\n\n${action.intent}` : action.intent
-		return `**${label}**: ${text ?? ''}`
+		return {
+			icon: 'eye' as const,
+			description: `**${label}**: ${text ?? ''}`,
+		}
 	}
 
 	override applyAction(

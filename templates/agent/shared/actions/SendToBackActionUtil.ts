@@ -25,12 +25,11 @@ export class SendToBackActionUtil extends AgentActionUtil<ISendToBackAction> {
 		return SendToBackAction
 	}
 
-	override getIcon() {
-		return 'cursor' as const
-	}
-
-	override getDescription(action: Streaming<ISendToBackAction>) {
-		return action.intent ?? ''
+	override getInfo(action: Streaming<ISendToBackAction>) {
+		return {
+			icon: 'cursor' as const,
+			description: action.intent ?? '',
+		}
 	}
 
 	override transformAction(action: Streaming<ISendToBackAction>, transform: AgentTransform) {

@@ -8,6 +8,38 @@ export interface BaseAgentAction {
 	_type: string
 }
 
+/**
+ * Information on how the action should be displayed in chat history.
+ */
+export interface ChatHistoryInfo {
+	/**
+	 * The icon to display in chat history.
+	 * Null to not show an icon.
+	 */
+	icon: AgentIconType | null
+
+	/**
+	 * The description to display in chat history.
+	 * Null to not show a description.
+	 * Defaults to the stringified action if not set.
+	 */
+	description: string | null
+
+	/**
+	 * A short summary that can be shown when the action is collapsed.
+	 * Null to disable collapsing for this action.
+	 */
+	summary: string | null
+
+	/**
+	 * A function that determines whether the action can be grouped with another action.
+	 * By default, the action will automatically group with everything.
+	 * @param other - The other action
+	 * @returns Whether the action can be grouped with the other action
+	 */
+	canGroup(other: Streaming<BaseAgentAction>): boolean
+}
+
 export abstract class AgentActionUtil<T extends BaseAgentAction = BaseAgentAction> {
 	static type: string
 
@@ -22,34 +54,12 @@ export abstract class AgentActionUtil<T extends BaseAgentAction = BaseAgentActio
 	}
 
 	/**
-	 * Get an icon type to display within chat history.
-	 * @returns The icon, or null to not show an icon
+	 * Get information about the action to display within the chat history UI.
+	 * Return null to not show anything.
+	 * Defaults to the stringified action if not set.
 	 */
-	getIcon(_action: Streaming<T>): AgentIconType | null {
-		return null
-	}
-
-	/**
-	 * Get a description of the action to display within chat history.
-	 * @returns The description, or null to not show a description
-	 */
-	getDescription(_action: Streaming<T>): string | null {
-		return JSON.stringify(_action, null, 2)
-	}
-
-	/**
-	 * Get a short summary that can be shown when the action is collapsed. Return null to disable collapsing.
-	 * @returns The string shown when collapsed, or null to not collapse.
-	 */
-	getSummary(_action: Streaming<T>): string | null {
-		return null
-	}
-
-	/**
-	 * Whether the action can be grouped together with another action.
-	 */
-	canGroup(_action: Streaming<T>, _other: Streaming<BaseAgentAction>): boolean {
-		return true
+	getInfo(_action: Streaming<T>): Partial<ChatHistoryInfo> | null {
+		return {}
 	}
 
 	/**
@@ -70,7 +80,7 @@ export abstract class AgentActionUtil<T extends BaseAgentAction = BaseAgentActio
 	}
 
 	/**
-	 * Whether the action should be saved to chat history.
+	 * Whether the action gets saved to history.
 	 */
 	savesToHistory(): boolean {
 		return true

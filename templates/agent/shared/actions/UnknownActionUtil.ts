@@ -8,7 +8,8 @@ import { AgentActionUtil } from './AgentActionUtil'
 export class UnknownActionUtil extends AgentActionUtil<{ _type: 'unknown' }> {
 	static override type = 'unknown' as const
 
-	override getDescription() {
+	override getInfo() {
+		// Don't show anything in the UI for unknown actions
 		return null
 	}
 }

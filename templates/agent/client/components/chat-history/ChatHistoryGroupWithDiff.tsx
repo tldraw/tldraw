@@ -6,6 +6,7 @@ import { $chatHistoryItems } from '../../atoms/chatHistoryItems'
 import { AgentIcon, AgentIconType } from '../icons/AgentIcon'
 import { IChatHistoryGroup } from './ChatHistoryGroup'
 import { TldrawDiffViewer } from './TldrawDiffViewer'
+import { getActionInfo } from './getActionInfo'
 
 export function ChatHistoryGroupWithDiff({
 	group,
@@ -77,16 +78,10 @@ export function ChatHistoryGroupWithDiff({
 		return acceptance
 	}, [items])
 
-	const steps = useMemo(() => {
-		return items.map((item) => {
-			const { action: event } = item
-			const actionUtil = agent.getAgentActionUtil(event._type)
-			return {
-				icon: actionUtil.getIcon(event),
-				description: actionUtil.getDescription(event),
-			}
-		})
-	}, [items, agent])
+	const steps = useMemo(
+		() => items.map((item) => getActionInfo(item.action, agent)),
+		[items, agent]
+	)
 
 	return (
 		<div className="chat-history-change">

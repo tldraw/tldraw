@@ -31,14 +31,15 @@ export class ReviewActionUtil extends AgentActionUtil<IReviewAction> {
 		return ReviewAction
 	}
 
-	override getIcon() {
-		return 'search' as const
-	}
-
-	override getDescription(action: Streaming<IReviewAction>) {
+	override getInfo(action: Streaming<IReviewAction>) {
 		const label = action.complete ? 'Review' : 'Reviewing'
 		const text = action.intent?.startsWith('#') ? `\n\n${action.intent}` : action.intent
-		return `**${label}**: ${text ?? ''}`
+		const description = `${label}: ${text ?? ''}`
+
+		return {
+			icon: 'search' as const,
+			description,
+		}
 	}
 
 	override applyAction(

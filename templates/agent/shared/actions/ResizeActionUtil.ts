@@ -28,12 +28,11 @@ export class ResizeActionUtil extends AgentActionUtil<IResizeAction> {
 		return ResizeAction
 	}
 
-	override getIcon() {
-		return 'cursor' as const
-	}
-
-	override getDescription(action: Streaming<IResizeAction>) {
-		return action.intent ?? ''
+	override getInfo(action: Streaming<IResizeAction>) {
+		return {
+			icon: 'cursor' as const,
+			description: action.intent ?? '',
+		}
 	}
 
 	override transformAction(action: Streaming<IResizeAction>, transform: AgentTransform) {

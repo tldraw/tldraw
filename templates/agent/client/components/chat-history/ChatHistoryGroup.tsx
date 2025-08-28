@@ -3,6 +3,7 @@ import { IChatHistoryActionItem } from '../../../shared/types/ChatHistoryItem'
 import { TLAgent } from '../../ai/useTldrawAgent'
 import { ChatHistoryGroupWithDiff } from './ChatHistoryGroupWithDiff'
 import { ChatHistoryGroupWithoutDiff } from './ChatHistoryGroupWithoutDiff'
+import { getActionInfo } from './getActionInfo'
 
 export interface IChatHistoryGroup {
 	items: IChatHistoryActionItem[]
@@ -35,8 +36,7 @@ export function getActionHistoryGroups(
 	const groups: IChatHistoryGroup[] = []
 
 	for (const item of items) {
-		const actionUtil = agent.getAgentActionUtil(item.action._type)
-		const description = actionUtil.getDescription(item.action)
+		const { description } = getActionInfo(item.action, agent)
 		if (description === null) {
 			continue
 		}
@@ -76,15 +76,13 @@ export function canActionBeGrouped({
 	const groupAcceptance = group.items[0]?.acceptance
 	if (groupAcceptance !== item.acceptance) return false
 
-	const prevEvent = group.items.at(-1)?.action
-	const prevActionUtil = prevEvent ? agent.getAgentActionUtil(prevEvent._type) : null
-	const actionUtil = agent.getAgentActionUtil(item.action._type)
-	if (
-		prevEvent &&
-		prevActionUtil &&
-		actionUtil.canGroup(item.action, prevEvent) &&
-		prevActionUtil.canGroup(prevEvent, item.action)
-	) {
+	const prevAction = group.items.at(-1)?.action
+	if (!prevAction) return false
+
+	const actionInfo = getActionInfo(item.action, agent)
+	const prevActionInfo = getActionInfo(prevAction, agent)
+
+	if (actionInfo.canGroup(prevAction) && prevActionInfo.canGroup(item.action)) {
 		return true
 	}
 

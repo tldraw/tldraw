@@ -18,15 +18,11 @@ export class ThinkActionUtil extends AgentActionUtil<IThinkAction> {
 		return ThinkAction
 	}
 
-	override getIcon() {
-		return 'brain' as const
-	}
-
-	override getSummary() {
-		return 'Thought for a while'
-	}
-
-	override getDescription(action: Streaming<IThinkAction>) {
-		return action.text ?? (action.complete ? 'Thinking...' : null)
+	override getInfo(action: Streaming<IThinkAction>) {
+		return {
+			icon: 'brain' as const,
+			description: action.text ?? (action.complete ? 'Thinking...' : null),
+			summary: 'Thought for a while',
+		}
 	}
 }

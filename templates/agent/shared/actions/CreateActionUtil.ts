@@ -25,12 +25,11 @@ export class CreateActionUtil extends AgentActionUtil<ICreateAction> {
 		return CreateAction
 	}
 
-	override getIcon() {
-		return 'pencil' as const
-	}
-
-	override getDescription(action: Streaming<ICreateAction>) {
-		return action.intent ?? ''
+	override getInfo(action: Streaming<ICreateAction>) {
+		return {
+			icon: 'pencil' as const,
+			description: action.intent ?? '',
+		}
 	}
 
 	override transformAction(action: Streaming<ICreateAction>, transform: AgentTransform) {

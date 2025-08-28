@@ -22,12 +22,11 @@ export class LabelActionUtil extends AgentActionUtil<IAgentLabelEvent> {
 		return LabelAction
 	}
 
-	override getIcon() {
-		return 'pencil' as const
-	}
-
-	override getDescription(action: Streaming<IAgentLabelEvent>) {
-		return action.intent ?? ''
+	override getInfo(action: Streaming<IAgentLabelEvent>) {
+		return {
+			icon: 'pencil' as const,
+			description: action.intent ?? '',
+		}
 	}
 
 	override transformAction(action: Streaming<IAgentLabelEvent>, transform: AgentTransform) {

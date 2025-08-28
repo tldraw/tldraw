@@ -26,12 +26,11 @@ export class PlaceActionUtil extends AgentActionUtil<IPlaceAction> {
 		return PlaceAction
 	}
 
-	override getIcon() {
-		return 'target' as const
-	}
-
-	override getDescription(action: Streaming<IPlaceAction>) {
-		return action.intent ?? ''
+	override getInfo(action: Streaming<IPlaceAction>) {
+		return {
+			icon: 'target' as const,
+			description: action.intent ?? '',
+		}
 	}
 
 	override transformAction(action: Streaming<IPlaceAction>, transform: AgentTransform) {

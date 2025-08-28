@@ -18,11 +18,10 @@ export class MessageActionUtil extends AgentActionUtil<IMessageAction> {
 		return MessageAction
 	}
 
-	override canGroup() {
-		return false
-	}
-
-	override getDescription(action: Streaming<IMessageAction>) {
-		return action.text ?? ''
+	override getInfo(action: Streaming<IMessageAction>) {
+		return {
+			description: action.text ?? '',
+			canGroup: () => false,
+		}
 	}
 }

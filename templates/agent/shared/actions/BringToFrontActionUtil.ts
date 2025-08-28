@@ -25,12 +25,11 @@ export class BringToFrontActionUtil extends AgentActionUtil<IBringToFrontAction>
 		return BringToFrontAction
 	}
 
-	override getIcon() {
-		return 'cursor' as const
-	}
-
-	override getDescription(action: Streaming<IBringToFrontAction>) {
-		return action.intent ?? ''
+	override getInfo(action: Streaming<IBringToFrontAction>) {
+		return {
+			icon: 'cursor' as const,
+			description: action.intent ?? '',
+		}
 	}
 
 	override transformAction(action: Streaming<IBringToFrontAction>, transform: AgentTransform) {

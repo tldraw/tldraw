@@ -27,12 +27,11 @@ export class RotateActionUtil extends AgentActionUtil<IRotateAction> {
 		return RotateAction
 	}
 
-	override getIcon() {
-		return 'cursor' as const
-	}
-
-	override getDescription(action: Streaming<IRotateAction>) {
-		return action.intent ?? ''
+	override getInfo(action: Streaming<IRotateAction>) {
+		return {
+			icon: 'cursor' as const,
+			description: action.intent ?? '',
+		}
 	}
 
 	override transformAction(action: Streaming<IRotateAction>, transform: AgentTransform) {

@@ -8,6 +8,7 @@ import { AgentIcon } from '../icons/AgentIcon'
 import { ChevronDownIcon } from '../icons/ChevronDownIcon'
 import { ChevronRightIcon } from '../icons/ChevronRightIcon'
 import { IChatHistoryGroup } from './ChatHistoryGroup'
+import { getActionInfo } from './getActionInfo'
 
 export function ChatHistoryGroupWithoutDiff({
 	group,
@@ -20,8 +21,7 @@ export function ChatHistoryGroupWithoutDiff({
 
 	const nonEmptyItems = useMemo(() => {
 		return items.filter((item) => {
-			const actionUtil = agent.getAgentActionUtil(item.action._type)
-			const description = actionUtil.getDescription(item.action)
+			const { description } = getActionInfo(item.action, agent)
 			return description !== null
 		})
 	}, [items, agent])
@@ -69,9 +69,7 @@ export function ChatHistoryGroupWithoutDiff({
 
 function ChatHistoryItem({ item, agent }: { item: IChatHistoryActionItem; agent: TLAgent }) {
 	const { action: event } = item
-	const actionUtil = agent.getAgentActionUtil(event._type)
-	const description = actionUtil.getDescription(event)
-	const summary = actionUtil.getSummary(event)
+	const { description, summary } = getActionInfo(event, agent)
 	const collapsible = summary !== null
 	const [collapsed, setCollapsed] = useState(collapsible)
 
@@ -98,9 +96,7 @@ function ChatHistoryItemExpanded({
 	event: Streaming<AgentAction>
 	agent: TLAgent
 }) {
-	const actionUtil = agent.getAgentActionUtil(event._type)
-	const icon = actionUtil.getIcon(event)
-	const description = actionUtil.getDescription(event)
+	const { icon, description } = getActionInfo(event, agent)
 
 	return (
 		<div className={`agent-action agent-action-type-${event._type}`}>

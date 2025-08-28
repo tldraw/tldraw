@@ -24,7 +24,8 @@ export class TodoListActionUtil extends AgentActionUtil<ITodoListAction> {
 		return TodoListAction
 	}
 
-	override getDescription() {
+	override getInfo() {
+		// Don't show todo actions in the chat history because we show them in the dedicated todo list UI
 		return null
 	}
 
