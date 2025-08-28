@@ -12,32 +12,15 @@ import {
 import { z } from 'zod'
 import { SimpleColor } from './SimpleColor'
 import { convertTldrawFillToSimpleFill, SimpleFill } from './SimpleFill'
+import {
+	convertTldrawGeoShapeGeoStlyeToSimpleGeoShapeType,
+	SimpleGeoShapeType,
+} from './SimpleGeoShapeType'
 
 const SimpleLabel = z.string()
 
 export const SimpleGeoShape = z.object({
-	_type: z.enum([
-		'rectangle',
-		'ellipse',
-		'triangle',
-		'diamond',
-		'hexagon',
-		'oval',
-		'cloud',
-		'x-box',
-		'check-box',
-		'heart',
-		'pentagon',
-		'octagon',
-		'star',
-		'rhombus',
-		'rhombus-2',
-		'trapezoid',
-		'arrow-right',
-		'arrow-left',
-		'arrow-up',
-		'arrow-down',
-	]),
+	_type: SimpleGeoShapeType,
 	color: SimpleColor,
 	fill: SimpleFill,
 	h: z.number(),
@@ -202,7 +185,7 @@ function convertGeoShape(shape: TLGeoShape, editor: Editor): ISimpleGeoShape {
 	const text = util.getText(shape)
 
 	return {
-		_type: shape.props.geo,
+		_type: convertTldrawGeoShapeGeoStlyeToSimpleGeoShapeType(shape.props.geo),
 		color: shape.props.color,
 		fill: convertTldrawFillToSimpleFill(shape.props.fill),
 		h: shape.props.h,

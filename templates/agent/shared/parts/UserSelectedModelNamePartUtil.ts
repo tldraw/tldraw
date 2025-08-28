@@ -4,17 +4,21 @@ import { AgentRequest } from '../types/AgentRequest'
 import { BasePromptPart } from '../types/BasePromptPart'
 import { PromptPartUtil } from './PromptPartUtil'
 
-export interface ModelNamePart extends BasePromptPart<'modelName'> {
+export interface UserSelectedModelNamePart extends BasePromptPart<'modelName'> {
 	name: AgentModelName
 }
 
-export class ModelNamePartUtil extends PromptPartUtil<ModelNamePart> {
+export class UserSelectedModelNamePartUtil extends PromptPartUtil<UserSelectedModelNamePart> {
 	static override type = 'modelName' as const
 
-	override getPart(_editor: Editor, request: AgentRequest): ModelNamePart {
+	override getPart(_editor: Editor, request: AgentRequest): UserSelectedModelNamePart {
 		return {
 			type: 'modelName',
 			name: request.modelName,
 		}
+	}
+
+	override getModelName(part: UserSelectedModelNamePart) {
+		return part.name
 	}
 }

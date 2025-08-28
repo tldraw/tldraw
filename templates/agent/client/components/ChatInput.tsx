@@ -7,7 +7,6 @@ import { ContextItemTag } from './ContextItemTag'
 import { AtIcon } from './icons/AtIcon'
 import { BrainIcon } from './icons/BrainIcon'
 import { ChevronDownIcon } from './icons/ChevronDownIcon'
-import { CommentIcon } from './icons/CommentIcon'
 import { SelectionTag } from './SelectionTag'
 
 export function ChatInput({
@@ -99,11 +98,11 @@ export function ChatInput({
 				/>
 				<span className="chat-actions">
 					<div className="chat-actions-left">
-						<div className="chat-mode-select">
+						{/* <div className="chat-mode-select">
 							<CommentIcon />
 							<span>Agent</span>
 							<ChevronDownIcon />
-						</div>
+						</div> */}
 						<div className="chat-model-select">
 							<div className="chat-model-select-label">
 								<BrainIcon /> {modelName}

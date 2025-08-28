@@ -12,6 +12,7 @@ import { Streaming } from '../../shared/types/Streaming'
 import { AgentModelName, getAgentModelDefinition } from '../models'
 import { buildMessages } from '../prompt/buildMessages'
 import { buildSystemPrompt } from '../prompt/buildSystemPrompt'
+import { getModelName } from '../prompt/getModelName'
 import { Environment } from '../types'
 
 export class AgentService {
@@ -33,7 +34,8 @@ export class AgentService {
 
 	async *stream(prompt: AgentPrompt): AsyncGenerator<Streaming<AgentAction>> {
 		try {
-			const model = this.getModel(prompt.modelName?.name ?? 'claude-4-sonnet')
+			const modelName = getModelName(prompt)
+			const model = this.getModel(modelName)
 			for await (const event of streamEventsVercel(model, prompt)) {
 				yield event
 			}

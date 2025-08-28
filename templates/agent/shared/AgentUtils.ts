@@ -25,7 +25,6 @@ import { BlurryShapesPartUtil } from './parts/BlurryShapesPart'
 import { ChatHistoryItemsPartUtil } from './parts/ChatHistoryItemsPartUtil'
 import { ContextItemsPartUtil } from './parts/ContextItemsPartUtil'
 import { MessagePartUtil } from './parts/MessagePartUtil'
-import { ModelNamePartUtil } from './parts/ModelNamePartUtil'
 import { PeripheralShapesPartUtil } from './parts/PeripheralShapesPartUtil'
 import { PromptPartUtil } from './parts/PromptPartUtil'
 import { ScreenshotPartUtil } from './parts/ScreenshotPartUtil'
@@ -43,9 +42,10 @@ import { PromptPart } from './types/PromptPart'
  * To send something new to the model, either change one of the existing parts, or add your own.
  */
 export const PROMPT_PART_UTILS = [
-	// Model
 	SystemPromptPartUtil,
-	ModelNamePartUtil,
+
+	// TODO: Fix types of this and reintroduce
+	// UserSelectedModelNamePartUtil,
 
 	// Viewport
 	ScreenshotPartUtil,
