@@ -2100,7 +2100,7 @@ export class LicenseManager {
     // (undocumented)
     isTest: boolean;
     // (undocumented)
-    state: Atom<"licensed-with-watermark" | "licensed" | "pending" | "unlicensed", unknown>;
+    state: Atom<"internal-expired" | "licensed-with-watermark" | "licensed" | "pending" | "unlicensed", unknown>;
     // (undocumented)
     verbose: boolean;
 }

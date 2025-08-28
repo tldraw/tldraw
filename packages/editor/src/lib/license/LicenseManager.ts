@@ -73,10 +73,9 @@ export class LicenseManager {
 	public isDevelopment: boolean
 	public isTest: boolean
 	public isCryptoAvailable: boolean
-	state = atom<'pending' | 'licensed' | 'licensed-with-watermark' | 'unlicensed'>(
-		'license state',
-		'pending'
-	)
+	state = atom<
+		'pending' | 'licensed' | 'licensed-with-watermark' | 'unlicensed' | 'internal-expired'
+	>('license state', 'pending')
 	public verbose = true
 
 	constructor(
@@ -89,21 +88,30 @@ export class LicenseManager {
 		this.publicKey = testPublicKey || this.publicKey
 		this.isCryptoAvailable = !!crypto.subtle
 
-		this.getLicenseFromKey(licenseKey).then((result) => {
-			const isUnlicensed = isEditorUnlicensed(result)
+		this.getLicenseFromKey(licenseKey)
+			.then((result) => {
+				const isUnlicensed = isEditorUnlicensed(result)
 
-			if (!this.isDevelopment && isUnlicensed) {
-				fetch(WATERMARK_TRACK_SRC)
-			}
+				if (!this.isDevelopment && isUnlicensed) {
+					fetch(WATERMARK_TRACK_SRC)
+				}
 
-			if (isUnlicensed) {
+				if (isUnlicensed) {
+					if (result.isLicenseParseable && result.isInternalLicense) {
+						this.state.set('internal-expired')
+					} else {
+						this.state.set('unlicensed')
+					}
+				} else if ((result as ValidLicenseKeyResult).isLicensedWithWatermark) {
+					this.state.set('licensed-with-watermark')
+				} else {
+					this.state.set('licensed')
+				}
+			})
+			.catch((error) => {
+				console.error('License validation failed:', error)
 				this.state.set('unlicensed')
-			} else if ((result as ValidLicenseKeyResult).isLicensedWithWatermark) {
-				this.state.set('licensed-with-watermark')
-			} else {
-				this.state.set('licensed')
-			}
-		})
+			})
 	}
 
 	private getIsDevelopment(testEnvironment?: TestEnvironment) {
@@ -371,9 +379,6 @@ export function isEditorUnlicensed(result: LicenseFromKeyResult) {
 	if (!result.isLicenseParseable) return true
 	if (!result.isDomainValid && !result.isDevelopment) return true
 	if (result.isPerpetualLicenseExpired || result.isAnnualLicenseExpired) {
-		if (result.isInternalLicense) {
-			throw new Error('License: Internal license expired.')
-		}
 		return true
 	}
 

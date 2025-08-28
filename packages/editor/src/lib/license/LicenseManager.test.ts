@@ -570,7 +570,7 @@ describe(isEditorUnlicensed, () => {
 		expect(isEditorUnlicensed(licenseResult)).toBe(false)
 	})
 
-	it('throws when an internal annual license has expired', () => {
+	it('returns true when an internal annual license has expired', () => {
 		const expiryDate = new Date(2023, 1, 1)
 		const licenseResult = getDefaultLicenseResult({
 			isAnnualLicense: true,
@@ -578,10 +578,10 @@ describe(isEditorUnlicensed, () => {
 			isInternalLicense: true,
 			expiryDate,
 		})
-		expect(() => isEditorUnlicensed(licenseResult)).toThrow(/License: Internal license expired/)
+		expect(isEditorUnlicensed(licenseResult)).toBe(true)
 	})
 
-	it('throws when an internal perpetual license has expired', () => {
+	it('returns true when an internal perpetual license has expired', () => {
 		const expiryDate = new Date(2023, 1, 1)
 		const licenseResult = getDefaultLicenseResult({
 			isPerpetualLicense: true,
@@ -589,7 +589,7 @@ describe(isEditorUnlicensed, () => {
 			isInternalLicense: true,
 			expiryDate,
 		})
-		expect(() => isEditorUnlicensed(licenseResult)).toThrow(/License: Internal license expired/)
+		expect(isEditorUnlicensed(licenseResult)).toBe(true)
 	})
 
 	it('shows watermark when license has that flag specified', () => {
