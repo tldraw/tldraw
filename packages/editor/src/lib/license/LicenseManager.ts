@@ -98,7 +98,7 @@ export class LicenseManager {
 			.then((result) => {
 				const licenseState = getLicenseState(result)
 
-				if (!this.isDevelopment && ['unlicensed', 'internal-expired'].includes(licenseState)) {
+				if (!this.isDevelopment && licenseState === 'unlicensed') {
 					fetch(WATERMARK_TRACK_SRC)
 				}
 
