@@ -28,17 +28,17 @@ import { PeripheralShapesPartUtil } from './parts/PeripheralShapesPartUtil'
 // import { PromptBoundsPartUtil } from './parts/PromptBoundsPartUtil'
 import { ReviewActionUtil } from './actions/ReviewActionUtil'
 import { TodoListActionUtil } from './actions/TodoListActionUtil'
-import { ModelNamePartUtil } from './parts/ModelNamePartUtil'
 import { PromptPartUtilConstructor } from './parts/PromptPartUtil'
 import { SystemPromptPartUtil } from './parts/SystemPromptPartUtil'
 import { TodoListPromptPartUtil } from './parts/TodoItemsPromptPart'
 import { UserActionHistoryPartUtil } from './parts/UserActionHistoryPartUtil'
+import { UserSelectedModelNamePartUtil } from './parts/UserSelectedModelNamePartUtil'
 import { UserSelectedShapesPartUtil } from './parts/UserSelectedShapesPartUtil'
 import { UserViewportBoundsPartUtil } from './parts/UserViewportBoundsPartUtil'
 
 export const PROMPT_PART_UTILS: PromptPartUtilConstructor[] = [
 	SystemPromptPartUtil,
-	ModelNamePartUtil,
+	UserSelectedModelNamePartUtil,
 
 	// The format of shape that the model is looking at
 	AgentViewportBlurryShapesPartUtil,
