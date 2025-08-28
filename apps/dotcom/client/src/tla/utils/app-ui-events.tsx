@@ -51,7 +51,7 @@ export interface TLAppUiEventMap {
 		background: TlaUser['exportBackground']
 	}
 	'set-shared-link-type': { type: TlaFile['sharedLinkType'] | 'no-access' }
-	'open-url': { url: string }
+	'open-url': { destinationUrl: string }
 	'publish-file': null
 	'unpublish-file': null
 	'copy-publish-link': null

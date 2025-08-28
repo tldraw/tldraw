@@ -331,6 +331,7 @@ export {
 	type InvalidLicenseReason,
 	type LicenseFromKeyResult,
 	type LicenseInfo,
+	type LicenseState,
 	type TestEnvironment,
 	type ValidLicenseKeyResult,
 } from './lib/license/LicenseManager'

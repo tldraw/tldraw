@@ -4860,27 +4860,25 @@ export class Editor extends EventEmitter<TLEventMap> {
 		return this.store.createComputedCache('pageMaskCache', (shape) => {
 			if (isPageId(shape.parentId)) return undefined
 
-			const frameAncestors = this.getShapeAncestors(shape.id).filter((shape) =>
-				this.isShapeOfType<TLFrameShape>(shape, 'frame')
-			)
+			const clipPaths: Vec[][] = []
+			// Get all ancestors that can potentially clip this shape
+			for (const ancestor of this.getShapeAncestors(shape.id)) {
+				const util = this.getShapeUtil(ancestor)
+				const clipPath = util.getClipPath?.(ancestor)
+				if (!clipPath) continue
+				if (util.shouldClipChild?.(shape) === false) continue
+				const pageTransform = this.getShapePageTransform(ancestor.id)
+				clipPaths.push(pageTransform.applyToPoints(clipPath))
+			}
+			if (clipPaths.length === 0) return undefined
 
-			if (frameAncestors.length === 0) return undefined
-
-			const pageMask = frameAncestors
-				.map<Vec[] | undefined>((s) => {
-					// Apply the frame transform to the frame outline to get the frame outline in the current page space
-					const geometry = this.getShapeGeometry(s.id)
-					const pageTransform = this.getShapePageTransform(s.id)
-					return pageTransform.applyToPoints(geometry.vertices)
-				})
-				.reduce((acc, b) => {
-					if (!(b && acc)) return undefined
-					const intersection = intersectPolygonPolygon(acc, b)
-					if (intersection) {
-						return intersection.map(Vec.Cast)
-					}
-					return []
-				})
+			const pageMask = clipPaths.reduce((acc, b) => {
+				const intersection = intersectPolygonPolygon(acc, b)
+				if (intersection) {
+					return intersection.map(Vec.Cast)
+				}
+				return []
+			})
 
 			return pageMask
 		})

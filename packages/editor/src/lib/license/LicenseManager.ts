@@ -34,6 +34,15 @@ export interface LicenseInfo {
 	flags: number
 	expiryDate: string
 }
+
+/** @internal */
+export type LicenseState =
+	| 'pending'
+	| 'licensed'
+	| 'licensed-with-watermark'
+	| 'unlicensed'
+	| 'internal-expired'
+	| 'expired'
 /** @internal */
 export type InvalidLicenseReason =
 	| 'invalid-license-key'
@@ -77,10 +86,7 @@ export class LicenseManager {
 	public isDevelopment: boolean
 	public isTest: boolean
 	public isCryptoAvailable: boolean
-	state = atom<'pending' | 'licensed' | 'licensed-with-watermark' | 'unlicensed' | 'expired'>(
-		'license state',
-		'pending'
-	)
+	state = atom<LicenseState>('license state', 'pending')
 	public verbose = true
 
 	constructor(
@@ -93,46 +99,20 @@ export class LicenseManager {
 		this.publicKey = testPublicKey || this.publicKey
 		this.isCryptoAvailable = !!crypto.subtle
 
-		this.getLicenseFromKey(licenseKey).then((result) => {
-			const isUnlicensed = isEditorUnlicensed(result)
+		this.getLicenseFromKey(licenseKey)
+			.then((result) => {
+				const licenseState = getLicenseState(result)
 
-			if (!this.isDevelopment && isUnlicensed) {
-				fetch(WATERMARK_TRACK_SRC)
-			}
+				if (!this.isDevelopment && licenseState === 'unlicensed') {
+					fetch(WATERMARK_TRACK_SRC)
+				}
 
-			if (isUnlicensed) {
+				this.state.set(licenseState)
+			})
+			.catch((error) => {
+				console.error('License validation failed:', error)
 				this.state.set('unlicensed')
-			} else {
-				const validResult = result as ValidLicenseKeyResult
-
-				// Check if evaluation license is expired (no grace period)
-				if (validResult.isEvaluationLicense && validResult.isEvaluationLicenseExpired) {
-					this.state.set('expired')
-					throw new Error('License: Evaluation license has expired.')
-				}
-				// Check if regular license is in grace period or expired
-				else if (validResult.isAnnualLicenseExpired || validResult.isPerpetualLicenseExpired) {
-					const daysSinceExpiry = validResult.daysSinceExpiry
-					if (daysSinceExpiry <= 30) {
-						// 0-30 days: no watermark (still licensed)
-						this.state.set('licensed')
-					} else if (daysSinceExpiry <= 60) {
-						// 31-60 days: ugly watermark
-						this.state.set('licensed-with-watermark')
-					} else {
-						// 60+ days: expired
-						this.state.set('expired')
-						throw new Error('License: License has been expired for more than 60 days.')
-					}
-				}
-				// Check if has watermark flag or evaluation license (not expired)
-				else if (validResult.isLicensedWithWatermark || validResult.isEvaluationLicense) {
-					this.state.set('licensed-with-watermark')
-				} else {
-					this.state.set('licensed')
-				}
-			}
-		})
+			})
 	}
 
 	private getIsDevelopment(testEnvironment?: TestEnvironment) {
@@ -418,15 +398,28 @@ export class LicenseManager {
 	static className = 'tl-watermark_SEE-LICENSE'
 }
 
-export function isEditorUnlicensed(result: LicenseFromKeyResult) {
-	if (!result.isLicenseParseable) return true
-	if (!result.isDomainValid && !result.isDevelopment) return true
+export function getLicenseState(result: LicenseFromKeyResult): LicenseState {
+	if (!result.isLicenseParseable) return 'unlicensed'
+	if (!result.isDomainValid && !result.isDevelopment) return 'unlicensed'
 	if (result.isPerpetualLicenseExpired || result.isAnnualLicenseExpired) {
-		if (result.isInternalLicense) {
-			throw new Error('License: Internal license expired.')
+		// Check if it's an expired internal license with valid domain
+		const internalExpired = result.isInternalLicense && result.isDomainValid
+		if (internalExpired) return 'internal-expired'
+		const daysSinceExpiry = result.daysSinceExpiry
+		if (daysSinceExpiry <= 30) {
+			// 0-30 days: no watermark (still licensed)
+			return 'licensed'
+		} else if (daysSinceExpiry <= 60) {
+			return 'licensed-with-watermark'
+		} else {
+			return 'expired'
 		}
-		return true
 	}
 
-	return false
+	// License is valid, determine if it has watermark
+	if (result.isLicensedWithWatermark) {
+		return 'licensed-with-watermark'
+	}
+
+	return 'licensed'
 }

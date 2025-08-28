@@ -193,6 +193,8 @@ export interface RoomSnapshot {
     // (undocumented)
     clock: number;
     // (undocumented)
+    documentClock?: number;
+    // (undocumented)
     documents: Array<{
         lastChangedClock: number;
         state: UnknownRecord;

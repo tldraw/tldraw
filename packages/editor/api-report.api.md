@@ -2100,10 +2100,13 @@ export class LicenseManager {
     // (undocumented)
     isTest: boolean;
     // (undocumented)
-    state: Atom<"expired" | "licensed-with-watermark" | "licensed" | "pending" | "unlicensed", unknown>;
+    state: Atom<LicenseState, unknown>;
     // (undocumented)
     verbose: boolean;
 }
+
+// @internal (undocumented)
+export type LicenseState = 'expired' | 'internal-expired' | 'licensed-with-watermark' | 'licensed' | 'pending' | 'unlicensed';
 
 // @public (undocumented)
 export function linesIntersect(A: VecLike, B: VecLike, C: VecLike, D: VecLike): boolean;
@@ -2605,6 +2608,7 @@ export abstract class ShapeUtil<Shape extends TLUnknownShape = TLUnknownShape> {
     getAriaDescriptor(_shape: Shape): string | undefined;
     getBoundsSnapGeometry(_shape: Shape): BoundsSnapGeometry;
     getCanvasSvgDefs(): TLShapeUtilCanvasSvgDef[];
+    getClipPath?(shape: Shape): undefined | Vec[];
     abstract getDefaultProps(): Shape['props'];
     getFontFaces(shape: Shape): TLFontFace[];
     abstract getGeometry(shape: Shape, opts?: TLGeometryOpts): Geometry2d;
@@ -2658,6 +2662,7 @@ export abstract class ShapeUtil<Shape extends TLUnknownShape = TLUnknownShape> {
     static props?: RecordProps<TLUnknownShape>;
     // @internal
     providesBackgroundForChildren(_shape: Shape): boolean;
+    shouldClipChild?(child: TLShape): boolean;
     toBackgroundSvg?(shape: Shape, ctx: SvgExportContext): null | Promise<null | ReactElement> | ReactElement;
     toSvg?(shape: Shape, ctx: SvgExportContext): null | Promise<null | ReactElement> | ReactElement;
     static type: string;

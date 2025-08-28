@@ -9269,7 +9269,7 @@ __metadata:
     "@cloudflare/workers-types": "npm:^4.20250703.0"
     "@tldraw/utils": "workspace:*"
     "@tldraw/validate": "workspace:*"
-    cloudflare-workers-unfurl: "npm:^0.0.7"
+    cloudflare-workers-unfurl: "npm:^0.0.8"
     itty-router: "npm:^5.0.18"
     lazyrepo: "npm:0.0.0-alpha.27"
     toucan-js: "npm:^3.4.0"
@@ -13130,10 +13130,10 @@ __metadata:
   languageName: node
   linkType: hard
 
-"cloudflare-workers-unfurl@npm:^0.0.7":
-  version: 0.0.7
-  resolution: "cloudflare-workers-unfurl@npm:0.0.7"
-  checksum: 10/370e593e3689ac60e5084f4061e8c89f401326fc31a2f6c67d1b898133fce894f8ddb0bb29c27ab9100fafb54b484e76626faff86d1f400a7f8f4b55f9009b28
+"cloudflare-workers-unfurl@npm:^0.0.8":
+  version: 0.0.8
+  resolution: "cloudflare-workers-unfurl@npm:0.0.8"
+  checksum: 10/3f6354096c2f15a4a5766c8fa2620924f2e43a014aba69ec76419c6887a5d1ca6c399634959a3bb8223c248ee82d2a80cd4a8e9df7bd652e5362ded8d2ce4c58
   languageName: node
   linkType: hard
 
@@ -27233,7 +27233,7 @@ __metadata:
     "@types/react": "npm:^18.3.18"
     "@types/react-dom": "npm:^18.3.5"
     "@vitejs/plugin-react-swc": "npm:^3.10.2"
-    cloudflare-workers-unfurl: "npm:^0.0.7"
+    cloudflare-workers-unfurl: "npm:^0.0.8"
     concurrently: "npm:^9.1.2"
     itty-router: "npm:^5.0.18"
     lodash.throttle: "npm:^4.1.1"

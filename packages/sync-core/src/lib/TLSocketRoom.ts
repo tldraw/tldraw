@@ -308,11 +308,12 @@ export class TLSocketRoom<R extends UnknownRecord = UnknownRecord, SessionMeta =
 			snapshot = convertStoreSnapshotToRoomSnapshot(snapshot)
 		}
 		const oldRoom = this.room
-		const oldIds = oldRoom.getSnapshot().documents.map((d) => d.state.id)
+		const oldRoomSnapshot = oldRoom.getSnapshot()
+		const oldIds = oldRoomSnapshot.documents.map((d) => d.state.id)
 		const newIds = new Set(snapshot.documents.map((d) => d.state.id))
 		const removedIds = oldIds.filter((id) => !newIds.has(id))
 
-		const tombstones = { ...snapshot.tombstones }
+		const tombstones: RoomSnapshot['tombstones'] = { ...oldRoomSnapshot.tombstones }
 		removedIds.forEach((id) => {
 			tombstones[id] = oldRoom.clock + 1
 		})
@@ -325,12 +326,14 @@ export class TLSocketRoom<R extends UnknownRecord = UnknownRecord, SessionMeta =
 			schema: oldRoom.schema,
 			snapshot: {
 				clock: oldRoom.clock + 1,
+				documentClock: oldRoom.clock + 1,
 				documents: snapshot.documents.map((d) => ({
 					lastChangedClock: oldRoom.clock + 1,
 					state: d.state,
 				})),
 				schema: snapshot.schema,
 				tombstones,
+				tombstoneHistoryStartsAtClock: oldRoomSnapshot.tombstoneHistoryStartsAtClock,
 			},
 			log: this.log,
 		})
@@ -412,6 +415,7 @@ export type OmitVoid<T, KS extends keyof T = keyof T> = {
 function convertStoreSnapshotToRoomSnapshot(snapshot: TLStoreSnapshot): RoomSnapshot {
 	return {
 		clock: 0,
+		documentClock: 0,
 		documents: objectMapValues(snapshot.store).map((state) => ({
 			state,
 			lastChangedClock: 0,
