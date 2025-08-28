@@ -333,9 +333,12 @@ export class TLSyncClient<R extends UnknownRecord, S extends Store<R> = Store<R>
 			this.lastServerClock = 0
 		}
 		// kill all presence state
-		this.store.mergeRemoteChanges(() => {
-			this.store.remove(Object.keys(this.store.serialize('presence')) as any)
-		})
+		const keys = Object.keys(this.store.serialize('presence')) as any
+		if (keys.length > 0) {
+			this.store.mergeRemoteChanges(() => {
+				this.store.remove(keys)
+			})
+		}
 		this.lastPushedPresenceState = null
 		this.isConnectedToRoom = false
 		this.pendingPushRequests = []
