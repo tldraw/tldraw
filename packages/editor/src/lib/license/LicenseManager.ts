@@ -381,25 +381,9 @@ export function getLicenseState(result: LicenseFromKeyResult): LicenseState {
 	}
 
 	// License is valid, determine if it has watermark
-	if ((result as ValidLicenseKeyResult).isLicensedWithWatermark) {
+	if (result.isLicensedWithWatermark) {
 		return 'licensed-with-watermark'
 	}
 
 	return 'licensed'
-}
-
-export function isEditorUnlicensed(result: LicenseFromKeyResult): {
-	isUnlicensed: boolean
-	internalExpired: boolean
-} {
-	if (!result.isLicenseParseable) return { isUnlicensed: true, internalExpired: false }
-	if (!result.isDomainValid && !result.isDevelopment)
-		return { isUnlicensed: true, internalExpired: false }
-	if (result.isPerpetualLicenseExpired || result.isAnnualLicenseExpired) {
-		// Check if it's an expired internal license
-		const internalExpired = result.isInternalLicense && result.isDomainValid
-		return { isUnlicensed: true, internalExpired }
-	}
-
-	return { isUnlicensed: false, internalExpired: false }
 }
