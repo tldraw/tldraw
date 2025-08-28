@@ -40,6 +40,7 @@ import { Store } from '@tldraw/store';
 import { StoreSchema } from '@tldraw/store';
 import { StoreSideEffects } from '@tldraw/store';
 import { StyleProp } from '@tldraw/tlschema';
+import { StyleProp2 } from '@tldraw/tlschema/src/styles/StyleProp';
 import { StylePropValue } from '@tldraw/tlschema';
 import { T } from '@tldraw/validate';
 import { Timers } from '@tldraw/utils';
@@ -789,7 +790,7 @@ export class EdgeScrollManager {
 
 // @public (undocumented)
 export class Editor extends EventEmitter<TLEventMap> {
-    constructor({ store, user, shapeUtils, bindingUtils, tools, getContainer, cameraOptions, textOptions, initialState, autoFocus, inferDarkMode, options, isShapeHidden, getShapeVisibility, fontAssetUrls, }: TLEditorOptions);
+    constructor({ store, user, shapeUtils, bindingUtils, styleUtils, tools, getContainer, cameraOptions, textOptions, initialState, autoFocus, inferDarkMode, options, isShapeHidden, getShapeVisibility, fontAssetUrls, }: TLEditorOptions);
     // @deprecated (undocumented)
     addOpenMenu(id: string): this;
     alignShapes(shapes: TLShape[] | TLShapeId[], operation: 'bottom' | 'center-horizontal' | 'center-vertical' | 'left' | 'right' | 'top'): this;
@@ -1284,7 +1285,15 @@ export class Editor extends EventEmitter<TLEventMap> {
     getSnapshot(): TLEditorSnapshot;
     getSortedChildIdsForParent(parent: TLPage | TLParentId | TLShape): TLShapeId[];
     getStateDescendant<T extends StateNode>(path: string): T | undefined;
-    getStyleForNextShape<T>(style: StyleProp<T>): T;
+    getStyleForNextShape<T>(style: StyleProp<T> | StyleProp2<string>): T;
+    // (undocumented)
+    getStyleUtil<S extends (abstract new (...args: any[]) => StyleUtil<any>) & {
+        id: string;
+    }>(util: S): InstanceType<S>;
+    // (undocumented)
+    getStyleUtil(prop: StyleProp2<any>): StyleUtil<unknown>;
+    // (undocumented)
+    getStyleUtil<S extends StyleUtil<any>>(style: S['id']): S;
     // @deprecated (undocumented)
     getSvg(shapes: TLShape[] | TLShapeId[], opts?: TLSvgExportOptions): Promise<SVGSVGElement | undefined>;
     getSvgElement(shapes: TLShape[] | TLShapeId[], opts?: TLSvgExportOptions): Promise<{
@@ -1459,8 +1468,8 @@ export class Editor extends EventEmitter<TLEventMap> {
     setSelectedShapes(shapes: TLShape[] | TLShapeId[]): this;
     // @internal (undocumented)
     _setShiftKeyTimeout(): void;
-    setStyleForNextShapes<T>(style: StyleProp<T>, value: T, historyOptions?: TLHistoryBatchOptions): this;
-    setStyleForSelectedShapes<S extends StyleProp<any>>(style: S, value: StylePropValue<S>): this;
+    setStyleForNextShapes<T>(style: StyleProp<T> | StyleProp2<any>, value: T, historyOptions?: TLHistoryBatchOptions): this;
+    setStyleForSelectedShapes<S extends StyleProp<any>>(style: S | StyleProp2<any>, value: StylePropValue<S>): this;
     shapeUtils: {
         readonly [K in string]?: ShapeUtil<TLUnknownShape>;
     };
@@ -1482,7 +1491,11 @@ export class Editor extends EventEmitter<TLEventMap> {
     stretchShapes(shapes: TLShape[] | TLShapeId[], operation: 'horizontal' | 'vertical'): this;
     // (undocumented)
     styleProps: {
-        [key: string]: Map<StyleProp<any>, string>;
+        [key: string]: Map<StyleProp<any> | StyleProp2<string>, string>;
+    };
+    // (undocumented)
+    styleUtils: {
+        readonly [K in string]?: StyleUtil<any>;
     };
     readonly textMeasure: TextManager;
     // (undocumented)
@@ -2400,20 +2413,20 @@ export function rangeIntersection(a0: number, a1: number, b0: number, b1: number
 // @public
 export class ReadonlySharedStyleMap {
     // (undocumented)
-    [Symbol.iterator](): MapIterator<[StyleProp<any>, SharedStyle<unknown>]>;
-    constructor(entries?: Iterable<[StyleProp<unknown>, SharedStyle<unknown>]>);
+    [Symbol.iterator](): MapIterator<[StyleProp<any> | StyleProp2<string>, SharedStyle<unknown>]>;
+    constructor(entries?: Iterable<[StyleProp<unknown> | StyleProp2<string>, SharedStyle<unknown>]>);
     // (undocumented)
-    entries(): MapIterator<[StyleProp<any>, SharedStyle<unknown>]>;
+    entries(): MapIterator<[StyleProp<any> | StyleProp2<string>, SharedStyle<unknown>]>;
     // (undocumented)
     equals(other: ReadonlySharedStyleMap): boolean;
     // (undocumented)
-    get<T>(prop: StyleProp<T>): SharedStyle<T> | undefined;
+    get<T>(prop: StyleProp<T> | StyleProp2<string>): SharedStyle<T> | undefined;
     // (undocumented)
-    getAsKnownValue<T>(prop: StyleProp<T>): T | undefined;
+    getAsKnownValue<T>(prop: StyleProp<T> | StyleProp2<string>): T | undefined;
     // (undocumented)
-    keys(): MapIterator<StyleProp<any>>;
+    keys(): MapIterator<StyleProp<any> | StyleProp2<string>>;
     // @internal (undocumented)
-    protected map: Map<StyleProp<any>, SharedStyle<unknown>>;
+    protected map: Map<StyleProp<any> | StyleProp2<string>, SharedStyle<unknown>>;
     // (undocumented)
     get size(): number;
     // (undocumented)
@@ -2666,9 +2679,9 @@ export type SharedStyle<T> = {
 // @internal (undocumented)
 export class SharedStyleMap extends ReadonlySharedStyleMap {
     // (undocumented)
-    applyValue<T>(prop: StyleProp<T>, value: T): void;
+    applyValue<T>(prop: StyleProp<T> | StyleProp2<string>, value: T): void;
     // (undocumented)
-    set<T>(prop: StyleProp<T>, value: SharedStyle<T>): void;
+    set<T>(prop: StyleProp<T> | StyleProp2<string>, value: SharedStyle<T>): void;
 }
 
 // @public
@@ -2836,6 +2849,24 @@ export const stopEventPropagation: (e: any) => any;
 
 // @internal (undocumented)
 export type StoreName = (typeof Table)[keyof typeof Table];
+
+// @public (undocumented)
+export abstract class StyleUtil<Style, Id extends string = string> {
+    constructor(editor: Editor);
+    static configure<T extends TLStyleUtilConstructor<any, any>>(this: T, options: T extends new (...args: any[]) => {
+        options: infer Options;
+    } ? Partial<Options> : never): T;
+    // (undocumented)
+    readonly editor: Editor;
+    // (undocumented)
+    abstract getDefaultValue(): Style;
+    // (undocumented)
+    readonly id: Id;
+    readonly options: {};
+    // (undocumented)
+    read(value: unknown): Style;
+    readonly validator: T.Validatable<Style>;
+}
 
 // @public (undocumented)
 export function suffixSafeId(id: SafeId, suffix: string): SafeId;
@@ -3209,6 +3240,7 @@ export interface TldrawEditorBaseProps {
     onMount?: TLOnMountHandler;
     options?: Partial<TldrawOptions>;
     shapeUtils?: readonly TLAnyShapeUtilConstructor[];
+    styleUtils?: readonly TLStyleUtilConstructor<any, any>[];
     textOptions?: TLTextOptions;
     tools?: readonly TLStateNodeConstructor[];
     user?: TLUser;
@@ -3417,6 +3449,8 @@ export interface TLEditorOptions {
     options?: Partial<TldrawOptions>;
     shapeUtils: readonly TLAnyShapeUtilConstructor[];
     store: TLStore;
+    // (undocumented)
+    styleUtils: readonly TLStyleUtilConstructor<any, any>[];
     // (undocumented)
     textOptions?: TLTextOptions;
     tools: readonly TLStateNodeConstructor[];
@@ -4180,6 +4214,7 @@ export type TLStoreSchemaOptions = {
     bindingUtils?: readonly TLAnyBindingUtilConstructor[];
     migrations?: readonly MigrationSequence[];
     shapeUtils?: readonly TLAnyShapeUtilConstructor[];
+    styleUtils?: readonly TLStyleUtilConstructor<any, any>[];
 } | {
     schema?: StoreSchema<TLRecord, TLStoreProps>;
 };
@@ -4207,6 +4242,16 @@ export type TLStoreWithStatus = {
     readonly status: 'synced-local';
     readonly store: TLStore;
 };
+
+// @public (undocumented)
+export interface TLStyleUtilConstructor<T, Id extends string, U extends StyleUtil<T, Id> = StyleUtil<T, Id>> {
+    // (undocumented)
+    new (editor: Editor): U;
+    // (undocumented)
+    id: Id;
+    // (undocumented)
+    validator: T.Validatable<T>;
+}
 
 // @public (undocumented)
 export interface TLSvgExportOptions {

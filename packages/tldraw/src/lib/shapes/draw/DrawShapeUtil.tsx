@@ -23,8 +23,8 @@ import {
 	useValue,
 } from '@tldraw/editor'
 
+import { SizeStyleUtil } from '../../styles/TLSizeStyle'
 import { ShapeFill } from '../shared/ShapeFill'
-import { STROKE_SIZES } from '../shared/default-shape-constants'
 import { getFillDefForCanvas, getFillDefForExport } from '../shared/defaultStyleDefs'
 import { getStrokePoints } from '../shared/freehand/getStrokePoints'
 import { getSvgPathFromStrokePoints } from '../shared/freehand/svg'
@@ -79,7 +79,9 @@ export class DrawShapeUtil extends ShapeUtil<TLDrawShape> {
 	getGeometry(shape: TLDrawShape) {
 		const points = getPointsFromSegments(shape.props.segments)
 
-		const sw = (STROKE_SIZES[shape.props.size] + 1) * shape.props.scale
+		const sw =
+			(this.editor.getStyleUtil(SizeStyleUtil).toStrokeSizePx(shape.props.size) + 1) *
+			shape.props.scale
 
 		// A dot
 		if (shape.props.segments.length === 1) {
@@ -133,7 +135,9 @@ export class DrawShapeUtil extends ShapeUtil<TLDrawShape> {
 	indicator(shape: TLDrawShape) {
 		const allPointsFromSegments = getPointsFromSegments(shape.props.segments)
 
-		let sw = (STROKE_SIZES[shape.props.size] + 1) * shape.props.scale
+		let sw =
+			(this.editor.getStyleUtil(SizeStyleUtil).toStrokeSizePx(shape.props.size) + 1) *
+			shape.props.scale
 
 		// eslint-disable-next-line react-hooks/rules-of-hooks
 		const forceSolid = useValue(
@@ -206,7 +210,11 @@ export class DrawShapeUtil extends ShapeUtil<TLDrawShape> {
 
 	override expandSelectionOutlinePx(shape: TLDrawShape): number {
 		const multiplier = shape.props.dash === 'draw' ? 1.6 : 1
-		return ((STROKE_SIZES[shape.props.size] * multiplier) / 2) * shape.props.scale
+		return (
+			((this.editor.getStyleUtil(SizeStyleUtil).toStrokeSizePx(shape.props.size) * multiplier) /
+				2) *
+			shape.props.scale
+		)
 	}
 	override getInterpolatedProps(
 		startShape: TLDrawShape,
@@ -240,7 +248,8 @@ function DrawShapeSvg({ shape, zoomOverride }: { shape: TLDrawShape; zoomOverrid
 
 	const showAsComplete = shape.props.isComplete || last(shape.props.segments)?.type === 'straight'
 
-	let sw = (STROKE_SIZES[shape.props.size] + 1) * shape.props.scale
+	let sw =
+		(editor.getStyleUtil(SizeStyleUtil).toStrokeSizePx(shape.props.size) + 1) * shape.props.scale
 	const forceSolid = useValue(
 		'force solid',
 		() => {

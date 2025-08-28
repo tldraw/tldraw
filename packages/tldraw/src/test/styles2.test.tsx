@@ -7,6 +7,7 @@ import {
 	TLGroupShape,
 	toRichText,
 } from '@tldraw/editor'
+import { StylePropMarker, isStyleProp2 } from '@tldraw/tlschema/src/styles/StyleProp'
 import { TestEditor, createDefaultShapes, defaultShapesIds } from './TestEditor'
 import { TL } from './test-jsx'
 
@@ -16,7 +17,8 @@ function asPlainObject(styles: ReadonlySharedStyleMap | null) {
 	if (!styles) return null
 	const object: Record<string, SharedStyle<unknown>> = {}
 	for (const [key, value] of styles) {
-		object[key.id] = value
+		const id = isStyleProp2(key) ? key[StylePropMarker] : key.id
+		object[id] = value
 	}
 	return object
 }

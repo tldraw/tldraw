@@ -17,6 +17,7 @@ import { Circle2d } from '@tldraw/editor';
 import { ComponentType } from 'react';
 import { CSSProperties } from 'react';
 import { Editor } from '@tldraw/editor';
+import { EnumStyleProp } from '@tldraw/editor';
 import { Extension } from '@tiptap/core';
 import { Extensions } from '@tiptap/core';
 import { ForwardRefExoticComponent } from 'react';
@@ -55,6 +56,8 @@ import { ShapeWithCrop } from '@tldraw/editor';
 import { SharedStyle } from '@tldraw/editor';
 import { StateNode } from '@tldraw/editor';
 import { StyleProp } from '@tldraw/editor';
+import { StyleProp2 } from '@tldraw/tlschema/src/styles/StyleProp';
+import { StyleUtil } from '@tldraw/editor';
 import { SvgExportContext } from '@tldraw/editor';
 import { SVGProps } from 'react';
 import { TiptapEditor } from '@tldraw/editor';
@@ -139,6 +142,7 @@ import { TLShapeUtilConstructor } from '@tldraw/editor';
 import { TLStateNodeConstructor } from '@tldraw/editor';
 import { TLStore } from '@tldraw/editor';
 import { TLStoreSnapshot } from '@tldraw/editor';
+import { TLStyleUtilConstructor } from '@tldraw/editor';
 import { TLTextOptions } from '@tldraw/editor';
 import { TLTextShape } from '@tldraw/editor';
 import { TLUrlExternalAsset } from '@tldraw/editor';
@@ -974,6 +978,9 @@ export const DefaultStylePanel: NamedExoticComponent<TLUiStylePanelProps>;
 export function DefaultStylePanelContent({ styles }: TLUiStylePanelContentProps): JSX_2.Element | null;
 
 // @public (undocumented)
+export const defaultStyleUtils: (typeof DefaultSizeStyleUtil)[];
+
+// @public (undocumented)
 export const DefaultToasts: NamedExoticComponent<object>;
 
 // @public
@@ -1586,7 +1593,7 @@ export class GeoShapeUtil extends BaseBoxShapeUtil<TLGeoShape> {
             labelColor: TLDefaultColorStyle;
             richText: TLRichText;
             scale: number;
-            size: TLDefaultSizeStyle;
+            size: unknown;
             url: string;
             verticalAlign: TLDefaultVerticalAlignStyle;
             w: number;
@@ -1617,7 +1624,7 @@ export class GeoShapeUtil extends BaseBoxShapeUtil<TLGeoShape> {
             labelColor: TLDefaultColorStyle;
             richText: TLRichText;
             scale: number;
-            size: TLDefaultSizeStyle;
+            size: unknown;
             url: string;
             verticalAlign: TLDefaultVerticalAlignStyle;
             w: number;
@@ -3011,6 +3018,7 @@ export interface TldrawImageProps extends TLImageExportOptions {
     pageId?: TLPageId;
     shapeUtils?: readonly TLAnyShapeUtilConstructor[];
     snapshot: Partial<TLEditorSnapshot> | TLStoreSnapshot;
+    styleUtils?: readonly TLStyleUtilConstructor<any, any>[];
     textOptions?: TLTextOptions;
 }
 
@@ -3433,9 +3441,9 @@ export interface TLUiButtonPickerProps<T extends string> {
     // (undocumented)
     onHistoryMark?(id: string): void;
     // (undocumented)
-    onValueChange(style: StyleProp<T>, value: T): void;
+    onValueChange(style: StyleProp<T> | StyleProp2<any>, value: T): void;
     // (undocumented)
-    style: StyleProp<T>;
+    style: StyleProp<T> | StyleProp2<any>;
     // (undocumented)
     theme: TLDefaultColorTheme;
     // (undocumented)
@@ -3498,6 +3506,8 @@ export interface TLUiComponents {
     SharePanel?: ComponentType | null;
     // (undocumented)
     StylePanel?: ComponentType<TLUiStylePanelProps> | null;
+    // (undocumented)
+    StylePanelSizePicker?: ComponentType<DefaultStylePanelSizePickerProps> | null;
     // (undocumented)
     Toasts?: ComponentType | null;
     // (undocumented)

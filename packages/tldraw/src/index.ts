@@ -92,6 +92,7 @@ export {
 export { defaultShapeTools } from './lib/defaultShapeTools'
 export { defaultShapeUtils } from './lib/defaultShapeUtils'
 export { registerDefaultSideEffects } from './lib/defaultSideEffects'
+export { DefaultSizeStyleUtil, defaultStyleUtils } from './lib/defaultStyleUtils'
 export { defaultTools } from './lib/defaultTools'
 export {
 	type ArrowShapeOptions,

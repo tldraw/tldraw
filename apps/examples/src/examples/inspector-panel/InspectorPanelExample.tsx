@@ -54,8 +54,8 @@ function InspectorPanel() {
 				{sharedStyles && sharedStyles.size > 0 && (
 					<div className="inspector-section">
 						<h4>Shared Styles</h4>
-						{Array.from(sharedStyles.entries()).map(([styleProp, sharedStyle]) => (
-							<SharedStyleRow key={styleProp.id} styleProp={styleProp} sharedStyle={sharedStyle} />
+						{Array.from(sharedStyles.entries()).map(([styleProp, sharedStyle], index) => (
+							<SharedStyleRow key={index} styleProp={styleProp} sharedStyle={sharedStyle} />
 						))}
 					</div>
 				)}
