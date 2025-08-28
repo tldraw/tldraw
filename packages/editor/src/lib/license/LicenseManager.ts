@@ -97,7 +97,12 @@ export class LicenseManager {
 				}
 
 				if (isUnlicensed) {
-					if (result.isLicenseParseable && result.isInternalLicense) {
+					if (
+						result.isLicenseParseable &&
+						result.isInternalLicense &&
+						result.isDomainValid &&
+						(result.isAnnualLicenseExpired || result.isPerpetualLicenseExpired)
+					) {
 						this.state.set('internal-expired')
 					} else {
 						this.state.set('unlicensed')
