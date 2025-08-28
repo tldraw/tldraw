@@ -248,6 +248,12 @@ body {
 	padding: 0px 8px;
 }
 
+.chat-model-select-label {
+	display: flex;
+	align-items: center;
+	gap: 4px;
+}
+
 .chat-context-select {
 	border: 1px solid var(--tl-color-text-2);
 	padding: 0px 4px 0px 3px;
