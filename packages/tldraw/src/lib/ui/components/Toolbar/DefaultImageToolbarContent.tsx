@@ -226,7 +226,11 @@ export const DefaultImageToolbarContent = track(function DefaultImageToolbarCont
 				/>
 				<TldrawUiDropdownMenuRoot id="image-toolbar-aspect-ratio">
 					<TldrawUiDropdownMenuTrigger>
-						<TldrawUiToolbarButton title={msg('tool.aspect-ratio')} type="icon">
+						<TldrawUiToolbarButton
+							title={msg('tool.aspect-ratio')}
+							type="icon"
+							data-testid="tool.image-aspect-ratio"
+						>
 							<TldrawUiButtonIcon icon="corners" />
 						</TldrawUiToolbarButton>
 					</TldrawUiDropdownMenuTrigger>
@@ -271,7 +275,7 @@ export const DefaultImageToolbarContent = track(function DefaultImageToolbarCont
 				<TldrawUiToolbarButton
 					type="icon"
 					onClick={onManipulatingEnd}
-					data-testid="tool.image-confirm"
+					data-testid="tool.image-crop-confirm"
 					style={{ borderLeft: '1px solid var(--tl-color-divider)', marginLeft: '2px' }}
 					title={msg('tool.image-crop-confirm')}
 				>
@@ -286,8 +290,9 @@ export const DefaultImageToolbarContent = track(function DefaultImageToolbarCont
 			{!isReadonly && (
 				<TldrawUiToolbarButton
 					type="icon"
-					title={msg('tool.replace-media')}
+					data-testid="tool.image-replace"
 					onClick={handleImageReplace}
+					title={msg('tool.image-replace')}
 				>
 					<TldrawUiButtonIcon small icon="tool-media" />
 				</TldrawUiToolbarButton>
@@ -297,6 +302,7 @@ export const DefaultImageToolbarContent = track(function DefaultImageToolbarCont
 					type="icon"
 					title={msg('tool.image-crop')}
 					onClick={onManipulatingStart}
+					data-testid="tool.image-crop"
 				>
 					<TldrawUiButtonIcon small icon="crop" />
 				</TldrawUiToolbarButton>
@@ -305,6 +311,7 @@ export const DefaultImageToolbarContent = track(function DefaultImageToolbarCont
 				type="icon"
 				title={msg('action.download-original')}
 				onClick={handleImageDownload}
+				data-testid="tool.image-download"
 			>
 				<TldrawUiButtonIcon small icon="download" />
 			</TldrawUiToolbarButton>
@@ -312,6 +319,7 @@ export const DefaultImageToolbarContent = track(function DefaultImageToolbarCont
 				<TldrawUiToolbarButton
 					type="icon"
 					title={msg('tool.media-alt-text')}
+					data-testid="tool.image-alt-text"
 					onClick={() => {
 						trackEvent('alt-text-start', { source })
 						onEditAltTextStart()

@@ -78,6 +78,7 @@ export function AltTextEditor({ shapeId, onClose, source }: AltTextEditorProps) 
 			{!isReadonly && (
 				<TldrawUiToolbarButton
 					title={msg('tool.media-alt-text-confirm')}
+					data-testid="tool.media-alt-text-confirm"
 					type="icon"
 					onPointerDown={preventDefault}
 					onClick={handleConfirm}
