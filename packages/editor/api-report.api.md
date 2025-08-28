@@ -1116,17 +1116,6 @@ export class Editor extends EventEmitter<TLEventMap> {
     duplicatePage(page: TLPage | TLPageId, createId?: TLPageId): this;
     duplicateShapes(shapes: TLShape[] | TLShapeId[], offset?: VecLike): this;
     edgeScrollManager: EdgeScrollManager;
-    // @deprecated
-    readonly environment: {
-        hasCanvasSupport: boolean;
-        isAndroid: boolean;
-        isChromeForIos: boolean;
-        isDarwin: boolean;
-        isFirefox: boolean;
-        isIos: boolean;
-        isSafari: boolean;
-        isWebview: boolean;
-    };
     // @internal (undocumented)
     externalAssetContentHandlers: {
         [K in TLExternalAsset['type']]: {

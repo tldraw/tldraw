@@ -1423,14 +1423,6 @@ export interface ExportAsOptions extends TLImageExportOptions {
 // @public (undocumented)
 export function ExportFileContentSubMenu(): JSX_2.Element;
 
-// @public @deprecated
-export function exportToBlob({ editor, ids, format, opts, }: {
-    editor: Editor;
-    format: TLExportType;
-    ids: TLShapeId[];
-    opts?: TLImageExportOptions;
-}): Promise<Blob>;
-
 // @public (undocumented)
 export function ExtrasGroup(): JSX_2.Element;
 

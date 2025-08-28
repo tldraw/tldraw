@@ -116,7 +116,6 @@ import {
 } from '../constants'
 import { exportToSvg } from '../exports/exportToSvg'
 import { getSvgAsImage } from '../exports/getSvgAsImage'
-import { tlenv } from '../globals/environment'
 import { tlmenus } from '../globals/menus'
 import { tltime } from '../globals/time'
 import { TldrawOptions, defaultTldrawOptions } from '../options'
@@ -906,14 +905,6 @@ export class Editor extends EventEmitter<TLEventMap> {
 	 * @public
 	 */
 	readonly fonts: FontManager
-
-	/**
-	 * A manager for the editor's environment.
-	 *
-	 * @deprecated This is deprecated and will be removed in a future version. Use the `tlenv` global export instead.
-	 * @public
-	 */
-	readonly environment = tlenv
 
 	/**
 	 * A manager for the editor's scribbles.
