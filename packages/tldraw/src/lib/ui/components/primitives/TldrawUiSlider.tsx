@@ -61,13 +61,14 @@ export const TldrawUiSlider = React.forwardRef<HTMLDivElement, TLUiSliderProps>(
 	// which in turn makes the tooltip display prematurely.
 	// This makes it wait until we've focused to show the tooltip.
 	useEffect(() => {
-		tltime.setTimeout(
+		const timeout = tltime.setTimeout(
 			'set title and label',
 			() => {
 				setTitleAndLabel(title + ' — ' + msg(label as TLUiTranslationKey))
 			},
 			0
 		)
+		return () => clearTimeout(timeout)
 	}, [label, msg, title])
 
 	// N.B. Annoying. For a11y purposes, we need Tab to work.

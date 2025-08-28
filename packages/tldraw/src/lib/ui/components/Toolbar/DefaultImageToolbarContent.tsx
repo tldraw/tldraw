@@ -292,7 +292,7 @@ export const DefaultImageToolbarContent = track(function DefaultImageToolbarCont
 					type="icon"
 					data-testid="tool.image-replace"
 					onClick={handleImageReplace}
-					title={msg('tool.image-replace')}
+					title={msg('tool.replace-media')}
 				>
 					<TldrawUiButtonIcon small icon="tool-media" />
 				</TldrawUiToolbarButton>
