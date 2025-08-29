@@ -35,8 +35,8 @@ test.describe('Internal License', () => {
 	})
 })
 
-test.describe('License with watermark', () => {
-	test('shows the licensed watermark with default license key', async ({ page }) => {
+test.describe('With watermak license', () => {
+	test('shows licensed watermark with default license key', async ({ page }) => {
 		// Don't set any license key - this should use our default license that shows the watermark
 		await page.goto('http://localhost:5420/end-to-end')
 		await page.waitForTimeout(2000)
@@ -52,10 +52,8 @@ test.describe('License with watermark', () => {
 	})
 })
 
-test.describe('No License Key', () => {
-	test('shows watermark when no license key is provided (localhost development)', async ({
-		page,
-	}) => {
+test.describe('Unlicensed watermark', () => {
+	test('shows unlicensed watermark when no license key provided', async ({ page }) => {
 		const consoleMessages: string[] = []
 		page.on('console', (msg) => {
 			consoleMessages.push(msg.text())
@@ -87,9 +85,7 @@ test.describe('No License Key', () => {
 		expect(licenseKeyUsed).toBe(null)
 	})
 
-	test('shows watermark when license key is explicitly undefined (localhost development)', async ({
-		page,
-	}) => {
+	test('shows unlicensed watermark when license key is undefined', async ({ page }) => {
 		// Explicitly set license key to undefined
 		await page.addInitScript(`
 			window.__TLDRAW_LICENSE_KEY__ = undefined;
@@ -110,9 +106,7 @@ test.describe('No License Key', () => {
 		await expect(page.getByTestId('tl-license-expired')).not.toBeVisible()
 	})
 
-	test('shows watermark when license key is empty string (localhost development)', async ({
-		page,
-	}) => {
+	test('shows unlicensed watermark when license key is empty string', async ({ page }) => {
 		// Set license key to empty string
 		await page.addInitScript(`
 			window.__TLDRAW_LICENSE_KEY__ = "";
