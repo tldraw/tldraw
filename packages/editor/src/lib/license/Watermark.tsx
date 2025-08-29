@@ -71,11 +71,9 @@ const UnlicensedWatermark = memo(function UnlicensedWatermark({
 				onClick={() => runtime.openWindow(url, '_blank')}
 				style={{
 					position: 'absolute',
-					width: '96px',
-					height: '32px',
 					pointerEvents: 'all',
 					cursor: 'pointer',
-					color: 'var(--color-text)',
+					color: 'var(--tl-color-text)',
 					opacity: 0.8,
 					border: 0,
 					padding: 0,
