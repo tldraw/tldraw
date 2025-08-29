@@ -343,13 +343,6 @@ export class LicenseManager {
 	}
 
 	private outputLicenseInfoIfNeeded(result: ValidLicenseKeyResult) {
-		if (result.isAnnualLicenseExpired) {
-			this.outputMessages([
-				'Your tldraw license has expired!',
-				`Please reach out to ${LICENSE_EMAIL} to renew.`,
-			])
-		}
-
 		if (!result.isDomainValid && !result.isDevelopment) {
 			this.outputMessages([
 				'This tldraw license key is not valid for this domain!',

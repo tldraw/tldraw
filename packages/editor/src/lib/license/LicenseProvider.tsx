@@ -34,13 +34,17 @@ export function LicenseProvider({
 
 	// If internal license has expired, don't render the editor at all
 	if (licenseState === 'internal-expired') {
-		return <div data-testid="tl-license-expired" style={{ display: 'none' }} />
+		return <LicenseGate />
 	}
 
 	// If license is expired and 5 seconds have passed, don't render anything (blank screen)
 	if (licenseState === 'expired' && !showExpired) {
-		return null
+		return <LicenseGate />
 	}
 
 	return <LicenseContext.Provider value={licenseManager}>{children}</LicenseContext.Provider>
+}
+
+function LicenseGate() {
+	return <div data-testid="tl-license-expired" style={{ display: 'none' }} />
 }
