@@ -1,4 +1,4 @@
-import { Editor, TLShape, throttle } from '@tldraw/editor'
+import { Editor, TLShape, debounce, throttle } from '@tldraw/editor'
 
 function _updateHoveredShapeId(editor: Editor) {
 	// todo: consider replacing `get hoveredShapeId` with this; it would mean keeping hoveredShapeId in memory rather than in the store and possibly re-computing it more often than necessary
@@ -31,8 +31,38 @@ function _updateHoveredShapeId(editor: Editor) {
 	return editor.setHoveredShape(shapeToHover.id)
 }
 
+// WeakMaps to store editor-specific throttled/debounced functions
+interface ThrottledFn {
+	(editor: Editor): Editor
+	cancel(): void
+}
+
+interface DebouncedFn {
+	(editor: Editor): Promise<Editor>
+	cancel(): void
+}
+
+const editorThrottledFunctions = new WeakMap<Editor, ThrottledFn>()
+const editorDebouncedFunctions = new WeakMap<Editor, DebouncedFn>()
+
 /** @internal */
-export const updateHoveredShapeId = throttle(
-	_updateHoveredShapeId,
-	process.env.NODE_ENV === 'test' ? 0 : 32
-)
+export const updateHoveredShapeIdResponsive = (editor: Editor) => {
+	let throttledFn = editorThrottledFunctions.get(editor)
+	if (!throttledFn) {
+		throttledFn = throttle(_updateHoveredShapeId, process.env.NODE_ENV === 'test' ? 0 : 32)
+		editorThrottledFunctions.set(editor, throttledFn)
+	}
+	return throttledFn
+}
+
+/** @internal */
+export const updateHoveredShapeIdDeferred = (editor: Editor) => {
+	let debouncedFn = editorDebouncedFunctions.get(editor)
+	if (!debouncedFn) {
+		debouncedFn = debounce(_updateHoveredShapeId, process.env.NODE_ENV === 'test' ? 0 : 32, {
+			leading: process.env.NODE_ENV === 'test',
+		})
+		editorDebouncedFunctions.set(editor, debouncedFn)
+	}
+	return debouncedFn
+}
