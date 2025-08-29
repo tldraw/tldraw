@@ -7,6 +7,7 @@ import { formatAssetUrl } from './utils.js'
 
 import embedIconsCodepenPngUrl from './embed-icons/codepen.png?url'
 import embedIconsCodesandboxPngUrl from './embed-icons/codesandbox.png?url'
+import embedIconsDatadogPngUrl from './embed-icons/datadog.png?url'
 import embedIconsDesmosPngUrl from './embed-icons/desmos.png?url'
 import embedIconsExcalidrawPngUrl from './embed-icons/excalidraw.png?url'
 import embedIconsFeltPngUrl from './embed-icons/felt.png?url'
@@ -340,6 +341,7 @@ export function getAssetUrlsByImport(opts) {
 		embedIcons: {
 			codepen: formatAssetUrl(embedIconsCodepenPngUrl, opts),
 			codesandbox: formatAssetUrl(embedIconsCodesandboxPngUrl, opts),
+			datadog: formatAssetUrl(embedIconsDatadogPngUrl, opts),
 			desmos: formatAssetUrl(embedIconsDesmosPngUrl, opts),
 			excalidraw: formatAssetUrl(embedIconsExcalidrawPngUrl, opts),
 			felt: formatAssetUrl(embedIconsFeltPngUrl, opts),
