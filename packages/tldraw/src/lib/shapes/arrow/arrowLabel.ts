@@ -227,6 +227,14 @@ interface ArrowheadInfo {
 	hasEndArrowhead: boolean
 }
 export function getArrowLabelPosition(editor: Editor, shape: TLArrowShape) {
+	const isEditing = editor.getEditingShapeId() === shape.id
+	if (!isEditing && isEmptyRichText(shape.props.richText)) {
+		// Short-circuit for empty labels.
+		const bodyGeom = getArrowBodyGeometry(editor, shape)
+		const labelCenter = bodyGeom.interpolateAlongEdge(0.5)
+		return { box: Box.FromCenter(labelCenter, new Vec(0, 0)), debugGeom: [] }
+	}
+
 	const debugGeom: Geometry2d[] = []
 	const info = getArrowInfo(editor, shape)!
 
