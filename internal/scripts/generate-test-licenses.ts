@@ -84,7 +84,7 @@ function createLicenseInfo(id: string, hosts: string[], flags: number, expiryDat
 function getDateOffset(days: number): string {
 	const date = new Date()
 	date.setDate(date.getDate() + days)
-	return date.toISOString()
+	return date.toISOString().slice(0, 10)
 }
 
 async function main() {
