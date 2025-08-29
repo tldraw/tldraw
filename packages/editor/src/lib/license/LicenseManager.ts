@@ -37,12 +37,12 @@ export interface LicenseInfo {
 
 /** @internal */
 export type LicenseState =
-	| 'pending'
-	| 'licensed'
-	| 'licensed-with-watermark'
-	| 'unlicensed'
-	| 'internal-expired'
-	| 'expired'
+	| 'pending' // License validation is in progress
+	| 'licensed' // License is valid and active (no restrictions)
+	| 'licensed-with-watermark' // License is valid but shows watermark (evaluation licenses, 30-60 days past expiry for regular licenses, WITH_WATERMARK licenses)
+	| 'unlicensed' // No valid license found or license is invalid
+	| 'internal-expired' // Internal license has expired
+	| 'expired' // License has been expired (60 days past expiration for regular licenses, immediately for evaluation licenses)
 /** @internal */
 export type InvalidLicenseReason =
 	| 'invalid-license-key'
