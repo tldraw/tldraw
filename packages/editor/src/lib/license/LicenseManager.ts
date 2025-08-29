@@ -40,7 +40,8 @@ export type LicenseState =
 	| 'pending' // License validation is in progress
 	| 'licensed' // License is valid and active (no restrictions)
 	| 'licensed-with-watermark' // License is valid but shows watermark (evaluation licenses, 30-60 days past expiry for regular licenses, WITH_WATERMARK licenses)
-	| 'unlicensed' // No valid license found or license is invalid
+	| 'unlicensed' // No valid license found or license is invalid (development)
+	| 'unlicensed-production' // No license provided in production deployment
 	| 'internal-expired' // Internal license has expired
 	| 'expired' // License has been expired (60 days past expiration for regular licenses, immediately for evaluation licenses)
 /** @internal */
@@ -101,11 +102,16 @@ export class LicenseManager {
 
 		this.getLicenseFromKey(licenseKey)
 			.then((result) => {
-				const licenseState = getLicenseState(result, (messages: string[]) =>
-					this.outputMessages(messages)
+				const licenseState = getLicenseState(
+					result,
+					(messages: string[]) => this.outputMessages(messages),
+					this.isDevelopment
 				)
 
-				if (!this.isDevelopment && licenseState === 'unlicensed') {
+				if (
+					!this.isDevelopment &&
+					(licenseState === 'unlicensed' || licenseState === 'unlicensed-production')
+				) {
 					fetch(WATERMARK_TRACK_SRC)
 				}
 
@@ -387,19 +393,56 @@ export class LicenseManager {
 
 export function getLicenseState(
 	result: LicenseFromKeyResult,
-	outputMessages: (messages: string[]) => void
+	outputMessages: (messages: string[]) => void,
+	isDevelopment: boolean
 ): LicenseState {
-	if (!result.isLicenseParseable) return 'unlicensed'
-	if (!result.isDomainValid && !result.isDevelopment) return 'unlicensed'
+	if (!result.isLicenseParseable) {
+		if (isDevelopment) {
+			return 'unlicensed'
+		}
+
+		// All unlicensed scenarios should not work in production
+		if (result.reason === 'no-key-provided') {
+			outputMessages([
+				'No tldraw license key provided!',
+				'A license is required for production deployments.',
+				`Please reach out to ${LICENSE_EMAIL} to purchase a license.`,
+			])
+		} else {
+			outputMessages([
+				'Invalid license key. tldraw requires a valid license for production use.',
+				`Please reach out to ${LICENSE_EMAIL} to purchase a license.`,
+			])
+		}
+		return 'unlicensed-production'
+	}
+
+	if (!result.isDomainValid && !result.isDevelopment) {
+		if (isDevelopment) {
+			return 'unlicensed'
+		}
+
+		outputMessages([
+			'License key is not valid for this domain.',
+			'A license is required for production deployments.',
+			`Please reach out to ${LICENSE_EMAIL} to purchase a license.`,
+		])
+		return 'unlicensed-production'
+	}
 
 	// Handle evaluation licenses - they expire immediately with no grace period
-	if (result.isEvaluationLicense && result.isEvaluationLicenseExpired) {
-		outputMessages([
-			'Your tldraw evaluation license has expired!',
-			'Evaluation licenses expire immediately without a grace period.',
-			`Please reach out to ${LICENSE_EMAIL} to purchase a full license.`,
-		])
-		return 'expired'
+	if (result.isEvaluationLicense) {
+		if (result.isEvaluationLicenseExpired) {
+			outputMessages([
+				'Your tldraw evaluation license has expired!',
+				'Evaluation licenses expire immediately without a grace period.',
+				`Please reach out to ${LICENSE_EMAIL} to purchase a full license.`,
+			])
+			return 'expired'
+		} else {
+			// Valid evaluation license should show watermark
+			return 'licensed-with-watermark'
+		}
 	}
 
 	// Handle expired regular licenses (annual/perpetual) - they expire after 60 days
@@ -449,7 +492,7 @@ export function getLicenseState(
 	}
 
 	// License is valid, determine if it has watermark
-	if (result.isLicensedWithWatermark || result.isEvaluationLicense) {
+	if (result.isLicensedWithWatermark) {
 		return 'licensed-with-watermark'
 	}
 

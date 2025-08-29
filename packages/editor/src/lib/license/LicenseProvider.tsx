@@ -18,27 +18,27 @@ export function LicenseProvider({
 }) {
 	const [licenseManager] = useState(() => new LicenseManager(licenseKey))
 	const licenseState = useValue(licenseManager.state)
-	const [showExpired, setShowExpired] = useState(true)
+	const [showEditor, setShowEditor] = useState(true)
 
-	// When license expires, show for 5 seconds then hide
+	// When license expires or no license in production, show for 5 seconds then hide
 	useEffect(() => {
-		if (licenseState === 'expired' && showExpired) {
+		if ((licenseState === 'expired' || licenseState === 'unlicensed-production') && showEditor) {
 			// eslint-disable-next-line no-restricted-globals
 			const timer = setTimeout(() => {
-				setShowExpired(false)
+				setShowEditor(false)
 			}, 5000)
 
 			return () => clearTimeout(timer)
 		}
-	}, [licenseState, showExpired])
+	}, [licenseState, showEditor])
 
 	// If internal license has expired, don't render the editor at all
 	if (licenseState === 'internal-expired') {
 		return <LicenseGate />
 	}
 
-	// If license is expired and 5 seconds have passed, don't render anything (blank screen)
-	if (licenseState === 'expired' && !showExpired) {
+	// If license is expired or no license in production and 5 seconds have passed, don't render anything (blank screen)
+	if ((licenseState === 'expired' || licenseState === 'unlicensed-production') && !showEditor) {
 		return <LicenseGate />
 	}
 

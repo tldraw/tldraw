@@ -36,7 +36,7 @@ test.describe('Internal License', () => {
 })
 
 test.describe('License with watermark', () => {
-	test('shows the watermark', async ({ page }) => {
+	test('shows the licensed watermark with default license key', async ({ page }) => {
 		// Don't set any license key - this should use our default license that shows the watermark
 		await page.goto('http://localhost:5420/end-to-end')
 		await page.waitForTimeout(2000)
@@ -44,8 +44,93 @@ test.describe('License with watermark', () => {
 		// The editor should render normally
 		await expect(page.locator('.tl-canvas')).toBeVisible()
 
-		// The watermark should be visible
-		await expect(page.locator('.tl-watermark_SEE-LICENSE')).toBeVisible()
+		// The licensed watermark should be visible (default license has WITH_WATERMARK flag)
+		await expect(page.getByTestId('tl-watermark-licensed')).toBeVisible()
+
+		// The unlicensed watermark should NOT be visible
+		await expect(page.getByTestId('tl-watermark-unlicensed')).not.toBeVisible()
+	})
+})
+
+test.describe('No License Key', () => {
+	test('shows watermark when no license key is provided (localhost development)', async ({
+		page,
+	}) => {
+		const consoleMessages: string[] = []
+		page.on('console', (msg) => {
+			consoleMessages.push(msg.text())
+		})
+
+		// Explicitly set no license key by setting it to null
+		await page.addInitScript(`
+			window.__TLDRAW_LICENSE_KEY__ = null;
+		`)
+		await page.goto('http://localhost:5420/end-to-end')
+		await page.waitForTimeout(2000)
+
+		// In development mode (localhost), the editor should render normally with watermark
+		await expect(page.locator('.tl-canvas')).toBeVisible()
+
+		// The unlicensed watermark should be visible since we have no license
+		await expect(page.getByTestId('tl-watermark-unlicensed')).toBeVisible()
+
+		// The licensed watermark should NOT be visible
+		await expect(page.getByTestId('tl-watermark-licensed')).not.toBeVisible()
+
+		// License gate should not be visible (editor is not blocked)
+		await expect(page.getByTestId('tl-license-expired')).not.toBeVisible()
+
+		// Debug: Check what license key is being used (should be null)
+		const licenseKeyUsed = await page.evaluate(() => {
+			return (window as any).__TLDRAW_LICENSE_KEY__
+		})
+		expect(licenseKeyUsed).toBe(null)
+	})
+
+	test('shows watermark when license key is explicitly undefined (localhost development)', async ({
+		page,
+	}) => {
+		// Explicitly set license key to undefined
+		await page.addInitScript(`
+			window.__TLDRAW_LICENSE_KEY__ = undefined;
+		`)
+		await page.goto('http://localhost:5420/end-to-end')
+		await page.waitForTimeout(2000)
+
+		// In development mode (localhost), the editor should render normally with watermark
+		await expect(page.locator('.tl-canvas')).toBeVisible()
+
+		// The unlicensed watermark should be visible since we have no license
+		await expect(page.getByTestId('tl-watermark-unlicensed')).toBeVisible()
+
+		// The licensed watermark should NOT be visible
+		await expect(page.getByTestId('tl-watermark-licensed')).not.toBeVisible()
+
+		// License gate should not be visible (editor is not blocked)
+		await expect(page.getByTestId('tl-license-expired')).not.toBeVisible()
+	})
+
+	test('shows watermark when license key is empty string (localhost development)', async ({
+		page,
+	}) => {
+		// Set license key to empty string
+		await page.addInitScript(`
+			window.__TLDRAW_LICENSE_KEY__ = "";
+		`)
+		await page.goto('http://localhost:5420/end-to-end')
+		await page.waitForTimeout(2000)
+
+		// In development mode (localhost), the editor should render normally with watermark
+		await expect(page.locator('.tl-canvas')).toBeVisible()
+
+		// The unlicensed watermark should be visible since we have no valid license
+		await expect(page.getByTestId('tl-watermark-unlicensed')).toBeVisible()
+
+		// The licensed watermark should NOT be visible
+		await expect(page.getByTestId('tl-watermark-licensed')).not.toBeVisible()
+
+		// License gate should not be visible (editor is not blocked)
+		await expect(page.getByTestId('tl-license-expired')).not.toBeVisible()
 	})
 })
 
