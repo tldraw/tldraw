@@ -1,7 +1,7 @@
 import { useDraggable } from '@dnd-kit/core'
 import { TlaFile } from '@tldraw/dotcom-shared'
-import { setIn } from 'bedit'
 import classNames from 'classnames'
+import { patch } from 'patchfork'
 import { ContextMenu as _ContextMenu } from 'radix-ui'
 import { KeyboardEvent, MouseEvent, useCallback, useEffect, useRef } from 'react'
 import { Link, useNavigate, useParams } from 'react-router-dom'
@@ -81,7 +81,7 @@ export function TlaSidebarFileLink({
 				app.updateFile(fileId, { name: newName })
 			}
 		} else {
-			setIn(app.sidebarState).renameState({ fileId, context })
+			patch(app.sidebarState).renameState({ fileId, context })
 		}
 	}
 
@@ -96,7 +96,7 @@ export function TlaSidebarFileLink({
 					testId={testId}
 					isActive={isActive}
 					href={routes.tlaFile(fileId)}
-					onClose={() => setIn(app.sidebarState).renameState(null)}
+					onClose={() => patch(app.sidebarState).renameState(null)}
 					isRenaming={isRenaming}
 					handleRenameAction={handleRenameAction}
 					className={className}

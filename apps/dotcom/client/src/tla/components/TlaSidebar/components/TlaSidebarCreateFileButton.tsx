@@ -1,4 +1,4 @@
-import { setIn } from 'bedit'
+import { patch } from 'patchfork'
 import { useCallback, useRef } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { tltime } from 'tldraw'
@@ -26,7 +26,7 @@ export function TlaSidebarCreateFileButton() {
 		if (res.ok) {
 			const isMobile = getIsCoarsePointer()
 			if (!isMobile) {
-				setIn(app.sidebarState).renameState({ fileId: res.value.file.id, context: 'my-files' })
+				patch(app.sidebarState).renameState({ fileId: res.value.file.id, context: 'my-files' })
 			}
 			const { file } = res.value
 			navigate(routes.tlaFile(file.id))

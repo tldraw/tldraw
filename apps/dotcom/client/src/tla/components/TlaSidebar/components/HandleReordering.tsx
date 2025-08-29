@@ -1,4 +1,4 @@
-import { setIn } from 'bedit'
+import { patch } from 'patchfork'
 import { MouseEvent, useEffect, useRef } from 'react'
 import { useValue } from 'tldraw'
 import { useApp } from '../../../hooks/useAppState'
@@ -62,7 +62,7 @@ export function HandleReordering() {
 						nextDragState.cursorLineY !== dragState.cursorLineY ||
 						nextDragState.nextIndex !== dragState.nextIndex
 					) {
-						setIn(app.sidebarState).dragState({
+						patch(app.sidebarState).dragState({
 							type: 'group',
 							itemId: dragState.itemId,
 							...nextDragState,
@@ -80,7 +80,7 @@ export function HandleReordering() {
 						nextDragState.cursorLineY !== dragState.cursorLineY ||
 						nextDragState.nextIndex !== dragState.nextIndex
 					) {
-						setIn(app.sidebarState).dragState({
+						patch(app.sidebarState).dragState({
 							type: 'pinned',
 							fileId: dragState.fileId,
 							...nextDragState,

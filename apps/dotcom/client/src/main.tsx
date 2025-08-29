@@ -1,5 +1,5 @@
 import { ClerkProvider } from '@clerk/clerk-react'
-import { $beditStateContainer } from 'bedit/symbols'
+import { $patchable } from 'patchfork/symbols'
 import { createRoot } from 'react-dom/client'
 import { HelmetProvider } from 'react-helmet-async'
 import { RouterProvider, createBrowserRouter } from 'react-router-dom'
@@ -12,7 +12,7 @@ import { router } from './routes'
 declare module '@tldraw/state' {
 	// eslint-disable-next-line @typescript-eslint/no-unused-vars
 	interface Signal<Value, Diff = unknown> {
-		[$beditStateContainer]: {
+		[$patchable]: {
 			get(): Value
 			set(v: Value): void
 		}
@@ -21,7 +21,7 @@ declare module '@tldraw/state' {
 
 import { atom } from 'tldraw'
 const atomProto = Object.getPrototypeOf(atom('', ''))
-Object.defineProperty(atomProto, $beditStateContainer, {
+Object.defineProperty(atomProto, $patchable, {
 	get() {
 		return { set: atomProto.set.bind(this), get: atomProto.get.bind(this) }
 	},

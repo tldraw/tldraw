@@ -1,5 +1,5 @@
 import { useDraggable } from '@dnd-kit/core'
-import { setIn, updateIn } from 'bedit'
+import { patch } from 'patchfork'
 import { Collapsible, ContextMenu as _ContextMenu } from 'radix-ui'
 import { memo, useCallback, useEffect, useRef, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
@@ -261,7 +261,7 @@ export function TlaSidebarGroupItem({ groupId }: { groupId: string }) {
 	useEffect(() => {
 		if (isNoAnimation) {
 			setTimeout(() => {
-				updateIn(app.sidebarState).noAnimationGroups.delete(groupId)
+				patch(app.sidebarState).noAnimationGroups.delete(groupId)
 			}, 350)
 		}
 	}, [isNoAnimation, app, groupId])
@@ -269,11 +269,11 @@ export function TlaSidebarGroupItem({ groupId }: { groupId: string }) {
 	const setIsExpanded = useCallback(
 		(isExpanded: boolean) => {
 			if (isExpanded) {
-				updateIn(app.sidebarState).expandedGroups.add(groupId)
+				patch(app.sidebarState).expandedGroups.add(groupId)
 				// Clear group file ordering when expanding to refresh the order (like recent files on page reload)
 				app.clearGroupFileOrdering(groupId)
 			} else {
-				updateIn(app.sidebarState).expandedGroups.delete(groupId)
+				patch(app.sidebarState).expandedGroups.delete(groupId)
 			}
 		},
 		[app, groupId]
@@ -289,7 +289,7 @@ export function TlaSidebarGroupItem({ groupId }: { groupId: string }) {
 		if (res.ok) {
 			const isMobile = getIsCoarsePointer()
 			if (!isMobile) {
-				setIn(app.sidebarState).renameState({ fileId: res.value.fileId, context: 'group-files' })
+				patch(app.sidebarState).renameState({ fileId: res.value.fileId, context: 'group-files' })
 			}
 			navigate(routes.tlaFile(res.value.fileId))
 			setIsExpanded(true)

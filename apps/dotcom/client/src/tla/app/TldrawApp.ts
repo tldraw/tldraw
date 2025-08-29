@@ -39,8 +39,8 @@ import {
 	throttle,
 	uniqueId,
 } from '@tldraw/utils'
-import { editIn } from 'bedit'
 import pick from 'lodash.pick'
+import { patch } from 'patchfork'
 import { useNavigate } from 'react-router-dom'
 import {
 	Atom,
@@ -1142,9 +1142,8 @@ export class TldrawApp {
 			await sleep(50)
 		}
 
-		editIn(this.sidebarState).expandedGroups((g) => {
-			g.add(payload.groupId)
-		})
+		patch(this.sidebarState).expandedGroups.add(payload.groupId)
+
 		// Clear any existing ordering for this new group to get fresh ordering
 		this.lastGroupFileOrderings.delete(payload.groupId)
 		const files = this.getGroupFilesSorted(payload.groupId)
