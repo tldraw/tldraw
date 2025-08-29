@@ -119,9 +119,9 @@ describe('LicenseManager', () => {
 		} as ValidLicenseKeyResult)
 	})
 
-	it('Fails if the license key has expired', async () => {
+	it('Fails if the license key has expired beyond grace period', async () => {
 		const expiredLicenseInfo = JSON.parse(STANDARD_LICENSE_INFO)
-		const expiryDate = new Date(now.getFullYear(), now.getMonth(), now.getDate() - 6) // 6 days ago
+		const expiryDate = new Date(now.getFullYear(), now.getMonth(), now.getDate() - 70) // 70 days ago (beyond 60-day grace period)
 		expiredLicenseInfo[PROPERTIES.EXPIRY_DATE] = expiryDate
 		const expiredLicenseKey = await generateLicenseKey(JSON.stringify(expiredLicenseInfo), keyPair)
 		const result = (await licenseManager.getLicenseFromKey(
@@ -434,7 +434,7 @@ describe('LicenseManager', () => {
 		expect(result.daysSinceExpiry).toBe(15)
 	})
 
-	it('Handles grace period correctly - 0-30 days expired should be licensed', async () => {
+	it('Handles grace period correctly - 20 days expired should still be within grace period', async () => {
 		const expiredLicenseInfo = JSON.parse(STANDARD_LICENSE_INFO)
 		const expiredDate = new Date(now.getFullYear(), now.getMonth(), now.getDate() - 20) // 20 days ago
 		expiredLicenseInfo[PROPERTIES.EXPIRY_DATE] = expiredDate.toISOString()
@@ -446,7 +446,7 @@ describe('LicenseManager', () => {
 			expiredLicenseKey
 		)) as ValidLicenseKeyResult
 		expect(result.isAnnualLicense).toBe(true)
-		expect(result.isAnnualLicenseExpired).toBe(true)
+		expect(result.isAnnualLicenseExpired).toBe(false) // Within 60-day grace period
 		expect(result.daysSinceExpiry).toBe(20)
 	})
 })
@@ -561,7 +561,7 @@ describe('getLicenseState', () => {
 			// @ts-ignore
 			isLicenseParseable: false,
 		})
-		expect(getLicenseState(licenseResult)).toBe('unlicensed')
+		expect(getLicenseState(licenseResult, () => {})).toBe('unlicensed')
 	})
 
 	it('returns "unlicensed" for invalid domain in production', () => {
@@ -569,7 +569,7 @@ describe('getLicenseState', () => {
 			isDomainValid: false,
 			isDevelopment: false,
 		})
-		expect(getLicenseState(licenseResult)).toBe('unlicensed')
+		expect(getLicenseState(licenseResult, () => {})).toBe('unlicensed')
 	})
 
 	it('returns "licensed" for invalid domain in development mode', () => {
@@ -577,38 +577,47 @@ describe('getLicenseState', () => {
 			isDomainValid: false,
 			isDevelopment: true,
 		})
-		expect(getLicenseState(licenseResult)).toBe('licensed')
+		expect(getLicenseState(licenseResult, () => {})).toBe('licensed')
 	})
 
-	it('returns "unlicensed" for expired annual license', () => {
+	it('returns "expired" for expired annual license', () => {
+		const messages: string[][] = []
 		const licenseResult = getDefaultLicenseResult({
 			isAnnualLicense: true,
 			isAnnualLicenseExpired: true,
 			isInternalLicense: false,
 		})
-		expect(getLicenseState(licenseResult)).toBe('unlicensed')
+
+		expect(getLicenseState(licenseResult, (msgs) => messages.push(msgs))).toBe('expired')
+
+		expect(messages).toHaveLength(1)
+		expect(messages[0]).toEqual([
+			'Your tldraw license has been expired for more than 60 days!',
+			'Please reach out to sales@tldraw.com to renew your license.',
+		])
 	})
 
-	it('returns "unlicensed" for expired annual license even in dev mode', () => {
+	it('returns "expired" for expired annual license even in dev mode', () => {
 		const licenseResult = getDefaultLicenseResult({
 			isAnnualLicense: true,
 			isAnnualLicenseExpired: true,
 			isDevelopment: true,
 			isInternalLicense: false,
 		})
-		expect(getLicenseState(licenseResult)).toBe('unlicensed')
+		expect(getLicenseState(licenseResult, () => {})).toBe('expired')
 	})
 
-	it('returns "unlicensed" for expired perpetual license', () => {
+	it('returns "expired" for expired perpetual license', () => {
 		const licenseResult = getDefaultLicenseResult({
 			isPerpetualLicense: true,
 			isPerpetualLicenseExpired: true,
 			isInternalLicense: false,
 		})
-		expect(getLicenseState(licenseResult)).toBe('unlicensed')
+		expect(getLicenseState(licenseResult, () => {})).toBe('expired')
 	})
 
 	it('returns "internal-expired" for expired internal annual license with valid domain', () => {
+		const messages: string[][] = []
 		const expiryDate = new Date(2023, 1, 1)
 		const licenseResult = getDefaultLicenseResult({
 			isAnnualLicense: true,
@@ -617,10 +626,18 @@ describe('getLicenseState', () => {
 			isDomainValid: true,
 			expiryDate,
 		})
-		expect(getLicenseState(licenseResult)).toBe('internal-expired')
+
+		expect(getLicenseState(licenseResult, (msgs) => messages.push(msgs))).toBe('internal-expired')
+
+		expect(messages).toHaveLength(1)
+		expect(messages[0]).toEqual([
+			'Your internal tldraw license has expired.',
+			'Please reach out to sales@tldraw.com to renew your license.',
+		])
 	})
 
 	it('returns "internal-expired" for expired internal perpetual license with valid domain', () => {
+		const messages: string[][] = []
 		const expiryDate = new Date(2023, 1, 1)
 		const licenseResult = getDefaultLicenseResult({
 			isPerpetualLicense: true,
@@ -629,7 +646,14 @@ describe('getLicenseState', () => {
 			isDomainValid: true,
 			expiryDate,
 		})
-		expect(getLicenseState(licenseResult)).toBe('internal-expired')
+
+		expect(getLicenseState(licenseResult, (msgs) => messages.push(msgs))).toBe('internal-expired')
+
+		expect(messages).toHaveLength(1)
+		expect(messages[0]).toEqual([
+			'Your internal tldraw license has expired.',
+			'Please reach out to sales@tldraw.com to renew your license.',
+		])
 	})
 
 	it('returns "unlicensed" for expired internal license with invalid domain', () => {
@@ -641,14 +665,14 @@ describe('getLicenseState', () => {
 			isDomainValid: false,
 			expiryDate,
 		})
-		expect(getLicenseState(licenseResult)).toBe('unlicensed')
+		expect(getLicenseState(licenseResult, () => {})).toBe('unlicensed')
 	})
 
 	it('returns "licensed-with-watermark" for watermarked license', () => {
 		const licenseResult = getDefaultLicenseResult({
 			isLicensedWithWatermark: true,
 		})
-		expect(getLicenseState(licenseResult)).toBe('licensed-with-watermark')
+		expect(getLicenseState(licenseResult, () => {})).toBe('licensed-with-watermark')
 	})
 
 	it('returns "licensed" for valid annual license', () => {
@@ -656,7 +680,7 @@ describe('getLicenseState', () => {
 			isAnnualLicense: true,
 			isAnnualLicenseExpired: false,
 		})
-		expect(getLicenseState(licenseResult)).toBe('licensed')
+		expect(getLicenseState(licenseResult, () => {})).toBe('licensed')
 	})
 
 	it('returns "licensed" for valid perpetual license', () => {
@@ -664,17 +688,17 @@ describe('getLicenseState', () => {
 			isPerpetualLicense: true,
 			isPerpetualLicenseExpired: false,
 		})
-		expect(getLicenseState(licenseResult)).toBe('licensed')
+		expect(getLicenseState(licenseResult, () => {})).toBe('licensed')
 	})
 
 	it('returns "licensed" for valid license in development mode', () => {
 		const licenseResult = getDefaultLicenseResult({
 			isDevelopment: true,
 		})
-		expect(getLicenseState(licenseResult)).toBe('licensed')
+		expect(getLicenseState(licenseResult, () => {})).toBe('licensed')
 	})
 
-	it('evaluation license should be considered licensed (not unlicensed)', () => {
+	it('evaluation license should show watermark', () => {
 		const licenseResult = getDefaultLicenseResult({
 			isEvaluationLicense: true,
 			isLicensedWithWatermark: false, // Evaluation license doesn't need WITH_WATERMARK flag
@@ -682,13 +706,72 @@ describe('getLicenseState', () => {
 			isPerpetualLicense: false,
 		})
 
-		// Evaluation license should not be considered "unlicensed"
-		expect(getLicenseState(licenseResult)).toBe('licensed')
+		// Evaluation license should show watermark
+		expect(getLicenseState(licenseResult, () => {})).toBe('licensed-with-watermark')
 
 		// Verify evaluation license properties
 		expect(licenseResult.isEvaluationLicense).toBe(true)
 		expect(licenseResult.isLicensedWithWatermark).toBe(false) // No explicit watermark flag needed
 		expect(licenseResult.isAnnualLicense).toBe(false)
 		expect(licenseResult.isPerpetualLicense).toBe(false)
+	})
+
+	it('returns "expired" for expired evaluation license', () => {
+		const messages: string[][] = []
+		const licenseResult = getDefaultLicenseResult({
+			isEvaluationLicense: true,
+			isEvaluationLicenseExpired: true,
+			isAnnualLicense: false,
+			isPerpetualLicense: false,
+		})
+
+		expect(getLicenseState(licenseResult, (msgs) => messages.push(msgs))).toBe('expired')
+
+		expect(messages).toHaveLength(1)
+		expect(messages[0]).toEqual([
+			'Your tldraw evaluation license has expired!',
+			'Evaluation licenses expire immediately without a grace period.',
+			'Please reach out to sales@tldraw.com to purchase a full license.',
+		])
+	})
+
+	it('returns "licensed" for license 0-30 days past expiry', () => {
+		const messages: string[][] = []
+		const licenseResult = getDefaultLicenseResult({
+			isAnnualLicense: true,
+			isAnnualLicenseExpired: false, // Still within 60-day grace period
+			daysSinceExpiry: 20, // 20 days past expiry
+			isInternalLicense: false,
+		})
+
+		expect(getLicenseState(licenseResult, (msgs) => messages.push(msgs))).toBe('licensed')
+
+		expect(messages).toHaveLength(1)
+		expect(messages[0]).toEqual([
+			'Your tldraw license has expired.',
+			'License expired 20 days ago.',
+			'Please reach out to sales@tldraw.com to renew your license.',
+		])
+	})
+
+	it('returns "licensed-with-watermark" for license 30-60 days past expiry', () => {
+		const messages: string[][] = []
+		const licenseResult = getDefaultLicenseResult({
+			isAnnualLicense: true,
+			isAnnualLicenseExpired: false, // Still within 60-day grace period
+			daysSinceExpiry: 45, // 45 days past expiry
+			isInternalLicense: false,
+		})
+
+		expect(getLicenseState(licenseResult, (msgs) => messages.push(msgs))).toBe(
+			'licensed-with-watermark'
+		)
+
+		expect(messages).toHaveLength(1)
+		expect(messages[0]).toEqual([
+			'Your tldraw license has expired.',
+			'License expired 45 days ago. A watermark is now being shown.',
+			'Please reach out to sales@tldraw.com to renew your license.',
+		])
 	})
 })

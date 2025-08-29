@@ -4,7 +4,7 @@ import { publishDates } from '../../version'
 import { getDefaultCdnBaseUrl } from '../utils/assets'
 import { importPublicKey, str2ab } from '../utils/licensing'
 
-const GRACE_PERIOD_DAYS = 5
+const GRACE_PERIOD_DAYS = 60
 
 export const FLAGS = {
 	ANNUAL_LICENSE: 0x1,
@@ -101,7 +101,9 @@ export class LicenseManager {
 
 		this.getLicenseFromKey(licenseKey)
 			.then((result) => {
-				const licenseState = getLicenseState(result)
+				const licenseState = getLicenseState(result, (messages: string[]) =>
+					this.outputMessages(messages)
+				)
 
 				if (!this.isDevelopment && licenseState === 'unlicensed') {
 					fetch(WATERMARK_TRACK_SRC)
@@ -296,15 +298,7 @@ export class LicenseManager {
 
 	private isAnnualLicenseExpired(expiryDate: Date) {
 		const expiration = this.getExpirationDateWithGracePeriod(expiryDate)
-		const isExpired = new Date() >= expiration
-		// If it is not expired yet (including the grace period), but after the expiry date we warn the users
-		if (!isExpired && new Date() >= this.getExpirationDateWithoutGracePeriod(expiryDate)) {
-			this.outputMessages([
-				'tldraw license is about to expire, you are in a grace period.',
-				`Please reach out to ${LICENSE_EMAIL} if you would like to renew your license.`,
-			])
-		}
-		return isExpired
+		return new Date() >= expiration
 	}
 
 	private isPerpetualLicenseExpired(expiryDate: Date) {
@@ -398,26 +392,71 @@ export class LicenseManager {
 	static className = 'tl-watermark_SEE-LICENSE'
 }
 
-export function getLicenseState(result: LicenseFromKeyResult): LicenseState {
+export function getLicenseState(
+	result: LicenseFromKeyResult,
+	outputMessages: (messages: string[]) => void
+): LicenseState {
 	if (!result.isLicenseParseable) return 'unlicensed'
 	if (!result.isDomainValid && !result.isDevelopment) return 'unlicensed'
+
+	// Handle evaluation licenses - they expire immediately with no grace period
+	if (result.isEvaluationLicense && result.isEvaluationLicenseExpired) {
+		outputMessages([
+			'Your tldraw evaluation license has expired!',
+			'Evaluation licenses expire immediately without a grace period.',
+			`Please reach out to ${LICENSE_EMAIL} to purchase a full license.`,
+		])
+		return 'expired'
+	}
+
+	// Handle expired regular licenses (annual/perpetual) - they expire after 60 days
 	if (result.isPerpetualLicenseExpired || result.isAnnualLicenseExpired) {
 		// Check if it's an expired internal license with valid domain
 		const internalExpired = result.isInternalLicense && result.isDomainValid
-		if (internalExpired) return 'internal-expired'
-		const daysSinceExpiry = result.daysSinceExpiry
+		if (internalExpired) {
+			outputMessages([
+				'Your internal tldraw license has expired.',
+				`Please reach out to ${LICENSE_EMAIL} to renew your license.`,
+			])
+			return 'internal-expired'
+		}
+
+		outputMessages([
+			'Your tldraw license has been expired for more than 60 days!',
+			`Please reach out to ${LICENSE_EMAIL} to renew your license.`,
+		])
+		return 'expired'
+	}
+
+	// Check if license is past expiry date but within grace period
+	const daysSinceExpiry = result.daysSinceExpiry
+	if (daysSinceExpiry > 0 && !result.isEvaluationLicense) {
 		if (daysSinceExpiry <= 30) {
-			// 0-30 days: no watermark (still licensed)
+			outputMessages([
+				'Your tldraw license has expired.',
+				`License expired ${daysSinceExpiry} days ago.`,
+				`Please reach out to ${LICENSE_EMAIL} to renew your license.`,
+			])
+		} else if (daysSinceExpiry <= 60) {
+			outputMessages([
+				'Your tldraw license has expired.',
+				`License expired ${daysSinceExpiry} days ago. A watermark is now being shown.`,
+				`Please reach out to ${LICENSE_EMAIL} to renew your license.`,
+			])
+		}
+
+		if (daysSinceExpiry <= 30) {
+			// 0-30 days: still licensed (no watermark)
 			return 'licensed'
 		} else if (daysSinceExpiry <= 60) {
+			// 30-60 days: licensed but with watermark
 			return 'licensed-with-watermark'
-		} else {
-			return 'expired'
 		}
+		// 60+ days would have triggered isAnnualLicenseExpired/isPerpetualLicenseExpired above
 	}
 
 	// License is valid, determine if it has watermark
-	if (result.isLicensedWithWatermark) {
+	if (result.isLicensedWithWatermark || result.isEvaluationLicense) {
 		return 'licensed-with-watermark'
 	}
 
