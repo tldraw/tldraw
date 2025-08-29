@@ -348,12 +348,6 @@ export class LicenseManager {
 	}
 
 	private outputLicenseInfoIfNeeded(result: ValidLicenseKeyResult) {
-		if (!result.isDomainValid && !result.isDevelopment) {
-			this.outputMessages([
-				'This tldraw license key is not valid for this domain!',
-				`Please reach out to ${LICENSE_EMAIL} if you would like to use tldraw on other domains.`,
-			])
-		}
 		// If we added a new flag it will be twice the value of the currently highest flag.
 		// And if all the current flags are on we would get the `HIGHEST_FLAG * 2 - 1`, so anything higher than that means there are new flags.
 		if (result.license.flags >= HIGHEST_FLAG * 2) {
