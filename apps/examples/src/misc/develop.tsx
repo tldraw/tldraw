@@ -1,5 +1,6 @@
 import { getLicenseKey } from '@tldraw/dotcom-shared'
 import {
+	createShapeId,
 	DefaultContextMenu,
 	DefaultContextMenuContent,
 	DefaultDebugMenu,
@@ -117,11 +118,39 @@ export default function Develop() {
 						enumerable: true,
 					})
 
+					const shapeId = createShapeId()
+					editor.createShape({
+						id: shapeId,
+						type: 'geo',
+						x: 100,
+						y: 100,
+						props: {
+							w: 100,
+							h: 100,
+							geo: 'rectangle',
+							color: 'red',
+							fill: 'solid',
+						},
+					})
+
+					const rotationInterval = setInterval(() => {
+						const shape = editor.getShape(shapeId)
+						if (shape) {
+							const currentRotation = shape.rotation || 0
+							editor.updateShape({
+								id: shapeId,
+								type: 'geo',
+								rotation: currentRotation + Math.PI / 36, // 5 degrees in radians
+							})
+						}
+					}, 50)
+
 					const dispose = editor.store.sideEffects.registerAfterChangeHandler(
 						'shape',
 						afterChangeHandler
 					)
 					return () => {
+						clearInterval(rotationInterval)
 						dispose()
 					}
 				}}
