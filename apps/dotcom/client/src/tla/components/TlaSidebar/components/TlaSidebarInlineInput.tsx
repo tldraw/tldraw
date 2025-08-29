@@ -36,8 +36,10 @@ export function TlaSidebarInlineInput({
 		if (value) {
 			wasSaved.current = true
 			onComplete(value)
+		} else {
+			onCancel()
 		}
-	}, [onComplete])
+	}, [onComplete, onCancel])
 
 	const handleCancel = useCallback(() => {
 		wasSaved.current = true

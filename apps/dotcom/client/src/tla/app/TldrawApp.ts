@@ -330,6 +330,52 @@ export class TldrawApp {
 		return this.groupMemberships$.get().find((g) => g.groupId === groupId)
 	}
 
+	getGroupFilesSorted(groupId: string) {
+		const group = this.getGroupMembership(groupId)
+		if (!group) return []
+
+		const files = group.groupFiles.map((gf) => gf.file)
+		const lastOrdering = this.lastGroupFileOrderings.get(groupId)
+
+		const nextOrdering: Array<{
+			fileId: TlaFile['id']
+			date: number
+		}> = []
+
+		for (const file of files) {
+			const existing = lastOrdering?.find((f) => f.fileId === file.id)
+
+			if (existing) {
+				// Preserve existing entry to maintain ordering and prevent jumping
+				nextOrdering.push(existing)
+			} else {
+				// For new files, use current updatedAt
+				nextOrdering.push({
+					fileId: file.id,
+					date: file.updatedAt,
+				})
+			}
+		}
+
+		// Sort by date (most recent first) but only for new ordering
+		nextOrdering.sort((a, b) => b.date - a.date)
+
+		// Store the ordering for next time
+		this.lastGroupFileOrderings.set(groupId, nextOrdering)
+
+		// Return the actual file objects in the stable order
+		return nextOrdering
+			.map((entry) => {
+				return files.find((file) => file.id === entry.fileId)!
+			})
+			.filter(Boolean)
+	}
+
+	// Clear group file ordering to refresh on expand (like recent files on page reload)
+	clearGroupFileOrdering(groupId: string) {
+		this.lastGroupFileOrderings.delete(groupId)
+	}
+
 	getPresences(fileId: string) {
 		return this.fileStates$.get().find((f) => f.fileId === fileId)?.presences ?? []
 	}
@@ -374,6 +420,15 @@ export class TldrawApp {
 		isPinned: boolean
 		date: number
 	}>
+
+	// Store stable group file ordering for each group to prevent jumping when files are edited
+	lastGroupFileOrderings = new Map<
+		string,
+		Array<{
+			fileId: TlaFile['id']
+			date: number
+		}>
+	>()
 
 	@computed({ isEqual })
 	getUserRecentFiles() {
@@ -1087,11 +1142,12 @@ export class TldrawApp {
 			await sleep(50)
 		}
 
-		const membership = this.getGroupMembership(payload.groupId)!
 		editIn(this.sidebarState).expandedGroups((g) => {
 			g.add(payload.groupId)
 		})
-		const files = membership.groupFiles.map((f) => f.file).sort((a, b) => a.updatedAt - b.updatedAt)
+		// Clear any existing ordering for this new group to get fresh ordering
+		this.lastGroupFileOrderings.delete(payload.groupId)
+		const files = this.getGroupFilesSorted(payload.groupId)
 		if (!files.length) {
 			this.navigate(routes.tlaRoot())
 			return

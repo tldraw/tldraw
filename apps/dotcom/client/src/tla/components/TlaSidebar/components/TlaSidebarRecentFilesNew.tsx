@@ -4,7 +4,7 @@ import { Fragment, useState } from 'react'
 import { uniqueId, useValue } from 'tldraw'
 import { useApp } from '../../../hooks/useAppState'
 import { getIsCoarsePointer } from '../../../utils/getIsCoarsePointer'
-import { F } from '../../../utils/i18n'
+import { defineMessages, F, useIntl } from '../../../utils/i18n'
 import styles from '../sidebar.module.css'
 import { ReorderCursor } from './ReorderCursor'
 import { RecentFile } from './sidebar-shared'
@@ -14,8 +14,20 @@ import { TlaSidebarFileSection } from './TlaSidebarFileSection'
 import { TlaSidebarGroupItem } from './TlaSidebarGroupItem'
 import { TlaSidebarInlineInput } from './TlaSidebarInlineInput'
 
+const messages = defineMessages({
+	createGroup: {
+		id: 'tla.sidebar.createGroup',
+		defaultMessage: 'Create new group',
+	},
+	createGroupInputPlaceholder: {
+		id: 'tla.sidebar.createGroupInputPlaceholder',
+		defaultMessage: 'Enter group name...',
+	},
+})
+
 export function TlaSidebarRecentFilesNew() {
 	const app = useApp()
+	const intl = useIntl()
 
 	const [isShowingAll, setIsShowingAll] = useState(false)
 	const [isCreatingGroup, setIsCreatingGroup] = useState(false)
@@ -160,15 +172,14 @@ export function TlaSidebarRecentFilesNew() {
 						: {
 								icon: 'plus',
 								onClick: handleCreateGroup,
-								title: 'Create new group',
+								title: intl.formatMessage(messages.createGroup),
 							}
 				}
 			>
 				{isCreatingGroup && (
 					<TlaSidebarInlineInput
 						data-testid="tla-sidebar-create-group-input"
-						defaultValue="New group"
-						placeholder="Enter group name..."
+						placeholder={intl.formatMessage(messages.createGroupInputPlaceholder)}
 						onComplete={handleGroupCreateComplete}
 						onCancel={handleGroupCreateCancel}
 						className={styles.sidebarGroupCreateInput}

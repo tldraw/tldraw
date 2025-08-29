@@ -89,12 +89,10 @@ const GroupFileList = memo(function GroupFileList({
 }) {
 	const app = useApp()
 	const group = useValue('group', () => app.getGroupMembership(groupId), [app, groupId])
+	const files = useValue('group files', () => app.getGroupFilesSorted(groupId), [app, groupId])
 	const [isShowingAll, setIsShowingAll] = useState(false)
 
 	if (!group) return null
-
-	let files = group.groupFiles.map((gf) => gf.file)
-	files = files.slice().sort((a, b) => b.updatedAt - a.updatedAt)
 
 	const MAX_FILES_TO_SHOW = 4
 	const isOverflowing = files.length > MAX_FILES_TO_SHOW
@@ -272,6 +270,8 @@ export function TlaSidebarGroupItem({ groupId }: { groupId: string }) {
 		(isExpanded: boolean) => {
 			if (isExpanded) {
 				updateIn(app.sidebarState).expandedGroups.add(groupId)
+				// Clear group file ordering when expanding to refresh the order (like recent files on page reload)
+				app.clearGroupFileOrdering(groupId)
 			} else {
 				updateIn(app.sidebarState).expandedGroups.delete(groupId)
 			}
