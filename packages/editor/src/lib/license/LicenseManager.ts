@@ -418,10 +418,6 @@ export function getLicenseState(
 	}
 
 	if (!result.isDomainValid && !result.isDevelopment) {
-		if (isDevelopment) {
-			return 'unlicensed'
-		}
-
 		outputMessages([
 			'License key is not valid for this domain.',
 			'A license is required for production deployments.',
