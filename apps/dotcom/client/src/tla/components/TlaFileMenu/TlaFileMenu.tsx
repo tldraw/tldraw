@@ -146,6 +146,7 @@ export function FileItems({
 			lastSessionState: prevState?.lastSessionState,
 		})
 		if (res.ok) {
+			app.ensureFileVisibleInSidebar(newFileId)
 			patch(app.sidebarState).renameState({ fileId: newFileId, context: 'my-files' })
 			navigate(routes.tlaFile(newFileId))
 		}
@@ -248,7 +249,7 @@ export function FileItems({
 										readonlyOk
 										onSelect={() => {
 											app.z.mutate.group.moveFileToGroup({ fileId, groupId: groupUser.groupId })
-											patch(app.sidebarState).expandedGroups.add(groupUser.groupId)
+											app.ensureSidebarGroupExpanded(groupUser.groupId)
 										}}
 									/>
 								))}
@@ -266,9 +267,7 @@ export function FileItems({
 										const id = uniqueId()
 										app.z.mutate.group.create({ id, name })
 										app.z.mutate.group.moveFileToGroup({ fileId, groupId: id })
-										setTimeout(() => {
-											patch(app.sidebarState).expandedGroups.add(id)
-										}, 100)
+										app.ensureSidebarGroupExpanded(id)
 									}
 								}}
 							/>

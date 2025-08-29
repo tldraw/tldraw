@@ -1075,7 +1075,8 @@ export class TldrawApp {
 	}
 
 	sidebarState = atom('sidebar state', {
-		expandedGroups: new Set<string>(),
+		expandedGroups: new Map<string, 'closed' | 'expanded_show_less' | 'expanded_show_more'>(),
+		recentFilesShowMore: false,
 		noAnimationGroups: new Set<string>(),
 		renameState: null as null | {
 			fileId: string
@@ -1102,6 +1103,64 @@ export class TldrawApp {
 					nextIndex: IndexKey | null
 			  },
 	})
+
+	ensureSidebarGroupExpanded(groupId: string) {
+		const currentExpansionState = this.sidebarState.get().expandedGroups.get(groupId)
+		if (!currentExpansionState || currentExpansionState === 'closed') {
+			patch(this.sidebarState).expandedGroups.set(groupId, 'expanded_show_less')
+		}
+	}
+
+	ensureFileVisibleInSidebar(fileId: string) {
+		const file = this.getFile(fileId)
+		if (!file) return
+
+		// If file is pinned, nothing to do
+		if (this.getFileState(fileId)?.isPinned) {
+			return
+		}
+
+		// If file is in a group
+		if (file.owningGroupId) {
+			const group = this.getGroupMembership(file.owningGroupId)
+			if (!group) return
+
+			const groupFiles = this.getGroupFilesSorted(file.owningGroupId)
+			const MAX_FILES_TO_SHOW = 4
+			const fileIndex = groupFiles.findIndex((f) => f.id === fileId)
+
+			if (fileIndex >= MAX_FILES_TO_SHOW) {
+				// File is in the "show more" section, expand fully
+				patch(this.sidebarState).expandedGroups.set(file.owningGroupId, 'expanded_show_more')
+			} else {
+				// File is in the "show less" section, ensure group is expanded
+				this.ensureSidebarGroupExpanded(file.owningGroupId)
+			}
+			return
+		}
+
+		// If file is in recent files (not in a group)
+		const recentFiles = this.getUserRecentFiles()
+		if (!recentFiles) return
+
+		const groupMemberships = this.getGroupMemberships()
+		const otherFiles = recentFiles.filter(
+			(item) =>
+				!item.isPinned &&
+				!groupMemberships.some(
+					(group) => group.group.id === this.getFile(item.fileId)?.owningGroupId
+				)
+		)
+
+		const MAX_FILES_TO_SHOW = groupMemberships.length > 0 ? 6 : +Infinity
+		const fileIndex = otherFiles.findIndex((item) => item.fileId === fileId)
+
+		if (fileIndex >= MAX_FILES_TO_SHOW) {
+			// File is in the "show more" section of recent files
+			patch(this.sidebarState).recentFilesShowMore(true)
+		}
+		// If file is in the "show less" section, nothing to do
+	}
 
 	copyGroupInvite(groupId: string) {
 		const group = this.getGroupMembership(groupId)
@@ -1142,7 +1201,7 @@ export class TldrawApp {
 			await sleep(50)
 		}
 
-		patch(this.sidebarState).expandedGroups.add(payload.groupId)
+		patch(this.sidebarState).expandedGroups.set(payload.groupId, 'expanded_show_less')
 
 		// Clear any existing ordering for this new group to get fresh ordering
 		this.lastGroupFileOrderings.delete(payload.groupId)

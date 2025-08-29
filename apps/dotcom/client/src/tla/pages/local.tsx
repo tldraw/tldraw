@@ -25,6 +25,7 @@ export function Component() {
 				const res = await app.slurpFile()
 				if (res.ok) {
 					clearShouldSlurpFile()
+					app.ensureFileVisibleInSidebar(res.value.file.id)
 					navigate(routes.tlaFile(res.value.file.id), {
 						replace: true,
 						state: location.state,
@@ -44,6 +45,7 @@ export function Component() {
 				// result is only false if the user reached their file limit so
 				// we don't need to handle that case here since they have no files
 				if (result.ok) {
+					app.ensureFileVisibleInSidebar(result.value.file.id)
 					navigate(routes.tlaFile(result.value.file.id), {
 						replace: true,
 						state: location.state,
@@ -52,6 +54,7 @@ export function Component() {
 				return
 			}
 
+			app.ensureFileVisibleInSidebar(recentFiles[0].fileId)
 			navigate(routes.tlaFile(recentFiles[0].fileId), { replace: true, state: location.state })
 		}
 

@@ -37,10 +37,26 @@ import { TlaSidebarRenameInline } from './TlaSidebarRenameInline'
 import { RecentFile } from './sidebar-shared'
 
 const ACTIVE_FILE_LINK_ID = 'tla-active-file-link'
+let preventScrollOnNavigation = false
+
 function scrollActiveFileLinkIntoView() {
 	const el = document.getElementById(ACTIVE_FILE_LINK_ID)
 	if (el) {
+		// Check if we should prevent scrolling due to sidebar click
+		if (preventScrollOnNavigation) {
+			return
+		}
 		el.scrollIntoView({ behavior: 'smooth', block: 'nearest' })
+	}
+}
+
+export function setPreventScrollOnNavigation(value: boolean) {
+	preventScrollOnNavigation = value
+	if (value) {
+		// Clear the flag after a short delay to allow for immediate navigation
+		setTimeout(() => {
+			preventScrollOnNavigation = false
+		}, 100)
 	}
 }
 
@@ -66,7 +82,7 @@ export function TlaSidebarFileLink({
 		if (isActive) {
 			scrollActiveFileLinkIntoView()
 		}
-	}, [isActive])
+	}, [isActive, fileId])
 
 	const isRenaming = useValue(
 		'shouldRename',
@@ -182,7 +198,9 @@ export function TlaSidebarFileLinkInner({
 
 	useEffect(() => {
 		if (!isActive || !linkRef.current) return
-		linkRef.current.focus()
+
+		// Focus the element, but prevent scroll if we're in prevent mode
+		linkRef.current.focus({ preventScroll: preventScrollOnNavigation })
 	}, [isActive, linkRef])
 
 	if (!file) return null
@@ -221,6 +239,9 @@ export function TlaSidebarFileLinkInner({
 					// unless the user is holding ctrl or cmd to open in a new tab
 					if (isActive && !(event.ctrlKey || event.metaKey)) {
 						preventDefault(event)
+					} else {
+						// Set flag to prevent scrolling when navigation occurs due to sidebar click
+						setPreventScrollOnNavigation(true)
 					}
 					if (isSidebarOpenMobile) {
 						toggleMobileSidebar(false)

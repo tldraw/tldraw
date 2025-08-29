@@ -29,6 +29,7 @@ export function TlaSidebarCreateFileButton() {
 				patch(app.sidebarState).renameState({ fileId: res.value.file.id, context: 'my-files' })
 			}
 			const { file } = res.value
+			app.ensureFileVisibleInSidebar(file.id)
 			navigate(routes.tlaFile(file.id))
 			trackEvent('create-file', { source: 'sidebar' })
 			rCanCreate.current = false
@@ -46,7 +47,7 @@ export function TlaSidebarCreateFileButton() {
 			data-testid="tla-create-file"
 			title={createTitle}
 		>
-			<TlaIcon icon="edit-strong" />
+			<TlaIcon icon="edit-strong" style={{ left: 1 }} />
 		</button>
 	)
 }

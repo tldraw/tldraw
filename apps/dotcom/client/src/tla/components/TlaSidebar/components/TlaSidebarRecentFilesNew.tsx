@@ -29,8 +29,19 @@ export function TlaSidebarRecentFilesNew() {
 	const app = useApp()
 	const intl = useIntl()
 
-	const [isShowingAll, setIsShowingAll] = useState(false)
 	const [isCreatingGroup, setIsCreatingGroup] = useState(false)
+
+	const isShowingAll = useValue('isShowingAll', () => app.sidebarState.get().recentFilesShowMore, [
+		app,
+	])
+
+	const handleShowMore = () => {
+		patch(app.sidebarState).recentFilesShowMore(true)
+	}
+
+	const handleShowLess = () => {
+		patch(app.sidebarState).recentFilesShowMore(false)
+	}
 
 	// Get group memberships from the server
 	const groupMemberships = useValue('groupMemberships', () => app.getGroupMemberships(), [app])
@@ -82,7 +93,7 @@ export function TlaSidebarRecentFilesNew() {
 		const id = uniqueId()
 		app.z.mutate.group.create({ id, name })
 		setIsCreatingGroup(false)
-		patch(app.sidebarState).expandedGroups.add(id)
+		app.ensureSidebarGroupExpanded(id)
 	}
 
 	const handleGroupCreateCancel = () => {
@@ -151,11 +162,11 @@ export function TlaSidebarRecentFilesNew() {
 					<Collapsible.Trigger asChild>
 						{isOverflowing &&
 							(isShowingAll ? (
-								<button className={styles.showAllButton} onClick={() => setIsShowingAll(false)}>
+								<button className={styles.showAllButton} onClick={handleShowLess}>
 									<F defaultMessage="Show less" />
 								</button>
 							) : (
-								<button className={styles.showAllButton} onClick={() => setIsShowingAll(true)}>
+								<button className={styles.showAllButton} onClick={handleShowMore}>
 									<F defaultMessage="Show more" />
 								</button>
 							))}

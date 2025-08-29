@@ -23,7 +23,8 @@ export function ErrorBoundary() {
 export function Component({ error }: { error?: unknown }) {
 	const { fileSlug } = useParams<{ fileSlug: string }>()
 	if (!fileSlug) throw Error('File id not found')
-	const userId = useMaybeApp()?.userId
+	const app = useMaybeApp()
+	const userId = app?.userId
 	const inviteInfo = useInviteDetails()
 	const dialogs = useDialogs()
 
@@ -43,6 +44,12 @@ export function Component({ error }: { error?: unknown }) {
 			})
 		}
 	}, [inviteInfo, dialogs])
+
+	useEffect(() => {
+		if (app && fileSlug) {
+			app.ensureFileVisibleInSidebar(fileSlug)
+		}
+	}, [app, fileSlug])
 
 	if (!userId) {
 		return (

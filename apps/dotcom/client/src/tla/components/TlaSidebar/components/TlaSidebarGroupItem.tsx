@@ -1,7 +1,7 @@
 import { useDraggable } from '@dnd-kit/core'
 import { patch } from 'patchfork'
 import { Collapsible, ContextMenu as _ContextMenu } from 'radix-ui'
-import { memo, useCallback, useEffect, useRef, useState } from 'react'
+import { memo, useCallback, useEffect, useRef } from 'react'
 import { useNavigate } from 'react-router-dom'
 import {
 	TldrawUiDropdownMenuContent,
@@ -90,7 +90,21 @@ const GroupFileList = memo(function GroupFileList({
 	const app = useApp()
 	const group = useValue('group', () => app.getGroupMembership(groupId), [app, groupId])
 	const files = useValue('group files', () => app.getGroupFilesSorted(groupId), [app, groupId])
-	const [isShowingAll, setIsShowingAll] = useState(false)
+	const expansionState = useValue(
+		'expansionState',
+		() => app.sidebarState.get().expandedGroups.get(groupId) ?? 'closed',
+		[app, groupId]
+	)
+
+	const isShowingAll = expansionState === 'expanded_show_more'
+
+	const handleShowMore = useCallback(() => {
+		patch(app.sidebarState).expandedGroups.set(groupId, 'expanded_show_more')
+	}, [app, groupId])
+
+	const handleShowLess = useCallback(() => {
+		patch(app.sidebarState).expandedGroups.set(groupId, 'expanded_show_less')
+	}, [app, groupId])
 
 	if (!group) return null
 
@@ -135,11 +149,11 @@ const GroupFileList = memo(function GroupFileList({
 			<Collapsible.Trigger asChild>
 				{isOverflowing &&
 					(isShowingAll ? (
-						<button className={styles.showAllButton} onClick={() => setIsShowingAll(false)}>
+						<button className={styles.showAllButton} onClick={handleShowLess}>
 							<F defaultMessage="Show less" />
 						</button>
 					) : (
-						<button className={styles.showAllButton} onClick={() => setIsShowingAll(true)}>
+						<button className={styles.showAllButton} onClick={handleShowMore}>
 							<F defaultMessage="Show more" />
 						</button>
 					))}
@@ -245,13 +259,15 @@ export function TlaSidebarGroupItem({ groupId }: { groupId: string }) {
 		},
 	})
 
-	const isExpanded = useValue(
-		'isExpanded',
+	const expansionState = useValue(
+		'expansionState',
 		() => {
-			return app.sidebarState.get().expandedGroups.has(groupId)
+			return app.sidebarState.get().expandedGroups.get(groupId) ?? 'closed'
 		},
 		[app, groupId]
 	)
+
+	const isExpanded = expansionState !== 'closed'
 
 	const isNoAnimation = useValue(
 		'isNoAnimation',
@@ -269,7 +285,7 @@ export function TlaSidebarGroupItem({ groupId }: { groupId: string }) {
 	const setIsExpanded = useCallback(
 		(isExpanded: boolean) => {
 			if (isExpanded) {
-				patch(app.sidebarState).expandedGroups.add(groupId)
+				patch(app.sidebarState).expandedGroups.set(groupId, 'expanded_show_less')
 				// Clear group file ordering when expanding to refresh the order (like recent files on page reload)
 				app.clearGroupFileOrdering(groupId)
 			} else {
@@ -291,6 +307,7 @@ export function TlaSidebarGroupItem({ groupId }: { groupId: string }) {
 			if (!isMobile) {
 				patch(app.sidebarState).renameState({ fileId: res.value.fileId, context: 'group-files' })
 			}
+			app.ensureFileVisibleInSidebar(res.value.fileId)
 			navigate(routes.tlaFile(res.value.fileId))
 			setIsExpanded(true)
 			trackEvent('create-file', { source: 'sidebar' })
