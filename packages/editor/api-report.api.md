@@ -2106,7 +2106,7 @@ export class LicenseManager {
 }
 
 // @internal (undocumented)
-export type LicenseState = 'internal-expired' | 'licensed-with-watermark' | 'licensed' | 'pending' | 'unlicensed';
+export type LicenseState = 'expired' | 'licensed-with-watermark' | 'licensed' | 'pending' | 'unlicensed-production' | 'unlicensed';
 
 // @public (undocumented)
 export function linesIntersect(A: VecLike, B: VecLike, C: VecLike, D: VecLike): boolean;
@@ -4617,6 +4617,8 @@ export function useViewportHeight(): number;
 // @internal (undocumented)
 export interface ValidLicenseKeyResult {
     // (undocumented)
+    daysSinceExpiry: number;
+    // (undocumented)
     expiryDate: Date;
     // (undocumented)
     isAnnualLicense: boolean;
@@ -4626,6 +4628,10 @@ export interface ValidLicenseKeyResult {
     isDevelopment: boolean;
     // (undocumented)
     isDomainValid: boolean;
+    // (undocumented)
+    isEvaluationLicense: boolean;
+    // (undocumented)
+    isEvaluationLicenseExpired: boolean;
     // (undocumented)
     isInternalLicense: boolean;
     // (undocumented)
