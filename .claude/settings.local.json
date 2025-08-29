@@ -1,0 +1,25 @@
+{
+	"permissions": {
+		"allow": [
+			"mcp__notion__fetch",
+			"mcp__notion__notion-update-page",
+			"mcp__notion__notion-update-page",
+			"WebSearch",
+			"WebFetch(domain:tldraw.dev)",
+			"WebFetch(domain:www.notion.so)",
+			"Read(//Users/sylwiavargas/**)",
+			"Bash(npm install:*)",
+			"Bash(npx @modelcontextprotocol/create-server@latest:*)",
+			"Bash(npm search:*)",
+			"Read(//Users/sylwiavargas/.config/**)",
+			"Read(//Users/sylwiavargas/**)",
+			"Bash(env)",
+			"WebFetch(domain:github.com)",
+			"mcp__notion__search"
+		],
+		"defaultMode": "acceptEdits",
+		"additionalDirectories": ["/Users/sylwiavargas/.config"]
+	},
+	"enableAllProjectMcpServers": true,
+	"enabledMcpjsonServers": ["notion", "linear"]
+}

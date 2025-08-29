@@ -6,46 +6,53 @@ Refer to the @MARKETING_STYLE_GUIDE.md for guidance on your language and style.
 
 We are writing our articles on Notion. Use the Notion MCP server to read and update articles. Our articles are organized under L1 categories; we are currently writing the L2 articles for product feature topics within those L1 categories.
 
-The format for these articles is:
+## Page format
 
-- Hero
-  - Title
-  - Image description
-  - Introductory copy
-- Key features (4 features)
-  - Feature 1
-    - Title
-    - Copy
-    - Learn more link
-  - ...
-- Advanced features (3 features)
-  - Advanced feature
-    - Title
-    - Description
-- Technical deep dive (3 topics)
-  - Topic
-    - Title
-    - Description
-    - Bullet point list of details (3)
-- Navigation
-  - Link to relevant topic from Customization L1 category
-  - Link to relevant topic from Programmatic Control L1 category
-  - Link to relevant topic from Integrations L1 category
-  - Link to relevant topic from Out of the Box Whiteboard L1 category
-  - Link to relevant guide from docs
-- Examples gallery (3 links to relevant examples)
-- Case studies (3 links to relevant case studies)
-- CTA
-  - Title
-  - Copy related to article topic
-  - Link to start
-  - Link to license
+- Hero (H1)
+  - Main title (descriptive of the feature category)
+  - Subtitle/tagline with key benefits (inline with discussion comment)
+  - Image description (italicized, describes visual concept)
+- Divider (---)
+- Key Features section (`Key features` tag)
+  - 4-6 key features as H2 headers
+  - Each feature has brief description paragraph
+  - Features should be user-facing benefits, not technical details
+- Divider (---)
+- CTA for product person (`CTA for a product person` tag)
+  - H2 title focusing on business value
+  - Brief compelling copy paragraph
+  - Two links: "Start your Project" and "View Licensing"
+- Divider (---)
+- Technical Deep Dive (`Technical deep dive` tag)
+  - H2 "Built for Production-Scale [Feature Name]"
+  - 3-4 technical topics as H3 subsections
+  - Each H3 has detailed paragraph explaining technical implementation
+  - Focus on architecture, performance, and developer concerns
+- Divider (---)
+- Connector section (`Connector to other pages?` tag)
+  - H2 title related to the feature
+  - 2 paragraphs describing extensions and integrations
+- Divider (---)
+- Examples (`Examples` tag)
+  - H2 "Examples" or feature-specific title
+  - 3 example links with titles and descriptions
+  - Use format: "## Example Title" followed by description and link
+- Divider (---)
+- Case Studies (`Case studies` tag)
+  - H2 "Case Studies" or relevant title
+  - 1-3 case study links with brief descriptions
+- Divider (---)
+- Final CTA (`CTA for programmers` tag)
+  - H2 developer-focused title
+  - Brief technical copy
+  - npm command or code snippet (if relevant)
+  - Two links: "Start your Project" and "View Licensing"
 
 Refer to these completed articles as reference:
 
-- https://www.notion.so/tldraw/Multimedia-content-24e3e4c324c080c0ae9ceaa3d1e2fb6a
-- https://www.notion.so/tldraw/Data-management-2313e4c324c0807aa54ff478bc7b74dc
+- https://www.notion.so/tldraw/Drawing-and-Canvas-interactions-2313e4c324c080f5a6c5c494a5ecfc6c
 - https://www.notion.so/tldraw/Multiplayer-collaboration-2313e4c324c080bc9814dccd0a7a4644
+- https://www.notion.so/tldraw/Camera-and-viewport-2313e4c324c080e2a32ceb5a179ee589
 
 Now I want you to write this article: $ARGUMENTS
 
