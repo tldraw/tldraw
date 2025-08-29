@@ -2106,7 +2106,7 @@ export class LicenseManager {
 }
 
 // @internal (undocumented)
-export type LicenseState = 'expired' | 'internal-expired' | 'licensed-with-watermark' | 'licensed' | 'pending' | 'unlicensed-production' | 'unlicensed';
+export type LicenseState = 'expired' | 'licensed-with-watermark' | 'licensed' | 'pending' | 'unlicensed-production' | 'unlicensed';
 
 // @public (undocumented)
 export function linesIntersect(A: VecLike, B: VecLike, C: VecLike, D: VecLike): boolean;

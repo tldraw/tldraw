@@ -27,9 +27,9 @@ test.describe('Internal License', () => {
 		// The actual editor canvas should not be rendered
 		await expect(page.locator('.tl-canvas')).not.toBeVisible()
 
-		// Check that console contains internal license expiry message
+		// Check that console contains license expiry message
 		const hasExpiredMessage = consoleMessages.some((msg) =>
-			msg.includes('Your internal tldraw license has expired.')
+			msg.includes('Your tldraw license has been expired for more than 60 days!')
 		)
 		expect(hasExpiredMessage).toBe(true)
 	})

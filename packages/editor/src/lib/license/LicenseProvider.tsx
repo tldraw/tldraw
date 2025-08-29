@@ -9,11 +9,7 @@ export const LicenseContext = createContext({} as LicenseManager)
 export const useLicenseContext = () => useContext(LicenseContext)
 
 function shouldHideEditorAfterDelay(licenseState: string): boolean {
-	return (
-		licenseState === 'expired' ||
-		licenseState === 'unlicensed-production' ||
-		licenseState === 'internal-expired'
-	)
+	return licenseState === 'expired' || licenseState === 'unlicensed-production'
 }
 
 /** @internal */

@@ -42,7 +42,6 @@ export type LicenseState =
 	| 'licensed-with-watermark' // License is valid but shows watermark (evaluation licenses, 30-60 days past expiry for regular licenses, WITH_WATERMARK licenses)
 	| 'unlicensed' // No valid license found or license is invalid (development)
 	| 'unlicensed-production' // No license provided in production deployment
-	| 'internal-expired' // Internal license has expired
 	| 'expired' // License has been expired (60 days past expiration for regular licenses, immediately for evaluation licenses)
 /** @internal */
 export type InvalidLicenseReason =
@@ -443,16 +442,6 @@ export function getLicenseState(
 
 	// Handle expired regular licenses (annual/perpetual) - they expire after 60 days
 	if (result.isPerpetualLicenseExpired || result.isAnnualLicenseExpired) {
-		// Check if it's an expired internal license with valid domain
-		const internalExpired = result.isInternalLicense && result.isDomainValid
-		if (internalExpired) {
-			outputMessages([
-				'Your internal tldraw license has expired.',
-				`Please reach out to ${LICENSE_EMAIL} to renew your license.`,
-			])
-			return 'internal-expired'
-		}
-
 		outputMessages([
 			'Your tldraw license has been expired for more than 60 days!',
 			`Please reach out to ${LICENSE_EMAIL} to renew your license.`,

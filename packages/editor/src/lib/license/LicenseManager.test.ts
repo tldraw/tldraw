@@ -642,7 +642,7 @@ describe('getLicenseState', () => {
 		expect(getLicenseState(licenseResult, () => {}, false)).toBe('expired')
 	})
 
-	it('returns "internal-expired" for expired internal annual license with valid domain', () => {
+	it('returns "expired" for expired internal annual license with valid domain', () => {
 		const messages: string[][] = []
 		const expiryDate = new Date(2023, 1, 1)
 		const licenseResult = getDefaultLicenseResult({
@@ -653,18 +653,16 @@ describe('getLicenseState', () => {
 			expiryDate,
 		})
 
-		expect(getLicenseState(licenseResult, (msgs) => messages.push(msgs), false)).toBe(
-			'internal-expired'
-		)
+		expect(getLicenseState(licenseResult, (msgs) => messages.push(msgs), false)).toBe('expired')
 
 		expect(messages).toHaveLength(1)
 		expect(messages[0]).toEqual([
-			'Your internal tldraw license has expired.',
+			'Your tldraw license has been expired for more than 60 days!',
 			'Please reach out to sales@tldraw.com to renew your license.',
 		])
 	})
 
-	it('returns "internal-expired" for expired internal perpetual license with valid domain', () => {
+	it('returns "expired" for expired internal perpetual license with valid domain', () => {
 		const messages: string[][] = []
 		const expiryDate = new Date(2023, 1, 1)
 		const licenseResult = getDefaultLicenseResult({
@@ -675,13 +673,11 @@ describe('getLicenseState', () => {
 			expiryDate,
 		})
 
-		expect(getLicenseState(licenseResult, (msgs) => messages.push(msgs), false)).toBe(
-			'internal-expired'
-		)
+		expect(getLicenseState(licenseResult, (msgs) => messages.push(msgs), false)).toBe('expired')
 
 		expect(messages).toHaveLength(1)
 		expect(messages[0]).toEqual([
-			'Your internal tldraw license has expired.',
+			'Your tldraw license has been expired for more than 60 days!',
 			'Please reach out to sales@tldraw.com to renew your license.',
 		])
 	})
