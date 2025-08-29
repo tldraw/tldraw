@@ -28,11 +28,6 @@ export const DefaultStylePanel = memo(function DefaultStylePanel({
 	}, [editor, isMobile])
 
 	const styles = useRelevantStyles()
-	const content = (
-		<StylePanelContextProvider styles={styles}>
-			{children ?? <DefaultStylePanelContent />}
-		</StylePanelContextProvider>
-	)
 
 	useEffect(() => {
 		function handleKeyDown(event: KeyboardEvent) {
@@ -57,7 +52,9 @@ export const DefaultStylePanel = memo(function DefaultStylePanel({
 			data-show-ui-labels={showUiLabels}
 			onPointerLeave={handlePointerOut}
 		>
-			{content}
+			<StylePanelContextProvider styles={styles}>
+				{children ?? <DefaultStylePanelContent />}
+			</StylePanelContextProvider>
 		</div>
 	)
 })
