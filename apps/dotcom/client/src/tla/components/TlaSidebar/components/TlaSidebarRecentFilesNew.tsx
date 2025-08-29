@@ -1,10 +1,11 @@
 import { patch } from 'patchfork'
 import { Collapsible } from 'radix-ui'
 import { Fragment, useState } from 'react'
-import { uniqueId, useValue } from 'tldraw'
+import { uniqueId, useDialogs, useValue } from 'tldraw'
 import { useApp } from '../../../hooks/useAppState'
 import { getIsCoarsePointer } from '../../../utils/getIsCoarsePointer'
 import { defineMessages, F, useIntl } from '../../../utils/i18n'
+import { CreateGroupDialog } from '../../dialogs/CreateGroupDialog'
 import styles from '../sidebar.module.css'
 import { ReorderCursor } from './ReorderCursor'
 import { RecentFile } from './sidebar-shared'
@@ -25,11 +26,20 @@ const messages = defineMessages({
 	},
 })
 
+declare global {
+	interface Window {
+		useDialogForGroupCreation: boolean
+	}
+}
+window.useDialogForGroupCreation = true
+
 export function TlaSidebarRecentFilesNew() {
 	const app = useApp()
 	const intl = useIntl()
+	const { addDialog } = useDialogs()
 
 	const [isCreatingGroup, setIsCreatingGroup] = useState(false)
+	// Demo flag to switch between inline input and dialog
 
 	const isShowingAll = useValue('isShowingAll', () => app.sidebarState.get().recentFilesShowMore, [
 		app,
@@ -79,11 +89,20 @@ export function TlaSidebarRecentFilesNew() {
 
 	const handleCreateGroup = () => {
 		const isMobile = getIsCoarsePointer()
-		if (isMobile) {
-			const name = window.prompt('Enter a name for the new group')
-			if (!name) return
-			const id = uniqueId()
-			app.z.mutate.group.create({ id, name })
+		// Use dialog if flag is set or on mobile
+		if (window.useDialogForGroupCreation || isMobile) {
+			addDialog({
+				component: ({ onClose }) => (
+					<CreateGroupDialog
+						onClose={onClose}
+						onCreate={(name) => {
+							const id = uniqueId()
+							app.z.mutate.group.create({ id, name })
+							app.ensureSidebarGroupExpanded(id)
+						}}
+					/>
+				),
+			})
 		} else {
 			setIsCreatingGroup(true)
 		}

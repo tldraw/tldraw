@@ -28,3 +28,13 @@
 .feedbackDialogTextArea::placeholder {
 	color: var(--color-text-3);
 }
+
+.dialogInput {
+	border: 1px solid var(--tla-color-border);
+	border-radius: var(--radius-2);
+	padding: 0px var(--space-4);
+}
+
+.dialogInput:focus {
+	border: 1px solid var(--tla-color-primary);
+}

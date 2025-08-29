@@ -32,6 +32,7 @@ import { useIsFilePinned } from '../../hooks/useIsFilePinned'
 import { TLAppUiEventSource, useTldrawAppUiEvents } from '../../utils/app-ui-events'
 import { copyTextToClipboard } from '../../utils/copy'
 import { defineMessages, useMsg } from '../../utils/i18n'
+import { CreateGroupDialog } from '../dialogs/CreateGroupDialog'
 import { TlaDeleteFileDialog } from '../dialogs/TlaDeleteFileDialog'
 import { editorMessages } from '../TlaEditor/editor-messages'
 import { download } from '../TlaEditor/useFileEditorOverrides'
@@ -262,13 +263,19 @@ export function FileItems({
 								readonlyOk
 								icon={<TlaIcon icon="plus" />}
 								onSelect={() => {
-									const name = prompt('Enter a name for the new group')
-									if (name) {
-										const id = uniqueId()
-										app.z.mutate.group.create({ id, name })
-										app.z.mutate.group.moveFileToGroup({ fileId, groupId: id })
-										app.ensureSidebarGroupExpanded(id)
-									}
+									addDialog({
+										component: ({ onClose }) => (
+											<CreateGroupDialog
+												onClose={onClose}
+												onCreate={(name) => {
+													const id = uniqueId()
+													app.z.mutate.group.create({ id, name })
+													app.z.mutate.group.moveFileToGroup({ fileId, groupId: id })
+													app.ensureSidebarGroupExpanded(id)
+												}}
+											/>
+										),
+									})
 								}}
 							/>
 						</TldrawUiMenuGroup>
