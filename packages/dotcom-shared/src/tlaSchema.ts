@@ -11,7 +11,7 @@ import {
 	string,
 	table,
 } from '@rocicorp/zero'
-import { stringEnum } from '@tldraw/utils'
+import { IndexKey, stringEnum } from '@tldraw/utils'
 
 export interface ZColumn {
 	optional?: boolean
@@ -55,6 +55,7 @@ export const file_state = table('file_state')
 		lastVisitAt: number().optional(),
 		isFileOwner: boolean().optional(),
 		isPinned: boolean().optional(),
+		pinnedIndex: string<IndexKey>().optional(),
 	})
 	.primaryKey('userId', 'fileId')
 
@@ -100,6 +101,7 @@ export const group_user = table('group_user')
 		role: enumeration<'admin' | 'owner'>(),
 		userName: string(),
 		userEmail: string(),
+		index: string<IndexKey>(),
 	})
 	.primaryKey('userId', 'groupId')
 

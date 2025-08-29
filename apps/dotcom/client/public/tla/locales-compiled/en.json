@@ -87,6 +87,12 @@
       "value": "Export as"
     }
   ],
+  "146ffe2fd9": [
+    {
+      "type": 0,
+      "value": "Show more"
+    }
+  ],
   "181b90f889": [
     {
       "type": 0,
@@ -135,6 +141,12 @@
       "value": "Upload failed"
     }
   ],
+  "2c3ef76333": [
+    {
+      "type": 0,
+      "value": "My files"
+    }
+  ],
   "2c61d18599": [
     {
       "type": 0,
@@ -175,6 +187,40 @@
     {
       "type": 0,
       "value": "Please sign in"
+    }
+  ],
+  "3952958a70": [
+    {
+      "type": 0,
+      "value": "Drag files here, "
+    },
+    {
+      "children": [
+        {
+          "type": 0,
+          "value": "Create a file"
+        }
+      ],
+      "type": 8,
+      "value": "create"
+    },
+    {
+      "type": 0,
+      "value": ", or "
+    },
+    {
+      "children": [
+        {
+          "type": 0,
+          "value": "Copy invite link"
+        }
+      ],
+      "type": 8,
+      "value": "invite"
+    },
+    {
+      "type": 0,
+      "value": " to get started."
     }
   ],
   "3bd1b98dbd": [
@@ -385,6 +431,24 @@
       "value": "A new version of tldraw is available. Please reload the page to continue."
     }
   ],
+  "68257bb646": [
+    {
+      "type": 0,
+      "value": "You've been invited to group "
+    },
+    {
+      "children": [
+      ],
+      "type": 8,
+      "value": "br"
+    },
+    {
+      "children": [
+      ],
+      "type": 8,
+      "value": "groupName"
+    }
+  ],
   "697c59072d": [
     {
       "type": 0,
@@ -413,6 +477,12 @@
     {
       "type": 0,
       "value": "This week"
+    }
+  ],
+  "7188286e36": [
+    {
+      "type": 0,
+      "value": "Remove from favorites"
     }
   ],
   "71a29b007b": [
@@ -589,6 +659,12 @@
       "value": "Rename file"
     }
   ],
+  "8ad4303b83": [
+    {
+      "type": 0,
+      "value": "No thanks"
+    }
+  ],
   "8b1946f965": [
     {
       "type": 0,
@@ -625,10 +701,22 @@
       "value": "Rename"
     }
   ],
+  "910885435d": [
+    {
+      "type": 0,
+      "value": "Add to favorites"
+    }
+  ],
   "91e49bb0eb": [
     {
       "type": 0,
       "value": "Copy to my files"
+    }
+  ],
+  "930390d222": [
+    {
+      "type": 0,
+      "value": "Copied invite link"
     }
   ],
   "96165d6df5": [
@@ -703,6 +791,12 @@
       "value": "Export image"
     }
   ],
+  "a37ede2939": [
+    {
+      "type": 0,
+      "value": "Groups"
+    }
+  ],
   "a3debabee7": [
     {
       "type": 0,
@@ -731,6 +825,12 @@
     {
       "type": 0,
       "value": "Background"
+    }
+  ],
+  "aa916767cf": [
+    {
+      "type": 0,
+      "value": "Sign in to accept invitation"
     }
   ],
   "ab0df9ba36": [
@@ -781,10 +881,10 @@
       "value": "Sign in to share"
     }
   ],
-  "bb792693e2": [
+  "bb93a7590f": [
     {
       "type": 0,
-      "value": "Unpin"
+      "value": "Accept and join group"
     }
   ],
   "bbbcefd7ce": [
@@ -893,6 +993,12 @@
       "value": "Invite"
     }
   ],
+  "c74ea6dbff": [
+    {
+      "type": 0,
+      "value": "Show less"
+    }
+  ],
   "c87aacf567": [
     {
       "type": 0,
@@ -947,6 +1053,12 @@
       "value": "Theme"
     }
   ],
+  "d789869473": [
+    {
+      "type": 0,
+      "value": "Favorites"
+    }
+  ],
   "d876a9fe1a": [
     {
       "type": 0,
@@ -989,6 +1101,12 @@
       "value": "App debug flags"
     }
   ],
+  "e2198d6228": [
+    {
+      "type": 0,
+      "value": "Copy invite link"
+    }
+  ],
   "e2ae80a510": [
     {
       "type": 0,
@@ -999,12 +1117,6 @@
     {
       "type": 0,
       "value": "Terms of service"
-    }
-  ],
-  "e78e14c5f1": [
-    {
-      "type": 0,
-      "value": "Pin"
     }
   ],
   "ea4788705e": [
@@ -1123,10 +1235,28 @@
       "value": "Copied link"
     }
   ],
+  "ff7a814974": [
+    {
+      "type": 0,
+      "value": "Add file link…"
+    }
+  ],
   "ffcd73e997": [
     {
       "type": 0,
       "value": "Import file…"
+    }
+  ],
+  "tla.sidebar.createGroup": [
+    {
+      "type": 0,
+      "value": "Create new group"
+    }
+  ],
+  "tla.sidebar.createGroupInputPlaceholder": [
+    {
+      "type": 0,
+      "value": "Enter group name..."
     }
   ]
 }
