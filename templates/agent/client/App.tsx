@@ -10,6 +10,7 @@ import {
 } from 'tldraw'
 import { ChatPanel } from './components/ChatPanel'
 import { ChatPanelFallback } from './components/ChatPanelFallback'
+import { CustomHelperButtons } from './components/CustomHelperButtons'
 import { AgentViewportBoundsHighlight } from './components/highlights/AgentViewportBoundsHighlights'
 import { ContextHighlights } from './components/highlights/ContextHighlights'
 import { enableLinedFillStyle } from './enableLinedFillStyle'
@@ -46,6 +47,7 @@ const overrides: TLUiOverrides = {
 }
 
 const components: TLComponents = {
+	HelperButtons: CustomHelperButtons,
 	InFrontOfTheCanvas: () => (
 		<>
 			<AgentViewportBoundsHighlight />
