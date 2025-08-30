@@ -28,38 +28,7 @@ export async function exportAs(
 	editor: Editor,
 	ids: TLShapeId[],
 	opts: ExportAsOptions
-): Promise<void>
-/**
- * @deprecated The format & name parameters are now part of the opts object.
- * @public
- */
-export async function exportAs(
-	editor: Editor,
-	ids: TLShapeId[],
-	format?: TLExportType,
-	name?: string,
-	opts?: TLImageExportOptions
-): Promise<void>
-export async function exportAs(
-	...args:
-		| [
-				editor: Editor,
-				ids: TLShapeId[],
-				opts: TLImageExportOptions & { format: TLExportType; name?: string },
-		  ]
-		| [
-				editor: Editor,
-				ids: TLShapeId[],
-				format?: TLExportType,
-				name?: string,
-				opts?: TLImageExportOptions,
-		  ]
-) {
-	const [editor, ids, opts] =
-		typeof args[2] === 'object'
-			? args
-			: [args[0], args[1], { ...args[4], format: args[2] ?? 'png', name: args[3] }]
-
+): Promise<void> {
 	// If we don't get name then use a predefined one
 	let name = opts.name
 	if (!name) {

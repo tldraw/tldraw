@@ -31,30 +31,7 @@ export interface CopyAsOptions extends TLImageExportOptions {
  *
  * @public
  */
-export function copyAs(editor: Editor, ids: TLShapeId[], opts: CopyAsOptions): Promise<void>
-/**
- * @deprecated The format parameter is now part of the opts object.
- * @public
- */
-export function copyAs(
-	editor: Editor,
-	ids: TLShapeId[],
-	format: TLCopyType,
-	opts?: TLImageExportOptions & { format?: undefined }
-): Promise<void>
-export function copyAs(
-	...args:
-		| [editor: Editor, ids: TLShapeId[], opts: TLImageExportOptions & { format: TLCopyType }]
-		| [
-				editor: Editor,
-				ids: TLShapeId[],
-				format: TLCopyType,
-				opts?: TLImageExportOptions & { format?: undefined },
-		  ]
-) {
-	const [editor, ids, opts] =
-		typeof args[2] === 'string' ? [args[0], args[1], { ...args[3], format: args[2] }] : args
-
+export function copyAs(editor: Editor, ids: TLShapeId[], opts: CopyAsOptions): Promise<void> {
 	// Note:  it's important that this function itself isn't async and doesn't really use promises -
 	// we need to create the relevant `ClipboardItem`s and call navigator.clipboard.write
 	// synchronously to make sure safari knows that the user _wants_ to copy See

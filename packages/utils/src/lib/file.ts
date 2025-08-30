@@ -7,15 +7,6 @@ import { fetch } from './network'
  */
 export class FileHelpers {
 	/**
-	 * @deprecated Use `urlToArrayBuffer` instead.
-	 */
-	static async dataUrlToArrayBuffer(dataURL: string) {
-		return fetch(dataURL).then(function (result) {
-			return result.arrayBuffer()
-		})
-	}
-
-	/**
 	 * @param url - The url of the file.
 	 */
 	static async urlToArrayBuffer(url: string) {

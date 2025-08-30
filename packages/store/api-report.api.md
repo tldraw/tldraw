@@ -301,8 +301,6 @@ export class RecordType<R extends UnknownRecord, RequiredProperties extends keyo
     });
     clone(record: R): R;
     create(properties: Expand<Pick<R, RequiredProperties> & Omit<Partial<R>, RequiredProperties>>): R;
-    // @deprecated
-    createCustomId(id: string): IdOf<R>;
     // (undocumented)
     readonly createDefaultProperties: () => Exclude<Omit<R, 'id' | 'typeName'>, RequiredProperties>;
     createId(customUniquePart?: string): IdOf<R>;
@@ -415,8 +413,6 @@ export class Store<R extends UnknownRecord = UnknownRecord, Props = unknown> {
     // (undocumented)
     _flushHistory(): void;
     get<K extends IdOf<R>>(id: K): RecordFromId<K> | undefined;
-    // @deprecated (undocumented)
-    getSnapshot(scope?: 'all' | RecordScope): StoreSnapshot<R>;
     getStoreSnapshot(scope?: 'all' | RecordScope): StoreSnapshot<R>;
     has<K extends IdOf<R>>(id: K): boolean;
     readonly history: Atom<number, RecordsDiff<R>>;
@@ -424,8 +420,6 @@ export class Store<R extends UnknownRecord = UnknownRecord, Props = unknown> {
     // @internal (undocumented)
     isPossiblyCorrupted(): boolean;
     listen(onHistory: StoreListener<R>, filters?: Partial<StoreListenerFilters>): () => void;
-    // @deprecated (undocumented)
-    loadSnapshot(snapshot: StoreSnapshot<R>): void;
     loadStoreSnapshot(snapshot: StoreSnapshot<R>): void;
     // @internal (undocumented)
     markAsPossiblyCorrupted(): void;

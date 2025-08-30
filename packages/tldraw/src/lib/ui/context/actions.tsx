@@ -225,7 +225,7 @@ export function ActionsProvider({ overrides, children }: ActionsProviderProps) {
 					if (ids.length === 0) ids = Array.from(editor.getCurrentPageShapeIds().values())
 					if (ids.length === 0) return
 					trackEvent('export-as', { format: 'svg', source })
-					helpers.exportAs(ids, 'svg', getExportName(editor, defaultDocumentName))
+					helpers.exportAs(ids, { format: 'svg', name: getExportName(editor, defaultDocumentName) })
 				},
 			},
 			{
@@ -241,7 +241,7 @@ export function ActionsProvider({ overrides, children }: ActionsProviderProps) {
 					if (ids.length === 0) ids = Array.from(editor.getCurrentPageShapeIds().values())
 					if (ids.length === 0) return
 					trackEvent('export-as', { format: 'png', source })
-					helpers.exportAs(ids, 'png', getExportName(editor, defaultDocumentName))
+					helpers.exportAs(ids, { format: 'png', name: getExportName(editor, defaultDocumentName) })
 				},
 			},
 			{
@@ -257,11 +257,10 @@ export function ActionsProvider({ overrides, children }: ActionsProviderProps) {
 					if (ids.length === 0) ids = Array.from(editor.getCurrentPageShapeIds().values())
 					if (ids.length === 0) return
 					trackEvent('export-all-as', { format: 'svg', source })
-					helpers.exportAs(
-						Array.from(editor.getCurrentPageShapeIds()),
-						'svg',
-						getExportName(editor, defaultDocumentName)
-					)
+					helpers.exportAs(Array.from(editor.getCurrentPageShapeIds()), {
+						format: 'svg',
+						name: getExportName(editor, defaultDocumentName),
+					})
 				},
 			},
 			{
@@ -276,7 +275,7 @@ export function ActionsProvider({ overrides, children }: ActionsProviderProps) {
 					const ids = Array.from(editor.getCurrentPageShapeIds().values())
 					if (ids.length === 0) return
 					trackEvent('export-all-as', { format: 'png', source })
-					helpers.exportAs(ids, 'png', getExportName(editor, defaultDocumentName))
+					helpers.exportAs(ids, { format: 'png', name: getExportName(editor, defaultDocumentName) })
 				},
 			},
 			{

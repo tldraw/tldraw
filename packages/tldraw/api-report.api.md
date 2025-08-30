@@ -513,11 +513,6 @@ export function ConvertToEmbedMenuItem(): JSX_2.Element | null;
 // @public
 export function copyAs(editor: Editor, ids: TLShapeId[], opts: CopyAsOptions): Promise<void>;
 
-// @public @deprecated (undocumented)
-export function copyAs(editor: Editor, ids: TLShapeId[], format: TLCopyType, opts?: TLImageExportOptions & {
-    format?: undefined;
-}): Promise<void>;
-
 // @public (undocumented)
 export function CopyAsMenuGroup(): JSX_2.Element;
 
@@ -1411,9 +1406,6 @@ export interface ExampleDialogProps {
 // @public
 export function exportAs(editor: Editor, ids: TLShapeId[], opts: ExportAsOptions): Promise<void>;
 
-// @public @deprecated (undocumented)
-export function exportAs(editor: Editor, ids: TLShapeId[], format?: TLExportType, name?: string, opts?: TLImageExportOptions): Promise<void>;
-
 // @public (undocumented)
 export interface ExportAsOptions extends TLImageExportOptions {
     format: TLExportType;
@@ -1422,14 +1414,6 @@ export interface ExportAsOptions extends TLImageExportOptions {
 
 // @public (undocumented)
 export function ExportFileContentSubMenu(): JSX_2.Element;
-
-// @public @deprecated
-export function exportToBlob({ editor, ids, format, opts, }: {
-    editor: Editor;
-    format: TLExportType;
-    ids: TLShapeId[];
-    opts?: TLImageExportOptions;
-}): Promise<Blob>;
 
 // @public (undocumented)
 export function ExtrasGroup(): JSX_2.Element;
@@ -2733,9 +2717,6 @@ export interface TextAreaProps {
 
 // @public (undocumented)
 export const TextDirection: Extension<any, any>;
-
-// @public @deprecated (undocumented)
-export const TextLabel: React_3.NamedExoticComponent<PlainTextLabelProps>;
 
 // @public (undocumented)
 export interface TextShapeOptions {
@@ -5039,9 +5020,6 @@ export function useA11y(): TLUiA11yContextType;
 // @public (undocumented)
 export function useActions(): TLUiActionsContextType;
 
-// @public @deprecated (undocumented)
-export const useAsset: typeof useImageOrVideoAsset;
-
 // @internal (undocumented)
 export function useAssetUrls(): TLUiAssetUrls;
 
@@ -5097,7 +5075,11 @@ export function useDefaultHelpers(): {
     copy: (source: TLUiEventSource) => Promise<void>;
     copyAs: (ids: TLShapeId[], format?: TLCopyType) => void;
     cut: (source: TLUiEventSource) => Promise<void>;
-    exportAs: (ids: TLShapeId[], format: TLExportType | undefined, name: string | undefined) => void;
+    exportAs: (ids: TLShapeId[], opts?: {
+        format?: TLExportType;
+        name?: string;
+        scale?: number;
+    }) => void;
     getEmbedDefinition: (url: string) => TLEmbedResult;
     insertMedia: () => Promise<void>;
     isMobile: boolean;
@@ -5147,11 +5129,12 @@ export function useEditableRichText(shapeId: TLShapeId, type: string, richText?:
     rInput: RefObject<HTMLDivElement>;
 };
 
-// @public @deprecated (undocumented)
-export const useEditableText: typeof useEditablePlainText;
-
 // @public (undocumented)
-export function useExportAs(): (ids: TLShapeId[], format: TLExportType | undefined, name: string | undefined) => void;
+export function useExportAs(): (ids: TLShapeId[], opts?: {
+    format?: TLExportType;
+    name?: string;
+    scale?: number;
+}) => void;
 
 // @public
 export function useImageOrVideoAsset({ shapeId, assetId, width }: UseImageOrVideoAssetOptions): {

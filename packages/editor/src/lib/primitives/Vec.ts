@@ -240,11 +240,6 @@ export class Vec {
 		return Vec.EqualsXY(this, x, y)
 	}
 
-	/** @deprecated use `uni` instead */
-	norm() {
-		return this.uni()
-	}
-
 	toFixed() {
 		this.x = toFixed(this.x)
 		this.y = toFixed(this.y)

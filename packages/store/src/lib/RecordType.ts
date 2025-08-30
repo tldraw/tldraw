@@ -117,23 +117,6 @@ export class RecordType<
 	}
 
 	/**
-	 * Create a new ID for this record type based on the given ID.
-	 *
-	 * @example
-	 *
-	 * ```ts
-	 * const id = recordType.createCustomId('myId')
-	 * ```
-	 *
-	 * @deprecated - Use `createId` instead.
-	 * @param id - The ID to base the new ID on.
-	 * @returns The new ID.
-	 */
-	createCustomId(id: string): IdOf<R> {
-		return (this.typeName + ':' + id) as IdOf<R>
-	}
-
-	/**
 	 * Takes an id like `user:123` and returns the part after the colon `123`
 	 *
 	 * @param id - The id
