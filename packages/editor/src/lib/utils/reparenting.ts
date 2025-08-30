@@ -194,6 +194,12 @@ function getOverlappingShapes<T extends TLShape[] | TLShapeId[]>(
 }
 
 /**
+ * Check if a geometry overlaps a polygon.
+ *
+ * @param geometry - The geometry to check.
+ * @param parentCornersInShapeSpace - The corners of the parent in the shape's space.
+ * @returns True if the geometry overlaps the polygon, false otherwise.
+ *
  * @public
  */
 export function doesGeometryOverlapPolygon(
