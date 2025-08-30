@@ -2,7 +2,7 @@ import { useEditor, usePassThroughWheelEvents, useValue } from '@tldraw/editor'
 import classNames from 'classnames'
 import { ReactNode, memo, useCallback, useEffect, useRef } from 'react'
 import { useRelevantStyles } from '../../hooks/useRelevantStyles'
-import { DefaultStylePanelContent } from './DefaultStylePanelContent'
+import { DefaultStylePanelContent, StylePanelContextProvider } from './DefaultStylePanelContent'
 
 /** @public */
 export interface TLUiStylePanelProps {
@@ -21,15 +21,13 @@ export const DefaultStylePanel = memo(function DefaultStylePanel({
 	const ref = useRef<HTMLDivElement>(null)
 	usePassThroughWheelEvents(ref)
 
-	const styles = useRelevantStyles()
-
 	const handlePointerOut = useCallback(() => {
 		if (!isMobile) {
 			editor.updateInstanceState({ isChangingStyle: false })
 		}
 	}, [editor, isMobile])
 
-	const content = children ?? <DefaultStylePanelContent styles={styles} />
+	const styles = useRelevantStyles()
 
 	useEffect(() => {
 		function handleKeyDown(event: KeyboardEvent) {
@@ -54,7 +52,9 @@ export const DefaultStylePanel = memo(function DefaultStylePanel({
 			data-show-ui-labels={showUiLabels}
 			onPointerLeave={handlePointerOut}
 		>
-			{content}
+			<StylePanelContextProvider styles={styles}>
+				{children ?? <DefaultStylePanelContent />}
+			</StylePanelContextProvider>
 		</div>
 	)
 })

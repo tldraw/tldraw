@@ -366,10 +366,6 @@ export {
 	type TLUiMenuSubmenuProps,
 } from './lib/ui/components/primitives/menus/TldrawUiMenuSubmenu'
 export {
-	TldrawUiButtonPicker,
-	type TLUiButtonPickerProps,
-} from './lib/ui/components/primitives/TldrawUiButtonPicker'
-export {
 	TldrawUiContextualToolbar,
 	type TLUiContextualToolbarProps,
 } from './lib/ui/components/primitives/TldrawUiContextualToolbar'
@@ -448,17 +444,38 @@ export {
 	type TLUiStylePanelProps,
 } from './lib/ui/components/StylePanel/DefaultStylePanel'
 export {
-	ArrowheadStylePickerSet,
-	CommonStylePickerSet,
 	DefaultStylePanelContent,
-	GeoStylePickerSet,
-	OpacitySlider,
-	SplineStylePickerSet,
-	TextStylePickerSet,
-	type StylePickerSetProps,
-	type ThemeStylePickerSetProps,
-	type TLUiStylePanelContentProps,
+	StylePanelArrowheadPicker,
+	StylePanelArrowKindPicker,
+	StylePanelColorPicker,
+	StylePanelContextProvider,
+	StylePanelDashPicker,
+	StylePanelFillPicker,
+	StylePanelFontPicker,
+	StylePanelGeoShapePicker,
+	StylePanelLabelAlignPicker,
+	StylePanelOpacityPicker,
+	StylePanelSection,
+	StylePanelSizePicker,
+	StylePanelSplinePicker,
+	StylePanelTextAlignPicker,
+	useStylePanelContext,
+	type StylePanelContext,
+	type StylePanelContextProviderProps,
+	type StylePanelSectionProps,
 } from './lib/ui/components/StylePanel/DefaultStylePanelContent'
+export {
+	StylePanelButtonPicker,
+	type StylePanelButtonPickerProps,
+} from './lib/ui/components/StylePanel/StylePanelButtonPicker'
+export {
+	StylePanelDoubleDropdownPicker,
+	type StylePanelDoubleDropdownPickerProps,
+} from './lib/ui/components/StylePanel/StylePanelDoubleDropdownPicker'
+export {
+	StylePanelDropdownPicker,
+	type StylePanelDropdownPickerProps,
+} from './lib/ui/components/StylePanel/StylePanelDropdownPicker'
 export {
 	DefaultImageToolbar,
 	type TLUiImageToolbarProps,
