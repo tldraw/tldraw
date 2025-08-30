@@ -54,6 +54,8 @@ export function getArrowBodyGeometry(editor: Editor, shape: TLArrowShape) {
 	}
 }
 
+const SIZES: Record<string, Vec> = {}
+
 const labelSizeCache = createComputedCache(
 	'arrow label size',
 	(editor: Editor, shape: TLArrowShape) => {
@@ -64,6 +66,15 @@ const labelSizeCache = createComputedCache(
 		const bodyGeom = getArrowBodyGeometry(editor, shape)
 		// We use 'i' as a default label to measure against as a minimum width.
 		const isEmpty = isEmptyRichText(shape.props.richText)
+
+		if (isEmpty) {
+			if (SIZES[shape.props.size]) {
+				return SIZES[shape.props.size]
+					.clone()
+					.addScalar(ARROW_LABEL_PADDING * 2 * shape.props.scale)
+			}
+		}
+
 		const html = renderHtmlFromRichTextForMeasurement(
 			editor,
 			isEmpty ? toRichText('i') : shape.props.richText
@@ -80,6 +91,10 @@ const labelSizeCache = createComputedCache(
 			fontSize,
 			maxWidth: null,
 		})
+
+		if (isEmpty) {
+			SIZES[shape.props.size] = new Vec(w, h)
+		}
 
 		width = w
 		height = h
