@@ -4531,6 +4531,8 @@ export class UserPreferencesManager {
     getAreKeyboardShortcutsEnabled(): boolean;
     // (undocumented)
     getColor(): string;
+    // (undocumented)
+    getColorScheme(): "dark" | "light";
     getEdgeScrollSpeed(): number;
     // (undocumented)
     getId(): string;

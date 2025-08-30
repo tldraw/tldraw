@@ -270,7 +270,7 @@ export class GeoShapeUtil extends BaseBoxShapeUtil<TLGeoShape> {
 
 		let textEl
 		if (!isEmptyRichText(props.richText)) {
-			const theme = getDefaultColorTheme(ctx)
+			const theme = getDefaultColorTheme({ colorScheme: ctx.isDarkMode ? 'dark' : 'light' })
 			const bounds = new Box(0, 0, props.w, (shape.props.h + shape.props.growY) / scale)
 			textEl = (
 				<RichTextSVG

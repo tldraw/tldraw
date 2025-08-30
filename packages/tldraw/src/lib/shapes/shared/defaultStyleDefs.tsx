@@ -1,5 +1,5 @@
 import {
-	DefaultColorThemePalette,
+	DefaultColorThemes,
 	DefaultFontStyle,
 	SvgExportDef,
 	TLDefaultColorTheme,
@@ -75,9 +75,8 @@ const generateImage = (dpr: number, currentZoom: number, darkMode: boolean) => {
 		const ctx = canvasEl.getContext('2d')
 		if (!ctx) return
 
-		ctx.fillStyle = darkMode
-			? DefaultColorThemePalette.darkMode.solid
-			: DefaultColorThemePalette.lightMode.solid
+		const theme = darkMode ? 'dark' : 'light'
+		ctx.fillStyle = DefaultColorThemes.get()[theme].solid
 		ctx.fillRect(0, 0, size, size)
 
 		// This essentially generates an inverse of the pattern we're drawing.
