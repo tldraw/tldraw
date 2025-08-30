@@ -7,6 +7,7 @@ beforeEach(() => {
 	editor = new Editor({
 		shapeUtils: [],
 		bindingUtils: [],
+		styleUtils: [],
 		tools: [],
 		store: createTLStore({ shapeUtils: [], bindingUtils: [] }),
 		getContainer: () => document.body,

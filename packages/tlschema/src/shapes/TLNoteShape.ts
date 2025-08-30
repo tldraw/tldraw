@@ -3,8 +3,9 @@ import { TLRichText, richTextValidator, toRichText } from '../misc/TLRichText'
 import { createShapePropsMigrationIds, createShapePropsMigrationSequence } from '../records/TLShape'
 import { RecordProps } from '../recordsWithProps'
 import {
-	DefaultColorStyle,
+	ColorStyle,
 	DefaultLabelColorStyle,
+	TLColorStyle,
 	TLDefaultColorStyle,
 } from '../styles/TLColorStyle'
 import { DefaultFontStyle, TLDefaultFontStyle } from '../styles/TLFontStyle'
@@ -21,7 +22,7 @@ import { TLBaseShape } from './TLBaseShape'
 
 /** @public */
 export interface TLNoteShapeProps {
-	color: TLDefaultColorStyle
+	color: TLColorStyle
 	labelColor: TLDefaultColorStyle
 	size: TLDefaultSizeStyle
 	font: TLDefaultFontStyle
@@ -39,7 +40,7 @@ export type TLNoteShape = TLBaseShape<'note', TLNoteShapeProps>
 
 /** @public */
 export const noteShapeProps: RecordProps<TLNoteShape> = {
-	color: DefaultColorStyle,
+	color: ColorStyle,
 	labelColor: DefaultLabelColorStyle,
 	size: DefaultSizeStyle,
 	font: DefaultFontStyle,

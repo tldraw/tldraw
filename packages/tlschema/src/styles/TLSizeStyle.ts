@@ -1,5 +1,10 @@
 import { T } from '@tldraw/validate'
-import { StyleProp } from './StyleProp'
+import { StyleProp, StyleProp2 } from './StyleProp'
+
+/** @public */
+export const SizeStyle = StyleProp2('tldraw:size2')
+/** @public */
+export type TLSizeStyle = StyleProp2<'tldraw:size2'>
 
 /** @public */
 export const DefaultSizeStyle = StyleProp.defineEnum('tldraw:size', {

@@ -10,10 +10,11 @@ import {
 import { MakeUndefinedOptional, assert } from '@tldraw/utils'
 import { T } from '@tldraw/validate'
 import { SchemaPropsInfo } from './createTLSchema'
+import { StyleProp2 } from './styles/StyleProp'
 
 /** @public */
 export type RecordProps<R extends UnknownRecord & { props: object }> = {
-	[K in keyof R['props']]: T.Validatable<R['props'][K]>
+	[K in keyof R['props']]: T.Validatable<R['props'][K]> | StyleProp2<string>
 }
 
 /** @public */

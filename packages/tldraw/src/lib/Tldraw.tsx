@@ -30,6 +30,7 @@ import {
 import { defaultShapeTools } from './defaultShapeTools'
 import { defaultShapeUtils } from './defaultShapeUtils'
 import { registerDefaultSideEffects } from './defaultSideEffects'
+import { defaultStyleUtils } from './defaultStyleUtils'
 import { defaultTools } from './defaultTools'
 import { EmbedShapeUtil } from './shapes/embed/EmbedShapeUtil'
 import { allDefaultFontFaces } from './shapes/shared/defaultFonts'
@@ -110,6 +111,7 @@ export function Tldraw(props: TldrawProps) {
 		components = {},
 		shapeUtils = [],
 		bindingUtils = [],
+		styleUtils = [],
 		tools = [],
 		embeds,
 		textOptions,
@@ -156,6 +158,12 @@ export function Tldraw(props: TldrawProps) {
 	const bindingUtilsWithDefaults = useMemo(
 		() => mergeArraysAndReplaceDefaults('type', _bindingUtils, defaultBindingUtils),
 		[_bindingUtils]
+	)
+
+	const _styleUtils = useShallowArrayIdentity(styleUtils)
+	const styleUtilsWithDefaults = useMemo(
+		() => mergeArraysAndReplaceDefaults('id', _styleUtils, defaultStyleUtils),
+		[_styleUtils]
 	)
 
 	const _tools = useShallowArrayIdentity(tools)
@@ -209,6 +217,7 @@ export function Tldraw(props: TldrawProps) {
 					components={componentsWithDefault}
 					shapeUtils={shapeUtilsWithDefaults}
 					bindingUtils={bindingUtilsWithDefaults}
+					styleUtils={styleUtilsWithDefaults}
 					tools={toolsWithDefaults}
 					textOptions={textOptionsWithDefaults}
 					assetUrls={assets}

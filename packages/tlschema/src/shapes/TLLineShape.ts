@@ -3,7 +3,7 @@ import { T } from '@tldraw/validate'
 import { createShapePropsMigrationIds, createShapePropsMigrationSequence } from '../records/TLShape'
 import { RecordProps } from '../recordsWithProps'
 import { StyleProp } from '../styles/StyleProp'
-import { DefaultColorStyle, TLDefaultColorStyle } from '../styles/TLColorStyle'
+import { ColorStyle, TLColorStyle } from '../styles/TLColorStyle'
 import { DefaultDashStyle, TLDefaultDashStyle } from '../styles/TLDashStyle'
 import { DefaultSizeStyle, TLDefaultSizeStyle } from '../styles/TLSizeStyle'
 import { TLBaseShape } from './TLBaseShape'
@@ -34,7 +34,7 @@ const lineShapePointValidator: T.ObjectValidator<TLLineShapePoint> = T.object({
 
 /** @public */
 export interface TLLineShapeProps {
-	color: TLDefaultColorStyle
+	color: TLColorStyle
 	dash: TLDefaultDashStyle
 	size: TLDefaultSizeStyle
 	spline: TLLineShapeSplineStyle
@@ -47,7 +47,7 @@ export type TLLineShape = TLBaseShape<'line', TLLineShapeProps>
 
 /** @public */
 export const lineShapeProps: RecordProps<TLLineShape> = {
-	color: DefaultColorStyle,
+	color: ColorStyle,
 	dash: DefaultDashStyle,
 	size: DefaultSizeStyle,
 	spline: LineShapeSplineStyle,

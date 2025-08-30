@@ -131,7 +131,7 @@ export function createBindingPropsMigrationSequence(migrations: TLPropsMigration
 
 // @public (undocumented)
 export function createBindingValidator<Type extends string, Props extends JsonObject, Meta extends JsonObject>(type: Type, props?: {
-    [K in keyof Props]: T.Validatable<Props[K]>;
+    [K in keyof Props]: StyleProp2<string> | T.Validatable<Props[K]>;
 }, meta?: {
     [K in keyof Meta]: T.Validatable<Meta[K]>;
 }): T.ObjectValidator<Expand<    { [P in "fromId" | "id" | "meta" | "toId" | "typeName" | (undefined extends Props ? never : "props") | (undefined extends Type ? never : "type")]: TLBaseBinding<Type, Props>[P]; } & { [P_1 in (undefined extends Props ? "props" : never) | (undefined extends Type ? "type" : never)]?: TLBaseBinding<Type, Props>[P_1] | undefined; }>>;
@@ -151,17 +151,22 @@ export function createShapePropsMigrationIds<const S extends string, const T ext
 export function createShapePropsMigrationSequence(migrations: TLPropsMigrations): TLPropsMigrations;
 
 // @public (undocumented)
-export function createShapeValidator<Type extends string, Props extends JsonObject, Meta extends JsonObject>(type: Type, props?: {
-    [K in keyof Props]: T.Validatable<Props[K]>;
-}, meta?: {
+export function createShapeValidator<Type extends string, Props extends JsonObject, Meta extends JsonObject>(type: Type, props: {
+    [K in keyof Props]: StyleProp2<string> | T.Validatable<Props[K]>;
+} | undefined, meta: {
     [K in keyof Meta]: T.Validatable<Meta[K]>;
-}): T.ObjectValidator<Expand<    { [P in "id" | "index" | "isLocked" | "meta" | "opacity" | "parentId" | "rotation" | "typeName" | "x" | "y" | (undefined extends Props ? never : "props") | (undefined extends Type ? never : "type")]: TLBaseShape<Type, Props>[P]; } & { [P_1 in (undefined extends Props ? "props" : never) | (undefined extends Type ? "type" : never)]?: TLBaseShape<Type, Props>[P_1] | undefined; }>>;
+} | undefined, styles: Record<string, {
+    validator: T.Validatable<any>;
+}>): T.ObjectValidator<Expand<    { [P in "id" | "index" | "isLocked" | "meta" | "opacity" | "parentId" | "rotation" | "typeName" | "x" | "y" | (undefined extends Props ? never : "props") | (undefined extends Type ? never : "type")]: TLBaseShape<Type, Props>[P]; } & { [P_1 in (undefined extends Props ? "props" : never) | (undefined extends Type ? "type" : never)]?: TLBaseShape<Type, Props>[P_1] | undefined; }>>;
 
 // @public
-export function createTLSchema({ shapes, bindings, migrations, }?: {
+export function createTLSchema({ shapes, bindings, styles, migrations, }?: {
     bindings?: Record<string, SchemaPropsInfo>;
     migrations?: readonly MigrationSequence[];
     shapes?: Record<string, SchemaPropsInfo>;
+    styles?: Record<string, {
+        validator: T.Validatable<any>;
+    }>;
 }): TLSchema;
 
 // @public (undocumented)
@@ -352,7 +357,7 @@ export function getDefaultUserPresence(store: TLStore, user: TLPresenceUserInfo)
 } | null;
 
 // @internal (undocumented)
-export function getShapePropKeysByStyle(props: Record<string, T.Validatable<any>>): Map<StyleProp<unknown>, string>;
+export function getShapePropKeysByStyle(props: Record<string, StyleProp2<any> | T.Validatable<any>>): Map<StyleProp<unknown> | StyleProp2<string>, string>;
 
 // @public (undocumented)
 export const groupShapeMigrations: TLPropsMigrations;
@@ -401,6 +406,12 @@ export function isShape(record?: UnknownRecord): record is TLShape;
 
 // @public (undocumented)
 export function isShapeId(id?: string): id is TLShapeId;
+
+// @public (undocumented)
+export function isStyleProp2(value: object): value is StyleProp2<string>;
+
+// @public (undocumented)
+export function isStyleProp2<const Id extends string>(value: object, id: Id): value is StyleProp2<Id>;
 
 // @public (undocumented)
 export const LANGUAGES: readonly [{
@@ -589,7 +600,7 @@ export const PointerRecordType: RecordType<TLPointer, never>;
 export type RecordProps<R extends UnknownRecord & {
     props: object;
 }> = {
-    [K in keyof R['props']]: T.Validatable<R['props'][K]>;
+    [K in keyof R['props']]: StyleProp2<string> | T.Validatable<R['props'][K]>;
 };
 
 // @public (undocumented)
@@ -616,7 +627,7 @@ export interface SchemaPropsInfo {
     // (undocumented)
     migrations?: LegacyMigrations | MigrationSequence | TLPropsMigrations;
     // (undocumented)
-    props?: Record<string, StoreValidator<any>>;
+    props?: Record<string, StoreValidator<any> | StyleProp2<any>>;
 }
 
 // @public (undocumented)
@@ -634,6 +645,9 @@ export type ShapeWithCrop = TLBaseShape<string, {
     h: number;
     w: number;
 }>;
+
+// @public (undocumented)
+export const SizeStyle: StyleProp2<"tldraw:size2">;
 
 // @public
 export class StyleProp<Type> implements T.Validatable<Type> {
@@ -660,6 +674,18 @@ export class StyleProp<Type> implements T.Validatable<Type> {
     // (undocumented)
     validateUsingKnownGoodVersion(prevValue: Type, newValue: unknown): Type;
 }
+
+// @public (undocumented)
+export function StyleProp2<const Id extends string>(id: Id): StyleProp2<Id>;
+
+// @public (undocumented)
+export interface StyleProp2<Id extends string> {
+    // (undocumented)
+    [StylePropMarker]: Id;
+}
+
+// @public (undocumented)
+export const StylePropMarker: unique symbol;
 
 // @public (undocumented)
 export type StylePropValue<T extends StyleProp<any>> = T extends StyleProp<infer U> ? U : never;
@@ -1084,7 +1110,7 @@ export interface TLGeoShapeProps {
     // (undocumented)
     scale: number;
     // (undocumented)
-    size: TLDefaultSizeStyle;
+    size: unknown;
     // (undocumented)
     url: string;
     // (undocumented)
@@ -1501,6 +1527,9 @@ export type TLShapePartial<T extends TLShape = TLShape> = T extends T ? {
     props?: Partial<T['props']>;
     type: T['type'];
 } & Partial<Omit<T, 'id' | 'meta' | 'props' | 'type'>> : never;
+
+// @public (undocumented)
+export type TLSizeStyle = StyleProp2<'tldraw:size2'>;
 
 // @public (undocumented)
 export type TLStore = Store<TLRecord, TLStoreProps>;

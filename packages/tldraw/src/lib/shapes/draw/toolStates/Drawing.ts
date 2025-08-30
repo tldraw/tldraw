@@ -17,8 +17,8 @@ import {
 	toFixed,
 	uniqueId,
 } from '@tldraw/editor'
+import { SizeStyleUtil } from '../../../styles/TLSizeStyle'
 import { HighlightShapeUtil } from '../../highlight/HighlightShapeUtil'
-import { STROKE_SIZES } from '../../shared/default-shape-constants'
 import { DrawShapeUtil } from '../DrawShapeUtil'
 
 type DrawableShape = TLDrawShape | TLHighlightShape
@@ -141,7 +141,7 @@ export class Drawing extends StateNode {
 	getIsClosed(segments: TLDrawShapeSegment[], size: TLDefaultSizeStyle, scale: number) {
 		if (!this.canClose()) return false
 
-		const strokeWidth = STROKE_SIZES[size]
+		const strokeWidth = this.editor.getStyleUtil(SizeStyleUtil).toStrokeSizePx(size)
 		const firstPoint = segments[0].points[0]
 		const lastSegment = segments[segments.length - 1]
 		const lastPoint = lastSegment.points[lastSegment.points.length - 1]
@@ -218,7 +218,10 @@ export class Drawing extends StateNode {
 				this.pagePointWhereNextSegmentChanged = null
 				const segments = [...shape.props.segments, newSegment]
 
-				if (this.currentLineLength < STROKE_SIZES[shape.props.size] * 4) {
+				if (
+					this.currentLineLength <
+					this.editor.getStyleUtil(SizeStyleUtil).toStrokeSizePx(shape.props.size) * 4
+				) {
 					this.currentLineLength = this.getLineLength(segments)
 				}
 
@@ -421,7 +424,10 @@ export class Drawing extends StateNode {
 
 					const finalSegments = [...newSegments, newFreeSegment]
 
-					if (this.currentLineLength < STROKE_SIZES[shape.props.size] * 4) {
+					if (
+						this.currentLineLength <
+						this.editor.getStyleUtil(SizeStyleUtil).toStrokeSizePx(shape.props.size) * 4
+					) {
 						this.currentLineLength = this.getLineLength(finalSegments)
 					}
 
@@ -611,7 +617,10 @@ export class Drawing extends StateNode {
 					points: newPoints,
 				}
 
-				if (this.currentLineLength < STROKE_SIZES[shape.props.size] * 4) {
+				if (
+					this.currentLineLength <
+					this.editor.getStyleUtil(SizeStyleUtil).toStrokeSizePx(shape.props.size) * 4
+				) {
 					this.currentLineLength = this.getLineLength(newSegments)
 				}
 

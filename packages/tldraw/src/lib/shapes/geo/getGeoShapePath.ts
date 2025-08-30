@@ -1,6 +1,7 @@
 import {
 	centerOfCircleFromThreePoints,
 	clamp,
+	Editor,
 	exhaustiveSwitchError,
 	getPointOnCircle,
 	getPolygonVertices,
@@ -9,26 +10,25 @@ import {
 	PI2,
 	rng,
 	TLDefaultDashStyle,
-	TLDefaultSizeStyle,
 	TLGeoShape,
 	Vec,
 	VecModel,
 	WeakCache,
 } from '@tldraw/editor'
-import { STROKE_SIZES } from '../arrow/shared'
+import { SizeStyleUtil } from '../../styles/TLSizeStyle'
 import { PathBuilder } from '../shared/PathBuilder'
 
-const pathCache = new WeakCache<TLGeoShape, PathBuilder>()
-export function getGeoShapePath(shape: TLGeoShape) {
-	return pathCache.get(shape, _getGeoPath)
+const pathCache = new WeakCache<Editor, WeakCache<TLGeoShape, PathBuilder>>()
+export function getGeoShapePath(editor: Editor, shape: TLGeoShape) {
+	return pathCache.get(editor, () => new WeakCache()).get(shape, () => _getGeoPath(editor, shape))
 }
 
-function _getGeoPath(shape: TLGeoShape) {
+function _getGeoPath(editor: Editor, shape: TLGeoShape) {
 	const w = Math.max(1, shape.props.w)
 	const h = Math.max(1, shape.props.h + shape.props.growY)
 	const cx = w / 2
 	const cy = h / 2
-	const sw = STROKE_SIZES[shape.props.size] * shape.props.scale
+	const sw = editor.getStyleUtil(SizeStyleUtil).toStrokeSizePx(shape.props.size) * shape.props.scale
 
 	const isFilled = shape.props.fill !== 'none'
 
@@ -187,7 +187,14 @@ function _getGeoPath(shape: TLGeoShape) {
 			return getXBoxPath(w, h, sw, shape.props.dash, isFilled)
 
 		case 'cloud':
-			return getCloudPath(w, h, shape.id, shape.props.size, shape.props.scale, isFilled)
+			return getCloudPath(
+				w,
+				h,
+				shape.id,
+				editor.getStyleUtil(SizeStyleUtil).toStrokeSizePx(shape.props.size) * 2.8,
+				shape.props.scale,
+				isFilled
+			)
 		default:
 			exhaustiveSwitchError(shape.props.geo)
 	}
@@ -409,12 +416,12 @@ function getPillPoints(width: number, height: number, numPoints: number) {
 	return points
 }
 
-const SIZES: Record<TLDefaultSizeStyle, number> = {
-	s: 50,
-	m: 70,
-	l: 100,
-	xl: 130,
-}
+// const SIZES: Record<TLDefaultSizeStyle, number> = {
+// 	s: 50,
+// 	m: 70,
+// 	l: 100,
+// 	xl: 130,
+// }
 
 const BUMP_PROTRUSION = 0.2
 
@@ -422,7 +429,7 @@ function getCloudPath(
 	width: number,
 	height: number,
 	seed: string,
-	size: TLDefaultSizeStyle,
+	size: number,
 	scale: number,
 	isFilled: boolean
 ) {
@@ -430,7 +437,7 @@ function getCloudPath(
 	const getRandom = rng(seed)
 	const pillCircumference = getOvalPerimeter(width, height)
 	const numBumps = Math.max(
-		Math.ceil(pillCircumference / SIZES[size]),
+		Math.ceil(pillCircumference / size),
 		6,
 		Math.ceil(pillCircumference / Math.min(width, height))
 	)

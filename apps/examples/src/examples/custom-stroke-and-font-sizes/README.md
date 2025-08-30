@@ -10,6 +10,6 @@ Customize the available stroke and font sizes in tldraw.
 
 ---
 
-Override the `STROKE_SIZES`, and `FONT_SIZES` constants to override the default values.
+Create a custom SizeStyleUtil class and pass it to tldraw to override the default size values.
 
-Note that this will change the stroke and font sizes for ALL instances of tldraw. For example, if you run this example locally, and then open another example, the changes will be present there too until you reload!
+This provides a clean way to customize size values without affecting other tldraw instances.

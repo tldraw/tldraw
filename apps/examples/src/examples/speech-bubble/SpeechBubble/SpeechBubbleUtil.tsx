@@ -6,7 +6,6 @@ import {
 	DefaultVerticalAlignStyle,
 	FONT_FAMILIES,
 	Geometry2d,
-	LABEL_FONT_SIZES,
 	PlainTextLabel,
 	Polygon2d,
 	RecordPropsType,
@@ -25,15 +24,8 @@ import {
 	useDefaultColorTheme,
 	vecModelValidator,
 } from 'tldraw'
+import { SizeStyleUtil } from 'tldraw/src/lib/styles/TLSizeStyle'
 import { getSpeechBubbleVertices, getTailIntersectionPoint } from './helpers'
-
-// Copied from tldraw/tldraw
-export const STROKE_SIZES = {
-	s: 2,
-	m: 3.5,
-	l: 5,
-	xl: 10,
-}
 
 // There's a guide at the bottom of this file!
 
@@ -189,7 +181,7 @@ export class SpeechBubbleUtil extends ShapeUtil<SpeechBubbleShape> {
 				<svg className="tl-svg-container">
 					<path
 						d={pathData}
-						strokeWidth={STROKE_SIZES[size]}
+						strokeWidth={this.editor.getStyleUtil(SizeStyleUtil).toStrokeSizePx(size)}
 						stroke={getColorValue(theme, color, 'solid')}
 						fill={'none'}
 					/>
@@ -199,7 +191,7 @@ export class SpeechBubbleUtil extends ShapeUtil<SpeechBubbleShape> {
 					type={type}
 					font={font}
 					textWidth={shape.props.w}
-					fontSize={LABEL_FONT_SIZES[size]}
+					fontSize={this.editor.getStyleUtil(SizeStyleUtil).toLabelFontSizePx(size)}
 					lineHeight={TEXT_PROPS.lineHeight}
 					align={align}
 					verticalAlign="start"
@@ -234,7 +226,7 @@ export class SpeechBubbleUtil extends ShapeUtil<SpeechBubbleShape> {
 		const nextTextSize = this.editor.textMeasure.measureText(shape.props.text, {
 			...TEXT_PROPS,
 			fontFamily: FONT_FAMILIES[shape.props.font],
-			fontSize: LABEL_FONT_SIZES[shape.props.size],
+			fontSize: this.editor.getStyleUtil(SizeStyleUtil).toLabelFontSizePx(shape.props.size),
 			maxWidth: shape.props.w - PADDING * 2,
 		})
 

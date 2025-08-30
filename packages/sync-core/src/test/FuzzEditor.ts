@@ -102,6 +102,7 @@ export class FuzzEditor extends RandomSource {
 		this.editor = new Editor({
 			shapeUtils: defaultShapeUtils,
 			bindingUtils: defaultBindingUtils,
+			styleUtils: [],
 			tools: defaultTools,
 			initialState: 'select',
 			store,

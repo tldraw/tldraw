@@ -1,21 +1,51 @@
-import { FONT_SIZES, STROKE_SIZES, Tldraw } from 'tldraw'
+import { T, Tldraw } from 'tldraw'
+import { SizeStyleUtil } from 'tldraw/src/lib/styles/TLSizeStyle'
 
-// Mutate the built-in stroke sizes
-STROKE_SIZES.s = 1
-STROKE_SIZES.m = 2
-STROKE_SIZES.l = 4
-STROKE_SIZES.xl = 8
+// Create a custom size style util with different sizes
+class CustomSizeStyleUtil extends SizeStyleUtil<'s' | 'm' | 'l' | 'xl'> {
+	static validator = T.literalEnum('s', 'm', 'l', 'xl')
 
-// Mutate the built-in font sizes
-FONT_SIZES.s = 12
-FONT_SIZES.m = 16
-FONT_SIZES.l = 20
-FONT_SIZES.xl = 24
+	getDefaultValue(): 's' | 'm' | 'l' | 'xl' {
+		return 'm'
+	}
+
+	toStrokeSizePx(value: 's' | 'm' | 'l' | 'xl'): number {
+		switch (value) {
+			case 's':
+				return 1
+			case 'm':
+				return 2
+			case 'l':
+				return 4
+			case 'xl':
+				return 8
+		}
+	}
+
+	toFontSizePx(value: 's' | 'm' | 'l' | 'xl'): number {
+		switch (value) {
+			case 's':
+				return 12
+			case 'm':
+				return 16
+			case 'l':
+				return 20
+			case 'xl':
+				return 24
+		}
+	}
+
+	toLabelFontSizePx(value: 's' | 'm' | 'l' | 'xl'): number {
+		return this.toFontSizePx(value)
+	}
+}
+
+const styleUtils = [CustomSizeStyleUtil]
 
 export default function StrokeAndFontSizesExample() {
 	return (
 		<div className="tldraw__editor">
-			<Tldraw />
+			<Tldraw styleUtils={styleUtils} />
 		</div>
 	)
 }

@@ -23,7 +23,7 @@ import { TLLineShape } from '../shapes/TLLineShape'
 import { TLNoteShape } from '../shapes/TLNoteShape'
 import { TLTextShape } from '../shapes/TLTextShape'
 import { TLVideoShape } from '../shapes/TLVideoShape'
-import { StyleProp } from '../styles/StyleProp'
+import { StyleProp, StyleProp2, StylePropMarker, isStyleProp2 } from '../styles/StyleProp'
 import { TLPageId } from './TLPage'
 
 /**
@@ -156,13 +156,22 @@ export function createShapeId(id?: string): TLShapeId {
 }
 
 /** @internal */
-export function getShapePropKeysByStyle(props: Record<string, T.Validatable<any>>) {
-	const propKeysByStyle = new Map<StyleProp<unknown>, string>()
+export function getShapePropKeysByStyle(
+	props: Record<string, T.Validatable<any> | StyleProp2<any>>
+) {
+	const propKeysByStyle = new Map<StyleProp<unknown> | StyleProp2<string>, string>()
 	for (const [key, prop] of Object.entries(props)) {
 		if (prop instanceof StyleProp) {
 			if (propKeysByStyle.has(prop)) {
 				throw new Error(
 					`Duplicate style prop ${prop.id}. Each style prop can only be used once within a shape.`
+				)
+			}
+			propKeysByStyle.set(prop, key)
+		} else if (isStyleProp2(prop)) {
+			if (propKeysByStyle.has(prop)) {
+				throw new Error(
+					`Duplicate style prop ${prop[StylePropMarker]}. Each style prop can only be used once within a shape.`
 				)
 			}
 			propKeysByStyle.set(prop, key)
@@ -191,7 +200,10 @@ export function createShapePropsMigrationIds<
 }
 
 /** @internal */
-export function createShapeRecordType(shapes: Record<string, SchemaPropsInfo>) {
+export function createShapeRecordType(
+	shapes: Record<string, SchemaPropsInfo>,
+	styles: Record<string, { validator: T.Validatable<any> }>
+) {
 	return createRecordType<TLShape>('shape', {
 		scope: 'document',
 		validator: T.model(
@@ -199,7 +211,7 @@ export function createShapeRecordType(shapes: Record<string, SchemaPropsInfo>) {
 			T.union(
 				'type',
 				mapObjectMapValues(shapes, (type, { props, meta }) =>
-					createShapeValidator(type, props, meta)
+					createShapeValidator(type, props, meta, styles)
 				)
 			)
 		),

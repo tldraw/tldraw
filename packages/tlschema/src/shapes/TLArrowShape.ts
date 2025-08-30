@@ -7,8 +7,9 @@ import { TLShapeId, createShapePropsMigrationIds } from '../records/TLShape'
 import { RecordProps, TLPropsMigration, createPropsMigration } from '../recordsWithProps'
 import { StyleProp } from '../styles/StyleProp'
 import {
-	DefaultColorStyle,
+	ColorStyle,
 	DefaultLabelColorStyle,
+	TLColorStyle,
 	TLDefaultColorStyle,
 } from '../styles/TLColorStyle'
 import { DefaultDashStyle, TLDefaultDashStyle } from '../styles/TLDashStyle'
@@ -58,7 +59,7 @@ export type TLArrowShapeArrowheadStyle = T.TypeOf<typeof ArrowShapeArrowheadStar
 export interface TLArrowShapeProps {
 	kind: TLArrowShapeKind
 	labelColor: TLDefaultColorStyle
-	color: TLDefaultColorStyle
+	color: TLColorStyle
 	fill: TLDefaultFillStyle
 	dash: TLDefaultDashStyle
 	size: TLDefaultSizeStyle
@@ -81,7 +82,7 @@ export type TLArrowShape = TLBaseShape<'arrow', TLArrowShapeProps>
 export const arrowShapeProps: RecordProps<TLArrowShape> = {
 	kind: ArrowShapeKindStyle,
 	labelColor: DefaultLabelColorStyle,
-	color: DefaultColorStyle,
+	color: ColorStyle,
 	fill: DefaultFillStyle,
 	dash: DefaultDashStyle,
 	size: DefaultSizeStyle,
