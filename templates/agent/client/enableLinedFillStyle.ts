@@ -1,0 +1,32 @@
+import { DefaultColorThemePalette } from 'tldraw'
+
+export function enableLinedFillStyle() {
+	DefaultColorThemePalette.lightMode['black'].fill = '#363636'
+	DefaultColorThemePalette.lightMode['blue'].fill = '#6580ec'
+	DefaultColorThemePalette.lightMode['light-blue'].fill = '#7abaf5'
+	DefaultColorThemePalette.lightMode['green'].fill = '#0bad7c'
+	DefaultColorThemePalette.lightMode['grey'].fill = '#bbc1c9'
+	DefaultColorThemePalette.lightMode['light-green'].fill = '#7ec88c'
+	DefaultColorThemePalette.lightMode['light-red'].fill = '#f99a9a'
+	DefaultColorThemePalette.lightMode['light-violet'].fill = '#e9abf7'
+	DefaultColorThemePalette.lightMode['orange'].fill = '#ea8643'
+	DefaultColorThemePalette.lightMode['red'].fill = '#e75f5f'
+	DefaultColorThemePalette.lightMode['violet'].fill = '#be68d4'
+	DefaultColorThemePalette.lightMode['yellow'].fill = '#f5c27a'
+	DefaultColorThemePalette.lightMode['white'].solid = '#f5f5f5'
+
+	DefaultColorThemePalette.darkMode['black'].solid = '#f0f0f0'
+	DefaultColorThemePalette.darkMode['black'].fill = '#ffffff'
+	DefaultColorThemePalette.darkMode['blue'].fill = '#3c5cdd'
+	DefaultColorThemePalette.darkMode['light-blue'].fill = '#2793ec'
+	DefaultColorThemePalette.darkMode['green'].fill = '#087856'
+	DefaultColorThemePalette.darkMode['grey'].fill = '#8388a5'
+	DefaultColorThemePalette.darkMode['light-green'].fill = '#37a44b'
+	DefaultColorThemePalette.darkMode['light-red'].fill = '#ff6666'
+	DefaultColorThemePalette.darkMode['light-violet'].fill = '#dc71f4'
+	DefaultColorThemePalette.darkMode['orange'].fill = '#f54900'
+	DefaultColorThemePalette.darkMode['red'].fill = '#c31d1d'
+	DefaultColorThemePalette.darkMode['violet'].fill = '#8f2fa7'
+	DefaultColorThemePalette.darkMode['yellow'].fill = '#ffae00'
+	DefaultColorThemePalette.darkMode['white'] = DefaultColorThemePalette.lightMode['black']
+}

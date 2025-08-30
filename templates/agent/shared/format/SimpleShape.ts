@@ -1,0 +1,262 @@
+import {
+	Editor,
+	TLArrowBinding,
+	TLArrowShape,
+	TLDrawShape,
+	TLGeoShape,
+	TLLineShape,
+	TLNoteShape,
+	TLShape,
+	TLTextShape,
+} from 'tldraw'
+import { z } from 'zod'
+import { SimpleColor } from './SimpleColor'
+import { convertTldrawFillToSimpleFill, SimpleFill } from './SimpleFill'
+import {
+	convertTldrawGeoShapeGeoStlyeToSimpleGeoShapeType,
+	SimpleGeoShapeType,
+} from './SimpleGeoShapeType'
+
+const SimpleLabel = z.string()
+
+export const SimpleGeoShape = z.object({
+	_type: SimpleGeoShapeType,
+	color: SimpleColor,
+	fill: SimpleFill,
+	h: z.number(),
+	note: z.string(),
+	shapeId: z.string(),
+	text: SimpleLabel.optional(),
+	w: z.number(),
+	x: z.number(),
+	y: z.number(),
+})
+
+export type ISimpleGeoShape = z.infer<typeof SimpleGeoShape>
+
+const SimpleLineShape = z.object({
+	_type: z.literal('line'),
+	color: SimpleColor,
+	note: z.string(),
+	shapeId: z.string(),
+	x1: z.number(),
+	x2: z.number(),
+	y1: z.number(),
+	y2: z.number(),
+})
+
+export type ISimpleLineShape = z.infer<typeof SimpleLineShape>
+
+const SimpleNoteShape = z.object({
+	_type: z.literal('note'),
+	color: SimpleColor,
+	note: z.string(),
+	shapeId: z.string(),
+	text: SimpleLabel.optional(),
+	x: z.number(),
+	y: z.number(),
+})
+
+export type ISimpleNoteShape = z.infer<typeof SimpleNoteShape>
+
+const SimpleTextShape = z.object({
+	_type: z.literal('text'),
+	color: SimpleColor,
+	note: z.string(),
+	shapeId: z.string(),
+	text: SimpleLabel,
+	textAlign: z.enum(['start', 'middle', 'end']).optional(),
+	x: z.number(),
+	y: z.number(),
+})
+
+export type ISimpleTextShape = z.infer<typeof SimpleTextShape>
+
+const SimpleArrowShape = z.object({
+	_type: z.literal('arrow'),
+	color: SimpleColor,
+	fromId: z.string().nullable(),
+	note: z.string(),
+	shapeId: z.string(),
+	text: z.string().optional(),
+	toId: z.string().nullable(),
+	x1: z.number(),
+	x2: z.number(),
+	y1: z.number(),
+	y2: z.number(),
+	bend: z.number().optional(),
+})
+
+export type ISimpleArrowShape = z.infer<typeof SimpleArrowShape>
+
+const SimpleDrawShape = z
+	.object({
+		_type: z.literal('draw'),
+		color: SimpleColor,
+		fill: SimpleFill.optional(),
+		note: z.string(),
+		shapeId: z.string(),
+	})
+	.meta({
+		title: 'Draw Shape',
+		description:
+			'A draw shape is a freeform shape that was drawn by the pen tool. To create new draw shapes, the AI must use the pen event because it gives more control.',
+	})
+
+export type ISimpleDrawShape = z.infer<typeof SimpleDrawShape>
+
+const SimpleUnknownShape = z
+	.object({
+		_type: z.literal('unknown'),
+		note: z.string(),
+		shapeId: z.string(),
+		subType: z.string(),
+		x: z.number(),
+		y: z.number(),
+	})
+	.meta({
+		title: 'Unknown Shape',
+		description:
+			"A special shape that is not represented by one of the canvas's core shape types. The AI cannot create these shapes, but it *can* interact with them. eg: The AI can move these shapes. The `subType` property contains the internal name of the shape's type.",
+	})
+
+export type ISimpleUnknownShape = z.infer<typeof SimpleUnknownShape>
+
+const SIMPLE_SHAPES = [
+	SimpleDrawShape,
+	SimpleGeoShape,
+	SimpleLineShape,
+	SimpleTextShape,
+	SimpleArrowShape,
+	SimpleNoteShape,
+	SimpleUnknownShape,
+] as const
+export const SimpleShape = z.union(SIMPLE_SHAPES)
+
+export type ISimpleShape = z.infer<typeof SimpleShape>
+
+// Main shape converter function
+export function convertTldrawShapeToSimpleShape(shape: TLShape, editor: Editor): ISimpleShape {
+	switch (shape.type) {
+		case 'text':
+			return convertTextShape(shape as TLTextShape, editor)
+		case 'geo':
+			return convertGeoShape(shape as TLGeoShape, editor)
+		case 'line':
+			return convertLineShape(shape as TLLineShape)
+		case 'arrow':
+			return convertArrowShape(shape as TLArrowShape, editor)
+		case 'note':
+			return convertNoteShape(shape as TLNoteShape, editor)
+		case 'draw':
+			return convertDrawShape(shape as TLDrawShape)
+		default:
+			return convertUnknownShape(shape)
+	}
+}
+
+// Individual shape converter functions
+function convertDrawShape(shape: TLDrawShape): ISimpleDrawShape {
+	return {
+		_type: 'draw',
+		color: shape.props.color,
+		fill: convertTldrawFillToSimpleFill(shape.props.fill),
+		note: (shape.meta?.note as string) ?? '',
+		shapeId: shape.id.slice('shape:'.length),
+	}
+}
+
+function convertTextShape(shape: TLTextShape, editor: Editor): ISimpleTextShape {
+	const util = editor.getShapeUtil(shape)
+	const text = util.getText(shape)
+	return {
+		_type: 'text',
+		color: shape.props.color,
+		note: (shape.meta?.note as string) ?? '',
+		shapeId: shape.id.slice('shape:'.length),
+		text: text ?? '',
+		x: shape.x,
+		y: shape.y,
+	}
+}
+
+function convertGeoShape(shape: TLGeoShape, editor: Editor): ISimpleGeoShape {
+	const util = editor.getShapeUtil(shape)
+	const text = util.getText(shape)
+
+	return {
+		_type: convertTldrawGeoShapeGeoStlyeToSimpleGeoShapeType(shape.props.geo),
+		color: shape.props.color,
+		fill: convertTldrawFillToSimpleFill(shape.props.fill),
+		h: shape.props.h,
+		note: (shape.meta?.note as string) ?? '',
+		shapeId: shape.id.slice('shape:'.length),
+		text: text ?? '',
+		w: shape.props.w,
+		x: shape.x,
+		y: shape.y,
+	}
+}
+
+function convertLineShape(shape: TLLineShape): ISimpleLineShape {
+	const points = Object.values(shape.props.points).sort((a, b) => a.index.localeCompare(b.index))
+	return {
+		_type: 'line',
+		color: shape.props.color,
+		note: (shape.meta?.note as string) ?? '',
+		shapeId: shape.id.slice('shape:'.length),
+		x1: points[0].x + shape.x,
+		x2: points[1].x + shape.x,
+		y1: points[0].y + shape.y,
+		y2: points[1].y + shape.y,
+	}
+}
+
+function convertArrowShape(shape: TLArrowShape, editor: Editor): ISimpleArrowShape {
+	const bindings = editor.store.query.records('binding').get()
+	const arrowBindings = bindings.filter(
+		(b) => b.type === 'arrow' && b.fromId === shape.id
+	) as TLArrowBinding[]
+	const startBinding = arrowBindings.find((b) => b.props.terminal === 'start')
+	const endBinding = arrowBindings.find((b) => b.props.terminal === 'end')
+
+	return {
+		_type: 'arrow',
+		bend: shape.props.bend,
+		color: shape.props.color,
+		fromId: startBinding?.toId ?? null,
+		note: (shape.meta?.note as string) ?? '',
+		shapeId: shape.id.slice('shape:'.length),
+		text: (shape.meta?.text as string) ?? '',
+		toId: endBinding?.toId ?? null,
+		x1: shape.props.start.x + shape.x,
+		x2: shape.props.end.x + shape.x,
+		y1: shape.props.start.y + shape.y,
+		y2: shape.props.end.y + shape.y,
+	}
+}
+
+function convertNoteShape(shape: TLNoteShape, editor: Editor): ISimpleNoteShape {
+	const util = editor.getShapeUtil(shape)
+	const text = util.getText(shape)
+	return {
+		_type: 'note',
+		color: shape.props.color,
+		note: (shape.meta?.note as string) ?? '',
+		shapeId: shape.id.slice('shape:'.length),
+		text: text ?? '',
+		x: shape.x,
+		y: shape.y,
+	}
+}
+
+function convertUnknownShape(shape: TLShape): ISimpleUnknownShape {
+	return {
+		_type: 'unknown',
+		note: (shape.meta?.note as string) ?? '',
+		shapeId: shape.id.slice('shape:'.length),
+		subType: shape.type,
+		x: shape.x,
+		y: shape.y,
+	}
+}
