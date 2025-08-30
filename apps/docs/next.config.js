@@ -1,4 +1,8 @@
 /** @type {import('next').NextConfig} */
+
+// Configurable domain for rewrites
+const REWRITE_DOMAIN = 'tldrawdotdev.framer.website'
+
 const nextConfig = {
 	reactStrictMode: true,
 	experimental: {
@@ -130,6 +134,42 @@ const nextConfig = {
 				permanent: true,
 			},
 		]
+	},
+	async rewrites() {
+		const rewrites = {
+			beforeFiles: [
+				{
+					source: '/',
+					destination: `https://${REWRITE_DOMAIN}/`,
+				},
+				{
+					source: '/blog/announcements',
+					destination: `https://${REWRITE_DOMAIN}/blog/category/announcements`,
+				},
+				{
+					source: '/blog/case-studies',
+					destination: `https://${REWRITE_DOMAIN}/blog/category/case-studies`,
+				},
+				{
+					source: '/blog/product',
+					destination: `https://${REWRITE_DOMAIN}/blog/category/product`,
+				},
+				{
+					source: '/blog/release-notes',
+					destination: `https://${REWRITE_DOMAIN}/blog/category/release-notes`,
+				},
+				{
+					source: '/blog/:path*',
+					destination: `https://${REWRITE_DOMAIN}/blog/:path*`,
+				},
+				{
+					source: '/legal/:path*',
+					destination: `https://${REWRITE_DOMAIN}/legal/:path*`,
+				},
+			],
+		}
+
+		return rewrites
 	},
 }
 
