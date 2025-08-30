@@ -147,6 +147,7 @@ export class NoteShapeUtil extends ShapeUtil<TLNoteShape> {
 					height: lh,
 					isFilled: true,
 					isLabel: true,
+					excludeFromShapeBounds: true,
 				}),
 			],
 		})

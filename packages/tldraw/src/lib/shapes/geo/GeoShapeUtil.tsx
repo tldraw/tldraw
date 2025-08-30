@@ -126,6 +126,7 @@ export class GeoShapeUtil extends BaseBoxShapeUtil<TLGeoShape> {
 					height: unscaledLabelHeight * shape.props.scale,
 					isFilled: true,
 					isLabel: true,
+					excludeFromShapeBounds: true,
 					isEmptyLabel: isEmptyRichText(shape.props.richText),
 				}),
 			],
