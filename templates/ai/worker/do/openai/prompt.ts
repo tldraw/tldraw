@@ -1,43 +1,30 @@
 import { TLAiSerializedPrompt, asMessage } from '@tldraw/ai'
 import {
-	ChatCompletionContentPart,
-	ChatCompletionDeveloperMessageParam,
-	ChatCompletionUserMessageParam,
-} from 'openai/resources'
+	ResponseInputItem,
+	ResponseInputMessageContentList,
+} from 'openai/resources/responses/responses'
 import { getSimpleContentFromCanvasContent } from './getSimpleContentFromCanvasContent'
-import { OPENAI_SYSTEM_PROMPT } from './system-prompt'
 
 /**
  * Build the messages for the prompt.
  */
-export function buildPromptMessages(prompt: TLAiSerializedPrompt) {
-	const systemPrompt = buildSystemPrompt(prompt)
+export function buildPromptMessages(prompt: TLAiSerializedPrompt): ResponseInputItem[] {
 	const developerMessage = buildDeveloperMessage(prompt)
-	const userMessage = buildUserMessages(prompt)
+	const userMessage = buildUserMessage(prompt)
 
-	return [systemPrompt, developerMessage, userMessage]
+	return [developerMessage, userMessage]
 }
 
-/**
- * Build the system prompt.
- */
-function buildSystemPrompt(_prompt: TLAiSerializedPrompt) {
-	return {
-		role: 'system',
-		content: OPENAI_SYSTEM_PROMPT,
-	} as const
-}
-
-function buildDeveloperMessage(prompt: TLAiSerializedPrompt) {
-	const developerMessage: ChatCompletionDeveloperMessageParam & {
-		content: Array<ChatCompletionContentPart>
+function buildDeveloperMessage(prompt: TLAiSerializedPrompt): ResponseInputItem {
+	const developerMessage: ResponseInputItem & {
+		content: ResponseInputMessageContentList
 	} = {
 		role: 'developer',
 		content: [],
 	}
 
 	developerMessage.content.push({
-		type: 'text',
+		type: 'input_text',
 		text: `The user's current viewport is: { x: ${prompt.promptBounds.x}, y: ${prompt.promptBounds.y}, width: ${prompt.promptBounds.w}, height: ${prompt.promptBounds.h} }`,
 	})
 
@@ -45,8 +32,7 @@ function buildDeveloperMessage(prompt: TLAiSerializedPrompt) {
 		const simplifiedCanvasContent = getSimpleContentFromCanvasContent(prompt.canvasContent)
 
 		developerMessage.content.push({
-			type: 'text',
-			// todo: clean up all the newlines
+			type: 'input_text',
 			text: `Here are all of the shapes that are in the user's current viewport:\n\n${JSON.stringify(simplifiedCanvasContent.shapes).replaceAll('\n', ' ')}`,
 		})
 	}
@@ -55,11 +41,11 @@ function buildDeveloperMessage(prompt: TLAiSerializedPrompt) {
 }
 
 /**
- * Build the user messages.
+ * Build the user message.
  */
-function buildUserMessages(prompt: TLAiSerializedPrompt) {
-	const userMessage: ChatCompletionUserMessageParam & {
-		content: Array<ChatCompletionContentPart>
+function buildUserMessage(prompt: TLAiSerializedPrompt): ResponseInputItem {
+	const userMessage: ResponseInputItem & {
+		content: ResponseInputMessageContentList
 	} = {
 		role: 'user',
 		content: [],
@@ -68,14 +54,12 @@ function buildUserMessages(prompt: TLAiSerializedPrompt) {
 	if (prompt.image) {
 		userMessage.content.push(
 			{
-				type: 'image_url',
-				image_url: {
-					detail: 'auto',
-					url: prompt.image,
-				},
+				type: 'input_image',
+				detail: 'auto',
+				image_url: prompt.image,
 			},
 			{
-				type: 'text',
+				type: 'input_text',
 				text: 'Here is a screenshot of the my current viewport.',
 			}
 		)
@@ -83,21 +67,20 @@ function buildUserMessages(prompt: TLAiSerializedPrompt) {
 
 	// If it's an array, push each message as a separate message
 	userMessage.content.push({
-		type: 'text',
+		type: 'input_text',
 		text: `Using the events provided in the response schema, here's what I want you to do:`,
 	})
 
 	for (const message of asMessage(prompt.message)) {
 		if (message.type === 'image') {
 			userMessage.content.push({
-				type: 'image_url',
-				image_url: {
-					url: message.src!,
-				},
+				type: 'input_image',
+				detail: 'auto',
+				image_url: message.src!,
 			})
 		} else {
 			userMessage.content.push({
-				type: 'text',
+				type: 'input_text',
 				text: message.text,
 			})
 		}

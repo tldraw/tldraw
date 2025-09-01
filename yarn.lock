@@ -9016,7 +9016,6 @@ __metadata:
     next-mdx-remote-client: "npm:^1.1.2"
     next-themes: "npm:^0.3.0"
     octokit: "npm:^3.2.1"
-    openai: "npm:^4.96.0"
     patch-package: "npm:^8.0.0"
     postcss: "npm:^8.5.1"
     postinstall-postinstall: "npm:^2.1.0"
@@ -10104,7 +10103,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@types/node-fetch@npm:^2.6.12, @types/node-fetch@npm:^2.6.4":
+"@types/node-fetch@npm:^2.6.12":
   version: 2.6.12
   resolution: "@types/node-fetch@npm:2.6.12"
   dependencies:
@@ -11525,7 +11524,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"agentkeepalive@npm:^4.1.3, agentkeepalive@npm:^4.2.1":
+"agentkeepalive@npm:^4.1.3":
   version: 4.5.0
   resolution: "agentkeepalive@npm:4.5.0"
   dependencies:
@@ -16625,13 +16624,6 @@ __metadata:
   languageName: node
   linkType: hard
 
-"form-data-encoder@npm:1.7.2":
-  version: 1.7.2
-  resolution: "form-data-encoder@npm:1.7.2"
-  checksum: 10/227bf2cea083284411fd67472ccc22f5cb354ca92c00690e11ff5ed942d993c13ac99dea365046306200f8bd71e1a7858d2d99e236de694b806b1f374a4ee341
-  languageName: node
-  linkType: hard
-
 "form-data-encoder@npm:^4.0.2":
   version: 4.0.2
   resolution: "form-data-encoder@npm:4.0.2"
@@ -16654,16 +16646,6 @@ __metadata:
   version: 0.2.2
   resolution: "format@npm:0.2.2"
   checksum: 10/5f878b8fc1a672c8cbefa4f293bdd977c822862577d70d53456a48b4169ec9b51677c0c995bf62c633b4e5cd673624b7c273f57923b28735a6c0c0a72c382a4a
-  languageName: node
-  linkType: hard
-
-"formdata-node@npm:^4.3.2":
-  version: 4.4.1
-  resolution: "formdata-node@npm:4.4.1"
-  dependencies:
-    node-domexception: "npm:1.0.0"
-    web-streams-polyfill: "npm:4.0.0-beta.3"
-  checksum: 10/29622f75533107c1bbcbe31fda683e6a55859af7f48ec354a9800591ce7947ed84cd3ef2b2fcb812047a884f17a1bac75ce098ffc17e23402cd373e49c1cd335
   languageName: node
   linkType: hard
 
@@ -21942,13 +21924,6 @@ __metadata:
   languageName: node
   linkType: hard
 
-"node-domexception@npm:1.0.0":
-  version: 1.0.0
-  resolution: "node-domexception@npm:1.0.0"
-  checksum: 10/e332522f242348c511640c25a6fc7da4f30e09e580c70c6b13cb0be83c78c3e71c8d4665af2527e869fc96848924a4316ae7ec9014c091e2156f41739d4fa233
-  languageName: node
-  linkType: hard
-
 "node-fetch@npm:2.6.7":
   version: 2.6.7
   resolution: "node-fetch@npm:2.6.7"
@@ -22505,19 +22480,6 @@ __metadata:
   languageName: node
   linkType: hard
 
-"openai-partial-stream@npm:^0.3.9":
-  version: 0.3.9
-  resolution: "openai-partial-stream@npm:0.3.9"
-  dependencies:
-    openai: "npm:^4.26.0"
-    zod: "npm:^3.22.3"
-    zod-to-json-schema: "npm:^3.21.4"
-  peerDependencies:
-    typescript: ^5.0.0
-  checksum: 10/b0b3140fe334a5865cb29c5e6a387bfc41eaf29c99d4337d56c2f08bea8cdb48a03e896db42062a1761d6890a6d48956cc708821428deb9ad5b49edfd808a2d4
-  languageName: node
-  linkType: hard
-
 "openai@npm:^3.2.1":
   version: 3.3.0
   resolution: "openai@npm:3.3.0"
@@ -22528,17 +22490,9 @@ __metadata:
   languageName: node
   linkType: hard
 
-"openai@npm:^4.26.0, openai@npm:^4.96.0":
-  version: 4.104.0
-  resolution: "openai@npm:4.104.0"
-  dependencies:
-    "@types/node": "npm:^18.11.18"
-    "@types/node-fetch": "npm:^2.6.4"
-    abort-controller: "npm:^3.0.0"
-    agentkeepalive: "npm:^4.2.1"
-    form-data-encoder: "npm:1.7.2"
-    formdata-node: "npm:^4.3.2"
-    node-fetch: "npm:^2.6.7"
+"openai@npm:^5.16.0":
+  version: 5.16.0
+  resolution: "openai@npm:5.16.0"
   peerDependencies:
     ws: ^8.18.0
     zod: ^3.23.8
@@ -22549,7 +22503,7 @@ __metadata:
       optional: true
   bin:
     openai: bin/cli
-  checksum: 10/e1bdfea7b58f6d6cc0c2787254e9ae0395c7cb78b6ad4383c2777fd929ff43d2cb614c12ff7aaef04e260a6b48f3bc15f3c864abb9df35cfc7594e6aa46d4858
+  checksum: 10/148f388bb6075ad8cccd326b157b60c98e44165e961f76bedbf85c5b0d8759181b38008dc469d6beb17e74c11ad5509351bff350633ae544752aae36a80bfa94
   languageName: node
   linkType: hard
 
@@ -27541,15 +27495,14 @@ __metadata:
     "@worker-tools/json-stream": "npm:^0.1.0-pre.12"
     best-effort-json-parser: "npm:^1.1.3"
     itty-router: "npm:^5.0.18"
-    openai: "npm:^4.96.0"
-    openai-partial-stream: "npm:^0.3.9"
+    openai: "npm:^5.16.0"
     react: "npm:^18.3.1"
     react-dom: "npm:^18.3.1"
     tldraw: "workspace:*"
     typescript: "npm:^5.8.3"
     vite: "npm:^7.0.1"
     wrangler: "npm:^4.23.0"
-    zod: "npm:^3.24.3"
+    zod: "npm:^4.1.5"
   languageName: unknown
   linkType: soft
 
@@ -29454,13 +29407,6 @@ __metadata:
   languageName: node
   linkType: hard
 
-"web-streams-polyfill@npm:4.0.0-beta.3":
-  version: 4.0.0-beta.3
-  resolution: "web-streams-polyfill@npm:4.0.0-beta.3"
-  checksum: 10/dcdef67de57d83008f9dc330662b65ba4497315555dd0e4e7bcacb132ffdf8a830eaab8f74ad40a4a44f542461f51223f406e2a446ece1cc29927859b1405853
-  languageName: node
-  linkType: hard
-
 "web-vitals@npm:0.2.4":
   version: 0.2.4
   resolution: "web-vitals@npm:0.2.4"
@@ -30227,7 +30173,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"zod-to-json-schema@npm:^3.21.4, zod-to-json-schema@npm:^3.24.1":
+"zod-to-json-schema@npm:^3.24.1":
   version: 3.24.6
   resolution: "zod-to-json-schema@npm:3.24.6"
   peerDependencies:
@@ -30259,10 +30205,17 @@ __metadata:
   languageName: node
   linkType: hard
 
-"zod@npm:^3.21.4, zod@npm:^3.22.3, zod@npm:^3.23.8, zod@npm:^3.24.3":
+"zod@npm:^3.21.4, zod@npm:^3.23.8":
   version: 3.25.67
   resolution: "zod@npm:3.25.67"
   checksum: 10/0e35432dcca7f053e63f5dd491a87c78abe0d981817547252c3b6d05f0f58788695d1a69724759c6501dff3fd62929be24c9f314a3625179bee889150f7a61fa
+  languageName: node
+  linkType: hard
+
+"zod@npm:^4.1.5":
+  version: 4.1.5
+  resolution: "zod@npm:4.1.5"
+  checksum: 10/2ac6bef2d6647de6e673b6fa07ee392b71eb6fd6ccb2be8899d8d853084dd8b3992d4d2cf267eba6f8495a35803e2ec254509194fd0849ed0a822dea7ae4a765
   languageName: node
   linkType: hard
 
