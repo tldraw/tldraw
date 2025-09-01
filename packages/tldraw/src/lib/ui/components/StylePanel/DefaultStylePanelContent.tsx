@@ -12,15 +12,13 @@ import {
 	DefaultVerticalAlignStyle,
 	GeoShapeGeoStyle,
 	LineShapeSplineStyle,
-	ReadonlySharedStyleMap,
-	StyleProp,
 	TLArrowShapeArrowheadStyle,
 	kickoutOccludedShapes,
 	minBy,
 	useEditor,
 	useValue,
 } from '@tldraw/editor'
-import React, { createContext, useCallback, useContext } from 'react'
+import React from 'react'
 import { STYLES } from '../../../styles'
 import { useUiEvents } from '../../context/events'
 import { useTranslation } from '../../hooks/useTranslation/useTranslation'
@@ -28,53 +26,10 @@ import { TldrawUiButtonIcon } from '../primitives/Button/TldrawUiButtonIcon'
 import { TldrawUiSlider } from '../primitives/TldrawUiSlider'
 import { TldrawUiToolbar, TldrawUiToolbarButton } from '../primitives/TldrawUiToolbar'
 import { StylePanelButtonPicker } from './StylePanelButtonPicker'
+import { useStylePanelContext } from './StylePanelContext'
 import { StylePanelDoubleDropdownPicker } from './StylePanelDoubleDropdownPicker'
 import { StylePanelDropdownPicker } from './StylePanelDropdownPicker'
-
-/** @public */
-export interface StylePanelContext {
-	styles: ReadonlySharedStyleMap
-	showUiLabels: boolean
-	onHistoryMark(id: string): void
-	onValueChange<T>(style: StyleProp<T>, value: T): void
-}
-const StyleContext = createContext<null | StylePanelContext>(null)
-
-/** @public */
-export interface StylePanelContextProviderProps {
-	children: React.ReactNode
-	styles: ReadonlySharedStyleMap | null
-}
-
-/** @public @react */
-export function StylePanelContextProvider({ children, styles }: StylePanelContextProviderProps) {
-	const editor = useEditor()
-	const onHistoryMark = useCallback((id: string) => editor.markHistoryStoppingPoint(id), [editor])
-	const showUiLabels = useValue('showUiLabels', () => editor.user.getShowUiLabels(), [editor])
-	const onValueChange = useStyleChangeCallback()
-
-	return (
-		<StyleContext.Provider
-			value={{
-				styles: styles ?? new ReadonlySharedStyleMap(),
-				showUiLabels,
-				onHistoryMark,
-				onValueChange,
-			}}
-		>
-			{children}
-		</StyleContext.Provider>
-	)
-}
-
-/** @public */
-export function useStylePanelContext() {
-	const context = useContext(StyleContext)
-	if (!context) {
-		throw new Error('useStylePanelContext must be used within a StylePanelContextProvider')
-	}
-	return context
-}
+import { StylePanelSubheading } from './StylePanelSubheading'
 
 /** @public @react */
 export function DefaultStylePanelContent() {
@@ -104,27 +59,6 @@ export function DefaultStylePanelContent() {
 				<StylePanelSplinePicker />
 			</StylePanelSection>
 		</>
-	)
-}
-
-function useStyleChangeCallback() {
-	const editor = useEditor()
-	const trackEvent = useUiEvents()
-
-	return React.useMemo(
-		() =>
-			function handleStyleChange<T>(style: StyleProp<T>, value: T) {
-				editor.run(() => {
-					if (editor.isIn('select')) {
-						editor.setStyleForSelectedShapes(style, value)
-					}
-					editor.setStyleForNextShapes(style, value)
-					editor.updateInstanceState({ isChangingStyle: true })
-				})
-
-				trackEvent('set-style', { source: 'style-panel', id: style.id, value: value as string })
-			},
-		[editor, trackEvent]
 	)
 }
 
@@ -160,7 +94,7 @@ const tldrawSupportedOpacities = [0.1, 0.25, 0.5, 0.75, 1] as const
 /** @public @react */
 export function StylePanelOpacityPicker() {
 	const editor = useEditor()
-	const { onHistoryMark } = useStylePanelContext()
+	const { onHistoryMark, showUiLabels } = useStylePanelContext()
 
 	const opacity = useValue('opacity', () => editor.getSharedOpacity(), [editor])
 	const trackEvent = useUiEvents()
@@ -194,16 +128,19 @@ export function StylePanelOpacityPicker() {
 				)
 
 	return (
-		<TldrawUiSlider
-			data-testid="style.opacity"
-			value={opacityIndex >= 0 ? opacityIndex : tldrawSupportedOpacities.length - 1}
-			label={opacity.type === 'mixed' ? 'style-panel.mixed' : `opacity-style.${opacity.value}`}
-			onValueChange={handleOpacityValueChange}
-			steps={tldrawSupportedOpacities.length - 1}
-			title={msg('style-panel.opacity')}
-			onHistoryMark={onHistoryMark}
-			ariaValueModifier={25}
-		/>
+		<>
+			{showUiLabels && <StylePanelSubheading>{msg('style-panel.opacity')}</StylePanelSubheading>}
+			<TldrawUiSlider
+				data-testid="style.opacity"
+				value={opacityIndex >= 0 ? opacityIndex : tldrawSupportedOpacities.length - 1}
+				label={opacity.type === 'mixed' ? 'style-panel.mixed' : `opacity-style.${opacity.value}`}
+				onValueChange={handleOpacityValueChange}
+				steps={tldrawSupportedOpacities.length - 1}
+				title={msg('style-panel.opacity')}
+				onHistoryMark={onHistoryMark}
+				ariaValueModifier={25}
+			/>
+		</>
 	)
 }
 

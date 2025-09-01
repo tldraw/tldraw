@@ -1,18 +1,26 @@
-import { useEditor, usePassThroughWheelEvents, useValue } from '@tldraw/editor'
+import {
+	ReadonlySharedStyleMap,
+	useEditor,
+	usePassThroughWheelEvents,
+	useValue,
+} from '@tldraw/editor'
 import classNames from 'classnames'
 import { ReactNode, memo, useCallback, useEffect, useRef } from 'react'
 import { useRelevantStyles } from '../../hooks/useRelevantStyles'
-import { DefaultStylePanelContent, StylePanelContextProvider } from './DefaultStylePanelContent'
+import { DefaultStylePanelContent } from './DefaultStylePanelContent'
+import { StylePanelContextProvider } from './StylePanelContext'
 
 /** @public */
 export interface TLUiStylePanelProps {
 	isMobile?: boolean
+	styles?: ReadonlySharedStyleMap | null
 	children?: ReactNode
 }
 
 /** @public @react */
 export const DefaultStylePanel = memo(function DefaultStylePanel({
 	isMobile,
+	styles,
 	children,
 }: TLUiStylePanelProps) {
 	const editor = useEditor()
@@ -27,7 +35,10 @@ export const DefaultStylePanel = memo(function DefaultStylePanel({
 		}
 	}, [editor, isMobile])
 
-	const styles = useRelevantStyles()
+	const defaultStyles = useRelevantStyles()
+	if (styles === undefined) {
+		styles = defaultStyles
+	}
 
 	useEffect(() => {
 		function handleKeyDown(event: KeyboardEvent) {

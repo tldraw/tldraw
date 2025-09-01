@@ -448,7 +448,6 @@ export {
 	StylePanelArrowheadPicker,
 	StylePanelArrowKindPicker,
 	StylePanelColorPicker,
-	StylePanelContextProvider,
 	StylePanelDashPicker,
 	StylePanelFillPicker,
 	StylePanelFontPicker,
@@ -459,15 +458,18 @@ export {
 	StylePanelSizePicker,
 	StylePanelSplinePicker,
 	StylePanelTextAlignPicker,
-	useStylePanelContext,
-	type StylePanelContext,
-	type StylePanelContextProviderProps,
 	type StylePanelSectionProps,
 } from './lib/ui/components/StylePanel/DefaultStylePanelContent'
 export {
 	StylePanelButtonPicker,
 	type StylePanelButtonPickerProps,
 } from './lib/ui/components/StylePanel/StylePanelButtonPicker'
+export {
+	StylePanelContextProvider,
+	useStylePanelContext,
+	type StylePanelContext,
+	type StylePanelContextProviderProps,
+} from './lib/ui/components/StylePanel/StylePanelContext'
 export {
 	StylePanelDoubleDropdownPicker,
 	type StylePanelDoubleDropdownPickerProps,
@@ -476,6 +478,10 @@ export {
 	StylePanelDropdownPicker,
 	type StylePanelDropdownPickerProps,
 } from './lib/ui/components/StylePanel/StylePanelDropdownPicker'
+export {
+	StylePanelSubheading,
+	type StylePanelSubheadingProps,
+} from './lib/ui/components/StylePanel/StylePanelSubheading'
 export {
 	DefaultImageToolbar,
 	type TLUiImageToolbarProps,

@@ -20,7 +20,8 @@ import {
 	TldrawUiToolbarToggleItem,
 } from '../primitives/TldrawUiToolbar'
 import { TldrawUiGrid, TldrawUiRow } from '../primitives/layout'
-import { useStylePanelContext } from './DefaultStylePanelContent'
+import { useStylePanelContext } from './StylePanelContext'
+import { StylePanelSubheading } from './StylePanelSubheading'
 
 /** @public */
 export interface StylePanelButtonPickerProps<T extends string> {
@@ -169,8 +170,3 @@ export const StylePanelButtonPicker = memo(function StylePanelButtonPicker<T ext
 		</>
 	)
 }) as <T extends string>(props: StylePanelButtonPickerProps<T>) => ReactElement
-
-// Local component for style panel subheadings
-function StylePanelSubheading({ children }: { children: React.ReactNode }) {
-	return <h3 className="tlui-style-panel__subheading">{children}</h3>
-}

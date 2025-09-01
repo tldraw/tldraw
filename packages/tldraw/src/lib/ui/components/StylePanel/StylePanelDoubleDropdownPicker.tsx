@@ -11,7 +11,7 @@ import {
 } from '../primitives/TldrawUiPopover'
 import { TldrawUiToolbar, TldrawUiToolbarButton } from '../primitives/TldrawUiToolbar'
 import { TldrawUiMenuContextProvider } from '../primitives/menus/TldrawUiMenuContext'
-import { useStylePanelContext } from './DefaultStylePanelContent'
+import { useStylePanelContext } from './StylePanelContext'
 
 /** @public */
 export interface StylePanelDoubleDropdownPickerProps<T extends string> {

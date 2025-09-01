@@ -2711,7 +2711,7 @@ export function StylePanelContextProvider({ children, styles }: StylePanelContex
 // @public (undocumented)
 export interface StylePanelContextProviderProps {
     // (undocumented)
-    children: React_3.ReactNode;
+    children: React.ReactNode;
     // (undocumented)
     styles: null | ReadonlySharedStyleMap;
 }
@@ -2804,6 +2804,15 @@ export function StylePanelSizePicker(): JSX_2.Element | null;
 
 // @public (undocumented)
 export function StylePanelSplinePicker(): JSX_2.Element | null;
+
+// @public (undocumented)
+export function StylePanelSubheading({ children }: StylePanelSubheadingProps): JSX_2.Element;
+
+// @public (undocumented)
+export interface StylePanelSubheadingProps {
+    // (undocumented)
+    children: React.ReactNode;
+}
 
 // @public (undocumented)
 export function StylePanelTextAlignPicker(): JSX_2.Element | null;
@@ -4403,6 +4412,8 @@ export interface TLUiStylePanelProps {
     children?: ReactNode;
     // (undocumented)
     isMobile?: boolean;
+    // (undocumented)
+    styles?: null | ReadonlySharedStyleMap;
 }
 
 // @public (undocumented)
