@@ -8,7 +8,7 @@ import { useTldrawAgent } from '../ai/useTldrawAgent'
 import { $agentViewportBoundsHighlight } from '../atoms/agentViewportBoundsHighlight'
 import { $chatHistoryItems } from '../atoms/chatHistoryItems'
 import { $contextItems, $pendingContextItems } from '../atoms/contextItems'
-import { $documentChanges, recordDocumentChanges } from '../atoms/documentChanges'
+import { $documentChanges } from '../atoms/documentChanges'
 import { $modelName } from '../atoms/modelName'
 import { $todoItems } from '../atoms/todoItems'
 import { ChatHistory } from './chat-history/ChatHistory'
@@ -24,6 +24,12 @@ export function ChatPanel({ editor }: { editor: Editor }) {
 	const toast = useToasts()
 	const modelName = useValue('modelName', () => $modelName.get(), [$modelName])
 
+	useEffect(() => {
+		if (!editor) return
+		;(window as any).editor = editor
+		;(window as any).agent = agent
+	}, [agent, editor])
+
 	const handleError = useCallback(
 		(e: any) => {
 			const message = typeof e === 'string' ? e : e instanceof Error && e.message
@@ -36,18 +42,6 @@ export function ChatPanel({ editor }: { editor: Editor }) {
 		},
 		[toast]
 	)
-
-	useEffect(() => {
-		if (!editor) return
-		;(window as any).editor = editor
-		;(window as any).agent = agent
-	}, [agent, editor])
-
-	useEffect(() => {
-		if (!editor) return
-		const cleanUp = recordDocumentChanges(editor)
-		return () => cleanUp()
-	}, [editor])
 
 	const handleSubmit = useCallback<FormEventHandler<HTMLFormElement>>(
 		async (e) => {

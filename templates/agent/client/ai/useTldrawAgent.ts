@@ -1,9 +1,10 @@
-import { useCallback, useMemo } from 'react'
+import { useCallback, useEffect, useMemo } from 'react'
 import { Editor, useToasts } from 'tldraw'
 import { AgentActionUtil } from '../../shared/actions/AgentActionUtil'
 import { getAgentActionUtilsRecord, getPromptPartUtilsRecord } from '../../shared/AgentUtils'
 import { AgentAction } from '../../shared/types/AgentAction'
 import { AgentRequest } from '../../shared/types/AgentRequest'
+import { recordDocumentChanges } from '../atoms/documentChanges'
 import { $modelName } from '../atoms/modelName'
 import { promptAgent } from './promptAgent'
 
@@ -49,6 +50,11 @@ export function useTldrawAgent(editor: Editor): TLAgent {
 	const agentActionUtilsRecord = useMemo(() => getAgentActionUtilsRecord(), [])
 	const promptPartsUtilsRecord = useMemo(() => getPromptPartUtilsRecord(), [])
 	const unknownActionUtil = agentActionUtilsRecord.unknown
+
+	useEffect(() => {
+		const cleanUp = recordDocumentChanges(editor)
+		return () => cleanUp()
+	}, [editor])
 
 	const getAgentActionUtil = useCallback(
 		(type?: string) => {
