@@ -4,11 +4,10 @@ import { db } from '@/utils/ContentDatabase'
 import { Metadata } from 'next'
 import { notFound } from 'next/navigation'
 
-export async function generateMetadata({
-	params,
-}: {
-	params: { slug: string }
+export async function generateMetadata(props: {
+	params: Promise<{ slug: string }>
 }): Promise<Metadata> {
+	const params = await props.params
 	const path = typeof params.slug === 'string' ? [params.slug] : params.slug
 	const content = await db.getPageContent(`/legal/${path.join('/')}`)
 	if (!content || content.type !== 'article' || content.article.sectionId !== 'legal') notFound()
@@ -24,7 +23,8 @@ export async function generateStaticParams() {
 		.map((path) => ({ slug: path.slice('/legal/'.length) }))
 }
 
-export default async function Page({ params }: { params: { slug: string | string[] } }) {
+export default async function Page(props: { params: Promise<{ slug: string | string[] }> }) {
+	const params = await props.params
 	const path = typeof params.slug === 'string' ? [params.slug] : params.slug
 	const content = await db.getPageContent(`/legal/${path.join('/')}`)
 	if (!content || content.type !== 'article' || content.article.sectionId !== 'legal') notFound()
