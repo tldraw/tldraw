@@ -1,8 +1,4 @@
 import { AgentRequest } from '../../shared/types/AgentRequest'
-import { $agentViewportBoundsHighlight } from '../atoms/agentViewportBoundsHighlight'
-import { $pendingContextItems } from '../atoms/contextItems'
-import { $scheduledRequest } from '../atoms/scheduledRequest'
-import { $todoItems } from '../atoms/todoItems'
 import { TldrawAgent } from './TldrawAgent'
 
 export function advanceSchedule({
@@ -14,8 +10,8 @@ export function advanceSchedule({
 	request: AgentRequest
 	onError: (e: any) => void
 }) {
-	$agentViewportBoundsHighlight.set(request.bounds)
-	$pendingContextItems.set(request.contextItems)
+	agent.$agentViewportBoundsHighlight.set(request.bounds)
+	agent.$pendingContextItems.set(request.contextItems)
 
 	const current = {
 		promise: Promise.resolve(),
@@ -32,9 +28,9 @@ export function advanceSchedule({
 		current.cancel = result.cancel
 
 		current.promise.then(() => {
-			let scheduledRequest = $scheduledRequest.get()
+			let scheduledRequest = agent.$scheduledRequest.get()
 			if (!scheduledRequest) {
-				const todoItemsRemaining = $todoItems.get().filter((item) => item.status !== 'done')
+				const todoItemsRemaining = agent.$todoItems.get().filter((item) => item.status !== 'done')
 				if (todoItemsRemaining.length === 0) {
 					resolve()
 					return
@@ -49,9 +45,9 @@ export function advanceSchedule({
 				}
 			}
 
-			$scheduledRequest.set(null)
-			$agentViewportBoundsHighlight.set(null)
-			$pendingContextItems.set([])
+			agent.$scheduledRequest.set(null)
+			agent.$agentViewportBoundsHighlight.set(null)
+			agent.$pendingContextItems.set([])
 
 			const nextResult = advanceSchedule({ agent, request: scheduledRequest, onError })
 			current.promise = nextResult.promise

@@ -1,4 +1,3 @@
-import { Editor } from 'tldraw'
 import { AgentRequest } from '../types/AgentRequest'
 import { BasePromptPart } from '../types/BasePromptPart'
 import { PromptPartUtil } from './PromptPartUtil'
@@ -15,7 +14,7 @@ export class MessagePartUtil extends PromptPartUtil<MessagePart> {
 		return -Infinity // user message should be last (highest priority)
 	}
 
-	override getPart(_editor: Editor, request: AgentRequest): MessagePart {
+	override getPart(request: AgentRequest): MessagePart {
 		return {
 			type: 'message',
 			message: request.message,

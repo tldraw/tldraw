@@ -1,4 +1,5 @@
 import z from 'zod'
+import { TldrawAgent } from '../../client/agent/TldrawAgent'
 import { AgentTransform } from '../AgentTransform'
 import { AgentRequest } from '../types/AgentRequest'
 import { BaseAgentAction } from '../types/BaseAgentAction'
@@ -40,7 +41,7 @@ export abstract class AgentActionUtil<T extends BaseAgentAction = BaseAgentActio
 	 * Apply the action to the editor.
 	 * Any changes that happen during this function will be displayed as a diff.
 	 */
-	applyAction(_action: Streaming<T>, _transform: AgentTransform, _request: AgentRequest): void {
+	applyAction(_action: Streaming<T>, _agent: TldrawAgent, _request: AgentRequest): void {
 		// Do nothing by default
 	}
 

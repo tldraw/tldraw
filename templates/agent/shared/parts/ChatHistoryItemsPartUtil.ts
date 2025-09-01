@@ -1,5 +1,4 @@
-import { Editor } from 'tldraw'
-import { $chatHistoryItems } from '../../client/atoms/chatHistoryItems'
+import { TldrawAgent } from '../../client/agent/TldrawAgent'
 import { AgentMessage, AgentMessageContent } from '../types/AgentMessage'
 import { AgentRequest } from '../types/AgentRequest'
 import { BasePromptPart } from '../types/BasePromptPart'
@@ -17,10 +16,10 @@ export class ChatHistoryItemsPartUtil extends PromptPartUtil<ChatHistoryItemsPar
 		return Infinity // history should appear first in the prompt (low priority)
 	}
 
-	override getPart(_editor: Editor, _request: AgentRequest): ChatHistoryItemsPart {
+	override getPart(_request: AgentRequest, agent: TldrawAgent): ChatHistoryItemsPart {
 		return {
 			type: 'historyItems',
-			items: $chatHistoryItems.get(),
+			items: agent.$chatHistoryItems.get(),
 		}
 	}
 

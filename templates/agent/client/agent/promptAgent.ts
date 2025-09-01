@@ -6,7 +6,6 @@ import { AgentAction } from '../../shared/types/AgentAction'
 import { AgentRequest } from '../../shared/types/AgentRequest'
 import { IChatHistoryItem } from '../../shared/types/ChatHistoryItem'
 import { PromptPart } from '../../shared/types/PromptPart'
-import { $chatHistoryItems } from '../atoms/chatHistoryItems'
 import { preparePrompt } from './preparePrompt'
 import { streamAgent } from './streamAgent'
 import { TldrawAgent } from './TldrawAgent'
@@ -37,7 +36,7 @@ export function promptAgent({
 	const transform = new AgentTransform(editor, agent)
 
 	const promise = new Promise<void>((resolve) => {
-		preparePrompt({ editor, request, transform, promptPartUtils }).then(async (prompt) => {
+		preparePrompt({ agent, request, transform, promptPartUtils }).then(async (prompt) => {
 			let prevDiff: RecordsDiff<TLRecord> | null = null
 			try {
 				for await (const action of streamAgent({ prompt, signal })) {
@@ -78,7 +77,7 @@ export function promptAgent({
 
 							// Apply the action to the app and editor
 							const diff = editor.store.extractingChanges(() => {
-								actionUtil.applyAction(structuredClone(transformedAction), transform, request)
+								actionUtil.applyAction(structuredClone(transformedAction), agent, request)
 							})
 
 							// The the action is incomplete, save the diff so that we can revert it in the future
@@ -93,7 +92,7 @@ export function promptAgent({
 									acceptance: 'pending',
 								}
 
-								$chatHistoryItems.update((items) => {
+								agent.$chatHistoryItems.update((items) => {
 									// If there are no items, start off the chat history with the first item
 									if (items.length === 0) return [historyItem]
 

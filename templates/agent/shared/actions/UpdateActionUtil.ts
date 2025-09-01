@@ -14,6 +14,7 @@ import {
 } from 'tldraw'
 import z from 'zod'
 import { applyAiChange } from '../../client/agent/applyAiChange'
+import { TldrawAgent } from '../../client/agent/TldrawAgent'
 import { AgentTransform } from '../AgentTransform'
 import { asColor } from '../format/SimpleColor'
 import { convertSimpleFillToTldrawFill } from '../format/SimpleFill'
@@ -78,14 +79,15 @@ export class UpdateActionUtil extends AgentActionUtil<IUpdateAction> {
 			}
 		}
 
+		// Unround the shape to restore the original values
+		action.update = transform.unroundShape(action.update)
+
 		return action
 	}
 
-	override applyAction(action: Streaming<IUpdateAction>, transform: AgentTransform) {
+	override applyAction(action: Streaming<IUpdateAction>, agent: TldrawAgent) {
 		if (!action.complete) return
-		const { editor } = transform
-
-		action.update = transform.unroundShape(action.update)
+		const { editor } = agent
 
 		const aiChanges = getTldrawAiChangesFromUpdateEvent({ editor, action })
 		for (const aiChange of aiChanges) {

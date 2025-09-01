@@ -1,4 +1,5 @@
-import { $todoItems } from '../../client/atoms/todoItems'
+import { TldrawAgent } from '../../client/agent/TldrawAgent'
+import { AgentRequest } from '../types/AgentRequest'
 import { BasePromptPart } from '../types/BasePromptPart'
 import { TodoItem } from '../types/TodoItem'
 import { PromptPartUtil } from './PromptPartUtil'
@@ -14,10 +15,10 @@ export class TodoListPartUtil extends PromptPartUtil<TodoListPart> {
 		return 10
 	}
 
-	override getPart(): TodoListPart {
+	override getPart(_request: AgentRequest, agent: TldrawAgent): TodoListPart {
 		return {
 			type: 'todoList',
-			items: $todoItems.get(),
+			items: agent.$todoItems.get(),
 		}
 	}
 

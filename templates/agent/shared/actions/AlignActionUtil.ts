@@ -1,5 +1,6 @@
 import { TLShapeId } from 'tldraw'
 import z from 'zod'
+import { TldrawAgent } from '../../client/agent/TldrawAgent'
 import { AgentTransform } from '../AgentTransform'
 import { Streaming } from '../types/Streaming'
 import { AgentActionUtil } from './AgentActionUtil'
@@ -35,9 +36,9 @@ export class AlignActionUtil extends AgentActionUtil<IAlignAction> {
 		return action
 	}
 
-	override applyAction(action: Streaming<IAlignAction>, transform: AgentTransform) {
+	override applyAction(action: Streaming<IAlignAction>, agent: TldrawAgent) {
 		if (!action.complete) return
-		const { editor } = transform
+		const { editor } = agent
 
 		editor.alignShapes(
 			action.shapeIds.map((id) => `shape:${id}` as TLShapeId),

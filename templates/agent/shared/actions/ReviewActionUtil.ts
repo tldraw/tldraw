@@ -1,7 +1,6 @@
 import { Box } from 'tldraw'
 import z from 'zod'
-import { $scheduledRequest } from '../../client/atoms/scheduledRequest'
-import { AgentTransform } from '../AgentTransform'
+import { TldrawAgent } from '../../client/agent/TldrawAgent'
 import { AgentRequest } from '../types/AgentRequest'
 import { IAreaContextItem } from '../types/ContextItem'
 import { Streaming } from '../types/Streaming'
@@ -44,7 +43,7 @@ export class ReviewActionUtil extends AgentActionUtil<IReviewAction> {
 
 	override applyAction(
 		action: Streaming<IReviewAction>,
-		transform: AgentTransform,
+		agent: TldrawAgent,
 		request: AgentRequest
 	) {
 		if (!action.complete) return
@@ -62,7 +61,7 @@ export class ReviewActionUtil extends AgentActionUtil<IReviewAction> {
 			source: 'agent',
 		}
 
-		$scheduledRequest.update((prev) => {
+		agent.$scheduledRequest.update((prev) => {
 			const newRequest = prev ?? {
 				message: '',
 				contextItems: [],

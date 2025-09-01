@@ -1,4 +1,4 @@
-import { Editor } from 'tldraw'
+import { TldrawAgent } from '../../client/agent/TldrawAgent'
 import { AgentModelName } from '../../worker/models'
 import { AgentTransform } from '../AgentTransform'
 import { AgentMessage, AgentMessageContent } from '../types/AgentMessage'
@@ -12,7 +12,7 @@ export abstract class PromptPartUtil<T extends BasePromptPart = BasePromptPart> 
 	 * Get some data to add to the prompt.
 	 * @returns The prompt part.
 	 */
-	abstract getPart(editor: Editor, request: AgentRequest): Promise<T> | T
+	abstract getPart(request: AgentRequest, agent: TldrawAgent): Promise<T> | T
 
 	/**
 	 * Transform the prompt part before it's added to the final prompt.

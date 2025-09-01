@@ -1,10 +1,9 @@
 import { useCallback, useEffect, useMemo } from 'react'
 import { Editor, useToasts } from 'tldraw'
-import { recordDocumentChanges } from '../atoms/documentChanges'
 import { TldrawAgent } from './TldrawAgent'
 
 /**
- * Get an agent object with helpers for prompting
+ * Create an agent object with helpers for prompting
  * *
  * @example
  * ```tsx
@@ -15,8 +14,6 @@ import { TldrawAgent } from './TldrawAgent'
  * @returns An object with helpers.
  */
 export function useTldrawAgent(editor: Editor): TldrawAgent {
-	useEffect(() => recordDocumentChanges(editor), [editor])
-
 	const toasts = useToasts()
 	const handleError = useCallback(
 		(e: any) => {
@@ -34,6 +31,10 @@ export function useTldrawAgent(editor: Editor): TldrawAgent {
 	const agent = useMemo(() => {
 		return new TldrawAgent(editor, handleError)
 	}, [editor, handleError])
+
+	useEffect(() => {
+		return agent.startRecordingDocumentChanges()
+	}, [agent])
 
 	return agent
 }

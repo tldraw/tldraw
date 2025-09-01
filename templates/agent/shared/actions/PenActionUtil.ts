@@ -1,11 +1,7 @@
 import { createShapeId, TLDrawShape, TLDrawShapeSegment, Vec, VecModel } from 'tldraw'
 import z from 'zod'
-import {
-	AgentTransform,
-	ensureValueIsBoolean,
-	ensureValueIsSimpleFill,
-	ensureValueIsVec,
-} from '../AgentTransform'
+import { TldrawAgent } from '../../client/agent/TldrawAgent'
+import { ensureValueIsBoolean, ensureValueIsSimpleFill, ensureValueIsVec } from '../AgentTransform'
 import { asColor, SimpleColor } from '../format/SimpleColor'
 import { convertSimpleFillToTldrawFill, SimpleFill } from '../format/SimpleFill'
 import { Streaming } from '../types/Streaming'
@@ -62,8 +58,8 @@ export class PenActionUtil extends AgentActionUtil<IPenAction> {
 		return action
 	}
 
-	override applyAction(action: Streaming<IPenAction>, transform: AgentTransform) {
-		const { editor } = transform
+	override applyAction(action: Streaming<IPenAction>, agent: TldrawAgent) {
+		const { editor } = agent
 
 		if (!action.points) return
 		if (action.points.length === 0) return

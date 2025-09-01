@@ -1,6 +1,8 @@
-import { Editor, structuredClone } from 'tldraw'
+import { structuredClone } from 'tldraw'
+import { TldrawAgent } from '../../client/agent/TldrawAgent'
 import { AgentTransform } from '../AgentTransform'
 import { convertTldrawShapeToSimpleShape, ISimpleShape } from '../format/SimpleShape'
+import { AgentRequest } from '../types/AgentRequest'
 import { BasePromptPart } from '../types/BasePromptPart'
 import { PromptPartUtil } from './PromptPartUtil'
 
@@ -15,7 +17,8 @@ export class SelectedShapesPartUtil extends PromptPartUtil<SelectedShapesPart> {
 		return 55 // selected shapes after context items (low priority)
 	}
 
-	override getPart(editor: Editor): SelectedShapesPart {
+	override getPart(_request: AgentRequest, agent: TldrawAgent): SelectedShapesPart {
+		const { editor } = agent
 		const userSelectedShapes = editor.getSelectedShapes().map((v) => structuredClone(v)) ?? []
 
 		const simpleShapes: ISimpleShape[] = []

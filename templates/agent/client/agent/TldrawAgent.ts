@@ -1,17 +1,28 @@
-import { Editor } from 'tldraw'
+import { atom, BoxModel, Editor, RecordsDiff, TLRecord } from 'tldraw'
 import { AgentActionUtil } from '../../shared/actions/AgentActionUtil'
 import { getAgentActionUtilsRecord, getPromptPartUtilsRecord } from '../../shared/AgentUtils'
 import { PromptPartUtil } from '../../shared/parts/PromptPartUtil'
 import { AgentAction } from '../../shared/types/AgentAction'
 import { AgentRequest } from '../../shared/types/AgentRequest'
+import { IChatHistoryItem } from '../../shared/types/ChatHistoryItem'
+import { IContextItem } from '../../shared/types/ContextItem'
 import { PromptPart } from '../../shared/types/PromptPart'
+import { TodoItem } from '../../shared/types/TodoItem'
 import { $modelName } from '../atoms/modelName'
+import { persistAtomInLocalStorage } from '../atoms/persistAtomInLocalStorage'
 import { promptAgent } from './promptAgent'
 
 export class TldrawAgent {
 	private agentActionUtilsRecord: Record<AgentAction['_type'], AgentActionUtil<AgentAction>>
 	private promptPartsUtilsRecord: Record<PromptPart['type'], PromptPartUtil<PromptPart>>
 	private unknownActionUtil: AgentActionUtil<AgentAction>
+
+	$agentViewportBoundsHighlight = atom<BoxModel | null>('agentViewportBoundsHighlight', null)
+	$chatHistoryItems = atom<IChatHistoryItem[]>('chatHistoryItems', [])
+	$pendingContextItems = atom<IContextItem[]>('pendingContextItems', [])
+	$documentChanges = atom<RecordsDiff<TLRecord>[]>('documentChanges', [])
+	$scheduledRequest = atom<AgentRequest | null>('scheduledRequest', null)
+	$todoItems = atom<TodoItem[]>('todoItems', [])
 
 	constructor(
 		public editor: Editor,
@@ -20,6 +31,9 @@ export class TldrawAgent {
 		this.agentActionUtilsRecord = getAgentActionUtilsRecord()
 		this.promptPartsUtilsRecord = getPromptPartUtilsRecord()
 		this.unknownActionUtil = this.agentActionUtilsRecord.unknown
+
+		persistAtomInLocalStorage(this.$chatHistoryItems, 'chat-history-items')
+		persistAtomInLocalStorage(this.$todoItems, 'todo-items')
 	}
 
 	/**
@@ -76,5 +90,20 @@ export class TldrawAgent {
 			},
 			onError: this.onError,
 		})
+	}
+
+	/**
+	 * Start recording document changes.
+	 * @returns A cleanup function to stop recording changes.
+	 */
+	startRecordingDocumentChanges() {
+		const cleanUp = this.editor.store.listen(
+			(change) => {
+				this.$documentChanges.update((prev) => [...prev, change.changes])
+			},
+			{ scope: 'document', source: 'user' }
+		)
+
+		return cleanUp
 	}
 }

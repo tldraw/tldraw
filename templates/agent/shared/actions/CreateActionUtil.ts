@@ -2,6 +2,7 @@ import { TLAiChange } from '@tldraw/ai'
 import { Editor, IndexKey, TLShapeId, toRichText } from 'tldraw'
 import z from 'zod'
 import { applyAiChange } from '../../client/agent/applyAiChange'
+import { TldrawAgent } from '../../client/agent/TldrawAgent'
 import { AgentTransform } from '../AgentTransform'
 import { asColor } from '../format/SimpleColor'
 import { convertSimpleFillToTldrawFill } from '../format/SimpleFill'
@@ -62,9 +63,9 @@ export class CreateActionUtil extends AgentActionUtil<ICreateAction> {
 		return action
 	}
 
-	override applyAction(action: Streaming<ICreateAction>, transform: AgentTransform) {
+	override applyAction(action: Streaming<ICreateAction>, agent: TldrawAgent) {
 		if (!action.complete) return
-		const { editor } = transform
+		const { editor } = agent
 
 		const aiChanges = getTldrawAiChangesFromCreateAction({ editor, action })
 		for (const aiChange of aiChanges) {

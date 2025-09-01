@@ -1,4 +1,3 @@
-import { Editor } from 'tldraw'
 import { AgentTransform, roundBox, roundVec } from '../AgentTransform'
 import { AgentRequest } from '../types/AgentRequest'
 import { BasePromptPart } from '../types/BasePromptPart'
@@ -17,7 +16,7 @@ export class ContextItemsPartUtil extends PromptPartUtil<ContextItemsPart> {
 		return 60 // context items in middle (low priority)
 	}
 
-	override getPart(_editor: Editor, request: AgentRequest): ContextItemsPart {
+	override getPart(request: AgentRequest): ContextItemsPart {
 		return {
 			type: 'contextItems',
 			items: request.contextItems,

@@ -1,5 +1,6 @@
 import { TLShapeId } from 'tldraw'
 import z from 'zod'
+import { TldrawAgent } from '../../client/agent/TldrawAgent'
 import { AgentTransform } from '../AgentTransform'
 import { Streaming } from '../types/Streaming'
 import { AgentActionUtil } from './AgentActionUtil'
@@ -42,9 +43,9 @@ export class StackActionUtil extends AgentActionUtil<IAgentStackEvent> {
 		return action
 	}
 
-	override applyAction(action: Streaming<IAgentStackEvent>, transform: AgentTransform) {
+	override applyAction(action: Streaming<IAgentStackEvent>, agent: TldrawAgent) {
 		if (!action.complete) return
-		const { editor } = transform
+		const { editor } = agent
 
 		editor.stackShapes(
 			action.shapeIds.map((id) => `shape:${id}` as TLShapeId),

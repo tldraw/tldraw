@@ -1,4 +1,4 @@
-import { useState } from 'react'
+import { useEffect, useMemo, useState } from 'react'
 import {
 	DefaultSizeStyle,
 	Editor,
@@ -7,7 +7,10 @@ import {
 	Tldraw,
 	TldrawUiToastsProvider,
 	TLUiOverrides,
+	useEditor,
 } from 'tldraw'
+import { TldrawAgent } from './agent/TldrawAgent'
+import { useTldrawAgent } from './agent/useTldrawAgent'
 import { ChatPanel } from './components/ChatPanel'
 import { ChatPanelFallback } from './components/ChatPanelFallback'
 import { CustomHelperButtons } from './components/CustomHelperButtons'
@@ -46,20 +49,25 @@ const overrides: TLUiOverrides = {
 	},
 }
 
-const components: TLComponents = {
-	HelperButtons: CustomHelperButtons,
-	InFrontOfTheCanvas: () => (
-		<>
-			<AgentViewportBoundsHighlight />
-			<ContextHighlights />
-		</>
-	),
-}
-
 const tools = [TargetShapeTool, TargetAreaTool]
 
 function App() {
 	const [editor, setEditor] = useState<Editor | undefined>()
+	const [agent, setAgent] = useState<TldrawAgent | undefined>()
+
+	const components: TLComponents = useMemo(
+		() => ({
+			HelperButtons: () => <CustomHelperButtons agent={agent} />,
+			InFrontOfTheCanvas: () =>
+				agent && (
+					<>
+						<AgentViewportBoundsHighlight agent={agent} />
+						<ContextHighlights agent={agent} />
+					</>
+				),
+		}),
+		[agent]
+	)
 
 	return (
 		<TldrawUiToastsProvider>
@@ -67,18 +75,40 @@ function App() {
 				<div className="tldraw-canvas">
 					<Tldraw
 						persistenceKey="tldraw-agent-demo"
-						onMount={setEditor}
 						tools={tools}
 						overrides={overrides}
 						components={components}
-					/>
+					>
+						<AppInner setEditor={setEditor} setAgent={setAgent} />
+					</Tldraw>
 				</div>
 				<ErrorBoundary fallback={ChatPanelFallback}>
-					{editor && <ChatPanel editor={editor} />}
+					{editor && agent && <ChatPanel agent={agent} />}
 				</ErrorBoundary>
 			</div>
 		</TldrawUiToastsProvider>
 	)
+}
+
+function AppInner({
+	setEditor,
+	setAgent,
+}: {
+	setEditor: (editor: Editor) => void
+	setAgent: (agent: TldrawAgent) => void
+}) {
+	const editor = useEditor()
+	const agent = useTldrawAgent(editor)
+
+	useEffect(() => {
+		if (!editor || !agent) return
+		setEditor(editor)
+		setAgent(agent)
+		;(window as any).editor = editor
+		;(window as any).agent = agent
+	}, [agent, editor, setEditor, setAgent])
+
+	return null
 }
 
 export default App

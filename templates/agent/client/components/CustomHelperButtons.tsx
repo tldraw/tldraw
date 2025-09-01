@@ -1,22 +1,18 @@
-import { DefaultHelperButtonsContent, TldrawUiMenuContextProvider } from 'tldraw'
+import {
+	DefaultHelperButtons,
+	DefaultHelperButtonsContent,
+	TldrawUiMenuContextProvider,
+} from 'tldraw'
+import { TldrawAgent } from '../agent/TldrawAgent'
 import { GoToAgentButton } from './GoToAgentButton'
 
-function CustomHelperButtonsContent() {
+export function CustomHelperButtons({ agent }: { agent?: TldrawAgent }) {
 	return (
-		<>
-			<DefaultHelperButtonsContent />
-			<GoToAgentButton />
-		</>
-	)
-}
-
-export function CustomHelperButtons({ children }: { children?: React.ReactNode }) {
-	const content = children ?? <CustomHelperButtonsContent />
-	return (
-		<div className="tlui-helper-buttons">
+		<DefaultHelperButtons>
 			<TldrawUiMenuContextProvider type="helper-buttons" sourceId="helper-buttons">
-				{content}
+				<DefaultHelperButtonsContent />
+				{agent && <GoToAgentButton agent={agent} />}
 			</TldrawUiMenuContextProvider>
-		</div>
+		</DefaultHelperButtons>
 	)
 }

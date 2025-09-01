@@ -10,7 +10,6 @@ import {
 import { persistAtomInLocalStorage } from './persistAtomInLocalStorage'
 
 export const $contextItems = atom<IContextItem[]>('context items', [])
-export const $pendingContextItems = atom<IContextItem[]>('pending context items', [])
 persistAtomInLocalStorage($contextItems, 'context-items')
 
 export function addToContext(item: IContextItem) {

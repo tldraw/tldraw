@@ -1,5 +1,6 @@
 import { TLShapeId } from 'tldraw'
 import z from 'zod'
+import { TldrawAgent } from '../../client/agent/TldrawAgent'
 import { AgentTransform } from '../AgentTransform'
 import { Streaming } from '../types/Streaming'
 import { AgentActionUtil } from './AgentActionUtil'
@@ -37,8 +38,8 @@ export class BringToFrontActionUtil extends AgentActionUtil<IBringToFrontAction>
 		return action
 	}
 
-	override applyAction(action: Streaming<IBringToFrontAction>, transform: AgentTransform) {
-		const { editor } = transform
+	override applyAction(action: Streaming<IBringToFrontAction>, agent: TldrawAgent) {
+		const { editor } = agent
 
 		if (!action.shapeIds) return
 		editor.bringToFront(action.shapeIds.map((shapeId) => `shape:${shapeId}` as TLShapeId))

@@ -1,4 +1,5 @@
-import { Box, Editor } from 'tldraw'
+import { Box } from 'tldraw'
+import { TldrawAgent } from '../../client/agent/TldrawAgent'
 import { BlurryShape, convertTldrawShapeToBlurryShape } from '../format/BlurryShape'
 import { AgentRequest } from '../types/AgentRequest'
 import { BasePromptPart } from '../types/BasePromptPart'
@@ -15,7 +16,8 @@ export class BlurryShapesPartUtil extends PromptPartUtil<BlurryShapesPart> {
 		return 70
 	}
 
-	override getPart(editor: Editor, request: AgentRequest): BlurryShapesPart {
+	override getPart(request: AgentRequest, agent: TldrawAgent): BlurryShapesPart {
+		const { editor } = agent
 		const shapes = editor.getCurrentPageShapesSorted()
 		const contextBoundsBox = Box.From(request.bounds)
 		const blurryShapes = shapes

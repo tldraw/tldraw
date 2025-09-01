@@ -1,12 +1,13 @@
 import { TLShapeId, useEditor, useValue } from 'tldraw'
-import { $contextItems, $pendingContextItems } from '../../atoms/contextItems'
+import { TldrawAgent } from '../../agent/TldrawAgent'
+import { $contextItems } from '../../atoms/contextItems'
 import { AreaHighlight, AreaHighlightProps } from './AreaHighlight'
 import { PointHighlight, PointHighlightProps } from './PointHighlight'
 
-export function ContextHighlights() {
+export function ContextHighlights({ agent }: { agent: TldrawAgent }) {
 	const editor = useEditor()
 	const contextItems = useValue('contextItems', () => $contextItems.get(), [])
-	const pendingContextItems = useValue('pendingContextItems', () => $pendingContextItems.get(), [])
+	const pendingContextItems = useValue(agent.$pendingContextItems)
 
 	const areaHighlights: AreaHighlightProps[] = useValue(
 		'areaBounds',

@@ -1,5 +1,5 @@
 import { z } from 'zod'
-import { $todoItems } from '../../client/atoms/todoItems'
+import { TldrawAgent } from '../../client/agent/TldrawAgent'
 import { Streaming } from '../types/Streaming'
 import { AgentActionUtil } from './AgentActionUtil'
 
@@ -29,7 +29,7 @@ export class TodoListActionUtil extends AgentActionUtil<ITodoListAction> {
 		return null
 	}
 
-	override applyAction(action: Streaming<ITodoListAction>) {
+	override applyAction(action: Streaming<ITodoListAction>, agent: TldrawAgent) {
 		if (!action.complete) return
 
 		const todoItem = {
@@ -38,7 +38,7 @@ export class TodoListActionUtil extends AgentActionUtil<ITodoListAction> {
 			text: action.text,
 		}
 
-		$todoItems.update((todoItems) => {
+		agent.$todoItems.update((todoItems) => {
 			const index = todoItems.findIndex((item) => item.id === action.id)
 			if (index !== -1) {
 				return [...todoItems.slice(0, index), todoItem, ...todoItems.slice(index + 1)]

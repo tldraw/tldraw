@@ -1,4 +1,4 @@
-import { BoxModel, Editor } from 'tldraw'
+import { BoxModel } from 'tldraw'
 import { roundBox } from '../AgentTransform'
 import { AgentRequest } from '../types/AgentRequest'
 import { BasePromptPart } from '../types/BasePromptPart'
@@ -15,7 +15,7 @@ export class AgentViewportBoundsPartUtil extends PromptPartUtil<AgentViewportBou
 		return 80 // viewport bounds should appear early (low priority)
 	}
 
-	override getPart(_editor: Editor, request: AgentRequest): AgentViewportBoundsPart {
+	override getPart(request: AgentRequest): AgentViewportBoundsPart {
 		return {
 			type: 'agentViewportBounds',
 			bounds: request.bounds,

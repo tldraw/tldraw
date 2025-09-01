@@ -1,4 +1,5 @@
-import { Box, Editor, FileHelpers } from 'tldraw'
+import { Box, FileHelpers } from 'tldraw'
+import { TldrawAgent } from '../../client/agent/TldrawAgent'
 import { AgentRequest } from '../types/AgentRequest'
 import { BasePromptPart } from '../types/BasePromptPart'
 import { PromptPartUtil } from './PromptPartUtil'
@@ -14,7 +15,8 @@ export class ScreenshotPartUtil extends PromptPartUtil<ScreenshotPart> {
 		return 40 // screenshot after text content (medium priority)
 	}
 
-	override async getPart(editor: Editor, request: AgentRequest): Promise<ScreenshotPart> {
+	override async getPart(request: AgentRequest, agent: TldrawAgent): Promise<ScreenshotPart> {
+		const { editor } = agent
 		const contextBounds = request.bounds
 
 		const contextBoundsBox = Box.From(contextBounds)

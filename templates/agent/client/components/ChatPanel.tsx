@@ -1,34 +1,23 @@
-import { FormEventHandler, useCallback, useEffect, useRef, useState } from 'react'
-import { Editor, useToasts, useValue } from 'tldraw'
+import { FormEventHandler, useCallback, useRef, useState } from 'react'
+import { useToasts, useValue } from 'tldraw'
 import { convertTldrawShapeToSimpleShape } from '../../shared/format/SimpleShape'
 import { AgentRequest } from '../../shared/types/AgentRequest'
 import { IChatHistoryItem } from '../../shared/types/ChatHistoryItem'
 import { advanceSchedule } from '../agent/advanceSchedule'
-import { useTldrawAgent } from '../agent/useTldrawAgent'
-import { $agentViewportBoundsHighlight } from '../atoms/agentViewportBoundsHighlight'
-import { $chatHistoryItems } from '../atoms/chatHistoryItems'
-import { $contextItems, $pendingContextItems } from '../atoms/contextItems'
-import { $documentChanges } from '../atoms/documentChanges'
+import { TldrawAgent } from '../agent/TldrawAgent'
+import { $contextItems } from '../atoms/contextItems'
 import { $modelName } from '../atoms/modelName'
-import { $todoItems } from '../atoms/todoItems'
 import { ChatHistory } from './chat-history/ChatHistory'
 import { ChatInput } from './ChatInput'
 import { TodoList } from './TodoList'
 
-export function ChatPanel({ editor }: { editor: Editor }) {
-	const agent = useTldrawAgent(editor)
-
+export function ChatPanel({ agent }: { agent: TldrawAgent }) {
+	const { editor } = agent
 	const [isGenerating, setIsGenerating] = useState(false)
 	const rCancelFn = useRef<(() => void) | null>(null)
 	const inputRef = useRef<HTMLTextAreaElement>(null)
 	const toast = useToasts()
 	const modelName = useValue('modelName', () => $modelName.get(), [$modelName])
-
-	useEffect(() => {
-		if (!editor) return
-		;(window as any).editor = editor
-		;(window as any).agent = agent
-	}, [agent, editor])
 
 	const handleError = useCallback(
 		(e: any) => {
@@ -54,8 +43,8 @@ export function ChatPanel({ editor }: { editor: Editor }) {
 				rCancelFn.current()
 				rCancelFn.current = null
 
-				$agentViewportBoundsHighlight.set(null)
-				$pendingContextItems.set([])
+				agent.$agentViewportBoundsHighlight.set(null)
+				agent.$pendingContextItems.set([])
 				setIsGenerating(false)
 			}
 
@@ -64,7 +53,7 @@ export function ChatPanel({ editor }: { editor: Editor }) {
 			if (inputRef.current) inputRef.current.value = ''
 
 			// If every todo item is done, clear the todo list
-			$todoItems.update((items) => {
+			agent.$todoItems.update((items) => {
 				if (items.every((item) => item.status === 'done')) {
 					return []
 				}
@@ -80,9 +69,9 @@ export function ChatPanel({ editor }: { editor: Editor }) {
 					.map((shape) => convertTldrawShapeToSimpleShape(shape, editor)),
 			}
 
-			$pendingContextItems.set(promptHistoryItem.contextItems)
+			agent.$pendingContextItems.set(promptHistoryItem.contextItems)
 			$contextItems.set([])
-			$chatHistoryItems.update((prev) => [...prev, promptHistoryItem])
+			agent.$chatHistoryItems.update((prev) => [...prev, promptHistoryItem])
 			setIsGenerating(true)
 			const request: AgentRequest = {
 				message: promptHistoryItem.message,
@@ -101,10 +90,9 @@ export function ChatPanel({ editor }: { editor: Editor }) {
 
 			// TODO
 			// right now, we clear the changes when the agent finishes its turn. However, this loses all the changes that happened while the agent was working. We should make this more sophisticated.
-			$documentChanges.set(editor, [])
-
-			$pendingContextItems.set([])
-			$agentViewportBoundsHighlight.set(null)
+			agent.$documentChanges.set([])
+			agent.$pendingContextItems.set([])
+			agent.$agentViewportBoundsHighlight.set(null)
 		},
 		[agent, modelName, editor, rCancelFn, handleError]
 	)
@@ -116,11 +104,11 @@ export function ChatPanel({ editor }: { editor: Editor }) {
 		}
 
 		setIsGenerating(false)
-		$chatHistoryItems.set([])
-		$pendingContextItems.set([])
 		$contextItems.set([])
-		$agentViewportBoundsHighlight.set(null)
-		$todoItems.set([])
+		agent.$chatHistoryItems.set([])
+		agent.$pendingContextItems.set([])
+		agent.$agentViewportBoundsHighlight.set(null)
+		agent.$todoItems.set([])
 	}
 
 	function NewChatButton() {
@@ -138,7 +126,7 @@ export function ChatPanel({ editor }: { editor: Editor }) {
 			</div>
 			<ChatHistory agent={agent} isGenerating={isGenerating} />
 			<div className="chat-input-container">
-				<TodoList />
+				<TodoList agent={agent} />
 				<ChatInput
 					handleSubmit={handleSubmit}
 					inputRef={inputRef}

@@ -1,7 +1,7 @@
-import { Editor, isEqual, RecordsDiff, squashRecordDiffs, TLRecord, TLShape } from 'tldraw'
-import { $chatHistoryItems } from '../../client/atoms/chatHistoryItems'
-import { $documentChanges } from '../../client/atoms/documentChanges'
+import { isEqual, RecordsDiff, squashRecordDiffs, TLRecord, TLShape } from 'tldraw'
+import { TldrawAgent } from '../../client/agent/TldrawAgent'
 import { convertTldrawShapeToSimpleShape, ISimpleShape } from '../format/SimpleShape'
+import { AgentRequest } from '../types/AgentRequest'
 import { BasePromptPart } from '../types/BasePromptPart'
 import { PromptPartUtil } from './PromptPartUtil'
 
@@ -23,16 +23,15 @@ export class UserActionHistoryPartUtil extends PromptPartUtil<UserActionHistoryP
 		return 40
 	}
 
-	override getPart(editor: Editor): UserActionHistoryPart {
-		// Updates to the editor store done by the agent are unfortunately attributed to the user in the editor store history (ideally they're remote, or maybe even a new 'agent' source). So we have to filter out the agent's actions from the history.
-
-		const rawStoreDiffs = $documentChanges.get(editor)
+	override getPart(_request: AgentRequest, agent: TldrawAgent): UserActionHistoryPart {
+		const { editor } = agent
+		const rawStoreDiffs = agent.$documentChanges.get()
 		if (rawStoreDiffs.length === 0) {
 			return { type: 'userActionHistory', history: {} }
 		}
 
 		// Get the agent's diffs from the chat history
-		const agentActionDiffs = this.getAgentDiffs($chatHistoryItems.get())
+		const agentActionDiffs = this.getAgentDiffs(agent.$chatHistoryItems.get())
 
 		const userActionDiffs = rawStoreDiffs.filter(
 			(diff) => !agentActionDiffs.some((agentDiff) => isEqual(diff, agentDiff))

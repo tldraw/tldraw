@@ -1,6 +1,5 @@
 import z from 'zod'
-import { $scheduledRequest } from '../../client/atoms/scheduledRequest'
-import { AgentTransform } from '../AgentTransform'
+import { TldrawAgent } from '../../client/agent/TldrawAgent'
 import { AgentRequest } from '../types/AgentRequest'
 import { Streaming } from '../types/Streaming'
 import { AgentActionUtil } from './AgentActionUtil'
@@ -40,12 +39,12 @@ export class SetMyViewActionUtil extends AgentActionUtil<ISetMyViewAction> {
 
 	override applyAction(
 		action: Streaming<ISetMyViewAction>,
-		transform: AgentTransform,
+		agent: TldrawAgent,
 		request: AgentRequest
 	) {
 		if (!action.complete) return
 
-		$scheduledRequest.update((prev) => {
+		agent.$scheduledRequest.update((prev) => {
 			const newRequest = prev ?? {
 				message: '',
 				contextItems: [],

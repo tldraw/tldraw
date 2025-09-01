@@ -6,16 +6,16 @@ import {
 	useEditor,
 	useValue,
 } from 'tldraw'
-import { $agentViewportBoundsHighlight } from '../atoms/agentViewportBoundsHighlight'
+import { TldrawAgent } from '../agent/TldrawAgent'
 
-export function GoToAgentButton() {
+export function GoToAgentButton({ agent }: { agent: TldrawAgent }) {
+	const editor = useEditor()
 	const agentViewportBounds = useValue(
 		'agentViewportBounds',
-		() => $agentViewportBoundsHighlight.get(),
-		[$agentViewportBoundsHighlight]
+		() => agent.$agentViewportBoundsHighlight.get(),
+		[agent.$agentViewportBoundsHighlight]
 	)
 
-	const editor = useEditor()
 	const { showButton, arrowRotation } = useValue(
 		'goToAgentState',
 		() => {

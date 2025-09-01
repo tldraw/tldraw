@@ -1,5 +1,6 @@
 import { TLShapeId } from 'tldraw'
 import z from 'zod'
+import { TldrawAgent } from '../../client/agent/TldrawAgent'
 import { AgentTransform } from '../AgentTransform'
 import { Streaming } from '../types/Streaming'
 import { AgentActionUtil } from './AgentActionUtil'
@@ -43,8 +44,8 @@ export class ResizeActionUtil extends AgentActionUtil<IResizeAction> {
 		return action
 	}
 
-	override applyAction(action: Streaming<IResizeAction>, transform: AgentTransform) {
-		const { editor } = transform
+	override applyAction(action: Streaming<IResizeAction>, agent: TldrawAgent) {
+		const { editor } = agent
 
 		if (
 			!action.shapeIds ||

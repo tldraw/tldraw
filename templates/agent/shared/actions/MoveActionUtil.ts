@@ -1,5 +1,6 @@
 import { TLShapeId, Vec } from 'tldraw'
 import z from 'zod'
+import { TldrawAgent } from '../../client/agent/TldrawAgent'
 import { AgentTransform, ensureValueIsNumber } from '../AgentTransform'
 import { Streaming } from '../types/Streaming'
 import { AgentActionUtil } from './AgentActionUtil'
@@ -47,9 +48,9 @@ export class MoveActionUtil extends AgentActionUtil<IMoveAction> {
 		return action
 	}
 
-	override applyAction(action: Streaming<IMoveAction>, transform: AgentTransform) {
+	override applyAction(action: Streaming<IMoveAction>, agent: TldrawAgent) {
 		if (!action.complete) return
-		const { editor } = transform
+		const { editor } = agent
 
 		const shapeId = `shape:${action.shapeId}` as TLShapeId
 		const shape = editor.getShape(shapeId)

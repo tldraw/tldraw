@@ -1,4 +1,3 @@
-import { Editor } from 'tldraw'
 import { AgentModelName } from '../../worker/models'
 import { AgentRequest } from '../types/AgentRequest'
 import { BasePromptPart } from '../types/BasePromptPart'
@@ -11,7 +10,7 @@ export interface UserSelectedModelNamePart extends BasePromptPart<'modelName'> {
 export class UserSelectedModelNamePartUtil extends PromptPartUtil<UserSelectedModelNamePart> {
 	static override type = 'modelName' as const
 
-	override getPart(_editor: Editor, request: AgentRequest): UserSelectedModelNamePart {
+	override getPart(request: AgentRequest): UserSelectedModelNamePart {
 		return {
 			type: 'modelName',
 			name: request.modelName,

@@ -1,4 +1,5 @@
 import { Box, BoxModel, Editor, TLShape } from 'tldraw'
+import { TldrawAgent } from '../../client/agent/TldrawAgent'
 import { roundBox } from '../AgentTransform'
 import { AgentRequest } from '../types/AgentRequest'
 import { BasePromptPart } from '../types/BasePromptPart'
@@ -20,7 +21,8 @@ export class PeripheralShapesPartUtil extends PromptPartUtil<PeripheralShapesPar
 		return 65 // peripheral content after viewport shapes (low priority)
 	}
 
-	override getPart(editor: Editor, request: AgentRequest): PeripheralShapesPart {
+	override getPart(request: AgentRequest, agent: TldrawAgent): PeripheralShapesPart {
+		const { editor } = agent
 		const shapes = editor.getCurrentPageShapesSorted()
 		const contextBounds = request.bounds
 

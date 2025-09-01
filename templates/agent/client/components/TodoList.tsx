@@ -1,10 +1,10 @@
 import { useCallback } from 'react'
 import { useValue } from 'tldraw'
 import { TodoItem } from '../../shared/types/TodoItem'
-import { $todoItems } from '../atoms/todoItems'
+import { TldrawAgent } from '../agent/TldrawAgent'
 
-export const TodoList = function TodoList() {
-	const todoItems = useValue('todoItems', () => $todoItems.get(), [$todoItems])
+export function TodoList({ agent }: { agent: TldrawAgent }) {
+	const todoItems = useValue(agent.$todoItems)
 
 	if (todoItems.length === 0) {
 		return null
@@ -14,17 +14,17 @@ export const TodoList = function TodoList() {
 		<div className="todo-list">
 			<div className="todo-list-items">
 				{todoItems.map((item) => (
-					<TodoListItem key={item.id} item={item} />
+					<TodoListItem key={item.id} agent={agent} item={item} />
 				))}
 			</div>
 		</div>
 	)
 }
 
-function TodoListItem({ item }: { item: TodoItem }) {
+function TodoListItem({ agent, item }: { agent: TldrawAgent; item: TodoItem }) {
 	const deleteTodo = useCallback(() => {
-		$todoItems.update((items) => items.filter((i) => i.id !== item.id))
-	}, [item.id])
+		agent.$todoItems.update((items) => items.filter((i) => i.id !== item.id))
+	}, [item.id, agent.$todoItems])
 
 	const getStatusIcon = (status: TodoItem['status']) => {
 		switch (status) {
