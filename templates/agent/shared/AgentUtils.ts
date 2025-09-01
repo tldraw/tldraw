@@ -31,6 +31,7 @@ import { ScreenshotPartUtil } from './parts/ScreenshotPartUtil'
 import { SelectedShapesPartUtil } from './parts/SelectedShapesPartUtil'
 import { SystemPromptPartUtil } from './parts/SystemPromptPartUtil'
 import { TodoListPartUtil } from './parts/TodoItemsPartUtil'
+import { UserActionHistoryPartUtil } from './parts/UserActionHistoryPartUtil'
 import { UserViewportBoundsPartUtil } from './parts/UserViewportBoundsPartUtil'
 import { AgentAction } from './types/AgentAction'
 import { PromptPart } from './types/PromptPart'
@@ -63,7 +64,7 @@ export const PROMPT_PART_UTILS = [
 
 	// History
 	ChatHistoryItemsPartUtil,
-	// UserActionHistoryPartUtil,
+	UserActionHistoryPartUtil,
 	TodoListPartUtil,
 ]
 
