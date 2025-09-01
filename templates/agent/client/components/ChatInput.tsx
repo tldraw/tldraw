@@ -98,11 +98,6 @@ export function ChatInput({
 				/>
 				<span className="chat-actions">
 					<div className="chat-actions-left">
-						{/* <div className="chat-mode-select">
-							<CommentIcon />
-							<span>Agent</span>
-							<ChevronDownIcon />
-						</div> */}
 						<div className="chat-model-select">
 							<div className="chat-model-select-label">
 								<BrainIcon /> {modelName}
