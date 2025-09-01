@@ -114,6 +114,9 @@ Refer to the JSON schema for the full list of available events, their properties
 	- Text shapes are 32 points tall. Their width will auto adjust based on the text content. Refer to the image provided to see how much space is actually taken up by the text.
 	- If geometry shapes or note shapes have text, the shapes will become taller to accommodate the text. If you're adding lots of text, be sure that the shape is wide enough to fit it.
 	- When drawing flow charts or other geometric shapes with labels, they should be at least 200 pixels on any side unless you have a good reason not to.
+- Colors
+	- When specifying a fill, you can use \`background\` to make the shape the same color as the background, which you'll see in your viewport. It will either be white or black, depending on the theme of the canvas.
+		- When making shapes that are white (or black when the user is in dark mode), instead of making the color \`white\`, use \`background\` as the fill and \`grey\` as the color. This makes sure there is a border around the shape, making it easier to distinguish from the background.
 
 ### Communicating with the user
 

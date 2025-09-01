@@ -1,14 +1,14 @@
 import { TLDefaultFillStyle } from 'tldraw'
 import z from 'zod'
 
-export const SimpleFill = z.enum(['none', 'tint', 'semi', 'solid', 'pattern'])
+export const SimpleFill = z.enum(['none', 'tint', 'background', 'solid', 'pattern'])
 
 export type ISimpleFill = z.infer<typeof SimpleFill>
 
 const SIMPLE_TO_SHAPE_FILLS: Record<ISimpleFill, TLDefaultFillStyle> = {
 	none: 'none',
 	solid: 'fill',
-	semi: 'semi',
+	background: 'semi',
 	tint: 'solid',
 	pattern: 'pattern',
 }
@@ -16,7 +16,7 @@ const SIMPLE_TO_SHAPE_FILLS: Record<ISimpleFill, TLDefaultFillStyle> = {
 const SHAPE_TO_SIMPLE_FILLS: Record<TLDefaultFillStyle, ISimpleFill> = {
 	none: 'none',
 	fill: 'solid',
-	semi: 'semi',
+	semi: 'background',
 	solid: 'tint',
 	pattern: 'pattern',
 }
