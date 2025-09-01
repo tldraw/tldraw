@@ -73,7 +73,7 @@ export function GoToAgentButton() {
 						</svg>
 					}
 				/>
-				<TldrawUiButtonLabel>Follow Agent</TldrawUiButtonLabel>
+				<TldrawUiButtonLabel>Go to agent</TldrawUiButtonLabel>
 			</div>
 		</TldrawUiButton>
 	)
