@@ -1,13 +1,11 @@
-import { TldrawUiMenuContextProvider } from 'tldraw'
+import { DefaultHelperButtonsContent, TldrawUiMenuContextProvider } from 'tldraw'
 import { GoToAgentButton } from './GoToAgentButton'
 
 function CustomHelperButtonsContent() {
 	return (
 		<>
-			{/* cant import these for some reason? */}
-			{/* <ExitPenMode /> */}
+			<DefaultHelperButtonsContent />
 			<GoToAgentButton />
-			{/* <StopFollowing /> */}
 		</>
 	)
 }

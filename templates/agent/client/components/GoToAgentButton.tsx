@@ -25,13 +25,12 @@ export function GoToAgentButton() {
 			const agentScreenCenter = editor.pageToViewport(agentCenter)
 			const screenBounds = editor.getViewportScreenBounds()
 
-			const agentScreenBounds = Box.From(agentViewportBounds).corners.map((corner) =>
+			const agentScreenCorners = Box.From(agentViewportBounds).corners.map((corner) =>
 				editor.pageToViewport(corner)
 			)
-			const agentScreenBox = Box.FromPoints(agentScreenBounds)
 
-			const showButton = !agentScreenBox.collides(screenBounds)
-
+			const agentScreenBounds = Box.FromPoints(agentScreenCorners)
+			const showButton = !agentScreenBounds.collides(screenBounds)
 			const angle = Math.atan2(agentScreenCenter.y, agentScreenCenter.x) * (180 / Math.PI)
 
 			return { showButton, arrowRotation: angle }
@@ -43,8 +42,8 @@ export function GoToAgentButton() {
 
 	const handleClick = () => {
 		if (agentViewportBounds) {
-			const agentCenter = Box.From(agentViewportBounds).center
-			editor.centerOnPoint(agentCenter, { animation: { duration: 220 } })
+			const bounds = Box.From(agentViewportBounds).expandBy(50)
+			editor.zoomToBounds(bounds, { animation: { duration: 220 } })
 		}
 	}
 
