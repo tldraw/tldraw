@@ -743,9 +743,6 @@ export const defaultUserPreferences: Readonly<{
 export function degreesToRadians(d: number): number;
 
 // @public (undocumented)
-export function doesGeometryOverlapPolygon(geometry: Geometry2d, parentCornersInShapeSpace: Vec[]): boolean;
-
-// @public (undocumented)
 export const EASINGS: {
     readonly easeInCubic: (t: number) => number;
     readonly easeInExpo: (t: number) => number;

@@ -1,4 +1,4 @@
-import { Box, BoxModel, doesGeometryOverlapPolygon, StateNode, TLShape, VecModel } from 'tldraw'
+import { Box, BoxModel, StateNode, TLShape, VecModel } from 'tldraw'
 import { convertTldrawShapeToSimpleShape } from '../../shared/format/SimpleShape'
 import { addToContext } from '../atoms/contextItems'
 
@@ -148,7 +148,7 @@ class TargetShapeDragging extends StateNode {
 			const pageTransform = this.editor.getShapePageTransform(shape)
 			const shapeTransform = pageTransform.clone().invert()
 			const boundsInShapeSpace = shapeTransform.applyToPoints(bounds.corners)
-			return doesGeometryOverlapPolygon(geometry, boundsInShapeSpace)
+			return geometry.overlapsPolygon(boundsInShapeSpace)
 		})
 
 		this.shapes = shapesInBounds
