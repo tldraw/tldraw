@@ -97,8 +97,14 @@ body {
 	background-color: var(--tl-color-muted-2);
 }
 
-/* Chat Input */
+/* Chat Input Container */
+.chat-input-container {
+	display: flex;
+	flex-direction: column;
+	position: relative;
+}
 
+/* Chat Input */
 .chat-input {
 	padding: 0px 8px 8px 8px;
 	flex-shrink: 0;
@@ -108,6 +114,7 @@ body {
 	margin: 0px 8px 8px 8px;
 	padding: 0px;
 	background-color: var(--tl-color-panel);
+	z-index: 999999;
 }
 
 .chat-input form {
@@ -316,6 +323,8 @@ body {
 	height: 100%;
 	position: relative;
 	width: 100%;
+	scrollbar-width: 8px;
+	scrollbar-color: var(--tl-color-muted-1) transparent;
 }
 
 .chat-history-section {
@@ -334,7 +343,7 @@ body {
 	top: -6px;
 	padding: 8px;
 	margin: -8px;
-	z-index: 9999999;
+	z-index: 9999;
 	background-color: var(--tl-color-panel);
 }
 
@@ -675,12 +684,10 @@ button.prompt-tag span {
 /* Todo list */
 
 .todo-list {
-	margin: 0px 16px -2px 16px;
+	margin: 0px 16px -18px 16px;
 	background-color: var(--tl-color-panel);
 	border-radius: 12px 12px 0px 0px;
-	padding: 4px;
-	padding-top: 8px;
-	padding-bottom: 0px;
+	padding: 8px 4px 0 4px;
 	box-shadow: var(--tl-shadow-1);
 	border: 1px solid var(--tl-color-muted-2);
 	max-height: 120px;
@@ -688,6 +695,9 @@ button.prompt-tag span {
 	flex-shrink: 0;
 	scrollbar-width: none;
 	-ms-overflow-style: none;
+	position: relative;
+	z-index: 99999;
+	transform: translateY(-16px);
 }
 
 .todo-list::-webkit-scrollbar {

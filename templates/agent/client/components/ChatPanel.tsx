@@ -137,13 +137,15 @@ export function ChatPanel({ editor }: { editor: Editor }) {
 				<NewChatButton />
 			</div>
 			<ChatHistory agent={agent} isGenerating={isGenerating} />
-			<TodoList />
-			<ChatInput
-				handleSubmit={handleSubmit}
-				inputRef={inputRef}
-				isGenerating={isGenerating}
-				editor={editor}
-			/>
+			<div className="chat-input-container">
+				<TodoList />
+				<ChatInput
+					handleSubmit={handleSubmit}
+					inputRef={inputRef}
+					isGenerating={isGenerating}
+					editor={editor}
+				/>
+			</div>
 		</div>
 	)
 }
