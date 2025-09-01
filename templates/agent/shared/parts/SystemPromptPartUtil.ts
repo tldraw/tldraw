@@ -1,4 +1,4 @@
-import { buildResponseJsonSchema } from '../../worker/prompt/buildResponseJsonSchema'
+import { buildResponseSchema } from '../../worker/prompt/buildResponseSchema'
 import { getSimpleShapeTypeNames } from '../format/SimpleShape'
 import { BasePromptPart } from '../types/BasePromptPart'
 import { PromptPartUtil } from './PromptPartUtil'
@@ -169,5 +169,5 @@ Refer to the JSON schema for the full list of available events, their properties
 
 This is the JSON schema for the events you can return. You must conform to this schema.
 
-${JSON.stringify(buildResponseJsonSchema(), null, 2)}`
+${JSON.stringify(buildResponseSchema(), null, 2)}`
 }
