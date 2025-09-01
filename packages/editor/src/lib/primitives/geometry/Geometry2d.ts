@@ -13,7 +13,6 @@ import {
 	polygonsIntersect,
 } from '../intersect'
 import { approximately, pointInPolygon } from '../utils'
-import { Group2d } from './Group2d'
 
 /**
  * Filter geometry within a group.
@@ -261,11 +260,6 @@ export abstract class Geometry2d {
 
 	overlapsPolygon(_polygon: VecLike[]): boolean {
 		const polygon = _polygon.map((v) => Vec.From(v))
-
-		// If the geometry is a group, check if any of its children overlap the polygon
-		if (this instanceof Group2d) {
-			return this.children.some((childGeometry) => childGeometry.overlapsPolygon(polygon))
-		}
 
 		// Otherwise, check if the geometry itself overlaps the polygon
 		const { vertices, center, isFilled, isEmptyLabel, isClosed } = this

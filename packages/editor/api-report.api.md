@@ -1895,6 +1895,8 @@ export class Group2d extends Geometry2d {
     // (undocumented)
     nearestPoint(point: VecLike, filters?: Geometry2dFilters): Vec;
     // (undocumented)
+    overlapsPolygon(polygon: VecLike[]): boolean;
+    // (undocumented)
     toSimpleSvgPath(): string;
     // (undocumented)
     transform(transform: Mat): Geometry2d;
