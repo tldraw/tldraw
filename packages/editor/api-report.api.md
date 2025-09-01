@@ -743,9 +743,6 @@ export const defaultUserPreferences: Readonly<{
 export function degreesToRadians(d: number): number;
 
 // @public (undocumented)
-export function doesGeometryOverlapPolygon(geometry: Geometry2d, parentCornersInShapeSpace: Vec[]): boolean;
-
-// @public (undocumented)
 export const EASINGS: {
     readonly easeInCubic: (t: number) => number;
     readonly easeInExpo: (t: number) => number;
@@ -1733,6 +1730,8 @@ export abstract class Geometry2d {
     abstract nearestPoint(point: VecLike, _filters?: Geometry2dFilters): Vec;
     // @deprecated (undocumented)
     nearestPointOnLineSegment(A: VecLike, B: VecLike): Vec;
+    // (undocumented)
+    overlapsPolygon(_polygon: VecLike[]): boolean;
     // (undocumented)
     toSimpleSvgPath(): string;
     // (undocumented)

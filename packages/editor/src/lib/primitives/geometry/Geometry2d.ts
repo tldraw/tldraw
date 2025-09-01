@@ -9,8 +9,11 @@ import {
 	intersectLineSegmentPolyline,
 	intersectPolys,
 	linesIntersect,
+	polygonIntersectsPolyline,
+	polygonsIntersect,
 } from '../intersect'
 import { approximately, pointInPolygon } from '../utils'
+import { Group2d } from './Group2d'
 
 /**
  * Filter geometry within a group.
@@ -254,6 +257,58 @@ export abstract class Geometry2d {
 			point.x > bounds.maxX + margin ||
 			point.y > bounds.maxY + margin
 		)
+	}
+
+	overlapsPolygon(_polygon: VecLike[]): boolean {
+		const polygon = _polygon.map((v) => Vec.From(v))
+
+		// If the geometry is a group, check if any of its children overlap the polygon
+		if (this instanceof Group2d) {
+			return this.children.some((childGeometry) => childGeometry.overlapsPolygon(polygon))
+		}
+
+		// Otherwise, check if the geometry itself overlaps the polygon
+		const { vertices, center, isFilled, isEmptyLabel, isClosed } = this
+
+		// We'll do things in order of cheapest to most expensive checks
+
+		// Skip empty labels
+		if (isEmptyLabel) return false
+
+		// If any of the geometry's vertices are inside the polygon, it's inside
+		if (vertices.some((v) => pointInPolygon(v, polygon))) {
+			return true
+		}
+
+		// If the geometry is filled and closed and its center is inside the polygon, it's inside
+		if (isClosed) {
+			if (isFilled) {
+				// If closed and filled, check if the center is inside the polygon
+				if (pointInPolygon(center, polygon)) {
+					return true
+				}
+
+				// ..then, slightly more expensive check, see the geometry covers the entire polygon but not its center
+				if (polygon.every((v) => pointInPolygon(v, vertices))) {
+					return true
+				}
+			}
+
+			// If any the geometry's vertices intersect the edge of the polygon, it's inside.
+			// for example when a rotated rectangle is moved over the corner of a parent rectangle
+			// If the geometry is closed, intersect as a polygon
+			if (polygonsIntersect(polygon, vertices)) {
+				return true
+			}
+		} else {
+			// If the geometry is not closed, intersect as a polyline
+			if (polygonIntersectsPolyline(polygon, vertices)) {
+				return true
+			}
+		}
+
+		// If none of the above checks passed, the geometry is outside the polygon
+		return false
 	}
 
 	transform(transform: MatModel, opts?: TransformedGeometry2dOptions): Geometry2d {
