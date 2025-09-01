@@ -1,5 +1,14 @@
 import { TLAiChange } from '@tldraw/ai'
-import { Editor, IndexKey, TLShapeId, toRichText } from 'tldraw'
+import {
+	Editor,
+	FONT_FAMILIES,
+	FONT_SIZES,
+	IndexKey,
+	TEXT_PROPS,
+	TLShapeId,
+	toRichText,
+	Vec,
+} from 'tldraw'
 import z from 'zod'
 import { applyAiChange } from '../../client/agent/applyAiChange'
 import { TldrawAgent } from '../../client/agent/TldrawAgent'
@@ -92,19 +101,49 @@ export function getTldrawAiChangesFromCreateAction({
 	switch (shapeType) {
 		case 'text': {
 			const textShape = shape as ISimpleTextShape
+
+			const textSize = textShape.size ?? 's'
+			const textFontSize = FONT_SIZES[textSize]
+
+			const textAlign = textShape.textAlign ?? 'start'
+
+			const correctedTextPlacement = new Vec()
+
+			const canditateTextWidth = editor.textMeasure.measureText(textShape.text, {
+				...TEXT_PROPS,
+				fontFamily: FONT_FAMILIES['draw'],
+				fontSize: textFontSize,
+				maxWidth: Infinity,
+			}).w
+
+			switch (textAlign) {
+				case 'start':
+					correctedTextPlacement.x = textShape.x
+					correctedTextPlacement.y = textShape.y
+					break
+				case 'middle':
+					correctedTextPlacement.x = textShape.x - canditateTextWidth / 2
+					correctedTextPlacement.y = textShape.y
+					break
+				case 'end':
+					correctedTextPlacement.x = textShape.x - canditateTextWidth
+					correctedTextPlacement.y = textShape.y
+					break
+			}
+
 			changes.push({
 				type: 'createShape',
 				description: action.intent ?? '',
 				shape: {
 					id: shapeId,
 					type: 'text',
-					x: textShape.x,
-					y: textShape.y,
+					x: correctedTextPlacement.x,
+					y: correctedTextPlacement.y,
 					props: {
-						size: 's',
+						size: textSize,
 						richText: toRichText(textShape.text),
 						color: asColor(textShape.color),
-						textAlign: 'start',
+						textAlign,
 					},
 					meta: {
 						note: textShape.note ?? '',

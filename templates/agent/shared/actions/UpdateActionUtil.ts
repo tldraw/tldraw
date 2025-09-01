@@ -1,7 +1,10 @@
 import { TLAiChange } from '@tldraw/ai'
 import {
 	Editor,
+	FONT_FAMILIES,
+	FONT_SIZES,
 	IndexKey,
+	TEXT_PROPS,
 	TLArrowShape,
 	TLBindingId,
 	TLDrawShape,
@@ -123,6 +126,32 @@ export function getTldrawAiChangesFromUpdateEvent({
 
 			const color = textShape.color ? asColor(textShape.color) : shapeOnCanvas.props.color
 			const richText = textShape.text ? toRichText(textShape.text) : shapeOnCanvas.props.richText
+			const textSize = textShape.size ?? shapeOnCanvas.props.size
+			const textAlign = textShape.textAlign ?? shapeOnCanvas.props.textAlign
+
+			const textFontSize = FONT_SIZES[textSize]
+			const candidateTextWidth = editor.textMeasure.measureText(
+				textShape.text ?? shapeOnCanvas.props.richText,
+				{
+					...TEXT_PROPS,
+					fontFamily: FONT_FAMILIES['draw'],
+					fontSize: textFontSize,
+					maxWidth: Infinity,
+				}
+			).w
+
+			let correctedX = textShape.x ?? shapeOnCanvas.x
+			switch (textAlign) {
+				case 'start':
+					correctedX = textShape.x ?? shapeOnCanvas.x
+					break
+				case 'middle':
+					correctedX = (textShape.x ?? shapeOnCanvas.x) - candidateTextWidth / 2
+					break
+				case 'end':
+					correctedX = (textShape.x ?? shapeOnCanvas.x) - candidateTextWidth
+					break
+			}
 
 			changes.push({
 				type: 'updateShape',
@@ -130,11 +159,13 @@ export function getTldrawAiChangesFromUpdateEvent({
 				shape: {
 					id: shapeId,
 					type: 'text',
-					x: textShape.x ?? shapeOnCanvas.x,
+					x: correctedX,
 					y: textShape.y ?? shapeOnCanvas.y,
 					props: {
 						color,
 						richText,
+						size: textSize,
+						textAlign,
 					},
 					meta: {
 						note: textShape.note ?? shapeOnCanvas.meta.note,

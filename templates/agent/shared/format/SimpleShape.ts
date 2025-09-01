@@ -1,5 +1,8 @@
 import {
 	Editor,
+	FONT_FAMILIES,
+	FONT_SIZES,
+	TEXT_PROPS,
 	TLArrowBinding,
 	TLArrowShape,
 	TLDrawShape,
@@ -65,6 +68,7 @@ const SimpleTextShape = z.object({
 	note: z.string(),
 	shapeId: z.string(),
 	text: SimpleLabel,
+	size: z.enum(['s', 'm', 'l', 'xl']).optional(),
 	textAlign: z.enum(['start', 'middle', 'end']).optional(),
 	x: z.number(),
 	y: z.number(),
@@ -190,15 +194,43 @@ function convertDrawShape(shape: TLDrawShape): ISimpleDrawShape {
 
 function convertTextShape(shape: TLTextShape, editor: Editor): ISimpleTextShape {
 	const util = editor.getShapeUtil(shape)
-	const text = util.getText(shape)
+	const text = util.getText(shape) ?? ''
+
+	const textSize = shape.props.size
+	const textFontSize = FONT_SIZES[textSize]
+	const textAlign = shape.props.textAlign
+
+	const textWidth = editor.textMeasure.measureText(text, {
+		...TEXT_PROPS,
+		fontFamily: FONT_FAMILIES['draw'],
+		fontSize: textFontSize,
+		maxWidth: Infinity,
+	}).w
+
+	let anchorX = shape.x
+	switch (textAlign) {
+		case 'middle':
+			anchorX = shape.x + textWidth / 2
+			break
+		case 'end':
+			anchorX = shape.x + textWidth
+			break
+		case 'start':
+		default:
+			anchorX = shape.x
+			break
+	}
+
 	return {
 		_type: 'text',
 		color: shape.props.color,
 		note: (shape.meta?.note as string) ?? '',
 		shapeId: shape.id.slice('shape:'.length),
-		text: text ?? '',
-		x: shape.x,
+		text: text,
+		x: anchorX,
 		y: shape.y,
+		size: shape.props.size,
+		textAlign: shape.props.textAlign,
 	}
 }
 

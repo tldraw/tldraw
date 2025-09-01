@@ -111,7 +111,11 @@ Refer to the JSON schema for the full list of available events, their properties
 - Labels and text
 	- Be careful with labels. Did the user ask for labels on their shapes? Did the user ask for a format where labels would be appropriate? If yes, add labels to shapes. If not, do not add labels to shapes. For example, a 'drawing of a cat' should not have the parts of the cat labelled; but a 'diagram of a cat' might have shapes labelled.
 	- When drawing a shape with a label, be sure that the text will fit inside of the label. Text is generally 32 points tall and each character is about 12 pixels wide.
-	- Text shapes are 32 points tall. Their width will auto adjust based on the text content. Refer to the image provided to see how much space is actually taken up by the text.
+	- Text shapes can be one of 4 sizes, \`s\`, \`m\`, \`l\`, \`xl\`. These are 24, 32, 48, and 56 points tall, respectively. The default size is \`s\` if you do not specify a size.
+	- THe width of text shapes will auto adjust based on the text content. Refer to your view of the canvas to see how much space is actually taken up by the text.
+	- Text shapes can be aligned horizontally, either \`start\`, \`middle\`, or \`end\`. The default alignment is \`start\` if you do not specify an alignment.
+		- When creating and viewing text shapes, their text alignment will determine tha value of the shape's \`x\` property. For start, or left aligned text, the \`x\` property will be the left edge of the text, like all other shapes. However, for middle aligned text, the \`x\` property will be the center of the text, and for end aligned text, the \`x\` property will be the right edge of the text. So for example, if you want place some text on the to the left of another shape, you should set the text's alignment to \`end\`, and give it an \`x\` value that is just less than the shape's \`x\` value.
+		- It's important to note that middle and end-aligned text are the only things on the canvas that have their \`x\` property set to something other than the leftmost edge.
 	- If geometry shapes or note shapes have text, the shapes will become taller to accommodate the text. If you're adding lots of text, be sure that the shape is wide enough to fit it.
 	- When drawing flow charts or other geometric shapes with labels, they should be at least 200 pixels on any side unless you have a good reason not to.
 - Colors
