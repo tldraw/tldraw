@@ -1,14 +1,65 @@
 # tldraw agent chat
 
-This repo is a starter for projects that want to create an agentic chat with the [tldraw ai module](https://github.com/tldraw/tldraw/tree/main/packages/ai).
+This repo is a starter for building an agentic chat with tldraw.
 
-To use:
+## How to run the starter
 
 1. Create a `.dev.vars` file in the root directory.
-2. Add your OpenAI key to that file as an environment variable, i.e. `OPENAI_API_KEY=sk-your-key`.
+2. Add API keys for any providers that you want to use, e.g. `OPENAI_API_KEY=your-key`, `ANTHROPIC_API_KEY=your-key`, `GOOGLE_API_KEY=your-key`.
 3. Install dependencies with `pnpm i`
 4. Run `pnpm run dev`
 5. Open `http://localhost:5173/` in your browser.
+
+TODO: Add a note on the main entry point (`useTldrawAgent`).
+
+## How to change what the agent can do
+
+TODO
+
+ie: Using agent action utils
+
+eg: Editing the canvas
+
+## How to change how actions appear in chat history
+
+TODO
+
+- Using agent action util methods
+  - Grouping actions
+- Using CSS
+
+## How to get the agent to schedule further work
+
+TODO
+
+## How to get the agent to use an external API
+
+TODO
+
+## How to get the agent to use MCP
+
+TODO
+
+## How to change what the model can see
+
+TODO
+
+ie: Using prompt part utils
+
+## How to change the system prompt
+
+TODO
+
+ie: Edit the system prompt part util
+
+## How to support custom shapes
+
+TODO
+
+ie: It should work out-of-the-box, but you can still add extra detail if you want.
+
+- Add a new agent action.
+- Add a custom shape to the schema.
 
 ## License
 
