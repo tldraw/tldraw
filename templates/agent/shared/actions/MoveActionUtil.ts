@@ -1,4 +1,4 @@
-import { TLShapeId } from 'tldraw'
+import { TLShapeId, Vec } from 'tldraw'
 import z from 'zod'
 import { AgentTransform, ensureValueIsNumber } from '../AgentTransform'
 import { Streaming } from '../types/Streaming'
@@ -53,13 +53,26 @@ export class MoveActionUtil extends AgentActionUtil<IMoveAction> {
 
 		const shapeId = `shape:${action.shapeId}` as TLShapeId
 		const shape = editor.getShape(shapeId)
-
 		if (!shape) return
+
+		const shapeBounds = editor.getShapePageBounds(shapeId)
+		if (!shapeBounds) return
+
+		const { x: targetX, y: targetY } = action
+
+		const moveTarget: Vec = new Vec(targetX, targetY)
+		const shapeBoundsOrigin: Vec = new Vec(shapeBounds.minX, shapeBounds.minY)
+		const shapeTrueOrigin: Vec = new Vec(shape.x, shape.y)
+
+		const shapeOriginDelta = shapeTrueOrigin.sub(shapeBoundsOrigin)
+
+		const newTarget = moveTarget.add(shapeOriginDelta)
+
 		editor.updateShape({
 			id: shapeId,
 			type: shape.type,
-			x: action.x,
-			y: action.y,
+			x: newTarget.x,
+			y: newTarget.y,
 		})
 	}
 }
