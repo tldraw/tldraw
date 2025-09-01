@@ -1,6 +1,6 @@
 import { useEffect, useRef } from 'react'
-import { Editor, useValue } from 'tldraw'
-import { TLAgent } from '../../ai/useTldrawAgent'
+import { useValue } from 'tldraw'
+import { TldrawAgent } from '../../agent/TldrawAgent'
 import { $chatHistoryItems } from '../../atoms/chatHistoryItems'
 import { ChatHistorySection, getAgentHistorySections } from './ChatHistorySection'
 
@@ -32,12 +32,10 @@ Here's an example of how the UI might look:
 */
 
 export function ChatHistory({
-	editor,
 	agent,
 	isGenerating,
 }: {
-	editor: Editor
-	agent: TLAgent
+	agent: TldrawAgent
 	isGenerating: boolean
 }) {
 	const items = useValue($chatHistoryItems)
@@ -89,7 +87,6 @@ export function ChatHistory({
 						key={'history-section-' + i}
 						section={section}
 						agent={agent}
-						editor={editor}
 						isGenerating={isGenerating}
 					/>
 				)

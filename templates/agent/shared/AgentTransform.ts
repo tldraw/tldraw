@@ -1,4 +1,5 @@
 import { BoxModel, Editor, TLShapeId, VecModel } from 'tldraw'
+import { TldrawAgent } from '../client/agent/TldrawAgent'
 import { ISimpleFill, SimpleFill } from './format/SimpleFill'
 import { ISimpleShape } from './format/SimpleShape'
 
@@ -6,7 +7,10 @@ import { ISimpleShape } from './format/SimpleShape'
  * A class that helps to transform events received from the model.
  */
 export class AgentTransform {
-	constructor(public editor: Editor) {}
+	constructor(
+		public editor: Editor,
+		public agent: TldrawAgent
+	) {}
 
 	/**
 	 * A map of shape ids that have been transformed.

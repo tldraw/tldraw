@@ -1,44 +1,34 @@
-import { Editor } from 'tldraw'
 import {
 	IChatHistoryActionItem,
 	IChatHistoryItem,
 	IChatHistoryPromptItem,
 } from '../../../shared/types/ChatHistoryItem'
-import { TLAgent } from '../../ai/useTldrawAgent'
+import { TldrawAgent } from '../../agent/TldrawAgent'
 import { SmallSpinner } from '../icons/SmallSpinner'
 import { ChatHistoryGroup, getActionHistoryGroups } from './ChatHistoryGroup'
 import { ChatHistoryPrompt } from './ChatHistoryPrompt'
 
 export interface IChatHistorySection {
 	prompt: IChatHistoryPromptItem
-	events: IChatHistoryActionItem[]
+	actions: IChatHistoryActionItem[]
 	isFinalSection: boolean
 }
 
 export function ChatHistorySection({
 	section,
 	agent,
-	editor,
 	isGenerating,
 }: {
 	section: IChatHistorySection
-	agent: TLAgent
-	editor: Editor
+	agent: TldrawAgent
 	isGenerating: boolean
 }) {
-	const groups = getActionHistoryGroups(section.events, agent)
+	const groups = getActionHistoryGroups(section.actions, agent)
 	return (
 		<div className="chat-history-section">
-			<ChatHistoryPrompt item={section.prompt} editor={editor} />
+			<ChatHistoryPrompt item={section.prompt} editor={agent.editor} />
 			{groups.map((group, i) => {
-				return (
-					<ChatHistoryGroup
-						key={'chat-history-group-' + i}
-						group={group}
-						editor={editor}
-						agent={agent}
-					/>
-				)
+				return <ChatHistoryGroup key={'chat-history-group-' + i} group={group} agent={agent} />
 			})}
 			{section.isFinalSection && isGenerating && <SmallSpinner />}
 		</div>
@@ -50,11 +40,11 @@ export function getAgentHistorySections(items: IChatHistoryItem[]): IChatHistory
 
 	for (const item of items) {
 		if (item.type === 'prompt') {
-			sections.push({ prompt: item, events: [], isFinalSection: false })
+			sections.push({ prompt: item, actions: [], isFinalSection: false })
 			continue
 		}
 
-		sections[sections.length - 1].events.push(item)
+		sections[sections.length - 1].actions.push(item)
 	}
 
 	if (sections.length > 0) {

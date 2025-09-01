@@ -1,7 +1,7 @@
 import { TLAiChange } from '@tldraw/ai'
 import { Editor, IndexKey, TLShapeId, toRichText } from 'tldraw'
 import z from 'zod'
-import { applyAiChange } from '../../client/ai/applyAiChange'
+import { applyAiChange } from '../../client/agent/applyAiChange'
 import { AgentTransform } from '../AgentTransform'
 import { asColor } from '../format/SimpleColor'
 import { convertSimpleFillToTldrawFill } from '../format/SimpleFill'

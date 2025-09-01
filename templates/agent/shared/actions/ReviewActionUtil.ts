@@ -45,15 +45,15 @@ export class ReviewActionUtil extends AgentActionUtil<IReviewAction> {
 	override applyAction(
 		action: Streaming<IReviewAction>,
 		transform: AgentTransform,
-		originalRequest: AgentRequest
+		request: AgentRequest
 	) {
 		if (!action.complete) return
 
 		const reviewBounds = {
-			x: action.x ?? originalRequest.bounds.x,
-			y: action.y ?? originalRequest.bounds.y,
-			w: action.w ?? originalRequest.bounds.w,
-			h: action.h ?? originalRequest.bounds.h,
+			x: action.x ?? request.bounds.x,
+			y: action.y ?? request.bounds.y,
+			w: action.w ?? request.bounds.w,
+			h: action.h ?? request.bounds.h,
 		}
 
 		const contextArea: IAreaContextItem = {
@@ -63,26 +63,26 @@ export class ReviewActionUtil extends AgentActionUtil<IReviewAction> {
 		}
 
 		$scheduledRequest.update((prev) => {
-			const request = prev ?? {
+			const newRequest = prev ?? {
 				message: '',
 				contextItems: [],
-				bounds: originalRequest.bounds,
-				modelName: originalRequest.modelName,
+				bounds: request.bounds,
+				modelName: request.modelName,
 				type: 'review',
 			}
 
 			// If the review bounds go outside the request bounds, grow the request bounds to include the review bounds
 			const reviewBoundsBox = Box.From(reviewBounds)
-			const requestBoundsBox = Box.From(request.bounds)
+			const requestBoundsBox = Box.From(newRequest.bounds)
 			const boundsContainReviewBounds = requestBoundsBox.contains(reviewBoundsBox)
 			if (!boundsContainReviewBounds) {
-				request.bounds = requestBoundsBox.union(reviewBoundsBox).toJson()
+				newRequest.bounds = requestBoundsBox.union(reviewBoundsBox).toJson()
 			}
 
 			return {
-				...request,
-				message: request.message ? `${request.message}\n\n${action.intent}` : action.intent,
-				contextItems: [...(request.contextItems ?? []), contextArea],
+				...newRequest,
+				message: newRequest.message ? `${newRequest.message}\n\n${action.intent}` : action.intent,
+				contextItems: [...(newRequest.contextItems ?? []), contextArea],
 			}
 		})
 	}

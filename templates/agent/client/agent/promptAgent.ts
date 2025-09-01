@@ -1,4 +1,4 @@
-import { Editor, RecordsDiff, reverseRecordsDiff, structuredClone, TLRecord } from 'tldraw'
+import { RecordsDiff, reverseRecordsDiff, structuredClone, TLRecord } from 'tldraw'
 import { AgentActionUtil } from '../../shared/actions/AgentActionUtil'
 import { AgentTransform } from '../../shared/AgentTransform'
 import { PromptPartUtil } from '../../shared/parts/PromptPartUtil'
@@ -9,6 +9,7 @@ import { PromptPart } from '../../shared/types/PromptPart'
 import { $chatHistoryItems } from '../atoms/chatHistoryItems'
 import { preparePrompt } from './preparePrompt'
 import { streamAgent } from './streamAgent'
+import { TldrawAgent } from './TldrawAgent'
 
 /**
  * Prompt the agent with a request. The agent's response will be streamed back
@@ -17,22 +18,23 @@ import { streamAgent } from './streamAgent'
  * @returns A promise that resolves when the prompt is complete and a cancel function to abort the request.
  */
 export function promptAgent({
-	editor,
+	agent,
 	agentActionsUtils,
 	promptPartUtils,
 	request,
 	onError,
 }: {
-	editor: Editor
+	agent: TldrawAgent
 	agentActionsUtils: Record<AgentAction['_type'], AgentActionUtil<AgentAction>>
 	promptPartUtils: Record<PromptPart['type'], PromptPartUtil<PromptPart>>
 	request: AgentRequest
 	onError: (e: any) => void
 }) {
+	const { editor } = agent
 	let cancelled = false
 	const controller = new AbortController()
 	const signal = controller.signal
-	const transform = new AgentTransform(editor)
+	const transform = new AgentTransform(editor, agent)
 
 	const promise = new Promise<void>((resolve) => {
 		preparePrompt({ editor, request, transform, promptPartUtils }).then(async (prompt) => {

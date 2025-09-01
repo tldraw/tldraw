@@ -1,6 +1,6 @@
-import { Editor, isRecordsDiffEmpty } from 'tldraw'
+import { isRecordsDiffEmpty } from 'tldraw'
 import { IChatHistoryActionItem } from '../../../shared/types/ChatHistoryItem'
-import { TLAgent } from '../../ai/useTldrawAgent'
+import { TldrawAgent } from '../../agent/TldrawAgent'
 import { ChatHistoryGroupWithDiff } from './ChatHistoryGroupWithDiff'
 import { ChatHistoryGroupWithoutDiff } from './ChatHistoryGroupWithoutDiff'
 import { getActionInfo } from './getActionInfo'
@@ -12,15 +12,13 @@ export interface IChatHistoryGroup {
 
 export function ChatHistoryGroup({
 	group,
-	editor,
 	agent,
 }: {
 	group: IChatHistoryGroup
-	editor: Editor
-	agent: TLAgent
+	agent: TldrawAgent
 }) {
 	if (group.withDiff) {
-		return <ChatHistoryGroupWithDiff group={group} agent={agent} editor={editor} />
+		return <ChatHistoryGroupWithDiff group={group} agent={agent} />
 	}
 
 	return <ChatHistoryGroupWithoutDiff group={group} agent={agent} />
@@ -31,7 +29,7 @@ export function ChatHistoryGroup({
  */
 export function getActionHistoryGroups(
 	items: IChatHistoryActionItem[],
-	agent: TLAgent
+	agent: TldrawAgent
 ): IChatHistoryGroup[] {
 	const groups: IChatHistoryGroup[] = []
 
@@ -65,7 +63,7 @@ export function canActionBeGrouped({
 }: {
 	item: IChatHistoryActionItem
 	group: IChatHistoryGroup
-	agent: TLAgent
+	agent: TldrawAgent
 }) {
 	if (!item.action.complete) return false
 	if (!group) return false

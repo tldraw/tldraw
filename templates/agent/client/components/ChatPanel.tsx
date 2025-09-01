@@ -3,8 +3,8 @@ import { Editor, useToasts, useValue } from 'tldraw'
 import { convertTldrawShapeToSimpleShape } from '../../shared/format/SimpleShape'
 import { AgentRequest } from '../../shared/types/AgentRequest'
 import { IChatHistoryItem } from '../../shared/types/ChatHistoryItem'
-import { advanceSchedule } from '../ai/advanceSchedule'
-import { useTldrawAgent } from '../ai/useTldrawAgent'
+import { advanceSchedule } from '../agent/advanceSchedule'
+import { useTldrawAgent } from '../agent/useTldrawAgent'
 import { $agentViewportBoundsHighlight } from '../atoms/agentViewportBoundsHighlight'
 import { $chatHistoryItems } from '../atoms/chatHistoryItems'
 import { $contextItems, $pendingContextItems } from '../atoms/contextItems'
@@ -136,7 +136,7 @@ export function ChatPanel({ editor }: { editor: Editor }) {
 			<div className="chat-header">
 				<NewChatButton />
 			</div>
-			<ChatHistory editor={editor} agent={agent} isGenerating={isGenerating} />
+			<ChatHistory agent={agent} isGenerating={isGenerating} />
 			<TodoList />
 			<ChatInput
 				handleSubmit={handleSubmit}

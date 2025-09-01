@@ -41,21 +41,20 @@ export class SetMyViewActionUtil extends AgentActionUtil<ISetMyViewAction> {
 	override applyAction(
 		action: Streaming<ISetMyViewAction>,
 		transform: AgentTransform,
-		originalRequest: AgentRequest
+		request: AgentRequest
 	) {
 		if (!action.complete) return
 
 		$scheduledRequest.update((prev) => {
-			const request = prev ?? {
+			const newRequest = prev ?? {
 				message: '',
 				contextItems: [],
-				bounds: originalRequest.bounds,
-				modelName: originalRequest.modelName,
+				modelName: request.modelName,
 				type: 'setMyView',
 			}
 
 			return {
-				...request,
+				...newRequest,
 				bounds: {
 					x: action.x,
 					y: action.y,

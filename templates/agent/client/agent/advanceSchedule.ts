@@ -3,14 +3,14 @@ import { $agentViewportBoundsHighlight } from '../atoms/agentViewportBoundsHighl
 import { $pendingContextItems } from '../atoms/contextItems'
 import { $scheduledRequest } from '../atoms/scheduledRequest'
 import { $todoItems } from '../atoms/todoItems'
-import { TLAgent } from './useTldrawAgent'
+import { TldrawAgent } from './TldrawAgent'
 
 export function advanceSchedule({
 	agent,
 	request,
 	onError,
 }: {
-	agent: TLAgent
+	agent: TldrawAgent
 	request: AgentRequest
 	onError: (e: any) => void
 }) {
