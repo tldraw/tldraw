@@ -679,7 +679,7 @@ button.prompt-tag span {
 	background-color: var(--tl-color-panel);
 	border-radius: 12px 12px 0px 0px;
 	padding: 4px;
-	padding-top: 6px;
+	padding-top: 8px;
 	padding-bottom: 0px;
 	box-shadow: var(--tl-shadow-1);
 	border: 1px solid var(--tl-color-muted-2);
