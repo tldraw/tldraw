@@ -126,15 +126,6 @@ export function createRecordType<R extends UnknownRecord>(typeName: R['typeName'
     validator?: StoreValidator<R>;
 }): RecordType<R, keyof Omit<R, 'id' | 'typeName'>>;
 
-// @public @deprecated (undocumented)
-export function defineMigrations(opts: {
-    currentVersion?: number;
-    firstVersion?: number;
-    migrators?: Record<number, LegacyMigration>;
-    subTypeKey?: string;
-    subTypeMigrations?: Record<string, LegacyBaseMigrationsInfo>;
-}): LegacyMigrations;
-
 // @public
 export function devFreeze<T>(object: T): T;
 
@@ -570,7 +561,7 @@ export class StoreSchema<R extends UnknownRecord, P = unknown> {
     readonly migrations: Record<string, MigrationSequence>;
     // (undocumented)
     serialize(): SerializedSchemaV2;
-    // @deprecated (undocumented)
+    // @internal @deprecated (undocumented)
     serializeEarliestVersion(): SerializedSchema;
     // (undocumented)
     readonly sortedMigrations: readonly Migration[];

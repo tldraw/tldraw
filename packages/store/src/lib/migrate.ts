@@ -2,45 +2,6 @@ import { assert, objectMapEntries } from '@tldraw/utils'
 import { UnknownRecord } from './BaseRecord'
 import { SerializedStore } from './Store'
 
-let didWarn = false
-
-/**
- * @public
- * @deprecated use `createShapePropsMigrationSequence` instead. See [the docs](https://tldraw.dev/docs/persistence#Updating-legacy-shape-migrations-defineMigrations) for how to migrate.
- */
-export function defineMigrations(opts: {
-	firstVersion?: number
-	currentVersion?: number
-	migrators?: Record<number, LegacyMigration>
-	subTypeKey?: string
-	subTypeMigrations?: Record<string, LegacyBaseMigrationsInfo>
-}): LegacyMigrations {
-	const { currentVersion, firstVersion, migrators = {}, subTypeKey, subTypeMigrations } = opts
-	if (!didWarn) {
-		console.warn(
-			`The 'defineMigrations' function is deprecated and will be removed in a future release. Use the new migrations API instead. See the migration guide for more info: https://tldraw.dev/docs/persistence#Updating-legacy-shape-migrations-defineMigrations`
-		)
-		didWarn = true
-	}
-
-	// Some basic guards against impossible version combinations, some of which will be caught by TypeScript
-	if (typeof currentVersion === 'number' && typeof firstVersion === 'number') {
-		if ((currentVersion as number) === (firstVersion as number)) {
-			throw Error(`Current version is equal to initial version.`)
-		} else if (currentVersion < firstVersion) {
-			throw Error(`Current version is lower than initial version.`)
-		}
-	}
-
-	return {
-		firstVersion: (firstVersion as number) ?? 0, // defaults
-		currentVersion: (currentVersion as number) ?? 0, // defaults
-		migrators,
-		subTypeKey,
-		subTypeMigrations,
-	}
-}
-
 function squashDependsOn(sequence: Array<Migration | StandaloneDependsOn>): Migration[] {
 	const result: Migration[] = []
 	for (let i = sequence.length - 1; i >= 0; i--) {
