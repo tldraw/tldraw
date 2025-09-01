@@ -1731,6 +1731,8 @@ export abstract class Geometry2d {
     // @deprecated (undocumented)
     nearestPointOnLineSegment(A: VecLike, B: VecLike): Vec;
     // (undocumented)
+    overlapsPolygon(_polygon: VecLike[]): boolean;
+    // (undocumented)
     toSimpleSvgPath(): string;
     // (undocumented)
     transform(transform: MatModel, opts?: TransformedGeometry2dOptions): Geometry2d;
@@ -1892,6 +1894,8 @@ export class Group2d extends Geometry2d {
     intersectPolyline(polyline: VecLike[], filters?: Geometry2dFilters): VecLike[];
     // (undocumented)
     nearestPoint(point: VecLike, filters?: Geometry2dFilters): Vec;
+    // (undocumented)
+    overlapsPolygon(polygon: VecLike[]): boolean;
     // (undocumented)
     toSimpleSvgPath(): string;
     // (undocumented)
