@@ -97,14 +97,13 @@ body {
 	background-color: var(--tl-color-muted-2);
 }
 
-/* Chat Input Container */
+/* Chat Input */
 .chat-input-container {
 	display: flex;
 	flex-direction: column;
 	position: relative;
 }
 
-/* Chat Input */
 .chat-input {
 	padding: 0px 8px 8px 8px;
 	flex-shrink: 0;
@@ -314,8 +313,7 @@ body {
 /* Chat History */
 
 .chat-history {
-	padding: 16px;
-	padding-top: 0px;
+	padding: 0px 16px 32px 16px;
 	overflow-y: auto;
 	display: flex;
 	flex-direction: column;
