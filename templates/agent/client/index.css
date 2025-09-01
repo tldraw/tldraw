@@ -251,7 +251,8 @@ body {
 .chat-model-select-label {
 	display: flex;
 	align-items: center;
-	gap: 4px;
+	gap: 2px;
+	margin-left: -6px;
 }
 
 .chat-context-select {
@@ -282,10 +283,6 @@ body {
 	-moz-appearance: none;
 	appearance: none;
 	font-family: 'Inter', sans-serif;
-}
-
-.chat-model-select-label {
-	margin-left: -8px;
 }
 
 .chat-context-select select {
