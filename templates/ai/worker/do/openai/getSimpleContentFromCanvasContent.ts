@@ -21,12 +21,12 @@ export function getSimpleContentFromCanvasContent(content: TLAiContent): {
 					return {
 						shapeId: s.id,
 						type: 'text',
-						text: s.props.richText,
+						text: (s.meta.text as string) ?? '',
 						x: s.x,
 						y: s.y,
 						color: s.props.color,
 						textAlign: s.props.textAlign,
-						note: (s.meta?.description as string) ?? '',
+						note: (s.meta.description as string) ?? '',
 					}
 				}
 
@@ -42,8 +42,8 @@ export function getSimpleContentFromCanvasContent(content: TLAiContent): {
 							height: s.props.h,
 							color: s.props.color,
 							fill: shapeFillToSimpleFill(s.props.fill),
-							text: s.props.richText,
-							note: (s.meta?.description as string) ?? '',
+							text: (s.meta.text as string) ?? '',
+							note: (s.meta.description as string) ?? '',
 						}
 					}
 				}
@@ -61,7 +61,7 @@ export function getSimpleContentFromCanvasContent(content: TLAiContent): {
 						x2: points[1].x + s.x,
 						y2: points[1].y + s.y,
 						color: s.props.color,
-						note: (s.meta?.description as string) ?? '',
+						note: (s.meta.description as string) ?? '',
 					}
 				}
 
@@ -84,8 +84,8 @@ export function getSimpleContentFromCanvasContent(content: TLAiContent): {
 						x2: s.props.end.x,
 						y2: s.props.end.y,
 						color: s.props.color,
-						text: s.props.richText,
-						note: (s.meta?.description as string) ?? '',
+						text: (s.meta.text as string) ?? '',
+						note: (s.meta.description as string) ?? '',
 					}
 				}
 
@@ -97,8 +97,8 @@ export function getSimpleContentFromCanvasContent(content: TLAiContent): {
 						x: s.x,
 						y: s.y,
 						color: s.props.color,
-						text: s.props.richText,
-						note: (s.meta?.description as string) ?? '',
+						text: (s.meta.text as string) ?? '',
+						note: (s.meta.description as string) ?? '',
 					}
 				}
 
@@ -106,7 +106,7 @@ export function getSimpleContentFromCanvasContent(content: TLAiContent): {
 				return {
 					shapeId: shape.id,
 					type: 'unknown',
-					note: (shape.meta?.description as string) ?? '',
+					note: (shape.meta.description as string) ?? '',
 					x: shape.x,
 					y: shape.y,
 				}
