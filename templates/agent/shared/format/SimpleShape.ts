@@ -135,6 +135,28 @@ export const SimpleShape = z.union(SIMPLE_SHAPES)
 
 export type ISimpleShape = z.infer<typeof SimpleShape>
 
+// Extract all shape type names from the union
+export function getSimpleShapeTypeNames() {
+	const typeNames: ISimpleShape['_type'][] = []
+
+	for (const shapeSchema of SIMPLE_SHAPES) {
+		const typeField = shapeSchema.shape._type
+
+		if (typeField) {
+			// Handle ZodLiterals (like SimpleDrawShape)
+			if ('value' in typeField && typeof typeField.value === 'string') {
+				typeNames.push(typeField.value)
+			}
+			// Handle ZodEnums (like SimpleGeoShape)
+			else if ('options' in typeField && Array.isArray(typeField.options)) {
+				typeNames.push(...typeField.options)
+			}
+		}
+	}
+
+	return typeNames
+}
+
 // Main shape converter function
 export function convertTldrawShapeToSimpleShape(shape: TLShape, editor: Editor): ISimpleShape {
 	switch (shape.type) {

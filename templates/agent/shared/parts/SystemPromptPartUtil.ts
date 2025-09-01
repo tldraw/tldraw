@@ -1,4 +1,5 @@
 import { buildResponseJsonSchema } from '../../worker/prompt/buildResponseJsonSchema'
+import { getSimpleShapeTypeNames } from '../format/SimpleShape'
 import { BasePromptPart } from '../types/BasePromptPart'
 import { PromptPartUtil } from './PromptPartUtil'
 
@@ -12,56 +13,13 @@ export class SystemPromptPartUtil extends PromptPartUtil<SystemPromptPart> {
 	}
 
 	override buildSystemMessage(_part: SystemPromptPart) {
-		const systemPromptModifiers: string[] = []
-
-		// TODO: Restore custom system prompt modifiers
-		// if there are user selected shapes add that to the system prompt modifiers
-		// const userSelectedShapes: ISimpleShape[] | undefined = prompt.userSelectedShapes
-		// if (userSelectedShapes && userSelectedShapes.length > 0) {
-		// 	systemPromptModifiers.push('user_selection')
-		// }
-
-		// // if there are arrows in the shapes on screen, add that to the system prompt modifiers
-		// const blurryFormat: BlurryShape[] | undefined = prompt.blurryFormat
-		// if (blurryFormat && blurryFormat.length > 0) {
-		// 	if (blurryFormat.some((shape) => shape.type === 'arrow')) {
-		// 		systemPromptModifiers.push('contains_arrows')
-		// 	}
-		// }
-
-		return getSystemPrompt(systemPromptModifiers)
+		return getSystemPrompt()
 	}
 }
 
-const shapeTypeNames = [
-	'rectangle',
-	'ellipse',
-	'triangle',
-	'diamond',
-	'hexagon',
-	'oval',
-	'cloud',
-	'line',
-	'pentagon',
-	'octagon',
-	'star',
-	'rhombus',
-	'rhombus-2',
-	'trapezoid',
-	'arrow-right',
-	'arrow-left',
-	'arrow-up',
-	'arrow-down',
-	'x-box',
-	'text',
-	'arrow',
-	'note',
-	'check-box',
-	'heart',
-	'pen',
-]
+const shapeTypeNames = getSimpleShapeTypeNames()
 
-function getSystemPrompt(modifiers: string[]) {
+function getSystemPrompt() {
 	return `# System Prompt
 
 You are an AI agent that helps the user use a drawing / diagramming / whiteboarding program. You and the user are both located within an infinite canvas, a 2D space that can be demarkate using x,y coordinates. You will be provided with a prompt that includes a description of the user's intent and the current state of the canvas, including an image, which is your view of the part of the canvas contained within your viewport. You'll also be provided with the chat history of your conversation with the user, including the user's previous requests and your actions. Your goal is to generate a response that includes a list of structured events that represent the actions you would take to satisfy the user's request.
@@ -149,12 +107,7 @@ Refer to the JSON schema for the full list of available events, their properties
 	- Always ensure they are properly connected with bindings.
 	- You can make the arrow curved by using the "bend" property. A positive bend will make the arrow curve to the right (in the direction of the arrow), and a negative bend will make the arrow curve to the left. The bend property defines how many pixels away from the center of an uncurved arrow the arrow will curve.
 	- Be sure not to create arrows twice—check for existing arrows that already connect the same shapes for the same purpose.
-${
-	modifiers.includes('contains_arrows')
-		? `
-	- Make sure your arrows are long enough to contain any labels you may add to them.`
-		: ''
-}
+	- Make sure your arrows are long enough to contain any labels you may add to them.
 - Labels and text
 	- Be careful with labels. Did the user ask for labels on their shapes? Did the user ask for a format where labels would be appropriate? If yes, add labels to shapes. If not, do not add labels to shapes. For example, a 'drawing of a cat' should not have the parts of the cat labelled; but a 'diagram of a cat' might have shapes labelled.
 	- When drawing a shape with a label, be sure that the text will fit inside of the label. Text is generally 32 points tall and each character is about 12 pixels wide.
@@ -179,13 +132,7 @@ ${
 - If the canvas is empty, place your shapes in the center of the viewport. A general good size for your content is 80% of the viewport tall.
 - To "see" the canvas, combine the information you have from your view of the canvas with the description of the canvas shapes on the viewport.
 - Carefully plan which event types to use. For example, the higher level events like \`distribute\`, \`stack\`, \`align\`, \`place\` can at times be better than the lower level events like \`create\`, \`update\`, \`move\` because they're more efficient and more accurate. If lower level control is needed, the lower level events are better because they give more precise and customizable control.
-${
-	modifiers.includes('user_selection')
-		? `
-- The user has selected shape(s). If they refer to 'this', or 'these' in their request, they are probably referring to the selected shapes.
-`
-		: ''
-}
+- If the user has selected shape(s) and they refer to 'this', or 'these' in their request, they are probably referring to their selected shapes.
 
 ### Navigating the canvas
 
