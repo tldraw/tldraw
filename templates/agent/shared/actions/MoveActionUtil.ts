@@ -58,14 +58,11 @@ export class MoveActionUtil extends AgentActionUtil<IMoveAction> {
 		const shapeBounds = editor.getShapePageBounds(shapeId)
 		if (!shapeBounds) return
 
-		const { x: targetX, y: targetY } = action
+		const moveTarget = new Vec(action.x, action.y)
+		const shapeOrigin = new Vec(shape.x, shape.y)
+		const shapeBoundsOrigin = new Vec(shapeBounds.minX, shapeBounds.minY)
 
-		const moveTarget: Vec = new Vec(targetX, targetY)
-		const shapeBoundsOrigin: Vec = new Vec(shapeBounds.minX, shapeBounds.minY)
-		const shapeTrueOrigin: Vec = new Vec(shape.x, shape.y)
-
-		const shapeOriginDelta = shapeTrueOrigin.sub(shapeBoundsOrigin)
-
+		const shapeOriginDelta = shapeOrigin.sub(shapeBoundsOrigin)
 		const newTarget = moveTarget.add(shapeOriginDelta)
 
 		editor.updateShape({
