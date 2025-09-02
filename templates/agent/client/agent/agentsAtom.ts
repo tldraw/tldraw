@@ -6,4 +6,4 @@ import { TldrawAgent } from './TldrawAgent'
  * More than one agent can be associated with an editor.
  * This starter doesn't take advantage of this, but you could.
  */
-export const agentsAtom = new EditorAtom<TldrawAgent[]>('agent', () => [])
+export const $agentsAtom = new EditorAtom<TldrawAgent[]>('agents', () => [])

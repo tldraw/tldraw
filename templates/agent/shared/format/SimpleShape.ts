@@ -7,6 +7,7 @@ import {
 	TLLineShape,
 	TLNoteShape,
 	TLShape,
+	TLShapeId,
 	TLTextShape,
 } from 'tldraw'
 import { z } from 'zod'
@@ -138,7 +139,9 @@ export const SimpleShape = z.union(SIMPLE_SHAPES)
 
 export type ISimpleShape = z.infer<typeof SimpleShape>
 
-// Extract all shape type names from the union
+/**
+ * Extract all shape type names from the schema
+ */
 export function getSimpleShapeTypeNames() {
 	const typeNames: ISimpleShape['_type'][] = []
 
@@ -160,7 +163,9 @@ export function getSimpleShapeTypeNames() {
 	return typeNames
 }
 
-// Main shape converter function
+/**
+ * Convert a tldraw shape to a simple shape
+ */
 export function convertTldrawShapeToSimpleShape(shape: TLShape, editor: Editor): ISimpleShape {
 	switch (shape.type) {
 		case 'text':
@@ -180,14 +185,21 @@ export function convertTldrawShapeToSimpleShape(shape: TLShape, editor: Editor):
 	}
 }
 
-// Individual shape converter functions
+export function convertTldrawShapeIdToSimpleShapeId(id: TLShapeId): string {
+	return id.slice('shape:'.length)
+}
+
+export function convertSimpleShapeIdToTldrawShapeId(id: string): TLShapeId {
+	return ('shape:' + id) as TLShapeId
+}
+
 function convertDrawShape(shape: TLDrawShape): ISimpleDrawShape {
 	return {
 		_type: 'draw',
 		color: shape.props.color,
 		fill: convertTldrawFillToSimpleFill(shape.props.fill),
 		note: (shape.meta?.note as string) ?? '',
-		shapeId: shape.id.slice('shape:'.length),
+		shapeId: convertTldrawShapeIdToSimpleShapeId(shape.id),
 	}
 }
 
@@ -218,7 +230,7 @@ function convertTextShape(shape: TLTextShape, editor: Editor): ISimpleTextShape 
 		color: shape.props.color,
 		fontSize: convertTldrawFontSizeAndScaleToSimpleFontSize(textSize, shape.props.scale),
 		note: (shape.meta?.note as string) ?? '',
-		shapeId: shape.id.slice('shape:'.length),
+		shapeId: convertTldrawShapeIdToSimpleShapeId(shape.id),
 		text: text,
 		textAlign: shape.props.textAlign,
 		x: anchorX,
@@ -253,7 +265,7 @@ function convertGeoShape(shape: TLGeoShape, editor: Editor): ISimpleGeoShape {
 		fill: convertTldrawFillToSimpleFill(shape.props.fill),
 		h: shape.props.h,
 		note: (shape.meta?.note as string) ?? '',
-		shapeId: shape.id.slice('shape:'.length),
+		shapeId: convertTldrawShapeIdToSimpleShapeId(shape.id),
 		text: text ?? '',
 		textAlign: newTextAlign,
 		w: shape.props.w,
@@ -268,7 +280,7 @@ function convertLineShape(shape: TLLineShape): ISimpleLineShape {
 		_type: 'line',
 		color: shape.props.color,
 		note: (shape.meta?.note as string) ?? '',
-		shapeId: shape.id.slice('shape:'.length),
+		shapeId: convertTldrawShapeIdToSimpleShapeId(shape.id),
 		x1: points[0].x + shape.x,
 		x2: points[1].x + shape.x,
 		y1: points[0].y + shape.y,
@@ -290,7 +302,7 @@ function convertArrowShape(shape: TLArrowShape, editor: Editor): ISimpleArrowSha
 		color: shape.props.color,
 		fromId: startBinding?.toId ?? null,
 		note: (shape.meta?.note as string) ?? '',
-		shapeId: shape.id.slice('shape:'.length),
+		shapeId: convertTldrawShapeIdToSimpleShapeId(shape.id),
 		text: (shape.meta?.text as string) ?? '',
 		toId: endBinding?.toId ?? null,
 		x1: shape.props.start.x + shape.x,
@@ -307,7 +319,7 @@ function convertNoteShape(shape: TLNoteShape, editor: Editor): ISimpleNoteShape 
 		_type: 'note',
 		color: shape.props.color,
 		note: (shape.meta?.note as string) ?? '',
-		shapeId: shape.id.slice('shape:'.length),
+		shapeId: convertTldrawShapeIdToSimpleShapeId(shape.id),
 		text: text ?? '',
 		x: shape.x,
 		y: shape.y,
@@ -318,7 +330,7 @@ function convertUnknownShape(shape: TLShape): ISimpleUnknownShape {
 	return {
 		_type: 'unknown',
 		note: (shape.meta?.note as string) ?? '',
-		shapeId: shape.id.slice('shape:'.length),
+		shapeId: convertTldrawShapeIdToSimpleShapeId(shape.id),
 		subType: shape.type,
 		x: shape.x,
 		y: shape.y,

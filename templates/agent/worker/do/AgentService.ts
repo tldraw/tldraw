@@ -59,13 +59,14 @@ async function* streamEventsVercel(
 	const messages = buildMessages(prompt)
 	const systemPrompt = buildSystemPrompt(prompt)
 
-	yield {
-		_type: 'debug',
-		complete: true,
-		label: 'SYSTEM',
-		data: { system: systemPrompt },
-		time: 0,
-	}
+	// Uncomment this to log the system prompt in the browser console.
+	// yield {
+	// 	_type: 'debug',
+	// 	complete: true,
+	// 	label: 'SYSTEM',
+	// 	data: { system: systemPrompt },
+	// 	time: 0,
+	// }
 
 	try {
 		messages.push({
@@ -92,13 +93,14 @@ async function* streamEventsVercel(
 			},
 		})
 
-		yield {
-			_type: 'debug',
-			complete: true,
-			label: 'MESSAGES',
-			data: messages,
-			time: 0,
-		}
+		// Uncomment this to log built messages in the browser console.
+		// yield {
+		// 	_type: 'debug',
+		// 	complete: true,
+		// 	label: 'MESSAGES',
+		// 	data: messages,
+		// 	time: 0,
+		// }
 
 		const canForceResponseStart =
 			model.provider === 'anthropic.messages' || model.provider === 'google.generative-ai'

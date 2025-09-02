@@ -213,10 +213,6 @@ export function ensureValueIsBoolean(value: any): boolean | null {
 	return null
 }
 
-export function removeShapeIdPrefix(id: TLShapeId): string {
-	return id.slice('shape:'.length)
-}
-
 export function ensureValueIsSimpleFill(value: any): ISimpleFill | null {
 	if (SimpleFill.safeParse(value).success) {
 		return value as ISimpleFill

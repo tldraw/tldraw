@@ -9,7 +9,7 @@ import { IContextItem } from '../../shared/types/ContextItem'
 import { PromptPart } from '../../shared/types/PromptPart'
 import { TodoItem } from '../../shared/types/TodoItem'
 import { AgentModelName, DEFAULT_MODEL_NAME } from '../../worker/models'
-import { agentsAtom } from './agentsAtom'
+import { $agentsAtom } from './agentsAtom'
 import { areContextItemsEqual } from './areContextItemsEqual'
 import { dedupeShapesContextItem } from './dedupeShapesContextItem'
 import { persistAtomInLocalStorage } from './persistAtomInLocalStorage'
@@ -18,8 +18,8 @@ import { promptAgent } from './promptAgent'
 export interface TldrawAgentOptions {
 	/** The editor to associate the agent with. */
 	editor: Editor
-	/** A key used to persist the agent's state to local storage. */
-	persistenceKey: string
+	/** A key used to differentiate the agent from other agents. */
+	key: string
 	/** A callback for when an error occurs. */
 	onError: (e: any) => void
 }
@@ -64,6 +64,11 @@ export class TldrawAgent {
 	$chatHistory = atom<IChatHistoryItem[]>('chatHistory', [])
 
 	/**
+	 * An atom that's used to store document changes made by the user since the previous request.
+	 */
+	$userActionHistory = atom<RecordsDiff<TLRecord>[]>('userActionHistory', [])
+
+	/**
 	 * An atom containing currently selected context items.
 	 * By default, selected context items will be included in the agent's next request.
 	 */
@@ -76,24 +81,25 @@ export class TldrawAgent {
 	 */
 	$modelName = atom<AgentModelName>('modelName', DEFAULT_MODEL_NAME)
 
-	/** An atom that is used to store document changes that the user makes. */
-	$userActionsHistory = atom<RecordsDiff<TLRecord>[]>('userActionsHistory', [])
-
-	/** Create a new tldraw agent. */
-	constructor({ editor, persistenceKey, onError }: TldrawAgentOptions) {
+	/**
+	 * Create a new tldraw agent.
+	 */
+	constructor({ editor, key, onError }: TldrawAgentOptions) {
 		this.editor = editor
 		this.onError = onError
 
-		agentsAtom.update(editor, (agents) => [...agents, this])
+		$agentsAtom.update(editor, (agents) => [...agents, this])
 
 		this.agentActionUtilsRecord = getAgentActionUtilsRecord()
 		this.promptPartUtilsRecord = getPromptPartUtilsRecord()
 		this.unknownActionUtil = this.agentActionUtilsRecord.unknown
 
-		persistAtomInLocalStorage(this.$chatHistory, `${persistenceKey}:chat-history-items`)
-		persistAtomInLocalStorage(this.$todoList, `${persistenceKey}:todo-items`)
-		persistAtomInLocalStorage(this.$contextItems, `${persistenceKey}:context-items`)
-		persistAtomInLocalStorage(this.$modelName, `${persistenceKey}:model-name`)
+		persistAtomInLocalStorage(this.$chatHistory, `${key}:chat-history-items`)
+		persistAtomInLocalStorage(this.$todoList, `${key}:todo-items`)
+		persistAtomInLocalStorage(this.$contextItems, `${key}:context-items`)
+		persistAtomInLocalStorage(this.$modelName, `${key}:model-name`)
+
+		this.stopRecordingFn = this.startRecordingDocumentChanges()
 	}
 
 	/**
@@ -101,7 +107,8 @@ export class TldrawAgent {
 	 */
 	dispose() {
 		this.cancel()
-		agentsAtom.update(this.editor, (agents) => agents.filter((agent) => agent !== this))
+		$agentsAtom.update(this.editor, (agents) => agents.filter((agent) => agent !== this))
+		this.stopRecordingDocumentChanges()
 	}
 
 	/**
@@ -212,6 +219,11 @@ export class TldrawAgent {
 	private cancelFn: (() => void) | null = null
 
 	/**
+	 * A function that stops recording document changes.
+	 */
+	private stopRecordingFn: () => void
+
+	/**
 	 * Cancel the agent's current prompt, if one is active.
 	 */
 	cancel() {
@@ -245,13 +257,21 @@ export class TldrawAgent {
 	 */
 	startRecordingDocumentChanges() {
 		const cleanUp = this.editor.store.listen(
-			(change) => {
-				this.$userActionsHistory.update((prev) => [...prev, change.changes])
+			(entry) => {
+				console.log('ENTRY: ', entry)
+				this.$userActionHistory.update((prev) => [...prev, entry.changes])
 			},
 			{ scope: 'document', source: 'user' }
 		)
 
 		return cleanUp
+	}
+
+	/**
+	 * Stop recording document changes.
+	 */
+	stopRecordingDocumentChanges() {
+		this.stopRecordingFn?.()
 	}
 
 	/**

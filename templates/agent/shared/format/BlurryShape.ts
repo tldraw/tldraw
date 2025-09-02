@@ -1,7 +1,6 @@
 import { BoxModel, Editor, TLDefaultShape, TLShape } from 'tldraw'
-import { removeShapeIdPrefix } from '../AgentTransform'
 import { convertTldrawGeoShapeGeoStyleOrUnknownToSimpleGeoShapeTypeIfNeeded } from './SimpleGeoShapeType'
-import { ISimpleShape } from './SimpleShape'
+import { convertTldrawShapeIdToSimpleShapeId, ISimpleShape } from './SimpleShape'
 
 export type BlurryShape = BoxModel & {
 	type: ISimpleShape['_type']
@@ -30,7 +29,7 @@ export function convertTldrawShapeToBlurryShape(
 		w: Math.round(bounds.w),
 		h: Math.round(bounds.h),
 		type: shapeType as ISimpleShape['_type'],
-		shapeId: removeShapeIdPrefix(shape.id),
+		shapeId: convertTldrawShapeIdToSimpleShapeId(shape.id),
 		text,
 	}
 }

@@ -1,22 +1,25 @@
-import { isEqual, RecordsDiff, squashRecordDiffs, TLRecord, TLShape } from 'tldraw'
+import { squashRecordDiffs } from 'tldraw'
 import { TldrawAgent } from '../../client/agent/TldrawAgent'
-import { removeShapeIdPrefix } from '../AgentTransform'
 import { convertTldrawShapeToSimpleShape, ISimpleShape } from '../format/SimpleShape'
 import { AgentRequest } from '../types/AgentRequest'
 import { BasePromptPart } from '../types/BasePromptPart'
 import { PromptPartUtil } from './PromptPartUtil'
 
 export interface UserActionHistoryPart extends BasePromptPart<'userActionHistory'> {
-	history: UserActionHistory
-}
-
-interface UserActionHistory {
-	updates: Array<{
-		before: { id: string; _type: string; [key: string]: any }
-		after: { id: string; _type: string; [key: string]: any }
-	}>
-	deletes: string[]
-	creates: string[]
+	added: {
+		shapeId: string
+		type: ISimpleShape['_type']
+	}[]
+	removed: {
+		shapeId: string
+		type: ISimpleShape['_type']
+	}[]
+	updated: {
+		shapeId: string
+		type: ISimpleShape['_type']
+		before: Partial<ISimpleShape>
+		after: Partial<ISimpleShape>
+	}[]
 }
 
 export class UserActionHistoryPartUtil extends PromptPartUtil<UserActionHistoryPart> {
@@ -26,107 +29,108 @@ export class UserActionHistoryPartUtil extends PromptPartUtil<UserActionHistoryP
 		return 40
 	}
 
-	override getPart(request: AgentRequest, agent: TldrawAgent): UserActionHistoryPart {
+	override getPart(_request: AgentRequest, agent: TldrawAgent): UserActionHistoryPart {
 		const { editor } = agent
-		const rawStoreDiffs = agent.$userActionsHistory.get()
-		if (rawStoreDiffs.length === 0) {
-			return { type: 'userActionHistory', history: { updates: [], deletes: [], creates: [] } }
-		}
 
-		// Get the agent's diffs from the chat history
-		const agentActionDiffs = this.getAgentDiffs(agent.$chatHistory.get())
+		// Get the action history and clear it so that we can start tracking changes for the next request
+		const diffs = agent.$userActionHistory.get()
+		agent.$userActionHistory.set([])
 
-		const userActionDiffs = rawStoreDiffs.filter(
-			(diff) => !agentActionDiffs.some((agentDiff) => isEqual(diff, agentDiff))
-		)
-
-		const squashedUserActionDiff = squashRecordDiffs(userActionDiffs)
-
-		const updates: Array<{
-			before: { id: string; _type: string; [key: string]: any }
-			after: { id: string; _type: string; [key: string]: any }
-		}> = []
-		const deletes: string[] = []
-		const creates: string[] = []
-
-		// Handle created shapes
-		Object.values(squashedUserActionDiff.added)
-			.filter((record) => record.typeName === 'shape')
-			.forEach((record) => {
-				const shape = record as TLShape
-				creates.push(removeShapeIdPrefix(shape.id))
-			})
-
-		// Handle updated shapes
-		Object.values(squashedUserActionDiff.updated)
-			.filter(
-				(pair) =>
-					Array.isArray(pair) && pair[0].typeName === 'shape' && pair[1].typeName === 'shape'
-			)
-			.forEach((pair) => {
-				const [from, to] = pair
-				const fromShape = from as TLShape
-				const toShape = to as TLShape
-
-				const beforeSimple = convertTldrawShapeToSimpleShape(fromShape, editor)
-				const afterSimple = convertTldrawShapeToSimpleShape(toShape, editor)
-
-				// Only include changed fields
-				const before = { id: removeShapeIdPrefix(fromShape.id), _type: beforeSimple._type }
-				const after = { id: removeShapeIdPrefix(toShape.id), _type: afterSimple._type }
-
-				// Add only the fields that changed, rounding numbers
-				for (const key of Object.keys(afterSimple)) {
-					if (
-						key !== 'shapeId' &&
-						beforeSimple[key as keyof ISimpleShape] !== afterSimple[key as keyof ISimpleShape]
-					) {
-						const beforeVal = beforeSimple[key as keyof ISimpleShape]
-						const afterVal = afterSimple[key as keyof ISimpleShape]
-						;(before as any)[key] =
-							typeof beforeVal === 'number' ? Math.round(beforeVal) : beforeVal
-						;(after as any)[key] = typeof afterVal === 'number' ? Math.round(afterVal) : afterVal
-					}
-				}
-
-				updates.push({ before, after })
-			})
-
-		// Handle deleted shapes
-		Object.values(squashedUserActionDiff.removed)
-			.filter((record) => record.typeName === 'shape')
-			.forEach((record) => {
-				const shape = record as TLShape
-				deletes.push(removeShapeIdPrefix(shape.id))
-			})
-
-		return {
+		const part: UserActionHistoryPart = {
 			type: 'userActionHistory',
-			history: { updates, deletes, creates },
+			added: [],
+			removed: [],
+			updated: [],
 		}
+
+		const squashedDiff = squashRecordDiffs(diffs)
+		const { added, updated, removed } = squashedDiff
+
+		// Collect user-added shapes
+		for (const shape of Object.values(added)) {
+			if (shape.typeName !== 'shape') continue
+			if (shape.meta.source === 'agent') continue
+			const simpleShape = convertTldrawShapeToSimpleShape(shape, editor)
+			part.added.push({
+				shapeId: simpleShape.shapeId,
+				type: simpleShape._type,
+			})
+		}
+
+		// Collect user-removed shapes
+		for (const shape of Object.values(removed)) {
+			if (shape.typeName !== 'shape') continue
+			if (shape.meta.source === 'agent') continue
+			const simpleShape = convertTldrawShapeToSimpleShape(shape, editor)
+			part.removed.push({
+				shapeId: simpleShape.shapeId,
+				type: simpleShape._type,
+			})
+		}
+
+		// Collect user-updated shapes
+		for (const [from, to] of Object.values(updated)) {
+			if (from.typeName !== 'shape' || to.typeName !== 'shape') continue
+			if (from.meta.source === 'agent') continue
+			const fromSimpleShape = convertTldrawShapeToSimpleShape(from, editor)
+			const toSimpleShape = convertTldrawShapeToSimpleShape(to, editor)
+
+			const changeSimpleShape = getSimpleShapeChange(fromSimpleShape, toSimpleShape)
+			if (!changeSimpleShape) continue
+			part.updated.push({
+				shapeId: toSimpleShape.shapeId,
+				type: toSimpleShape._type,
+				before: changeSimpleShape.from,
+				after: changeSimpleShape.to,
+			})
+		}
+
+		return part
 	}
 
-	override buildContent({ history }: UserActionHistoryPart): string[] {
-		if (
-			history.updates.length === 0 &&
-			history.deletes.length === 0 &&
-			history.creates.length === 0
-		) {
+	override buildContent(part: UserActionHistoryPart): string[] {
+		const { updated, removed, added } = part
+		if (updated.length === 0 && removed.length === 0 && added.length === 0) {
 			return []
 		}
 
 		return [
-			'Since sending their last message, the user has made the following changes to the canvas:',
-			JSON.stringify(history),
+			'Since the previous request, the user has made the following changes to the canvas:',
+			JSON.stringify(part, null, 2),
 		]
 	}
+}
 
-	/**
-	 * Gets all diffs done by the agent in the chat history
-	 */
-	private getAgentDiffs(chatHistory: any[]): RecordsDiff<TLRecord>[] {
-		return chatHistory
-			.filter((item) => item.type === 'action' && item.diff)
-			.map((item) => item.diff)
+/**
+ * Get any changed properties between two simple shapes.
+ * @param from - The original shape.
+ * @param to - The new shape.
+ * @returns The changed properties.
+ */
+function getSimpleShapeChange<T extends ISimpleShape['_type']>(
+	from: ISimpleShape & { _type: T },
+	to: ISimpleShape & { _type: T }
+) {
+	if (from._type !== to._type) {
+		return null
 	}
+
+	const change: {
+		from: Partial<ISimpleShape>
+		to: Partial<ISimpleShape>
+	} = {
+		from: {},
+		to: {},
+	}
+
+	for (const key in to) {
+		const fromValue = from[key]
+		const toValue = to[key]
+		if (fromValue === toValue) {
+			continue
+		}
+		;(change.from as any)[key] = fromValue
+		;(change.to as any)[key] = toValue
+	}
+	return change
 }

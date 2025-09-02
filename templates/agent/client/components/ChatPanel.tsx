@@ -31,6 +31,7 @@ export function ChatPanel({ agent }: { agent: TldrawAgent }) {
 	const handleSubmit = useCallback<FormEventHandler<HTMLFormElement>>(
 		async (e) => {
 			e.preventDefault()
+			if (!inputRef.current) return
 			const formData = new FormData(e.currentTarget)
 			const value = formData.get('input') as string
 
@@ -41,7 +42,6 @@ export function ChatPanel({ agent }: { agent: TldrawAgent }) {
 
 			// If the user's message is empty, do nothing
 			if (value === '') return
-			if (inputRef.current) inputRef.current.value = ''
 
 			// If every todo item is done, clear the todo list
 			agent.$todoList.update((items) => {
@@ -51,6 +51,7 @@ export function ChatPanel({ agent }: { agent: TldrawAgent }) {
 				return items
 			})
 
+			// Move the user's input to chat history
 			const promptHistoryItem: IChatHistoryItem = {
 				type: 'prompt',
 				message: value,
@@ -60,9 +61,11 @@ export function ChatPanel({ agent }: { agent: TldrawAgent }) {
 					.map((shape) => convertTldrawShapeToSimpleShape(shape, editor)),
 			}
 
-			agent.$contextItems.set([])
 			agent.$chatHistory.update((prev) => [...prev, promptHistoryItem])
+			agent.$contextItems.set([])
+			inputRef.current.value = ''
 
+			// Create and send the request
 			const request: AgentRequest = {
 				message: promptHistoryItem.message,
 				contextItems: promptHistoryItem.contextItems,
@@ -72,10 +75,6 @@ export function ChatPanel({ agent }: { agent: TldrawAgent }) {
 			}
 
 			await handleRequest({ agent, request, onError: handleError })
-
-			// TODO
-			// right now, we clear the changes when the agent finishes its turn. However, this loses all the changes that happened while the agent was working. We should make this more sophisticated.
-			agent.$userActionsHistory.set([])
 		},
 		[agent, modelName, editor, handleError]
 	)

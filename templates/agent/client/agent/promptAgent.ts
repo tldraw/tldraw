@@ -77,7 +77,9 @@ export function promptAgent({
 
 							// Apply the action to the app and editor
 							const diff = editor.store.extractingChanges(() => {
-								actionUtil.applyAction(structuredClone(transformedAction), agent, request)
+								editor.store.mergeRemoteChanges(() => {
+									actionUtil.applyAction(structuredClone(transformedAction), agent)
+								})
 							})
 
 							// The the action is incomplete, save the diff so that we can revert it in the future
