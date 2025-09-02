@@ -4,7 +4,7 @@ import { publishDates } from '../../version'
 import { getDefaultCdnBaseUrl } from '../utils/assets'
 import { importPublicKey, str2ab } from '../utils/licensing'
 
-const GRACE_PERIOD_DAYS = 60
+const GRACE_PERIOD_DAYS = 30
 
 export const FLAGS = {
 	ANNUAL_LICENSE: 0x1,
@@ -39,10 +39,10 @@ export interface LicenseInfo {
 export type LicenseState =
 	| 'pending' // License validation is in progress
 	| 'licensed' // License is valid and active (no restrictions)
-	| 'licensed-with-watermark' // License is valid but shows watermark (evaluation licenses, 30-60 days past expiry for regular licenses, WITH_WATERMARK licenses)
+	| 'licensed-with-watermark' // License is valid but shows watermark (evaluation licenses, WITH_WATERMARK licenses)
 	| 'unlicensed' // No valid license found or license is invalid (development)
 	| 'unlicensed-production' // No license provided in production deployment
-	| 'expired' // License has been expired (60 days past expiration for regular licenses, immediately for evaluation licenses)
+	| 'expired' // License has been expired (30 days past expiration for regular licenses, immediately for evaluation licenses)
 /** @internal */
 export type InvalidLicenseReason =
 	| 'invalid-license-key'
@@ -434,10 +434,10 @@ export function getLicenseState(
 		}
 	}
 
-	// Handle expired regular licenses (annual/perpetual) - they expire after 60 days
+	// Handle expired regular licenses (both annual and perpetual)
 	if (result.isPerpetualLicenseExpired || result.isAnnualLicenseExpired) {
 		outputMessages([
-			'Your tldraw license has been expired for more than 60 days!',
+			'Your tldraw license has been expired for more than 30 days!',
 			`Please reach out to ${LICENSE_EMAIL} to renew your license.`,
 		])
 		return 'expired'
@@ -446,26 +446,13 @@ export function getLicenseState(
 	// Check if license is past expiry date but within grace period
 	const daysSinceExpiry = result.daysSinceExpiry
 	if (daysSinceExpiry > 0 && !result.isEvaluationLicense) {
-		if (daysSinceExpiry <= 30) {
-			outputMessages([
-				'Your tldraw license has expired.',
-				`License expired ${daysSinceExpiry} days ago.`,
-				`Please reach out to ${LICENSE_EMAIL} to renew your license.`,
-			])
-			// 0-30 days: still licensed (no watermark)
-			return 'licensed'
-		} else if (daysSinceExpiry <= 60) {
-			outputMessages([
-				'Your tldraw license has expired.',
-				`License expired ${daysSinceExpiry} days ago. A watermark is now being shown.`,
-				`Please reach out to ${LICENSE_EMAIL} to renew your license.`,
-			])
-			// 30-60 days: licensed but with watermark
-			return 'licensed-with-watermark'
-		} else {
-			// 60+ days would have triggered isAnnualLicenseExpired/isPerpetualLicenseExpired above
-			return 'expired'
-		}
+		outputMessages([
+			'Your tldraw license has expired.',
+			`License expired ${daysSinceExpiry} days ago.`,
+			`Please reach out to ${LICENSE_EMAIL} to renew your license.`,
+		])
+		// Within 30-day grace period: still licensed (no watermark)
+		return 'licensed'
 	}
 
 	// License is valid, determine if it has watermark

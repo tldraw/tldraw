@@ -121,7 +121,7 @@ describe('LicenseManager', () => {
 
 	it('Fails if the license key has expired beyond grace period', async () => {
 		const expiredLicenseInfo = JSON.parse(STANDARD_LICENSE_INFO)
-		const expiryDate = new Date(now.getFullYear(), now.getMonth(), now.getDate() - 70) // 70 days ago (beyond 60-day grace period)
+		const expiryDate = new Date(now.getFullYear(), now.getMonth(), now.getDate() - 40) // 40 days ago (beyond 30-day grace period)
 		expiredLicenseInfo[PROPERTIES.EXPIRY_DATE] = expiryDate
 		const expiredLicenseKey = await generateLicenseKey(JSON.stringify(expiredLicenseInfo), keyPair)
 		const result = (await licenseManager.getLicenseFromKey(
@@ -446,7 +446,7 @@ describe('LicenseManager', () => {
 			expiredLicenseKey
 		)) as ValidLicenseKeyResult
 		expect(result.isAnnualLicense).toBe(true)
-		expect(result.isAnnualLicenseExpired).toBe(false) // Within 60-day grace period
+		expect(result.isAnnualLicenseExpired).toBe(false) // Within 30-day grace period
 		expect(result.daysSinceExpiry).toBe(20)
 	})
 })
@@ -618,7 +618,7 @@ describe('getLicenseState', () => {
 
 		expect(messages).toHaveLength(1)
 		expect(messages[0]).toEqual([
-			'Your tldraw license has been expired for more than 60 days!',
+			'Your tldraw license has been expired for more than 30 days!',
 			'Please reach out to sales@tldraw.com to renew your license.',
 		])
 	})
@@ -657,7 +657,7 @@ describe('getLicenseState', () => {
 
 		expect(messages).toHaveLength(1)
 		expect(messages[0]).toEqual([
-			'Your tldraw license has been expired for more than 60 days!',
+			'Your tldraw license has been expired for more than 30 days!',
 			'Please reach out to sales@tldraw.com to renew your license.',
 		])
 	})
@@ -677,7 +677,7 @@ describe('getLicenseState', () => {
 
 		expect(messages).toHaveLength(1)
 		expect(messages[0]).toEqual([
-			'Your tldraw license has been expired for more than 60 days!',
+			'Your tldraw license has been expired for more than 30 days!',
 			'Please reach out to sales@tldraw.com to renew your license.',
 		])
 	})
@@ -774,7 +774,7 @@ describe('getLicenseState', () => {
 		const messages: string[][] = []
 		const licenseResult = getDefaultLicenseResult({
 			isAnnualLicense: true,
-			isAnnualLicenseExpired: false, // Still within 60-day grace period
+			isAnnualLicenseExpired: false, // Still within 30-day grace period
 			daysSinceExpiry: 20, // 20 days past expiry
 			isInternalLicense: false,
 		})
@@ -789,23 +789,20 @@ describe('getLicenseState', () => {
 		])
 	})
 
-	it('returns "licensed-with-watermark" for license 30-60 days past expiry', () => {
+	it('returns "expired" for license 30+ days past expiry', () => {
 		const messages: string[][] = []
 		const licenseResult = getDefaultLicenseResult({
 			isAnnualLicense: true,
-			isAnnualLicenseExpired: false, // Still within 60-day grace period
-			daysSinceExpiry: 45, // 45 days past expiry
+			isAnnualLicenseExpired: true, // Beyond 30-day grace period
+			daysSinceExpiry: 35, // 35 days past expiry
 			isInternalLicense: false,
 		})
 
-		expect(getLicenseState(licenseResult, (msgs) => messages.push(msgs), false)).toBe(
-			'licensed-with-watermark'
-		)
+		expect(getLicenseState(licenseResult, (msgs) => messages.push(msgs), false)).toBe('expired')
 
 		expect(messages).toHaveLength(1)
 		expect(messages[0]).toEqual([
-			'Your tldraw license has expired.',
-			'License expired 45 days ago. A watermark is now being shown.',
+			'Your tldraw license has been expired for more than 30 days!',
 			'Please reach out to sales@tldraw.com to renew your license.',
 		])
 	})

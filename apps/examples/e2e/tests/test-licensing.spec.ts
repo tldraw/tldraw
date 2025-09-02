@@ -29,7 +29,7 @@ test.describe('Internal License', () => {
 
 		// Check that console contains license expiry message
 		const hasExpiredMessage = consoleMessages.some((msg) =>
-			msg.includes('Your tldraw license has been expired for more than 60 days!')
+			msg.includes('Your tldraw license has been expired for more than 30 days!')
 		)
 		expect(hasExpiredMessage).toBe(true)
 	})
@@ -175,7 +175,7 @@ test.describe('Expired Annual/Perpetual License', () => {
 		await expect(page.locator('.tl-canvas')).not.toBeVisible()
 
 		const hasExpiredMessage = consoleMessages.some((msg) =>
-			msg.includes('Your tldraw license has been expired for more than 60 days!')
+			msg.includes('Your tldraw license has been expired for more than 30 days!')
 		)
 		expect(hasExpiredMessage).toBe(true)
 
