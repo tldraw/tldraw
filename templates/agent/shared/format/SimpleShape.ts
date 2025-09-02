@@ -1,8 +1,5 @@
 import {
 	Editor,
-	FONT_FAMILIES,
-	FONT_SIZES,
-	TEXT_PROPS,
 	TLArrowBinding,
 	TLArrowShape,
 	TLDrawShape,
@@ -15,6 +12,7 @@ import {
 import { z } from 'zod'
 import { SimpleColor } from './SimpleColor'
 import { convertTldrawFillToSimpleFill, SimpleFill } from './SimpleFill'
+import { convertTldrawFontSizeAndScaleToSimpleFontSize, SimpleFontSize } from './SimpleFontSize'
 import {
 	convertTldrawGeoShapeGeoStlyeToSimpleGeoShapeType,
 	SimpleGeoShapeType,
@@ -30,6 +28,7 @@ export const SimpleGeoShape = z.object({
 	note: z.string(),
 	shapeId: z.string(),
 	text: SimpleLabel.optional(),
+	textAlign: z.enum(['start', 'middle', 'end']).optional(),
 	w: z.number(),
 	x: z.number(),
 	y: z.number(),
@@ -65,10 +64,10 @@ export type ISimpleNoteShape = z.infer<typeof SimpleNoteShape>
 const SimpleTextShape = z.object({
 	_type: z.literal('text'),
 	color: SimpleColor,
+	fontSize: SimpleFontSize.optional(),
 	note: z.string(),
 	shapeId: z.string(),
 	text: SimpleLabel,
-	size: z.enum(['s', 'm', 'l', 'xl']).optional(),
 	textAlign: z.enum(['start', 'middle', 'end']).optional(),
 	x: z.number(),
 	y: z.number(),
@@ -197,15 +196,8 @@ function convertTextShape(shape: TLTextShape, editor: Editor): ISimpleTextShape 
 	const text = util.getText(shape) ?? ''
 
 	const textSize = shape.props.size
-	const textFontSize = FONT_SIZES[textSize]
 	const textAlign = shape.props.textAlign
-
-	const textWidth = editor.textMeasure.measureText(text, {
-		...TEXT_PROPS,
-		fontFamily: FONT_FAMILIES['draw'],
-		fontSize: textFontSize,
-		maxWidth: Infinity,
-	}).w
+	const textWidth = shape.props.w
 
 	let anchorX = shape.x
 	switch (textAlign) {
@@ -224,13 +216,13 @@ function convertTextShape(shape: TLTextShape, editor: Editor): ISimpleTextShape 
 	return {
 		_type: 'text',
 		color: shape.props.color,
+		fontSize: convertTldrawFontSizeAndScaleToSimpleFontSize(textSize, shape.props.scale),
 		note: (shape.meta?.note as string) ?? '',
 		shapeId: shape.id.slice('shape:'.length),
 		text: text,
+		textAlign: shape.props.textAlign,
 		x: anchorX,
 		y: shape.y,
-		size: shape.props.size,
-		textAlign: shape.props.textAlign,
 	}
 }
 

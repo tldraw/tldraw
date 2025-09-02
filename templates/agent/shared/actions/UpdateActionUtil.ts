@@ -21,6 +21,7 @@ import { TldrawAgent } from '../../client/agent/TldrawAgent'
 import { AgentTransform } from '../AgentTransform'
 import { asColor } from '../format/SimpleColor'
 import { convertSimpleFillToTldrawFill } from '../format/SimpleFill'
+import { convertSimpleFontSizeToTldrawFontSizeAndScale } from '../format/SimpleFontSize'
 import { convertSimpleGeoShapeTypeToTldrawGeoShapeGeoStyleOrUnknownIfNeeded } from '../format/SimpleGeoShapeType'
 import {
 	ISimpleArrowShape,
@@ -126,16 +127,28 @@ export function getTldrawAiChangesFromUpdateEvent({
 
 			const color = textShape.color ? asColor(textShape.color) : shapeOnCanvas.props.color
 			const richText = textShape.text ? toRichText(textShape.text) : shapeOnCanvas.props.richText
-			const textSize = textShape.size ?? shapeOnCanvas.props.size
 			const textAlign = textShape.textAlign ?? shapeOnCanvas.props.textAlign
 
+			// Determine the base font size and scale
+			let textSize: keyof typeof FONT_SIZES = shapeOnCanvas.props.size
+			let scale = shapeOnCanvas.props.scale
+
+			// If a new fontSize is specified, find closest predefined font size and scale combination
+			if (textShape.fontSize) {
+				const { textSize: calculatedTextSize, scale: calculatedScale } =
+					convertSimpleFontSizeToTldrawFontSizeAndScale(textShape.fontSize)
+				textSize = calculatedTextSize
+				scale = calculatedScale
+			}
+
 			const textFontSize = FONT_SIZES[textSize]
+			const effectiveFontSize = textFontSize * scale
 			const candidateTextWidth = editor.textMeasure.measureText(
 				textShape.text ?? shapeOnCanvas.props.richText,
 				{
 					...TEXT_PROPS,
 					fontFamily: FONT_FAMILIES['draw'],
-					fontSize: textFontSize,
+					fontSize: effectiveFontSize,
 					maxWidth: Infinity,
 				}
 			).w
@@ -165,6 +178,7 @@ export function getTldrawAiChangesFromUpdateEvent({
 						color,
 						richText,
 						size: textSize,
+						scale,
 						textAlign,
 					},
 					meta: {
@@ -382,6 +396,7 @@ export function getTldrawAiChangesFromUpdateEvent({
 					x: geoShape.x ?? shapeOnCanvas.x,
 					y: geoShape.y ?? shapeOnCanvas.y,
 					props: {
+						align: geoShape.textAlign ?? shapeOnCanvas.props.align,
 						color,
 						geo: updateShapeType,
 						w: geoShape.w ?? shapeOnCanvas.props.w,
