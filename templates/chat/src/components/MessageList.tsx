@@ -1,13 +1,14 @@
 import { type UIMessage } from '@ai-sdk/react'
+import { memo } from 'react'
 import { ChatMessage } from './ChatMessage'
 import { TldrawProviderMetadata } from './WhiteboardModal'
 
 interface MessageListProps {
 	messages: UIMessage[]
-	onImageClick: (tldrawMetadata: TldrawProviderMetadata) => void
+	onImageClick: (tldrawMetadata: TldrawProviderMetadata | { uploadedFile: File }) => void
 }
 
-export function MessageList({ messages, onImageClick }: MessageListProps) {
+export const MessageList = memo(function MessageList({ messages, onImageClick }: MessageListProps) {
 	return (
 		<div className="message-list">
 			{messages.map((message) => (
@@ -15,4 +16,4 @@ export function MessageList({ messages, onImageClick }: MessageListProps) {
 			))}
 		</div>
 	)
-}
+})

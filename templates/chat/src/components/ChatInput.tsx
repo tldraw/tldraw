@@ -41,15 +41,9 @@ export function ChatInput({
 			// Reset height to auto to get the correct scrollHeight
 			textareaRef.current.style.height = 'auto'
 			// Set height based on scrollHeight, with max height for ~5 lines
-			const maxHeight = 5 * 24 // Approximate line height * 5 lines
-			textareaRef.current.style.height = `${Math.min(textareaRef.current.scrollHeight, maxHeight)}px`
-
-			// Scroll to bottom when textarea grows
-			if (scrollToBottom) {
-				scrollToBottom('instant')
-			}
+			textareaRef.current.style.height = `${textareaRef.current.scrollHeight}px`
 		}
-	}, [input, scrollToBottom])
+	}, [input])
 
 	// Scroll to bottom when images are added.
 	useLayoutEffect(() => {
@@ -169,7 +163,7 @@ export function ChatInput({
 					value={input}
 					onChange={(e) => dispatch({ type: 'setInput', input: e.target.value })}
 					onKeyDown={handleKeyDown}
-					placeholder={disabled ? '' : 'Type your message...'}
+					placeholder={disabled ? '' : 'Type your message…'}
 					className="chat-input"
 					disabled={disabled}
 					autoFocus={true}
@@ -188,6 +182,7 @@ export function ChatInput({
 				<TldrawUiTooltip content="Upload an image">
 					<button
 						type="button"
+						aria-label="Upload an image"
 						className="icon-button"
 						disabled={disabled}
 						onClick={handleImageUpload}
@@ -199,6 +194,7 @@ export function ChatInput({
 				<TldrawUiTooltip content="Draw a sketch">
 					<button
 						type="button"
+						aria-label="Draw a sketch"
 						className="icon-button"
 						disabled={disabled}
 						onClick={() => dispatch({ type: 'openWhiteboard' })}
@@ -208,7 +204,12 @@ export function ChatInput({
 				</TldrawUiTooltip>
 				{/* a button to send the message */}
 				<TldrawUiTooltip content="Send message">
-					<button type="submit" disabled={!canSend || disabled} className="icon-button">
+					<button
+						type="submit"
+						disabled={!canSend || disabled}
+						className="icon-button"
+						aria-label="Send message"
+					>
 						<SendIcon />
 					</button>
 				</TldrawUiTooltip>

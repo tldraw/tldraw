@@ -1,8 +1,10 @@
 'use client'
 
+import { useChatMessageStorage } from '@/hooks/useChatMessageStorage'
 import { useChat } from '@ai-sdk/react'
-import { DefaultChatTransport, FileUIPart, TextUIPart } from 'ai'
+import { DefaultChatTransport, FileUIPart, TextUIPart, UIMessage } from 'ai'
 import { useCallback, useEffect } from 'react'
+import { TLEditorSnapshot } from 'tldraw'
 import { useChatInputState } from '../hooks/useChatInputState'
 import { useScrollToBottom } from '../hooks/useScrollToBottom'
 import { ChatInput } from './ChatInput'
@@ -10,16 +12,52 @@ import { MessageList } from './MessageList'
 import { TldrawProviderMetadata, WhiteboardImage } from './WhiteboardModal'
 
 export function Chat() {
+	// keep track of the chat messages in local storage
+	const [initialMessages, saveMessages] = useChatMessageStorage()
+
+	if (!initialMessages) return null
+
+	return <ChatInner initialMessages={initialMessages} saveMessages={saveMessages} />
+}
+
+function ChatInner({
+	initialMessages,
+	saveMessages,
+}: {
+	initialMessages: UIMessage[]
+	saveMessages: (messages: UIMessage[]) => void
+}) {
 	// All state relating to the chat input and the tldraw modal is managed in this hook
 	const [chatInputState, chatInputDispatch] = useChatInputState()
 
 	// We use the Vercel AI SDK's useChat hook to send messages to the server and manage the chat
 	// history. You could replace this with your own chat implementation.
-	const { messages, sendMessage, status } = useChat({
+	const chat = useChat({
 		transport: new DefaultChatTransport({
 			api: '/api/chat',
 		}),
+		messages: initialMessages,
 	})
+
+	const { sendMessage, status, error, clearError, setMessages } = chat
+
+	// save the chat messages to local storage when the chat finishes
+	useEffect(() => {
+		// window.clear = () => {
+		// 	setMessages([])
+		// }
+		if (chat.status === 'ready') {
+			saveMessages(chat.messages)
+		}
+	}, [chat.status, chat.messages, saveMessages, setMessages])
+
+	// If the chat encounters an error, we alert the user and clear the error.
+	useEffect(() => {
+		if (error) {
+			alert(error.message)
+			clearError()
+		}
+	}, [error, clearError])
 
 	// when the user send a message, we take the text they've written and any images / sketches
 	// they've attached and send them to the model.
@@ -56,16 +94,15 @@ export function Chat() {
 	const scrollToBottom = useScrollToBottom()
 	useEffect(() => {
 		scrollToBottom()
-	}, [messages, scrollToBottom])
+	}, [chat.messages, scrollToBottom])
 
 	// when the user clicks on an image from chat history, we open the tldraw modal. here they can
 	// see a larger version of the image, but also annotate it and re-add it to the chat.
 	const handleImageClick = useCallback(
-		(tldrawMetadata: TldrawProviderMetadata) => {
+		(opts: { snapshot: TLEditorSnapshot; imageName: string } | { uploadedFile: File }) => {
 			chatInputDispatch({
 				type: 'openWhiteboard',
-				snapshot: tldrawMetadata.snapshot,
-				imageName: tldrawMetadata.imageName,
+				...opts,
 			})
 		},
 		[chatInputDispatch]
@@ -102,7 +139,7 @@ export function Chat() {
 	}
 
 	// if the chat is empty, we put the input area right in the middle of the page
-	if (messages.length === 0) {
+	if (chat.messages.length === 0) {
 		return (
 			<div
 				className="empty-chat-container"
@@ -134,7 +171,7 @@ export function Chat() {
 			onDragLeave={handleDragLeave}
 			onDrop={handleDrop}
 		>
-			<MessageList messages={messages} onImageClick={handleImageClick} />
+			<MessageList messages={chat.messages} onImageClick={handleImageClick} />
 			<div className="chat-footer">
 				<ChatInput
 					onSendMessage={handleSendMessage}

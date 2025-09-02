@@ -32,13 +32,14 @@ Key interactions include:
 
 ## Environment Setup
 
-Create a `.env.local` file in the root directory and add your OpenAI API key:
+Create a `.env.local` file in the root directory and add your Google Generative API key:
 
 ```
 OPENAI_API_KEY=your_openai_api_key_here
 ```
 
-Get your API key from [OpenAI Platform](https://platform.openai.com/account/api-keys).
+Get your API key from [Google AI Studio](https://aistudio.google.com/apikey).
+You can also switch to a different provider using the [Vercel AI SDK](https://ai-sdk.dev/providers/ai-sdk-providers).
 
 ## File structure
 
@@ -53,7 +54,7 @@ Get your API key from [OpenAI Platform](https://platform.openai.com/account/api-
 
 ## License
 
-This project is provided under the MIT license found [here](https://github.com/tldraw/nextjs-template/blob/main/LICENSE.md). The tldraw SDK is provided under the [tldraw license](https://github.com/tldraw/tldraw/blob/main/LICENSE.md).
+This project is provided under the MIT license found [here](https://github.com/tldraw/char-template/blob/main/LICENSE.md). The tldraw SDK is provided under the [tldraw license](https://github.com/tldraw/tldraw/blob/main/LICENSE.md).
 
 ## Trademarks
 

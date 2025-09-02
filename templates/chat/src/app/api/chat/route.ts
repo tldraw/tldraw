@@ -1,4 +1,4 @@
-import { openai } from '@ai-sdk/openai'
+import { google } from '@ai-sdk/google'
 import { convertToModelMessages, streamText, UIMessage } from 'ai'
 
 // Allow streaming responses up to 60 seconds
@@ -8,7 +8,7 @@ export async function POST(req: Request) {
 	const { messages }: { messages: UIMessage[] } = await req.json()
 
 	const result = streamText({
-		model: openai('gpt-5-mini'),
+		model: google('gemini-2.5-flash-image-preview'),
 		system: [
 			"You're a friendly AI chatbot.",
 			'The user can send you images, sketches and diagrams using your built-in tldraw whiteboard.',
@@ -21,6 +21,10 @@ export async function POST(req: Request) {
 		].join(' '),
 		messages: convertToModelMessages(messages),
 	})
+
+	;(async () => {
+		console.log(result, await result.finishReason, await result.reasoningText, await result.steps)
+	})()
 
 	return result.toUIMessageStreamResponse()
 }

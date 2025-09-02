@@ -1,6 +1,7 @@
-import { useEffect, useMemo } from 'react'
+import { useCallback, useEffect, useMemo, useState } from 'react'
 import {
 	createShapeId,
+	Editor,
 	notifyIfFileNotAllowed,
 	TLComponents,
 	Tldraw,
@@ -55,6 +56,38 @@ export function WhiteboardModal({
 	uploadedFile,
 	imageName,
 }: WhiteboardModalProps) {
+	const [editor, setEditor] = useState<Editor | null>(null)
+
+	const handleSave = useCallback(async () => {
+		if (!editor) return
+
+		// if there are no shapes, we don't want to save the image:
+		const shapes = editor.getCurrentPageShapes()
+		if (shapes.length === 0) {
+			onCancel()
+			return
+		}
+
+		// when the user clicks save, we convert the current whiteboard to an image:
+		const image = await editor.toImageDataUrl(shapes, {
+			format: 'png',
+		})
+
+		// we also take a snapshot of the editor state, so we can still edit
+		// it if we open it up again later:
+		const snapshot = editor.getSnapshot()
+
+		// we pass the image data and the snapshot to the parent component, so it
+		// can add it to the chat input:
+		onAccept({
+			id: imageId ?? crypto.randomUUID(),
+			name: imageName ?? 'tldraw whiteboard.png',
+			snapshot,
+			type: 'image/png',
+			...image,
+		})
+	}, [onCancel, onAccept, imageId, imageName, editor])
+
 	// components are used to override parts of the tldraw ui. they shouldn't change often, so it's
 	// important that we memoize them or define them outside the tldraw component.
 	const components = useMemo(
@@ -62,48 +95,26 @@ export function WhiteboardModal({
 			// The "SharePanel" is in the top-right of the editor. Here we want it to show our save
 			// and cancel buttons:
 			SharePanel: () => {
-				const editor = useEditor()
 				return (
 					<TldrawUiRow className="whiteboard-actions">
 						<TldrawUiButton type="normal" onClick={onCancel}>
 							Cancel
 						</TldrawUiButton>
-						<TldrawUiButton
-							type="primary"
-							onClick={async () => {
-								// when the user clicks save, we convert the current whiteboard to an image:
-								const image = await editor.toImageDataUrl(editor.getCurrentPageShapes(), {
-									format: 'png',
-								})
-
-								// we also take a snapshot of the editor state, so we can still edit
-								// it if we open it up again later:
-								const snapshot = editor.getSnapshot()
-
-								// we pass the image data and the snapshot to the parent component, so it
-								// can add it to the chat input:
-								onAccept({
-									id: imageId ?? crypto.randomUUID(),
-									name: imageName ?? 'tldraw whiteboard.png',
-									snapshot,
-									type: 'image/png',
-									...image,
-								})
-							}}
-						>
+						<TldrawUiButton type="primary" onClick={handleSave}>
 							{imageId ? 'Save' : 'Add'}
 						</TldrawUiButton>
 					</TldrawUiRow>
 				)
 			},
 		}),
-		[onCancel, onAccept, imageId, imageName]
+		[onCancel, handleSave, imageId]
 	)
 
-	// when the user clicks outside the modal, we close it:
+	// when the user clicks outside the modal, we close it. we add their image to the chat input in
+	// case they wanted it - they can easily delete it if not.
 	const handleOverlayClick = (e: React.MouseEvent) => {
 		if (e.target === e.currentTarget) {
-			onCancel()
+			handleSave()
 		}
 	}
 
@@ -115,7 +126,11 @@ export function WhiteboardModal({
 				options={options}
 				snapshot={initialSnapshot}
 				onMount={(editor) => {
+					setEditor(editor)
+
 					editor.user.updateUserPreferences({ colorScheme: 'light' })
+					editor.selectNone()
+					editor.zoomToSelection()
 				}}
 			>
 				{/* if the user uploaded a file, we insert it in a special component. this means we

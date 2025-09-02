@@ -46,15 +46,15 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@ai-sdk/openai@npm:^2.0.15":
-  version: 2.0.15
-  resolution: "@ai-sdk/openai@npm:2.0.15"
+"@ai-sdk/google@npm:^2.0.11":
+  version: 2.0.11
+  resolution: "@ai-sdk/google@npm:2.0.11"
   dependencies:
     "@ai-sdk/provider": "npm:2.0.0"
-    "@ai-sdk/provider-utils": "npm:3.0.3"
+    "@ai-sdk/provider-utils": "npm:3.0.7"
   peerDependencies:
     zod: ^3.25.76 || ^4
-  checksum: 10/7f8586e14d44e95f1d1d28c2cfe46bfffadf4bacc9c4bb82747a750dde58ef6aa891dc74264b6d8aab10a6a549ff65ab4d2be0f2ca63d8969bc0d91fc5b3e8c0
+  checksum: 10/e821066e238ce18b834693c198a4be5e2b0a6e12823786d03e125fb8b188a168f9d6d971c508f96e20f5863b0219ea466112b7993e56f4611f0c98c51db75a1f
   languageName: node
   linkType: hard
 
@@ -69,6 +69,19 @@ __metadata:
   peerDependencies:
     zod: ^3.25.76 || ^4
   checksum: 10/1b4f9042211afc14ebe8d50ad7b224dfa4f53ed6c0fcf5a4f31653cd22572946f6925d86edcca36bf36c92b5cff3c09b337073fdd21fab3a6448fa9db8201722
+  languageName: node
+  linkType: hard
+
+"@ai-sdk/provider-utils@npm:3.0.7":
+  version: 3.0.7
+  resolution: "@ai-sdk/provider-utils@npm:3.0.7"
+  dependencies:
+    "@ai-sdk/provider": "npm:2.0.0"
+    "@standard-schema/spec": "npm:^1.0.0"
+    eventsource-parser: "npm:^3.0.5"
+  peerDependencies:
+    zod: ^3.25.76 || ^4
+  checksum: 10/7d3feb4c617360faa1554b6f1b0db38f53eadc67ce952aa08cc87efbc08e6e54acf3ba0a78f8eedd2e2d850cbf5b681badecbebdfc3c2e3e6fb1dca97fa818c3
   languageName: node
   linkType: hard
 
@@ -16062,6 +16075,13 @@ __metadata:
   languageName: node
   linkType: hard
 
+"eventsource-parser@npm:^3.0.5":
+  version: 3.0.6
+  resolution: "eventsource-parser@npm:3.0.6"
+  checksum: 10/febf7058b9c2168ecbb33e92711a1646e06bd1568f60b6eb6a01a8bf9f8fcd29cc8320d57247059cacf657a296280159f21306d2e3ff33309a9552b2ef889387
+  languageName: node
+  linkType: hard
+
 "eventsource@npm:^3.0.2":
   version: 3.0.5
   resolution: "eventsource@npm:3.0.5"
@@ -27809,7 +27829,7 @@ __metadata:
   version: 0.0.0-use.local
   resolution: "tldraw-chat-app-example@workspace:templates/chat"
   dependencies:
-    "@ai-sdk/openai": "npm:^2.0.15"
+    "@ai-sdk/google": "npm:^2.0.11"
     "@ai-sdk/react": "npm:^2.0.15"
     "@types/node": "npm:^22.15.31"
     "@types/react": "npm:^18.3.18"

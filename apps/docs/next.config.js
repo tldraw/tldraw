@@ -20,7 +20,7 @@ const nextConfig = {
 			},
 		],
 	},
-	transpilePackages: [],
+	transpilePackages: ['next-mdx-remote'],
 	async redirects() {
 		return [
 			{

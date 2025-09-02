@@ -28,9 +28,9 @@
 	],
 	"scripts": {
 		"dev": "concurrently \"NODE_ENV=development next dev --port=3001\" \"tsx ./watcher.ts\" --kill-others",
-		"next-dev": "next dev",
+		"next-dev": "next dev --turbopack",
 		"lint": "yarn run -T tsx ../../internal/scripts/lint.ts",
-		"build": "yarn refresh-everything && next build && yarn check-links",
+		"build": "yarn refresh-everything && next build --turbopack && yarn check-links",
 		"start": "yarn refresh-everything && next start",
 		"fetch-api-source": "yarn run -T tsx --tsconfig ./tsconfig.content.json ./scripts/fetch-api-source.ts",
 		"fetch-releases": "yarn run -T tsx --tsconfig ./tsconfig.content.json ./scripts/fetch-releases.ts",

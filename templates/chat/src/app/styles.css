@@ -406,6 +406,7 @@ body {
 	font-family: inherit;
 	line-height: 1.5;
 	min-height: 24px;
+	max-height: 5lh;
 	overflow-y: auto;
 }
 
