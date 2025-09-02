@@ -1,5 +1,6 @@
 import { Tooltip as _Tooltip } from 'radix-ui'
 import { useState } from 'react'
+import { useNavigate } from 'react-router-dom'
 import {
 	preventDefault,
 	TldrawUiButton,
@@ -12,6 +13,7 @@ import {
 	useValue,
 } from 'tldraw'
 import { useApp } from '../../hooks/useAppState'
+import { useCurrentFileId } from '../../hooks/useCurrentFileId'
 import { defineMessages, F, useMsg } from '../../utils/i18n'
 import { TlaButton } from '../TlaButton/TlaButton'
 import { TlaIcon } from '../TlaIcon/TlaIcon'
@@ -72,6 +74,9 @@ export function GroupSettingsDialog({ groupId, onClose }: GroupSettingsDialogPro
 		app,
 		groupId,
 	])
+	const currentFileId = useCurrentFileId()
+	const navigate = useNavigate()
+
 	if (!groupMembership) return null
 	const group = groupMembership.group
 	const currentUser = groupMembership.groupMembers.find(
@@ -112,8 +117,13 @@ export function GroupSettingsDialog({ groupId, onClose }: GroupSettingsDialogPro
 
 	const handleDeleteGroup = async () => {
 		try {
+			const isCurrentlyOnAFileInThisGroup =
+				currentFileId && app.getFile(currentFileId)?.owningGroupId === groupId
 			await app.z.mutate.group.delete({ id: groupId })
 			onClose()
+			if (isCurrentlyOnAFileInThisGroup) {
+				navigate('/')
+			}
 		} catch (error) {
 			console.error('Error deleting group:', error)
 		}
@@ -195,6 +205,7 @@ export function GroupSettingsDialog({ groupId, onClose }: GroupSettingsDialogPro
 						<input
 							className={`${styles.noPadding} tlui-input`}
 							value={inviteUrl}
+							readOnly
 							onMouseDown={(e) => {
 								preventDefault(e)
 								e.stopPropagation()

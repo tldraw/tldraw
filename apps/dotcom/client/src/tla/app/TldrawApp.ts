@@ -447,6 +447,7 @@ export class TldrawApp {
 			const file = myFiles[fileId]
 			let state: (typeof myStates)[string] | undefined = myStates[fileId]
 			if (!file) continue
+			if (file.isDeleted) continue
 
 			if (!state && !file.isDeleted && file.ownerId === this.userId) {
 				state = this.fileStates$.get().find((fs) => fs.fileId === fileId)

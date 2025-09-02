@@ -512,7 +512,7 @@ export class UserDataSyncer {
 
 		// ignore irrelevant events
 		if (!event.sequenceId.endsWith(this.state.bootId)) {
-			this.log.debug('ignoring irrelevant event', event)
+			this.log.debug('ignoring irrelevant event', event, this.state.bootId)
 			return
 		}
 

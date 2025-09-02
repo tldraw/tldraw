@@ -229,8 +229,8 @@
 }
 
 .menuSelectChevron {
-	position: absolute;
-	right: 0;
-	top: 50%;
-	transform: translateY(-50%);
+	position: absolute !important;
+	right: 0 !important;
+	top: 50% !important;
+	transform: translateY(-50%) !important;
 }

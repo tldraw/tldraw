@@ -379,15 +379,20 @@ export function createMutators(userId: string) {
 				// Only group owners can delete the group - admins cannot
 				assert(groupUser.role === 'owner', ZErrorCode.forbidden)
 
-				if (tx.location === 'server') {
-					await tx.mutate.group.update({ id: id, isDeleted: true })
-					// everything else will be cleaned up via triggers
-				} else {
-					// on the client, we can just delete the group
-					// and wait for the server to clean up and propagate the rest of the changes
-					await tx.mutate.group.delete({ id })
-					await tx.mutate.group_user.delete({ userId, groupId: id })
+				// Delete all group files
+				const groupFiles = await tx.query.group_file.where('groupId', '=', id).run()
+				for (const groupFile of groupFiles) {
+					await tx.mutate.group_file.delete({ fileId: groupFile.fileId, groupId: id })
 				}
+
+				// Mark all files owned by this group as deleted
+				const files = await tx.query.file.where('owningGroupId', '=', id).run()
+				for (const file of files) {
+					await tx.mutate.file.update({ id: file.id, isDeleted: true })
+				}
+
+				await tx.mutate.group.update({ id: id, isDeleted: true })
+				await tx.mutate.group_user.delete({ userId, groupId: id })
 			},
 			moveFileToGroup: async (tx, { fileId, groupId }: { fileId: string; groupId: string }) => {
 				await assertUserHasFlag(tx, userId, 'groups')
