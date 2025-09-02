@@ -3,15 +3,13 @@ import { Editor, useToasts } from 'tldraw'
 import { TldrawAgent } from './TldrawAgent'
 
 /**
- * Create an agent object with helpers for prompting
+ * Create a tldraw agent that can be prompted to edit the canvas.
  * *
  * @example
  * ```tsx
- * const agent = useTldrawAgent({ editor })
+ * const agent = useTldrawAgent(editor)
  * agent.prompt({ message: 'Draw a snowman' })
  * ```
- *
- * @returns An object with helpers.
  */
 export function useTldrawAgent(editor: Editor): TldrawAgent {
 	const toasts = useToasts()
@@ -29,7 +27,11 @@ export function useTldrawAgent(editor: Editor): TldrawAgent {
 	)
 
 	const agent = useMemo(() => {
-		return new TldrawAgent(editor, handleError)
+		return new TldrawAgent({
+			editor,
+			persistenceKey: 'agent',
+			onError: handleError,
+		})
 	}, [editor, handleError])
 
 	useEffect(() => {

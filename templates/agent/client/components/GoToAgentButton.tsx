@@ -10,11 +10,9 @@ import { TldrawAgent } from '../agent/TldrawAgent'
 
 export function GoToAgentButton({ agent }: { agent: TldrawAgent }) {
 	const editor = useEditor()
-	const agentViewportBounds = useValue(
-		'agentViewportBounds',
-		() => agent.$agentViewportBoundsHighlight.get(),
-		[agent.$agentViewportBoundsHighlight]
-	)
+	const agentViewportBounds = useValue('agentViewportBounds', () => agent.$currentViewport.get(), [
+		agent.$currentViewport,
+	])
 
 	const { showButton, arrowRotation } = useValue(
 		'goToAgentState',

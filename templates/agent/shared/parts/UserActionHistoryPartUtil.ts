@@ -28,13 +28,13 @@ export class UserActionHistoryPartUtil extends PromptPartUtil<UserActionHistoryP
 
 	override getPart(request: AgentRequest, agent: TldrawAgent): UserActionHistoryPart {
 		const { editor } = agent
-		const rawStoreDiffs = agent.$documentChanges.get()
+		const rawStoreDiffs = agent.$userActionsHistory.get()
 		if (rawStoreDiffs.length === 0) {
 			return { type: 'userActionHistory', history: { updates: [], deletes: [], creates: [] } }
 		}
 
 		// Get the agent's diffs from the chat history
-		const agentActionDiffs = this.getAgentDiffs(agent.$chatHistoryItems.get())
+		const agentActionDiffs = this.getAgentDiffs(agent.$chatHistory.get())
 
 		const userActionDiffs = rawStoreDiffs.filter(
 			(diff) => !agentActionDiffs.some((agentDiff) => isEqual(diff, agentDiff))

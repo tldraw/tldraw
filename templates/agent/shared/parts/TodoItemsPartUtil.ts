@@ -18,7 +18,7 @@ export class TodoListPartUtil extends PromptPartUtil<TodoListPart> {
 	override getPart(_request: AgentRequest, agent: TldrawAgent): TodoListPart {
 		return {
 			type: 'todoList',
-			items: agent.$todoItems.get(),
+			items: agent.$todoList.get(),
 		}
 	}
 

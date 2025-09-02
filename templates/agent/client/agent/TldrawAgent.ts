@@ -13,27 +13,59 @@ import { persistAtomInLocalStorage } from '../atoms/persistAtomInLocalStorage'
 import { promptAgent } from './promptAgent'
 
 export class TldrawAgent {
-	private agentActionUtilsRecord: Record<AgentAction['_type'], AgentActionUtil<AgentAction>>
-	private promptPartsUtilsRecord: Record<PromptPart['type'], PromptPartUtil<PromptPart>>
-	private unknownActionUtil: AgentActionUtil<AgentAction>
+	/** The editor associated with this agent. */
+	public editor: Editor
 
-	$agentViewportBoundsHighlight = atom<BoxModel | null>('agentViewportBoundsHighlight', null)
-	$chatHistoryItems = atom<IChatHistoryItem[]>('chatHistoryItems', [])
-	$pendingContextItems = atom<IContextItem[]>('pendingContextItems', [])
-	$documentChanges = atom<RecordsDiff<TLRecord>[]>('documentChanges', [])
+	/** A key used to persist the agent's state to localStorage. */
+	public persistenceKey: string
+
+	/** A function to call when an error occurs. */
+	public onError: (e: any) => void
+
+	// TODO: Remove currentViewport and currentContextItems, as they are already available in currentRequest
+	$currentViewport = atom<BoxModel | null>('currentViewport', null)
+	$currentContextItems = atom<IContextItem[]>('currentContextItems', [])
+
+	/**
+	 * An atom containing the current request.
+	 * This is mainly used to render highlights and other UI elements.
+	 */
+	$currentRequest = atom<AgentRequest | null>('currentRequest', null)
+
+	/**
+	 * An atom containing the next request that the agent has scheduled for itself.
+	 * Null if there is no scheduled request.
+	 */
 	$scheduledRequest = atom<AgentRequest | null>('scheduledRequest', null)
-	$todoItems = atom<TodoItem[]>('todoItems', [])
 
-	constructor(
-		public editor: Editor,
-		public onError: (e: any) => void
-	) {
+	/** An atom containing the todo list that the agent may write for itself. */
+	$todoList = atom<TodoItem[]>('todoList', [])
+
+	/** An atom containing the chat history. */
+	$chatHistory = atom<IChatHistoryItem[]>('chatHistory', [])
+
+	/** An atom that is used to store document changes that the user makes. */
+	$userActionsHistory = atom<RecordsDiff<TLRecord>[]>('userActionsHistory', [])
+
+	constructor({
+		editor,
+		persistenceKey,
+		onError,
+	}: {
+		editor: Editor
+		persistenceKey: string
+		onError: (e: any) => void
+	}) {
+		this.editor = editor
+		this.persistenceKey = persistenceKey
+		this.onError = onError
+
 		this.agentActionUtilsRecord = getAgentActionUtilsRecord()
-		this.promptPartsUtilsRecord = getPromptPartUtilsRecord()
+		this.promptPartUtilsRecord = getPromptPartUtilsRecord()
 		this.unknownActionUtil = this.agentActionUtilsRecord.unknown
 
-		persistAtomInLocalStorage(this.$chatHistoryItems, 'chat-history-items')
-		persistAtomInLocalStorage(this.$todoItems, 'todo-items')
+		persistAtomInLocalStorage(this.$chatHistory, 'chat-history-items')
+		persistAtomInLocalStorage(this.$todoList, 'todo-items')
 	}
 
 	/**
@@ -56,8 +88,27 @@ export class TldrawAgent {
 	 * @returns The part util.
 	 */
 	getPromptPartUtil(type: PromptPart['type']) {
-		return this.promptPartsUtilsRecord[type]
+		return this.promptPartUtilsRecord[type]
 	}
+
+	/**
+	 * A record of the agent's action util instances.
+	 * Used by the `getAgentActionUtil` method.
+	 */
+	private agentActionUtilsRecord: Record<AgentAction['_type'], AgentActionUtil<AgentAction>>
+
+	/**
+	 * The agent action util instance for the "unknown" action type.
+	 * Returned by the `getAgentActionUtil` method when the action type isn't properly specified.
+	 * This can happen if the model isn't finished streaming yet or makes a mistake.
+	 */
+	private unknownActionUtil: AgentActionUtil<AgentAction>
+
+	/**
+	 * A record of the agent's prompt part util instances.
+	 * Used by the `getPromptPartUtil` method.
+	 */
+	private promptPartUtilsRecord: Record<PromptPart['type'], PromptPartUtil<PromptPart>>
 
 	/**
 	 * Prompt the agent to edit the canvas.
@@ -80,7 +131,7 @@ export class TldrawAgent {
 		return promptAgent({
 			agent: this,
 			agentActionsUtils: this.agentActionUtilsRecord,
-			promptPartUtils: this.promptPartsUtilsRecord,
+			promptPartUtils: this.promptPartUtilsRecord,
 			request: {
 				message,
 				bounds,
@@ -99,7 +150,7 @@ export class TldrawAgent {
 	startRecordingDocumentChanges() {
 		const cleanUp = this.editor.store.listen(
 			(change) => {
-				this.$documentChanges.update((prev) => [...prev, change.changes])
+				this.$userActionsHistory.update((prev) => [...prev, change.changes])
 			},
 			{ scope: 'document', source: 'user' }
 		)

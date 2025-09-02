@@ -43,8 +43,8 @@ export function ChatPanel({ agent }: { agent: TldrawAgent }) {
 				rCancelFn.current()
 				rCancelFn.current = null
 
-				agent.$agentViewportBoundsHighlight.set(null)
-				agent.$pendingContextItems.set([])
+				agent.$currentViewport.set(null)
+				agent.$currentContextItems.set([])
 				setIsGenerating(false)
 			}
 
@@ -53,7 +53,7 @@ export function ChatPanel({ agent }: { agent: TldrawAgent }) {
 			if (inputRef.current) inputRef.current.value = ''
 
 			// If every todo item is done, clear the todo list
-			agent.$todoItems.update((items) => {
+			agent.$todoList.update((items) => {
 				if (items.every((item) => item.status === 'done')) {
 					return []
 				}
@@ -69,9 +69,9 @@ export function ChatPanel({ agent }: { agent: TldrawAgent }) {
 					.map((shape) => convertTldrawShapeToSimpleShape(shape, editor)),
 			}
 
-			agent.$pendingContextItems.set(promptHistoryItem.contextItems)
+			agent.$currentContextItems.set(promptHistoryItem.contextItems)
 			$contextItems.set([])
-			agent.$chatHistoryItems.update((prev) => [...prev, promptHistoryItem])
+			agent.$chatHistory.update((prev) => [...prev, promptHistoryItem])
 			setIsGenerating(true)
 			const request: AgentRequest = {
 				message: promptHistoryItem.message,
@@ -90,9 +90,9 @@ export function ChatPanel({ agent }: { agent: TldrawAgent }) {
 
 			// TODO
 			// right now, we clear the changes when the agent finishes its turn. However, this loses all the changes that happened while the agent was working. We should make this more sophisticated.
-			agent.$documentChanges.set([])
-			agent.$pendingContextItems.set([])
-			agent.$agentViewportBoundsHighlight.set(null)
+			agent.$userActionsHistory.set([])
+			agent.$currentContextItems.set([])
+			agent.$currentViewport.set(null)
 		},
 		[agent, modelName, editor, rCancelFn, handleError]
 	)
@@ -105,10 +105,10 @@ export function ChatPanel({ agent }: { agent: TldrawAgent }) {
 
 		setIsGenerating(false)
 		$contextItems.set([])
-		agent.$chatHistoryItems.set([])
-		agent.$pendingContextItems.set([])
-		agent.$agentViewportBoundsHighlight.set(null)
-		agent.$todoItems.set([])
+		agent.$chatHistory.set([])
+		agent.$currentContextItems.set([])
+		agent.$currentViewport.set(null)
+		agent.$todoList.set([])
 	}
 
 	function NewChatButton() {

@@ -9,6 +9,10 @@ import {
 } from '../../shared/types/ContextItem'
 import { persistAtomInLocalStorage } from './persistAtomInLocalStorage'
 
+/**
+ * An atom containing the context items that the user has added to the chat input.
+ * TODO: Change this to an editor atom.
+ */
 export const $contextItems = atom<IContextItem[]>('context items', [])
 persistAtomInLocalStorage($contextItems, 'context-items')
 

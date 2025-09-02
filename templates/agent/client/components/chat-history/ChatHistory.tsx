@@ -37,7 +37,7 @@ export function ChatHistory({
 	agent: TldrawAgent
 	isGenerating: boolean
 }) {
-	const items = useValue(agent.$chatHistoryItems)
+	const items = useValue(agent.$chatHistory)
 	const sections = getAgentHistorySections(items)
 	const historyRef = useRef<HTMLDivElement>(null)
 	const previousScrollDistanceFromBottomRef = useRef(0)

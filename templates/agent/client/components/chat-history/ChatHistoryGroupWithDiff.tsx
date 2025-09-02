@@ -20,7 +20,7 @@ export function ChatHistoryGroupWithDiff({
 
 	// Accept all changes from this group
 	const handleAccept = useCallback(() => {
-		agent.$chatHistoryItems.update((currentChatHistoryItems) => {
+		agent.$chatHistory.update((currentChatHistoryItems) => {
 			const newItems = [...currentChatHistoryItems]
 			for (const item of items) {
 				const index = newItems.findIndex((v) => v === item)
@@ -37,11 +37,11 @@ export function ChatHistoryGroupWithDiff({
 			}
 			return newItems
 		})
-	}, [items, editor, agent.$chatHistoryItems])
+	}, [items, editor, agent.$chatHistory])
 
 	// Reject all changes from this group
 	const handleReject = useCallback(() => {
-		agent.$chatHistoryItems.update((currentChatHistoryItems) => {
+		agent.$chatHistory.update((currentChatHistoryItems) => {
 			const newItems = [...currentChatHistoryItems]
 			for (const item of items) {
 				const index = newItems.findIndex((v) => v === item)
@@ -59,7 +59,7 @@ export function ChatHistoryGroupWithDiff({
 			}
 			return newItems
 		})
-	}, [items, editor, agent.$chatHistoryItems])
+	}, [items, editor, agent.$chatHistory])
 
 	// Get the acceptance status of the group
 	// If all items are accepted, the group is accepted

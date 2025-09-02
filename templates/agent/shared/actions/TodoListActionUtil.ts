@@ -38,7 +38,7 @@ export class TodoListActionUtil extends AgentActionUtil<ITodoListAction> {
 			text: action.text,
 		}
 
-		agent.$todoItems.update((todoItems) => {
+		agent.$todoList.update((todoItems) => {
 			const index = todoItems.findIndex((item) => item.id === action.id)
 			if (index !== -1) {
 				return [...todoItems.slice(0, index), todoItem, ...todoItems.slice(index + 1)]

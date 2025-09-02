@@ -10,8 +10,8 @@ export function advanceSchedule({
 	request: AgentRequest
 	onError: (e: any) => void
 }) {
-	agent.$agentViewportBoundsHighlight.set(request.bounds)
-	agent.$pendingContextItems.set(request.contextItems)
+	agent.$currentViewport.set(request.bounds)
+	agent.$currentContextItems.set(request.contextItems)
 
 	const current = {
 		promise: Promise.resolve(),
@@ -30,7 +30,7 @@ export function advanceSchedule({
 		current.promise.then(() => {
 			let scheduledRequest = agent.$scheduledRequest.get()
 			if (!scheduledRequest) {
-				const todoItemsRemaining = agent.$todoItems.get().filter((item) => item.status !== 'done')
+				const todoItemsRemaining = agent.$todoList.get().filter((item) => item.status !== 'done')
 				if (todoItemsRemaining.length === 0) {
 					resolve()
 					return
@@ -46,8 +46,8 @@ export function advanceSchedule({
 			}
 
 			agent.$scheduledRequest.set(null)
-			agent.$agentViewportBoundsHighlight.set(null)
-			agent.$pendingContextItems.set([])
+			agent.$currentViewport.set(null)
+			agent.$currentContextItems.set([])
 
 			const nextResult = advanceSchedule({ agent, request: scheduledRequest, onError })
 			current.promise = nextResult.promise

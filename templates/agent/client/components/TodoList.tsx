@@ -4,7 +4,7 @@ import { TodoItem } from '../../shared/types/TodoItem'
 import { TldrawAgent } from '../agent/TldrawAgent'
 
 export function TodoList({ agent }: { agent: TldrawAgent }) {
-	const todoItems = useValue(agent.$todoItems)
+	const todoItems = useValue(agent.$todoList)
 
 	if (todoItems.length === 0) {
 		return null
@@ -23,8 +23,8 @@ export function TodoList({ agent }: { agent: TldrawAgent }) {
 
 function TodoListItem({ agent, item }: { agent: TldrawAgent; item: TodoItem }) {
 	const deleteTodo = useCallback(() => {
-		agent.$todoItems.update((items) => items.filter((i) => i.id !== item.id))
-	}, [item.id, agent.$todoItems])
+		agent.$todoList.update((items) => items.filter((i) => i.id !== item.id))
+	}, [item.id, agent.$todoList])
 
 	const getStatusIcon = (status: TodoItem['status']) => {
 		switch (status) {

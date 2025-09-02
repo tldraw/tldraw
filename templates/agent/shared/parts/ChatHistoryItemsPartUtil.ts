@@ -19,7 +19,7 @@ export class ChatHistoryItemsPartUtil extends PromptPartUtil<ChatHistoryItemsPar
 	override getPart(_request: AgentRequest, agent: TldrawAgent): ChatHistoryItemsPart {
 		return {
 			type: 'historyItems',
-			items: agent.$chatHistoryItems.get(),
+			items: agent.$chatHistory.get(),
 		}
 	}
 

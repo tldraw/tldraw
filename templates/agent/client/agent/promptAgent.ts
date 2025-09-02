@@ -92,7 +92,7 @@ export function promptAgent({
 									acceptance: 'pending',
 								}
 
-								agent.$chatHistoryItems.update((items) => {
+								agent.$chatHistory.update((items) => {
 									// If there are no items, start off the chat history with the first item
 									if (items.length === 0) return [historyItem]
 
