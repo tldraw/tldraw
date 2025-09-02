@@ -41,7 +41,6 @@ export function useTldrawAgent(editor: Editor, key = 'tldraw-agent'): TldrawAgen
 	useEffect(() => {
 		return () => {
 			if (agentRef.current) {
-				console.log('DISPOSING AGENT')
 				agentRef.current.dispose()
 				agentRef.current = null
 			}
