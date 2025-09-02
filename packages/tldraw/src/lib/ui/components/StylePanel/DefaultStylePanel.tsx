@@ -58,6 +58,7 @@ export const DefaultStylePanel = memo(function DefaultStylePanel({
 	return (
 		<div
 			ref={ref}
+			data-testid="style.panel"
 			className={classNames('tlui-style-panel', { 'tlui-style-panel__wrapper': !isMobile })}
 			data-ismobile={isMobile}
 			data-show-ui-labels={showUiLabels}
