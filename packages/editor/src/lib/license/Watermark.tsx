@@ -198,7 +198,6 @@ To remove the watermark, please purchase a license at tldraw.dev.
 		height: 32px;
 	}
 
-
 	@media (hover: hover) {
 		.${className} > button {
 			pointer-events: none;
@@ -209,7 +208,6 @@ To remove the watermark, please purchase a license at tldraw.dev.
 			transition: background-color 0.2s ease-in-out;
 			transition-delay: 0.32s;
 		}
-
 
 		.${className}:hover > button {
 			animation: ${className}_delayed_link 0.2s forwards ease-in-out;
