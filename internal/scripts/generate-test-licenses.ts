@@ -104,7 +104,7 @@ async function main() {
 				'test-annual-valid',
 				['localhost'],
 				FLAGS.ANNUAL_LICENSE,
-				getDateOffset(30)
+				getDateOffset(60) // 2 months future
 			),
 		},
 		{
@@ -113,7 +113,7 @@ async function main() {
 				'test-perpetual-valid',
 				['localhost'],
 				FLAGS.PERPETUAL_LICENSE,
-				getDateOffset(365)
+				getDateOffset(365) // 1 year future
 			),
 		},
 		{
@@ -122,7 +122,7 @@ async function main() {
 				'test-eval-valid',
 				['localhost'],
 				FLAGS.EVALUATION_LICENSE,
-				getDateOffset(7)
+				getDateOffset(14) // 2 weeks future
 			),
 		},
 		{
@@ -131,7 +131,7 @@ async function main() {
 				'test-internal-valid',
 				['localhost'],
 				FLAGS.ANNUAL_LICENSE | FLAGS.INTERNAL_LICENSE,
-				getDateOffset(30)
+				getDateOffset(60) // 2 months future
 			),
 		},
 		{
@@ -140,56 +140,47 @@ async function main() {
 				'test-watermark-only',
 				['localhost'],
 				FLAGS.WITH_WATERMARK,
-				getDateOffset(30)
+				getDateOffset(60) // 2 months future
 			),
 		},
 
 		// === GRACE PERIOD TESTING ===
 		{
-			name: 'Annual License (expired 15 days - grace period)',
+			name: 'Annual License (expired 15 days - within grace period)',
 			info: createLicenseInfo(
 				'test-grace-15days',
 				['localhost'],
 				FLAGS.ANNUAL_LICENSE,
-				getDateOffset(-15)
+				getDateOffset(-15) // 15 days past
 			),
 		},
 		{
-			name: 'Annual License (expired 35 days - watermark period)',
+			name: 'Annual License (expired 45 days - beyond grace period)',
 			info: createLicenseInfo(
-				'test-grace-35days-watermark',
+				'test-annual-expired-45days',
 				['localhost'],
 				FLAGS.ANNUAL_LICENSE,
-				getDateOffset(-35)
-			),
-		},
-		{
-			name: 'Annual License (expired 70 days - fully expired)',
-			info: createLicenseInfo(
-				'test-annual-expired-70days',
-				['localhost'],
-				FLAGS.ANNUAL_LICENSE,
-				getDateOffset(-70)
+				getDateOffset(-45) // 45 days past
 			),
 		},
 
 		// === EXPIRED INTERNAL LICENSES ===
 		{
-			name: 'Internal License (expired 10 days)',
+			name: 'Internal License (expired 15 days - within grace period)',
 			info: createLicenseInfo(
-				'test-internal-expired-10days',
+				'test-internal-expired-15days',
 				['localhost'],
 				FLAGS.ANNUAL_LICENSE | FLAGS.INTERNAL_LICENSE,
-				getDateOffset(-10)
+				getDateOffset(-15) // 15 days past
 			),
 		},
 		{
-			name: 'Internal License (expired 6 months)',
+			name: 'Internal License (expired 45 days - beyond grace period)',
 			info: createLicenseInfo(
-				'test-internal-expired-6months',
+				'test-internal-expired-45days',
 				['localhost'],
 				FLAGS.ANNUAL_LICENSE | FLAGS.INTERNAL_LICENSE,
-				getDateOffset(-180)
+				getDateOffset(-45) // 45 days past
 			),
 		},
 
@@ -200,16 +191,16 @@ async function main() {
 				'test-eval-expired-1day',
 				['localhost'],
 				FLAGS.EVALUATION_LICENSE,
-				getDateOffset(-1)
+				getDateOffset(-1) // 1 day past
 			),
 		},
 		{
-			name: 'Evaluation License (expired 30 days)',
+			name: 'Evaluation License (expired 15 days)',
 			info: createLicenseInfo(
-				'test-eval-expired-30days',
+				'test-eval-expired-15days',
 				['localhost'],
 				FLAGS.EVALUATION_LICENSE,
-				getDateOffset(-30)
+				getDateOffset(-15) // 15 days past
 			),
 		},
 	]
