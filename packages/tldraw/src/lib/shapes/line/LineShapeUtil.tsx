@@ -22,9 +22,9 @@ import {
 	mapObjectMapValues,
 	maybeSnapToGrid,
 	sortByIndex,
+	useEditor,
 } from '@tldraw/editor'
-
-import { STROKE_SIZES } from '../arrow/shared'
+import { SizeStyleUtil } from '../../styles/TLSizeStyle'
 import { PathBuilder, PathBuilderGeometry2d } from '../shared/PathBuilder'
 import { useDefaultColorTheme } from '../shared/useDefaultColorTheme'
 
@@ -187,7 +187,8 @@ export class LineShapeUtil extends ShapeUtil<TLLineShape> {
 	}
 
 	indicator(shape: TLLineShape) {
-		const strokeWidth = STROKE_SIZES[shape.props.size] * shape.props.scale
+		const strokeWidth =
+			this.editor.getStyleUtil(SizeStyleUtil).toStrokeSizePx(shape.props.size) * shape.props.scale
 		const path = getPathForLineShape(shape)
 		const { dash } = shape.props
 
@@ -332,6 +333,7 @@ function LineShapeSvg({
 	forceSolid?: boolean
 }) {
 	const theme = useDefaultColorTheme()
+	const editor = useEditor()
 
 	const path = getPathForLineShape(shape)
 	const { dash, color, size } = shape.props
@@ -340,7 +342,7 @@ function LineShapeSvg({
 
 	const scale = shouldScale ? scaleFactor : 1
 
-	const strokeWidth = STROKE_SIZES[size] * shape.props.scale
+	const strokeWidth = editor.getStyleUtil(SizeStyleUtil).toStrokeSizePx(size) * shape.props.scale
 
 	return path.toSvg({
 		style: dash,

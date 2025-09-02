@@ -17,6 +17,7 @@ import { Circle2d } from '@tldraw/editor';
 import { ComponentType } from 'react';
 import { CSSProperties } from 'react';
 import { Editor } from '@tldraw/editor';
+import { EnumStyleProp } from '@tldraw/editor';
 import { Extension } from '@tiptap/core';
 import { Extensions } from '@tiptap/core';
 import { ForwardRefExoticComponent } from 'react';
@@ -55,6 +56,8 @@ import { ShapeWithCrop } from '@tldraw/editor';
 import { SharedStyle } from '@tldraw/editor';
 import { StateNode } from '@tldraw/editor';
 import { StyleProp } from '@tldraw/editor';
+import { StyleProp2 } from '@tldraw/editor';
+import { StyleUtil } from '@tldraw/editor';
 import { SvgExportContext } from '@tldraw/editor';
 import { SVGProps } from 'react';
 import { TiptapEditor } from '@tldraw/editor';
@@ -136,9 +139,11 @@ import { TLShapeUtilCanBeLaidOutOpts } from '@tldraw/editor';
 import { TLShapeUtilCanBindOpts } from '@tldraw/editor';
 import { TLShapeUtilCanvasSvgDef } from '@tldraw/editor';
 import { TLShapeUtilConstructor } from '@tldraw/editor';
+import { TLSizeStyle } from '@tldraw/editor';
 import { TLStateNodeConstructor } from '@tldraw/editor';
 import { TLStore } from '@tldraw/editor';
 import { TLStoreSnapshot } from '@tldraw/editor';
+import { TLStyleUtilConstructor } from '@tldraw/editor';
 import { TLTextOptions } from '@tldraw/editor';
 import { TLTextShape } from '@tldraw/editor';
 import { TLUrlExternalAsset } from '@tldraw/editor';
@@ -180,9 +185,6 @@ export const allDefaultFontFaces: TLFontFace[];
 
 // @public (undocumented)
 export function ArrangeMenuSubmenu(): JSX_2.Element | null;
-
-// @public (undocumented)
-export const ARROW_LABEL_FONT_SIZES: Record<TLDefaultSizeStyle, number>;
 
 // @public (undocumented)
 export class ArrowBindingUtil extends BindingUtil<TLArrowBinding> {
@@ -227,11 +229,12 @@ export interface ArrowShapeOptions {
     readonly elbowArrowPointSnapDistance: number;
     readonly elbowMidpointSnapDistance: number;
     readonly elbowMinSegmentLengthToShowMidpointHandle: number;
-    readonly expandElbowLegLength: Record<TLDefaultSizeStyle, number>;
+    getArrowLabelFontSize(shape: TLArrowShape, editor: Editor): number;
+    getExpandElbowLegLength(shape: TLArrowShape, editor: Editor): number;
+    getMinElbowLegLength(shape: TLArrowShape, editor: Editor): number;
     readonly hoverPreciseTimeout: number;
     readonly labelCenterSnapDistance: number;
     readonly minElbowHandleDistance: number;
-    readonly minElbowLegLength: Record<TLDefaultSizeStyle, number>;
     readonly pointingPreciseTimeout: number;
     readonly shouldBeExact: (editor: Editor) => boolean;
     readonly shouldIgnoreTargets: (editor: Editor) => boolean;
@@ -971,10 +974,58 @@ export const defaultShapeUtils: readonly [typeof TextShapeUtil, typeof BookmarkS
 export function DefaultSharePanel(): JSX_2.Element;
 
 // @public (undocumented)
+export interface DefaultSizeStyleOptions {
+    // (undocumented)
+    defaultSize: TLDefaultSizeStyle;
+    // (undocumented)
+    fontSizes: Record<TLDefaultSizeStyle, number>;
+    // (undocumented)
+    labelFontSizes: Record<TLDefaultSizeStyle, number>;
+    // (undocumented)
+    strokeSizes: Record<TLDefaultSizeStyle, number>;
+}
+
+// @public (undocumented)
+export class DefaultSizeStyleUtil extends SizeStyleUtil<TLDefaultSizeStyle> {
+    // (undocumented)
+    getDefaultValue(): TLDefaultSizeStyle;
+    // (undocumented)
+    options: DefaultSizeStyleOptions;
+    // (undocumented)
+    toFontSizePx(value: TLDefaultSizeStyle): number;
+    // (undocumented)
+    toLabelFontSizePx(value: TLDefaultSizeStyle): number;
+    // (undocumented)
+    toStrokeSizePx(value: TLDefaultSizeStyle): number;
+    // (undocumented)
+    static validator: EnumStyleProp<"l" | "m" | "s" | "xl">;
+}
+
+// @public (undocumented)
 export const DefaultStylePanel: NamedExoticComponent<TLUiStylePanelProps>;
 
 // @public (undocumented)
 export function DefaultStylePanelContent({ styles }: TLUiStylePanelContentProps): JSX_2.Element | null;
+
+// @public (undocumented)
+export function DefaultStylePanelSizePicker({ showUiLabels, styles, onChange, onHistoryMark, theme, }: DefaultStylePanelSizePickerProps): JSX_2.Element | null;
+
+// @public (undocumented)
+export interface DefaultStylePanelSizePickerProps {
+    // (undocumented)
+    onChange(style: TLSizeStyle, value: unknown): void;
+    // (undocumented)
+    onHistoryMark(id: string): void;
+    // (undocumented)
+    showUiLabels: boolean;
+    // (undocumented)
+    styles: ReadonlySharedStyleMap;
+    // (undocumented)
+    theme: TLDefaultColorTheme;
+}
+
+// @public (undocumented)
+export const defaultStyleUtils: (typeof DefaultSizeStyleUtil)[];
 
 // @public (undocumented)
 export const DefaultToasts: NamedExoticComponent<object>;
@@ -1449,9 +1500,6 @@ export function FitFrameToContentMenuItem(): JSX_2.Element | null;
 export const FONT_FAMILIES: Record<TLDefaultFontStyle, string>;
 
 // @public (undocumented)
-export const FONT_SIZES: Record<TLDefaultSizeStyle, number>;
-
-// @public (undocumented)
 export interface FrameShapeOptions {
     showColors: boolean;
 }
@@ -1593,7 +1641,7 @@ export class GeoShapeUtil extends BaseBoxShapeUtil<TLGeoShape> {
             labelColor: TLDefaultColorStyle;
             richText: TLRichText;
             scale: number;
-            size: TLDefaultSizeStyle;
+            size: unknown;
             url: string;
             verticalAlign: TLDefaultVerticalAlignStyle;
             w: number;
@@ -1624,7 +1672,7 @@ export class GeoShapeUtil extends BaseBoxShapeUtil<TLGeoShape> {
             labelColor: TLDefaultColorStyle;
             richText: TLRichText;
             scale: number;
-            size: TLDefaultSizeStyle;
+            size: unknown;
             url: string;
             verticalAlign: TLDefaultVerticalAlignStyle;
             w: number;
@@ -1881,9 +1929,6 @@ export const KeyboardShiftEnterTweakExtension: Extension<any, any>;
 
 // @public (undocumented)
 export function KeyboardShortcutsMenuItem(): JSX_2.Element | null;
-
-// @public (undocumented)
-export const LABEL_FONT_SIZES: Record<TLDefaultSizeStyle, number>;
 
 // @public (undocumented)
 export function LanguageMenu(): JSX_2.Element | null;
@@ -2619,6 +2664,18 @@ export function setDefaultEditorAssetUrls(assetUrls: TLEditorAssetUrls): void;
 export function setDefaultUiAssetUrls(urls: TLUiAssetUrls): void;
 
 // @public (undocumented)
+export abstract class SizeStyleUtil<T> extends StyleUtil<T, 'tldraw:size2'> {
+    // (undocumented)
+    static id: string;
+    // (undocumented)
+    abstract toFontSizePx(value: T): number;
+    // (undocumented)
+    abstract toLabelFontSizePx(value: T): number;
+    // (undocumented)
+    abstract toStrokeSizePx(value: T): number;
+}
+
+// @public (undocumented)
 export interface SolidPathBuilderOpts extends BasePathBuilderOpts {
     // (undocumented)
     style: 'solid';
@@ -2635,9 +2692,6 @@ export function StackMenuItems(): JSX_2.Element;
 
 // @public (undocumented)
 export function StarToolbarItem(): JSX_2.Element;
-
-// @public (undocumented)
-export const STROKE_SIZES: Record<TLDefaultSizeStyle, number>;
 
 // @public
 export interface StrokeOptions {
@@ -3023,6 +3077,7 @@ export interface TldrawImageProps extends TLImageExportOptions {
     pageId?: TLPageId;
     shapeUtils?: readonly TLAnyShapeUtilConstructor[];
     snapshot: Partial<TLEditorSnapshot> | TLStoreSnapshot;
+    styleUtils?: readonly TLStyleUtilConstructor<any, any>[];
     textOptions?: TLTextOptions;
 }
 
@@ -3448,9 +3503,9 @@ export interface TLUiButtonPickerProps<T extends string> {
     // (undocumented)
     onHistoryMark?(id: string): void;
     // (undocumented)
-    onValueChange(style: StyleProp<T>, value: T): void;
+    onValueChange(style: StyleProp<T> | StyleProp2<any>, value: T): void;
     // (undocumented)
-    style: StyleProp<T>;
+    style: StyleProp<T> | StyleProp2<any>;
     // (undocumented)
     theme: TLDefaultColorTheme;
     // (undocumented)
@@ -3515,6 +3570,8 @@ export interface TLUiComponents {
     SharePanel?: ComponentType | null;
     // (undocumented)
     StylePanel?: ComponentType<TLUiStylePanelProps> | null;
+    // (undocumented)
+    StylePanelSizePicker?: ComponentType<DefaultStylePanelSizePickerProps> | null;
     // (undocumented)
     Toasts?: ComponentType | null;
     // (undocumented)

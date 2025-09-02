@@ -1,4 +1,4 @@
-import { Editor, TLArrowShapeArrowheadStyle, TLDefaultSizeStyle, VecLike } from '@tldraw/editor'
+import { Editor, TLArrowShape, TLArrowShapeArrowheadStyle, VecLike } from '@tldraw/editor'
 import { ElbowArrowInfo, ElbowArrowRoute } from './elbow/definitions'
 import { TLArrowBindings } from './shared'
 
@@ -22,11 +22,15 @@ export interface ArrowShapeOptions {
 	/**
 	 * How far should elbow arrows expand from the shapes they're targeting?
 	 */
-	readonly expandElbowLegLength: Record<TLDefaultSizeStyle, number>
+	getExpandElbowLegLength(shape: TLArrowShape, editor: Editor): number
 	/**
 	 * The minimum length of an elbow arrow's leg.
 	 */
-	readonly minElbowLegLength: Record<TLDefaultSizeStyle, number>
+	getMinElbowLegLength(shape: TLArrowShape, editor: Editor): number
+	/**
+	 * Get the font size for arrow labels.
+	 */
+	getArrowLabelFontSize(shape: TLArrowShape, editor: Editor): number
 	/**
 	 * The minimum distance, in screen pixels, between two handles on an elbow arrow. If two handles
 	 * would be closer than this distance, they're both hidden.

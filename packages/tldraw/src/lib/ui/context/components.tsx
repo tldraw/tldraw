@@ -34,6 +34,10 @@ import {
 } from '../components/QuickActions/DefaultQuickActions'
 import { DefaultSharePanel } from '../components/SharePanel/DefaultSharePanel'
 import { DefaultStylePanel, TLUiStylePanelProps } from '../components/StylePanel/DefaultStylePanel'
+import {
+	DefaultStylePanelSizePicker,
+	DefaultStylePanelSizePickerProps,
+} from '../components/StylePanel/DefaultStylePanelSizePicker'
 import { DefaultToasts } from '../components/Toasts'
 import { DefaultImageToolbar } from '../components/Toolbar/DefaultImageToolbar'
 import {
@@ -55,6 +59,7 @@ export interface TLUiComponents {
 	MainMenu?: ComponentType<TLUiMainMenuProps> | null
 	Minimap?: ComponentType | null
 	StylePanel?: ComponentType<TLUiStylePanelProps> | null
+	StylePanelSizePicker?: ComponentType<DefaultStylePanelSizePickerProps> | null
 	PageMenu?: ComponentType | null
 	NavigationPanel?: ComponentType | null
 	Toolbar?: ComponentType | null
@@ -103,6 +108,7 @@ export function TldrawUiComponentsProvider({
 					MainMenu: DefaultMainMenu,
 					Minimap: DefaultMinimap,
 					StylePanel: DefaultStylePanel,
+					StylePanelSizePicker: DefaultStylePanelSizePicker,
 					PageMenu: DefaultPageMenu,
 					NavigationPanel: DefaultNavigationPanel,
 					Toolbar: DefaultToolbar,

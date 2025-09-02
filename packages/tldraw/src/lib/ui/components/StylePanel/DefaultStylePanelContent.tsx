@@ -7,13 +7,15 @@ import {
 	DefaultFillStyle,
 	DefaultFontStyle,
 	DefaultHorizontalAlignStyle,
-	DefaultSizeStyle,
 	DefaultTextAlignStyle,
 	DefaultVerticalAlignStyle,
 	GeoShapeGeoStyle,
 	LineShapeSplineStyle,
 	ReadonlySharedStyleMap,
+	SizeStyle,
 	StyleProp,
+	StyleProp2,
+	StylePropMarker,
 	TLArrowShapeArrowheadStyle,
 	TLDefaultColorTheme,
 	getDefaultColorTheme,
@@ -25,6 +27,7 @@ import {
 } from '@tldraw/editor'
 import React, { useCallback } from 'react'
 import { STYLES } from '../../../styles'
+import { useTldrawUiComponents } from '../../context/components'
 import { useUiEvents } from '../../context/events'
 import { useRelevantStyles } from '../../hooks/useRelevantStyles'
 import { useTranslation } from '../../hooks/useTranslation/useTranslation'
@@ -88,7 +91,7 @@ function useStyleChangeCallback() {
 
 	return React.useMemo(
 		() =>
-			function handleStyleChange<T>(style: StyleProp<T>, value: T) {
+			function handleStyleChange<T>(style: StyleProp<T> | StyleProp2<any>, value: T) {
 				editor.run(() => {
 					if (editor.isIn('select')) {
 						editor.setStyleForSelectedShapes(style, value)
@@ -97,7 +100,8 @@ function useStyleChangeCallback() {
 					editor.updateInstanceState({ isChangingStyle: true })
 				})
 
-				trackEvent('set-style', { source: 'style-panel', id: style.id, value: value as string })
+				const styleId = style instanceof StyleProp ? style.id : style[StylePropMarker]
+				trackEvent('set-style', { source: 'style-panel', id: styleId, value: value as string })
 			},
 		[editor, trackEvent]
 	)
@@ -121,13 +125,14 @@ export function CommonStylePickerSet({ styles, theme }: ThemeStylePickerSetProps
 
 	const onHistoryMark = useCallback((id: string) => editor.markHistoryStoppingPoint(id), [editor])
 	const showUiLabels = useValue('showUiLabels', () => editor.user.getShowUiLabels(), [editor])
+	const { StylePanelSizePicker } = useTldrawUiComponents()
 
 	const handleValueChange = useStyleChangeCallback()
 
 	const color = styles.get(DefaultColorStyle)
 	const fill = styles.get(DefaultFillStyle)
 	const dash = styles.get(DefaultDashStyle)
-	const size = styles.get(DefaultSizeStyle)
+	const size = styles.get(SizeStyle) // styles.get(DefaultSizeStyle)
 
 	const showPickers = fill !== undefined || dash !== undefined || size !== undefined
 
@@ -195,30 +200,20 @@ export function CommonStylePickerSet({ styles, theme }: ThemeStylePickerSetProps
 							</TldrawUiToolbar>
 						</>
 					)}
-					{size === undefined ? null : (
-						<>
-							{showUiLabels && (
-								<StylePanelSubheading>{msg('style-panel.size')}</StylePanelSubheading>
-							)}
-							<TldrawUiToolbar orientation="horizontal" label={msg('style-panel.size')}>
-								<TldrawUiButtonPicker
-									title={msg('style-panel.size')}
-									uiType="size"
-									style={DefaultSizeStyle}
-									items={STYLES.size}
-									value={size}
-									onValueChange={(style, value) => {
-										handleValueChange(style, value)
-										const selectedShapeIds = editor.getSelectedShapeIds()
-										if (selectedShapeIds.length > 0) {
-											kickoutOccludedShapes(editor, selectedShapeIds)
-										}
-									}}
-									theme={theme}
-									onHistoryMark={onHistoryMark}
-								/>
-							</TldrawUiToolbar>
-						</>
+					{StylePanelSizePicker && (
+						<StylePanelSizePicker
+							showUiLabels={showUiLabels}
+							styles={styles}
+							onChange={(style, value) => {
+								handleValueChange(style, value)
+								const selectedShapeIds = editor.getSelectedShapeIds()
+								if (selectedShapeIds.length > 0) {
+									kickoutOccludedShapes(editor, selectedShapeIds)
+								}
+							}}
+							onHistoryMark={onHistoryMark}
+							theme={theme}
+						/>
 					)}
 				</div>
 			)}

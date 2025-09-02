@@ -23,7 +23,7 @@ export const frameShapeProps: RecordProps<TLFrameShape> = {
 	// because shape colors are an option, we don't want them to be picked up by the editor as a
 	// style prop by default, so instead of a proper style we just supply an equivalent validator.
 	// Check `FrameShapeUtil.configure` for how we replace this with the original
-	// `DefaultColorStyle` style when the option is turned on.
+	// `ColorStyle` style when the option is turned on.
 	color: T.literalEnum(...DefaultColorStyle.values),
 }
 

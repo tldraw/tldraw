@@ -6,6 +6,7 @@ import {
 	TLImageExportOptions,
 	TLPageId,
 	TLStoreSnapshot,
+	TLStyleUtilConstructor,
 	TLTextOptions,
 	mergeArraysAndReplaceDefaults,
 	useShallowArrayIdentity,
@@ -14,6 +15,7 @@ import {
 import { memo, useEffect, useLayoutEffect, useMemo, useState } from 'react'
 import { defaultBindingUtils } from './defaultBindingUtils'
 import { defaultShapeUtils } from './defaultShapeUtils'
+import { defaultStyleUtils } from './defaultStyleUtils'
 import { TLUiAssetUrlOverrides } from './ui/assetUrls'
 import { useDefaultEditorAssetsWithOverrides } from './utils/static-assets/assetUrls'
 import { defaultAddFontsFromNode, tipTapDefaultExtensions } from './utils/text/richText'
@@ -43,6 +45,10 @@ export interface TldrawImageProps extends TLImageExportOptions {
 	 * Additional binding utils to use.
 	 */
 	bindingUtils?: readonly TLAnyBindingUtilConstructor[]
+	/**
+	 * Additional style utils to use.
+	 */
+	styleUtils?: readonly TLStyleUtilConstructor<any, any>[]
 	/**
 	 * The license key.
 	 */
@@ -91,6 +97,11 @@ export const TldrawImage = memo(function TldrawImage(props: TldrawImageProps) {
 		() => mergeArraysAndReplaceDefaults('type', _shapeUtils, defaultShapeUtils),
 		[_shapeUtils]
 	)
+	const _styleUtils = useShallowArrayIdentity(props.styleUtils ?? [])
+	const styleUtilsWithDefaults = useMemo(
+		() => mergeArraysAndReplaceDefaults('id', _styleUtils, defaultStyleUtils),
+		[_styleUtils]
+	)
 	const _bindingUtils = useShallowArrayIdentity(props.bindingUtils ?? [])
 	const bindingUtilsWithDefaults = useMemo(
 		() => mergeArraysAndReplaceDefaults('type', _bindingUtils, defaultBindingUtils),
@@ -128,6 +139,7 @@ export const TldrawImage = memo(function TldrawImage(props: TldrawImageProps) {
 			store,
 			shapeUtils: shapeUtilsWithDefaults,
 			bindingUtils: bindingUtilsWithDefaults,
+			styleUtils: styleUtilsWithDefaults,
 			tools: [],
 			getContainer: () => tempElm,
 			licenseKey,
@@ -170,6 +182,7 @@ export const TldrawImage = memo(function TldrawImage(props: TldrawImageProps) {
 		store,
 		shapeUtilsWithDefaults,
 		bindingUtilsWithDefaults,
+		styleUtilsWithDefaults,
 		pageId,
 		bounds,
 		scale,

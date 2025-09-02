@@ -14,7 +14,6 @@ import {
 	VecLike,
 	drawShapeMigrations,
 	drawShapeProps,
-	getColorValue,
 	last,
 	lerp,
 	rng,
@@ -23,14 +22,14 @@ import {
 	useValue,
 } from '@tldraw/editor'
 
+import { ColorStyleUtil } from '../../styles/TLColorStyle'
+import { SizeStyleUtil } from '../../styles/TLSizeStyle'
 import { ShapeFill } from '../shared/ShapeFill'
-import { STROKE_SIZES } from '../shared/default-shape-constants'
 import { getFillDefForCanvas, getFillDefForExport } from '../shared/defaultStyleDefs'
 import { getStrokePoints } from '../shared/freehand/getStrokePoints'
 import { getSvgPathFromStrokePoints } from '../shared/freehand/svg'
 import { svgInk } from '../shared/freehand/svgInk'
 import { interpolateSegments } from '../shared/interpolate-props'
-import { useDefaultColorTheme } from '../shared/useDefaultColorTheme'
 import { getDrawShapeStrokeDashArray, getFreehandOptions, getPointsFromSegments } from './getPath'
 
 /** @public */
@@ -79,7 +78,9 @@ export class DrawShapeUtil extends ShapeUtil<TLDrawShape> {
 	getGeometry(shape: TLDrawShape) {
 		const points = getPointsFromSegments(shape.props.segments)
 
-		const sw = (STROKE_SIZES[shape.props.size] + 1) * shape.props.scale
+		const sw =
+			(this.editor.getStyleUtil(SizeStyleUtil).toStrokeSizePx(shape.props.size) + 1) *
+			shape.props.scale
 
 		// A dot
 		if (shape.props.segments.length === 1) {
@@ -133,7 +134,9 @@ export class DrawShapeUtil extends ShapeUtil<TLDrawShape> {
 	indicator(shape: TLDrawShape) {
 		const allPointsFromSegments = getPointsFromSegments(shape.props.segments)
 
-		let sw = (STROKE_SIZES[shape.props.size] + 1) * shape.props.scale
+		let sw =
+			(this.editor.getStyleUtil(SizeStyleUtil).toStrokeSizePx(shape.props.size) + 1) *
+			shape.props.scale
 
 		// eslint-disable-next-line react-hooks/rules-of-hooks
 		const forceSolid = useValue(
@@ -206,7 +209,11 @@ export class DrawShapeUtil extends ShapeUtil<TLDrawShape> {
 
 	override expandSelectionOutlinePx(shape: TLDrawShape): number {
 		const multiplier = shape.props.dash === 'draw' ? 1.6 : 1
-		return ((STROKE_SIZES[shape.props.size] * multiplier) / 2) * shape.props.scale
+		return (
+			((this.editor.getStyleUtil(SizeStyleUtil).toStrokeSizePx(shape.props.size) * multiplier) /
+				2) *
+			shape.props.scale
+		)
 	}
 	override getInterpolatedProps(
 		startShape: TLDrawShape,
@@ -233,14 +240,14 @@ function getIsDot(shape: TLDrawShape) {
 }
 
 function DrawShapeSvg({ shape, zoomOverride }: { shape: TLDrawShape; zoomOverride?: number }) {
-	const theme = useDefaultColorTheme()
 	const editor = useEditor()
 
 	const allPointsFromSegments = getPointsFromSegments(shape.props.segments)
 
 	const showAsComplete = shape.props.isComplete || last(shape.props.segments)?.type === 'straight'
 
-	let sw = (STROKE_SIZES[shape.props.size] + 1) * shape.props.scale
+	let sw =
+		(editor.getStyleUtil(SizeStyleUtil).toStrokeSizePx(shape.props.size) + 1) * shape.props.scale
 	const forceSolid = useValue(
 		'force solid',
 		() => {
@@ -281,7 +288,7 @@ function DrawShapeSvg({ shape, zoomOverride }: { shape: TLDrawShape; zoomOverrid
 							getStrokePoints(allPointsFromSegments, options),
 							shape.props.isClosed
 						)}
-						theme={theme}
+						theme={undefined}
 						color={shape.props.color}
 						fill={shape.props.isClosed ? shape.props.fill : 'none'}
 						scale={shape.props.scale}
@@ -290,7 +297,7 @@ function DrawShapeSvg({ shape, zoomOverride }: { shape: TLDrawShape; zoomOverrid
 				<path
 					d={svgInk(allPointsFromSegments, options)}
 					strokeLinecap="round"
-					fill={getColorValue(theme, shape.props.color, 'solid')}
+					fill={editor.getStyleUtil(ColorStyleUtil).toCssColor(shape.props.color, 'solid')}
 				/>
 			</>
 		)
@@ -306,7 +313,7 @@ function DrawShapeSvg({ shape, zoomOverride }: { shape: TLDrawShape; zoomOverrid
 		<>
 			<ShapeFill
 				d={solidStrokePath}
-				theme={theme}
+				theme={undefined}
 				color={shape.props.color}
 				fill={isDot || shape.props.isClosed ? shape.props.fill : 'none'}
 				scale={shape.props.scale}
@@ -314,8 +321,12 @@ function DrawShapeSvg({ shape, zoomOverride }: { shape: TLDrawShape; zoomOverrid
 			<path
 				d={solidStrokePath}
 				strokeLinecap="round"
-				fill={isDot ? getColorValue(theme, shape.props.color, 'solid') : 'none'}
-				stroke={getColorValue(theme, shape.props.color, 'solid')}
+				fill={
+					isDot
+						? editor.getStyleUtil(ColorStyleUtil).toCssColor(shape.props.color, 'solid')
+						: 'none'
+				}
+				stroke={editor.getStyleUtil(ColorStyleUtil).toCssColor(shape.props.color, 'solid')}
 				strokeWidth={sw}
 				strokeDasharray={isDot ? 'none' : getDrawShapeStrokeDashArray(shape, sw, dotAdjustment)}
 				strokeDashoffset="0"

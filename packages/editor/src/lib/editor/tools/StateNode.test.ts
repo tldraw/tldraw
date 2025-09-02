@@ -47,6 +47,7 @@ describe('StateNode.addChild', () => {
 			initialState: 'parent',
 			shapeUtils: [],
 			bindingUtils: [],
+			styleUtils: [],
 			tools: [
 				ParentState,
 				ChildState1,
@@ -263,6 +264,7 @@ describe('current tool id mask', () => {
 			initialState: 'A',
 			shapeUtils: [],
 			bindingUtils: [],
+			styleUtils: [],
 			tools: [ToolA, ToolB, ToolC],
 			store: createTLStore({ shapeUtils: [], bindingUtils: [] }),
 			getContainer: () => document.body,

@@ -225,7 +225,14 @@ export {
 	type TLVideoShape,
 	type TLVideoShapeProps,
 } from './shapes/TLVideoShape'
-export { EnumStyleProp, StyleProp, type StylePropValue } from './styles/StyleProp'
+export {
+	EnumStyleProp,
+	isStyleProp2,
+	StyleProp,
+	StyleProp2,
+	StylePropMarker,
+	type StylePropValue,
+} from './styles/StyleProp'
 export {
 	defaultColorNames,
 	DefaultColorStyle,
@@ -247,7 +254,12 @@ export {
 	DefaultHorizontalAlignStyle,
 	type TLDefaultHorizontalAlignStyle,
 } from './styles/TLHorizontalAlignStyle'
-export { DefaultSizeStyle, type TLDefaultSizeStyle } from './styles/TLSizeStyle'
+export {
+	DefaultSizeStyle,
+	SizeStyle,
+	type TLDefaultSizeStyle,
+	type TLSizeStyle,
+} from './styles/TLSizeStyle'
 export { DefaultTextAlignStyle, type TLDefaultTextAlignStyle } from './styles/TLTextAlignStyle'
 export {
 	DefaultVerticalAlignStyle,

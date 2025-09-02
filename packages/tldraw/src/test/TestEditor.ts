@@ -39,6 +39,7 @@ import { defaultBindingUtils } from '../lib/defaultBindingUtils'
 import { defaultShapeTools } from '../lib/defaultShapeTools'
 import { defaultShapeUtils } from '../lib/defaultShapeUtils'
 import { registerDefaultSideEffects } from '../lib/defaultSideEffects'
+import { defaultStyleUtils } from '../lib/defaultStyleUtils'
 import { defaultTools } from '../lib/defaultTools'
 import { defaultAddFontsFromNode, tipTapDefaultExtensions } from '../lib/utils/text/richText'
 import { shapesFromJsx } from './test-jsx'
@@ -88,15 +89,18 @@ export class TestEditor extends Editor {
 
 		const shapeUtilsWithDefaults = [...defaultShapeUtils, ...(options.shapeUtils ?? [])]
 		const bindingUtilsWithDefaults = [...defaultBindingUtils, ...(options.bindingUtils ?? [])]
+		const styleUtilsWithDefaults = [...defaultStyleUtils, ...(options.styleUtils ?? [])]
 
 		super({
 			...options,
 			shapeUtils: shapeUtilsWithDefaults,
 			bindingUtils: bindingUtilsWithDefaults,
+			styleUtils: styleUtilsWithDefaults,
 			tools: [...defaultTools, ...defaultShapeTools, ...(options.tools ?? [])],
 			store: createTLStore({
 				shapeUtils: shapeUtilsWithDefaults,
 				bindingUtils: bindingUtilsWithDefaults,
+				styleUtils: styleUtilsWithDefaults,
 				...storeOptions,
 			}),
 			getContainer: () => elm,

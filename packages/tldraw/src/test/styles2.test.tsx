@@ -3,8 +3,10 @@ import {
 	DefaultColorStyle,
 	ReadonlySharedStyleMap,
 	SharedStyle,
+	StylePropMarker,
 	TLGeoShape,
 	TLGroupShape,
+	isStyleProp2,
 	toRichText,
 } from '@tldraw/editor'
 import { TestEditor, createDefaultShapes, defaultShapesIds } from './TestEditor'
@@ -16,7 +18,8 @@ function asPlainObject(styles: ReadonlySharedStyleMap | null) {
 	if (!styles) return null
 	const object: Record<string, SharedStyle<unknown>> = {}
 	for (const [key, value] of styles) {
-		object[key.id] = value
+		const id = isStyleProp2(key) ? key[StylePropMarker] : key.id
+		object[id] = value
 	}
 	return object
 }

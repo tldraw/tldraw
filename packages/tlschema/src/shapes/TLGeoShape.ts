@@ -4,8 +4,9 @@ import { createShapePropsMigrationIds, createShapePropsMigrationSequence } from 
 import { RecordProps } from '../recordsWithProps'
 import { StyleProp } from '../styles/StyleProp'
 import {
-	DefaultColorStyle,
+	ColorStyle,
 	DefaultLabelColorStyle,
+	TLColorStyle,
 	TLDefaultColorStyle,
 } from '../styles/TLColorStyle'
 import { DefaultDashStyle, TLDefaultDashStyle } from '../styles/TLDashStyle'
@@ -15,7 +16,7 @@ import {
 	DefaultHorizontalAlignStyle,
 	TLDefaultHorizontalAlignStyle,
 } from '../styles/TLHorizontalAlignStyle'
-import { DefaultSizeStyle, TLDefaultSizeStyle } from '../styles/TLSizeStyle'
+import { SizeStyle } from '../styles/TLSizeStyle'
 import {
 	DefaultVerticalAlignStyle,
 	TLDefaultVerticalAlignStyle,
@@ -64,9 +65,9 @@ export interface TLGeoShapeProps {
 
 	// Text properties
 	labelColor: TLDefaultColorStyle
-	color: TLDefaultColorStyle
+	color: TLColorStyle
 	fill: TLDefaultFillStyle
-	size: TLDefaultSizeStyle
+	size: unknown
 	font: TLDefaultFontStyle
 	align: TLDefaultHorizontalAlignStyle
 	verticalAlign: TLDefaultVerticalAlignStyle
@@ -88,9 +89,9 @@ export const geoShapeProps: RecordProps<TLGeoShape> = {
 
 	// Text properties
 	labelColor: DefaultLabelColorStyle,
-	color: DefaultColorStyle,
+	color: ColorStyle,
 	fill: DefaultFillStyle,
-	size: DefaultSizeStyle,
+	size: SizeStyle,
 	font: DefaultFontStyle,
 	align: DefaultHorizontalAlignStyle,
 	verticalAlign: DefaultVerticalAlignStyle,
