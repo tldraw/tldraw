@@ -11,7 +11,7 @@ async function setupLicenseTest(page: any, licenseKey: string) {
 	await page.waitForTimeout(LICENSE_TIMEOUT + 1000) // Wait for license processing
 }
 
-test.describe('Internal License', () => {
+test.describe('Internal license', () => {
 	test('does not render editor for expired internal license', async ({ page }) => {
 		const expiredInternalLicenseKey =
 			'tldraw-/WyJ0ZXN0LWludGVybmFsLWV4cGlyZWQtNm1vbnRocyIsWyJsb2NhbGhvc3QiXSw1LCIyMDI1LTAzLTAyVDA5OjM5OjMxLjYzMVoiXQ==.efmj2rGm9PqHqW4HqYE420Nomdubcm693r2gr+WWaIRQoA+I5BNJ2Z2kan0SdbXKcWj4oeyNruSeo7ixtRmfbg=='
@@ -36,8 +36,8 @@ test.describe('Internal License', () => {
 	})
 })
 
-test.describe('With watermak license', () => {
-	test('shows licensed watermark with default license key', async ({ page }) => {
+test.describe('Watermarked license', () => {
+	test('shows watermark with default license key', async ({ page }) => {
 		// Don't set any license key - this should use our default license that shows the watermark
 		await page.goto('http://localhost:5420/end-to-end')
 		await page.waitForTimeout(2000)
@@ -45,7 +45,7 @@ test.describe('With watermak license', () => {
 		// The editor should render normally
 		await expect(page.locator('.tl-canvas')).toBeVisible()
 
-		// The licensed watermark should be visible (default license has WITH_WATERMARK flag)
+		// The watermark should be visible (default license has WITH_WATERMARK flag)
 		await expect(page.getByTestId('tl-watermark-licensed')).toBeVisible()
 
 		// The unlicensed watermark should NOT be visible
@@ -53,7 +53,7 @@ test.describe('With watermak license', () => {
 	})
 })
 
-test.describe('Unlicensed watermark', () => {
+test.describe('Unlicensed', () => {
 	test('shows unlicensed watermark when no license key provided', async ({ page }) => {
 		const consoleMessages: string[] = []
 		page.on('console', (msg) => {
@@ -73,7 +73,7 @@ test.describe('Unlicensed watermark', () => {
 		// The unlicensed watermark should be visible since we have no license
 		await expect(page.getByTestId('tl-watermark-unlicensed')).toBeVisible()
 
-		// The licensed watermark should NOT be visible
+		// The watermark should NOT be visible
 		await expect(page.getByTestId('tl-watermark-licensed')).not.toBeVisible()
 
 		// License gate should not be visible (editor is not blocked)
@@ -100,7 +100,7 @@ test.describe('Unlicensed watermark', () => {
 		// The unlicensed watermark should be visible since we have no license
 		await expect(page.getByTestId('tl-watermark-unlicensed')).toBeVisible()
 
-		// The licensed watermark should NOT be visible
+		// The watermark should NOT be visible
 		await expect(page.getByTestId('tl-watermark-licensed')).not.toBeVisible()
 
 		// License gate should not be visible (editor is not blocked)
@@ -121,7 +121,7 @@ test.describe('Unlicensed watermark', () => {
 		// The unlicensed watermark should be visible since we have no valid license
 		await expect(page.getByTestId('tl-watermark-unlicensed')).toBeVisible()
 
-		// The licensed watermark should NOT be visible
+		// The watermark should NOT be visible
 		await expect(page.getByTestId('tl-watermark-licensed')).not.toBeVisible()
 
 		// License gate should not be visible (editor is not blocked)
@@ -129,7 +129,7 @@ test.describe('Unlicensed watermark', () => {
 	})
 })
 
-test.describe('Expired Evaluation License', () => {
+test.describe('Expired evaluation license', () => {
 	test('does not render editor for expired evaluation license', async ({ page }) => {
 		const expiredEvaluationLicenseKey =
 			'tldraw-/WyJ0ZXN0LWV2YWwtZXhwaXJlZC03ZGF5cyIsWyJsb2NhbGhvc3QiXSwxNiwiMjAyNS0wOC0yMlQwODoyMDoyMC43MjJaIl0=.XIuM3PlrSjs3WMX2tWzgZil/x/TNliCR/NgHtUHcr6nzk2n6S+2ijsd6w+MPP9uEyUdRdg/FQLfcYJ5pqA/G0w=='
@@ -157,7 +157,7 @@ test.describe('Expired Evaluation License', () => {
 	})
 })
 
-test.describe('Expired Annual/Perpetual License', () => {
+test.describe('Expired annual/perpetual license', () => {
 	test('does not render editor for expired annual license (beyond grace period)', async ({
 		page,
 	}) => {
