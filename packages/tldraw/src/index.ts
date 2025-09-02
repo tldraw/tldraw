@@ -171,11 +171,7 @@ export {
 export { getStrokePoints } from './lib/shapes/shared/freehand/getStrokePoints'
 export { getSvgPathFromStrokePoints } from './lib/shapes/shared/freehand/svg'
 export { type StrokeOptions, type StrokePoint } from './lib/shapes/shared/freehand/types'
-export {
-	PlainTextLabel,
-	TextLabel,
-	type PlainTextLabelProps,
-} from './lib/shapes/shared/PlainTextLabel'
+export { PlainTextLabel, type PlainTextLabelProps } from './lib/shapes/shared/PlainTextLabel'
 export {
 	RichTextLabel,
 	RichTextSVG,
@@ -183,10 +179,9 @@ export {
 	type RichTextSVGProps,
 } from './lib/shapes/shared/RichTextLabel'
 export { useDefaultColorTheme } from './lib/shapes/shared/useDefaultColorTheme'
-export { useEditablePlainText, useEditableText } from './lib/shapes/shared/useEditablePlainText'
+export { useEditablePlainText } from './lib/shapes/shared/useEditablePlainText'
 export { useEditableRichText } from './lib/shapes/shared/useEditableRichText'
 export {
-	useAsset,
 	useImageOrVideoAsset,
 	type UseImageOrVideoAssetOptions,
 } from './lib/shapes/shared/useImageOrVideoAsset'
@@ -659,7 +654,6 @@ export { preloadFont, type TLTypeFace } from './lib/utils/assets/preload-font'
 export { getEmbedInfo, type TLEmbedResult } from './lib/utils/embeds/embeds'
 export { putExcalidrawContent } from './lib/utils/excalidraw/putExcalidrawContent'
 export { copyAs, type CopyAsOptions, type TLCopyType } from './lib/utils/export/copyAs'
-export { exportToBlob } from './lib/utils/export/export'
 export { downloadFile, exportAs, type ExportAsOptions } from './lib/utils/export/exportAs'
 export { fitFrameToContent, removeFrame } from './lib/utils/frames/frames'
 export {

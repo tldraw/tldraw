@@ -4,7 +4,7 @@ import { publishDates } from '../../version'
 import { str2ab } from '../utils/licensing'
 import {
 	FLAGS,
-	isEditorUnlicensed,
+	getLicenseState,
 	LicenseManager,
 	PROPERTIES,
 	ValidLicenseKeyResult,
@@ -487,115 +487,122 @@ function getDefaultLicenseResult(overrides: Partial<ValidLicenseKeyResult>): Val
 	}
 }
 
-describe(isEditorUnlicensed, () => {
-	it('shows watermark when license is not parseable', () => {
+describe('getLicenseState', () => {
+	it('returns "unlicensed" for unparseable license', () => {
 		const licenseResult = getDefaultLicenseResult({
 			// @ts-ignore
 			isLicenseParseable: false,
 		})
-		expect(isEditorUnlicensed(licenseResult)).toBe(true)
+		expect(getLicenseState(licenseResult)).toBe('unlicensed')
 	})
 
-	it('shows watermark when domain is not valid', () => {
+	it('returns "unlicensed" for invalid domain in production', () => {
 		const licenseResult = getDefaultLicenseResult({
 			isDomainValid: false,
+			isDevelopment: false,
 		})
-		expect(isEditorUnlicensed(licenseResult)).toBe(true)
+		expect(getLicenseState(licenseResult)).toBe('unlicensed')
 	})
 
-	it('shows watermark when annual license has expired', () => {
+	it('returns "licensed" for invalid domain in development mode', () => {
+		const licenseResult = getDefaultLicenseResult({
+			isDomainValid: false,
+			isDevelopment: true,
+		})
+		expect(getLicenseState(licenseResult)).toBe('licensed')
+	})
+
+	it('returns "unlicensed" for expired annual license', () => {
 		const licenseResult = getDefaultLicenseResult({
 			isAnnualLicense: true,
 			isAnnualLicenseExpired: true,
+			isInternalLicense: false,
 		})
-		expect(isEditorUnlicensed(licenseResult)).toBe(true)
+		expect(getLicenseState(licenseResult)).toBe('unlicensed')
 	})
 
-	it('shows watermark when annual license has expired, even if dev mode', () => {
+	it('returns "unlicensed" for expired annual license even in dev mode', () => {
 		const licenseResult = getDefaultLicenseResult({
 			isAnnualLicense: true,
 			isAnnualLicenseExpired: true,
 			isDevelopment: true,
+			isInternalLicense: false,
 		})
-		expect(isEditorUnlicensed(licenseResult)).toBe(true)
+		expect(getLicenseState(licenseResult)).toBe('unlicensed')
 	})
 
-	it('shows watermark when perpetual license has expired', () => {
+	it('returns "unlicensed" for expired perpetual license', () => {
 		const licenseResult = getDefaultLicenseResult({
 			isPerpetualLicense: true,
 			isPerpetualLicenseExpired: true,
+			isInternalLicense: false,
 		})
-		expect(isEditorUnlicensed(licenseResult)).toBe(true)
+		expect(getLicenseState(licenseResult)).toBe('unlicensed')
 	})
 
-	it('does not show watermark when license is valid and not expired', () => {
+	it('returns "internal-expired" for expired internal annual license with valid domain', () => {
+		const expiryDate = new Date(2023, 1, 1)
 		const licenseResult = getDefaultLicenseResult({
 			isAnnualLicense: true,
-			isAnnualLicenseExpired: false,
-			isInternalLicense: false,
-		})
-		expect(isEditorUnlicensed(licenseResult)).toBe(false)
-	})
-
-	it('does not show watermark when perpetual license is valid and not expired', () => {
-		const licenseResult = getDefaultLicenseResult({
-			isPerpetualLicense: true,
-			isPerpetualLicenseExpired: false,
-			isInternalLicense: false,
-		})
-		expect(isEditorUnlicensed(licenseResult)).toBe(false)
-	})
-
-	it('does not show watermark when in development mode', () => {
-		const licenseResult = getDefaultLicenseResult({
-			isDevelopment: true,
-		})
-		expect(isEditorUnlicensed(licenseResult)).toBe(false)
-	})
-
-	it('does not show watermark when license is parseable and domain is valid', () => {
-		const licenseResult = getDefaultLicenseResult({
-			isLicenseParseable: true,
+			isAnnualLicenseExpired: true,
+			isInternalLicense: true,
 			isDomainValid: true,
-		})
-		expect(isEditorUnlicensed(licenseResult)).toBe(false)
-	})
-
-	it('does not show watermark when license is parseable and domain is not valid and dev mode', () => {
-		const licenseResult = getDefaultLicenseResult({
-			isLicenseParseable: true,
-			isDomainValid: false,
-			isDevelopment: true,
-		})
-		expect(isEditorUnlicensed(licenseResult)).toBe(false)
-	})
-
-	it('throws when an internal annual license has expired', () => {
-		const expiryDate = new Date(2023, 1, 1)
-		const licenseResult = getDefaultLicenseResult({
-			isAnnualLicense: true,
-			isAnnualLicenseExpired: true,
-			isInternalLicense: true,
 			expiryDate,
 		})
-		expect(() => isEditorUnlicensed(licenseResult)).toThrow(/License: Internal license expired/)
+		expect(getLicenseState(licenseResult)).toBe('internal-expired')
 	})
 
-	it('throws when an internal perpetual license has expired', () => {
+	it('returns "internal-expired" for expired internal perpetual license with valid domain', () => {
 		const expiryDate = new Date(2023, 1, 1)
 		const licenseResult = getDefaultLicenseResult({
 			isPerpetualLicense: true,
 			isPerpetualLicenseExpired: true,
 			isInternalLicense: true,
+			isDomainValid: true,
 			expiryDate,
 		})
-		expect(() => isEditorUnlicensed(licenseResult)).toThrow(/License: Internal license expired/)
+		expect(getLicenseState(licenseResult)).toBe('internal-expired')
 	})
 
-	it('shows watermark when license has that flag specified', () => {
+	it('returns "unlicensed" for expired internal license with invalid domain', () => {
+		const expiryDate = new Date(2023, 1, 1)
+		const licenseResult = getDefaultLicenseResult({
+			isAnnualLicense: true,
+			isAnnualLicenseExpired: true,
+			isInternalLicense: true,
+			isDomainValid: false,
+			expiryDate,
+		})
+		expect(getLicenseState(licenseResult)).toBe('unlicensed')
+	})
+
+	it('returns "licensed-with-watermark" for watermarked license', () => {
 		const licenseResult = getDefaultLicenseResult({
 			isLicensedWithWatermark: true,
 		})
-		expect(isEditorUnlicensed(licenseResult)).toBe(false)
+		expect(getLicenseState(licenseResult)).toBe('licensed-with-watermark')
+	})
+
+	it('returns "licensed" for valid annual license', () => {
+		const licenseResult = getDefaultLicenseResult({
+			isAnnualLicense: true,
+			isAnnualLicenseExpired: false,
+		})
+		expect(getLicenseState(licenseResult)).toBe('licensed')
+	})
+
+	it('returns "licensed" for valid perpetual license', () => {
+		const licenseResult = getDefaultLicenseResult({
+			isPerpetualLicense: true,
+			isPerpetualLicenseExpired: false,
+		})
+		expect(getLicenseState(licenseResult)).toBe('licensed')
+	})
+
+	it('returns "licensed" for valid license in development mode', () => {
+		const licenseResult = getDefaultLicenseResult({
+			isDevelopment: true,
+		})
+		expect(getLicenseState(licenseResult)).toBe('licensed')
 	})
 })
