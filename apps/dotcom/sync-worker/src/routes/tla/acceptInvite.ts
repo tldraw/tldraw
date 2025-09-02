@@ -58,7 +58,7 @@ export async function acceptInvite(request: IRequest, env: Environment): Promise
 			// Get the user's information for the group_user record
 			const user = await tx
 				.selectFrom('user')
-				.select(['name', 'email', 'flags'])
+				.select(['name', 'color', 'flags'])
 				.where('id', '=', auth.userId)
 				.executeTakeFirst()
 
@@ -97,7 +97,7 @@ export async function acceptInvite(request: IRequest, env: Environment): Promise
 				.values({
 					groupId: group.id,
 					userId: auth.userId,
-					userEmail: user.email,
+					userColor: user.color || '#000000',
 					userName: user.name,
 					role: 'admin',
 					index,

@@ -1162,17 +1162,19 @@ export class TldrawApp {
 		// If file is in the "show less" section, nothing to do
 	}
 
-	copyGroupInvite(groupId: string) {
+	copyGroupInvite(groupId: string, showToast = true) {
 		const group = this.getGroupMembership(groupId)
 		if (!group?.group.inviteSecret) return
 
 		const inviteText = `${location.origin}/invite/${group.group.inviteSecret}`
 		navigator.clipboard.writeText(inviteText)
 
-		this.toasts?.addToast({
-			id: 'copied-invite-link',
-			title: 'Copied invite link',
-		})
+		if (showToast) {
+			this.toasts?.addToast({
+				id: 'copied-invite-link',
+				title: 'Copied invite link',
+			})
+		}
 
 		this.trackEvent('copy-share-link', { source: 'sidebar' })
 	}

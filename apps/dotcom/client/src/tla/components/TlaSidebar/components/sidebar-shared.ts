@@ -13,6 +13,6 @@ export const messages = defineMessages({
 	fileMenu: { defaultMessage: 'File menu' },
 	groupEmpty: {
 		defaultMessage:
-			'Drag files here, <create>Create a file</create>, or <invite>Copy invite link</invite> to get started.',
+			'Drag files here, <create>create a file</create>, or <invite>copy invite link</invite> to get started.',
 	},
 })

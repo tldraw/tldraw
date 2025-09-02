@@ -260,11 +260,102 @@ export function createMutators(userId: string) {
 					groupId: id,
 					// these are set by the trigger
 					userName: '',
-					userEmail: '',
+					userColor: '#000000',
 					role: 'owner',
 					createdAt: Date.now(),
 					updatedAt: Date.now(),
 					index,
+				})
+			},
+			update: async (tx, { id, name }: { id: string; name: string }) => {
+				await assertUserHasFlag(tx, userId, 'groups')
+				assert(id, ZErrorCode.bad_request)
+				assert(name && name.trim(), ZErrorCode.bad_request)
+
+				// Check if user is a member of the group
+				const groupUser = await tx.query.group_user
+					.where('userId', '=', userId)
+					.where('groupId', '=', id)
+					.one()
+					.run()
+				assert(groupUser, ZErrorCode.forbidden)
+
+				// Only group owners can update the group name
+				assert(groupUser.role === 'owner', ZErrorCode.forbidden)
+
+				await tx.mutate.group.update({
+					id,
+					name: name.trim(),
+					updatedAt: Date.now(),
+				})
+			},
+			regenerateInvite: async (tx, { id }: { id: string }) => {
+				await assertUserHasFlag(tx, userId, 'groups')
+				assert(id, ZErrorCode.bad_request)
+
+				// Check if user is a member of the group
+				const groupUser = await tx.query.group_user
+					.where('userId', '=', userId)
+					.where('groupId', '=', id)
+					.one()
+					.run()
+				assert(groupUser, ZErrorCode.forbidden)
+
+				// Only group owners can regenerate invite links
+				assert(groupUser.role === 'owner', ZErrorCode.forbidden)
+
+				if (tx.location === 'server') {
+					await tx.mutate.group.update({
+						id,
+						inviteSecret: uniqueId(),
+						updatedAt: Date.now(),
+					})
+				}
+			},
+			setMemberRole: async (
+				tx,
+				{
+					groupId,
+					targetUserId,
+					role,
+				}: { groupId: string; targetUserId: string; role: 'admin' | 'owner' }
+			) => {
+				await assertUserHasFlag(tx, userId, 'groups')
+				assert(groupId, ZErrorCode.bad_request)
+				assert(targetUserId, ZErrorCode.bad_request)
+				assert(role === 'admin' || role === 'owner', ZErrorCode.bad_request)
+
+				// Acting user must be a member and an owner
+				const actingMembership = await tx.query.group_user
+					.where('userId', '=', userId)
+					.where('groupId', '=', groupId)
+					.one()
+					.run()
+				assert(actingMembership, ZErrorCode.forbidden)
+				assert(actingMembership.role === 'owner', ZErrorCode.forbidden)
+
+				// Target must be a member
+				const targetMembership = await tx.query.group_user
+					.where('userId', '=', targetUserId)
+					.where('groupId', '=', groupId)
+					.one()
+					.run()
+				assert(targetMembership, ZErrorCode.bad_request)
+
+				if (targetMembership.role === role) return
+
+				// Prevent demoting the last remaining owner
+				if (targetMembership.role === 'owner' && role === 'admin') {
+					const users = await tx.query.group_user.where('groupId', '=', groupId).run()
+					const owners = users.filter((u) => u.role === 'owner')
+					assert(owners.length > 1, ZErrorCode.forbidden)
+				}
+
+				await tx.mutate.group_user.update({
+					userId: targetUserId,
+					groupId,
+					role,
+					updatedAt: Date.now(),
 				})
 			},
 			leave: async (tx, { groupId }: { groupId: string }) => {

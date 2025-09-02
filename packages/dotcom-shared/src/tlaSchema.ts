@@ -100,7 +100,7 @@ export const group_user = table('group_user')
 		updatedAt: number(),
 		role: enumeration<'admin' | 'owner'>(),
 		userName: string(),
-		userEmail: string(),
+		userColor: string(),
 		index: string<IndexKey>(),
 	})
 	.primaryKey('userId', 'groupId')

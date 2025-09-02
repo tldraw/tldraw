@@ -11,6 +11,7 @@ import {
 	TldrawUiMenuGroup,
 	TldrawUiMenuItem,
 	tltime,
+	useDialogs,
 	useMenuIsOpen,
 	useValue,
 } from 'tldraw'
@@ -20,6 +21,7 @@ import { useTldrawAppUiEvents } from '../../../utils/app-ui-events'
 import { getIsCoarsePointer } from '../../../utils/getIsCoarsePointer'
 import { F, defineMessages, useMsg } from '../../../utils/i18n'
 import { TlaIcon } from '../../TlaIcon/TlaIcon'
+import { GroupSettingsDialog } from '../../dialogs/GroupSettingsDialog'
 import styles from '../sidebar.module.css'
 import { TlaSidebarDropZone } from './TlaSidebarDropZone'
 import { TlaSidebarFileLink } from './TlaSidebarFileLink'
@@ -63,7 +65,7 @@ function GroupEmptyState({ groupId, onCreateFile }: { groupId: string; onCreateF
 					br: () => <br />,
 					create: (chunks) => (
 						<button className={styles.sidebarGroupItemButtonInline} onClick={onCreateFile}>
-							{chunks} <TlaIcon icon="edit" className={styles.sidebarGroupEmptyStateIcon} />
+							{chunks}
 						</button>
 					),
 					invite: (chunks) => (
@@ -71,7 +73,7 @@ function GroupEmptyState({ groupId, onCreateFile }: { groupId: string; onCreateF
 							className={styles.sidebarGroupItemButtonInline}
 							onClick={() => app.copyGroupInvite(groupId)}
 						>
-							{chunks} <TlaIcon icon="copy" className={styles.sidebarGroupEmptyStateIcon} />
+							{chunks}
 						</button>
 					),
 				}}
@@ -181,6 +183,7 @@ function TlaSidebarGroupMenu({ groupId }: { groupId: string }) {
 
 function GroupMenuContent({ groupId }: { groupId: string }) {
 	const app = useApp()
+	const { addDialog } = useDialogs()
 	const trackEvent = useTldrawAppUiEvents()
 	const copyInviteLinkMsg = useMsg(groupMessages.copyInviteLink)
 	const settingsMsg = useMsg(groupMessages.settings)
@@ -192,9 +195,11 @@ function GroupMenuContent({ groupId }: { groupId: string }) {
 	}, [app, groupId])
 
 	const handleSettingsClick = useCallback(() => {
-		// TODO: Implement group settings dialog
+		addDialog({
+			component: ({ onClose }) => <GroupSettingsDialog groupId={groupId} onClose={onClose} />,
+		})
 		trackEvent('open-share-menu', { source: 'sidebar' })
-	}, [trackEvent])
+	}, [addDialog, groupId, trackEvent])
 
 	const handleImportFilesClick = useCallback(() => {
 		// TODO: Implement file import functionality
