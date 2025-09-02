@@ -1,4 +1,5 @@
 import { expect } from '@playwright/test'
+import { LICENSE_TIMEOUT } from 'tldraw'
 import test from './fixtures/fixtures'
 
 // Helper function to set up license testing
@@ -7,7 +8,7 @@ async function setupLicenseTest(page: any, licenseKey: string) {
 			window.__TLDRAW_LICENSE_KEY__ = "${licenseKey}";
 		`)
 	await page.goto('http://localhost:5420/end-to-end')
-	await page.waitForTimeout(2000) // Wait for license processing
+	await page.waitForTimeout(LICENSE_TIMEOUT + 1000) // Wait for license processing
 }
 
 test.describe('Internal License', () => {

@@ -13,6 +13,9 @@ function shouldHideEditorAfterDelay(licenseState: string): boolean {
 }
 
 /** @internal */
+export const LICENSE_TIMEOUT = 5000
+
+/** @internal */
 export function LicenseProvider({
 	licenseKey,
 	children,
@@ -30,7 +33,7 @@ export function LicenseProvider({
 			// eslint-disable-next-line no-restricted-globals
 			const timer = setTimeout(() => {
 				setShowEditor(false)
-			}, 5000)
+			}, LICENSE_TIMEOUT)
 
 			return () => clearTimeout(timer)
 		}

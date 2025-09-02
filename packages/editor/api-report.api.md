@@ -2072,6 +2072,9 @@ export function kickoutOccludedShapes(editor: Editor, shapeIds: TLShapeId[], opt
 }): void;
 
 // @internal (undocumented)
+export const LICENSE_TIMEOUT = 5000;
+
+// @internal (undocumented)
 export type LicenseFromKeyResult = InvalidLicenseKeyResult | ValidLicenseKeyResult;
 
 // @internal (undocumented)
