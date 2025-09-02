@@ -1,6 +1,6 @@
 import { Box, BoxModel, StateNode, TLShape, VecModel } from 'tldraw'
 import { convertTldrawShapeToSimpleShape } from '../../shared/format/SimpleShape'
-import { addToContext } from '../atoms/contextItems'
+import { agentsAtom } from '../agent/agentsAtom'
 
 export class TargetShapeTool extends StateNode {
 	static override id = 'target-shape'
@@ -76,11 +76,14 @@ class TargetShapePointing extends StateNode {
 	override onPointerUp() {
 		this.editor.setHintingShapes([])
 		if (this.shape) {
-			addToContext({
-				type: 'shape',
-				shape: convertTldrawShapeToSimpleShape(this.shape, this.editor),
-				source: 'user',
-			})
+			const agents = agentsAtom.get(this.editor)
+			for (const agent of agents) {
+				agent.addToContext({
+					type: 'shape',
+					shape: convertTldrawShapeToSimpleShape(this.shape, this.editor),
+					source: 'user',
+				})
+			}
 		}
 		this.editor.setCurrentTool('select')
 	}
@@ -110,20 +113,25 @@ class TargetShapeDragging extends StateNode {
 		})
 
 		if (!this.bounds) throw new Error('Bounds not set')
+		const agents = agentsAtom.get(this.editor)
 		if (this.shapes.length <= 3) {
 			for (const shape of this.shapes) {
-				addToContext({
-					type: 'shape',
-					shape: convertTldrawShapeToSimpleShape(shape, this.editor),
+				for (const agent of agents) {
+					agent.addToContext({
+						type: 'shape',
+						shape: convertTldrawShapeToSimpleShape(shape, this.editor),
+						source: 'user',
+					})
+				}
+			}
+		} else {
+			for (const agent of agents) {
+				agent.addToContext({
+					type: 'shapes',
+					shapes: this.shapes.map((shape) => convertTldrawShapeToSimpleShape(shape, this.editor)),
 					source: 'user',
 				})
 			}
-		} else {
-			addToContext({
-				type: 'shapes',
-				shapes: this.shapes.map((shape) => convertTldrawShapeToSimpleShape(shape, this.editor)),
-				source: 'user',
-			})
 		}
 		this.editor.setCurrentTool('select')
 	}

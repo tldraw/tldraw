@@ -32,7 +32,7 @@ import { SelectedShapesPartUtil } from './parts/SelectedShapesPartUtil'
 import { SystemPromptPartUtil } from './parts/SystemPromptPartUtil'
 import { TodoListPartUtil } from './parts/TodoItemsPartUtil'
 import { UserActionHistoryPartUtil } from './parts/UserActionHistoryPartUtil'
-import { UserSelectedModelNamePartUtil } from './parts/UserSelectedModelNamePartUtil'
+import { ModelNamePartUtil } from './parts/UserSelectedModelNamePartUtil'
 import { UserViewportBoundsPartUtil } from './parts/UserViewportBoundsPartUtil'
 import { AgentAction } from './types/AgentAction'
 import { PromptPart } from './types/PromptPart'
@@ -46,7 +46,7 @@ import { PromptPart } from './types/PromptPart'
 export const PROMPT_PART_UTILS = [
 	// Model
 	SystemPromptPartUtil,
-	UserSelectedModelNamePartUtil,
+	ModelNamePartUtil,
 
 	// Request
 	MessagePartUtil,

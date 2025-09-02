@@ -1,3 +1,4 @@
+import { useValue } from 'tldraw'
 import {
 	IChatHistoryActionItem,
 	IChatHistoryItem,
@@ -17,12 +18,11 @@ export interface IChatHistorySection {
 export function ChatHistorySection({
 	section,
 	agent,
-	isGenerating,
 }: {
 	section: IChatHistorySection
 	agent: TldrawAgent
-	isGenerating: boolean
 }) {
+	const isGenerating = useValue('isGenerating', () => agent.isGenerating(), [agent])
 	const groups = getActionHistoryGroups(section.actions, agent)
 	return (
 		<div className="chat-history-section">

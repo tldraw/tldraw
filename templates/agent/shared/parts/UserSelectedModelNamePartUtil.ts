@@ -3,21 +3,29 @@ import { AgentRequest } from '../types/AgentRequest'
 import { BasePromptPart } from '../types/BasePromptPart'
 import { PromptPartUtil } from './PromptPartUtil'
 
-export interface UserSelectedModelNamePart extends BasePromptPart<'modelName'> {
+export interface ModelNamePart extends BasePromptPart<'modelName'> {
 	name: AgentModelName
 }
 
-export class UserSelectedModelNamePartUtil extends PromptPartUtil<UserSelectedModelNamePart> {
+export class ModelNamePartUtil extends PromptPartUtil<ModelNamePart> {
 	static override type = 'modelName' as const
 
-	override getPart(request: AgentRequest): UserSelectedModelNamePart {
+	/**
+	 * Get the specified model name for the request.
+	 * For reviews, always use Sonnet, regardless of the request's choice.
+	 * Feel free to change this behavior as desired!
+	 */
+	override getPart(request: AgentRequest): ModelNamePart {
 		return {
 			type: 'modelName',
-			name: request.modelName,
+			name: request.type === 'review' ? 'claude-4-sonnet' : request.modelName,
 		}
 	}
 
-	override getModelName(part: UserSelectedModelNamePart) {
+	/**
+	 * Use the specified model name for this request.
+	 */
+	override getModelName(part: ModelNamePart) {
 		return part.name
 	}
 }

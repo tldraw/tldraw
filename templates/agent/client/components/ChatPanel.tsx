@@ -1,23 +1,19 @@
-import { FormEventHandler, useCallback, useRef, useState } from 'react'
+import { FormEventHandler, useCallback, useRef } from 'react'
 import { useToasts, useValue } from 'tldraw'
 import { convertTldrawShapeToSimpleShape } from '../../shared/format/SimpleShape'
 import { AgentRequest } from '../../shared/types/AgentRequest'
 import { IChatHistoryItem } from '../../shared/types/ChatHistoryItem'
 import { handleRequest } from '../agent/handleRequest'
 import { TldrawAgent } from '../agent/TldrawAgent'
-import { $contextItems } from '../atoms/contextItems'
-import { $modelName } from '../atoms/modelName'
 import { ChatHistory } from './chat-history/ChatHistory'
 import { ChatInput } from './ChatInput'
 import { TodoList } from './TodoList'
 
 export function ChatPanel({ agent }: { agent: TldrawAgent }) {
 	const { editor } = agent
-	const [isGenerating, setIsGenerating] = useState(false)
-	const rCancelFn = useRef<(() => void) | null>(null)
 	const inputRef = useRef<HTMLTextAreaElement>(null)
 	const toast = useToasts()
-	const modelName = useValue('modelName', () => $modelName.get(), [$modelName])
+	const modelName = useValue(agent.$modelName)
 
 	const handleError = useCallback(
 		(e: any) => {
@@ -39,12 +35,8 @@ export function ChatPanel({ agent }: { agent: TldrawAgent }) {
 			const value = formData.get('input') as string
 
 			// If we're currently generating, interrupt the current request
-			if (rCancelFn.current) {
-				rCancelFn.current()
-				rCancelFn.current = null
-
-				agent.$currentRequest.set(null)
-				setIsGenerating(false)
+			if (agent.isGenerating()) {
+				agent.cancel()
 			}
 
 			// If the user's message is empty, do nothing
@@ -62,15 +54,15 @@ export function ChatPanel({ agent }: { agent: TldrawAgent }) {
 			const promptHistoryItem: IChatHistoryItem = {
 				type: 'prompt',
 				message: value,
-				contextItems: $contextItems.get(),
+				contextItems: agent.$contextItems.get(),
 				selectedShapes: editor
 					.getSelectedShapes()
 					.map((shape) => convertTldrawShapeToSimpleShape(shape, editor)),
 			}
 
-			$contextItems.set([])
+			agent.$contextItems.set([])
 			agent.$chatHistory.update((prev) => [...prev, promptHistoryItem])
-			setIsGenerating(true)
+
 			const request: AgentRequest = {
 				message: promptHistoryItem.message,
 				contextItems: promptHistoryItem.contextItems,
@@ -79,36 +71,17 @@ export function ChatPanel({ agent }: { agent: TldrawAgent }) {
 				type: 'user',
 			}
 
-			const { promise, cancel } = handleRequest({ agent, request, onError: handleError })
-			rCancelFn.current = cancel
-			await promise
-			rCancelFn.current = null
-
-			setIsGenerating(false)
+			await handleRequest({ agent, request, onError: handleError })
 
 			// TODO
 			// right now, we clear the changes when the agent finishes its turn. However, this loses all the changes that happened while the agent was working. We should make this more sophisticated.
 			agent.$userActionsHistory.set([])
-
-			// The request has been handled!
-			agent.$currentRequest.set(null)
 		},
-		[agent, modelName, editor, rCancelFn, handleError]
+		[agent, modelName, editor, handleError]
 	)
 
 	function handleNewChat() {
-		if (rCancelFn.current) {
-			rCancelFn.current()
-			rCancelFn.current = null
-		}
-
-		setIsGenerating(false)
-		$contextItems.set([])
-
-		agent.$chatHistory.set([])
-		agent.$currentRequest.set(null)
-		agent.$scheduledRequest.set(null)
-		agent.$todoList.set([])
+		agent.reset()
 	}
 
 	function NewChatButton() {
@@ -124,15 +97,10 @@ export function ChatPanel({ agent }: { agent: TldrawAgent }) {
 			<div className="chat-header">
 				<NewChatButton />
 			</div>
-			<ChatHistory agent={agent} isGenerating={isGenerating} />
+			<ChatHistory agent={agent} />
 			<div className="chat-input-container">
 				<TodoList agent={agent} />
-				<ChatInput
-					handleSubmit={handleSubmit}
-					inputRef={inputRef}
-					isGenerating={isGenerating}
-					editor={editor}
-				/>
+				<ChatInput agent={agent} handleSubmit={handleSubmit} inputRef={inputRef} />
 			</div>
 		</div>
 	)

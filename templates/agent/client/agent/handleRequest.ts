@@ -1,7 +1,7 @@
 import { AgentRequest } from '../../shared/types/AgentRequest'
 import { TldrawAgent } from './TldrawAgent'
 
-export function handleRequest({
+export async function handleRequest({
 	agent,
 	request,
 	onError,
@@ -11,50 +11,33 @@ export function handleRequest({
 	onError: (e: any) => void
 }) {
 	// Store the current request in the agent's state.
-	agent.$currentRequest.set(request)
+	agent.$activeRequest.set(request)
 
-	const current = {
-		promise: Promise.resolve(),
-		cancel: () => {},
+	// Submit the request to the agent.
+	await agent.prompt(request)
+
+	// After the request is handled, check if there are any outstanding todo items or requests
+	let scheduledRequest = agent.$scheduledRequest.get()
+	const todoItemsRemaining = agent.$todoList.get().filter((item) => item.status !== 'done')
+
+	if (!scheduledRequest) {
+		// If there no outstanding todo items or requests, finish
+		if (todoItemsRemaining.length === 0) {
+			agent.$activeRequest.set(null)
+			return
+		}
+
+		// If there are outstanding todo items, schedule a continue request
+		scheduledRequest = {
+			message: request.message,
+			contextItems: request.contextItems,
+			bounds: request.bounds,
+			modelName: request.modelName,
+			type: 'continue',
+		}
 	}
 
-	const cancel = () => {
-		current.cancel()
-	}
-
-	const promise = new Promise<void>((resolve) => {
-		const result = agent.prompt(request)
-		current.promise = result.promise
-		current.cancel = result.cancel
-
-		current.promise.then(() => {
-			let scheduledRequest = agent.$scheduledRequest.get()
-			if (!scheduledRequest) {
-				const todoItemsRemaining = agent.$todoList.get().filter((item) => item.status !== 'done')
-				if (todoItemsRemaining.length === 0) {
-					resolve()
-					return
-				}
-
-				scheduledRequest = {
-					message: request.message,
-					contextItems: request.contextItems,
-					bounds: request.bounds,
-					modelName: request.modelName,
-					type: 'continue',
-				}
-			}
-
-			// We're starting the schedule request now, so we can clear it from the agent's state.
-			agent.$scheduledRequest.set(null)
-
-			const nextResult = handleRequest({ agent, request: scheduledRequest, onError })
-			current.promise = nextResult.promise
-			current.cancel = nextResult.cancel
-
-			current.promise.then(resolve)
-		})
-	})
-
-	return { promise, cancel }
+	// Handle the scheduled request
+	agent.$scheduledRequest.set(null)
+	await handleRequest({ agent, request: scheduledRequest, onError })
 }

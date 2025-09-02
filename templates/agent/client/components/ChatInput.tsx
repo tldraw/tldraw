@@ -1,8 +1,7 @@
 import { FormEventHandler, useState } from 'react'
 import { Editor, useValue } from 'tldraw'
 import { AGENT_MODEL_DEFINITIONS, AgentModelName } from '../../worker/models'
-import { $contextItems, removeFromContext } from '../atoms/contextItems'
-import { $modelName } from '../atoms/modelName'
+import { TldrawAgent } from '../agent/TldrawAgent'
 import { ContextItemTag } from './ContextItemTag'
 import { AtIcon } from './icons/AtIcon'
 import { BrainIcon } from './icons/BrainIcon'
@@ -10,17 +9,17 @@ import { ChevronDownIcon } from './icons/ChevronDownIcon'
 import { SelectionTag } from './SelectionTag'
 
 export function ChatInput({
+	agent,
 	handleSubmit,
 	inputRef,
-	isGenerating,
-	editor,
 }: {
+	agent: TldrawAgent
 	handleSubmit: FormEventHandler<HTMLFormElement>
 	inputRef: React.RefObject<HTMLTextAreaElement>
-	isGenerating: boolean
-	editor: Editor
 }) {
+	const { editor } = agent
 	const [inputValue, setInputValue] = useState('')
+	const isGenerating = useValue('isGenerating', () => agent.isGenerating(), [agent])
 
 	const isContextToolActive = useValue(
 		'isContextToolActive',
@@ -32,8 +31,8 @@ export function ChatInput({
 	)
 
 	const selectedShapes = useValue('selectedShapes', () => editor.getSelectedShapes(), [editor])
-	const contextItems = useValue('contextItems', () => $contextItems.get(), [$contextItems])
-	const modelName = useValue('modelName', () => $modelName.get(), [$modelName])
+	const contextItems = useValue(agent.$contextItems)
+	const modelName = useValue(agent.$modelName)
 
 	return (
 		<div className="chat-input">
@@ -70,7 +69,7 @@ export function ChatInput({
 					{contextItems.map((item, i) => (
 						<ContextItemTag
 							editor={editor}
-							onClick={() => removeFromContext(item)}
+							onClick={() => agent.removeFromContext(item)}
 							key={'context-item-' + i}
 							item={item}
 						/>
@@ -104,7 +103,7 @@ export function ChatInput({
 							</div>
 							<select
 								value={modelName}
-								onChange={(e) => $modelName.set(e.target.value as AgentModelName)}
+								onChange={(e) => agent.$modelName.set(e.target.value as AgentModelName)}
 							>
 								{Object.values(AGENT_MODEL_DEFINITIONS).map((model) => (
 									<option key={model.name} value={model.name}>

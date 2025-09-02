@@ -1,5 +1,5 @@
 import { BoxModel, StateNode, VecModel } from 'tldraw'
-import { addToContext } from '../atoms/contextItems'
+import { agentsAtom } from '../agent/agentsAtom'
 
 export class TargetAreaTool extends StateNode {
 	static override id = 'target-area'
@@ -58,11 +58,14 @@ class TargetAreaPointing extends StateNode {
 	}
 
 	override onPointerUp() {
-		addToContext({
-			type: 'point',
-			point: this.editor.inputs.currentPagePoint.clone(),
-			source: 'user',
-		})
+		const agents = agentsAtom.get(this.editor)
+		for (const agent of agents) {
+			agent.addToContext({
+				type: 'point',
+				point: this.editor.inputs.currentPagePoint.clone(),
+				source: 'user',
+			})
+		}
 		this.editor.setCurrentTool('select')
 	}
 }
@@ -88,7 +91,14 @@ class TargetAreaDragging extends StateNode {
 		})
 
 		if (!this.bounds) throw new Error('Bounds not set')
-		addToContext({ type: 'area', bounds: this.bounds, source: 'user' })
+		const agents = agentsAtom.get(this.editor)
+		for (const agent of agents) {
+			agent.addToContext({
+				type: 'area',
+				bounds: this.bounds,
+				source: 'user',
+			})
+		}
 		this.editor.setCurrentTool('select')
 	}
 

@@ -30,13 +30,7 @@ Here's an example of how the UI might look:
 
 */
 
-export function ChatHistory({
-	agent,
-	isGenerating,
-}: {
-	agent: TldrawAgent
-	isGenerating: boolean
-}) {
+export function ChatHistory({ agent }: { agent: TldrawAgent }) {
 	const items = useValue(agent.$chatHistory)
 	const sections = getAgentHistorySections(items)
 	const historyRef = useRef<HTMLDivElement>(null)
@@ -81,14 +75,7 @@ export function ChatHistory({
 	return (
 		<div className="chat-history" ref={historyRef} onScroll={handleScroll}>
 			{sections.map((section, i) => {
-				return (
-					<ChatHistorySection
-						key={'history-section-' + i}
-						section={section}
-						agent={agent}
-						isGenerating={isGenerating}
-					/>
-				)
+				return <ChatHistorySection key={'history-section-' + i} section={section} agent={agent} />
 			})}
 		</div>
 	)
