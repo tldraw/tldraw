@@ -47,6 +47,7 @@ export function LicenseProvider({
 	return <LicenseContext.Provider value={licenseManager}>{children}</LicenseContext.Provider>
 }
 
+// Renders as a hidden div that can be detected by tests
 function LicenseGate() {
 	return <div data-testid="tl-license-expired" style={{ display: 'none' }} />
 }
