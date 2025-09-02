@@ -23,7 +23,7 @@ test.describe('Internal License', () => {
 
 		await setupLicenseTest(page, expiredInternalLicenseKey)
 
-		await expect(page.getByTestId('tl-license-expired')).toBeAttached({ timeout: 10000 })
+		await expect(page.getByTestId('tl-license-expired')).toBeAttached()
 
 		// The actual editor canvas should not be rendered
 		await expect(page.locator('.tl-canvas')).not.toBeVisible()
@@ -141,7 +141,7 @@ test.describe('Expired Evaluation License', () => {
 
 		await setupLicenseTest(page, expiredEvaluationLicenseKey)
 
-		await expect(page.getByTestId('tl-license-expired')).toBeAttached({ timeout: 10000 })
+		await expect(page.getByTestId('tl-license-expired')).toBeAttached()
 
 		await expect(page.locator('.tl-canvas')).not.toBeVisible()
 
@@ -171,7 +171,7 @@ test.describe('Expired Annual/Perpetual License', () => {
 
 		await setupLicenseTest(page, expiredAnnualLicenseKey)
 
-		await expect(page.getByTestId('tl-license-expired')).toBeAttached({ timeout: 10000 })
+		await expect(page.getByTestId('tl-license-expired')).toBeAttached()
 
 		await expect(page.locator('.tl-canvas')).not.toBeVisible()
 
