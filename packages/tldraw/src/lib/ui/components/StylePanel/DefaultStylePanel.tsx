@@ -56,17 +56,19 @@ export const DefaultStylePanel = memo(function DefaultStylePanel({
 	}, [editor])
 
 	return (
-		<div
-			ref={ref}
-			data-testid="style.panel"
-			className={classNames('tlui-style-panel', { 'tlui-style-panel__wrapper': !isMobile })}
-			data-ismobile={isMobile}
-			data-show-ui-labels={showUiLabels}
-			onPointerLeave={handlePointerOut}
-		>
-			<StylePanelContextProvider styles={styles}>
-				{children ?? <DefaultStylePanelContent />}
-			</StylePanelContextProvider>
-		</div>
+		styles && (
+			<div
+				ref={ref}
+				data-testid="style.panel"
+				className={classNames('tlui-style-panel', { 'tlui-style-panel__wrapper': !isMobile })}
+				data-ismobile={isMobile}
+				data-show-ui-labels={showUiLabels}
+				onPointerLeave={handlePointerOut}
+			>
+				<StylePanelContextProvider styles={styles}>
+					{children ?? <DefaultStylePanelContent />}
+				</StylePanelContextProvider>
+			</div>
+		)
 	)
 })

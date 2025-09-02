@@ -33,9 +33,6 @@ import { StylePanelSubheading } from './StylePanelSubheading'
 
 /** @public @react */
 export function DefaultStylePanelContent() {
-	const { styles } = useStylePanelContext()
-	if (!styles) return null
-
 	return (
 		<>
 			<StylePanelSection>

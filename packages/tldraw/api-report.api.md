@@ -962,7 +962,7 @@ export function DefaultSharePanel(): JSX_2.Element;
 export const DefaultStylePanel: NamedExoticComponent<TLUiStylePanelProps>;
 
 // @public (undocumented)
-export function DefaultStylePanelContent(): JSX_2.Element | null;
+export function DefaultStylePanelContent(): JSX_2.Element;
 
 // @public (undocumented)
 export const DefaultToasts: NamedExoticComponent<object>;
@@ -2697,7 +2697,7 @@ export interface StylePanelContextProviderProps {
     // (undocumented)
     children: React.ReactNode;
     // (undocumented)
-    styles: null | ReadonlySharedStyleMap;
+    styles: ReadonlySharedStyleMap;
 }
 
 // @public (undocumented)

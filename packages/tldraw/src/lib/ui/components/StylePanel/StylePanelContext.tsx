@@ -14,7 +14,7 @@ const StylePanelContext = createContext<null | StylePanelContext>(null)
 /** @public */
 export interface StylePanelContextProviderProps {
 	children: React.ReactNode
-	styles: ReadonlySharedStyleMap | null
+	styles: ReadonlySharedStyleMap
 }
 
 /** @public @react */
@@ -42,7 +42,7 @@ export function StylePanelContextProvider({ children, styles }: StylePanelContex
 	return (
 		<StylePanelContext.Provider
 			value={{
-				styles: styles ?? new ReadonlySharedStyleMap(),
+				styles: styles,
 				showUiLabels,
 				onHistoryMark,
 				onValueChange,
