@@ -3,7 +3,8 @@ import { TldrawAgent } from '../../agent/TldrawAgent'
 import { AreaHighlight } from './AreaHighlight'
 
 export function AgentViewportBoundsHighlight({ agent }: { agent: TldrawAgent }) {
-	const agentViewportBounds = useValue(agent.$currentViewport)
+	const currentRequest = useValue(agent.$currentRequest)
+	const agentViewportBounds = currentRequest?.bounds
 
 	// If the agent's viewport is equivalent to a pending context area, don't show the highlight
 	// (because it would overlap and be redundant)
@@ -11,7 +12,7 @@ export function AgentViewportBoundsHighlight({ agent }: { agent: TldrawAgent }) 
 		'isEquivalentToPendingContextArea',
 		() => {
 			if (!agentViewportBounds) return false
-			const contextItems = agent.$currentContextItems.get()
+			const contextItems = currentRequest.contextItems
 			return contextItems.some(
 				(item) =>
 					item.type === 'area' &&

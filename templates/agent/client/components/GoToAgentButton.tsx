@@ -1,3 +1,4 @@
+import { useCallback } from 'react'
 import {
 	Box,
 	TldrawUiButton,
@@ -5,45 +6,56 @@ import {
 	TldrawUiButtonLabel,
 	useEditor,
 	useValue,
+	Vec,
 } from 'tldraw'
 import { TldrawAgent } from '../agent/TldrawAgent'
 
 export function GoToAgentButton({ agent }: { agent: TldrawAgent }) {
 	const editor = useEditor()
-	const agentViewportBounds = useValue('agentViewportBounds', () => agent.$currentViewport.get(), [
-		agent.$currentViewport,
-	])
+	const currentRequest = useValue(agent.$currentRequest)
+	const agentViewport = currentRequest?.bounds
 
-	const { showButton, arrowRotation } = useValue(
-		'goToAgentState',
+	// We only show the button if the agent is offscreen
+	const agentIsOffscreen = useValue(
+		'agentIsOffscreen',
 		() => {
-			if (!agentViewportBounds) return { showButton: false, arrowRotation: 0 }
-
-			const agentCenter = Box.From(agentViewportBounds).center
-			const agentScreenCenter = editor.pageToViewport(agentCenter)
+			if (!agentViewport) return false
 			const screenBounds = editor.getViewportScreenBounds()
-
-			const agentScreenCorners = Box.From(agentViewportBounds).corners.map((corner) =>
+			const agentViewportScreenCorners = Box.From(agentViewport).corners.map((corner) =>
 				editor.pageToViewport(corner)
 			)
 
-			const agentScreenBounds = Box.FromPoints(agentScreenCorners)
-			const showButton = !agentScreenBounds.collides(screenBounds)
-			const angle = Math.atan2(agentScreenCenter.y, agentScreenCenter.x) * (180 / Math.PI)
-
-			return { showButton, arrowRotation: angle }
+			return !Box.FromPoints(agentViewportScreenCorners).collides(screenBounds)
 		},
-		[agentViewportBounds]
+		[agentViewport]
 	)
 
-	if (!showButton) return null
+	// The button's arrow points towards the agent
+	const angleToAgent = useValue(
+		'angleToAgent',
+		() => {
+			if (!agentViewport) return
+			if (agentIsOffscreen) return
 
-	const handleClick = () => {
-		if (agentViewportBounds) {
-			const bounds = Box.From(agentViewportBounds).expandBy(50)
+			const agentCenter = Box.From(agentViewport).center
+			const agentScreenCenter = editor.pageToViewport(agentCenter)
+			const screenBounds = editor.getViewportScreenBounds()
+			const screenCenter = Box.From(screenBounds).center
+			const displacement = Vec.From(agentScreenCenter).sub(screenCenter)
+			return Math.atan2(displacement.y, displacement.x) * (180 / Math.PI)
+		},
+		[agentViewport]
+	)
+
+	const handleClick = useCallback(() => {
+		if (agentViewport) {
+			const bounds = Box.From(agentViewport).expandBy(50)
 			editor.zoomToBounds(bounds, { animation: { duration: 220 } })
 		}
-	}
+	}, [agentViewport, editor])
+
+	if (!agentViewport) return null
+	if (!agentIsOffscreen) return null
 
 	return (
 		<TldrawUiButton type="low" onClick={handleClick}>
@@ -55,7 +67,7 @@ export function GoToAgentButton({ agent }: { agent: TldrawAgent }) {
 							height="16"
 							viewBox="0 0 24 24"
 							style={{
-								transform: `rotate(${arrowRotation}deg)`,
+								transform: `rotate(${angleToAgent}deg)`,
 								transition: 'transform 0.2s ease',
 							}}
 						>

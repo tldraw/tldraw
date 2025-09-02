@@ -6,13 +6,14 @@ import { PointHighlight, PointHighlightProps } from './PointHighlight'
 
 export function ContextHighlights({ agent }: { agent: TldrawAgent }) {
 	const editor = useEditor()
-	const contextItems = useValue($contextItems)
-	const pendingContextItems = useValue(agent.$currentContextItems)
+	const userContextItems = useValue($contextItems)
+	const agentRequest = useValue(agent.$currentRequest)
+	const agentContextItems = agentRequest?.contextItems ?? []
 
 	const areaHighlights: AreaHighlightProps[] = useValue(
 		'areaBounds',
 		() => {
-			const areaItems = contextItems.filter((item) => item.type === 'area')
+			const areaItems = userContextItems.filter((item) => item.type === 'area')
 			return areaItems.map((item) => {
 				return {
 					pageBounds: item.bounds,
@@ -21,13 +22,13 @@ export function ContextHighlights({ agent }: { agent: TldrawAgent }) {
 				}
 			})
 		},
-		[contextItems]
+		[userContextItems]
 	)
 
 	const pendingAreaHighlights: AreaHighlightProps[] = useValue(
 		'pendingAreaBounds',
 		() => {
-			const pendingAreaItems = pendingContextItems.filter((item) => item.type === 'area')
+			const pendingAreaItems = agentContextItems.filter((item) => item.type === 'area')
 			return pendingAreaItems.map((item) => {
 				return {
 					pageBounds: item.bounds,
@@ -37,13 +38,13 @@ export function ContextHighlights({ agent }: { agent: TldrawAgent }) {
 				}
 			})
 		},
-		[pendingContextItems]
+		[agentContextItems]
 	)
 
 	const shapesHighlights: AreaHighlightProps[] = useValue(
 		'shapesBounds',
 		() => {
-			const shapeItems = contextItems.filter((item) => item.type === 'shapes')
+			const shapeItems = userContextItems.filter((item) => item.type === 'shapes')
 			return shapeItems
 				.map((item) => {
 					const bounds = editor.getShapesPageBounds(
@@ -58,13 +59,13 @@ export function ContextHighlights({ agent }: { agent: TldrawAgent }) {
 				})
 				.filter((highlight) => highlight !== null)
 		},
-		[contextItems]
+		[userContextItems]
 	)
 
 	const pendingShapesHighlights: AreaHighlightProps[] = useValue(
 		'pendingShapesBounds',
 		() => {
-			const pendingShapeItems = pendingContextItems.filter((item) => item.type === 'shapes')
+			const pendingShapeItems = agentContextItems.filter((item) => item.type === 'shapes')
 			return pendingShapeItems
 				.map((item) => {
 					const bounds = editor.getShapesPageBounds(
@@ -79,13 +80,13 @@ export function ContextHighlights({ agent }: { agent: TldrawAgent }) {
 				})
 				.filter((highlight) => highlight !== null)
 		},
-		[pendingContextItems]
+		[agentContextItems]
 	)
 
 	const shapeHighlights: AreaHighlightProps[] = useValue(
 		'shapeBounds',
 		() => {
-			const shapeItems = contextItems.filter((item) => item.type === 'shape')
+			const shapeItems = userContextItems.filter((item) => item.type === 'shape')
 			return shapeItems
 				.map((item) => {
 					const bounds = editor.getShapePageBounds(`shape:${item.shape.shapeId}` as TLShapeId)
@@ -98,13 +99,13 @@ export function ContextHighlights({ agent }: { agent: TldrawAgent }) {
 				})
 				.filter((highlight) => highlight !== null)
 		},
-		[contextItems]
+		[userContextItems]
 	)
 
 	const pendingShapeHighlights: AreaHighlightProps[] = useValue(
 		'pendingShapeBounds',
 		() => {
-			const pendingShapeItems = pendingContextItems.filter((item) => item.type === 'shape')
+			const pendingShapeItems = agentContextItems.filter((item) => item.type === 'shape')
 			return pendingShapeItems
 				.map((item) => {
 					const bounds = editor.getShapePageBounds(`shape:${item.shape.shapeId}` as TLShapeId)
@@ -117,13 +118,13 @@ export function ContextHighlights({ agent }: { agent: TldrawAgent }) {
 				})
 				.filter((highlight) => highlight !== null)
 		},
-		[pendingContextItems]
+		[agentContextItems]
 	)
 
 	const pointsHighlights: PointHighlightProps[] = useValue(
 		'points',
 		() => {
-			const pointItems = contextItems.filter((item) => item.type === 'point')
+			const pointItems = userContextItems.filter((item) => item.type === 'point')
 			return pointItems.map((item) => {
 				return {
 					pagePoint: item.point,
@@ -132,13 +133,13 @@ export function ContextHighlights({ agent }: { agent: TldrawAgent }) {
 				}
 			})
 		},
-		[contextItems]
+		[userContextItems]
 	)
 
 	const pendingPointsHighlights: PointHighlightProps[] = useValue(
 		'pendingPoints',
 		() => {
-			const pendingPointItems = pendingContextItems.filter((item) => item.type === 'point')
+			const pendingPointItems = agentContextItems.filter((item) => item.type === 'point')
 			return pendingPointItems.map((item) => {
 				return {
 					pagePoint: item.point,
@@ -147,7 +148,7 @@ export function ContextHighlights({ agent }: { agent: TldrawAgent }) {
 				}
 			})
 		},
-		[pendingContextItems]
+		[agentContextItems]
 	)
 
 	const allAreaHighlights = useValue(

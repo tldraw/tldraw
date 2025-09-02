@@ -3,7 +3,7 @@ import { useToasts, useValue } from 'tldraw'
 import { convertTldrawShapeToSimpleShape } from '../../shared/format/SimpleShape'
 import { AgentRequest } from '../../shared/types/AgentRequest'
 import { IChatHistoryItem } from '../../shared/types/ChatHistoryItem'
-import { advanceSchedule } from '../agent/advanceSchedule'
+import { handleRequest } from '../agent/handleRequest'
 import { TldrawAgent } from '../agent/TldrawAgent'
 import { $contextItems } from '../atoms/contextItems'
 import { $modelName } from '../atoms/modelName'
@@ -43,8 +43,7 @@ export function ChatPanel({ agent }: { agent: TldrawAgent }) {
 				rCancelFn.current()
 				rCancelFn.current = null
 
-				agent.$currentViewport.set(null)
-				agent.$currentContextItems.set([])
+				agent.$currentRequest.set(null)
 				setIsGenerating(false)
 			}
 
@@ -69,7 +68,6 @@ export function ChatPanel({ agent }: { agent: TldrawAgent }) {
 					.map((shape) => convertTldrawShapeToSimpleShape(shape, editor)),
 			}
 
-			agent.$currentContextItems.set(promptHistoryItem.contextItems)
 			$contextItems.set([])
 			agent.$chatHistory.update((prev) => [...prev, promptHistoryItem])
 			setIsGenerating(true)
@@ -81,7 +79,7 @@ export function ChatPanel({ agent }: { agent: TldrawAgent }) {
 				type: 'user',
 			}
 
-			const { promise, cancel } = advanceSchedule({ agent, request, onError: handleError })
+			const { promise, cancel } = handleRequest({ agent, request, onError: handleError })
 			rCancelFn.current = cancel
 			await promise
 			rCancelFn.current = null
@@ -91,8 +89,9 @@ export function ChatPanel({ agent }: { agent: TldrawAgent }) {
 			// TODO
 			// right now, we clear the changes when the agent finishes its turn. However, this loses all the changes that happened while the agent was working. We should make this more sophisticated.
 			agent.$userActionsHistory.set([])
-			agent.$currentContextItems.set([])
-			agent.$currentViewport.set(null)
+
+			// The request has been handled!
+			agent.$currentRequest.set(null)
 		},
 		[agent, modelName, editor, rCancelFn, handleError]
 	)
@@ -105,9 +104,10 @@ export function ChatPanel({ agent }: { agent: TldrawAgent }) {
 
 		setIsGenerating(false)
 		$contextItems.set([])
+
 		agent.$chatHistory.set([])
-		agent.$currentContextItems.set([])
-		agent.$currentViewport.set(null)
+		agent.$currentRequest.set(null)
+		agent.$scheduledRequest.set(null)
 		agent.$todoList.set([])
 	}
 

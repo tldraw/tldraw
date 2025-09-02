@@ -1,7 +1,7 @@
 import { AgentRequest } from '../../shared/types/AgentRequest'
 import { TldrawAgent } from './TldrawAgent'
 
-export function advanceSchedule({
+export function handleRequest({
 	agent,
 	request,
 	onError,
@@ -10,8 +10,8 @@ export function advanceSchedule({
 	request: AgentRequest
 	onError: (e: any) => void
 }) {
-	agent.$currentViewport.set(request.bounds)
-	agent.$currentContextItems.set(request.contextItems)
+	// Store the current request in the agent's state.
+	agent.$currentRequest.set(request)
 
 	const current = {
 		promise: Promise.resolve(),
@@ -45,11 +45,10 @@ export function advanceSchedule({
 				}
 			}
 
+			// We're starting the schedule request now, so we can clear it from the agent's state.
 			agent.$scheduledRequest.set(null)
-			agent.$currentViewport.set(null)
-			agent.$currentContextItems.set([])
 
-			const nextResult = advanceSchedule({ agent, request: scheduledRequest, onError })
+			const nextResult = handleRequest({ agent, request: scheduledRequest, onError })
 			current.promise = nextResult.promise
 			current.cancel = nextResult.cancel
 

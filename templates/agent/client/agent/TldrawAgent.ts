@@ -1,11 +1,10 @@
-import { atom, BoxModel, Editor, RecordsDiff, TLRecord } from 'tldraw'
+import { atom, Editor, RecordsDiff, TLRecord } from 'tldraw'
 import { AgentActionUtil } from '../../shared/actions/AgentActionUtil'
 import { getAgentActionUtilsRecord, getPromptPartUtilsRecord } from '../../shared/AgentUtils'
 import { PromptPartUtil } from '../../shared/parts/PromptPartUtil'
 import { AgentAction } from '../../shared/types/AgentAction'
 import { AgentRequest } from '../../shared/types/AgentRequest'
 import { IChatHistoryItem } from '../../shared/types/ChatHistoryItem'
-import { IContextItem } from '../../shared/types/ContextItem'
 import { PromptPart } from '../../shared/types/PromptPart'
 import { TodoItem } from '../../shared/types/TodoItem'
 import { $modelName } from '../atoms/modelName'
@@ -21,10 +20,6 @@ export class TldrawAgent {
 
 	/** A function to call when an error occurs. */
 	public onError: (e: any) => void
-
-	// TODO: Remove currentViewport and currentContextItems, as they are already available in currentRequest
-	$currentViewport = atom<BoxModel | null>('currentViewport', null)
-	$currentContextItems = atom<IContextItem[]>('currentContextItems', [])
 
 	/**
 	 * An atom containing the current request.
