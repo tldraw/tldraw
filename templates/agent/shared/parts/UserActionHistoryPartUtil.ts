@@ -75,14 +75,17 @@ export class UserActionHistoryPartUtil extends PromptPartUtil<UserActionHistoryP
 				const before = { id: removeShapeIdPrefix(fromShape.id), _type: beforeSimple._type }
 				const after = { id: removeShapeIdPrefix(toShape.id), _type: afterSimple._type }
 
-				// Add only the fields that changed
+				// Add only the fields that changed, rounding numbers
 				for (const key of Object.keys(afterSimple)) {
 					if (
 						key !== 'shapeId' &&
 						beforeSimple[key as keyof ISimpleShape] !== afterSimple[key as keyof ISimpleShape]
 					) {
-						;(before as any)[key] = beforeSimple[key as keyof ISimpleShape]
-						;(after as any)[key] = afterSimple[key as keyof ISimpleShape]
+						const beforeVal = beforeSimple[key as keyof ISimpleShape]
+						const afterVal = afterSimple[key as keyof ISimpleShape]
+						;(before as any)[key] =
+							typeof beforeVal === 'number' ? Math.round(beforeVal) : beforeVal
+						;(after as any)[key] = typeof afterVal === 'number' ? Math.round(afterVal) : afterVal
 					}
 				}
 

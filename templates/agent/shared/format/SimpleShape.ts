@@ -230,6 +230,23 @@ function convertGeoShape(shape: TLGeoShape, editor: Editor): ISimpleGeoShape {
 	const util = editor.getShapeUtil(shape)
 	const text = util.getText(shape)
 
+	const shapeTextAlign = shape.props.align
+	let newTextAlign: ISimpleGeoShape['textAlign']
+	switch (shapeTextAlign) {
+		case 'start-legacy':
+			newTextAlign = 'start'
+			break
+		case 'middle-legacy':
+			newTextAlign = 'middle'
+			break
+		case 'end-legacy':
+			newTextAlign = 'end'
+			break
+		default:
+			newTextAlign = shapeTextAlign
+			break
+	}
+
 	return {
 		_type: convertTldrawGeoShapeGeoStlyeToSimpleGeoShapeType(shape.props.geo),
 		color: shape.props.color,
@@ -238,6 +255,7 @@ function convertGeoShape(shape: TLGeoShape, editor: Editor): ISimpleGeoShape {
 		note: (shape.meta?.note as string) ?? '',
 		shapeId: shape.id.slice('shape:'.length),
 		text: text ?? '',
+		textAlign: newTextAlign,
 		w: shape.props.w,
 		x: shape.x,
 		y: shape.y,
