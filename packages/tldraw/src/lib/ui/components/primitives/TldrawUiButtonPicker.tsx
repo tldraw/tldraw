@@ -3,10 +3,10 @@ import {
 	getColorValue,
 	SharedStyle,
 	StyleProp,
-	TLDefaultColorStyle,
 	TLDefaultColorTheme,
 	useEditor,
 } from '@tldraw/editor'
+
 import { memo, ReactElement, useMemo, useRef } from 'react'
 import { StyleValuesForUi } from '../../../styles'
 import { PORTRAIT_BREAKPOINT } from '../../constants'
@@ -141,7 +141,7 @@ export const TldrawUiButtonPicker = memo(function TldrawUiButtonPicker<T extends
 							title={label}
 							style={
 								style === (DefaultColorStyle as StyleProp<unknown>)
-									? { color: getColorValue(theme, item.value as TLDefaultColorStyle, 'solid') }
+									? { color: getColorValue(theme, item.value, 'solid') }
 									: undefined
 							}
 							onPointerEnter={handleButtonPointerEnter}
