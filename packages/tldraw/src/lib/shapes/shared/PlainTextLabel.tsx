@@ -130,9 +130,3 @@ export const PlainTextLabel = React.memo(function PlainTextLabel({
 		</div>
 	)
 })
-
-/**
- * @deprecated Use `PlainTextLabel` instead.
- * @public
- */
-export const TextLabel = PlainTextLabel

@@ -72,12 +72,6 @@ export interface TLImageExportOptions extends TLSvgExportOptions {
 	format?: TLExportType
 }
 
-/**
- * @public
- * @deprecated use {@link TLImageExportOptions} instead
- */
-export type TLSvgOptions = TLImageExportOptions
-
 /** @public */
 export interface TLCameraMoveOptions {
 	/** Whether to move the camera immediately, rather than on the next tick. */
