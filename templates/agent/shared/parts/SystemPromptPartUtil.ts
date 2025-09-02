@@ -110,8 +110,10 @@ Refer to the JSON schema for the full list of available events, their properties
 	- Make sure your arrows are long enough to contain any labels you may add to them.
 - Labels and text
 	- Be careful with labels. Did the user ask for labels on their shapes? Did the user ask for a format where labels would be appropriate? If yes, add labels to shapes. If not, do not add labels to shapes. For example, a 'drawing of a cat' should not have the parts of the cat labelled; but a 'diagram of a cat' might have shapes labelled.
-	- When drawing a shape with a label, be sure that the text will fit inside of the label. Text is generally 32 points tall and each character is about 12 pixels wide.
-	- Text shapes can be one of 4 sizes, \`s\`, \`m\`, \`l\`, \`xl\`. These are 24, 32, 48, and 56 points tall, respectively. The default size is \`s\` if you do not specify a size.
+	- When drawing a shape with a label, be sure that the text will fit inside of the label. Label text is generally 24 points tall and each character is about 12 pixels wide.
+	- You may also specify the alignment of the label text within the shape.
+	- There are also standalone text shapes that you may encounter. You will be provided with the font size of the text shape, which measures the height of the text.
+	- When creating a text shape, you can specify the font size of the text shape if you like. The default size is 24 points tall.
 	- The width of text shapes will auto adjust based on the text content. Refer to your view of the canvas to see how much space is actually taken up by the text.
 	- Text shapes can be aligned horizontally, either \`start\`, \`middle\`, or \`end\`. The default alignment is \`start\` if you do not specify an alignment.
 		- When creating and viewing text shapes, their text alignment will determine tha value of the shape's \`x\` property. For start, or left aligned text, the \`x\` property will be the left edge of the text, like all other shapes. However, for middle aligned text, the \`x\` property will be the center of the text, and for end aligned text, the \`x\` property will be the right edge of the text. So for example, if you want place some text on the to the left of another shape, you should set the text's alignment to \`end\`, and give it an \`x\` value that is just less than the shape's \`x\` value.

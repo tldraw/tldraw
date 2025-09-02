@@ -15,6 +15,7 @@ import { TldrawAgent } from '../../client/agent/TldrawAgent'
 import { AgentTransform } from '../AgentTransform'
 import { asColor } from '../format/SimpleColor'
 import { convertSimpleFillToTldrawFill } from '../format/SimpleFill'
+import { convertSimpleFontSizeToTldrawFontSizeAndScale } from '../format/SimpleFontSize'
 import { convertSimpleGeoShapeTypeToTldrawGeoShapeGeoStyleOrUnknownIfNeeded } from '../format/SimpleGeoShapeType'
 import {
 	ISimpleArrowShape,
@@ -102,17 +103,28 @@ export function getTldrawAiChangesFromCreateAction({
 		case 'text': {
 			const textShape = shape as ISimpleTextShape
 
-			const textSize = textShape.size ?? 's'
-			const textFontSize = FONT_SIZES[textSize]
+			// Determine the base font size and scale
+			let textSize: keyof typeof FONT_SIZES = 's'
+			let scale = 1
 
+			// find closest predefined font size and scale combination to back solve for the model's desired font size
+			if (textShape.fontSize) {
+				const { textSize: calculatedTextSize, scale: calculatedScale } =
+					convertSimpleFontSizeToTldrawFontSizeAndScale(textShape.fontSize)
+				textSize = calculatedTextSize
+				scale = calculatedScale
+			}
+
+			const textFontSize = FONT_SIZES[textSize]
 			const textAlign = textShape.textAlign ?? 'start'
 
 			const correctedTextPlacement = new Vec()
 
-			const canditateTextWidth = editor.textMeasure.measureText(textShape.text, {
+			const effectiveFontSize = textFontSize * scale
+			const candidateTextWidth = editor.textMeasure.measureText(textShape.text, {
 				...TEXT_PROPS,
 				fontFamily: FONT_FAMILIES['draw'],
-				fontSize: textFontSize,
+				fontSize: effectiveFontSize,
 				maxWidth: Infinity,
 			}).w
 
@@ -122,11 +134,11 @@ export function getTldrawAiChangesFromCreateAction({
 					correctedTextPlacement.y = textShape.y
 					break
 				case 'middle':
-					correctedTextPlacement.x = textShape.x - canditateTextWidth / 2
+					correctedTextPlacement.x = textShape.x - candidateTextWidth / 2
 					correctedTextPlacement.y = textShape.y
 					break
 				case 'end':
-					correctedTextPlacement.x = textShape.x - canditateTextWidth
+					correctedTextPlacement.x = textShape.x - candidateTextWidth
 					correctedTextPlacement.y = textShape.y
 					break
 			}
@@ -141,6 +153,7 @@ export function getTldrawAiChangesFromCreateAction({
 					y: correctedTextPlacement.y,
 					props: {
 						size: textSize,
+						scale,
 						richText: toRichText(textShape.text),
 						color: asColor(textShape.color),
 						textAlign,
@@ -327,6 +340,7 @@ export function getTldrawAiChangesFromCreateAction({
 					x: geoShape.x,
 					y: geoShape.y,
 					props: {
+						align: geoShape.textAlign ?? 'middle',
 						size: 's',
 						geo: shapeType,
 						w: geoShape.w,
