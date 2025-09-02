@@ -30,6 +30,19 @@ export function promptAgent({
 	onError: (e: any) => void
 }) {
 	const { editor } = agent
+
+	// If it's a user request, add the request to chat history
+	if (request.type === 'user') {
+		// Add the request to chat history
+		const promptHistoryItem: IChatHistoryItem = {
+			type: 'prompt',
+			message: request.message,
+			contextItems: request.contextItems,
+			selectedShapes: request.selectedShapes,
+		}
+		agent.$chatHistory.update((prev) => [...prev, promptHistoryItem])
+	}
+
 	let cancelled = false
 	const controller = new AbortController()
 	const signal = controller.signal

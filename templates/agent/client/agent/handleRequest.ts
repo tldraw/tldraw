@@ -1,15 +1,12 @@
 import { AgentRequest } from '../../shared/types/AgentRequest'
 import { TldrawAgent } from './TldrawAgent'
 
-export async function handleRequest({
-	agent,
-	request,
-	onError,
-}: {
-	agent: TldrawAgent
-	request: AgentRequest
-	onError: (e: any) => void
-}) {
+export async function handleRequest(agent: TldrawAgent, request: AgentRequest) {
+	// Interrupt any currently active request
+	if (agent.$activeRequest.get() !== null) {
+		agent.cancel()
+	}
+
 	// Store the current request in the agent's state.
 	agent.$activeRequest.set(request)
 
@@ -33,11 +30,12 @@ export async function handleRequest({
 			contextItems: request.contextItems,
 			bounds: request.bounds,
 			modelName: request.modelName,
+			selectedShapes: request.selectedShapes,
 			type: 'todo',
 		}
 	}
 
 	// Handle the scheduled request
 	agent.$scheduledRequest.set(null)
-	await handleRequest({ agent, request: scheduledRequest, onError })
+	await handleRequest(agent, scheduledRequest)
 }

@@ -1,5 +1,6 @@
 import { BoxModel } from 'tldraw'
 import { AgentModelName } from '../../worker/models'
+import { ISimpleShape } from '../format/SimpleShape'
 import { IContextItem } from './ContextItem'
 
 export interface AgentRequest {
@@ -22,6 +23,11 @@ export interface AgentRequest {
 	 * Items that the agent should pay particular attention to.
 	 */
 	contextItems: IContextItem[]
+
+	/**
+	 * Any shapes that have been selected as part of this request.
+	 */
+	selectedShapes: ISimpleShape[]
 
 	/**
 	 * The type of request.

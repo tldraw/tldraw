@@ -168,6 +168,7 @@ export class TldrawAgent {
 		message = '',
 		bounds = this.editor.getViewportPageBounds(),
 		contextItems = this.$contextItems.get(),
+		selectedShapes = [],
 		modelName = this.$modelName.get(),
 		type = 'user',
 	}: Partial<AgentRequest>) {
@@ -181,6 +182,7 @@ export class TldrawAgent {
 				message,
 				bounds,
 				contextItems,
+				selectedShapes,
 				modelName,
 				type,
 			},
@@ -196,7 +198,20 @@ export class TldrawAgent {
 
 	/**
 	 * Schedule a request for the agent to handle after this one.
-	 * @param callback A callback that receives the currently scheduled request and returns the desired request.
+	 *
+	 * This function takes a callback as an argument. The callback receives the
+	 * currently scheduled request (or the default request if there is none) and
+	 * should return the desired request.
+	 *
+	 * @example
+	 * ```tsx
+	 * agent.schedule((prev) => ({
+	 * 	...prev,
+	 * 	message: 'Add extra detail',
+	 * }))
+	 * ```
+	 *
+	 * @param callback
 	 */
 	schedule(callback: (prev: AgentRequest) => AgentRequest) {
 		this.$scheduledRequest.update((prev) => {
@@ -207,6 +222,7 @@ export class TldrawAgent {
 				modelName: activeRequest?.modelName ?? DEFAULT_MODEL_NAME,
 				type: 'schedule',
 				bounds: activeRequest?.bounds ?? this.editor.getViewportPageBounds(),
+				selectedShapes: activeRequest?.selectedShapes ?? [],
 			}
 
 			return callback(currentScheduledRequest)
