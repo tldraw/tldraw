@@ -32,6 +32,7 @@ import { SelectedShapesPartUtil } from './parts/SelectedShapesPartUtil'
 import { SystemPromptPartUtil } from './parts/SystemPromptPartUtil'
 import { TodoListPartUtil } from './parts/TodoItemsPartUtil'
 import { UserActionHistoryPartUtil } from './parts/UserActionHistoryPartUtil'
+import { UserSelectedModelNamePartUtil } from './parts/UserSelectedModelNamePartUtil'
 import { UserViewportBoundsPartUtil } from './parts/UserViewportBoundsPartUtil'
 import { AgentAction } from './types/AgentAction'
 import { PromptPart } from './types/PromptPart'
@@ -43,10 +44,13 @@ import { PromptPart } from './types/PromptPart'
  * To send something new to the model, either change one of the existing parts, or add your own.
  */
 export const PROMPT_PART_UTILS = [
+	// Model
 	SystemPromptPartUtil,
+	UserSelectedModelNamePartUtil,
 
-	// TODO: Fix types of this and reintroduce
-	// UserSelectedModelNamePartUtil,
+	// Request
+	MessagePartUtil,
+	ContextItemsPartUtil,
 
 	// Viewport
 	ScreenshotPartUtil,
@@ -57,10 +61,6 @@ export const PROMPT_PART_UTILS = [
 	BlurryShapesPartUtil,
 	PeripheralShapesPartUtil,
 	SelectedShapesPartUtil,
-
-	// Request
-	MessagePartUtil,
-	ContextItemsPartUtil,
 
 	// History
 	ChatHistoryItemsPartUtil,
