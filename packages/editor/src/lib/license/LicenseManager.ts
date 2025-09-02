@@ -108,8 +108,8 @@ export class LicenseManager {
 				)
 
 				if (
-					!this.isDevelopment &&
-					(licenseState === 'unlicensed' || licenseState === 'unlicensed-production')
+					licenseState === 'unlicensed-production' ||
+					(!this.isDevelopment && licenseState === 'licensed-with-watermark')
 				) {
 					fetch(WATERMARK_TRACK_SRC)
 				}
