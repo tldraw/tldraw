@@ -3,6 +3,7 @@ import { AgentActionUtil } from '../../shared/actions/AgentActionUtil'
 import { getAgentActionUtilsRecord, getPromptPartUtilsRecord } from '../../shared/AgentUtils'
 import { PromptPartUtil } from '../../shared/parts/PromptPartUtil'
 import { AgentAction } from '../../shared/types/AgentAction'
+import { AgentInput } from '../../shared/types/AgentInput'
 import { AgentRequest } from '../../shared/types/AgentRequest'
 import { IChatHistoryItem } from '../../shared/types/ChatHistoryItem'
 import { IContextItem } from '../../shared/types/ContextItem'
@@ -13,7 +14,7 @@ import { $agentsAtom } from './agentsAtom'
 import { areContextItemsEqual } from './areContextItemsEqual'
 import { dedupeShapesContextItem } from './dedupeShapesContextItem'
 import { persistAtomInLocalStorage } from './persistAtomInLocalStorage'
-import { promptAgent } from './promptAgent'
+import { requestAgent } from './requestAgent'
 
 export interface TldrawAgentOptions {
 	/** The editor to associate the agent with. */
@@ -154,6 +155,27 @@ export class TldrawAgent {
 	private promptPartUtilsRecord: Record<PromptPart['type'], PromptPartUtil<PromptPart>>
 
 	/**
+	 * Get a full agent request from a user input.
+	 * @param input - A partial agent request or a string message.
+	 */
+	getRequestFromInput(input: AgentInput): AgentRequest {
+		if (typeof input === 'string') {
+			input = { message: input }
+		}
+
+		const request: AgentRequest = {
+			message: input.message ?? '',
+			bounds: input.bounds ?? this.editor.getViewportPageBounds(),
+			contextItems: input.contextItems ?? this.$contextItems.get(),
+			selectedShapes: input.selectedShapes ?? [],
+			modelName: input.modelName ?? this.$modelName.get(),
+			type: input.type ?? 'user',
+		}
+
+		return request
+	}
+
+	/**
 	 * Prompt the agent to edit the canvas.
 	 *
 	 * @example
@@ -162,30 +184,69 @@ export class TldrawAgent {
 	 * agent.prompt({ message: 'Draw a snowman' })
 	 * ```
 	 *
-	 * @returns A promise that resolves when the agent has finished editing the canvas.
+	 * @returns A promise that resolves when the agent has finished its work.
 	 */
-	prompt({
-		message = '',
-		bounds = this.editor.getViewportPageBounds(),
-		contextItems = this.$contextItems.get(),
-		selectedShapes = [],
-		modelName = this.$modelName.get(),
-		type = 'user',
-	}: Partial<AgentRequest>) {
+	async prompt(input: AgentInput) {
+		const request = this.getRequestFromInput(input)
+
+		// Submit the request to the agent.
+		await this.request(request)
+
+		// After the request is handled, check if there are any outstanding todo items or requests
+		let scheduledRequest = this.$scheduledRequest.get()
+		const todoItemsRemaining = this.$todoList.get().filter((item) => item.status !== 'done')
+
+		if (!scheduledRequest) {
+			// If there no outstanding todo items or requests, finish
+			if (todoItemsRemaining.length === 0) {
+				return
+			}
+
+			// If there are outstanding todo items, schedule a continue request
+			scheduledRequest = {
+				message: request.message,
+				contextItems: request.contextItems,
+				bounds: request.bounds,
+				modelName: request.modelName,
+				selectedShapes: request.selectedShapes,
+				type: 'todo',
+			}
+		}
+
+		// Handle the scheduled request
+		this.$scheduledRequest.set(null)
+		await this.prompt(scheduledRequest)
+	}
+
+	/**
+	 * Send a single request to the agent and handle its response.
+	 *
+	 * Note: This method does not chain multiple requests together. For a full
+	 * agentic system, use the `prompt` method.
+	 *
+	 * Most developers will not want to use this method directly. It's mostly
+	 * used internally by the `prompt` method, but can also be useful for
+	 * carrying out evals.
+	 *
+	 * @param input - The input to form the request from.
+	 * @returns A promise that resolves when the request is complete and a cancel function to abort the request.
+	 */
+	async request(input: AgentInput) {
+		const request = this.getRequestFromInput(input)
+
+		// Interrupt any currently active request
+		if (this.$activeRequest.get() !== null) {
+			this.cancel()
+		}
+		this.$activeRequest.set(request)
+
 		// Call a larger external helper function to prompt the agent
-		const { promise, cancel } = promptAgent({
+		const { promise, cancel } = requestAgent({
 			agent: this,
 			agentActionsUtils: this.agentActionUtilsRecord,
 			promptPartUtils: this.promptPartUtilsRecord,
 			onError: this.onError,
-			request: {
-				message,
-				bounds,
-				contextItems,
-				selectedShapes,
-				modelName,
-				type,
-			},
+			request,
 		})
 
 		this.cancelFn = cancel
@@ -193,7 +254,8 @@ export class TldrawAgent {
 			this.cancelFn = null
 		})
 
-		return promise
+		await promise
+		this.$activeRequest.set(null)
 	}
 
 	/**
@@ -205,15 +267,25 @@ export class TldrawAgent {
 	 *
 	 * @example
 	 * ```tsx
+	 * agent.schedule(() => 'Add extra detail')
+	 * ```
+	 *
+	 * @example
+	 * ```tsx
+	 * // Move the viewport 200 pixels to the right
 	 * agent.schedule((prev) => ({
-	 * 	...prev,
-	 * 	message: 'Add extra detail',
+	 * 	bounds: {
+	 * 		x: prev.bounds.x + 200
+	 * 		y: prev.bounds.y,
+	 * 		w: prev.bounds.w,
+	 * 		h: prev.bounds.h,
+	 * 	},
 	 * }))
 	 * ```
 	 *
 	 * @param callback
 	 */
-	schedule(callback: (prev: AgentRequest) => AgentRequest) {
+	schedule(callback: (prev: AgentRequest) => AgentInput) {
 		this.$scheduledRequest.update((prev) => {
 			const activeRequest = this.$activeRequest.get()
 			const currentScheduledRequest = prev ?? {
@@ -225,7 +297,8 @@ export class TldrawAgent {
 				selectedShapes: activeRequest?.selectedShapes ?? [],
 			}
 
-			return callback(currentScheduledRequest)
+			const partialRequest = callback(currentScheduledRequest)
+			return this.getRequestFromInput(partialRequest)
 		})
 	}
 
@@ -264,7 +337,7 @@ export class TldrawAgent {
 	 * Check if the agent is currently working on a request or not.
 	 */
 	isGenerating() {
-		return this.$activeRequest.get() !== null || this.$scheduledRequest.get() !== null
+		return this.$activeRequest.get() !== null
 	}
 
 	/**

@@ -11,12 +11,11 @@ import { streamAgent } from './streamAgent'
 import { TldrawAgent } from './TldrawAgent'
 
 /**
- * Prompt the agent with a request. The agent's response will be streamed back
- * to the chat panel and editor.
+ * Send a request to the agent and handle its response.
  *
- * @returns A promise that resolves when the prompt is complete and a cancel function to abort the request.
+ * @returns A promise that resolves when the request is complete and a cancel function to abort the request.
  */
-export function promptAgent({
+export function requestAgent({
 	agent,
 	agentActionsUtils,
 	promptPartUtils,

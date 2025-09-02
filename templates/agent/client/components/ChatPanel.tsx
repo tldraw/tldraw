@@ -1,7 +1,6 @@
 import { FormEventHandler, useCallback, useRef } from 'react'
 import { useValue } from 'tldraw'
 import { convertTldrawShapeToSimpleShape } from '../../shared/format/SimpleShape'
-import { handleRequest } from '../agent/handleRequest'
 import { TldrawAgent } from '../agent/TldrawAgent'
 import { ChatHistory } from './chat-history/ChatHistory'
 import { ChatInput } from './ChatInput'
@@ -42,7 +41,7 @@ export function ChatPanel({ agent }: { agent: TldrawAgent }) {
 				.getSelectedShapes()
 				.map((shape) => convertTldrawShapeToSimpleShape(shape, editor))
 
-			await handleRequest(agent, {
+			await agent.prompt({
 				message,
 				contextItems,
 				bounds: editor.getViewportPageBounds(),

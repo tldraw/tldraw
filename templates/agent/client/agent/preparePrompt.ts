@@ -8,7 +8,7 @@ import { TldrawAgent } from './TldrawAgent'
 /**
  * Get a full prompt based on the provided prompt options.
  *
- * @returns The fully assembled prompt. (in worker-ish)
+ * @returns The fully assembled prompt.
  */
 export async function preparePrompt({
 	agent,
