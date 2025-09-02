@@ -1,15 +1,29 @@
-import { useValue } from 'tldraw'
+import { Box, useValue } from 'tldraw'
 import { TldrawAgent } from '../../agent/TldrawAgent'
 import { AreaHighlight } from './AreaHighlight'
 
 export function AgentViewportBoundsHighlight({ agent }: { agent: TldrawAgent }) {
-	const agentViewportBounds = useValue(
-		'agentViewportBounds',
-		() => agent.$agentViewportBoundsHighlight.get(),
-		[agent.$agentViewportBoundsHighlight]
+	const agentViewportBounds = useValue(agent.$agentViewportBoundsHighlight)
+
+	// If the agent's viewport is equivalent to a pending context area, don't show the highlight
+	// (because it would overlap and be redundant)
+	const isEquivalentToPendingContextArea = useValue(
+		'isEquivalentToPendingContextArea',
+		() => {
+			if (!agentViewportBounds) return false
+			const contextItems = agent.$pendingContextItems.get()
+			return contextItems.some(
+				(item) =>
+					item.type === 'area' &&
+					item.source === 'agent' &&
+					Box.Equals(item.bounds, agentViewportBounds)
+			)
+		},
+		[agentViewportBounds]
 	)
 
 	if (!agentViewportBounds) return null
+	if (isEquivalentToPendingContextArea) return null
 
 	return (
 		<AreaHighlight

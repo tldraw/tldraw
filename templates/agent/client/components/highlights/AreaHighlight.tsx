@@ -12,7 +12,6 @@ export function AreaHighlight({ pageBounds, color, generating, label }: AreaHigh
 	const screenBounds = useValue(
 		'screenBounds',
 		() => {
-			if (!pageBounds) return null
 			const expandedPageBounds = Box.From(pageBounds).expandBy(4)
 			const screenCorners = expandedPageBounds.corners.map((corner) => {
 				return editor.pageToViewport(corner)

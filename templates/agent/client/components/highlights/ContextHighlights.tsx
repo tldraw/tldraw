@@ -6,7 +6,7 @@ import { PointHighlight, PointHighlightProps } from './PointHighlight'
 
 export function ContextHighlights({ agent }: { agent: TldrawAgent }) {
 	const editor = useEditor()
-	const contextItems = useValue('contextItems', () => $contextItems.get(), [])
+	const contextItems = useValue($contextItems)
 	const pendingContextItems = useValue(agent.$pendingContextItems)
 
 	const areaHighlights: AreaHighlightProps[] = useValue(
