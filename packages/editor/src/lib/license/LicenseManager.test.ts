@@ -817,7 +817,6 @@ describe('getLicenseState', () => {
 			expect(messages).toHaveLength(1)
 			expect(messages[0]).toEqual([
 				'Your tldraw evaluation license has expired!',
-				'Evaluation licenses expire immediately without a grace period.',
 				'Please reach out to sales@tldraw.com to purchase a full license.',
 			])
 		})

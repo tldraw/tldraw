@@ -149,11 +149,6 @@ test.describe('Expired evaluation license', () => {
 			msg.includes('Your tldraw evaluation license has expired!')
 		)
 		expect(hasExpiredMessage).toBe(true)
-
-		const hasEvaluationMessage = consoleMessages.some((msg) =>
-			msg.includes('Evaluation licenses expire immediately without a grace period.')
-		)
-		expect(hasEvaluationMessage).toBe(true)
 	})
 })
 

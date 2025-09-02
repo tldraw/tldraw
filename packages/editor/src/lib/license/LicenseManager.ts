@@ -424,7 +424,6 @@ export function getLicenseState(
 		if (result.isEvaluationLicenseExpired) {
 			outputMessages([
 				'Your tldraw evaluation license has expired!',
-				'Evaluation licenses expire immediately without a grace period.',
 				`Please reach out to ${LICENSE_EMAIL} to purchase a full license.`,
 			])
 			return 'expired'
