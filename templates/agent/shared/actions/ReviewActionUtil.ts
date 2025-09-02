@@ -1,7 +1,5 @@
-import { Box } from 'tldraw'
 import z from 'zod'
 import { TldrawAgent } from '../../client/agent/TldrawAgent'
-import { AgentRequest } from '../types/AgentRequest'
 import { IAreaContextItem } from '../types/ContextItem'
 import { Streaming } from '../types/Streaming'
 import { AgentActionUtil } from './AgentActionUtil'
@@ -41,48 +39,27 @@ export class ReviewActionUtil extends AgentActionUtil<IReviewAction> {
 		}
 	}
 
-	override applyAction(
-		action: Streaming<IReviewAction>,
-		agent: TldrawAgent,
-		request: AgentRequest
-	) {
+	override applyAction(action: Streaming<IReviewAction>, agent: TldrawAgent) {
 		if (!action.complete) return
 
-		const reviewBounds = {
-			x: action.x ?? request.bounds.x,
-			y: action.y ?? request.bounds.y,
-			w: action.w ?? request.bounds.w,
-			h: action.h ?? request.bounds.h,
+		const bounds = {
+			x: action.x,
+			y: action.y,
+			w: action.w,
+			h: action.h,
 		}
 
 		const contextArea: IAreaContextItem = {
 			type: 'area',
-			bounds: reviewBounds,
+			bounds,
 			source: 'agent',
 		}
 
-		agent.$scheduledRequest.update((prev) => {
-			const newRequest = prev ?? {
-				message: '',
-				contextItems: [],
-				bounds: request.bounds,
-				modelName: request.modelName,
-				type: 'review',
-			}
-
-			// If the review bounds go outside the request bounds, grow the request bounds to include the review bounds
-			const reviewBoundsBox = Box.From(reviewBounds)
-			const requestBoundsBox = Box.From(newRequest.bounds)
-			const boundsContainReviewBounds = requestBoundsBox.contains(reviewBoundsBox)
-			if (!boundsContainReviewBounds) {
-				newRequest.bounds = requestBoundsBox.union(reviewBoundsBox).toJson()
-			}
-
-			return {
-				...newRequest,
-				message: newRequest.message ? `${newRequest.message}\n\n${action.intent}` : action.intent,
-				contextItems: [...(newRequest.contextItems ?? []), contextArea],
-			}
-		})
+		agent.schedule((prev) => ({
+			...prev,
+			bounds,
+			contextItems: [...prev.contextItems, contextArea],
+			type: 'review',
+		}))
 	}
 }

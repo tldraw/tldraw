@@ -23,29 +23,26 @@ export class MessagePartUtil extends PromptPartUtil<MessagePart> {
 	}
 
 	override buildContent({ message, requestType }: MessagePart) {
-		if (requestType === 'review') {
-			return [getReviewPrompt(message)]
-		}
+		switch (requestType) {
+			case 'user':
+				return getUserPrompt(message)
+			case 'schedule':
+				return getSchedulePrompt(message)
+			case 'todo':
+				return getTodoPrompt(message)
 
-		if (requestType === 'setMyView') {
-			return [getSetMyViewPrompt(message)]
+			// Handle the custom "review" request type
+			case 'review':
+				return [getReviewPrompt(message)]
 		}
-
-		if (requestType === 'continue') {
-			return [
-				'There are still outstanding todo items. Please continue. For your reference, the most recent message I gave you was this:',
-				message,
-			]
-		}
-
-		return [
-			"Using the events provided in the response schema, here's what I want you to do:",
-			message,
-		]
 	}
 }
 
-function getReviewPrompt(intent: string): string {
+function getUserPrompt(intent: string) {
+	return [`Using the events provided in the response schema, here's what I want you to do:`, intent]
+}
+
+function getReviewPrompt(intent: string) {
 	return `Examine the actions that you (the agent) took since the most recent user message, with the intent: "${intent}". What's next?
 
 - Are you awaiting a response from the user? If so, there's no need to do or say anything.
@@ -54,9 +51,18 @@ function getReviewPrompt(intent: string): string {
 - Make sure to reference your last actions (denoted by [ACTION]) in order to see if you completed the task. Assume each action you see in the chat history completed successfully.`
 }
 
-function getSetMyViewPrompt(intent: string): string {
-	return `You have just moved to a new area of the canvas with this goal: "${intent}".
-- You probably have some work to do now in the new viewport.
+function getSchedulePrompt(intent: string) {
+	return [
+		`You have scheduled some work in this area of the canvas with this goal: "${intent}".
+- You probably have some work to do now in this area.
 - If your work is done, no need to say anything.
-- If you need to adjust your viewport again, do that.`
+- If you need to adjust your viewport, do that.`,
+	]
+}
+
+function getTodoPrompt(intent: string) {
+	return [
+		`There are still outstanding todo items. Please continue. For your reference, the most recent message I gave you was this:`,
+		intent,
+	]
 }

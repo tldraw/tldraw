@@ -25,6 +25,16 @@ export interface AgentRequest {
 
 	/**
 	 * The type of request.
+	 * - 'user' is a request from the user.
+	 * - 'schedule' is a request from the schedule.
+	 * - 'todo' is a request from outstanding todo items.
+	 *
+	 * - 'review' is a custom request type created by the ReviewActionUtil.
+	 *
+	 * You can add your own custom request types by adding them to this property,
+	 * then making a prompt part behave differently based on the request type.
+	 *
+	 * For an example of this, see the MessagePartUtil that behaves differently based on the request type.
 	 */
-	type: 'user' | 'review' | 'setMyView' | 'continue'
+	type: 'user' | 'schedule' | 'todo' | 'review'
 }

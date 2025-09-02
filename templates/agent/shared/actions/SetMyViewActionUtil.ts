@@ -1,6 +1,5 @@
 import z from 'zod'
 import { TldrawAgent } from '../../client/agent/TldrawAgent'
-import { AgentRequest } from '../types/AgentRequest'
 import { Streaming } from '../types/Streaming'
 import { AgentActionUtil } from './AgentActionUtil'
 
@@ -37,30 +36,17 @@ export class SetMyViewActionUtil extends AgentActionUtil<ISetMyViewAction> {
 		}
 	}
 
-	override applyAction(
-		action: Streaming<ISetMyViewAction>,
-		agent: TldrawAgent,
-		request: AgentRequest
-	) {
+	override applyAction(action: Streaming<ISetMyViewAction>, agent: TldrawAgent) {
 		if (!action.complete) return
 
-		agent.$scheduledRequest.update((prev) => {
-			const newRequest = prev ?? {
-				message: '',
-				contextItems: [],
-				modelName: request.modelName,
-				type: 'setMyView',
-			}
-
-			return {
-				...newRequest,
-				bounds: {
-					x: action.x,
-					y: action.y,
-					w: action.w,
-					h: action.h,
-				},
-			}
-		})
+		agent.schedule((prev) => ({
+			...prev,
+			bounds: {
+				x: action.x,
+				y: action.y,
+				w: action.w,
+				h: action.h,
+			},
+		}))
 	}
 }

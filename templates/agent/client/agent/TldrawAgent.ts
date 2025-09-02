@@ -188,6 +188,25 @@ export class TldrawAgent {
 	}
 
 	/**
+	 * Schedule a request for the agent to handle after this one.
+	 * @param callback A callback that receives the currently scheduled request and returns the desired request.
+	 */
+	schedule(callback: (prev: AgentRequest) => AgentRequest) {
+		this.$scheduledRequest.update((prev) => {
+			const activeRequest = this.$activeRequest.get()
+			const currentScheduledRequest = prev ?? {
+				message: '',
+				contextItems: [],
+				modelName: activeRequest?.modelName ?? DEFAULT_MODEL_NAME,
+				type: 'schedule',
+				bounds: activeRequest?.bounds ?? this.editor.getViewportPageBounds(),
+			}
+
+			return callback(currentScheduledRequest)
+		})
+	}
+
+	/**
 	 * A function that cancels the agent's current prompt, if one is active.
 	 */
 	private cancelFn: (() => void) | null = null

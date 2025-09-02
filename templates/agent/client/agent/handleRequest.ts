@@ -33,7 +33,7 @@ export async function handleRequest({
 			contextItems: request.contextItems,
 			bounds: request.bounds,
 			modelName: request.modelName,
-			type: 'continue',
+			type: 'todo',
 		}
 	}
 
