@@ -229,25 +229,6 @@ export abstract class Geometry2d {
 		return distanceAlongRoute / length
 	}
 
-	/** @deprecated Iterate the vertices instead. */
-	nearestPointOnLineSegment(A: VecLike, B: VecLike): Vec {
-		const { vertices } = this
-		let nearest: Vec | undefined
-		let dist = Infinity
-		let d: number, p: Vec, q: Vec
-		for (let i = 0; i < vertices.length; i++) {
-			p = vertices[i]
-			q = Vec.NearestPointOnLineSegment(A, B, p, true)
-			d = Vec.Dist2(p, q)
-			if (d < dist) {
-				dist = d
-				nearest = q
-			}
-		}
-		if (!nearest) throw Error('nearest point not found')
-		return nearest
-	}
-
 	isPointInBounds(point: VecLike, margin = 0) {
 		const { bounds } = this
 		return !(

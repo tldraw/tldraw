@@ -80,7 +80,7 @@ function CustomStylePanel() {
 
 	return (
 		<DefaultStylePanel>
-			<DefaultStylePanelContent styles={styles} />
+			<DefaultStylePanelContent />
 			{rating !== undefined && (
 				<div>
 					<select
