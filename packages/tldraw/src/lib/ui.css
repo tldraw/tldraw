@@ -776,6 +776,12 @@
 	margin-right: -2px;
 }
 
+/* RTL mode: adjust button margin */
+[dir='rtl'] .tlui-page-menu__item__button:not(:only-child) {
+	margin-right: 0px;
+	margin-left: -2px;
+}
+
 .tlui-page-menu__item__button > span {
 	display: block;
 	flex-grow: 2;
@@ -789,6 +795,12 @@
 	padding-right: calc(40px - 12px);
 }
 
+/* RTL mode: adjust span padding */
+[dir='rtl'] .tlui-page-menu__item__button > span {
+	padding-right: 0px;
+	padding-left: calc(40px - 12px);
+}
+
 @media (hover: hover) {
 	.tlui-page-menu__item__button > span {
 		padding-right: 0px;
@@ -797,10 +809,26 @@
 	.tlui-page-menu__item:hover > .tlui-page-menu__item__button > span {
 		padding-right: calc(40px - 12px);
 	}
+
+	/* RTL mode: adjust hover padding */
+	[dir='rtl'] .tlui-page-menu__item__button > span {
+		padding-left: 0px;
+	}
+
+	[dir='rtl'] .tlui-page-menu__item:hover > .tlui-page-menu__item__button > span {
+		padding-left: calc(40px - 12px);
+		padding-right: 0px;
+	}
 }
 
 .tlui-page-menu__item__button__checkbox {
 	padding-left: 35px;
+}
+
+/* RTL mode: adjust checkbox padding */
+[dir='rtl'] .tlui-page-menu__item__button__checkbox {
+	padding-left: 0px;
+	padding-right: 35px;
 }
 
 .tlui-page-menu__item__button__check {
@@ -808,6 +836,14 @@
 	left: 0px;
 	width: 24px;
 	padding-left: 10px;
+}
+
+/* RTL mode: adjust check position */
+[dir='rtl'] .tlui-page-menu__item__button__check {
+	left: auto;
+	right: 0px;
+	padding-left: 0px;
+	padding-right: 10px;
 	display: inline-flex;
 	align-items: center;
 	justify-content: center;
@@ -875,6 +911,14 @@
 	z-index: 10;
 }
 
+/* RTL mode: position submenu button on the left */
+[dir='rtl'] .tlui-page_menu__item__submenu {
+	right: auto;
+	left: 0px;
+	margin-left: 0px;
+	margin-right: -2px;
+}
+
 .tlui-page_menu__item__submenu > .tlui-button {
 	opacity: 0;
 }
@@ -910,6 +954,12 @@
 
 .tlui-page-menu__item__button .tlui-button__icon {
 	margin-right: 4px;
+}
+
+/* RTL mode: adjust icon margin */
+[dir='rtl'] .tlui-page-menu__item__button .tlui-button__icon {
+	margin-right: 0px;
+	margin-left: 4px;
 }
 
 @media (hover: hover) {
@@ -2106,4 +2156,25 @@
 	to {
 		transform: translateX(calc(100% + var(--tl-space-3)));
 	}
+}
+
+/* RTL Support for Menu Items */
+[dir='rtl'] .tlui-button__label {
+	text-align: right;
+}
+
+[dir='rtl'] .tlui-page-menu__name {
+	text-align: right;
+}
+
+[dir='rtl'] .tlui-page-menu__item__button > span {
+	text-align: right;
+}
+
+/* RTL Context Menu Horizontal Positioning */
+.tlui-menu[data-dir='rtl'] {
+	position: relative !important;
+	/* left: auto !important; */
+	right: 10px !important;
+	transform: translateX(-100%) !important;
 }

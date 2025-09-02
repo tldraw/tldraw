@@ -2,6 +2,7 @@ import { preventDefault } from '@tldraw/editor'
 import { ContextMenu as _ContextMenu, DropdownMenu as _DropdownMenu } from 'radix-ui'
 import { unwrapLabel } from '../../../context/actions'
 import { TLUiEventSource } from '../../../context/events'
+import { useDir } from '../../../hooks/useTranslation/useTranslation'
 import { useReadonly } from '../../../hooks/useReadonly'
 import { TLUiTranslationKey } from '../../../hooks/useTranslation/TLUiTranslationKey'
 import { useTranslation } from '../../../hooks/useTranslation/useTranslation'
@@ -43,6 +44,7 @@ export function TldrawUiMenuCheckboxItem<
 	const { type: menuType, sourceId } = useTldrawUiMenuContext()
 	const isReadonlyMode = useReadonly()
 	const msg = useTranslation()
+	const dir = useDir()
 
 	// If the editor is in readonly mode and the item is not marked as readonlyok, return null
 	if (isReadonlyMode && !readonlyOk) return null
@@ -54,7 +56,7 @@ export function TldrawUiMenuCheckboxItem<
 		case 'menu': {
 			return (
 				<_DropdownMenu.CheckboxItem
-					dir="ltr"
+					dir={dir}
 					className="tlui-button tlui-button__menu tlui-button__checkbox"
 					title={labelStr}
 					onSelect={(e) => {
@@ -83,7 +85,7 @@ export function TldrawUiMenuCheckboxItem<
 				<_ContextMenu.CheckboxItem
 					key={id}
 					className="tlui-button tlui-button__menu tlui-button__checkbox"
-					dir="ltr"
+					dir={dir}
 					title={labelStr}
 					onSelect={(e) => {
 						onSelect(sourceId)

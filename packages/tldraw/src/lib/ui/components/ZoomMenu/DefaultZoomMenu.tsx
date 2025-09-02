@@ -3,6 +3,7 @@ import { DropdownMenu as _DropdownMenu } from 'radix-ui'
 import { ReactNode, memo, useCallback } from 'react'
 import { PORTRAIT_BREAKPOINT } from '../../constants'
 import { useBreakpoint } from '../../context/breakpoints'
+import { useDir } from '../../hooks/useTranslation/useTranslation'
 import { useMenuIsOpen } from '../../hooks/useMenuIsOpen'
 import { useTranslation } from '../../hooks/useTranslation/useTranslation'
 import { TldrawUiToolbarButton } from '../primitives/TldrawUiToolbar'
@@ -17,6 +18,7 @@ export interface TLUiZoomMenuProps {
 /** @public @react */
 export const DefaultZoomMenu = memo(function DefaultZoomMenu({ children }: TLUiZoomMenuProps) {
 	const container = useContainer()
+	const dir = useDir()
 	const [isOpen, onOpenChange] = useMenuIsOpen('zoom menu')
 
 	// Get the zoom menu content, either the default component or the user's
@@ -25,17 +27,17 @@ export const DefaultZoomMenu = memo(function DefaultZoomMenu({ children }: TLUiZ
 	const content = children ?? <DefaultZoomMenuContent />
 
 	return (
-		<_DropdownMenu.Root dir="ltr" open={isOpen} onOpenChange={onOpenChange} modal={false}>
+		<_DropdownMenu.Root dir={dir} open={isOpen} onOpenChange={onOpenChange} modal={false}>
 			<ZoomTriggerButton />
 			<_DropdownMenu.Portal container={container}>
 				<_DropdownMenu.Content
-					className="tlui-menu"
-					side="top"
-					align="start"
-					alignOffset={0}
-					sideOffset={8}
-					collisionPadding={4}
-				>
+				className="tlui-menu"
+				side="top"
+				align={dir === 'rtl' ? 'end' : 'start'}
+				alignOffset={0}
+				sideOffset={8}
+				collisionPadding={4}
+			>
 					<TldrawUiMenuContextProvider type="menu" sourceId="zoom-menu">
 						{content}
 					</TldrawUiMenuContextProvider>
@@ -50,6 +52,7 @@ const ZoomTriggerButton = () => {
 	const breakpoint = useBreakpoint()
 	const zoom = useValue('zoom', () => editor.getZoomLevel(), [editor])
 	const msg = useTranslation()
+	const dir = useDir()
 
 	const handleDoubleClick = useCallback(() => {
 		editor.resetZoom(editor.getViewportScreenCenter(), {
@@ -68,7 +71,7 @@ const ZoomTriggerButton = () => {
 			className="tlui-zoom-menu__button"
 			onDoubleClick={handleDoubleClick}
 		>
-			<_DropdownMenu.Trigger dir="ltr">
+			<_DropdownMenu.Trigger dir={dir}>
 				{breakpoint < PORTRAIT_BREAKPOINT.MOBILE ? null : (
 					<span style={{ flexGrow: 0, textAlign: 'center' }}>{value}</span>
 				)}

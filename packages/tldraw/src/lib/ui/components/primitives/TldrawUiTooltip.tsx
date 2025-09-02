@@ -9,6 +9,7 @@ import React, {
 	useRef,
 	useState,
 } from 'react'
+import { useDir } from '../../hooks/useTranslation/useTranslation'
 import { useTldrawUiOrientation } from './layout'
 
 const DEFAULT_TOOLTIP_DELAY_MS = 700
@@ -142,6 +143,7 @@ function TooltipSingleton() {
 	const [isOpen, setIsOpen] = useState(false)
 	const triggerRef = useRef<HTMLDivElement>(null)
 	const isFirstShowRef = useRef(true)
+	const dir = useDir()
 
 	const currentTooltip = useValue(
 		'current tooltip',
@@ -205,7 +207,7 @@ function TooltipSingleton() {
 				sideOffset={currentTooltip.sideOffset}
 				avoidCollisions
 				collisionPadding={8}
-				dir="ltr"
+				dir={dir}
 			>
 				{currentTooltip.content}
 				<_Tooltip.Arrow className="tlui-tooltip__arrow" />
@@ -236,7 +238,7 @@ export const TldrawUiTooltip = forwardRef<HTMLButtonElement, TldrawUiTooltipProp
 		const sideToUse = side ?? orientationCtx.tooltipSide
 
 		const camera = useValue('camera', () => editor?.getCamera(), [])
-
+		const dir = useDir()
 		useEffect(() => {
 			const currentTooltipId = tooltipId.current
 			return () => {
@@ -271,7 +273,7 @@ export const TldrawUiTooltip = forwardRef<HTMLButtonElement, TldrawUiTooltipProp
 						sideOffset={sideOffset}
 						avoidCollisions
 						collisionPadding={8}
-						dir="ltr"
+						dir={dir}
 					>
 						{content}
 						<_Tooltip.Arrow className="tlui-tooltip__arrow" />

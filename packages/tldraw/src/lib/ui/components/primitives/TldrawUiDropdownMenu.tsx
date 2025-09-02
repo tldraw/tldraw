@@ -2,6 +2,7 @@ import { preventDefault, useContainer } from '@tldraw/editor'
 import classNames from 'classnames'
 import { DropdownMenu as _DropdownMenu } from 'radix-ui'
 import { ReactNode } from 'react'
+import { useDir } from '../../hooks/useTranslation/useTranslation'
 import { useMenuIsOpen } from '../../hooks/useMenuIsOpen'
 import { useTranslation } from '../../hooks/useTranslation/useTranslation'
 import { TldrawUiButton } from './Button/TldrawUiButton'
@@ -25,11 +26,12 @@ export function TldrawUiDropdownMenuRoot({
 	debugOpen = false,
 }: TLUiDropdownMenuRootProps) {
 	const [open, onOpenChange] = useMenuIsOpen(id)
+	const dir = useDir()
 
 	return (
 		<_DropdownMenu.Root
 			open={debugOpen || open}
-			dir="ltr"
+			dir={dir}
 			modal={modal}
 			onOpenChange={onOpenChange}
 		>
@@ -45,9 +47,11 @@ export interface TLUiDropdownMenuTriggerProps {
 
 /** @public @react */
 export function TldrawUiDropdownMenuTrigger({ children, ...rest }: TLUiDropdownMenuTriggerProps) {
+	const dir = useDir()
+
 	return (
 		<_DropdownMenu.Trigger
-			dir="ltr"
+			dir={dir}
 			asChild
 			// Firefox fix: Stop the dropdown immediately closing after touch
 			onTouchEnd={(e) => preventDefault(e)}
@@ -128,8 +132,9 @@ export function TldrawUiDropdownMenuSubTrigger({
 	title,
 	disabled,
 }: TLUiDropdownMenuSubTriggerProps) {
+	const dir = useDir()
 	return (
-		<_DropdownMenu.SubTrigger dir="ltr" asChild disabled={disabled}>
+		<_DropdownMenu.SubTrigger asChild>
 			<TldrawUiButton
 				data-testid={id}
 				type="menu"
@@ -138,12 +143,11 @@ export function TldrawUiDropdownMenuSubTrigger({
 				title={title}
 			>
 				<TldrawUiButtonLabel>{label}</TldrawUiButtonLabel>
-				<TldrawUiButtonIcon icon="chevron-right" small />
+				<TldrawUiButtonIcon icon={dir === 'rtl' ? 'chevron-left' : 'chevron-right'} small />
 			</TldrawUiButton>
 		</_DropdownMenu.SubTrigger>
 	)
 }
-
 /** @public */
 export interface TLUiDropdownMenuSubContentProps {
 	id?: string
@@ -186,8 +190,10 @@ export interface TLUiDropdownMenuGroupProps {
 
 /** @public @react */
 export function TldrawUiDropdownMenuGroup({ className, children }: TLUiDropdownMenuGroupProps) {
+	const dir = useDir()
+
 	return (
-		<div dir="ltr" className={classNames('tlui-menu__group', className)}>
+		<div dir={dir} className={classNames('tlui-menu__group', className)}>
 			{children}
 		</div>
 	)
@@ -196,9 +202,10 @@ export function TldrawUiDropdownMenuGroup({ className, children }: TLUiDropdownM
 /** @public @react */
 export function TldrawUiDropdownMenuIndicator() {
 	const msg = useTranslation()
+	const dir = useDir()
 
 	return (
-		<_DropdownMenu.ItemIndicator dir="ltr" asChild>
+		<_DropdownMenu.ItemIndicator dir={dir} asChild>
 			<TldrawUiIcon label={msg('ui.checked')} icon="check" />
 		</_DropdownMenu.ItemIndicator>
 	)
@@ -212,8 +219,10 @@ export interface TLUiDropdownMenuItemProps {
 
 /** @public @react */
 export function TldrawUiDropdownMenuItem({ noClose, children }: TLUiDropdownMenuItemProps) {
+	const dir = useDir()
+
 	return (
-		<_DropdownMenu.Item dir="ltr" asChild onClick={noClose ? preventDefault : undefined}>
+		<_DropdownMenu.Item dir={dir} asChild onClick={noClose ? preventDefault : undefined}>
 			{children}
 		</_DropdownMenu.Item>
 	)
@@ -235,10 +244,11 @@ export function TldrawUiDropdownMenuCheckboxItem({
 	...rest
 }: TLUiDropdownMenuCheckboxItemProps) {
 	const msg = useTranslation()
+	const dir = useDir()
 
 	return (
 		<_DropdownMenu.CheckboxItem
-			dir="ltr"
+			dir={dir}
 			className="tlui-button tlui-button__menu tlui-button__checkbox"
 			onSelect={(e) => {
 				onSelect?.(e)
@@ -247,7 +257,7 @@ export function TldrawUiDropdownMenuCheckboxItem({
 			{...rest}
 		>
 			<div className="tlui-button__checkbox__indicator">
-				<_DropdownMenu.ItemIndicator dir="ltr">
+				<_DropdownMenu.ItemIndicator dir={dir}>
 					<TldrawUiIcon label={msg('ui.checked')} icon="check" small />
 				</_DropdownMenu.ItemIndicator>
 			</div>

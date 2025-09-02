@@ -73,12 +73,12 @@ export const TldrawUiContextProvider = track(function TldrawUiContextProvider({
 	const editor = useMaybeEditor()
 	return (
 		<MimeTypeContext.Provider value={mediaMimeTypes}>
-			<TldrawUiTooltipProvider>
-				<AssetUrlsProvider assetUrls={useDefaultUiAssetUrlsWithOverrides(assetUrls)}>
-					<TldrawUiTranslationProvider
-						overrides={useMergedTranslationOverrides(overrides)}
-						locale={editor?.user.getLocale() ?? defaultUserPreferences.locale}
-					>
+			<TldrawUiTranslationProvider
+				overrides={useMergedTranslationOverrides(overrides)}
+				locale={editor?.user.getLocale() ?? defaultUserPreferences.locale}
+			>
+				<TldrawUiTooltipProvider>
+					<AssetUrlsProvider assetUrls={useDefaultUiAssetUrlsWithOverrides(assetUrls)}>
 						<TldrawUiEventsProvider onEvent={onUiEvent}>
 							<TldrawUiToastsProvider>
 								<TldrawUiDialogsProvider context={'tla'}>
@@ -92,9 +92,9 @@ export const TldrawUiContextProvider = track(function TldrawUiContextProvider({
 								</TldrawUiDialogsProvider>
 							</TldrawUiToastsProvider>
 						</TldrawUiEventsProvider>
-					</TldrawUiTranslationProvider>
-				</AssetUrlsProvider>
-			</TldrawUiTooltipProvider>
+					</AssetUrlsProvider>
+				</TldrawUiTooltipProvider>
+			</TldrawUiTranslationProvider>
 		</MimeTypeContext.Provider>
 	)
 })

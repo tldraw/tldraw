@@ -1,6 +1,7 @@
 import { tltime } from '@tldraw/editor'
 import { Slider as _Slider } from 'radix-ui'
 import React, { useCallback, useEffect, useState } from 'react'
+import { useDir } from '../../hooks/useTranslation/useTranslation'
 import { TLUiTranslationKey } from '../../hooks/useTranslation/TLUiTranslationKey'
 import { useTranslation } from '../../hooks/useTranslation/useTranslation'
 import { TldrawUiTooltip, tooltipManager } from './TldrawUiTooltip'
@@ -34,6 +35,7 @@ export const TldrawUiSlider = React.forwardRef<HTMLDivElement, TLUiSliderProps>(
 	ref
 ) {
 	const msg = useTranslation()
+	const dir = useDir()
 	const [titleAndLabel, setTitleAndLabel] = useState('')
 
 	// XXX: Radix starts out our slider with a tabIndex of 0
@@ -87,7 +89,7 @@ export const TldrawUiSlider = React.forwardRef<HTMLDivElement, TLUiSliderProps>(
 				<_Slider.Root
 					data-testid={testId}
 					className="tlui-slider"
-					dir="ltr"
+					dir={dir}
 					min={min ?? 0}
 					max={steps}
 					step={1}
@@ -97,8 +99,8 @@ export const TldrawUiSlider = React.forwardRef<HTMLDivElement, TLUiSliderProps>(
 					onKeyDownCapture={handleKeyEvent}
 					onKeyUpCapture={handleKeyEvent}
 				>
-					<_Slider.Track className="tlui-slider__track" dir="ltr">
-						{value !== null && <_Slider.Range className="tlui-slider__range" dir="ltr" />}
+					<_Slider.Track className="tlui-slider__track" dir={dir}>
+						{value !== null && <_Slider.Range className="tlui-slider__range" dir={dir} />}
 					</_Slider.Track>
 					{value !== null && (
 						<_Slider.Thumb
@@ -107,7 +109,7 @@ export const TldrawUiSlider = React.forwardRef<HTMLDivElement, TLUiSliderProps>(
 							aria-valuemax={steps * ariaValueModifier}
 							aria-label={titleAndLabel}
 							className="tlui-slider__thumb"
-							dir="ltr"
+							dir={dir}
 							ref={ref}
 							tabIndex={tabIndex}
 						/>

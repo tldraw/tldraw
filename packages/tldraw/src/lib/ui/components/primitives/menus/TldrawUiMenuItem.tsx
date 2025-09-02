@@ -11,6 +11,7 @@ import { ContextMenu as _ContextMenu } from 'radix-ui'
 import { useMemo, useState } from 'react'
 import { unwrapLabel } from '../../../context/actions'
 import { TLUiEventSource } from '../../../context/events'
+import { useDir } from '../../../hooks/useTranslation/useTranslation'
 import { useReadonly } from '../../../hooks/useReadonly'
 import { TLUiToolItem } from '../../../hooks/useTools'
 import { TLUiTranslationKey } from '../../../hooks/useTranslation/TLUiTranslationKey'
@@ -100,6 +101,7 @@ export function TldrawUiMenuItem<
 	const { type: menuType, sourceId } = useTldrawUiMenuContext()
 
 	const msg = useTranslation()
+	const dir = useDir()
 
 	const [disableClicks, setDisableClicks] = useState(false)
 
@@ -144,7 +146,7 @@ export function TldrawUiMenuItem<
 
 			return (
 				<_ContextMenu.Item
-					dir="ltr"
+					dir={dir}
 					draggable={false}
 					className="tlui-button tlui-button__menu"
 					data-testid={`${sourceId}.${id}`}
