@@ -41,7 +41,7 @@ export type LicenseState =
 	| 'licensed' // License is valid and active (no restrictions)
 	| 'licensed-with-watermark' // License is valid but shows watermark (evaluation licenses, WITH_WATERMARK licenses)
 	| 'unlicensed' // No valid license found or license is invalid (development)
-	| 'unlicensed-production' // No license provided in production deployment
+	| 'unlicensed-production' // No valid license in production deployment (missing, invalid, or wrong domain)
 	| 'expired' // License has been expired (30 days past expiration for regular licenses, immediately for evaluation licenses)
 /** @internal */
 export type InvalidLicenseReason =
