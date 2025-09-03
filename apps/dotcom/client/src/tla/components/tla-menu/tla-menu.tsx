@@ -146,9 +146,14 @@ export function TlaMenuSelect<T extends string>({
 	}, [isOpen])
 
 	return (
-		<div className={styles.menuSelectWrapper}>
+		<div
+			className={styles.menuSelectWrapper}
+			onClickCapture={(e) => {
+				e.stopPropagation()
+			}}
+		>
 			<_Select.Root
-				open={isOpen}
+				open={true}
 				value={value}
 				onOpenChange={handleOpenChange}
 				onValueChange={handleChange}
