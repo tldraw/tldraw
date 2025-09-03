@@ -3,8 +3,9 @@ import { parse } from 'best-effort-json-parser'
 import OpenAI from 'openai'
 import { buildPromptMessages } from './prompt'
 import { ISimpleEvent, RESPONSE_FORMAT, SimpleEvent } from './schema'
+import { OPENAI_SYSTEM_PROMPT } from './system-prompt'
 
-const OPENAI_MODEL = 'gpt-4o-2024-08-06'
+const OPENAI_MODEL = 'gpt-4.1-2025-04-14'
 
 /**
  * Prompt the OpenAI model with the given prompt. Stream the events as they come back.
@@ -13,10 +14,18 @@ export async function* streamEvents(
 	model: OpenAI,
 	prompt: TLAiSerializedPrompt
 ): AsyncGenerator<ISimpleEvent> {
-	const stream = model.beta.chat.completions.stream({
+	const stream = await model.responses.create({
 		model: OPENAI_MODEL,
-		messages: buildPromptMessages(prompt),
-		response_format: RESPONSE_FORMAT,
+		instructions: OPENAI_SYSTEM_PROMPT,
+		input: buildPromptMessages(prompt),
+		text: {
+			format: {
+				type: 'json_schema',
+				name: 'response',
+				schema: RESPONSE_FORMAT,
+			},
+		},
+		stream: true,
 	})
 
 	let accumulatedText = '' // Buffer for incoming chunks
@@ -28,9 +37,12 @@ export async function* streamEvents(
 	// Process the stream as chunks arrive
 	for await (const chunk of stream) {
 		if (!chunk) continue
+		if (chunk.type !== 'response.output_text.delta') {
+			continue
+		}
 
 		// Add the text to the accumulated text
-		accumulatedText += chunk.choices[0]?.delta?.content ?? ''
+		accumulatedText += chunk.delta ?? ''
 
 		// Even though the accumulated text is incomplete JSON, try to extract data
 		const json = parse(accumulatedText)

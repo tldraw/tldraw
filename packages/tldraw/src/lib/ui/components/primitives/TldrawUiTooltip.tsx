@@ -144,12 +144,22 @@ function TooltipSingleton() {
 	const triggerRef = useRef<HTMLDivElement>(null)
 	const isFirstShowRef = useRef(true)
 	const dir = useDir()
+	const editor = useMaybeEditor()
 
 	const currentTooltip = useValue(
 		'current tooltip',
 		() => tooltipManager.getCurrentTooltipData(),
 		[]
 	)
+
+	const cameraState = useValue('camera state', () => editor?.getCameraState(), [editor])
+
+	// Hide tooltip when camera is moving (panning/zooming)
+	useEffect(() => {
+		if (cameraState === 'moving' && isOpen && currentTooltip) {
+			tooltipManager.hideTooltip(editor, currentTooltip.id, true)
+		}
+	}, [cameraState, isOpen, currentTooltip, editor])
 
 	// Update open state and trigger position
 	useEffect(() => {
@@ -237,8 +247,8 @@ export const TldrawUiTooltip = forwardRef<HTMLButtonElement, TldrawUiTooltipProp
 		const orientationCtx = useTldrawUiOrientation()
 		const sideToUse = side ?? orientationCtx.tooltipSide
 
-		const camera = useValue('camera', () => editor?.getCamera(), [])
 		const dir = useDir()
+
 		useEffect(() => {
 			const currentTooltipId = tooltipId.current
 			return () => {
@@ -247,10 +257,6 @@ export const TldrawUiTooltip = forwardRef<HTMLButtonElement, TldrawUiTooltipProp
 				}
 			}
 		}, [editor, hasProvider])
-
-		useEffect(() => {
-			tooltipManager.hideTooltip(editor, tooltipId.current, true)
-		}, [editor, camera])
 
 		// Don't show tooltip if disabled, no content, or UI labels are disabled
 		if (disabled || !content) {

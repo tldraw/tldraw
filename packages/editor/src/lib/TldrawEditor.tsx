@@ -190,13 +190,6 @@ export interface TldrawEditorBaseProps {
 	deepLinks?: true | TLDeepLinkOptions
 
 	/**
-	 * Predicate for whether or not a shape should be hidden.
-	 *
-	 * @deprecated Use {@link TldrawEditorBaseProps#getShapeVisibility} instead.
-	 */
-	isShapeHidden?(shape: TLShape, editor: Editor): boolean
-
-	/**
 	 * Provides a way to hide shapes.
 	 *
 	 * Hidden shapes will not render in the editor, and they will not be eligible for hit test via
@@ -412,8 +405,6 @@ function TldrawEditorWithReadyStore({
 	options,
 	licenseKey,
 	deepLinks: _deepLinks,
-	// eslint-disable-next-line @typescript-eslint/no-deprecated
-	isShapeHidden,
 	getShapeVisibility,
 	assetUrls,
 }: Required<
@@ -473,7 +464,6 @@ function TldrawEditorWithReadyStore({
 				textOptions,
 				options,
 				licenseKey,
-				isShapeHidden,
 				getShapeVisibility,
 				fontAssetUrls: assetUrls?.fonts,
 			})
@@ -509,7 +499,6 @@ function TldrawEditorWithReadyStore({
 			user,
 			setEditor,
 			licenseKey,
-			isShapeHidden,
 			getShapeVisibility,
 			textOptions,
 			assetUrls,

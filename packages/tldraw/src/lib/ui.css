@@ -1057,8 +1057,22 @@ div[dir='rtl'] .tlui-kbd > span {
 	flex-direction: column;
 }
 
-.tlui-style-panel__section:nth-of-type(n + 2):not(:last-child) {
+/*
+add a border to the bottom of all but the last section. we have to handle empty sections too, which
+are hidden and shouldn't be counted
+*/
+.tlui-style-panel__section:not(:nth-last-child(-n + 1 of .tlui-style-panel__section:not(:empty))) {
 	border-bottom: 1px solid var(--tl-color-divider);
+}
+/*
+if a section ends with a slider and we're adding a border, we need some extra space for visual
+balance. we need to handle empty sections as above. is this the most complex css selector in all of
+tldraw? probably.
+*/
+.tlui-style-panel__section:has(.tlui-slider__container:last-child):not(
+		:nth-last-child(-n + 1 of .tlui-style-panel__section:not(:empty))
+	) {
+	margin-bottom: 7px;
 }
 
 .tlui-style-panel__section:empty {
@@ -1071,7 +1085,7 @@ div[dir='rtl'] .tlui-kbd > span {
 }
 
 .tlui-style-panel__dropdown-picker:only-child {
-	width: 100%;
+	flex: 1;
 }
 
 .tlui-style-panel__double-select-picker {

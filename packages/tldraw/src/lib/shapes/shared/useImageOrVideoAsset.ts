@@ -158,10 +158,3 @@ function resolveAssetUrl(
 			callback(url)
 		})
 }
-
-/**
- * @deprecated Use {@link useImageOrVideoAsset} instead.
- *
- * @public
- */
-export const useAsset = useImageOrVideoAsset
