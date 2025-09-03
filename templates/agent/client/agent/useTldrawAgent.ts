@@ -1,5 +1,5 @@
 import { useCallback, useMemo } from 'react'
-import { Editor, useToasts, useValue } from 'tldraw'
+import { Editor, useToasts } from 'tldraw'
 import { TldrawAgent } from './TldrawAgent'
 import { $agentsAtom } from './agentsAtom'
 
@@ -21,9 +21,8 @@ import { $agentsAtom } from './agentsAtom'
  * agent2.prompt({ message: 'Draw a snowman' })
  * ```
  */
-export function useTldrawAgent(editor: Editor, id: string): TldrawAgent {
+export function useTldrawAgent(editor: Editor, id: string, forceNew: boolean = false): TldrawAgent {
 	const toasts = useToasts()
-	const agents = useValue('agents', () => $agentsAtom.get(editor), [editor])
 
 	const handleError = useCallback(
 		(e: any) => {
@@ -39,14 +38,17 @@ export function useTldrawAgent(editor: Editor, id: string): TldrawAgent {
 	)
 
 	const agent = useMemo(() => {
+		const agents = $agentsAtom.get(editor)
 		const existingAgent = agents.find((agent) => agent.id === id)
 		if (existingAgent) {
-			// Use the existing agent
+			if (forceNew) {
+				existingAgent.dispose()
+			}
+
 			if (!existingAgent.disposed) {
 				return existingAgent
 			}
 
-			// Remove a disposed agent
 			$agentsAtom.update(editor, (agents) => agents.filter((agent) => agent.id !== id))
 		}
 
@@ -55,7 +57,7 @@ export function useTldrawAgent(editor: Editor, id: string): TldrawAgent {
 		const newAgent = new TldrawAgent({ editor, id, onError: handleError })
 		$agentsAtom.update(editor, (agents) => [...agents, newAgent])
 		return newAgent
-	}, [editor, agents, id, handleError])
+	}, [editor, forceNew, handleError, id])
 
 	return agent
 }

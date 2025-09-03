@@ -94,7 +94,7 @@ function App() {
 
 function AppInner({ setAgent }: { setAgent: (agent: TldrawAgent) => void }) {
 	const editor = useEditor()
-	const agent = useTldrawAgent(editor, AGENT_ID)
+	const agent = useTldrawAgent(editor, AGENT_ID, true)
 
 	useEffect(() => {
 		if (!editor || !agent) return
