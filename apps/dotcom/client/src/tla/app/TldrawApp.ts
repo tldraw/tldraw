@@ -27,6 +27,7 @@ import {
 	IndexKey,
 	Result,
 	assert,
+	compact,
 	fetch,
 	getFromLocalStorage,
 	getIndexBelow,
@@ -334,7 +335,6 @@ export class TldrawApp {
 		const group = this.getGroupMembership(groupId)
 		if (!group) return []
 
-		const files = group.groupFiles.map((gf) => gf.file)
 		const lastOrdering = this.lastGroupFileOrderings.get(groupId)
 
 		const nextOrdering: Array<{
@@ -342,8 +342,8 @@ export class TldrawApp {
 			date: number
 		}> = []
 
-		for (const file of files) {
-			const existing = lastOrdering?.find((f) => f.fileId === file.id)
+		for (const file of group.groupFiles) {
+			const existing = lastOrdering?.find((f) => f.fileId === file.fileId)
 
 			if (existing) {
 				// Preserve existing entry to maintain ordering and prevent jumping
@@ -351,8 +351,8 @@ export class TldrawApp {
 			} else {
 				// For new files, use current updatedAt
 				nextOrdering.push({
-					fileId: file.id,
-					date: file.updatedAt,
+					fileId: file.fileId,
+					date: Math.max(file.updatedAt, file.file.updatedAt),
 				})
 			}
 		}
@@ -364,11 +364,11 @@ export class TldrawApp {
 		this.lastGroupFileOrderings.set(groupId, nextOrdering)
 
 		// Return the actual file objects in the stable order
-		return nextOrdering
-			.map((entry) => {
-				return files.find((file) => file.id === entry.fileId)!
+		return compact(
+			nextOrdering.map((entry) => {
+				return group.groupFiles.find((file) => file.fileId === entry.fileId)?.file
 			})
-			.filter(Boolean)
+		)
 	}
 
 	// Clear group file ordering to refresh on expand (like recent files on page reload)
@@ -1128,7 +1128,7 @@ export class TldrawApp {
 
 			const groupFiles = this.getGroupFilesSorted(file.owningGroupId)
 			const MAX_FILES_TO_SHOW = 4
-			const fileIndex = groupFiles.findIndex((f) => f.id === fileId)
+			const fileIndex = groupFiles.findIndex((f) => f?.id === fileId)
 
 			if (fileIndex >= MAX_FILES_TO_SHOW) {
 				// File is in the "show more" section, expand fully
@@ -1213,6 +1213,6 @@ export class TldrawApp {
 			this.navigate(routes.tlaRoot())
 			return
 		}
-		this.navigate(routes.tlaFile(files[0].id))
+		this.navigate(routes.tlaFile(files[0]!.id))
 	}
 }

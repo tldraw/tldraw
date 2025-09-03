@@ -87,17 +87,6 @@ export function useSidebarDragHandling() {
 				return
 			}
 
-			// Check if user has permission to move this file
-			const canUpdateFile = app.canUpdateFile(fileId)
-			if (!canUpdateFile) {
-				app.toasts?.addToast({
-					severity: 'error',
-					title: 'Cannot move file',
-					description: 'You do not have permission to move this file',
-				})
-				return
-			}
-
 			// Find the drop zone that the drag started in
 			let originDropZoneId: string | undefined
 			const activeElement = event.activatorEvent.target as HTMLElement
@@ -261,8 +250,26 @@ export function useSidebarDragHandling() {
 						patch(app.sidebarState).noAnimationGroups.add(file.owningGroupId)
 					}
 
-					// File is being moved from "My files" to a group, or from one group to another
-					await app.z.mutate.group.moveFileToGroup({ fileId, groupId: targetGroupId })
+					// If it's only a link to a file (i.e. the file is not owned by the user or by the group it's in)
+					let makeFileLinkOnly = false
+					const originDropZoneId = dragState.originDropZoneId
+					if (originDropZoneId?.startsWith('group-')) {
+						const originGroupId = originDropZoneId.replace('group-', '').replace('-drop-zone', '')
+						const originGroup = app.getGroupMembership(originGroupId)
+						if (originGroup && file.owningGroupId !== originGroupId) {
+							await app.z.mutate.group.removeFileLink({ fileId, groupId: originGroupId })
+							makeFileLinkOnly = true
+						}
+					} else if (originDropZoneId === 'my-files-drop-zone' && file.ownerId !== app.userId) {
+						makeFileLinkOnly = true
+					}
+
+					if (makeFileLinkOnly) {
+						await app.z.mutate.group.linkFileInGroup({ fileId, groupId: targetGroupId })
+					} else {
+						await app.z.mutate.group.moveFileToGroup({ fileId, groupId: targetGroupId })
+					}
+
 					patch(app.sidebarState).expandedGroups.set(targetGroupId, 'expanded_show_less')
 					patch(app.sidebarState).noAnimationGroups.add(targetGroupId)
 				}

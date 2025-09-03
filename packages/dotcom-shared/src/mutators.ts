@@ -449,6 +449,21 @@ export function createMutators(userId: string) {
 					updatedAt: Date.now(),
 				})
 			},
+			removeFileLink: async (tx, { fileId, groupId }: { fileId: string; groupId: string }) => {
+				await assertUserHasFlag(tx, userId, 'groups')
+				assert(fileId, ZErrorCode.bad_request)
+				assert(groupId, ZErrorCode.bad_request)
+				const group_file = await tx.query.group_file.where('fileId', '=', fileId).one().run()
+				assert(group_file, ZErrorCode.bad_request)
+				assert(group_file.groupId === groupId, ZErrorCode.bad_request)
+				const userHasGroupAccess = await tx.query.group_user
+					.where('userId', '=', userId)
+					.where('groupId', '=', groupId)
+					.one()
+					.run()
+				assert(userHasGroupAccess, ZErrorCode.forbidden)
+				await tx.mutate.group_file.delete({ fileId, groupId })
+			},
 			linkFileInGroup: async (tx, { fileId, groupId }: { fileId: string; groupId: string }) => {
 				await assertUserHasFlag(tx, userId, 'groups')
 				assert(fileId, ZErrorCode.bad_request)

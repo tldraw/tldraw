@@ -71,9 +71,7 @@ export function TlaSidebarRecentFilesNew() {
 				if (isPinned) {
 					pinnedFiles.push(item)
 				} else if (
-					!groupMemberships.some(
-						(group) => group.group.id === app.getFile(item.fileId)?.owningGroupId
-					)
+					!groupMemberships.some((group) => group.groupFiles.some((g) => g.fileId === item.fileId))
 				) {
 					otherFiles.push(item)
 				}

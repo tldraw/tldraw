@@ -114,7 +114,7 @@ export function FileItems({
 	const file = useValue('file', () => app.getFile(fileId), [app, fileId])
 
 	// Get groups data
-	const groupMembers = useValue('groupMembers', () => app.getGroupMemberships(), [app])
+	const groupMemberships = useValue('groupMembers', () => app.getGroupMemberships(), [app])
 
 	const handleCopyLinkClick = useCallback(() => {
 		const url = routes.tlaFile(fileId, { asUrl: true })
@@ -227,7 +227,15 @@ export function FileItems({
 								iconLeft={
 									<TldrawUiButtonCheck
 										checked={
-											!groupMembers.some((groupUser) => groupUser.group.id === file?.owningGroupId)
+											app.canUpdateFile(fileId)
+												? // if we can update the file then either it is ours or it is in a group we are a member of
+													!groupMemberships.some(
+														(groupUser) => groupUser.group.id === file?.owningGroupId
+													)
+												: // if it's just a shared file we got a link to, then we need to check whether there's a group_file for it
+													!groupMemberships.some((groupUser) =>
+														groupUser.groupFiles.some((g) => g.fileId === fileId)
+													)
 										}
 									/>
 								}
@@ -237,15 +245,21 @@ export function FileItems({
 								}}
 							/>
 						</TldrawUiMenuGroup>
-						{groupMembers.length > 0 && (
+						{groupMemberships.length > 0 && (
 							<TldrawUiMenuGroup id="my-groups">
-								{groupMembers.map((groupUser) => (
+								{groupMemberships.map((groupUser) => (
 									<TldrawUiMenuItem
 										key={groupUser.groupId}
 										label={groupUser.group.name}
 										id={`group-${groupUser.groupId}`}
 										iconLeft={
-											<TldrawUiButtonCheck checked={groupUser.group.id === file?.owningGroupId} />
+											<TldrawUiButtonCheck
+												checked={
+													app.canUpdateFile(fileId)
+														? groupUser.group.id === file?.owningGroupId
+														: groupUser.groupFiles.some((g) => g.fileId === fileId)
+												}
+											/>
 										}
 										readonlyOk
 										onSelect={() => {
