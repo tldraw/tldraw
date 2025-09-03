@@ -1,5 +1,11 @@
 import { Atom, react } from 'tldraw'
 
+/**
+ * Load an atom's value from local storage and persist it to local storage whenever it changes.
+ *
+ * @param atom - The atom to persist.
+ * @param key - The key to use for local storage.
+ */
 export function persistAtomInLocalStorage<T>(atom: Atom<T>, key: string) {
 	const localStorage = globalThis.localStorage
 	if (!localStorage) return

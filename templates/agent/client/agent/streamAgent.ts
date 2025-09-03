@@ -6,7 +6,11 @@ import { Streaming } from '../../shared/types/Streaming'
  * Stream a response from the model.
  * Act on the model's events as they come in.
  *
- * @returns An async generator that yields the changes as they come in.
+ * This is a helper function that is used internally by the agent.
+ *
+ * @param prompt - The prompt to send to the model.
+ * @param signal - The abort signal to use to cancel the request.
+ * @returns An async generator that yields the agent's actions as they come in.
  */
 export async function* streamAgent({
 	prompt,
@@ -38,11 +42,11 @@ export async function* streamAgent({
 			if (done) break
 
 			buffer += decoder.decode(value, { stream: true })
-			const events = buffer.split('\n\n')
-			buffer = events.pop() || ''
+			const actions = buffer.split('\n\n')
+			buffer = actions.pop() || ''
 
-			for (const event of events) {
-				const match = event.match(/^data: (.+)$/m)
+			for (const action of actions) {
+				const match = action.match(/^data: (.+)$/m)
 				if (match) {
 					try {
 						const data = JSON.parse(match[1])
@@ -52,8 +56,8 @@ export async function* streamAgent({
 							throw new Error(data.error)
 						}
 
-						const agentEvent: Streaming<AgentAction> = data
-						yield agentEvent
+						const agentAction: Streaming<AgentAction> = data
+						yield agentAction
 					} catch (err: any) {
 						throw new Error(err.message)
 					}

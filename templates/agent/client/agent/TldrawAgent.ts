@@ -39,13 +39,16 @@ export interface TldrawAgentOptions {
  */
 export class TldrawAgent {
 	/** The editor associated with this agent. */
-	public editor: Editor
+	editor: Editor
 
 	/** An id to differentiate the agent from other agents. */
-	public id: string
+	id: string
 
 	/** A callback for when an error occurs. */
-	public onError: (e: any) => void
+	onError: (e: any) => void
+
+	/** Whether the agent has been disposed or not. */
+	disposed = false
 
 	/**
 	 * An atom containing the currently active request.
@@ -107,11 +110,8 @@ export class TldrawAgent {
 		this.stopRecordingFn = this.startRecordingUserActions()
 	}
 
-	/** Whether the agent has been disposed. */
-	public disposed = false
-
 	/**
-	 * Dispose of the agent by removing its association with its editor.
+	 * Dispose of the agent by cancelling requests and stopping listeners.
 	 */
 	dispose() {
 		this.disposed = true
@@ -335,11 +335,11 @@ export class TldrawAgent {
 	act(action: Streaming<AgentAction>) {
 		const { editor } = this
 		const util = this.getAgentActionUtil(action._type)
-		this.isApplyingAction = true
+		this.isActing = true
 		const diff = editor.store.extractingChanges(() => {
 			util.applyAction(structuredClone(action), this)
 		})
-		this.isApplyingAction = false
+		this.isActing = false
 
 		// Add the action to chat history
 		if (util.savesToHistory()) {
@@ -383,14 +383,15 @@ export class TldrawAgent {
 	}
 
 	/**
-	 * Reset the agent's chat.
+	 * Reset the agent's chat and memory.
 	 * Cancel the current request if there's one active.
 	 */
 	reset() {
 		this.cancel()
 		this.$contextItems.set([])
-		this.$chatHistory.set([])
 		this.$todoList.set([])
+		this.$chatHistory.set([])
+		this.$userActionHistory.set([])
 	}
 
 	/**
@@ -400,7 +401,8 @@ export class TldrawAgent {
 		return this.$activeRequest.get() !== null
 	}
 
-	isApplyingAction = false
+	/** Whether the agent is currently acting on the editor or not. */
+	isActing = false
 
 	/**
 	 * Start recording user actions.
@@ -412,7 +414,7 @@ export class TldrawAgent {
 			'shape',
 			(shape, source) => {
 				if (source !== 'user') return
-				if (this.isApplyingAction) return
+				if (this.isActing) return
 				const change = {
 					added: { [shape.id]: shape },
 					updated: {},
@@ -427,7 +429,7 @@ export class TldrawAgent {
 			'shape',
 			(shape, source) => {
 				if (source !== 'user') return
-				if (this.isApplyingAction) return
+				if (this.isActing) return
 				const change = {
 					added: {},
 					updated: {},
@@ -442,7 +444,7 @@ export class TldrawAgent {
 			'shape',
 			(prev, next, source) => {
 				if (source !== 'user') return
-				if (this.isApplyingAction) return
+				if (this.isActing) return
 				const change: RecordsDiff<TLRecord> = {
 					added: {},
 					updated: { [prev.id]: [prev, next] },

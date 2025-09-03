@@ -7,8 +7,12 @@ import { TldrawAgent } from './TldrawAgent'
 
 /**
  * Send a request to the agent and handle its response.
+ * This is a helper function that is used internally by the agent.
  *
- * @returns A promise that resolves when the request is complete and a cancel function to abort the request.
+ * @param agent - The agent to send the request to.
+ * @param request - The request to send to the agent.
+ * @param onError - A callback to call if an error occurs.
+ * @returns A promise for the request and a function to cancel it.
  */
 export function requestAgent({
 	agent,
