@@ -44,9 +44,6 @@ function ChatInner({
 
 	// save the chat messages to local storage when the chat finishes
 	useEffect(() => {
-		// window.clear = () => {
-		// 	setMessages([])
-		// }
 		if (chat.status === 'ready') {
 			saveMessages(chat.messages)
 		}

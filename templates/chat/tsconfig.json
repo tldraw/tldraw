@@ -20,5 +20,5 @@
 	},
 	"include": ["next-env.d.ts", "**/*.ts", "**/*.tsx", ".next/types/**/*.ts", "next.config.mjs"],
 	"exclude": ["node_modules"],
-	"references": [{ "path": "../../packages/tldraw" }, { "path": "../../packages/sync" }]
+	"references": [{ "path": "../../packages/tldraw" }]
 }
