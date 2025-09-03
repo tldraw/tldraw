@@ -82,7 +82,7 @@ export class AgentTransform {
 	}
 
 	/**
-	 * Round the numbers of a shape, and save the diffs so that it can be restored later.
+	 * Round the coordinates, width, and height of a shape, and save the diffs so that it can be restored later.
 	 * @param shape - The shape to round.
 	 * @returns The rounded shape.
 	 */

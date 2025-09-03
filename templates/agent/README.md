@@ -89,8 +89,12 @@ TODO
 > note that this is **not** the actual list of messages that is sent directly to the model. the `AgentPrompt` is sent to the worker, which then goes back through the prompt parts and calls their respective `getContent()` and `getMessages()` methods, which it then uses along with `getPriority()` to THEN turn into the raw messages
 
 - in order to for each individual prompt part, the `getPart()` and then the `transformPart()` methods are called.
-- `getPart()` takes the `AgentRequest` and the agent as arguments and allows the `PromptPartUtil` to construct the prompt part itself.
-  - for many `PromptPartUtil`s, this is quite simple. The `TodoListPartUtil` simply gets the current state of the `$todoList`, for example
+- `getPart()` takes the `AgentRequest` and the agent as arguments and allows the `PromptPartUtil` to construct the prompt part itself. the prompt part itself is generally just raw, unsantized data, and doesn't include any 'plain english' text.
+  - for many `PromptPartUtil`s, this is quite simple. The `TodoListPartUtil` simply gets the current value of the agent's `$todoList`, for example
+  - others are more complex. you should should try exploring the different `PromptPartUtil`s if you haven't already!
+- then, the prompt part is transformed using its `transformPart` method. this uses the same `AgentTransform` that will later be used to transform the actions. to refresh, the `transform` exists to allow us to simplify the information we send to the model in order to improve its performance and generally confuse it less
+  - one way we do this is by rounding the coordinates and widths and heights of the shapes (this is beacause `x: 512` is easier for the model to parse, and requires less tokens, than `x: 512.328947832`, especially when there may be dozens or even hundreds of coordinates for the model to read)
+  - when these coordinates are rounded, the amount they were rounded by is stored in the `transform`. this allows us to apply the revserse of this transformation to any actions that affect a given shape.
 
 ## How to change the system prompt
 
