@@ -19,7 +19,7 @@ const caseStudiesBig: CaseStudyInfo[] = [
 	{
 		id: 'clickup',
 		href: '/blog/case-studies/clickup',
-		src: '/images/case-studies/clickup-hero.png',
+		src: '/images/case-study-thumbnails/clickup-hero.webp',
 		logo: '/images/case-studies/clickup-logo.svg',
 		content: (
 			<>
@@ -31,7 +31,7 @@ const caseStudiesBig: CaseStudyInfo[] = [
 	{
 		id: 'autodesk',
 		href: '/blog/case-studies/autodesk',
-		src: '/images/case-studies/autodesk-hero.png',
+		src: '/images/case-study-thumbnails/autodesk-hero.webp',
 		logo: '/images/case-studies/autodesk-logo.svg',
 		content: (
 			<>
@@ -46,7 +46,7 @@ const caseStudiesSmall: CaseStudyInfo[] = [
 	{
 		id: 'padlet',
 		href: '/blog/case-studies/padlet',
-		src: '/images/case-studies/padlet-hero.png',
+		src: '/images/case-study-thumbnails/padlet-hero.webp',
 		logo: '/images/case-studies/padlet-logo.svg',
 		content: (
 			<>
@@ -58,7 +58,7 @@ const caseStudiesSmall: CaseStudyInfo[] = [
 	{
 		id: 'jam',
 		href: '/blog/case-studies/jam',
-		src: '/images/case-studies/jam-hero.png',
+		src: '/images/case-study-thumbnails/jam-hero.webp',
 		logo: '/images/case-studies/jam-logo.svg',
 		content: (
 			<>
@@ -70,7 +70,7 @@ const caseStudiesSmall: CaseStudyInfo[] = [
 	{
 		id: 'mobbin',
 		href: '/blog/case-studies/mobbin',
-		src: '/images/case-studies/mobbin-hero.png',
+		src: '/images/case-study-thumbnails/mobbin-hero.webp',
 		logo: '/images/case-studies/mobbin-logo.svg',
 		content: (
 			<>
@@ -82,7 +82,7 @@ const caseStudiesSmall: CaseStudyInfo[] = [
 	{
 		id: 'roam',
 		href: '/blog/case-studies/roam',
-		src: '/images/case-studies/roam-hero.png',
+		src: '/images/case-study-thumbnails/roam-hero.webp',
 		logo: '/images/case-studies/roam-logo.svg',
 		content: (
 			<>
@@ -94,7 +94,7 @@ const caseStudiesSmall: CaseStudyInfo[] = [
 	{
 		id: 'legendkeeper',
 		href: '/blog/case-studies/legendkeeper',
-		src: '/images/case-studies/legendkeeper-hero.png',
+		src: '/images/case-study-thumbnails/legendkeeper-hero.webp',
 		logo: '/images/case-studies/legendkeeper-logo.svg',
 		content: (
 			<>
@@ -106,7 +106,7 @@ const caseStudiesSmall: CaseStudyInfo[] = [
 	{
 		id: 'bigbluebutton',
 		href: '/blog/case-studies/bigbluebutton',
-		src: '/images/case-studies/bigbluebutton-hero.png',
+		src: '/images/case-study-thumbnails/bigbluebutton-hero.webp',
 		logo: '/images/case-studies/bigbluebutton-logo.svg',
 		content: (
 			<>
@@ -118,7 +118,7 @@ const caseStudiesSmall: CaseStudyInfo[] = [
 	{
 		id: 'matilda',
 		href: '/blog/case-studies/matilda',
-		src: '/images/case-studies/matilda-hero.png',
+		src: '/images/case-study-thumbnails/matilda-hero.webp',
 		logo: '/images/case-studies/matilda-logo.svg',
 		content: (
 			<>
@@ -130,7 +130,7 @@ const caseStudiesSmall: CaseStudyInfo[] = [
 	{
 		id: 'opennote',
 		href: '/blog/case-studies/opennote',
-		src: '/images/case-studies/opennote-hero.png',
+		src: '/images/case-study-thumbnails/opennote-hero.webp',
 		logo: '/images/case-studies/opennote-logo.svg',
 		content: (
 			<>
@@ -142,7 +142,7 @@ const caseStudiesSmall: CaseStudyInfo[] = [
 	// {
 	// 	id: 'glean',
 	// 	href: '/blog/case-studies/glean',
-	// 	src: '/images/case-studies/glean-hero.png',
+	// 	src: '/images/case-study-thumbnails/glean-hero.webp',
 	// 	logo: '/images/case-studies/glean-logo.svg',
 	// 	content: (
 	// 		<>
@@ -154,7 +154,7 @@ const caseStudiesSmall: CaseStudyInfo[] = [
 	{
 		id: 'graze',
 		href: '/blog/case-studies/graze',
-		src: '/images/case-studies/graze-hero.png',
+		src: '/images/case-study-thumbnails/graze-hero.webp',
 		logo: '/images/case-studies/graze-logo.svg',
 		content: (
 			<>
@@ -166,7 +166,7 @@ const caseStudiesSmall: CaseStudyInfo[] = [
 	{
 		id: 'sublime',
 		href: '/blog/case-studies/sublime',
-		src: '/images/case-studies/sublime-hero.png',
+		src: '/images/case-study-thumbnails/sublime-hero.webp',
 		logo: '/images/case-studies/sublime-logo.svg',
 		content: (
 			<>
