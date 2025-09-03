@@ -115,31 +115,34 @@ export function getTldrawAiChangesFromCreateAction({
 				scale = calculatedScale
 			}
 
+			const autoSize = !textShape.fixedWidth // this will be true if the fixedWidth property is not set, which is desired
+
 			const textFontSize = FONT_SIZES[textSize]
 			const textAlign = textShape.textAlign ?? 'start'
 
-			const correctedTextPlacement = new Vec()
+			const correctedTextCoords = new Vec()
 
 			const effectiveFontSize = textFontSize * scale
-			const candidateTextWidth = editor.textMeasure.measureText(textShape.text, {
+
+			const width = editor.textMeasure.measureText(textShape.text, {
 				...TEXT_PROPS,
 				fontFamily: FONT_FAMILIES['draw'],
 				fontSize: effectiveFontSize,
-				maxWidth: Infinity,
+				maxWidth: textShape.width ?? Infinity,
 			}).w
 
 			switch (textAlign) {
 				case 'start':
-					correctedTextPlacement.x = textShape.x
-					correctedTextPlacement.y = textShape.y
+					correctedTextCoords.x = textShape.x
+					correctedTextCoords.y = textShape.y
 					break
 				case 'middle':
-					correctedTextPlacement.x = textShape.x - candidateTextWidth / 2
-					correctedTextPlacement.y = textShape.y
+					correctedTextCoords.x = textShape.x - width / 2
+					correctedTextCoords.y = textShape.y
 					break
 				case 'end':
-					correctedTextPlacement.x = textShape.x - candidateTextWidth
-					correctedTextPlacement.y = textShape.y
+					correctedTextCoords.x = textShape.x - width
+					correctedTextCoords.y = textShape.y
 					break
 			}
 
@@ -149,14 +152,16 @@ export function getTldrawAiChangesFromCreateAction({
 				shape: {
 					id: shapeId,
 					type: 'text',
-					x: correctedTextPlacement.x,
-					y: correctedTextPlacement.y,
+					x: correctedTextCoords.x,
+					y: correctedTextCoords.y,
 					props: {
 						size: textSize,
 						scale,
 						richText: toRichText(textShape.text),
 						color: asColor(textShape.color),
 						textAlign,
+						autoSize,
+						w: width, // it's okay to set width to a number regardeless of autoSize because it won't do anything if autoSize is true
 					},
 					meta: {
 						note: textShape.note ?? '',

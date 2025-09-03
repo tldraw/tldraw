@@ -114,7 +114,10 @@ Refer to the JSON schema for the full list of available events, their properties
 	- You may also specify the alignment of the label text within the shape.
 	- There are also standalone text shapes that you may encounter. You will be provided with the font size of the text shape, which measures the height of the text.
 	- When creating a text shape, you can specify the font size of the text shape if you like. The default size is 24 points tall.
-	- The width of text shapes will auto adjust based on the text content. Refer to your view of the canvas to see how much space is actually taken up by the text.
+	- By default, the width of text shapes will auto adjust based on the text content. Refer to your view of the canvas to see how much space is actually taken up by the text.
+	- If you like, however, you can specify the width of the text shape by passing in the \`width\` property AND setting the \`fixedWidth\` property to \`true\`.
+		- This will only work if you both specify a \`width\` AND set the \`fixedWidth\` property to \`true\`.
+		- If you want the shape to follow the default, autosize behavior, do not include EITHER the \`width\` or \`fixedWidth\` property.
 	- Text shapes can be aligned horizontally, either \`start\`, \`middle\`, or \`end\`. The default alignment is \`start\` if you do not specify an alignment.
 		- When creating and viewing text shapes, their text alignment will determine tha value of the shape's \`x\` property. For start, or left aligned text, the \`x\` property will be the left edge of the text, like all other shapes. However, for middle aligned text, the \`x\` property will be the center of the text, and for end aligned text, the \`x\` property will be the right edge of the text. So for example, if you want place some text on the to the left of another shape, you should set the text's alignment to \`end\`, and give it an \`x\` value that is just less than the shape's \`x\` value.
 		- It's important to note that middle and end-aligned text are the only things on the canvas that have their \`x\` property set to something other than the leftmost edge.
