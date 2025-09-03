@@ -16,7 +16,7 @@ import { AgentTransform } from '../AgentTransform'
 import { asColor } from '../format/SimpleColor'
 import { convertSimpleFillToTldrawFill } from '../format/SimpleFill'
 import { convertSimpleFontSizeToTldrawFontSizeAndScale } from '../format/SimpleFontSize'
-import { convertSimpleGeoShapeTypeToTldrawGeoShapeGeoStyleOrUnknownIfNeeded } from '../format/SimpleGeoShapeType'
+import { convertSimpleTypeToTldrawType } from '../format/SimpleGeoShapeType'
 import {
 	ISimpleArrowShape,
 	ISimpleGeoShape,
@@ -97,7 +97,7 @@ export function getTldrawAiChangesFromCreateAction({
 	const { shape } = action
 	const shapeId = `shape:${shape.shapeId}` as TLShapeId
 
-	const shapeType = convertSimpleGeoShapeTypeToTldrawGeoShapeGeoStyleOrUnknownIfNeeded(shape._type)
+	const shapeType = convertSimpleTypeToTldrawType(shape._type)
 
 	switch (shapeType) {
 		case 'text': {

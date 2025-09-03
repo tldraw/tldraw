@@ -27,7 +27,7 @@ export const SimpleGeoShapeType = z.enum([
 
 export type ISimpleGeoShapeType = z.infer<typeof SimpleGeoShapeType>
 
-const SIMPLE_TO_GEO_SHAPE_TYPES: Record<ISimpleGeoShapeType, TLGeoShapeGeoStyle> = {
+const SIMPLE_TO_GEO_TYPES: Record<ISimpleGeoShapeType, TLGeoShapeGeoStyle> = {
 	rectangle: 'rectangle',
 	ellipse: 'ellipse',
 	triangle: 'triangle',
@@ -50,7 +50,7 @@ const SIMPLE_TO_GEO_SHAPE_TYPES: Record<ISimpleGeoShapeType, TLGeoShapeGeoStyle>
 	'fat-arrow-down': 'arrow-down',
 } as const
 
-const GEO_TO_SIMPLE_SHAPE_TYPES: Record<TLGeoShapeGeoStyle, ISimpleGeoShapeType> = {
+const GEO_TO_SIMPLE_TYPES: Record<TLGeoShapeGeoStyle, ISimpleGeoShapeType> = {
 	rectangle: 'rectangle',
 	ellipse: 'ellipse',
 	triangle: 'triangle',
@@ -73,36 +73,30 @@ const GEO_TO_SIMPLE_SHAPE_TYPES: Record<TLGeoShapeGeoStyle, ISimpleGeoShapeType>
 	'arrow-down': 'fat-arrow-down',
 } as const
 
-export function convertSimpleGeoShapeTypeToTldrawGeoShapeGeoStyle(
+export function convertSimpleGeoTypeToTldrawGeoGeoType(
 	type: ISimpleGeoShapeType
 ): TLGeoShapeGeoStyle {
-	return SIMPLE_TO_GEO_SHAPE_TYPES[type]
+	return SIMPLE_TO_GEO_TYPES[type]
 }
 
-export function convertTldrawGeoShapeGeoStlyeToSimpleGeoShapeType(
-	type: TLGeoShapeGeoStyle
-): ISimpleGeoShapeType {
-	return GEO_TO_SIMPLE_SHAPE_TYPES[type]
+export function convertTldrawGeoTypeToSimpleGeoType(type: TLGeoShapeGeoStyle): ISimpleGeoShapeType {
+	return GEO_TO_SIMPLE_TYPES[type]
 }
 
-export function convertSimpleGeoShapeTypeToTldrawGeoShapeGeoStyleOrUnknownIfNeeded(
+export function convertSimpleTypeToTldrawType(
 	type: ISimpleShape['_type']
 ): TLGeoShapeGeoStyle | TLDefaultShape['type'] | 'unknown' {
-	if (type in SIMPLE_TO_GEO_SHAPE_TYPES) {
-		return convertSimpleGeoShapeTypeToTldrawGeoShapeGeoStyle(
-			type as ISimpleGeoShapeType
-		) as TLGeoShapeGeoStyle
+	if (type in SIMPLE_TO_GEO_TYPES) {
+		return convertSimpleGeoTypeToTldrawGeoGeoType(type as ISimpleGeoShapeType) as TLGeoShapeGeoStyle
 	}
 	return type as TLDefaultShape['type'] | 'unknown'
 }
 
-export function convertTldrawGeoShapeGeoStyleOrUnknownToSimpleGeoShapeTypeIfNeeded(
+export function convertTldrawTypeToSimpleType(
 	type: TLGeoShapeGeoStyle | TLDefaultShape['type'] | 'unknown'
 ): ISimpleShape['_type'] {
-	if (type in GEO_TO_SIMPLE_SHAPE_TYPES) {
-		return convertTldrawGeoShapeGeoStlyeToSimpleGeoShapeType(
-			type as TLGeoShapeGeoStyle
-		) as ISimpleGeoShapeType
+	if (type in GEO_TO_SIMPLE_TYPES) {
+		return convertTldrawGeoTypeToSimpleGeoType(type as TLGeoShapeGeoStyle) as ISimpleGeoShapeType
 	}
 	return type as ISimpleShape['_type']
 }

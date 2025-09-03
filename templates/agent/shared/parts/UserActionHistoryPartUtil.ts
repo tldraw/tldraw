@@ -49,7 +49,6 @@ export class UserActionHistoryPartUtil extends PromptPartUtil<UserActionHistoryP
 		// Collect user-added shapes
 		for (const shape of Object.values(added)) {
 			if (shape.typeName !== 'shape') continue
-			if (shape.meta.source === 'agent') continue
 			const simpleShape = convertTldrawShapeToSimpleShape(shape, editor)
 			part.added.push({
 				shapeId: simpleShape.shapeId,
@@ -60,7 +59,6 @@ export class UserActionHistoryPartUtil extends PromptPartUtil<UserActionHistoryP
 		// Collect user-removed shapes
 		for (const shape of Object.values(removed)) {
 			if (shape.typeName !== 'shape') continue
-			if (shape.meta.source === 'agent') continue
 			const simpleShape = convertTldrawShapeToSimpleShape(shape, editor)
 			part.removed.push({
 				shapeId: simpleShape.shapeId,
@@ -71,7 +69,6 @@ export class UserActionHistoryPartUtil extends PromptPartUtil<UserActionHistoryP
 		// Collect user-updated shapes
 		for (const [from, to] of Object.values(updated)) {
 			if (from.typeName !== 'shape' || to.typeName !== 'shape') continue
-			if (from.meta.source === 'agent') continue
 			const fromSimpleShape = convertTldrawShapeToSimpleShape(from, editor)
 			const toSimpleShape = convertTldrawShapeToSimpleShape(to, editor)
 

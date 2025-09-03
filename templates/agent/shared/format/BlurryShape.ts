@@ -1,5 +1,5 @@
 import { BoxModel, Editor, TLDefaultShape, TLShape } from 'tldraw'
-import { convertTldrawGeoShapeGeoStyleOrUnknownToSimpleGeoShapeTypeIfNeeded } from './SimpleGeoShapeType'
+import { convertTldrawTypeToSimpleType } from './SimpleGeoShapeType'
 import { convertTldrawShapeIdToSimpleShapeId, ISimpleShape } from './SimpleShape'
 
 export type BlurryShape = BoxModel & {
@@ -19,9 +19,7 @@ export function convertTldrawShapeToBlurryShape(
 	const util = editor.getShapeUtil(shape)
 	const text = util.getText(shape)
 
-	const shapeType = convertTldrawGeoShapeGeoStyleOrUnknownToSimpleGeoShapeTypeIfNeeded(
-		shape.type as TLDefaultShape['type'] | 'unknown'
-	)
+	const shapeType = convertTldrawTypeToSimpleType(shape.type as TLDefaultShape['type'] | 'unknown')
 
 	return {
 		x: Math.round(bounds.x),

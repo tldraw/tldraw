@@ -1,16 +1,18 @@
-import { BoxModel, Editor, TLShapeId, VecModel } from 'tldraw'
+import { BoxModel, TLShapeId, VecModel } from 'tldraw'
 import { TldrawAgent } from '../client/agent/TldrawAgent'
 import { ISimpleFill, SimpleFill } from './format/SimpleFill'
 import { ISimpleShape } from './format/SimpleShape'
 
 /**
- * A class that helps to transform events received from the model.
+ * A class that can transform prompt parts going to the model and actions
+ * received from the model.
+ *
+ * Many transformation methods save some state that can be referred to by other
+ * transformations. For example, when sanitizing shape IDs, the original ID is
+ * saved so that future transformations can refer to it by its original ID.
  */
 export class AgentTransform {
-	constructor(
-		public editor: Editor,
-		public agent: TldrawAgent
-	) {}
+	constructor(public agent: TldrawAgent) {}
 
 	/**
 	 * A map of shape ids that have been transformed.
@@ -30,16 +32,17 @@ export class AgentTransform {
 	 * @returns The unique id.
 	 */
 	ensureShapeIdIsUnique(id: string): string {
+		const { editor } = this.agent
 		// Ensure the id is unique by incrementing a number at the end
 		let newId = id
-		let existingShape = this.editor.getShape(`shape:${newId}` as TLShapeId)
+		let existingShape = editor.getShape(`shape:${newId}` as TLShapeId)
 		while (existingShape) {
 			newId = /^.*(\d+)$/.exec(newId)?.[1]
 				? newId.replace(/(\d+)(?=\D?)$/, (m) => {
 						return (+m + 1).toString()
 					})
 				: `${newId}-1`
-			existingShape = this.editor.getShape(`shape:${newId}` as TLShapeId)
+			existingShape = editor.getShape(`shape:${newId}` as TLShapeId)
 		}
 
 		// If the id was transformed, track it so that future events can refer to it by its original id.
@@ -56,6 +59,7 @@ export class AgentTransform {
 	 * @returns The real id, or null if the shape doesn't exist.
 	 */
 	ensureShapeIdIsReal(id: string): string | null {
+		const { editor } = this.agent
 		// If there's already a transformed ID, use that
 		const existingId = this.shapeIdMap.get(id)
 		if (existingId) {
@@ -63,7 +67,7 @@ export class AgentTransform {
 		}
 
 		// If there's an existing shape with this ID, use that
-		const existingShape = this.editor.getShape(`shape:${id}` as TLShapeId)
+		const existingShape = editor.getShape(`shape:${id}` as TLShapeId)
 		if (existingShape) {
 			return id
 		}

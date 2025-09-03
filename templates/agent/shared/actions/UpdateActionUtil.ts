@@ -22,7 +22,7 @@ import { AgentTransform } from '../AgentTransform'
 import { asColor } from '../format/SimpleColor'
 import { convertSimpleFillToTldrawFill } from '../format/SimpleFill'
 import { convertSimpleFontSizeToTldrawFontSizeAndScale } from '../format/SimpleFontSize'
-import { convertSimpleGeoShapeTypeToTldrawGeoShapeGeoStyleOrUnknownIfNeeded } from '../format/SimpleGeoShapeType'
+import { convertSimpleTypeToTldrawType } from '../format/SimpleGeoShapeType'
 import {
 	ISimpleArrowShape,
 	ISimpleDrawShape,
@@ -113,9 +113,7 @@ export function getTldrawAiChangesFromUpdateEvent({
 	const update = action.update
 	const shapeId = `shape:${update.shapeId}` as TLShapeId
 
-	const updateShapeType = convertSimpleGeoShapeTypeToTldrawGeoShapeGeoStyleOrUnknownIfNeeded(
-		update._type
-	)
+	const updateShapeType = convertSimpleTypeToTldrawType(update._type)
 
 	switch (updateShapeType) {
 		case 'text': {

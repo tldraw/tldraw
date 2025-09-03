@@ -1,13 +1,16 @@
 import { atom, Editor, RecordsDiff, structuredClone, TLRecord } from 'tldraw'
 import { AgentActionUtil } from '../../shared/actions/AgentActionUtil'
+import { AgentTransform } from '../../shared/AgentTransform'
 import { getAgentActionUtilsRecord, getPromptPartUtilsRecord } from '../../shared/AgentUtils'
 import { PromptPartUtil } from '../../shared/parts/PromptPartUtil'
 import { AgentAction } from '../../shared/types/AgentAction'
 import { AgentInput } from '../../shared/types/AgentInput'
+import { AgentPrompt } from '../../shared/types/AgentPrompt'
 import { AgentRequest } from '../../shared/types/AgentRequest'
 import { IChatHistoryItem } from '../../shared/types/ChatHistoryItem'
 import { IContextItem } from '../../shared/types/ContextItem'
 import { PromptPart } from '../../shared/types/PromptPart'
+import { Streaming } from '../../shared/types/Streaming'
 import { TodoItem } from '../../shared/types/TodoItem'
 import { AgentModelName, DEFAULT_MODEL_NAME } from '../../worker/models'
 import { $agentsAtom } from './agentsAtom'
@@ -20,7 +23,7 @@ export interface TldrawAgentOptions {
 	/** The editor to associate the agent with. */
 	editor: Editor
 	/** A key used to differentiate the agent from other agents. */
-	key: string
+	id: string
 	/** A callback for when an error occurs. */
 	onError: (e: any) => void
 }
@@ -38,6 +41,9 @@ export interface TldrawAgentOptions {
 export class TldrawAgent {
 	/** The editor associated with this agent. */
 	public editor: Editor
+
+	/** An id to differentiate the agent from other agents. */
+	public id: string
 
 	/** A callback for when an error occurs. */
 	public onError: (e: any) => void
@@ -85,22 +91,34 @@ export class TldrawAgent {
 	/**
 	 * Create a new tldraw agent.
 	 */
-	constructor({ editor, key, onError }: TldrawAgentOptions) {
+	constructor({ editor, id, onError }: TldrawAgentOptions) {
 		this.editor = editor
+		this.id = id
 		this.onError = onError
 
-		$agentsAtom.update(editor, (agents) => [...agents, this])
+		$agentsAtom.update(editor, (agents) => {
+			// Replace any existing agent with the same id
+			const existingAgent = agents.find((agent) => agent.id === id)
+			if (existingAgent) {
+				console.log('REPLACING AGENT', id)
+				existingAgent.dispose()
+				return [...agents.filter((agent) => agent.id !== id), this]
+			}
 
-		this.agentActionUtilsRecord = getAgentActionUtilsRecord()
-		this.promptPartUtilsRecord = getPromptPartUtilsRecord()
-		this.unknownActionUtil = this.agentActionUtilsRecord.unknown
+			console.log('CREATING AGENT', id)
+			return [...agents, this]
+		})
 
-		persistAtomInLocalStorage(this.$chatHistory, `${key}:chat-history-items`)
-		persistAtomInLocalStorage(this.$todoList, `${key}:todo-items`)
-		persistAtomInLocalStorage(this.$contextItems, `${key}:context-items`)
-		persistAtomInLocalStorage(this.$modelName, `${key}:model-name`)
+		this.agentActionUtils = getAgentActionUtilsRecord()
+		this.promptPartUtils = getPromptPartUtilsRecord()
+		this.unknownActionUtil = this.agentActionUtils.unknown
 
-		this.stopRecordingFn = this.startRecordingDocumentChanges()
+		persistAtomInLocalStorage(this.$chatHistory, `${id}:chat-history-items`)
+		persistAtomInLocalStorage(this.$todoList, `${id}:todo-items`)
+		persistAtomInLocalStorage(this.$contextItems, `${id}:context-items`)
+		persistAtomInLocalStorage(this.$modelName, `${id}:model-name`)
+
+		this.stopRecordingFn = this.startRecordingUserActions()
 	}
 
 	/**
@@ -109,7 +127,7 @@ export class TldrawAgent {
 	dispose() {
 		this.cancel()
 		$agentsAtom.update(this.editor, (agents) => agents.filter((agent) => agent !== this))
-		this.stopRecordingDocumentChanges()
+		this.stopRecordingUserActions()
 	}
 
 	/**
@@ -120,7 +138,7 @@ export class TldrawAgent {
 	 */
 	getAgentActionUtil(type?: string) {
 		if (!type) return this.unknownActionUtil
-		const util = this.agentActionUtilsRecord[type as AgentAction['_type']]
+		const util = this.agentActionUtils[type as AgentAction['_type']]
 		if (!util) return this.unknownActionUtil
 		return util
 	}
@@ -132,27 +150,27 @@ export class TldrawAgent {
 	 * @returns The part util.
 	 */
 	getPromptPartUtil(type: PromptPart['type']) {
-		return this.promptPartUtilsRecord[type]
+		return this.promptPartUtils[type]
 	}
 
 	/**
 	 * A record of the agent's action util instances.
 	 * Used by the `getAgentActionUtil` method.
 	 */
-	private agentActionUtilsRecord: Record<AgentAction['_type'], AgentActionUtil<AgentAction>>
+	agentActionUtils: Record<AgentAction['_type'], AgentActionUtil<AgentAction>>
 
 	/**
 	 * The agent action util instance for the "unknown" action type.
 	 * Returned by the `getAgentActionUtil` method when the action type isn't properly specified.
 	 * This can happen if the model isn't finished streaming yet or makes a mistake.
 	 */
-	private unknownActionUtil: AgentActionUtil<AgentAction>
+	unknownActionUtil: AgentActionUtil<AgentAction>
 
 	/**
 	 * A record of the agent's prompt part util instances.
 	 * Used by the `getPromptPartUtil` method.
 	 */
-	private promptPartUtilsRecord: Record<PromptPart['type'], PromptPartUtil<PromptPart>>
+	promptPartUtils: Record<PromptPart['type'], PromptPartUtil<PromptPart>>
 
 	/**
 	 * Get a full agent request from a user input.
@@ -173,6 +191,30 @@ export class TldrawAgent {
 		}
 
 		return request
+	}
+
+	/**
+	 * Get a full prompt based on a request.
+	 *
+	 * @param request - The request to use for the prompt.
+	 * @param transform - The transform to use.
+	 * @returns The fully assembled prompt.
+	 */
+	async preparePrompt(request: AgentRequest, transform: AgentTransform): Promise<AgentPrompt> {
+		const { promptPartUtils } = this
+		const transformedParts: PromptPart[] = []
+
+		for (const util of Object.values(promptPartUtils)) {
+			const untransformedPart = await util.getPart(request, this)
+			const transformedPart = util.transformPart(untransformedPart, transform)
+			if (!transformedPart) continue
+			transformedParts.push(transformedPart)
+		}
+
+		const agentPrompt = Object.fromEntries(transformedParts.map((part) => [part.type, part]))
+
+		console.log('PROMPT', agentPrompt)
+		return agentPrompt as AgentPrompt
 	}
 
 	/**
@@ -240,14 +282,8 @@ export class TldrawAgent {
 		}
 		this.$activeRequest.set(request)
 
-		// Call a larger external helper function to prompt the agent
-		const { promise, cancel } = requestAgent({
-			agent: this,
-			agentActionsUtils: this.agentActionUtilsRecord,
-			promptPartUtils: this.promptPartUtilsRecord,
-			onError: this.onError,
-			request,
-		})
+		// Call an external helper function to request the agent
+		const { promise, cancel } = requestAgent({ agent: this, onError: this.onError, request })
 
 		this.cancelFn = cancel
 		promise.finally(() => {
@@ -303,14 +339,49 @@ export class TldrawAgent {
 	}
 
 	/**
+	 * Make the agent perform an action.
+	 * @param action The action to make the agent do.
+	 * @returns The diff of the action.
+	 */
+	act(action: Streaming<AgentAction>) {
+		const { editor } = this
+		const util = this.getAgentActionUtil(action._type)
+		this.isApplyingAction = true
+		const diff = editor.store.extractingChanges(() => {
+			util.applyAction(structuredClone(action), this)
+		})
+		this.isApplyingAction = false
+
+		// Add the action to chat history
+		if (util.savesToHistory()) {
+			const historyItem: IChatHistoryItem = {
+				type: 'action',
+				action,
+				diff,
+				acceptance: 'pending',
+			}
+
+			this.$chatHistory.update((items) => {
+				// If there are no items, start off the chat history with the first item
+				if (items.length === 0) return [historyItem]
+
+				// If the last item is still in progress, replace it with the new item
+				const lastItem = items.at(-1)
+				if (lastItem && lastItem.type === 'action' && !lastItem.action.complete) {
+					return [...items.slice(0, -1), historyItem]
+				}
+
+				// Otherwise, just add the new item to the end of the list
+				return [...items, historyItem]
+			})
+		}
+		return diff
+	}
+
+	/**
 	 * A function that cancels the agent's current prompt, if one is active.
 	 */
 	private cancelFn: (() => void) | null = null
-
-	/**
-	 * A function that stops recording document changes.
-	 */
-	private stopRecordingFn: () => void
 
 	/**
 	 * Cancel the agent's current prompt, if one is active.
@@ -340,26 +411,77 @@ export class TldrawAgent {
 		return this.$activeRequest.get() !== null
 	}
 
+	isApplyingAction = false
+
 	/**
-	 * Start recording document changes.
-	 * @returns A cleanup function to stop recording changes.
+	 * Start recording user actions.
+	 * @returns A cleanup function to stop recording user actions.
 	 */
-	startRecordingDocumentChanges() {
-		const cleanUp = this.editor.store.listen(
-			(entry) => {
-				console.log('ENTRY: ', entry)
-				this.$userActionHistory.update((prev) => [...prev, entry.changes])
-			},
-			{ scope: 'document', source: 'user' }
+	startRecordingUserActions() {
+		const { editor } = this
+		const cleanUpCreate = editor.sideEffects.registerAfterCreateHandler(
+			'shape',
+			(shape, source) => {
+				if (source !== 'user') return
+				if (this.isApplyingAction) return
+				const change = {
+					added: { [shape.id]: shape },
+					updated: {},
+					removed: {},
+				}
+				this.$userActionHistory.update((prev) => [...prev, change])
+				return
+			}
 		)
+
+		const cleanUpDelete = editor.sideEffects.registerAfterDeleteHandler(
+			'shape',
+			(shape, source) => {
+				if (source !== 'user') return
+				if (this.isApplyingAction) return
+				const change = {
+					added: {},
+					updated: {},
+					removed: { [shape.id]: shape },
+				}
+				this.$userActionHistory.update((prev) => [...prev, change])
+				return
+			}
+		)
+
+		const cleanUpChange = editor.sideEffects.registerAfterChangeHandler(
+			'shape',
+			(prev, next, source) => {
+				if (source !== 'user') return
+				if (this.isApplyingAction) return
+				const change: RecordsDiff<TLRecord> = {
+					added: {},
+					updated: { [prev.id]: [prev, next] },
+					removed: {},
+				}
+				this.$userActionHistory.update((prev) => [...prev, change])
+				return
+			}
+		)
+
+		function cleanUp() {
+			cleanUpCreate()
+			cleanUpDelete()
+			cleanUpChange()
+		}
 
 		return cleanUp
 	}
 
 	/**
-	 * Stop recording document changes.
+	 * A function that stops recording user actions.
 	 */
-	stopRecordingDocumentChanges() {
+	private stopRecordingFn: () => void
+
+	/**
+	 * Stop recording user actions.
+	 */
+	stopRecordingUserActions() {
 		this.stopRecordingFn?.()
 	}
 

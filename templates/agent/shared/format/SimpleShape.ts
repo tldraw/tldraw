@@ -14,10 +14,7 @@ import { z } from 'zod'
 import { SimpleColor } from './SimpleColor'
 import { convertTldrawFillToSimpleFill, SimpleFill } from './SimpleFill'
 import { convertTldrawFontSizeAndScaleToSimpleFontSize, SimpleFontSize } from './SimpleFontSize'
-import {
-	convertTldrawGeoShapeGeoStlyeToSimpleGeoShapeType,
-	SimpleGeoShapeType,
-} from './SimpleGeoShapeType'
+import { convertTldrawGeoTypeToSimpleGeoType, SimpleGeoShapeType } from './SimpleGeoShapeType'
 
 const SimpleLabel = z.string()
 
@@ -260,7 +257,7 @@ function convertGeoShape(shape: TLGeoShape, editor: Editor): ISimpleGeoShape {
 	}
 
 	return {
-		_type: convertTldrawGeoShapeGeoStlyeToSimpleGeoShapeType(shape.props.geo),
+		_type: convertTldrawGeoTypeToSimpleGeoType(shape.props.geo),
 		color: shape.props.color,
 		fill: convertTldrawFillToSimpleFill(shape.props.fill),
 		h: shape.props.h,
