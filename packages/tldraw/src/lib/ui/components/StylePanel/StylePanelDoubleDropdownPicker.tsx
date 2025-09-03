@@ -11,8 +11,10 @@ import {
 } from '../primitives/TldrawUiPopover'
 import { TldrawUiToolbar, TldrawUiToolbarButton } from '../primitives/TldrawUiToolbar'
 import { TldrawUiMenuContextProvider } from '../primitives/menus/TldrawUiMenuContext'
+import { useStylePanelContext } from './StylePanelContext'
 
-interface DoubleDropdownPickerProps<T extends string> {
+/** @public */
+export interface StylePanelDoubleDropdownPickerProps<T extends string> {
 	uiTypeA: string
 	uiTypeB: string
 	label: TLUiTranslationKey | Exclude<string, TLUiTranslationKey>
@@ -24,23 +26,27 @@ interface DoubleDropdownPickerProps<T extends string> {
 	styleB: StyleProp<T>
 	valueA: SharedStyle<T>
 	valueB: SharedStyle<T>
-	onValueChange(style: StyleProp<T>, value: T): void
+	onValueChange?(style: StyleProp<T>, value: T): void
 }
 
-function DoubleDropdownPickerInner<T extends string>({
-	label,
-	uiTypeA,
-	uiTypeB,
-	labelA,
-	labelB,
-	itemsA,
-	itemsB,
-	styleA,
-	styleB,
-	valueA,
-	valueB,
-	onValueChange,
-}: DoubleDropdownPickerProps<T>) {
+function DoubleDropdownPickerInner<T extends string>(
+	props: StylePanelDoubleDropdownPickerProps<T>
+) {
+	const ctx = useStylePanelContext()
+	const {
+		label,
+		uiTypeA,
+		uiTypeB,
+		labelA,
+		labelB,
+		itemsA,
+		itemsB,
+		styleA,
+		styleB,
+		valueA,
+		valueB,
+		onValueChange = ctx.onValueChange,
+	} = props
 	const editor = useEditor()
 	const msg = useTranslation()
 	const [isOpenA, setIsOpenA] = React.useState(false)
@@ -155,6 +161,9 @@ function DoubleDropdownPickerInner<T extends string>({
 }
 
 // need to memo like this to get generics
-export const DoubleDropdownPicker = React.memo(
-	DoubleDropdownPickerInner
-) as typeof DoubleDropdownPickerInner
+/** @public @react */
+export const StylePanelDoubleDropdownPicker = React.memo(DoubleDropdownPickerInner) as <
+	T extends string,
+>(
+	props: StylePanelDoubleDropdownPickerProps<T>
+) => React.JSX.Element

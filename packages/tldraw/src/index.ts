@@ -171,11 +171,7 @@ export {
 export { getStrokePoints } from './lib/shapes/shared/freehand/getStrokePoints'
 export { getSvgPathFromStrokePoints } from './lib/shapes/shared/freehand/svg'
 export { type StrokeOptions, type StrokePoint } from './lib/shapes/shared/freehand/types'
-export {
-	PlainTextLabel,
-	TextLabel,
-	type PlainTextLabelProps,
-} from './lib/shapes/shared/PlainTextLabel'
+export { PlainTextLabel, type PlainTextLabelProps } from './lib/shapes/shared/PlainTextLabel'
 export {
 	RichTextLabel,
 	RichTextSVG,
@@ -183,10 +179,9 @@ export {
 	type RichTextSVGProps,
 } from './lib/shapes/shared/RichTextLabel'
 export { useDefaultColorTheme } from './lib/shapes/shared/useDefaultColorTheme'
-export { useEditablePlainText, useEditableText } from './lib/shapes/shared/useEditablePlainText'
+export { useEditablePlainText } from './lib/shapes/shared/useEditablePlainText'
 export { useEditableRichText } from './lib/shapes/shared/useEditableRichText'
 export {
-	useAsset,
 	useImageOrVideoAsset,
 	type UseImageOrVideoAssetOptions,
 } from './lib/shapes/shared/useImageOrVideoAsset'
@@ -366,10 +361,6 @@ export {
 	type TLUiMenuSubmenuProps,
 } from './lib/ui/components/primitives/menus/TldrawUiMenuSubmenu'
 export {
-	TldrawUiButtonPicker,
-	type TLUiButtonPickerProps,
-} from './lib/ui/components/primitives/TldrawUiButtonPicker'
-export {
 	TldrawUiContextualToolbar,
 	type TLUiContextualToolbarProps,
 } from './lib/ui/components/primitives/TldrawUiContextualToolbar'
@@ -448,17 +439,44 @@ export {
 	type TLUiStylePanelProps,
 } from './lib/ui/components/StylePanel/DefaultStylePanel'
 export {
-	ArrowheadStylePickerSet,
-	CommonStylePickerSet,
 	DefaultStylePanelContent,
-	GeoStylePickerSet,
-	OpacitySlider,
-	SplineStylePickerSet,
-	TextStylePickerSet,
-	type StylePickerSetProps,
-	type ThemeStylePickerSetProps,
-	type TLUiStylePanelContentProps,
+	StylePanelArrowheadPicker,
+	StylePanelArrowKindPicker,
+	StylePanelColorPicker,
+	StylePanelDashPicker,
+	StylePanelFillPicker,
+	StylePanelFontPicker,
+	StylePanelGeoShapePicker,
+	StylePanelLabelAlignPicker,
+	StylePanelOpacityPicker,
+	StylePanelSection,
+	StylePanelSizePicker,
+	StylePanelSplinePicker,
+	StylePanelTextAlignPicker,
+	type StylePanelSectionProps,
 } from './lib/ui/components/StylePanel/DefaultStylePanelContent'
+export {
+	StylePanelButtonPicker,
+	type StylePanelButtonPickerProps,
+} from './lib/ui/components/StylePanel/StylePanelButtonPicker'
+export {
+	StylePanelContextProvider,
+	useStylePanelContext,
+	type StylePanelContext,
+	type StylePanelContextProviderProps,
+} from './lib/ui/components/StylePanel/StylePanelContext'
+export {
+	StylePanelDoubleDropdownPicker,
+	type StylePanelDoubleDropdownPickerProps,
+} from './lib/ui/components/StylePanel/StylePanelDoubleDropdownPicker'
+export {
+	StylePanelDropdownPicker,
+	type StylePanelDropdownPickerProps,
+} from './lib/ui/components/StylePanel/StylePanelDropdownPicker'
+export {
+	StylePanelSubheading,
+	type StylePanelSubheadingProps,
+} from './lib/ui/components/StylePanel/StylePanelSubheading'
 export {
 	DefaultImageToolbar,
 	type TLUiImageToolbarProps,
@@ -636,7 +654,6 @@ export { preloadFont, type TLTypeFace } from './lib/utils/assets/preload-font'
 export { getEmbedInfo, type TLEmbedResult } from './lib/utils/embeds/embeds'
 export { putExcalidrawContent } from './lib/utils/excalidraw/putExcalidrawContent'
 export { copyAs, type CopyAsOptions, type TLCopyType } from './lib/utils/export/copyAs'
-export { exportToBlob } from './lib/utils/export/export'
 export { downloadFile, exportAs, type ExportAsOptions } from './lib/utils/export/exportAs'
 export { fitFrameToContent, removeFrame } from './lib/utils/frames/frames'
 export {

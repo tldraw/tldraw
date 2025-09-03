@@ -1,7 +1,8 @@
 import { TLAiSerializedPrompt } from '@tldraw/ai'
 import OpenAI from 'openai'
 import { buildPromptMessages } from './prompt'
-import { IModelResponse, ISimpleEvent, ModelResponse, RESPONSE_FORMAT } from './schema'
+import { IModelResponse, ISimpleEvent, ModelResponse } from './schema'
+import { OPENAI_SYSTEM_PROMPT } from './system-prompt'
 
 const OPENAI_MODEL = 'gpt-4o-2024-08-06'
 
@@ -12,13 +13,14 @@ export async function generateEvents(
 	model: OpenAI,
 	prompt: TLAiSerializedPrompt
 ): Promise<ISimpleEvent[]> {
-	const response = await model.chat.completions.create({
+	const response = await model.responses.create({
 		model: OPENAI_MODEL,
-		messages: buildPromptMessages(prompt),
-		response_format: RESPONSE_FORMAT,
+		instructions: OPENAI_SYSTEM_PROMPT,
+		input: buildPromptMessages(prompt),
+		// response_format: RESPONSE_FORMAT,
 	})
 
-	const text = response.choices[0]?.message?.content ?? ''
+	const text = response.output_text ?? ''
 	const json = JSON.parse(text) as IModelResponse
 
 	try {
