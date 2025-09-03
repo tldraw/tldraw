@@ -51,6 +51,9 @@ function HtmlCssShapeComponent({ shape }: { shape: HtmlCssShape }) {
 }
 
 export default function EndToEnd() {
+	// Use test license key if available, otherwise use the default
+	const licenseKey = (window as any).__TLDRAW_LICENSE_KEY__ || getLicenseKey()
+
 	useLayoutEffect(() => {
 		if (customElements.get('custom-element')) return
 
@@ -97,7 +100,7 @@ export default function EndToEnd() {
 	return (
 		<div className="tldraw__editor">
 			<Tldraw
-				licenseKey={getLicenseKey()}
+				licenseKey={licenseKey}
 				onMount={(editor) => {
 					;(window as any).app = editor
 					;(window as any).editor = editor

@@ -33,6 +33,14 @@ export interface LicenseInfo {
 	flags: number
 	expiryDate: string
 }
+
+/** @internal */
+export type LicenseState =
+	| 'pending'
+	| 'licensed'
+	| 'licensed-with-watermark'
+	| 'unlicensed'
+	| 'internal-expired'
 /** @internal */
 export type InvalidLicenseReason =
 	| 'invalid-license-key'
@@ -73,10 +81,7 @@ export class LicenseManager {
 	public isDevelopment: boolean
 	public isTest: boolean
 	public isCryptoAvailable: boolean
-	state = atom<'pending' | 'licensed' | 'licensed-with-watermark' | 'unlicensed'>(
-		'license state',
-		'pending'
-	)
+	state = atom<LicenseState>('license state', 'pending')
 	public verbose = true
 
 	constructor(
@@ -89,21 +94,20 @@ export class LicenseManager {
 		this.publicKey = testPublicKey || this.publicKey
 		this.isCryptoAvailable = !!crypto.subtle
 
-		this.getLicenseFromKey(licenseKey).then((result) => {
-			const isUnlicensed = isEditorUnlicensed(result)
+		this.getLicenseFromKey(licenseKey)
+			.then((result) => {
+				const licenseState = getLicenseState(result)
 
-			if (!this.isDevelopment && isUnlicensed) {
-				fetch(WATERMARK_TRACK_SRC)
-			}
+				if (!this.isDevelopment && licenseState === 'unlicensed') {
+					fetch(WATERMARK_TRACK_SRC)
+				}
 
-			if (isUnlicensed) {
+				this.state.set(licenseState)
+			})
+			.catch((error) => {
+				console.error('License validation failed:', error)
 				this.state.set('unlicensed')
-			} else if ((result as ValidLicenseKeyResult).isLicensedWithWatermark) {
-				this.state.set('licensed-with-watermark')
-			} else {
-				this.state.set('licensed')
-			}
-		})
+			})
 	}
 
 	private getIsDevelopment(testEnvironment?: TestEnvironment) {
@@ -367,15 +371,19 @@ export class LicenseManager {
 	static className = 'tl-watermark_SEE-LICENSE'
 }
 
-export function isEditorUnlicensed(result: LicenseFromKeyResult) {
-	if (!result.isLicenseParseable) return true
-	if (!result.isDomainValid && !result.isDevelopment) return true
+export function getLicenseState(result: LicenseFromKeyResult): LicenseState {
+	if (!result.isLicenseParseable) return 'unlicensed'
+	if (!result.isDomainValid && !result.isDevelopment) return 'unlicensed'
 	if (result.isPerpetualLicenseExpired || result.isAnnualLicenseExpired) {
-		if (result.isInternalLicense) {
-			throw new Error('License: Internal license expired.')
-		}
-		return true
+		// Check if it's an expired internal license with valid domain
+		const internalExpired = result.isInternalLicense && result.isDomainValid
+		return internalExpired ? 'internal-expired' : 'unlicensed'
 	}
 
-	return false
+	// License is valid, determine if it has watermark
+	if (result.isLicensedWithWatermark) {
+		return 'licensed-with-watermark'
+	}
+
+	return 'licensed'
 }

@@ -2,15 +2,7 @@ import { EMPTY_ARRAY } from '@tldraw/state'
 import { TLGroupShape, TLParentId, TLShape, TLShapeId } from '@tldraw/tlschema'
 import { IndexKey, compact, getIndexAbove, getIndexBetween } from '@tldraw/utils'
 import { Editor } from '../editor/Editor'
-import { Vec } from '../primitives/Vec'
-import { Geometry2d } from '../primitives/geometry/Geometry2d'
-import { Group2d } from '../primitives/geometry/Group2d'
-import {
-	intersectPolygonPolygon,
-	polygonIntersectsPolyline,
-	polygonsIntersect,
-} from '../primitives/intersect'
-import { pointInPolygon } from '../primitives/utils'
+import { intersectPolygonPolygon } from '../primitives/intersect'
 
 /**
  * Reparents shapes that are no longer contained within their parent shapes.
@@ -189,66 +181,8 @@ function getOverlappingShapes<T extends TLShape[] | TLShapeId[]>(
 
 		const geometry = editor.getShapeGeometry(childId)
 
-		return doesGeometryOverlapPolygon(geometry, parentPolygonInShapeShape)
+		return geometry.overlapsPolygon(parentPolygonInShapeShape)
 	})
-}
-
-/**
- * @public
- */
-export function doesGeometryOverlapPolygon(
-	geometry: Geometry2d,
-	parentCornersInShapeSpace: Vec[]
-): boolean {
-	// If the child is a group, check if any of its children overlap the box
-	if (geometry instanceof Group2d) {
-		return geometry.children.some((childGeometry) =>
-			doesGeometryOverlapPolygon(childGeometry, parentCornersInShapeSpace)
-		)
-	}
-
-	// Otherwise, check if the geometry overlaps the box
-	const { vertices, center, isFilled, isEmptyLabel, isClosed } = geometry
-
-	// We'll do things in order of cheapest to most expensive checks
-
-	// Skip empty labels
-	if (isEmptyLabel) return false
-
-	// If any of the shape's vertices are inside the occluder, it's inside
-	if (vertices.some((v) => pointInPolygon(v, parentCornersInShapeSpace))) {
-		return true
-	}
-
-	// If the shape is filled and closed and its center is inside the parent, it's inside
-	if (isClosed) {
-		if (isFilled) {
-			// If closed and filled, check if the center is inside the parent
-			if (pointInPolygon(center, parentCornersInShapeSpace)) {
-				return true
-			}
-
-			// ..then, slightly more expensive check, see the shape covers the entire parent but not its center
-			if (parentCornersInShapeSpace.every((v) => pointInPolygon(v, vertices))) {
-				return true
-			}
-		}
-
-		// If any the shape's vertices intersect the edge of the occluder, it's inside.
-		// for example when a rotated rectangle is moved over the corner of a parent rectangle
-		// If the child shape is closed, intersect as a polygon
-		if (polygonsIntersect(parentCornersInShapeSpace, vertices)) {
-			return true
-		}
-	} else {
-		// if the child shape is not closed, intersect as a polyline
-		if (polygonIntersectsPolyline(parentCornersInShapeSpace, vertices)) {
-			return true
-		}
-	}
-
-	// If none of the above checks passed, the shape is outside the parent
-	return false
 }
 
 /**
@@ -354,7 +288,7 @@ export function getDroppedShapesToNewParents(
 				.applyToPoints(parentPagePolygon)
 
 			// If the shape overlaps the parent polygon, reparent it to that parent
-			if (doesGeometryOverlapPolygon(editor.getShapeGeometry(shape), parentPolygonInShapeSpace)) {
+			if (editor.getShapeGeometry(shape).overlapsPolygon(parentPolygonInShapeSpace)) {
 				// Use the util to check if the shape can be reparented to the parent
 				if (
 					!editor.getShapeUtil(parentShape).canReceiveNewChildrenOfType?.(parentShape, shape.type)

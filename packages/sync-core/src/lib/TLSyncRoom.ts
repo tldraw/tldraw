@@ -115,10 +115,25 @@ export class DocumentState<R extends UnknownRecord> {
 /** @public */
 export interface RoomSnapshot {
 	clock: number
+	documentClock?: number
 	documents: Array<{ state: UnknownRecord; lastChangedClock: number }>
 	tombstones?: Record<string, number>
 	tombstoneHistoryStartsAtClock?: number
 	schema?: SerializedSchema
+}
+
+function getDocumentClock(snapshot: RoomSnapshot) {
+	if (typeof snapshot.documentClock === 'number') {
+		return snapshot.documentClock
+	}
+	let max = 0
+	for (const doc of snapshot.documents) {
+		max = Math.max(max, doc.lastChangedClock)
+	}
+	for (const tombstone of Object.values(snapshot.tombstones ?? {})) {
+		max = Math.max(max, tombstone)
+	}
+	return max
 }
 
 /**
@@ -250,6 +265,7 @@ export class TLSyncRoom<R extends UnknownRecord, SessionMeta> {
 		if (!snapshot) {
 			snapshot = {
 				clock: 0,
+				documentClock: 0,
 				documents: [
 					{
 						state: DocumentRecordType.create({ id: TLDOCUMENT_ID }),
@@ -369,10 +385,11 @@ export class TLSyncRoom<R extends UnknownRecord, SessionMeta> {
 			this.pruneTombstones()
 		})
 
-		this.documentClock = this.clock
-
 		if (didIncrementClock) {
+			this.documentClock = this.clock
 			opts.onDataChange?.()
+		} else {
+			this.documentClock = getDocumentClock(snapshot)
 		}
 	}
 
@@ -438,6 +455,7 @@ export class TLSyncRoom<R extends UnknownRecord, SessionMeta> {
 		}
 		return {
 			clock: this.clock,
+			documentClock: this.documentClock,
 			tombstones,
 			tombstoneHistoryStartsAtClock: this.tombstoneHistoryStartsAtClock,
 			schema: this.serializedSchema,
