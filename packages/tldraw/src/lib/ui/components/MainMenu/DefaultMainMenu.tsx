@@ -2,7 +2,7 @@ import { useContainer } from '@tldraw/editor'
 import { DropdownMenu as _DropdownMenu } from 'radix-ui'
 import { ReactNode, memo } from 'react'
 import { useMenuIsOpen } from '../../hooks/useMenuIsOpen'
-import { useTranslation } from '../../hooks/useTranslation/useTranslation'
+import { useDir, useTranslation } from '../../hooks/useTranslation/useTranslation'
 import { TldrawUiButton } from '../primitives/Button/TldrawUiButton'
 import { TldrawUiButtonIcon } from '../primitives/Button/TldrawUiButtonIcon'
 import { TldrawUiMenuContextProvider } from '../primitives/menus/TldrawUiMenuContext'
@@ -18,6 +18,7 @@ export const DefaultMainMenu = memo(function DefaultMainMenu({ children }: TLUiM
 	const container = useContainer()
 	const [isOpen, onOpenChange] = useMenuIsOpen('main menu')
 	const msg = useTranslation()
+	const dir = useDir()
 
 	// Get the main menu content, either the default component or the user's
 	// override. If there's no menu content, then the user has set it to null,
@@ -25,8 +26,8 @@ export const DefaultMainMenu = memo(function DefaultMainMenu({ children }: TLUiM
 	const content = children ?? <DefaultMainMenuContent />
 
 	return (
-		<_DropdownMenu.Root dir="ltr" open={isOpen} onOpenChange={onOpenChange} modal={false}>
-			<_DropdownMenu.Trigger asChild dir="ltr">
+		<_DropdownMenu.Root dir={dir} open={isOpen} onOpenChange={onOpenChange} modal={false}>
+			<_DropdownMenu.Trigger asChild dir={dir}>
 				<TldrawUiButton type="icon" data-testid="main-menu.button" title={msg('menu.title')}>
 					<TldrawUiButtonIcon icon="menu" small />
 				</TldrawUiButton>
