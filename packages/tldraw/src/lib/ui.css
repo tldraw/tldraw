@@ -525,31 +525,31 @@
 	font-family: inherit;
 	font-size: 11px;
 	line-height: 11px;
-	display: grid;
+	display: flex;
 	justify-items: center;
-	grid-auto-flow: column;
-	grid-template-columns: auto;
-	grid-auto-columns: minmax(1em, auto);
-	align-self: bottom;
 	color: currentColor;
 	margin-left: var(--tl-space-4);
 }
 
 .tlui-kbd > span {
-	width: 100%;
 	text-align: center;
-	display: inline;
-	margin: 0px;
-	padding: 2px;
-	border-radius: 2px;
+	align-self: bottom;
+	min-width: 1em;
+	padding-left: var(--tl-space-2);
 }
 
-.tlui-kbd > span:last-child {
-	padding-right: 0;
+.tlui-kbd > span:nth-last-of-type(n + 2) {
+	width: 15px;
 }
 
-.tlui-kbd:not(:last-child) {
-	margin-right: var(--tl-space-2);
+div[dir='rtl'] .tlui-kbd {
+	margin-left: 0px;
+	margin-right: var(--tl-space-4);
+}
+
+div[dir='rtl'] .tlui-kbd > span {
+	padding-left: 0px;
+	padding-right: var(--tl-space-2);
 }
 
 /* Focus Mode Button */

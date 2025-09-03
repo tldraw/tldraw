@@ -17,7 +17,7 @@ import { useNativeClipboardEvents } from './hooks/useClipboardEvents'
 import { useEditorEvents } from './hooks/useEditorEvents'
 import { useKeyboardShortcuts } from './hooks/useKeyboardShortcuts'
 import { useReadonly } from './hooks/useReadonly'
-import { useTranslation } from './hooks/useTranslation/useTranslation'
+import { useDir, useTranslation } from './hooks/useTranslation/useTranslation'
 
 /** @public */
 export interface TldrawUiProps extends TLUiContextProviderProps {
@@ -170,6 +170,7 @@ const TldrawUiContent = React.memo(function TldrawUI() {
 
 	return (
 		<div
+			data-dir={useDir()}
 			className={classNames('tlui-layout', {
 				'tlui-layout__mobile': breakpoint < PORTRAIT_BREAKPOINT.TABLET_SM,
 			})}
