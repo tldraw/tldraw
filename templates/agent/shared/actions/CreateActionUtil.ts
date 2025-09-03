@@ -54,7 +54,7 @@ export class CreateActionUtil extends AgentActionUtil<ICreateAction> {
 	override transformAction(action: Streaming<ICreateAction>, transform: AgentRequestTransform) {
 		if (!action.complete) return action
 
-		const shape = action.shape
+		const { shape } = action
 
 		// Ensure the created shape has a unique ID
 		shape.shapeId = transform.ensureShapeIdIsUnique(shape.shapeId)
@@ -117,31 +117,34 @@ export function getTldrawAiChangesFromCreateAction({
 				scale = calculatedScale
 			}
 
+			const autoSize = !textShape.fixedWidth // this will be true if the fixedWidth property is not set, which is desired
+
 			const textFontSize = FONT_SIZES[textSize]
 			const textAlign = textShape.textAlign ?? 'start'
 
-			const correctedTextPlacement = new Vec()
+			const correctedTextCoords = new Vec()
 
 			const effectiveFontSize = textFontSize * scale
-			const candidateTextWidth = editor.textMeasure.measureText(textShape.text, {
+
+			const width = editor.textMeasure.measureText(textShape.text, {
 				...TEXT_PROPS,
 				fontFamily: FONT_FAMILIES['draw'],
 				fontSize: effectiveFontSize,
-				maxWidth: Infinity,
+				maxWidth: textShape.width ?? Infinity,
 			}).w
 
 			switch (textAlign) {
 				case 'start':
-					correctedTextPlacement.x = textShape.x
-					correctedTextPlacement.y = textShape.y
+					correctedTextCoords.x = textShape.x
+					correctedTextCoords.y = textShape.y
 					break
 				case 'middle':
-					correctedTextPlacement.x = textShape.x - candidateTextWidth / 2
-					correctedTextPlacement.y = textShape.y
+					correctedTextCoords.x = textShape.x - width / 2
+					correctedTextCoords.y = textShape.y
 					break
 				case 'end':
-					correctedTextPlacement.x = textShape.x - candidateTextWidth
-					correctedTextPlacement.y = textShape.y
+					correctedTextCoords.x = textShape.x - width
+					correctedTextCoords.y = textShape.y
 					break
 			}
 
@@ -151,14 +154,16 @@ export function getTldrawAiChangesFromCreateAction({
 				shape: {
 					id: shapeId,
 					type: 'text',
-					x: correctedTextPlacement.x,
-					y: correctedTextPlacement.y,
+					x: correctedTextCoords.x,
+					y: correctedTextCoords.y,
 					props: {
 						size: textSize,
 						scale,
 						richText: toRichText(textShape.text),
 						color: asColor(textShape.color),
 						textAlign,
+						autoSize,
+						w: width, // it's okay to set width to a number regardeless of autoSize because it won't do anything if autoSize is true
 					},
 					meta: {
 						note: textShape.note ?? '',
@@ -247,17 +252,31 @@ export function getTldrawAiChangesFromCreateAction({
 			// Does the arrow have a start shape? Then try to create the binding
 			const startShape = fromId ? editor.getShape(fromId) : null
 			const startShapePageBounds = startShape ? editor.getShapePageBounds(startShape) : null
-			if (startShape && startShapePageBounds) {
+			const startShapeGeometry = startShape ? editor.getShapeGeometry(startShape) : null
+
+			if (startShape && startShapePageBounds && startShapeGeometry) {
 				const pointInPageSpace = { x: x1, y: y1 }
-				const normalizedAnchor = {
-					x: (pointInPageSpace.x - startShapePageBounds.x) / startShapePageBounds.w,
-					y: (pointInPageSpace.y - startShapePageBounds.y) / startShapePageBounds.h,
+
+				// Get the start shape geometry in page space
+				const pageTransform = editor.getShapePageTransform(startShape)
+				const startShapeGeometryInPageSpace = startShapeGeometry.transform(pageTransform)
+
+				// We default to putting the point in the middle of the shape.
+				const clampedNormalizedAnchor = { x: 0.5, y: 0.5 }
+				const isPointInStartShapeGeometry =
+					startShapeGeometryInPageSpace.hitTestPoint(pointInPageSpace)
+
+				let anchorPoint = pointInPageSpace
+				if (!isPointInStartShapeGeometry) {
+					anchorPoint = startShapeGeometryInPageSpace.nearestPoint(pointInPageSpace)
 				}
 
-				const clampedNormalizedAnchor = {
-					x: Math.max(0, Math.min(1, normalizedAnchor.x)),
-					y: Math.max(0, Math.min(1, normalizedAnchor.y)),
+				const normalizedAnchor = {
+					x: (anchorPoint.x - startShapePageBounds.x) / startShapePageBounds.w,
+					y: (anchorPoint.y - startShapePageBounds.y) / startShapePageBounds.h,
 				}
+				clampedNormalizedAnchor.x = Math.max(0, Math.min(1, normalizedAnchor.x))
+				clampedNormalizedAnchor.y = Math.max(0, Math.min(1, normalizedAnchor.y))
 
 				changes.push({
 					type: 'createBinding',
@@ -278,20 +297,28 @@ export function getTldrawAiChangesFromCreateAction({
 			}
 
 			// Does the arrow have an end shape? Then try to create the binding
-
 			const endShape = toId ? editor.getShape(toId) : null
 			const endShapePageBounds = endShape ? editor.getShapePageBounds(endShape) : null
-			if (endShape && endShapePageBounds) {
+			const endShapeGeometry = endShape ? editor.getShapeGeometry(endShape) : null
+
+			if (endShape && endShapePageBounds && endShapeGeometry) {
 				const pointInPageSpace = { x: x2, y: y2 }
-				const normalizedAnchor = {
-					x: (pointInPageSpace.x - endShapePageBounds.x) / endShapePageBounds.w,
-					y: (pointInPageSpace.y - endShapePageBounds.y) / endShapePageBounds.h,
+
+				const pageTransform = editor.getShapePageTransform(endShape)
+				const endShapeGeometryInPageSpace = endShapeGeometry.transform(pageTransform)
+				const clampedNormalizedAnchor = { x: 0.5, y: 0.5 }
+
+				let anchorPoint = pointInPageSpace
+				if (!endShapeGeometryInPageSpace.hitTestPoint(pointInPageSpace)) {
+					anchorPoint = endShapeGeometryInPageSpace.nearestPoint(pointInPageSpace)
 				}
 
-				const clampedNormalizedAnchor = {
-					x: Math.max(0, Math.min(1, normalizedAnchor.x)),
-					y: Math.max(0, Math.min(1, normalizedAnchor.y)),
+				const normalizedAnchor = {
+					x: (anchorPoint.x - endShapePageBounds.x) / endShapePageBounds.w,
+					y: (anchorPoint.y - endShapePageBounds.y) / endShapePageBounds.h,
 				}
+				clampedNormalizedAnchor.x = Math.max(0, Math.min(1, normalizedAnchor.x))
+				clampedNormalizedAnchor.y = Math.max(0, Math.min(1, normalizedAnchor.y))
 
 				changes.push({
 					type: 'createBinding',

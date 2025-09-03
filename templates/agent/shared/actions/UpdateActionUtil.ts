@@ -290,17 +290,26 @@ export function getTldrawAiChangesFromUpdateEvent({
 			// Does the arrow have a start shape? Then try to create the binding
 			const startShape = fromId ? editor.getShape(fromId) : null
 			const startShapePageBounds = startShape ? editor.getShapePageBounds(startShape) : null
-			if (startShape && startShapePageBounds) {
+			const startShapeGeometry = startShape ? editor.getShapeGeometry(startShape) : null
+
+			if (startShape && startShapePageBounds && startShapeGeometry) {
 				const pointInPageSpace = { x: x1, y: y1 }
-				const normalizedAnchor = {
-					x: (pointInPageSpace.x - startShapePageBounds.x) / startShapePageBounds.w,
-					y: (pointInPageSpace.y - startShapePageBounds.y) / startShapePageBounds.h,
+
+				// We default to putting the point in the middle of the shape.
+				const clampedNormalizedAnchor = { x: 0.5, y: 0.5 }
+				const isPointInStartShapeGeometry = startShapeGeometry.hitTestPoint(pointInPageSpace)
+
+				let anchorPoint = pointInPageSpace
+				if (!isPointInStartShapeGeometry) {
+					anchorPoint = startShapeGeometry.nearestPoint(pointInPageSpace)
 				}
 
-				const clampedNormalizedAnchor = {
-					x: Math.max(0, Math.min(1, normalizedAnchor.x)),
-					y: Math.max(0, Math.min(1, normalizedAnchor.y)),
+				const normalizedAnchor = {
+					x: (anchorPoint.x - startShapePageBounds.x) / startShapePageBounds.w,
+					y: (anchorPoint.y - startShapePageBounds.y) / startShapePageBounds.h,
 				}
+				clampedNormalizedAnchor.x = Math.max(0, Math.min(1, normalizedAnchor.x))
+				clampedNormalizedAnchor.y = Math.max(0, Math.min(1, normalizedAnchor.y))
 
 				changes.push({
 					type: 'createBinding',
@@ -323,17 +332,26 @@ export function getTldrawAiChangesFromUpdateEvent({
 			// Does the arrow have an end shape? Then try to create the binding
 			const endShape = toId ? editor.getShape(toId) : null
 			const endShapePageBounds = endShape ? editor.getShapePageBounds(endShape) : null
-			if (endShape && endShapePageBounds) {
+			const endShapeGeometry = endShape ? editor.getShapeGeometry(endShape) : null
+
+			if (endShape && endShapePageBounds && endShapeGeometry) {
 				const pointInPageSpace = { x: x2, y: y2 }
-				const normalizedAnchor = {
-					x: (pointInPageSpace.x - endShapePageBounds.x) / endShapePageBounds.w,
-					y: (pointInPageSpace.y - endShapePageBounds.y) / endShapePageBounds.h,
+
+				// We default to putting the point in the middle of the shape.
+				const clampedNormalizedAnchor = { x: 0.5, y: 0.5 }
+				const isPointInEndShapeGeometry = endShapeGeometry.hitTestPoint(pointInPageSpace)
+
+				let anchorPoint = pointInPageSpace
+				if (!isPointInEndShapeGeometry) {
+					anchorPoint = endShapeGeometry.nearestPoint(pointInPageSpace)
 				}
 
-				const clampedNormalizedAnchor = {
-					x: Math.max(0, Math.min(1, normalizedAnchor.x)),
-					y: Math.max(0, Math.min(1, normalizedAnchor.y)),
+				const normalizedAnchor = {
+					x: (anchorPoint.x - endShapePageBounds.x) / endShapePageBounds.w,
+					y: (anchorPoint.y - endShapePageBounds.y) / endShapePageBounds.h,
 				}
+				clampedNormalizedAnchor.x = Math.max(0, Math.min(1, normalizedAnchor.x))
+				clampedNormalizedAnchor.y = Math.max(0, Math.min(1, normalizedAnchor.y))
 
 				changes.push({
 					type: 'createBinding',
@@ -352,7 +370,6 @@ export function getTldrawAiChangesFromUpdateEvent({
 					},
 				})
 			}
-
 			break
 		}
 		case 'cloud':

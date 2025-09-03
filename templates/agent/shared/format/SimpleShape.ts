@@ -62,11 +62,13 @@ export type ISimpleNoteShape = z.infer<typeof SimpleNoteShape>
 const SimpleTextShape = z.object({
 	_type: z.literal('text'),
 	color: SimpleColor,
+	fixedWidth: z.boolean().optional(),
 	fontSize: SimpleFontSize.optional(),
 	note: z.string(),
 	shapeId: z.string(),
 	text: SimpleLabel,
 	textAlign: z.enum(['start', 'middle', 'end']).optional(),
+	width: z.number().optional(),
 	x: z.number(),
 	y: z.number(),
 })
