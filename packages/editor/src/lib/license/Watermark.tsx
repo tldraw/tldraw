@@ -86,8 +86,8 @@ To remove the watermark, please purchase a license at tldraw.dev.
 
 	.${className} {
 		position: absolute;
-		bottom: max(var(--tl-space-2), env(safe-area-inset-bottom));
-		right: max(var(--tl-space-2), env(safe-area-inset-right));
+		bottom: var(--space-2);
+		right: var(--space-2);
 		width: 96px;
 		height: 32px;
 		display: flex;
