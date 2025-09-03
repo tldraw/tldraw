@@ -25,7 +25,6 @@ export class BlurryShapesPartUtil extends PromptPartUtil<BlurryShapesPart> {
 				const bounds = editor.getShapeMaskedPageBounds(shape)
 				if (!bounds) return null
 				if (!contextBoundsBox.includes(bounds)) return null
-				// TODO, this fn rounds the shape's bounds, should we do that in a transform? or maybe just round x and y in the transform because some shapes don't have w and h?
 				return convertTldrawShapeToBlurryShape(shape, editor)
 			})
 			.filter((s) => s !== null)

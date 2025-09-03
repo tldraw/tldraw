@@ -166,23 +166,23 @@ export function getSimpleShapeTypeNames() {
 export function convertTldrawShapeToSimpleShape(shape: TLShape, editor: Editor): ISimpleShape {
 	switch (shape.type) {
 		case 'text':
-			return convertTextShape(shape as TLTextShape, editor)
+			return convertTextShapeToSimple(editor, shape as TLTextShape)
 		case 'geo':
-			return convertGeoShape(shape as TLGeoShape, editor)
+			return convertGeoShape(editor, shape as TLGeoShape)
 		case 'line':
-			return convertLineShape(shape as TLLineShape)
+			return convertLineShape(editor, shape as TLLineShape)
 		case 'arrow':
-			return convertArrowShape(shape as TLArrowShape, editor)
+			return convertArrowShape(editor, shape as TLArrowShape)
 		case 'note':
-			return convertNoteShape(shape as TLNoteShape, editor)
+			return convertNoteShape(editor, shape as TLNoteShape)
 		case 'draw':
-			return convertDrawShape(shape as TLDrawShape)
+			return convertDrawShapeToSimple(editor, shape as TLDrawShape)
 		default:
-			return convertUnknownShape(shape)
+			return convertUnknownShape(editor, shape)
 	}
 }
 
-export function convertTldrawShapeIdToSimpleShapeId(id: TLShapeId): string {
+export function convertTldrawIdToSimpleId(id: TLShapeId): string {
 	return id.slice('shape:'.length)
 }
 
@@ -190,17 +190,17 @@ export function convertSimpleShapeIdToTldrawShapeId(id: string): TLShapeId {
 	return ('shape:' + id) as TLShapeId
 }
 
-function convertDrawShape(shape: TLDrawShape): ISimpleDrawShape {
+function convertDrawShapeToSimple(editor: Editor, shape: TLDrawShape): ISimpleDrawShape {
 	return {
 		_type: 'draw',
 		color: shape.props.color,
 		fill: convertTldrawFillToSimpleFill(shape.props.fill),
 		note: (shape.meta?.note as string) ?? '',
-		shapeId: convertTldrawShapeIdToSimpleShapeId(shape.id),
+		shapeId: convertTldrawIdToSimpleId(shape.id),
 	}
 }
 
-function convertTextShape(shape: TLTextShape, editor: Editor): ISimpleTextShape {
+function convertTextShapeToSimple(editor: Editor, shape: TLTextShape): ISimpleTextShape {
 	const util = editor.getShapeUtil(shape)
 	const text = util.getText(shape) ?? ''
 
@@ -227,7 +227,7 @@ function convertTextShape(shape: TLTextShape, editor: Editor): ISimpleTextShape 
 		color: shape.props.color,
 		fontSize: convertTldrawFontSizeAndScaleToSimpleFontSize(textSize, shape.props.scale),
 		note: (shape.meta?.note as string) ?? '',
-		shapeId: convertTldrawShapeIdToSimpleShapeId(shape.id),
+		shapeId: convertTldrawIdToSimpleId(shape.id),
 		text: text,
 		textAlign: shape.props.textAlign,
 		x: anchorX,
@@ -235,7 +235,7 @@ function convertTextShape(shape: TLTextShape, editor: Editor): ISimpleTextShape 
 	}
 }
 
-function convertGeoShape(shape: TLGeoShape, editor: Editor): ISimpleGeoShape {
+function convertGeoShape(editor: Editor, shape: TLGeoShape): ISimpleGeoShape {
 	const util = editor.getShapeUtil(shape)
 	const text = util.getText(shape)
 
@@ -262,7 +262,7 @@ function convertGeoShape(shape: TLGeoShape, editor: Editor): ISimpleGeoShape {
 		fill: convertTldrawFillToSimpleFill(shape.props.fill),
 		h: shape.props.h,
 		note: (shape.meta?.note as string) ?? '',
-		shapeId: convertTldrawShapeIdToSimpleShapeId(shape.id),
+		shapeId: convertTldrawIdToSimpleId(shape.id),
 		text: text ?? '',
 		textAlign: newTextAlign,
 		w: shape.props.w,
@@ -271,13 +271,13 @@ function convertGeoShape(shape: TLGeoShape, editor: Editor): ISimpleGeoShape {
 	}
 }
 
-function convertLineShape(shape: TLLineShape): ISimpleLineShape {
+function convertLineShape(editor: Editor, shape: TLLineShape): ISimpleLineShape {
 	const points = Object.values(shape.props.points).sort((a, b) => a.index.localeCompare(b.index))
 	return {
 		_type: 'line',
 		color: shape.props.color,
 		note: (shape.meta?.note as string) ?? '',
-		shapeId: convertTldrawShapeIdToSimpleShapeId(shape.id),
+		shapeId: convertTldrawIdToSimpleId(shape.id),
 		x1: points[0].x + shape.x,
 		x2: points[1].x + shape.x,
 		y1: points[0].y + shape.y,
@@ -285,7 +285,7 @@ function convertLineShape(shape: TLLineShape): ISimpleLineShape {
 	}
 }
 
-function convertArrowShape(shape: TLArrowShape, editor: Editor): ISimpleArrowShape {
+function convertArrowShape(editor: Editor, shape: TLArrowShape): ISimpleArrowShape {
 	const bindings = editor.store.query.records('binding').get()
 	const arrowBindings = bindings.filter(
 		(b) => b.type === 'arrow' && b.fromId === shape.id
@@ -299,7 +299,7 @@ function convertArrowShape(shape: TLArrowShape, editor: Editor): ISimpleArrowSha
 		color: shape.props.color,
 		fromId: startBinding?.toId ?? null,
 		note: (shape.meta?.note as string) ?? '',
-		shapeId: convertTldrawShapeIdToSimpleShapeId(shape.id),
+		shapeId: convertTldrawIdToSimpleId(shape.id),
 		text: (shape.meta?.text as string) ?? '',
 		toId: endBinding?.toId ?? null,
 		x1: shape.props.start.x + shape.x,
@@ -309,25 +309,25 @@ function convertArrowShape(shape: TLArrowShape, editor: Editor): ISimpleArrowSha
 	}
 }
 
-function convertNoteShape(shape: TLNoteShape, editor: Editor): ISimpleNoteShape {
+function convertNoteShape(editor: Editor, shape: TLNoteShape): ISimpleNoteShape {
 	const util = editor.getShapeUtil(shape)
 	const text = util.getText(shape)
 	return {
 		_type: 'note',
 		color: shape.props.color,
 		note: (shape.meta?.note as string) ?? '',
-		shapeId: convertTldrawShapeIdToSimpleShapeId(shape.id),
+		shapeId: convertTldrawIdToSimpleId(shape.id),
 		text: text ?? '',
 		x: shape.x,
 		y: shape.y,
 	}
 }
 
-function convertUnknownShape(shape: TLShape): ISimpleUnknownShape {
+function convertUnknownShape(editor: Editor, shape: TLShape): ISimpleUnknownShape {
 	return {
 		_type: 'unknown',
 		note: (shape.meta?.note as string) ?? '',
-		shapeId: convertTldrawShapeIdToSimpleShapeId(shape.id),
+		shapeId: convertTldrawIdToSimpleId(shape.id),
 		subType: shape.type,
 		x: shape.x,
 		y: shape.y,
