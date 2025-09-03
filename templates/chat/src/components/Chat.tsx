@@ -13,7 +13,7 @@ import { MessageList } from './MessageList'
 import { TldrawProviderMetadata, WhiteboardImage } from './WhiteboardModal'
 
 export function Chat() {
-	// keep track of the chat messages in local storage
+	// store chat messages locally in the browser
 	const [initialMessages, saveMessages] = useChatMessageStorage()
 
 	if (!initialMessages) return null

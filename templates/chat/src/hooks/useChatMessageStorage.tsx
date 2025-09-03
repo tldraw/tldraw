@@ -1,9 +1,14 @@
 import { UIMessage, validateUIMessages } from 'ai'
 import { useCallback, useEffect, useState } from 'react'
-import { FileHelpers, noop } from 'tldraw'
+import { FileHelpers } from 'tldraw'
 
 const STORAGE_FILE_NAME = 'chat-messages.json'
 
+/**
+ * Store chat messages locally in the browser. We use the origin private file system API to store
+ * the messages because it has a higher capacity than localStorage, and is easier to use than
+ * IndexedDB.
+ */
 export function useChatMessageStorage(): [UIMessage[] | null, (messages: UIMessage[]) => void] {
 	const [initialMessages, setInitialMessages] = useState<UIMessage[] | null>(null)
 
@@ -47,7 +52,4 @@ export function useChatMessageStorage(): [UIMessage[] | null, (messages: UIMessa
 	}, [])
 
 	return [initialMessages, saveMessages] as const
-
-	// disabled for now:
-	return [[], noop]
 }
