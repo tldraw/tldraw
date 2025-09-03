@@ -55,6 +55,9 @@ export function getArrowBodyGeometry(editor: Editor, shape: TLArrowShape) {
 }
 
 const SIZES: Record<string, Vec> = {}
+function getArrowLabelSizeKey(shape: TLArrowShape) {
+	return `${shape.props.size}-${shape.props.scale}-${shape.props.font}`
+}
 
 const labelSizeCache = createComputedCache(
 	'arrow label size',
@@ -68,10 +71,9 @@ const labelSizeCache = createComputedCache(
 		const isEmpty = isEmptyRichText(shape.props.richText)
 
 		if (isEmpty) {
-			if (SIZES[shape.props.size]) {
-				return SIZES[shape.props.size]
-					.clone()
-					.addScalar(ARROW_LABEL_PADDING * 2 * shape.props.scale)
+			const key = getArrowLabelSizeKey(shape)
+			if (SIZES[key]) {
+				return SIZES[key].clone().addScalar(ARROW_LABEL_PADDING * 2 * shape.props.scale)
 			}
 		}
 
@@ -93,7 +95,7 @@ const labelSizeCache = createComputedCache(
 		})
 
 		if (isEmpty) {
-			SIZES[shape.props.size] = new Vec(w, h)
+			SIZES[getArrowLabelSizeKey(shape)] = new Vec(w, h)
 		}
 
 		width = w
