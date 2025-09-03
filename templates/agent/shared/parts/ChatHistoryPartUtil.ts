@@ -1,29 +1,46 @@
 import { TldrawAgent } from '../../client/agent/TldrawAgent'
+import { AgentRequestTransform } from '../AgentRequestTransform'
 import { AgentMessage, AgentMessageContent } from '../types/AgentMessage'
 import { AgentRequest } from '../types/AgentRequest'
 import { BasePromptPart } from '../types/BasePromptPart'
 import { IChatHistoryItem } from '../types/ChatHistoryItem'
 import { PromptPartUtil } from './PromptPartUtil'
 
-export interface ChatHistoryItemsPart extends BasePromptPart<'historyItems'> {
+export interface ChatHistoryPart extends BasePromptPart<'chatHistory'> {
 	items: IChatHistoryItem[]
 }
 
-export class ChatHistoryItemsPartUtil extends PromptPartUtil<ChatHistoryItemsPart> {
-	static override type = 'historyItems' as const
+export class ChatHistoryPartUtil extends PromptPartUtil<ChatHistoryPart> {
+	static override type = 'chatHistory' as const
 
 	override getPriority() {
 		return Infinity // history should appear first in the prompt (low priority)
 	}
 
-	override getPart(_request: AgentRequest, agent: TldrawAgent): ChatHistoryItemsPart {
+	override getPart(_request: AgentRequest, agent: TldrawAgent): ChatHistoryPart {
 		return {
-			type: 'historyItems',
+			type: 'chatHistory',
 			items: agent.$chatHistory.get(),
 		}
 	}
 
-	override buildMessages({ items }: ChatHistoryItemsPart): AgentMessage[] {
+	override transformPart(part: ChatHistoryPart, transform: AgentRequestTransform) {
+		for (const historyItem of part.items) {
+			console.log('historyItem', historyItem)
+			if (historyItem.type !== 'prompt') continue
+
+			// Offset and round the context items of each history item
+			const contextItems = historyItem.contextItems.map((contextItem) => {
+				const offsetContextItem = transform.applyOffsetToContextItem(contextItem)
+				return transform.roundContextItem(offsetContextItem)
+			})
+
+			historyItem.contextItems = contextItems
+		}
+		return part
+	}
+
+	override buildMessages({ items }: ChatHistoryPart): AgentMessage[] {
 		const messages: AgentMessage[] = []
 		const priority = this.getPriority()
 

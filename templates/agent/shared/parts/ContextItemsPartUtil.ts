@@ -1,4 +1,4 @@
-import { AgentRequestTransform, roundBox, roundVec } from '../AgentRequestTransform'
+import { AgentRequestTransform } from '../AgentRequestTransform'
 import { AgentRequest } from '../types/AgentRequest'
 import { BasePromptPart } from '../types/BasePromptPart'
 import { IContextItem } from '../types/ContextItem'
@@ -28,42 +28,10 @@ export class ContextItemsPartUtil extends PromptPartUtil<ContextItemsPart> {
 		part: ContextItemsPart,
 		transform: AgentRequestTransform
 	): ContextItemsPart {
+		// Offset and round the context items
 		const items = part.items.map((contextItem) => {
-			switch (contextItem.type) {
-				case 'shape': {
-					const offsetShape = transform.applyOffsetToShape(contextItem.shape)
-					return {
-						...contextItem,
-						shape: transform.roundShape(offsetShape),
-					}
-				}
-				case 'shapes': {
-					return {
-						...contextItem,
-						shapes: contextItem.shapes.map((shape) => {
-							const offsetShape = transform.applyOffsetToShape(shape)
-							return transform.roundShape(offsetShape)
-						}),
-					}
-				}
-				case 'area': {
-					const offsetBounds = transform.applyOffsetToBox(contextItem.bounds)
-					return {
-						...contextItem,
-						bounds: roundBox(offsetBounds),
-					}
-				}
-				case 'point': {
-					const offsetPoint = transform.applyOffsetToVec(contextItem.point)
-					return {
-						...contextItem,
-						point: roundVec(offsetPoint),
-					}
-				}
-				default: {
-					return contextItem
-				}
-			}
+			const offsetContextItem = transform.applyOffsetToContextItem(contextItem)
+			return transform.roundContextItem(offsetContextItem)
 		})
 
 		return { ...part, items }

@@ -21,7 +21,7 @@ import { TodoListActionUtil } from './actions/TodoListActionUtil'
 import { UnknownActionUtil } from './actions/UnknownActionUtil'
 import { UpdateActionUtil } from './actions/UpdateActionUtil'
 import { BlurryShapesPartUtil } from './parts/BlurryShapesPart'
-import { ChatHistoryItemsPartUtil } from './parts/ChatHistoryItemsPartUtil'
+import { ChatHistoryPartUtil } from './parts/ChatHistoryPartUtil'
 import { ContextItemsPartUtil } from './parts/ContextItemsPartUtil'
 import { MessagePartUtil } from './parts/MessagePartUtil'
 import { PeripheralShapesPartUtil } from './parts/PeripheralShapesPartUtil'
@@ -61,7 +61,7 @@ export const PROMPT_PART_UTILS = [
 	SelectedShapesPartUtil,
 
 	// History
-	ChatHistoryItemsPartUtil,
+	ChatHistoryPartUtil,
 	UserActionHistoryPartUtil,
 	TodoListPartUtil,
 ]

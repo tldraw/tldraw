@@ -1,6 +1,6 @@
 import { Box, BoxModel } from 'tldraw'
 import { TldrawAgent } from '../../client/agent/TldrawAgent'
-import { AgentRequestTransform, roundBox } from '../AgentRequestTransform'
+import { AgentRequestTransform } from '../AgentRequestTransform'
 import { AgentRequest } from '../types/AgentRequest'
 import { BasePromptPart } from '../types/BasePromptPart'
 import { PromptPartUtil } from './PromptPartUtil'
@@ -31,10 +31,12 @@ export class ViewportBoundsPartUtil extends PromptPartUtil<ViewportBoundsPart> {
 		part: ViewportBoundsPart,
 		transform: AgentRequestTransform
 	): ViewportBoundsPart {
+		const offsetUserBounds = transform.applyOffsetToBox(part.userBounds)
+		const offsetAgentBounds = transform.applyOffsetToBox(part.agentBounds)
 		return {
 			...part,
-			userBounds: roundBox(transform.applyOffsetToBox(part.userBounds)),
-			agentBounds: roundBox(transform.applyOffsetToBox(part.agentBounds)),
+			userBounds: transform.roundBox(offsetUserBounds),
+			agentBounds: transform.roundBox(offsetAgentBounds),
 		}
 	}
 

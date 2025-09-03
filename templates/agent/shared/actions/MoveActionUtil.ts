@@ -1,6 +1,6 @@
 import { TLShapeId, Vec } from 'tldraw'
 import z from 'zod'
-import { AgentRequestTransform, ensureValueIsNumber } from '../AgentRequestTransform'
+import { AgentRequestTransform } from '../AgentRequestTransform'
 import { Streaming } from '../types/Streaming'
 import { AgentActionUtil } from './AgentActionUtil'
 
@@ -39,8 +39,8 @@ export class MoveActionUtil extends AgentActionUtil<IMoveAction> {
 		action.shapeId = shapeId
 
 		// Make sure the x and y values are numbers
-		const floatX = ensureValueIsNumber(action.x)
-		const floatY = ensureValueIsNumber(action.y)
+		const floatX = transform.ensureValueIsNumber(action.x)
+		const floatY = transform.ensureValueIsNumber(action.y)
 		if (floatX === null || floatY === null) return null
 		action.x = floatX
 		action.y = floatY

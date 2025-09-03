@@ -2,6 +2,7 @@ import { BoxModel, Editor, TLShapeId, VecModel } from 'tldraw'
 import { TldrawAgent } from '../client/agent/TldrawAgent'
 import { ISimpleFill, SimpleFill } from './format/SimpleFill'
 import { ISimpleShape } from './format/SimpleShape'
+import { IContextItem } from './types/ContextItem'
 
 /**
  * This class handles the transformations that can happen throughout a single
@@ -173,6 +174,58 @@ export class AgentRequestTransform {
 	}
 
 	/**
+	 * Apply the offset of this request to a context item.
+	 */
+	applyOffsetToContextItem(contextItem: IContextItem) {
+		switch (contextItem.type) {
+			case 'shape': {
+				contextItem.shape = this.applyOffsetToShape(contextItem.shape)
+				return contextItem
+			}
+			case 'shapes': {
+				contextItem.shapes = contextItem.shapes.map((shape) => {
+					return this.applyOffsetToShape(shape)
+				})
+				return contextItem
+			}
+			case 'area': {
+				contextItem.bounds = this.applyOffsetToBox(contextItem.bounds)
+				return contextItem
+			}
+			case 'point': {
+				contextItem.point = this.applyOffsetToVec(contextItem.point)
+				return contextItem
+			}
+		}
+	}
+
+	/**
+	 * Round the numbers of a context item.
+	 */
+	roundContextItem(contextItem: IContextItem) {
+		switch (contextItem.type) {
+			case 'shape': {
+				contextItem.shape = this.roundShape(contextItem.shape)
+				return contextItem
+			}
+			case 'shapes': {
+				contextItem.shapes = contextItem.shapes.map((shape) => {
+					return this.roundShape(shape)
+				})
+				return contextItem
+			}
+			case 'area': {
+				contextItem.bounds = this.roundBox(contextItem.bounds)
+				return contextItem
+			}
+			case 'point': {
+				contextItem.point = this.roundVec(contextItem.point)
+				return contextItem
+			}
+		}
+	}
+
+	/**
 	 * Ensure that a shape ID is unique.
 	 * @param id - The id to check.
 	 * @returns The unique id.
@@ -313,59 +366,85 @@ export class AgentRequestTransform {
 		;(shape[property] as number) += diff
 		return shape
 	}
-}
 
-export function roundBox(boxModel: BoxModel): BoxModel {
-	boxModel.x = Math.round(boxModel.x)
-	boxModel.y = Math.round(boxModel.y)
-	boxModel.w = Math.round(boxModel.w)
-	boxModel.h = Math.round(boxModel.h)
-	return boxModel
-}
-
-export function roundVec(vecModel: VecModel): VecModel {
-	vecModel.x = Math.round(vecModel.x)
-	vecModel.y = Math.round(vecModel.y)
-	return vecModel
-}
-
-export function ensureValueIsNumber(value: any): number | null {
-	if (typeof value === 'number') {
-		return value
-	}
-
-	if (typeof value === 'string') {
-		const parsedValue = parseFloat(value)
-		if (isNaN(parsedValue)) {
-			return null
+	/**
+	 * Ensure that a value is a number.
+	 * Used for checking incoming data from the model.
+	 * @returns The number, or null if the value is not a number.
+	 */
+	ensureValueIsNumber(value: any): number | null {
+		if (typeof value === 'number') {
+			return value
 		}
-		return parsedValue
+
+		if (typeof value === 'string') {
+			const parsedValue = parseFloat(value)
+			if (isNaN(parsedValue)) {
+				return null
+			}
+			return parsedValue
+		}
+
+		return null
 	}
 
-	return null
-}
+	/**
+	 * Ensure that a value is a vector.
+	 * Used for checking incoming data from the model.
+	 * @returns The vector, or null if the value is not a vector.
+	 */
+	ensureValueIsVec(value: any): VecModel | null {
+		if (!value) return null
+		if (typeof value !== 'object') return null
+		if (!('x' in value) || !('y' in value)) return null
 
-export function ensureValueIsVec(value: any): VecModel | null {
-	if (!value) return null
-	if (typeof value !== 'object') return null
-	if (!('x' in value) || !('y' in value)) return null
-
-	const x = ensureValueIsNumber(value.x)
-	const y = ensureValueIsNumber(value.y)
-	if (x === null || y === null) return null
-	return { x, y }
-}
-
-export function ensureValueIsBoolean(value: any): boolean | null {
-	if (typeof value === 'boolean') {
-		return value
+		const x = this.ensureValueIsNumber(value.x)
+		const y = this.ensureValueIsNumber(value.y)
+		if (x === null || y === null) return null
+		return { x, y }
 	}
-	return null
-}
 
-export function ensureValueIsSimpleFill(value: any): ISimpleFill | null {
-	if (SimpleFill.safeParse(value).success) {
-		return value as ISimpleFill
+	/**
+	 * Ensure that a value is a boolean.
+	 * Used for checking incoming data from the model.
+	 * @returns The boolean, or null if the value is not a boolean.
+	 */
+	ensureValueIsBoolean(value: any): boolean | null {
+		if (typeof value === 'boolean') {
+			return value
+		}
+		return null
 	}
-	return 'none'
+
+	/**
+	 * Ensure that a value is a valid fill type.
+	 * Used for checking incoming data from the model.
+	 * @returns The simple fill, or 'none' if the value is not a simple fill.
+	 */
+	ensureValueIsSimpleFill(value: any): ISimpleFill | null {
+		if (SimpleFill.safeParse(value).success) {
+			return value as ISimpleFill
+		}
+		return 'none'
+	}
+
+	/**
+	 * Round the corners of a box.
+	 */
+	roundBox(boxModel: BoxModel): BoxModel {
+		boxModel.x = Math.round(boxModel.x)
+		boxModel.y = Math.round(boxModel.y)
+		boxModel.w = Math.round(boxModel.w)
+		boxModel.h = Math.round(boxModel.h)
+		return boxModel
+	}
+
+	/**
+	 * Round the numbers of a vector.
+	 */
+	roundVec(vecModel: VecModel): VecModel {
+		vecModel.x = Math.round(vecModel.x)
+		vecModel.y = Math.round(vecModel.y)
+		return vecModel
+	}
 }

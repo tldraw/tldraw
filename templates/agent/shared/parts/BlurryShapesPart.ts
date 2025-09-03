@@ -38,12 +38,14 @@ export class BlurryShapesPartUtil extends PromptPartUtil<BlurryShapesPart> {
 
 	override transformPart(part: BlurryShapesPart, transform: AgentRequestTransform) {
 		for (const shape of part.shapes) {
-			const bounds = transform.applyOffsetToBox({
-				x: shape.x,
-				y: shape.y,
-				w: shape.w,
-				h: shape.h,
-			})
+			const bounds = transform.roundBox(
+				transform.applyOffsetToBox({
+					x: shape.x,
+					y: shape.y,
+					w: shape.w,
+					h: shape.h,
+				})
+			)
 			shape.x = bounds.x
 			shape.y = bounds.y
 			shape.w = bounds.w

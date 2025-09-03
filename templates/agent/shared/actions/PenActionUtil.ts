@@ -1,11 +1,6 @@
 import { createShapeId, TLDrawShape, TLDrawShapeSegment, Vec, VecModel } from 'tldraw'
 import z from 'zod'
-import {
-	AgentRequestTransform,
-	ensureValueIsBoolean,
-	ensureValueIsSimpleFill,
-	ensureValueIsVec,
-} from '../AgentRequestTransform'
+import { AgentRequestTransform } from '../AgentRequestTransform'
 import { asColor, SimpleColor } from '../format/SimpleColor'
 import { convertSimpleFillToTldrawFill, SimpleFill } from '../format/SimpleFill'
 import { Streaming } from '../types/Streaming'
@@ -48,16 +43,17 @@ export class PenActionUtil extends AgentActionUtil<IPenAction> {
 		}
 	}
 
-	override transformAction(action: Streaming<IPenAction>) {
+	override transformAction(action: Streaming<IPenAction>, transform: AgentRequestTransform) {
 		if (!action.points) return action
 
+		// This is a complex action for the model, so validate the points it gives us
 		const validPoints = action.points
-			.map((point) => ensureValueIsVec(point))
+			.map((point) => transform.ensureValueIsVec(point))
 			.filter((v) => v !== null)
 
 		action.points = validPoints
-		action.closed = ensureValueIsBoolean(action.closed) ?? false
-		action.fill = ensureValueIsSimpleFill(action.fill) ?? 'none'
+		action.closed = transform.ensureValueIsBoolean(action.closed) ?? false
+		action.fill = transform.ensureValueIsSimpleFill(action.fill) ?? 'none'
 
 		return action
 	}
