@@ -1,5 +1,5 @@
 import { atom } from '@tldraw/state'
-import { publishDates } from '../../version'
+import { publishDates, version } from '../../version'
 import { getDefaultCdnBaseUrl } from '../utils/assets'
 import { importPublicKey, str2ab } from '../utils/licensing'
 
@@ -79,6 +79,9 @@ export interface ValidLicenseKeyResult {
 export type TestEnvironment = 'development' | 'production'
 
 /** @internal */
+export type TrackType = 'unlicensed' | 'with_watermark' | 'evaluation' | null
+
+/** @internal */
 export class LicenseManager {
 	private publicKey =
 		'MFkwEwYHKoZIzj0CAQYIKoZIzj0DAQcDQgAEHJh0uUfxHtCGyerXmmatE368Hd9rI6LH9oPDQihnaCryRFWEVeOvf9U/SPbyxX74LFyJs5tYeAHq5Nc0Ax25LQ'
@@ -127,35 +130,45 @@ export class LicenseManager {
 		)
 	}
 
-	private shouldTrack(result: LicenseFromKeyResult, licenseState: LicenseState): boolean {
+	private getTrackType(result: LicenseFromKeyResult, licenseState: LicenseState): TrackType {
 		// Track watermark for unlicensed production deployments
 		if (licenseState === 'unlicensed-production') {
-			return true
+			return 'unlicensed'
 		}
 
-		// Skip tracking in development mode for other cases
 		if (this.isDevelopment) {
-			return false
+			return null
+		}
+
+		if (!result.isLicenseParseable) {
+			return null
 		}
 
 		// Track evaluation licenses (for analytics, even though no watermark is shown)
-		if (result.isLicenseParseable && result.isEvaluationLicense) {
-			return true
+		if (result.isEvaluationLicense) {
+			return 'evaluation'
 		}
 
-		// Track licenses that explicitly show watermarks
+		// Track licenses that show watermarks
 		if (licenseState === 'licensed-with-watermark') {
-			return true
+			return 'with_watermark'
 		}
 
-		return false
+		return null
 	}
 
 	private maybeTrack(result: LicenseFromKeyResult, licenseState: LicenseState): void {
-		if (this.shouldTrack(result, licenseState)) {
-			// eslint-disable-next-line no-restricted-globals
-			fetch(WATERMARK_TRACK_SRC)
+		const trackType = this.getTrackType(result, licenseState)
+		if (!trackType) {
+			return
 		}
+
+		const url = new URL(WATERMARK_TRACK_SRC)
+		url.searchParams.set('version', version)
+		url.searchParams.set('license_type', trackType)
+
+		// eslint-disable-next-line no-restricted-globals
+		fetch(url.toString())
 	}
 
 	private async extractLicenseKey(licenseKey: string): Promise<LicenseInfo> {
