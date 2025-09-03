@@ -8,16 +8,16 @@ export function HeroCtas() {
 					className="hidden sm:flex"
 					id="hero-quick-start"
 					href="/quick-start"
-					caption="Build whiteboards and more with the tldraw SDK"
+					caption="Read the quick start guide"
 					type="black"
 					size="lg"
-					// arrow="right"
+					arrow="right"
 				/>
 				<Button
 					className="flex sm:hidden"
 					id="hero-quick-start"
 					href="/quick-start"
-					caption="Build with the tldraw SDK"
+					caption="Read the docs"
 					type="black"
 					size="lg"
 					arrow="right"
@@ -25,7 +25,7 @@ export function HeroCtas() {
 				<Button
 					id="hero-github"
 					href="https://github.com/tldraw/tldraw"
-					caption="40K stars on GitHub"
+					caption="41.1K GitHub"
 					type="tertiary"
 					size="lg"
 					icon="github"
