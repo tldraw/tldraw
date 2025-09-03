@@ -359,6 +359,17 @@ body {
 	flex-direction: column;
 	gap: 4px;
 	white-space: pre-wrap;
+	max-height: 25vh;
+	overflow-y: auto;
+	scrollbar-color: var(--tl-color-text-3) transparent;
+}
+
+.chat-history-prompt::-webkit-scrollbar {
+	background: transparent;
+}
+
+.chat-history-prompt::-webkit-scrollbar-thumb {
+	background: var(--tl-color-text-3);
 }
 
 .chat-history-group {
