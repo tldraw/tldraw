@@ -54,9 +54,12 @@ export function getArrowBodyGeometry(editor: Editor, shape: TLArrowShape) {
 	}
 }
 
+// We don't want to measure this every time for empty arrows, but we do need to measure it for non-empty arrows so we cache the size for each font/size/scale combo
 const SIZES: Record<string, Vec> = {}
 function getArrowLabelSizeKey(shape: TLArrowShape) {
-	return `${shape.props.size}-${shape.props.scale}-${shape.props.font}`
+	// We use 1 decimal place for scale to avoid a ton of cache entries
+	const scale = Math.floor(shape.props.scale * 100) / 10
+	return `${shape.props.size}-${scale}-${shape.props.font}`
 }
 
 const labelSizeCache = createComputedCache(
@@ -72,9 +75,8 @@ const labelSizeCache = createComputedCache(
 
 		if (isEmpty) {
 			const key = getArrowLabelSizeKey(shape)
-			if (SIZES[key]) {
-				return SIZES[key].clone().addScalar(ARROW_LABEL_PADDING * 2 * shape.props.scale)
-			}
+			const cachedVal = SIZES[key]
+			if (cachedVal) return cachedVal.clone().addScalar(ARROW_LABEL_PADDING * 2 * shape.props.scale)
 		}
 
 		const html = renderHtmlFromRichTextForMeasurement(
