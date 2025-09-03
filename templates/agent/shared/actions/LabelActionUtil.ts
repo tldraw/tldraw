@@ -1,7 +1,6 @@
 import { TLShapeId, toRichText } from 'tldraw'
 import z from 'zod'
-import { TldrawAgent } from '../../client/agent/TldrawAgent'
-import { AgentTransform } from '../AgentTransform'
+import { AgentRequestTransform } from '../AgentRequestTransform'
 import { Streaming } from '../types/Streaming'
 import { AgentActionUtil } from './AgentActionUtil'
 
@@ -30,7 +29,7 @@ export class LabelActionUtil extends AgentActionUtil<IAgentLabelEvent> {
 		}
 	}
 
-	override transformAction(action: Streaming<IAgentLabelEvent>, transform: AgentTransform) {
+	override transformAction(action: Streaming<IAgentLabelEvent>, transform: AgentRequestTransform) {
 		if (!action.complete) return action
 
 		const shapeId = transform.ensureShapeIdIsReal(action.shapeId)
@@ -40,9 +39,9 @@ export class LabelActionUtil extends AgentActionUtil<IAgentLabelEvent> {
 		return action
 	}
 
-	override applyAction(action: Streaming<IAgentLabelEvent>, agent: TldrawAgent) {
+	override applyAction(action: Streaming<IAgentLabelEvent>, transform: AgentRequestTransform) {
 		if (!action.complete) return
-		const { editor } = agent
+		const { editor } = transform
 
 		const shapeId = `shape:${action.shapeId}` as TLShapeId
 		const shape = editor.getShape(shapeId)

@@ -1,16 +1,16 @@
 import z from 'zod'
-import { TldrawAgent } from '../../client/agent/TldrawAgent'
+import { AgentRequestTransform } from '../AgentRequestTransform'
 import { Streaming } from '../types/Streaming'
 import { AgentActionUtil } from './AgentActionUtil'
 
 const SetMyViewAction = z
 	.object({
 		_type: z.literal('setMyView'),
-		h: z.number(),
 		intent: z.string(),
-		w: z.number(),
 		x: z.number(),
 		y: z.number(),
+		w: z.number(),
+		h: z.number(),
 	})
 	.meta({
 		title: 'Set My View',
@@ -36,17 +36,20 @@ export class SetMyViewActionUtil extends AgentActionUtil<ISetMyViewAction> {
 		}
 	}
 
-	override applyAction(action: Streaming<ISetMyViewAction>, agent: TldrawAgent) {
+	override applyAction(action: Streaming<ISetMyViewAction>, transform: AgentRequestTransform) {
 		if (!action.complete) return
+		const { agent } = transform
+
+		const bounds = transform.removeOffsetFromBox({
+			x: action.x,
+			y: action.y,
+			w: action.w,
+			h: action.h,
+		})
 
 		agent.schedule((prev) => ({
 			...prev,
-			bounds: {
-				x: action.x,
-				y: action.y,
-				w: action.w,
-				h: action.h,
-			},
+			bounds,
 		}))
 	}
 }

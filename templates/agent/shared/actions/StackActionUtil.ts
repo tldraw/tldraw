@@ -1,7 +1,6 @@
 import { TLShapeId } from 'tldraw'
 import z from 'zod'
-import { TldrawAgent } from '../../client/agent/TldrawAgent'
-import { AgentTransform } from '../AgentTransform'
+import { AgentRequestTransform } from '../AgentRequestTransform'
 import { Streaming } from '../types/Streaming'
 import { AgentActionUtil } from './AgentActionUtil'
 
@@ -35,7 +34,7 @@ export class StackActionUtil extends AgentActionUtil<IAgentStackEvent> {
 		}
 	}
 
-	override transformAction(action: Streaming<IAgentStackEvent>, transform: AgentTransform) {
+	override transformAction(action: Streaming<IAgentStackEvent>, transform: AgentRequestTransform) {
 		if (!action.complete) return action
 
 		action.shapeIds = transform.ensureShapeIdsAreReal(action.shapeIds)
@@ -43,9 +42,9 @@ export class StackActionUtil extends AgentActionUtil<IAgentStackEvent> {
 		return action
 	}
 
-	override applyAction(action: Streaming<IAgentStackEvent>, agent: TldrawAgent) {
+	override applyAction(action: Streaming<IAgentStackEvent>, transform: AgentRequestTransform) {
 		if (!action.complete) return
-		const { editor } = agent
+		const { editor } = transform
 
 		editor.stackShapes(
 			action.shapeIds.map((id) => `shape:${id}` as TLShapeId),

@@ -1,5 +1,5 @@
 import { RecordsDiff, reverseRecordsDiff, structuredClone, TLRecord } from 'tldraw'
-import { AgentTransform } from '../../shared/AgentTransform'
+import { AgentRequestTransform } from '../../shared/AgentRequestTransform'
 import { AgentRequest } from '../../shared/types/AgentRequest'
 import { IChatHistoryItem } from '../../shared/types/ChatHistoryItem'
 import { streamAgent } from './streamAgent'
@@ -39,7 +39,7 @@ export function requestAgent({
 	let cancelled = false
 	const controller = new AbortController()
 	const signal = controller.signal
-	const transform = new AgentTransform(agent)
+	const transform = new AgentRequestTransform(agent)
 
 	const promise = new Promise<void>((resolve) => {
 		agent.preparePrompt(request, transform).then(async (prompt) => {
@@ -75,7 +75,7 @@ export function requestAgent({
 							}
 
 							// Apply the action to the app and editor
-							const diff = agent.act(transformedAction)
+							const diff = agent.act(transformedAction, transform)
 
 							// The the action is incomplete, save the diff so that we can revert it in the future
 							prevDiff = transformedAction.complete ? null : diff

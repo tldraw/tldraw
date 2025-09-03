@@ -1,21 +1,52 @@
-import { BoxModel, TLShapeId, VecModel } from 'tldraw'
+import { BoxModel, Editor, TLShapeId, VecModel } from 'tldraw'
 import { TldrawAgent } from '../client/agent/TldrawAgent'
 import { ISimpleFill, SimpleFill } from './format/SimpleFill'
 import { ISimpleShape } from './format/SimpleShape'
 
 /**
- * A class that can transform prompt parts going to the model and actions
- * received from the model.
+ * This class handles the transformations that can happen throughout a single
+ * agent request. It contains helpers that can be used to transform prompt parts
+ * before they get sent to the model, as well as helpers that can be used to
+ * transform incoming actions as they get streamed back from the model.
  *
- * Many transformation methods save some state that can be referred to by other
- * transformations. For example, when sanitizing shape IDs, the original ID is
- * saved so that future transformations can refer to it by its original ID.
+ * For example, `applyOffsetToShape` adjusts the position of a shape to make it
+ * relative to the current chat origin. The `removeOffsetFromShape` method
+ * reverses it. This is helpful because it helps to keep numbers low, which is
+ * easier for the model to deal with.
+ *
+ * Many transformation methods save some state. For example, the
+ * `ensureShapeIdIsUnique` method changes a shape's ID if it's not unique, and
+ * it saves a record of this change so that further actions can continue to
+ * refer to the shape by its untransformed ID.
  */
-export class AgentTransform {
-	constructor(public agent: TldrawAgent) {}
+export class AgentRequestTransform {
+	/**
+	 * The agent that the transform is for.
+	 */
+	agent: TldrawAgent
 
 	/**
-	 * A map of shape ids that have been transformed.
+	 * The editor that the transform is for.
+	 */
+	editor: Editor
+
+	constructor(agent: TldrawAgent) {
+		this.agent = agent
+		this.editor = agent.editor
+		const origin = agent.$chatOrigin.get()
+		this.offset = {
+			x: -origin.x,
+			y: -origin.y,
+		}
+	}
+
+	/**
+	 * The offset of the current request from the chat origin.
+	 */
+	offset: VecModel = { x: 0, y: 0 }
+
+	/**
+	 * A map of shape ids that have been transformed as part of this request.
 	 * The key is the original id, and the value is the transformed id.
 	 */
 	shapeIdMap = new Map<string, string>()
@@ -25,6 +56,121 @@ export class AgentTransform {
 	 * These are used to restore the original values of rounded numbers.
 	 */
 	roundingDiffMap = new Map<string, number>()
+
+	/**
+	 * Apply the offset of this request to a position.
+	 */
+	applyOffsetToVec(position: VecModel): VecModel {
+		return {
+			x: position.x + this.offset.x,
+			y: position.y + this.offset.y,
+		}
+	}
+
+	/**
+	 * Remove the offset of this request from a position.
+	 */
+	removeOffsetFromVec(position: VecModel): VecModel {
+		return {
+			x: position.x - this.offset.x,
+			y: position.y - this.offset.y,
+		}
+	}
+
+	/**
+	 * Apply the offset of this request to a box.
+	 */
+	applyOffsetToBox(box: BoxModel): BoxModel {
+		return {
+			x: box.x + this.offset.x,
+			y: box.y + this.offset.y,
+			w: box.w,
+			h: box.h,
+		}
+	}
+
+	/**
+	 * Remove the offset of this request from a box.
+	 */
+	removeOffsetFromBox(box: BoxModel): BoxModel {
+		return {
+			x: box.x - this.offset.x,
+			y: box.y - this.offset.y,
+			w: box.w,
+			h: box.h,
+		}
+	}
+
+	/**
+	 * Apply the offset of this request to a shape.
+	 */
+	applyOffsetToShape(shape: ISimpleShape): ISimpleShape {
+		if ('x1' in shape) {
+			return {
+				...shape,
+				x1: shape.x1 + this.offset.x,
+				y1: shape.y1 + this.offset.y,
+				x2: shape.x2 + this.offset.x,
+				y2: shape.y2 + this.offset.y,
+			}
+		}
+		if ('x' in shape) {
+			return {
+				...shape,
+				x: shape.x + this.offset.x,
+				y: shape.y + this.offset.y,
+			}
+		}
+		return shape
+	}
+
+	/**
+	 * Apply the offset of this request to a shape partial.
+	 */
+	applyOffsetToShapePartial(shape: Partial<ISimpleShape>): Partial<ISimpleShape> {
+		if ('x' in shape && shape.x !== undefined) {
+			return { ...shape, x: shape.x + this.offset.x }
+		}
+		if ('y' in shape && shape.y !== undefined) {
+			return { ...shape, y: shape.y + this.offset.y }
+		}
+		if ('x1' in shape && shape.x1 !== undefined) {
+			return { ...shape, x1: shape.x1 + this.offset.x }
+		}
+		if ('y1' in shape && shape.y1 !== undefined) {
+			return { ...shape, y1: shape.y1 + this.offset.y }
+		}
+		if ('x2' in shape && shape.x2 !== undefined) {
+			return { ...shape, x2: shape.x2 + this.offset.x }
+		}
+		if ('y2' in shape && shape.y2 !== undefined) {
+			return { ...shape, y2: shape.y2 + this.offset.y }
+		}
+		return shape
+	}
+
+	/**
+	 * Remove the offset of this request from a shape.
+	 */
+	removeOffsetFromShape(shape: ISimpleShape): ISimpleShape {
+		if ('x1' in shape) {
+			return {
+				...shape,
+				x1: shape.x1 - this.offset.x,
+				y1: shape.y1 - this.offset.y,
+				x2: shape.x2 - this.offset.x,
+				y2: shape.y2 - this.offset.y,
+			}
+		}
+		if ('x' in shape) {
+			return {
+				...shape,
+				x: shape.x - this.offset.x,
+				y: shape.y - this.offset.y,
+			}
+		}
+		return shape
+	}
 
 	/**
 	 * Ensure that a shape ID is unique.

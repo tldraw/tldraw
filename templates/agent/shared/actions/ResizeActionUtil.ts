@@ -1,23 +1,23 @@
 import { TLShapeId } from 'tldraw'
 import z from 'zod'
-import { TldrawAgent } from '../../client/agent/TldrawAgent'
-import { AgentTransform } from '../AgentTransform'
+import { AgentRequestTransform } from '../AgentRequestTransform'
 import { Streaming } from '../types/Streaming'
 import { AgentActionUtil } from './AgentActionUtil'
 
 const ResizeAction = z
 	.object({
 		_type: z.literal('resize'),
-		centerX: z.number(),
-		centerY: z.number(),
 		intent: z.string(),
+		originX: z.number(),
+		originY: z.number(),
 		scaleX: z.number(),
 		scaleY: z.number(),
 		shapeIds: z.array(z.string()),
 	})
 	.meta({
 		title: 'Resize',
-		description: 'The AI resizes one or more shapes around a center point.',
+		description:
+			'The AI resizes one or more shapes, with the resize operation being performed relative to an origin point.',
 	})
 
 type IResizeAction = z.infer<typeof ResizeAction>
@@ -36,7 +36,7 @@ export class ResizeActionUtil extends AgentActionUtil<IResizeAction> {
 		}
 	}
 
-	override transformAction(action: Streaming<IResizeAction>, transform: AgentTransform) {
+	override transformAction(action: Streaming<IResizeAction>, transform: AgentRequestTransform) {
 		const shapeIds = transform.ensureShapeIdsAreReal(action.shapeIds ?? [])
 		if (shapeIds.length === 0) return null
 
@@ -44,29 +44,24 @@ export class ResizeActionUtil extends AgentActionUtil<IResizeAction> {
 		return action
 	}
 
-	override applyAction(action: Streaming<IResizeAction>, agent: TldrawAgent) {
-		const { editor } = agent
+	override applyAction(action: Streaming<IResizeAction>, transform: AgentRequestTransform) {
+		const { editor } = transform
 
 		if (
 			!action.shapeIds ||
 			!action.scaleX ||
 			!action.scaleY ||
-			!action.centerX ||
-			!action.centerY
+			!action.originX ||
+			!action.originY
 		) {
 			return
 		}
 
+		const origin = transform.removeOffsetFromVec({ x: action.originX, y: action.originY })
 		const shapeIds = action.shapeIds.map((shapeId) => `shape:${shapeId}` as TLShapeId)
 
 		for (const shapeId of shapeIds) {
-			editor.resizeShape(
-				shapeId,
-				{ x: action.scaleX, y: action.scaleY },
-				{
-					scaleOrigin: { x: action.centerX, y: action.centerY },
-				}
-			)
+			editor.resizeShape(shapeId, { x: action.scaleX, y: action.scaleY }, { scaleOrigin: origin })
 		}
 	}
 }

@@ -1,5 +1,5 @@
 import { z } from 'zod'
-import { TldrawAgent } from '../../client/agent/TldrawAgent'
+import { AgentRequestTransform } from '../AgentRequestTransform'
 import { Streaming } from '../types/Streaming'
 import { AgentActionUtil } from './AgentActionUtil'
 
@@ -29,8 +29,9 @@ export class TodoListActionUtil extends AgentActionUtil<ITodoListAction> {
 		return null
 	}
 
-	override applyAction(action: Streaming<ITodoListAction>, agent: TldrawAgent) {
+	override applyAction(action: Streaming<ITodoListAction>, transform: AgentRequestTransform) {
 		if (!action.complete) return
+		const { agent } = transform
 
 		const todoItem = {
 			id: action.id,

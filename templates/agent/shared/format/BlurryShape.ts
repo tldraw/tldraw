@@ -1,11 +1,15 @@
-import { BoxModel, Editor, TLDefaultShape, TLShape } from 'tldraw'
+import { Editor, TLDefaultShape, TLShape } from 'tldraw'
 import { convertTldrawTypeToSimpleType } from './SimpleGeoShapeType'
 import { convertTldrawIdToSimpleId, ISimpleShape } from './SimpleShape'
 
-export type BlurryShape = BoxModel & {
-	type: ISimpleShape['_type']
+export interface BlurryShape {
 	shapeId: string
 	text?: string
+	type: ISimpleShape['_type']
+	x: number
+	y: number
+	w: number
+	h: number
 }
 
 // right now we're only doing this conversion to shapes in the viewport

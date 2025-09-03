@@ -1,5 +1,6 @@
 import { Box } from 'tldraw'
 import { TldrawAgent } from '../../client/agent/TldrawAgent'
+import { AgentRequestTransform } from '../AgentRequestTransform'
 import { BlurryShape, convertTldrawShapeToBlurryShape } from '../format/BlurryShape'
 import { AgentRequest } from '../types/AgentRequest'
 import { BasePromptPart } from '../types/BasePromptPart'
@@ -33,6 +34,22 @@ export class BlurryShapesPartUtil extends PromptPartUtil<BlurryShapesPart> {
 			type: 'blurryShapes',
 			shapes: blurryShapes,
 		}
+	}
+
+	override transformPart(part: BlurryShapesPart, transform: AgentRequestTransform) {
+		for (const shape of part.shapes) {
+			const bounds = transform.applyOffsetToBox({
+				x: shape.x,
+				y: shape.y,
+				w: shape.w,
+				h: shape.h,
+			})
+			shape.x = bounds.x
+			shape.y = bounds.y
+			shape.w = bounds.w
+			shape.h = bounds.h
+		}
+		return part
 	}
 
 	override buildContent({ shapes }: BlurryShapesPart): string[] {

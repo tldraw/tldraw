@@ -1,6 +1,6 @@
-import { atom, Editor, RecordsDiff, structuredClone, TLRecord } from 'tldraw'
+import { atom, Editor, RecordsDiff, structuredClone, TLRecord, TLShapeId, VecModel } from 'tldraw'
 import { AgentActionUtil } from '../../shared/actions/AgentActionUtil'
-import { AgentTransform } from '../../shared/AgentTransform'
+import { AgentRequestTransform } from '../../shared/AgentRequestTransform'
 import { getAgentActionUtilsRecord, getPromptPartUtilsRecord } from '../../shared/AgentUtils'
 import { PromptPartUtil } from '../../shared/parts/PromptPartUtil'
 import { AgentAction } from '../../shared/types/AgentAction'
@@ -57,36 +57,53 @@ export class TldrawAgent {
 	$activeRequest = atom<AgentRequest | null>('activeRequest', null)
 
 	/**
-	 * An atom containing the next request that the agent has scheduled for itself.
-	 * Null if there is no scheduled request.
+	 * An atom containing the next request that the agent has scheduled for
+	 * itself. Null if there is no scheduled request.
 	 */
 	$scheduledRequest = atom<AgentRequest | null>('scheduledRequest', null)
 
 	/**
-	 * An atom containing the todo list that the agent may write for itself.
-	 */
-	$todoList = atom<TodoItem[]>('todoList', [])
-
-	/**
-	 * An atom containing the chat history.
+	 * An atom containing the agent's chat history.
 	 */
 	$chatHistory = atom<IChatHistoryItem[]>('chatHistory', [])
 
 	/**
-	 * An atom that's used to store document changes made by the user since the previous request.
+	 * An atom containing the position on the page where the current chat
+	 * started.
+	 */
+	$chatOrigin = atom<VecModel>('chatOrigin', { x: 0, y: 0 })
+
+	/**
+	 * An atom containing a mapping of simplified shape ids to their original
+	 * tldraw shapes ids, for the current chat.
+	 *
+	 * eg: "shape:rectangle-1" to "shape:n50JvZRsCDqH_CUvsu7ct"
+	 */
+	$chatIdMap = atom<Record<TLShapeId, TLShapeId>>('chatIdMap', {})
+
+	/**
+	 * An atom containing the agent's todo list.
+	 */
+	$todoList = atom<TodoItem[]>('todoList', [])
+
+	/**
+	 * An atom that's used to store document changes made by the user since the
+	 * previous request.
 	 */
 	$userActionHistory = atom<RecordsDiff<TLRecord>[]>('userActionHistory', [])
 
 	/**
-	 * An atom containing currently selected context items.
-	 * By default, selected context items will be included in the agent's next request.
+	 * An atom containing currently selected context items. By default, selected
+	 * context items will be included in the agent's next request.
 	 */
 	$contextItems = atom<IContextItem[]>('contextItems', [])
 
 	/**
-	 * An atom containing the model name that the user has selected.
-	 * This model name will be passed through to prompts unless manually overridden.
-	 * Note: Prompt part utils may ignore or override this value. See the ModelNamePartUtil for an example.
+	 * An atom containing the model name that the user has selected. This gets
+	 * passed through to prompts unless manually overridden.
+	 *
+	 * Note: Prompt part utils may ignore or override this value. See the
+	 * ModelNamePartUtil for an example.
 	 */
 	$modelName = atom<AgentModelName>('modelName', DEFAULT_MODEL_NAME)
 
@@ -102,10 +119,12 @@ export class TldrawAgent {
 		this.promptPartUtils = getPromptPartUtilsRecord()
 		this.unknownActionUtil = this.agentActionUtils.unknown
 
-		persistAtomInLocalStorage(this.$chatHistory, `${id}:chat-history-items`)
+		persistAtomInLocalStorage(this.$chatHistory, `${id}:chat-history`)
+		persistAtomInLocalStorage(this.$chatOrigin, `${id}:chat-origin`)
+		persistAtomInLocalStorage(this.$chatIdMap, `${id}:chat-id-map`)
+		persistAtomInLocalStorage(this.$modelName, `${id}:model-name`)
 		persistAtomInLocalStorage(this.$todoList, `${id}:todo-items`)
 		persistAtomInLocalStorage(this.$contextItems, `${id}:context-items`)
-		persistAtomInLocalStorage(this.$modelName, `${id}:model-name`)
 
 		this.stopRecordingFn = this.startRecordingUserActions()
 	}
@@ -150,8 +169,10 @@ export class TldrawAgent {
 
 	/**
 	 * The agent action util instance for the "unknown" action type.
-	 * Returned by the `getAgentActionUtil` method when the action type isn't properly specified.
-	 * This can happen if the model isn't finished streaming yet or makes a mistake.
+	 *
+	 * This is returned by the `getAgentActionUtil` method when the action type
+	 * isn't properly specified. This can happen if the model isn't finished
+	 * streaming yet or makes a mistake.
 	 */
 	unknownActionUtil: AgentActionUtil<AgentAction>
 
@@ -189,7 +210,10 @@ export class TldrawAgent {
 	 * @param transform - The transform to use.
 	 * @returns The fully assembled prompt.
 	 */
-	async preparePrompt(request: AgentRequest, transform: AgentTransform): Promise<AgentPrompt> {
+	async preparePrompt(
+		request: AgentRequest,
+		transform: AgentRequestTransform
+	): Promise<AgentPrompt> {
 		const { promptPartUtils } = this
 		const transformedParts: PromptPart[] = []
 
@@ -215,7 +239,7 @@ export class TldrawAgent {
 	 * agent.prompt({ message: 'Draw a snowman' })
 	 * ```
 	 *
-	 * @returns A promise that resolves when the agent has finished its work.
+	 * @returns A promise for when the agent has finished its work.
 	 */
 	async prompt(input: AgentInput) {
 		const request = this.getRequestFromInput(input)
@@ -260,7 +284,8 @@ export class TldrawAgent {
 	 * carrying out evals.
 	 *
 	 * @param input - The input to form the request from.
-	 * @returns A promise that resolves when the request is complete and a cancel function to abort the request.
+	 * @returns A promise for when the request is complete and a cancel function
+	 * to abort the request.
 	 */
 	async request(input: AgentInput) {
 		const request = this.getRequestFromInput(input)
@@ -330,14 +355,15 @@ export class TldrawAgent {
 	/**
 	 * Make the agent perform an action.
 	 * @param action The action to make the agent do.
+	 * @param transform The transform to use.
 	 * @returns The diff of the action.
 	 */
-	act(action: Streaming<AgentAction>) {
+	act(action: Streaming<AgentAction>, transform = new AgentRequestTransform(this)) {
 		const { editor } = this
 		const util = this.getAgentActionUtil(action._type)
 		this.isActing = true
 		const diff = editor.store.extractingChanges(() => {
-			util.applyAction(structuredClone(action), this)
+			util.applyAction(structuredClone(action), transform)
 		})
 		this.isActing = false
 
@@ -350,18 +376,22 @@ export class TldrawAgent {
 				acceptance: 'pending',
 			}
 
-			this.$chatHistory.update((items) => {
+			this.$chatHistory.update((historyItems) => {
 				// If there are no items, start off the chat history with the first item
-				if (items.length === 0) return [historyItem]
+				if (historyItems.length === 0) return [historyItem]
 
 				// If the last item is still in progress, replace it with the new item
-				const lastItem = items.at(-1)
-				if (lastItem && lastItem.type === 'action' && !lastItem.action.complete) {
-					return [...items.slice(0, -1), historyItem]
+				const lastHistoryItem = historyItems.at(-1)
+				if (
+					lastHistoryItem &&
+					lastHistoryItem.type === 'action' &&
+					!lastHistoryItem.action.complete
+				) {
+					return [...historyItems.slice(0, -1), historyItem]
 				}
 
 				// Otherwise, just add the new item to the end of the list
-				return [...items, historyItem]
+				return [...historyItems, historyItem]
 			})
 		}
 		return diff
@@ -390,8 +420,12 @@ export class TldrawAgent {
 		this.cancel()
 		this.$contextItems.set([])
 		this.$todoList.set([])
-		this.$chatHistory.set([])
 		this.$userActionHistory.set([])
+
+		const viewport = this.editor.getViewportPageBounds()
+		this.$chatHistory.set([])
+		this.$chatIdMap.set({})
+		this.$chatOrigin.set({ x: viewport.x, y: viewport.y })
 	}
 
 	/**
@@ -477,7 +511,9 @@ export class TldrawAgent {
 	}
 
 	/**
-	 * Add a context item to the agent's context, ensuring that duplicates are not included.
+	 * Add a context item to the agent's context, ensuring that duplicates are
+	 * not included.
+	 *
 	 * @param item The context item to add.
 	 */
 	addToContext(item: IContextItem) {
@@ -506,8 +542,9 @@ export class TldrawAgent {
 	}
 
 	/**
-	 * Check if the agent's context contains a specific context item.
-	 * This could mean as an individual item, or as part of a group of items.
+	 * Check if the agent's context contains a specific context item. This could
+	 * mean as an individual item, or as part of a group of items.
+	 *
 	 * @param item The context item to check for.
 	 * @returns True if the agent's context contains the item, false otherwise.
 	 */

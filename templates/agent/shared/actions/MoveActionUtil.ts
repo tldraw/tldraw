@@ -1,7 +1,6 @@
 import { TLShapeId, Vec } from 'tldraw'
 import z from 'zod'
-import { TldrawAgent } from '../../client/agent/TldrawAgent'
-import { AgentTransform, ensureValueIsNumber } from '../AgentTransform'
+import { AgentRequestTransform, ensureValueIsNumber } from '../AgentRequestTransform'
 import { Streaming } from '../types/Streaming'
 import { AgentActionUtil } from './AgentActionUtil'
 
@@ -31,27 +30,31 @@ export class MoveActionUtil extends AgentActionUtil<IMoveAction> {
 		}
 	}
 
-	override transformAction(action: Streaming<IMoveAction>, transform: AgentTransform) {
+	override transformAction(action: Streaming<IMoveAction>, transform: AgentRequestTransform) {
 		if (!action.complete) return action
 
+		// Make sure the shape ID refers to a real shape
 		const shapeId = transform.ensureShapeIdIsReal(action.shapeId)
 		if (!shapeId) return null
+		action.shapeId = shapeId
 
+		// Make sure the x and y values are numbers
 		const floatX = ensureValueIsNumber(action.x)
 		const floatY = ensureValueIsNumber(action.y)
 		if (floatX === null || floatY === null) return null
-
 		action.x = floatX
 		action.y = floatY
 
-		action.shapeId = shapeId
 		return action
 	}
 
-	override applyAction(action: Streaming<IMoveAction>, agent: TldrawAgent) {
+	override applyAction(action: Streaming<IMoveAction>, transform: AgentRequestTransform) {
 		if (!action.complete) return
-		const { editor } = agent
 
+		// Translate the position back to the chat's position
+		const { x, y } = transform.removeOffsetFromVec({ x: action.x, y: action.y })
+
+		const { editor } = transform
 		const shapeId = `shape:${action.shapeId}` as TLShapeId
 		const shape = editor.getShape(shapeId)
 		if (!shape) return
@@ -59,7 +62,7 @@ export class MoveActionUtil extends AgentActionUtil<IMoveAction> {
 		const shapeBounds = editor.getShapePageBounds(shapeId)
 		if (!shapeBounds) return
 
-		const moveTarget = new Vec(action.x, action.y)
+		const moveTarget = new Vec(x, y)
 		const shapeOrigin = new Vec(shape.x, shape.y)
 		const shapeBoundsOrigin = new Vec(shapeBounds.minX, shapeBounds.minY)
 

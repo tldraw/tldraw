@@ -1,22 +1,22 @@
 import { TLShapeId } from 'tldraw'
 import z from 'zod'
-import { TldrawAgent } from '../../client/agent/TldrawAgent'
-import { AgentTransform } from '../AgentTransform'
+import { AgentRequestTransform } from '../AgentRequestTransform'
 import { Streaming } from '../types/Streaming'
 import { AgentActionUtil } from './AgentActionUtil'
 
 const RotateAction = z
 	.object({
 		_type: z.literal('rotate'),
-		centerX: z.number(),
 		centerY: z.number(),
 		degrees: z.number(),
 		intent: z.string(),
+		originX: z.number(),
+		originY: z.number(),
 		shapeIds: z.array(z.string()),
 	})
 	.meta({
 		title: 'Rotate',
-		description: 'The AI rotates one or more shapes around a center point.',
+		description: 'The AI rotates one or more shapes around an origin point.',
 	})
 
 type IRotateAction = z.infer<typeof RotateAction>
@@ -35,23 +35,22 @@ export class RotateActionUtil extends AgentActionUtil<IRotateAction> {
 		}
 	}
 
-	override transformAction(action: Streaming<IRotateAction>, transform: AgentTransform) {
+	override transformAction(action: Streaming<IRotateAction>, transform: AgentRequestTransform) {
 		action.shapeIds = transform.ensureShapeIdsAreReal(action.shapeIds ?? [])
 		return action
 	}
 
-	override applyAction(action: Streaming<IRotateAction>, agent: TldrawAgent) {
-		const { editor } = agent
+	override applyAction(action: Streaming<IRotateAction>, transform: AgentRequestTransform) {
+		const { editor } = transform
 
-		if (!action.shapeIds || !action.degrees || !action.centerX || !action.centerY) {
+		if (!action.shapeIds || !action.degrees || !action.originX || !action.originY) {
 			return
 		}
 
+		const origin = transform.removeOffsetFromVec({ x: action.originX, y: action.originY })
 		const shapeIds = action.shapeIds.map((shapeId) => `shape:${shapeId}` as TLShapeId)
 		const radians = (action.degrees * Math.PI) / 180
 
-		editor.rotateShapesBy(shapeIds, radians, {
-			center: { x: action.centerX, y: action.centerY },
-		})
+		editor.rotateShapesBy(shapeIds, radians, { center: origin })
 	}
 }

@@ -1,6 +1,6 @@
 import { Box, BoxModel, Editor, TLShape } from 'tldraw'
 import { TldrawAgent } from '../../client/agent/TldrawAgent'
-import { roundBox } from '../AgentTransform'
+import { AgentRequestTransform, roundBox } from '../AgentRequestTransform'
 import { AgentRequest } from '../types/AgentRequest'
 import { BasePromptPart } from '../types/BasePromptPart'
 import { PromptPartUtil } from './PromptPartUtil'
@@ -43,11 +43,15 @@ export class PeripheralShapesPartUtil extends PromptPartUtil<PeripheralShapesPar
 		}
 	}
 
-	override transformPart(part: PeripheralShapesPart): PeripheralShapesPart | null {
+	override transformPart(
+		part: PeripheralShapesPart,
+		transform: AgentRequestTransform
+	): PeripheralShapesPart | null {
 		const clusters = part.clusters.map((cluster) => {
+			const offsetBounds = transform.applyOffsetToBox(cluster.bounds)
 			return {
 				numberOfShapes: cluster.numberOfShapes,
-				bounds: roundBox(cluster.bounds),
+				bounds: roundBox(offsetBounds),
 			}
 		})
 		return { ...part, clusters }

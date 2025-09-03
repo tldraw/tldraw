@@ -11,8 +11,7 @@ import {
 } from 'tldraw'
 import z from 'zod'
 import { applyAiChange } from '../../client/agent/applyAiChange'
-import { TldrawAgent } from '../../client/agent/TldrawAgent'
-import { AgentTransform } from '../AgentTransform'
+import { AgentRequestTransform } from '../AgentRequestTransform'
 import { asColor } from '../format/SimpleColor'
 import { convertSimpleFillToTldrawFill } from '../format/SimpleFill'
 import { convertSimpleFontSizeToTldrawFontSizeAndScale } from '../format/SimpleFontSize'
@@ -52,7 +51,7 @@ export class CreateActionUtil extends AgentActionUtil<ICreateAction> {
 		}
 	}
 
-	override transformAction(action: Streaming<ICreateAction>, transform: AgentTransform) {
+	override transformAction(action: Streaming<ICreateAction>, transform: AgentRequestTransform) {
 		if (!action.complete) return action
 
 		const shape = action.shape
@@ -73,9 +72,12 @@ export class CreateActionUtil extends AgentActionUtil<ICreateAction> {
 		return action
 	}
 
-	override applyAction(action: Streaming<ICreateAction>, agent: TldrawAgent) {
+	override applyAction(action: Streaming<ICreateAction>, transform: AgentRequestTransform) {
 		if (!action.complete) return
-		const { editor } = agent
+		const { editor } = transform
+
+		// Translate the shape back to the chat's position
+		action.shape = transform.removeOffsetFromShape(action.shape)
 
 		const aiChanges = getTldrawAiChangesFromCreateAction({ editor, action })
 		for (const aiChange of aiChanges) {

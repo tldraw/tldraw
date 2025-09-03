@@ -1,7 +1,6 @@
 import { TLShapeId } from 'tldraw'
 import z from 'zod'
-import { TldrawAgent } from '../../client/agent/TldrawAgent'
-import { AgentTransform } from '../AgentTransform'
+import { AgentRequestTransform } from '../AgentRequestTransform'
 import { BaseAgentAction } from '../types/BaseAgentAction'
 import { Streaming } from '../types/Streaming'
 import { AgentActionUtil } from './AgentActionUtil'
@@ -31,7 +30,7 @@ export class DeleteActionUtil extends AgentActionUtil<IDeleteAction> {
 		}
 	}
 
-	override transformAction(action: Streaming<IDeleteAction>, transform: AgentTransform) {
+	override transformAction(action: Streaming<IDeleteAction>, transform: AgentRequestTransform) {
 		if (!action.complete) return action
 
 		const shapeId = transform.ensureShapeIdIsReal(action.shapeId)
@@ -41,9 +40,9 @@ export class DeleteActionUtil extends AgentActionUtil<IDeleteAction> {
 		return action
 	}
 
-	override applyAction(action: Streaming<IDeleteAction>, agent: TldrawAgent) {
+	override applyAction(action: Streaming<IDeleteAction>, transform: AgentRequestTransform) {
 		if (!action.complete) return
-		const { editor } = agent
+		const { editor } = transform
 
 		editor.deleteShape(`shape:${action.shapeId}` as TLShapeId)
 	}

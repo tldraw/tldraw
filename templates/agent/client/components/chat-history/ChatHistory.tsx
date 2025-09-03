@@ -31,8 +31,8 @@ Here's an example of how the UI might look:
 */
 
 export function ChatHistory({ agent }: { agent: TldrawAgent }) {
-	const items = useValue(agent.$chatHistory)
-	const sections = getAgentHistorySections(items)
+	const historyItems = useValue(agent.$chatHistory)
+	const sections = getAgentHistorySections(historyItems)
 	const historyRef = useRef<HTMLDivElement>(null)
 	const previousScrollDistanceFromBottomRef = useRef(0)
 
@@ -40,7 +40,7 @@ export function ChatHistory({ agent }: { agent: TldrawAgent }) {
 		if (!historyRef.current) return
 
 		// If a new prompt is submitted by the user, scroll to the bottom
-		if (items.at(-1)?.type === 'prompt') {
+		if (historyItems.at(-1)?.type === 'prompt') {
 			if (previousScrollDistanceFromBottomRef.current <= 0) {
 				historyRef.current.scrollTo(0, historyRef.current.scrollHeight)
 				previousScrollDistanceFromBottomRef.current = 0
@@ -59,7 +59,7 @@ export function ChatHistory({ agent }: { agent: TldrawAgent }) {
 				historyRef.current.scrollTo(0, historyRef.current.scrollHeight)
 			}
 		}
-	}, [historyRef, items])
+	}, [historyRef, historyItems])
 
 	// Keep track of the user's scroll position
 	const handleScroll = () => {

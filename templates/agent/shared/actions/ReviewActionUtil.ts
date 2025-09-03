@@ -1,5 +1,5 @@
 import z from 'zod'
-import { TldrawAgent } from '../../client/agent/TldrawAgent'
+import { AgentRequestTransform } from '../AgentRequestTransform'
 import { IAreaContextItem } from '../types/ContextItem'
 import { Streaming } from '../types/Streaming'
 import { AgentActionUtil } from './AgentActionUtil'
@@ -39,15 +39,16 @@ export class ReviewActionUtil extends AgentActionUtil<IReviewAction> {
 		}
 	}
 
-	override applyAction(action: Streaming<IReviewAction>, agent: TldrawAgent) {
+	override applyAction(action: Streaming<IReviewAction>, transform: AgentRequestTransform) {
 		if (!action.complete) return
+		const { agent } = transform
 
-		const bounds = {
+		const bounds = transform.removeOffsetFromBox({
 			x: action.x,
 			y: action.y,
 			w: action.w,
 			h: action.h,
-		}
+		})
 
 		const contextArea: IAreaContextItem = {
 			type: 'area',

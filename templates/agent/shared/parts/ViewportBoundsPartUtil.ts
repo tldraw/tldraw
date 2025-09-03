@@ -1,41 +1,44 @@
 import { Box, BoxModel } from 'tldraw'
 import { TldrawAgent } from '../../client/agent/TldrawAgent'
-import { roundBox } from '../AgentTransform'
+import { AgentRequestTransform, roundBox } from '../AgentRequestTransform'
 import { AgentRequest } from '../types/AgentRequest'
 import { BasePromptPart } from '../types/BasePromptPart'
 import { PromptPartUtil } from './PromptPartUtil'
 
-export interface UserViewportBoundsPart extends BasePromptPart<'userViewportBounds'> {
+export interface ViewportBoundsPart extends BasePromptPart<'viewportBounds'> {
 	userBounds: BoxModel
 	agentBounds: BoxModel
 }
 
-export class UserViewportBoundsPartUtil extends PromptPartUtil<UserViewportBoundsPart> {
-	static override type = 'userViewportBounds' as const
+export class ViewportBoundsPartUtil extends PromptPartUtil<ViewportBoundsPart> {
+	static override type = 'viewportBounds' as const
 
 	override getPriority() {
 		return 75 // user viewport after context bounds (low priority)
 	}
 
-	override getPart(request: AgentRequest, agent: TldrawAgent): UserViewportBoundsPart {
+	override getPart(request: AgentRequest, agent: TldrawAgent): ViewportBoundsPart {
 		const { editor } = agent
 		const userBounds = editor.getViewportPageBounds()
 		return {
-			type: 'userViewportBounds',
+			type: 'viewportBounds',
 			userBounds: userBounds.toJson(),
 			agentBounds: request.bounds,
 		}
 	}
 
-	override transformPart(part: UserViewportBoundsPart): UserViewportBoundsPart {
+	override transformPart(
+		part: ViewportBoundsPart,
+		transform: AgentRequestTransform
+	): ViewportBoundsPart {
 		return {
 			...part,
-			userBounds: roundBox(part.userBounds),
-			agentBounds: roundBox(part.agentBounds),
+			userBounds: roundBox(transform.applyOffsetToBox(part.userBounds)),
+			agentBounds: roundBox(transform.applyOffsetToBox(part.agentBounds)),
 		}
 	}
 
-	override buildContent({ userBounds, agentBounds }: UserViewportBoundsPart): string[] {
+	override buildContent({ userBounds, agentBounds }: ViewportBoundsPart): string[] {
 		const agentViewportBounds = agentBounds
 
 		const doUserAndAgentShareViewport =
@@ -66,8 +69,11 @@ export class UserViewportBoundsPartUtil extends PromptPartUtil<UserViewportBound
 				)
 			}
 		}
-
-		const response = [`The user's view is ${relativeViewportDescription} your view.`]
+		const response = [
+			`The bounds of the part of the canvas that you can currently see are:`,
+			JSON.stringify(agentBounds),
+			`The user's view is ${relativeViewportDescription} your view.`,
+		]
 
 		if (!doUserAndAgentShareViewport) {
 			// If the user and agent share a viewport, we don't need to say anything about the bounds

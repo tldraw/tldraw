@@ -1,7 +1,6 @@
 import { TLShapeId } from 'tldraw'
 import z from 'zod'
-import { TldrawAgent } from '../../client/agent/TldrawAgent'
-import { AgentTransform } from '../AgentTransform'
+import { AgentRequestTransform } from '../AgentRequestTransform'
 import { Streaming } from '../types/Streaming'
 import { AgentActionUtil } from './AgentActionUtil'
 
@@ -33,14 +32,14 @@ export class DistributeActionUtil extends AgentActionUtil<IDistributeAction> {
 		}
 	}
 
-	override transformAction(action: Streaming<IDistributeAction>, transform: AgentTransform) {
+	override transformAction(action: Streaming<IDistributeAction>, transform: AgentRequestTransform) {
 		action.shapeIds = transform.ensureShapeIdsAreReal(action.shapeIds ?? [])
 		return action
 	}
 
-	override applyAction(action: Streaming<IDistributeAction>, agent: TldrawAgent) {
+	override applyAction(action: Streaming<IDistributeAction>, transform: AgentRequestTransform) {
 		if (!action.complete) return
-		const { editor } = agent
+		const { editor } = transform
 
 		editor.distributeShapes(
 			action.shapeIds.map((id) => `shape:${id}` as TLShapeId),

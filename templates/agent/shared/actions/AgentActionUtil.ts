@@ -1,6 +1,5 @@
 import z from 'zod'
-import { TldrawAgent } from '../../client/agent/TldrawAgent'
-import { AgentTransform } from '../AgentTransform'
+import { AgentRequestTransform } from '../AgentRequestTransform'
 import { BaseAgentAction } from '../types/BaseAgentAction'
 import { ChatHistoryInfo } from '../types/ChatHistoryInfo'
 import { Streaming } from '../types/Streaming'
@@ -32,7 +31,7 @@ export abstract class AgentActionUtil<T extends BaseAgentAction = BaseAgentActio
 	 * Useful for sanitizing or correcting actions.
 	 * @returns The transformed action, or null to reject the action
 	 */
-	transformAction(action: Streaming<T>, _transform: AgentTransform): Streaming<T> | null {
+	transformAction(action: Streaming<T>, _transform: AgentRequestTransform): Streaming<T> | null {
 		return action
 	}
 
@@ -40,7 +39,7 @@ export abstract class AgentActionUtil<T extends BaseAgentAction = BaseAgentActio
 	 * Apply the action to the editor.
 	 * Any changes that happen during this function will be displayed as a diff.
 	 */
-	applyAction(_action: Streaming<T>, _agent: TldrawAgent): void {
+	applyAction(_action: Streaming<T>, _transform: AgentRequestTransform): void {
 		// Do nothing by default
 	}
 

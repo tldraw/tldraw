@@ -20,7 +20,6 @@ import { ThinkActionUtil } from './actions/ThinkActionUtil'
 import { TodoListActionUtil } from './actions/TodoListActionUtil'
 import { UnknownActionUtil } from './actions/UnknownActionUtil'
 import { UpdateActionUtil } from './actions/UpdateActionUtil'
-import { AgentViewportBoundsPartUtil } from './parts/AgentViewportBoundsPartUtil'
 import { BlurryShapesPartUtil } from './parts/BlurryShapesPart'
 import { ChatHistoryItemsPartUtil } from './parts/ChatHistoryItemsPartUtil'
 import { ContextItemsPartUtil } from './parts/ContextItemsPartUtil'
@@ -33,7 +32,7 @@ import { SystemPromptPartUtil } from './parts/SystemPromptPartUtil'
 import { TodoListPartUtil } from './parts/TodoListPartUtil'
 import { UserActionHistoryPartUtil } from './parts/UserActionHistoryPartUtil'
 import { ModelNamePartUtil } from './parts/UserSelectedModelNamePartUtil'
-import { UserViewportBoundsPartUtil } from './parts/UserViewportBoundsPartUtil'
+import { ViewportBoundsPartUtil } from './parts/ViewportBoundsPartUtil'
 import { AgentAction } from './types/AgentAction'
 import { PromptPart } from './types/PromptPart'
 
@@ -54,8 +53,7 @@ export const PROMPT_PART_UTILS = [
 
 	// Viewport
 	ScreenshotPartUtil,
-	AgentViewportBoundsPartUtil,
-	UserViewportBoundsPartUtil,
+	ViewportBoundsPartUtil,
 
 	// Shapes
 	BlurryShapesPartUtil,
