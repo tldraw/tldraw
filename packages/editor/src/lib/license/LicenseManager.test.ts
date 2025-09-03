@@ -725,7 +725,7 @@ describe('getLicenseState', () => {
 			expect(getLicenseState(licenseResult, () => {}, false)).toBe('licensed-with-watermark')
 		})
 
-		it('returns "licensed-with-watermark" for valid evaluation license', () => {
+		it('returns "licensed" for valid evaluation license', () => {
 			const licenseResult = getDefaultLicenseResult({
 				isEvaluationLicense: true,
 				isLicensedWithWatermark: false, // Evaluation license doesn't need WITH_WATERMARK flag
@@ -733,8 +733,8 @@ describe('getLicenseState', () => {
 				isPerpetualLicense: false,
 			})
 
-			// Evaluation license should show watermark
-			expect(getLicenseState(licenseResult, () => {}, false)).toBe('licensed-with-watermark')
+			// Evaluation license should be licensed but tracked (no watermark shown)
+			expect(getLicenseState(licenseResult, () => {}, false)).toBe('licensed')
 
 			// Verify evaluation license properties
 			expect(licenseResult.isEvaluationLicense).toBe(true)

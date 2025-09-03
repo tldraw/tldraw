@@ -1,5 +1,4 @@
 import { atom } from '@tldraw/state'
-import { fetch } from '@tldraw/utils'
 import { publishDates } from '../../version'
 import { getDefaultCdnBaseUrl } from '../utils/assets'
 import { importPublicKey, str2ab } from '../utils/licensing'
@@ -107,12 +106,7 @@ export class LicenseManager {
 					this.isDevelopment
 				)
 
-				if (
-					licenseState === 'unlicensed-production' ||
-					(!this.isDevelopment && licenseState === 'licensed-with-watermark')
-				) {
-					fetch(WATERMARK_TRACK_SRC)
-				}
+				this.maybeTrack(result, licenseState)
 
 				this.state.set(licenseState)
 			})
@@ -131,6 +125,37 @@ export class LicenseManager {
 			!['https:', 'vscode-webview:'].includes(window.location.protocol) ||
 			window.location.hostname === 'localhost'
 		)
+	}
+
+	private shouldTrack(result: LicenseFromKeyResult, licenseState: LicenseState): boolean {
+		// Track watermark for unlicensed production deployments
+		if (licenseState === 'unlicensed-production') {
+			return true
+		}
+
+		// Skip tracking in development mode for other cases
+		if (this.isDevelopment) {
+			return false
+		}
+
+		// Track evaluation licenses (for analytics, even though no watermark is shown)
+		if (result.isLicenseParseable && result.isEvaluationLicense) {
+			return true
+		}
+
+		// Track licenses that explicitly show watermarks
+		if (licenseState === 'licensed-with-watermark') {
+			return true
+		}
+
+		return false
+	}
+
+	private maybeTrack(result: LicenseFromKeyResult, licenseState: LicenseState): void {
+		if (this.shouldTrack(result, licenseState)) {
+			// eslint-disable-next-line no-restricted-globals
+			fetch(WATERMARK_TRACK_SRC)
+		}
 	}
 
 	private async extractLicenseKey(licenseKey: string): Promise<LicenseInfo> {
@@ -428,8 +453,8 @@ export function getLicenseState(
 			])
 			return 'expired'
 		} else {
-			// Valid evaluation license should show watermark
-			return 'licensed-with-watermark'
+			// Valid evaluation license - tracked but no watermark shown
+			return 'licensed'
 		}
 	}
 
