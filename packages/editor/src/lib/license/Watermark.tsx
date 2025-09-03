@@ -86,8 +86,6 @@ To remove the watermark, please purchase a license at tldraw.dev.
 
 	.${className} {
 		position: absolute;
-		bottom: var(--tl-space-2);
-		right: var(--tl-space-2);
 		bottom: max(var(--tl-space-2), env(safe-area-inset-bottom));
 		right: max(var(--tl-space-2), env(safe-area-inset-right));
 		width: 96px;
@@ -118,13 +116,11 @@ To remove the watermark, please purchase a license at tldraw.dev.
 	}
 
 	.${className}[data-debug='true'] {
-		bottom: 46px;
 		bottom: max(46px, env(safe-area-inset-bottom));
 	}
 
 	.${className}[data-mobile='true'] {
 		border-radius: 4px 0px 0px 4px;
-		right: -2px;
 		right: max(-2px, calc(env(safe-area-inset-right) - 2px));
 		width: 8px;
 		height: 48px;
