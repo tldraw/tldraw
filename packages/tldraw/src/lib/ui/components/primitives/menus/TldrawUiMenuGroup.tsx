@@ -1,6 +1,7 @@
 import classNames from 'classnames'
 import { ReactNode } from 'react'
 import { unwrapLabel } from '../../../context/actions'
+import { useDir } from '../../../hooks/useTranslation/useTranslation'
 import { TLUiTranslationKey } from '../../../hooks/useTranslation/TLUiTranslationKey'
 import { useTranslation } from '../../../hooks/useTranslation/useTranslation'
 import { TldrawUiColumn, TldrawUiGrid, TldrawUiRow, useTldrawUiOrientation } from '../layout'
@@ -23,6 +24,7 @@ export function TldrawUiMenuGroup({ id, label, className, children }: TLUiMenuGr
 	const menu = useTldrawUiMenuContext()
 	const { orientation } = useTldrawUiOrientation()
 	const msg = useTranslation()
+	const dir = useDir()
 	const labelToUse = unwrapLabel(label, menu.type)
 	const labelStr = labelToUse ? msg(labelToUse as TLUiTranslationKey) : undefined
 
@@ -40,7 +42,7 @@ export function TldrawUiMenuGroup({ id, label, className, children }: TLUiMenuGr
 		case 'context-menu': {
 			return (
 				<div
-					dir="ltr"
+					dir={dir}
 					className={classNames('tlui-menu__group', className)}
 					data-testid={`${menu.sourceId}-group.${id}`}
 				>

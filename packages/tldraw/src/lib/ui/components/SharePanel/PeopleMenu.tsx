@@ -1,6 +1,7 @@
 import { useContainer, useEditor, usePeerIds, useValue } from '@tldraw/editor'
 import { Popover as _Popover } from 'radix-ui'
 import { ReactNode } from 'react'
+import { useDir } from '../../hooks/useTranslation/useTranslation'
 import { useMenuIsOpen } from '../../hooks/useMenuIsOpen'
 import { useTranslation } from '../../hooks/useTranslation/useTranslation'
 import { PeopleMenuAvatar } from './PeopleMenuAvatar'
@@ -16,6 +17,7 @@ export interface PeopleMenuProps {
 /** @public @react */
 export function PeopleMenu({ children }: PeopleMenuProps) {
 	const msg = useTranslation()
+	const dir = useDir()
 
 	const container = useContainer()
 	const editor = useEditor()
@@ -30,7 +32,7 @@ export function PeopleMenu({ children }: PeopleMenuProps) {
 
 	return (
 		<_Popover.Root onOpenChange={onOpenChange} open={isOpen}>
-			<_Popover.Trigger dir="ltr" asChild>
+			<_Popover.Trigger dir={dir} asChild>
 				<button className="tlui-people-menu__avatars-button" title={msg('people-menu.title')}>
 					<div className="tlui-people-menu__avatars">
 						{userIds.slice(-5).map((userId) => (
@@ -52,12 +54,13 @@ export function PeopleMenu({ children }: PeopleMenuProps) {
 			</_Popover.Trigger>
 			<_Popover.Portal container={container}>
 				<_Popover.Content
-					dir="ltr"
-					className="tlui-menu"
-					side="bottom"
-					sideOffset={2}
-					collisionPadding={4}
-				>
+				dir={dir}
+				className="tlui-menu"
+				side="bottom"
+				align={dir === 'rtl' ? 'end' : 'start'}
+				sideOffset={2}
+				collisionPadding={4}
+			>
 					<div className="tlui-people-menu__wrapper">
 						<div className="tlui-people-menu__section">
 							<UserPresenceEditor />
