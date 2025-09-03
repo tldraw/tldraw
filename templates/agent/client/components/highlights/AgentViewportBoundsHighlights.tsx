@@ -1,8 +1,11 @@
-import { Box, useValue } from 'tldraw'
-import { TldrawAgent } from '../../agent/TldrawAgent'
+import { Box, useEditor, useValue } from 'tldraw'
+import { useTldrawAgent } from '../../agent/useTldrawAgent'
+import { AGENT_ID } from '../../App'
 import { AreaHighlight } from './AreaHighlight'
 
-export function AgentViewportBoundsHighlight({ agent }: { agent: TldrawAgent }) {
+export function AgentViewportBoundsHighlight() {
+	const editor = useEditor()
+	const agent = useTldrawAgent(editor, AGENT_ID)
 	const currentRequest = useValue(agent.$activeRequest)
 	const agentViewportBounds = currentRequest?.bounds
 

@@ -1,7 +1,6 @@
-import { useEffect, useMemo, useState } from 'react'
+import { useEffect, useState } from 'react'
 import {
 	DefaultSizeStyle,
-	Editor,
 	ErrorBoundary,
 	TLComponents,
 	Tldraw,
@@ -20,9 +19,29 @@ import { enableLinedFillStyle } from './enableLinedFillStyle'
 import { TargetAreaTool } from './tools/TargetAreaTool'
 import { TargetShapeTool } from './tools/TargetShapeTool'
 
-enableLinedFillStyle()
-DefaultSizeStyle.setDefaultValue('s')
+/**
+ * The ID used for this project's agent.
+ * If you want to support multiple agents, you can use a different ID for each agent.
+ */
+export const AGENT_ID = 'agent-starter'
 
+// Customize tldraw's styles to play to the agent's strengths
+DefaultSizeStyle.setDefaultValue('s')
+enableLinedFillStyle()
+
+// Custom components to visualize what the agent is doing
+const components: TLComponents = {
+	HelperButtons: CustomHelperButtons,
+	InFrontOfTheCanvas: () => (
+		<>
+			<AgentViewportBoundsHighlight />
+			<ContextHighlights />
+		</>
+	),
+}
+
+// Custom tools for picking context items
+const tools = [TargetShapeTool, TargetAreaTool]
 const overrides: TLUiOverrides = {
 	tools: (editor, tools) => {
 		return {
@@ -49,25 +68,8 @@ const overrides: TLUiOverrides = {
 	},
 }
 
-const tools = [TargetShapeTool, TargetAreaTool]
-
 function App() {
-	const [editor, setEditor] = useState<Editor | undefined>()
 	const [agent, setAgent] = useState<TldrawAgent | undefined>()
-
-	const components: TLComponents = useMemo(
-		() => ({
-			HelperButtons: () => <CustomHelperButtons agent={agent} />,
-			InFrontOfTheCanvas: () =>
-				agent && (
-					<>
-						<AgentViewportBoundsHighlight agent={agent} />
-						<ContextHighlights agent={agent} />
-					</>
-				),
-		}),
-		[agent]
-	)
 
 	return (
 		<TldrawUiToastsProvider>
@@ -79,34 +81,27 @@ function App() {
 						overrides={overrides}
 						components={components}
 					>
-						<AppInner setEditor={setEditor} setAgent={setAgent} />
+						<AppInner setAgent={setAgent} />
 					</Tldraw>
 				</div>
 				<ErrorBoundary fallback={ChatPanelFallback}>
-					{editor && agent && <ChatPanel agent={agent} />}
+					{agent && <ChatPanel agent={agent} />}
 				</ErrorBoundary>
 			</div>
 		</TldrawUiToastsProvider>
 	)
 }
 
-function AppInner({
-	setEditor,
-	setAgent,
-}: {
-	setEditor: (editor: Editor) => void
-	setAgent: (agent: TldrawAgent) => void
-}) {
+function AppInner({ setAgent }: { setAgent: (agent: TldrawAgent) => void }) {
 	const editor = useEditor()
-	const agent = useTldrawAgent(editor)
+	const agent = useTldrawAgent(editor, AGENT_ID)
 
 	useEffect(() => {
 		if (!editor || !agent) return
-		setEditor(editor)
 		setAgent(agent)
 		;(window as any).editor = editor
 		;(window as any).agent = agent
-	}, [agent, editor, setEditor, setAgent])
+	}, [agent, editor, setAgent])
 
 	return null
 }

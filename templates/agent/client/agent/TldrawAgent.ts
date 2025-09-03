@@ -13,7 +13,6 @@ import { PromptPart } from '../../shared/types/PromptPart'
 import { Streaming } from '../../shared/types/Streaming'
 import { TodoItem } from '../../shared/types/TodoItem'
 import { AgentModelName, DEFAULT_MODEL_NAME } from '../../worker/models'
-import { $agentsAtom } from './agentsAtom'
 import { areContextItemsEqual } from './areContextItemsEqual'
 import { dedupeShapesContextItem } from './dedupeShapesContextItem'
 import { persistAtomInLocalStorage } from './persistAtomInLocalStorage'
@@ -96,19 +95,6 @@ export class TldrawAgent {
 		this.id = id
 		this.onError = onError
 
-		$agentsAtom.update(editor, (agents) => {
-			// Replace any existing agent with the same id
-			const existingAgent = agents.find((agent) => agent.id === id)
-			if (existingAgent) {
-				console.log('REPLACING AGENT', id)
-				existingAgent.dispose()
-				return [...agents.filter((agent) => agent.id !== id), this]
-			}
-
-			console.log('CREATING AGENT', id)
-			return [...agents, this]
-		})
-
 		this.agentActionUtils = getAgentActionUtilsRecord()
 		this.promptPartUtils = getPromptPartUtilsRecord()
 		this.unknownActionUtil = this.agentActionUtils.unknown
@@ -121,12 +107,15 @@ export class TldrawAgent {
 		this.stopRecordingFn = this.startRecordingUserActions()
 	}
 
+	/** Whether the agent has been disposed. */
+	public disposed = false
+
 	/**
 	 * Dispose of the agent by removing its association with its editor.
 	 */
 	dispose() {
+		this.disposed = true
 		this.cancel()
-		$agentsAtom.update(this.editor, (agents) => agents.filter((agent) => agent !== this))
 		this.stopRecordingUserActions()
 	}
 
