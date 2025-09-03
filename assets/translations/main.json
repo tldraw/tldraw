@@ -257,6 +257,7 @@
 	"tool.aspect-ratio.wide": "Wide (16:9)",
 	"tool.image-toolbar-title": "Image tools",
 	"tool.image-crop": "Crop image",
+	"tool.image-crop-confirm": "Confirm",
 	"tool.media-alt-text": "Alternative text",
 	"tool.media-alt-text-desc": "Give a description…",
 	"tool.media-alt-text-confirm": "Confirm",

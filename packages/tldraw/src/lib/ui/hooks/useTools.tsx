@@ -176,7 +176,7 @@ export function ToolsProvider({ overrides, children }: TLUiToolsProviderProps) {
 							editor.createShape({
 								id,
 								type: 'arrow',
-								props: { start: { x: 0, y: 0 }, end: { x: 200, y: 0 } },
+								props: { start: { x: 0, y: 200 }, end: { x: 200, y: 0 } },
 							}),
 					})
 					trackEvent('drag-tool', { source, id: 'arrow' })

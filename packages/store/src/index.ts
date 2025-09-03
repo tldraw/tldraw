@@ -8,7 +8,6 @@ export {
 	createMigrationIds,
 	createMigrationSequence,
 	createRecordMigrationSequence,
-	defineMigrations,
 	MigrationFailureReason,
 	parseMigrationId,
 	type LegacyBaseMigrationsInfo,

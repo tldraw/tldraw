@@ -422,6 +422,7 @@
 	"tool.hexagon": "육각형",
 	"tool.highlight": "하이라이트",
 	"tool.image-crop": "이미지 자르기",
+	"tool.image-crop-confirm": "확인",
 	"tool.image-toolbar-title": "이미지 편집 도구",
 	"tool.image-zoom": "확대/축소",
 	"tool.laser": "레이저",

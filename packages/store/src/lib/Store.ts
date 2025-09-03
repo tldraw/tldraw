@@ -502,20 +502,10 @@ export class Store<R extends UnknownRecord = UnknownRecord, Props = unknown> {
 	}
 
 	/**
-	 * @deprecated use `getSnapshot` from the 'tldraw' package instead.
-	 */
-	getSnapshot(scope: RecordScope | 'all' = 'document') {
-		console.warn(
-			'[tldraw] `Store.getSnapshot` is deprecated and will be removed in a future release. Use `getSnapshot` from the `tldraw` package instead.'
-		)
-		return this.getStoreSnapshot(scope)
-	}
-
-	/**
 	 * Migrate a serialized snapshot of the store and its schema.
 	 *
 	 * ```ts
-	 * const snapshot = store.getSnapshot()
+	 * const snapshot = store.getStoreSnapshot()
 	 * store.migrateSnapshot(snapshot)
 	 * ```
 	 *
@@ -564,17 +554,6 @@ export class Store<R extends UnknownRecord = UnknownRecord, Props = unknown> {
 		} finally {
 			this.sideEffects.setIsEnabled(prevSideEffectsEnabled)
 		}
-	}
-
-	/**
-	 * @public
-	 * @deprecated use `loadSnapshot` from the 'tldraw' package instead.
-	 */
-	loadSnapshot(snapshot: StoreSnapshot<R>) {
-		console.warn(
-			"[tldraw] `Store.loadSnapshot` is deprecated and will be removed in a future release. Use `loadSnapshot` from the 'tldraw' package instead."
-		)
-		this.loadStoreSnapshot(snapshot)
 	}
 
 	/**

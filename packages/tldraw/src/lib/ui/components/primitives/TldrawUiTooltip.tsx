@@ -142,12 +142,22 @@ function TooltipSingleton() {
 	const [isOpen, setIsOpen] = useState(false)
 	const triggerRef = useRef<HTMLDivElement>(null)
 	const isFirstShowRef = useRef(true)
+	const editor = useMaybeEditor()
 
 	const currentTooltip = useValue(
 		'current tooltip',
 		() => tooltipManager.getCurrentTooltipData(),
 		[]
 	)
+
+	const cameraState = useValue('camera state', () => editor?.getCameraState(), [editor])
+
+	// Hide tooltip when camera is moving (panning/zooming)
+	useEffect(() => {
+		if (cameraState === 'moving' && isOpen && currentTooltip) {
+			tooltipManager.hideTooltip(editor, currentTooltip.id, true)
+		}
+	}, [cameraState, isOpen, currentTooltip, editor])
 
 	// Update open state and trigger position
 	useEffect(() => {

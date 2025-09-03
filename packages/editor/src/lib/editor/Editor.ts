@@ -116,7 +116,6 @@ import {
 } from '../constants'
 import { exportToSvg } from '../exports/exportToSvg'
 import { getSvgAsImage } from '../exports/getSvgAsImage'
-import { tlenv } from '../globals/environment'
 import { tlmenus } from '../globals/menus'
 import { tltime } from '../globals/time'
 import { TldrawOptions, defaultTldrawOptions } from '../options'
@@ -245,16 +244,6 @@ export interface TLEditorOptions {
 	licenseKey?: string
 	fontAssetUrls?: { [key: string]: string | undefined }
 	/**
-	 * A predicate that should return true if the given shape should be hidden.
-	 *
-	 * @deprecated Use {@link Editor#getShapeVisibility} instead.
-	 *
-	 * @param shape - The shape to check.
-	 * @param editor - The editor instance.
-	 */
-	isShapeHidden?(shape: TLShape, editor: Editor): boolean
-
-	/**
 	 * Provides a way to hide shapes.
 	 *
 	 * @example
@@ -309,21 +298,12 @@ export class Editor extends EventEmitter<TLEventMap> {
 		autoFocus,
 		inferDarkMode,
 		options,
-		// eslint-disable-next-line @typescript-eslint/no-deprecated
-		isShapeHidden,
 		getShapeVisibility,
 		fontAssetUrls,
 	}: TLEditorOptions) {
 		super()
-		assert(
-			!(isShapeHidden && getShapeVisibility),
-			'Cannot use both isShapeHidden and getShapeVisibility'
-		)
 
-		this._getShapeVisibility = isShapeHidden
-			? // eslint-disable-next-line @typescript-eslint/no-deprecated
-				(shape: TLShape, editor: Editor) => (isShapeHidden(shape, editor) ? 'hidden' : 'inherit')
-			: getShapeVisibility
+		this._getShapeVisibility = getShapeVisibility
 
 		this.options = { ...defaultTldrawOptions, ...options }
 
@@ -908,14 +888,6 @@ export class Editor extends EventEmitter<TLEventMap> {
 	readonly fonts: FontManager
 
 	/**
-	 * A manager for the editor's environment.
-	 *
-	 * @deprecated This is deprecated and will be removed in a future version. Use the `tlenv` global export instead.
-	 * @public
-	 */
-	readonly environment = tlenv
-
-	/**
 	 * A manager for the editor's scribbles.
 	 *
 	 * @public
@@ -1121,35 +1093,6 @@ export class Editor extends EventEmitter<TLEventMap> {
 
 	/**
 	 * Create a new "mark", or stopping point, in the undo redo history. Creating a mark will clear
-	 * any redos.
-	 *
-	 * @example
-	 * ```ts
-	 * editor.mark()
-	 * editor.mark('flip shapes')
-	 * ```
-	 *
-	 * @param markId - The mark's id, usually the reason for adding the mark.
-	 *
-	 * @public
-	 * @deprecated use {@link Editor.markHistoryStoppingPoint} instead
-	 */
-	mark(markId?: string): this {
-		if (typeof markId === 'string') {
-			console.warn(
-				`[tldraw] \`editor.history.mark("${markId}")\` is deprecated. Please use \`const myMarkId = editor.markHistoryStoppingPoint()\` instead.`
-			)
-		} else {
-			console.warn(
-				'[tldraw] `editor.mark()` is deprecated. Use `editor.markHistoryStoppingPoint()` instead.'
-			)
-		}
-		this.history._mark(markId ?? uniqueId())
-		return this
-	}
-
-	/**
-	 * Create a new "mark", or stopping point, in the undo redo history. Creating a mark will clear
 	 * any redos. You typically want to do this just before a user interaction begins or is handled.
 	 *
 	 * @example
@@ -1270,13 +1213,6 @@ export class Editor extends EventEmitter<TLEventMap> {
 		}
 
 		return this
-	}
-
-	/**
-	 * @deprecated Use `Editor.run` instead.
-	 */
-	batch(fn: () => void, opts?: TLEditorRunOptions): this {
-		return this.run(fn, opts)
 	}
 
 	/* --------------------- Errors --------------------- */
@@ -1579,54 +1515,6 @@ export class Editor extends EventEmitter<TLEventMap> {
 	// Menus
 
 	menus = tlmenus.forContext(this.contextId)
-
-	/**
-	 * @deprecated Use `editor.menus.getOpenMenus` instead.
-	 *
-	 * @public
-	 */
-	@computed getOpenMenus(): string[] {
-		return this.menus.getOpenMenus()
-	}
-
-	/**
-	 * @deprecated Use `editor.menus.addOpenMenu` instead.
-	 *
-	 * @public
-	 */
-	addOpenMenu(id: string): this {
-		this.menus.addOpenMenu(id)
-		return this
-	}
-
-	/**
-	 * @deprecated Use `editor.menus.deleteOpenMenu` instead.
-	 *
-	 * @public
-	 */
-	deleteOpenMenu(id: string): this {
-		this.menus.deleteOpenMenu(id)
-		return this
-	}
-
-	/**
-	 * @deprecated Use `editor.menus.clearOpenMenus` instead.
-	 *
-	 * @public
-	 */
-	clearOpenMenus(): this {
-		this.menus.clearOpenMenus()
-		return this
-	}
-
-	/**
-	 * @deprecated Use `editor.menus.hasAnyOpenMenus` instead.
-	 *
-	 * @public
-	 */
-	@computed getIsMenuOpen(): boolean {
-		return this.menus.hasAnyOpenMenus()
-	}
 
 	/* --------------------- Cursor --------------------- */
 
@@ -4860,27 +4748,25 @@ export class Editor extends EventEmitter<TLEventMap> {
 		return this.store.createComputedCache('pageMaskCache', (shape) => {
 			if (isPageId(shape.parentId)) return undefined
 
-			const frameAncestors = this.getShapeAncestors(shape.id).filter((shape) =>
-				this.isShapeOfType<TLFrameShape>(shape, 'frame')
-			)
+			const clipPaths: Vec[][] = []
+			// Get all ancestors that can potentially clip this shape
+			for (const ancestor of this.getShapeAncestors(shape.id)) {
+				const util = this.getShapeUtil(ancestor)
+				const clipPath = util.getClipPath?.(ancestor)
+				if (!clipPath) continue
+				if (util.shouldClipChild?.(shape) === false) continue
+				const pageTransform = this.getShapePageTransform(ancestor.id)
+				clipPaths.push(pageTransform.applyToPoints(clipPath))
+			}
+			if (clipPaths.length === 0) return undefined
 
-			if (frameAncestors.length === 0) return undefined
-
-			const pageMask = frameAncestors
-				.map<Vec[] | undefined>((s) => {
-					// Apply the frame transform to the frame outline to get the frame outline in the current page space
-					const geometry = this.getShapeGeometry(s.id)
-					const pageTransform = this.getShapePageTransform(s.id)
-					return pageTransform.applyToPoints(geometry.vertices)
-				})
-				.reduce((acc, b) => {
-					if (!(b && acc)) return undefined
-					const intersection = intersectPolygonPolygon(acc, b)
-					if (intersection) {
-						return intersection.map(Vec.Cast)
-					}
-					return []
-				})
+			const pageMask = clipPaths.reduce((acc, b) => {
+				const intersection = intersectPolygonPolygon(acc, b)
+				if (intersection) {
+					return intersection.map(Vec.Cast)
+				}
+				return []
+			})
 
 			return pageMask
 		})
@@ -5839,11 +5725,6 @@ export class Editor extends EventEmitter<TLEventMap> {
 			})
 		}
 		return shapeIds
-	}
-
-	/** @deprecated Use {@link Editor.getDraggingOverShape} instead */
-	getDroppingOverShape(point: Vec, droppingShapes: TLShape[]): TLShape | undefined {
-		return this.getDraggingOverShape(point, droppingShapes)
 	}
 
 	/**
@@ -9459,13 +9340,6 @@ export class Editor extends EventEmitter<TLEventMap> {
 			width: result.width,
 			height: result.height,
 		}
-	}
-
-	/** @deprecated Use {@link Editor.getSvgString} or {@link Editor.getSvgElement} instead. */
-	async getSvg(shapes: TLShapeId[] | TLShape[], opts: TLSvgExportOptions = {}) {
-		const result = await this.getSvgElement(shapes, opts)
-		if (!result) return undefined
-		return result.svg
 	}
 
 	/**
