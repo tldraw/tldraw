@@ -161,6 +161,7 @@ test('fetchEverythingSql snapshot (RUN `UPDATE_SNAPSHOTS=1 yarn test` IF THIS FA
 	writeFileSync(tmpFile, tsFile, 'utf-8')
 	execSync('yarn run -T prettier --write ' + tmpFile, {
 		stdio: 'inherit',
+		cwd: join(DIRNAME, '..'),
 		env: {
 			...process.env,
 		},
