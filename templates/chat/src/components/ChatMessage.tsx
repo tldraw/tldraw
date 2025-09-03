@@ -39,7 +39,6 @@ export const ChatMessage = memo(function ChatMessage({ message, onImageClick }: 
 						} else {
 							const blob = await FileHelpers.urlToBlob(part.url)
 							const file = new File([blob], part.filename || 'image.png', { type: blob.type })
-							console.log({ file, blob })
 							onImageClick({ uploadedFile: file })
 						}
 					}

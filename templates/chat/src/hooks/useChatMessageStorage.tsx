@@ -1,34 +1,52 @@
-import { UIMessage } from 'ai'
-import { noop } from 'tldraw'
+import { UIMessage, validateUIMessages } from 'ai'
+import { useCallback, useEffect, useState } from 'react'
+import { FileHelpers, noop } from 'tldraw'
+
+const STORAGE_FILE_NAME = 'chat-messages.json'
 
 export function useChatMessageStorage(): [UIMessage[] | null, (messages: UIMessage[]) => void] {
-	// const [initialMessages, setInitialMessages] = useState<UIMessage[] | null>(null)
+	const [initialMessages, setInitialMessages] = useState<UIMessage[] | null>(null)
 
-	// useEffect(() => {
-	// 	let isCancelled = false
-	// 	;(async () => {
-	// 		try {
-	// 			const messages = JSON.parse(localStorage.getItem('chat-messages') || '[]')
-	// 			const validatedMessages = await validateUIMessages({ messages })
-	// 			if (isCancelled) return
-	// 			setInitialMessages(validatedMessages)
-	// 		} catch (err) {
-	// 			if (isCancelled) return
-	// 			console.error('Error parsing chat messages from local storage', err)
-	// 			setInitialMessages([])
-	// 		}
-	// 	})()
+	useEffect(() => {
+		let isCancelled = false
+		;(async () => {
+			try {
+				const root = await navigator.storage.getDirectory()
+				if (isCancelled) return
 
-	// 	return () => {
-	// 		isCancelled = true
-	// 	}
-	// }, [])
+				const file = await root.getFileHandle(STORAGE_FILE_NAME)
+				if (isCancelled) return
 
-	// const saveMessages = useCallback((messages: UIMessage[]) => {
-	// 	localStorage.setItem('chat-messages', JSON.stringify(messages))
-	// }, [])
+				const fileContents = await FileHelpers.blobToText(await file.getFile())
+				if (isCancelled) return
 
-	// return [initialMessages, saveMessages] as const
+				const messages = JSON.parse(fileContents)
+				const validatedMessages = await validateUIMessages({ messages })
+				if (isCancelled) return
+
+				setInitialMessages(validatedMessages)
+			} catch (err) {
+				if (isCancelled) return
+				console.error('Error loading chat messages from storage', err)
+				setInitialMessages([])
+			}
+		})()
+
+		return () => {
+			isCancelled = true
+		}
+	}, [])
+
+	const saveMessages = useCallback(async (messages: UIMessage[]) => {
+		const root = await navigator.storage.getDirectory()
+		const file = await root.getFileHandle(STORAGE_FILE_NAME, { create: true })
+		const writable = await file.createWritable({ keepExistingData: false })
+		const text = JSON.stringify(messages)
+		await writable.write(text)
+		await writable.close()
+	}, [])
+
+	return [initialMessages, saveMessages] as const
 
 	// disabled for now:
 	return [[], noop]

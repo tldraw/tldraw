@@ -4,10 +4,11 @@ import { useChatMessageStorage } from '@/hooks/useChatMessageStorage'
 import { useChat } from '@ai-sdk/react'
 import { DefaultChatTransport, FileUIPart, TextUIPart, UIMessage } from 'ai'
 import { useCallback, useEffect } from 'react'
-import { TLEditorSnapshot } from 'tldraw'
+import { TldrawUiTooltip, TLEditorSnapshot } from 'tldraw'
 import { useChatInputState } from '../hooks/useChatInputState'
 import { useScrollToBottom } from '../hooks/useScrollToBottom'
 import { ChatInput } from './ChatInput'
+import { ClearChatIcon } from './ClearChatIcon'
 import { MessageList } from './MessageList'
 import { TldrawProviderMetadata, WhiteboardImage } from './WhiteboardModal'
 
@@ -108,6 +109,11 @@ function ChatInner({
 		[chatInputDispatch]
 	)
 
+	const handleClearChat = useCallback(() => {
+		setMessages([])
+		saveMessages([])
+	}, [setMessages, saveMessages])
+
 	// users can drag and drop images to the chat input area to add them to their message. when
 	// they're dragging we keep track of a special isDragging state.
 	const handleDragOver = (e: React.DragEvent) => {
@@ -171,6 +177,13 @@ function ChatInner({
 			onDragLeave={handleDragLeave}
 			onDrop={handleDrop}
 		>
+			<div className="chat-header">
+				<TldrawUiTooltip content="Clear chat" side="right">
+					<button className="icon-button" onClick={handleClearChat}>
+						<ClearChatIcon />
+					</button>
+				</TldrawUiTooltip>
+			</div>
 			<MessageList messages={chat.messages} onImageClick={handleImageClick} />
 			<div className="chat-footer">
 				<ChatInput

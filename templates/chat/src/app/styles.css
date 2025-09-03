@@ -22,6 +22,17 @@ body {
 	flex-direction: column;
 }
 
+/* Chat Header */
+.chat-header {
+	display: flex;
+	justify-content: flex-start;
+	padding: 4px;
+	position: sticky;
+	top: 0;
+	background: white;
+	border-bottom: 1px solid #e2e8f0;
+}
+
 /* Empty Chat State */
 .empty-chat-container {
 	min-height: 100vh;
@@ -71,6 +82,7 @@ body {
 	display: flex;
 	flex-direction: column;
 	gap: 3px; /* Very small gap between grouped bubbles */
+	width: 100%;
 	max-width: 70%;
 }
 
@@ -196,7 +208,6 @@ body {
 	bottom: 0;
 	padding: 16px 4px;
 	padding-top: 32px;
-	background: linear-gradient(transparent 8px, white 32px);
 }
 
 .chat-footer > * {
@@ -566,7 +577,7 @@ body {
 		max-width: none;
 	}
 
-	.message {
+	.message-group {
 		max-width: 85%;
 	}
 
@@ -576,6 +587,10 @@ body {
 		max-width: none;
 	}
 
+	.chat-input {
+		font-size: 100%;
+	}
+
 	.message-list {
 		padding: 12px 16px;
 		padding-bottom: 12px; /* Just visual spacing */
@@ -583,5 +598,17 @@ body {
 
 	.modal-overlay .tlui-layout__mobile .tlui-main-toolbar--horizontal .tlui-button__tool {
 		width: 43px;
+	}
+}
+
+@media (min-width: 800px) {
+	.chat-header {
+		padding: 8px;
+		position: fixed;
+		top: 0;
+		left: 0;
+		width: 64px;
+		background: transparent;
+		border-bottom: none;
 	}
 }
