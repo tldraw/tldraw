@@ -419,6 +419,7 @@
 	"tool.hexagon": "Шестиугольник",
 	"tool.highlight": "Выделить",
 	"tool.image-crop": "Обрезать изображение",
+	"tool.image-crop-confirm": "Подтвердить",
 	"tool.image-toolbar-title": "Инструменты изображения",
 	"tool.image-zoom": "Увеличить",
 	"tool.laser": "Лазер",
