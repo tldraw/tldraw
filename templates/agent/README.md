@@ -50,14 +50,18 @@ To make decisions on what to do, we send the agent information from various sour
 
 ## Using the agent programmatically
 
-Aside from using the chat panel UI, you can also use the agent programmatically.
+Aside from using the chat panel UI, you can also prompt the agent programmatically.
 
 The simplest way to do this is by calling the `prompt()` method to start an agentic loop. The agent will continue until it has finished the task you've given it.
 
 ```ts
 const agent = useTldrawAgent(editor)
 agent.prompt('Draw a cat')
+```
 
+You can optionally specify further details about the request in the form of an `AgentInput` object:
+
+```ts
 agent.prompt({
 	message: 'Draw a cat here',
 	bounds: {
@@ -69,7 +73,13 @@ agent.prompt({
 })
 ```
 
-## How to change what the agent can do
+There are some more methods that help with building an application around the agent:
+
+- `cancel()` - Cancel the agent's current prompt.
+- `reset()` - Reset the agent's chat and memory.
+- `request(input: AgentInput)` - Send a single request to the agent and handle its response _without_ entering into an agentic loop.
+
+## Changing what the agent can do
 
 TODO
 
