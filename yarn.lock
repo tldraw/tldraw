@@ -70,7 +70,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@ai-sdk/google@npm:^2.0.11, @ai-sdk/google@npm:^2.0.5":
+"@ai-sdk/google@npm:^2.0.11":
   version: 2.0.11
   resolution: "@ai-sdk/google@npm:2.0.11"
   dependencies:
@@ -11688,7 +11688,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"ai@npm:^5.0.11, ai@npm:^5.0.15":
+"ai@npm:^5.0.15":
   version: 5.0.30
   resolution: "ai@npm:5.0.30"
   dependencies:
@@ -27677,7 +27677,7 @@ __metadata:
   resolution: "tldraw-agent@workspace:templates/agent"
   dependencies:
     "@ai-sdk/anthropic": "npm:^2.0.2"
-    "@ai-sdk/google": "npm:^2.0.5"
+    "@ai-sdk/google": "npm:^2.0.11"
     "@ai-sdk/openai": "npm:^2.0.11"
     "@cloudflare/vite-plugin": "npm:^1.9.0"
     "@cloudflare/workers-types": "npm:^4.20250703.0"
@@ -27688,7 +27688,7 @@ __metadata:
     "@types/react-dom": "npm:^18.3.5"
     "@vitejs/plugin-react-swc": "npm:^3.10.2"
     "@worker-tools/json-stream": "npm:^0.1.0-pre.12"
-    ai: "npm:^5.0.11"
+    ai: "npm:^5.0.15"
     best-effort-json-parser: "npm:^1.1.3"
     itty-router: "npm:^5.0.18"
     react: "npm:^18.3.1"

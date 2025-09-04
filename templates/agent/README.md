@@ -1,8 +1,16 @@
 # tldraw agent chat
 
-This repo is a starter for building an agentic chat with tldraw.
+This repo contains a starter-kit for making an agent that can manipulate a canvas using [tldraw](https://github.com/tldraw/tldraw).
 
-## How to run the starter
+## Local development
+
+Install dependencies with `yarn` or `npm install`.
+
+Run the development server with `yarn dev` or `npm run dev`.
+
+Open `http://localhost:5173/` in your browser to see the app.
+
+## Environment Setup
 
 1. Create a `.dev.vars` file in the root directory.
 2. Add API keys for any providers that you want to use, e.g. `OPENAI_API_KEY=your-key`, `ANTHROPIC_API_KEY=your-key`, `GOOGLE_API_KEY=your-key` (we recommend using Claude).
@@ -32,7 +40,7 @@ TODO
   - a method for 'transforming' the action before it's carried out (`transformAction()`)
     - we often give the model simplified information about the state of the canvas in order to improve its performance. for instance, we remove the prefix `shape:` from shape ids before sending them to the model (more on this in the prompt parts utils section). however, if a model wants to then move that shape, for example, it will specify the shape id without the `shape:` prefix, because that's what it thinks the shape's id is. so we must put the `shape:` back in front of the shape's id BEFORE the action is carried out and before it's added to chat history.
     - the `transform` argument of instance of an `AgentTransform`, which has the ability to save the values of certain properties, like the shape ids, before and after they're transformed, allowing us to map them back to their original values (more on this in the ppu section)
-      - *we should probably go into the difference between this and the simple format, although probably in the ppu section*
+      - _we should probably go into the difference between this and the simple format, although probably in the ppu section_
   - a method for carrying out the action (`applyAction()`)
     - this method has access to the action itself, as well as the agent instance. you can access the editor, and many other useful properties of the agent through this. this is where the code that constitutes what the action actually 'does' goes.
       - for example for the `DeleteActionUtil`, you get the editor from the agent, the shapeId that the model wants to delete from the action, and then run `editor.deleteShape(shapeId)`. for something more complex like the `ReviewActionUtil`, which lets the agent get updated information about the canvas, it interfaces with the agent's `$scheduledRequest` atom to add a new 'review' event to the schedule, which the agent will carry out after if finishes its current work (more on this in the 'How to get the agent to schedule further work' section)
@@ -110,6 +118,10 @@ ie: It should work out-of-the-box, but you can still add extra detail if you wan
 
 - Add a new agent action.
 - Add a custom shape to the schema.
+
+## How to use a different model
+
+TODO
 
 ## License
 
