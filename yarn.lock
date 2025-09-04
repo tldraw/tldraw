@@ -11674,7 +11674,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"ai@npm:5.0.15, ai@npm:^5.0.15":
+"ai@npm:5.0.15":
   version: 5.0.15
   resolution: "ai@npm:5.0.15"
   dependencies:
@@ -11688,7 +11688,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"ai@npm:^5.0.11":
+"ai@npm:^5.0.11, ai@npm:^5.0.15":
   version: 5.0.30
   resolution: "ai@npm:5.0.30"
   dependencies:
