@@ -102,7 +102,7 @@ interface TimePart extends BasePromptPart<'time'> {
 }
 ```
 
-Then, create the util:
+Then, create its util:
 
 ```ts
 export class TimePartUtil extends PromptPartUtil<TimePart> {
@@ -121,11 +121,7 @@ export class TimePartUtil extends PromptPartUtil<TimePart> {
 }
 ```
 
-- Each `PromptPartUtil` allows a devleoper to send some information to the model as part of the prompt. what this information is it entirely up to the developer
-- we have a large set of currently existing `PromptPartUtil`s that, taken together with the system prompt (which is itself a `PromptPartUtil`), give the model the ability to understand the state of the canvas, some parts of what the user is doing, as well as the state of the task it's trying to accomplish
-- you can see all `PromptPartUtil`s that the agent has access to in `AgentUtils.ts`, in the `PROMPT_PART_UTILS` list.
-- these are treated very similarly to `AgentActionUtil`s in that they are instantiated when the `TldrawAgent` class is initialized, and stored in the class itself
-- when a new request is sent to the model, the `preparePrompt()` function is called to assemble all the various prompt parts into a single `AgentPrompt`, which contains a.
+There are more methods... TODO
 
 > note that this is **not** the actual list of messages that is sent directly to the model. the `AgentPrompt` is sent to the worker, which then goes back through the prompt parts and calls their respective `getContent()` and `getMessages()` methods, which it then uses along with `getPriority()` to THEN turn into the raw messages
 
@@ -134,10 +130,12 @@ export class TimePartUtil extends PromptPartUtil<TimePart> {
   - for many `PromptPartUtil`s, this is quite simple. The `TodoListPartUtil` simply gets the current value of the agent's `$todoList`, for example
   - others are more complex. you should should try exploring the different `PromptPartUtil`s if you haven't already!
 - then, the prompt part is transformed using its `transformPart` method. this uses the same `AgentTransform` that will later be used to transform the actions. to refresh, the `transform` exists to allow us to simplify the information we send to the model in order to improve its performance and generally confuse it less
-  - one way we do this is by rounding the coordinates and widths and heights of the shapes (this is beacause `x: 512` is easier for the model to parse, and requires less tokens, than `x: 512.328947832`, especially when there may be dozens or even hundreds of coordinates for the model to read)
+  - one way we do this is by rounding the coordinates and widths and heights of the shapes (this is because `x: 512` is easier for the model to parse, and requires less tokens, than `x: 512.328947832`, especially when there may be dozens or even hundreds of coordinates for the model to read)
   - when these coordinates are rounded, the amount they were rounded by is stored in the `transform`. this allows us to apply the revserse of this transformation to any actions that affect a given shape.
 
 ## Changing what the agent can do
+
+TODO: Very similar to the prompt parts utils section.
 
 - what the agent can do is dependent on something called `AgentActionUtil`s.
 - everything (!) the agent can do is dependent on `AgentActionUtil`s
@@ -161,11 +159,11 @@ export class TimePartUtil extends PromptPartUtil<TimePart> {
 
 ## How to change how actions appear in chat history
 
-TODO
+TODO: Example - just use the `getInfo()` method.
 
 - Using agent action util methods
   - Grouping actions
-- Using CSS
+- Using CSS: eg: add css for, let's say... `.agent-action-type-pen` to apply styles to pen actions within chat history.
 
 ## How to get the agent to schedule further work
 
@@ -189,15 +187,15 @@ TODO
 - you could also do some other conditional logic in the prompt parts, like maybe for example you don't want to send a screenshot for api requests?
   - TODO figure this out
 
-## How to get the agent to use MCP
-
-TODO
-
 ## How to change the system prompt
 
 TODO
 
 ie: Edit the system prompt part util
+
+## How to add support for a different model
+
+TODO: Add it to `models.ts`
 
 ## How to support custom shapes
 
@@ -207,10 +205,6 @@ ie: It should work out-of-the-box, but you can still add extra detail if you wan
 
 - Add a new agent action.
 - Add a custom shape to the schema.
-
-## How to use a different model
-
-TODO
 
 ## License
 
