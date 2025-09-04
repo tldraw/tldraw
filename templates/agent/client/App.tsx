@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react'
+import { useEffect, useMemo, useState } from 'react'
 import {
 	DefaultSizeStyle,
 	ErrorBoundary,
@@ -28,17 +28,6 @@ export const AGENT_ID = 'agent-starter'
 // Customize tldraw's styles to play to the agent's strengths
 DefaultSizeStyle.setDefaultValue('s')
 enableLinedFillStyle()
-
-// Custom components to visualize what the agent is doing
-const components: TLComponents = {
-	HelperButtons: CustomHelperButtons,
-	InFrontOfTheCanvas: () => (
-		<>
-			<AgentViewportBoundsHighlight />
-			<ContextHighlights />
-		</>
-	),
-}
 
 // Custom tools for picking context items
 const tools = [TargetShapeTool, TargetAreaTool]
@@ -71,6 +60,19 @@ const overrides: TLUiOverrides = {
 function App() {
 	const [agent, setAgent] = useState<TldrawAgent | undefined>()
 
+	// Custom components to visualize what the agent is doing
+	const components: TLComponents = useMemo(() => {
+		return {
+			HelperButtons: CustomHelperButtons,
+			InFrontOfTheCanvas: () => (
+				<>
+					{agent && <AgentViewportBoundsHighlight agent={agent} />}
+					{agent && <ContextHighlights agent={agent} />}
+				</>
+			),
+		}
+	}, [agent])
+
 	return (
 		<TldrawUiToastsProvider>
 			<div className="tldraw-agent-container">
@@ -94,7 +96,7 @@ function App() {
 
 function AppInner({ setAgent }: { setAgent: (agent: TldrawAgent) => void }) {
 	const editor = useEditor()
-	const agent = useTldrawAgent(editor, AGENT_ID, true)
+	const agent = useTldrawAgent(editor, AGENT_ID)
 
 	useEffect(() => {
 		if (!editor || !agent) return

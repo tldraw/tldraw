@@ -5,7 +5,8 @@ import { $agentsAtom } from './agentsAtom'
 
 /**
  * Create a tldraw agent that can be prompted to edit the canvas.
- * Provide an id to differentiate between multiple agents on the same editor.
+ * The id is used to differentiate between multiple agents.
+ * This starter only creates one agent, but you could create more if you wanted.
  *
  * @example
  * ```tsx
@@ -17,11 +18,11 @@ import { $agentsAtom } from './agentsAtom'
  * ```tsx
  * const agent1 = useTldrawAgent(editor, 'agent-1')
  * const agent2 = useTldrawAgent(editor, 'agent-2')
- * agent1.prompt({ message: 'Draw a snowman' })
- * agent2.prompt({ message: 'Draw a snowman' })
+ * agent1.prompt({ message: 'Draw a snowman on the left' })
+ * agent2.prompt({ message: 'Draw a snowman on the right' })
  * ```
  */
-export function useTldrawAgent(editor: Editor, id: string, forceNew: boolean = false): TldrawAgent {
+export function useTldrawAgent(editor: Editor, id: string): TldrawAgent {
 	const toasts = useToasts()
 
 	const handleError = useCallback(
@@ -38,26 +39,17 @@ export function useTldrawAgent(editor: Editor, id: string, forceNew: boolean = f
 	)
 
 	const agent = useMemo(() => {
-		const agents = $agentsAtom.get(editor)
-		const existingAgent = agents.find((agent) => agent.id === id)
+		// Dispose an existing agent
+		const existingAgent = $agentsAtom.get(editor).find((agent) => agent.id === id)
 		if (existingAgent) {
-			if (forceNew) {
-				existingAgent.dispose()
-			}
-
-			if (!existingAgent.disposed) {
-				return existingAgent
-			}
-
-			$agentsAtom.update(editor, (agents) => agents.filter((agent) => agent.id !== id))
+			existingAgent.dispose()
+		} else {
+			console.log('CREATING AGENT', id)
 		}
 
 		// Create a new agent
-		console.log('CREATING AGENT', id)
-		const newAgent = new TldrawAgent({ editor, id, onError: handleError })
-		$agentsAtom.update(editor, (agents) => [...agents, newAgent])
-		return newAgent
-	}, [editor, forceNew, handleError, id])
+		return new TldrawAgent({ editor, id, onError: handleError })
+	}, [editor, handleError, id])
 
 	return agent
 }

@@ -13,6 +13,7 @@ import { PromptPart } from '../../shared/types/PromptPart'
 import { Streaming } from '../../shared/types/Streaming'
 import { TodoItem } from '../../shared/types/TodoItem'
 import { AgentModelName, DEFAULT_MODEL_NAME } from '../../worker/models'
+import { $agentsAtom } from './agentsAtom'
 import { areContextItemsEqual } from './areContextItemsEqual'
 import { dedupeShapesContextItem } from './dedupeShapesContextItem'
 import { persistAtomInLocalStorage } from './persistAtomInLocalStorage'
@@ -115,6 +116,8 @@ export class TldrawAgent {
 		this.id = id
 		this.onError = onError
 
+		$agentsAtom.update(editor, (agents) => [...agents, this])
+
 		this.agentActionUtils = getAgentActionUtilsRecord()
 		this.promptPartUtils = getPromptPartUtilsRecord()
 		this.unknownActionUtil = this.agentActionUtils.unknown
@@ -136,6 +139,7 @@ export class TldrawAgent {
 		this.disposed = true
 		this.cancel()
 		this.stopRecordingUserActions()
+		$agentsAtom.update(this.editor, (agents) => agents.filter((agent) => agent.id !== this.id))
 	}
 
 	/**
@@ -335,7 +339,7 @@ export class TldrawAgent {
 	 *
 	 * @param callback
 	 */
-	schedule(callback: (prev: AgentRequest) => AgentInput) {
+	schedule(callback: (request: AgentRequest) => AgentInput) {
 		this.$scheduledRequest.update((prev) => {
 			const activeRequest = this.$activeRequest.get()
 			const currentScheduledRequest = prev ?? {

@@ -1,12 +1,10 @@
 import { TLShapeId, useEditor, useValue } from 'tldraw'
-import { useTldrawAgent } from '../../agent/useTldrawAgent'
-import { AGENT_ID } from '../../App'
+import { TldrawAgent } from '../../agent/TldrawAgent'
 import { AreaHighlight, AreaHighlightProps } from './AreaHighlight'
 import { PointHighlight, PointHighlightProps } from './PointHighlight'
 
-export function ContextHighlights() {
+export function ContextHighlights({ agent }: { agent: TldrawAgent }) {
 	const editor = useEditor()
-	const agent = useTldrawAgent(editor, AGENT_ID)
 	const selectedContextItems = useValue(agent.$contextItems)
 	const activeRequest = useValue(agent.$activeRequest)
 	const activeContextItems = activeRequest?.contextItems ?? []

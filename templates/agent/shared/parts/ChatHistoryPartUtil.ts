@@ -26,7 +26,6 @@ export class ChatHistoryPartUtil extends PromptPartUtil<ChatHistoryPart> {
 
 	override transformPart(part: ChatHistoryPart, transform: AgentRequestTransform) {
 		for (const historyItem of part.items) {
-			console.log('historyItem', historyItem)
 			if (historyItem.type !== 'prompt') continue
 
 			// Offset and round the context items of each history item
