@@ -29,6 +29,7 @@ import { PromptPartUtil } from './parts/PromptPartUtil'
 import { ScreenshotPartUtil } from './parts/ScreenshotPartUtil'
 import { SelectedShapesPartUtil } from './parts/SelectedShapesPartUtil'
 import { SystemPromptPartUtil } from './parts/SystemPromptPartUtil'
+import { TimePartUtil } from './parts/TimePartUtil'
 import { TodoListPartUtil } from './parts/TodoListPartUtil'
 import { UserActionHistoryPartUtil } from './parts/UserActionHistoryPartUtil'
 import { ModelNamePartUtil } from './parts/UserSelectedModelNamePartUtil'
@@ -64,6 +65,9 @@ export const PROMPT_PART_UTILS = [
 	ChatHistoryPartUtil,
 	UserActionHistoryPartUtil,
 	TodoListPartUtil,
+
+	// Example from this repo's README
+	TimePartUtil,
 ]
 
 /**

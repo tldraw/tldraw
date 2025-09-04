@@ -117,7 +117,7 @@ export function getTldrawAiChangesFromCreateAction({
 				scale = calculatedScale
 			}
 
-			const autoSize = !textShape.fixedWidth // this will be true if the fixedWidth property is not set, which is desired
+			const autoSize = !textShape.wrap // this will be true if the wrap property is not set, which is desired
 
 			const textFontSize = FONT_SIZES[textSize]
 			const textAlign = textShape.textAlign ?? 'start'
@@ -126,25 +126,25 @@ export function getTldrawAiChangesFromCreateAction({
 
 			const effectiveFontSize = textFontSize * scale
 
-			const width = editor.textMeasure.measureText(textShape.text, {
+			const measurement = editor.textMeasure.measureText(textShape.text, {
 				...TEXT_PROPS,
 				fontFamily: FONT_FAMILIES['draw'],
 				fontSize: effectiveFontSize,
 				maxWidth: textShape.width ?? Infinity,
-			}).w
+			})
 
 			switch (textAlign) {
 				case 'start':
 					correctedTextCoords.x = textShape.x
-					correctedTextCoords.y = textShape.y
+					correctedTextCoords.y = textShape.y - measurement.h / 2
 					break
 				case 'middle':
-					correctedTextCoords.x = textShape.x - width / 2
-					correctedTextCoords.y = textShape.y
+					correctedTextCoords.x = textShape.x - measurement.w / 2
+					correctedTextCoords.y = textShape.y - measurement.h / 2
 					break
 				case 'end':
-					correctedTextCoords.x = textShape.x - width
-					correctedTextCoords.y = textShape.y
+					correctedTextCoords.x = textShape.x - measurement.w
+					correctedTextCoords.y = textShape.y - measurement.h / 2
 					break
 			}
 
@@ -163,7 +163,7 @@ export function getTldrawAiChangesFromCreateAction({
 						color: asColor(textShape.color),
 						textAlign,
 						autoSize,
-						w: width, // it's okay to set width to a number regardeless of autoSize because it won't do anything if autoSize is true
+						w: measurement.w, // it's okay to set width to a number regardeless of autoSize because it won't do anything if autoSize is true
 					},
 					meta: {
 						note: textShape.note ?? '',

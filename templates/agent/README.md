@@ -63,7 +63,7 @@ You can optionally specify further details about the request in the form of an `
 
 ```ts
 agent.prompt({
-	message: 'Draw a cat here',
+	message: 'Draw a cat in this area',
 	bounds: {
 		x: 0,
 		y: 0,
@@ -73,15 +73,71 @@ agent.prompt({
 })
 ```
 
-There are some more methods that help with building an application around the agent:
+There are more methods on the `TldrawAgent` class that can help when building an agentic application:
 
-- `cancel()` - Cancel the agent's current prompt.
-- `reset()` - Reset the agent's chat and memory.
-- `request(input: AgentInput)` - Send a single request to the agent and handle its response _without_ entering into an agentic loop.
+- `agent.cancel()` - Cancel the agent's current task.
+- `agent.reset()` - Reset the agent's chat and memory.
+- `agent.request(input)` - Send a single request to the agent and handle its response _without_ entering into an agentic loop.
+
+## Customizing the agent
+
+The agent is largely defined by the `AgentUtils.ts` file. In that file, there are two lists of utility classes:
+
+- Prompt Part Utils determine what the agent can **see**.
+- Agent Action Utils determine what the agent can **do**.
+
+To change what the agent can **see** or **do**, add, remove, or change an entry in `PROMPT_PART_UTILS` or `AGENT_ACTION_UTILS` respectively.
+
+## Changing what the agent can see
+
+The full prompt that gets sent to the model is assembled by the agent's Prompt Part Utils, found in the `AgentUtils.ts` file.
+
+Each `PromptPartUtil` adds a different piece of information to the prompt.
+
+As an example, let's make a prompt part that adds the current time to the prompt. First, define the part:
+
+```ts
+interface TimePart extends BasePromptPart<'time'> {
+	time: string
+}
+```
+
+Then, create the util:
+
+```ts
+export class TimePartUtil extends PromptPartUtil<TimePart> {
+	static override type = 'time' as const
+
+	override getPart(): TimePart {
+		return {
+			type: 'time',
+			time: new Date().toLocaleTimeString(),
+		}
+	}
+
+	override buildContent({ time }: TimePart) {
+		return ["The user's current time is:", time]
+	}
+}
+```
+
+- Each `PromptPartUtil` allows a devleoper to send some information to the model as part of the prompt. what this information is it entirely up to the developer
+- we have a large set of currently existing `PromptPartUtil`s that, taken together with the system prompt (which is itself a `PromptPartUtil`), give the model the ability to understand the state of the canvas, some parts of what the user is doing, as well as the state of the task it's trying to accomplish
+- you can see all `PromptPartUtil`s that the agent has access to in `AgentUtils.ts`, in the `PROMPT_PART_UTILS` list.
+- these are treated very similarly to `AgentActionUtil`s in that they are instantiated when the `TldrawAgent` class is initialized, and stored in the class itself
+- when a new request is sent to the model, the `preparePrompt()` function is called to assemble all the various prompt parts into a single `AgentPrompt`, which contains a.
+
+> note that this is **not** the actual list of messages that is sent directly to the model. the `AgentPrompt` is sent to the worker, which then goes back through the prompt parts and calls their respective `getContent()` and `getMessages()` methods, which it then uses along with `getPriority()` to THEN turn into the raw messages
+
+- in order to for each individual prompt part, the `getPart()` and then the `transformPart()` methods are called.
+- `getPart()` takes the `AgentRequest` and the agent as arguments and allows the `PromptPartUtil` to construct the prompt part itself. the prompt part itself is generally just raw, unsantized data, and doesn't include any 'plain english' text.
+  - for many `PromptPartUtil`s, this is quite simple. The `TodoListPartUtil` simply gets the current value of the agent's `$todoList`, for example
+  - others are more complex. you should should try exploring the different `PromptPartUtil`s if you haven't already!
+- then, the prompt part is transformed using its `transformPart` method. this uses the same `AgentTransform` that will later be used to transform the actions. to refresh, the `transform` exists to allow us to simplify the information we send to the model in order to improve its performance and generally confuse it less
+  - one way we do this is by rounding the coordinates and widths and heights of the shapes (this is beacause `x: 512` is easier for the model to parse, and requires less tokens, than `x: 512.328947832`, especially when there may be dozens or even hundreds of coordinates for the model to read)
+  - when these coordinates are rounded, the amount they were rounded by is stored in the `transform`. this allows us to apply the revserse of this transformation to any actions that affect a given shape.
 
 ## Changing what the agent can do
-
-TODO
 
 - what the agent can do is dependent on something called `AgentActionUtil`s.
 - everything (!) the agent can do is dependent on `AgentActionUtil`s
@@ -136,27 +192,6 @@ TODO
 ## How to get the agent to use MCP
 
 TODO
-
-## How to change what the model can see
-
-TODO
-
-- Besides changing what the agent can do using `AgentActionUtil`s, the other main way you can add functionality to change what the agent can see. We do this using `PromptPartUtil`s
-- Each `PromptPartUtil` allows a devleoper to send some information to the model as part of the prompt. what this information is it entirely up to the developer
-- we have a large set of currently existing `PromptPartUtil`s that, taken together with the system prompt (which is itself a `PromptPartUtil`), give the model the ability to understand the state of the canvas, some parts of what the user is doing, as well as the state of the task it's trying to accomplish
-- you can see all `PromptPartUtil`s that the agent has access to in `AgentUtils.ts`, in the `PROMPT_PART_UTILS` list.
-- these are treated very similarly to `AgentActionUtil`s in that they are instantiated when the `TldrawAgent` class is initialized, and stored in the class itself
-- when a new request is sent to the model, the `preparePrompt()` function is called to assemble all the various prompt parts into a single `AgentPrompt`, which contains a.
-
-> note that this is **not** the actual list of messages that is sent directly to the model. the `AgentPrompt` is sent to the worker, which then goes back through the prompt parts and calls their respective `getContent()` and `getMessages()` methods, which it then uses along with `getPriority()` to THEN turn into the raw messages
-
-- in order to for each individual prompt part, the `getPart()` and then the `transformPart()` methods are called.
-- `getPart()` takes the `AgentRequest` and the agent as arguments and allows the `PromptPartUtil` to construct the prompt part itself. the prompt part itself is generally just raw, unsantized data, and doesn't include any 'plain english' text.
-  - for many `PromptPartUtil`s, this is quite simple. The `TodoListPartUtil` simply gets the current value of the agent's `$todoList`, for example
-  - others are more complex. you should should try exploring the different `PromptPartUtil`s if you haven't already!
-- then, the prompt part is transformed using its `transformPart` method. this uses the same `AgentTransform` that will later be used to transform the actions. to refresh, the `transform` exists to allow us to simplify the information we send to the model in order to improve its performance and generally confuse it less
-  - one way we do this is by rounding the coordinates and widths and heights of the shapes (this is beacause `x: 512` is easier for the model to parse, and requires less tokens, than `x: 512.328947832`, especially when there may be dozens or even hundreds of coordinates for the model to read)
-  - when these coordinates are rounded, the amount they were rounded by is stored in the `transform`. this allows us to apply the revserse of this transformation to any actions that affect a given shape.
 
 ## How to change the system prompt
 

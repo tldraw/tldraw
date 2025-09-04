@@ -234,7 +234,7 @@ export class TldrawAgent {
 	 * agent.prompt('Draw a cat')
 	 *
 	 * agent.prompt({
-	 *   message: 'Draw a cat here',
+	 *   message: 'Draw a cat in this area',
 	 *   bounds: {
 	 *     x: 0,
 	 *     y: 0,
