@@ -1,6 +1,20 @@
 # tldraw agent chat
 
-This repo contains a starter-kit for making an agent that can manipulate a canvas using [tldraw](https://github.com/tldraw/tldraw).
+This starter kit demonstrates how to build an AI agent that can manipulate the [tldraw](https://github.com/tldraw/tldraw) canvas.
+
+It features a chat panel on the right-hand-side of the screen where the user can communicate with the agent, add context and see chat history.
+
+## Environment setup
+
+Create a `.dev.vars` file in the root directory and add API keys for any model providers you want to use.
+
+```
+ANTHROPIC_API_KEY=your_anthropic_api_key_here
+GOOGLE_API_KEY=your_google_api_key_here
+OPENAI_API_KEY=your_openai_api_key_here
+```
+
+We recommend using Anthropic for best results. Get your API key from the [Anthropic dashboard](https://console.anthropic.com/settings/keys).
 
 ## Local development
 
@@ -10,19 +24,39 @@ Run the development server with `yarn dev` or `npm run dev`.
 
 Open `http://localhost:5173/` in your browser to see the app.
 
-## Environment Setup
+## Agent overview
 
-1. Create a `.dev.vars` file in the root directory.
-2. Add API keys for any providers that you want to use, e.g. `OPENAI_API_KEY=your-key`, `ANTHROPIC_API_KEY=your-key`, `GOOGLE_API_KEY=your-key` (we recommend using Claude).
-3. Install dependencies with `pnpm i`
-4. Run `pnpm run dev`
-5. Open `http://localhost:5173/` in your browser.
+With its default setup, the agent can perform many actions:
 
-The simplest possible way to use a `TldrawAgent` is calling it's `prompt()` method, which will start an agentic loop that will continue until it has finished the task you've given it
+- Creating, updating, and deleting shapes.
+- Drawing freehand pen strokes.
+- Using higher-level operations on multiple shapes at once: Rotating, resizing, aligning, distributing, stacking and reordering shapes.
+- Writing out its thinking and sending messages to the user.
+- Keeping track of its task by writing and updating a todo list.
+- Moving its viewport to look at different parts of the canvas.
+- Scheduling further work and reviews to be carried out in follow-up requests.
+
+To make decisions on what to do, we send the agent information from various sources:
+
+- The user's message.
+- The user's current selection of shapes.
+- What the user can currently see on their screen.
+- Any additional context that the user has provided, such as specific shapes or a particular position or area on the canvas.
+- Actions the user has recently taken.
+- A screenshot of the agent's current view of the canvas.
+- A simplified format of all shapes within the agent's viewport.
+- Clusters of shapes outside the agent's viewport.
+- The history of the current session, including the user's messages and all the agent's actions.
+
+## Using the agent programmatically
+
+Aside from using the chat panel UI, you can also use the agent programmatically.
+
+The simplest way to do this is by calling the `prompt()` method to start an agentic loop. The agent will continue until it has finished the task you've given it.
 
 ```ts
 const agent = useTldrawAgent({ editor })
-agent.prompt({ message: 'Draw a cat' })
+agent.prompt('Draw a cat')
 ```
 
 ## How to change what the agent can do
