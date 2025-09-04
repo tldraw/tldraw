@@ -371,14 +371,12 @@ export class TldrawAgent {
 	 */
 	async resolveAndSetPromises(scheduledRequest: AgentRequest): Promise<AgentRequest> {
 		const promises = Object.values(scheduledRequest.promises ?? {})
-		console.log('promises', promises)
 		if (promises.length === 0) {
 			return scheduledRequest
 		}
 
 		try {
 			const resolvedData = await Promise.all(promises)
-			console.log('resolvedData', resolvedData)
 
 			// Create apiData object from resolved promises
 			const apiData: Record<string, any> = {}
