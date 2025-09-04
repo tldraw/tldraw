@@ -63,7 +63,7 @@ function App() {
 	// Custom components to visualize what the agent is doing
 	const components: TLComponents = useMemo(() => {
 		return {
-			HelperButtons: CustomHelperButtons,
+			HelperButtons: () => agent && <CustomHelperButtons agent={agent} />,
 			InFrontOfTheCanvas: () => (
 				<>
 					{agent && <AgentViewportBoundsHighlight agent={agent} />}

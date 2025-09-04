@@ -1,4 +1,4 @@
-import { atom, Editor, RecordsDiff, structuredClone, TLRecord, TLShapeId, VecModel } from 'tldraw'
+import { atom, Editor, RecordsDiff, structuredClone, TLRecord, VecModel } from 'tldraw'
 import { AgentActionUtil } from '../../shared/actions/AgentActionUtil'
 import { AgentRequestTransform } from '../../shared/AgentRequestTransform'
 import { getAgentActionUtilsRecord, getPromptPartUtilsRecord } from '../../shared/AgentUtils'
@@ -75,14 +75,6 @@ export class TldrawAgent {
 	$chatOrigin = atom<VecModel>('chatOrigin', { x: 0, y: 0 })
 
 	/**
-	 * An atom containing a mapping of simplified shape ids to their original
-	 * tldraw shapes ids, for the current chat.
-	 *
-	 * eg: "shape:rectangle-1" to "shape:n50JvZRsCDqH_CUvsu7ct"
-	 */
-	$chatIdMap = atom<Record<TLShapeId, TLShapeId>>('chatIdMap', {})
-
-	/**
 	 * An atom containing the agent's todo list.
 	 */
 	$todoList = atom<TodoItem[]>('todoList', [])
@@ -124,7 +116,6 @@ export class TldrawAgent {
 
 		persistAtomInLocalStorage(this.$chatHistory, `${id}:chat-history`)
 		persistAtomInLocalStorage(this.$chatOrigin, `${id}:chat-origin`)
-		persistAtomInLocalStorage(this.$chatIdMap, `${id}:chat-id-map`)
 		persistAtomInLocalStorage(this.$modelName, `${id}:model-name`)
 		persistAtomInLocalStorage(this.$todoList, `${id}:todo-items`)
 		persistAtomInLocalStorage(this.$contextItems, `${id}:context-items`)
@@ -239,8 +230,18 @@ export class TldrawAgent {
 	 *
 	 * @example
 	 * ```tsx
-	 * const agent = useTldrawAgent({ editor })
-	 * agent.prompt({ message: 'Draw a snowman' })
+	 * const agent = useTldrawAgent(editor)
+	 * agent.prompt('Draw a cat')
+	 *
+	 * agent.prompt({
+	 *   message: 'Draw a cat here',
+	 *   bounds: {
+	 *     x: 0,
+	 *     y: 0,
+	 *     w: 300,
+	 *     h: 400,
+	 *   },
+	 * })
 	 * ```
 	 *
 	 * @returns A promise for when the agent has finished its work.
@@ -428,7 +429,6 @@ export class TldrawAgent {
 
 		const viewport = this.editor.getViewportPageBounds()
 		this.$chatHistory.set([])
-		this.$chatIdMap.set({})
 		this.$chatOrigin.set({ x: viewport.x, y: viewport.y })
 	}
 

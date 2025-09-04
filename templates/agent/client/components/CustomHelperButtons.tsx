@@ -2,22 +2,16 @@ import {
 	DefaultHelperButtons,
 	DefaultHelperButtonsContent,
 	TldrawUiMenuContextProvider,
-	useEditor,
-	useValue,
 } from 'tldraw'
-import { $agentsAtom } from '../agent/agentsAtom'
+import { TldrawAgent } from '../agent/TldrawAgent'
 import { GoToAgentButton } from './GoToAgentButton'
 
-export function CustomHelperButtons() {
-	const editor = useEditor()
-	const agents = useValue('agents', () => $agentsAtom.get(editor), [editor])
+export function CustomHelperButtons({ agent }: { agent: TldrawAgent }) {
 	return (
 		<DefaultHelperButtons>
 			<TldrawUiMenuContextProvider type="helper-buttons" sourceId="helper-buttons">
 				<DefaultHelperButtonsContent />
-				{agents.map((agent) => (
-					<GoToAgentButton key={agent.id} agent={agent} />
-				))}
+				<GoToAgentButton agent={agent} />
 			</TldrawUiMenuContextProvider>
 		</DefaultHelperButtons>
 	)
