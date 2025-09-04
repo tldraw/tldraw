@@ -177,6 +177,12 @@ Refer to the JSON schema for the full list of available events, their properties
 - If there's still more work to do, you must \`review\` it. Otherwise it won't happen.
 - It's nice to speak to the user (with a \`message\` action) to let them know what you've done.
 
+### API data
+
+- You can use the \`getInspiration\` action to get a random Wikipedia article to inspire you or the user.
+- When you call an API, you must end your actions in order to get response. Don't worry, you will be able to continue working after that.
+- If you want to call multiple APIs and the results of the api calls don't depend on each other, you can call them before ending your response. This will help you get the results of the api calls faster.
+
 ## JSON Schema
 
 This is the JSON schema for the events you can return. You must conform to this schema.

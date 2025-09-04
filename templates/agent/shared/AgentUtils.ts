@@ -5,6 +5,7 @@ import { CreateActionUtil } from './actions/CreateActionUtil'
 import { DebugActionUtil } from './actions/DebugActionUtil'
 import { DeleteActionUtil } from './actions/DeleteActionUtil'
 import { DistributeActionUtil } from './actions/DistributeActionUtil'
+import { GetRandomWikiArticleActionUtil } from './actions/GetRandomWikiArticleActionUtil'
 import { LabelActionUtil } from './actions/LabelActionUtil'
 import { MessageActionUtil } from './actions/MessageActionUtil'
 import { MoveActionUtil } from './actions/MoveActionUtil'
@@ -68,6 +69,9 @@ export const PROMPT_PART_UTILS = [
 
 	// Example from this repo's README
 	TimePartUtil,
+
+	// Misc
+	// RandomWikiArticlePartUtil,
 ]
 
 /**
@@ -105,6 +109,9 @@ export const AGENT_ACTION_UTILS = [
 
 	// Drawing
 	PenActionUtil,
+
+	// Misc
+	GetRandomWikiArticleActionUtil,
 
 	// Internal (required)
 	DebugActionUtil,
