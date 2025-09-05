@@ -507,7 +507,7 @@ export class TldrawAgent {
 	 * Check if the agent is currently working on a request or not.
 	 */
 	isGenerating() {
-		return this.$activeRequest.get() !== null
+		return this.$activeRequest.get() !== null || this.$scheduledRequest.get() !== null
 	}
 
 	/** Whether the agent is currently acting on the editor or not. */
