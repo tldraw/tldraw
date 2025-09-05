@@ -5,7 +5,6 @@ import { PromptPartUtil } from './PromptPartUtil'
 export interface MessagePart extends BasePromptPart<'message'> {
 	message: string
 	requestType: AgentRequest['type']
-	apiData?: AgentRequest['apiData']
 }
 
 export class MessagePartUtil extends PromptPartUtil<MessagePart> {
@@ -16,18 +15,16 @@ export class MessagePartUtil extends PromptPartUtil<MessagePart> {
 	}
 
 	override getPart(request: AgentRequest): MessagePart {
-		const { message, type, apiData } = request
+		const { message, type } = request
 		return {
 			type: 'message',
 			message,
 			requestType: type,
-			apiData,
 		}
 	}
 
-	override buildContent({ message, requestType, apiData }: MessagePart) {
+	override buildContent({ message, requestType }: MessagePart) {
 		let responsePart: string[] = []
-
 		switch (requestType) {
 			case 'user':
 				responsePart = getUserPrompt(message)
@@ -43,19 +40,6 @@ export class MessagePartUtil extends PromptPartUtil<MessagePart> {
 			case 'review':
 				responsePart = [getReviewPrompt(message)]
 				break
-		}
-
-		// Feels weird to handle sending the api data to the model in just a MessagePartUtil. Probably worth putting in some time to to make a "api request response" part util.
-		const apiDataFormatted = Object.entries(apiData ?? {}).map(([actionType, data]) => {
-			if (Array.isArray(data)) {
-				return `${actionType}: ${data.length} result(s) - ${JSON.stringify(data)}`
-			} else {
-				return `${actionType}: ${JSON.stringify(data)}`
-			}
-		})
-
-		if (apiDataFormatted.length > 0) {
-			responsePart.push(`Here's the API data you requested: ${apiDataFormatted.join('\n')}`)
 		}
 
 		return responsePart
