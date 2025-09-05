@@ -3457,6 +3457,21 @@ __metadata:
   languageName: node
   linkType: hard
 
+"@google/genai@npm:^1.17.0":
+  version: 1.17.0
+  resolution: "@google/genai@npm:1.17.0"
+  dependencies:
+    google-auth-library: "npm:^9.14.2"
+    ws: "npm:^8.18.0"
+  peerDependencies:
+    "@modelcontextprotocol/sdk": ^1.11.4
+  peerDependenciesMeta:
+    "@modelcontextprotocol/sdk":
+      optional: true
+  checksum: 10/b46b6bf35bebce515ebbd554c1db2af385012740aac476158c37b169192760db615bd77418f49443fffbf6980f1616f3d10ec6b630f5b8d41e702bd685376b41
+  languageName: node
+  linkType: hard
+
 "@google/generative-ai@npm:^0.24.1":
   version: 0.24.1
   resolution: "@google/generative-ai@npm:0.24.1"
@@ -17498,7 +17513,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"google-auth-library@npm:^9.15.1":
+"google-auth-library@npm:^9.14.2, google-auth-library@npm:^9.15.1":
   version: 9.15.1
   resolution: "google-auth-library@npm:9.15.1"
   dependencies:
@@ -27654,6 +27669,7 @@ __metadata:
   dependencies:
     "@ai-sdk/google": "npm:^2.0.11"
     "@ai-sdk/react": "npm:^2.0.15"
+    "@google/genai": "npm:^1.17.0"
     "@types/node": "npm:^22.15.31"
     "@types/react": "npm:^18.3.18"
     "@types/react-dom": "npm:^18.3.5"

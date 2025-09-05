@@ -1,6 +1,7 @@
 'use client'
 
 import { useChatMessageStorage } from '@/hooks/useChatMessageStorage'
+import { uploadMessageContents } from '@/utils/uploadMessageContents'
 import { useChat } from '@ai-sdk/react'
 import { DefaultChatTransport, FileUIPart, TextUIPart, UIMessage } from 'ai'
 import { useCallback, useEffect } from 'react'
@@ -36,6 +37,20 @@ function ChatInner({
 	const chat = useChat({
 		transport: new DefaultChatTransport({
 			api: '/api/chat',
+			prepareSendMessagesRequest: async (options) => {
+				const { messagesToSend, messagesToSave } = await uploadMessageContents(options.messages)
+				console.log({ messagesToSend, messagesToSave })
+				chat.setMessages(messagesToSave)
+				return {
+					body: {
+						...options.body,
+						id: options.id,
+						messages: messagesToSend,
+						trigger: options.trigger,
+						messageId: options.messageId,
+					},
+				}
+			},
 		}),
 		messages: initialMessages,
 	})
