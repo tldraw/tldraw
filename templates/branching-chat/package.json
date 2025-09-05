@@ -31,7 +31,7 @@
 		"@cloudflare/vite-plugin": "^1.9.0",
 		"ai": "^5.0.33",
 		"classnames": "^2.5.1",
-		"itty-router": "^5.0.22",
+		"itty-router": "^5.0.18",
 		"radix-ui": "^1.4.2",
 		"react": "^18.3.1",
 		"react-dom": "^18.3.1",
