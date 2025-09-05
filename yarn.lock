@@ -2114,13 +2114,6 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@cloudflare/workers-types@npm:^4.20250905.0":
-  version: 4.20250905.0
-  resolution: "@cloudflare/workers-types@npm:4.20250905.0"
-  checksum: 10/e97197880b91e2d83c8d7ed9185563642d59ddf45e2667749d9f0c6c2bb42f90aacf220cf92bd5e85cde8c1fa8d8aa9005cc241f634afd1df6a84a3f7ecb665e
-  languageName: node
-  linkType: hard
-
 "@cspotcode/source-map-support@npm:0.8.1, @cspotcode/source-map-support@npm:^0.8.0":
   version: 0.8.1
   resolution: "@cspotcode/source-map-support@npm:0.8.1"
@@ -27686,7 +27679,7 @@ __metadata:
   dependencies:
     "@ai-sdk/openai": "npm:^2.0.24"
     "@cloudflare/vite-plugin": "npm:^1.9.0"
-    "@cloudflare/workers-types": "npm:^4.20250905.0"
+    "@cloudflare/workers-types": "npm:^4.20250703.0"
     "@types/react": "npm:^18.3.18"
     "@types/react-dom": "npm:^18.3.5"
     "@vitejs/plugin-react-swc": "npm:^3.10.2"

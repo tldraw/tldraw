@@ -39,7 +39,7 @@
 		"wrangler": "^4.23.0"
 	},
 	"devDependencies": {
-		"@cloudflare/workers-types": "^4.20250905.0",
+		"@cloudflare/workers-types": "^4.20250703.0",
 		"@types/react": "^18.3.18",
 		"@types/react-dom": "^18.3.5",
 		"@vitejs/plugin-react-swc": "^3.10.2",
