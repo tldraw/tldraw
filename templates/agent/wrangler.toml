@@ -1,0 +1,25 @@
+name = "agent-template"
+main = "worker/worker.ts"
+compatibility_date = "2024-12-30"
+assets = { not_found_handling = "single-page-application" }
+
+# Set up the durable object used for each tldraw room
+[durable_objects]
+bindings = [
+    { name = "AGENT_DURABLE_OBJECT", class_name = "AgentDurableObject" },
+]
+
+[[routes]]
+pattern = "agent.templates.tldraw.dev"
+custom_domain = true
+
+# Durable objects require migrations to create/modify/delete them
+[[migrations]]
+tag = "v1"
+new_classes = ["TldrawAiDurableObject"]
+
+[[migrations]]
+tag = "v2"
+renamed_classes = [
+    { from = "TldrawAiDurableObject", to = "AgentDurableObject" },
+]

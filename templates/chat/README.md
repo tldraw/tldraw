@@ -30,7 +30,7 @@ Key interactions include:
 - Draw, sketch, and create diagrams to supplement conversations
 - Annotate images and visual content directly on the canvas
 
-## Environment Setup
+## Environment setup
 
 Create a `.env.local` file in the root directory and add your Google Generative API key:
 

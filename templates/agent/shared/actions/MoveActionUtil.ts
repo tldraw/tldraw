@@ -1,0 +1,79 @@
+import { TLShapeId, Vec } from 'tldraw'
+import z from 'zod'
+import { AgentRequestTransform } from '../AgentRequestTransform'
+import { Streaming } from '../types/Streaming'
+import { AgentActionUtil } from './AgentActionUtil'
+
+const MoveAction = z
+	.object({
+		_type: z.literal('move'),
+		intent: z.string(),
+		shapeId: z.string(),
+		x: z.number(),
+		y: z.number(),
+	})
+	.meta({ title: 'Move', description: 'The AI moves a shape to a new position.' })
+
+type IMoveAction = z.infer<typeof MoveAction>
+
+export class MoveActionUtil extends AgentActionUtil<IMoveAction> {
+	static override type = 'move' as const
+
+	override getSchema() {
+		return MoveAction
+	}
+
+	override getInfo(action: Streaming<IMoveAction>) {
+		return {
+			icon: 'cursor' as const,
+			description: action.intent ?? '',
+		}
+	}
+
+	override transformAction(action: Streaming<IMoveAction>, transform: AgentRequestTransform) {
+		if (!action.complete) return action
+
+		// Make sure the shape ID refers to a real shape
+		const shapeId = transform.ensureShapeIdIsReal(action.shapeId)
+		if (!shapeId) return null
+		action.shapeId = shapeId
+
+		// Make sure the x and y values are numbers
+		const floatX = transform.ensureValueIsNumber(action.x)
+		const floatY = transform.ensureValueIsNumber(action.y)
+		if (floatX === null || floatY === null) return null
+		action.x = floatX
+		action.y = floatY
+
+		return action
+	}
+
+	override applyAction(action: Streaming<IMoveAction>, transform: AgentRequestTransform) {
+		if (!action.complete) return
+
+		// Translate the position back to the chat's position
+		const { x, y } = transform.removeOffsetFromVec({ x: action.x, y: action.y })
+
+		const { editor } = transform
+		const shapeId = `shape:${action.shapeId}` as TLShapeId
+		const shape = editor.getShape(shapeId)
+		if (!shape) return
+
+		const shapeBounds = editor.getShapePageBounds(shapeId)
+		if (!shapeBounds) return
+
+		const moveTarget = new Vec(x, y)
+		const shapeOrigin = new Vec(shape.x, shape.y)
+		const shapeBoundsOrigin = new Vec(shapeBounds.minX, shapeBounds.minY)
+
+		const shapeOriginDelta = shapeOrigin.sub(shapeBoundsOrigin)
+		const newTarget = moveTarget.add(shapeOriginDelta)
+
+		editor.updateShape({
+			id: shapeId,
+			type: shape.type,
+			x: newTarget.x,
+			y: newTarget.y,
+		})
+	}
+}
