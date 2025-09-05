@@ -16,30 +16,25 @@ This is the tldraw monorepo - an infinite canvas SDK for React applications. It'
 - `yarn dev-app` - Start tldraw.com client app development
 - `yarn dev-docs` - Start documentation site development
 - `yarn dev-vscode` - Start VSCode extension development
+- `yarn dev-template <template name>` - Runs a template
 - `yarn context` - Find and display nearest CONTEXT.md file (supports -v, -r, -u flags)
 - `yarn refresh-context` - Update CONTEXT.md files using Claude Code CLI
 
-### Building
-
-- `yarn build` - Build all packages using lazy (incremental build system)
-- `yarn build-package` - Build all SDK packages only
-- `yarn build-app` - Build tldraw.com client app
-- `yarn build-docs` - Build documentation site
-
 ### Testing
 
-- `yarn test` - Run all tests (slow, avoid unless necessary)
-- `yarn test run` - Run tests in specific workspace (cd to workspace first)
-- `yarn test-ci` - Run tests in CI mode
+- `yarn test run` in root - Run all tests (slow, avoid unless necessary)
+- `yarn test run` in a workspace - Run tests in specific workspace (cd to workspace first)
 - `yarn e2e` - Run end-to-end tests for examples
 - `yarn e2e-dotcom` - Run end-to-end tests for tldraw.com
 
 ### Code Quality
 
-- `yarn lint` - Lint all packages
-- `yarn typecheck` - Type check all packages
+- `yarn lint` - Lint package
+- `yarn typecheck` in workspace root - Type check all packages
 - `yarn format` - Format code with Prettier
 - `yarn api-check` - Validate public API consistency
+
+IMPORTANT: NEVER run bare `tsc` - always use `yarn typecheck`
 
 ## Architecture Overview
 
