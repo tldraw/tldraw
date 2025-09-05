@@ -102,7 +102,7 @@ export class UserActionHistoryPartUtil extends PromptPartUtil<UserActionHistoryP
 
 		return [
 			'Since the previous request, the user has made the following changes to the canvas:',
-			JSON.stringify(part, null, 2),
+			JSON.stringify(part),
 		]
 	}
 }
