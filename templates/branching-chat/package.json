@@ -29,7 +29,7 @@
 	"dependencies": {
 		"@ai-sdk/openai": "^2.0.24",
 		"@cloudflare/vite-plugin": "^1.9.0",
-		"ai": "^5.0.33",
+		"ai": "^5.0.15",
 		"classnames": "^2.5.1",
 		"itty-router": "^5.0.18",
 		"radix-ui": "^1.4.2",

@@ -34,18 +34,6 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@ai-sdk/gateway@npm:1.0.18":
-  version: 1.0.18
-  resolution: "@ai-sdk/gateway@npm:1.0.18"
-  dependencies:
-    "@ai-sdk/provider": "npm:2.0.0"
-    "@ai-sdk/provider-utils": "npm:3.0.8"
-  peerDependencies:
-    zod: ^3.25.76 || ^4
-  checksum: 10/dbe5f241d7fe83a74bc731abd8f26d307202450cb0858ddfec374ad7b354dc4572d3a3ea4ea4eba39688a17ef8d66d1616f0e8191bee5f47a89ec2df470381f8
-  languageName: node
-  linkType: hard
-
 "@ai-sdk/gateway@npm:1.0.7":
   version: 1.0.7
   resolution: "@ai-sdk/gateway@npm:1.0.7"
@@ -11693,20 +11681,6 @@ __metadata:
   peerDependencies:
     zod: ^3.25.76 || ^4
   checksum: 10/a0077b55895555de7ef708faf41983d76f7a78b41fa3a1dd22faad19d63b1877350392927289c8724f3e69fc23044ffe84642ee0cea232e46186e485a8e4b7b7
-  languageName: node
-  linkType: hard
-
-"ai@npm:^5.0.33":
-  version: 5.0.33
-  resolution: "ai@npm:5.0.33"
-  dependencies:
-    "@ai-sdk/gateway": "npm:1.0.18"
-    "@ai-sdk/provider": "npm:2.0.0"
-    "@ai-sdk/provider-utils": "npm:3.0.8"
-    "@opentelemetry/api": "npm:1.9.0"
-  peerDependencies:
-    zod: ^3.25.76 || ^4
-  checksum: 10/4727fcaef3333508427b048f55a7fd8afad53d8ef12082e1ff1b0880c9f63dafa89a5cd0db2b41db74138425c1e9cea3089179d6178d2e0c0aeb901deff12152
   languageName: node
   linkType: hard
 
@@ -27716,7 +27690,7 @@ __metadata:
     "@types/react": "npm:^18.3.18"
     "@types/react-dom": "npm:^18.3.5"
     "@vitejs/plugin-react-swc": "npm:^3.10.2"
-    ai: "npm:^5.0.33"
+    ai: "npm:^5.0.15"
     classnames: "npm:^2.5.1"
     itty-router: "npm:^5.0.18"
     radix-ui: "npm:^1.4.2"
