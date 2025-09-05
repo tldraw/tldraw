@@ -1,3 +1,5 @@
+# Branching Chat Template
+
 <div alt style="text-align: center; transform: scale(.5);">
 	<picture>
 		<source media="(prefers-color-scheme: dark)" srcset="https://raw.githubusercontent.com/tldraw/tldraw/main/assets/github-hero-dark.png" />
@@ -5,26 +7,110 @@
 	</picture>
 </div>
 
-This repo contains a starter-kit for making a branching chat type application using [tldraw](https://github.com/tldraw/tldraw).
+A visual branching conversation interface built with [tldraw](https://github.com/tldraw/tldraw) that lets you create interactive chat trees with AI integration.
 
-## Local development
+## What is this?
 
-Install dependencies with `yarn` or `npm install`.
+This template demonstrates how to build a node-based conversational UI where:
 
-Run the development server with `yarn dev` or `npm run dev`.
+- **Visual Chat Trees**: Create branching conversation flows on an infinite canvas
+- **AI Integration**: Stream responses from AI models with real-time updates
+- **Interactive Nodes**: Drag, connect, and organize conversation messages visually
+- **Context Awareness**: AI responses consider the entire conversation branch history
+- **Full Stack**: Complete implementation with Cloudflare Workers backend
 
-Open `http://localhost:5173/` in your browser to see the app.
+Perfect for building chatbots, interactive storytelling, conversation design tools, or any application that needs visual conversation flows.
 
-## Environment Setup
+## Quick Start
 
-Create a `.env.local` file in the root directory and add your Google Generative API key:
+### 1. Install Dependencies
 
+```bash
+yarn install
 ```
+
+### 2. Environment Setup
+
+Create a `.dev.vars` file in the root directory:
+
+```bash
 OPENAI_API_KEY=your_openai_api_key_here
 ```
 
-Get your API key from [Google AI Studio](https://aistudio.google.com/apikey).
-You can also switch to a different provider using the [Vercel AI SDK](https://ai-sdk.dev/providers/ai-sdk-providers).
+**Get your API key:**
+
+- OpenAI: [platform.openai.com](https://platform.openai.com/api-keys)
+- Or use any compatible provider via [Vercel AI SDK](https://sdk.vercel.ai/providers)
+
+### 3. Start Development
+
+```bash
+yarn dev
+```
+
+Open [http://localhost:5173](http://localhost:5173) to see your branching chat interface.
+
+## How to Use
+
+1. **Create Message Nodes**: Click the message icon in the toolbar to add chat nodes
+2. **Connect Conversations**: Drag from output ports to input ports to create conversation branches
+3. **Send Messages**: Type in any node and click send to get AI responses
+4. **Branch Conversations**: Create multiple paths by connecting nodes in different ways
+5. **Build Context**: The AI considers all connected previous messages when responding
+
+## Architecture
+
+This template showcases advanced tldraw concepts:
+
+### Frontend (`/client`)
+
+- **Custom Shapes**: `NodeShapeUtil` for chat message nodes
+- **Custom Tools**: Interactive port connections for linking conversations
+- **Custom UI**: Workflow-specific toolbar and components
+- **Streaming Updates**: Real-time AI response rendering
+
+### Backend (`/worker`)
+
+- **Cloudflare Workers**: Edge computing for global performance
+- **Durable Objects**: Stateful operations and session management
+- **AI Integration**: Vercel AI SDK with streaming support
+- **API Routes**: RESTful endpoints for chat operations
+
+## Deployment
+
+Ready to deploy to Cloudflare Workers:
+
+```bash
+# Build the frontend
+yarn build
+
+# Deploy to Cloudflare (requires wrangler CLI)
+npx wrangler deploy
+```
+
+Make sure to set your `OPENAI_API_KEY` in your Cloudflare Workers environment variables.
+
+## Customization
+
+### Adding New Node Types
+
+1. Create a new node definition in `/client/nodes/types/`
+2. Add to the `NodeDefinitions` array in `nodeTypes.tsx`
+3. Implement required methods: `Component`, `getPorts`, `computeOutput`
+
+### Changing AI Providers
+
+Modify the `/worker/routes/` to use different AI providers supported by the Vercel AI SDK:
+
+```javascript
+import { anthropic } from '@ai-sdk/anthropic'
+import { google } from '@ai-sdk/google'
+// ... other providers
+```
+
+### UI Customization
+
+Override tldraw components via the `components` prop in `App.tsx`. Customize the toolbar in `WorkflowToolbar.tsx`.
 
 ## License
 
