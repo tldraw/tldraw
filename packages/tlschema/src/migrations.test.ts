@@ -227,6 +227,37 @@ describe('Store removing Icon and Code shapes', () => {
 	})
 })
 
+describe('Fixing index keys', () => {
+	const { up } = getTestMigration(storeVersions.FixIndexKeys)
+	test('up works as expected', () => {
+		const snapshot = [
+			ShapeRecord.create({
+				type: 'shape',
+				id: 'shape:1',
+				parentId: 'page:any',
+				index: 'a0',
+			} as any),
+			ShapeRecord.create({
+				type: 'shape',
+				id: 'shape:2',
+				parentId: 'page:any',
+				index: 'a00',
+			} as any),
+			ShapeRecord.create({
+				type: 'shape',
+				id: 'shape:3',
+				parentId: 'page:any',
+				index: 'a111',
+			} as any),
+		]
+		const fixed = snapshot.map((shape) => up(shape))
+		expect(fixed.find((s) => s.id === 'shape:1')?.index).toBe('a0')
+		expect(fixed.find((s) => s.id === 'shape:2')?.index).not.toBe('a00')
+		expect(fixed.find((s) => s.id === 'shape:2')?.index).toMatch(/^a0[1-9A-Za-z]{3}$/)
+		expect(fixed.find((s) => s.id === 'shape:3')?.index).toBe('a111')
+	})
+})
+
 describe('Adding export background', () => {
 	const { up } = getTestMigration(instanceVersions.AddTransparentExportBgs)
 	test('up works as expected', () => {
