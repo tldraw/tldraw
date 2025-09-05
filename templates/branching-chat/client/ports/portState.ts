@@ -1,5 +1,4 @@
-import { Editor, TLShapeId } from 'tldraw'
-import { EditorAtom } from '../utils'
+import { Editor, EditorAtom, TLShapeId } from 'tldraw'
 import { PortIdentifier } from './Port'
 
 /**

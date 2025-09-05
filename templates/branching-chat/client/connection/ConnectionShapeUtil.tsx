@@ -1,3 +1,4 @@
+/* eslint-disable react-hooks/rules-of-hooks */
 import classNames from 'classnames'
 import {
 	CubicBezier2d,
@@ -17,15 +18,16 @@ import {
 	createShapeId,
 	stopEventPropagation,
 	useEditor,
+	useUniqueSafeId,
 	useValue,
 	vecModelValidator,
 } from 'tldraw'
 import {
 	CONNECTION_CENTER_HANDLE_HOVER_SIZE_PX,
 	CONNECTION_CENTER_HANDLE_SIZE_PX,
+	PORT_RADIUS_PX,
 } from '../constants'
-import { getAllConnectedNodes, getNodeOutputPortValues, getNodePorts } from '../nodes/nodePorts'
-import { STOP_EXECUTION } from '../nodes/types/shared'
+import { getAllConnectedNodes, getNodePorts } from '../nodes/nodePorts'
 import { getPortAtPoint } from '../ports/getPortAtPoint'
 import { updatePortState } from '../ports/portState'
 import {
@@ -271,12 +273,41 @@ export class ConnectionShapeUtil extends ShapeUtil<ConnectionShape> {
 	}
 
 	indicator(connection: ConnectionShape) {
+		const id = useUniqueSafeId()
 		const { start, end } = getConnectionTerminals(this.editor, connection)
+
 		return (
-			<g className="ConnectionShapeIndicator">
-				<path d={getConnectionPath(start, end)} strokeWidth={2.1} strokeLinecap="round" />
-				<ConnectionCenterHandle connection={connection} center={Vec.Lrp(start, end, 0.5)} />
-			</g>
+			<>
+				<mask id={id}>
+					<rect
+						width={Math.abs(start.x - end.x) + 10}
+						height={Math.abs(start.y - end.y) + 10}
+						fill="white"
+						x={Math.min(start.x, end.x) - 5}
+						y={Math.min(start.y, end.y) - 5}
+					/>
+					<circle
+						key={'start'}
+						cx={start.x}
+						cy={start.y}
+						r={PORT_RADIUS_PX}
+						fill="black"
+						strokeWidth={0}
+					/>
+					<circle
+						key={'end'}
+						cx={end.x}
+						cy={end.y}
+						r={PORT_RADIUS_PX}
+						fill="black"
+						strokeWidth={0}
+					/>
+				</mask>
+				<g className="ConnectionShapeIndicator" mask={`url(#${id})`}>
+					<path d={getConnectionPath(start, end)} strokeWidth={2.1} strokeLinecap="round" />
+					<ConnectionCenterHandle connection={connection} center={Vec.Lrp(start, end, 0.5)} />
+				</g>
+			</>
 		)
 	}
 }
@@ -291,25 +322,8 @@ function ConnectionShape({ connection }: { connection: ConnectionShape }) {
 		connection,
 	])
 
-	// Check if this connection is inactive (carrying STOP_EXECUTION signal)
-	const isInactive = useValue(
-		'isInactive',
-		() => {
-			const bindings = getConnectionBindings(editor, connection.id)
-			if (!bindings.start) return false
-			const originShapeId = bindings.start?.toId
-			if (!originShapeId) return false
-			const outputs = getNodeOutputPortValues(editor, originShapeId)
-			const outputValue = outputs[bindings.start.props.portId]
-			return outputValue === STOP_EXECUTION
-		},
-		[connection.id, editor]
-	)
-
 	return (
-		<SVGContainer
-			className={classNames('ConnectionShape', isInactive && 'ConnectionShape_inactive')}
-		>
+		<SVGContainer className={classNames('ConnectionShape')}>
 			<path d={getConnectionPath(start, end)} />
 		</SVGContainer>
 	)
@@ -348,7 +362,7 @@ function ConnectionCenterHandle({
 			}}
 			onPointerDown={stopEventPropagation}
 			onClick={() => {
-				insertNodeWithinConnection(editor, connection)
+				insertNodeWithinConnection(editor, connection, 'vertical')
 			}}
 		>
 			<circle

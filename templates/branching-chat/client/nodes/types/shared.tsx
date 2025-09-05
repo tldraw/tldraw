@@ -4,12 +4,6 @@ import { PortId, ShapePort } from '../../ports/Port'
 import { NodeShape } from '../NodeShapeUtil'
 import { NodeType, NodeTypePorts } from '../nodeTypes'
 
-/**
- * A special value that can be returned from a node to indicate that execution should stop.
- */
-export type STOP_EXECUTION = typeof STOP_EXECUTION
-export const STOP_EXECUTION = Symbol('STOP_EXECUTION')
-
 export interface NodeDefinition<Node extends { type: string }> {
 	type: Node['type']
 	validator: T.Validator<Node>
@@ -20,15 +14,15 @@ export interface NodeDefinition<Node extends { type: string }> {
 	getBodyWidthPx: (node: Node, editor: Editor) => number
 	getBodyHeightPx: (node: Node, editor: Editor) => number
 	getPorts: (node: Node, editor: Editor) => NodeTypePorts
-	computeOutput: (
-		node: Node,
-		inputs: Record<string, any>
-	) => Promise<Record<string, any | STOP_EXECUTION>>
+	computeOutput: (node: Node, inputs: Record<string, any>) => Promise<Record<string, any>>
 	onPortConnect?: (editor: Editor, shape: NodeShape, node: Node, port: PortId) => void
 	onPortDisconnect?: (editor: Editor, shape: NodeShape, node: Node, port: PortId) => void
 	Component: React.ComponentType<{ shape: NodeShape; node: Node }>
 }
 
+/**
+ * The standard input port for a node.
+ */
 export const shapeInputPort: ShapePort = {
 	id: 'input',
 	terminal: 'end',
@@ -37,7 +31,7 @@ export const shapeInputPort: ShapePort = {
 }
 
 /**
- * The standard output port for a node, appearing in the node header.
+ * The standard output port for a node.
  */
 export const shapeOutputPort: ShapePort = {
 	id: 'output',
@@ -59,15 +53,4 @@ export function updateNode<T extends NodeType>(
 		type: shape.type,
 		props: { node: update(shape.props.node as T) },
 	})
-}
-
-/**
- * A value within a node. If the value is STOP_EXECUTION, a placeholder is shown instead.
- */
-export function NodeValue({ value }: { value: number | STOP_EXECUTION }) {
-	if (value === STOP_EXECUTION) {
-		return <div className="NodeValue_placeholder" />
-	}
-
-	return value
 }

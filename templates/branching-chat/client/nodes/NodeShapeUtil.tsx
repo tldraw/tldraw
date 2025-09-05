@@ -14,13 +14,14 @@ import {
 	useValue,
 } from 'tldraw'
 import { NODE_WIDTH_PX, PORT_RADIUS_PX } from '../constants'
+import { Port } from '../ports/Port'
 import { getNodePorts } from './nodePorts'
 import {
+	getNodeDefinition,
 	getNodeHeightPx,
+	getNodeTypePorts,
 	getNodeWidthPx,
-	NodeBody,
 	NodeDefinitions,
-	NodePorts,
 	NodeType,
 	NodeTypePorts,
 } from './nodeTypes'
@@ -157,5 +158,26 @@ function NodeShape({ shape }: { shape: NodeShape }) {
 			<NodeBody shape={shape} />
 			<NodePorts shape={shape} />
 		</HTMLContainer>
+	)
+}
+
+function NodeBody({ shape }: { shape: NodeShape }) {
+	const node = shape.props.node
+	const { Component } = getNodeDefinition(node)
+	return <Component shape={shape} node={node} />
+}
+
+function NodePorts({ shape }: { shape: NodeShape }) {
+	const editor = useEditor()
+	const ports = useValue('node ports', () => getNodeTypePorts(shape.props.node, editor), [
+		shape.props.node,
+		editor,
+	])
+	return (
+		<>
+			{Object.values(ports).map((port) => (
+				<Port key={port.id} shapeId={shape.id} port={port} />
+			))}
+		</>
 	)
 }
