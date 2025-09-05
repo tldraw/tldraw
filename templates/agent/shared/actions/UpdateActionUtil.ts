@@ -34,6 +34,7 @@ import {
 } from '../format/SimpleShape'
 import { Streaming } from '../types/Streaming'
 import { AgentActionUtil } from './AgentActionUtil'
+import { calculateArrowBindingAnchor } from './CreateActionUtil'
 
 const UpdateAction = z
 	.object({
@@ -242,10 +243,10 @@ export function getTldrawAiChangesFromUpdateEvent({
 				throw new Error(`Shape ${update.shapeId} not found in canvas`)
 			}
 
-			const x1 = arrowShape.x1
-			const y1 = arrowShape.y1
-			const x2 = arrowShape.x2
-			const y2 = arrowShape.y2
+			const x1 = arrowShape.x1 ?? shapeOnCanvas.props.start.x
+			const y1 = arrowShape.y1 ?? shapeOnCanvas.props.start.y
+			const x2 = arrowShape.x2 ?? shapeOnCanvas.props.end.x
+			const y2 = arrowShape.y2 ?? shapeOnCanvas.props.end.y
 			const minX = Math.min(x1, x2)
 			const minY = Math.min(y1, y2)
 
@@ -289,27 +290,10 @@ export function getTldrawAiChangesFromUpdateEvent({
 
 			// Does the arrow have a start shape? Then try to create the binding
 			const startShape = fromId ? editor.getShape(fromId) : null
-			const startShapePageBounds = startShape ? editor.getShapePageBounds(startShape) : null
-			const startShapeGeometry = startShape ? editor.getShapeGeometry(startShape) : null
 
-			if (startShape && startShapePageBounds && startShapeGeometry) {
-				const pointInPageSpace = { x: x1, y: y1 }
-
-				// We default to putting the point in the middle of the shape.
-				const clampedNormalizedAnchor = { x: 0.5, y: 0.5 }
-				const isPointInStartShapeGeometry = startShapeGeometry.hitTestPoint(pointInPageSpace)
-
-				let anchorPoint = pointInPageSpace
-				if (!isPointInStartShapeGeometry) {
-					anchorPoint = startShapeGeometry.nearestPoint(pointInPageSpace)
-				}
-
-				const normalizedAnchor = {
-					x: (anchorPoint.x - startShapePageBounds.x) / startShapePageBounds.w,
-					y: (anchorPoint.y - startShapePageBounds.y) / startShapePageBounds.h,
-				}
-				clampedNormalizedAnchor.x = Math.max(0, Math.min(1, normalizedAnchor.x))
-				clampedNormalizedAnchor.y = Math.max(0, Math.min(1, normalizedAnchor.y))
+			if (startShape) {
+				const targetPoint = { x: x1, y: y1 }
+				const finalNormalizedAnchor = calculateArrowBindingAnchor(editor, startShape, targetPoint)
 
 				changes.push({
 					type: 'createBinding',
@@ -319,7 +303,7 @@ export function getTldrawAiChangesFromUpdateEvent({
 						fromId: shapeId,
 						toId: startShape.id,
 						props: {
-							normalizedAnchor: clampedNormalizedAnchor,
+							normalizedAnchor: finalNormalizedAnchor,
 							isExact: false,
 							isPrecise: true,
 							terminal: 'start',
@@ -331,27 +315,10 @@ export function getTldrawAiChangesFromUpdateEvent({
 
 			// Does the arrow have an end shape? Then try to create the binding
 			const endShape = toId ? editor.getShape(toId) : null
-			const endShapePageBounds = endShape ? editor.getShapePageBounds(endShape) : null
-			const endShapeGeometry = endShape ? editor.getShapeGeometry(endShape) : null
 
-			if (endShape && endShapePageBounds && endShapeGeometry) {
-				const pointInPageSpace = { x: x2, y: y2 }
-
-				// We default to putting the point in the middle of the shape.
-				const clampedNormalizedAnchor = { x: 0.5, y: 0.5 }
-				const isPointInEndShapeGeometry = endShapeGeometry.hitTestPoint(pointInPageSpace)
-
-				let anchorPoint = pointInPageSpace
-				if (!isPointInEndShapeGeometry) {
-					anchorPoint = endShapeGeometry.nearestPoint(pointInPageSpace)
-				}
-
-				const normalizedAnchor = {
-					x: (anchorPoint.x - endShapePageBounds.x) / endShapePageBounds.w,
-					y: (anchorPoint.y - endShapePageBounds.y) / endShapePageBounds.h,
-				}
-				clampedNormalizedAnchor.x = Math.max(0, Math.min(1, normalizedAnchor.x))
-				clampedNormalizedAnchor.y = Math.max(0, Math.min(1, normalizedAnchor.y))
+			if (endShape) {
+				const targetPoint = { x: x2, y: y2 }
+				const finalNormalizedAnchor = calculateArrowBindingAnchor(editor, endShape, targetPoint)
 
 				changes.push({
 					type: 'createBinding',
@@ -361,7 +328,7 @@ export function getTldrawAiChangesFromUpdateEvent({
 						fromId: shapeId,
 						toId: endShape.id,
 						props: {
-							normalizedAnchor: clampedNormalizedAnchor,
+							normalizedAnchor: finalNormalizedAnchor,
 							isExact: false,
 							isPrecise: true,
 							terminal: 'end',
