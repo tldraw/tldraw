@@ -14,7 +14,6 @@ import {
 	useValue,
 } from 'tldraw'
 import { NODE_WIDTH_PX, PORT_RADIUS_PX } from '../constants'
-import { executionState } from '../execution/executionState'
 import { getNodePorts } from './nodePorts'
 import {
 	getNodeHeightPx,
@@ -147,18 +146,9 @@ function NodeShapeIndicator({ shape, ports }: { shape: NodeShape; ports: NodeTyp
 function NodeShape({ shape }: { shape: NodeShape }) {
 	const editor = useEditor()
 
-	// Check if this node is currently executing using our execution state
-	const isExecuting = useValue(
-		'is executing',
-		() => executionState.get(editor).runningGraph?.getNodeStatus(shape.id) === 'executing',
-		[editor, shape.id]
-	)
-
 	return (
 		<HTMLContainer
-			className={classNames('NodeShape', {
-				NodeShape_executing: isExecuting,
-			})}
+			className={classNames('NodeShape')}
 			style={{
 				width: getNodeWidthPx(shape.props.node, editor),
 				height: getNodeHeightPx(shape.props.node, editor),

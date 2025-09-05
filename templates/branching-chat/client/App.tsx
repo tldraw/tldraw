@@ -81,6 +81,8 @@ function App() {
 					// This allows users to create connections by pointing at ports
 					editor.getStateDescendant('select')!.addChild(PointingPort)
 
+					// todo: move connections to on the canvas layer
+
 					// Ensure connections always stay at the bottom of the shape stack
 					// This prevents them from covering other shapes
 					keepConnectionsAtBottom(editor)
