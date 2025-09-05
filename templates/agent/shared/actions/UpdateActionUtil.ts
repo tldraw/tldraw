@@ -8,6 +8,7 @@ import {
 	TLArrowShape,
 	TLBindingId,
 	TLDrawShape,
+	TLEmbedShape,
 	TLGeoShape,
 	TLLineShape,
 	TLNoteShape,
@@ -25,6 +26,7 @@ import { convertSimpleTypeToTldrawType } from '../format/SimpleGeoShapeType'
 import {
 	ISimpleArrowShape,
 	ISimpleDrawShape,
+	ISimpleEmbedShape,
 	ISimpleGeoShape,
 	ISimpleLineShape,
 	ISimpleNoteShape,
@@ -454,6 +456,31 @@ export function getTldrawAiChangesFromUpdateEvent({
 				},
 			})
 
+			break
+		}
+		case 'bookmark': {
+			const embedShape = update as ISimpleEmbedShape
+			const shapeOnCanvas = editor.getShape<TLEmbedShape>(shapeId)
+			if (!shapeOnCanvas) {
+				throw new Error(`Shape ${update.shapeId} not found in canvas`)
+			}
+
+			changes.push({
+				type: 'updateShape',
+				description: action.intent ?? '',
+				shape: {
+					id: shapeId,
+					type: 'bookmark',
+					x: embedShape.x ?? shapeOnCanvas.x,
+					y: embedShape.y ?? shapeOnCanvas.y,
+					props: {
+						url: embedShape.url ?? shapeOnCanvas.props.url,
+					},
+					meta: {
+						note: embedShape.note ?? shapeOnCanvas.meta.note,
+					},
+				},
+			})
 			break
 		}
 		case 'unknown': {

@@ -16,7 +16,7 @@ const router = AutoRouter<IRequest, [env: Environment, ctx: ExecutionContext]>({
 	},
 })
 	.post('/stream', stream)
-	.post('/wikipedia', getRandomArticle)
+	.post('/random-wikipedia-article', getRandomArticle)
 
 export default class extends WorkerEntrypoint<Environment> {
 	override fetch(request: Request): Promise<Response> {

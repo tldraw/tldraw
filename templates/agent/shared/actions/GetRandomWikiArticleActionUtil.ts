@@ -4,9 +4,14 @@ import { AgentRequestTransform } from '../AgentRequestTransform'
 import { Streaming } from '../types/Streaming'
 import { AgentActionUtil } from './AgentActionUtil'
 
-const GetRandomWikiArticleAction = z.object({
-	_type: z.literal('getInspiration'),
-})
+const GetRandomWikiArticleAction = z
+	.object({
+		_type: z.literal('getInspiration'),
+	})
+	.meta({
+		title: 'Get inspiration',
+		description: 'The AI gets inspiration from a random Wikipedia article',
+	})
 
 type IGetRandomWikiArticleAction = z.infer<typeof GetRandomWikiArticleAction>
 

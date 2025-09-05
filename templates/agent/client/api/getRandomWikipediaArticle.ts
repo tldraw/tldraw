@@ -7,7 +7,7 @@ interface WikipediaResponse {
 }
 
 export async function getRandomWikipediaArticle(): Promise<WikipediaResponse> {
-	const response = await fetch('/wikipedia', {
+	const response = await fetch('/random-wikipedia-article', {
 		method: 'POST',
 		headers: { 'Content-Type': 'application/json' },
 	})

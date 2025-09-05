@@ -26,6 +26,7 @@ import { BlurryShapesPartUtil } from './parts/BlurryShapesPart'
 import { ChatHistoryPartUtil } from './parts/ChatHistoryPartUtil'
 import { ContextItemsPartUtil } from './parts/ContextItemsPartUtil'
 import { MessagePartUtil } from './parts/MessagePartUtil'
+import { ModelNamePartUtil } from './parts/ModelNamePartUtil'
 import { PeripheralShapesPartUtil } from './parts/PeripheralShapesPartUtil'
 import { PromptPartUtil } from './parts/PromptPartUtil'
 import { ScreenshotPartUtil } from './parts/ScreenshotPartUtil'
@@ -34,7 +35,6 @@ import { SystemPromptPartUtil } from './parts/SystemPromptPartUtil'
 import { TimePartUtil } from './parts/TimePartUtil'
 import { TodoListPartUtil } from './parts/TodoListPartUtil'
 import { UserActionHistoryPartUtil } from './parts/UserActionHistoryPartUtil'
-import { ModelNamePartUtil } from './parts/UserSelectedModelNamePartUtil'
 import { ViewportBoundsPartUtil } from './parts/ViewportBoundsPartUtil'
 import { AgentAction } from './types/AgentAction'
 import { PromptPart } from './types/PromptPart'
@@ -52,7 +52,7 @@ export const PROMPT_PART_UTILS = [
 
 	// Request
 	MessagePartUtil,
-	ApiDataPartUtil, // This is needed in order to receive any data from the API
+	ApiDataPartUtil, // This is needed in order to receive any data from actions that request async data using `agent.scheduleAsync()`
 	ContextItemsPartUtil,
 
 	// Viewport

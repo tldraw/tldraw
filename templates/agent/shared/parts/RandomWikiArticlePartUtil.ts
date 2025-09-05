@@ -30,7 +30,7 @@ export class RandomWikiArticlePartUtil extends PromptPartUtil<RandomWikiArticleP
 		}
 
 		try {
-			const response = await fetch('/wikipedia', {
+			const response = await fetch('/random-wikipedia-article', {
 				method: 'POST',
 				headers: { 'Content-Type': 'application/json' },
 			})

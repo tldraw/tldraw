@@ -20,6 +20,7 @@ import { convertSimpleFontSizeToTldrawFontSizeAndScale } from '../format/SimpleF
 import { convertSimpleTypeToTldrawType } from '../format/SimpleGeoShapeType'
 import {
 	ISimpleArrowShape,
+	ISimpleEmbedShape,
 	ISimpleGeoShape,
 	ISimpleLineShape,
 	ISimpleNoteShape,
@@ -348,7 +349,6 @@ export function getTldrawAiChangesFromCreateAction({
 			})
 			break
 		}
-
 		case 'note': {
 			const noteShape = shape as ISimpleNoteShape
 			changes.push({
@@ -366,6 +366,26 @@ export function getTldrawAiChangesFromCreateAction({
 					},
 					meta: {
 						note: noteShape.note ?? '',
+					},
+				},
+			})
+			break
+		}
+		case 'bookmark': {
+			const embedShape = shape as ISimpleEmbedShape
+			changes.push({
+				type: 'createShape',
+				description: action.intent ?? '',
+				shape: {
+					id: shapeId,
+					type: 'bookmark',
+					x: embedShape.x,
+					y: embedShape.y,
+					props: {
+						url: embedShape.url,
+					},
+					meta: {
+						note: embedShape.note ?? '',
 					},
 				},
 			})

@@ -3,6 +3,7 @@ import {
 	TLArrowBinding,
 	TLArrowShape,
 	TLDrawShape,
+	TLEmbedShape,
 	TLGeoShape,
 	TLLineShape,
 	TLNoteShape,
@@ -108,6 +109,17 @@ const SimpleDrawShape = z
 
 export type ISimpleDrawShape = z.infer<typeof SimpleDrawShape>
 
+const SimpleEmbedShape = z.object({
+	_type: z.literal('bookmark'),
+	note: z.string(),
+	shapeId: z.string(),
+	url: z.string(),
+	x: z.number(),
+	y: z.number(),
+})
+
+export type ISimpleEmbedShape = z.infer<typeof SimpleEmbedShape>
+
 const SimpleUnknownShape = z
 	.object({
 		_type: z.literal('unknown'),
@@ -133,6 +145,7 @@ const SIMPLE_SHAPES = [
 	SimpleArrowShape,
 	SimpleNoteShape,
 	SimpleUnknownShape,
+	SimpleEmbedShape,
 ] as const
 export const SimpleShape = z.union(SIMPLE_SHAPES)
 
@@ -179,6 +192,8 @@ export function convertTldrawShapeToSimpleShape(shape: TLShape, editor: Editor):
 			return convertNoteShapeToSimple(editor, shape as TLNoteShape)
 		case 'draw':
 			return convertDrawShapeToSimple(editor, shape as TLDrawShape)
+		case 'bookmark':
+			return convertImageShapeToSimple(editor, shape as TLEmbedShape)
 		default:
 			return convertUnknownShapeToSimple(editor, shape)
 	}
@@ -320,6 +335,17 @@ function convertNoteShapeToSimple(editor: Editor, shape: TLNoteShape): ISimpleNo
 		note: (shape.meta?.note as string) ?? '',
 		shapeId: convertTldrawIdToSimpleId(shape.id),
 		text: text ?? '',
+		x: shape.x,
+		y: shape.y,
+	}
+}
+
+function convertImageShapeToSimple(editor: Editor, shape: TLEmbedShape): ISimpleEmbedShape {
+	return {
+		_type: 'bookmark',
+		url: shape.props.url,
+		note: (shape.meta?.note as string) ?? '',
+		shapeId: convertTldrawIdToSimpleId(shape.id),
 		x: shape.x,
 		y: shape.y,
 	}

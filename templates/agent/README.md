@@ -94,6 +94,8 @@ The full prompt that gets sent to the model is assembled by the agent's Prompt P
 
 Each `PromptPartUtil` adds a different piece of information to the prompt.
 
+_All_ data sent to the model, including the user's message, the model name, the sytem prompt, and the chat history, is defined by a different `PromptPartUtil`.
+
 As an example, let's make a prompt part that adds the current time to the prompt. First, define the part:
 
 ```ts
@@ -121,49 +123,67 @@ export class TimePartUtil extends PromptPartUtil<TimePart> {
 }
 ```
 
-There are more methods... TODO
+`getPart()` and `buildContent()` are the only methods that _must_ be overridden for a prompt part to be able to properly collate and send its data to the model, but there are other methods available that give you more control over this process.
+
+- `transformPart()` is covered below.
+- `getPriority()` controls where the `PromptPart`'s content will be placed in the list of messages being sent to the model, with lower values being considered higher priority, and sent later in the list. For example, we set the `MessagePromptPartUtil`'s priority to `-Infinity` to ensure the user's message is always the last the the model reads.
+- `getModelName()` allows the `PromptPartUtil` to specify which model should be used to respond to this request. This is currently only used by the `ModelNamePartUtil`.
+- `buildMessages()` builds an array of messages, all attirbuted to the user, to send to the model. Most `PartUtil`s will not need to override this. Currently, only the `ChatHistoryPartUtil` overrides this in order to buld messages attributed to the agent as well as the user.
+- `buildSystemMessage()` allows for `PromptPartUtils` to append their own custom instructions to the system prompt that gets used by the agent.
+
+`getPart()` is where the meat of what the `PromtPartUtil` is, but for many `PromptPartUtil`s, it will be quite simple. The `TodoListPartUtil` simply gets the current value of the agent's `$todoList`, for example. Others are more complex. 
+
+You should should try exploring the different `PromptPartUtil`s if you haven't already!
+
+### `transformPart()`
+
+The last piece of a `PromptPartUtil` is the `transformPart()` method. Transforms, all of which are stored in the instance of `AgentRequestTransform` that gets passed in, change the information in `PromptPart`s and `AgentAction`s to be easier for models to understand.
+
+For example, `applyOffsetToShape` adjusts the position of a shape to make it relative to the current chat origin. The `removeOffsetFromShape` method reverses it. This is helpful because it helps to keep numbers low, which is easier for the model to deal with. 
+
+Many transformation methods save some state. For example, the `ensureShapeIdIsUnique` method changes a shape's ID if it's not unique, and it saves a record of this change so that further actions can continue to refer to the shape by its untransformed ID.
 
 > note that this is **not** the actual list of messages that is sent directly to the model. the `AgentPrompt` is sent to the worker, which then goes back through the prompt parts and calls their respective `getContent()` and `getMessages()` methods, which it then uses along with `getPriority()` to THEN turn into the raw messages
+_Not necessary? ^_
 
-- in order to for each individual prompt part, the `getPart()` and then the `transformPart()` methods are called.
-- `getPart()` takes the `AgentRequest` and the agent as arguments and allows the `PromptPartUtil` to construct the prompt part itself. the prompt part itself is generally just raw, unsantized data, and doesn't include any 'plain english' text.
-  - for many `PromptPartUtil`s, this is quite simple. The `TodoListPartUtil` simply gets the current value of the agent's `$todoList`, for example
-  - others are more complex. you should should try exploring the different `PromptPartUtil`s if you haven't already!
-- then, the prompt part is transformed using its `transformPart` method. this uses the same `AgentTransform` that will later be used to transform the actions. to refresh, the `transform` exists to allow us to simplify the information we send to the model in order to improve its performance and generally confuse it less
-  - one way we do this is by rounding the coordinates and widths and heights of the shapes (this is because `x: 512` is easier for the model to parse, and requires less tokens, than `x: 512.328947832`, especially when there may be dozens or even hundreds of coordinates for the model to read)
-  - when these coordinates are rounded, the amount they were rounded by is stored in the `transform`. this allows us to apply the revserse of this transformation to any actions that affect a given shape.
+while being conceptually similar to the concept of converting shapes into Simple or Blurry formats, this is different becasuse __--why?--__
 
 ## Changing what the agent can do
 
-TODO: Very similar to the prompt parts utils section.
+The full set of actions the agent can perform is assembled by the agent's Agent Action Utils, found in the `AgentUtils.ts` file.
 
-- what the agent can do is dependent on something called `AgentActionUtil`s.
-- everything (!) the agent can do is dependent on `AgentActionUtil`s
-  - thinking, creating, editing, even messaging!
-- `AgentActionUtil`s are defined when an agent is instantiated, calling from the master list called `AGENT_ACTION_UTILS` defined in `AgentUtils.ts`
-- In order to change what the model can do, you can either add, remove, or change an entry in `AGENT_ACTION_UTILS`
-- An `AgentActionUtil` defines a couple things
-  - a method for getting the zod schema that the model must output in order ot carry out that action, (`getSchema()`)
-  - a method for getting the information needed to display the action in the chat history (`getInfo()`)
-  - a method for 'transforming' the action before it's carried out (`transformAction()`)
-    - we often give the model simplified information about the state of the canvas in order to improve its performance. for instance, we remove the prefix `shape:` from shape ids before sending them to the model (more on this in the prompt parts utils section). however, if a model wants to then move that shape, for example, it will specify the shape id without the `shape:` prefix, because that's what it thinks the shape's id is. so we must put the `shape:` back in front of the shape's id BEFORE the action is carried out and before it's added to chat history.
-    - the `transform` argument of instance of an `AgentTransform`, which has the ability to save the values of certain properties, like the shape ids, before and after they're transformed, allowing us to map them back to their original values (more on this in the ppu section)
-      - _we should probably go into the difference between this and the simple format, although probably in the ppu section_
-  - a method for carrying out the action (`applyAction()`)
-    - this method has access to the action itself, as well as the agent instance. you can access the editor, and many other useful properties of the agent through this. this is where the code that constitutes what the action actually 'does' goes.
-      - for example for the `DeleteActionUtil`, you get the editor from the agent, the shapeId that the model wants to delete from the action, and then run `editor.deleteShape(shapeId)`. for something more complex like the `ReviewActionUtil`, which lets the agent get updated information about the canvas, it interfaces with the agent's `$scheduledRequest` atom to add a new 'review' event to the schedule, which the agent will carry out after if finishes its current work (more on this in the 'How to get the agent to schedule further work' section)
-  - a method you can override to determine if the action will or will not be shown in the chat history, returns true by default.
-    - currently only used by the `DebugActionUtil`, which logs all actions to the browser console and so should not log anything to the chat history
-- try experimenting by commenting out different actions in `AGENT_ACTION_UTILS` and seeing how the model performs differently. what will happen if you remove its ability to use its todo list? what about thinking?
-- then, try making your own action! what do you want the agent to be able to do? make shapes concentric? email someone? get the weather?
+Each adds a different capability to the agent.
+
+_All_ actions the model can take, incuding thinking, messaging the user, and reviewing its work, are defined by different `AgentActionUtils`.
+
+An `AgentActionUtil` consists of a couple methods that characterize its behavior.
+
+- `getSchema()` - defines the zod schema the model must output to carry out the action
+- `getInfo()` - returns information used to display the action in the chat panel UI. See [here](#how-to-change-how-actions-appear-in-chat-history) for more info.
+- `transformAction()` - _addressed below_
+- `applyAction()` - executes the action with access to the agent instance and editor
+  - This is where the action is actually 'done'. Note that the `CreateActionUtil` and `UpdateActionUtil` abstract the logic for creating and updating shapes into the `applyAiChage()` function. These are special cases that you don't need to worry about this when creating your own actions.
+- `savesToHistory()` - optional override to hide actions from chat history (defaults to true). This removes them from the chat panel UI AND hides them from the agent on future turns.
+
+Of these, overriding only `getSchema()` and `applyAction` are strictly necessary for an action to work, although `getInfo()` is necessary to display information about the action in the chat panel.
+
+Try making your own action! What do you want the agent to be able to do? Make shapes concentric? Email someone? Get the weather? (To add an action that calls an external API, look at the ['How to get the agent to use an external API'](#how-to-get-the-agent-to-use-an-external-api) section below)
+
+### `transformAction()`
+
+Like `PromptPart`s, Agent Actions can also be transformed, and often must.
+
+Because we apply Transforms to some `PromptPart`s, the agent has information that may not line up with the information that's on the canvas. Because of that, it might output actions that, if carried out as-is, would not align with the user's intention. Because of that, we often need to apply the reverse of that transform to the action that the agent outputs.
+
+For example, when we send information about shapes to the model, we call `applyOffsetToShape`, which offsets a shape's coordinates relative to where the user's viewport was when a new chat was started. This means that the model thinks that a shape that at, for example, (10100, 20100), will be at (100,100). When the agent tries to move that shape, we need to call `removeOffsetFromShape` on the action in order to recorrect for this error. __--why is this done in applyaction and not transformaction?--__
+
+See the [section on transforms](#transformpart) for more info on that.
 
 ## How to change how actions appear in chat history
 
-TODO: Example - just use the `getInfo()` method.
+You can configure the icon and description of how an action appears in the chat panel UI using an `AgentActionUtil`'s `getInfo()` method. You can also configure whether or not the action is collapsible, and what it should show if it its collapsed, as well as whether or not the action can be grouped with other actions. See `ChatHistoryInfo.ts` for more info.
 
-- Using agent action util methods
-  - Grouping actions
-- Using CSS: eg: add css for, let's say... `.agent-action-type-pen` to apply styles to pen actions within chat history.
+You can also write custom CSS styling by defining an `.agent-action-type-{TYPE}` css class.
 
 ## How to get the agent to schedule further work
 
@@ -179,32 +199,64 @@ TODO
 
 ## How to get the agent to use an external API
 
-TODO
+You can give your agent the ability to call and get information from external APIs. For an example of this, see the `GetRandomWikiArticleActionUtil`.
+For the most part, your API-calling `AgentActionUtils` behave almost exactly like normal ones, with one important caveat: because the the agent is requesting data from an external source, if you want the agent to be able to use that data in its response, it must be forced to take another turn and given the data.
 
-- see example (if we complete the stretch goal)
-- you def want to make a new action (`GetWeatherActtionUtil`, etc)
-- you probably want to create a new kind of `AgentRequest` `type` (call it `'api'` or w/e) and do some custom logic within `MessagePartUtil`
-- you could also do some other conditional logic in the prompt parts, like maybe for example you don't want to send a screenshot for api requests?
-  - TODO figure this out
+In order to make this happen, within the `AgentActionUtil`'s `applyAction` method, you must call `agent.scheduleAsync()`, and pass in your `AgentActionUtil`'s `type` as well as the async function that will return your data. It's recommended you do this even if your API just returns a status, as this will let the agent know if the request completed successfully or not.
+
+All API data fetched over the course of the an agent's turn using `agent.scheduleAsync()` will appear in the `ApiDataPartUtil`.
+
+> This means that using information received from an API requires the agent to enter an agentic loop, and thus must be used by the agent within `agent.prompt()`. It can technically _call_ these with `agent.request()`, but without being able to know the response, this is not recommended.
 
 ## How to change the system prompt
 
-TODO
-
-ie: Edit the system prompt part util
+The agent's system prompt is defined by a `PromptPartUtil`, called `SystemPromptPartUtil`. You can edit this file directly to change the system prompt.
 
 ## How to add support for a different model
 
-TODO: Add it to `models.ts`
+In order to allow your agent to use a different model, add the model's defition to `AGENT_MODEL_DEFINITIONS` in `worker/models.ts`.
 
 ## How to support custom shapes
 
-TODO
+The agent can see and move, delete, and arrange any custom shapes out of the box. However, it will see the shape's `type` as `'unknown'`, with a `subType` field that will show the internal name of the shape's `type`.
 
-ie: It should work out-of-the-box, but you can still add extra detail if you want.
+The only props of the shape it will be able to see are the shape's `shapeId` and `x` and `y` coordinates. If you want the agent to be able to see and edit other props, you can add your custom shape to the schema we use to help the model understand shapes.
 
-- Add a new agent action.
-- Add a custom shape to the schema.
+Let's add support for in-canvas embeds, and allow the model to read and update their urls if they like. TLdraw has a builtin `TLEmbedShape` already, so we'll be using that.
+
+1. Define the fields of your new shape in `shared/format/SimpleShape.ts` using a zod object. Every shape is required to have a `_type` and a `shapeId` field, and it's strongly recommended that you give it a `note` field as well, as that is where the model stores information about the shape's purposes.
+   Note that these fields are what the model will see, so it's worthwhile to give them descriptive names (these don't need to be the same names as the fields on your actual shape, we'll go over how to convert these later).
+
+```ts
+const SimpleEmbedShape = z.object({
+  _type: z.literal('bookmark'),
+  note: z.string(),
+  shapeId: z.string(),
+  url: z.string(),
+})
+
+export type ISimpleEmbedShape = z.infer<typeof SimpleEmbedShape>
+```
+
+2. Now we add our new shape to the `SIMPLE_SHAPES` union.
+
+```ts
+const SIMPLE_SHAPES = [
+	SimpleDrawShape,
+	SimpleGeoShape,
+	SimpleLineShape,
+	SimpleTextShape,
+	SimpleArrowShape,
+	SimpleNoteShape,
+	SimpleUnknownShape,
+	SimpleEmbedShape, // our new SimpleEmbedShape
+] as const
+```
+
+3. Now we have to decide how to convert our shape from its representation on the canvas to our `SimpleEmbedShape`, or what the model will see. We do the by adding a case to `convertTldrawShapeToSimpleShape` and defining a `convertImageShapeToSimple` function.
+   Note that we're currently telling the model how to handle the `TLEmbedShape`, which is already included in `TLDefaultShape` and thus implicitly support in `convertTldrawShapeToSimpleShape`. If you're adding your own custom shape, you'll have to tell `convertTldrawShapeToSimpleShape` it can accept your custom shape.
+4. Great! Now the agent can see and fully understand embeds on the canvas. However, it still can't create or edit them. To allow them to do this, we need to head to `CreateActionUtil.ts` and `UpdateActionUtil.ts` respectively and add support for those. This is where we handle creating a shape using the `SimpleShape` format you get from the model.
+5. And we're done! The model can now see, create, and update the url of `TlEmbedShape`s on the canvas.
 
 ## License
 
