@@ -6,11 +6,11 @@ import { importPublicKey, str2ab } from '../utils/licensing'
 const GRACE_PERIOD_DAYS = 30
 
 export const FLAGS = {
-	ANNUAL_LICENSE: 0x1,
-	PERPETUAL_LICENSE: 0x2,
-	INTERNAL_LICENSE: 0x4,
-	WITH_WATERMARK: 0x8,
-	EVALUATION_LICENSE: 0x10,
+	ANNUAL_LICENSE: 1,
+	PERPETUAL_LICENSE: 1 << 1,
+	INTERNAL_LICENSE: 1 << 2,
+	WITH_WATERMARK: 1 << 3,
+	EVALUATION_LICENSE: 1 << 4,
 }
 const HIGHEST_FLAG = Math.max(...Object.values(FLAGS))
 
