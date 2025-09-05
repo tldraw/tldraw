@@ -223,7 +223,6 @@ export class ConnectionShapeUtil extends ShapeUtil<ConnectionShape> {
 		if (isCreatingShape && draggingTerminal === 'end') {
 			this.editor.selectNone()
 			const newNodeId = createShapeId()
-			console.log(handle, connection)
 			const terminalInPageSpace = this.editor.inputs.currentPagePoint
 			this.editor.createShape({
 				type: 'node',

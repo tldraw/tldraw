@@ -26,11 +26,8 @@ export class MyDurableObject extends DurableObject<Environment> {
 
 	// Generate a new response from the model
 	private async generate(request: IRequest) {
-		console.log('generate!')
 		try {
 			const prompt = (await request.json()) as Array<ModelMessage>
-			console.log('generate', prompt)
-
 			const { text } = await generateText({
 				model: this.openai('gpt-5-nano'),
 				messages: prompt,
