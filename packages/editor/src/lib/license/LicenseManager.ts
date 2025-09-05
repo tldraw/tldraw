@@ -1,16 +1,16 @@
 import { atom } from '@tldraw/state'
-import { fetch } from '@tldraw/utils'
-import { publishDates } from '../../version'
+import { publishDates, version } from '../../version'
 import { getDefaultCdnBaseUrl } from '../utils/assets'
 import { importPublicKey, str2ab } from '../utils/licensing'
 
-const GRACE_PERIOD_DAYS = 5
+const GRACE_PERIOD_DAYS = 30
 
 export const FLAGS = {
-	ANNUAL_LICENSE: 0x1,
-	PERPETUAL_LICENSE: 0x2,
-	INTERNAL_LICENSE: 0x4,
-	WITH_WATERMARK: 0x8,
+	ANNUAL_LICENSE: 1,
+	PERPETUAL_LICENSE: 1 << 1,
+	INTERNAL_LICENSE: 1 << 2,
+	WITH_WATERMARK: 1 << 3,
+	EVALUATION_LICENSE: 1 << 4,
 }
 const HIGHEST_FLAG = Math.max(...Object.values(FLAGS))
 
@@ -36,11 +36,12 @@ export interface LicenseInfo {
 
 /** @internal */
 export type LicenseState =
-	| 'pending'
-	| 'licensed'
-	| 'licensed-with-watermark'
-	| 'unlicensed'
-	| 'internal-expired'
+	| 'pending' // License validation is in progress
+	| 'licensed' // License is valid and active (no restrictions)
+	| 'licensed-with-watermark' // License is valid but shows watermark (evaluation licenses, WITH_WATERMARK licenses)
+	| 'unlicensed' // No valid license found or license is invalid (development)
+	| 'unlicensed-production' // No valid license in production deployment (missing, invalid, or wrong domain)
+	| 'expired' // License has been expired (30 days past expiration for regular licenses, immediately for evaluation licenses)
 /** @internal */
 export type InvalidLicenseReason =
 	| 'invalid-license-key'
@@ -69,10 +70,16 @@ export interface ValidLicenseKeyResult {
 	isPerpetualLicenseExpired: boolean
 	isInternalLicense: boolean
 	isLicensedWithWatermark: boolean
+	isEvaluationLicense: boolean
+	isEvaluationLicenseExpired: boolean
+	daysSinceExpiry: number
 }
 
 /** @internal */
 export type TestEnvironment = 'development' | 'production'
+
+/** @internal */
+export type TrackType = 'unlicensed' | 'with_watermark' | 'evaluation' | null
 
 /** @internal */
 export class LicenseManager {
@@ -96,11 +103,13 @@ export class LicenseManager {
 
 		this.getLicenseFromKey(licenseKey)
 			.then((result) => {
-				const licenseState = getLicenseState(result)
+				const licenseState = getLicenseState(
+					result,
+					(messages: string[]) => this.outputMessages(messages),
+					this.isDevelopment
+				)
 
-				if (!this.isDevelopment && licenseState === 'unlicensed') {
-					fetch(WATERMARK_TRACK_SRC)
-				}
+				this.maybeTrack(result, licenseState)
 
 				this.state.set(licenseState)
 			})
@@ -119,6 +128,47 @@ export class LicenseManager {
 			!['https:', 'vscode-webview:'].includes(window.location.protocol) ||
 			window.location.hostname === 'localhost'
 		)
+	}
+
+	private getTrackType(result: LicenseFromKeyResult, licenseState: LicenseState): TrackType {
+		// Track watermark for unlicensed production deployments
+		if (licenseState === 'unlicensed-production') {
+			return 'unlicensed'
+		}
+
+		if (this.isDevelopment) {
+			return null
+		}
+
+		if (!result.isLicenseParseable) {
+			return null
+		}
+
+		// Track evaluation licenses (for analytics, even though no watermark is shown)
+		if (result.isEvaluationLicense) {
+			return 'evaluation'
+		}
+
+		// Track licenses that show watermarks
+		if (licenseState === 'licensed-with-watermark') {
+			return 'with_watermark'
+		}
+
+		return null
+	}
+
+	private maybeTrack(result: LicenseFromKeyResult, licenseState: LicenseState): void {
+		const trackType = this.getTrackType(result, licenseState)
+		if (!trackType) {
+			return
+		}
+
+		const url = new URL(WATERMARK_TRACK_SRC)
+		url.searchParams.set('version', version)
+		url.searchParams.set('license_type', trackType)
+
+		// eslint-disable-next-line no-restricted-globals
+		fetch(url.toString())
 	}
 
 	private async extractLicenseKey(licenseKey: string): Promise<LicenseInfo> {
@@ -207,6 +257,9 @@ export class LicenseManager {
 			const isAnnualLicense = this.isFlagEnabled(licenseInfo.flags, FLAGS.ANNUAL_LICENSE)
 			const isPerpetualLicense = this.isFlagEnabled(licenseInfo.flags, FLAGS.PERPETUAL_LICENSE)
 
+			const isEvaluationLicense = this.isFlagEnabled(licenseInfo.flags, FLAGS.EVALUATION_LICENSE)
+			const daysSinceExpiry = this.getDaysSinceExpiry(expiryDate)
+
 			const result: ValidLicenseKeyResult = {
 				license: licenseInfo,
 				isLicenseParseable: true,
@@ -219,6 +272,10 @@ export class LicenseManager {
 				isPerpetualLicenseExpired: isPerpetualLicense && this.isPerpetualLicenseExpired(expiryDate),
 				isInternalLicense: this.isFlagEnabled(licenseInfo.flags, FLAGS.INTERNAL_LICENSE),
 				isLicensedWithWatermark: this.isFlagEnabled(licenseInfo.flags, FLAGS.WITH_WATERMARK),
+				isEvaluationLicense,
+				isEvaluationLicenseExpired:
+					isEvaluationLicense && this.isEvaluationLicenseExpired(expiryDate),
+				daysSinceExpiry,
 			}
 			this.outputLicenseInfoIfNeeded(result)
 
@@ -284,15 +341,7 @@ export class LicenseManager {
 
 	private isAnnualLicenseExpired(expiryDate: Date) {
 		const expiration = this.getExpirationDateWithGracePeriod(expiryDate)
-		const isExpired = new Date() >= expiration
-		// If it is not expired yet (including the grace period), but after the expiry date we warn the users
-		if (!isExpired && new Date() >= this.getExpirationDateWithoutGracePeriod(expiryDate)) {
-			this.outputMessages([
-				'tldraw license is about to expire, you are in a grace period.',
-				`Please reach out to ${LICENSE_EMAIL} if you would like to renew your license.`,
-			])
-		}
-		return isExpired
+		return new Date() >= expiration
 	}
 
 	private isPerpetualLicenseExpired(expiryDate: Date) {
@@ -303,6 +352,21 @@ export class LicenseManager {
 		}
 		// We allow patch releases, but the major and minor releases should be within the expiration date
 		return dates.major >= expiration || dates.minor >= expiration
+	}
+
+	private getDaysSinceExpiry(expiryDate: Date): number {
+		const now = new Date()
+		const expiration = this.getExpirationDateWithoutGracePeriod(expiryDate)
+		const diffTime = now.getTime() - expiration.getTime()
+		const diffDays = Math.floor(diffTime / (1000 * 60 * 60 * 24))
+		return Math.max(0, diffDays)
+	}
+
+	private isEvaluationLicenseExpired(expiryDate: Date): boolean {
+		// Evaluation licenses have no grace period - they expire immediately
+		const now = new Date()
+		const expiration = this.getExpirationDateWithoutGracePeriod(expiryDate)
+		return now >= expiration
 	}
 
 	private isFlagEnabled(flags: number, flag: number) {
@@ -322,19 +386,6 @@ export class LicenseManager {
 	}
 
 	private outputLicenseInfoIfNeeded(result: ValidLicenseKeyResult) {
-		if (result.isAnnualLicenseExpired) {
-			this.outputMessages([
-				'Your tldraw license has expired!',
-				`Please reach out to ${LICENSE_EMAIL} to renew.`,
-			])
-		}
-
-		if (!result.isDomainValid && !result.isDevelopment) {
-			this.outputMessages([
-				'This tldraw license key is not valid for this domain!',
-				`Please reach out to ${LICENSE_EMAIL} if you would like to use tldraw on other domains.`,
-			])
-		}
 		// If we added a new flag it will be twice the value of the currently highest flag.
 		// And if all the current flags are on we would get the `HIGHEST_FLAG * 2 - 1`, so anything higher than that means there are new flags.
 		if (result.license.flags >= HIGHEST_FLAG * 2) {
@@ -371,13 +422,74 @@ export class LicenseManager {
 	static className = 'tl-watermark_SEE-LICENSE'
 }
 
-export function getLicenseState(result: LicenseFromKeyResult): LicenseState {
-	if (!result.isLicenseParseable) return 'unlicensed'
-	if (!result.isDomainValid && !result.isDevelopment) return 'unlicensed'
+export function getLicenseState(
+	result: LicenseFromKeyResult,
+	outputMessages: (messages: string[]) => void,
+	isDevelopment: boolean
+): LicenseState {
+	if (!result.isLicenseParseable) {
+		if (isDevelopment) {
+			return 'unlicensed'
+		}
+
+		// All unlicensed scenarios should not work in production
+		if (result.reason === 'no-key-provided') {
+			outputMessages([
+				'No tldraw license key provided!',
+				'A license is required for production deployments.',
+				`Please reach out to ${LICENSE_EMAIL} to purchase a license.`,
+			])
+		} else {
+			outputMessages([
+				'Invalid license key. tldraw requires a valid license for production use.',
+				`Please reach out to ${LICENSE_EMAIL} to purchase a license.`,
+			])
+		}
+		return 'unlicensed-production'
+	}
+
+	if (!result.isDomainValid && !result.isDevelopment) {
+		outputMessages([
+			'License key is not valid for this domain.',
+			'A license is required for production deployments.',
+			`Please reach out to ${LICENSE_EMAIL} to purchase a license.`,
+		])
+		return 'unlicensed-production'
+	}
+
+	// Handle evaluation licenses - they expire immediately with no grace period
+	if (result.isEvaluationLicense) {
+		if (result.isEvaluationLicenseExpired) {
+			outputMessages([
+				'Your tldraw evaluation license has expired!',
+				`Please reach out to ${LICENSE_EMAIL} to purchase a full license.`,
+			])
+			return 'expired'
+		} else {
+			// Valid evaluation license - tracked but no watermark shown
+			return 'licensed'
+		}
+	}
+
+	// Handle expired regular licenses (both annual and perpetual)
 	if (result.isPerpetualLicenseExpired || result.isAnnualLicenseExpired) {
-		// Check if it's an expired internal license with valid domain
-		const internalExpired = result.isInternalLicense && result.isDomainValid
-		return internalExpired ? 'internal-expired' : 'unlicensed'
+		outputMessages([
+			'Your tldraw license has been expired for more than 30 days!',
+			`Please reach out to ${LICENSE_EMAIL} to renew your license.`,
+		])
+		return 'expired'
+	}
+
+	// Check if license is past expiry date but within grace period
+	const daysSinceExpiry = result.daysSinceExpiry
+	if (daysSinceExpiry > 0 && !result.isEvaluationLicense) {
+		outputMessages([
+			'Your tldraw license has expired.',
+			`License expired ${daysSinceExpiry} days ago.`,
+			`Please reach out to ${LICENSE_EMAIL} to renew your license.`,
+		])
+		// Within 30-day grace period: still licensed (no watermark)
+		return 'licensed'
 	}
 
 	// License is valid, determine if it has watermark
