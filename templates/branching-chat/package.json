@@ -1,0 +1,50 @@
+{
+	"name": "tldraw-branching-chat",
+	"private": true,
+	"version": "0.0.0",
+	"author": {
+		"name": "tldraw GB Ltd.",
+		"email": "hello@tldraw.com"
+	},
+	"homepage": "https://tldraw.dev",
+	"license": "MIT",
+	"type": "module",
+	"tldraw_template": {
+		"publish": {
+			"repo": "tldraw/branching-chat",
+			"name": "Branching chat starter kit",
+			"description": "A branching chat application using tldraw and OpenAI.",
+			"category": "app"
+		},
+		"scripts": {
+			"lint": null
+		}
+	},
+	"scripts": {
+		"build": "tsc && vite build",
+		"dev": "vite",
+		"preview": "vite preview",
+		"lint": "yarn run -T tsx ../../internal/scripts/lint.ts"
+	},
+	"dependencies": {
+		"@ai-sdk/openai": "^2.0.24",
+		"@cloudflare/vite-plugin": "^1.12.3",
+		"ai": "^5.0.33",
+		"classnames": "^2.5.1",
+		"itty-router": "^5.0.22",
+		"radix-ui": "^1.4.2",
+		"react": "^18.3.1",
+		"react-dom": "^18.3.1",
+		"tldraw": "workspace:*",
+		"wrangler": "^4.34.0",
+		"zod": "^4.1.5"
+	},
+	"devDependencies": {
+		"@cloudflare/workers-types": "^4.20250905.0",
+		"@types/react": "^18.3.18",
+		"@types/react-dom": "^18.3.5",
+		"@vitejs/plugin-react-swc": "^3.10.2",
+		"typescript": "^5.8.3",
+		"vite": "^7.0.1"
+	}
+}
