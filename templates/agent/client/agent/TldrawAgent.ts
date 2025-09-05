@@ -349,7 +349,7 @@ export class TldrawAgent {
 		this.$scheduledRequest.update((prev) => {
 			const activeRequest = this.$activeRequest.get()
 			const currentScheduledRequest = prev ?? {
-				message: '',
+				message: activeRequest?.message ?? '',
 				contextItems: [],
 				modelName: activeRequest?.modelName ?? DEFAULT_MODEL_NAME,
 				type: 'schedule',

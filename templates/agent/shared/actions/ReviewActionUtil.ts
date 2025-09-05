@@ -58,6 +58,7 @@ export class ReviewActionUtil extends AgentActionUtil<IReviewAction> {
 
 		agent.schedule((prev) => ({
 			...prev,
+			message: action.intent,
 			bounds,
 			contextItems: [...prev.contextItems, contextArea],
 			type: 'review',
