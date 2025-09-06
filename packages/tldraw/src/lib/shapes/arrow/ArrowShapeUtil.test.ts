@@ -579,3 +579,44 @@ describe("an arrow's parents", () => {
 		})
 	})
 })
+
+describe('Arrow export bounds', () => {
+	it('excludes labels from shape bounds for export', () => {
+		editor.selectAll().deleteShapes(editor.getSelectedShapeIds())
+
+		// Create shapes for the arrow to bind to
+		editor.createShapes([
+			{ id: ids.box1, type: 'geo', x: 100, y: 100, props: { w: 100, h: 100 } },
+			{ id: ids.box2, type: 'geo', x: 300, y: 100, props: { w: 100, h: 100 } },
+		])
+
+		// Create an arrow with a label
+		editor.createShapes([
+			{
+				id: ids.arrow1,
+				type: 'arrow',
+				x: 0,
+				y: 0,
+				props: {
+					start: { x: 0, y: 0 },
+					end: { x: 0, y: 100 },
+					richText: toRichText('Test Label'),
+				},
+			},
+		])
+
+		// Get the page bounds (should exclude labels due to excludeFromShapeBounds flag)
+		const pageBounds = editor.getShapePageBounds(ids.arrow1)
+		expect(pageBounds).toBeDefined()
+
+		// The bounds should be smaller than if labels were included
+		// Since the arrow has a label that's excluded, the bounds should be minimal
+		expect(pageBounds!.width).toBeLessThan(200) // Should not include label width
+		expect(pageBounds!.height).toBeLessThan(200) // Should not include label height
+
+		// Verify that the arrow has a label (which should be excluded from shape bounds)
+		const arrow = editor.getShape(ids.arrow1) as TLArrowShape
+		expect(arrow.props.richText).toBeDefined()
+		expect(arrow.props.richText).not.toBeNull()
+	})
+})

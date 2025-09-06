@@ -114,6 +114,10 @@ export class Group2d extends Geometry2d {
 		})
 	}
 
+	override getBoundsVertices(): Vec[] {
+		return this.children.flatMap((child) => child.getBoundsVertices())
+	}
+
 	override intersectPolygon(polygon: VecLike[], filters?: Geometry2dFilters) {
 		return this.children.flatMap((child) => {
 			if (child.isExcludedByFilter(filters)) return EMPTY_ARRAY
