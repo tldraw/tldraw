@@ -62,10 +62,12 @@ describe('Hovering shapes', () => {
 		editor.createShapes([{ id: ids.box1, type: 'geo', x: 0, y: 0, props: { w: 100, h: 100 } }])
 	})
 
-	it('hovers the margins of hollow shapes but not their insides', () => {
+	it('hovers the margins of hollow shapes but not their insides', async () => {
 		expect(editor.getHoveredShapeId()).toBe(null)
 		editor.pointerMove(-4, 50)
 		expect(editor.getHoveredShapeId()).toBe(ids.box1)
+		// @ts-ignore i'm cheating here a bit, need to make the camera "not moving"
+		editor._cameraState.set('idle')
 		editor.pointerMove(-50, 50)
 		expect(editor.getHoveredShapeId()).toBe(null)
 		editor.pointerMove(4, 50)
@@ -118,6 +120,8 @@ describe('Hovering shapes', () => {
 		expect(editor.getHoveredShapeId()).toBe(null)
 		editor.pointerMove(-4, 50)
 		expect(editor.getHoveredShapeId()).toBe(ids.box1)
+		// @ts-ignore i'm cheating here a bit, need to make the camera "not moving"
+		editor._cameraState.set('idle')
 		editor.pointerMove(-50, 50)
 		expect(editor.getHoveredShapeId()).toBe(null)
 		editor.pointerMove(4, 50)
@@ -129,6 +133,8 @@ describe('Hovering shapes', () => {
 	it('hovers the closest edge or else the highest shape', () => {
 		// box2 is above box1
 		editor.createShapes([{ id: ids.box2, type: 'geo', x: 6, y: 0, props: { w: 100, h: 100 } }])
+		// @ts-ignore i'm cheating here a bit, need to make the camera "not moving"
+		editor._cameraState.set('idle')
 		editor.pointerMove(2, 50)
 		expect(editor.getHoveredShapeId()).toBe(ids.box1)
 		editor.pointerMove(4, 50)
