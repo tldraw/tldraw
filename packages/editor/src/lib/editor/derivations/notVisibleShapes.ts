@@ -7,6 +7,12 @@ function fromScratch(editor: Editor): Set<TLShapeId> {
 	const viewportPageBounds = editor.getViewportPageBounds()
 	const notVisibleShapes = new Set<TLShapeId>()
 	shapesIds.forEach((id) => {
+		const shape = editor.getShape(id)
+		if (!shape) return
+
+		const canCull = editor.getShapeUtil(shape.type).canCull(shape)
+		if (!canCull) return
+
 		// If the shape is fully outside of the viewport page bounds, add it to the set.
 		// We'll ignore masks here, since they're more expensive to compute and the overhead is not worth it.
 		const pageBounds = editor.getShapePageBounds(id)
