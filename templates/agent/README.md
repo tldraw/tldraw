@@ -132,7 +132,7 @@ There are other methods available on the `PromptPartUtil` class that you can ove
 - `getModelName` allows the prompt part to change the chosen model.
 - `buildSystemMessage` appends a string to the system prompt.
 - `buildMessages` overrides the default way that prompt messages are constructed. Note: Overriding this function can bypass the `buildContent` and `getPriority` methods.
-- `transformPart` can apply transformations to the prompt part before it is added to the final prompt. More details on transformations below.
+- `transformPart` can apply transformations to the prompt part before it is added to the final prompt. More details on [transformations](#transformations) below.
 
 ## Changing what the agent can do
 
@@ -163,7 +163,7 @@ Because we apply Transforms to some `PromptPart`s, the agent has information tha
 
 For example, when we send information about shapes to the model, we call `applyOffsetToShape`, which offsets a shape's coordinates relative to where the user's viewport was when a new chat was started. This means that the model thinks that a shape that at, for example, (10100, 20100), will be at (100,100). When the agent tries to move that shape, we need to call `removeOffsetFromShape` on the action in order to recorrect for this error.
 
-See the [section on transforms](#transformpart) for more info on that.
+<!-- See the [section on transforms](#transformpart) for more info on that. -->
 
 ## How to change how actions appear in chat history
 
@@ -202,6 +202,10 @@ In order to get this data into our prompt, there is a dedicated `PromptPartUtil`
 You should always use `scheduleRequestPromise()` when dealing with Actions that have async calls, even if your API just returns a status (such as sending an email, or updating an external database). This is because you cannot await async calls from within `applyAction()` (and so you cannot handle errors), and passing that status back to the agent will let it know if the request completed successfully or not, which they can then tell you.
 
 > This means that using information received from an API requires the agent to enter an agentic loop, and thus must be used by the agent within `agent.prompt()`. It can technically _call_ these with `agent.request()`, but without being able to know the response, this is not recommended.
+
+## Transformations
+
+TODO
 
 <!-- ### `transformPart()`
 
