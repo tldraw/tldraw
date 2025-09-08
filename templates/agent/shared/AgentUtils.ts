@@ -1,6 +1,7 @@
 import { AgentActionUtil } from './actions/AgentActionUtil'
 import { AlignActionUtil } from './actions/AlignActionUtil'
 import { BringToFrontActionUtil } from './actions/BringToFrontActionUtil'
+import { ClearActionUtil } from './actions/ClearActionUtil'
 import { CountShapesActionUtil } from './actions/CountShapesActionUtil'
 import { CreateActionUtil } from './actions/CreateActionUtil'
 import { DebugActionUtil } from './actions/DebugActionUtil'
@@ -106,6 +107,7 @@ export const AGENT_ACTION_UTILS = [
 	AlignActionUtil,
 	DistributeActionUtil,
 	StackActionUtil,
+	ClearActionUtil,
 
 	// Drawing
 	PenActionUtil,

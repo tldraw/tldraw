@@ -90,11 +90,13 @@ Add, edit or remove an entry in either list to change what the agent can **see**
 
 ## Changing what the agent can see
 
-Change what the agent can see by adding, editing or removing a `PromptPartUtil` in the `PROMPT_PART_UTILS` list, found in the `AgentUtils.ts` file.
+**Change what the agent can see by adding, editing or removing a `PromptPartUtil` within `AgentUtils.ts`.**
 
-Prompt part utils assemble the prompt that we give the model, as well as all the other data we send it. Each `PromptPartUtil` adds a different piece of information. These include the user's message, the model name, the system prompt, chat history and more.
+Prompt part utils construct the prompt that we give to the model, with each util adding a different piece of information. This includes the user's message, the model name, the system prompt, chat history and more.
 
-To add extra data to the prompt, make a new prompt part util. As an example, let's make a util that adds the current time to the prompt. First, define the prompt part:
+As an example, here's how to tell the model what the current time is.
+
+Define a prompt part:
 
 ```ts
 interface TimePart extends BasePromptPart<'time'> {
@@ -102,7 +104,7 @@ interface TimePart extends BasePromptPart<'time'> {
 }
 ```
 
-Then, create its util:
+Create a prompt part util:
 
 ```ts
 export class TimePartUtil extends PromptPartUtil<TimePart> {
@@ -121,7 +123,7 @@ export class TimePartUtil extends PromptPartUtil<TimePart> {
 }
 ```
 
-Finally, add it to the `PROMPT_PART_UTILS` list in `AgentUtils.ts`. The methods of your new util will be used to assemble the prompt part and send it to the model.
+To enable the prompt part, add the util to the `PROMPT_PART_UTILS` list in `AgentUtils.ts`. It will use its methods to assemble its data and send it to the model.
 
 - `getPart` - Gather any data needed to construct the prompt.
 - `buildContent` - Turn the data into messages to send to the model.
@@ -136,26 +138,70 @@ There are other methods available on the `PromptPartUtil` class that you can ove
 
 ## Changing what the agent can do
 
-The full set of actions the agent can perform is assembled by the agent's Agent Action Utils, found in the `AgentUtils.ts` file.
+**Change what the agent can do by adding, editing or removing an `AgentActionUtil` within `AgentUtils.ts`.**
 
-Each adds a different capability to the agent.
+Agent action utils define the actions the agent can perform. Each `AgentActionUtil` adds a different capability to the agent.
 
-_All_ actions the model can take, incuding thinking, messaging the user, and reviewing its work, are defined by different `AgentActionUtils`.
+As an example, this is how to allow the agent to clear the screen.
 
-An `AgentActionUtil` consists of a couple methods that characterize its behavior.
+Define an agent action:
 
-- `getSchema()` - defines the zod schema the model must output to carry out the action
-- `getInfo()` - returns information used to display the action in the chat panel UI. See [here](#how-to-change-how-actions-appear-in-chat-history) for more info.
-- `transformAction()` - _addressed below_
-- `applyAction()` - executes the action with access to the agent instance and editor
-  - This is where the action is actually 'done'. Note that the `CreateActionUtil` and `UpdateActionUtil` abstract the logic for creating and updating shapes into the `applyAiChage()` function. These are special cases that you don't need to worry about this when creating your own actions.
-- `savesToHistory()` - optional override to hide actions from chat history (defaults to true). This removes them from the chat panel UI AND hides them from the agent on future turns.
+```ts
+const ClearAction = z
+	.object({
+		// All agent actions must have a _type field
+		// We use an underscore to encourage the model to put this field first
+		_type: z.literal('clear'),
+	})
+	.meta({
+		// Give the action a title and description to tell the model what this action does
+		title: 'Clear',
+		description: 'The agent deletes all shapes on the canvas.',
+	})
 
-Of these, overriding only `getSchema()` and `applyAction` are strictly necessary for an action to work, although `getInfo()` is necessary to display information about the action in the chat panel.
+// Infer this action's type
+type IClearAction = z.infer<typeof ClearAction>
+```
 
-Try making your own action! What do you want the agent to be able to do? Make shapes concentric? Email someone? Get the weather? (To add an action that calls an external API, look at the ['How to get the agent to use an external API'](#how-to-get-the-agent-to-use-an-external-api) section below)
+Create an agent action util:
 
-<!-- See the [section on transforms](#transformpart) for more info on that. -->
+```ts
+export class ClearActionUtil extends AgentActionUtil<IClearAction> {
+	static override type = 'clear' as const
+
+	override getSchema() {
+		return ClearAction
+	}
+
+	override getInfo() {
+		return {
+			icon: 'trash' as const,
+			description: 'Cleared the canvas',
+		}
+	}
+
+	override applyAction(action: Streaming<IClearAction>, transform: AgentRequestTransform) {
+		// Don't do anything if the action hasn't finished streaming
+		if (!action.complete) return
+
+		// Delete all shapes on the page
+		const { editor } = transform
+		const allShapes = editor.getCurrentPageShapes()
+		editor.deleteShapes(allShapes)
+	}
+}
+```
+
+To enable the agent action, add its util to the `AGENT_ACTION_UTILS` list in `AgentUtils.ts`. Its methods will be used to define and execute the action.
+
+- `getSchema` - Get the schema the model should use to carry out the action.
+- `getInfo` - Determine how the action gets displayed in the chat panel UI.
+- `applyAction` - Execute the action.
+
+There are other methods available on the `AgentActionUtil` class that you can override for more granular control.
+
+- `savesToHistory` - Control whether actions get saved to chat history or not.
+- `transformAction` - Apply transformations to the action before saving it to history and applying it. More details on [transformations](#transformations) below.
 
 ## How to change how actions appear in chat history
 

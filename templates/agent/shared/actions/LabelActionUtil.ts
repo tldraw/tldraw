@@ -13,23 +13,23 @@ const LabelAction = z
 	})
 	.meta({ title: 'Label', description: "The AI changes a shape's text." })
 
-type IAgentLabelEvent = z.infer<typeof LabelAction>
+type ILabelEvent = z.infer<typeof LabelAction>
 
-export class LabelActionUtil extends AgentActionUtil<IAgentLabelEvent> {
+export class LabelActionUtil extends AgentActionUtil<ILabelEvent> {
 	static override type = 'label' as const
 
 	override getSchema() {
 		return LabelAction
 	}
 
-	override getInfo(action: Streaming<IAgentLabelEvent>) {
+	override getInfo(action: Streaming<ILabelEvent>) {
 		return {
 			icon: 'pencil' as const,
 			description: action.intent ?? '',
 		}
 	}
 
-	override transformAction(action: Streaming<IAgentLabelEvent>, transform: AgentRequestTransform) {
+	override transformAction(action: Streaming<ILabelEvent>, transform: AgentRequestTransform) {
 		if (!action.complete) return action
 
 		const shapeId = transform.ensureShapeIdIsReal(action.shapeId)
@@ -39,7 +39,7 @@ export class LabelActionUtil extends AgentActionUtil<IAgentLabelEvent> {
 		return action
 	}
 
-	override applyAction(action: Streaming<IAgentLabelEvent>, transform: AgentRequestTransform) {
+	override applyAction(action: Streaming<ILabelEvent>, transform: AgentRequestTransform) {
 		if (!action.complete) return
 		const { editor } = transform
 
