@@ -155,14 +155,6 @@ Of these, overriding only `getSchema()` and `applyAction` are strictly necessary
 
 Try making your own action! What do you want the agent to be able to do? Make shapes concentric? Email someone? Get the weather? (To add an action that calls an external API, look at the ['How to get the agent to use an external API'](#how-to-get-the-agent-to-use-an-external-api) section below)
 
-### `transformAction()`
-
-Like `PromptPart`s, Agent Actions can also be transformed, and often must.
-
-Because we apply Transforms to some `PromptPart`s, the agent has information that may not line up with the information that's on the canvas. Because of that, it might output actions that, if carried out as-is, would not align with the user's intention. Because of that, we often need to apply the reverse of that transform to the action that the agent outputs.
-
-For example, when we send information about shapes to the model, we call `applyOffsetToShape`, which offsets a shape's coordinates relative to where the user's viewport was when a new chat was started. This means that the model thinks that a shape that at, for example, (10100, 20100), will be at (100,100). When the agent tries to move that shape, we need to call `removeOffsetFromShape` on the action in order to recorrect for this error.
-
 <!-- See the [section on transforms](#transformpart) for more info on that. -->
 
 ## How to change how actions appear in chat history
@@ -219,6 +211,14 @@ Many transformation methods save some state. For example, the `ensureShapeIdIsUn
 > _Not necessary? ^_
 
 while being conceptually similar to the concept of converting shapes into Simple or Blurry formats, this is different becasuse **--why?--**
+
+### `transformAction()`
+
+Like `PromptPart`s, Agent Actions can also be transformed, and often must.
+
+Because we apply Transforms to some `PromptPart`s, the agent has information that may not line up with the information that's on the canvas. Because of that, it might output actions that, if carried out as-is, would not align with the user's intention. Because of that, we often need to apply the reverse of that transform to the action that the agent outputs.
+
+For example, when we send information about shapes to the model, we call `applyOffsetToShape`, which offsets a shape's coordinates relative to where the user's viewport was when a new chat was started. This means that the model thinks that a shape that at, for example, (10100, 20100), will be at (100,100). When the agent tries to move that shape, we need to call `removeOffsetFromShape` on the action in order to recorrect for this error.
 
 -->
 

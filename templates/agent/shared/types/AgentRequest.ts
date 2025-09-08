@@ -4,6 +4,9 @@ import { ISimpleShape } from '../format/SimpleShape'
 import { AgentActionResult } from './AgentActionResult'
 import { IContextItem } from './ContextItem'
 
+/**
+ * A request that we send to the agent.
+ */
 export interface AgentRequest {
 	/**
 	 * A message associated with the request.
