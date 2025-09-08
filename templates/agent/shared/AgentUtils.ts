@@ -32,7 +32,6 @@ import { PromptPartUtil } from './parts/PromptPartUtil'
 import { ScreenshotPartUtil } from './parts/ScreenshotPartUtil'
 import { SelectedShapesPartUtil } from './parts/SelectedShapesPartUtil'
 import { SystemPromptPartUtil } from './parts/SystemPromptPartUtil'
-import { TimePartUtil } from './parts/TimePartUtil'
 import { TodoListPartUtil } from './parts/TodoListPartUtil'
 import { UserActionHistoryPartUtil } from './parts/UserActionHistoryPartUtil'
 import { ViewportBoundsPartUtil } from './parts/ViewportBoundsPartUtil'
@@ -69,8 +68,8 @@ export const PROMPT_PART_UTILS = [
 	UserActionHistoryPartUtil,
 	TodoListPartUtil,
 
-	// Example from this repo's README
-	TimePartUtil,
+	// Example prompt part: Get the current time
+	// TimePartUtil,
 ]
 
 /**
@@ -109,7 +108,7 @@ export const AGENT_ACTION_UTILS = [
 	// Drawing
 	PenActionUtil,
 
-	// Example from this repo's README
+	// Example agent action: Get a random Wikipedia article
 	GetRandomWikipediaArticleActionUtil,
 
 	// Internal (required)

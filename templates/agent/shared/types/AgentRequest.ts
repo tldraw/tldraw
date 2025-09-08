@@ -31,7 +31,7 @@ export interface AgentRequest {
 	selectedShapes: ISimpleShape[]
 
 	/**
-	 * Results returned by actions in the previous request.
+	 * Results from actions carried out as part of a previous request.
 	 */
 	actionResults: AgentActionResult[]
 

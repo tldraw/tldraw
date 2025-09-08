@@ -26,7 +26,7 @@ Open `http://localhost:5173/` in your browser to see the app.
 
 ## Agent overview
 
-With its default setup, the agent can perform many actions:
+With its default configuration, the agent can perform the following actions:
 
 - Create, update and delete shapes.
 - Draw freehand pen strokes.
@@ -81,22 +81,20 @@ There are more methods on the `TldrawAgent` class that can help when building an
 
 ## Customizing the agent
 
-The agent is largely defined by the `AgentUtils.ts` file. In that file, there are two lists of utility classes:
+We define the agent's behavior in the `AgentUtils.ts` file. In that file, there are two lists of utility classes:
 
 - Prompt Part Utils determine what the agent can **see**.
 - Agent Action Utils determine what the agent can **do**.
 
-To change what the agent can **see** and **do**... add, remove or change an entry `PROMPT_PART_UTILS` or `AGENT_ACTION_UTILS` respectively.
+Add, remove or change an entry in `PROMPT_PART_UTILS` or `AGENT_ACTION_UTILS` to change what the agent can **see** or **do**.
 
 ## Changing what the agent can see
 
-The full prompt that gets sent to the model is assembled by the agent's Prompt Part Utils, found in the `AgentUtils.ts` file.
+Prompt Part Utils assemble the prompt, as well as all the other data we send to the model.
 
-Each `PromptPartUtil` adds a different piece of information to the prompt.
+Each `PromptPartUtil` adds a different piece of information. There are individual prompt part utils for the user's message, the chosen model name, the sytem prompt, chat history and more. You can find them all in the `AgentUtils.ts` file.
 
-_All_ data sent to the model, including the user's message, the model name, the sytem prompt, and the chat history, is defined by a different `PromptPartUtil`.
-
-As an example, let's make a prompt part that adds the current time to the prompt. First, define the part:
+To add extra data to the prompt, make a new prompt part util. As an example, let's make a util that adds the current time to the prompt. First, define the prompt part:
 
 ```ts
 interface TimePart extends BasePromptPart<'time'> {
@@ -123,30 +121,18 @@ export class TimePartUtil extends PromptPartUtil<TimePart> {
 }
 ```
 
-`getPart()` and `buildContent()` are the only methods that _must_ be overridden for a prompt part to be able to properly collate and send its data to the model, but there are other methods available that give you more control over this process.
+Then, add it to the `PROMPT_PART_UTILS` list in `AgentUtils.ts`.
 
-- `transformPart()` is covered below.
-- `getPriority()` controls where the `PromptPart`'s content will be placed in the list of messages being sent to the model, with lower values being considered higher priority, and sent later in the list. For example, we set the `MessagePromptPartUtil`'s priority to `-Infinity` to ensure the user's message is always the last the the model reads.
-- `getModelName()` allows the `PromptPartUtil` to specify which model should be used to respond to this request. This is currently only used by the `ModelNamePartUtil`.
-- `buildMessages()` builds an array of messages, all attirbuted to the user, to send to the model. Most `PartUtil`s will not need to override this. Currently, only the `ChatHistoryPartUtil` overrides this in order to buld messages attributed to the agent as well as the user.
-- `buildSystemMessage()` allows for `PromptPartUtils` to append their own custom instructions to the system prompt that gets used by the agent.
+- `getPart` gathers any data needed by the model for this part of the prompt.
+- `buildContent` turns the data into messages to send to the model.
 
-`getPart()` is where the meat of what the `PromtPartUtil` is, but for many `PromptPartUtil`s, it will be quite simple. The `TodoListPartUtil` simply gets the current value of the agent's `$todoList`, for example. Others are more complex.
+There are other methods available on the `PromptPartUtil` class that you can override for more granular control.
 
-You should should try exploring the different `PromptPartUtil`s if you haven't already!
-
-### `transformPart()`
-
-The last piece of a `PromptPartUtil` is the `transformPart()` method. Transforms, all of which are stored in the instance of `AgentRequestTransform` that gets passed in, change the information in `PromptPart`s and `AgentAction`s to be easier for models to understand.
-
-For example, `applyOffsetToShape` adjusts the position of a shape to make it relative to the current chat origin. The `removeOffsetFromShape` method reverses it. This is helpful because it helps to keep numbers low, which is easier for the model to deal with.
-
-Many transformation methods save some state. For example, the `ensureShapeIdIsUnique` method changes a shape's ID if it's not unique, and it saves a record of this change so that further actions can continue to refer to the shape by its untransformed ID.
-
-> note that this is **not** the actual list of messages that is sent directly to the model. the `AgentPrompt` is sent to the worker, which then goes back through the prompt parts and calls their respective `getContent()` and `getMessages()` methods, which it then uses along with `getPriority()` to THEN turn into the raw messages
-> _Not necessary? ^_
-
-while being conceptually similar to the concept of converting shapes into Simple or Blurry formats, this is different becasuse **--why?--**
+- `getPriority` controls where this part will appear in the list of messages we send to the model, with lower values being considered higher priority, and therefore sent nearer the end of the list.
+- `getModelName` allows the prompt part to change the chosen model.
+- `buildSystemMessage` appends a string to the system prompt.
+- `buildMessages` overrides the default way that prompt messages are constructed. Note: Overriding this function can bypass the `buildContent` and `getPriority` methods.
+- `transformPart` can apply transformations to the prompt part before it is added to the final prompt. More details on transformations below.
 
 ## Changing what the agent can do
 
@@ -175,7 +161,7 @@ Like `PromptPart`s, Agent Actions can also be transformed, and often must.
 
 Because we apply Transforms to some `PromptPart`s, the agent has information that may not line up with the information that's on the canvas. Because of that, it might output actions that, if carried out as-is, would not align with the user's intention. Because of that, we often need to apply the reverse of that transform to the action that the agent outputs.
 
-For example, when we send information about shapes to the model, we call `applyOffsetToShape`, which offsets a shape's coordinates relative to where the user's viewport was when a new chat was started. This means that the model thinks that a shape that at, for example, (10100, 20100), will be at (100,100). When the agent tries to move that shape, we need to call `removeOffsetFromShape` on the action in order to recorrect for this error. **--why is this done in applyaction and not transformaction?--**
+For example, when we send information about shapes to the model, we call `applyOffsetToShape`, which offsets a shape's coordinates relative to where the user's viewport was when a new chat was started. This means that the model thinks that a shape that at, for example, (10100, 20100), will be at (100,100). When the agent tries to move that shape, we need to call `removeOffsetFromShape` on the action in order to recorrect for this error.
 
 See the [section on transforms](#transformpart) for more info on that.
 
@@ -216,6 +202,21 @@ In order to get this data into our prompt, there is a dedicated `PromptPartUtil`
 You should always use `scheduleRequestPromise()` when dealing with Actions that have async calls, even if your API just returns a status (such as sending an email, or updating an external database). This is because you cannot await async calls from within `applyAction()` (and so you cannot handle errors), and passing that status back to the agent will let it know if the request completed successfully or not, which they can then tell you.
 
 > This means that using information received from an API requires the agent to enter an agentic loop, and thus must be used by the agent within `agent.prompt()`. It can technically _call_ these with `agent.request()`, but without being able to know the response, this is not recommended.
+
+<!-- ### `transformPart()`
+
+The last piece of a `PromptPartUtil` is the `transformPart()` method. Transforms, all of which are stored in the instance of `AgentRequestTransform` that gets passed in, change the information in `PromptPart`s and `AgentAction`s to be easier for models to understand.
+
+For example, `applyOffsetToShape` adjusts the position of a shape to make it relative to the current chat origin. The `removeOffsetFromShape` method reverses it. This is helpful because it helps to keep numbers low, which is easier for the model to deal with.
+
+Many transformation methods save some state. For example, the `ensureShapeIdIsUnique` method changes a shape's ID if it's not unique, and it saves a record of this change so that further actions can continue to refer to the shape by its untransformed ID.
+
+> note that this is **not** the actual list of messages that is sent directly to the model. the `AgentPrompt` is sent to the worker, which then goes back through the prompt parts and calls their respective `getContent()` and `getMessages()` methods, which it then uses along with `getPriority()` to THEN turn into the raw messages
+> _Not necessary? ^_
+
+while being conceptually similar to the concept of converting shapes into Simple or Blurry formats, this is different becasuse **--why?--**
+
+-->
 
 ## How to change the system prompt
 
