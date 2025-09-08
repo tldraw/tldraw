@@ -313,9 +313,34 @@ override async applyAction(
 
 In order to get this data into our prompt, there is a dedicated `PromptPartUtil` that will collate all promises returned from Actions taken in the previous turn. This part, called `ActionResultsPartUtil`, awaits all of the promises returned from the previous turn's actions, and will add their data to the prompt of the agent's new turn.
 
+This works out of the boss with any Action set up like the above example.
+
 <!-- > You should always use this strategy when dealing with Actions that have async calls, even if your API just returns a status (such as sending an email, or updating an external database). This is because you cannot await async calls from within `applyAction()` directly (and so you cannot handle errors), and passing that status back to the agent will let it know if the request completed successfully or not, which they can then tell you. -->
 
-## Transformations
+## Transforming data on its round trip from the model
+
+In order to keep the information we send to the model simple and easy for the model to understand, we apply a number of 'transforms' the different Prompt Parts we send. To undo these transforms, as well as correct for any mistakes the model may have made, we also have to apply transforms to the Actions that the agent outputs.
+
+### Example: `applyOffsetToBox()` and `applyOffsetToBox()`
+
+LLMs are better at understanding the differences between smaller numbers than between bigger numbers. To improve the agent's accuracy, we offset the coordinates we send to it by the coordinates of the viewport when a new chat is started. To keep these changes consistent, we pass every coordinate we send it in a Prompt Part through the `applyOffsetToBox()` method on the `AgentRequestTransform`, which is called within `transformPart()`. (We also do something similar with `applyOffsetToVec()` and `applyOffsetToShape()`)
+
+This means the agent now thinks the shapes and viewports it knows exists are in different positions than they are. In order to correct for this in the actions that the agent outputs, we call our `removeOffsetToBox()`, `removeOffsetToVec()`, and `removeOffsetToShape()` methods.
+
+__This is the main idea behind transforms: Corrections are made to give the model easier-to-understand data, which then must be reversed.__
+
+### Transforming `PromptPart`s
+
+To improve a model's ability to understand the information we give it, 
+
+### Transforming `AgentActions`s
+
+#### `transformAction()`
+
+#### `applyAction()`
+
+-- parts are transofrmed for adjustments for clarity and for keeping track of different changes we make
+-- actions are transformed for corrections
 
 TODO
 
