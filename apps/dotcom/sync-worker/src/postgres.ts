@@ -56,7 +56,12 @@ export function createPostgresConnectionPool(env: Environment, name: string, max
 	}
 
 	db[Symbol.asyncDispose] = async () => {
-		await db.destroy()
+		try {
+			console.log('destroying db', name)
+			await db.destroy()
+		} catch (e) {
+			console.error(e)
+		}
 	}
 
 	return db
