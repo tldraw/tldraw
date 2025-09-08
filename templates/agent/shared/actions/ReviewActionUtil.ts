@@ -43,7 +43,7 @@ export class ReviewActionUtil extends AgentActionUtil<IReviewAction> {
 		if (!action.complete) return
 		const { agent } = transform
 
-		const bounds = transform.removeOffsetFromBox({
+		const reviewBounds = transform.removeOffsetFromBox({
 			x: action.x,
 			y: action.y,
 			w: action.w,
@@ -52,7 +52,7 @@ export class ReviewActionUtil extends AgentActionUtil<IReviewAction> {
 
 		const contextArea: IAreaContextItem = {
 			type: 'area',
-			bounds,
+			bounds: reviewBounds,
 			source: 'agent',
 		}
 
@@ -60,7 +60,7 @@ export class ReviewActionUtil extends AgentActionUtil<IReviewAction> {
 			...prev,
 			// Append the review intent to the current message, if there is one.
 			message: prev ? `${prev.message} ${action.intent}` : action.intent,
-			bounds,
+			bounds: reviewBounds,
 			contextItems: [...prev.contextItems, contextArea],
 			type: 'review',
 		}))
