@@ -1,3 +1,4 @@
+import { JsonValue } from 'tldraw'
 import z from 'zod'
 import { AgentRequestTransform } from '../AgentRequestTransform'
 import { BaseAgentAction } from '../types/BaseAgentAction'
@@ -39,7 +40,10 @@ export abstract class AgentActionUtil<T extends BaseAgentAction = BaseAgentActio
 	 *
 	 * Return a value to add it to the next scheduled request (if there is one).
 	 */
-	applyAction(_action: Streaming<T>, _transform: AgentRequestTransform): Promise<any> | void {
+	applyAction(
+		_action: Streaming<T>,
+		_transform: AgentRequestTransform
+	): Promise<JsonValue | undefined> | void {
 		// Do nothing by default
 	}
 

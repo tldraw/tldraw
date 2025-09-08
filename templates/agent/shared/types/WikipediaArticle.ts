@@ -3,5 +3,4 @@ export interface WikipediaArticle {
 	extract: string
 	url: string
 	pageId: number
-	thumbnail?: string
 }

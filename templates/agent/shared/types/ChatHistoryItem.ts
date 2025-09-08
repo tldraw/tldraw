@@ -1,4 +1,4 @@
-import { BoxModel, RecordsDiff, TLRecord } from 'tldraw'
+import { RecordsDiff, TLRecord } from 'tldraw'
 import { ISimpleShape } from '../format/SimpleShape'
 import { AgentAction } from './AgentAction'
 import { IContextItem } from './ContextItem'
@@ -18,10 +18,4 @@ export interface IChatHistoryActionItem {
 	action: Streaming<AgentAction>
 	diff: RecordsDiff<TLRecord>
 	acceptance: 'pending' | 'accepted' | 'rejected'
-}
-
-export interface IChatHistoryMoveItem {
-	type: 'move'
-	from: BoxModel
-	to: BoxModel
 }

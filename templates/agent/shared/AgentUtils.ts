@@ -5,12 +5,12 @@ import { CreateActionUtil } from './actions/CreateActionUtil'
 import { DebugActionUtil } from './actions/DebugActionUtil'
 import { DeleteActionUtil } from './actions/DeleteActionUtil'
 import { DistributeActionUtil } from './actions/DistributeActionUtil'
-import { GetRandomWikipediaArticleActionUtil } from './actions/GetRandomWikipediaArticleActionUtil'
 import { LabelActionUtil } from './actions/LabelActionUtil'
 import { MessageActionUtil } from './actions/MessageActionUtil'
 import { MoveActionUtil } from './actions/MoveActionUtil'
 import { PenActionUtil } from './actions/PenActionUtil'
 import { PlaceActionUtil } from './actions/PlaceActionUtil'
+import { RandomWikipediaArticleActionUtil } from './actions/RandomWikipediaArticleActionUtil'
 import { ResizeActionUtil } from './actions/ResizeActionUtil'
 import { ReviewActionUtil } from './actions/ReviewActionUtil'
 import { RotateActionUtil } from './actions/RotateActionUtil'
@@ -110,7 +110,7 @@ export const AGENT_ACTION_UTILS = [
 	PenActionUtil,
 
 	// Example agent action: Get a random Wikipedia article
-	GetRandomWikipediaArticleActionUtil,
+	RandomWikipediaArticleActionUtil,
 
 	// Internal (required)
 	DebugActionUtil,
