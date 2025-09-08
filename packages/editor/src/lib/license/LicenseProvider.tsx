@@ -19,7 +19,7 @@ const LICENSE_KEY_FROM_ENV = getLicenseKeyFromEnv()
 
 /** @internal */
 export function LicenseProvider({
-	licenseKey,
+	licenseKey = LICENSE_KEY_FROM_ENV,
 	children,
 }: {
 	licenseKey?: string
@@ -55,13 +55,14 @@ function LicenseGate() {
 }
 
 function getLicenseKeyFromEnv() {
-	// framework-specific prefixes borrowed from the ones vercel uses, but trimmed down to just the
-	// react-y ones: https://vercel.com/docs/environment-variables/framework-environment-variables
 	// it's important here that we write out the full process.env.WHATEVER expression instead of
 	// doing something like process.env[someVariable]. This is because most bundlers do something
 	// like a find-replace inject environment variables, and so won't pick up on dynamic ones. It
 	// also means we can't do checks like `process.env && process.env.WHATEVER`, which is why we use
 	// the `getEnv` try/catch approach.
+
+	// framework-specific prefixes borrowed from the ones vercel uses, but trimmed down to just the
+	// react-y ones: https://vercel.com/docs/environment-variables/framework-environment-variables
 	return (
 		getEnv(() => process.env.TLDRAW_LICENSE_KEY) ||
 		getEnv(() => process.env.NEXT_PUBLIC_TLDRAW_LICENSE_KEY) ||
