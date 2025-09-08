@@ -68,25 +68,6 @@ async function* streamEventsVercel(
 	// 	time: 0,
 	// }
 
-	// Uncomment this to log the messages sent to the model in the worker
-	// console.log('MESSAGES\n', JSON.stringify(messages.map((message) => {
-	// 	if (message.content && Array.isArray(message.content)) {
-	// 		return {
-	// 			...message,
-	// 			content: message.content.map((contentItem: any) => {
-	// 				if (contentItem.type === 'image' && contentItem.image) {
-	// 					return {
-	// 						...contentItem,
-	// 						image: '<IMAGE DATA REMOVED>'
-	// 					}
-	// 				}
-	// 				return contentItem
-	// 			})
-	// 		}
-	// 	}
-	// 	return message
-	// }), null, 2))
-
 	try {
 		messages.push({
 			role: 'assistant',
