@@ -39,8 +39,6 @@ export class ActionResultsPartUtil extends PromptPartUtil<ActionResultsPart> {
 			})
 		)
 
-		console.log('data', data)
-
 		return {
 			type: 'actionResults',
 			data: data.filter((result) => result !== null),

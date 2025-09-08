@@ -4,9 +4,7 @@ export function ChatPanelFallback() {
 			<p>Error loading chat history</p>
 			<button
 				onClick={() => {
-					localStorage.removeItem('chat-history-items')
-					localStorage.removeItem('context-items')
-					localStorage.removeItem('model-name')
+					localStorage.clear()
 					window.location.reload()
 				}}
 			>
