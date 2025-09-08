@@ -205,9 +205,35 @@ There are other methods available on the `AgentActionUtil` class that you can ov
 
 ## How to change how actions appear in chat history
 
-You can configure the icon and description of an action in the chat panel UI using an `AgentActionUtil`'s `getInfo()` method. You can also configure whether or not the action is collapsible, and what it should show if it is collapsed, as well as whether or not the action can be grouped with other actions. See `ChatHistoryInfo.ts` for more info.
+Configure the icon and description of an action in the chat panel UI using the `getInfo()` method.
 
-If you want to customize it further, you can also write custom CSS styling by defining an `.agent-action-type-{TYPE}` CSS class in `client/index.css`. This style will automatically be applied to your actions of that type.
+```ts
+override getInfo() {
+	return {
+		icon: 'trash' as const,
+		description: 'Cleared the canvas',
+	}
+}
+```
+
+You can make an action collapsible by adding a `summary` property.
+
+```ts
+override getInfo() {
+	return {
+		summary: 'Cleared the canvas',
+		description: 'After much consideration, the agent decided to clear the canvas',
+	}
+}
+```
+
+To customize an action's appearance via CSS, you can define style for the `agent-action-type-{TYPE}` class where `{TYPE}` is the type of the action.
+
+```css
+.agent-action-type-clear {
+	color: red;
+}
+```
 
 ## How to get the agent to schedule further work
 
@@ -394,6 +420,7 @@ export function convertTldrawShapeToSimpleShape(shape: TLShape, editor: Editor):
 ```
 
 4. Now the agent can see and fully understand embeds on the canvas. However, it still can't create or edit them. To allow them to do this, we need to head to `CreateActionUtil.ts` and `UpdateActionUtil.ts` respectively and add support for those. This is where we convert from the `SimpleShape` format the model outputs to the 'real' format required by the canvas.
+
 Here's how we handle the new shape from within `CreateActionUtil.ts`'s `getTldrawAiChangesFromCreateAction()` function. It's handled very similarly in `UpdateActionUtil.ts`
 
 ```ts
