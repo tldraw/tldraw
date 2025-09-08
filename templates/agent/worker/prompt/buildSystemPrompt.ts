@@ -8,7 +8,7 @@ export function buildSystemPrompt(prompt: AgentPrompt): string {
 	for (const part of Object.values(prompt)) {
 		const util = utils[part.type]
 		if (!util) continue
-		const systemMessage = util.buildSystemMessage(part)
+		const systemMessage = util.buildSystemPrompt(part)
 		if (systemMessage) {
 			messages.push(systemMessage)
 		}

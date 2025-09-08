@@ -86,7 +86,7 @@ export abstract class PromptPartUtil<T extends BasePromptPart = BasePromptPart> 
 	 * Build a system message that gets concatenated with the other system messages.
 	 * @returns The system message, or null to not add anything to the system message.
 	 */
-	buildSystemMessage(_part: T): string | null {
+	buildSystemPrompt(_part: T): string | null {
 		return null
 	}
 }

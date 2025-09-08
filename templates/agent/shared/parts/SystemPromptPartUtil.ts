@@ -12,7 +12,7 @@ export class SystemPromptPartUtil extends PromptPartUtil<SystemPromptPart> {
 		return { type: 'system' }
 	}
 
-	override buildSystemMessage(_part: SystemPromptPart) {
+	override buildSystemPrompt(_part: SystemPromptPart) {
 		return getSystemPrompt()
 	}
 }

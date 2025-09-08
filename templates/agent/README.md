@@ -83,16 +83,16 @@ There are more methods on the `TldrawAgent` class that can help when building an
 
 We define the agent's behavior in the `AgentUtils.ts` file. In that file, there are two lists of utility classes:
 
-- Prompt Part Utils determine what the agent can **see**.
-- Agent Action Utils determine what the agent can **do**.
+- `PROMPT_PART_UTILS` determine what the agent can **see**.
+- `AGENT_ACTION_UTILS` determine what the agent can **do**.
 
-Add, remove or change an entry in `PROMPT_PART_UTILS` or `AGENT_ACTION_UTILS` to change what the agent can **see** or **do**.
+Add, edit or remove an entry in either list to change what the agent can **see** or **do**.
 
 ## Changing what the agent can see
 
-Prompt Part Utils assemble the prompt, as well as all the other data we send to the model.
+Change what the agent can see by adding, editing or removing a `PromptPartUtil` in the `PROMPT_PART_UTILS` list, found in the `AgentUtils.ts` file.
 
-Each `PromptPartUtil` adds a different piece of information. There are individual prompt part utils for the user's message, the chosen model name, the sytem prompt, chat history and more. You can find them all in the `AgentUtils.ts` file.
+Prompt part utils assemble the prompt that we give the model, as well as all the other data we send it. Each `PromptPartUtil` adds a different piece of information. These include the user's message, the model name, the system prompt, chat history and more.
 
 To add extra data to the prompt, make a new prompt part util. As an example, let's make a util that adds the current time to the prompt. First, define the prompt part:
 
@@ -121,18 +121,18 @@ export class TimePartUtil extends PromptPartUtil<TimePart> {
 }
 ```
 
-Then, add it to the `PROMPT_PART_UTILS` list in `AgentUtils.ts`. The methods of your new util will be used to assemble the prompt part and send it to the model.
+Finally, add it to the `PROMPT_PART_UTILS` list in `AgentUtils.ts`. The methods of your new util will be used to assemble the prompt part and send it to the model.
 
-- `getPart` gathers any data needed by the model for this part of the prompt.
-- `buildContent` turns the data into messages to send to the model.
+- `getPart` - Gather any data needed to construct the prompt.
+- `buildContent` - Turn the data into messages to send to the model.
 
 There are other methods available on the `PromptPartUtil` class that you can override for more granular control.
 
-- `getPriority` controls where this part will appear in the list of messages we send to the model, with lower values being considered higher priority, and therefore sent nearer the end of the list.
-- `getModelName` allows the prompt part to change the chosen model.
-- `buildSystemMessage` appends a string to the system prompt.
-- `buildMessages` overrides the default way that prompt messages are constructed. Note: Overriding this function can bypass the `buildContent` and `getPriority` methods.
-- `transformPart` can apply transformations to the prompt part before it is added to the final prompt. More details on [transformations](#transformations) below.
+- `getPriority` - Control where this prompt part will appear in the list of messages we send to the model. A lower value indicates higher priority, so we send it later on in the request.
+- `getModelName` - Determine which AI model to use.
+- `buildSystemPrompt` - Append a string to the system prompt.
+- `buildMessages` - Manually override how prompt messages are constructed from the prompt part.
+- `transformPart` - Apply transformations to the prompt part before we add it to the final prompt. More details on [transformations](#transformations) below.
 
 ## Changing what the agent can do
 
@@ -205,7 +205,7 @@ If an Action returns anything, async or otherwise, we store that returned value,
 
 In order to get this data into our prompt, there is a dedicated `PromptPartUtil` that will collate all promises returned from Actions taken in the previous turn. This part, called `ActionResults`, awaits all of the promises within `request.actionResults`, and will add their data to the prompt of the agent's new turn.
 
- > You should always use this strategy when dealing with Actions that have async calls, even if your API just returns a status (such as sending an email, or updating an external database). This is because you cannot await async calls from within `applyAction()` directly (and so you cannot handle errors), and passing that status back to the agent will let it know if the request completed successfully or not, which they can then tell you.
+> You should always use this strategy when dealing with Actions that have async calls, even if your API just returns a status (such as sending an email, or updating an external database). This is because you cannot await async calls from within `applyAction()` directly (and so you cannot handle errors), and passing that status back to the agent will let it know if the request completed successfully or not, which they can then tell you.
 
 ## Transformations
 
