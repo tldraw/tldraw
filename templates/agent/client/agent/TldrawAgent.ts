@@ -406,7 +406,7 @@ export class TldrawAgent {
 		return diff
 	}
 
-	scheduleAsync(name: string, cb: () => Promise<any>) {
+	scheduleRequestPromise(name: string, cb: () => Promise<any>) {
 		this.schedule((prev) => {
 			return {
 				...prev,

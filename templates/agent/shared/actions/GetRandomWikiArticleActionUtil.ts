@@ -39,7 +39,7 @@ export class GetRandomWikiArticleActionUtil extends AgentActionUtil<IGetRandomWi
 		if (!action.complete) return
 		const { agent } = transform
 
-		agent.scheduleAsync(
+		agent.scheduleRequestPromise(
 			GetRandomWikiArticleActionUtil.type,
 			async () => await getRandomWikipediaArticle()
 		)
