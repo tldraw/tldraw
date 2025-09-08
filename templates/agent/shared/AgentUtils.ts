@@ -29,7 +29,6 @@ import { MessagePartUtil } from './parts/MessagePartUtil'
 import { ModelNamePartUtil } from './parts/ModelNamePartUtil'
 import { PeripheralShapesPartUtil } from './parts/PeripheralShapesPartUtil'
 import { PromptPartUtil } from './parts/PromptPartUtil'
-import { RandomWikiArticlePartUtil } from './parts/RandomWikiArticlePartUtil'
 import { ScreenshotPartUtil } from './parts/ScreenshotPartUtil'
 import { SelectedShapesPartUtil } from './parts/SelectedShapesPartUtil'
 import { SystemPromptPartUtil } from './parts/SystemPromptPartUtil'
@@ -70,9 +69,8 @@ export const PROMPT_PART_UTILS = [
 	UserActionHistoryPartUtil,
 	TodoListPartUtil,
 
-	// Examples from this repo's README
+	// Example from this repo's README
 	TimePartUtil,
-	RandomWikiArticlePartUtil,
 ]
 
 /**

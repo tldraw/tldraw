@@ -28,13 +28,13 @@ Open `http://localhost:5173/` in your browser to see the app.
 
 With its default setup, the agent can perform many actions:
 
-- Creating, updating, and deleting shapes.
-- Drawing freehand pen strokes.
-- Using higher-level operations on multiple shapes at once: Rotating, resizing, aligning, distributing, stacking and reordering shapes.
-- Writing out its thinking and sending messages to the user.
-- Keeping track of its task by writing and updating a todo list.
-- Moving its viewport to look at different parts of the canvas.
-- Scheduling further work and reviews to be carried out in follow-up requests.
+- Create, update and delete shapes.
+- Draw freehand pen strokes.
+- Use higher-level operations on multiple shapes at once: Rotate, resize, align, distribute, stack and reorder shapes.
+- Write out its thinking and send messages to the user.
+- Keep track of its task by writing and updating a todo list.
+- Move its viewport to look at different parts of the canvas.
+- Schedule further work and reviews to be carried out in follow-up requests.
 
 To make decisions on what to do, we send the agent information from various sources:
 
@@ -45,7 +45,7 @@ To make decisions on what to do, we send the agent information from various sour
 - Actions the user has recently taken.
 - A screenshot of the agent's current view of the canvas.
 - A simplified format of all shapes within the agent's viewport.
-- Clusters of shapes outside the agent's viewport.
+- Information on clusters of shapes outside the agent's viewport.
 - The history of the current session, including the user's messages and all the agent's actions.
 
 ## Using the agent programmatically
@@ -86,7 +86,7 @@ The agent is largely defined by the `AgentUtils.ts` file. In that file, there ar
 - Prompt Part Utils determine what the agent can **see**.
 - Agent Action Utils determine what the agent can **do**.
 
-To change what the agent can **see** or **do**, add, remove, or change an entry in `PROMPT_PART_UTILS` or `AGENT_ACTION_UTILS` respectively.
+To change what the agent can **see** and **do**... add, remove or change an entry `PROMPT_PART_UTILS` or `AGENT_ACTION_UTILS` respectively.
 
 ## Changing what the agent can see
 
@@ -131,7 +131,7 @@ export class TimePartUtil extends PromptPartUtil<TimePart> {
 - `buildMessages()` builds an array of messages, all attirbuted to the user, to send to the model. Most `PartUtil`s will not need to override this. Currently, only the `ChatHistoryPartUtil` overrides this in order to buld messages attributed to the agent as well as the user.
 - `buildSystemMessage()` allows for `PromptPartUtils` to append their own custom instructions to the system prompt that gets used by the agent.
 
-`getPart()` is where the meat of what the `PromtPartUtil` is, but for many `PromptPartUtil`s, it will be quite simple. The `TodoListPartUtil` simply gets the current value of the agent's `$todoList`, for example. Others are more complex. 
+`getPart()` is where the meat of what the `PromtPartUtil` is, but for many `PromptPartUtil`s, it will be quite simple. The `TodoListPartUtil` simply gets the current value of the agent's `$todoList`, for example. Others are more complex.
 
 You should should try exploring the different `PromptPartUtil`s if you haven't already!
 
@@ -139,14 +139,14 @@ You should should try exploring the different `PromptPartUtil`s if you haven't a
 
 The last piece of a `PromptPartUtil` is the `transformPart()` method. Transforms, all of which are stored in the instance of `AgentRequestTransform` that gets passed in, change the information in `PromptPart`s and `AgentAction`s to be easier for models to understand.
 
-For example, `applyOffsetToShape` adjusts the position of a shape to make it relative to the current chat origin. The `removeOffsetFromShape` method reverses it. This is helpful because it helps to keep numbers low, which is easier for the model to deal with. 
+For example, `applyOffsetToShape` adjusts the position of a shape to make it relative to the current chat origin. The `removeOffsetFromShape` method reverses it. This is helpful because it helps to keep numbers low, which is easier for the model to deal with.
 
 Many transformation methods save some state. For example, the `ensureShapeIdIsUnique` method changes a shape's ID if it's not unique, and it saves a record of this change so that further actions can continue to refer to the shape by its untransformed ID.
 
 > note that this is **not** the actual list of messages that is sent directly to the model. the `AgentPrompt` is sent to the worker, which then goes back through the prompt parts and calls their respective `getContent()` and `getMessages()` methods, which it then uses along with `getPriority()` to THEN turn into the raw messages
-_Not necessary? ^_
+> _Not necessary? ^_
 
-while being conceptually similar to the concept of converting shapes into Simple or Blurry formats, this is different becasuse __--why?--__
+while being conceptually similar to the concept of converting shapes into Simple or Blurry formats, this is different becasuse **--why?--**
 
 ## Changing what the agent can do
 
@@ -175,7 +175,7 @@ Like `PromptPart`s, Agent Actions can also be transformed, and often must.
 
 Because we apply Transforms to some `PromptPart`s, the agent has information that may not line up with the information that's on the canvas. Because of that, it might output actions that, if carried out as-is, would not align with the user's intention. Because of that, we often need to apply the reverse of that transform to the action that the agent outputs.
 
-For example, when we send information about shapes to the model, we call `applyOffsetToShape`, which offsets a shape's coordinates relative to where the user's viewport was when a new chat was started. This means that the model thinks that a shape that at, for example, (10100, 20100), will be at (100,100). When the agent tries to move that shape, we need to call `removeOffsetFromShape` on the action in order to recorrect for this error. __--why is this done in applyaction and not transformaction?--__
+For example, when we send information about shapes to the model, we call `applyOffsetToShape`, which offsets a shape's coordinates relative to where the user's viewport was when a new chat was started. This means that the model thinks that a shape that at, for example, (10100, 20100), will be at (100,100). When the agent tries to move that shape, we need to call `removeOffsetFromShape` on the action in order to recorrect for this error. **--why is this done in applyaction and not transformaction?--**
 
 See the [section on transforms](#transformpart) for more info on that.
 
@@ -229,10 +229,10 @@ Let's add support for in-canvas embeds, and allow the model to read and update t
 
 ```ts
 const SimpleEmbedShape = z.object({
-  _type: z.literal('bookmark'),
-  note: z.string(),
-  shapeId: z.string(),
-  url: z.string(),
+	_type: z.literal('bookmark'),
+	note: z.string(),
+	shapeId: z.string(),
+	url: z.string(),
 })
 
 export type ISimpleEmbedShape = z.infer<typeof SimpleEmbedShape>
