@@ -121,7 +121,7 @@ export class TimePartUtil extends PromptPartUtil<TimePart> {
 }
 ```
 
-Then, add it to the `PROMPT_PART_UTILS` list in `AgentUtils.ts`.
+Then, add it to the `PROMPT_PART_UTILS` list in `AgentUtils.ts`. The methods of your new util will be used to assemble the prompt part and send it to the model.
 
 - `getPart` gathers any data needed by the model for this part of the prompt.
 - `buildContent` turns the data into messages to send to the model.
