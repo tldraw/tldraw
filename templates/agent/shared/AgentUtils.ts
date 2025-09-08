@@ -32,6 +32,7 @@ import { PromptPartUtil } from './parts/PromptPartUtil'
 import { ScreenshotPartUtil } from './parts/ScreenshotPartUtil'
 import { SelectedShapesPartUtil } from './parts/SelectedShapesPartUtil'
 import { SystemPromptPartUtil } from './parts/SystemPromptPartUtil'
+import { TimePartUtil } from './parts/TimePartUtil'
 import { TodoListPartUtil } from './parts/TodoListPartUtil'
 import { UserActionHistoryPartUtil } from './parts/UserActionHistoryPartUtil'
 import { ViewportBoundsPartUtil } from './parts/ViewportBoundsPartUtil'
@@ -69,7 +70,7 @@ export const PROMPT_PART_UTILS = [
 	TodoListPartUtil,
 
 	// Example prompt part: Get the current time
-	// TimePartUtil,
+	TimePartUtil,
 ]
 
 /**
