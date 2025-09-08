@@ -30,14 +30,9 @@ export interface AgentRequest {
 	selectedShapes: ISimpleShape[]
 
 	/**
-	 * Any API data that has been fetched as part of this request.
-	 */
-	apiData?: Record<string, any>
-
-	/**
 	 * Any promises that have been fetched as part of this request.
 	 */
-	apiPromises?: Record<string, Promise<any>>
+	requestPromises: { name: string; promise: Promise<any> }[]
 
 	/**
 	 * The type of request.
