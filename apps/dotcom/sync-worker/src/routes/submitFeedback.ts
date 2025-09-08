@@ -76,7 +76,7 @@ export async function submitFeedback(req: IRequest, env: Environment) {
 }
 
 async function getUserEmail(env: Environment, userId: string) {
-	const pg = createPostgresConnectionPool(env, 'submitFeedback')
+	await using pg = createPostgresConnectionPool(env, 'submitFeedback')
 	const { email } = await pg
 		.selectFrom('user')
 		.where('id', '=', userId)

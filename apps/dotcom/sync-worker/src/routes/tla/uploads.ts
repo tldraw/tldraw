@@ -12,7 +12,7 @@ export async function upload(request: IRequest, env: Environment): Promise<Respo
 	const fileId = searchParams.get('fileId')
 	if (!fileId) return Response.json({ error: 'File id is required' }, { status: 400 })
 
-	const db = createPostgresConnectionPool(env, 'sync-worker')
+	await using db = createPostgresConnectionPool(env, 'sync-worker')
 	const fileExists = await db
 		.selectFrom('file')
 		.where('id', '=', fileId)

@@ -51,7 +51,14 @@ export function createPostgresConnectionPool(env: Environment, name: string, max
 	const db = new Kysely<DB>({
 		dialect,
 		log: ['error'],
-	})
+	}) as Kysely<DB> & {
+		[Symbol.asyncDispose](): Promise<void>
+	}
+
+	db[Symbol.asyncDispose] = async () => {
+		await db.destroy()
+	}
+
 	return db
 }
 

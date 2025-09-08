@@ -209,7 +209,7 @@ export default class Worker extends WorkerEntrypoint<Environment> {
 	}
 
 	override async queue(batch: MessageBatch<QueueMessage>): Promise<void> {
-		const db = createPostgresConnectionPool(this.env, 'sync-worker-queue')
+		await using db = createPostgresConnectionPool(this.env, 'sync-worker-queue')
 		for (const message of batch.messages) {
 			const { objectName, fileId, userId } = message.body
 			try {

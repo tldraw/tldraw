@@ -11,7 +11,8 @@ export async function getPublishedRoomSnapshot(
 	const parentSlug = await env.SNAPSHOT_SLUG_TO_PARENT_SLUG.get(roomId)
 	if (!parentSlug) throw Error('not found')
 
-	const file = await createPostgresConnectionPool(env, 'getPublishedRoomSnapshot')
+	await using db = createPostgresConnectionPool(env, 'getPublishedRoomSnapshot')
+	const file = await db
 		.selectFrom('file')
 		.selectAll()
 		.where('id', '=', parentSlug)
