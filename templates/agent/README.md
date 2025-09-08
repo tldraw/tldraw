@@ -191,7 +191,11 @@ What makes an agent agentic, broadly speaking, is its ability carry out a comple
 
 Further work can be scheduled at any point during an agent's turn using the agent's `schedule()` method, and the agent will continue to work until there is no longer a scheduled request, and there are not outstanding todos left in the agent's `$todoList`. 
 
-Unless further work is scheduled (or there are outstanding todos), the agent will only ever complete one turn. This means that any time you want the agent to access any information not in the first `AgentPrompt`
+Unless further work is scheduled (or there are outstanding todos), the agent will only ever complete one turn. This means if you want the agent to be able to access any information not in the first `AgentPrompt`, you must schedule a request.
+
+In order to create an `AgentAction` that schedules more work for the agent to do, you can call `agent.schedule()` from within your action's `applyAction()` method. See the `SetMyViewActionUtil.ts` or `ReviewActionUtil.ts` action utils in order to see an how this works in practice.
+
+todo `MessagePartUtil` part
 
 TODO
 
@@ -206,11 +210,12 @@ TODO
 ## How to get the agent to use an external API
 
 You can give your agent the ability to call and get information from external APIs. For an example of this, see the `GetRandomWikiArticleActionUtil`.
-For the most part, your API-calling `AgentActionUtils` behave almost exactly like normal ones, with one important caveat: because the the agent is requesting data from an external source, if you want the agent to be able to use that data in its response, it must be forced to take another turn and given the data.
 
-In order to make this happen, within the `AgentActionUtil`'s `applyAction` method, you must call `agent.scheduleAsync()`, and pass in your `AgentActionUtil`'s `type` as well as the async function that will return your data. It's recommended you do this even if your API just returns a status, as this will let the agent know if the request completed successfully or not.
+For the most part, your API-calling `AgentActionUtils` behave almost exactly like normal ones, with one important caveat: because the the agent is requesting data from an external source, the agent must be forced to take another turn in order to be able to use that data in its response.
 
-All API data fetched over the course of the an agent's turn using `agent.scheduleAsync()` will appear in the `ApiDataPartUtil`.
+In order to make this happen, within the `AgentActionUtil`'s `applyAction` method, you must call `agent.scheduleRequestPromise()`, and pass in your `AgentActionUtil`'s `type` as well as the async function that will return your data. It's recommended you do this even if your API just returns a status, as this will let the agent know if the request completed successfully or not.
+
+All API data fetched over the course of the an agent's turn using `agent.scheduleRequestPromise()` will be awaited within in the `AsyncRequestDataPartUtil`.
 
 > This means that using information received from an API requires the agent to enter an agentic loop, and thus must be used by the agent within `agent.prompt()`. It can technically _call_ these with `agent.request()`, but without being able to know the response, this is not recommended.
 

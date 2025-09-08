@@ -9,7 +9,7 @@ export interface AsyncRequestDataPart extends BasePromptPart<'asyncRequestData'>
 /**
  * This prompt part collects up data from any API calls the agent made during the previous request.
  */
-export class ApiDataPartUtil extends PromptPartUtil<AsyncRequestDataPart> {
+export class AsyncRequestDataPartUtil extends PromptPartUtil<AsyncRequestDataPart> {
 	static override type = 'asyncRequestData' as const
 
 	override getPriority() {
