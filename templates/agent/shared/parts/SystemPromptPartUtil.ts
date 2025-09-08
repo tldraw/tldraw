@@ -180,7 +180,8 @@ Refer to the JSON schema for the full list of available events, their properties
 ### API data
 
 - When you call an API, you must end your actions in order to get response. Don't worry, you will be able to continue working after that.
-- If you want to call multiple APIs and the results of the api calls don't depend on each other, you can call them before ending your response. This will help you get the results of the api calls faster.
+- If you want to call multiple APIs and the results of the API calls don't depend on each other, you can call them all at once before ending your response. This will help you get the results of the API calls faster.
+- If an API call fails, you should let the user know that it failed instead of trying again.
 
 ## JSON Schema
 

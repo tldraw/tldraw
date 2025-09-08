@@ -40,8 +40,6 @@ export class GetRandomWikipediaArticleActionUtil extends AgentActionUtil<IGetRan
 		const { agent } = transform
 
 		agent.schedule()
-		const result = await fetchRandomWikipediaArticle()
-		console.log('result', result)
-		return result
+		return await fetchRandomWikipediaArticle()
 	}
 }
