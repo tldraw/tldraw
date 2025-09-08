@@ -165,27 +165,60 @@ If you want to customize it further, you can also write custom CSS styling by de
 
 ## How to get the agent to schedule further work
 
-The agent has the ability carry out complex tasks over the course of multiple turns and to evaluate its progress towards that task and adjust its approach given new information. It does this by scheduling further work for itself.
+The agent has the ability carry out complex tasks over the course of multiple turns and to evaluate its progress towards that task and adjust its approach given new information. It does this by scheduling further work for itself via calling Actions that call its `schedule()` method. The agent will continue to work if there is a scheduled request or if it has outstanding todos. 
 
-Further work can be scheduled at any point during an agent's turn using the agent's `schedule()` method, and the agent will continue to work until there is no longer a scheduled `AgentRequest`, and there are not outstanding todos left in the agent's `$todoList`. The `schedule()` method creates a new `AgentRequest` and sets `$scheduledRequest` to it if one does not exist already exist. If one exists, you can use the callback it takes to decide how to handle any conflicts between the existing `AgentRequest` and the one you want to add.
+You can pass data into the `schedule()` method that can be used in the following turn to affect the agent's behavior. You'll usually do this within an Action's `applyAction()` method.
 
-Unless further work is scheduled (or there are outstanding todos), the agent will only ever complete one turn. This means that if you want to give the agent the ability to access any information not in the original `AgentPrompt`, you give give it the ability must schedule a request.
+Here's part of a hypothetical action that the agent can call to tell itself to add more detail to its drawings in the next turn.
+```ts
+override applyAction(action: Streaming<IAddDetailAction>, transform: AgentRequestTransform) {
+	if (!action.complete) return
+	const { agent } = transform
 
-In order to create an `AgentAction` that schedules a request for the agent to do, you can call `agent.schedule()` from within your action's `applyAction()` method. This repo comes with two actions that use the `schedule()` method (and one that uses `scheduleRequestPromise()`, more on that in the [next section](#how-to-get-the-agent-to-use-an-external-api)) out of the box, `SetMyViewActionUtil` and `ReviewActionUtil`.
+	agent.schedule(() => 'add more detail to the drawing')
+}
+```
+
+You can also see `shared/actions/SetMyViewActionUtil.ts` and `shared/actions/ReviewActionUtil.ts` for other examples that use `agent.schedule()`.
+
+The `GetRandomWikipediaArticleActionUtil` also uses `schedule()`, but to handle fetching async data, which is slightly more complex. More on that in the [next section](#how-to-get-the-agent-to-use-an-external-api).
+
+### Todos
+
+You can also use `$todoList` to force an agent to take another turn. If you create a new action that programatically creates a new `TodoItem` as a side effect, this will force the agent to take another turn, as it always takes another turn if there are unresolved todos.
+
+```ts
+override applyAction(action: Streaming<ITodoListAction>, transform: AgentRequestTransform) {
+	if (!action.complete) return
+	const { agent } = transform
+
+	const todoItem = {
+		id: agent.$todoList.get().length
+		status: 'todo' as const,
+		text: 'add more detail to the drawing',
+	}
+
+	agent.$todoList.update((todoItems) => {
+		return [...todoItems, todoItem]
+	})
+}
+```
+
+### Extending `AgentRequest`
+
+It's very possible that, when making your new action, you want to pass along data to the next request that doesn't have a clear place in the current `AgentRequest` interface. If that's the case, you can extend `AgentRequest` to either add a new field or a new `type` of request. Then, your new action can call `agent.schedule()` and pass along whatever data you like to it.
+
+<!-- In order to create an `AgentAction` that schedules a request for the agent to do, you can call `agent.schedule()` from within your action's `applyAction()` method. This repo comes with two actions that use the `schedule()` method (and one that uses `scheduleRequestPromise()`,  out of the box, `SetMyViewActionUtil` and `ReviewActionUtil`.
 
 The `SetMyViewActioUtil` allows the agent to move its viewport around the canvas by scheduling a request with different `bounds`. This means that when the next loop starts, all `PromptPartUtil`s that depend on the `bounds` of the request (such as `BlurryShapesPartUtil` and `ScreenshotPartUtil`) will use the new value for bounds, allowing the agent to effectively move around the canvas.
 
-The `ReviewActionUtil` also uses `schedule()`, this time scheduling a request with a different `type`. Adding a different `type` to a request allows us to change the behavior of different parts of the system. For example. the `MessagePartUtil`, which usually contains the user's message, will send a different message to the model if the type is `review`, `todo`, or `schedule`.
-
-> You can also use `$todoList` to force an agent to take another turn. If you create a new action that programatically creates a new `TodoItem` as a side effect, this will force the agent to take another turn, as it always takes another turn if there are unresolved todos.
-
-It's very possible that, when making your new action, you want to pass along data to the next request that doesn't have a clear place in the current `AgentRequest` interface. If that's the case, you can extend `AgentRequest` to either add a new field or a new `type`. Then, your new action can call `agent.schedule()` and pass along whatever data you like to it.
+The `ReviewActionUtil` also uses `schedule()`, this time scheduling a request with a different `type`. Adding a different `type` to a request allows us to change the behavior of different parts of the system. For example. the `MessagePartUtil`, which usually contains the user's message, will send a different message to the model if the type is `review`, `todo`, or `schedule`. -->
 
 ## How to get the agent to use an external API
 
 You can give your agent the ability to call and retrieve information from external APIs by creating an `AgentActionUtil` for the specific API you want to call. See the `GetRandomWikiArticleActionUtil` for an example.
 
-Like any `AgentActionUtil` that gives the agent access to information not included in the original prompt (like `SetMyViewActionUtil` or `ReviewActionUtil`), we must schedule a request to force the agent to take another turn. However, it's not possible to `await` async functions directly from within the context `applyAction()` is called. We handle that below:
+Like any `AgentActionUtil` that passes data from one turn to the next (like `SetMyViewActionUtil` or `ReviewActionUtil`), we must schedule a request to force the agent to take another turn. However, it's not possible to `await` async functions directly from within the context `applyAction()` is called. We handle that by returning the promise so that the next request will have access to it.
 
 ```ts
 override async applyAction(
@@ -201,11 +234,13 @@ override async applyAction(
 }
 ```
 
-If an Action returns anything, async or otherwise, we store that returned value, along with any others, in the next `AgentRequest`'s `actionResults`. By returning `await myAsyncFunction()` from an Action, we ensure that when the next turn starts, that promise will be waiting for us in our new `AgentRequest`.
+<!-- If an Action returns anything, async or otherwise, we store that returned value, along with any others, in the next `AgentRequest`'s `actionResults`. By returning `await myAsyncFunction()` from an Action, we ensure that when the next turn starts, that promise will be waiting for us in our new `AgentRequest`. -->
 
-In order to get this data into our prompt, there is a dedicated `PromptPartUtil` that will collate all promises returned from Actions taken in the previous turn. This part, called `ActionResults`, awaits all of the promises within `request.actionResults`, and will add their data to the prompt of the agent's new turn.
+### Reading the data from the API
 
- > You should always use this strategy when dealing with Actions that have async calls, even if your API just returns a status (such as sending an email, or updating an external database). This is because you cannot await async calls from within `applyAction()` directly (and so you cannot handle errors), and passing that status back to the agent will let it know if the request completed successfully or not, which they can then tell you.
+In order to get this data into our prompt, there is a dedicated `PromptPartUtil` that will collate all promises returned from Actions taken in the previous turn. This part, called `ActionResultsPartUtil`, awaits all of the promises returned from the previous turn's actions, and will add their data to the prompt of the agent's new turn.
+
+<!-- > You should always use this strategy when dealing with Actions that have async calls, even if your API just returns a status (such as sending an email, or updating an external database). This is because you cannot await async calls from within `applyAction()` directly (and so you cannot handle errors), and passing that status back to the agent will let it know if the request completed successfully or not, which they can then tell you. -->
 
 ## Transformations
 
@@ -252,14 +287,12 @@ In order to allow your agent to use a different model, add the model's defition 
 
 ## How to support custom shapes
 
-The agent can see and move, delete, and arrange any custom shapes out of the box. However, it will see the shape's `type` as `'unknown'`, with a `subType` field that will show the internal name of the shape's `type`.
-
-The only props of the shape it will be able to see are the shape's `shapeId` and `x` and `y` coordinates. If you want the agent to be able to see and edit other props, you can add your custom shape to the schema we use to help the model understand shapes.
+The agent can see and move, delete, and arrange any custom shapes out of the box. However, it will see the shape's `type` as `'unknown'`, with a `subType` field that will show the internal name of the shape's `type`. It will also only be able to see the shape's `shapeId` and `x` and `y` coordinates. If you want the agent to be able to see and edit other props, you can add your custom shape to the schema we use to help the model understand shapes.
 
 Let's add support for in-canvas embeds, and allow the model to read and update their urls if they like. TLdraw has a builtin `TLEmbedShape` already, so we'll be using that.
 
 1. Define the fields of your new shape in `shared/format/SimpleShape.ts` using a zod object. Every shape is required to have a `_type` and a `shapeId` field, and it's strongly recommended that you give it a `note` field as well, as that is where the model stores information about the shape's purposes.
-   Note that these fields are what the model will see, so it's worthwhile to give them descriptive names (these don't need to be the same names as the fields on your actual shape, we'll go over how to convert these later).
+	Note that these fields are what the model will see, so it's worthwhile to give them descriptive names (these don't need to be the same names as the fields on your actual shape, we'll go over how to convert these later).
 
 ```ts
 const SimpleEmbedShape = z.object({
@@ -288,8 +321,32 @@ const SIMPLE_SHAPES = [
 ```
 
 3. Now we have to decide how to convert our shape from its representation on the canvas to our `SimpleEmbedShape`, or what the model will see. We do the by adding a case to `convertTldrawShapeToSimpleShape` and defining a `convertImageShapeToSimple` function.
-   Note that we're currently telling the model how to handle the `TLEmbedShape`, which is already included in `TLDefaultShape` and thus implicitly support in `convertTldrawShapeToSimpleShape`. If you're adding your own custom shape, you'll have to tell `convertTldrawShapeToSimpleShape` it can accept your custom shape.
+	Note that we're currently telling the model how to handle the `TLEmbedShape`, which is already included in `TLDefaultShape` and thus implicitly support in `convertTldrawShapeToSimpleShape`. If you're adding your own custom shape, you'll have to tell `convertTldrawShapeToSimpleShape` it can accept your custom shape.
 4. Great! Now the agent can see and fully understand embeds on the canvas. However, it still can't create or edit them. To allow them to do this, we need to head to `CreateActionUtil.ts` and `UpdateActionUtil.ts` respectively and add support for those. This is where we handle creating a shape using the `SimpleShape` format you get from the model.
+Here's how we handle the new shape from within `CreateActionUtil.ts`'s `getTldrawAiChangesFromCreateAction()` function.
+```ts
+case 'bookmark': { // the type the model returns
+	const embedShape = shape as ISimpleEmbedShape
+	changes.push({
+		type: 'createShape',
+		description: action.intent ?? '',
+		shape: {
+			id: shapeId,
+			type: 'bookmark', // the official tldraw shape type
+			x: embedShape.x,
+			y: embedShape.y,
+			props: {
+				url: embedShape.url,
+			},
+			meta: {
+				note: embedShape.note ?? '',
+			},
+		},
+	})
+	break
+}
+```
+
 5. And we're done! The model can now see, create, and update the url of `TlEmbedShape`s on the canvas.
 
 > _Why does `_type` start with an underscore? And why are the properties of all of the simple shapes in alphabetical order?_ Good question! Unfortunately as users of LLMs we exist at the behest of their strange quirks we've found this helps for some models: in this case the quirk was [property ordering.](https://ai.google.dev/gemini-api/docs/structured-output#property-ordering) If you have no intention of using Gemini, you can remove the underscores from `_type` and change the orders of the properties to be more reasonable at your own peril.
