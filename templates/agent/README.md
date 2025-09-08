@@ -181,11 +181,17 @@ See the [section on transforms](#transformpart) for more info on that.
 
 ## How to change how actions appear in chat history
 
-You can configure the icon and description of how an action appears in the chat panel UI using an `AgentActionUtil`'s `getInfo()` method. You can also configure whether or not the action is collapsible, and what it should show if it its collapsed, as well as whether or not the action can be grouped with other actions. See `ChatHistoryInfo.ts` for more info.
+You can configure the icon and description of an action in the chat panel UI using an `AgentActionUtil`'s `getInfo()` method. You can also configure whether or not the action is collapsible, and what it should show if it is collapsed, as well as whether or not the action can be grouped with other actions. See `ChatHistoryInfo.ts` for more info.
 
-You can also write custom CSS styling by defining an `.agent-action-type-{TYPE}` css class.
+If you want to customize it further, you can also write custom CSS styling by defining an `.agent-action-type-{TYPE}` CSS class in `client/index.css`. This style will automatically be applied to your actions of that type.
 
 ## How to get the agent to schedule further work
+
+What makes an agent agentic, broadly speaking, is its ability carry out a complex task over the course of multiple turns and to evaluate its progress towards that task and adjust its approach given new information.
+
+Further work can be scheduled at any point during an agent's turn using the agent's `schedule()` method, and the agent will continue to work until there is no longer a scheduled request, and there are not outstanding todos left in the agent's `$todoList`. 
+
+Unless further work is scheduled (or there are outstanding todos), the agent will only ever complete one turn. This means that any time you want the agent to access any information not in the first `AgentPrompt`
 
 TODO
 
