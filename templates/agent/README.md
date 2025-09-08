@@ -187,35 +187,41 @@ If you want to customize it further, you can also write custom CSS styling by de
 
 ## How to get the agent to schedule further work
 
-What makes an agent agentic, broadly speaking, is its ability carry out a complex task over the course of multiple turns and to evaluate its progress towards that task and adjust its approach given new information.
+The agent has the ability carry out complex tasks over the course of multiple turns and to evaluate its progress towards that task and adjust its approach given new information. It does this by scheduling further work for itself.
 
-Further work can be scheduled at any point during an agent's turn using the agent's `schedule()` method, and the agent will continue to work until there is no longer a scheduled request, and there are not outstanding todos left in the agent's `$todoList`. This method creates a new `$scheduledRequest` if one does not exist already exist. If one exists, you can use the callback it takes to decided how to handle any conflicts or priority in your request.
+Further work can be scheduled at any point during an agent's turn using the agent's `schedule()` method, and the agent will continue to work until there is no longer a scheduled `AgentRequest`, and there are not outstanding todos left in the agent's `$todoList`. The `schedule()` method creates a new `AgentRequest` and sets `$scheduledRequest` to it if one does not exist already exist. If one exists, you can use the callback it takes to decide how to handle any conflicts between the existing `AgentRequest` and the one you want to add.
 
-Unless further work is scheduled (or there are outstanding todos), the agent will only ever complete one turn. This means if you want the agent to be able to access any information not in the first `AgentPrompt`, you must schedule a request.
+Unless further work is scheduled (or there are outstanding todos), the agent will only ever complete one turn. This means that if you want to give the agent the ability to access any information not in the original `AgentPrompt`, you give give it the ability must schedule a request.
 
-In order to create an `AgentAction` that schedules more work for the agent to do, you can call `agent.schedule()` from within your action's `applyAction()` method. This repo comes with two actions that use the `schedule()` method (and one that uses `scheduleRequestPromise()`, more on that in the [next section](#how-to-get-the-agent-to-use-an-external-api)) out of the box, `SetMyViewActionUtil` and `ReviewActionUtil`. The `SetMyViewActioUtil` allows the agent to move its viewport around the canvas by scheduling a request with different `bounds`. This means that when the next loop starts, all `PromptPartUtil`s that depend on the `bounds` of the request (such as `BlurryShapesPartUtil` and `ScreenshotPartUtil`) will use the new value for bounds, allowing the agent to effectively move around the canvas.
+In order to create an `AgentAction` that schedules a request for the agent to do, you can call `agent.schedule()` from within your action's `applyAction()` method. This repo comes with two actions that use the `schedule()` method (and one that uses `scheduleRequestPromise()`, more on that in the [next section](#how-to-get-the-agent-to-use-an-external-api)) out of the box, `SetMyViewActionUtil` and `ReviewActionUtil`.
+
+The `SetMyViewActioUtil` allows the agent to move its viewport around the canvas by scheduling a request with different `bounds`. This means that when the next loop starts, all `PromptPartUtil`s that depend on the `bounds` of the request (such as `BlurryShapesPartUtil` and `ScreenshotPartUtil`) will use the new value for bounds, allowing the agent to effectively move around the canvas.
 
 The `ReviewActionUtil` also uses `schedule()`, this time scheduling a request with a different `type`. Adding a different `type` to a request allows us to change the behavior of different parts of the system. For example. the `MessagePartUtil`, which usually contains the user's message, will send a different message to the model if the type is `review`, `todo`, or `schedule`.
 
- > You can also use `$todoList` to force an agent to take another turn. If you create a new action that programatically creates a new `TodoItem` as a side effect, this will force the agent to take another turn, as it always takes another turn if there are unresolved todos.
+> You can also use `$todoList` to force an agent to take another turn. If you create a new action that programatically creates a new `TodoItem` as a side effect, this will force the agent to take another turn, as it always takes another turn if there are unresolved todos.
 
 It's very possible that, when making your new action, you want to pass along data to the next request that doesn't have a clear place in the current `AgentRequest` interface. If that's the case, you can extend `AgentRequest` to either add a new field or a new `type`. Then, your new action can call `agent.schedule()` and pass along whatever data you like to it.
 
 ## How to get the agent to use an external API
 
-You can give your agent the ability to call and get information from external APIs. For an example of this, see the `GetRandomWikiArticleActionUtil`.
+You can give your agent the ability to call and retrieve information from external APIs by creating an `AgentActionUtil` for the specific API you want to call. See the `GetRandomWikiArticleActionUtil` for an example.
 
-For the most part, your API-calling `AgentActionUtils` behave just like normal ones, with one important caveat: because the the agent is requesting data from an external source, the agent must be forced to take another turn in order to be able to use that data in its response. 
+Like any `AgentActionUtil` that gives the agent access to information not included in the original prompt (like `SetMyViewActionUtil` or `ReviewActionUtil`), we must schedule a request to force the agent to take another turn. However, it's not possible to `await` async functions from within the context `applyAction()` is called in, so we must use a special method on the `TldrawAgent` class, `scheduleRequestPromise()` to help us here.
 
-In order to make this happen, within the `AgentActionUtil`'s `applyAction` method, you must call `agent.scheduleRequestPromise()`, and pass in your `AgentActionUtil`'s `type` as well as the async function that will return your data. It's recommended you do this even if your API just returns a status (such as sending an email, or updating an external database), as this will let the agent know if the request completed successfully or not.
+We need to call `scheduleRequestPromise()` from within the `AgentActionUtil`'s `applyAction` method. We pass the async function that will return our data into `scheduleRequestPromise()`, which immediately calls it without awaiting it, allowing it to run in the background while the agent's turn completes.
 
-All API data fetched over the course of the an agent's turn using `agent.scheduleRequestPromise()` will be awaited within in the `AsyncRequestDataPartUtil`, and will appear in the prompt of the agent's next turn.
+In order to get this data into our prompt, there is a dedicated `PromptPartUtil` that will collate all async data fetched over the course of the agent's turn using `agent.scheduleRequestPromise()`. This part, called `AsyncRequestDataPartUtil`, will await all of the promises, and will add their data to the prompt of the agent's next turn.
+
+You should always use `scheduleRequestPromise()` when dealing with Actions that have async calls, even if your API just returns a status (such as sending an email, or updating an external database). This is because you cannot await async calls from within `applyAction()` (and so you cannot handle errors), and passing that status back to the agent will let it know if the request completed successfully or not, which they can then tell you.
 
 > This means that using information received from an API requires the agent to enter an agentic loop, and thus must be used by the agent within `agent.prompt()`. It can technically _call_ these with `agent.request()`, but without being able to know the response, this is not recommended.
 
 ## How to change the system prompt
 
 The agent's system prompt is defined by a `PromptPartUtil`, called `SystemPromptPartUtil`. You can edit this file directly to change the system prompt.
+
+You can also override the `buildSystemMessage()` method on any `PromptPartUtil` if you want specific Prompt Parts to add specific information to the system prompt when enabled.
 
 ## How to add support for a different model
 
@@ -263,7 +269,7 @@ const SIMPLE_SHAPES = [
 4. Great! Now the agent can see and fully understand embeds on the canvas. However, it still can't create or edit them. To allow them to do this, we need to head to `CreateActionUtil.ts` and `UpdateActionUtil.ts` respectively and add support for those. This is where we handle creating a shape using the `SimpleShape` format you get from the model.
 5. And we're done! The model can now see, create, and update the url of `TlEmbedShape`s on the canvas.
 
- > _Why does `_type` start with an underscore? And why are the properties of all of the simple shapes in alphabetical order?_ Good question! Unfortunately as users of LLMs we exist at the behest of their strange quirks we've found this helps for some models: in this case the quirk was [property ordering.](https://ai.google.dev/gemini-api/docs/structured-output#property-ordering) If you have no intention of using Gemini, you can remove the underscores from `_type` and change the orders of the properties to be more reasonable at your own peril.
+> _Why does `_type` start with an underscore? And why are the properties of all of the simple shapes in alphabetical order?_ Good question! Unfortunately as users of LLMs we exist at the behest of their strange quirks we've found this helps for some models: in this case the quirk was [property ordering.](https://ai.google.dev/gemini-api/docs/structured-output#property-ordering) If you have no intention of using Gemini, you can remove the underscores from `_type` and change the orders of the properties to be more reasonable at your own peril.
 
 ## License
 
