@@ -185,15 +185,27 @@ It's very possible that, when making your new action, you want to pass along dat
 
 You can give your agent the ability to call and retrieve information from external APIs by creating an `AgentActionUtil` for the specific API you want to call. See the `GetRandomWikiArticleActionUtil` for an example.
 
-Like any `AgentActionUtil` that gives the agent access to information not included in the original prompt (like `SetMyViewActionUtil` or `ReviewActionUtil`), we must schedule a request to force the agent to take another turn. However, it's not possible to `await` async functions from within the context `applyAction()` is called in, so we must use a special method on the `TldrawAgent` class, `scheduleRequestPromise()` to help us here.
+Like any `AgentActionUtil` that gives the agent access to information not included in the original prompt (like `SetMyViewActionUtil` or `ReviewActionUtil`), we must schedule a request to force the agent to take another turn. However, it's not possible to `await` async functions directly from within the context `applyAction()` is called. We handle that below:
 
-We need to call `scheduleRequestPromise()` from within the `AgentActionUtil`'s `applyAction` method. We pass the async function that will return our data into `scheduleRequestPromise()`, which immediately calls it without awaiting it, allowing it to run in the background while the agent's turn completes.
+```ts
+override async applyAction(
+	action: Streaming<IGetRandomWikipediaArticleAction>,
+	transform: AgentRequestTransform
+) {
+	if (!action.complete) return
+	const { agent } = transform
 
-In order to get this data into our prompt, there is a dedicated `PromptPartUtil` that will collate all async data fetched over the course of the agent's turn using `agent.scheduleRequestPromise()`. This part, called `AsyncRequestDataPartUtil`, will await all of the promises, and will add their data to the prompt of the agent's next turn.
+	// Schedule a follow-up request and return the wikipedia article
+	agent.schedule()
+	return await fetchRandomWikipediaArticle()
+}
+```
 
-You should always use `scheduleRequestPromise()` when dealing with Actions that have async calls, even if your API just returns a status (such as sending an email, or updating an external database). This is because you cannot await async calls from within `applyAction()` (and so you cannot handle errors), and passing that status back to the agent will let it know if the request completed successfully or not, which they can then tell you.
+If an Action returns anything, async or otherwise, we store that returned value, along with any others, in the next `AgentRequest`'s `actionResults`. By returning `await myAsyncFunction()` from an Action, we ensure that when the next turn starts, that promise will be waiting for us in our new `AgentRequest`.
 
-> This means that using information received from an API requires the agent to enter an agentic loop, and thus must be used by the agent within `agent.prompt()`. It can technically _call_ these with `agent.request()`, but without being able to know the response, this is not recommended.
+In order to get this data into our prompt, there is a dedicated `PromptPartUtil` that will collate all promises returned from Actions taken in the previous turn. This part, called `ActionResults`, awaits all of the promises within `request.actionResults`, and will add their data to the prompt of the agent's new turn.
+
+ > You should always use this strategy when dealing with Actions that have async calls, even if your API just returns a status (such as sending an email, or updating an external database). This is because you cannot await async calls from within `applyAction()` directly (and so you cannot handle errors), and passing that status back to the agent will let it know if the request completed successfully or not, which they can then tell you.
 
 ## Transformations
 
@@ -227,6 +239,12 @@ For example, when we send information about shapes to the model, we call `applyO
 The agent's system prompt is defined by a `PromptPartUtil`, called `SystemPromptPartUtil`. You can edit this file directly to change the system prompt.
 
 You can also override the `buildSystemMessage()` method on any `PromptPartUtil` if you want specific Prompt Parts to add specific information to the system prompt when enabled.
+
+```ts
+override buildSystemMessage(_part: MyCustomPromptPart) {
+	return 'You can use the MyCustomPromptPart to...'
+}
+```
 
 ## How to add support for a different model
 
