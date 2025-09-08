@@ -1,6 +1,7 @@
 import { AgentActionUtil } from './actions/AgentActionUtil'
 import { AlignActionUtil } from './actions/AlignActionUtil'
 import { BringToFrontActionUtil } from './actions/BringToFrontActionUtil'
+import { CountShapesActionUtil } from './actions/CountShapesActionUtil'
 import { CreateActionUtil } from './actions/CreateActionUtil'
 import { DebugActionUtil } from './actions/DebugActionUtil'
 import { DeleteActionUtil } from './actions/DeleteActionUtil'
@@ -109,8 +110,9 @@ export const AGENT_ACTION_UTILS = [
 	// Drawing
 	PenActionUtil,
 
-	// Example agent action: Get a random Wikipedia article
+	// Calling external APIs
 	RandomWikipediaArticleActionUtil,
+	CountShapesActionUtil,
 
 	// Internal (required)
 	DebugActionUtil,
