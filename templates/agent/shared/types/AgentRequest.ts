@@ -1,6 +1,7 @@
 import { BoxModel } from 'tldraw'
 import { AgentModelName } from '../../worker/models'
 import { ISimpleShape } from '../format/SimpleShape'
+import { AgentActionResult } from './AgentActionResult'
 import { IContextItem } from './ContextItem'
 
 export interface AgentRequest {
@@ -30,16 +31,15 @@ export interface AgentRequest {
 	selectedShapes: ISimpleShape[]
 
 	/**
-	 * Any promises that have been fetched as part of this request.
+	 * Results returned by actions in the previous request.
 	 */
-	requestPromises: { name: string; promise: Promise<any> }[]
+	actionResults: AgentActionResult[]
 
 	/**
 	 * The type of request.
 	 * - 'user' is a request from the user.
 	 * - 'schedule' is a request from the schedule.
 	 * - 'todo' is a request from outstanding todo items.
-	 *
 	 * - 'review' is a custom request type created by the ReviewActionUtil.
 	 *
 	 * You can add your own custom request types by adding them to this property,

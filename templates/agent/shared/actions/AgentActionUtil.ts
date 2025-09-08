@@ -7,8 +7,6 @@ import { Streaming } from '../types/Streaming'
 export abstract class AgentActionUtil<T extends BaseAgentAction = BaseAgentAction> {
 	static type: string
 
-	constructor() {}
-
 	/**
 	 * Get a schema to use for the model's response.
 	 * @returns The schema, or null to not use a schema
@@ -38,8 +36,10 @@ export abstract class AgentActionUtil<T extends BaseAgentAction = BaseAgentActio
 	/**
 	 * Apply the action to the editor.
 	 * Any changes that happen during this function will be displayed as a diff.
+	 *
+	 * Return a value to add it to the next scheduled request (if there is one).
 	 */
-	applyAction(_action: Streaming<T>, _transform: AgentRequestTransform): void {
+	applyAction(_action: Streaming<T>, _transform: AgentRequestTransform): Promise<any> | void {
 		// Do nothing by default
 	}
 

@@ -36,7 +36,7 @@ export class AgentService {
 		try {
 			const modelName = getModelName(prompt)
 			const model = this.getModel(modelName)
-			for await (const event of streamEventsVercel(model, prompt)) {
+			for await (const event of streamActions(model, prompt)) {
 				yield event
 			}
 		} catch (error: any) {
@@ -46,7 +46,7 @@ export class AgentService {
 	}
 }
 
-async function* streamEventsVercel(
+async function* streamActions(
 	model: LanguageModel,
 	prompt: AgentPrompt
 ): AsyncGenerator<Streaming<AgentAction>> {

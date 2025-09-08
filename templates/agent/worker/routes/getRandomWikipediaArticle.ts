@@ -1,4 +1,5 @@
 import { IRequest } from 'itty-router'
+import { WikipediaArticle } from '../../shared/types/WikipediaArticle'
 import { Environment } from '../types'
 
 interface WikipediaApiResponse {
@@ -51,17 +52,12 @@ interface WikipediaApiResponse {
 	extract_html: string
 }
 
-export interface WikipediaResponse {
-	title: string
-	extract: string
-	url: string
-	pageId: number
-	thumbnail?: string
-}
-
-export async function getRandomArticle(_request: IRequest, _env: Environment): Promise<Response> {
+export async function getRandomWikipediaArticle(
+	_request: IRequest,
+	_env: Environment
+): Promise<Response> {
 	try {
-		const articleData = await fetchRandomWikipediaArticle()
+		const articleData = await fetchArticle()
 
 		return new Response(JSON.stringify(articleData), {
 			status: 200,
@@ -76,9 +72,8 @@ export async function getRandomArticle(_request: IRequest, _env: Environment): P
 	}
 }
 
-async function fetchRandomWikipediaArticle(): Promise<WikipediaResponse> {
+async function fetchArticle(): Promise<WikipediaArticle> {
 	const url = 'https://en.wikipedia.org/api/rest_v1/page/random/summary'
-
 	const response = await fetch(url, {
 		headers: {
 			'User-Agent': 'tldraw',

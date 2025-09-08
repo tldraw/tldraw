@@ -4,6 +4,7 @@ import { AgentRequestTransform } from '../../shared/AgentRequestTransform'
 import { getAgentActionUtilsRecord, getPromptPartUtilsRecord } from '../../shared/AgentUtils'
 import { PromptPartUtil } from '../../shared/parts/PromptPartUtil'
 import { AgentAction } from '../../shared/types/AgentAction'
+import { AgentActionResult } from '../../shared/types/AgentActionResult'
 import { AgentInput } from '../../shared/types/AgentInput'
 import { AgentPrompt } from '../../shared/types/AgentPrompt'
 import { AgentRequest } from '../../shared/types/AgentRequest'
@@ -140,10 +141,19 @@ export class TldrawAgent {
 	 * @returns The action util.
 	 */
 	getAgentActionUtil(type?: string) {
-		if (!type) return this.unknownActionUtil
+		const utilType = this.getAgentActionUtilType(type)
+		return this.agentActionUtils[utilType]
+	}
+
+	/**
+	 * Get the util type for a provided action type.
+	 * If no util type is found, returns 'unknown'.
+	 */
+	getAgentActionUtilType(type?: string) {
+		if (!type) return 'unknown'
 		const util = this.agentActionUtils[type as AgentAction['_type']]
-		if (!util) return this.unknownActionUtil
-		return util
+		if (!util) return 'unknown'
+		return type as AgentAction['_type']
 	}
 
 	/**
@@ -193,7 +203,7 @@ export class TldrawAgent {
 			selectedShapes: input.selectedShapes ?? [],
 			modelName: input.modelName ?? this.$modelName.get(),
 			type: input.type ?? 'user',
-			requestPromises: input.requestPromises ?? [],
+			actionResults: input.actionResults ?? [],
 		}
 
 		return request
@@ -251,7 +261,7 @@ export class TldrawAgent {
 		const request = this.getRequestFromInput(input)
 
 		// Submit the request to the agent.
-		await this.request(request)
+		const actionResults = await this.request(request)
 
 		// After the request is handled, check if there are any outstanding todo items or requests
 		let scheduledRequest = this.$scheduledRequest.get()
@@ -271,13 +281,16 @@ export class TldrawAgent {
 				modelName: request.modelName,
 				selectedShapes: request.selectedShapes,
 				type: 'todo',
-				requestPromises: [],
+				actionResults: actionResults,
 			}
 		}
 
 		// Handle the scheduled request
 		this.$scheduledRequest.set(null)
-		await this.prompt(scheduledRequest)
+		await this.prompt({
+			...scheduledRequest,
+			actionResults: [...scheduledRequest.actionResults, ...actionResults],
+		})
 	}
 
 	/**
@@ -311,8 +324,9 @@ export class TldrawAgent {
 			this.cancelFn = null
 		})
 
-		await promise
+		const results = await promise
 		this.$activeRequest.set(null)
+		return results
 	}
 
 	/**
@@ -342,7 +356,7 @@ export class TldrawAgent {
 	 *
 	 * @param callback
 	 */
-	schedule(callback: (request: AgentRequest) => AgentInput) {
+	schedule(callback: (request: AgentRequest) => AgentInput = (v) => v) {
 		this.$scheduledRequest.update((prev) => {
 			const activeRequest = this.$activeRequest.get()
 			const currentScheduledRequest = prev ?? {
@@ -353,7 +367,7 @@ export class TldrawAgent {
 				type: 'schedule',
 				bounds: activeRequest?.bounds ?? this.editor.getViewportPageBounds(),
 				selectedShapes: activeRequest?.selectedShapes ?? [],
-				requestPromises: [],
+				actionResults: [],
 			}
 
 			const partialRequest = callback(currentScheduledRequest)
@@ -365,14 +379,18 @@ export class TldrawAgent {
 	 * Make the agent perform an action.
 	 * @param action The action to make the agent do.
 	 * @param transform The transform to use.
-	 * @returns The diff of the action.
+	 * @returns The diff of the action, and
 	 */
-	act(action: Streaming<AgentAction>, transform = new AgentRequestTransform(this)) {
+	act(
+		action: Streaming<AgentAction>,
+		transform = new AgentRequestTransform(this)
+	): AgentActionResult {
 		const { editor } = this
 		const util = this.getAgentActionUtil(action._type)
 		this.isActing = true
+		let value: AgentActionResult['value']
 		const diff = editor.store.extractingChanges(() => {
-			util.applyAction(structuredClone(action), transform)
+			value = util.applyAction(structuredClone(action), transform) ?? undefined
 		})
 		this.isActing = false
 
@@ -403,22 +421,13 @@ export class TldrawAgent {
 				return [...historyItems, historyItem]
 			})
 		}
-		return diff
-	}
 
-	scheduleRequestPromise(name: string, cb: () => Promise<any>) {
-		this.schedule((prev) => {
-			return {
-				...prev,
-				requestPromises: [
-					...prev.requestPromises,
-					{
-						name,
-						promise: cb(),
-					},
-				],
-			}
-		})
+		const utilType = this.getAgentActionUtilType(action._type)
+		return {
+			type: utilType,
+			diff,
+			value,
+		}
 	}
 
 	/**

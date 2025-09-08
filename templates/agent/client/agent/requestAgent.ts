@@ -1,5 +1,6 @@
 import { RecordsDiff, reverseRecordsDiff, structuredClone, TLRecord } from 'tldraw'
 import { AgentRequestTransform } from '../../shared/AgentRequestTransform'
+import { AgentActionResult } from '../../shared/types/AgentActionResult'
 import { AgentRequest } from '../../shared/types/AgentRequest'
 import { IChatHistoryItem } from '../../shared/types/ChatHistoryItem'
 import { streamAgent } from './streamAgent'
@@ -41,9 +42,10 @@ export function requestAgent({
 	const signal = controller.signal
 	const transform = new AgentRequestTransform(agent)
 
-	const promise = new Promise<void>((resolve) => {
+	const promise = new Promise<AgentActionResult[]>((resolve) => {
 		agent.preparePrompt(request, transform).then(async (prompt) => {
-			let prevDiff: RecordsDiff<TLRecord> | null = null
+			let incompleteDiff: RecordsDiff<TLRecord> | null = null
+			const results: AgentActionResult[] = []
 			try {
 				for await (const action of streamAgent({ prompt, signal })) {
 					if (cancelled) break
@@ -58,7 +60,7 @@ export function requestAgent({
 								if (action.complete) {
 									console.log('REJECTED ACTION: ', action)
 								}
-								prevDiff = null
+								incompleteDiff = null
 								return
 							}
 
@@ -69,16 +71,21 @@ export function requestAgent({
 							}
 
 							// If there was a diff from an incomplete action, revert it so that we can reapply the action
-							if (prevDiff) {
-								const inversePrevDiff = reverseRecordsDiff(prevDiff)
+							if (incompleteDiff) {
+								const inversePrevDiff = reverseRecordsDiff(incompleteDiff)
 								editor.store.applyDiff(inversePrevDiff)
 							}
 
 							// Apply the action to the app and editor
-							const diff = agent.act(transformedAction, transform)
+							const result = agent.act(transformedAction, transform)
 
 							// The the action is incomplete, save the diff so that we can revert it in the future
-							prevDiff = transformedAction.complete ? null : diff
+							if (transformedAction.complete) {
+								results.push(result)
+								incompleteDiff = null
+							} else {
+								incompleteDiff = result.diff
+							}
 						},
 						{
 							ignoreShapeLock: false,
@@ -86,14 +93,14 @@ export function requestAgent({
 						}
 					)
 				}
-				resolve()
+				resolve(results)
 			} catch (e) {
 				if (e instanceof Error && e.name === 'AbortError') {
 					console.log('CANCELLED')
 					return
 				}
 				onError(e)
-				resolve()
+				resolve(results)
 			}
 		})
 	})

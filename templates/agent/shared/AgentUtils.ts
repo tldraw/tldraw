@@ -5,7 +5,7 @@ import { CreateActionUtil } from './actions/CreateActionUtil'
 import { DebugActionUtil } from './actions/DebugActionUtil'
 import { DeleteActionUtil } from './actions/DeleteActionUtil'
 import { DistributeActionUtil } from './actions/DistributeActionUtil'
-import { GetRandomWikiArticleActionUtil } from './actions/GetRandomWikiArticleActionUtil'
+import { GetRandomWikipediaArticleActionUtil } from './actions/GetRandomWikipediaArticleActionUtil'
 import { LabelActionUtil } from './actions/LabelActionUtil'
 import { MessageActionUtil } from './actions/MessageActionUtil'
 import { MoveActionUtil } from './actions/MoveActionUtil'
@@ -21,8 +21,8 @@ import { ThinkActionUtil } from './actions/ThinkActionUtil'
 import { TodoListActionUtil } from './actions/TodoListActionUtil'
 import { UnknownActionUtil } from './actions/UnknownActionUtil'
 import { UpdateActionUtil } from './actions/UpdateActionUtil'
-import { ApiDataPartUtil } from './parts/AsyncRequestDataPartUtil'
-import { BlurryShapesPartUtil } from './parts/BlurryShapesPart'
+import { ActionResultsPartUtil } from './parts/ActionResultsPartUtil'
+import { BlurryShapesPartUtil } from './parts/BlurryShapesPartUtil'
 import { ChatHistoryPartUtil } from './parts/ChatHistoryPartUtil'
 import { ContextItemsPartUtil } from './parts/ContextItemsPartUtil'
 import { MessagePartUtil } from './parts/MessagePartUtil'
@@ -52,7 +52,7 @@ export const PROMPT_PART_UTILS = [
 
 	// Request
 	MessagePartUtil,
-	ApiDataPartUtil,
+	ActionResultsPartUtil,
 	ContextItemsPartUtil,
 
 	// Viewport
@@ -110,7 +110,7 @@ export const AGENT_ACTION_UTILS = [
 	PenActionUtil,
 
 	// Example from this repo's README
-	GetRandomWikiArticleActionUtil,
+	GetRandomWikipediaArticleActionUtil,
 
 	// Internal (required)
 	DebugActionUtil,

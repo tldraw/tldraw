@@ -1,10 +1,10 @@
 import z from 'zod'
-import { getRandomWikipediaArticle } from '../../client/api/getRandomWikipediaArticle'
+import { fetchRandomWikipediaArticle } from '../../client/api/fetchRandomWikipediaArticle'
 import { AgentRequestTransform } from '../AgentRequestTransform'
 import { Streaming } from '../types/Streaming'
 import { AgentActionUtil } from './AgentActionUtil'
 
-const GetRandomWikiArticleAction = z
+const GetRandomWikipediaArticleAction = z
 	.object({
 		_type: z.literal('getInspiration'),
 	})
@@ -13,16 +13,16 @@ const GetRandomWikiArticleAction = z
 		description: 'The AI gets inspiration from a random Wikipedia article',
 	})
 
-type IGetRandomWikiArticleAction = z.infer<typeof GetRandomWikiArticleAction>
+type IGetRandomWikipediaArticleAction = z.infer<typeof GetRandomWikipediaArticleAction>
 
-export class GetRandomWikiArticleActionUtil extends AgentActionUtil<IGetRandomWikiArticleAction> {
+export class GetRandomWikipediaArticleActionUtil extends AgentActionUtil<IGetRandomWikipediaArticleAction> {
 	static override type = 'getInspiration' as const
 
 	override getSchema() {
-		return GetRandomWikiArticleAction
+		return GetRandomWikipediaArticleAction
 	}
 
-	override getInfo(action: Streaming<IGetRandomWikiArticleAction>) {
+	override getInfo(action: Streaming<IGetRandomWikipediaArticleAction>) {
 		const description = action.complete
 			? 'Got random Wikipedia article'
 			: 'Getting random Wikipedia article'
@@ -32,16 +32,16 @@ export class GetRandomWikiArticleActionUtil extends AgentActionUtil<IGetRandomWi
 		}
 	}
 
-	override applyAction(
-		action: Streaming<IGetRandomWikiArticleAction>,
+	override async applyAction(
+		action: Streaming<IGetRandomWikipediaArticleAction>,
 		transform: AgentRequestTransform
 	) {
 		if (!action.complete) return
 		const { agent } = transform
 
-		agent.scheduleRequestPromise(
-			GetRandomWikiArticleActionUtil.type,
-			async () => await getRandomWikipediaArticle()
-		)
+		agent.schedule()
+		const result = await fetchRandomWikipediaArticle()
+		console.log('result', result)
+		return result
 	}
 }

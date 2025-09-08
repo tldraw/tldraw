@@ -1,12 +1,6 @@
-interface WikipediaResponse {
-	title: string
-	extract: string
-	url: string
-	pageId: number
-	thumbnail?: string
-}
+import { WikipediaArticle } from "../../shared/types/WikipediaArticle"
 
-export async function getRandomWikipediaArticle(): Promise<WikipediaResponse> {
+export async function fetchRandomWikipediaArticle(): Promise<WikipediaArticle> {
 	const response = await fetch('/random-wikipedia-article', {
 		method: 'POST',
 		headers: { 'Content-Type': 'application/json' },
