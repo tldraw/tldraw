@@ -193,8 +193,7 @@ export class TldrawAgent {
 			selectedShapes: input.selectedShapes ?? [],
 			modelName: input.modelName ?? this.$modelName.get(),
 			type: input.type ?? 'user',
-			apiPromises: input.apiPromises ?? {},
-			apiData: input.apiData ?? {},
+			requestPromises: input.requestPromises ?? [],
 		}
 
 		return request
@@ -272,11 +271,9 @@ export class TldrawAgent {
 				modelName: request.modelName,
 				selectedShapes: request.selectedShapes,
 				type: 'todo',
+				requestPromises: [],
 			}
 		}
-
-		// Resolve all promises and assign them to apiData
-		scheduledRequest = await this.resolveAndSetPromises(scheduledRequest)
 
 		// Handle the scheduled request
 		this.$scheduledRequest.set(null)
@@ -356,60 +353,12 @@ export class TldrawAgent {
 				type: 'schedule',
 				bounds: activeRequest?.bounds ?? this.editor.getViewportPageBounds(),
 				selectedShapes: activeRequest?.selectedShapes ?? [],
-				apiPromises: {},
-				apiData: {},
+				requestPromises: [],
 			}
 
 			const partialRequest = callback(currentScheduledRequest)
 			return this.getRequestFromInput(partialRequest)
 		})
-	}
-
-	/**
-	 * Resolves all promises in a scheduled request and assigns them to apiData.
-	 * @param scheduledRequest The scheduled request containing promises to resolve.
-	 * @returns A modified scheduled request with resolved promises assigned to apiData.
-	 */
-	async resolveAndSetPromises(scheduledRequest: AgentRequest): Promise<AgentRequest> {
-		const promises = Object.values(scheduledRequest.apiPromises ?? {})
-		if (promises.length === 0) {
-			return scheduledRequest
-		}
-
-		try {
-			const resolvedData = await Promise.all(promises)
-
-			// Create apiData object from resolved promises
-			const apiData: Record<string, any> = {}
-			const promiseKeys = Object.keys(scheduledRequest.apiPromises ?? {})
-
-			promiseKeys.forEach((key, index) => {
-				// Extract action type from unique key (format: actionType_timestamp_randomId)
-				const actionType = key.split('_')[0]
-
-				// If this is the first call of this action type, create an array
-				if (!apiData[actionType]) {
-					apiData[actionType] = []
-				}
-
-				// Add the resolved data to the array for this action type
-				apiData[actionType].push(resolvedData[index])
-			})
-
-			// Return modified scheduled request with apiData
-			return {
-				...scheduledRequest,
-				apiData: {
-					...scheduledRequest.apiData,
-					...apiData,
-				},
-				apiPromises: {}, // Clear promises since they're now resolved
-			}
-		} catch (error) {
-			// Basic error handling as per user preference
-			console.error('Error resolving promises:', error)
-			return scheduledRequest
-		}
 	}
 
 	/**
@@ -457,19 +406,17 @@ export class TldrawAgent {
 		return diff
 	}
 
-	scheduleAsync(actionType: AgentAction['_type'], cb: () => Promise<any>) {
+	scheduleAsync(name: string, cb: () => Promise<any>) {
 		this.schedule((prev) => {
-			// Create a unique key for this API call to prevent overwrites
-			const timestamp = Date.now()
-			const randomId = Math.random().toString(36).substring(2, 8)
-			const uniqueKey = `${actionType}_${timestamp}_${randomId}`
-
 			return {
 				...prev,
-				apiPromises: {
-					...prev.apiPromises,
-					[uniqueKey]: cb(),
-				},
+				requestPromises: [
+					...prev.requestPromises,
+					{
+						name,
+						promise: cb(),
+					},
+				],
 			}
 		})
 	}
