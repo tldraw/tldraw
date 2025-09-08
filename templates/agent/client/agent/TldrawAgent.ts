@@ -508,9 +508,7 @@ export class TldrawAgent {
 	 * Check if the agent is currently working on a request or not.
 	 */
 	isGenerating() {
-		// TODO: Fix this. It might have a scheduled request but it might not be doing it if the developer only called `agent.request()`.
-		// Instead, we shouldn't clear activeRequest until API calls have been resolved.
-		return this.$activeRequest.get() !== null || this.$scheduledRequest.get() !== null
+		return this.$activeRequest.get() !== null
 	}
 
 	/** Whether the agent is currently acting on the editor or not. */
