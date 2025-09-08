@@ -6,6 +6,9 @@ export interface ApiDataPart extends BasePromptPart<'apiData'> {
 	apiData: AgentRequest['apiData']
 }
 
+/**
+ * This prompt part collects up data from any API calls the agent made during the previous request.
+ */
 export class ApiDataPartUtil extends PromptPartUtil<ApiDataPart> {
 	static override type = 'apiData' as const
 

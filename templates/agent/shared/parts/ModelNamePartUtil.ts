@@ -23,7 +23,7 @@ export class ModelNamePartUtil extends PromptPartUtil<ModelNamePart> {
 	}
 
 	/**
-	 * Use the specified model name for this request.r
+	 * Use the specified model name for this request.
 	 */
 	override getModelName(part: ModelNamePart) {
 		return part.name

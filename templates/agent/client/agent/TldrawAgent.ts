@@ -193,7 +193,7 @@ export class TldrawAgent {
 			selectedShapes: input.selectedShapes ?? [],
 			modelName: input.modelName ?? this.$modelName.get(),
 			type: input.type ?? 'user',
-			promises: input.promises ?? {},
+			apiPromises: input.apiPromises ?? {},
 			apiData: input.apiData ?? {},
 		}
 
@@ -349,13 +349,14 @@ export class TldrawAgent {
 		this.$scheduledRequest.update((prev) => {
 			const activeRequest = this.$activeRequest.get()
 			const currentScheduledRequest = prev ?? {
-				message: activeRequest?.message ?? '',
+				// Reset the message and context items. The scheduled request might be a completely different task than the active request.
+				message: '',
 				contextItems: [],
 				modelName: activeRequest?.modelName ?? DEFAULT_MODEL_NAME,
 				type: 'schedule',
 				bounds: activeRequest?.bounds ?? this.editor.getViewportPageBounds(),
 				selectedShapes: activeRequest?.selectedShapes ?? [],
-				promises: {},
+				apiPromises: {},
 				apiData: {},
 			}
 
@@ -370,7 +371,7 @@ export class TldrawAgent {
 	 * @returns A modified scheduled request with resolved promises assigned to apiData.
 	 */
 	async resolveAndSetPromises(scheduledRequest: AgentRequest): Promise<AgentRequest> {
-		const promises = Object.values(scheduledRequest.promises ?? {})
+		const promises = Object.values(scheduledRequest.apiPromises ?? {})
 		if (promises.length === 0) {
 			return scheduledRequest
 		}
@@ -380,7 +381,7 @@ export class TldrawAgent {
 
 			// Create apiData object from resolved promises
 			const apiData: Record<string, any> = {}
-			const promiseKeys = Object.keys(scheduledRequest.promises ?? {})
+			const promiseKeys = Object.keys(scheduledRequest.apiPromises ?? {})
 
 			promiseKeys.forEach((key, index) => {
 				// Extract action type from unique key (format: actionType_timestamp_randomId)
@@ -402,7 +403,7 @@ export class TldrawAgent {
 					...scheduledRequest.apiData,
 					...apiData,
 				},
-				promises: {}, // Clear promises since they're now resolved
+				apiPromises: {}, // Clear promises since they're now resolved
 			}
 		} catch (error) {
 			// Basic error handling as per user preference
@@ -465,8 +466,8 @@ export class TldrawAgent {
 
 			return {
 				...prev,
-				promises: {
-					...prev.promises,
+				apiPromises: {
+					...prev.apiPromises,
 					[uniqueKey]: cb(),
 				},
 			}
@@ -507,6 +508,8 @@ export class TldrawAgent {
 	 * Check if the agent is currently working on a request or not.
 	 */
 	isGenerating() {
+		// TODO: Fix this. It might have a scheduled request but it might not be doing it if the developer only called `agent.request()`.
+		// Instead, we shouldn't clear activeRequest until API calls have been resolved.
 		return this.$activeRequest.get() !== null || this.$scheduledRequest.get() !== null
 	}
 

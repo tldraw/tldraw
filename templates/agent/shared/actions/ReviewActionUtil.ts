@@ -58,7 +58,8 @@ export class ReviewActionUtil extends AgentActionUtil<IReviewAction> {
 
 		agent.schedule((prev) => ({
 			...prev,
-			message: action.intent,
+			// Append the review intent to the current message, if there is one.
+			message: prev ? `${prev.message} ${action.intent}` : action.intent,
 			bounds,
 			contextItems: [...prev.contextItems, contextArea],
 			type: 'review',

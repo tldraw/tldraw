@@ -29,6 +29,7 @@ import { MessagePartUtil } from './parts/MessagePartUtil'
 import { ModelNamePartUtil } from './parts/ModelNamePartUtil'
 import { PeripheralShapesPartUtil } from './parts/PeripheralShapesPartUtil'
 import { PromptPartUtil } from './parts/PromptPartUtil'
+import { RandomWikiArticlePartUtil } from './parts/RandomWikiArticlePartUtil'
 import { ScreenshotPartUtil } from './parts/ScreenshotPartUtil'
 import { SelectedShapesPartUtil } from './parts/SelectedShapesPartUtil'
 import { SystemPromptPartUtil } from './parts/SystemPromptPartUtil'
@@ -52,7 +53,7 @@ export const PROMPT_PART_UTILS = [
 
 	// Request
 	MessagePartUtil,
-	ApiDataPartUtil, // This is needed in order to receive any data from actions that request async data using `agent.scheduleAsync()`
+	ApiDataPartUtil,
 	ContextItemsPartUtil,
 
 	// Viewport
@@ -69,11 +70,9 @@ export const PROMPT_PART_UTILS = [
 	UserActionHistoryPartUtil,
 	TodoListPartUtil,
 
-	// Example from this repo's README
+	// Examples from this repo's README
 	TimePartUtil,
-
-	// Misc
-	// RandomWikiArticlePartUtil,
+	RandomWikiArticlePartUtil,
 ]
 
 /**
@@ -112,7 +111,7 @@ export const AGENT_ACTION_UTILS = [
 	// Drawing
 	PenActionUtil,
 
-	// Misc
+	// Example from this repo's README
 	GetRandomWikiArticleActionUtil,
 
 	// Internal (required)
