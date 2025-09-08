@@ -228,7 +228,7 @@ override applyAction(action: Streaming<IAddDetailAction>, transform: AgentReques
 
 You can also see `shared/actions/SetMyViewActionUtil.ts` and `shared/actions/ReviewActionUtil.ts` for other examples that use `agent.schedule()`.
 
-The `GetRandomWikipediaArticleActionUtil` also uses `schedule()`, but to handle fetching async data, which is slightly more complex. More on that in the [next section](#how-to-get-the-agent-to-use-an-external-api).
+The `RandomWikipediaArticleActionUtil` also uses `schedule()`, but to handle fetching async data, which is slightly more complex. More on that in the [next section](#how-to-get-the-agent-to-use-an-external-api).
 
 ### Todos
 
@@ -263,13 +263,13 @@ The `ReviewActionUtil` also uses `schedule()`, this time scheduling a request wi
 
 ## How to get the agent to use an external API
 
-You can give your agent the ability to call and retrieve information from external APIs by creating an `AgentActionUtil` for the specific API you want to call. See the `GetRandomWikiArticleActionUtil` for an example.
+You can give your agent the ability to call and retrieve information from external APIs by creating an `AgentActionUtil` for the specific API you want to call. See the `RandomWikiArticleActionUtil` for an example.
 
 Like any `AgentActionUtil` that passes data from one turn to the next (like `SetMyViewActionUtil` or `ReviewActionUtil`), we must schedule a request to force the agent to take another turn. However, it's not possible to `await` async functions directly from within the context `applyAction()` is called. We handle that by returning the promise so that the next request will have access to it.
 
 ```ts
 override async applyAction(
-	action: Streaming<IGetRandomWikipediaArticleAction>,
+	action: Streaming<IRandomWikipediaArticleAction>,
 	transform: AgentRequestTransform
 ) {
 	if (!action.complete) return
@@ -320,10 +320,10 @@ For example, when we send information about shapes to the model, we call `applyO
 
 The agent's system prompt is defined by a `PromptPartUtil`, called `SystemPromptPartUtil`. You can edit this file directly to change the system prompt.
 
-You can also override the `buildSystemMessage()` method on any `PromptPartUtil` if you want specific Prompt Parts to add specific information to the system prompt when enabled.
+You can also override the `buildSystemPrompt()` method on any `PromptPartUtil` if you want specific Prompt Parts to add specific information to the system prompt when enabled.
 
 ```ts
-override buildSystemMessage(_part: MyCustomPromptPart) {
+override buildSystemPrompt(_part: MyCustomPromptPart) {
 	return 'You can use the MyCustomPromptPart to...'
 }
 ```
@@ -338,8 +338,8 @@ The agent can see and move, delete, and arrange any custom shapes out of the box
 
 Let's add support for in-canvas embeds, and allow the model to read and update their urls if they like. TLdraw has a builtin `TLEmbedShape` already, so we'll be using that.
 
-1. Define the fields of your new shape in `shared/format/SimpleShape.ts` using a zod object. Every shape is required to have a `_type` and a `shapeId` field, and it's strongly recommended that you give it a `note` field as well, as that is where the model stores information about the shape's purposes.
-   Note that these fields are what the model will see, so it's worthwhile to give them descriptive names (these don't need to be the same names as the fields on your actual shape, we'll go over how to convert these later).
+1. Define the fields of your new shape in `shared/format/SimpleShape.ts` using a zod object. Every shape is required to have a `_type` and a `shapeId` field, and it's strongly recommended that you give it a `note` field as well, as that is where the model stores information about the shape's purposes when creating or updating it.
+   These fields are what the model will see, so it's worthwhile to give them descriptive names.
 
 ```ts
 const SimpleEmbedShape = z.object({
@@ -367,10 +367,34 @@ const SIMPLE_SHAPES = [
 ] as const
 ```
 
-3. Now we have to decide how to convert our shape from its representation on the canvas to our `SimpleEmbedShape`, or what the model will see. We do the by adding a case to `convertTldrawShapeToSimpleShape` and defining a `convertImageShapeToSimple` function.
-   Note that we're currently telling the model how to handle the `TLEmbedShape`, which is already included in `TLDefaultShape` and thus implicitly support in `convertTldrawShapeToSimpleShape`. If you're adding your own custom shape, you'll have to tell `convertTldrawShapeToSimpleShape` it can accept your custom shape.
-4. Great! Now the agent can see and fully understand embeds on the canvas. However, it still can't create or edit them. To allow them to do this, we need to head to `CreateActionUtil.ts` and `UpdateActionUtil.ts` respectively and add support for those. This is where we handle creating a shape using the `SimpleShape` format you get from the model.
-   Here's how we handle the new shape from within `CreateActionUtil.ts`'s `getTldrawAiChangesFromCreateAction()` function.
+3. Now we have to define how to convert our shape from its representation on the canvas (`TLEmbedShape`) to one our model can interact with (`SimpleEmbedShape`). We do this defining a `convertEmbedShapeToSimple` function and by adding a case to `convertTldrawShapeToSimpleShape`.
+
+```ts
+function convertEmbedShapeToSimple(editor: Editor, shape: TLEmbedShape): ISimpleEmbedShape {
+	return {
+		_type: 'bookmark',
+		url: shape.props.url,
+		note: (shape.meta?.note as string) ?? '',
+		shapeId: convertTldrawIdToSimpleId(shape.id),
+		x: shape.x,
+		y: shape.y,
+	}
+}
+```
+
+```ts
+export function convertTldrawShapeToSimpleShape(shape: TLShape, editor: Editor): ISimpleShape {
+	switch (shape.type) {
+		// ...
+		case 'bookmark':
+			return convertEmbedShapeToSimple(editor, shape as TLEmbedShape)
+		// ...
+	}
+}
+```
+
+4. Now the agent can see and fully understand embeds on the canvas. However, it still can't create or edit them. To allow them to do this, we need to head to `CreateActionUtil.ts` and `UpdateActionUtil.ts` respectively and add support for those. This is where we convert from the `SimpleShape` format the model outputs to the 'real' format required by the canvas.
+Here's how we handle the new shape from within `CreateActionUtil.ts`'s `getTldrawAiChangesFromCreateAction()` function. It's handled very similarly in `UpdateActionUtil.ts`
 
 ```ts
 case 'bookmark': { // the type the model returns
@@ -395,7 +419,7 @@ case 'bookmark': { // the type the model returns
 }
 ```
 
-5. And we're done! The model can now see, create, and update the url of `TlEmbedShape`s on the canvas.
+5. And we're done! The model can now see, create, and update the url of `TLEmbedShape`s on the canvas.
 
 > _Why does `_type` start with an underscore? And why are the properties of all of the simple shapes in alphabetical order?_ Good question! Unfortunately as users of LLMs we exist at the behest of their strange quirks we've found this helps for some models: in this case the quirk was [property ordering.](https://ai.google.dev/gemini-api/docs/structured-output#property-ordering) If you have no intention of using Gemini, you can remove the underscores from `_type` and change the orders of the properties to be more reasonable at your own peril.
 

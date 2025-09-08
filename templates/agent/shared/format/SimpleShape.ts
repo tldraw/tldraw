@@ -193,7 +193,7 @@ export function convertTldrawShapeToSimpleShape(shape: TLShape, editor: Editor):
 		case 'draw':
 			return convertDrawShapeToSimple(editor, shape as TLDrawShape)
 		case 'bookmark':
-			return convertImageShapeToSimple(editor, shape as TLEmbedShape)
+			return convertEmbedShapeToSimple(editor, shape as TLEmbedShape)
 		default:
 			return convertUnknownShapeToSimple(editor, shape)
 	}
@@ -340,7 +340,7 @@ function convertNoteShapeToSimple(editor: Editor, shape: TLNoteShape): ISimpleNo
 	}
 }
 
-function convertImageShapeToSimple(editor: Editor, shape: TLEmbedShape): ISimpleEmbedShape {
+function convertEmbedShapeToSimple(editor: Editor, shape: TLEmbedShape): ISimpleEmbedShape {
 	return {
 		_type: 'bookmark',
 		url: shape.props.url,
