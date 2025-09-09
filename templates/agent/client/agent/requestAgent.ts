@@ -95,7 +95,7 @@ export function requestAgent({
 				}
 				resolve(results)
 			} catch (e) {
-				if (e instanceof Error && e.name === 'AbortError') {
+				if (e === 'Cancelled by user' || (e instanceof Error && e.name === 'AbortError')) {
 					console.log('CANCELLED')
 					return
 				}
