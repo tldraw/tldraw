@@ -287,7 +287,6 @@ The `ReviewActionUtil` also uses `schedule()`, this time scheduling a request wi
 
 To let the agent retrieve information from an external API, fetch and return it within the `applyAction` method. The agent will have access to it within its next scheduled request, if there is one.
 
-<!-- TODO FIX THIS EXAMPLE -->
 ```ts
 override async applyAction(
 	action: Streaming<IRandomWikipediaArticleAction>,
@@ -314,7 +313,6 @@ Conceptually, there are two types of transforms, those that are scoped to a sing
 
 ```ts
 export class AgentRequestTransform {
-	
 	//...
 
 	constructor(agent: TldrawAgent) {
@@ -333,7 +331,7 @@ export class AgentRequestTransform {
 
 ### Transform the prompt sent to the model
 
-To keep the information we send to the model simple and easy for it to understand, we apply a number of transforms to the Prompt Parts. 
+To keep the information we send to the model simple and easy for it to understand, we apply a number of transforms to the Prompt Parts.
 
 #### Example: Transforming the `SelectedShapesPartUtil`
 
@@ -373,7 +371,7 @@ override transformAction(action: Streaming<IUpdateAction>, transform: AgentReque
 	const shapeId = transform.ensureShapeIdIsReal(update.shapeId)
 	if (!shapeId) return null
 	update.shapeId = shapeId
-	
+
 	// ...
 
 	// Unround the shape to restore the original values
@@ -397,7 +395,6 @@ override applyAction(action: Streaming<IUpdateAction>, transform: AgentRequestTr
 
 }
 ```
-
 
 <!-- This means the agent now thinks the shapes and viewports it knows exists are in different positions than they are. In order to correct for this in the actions that the agent outputs, we call our `removeOffsetToBox()`, `removeOffsetToVec()`, and `removeOffsetToShape()` methods.
 

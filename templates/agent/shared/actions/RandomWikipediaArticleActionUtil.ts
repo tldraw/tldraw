@@ -37,26 +37,31 @@ export class RandomWikipediaArticleActionUtil extends AgentActionUtil<IRandomWik
 	) {
 		// Wait until the action has finished streaming
 		if (!action.complete) return
+		const { agent } = transform
 
 		// Schedule a follow-up agent request
-		transform.agent.schedule()
+		agent.schedule('Here is a random Wikipedia article.')
 
 		// Fetch the random Wikipedia article
-		const response = await fetch('https://en.wikipedia.org/api/rest_v1/page/random/summary', {
-			headers: { 'User-Agent': 'tldraw' },
-		})
+		return await fetchRandomWikipediaArticle()
+	}
+}
 
-		if (!response.ok) {
-			throw new Error(`Wikipedia API returned status ${response.status}, ${response.statusText}`)
-		}
+export async function fetchRandomWikipediaArticle() {
+	const response = await fetch('https://en.wikipedia.org/api/rest_v1/page/random/summary', {
+		headers: { 'User-Agent': 'tldraw' },
+	})
 
-		const data: WikipediaApiResponse = await response.json()
-		return {
-			title: data.title,
-			extract: data.extract,
-			url: data.content_urls.desktop.page,
-			pageId: data.pageid,
-		}
+	if (!response.ok) {
+		throw new Error(`Wikipedia API returned status ${response.status}, ${response.statusText}`)
+	}
+
+	const data: WikipediaApiResponse = await response.json()
+	return {
+		title: data.title,
+		extract: data.extract,
+		url: data.content_urls.desktop.page,
+		pageId: data.pageid,
 	}
 }
 
