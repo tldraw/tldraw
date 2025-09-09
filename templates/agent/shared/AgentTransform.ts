@@ -1,5 +1,6 @@
 import { BoxModel, Editor, TLShapeId, VecModel } from 'tldraw'
 import { TldrawAgent } from '../client/agent/TldrawAgent'
+import { ISimpleFill, SimpleFill } from './format/SimpleFill'
 import { ISimpleShape } from './format/SimpleShape'
 import { IContextItem } from './types/ContextItem'
 
@@ -448,6 +449,19 @@ export class AgentTransform {
 			return value !== 'false'
 		}
 
+		return null
+	}
+
+	/**
+	 * Ensure that a value is a simple fill.
+	 * Used for checking incoming data from the model.
+	 * @returns The simple fill, or null if the value is not a simple fill.
+	 */
+	ensureValueIsSimpleFill(value: any): ISimpleFill | null {
+		const simpleFill = SimpleFill.safeParse(value)
+		if (simpleFill.success) {
+			return simpleFill.data
+		}
 		return null
 	}
 

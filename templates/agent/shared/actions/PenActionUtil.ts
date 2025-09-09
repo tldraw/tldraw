@@ -53,6 +53,7 @@ export class PenActionUtil extends AgentActionUtil<IPenAction> {
 
 		action.points = validPoints
 		action.closed = transform.ensureValueIsBoolean(action.closed) ?? false
+		action.fill = transform.ensureValueIsSimpleFill(action.fill) ?? 'none'
 
 		return action
 	}
