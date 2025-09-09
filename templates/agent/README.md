@@ -379,6 +379,8 @@ There are three main formats used in this starter:
 - `SimpleShape` - The format for shapes that the agent is focusing on, such as when it is reviewing a part of its work. The format contains most of a shape's properties, including color, fill, alignment, and any other shape-specific information. The "simple" name refers to how this format is still _simpler_ than the raw tldraw shape format.
 - `PeripheralShapeCluster` - The format for shapes outside the agent's viewport. Nearby shapes are grouped together into clusters, each with the group's bounds and a count of how many shapes are inside it. This is the least detailed format. Its role is to give the model an awareness of shapes that elsewhere on the page.
 
+To send the model some shapes in one of these formats, use one of the conversion functions found within the `format` folder, such as `convertTldrawShapeToSimpleShape`.
+
 <!-- ## Transform the actions received from the model
 
 We correct for the transformations done to the prompt parts by applying the reverse of those transforms to the actions output by the model.

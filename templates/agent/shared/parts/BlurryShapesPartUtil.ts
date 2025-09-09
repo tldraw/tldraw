@@ -1,6 +1,7 @@
 import { Box } from 'tldraw'
 import { AgentTransform } from '../AgentTransform'
-import { BlurryShape, convertTldrawShapeToBlurryShape } from '../format/BlurryShape'
+import { BlurryShape } from '../format/BlurryShape'
+import { convertTldrawShapeToBlurryShape } from '../format/convertTldrawShapeToBlurryShape'
 import { AgentRequest } from '../types/AgentRequest'
 import { BasePromptPart } from '../types/BasePromptPart'
 import { PromptPartUtil } from './PromptPartUtil'

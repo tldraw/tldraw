@@ -1,5 +1,5 @@
 import { Box, BoxModel, StateNode, TLShape, VecModel } from 'tldraw'
-import { convertTldrawShapeToSimpleShape } from '../../shared/format/SimpleShape'
+import { convertTldrawShapeToSimpleShape } from '../../shared/format/convertTldrawShapeToSimpleShape'
 import { $agentsAtom } from '../agent/agentsAtom'
 
 export class TargetShapeTool extends StateNode {

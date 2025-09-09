@@ -1,6 +1,7 @@
 import { squashRecordDiffs } from 'tldraw'
 import { AgentTransform } from '../AgentTransform'
-import { convertTldrawShapeToSimpleShape, ISimpleShape } from '../format/SimpleShape'
+import { convertTldrawShapeToSimpleShape } from '../format/convertTldrawShapeToSimpleShape'
+import { ISimpleShape } from '../format/SimpleShape'
 import { AgentRequest } from '../types/AgentRequest'
 import { BasePromptPart } from '../types/BasePromptPart'
 import { PromptPartUtil } from './PromptPartUtil'
