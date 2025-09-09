@@ -1,5 +1,4 @@
 import { squashRecordDiffs } from 'tldraw'
-import { TldrawAgent } from '../../client/agent/TldrawAgent'
 import { AgentTransform } from '../AgentTransform'
 import { convertTldrawShapeToSimpleShape, ISimpleShape } from '../format/SimpleShape'
 import { AgentRequest } from '../types/AgentRequest'
@@ -30,8 +29,8 @@ export class UserActionHistoryPartUtil extends PromptPartUtil<UserActionHistoryP
 		return 40
 	}
 
-	override getPart(_request: AgentRequest, agent: TldrawAgent): UserActionHistoryPart {
-		const { editor } = agent
+	override getPart(_request: AgentRequest, transform: AgentTransform): UserActionHistoryPart {
+		const { editor, agent } = transform
 
 		// Get the action history and clear it so that we can start tracking changes for the next request
 		const diffs = agent.$userActionHistory.get()
@@ -75,22 +74,18 @@ export class UserActionHistoryPartUtil extends PromptPartUtil<UserActionHistoryP
 
 			const changeSimpleShape = getSimpleShapeChange(fromSimpleShape, toSimpleShape)
 			if (!changeSimpleShape) continue
+
+			const before = transform.applyOffsetToShapePartial(changeSimpleShape.from)
+			const after = transform.applyOffsetToShapePartial(changeSimpleShape.to)
+
 			part.updated.push({
 				shapeId: toSimpleShape.shapeId,
 				type: toSimpleShape._type,
-				before: changeSimpleShape.from,
-				after: changeSimpleShape.to,
+				before: transform.roundShapePartial(before),
+				after: transform.roundShapePartial(after),
 			})
 		}
 
-		return part
-	}
-
-	override transformPart(part: UserActionHistoryPart, transform: AgentTransform) {
-		for (const update of part.updated) {
-			update.before = transform.applyOffsetToShapePartial(update.before)
-			update.after = transform.applyOffsetToShapePartial(update.after)
-		}
 		return part
 	}
 

@@ -52,7 +52,6 @@ export class PenActionUtil extends AgentActionUtil<IPenAction> {
 			.filter((v) => v !== null)
 
 		action.points = validPoints
-		action.closed = transform.ensureValueIsBoolean(action.closed) ?? false
 
 		return action
 	}

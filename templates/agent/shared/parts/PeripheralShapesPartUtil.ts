@@ -1,5 +1,4 @@
 import { Box, BoxModel, Editor, TLShape } from 'tldraw'
-import { TldrawAgent } from '../../client/agent/TldrawAgent'
 import { AgentTransform } from '../AgentTransform'
 import { AgentRequest } from '../types/AgentRequest'
 import { BasePromptPart } from '../types/BasePromptPart'
@@ -21,8 +20,8 @@ export class PeripheralShapesPartUtil extends PromptPartUtil<PeripheralShapesPar
 		return 65 // peripheral content after viewport shapes (low priority)
 	}
 
-	override getPart(request: AgentRequest, agent: TldrawAgent): PeripheralShapesPart {
-		const { editor } = agent
+	override getPart(request: AgentRequest, transform: AgentTransform): PeripheralShapesPart {
+		const { editor } = transform
 		const shapes = editor.getCurrentPageShapesSorted()
 		const contextBounds = request.bounds
 
@@ -36,25 +35,22 @@ export class PeripheralShapesPartUtil extends PromptPartUtil<PeripheralShapesPar
 			return true
 		})
 
+		// Convert the shapes to peripheral shape cluster format
 		const clusters = findPeripheralShapeClusters(editor, shapesToPeripheralize, 75)
-		return {
-			type: 'peripheralShapes',
-			clusters,
-		}
-	}
 
-	override transformPart(
-		part: PeripheralShapesPart,
-		transform: AgentTransform
-	): PeripheralShapesPart | null {
-		const clusters = part.clusters.map((cluster) => {
+		// Apply the offset and round the clusters
+		const normalizedClusters = clusters.map((cluster) => {
 			const offsetBounds = transform.applyOffsetToBox(cluster.bounds)
 			return {
 				numberOfShapes: cluster.numberOfShapes,
 				bounds: transform.roundBox(offsetBounds),
 			}
 		})
-		return { ...part, clusters }
+
+		return {
+			type: 'peripheralShapes',
+			clusters: normalizedClusters,
+		}
 	}
 
 	override buildContent({ clusters }: PeripheralShapesPart): string[] {

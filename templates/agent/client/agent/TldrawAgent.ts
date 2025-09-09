@@ -221,10 +221,9 @@ export class TldrawAgent {
 		const transformedParts: PromptPart[] = []
 
 		for (const util of Object.values(promptPartUtils)) {
-			const untransformedPart = await util.getPart(request, this)
-			const transformedPart = util.transformPart(untransformedPart, transform)
-			if (!transformedPart) continue
-			transformedParts.push(transformedPart)
+			const part = await util.getPart(request, transform)
+			if (!part) continue
+			transformedParts.push(part)
 		}
 
 		const agentPrompt = Object.fromEntries(transformedParts.map((part) => [part.type, part]))

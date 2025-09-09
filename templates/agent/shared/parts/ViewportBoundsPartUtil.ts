@@ -1,5 +1,4 @@
 import { Box, BoxModel } from 'tldraw'
-import { TldrawAgent } from '../../client/agent/TldrawAgent'
 import { AgentTransform } from '../AgentTransform'
 import { AgentRequest } from '../types/AgentRequest'
 import { BasePromptPart } from '../types/BasePromptPart'
@@ -17,21 +16,14 @@ export class ViewportBoundsPartUtil extends PromptPartUtil<ViewportBoundsPart> {
 		return 75 // viewport should go after context bounds (low priority)
 	}
 
-	override getPart(request: AgentRequest, agent: TldrawAgent): ViewportBoundsPart {
-		const { editor } = agent
+	override getPart(request: AgentRequest, transform: AgentTransform): ViewportBoundsPart {
+		const { editor } = transform
 		const userBounds = editor.getViewportPageBounds()
+		const offsetUserBounds = transform.applyOffsetToBox(userBounds)
+		const offsetAgentBounds = transform.applyOffsetToBox(request.bounds)
+
 		return {
 			type: 'viewportBounds',
-			userBounds: userBounds.toJson(),
-			agentBounds: request.bounds,
-		}
-	}
-
-	override transformPart(part: ViewportBoundsPart, transform: AgentTransform): ViewportBoundsPart {
-		const offsetUserBounds = transform.applyOffsetToBox(part.userBounds)
-		const offsetAgentBounds = transform.applyOffsetToBox(part.agentBounds)
-		return {
-			...part,
 			userBounds: transform.roundBox(offsetUserBounds),
 			agentBounds: transform.roundBox(offsetAgentBounds),
 		}

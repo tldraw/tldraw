@@ -1,5 +1,4 @@
 import { Box } from 'tldraw'
-import { TldrawAgent } from '../../client/agent/TldrawAgent'
 import { AgentTransform } from '../AgentTransform'
 import { BlurryShape, convertTldrawShapeToBlurryShape } from '../format/BlurryShape'
 import { AgentRequest } from '../types/AgentRequest'
@@ -17,27 +16,27 @@ export class BlurryShapesPartUtil extends PromptPartUtil<BlurryShapesPart> {
 		return 70
 	}
 
-	override getPart(request: AgentRequest, agent: TldrawAgent): BlurryShapesPart {
-		const { editor } = agent
+	override getPart(request: AgentRequest, transform: AgentTransform): BlurryShapesPart {
+		const { editor } = transform
 		const shapes = editor.getCurrentPageShapesSorted()
 		const contextBoundsBox = Box.From(request.bounds)
-		const blurryShapes = shapes
+
+		// Get all shapes within the agent's viewport
+		const shapesInBounds = shapes.filter((shape) => {
+			const bounds = editor.getShapeMaskedPageBounds(shape)
+			if (!bounds) return false
+			return contextBoundsBox.includes(bounds)
+		})
+
+		// Convert the shapes to the blurry shape format
+		const blurryShapes = shapesInBounds
 			.map((shape) => {
-				const bounds = editor.getShapeMaskedPageBounds(shape)
-				if (!bounds) return null
-				if (!contextBoundsBox.includes(bounds)) return null
 				return convertTldrawShapeToBlurryShape(shape, editor)
 			})
 			.filter((s) => s !== null)
 
-		return {
-			type: 'blurryShapes',
-			shapes: blurryShapes,
-		}
-	}
-
-	override transformPart(part: BlurryShapesPart, transform: AgentTransform) {
-		for (const shape of part.shapes) {
+		// Apply the offset and round the blurry shapes
+		const normalizedBlurryShapes = blurryShapes.map((shape) => {
 			const bounds = transform.roundBox(
 				transform.applyOffsetToBox({
 					x: shape.x,
@@ -46,12 +45,13 @@ export class BlurryShapesPartUtil extends PromptPartUtil<BlurryShapesPart> {
 					h: shape.h,
 				})
 			)
-			shape.x = bounds.x
-			shape.y = bounds.y
-			shape.w = bounds.w
-			shape.h = bounds.h
+			return { ...shape, x: bounds.x, y: bounds.y, w: bounds.w, h: bounds.h }
+		})
+
+		return {
+			type: 'blurryShapes',
+			shapes: normalizedBlurryShapes,
 		}
-		return part
 	}
 
 	override buildContent({ shapes }: BlurryShapesPart): string[] {

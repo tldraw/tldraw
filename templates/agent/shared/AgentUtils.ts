@@ -1,5 +1,5 @@
 import { AddDetailActionUtil } from './actions/AddDetailActionUtil'
-import { AgentActionUtil } from './actions/AgentActionUtil'
+import { AgentActionUtil, AgentActionUtilConstructor } from './actions/AgentActionUtil'
 import { AlignActionUtil } from './actions/AlignActionUtil'
 import { BringToFrontActionUtil } from './actions/BringToFrontActionUtil'
 import { ClearActionUtil } from './actions/ClearActionUtil'
@@ -31,7 +31,7 @@ import { ContextItemsPartUtil } from './parts/ContextItemsPartUtil'
 import { MessagePartUtil } from './parts/MessagePartUtil'
 import { ModelNamePartUtil } from './parts/ModelNamePartUtil'
 import { PeripheralShapesPartUtil } from './parts/PeripheralShapesPartUtil'
-import { PromptPartUtil } from './parts/PromptPartUtil'
+import { PromptPartUtil, PromptPartUtilConstructor } from './parts/PromptPartUtil'
 import { ScreenshotPartUtil } from './parts/ScreenshotPartUtil'
 import { SelectedShapesPartUtil } from './parts/SelectedShapesPartUtil'
 import { SystemPromptPartUtil } from './parts/SystemPromptPartUtil'
@@ -40,6 +40,8 @@ import { TodoListPartUtil } from './parts/TodoListPartUtil'
 import { UserActionHistoryPartUtil } from './parts/UserActionHistoryPartUtil'
 import { ViewportBoundsPartUtil } from './parts/ViewportBoundsPartUtil'
 import { AgentAction } from './types/AgentAction'
+import { BaseAgentAction } from './types/BaseAgentAction'
+import { BasePromptPart } from './types/BasePromptPart'
 import { PromptPart } from './types/PromptPart'
 
 /**
@@ -74,7 +76,7 @@ export const PROMPT_PART_UTILS = [
 
 	// Metadata
 	TimePartUtil,
-]
+] satisfies PromptPartUtilConstructor<BasePromptPart>[]
 
 /**
  * Agent actions determine what actions the agent can take.
@@ -121,7 +123,7 @@ export const AGENT_ACTION_UTILS = [
 	// Internal (required)
 	DebugActionUtil,
 	UnknownActionUtil,
-]
+] satisfies AgentActionUtilConstructor<BaseAgentAction>[]
 
 /**
  * Get an object containing all prompt part utils.
@@ -129,7 +131,6 @@ export const AGENT_ACTION_UTILS = [
 export function getPromptPartUtilsRecord() {
 	const object = {} as Record<PromptPart['type'], PromptPartUtil<PromptPart>>
 	for (const util of PROMPT_PART_UTILS) {
-		// If this line errors, it means one of your prompt parts is invalid
 		object[util.type] = new util()
 	}
 	return object
@@ -141,7 +142,6 @@ export function getPromptPartUtilsRecord() {
 export function getAgentActionUtilsRecord() {
 	const object = {} as Record<AgentAction['_type'], AgentActionUtil<AgentAction>>
 	for (const util of AGENT_ACTION_UTILS) {
-		// If this line errors, it means one of your agent actions is invalid
 		object[util.type] = new util()
 	}
 	return object

@@ -295,7 +295,8 @@ export class AgentTransform {
 	}
 
 	/**
-	 * Round the coordinates, width, and height of a shape, and save the diffs so that it can be restored later.
+	 * Round the coordinates, width, and height of a simple shape.
+	 * Save the diffs so that they can be restored later.
 	 * @param shape - The shape to round.
 	 * @returns The rounded shape.
 	 */
@@ -315,6 +316,21 @@ export class AgentTransform {
 			shape = this.roundProperty(shape, 'h')
 		}
 
+		return shape
+	}
+
+	/**
+	 * Round the coordinates, width, and height of a simple shape partial.
+	 * Save the diffs so that they can be restored later.
+	 * @param shape - The shape partial to round.
+	 * @returns The rounded shape partial.
+	 */
+	roundShapePartial(shape: Partial<ISimpleShape>): Partial<ISimpleShape> {
+		for (const prop of ['x1', 'y1', 'x2', 'y2', 'x', 'y', 'w', 'h'] as const) {
+			if (prop in shape) {
+				shape = this.roundProperty(shape, prop as keyof Partial<ISimpleShape>)
+			}
+		}
 		return shape
 	}
 
@@ -348,7 +364,7 @@ export class AgentTransform {
 	 * @param property - The property to round.
 	 * @returns The rounded shape.
 	 */
-	roundProperty<T extends ISimpleShape>(shape: T, property: keyof T): T {
+	roundProperty<T extends Partial<ISimpleShape>>(shape: T, property: keyof T): T {
 		if (typeof shape[property] !== 'number') return shape
 
 		const value = shape[property]
@@ -412,18 +428,6 @@ export class AgentTransform {
 		const y = this.ensureValueIsNumber(value.y)
 		if (x === null || y === null) return null
 		return { x, y }
-	}
-
-	/**
-	 * Ensure that a value is a boolean.
-	 * Used for checking incoming data from the model.
-	 * @returns The boolean, or null if the value is not a boolean.
-	 */
-	ensureValueIsBoolean(value: any): boolean | null {
-		if (typeof value === 'boolean') {
-			return value
-		}
-		return null
 	}
 
 	/**

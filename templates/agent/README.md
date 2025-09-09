@@ -307,9 +307,11 @@ Values returned from an action's `applyAction()` method will be added to the `ac
 
 ## Sanitize data received from the model
 
-The model can make mistakes. Sometimes this is caused by hallucinations, and sometimes this is caused by the canvas changing since the last time the model saw it. Either way, an incoming action might contain invalid data by the time we receive it.
+The model can make mistakes. Sometimes this is due to hallucinations, and sometimes this is due to the canvas changing since the last time the model saw it. Either way, an incoming action might contain invalid data by the time we receive it.
 
-To correct incoming mistakes, apply fixes in the `transformAction` method of an action util. For example, ensure that a shape ID received from the model refers to an existing shape by using the `ensureShapeIdExists` method.
+To correct incoming mistakes, apply fixes in the `transformAction` method of an action util. They'll get carried out _before_ the action is saved to chat history.
+
+For example, ensure that a shape ID received from the model refers to an existing shape by using the `ensureShapeIdExists` method.
 
 ```ts
 override transformAction(action: Streaming<IDeleteAction>, transform: AgentTransform) {
@@ -329,9 +331,40 @@ The `AgentTransform` object contains more helpers for sanitizing data received f
 
 - `ensureShapeIdExists` - Ensure that a shape ID refers to a real shape. Useful for interacting with existing shapes.
 - `ensureShapeIdIsUnique` - Ensure that a shape ID is unique. Useful for creating new shapes.
-- `ensureValueIsVec`, `ensureValueIsNumber`, `ensureValueIsBoolean` - Ensure that a value is a certain type. Useful for more complex actions where the model is more likely to make mistakes.
+- `ensureValueIsVec`, `ensureValueIsNumber` - Ensure that a value is a certain type. Useful for more complex actions where the model is more likely to make mistakes.
 
-## Transforms
+## Send positions to and from the model
+
+By default, every position sent to the model is offset by the starting position of the current chat.
+
+To apply this offset to a position, use the `applyOffsetToVec` method.
+
+```ts
+override getPart(part: ViewportCenterPart, transform: AgentTransform) {
+	return {
+		part: "viewport-center",
+		center: transform.applyOffsetToVec(part.center)
+	}
+}
+```
+
+To remove the offset from a position received from the model, use the `removeOffsetFromVec` method within the `applyAction` method.
+
+This means that any positions received from the model need to have this offset removed. This can be done using the `removeOffsetFromVec` method.
+
+```ts
+override applyAction(action: Streaming<IMoveAction>, transform: AgentTransform) {
+	if (!action.complete) return
+
+	const { x, y } = transform.removeOffsetFromVec({ x: action.x, y: action.y })
+	action.x = x
+	action.y = y
+}
+```
+
+To send a position to the model with the correct coordinates, use the `applyOffsetToVec` method.
+
+<!-- ## Transforms
 
 The transform object helps you to handle the request. It contains the agent and editor objects as well as various helpers for performing and managing the state of transforms.
 
@@ -353,9 +386,9 @@ export class AgentTransform {
 
 	//...
 }
-```
+``` -->
 
-### Transform the prompt sent to the model
+## Simplify the prompt sent to the model
 
 To keep the information we send to the model simple and easy for it to understand, we apply a number of transforms to the Prompt Parts.
 

@@ -1,4 +1,3 @@
-import { TldrawAgent } from '../../client/agent/TldrawAgent'
 import { AgentTransform } from '../AgentTransform'
 import { AgentMessage, AgentMessageContent } from '../types/AgentMessage'
 import { AgentRequest } from '../types/AgentRequest'
@@ -17,15 +16,12 @@ export class ChatHistoryPartUtil extends PromptPartUtil<ChatHistoryPart> {
 		return Infinity // history should appear first in the prompt (low priority)
 	}
 
-	override getPart(_request: AgentRequest, agent: TldrawAgent): ChatHistoryPart {
-		return {
-			type: 'chatHistory',
-			items: agent.$chatHistory.get(),
-		}
-	}
+	override getPart(_request: AgentRequest, transform: AgentTransform): ChatHistoryPart {
+		const { agent } = transform
 
-	override transformPart(part: ChatHistoryPart, transform: AgentTransform) {
-		for (const historyItem of part.items) {
+		const items = agent.$chatHistory.get()
+
+		for (const historyItem of items) {
 			if (historyItem.type !== 'prompt') continue
 
 			// Offset and round the context items of each history item
@@ -36,7 +32,11 @@ export class ChatHistoryPartUtil extends PromptPartUtil<ChatHistoryPart> {
 
 			historyItem.contextItems = contextItems
 		}
-		return part
+
+		return {
+			type: 'chatHistory',
+			items,
+		}
 	}
 
 	override buildMessages({ items }: ChatHistoryPart): AgentMessage[] {
