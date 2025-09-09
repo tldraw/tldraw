@@ -73,7 +73,7 @@ agent.prompt({
 })
 ```
 
-There are more methods on the `TldrawAgent` class that can help when building an agentic application:
+There are more methods on the `TldrawAgent` class that can help when building an agentic app:
 
 - `agent.cancel()` - Cancel the agent's current task.
 - `agent.reset()` - Reset the agent's chat and memory.
@@ -86,15 +86,15 @@ We define the agent's behavior in the `AgentUtils.ts` file. In that file, there 
 - `PROMPT_PART_UTILS` determine what the agent can **see**.
 - `AGENT_ACTION_UTILS` determine what the agent can **do**.
 
-Add, edit or remove an entry in either list to change what the agent can **see** or **do**.
+Add, edit or remove an entry in either list to change what the agent can see or do.
 
 ## Changing what the agent can see
 
 **Change what the agent can see by adding, editing or removing a `PromptPartUtil` within `AgentUtils.ts`.**
 
-Prompt part utils construct the prompt that we give to the model, with each util adding a different piece of information. This includes the user's message, the model name, the system prompt, chat history and more.
+Prompt part utils assemble and build the prompt that we give to the model, with each util adding a different piece of information. This includes the user's message, the model name, the system prompt, chat history and more.
 
-As an example, here's how to tell the model what the current time is.
+The following example shows how to let the model see what the current time is.
 
 Define a prompt part:
 
@@ -123,7 +123,7 @@ export class TimePartUtil extends PromptPartUtil<TimePart> {
 }
 ```
 
-To enable the prompt part, add the util to the `PROMPT_PART_UTILS` list in `AgentUtils.ts`. It will use its methods to assemble its data and send it to the model.
+To enable the prompt part util, add it to the `PROMPT_PART_UTILS` list in `AgentUtils.ts`. It will use its methods to assemble its data and send it to the model.
 
 - `getPart` - Gather any data needed to construct the prompt.
 - `buildContent` - Turn the data into messages to send to the model.
