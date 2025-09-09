@@ -1,6 +1,7 @@
 import { MigrationSequence, Store } from '@tldraw/store'
 import { TLShape, TLStore, TLStoreSnapshot } from '@tldraw/tlschema'
 import { annotateError, Required } from '@tldraw/utils'
+import classNames from 'classnames'
 import React, {
 	memo,
 	ReactNode,
@@ -12,8 +13,6 @@ import React, {
 	useState,
 	useSyncExternalStore,
 } from 'react'
-
-import classNames from 'classnames'
 import { version } from '../version'
 import { DefaultErrorFallback } from './components/default-components/DefaultErrorFallback'
 import { OptionalErrorBoundary } from './components/ErrorBoundary'
