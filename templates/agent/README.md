@@ -409,7 +409,7 @@ override getPart(request: AgentRequest, transform: AgentTransform): RandomShapeP
 
 To change the default system prompt, edit it within the `SystemPromptPartUtil` file.
 
-You can conditionally add extra content to the system prompt by overriding the `buildSystemPrompt` method on any `PromptPartUtil`.
+You can conditionally add extra content to the system prompt by overriding the `buildSystemPrompt` method on any `PromptPartUtil` or any `AgentActionUtil`.
 
 ```ts
 override buildSystemPrompt() {
