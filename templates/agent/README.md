@@ -297,11 +297,9 @@ The `SetMyViewActioUtil` allows the agent to move its viewport around the canvas
 
 The `ReviewActionUtil` also uses `schedule()`, this time scheduling a request with a different `type`. Adding a different `type` to a request allows us to change the behavior of different parts of the system. For example. the `MessagePartUtil`, which usually contains the user's message, will send a different message to the model if the type is `review`, `todo`, or `schedule`. -->
 
-## How to get the agent to use an external API
+## Retrieve data from an external API
 
-You can give your agent the ability to call and retrieve information from external APIs by creating an `AgentActionUtil` for the specific API you want to call. See the `RandomWikiArticleActionUtil` for an example.
-
-Like any `AgentActionUtil` that passes data from one turn to the next (like `SetMyViewActionUtil` or `ReviewActionUtil`), we must schedule a request to force the agent to take another turn. However, it's not possible to `await` async functions directly from within the context `applyAction()` is called. We handle that by returning the promise so that the next request will have access to it.
+To let the agent retrieve information from an external API, fetch and return it within the `applyAction` method. The agent will have access to it within its next scheduled request, if there is one.
 
 ```ts
 override async applyAction(
@@ -311,21 +309,15 @@ override async applyAction(
 	if (!action.complete) return
 	const { agent } = transform
 
-	// Schedule a follow-up request and return the wikipedia article
-	agent.schedule()
+	// Schedule a follow-up request so the agent can use the data
+	agent.schedule("Here's a random Wikipedia article.")
+
+	// Fetch from the external API
 	return await fetchRandomWikipediaArticle()
 }
 ```
 
-<!-- If an Action returns anything, async or otherwise, we store that returned value, along with any others, in the next `AgentRequest`'s `actionResults`. By returning `await myAsyncFunction()` from an Action, we ensure that when the next turn starts, that promise will be waiting for us in our new `AgentRequest`. -->
-
-### Reading the data from the API
-
-In order to get this data into our prompt, there is a dedicated `PromptPartUtil` that will collate all promises returned from Actions taken in the previous turn. This part, called `ActionResultsPartUtil`, awaits all of the promises returned from the previous turn's actions, and will add their data to the prompt of the agent's new turn.
-
-This works out of the boss with any Action set up like the above example.
-
-<!-- > You should always use this strategy when dealing with Actions that have async calls, even if your API just returns a status (such as sending an email, or updating an external database). This is because you cannot await async calls from within `applyAction()` directly (and so you cannot handle errors), and passing that status back to the agent will let it know if the request completed successfully or not, which they can then tell you. -->
+Actions returned from actions will be added to the `actionResults` property of the next request. By default, the `ActionResultsPartUtil` adds them all to the prompt.
 
 ## Transforming data on its round trip from the model
 
