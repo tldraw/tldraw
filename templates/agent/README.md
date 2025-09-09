@@ -253,7 +253,7 @@ override applyAction(action: Streaming<IAddDetailAction>, transform: AgentReques
 }
 ```
 
-<!-- You can also pass a callback to the `agent.schedule(input)` method to create a request based on the currently scheduled request. If there is no currently scheduled request, the callback will be called with the default request.
+You can pass a callback to the `agent.schedule(input)` method to create a request based on the currently scheduled request. If there is nothing scheduled, the callback will be called with the default request.
 
 ```ts
 override applyAction(action: Streaming<IMoveRightAction>, transform: AgentRequestTransform) {
@@ -270,7 +270,7 @@ override applyAction(action: Streaming<IMoveRightAction>, transform: AgentReques
 		},
 	}))
 }
-``` -->
+```
 
 <!-- You can also see `shared/actions/SetMyViewActionUtil.ts` and `shared/actions/ReviewActionUtil.ts` for other examples that use `agent.schedule()`.
 
