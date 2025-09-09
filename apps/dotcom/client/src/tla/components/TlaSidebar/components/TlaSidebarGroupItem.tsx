@@ -344,7 +344,6 @@ export function TlaSidebarGroupItem({ groupId }: { groupId: string }) {
 							<Collapsible.Trigger asChild>
 								<div
 									className={styles.sidebarGroupItemHeader}
-									onClick={() => setIsExpanded(!isExpanded)}
 									aria-expanded={isExpanded}
 									role="button"
 									tabIndex={0}
@@ -356,8 +355,13 @@ export function TlaSidebarGroupItem({ groupId }: { groupId: string }) {
 									{...listeners}
 									style={{ cursor: 'default' }}
 								>
-									<span className={styles.sidebarGroupItemTitle}>{group.group.name}</span>
-									<TriangleIcon angle={isExpanded ? 180 : 90} />
+									<div
+										className={styles.sidebarGroupItemTitle}
+										onClick={() => setIsExpanded(!isExpanded)}
+									>
+										{group.group.name}
+										<TriangleIcon angle={isExpanded ? 180 : 90} />
+									</div>
 									<div
 										className={styles.sidebarGroupItemButtons}
 										onClick={(e) => e.stopPropagation()}
