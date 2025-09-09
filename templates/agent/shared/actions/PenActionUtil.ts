@@ -46,12 +46,13 @@ export class PenActionUtil extends AgentActionUtil<IPenAction> {
 	override sanitizeAction(action: Streaming<IPenAction>, transform: AgentTransform) {
 		if (!action.points) return action
 
-		// This is a complex action for the model, so validate the points it gives us
+		// This is a complex action for the model, so validate the data it gives us
 		const validPoints = action.points
 			.map((point) => transform.ensureValueIsVec(point))
 			.filter((v) => v !== null)
 
 		action.points = validPoints
+		action.closed = transform.ensureValueIsBoolean(action.closed) ?? false
 
 		return action
 	}

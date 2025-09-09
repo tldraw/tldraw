@@ -431,6 +431,27 @@ export class AgentTransform {
 	}
 
 	/**
+	 * Ensure that a value is a boolean.
+	 * Used for checking incoming data from the model.
+	 * @returns The boolean, or null if the value is not a boolean.
+	 */
+	ensureValueIsBoolean(value: any): boolean | null {
+		if (typeof value === 'boolean') {
+			return value
+		}
+
+		if (typeof value === 'number') {
+			return value > 0
+		}
+
+		if (typeof value === 'string') {
+			return value !== 'false'
+		}
+
+		return null
+	}
+
+	/**
 	 * Round the corners of a box.
 	 */
 	roundBox(boxModel: BoxModel): BoxModel {
