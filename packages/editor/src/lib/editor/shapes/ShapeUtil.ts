@@ -284,7 +284,7 @@ export abstract class ShapeUtil<Shape extends TLUnknownShape = TLUnknownShape> {
 	}
 
 	/**
-	 * Whether this shape can be culled when rendering. By default, shapes are culled for
+	 * Whether this shape can be culled. By default, shapes are culled for
 	 * performance reasons when they are outside of the viewport. Culled shapes are still rendered
 	 * to the DOM, but have their `display` property set to `none`.
 	 *
