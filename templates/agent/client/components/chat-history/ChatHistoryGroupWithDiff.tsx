@@ -16,7 +16,7 @@ export function ChatHistoryGroupWithDiff({
 }) {
 	const { items } = group
 	const { editor } = agent
-	const diff = useMemo(() => squashRecordDiffs(items.map((item) => item.diff)), [items])
+	const diff = useMemo(() => squashRecordDiffs(items.map((item) => item.result.diff)), [items])
 
 	// Accept all changes from this group
 	const handleAccept = useCallback(() => {
@@ -32,7 +32,7 @@ export function ChatHistoryGroupWithDiff({
 
 				// Apply the diff if needed
 				if (item.acceptance === 'rejected') {
-					editor.store.applyDiff(item.diff)
+					editor.store.applyDiff(item.result.diff)
 				}
 			}
 			return newItems
@@ -53,7 +53,7 @@ export function ChatHistoryGroupWithDiff({
 
 				// Reverse the diff if needed
 				if (item.acceptance !== 'rejected') {
-					const reverseDiff = reverseRecordsDiff(item.diff)
+					const reverseDiff = reverseRecordsDiff(item.result.diff)
 					editor.store.applyDiff(reverseDiff)
 				}
 			}
