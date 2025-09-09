@@ -39,7 +39,6 @@ function ChatInner({
 			api: '/api/chat',
 			prepareSendMessagesRequest: async (options) => {
 				const { messagesToSend, messagesToSave } = await uploadMessageContents(options.messages)
-				console.log({ messagesToSend, messagesToSave })
 				chat.setMessages(messagesToSave)
 				return {
 					body: {
