@@ -54,8 +54,12 @@ export async function uploadMessageContents(messages: UIMessage[]) {
 						const data: UploadedMetadata = await response.json()
 
 						partToSend.url = data.uploadedUrl
+						if (partToSend.providerMetadata) {
+							delete partToSend.providerMetadata.tldraw_uploaded
+							delete partToSend.providerMetadata.tldraw
+						}
 						partToSave.providerMetadata ??= {}
-						partToSave.providerMetadata[UPLOAD_METADATA_KEY] = data as any
+						partToSave.providerMetadata.tldraw_uploaded = data as any
 					})()
 
 					promises.push(promise)
