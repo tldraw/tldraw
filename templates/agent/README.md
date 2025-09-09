@@ -308,7 +308,7 @@ Values returned from an action's `applyAction()` method will be added to the `ac
 
 The model can make mistakes. Sometimes this is due to hallucinations, and sometimes this is due to the canvas changing since the last time the model saw it. Either way, an incoming action might contain invalid data by the time we receive it.
 
-To correct incoming mistakes, apply fixes in the `sanitizeAction` method of an action util. They'll get carried out _before_ the action is saved to chat history.
+To correct incoming mistakes, apply fixes in the `sanitizeAction` method of an action util. They'll get carried out before the action is applied to the editor or saved to chat history.
 
 For example, ensure that a shape ID received from the model refers to an existing shape by using the `ensureShapeIdExists` method.
 
@@ -336,79 +336,40 @@ The `AgentTransform` object contains more helpers for sanitizing data received f
 
 By default, every position sent to the model is offset by the starting position of the current chat.
 
-To apply this offset to a position, use the `applyOffsetToVec` method.
+To apply this offset to a position sent to the model, use the `applyOffsetToVec` method.
 
 ```ts
-override getPart(part: ViewportCenterPart, transform: AgentTransform) {
+override getPart(request: AgentRequest, transform: AgentTransform): ViewportCenterPart {
+	const { editor } = transform
+
+	// Get the center of the user's viewport
+	const viewportCenter = editor.getViewportBounds().center
+
+	// Apply the chat's offset to the vector
+	const offsetViewportCenter = transform.applyOffsetToVec(viewportCenter)
+
+	// Return the prompt part
 	return {
-		part: "viewport-center",
-		center: transform.applyOffsetToVec(part.center)
+		center: offsetViewportCenter,
+		part: "user-viewport-center",
 	}
 }
 ```
 
-To remove the offset from a position received from the model, use the `removeOffsetFromVec` method within the `applyAction` method.
-
-This means that any positions received from the model need to have this offset removed. This can be done using the `removeOffsetFromVec` method.
+To remove the offset from a position received from the model, use the `removeOffsetFromVec` method.
 
 ```ts
 override applyAction(action: Streaming<IMoveAction>, transform: AgentTransform) {
 	if (!action.complete) return
 
-	const { x, y } = transform.removeOffsetFromVec({ x: action.x, y: action.y })
-	action.x = x
-	action.y = y
+	// Remove the offset from the position
+	const position = transform.removeOffsetFromVec({ x: action.x, y: action.y })
+
+	// Do something with the position...
 }
 ```
 
-To send a position to the model with the correct coordinates, use the `applyOffsetToVec` method.
-
-<!-- ## Transforms
-
-The transform object helps you to handle the request. It contains the agent and editor objects as well as various helpers for performing and managing the state of transforms.
-
-Conceptually, there are two types of transforms, those that are scoped to a single request, and those that are scoped to the duration of a chat. The transform is recreated with every request, so any transforms that are scoped to the duration of a chat, such as `offset`, must be stored on the `agent` instance and accessed in the transform's constructor.
-
-```ts
-export class AgentTransform {
-	//...
-
-	constructor(agent: TldrawAgent) {
-		this.agent = agent
-		this.editor = agent.editor
-		const origin = agent.$chatOrigin.get()
-		this.offset = {
-			x: -origin.x,
-			y: -origin.y,
-		}
-	}
-
-	//...
-}
-``` -->
-
-<!-- TODO: Restore this section -->
-<!-- ## Simplify the prompt sent to the model
-
-To keep the information we send to the model simple and easy for it to understand, we apply a number of transforms to the Prompt Parts.
-
-#### Example: Transforming the `SelectedShapesPartUtil`
-
-To improve the agent's accuracy, we offset the coordinates of the shapes we send to it by the coordinates of the viewport when a new chat is started, as well as round their coordinates, width, and height to the nearest integer.
-
-Here is how that looks in the `SelectedShapesPartUtil`.
-
-```ts
-override getPart(part: SelectedShapesPart, transform: AgentTransform) {
-	const transformedShapes = part.shapes.map((shape) => {
-		const offsetShape = transform.applyOffsetToShape(shape)
-		return transform.roundShape(offsetShape)
-	})
-	return { ...part, shapes: transformedShapes }
-}
-``` -->
-
-## Transform the actions received from the model
+<!-- ## Transform the actions received from the model
 
 We correct for the transformations done to the prompt parts by applying the reverse of those transforms to the actions output by the model.
 
@@ -453,7 +414,7 @@ override applyAction(action: Streaming<IUpdateAction>, transform: AgentTransform
 	// ...
 
 }
-```
+``` -->
 
 <!-- #### When to carry out transforms in `sanitizeAction` vs `applyAction`
 
