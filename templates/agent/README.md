@@ -369,7 +369,7 @@ override applyAction(action: Streaming<IMoveAction>, transform: AgentTransform) 
 }
 ```
 
-## Interact with shapes
+## Send shapes to the model
 
 By default, the agent converts tldraw shapes to various simplified formats to improve the model's understanding and performance.
 
@@ -379,9 +379,7 @@ There are three main formats used in this starter:
 - `SimpleShape` - The format for shapes that the agent is focusing on, such as when it is reviewing a part of its work. The format contains most of a shape's properties, including color, fill, alignment, and any other shape-specific information. The "simple" name refers to how this format is still _simpler_ than the raw tldraw shape format.
 - `PeripheralShapeCluster` - The format for shapes outside the agent's viewport. Nearby shapes are grouped together into clusters, each with the group's bounds and a count of how many shapes are inside it. This is the least detailed format. Its role is to give the model an awareness of shapes that elsewhere on the page.
 
-## Send shapes to the model
-
-To send the model some shapes in one of the three [shape formats](#interact-with-shapes), use one of the conversion functions found within the `format` folder, such as `convertTldrawShapeToSimpleShape`.
+To send the model some shapes in one of these formats, use one of the conversion functions found within the `format` folder, such as `convertTldrawShapeToSimpleShape`.
 
 This example picks one random shape on the canvas and sends it to the model in the Simple format.
 
@@ -406,94 +404,6 @@ override getPart(request: AgentRequest, transform: AgentTransform): RandomShapeP
 	}
 }
 ```
-
-<!-- ## Transform the actions received from the model
-
-We correct for the transformations done to the prompt parts by applying the reverse of those transforms to the actions output by the model.
-
-We also correct for potential mistakes that the model may have made in its outputs, such as hallucinating incorrect `shapeIds`.
-
-#### Example: Transforming the model's `UpdateActionUtil`
-
-To correct for these transformations when a model is updating shapes, we 'unround' the shape's properties with `unroundShape()`.
-
-We also ensure that the `shapeId` output by the model is unique and, if it was changed during the transform, mapped back to its original value. We do this with `ensureShapeIdExists()`.
-
-```ts
-override sanitizeAction(action: Streaming<IUpdateAction>, transform: AgentTransform) {
-	if (!action.complete) return action
-
-	const { update } = action
-
-	// Ensure the shape ID refers to a real shape
-	const shapeId = transform.ensureShapeIdExists(update.shapeId)
-	if (!shapeId) return null
-	update.shapeId = shapeId
-
-	// ...
-
-	// Unround the shape to restore the original values
-	action.update = transform.unroundShape(action.update)
-
-	return action
-}
-```
-
-To correct for the offset, we call `removeOffsetFromShape()`.
-
-```ts
-override applyAction(action: Streaming<IUpdateAction>, transform: AgentTransform) {
-	if (!action.complete) return
-	const { editor } = transform
-
-	// Translate the shape back to the chat's position
-	action.update = transform.removeOffsetFromShape(action.update)
-
-	// ...
-
-}
-``` -->
-
-<!-- #### When to carry out transforms in `sanitizeAction` vs `applyAction`
-
-- **`sanitizeAction`**: To do a transform that is scoped to a single request, call it from within `sanitizeAction`. Since the transform is recreated with each request, we can't know how to undo these transforms in follow-up requests, so we must do it here. This also ensures chat history stores values with the transforms properly undone.
-
-- **`applyAction`**: To do a chat-scoped transform that persists across requests, call it fom within `applyAction`. The action logged in the chat history will _not_ include any transforms done within `applyAction`. -->
-
-<!-- This means the agent now thinks the shapes and viewports it knows exists are in different positions than they are. In order to correct for this in the actions that the agent outputs, we call our `removeOffsetToBox()`, `removeOffsetToVec()`, and `removeOffsetToShape()` methods.
-
-**This is the main idea behind transforms: Corrections are made to give the model easier-to-understand data, which then must be reversed.**
-
-
--- parts are transofrmed for adjustments for clarity and for keeping track of different changes we make
--- actions are transformed for corrections
-
-TODO -->
-
-<!-- we apply a number of 'transforms' the different Prompt Parts we send. To undo these transforms, as well as correct for any mistakes the model may have made, we also have to apply transforms to the Actions that the agent outputs. -->
-
-<!-- ### `transformPart()`
-
-The last piece of a `PromptPartUtil` is the `transformPart()` method. Transforms, all of which are stored in the instance of `AgentTransform` that gets passed in, change the information in `PromptPart`s and `AgentAction`s to be easier for models to understand.
-
-For example, `applyOffsetToShape` adjusts the position of a shape to make it relative to the current chat origin. The `removeOffsetFromShape` method reverses it. This is helpful because it helps to keep numbers low, which is easier for the model to deal with.
-
-Many transformation methods save some state. For example, the `ensureShapeIdIsUnique` method changes a shape's ID if it's not unique, and it saves a record of this change so that further actions can continue to refer to the shape by its untransformed ID.
-
-> note that this is **not** the actual list of messages that is sent directly to the model. the `AgentPrompt` is sent to the worker, which then goes back through the prompt parts and calls their respective `getContent()` and `getMessages()` methods, which it then uses along with `getPriority()` to THEN turn into the raw messages
-> _Not necessary? ^_
-
-while being conceptually similar to the concept of converting shapes into Simple or Blurry formats, this is different becasuse **--why?--**
-
-### `sanitizeAction()`
-
-Like `PromptPart`s, Agent Actions can also be transformed, and often must.
-
-Because we apply Transforms to some `PromptPart`s, the agent has information that may not line up with the information that's on the canvas. Because of that, it might output actions that, if carried out as-is, would not align with the user's intention. Because of that, we often need to apply the reverse of that transform to the action that the agent outputs.
-
-For example, when we send information about shapes to the model, we call `applyOffsetToShape`, which offsets a shape's coordinates relative to where the user's viewport was when a new chat was started. This means that the model thinks that a shape that at, for example, (10100, 20100), will be at (100,100). When the agent tries to move that shape, we need to call `removeOffsetFromShape` on the action in order to recorrect for this error.
-
--->
 
 ## Change the system prompt
 
@@ -550,7 +460,7 @@ To add support for a different model, add the model's definition to `AGENT_MODEL
 
 If you need to add any extra setup or configuration for your provider, you can add it to the `AgentService.ts` file.
 
-## How to support custom shapes
+## Support custom shapes
 
 The agent can already see and move, delete, and arrange any custom shapes out of the box.
 
