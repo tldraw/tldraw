@@ -445,9 +445,36 @@ override buildSystemPrompt() {
 
 Alternatively, you can bypass the `PromptPartUtil` system by changing the `buildSystemPrompt.ts` file to a function that returns a hardcoded value.
 
-## Support different models
+## Change to a different model
 
-To allow your agent to use a different model, add the model's definition to `AGENT_MODEL_DEFINITIONS` in the `models.ts` file.
+You can set an agent's model by setting its `$modelName` property.
+
+```ts
+agent.$modelName.set('gemini-2.5-flash')
+```
+
+To override an agent's model, specify a different model name with a request.
+
+```ts
+agent.prompt({
+	modelName: 'gemini-2.5-flash',
+	message: 'Draw a diagram of a volcano.',
+})
+```
+
+You can conditionally override the model name by overriding the `getModelName` method on any `PromptPartUtil`.
+
+```ts
+override getModelName(part: MyCustomPromptPart) {
+	return part.fastMode ? 'gemini-2.5-flash' : 'claude-4-sonnet'
+}
+```
+
+Alternatively, you can bypass the `PromptPartUtil` system by changing the `getModelName.ts` file to a function that returns a hardcoded value.
+
+## Support a different model
+
+To add support for a different model, add the model's definition to `AGENT_MODEL_DEFINITIONS` in the `models.ts` file.
 
 ```ts
 'claude-4-sonnet': {

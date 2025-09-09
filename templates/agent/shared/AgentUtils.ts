@@ -72,7 +72,7 @@ export const PROMPT_PART_UTILS = [
 	UserActionHistoryPartUtil,
 	TodoListPartUtil,
 
-	// Example prompt part: Get the current time
+	// Metadata
 	TimePartUtil,
 ]
 
@@ -114,7 +114,7 @@ export const AGENT_ACTION_UTILS = [
 	// Drawing
 	PenActionUtil,
 
-	// Gathering data from external APIs
+	// External APIs
 	RandomWikipediaArticleActionUtil,
 	CountShapesActionUtil,
 
