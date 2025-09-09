@@ -9,11 +9,12 @@ import { LanguageModel, streamText } from 'ai'
 import { AgentAction } from '../../shared/types/AgentAction'
 import { AgentPrompt } from '../../shared/types/AgentPrompt'
 import { Streaming } from '../../shared/types/Streaming'
+import { Environment } from '../environment'
 import { AgentModelName, getAgentModelDefinition } from '../models'
 import { buildMessages } from '../prompt/buildMessages'
 import { buildSystemPrompt } from '../prompt/buildSystemPrompt'
 import { getModelName } from '../prompt/getModelName'
-import { Environment } from '../types'
+import { closeAndParseJson } from './closeAndParseJson'
 
 export class AgentService {
 	openai: OpenAIProvider
@@ -46,7 +47,7 @@ export class AgentService {
 	}
 }
 
-async function* streamActions(
+export async function* streamActions(
 	model: LanguageModel,
 	prompt: AgentPrompt
 ): AsyncGenerator<Streaming<AgentAction>> {
@@ -165,63 +166,5 @@ async function* streamActions(
 	} catch (error: any) {
 		console.error('streamEventsVercel error:', error)
 		throw error
-	}
-}
-
-/**
- * JSON helper. Given a potentially incomplete JSON string, return the parsed object.
- * The string might be missing closing braces, brackets, or other characters like quotation marks.
- * @param string - The string to parse.
- * @returns The parsed object.
- */
-function closeAndParseJson(string: string) {
-	const stackOfOpenings = []
-	for (const char of string) {
-		const lastOpening = stackOfOpenings.at(-1)
-		if (char === '"') {
-			if (lastOpening === '"') {
-				stackOfOpenings.pop()
-			} else {
-				stackOfOpenings.push('"')
-			}
-		}
-
-		if (lastOpening === '"') {
-			continue
-		}
-
-		if (char === '{' || char === '[') {
-			stackOfOpenings.push(char)
-		}
-
-		if (char === '}' && lastOpening === '{') {
-			stackOfOpenings.pop()
-		}
-
-		if (char === ']' && lastOpening === '[') {
-			stackOfOpenings.pop()
-		}
-	}
-
-	// Now close all unclosed openings
-	for (let i = stackOfOpenings.length - 1; i >= 0; i--) {
-		const opening = stackOfOpenings[i]
-		if (opening === '{') {
-			string += '}'
-		}
-
-		if (opening === '[') {
-			string += ']'
-		}
-
-		if (opening === '"') {
-			string += '"'
-		}
-	}
-
-	try {
-		return JSON.parse(string)
-	} catch (_e) {
-		return null
 	}
 }

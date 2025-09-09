@@ -1,5 +1,5 @@
 import { IRequest } from 'itty-router'
-import { Environment } from '../types'
+import { Environment } from '../environment'
 
 export async function stream(request: IRequest, env: Environment) {
 	// eventually... use some kind of per-user id, so that each user has their own worker

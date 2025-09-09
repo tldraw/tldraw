@@ -243,7 +243,7 @@ override applyAction(action: Streaming<IAddDetailAction>, transform: AgentReques
 }
 ```
 
-You can pass a callback to the `agent.schedule(input)` method to create a request based on the currently scheduled request. If there is nothing scheduled, the callback will be called with the default request.
+You can pass a callback to the `schedule` method to create a request based on the currently scheduled request. If there is nothing scheduled, the callback will be called with the default request.
 
 ```ts
 override applyAction(action: Streaming<IMoveRightAction>, transform: AgentRequestTransform) {
@@ -369,9 +369,19 @@ override buildSystemPrompt() {
 
 Alternatively, you can bypass the `PromptPartUtil` system by changing the `buildSystemPrompt.ts` file to a function that returns a hardcoded value.
 
-## How to add support for a different model
+## Support different models
 
-In order to allow your agent to use a different model, add the model's defition to `AGENT_MODEL_DEFINITIONS` in `worker/models.ts`.
+To allow your agent to use a different model, add the model's definition to `AGENT_MODEL_DEFINITIONS` in the `models.ts` file.
+
+```ts
+'claude-4-sonnet': {
+	name: 'claude-4-sonnet',
+	id: 'claude-sonnet-4-0',
+	provider: 'anthropic',
+}
+```
+
+If you need to add any extra setup or configuration for your provider, you can add it to the `AgentService.ts` file.
 
 ## How to support custom shapes
 

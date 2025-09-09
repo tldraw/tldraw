@@ -3,7 +3,7 @@ import { AutoRouter, error } from 'itty-router'
 import { AgentAction } from '../../shared/types/AgentAction'
 import { AgentPrompt } from '../../shared/types/AgentPrompt'
 import { Streaming } from '../../shared/types/Streaming'
-import { Environment } from '../types'
+import { Environment } from '../environment'
 import { AgentService } from './AgentService'
 
 export class AgentDurableObject extends DurableObject<Environment> {
