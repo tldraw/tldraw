@@ -48,7 +48,7 @@ To make decisions on what to do, we send the agent information from various sour
 - Information on clusters of shapes outside the agent's viewport.
 - The history of the current session, including the user's messages and all the agent's actions.
 
-## Using the agent programmatically
+## Use the agent programmatically
 
 Aside from using the chat panel UI, you can also prompt the agent programmatically.
 
@@ -79,7 +79,7 @@ There are more methods on the `TldrawAgent` class that can help when building an
 - `agent.reset()` - Reset the agent's chat and memory.
 - `agent.request(input)` - Send a single request to the agent and handle its response _without_ entering into an agentic loop.
 
-## Customizing the agent
+## Customize the agent
 
 We define the agent's behavior in the `AgentUtils.ts` file. In that file, there are two lists of utility classes:
 
@@ -88,7 +88,7 @@ We define the agent's behavior in the `AgentUtils.ts` file. In that file, there 
 
 Add, edit or remove an entry in either list to change what the agent can see or do.
 
-## Changing what the agent can see
+## Change what the agent can see
 
 **Change what the agent can see by adding, editing or removing a `PromptPartUtil` within `AgentUtils.ts`.**
 
@@ -136,7 +136,7 @@ There are other methods available on the `PromptPartUtil` class that you can ove
 - `buildMessages` - Manually override how prompt messages are constructed from the prompt part.
 - `transformPart` - Apply transformations to the prompt part before we add it to the final prompt. More details on [transformations](#transformations) below.
 
-## Changing what the agent can do
+## Change what the agent can do
 
 **Change what the agent can do by adding, editing or removing an `AgentActionUtil` within `AgentUtils.ts`.**
 
@@ -206,7 +206,7 @@ There are other methods available on the `AgentActionUtil` class that you can ov
 - `savesToHistory` - Control whether actions get saved to chat history or not.
 - `transformAction` - Apply transformations to the action before saving it to history and applying it. More details on [transformations](#transformations) below.
 
-## How to change how actions appear in chat history
+## Change how actions appear in chat history
 
 Configure the icon and description of an action in the chat panel UI using the `getInfo()` method.
 
@@ -238,7 +238,7 @@ To customize an action's appearance via CSS, you can define style for the `agent
 }
 ```
 
-## How to get the agent to schedule further work
+## Schedule further work
 
 The agent has the ability carry out complex tasks over the course of multiple turns and to evaluate its progress towards that task and adjust its approach given new information. It does this by scheduling further work for itself via calling Actions that call its `schedule()` method. The agent will continue to work if there is a scheduled request or if it has outstanding todos.
 
@@ -255,34 +255,30 @@ override applyAction(action: Streaming<IAddDetailAction>, transform: AgentReques
 }
 ```
 
-You can also see `shared/actions/SetMyViewActionUtil.ts` and `shared/actions/ReviewActionUtil.ts` for other examples that use `agent.schedule()`.
+<!-- You can also see `shared/actions/SetMyViewActionUtil.ts` and `shared/actions/ReviewActionUtil.ts` for other examples that use `agent.schedule()`.
 
-The `RandomWikipediaArticleActionUtil` also uses `schedule()`, but to handle fetching async data, which is slightly more complex. More on that in the [next section](#how-to-get-the-agent-to-use-an-external-api).
+The `RandomWikipediaArticleActionUtil` also uses `schedule()`, but to handle fetching async data, which is slightly more complex. More on that in the [next section](#how-to-get-the-agent-to-use-an-external-api). -->
 
-### Todos
-
-You can also use `$todoList` to force an agent to take another turn. If you create a new action that programatically creates a new `TodoItem` as a side effect, this will force the agent to take another turn, as it always takes another turn if there are unresolved todos.
+You can also schedule further work by adding to the agent's todo list. It won't stop working until all todos are resolved.
 
 ```ts
 override applyAction(action: Streaming<ITodoListAction>, transform: AgentRequestTransform) {
 	if (!action.complete) return
+
 	const { agent } = transform
-
-	const todoItem = {
-		id: agent.$todoList.get().length
-		status: 'todo' as const,
-		text: 'add more detail to the drawing',
-	}
-
 	agent.$todoList.update((todoItems) => {
-		return [...todoItems, todoItem]
+		return [...todoItems, {
+			id: agent.$todoList.get().length
+			status: 'todo' as const,
+			text: 'Add more detail to the drawing',
+		}]
 	})
 }
 ```
 
-### Extending `AgentRequest`
+<!-- ### Extending `AgentRequest`
 
-It's very possible that, when making your new action, you want to pass along data to the next request that doesn't have a clear place in the current `AgentRequest` interface. If that's the case, you can extend `AgentRequest` to either add a new field or a new `type` of request. Then, your new action can call `agent.schedule()` and pass along whatever data you like to it.
+It's very possible that, when making your new action, you want to pass along data to the next request that doesn't have a clear place in the current `AgentRequest` interface. If that's the case, you can extend `AgentRequest` to either add a new field or a new `type` of request. Then, your new action can call `agent.schedule()` and pass along whatever data you like to it. -->
 
 <!-- In order to create an `AgentAction` that schedules a request for the agent to do, you can call `agent.schedule()` from within your action's `applyAction()` method. This repo comes with two actions that use the `schedule()` method (and one that uses `scheduleRequestPromise()`,  out of the box, `SetMyViewActionUtil` and `ReviewActionUtil`.
 
