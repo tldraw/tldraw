@@ -55,7 +55,7 @@ export function requestAgent({
 							const actionUtil = agent.getAgentActionUtil(action._type)
 
 							// Transform the agent's action
-							const transformedAction = actionUtil.transformAction(action, transform)
+							const transformedAction = actionUtil.sanitizeAction(action, transform)
 							if (!transformedAction) {
 								if (action.complete) {
 									console.log('REJECTED ACTION: ', action)

@@ -33,7 +33,7 @@ export class PlaceActionUtil extends AgentActionUtil<IPlaceAction> {
 		}
 	}
 
-	override transformAction(action: Streaming<IPlaceAction>, transform: AgentTransform) {
+	override sanitizeAction(action: Streaming<IPlaceAction>, transform: AgentTransform) {
 		if (!action.complete) return action
 
 		const shapeId = transform.ensureShapeIdExists(action.shapeId)

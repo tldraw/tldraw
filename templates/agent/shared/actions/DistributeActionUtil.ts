@@ -32,7 +32,7 @@ export class DistributeActionUtil extends AgentActionUtil<IDistributeAction> {
 		}
 	}
 
-	override transformAction(action: Streaming<IDistributeAction>, transform: AgentTransform) {
+	override sanitizeAction(action: Streaming<IDistributeAction>, transform: AgentTransform) {
 		action.shapeIds = transform.ensureShapeIdsExist(action.shapeIds ?? [])
 		return action
 	}

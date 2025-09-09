@@ -54,7 +54,7 @@ export class CreateActionUtil extends AgentActionUtil<ICreateAction> {
 		}
 	}
 
-	override transformAction(action: Streaming<ICreateAction>, transform: AgentTransform) {
+	override sanitizeAction(action: Streaming<ICreateAction>, transform: AgentTransform) {
 		if (!action.complete) return action
 
 		const { shape } = action

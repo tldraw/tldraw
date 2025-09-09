@@ -134,7 +134,6 @@ There are other methods available on the `PromptPartUtil` class that you can ove
 - `getModelName` - Determine which AI model to use.
 - `buildSystemPrompt` - Append a string to the system prompt.
 - `buildMessages` - Manually override how prompt messages are constructed from the prompt part.
-- `transformPart` - Apply transformations to the prompt part before we add it to the final prompt. More details on [transformations](#transformations) below.
 
 ## Change what the agent can do
 
@@ -194,7 +193,7 @@ There are other methods available on the `AgentActionUtil` class that you can ov
 
 - `getInfo` - Determine how the action gets displayed in the chat panel UI.
 - `savesToHistory` - Control whether actions get saved to chat history or not.
-- `transformAction` - Apply transformations to the action before saving it to history and applying it. More details on [transformations](#transformations) below.
+- `sanitizeAction` - Apply transformations to the action before saving it to history and applying it. More details on [transformations](#transformations) below.
 
 ## Change how actions appear in chat history
 
@@ -309,12 +308,12 @@ Values returned from an action's `applyAction()` method will be added to the `ac
 
 The model can make mistakes. Sometimes this is due to hallucinations, and sometimes this is due to the canvas changing since the last time the model saw it. Either way, an incoming action might contain invalid data by the time we receive it.
 
-To correct incoming mistakes, apply fixes in the `transformAction` method of an action util. They'll get carried out _before_ the action is saved to chat history.
+To correct incoming mistakes, apply fixes in the `sanitizeAction` method of an action util. They'll get carried out _before_ the action is saved to chat history.
 
 For example, ensure that a shape ID received from the model refers to an existing shape by using the `ensureShapeIdExists` method.
 
 ```ts
-override transformAction(action: Streaming<IDeleteAction>, transform: AgentTransform) {
+override sanitizeAction(action: Streaming<IDeleteAction>, transform: AgentTransform) {
 	if (!action.complete) return action
 
 	// Ensure the shape ID refers to an existing shape
@@ -388,7 +387,8 @@ export class AgentTransform {
 }
 ``` -->
 
-## Simplify the prompt sent to the model
+<!-- TODO: Restore this section -->
+<!-- ## Simplify the prompt sent to the model
 
 To keep the information we send to the model simple and easy for it to understand, we apply a number of transforms to the Prompt Parts.
 
@@ -399,16 +399,16 @@ To improve the agent's accuracy, we offset the coordinates of the shapes we send
 Here is how that looks in the `SelectedShapesPartUtil`.
 
 ```ts
-override transformPart(part: SelectedShapesPart, transform: AgentTransform) {
+override getPart(part: SelectedShapesPart, transform: AgentTransform) {
 	const transformedShapes = part.shapes.map((shape) => {
 		const offsetShape = transform.applyOffsetToShape(shape)
 		return transform.roundShape(offsetShape)
 	})
 	return { ...part, shapes: transformedShapes }
 }
-```
+``` -->
 
-### Transform the actions received from the model
+## Transform the actions received from the model
 
 We correct for the transformations done to the prompt parts by applying the reverse of those transforms to the actions output by the model.
 
@@ -421,7 +421,7 @@ To correct for these transformations when a model is updating shapes, we 'unroun
 We also ensure that the `shapeId` output by the model is unique and, if it was changed during the transform, mapped back to its original value. We do this with `ensureShapeIdExists()`.
 
 ```ts
-override transformAction(action: Streaming<IUpdateAction>, transform: AgentTransform) {
+override sanitizeAction(action: Streaming<IUpdateAction>, transform: AgentTransform) {
 	if (!action.complete) return action
 
 	const { update } = action
@@ -455,9 +455,9 @@ override applyAction(action: Streaming<IUpdateAction>, transform: AgentTransform
 }
 ```
 
-<!-- #### When to carry out transforms in `transformAction` vs `applyAction`
+<!-- #### When to carry out transforms in `sanitizeAction` vs `applyAction`
 
-- **`transformAction`**: To do a transform that is scoped to a single request, call it from within `transformAction`. Since the transform is recreated with each request, we can't know how to undo these transforms in follow-up requests, so we must do it here. This also ensures chat history stores values with the transforms properly undone.
+- **`sanitizeAction`**: To do a transform that is scoped to a single request, call it from within `sanitizeAction`. Since the transform is recreated with each request, we can't know how to undo these transforms in follow-up requests, so we must do it here. This also ensures chat history stores values with the transforms properly undone.
 
 - **`applyAction`**: To do a chat-scoped transform that persists across requests, call it fom within `applyAction`. The action logged in the chat history will _not_ include any transforms done within `applyAction`. -->
 
@@ -486,7 +486,7 @@ Many transformation methods save some state. For example, the `ensureShapeIdIsUn
 
 while being conceptually similar to the concept of converting shapes into Simple or Blurry formats, this is different becasuse **--why?--**
 
-### `transformAction()`
+### `sanitizeAction()`
 
 Like `PromptPart`s, Agent Actions can also be transformed, and often must.
 

@@ -32,7 +32,7 @@ export class BringToFrontActionUtil extends AgentActionUtil<IBringToFrontAction>
 		}
 	}
 
-	override transformAction(action: Streaming<IBringToFrontAction>, transform: AgentTransform) {
+	override sanitizeAction(action: Streaming<IBringToFrontAction>, transform: AgentTransform) {
 		action.shapeIds = transform.ensureShapeIdsExist(action.shapeIds ?? [])
 		return action
 	}

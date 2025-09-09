@@ -30,7 +30,7 @@ export class AlignActionUtil extends AgentActionUtil<IAlignAction> {
 		}
 	}
 
-	override transformAction(action: Streaming<IAlignAction>, transform: AgentTransform) {
+	override sanitizeAction(action: Streaming<IAlignAction>, transform: AgentTransform) {
 		action.shapeIds = transform.ensureShapeIdsExist(action.shapeIds ?? [])
 		return action
 	}

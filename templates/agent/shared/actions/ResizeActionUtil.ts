@@ -36,7 +36,7 @@ export class ResizeActionUtil extends AgentActionUtil<IResizeAction> {
 		}
 	}
 
-	override transformAction(action: Streaming<IResizeAction>, transform: AgentTransform) {
+	override sanitizeAction(action: Streaming<IResizeAction>, transform: AgentTransform) {
 		const shapeIds = transform.ensureShapeIdsExist(action.shapeIds ?? [])
 		if (shapeIds.length === 0) return null
 

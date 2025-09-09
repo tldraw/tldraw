@@ -35,7 +35,7 @@ export class RotateActionUtil extends AgentActionUtil<IRotateAction> {
 		}
 	}
 
-	override transformAction(action: Streaming<IRotateAction>, transform: AgentTransform) {
+	override sanitizeAction(action: Streaming<IRotateAction>, transform: AgentTransform) {
 		action.shapeIds = transform.ensureShapeIdsExist(action.shapeIds ?? [])
 		return action
 	}

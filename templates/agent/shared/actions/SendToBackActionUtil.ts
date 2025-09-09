@@ -32,7 +32,7 @@ export class SendToBackActionUtil extends AgentActionUtil<ISendToBackAction> {
 		}
 	}
 
-	override transformAction(action: Streaming<ISendToBackAction>, transform: AgentTransform) {
+	override sanitizeAction(action: Streaming<ISendToBackAction>, transform: AgentTransform) {
 		action.shapeIds = transform.ensureShapeIdsExist(action.shapeIds ?? [])
 		return action
 	}

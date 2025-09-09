@@ -29,7 +29,7 @@ export class LabelActionUtil extends AgentActionUtil<ILabelEvent> {
 		}
 	}
 
-	override transformAction(action: Streaming<ILabelEvent>, transform: AgentTransform) {
+	override sanitizeAction(action: Streaming<ILabelEvent>, transform: AgentTransform) {
 		if (!action.complete) return action
 
 		const shapeId = transform.ensureShapeIdExists(action.shapeId)

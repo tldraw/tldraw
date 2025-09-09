@@ -34,7 +34,7 @@ export class StackActionUtil extends AgentActionUtil<IAgentStackEvent> {
 		}
 	}
 
-	override transformAction(action: Streaming<IAgentStackEvent>, transform: AgentTransform) {
+	override sanitizeAction(action: Streaming<IAgentStackEvent>, transform: AgentTransform) {
 		if (!action.complete) return action
 
 		action.shapeIds = transform.ensureShapeIdsExist(action.shapeIds)

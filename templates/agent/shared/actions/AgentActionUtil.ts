@@ -30,7 +30,7 @@ export abstract class AgentActionUtil<T extends BaseAgentAction = BaseAgentActio
 	 * Useful for sanitizing or correcting actions.
 	 * @returns The transformed action, or null to reject the action
 	 */
-	transformAction(action: Streaming<T>, _transform: AgentTransform): Streaming<T> | null {
+	sanitizeAction(action: Streaming<T>, _transform: AgentTransform): Streaming<T> | null {
 		return action
 	}
 

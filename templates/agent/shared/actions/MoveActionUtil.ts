@@ -30,7 +30,7 @@ export class MoveActionUtil extends AgentActionUtil<IMoveAction> {
 		}
 	}
 
-	override transformAction(action: Streaming<IMoveAction>, transform: AgentTransform) {
+	override sanitizeAction(action: Streaming<IMoveAction>, transform: AgentTransform) {
 		if (!action.complete) return action
 
 		// Make sure the shape ID refers to a real shape

@@ -65,7 +65,7 @@ export class UpdateActionUtil extends AgentActionUtil<IUpdateAction> {
 		}
 	}
 
-	override transformAction(action: Streaming<IUpdateAction>, transform: AgentTransform) {
+	override sanitizeAction(action: Streaming<IUpdateAction>, transform: AgentTransform) {
 		if (!action.complete) return action
 
 		const { update } = action

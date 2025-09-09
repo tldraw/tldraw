@@ -43,7 +43,7 @@ export class PenActionUtil extends AgentActionUtil<IPenAction> {
 		}
 	}
 
-	override transformAction(action: Streaming<IPenAction>, transform: AgentTransform) {
+	override sanitizeAction(action: Streaming<IPenAction>, transform: AgentTransform) {
 		if (!action.points) return action
 
 		// This is a complex action for the model, so validate the points it gives us
