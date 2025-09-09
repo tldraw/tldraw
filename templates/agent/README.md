@@ -140,9 +140,9 @@ There are other methods available on the `PromptPartUtil` class that you can ove
 
 **Change what the agent can do by adding, editing or removing an `AgentActionUtil` within `AgentUtils.ts`.**
 
-Agent action utils define the actions the agent can perform. Each `AgentActionUtil` adds a different capability to the agent.
+Agent action utils define the actions the agent can perform. Each `AgentActionUtil` adds a different capability.
 
-The following examples shows how to allow the agent to clear the screen.
+The following example shows how to allow the agent to clear the screen.
 
 Define an agent action by creating a schema for it:
 
@@ -154,7 +154,7 @@ const ClearAction = z
 		_type: z.literal('clear'),
 	})
 	.meta({
-		// A title and description tell the model what this action does
+		// A title and description tell the model what the action does
 		title: 'Clear',
 		description: 'The agent deletes all shapes on the canvas.',
 	})
@@ -184,13 +184,13 @@ export class ClearActionUtil extends AgentActionUtil<IClearAction> {
 
 	// Execute the action
 	override applyAction(action: Streaming<IClearAction>, transform: AgentRequestTransform) {
-		// Don't do anything if the action hasn't finished streaming
+		// Don't do anything until the action has finished streaming
 		if (!action.complete) return
 
 		// Delete all shapes on the page
 		const { editor } = transform
-		const allShapes = editor.getCurrentPageShapes()
-		editor.deleteShapes(allShapes)
+		const shapes = editor.getCurrentPageShapes()
+		editor.deleteShapes(shapes)
 	}
 }
 ```
