@@ -495,25 +495,32 @@ If you need to add any extra setup or configuration for your provider, you can a
 
 ## How to support custom shapes
 
-The agent can see and move, delete, and arrange any custom shapes out of the box. However, it will see the shape's `type` as `'unknown'`, with a `subType` field that will show the internal name of the shape's `type`. It will also only be able to see the shape's `shapeId` and `x` and `y` coordinates. If you want the agent to be able to see and edit other props, you can add your custom shape to the schema we use to help the model understand shapes.
+The agent can already see and move, delete, and arrange any custom shapes out of the box. 
 
-Let's add support for in-canvas embeds, and allow the model to read and update their urls if they like. TLdraw has a builtin `TLEmbedShape` already, so we'll be using that.
+However, it will see the shape's `type` as `'unknown'`, with a `subType` field that will show the internal name of the shape's `type`. It will also only be able to see the shape's `shapeId` and `x` and `y` coordinates, and no other props. 
 
-1. Define the fields of your new shape in `shared/format/SimpleShape.ts` using a zod object. Every shape is required to have a `_type` and a `shapeId` field, and it's strongly recommended that you give it a `note` field as well, as that is where the model stores information about the shape's purposes when creating or updating it.
-   These fields are what the model will see, so it's worthwhile to give them descriptive names.
+For the agent to be able to create your custom shape, or to see and edit other props of your shape, add your custom shape to the schema we use to help the model understand shapes.
+
+### Example: Allow a model to create and edit a new "sticker" shape
+
+Let's add support for a hypothetical custom sticker shape. The sticker has a prop called `stickerType`, which can be either "✅" or "❌".
+
+1. Define your new shape in `shared/format/SimpleShape.ts` using a zod object. Every shape is required to have a `_type` and a `shapeId` field. To give the model a place to store information about the shape's purposes when creating or updating it, it's strongly recommended that you give it a `note` field as well. To ensure the model understands the purpose of each field, give them descriptive names.
 
 ```ts
-const SimpleEmbedShape = z.object({
-	_type: z.literal('bookmark'),
+const SimpleStickerShape = z.object({
+	_type: z.literal('sticker'),
 	note: z.string(),
 	shapeId: z.string(),
-	url: z.string(),
+	stickerType: z.enum([ "✅", "❌"]),
+	x: z.number(),
+	y: z.number(),
 })
 
-export type ISimpleEmbedShape = z.infer<typeof SimpleEmbedShape>
+export type ISimpleStickerShape = z.infer<typeof SimpleStickerShape>
 ```
 
-2. Now we add our new shape to the `SIMPLE_SHAPES` union.
+2. Add the new shape to the `SIMPLE_SHAPES` union.
 
 ```ts
 const SIMPLE_SHAPES = [
@@ -524,19 +531,19 @@ const SIMPLE_SHAPES = [
 	SimpleArrowShape,
 	SimpleNoteShape,
 	SimpleUnknownShape,
-	SimpleEmbedShape, // our new SimpleEmbedShape
+	SimpleStickerShape, // our new SimpleStickerShape
 ] as const
 ```
 
-3. Now we have to define how to convert our shape from its representation on the canvas (`TLEmbedShape`) to one our model can interact with (`SimpleEmbedShape`). We do this defining a `convertEmbedShapeToSimple` function and by adding a case to `convertTldrawShapeToSimpleShape`.
+3. To define how to convert our shape from its representation on the canvas (`MyCustomStickerShape`) to one our model can interact with (`SimpleStickerShape`) define a `convertStickerShapeToSimple` function and add a case to `convertTldrawShapeToSimpleShape`.
 
 ```ts
-function convertEmbedShapeToSimple(editor: Editor, shape: TLEmbedShape): ISimpleEmbedShape {
+function convertStickerShapeToSimple(editor: Editor, shape: MyCustomStickerShape): ISimpleStickerShape {
 	return {
-		_type: 'bookmark',
-		url: shape.props.url,
+		_type: 'sticker',
 		note: (shape.meta?.note as string) ?? '',
 		shapeId: convertTldrawIdToSimpleId(shape.id),
+		stickerType: shape.props.stickerType,
 		x: shape.x,
 		y: shape.y,
 	}
@@ -544,36 +551,36 @@ function convertEmbedShapeToSimple(editor: Editor, shape: TLEmbedShape): ISimple
 ```
 
 ```ts
-export function convertTldrawShapeToSimpleShape(shape: TLShape, editor: Editor): ISimpleShape {
+export function convertTldrawShapeToSimpleShape(shape: TLShape | MyCustomStickerShape, editor: Editor): ISimpleShape {
 	switch (shape.type) {
 		// ...
-		case 'bookmark':
-			return convertEmbedShapeToSimple(editor, shape as TLEmbedShape)
+		case 'sticker':
+			return convertStickerShapeToSimple(editor, shape as MyCustomStickerShape)
 		// ...
 	}
 }
 ```
 
-4. Now the agent can see and fully understand embeds on the canvas. However, it still can't create or edit them. To allow them to do this, we need to head to `CreateActionUtil.ts` and `UpdateActionUtil.ts` respectively and add support for those. This is where we convert from the `SimpleShape` format the model outputs to the 'real' format required by the canvas.
+4. Now the agent can see and fully understand stickers on the canvas. However, it still can't create or edit them. To allow them to do this, head to `CreateActionUtil.ts` and `UpdateActionUtil.ts` respectively and add support for those. This is where `SimpleShape` format shapes, which is what the model outputs, are converted to the 'real' format required by the canvas.
 
-Here's how we handle the new shape from within `CreateActionUtil.ts`'s `getTldrawAiChangesFromCreateAction()` function. It's handled very similarly in `UpdateActionUtil.ts`
+Here's how the new shape is handled in `CreateActionUtil.ts`'s `getTldrawAiChangesFromCreateAction()` function. It's handled very similarly in `UpdateActionUtil.ts`
 
 ```ts
-case 'bookmark': { // the type the model returns
-	const embedShape = shape as ISimpleEmbedShape
+case 'sticker': {
+	const stickerShape = shape as MyCustomStickerShape
 	changes.push({
 		type: 'createShape',
 		description: action.intent ?? '',
 		shape: {
 			id: shapeId,
-			type: 'bookmark', // the official tldraw shape type
-			x: embedShape.x,
-			y: embedShape.y,
+			type: 'sticker',
+			x: stickerShape.x,
+			y: stickerShape.y,
 			props: {
-				url: embedShape.url,
+				stickerType: stickerShape.stickerType,
 			},
 			meta: {
-				note: embedShape.note ?? '',
+				note: stickerShape.note ?? '',
 			},
 		},
 	})
@@ -581,7 +588,7 @@ case 'bookmark': { // the type the model returns
 }
 ```
 
-5. And we're done! The model can now see, create, and update the url of `TLEmbedShape`s on the canvas.
+The model can now see, create, and update the sticker type of your hypothetical `MyCustomStickerShape` shape.
 
 <!-- > _Why does `_type` start with an underscore? And why are the properties of all of the simple shapes in alphabetical order?_ Good question! Unfortunately as users of LLMs we exist at the behest of their strange quirks we've found this helps for some models: in this case the quirk was [property ordering.](https://ai.google.dev/gemini-api/docs/structured-output#property-ordering) If you have no intention of using Gemini, you can remove the underscores from `_type` and change the orders of the properties to be more reasonable at your own peril. -->
 
