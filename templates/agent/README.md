@@ -396,6 +396,13 @@ override applyAction(action: Streaming<IUpdateAction>, transform: AgentRequestTr
 }
 ```
 
+#### When to carry out transforms in `transformAction` vs `applyAction`
+
+- **`transformAction`**: To do a transform that is scoped to a single request, call it from within `transformAction`. Since the transform is recreated with each request, we can't know how to unround shapes in follow-up requests, so we must do it here. This also ensures chat history stores unrounded values.
+
+- **`applyAction`**: To do a chat-scoped transform that persists across requests, call it fom within `applyAction`. The action logged in the chat history will _not_ include any transforms done within `applyAction`.
+
+
 <!-- This means the agent now thinks the shapes and viewports it knows exists are in different positions than they are. In order to correct for this in the actions that the agent outputs, we call our `removeOffsetToBox()`, `removeOffsetToVec()`, and `removeOffsetToShape()` methods.
 
 **This is the main idea behind transforms: Corrections are made to give the model easier-to-understand data, which then must be reversed.**
