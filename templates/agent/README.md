@@ -369,6 +369,16 @@ override applyAction(action: Streaming<IMoveAction>, transform: AgentTransform) 
 }
 ```
 
+## Send shapes to and from the model
+
+By default, the agent converts tldraw shapes to various simplified formats to improve the model's understanding and performance.
+
+There are three main formats used in this starter:
+
+- `BlurryShape` - The format for shapes within the agent's viewport. It contains a shape's bounds, its id, its type, and any text it contains. The "blurry" name refers to the fact that the agent can't make out the details of shapes from this format. Instead, it gives the model an overview of what it's looking at.
+- `SimpleShape` - The format for shapes that the agent is focusing on, such as when it is reviewing a part of its work. The format contains most of a shape's properties, including color, fill, alignment, and any other shape-specific information. The "simple" name refers to how this format is still _simpler_ than the raw tldraw shape format.
+- `PeripheralShapeCluster` - The format for shapes outside the agent's viewport. Nearby shapes are grouped together into clusters, each with the group's bounds and a count of how many shapes are inside it. This is the least detailed format. Its role is to give the model an awareness of shapes that elsewhere on the page.
+
 <!-- ## Transform the actions received from the model
 
 We correct for the transformations done to the prompt parts by applying the reverse of those transforms to the actions output by the model.
