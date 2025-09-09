@@ -36,6 +36,7 @@ import { useTranslation } from '../hooks/useTranslation/useTranslation'
 import { TLUiIconType } from '../icon-types'
 import { TLUiOverrideHelpers, useDefaultHelpers } from '../overrides'
 import { useA11y } from './a11y'
+import { useTldrawUiComponents } from './components'
 import { TLUiEventSource, useUiEvents } from './events'
 
 /** @public */
@@ -98,6 +99,7 @@ export function ActionsProvider({ overrides, children }: ActionsProviderProps) {
 	const _editor = useMaybeEditor()
 	const showCollaborationUi = useShowCollaborationUi()
 	const helpers = useDefaultHelpers()
+	const components = useTldrawUiComponents()
 	const trackEvent = useUiEvents()
 	const a11y = useA11y()
 	const msg = useTranslation()
@@ -176,7 +178,9 @@ export function ActionsProvider({ overrides, children }: ActionsProviderProps) {
 				kbd: 'cmd+alt+/,ctrl+alt+/',
 				onSelect(source) {
 					trackEvent('open-kbd-shortcuts', { source })
-					helpers.addDialog({ component: DefaultKeyboardShortcutsDialog })
+					helpers.addDialog({
+						component: components.KeyboardShortcutsDialog ?? DefaultKeyboardShortcutsDialog,
+					})
 				},
 			},
 			{
@@ -221,7 +225,7 @@ export function ActionsProvider({ overrides, children }: ActionsProviderProps) {
 					if (ids.length === 0) ids = Array.from(editor.getCurrentPageShapeIds().values())
 					if (ids.length === 0) return
 					trackEvent('export-as', { format: 'svg', source })
-					helpers.exportAs(ids, 'svg', getExportName(editor, defaultDocumentName))
+					helpers.exportAs(ids, { format: 'svg', name: getExportName(editor, defaultDocumentName) })
 				},
 			},
 			{
@@ -237,7 +241,7 @@ export function ActionsProvider({ overrides, children }: ActionsProviderProps) {
 					if (ids.length === 0) ids = Array.from(editor.getCurrentPageShapeIds().values())
 					if (ids.length === 0) return
 					trackEvent('export-as', { format: 'png', source })
-					helpers.exportAs(ids, 'png', getExportName(editor, defaultDocumentName))
+					helpers.exportAs(ids, { format: 'png', name: getExportName(editor, defaultDocumentName) })
 				},
 			},
 			{
@@ -253,11 +257,10 @@ export function ActionsProvider({ overrides, children }: ActionsProviderProps) {
 					if (ids.length === 0) ids = Array.from(editor.getCurrentPageShapeIds().values())
 					if (ids.length === 0) return
 					trackEvent('export-all-as', { format: 'svg', source })
-					helpers.exportAs(
-						Array.from(editor.getCurrentPageShapeIds()),
-						'svg',
-						getExportName(editor, defaultDocumentName)
-					)
+					helpers.exportAs(Array.from(editor.getCurrentPageShapeIds()), {
+						format: 'svg',
+						name: getExportName(editor, defaultDocumentName),
+					})
 				},
 			},
 			{
@@ -272,7 +275,7 @@ export function ActionsProvider({ overrides, children }: ActionsProviderProps) {
 					const ids = Array.from(editor.getCurrentPageShapeIds().values())
 					if (ids.length === 0) return
 					trackEvent('export-all-as', { format: 'png', source })
-					helpers.exportAs(ids, 'png', getExportName(editor, defaultDocumentName))
+					helpers.exportAs(ids, { format: 'png', name: getExportName(editor, defaultDocumentName) })
 				},
 			},
 			{
@@ -1755,7 +1758,17 @@ export function ActionsProvider({ overrides, children }: ActionsProviderProps) {
 		}
 
 		return actions
-	}, [helpers, _editor, trackEvent, overrides, defaultDocumentName, showCollaborationUi, msg, a11y])
+	}, [
+		helpers,
+		_editor,
+		trackEvent,
+		overrides,
+		defaultDocumentName,
+		showCollaborationUi,
+		msg,
+		a11y,
+		components,
+	])
 
 	return <ActionsContext.Provider value={asActions(actions)}>{children}</ActionsContext.Provider>
 }

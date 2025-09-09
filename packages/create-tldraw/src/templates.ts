@@ -31,6 +31,12 @@ export const TEMPLATES: Templates = {
 				'tldraw + the @tldraw/ai module, built with Vite and TypeScript. This app includes a Cloudflare Worker that connects to the OpenAI API.',
 			category: 'app',
 		},
+		{
+			repo: 'tldraw/branching-chat',
+			name: 'Branching chat starter kit',
+			description: 'A branching chat application using tldraw and OpenAI.',
+			category: 'app',
+		},
 	],
 	framework: [
 		{

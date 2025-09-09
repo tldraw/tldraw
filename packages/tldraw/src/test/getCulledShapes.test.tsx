@@ -1,11 +1,50 @@
-import { Box, TLShapeId, createShapeId } from '@tldraw/editor'
+import {
+	BaseBoxShapeUtil,
+	Box,
+	RecordProps,
+	T,
+	TLBaseShape,
+	TLShapeId,
+	createShapeId,
+} from '@tldraw/editor'
+import { vi } from 'vitest'
 import { TestEditor } from './TestEditor'
 import { TL } from './test-jsx'
+
+// Custom uncullable shape type for testing canCull override
+type UncullableShape = TLBaseShape<'uncullable', { w: number; h: number }>
+
+class UncullableShapeUtil extends BaseBoxShapeUtil<UncullableShape> {
+	static override type = 'uncullable' as const
+	static override props: RecordProps<UncullableShape> = {
+		w: T.number,
+		h: T.number,
+	}
+
+	override canCull() {
+		return false
+	}
+
+	override getDefaultProps(): UncullableShape['props'] {
+		return {
+			w: 100,
+			h: 100,
+		}
+	}
+
+	override component() {
+		return <div>Uncullable shape</div>
+	}
+
+	override indicator() {
+		return <div>Uncullable shape</div>
+	}
+}
 
 let editor: TestEditor
 
 beforeEach(() => {
-	editor = new TestEditor()
+	editor = new TestEditor({ shapeUtils: [UncullableShapeUtil] })
 	editor.setScreenBounds({ x: 0, y: 0, w: 1800, h: 900 })
 })
 
@@ -28,13 +67,13 @@ it('lists shapes in viewport', () => {
 
 	// Move the camera 201 pixels to the right and 201 pixels down
 	editor.pan({ x: -201, y: -201 })
-	jest.advanceTimersByTime(500)
+	vi.advanceTimersByTime(500)
 
 	// A is now outside of the viewport, like D
 	expect(editor.getCulledShapes()).toStrictEqual(new Set([ids.A, ids.D]))
 
 	editor.pan({ x: -900, y: -900 })
-	jest.advanceTimersByTime(500)
+	vi.advanceTimersByTime(500)
 	// Now all shapes are outside of the viewport, except for D (which is clipped)
 	expect(editor.getCulledShapes()).toStrictEqual(new Set([ids.A, ids.B, ids.C]))
 
@@ -201,4 +240,35 @@ it('works for shapes that are outside of the viewport, but are then moved inside
 	])
 	// Arrow should also not be culled
 	expect(editor.getCulledShapes()).toEqual(new Set())
+})
+
+it('respects canCull override - shapes that cannot be culled are never culled', () => {
+	const cullableShapeId = createShapeId()
+	const uncullableShapeId = createShapeId()
+
+	// Create both shapes outside the viewport
+	editor.createShapes([
+		{
+			id: cullableShapeId,
+			type: 'geo',
+			x: -2000, // Way outside viewport
+			y: -2000,
+			props: { w: 100, h: 100 },
+		},
+		{
+			id: uncullableShapeId,
+			type: 'uncullable',
+			x: -2000, // Way outside viewport
+			y: -2000,
+			props: { w: 100, h: 100 },
+		},
+	])
+
+	const culledShapes = editor.getCulledShapes()
+
+	// The regular geo shape should be culled since it's outside the viewport
+	expect(culledShapes).toContain(cullableShapeId)
+
+	// The uncullable shape should NOT be culled even though it's outside the viewport
+	expect(culledShapes).not.toContain(uncullableShapeId)
 })

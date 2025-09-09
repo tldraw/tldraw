@@ -33,12 +33,6 @@
       "value": "Tự động"
     }
   ],
-  "0776e18496": [
-    {
-      "type": 0,
-      "value": "Lưu và chia sẻ"
-    }
-  ],
   "07dbd11b21": [
     {
       "type": 0,
@@ -117,12 +111,6 @@
       "value": "Phòng này sắp đạt đến giới hạn kích thước. Hãy cân nhắc xóa bớt nội dung hoặc tạo một tệp mới."
     }
   ],
-  "22d84a12fd": [
-    {
-      "type": 0,
-      "value": "Figjam nhưng tldraw"
-    }
-  ],
   "250ddea65c": [
     {
       "type": 0,
@@ -133,12 +121,6 @@
     {
       "type": 0,
       "value": "Tải lên thất bại"
-    }
-  ],
-  "2c61d18599": [
-    {
-      "type": 0,
-      "value": "Miro nhưng tốt và miễn phí"
     }
   ],
   "2deec2cb74": [
@@ -171,12 +153,6 @@
       "value": "Biên tập viên"
     }
   ],
-  "37b3dca331": [
-    {
-      "type": 0,
-      "value": "Vui lòng đăng nhập"
-    }
-  ],
   "3bd1b98dbd": [
     {
       "type": 0,
@@ -195,22 +171,10 @@
       "value": "Chấp nhận tất cả"
     }
   ],
-  "3fc6d0c83a": [
-    {
-      "type": 0,
-      "value": "Thêm bạn bè"
-    }
-  ],
   "42e53c47c1": [
     {
       "type": 0,
       "value": "Liên hệ với chủ sở hữu để yêu cầu quyền truy cập."
-    }
-  ],
-  "44281ab6e5": [
-    {
-      "type": 0,
-      "value": "Đăng nhập"
     }
   ],
   "44db318ee5": [
@@ -247,12 +211,6 @@
     {
       "type": 0,
       "value": "Tải lại"
-    }
-  ],
-  "4ea0bb66f7": [
-    {
-      "type": 0,
-      "value": "Một tài khoản sẽ tốt hơn"
     }
   ],
   "50db1b7e1e": [
@@ -337,12 +295,6 @@
       "value": "Đã phát hiện trình duyệt cũ. Vui lòng cập nhật trình duyệt của bạn để sử dụng ứng dụng này."
     }
   ],
-  "5bef23eb7e": [
-    {
-      "type": 0,
-      "value": "Tạo tài khoản của bạn"
-    }
-  ],
   "5d26ae7550": [
     {
       "type": 0,
@@ -383,12 +335,6 @@
     {
       "type": 0,
       "value": "Phiên bản mới của tldraw đã có sẵn. Vui lòng tải lại trang để tiếp tục."
-    }
-  ],
-  "697c59072d": [
-    {
-      "type": 0,
-      "value": "Đăng nhập để lưu"
     }
   ],
   "6a26f54883": [
@@ -493,12 +439,6 @@
       "value": "Khôi phục phiên bản"
     }
   ],
-  "7c7d5d493e": [
-    {
-      "type": 0,
-      "value": "Vui lòng đăng ký"
-    }
-  ],
   "7cb5f8b4a5": [
     {
       "type": 0,
@@ -557,12 +497,6 @@
       "value": "."
     }
   ],
-  "84c89d47c7": [
-    {
-      "type": 0,
-      "value": "Chia sẻ miễn phí"
-    }
-  ],
   "85a082de1b": [
     {
       "type": 0,
@@ -593,12 +527,6 @@
     {
       "type": 0,
       "value": "Để tiếp tục chỉnh sửa, vui lòng sao chép phòng vào tệp của bạn."
-    }
-  ],
-  "8ea211024d": [
-    {
-      "type": 0,
-      "value": "Tạo một tài khoản miễn phí"
     }
   ],
   "8eb2c00e96": [
@@ -757,12 +685,6 @@
       "value": "Người dùng khách"
     }
   ],
-  "b52dc007ac": [
-    {
-      "type": 0,
-      "value": "Đăng ký (miễn phí và tốt)"
-    }
-  ],
   "b6d4223e60": [
     {
       "type": 0,
@@ -837,28 +759,10 @@
       "value": "Tải lên các tệp .tldr."
     }
   ],
-  "bffe9a3c9a": [
-    {
-      "type": 0,
-      "value": "Đăng nhập"
-    }
-  ],
-  "c079282475": [
-    {
-      "type": 0,
-      "value": "Chia sẻ công việc của bạn"
-    }
-  ],
   "c2276c9127": [
     {
       "type": 0,
       "value": "Tìm hiểu thêm về chia sẻ."
-    }
-  ],
-  "c24e43cd1a": [
-    {
-      "type": 0,
-      "value": "Bạn sẽ đăng ký chứ?"
     }
   ],
   "c303bd1095": [
@@ -891,12 +795,6 @@
       "value": "Đăng xuất"
     }
   ],
-  "c8c6a6504a": [
-    {
-      "type": 0,
-      "value": "Bạn nên đăng ký"
-    }
-  ],
   "cceaefbc20": [
     {
       "type": 0,
@@ -913,12 +811,6 @@
     {
       "type": 0,
       "value": "Tìm hiểu thêm về xuất bản."
-    }
-  ],
-  "d0eedb7995": [
-    {
-      "type": 0,
-      "value": "Chào"
     }
   ],
   "d3d2e61733": [
@@ -945,28 +837,10 @@
       "value": "Thử lại"
     }
   ],
-  "d8a50c79a7": [
-    {
-      "type": 0,
-      "value": "Hãy cùng tôi vẽ nhé"
-    }
-  ],
   "d9100f3e10": [
     {
       "type": 0,
       "value": "Vào đây để xem nội dung"
-    }
-  ],
-  "da404df474": [
-    {
-      "type": 0,
-      "value": "Lưu công việc của bạn"
-    }
-  ],
-  "db4c2dab9a": [
-    {
-      "type": 0,
-      "value": "Không phải Excalidraw"
     }
   ],
   "dbbebf3c03": [
@@ -1101,12 +975,6 @@
     {
       "type": 0,
       "value": "Bạn có chắc muốn xóa tệp này?"
-    }
-  ],
-  "fd27891570": [
-    {
-      "type": 0,
-      "value": "Tham gia danh sách chờ"
     }
   ],
   "fed5ec05eb": [

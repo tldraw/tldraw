@@ -1,8 +1,10 @@
 import { InstancePresenceRecordType, PageRecordType } from '@tldraw/tlschema'
 import { createTLSchema, createTLStore, ZERO_INDEX_KEY } from 'tldraw'
+import { vi } from 'vitest'
 import { WebSocketMinimal } from '../lib/ServerSocketAdapter'
 import { TLSocketRoom } from '../lib/TLSocketRoom'
 import { RecordOpType } from '../lib/diff'
+import { getTlsyncProtocolVersion } from '../lib/protocol'
 
 function getStore() {
 	const schema = createTLSchema()
@@ -132,19 +134,19 @@ describe(TLSocketRoom, () => {
 
 		// Create mock sockets
 		const mockSocket1: WebSocketMinimal = {
-			send: jest.fn(),
-			close: jest.fn(),
+			send: vi.fn(),
+			close: vi.fn(),
 			readyState: 1, // WebSocket.OPEN
-			addEventListener: jest.fn(),
-			removeEventListener: jest.fn(),
+			addEventListener: vi.fn(),
+			removeEventListener: vi.fn(),
 		}
 
 		const mockSocket2: WebSocketMinimal = {
-			send: jest.fn(),
-			close: jest.fn(),
+			send: vi.fn(),
+			close: vi.fn(),
 			readyState: 1, // WebSocket.OPEN
-			addEventListener: jest.fn(),
-			removeEventListener: jest.fn(),
+			addEventListener: vi.fn(),
+			removeEventListener: vi.fn(),
 		}
 
 		// Add sessions to the room
@@ -264,5 +266,145 @@ describe(TLSocketRoom, () => {
 
 		await addPage(room)
 		expect(called).toEqual(2)
+	})
+
+	it('sends custom messages', async () => {
+		const json = JSON.stringify
+		const store = getStore()
+		const room = new TLSocketRoom({ initialSnapshot: store.getStoreSnapshot() })
+
+		const sessionId = 'test-session-1'
+		const send = vi.fn()
+
+		// Add session to the room
+		const mockSocket: WebSocketMinimal = { send, close: vi.fn(), readyState: WebSocket.OPEN }
+		room.handleSocketConnect({ sessionId, socket: mockSocket })
+
+		// Send connect message to establish the session
+		const connect = {
+			type: 'connect' as const,
+			connectRequestId: 'connect-1',
+			lastServerClock: 0,
+			protocolVersion: getTlsyncProtocolVersion(),
+			schema: store.schema.serialize(),
+		}
+		room.handleSocketMessage(sessionId, json(connect))
+
+		room.sendCustomMessage(sessionId, 'hello world')
+		expect(send.mock.lastCall).toEqual([json({ type: 'custom', data: 'hello world' })])
+	})
+
+	describe('Room state resetting behavior', () => {
+		it('sets documentClock to oldRoom.clock + 1 when resetting room state', () => {
+			const store = getStore()
+			store.ensureStoreIsUsable()
+			const room = new TLSocketRoom({
+				initialSnapshot: store.getStoreSnapshot(),
+			})
+
+			// Load a snapshot to increment the clock
+			const snapshot = store.getStoreSnapshot()
+			room.loadSnapshot(snapshot)
+
+			const oldClock = room.getCurrentSnapshot().clock
+			expect(oldClock).toBe(1)
+
+			// Reset with a new snapshot
+			const newSnapshot = store.getStoreSnapshot()
+			room.loadSnapshot(newSnapshot)
+
+			const newSnapshotResult = room.getCurrentSnapshot()
+			expect(newSnapshotResult.documentClock).toBe(oldClock + 1)
+			expect(newSnapshotResult.clock).toBe(oldClock + 1)
+		})
+
+		it('updates all documents lastChangedClock when resetting', () => {
+			const store = getStore()
+			store.ensureStoreIsUsable()
+			const room = new TLSocketRoom({
+				initialSnapshot: store.getStoreSnapshot(),
+			})
+
+			// Get initial clock
+			const initialClock = room.getCurrentSnapshot().clock
+
+			// Reset with a new snapshot
+			const newSnapshot = store.getStoreSnapshot()
+			room.loadSnapshot(newSnapshot)
+
+			const result = room.getCurrentSnapshot()
+			expect(result.clock).toBe(initialClock + 1)
+
+			// All documents should have updated lastChangedClock
+			for (const doc of result.documents) {
+				expect(doc.lastChangedClock).toBe(initialClock + 1)
+			}
+		})
+
+		it('preserves existing tombstones with original clock values', async () => {
+			// Create a room with initial state
+			const store = getStore()
+			store.ensureStoreIsUsable()
+			const testPageId = PageRecordType.createId('test_page')
+			store.put([
+				PageRecordType.create({ id: testPageId, name: 'Test Page', index: ZERO_INDEX_KEY }),
+			])
+			const room = new TLSocketRoom({
+				initialSnapshot: store.getStoreSnapshot(),
+			})
+
+			await room.updateStore((store) => {
+				store.delete(testPageId)
+			})
+
+			const deletionClock = room.getCurrentDocumentClock()
+			expect(room.getCurrentSnapshot().tombstones).toEqual({
+				[testPageId]: deletionClock,
+			})
+
+			room.loadSnapshot(room.getCurrentSnapshot())
+
+			expect(room.getCurrentSnapshot().tombstones).toEqual({
+				[testPageId]: deletionClock,
+			})
+
+			expect(room.getCurrentSnapshot().documentClock).toBe(deletionClock + 1)
+		})
+
+		it('handles empty snapshot reset correctly', () => {
+			const store = getStore()
+			// Don't call ensureStoreIsUsable to get an empty snapshot
+			const room = new TLSocketRoom({
+				initialSnapshot: store.getStoreSnapshot(),
+			})
+
+			const oldClock = room.getCurrentSnapshot().clock
+
+			// Reset with empty snapshot
+			const emptySnapshot = store.getStoreSnapshot()
+			room.loadSnapshot(emptySnapshot)
+
+			const result = room.getCurrentSnapshot()
+			expect(result.documentClock).toBe(oldClock + 1)
+			expect(result.clock).toBe(oldClock + 1)
+			expect(result.documents).toHaveLength(0)
+		})
+
+		it('preserves schema when resetting room state', () => {
+			const store = getStore()
+			store.ensureStoreIsUsable()
+			const room = new TLSocketRoom({
+				initialSnapshot: store.getStoreSnapshot(),
+			})
+
+			const originalSchema = room.getCurrentSnapshot().schema
+
+			// Reset with a new snapshot
+			const newSnapshot = store.getStoreSnapshot()
+			room.loadSnapshot(newSnapshot)
+
+			const result = room.getCurrentSnapshot()
+			expect(result.schema).toEqual(originalSchema)
+		})
 	})
 })

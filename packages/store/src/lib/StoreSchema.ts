@@ -349,6 +349,7 @@ export class StoreSchema<R extends UnknownRecord, P = unknown> {
 
 	/**
 	 * @deprecated This is only here for legacy reasons, don't use it unless you have david's blessing!
+	 * @internal
 	 */
 	serializeEarliestVersion(): SerializedSchema {
 		return {

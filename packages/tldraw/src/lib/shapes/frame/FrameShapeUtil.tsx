@@ -100,6 +100,10 @@ export class FrameShapeUtil extends BaseBoxShapeUtil<TLFrameShape> {
 		return false
 	}
 
+	override isExportBoundsContainer(): boolean {
+		return true
+	}
+
 	override getDefaultProps(): TLFrameShape['props'] {
 		return { w: 160 * 2, h: 90 * 2, name: '', color: 'black' }
 	}
@@ -333,6 +337,10 @@ export class FrameShapeUtil extends BaseBoxShapeUtil<TLFrameShape> {
 
 	override providesBackgroundForChildren(): boolean {
 		return true
+	}
+
+	override getClipPath(shape: TLFrameShape) {
+		return this.editor.getShapeGeometry(shape.id).vertices
 	}
 
 	override canReceiveNewChildrenOfType(shape: TLShape) {

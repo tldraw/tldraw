@@ -79,15 +79,15 @@ export function useCanvasEvents() {
 				// check that e.target is an HTMLElement
 				if (!(e.target instanceof HTMLElement)) return
 
+				const editingShapeId = editor.getEditingShape()?.id
 				if (
+					// if the target is not inside the editing shape
+					!(editingShapeId && e.target.closest(`[data-shape-id="${editingShapeId}"]`)) &&
+					// and the target is not an clickable element
 					e.target.tagName !== 'A' &&
+					// or a TextArea.tsx ?
 					e.target.tagName !== 'TEXTAREA' &&
-					!e.target.isContentEditable &&
-					// When in EditingShape state, we are actually clicking on a 'DIV'
-					// not A/TEXTAREA/contenteditable element yet. So, to preserve cursor position
-					// for edit mode on mobile we need to not preventDefault.
-					// TODO: Find out if we still need this preventDefault in general though.
-					!(editor.getEditingShape() && e.target.className.includes('tl-text-content'))
+					!e.target.isContentEditable
 				) {
 					preventDefault(e)
 				}
@@ -151,6 +151,9 @@ export function useCanvasEvents() {
 		let lastX: number, lastY: number
 
 		function onPointerMove(e: PointerEvent) {
+			if ((e as any).isKilled) return
+			;(e as any).isKilled = true
+
 			if (e.clientX === lastX && e.clientY === lastY) return
 			lastX = e.clientX
 			lastY = e.clientY

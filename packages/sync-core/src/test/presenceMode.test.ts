@@ -1,13 +1,15 @@
 import { atom, computed, Signal } from '@tldraw/state'
 import { BaseRecord, createRecordType, RecordId, Store, StoreSchema } from '@tldraw/store'
+import { vi } from 'vitest'
 import { TLSyncClient } from '../lib/TLSyncClient'
 import { TestServer } from './TestServer'
 import { TestSocketPair } from './TestSocketPair'
 
-jest.mock('@tldraw/utils', () => {
+vi.mock('@tldraw/utils', async () => {
+	const actual = await vi.importActual('@tldraw/utils')
 	return {
-		...jest.requireActual('@tldraw/utils'),
-		fpsThrottle: jest.fn((fn) => fn),
+		...actual,
+		fpsThrottle: vi.fn((fn) => fn),
 	}
 })
 
@@ -62,7 +64,7 @@ class TestInstance {
 			onLoad: () => {
 				this.hasLoaded = true
 			},
-			onSyncError: jest.fn((reason) => {
+			onSyncError: vi.fn((reason) => {
 				throw new Error('onSyncError: ' + reason)
 			}),
 			presence: presenceSignal,

@@ -25,7 +25,7 @@
 		"dev-server-bun": "npx bun --watch ./src/server/server.bun.ts",
 		"dev-client": "vite dev",
 		"test-ci": "echo 'No tests yet'",
-		"test": "yarn run -T jest --passWithNoTests",
+		"test": "yarn run -T vitest run --passWithNoTests",
 		"test-coverage": "lazy inherit",
 		"lint": "yarn run -T tsx ../../internal/scripts/lint.ts"
 	},
@@ -39,12 +39,6 @@
 		"lazyrepo": "0.0.0-alpha.27",
 		"tsx": "^4.19.2",
 		"typescript": "^5.8.3"
-	},
-	"jest": {
-		"preset": "../../internal/config/jest/node/jest-preset.js",
-		"moduleNameMapper": {
-			"^~(.*)": "<rootDir>/src/$1"
-		}
 	},
 	"dependencies": {
 		"@fastify/cors": "^9.0.1",

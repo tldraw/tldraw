@@ -29,6 +29,7 @@
 	--tl-layer-watermark: 200;
 	--tl-layer-canvas-shapes: 300;
 	--tl-layer-canvas-overlays: 500;
+	--tl-layer-canvas-in-front: 600;
 	--tl-layer-canvas-blocker: 10000;
 
 	/* Canvas overlays z-index */
@@ -295,6 +296,13 @@ input,
 	content-visibility: auto;
 	touch-action: none;
 	contain: strict;
+}
+
+.tl-canvas__in-front {
+	position: absolute;
+	inset: 0;
+	pointer-events: none;
+	z-index: var(--tl-layer-canvas-in-front);
 }
 
 .tl-shapes {
@@ -681,11 +689,17 @@ input,
 }
 
 .tl-text-measure {
-	position: absolute;
 	z-index: var(--tl-layer-canvas-hidden);
+	opacity: 0;
+	visibility: hidden;
+
+	/* pointer-events: all; */
+	/* opacity: 1; */
+	/* z-index: 99999;  */
+
+	position: absolute;
 	top: 0px;
 	left: 0px;
-	opacity: 0;
 	width: max-content;
 	box-sizing: border-box;
 	pointer-events: none;
@@ -696,7 +710,6 @@ input,
 	border: none;
 	user-select: none;
 	contain: style paint;
-	visibility: hidden;
 	/* N.B. This property, while discouraged ("intended for Document Type Definition (DTD) designers") is necessary for ensuring correct mixed RTL/LTR behavior when exporting SVGs. */
 	unicode-bidi: plaintext;
 	-webkit-user-select: none;

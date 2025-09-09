@@ -1,7 +1,7 @@
 import type { Locator, Page } from '@playwright/test'
 import { expect } from '@playwright/test'
-import { sleep } from 'tldraw'
 import { Sidebar } from './Sidebar'
+import { sleep } from './helpers'
 import { step } from './tla-test'
 
 export class Editor {

@@ -1,4 +1,5 @@
 import { TLArrowShape, TLShapeId, Vec, createShapeId } from '@tldraw/editor'
+import { vi } from 'vitest'
 import { getArrowBindings } from '../lib/shapes/arrow/shared'
 import { TestEditor } from './TestEditor'
 import { TL } from './test-jsx'
@@ -208,7 +209,7 @@ describe('When binding an arrow to a shape', () => {
 
 		editor.keyUp('Control')
 		expect(bindings().end).toBeUndefined() // there's a short delay here, it should still be a point
-		jest.advanceTimersByTime(1000) // once the timer runs out...
+		vi.advanceTimersByTime(1000) // once the timer runs out...
 		expect(bindings().end).toBeDefined()
 
 		editor.keyDown('Control') // no delay when pressing control again though
@@ -216,7 +217,7 @@ describe('When binding an arrow to a shape', () => {
 
 		editor.keyUp('Control')
 		editor.pointerUp()
-		jest.advanceTimersByTime(1000) // once the timer runs out...
+		vi.advanceTimersByTime(1000) // once the timer runs out...
 		expect(bindings().end).toBeUndefined() // still a point because interaction ended before timer ended
 	})
 
@@ -237,7 +238,7 @@ describe('When binding an arrow to a shape', () => {
 		// Releasing ctrl should restore binding (after timer)
 		editor.keyUp('Control')
 		expect(bindings().end).toBeUndefined() // Still no binding immediately
-		jest.advanceTimersByTime(1000)
+		vi.advanceTimersByTime(1000)
 		expect(bindings().end).toBeDefined()
 	})
 })
@@ -409,7 +410,7 @@ describe('When starting an arrow inside of multiple shapes', () => {
 		editor.pointerDown(20, 20) // upper left
 		expect(editor.getCurrentPageShapes().length).toBe(1)
 		expect(arrow()).toBe(null)
-		jest.advanceTimersByTime(1000)
+		vi.advanceTimersByTime(1000)
 		editor.pointerMove(25, 20)
 		expect(editor.getCurrentPageShapes().length).toBe(2)
 		expect(arrow()).toMatchObject({ x: 20, y: 20 })

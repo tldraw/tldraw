@@ -20,7 +20,6 @@ const nextConfig = {
 			},
 		],
 	},
-	transpilePackages: [],
 	async redirects() {
 		return [
 			{

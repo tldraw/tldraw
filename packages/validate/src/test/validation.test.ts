@@ -17,7 +17,7 @@ describe('validations', () => {
 	it('Rejects unknown object keys', () => {
 		expect(() =>
 			T.object({ moo: T.literal('cow') }).validate({ moo: 'cow', cow: 'moo' })
-		).toThrowErrorMatchingInlineSnapshot(`"At cow: Unexpected property"`)
+		).toThrowErrorMatchingInlineSnapshot(`[ValidationError: At cow: Unexpected property]`)
 	})
 	it('Produces nice error messages', () => {
 		expect(() =>
@@ -44,7 +44,9 @@ describe('validations', () => {
 					],
 				},
 			})
-		).toThrowErrorMatchingInlineSnapshot(`"At toad.name: Expected number, got a string"`)
+		).toThrowErrorMatchingInlineSnapshot(
+			`[ValidationError: At toad.name: Expected number, got a string]`
+		)
 
 		expect(() =>
 			T.model(
@@ -59,7 +61,9 @@ describe('validations', () => {
 				x: 132,
 				y: NaN,
 			})
-		).toThrowErrorMatchingInlineSnapshot(`"At shape.y: Expected a number, got NaN"`)
+		).toThrowErrorMatchingInlineSnapshot(
+			`[ValidationError: At shape.y: Expected a number, got NaN]`
+		)
 
 		expect(() =>
 			T.model(
@@ -70,7 +74,7 @@ describe('validations', () => {
 				})
 			).validate({ id: 'abc13', color: 'rubbish' })
 		).toThrowErrorMatchingInlineSnapshot(
-			`"At shape.color: Expected "red" or "green" or "blue", got rubbish"`
+			`[ValidationError: At shape.color: Expected "red" or "green" or "blue", got rubbish]`
 		)
 	})
 
@@ -97,19 +101,19 @@ describe('validations', () => {
 		expect(() =>
 			nested.validate({ animal: { type: 'cow', moo: true, id: 'abc123' } })
 		).toThrowErrorMatchingInlineSnapshot(
-			`"At animal.type: Expected one of "cat" or "dog", got "cow""`
+			`[ValidationError: At animal.type: Expected one of "cat" or "dog", got "cow"]`
 		)
 
 		expect(() =>
 			nested.validate({ animal: { type: 'cat', meow: 'yes', id: 'abc123' } })
 		).toThrowErrorMatchingInlineSnapshot(
-			`"At animal(type = cat).meow: Expected boolean, got a string"`
+			`[ValidationError: At animal(type = cat).meow: Expected boolean, got a string]`
 		)
 
 		expect(() =>
 			T.model('animal', animalSchema).validate({ type: 'cat', moo: true, id: 'abc123' })
 		).toThrowErrorMatchingInlineSnapshot(
-			`"At animal(type = cat).meow: Expected boolean, got undefined"`
+			`[ValidationError: At animal(type = cat).meow: Expected boolean, got undefined]`
 		)
 	})
 })
@@ -130,10 +134,10 @@ describe('T.indexKey', () => {
 	})
 	it('rejects invalid index keys', () => {
 		expect(() => T.indexKey.validate('a')).toThrowErrorMatchingInlineSnapshot(
-			`"At null: Expected an index key, got "a""`
+			`[ValidationError: At null: Expected an index key, got "a"]`
 		)
 		expect(() => T.indexKey.validate('')).toThrowErrorMatchingInlineSnapshot(
-			`"At null: Expected an index key, got """`
+			`[ValidationError: At null: Expected an index key, got ""]`
 		)
 	})
 })

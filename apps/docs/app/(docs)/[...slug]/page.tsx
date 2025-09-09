@@ -12,11 +12,10 @@ import { parseMarkdown } from '@/utils/parse-markdown'
 import { Metadata } from 'next'
 import { notFound } from 'next/navigation'
 
-export async function generateMetadata({
-	params,
-}: {
-	params: { slug: string | string[] }
+export async function generateMetadata(props: {
+	params: Promise<{ slug: string | string[] }>
 }): Promise<Metadata> {
+	const params = await props.params
 	const path = typeof params.slug === 'string' ? [params.slug] : params.slug
 	const content = await db.getPageContent(`/${path.join('/')}`)
 	if (!content || content.type !== 'article') notFound()
@@ -39,7 +38,8 @@ export async function generateStaticParams() {
 		.map((path) => ({ slug: path.slice(1).split('/') }))
 }
 
-export default async function Page({ params }: { params: { slug: string | string[] } }) {
+export default async function Page(props: { params: Promise<{ slug: string | string[] }> }) {
+	const params = await props.params
 	const path = typeof params.slug === 'string' ? [params.slug] : params.slug
 	const content = await db.getPageContent(`/${path.join('/')}`)
 	if (!content || content.type !== 'article') notFound()
