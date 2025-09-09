@@ -226,37 +226,36 @@ export function sortMigrations(migrations: Migration[]): Migration[] {
 	const processed = new Set<MigrationId>()
 
 	while (ready.length > 0) {
-		// Calculate urgency scores for ready migrations
-		const scored = ready.map((m) => {
+		// Calculate urgency scores for ready migrations and pick the best one
+		let bestCandidate: Migration | undefined
+		let bestCandidateScore = -Infinity
+
+		for (const m of ready) {
 			let urgencyScore = 0
 
-			// Priority 1: If this migration is explicitly depended on by others, boost priority
-			for (const depId of dependents.get(m.id) || []) {
-				if (!processed.has(depId) && explicitDeps.get(depId)!.has(m.id)) {
-					urgencyScore += 100 // High priority for explicit dependencies
-				}
-			}
-
-			// Priority 2: Count all unprocessed dependents (to break ties)
 			for (const depId of dependents.get(m.id) || []) {
 				if (!processed.has(depId)) {
+					// Priority 1: Count all unprocessed dependents (to break ties)
 					urgencyScore += 1
+
+					// Priority 2: If this migration is explicitly depended on by others, boost priority
+					if (explicitDeps.get(depId)!.has(m.id)) {
+						urgencyScore += 100
+					}
 				}
 			}
 
-			return { migration: m, urgencyScore }
-		})
-
-		// Sort by urgency (higher = more urgent), then by sequence/version as tiebreaker
-		scored.sort((a, b) => {
-			if (a.urgencyScore !== b.urgencyScore) {
-				return b.urgencyScore - a.urgencyScore
+			if (
+				urgencyScore > bestCandidateScore ||
+				// Tiebreaker: prefer lower sequence/version
+				(urgencyScore === bestCandidateScore && m.id.localeCompare(bestCandidate?.id ?? '') < 0)
+			) {
+				bestCandidate = m
+				bestCandidateScore = urgencyScore
 			}
-			// Tiebreaker: prefer lower sequence/version
-			return a.migration.id.localeCompare(b.migration.id)
-		})
+		}
 
-		const nextMigration = scored[0].migration
+		const nextMigration = bestCandidate!
 		ready.splice(ready.indexOf(nextMigration), 1)
 
 		// Cycle detection - if we have processed everything and still have items left, there's a cycle
