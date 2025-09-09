@@ -48,8 +48,6 @@ export class ChatHistoryPartUtil extends PromptPartUtil<ChatHistoryPart> {
 			}
 		}
 
-		// console.log('items', JSON.stringify(items, null, 2))
-
 		return {
 			type: 'chatHistory',
 			items,
