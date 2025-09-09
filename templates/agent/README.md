@@ -303,7 +303,7 @@ override async applyAction(
 }
 ```
 
-Actions returned from actions will be added to the `actionResults` property of the next request. By default, the `ActionResultsPartUtil` adds them all to the prompt.
+Values returned from an action's `applyAction()` method will be added to the `actionResults` property of the next request. By default, the `ActionResultsPartUtil` adds them all to the prompt.
 
 ## Sanitize data received from the model
 
@@ -424,7 +424,7 @@ override applyAction(action: Streaming<IUpdateAction>, transform: AgentTransform
 
 <!-- #### When to carry out transforms in `transformAction` vs `applyAction`
 
-- **`transformAction`**: To do a transform that is scoped to a single request, call it from within `transformAction`. Since the transform is recreated with each request, we can't know how to unround shapes in follow-up requests, so we must do it here. This also ensures chat history stores unrounded values.
+- **`transformAction`**: To do a transform that is scoped to a single request, call it from within `transformAction`. Since the transform is recreated with each request, we can't know how to undo these transforms in follow-up requests, so we must do it here. This also ensures chat history stores values with the transforms properly undone.
 
 - **`applyAction`**: To do a chat-scoped transform that persists across requests, call it fom within `applyAction`. The action logged in the chat history will _not_ include any transforms done within `applyAction`. -->
 
@@ -530,7 +530,7 @@ For the agent to be able to create your custom shape, or to see and edit other p
 
 Let's add support for a hypothetical custom sticker shape. The sticker has a prop called `stickerType`, which can be either "✅" or "❌".
 
-1. Define your new shape in `shared/format/SimpleShape.ts` using a zod object. Every shape is required to have a `_type` and a `shapeId` field. To give the model a place to store information about the shape's purposes when creating or updating it, it's strongly recommended that you give it a `note` field as well. To ensure the model understands the purpose of each field, give them descriptive names.
+1. Define your how the model should see your custom shape in `shared/format/SimpleShape.ts` using a zod object. Every shape is required to have a `_type` and a `shapeId` field. To give the model a place to store information about the shape's purposes when creating or updating it, it's strongly recommended that you give it a `note` field as well. To ensure the model understands the purpose of each field, give them descriptive names.
 
 ```ts
 const SimpleStickerShape = z.object({
