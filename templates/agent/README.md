@@ -287,6 +287,7 @@ The `ReviewActionUtil` also uses `schedule()`, this time scheduling a request wi
 
 To let the agent retrieve information from an external API, fetch and return it within the `applyAction` method. The agent will have access to it within its next scheduled request, if there is one.
 
+<!-- TODO FIX THIS EXAMPLE -->
 ```ts
 override async applyAction(
 	action: Streaming<IRandomWikipediaArticleAction>,
@@ -305,32 +306,110 @@ override async applyAction(
 
 Actions returned from actions will be added to the `actionResults` property of the next request. By default, the `ActionResultsPartUtil` adds them all to the prompt.
 
-## Transforming data on its round trip from the model
+## Transforms
 
-In order to keep the information we send to the model simple and easy for the model to understand, we apply a number of 'transforms' the different Prompt Parts we send. To undo these transforms, as well as correct for any mistakes the model may have made, we also have to apply transforms to the Actions that the agent outputs.
+The transform object helps you to handle the request. It contains the agent and editor objects as well as various helpers for performing and managing the state of transforms.
 
-### Example: `applyOffsetToBox()` and `applyOffsetToBox()`
+Conceptually, there are two types of transforms, those that are scoped to a single request, and those that are scoped to the duration of a chat. The transform is recreated with every request, so any transforms that are scoped to the duration of a chat, such as `offset`, must be stored on the `agent` instance and accessed in the transform's constructor.
 
-LLMs are better at understanding the differences between smaller numbers than between bigger numbers. To improve the agent's accuracy, we offset the coordinates we send to it by the coordinates of the viewport when a new chat is started. To keep these changes consistent, we pass every coordinate we send it in a Prompt Part through the `applyOffsetToBox()` method on the `AgentRequestTransform`, which is called within `transformPart()`. (We also do something similar with `applyOffsetToVec()` and `applyOffsetToShape()`)
+```ts
+export class AgentRequestTransform {
+	
+	//...
 
-This means the agent now thinks the shapes and viewports it knows exists are in different positions than they are. In order to correct for this in the actions that the agent outputs, we call our `removeOffsetToBox()`, `removeOffsetToVec()`, and `removeOffsetToShape()` methods.
+	constructor(agent: TldrawAgent) {
+		this.agent = agent
+		this.editor = agent.editor
+		const origin = agent.$chatOrigin.get()
+		this.offset = {
+			x: -origin.x,
+			y: -origin.y,
+		}
+	}
+
+	//...
+}
+```
+
+### Transform the prompt sent to the model
+
+To keep the information we send to the model simple and easy for it to understand, we apply a number of transforms to the Prompt Parts. 
+
+#### Example: Transforming the `SelectedShapesPartUtil`
+
+To improve the agent's accuracy, we offset the coordinates of the shapes we send to it by the coordinates of the viewport when a new chat is started, as well as round their coordinates, width, and height to the nearest integer.
+
+Here is how that looks in the `SelectedShapesPartUtil`.
+
+```ts
+override transformPart(part: SelectedShapesPart, transform: AgentRequestTransform) {
+	const transformedShapes = part.shapes.map((shape) => {
+		const offsetShape = transform.applyOffsetToShape(shape)
+		return transform.roundShape(offsetShape)
+	})
+	return { ...part, shapes: transformedShapes }
+}
+```
+
+### Transform the actions received from the model
+
+We correct for the transformations done to the prompt parts by applying the reverse of those transforms to the actions output by the model.
+
+We also correct for potential mistakes that the model may have made in its outputs, such as hallucinating incorrect `shapeIds`.
+
+#### Example: Transforming the model's `UpdateActionUtil`
+
+To correct for these transformations when a model is updating shapes, we 'unround' the shape's properties with `unroundShape()`.
+
+We also ensure that the `shapeId` output by the model is unique and, if it was changed during the transform, mapped back to its original value. We do this with `ensureShapeIdIsReal()`.
+
+```ts
+override transformAction(action: Streaming<IUpdateAction>, transform: AgentRequestTransform) {
+	if (!action.complete) return action
+
+	const { update } = action
+
+	// Ensure the shape ID refers to a real shape
+	const shapeId = transform.ensureShapeIdIsReal(update.shapeId)
+	if (!shapeId) return null
+	update.shapeId = shapeId
+	
+	// ...
+
+	// Unround the shape to restore the original values
+	action.update = transform.unroundShape(action.update)
+
+	return action
+}
+```
+
+To correct for the offset, we call `removeOffsetFromShape()`.
+
+```ts
+override applyAction(action: Streaming<IUpdateAction>, transform: AgentRequestTransform) {
+	if (!action.complete) return
+	const { editor } = transform
+
+	// Translate the shape back to the chat's position
+	action.update = transform.removeOffsetFromShape(action.update)
+
+	// ...
+
+}
+```
+
+
+<!-- This means the agent now thinks the shapes and viewports it knows exists are in different positions than they are. In order to correct for this in the actions that the agent outputs, we call our `removeOffsetToBox()`, `removeOffsetToVec()`, and `removeOffsetToShape()` methods.
 
 **This is the main idea behind transforms: Corrections are made to give the model easier-to-understand data, which then must be reversed.**
 
-### Transforming `PromptPart`s
-
-To improve a model's ability to understand the information we give it,
-
-### Transforming `AgentActions`s
-
-#### `transformAction()`
-
-#### `applyAction()`
 
 -- parts are transofrmed for adjustments for clarity and for keeping track of different changes we make
 -- actions are transformed for corrections
 
-TODO
+TODO -->
+
+<!-- we apply a number of 'transforms' the different Prompt Parts we send. To undo these transforms, as well as correct for any mistakes the model may have made, we also have to apply transforms to the Actions that the agent outputs. -->
 
 <!-- ### `transformPart()`
 
