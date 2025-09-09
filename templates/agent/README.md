@@ -381,6 +381,30 @@ There are three main formats used in this starter:
 
 To send the model some shapes in one of these formats, use one of the conversion functions found within the `format` folder, such as `convertTldrawShapeToSimpleShape`.
 
+This example picks one random shape on the canvas and sends it to the model in the Simple format.
+
+```ts
+override getPart(request: AgentRequest, transform: AgentTransform): RandomShapePart {
+	const { editor } = transform
+
+	// Get a random shape
+	const shapes = editor.getCurrentPageShapes()
+	const randomShape = shapes[Math.floor(Math.random() * shapes.length)]
+
+	// Convert the shape to the Simple format
+	const simpleShape = convertTldrawShapeToSimpleShape(randomShape, editor)
+
+	// Normalize the shape's position
+	const offsetShape = transform.applyOffsetToShape(simpleShape)
+	const roundedShape = transform.roundShape(offsetShape)
+
+	return {
+		type: 'random-shape',
+		shape: roundedShape,
+	}
+}
+```
+
 <!-- ## Transform the actions received from the model
 
 We correct for the transformations done to the prompt parts by applying the reverse of those transforms to the actions output by the model.
