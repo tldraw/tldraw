@@ -99,7 +99,10 @@ function CustomPeopleMenu() {
 								</span>
 								<span style={{ width: 80, color: '#aaa', fontSize: 12, marginLeft: 8 }}>
 									Cursor
-									<br />({Math.round(cursor?.x ?? NaN)}, {Math.round(cursor?.y ?? NaN)})
+									<br />
+									{cursor && Number.isFinite(cursor.x) && Number.isFinite(cursor.y)
+										? `(${Math.round(cursor.x)}, ${Math.round(cursor.y)})`
+										: 'cursor data unavailable'}
 								</span>
 							</div>
 						))}
