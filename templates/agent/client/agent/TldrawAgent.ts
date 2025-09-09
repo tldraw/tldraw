@@ -376,6 +376,27 @@ export class TldrawAgent {
 	}
 
 	/**
+	 * Add a todo item to the agent's todo list.
+	 * @param text The text of the todo item.
+	 * @returns The id of the todo item.
+	 */
+	addTodo(text: string) {
+		let id = -1
+		this.$todoList.update((todoItems) => {
+			id = todoItems.length
+			return [
+				...todoItems,
+				{
+					id,
+					status: 'todo' as const,
+					text,
+				},
+			]
+		})
+		return id
+	}
+
+	/**
 	 * Make the agent perform an action.
 	 * @param action The action to make the agent do.
 	 * @param transform The transform to use.

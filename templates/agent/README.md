@@ -262,17 +262,11 @@ The `RandomWikipediaArticleActionUtil` also uses `schedule()`, but to handle fet
 You can also schedule further work by adding to the agent's todo list. It won't stop working until all todos are resolved.
 
 ```ts
-override applyAction(action: Streaming<ITodoListAction>, transform: AgentRequestTransform) {
+override applyAction(action: Streaming<IAddDetailAction>, transform: AgentRequestTransform) {
 	if (!action.complete) return
 
 	const { agent } = transform
-	agent.$todoList.update((todoItems) => {
-		return [...todoItems, {
-			id: agent.$todoList.get().length
-			status: 'todo' as const,
-			text: 'Add more detail to the drawing',
-		}]
-	})
+	agent.addTodo('Add more detail to the drawing')
 }
 ```
 
