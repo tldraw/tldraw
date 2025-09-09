@@ -1,7 +1,6 @@
 import { Browser, BrowserContext, Page, test } from '@playwright/test'
 import fs from 'fs'
 import path from 'path'
-import { sleep } from 'tldraw'
 import { Editor } from './Editor'
 import { ErrorPage } from './ErrorPages'
 import { HomePage } from './HomePage'
@@ -10,6 +9,10 @@ import { Sidebar } from './Sidebar'
 
 export type UserName = 'huppy' | 'suppy'
 type UserProps = { user: UserName; index: number } | undefined
+
+export function sleep(ms: number): Promise<void> {
+	return new Promise((resolve) => setTimeout(resolve, ms))
+}
 
 export async function openNewTab(
 	browser: Browser,
