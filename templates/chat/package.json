@@ -17,6 +17,7 @@
 	"dependencies": {
 		"@ai-sdk/google": "^2.0.11",
 		"@ai-sdk/react": "^2.0.15",
+		"@google/genai": "^1.17.0",
 		"@types/node": "^22.15.31",
 		"@types/react": "^18.3.18",
 		"@types/react-dom": "^18.3.5",
