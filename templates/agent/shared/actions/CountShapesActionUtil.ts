@@ -39,7 +39,7 @@ export class CountShapesActionUtil extends AgentActionUtil<ICountShapesAction> {
 		const { agent, editor } = transform
 
 		// Schedule a follow-up agent request
-		agent.schedule()
+		agent.schedule("Here's the number of shapes on the canvas.")
 
 		// Count the shapes
 		return editor.getCurrentPageShapes().length

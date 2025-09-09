@@ -1,3 +1,4 @@
+import { Box } from 'tldraw'
 import z from 'zod'
 import { AgentRequestTransform } from '../AgentRequestTransform'
 import { IAreaContextItem } from '../types/ContextItem'
@@ -58,11 +59,16 @@ export class ReviewActionUtil extends AgentActionUtil<IReviewAction> {
 
 		agent.schedule((prev) => ({
 			...prev,
-			// Append the review intent to the current message, if there is one.
-			message: prev ? `${prev.message} ${action.intent}` : action.intent,
-			bounds: reviewBounds,
-			contextItems: [...prev.contextItems, contextArea],
 			type: 'review',
+
+			// Make sure the bounds includes the review bounds
+			bounds: Box.From(prev.bounds).union(reviewBounds),
+
+			// Append the review intent to the current message, if there is one.
+			message: prev.message ? `${prev.message}\n\n${action.intent}` : action.intent,
+
+			// Add the review bounds as a context area
+			contextItems: [...prev.contextItems, contextArea],
 		}))
 	}
 }

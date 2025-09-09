@@ -1,3 +1,4 @@
+import { AddDetailActionUtil } from './actions/AddDetailActionUtil'
 import { AgentActionUtil } from './actions/AgentActionUtil'
 import { AlignActionUtil } from './actions/AlignActionUtil'
 import { BringToFrontActionUtil } from './actions/BringToFrontActionUtil'
@@ -88,6 +89,7 @@ export const AGENT_ACTION_UTILS = [
 	// Planning
 	ThinkActionUtil,
 	ReviewActionUtil,
+	AddDetailActionUtil,
 	TodoListActionUtil,
 	SetMyViewActionUtil,
 
@@ -112,7 +114,7 @@ export const AGENT_ACTION_UTILS = [
 	// Drawing
 	PenActionUtil,
 
-	// Calling external APIs
+	// Gathering data from external APIs
 	RandomWikipediaArticleActionUtil,
 	CountShapesActionUtil,
 

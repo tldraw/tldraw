@@ -47,9 +47,6 @@ export class SetMyViewActionUtil extends AgentActionUtil<ISetMyViewAction> {
 			h: action.h,
 		})
 
-		agent.schedule((prev) => ({
-			...prev,
-			bounds,
-		}))
+		agent.schedule({ bounds })
 	}
 }

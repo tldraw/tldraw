@@ -332,14 +332,14 @@ export class TldrawAgent {
 	/**
 	 * Schedule a request for the agent to handle after this one.
 	 *
-	 * This function takes a callback as an argument. The callback receives the
-	 * currently scheduled request (or the default request if there is none) and
-	 * should return the desired request.
-	 *
 	 * @example
 	 * ```tsx
-	 * agent.schedule(() => 'Add extra detail')
+	 * agent.schedule('Add extra detail')
 	 * ```
+	 *
+	 * This function optionally takes a callback as an argument. You can use it
+	 * to create a request based on the currently scheduled request (or the
+	 * default request if there is none) and should return the desired request.
 	 *
 	 * @example
 	 * ```tsx
@@ -354,24 +354,49 @@ export class TldrawAgent {
 	 * }))
 	 * ```
 	 *
-	 * @param callback
+	 * @param input - An agent input to schedule or a callback that returns an agent input.
 	 */
-	schedule(callback: (request: AgentRequest) => AgentInput = (v) => v) {
+	schedule(input: AgentInput | ((request: AgentRequest) => AgentInput) = '') {
+		if (typeof input === 'string') {
+			input = { message: input }
+		}
+
+		// By default, merge the provided input with the currently scheduled request
+		// If a callback is provided, use the callback to handle the merge instead
+		const callback =
+			typeof input === 'function'
+				? input
+				: (current: AgentRequest) => {
+						return {
+							// Append properties where possible
+							message: [current.message, input.message].filter(Boolean).join('\n\n'),
+							contextItems: [...current.contextItems, ...(input.contextItems ?? [])],
+							selectedShapes: [...current.selectedShapes, ...(input.selectedShapes ?? [])],
+							actionResults: [...current.actionResults, ...(input.actionResults ?? [])],
+
+							// Override specific properties
+							bounds: input.bounds ?? current.bounds,
+							modelName: input.modelName ?? current.modelName,
+							type: input.type ?? current.type,
+						}
+					}
+
 		this.$scheduledRequest.update((prev) => {
+			// If there's no scheduled request, start with this as default
 			const activeRequest = this.$activeRequest.get()
-			const currentScheduledRequest = prev ?? {
-				// Reset the message and context items. The scheduled request might be a completely different task than the active request.
+			const current = prev ?? {
 				message: '',
-				contextItems: [],
-				modelName: activeRequest?.modelName ?? DEFAULT_MODEL_NAME,
 				type: 'schedule',
+				modelName: activeRequest?.modelName ?? this.$modelName.get(),
 				bounds: activeRequest?.bounds ?? this.editor.getViewportPageBounds(),
 				selectedShapes: activeRequest?.selectedShapes ?? [],
+				contextItems: [],
 				actionResults: [],
 			}
 
-			const partialRequest = callback(currentScheduledRequest)
-			return this.getRequestFromInput(partialRequest)
+			// Merge the input with the current scheduled request
+			const next = callback(current)
+			return this.getRequestFromInput(next)
 		})
 	}
 

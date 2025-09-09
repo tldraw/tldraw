@@ -240,20 +240,37 @@ To customize an action's appearance via CSS, you can define style for the `agent
 
 ## Schedule further work
 
-The agent has the ability carry out complex tasks over the course of multiple turns and to evaluate its progress towards that task and adjust its approach given new information. It does this by scheduling further work for itself via calling Actions that call its `schedule()` method. The agent will continue to work if there is a scheduled request or if it has outstanding todos.
+You can let the agent work over multiple turns by scheduling further work using the `schedule` method as part of an action.
 
-You can pass data into the `schedule()` method that can be used in the following turn to affect the agent's behavior. You'll usually do this within an Action's `applyAction()` method.
-
-Here's part of a hypothetical action that the agent can call to tell itself to add more detail to its drawings in the next turn.
+This example shows how to schedule an extra step for adding detail to the canvas.
 
 ```ts
 override applyAction(action: Streaming<IAddDetailAction>, transform: AgentRequestTransform) {
 	if (!action.complete) return
-	const { agent } = transform
 
-	agent.schedule(() => 'add more detail to the drawing')
+	const { agent } = transform
+	agent.schedule('Add more detail to the canvas.')
 }
 ```
+
+<!-- You can also pass a callback to the `agent.schedule(input)` method to create a request based on the currently scheduled request. If there is no currently scheduled request, the callback will be called with the default request.
+
+```ts
+override applyAction(action: Streaming<IMoveRightAction>, transform: AgentRequestTransform) {
+	if (!action.complete) return
+
+	const { agent } = transform
+	agent.schedule((prev) => ({
+		bounds: {
+			// Move the viewport to the right
+			x: prev.bounds.x + 200,
+			y: prev.bounds.y,
+			w: prev.bounds.w,
+			h: prev.bounds.h,
+		},
+	}))
+}
+``` -->
 
 <!-- You can also see `shared/actions/SetMyViewActionUtil.ts` and `shared/actions/ReviewActionUtil.ts` for other examples that use `agent.schedule()`.
 
@@ -266,7 +283,7 @@ override applyAction(action: Streaming<IAddDetailAction>, transform: AgentReques
 	if (!action.complete) return
 
 	const { agent } = transform
-	agent.addTodo('Add more detail to the drawing')
+	agent.addTodo('Check for spelling mistakes.')
 }
 ```
 
