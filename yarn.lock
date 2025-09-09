@@ -58,6 +58,18 @@ __metadata:
   languageName: node
   linkType: hard
 
+"@ai-sdk/openai@npm:^2.0.24":
+  version: 2.0.24
+  resolution: "@ai-sdk/openai@npm:2.0.24"
+  dependencies:
+    "@ai-sdk/provider": "npm:2.0.0"
+    "@ai-sdk/provider-utils": "npm:3.0.8"
+  peerDependencies:
+    zod: ^3.25.76 || ^4
+  checksum: 10/c15ffe86ebcf854e44a93d933b1f622358beffb3f3731c1f44b0ba8c75533ee0a39704597c309963a8ccc95c4eaf845805a61ae09dfe7e45bf18019cb350e773
+  languageName: node
+  linkType: hard
+
 "@ai-sdk/provider-utils@npm:3.0.3":
   version: 3.0.3
   resolution: "@ai-sdk/provider-utils@npm:3.0.3"
@@ -82,6 +94,19 @@ __metadata:
   peerDependencies:
     zod: ^3.25.76 || ^4
   checksum: 10/7d3feb4c617360faa1554b6f1b0db38f53eadc67ce952aa08cc87efbc08e6e54acf3ba0a78f8eedd2e2d850cbf5b681badecbebdfc3c2e3e6fb1dca97fa818c3
+  languageName: node
+  linkType: hard
+
+"@ai-sdk/provider-utils@npm:3.0.8":
+  version: 3.0.8
+  resolution: "@ai-sdk/provider-utils@npm:3.0.8"
+  dependencies:
+    "@ai-sdk/provider": "npm:2.0.0"
+    "@standard-schema/spec": "npm:^1.0.0"
+    eventsource-parser: "npm:^3.0.5"
+  peerDependencies:
+    zod: ^3.25.76 || ^4
+  checksum: 10/62113bcad1aeaec6d097d63b3b84154b3eaacf6074cc48e2f5bfc19a5e82360e055ac3b097eacbb66822ee398129fd2db148099c6aa59169b7a2e86c82570649
   languageName: node
   linkType: hard
 
@@ -27645,6 +27670,29 @@ __metadata:
     vite: "npm:^7.0.1"
     wrangler: "npm:^4.23.0"
     zod: "npm:^4.1.5"
+  languageName: unknown
+  linkType: soft
+
+"tldraw-branching-chat@workspace:templates/branching-chat":
+  version: 0.0.0-use.local
+  resolution: "tldraw-branching-chat@workspace:templates/branching-chat"
+  dependencies:
+    "@ai-sdk/openai": "npm:^2.0.24"
+    "@cloudflare/vite-plugin": "npm:^1.9.0"
+    "@cloudflare/workers-types": "npm:^4.20250703.0"
+    "@types/react": "npm:^18.3.18"
+    "@types/react-dom": "npm:^18.3.5"
+    "@vitejs/plugin-react-swc": "npm:^3.10.2"
+    ai: "npm:^5.0.15"
+    classnames: "npm:^2.5.1"
+    itty-router: "npm:^5.0.18"
+    radix-ui: "npm:^1.4.2"
+    react: "npm:^18.3.1"
+    react-dom: "npm:^18.3.1"
+    tldraw: "workspace:*"
+    typescript: "npm:^5.8.3"
+    vite: "npm:^7.0.1"
+    wrangler: "npm:^4.23.0"
   languageName: unknown
   linkType: soft
 
