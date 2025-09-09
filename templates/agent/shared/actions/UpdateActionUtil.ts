@@ -156,17 +156,32 @@ export function getTldrawAiChangesFromUpdateEvent({
 				}
 			).w
 
-			let correctedX = textShape.x ?? shapeOnCanvas.x
-			switch (textAlign) {
-				case 'start':
-					correctedX = textShape.x ?? shapeOnCanvas.x
-					break
-				case 'middle':
-					correctedX = (textShape.x ?? shapeOnCanvas.x) - candidateTextWidth / 2
-					break
-				case 'end':
-					correctedX = (textShape.x ?? shapeOnCanvas.x) - candidateTextWidth
-					break
+			let correctedX = shapeOnCanvas.x
+			let correctedY = shapeOnCanvas.y
+
+			// Only recalculate position if coordinates are actually being updated
+			// Check if the provided coordinates are significantly different (more than 0.5 pixels)
+			const isXSignificantlyDifferent =
+				textShape.x !== undefined && Math.abs(textShape.x - shapeOnCanvas.x) > 0.5
+			const isYSignificantlyDifferent =
+				textShape.y !== undefined && Math.abs(textShape.y - shapeOnCanvas.y) > 0.5
+
+			if (isXSignificantlyDifferent) {
+				switch (textAlign) {
+					case 'start':
+						correctedX = textShape.x
+						break
+					case 'middle':
+						correctedX = textShape.x - candidateTextWidth / 2
+						break
+					case 'end':
+						correctedX = textShape.x - candidateTextWidth
+						break
+				}
+			}
+
+			if (isYSignificantlyDifferent) {
+				correctedY = textShape.y
 			}
 
 			changes.push({
@@ -176,7 +191,7 @@ export function getTldrawAiChangesFromUpdateEvent({
 					id: shapeId,
 					type: 'text',
 					x: correctedX,
-					y: textShape.y ?? shapeOnCanvas.y,
+					y: correctedY,
 					props: {
 						color,
 						richText,
