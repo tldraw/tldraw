@@ -36,11 +36,11 @@ export class PlaceActionUtil extends AgentActionUtil<IPlaceAction> {
 	override transformAction(action: Streaming<IPlaceAction>, transform: AgentTransform) {
 		if (!action.complete) return action
 
-		const shapeId = transform.ensureShapeIdIsReal(action.shapeId)
+		const shapeId = transform.ensureShapeIdExists(action.shapeId)
 		if (!shapeId) return null
 		action.shapeId = shapeId
 
-		const referenceShapeId = transform.ensureShapeIdIsReal(action.referenceShapeId)
+		const referenceShapeId = transform.ensureShapeIdExists(action.referenceShapeId)
 		if (!referenceShapeId) return null
 		action.referenceShapeId = referenceShapeId
 

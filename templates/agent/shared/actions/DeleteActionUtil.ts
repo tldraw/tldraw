@@ -33,7 +33,7 @@ export class DeleteActionUtil extends AgentActionUtil<IDeleteAction> {
 	override transformAction(action: Streaming<IDeleteAction>, transform: AgentTransform) {
 		if (!action.complete) return action
 
-		const shapeId = transform.ensureShapeIdIsReal(action.shapeId)
+		const shapeId = transform.ensureShapeIdExists(action.shapeId)
 		if (!shapeId) return null
 
 		action.shapeId = shapeId

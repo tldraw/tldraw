@@ -173,7 +173,7 @@ export class ClearActionUtil extends AgentActionUtil<IClearAction> {
 		return ClearAction
 	}
 
-	override applyAction(action: Streaming<IClearAction>, transform: AgentRequest) {
+	override applyAction(action: Streaming<IClearAction>, transform: AgentTransform) {
 		// Don't do anything until the action has finished streaming
 		if (!action.complete) return
 
@@ -235,7 +235,7 @@ You can let the agent work over multiple turns by scheduling further work using 
 This example shows how to schedule an extra step for adding detail to the canvas.
 
 ```ts
-override applyAction(action: Streaming<IAddDetailAction>, transform: AgentRequest) {
+override applyAction(action: Streaming<IAddDetailAction>, transform: AgentTransform) {
 	if (!action.complete) return
 
 	const { agent } = transform
@@ -246,7 +246,7 @@ override applyAction(action: Streaming<IAddDetailAction>, transform: AgentReques
 You can pass a callback to the `schedule` method to create a request based on the currently scheduled request. If there is nothing scheduled, the callback will be called with the default request.
 
 ```ts
-override applyAction(action: Streaming<IMoveRightAction>, transform: AgentRequest) {
+override applyAction(action: Streaming<IMoveRightAction>, transform: AgentTransform) {
 	if (!action.complete) return
 
 	const { agent } = transform
@@ -265,7 +265,7 @@ override applyAction(action: Streaming<IMoveRightAction>, transform: AgentReques
 You can also schedule further work by adding to the agent's todo list. It won't stop working until all todos are resolved.
 
 ```ts
-override applyAction(action: Streaming<IAddDetailAction>, transform: AgentRequest) {
+override applyAction(action: Streaming<IAddDetailAction>, transform: AgentTransform) {
 	if (!action.complete) return
 
 	const { agent } = transform
@@ -290,7 +290,7 @@ To let the agent retrieve information from an external API, fetch and return it 
 ```ts
 override async applyAction(
 	action: Streaming<IRandomWikipediaArticleAction>,
-	transform: AgentRequest
+	transform: AgentTransform
 ) {
 	if (!action.complete) return
 	const { agent } = transform
@@ -307,18 +307,18 @@ Actions returned from actions will be added to the `actionResults` property of t
 
 ## Sanitize data received from the model
 
-The model can make mistakes. Sometimes this is caused by the model hallucinating, and sometimes it's caused by the canvas changing since the last time the model saw it.
+The model can make mistakes. Sometimes this is caused by hallucinations, and sometimes this is caused by the canvas changing since the last time the model saw it. Either way, an incoming action might contain invalid data by the time we receive it.
 
 To correct incoming mistakes, apply fixes in the `transformAction` method of an action util.
 
-For example, it's important to ensure that a shape ID received from the model is valid. Ensure that it refers to a real shape by using the `ensureShapeIdIsReal` method.
+For example, ensure that a shape ID received from the model refers to an existing shape by using the `ensureShapeIdExists` method.
 
 ```ts
-override transformAction(action: Streaming<IDeleteAction>, transform: AgentRequest) {
+override transformAction(action: Streaming<IDeleteAction>, transform: AgentTransform) {
 	if (!action.complete) return action
 
 	// Ensure the shape ID refers to a real shape
-	action.shapeId = transform.ensureShapeIdIsReal(action.shapeId)
+	action.shapeId = transform.ensureShapeIdExists(action.shapeId)
 
 	// If the shape ID doesn't refer to a real shape, cancel the action
 	if (!action.shapeId) return null
@@ -328,9 +328,9 @@ override transformAction(action: Streaming<IDeleteAction>, transform: AgentReque
 }
 ```
 
-The `AgentRequest` object contains more helpers for sanitizing data received from the model.
+The `AgentTransform` object contains more helpers for sanitizing data received from the model.
 
-- `ensureShapeIdIsReal` - Ensure that a shape ID refers to a real shape.
+- `ensureShapeIdExists` - Ensure that a shape ID refers to a real shape.
 - `ensureValueIsNumber` - Ensure that a value is a number.
 - `ensureValueIsVec` - Ensure that a value is a vector.
 
@@ -341,7 +341,7 @@ The transform object helps you to handle the request. It contains the agent and 
 Conceptually, there are two types of transforms, those that are scoped to a single request, and those that are scoped to the duration of a chat. The transform is recreated with every request, so any transforms that are scoped to the duration of a chat, such as `offset`, must be stored on the `agent` instance and accessed in the transform's constructor.
 
 ```ts
-export class AgentRequest {
+export class AgentTransform {
 	//...
 
 	constructor(agent: TldrawAgent) {
@@ -369,7 +369,7 @@ To improve the agent's accuracy, we offset the coordinates of the shapes we send
 Here is how that looks in the `SelectedShapesPartUtil`.
 
 ```ts
-override transformPart(part: SelectedShapesPart, transform: AgentRequest) {
+override transformPart(part: SelectedShapesPart, transform: AgentTransform) {
 	const transformedShapes = part.shapes.map((shape) => {
 		const offsetShape = transform.applyOffsetToShape(shape)
 		return transform.roundShape(offsetShape)
@@ -388,16 +388,16 @@ We also correct for potential mistakes that the model may have made in its outpu
 
 To correct for these transformations when a model is updating shapes, we 'unround' the shape's properties with `unroundShape()`.
 
-We also ensure that the `shapeId` output by the model is unique and, if it was changed during the transform, mapped back to its original value. We do this with `ensureShapeIdIsReal()`.
+We also ensure that the `shapeId` output by the model is unique and, if it was changed during the transform, mapped back to its original value. We do this with `ensureShapeIdExists()`.
 
 ```ts
-override transformAction(action: Streaming<IUpdateAction>, transform: AgentRequest) {
+override transformAction(action: Streaming<IUpdateAction>, transform: AgentTransform) {
 	if (!action.complete) return action
 
 	const { update } = action
 
 	// Ensure the shape ID refers to a real shape
-	const shapeId = transform.ensureShapeIdIsReal(update.shapeId)
+	const shapeId = transform.ensureShapeIdExists(update.shapeId)
 	if (!shapeId) return null
 	update.shapeId = shapeId
 
@@ -413,7 +413,7 @@ override transformAction(action: Streaming<IUpdateAction>, transform: AgentReque
 To correct for the offset, we call `removeOffsetFromShape()`.
 
 ```ts
-override applyAction(action: Streaming<IUpdateAction>, transform: AgentRequest) {
+override applyAction(action: Streaming<IUpdateAction>, transform: AgentTransform) {
 	if (!action.complete) return
 	const { editor } = transform
 
@@ -445,7 +445,7 @@ TODO -->
 
 <!-- ### `transformPart()`
 
-The last piece of a `PromptPartUtil` is the `transformPart()` method. Transforms, all of which are stored in the instance of `AgentRequest` that gets passed in, change the information in `PromptPart`s and `AgentAction`s to be easier for models to understand.
+The last piece of a `PromptPartUtil` is the `transformPart()` method. Transforms, all of which are stored in the instance of `AgentTransform` that gets passed in, change the information in `PromptPart`s and `AgentAction`s to be easier for models to understand.
 
 For example, `applyOffsetToShape` adjusts the position of a shape to make it relative to the current chat origin. The `removeOffsetFromShape` method reverses it. This is helpful because it helps to keep numbers low, which is easier for the model to deal with.
 
@@ -523,9 +523,9 @@ If you need to add any extra setup or configuration for your provider, you can a
 
 ## How to support custom shapes
 
-The agent can already see and move, delete, and arrange any custom shapes out of the box. 
+The agent can already see and move, delete, and arrange any custom shapes out of the box.
 
-However, it will see the shape's `type` as `'unknown'`, with a `subType` field that will show the internal name of the shape's `type`. It will also only be able to see the shape's `shapeId` and `x` and `y` coordinates, and no other props. 
+However, it will see the shape's `type` as `'unknown'`, with a `subType` field that will show the internal name of the shape's `type`. It will also only be able to see the shape's `shapeId` and `x` and `y` coordinates, and no other props.
 
 For the agent to be able to create your custom shape, or to see and edit other props of your shape, add your custom shape to the schema we use to help the model understand shapes.
 
@@ -540,7 +540,7 @@ const SimpleStickerShape = z.object({
 	_type: z.literal('sticker'),
 	note: z.string(),
 	shapeId: z.string(),
-	stickerType: z.enum([ "✅", "❌"]),
+	stickerType: z.enum(['✅', '❌']),
 	x: z.number(),
 	y: z.number(),
 })
@@ -566,7 +566,10 @@ const SIMPLE_SHAPES = [
 3. To define how to convert our shape from its representation on the canvas (`MyCustomStickerShape`) to one our model can interact with (`SimpleStickerShape`) define a `convertStickerShapeToSimple` function and add a case to `convertTldrawShapeToSimpleShape`.
 
 ```ts
-function convertStickerShapeToSimple(editor: Editor, shape: MyCustomStickerShape): ISimpleStickerShape {
+function convertStickerShapeToSimple(
+	editor: Editor,
+	shape: MyCustomStickerShape
+): ISimpleStickerShape {
 	return {
 		_type: 'sticker',
 		note: (shape.meta?.note as string) ?? '',
@@ -579,7 +582,10 @@ function convertStickerShapeToSimple(editor: Editor, shape: MyCustomStickerShape
 ```
 
 ```ts
-export function convertTldrawShapeToSimpleShape(shape: TLShape | MyCustomStickerShape, editor: Editor): ISimpleShape {
+export function convertTldrawShapeToSimpleShape(
+	shape: TLShape | MyCustomStickerShape,
+	editor: Editor
+): ISimpleShape {
 	switch (shape.type) {
 		// ...
 		case 'sticker':

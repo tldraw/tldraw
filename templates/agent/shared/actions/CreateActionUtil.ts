@@ -65,10 +65,10 @@ export class CreateActionUtil extends AgentActionUtil<ICreateAction> {
 		// If the shape is an arrow, ensure the from and to IDs are real shapes
 		if (shape._type === 'arrow') {
 			if (shape.fromId) {
-				shape.fromId = transform.ensureShapeIdIsReal(shape.fromId)
+				shape.fromId = transform.ensureShapeIdExists(shape.fromId)
 			}
 			if (shape.toId) {
-				shape.toId = transform.ensureShapeIdIsReal(shape.toId)
+				shape.toId = transform.ensureShapeIdExists(shape.toId)
 			}
 		}
 

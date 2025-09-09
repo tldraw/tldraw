@@ -34,7 +34,7 @@ export class MoveActionUtil extends AgentActionUtil<IMoveAction> {
 		if (!action.complete) return action
 
 		// Make sure the shape ID refers to a real shape
-		const shapeId = transform.ensureShapeIdIsReal(action.shapeId)
+		const shapeId = transform.ensureShapeIdExists(action.shapeId)
 		if (!shapeId) return null
 		action.shapeId = shapeId
 

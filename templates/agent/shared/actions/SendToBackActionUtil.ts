@@ -33,7 +33,7 @@ export class SendToBackActionUtil extends AgentActionUtil<ISendToBackAction> {
 	}
 
 	override transformAction(action: Streaming<ISendToBackAction>, transform: AgentTransform) {
-		action.shapeIds = transform.ensureShapeIdsAreReal(action.shapeIds ?? [])
+		action.shapeIds = transform.ensureShapeIdsExist(action.shapeIds ?? [])
 		return action
 	}
 

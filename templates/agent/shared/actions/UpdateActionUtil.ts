@@ -71,17 +71,17 @@ export class UpdateActionUtil extends AgentActionUtil<IUpdateAction> {
 		const { update } = action
 
 		// Ensure the shape ID refers to a real shape
-		const shapeId = transform.ensureShapeIdIsReal(update.shapeId)
+		const shapeId = transform.ensureShapeIdExists(update.shapeId)
 		if (!shapeId) return null
 		update.shapeId = shapeId
 
 		// If it's an arrow, ensure the from and to IDs refer to real shapes
 		if (update._type === 'arrow') {
 			if (update.fromId) {
-				update.fromId = transform.ensureShapeIdIsReal(update.fromId)
+				update.fromId = transform.ensureShapeIdExists(update.fromId)
 			}
 			if (update.toId) {
-				update.toId = transform.ensureShapeIdIsReal(update.toId)
+				update.toId = transform.ensureShapeIdExists(update.toId)
 			}
 		}
 

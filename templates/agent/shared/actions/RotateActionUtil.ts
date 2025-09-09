@@ -36,7 +36,7 @@ export class RotateActionUtil extends AgentActionUtil<IRotateAction> {
 	}
 
 	override transformAction(action: Streaming<IRotateAction>, transform: AgentTransform) {
-		action.shapeIds = transform.ensureShapeIdsAreReal(action.shapeIds ?? [])
+		action.shapeIds = transform.ensureShapeIdsExist(action.shapeIds ?? [])
 		return action
 	}
 

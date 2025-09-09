@@ -31,7 +31,7 @@ export class AlignActionUtil extends AgentActionUtil<IAlignAction> {
 	}
 
 	override transformAction(action: Streaming<IAlignAction>, transform: AgentTransform) {
-		action.shapeIds = transform.ensureShapeIdsAreReal(action.shapeIds ?? [])
+		action.shapeIds = transform.ensureShapeIdsExist(action.shapeIds ?? [])
 		return action
 	}
 

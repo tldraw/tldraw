@@ -232,8 +232,10 @@ export class AgentTransform {
 	 */
 	ensureShapeIdIsUnique(id: string): string {
 		const { editor } = this.agent
+		const idWithoutPrefix = id.startsWith('shape:') ? id.slice(6) : id
+
 		// Ensure the id is unique by incrementing a number at the end
-		let newId = id
+		let newId = idWithoutPrefix
 		let existingShape = editor.getShape(`shape:${newId}` as TLShapeId)
 		while (existingShape) {
 			newId = /^.*(\d+)$/.exec(newId)?.[1]
@@ -245,11 +247,17 @@ export class AgentTransform {
 		}
 
 		// If the id was transformed, track it so that future events can refer to it by its original id.
-		if (id !== newId) {
-			this.shapeIdMap.set(id, newId)
+		if (idWithoutPrefix !== newId) {
+			this.shapeIdMap.set(idWithoutPrefix, newId)
 		}
 
-		return newId
+		// If the provided id didn't contain a prefix, return it without one
+		if (idWithoutPrefix === id) {
+			return newId
+		}
+
+		// Otherwise, return the id with the prefix
+		return `shape:${newId}`
 	}
 
 	/**
@@ -257,16 +265,19 @@ export class AgentTransform {
 	 * @param id - The id to check.
 	 * @returns The real id, or null if the shape doesn't exist.
 	 */
-	ensureShapeIdIsReal(id: string): string | null {
+	ensureShapeIdExists(id: string): string | null {
 		const { editor } = this.agent
+
+		const idWithoutPrefix = id.startsWith('shape:') ? id.slice(6) : id
+
 		// If there's already a transformed ID, use that
-		const existingId = this.shapeIdMap.get(id)
+		const existingId = this.shapeIdMap.get(idWithoutPrefix)
 		if (existingId) {
 			return existingId
 		}
 
 		// If there's an existing shape with this ID, use that
-		const existingShape = editor.getShape(`shape:${id}` as TLShapeId)
+		const existingShape = editor.getShape(`shape:${idWithoutPrefix}` as TLShapeId)
 		if (existingShape) {
 			return id
 		}
@@ -280,8 +291,8 @@ export class AgentTransform {
 	 * @param ids - An array of ids to check.
 	 * @returns The array of ids, with imaginary ids removed.
 	 */
-	ensureShapeIdsAreReal(ids: string[]): string[] {
-		return ids.map((id) => this.ensureShapeIdIsReal(id)).filter((v) => v !== null)
+	ensureShapeIdsExist(ids: string[]): string[] {
+		return ids.map((id) => this.ensureShapeIdExists(id)).filter((v) => v !== null)
 	}
 
 	/**
