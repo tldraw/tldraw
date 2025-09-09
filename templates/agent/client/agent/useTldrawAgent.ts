@@ -10,7 +10,7 @@ import { $agentsAtom } from './agentsAtom'
  *
  * @example
  * ```tsx
- * const agent = useTldrawAgent(editor, 'my-agent')
+ * const agent = useTldrawAgent(editor)
  * agent.prompt({ message: 'Draw a snowman' })
  * ```
  *
@@ -22,7 +22,7 @@ import { $agentsAtom } from './agentsAtom'
  * agent2.prompt({ message: 'Draw a snowman on the right' })
  * ```
  */
-export function useTldrawAgent(editor: Editor, id: string): TldrawAgent {
+export function useTldrawAgent(editor: Editor, id: string = 'tldraw-agent'): TldrawAgent {
 	const toasts = useToasts()
 
 	const handleError = useCallback(

@@ -142,19 +142,19 @@ There are other methods available on the `PromptPartUtil` class that you can ove
 
 Agent action utils define the actions the agent can perform. Each `AgentActionUtil` adds a different capability to the agent.
 
-As an example, this is how to allow the agent to clear the screen.
+The following examples shows how to allow the agent to clear the screen.
 
-Define an agent action:
+Define an agent action by creating a schema for it:
 
 ```ts
 const ClearAction = z
 	.object({
 		// All agent actions must have a _type field
-		// We use an underscore to encourage the model to put this field first
+		// The underscore encourages the model to put this field first
 		_type: z.literal('clear'),
 	})
 	.meta({
-		// Give the action a title and description to tell the model what this action does
+		// A title and description tell the model what this action does
 		title: 'Clear',
 		description: 'The agent deletes all shapes on the canvas.',
 	})
@@ -169,10 +169,12 @@ Create an agent action util:
 export class ClearActionUtil extends AgentActionUtil<IClearAction> {
 	static override type = 'clear' as const
 
+	// Tell the model what the action's schema is
 	override getSchema() {
 		return ClearAction
 	}
 
+	// Choose how the action gets displayed in the chat panel UI
 	override getInfo() {
 		return {
 			icon: 'trash' as const,
@@ -180,6 +182,7 @@ export class ClearActionUtil extends AgentActionUtil<IClearAction> {
 		}
 	}
 
+	// Execute the action
 	override applyAction(action: Streaming<IClearAction>, transform: AgentRequestTransform) {
 		// Don't do anything if the action hasn't finished streaming
 		if (!action.complete) return
@@ -327,11 +330,11 @@ LLMs are better at understanding the differences between smaller numbers than be
 
 This means the agent now thinks the shapes and viewports it knows exists are in different positions than they are. In order to correct for this in the actions that the agent outputs, we call our `removeOffsetToBox()`, `removeOffsetToVec()`, and `removeOffsetToShape()` methods.
 
-__This is the main idea behind transforms: Corrections are made to give the model easier-to-understand data, which then must be reversed.__
+**This is the main idea behind transforms: Corrections are made to give the model easier-to-understand data, which then must be reversed.**
 
 ### Transforming `PromptPart`s
 
-To improve a model's ability to understand the information we give it, 
+To improve a model's ability to understand the information we give it,
 
 ### Transforming `AgentActions`s
 
