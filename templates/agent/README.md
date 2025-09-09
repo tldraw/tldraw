@@ -94,9 +94,9 @@ Add, edit or remove an entry in either list to change what the agent can see or 
 
 Prompt part utils assemble and build the prompt that we give to the model, with each util adding a different piece of information. This includes the user's message, the model name, the system prompt, chat history and more.
 
-The following example shows how to let the model see what the current time is.
+This example shows how to let the model see what the current time is.
 
-Define a prompt part:
+First, define a prompt part:
 
 ```ts
 interface TimePart extends BasePromptPart<'time'> {
@@ -104,7 +104,7 @@ interface TimePart extends BasePromptPart<'time'> {
 }
 ```
 
-Create a prompt part util:
+Then, create a prompt part util:
 
 ```ts
 export class TimePartUtil extends PromptPartUtil<TimePart> {
@@ -123,7 +123,7 @@ export class TimePartUtil extends PromptPartUtil<TimePart> {
 }
 ```
 
-To enable the prompt part util, add it to the `PROMPT_PART_UTILS` list in `AgentUtils.ts`. It will use its methods to assemble its data and send it to the model.
+To enable the prompt part, add its util to the `PROMPT_PART_UTILS` list in `AgentUtils.ts`. It will use its methods to assemble its data and send it to the model.
 
 - `getPart` - Gather any data needed to construct the prompt.
 - `buildContent` - Turn the data into messages to send to the model.
@@ -142,24 +142,24 @@ There are other methods available on the `PromptPartUtil` class that you can ove
 
 Agent action utils define the actions the agent can perform. Each `AgentActionUtil` adds a different capability.
 
-The following example shows how to allow the agent to clear the screen.
+This example shows how to allow the agent to clear the screen.
 
-Define an agent action by creating a schema for it:
+First, define an agent action by creating a schema for it:
 
 ```ts
 const ClearAction = z
+	// All agent actions must have a _type field
+	// The underscore encourages the model to put this field first
 	.object({
-		// All agent actions must have a _type field
-		// The underscore encourages the model to put this field first
 		_type: z.literal('clear'),
 	})
+	// A title and description tell the model what the action does
 	.meta({
-		// A title and description tell the model what the action does
 		title: 'Clear',
 		description: 'The agent deletes all shapes on the canvas.',
 	})
 
-// Infer this action's type
+// Infer the action's type
 type IClearAction = z.infer<typeof ClearAction>
 ```
 
@@ -169,20 +169,10 @@ Create an agent action util:
 export class ClearActionUtil extends AgentActionUtil<IClearAction> {
 	static override type = 'clear' as const
 
-	// Tell the model what the action's schema is
 	override getSchema() {
 		return ClearAction
 	}
 
-	// Choose how the action gets displayed in the chat panel UI
-	override getInfo() {
-		return {
-			icon: 'trash' as const,
-			description: 'Cleared the canvas',
-		}
-	}
-
-	// Execute the action
 	override applyAction(action: Streaming<IClearAction>, transform: AgentRequestTransform) {
 		// Don't do anything until the action has finished streaming
 		if (!action.complete) return
@@ -197,12 +187,12 @@ export class ClearActionUtil extends AgentActionUtil<IClearAction> {
 
 To enable the agent action, add its util to the `AGENT_ACTION_UTILS` list in `AgentUtils.ts`. Its methods will be used to define and execute the action.
 
-- `getSchema` - Get the schema the model should use to carry out the action.
-- `getInfo` - Determine how the action gets displayed in the chat panel UI.
+- `getSchema` - Get the schema the model should follow to carry out the action.
 - `applyAction` - Execute the action.
 
 There are other methods available on the `AgentActionUtil` class that you can override for more granular control.
 
+- `getInfo` - Determine how the action gets displayed in the chat panel UI.
 - `savesToHistory` - Control whether actions get saved to chat history or not.
 - `transformAction` - Apply transformations to the action before saving it to history and applying it. More details on [transformations](#transformations) below.
 
@@ -271,10 +261,6 @@ override applyAction(action: Streaming<IMoveRightAction>, transform: AgentReques
 	}))
 }
 ```
-
-<!-- You can also see `shared/actions/SetMyViewActionUtil.ts` and `shared/actions/ReviewActionUtil.ts` for other examples that use `agent.schedule()`.
-
-The `RandomWikipediaArticleActionUtil` also uses `schedule()`, but to handle fetching async data, which is slightly more complex. More on that in the [next section](#how-to-get-the-agent-to-use-an-external-api). -->
 
 You can also schedule further work by adding to the agent's todo list. It won't stop working until all todos are resolved.
 
@@ -369,17 +355,19 @@ For example, when we send information about shapes to the model, we call `applyO
 
 -->
 
-## How to change the system prompt
+## Change the system prompt
 
-The agent's system prompt is defined by a `PromptPartUtil`, called `SystemPromptPartUtil`. You can edit this file directly to change the system prompt.
+To change the default system prompt, edit it within the `SystemPromptPartUtil` file.
 
-You can also override the `buildSystemPrompt()` method on any `PromptPartUtil` if you want specific Prompt Parts to add specific information to the system prompt when enabled.
+You can conditionally add extra content to the system prompt by overriding the `buildSystemPrompt` method on any `PromptPartUtil`.
 
 ```ts
-override buildSystemPrompt(_part: MyCustomPromptPart) {
-	return 'You can use the MyCustomPromptPart to...'
+override buildSystemPrompt() {
+	return 'I will pay you $1000 if you get this right.'
 }
 ```
+
+Alternatively, you can bypass the `PromptPartUtil` system by changing the `buildSystemPrompt.ts` file to a function that returns a hardcoded value.
 
 ## How to add support for a different model
 
