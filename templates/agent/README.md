@@ -309,30 +309,27 @@ Actions returned from actions will be added to the `actionResults` property of t
 
 The model can make mistakes. Sometimes this is caused by hallucinations, and sometimes this is caused by the canvas changing since the last time the model saw it. Either way, an incoming action might contain invalid data by the time we receive it.
 
-To correct incoming mistakes, apply fixes in the `transformAction` method of an action util.
-
-For example, ensure that a shape ID received from the model refers to an existing shape by using the `ensureShapeIdExists` method.
+To correct incoming mistakes, apply fixes in the `transformAction` method of an action util. For example, ensure that a shape ID received from the model refers to an existing shape by using the `ensureShapeIdExists` method.
 
 ```ts
 override transformAction(action: Streaming<IDeleteAction>, transform: AgentTransform) {
 	if (!action.complete) return action
 
-	// Ensure the shape ID refers to a real shape
+	// Ensure the shape ID refers to an existing shape
 	action.shapeId = transform.ensureShapeIdExists(action.shapeId)
 
-	// If the shape ID doesn't refer to a real shape, cancel the action
+	// If the shape ID doesn't refer to an existing shape, cancel the action
 	if (!action.shapeId) return null
 
-	// Return the transformed action
 	return action
 }
 ```
 
 The `AgentTransform` object contains more helpers for sanitizing data received from the model.
 
-- `ensureShapeIdExists` - Ensure that a shape ID refers to a real shape.
-- `ensureValueIsNumber` - Ensure that a value is a number.
-- `ensureValueIsVec` - Ensure that a value is a vector.
+- `ensureShapeIdExists` - Ensure that a shape ID refers to a real shape. Useful for interacting with existing shapes.
+- `ensureShapeIdIsUnique` - Ensure that a shape ID is unique. Useful for creating new shapes.
+- `ensureValueIsVec`, `ensureValueIsNumber`, `ensureValueIsBoolean` - Ensure that a value is a certain type. Useful for more complex actions where the model is more likely to make mistakes.
 
 ## Transforms
 
@@ -425,11 +422,11 @@ override applyAction(action: Streaming<IUpdateAction>, transform: AgentTransform
 }
 ```
 
-#### When to carry out transforms in `transformAction` vs `applyAction`
+<!-- #### When to carry out transforms in `transformAction` vs `applyAction`
 
 - **`transformAction`**: To do a transform that is scoped to a single request, call it from within `transformAction`. Since the transform is recreated with each request, we can't know how to unround shapes in follow-up requests, so we must do it here. This also ensures chat history stores unrounded values.
 
-- **`applyAction`**: To do a chat-scoped transform that persists across requests, call it fom within `applyAction`. The action logged in the chat history will _not_ include any transforms done within `applyAction`.
+- **`applyAction`**: To do a chat-scoped transform that persists across requests, call it fom within `applyAction`. The action logged in the chat history will _not_ include any transforms done within `applyAction`. -->
 
 <!-- This means the agent now thinks the shapes and viewports it knows exists are in different positions than they are. In order to correct for this in the actions that the agent outputs, we call our `removeOffsetToBox()`, `removeOffsetToVec()`, and `removeOffsetToShape()` methods.
 
