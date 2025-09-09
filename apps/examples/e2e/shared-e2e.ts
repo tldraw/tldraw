@@ -99,6 +99,5 @@ export async function clickMenu(page: Page, path: string) {
 
 // We need a way to wait for the editor to finish a tick
 export function sleepFrames(frames = 2): Promise<void> {
-	// eslint-disable-next-line local/no-at-internal
 	return sleep(frames * (1000 / 60))
 }
