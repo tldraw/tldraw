@@ -63,7 +63,7 @@ function convertDrawShapeToSimple(_editor: Editor, shape: TLDrawShape): ISimpleD
 		_type: 'draw',
 		color: shape.props.color,
 		fill: convertTldrawFillToSimpleFill(shape.props.fill),
-		note: (shape.meta?.note as string) ?? '',
+		note: (shape.meta.note as string) ?? '',
 		shapeId: convertTldrawIdToSimpleId(shape.id),
 	}
 }
@@ -94,7 +94,7 @@ function convertTextShapeToSimple(editor: Editor, shape: TLTextShape): ISimpleTe
 		_type: 'text',
 		color: shape.props.color,
 		fontSize: convertTldrawFontSizeAndScaleToSimpleFontSize(textSize, shape.props.scale),
-		note: (shape.meta?.note as string) ?? '',
+		note: (shape.meta.note as string) ?? '',
 		shapeId: convertTldrawIdToSimpleId(shape.id),
 		text: text,
 		textAlign: shape.props.textAlign,
@@ -129,7 +129,7 @@ function convertGeoShapeToSimple(editor: Editor, shape: TLGeoShape): ISimpleGeoS
 		color: shape.props.color,
 		fill: convertTldrawFillToSimpleFill(shape.props.fill),
 		h: shape.props.h,
-		note: (shape.meta?.note as string) ?? '',
+		note: (shape.meta.note as string) ?? '',
 		shapeId: convertTldrawIdToSimpleId(shape.id),
 		text: text ?? '',
 		textAlign: newTextAlign,
@@ -144,7 +144,7 @@ function convertLineShapeToSimple(_editor: Editor, shape: TLLineShape): ISimpleL
 	return {
 		_type: 'line',
 		color: shape.props.color,
-		note: (shape.meta?.note as string) ?? '',
+		note: (shape.meta.note as string) ?? '',
 		shapeId: convertTldrawIdToSimpleId(shape.id),
 		x1: points[0].x + shape.x,
 		x2: points[1].x + shape.x,
@@ -166,9 +166,9 @@ function convertArrowShapeToSimple(editor: Editor, shape: TLArrowShape): ISimple
 		bend: shape.props.bend,
 		color: shape.props.color,
 		fromId: startBinding?.toId ?? null,
-		note: (shape.meta?.note as string) ?? '',
+		note: (shape.meta.note as string) ?? '',
 		shapeId: convertTldrawIdToSimpleId(shape.id),
-		text: (shape.meta?.text as string) ?? '',
+		text: (shape.meta.text as string) ?? '',
 		toId: endBinding?.toId ?? null,
 		x1: shape.props.start.x + shape.x,
 		x2: shape.props.end.x + shape.x,
@@ -183,7 +183,7 @@ function convertNoteShapeToSimple(editor: Editor, shape: TLNoteShape): ISimpleNo
 	return {
 		_type: 'note',
 		color: shape.props.color,
-		note: (shape.meta?.note as string) ?? '',
+		note: (shape.meta.note as string) ?? '',
 		shapeId: convertTldrawIdToSimpleId(shape.id),
 		text: text ?? '',
 		x: shape.x,
@@ -195,7 +195,7 @@ function convertEmbedShapeToSimple(editor: Editor, shape: TLEmbedShape): ISimple
 	return {
 		_type: 'bookmark',
 		url: shape.props.url,
-		note: (shape.meta?.note as string) ?? '',
+		note: (shape.meta.note as string) ?? '',
 		shapeId: convertTldrawIdToSimpleId(shape.id),
 		x: shape.x,
 		y: shape.y,
@@ -205,7 +205,7 @@ function convertEmbedShapeToSimple(editor: Editor, shape: TLEmbedShape): ISimple
 function convertUnknownShapeToSimple(_editor: Editor, shape: TLShape): ISimpleUnknownShape {
 	return {
 		_type: 'unknown',
-		note: (shape.meta?.note as string) ?? '',
+		note: (shape.meta.note as string) ?? '',
 		shapeId: convertTldrawIdToSimpleId(shape.id),
 		subType: shape.type,
 		x: shape.x,

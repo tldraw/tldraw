@@ -462,32 +462,40 @@ If you need to add any extra setup or configuration for your provider, you can a
 
 ## Support custom shapes
 
-The agent can already see and move, delete, and arrange any custom shapes out of the box.
+If your app includes [custom shapes](https://tldraw.dev/docs/shapes#Custom-shapes-1), the agent will be able to see, move, delete, resize, rotate and arrange them with no extra setup. However, it won't be able to create them or edit their custom properties.
 
-However, it will see the shape's `type` as `'unknown'`, with a `subType` field that will show the internal name of the shape's `type`. It will also only be able to see the shape's `shapeId` and `x` and `y` coordinates, and no other props.
+To let the agent create or edit your custom shape, add it to the schema in `SimpleShape.ts`.
 
-For the agent to be able to create your custom shape, or to see and edit other props of your shape, add your custom shape to the schema we use to help the model understand shapes.
-
-### Example: Allow a model to create and edit a new "sticker" shape
-
-Let's add support for a hypothetical custom sticker shape. The sticker has a prop called `stickerType`, which can be either "✅" or "❌".
-
-1. Define your how the model should see your custom shape in `shared/format/SimpleShape.ts` using a zod object. Every shape is required to have a `_type` and a `shapeId` field. To give the model a place to store information about the shape's purposes when creating or updating it, it's strongly recommended that you give it a `note` field as well. To ensure the model understands the purpose of each field, give them descriptive names.
+For example, here's a schema for a custom sticker shape.
 
 ```ts
-const SimpleStickerShape = z.object({
-	_type: z.literal('sticker'),
-	note: z.string(),
-	shapeId: z.string(),
-	stickerType: z.enum(['✅', '❌']),
-	x: z.number(),
-	y: z.number(),
-})
+const SimpleStickerShape = z
+	.object({
+		// Required: The _type used to identify the shape type
+		_type: z.literal('sticker'),
 
-export type ISimpleStickerShape = z.infer<typeof SimpleStickerShape>
+		// Required: Notes that the agent leaves for itself
+		note: z.string(),
+
+		// Required: The shape's id
+		shapeId: z.string(),
+
+		// Custom properties
+		stickerType: z.enum(['❤️', '⭐']),
+		x: z.number(),
+		y: z.number(),
+	})
+	.meta({
+		// Information about the shape to give to the agent
+		title: 'Sticker Shape',
+		description:
+			'A sticker shape is a small symbol stamped onto the canvas. There are two types of stickers: heart and star.',
+	})
 ```
 
-2. Add the new shape to the `SIMPLE_SHAPES` union.
+It's worth considering how the agent should see your custom shape. You might want to leave out some properties and focus on giving the agent control over the most important ones. It's also best to keep them in alphabetical order for better performance with Gemini models.
+
+To add your custom shape schema, add it to the list of `SIMPLE_SHAPES` in the same file.
 
 ```ts
 const SIMPLE_SHAPES = [
@@ -498,43 +506,36 @@ const SIMPLE_SHAPES = [
 	SimpleArrowShape,
 	SimpleNoteShape,
 	SimpleUnknownShape,
-	SimpleStickerShape, // our new SimpleStickerShape
+
+	// Our custom shape
+	SimpleStickerShape,
 ] as const
 ```
 
-3. To define how to convert our shape from its representation on the canvas (`MyCustomStickerShape`) to one our model can interact with (`SimpleStickerShape`) define a `convertStickerShapeToSimple` function and add a case to `convertTldrawShapeToSimpleShape`.
-
-```ts
-function convertStickerShapeToSimple(
-	editor: Editor,
-	shape: MyCustomStickerShape
-): ISimpleStickerShape {
-	return {
-		_type: 'sticker',
-		note: (shape.meta?.note as string) ?? '',
-		shapeId: convertTldrawIdToSimpleId(shape.id),
-		stickerType: shape.props.stickerType,
-		x: shape.x,
-		y: shape.y,
-	}
-}
-```
+To let the agent convert your custom shape into the `SimpleShape` format, add it as a case in `convertTldrawShapeToSimpleShape.ts`.
 
 ```ts
 export function convertTldrawShapeToSimpleShape(
-	shape: TLShape | MyCustomStickerShape,
+	shape: TLShape,
 	editor: Editor
 ): ISimpleShape {
 	switch (shape.type) {
 		// ...
 		case 'sticker':
-			return convertStickerShapeToSimple(editor, shape as MyCustomStickerShape)
+			return return {
+				_type: 'sticker',
+				note: (shape.meta.note as string) ?? '',
+				shapeId: convertTldrawIdToSimpleId(shape.id),
+				stickerType: shape.props.stickerType,
+				x: shape.x,
+				y: shape.y,
+			}
 		// ...
 	}
 }
 ```
 
-4. Now the agent can see and fully understand stickers on the canvas. However, it still can't create or edit them. To allow them to do this, head to `CreateActionUtil.ts` and `UpdateActionUtil.ts` respectively and add support for those. This is where `SimpleShape` format shapes, which is what the model outputs, are converted to the 'real' format required by the canvas.
+<!-- 4. Now the agent can see and fully understand stickers on the canvas. However, it still can't create or edit them. To allow them to do this, head to `CreateActionUtil.ts` and `UpdateActionUtil.ts` respectively and add support for those. This is where `SimpleShape` format shapes, which is what the model outputs, are converted to the 'real' format required by the canvas.
 
 Here's how the new shape is handled in `CreateActionUtil.ts`'s `getTldrawAiChangesFromCreateAction()` function. It's handled very similarly in `UpdateActionUtil.ts`
 
@@ -561,7 +562,7 @@ case 'sticker': {
 }
 ```
 
-The model can now see, create, and update the sticker type of your hypothetical `MyCustomStickerShape` shape.
+The model can now see, create, and update the sticker type of your hypothetical `MyCustomStickerShape` shape. -->
 
 <!-- > _Why does `_type` start with an underscore? And why are the properties of all of the simple shapes in alphabetical order?_ Good question! Unfortunately as users of LLMs we exist at the behest of their strange quirks we've found this helps for some models: in this case the quirk was [property ordering.](https://ai.google.dev/gemini-api/docs/structured-output#property-ordering) If you have no intention of using Gemini, you can remove the underscores from `_type` and change the orders of the properties to be more reasonable at your own peril. -->
 
