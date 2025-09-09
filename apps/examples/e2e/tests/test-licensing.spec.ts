@@ -1,5 +1,4 @@
 import { expect } from '@playwright/test'
-import { LICENSE_TIMEOUT } from 'tldraw'
 import test from './fixtures/fixtures'
 
 // Helper function to set up license testing
@@ -8,7 +7,7 @@ async function setupLicenseTest(page: any, licenseKey: string) {
 			window.__TLDRAW_LICENSE_KEY__ = "${licenseKey}";
 		`)
 	await page.goto('http://localhost:5420/end-to-end')
-	await page.waitForTimeout(LICENSE_TIMEOUT + 1000) // Wait for license processing
+	await page.waitForTimeout(6000) // Wait for license processing
 }
 
 test.describe('Internal license', () => {
@@ -40,7 +39,7 @@ test.describe('Watermarked license', () => {
 	test('shows watermark with default license key', async ({ page }) => {
 		// Don't set any license key - this should use our default license that shows the watermark
 		await page.goto('http://localhost:5420/end-to-end')
-		await page.waitForTimeout(LICENSE_TIMEOUT + 1000)
+		await page.waitForTimeout(6000)
 
 		// The editor should render normally
 		await expect(page.locator('.tl-canvas')).toBeVisible()
@@ -65,7 +64,7 @@ test.describe('Unlicensed', () => {
 			window.__TLDRAW_LICENSE_KEY__ = null;
 		`)
 		await page.goto('http://localhost:5420/end-to-end')
-		await page.waitForTimeout(LICENSE_TIMEOUT + 1000)
+		await page.waitForTimeout(6000)
 
 		// In development mode (localhost), the editor should render normally with watermark
 		await expect(page.locator('.tl-canvas')).toBeVisible()
@@ -92,7 +91,7 @@ test.describe('Unlicensed', () => {
 			window.__TLDRAW_LICENSE_KEY__ = undefined;
 		`)
 		await page.goto('http://localhost:5420/end-to-end')
-		await page.waitForTimeout(LICENSE_TIMEOUT + 1000)
+		await page.waitForTimeout(6000)
 
 		// In development mode (localhost), the editor should render normally with watermark
 		await expect(page.locator('.tl-canvas')).toBeVisible()
@@ -113,7 +112,7 @@ test.describe('Unlicensed', () => {
 			window.__TLDRAW_LICENSE_KEY__ = "";
 		`)
 		await page.goto('http://localhost:5420/end-to-end')
-		await page.waitForTimeout(LICENSE_TIMEOUT + 1000)
+		await page.waitForTimeout(6000)
 
 		// In development mode (localhost), the editor should render normally with watermark
 		await expect(page.locator('.tl-canvas')).toBeVisible()

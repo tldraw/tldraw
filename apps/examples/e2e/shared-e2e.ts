@@ -1,7 +1,11 @@
 import { Locator, Page, PlaywrightTestArgs, PlaywrightWorkerArgs } from '@playwright/test'
-import { Editor, sleep } from 'tldraw'
+import { type Editor } from 'tldraw'
 
 declare const editor: Editor
+
+export function sleep(ms: number): Promise<void> {
+	return new Promise((resolve) => setTimeout(resolve, ms))
+}
 
 export async function setup({ page, context }: PlaywrightTestArgs & PlaywrightWorkerArgs) {
 	await context.grantPermissions(['clipboard-read', 'clipboard-write'])
