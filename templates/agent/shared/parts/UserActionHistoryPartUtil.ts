@@ -1,6 +1,6 @@
 import { squashRecordDiffs } from 'tldraw'
 import { TldrawAgent } from '../../client/agent/TldrawAgent'
-import { AgentRequestTransform } from '../AgentRequestTransform'
+import { AgentTransform } from '../AgentTransform'
 import { convertTldrawShapeToSimpleShape, ISimpleShape } from '../format/SimpleShape'
 import { AgentRequest } from '../types/AgentRequest'
 import { BasePromptPart } from '../types/BasePromptPart'
@@ -86,7 +86,7 @@ export class UserActionHistoryPartUtil extends PromptPartUtil<UserActionHistoryP
 		return part
 	}
 
-	override transformPart(part: UserActionHistoryPart, transform: AgentRequestTransform) {
+	override transformPart(part: UserActionHistoryPart, transform: AgentTransform) {
 		for (const update of part.updated) {
 			update.before = transform.applyOffsetToShapePartial(update.before)
 			update.after = transform.applyOffsetToShapePartial(update.after)

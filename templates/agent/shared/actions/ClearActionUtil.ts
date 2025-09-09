@@ -1,5 +1,5 @@
 import z from 'zod'
-import { AgentRequestTransform } from '../AgentRequestTransform'
+import { AgentTransform } from '../AgentTransform'
 import { Streaming } from '../types/Streaming'
 import { AgentActionUtil } from './AgentActionUtil'
 
@@ -40,7 +40,7 @@ export class ClearActionUtil extends AgentActionUtil<IClearAction> {
 	/**
 	 * Tell the model how to apply the action
 	 */
-	override applyAction(action: Streaming<IClearAction>, transform: AgentRequestTransform) {
+	override applyAction(action: Streaming<IClearAction>, transform: AgentTransform) {
 		// Don't do anything if the action hasn't finished streaming
 		if (!action.complete) return
 

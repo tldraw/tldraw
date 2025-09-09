@@ -1,6 +1,6 @@
 import { TLShapeId, Vec } from 'tldraw'
 import z from 'zod'
-import { AgentRequestTransform } from '../AgentRequestTransform'
+import { AgentTransform } from '../AgentTransform'
 import { Streaming } from '../types/Streaming'
 import { AgentActionUtil } from './AgentActionUtil'
 
@@ -30,7 +30,7 @@ export class MoveActionUtil extends AgentActionUtil<IMoveAction> {
 		}
 	}
 
-	override transformAction(action: Streaming<IMoveAction>, transform: AgentRequestTransform) {
+	override transformAction(action: Streaming<IMoveAction>, transform: AgentTransform) {
 		if (!action.complete) return action
 
 		// Make sure the shape ID refers to a real shape
@@ -48,7 +48,7 @@ export class MoveActionUtil extends AgentActionUtil<IMoveAction> {
 		return action
 	}
 
-	override applyAction(action: Streaming<IMoveAction>, transform: AgentRequestTransform) {
+	override applyAction(action: Streaming<IMoveAction>, transform: AgentTransform) {
 		if (!action.complete) return
 
 		// Translate the position back to the chat's position

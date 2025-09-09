@@ -1,5 +1,5 @@
 import { RecordsDiff, reverseRecordsDiff, structuredClone, TLRecord } from 'tldraw'
-import { AgentRequestTransform } from '../../shared/AgentRequestTransform'
+import { AgentTransform } from '../../shared/AgentTransform'
 import { AgentActionResult } from '../../shared/types/AgentActionResult'
 import { AgentRequest } from '../../shared/types/AgentRequest'
 import { IChatHistoryItem } from '../../shared/types/ChatHistoryItem'
@@ -40,7 +40,7 @@ export function requestAgent({
 	let cancelled = false
 	const controller = new AbortController()
 	const signal = controller.signal
-	const transform = new AgentRequestTransform(agent)
+	const transform = new AgentTransform(agent)
 
 	const promise = new Promise<AgentActionResult[]>((resolve) => {
 		agent.preparePrompt(request, transform).then(async (prompt) => {

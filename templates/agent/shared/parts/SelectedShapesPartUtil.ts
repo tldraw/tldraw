@@ -1,6 +1,6 @@
 import { structuredClone } from 'tldraw'
 import { TldrawAgent } from '../../client/agent/TldrawAgent'
-import { AgentRequestTransform } from '../AgentRequestTransform'
+import { AgentTransform } from '../AgentTransform'
 import { convertTldrawShapeToSimpleShape, ISimpleShape } from '../format/SimpleShape'
 import { AgentRequest } from '../types/AgentRequest'
 import { BasePromptPart } from '../types/BasePromptPart'
@@ -35,7 +35,7 @@ export class SelectedShapesPartUtil extends PromptPartUtil<SelectedShapesPart> {
 		}
 	}
 
-	override transformPart(part: SelectedShapesPart, transform: AgentRequestTransform) {
+	override transformPart(part: SelectedShapesPart, transform: AgentTransform) {
 		const transformedShapes = part.shapes.map((shape) => {
 			const offsetShape = transform.applyOffsetToShape(shape)
 			return transform.roundShape(offsetShape)

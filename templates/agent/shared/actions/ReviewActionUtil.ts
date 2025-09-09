@@ -1,6 +1,6 @@
 import { Box } from 'tldraw'
 import z from 'zod'
-import { AgentRequestTransform } from '../AgentRequestTransform'
+import { AgentTransform } from '../AgentTransform'
 import { IAreaContextItem } from '../types/ContextItem'
 import { Streaming } from '../types/Streaming'
 import { AgentActionUtil } from './AgentActionUtil'
@@ -40,7 +40,7 @@ export class ReviewActionUtil extends AgentActionUtil<IReviewAction> {
 		}
 	}
 
-	override applyAction(action: Streaming<IReviewAction>, transform: AgentRequestTransform) {
+	override applyAction(action: Streaming<IReviewAction>, transform: AgentTransform) {
 		if (!action.complete) return
 		const { agent } = transform
 

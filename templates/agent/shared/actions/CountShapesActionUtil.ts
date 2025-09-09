@@ -1,5 +1,5 @@
 import z from 'zod'
-import { AgentRequestTransform } from '../AgentRequestTransform'
+import { AgentTransform } from '../AgentTransform'
 import { Streaming } from '../types/Streaming'
 import { AgentActionUtil } from './AgentActionUtil'
 
@@ -31,10 +31,7 @@ export class CountShapesActionUtil extends AgentActionUtil<ICountShapesAction> {
 		}
 	}
 
-	override async applyAction(
-		action: Streaming<ICountShapesAction>,
-		transform: AgentRequestTransform
-	) {
+	override async applyAction(action: Streaming<ICountShapesAction>, transform: AgentTransform) {
 		if (!action.complete) return
 		const { agent, editor } = transform
 

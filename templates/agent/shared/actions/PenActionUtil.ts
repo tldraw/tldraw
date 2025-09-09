@@ -1,6 +1,6 @@
 import { createShapeId, TLDrawShape, TLDrawShapeSegment, Vec, VecModel } from 'tldraw'
 import z from 'zod'
-import { AgentRequestTransform } from '../AgentRequestTransform'
+import { AgentTransform } from '../AgentTransform'
 import { asColor, SimpleColor } from '../format/SimpleColor'
 import { convertSimpleFillToTldrawFill, SimpleFill } from '../format/SimpleFill'
 import { Streaming } from '../types/Streaming'
@@ -43,7 +43,7 @@ export class PenActionUtil extends AgentActionUtil<IPenAction> {
 		}
 	}
 
-	override transformAction(action: Streaming<IPenAction>, transform: AgentRequestTransform) {
+	override transformAction(action: Streaming<IPenAction>, transform: AgentTransform) {
 		if (!action.points) return action
 
 		// This is a complex action for the model, so validate the points it gives us
@@ -58,7 +58,7 @@ export class PenActionUtil extends AgentActionUtil<IPenAction> {
 		return action
 	}
 
-	override applyAction(action: Streaming<IPenAction>, transform: AgentRequestTransform) {
+	override applyAction(action: Streaming<IPenAction>, transform: AgentTransform) {
 		const { editor } = transform
 
 		if (!action.points) return

@@ -1,6 +1,6 @@
 import { TldrawAgent } from '../../client/agent/TldrawAgent'
 import { AgentModelName } from '../../worker/models'
-import { AgentRequestTransform } from '../AgentRequestTransform'
+import { AgentTransform } from '../AgentTransform'
 import { AgentMessage, AgentMessageContent } from '../types/AgentMessage'
 import { AgentRequest } from '../types/AgentRequest'
 import { BasePromptPart } from '../types/BasePromptPart'
@@ -18,7 +18,7 @@ export abstract class PromptPartUtil<T extends BasePromptPart = BasePromptPart> 
 	 * Transform the prompt part before it's added to the final prompt.
 	 * @returns The transformed prompt part, or null to reject the part
 	 */
-	transformPart(promptPart: T, _transform: AgentRequestTransform): T | null {
+	transformPart(promptPart: T, _transform: AgentTransform): T | null {
 		return promptPart
 	}
 

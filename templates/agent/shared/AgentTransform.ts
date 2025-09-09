@@ -5,8 +5,8 @@ import { ISimpleShape } from './format/SimpleShape'
 import { IContextItem } from './types/ContextItem'
 
 /**
- * This class handles the transformations that can happen throughout a single
- * agent request. It contains helpers that can be used to transform prompt parts
+ * This class contains handles the transformations that happen throughout a
+ * request. It contains helpers that can be used to transform prompt parts
  * before they get sent to the model, as well as helpers that can be used to
  * transform incoming actions as they get streamed back from the model.
  *
@@ -20,7 +20,7 @@ import { IContextItem } from './types/ContextItem'
  * it saves a record of this change so that further actions can continue to
  * refer to the shape by its untransformed ID.
  */
-export class AgentRequestTransform {
+export class AgentTransform {
 	/**
 	 * The agent that the transform is for.
 	 */

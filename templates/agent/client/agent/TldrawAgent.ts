@@ -1,6 +1,6 @@
 import { atom, Editor, RecordsDiff, structuredClone, TLRecord, VecModel } from 'tldraw'
 import { AgentActionUtil } from '../../shared/actions/AgentActionUtil'
-import { AgentRequestTransform } from '../../shared/AgentRequestTransform'
+import { AgentTransform } from '../../shared/AgentTransform'
 import { getAgentActionUtilsRecord, getPromptPartUtilsRecord } from '../../shared/AgentUtils'
 import { PromptPartUtil } from '../../shared/parts/PromptPartUtil'
 import { AgentAction } from '../../shared/types/AgentAction'
@@ -216,10 +216,7 @@ export class TldrawAgent {
 	 * @param transform - The transform to use.
 	 * @returns The fully assembled prompt.
 	 */
-	async preparePrompt(
-		request: AgentRequest,
-		transform: AgentRequestTransform
-	): Promise<AgentPrompt> {
+	async preparePrompt(request: AgentRequest, transform: AgentTransform): Promise<AgentPrompt> {
 		const { promptPartUtils } = this
 		const transformedParts: PromptPart[] = []
 
@@ -427,10 +424,7 @@ export class TldrawAgent {
 	 * @param transform The transform to use.
 	 * @returns The diff of the action, and
 	 */
-	act(
-		action: Streaming<AgentAction>,
-		transform = new AgentRequestTransform(this)
-	): AgentActionResult {
+	act(action: Streaming<AgentAction>, transform = new AgentTransform(this)): AgentActionResult {
 		const { editor } = this
 		const util = this.getAgentActionUtil(action._type)
 		this.isActing = true

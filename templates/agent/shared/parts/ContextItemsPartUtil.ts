@@ -1,4 +1,4 @@
-import { AgentRequestTransform } from '../AgentRequestTransform'
+import { AgentTransform } from '../AgentTransform'
 import { AgentRequest } from '../types/AgentRequest'
 import { BasePromptPart } from '../types/BasePromptPart'
 import { IContextItem } from '../types/ContextItem'
@@ -24,10 +24,7 @@ export class ContextItemsPartUtil extends PromptPartUtil<ContextItemsPart> {
 		}
 	}
 
-	override transformPart(
-		part: ContextItemsPart,
-		transform: AgentRequestTransform
-	): ContextItemsPart {
+	override transformPart(part: ContextItemsPart, transform: AgentTransform): ContextItemsPart {
 		// Offset and round the context items
 		const items = part.items.map((contextItem) => {
 			const offsetContextItem = transform.applyOffsetToContextItem(contextItem)

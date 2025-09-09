@@ -1,5 +1,5 @@
 import z from 'zod'
-import { AgentRequestTransform } from '../AgentRequestTransform'
+import { AgentTransform } from '../AgentTransform'
 import { Streaming } from '../types/Streaming'
 import { AgentActionUtil } from './AgentActionUtil'
 
@@ -33,7 +33,7 @@ export class RandomWikipediaArticleActionUtil extends AgentActionUtil<IRandomWik
 
 	override async applyAction(
 		action: Streaming<IRandomWikipediaArticleAction>,
-		transform: AgentRequestTransform
+		transform: AgentTransform
 	) {
 		// Wait until the action has finished streaming
 		if (!action.complete) return

@@ -1,5 +1,5 @@
 import z from 'zod'
-import { AgentRequestTransform } from '../AgentRequestTransform'
+import { AgentTransform } from '../AgentTransform'
 import { Streaming } from '../types/Streaming'
 import { AgentActionUtil } from './AgentActionUtil'
 
@@ -36,7 +36,7 @@ export class SetMyViewActionUtil extends AgentActionUtil<ISetMyViewAction> {
 		}
 	}
 
-	override applyAction(action: Streaming<ISetMyViewAction>, transform: AgentRequestTransform) {
+	override applyAction(action: Streaming<ISetMyViewAction>, transform: AgentTransform) {
 		if (!action.complete) return
 		const { agent } = transform
 

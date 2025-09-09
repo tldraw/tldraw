@@ -1,5 +1,5 @@
 import { TldrawAgent } from '../../client/agent/TldrawAgent'
-import { AgentRequestTransform } from '../AgentRequestTransform'
+import { AgentTransform } from '../AgentTransform'
 import { AgentMessage, AgentMessageContent } from '../types/AgentMessage'
 import { AgentRequest } from '../types/AgentRequest'
 import { BasePromptPart } from '../types/BasePromptPart'
@@ -24,7 +24,7 @@ export class ChatHistoryPartUtil extends PromptPartUtil<ChatHistoryPart> {
 		}
 	}
 
-	override transformPart(part: ChatHistoryPart, transform: AgentRequestTransform) {
+	override transformPart(part: ChatHistoryPart, transform: AgentTransform) {
 		for (const historyItem of part.items) {
 			if (historyItem.type !== 'prompt') continue
 

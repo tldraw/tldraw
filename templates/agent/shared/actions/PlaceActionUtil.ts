@@ -1,6 +1,6 @@
 import { TLShapeId } from 'tldraw'
 import z from 'zod'
-import { AgentRequestTransform } from '../AgentRequestTransform'
+import { AgentTransform } from '../AgentTransform'
 import { Streaming } from '../types/Streaming'
 import { AgentActionUtil } from './AgentActionUtil'
 
@@ -33,7 +33,7 @@ export class PlaceActionUtil extends AgentActionUtil<IPlaceAction> {
 		}
 	}
 
-	override transformAction(action: Streaming<IPlaceAction>, transform: AgentRequestTransform) {
+	override transformAction(action: Streaming<IPlaceAction>, transform: AgentTransform) {
 		if (!action.complete) return action
 
 		const shapeId = transform.ensureShapeIdIsReal(action.shapeId)
@@ -47,7 +47,7 @@ export class PlaceActionUtil extends AgentActionUtil<IPlaceAction> {
 		return action
 	}
 
-	override applyAction(action: Streaming<IPlaceAction>, transform: AgentRequestTransform) {
+	override applyAction(action: Streaming<IPlaceAction>, transform: AgentTransform) {
 		if (!action.complete) return
 		const { editor } = transform
 

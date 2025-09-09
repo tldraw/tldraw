@@ -1,6 +1,6 @@
 import { TLShapeId } from 'tldraw'
 import z from 'zod'
-import { AgentRequestTransform } from '../AgentRequestTransform'
+import { AgentTransform } from '../AgentTransform'
 import { Streaming } from '../types/Streaming'
 import { AgentActionUtil } from './AgentActionUtil'
 
@@ -36,7 +36,7 @@ export class ResizeActionUtil extends AgentActionUtil<IResizeAction> {
 		}
 	}
 
-	override transformAction(action: Streaming<IResizeAction>, transform: AgentRequestTransform) {
+	override transformAction(action: Streaming<IResizeAction>, transform: AgentTransform) {
 		const shapeIds = transform.ensureShapeIdsAreReal(action.shapeIds ?? [])
 		if (shapeIds.length === 0) return null
 
@@ -44,7 +44,7 @@ export class ResizeActionUtil extends AgentActionUtil<IResizeAction> {
 		return action
 	}
 
-	override applyAction(action: Streaming<IResizeAction>, transform: AgentRequestTransform) {
+	override applyAction(action: Streaming<IResizeAction>, transform: AgentTransform) {
 		const { editor } = transform
 
 		if (

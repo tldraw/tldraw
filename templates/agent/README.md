@@ -173,7 +173,7 @@ export class ClearActionUtil extends AgentActionUtil<IClearAction> {
 		return ClearAction
 	}
 
-	override applyAction(action: Streaming<IClearAction>, transform: AgentRequestTransform) {
+	override applyAction(action: Streaming<IClearAction>, transform: AgentRequest) {
 		// Don't do anything until the action has finished streaming
 		if (!action.complete) return
 
@@ -235,7 +235,7 @@ You can let the agent work over multiple turns by scheduling further work using 
 This example shows how to schedule an extra step for adding detail to the canvas.
 
 ```ts
-override applyAction(action: Streaming<IAddDetailAction>, transform: AgentRequestTransform) {
+override applyAction(action: Streaming<IAddDetailAction>, transform: AgentRequest) {
 	if (!action.complete) return
 
 	const { agent } = transform
@@ -246,7 +246,7 @@ override applyAction(action: Streaming<IAddDetailAction>, transform: AgentReques
 You can pass a callback to the `schedule` method to create a request based on the currently scheduled request. If there is nothing scheduled, the callback will be called with the default request.
 
 ```ts
-override applyAction(action: Streaming<IMoveRightAction>, transform: AgentRequestTransform) {
+override applyAction(action: Streaming<IMoveRightAction>, transform: AgentRequest) {
 	if (!action.complete) return
 
 	const { agent } = transform
@@ -265,7 +265,7 @@ override applyAction(action: Streaming<IMoveRightAction>, transform: AgentReques
 You can also schedule further work by adding to the agent's todo list. It won't stop working until all todos are resolved.
 
 ```ts
-override applyAction(action: Streaming<IAddDetailAction>, transform: AgentRequestTransform) {
+override applyAction(action: Streaming<IAddDetailAction>, transform: AgentRequest) {
 	if (!action.complete) return
 
 	const { agent } = transform
@@ -290,7 +290,7 @@ To let the agent retrieve information from an external API, fetch and return it 
 ```ts
 override async applyAction(
 	action: Streaming<IRandomWikipediaArticleAction>,
-	transform: AgentRequestTransform
+	transform: AgentRequest
 ) {
 	if (!action.complete) return
 	const { agent } = transform
@@ -305,6 +305,35 @@ override async applyAction(
 
 Actions returned from actions will be added to the `actionResults` property of the next request. By default, the `ActionResultsPartUtil` adds them all to the prompt.
 
+## Sanitize data received from the model
+
+The model can make mistakes. Sometimes this is caused by the model hallucinating, and sometimes it's caused by the canvas changing since the last time the model saw it.
+
+To correct incoming mistakes, apply fixes in the `transformAction` method of an action util.
+
+For example, it's important to ensure that a shape ID received from the model is valid. Ensure that it refers to a real shape by using the `ensureShapeIdIsReal` method.
+
+```ts
+override transformAction(action: Streaming<IDeleteAction>, transform: AgentRequest) {
+	if (!action.complete) return action
+
+	// Ensure the shape ID refers to a real shape
+	action.shapeId = transform.ensureShapeIdIsReal(action.shapeId)
+
+	// If the shape ID doesn't refer to a real shape, cancel the action
+	if (!action.shapeId) return null
+
+	// Return the transformed action
+	return action
+}
+```
+
+The `AgentRequest` object contains more helpers for sanitizing data received from the model.
+
+- `ensureShapeIdIsReal` - Ensure that a shape ID refers to a real shape.
+- `ensureValueIsNumber` - Ensure that a value is a number.
+- `ensureValueIsVec` - Ensure that a value is a vector.
+
 ## Transforms
 
 The transform object helps you to handle the request. It contains the agent and editor objects as well as various helpers for performing and managing the state of transforms.
@@ -312,7 +341,7 @@ The transform object helps you to handle the request. It contains the agent and 
 Conceptually, there are two types of transforms, those that are scoped to a single request, and those that are scoped to the duration of a chat. The transform is recreated with every request, so any transforms that are scoped to the duration of a chat, such as `offset`, must be stored on the `agent` instance and accessed in the transform's constructor.
 
 ```ts
-export class AgentRequestTransform {
+export class AgentRequest {
 	//...
 
 	constructor(agent: TldrawAgent) {
@@ -340,7 +369,7 @@ To improve the agent's accuracy, we offset the coordinates of the shapes we send
 Here is how that looks in the `SelectedShapesPartUtil`.
 
 ```ts
-override transformPart(part: SelectedShapesPart, transform: AgentRequestTransform) {
+override transformPart(part: SelectedShapesPart, transform: AgentRequest) {
 	const transformedShapes = part.shapes.map((shape) => {
 		const offsetShape = transform.applyOffsetToShape(shape)
 		return transform.roundShape(offsetShape)
@@ -362,7 +391,7 @@ To correct for these transformations when a model is updating shapes, we 'unroun
 We also ensure that the `shapeId` output by the model is unique and, if it was changed during the transform, mapped back to its original value. We do this with `ensureShapeIdIsReal()`.
 
 ```ts
-override transformAction(action: Streaming<IUpdateAction>, transform: AgentRequestTransform) {
+override transformAction(action: Streaming<IUpdateAction>, transform: AgentRequest) {
 	if (!action.complete) return action
 
 	const { update } = action
@@ -384,7 +413,7 @@ override transformAction(action: Streaming<IUpdateAction>, transform: AgentReque
 To correct for the offset, we call `removeOffsetFromShape()`.
 
 ```ts
-override applyAction(action: Streaming<IUpdateAction>, transform: AgentRequestTransform) {
+override applyAction(action: Streaming<IUpdateAction>, transform: AgentRequest) {
 	if (!action.complete) return
 	const { editor } = transform
 
@@ -402,7 +431,6 @@ override applyAction(action: Streaming<IUpdateAction>, transform: AgentRequestTr
 
 - **`applyAction`**: To do a chat-scoped transform that persists across requests, call it fom within `applyAction`. The action logged in the chat history will _not_ include any transforms done within `applyAction`.
 
-
 <!-- This means the agent now thinks the shapes and viewports it knows exists are in different positions than they are. In order to correct for this in the actions that the agent outputs, we call our `removeOffsetToBox()`, `removeOffsetToVec()`, and `removeOffsetToShape()` methods.
 
 **This is the main idea behind transforms: Corrections are made to give the model easier-to-understand data, which then must be reversed.**
@@ -417,7 +445,7 @@ TODO -->
 
 <!-- ### `transformPart()`
 
-The last piece of a `PromptPartUtil` is the `transformPart()` method. Transforms, all of which are stored in the instance of `AgentRequestTransform` that gets passed in, change the information in `PromptPart`s and `AgentAction`s to be easier for models to understand.
+The last piece of a `PromptPartUtil` is the `transformPart()` method. Transforms, all of which are stored in the instance of `AgentRequest` that gets passed in, change the information in `PromptPart`s and `AgentAction`s to be easier for models to understand.
 
 For example, `applyOffsetToShape` adjusts the position of a shape to make it relative to the current chat origin. The `removeOffsetFromShape` method reverses it. This is helpful because it helps to keep numbers low, which is easier for the model to deal with.
 

@@ -1,6 +1,6 @@
 import { TLShapeId } from 'tldraw'
 import z from 'zod'
-import { AgentRequestTransform } from '../AgentRequestTransform'
+import { AgentTransform } from '../AgentTransform'
 import { BaseAgentAction } from '../types/BaseAgentAction'
 import { Streaming } from '../types/Streaming'
 import { AgentActionUtil } from './AgentActionUtil'
@@ -30,7 +30,7 @@ export class DeleteActionUtil extends AgentActionUtil<IDeleteAction> {
 		}
 	}
 
-	override transformAction(action: Streaming<IDeleteAction>, transform: AgentRequestTransform) {
+	override transformAction(action: Streaming<IDeleteAction>, transform: AgentTransform) {
 		if (!action.complete) return action
 
 		const shapeId = transform.ensureShapeIdIsReal(action.shapeId)
@@ -40,7 +40,7 @@ export class DeleteActionUtil extends AgentActionUtil<IDeleteAction> {
 		return action
 	}
 
-	override applyAction(action: Streaming<IDeleteAction>, transform: AgentRequestTransform) {
+	override applyAction(action: Streaming<IDeleteAction>, transform: AgentTransform) {
 		if (!action.complete) return
 		const { editor } = transform
 

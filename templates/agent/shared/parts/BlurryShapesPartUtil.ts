@@ -1,6 +1,6 @@
 import { Box } from 'tldraw'
 import { TldrawAgent } from '../../client/agent/TldrawAgent'
-import { AgentRequestTransform } from '../AgentRequestTransform'
+import { AgentTransform } from '../AgentTransform'
 import { BlurryShape, convertTldrawShapeToBlurryShape } from '../format/BlurryShape'
 import { AgentRequest } from '../types/AgentRequest'
 import { BasePromptPart } from '../types/BasePromptPart'
@@ -36,7 +36,7 @@ export class BlurryShapesPartUtil extends PromptPartUtil<BlurryShapesPart> {
 		}
 	}
 
-	override transformPart(part: BlurryShapesPart, transform: AgentRequestTransform) {
+	override transformPart(part: BlurryShapesPart, transform: AgentTransform) {
 		for (const shape of part.shapes) {
 			const bounds = transform.roundBox(
 				transform.applyOffsetToBox({

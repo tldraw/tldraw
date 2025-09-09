@@ -1,5 +1,5 @@
 import z from 'zod'
-import { AgentRequestTransform } from '../AgentRequestTransform'
+import { AgentTransform } from '../AgentTransform'
 import { Streaming } from '../types/Streaming'
 import { AgentActionUtil } from './AgentActionUtil'
 
@@ -33,7 +33,7 @@ export class AddDetailActionUtil extends AgentActionUtil<IAddDetailAction> {
 		}
 	}
 
-	override applyAction(action: Streaming<IAddDetailAction>, transform: AgentRequestTransform) {
+	override applyAction(action: Streaming<IAddDetailAction>, transform: AgentTransform) {
 		if (!action.complete) return
 		const { agent } = transform
 		agent.schedule('Add detail to the canvas.')

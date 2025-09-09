@@ -18,7 +18,7 @@ import {
 } from 'tldraw'
 import z from 'zod'
 import { applyAiChange } from '../../client/agent/applyAiChange'
-import { AgentRequestTransform } from '../AgentRequestTransform'
+import { AgentTransform } from '../AgentTransform'
 import { asColor } from '../format/SimpleColor'
 import { convertSimpleFillToTldrawFill } from '../format/SimpleFill'
 import { convertSimpleFontSizeToTldrawFontSizeAndScale } from '../format/SimpleFontSize'
@@ -65,7 +65,7 @@ export class UpdateActionUtil extends AgentActionUtil<IUpdateAction> {
 		}
 	}
 
-	override transformAction(action: Streaming<IUpdateAction>, transform: AgentRequestTransform) {
+	override transformAction(action: Streaming<IUpdateAction>, transform: AgentTransform) {
 		if (!action.complete) return action
 
 		const { update } = action
@@ -91,7 +91,7 @@ export class UpdateActionUtil extends AgentActionUtil<IUpdateAction> {
 		return action
 	}
 
-	override applyAction(action: Streaming<IUpdateAction>, transform: AgentRequestTransform) {
+	override applyAction(action: Streaming<IUpdateAction>, transform: AgentTransform) {
 		if (!action.complete) return
 		const { editor } = transform
 

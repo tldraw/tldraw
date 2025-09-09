@@ -1,5 +1,5 @@
 import { z } from 'zod'
-import { AgentRequestTransform } from '../AgentRequestTransform'
+import { AgentTransform } from '../AgentTransform'
 import { Streaming } from '../types/Streaming'
 import { AgentActionUtil } from './AgentActionUtil'
 
@@ -29,7 +29,7 @@ export class TodoListActionUtil extends AgentActionUtil<ITodoListAction> {
 		return null
 	}
 
-	override applyAction(action: Streaming<ITodoListAction>, transform: AgentRequestTransform) {
+	override applyAction(action: Streaming<ITodoListAction>, transform: AgentTransform) {
 		if (!action.complete) return
 		const { agent } = transform
 

@@ -13,7 +13,7 @@ import {
 } from 'tldraw'
 import z from 'zod'
 import { applyAiChange } from '../../client/agent/applyAiChange'
-import { AgentRequestTransform } from '../AgentRequestTransform'
+import { AgentTransform } from '../AgentTransform'
 import { asColor } from '../format/SimpleColor'
 import { convertSimpleFillToTldrawFill } from '../format/SimpleFill'
 import { convertSimpleFontSizeToTldrawFontSizeAndScale } from '../format/SimpleFontSize'
@@ -54,7 +54,7 @@ export class CreateActionUtil extends AgentActionUtil<ICreateAction> {
 		}
 	}
 
-	override transformAction(action: Streaming<ICreateAction>, transform: AgentRequestTransform) {
+	override transformAction(action: Streaming<ICreateAction>, transform: AgentTransform) {
 		if (!action.complete) return action
 
 		const { shape } = action
@@ -75,7 +75,7 @@ export class CreateActionUtil extends AgentActionUtil<ICreateAction> {
 		return action
 	}
 
-	override applyAction(action: Streaming<ICreateAction>, transform: AgentRequestTransform) {
+	override applyAction(action: Streaming<ICreateAction>, transform: AgentTransform) {
 		if (!action.complete) return
 		const { editor } = transform
 
