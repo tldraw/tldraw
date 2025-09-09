@@ -91,7 +91,16 @@ const GroupFileList = memo(function GroupFileList({
 }) {
 	const app = useApp()
 	const group = useValue('group', () => app.getGroupMembership(groupId), [app, groupId])
-	const files = useValue('group files', () => app.getGroupFilesSorted(groupId), [app, groupId])
+	const files = useValue(
+		'group files',
+		() => {
+			const groupFiles = app.getGroupFilesSorted(groupId)
+			const pinned = groupFiles.filter((f) => !!app.getFileState(f.id)?.isPinned)
+			const unpinned = groupFiles.filter((f) => !app.getFileState(f.id)?.isPinned)
+			return pinned.concat(unpinned)
+		},
+		[app, groupId]
+	)
 	const expansionState = useValue(
 		'expansionState',
 		() => app.sidebarState.get().expandedGroups.get(groupId) ?? 'closed',

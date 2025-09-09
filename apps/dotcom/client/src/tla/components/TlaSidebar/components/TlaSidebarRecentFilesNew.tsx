@@ -56,7 +56,7 @@ export function TlaSidebarRecentFilesNew() {
 	// Get group memberships from the server
 	const groupMemberships = useValue('groupMemberships', () => app.getGroupMemberships(), [app])
 
-	const results = useValue(
+	const files = useValue(
 		'recent user files',
 		() => {
 			const groupMemberships = app.getGroupMemberships()
@@ -68,19 +68,18 @@ export function TlaSidebarRecentFilesNew() {
 
 			for (const item of recentFiles) {
 				const { isPinned } = item
+				if (
+					groupMemberships.some((group) => group.groupFiles.some((g) => g.fileId === item.fileId))
+				)
+					continue
 				if (isPinned) {
 					pinnedFiles.push(item)
-				} else if (
-					!groupMemberships.some((group) => group.groupFiles.some((g) => g.fileId === item.fileId))
-				) {
+				} else {
 					otherFiles.push(item)
 				}
 			}
 
-			return {
-				pinnedFiles,
-				otherFiles,
-			}
+			return pinnedFiles.concat(otherFiles)
 		},
 		[app]
 	)
@@ -117,36 +116,18 @@ export function TlaSidebarRecentFilesNew() {
 		setIsCreatingGroup(false)
 	}
 
-	if (!results) throw Error('Could not get files')
+	if (!files) throw Error('Could not get files')
 
-	const MAX_FILES_TO_SHOW = groupMemberships.length > 0 ? 6 : +Infinity
-	const isOverflowing = results.otherFiles.length > MAX_FILES_TO_SHOW
-	const filesToShow = results.otherFiles.slice(0, MAX_FILES_TO_SHOW)
-	const hiddenFiles = results.otherFiles.slice(MAX_FILES_TO_SHOW)
+	const MAX_FILES_TO_SHOW = Math.max(
+		groupMemberships.length > 0 ? 6 : +Infinity,
+		files.filter((f) => f.isPinned).length
+	)
+	const isOverflowing = files.length > MAX_FILES_TO_SHOW
+	const filesToShow = files.slice(0, MAX_FILES_TO_SHOW)
+	const hiddenFiles = files.slice(MAX_FILES_TO_SHOW)
 
 	return (
 		<Fragment>
-			{results.pinnedFiles.length > 0 && (
-				<TlaSidebarDropZone id="my-files-pinned-drop-zone">
-					<TlaSidebarFileSection title={<F defaultMessage="Favorites" />} onePixelOfPaddingAtTheTop>
-						{results.pinnedFiles.map((item, i) => (
-							<TlaSidebarFileLink
-								context="my-files-pinned"
-								key={'file_link_pinned_' + item.fileId}
-								item={item}
-								testId={`tla-file-link-pinned-${i}`}
-							/>
-						))}
-						{/* Pinned files reorder cursor */}
-						<ReorderCursor
-							dragStateSelector={(app) => {
-								const dragState = app.sidebarState.get().dragState
-								return dragState?.type === 'pinned' ? dragState.cursorLineY : null
-							}}
-						/>
-					</TlaSidebarFileSection>
-				</TlaSidebarDropZone>
-			)}
 			{filesToShow.length > 0 && (
 				<TlaSidebarDropZone id="my-files-drop-zone">
 					<TlaSidebarFileSection

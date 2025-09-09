@@ -47,8 +47,8 @@ const messages = defineMessages({
 	forget: { defaultMessage: 'Forget' },
 	rename: { defaultMessage: 'Rename' },
 	copy: { defaultMessage: 'Copy' },
-	pin: { defaultMessage: 'Add to favorites' },
-	unpin: { defaultMessage: 'Remove from favorites' },
+	pin: { defaultMessage: 'Pin file' },
+	unpin: { defaultMessage: 'Unpin file' },
 	myFiles: { defaultMessage: 'My files' },
 })
 

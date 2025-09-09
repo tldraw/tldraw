@@ -90,6 +90,8 @@ export function TlaSidebarFileLink({
 		[fileId, app]
 	)
 
+	const isPinned = useValue('isPinned', () => !!app.getFileState(fileId)?.isPinned, [fileId, app])
+
 	const handleRenameAction = () => {
 		if (isMobile) {
 			const newName = prompt(intl.formatMessage(sidebarMessages.renameFile), fileName)?.trim()
@@ -109,6 +111,7 @@ export function TlaSidebarFileLink({
 				<TlaSidebarFileLinkInner
 					fileId={fileId}
 					fileName={fileName}
+					isPinned={isPinned}
 					testId={testId}
 					isActive={isActive}
 					href={routes.tlaFile(fileId)}
@@ -142,6 +145,7 @@ export const sidebarMessages = defineMessages({
 })
 
 export function TlaSidebarFileLinkInner({
+	isPinned,
 	testId,
 	fileId,
 	isActive,
@@ -155,6 +159,7 @@ export function TlaSidebarFileLinkInner({
 	context,
 }: {
 	fileId: string
+	isPinned: boolean
 	testId: string | number
 	isActive: boolean
 	fileName: string
@@ -253,6 +258,7 @@ export function TlaSidebarFileLinkInner({
 				draggable={false}
 			/>
 			<div className={styles.sidebarFileListItemContent}>
+				{isPinned && <TlaIcon icon={'pin'} style={{ marginLeft: '-3px', marginRight: '-3px' }} />}
 				<div
 					className={classNames(
 						styles.sidebarFileListItemLabel,

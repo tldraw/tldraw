@@ -171,6 +171,28 @@
       "value": "Miro but good and free"
     }
   ],
+  "2cc0953270": [
+    {
+      "type": 0,
+      "value": "Are you sure you want to move {fileName} from "
+    },
+    {
+      "type": 1,
+      "value": "sourceLocation"
+    },
+    {
+      "type": 0,
+      "value": " to "
+    },
+    {
+      "type": 1,
+      "value": "destinationLocation"
+    },
+    {
+      "type": 0,
+      "value": "?"
+    }
+  ],
   "2deec2cb74": [
     {
       "type": 0,
@@ -283,6 +305,12 @@
     {
       "type": 0,
       "value": "Reload"
+    }
+  ],
+  "4d748a06e1": [
+    {
+      "type": 0,
+      "value": "Users will gain access to this file"
     }
   ],
   "4da5988a2e": [
@@ -449,6 +477,12 @@
       "value": "Copy"
     }
   ],
+  "60c21fe844": [
+    {
+      "type": 0,
+      "value": "Users who will gain access:"
+    }
+  ],
   "61057a0c84": [
     {
       "type": 0,
@@ -507,6 +541,12 @@
     {
       "type": 0,
       "value": "Help"
+    }
+  ],
+  "6d8a1cb7b2": [
+    {
+      "type": 0,
+      "value": "Other group members who will lose access:"
     }
   ],
   "6dc0836c1b": [
@@ -719,10 +759,22 @@
       "value": "Rename file"
     }
   ],
+  "88f27e206a": [
+    {
+      "type": 0,
+      "value": "You are about to delete {fileName} from the group {groupName}. This will remove the file for all group members."
+    }
+  ],
   "8ad4303b83": [
     {
       "type": 0,
       "value": "No thanks"
+    }
+  ],
+  "8ae9cd4745": [
+    {
+      "type": 0,
+      "value": "Delete file from group?"
     }
   ],
   "8b1946f965": [
@@ -759,6 +811,12 @@
     {
       "type": 0,
       "value": "Rename"
+    }
+  ],
+  "9102702625": [
+    {
+      "type": 0,
+      "value": "Are you sure you want to continue?"
     }
   ],
   "910885435d": [
@@ -807,6 +865,12 @@
     {
       "type": 0,
       "value": "Publish this file"
+    }
+  ],
+  "9dc391838a": [
+    {
+      "type": 0,
+      "value": "Users who will lose access:"
     }
   ],
   "9e076f5885": [
@@ -1101,6 +1165,12 @@
       "value": "SVG"
     }
   ],
+  "ce80ce4df5": [
+    {
+      "type": 0,
+      "value": "Move file"
+    }
+  ],
   "cea291e45e": [
     {
       "type": 0,
@@ -1313,6 +1383,12 @@
       "value": "Settings"
     }
   ],
+  "f516f00695": [
+    {
+      "type": 0,
+      "value": "Users will lose access to this file"
+    }
+  ],
   "f714e36843": [
     {
       "type": 0,
@@ -1335,6 +1411,12 @@
     {
       "type": 0,
       "value": "Join the waitlist"
+    }
+  ],
+  "fe1484c478": [
+    {
+      "type": 0,
+      "value": "File access will change"
     }
   ],
   "fed5ec05eb": [

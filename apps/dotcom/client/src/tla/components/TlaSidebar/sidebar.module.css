@@ -534,7 +534,6 @@
 
 .sidebarFileListItemContent {
 	flex: 1 1 auto;
-	overflow: hidden;
 	display: flex;
 	flex-direction: row;
 	align-items: center;
