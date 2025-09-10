@@ -14,28 +14,28 @@ const AlignAction = z
 	})
 	.meta({ title: 'Align', description: 'The AI aligns shapes to each other on an axis.' })
 
-type IAlignAction = z.infer<typeof AlignAction>
+type AlignAction = z.infer<typeof AlignAction>
 
-export class AlignActionUtil extends AgentActionUtil<IAlignAction> {
+export class AlignActionUtil extends AgentActionUtil<AlignAction> {
 	static override type = 'align' as const
 
 	override getSchema() {
 		return AlignAction
 	}
 
-	override getInfo(action: Streaming<IAlignAction>) {
+	override getInfo(action: Streaming<AlignAction>) {
 		return {
 			icon: 'cursor' as const,
 			description: action.intent ?? '',
 		}
 	}
 
-	override sanitizeAction(action: Streaming<IAlignAction>, agentHelpers: AgentHelpers) {
+	override sanitizeAction(action: Streaming<AlignAction>, agentHelpers: AgentHelpers) {
 		action.shapeIds = agentHelpers.ensureShapeIdsExist(action.shapeIds ?? [])
 		return action
 	}
 
-	override applyAction(action: Streaming<IAlignAction>, agentHelpers: AgentHelpers) {
+	override applyAction(action: Streaming<AlignAction>, agentHelpers: AgentHelpers) {
 		if (!action.complete) return
 		const { editor } = agentHelpers
 

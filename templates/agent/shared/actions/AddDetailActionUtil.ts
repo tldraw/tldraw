@@ -13,16 +13,16 @@ const AddDetailAction = z
 		description: 'The AI plans further work so that it can add detail to its work.',
 	})
 
-type IAddDetailAction = z.infer<typeof AddDetailAction>
+type AddDetailAction = z.infer<typeof AddDetailAction>
 
-export class AddDetailActionUtil extends AgentActionUtil<IAddDetailAction> {
+export class AddDetailActionUtil extends AgentActionUtil<AddDetailAction> {
 	static override type = 'add-detail' as const
 
 	override getSchema() {
 		return AddDetailAction
 	}
 
-	override getInfo(action: Streaming<IAddDetailAction>) {
+	override getInfo(action: Streaming<AddDetailAction>) {
 		const label = 'Adding detail'
 		const text = action.intent?.startsWith('#') ? `\n\n${action.intent}` : action.intent
 		const description = `**${label}:** ${text ?? ''}`
@@ -33,7 +33,7 @@ export class AddDetailActionUtil extends AgentActionUtil<IAddDetailAction> {
 		}
 	}
 
-	override applyAction(action: Streaming<IAddDetailAction>, agentHelpers: AgentHelpers) {
+	override applyAction(action: Streaming<AddDetailAction>, agentHelpers: AgentHelpers) {
 		if (!action.complete) return
 		const { agent } = agentHelpers
 		agent.schedule('Add detail to the canvas.')

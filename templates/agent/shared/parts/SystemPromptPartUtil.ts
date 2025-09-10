@@ -1,5 +1,5 @@
 import { buildResponseSchema } from '../../worker/prompt/buildResponseSchema'
-import { getSimpleShapeTypeNames } from '../format/SimpleShape'
+import { getSimpleShapeSchemaNames } from '../format/SimpleShape'
 import { BasePromptPart } from '../types/BasePromptPart'
 import { PromptPartUtil } from './PromptPartUtil'
 
@@ -17,7 +17,7 @@ export class SystemPromptPartUtil extends PromptPartUtil<SystemPromptPart> {
 	}
 }
 
-const shapeTypeNames = getSimpleShapeTypeNames()
+const shapeTypeNames = getSimpleShapeSchemaNames()
 
 function getSystemPrompt() {
 	return `# System Prompt

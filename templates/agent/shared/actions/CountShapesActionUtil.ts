@@ -14,16 +14,16 @@ const CountShapesAction = z
 			'The AI requests to count the number of shapes in the canvas. The answer will be provided to the AI in a follow-up request.',
 	})
 
-type ICountShapesAction = z.infer<typeof CountShapesAction>
+type CountShapesAction = z.infer<typeof CountShapesAction>
 
-export class CountShapesActionUtil extends AgentActionUtil<ICountShapesAction> {
+export class CountShapesActionUtil extends AgentActionUtil<CountShapesAction> {
 	static override type = 'count' as const
 
 	override getSchema() {
 		return CountShapesAction
 	}
 
-	override getInfo(action: Streaming<ICountShapesAction>) {
+	override getInfo(action: Streaming<CountShapesAction>) {
 		const description = action.complete ? 'Counted shapes' : 'Counting shapes'
 		return {
 			icon: 'search' as const,
@@ -31,7 +31,7 @@ export class CountShapesActionUtil extends AgentActionUtil<ICountShapesAction> {
 		}
 	}
 
-	override async applyAction(action: Streaming<ICountShapesAction>, agentHelpers: AgentHelpers) {
+	override async applyAction(action: Streaming<CountShapesAction>, agentHelpers: AgentHelpers) {
 		if (!action.complete) return
 		const { agent, editor } = agentHelpers
 

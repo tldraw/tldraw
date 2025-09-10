@@ -1,11 +1,11 @@
 import { AgentHelpers } from '../AgentHelpers'
 import { AgentRequest } from '../types/AgentRequest'
 import { BasePromptPart } from '../types/BasePromptPart'
-import { IContextItem } from '../types/ContextItem'
+import { ContextItem } from '../types/ContextItem'
 import { PromptPartUtil } from './PromptPartUtil'
 
 export interface ContextItemsPart extends BasePromptPart<'contextItems'> {
-	items: IContextItem[]
+	items: ContextItem[]
 	requestType: AgentRequest['type']
 }
 

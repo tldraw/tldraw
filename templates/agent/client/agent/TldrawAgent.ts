@@ -15,20 +15,20 @@ import {
 import { AgentActionUtil } from '../../shared/actions/AgentActionUtil'
 import { AgentHelpers } from '../../shared/AgentHelpers'
 import { getAgentActionUtilsRecord, getPromptPartUtilsRecord } from '../../shared/AgentUtils'
-import { ISimpleShape } from '../../shared/format/SimpleShape'
+import { SimpleShape } from '../../shared/format/SimpleShape'
 import { PromptPartUtil } from '../../shared/parts/PromptPartUtil'
 import { AgentAction } from '../../shared/types/AgentAction'
 import { AgentActionResult } from '../../shared/types/AgentActionResult'
 import { AgentInput } from '../../shared/types/AgentInput'
 import { AgentPrompt, BaseAgentPrompt } from '../../shared/types/AgentPrompt'
 import { AgentRequest } from '../../shared/types/AgentRequest'
-import { IChatHistoryItem } from '../../shared/types/ChatHistoryItem'
+import { ChatHistoryItem } from '../../shared/types/ChatHistoryItem'
 import {
-	IAreaContextItem,
-	IContextItem,
-	IPointContextItem,
-	IShapeContextItem,
-	IShapesContextItem,
+	AreaContextItem,
+	ContextItem,
+	PointContextItem,
+	ShapeContextItem,
+	ShapesContextItem,
 } from '../../shared/types/ContextItem'
 import { PromptPart } from '../../shared/types/PromptPart'
 import { Streaming } from '../../shared/types/Streaming'
@@ -83,7 +83,7 @@ export class TldrawAgent {
 	/**
 	 * An atom containing the agent's chat history.
 	 */
-	$chatHistory = atom<IChatHistoryItem[]>('chatHistory', [])
+	$chatHistory = atom<ChatHistoryItem[]>('chatHistory', [])
 
 	/**
 	 * An atom containing the position on the page where the current chat
@@ -106,7 +106,7 @@ export class TldrawAgent {
 	 * An atom containing currently selected context items. By default, selected
 	 * context items will be included in the agent's next request.
 	 */
-	$contextItems = atom<IContextItem[]>('contextItems', [])
+	$contextItems = atom<ContextItem[]>('contextItems', [])
 
 	/**
 	 * An atom containing the model name that the user has selected. This gets
@@ -462,7 +462,7 @@ export class TldrawAgent {
 
 		// Add the action to chat history
 		if (util.savesToHistory()) {
-			const historyItem: IChatHistoryItem = {
+			const historyItem: ChatHistoryItem = {
 				type: 'action',
 				action,
 				result,
@@ -609,7 +609,7 @@ export class TldrawAgent {
 	 *
 	 * @param item The context item to add.
 	 */
-	addToContext(item: IContextItem) {
+	addToContext(item: ContextItem) {
 		this.$contextItems.update((items) => {
 			// Don't add shapes that are already within context
 			if (item.type === 'shapes') {
@@ -630,7 +630,7 @@ export class TldrawAgent {
 	 * Remove a context item from the agent's context.
 	 * @param item The context item to remove.
 	 */
-	removeFromContext(item: IContextItem) {
+	removeFromContext(item: ContextItem) {
 		this.$contextItems.update((items) => items.filter((v) => item !== v))
 	}
 
@@ -641,7 +641,7 @@ export class TldrawAgent {
 	 * @param item The context item to check for.
 	 * @returns True if the agent's context contains the item, false otherwise.
 	 */
-	hasContextItem(item: IContextItem) {
+	hasContextItem(item: ContextItem) {
 		const items = this.$contextItems.get()
 		if (items.some((v) => areContextItemsEqual(v, item))) {
 			return true
@@ -679,7 +679,7 @@ function requestAgent({
 
 	// If the request is from the user, add it to chat history
 	if (request.type === 'user') {
-		const promptHistoryItem: IChatHistoryItem = {
+		const promptHistoryItem: ChatHistoryItem = {
 			type: 'prompt',
 			message: request.message,
 			contextItems: request.contextItems,
@@ -821,25 +821,25 @@ async function* streamAgent({
  *
  * This is a helper function that is used internally by the agent.
  */
-function areContextItemsEqual(a: IContextItem, b: IContextItem): boolean {
+function areContextItemsEqual(a: ContextItem, b: ContextItem): boolean {
 	if (a.type !== b.type) return false
 
 	switch (a.type) {
 		case 'shape': {
-			const _b = b as IShapeContextItem
+			const _b = b as ShapeContextItem
 			return a.shape.shapeId === _b.shape.shapeId
 		}
 		case 'shapes': {
-			const _b = b as IShapesContextItem
+			const _b = b as ShapesContextItem
 			if (a.shapes.length !== _b.shapes.length) return false
 			return a.shapes.every((shape) => _b.shapes.find((s) => s.shapeId === shape.shapeId))
 		}
 		case 'area': {
-			const _b = b as IAreaContextItem
+			const _b = b as AreaContextItem
 			return Box.Equals(a.bounds, _b.bounds)
 		}
 		case 'point': {
-			const _b = b as IPointContextItem
+			const _b = b as PointContextItem
 			return Vec.Equals(a.point, _b.point)
 		}
 		default: {
@@ -855,9 +855,9 @@ function areContextItemsEqual(a: IContextItem, b: IContextItem): boolean {
  * This is a helper function that is used internally by the agent.
  */
 function dedupeShapesContextItem(
-	item: IShapesContextItem,
-	existingItems: IContextItem[]
-): IContextItem[] {
+	item: ShapesContextItem,
+	existingItems: ContextItem[]
+): ContextItem[] {
 	// Get all shape IDs that are already in the context
 	const existingShapeIds = new Set<string>()
 
@@ -866,7 +866,7 @@ function dedupeShapesContextItem(
 		if (contextItem.type === 'shape') {
 			existingShapeIds.add(contextItem.shape.shapeId)
 		} else if (contextItem.type === 'shapes') {
-			contextItem.shapes.forEach((shape: ISimpleShape) => {
+			contextItem.shapes.forEach((shape: SimpleShape) => {
 				existingShapeIds.add(shape.shapeId)
 			})
 		}
@@ -879,7 +879,7 @@ function dedupeShapesContextItem(
 	if (newShapes.length > 0) {
 		// If only one shape remains, add it as a single shape item
 		if (newShapes.length === 1) {
-			const newItem: IContextItem = {
+			const newItem: ContextItem = {
 				type: 'shape',
 				shape: newShapes[0],
 				source: item.source,
@@ -888,7 +888,7 @@ function dedupeShapesContextItem(
 		}
 
 		// Otherwise add as a shapes group
-		const newItem: IContextItem = {
+		const newItem: ContextItem = {
 			type: 'shapes',
 			shapes: newShapes,
 			source: item.source,

@@ -14,23 +14,23 @@ const MoveAction = z
 	})
 	.meta({ title: 'Move', description: 'The AI moves a shape to a new position.' })
 
-type IMoveAction = z.infer<typeof MoveAction>
+type MoveAction = z.infer<typeof MoveAction>
 
-export class MoveActionUtil extends AgentActionUtil<IMoveAction> {
+export class MoveActionUtil extends AgentActionUtil<MoveAction> {
 	static override type = 'move' as const
 
 	override getSchema() {
 		return MoveAction
 	}
 
-	override getInfo(action: Streaming<IMoveAction>) {
+	override getInfo(action: Streaming<MoveAction>) {
 		return {
 			icon: 'cursor' as const,
 			description: action.intent ?? '',
 		}
 	}
 
-	override sanitizeAction(action: Streaming<IMoveAction>, agentHelpers: AgentHelpers) {
+	override sanitizeAction(action: Streaming<MoveAction>, agentHelpers: AgentHelpers) {
 		if (!action.complete) return action
 
 		// Make sure the shape ID refers to a real shape
@@ -48,7 +48,7 @@ export class MoveActionUtil extends AgentActionUtil<IMoveAction> {
 		return action
 	}
 
-	override applyAction(action: Streaming<IMoveAction>, agentHelpers: AgentHelpers) {
+	override applyAction(action: Streaming<MoveAction>, agentHelpers: AgentHelpers) {
 		if (!action.complete) return
 
 		// Translate the position back to the chat's position

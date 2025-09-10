@@ -19,28 +19,28 @@ const RotateAction = z
 		description: 'The AI rotates one or more shapes around an origin point.',
 	})
 
-type IRotateAction = z.infer<typeof RotateAction>
+type RotateAction = z.infer<typeof RotateAction>
 
-export class RotateActionUtil extends AgentActionUtil<IRotateAction> {
+export class RotateActionUtil extends AgentActionUtil<RotateAction> {
 	static override type = 'rotate' as const
 
 	override getSchema() {
 		return RotateAction
 	}
 
-	override getInfo(action: Streaming<IRotateAction>) {
+	override getInfo(action: Streaming<RotateAction>) {
 		return {
 			icon: 'cursor' as const,
 			description: action.intent ?? '',
 		}
 	}
 
-	override sanitizeAction(action: Streaming<IRotateAction>, agentHelpers: AgentHelpers) {
+	override sanitizeAction(action: Streaming<RotateAction>, agentHelpers: AgentHelpers) {
 		action.shapeIds = agentHelpers.ensureShapeIdsExist(action.shapeIds ?? [])
 		return action
 	}
 
-	override applyAction(action: Streaming<IRotateAction>, agentHelpers: AgentHelpers) {
+	override applyAction(action: Streaming<RotateAction>, agentHelpers: AgentHelpers) {
 		const { editor } = agentHelpers
 
 		if (!action.shapeIds || !action.degrees || !action.originX || !action.originY) {

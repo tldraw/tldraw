@@ -1,6 +1,6 @@
 import { TLDefaultShape, TLGeoShapeGeoStyle } from 'tldraw'
 import { z } from 'zod'
-import { ISimpleShape } from './SimpleShape'
+import { SimpleShape } from './SimpleShape'
 
 export const SimpleGeoShapeType = z.enum([
 	'rectangle',
@@ -84,7 +84,7 @@ export function convertTldrawGeoTypeToSimpleGeoType(type: TLGeoShapeGeoStyle): I
 }
 
 export function convertSimpleTypeToTldrawType(
-	type: ISimpleShape['_type']
+	type: SimpleShape['_type']
 ): TLGeoShapeGeoStyle | TLDefaultShape['type'] | 'unknown' {
 	if (type in SIMPLE_TO_GEO_TYPES) {
 		return convertSimpleGeoTypeToTldrawGeoGeoType(type as ISimpleGeoShapeType) as TLGeoShapeGeoStyle
@@ -94,9 +94,9 @@ export function convertSimpleTypeToTldrawType(
 
 export function convertTldrawTypeToSimpleType(
 	type: TLGeoShapeGeoStyle | TLDefaultShape['type'] | 'unknown'
-): ISimpleShape['_type'] {
+): SimpleShape['_type'] {
 	if (type in GEO_TO_SIMPLE_TYPES) {
 		return convertTldrawGeoTypeToSimpleGeoType(type as TLGeoShapeGeoStyle) as ISimpleGeoShapeType
 	}
-	return type as ISimpleShape['_type']
+	return type as SimpleShape['_type']
 }

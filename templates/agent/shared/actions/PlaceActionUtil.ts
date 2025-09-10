@@ -17,23 +17,23 @@ const PlaceAction = z
 	})
 	.meta({ title: 'Place', description: 'The AI places a shape relative to another shape.' })
 
-type IPlaceAction = z.infer<typeof PlaceAction>
+type PlaceAction = z.infer<typeof PlaceAction>
 
-export class PlaceActionUtil extends AgentActionUtil<IPlaceAction> {
+export class PlaceActionUtil extends AgentActionUtil<PlaceAction> {
 	static override type = 'place' as const
 
 	override getSchema() {
 		return PlaceAction
 	}
 
-	override getInfo(action: Streaming<IPlaceAction>) {
+	override getInfo(action: Streaming<PlaceAction>) {
 		return {
 			icon: 'target' as const,
 			description: action.intent ?? '',
 		}
 	}
 
-	override sanitizeAction(action: Streaming<IPlaceAction>, agentHelpers: AgentHelpers) {
+	override sanitizeAction(action: Streaming<PlaceAction>, agentHelpers: AgentHelpers) {
 		if (!action.complete) return action
 
 		const shapeId = agentHelpers.ensureShapeIdExists(action.shapeId)
@@ -47,7 +47,7 @@ export class PlaceActionUtil extends AgentActionUtil<IPlaceAction> {
 		return action
 	}
 
-	override applyAction(action: Streaming<IPlaceAction>, agentHelpers: AgentHelpers) {
+	override applyAction(action: Streaming<PlaceAction>, agentHelpers: AgentHelpers) {
 		if (!action.complete) return
 		const { editor } = agentHelpers
 

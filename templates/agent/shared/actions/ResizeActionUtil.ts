@@ -20,23 +20,23 @@ const ResizeAction = z
 			'The AI resizes one or more shapes, with the resize operation being performed relative to an origin point.',
 	})
 
-type IResizeAction = z.infer<typeof ResizeAction>
+type ResizeAction = z.infer<typeof ResizeAction>
 
-export class ResizeActionUtil extends AgentActionUtil<IResizeAction> {
+export class ResizeActionUtil extends AgentActionUtil<ResizeAction> {
 	static override type = 'resize' as const
 
 	override getSchema() {
 		return ResizeAction
 	}
 
-	override getInfo(action: Streaming<IResizeAction>) {
+	override getInfo(action: Streaming<ResizeAction>) {
 		return {
 			icon: 'cursor' as const,
 			description: action.intent ?? '',
 		}
 	}
 
-	override sanitizeAction(action: Streaming<IResizeAction>, agentHelpers: AgentHelpers) {
+	override sanitizeAction(action: Streaming<ResizeAction>, agentHelpers: AgentHelpers) {
 		const shapeIds = agentHelpers.ensureShapeIdsExist(action.shapeIds ?? [])
 		if (shapeIds.length === 0) return null
 
@@ -44,7 +44,7 @@ export class ResizeActionUtil extends AgentActionUtil<IResizeAction> {
 		return action
 	}
 
-	override applyAction(action: Streaming<IResizeAction>, agentHelpers: AgentHelpers) {
+	override applyAction(action: Streaming<ResizeAction>, agentHelpers: AgentHelpers) {
 		const { editor } = agentHelpers
 
 		if (

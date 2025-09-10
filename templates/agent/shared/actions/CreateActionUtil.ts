@@ -19,12 +19,12 @@ import { convertSimpleFillToTldrawFill } from '../format/SimpleFill'
 import { convertSimpleFontSizeToTldrawFontSizeAndScale } from '../format/SimpleFontSize'
 import { convertSimpleTypeToTldrawType } from '../format/SimpleGeoShapeType'
 import {
-	ISimpleArrowShape,
-	ISimpleGeoShape,
-	ISimpleLineShape,
-	ISimpleNoteShape,
-	ISimpleTextShape,
-	SimpleShape,
+	SimpleArrowShape,
+	SimpleGeoShape,
+	SimpleLineShape,
+	SimpleNoteShape,
+	SimpleShapeSchema,
+	SimpleTextShape,
 } from '../format/SimpleShape'
 import { Streaming } from '../types/Streaming'
 import { AgentActionUtil } from './AgentActionUtil'
@@ -33,27 +33,27 @@ const CreateAction = z
 	.object({
 		_type: z.literal('create'),
 		intent: z.string(),
-		shape: SimpleShape,
+		shape: SimpleShapeSchema,
 	})
 	.meta({ title: 'Create', description: 'The AI creates a new shape.' })
 
-type ICreateAction = z.infer<typeof CreateAction>
+type CreateAction = z.infer<typeof CreateAction>
 
-export class CreateActionUtil extends AgentActionUtil<ICreateAction> {
+export class CreateActionUtil extends AgentActionUtil<CreateAction> {
 	static override type = 'create' as const
 
 	override getSchema() {
 		return CreateAction
 	}
 
-	override getInfo(action: Streaming<ICreateAction>) {
+	override getInfo(action: Streaming<CreateAction>) {
 		return {
 			icon: 'pencil' as const,
 			description: action.intent ?? '',
 		}
 	}
 
-	override sanitizeAction(action: Streaming<ICreateAction>, agentHelpers: AgentHelpers) {
+	override sanitizeAction(action: Streaming<CreateAction>, agentHelpers: AgentHelpers) {
 		if (!action.complete) return action
 
 		const { shape } = action
@@ -74,7 +74,7 @@ export class CreateActionUtil extends AgentActionUtil<ICreateAction> {
 		return action
 	}
 
-	override applyAction(action: Streaming<ICreateAction>, agentHelpers: AgentHelpers) {
+	override applyAction(action: Streaming<CreateAction>, agentHelpers: AgentHelpers) {
 		if (!action.complete) return
 		const { editor } = agentHelpers
 
@@ -93,7 +93,7 @@ export function getTldrawAiChangesFromCreateAction({
 	action,
 }: {
 	editor: Editor
-	action: Streaming<ICreateAction>
+	action: Streaming<CreateAction>
 }): TLAiChange[] {
 	const changes: TLAiChange[] = []
 	if (!action.complete) return changes
@@ -105,7 +105,7 @@ export function getTldrawAiChangesFromCreateAction({
 
 	switch (shapeType) {
 		case 'text': {
-			const textShape = shape as ISimpleTextShape
+			const textShape = shape as SimpleTextShape
 
 			// Determine the base font size and scale
 			let textSize: keyof typeof FONT_SIZES = 's'
@@ -175,7 +175,7 @@ export function getTldrawAiChangesFromCreateAction({
 			break
 		}
 		case 'line': {
-			const lineShape = shape as ISimpleLineShape
+			const lineShape = shape as SimpleLineShape
 			const x1 = lineShape.x1 ?? 0
 			const y1 = lineShape.y1 ?? 0
 			const x2 = lineShape.x2 ?? 0
@@ -217,7 +217,7 @@ export function getTldrawAiChangesFromCreateAction({
 			break
 		}
 		case 'arrow': {
-			const arrowShape = shape as ISimpleArrowShape
+			const arrowShape = shape as SimpleArrowShape
 			const fromId = arrowShape.fromId ? (`shape:${arrowShape.fromId}` as TLShapeId) : null
 			const toId = arrowShape.toId ? (`shape:${arrowShape.toId}` as TLShapeId) : null
 
@@ -322,7 +322,7 @@ export function getTldrawAiChangesFromCreateAction({
 		case 'check-box':
 		case 'heart':
 		case 'ellipse': {
-			const geoShape = shape as ISimpleGeoShape
+			const geoShape = shape as SimpleGeoShape
 			changes.push({
 				type: 'createShape',
 				description: action.intent ?? '',
@@ -349,7 +349,7 @@ export function getTldrawAiChangesFromCreateAction({
 			break
 		}
 		case 'note': {
-			const noteShape = shape as ISimpleNoteShape
+			const noteShape = shape as SimpleNoteShape
 			changes.push({
 				type: 'createShape',
 				description: action.intent ?? '',

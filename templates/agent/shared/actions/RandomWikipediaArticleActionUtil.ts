@@ -12,16 +12,16 @@ const RandomWikipediaArticleAction = z
 		description: 'The AI gets inspiration from a random Wikipedia article.',
 	})
 
-type IRandomWikipediaArticleAction = z.infer<typeof RandomWikipediaArticleAction>
+type RandomWikipediaArticleAction = z.infer<typeof RandomWikipediaArticleAction>
 
-export class RandomWikipediaArticleActionUtil extends AgentActionUtil<IRandomWikipediaArticleAction> {
+export class RandomWikipediaArticleActionUtil extends AgentActionUtil<RandomWikipediaArticleAction> {
 	static override type = 'getInspiration' as const
 
 	override getSchema() {
 		return RandomWikipediaArticleAction
 	}
 
-	override getInfo(action: Streaming<IRandomWikipediaArticleAction>) {
+	override getInfo(action: Streaming<RandomWikipediaArticleAction>) {
 		const description = action.complete
 			? 'Got random Wikipedia article'
 			: 'Getting random Wikipedia article'
@@ -32,7 +32,7 @@ export class RandomWikipediaArticleActionUtil extends AgentActionUtil<IRandomWik
 	}
 
 	override async applyAction(
-		action: Streaming<IRandomWikipediaArticleAction>,
+		action: Streaming<RandomWikipediaArticleAction>,
 		agentHelpers: AgentHelpers
 	) {
 		// Wait until the action has finished streaming

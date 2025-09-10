@@ -13,16 +13,16 @@ const DeleteAction = z
 	})
 	.meta({ title: 'Delete', description: 'The AI deletes a shape.' })
 
-type IDeleteAction = z.infer<typeof DeleteAction>
+type DeleteAction = z.infer<typeof DeleteAction>
 
-export class DeleteActionUtil extends AgentActionUtil<IDeleteAction> {
+export class DeleteActionUtil extends AgentActionUtil<DeleteAction> {
 	static override type = 'delete' as const
 
 	override getSchema() {
 		return DeleteAction
 	}
 
-	override getInfo(action: Streaming<IDeleteAction>) {
+	override getInfo(action: Streaming<DeleteAction>) {
 		return {
 			icon: 'trash' as const,
 			description: action.intent ?? '',
@@ -30,7 +30,7 @@ export class DeleteActionUtil extends AgentActionUtil<IDeleteAction> {
 		}
 	}
 
-	override sanitizeAction(action: Streaming<IDeleteAction>, agentHelpers: AgentHelpers) {
+	override sanitizeAction(action: Streaming<DeleteAction>, agentHelpers: AgentHelpers) {
 		if (!action.complete) return action
 
 		const shapeId = agentHelpers.ensureShapeIdExists(action.shapeId)
@@ -40,7 +40,7 @@ export class DeleteActionUtil extends AgentActionUtil<IDeleteAction> {
 		return action
 	}
 
-	override applyAction(action: Streaming<IDeleteAction>, agentHelpers: AgentHelpers) {
+	override applyAction(action: Streaming<DeleteAction>, agentHelpers: AgentHelpers) {
 		if (!action.complete) return
 		const { editor } = agentHelpers
 

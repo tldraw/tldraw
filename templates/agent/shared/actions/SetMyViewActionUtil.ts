@@ -18,16 +18,16 @@ const SetMyViewAction = z
 			'The AI changes the bounds of its own viewport to navigate to other areas of the canvas if needed.',
 	})
 
-type ISetMyViewAction = z.infer<typeof SetMyViewAction>
+type SetMyViewAction = z.infer<typeof SetMyViewAction>
 
-export class SetMyViewActionUtil extends AgentActionUtil<ISetMyViewAction> {
+export class SetMyViewActionUtil extends AgentActionUtil<SetMyViewAction> {
 	static override type = 'setMyView' as const
 
 	override getSchema() {
 		return SetMyViewAction
 	}
 
-	override getInfo(action: Streaming<ISetMyViewAction>) {
+	override getInfo(action: Streaming<SetMyViewAction>) {
 		const label = action.complete ? 'Move camera' : 'Moving camera'
 		const text = action.intent?.startsWith('#') ? `\n\n${action.intent}` : action.intent
 		return {
@@ -36,7 +36,7 @@ export class SetMyViewActionUtil extends AgentActionUtil<ISetMyViewAction> {
 		}
 	}
 
-	override applyAction(action: Streaming<ISetMyViewAction>, agentHelpers: AgentHelpers) {
+	override applyAction(action: Streaming<SetMyViewAction>, agentHelpers: AgentHelpers) {
 		if (!action.complete) return
 		const { agent } = agentHelpers
 

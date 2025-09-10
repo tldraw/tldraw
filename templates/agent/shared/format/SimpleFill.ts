@@ -1,11 +1,11 @@
 import { TLDefaultFillStyle } from 'tldraw'
 import z from 'zod'
 
-export const SimpleFill = z.enum(['none', 'tint', 'background', 'solid', 'pattern'])
+export const SimpleFillSchema = z.enum(['none', 'tint', 'background', 'solid', 'pattern'])
 
-export type ISimpleFill = z.infer<typeof SimpleFill>
+export type SimpleFill = z.infer<typeof SimpleFillSchema>
 
-const SIMPLE_TO_SHAPE_FILLS: Record<ISimpleFill, TLDefaultFillStyle> = {
+const SIMPLE_TO_SHAPE_FILLS: Record<SimpleFill, TLDefaultFillStyle> = {
 	none: 'none',
 	solid: 'fill',
 	background: 'semi',
@@ -13,7 +13,7 @@ const SIMPLE_TO_SHAPE_FILLS: Record<ISimpleFill, TLDefaultFillStyle> = {
 	pattern: 'pattern',
 }
 
-const SHAPE_TO_SIMPLE_FILLS: Record<TLDefaultFillStyle, ISimpleFill> = {
+const SHAPE_TO_SIMPLE_FILLS: Record<TLDefaultFillStyle, SimpleFill> = {
 	none: 'none',
 	fill: 'solid',
 	semi: 'background',
@@ -21,10 +21,10 @@ const SHAPE_TO_SIMPLE_FILLS: Record<TLDefaultFillStyle, ISimpleFill> = {
 	pattern: 'pattern',
 }
 
-export function convertSimpleFillToTldrawFill(fill: ISimpleFill): TLDefaultFillStyle {
+export function convertSimpleFillToTldrawFill(fill: SimpleFill): TLDefaultFillStyle {
 	return SIMPLE_TO_SHAPE_FILLS[fill]
 }
 
-export function convertTldrawFillToSimpleFill(fill: TLDefaultFillStyle): ISimpleFill {
+export function convertTldrawFillToSimpleFill(fill: TLDefaultFillStyle): SimpleFill {
 	return SHAPE_TO_SIMPLE_FILLS[fill]
 }

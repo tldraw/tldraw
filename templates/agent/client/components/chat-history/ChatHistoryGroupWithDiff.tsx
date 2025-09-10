@@ -1,9 +1,9 @@
 import { useCallback, useMemo } from 'react'
 import { reverseRecordsDiff, squashRecordDiffs } from 'tldraw'
-import { IChatHistoryActionItem } from '../../../shared/types/ChatHistoryItem'
+import { ChatHistoryActionItem } from '../../../shared/types/ChatHistoryItem'
 import { TldrawAgent } from '../../agent/TldrawAgent'
 import { AgentIcon, AgentIconType } from '../icons/AgentIcon'
-import { IChatHistoryGroup } from './ChatHistoryGroup'
+import { ChatHistoryGroup } from './ChatHistoryGroup'
 import { TldrawDiffViewer } from './TldrawDiffViewer'
 import { getActionInfo } from './getActionInfo'
 
@@ -11,7 +11,7 @@ export function ChatHistoryGroupWithDiff({
 	group,
 	agent,
 }: {
-	group: IChatHistoryGroup
+	group: ChatHistoryGroup
 	agent: TldrawAgent
 }) {
 	const { items } = group
@@ -65,7 +65,7 @@ export function ChatHistoryGroupWithDiff({
 	// If all items are accepted, the group is accepted
 	// If all items are rejected, the group is rejected
 	// Otherwise, the group is pending
-	const acceptance = useMemo<IChatHistoryActionItem['acceptance']>(() => {
+	const acceptance = useMemo<ChatHistoryActionItem['acceptance']>(() => {
 		if (items.length === 0) return 'pending'
 		const acceptance = items[0].acceptance
 		for (let i = 1; i < items.length; i++) {

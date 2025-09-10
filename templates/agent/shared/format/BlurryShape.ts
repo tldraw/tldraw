@@ -1,9 +1,9 @@
-import { ISimpleShape } from './SimpleShape'
+import { SimpleShape } from './SimpleShape'
 
 export interface BlurryShape {
 	shapeId: string
 	text?: string
-	type: ISimpleShape['_type']
+	type: SimpleShape['_type']
 	x: number
 	y: number
 	w: number

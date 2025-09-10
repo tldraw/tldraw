@@ -16,28 +16,28 @@ const BringToFrontAction = z
 			'The AI brings one or more shapes to the front so that they appear in front of everything else.',
 	})
 
-type IBringToFrontAction = z.infer<typeof BringToFrontAction>
+type BringToFrontAction = z.infer<typeof BringToFrontAction>
 
-export class BringToFrontActionUtil extends AgentActionUtil<IBringToFrontAction> {
+export class BringToFrontActionUtil extends AgentActionUtil<BringToFrontAction> {
 	static override type = 'bringToFront' as const
 
 	override getSchema() {
 		return BringToFrontAction
 	}
 
-	override getInfo(action: Streaming<IBringToFrontAction>) {
+	override getInfo(action: Streaming<BringToFrontAction>) {
 		return {
 			icon: 'cursor' as const,
 			description: action.intent ?? '',
 		}
 	}
 
-	override sanitizeAction(action: Streaming<IBringToFrontAction>, agentHelpers: AgentHelpers) {
+	override sanitizeAction(action: Streaming<BringToFrontAction>, agentHelpers: AgentHelpers) {
 		action.shapeIds = agentHelpers.ensureShapeIdsExist(action.shapeIds ?? [])
 		return action
 	}
 
-	override applyAction(action: Streaming<IBringToFrontAction>, agentHelpers: AgentHelpers) {
+	override applyAction(action: Streaming<BringToFrontAction>, agentHelpers: AgentHelpers) {
 		const { editor } = agentHelpers
 
 		if (!action.shapeIds) return

@@ -9,16 +9,16 @@ const MessageAction = z
 	})
 	.meta({ title: 'Message', description: 'The AI sends a message to the user.' })
 
-type IMessageAction = z.infer<typeof MessageAction>
+type MessageAction = z.infer<typeof MessageAction>
 
-export class MessageActionUtil extends AgentActionUtil<IMessageAction> {
+export class MessageActionUtil extends AgentActionUtil<MessageAction> {
 	static override type = 'message' as const
 
 	override getSchema() {
 		return MessageAction
 	}
 
-	override getInfo(action: Streaming<IMessageAction>) {
+	override getInfo(action: Streaming<MessageAction>) {
 		return {
 			description: action.text ?? '',
 			canGroup: () => false,

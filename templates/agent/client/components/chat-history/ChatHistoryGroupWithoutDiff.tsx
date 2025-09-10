@@ -1,20 +1,20 @@
 import { useMemo, useState } from 'react'
 import Markdown from 'react-markdown'
 import { AgentAction } from '../../../shared/types/AgentAction'
-import { IChatHistoryActionItem } from '../../../shared/types/ChatHistoryItem'
+import { ChatHistoryActionItem } from '../../../shared/types/ChatHistoryItem'
 import { Streaming } from '../../../shared/types/Streaming'
 import { TldrawAgent } from '../../agent/TldrawAgent'
 import { AgentIcon } from '../icons/AgentIcon'
 import { ChevronDownIcon } from '../icons/ChevronDownIcon'
 import { ChevronRightIcon } from '../icons/ChevronRightIcon'
-import { IChatHistoryGroup } from './ChatHistoryGroup'
+import { ChatHistoryGroup } from './ChatHistoryGroup'
 import { getActionInfo } from './getActionInfo'
 
 export function ChatHistoryGroupWithoutDiff({
 	group,
 	agent,
 }: {
-	group: IChatHistoryGroup
+	group: ChatHistoryGroup
 	agent: TldrawAgent
 }) {
 	const { items } = group
@@ -76,7 +76,7 @@ export function ChatHistoryGroupWithoutDiff({
 	)
 }
 
-function ChatHistoryItem({ item, agent }: { item: IChatHistoryActionItem; agent: TldrawAgent }) {
+function ChatHistoryItem({ item, agent }: { item: ChatHistoryActionItem; agent: TldrawAgent }) {
 	const { action } = item
 	const { description, summary } = getActionInfo(action, agent)
 	const collapsible = summary !== null

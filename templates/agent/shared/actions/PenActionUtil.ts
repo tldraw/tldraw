@@ -2,7 +2,7 @@ import { createShapeId, TLDrawShape, TLDrawShapeSegment, Vec, VecModel } from 't
 import z from 'zod'
 import { AgentHelpers } from '../AgentHelpers'
 import { asColor, SimpleColor } from '../format/SimpleColor'
-import { convertSimpleFillToTldrawFill, SimpleFill } from '../format/SimpleFill'
+import { convertSimpleFillToTldrawFill, SimpleFillSchema } from '../format/SimpleFill'
 import { Streaming } from '../types/Streaming'
 import { AgentActionUtil } from './AgentActionUtil'
 
@@ -11,7 +11,7 @@ const PenAction = z
 		_type: z.literal('pen'),
 		color: SimpleColor,
 		closed: z.boolean(),
-		fill: SimpleFill,
+		fill: SimpleFillSchema,
 		intent: z.string(),
 		points: z.array(
 			z.object({
@@ -27,23 +27,23 @@ const PenAction = z
 			'The AI draws a freeform line with a pen. This is useful for drawing custom paths that are not available with the other available shapes. The "smooth" style will automatically smooth the line between points. The "straight" style will render a straight line between points. The "closed" property will determine if the drawn line gets automatically closed to form a complete shape or not. Remember that the pen will be *down* until the action is over. If you want to lift up the pen, start a new pen action.',
 	})
 
-type IPenAction = z.infer<typeof PenAction>
+type PenAction = z.infer<typeof PenAction>
 
-export class PenActionUtil extends AgentActionUtil<IPenAction> {
+export class PenActionUtil extends AgentActionUtil<PenAction> {
 	static override type = 'pen' as const
 
 	override getSchema() {
 		return PenAction
 	}
 
-	override getInfo(action: Streaming<IPenAction>) {
+	override getInfo(action: Streaming<PenAction>) {
 		return {
 			icon: 'pencil' as const,
 			description: action.intent ?? '',
 		}
 	}
 
-	override sanitizeAction(action: Streaming<IPenAction>, agentHelpers: AgentHelpers) {
+	override sanitizeAction(action: Streaming<PenAction>, agentHelpers: AgentHelpers) {
 		if (!action.points) return action
 
 		// This is a complex action for the model, so validate the data it gives us
@@ -58,7 +58,7 @@ export class PenActionUtil extends AgentActionUtil<IPenAction> {
 		return action
 	}
 
-	override applyAction(action: Streaming<IPenAction>, agentHelpers: AgentHelpers) {
+	override applyAction(action: Streaming<PenAction>, agentHelpers: AgentHelpers) {
 		const { editor } = agentHelpers
 
 		if (!action.points) return
