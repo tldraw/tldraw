@@ -160,38 +160,126 @@ export interface MigrationSequence {
 	sequence: Migration[]
 }
 
+/**
+ * Sorts migrations using a distance-minimizing topological sort.
+ *
+ * This function respects two types of dependencies:
+ * 1. Implicit sequence dependencies (foo/1 must come before foo/2)
+ * 2. Explicit dependencies via `dependsOn` property
+ *
+ * The algorithm minimizes the total distance between migrations and their explicit
+ * dependencies in the final ordering, while maintaining topological correctness.
+ * This means when migration A depends on migration B, A will be scheduled as close
+ * as possible to B (while respecting all constraints).
+ *
+ * Implementation uses Kahn's algorithm with priority scoring:
+ * - Builds dependency graph and calculates in-degrees
+ * - Uses priority queue that prioritizes migrations which unblock explicit dependencies
+ * - Processes migrations in urgency order while maintaining topological constraints
+ * - Detects cycles by ensuring all migrations are processed
+ *
+ * @param migrations - Array of migrations to sort
+ * @returns Sorted array of migrations in execution order
+ */
 export function sortMigrations(migrations: Migration[]): Migration[] {
-	// we do a topological sort using dependsOn and implicit dependencies between migrations in the same sequence
+	if (migrations.length === 0) return []
+
+	// Build dependency graph and calculate in-degrees
 	const byId = new Map(migrations.map((m) => [m.id, m]))
-	const isProcessing = new Set<MigrationId>()
+	const dependents = new Map<MigrationId, Set<MigrationId>>() // who depends on this
+	const inDegree = new Map<MigrationId, number>()
+	const explicitDeps = new Map<MigrationId, Set<MigrationId>>() // explicit dependsOn relationships
 
-	const result: Migration[] = []
+	// Initialize
+	for (const m of migrations) {
+		inDegree.set(m.id, 0)
+		dependents.set(m.id, new Set())
+		explicitDeps.set(m.id, new Set())
+	}
 
-	function process(m: Migration) {
-		assert(!isProcessing.has(m.id), `Circular dependency in migrations: ${m.id}`)
-		isProcessing.add(m.id)
-
+	// Add implicit sequence dependencies and explicit dependencies
+	for (const m of migrations) {
 		const { version, sequenceId } = parseMigrationId(m.id)
-		const parent = byId.get(`${sequenceId}/${version - 1}`)
-		if (parent) {
-			process(parent)
+
+		// Implicit dependency on previous in sequence
+		const prevId = `${sequenceId}/${version - 1}` as MigrationId
+		if (byId.has(prevId)) {
+			dependents.get(prevId)!.add(m.id)
+			inDegree.set(m.id, inDegree.get(m.id)! + 1)
 		}
 
+		// Explicit dependencies
 		if (m.dependsOn) {
-			for (const dep of m.dependsOn) {
-				const depMigration = byId.get(dep)
-				if (depMigration) {
-					process(depMigration)
+			for (const depId of m.dependsOn) {
+				if (byId.has(depId)) {
+					dependents.get(depId)!.add(m.id)
+					explicitDeps.get(m.id)!.add(depId)
+					inDegree.set(m.id, inDegree.get(m.id)! + 1)
 				}
 			}
 		}
-
-		byId.delete(m.id)
-		result.push(m)
 	}
 
-	for (const m of byId.values()) {
-		process(m)
+	// Priority queue: migrations ready to process (in-degree 0)
+	const ready = migrations.filter((m) => inDegree.get(m.id) === 0)
+	const result: Migration[] = []
+	const processed = new Set<MigrationId>()
+
+	while (ready.length > 0) {
+		// Calculate urgency scores for ready migrations and pick the best one
+		let bestCandidate: Migration | undefined
+		let bestCandidateScore = -Infinity
+
+		for (const m of ready) {
+			let urgencyScore = 0
+
+			for (const depId of dependents.get(m.id) || []) {
+				if (!processed.has(depId)) {
+					// Priority 1: Count all unprocessed dependents (to break ties)
+					urgencyScore += 1
+
+					// Priority 2: If this migration is explicitly depended on by others, boost priority
+					if (explicitDeps.get(depId)!.has(m.id)) {
+						urgencyScore += 100
+					}
+				}
+			}
+
+			if (
+				urgencyScore > bestCandidateScore ||
+				// Tiebreaker: prefer lower sequence/version
+				(urgencyScore === bestCandidateScore && m.id.localeCompare(bestCandidate?.id ?? '') < 0)
+			) {
+				bestCandidate = m
+				bestCandidateScore = urgencyScore
+			}
+		}
+
+		const nextMigration = bestCandidate!
+		ready.splice(ready.indexOf(nextMigration), 1)
+
+		// Cycle detection - if we have processed everything and still have items left, there's a cycle
+		// This is handled by Kahn's algorithm naturally - if we finish with items unprocessed, there's a cycle
+
+		// Process this migration
+		result.push(nextMigration)
+		processed.add(nextMigration.id)
+
+		// Update in-degrees and add newly ready migrations
+		for (const depId of dependents.get(nextMigration.id) || []) {
+			if (!processed.has(depId)) {
+				inDegree.set(depId, inDegree.get(depId)! - 1)
+				if (inDegree.get(depId) === 0) {
+					ready.push(byId.get(depId)!)
+				}
+			}
+		}
+	}
+
+	// Check for cycles - if we didn't process all migrations, there's a cycle
+	if (result.length !== migrations.length) {
+		const unprocessed = migrations.filter((m) => !processed.has(m.id))
+		assert(false, `Circular dependency in migrations: ${unprocessed[0].id}`)
 	}
 
 	return result

@@ -689,11 +689,17 @@ input,
 }
 
 .tl-text-measure {
-	position: absolute;
 	z-index: var(--tl-layer-canvas-hidden);
+	opacity: 0;
+	visibility: hidden;
+
+	/* pointer-events: all; */
+	/* opacity: 1; */
+	/* z-index: 99999;  */
+
+	position: absolute;
 	top: 0px;
 	left: 0px;
-	opacity: 0;
 	width: max-content;
 	box-sizing: border-box;
 	pointer-events: none;
@@ -704,7 +710,6 @@ input,
 	border: none;
 	user-select: none;
 	contain: style paint;
-	visibility: hidden;
 	/* N.B. This property, while discouraged ("intended for Document Type Definition (DTD) designers") is necessary for ensuring correct mixed RTL/LTR behavior when exporting SVGs. */
 	unicode-bidi: plaintext;
 	-webkit-user-select: none;
