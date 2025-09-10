@@ -469,6 +469,42 @@ test.describe('Actions on shapes', () => {
 			data: { source: 'kbd', fine: true },
 		})
 	})
+
+	test('Toggle lock disabled in hand tool', async () => {
+		// Set up with shapes and select them
+		await setupPageWithShapes(page)
+		await page.keyboard.press('Control+a') // Select all shapes
+		
+		// Switch to hand tool
+		await page.keyboard.press('h')
+		expect(await page.evaluate(() => __tldraw_ui_event)).toMatchObject({
+			name: 'select-tool',
+			data: { id: 'hand', source: 'kbd' },
+		})
+
+		// Store the current event to compare later
+		const eventBefore = await page.evaluate(() => JSON.stringify(__tldraw_ui_event))
+
+		// Attempt to toggle lock - this should not trigger any event
+		await page.keyboard.press('Shift+l')
+		
+		// The event should be the same (no new toggle-lock event)
+		const eventAfter = await page.evaluate(() => JSON.stringify(__tldraw_ui_event))
+		expect(eventBefore).toBe(eventAfter)
+		
+		// Switch back to select tool to verify locking works again
+		await page.keyboard.press('v')
+		expect(await page.evaluate(() => __tldraw_ui_event)).toMatchObject({
+			name: 'select-tool',
+			data: { id: 'select', source: 'kbd' },
+		})
+
+		// Now toggle lock should work
+		await page.keyboard.press('Shift+l')
+		expect(await page.evaluate(() => __tldraw_ui_event)).toMatchObject({
+			name: 'toggle-lock',
+		})
+	})
 })
 test.describe('Delete bug', () => {
 	test.beforeEach(async ({ browser }) => {
