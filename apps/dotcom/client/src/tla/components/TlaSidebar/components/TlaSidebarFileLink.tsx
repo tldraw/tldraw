@@ -21,7 +21,12 @@ import { useIsFileOwner } from '../../../hooks/useIsFileOwner'
 import { useTldrawAppUiEvents } from '../../../utils/app-ui-events'
 import { getIsCoarsePointer } from '../../../utils/getIsCoarsePointer'
 import { F, defineMessages, useIntl } from '../../../utils/i18n'
-import { toggleMobileSidebar, useIsSidebarOpenMobile } from '../../../utils/local-session-state'
+import {
+	toggleMobileSidebar,
+	updateLocalSessionState,
+	useIsSidebarOpenMobile,
+	useShouldHighlightFileLink,
+} from '../../../utils/local-session-state'
 import { FileItems, FileItemsWrapper } from '../../TlaFileMenu/TlaFileMenu'
 import { TlaIcon } from '../../TlaIcon/TlaIcon'
 import {
@@ -203,6 +208,10 @@ export function TlaSidebarFileLinkInner({
 		linkRef.current.focus({ preventScroll: preventScrollOnNavigation })
 	}, [isActive, linkRef])
 
+	const isPinned = useValue('isPinned', () => !!app.getFileState(fileId)?.isPinned, [fileId, app])
+
+	const shouldHighlight = useShouldHighlightFileLink(fileId, context, isPinned)
+
 	if (!file) return null
 
 	if (isRenaming) {
@@ -213,7 +222,7 @@ export function TlaSidebarFileLinkInner({
 		<div
 			className={classNames(styles.sidebarFileListItem, styles.hoverable, className)}
 			data-dragging={dnd.isDragging}
-			data-active={isActive}
+			data-active={shouldHighlight}
 			data-element="file-link"
 			data-testid={testId}
 			data-is-own-file={isOwnFile}
@@ -223,7 +232,7 @@ export function TlaSidebarFileLinkInner({
 			})}
 			onDoubleClick={canUpdateFile ? handleRenameAction : undefined}
 			// We use this id to scroll the active file link into view when creating or deleting files.
-			id={isActive ? ACTIVE_FILE_LINK_ID : undefined}
+			id={shouldHighlight ? ACTIVE_FILE_LINK_ID : undefined}
 			{...dnd.attributes}
 			{...dnd.listeners}
 			ref={dnd.setNodeRef}
@@ -235,6 +244,10 @@ export function TlaSidebarFileLinkInner({
 				onKeyDown={handleKeyDown}
 				aria-label={fileName}
 				onClick={(event) => {
+					updateLocalSessionState((state) => ({
+						...state,
+						lastNavigationClick: { fileId, context },
+					}))
 					// Don't navigate if we are already on the file page
 					// unless the user is holding ctrl or cmd to open in a new tab
 					if (isActive && !(event.ctrlKey || event.metaKey)) {

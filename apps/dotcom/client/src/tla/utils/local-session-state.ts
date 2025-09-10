@@ -8,6 +8,8 @@ import {
 	useValue,
 } from 'tldraw'
 import { globalEditor } from '../../utils/globalEditor'
+import { SidebarFileContext } from '../app/TldrawApp'
+import { useCurrentFileId } from '../hooks/useCurrentFileId'
 
 const STORAGE_KEY = 'tldrawapp_session_3'
 
@@ -39,6 +41,30 @@ export interface TldrawAppSessionState {
 	>
 	sidebarWidth?: number
 	shouldShowWelcomeDialog?: boolean
+	lastNavigationClick?: {
+		fileId: string
+		context: SidebarFileContext
+	}
+}
+export function useShouldHighlightFileLink(
+	fileId: string,
+	context: SidebarFileContext,
+	isPinned: boolean
+) {
+	const currentFileId = useCurrentFileId()
+	const lastNavigationClick = useValue(
+		'lastNavigationClick',
+		() => localSessionState.get().lastNavigationClick,
+		[]
+	)
+	if (currentFileId !== fileId) return false
+	if (!lastNavigationClick || lastNavigationClick.fileId !== fileId)
+		return !isPinned || context === 'my-files-pinned'
+
+	if (isPinned && context === 'my-files-pinned')
+		return lastNavigationClick.context === 'my-files-pinned'
+	if (isPinned && context != 'my-files') return false
+	return true
 }
 
 let prev: TldrawAppSessionState = {

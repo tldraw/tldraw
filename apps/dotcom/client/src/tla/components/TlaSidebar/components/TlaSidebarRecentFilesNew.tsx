@@ -70,7 +70,10 @@ export function TlaSidebarRecentFilesNew() {
 				const { isPinned } = item
 				if (isPinned) {
 					pinnedFiles.push(item)
-				} else if (
+				}
+
+				// Add files to "My files" section regardless of pinned status (but exclude group files)
+				if (
 					!groupMemberships.some((group) => group.groupFiles.some((g) => g.fileId === item.fileId))
 				) {
 					otherFiles.push(item)

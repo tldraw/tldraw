@@ -33,7 +33,10 @@ export function TlaSidebarRecentFiles() {
 				const { date, isPinned } = item
 				if (isPinned) {
 					pinnedFiles.push(item)
-				} else if (date >= today) {
+				}
+
+				// Add files to time-based sections regardless of pinned status
+				if (date >= today) {
 					todayFiles.push(item)
 				} else if (date >= yesterday) {
 					yesterdayFiles.push(item)
