@@ -564,13 +564,17 @@ export function convertTldrawShapeToSimpleShape(
 	switch (shape.type) {
 		// ...
 		case 'sticker':
-			return return {
+			const bounds = editor.getShapeMaskedPageBounds(shape)
+			if (!bounds) {
+				throw new Error('Could not get bounds for sticker shape')
+			}
+			return {
 				_type: 'sticker',
 				note: (shape.meta.note as string) ?? '',
 				shapeId: convertTldrawIdToSimpleId(shape.id),
 				stickerType: shape.props.stickerType,
-				x: shape.x,
-				y: shape.y,
+				x: bounds.x,
+				y: bounds.y,
 			}
 		// ...
 	}

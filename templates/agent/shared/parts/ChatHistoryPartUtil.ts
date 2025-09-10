@@ -16,7 +16,10 @@ export class ChatHistoryPartUtil extends PromptPartUtil<ChatHistoryPart> {
 		return Infinity // history should appear first in the prompt (low priority)
 	}
 
-	override getPart(_request: AgentRequest, transform: AgentTransform): ChatHistoryPart {
+	override async getPart(
+		_request: AgentRequest,
+		transform: AgentTransform
+	): Promise<ChatHistoryPart> {
 		const { agent } = transform
 
 		const items = agent.$chatHistory.get()
@@ -31,6 +34,18 @@ export class ChatHistoryPartUtil extends PromptPartUtil<ChatHistoryPart> {
 			})
 
 			historyItem.contextItems = contextItems
+		}
+
+		// Await any promises in action items
+		for (const historyItem of items) {
+			if (historyItem.type === 'action' && historyItem.result.value) {
+				try {
+					historyItem.result.value = await historyItem.result.value
+				} catch (_error) {
+					// Handle promise rejection by setting value to undefined
+					historyItem.result.value = undefined
+				}
+			}
 		}
 
 		return {
@@ -114,17 +129,21 @@ export class ChatHistoryPartUtil extends PromptPartUtil<ChatHistoryPart> {
 				}
 			}
 			case 'action': {
-				const { complete: _complete, ...eventWithoutComplete } = item.action || {}
-				const eventWasMessage = eventWithoutComplete._type === 'message'
-				const eventWasThought = eventWithoutComplete._type === 'think'
+				const { complete: _complete, time: _time, ...sanitizedEvent } = item.action || {}
+				const eventWasMessage = sanitizedEvent._type === 'message'
+				const eventWasThought = sanitizedEvent._type === 'think'
 
 				let textToSend: string
 				if (eventWasMessage) {
-					textToSend = eventWithoutComplete.text || '<message data lost>' // the text here should probably never actually be undefined, but I figure this text is a more helpful fallback for the model than an empty string
+					textToSend = sanitizedEvent.text || '<message data lost>' // the text here should probably never actually be undefined, but I figure this text is a more helpful fallback for the model than an empty string
 				} else if (eventWasThought) {
-					textToSend = '[THOUGHT]: ' + (eventWithoutComplete.text || '<thought data lost>') // ditto above
+					textToSend = '[THOUGHT]: ' + (sanitizedEvent.text || '<thought data lost>') // ditto above
 				} else {
-					textToSend = '[ACTION]: ' + JSON.stringify(eventWithoutComplete)
+					textToSend = '[ACTION]: ' + JSON.stringify(sanitizedEvent)
+					// Include the resolved value of the action if it exists
+					if (item.result.value !== undefined) {
+						textToSend += '\n[RESULT]: ' + JSON.stringify(item.result.value)
+					}
 				}
 
 				return {

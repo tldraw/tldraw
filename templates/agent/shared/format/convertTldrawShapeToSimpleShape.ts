@@ -72,21 +72,26 @@ function convertTextShapeToSimple(editor: Editor, shape: TLTextShape): ISimpleTe
 	const util = editor.getShapeUtil(shape)
 	const text = util.getText(shape) ?? ''
 
+	const bounds = editor.getShapeMaskedPageBounds(shape)
+	if (!bounds) {
+		throw new Error('Could not get bounds for text shape')
+	}
+
 	const textSize = shape.props.size
 	const textAlign = shape.props.textAlign
 	const textWidth = shape.props.w
 
-	let anchorX = shape.x
+	let anchorX = bounds.x
 	switch (textAlign) {
 		case 'middle':
-			anchorX = shape.x + textWidth / 2
+			anchorX = bounds.x + textWidth / 2
 			break
 		case 'end':
-			anchorX = shape.x + textWidth
+			anchorX = bounds.x + textWidth
 			break
 		case 'start':
 		default:
-			anchorX = shape.x
+			anchorX = bounds.x
 			break
 	}
 
@@ -99,13 +104,18 @@ function convertTextShapeToSimple(editor: Editor, shape: TLTextShape): ISimpleTe
 		text: text,
 		textAlign: shape.props.textAlign,
 		x: anchorX,
-		y: shape.y,
+		y: bounds.y,
 	}
 }
 
 function convertGeoShapeToSimple(editor: Editor, shape: TLGeoShape): ISimpleGeoShape {
 	const util = editor.getShapeUtil(shape)
 	const text = util.getText(shape)
+
+	const bounds = editor.getShapeMaskedPageBounds(shape)
+	if (!bounds) {
+		throw new Error('Could not get bounds for geo shape')
+	}
 
 	const shapeTextAlign = shape.props.align
 	let newTextAlign: ISimpleGeoShape['textAlign']
@@ -134,26 +144,36 @@ function convertGeoShapeToSimple(editor: Editor, shape: TLGeoShape): ISimpleGeoS
 		text: text ?? '',
 		textAlign: newTextAlign,
 		w: shape.props.w,
-		x: shape.x,
-		y: shape.y,
+		x: bounds.x,
+		y: bounds.y,
 	}
 }
 
-function convertLineShapeToSimple(_editor: Editor, shape: TLLineShape): ISimpleLineShape {
+function convertLineShapeToSimple(editor: Editor, shape: TLLineShape): ISimpleLineShape {
+	const bounds = editor.getShapeMaskedPageBounds(shape)
+	if (!bounds) {
+		throw new Error('Could not get bounds for line shape')
+	}
+
 	const points = Object.values(shape.props.points).sort((a, b) => a.index.localeCompare(b.index))
 	return {
 		_type: 'line',
 		color: shape.props.color,
 		note: (shape.meta.note as string) ?? '',
 		shapeId: convertTldrawIdToSimpleId(shape.id),
-		x1: points[0].x + shape.x,
-		x2: points[1].x + shape.x,
-		y1: points[0].y + shape.y,
-		y2: points[1].y + shape.y,
+		x1: points[0].x + bounds.x,
+		x2: points[1].x + bounds.x,
+		y1: points[0].y + bounds.y,
+		y2: points[1].y + bounds.y,
 	}
 }
 
 function convertArrowShapeToSimple(editor: Editor, shape: TLArrowShape): ISimpleArrowShape {
+	const bounds = editor.getShapeMaskedPageBounds(shape)
+	if (!bounds) {
+		throw new Error('Could not get bounds for arrow shape')
+	}
+
 	const bindings = editor.store.query.records('binding').get()
 	const arrowBindings = bindings.filter(
 		(b) => b.type === 'arrow' && b.fromId === shape.id
@@ -170,45 +190,61 @@ function convertArrowShapeToSimple(editor: Editor, shape: TLArrowShape): ISimple
 		shapeId: convertTldrawIdToSimpleId(shape.id),
 		text: (shape.meta.text as string) ?? '',
 		toId: endBinding?.toId ?? null,
-		x1: shape.props.start.x + shape.x,
-		x2: shape.props.end.x + shape.x,
-		y1: shape.props.start.y + shape.y,
-		y2: shape.props.end.y + shape.y,
+		x1: shape.props.start.x + bounds.x,
+		x2: shape.props.end.x + bounds.x,
+		y1: shape.props.start.y + bounds.y,
+		y2: shape.props.end.y + bounds.y,
 	}
 }
 
 function convertNoteShapeToSimple(editor: Editor, shape: TLNoteShape): ISimpleNoteShape {
 	const util = editor.getShapeUtil(shape)
 	const text = util.getText(shape)
+
+	const bounds = editor.getShapeMaskedPageBounds(shape)
+	if (!bounds) {
+		throw new Error('Could not get bounds for note shape')
+	}
+
 	return {
 		_type: 'note',
 		color: shape.props.color,
 		note: (shape.meta.note as string) ?? '',
 		shapeId: convertTldrawIdToSimpleId(shape.id),
 		text: text ?? '',
-		x: shape.x,
-		y: shape.y,
+		x: bounds.x,
+		y: bounds.y,
 	}
 }
 
 function convertEmbedShapeToSimple(editor: Editor, shape: TLEmbedShape): ISimpleEmbedShape {
+	const bounds = editor.getShapeMaskedPageBounds(shape)
+	if (!bounds) {
+		throw new Error('Could not get bounds for embed shape')
+	}
+
 	return {
 		_type: 'bookmark',
 		url: shape.props.url,
 		note: (shape.meta.note as string) ?? '',
 		shapeId: convertTldrawIdToSimpleId(shape.id),
-		x: shape.x,
-		y: shape.y,
+		x: bounds.x,
+		y: bounds.y,
 	}
 }
 
-function convertUnknownShapeToSimple(_editor: Editor, shape: TLShape): ISimpleUnknownShape {
+function convertUnknownShapeToSimple(editor: Editor, shape: TLShape): ISimpleUnknownShape {
+	const bounds = editor.getShapeMaskedPageBounds(shape)
+	if (!bounds) {
+		throw new Error('Could not get bounds for unknown shape')
+	}
+
 	return {
 		_type: 'unknown',
 		note: (shape.meta.note as string) ?? '',
 		shapeId: convertTldrawIdToSimpleId(shape.id),
 		subType: shape.type,
-		x: shape.x,
-		y: shape.y,
+		x: bounds.x,
+		y: bounds.y,
 	}
 }

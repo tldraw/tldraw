@@ -433,12 +433,19 @@ export class TldrawAgent {
 		})
 		this.isActing = false
 
+		const utilType = this.getAgentActionUtilType(action._type)
+		const result: AgentActionResult = {
+			type: utilType,
+			diff,
+			value,
+		}
+
 		// Add the action to chat history
 		if (util.savesToHistory()) {
 			const historyItem: IChatHistoryItem = {
 				type: 'action',
 				action,
-				diff,
+				result,
 				acceptance: 'pending',
 			}
 
@@ -461,12 +468,7 @@ export class TldrawAgent {
 			})
 		}
 
-		const utilType = this.getAgentActionUtilType(action._type)
-		return {
-			type: utilType,
-			diff,
-			value,
-		}
+		return result
 	}
 
 	/**
