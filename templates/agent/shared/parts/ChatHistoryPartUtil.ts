@@ -30,10 +30,6 @@ export class ChatHistoryPartUtil extends PromptPartUtil<ChatHistoryPart> {
 				return agentHelpers.roundContextItem(offsetContextItem)
 			})
 
-			// Await for all promises in the data array
-			await Promise.all(historyItem.data)
-			console.log(historyItem.data)
-
 			historyItem.contextItems = contextItems
 		}
 

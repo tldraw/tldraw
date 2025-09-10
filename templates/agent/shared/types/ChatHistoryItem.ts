@@ -1,4 +1,4 @@
-import { JsonValue, RecordsDiff, TLRecord } from 'tldraw'
+import { RecordsDiff, TLRecord } from 'tldraw'
 import { SimpleShape } from '../format/SimpleShape'
 import { AgentAction } from './AgentAction'
 import { ContextItem } from './ContextItem'
@@ -11,7 +11,6 @@ export interface ChatHistoryPromptItem {
 	message: string
 	contextItems: ContextItem[]
 	selectedShapes: SimpleShape[]
-	data: (Promise<JsonValue> | JsonValue)[]
 }
 
 export interface ChatHistoryActionItem {
