@@ -210,7 +210,7 @@ export class Group2d extends Geometry2d {
 			path += child.toSimpleSvgPath()
 		}
 
-		const corners = Box.FromPoints(this.vertices).corners
+		const corners = Box.FromPoints(this.boundsVertices).corners
 		// draw just a few pixels around each corner, e.g. an L shape for the bottom left
 
 		for (let i = 0, n = corners.length; i < n; i++) {
