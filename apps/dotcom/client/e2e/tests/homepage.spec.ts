@@ -234,7 +234,7 @@ test.describe('sidebar actions', () => {
 		// Pin the second-most recent file...
 		await sidebar.pinFromFileMenu(1)
 
-		// And expect it to the the first (and only) pinned file
+		// And expect it to appear in both pinned and today sections
 		await expectBeforeAndAfterReload(async () => {
 			await expect(async () => {
 				await expect(
@@ -244,7 +244,10 @@ test.describe('sidebar actions', () => {
 					page.getByTestId('tla-file-link-today-0').getByText(fileName0, { exact: true })
 				).toBeVisible()
 				await expect(
-					page.getByTestId('tla-file-link-today-1').getByText(fileName2, { exact: true })
+					page.getByTestId('tla-file-link-today-1').getByText(fileName1, { exact: true })
+				).toBeVisible()
+				await expect(
+					page.getByTestId('tla-file-link-today-2').getByText(fileName2, { exact: true })
 				).toBeVisible()
 			}).toPass()
 		}, page)
@@ -252,7 +255,7 @@ test.describe('sidebar actions', () => {
 		// Now we pin the most recent file...
 		await sidebar.pinFromFileMenu(0)
 
-		// And expect it to the first pinned file
+		// And expect both pinned files to appear in both sections
 		await expectBeforeAndAfterReload(async () => {
 			await expect(async () => {
 				await expect(
@@ -262,7 +265,13 @@ test.describe('sidebar actions', () => {
 					page.getByTestId('tla-file-link-pinned-1').getByText(fileName1, { exact: true })
 				).toBeVisible()
 				await expect(
-					page.getByTestId('tla-file-link-today-0').getByText(fileName2, { exact: true })
+					page.getByTestId('tla-file-link-today-0').getByText(fileName0, { exact: true })
+				).toBeVisible()
+				await expect(
+					page.getByTestId('tla-file-link-today-1').getByText(fileName1, { exact: true })
+				).toBeVisible()
+				await expect(
+					page.getByTestId('tla-file-link-today-2').getByText(fileName2, { exact: true })
 				).toBeVisible()
 			}).toPass()
 		}, page)
@@ -279,7 +288,10 @@ test.describe('sidebar actions', () => {
 					page.getByTestId('tla-file-link-today-0').getByText(fileName0, { exact: true })
 				).toBeVisible()
 				await expect(
-					page.getByTestId('tla-file-link-today-1').getByText(fileName2, { exact: true })
+					page.getByTestId('tla-file-link-today-1').getByText(fileName1, { exact: true })
+				).toBeVisible()
+				await expect(
+					page.getByTestId('tla-file-link-today-2').getByText(fileName2, { exact: true })
 				).toBeVisible()
 			}).toPass()
 		}, page)

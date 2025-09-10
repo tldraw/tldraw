@@ -406,6 +406,7 @@ export class UserDataSyncer {
 				lastSequenceNumber: resumeData.lastSequenceNumber,
 			}))
 		) {
+			// TODO: investigate how this returns without group_user, or suck that 'group_user is not iterable'
 			const initialData = this.store.getCommittedData()!
 			const topicSubscriptions: TopicSubscriptionTree = {}
 			const groupFileIds = new Set()
@@ -511,7 +512,7 @@ export class UserDataSyncer {
 
 		// ignore irrelevant events
 		if (!event.sequenceId.endsWith(this.state.bootId)) {
-			this.log.debug('ignoring irrelevant event', event)
+			this.log.debug('ignoring irrelevant event', event, this.state.bootId)
 			return
 		}
 
