@@ -158,8 +158,6 @@ function NodeShape({ shape }: { shape: NodeShape }) {
 		[editor, shape.id]
 	)
 
-	console.log(shape.id, { shape, output })
-
 	// Check if this node is currently executing using our execution state
 	const isExecuting = useValue(
 		'is executing',

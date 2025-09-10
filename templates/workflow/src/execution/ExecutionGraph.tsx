@@ -97,7 +97,6 @@ export class ExecutionGraph {
 		const inputs: Record<string, number> = {}
 
 		// Check all input connections (end ports) to see if dependencies are ready
-		console.log('check', node)
 		for (const connection of node.connections) {
 			if (!connection || connection.terminal !== 'end') continue
 
@@ -143,7 +142,6 @@ export class ExecutionGraph {
 			props: { isOutOfDate: true },
 		})
 		const outputs = await executeNode(this.editor, node.shape, inputs)
-		console.log(nodeId, { outputs, inputs })
 		this.editor.updateShape<NodeShape>({
 			id: nodeId,
 			type: node.shape.type,
