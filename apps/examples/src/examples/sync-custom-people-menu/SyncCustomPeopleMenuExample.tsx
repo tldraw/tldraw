@@ -27,11 +27,16 @@ function CustomPeopleMenu() {
 
 	// [a]
 	const myUserColor = useValue('user', () => editor.user.getColor(), [editor])
-	const myUserName = useValue('user', () => editor.user.getName(), [editor]) || 'Huppy'
+	const myUserName = useValue('user', () => editor.user.getName(), [editor])
 	const myUserId = useValue('user', () => editor.user.getId(), [editor])
 
 	// [b]
 	const allOtherPresences = useValue('presences', () => editor.getCollaborators(), [editor])
+
+	// Early return if user data is not available
+	if (!myUserName || !myUserId) {
+		return null
+	}
 
 	return (
 		<div
@@ -65,7 +70,7 @@ function CustomPeopleMenu() {
 						}}
 					/>
 					<span style={{ color: myUserColor }}>
-						{myUserName}, ID: {myUserId}
+						{myUserName || 'Huppy'}, ID: {myUserId}
 					</span>
 				</div>
 			</div>
