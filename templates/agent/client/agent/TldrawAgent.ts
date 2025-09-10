@@ -18,7 +18,6 @@ import { getAgentActionUtilsRecord, getPromptPartUtilsRecord } from '../../share
 import { SimpleShape } from '../../shared/format/SimpleShape'
 import { PromptPartUtil } from '../../shared/parts/PromptPartUtil'
 import { AgentAction } from '../../shared/types/AgentAction'
-import { AgentActionResult } from '../../shared/types/AgentActionResult'
 import { AgentInput } from '../../shared/types/AgentInput'
 import { AgentPrompt, BaseAgentPrompt } from '../../shared/types/AgentPrompt'
 import { AgentRequest } from '../../shared/types/AgentRequest'
@@ -458,29 +457,21 @@ export class TldrawAgent {
 	/**
 	 * Make the agent perform an action.
 	 * @param action The action to make the agent do.
-	 * @param agentHelpers The agentHelpers to use.
+	 * @param helpers The agentHelpers to use.
 	 * @returns The diff of the action, and
 	 */
-	act(action: Streaming<AgentAction>, agentHelpers = new AgentHelpers(this)): AgentActionResult {
+	act(action: Streaming<AgentAction>, helpers = new AgentHelpers(this)) {
 		const { editor } = this
 		const util = this.getAgentActionUtil(action._type)
 		this.isActing = true
-		let value: AgentActionResult['value']
 
 		let diff: RecordsDiff<TLRecord> | null = null
 		try {
 			diff = editor.store.extractingChanges(() => {
-				value = util.applyAction(structuredClone(action), agentHelpers) ?? undefined
+				util.applyAction(structuredClone(action), helpers)
 			})
 		} finally {
 			this.isActing = false
-		}
-
-		const utilType = this.getAgentActionUtilType(action._type)
-		const result: AgentActionResult = {
-			type: utilType,
-			diff,
-			value,
 		}
 
 		// Add the action to chat history
@@ -488,7 +479,7 @@ export class TldrawAgent {
 			const historyItem: ChatHistoryItem = {
 				type: 'action',
 				action,
-				result,
+				diff,
 				acceptance: 'pending',
 			}
 
@@ -511,7 +502,7 @@ export class TldrawAgent {
 			})
 		}
 
-		return result
+		return diff
 	}
 
 	/**
@@ -719,10 +710,9 @@ function requestAgent({
 	const signal = controller.signal
 	const agentHelpers = new AgentHelpers(agent)
 
-	const promise = new Promise<AgentActionResult[]>((resolve) => {
+	const promise = new Promise<void>((resolve) => {
 		agent.preparePrompt(request, agentHelpers).then(async (prompt) => {
 			let incompleteDiff: RecordsDiff<TLRecord> | null = null
-			const results: AgentActionResult[] = []
 			try {
 				for await (const action of streamAgent({ prompt, signal })) {
 					if (cancelled) break
@@ -744,14 +734,13 @@ function requestAgent({
 							}
 
 							// Apply the action to the app and editor
-							const result = agent.act(transformedAction, agentHelpers)
+							const diff = agent.act(transformedAction, agentHelpers)
 
 							// The the action is incomplete, save the diff so that we can revert it in the future
 							if (transformedAction.complete) {
-								results.push(result)
 								incompleteDiff = null
 							} else {
-								incompleteDiff = result.diff
+								incompleteDiff = diff
 							}
 						},
 						{
@@ -760,13 +749,13 @@ function requestAgent({
 						}
 					)
 				}
-				resolve(results)
+				resolve()
 			} catch (e) {
 				if (e === 'Cancelled by user' || (e instanceof Error && e.name === 'AbortError')) {
 					return
 				}
 				onError(e)
-				resolve(results)
+				resolve()
 			}
 		})
 	})

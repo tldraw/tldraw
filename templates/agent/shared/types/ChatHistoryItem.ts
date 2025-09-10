@@ -1,6 +1,6 @@
+import { RecordsDiff, TLRecord } from 'tldraw'
 import { SimpleShape } from '../format/SimpleShape'
 import { AgentAction } from './AgentAction'
-import { AgentActionResult } from './AgentActionResult'
 import { ContextItem } from './ContextItem'
 import { Streaming } from './Streaming'
 
@@ -16,6 +16,6 @@ export interface ChatHistoryPromptItem {
 export interface ChatHistoryActionItem {
 	type: 'action'
 	action: Streaming<AgentAction>
-	result: AgentActionResult
+	diff: RecordsDiff<TLRecord>
 	acceptance: 'pending' | 'accepted' | 'rejected'
 }

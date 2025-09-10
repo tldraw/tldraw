@@ -45,7 +45,7 @@ export function getActionHistoryGroups(
 		} else {
 			groups.push({
 				items: [item],
-				withDiff: !isRecordsDiffEmpty(item.result.diff) && item.action.complete,
+				withDiff: !isRecordsDiffEmpty(item.diff) && item.action.complete,
 			})
 		}
 	}
@@ -68,7 +68,7 @@ export function canActionBeGrouped({
 	if (!item.action.complete) return false
 	if (!group) return false
 
-	const showDiff = !isRecordsDiffEmpty(item.result.diff)
+	const showDiff = !isRecordsDiffEmpty(item.diff)
 	if (showDiff !== group.withDiff) return false
 
 	const groupAcceptance = group.items[0]?.acceptance

@@ -16,10 +16,7 @@ export class ChatHistoryPartUtil extends PromptPartUtil<ChatHistoryPart> {
 		return Infinity // history should appear first in the prompt (low priority)
 	}
 
-	override async getPart(
-		_request: AgentRequest,
-		agentHelpers: AgentHelpers
-	): Promise<ChatHistoryPart> {
+	override getPart(_request: AgentRequest, agentHelpers: AgentHelpers): ChatHistoryPart {
 		const { agent } = agentHelpers
 
 		const items = agent.$chatHistory.get()
@@ -34,18 +31,6 @@ export class ChatHistoryPartUtil extends PromptPartUtil<ChatHistoryPart> {
 			})
 
 			historyItem.contextItems = contextItems
-		}
-
-		// Await any promises in action items
-		for (const historyItem of items) {
-			if (historyItem.type === 'action' && historyItem.result.value) {
-				try {
-					historyItem.result.value = await historyItem.result.value
-				} catch (_error) {
-					// Handle promise rejection by setting value to undefined
-					historyItem.result.value = undefined
-				}
-			}
 		}
 
 		return {
@@ -135,15 +120,13 @@ export class ChatHistoryPartUtil extends PromptPartUtil<ChatHistoryPart> {
 
 				let textToSend: string
 				if (eventWasMessage) {
-					textToSend = sanitizedEvent.text || '<message data lost>' // the text here should probably never actually be undefined, but I figure this text is a more helpful fallback for the model than an empty string
+					// the text here should probably never actually be undefined, but I figure this text is a more helpful fallback for the model than an empty string
+					textToSend = sanitizedEvent.text || '<message data lost>'
 				} else if (eventWasThought) {
-					textToSend = '[THOUGHT]: ' + (sanitizedEvent.text || '<thought data lost>') // ditto above
+					// see above
+					textToSend = '[THOUGHT]: ' + (sanitizedEvent.text || '<thought data lost>')
 				} else {
 					textToSend = '[ACTION]: ' + JSON.stringify(sanitizedEvent)
-					// Include the resolved value of the action if it exists
-					if (item.result.value !== undefined) {
-						textToSend += '\n[RESULT]: ' + JSON.stringify(item.result.value)
-					}
 				}
 
 				return {
