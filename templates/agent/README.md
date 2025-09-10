@@ -557,10 +557,7 @@ const SIMPLE_SHAPES = [
 Let the agent convert your custom shape into the `SimpleShape` format by adding it as a case in `convertTldrawShapeToSimpleShape.ts`.
 
 ```ts
-export function convertTldrawShapeToSimpleShape(
-	shape: TLShape,
-	editor: Editor
-): ISimpleShape {
+export function convertTldrawShapeToSimpleShape(shape: TLShape, editor: Editor): ISimpleShape {
 	switch (shape.type) {
 		// ...
 		case 'sticker':
@@ -580,6 +577,10 @@ export function convertTldrawShapeToSimpleShape(
 	}
 }
 ```
+
+## Let the agent edit your custom shape's properties
+
+TODO
 
 <!-- 4. Now the agent can see and fully understand stickers on the canvas. However, it still can't create or edit them. To allow them to do this, head to `CreateActionUtil.ts` and `UpdateActionUtil.ts` respectively and add support for those. This is where `SimpleShape` format shapes, which is what the model outputs, are converted to the 'real' format required by the canvas.
 
