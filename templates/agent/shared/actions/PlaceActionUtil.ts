@@ -1,6 +1,6 @@
 import { TLShapeId } from 'tldraw'
 import z from 'zod'
-import { AgentTransform } from '../AgentTransform'
+import { AgentHelpers } from '../AgentHelpers'
 import { Streaming } from '../types/Streaming'
 import { AgentActionUtil } from './AgentActionUtil'
 
@@ -17,39 +17,39 @@ const PlaceAction = z
 	})
 	.meta({ title: 'Place', description: 'The AI places a shape relative to another shape.' })
 
-type IPlaceAction = z.infer<typeof PlaceAction>
+type PlaceAction = z.infer<typeof PlaceAction>
 
-export class PlaceActionUtil extends AgentActionUtil<IPlaceAction> {
+export class PlaceActionUtil extends AgentActionUtil<PlaceAction> {
 	static override type = 'place' as const
 
 	override getSchema() {
 		return PlaceAction
 	}
 
-	override getInfo(action: Streaming<IPlaceAction>) {
+	override getInfo(action: Streaming<PlaceAction>) {
 		return {
 			icon: 'target' as const,
 			description: action.intent ?? '',
 		}
 	}
 
-	override sanitizeAction(action: Streaming<IPlaceAction>, transform: AgentTransform) {
+	override sanitizeAction(action: Streaming<PlaceAction>, agentHelpers: AgentHelpers) {
 		if (!action.complete) return action
 
-		const shapeId = transform.ensureShapeIdExists(action.shapeId)
+		const shapeId = agentHelpers.ensureShapeIdExists(action.shapeId)
 		if (!shapeId) return null
 		action.shapeId = shapeId
 
-		const referenceShapeId = transform.ensureShapeIdExists(action.referenceShapeId)
+		const referenceShapeId = agentHelpers.ensureShapeIdExists(action.referenceShapeId)
 		if (!referenceShapeId) return null
 		action.referenceShapeId = referenceShapeId
 
 		return action
 	}
 
-	override applyAction(action: Streaming<IPlaceAction>, transform: AgentTransform) {
+	override applyAction(action: Streaming<PlaceAction>, agentHelpers: AgentHelpers) {
 		if (!action.complete) return
-		const { editor } = transform
+		const { editor } = agentHelpers
 
 		const { side, sideOffset = 0, align, alignOffset = 0 } = action
 		const referenceShapeId = `shape:${action.referenceShapeId}` as TLShapeId

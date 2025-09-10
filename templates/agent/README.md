@@ -172,12 +172,12 @@ export class ClearActionUtil extends AgentActionUtil<IClearAction> {
 		return ClearAction
 	}
 
-	override applyAction(action: Streaming<IClearAction>, transform: AgentTransform) {
+	override applyAction(action: Streaming<IClearAction>, agentHelpers: AgentHelpers) {
 		// Don't do anything until the action has finished streaming
 		if (!action.complete) return
 
 		// Delete all shapes on the page
-		const { editor } = transform
+		const { editor } = agentHelpers
 		const shapes = editor.getCurrentPageShapes()
 		editor.deleteShapes(shapes)
 	}
@@ -234,10 +234,10 @@ You can let the agent work over multiple turns by scheduling further work using 
 This example shows how to schedule an extra step for adding detail to the canvas.
 
 ```ts
-override applyAction(action: Streaming<IAddDetailAction>, transform: AgentTransform) {
+override applyAction(action: Streaming<IAddDetailAction>, agentHelpers: AgentHelpers) {
 	if (!action.complete) return
 
-	const { agent } = transform
+	const { agent } = agentHelpers
 	agent.schedule('Add more detail to the canvas.')
 }
 ```
@@ -245,10 +245,10 @@ override applyAction(action: Streaming<IAddDetailAction>, transform: AgentTransf
 You can pass a callback to the `schedule` method to create a request based on the currently scheduled request. If there is nothing scheduled, the callback will be called with the default request.
 
 ```ts
-override applyAction(action: Streaming<IMoveRightAction>, transform: AgentTransform) {
+override applyAction(action: Streaming<IMoveRightAction>, agentHelpers: AgentHelpers) {
 	if (!action.complete) return
 
-	const { agent } = transform
+	const { agent } = agentHelpers
 	agent.schedule((prev) => ({
 		bounds: {
 			// Move the viewport to the right
@@ -264,10 +264,10 @@ override applyAction(action: Streaming<IMoveRightAction>, transform: AgentTransf
 You can also schedule further work by adding to the agent's todo list. It won't stop working until all todos are resolved.
 
 ```ts
-override applyAction(action: Streaming<IAddDetailAction>, transform: AgentTransform) {
+override applyAction(action: Streaming<IAddDetailAction>, agentHelpers: AgentHelpers) {
 	if (!action.complete) return
 
-	const { agent } = transform
+	const { agent } = agentHelpers
 	agent.addTodo('Check for spelling mistakes.')
 }
 ```
@@ -279,10 +279,10 @@ To let the agent retrieve information from an external API, fetch and return it 
 ```ts
 override async applyAction(
 	action: Streaming<IRandomWikipediaArticleAction>,
-	transform: AgentTransform
+	agentHelpers: AgentHelpers
 ) {
 	if (!action.complete) return
-	const { agent } = transform
+	const { agent } = agentHelpers
 
 	// Schedule a follow-up request so the agent can use the data
 	agent.schedule("Here's a random Wikipedia article.")
@@ -303,11 +303,11 @@ To correct incoming mistakes, apply fixes in the `sanitizeAction` method of an a
 For example, ensure that a shape ID received from the model refers to an existing shape by using the `ensureShapeIdExists` method.
 
 ```ts
-override sanitizeAction(action: Streaming<IDeleteAction>, transform: AgentTransform) {
+override sanitizeAction(action: Streaming<IDeleteAction>, agentHelpers: AgentHelpers) {
 	if (!action.complete) return action
 
 	// Ensure the shape ID refers to an existing shape
-	action.shapeId = transform.ensureShapeIdExists(action.shapeId)
+	action.shapeId = agentHelpers.ensureShapeIdExists(action.shapeId)
 
 	// If the shape ID doesn't refer to an existing shape, cancel the action
 	if (!action.shapeId) return null
@@ -316,7 +316,7 @@ override sanitizeAction(action: Streaming<IDeleteAction>, transform: AgentTransf
 }
 ```
 
-The `AgentTransform` object contains more helpers for sanitizing data received from the model.
+The `AgentHelpers` object contains more helpers for sanitizing data received from the model.
 
 - `ensureShapeIdExists` - Ensure that a shape ID refers to a real shape. Useful for interacting with existing shapes.
 - `ensureShapeIdIsUnique` - Ensure that a shape ID is unique. Useful for creating new shapes.
@@ -329,14 +329,14 @@ By default, every position sent to the model is offset by the starting position 
 To apply this offset to a position sent to the model, use the `applyOffsetToVec` method.
 
 ```ts
-override getPart(request: AgentRequest, transform: AgentTransform): ViewportCenterPart {
-	const { editor } = transform
+override getPart(request: AgentRequest, agentHelpers: AgentHelpers): ViewportCenterPart {
+	const { editor } = agentHelpers
 
 	// Get the center of the user's viewport
 	const viewportCenter = editor.getViewportBounds().center
 
 	// Apply the chat's offset to the vector
-	const offsetViewportCenter = transform.applyOffsetToVec(viewportCenter)
+	const offsetViewportCenter = agentHelpers.applyOffsetToVec(viewportCenter)
 
 	// Return the prompt part
 	return {
@@ -349,11 +349,11 @@ override getPart(request: AgentRequest, transform: AgentTransform): ViewportCent
 To remove the offset from a position received from the model, use the `removeOffsetFromVec` method.
 
 ```ts
-override applyAction(action: Streaming<IMoveAction>, transform: AgentTransform) {
+override applyAction(action: Streaming<IMoveAction>, agentHelpers: AgentHelpers) {
 	if (!action.complete) return
 
 	// Remove the offset from the position
-	const position = transform.removeOffsetFromVec({ x: action.x, y: action.y })
+	const position = agentHelpers.removeOffsetFromVec({ x: action.x, y: action.y })
 
 	// Do something with the position...
 }
@@ -374,8 +374,8 @@ To send the model some shapes in one of these formats, use one of the conversion
 This example picks one random shape on the canvas and sends it to the model in the Simple format.
 
 ```ts
-override getPart(request: AgentRequest, transform: AgentTransform): RandomShapePart {
-	const { editor } = transform
+override getPart(request: AgentRequest, agentHelpers: AgentHelpers): RandomShapePart {
+	const { editor } = agentHelpers
 
 	// Get a random shape
 	const shapes = editor.getCurrentPageShapes()
@@ -385,8 +385,8 @@ override getPart(request: AgentRequest, transform: AgentTransform): RandomShapeP
 	const simpleShape = convertTldrawShapeToSimpleShape(randomShape, editor)
 
 	// Normalize the shape's position
-	const offsetShape = transform.applyOffsetToShape(simpleShape)
-	const roundedShape = transform.roundShape(offsetShape)
+	const offsetShape = agentHelpers.applyOffsetToShape(simpleShape)
+	const roundedShape = agentHelpers.roundShape(offsetShape)
 
 	return {
 		type: 'random-shape',
@@ -487,14 +487,14 @@ export class StickerActionUtil extends AgentActionUtil<IStickerAction> {
 		}
 	}
 
-	override applyAction(action: Streaming<IStickerAction>, transform: AgentTransform) {
+	override applyAction(action: Streaming<IStickerAction>, agentHelpers: AgentHelpers) {
 		if (!action.complete) return
 
 		// Normalize the position
-		const position = transform.removeOffsetFromVec({ x: action.x, y: action.y })
+		const position = agentHelpers.removeOffsetFromVec({ x: action.x, y: action.y })
 
 		// Create the custom shape
-		const { editor } = transform
+		const { editor } = agentHelpers
 		editor.createShape({
 			type: 'sticker',
 			id: createShapeId(),
@@ -621,7 +621,7 @@ You can use the tldraw SDK in commercial or non-commercial projects so long as y
 
 ## Trademarks
 
-Copyright (c) 2024-present tldraw Inc. The tldraw name and logo are trademarks of tldraw. Please see our [trademark guidelines](https://github.com/tldraw/tldraw/blob/main/TRADEMARKS.md) for info on acceptable usage.
+Copyright (c) 2025-present tldraw Inc. The tldraw name and logo are trademarks of tldraw. Please see our [trademark guidelines](https://github.com/tldraw/tldraw/blob/main/TRADEMARKS.md) for info on acceptable usage.
 
 ## Distributions
 

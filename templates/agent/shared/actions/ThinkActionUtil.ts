@@ -9,16 +9,16 @@ const ThinkAction = z
 	})
 	.meta({ title: 'Think', description: 'The AI describes its intent or reasoning.' })
 
-type IThinkAction = z.infer<typeof ThinkAction>
+type ThinkAction = z.infer<typeof ThinkAction>
 
-export class ThinkActionUtil extends AgentActionUtil<IThinkAction> {
+export class ThinkActionUtil extends AgentActionUtil<ThinkAction> {
 	static override type = 'think' as const
 
 	override getSchema() {
 		return ThinkAction
 	}
 
-	override getInfo(action: Streaming<IThinkAction>) {
+	override getInfo(action: Streaming<ThinkAction>) {
 		const time = Math.floor(action.time / 1000)
 		let summary = `Thought for ${time} seconds`
 		if (time === 0) summary = 'Thought for less than a second'

@@ -1,47 +1,43 @@
 import { BoxModel, Editor, VecModel } from 'tldraw'
 import { AgentIconType } from '../../client/components/icons/AgentIcon'
-import { ISimpleShape } from '../format/SimpleShape'
+import { SimpleShape } from '../format/SimpleShape'
 
-export type IContextItem =
-	| IShapeContextItem
-	| IAreaContextItem
-	| IPointContextItem
-	| IShapesContextItem
+export type ContextItem = ShapeContextItem | AreaContextItem | PointContextItem | ShapesContextItem
 
-export interface IShapeContextItem {
+export interface ShapeContextItem {
 	type: 'shape'
-	shape: ISimpleShape
+	shape: SimpleShape
 	source: 'agent' | 'user'
 }
 
-export interface IShapesContextItem {
+export interface ShapesContextItem {
 	type: 'shapes'
-	shapes: ISimpleShape[]
+	shapes: SimpleShape[]
 	source: 'agent' | 'user'
 }
 
-export interface IAreaContextItem {
+export interface AreaContextItem {
 	type: 'area'
 	bounds: BoxModel
 	source: 'agent' | 'user'
 }
 
-export interface IPointContextItem {
+export interface PointContextItem {
 	type: 'point'
 	point: VecModel
 	source: 'agent' | 'user'
 }
 
 export const CONTEXT_TYPE_DEFINITIONS: Record<
-	IContextItem['type'],
+	ContextItem['type'],
 	{
 		icon: AgentIconType
-		name(item: IContextItem, editor: Editor): string
+		name(item: ContextItem, editor: Editor): string
 	}
 > = {
 	shape: {
 		icon: 'target',
-		name: (item: IShapeContextItem) => {
+		name: (item: ShapeContextItem) => {
 			let name = item.shape.note
 			if (!name) {
 				name = item.shape._type
@@ -65,7 +61,7 @@ export const CONTEXT_TYPE_DEFINITIONS: Record<
 	},
 	shapes: {
 		icon: 'target',
-		name: (item: IShapesContextItem, editor: Editor) => {
+		name: (item: ShapesContextItem, editor: Editor) => {
 			const count = item.shapes.length
 			if (count === 1) return CONTEXT_TYPE_DEFINITIONS['shape'].name(item, editor)
 			return `${count} shapes`

@@ -1,4 +1,4 @@
-import { AgentTransform } from '../AgentTransform'
+import { AgentHelpers } from '../AgentHelpers'
 import { AgentRequest } from '../types/AgentRequest'
 import { BasePromptPart } from '../types/BasePromptPart'
 import { TodoItem } from '../types/TodoItem'
@@ -15,10 +15,10 @@ export class TodoListPartUtil extends PromptPartUtil<TodoListPart> {
 		return 10
 	}
 
-	override getPart(_request: AgentRequest, transform: AgentTransform): TodoListPart {
+	override getPart(_request: AgentRequest, agentHelpers: AgentHelpers): TodoListPart {
 		return {
 			type: 'todoList',
-			items: transform.agent.$todoList.get(),
+			items: agentHelpers.agent.$todoList.get(),
 		}
 	}
 

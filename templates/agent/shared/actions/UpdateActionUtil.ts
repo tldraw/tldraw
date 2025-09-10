@@ -8,7 +8,6 @@ import {
 	TLArrowShape,
 	TLBindingId,
 	TLDrawShape,
-	TLEmbedShape,
 	TLGeoShape,
 	TLLineShape,
 	TLNoteShape,
@@ -18,21 +17,20 @@ import {
 } from 'tldraw'
 import z from 'zod'
 import { applyAiChange } from '../../client/agent/applyAiChange'
-import { AgentTransform } from '../AgentTransform'
+import { AgentHelpers } from '../AgentHelpers'
 import { asColor } from '../format/SimpleColor'
 import { convertSimpleFillToTldrawFill } from '../format/SimpleFill'
 import { convertSimpleFontSizeToTldrawFontSizeAndScale } from '../format/SimpleFontSize'
 import { convertSimpleTypeToTldrawType } from '../format/SimpleGeoShapeType'
 import {
-	ISimpleArrowShape,
-	ISimpleDrawShape,
-	ISimpleEmbedShape,
-	ISimpleGeoShape,
-	ISimpleLineShape,
-	ISimpleNoteShape,
-	ISimpleTextShape,
-	ISimpleUnknownShape,
-	SimpleShape,
+	SimpleArrowShape,
+	SimpleDrawShape,
+	SimpleGeoShape,
+	SimpleLineShape,
+	SimpleNoteShape,
+	SimpleShapeSchema,
+	SimpleTextShape,
+	SimpleUnknownShape,
 } from '../format/SimpleShape'
 import { Streaming } from '../types/Streaming'
 import { AgentActionUtil } from './AgentActionUtil'
@@ -42,61 +40,61 @@ const UpdateAction = z
 	.object({
 		_type: z.literal('update'),
 		intent: z.string(),
-		update: SimpleShape,
+		update: SimpleShapeSchema,
 	})
 	.meta({
 		title: 'Update',
 		description: 'The AI updates an existing shape.',
 	})
 
-type IUpdateAction = z.infer<typeof UpdateAction>
+type UpdateAction = z.infer<typeof UpdateAction>
 
-export class UpdateActionUtil extends AgentActionUtil<IUpdateAction> {
+export class UpdateActionUtil extends AgentActionUtil<UpdateAction> {
 	static override type = 'update' as const
 
 	override getSchema() {
 		return UpdateAction
 	}
 
-	override getInfo(action: Streaming<IUpdateAction>) {
+	override getInfo(action: Streaming<UpdateAction>) {
 		return {
 			icon: 'cursor' as const,
 			description: action.intent ?? '',
 		}
 	}
 
-	override sanitizeAction(action: Streaming<IUpdateAction>, transform: AgentTransform) {
+	override sanitizeAction(action: Streaming<UpdateAction>, agentHelpers: AgentHelpers) {
 		if (!action.complete) return action
 
 		const { update } = action
 
 		// Ensure the shape ID refers to a real shape
-		const shapeId = transform.ensureShapeIdExists(update.shapeId)
+		const shapeId = agentHelpers.ensureShapeIdExists(update.shapeId)
 		if (!shapeId) return null
 		update.shapeId = shapeId
 
 		// If it's an arrow, ensure the from and to IDs refer to real shapes
 		if (update._type === 'arrow') {
 			if (update.fromId) {
-				update.fromId = transform.ensureShapeIdExists(update.fromId)
+				update.fromId = agentHelpers.ensureShapeIdExists(update.fromId)
 			}
 			if (update.toId) {
-				update.toId = transform.ensureShapeIdExists(update.toId)
+				update.toId = agentHelpers.ensureShapeIdExists(update.toId)
 			}
 		}
 
 		// Unround the shape to restore the original values
-		action.update = transform.unroundShape(action.update)
+		action.update = agentHelpers.unroundShape(action.update)
 
 		return action
 	}
 
-	override applyAction(action: Streaming<IUpdateAction>, transform: AgentTransform) {
+	override applyAction(action: Streaming<UpdateAction>, agentHelpers: AgentHelpers) {
 		if (!action.complete) return
-		const { editor } = transform
+		const { editor } = agentHelpers
 
 		// Translate the shape back to the chat's position
-		action.update = transform.removeOffsetFromShape(action.update)
+		action.update = agentHelpers.removeOffsetFromShape(action.update)
 
 		const aiChanges = getTldrawAiChangesFromUpdateEvent({ editor, action })
 		for (const aiChange of aiChanges) {
@@ -110,7 +108,7 @@ export function getTldrawAiChangesFromUpdateEvent({
 	action,
 }: {
 	editor: Editor
-	action: Streaming<IUpdateAction>
+	action: Streaming<UpdateAction>
 }): TLAiChange[] {
 	const changes: TLAiChange[] = []
 	if (!action.complete) return changes
@@ -122,7 +120,7 @@ export function getTldrawAiChangesFromUpdateEvent({
 
 	switch (updateShapeType) {
 		case 'text': {
-			const textShape = update as ISimpleTextShape
+			const textShape = update as SimpleTextShape
 			const shapeOnCanvas = editor.getShape<TLTextShape>(shapeId)
 			if (!shapeOnCanvas) {
 				throw new Error(`Shape ${update.shapeId} not found in canvas`)
@@ -207,7 +205,7 @@ export function getTldrawAiChangesFromUpdateEvent({
 			break
 		}
 		case 'line': {
-			const lineShape = update as ISimpleLineShape
+			const lineShape = update as SimpleLineShape
 			const shapeOnCanvas = editor.getShape<TLLineShape>(shapeId)
 			if (!shapeOnCanvas) {
 				throw new Error(`Shape ${update.shapeId} not found in canvas`)
@@ -254,7 +252,7 @@ export function getTldrawAiChangesFromUpdateEvent({
 			break
 		}
 		case 'arrow': {
-			const arrowShape = update as ISimpleArrowShape
+			const arrowShape = update as SimpleArrowShape
 			const shapeOnCanvas = editor.getShape<TLArrowShape>(shapeId)
 			if (!shapeOnCanvas) {
 				throw new Error(`Shape ${update.shapeId} not found in canvas`)
@@ -376,7 +374,7 @@ export function getTldrawAiChangesFromUpdateEvent({
 		case 'check-box':
 		case 'heart':
 		case 'ellipse': {
-			const geoShape = update as ISimpleGeoShape
+			const geoShape = update as SimpleGeoShape
 			const shapeOnCanvas = editor.getShape<TLGeoShape>(shapeId)
 			if (!shapeOnCanvas) {
 				throw new Error(`Shape ${update.shapeId} not found in canvas`)
@@ -414,7 +412,7 @@ export function getTldrawAiChangesFromUpdateEvent({
 			break
 		}
 		case 'note': {
-			const noteShape = update as ISimpleNoteShape
+			const noteShape = update as SimpleNoteShape
 			const shapeOnCanvas = editor.getShape<TLNoteShape>(shapeId)
 			if (!shapeOnCanvas) {
 				throw new Error(`Shape ${update.shapeId} not found in canvas`)
@@ -444,7 +442,7 @@ export function getTldrawAiChangesFromUpdateEvent({
 			break
 		}
 		case 'draw': {
-			const drawShape = update as ISimpleDrawShape
+			const drawShape = update as SimpleDrawShape
 			const shapeOnCanvas = editor.getShape<TLDrawShape>(shapeId)
 			if (!shapeOnCanvas) {
 				throw new Error(`Shape ${update.shapeId} not found in canvas`)
@@ -473,33 +471,8 @@ export function getTldrawAiChangesFromUpdateEvent({
 
 			break
 		}
-		case 'bookmark': {
-			const embedShape = update as ISimpleEmbedShape
-			const shapeOnCanvas = editor.getShape<TLEmbedShape>(shapeId)
-			if (!shapeOnCanvas) {
-				throw new Error(`Shape ${update.shapeId} not found in canvas`)
-			}
-
-			changes.push({
-				type: 'updateShape',
-				description: action.intent ?? '',
-				shape: {
-					id: shapeId,
-					type: 'bookmark',
-					x: embedShape.x ?? shapeOnCanvas.x,
-					y: embedShape.y ?? shapeOnCanvas.y,
-					props: {
-						url: embedShape.url ?? shapeOnCanvas.props.url,
-					},
-					meta: {
-						note: embedShape.note ?? shapeOnCanvas.meta.note,
-					},
-				},
-			})
-			break
-		}
 		case 'unknown': {
-			const unknownShape = update as ISimpleUnknownShape
+			const unknownShape = update as SimpleUnknownShape
 			const shapeOnCanvas = editor.getShape(shapeId)
 			if (!shapeOnCanvas) {
 				throw new Error(`Shape ${update.shapeId} not found in canvas`)

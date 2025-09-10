@@ -1,17 +1,17 @@
 import { useValue } from 'tldraw'
 import {
-	IChatHistoryActionItem,
-	IChatHistoryItem,
-	IChatHistoryPromptItem,
+	ChatHistoryActionItem,
+	ChatHistoryItem,
+	ChatHistoryPromptItem,
 } from '../../../shared/types/ChatHistoryItem'
 import { TldrawAgent } from '../../agent/TldrawAgent'
 import { SmallSpinner } from '../icons/SmallSpinner'
 import { ChatHistoryGroup, getActionHistoryGroups } from './ChatHistoryGroup'
 import { ChatHistoryPrompt } from './ChatHistoryPrompt'
 
-export interface IChatHistorySection {
-	prompt: IChatHistoryPromptItem
-	actions: IChatHistoryActionItem[]
+export interface ChatHistorySection {
+	prompt: ChatHistoryPromptItem
+	actions: ChatHistoryActionItem[]
 	isFinalSection: boolean
 }
 
@@ -19,7 +19,7 @@ export function ChatHistorySection({
 	section,
 	agent,
 }: {
-	section: IChatHistorySection
+	section: ChatHistorySection
 	agent: TldrawAgent
 }) {
 	const isGenerating = useValue('isGenerating', () => agent.isGenerating(), [agent])
@@ -35,8 +35,8 @@ export function ChatHistorySection({
 	)
 }
 
-export function getAgentHistorySections(items: IChatHistoryItem[]): IChatHistorySection[] {
-	const sections: IChatHistorySection[] = []
+export function getAgentHistorySections(items: ChatHistoryItem[]): ChatHistorySection[] {
+	const sections: ChatHistorySection[] = []
 
 	for (const item of items) {
 		if (item.type === 'prompt') {

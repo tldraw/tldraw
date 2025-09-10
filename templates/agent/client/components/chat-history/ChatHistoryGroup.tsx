@@ -1,12 +1,12 @@
 import { isRecordsDiffEmpty } from 'tldraw'
-import { IChatHistoryActionItem } from '../../../shared/types/ChatHistoryItem'
+import { ChatHistoryActionItem } from '../../../shared/types/ChatHistoryItem'
 import { TldrawAgent } from '../../agent/TldrawAgent'
 import { ChatHistoryGroupWithDiff } from './ChatHistoryGroupWithDiff'
 import { ChatHistoryGroupWithoutDiff } from './ChatHistoryGroupWithoutDiff'
 import { getActionInfo } from './getActionInfo'
 
-export interface IChatHistoryGroup {
-	items: IChatHistoryActionItem[]
+export interface ChatHistoryGroup {
+	items: ChatHistoryActionItem[]
 	withDiff: boolean
 }
 
@@ -14,7 +14,7 @@ export function ChatHistoryGroup({
 	group,
 	agent,
 }: {
-	group: IChatHistoryGroup
+	group: ChatHistoryGroup
 	agent: TldrawAgent
 }) {
 	if (group.withDiff) {
@@ -28,10 +28,10 @@ export function ChatHistoryGroup({
  * Merge adjacent actions into groups where possible.
  */
 export function getActionHistoryGroups(
-	items: IChatHistoryActionItem[],
+	items: ChatHistoryActionItem[],
 	agent: TldrawAgent
-): IChatHistoryGroup[] {
-	const groups: IChatHistoryGroup[] = []
+): ChatHistoryGroup[] {
+	const groups: ChatHistoryGroup[] = []
 
 	for (const item of items) {
 		const { description } = getActionInfo(item.action, agent)
@@ -61,8 +61,8 @@ export function canActionBeGrouped({
 	group,
 	agent,
 }: {
-	item: IChatHistoryActionItem
-	group: IChatHistoryGroup
+	item: ChatHistoryActionItem
+	group: ChatHistoryGroup
 	agent: TldrawAgent
 }) {
 	if (!item.action.complete) return false

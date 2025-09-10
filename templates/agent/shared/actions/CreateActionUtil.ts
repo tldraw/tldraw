@@ -13,19 +13,18 @@ import {
 } from 'tldraw'
 import z from 'zod'
 import { applyAiChange } from '../../client/agent/applyAiChange'
-import { AgentTransform } from '../AgentTransform'
+import { AgentHelpers } from '../AgentHelpers'
 import { asColor } from '../format/SimpleColor'
 import { convertSimpleFillToTldrawFill } from '../format/SimpleFill'
 import { convertSimpleFontSizeToTldrawFontSizeAndScale } from '../format/SimpleFontSize'
 import { convertSimpleTypeToTldrawType } from '../format/SimpleGeoShapeType'
 import {
-	ISimpleArrowShape,
-	ISimpleEmbedShape,
-	ISimpleGeoShape,
-	ISimpleLineShape,
-	ISimpleNoteShape,
-	ISimpleTextShape,
-	SimpleShape,
+	SimpleArrowShape,
+	SimpleGeoShape,
+	SimpleLineShape,
+	SimpleNoteShape,
+	SimpleShapeSchema,
+	SimpleTextShape,
 } from '../format/SimpleShape'
 import { Streaming } from '../types/Streaming'
 import { AgentActionUtil } from './AgentActionUtil'
@@ -34,53 +33,53 @@ const CreateAction = z
 	.object({
 		_type: z.literal('create'),
 		intent: z.string(),
-		shape: SimpleShape,
+		shape: SimpleShapeSchema,
 	})
 	.meta({ title: 'Create', description: 'The AI creates a new shape.' })
 
-type ICreateAction = z.infer<typeof CreateAction>
+type CreateAction = z.infer<typeof CreateAction>
 
-export class CreateActionUtil extends AgentActionUtil<ICreateAction> {
+export class CreateActionUtil extends AgentActionUtil<CreateAction> {
 	static override type = 'create' as const
 
 	override getSchema() {
 		return CreateAction
 	}
 
-	override getInfo(action: Streaming<ICreateAction>) {
+	override getInfo(action: Streaming<CreateAction>) {
 		return {
 			icon: 'pencil' as const,
 			description: action.intent ?? '',
 		}
 	}
 
-	override sanitizeAction(action: Streaming<ICreateAction>, transform: AgentTransform) {
+	override sanitizeAction(action: Streaming<CreateAction>, agentHelpers: AgentHelpers) {
 		if (!action.complete) return action
 
 		const { shape } = action
 
 		// Ensure the created shape has a unique ID
-		shape.shapeId = transform.ensureShapeIdIsUnique(shape.shapeId)
+		shape.shapeId = agentHelpers.ensureShapeIdIsUnique(shape.shapeId)
 
 		// If the shape is an arrow, ensure the from and to IDs are real shapes
 		if (shape._type === 'arrow') {
 			if (shape.fromId) {
-				shape.fromId = transform.ensureShapeIdExists(shape.fromId)
+				shape.fromId = agentHelpers.ensureShapeIdExists(shape.fromId)
 			}
 			if (shape.toId) {
-				shape.toId = transform.ensureShapeIdExists(shape.toId)
+				shape.toId = agentHelpers.ensureShapeIdExists(shape.toId)
 			}
 		}
 
 		return action
 	}
 
-	override applyAction(action: Streaming<ICreateAction>, transform: AgentTransform) {
+	override applyAction(action: Streaming<CreateAction>, agentHelpers: AgentHelpers) {
 		if (!action.complete) return
-		const { editor } = transform
+		const { editor } = agentHelpers
 
 		// Translate the shape back to the chat's position
-		action.shape = transform.removeOffsetFromShape(action.shape)
+		action.shape = agentHelpers.removeOffsetFromShape(action.shape)
 
 		const aiChanges = getTldrawAiChangesFromCreateAction({ editor, action })
 		for (const aiChange of aiChanges) {
@@ -94,7 +93,7 @@ export function getTldrawAiChangesFromCreateAction({
 	action,
 }: {
 	editor: Editor
-	action: Streaming<ICreateAction>
+	action: Streaming<CreateAction>
 }): TLAiChange[] {
 	const changes: TLAiChange[] = []
 	if (!action.complete) return changes
@@ -106,7 +105,7 @@ export function getTldrawAiChangesFromCreateAction({
 
 	switch (shapeType) {
 		case 'text': {
-			const textShape = shape as ISimpleTextShape
+			const textShape = shape as SimpleTextShape
 
 			// Determine the base font size and scale
 			let textSize: keyof typeof FONT_SIZES = 's'
@@ -176,7 +175,7 @@ export function getTldrawAiChangesFromCreateAction({
 			break
 		}
 		case 'line': {
-			const lineShape = shape as ISimpleLineShape
+			const lineShape = shape as SimpleLineShape
 			const x1 = lineShape.x1 ?? 0
 			const y1 = lineShape.y1 ?? 0
 			const x2 = lineShape.x2 ?? 0
@@ -218,7 +217,7 @@ export function getTldrawAiChangesFromCreateAction({
 			break
 		}
 		case 'arrow': {
-			const arrowShape = shape as ISimpleArrowShape
+			const arrowShape = shape as SimpleArrowShape
 			const fromId = arrowShape.fromId ? (`shape:${arrowShape.fromId}` as TLShapeId) : null
 			const toId = arrowShape.toId ? (`shape:${arrowShape.toId}` as TLShapeId) : null
 
@@ -323,7 +322,7 @@ export function getTldrawAiChangesFromCreateAction({
 		case 'check-box':
 		case 'heart':
 		case 'ellipse': {
-			const geoShape = shape as ISimpleGeoShape
+			const geoShape = shape as SimpleGeoShape
 			changes.push({
 				type: 'createShape',
 				description: action.intent ?? '',
@@ -350,7 +349,7 @@ export function getTldrawAiChangesFromCreateAction({
 			break
 		}
 		case 'note': {
-			const noteShape = shape as ISimpleNoteShape
+			const noteShape = shape as SimpleNoteShape
 			changes.push({
 				type: 'createShape',
 				description: action.intent ?? '',
@@ -366,26 +365,6 @@ export function getTldrawAiChangesFromCreateAction({
 					},
 					meta: {
 						note: noteShape.note ?? '',
-					},
-				},
-			})
-			break
-		}
-		case 'bookmark': {
-			const embedShape = shape as ISimpleEmbedShape
-			changes.push({
-				type: 'createShape',
-				description: action.intent ?? '',
-				shape: {
-					id: shapeId,
-					type: 'bookmark',
-					x: embedShape.x,
-					y: embedShape.y,
-					props: {
-						url: embedShape.url,
-					},
-					meta: {
-						note: embedShape.note ?? '',
 					},
 				},
 			})
@@ -415,7 +394,7 @@ export function calculateArrowBindingAnchor(
 		return { x: 0.5, y: 0.5 } // Fall back to center
 	}
 
-	// Transform the target shape's geometry to page space for calculations
+	// transforms the target shape's geometry to page space for calculations
 	const pageTransform = editor.getShapePageTransform(targetShape)
 	const targetShapeGeometryInPageSpace = targetShapeGeometry.transform(pageTransform)
 

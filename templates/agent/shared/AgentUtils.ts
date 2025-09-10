@@ -5,7 +5,6 @@ import { BringToFrontActionUtil } from './actions/BringToFrontActionUtil'
 import { ClearActionUtil } from './actions/ClearActionUtil'
 import { CountShapesActionUtil } from './actions/CountShapesActionUtil'
 import { CreateActionUtil } from './actions/CreateActionUtil'
-import { DebugActionUtil } from './actions/DebugActionUtil'
 import { DeleteActionUtil } from './actions/DeleteActionUtil'
 import { DistributeActionUtil } from './actions/DistributeActionUtil'
 import { LabelActionUtil } from './actions/LabelActionUtil'
@@ -121,7 +120,6 @@ export const AGENT_ACTION_UTILS = [
 	CountShapesActionUtil,
 
 	// Internal (required)
-	DebugActionUtil,
 	UnknownActionUtil,
 ] satisfies AgentActionUtilConstructor<BaseAgentAction>[]
 

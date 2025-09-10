@@ -1,5 +1,5 @@
 import { Box } from 'tldraw'
-import { AgentTransform } from '../AgentTransform'
+import { AgentHelpers } from '../AgentHelpers'
 import { convertTldrawShapesToPeripheralShapes } from '../format/convertTldrawShapesToPeripheralShapes'
 import { PeripheralShapeCluster } from '../format/PeripheralShapesCluster'
 import { AgentRequest } from '../types/AgentRequest'
@@ -17,8 +17,8 @@ export class PeripheralShapesPartUtil extends PromptPartUtil<PeripheralShapesPar
 		return 65 // peripheral content after viewport shapes (low priority)
 	}
 
-	override getPart(request: AgentRequest, transform: AgentTransform): PeripheralShapesPart {
-		const { editor } = transform
+	override getPart(request: AgentRequest, agentHelpers: AgentHelpers): PeripheralShapesPart {
+		const { editor } = agentHelpers
 		const shapes = editor.getCurrentPageShapesSorted()
 		const contextBounds = request.bounds
 
@@ -37,10 +37,10 @@ export class PeripheralShapesPartUtil extends PromptPartUtil<PeripheralShapesPar
 
 		// Apply the offset and round the clusters
 		const normalizedClusters = clusters.map((cluster) => {
-			const offsetBounds = transform.applyOffsetToBox(cluster.bounds)
+			const offsetBounds = agentHelpers.applyOffsetToBox(cluster.bounds)
 			return {
 				numberOfShapes: cluster.numberOfShapes,
-				bounds: transform.roundBox(offsetBounds),
+				bounds: agentHelpers.roundBox(offsetBounds),
 			}
 		})
 

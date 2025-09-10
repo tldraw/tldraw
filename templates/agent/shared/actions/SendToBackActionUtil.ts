@@ -1,6 +1,6 @@
 import { TLShapeId } from 'tldraw'
 import z from 'zod'
-import { AgentTransform } from '../AgentTransform'
+import { AgentHelpers } from '../AgentHelpers'
 import { Streaming } from '../types/Streaming'
 import { AgentActionUtil } from './AgentActionUtil'
 
@@ -16,29 +16,29 @@ const SendToBackAction = z
 			'The AI sends one or more shapes to the back so that they appear behind everything else.',
 	})
 
-type ISendToBackAction = z.infer<typeof SendToBackAction>
+type SendToBackAction = z.infer<typeof SendToBackAction>
 
-export class SendToBackActionUtil extends AgentActionUtil<ISendToBackAction> {
+export class SendToBackActionUtil extends AgentActionUtil<SendToBackAction> {
 	static override type = 'sendToBack' as const
 
 	override getSchema() {
 		return SendToBackAction
 	}
 
-	override getInfo(action: Streaming<ISendToBackAction>) {
+	override getInfo(action: Streaming<SendToBackAction>) {
 		return {
 			icon: 'cursor' as const,
 			description: action.intent ?? '',
 		}
 	}
 
-	override sanitizeAction(action: Streaming<ISendToBackAction>, transform: AgentTransform) {
-		action.shapeIds = transform.ensureShapeIdsExist(action.shapeIds ?? [])
+	override sanitizeAction(action: Streaming<SendToBackAction>, agentHelpers: AgentHelpers) {
+		action.shapeIds = agentHelpers.ensureShapeIdsExist(action.shapeIds ?? [])
 		return action
 	}
 
-	override applyAction(action: Streaming<ISendToBackAction>, transform: AgentTransform) {
-		const { editor } = transform
+	override applyAction(action: Streaming<SendToBackAction>, agentHelpers: AgentHelpers) {
+		const { editor } = agentHelpers
 
 		if (!action.shapeIds) return
 		editor.sendToBack(action.shapeIds.map((shapeId) => `shape:${shapeId}` as TLShapeId))

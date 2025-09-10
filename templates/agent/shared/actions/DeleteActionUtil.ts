@@ -1,6 +1,6 @@
 import { TLShapeId } from 'tldraw'
 import z from 'zod'
-import { AgentTransform } from '../AgentTransform'
+import { AgentHelpers } from '../AgentHelpers'
 import { BaseAgentAction } from '../types/BaseAgentAction'
 import { Streaming } from '../types/Streaming'
 import { AgentActionUtil } from './AgentActionUtil'
@@ -13,16 +13,16 @@ const DeleteAction = z
 	})
 	.meta({ title: 'Delete', description: 'The AI deletes a shape.' })
 
-type IDeleteAction = z.infer<typeof DeleteAction>
+type DeleteAction = z.infer<typeof DeleteAction>
 
-export class DeleteActionUtil extends AgentActionUtil<IDeleteAction> {
+export class DeleteActionUtil extends AgentActionUtil<DeleteAction> {
 	static override type = 'delete' as const
 
 	override getSchema() {
 		return DeleteAction
 	}
 
-	override getInfo(action: Streaming<IDeleteAction>) {
+	override getInfo(action: Streaming<DeleteAction>) {
 		return {
 			icon: 'trash' as const,
 			description: action.intent ?? '',
@@ -30,19 +30,19 @@ export class DeleteActionUtil extends AgentActionUtil<IDeleteAction> {
 		}
 	}
 
-	override sanitizeAction(action: Streaming<IDeleteAction>, transform: AgentTransform) {
+	override sanitizeAction(action: Streaming<DeleteAction>, agentHelpers: AgentHelpers) {
 		if (!action.complete) return action
 
-		const shapeId = transform.ensureShapeIdExists(action.shapeId)
+		const shapeId = agentHelpers.ensureShapeIdExists(action.shapeId)
 		if (!shapeId) return null
 
 		action.shapeId = shapeId
 		return action
 	}
 
-	override applyAction(action: Streaming<IDeleteAction>, transform: AgentTransform) {
+	override applyAction(action: Streaming<DeleteAction>, agentHelpers: AgentHelpers) {
 		if (!action.complete) return
-		const { editor } = transform
+		const { editor } = agentHelpers
 
 		editor.deleteShape(`shape:${action.shapeId}` as TLShapeId)
 	}

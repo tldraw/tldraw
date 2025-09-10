@@ -1,11 +1,11 @@
-import { AgentTransform } from '../AgentTransform'
+import { AgentHelpers } from '../AgentHelpers'
 import { AgentRequest } from '../types/AgentRequest'
 import { BasePromptPart } from '../types/BasePromptPart'
-import { IContextItem } from '../types/ContextItem'
+import { ContextItem } from '../types/ContextItem'
 import { PromptPartUtil } from './PromptPartUtil'
 
 export interface ContextItemsPart extends BasePromptPart<'contextItems'> {
-	items: IContextItem[]
+	items: ContextItem[]
 	requestType: AgentRequest['type']
 }
 
@@ -16,10 +16,10 @@ export class ContextItemsPartUtil extends PromptPartUtil<ContextItemsPart> {
 		return 60 // context items in middle (low priority)
 	}
 
-	override getPart(request: AgentRequest, transform: AgentTransform): ContextItemsPart {
+	override getPart(request: AgentRequest, agentHelpers: AgentHelpers): ContextItemsPart {
 		const items = request.contextItems.map((contextItem) => {
-			const offsetContextItem = transform.applyOffsetToContextItem(contextItem)
-			return transform.roundContextItem(offsetContextItem)
+			const offsetContextItem = agentHelpers.applyOffsetToContextItem(contextItem)
+			return agentHelpers.roundContextItem(offsetContextItem)
 		})
 
 		return {

@@ -1,19 +1,19 @@
-import { ISimpleShape } from '../format/SimpleShape'
+import { SimpleShape } from '../format/SimpleShape'
 import { AgentAction } from './AgentAction'
 import { AgentActionResult } from './AgentActionResult'
-import { IContextItem } from './ContextItem'
+import { ContextItem } from './ContextItem'
 import { Streaming } from './Streaming'
 
-export type IChatHistoryItem = IChatHistoryActionItem | IChatHistoryPromptItem
+export type ChatHistoryItem = ChatHistoryActionItem | ChatHistoryPromptItem
 
-export interface IChatHistoryPromptItem {
+export interface ChatHistoryPromptItem {
 	type: 'prompt'
 	message: string
-	contextItems: IContextItem[]
-	selectedShapes: ISimpleShape[]
+	contextItems: ContextItem[]
+	selectedShapes: SimpleShape[]
 }
 
-export interface IChatHistoryActionItem {
+export interface ChatHistoryActionItem {
 	type: 'action'
 	action: Streaming<AgentAction>
 	result: AgentActionResult

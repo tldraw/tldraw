@@ -1,5 +1,5 @@
 import z from 'zod'
-import { AgentTransform } from '../AgentTransform'
+import { AgentHelpers } from '../AgentHelpers'
 import { BaseAgentAction } from '../types/BaseAgentAction'
 import { ChatHistoryInfo } from '../types/ChatHistoryInfo'
 import { Streaming } from '../types/Streaming'
@@ -25,11 +25,11 @@ export abstract class AgentActionUtil<T extends BaseAgentAction = BaseAgentActio
 	}
 
 	/**
-	 * Transform the action before saving it to chat history.
+	 * Transforms the action before saving it to chat history.
 	 * Useful for sanitizing or correcting actions.
 	 * @returns The transformed action, or null to reject the action
 	 */
-	sanitizeAction(action: Streaming<T>, _transform: AgentTransform): Streaming<T> | null {
+	sanitizeAction(action: Streaming<T>, _helpers: AgentHelpers): Streaming<T> | null {
 		return action
 	}
 
@@ -37,7 +37,7 @@ export abstract class AgentActionUtil<T extends BaseAgentAction = BaseAgentActio
 	 * Apply the action to the editor.
 	 * Any changes that happen during this function will be displayed as a diff.
 	 */
-	applyAction(_action: Streaming<T>, _transform: AgentTransform): Promise<void> | void {
+	applyAction(_action: Streaming<T>, _helpers: AgentHelpers): Promise<void> | void {
 		// Do nothing by default
 	}
 

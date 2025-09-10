@@ -1,8 +1,8 @@
 import { createShapeId, TLDrawShape, TLDrawShapeSegment, Vec, VecModel } from 'tldraw'
 import z from 'zod'
-import { AgentTransform } from '../AgentTransform'
+import { AgentHelpers } from '../AgentHelpers'
 import { asColor, SimpleColor } from '../format/SimpleColor'
-import { convertSimpleFillToTldrawFill, SimpleFill } from '../format/SimpleFill'
+import { convertSimpleFillToTldrawFill, SimpleFillSchema } from '../format/SimpleFill'
 import { Streaming } from '../types/Streaming'
 import { AgentActionUtil } from './AgentActionUtil'
 
@@ -11,7 +11,7 @@ const PenAction = z
 		_type: z.literal('pen'),
 		color: SimpleColor,
 		closed: z.boolean(),
-		fill: SimpleFill,
+		fill: SimpleFillSchema,
 		intent: z.string(),
 		points: z.array(
 			z.object({
@@ -27,44 +27,44 @@ const PenAction = z
 			'The AI draws a freeform line with a pen. This is useful for drawing custom paths that are not available with the other available shapes. The "smooth" style will automatically smooth the line between points. The "straight" style will render a straight line between points. The "closed" property will determine if the drawn line gets automatically closed to form a complete shape or not. Remember that the pen will be *down* until the action is over. If you want to lift up the pen, start a new pen action.',
 	})
 
-type IPenAction = z.infer<typeof PenAction>
+type PenAction = z.infer<typeof PenAction>
 
-export class PenActionUtil extends AgentActionUtil<IPenAction> {
+export class PenActionUtil extends AgentActionUtil<PenAction> {
 	static override type = 'pen' as const
 
 	override getSchema() {
 		return PenAction
 	}
 
-	override getInfo(action: Streaming<IPenAction>) {
+	override getInfo(action: Streaming<PenAction>) {
 		return {
 			icon: 'pencil' as const,
 			description: action.intent ?? '',
 		}
 	}
 
-	override sanitizeAction(action: Streaming<IPenAction>, transform: AgentTransform) {
+	override sanitizeAction(action: Streaming<PenAction>, agentHelpers: AgentHelpers) {
 		if (!action.points) return action
 
 		// This is a complex action for the model, so validate the data it gives us
 		const validPoints = action.points
-			.map((point) => transform.ensureValueIsVec(point))
+			.map((point) => agentHelpers.ensureValueIsVec(point))
 			.filter((v) => v !== null)
 
 		action.points = validPoints
-		action.closed = transform.ensureValueIsBoolean(action.closed) ?? false
-		action.fill = transform.ensureValueIsSimpleFill(action.fill) ?? 'none'
+		action.closed = agentHelpers.ensureValueIsBoolean(action.closed) ?? false
+		action.fill = agentHelpers.ensureValueIsSimpleFill(action.fill) ?? 'none'
 
 		return action
 	}
 
-	override applyAction(action: Streaming<IPenAction>, transform: AgentTransform) {
-		const { editor } = transform
+	override applyAction(action: Streaming<PenAction>, agentHelpers: AgentHelpers) {
+		const { editor } = agentHelpers
 
 		if (!action.points) return
 		if (action.points.length === 0) return
 
-		action.points = action.points.map((point) => transform.removeOffsetFromVec(point))
+		action.points = action.points.map((point) => agentHelpers.removeOffsetFromVec(point))
 
 		if (action.closed) {
 			const firstPoint = action.points[0]

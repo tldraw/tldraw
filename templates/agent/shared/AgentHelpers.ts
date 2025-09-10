@@ -1,14 +1,14 @@
 import { BoxModel, Editor, TLShapeId, VecModel } from 'tldraw'
 import { TldrawAgent } from '../client/agent/TldrawAgent'
-import { ISimpleFill, SimpleFill } from './format/SimpleFill'
-import { ISimpleShape } from './format/SimpleShape'
-import { IContextItem } from './types/ContextItem'
+import { SimpleFill, SimpleFillSchema } from './format/SimpleFill'
+import { SimpleShape } from './format/SimpleShape'
+import { ContextItem } from './types/ContextItem'
 
 /**
  * This class contains handles the transformations that happen throughout a
- * request. It contains helpers that can be used to transform prompt parts
+ * request. It contains helpers that can be used to change prompt parts
  * before they get sent to the model, as well as helpers that can be used to
- * transform incoming actions as they get streamed back from the model.
+ * change incoming actions as they get streamed back from the model.
  *
  * For example, `applyOffsetToShape` adjusts the position of a shape to make it
  * relative to the current chat origin. The `removeOffsetFromShape` method
@@ -20,14 +20,14 @@ import { IContextItem } from './types/ContextItem'
  * it saves a record of this change so that further actions can continue to
  * refer to the shape by its untransformed ID.
  */
-export class AgentTransform {
+export class AgentHelpers {
 	/**
-	 * The agent that the transform is for.
+	 * The agent that the this intance of AgentHelpers is for.
 	 */
 	agent: TldrawAgent
 
 	/**
-	 * The editor that the transform is for.
+	 * The editor that the this intance of AgentHelpers is for.
 	 */
 	editor: Editor
 
@@ -105,7 +105,7 @@ export class AgentTransform {
 	/**
 	 * Apply the offset of this request to a shape.
 	 */
-	applyOffsetToShape(shape: ISimpleShape): ISimpleShape {
+	applyOffsetToShape(shape: SimpleShape): SimpleShape {
 		if ('x1' in shape) {
 			return {
 				...shape,
@@ -128,7 +128,7 @@ export class AgentTransform {
 	/**
 	 * Apply the offset of this request to a shape partial.
 	 */
-	applyOffsetToShapePartial(shape: Partial<ISimpleShape>): Partial<ISimpleShape> {
+	applyOffsetToShapePartial(shape: Partial<SimpleShape>): Partial<SimpleShape> {
 		if ('x' in shape && shape.x !== undefined) {
 			return { ...shape, x: shape.x + this.offset.x }
 		}
@@ -153,7 +153,7 @@ export class AgentTransform {
 	/**
 	 * Remove the offset of this request from a shape.
 	 */
-	removeOffsetFromShape(shape: ISimpleShape): ISimpleShape {
+	removeOffsetFromShape(shape: SimpleShape): SimpleShape {
 		if ('x1' in shape) {
 			return {
 				...shape,
@@ -176,7 +176,7 @@ export class AgentTransform {
 	/**
 	 * Apply the offset of this request to a context item.
 	 */
-	applyOffsetToContextItem(contextItem: IContextItem) {
+	applyOffsetToContextItem(contextItem: ContextItem) {
 		switch (contextItem.type) {
 			case 'shape': {
 				contextItem.shape = this.applyOffsetToShape(contextItem.shape)
@@ -202,7 +202,7 @@ export class AgentTransform {
 	/**
 	 * Round the numbers of a context item.
 	 */
-	roundContextItem(contextItem: IContextItem) {
+	roundContextItem(contextItem: ContextItem) {
 		switch (contextItem.type) {
 			case 'shape': {
 				contextItem.shape = this.roundShape(contextItem.shape)
@@ -301,7 +301,7 @@ export class AgentTransform {
 	 * @param shape - The shape to round.
 	 * @returns The rounded shape.
 	 */
-	roundShape(shape: ISimpleShape): ISimpleShape {
+	roundShape(shape: SimpleShape): SimpleShape {
 		if ('x1' in shape) {
 			shape = this.roundProperty(shape, 'x1')
 			shape = this.roundProperty(shape, 'y1')
@@ -326,10 +326,10 @@ export class AgentTransform {
 	 * @param shape - The shape partial to round.
 	 * @returns The rounded shape partial.
 	 */
-	roundShapePartial(shape: Partial<ISimpleShape>): Partial<ISimpleShape> {
+	roundShapePartial(shape: Partial<SimpleShape>): Partial<SimpleShape> {
 		for (const prop of ['x1', 'y1', 'x2', 'y2', 'x', 'y', 'w', 'h'] as const) {
 			if (prop in shape) {
-				shape = this.roundProperty(shape, prop as keyof Partial<ISimpleShape>)
+				shape = this.roundProperty(shape, prop as keyof Partial<SimpleShape>)
 			}
 		}
 		return shape
@@ -341,7 +341,7 @@ export class AgentTransform {
 	 * @param shape - The shape to unround.
 	 * @returns The unrounded shape.
 	 */
-	unroundShape(shape: ISimpleShape): ISimpleShape {
+	unroundShape(shape: SimpleShape): SimpleShape {
 		if ('x1' in shape) {
 			shape = this.unroundProperty(shape, 'x1')
 			shape = this.unroundProperty(shape, 'y1')
@@ -365,7 +365,7 @@ export class AgentTransform {
 	 * @param property - The property to round.
 	 * @returns The rounded shape.
 	 */
-	roundProperty<T extends Partial<ISimpleShape>>(shape: T, property: keyof T): T {
+	roundProperty<T extends Partial<SimpleShape>>(shape: T, property: keyof T): T {
 		if (typeof shape[property] !== 'number') return shape
 
 		const value = shape[property]
@@ -384,7 +384,7 @@ export class AgentTransform {
 	 * @param property - The property to unround.
 	 * @returns The unrounded shape.
 	 */
-	unroundProperty<T extends ISimpleShape>(shape: T, property: keyof T): T {
+	unroundProperty<T extends SimpleShape>(shape: T, property: keyof T): T {
 		if (typeof shape[property] !== 'number') return shape
 
 		const key = `${shape.shapeId}_${property as string}`
@@ -457,8 +457,8 @@ export class AgentTransform {
 	 * Used for checking incoming data from the model.
 	 * @returns The simple fill, or null if the value is not a simple fill.
 	 */
-	ensureValueIsSimpleFill(value: any): ISimpleFill | null {
-		const simpleFill = SimpleFill.safeParse(value)
+	ensureValueIsSimpleFill(value: any): SimpleFill | null {
+		const simpleFill = SimpleFillSchema.safeParse(value)
 		if (simpleFill.success) {
 			return simpleFill.data
 		}

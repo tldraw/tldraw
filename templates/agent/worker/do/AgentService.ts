@@ -60,15 +60,6 @@ export async function* streamActions(
 	const messages = buildMessages(prompt)
 	const systemPrompt = buildSystemPrompt(prompt)
 
-	// Uncomment this to log the system prompt in the browser console.
-	// yield {
-	// 	_type: 'debug',
-	// 	complete: true,
-	// 	label: 'SYSTEM',
-	// 	data: { system: systemPrompt },
-	// 	time: 0,
-	// }
-
 	try {
 		messages.push({
 			role: 'assistant',
@@ -93,15 +84,6 @@ export async function* streamActions(
 				throw e
 			},
 		})
-
-		// Uncomment this to log built messages in the browser console.
-		// yield {
-		// 	_type: 'debug',
-		// 	complete: true,
-		// 	label: 'MESSAGES',
-		// 	data: messages,
-		// 	time: 0,
-		// }
 
 		const canForceResponseStart =
 			model.provider === 'anthropic.messages' || model.provider === 'google.generative-ai'

@@ -1,7 +1,7 @@
 import { Box } from 'tldraw'
 import z from 'zod'
-import { AgentTransform } from '../AgentTransform'
-import { IAreaContextItem } from '../types/ContextItem'
+import { AgentHelpers } from '../AgentHelpers'
+import { AreaContextItem } from '../types/ContextItem'
 import { Streaming } from '../types/Streaming'
 import { AgentActionUtil } from './AgentActionUtil'
 
@@ -20,16 +20,16 @@ const ReviewAction = z
 			'The AI schedules further work or a review so that it can look at the results of its work so far and take further action, such as reviewing what it has done or taking further steps that would benefit from seeing the results of its work so far.',
 	})
 
-type IReviewAction = z.infer<typeof ReviewAction>
+type ReviewAction = z.infer<typeof ReviewAction>
 
-export class ReviewActionUtil extends AgentActionUtil<IReviewAction> {
+export class ReviewActionUtil extends AgentActionUtil<ReviewAction> {
 	static override type = 'review' as const
 
 	override getSchema() {
 		return ReviewAction
 	}
 
-	override getInfo(action: Streaming<IReviewAction>) {
+	override getInfo(action: Streaming<ReviewAction>) {
 		const label = action.complete ? 'Review' : 'Reviewing'
 		const text = action.intent?.startsWith('#') ? `\n\n${action.intent}` : action.intent
 		const description = `**${label}:** ${text ?? ''}`
@@ -40,18 +40,18 @@ export class ReviewActionUtil extends AgentActionUtil<IReviewAction> {
 		}
 	}
 
-	override applyAction(action: Streaming<IReviewAction>, transform: AgentTransform) {
+	override applyAction(action: Streaming<ReviewAction>, agentHelpers: AgentHelpers) {
 		if (!action.complete) return
-		const { agent } = transform
+		const { agent } = agentHelpers
 
-		const reviewBounds = transform.removeOffsetFromBox({
+		const reviewBounds = agentHelpers.removeOffsetFromBox({
 			x: action.x,
 			y: action.y,
 			w: action.w,
 			h: action.h,
 		})
 
-		const contextArea: IAreaContextItem = {
+		const contextArea: AreaContextItem = {
 			type: 'area',
 			bounds: reviewBounds,
 			source: 'agent',

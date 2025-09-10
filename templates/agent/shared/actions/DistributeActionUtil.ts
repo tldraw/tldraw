@@ -1,6 +1,6 @@
 import { TLShapeId } from 'tldraw'
 import z from 'zod'
-import { AgentTransform } from '../AgentTransform'
+import { AgentHelpers } from '../AgentHelpers'
 import { Streaming } from '../types/Streaming'
 import { AgentActionUtil } from './AgentActionUtil'
 
@@ -16,30 +16,30 @@ const DistributeAction = z
 		description: 'The AI distributes shapes horizontally or vertically.',
 	})
 
-type IDistributeAction = z.infer<typeof DistributeAction>
+type DistributeAction = z.infer<typeof DistributeAction>
 
-export class DistributeActionUtil extends AgentActionUtil<IDistributeAction> {
+export class DistributeActionUtil extends AgentActionUtil<DistributeAction> {
 	static override type = 'distribute' as const
 
 	override getSchema() {
 		return DistributeAction
 	}
 
-	override getInfo(action: Streaming<IDistributeAction>) {
+	override getInfo(action: Streaming<DistributeAction>) {
 		return {
 			icon: 'cursor' as const,
 			description: action.intent ?? '',
 		}
 	}
 
-	override sanitizeAction(action: Streaming<IDistributeAction>, transform: AgentTransform) {
-		action.shapeIds = transform.ensureShapeIdsExist(action.shapeIds ?? [])
+	override sanitizeAction(action: Streaming<DistributeAction>, agentHelpers: AgentHelpers) {
+		action.shapeIds = agentHelpers.ensureShapeIdsExist(action.shapeIds ?? [])
 		return action
 	}
 
-	override applyAction(action: Streaming<IDistributeAction>, transform: AgentTransform) {
+	override applyAction(action: Streaming<DistributeAction>, agentHelpers: AgentHelpers) {
 		if (!action.complete) return
-		const { editor } = transform
+		const { editor } = agentHelpers
 
 		editor.distributeShapes(
 			action.shapeIds.map((id) => `shape:${id}` as TLShapeId),

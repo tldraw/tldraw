@@ -3,7 +3,6 @@ import {
 	TLArrowBinding,
 	TLArrowShape,
 	TLDrawShape,
-	TLEmbedShape,
 	TLGeoShape,
 	TLLineShape,
 	TLNoteShape,
@@ -15,21 +14,20 @@ import { convertTldrawFillToSimpleFill } from './SimpleFill'
 import { convertTldrawFontSizeAndScaleToSimpleFontSize } from './SimpleFontSize'
 import { convertTldrawGeoTypeToSimpleGeoType } from './SimpleGeoShapeType'
 import {
-	ISimpleArrowShape,
-	ISimpleDrawShape,
-	ISimpleEmbedShape,
-	ISimpleGeoShape,
-	ISimpleLineShape,
-	ISimpleNoteShape,
-	ISimpleShape,
-	ISimpleTextShape,
-	ISimpleUnknownShape,
+	SimpleArrowShape,
+	SimpleDrawShape,
+	SimpleGeoShape,
+	SimpleLineShape,
+	SimpleNoteShape,
+	SimpleShape,
+	SimpleTextShape,
+	SimpleUnknownShape,
 } from './SimpleShape'
 
 /**
  * Convert a tldraw shape to a simple shape
  */
-export function convertTldrawShapeToSimpleShape(shape: TLShape, editor: Editor): ISimpleShape {
+export function convertTldrawShapeToSimpleShape(shape: TLShape, editor: Editor): SimpleShape {
 	switch (shape.type) {
 		case 'text':
 			return convertTextShapeToSimple(editor, shape as TLTextShape)
@@ -43,8 +41,6 @@ export function convertTldrawShapeToSimpleShape(shape: TLShape, editor: Editor):
 			return convertNoteShapeToSimple(editor, shape as TLNoteShape)
 		case 'draw':
 			return convertDrawShapeToSimple(editor, shape as TLDrawShape)
-		case 'bookmark':
-			return convertEmbedShapeToSimple(editor, shape as TLEmbedShape)
 		default:
 			return convertUnknownShapeToSimple(editor, shape)
 	}
@@ -58,7 +54,7 @@ export function convertSimpleShapeIdToTldrawShapeId(id: string): TLShapeId {
 	return ('shape:' + id) as TLShapeId
 }
 
-function convertDrawShapeToSimple(_editor: Editor, shape: TLDrawShape): ISimpleDrawShape {
+function convertDrawShapeToSimple(_editor: Editor, shape: TLDrawShape): SimpleDrawShape {
 	return {
 		_type: 'draw',
 		color: shape.props.color,
@@ -68,7 +64,7 @@ function convertDrawShapeToSimple(_editor: Editor, shape: TLDrawShape): ISimpleD
 	}
 }
 
-function convertTextShapeToSimple(editor: Editor, shape: TLTextShape): ISimpleTextShape {
+function convertTextShapeToSimple(editor: Editor, shape: TLTextShape): SimpleTextShape {
 	const util = editor.getShapeUtil(shape)
 	const text = util.getText(shape) ?? ''
 
@@ -108,7 +104,7 @@ function convertTextShapeToSimple(editor: Editor, shape: TLTextShape): ISimpleTe
 	}
 }
 
-function convertGeoShapeToSimple(editor: Editor, shape: TLGeoShape): ISimpleGeoShape {
+function convertGeoShapeToSimple(editor: Editor, shape: TLGeoShape): SimpleGeoShape {
 	const util = editor.getShapeUtil(shape)
 	const text = util.getText(shape)
 
@@ -118,7 +114,7 @@ function convertGeoShapeToSimple(editor: Editor, shape: TLGeoShape): ISimpleGeoS
 	}
 
 	const shapeTextAlign = shape.props.align
-	let newTextAlign: ISimpleGeoShape['textAlign']
+	let newTextAlign: SimpleGeoShape['textAlign']
 	switch (shapeTextAlign) {
 		case 'start-legacy':
 			newTextAlign = 'start'
@@ -149,7 +145,7 @@ function convertGeoShapeToSimple(editor: Editor, shape: TLGeoShape): ISimpleGeoS
 	}
 }
 
-function convertLineShapeToSimple(editor: Editor, shape: TLLineShape): ISimpleLineShape {
+function convertLineShapeToSimple(editor: Editor, shape: TLLineShape): SimpleLineShape {
 	const bounds = editor.getShapeMaskedPageBounds(shape)
 	if (!bounds) {
 		throw new Error('Could not get bounds for line shape')
@@ -168,7 +164,7 @@ function convertLineShapeToSimple(editor: Editor, shape: TLLineShape): ISimpleLi
 	}
 }
 
-function convertArrowShapeToSimple(editor: Editor, shape: TLArrowShape): ISimpleArrowShape {
+function convertArrowShapeToSimple(editor: Editor, shape: TLArrowShape): SimpleArrowShape {
 	const bounds = editor.getShapeMaskedPageBounds(shape)
 	if (!bounds) {
 		throw new Error('Could not get bounds for arrow shape')
@@ -197,7 +193,7 @@ function convertArrowShapeToSimple(editor: Editor, shape: TLArrowShape): ISimple
 	}
 }
 
-function convertNoteShapeToSimple(editor: Editor, shape: TLNoteShape): ISimpleNoteShape {
+function convertNoteShapeToSimple(editor: Editor, shape: TLNoteShape): SimpleNoteShape {
 	const util = editor.getShapeUtil(shape)
 	const text = util.getText(shape)
 
@@ -217,23 +213,7 @@ function convertNoteShapeToSimple(editor: Editor, shape: TLNoteShape): ISimpleNo
 	}
 }
 
-function convertEmbedShapeToSimple(editor: Editor, shape: TLEmbedShape): ISimpleEmbedShape {
-	const bounds = editor.getShapeMaskedPageBounds(shape)
-	if (!bounds) {
-		throw new Error('Could not get bounds for embed shape')
-	}
-
-	return {
-		_type: 'bookmark',
-		url: shape.props.url,
-		note: (shape.meta.note as string) ?? '',
-		shapeId: convertTldrawIdToSimpleId(shape.id),
-		x: bounds.x,
-		y: bounds.y,
-	}
-}
-
-function convertUnknownShapeToSimple(editor: Editor, shape: TLShape): ISimpleUnknownShape {
+function convertUnknownShapeToSimple(editor: Editor, shape: TLShape): SimpleUnknownShape {
 	const bounds = editor.getShapeMaskedPageBounds(shape)
 	if (!bounds) {
 		throw new Error('Could not get bounds for unknown shape')

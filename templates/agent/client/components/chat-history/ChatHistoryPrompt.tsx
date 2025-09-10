@@ -1,5 +1,5 @@
 import { Editor } from 'tldraw'
-import { IChatHistoryPromptItem } from '../../../shared/types/ChatHistoryItem'
+import { ChatHistoryPromptItem } from '../../../shared/types/ChatHistoryItem'
 import { ContextItemTag } from '../ContextItemTag'
 import { SelectionTag } from '../SelectionTag'
 
@@ -7,7 +7,7 @@ export function ChatHistoryPrompt({
 	item,
 	editor,
 }: {
-	item: IChatHistoryPromptItem
+	item: ChatHistoryPromptItem
 	editor: Editor
 }) {
 	const { contextItems, message, selectedShapes } = item

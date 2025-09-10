@@ -1,12 +1,12 @@
-import { AgentTransform } from '../AgentTransform'
+import { AgentHelpers } from '../AgentHelpers'
 import { AgentMessage, AgentMessageContent } from '../types/AgentMessage'
 import { AgentRequest } from '../types/AgentRequest'
 import { BasePromptPart } from '../types/BasePromptPart'
-import { IChatHistoryItem } from '../types/ChatHistoryItem'
+import { ChatHistoryItem } from '../types/ChatHistoryItem'
 import { PromptPartUtil } from './PromptPartUtil'
 
 export interface ChatHistoryPart extends BasePromptPart<'chatHistory'> {
-	items: IChatHistoryItem[]
+	items: ChatHistoryItem[]
 }
 
 export class ChatHistoryPartUtil extends PromptPartUtil<ChatHistoryPart> {
@@ -18,9 +18,9 @@ export class ChatHistoryPartUtil extends PromptPartUtil<ChatHistoryPart> {
 
 	override async getPart(
 		_request: AgentRequest,
-		transform: AgentTransform
+		agentHelpers: AgentHelpers
 	): Promise<ChatHistoryPart> {
-		const { agent } = transform
+		const { agent } = agentHelpers
 
 		const items = agent.$chatHistory.get()
 
@@ -29,8 +29,8 @@ export class ChatHistoryPartUtil extends PromptPartUtil<ChatHistoryPart> {
 
 			// Offset and round the context items of each history item
 			const contextItems = historyItem.contextItems.map((contextItem) => {
-				const offsetContextItem = transform.applyOffsetToContextItem(contextItem)
-				return transform.roundContextItem(offsetContextItem)
+				const offsetContextItem = agentHelpers.applyOffsetToContextItem(contextItem)
+				return agentHelpers.roundContextItem(offsetContextItem)
 			})
 
 			historyItem.contextItems = contextItems
@@ -76,7 +76,7 @@ export class ChatHistoryPartUtil extends PromptPartUtil<ChatHistoryPart> {
 		return messages
 	}
 
-	private buildHistoryItemMessage(item: IChatHistoryItem, priority: number): AgentMessage | null {
+	private buildHistoryItemMessage(item: ChatHistoryItem, priority: number): AgentMessage | null {
 		switch (item.type) {
 			case 'prompt': {
 				const content: AgentMessageContent[] = []

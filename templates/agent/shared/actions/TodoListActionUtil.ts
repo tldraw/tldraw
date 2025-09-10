@@ -1,5 +1,5 @@
 import { z } from 'zod'
-import { AgentTransform } from '../AgentTransform'
+import { AgentHelpers } from '../AgentHelpers'
 import { Streaming } from '../types/Streaming'
 import { AgentActionUtil } from './AgentActionUtil'
 
@@ -15,9 +15,9 @@ const TodoListAction = z
 		description: 'The AI updates a current todo list item or creates a new one',
 	})
 
-type ITodoListAction = z.infer<typeof TodoListAction>
+type TodoListAction = z.infer<typeof TodoListAction>
 
-export class TodoListActionUtil extends AgentActionUtil<ITodoListAction> {
+export class TodoListActionUtil extends AgentActionUtil<TodoListAction> {
 	static override type = 'update-todo-list' as const
 
 	override getSchema() {
@@ -29,9 +29,9 @@ export class TodoListActionUtil extends AgentActionUtil<ITodoListAction> {
 		return null
 	}
 
-	override applyAction(action: Streaming<ITodoListAction>, transform: AgentTransform) {
+	override applyAction(action: Streaming<TodoListAction>, agentHelpers: AgentHelpers) {
 		if (!action.complete) return
-		const { agent } = transform
+		const { agent } = agentHelpers
 
 		const todoItem = {
 			id: action.id,

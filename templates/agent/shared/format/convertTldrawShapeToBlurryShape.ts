@@ -2,7 +2,7 @@ import { Editor, TLDefaultShape, TLShape } from 'tldraw'
 import { BlurryShape } from './BlurryShape'
 import { convertTldrawIdToSimpleId } from './convertTldrawShapeToSimpleShape'
 import { convertTldrawTypeToSimpleType } from './SimpleGeoShapeType'
-import { ISimpleShape } from './SimpleShape'
+import { SimpleShape } from './SimpleShape'
 
 /**
  * Convert a tldraw shape to the blurry shape format
@@ -24,7 +24,7 @@ export function convertTldrawShapeToBlurryShape(
 		y: Math.round(bounds.y),
 		w: Math.round(bounds.w),
 		h: Math.round(bounds.h),
-		type: shapeType as ISimpleShape['_type'],
+		type: shapeType as SimpleShape['_type'],
 		shapeId: convertTldrawIdToSimpleId(shape.id),
 		text,
 	}

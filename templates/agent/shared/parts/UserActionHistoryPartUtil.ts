@@ -1,7 +1,7 @@
 import { squashRecordDiffs } from 'tldraw'
-import { AgentTransform } from '../AgentTransform'
+import { AgentHelpers } from '../AgentHelpers'
 import { convertTldrawShapeToSimpleShape } from '../format/convertTldrawShapeToSimpleShape'
-import { ISimpleShape } from '../format/SimpleShape'
+import { SimpleShape } from '../format/SimpleShape'
 import { AgentRequest } from '../types/AgentRequest'
 import { BasePromptPart } from '../types/BasePromptPart'
 import { PromptPartUtil } from './PromptPartUtil'
@@ -9,17 +9,17 @@ import { PromptPartUtil } from './PromptPartUtil'
 export interface UserActionHistoryPart extends BasePromptPart<'userActionHistory'> {
 	added: {
 		shapeId: string
-		type: ISimpleShape['_type']
+		type: SimpleShape['_type']
 	}[]
 	removed: {
 		shapeId: string
-		type: ISimpleShape['_type']
+		type: SimpleShape['_type']
 	}[]
 	updated: {
 		shapeId: string
-		type: ISimpleShape['_type']
-		before: Partial<ISimpleShape>
-		after: Partial<ISimpleShape>
+		type: SimpleShape['_type']
+		before: Partial<SimpleShape>
+		after: Partial<SimpleShape>
 	}[]
 }
 
@@ -30,8 +30,8 @@ export class UserActionHistoryPartUtil extends PromptPartUtil<UserActionHistoryP
 		return 40
 	}
 
-	override getPart(_request: AgentRequest, transform: AgentTransform): UserActionHistoryPart {
-		const { editor, agent } = transform
+	override getPart(_request: AgentRequest, agentHelpers: AgentHelpers): UserActionHistoryPart {
+		const { editor, agent } = agentHelpers
 
 		// Get the action history and clear it so that we can start tracking changes for the next request
 		const diffs = agent.$userActionHistory.get()
@@ -76,14 +76,14 @@ export class UserActionHistoryPartUtil extends PromptPartUtil<UserActionHistoryP
 			const changeSimpleShape = getSimpleShapeChange(fromSimpleShape, toSimpleShape)
 			if (!changeSimpleShape) continue
 
-			const before = transform.applyOffsetToShapePartial(changeSimpleShape.from)
-			const after = transform.applyOffsetToShapePartial(changeSimpleShape.to)
+			const before = agentHelpers.applyOffsetToShapePartial(changeSimpleShape.from)
+			const after = agentHelpers.applyOffsetToShapePartial(changeSimpleShape.to)
 
 			part.updated.push({
 				shapeId: toSimpleShape.shapeId,
 				type: toSimpleShape._type,
-				before: transform.roundShapePartial(before),
-				after: transform.roundShapePartial(after),
+				before: agentHelpers.roundShapePartial(before),
+				after: agentHelpers.roundShapePartial(after),
 			})
 		}
 
@@ -109,17 +109,17 @@ export class UserActionHistoryPartUtil extends PromptPartUtil<UserActionHistoryP
  * @param to - The new shape.
  * @returns The changed properties.
  */
-function getSimpleShapeChange<T extends ISimpleShape['_type']>(
-	from: ISimpleShape & { _type: T },
-	to: ISimpleShape & { _type: T }
+function getSimpleShapeChange<T extends SimpleShape['_type']>(
+	from: SimpleShape & { _type: T },
+	to: SimpleShape & { _type: T }
 ) {
 	if (from._type !== to._type) {
 		return null
 	}
 
 	const change: {
-		from: Partial<ISimpleShape>
-		to: Partial<ISimpleShape>
+		from: Partial<SimpleShape>
+		to: Partial<SimpleShape>
 	} = {
 		from: {},
 		to: {},

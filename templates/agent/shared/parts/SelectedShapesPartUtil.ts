@@ -1,13 +1,13 @@
 import { structuredClone } from 'tldraw'
-import { AgentTransform } from '../AgentTransform'
+import { AgentHelpers } from '../AgentHelpers'
 import { convertTldrawShapeToSimpleShape } from '../format/convertTldrawShapeToSimpleShape'
-import { ISimpleShape } from '../format/SimpleShape'
+import { SimpleShape } from '../format/SimpleShape'
 import { AgentRequest } from '../types/AgentRequest'
 import { BasePromptPart } from '../types/BasePromptPart'
 import { PromptPartUtil } from './PromptPartUtil'
 
 export interface SelectedShapesPart extends BasePromptPart<'selectedShapes'> {
-	shapes: ISimpleShape[]
+	shapes: SimpleShape[]
 }
 
 export class SelectedShapesPartUtil extends PromptPartUtil<SelectedShapesPart> {
@@ -17,11 +17,11 @@ export class SelectedShapesPartUtil extends PromptPartUtil<SelectedShapesPart> {
 		return 55 // selected shapes after context items (low priority)
 	}
 
-	override getPart(_request: AgentRequest, transform: AgentTransform): SelectedShapesPart {
-		const { editor } = transform
+	override getPart(_request: AgentRequest, agentHelpers: AgentHelpers): SelectedShapesPart {
+		const { editor } = agentHelpers
 		const userSelectedShapes = editor.getSelectedShapes().map((v) => structuredClone(v)) ?? []
 
-		const simpleShapes: ISimpleShape[] = []
+		const simpleShapes: SimpleShape[] = []
 		for (const shape of userSelectedShapes) {
 			if (!shape) continue
 			const simpleShape = convertTldrawShapeToSimpleShape(shape, editor)
@@ -31,8 +31,8 @@ export class SelectedShapesPartUtil extends PromptPartUtil<SelectedShapesPart> {
 		}
 
 		const normalizedSimpleShapes = simpleShapes.map((shape) => {
-			const offsetShape = transform.applyOffsetToShape(shape)
-			return transform.roundShape(offsetShape)
+			const offsetShape = agentHelpers.applyOffsetToShape(shape)
+			return agentHelpers.roundShape(offsetShape)
 		})
 
 		return {

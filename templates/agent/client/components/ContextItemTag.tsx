@@ -1,5 +1,5 @@
 import { Editor } from 'tldraw'
-import { CONTEXT_TYPE_DEFINITIONS, IContextItem } from '../../shared/types/ContextItem'
+import { CONTEXT_TYPE_DEFINITIONS, ContextItem } from '../../shared/types/ContextItem'
 import { PromptTag } from './PromptTag'
 
 export function ContextItemTag({
@@ -7,7 +7,7 @@ export function ContextItemTag({
 	editor,
 	onClick,
 }: {
-	item: IContextItem
+	item: ContextItem
 	editor: Editor
 	onClick?: () => void
 }) {

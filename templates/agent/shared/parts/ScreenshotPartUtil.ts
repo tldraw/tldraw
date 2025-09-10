@@ -1,5 +1,5 @@
 import { Box, FileHelpers } from 'tldraw'
-import { AgentTransform } from '../AgentTransform'
+import { AgentHelpers } from '../AgentHelpers'
 import { AgentRequest } from '../types/AgentRequest'
 import { BasePromptPart } from '../types/BasePromptPart'
 import { PromptPartUtil } from './PromptPartUtil'
@@ -17,9 +17,9 @@ export class ScreenshotPartUtil extends PromptPartUtil<ScreenshotPart> {
 
 	override async getPart(
 		request: AgentRequest,
-		transform: AgentTransform
+		agentHelpers: AgentHelpers
 	): Promise<ScreenshotPart> {
-		const { editor } = transform
+		const { editor } = agentHelpers
 		const contextBounds = request.bounds
 
 		const contextBoundsBox = Box.From(contextBounds)

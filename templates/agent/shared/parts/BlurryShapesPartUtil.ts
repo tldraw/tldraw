@@ -1,5 +1,5 @@
 import { Box } from 'tldraw'
-import { AgentTransform } from '../AgentTransform'
+import { AgentHelpers } from '../AgentHelpers'
 import { BlurryShape } from '../format/BlurryShape'
 import { convertTldrawShapeToBlurryShape } from '../format/convertTldrawShapeToBlurryShape'
 import { AgentRequest } from '../types/AgentRequest'
@@ -17,8 +17,8 @@ export class BlurryShapesPartUtil extends PromptPartUtil<BlurryShapesPart> {
 		return 70
 	}
 
-	override getPart(request: AgentRequest, transform: AgentTransform): BlurryShapesPart {
-		const { editor } = transform
+	override getPart(request: AgentRequest, agentHelpers: AgentHelpers): BlurryShapesPart {
+		const { editor } = agentHelpers
 		const shapes = editor.getCurrentPageShapesSorted()
 		const contextBoundsBox = Box.From(request.bounds)
 
@@ -38,8 +38,8 @@ export class BlurryShapesPartUtil extends PromptPartUtil<BlurryShapesPart> {
 
 		// Apply the offset and round the blurry shapes
 		const normalizedBlurryShapes = blurryShapes.map((shape) => {
-			const bounds = transform.roundBox(
-				transform.applyOffsetToBox({
+			const bounds = agentHelpers.roundBox(
+				agentHelpers.applyOffsetToBox({
 					x: shape.x,
 					y: shape.y,
 					w: shape.w,
