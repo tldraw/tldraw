@@ -115,6 +115,7 @@ export class Group2d extends Geometry2d {
 	}
 
 	override getBoundsVertices(): Vec[] {
+		if (this.excludeFromShapeBounds) return []
 		return this.children.flatMap((child) => child.getBoundsVertices())
 	}
 

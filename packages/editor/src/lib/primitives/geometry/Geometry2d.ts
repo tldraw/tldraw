@@ -422,6 +422,10 @@ export class TransformedGeometry2d extends Geometry2d {
 		return this.geometry.getVertices(filters).map((v) => Mat.applyToPoint(this.matrix, v))
 	}
 
+	getBoundsVertices(): Vec[] {
+		return this.geometry.getBoundsVertices().map((v) => Mat.applyToPoint(this.matrix, v))
+	}
+
 	nearestPoint(point: VecLike, filters?: Geometry2dFilters): Vec {
 		return Mat.applyToPoint(
 			this.matrix,

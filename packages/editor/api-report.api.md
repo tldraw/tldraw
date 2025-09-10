@@ -4407,6 +4407,8 @@ export class TransformedGeometry2d extends Geometry2d {
     // (undocumented)
     distanceToPoint(point: VecLike, hitInside?: boolean, filters?: Geometry2dFilters): number;
     // (undocumented)
+    getBoundsVertices(): Vec[];
+    // (undocumented)
     getSvgPathData(): string;
     // (undocumented)
     getVertices(filters: Geometry2dFilters): Vec[];
