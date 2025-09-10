@@ -1,6 +1,6 @@
 import { createShapeId, TLDrawShape, TLDrawShapeSegment, Vec, VecModel } from 'tldraw'
 import z from 'zod'
-import { AgentTransform } from '../AgentTransform'
+import { AgentHelpers } from '../AgentHelpers'
 import { asColor, SimpleColor } from '../format/SimpleColor'
 import { convertSimpleFillToTldrawFill, SimpleFill } from '../format/SimpleFill'
 import { Streaming } from '../types/Streaming'
@@ -43,28 +43,28 @@ export class PenActionUtil extends AgentActionUtil<IPenAction> {
 		}
 	}
 
-	override sanitizeAction(action: Streaming<IPenAction>, transform: AgentTransform) {
+	override sanitizeAction(action: Streaming<IPenAction>, agentHelpers: AgentHelpers) {
 		if (!action.points) return action
 
 		// This is a complex action for the model, so validate the data it gives us
 		const validPoints = action.points
-			.map((point) => transform.ensureValueIsVec(point))
+			.map((point) => agentHelpers.ensureValueIsVec(point))
 			.filter((v) => v !== null)
 
 		action.points = validPoints
-		action.closed = transform.ensureValueIsBoolean(action.closed) ?? false
-		action.fill = transform.ensureValueIsSimpleFill(action.fill) ?? 'none'
+		action.closed = agentHelpers.ensureValueIsBoolean(action.closed) ?? false
+		action.fill = agentHelpers.ensureValueIsSimpleFill(action.fill) ?? 'none'
 
 		return action
 	}
 
-	override applyAction(action: Streaming<IPenAction>, transform: AgentTransform) {
-		const { editor } = transform
+	override applyAction(action: Streaming<IPenAction>, agentHelpers: AgentHelpers) {
+		const { editor } = agentHelpers
 
 		if (!action.points) return
 		if (action.points.length === 0) return
 
-		action.points = action.points.map((point) => transform.removeOffsetFromVec(point))
+		action.points = action.points.map((point) => agentHelpers.removeOffsetFromVec(point))
 
 		if (action.closed) {
 			const firstPoint = action.points[0]

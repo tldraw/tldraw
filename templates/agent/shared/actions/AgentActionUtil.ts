@@ -1,6 +1,6 @@
 import { JsonValue } from 'tldraw'
 import z from 'zod'
-import { AgentTransform } from '../AgentTransform'
+import { AgentHelpers } from '../AgentHelpers'
 import { BaseAgentAction } from '../types/BaseAgentAction'
 import { ChatHistoryInfo } from '../types/ChatHistoryInfo'
 import { Streaming } from '../types/Streaming'
@@ -26,11 +26,11 @@ export abstract class AgentActionUtil<T extends BaseAgentAction = BaseAgentActio
 	}
 
 	/**
-	 * Transform the action before saving it to chat history.
+	 * agentHelpers the action before saving it to chat history.
 	 * Useful for sanitizing or correcting actions.
 	 * @returns The transformed action, or null to reject the action
 	 */
-	sanitizeAction(action: Streaming<T>, _transform: AgentTransform): Streaming<T> | null {
+	sanitizeAction(action: Streaming<T>, _transform: AgentHelpers): Streaming<T> | null {
 		return action
 	}
 
@@ -42,7 +42,7 @@ export abstract class AgentActionUtil<T extends BaseAgentAction = BaseAgentActio
 	 */
 	applyAction(
 		_action: Streaming<T>,
-		_transform: AgentTransform
+		_transform: AgentHelpers
 	): Promise<JsonValue | undefined> | void {
 		// Do nothing by default
 	}

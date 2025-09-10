@@ -13,7 +13,7 @@ import {
 	VecModel,
 } from 'tldraw'
 import { AgentActionUtil } from '../../shared/actions/AgentActionUtil'
-import { AgentTransform } from '../../shared/AgentTransform'
+import { AgentHelpers } from '../../shared/AgentHelpers'
 import { getAgentActionUtilsRecord, getPromptPartUtilsRecord } from '../../shared/AgentUtils'
 import { ISimpleShape } from '../../shared/format/SimpleShape'
 import { PromptPartUtil } from '../../shared/parts/PromptPartUtil'
@@ -229,15 +229,15 @@ export class TldrawAgent {
 	 * Get a full prompt based on a request.
 	 *
 	 * @param request - The request to use for the prompt.
-	 * @param transform - The transform to use.
+	 * @param agentHelpers - The agentHelpers to use.
 	 * @returns The fully assembled prompt.
 	 */
-	async preparePrompt(request: AgentRequest, transform: AgentTransform): Promise<AgentPrompt> {
+	async preparePrompt(request: AgentRequest, agentHelpers: AgentHelpers): Promise<AgentPrompt> {
 		const { promptPartUtils } = this
 		const transformedParts: PromptPart[] = []
 
 		for (const util of Object.values(promptPartUtils)) {
-			const part = await util.getPart(request, transform)
+			const part = await util.getPart(request, agentHelpers)
 			if (!part) continue
 			transformedParts.push(part)
 		}
@@ -435,16 +435,16 @@ export class TldrawAgent {
 	/**
 	 * Make the agent perform an action.
 	 * @param action The action to make the agent do.
-	 * @param transform The transform to use.
+	 * @param agentHelpers The agentHelpers to use.
 	 * @returns The diff of the action, and
 	 */
-	act(action: Streaming<AgentAction>, transform = new AgentTransform(this)): AgentActionResult {
+	act(action: Streaming<AgentAction>, agentHelpers = new AgentHelpers(this)): AgentActionResult {
 		const { editor } = this
 		const util = this.getAgentActionUtil(action._type)
 		this.isActing = true
 		let value: AgentActionResult['value']
 		const diff = editor.store.extractingChanges(() => {
-			value = util.applyAction(structuredClone(action), transform) ?? undefined
+			value = util.applyAction(structuredClone(action), agentHelpers) ?? undefined
 		})
 		this.isActing = false
 
@@ -686,10 +686,10 @@ function requestAgent({
 	let cancelled = false
 	const controller = new AbortController()
 	const signal = controller.signal
-	const transform = new AgentTransform(agent)
+	const agentHelpers = new AgentHelpers(agent)
 
 	const promise = new Promise<AgentActionResult[]>((resolve) => {
-		agent.preparePrompt(request, transform).then(async (prompt) => {
+		agent.preparePrompt(request, agentHelpers).then(async (prompt) => {
 			let incompleteDiff: RecordsDiff<TLRecord> | null = null
 			const results: AgentActionResult[] = []
 			try {
@@ -699,8 +699,8 @@ function requestAgent({
 						() => {
 							const actionUtil = agent.getAgentActionUtil(action._type)
 
-							// Transform the agent's action
-							const transformedAction = actionUtil.sanitizeAction(action, transform)
+							// agentHelpers the agent's action
+							const transformedAction = actionUtil.sanitizeAction(action, agentHelpers)
 							if (!transformedAction) {
 								incompleteDiff = null
 								return
@@ -713,7 +713,7 @@ function requestAgent({
 							}
 
 							// Apply the action to the app and editor
-							const result = agent.act(transformedAction, transform)
+							const result = agent.act(transformedAction, agentHelpers)
 
 							// The the action is incomplete, save the diff so that we can revert it in the future
 							if (transformedAction.complete) {

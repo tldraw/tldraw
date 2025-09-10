@@ -17,7 +17,7 @@ import {
 } from 'tldraw'
 import z from 'zod'
 import { applyAiChange } from '../../client/agent/applyAiChange'
-import { AgentTransform } from '../AgentTransform'
+import { AgentHelpers } from '../AgentHelpers'
 import { asColor } from '../format/SimpleColor'
 import { convertSimpleFillToTldrawFill } from '../format/SimpleFill'
 import { convertSimpleFontSizeToTldrawFontSizeAndScale } from '../format/SimpleFontSize'
@@ -63,38 +63,38 @@ export class UpdateActionUtil extends AgentActionUtil<IUpdateAction> {
 		}
 	}
 
-	override sanitizeAction(action: Streaming<IUpdateAction>, transform: AgentTransform) {
+	override sanitizeAction(action: Streaming<IUpdateAction>, agentHelpers: AgentHelpers) {
 		if (!action.complete) return action
 
 		const { update } = action
 
 		// Ensure the shape ID refers to a real shape
-		const shapeId = transform.ensureShapeIdExists(update.shapeId)
+		const shapeId = agentHelpers.ensureShapeIdExists(update.shapeId)
 		if (!shapeId) return null
 		update.shapeId = shapeId
 
 		// If it's an arrow, ensure the from and to IDs refer to real shapes
 		if (update._type === 'arrow') {
 			if (update.fromId) {
-				update.fromId = transform.ensureShapeIdExists(update.fromId)
+				update.fromId = agentHelpers.ensureShapeIdExists(update.fromId)
 			}
 			if (update.toId) {
-				update.toId = transform.ensureShapeIdExists(update.toId)
+				update.toId = agentHelpers.ensureShapeIdExists(update.toId)
 			}
 		}
 
 		// Unround the shape to restore the original values
-		action.update = transform.unroundShape(action.update)
+		action.update = agentHelpers.unroundShape(action.update)
 
 		return action
 	}
 
-	override applyAction(action: Streaming<IUpdateAction>, transform: AgentTransform) {
+	override applyAction(action: Streaming<IUpdateAction>, agentHelpers: AgentHelpers) {
 		if (!action.complete) return
-		const { editor } = transform
+		const { editor } = agentHelpers
 
 		// Translate the shape back to the chat's position
-		action.update = transform.removeOffsetFromShape(action.update)
+		action.update = agentHelpers.removeOffsetFromShape(action.update)
 
 		const aiChanges = getTldrawAiChangesFromUpdateEvent({ editor, action })
 		for (const aiChange of aiChanges) {

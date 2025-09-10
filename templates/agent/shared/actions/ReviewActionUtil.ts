@@ -1,6 +1,6 @@
 import { Box } from 'tldraw'
 import z from 'zod'
-import { AgentTransform } from '../AgentTransform'
+import { AgentHelpers } from '../AgentHelpers'
 import { IAreaContextItem } from '../types/ContextItem'
 import { Streaming } from '../types/Streaming'
 import { AgentActionUtil } from './AgentActionUtil'
@@ -40,11 +40,11 @@ export class ReviewActionUtil extends AgentActionUtil<IReviewAction> {
 		}
 	}
 
-	override applyAction(action: Streaming<IReviewAction>, transform: AgentTransform) {
+	override applyAction(action: Streaming<IReviewAction>, agentHelpers: AgentHelpers) {
 		if (!action.complete) return
-		const { agent } = transform
+		const { agent } = agentHelpers
 
-		const reviewBounds = transform.removeOffsetFromBox({
+		const reviewBounds = agentHelpers.removeOffsetFromBox({
 			x: action.x,
 			y: action.y,
 			w: action.w,

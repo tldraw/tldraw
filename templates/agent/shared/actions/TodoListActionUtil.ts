@@ -1,5 +1,5 @@
 import { z } from 'zod'
-import { AgentTransform } from '../AgentTransform'
+import { AgentHelpers } from '../AgentHelpers'
 import { Streaming } from '../types/Streaming'
 import { AgentActionUtil } from './AgentActionUtil'
 
@@ -29,9 +29,9 @@ export class TodoListActionUtil extends AgentActionUtil<ITodoListAction> {
 		return null
 	}
 
-	override applyAction(action: Streaming<ITodoListAction>, transform: AgentTransform) {
+	override applyAction(action: Streaming<ITodoListAction>, agentHelpers: AgentHelpers) {
 		if (!action.complete) return
-		const { agent } = transform
+		const { agent } = agentHelpers
 
 		const todoItem = {
 			id: action.id,

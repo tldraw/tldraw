@@ -1,5 +1,5 @@
 import z from 'zod'
-import { AgentTransform } from '../AgentTransform'
+import { AgentHelpers } from '../AgentHelpers'
 import { Streaming } from '../types/Streaming'
 import { AgentActionUtil } from './AgentActionUtil'
 
@@ -36,11 +36,11 @@ export class SetMyViewActionUtil extends AgentActionUtil<ISetMyViewAction> {
 		}
 	}
 
-	override applyAction(action: Streaming<ISetMyViewAction>, transform: AgentTransform) {
+	override applyAction(action: Streaming<ISetMyViewAction>, agentHelpers: AgentHelpers) {
 		if (!action.complete) return
-		const { agent } = transform
+		const { agent } = agentHelpers
 
-		const bounds = transform.removeOffsetFromBox({
+		const bounds = agentHelpers.removeOffsetFromBox({
 			x: action.x,
 			y: action.y,
 			w: action.w,

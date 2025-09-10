@@ -1,6 +1,6 @@
 import { TLShapeId } from 'tldraw'
 import z from 'zod'
-import { AgentTransform } from '../AgentTransform'
+import { AgentHelpers } from '../AgentHelpers'
 import { Streaming } from '../types/Streaming'
 import { AgentActionUtil } from './AgentActionUtil'
 
@@ -36,16 +36,16 @@ export class ResizeActionUtil extends AgentActionUtil<IResizeAction> {
 		}
 	}
 
-	override sanitizeAction(action: Streaming<IResizeAction>, transform: AgentTransform) {
-		const shapeIds = transform.ensureShapeIdsExist(action.shapeIds ?? [])
+	override sanitizeAction(action: Streaming<IResizeAction>, agentHelpers: AgentHelpers) {
+		const shapeIds = agentHelpers.ensureShapeIdsExist(action.shapeIds ?? [])
 		if (shapeIds.length === 0) return null
 
 		action.shapeIds = shapeIds
 		return action
 	}
 
-	override applyAction(action: Streaming<IResizeAction>, transform: AgentTransform) {
-		const { editor } = transform
+	override applyAction(action: Streaming<IResizeAction>, agentHelpers: AgentHelpers) {
+		const { editor } = agentHelpers
 
 		if (
 			!action.shapeIds ||
@@ -57,7 +57,7 @@ export class ResizeActionUtil extends AgentActionUtil<IResizeAction> {
 			return
 		}
 
-		const origin = transform.removeOffsetFromVec({ x: action.originX, y: action.originY })
+		const origin = agentHelpers.removeOffsetFromVec({ x: action.originX, y: action.originY })
 		const shapeIds = action.shapeIds.map((shapeId) => `shape:${shapeId}` as TLShapeId)
 
 		for (const shapeId of shapeIds) {

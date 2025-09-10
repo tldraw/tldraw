@@ -1,6 +1,6 @@
 import { TLShapeId } from 'tldraw'
 import z from 'zod'
-import { AgentTransform } from '../AgentTransform'
+import { AgentHelpers } from '../AgentHelpers'
 import { Streaming } from '../types/Streaming'
 import { AgentActionUtil } from './AgentActionUtil'
 
@@ -33,23 +33,23 @@ export class PlaceActionUtil extends AgentActionUtil<IPlaceAction> {
 		}
 	}
 
-	override sanitizeAction(action: Streaming<IPlaceAction>, transform: AgentTransform) {
+	override sanitizeAction(action: Streaming<IPlaceAction>, agentHelpers: AgentHelpers) {
 		if (!action.complete) return action
 
-		const shapeId = transform.ensureShapeIdExists(action.shapeId)
+		const shapeId = agentHelpers.ensureShapeIdExists(action.shapeId)
 		if (!shapeId) return null
 		action.shapeId = shapeId
 
-		const referenceShapeId = transform.ensureShapeIdExists(action.referenceShapeId)
+		const referenceShapeId = agentHelpers.ensureShapeIdExists(action.referenceShapeId)
 		if (!referenceShapeId) return null
 		action.referenceShapeId = referenceShapeId
 
 		return action
 	}
 
-	override applyAction(action: Streaming<IPlaceAction>, transform: AgentTransform) {
+	override applyAction(action: Streaming<IPlaceAction>, agentHelpers: AgentHelpers) {
 		if (!action.complete) return
-		const { editor } = transform
+		const { editor } = agentHelpers
 
 		const { side, sideOffset = 0, align, alignOffset = 0 } = action
 		const referenceShapeId = `shape:${action.referenceShapeId}` as TLShapeId

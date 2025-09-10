@@ -1,6 +1,6 @@
 import { TLShapeId, Vec } from 'tldraw'
 import z from 'zod'
-import { AgentTransform } from '../AgentTransform'
+import { AgentHelpers } from '../AgentHelpers'
 import { Streaming } from '../types/Streaming'
 import { AgentActionUtil } from './AgentActionUtil'
 
@@ -30,17 +30,17 @@ export class MoveActionUtil extends AgentActionUtil<IMoveAction> {
 		}
 	}
 
-	override sanitizeAction(action: Streaming<IMoveAction>, transform: AgentTransform) {
+	override sanitizeAction(action: Streaming<IMoveAction>, agentHelpers: AgentHelpers) {
 		if (!action.complete) return action
 
 		// Make sure the shape ID refers to a real shape
-		const shapeId = transform.ensureShapeIdExists(action.shapeId)
+		const shapeId = agentHelpers.ensureShapeIdExists(action.shapeId)
 		if (!shapeId) return null
 		action.shapeId = shapeId
 
 		// Make sure the x and y values are numbers
-		const floatX = transform.ensureValueIsNumber(action.x)
-		const floatY = transform.ensureValueIsNumber(action.y)
+		const floatX = agentHelpers.ensureValueIsNumber(action.x)
+		const floatY = agentHelpers.ensureValueIsNumber(action.y)
 		if (floatX === null || floatY === null) return null
 		action.x = floatX
 		action.y = floatY
@@ -48,13 +48,13 @@ export class MoveActionUtil extends AgentActionUtil<IMoveAction> {
 		return action
 	}
 
-	override applyAction(action: Streaming<IMoveAction>, transform: AgentTransform) {
+	override applyAction(action: Streaming<IMoveAction>, agentHelpers: AgentHelpers) {
 		if (!action.complete) return
 
 		// Translate the position back to the chat's position
-		const { x, y } = transform.removeOffsetFromVec({ x: action.x, y: action.y })
+		const { x, y } = agentHelpers.removeOffsetFromVec({ x: action.x, y: action.y })
 
-		const { editor } = transform
+		const { editor } = agentHelpers
 		const shapeId = `shape:${action.shapeId}` as TLShapeId
 		const shape = editor.getShape(shapeId)
 		if (!shape) return

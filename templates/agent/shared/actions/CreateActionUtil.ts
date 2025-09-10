@@ -13,7 +13,7 @@ import {
 } from 'tldraw'
 import z from 'zod'
 import { applyAiChange } from '../../client/agent/applyAiChange'
-import { AgentTransform } from '../AgentTransform'
+import { AgentHelpers } from '../AgentHelpers'
 import { asColor } from '../format/SimpleColor'
 import { convertSimpleFillToTldrawFill } from '../format/SimpleFill'
 import { convertSimpleFontSizeToTldrawFontSizeAndScale } from '../format/SimpleFontSize'
@@ -53,33 +53,33 @@ export class CreateActionUtil extends AgentActionUtil<ICreateAction> {
 		}
 	}
 
-	override sanitizeAction(action: Streaming<ICreateAction>, transform: AgentTransform) {
+	override sanitizeAction(action: Streaming<ICreateAction>, agentHelpers: AgentHelpers) {
 		if (!action.complete) return action
 
 		const { shape } = action
 
 		// Ensure the created shape has a unique ID
-		shape.shapeId = transform.ensureShapeIdIsUnique(shape.shapeId)
+		shape.shapeId = agentHelpers.ensureShapeIdIsUnique(shape.shapeId)
 
 		// If the shape is an arrow, ensure the from and to IDs are real shapes
 		if (shape._type === 'arrow') {
 			if (shape.fromId) {
-				shape.fromId = transform.ensureShapeIdExists(shape.fromId)
+				shape.fromId = agentHelpers.ensureShapeIdExists(shape.fromId)
 			}
 			if (shape.toId) {
-				shape.toId = transform.ensureShapeIdExists(shape.toId)
+				shape.toId = agentHelpers.ensureShapeIdExists(shape.toId)
 			}
 		}
 
 		return action
 	}
 
-	override applyAction(action: Streaming<ICreateAction>, transform: AgentTransform) {
+	override applyAction(action: Streaming<ICreateAction>, agentHelpers: AgentHelpers) {
 		if (!action.complete) return
-		const { editor } = transform
+		const { editor } = agentHelpers
 
 		// Translate the shape back to the chat's position
-		action.shape = transform.removeOffsetFromShape(action.shape)
+		action.shape = agentHelpers.removeOffsetFromShape(action.shape)
 
 		const aiChanges = getTldrawAiChangesFromCreateAction({ editor, action })
 		for (const aiChange of aiChanges) {
@@ -394,7 +394,7 @@ export function calculateArrowBindingAnchor(
 		return { x: 0.5, y: 0.5 } // Fall back to center
 	}
 
-	// Transform the target shape's geometry to page space for calculations
+	// agentHelpers the target shape's geometry to page space for calculations
 	const pageTransform = editor.getShapePageTransform(targetShape)
 	const targetShapeGeometryInPageSpace = targetShapeGeometry.transform(pageTransform)
 

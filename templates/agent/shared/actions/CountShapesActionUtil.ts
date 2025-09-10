@@ -1,5 +1,5 @@
 import z from 'zod'
-import { AgentTransform } from '../AgentTransform'
+import { AgentHelpers } from '../AgentHelpers'
 import { Streaming } from '../types/Streaming'
 import { AgentActionUtil } from './AgentActionUtil'
 
@@ -31,9 +31,9 @@ export class CountShapesActionUtil extends AgentActionUtil<ICountShapesAction> {
 		}
 	}
 
-	override async applyAction(action: Streaming<ICountShapesAction>, transform: AgentTransform) {
+	override async applyAction(action: Streaming<ICountShapesAction>, agentHelpers: AgentHelpers) {
 		if (!action.complete) return
-		const { agent, editor } = transform
+		const { agent, editor } = agentHelpers
 
 		// Schedule a follow-up agent request
 		agent.schedule("Here's the number of shapes on the canvas.")
