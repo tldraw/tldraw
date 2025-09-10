@@ -39,10 +39,10 @@ export class ContextItemsPartUtil extends PromptPartUtil<ContextItemsPart> {
 
 		// Handle area context items
 		if (areaItems.length > 0) {
-			const isReview = requestType === 'review'
+			const isScheduled = requestType === 'schedule'
 			const areas = areaItems.map((item) => item.bounds)
 			messages.push(
-				isReview
+				isScheduled
 					? 'You are currently reviewing your work, and you have decided to focus your view on the following area. Make sure to focus your task here.'
 					: 'The user has specifically brought your attention to the following areas in this request. The user might refer to them as the "area(s)" or perhaps "here" or "there", but either way, it\'s implied that you should focus on these areas in both your reasoning and actions. Make sure to focus your task on these areas:'
 			)
