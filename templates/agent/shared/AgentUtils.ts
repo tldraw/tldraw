@@ -23,10 +23,10 @@ import { ThinkActionUtil } from './actions/ThinkActionUtil'
 import { TodoListActionUtil } from './actions/TodoListActionUtil'
 import { UnknownActionUtil } from './actions/UnknownActionUtil'
 import { UpdateActionUtil } from './actions/UpdateActionUtil'
-import { RetrievedDataPartUtil } from './parts/ActionResultsPartUtil'
 import { BlurryShapesPartUtil } from './parts/BlurryShapesPartUtil'
 import { ChatHistoryPartUtil } from './parts/ChatHistoryPartUtil'
 import { ContextItemsPartUtil } from './parts/ContextItemsPartUtil'
+import { DataPartUtil } from './parts/DataPartUtil'
 import { MessagesPartUtil } from './parts/MessagesPartUtil'
 import { ModelNamePartUtil } from './parts/ModelNamePartUtil'
 import { PeripheralShapesPartUtil } from './parts/PeripheralShapesPartUtil'
@@ -56,7 +56,7 @@ export const PROMPT_PART_UTILS = [
 
 	// Request
 	MessagesPartUtil,
-	RetrievedDataPartUtil,
+	DataPartUtil,
 	ContextItemsPartUtil,
 
 	// Viewport

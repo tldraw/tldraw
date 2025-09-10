@@ -3,21 +3,21 @@ import { AgentRequest } from '../types/AgentRequest'
 import { BasePromptPart } from '../types/BasePromptPart'
 import { PromptPartUtil } from './PromptPartUtil'
 
-interface RetrievedDataPart extends BasePromptPart<'data'> {
+interface DataPart extends BasePromptPart<'data'> {
 	data: JsonValue[]
 }
 
 /**
  * This prompt part collects up data retrieved by agent actions in the previous request.
  */
-export class RetrievedDataPartUtil extends PromptPartUtil<RetrievedDataPart> {
+export class DataPartUtil extends PromptPartUtil<DataPart> {
 	static override type = 'data' as const
 
 	override getPriority() {
 		return -200 // API data should come right before the user message but after most other parts
 	}
 
-	override async getPart(request: AgentRequest): Promise<RetrievedDataPart> {
+	override async getPart(request: AgentRequest): Promise<DataPart> {
 		const { data } = request
 
 		const values = await Promise.all(
@@ -38,7 +38,7 @@ export class RetrievedDataPartUtil extends PromptPartUtil<RetrievedDataPart> {
 		}
 	}
 
-	override buildContent({ data }: RetrievedDataPart) {
+	override buildContent({ data }: DataPart) {
 		const formattedData = data.map((item) => {
 			return `${JSON.stringify(item)}`
 		})
