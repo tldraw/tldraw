@@ -25,8 +25,7 @@ export interface TldrawUiTooltipProps {
 	delayDuration?: number
 }
 
-/** @public */
-export interface CurrentTooltip {
+interface CurrentTooltip {
 	id: string
 	content: ReactNode
 	side: 'top' | 'right' | 'bottom' | 'left'
