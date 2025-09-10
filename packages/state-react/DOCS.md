@@ -234,7 +234,7 @@ const OptimizedUserCard = track(function OptimizedUserCard({ userId }: UserCardP
 
 ### useStateTracking: Manual Tracking
 
-For more control, you can use **useStateTracking** to manually track signal dependencies in specific parts of your render function:
+For more control, you can use **useStateTracking** to manually track signal dependencies in specific parts of your render function. It also accepts an optional dependency array, similar to `useMemo`, to control when the reactive tracking logic is re-created.
 
 ```ts
 import { useStateTracking } from '@tldraw/state-react'
@@ -245,7 +245,7 @@ function CustomComponent() {
   const reactiveContent = useStateTracking('reactive-section', () => {
     // Only this part is reactive to signals
     return <div>Current theme: {theme.get()}</div>
-  })
+  }, []) // deps array is optional
   
   return (
     <div>
@@ -775,22 +775,26 @@ function BatchedUpdates() {
 Access signal history for undo/redo functionality:
 
 ```ts
-import { atom, getGlobalEpoch } from '@tldraw/state'
+import { atom } from '@tldraw/state'
+import { useAtom } from '@tldraw/state-react'
 
 function UndoableEditor() {
+  // Create an atom with history enabled
   const content = useAtom('content', '', { historyLength: 10 })
-  const [startEpoch, setStartEpoch] = useState(() => getGlobalEpoch())
-  
+
   const undo = () => {
-    const history = content.getDiffSince(startEpoch)
-    // Apply reverse diffs to implement undo
-    // Implementation depends on your diff format
+    // The history is stored on the atom and can be accessed
+    // to implement undo/redo functionality. The exact implementation
+    // depends on your diff format and how you use the history API
+    // from @tldraw/state.
+    // e.g. `const diffs = content.getDiffSince(someEpoch)`
+    console.log('Undo clicked. See @tldraw/state docs for implementation.')
   }
-  
+
   return (
     <div>
-      <textarea 
-        value={content.get()} 
+      <textarea
+        value={content.get()}
         onChange={(e) => content.set(e.target.value)}
       />
       <button onClick={undo}>Undo</button>

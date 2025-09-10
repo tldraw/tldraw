@@ -46,22 +46,12 @@ The store moves through three distinct states as it establishes and maintains co
 
 ### User Presence
 
-**User presence** encompasses the real-time information about other users in your collaborative session. This includes cursor positions, current selections, and any custom presence data you want to share:
+**/User presence** encompasses the real-time information about other users in your collaborative session. This includes cursor positions, current selections, and any custom presence data you want to share. The `useSync` hook handles this automatically, but you can provide a custom `getUserPresence` function to send additional data.
 
 ```ts
 const store = useSync({
   uri: wsUri,
   assets: myAssets,
-  getUserPresence: (store, user) => ({
-    userId: user.id,
-    userName: user.name,
-    cursor: { x: mouseX, y: mouseY },
-    selectedShapeIds: store.selectedShapeIds,
-    brush: store.brush,
-    // Custom presence data
-    currentTool: store.currentTool,
-    isTyping: store.isInEditingMode,
-  }),
 })
 ```
 
@@ -131,14 +121,9 @@ import { Tldraw } from 'tldraw'
 
 function ProductionApp() {
   const store = useSync({
-    uri: 'wss://myserver.com/sync',
-    roomId: 'project-collaboration-session',
+    uri: 'wss://myserver.com/sync/project-collaboration-session',
     userInfo: getCurrentUser(), // Your user system integration
     assets: productionAssetStore, // Your asset storage integration
-    trackAnalyticsEvent: (name, data) => {
-      // Optional: Track collaboration events
-      analytics.track(name, data)
-    }
   })
 
   return (
@@ -206,30 +191,24 @@ currentUser.set({
 
 ### Custom Presence Data
 
-The `getUserPresence` function allows you to include custom presence information beyond the standard cursor and selection data:
+The `getUserPresence` function allows you to include custom presence information beyond the standard cursor and selection data. The function receives the `store` and the current `user` info. It should return an object that conforms to the `TLPresenceStateInfo` type.
+
+Note that the `store` object passed to this function is a `TLStore` instance, and does not have an `editor` property. To access editor-specific state like the current tool or cursor position, you will need to find a way to access the `Editor` instance from your component.
 
 ```ts
 const store = useSync({
   uri: wsUri,
   assets: myAssets,
   getUserPresence: (store, user) => {
-    const editor = store.editor // Access to full editor state
+    // This function is called whenever the store changes.
+    // You can use it to derive presence information from the store.
+    // To get information like cursor position, you may need to
+    // find a way to access your <Tldraw /> component's editor instance.
     
     return {
       userId: user.id,
       userName: user.name,
-      cursor: editor.inputs.currentPagePoint,
-      selectedShapeIds: editor.selectedShapeIds,
-      
-      // Custom presence fields
-      currentTool: editor.currentToolId,
-      isDrawing: editor.currentTool.isDrawing,
-      followingUserId: editor.followingUserId,
-      viewportBounds: editor.viewportBounds,
-      
-      // You can include any serializable data
-      status: user.isAway ? 'away' : 'active',
-      lastActivity: Date.now(),
+      // ... and other properties from TLPresenceStateInfo
     }
   },
 })
@@ -457,18 +436,16 @@ const store = useSyncDemo({
 You can debug presence updates by monitoring presence mode changes:
 
 ```ts
+import { getDefaultUserPresence } from 'tldraw'
+
 function PresenceDebuggingApp() {
   const store = useSync({
     uri: wsUri,
     assets: myAssets,
     getUserPresence: (store, user) => {
-      const presence = {
-        userId: user.id,
-        userName: user.name,
-        cursor: store.inputs.currentPagePoint,
-        selectedShapeIds: store.selectedShapeIds,
-      }
-      
+      // See the "Custom Presence Data" section for details
+      // on how to implement this function.
+      const presence = getDefaultUserPresence(store, user)
       console.log('Updating presence:', presence)
       return presence
     },

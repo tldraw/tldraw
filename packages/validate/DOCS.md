@@ -158,23 +158,30 @@ Numbers have specialized validators for common validation needs:
 // Basic number validation (finite, non-NaN)
 const temperature = T.number.validate(23.5)
 
-// Positive numbers (> 0)
+// Non-negative numbers (>= 0)
 const price = T.positiveNumber.validate(29.99)
 
-// Non-negative numbers (>= 0)
-const quantity = T.nonZeroNumber.validate(0)
+// Positive numbers (> 0)
+const quantity = T.nonZeroNumber.validate(0.01)
 
 // Integers
 const wholeNumber = T.integer.validate(42)
+
+// Non-negative integers (>= 0)
 const positiveCount = T.positiveInteger.validate(5)
-const itemCount = T.nonZeroInteger.validate(0)
+
+// Positive integers (> 0)
+const itemCount = T.nonZeroInteger.validate(1)
 ```
+
+> Note: `positiveNumber` and `positiveInteger` validate for non-negative values (`>= 0`), while `nonZeroNumber` and `nonZeroInteger` validate for positive values (`> 0`).
 
 These validators catch common data issues:
 
 ```ts
 T.number.validate(NaN) // Throws: "Expected a finite number, got NaN"
 T.positiveNumber.validate(-1) // Throws: "Expected a positive number, got -1"
+T.nonZeroNumber.validate(0) // Throws: "Expected a non-zero positive number, got 0"
 T.integer.validate(3.14) // Throws: "Expected an integer, got 3.14"
 ```
 
@@ -388,7 +395,9 @@ const jsonValidator = T.string.refine((str) => {
 
 #### Using check() for Additional Constraints
 
-**check()** adds validation without changing the value:
+**check()** adds validation without changing the value. It has two forms:
+
+`check(checkFn)`:
 
 ```ts
 const evenNumber = T.number.check((value) => {
@@ -396,18 +405,32 @@ const evenNumber = T.number.check((value) => {
         throw new Error("Number must be even")
     }
 })
+```
 
-const strongPassword = T.string.check((password) => {
-    if (password.length < 8) {
-        throw new Error("Password must be at least 8 characters")
-    }
-    if (!/[A-Z]/.test(password)) {
-        throw new Error("Password must contain uppercase letter")
-    }
-    if (!/[0-9]/.test(password)) {
-        throw new Error("Password must contain a number")
-    }
-})
+`check(name, checkFn)`:
+
+You can also provide a name for the check, which will be included in error messages for easier debugging.
+
+```ts
+const strongPassword = T.string
+    .check('min-length', (password) => {
+        if (password.length < 8) {
+            throw new Error("Password must be at least 8 characters")
+        }
+    })
+    .check('uppercase', (password) => {
+        if (!/[A-Z]/.test(password)) {
+            throw new Error("Password must contain an uppercase letter")
+        }
+    })
+    .check('number', (password) => {
+        if (!/[0-9]/.test(password)) {
+            throw new Error("Password must contain a number")
+        }
+    })
+
+// Example error:
+// "At (check uppercase): Password must contain an uppercase letter"
 ```
 
 ### Union Types
@@ -481,8 +504,8 @@ const userModel = T.model('User', T.object({
     email: T.linkUrl
 }))
 
-// Errors will include the model name for clarity
-// "User validation failed at email: Expected a valid URL, got 'invalid-email'"
+// Errors will include the model name for clarity:
+// "At User.email: Expected a valid URL, got 'invalid-email'"
 ```
 
 ### JSON Value Validation

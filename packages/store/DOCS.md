@@ -49,11 +49,163 @@ const Book = createRecordType<Book>('book', {
 }))
 
 // Create a new book
+## 2. Core Concepts
+
+### Records: The Foundation
+
+**Records** are immutable data objects that extend the `BaseRecord` interface. Every record has an `id` and a `typeName` that identifies its type:
+
+```ts
+import { BaseRecord, RecordId } from '@tldraw/store'
+
+interface Author extends BaseRecord<'author', RecordId<Author>> {
+	name: string
+}
+
+interface Book extends BaseRecord<'book', RecordId<Book>> {
+	title: string
+	authorId: RecordId<Author>
+	publishedYear: number
+	inStock: boolean
+}
+```
+
+### Record Types: Factories for Records
+
+A **RecordType** is a factory that creates and manages records of a specific type. You define how records are created, validated, and what their default properties are:
+
+```ts
+import { createRecordType } from '@tldraw/store'
+
+const Author = createRecordType<Author>('author', {
+	scope: 'document',
+})
+
+const Book = createRecordType<Book>('book', {
+	scope: 'document', // Persistence behavior
+}).withDefaultProperties(() => ({
+	inStock: true,
+	publishedYear: new Date().getFullYear(),
+}))
+
+// Create a new author and book
+const orwell = Author.create({ name: 'George Orwell' })
 const book = Book.create({
 	title: '1984',
-	author: 'George Orwell'
+	authorId: orwell.id,
 })
-// Results in: { id: 'book:abc123', typeName: 'book', title: '1984', author: 'George Orwell', publishedYear: 2025, inStock: true }
+// Results in: { id: 'book:abc123', typeName: 'book', title: '1984', authorId: 'author:xyz789', publishedYear: 2025, inStock: true }
+```
+
+## 3. Basic Usage
+
+### Creating and Storing Records
+
+You add records to the store using the `put` method:
+
+```ts
+// Create some authors and books
+const orwell = Author.create({ name: 'George Orwell' })
+const huxley = Author.create({ name: 'Aldous Huxley' })
+
+const books = [
+	Book.create({ title: '1984', authorId: orwell.id }),
+	Book.create({ title: 'Animal Farm', authorId: orwell.id }),
+	Book.create({ title: 'Brave New World', authorId: huxley.id }),
+]
+
+// Add authors and books to the store
+store.put([orwell, huxley, ...books])
+```
+
+> Tip: The `put` method handles both creating new records and updating existing ones. If a record with the same ID already exists, it will be updated.
+
+### Reading Records
+
+You can read individual records or access all records of a type:
+
+```ts
+// Get a specific book by ID
+const book = store.get(books[0].id)
+console.log(book?.title) // "1984"
+
+// Get all records in the store
+const allRecords = store.allRecords()
+
+// Check if a record exists
+const hasBook = store.has(books[0].id) // true
+```
+
+### Updating Records
+
+Use the `update` method to modify existing records:
+
+```ts
+// Update a book's stock status
+store.update(book.id, (currentBook) => ({
+	...currentBook,
+	inStock: false
+}))
+```
+
+The update function receives the current record and returns a new record with your changes applied.
+
+### Removing Records
+
+Remove records using their IDs:
+
+```ts
+// Remove a single book
+store.remove([book.id])
+
+// Remove multiple books
+store.remove([book1.id, book2.id, book3.id])
+```
+
+## 4. Reactive Queries and Indexing
+
+### Understanding Reactive Indexes
+
+The store automatically maintains **reactive indexes** that allow efficient querying of your data. These indexes update automatically when records change:
+
+```ts
+// Create an index by author
+// (assuming `orwell` is an Author record we've created)
+const booksByAuthor = store.query.index('book', 'authorId')
+
+// Get all books by George Orwell
+const orwellBooks = booksByAuthor.get().get(orwell.id)
+console.log(orwellBooks) // Set<RecordId<Book>>
+```
+
+The index returns a `Map` where keys are property values and values are `Set`s of record IDs that have that property value.
+
+### Reactive Queries with Computed Values
+
+Combine indexes with computed values to create reactive queries:
+
+```ts
+import { computed } from '@tldraw/state'
+
+// Create a reactive query for in-stock books
+const inStockBooks = store.query.records('book', () => ({
+	inStock: { eq: true },
+}))
+
+// Then, group them by author in a second computed value
+const inStockBooksByAuthor = computed('inStockBooksByAuthor', () => {
+	const results = new Map<RecordId<Author>, Book[]>()
+	for (const book of inStockBooks.get()) {
+		const authorBooks = results.get(book.authorId) || []
+		authorBooks.push(book)
+		results.set(book.authorId, authorBooks)
+	}
+	return results
+})
+
+// The computed value automatically updates when in-stock books change
+console.log(inStockBooksByAuthor.get()) // Map<RecordId<Author>, Book[]>
+```
 ```
 
 ### The Store: Your Reactive Database
@@ -258,7 +410,7 @@ store.sideEffects.registerAfterCreateHandler('book', (book, source) => {
 	console.log(`New book added: ${book.title}`)
 	
 	// Update author statistics
-	updateAuthorBookCount(book.author, 1)
+	updateAuthorBookCount(book.authorId, 1)
 })
 
 // Validate before updates
@@ -273,7 +425,7 @@ store.sideEffects.registerBeforeChangeHandler('book', (prev, next, source) => {
 // Clean up when books are deleted
 store.sideEffects.registerAfterDeleteHandler('book', (book, source) => {
 	console.log(`Book removed: ${book.title}`)
-	updateAuthorBookCount(book.author, -1)
+	updateAuthorBookCount(book.authorId, -1)
 })
 ```
 
@@ -331,6 +483,7 @@ const bookMigrations = createMigrationSequence({
 		// Migration 1: Add publishedYear field
 		{
 			id: 'com.myapp.book/add-published-year',
+			scope: 'record',
 			up: (record: any) => {
 				// Convert publishDate string to publishedYear number
 				record.publishedYear = new Date(record.publishDate).getFullYear()
@@ -348,6 +501,7 @@ const bookMigrations = createMigrationSequence({
 		// Migration 2: Add genre field with default
 		{
 			id: 'com.myapp.book/add-genre',
+			scope: 'record',
 			up: (record: any) => {
 				record.genre = record.genre || 'Fiction'
 				return record
@@ -470,20 +624,7 @@ try {
 
 > Tip: Validation runs in development mode to help catch errors early. Make sure your validators are efficient since they run on every change.
 
-### Store Integrity
 
-The store includes integrity checking to ensure your data remains consistent:
-
-```ts
-// Manually trigger integrity check (usually automatic)
-store.ensureStoreIsUsable()
-
-// Check if the store might be corrupted
-if (store.isPossiblyCorrupted()) {
-	console.warn('Store integrity issue detected')
-	// Handle the situation appropriately
-}
-```
 
 ## 10. Integration
 
@@ -641,17 +782,14 @@ store.sideEffects.registerAfterChangeHandler('orderState', (prev, next) => {
 
 ### Computed Relationships
 
-Model relationships between records:
+Model relationships between records using efficient queries:
 
 ```ts
 // Get all books by a specific author
-const authorBooks = computed('authorBooks', () => {
-	const authorId = 'author:123'
-	return store.allRecords()
-		.filter(record => 
-			record.typeName === 'book' && record.authorId === authorId
-		)
-})
+const authorId = 'author:123'
+const authorBooks = store.query.records('book', () => ({
+	authorId: { eq: authorId },
+}))
 ```
 
 The store provides a powerful, reactive foundation for managing your application's data. By understanding these patterns and concepts, you can build applications that automatically stay in sync as data changes, while maintaining excellent performance and type safety throughout.
