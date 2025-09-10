@@ -26,7 +26,7 @@ export abstract class AgentActionUtil<T extends BaseAgentAction = BaseAgentActio
 	}
 
 	/**
-	 * agentHelpers the action before saving it to chat history.
+	 * Transforms the action before saving it to chat history.
 	 * Useful for sanitizing or correcting actions.
 	 * @returns The transformed action, or null to reject the action
 	 */

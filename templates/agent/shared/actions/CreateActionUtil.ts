@@ -394,7 +394,7 @@ export function calculateArrowBindingAnchor(
 		return { x: 0.5, y: 0.5 } // Fall back to center
 	}
 
-	// agentHelpers the target shape's geometry to page space for calculations
+	// transforms the target shape's geometry to page space for calculations
 	const pageTransform = editor.getShapePageTransform(targetShape)
 	const targetShapeGeometryInPageSpace = targetShapeGeometry.transform(pageTransform)
 

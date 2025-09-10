@@ -6,9 +6,9 @@ import { IContextItem } from './types/ContextItem'
 
 /**
  * This class contains handles the transformations that happen throughout a
- * request. It contains helpers that can be used to agentHelpers prompt parts
+ * request. It contains helpers that can be used to change prompt parts
  * before they get sent to the model, as well as helpers that can be used to
- * agentHelpers incoming actions as they get streamed back from the model.
+ * change incoming actions as they get streamed back from the model.
  *
  * For example, `applyOffsetToShape` adjusts the position of a shape to make it
  * relative to the current chat origin. The `removeOffsetFromShape` method
@@ -22,12 +22,12 @@ import { IContextItem } from './types/ContextItem'
  */
 export class AgentHelpers {
 	/**
-	 * The agent that the agentHelpers is for.
+	 * The agent that the this intance of AgentHelpers is for.
 	 */
 	agent: TldrawAgent
 
 	/**
-	 * The editor that the agentHelpers is for.
+	 * The editor that the this intance of AgentHelpers is for.
 	 */
 	editor: Editor
 
