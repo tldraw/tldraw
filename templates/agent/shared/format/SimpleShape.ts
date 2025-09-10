@@ -96,17 +96,6 @@ const SimpleDrawShape = z
 
 export type ISimpleDrawShape = z.infer<typeof SimpleDrawShape>
 
-const SimpleEmbedShape = z.object({
-	_type: z.literal('bookmark'),
-	note: z.string(),
-	shapeId: z.string(),
-	url: z.string(),
-	x: z.number(),
-	y: z.number(),
-})
-
-export type ISimpleEmbedShape = z.infer<typeof SimpleEmbedShape>
-
 const SimpleUnknownShape = z
 	.object({
 		_type: z.literal('unknown'),
@@ -132,7 +121,6 @@ const SIMPLE_SHAPES = [
 	SimpleArrowShape,
 	SimpleNoteShape,
 	SimpleUnknownShape,
-	SimpleEmbedShape,
 ] as const
 export const SimpleShape = z.union(SIMPLE_SHAPES)
 

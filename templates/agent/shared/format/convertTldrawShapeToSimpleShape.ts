@@ -3,7 +3,6 @@ import {
 	TLArrowBinding,
 	TLArrowShape,
 	TLDrawShape,
-	TLEmbedShape,
 	TLGeoShape,
 	TLLineShape,
 	TLNoteShape,
@@ -17,7 +16,6 @@ import { convertTldrawGeoTypeToSimpleGeoType } from './SimpleGeoShapeType'
 import {
 	ISimpleArrowShape,
 	ISimpleDrawShape,
-	ISimpleEmbedShape,
 	ISimpleGeoShape,
 	ISimpleLineShape,
 	ISimpleNoteShape,
@@ -43,8 +41,6 @@ export function convertTldrawShapeToSimpleShape(shape: TLShape, editor: Editor):
 			return convertNoteShapeToSimple(editor, shape as TLNoteShape)
 		case 'draw':
 			return convertDrawShapeToSimple(editor, shape as TLDrawShape)
-		case 'bookmark':
-			return convertEmbedShapeToSimple(editor, shape as TLEmbedShape)
 		default:
 			return convertUnknownShapeToSimple(editor, shape)
 	}
@@ -212,22 +208,6 @@ function convertNoteShapeToSimple(editor: Editor, shape: TLNoteShape): ISimpleNo
 		note: (shape.meta.note as string) ?? '',
 		shapeId: convertTldrawIdToSimpleId(shape.id),
 		text: text ?? '',
-		x: bounds.x,
-		y: bounds.y,
-	}
-}
-
-function convertEmbedShapeToSimple(editor: Editor, shape: TLEmbedShape): ISimpleEmbedShape {
-	const bounds = editor.getShapeMaskedPageBounds(shape)
-	if (!bounds) {
-		throw new Error('Could not get bounds for embed shape')
-	}
-
-	return {
-		_type: 'bookmark',
-		url: shape.props.url,
-		note: (shape.meta.note as string) ?? '',
-		shapeId: convertTldrawIdToSimpleId(shape.id),
 		x: bounds.x,
 		y: bounds.y,
 	}
