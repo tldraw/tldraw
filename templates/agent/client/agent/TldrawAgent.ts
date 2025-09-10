@@ -443,10 +443,15 @@ export class TldrawAgent {
 		const util = this.getAgentActionUtil(action._type)
 		this.isActing = true
 		let value: AgentActionResult['value']
-		const diff = editor.store.extractingChanges(() => {
-			value = util.applyAction(structuredClone(action), agentHelpers) ?? undefined
-		})
-		this.isActing = false
+
+		let diff: RecordsDiff<TLRecord> | null = null
+		try {
+			diff = editor.store.extractingChanges(() => {
+				value = util.applyAction(structuredClone(action), agentHelpers) ?? undefined
+			})
+		} finally {
+			this.isActing = false
+		}
 
 		const utilType = this.getAgentActionUtilType(action._type)
 		const result: AgentActionResult = {
