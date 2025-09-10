@@ -43,8 +43,6 @@ export function useTldrawAgent(editor: Editor, id: string = 'tldraw-agent'): Tld
 		const existingAgent = $agentsAtom.get(editor).find((agent) => agent.id === id)
 		if (existingAgent) {
 			existingAgent.dispose()
-		} else {
-			console.log('CREATING AGENT', id)
 		}
 
 		// Create a new agent

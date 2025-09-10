@@ -228,7 +228,6 @@ export class TldrawAgent {
 
 		const agentPrompt = Object.fromEntries(transformedParts.map((part) => [part.type, part]))
 
-		console.log('PROMPT', agentPrompt)
 		return agentPrompt as AgentPrompt
 	}
 

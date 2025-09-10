@@ -1,4 +1,4 @@
-import { RecordsDiff, reverseRecordsDiff, structuredClone, TLRecord } from 'tldraw'
+import { RecordsDiff, reverseRecordsDiff, TLRecord } from 'tldraw'
 import { AgentTransform } from '../../shared/AgentTransform'
 import { AgentActionResult } from '../../shared/types/AgentActionResult'
 import { AgentRequest } from '../../shared/types/AgentRequest'
@@ -49,7 +49,6 @@ export function requestAgent({
 			try {
 				for await (const action of streamAgent({ prompt, signal })) {
 					if (cancelled) break
-					const originalAction = structuredClone(action)
 					editor.run(
 						() => {
 							const actionUtil = agent.getAgentActionUtil(action._type)
@@ -57,17 +56,8 @@ export function requestAgent({
 							// Transform the agent's action
 							const transformedAction = actionUtil.sanitizeAction(action, transform)
 							if (!transformedAction) {
-								if (action.complete) {
-									console.log('REJECTED ACTION: ', action)
-								}
 								incompleteDiff = null
 								return
-							}
-
-							if (transformedAction.complete) {
-								if (transformedAction._type !== 'debug') {
-									console.log('ACTION: ', originalAction)
-								}
 							}
 
 							// If there was a diff from an incomplete action, revert it so that we can reapply the action
@@ -96,7 +86,6 @@ export function requestAgent({
 				resolve(results)
 			} catch (e) {
 				if (e === 'Cancelled by user' || (e instanceof Error && e.name === 'AbortError')) {
-					console.log('CANCELLED')
 					return
 				}
 				onError(e)
