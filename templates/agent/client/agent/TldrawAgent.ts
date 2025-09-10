@@ -458,17 +458,21 @@ export class TldrawAgent {
 	 * Make the agent perform an action.
 	 * @param action The action to make the agent do.
 	 * @param helpers The agentHelpers to use.
-	 * @returns The diff of the action, and
+	 * @returns The diff of the action, and a promise for when the action is finished
 	 */
-	act(action: Streaming<AgentAction>, helpers = new AgentHelpers(this)) {
+	act(
+		action: Streaming<AgentAction>,
+		helpers = new AgentHelpers(this)
+	): { diff: RecordsDiff<TLRecord>; promise: Promise<void> | null } {
 		const { editor } = this
 		const util = this.getAgentActionUtil(action._type)
 		this.isActing = true
 
-		let diff: RecordsDiff<TLRecord> | null = null
+		let promise: Promise<void> | null = null
+		let diff: RecordsDiff<TLRecord>
 		try {
 			diff = editor.store.extractingChanges(() => {
-				util.applyAction(structuredClone(action), helpers)
+				promise = util.applyAction(structuredClone(action), helpers) ?? null
 			})
 		} finally {
 			this.isActing = false
@@ -502,7 +506,7 @@ export class TldrawAgent {
 			})
 		}
 
-		return diff
+		return { diff, promise }
 	}
 
 	/**
@@ -710,9 +714,10 @@ function requestAgent({
 	const signal = controller.signal
 	const agentHelpers = new AgentHelpers(agent)
 
-	const promise = new Promise<void>((resolve) => {
+	const requestPromise = new Promise<void>((resolve) => {
 		agent.preparePrompt(request, agentHelpers).then(async (prompt) => {
 			let incompleteDiff: RecordsDiff<TLRecord> | null = null
+			const actionPromises: Promise<void>[] = []
 			try {
 				for await (const action of streamAgent({ prompt, signal })) {
 					if (cancelled) break
@@ -734,7 +739,11 @@ function requestAgent({
 							}
 
 							// Apply the action to the app and editor
-							const diff = agent.act(transformedAction, agentHelpers)
+							const { diff, promise } = agent.act(transformedAction, agentHelpers)
+
+							if (promise) {
+								actionPromises.push(promise)
+							}
 
 							// The the action is incomplete, save the diff so that we can revert it in the future
 							if (transformedAction.complete) {
@@ -749,6 +758,7 @@ function requestAgent({
 						}
 					)
 				}
+				await Promise.all(actionPromises)
 				resolve()
 			} catch (e) {
 				if (e === 'Cancelled by user' || (e instanceof Error && e.name === 'AbortError')) {
@@ -765,7 +775,7 @@ function requestAgent({
 		controller.abort('Cancelled by user')
 	}
 
-	return { promise, cancel }
+	return { promise: requestPromise, cancel }
 }
 
 /**

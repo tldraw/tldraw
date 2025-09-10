@@ -39,8 +39,8 @@ export class RandomWikipediaArticleActionUtil extends AgentActionUtil<RandomWiki
 		if (!action.complete) return
 		const { agent } = helpers
 
-		const promise = fetchRandomWikipediaArticle()
-		agent.schedule({ data: [promise] })
+		const article = await fetchRandomWikipediaArticle()
+		agent.schedule({ data: [article] })
 	}
 }
 
