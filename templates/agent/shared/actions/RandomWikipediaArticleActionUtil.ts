@@ -31,7 +31,7 @@ export class RandomWikipediaArticleActionUtil extends AgentActionUtil<IRandomWik
 		}
 	}
 
-	override async applyAction(
+	override applyAction(
 		action: Streaming<IRandomWikipediaArticleAction>,
 		transform: AgentTransform
 	) {
@@ -40,10 +40,8 @@ export class RandomWikipediaArticleActionUtil extends AgentActionUtil<IRandomWik
 		const { agent } = transform
 
 		// Schedule a follow-up agent request
-		agent.schedule('Here is a random Wikipedia article.')
-
-		// Fetch the random Wikipedia article
-		return await fetchRandomWikipediaArticle()
+		const promise = fetchRandomWikipediaArticle()
+		agent.schedule({ data: [promise] })
 	}
 }
 

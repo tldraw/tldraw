@@ -57,18 +57,26 @@ export class ReviewActionUtil extends AgentActionUtil<IReviewAction> {
 			source: 'agent',
 		}
 
-		agent.schedule((prev) => ({
-			...prev,
-			type: 'review',
+		// If the review area is outside the already-scheduled bounds, expand the bounds to include it
+		const scheduledRequest = agent.$scheduledRequest.get()
+		const bounds = scheduledRequest
+			? Box.From(scheduledRequest.bounds).union(reviewBounds)
+			: reviewBounds
 
-			// Make sure the bounds includes the review bounds
-			bounds: Box.From(prev.bounds).union(reviewBounds),
-
-			// Append the review intent to the current message, if there is one.
-			message: prev.message ? `${prev.message}\n\n${action.intent}` : action.intent,
-
-			// Add the review bounds as a context area
-			contextItems: [...prev.contextItems, contextArea],
-		}))
+		// Schedule the review
+		agent.schedule({
+			bounds,
+			message: getReviewMessage(action.intent),
+			contextItems: [contextArea],
+		})
 	}
+}
+
+function getReviewMessage(intent: string) {
+	return `Examine the actions that you (the agent) took since the most recent user message, with the intent: "${intent}". What's next?
+
+- Are you awaiting a response from the user? If so, there's no need to do or say anything.
+- Is there still more work to do? If so, continue it.
+- Is the task supposed to be complete? If so, it's time to review the results of that. Did you do what the user asked for? Did the plan work? Think through your findings and pay close attention to the image, because that's what you can see right now. If you make any corrections, let the user know what you did and why. If no corrections are needed, there's no need to say anything.
+- Make sure to reference your last actions (denoted by [ACTION]) in order to see if you completed the task. Assume each action you see in the chat history completed successfully.`
 }

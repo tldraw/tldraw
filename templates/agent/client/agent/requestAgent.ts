@@ -30,7 +30,7 @@ export function requestAgent({
 	if (request.type === 'user') {
 		const promptHistoryItem: IChatHistoryItem = {
 			type: 'prompt',
-			message: request.message,
+			message: request.messages.join('\n\n'),
 			contextItems: request.contextItems,
 			selectedShapes: request.selectedShapes,
 		}

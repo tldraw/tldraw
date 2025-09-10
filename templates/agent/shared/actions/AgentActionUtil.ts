@@ -1,4 +1,3 @@
-import { JsonValue } from 'tldraw'
 import z from 'zod'
 import { AgentTransform } from '../AgentTransform'
 import { BaseAgentAction } from '../types/BaseAgentAction'
@@ -37,13 +36,8 @@ export abstract class AgentActionUtil<T extends BaseAgentAction = BaseAgentActio
 	/**
 	 * Apply the action to the editor.
 	 * Any changes that happen during this function will be displayed as a diff.
-	 *
-	 * Return a value to add it to the next scheduled request (if there is one).
 	 */
-	applyAction(
-		_action: Streaming<T>,
-		_transform: AgentTransform
-	): Promise<JsonValue | undefined> | void {
+	applyAction(_action: Streaming<T>, _transform: AgentTransform): Promise<void> | void {
 		// Do nothing by default
 	}
 

@@ -1,55 +1,48 @@
 import { JsonValue } from 'tldraw'
-import { AgentAction } from '../types/AgentAction'
 import { AgentRequest } from '../types/AgentRequest'
 import { BasePromptPart } from '../types/BasePromptPart'
 import { PromptPartUtil } from './PromptPartUtil'
 
-export interface ActionResultsPart extends BasePromptPart<'actionResults'> {
-	data: { type: AgentAction['_type']; value: JsonValue }[]
+interface RetrievedDataPart extends BasePromptPart<'data'> {
+	data: JsonValue[]
 }
 
 /**
- * This prompt part collects up data returned by agent actions in the previous request.
+ * This prompt part collects up data retrieved by agent actions in the previous request.
  */
-export class ActionResultsPartUtil extends PromptPartUtil<ActionResultsPart> {
-	static override type = 'actionResults' as const
+export class RetrievedDataPartUtil extends PromptPartUtil<RetrievedDataPart> {
+	static override type = 'data' as const
 
 	override getPriority() {
 		return -200 // API data should come right before the user message but after most other parts
 	}
 
-	override async getPart(request: AgentRequest): Promise<ActionResultsPart> {
-		const { actionResults } = request
+	override async getPart(request: AgentRequest): Promise<RetrievedDataPart> {
+		const { data } = request
 
-		const resultsWithValues = actionResults.filter((result) => result.value !== undefined)
-
-		const data = await Promise.all(
-			resultsWithValues.map(async (result) => {
+		const values = await Promise.all(
+			data.map(async (item) => {
 				try {
-					const value = await result.value
-					if (value === undefined) {
-						return null
-					}
-					return { type: result.type, value }
+					return await item
 				} catch (error) {
-					console.error('Error resolving agent action result promise:', error)
-					// Returning a string so the agent can tell the user there was an error
-					return { type: result.type, value: 'Error resolving this action.' }
+					console.error('Error retrieving data:', error)
+					// Tell the agent that something went wrong
+					return 'An error occurred while retrieving some data.'
 				}
 			})
 		)
 
 		return {
-			type: 'actionResults',
-			data: data.filter((result) => result !== null),
+			type: 'data',
+			data: values,
 		}
 	}
 
-	override buildContent({ data }: ActionResultsPart) {
-		const formattedData = data.map(({ type, value }) => {
-			return `${type}: ${JSON.stringify(value)}`
+	override buildContent({ data }: RetrievedDataPart) {
+		const formattedData = data.map((item) => {
+			return `${JSON.stringify(item)}`
 		})
 
-		return [`Here's the API data you requested: ${formattedData.join('\n')}`]
+		return ["Here's the data you requested:", ...formattedData]
 	}
 }

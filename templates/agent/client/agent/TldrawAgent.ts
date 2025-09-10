@@ -49,9 +49,6 @@ export class TldrawAgent {
 	/** A callback for when an error occurs. */
 	onError: (e: any) => void
 
-	/** Whether the agent has been disposed or not. */
-	disposed = false
-
 	/**
 	 * An atom containing the currently active request.
 	 * This is mainly used to render highlights and other UI elements.
@@ -87,8 +84,10 @@ export class TldrawAgent {
 	$userActionHistory = atom<RecordsDiff<TLRecord>[]>('userActionHistory', [])
 
 	/**
-	 * An atom containing currently selected context items. By default, selected
-	 * context items will be included in the agent's next request.
+	 * An atom containing currently selected context items.
+	 *
+	 * To send context items to the model, include them in the `contextItems`
+	 * field of a request.
 	 */
 	$contextItems = atom<IContextItem[]>('contextItems', [])
 
@@ -128,7 +127,6 @@ export class TldrawAgent {
 	 * Dispose of the agent by cancelling requests and stopping listeners.
 	 */
 	dispose() {
-		this.disposed = true
 		this.cancel()
 		this.stopRecordingUserActions()
 		$agentsAtom.update(this.editor, (agents) => agents.filter((agent) => agent.id !== this.id))
@@ -188,25 +186,62 @@ export class TldrawAgent {
 	promptPartUtils: Record<PromptPart['type'], PromptPartUtil<PromptPart>>
 
 	/**
-	 * Get a full agent request from a user input.
+	 * Get a full agent request from a user input by filling out any missing
+	 * values with defaults.
 	 * @param input - A partial agent request or a string message.
 	 */
-	getRequestFromInput(input: AgentInput): AgentRequest {
+	getFullRequestFromInput(input: AgentInput): AgentRequest {
+		const request = this.getPartialRequestFromInput(input)
+
+		const activeRequest = this.$activeRequest.get()
+		return {
+			type: request.type ?? 'user',
+			messages: request.messages ?? [],
+			data: request.data ?? [],
+			selectedShapes: request.selectedShapes ?? [],
+			contextItems: request.contextItems ?? [],
+			bounds: request.bounds ?? activeRequest?.bounds ?? this.editor.getViewportPageBounds(),
+			modelName: request.modelName ?? activeRequest?.modelName ?? this.$modelName.get(),
+		}
+	}
+
+	/**
+	 * Convert an input into a partial request.
+	 * This involves handling the various ways that the input can be provided.
+	 *
+	 * @example
+	 * ```tsx
+	 * agent.prompt('Draw a cat')
+	 * agent.prompt(['Draw a cat', 'Draw a dog'])
+	 * agent.prompt({ messages: 'Draw a cat' })
+	 * agent.prompt({ message: 'Draw a cat' })
+	 * ```
+	 *
+	 * @param input - The input to get the request partial from.
+	 * @returns The request partial.
+	 */
+	private getPartialRequestFromInput(input: AgentInput): Partial<AgentRequest> {
+		// eg: agent.prompt('Draw a cat')
 		if (typeof input === 'string') {
-			input = { message: input }
+			return { messages: [input] }
 		}
 
-		const request: AgentRequest = {
-			message: input.message ?? '',
-			bounds: input.bounds ?? this.editor.getViewportPageBounds(),
-			contextItems: input.contextItems ?? this.$contextItems.get(),
-			selectedShapes: input.selectedShapes ?? [],
-			modelName: input.modelName ?? this.$modelName.get(),
-			type: input.type ?? 'user',
-			actionResults: input.actionResults ?? [],
+		// eg: agent.prompt(['Draw a cat', 'Draw a dog'])
+		if (Array.isArray(input)) {
+			return { messages: input }
 		}
 
-		return request
+		// eg: agent.prompt({ messages: 'Draw a cat' })
+		if (typeof input.messages === 'string') {
+			return { ...input, messages: [input.messages] }
+		}
+
+		// eg: agent.prompt({ message: 'Draw a cat' })
+		if (typeof input.message === 'string') {
+			return { ...input, messages: [input.message, ...(input.messages ?? [])] }
+		}
+
+		return input
 	}
 
 	/**
@@ -226,10 +261,7 @@ export class TldrawAgent {
 			transformedParts.push(part)
 		}
 
-		const agentPrompt = Object.fromEntries(transformedParts.map((part) => [part.type, part]))
-
-		console.log('PROMPT', agentPrompt)
-		return agentPrompt as AgentPrompt
+		return Object.fromEntries(transformedParts.map((part) => [part.type, part])) as AgentPrompt
 	}
 
 	/**
@@ -239,7 +271,9 @@ export class TldrawAgent {
 	 * ```tsx
 	 * const agent = useTldrawAgent(editor)
 	 * agent.prompt('Draw a cat')
+	 * ```
 	 *
+	 * ```tsx
 	 * agent.prompt({
 	 *   message: 'Draw a cat in this area',
 	 *   bounds: {
@@ -254,10 +288,10 @@ export class TldrawAgent {
 	 * @returns A promise for when the agent has finished its work.
 	 */
 	async prompt(input: AgentInput) {
-		const request = this.getRequestFromInput(input)
+		const request = this.getFullRequestFromInput(input)
 
 		// Submit the request to the agent.
-		const actionResults = await this.request(request)
+		await this.request(request)
 
 		// After the request is handled, check if there are any outstanding todo items or requests
 		let scheduledRequest = this.$scheduledRequest.get()
@@ -269,24 +303,21 @@ export class TldrawAgent {
 				return
 			}
 
-			// If there are outstanding todo items, schedule a continue request
+			// If there are outstanding todo items, schedule a request
 			scheduledRequest = {
-				message: request.message,
+				messages: request.messages,
 				contextItems: request.contextItems,
 				bounds: request.bounds,
 				modelName: request.modelName,
 				selectedShapes: request.selectedShapes,
+				data: request.data,
 				type: 'todo',
-				actionResults: actionResults,
 			}
 		}
 
 		// Handle the scheduled request
 		this.$scheduledRequest.set(null)
-		await this.prompt({
-			...scheduledRequest,
-			actionResults: [...scheduledRequest.actionResults, ...actionResults],
-		})
+		await this.prompt(scheduledRequest)
 	}
 
 	/**
@@ -304,7 +335,7 @@ export class TldrawAgent {
 	 * to abort the request.
 	 */
 	async request(input: AgentInput) {
-		const request = this.getRequestFromInput(input)
+		const request = this.getFullRequestFromInput(input)
 
 		// Interrupt any currently active request
 		if (this.$activeRequest.get() !== null) {
@@ -326,74 +357,66 @@ export class TldrawAgent {
 	}
 
 	/**
-	 * Schedule a request for the agent to handle after this one.
+	 * Schedule further work for the agent to do after this request has finished.
 	 *
-	 * @example
-	 * ```tsx
-	 * agent.schedule('Add extra detail')
-	 * ```
+	 * If there's no request scheduled yet, schedule one.
+	 * If there's already a scheduled request, modify it, appending where possible.
 	 *
-	 * This function optionally takes a callback as an argument. You can use it
-	 * to create a request based on the currently scheduled request (or the
-	 * default request if there is none) and should return the desired request.
-	 *
-	 * @example
-	 * ```tsx
-	 * // Move the viewport 200 pixels to the right
-	 * agent.schedule((prev) => ({
-	 * 	bounds: {
-	 * 		x: prev.bounds.x + 200
-	 * 		y: prev.bounds.y,
-	 * 		w: prev.bounds.w,
-	 * 		h: prev.bounds.h,
-	 * 	},
-	 * }))
-	 * ```
-	 *
-	 * @param input - An agent input to schedule or a callback that returns an agent input.
+	 * @param input - What to schedule.
 	 */
-	schedule(input: AgentInput | ((request: AgentRequest) => AgentInput) = '') {
-		if (typeof input === 'string') {
-			input = { message: input }
+	schedule(input: AgentInput) {
+		const scheduledRequest = this.$scheduledRequest.get()
+
+		// If there's no request scheduled yet, schedule one
+		if (!scheduledRequest) {
+			this.setScheduledRequest(input)
+			return
 		}
 
-		// By default, merge the provided input with the currently scheduled request
-		// If a callback is provided, use the callback to handle the merge instead
-		const callback =
-			typeof input === 'function'
-				? input
-				: (current: AgentRequest) => {
-						return {
-							// Append properties where possible
-							message: [current.message, input.message].filter(Boolean).join('\n\n'),
-							contextItems: [...current.contextItems, ...(input.contextItems ?? [])],
-							selectedShapes: [...current.selectedShapes, ...(input.selectedShapes ?? [])],
-							actionResults: [...current.actionResults, ...(input.actionResults ?? [])],
+		const request = this.getFullRequestFromInput(input)
+		this.setScheduledRequest({
+			type: 'schedule',
 
-							// Override specific properties
-							bounds: input.bounds ?? current.bounds,
-							modelName: input.modelName ?? current.modelName,
-							type: input.type ?? current.type,
-						}
-					}
+			// Append to properties where possible
+			messages: [...scheduledRequest.messages, ...(request.messages ?? [])],
+			contextItems: [...scheduledRequest.contextItems, ...(request.contextItems ?? [])],
+			selectedShapes: [...scheduledRequest.selectedShapes, ...(request.selectedShapes ?? [])],
+			data: [...scheduledRequest.data, ...(request.data ?? [])],
 
-		this.$scheduledRequest.update((prev) => {
-			// If there's no scheduled request, start with this as default
-			const activeRequest = this.$activeRequest.get()
-			const current = prev ?? {
-				message: '',
-				type: 'schedule',
-				modelName: activeRequest?.modelName ?? this.$modelName.get(),
-				bounds: activeRequest?.bounds ?? this.editor.getViewportPageBounds(),
-				selectedShapes: activeRequest?.selectedShapes ?? [],
-				contextItems: [],
-				actionResults: [],
-			}
-
-			// Merge the input with the current scheduled request
-			const next = callback(current)
-			return this.getRequestFromInput(next)
+			// Override specific properties
+			bounds: request.bounds ?? scheduledRequest.bounds,
+			modelName: request.modelName ?? scheduledRequest.modelName,
 		})
+	}
+
+	/**
+	 * Manually override what the agent should do next.
+	 *
+	 * @example
+	 * ```tsx
+	 * agent.setScheduledRequest('Add more detail.')
+	 * ```
+	 *
+	 * @example
+	 * ```tsx
+	 * agent.setScheduledRequest({
+	 *  message: 'Add more detail to this area.',
+	 *  bounds: { x: 0, y: 0, w: 100, h: 100 },
+	 * })
+	 * ```
+	 *
+	 * @param input - What to set the scheduled request to, or null to cancel
+	 * the scheduled request.
+	 */
+	setScheduledRequest(input: AgentInput | null) {
+		if (input === null) {
+			this.$scheduledRequest.set(null)
+			return
+		}
+
+		const request = this.getFullRequestFromInput(input)
+		request.type = 'schedule'
+		this.$scheduledRequest.set(request)
 	}
 
 	/**
@@ -402,9 +425,8 @@ export class TldrawAgent {
 	 * @returns The id of the todo item.
 	 */
 	addTodo(text: string) {
-		let id = -1
+		const id = this.$todoList.get().length
 		this.$todoList.update((todoItems) => {
-			id = todoItems.length
 			return [
 				...todoItems,
 				{
@@ -508,14 +530,17 @@ export class TldrawAgent {
 		return this.$activeRequest.get() !== null
 	}
 
-	/** Whether the agent is currently acting on the editor or not. */
-	isActing = false
+	/**
+	 * Whether the agent is currently acting on the editor or not.
+	 * This flag is used to prevent agent actions from being recorded as user actions.
+	 */
+	private isActing = false
 
 	/**
 	 * Start recording user actions.
 	 * @returns A cleanup function to stop recording user actions.
 	 */
-	startRecordingUserActions() {
+	private startRecordingUserActions() {
 		const { editor } = this
 		const cleanUpCreate = editor.sideEffects.registerAfterCreateHandler(
 			'shape',
@@ -579,7 +604,7 @@ export class TldrawAgent {
 	/**
 	 * Stop recording user actions.
 	 */
-	stopRecordingUserActions() {
+	private stopRecordingUserActions() {
 		this.stopRecordingFn?.()
 	}
 
