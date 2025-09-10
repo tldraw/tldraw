@@ -1,24 +1,40 @@
-import { atom, Editor, RecordsDiff, structuredClone, TLRecord, VecModel } from 'tldraw'
+import {
+	Atom,
+	atom,
+	Box,
+	Editor,
+	exhaustiveSwitchError,
+	react,
+	RecordsDiff,
+	reverseRecordsDiff,
+	structuredClone,
+	TLRecord,
+	Vec,
+	VecModel,
+} from 'tldraw'
 import { AgentActionUtil } from '../../shared/actions/AgentActionUtil'
 import { AgentTransform } from '../../shared/AgentTransform'
 import { getAgentActionUtilsRecord, getPromptPartUtilsRecord } from '../../shared/AgentUtils'
+import { ISimpleShape } from '../../shared/format/SimpleShape'
 import { PromptPartUtil } from '../../shared/parts/PromptPartUtil'
 import { AgentAction } from '../../shared/types/AgentAction'
 import { AgentActionResult } from '../../shared/types/AgentActionResult'
 import { AgentInput } from '../../shared/types/AgentInput'
-import { AgentPrompt } from '../../shared/types/AgentPrompt'
+import { AgentPrompt, BaseAgentPrompt } from '../../shared/types/AgentPrompt'
 import { AgentRequest } from '../../shared/types/AgentRequest'
 import { IChatHistoryItem } from '../../shared/types/ChatHistoryItem'
-import { IContextItem } from '../../shared/types/ContextItem'
+import {
+	IAreaContextItem,
+	IContextItem,
+	IPointContextItem,
+	IShapeContextItem,
+	IShapesContextItem,
+} from '../../shared/types/ContextItem'
 import { PromptPart } from '../../shared/types/PromptPart'
 import { Streaming } from '../../shared/types/Streaming'
 import { TodoItem } from '../../shared/types/TodoItem'
 import { AgentModelName, DEFAULT_MODEL_NAME } from '../../worker/models'
 import { $agentsAtom } from './agentsAtom'
-import { areContextItemsEqual } from './areContextItemsEqual'
-import { dedupeShapesContextItem } from './dedupeShapesContextItem'
-import { persistAtomInLocalStorage } from './persistAtomInLocalStorage'
-import { requestAgent } from './requestAgent'
 
 export interface TldrawAgentOptions {
 	/** The editor to associate the agent with. */
@@ -638,4 +654,267 @@ export class TldrawAgent {
 
 		return false
 	}
+}
+
+/**
+ * Send a request to the agent and handle its response.
+ *
+ * This is a helper function that is used internally by the agent.
+ */
+function requestAgent({
+	agent,
+	request,
+	onError,
+}: {
+	agent: TldrawAgent
+	request: AgentRequest
+	onError: (e: any) => void
+}) {
+	const { editor } = agent
+
+	// If the request is from the user, add it to chat history
+	if (request.type === 'user') {
+		const promptHistoryItem: IChatHistoryItem = {
+			type: 'prompt',
+			message: request.message,
+			contextItems: request.contextItems,
+			selectedShapes: request.selectedShapes,
+		}
+		agent.$chatHistory.update((prev) => [...prev, promptHistoryItem])
+	}
+
+	let cancelled = false
+	const controller = new AbortController()
+	const signal = controller.signal
+	const transform = new AgentTransform(agent)
+
+	const promise = new Promise<AgentActionResult[]>((resolve) => {
+		agent.preparePrompt(request, transform).then(async (prompt) => {
+			let incompleteDiff: RecordsDiff<TLRecord> | null = null
+			const results: AgentActionResult[] = []
+			try {
+				for await (const action of streamAgent({ prompt, signal })) {
+					if (cancelled) break
+					editor.run(
+						() => {
+							const actionUtil = agent.getAgentActionUtil(action._type)
+
+							// Transform the agent's action
+							const transformedAction = actionUtil.sanitizeAction(action, transform)
+							if (!transformedAction) {
+								incompleteDiff = null
+								return
+							}
+
+							// If there was a diff from an incomplete action, revert it so that we can reapply the action
+							if (incompleteDiff) {
+								const inversePrevDiff = reverseRecordsDiff(incompleteDiff)
+								editor.store.applyDiff(inversePrevDiff)
+							}
+
+							// Apply the action to the app and editor
+							const result = agent.act(transformedAction, transform)
+
+							// The the action is incomplete, save the diff so that we can revert it in the future
+							if (transformedAction.complete) {
+								results.push(result)
+								incompleteDiff = null
+							} else {
+								incompleteDiff = result.diff
+							}
+						},
+						{
+							ignoreShapeLock: false,
+							history: 'ignore',
+						}
+					)
+				}
+				resolve(results)
+			} catch (e) {
+				if (e === 'Cancelled by user' || (e instanceof Error && e.name === 'AbortError')) {
+					return
+				}
+				onError(e)
+				resolve(results)
+			}
+		})
+	})
+
+	const cancel = () => {
+		cancelled = true
+		controller.abort('Cancelled by user')
+	}
+
+	return { promise, cancel }
+}
+
+/**
+ * Stream a response from the model.
+ * Act on the model's events as they come in.
+ *
+ * This is a helper function that is used internally by the agent.
+ */
+async function* streamAgent({
+	prompt,
+	signal,
+}: {
+	prompt: BaseAgentPrompt
+	signal: AbortSignal
+}): AsyncGenerator<Streaming<AgentAction>> {
+	const res = await fetch('/stream', {
+		method: 'POST',
+		body: JSON.stringify(prompt),
+		headers: {
+			'Content-Type': 'application/json',
+		},
+		signal,
+	})
+
+	if (!res.body) {
+		throw Error('No body in response')
+	}
+
+	const reader = res.body.getReader()
+	const decoder = new TextDecoder()
+	let buffer = ''
+
+	try {
+		while (true) {
+			const { value, done } = await reader.read()
+			if (done) break
+
+			buffer += decoder.decode(value, { stream: true })
+			const actions = buffer.split('\n\n')
+			buffer = actions.pop() || ''
+
+			for (const action of actions) {
+				const match = action.match(/^data: (.+)$/m)
+				if (match) {
+					try {
+						const data = JSON.parse(match[1])
+
+						// If the response contains an error, throw it
+						if ('error' in data) {
+							throw new Error(data.error)
+						}
+
+						const agentAction: Streaming<AgentAction> = data
+						yield agentAction
+					} catch (err: any) {
+						throw new Error(err.message)
+					}
+				}
+			}
+		}
+	} finally {
+		reader.releaseLock()
+	}
+}
+
+/**
+ * Check if two context items are equal.
+ *
+ * This is a helper function that is used internally by the agent.
+ */
+function areContextItemsEqual(a: IContextItem, b: IContextItem): boolean {
+	if (a.type !== b.type) return false
+
+	switch (a.type) {
+		case 'shape': {
+			const _b = b as IShapeContextItem
+			return a.shape.shapeId === _b.shape.shapeId
+		}
+		case 'shapes': {
+			const _b = b as IShapesContextItem
+			if (a.shapes.length !== _b.shapes.length) return false
+			return a.shapes.every((shape) => _b.shapes.find((s) => s.shapeId === shape.shapeId))
+		}
+		case 'area': {
+			const _b = b as IAreaContextItem
+			return Box.Equals(a.bounds, _b.bounds)
+		}
+		case 'point': {
+			const _b = b as IPointContextItem
+			return Vec.Equals(a.point, _b.point)
+		}
+		default: {
+			exhaustiveSwitchError(a)
+		}
+	}
+}
+
+/**
+ * Remove duplicate shapes from a shapes context item.
+ * If there's only one shape left, return it as a shape item instead.
+ *
+ * This is a helper function that is used internally by the agent.
+ */
+function dedupeShapesContextItem(
+	item: IShapesContextItem,
+	existingItems: IContextItem[]
+): IContextItem[] {
+	// Get all shape IDs that are already in the context
+	const existingShapeIds = new Set<string>()
+
+	// Check individual shapes
+	existingItems.forEach((contextItem) => {
+		if (contextItem.type === 'shape') {
+			existingShapeIds.add(contextItem.shape.shapeId)
+		} else if (contextItem.type === 'shapes') {
+			contextItem.shapes.forEach((shape: ISimpleShape) => {
+				existingShapeIds.add(shape.shapeId)
+			})
+		}
+	})
+
+	// Filter out shapes that are already in the context
+	const newShapes = item.shapes.filter((shape) => !existingShapeIds.has(shape.shapeId))
+
+	// Only add if there are remaining shapes
+	if (newShapes.length > 0) {
+		// If only one shape remains, add it as a single shape item
+		if (newShapes.length === 1) {
+			const newItem: IContextItem = {
+				type: 'shape',
+				shape: newShapes[0],
+				source: item.source,
+			}
+			return [structuredClone(newItem)]
+		}
+
+		// Otherwise add as a shapes group
+		const newItem: IContextItem = {
+			type: 'shapes',
+			shapes: newShapes,
+			source: item.source,
+		}
+		return [structuredClone(newItem)]
+	}
+
+	// No new shapes to add
+	return []
+}
+
+/**
+ * Load an atom's value from local storage and persist it to local storage whenever it changes.
+ *
+ * This is a helper function that is used internally by the agent.
+ */
+function persistAtomInLocalStorage<T>(atom: Atom<T>, key: string) {
+	const localStorage = globalThis.localStorage
+	if (!localStorage) return
+
+	try {
+		const stored = localStorage.getItem(key)
+		if (stored) {
+			const value = JSON.parse(stored) as T
+			atom.set(value)
+		}
+	} catch {
+		console.warn(`Couldn't load ${key} from localStorage`)
+	}
+
+	react(`save ${key} to localStorage`, () => {
+		localStorage.setItem(key, JSON.stringify(atom.get()))
+	})
 }
