@@ -2,16 +2,12 @@ import { createOpenAI } from '@ai-sdk/openai'
 import { ExecutionContext } from '@cloudflare/workers-types'
 import { generateText, ModelMessage, smoothStream, streamText } from 'ai'
 import { WorkerEntrypoint } from 'cloudflare:workers'
-import { AutoRouter, cors, error, IRequest } from 'itty-router'
+import { AutoRouter, error, IRequest } from 'itty-router'
 import { Environment } from './types'
-
-const { preflight, corsify } = cors({ origin: '*' })
 
 // Worker (handles AI requests directly)
 export default class extends WorkerEntrypoint<Environment> {
 	private readonly router = AutoRouter<IRequest, [env: Environment, ctx: ExecutionContext]>({
-		before: [preflight],
-		finally: [corsify],
 		catch: (e) => {
 			console.error(e)
 			return error(e)
