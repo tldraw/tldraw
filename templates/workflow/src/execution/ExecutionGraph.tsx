@@ -140,7 +140,7 @@ export class ExecutionGraph {
 		// we're going to re-use our synchronous computeNodeOutput, but we'll add a delay so you can
 		// see what async execution might look like.
 		await new Promise((resolve) => setTimeout(resolve, 2000))
-		const outputs = computeNodeOutput(node.shape.props.node, inputs)
+		const outputs = computeNodeOutput(this.editor, node.shape, inputs)
 
 		// Mark the node as executed with its outputs
 		this.nodesById.set(nodeId, {

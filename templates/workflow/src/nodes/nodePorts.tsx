@@ -15,8 +15,8 @@ import { STOP_EXECUTION } from './types/shared'
 export function getNodePorts(editor: Editor, shape: NodeShape | TLShapeId) {
 	return nodePortsCache.get(editor, typeof shape === 'string' ? shape : shape.id) ?? {}
 }
-const nodePortsCache = createComputedCache('ports', (_editor: Editor, node: NodeShape) =>
-	getNodeTypePorts(node.props.node)
+const nodePortsCache = createComputedCache('ports', (editor: Editor, node: NodeShape) =>
+	getNodeTypePorts(editor, node)
 )
 
 /**

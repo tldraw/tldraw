@@ -16,13 +16,8 @@ import {
 } from 'tldraw'
 import { ConnectionShape, getConnectionTerminals } from '../connection/ConnectionShapeUtil'
 import { NODE_WIDTH_PX } from '../constants'
-import { NodeType } from '../nodes/nodeTypes'
-import { AddNode } from '../nodes/types/AddNode'
-import { ConditionalNode } from '../nodes/types/ConditionalNode'
-import { DivideNode } from '../nodes/types/DivideNode'
-import { MultiplyNode } from '../nodes/types/MultiplyNode'
+import { getNodeDefinitions, NodeType } from '../nodes/nodeTypes'
 import { NodeDefinition } from '../nodes/types/shared'
-import { SubtractNode } from '../nodes/types/SubtractNode'
 import { EditorAtom } from '../utils'
 
 export interface OnCanvasComponentPickerState {
@@ -46,17 +41,18 @@ export function OnCanvasComponentPicker() {
 		onCanvasComponentPickerState.set(editor, null)
 		state.onClose()
 	}, [editor])
+	const nodeDefs = getNodeDefinitions(editor)
 
 	return (
 		<OnCanvasComponentPickerDialog onClose={onClose}>
 			<TldrawUiMenuGroup id="math">
-				<OnCanvasComponentPickerItem definition={AddNode} onClose={onClose} />
-				<OnCanvasComponentPickerItem definition={SubtractNode} onClose={onClose} />
-				<OnCanvasComponentPickerItem definition={MultiplyNode} onClose={onClose} />
-				<OnCanvasComponentPickerItem definition={DivideNode} onClose={onClose} />
+				<OnCanvasComponentPickerItem definition={nodeDefs.add} onClose={onClose} />
+				<OnCanvasComponentPickerItem definition={nodeDefs.subtract} onClose={onClose} />
+				<OnCanvasComponentPickerItem definition={nodeDefs.multiply} onClose={onClose} />
+				<OnCanvasComponentPickerItem definition={nodeDefs.divide} onClose={onClose} />
 			</TldrawUiMenuGroup>
 			<TldrawUiMenuGroup id="logic">
-				<OnCanvasComponentPickerItem definition={ConditionalNode} onClose={onClose} />
+				<OnCanvasComponentPickerItem definition={nodeDefs.conditional} onClose={onClose} />
 			</TldrawUiMenuGroup>
 		</OnCanvasComponentPickerDialog>
 	)
