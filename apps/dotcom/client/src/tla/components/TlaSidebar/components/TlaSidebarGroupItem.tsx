@@ -330,6 +330,11 @@ export function TlaSidebarGroupItem({ groupId }: { groupId: string }) {
 		}
 	}, [app, groupId, navigate, trackEvent, setIsExpanded])
 
+	const isEmpty = useValue('isEmpty', () => app.getGroupFilesSorted(groupId).length === 0, [
+		app,
+		groupId,
+	])
+
 	if (!group) return null
 
 	return (
@@ -348,6 +353,8 @@ export function TlaSidebarGroupItem({ groupId }: { groupId: string }) {
 							className={styles.sidebarGroupItem}
 							open={isExpanded}
 							data-dragging={isDragging}
+							data-is-empty={isEmpty}
+							data-is-expanded={isExpanded}
 							data-menu-open={menuIsOpen || contextMenuIsOpen}
 						>
 							<Collapsible.Trigger asChild>
@@ -366,10 +373,14 @@ export function TlaSidebarGroupItem({ groupId }: { groupId: string }) {
 								>
 									<div
 										className={styles.sidebarGroupItemTitle}
+										style={{
+											marginLeft: isExpanded ? -6 : 0,
+											transition: 'margin-left 0.14s ease-in-out',
+										}}
 										onClick={() => setIsExpanded(!isExpanded)}
 									>
+										<TlaIcon icon={isExpanded ? 'folder-open' : 'folder'} style={{ top: -1 }} />
 										{group.group.name}
-										<TriangleIcon angle={isExpanded ? 180 : 90} />
 									</div>
 									<div
 										className={styles.sidebarGroupItemButtons}

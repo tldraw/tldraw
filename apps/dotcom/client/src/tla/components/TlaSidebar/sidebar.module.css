@@ -804,6 +804,7 @@
 }
 
 .sidebarGroupItem:has(.sidebarGroupItemHeader:hover)::after,
+.sidebarGroupItem[data-is-empty='true'][data-is-expanded='true']::after,
 .sidebarGroupItem[data-menu-open='true']::after,
 .sidebarGroupItem[data-dragging='true']::after {
 	display: block;
@@ -856,7 +857,7 @@ body[data-dragging-type] {
 	overflow: hidden;
 	gap: 8px;
 	cursor: pointer;
-	color: var(--tla-color-text-3);
+	color: var(--tla-color-text-1);
 }
 
 @media (hover: hover) {

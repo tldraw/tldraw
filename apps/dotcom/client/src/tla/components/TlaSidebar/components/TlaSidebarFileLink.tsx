@@ -144,6 +144,39 @@ export const sidebarMessages = defineMessages({
 	renameFile: { defaultMessage: 'Rename file' },
 })
 
+const pinIcon = (
+	<svg
+		style={{
+			position: 'relative',
+			top: '1px',
+			left: '-1px',
+		}}
+		width="7"
+		height="12"
+		viewBox="0 0 7 12"
+		fill="none"
+		xmlns="http://www.w3.org/2000/svg"
+	>
+		<line
+			x1="3.5"
+			y1="2.5"
+			x2="3.5"
+			y2="12.5"
+			stroke="var(--tla-color-text-3)"
+			strokeLinecap="round"
+		/>
+		<path
+			d="M0.886038 5.34189C0.954095 5.13772 1.14516 5 1.36038 5H5.63962C5.85484 5 6.04591 5.13772 6.11396 5.34189L6.78063 7.34189C6.88855 7.66565 6.64757 8 6.30629 8H0.693713C0.352434 8 0.111449 7.66565 0.219371 7.34189L0.886038 5.34189Z"
+			fill="var(--tla-color-text-3)"
+		/>
+		<path d="M2.38314 1H4.61686L5.17529 5H1.82471L2.38314 1Z" fill="var(--tla-color-text-3)" />
+		<path
+			d="M0.655317 0.621268C0.576424 0.305694 0.815103 0 1.14039 0H5.85961C6.1849 0 6.42358 0.305695 6.34468 0.621268L6.09468 1.62127C6.03904 1.84385 5.83905 2 5.60961 2H1.39039C1.16095 2 0.960963 1.84385 0.905317 1.62127L0.655317 0.621268Z"
+			fill="var(--tla-color-text-3)"
+		/>
+	</svg>
+)
+
 export function TlaSidebarFileLinkInner({
 	isPinned,
 	testId,
@@ -258,7 +291,7 @@ export function TlaSidebarFileLinkInner({
 				draggable={false}
 			/>
 			<div className={styles.sidebarFileListItemContent}>
-				{isPinned && <TlaIcon icon={'pin'} style={{ marginLeft: '-3px', marginRight: '-3px' }} />}
+				{isPinned && pinIcon}
 				<div
 					className={classNames(
 						styles.sidebarFileListItemLabel,

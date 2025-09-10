@@ -51,6 +51,24 @@ export const TlaSidebar = memo(function TlaSidebar() {
 	const { onDrop, onDragOver, onDragEnter, onDragLeave, isDraggingOver } = useTldrFileDrop()
 
 	const hasGroups = useHasFlag('groups')
+	const addDialog = useDialogs().addDialog
+	const app = useApp()
+
+	const handleCreateGroup = () => {
+		// Use dialog if flag is set or on mobile
+		addDialog({
+			component: ({ onClose }) => (
+				<CreateGroupDialog
+					onClose={onClose}
+					onCreate={(name) => {
+						const id = uniqueId()
+						app.z.mutate.group.create({ id, name })
+						app.ensureSidebarGroupExpanded(id)
+					}}
+				/>
+			),
+		})
+	}
 
 	return (
 		<nav aria-hidden={!isSidebarOpen} style={{ visibility: isSidebarOpen ? 'visible' : 'hidden' }}>
@@ -76,6 +94,16 @@ export const TlaSidebar = memo(function TlaSidebar() {
 				)}
 				<div className={styles.sidebarTopRow}>
 					<TlaSidebarWorkspaceLink />
+					{hasGroups && (
+						<button
+							className={styles.sidebarCreateFileButton}
+							onClick={handleCreateGroup}
+							data-testid="tla-create-file"
+							style={{ marginRight: -8, color: 'var(--tla-color-text-1)' }}
+						>
+							<TlaIcon icon="folder-new" />
+						</button>
+					)}
 					<TlaSidebarCreateFileButton />
 				</div>
 				<div className={styles.sidebarContent}>
@@ -101,6 +129,10 @@ function LegacySidebarLayout() {
 }
 
 import { restrictToVerticalAxis } from '@dnd-kit/modifiers'
+import { uniqueId, useDialogs } from 'tldraw'
+import { useApp } from '../../hooks/useAppState'
+import { CreateGroupDialog } from '../dialogs/CreateGroupDialog'
+import { TlaIcon } from '../TlaIcon/TlaIcon'
 
 function NewSidebarLayout() {
 	const { handleDragStart, handleDragMove, handleDragEnd, handleDragCancel } =
