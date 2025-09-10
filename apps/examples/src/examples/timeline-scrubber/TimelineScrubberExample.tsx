@@ -147,14 +147,16 @@ The recordChange function handles new changes from the store. It creates a new t
 and manages timeline branching logic.
 
 [2]
-If we're not at the latest point in time (currentIndex < entries.length - 1), it means the user
+If we're not at the latest point in time (currentIndex < entries.length), it means the user
 made a change while scrubbed back. We truncate the future timeline and create a new branch.
+Timeline indexing: 0 = empty canvas, 1 = first change applied, 2 = second change, etc.
 
 [3] 
 We listen to document changes from user actions only, filtering out changes we make during
 navigation to avoid recording our own time travel operations.
 
 [4]
-Navigation applies diffs forward or reverses them backward using mergeRemoteChanges to ensure
-they're treated as remote changes and don't trigger our listener.
+Navigation collects the required diffs, squashes them into a single optimized diff, then
+applies it (reversing first if going backward). Uses mergeRemoteChanges to ensure changes
+are treated as remote and don't trigger our listener.
 */
