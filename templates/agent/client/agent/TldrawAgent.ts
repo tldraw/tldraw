@@ -701,6 +701,7 @@ function requestAgent({
 			message: request.messages.join('\n'),
 			contextItems: request.contextItems,
 			selectedShapes: request.selectedShapes,
+			data: request.data,
 		}
 		agent.$chatHistory.update((prev) => [...prev, promptHistoryItem])
 	}

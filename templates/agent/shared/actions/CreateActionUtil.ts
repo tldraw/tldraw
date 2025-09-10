@@ -14,10 +14,10 @@ import {
 import z from 'zod'
 import { applyAiChange } from '../../client/agent/applyAiChange'
 import { AgentHelpers } from '../AgentHelpers'
+import { convertSimpleTypeToTldrawType } from '../format/convertSimpleShapeToTldrawShape'
 import { asColor } from '../format/SimpleColor'
 import { convertSimpleFillToTldrawFill } from '../format/SimpleFill'
 import { convertSimpleFontSizeToTldrawFontSizeAndScale } from '../format/SimpleFontSize'
-import { convertSimpleTypeToTldrawType } from '../format/SimpleGeoShapeType'
 import {
 	SimpleArrowShape,
 	SimpleGeoShape,

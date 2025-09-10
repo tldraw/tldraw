@@ -16,7 +16,7 @@ export class ChatHistoryPartUtil extends PromptPartUtil<ChatHistoryPart> {
 		return Infinity // history should appear first in the prompt (low priority)
 	}
 
-	override getPart(_request: AgentRequest, agentHelpers: AgentHelpers): ChatHistoryPart {
+	override async getPart(_request: AgentRequest, agentHelpers: AgentHelpers) {
 		const { agent } = agentHelpers
 
 		const items = agent.$chatHistory.get()
@@ -30,11 +30,15 @@ export class ChatHistoryPartUtil extends PromptPartUtil<ChatHistoryPart> {
 				return agentHelpers.roundContextItem(offsetContextItem)
 			})
 
+			// Await for all promises in the data array
+			await Promise.all(historyItem.data)
+			console.log(historyItem.data)
+
 			historyItem.contextItems = contextItems
 		}
 
 		return {
-			type: 'chatHistory',
+			type: 'chatHistory' as const,
 			items,
 		}
 	}

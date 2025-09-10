@@ -1,6 +1,10 @@
 import { squashRecordDiffs } from 'tldraw'
 import { AgentHelpers } from '../AgentHelpers'
-import { convertTldrawShapeToSimpleShape } from '../format/convertTldrawShapeToSimpleShape'
+import {
+	convertTldrawIdToSimpleId,
+	convertTldrawShapeToSimpleShape,
+	convertTldrawShapeToSimpleType,
+} from '../format/convertTldrawShapeToSimpleShape'
 import { SimpleShape } from '../format/SimpleShape'
 import { AgentRequest } from '../types/AgentRequest'
 import { BasePromptPart } from '../types/BasePromptPart'
@@ -50,10 +54,9 @@ export class UserActionHistoryPartUtil extends PromptPartUtil<UserActionHistoryP
 		// Collect user-added shapes
 		for (const shape of Object.values(added)) {
 			if (shape.typeName !== 'shape') continue
-			const simpleShape = convertTldrawShapeToSimpleShape(shape, editor)
 			part.added.push({
-				shapeId: simpleShape.shapeId,
-				type: simpleShape._type,
+				shapeId: convertTldrawIdToSimpleId(shape.id),
+				type: convertTldrawShapeToSimpleType(shape),
 			})
 		}
 

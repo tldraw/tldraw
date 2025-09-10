@@ -1,7 +1,9 @@
-import { Editor, TLDefaultShape, TLShape } from 'tldraw'
+import { Editor, TLShape } from 'tldraw'
 import { BlurryShape } from './BlurryShape'
-import { convertTldrawIdToSimpleId } from './convertTldrawShapeToSimpleShape'
-import { convertTldrawTypeToSimpleType } from './SimpleGeoShapeType'
+import {
+	convertTldrawIdToSimpleId,
+	convertTldrawShapeToSimpleType,
+} from './convertTldrawShapeToSimpleShape'
 import { SimpleShape } from './SimpleShape'
 
 /**
@@ -17,7 +19,7 @@ export function convertTldrawShapeToBlurryShape(
 	const util = editor.getShapeUtil(shape)
 	const text = util.getText(shape)
 
-	const shapeType = convertTldrawTypeToSimpleType(shape.type as TLDefaultShape['type'] | 'unknown')
+	const shapeType = convertTldrawShapeToSimpleType(shape)
 
 	return {
 		x: Math.round(bounds.x),

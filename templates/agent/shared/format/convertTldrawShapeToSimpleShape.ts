@@ -1,9 +1,13 @@
 import {
+	Box,
+	createShapeId,
 	Editor,
+	reverseRecordsDiff,
 	TLArrowBinding,
 	TLArrowShape,
 	TLDrawShape,
 	TLGeoShape,
+	TLGeoShapeGeoStyle,
 	TLLineShape,
 	TLNoteShape,
 	TLShape,
@@ -12,7 +16,7 @@ import {
 } from 'tldraw'
 import { convertTldrawFillToSimpleFill } from './SimpleFill'
 import { convertTldrawFontSizeAndScaleToSimpleFontSize } from './SimpleFontSize'
-import { convertTldrawGeoTypeToSimpleGeoType } from './SimpleGeoShapeType'
+import { ISimpleGeoShapeType } from './SimpleGeoShapeType'
 import {
 	SimpleArrowShape,
 	SimpleDrawShape,
@@ -46,12 +50,25 @@ export function convertTldrawShapeToSimpleShape(shape: TLShape, editor: Editor):
 	}
 }
 
-export function convertTldrawIdToSimpleId(id: TLShapeId): string {
-	return id.slice('shape:'.length)
+export function convertTldrawShapeToSimpleType(shape: TLShape): SimpleShape['_type'] {
+	switch (shape.type) {
+		case 'geo': {
+			const geoShape = shape as TLGeoShape
+			return GEO_TO_SIMPLE_TYPES[geoShape.props.geo]
+		}
+		case 'text':
+		case 'line':
+		case 'arrow':
+		case 'note':
+		case 'draw':
+			return shape.type
+		default:
+			return 'unknown'
+	}
 }
 
-export function convertSimpleShapeIdToTldrawShapeId(id: string): TLShapeId {
-	return ('shape:' + id) as TLShapeId
+export function convertTldrawIdToSimpleId(id: TLShapeId): string {
+	return id.slice('shape:'.length)
 }
 
 function convertDrawShapeToSimple(_editor: Editor, shape: TLDrawShape): SimpleDrawShape {
@@ -68,11 +85,7 @@ function convertTextShapeToSimple(editor: Editor, shape: TLTextShape): SimpleTex
 	const util = editor.getShapeUtil(shape)
 	const text = util.getText(shape) ?? ''
 
-	const bounds = editor.getShapeMaskedPageBounds(shape)
-	if (!bounds) {
-		throw new Error('Could not get bounds for text shape')
-	}
-
+	const bounds = getShapeBounds(shape, editor)
 	const textSize = shape.props.size
 	const textAlign = shape.props.textAlign
 	const textWidth = shape.props.w
@@ -108,10 +121,7 @@ function convertGeoShapeToSimple(editor: Editor, shape: TLGeoShape): SimpleGeoSh
 	const util = editor.getShapeUtil(shape)
 	const text = util.getText(shape)
 
-	const bounds = editor.getShapeMaskedPageBounds(shape)
-	if (!bounds) {
-		throw new Error('Could not get bounds for geo shape')
-	}
+	const bounds = getShapeBounds(shape, editor)
 
 	const shapeTextAlign = shape.props.align
 	let newTextAlign: SimpleGeoShape['textAlign']
@@ -131,7 +141,7 @@ function convertGeoShapeToSimple(editor: Editor, shape: TLGeoShape): SimpleGeoSh
 	}
 
 	return {
-		_type: convertTldrawGeoTypeToSimpleGeoType(shape.props.geo),
+		_type: GEO_TO_SIMPLE_TYPES[shape.props.geo],
 		color: shape.props.color,
 		fill: convertTldrawFillToSimpleFill(shape.props.fill),
 		h: shape.props.h,
@@ -146,10 +156,7 @@ function convertGeoShapeToSimple(editor: Editor, shape: TLGeoShape): SimpleGeoSh
 }
 
 function convertLineShapeToSimple(editor: Editor, shape: TLLineShape): SimpleLineShape {
-	const bounds = editor.getShapeMaskedPageBounds(shape)
-	if (!bounds) {
-		throw new Error('Could not get bounds for line shape')
-	}
+	const bounds = getShapeBounds(shape, editor)
 
 	const points = Object.values(shape.props.points).sort((a, b) => a.index.localeCompare(b.index))
 	return {
@@ -165,10 +172,7 @@ function convertLineShapeToSimple(editor: Editor, shape: TLLineShape): SimpleLin
 }
 
 function convertArrowShapeToSimple(editor: Editor, shape: TLArrowShape): SimpleArrowShape {
-	const bounds = editor.getShapeMaskedPageBounds(shape)
-	if (!bounds) {
-		throw new Error('Could not get bounds for arrow shape')
-	}
+	const bounds = getShapeBounds(shape, editor)
 
 	const bindings = editor.store.query.records('binding').get()
 	const arrowBindings = bindings.filter(
@@ -197,10 +201,7 @@ function convertNoteShapeToSimple(editor: Editor, shape: TLNoteShape): SimpleNot
 	const util = editor.getShapeUtil(shape)
 	const text = util.getText(shape)
 
-	const bounds = editor.getShapeMaskedPageBounds(shape)
-	if (!bounds) {
-		throw new Error('Could not get bounds for note shape')
-	}
+	const bounds = getShapeBounds(shape, editor)
 
 	return {
 		_type: 'note',
@@ -214,10 +215,7 @@ function convertNoteShapeToSimple(editor: Editor, shape: TLNoteShape): SimpleNot
 }
 
 function convertUnknownShapeToSimple(editor: Editor, shape: TLShape): SimpleUnknownShape {
-	const bounds = editor.getShapeMaskedPageBounds(shape)
-	if (!bounds) {
-		throw new Error('Could not get bounds for unknown shape')
-	}
+	const bounds = getShapeBounds(shape, editor)
 
 	return {
 		_type: 'unknown',
@@ -228,3 +226,58 @@ function convertUnknownShapeToSimple(editor: Editor, shape: TLShape): SimpleUnkn
 		y: bounds.y,
 	}
 }
+
+function getShapeBounds(shape: TLShape, editor: Editor): Box {
+	const bounds = editor.getShapePageBounds(shape)
+	if (bounds) {
+		return bounds
+	}
+
+	// Create a mock shape and get the bounds, then reverse the creation of the mock shape
+	let mockBounds: Box | undefined
+	const diff = editor.store.extractingChanges(() => {
+		editor.run(
+			() => {
+				const mockId = createShapeId()
+				editor.createShape({
+					id: mockId,
+					type: shape.type,
+					props: shape.props,
+					meta: shape.meta,
+				})
+				mockBounds = editor.getShapePageBounds(mockId)
+			},
+			{ ignoreShapeLock: false, history: 'ignore' }
+		)
+	})
+	const reverseDiff = reverseRecordsDiff(diff)
+	editor.store.applyDiff(reverseDiff)
+
+	if (!mockBounds) {
+		throw new Error('Failed to get bounds for shape')
+	}
+	return mockBounds
+}
+
+const GEO_TO_SIMPLE_TYPES: Record<TLGeoShapeGeoStyle, ISimpleGeoShapeType> = {
+	rectangle: 'rectangle',
+	ellipse: 'ellipse',
+	triangle: 'triangle',
+	diamond: 'diamond',
+	hexagon: 'hexagon',
+	oval: 'pill',
+	cloud: 'cloud',
+	'x-box': 'x-box',
+	'check-box': 'check-box',
+	heart: 'heart',
+	pentagon: 'pentagon',
+	octagon: 'octagon',
+	star: 'star',
+	rhombus: 'parallelogram-right',
+	'rhombus-2': 'parallelogram-left',
+	trapezoid: 'trapezoid',
+	'arrow-right': 'fat-arrow-right',
+	'arrow-left': 'fat-arrow-left',
+	'arrow-up': 'fat-arrow-up',
+	'arrow-down': 'fat-arrow-down',
+} as const
