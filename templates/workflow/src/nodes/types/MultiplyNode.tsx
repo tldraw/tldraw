@@ -1,4 +1,4 @@
-import { T, useEditor } from 'tldraw'
+import { sleep, T, useEditor } from 'tldraw'
 import { MultiplyIcon } from '../../components/icons/MultiplyIcon'
 import {
 	NODE_HEADER_HEIGHT_PX,
@@ -9,6 +9,7 @@ import {
 import { ShapePort } from '../../ports/Port'
 import { NodeShape } from '../NodeShapeUtil'
 import {
+	areAnyInputsOutOfDate,
 	ExecutionResult,
 	InfoValues,
 	InputValues,
@@ -26,6 +27,7 @@ export const MultiplyNode = T.object({
 	type: T.literal('multiply'),
 	a: T.number,
 	b: T.number,
+	lastResult: T.number.nullable(),
 })
 
 export class MultiplyNodeType extends NodeDefinition<MultiplyNode> {
@@ -39,6 +41,7 @@ export class MultiplyNodeType extends NodeDefinition<MultiplyNode> {
 			type: 'multiply',
 			a: 0,
 			b: 0,
+			lastResult: null,
 		}
 	}
 	getBodyHeightPx(_shape: NodeShape, _node: MultiplyNode) {
@@ -75,12 +78,24 @@ export class MultiplyNodeType extends NodeDefinition<MultiplyNode> {
 		node: MultiplyNode,
 		inputs: InputValues
 	): Promise<ExecutionResult> {
+		await sleep(1000)
+
+		const result = (inputs.multiplicand ?? node.a) * (inputs.multiplier ?? node.b)
+		updateNode<MultiplyNode>(this.editor, shape, (node) => ({
+			...node,
+			lastResult: result,
+		}))
 		return {
-			output: (inputs.multiplicand ?? node.a) * (inputs.multiplier ?? node.b),
+			output: result,
 		}
 	}
-	getOutputInfo(_shape: NodeShape, _node: MultiplyNode, _inputs: InfoValues): InfoValues {
-		return {}
+	getOutputInfo(shape: NodeShape, node: MultiplyNode, inputs: InfoValues): InfoValues {
+		return {
+			output: {
+				value: node.lastResult ?? 0,
+				isOutOfDate: areAnyInputsOutOfDate(inputs) || shape.props.isOutOfDate,
+			},
+		}
 	}
 	Component = MultiplyNodeComponent
 }

@@ -88,10 +88,10 @@ export function updateNode<T extends NodeType>(
 	shape: NodeShape,
 	update: (node: T) => T
 ) {
-	editor.updateShape({
+	editor.updateShape<NodeShape>({
 		id: shape.id,
 		type: shape.type,
-		props: { node: update(shape.props.node as T) },
+		props: { node: update(shape.props.node as T), isOutOfDate: true },
 	})
 }
 
@@ -133,11 +133,13 @@ export function NodeInputRow({
 }) {
 	const editor = useEditor()
 	const inputRef = useRef<HTMLInputElement>(null)
-	const valueFromPort = useValue(
-		'from port',
-		() => getNodeInputPortValues(editor, shapeId)[portId],
-		[editor, shapeId, portId]
-	)
+	const portInfo = useValue('from port', () => getNodeInputPortValues(editor, shapeId)[portId], [
+		editor,
+		shapeId,
+		portId,
+	])
+	const valueFromPort = portInfo?.value
+	const isOutOfDate = portInfo?.isOutOfDate
 
 	const [pendingValue, setPendingValue] = useState<string | null>(null)
 
@@ -155,8 +157,8 @@ export function NodeInputRow({
 	return (
 		<NodeRow className="NodeInputRow">
 			<Port shapeId={shapeId} portId={portId} />
-			{valueFromPort === STOP_EXECUTION ? (
-				<NodeValue value={valueFromPort} />
+			{isOutOfDate || valueFromPort === STOP_EXECUTION ? (
+				<NodeValue value={isOutOfDate ? STOP_EXECUTION : valueFromPort} />
 			) : (
 				<input
 					ref={inputRef}

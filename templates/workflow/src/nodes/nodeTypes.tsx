@@ -10,7 +10,12 @@ import { AddNodeType } from './types/AddNode'
 import { ConditionalNodeType } from './types/ConditionalNode'
 import { DivideNodeType } from './types/DivideNode'
 import { MultiplyNodeType } from './types/MultiplyNode'
-import { ExecutionResult, NodeDefinition, NodeDefinitionConstructor } from './types/shared'
+import {
+	ExecutionResult,
+	InfoValues,
+	NodeDefinition,
+	NodeDefinitionConstructor,
+} from './types/shared'
 import { SliderNodeType } from './types/SliderNode'
 import { SubtractNodeType } from './types/SubtractNode'
 
@@ -76,12 +81,20 @@ export function getNodeTypePorts(editor: Editor, shape: NodeShape): Record<strin
 	return getNodeDefinition(editor, shape.props.node).getPorts(shape, shape.props.node)
 }
 
-export function computeNodeOutput(
+export async function executeNode(
 	editor: Editor,
 	shape: NodeShape,
 	inputs: Record<string, number>
 ): Promise<ExecutionResult> {
-	return getNodeDefinition(editor, shape.props.node).execute(shape, shape.props.node, inputs)
+	return await getNodeDefinition(editor, shape.props.node).execute(shape, shape.props.node, inputs)
+}
+
+export function getNodeOutputInfo(
+	editor: Editor,
+	shape: NodeShape,
+	inputs: InfoValues
+): InfoValues {
+	return getNodeDefinition(editor, shape.props.node).getOutputInfo(shape, shape.props.node, inputs)
 }
 
 export function onNodePortConnect(editor: Editor, shape: NodeShape, port: PortId) {

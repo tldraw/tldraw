@@ -1,4 +1,4 @@
-import { Editor, getIndexAbove, getIndicesBetween, IndexKey, T, useEditor } from 'tldraw'
+import { Editor, getIndexAbove, getIndicesBetween, IndexKey, sleep, T, useEditor } from 'tldraw'
 import { AddIcon } from '../../components/icons/AddIcon'
 import {
 	NODE_HEADER_HEIGHT_PX,
@@ -83,6 +83,8 @@ export class AddNodeType extends NodeDefinition<AddNode> {
 	}
 	// The output of the add node is the sum of all of its inputs.
 	async execute(shape: NodeShape, node: AddNode, inputs: InputValues): Promise<ExecutionResult> {
+		await sleep(1000)
+
 		const result = Object.entries(node.items).reduce((acc, [idx, value]) => {
 			const currentValue = inputs[`item_${idx}`] ?? value
 			return acc + currentValue

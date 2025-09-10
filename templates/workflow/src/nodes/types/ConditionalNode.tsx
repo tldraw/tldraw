@@ -10,6 +10,7 @@ import {
 import { Port, ShapePort } from '../../ports/Port'
 import { NodeShape } from '../NodeShapeUtil'
 import {
+	areAnyInputsOutOfDate,
 	ExecutionResult,
 	InfoValues,
 	InputValues,
@@ -129,7 +130,7 @@ export class ConditionalNodeType extends NodeDefinition<ConditionalNode> {
 		node: ConditionalNode,
 		inputs: InputValues
 	): Promise<ExecutionResult> {
-		await sleep(2000)
+		await sleep(1000)
 
 		const lhs = inputs.lhs ?? node.lhs
 		const rhs = inputs.rhs ?? node.rhs
@@ -149,18 +150,19 @@ export class ConditionalNodeType extends NodeDefinition<ConditionalNode> {
 		}
 	}
 	getOutputInfo(shape: NodeShape, node: ConditionalNode, inputs: InfoValues): InfoValues {
-		const lhs = inputs.lhs ?? { value: node.lhs, isOutOfDate: shape.props.isOutOfDate }
-		const rhs = inputs.rhs ?? { value: node.rhs, isOutOfDate: shape.props.isOutOfDate }
+		const isOutOfDate = areAnyInputsOutOfDate(inputs) || shape.props.isOutOfDate
+		const lhs = inputs.lhs?.value ?? node.lhs
+		const rhs = inputs.rhs?.value ?? node.rhs
 
 		return {
 			outputTrue:
 				node.previousResult === 'rhs'
-					? { value: STOP_EXECUTION, isOutOfDate: lhs.isOutOfDate }
-					: { value: lhs.value, isOutOfDate: lhs.isOutOfDate },
+					? { value: STOP_EXECUTION, isOutOfDate }
+					: { value: lhs, isOutOfDate },
 			outputFalse:
 				node.previousResult === 'rhs'
-					? { value: rhs.value, isOutOfDate: rhs.isOutOfDate }
-					: { value: STOP_EXECUTION, isOutOfDate: rhs.isOutOfDate },
+					? { value: rhs, isOutOfDate }
+					: { value: STOP_EXECUTION, isOutOfDate },
 		}
 	}
 	Component = ConditionalNodeComponent

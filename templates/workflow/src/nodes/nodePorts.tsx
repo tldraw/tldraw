@@ -1,12 +1,12 @@
 /**
  * This file contains functions for working with ports and connections on nodes.
  */
-import { areObjectsShallowEqual, createComputedCache, Editor, TLShapeId } from 'tldraw'
+import { createComputedCache, Editor, TLShapeId } from 'tldraw'
 import { ConnectionBinding, getConnectionBindings } from '../connection/ConnectionBindingUtil'
 import { PortId } from '../ports/Port'
 import { NodeShape } from './NodeShapeUtil'
-import { computeNodeOutput, getNodeTypePorts } from './nodeTypes'
-import { STOP_EXECUTION } from './types/shared'
+import { getNodeOutputInfo, getNodeTypePorts } from './nodeTypes'
+import { areAnyInputsOutOfDate, InfoValues, STOP_EXECUTION } from './types/shared'
 
 /**
  * Get the ports for a node. This is cached, because we only want to re-evaluate it when the
@@ -69,10 +69,7 @@ const nodePortConnectionsCache = createComputedCache(
 /**
  * Get the values of the input ports for a node. This is cached.
  */
-export function getNodeInputPortValues(
-	editor: Editor,
-	shape: NodeShape | TLShapeId
-): Record<string, number | STOP_EXECUTION> {
+export function getNodeInputPortValues(editor: Editor, shape: NodeShape | TLShapeId): InfoValues {
 	return nodeInputPortValuesCache.get(editor, typeof shape === 'string' ? shape : shape.id) ?? {}
 }
 const nodeInputPortValuesCache = createComputedCache(
@@ -80,11 +77,11 @@ const nodeInputPortValuesCache = createComputedCache(
 	(editor: Editor, node: NodeShape) => {
 		const connections = getNodePortConnections(editor, node)
 
-		const values: Record<string, number | STOP_EXECUTION> = {}
+		const values: InfoValues = {}
 		for (const connection of connections) {
 			if (!connection || connection.terminal !== 'end') continue
 
-			const connectedShapeOutputs = getNodeOutputPortValues(editor, connection.connectedShapeId)
+			const connectedShapeOutputs = getNodeOutputPortInfo(editor, connection.connectedShapeId)
 			if (!connectedShapeOutputs) {
 				continue
 			}
@@ -96,38 +93,35 @@ const nodeInputPortValuesCache = createComputedCache(
 		return values
 	},
 	{
-		areRecordsEqual: (a, b) => a.id === b.id,
-		areResultsEqual: areObjectsShallowEqual,
+		areRecordsEqual: (a, b) => a.props === b.props,
 	}
 )
 
 /**
  * Get the values of the output ports for a node. This is cached.
  */
-export function getNodeOutputPortValues(
-	editor: Editor,
-	shape: NodeShape | TLShapeId
-): Record<string, number | STOP_EXECUTION> {
-	return nodeOutputPortValuesCache.get(editor, typeof shape === 'string' ? shape : shape.id) ?? {}
+export function getNodeOutputPortInfo(editor: Editor, shape: NodeShape | TLShapeId): InfoValues {
+	return nodeOutputPortInfoCache.get(editor, typeof shape === 'string' ? shape : shape.id) ?? {}
 }
-const nodeOutputPortValuesCache = createComputedCache(
-	'node output port values',
-	(editor: Editor, node: NodeShape): Record<string, number | STOP_EXECUTION> => {
+const nodeOutputPortInfoCache = createComputedCache(
+	'node output port info',
+	(editor: Editor, node: NodeShape): InfoValues => {
 		const inputs = getNodeInputPortValues(editor, node)
-		if (Object.values(inputs).includes(STOP_EXECUTION)) {
+		if (Object.values(inputs).some((input) => input.value === STOP_EXECUTION)) {
 			return Object.fromEntries(
 				Object.values(getNodePorts(editor, node))
 					.filter((port) => port.terminal === 'start')
-					.map((port) => [port.id, STOP_EXECUTION])
+					.map((port) => [
+						port.id,
+						{ value: STOP_EXECUTION, isOutOfDate: areAnyInputsOutOfDate(inputs) },
+					])
 			)
 		}
 
-		return computeNodeOutput(node.props.node, inputs as Record<string, number>)
+		return getNodeOutputInfo(editor, node, inputs as InfoValues)
 	},
 	{
-		areRecordsEqual: (a, b) => a.id === b.id && a.props.node === b.props.node,
-		// the results should stay the same:
-		areResultsEqual: areObjectsShallowEqual,
+		areRecordsEqual: (a, b) => a.props === b.props,
 	}
 )
 

@@ -1,4 +1,4 @@
-import { stopEventPropagation, T, TldrawUiSlider, useEditor } from 'tldraw'
+import { sleep, stopEventPropagation, T, TldrawUiSlider, useEditor } from 'tldraw'
 import { SliderIcon } from '../../components/icons/SliderIcon'
 import { NODE_HEADER_HEIGHT_PX, NODE_ROW_HEIGHT_PX, NODE_WIDTH_PX } from '../../constants'
 import { ShapePort } from '../../ports/Port'
@@ -6,7 +6,6 @@ import { NodeShape } from '../NodeShapeUtil'
 import {
 	ExecutionResult,
 	InfoValues,
-	InputValues,
 	NodeComponentProps,
 	NodeDefinition,
 	NodeRow,
@@ -47,13 +46,20 @@ export class SliderNodeType extends NodeDefinition<SliderNode> {
 			},
 		}
 	}
-	async execute(shape: NodeShape, node: SliderNode, inputs: InputValues): Promise<ExecutionResult> {
+	async execute(_shape: NodeShape, node: SliderNode): Promise<ExecutionResult> {
+		await sleep(1000)
+
 		return {
 			output: node.value,
 		}
 	}
-	getOutputInfo(_shape: NodeShape, _node: SliderNode, _inputs: InfoValues): InfoValues {
-		return {}
+	getOutputInfo(shape: NodeShape, node: SliderNode): InfoValues {
+		return {
+			output: {
+				value: node.value,
+				isOutOfDate: shape.props.isOutOfDate,
+			},
+		}
 	}
 	Component = SliderNodeComponent
 }

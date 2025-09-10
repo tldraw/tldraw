@@ -1,4 +1,4 @@
-import { T, useEditor } from 'tldraw'
+import { sleep, T, useEditor } from 'tldraw'
 import { SubtractIcon } from '../../components/icons/SubtractIcon'
 import {
 	NODE_HEADER_HEIGHT_PX,
@@ -9,6 +9,7 @@ import {
 import { ShapePort } from '../../ports/Port'
 import { NodeShape } from '../NodeShapeUtil'
 import {
+	areAnyInputsOutOfDate,
 	ExecutionResult,
 	InfoValues,
 	InputValues,
@@ -26,6 +27,7 @@ export const SubtractNode = T.object({
 	type: T.literal('subtract'),
 	a: T.number,
 	b: T.number,
+	lastResult: T.number.nullable(),
 })
 
 export class SubtractNodeType extends NodeDefinition<SubtractNode> {
@@ -39,6 +41,7 @@ export class SubtractNodeType extends NodeDefinition<SubtractNode> {
 			type: 'subtract',
 			a: 0,
 			b: 0,
+			lastResult: null,
 		}
 	}
 	getBodyHeightPx(_shape: NodeShape, _node: SubtractNode) {
@@ -75,12 +78,24 @@ export class SubtractNodeType extends NodeDefinition<SubtractNode> {
 		node: SubtractNode,
 		inputs: InputValues
 	): Promise<ExecutionResult> {
+		await sleep(1000)
+
+		const result = (inputs.minuend ?? node.a) - (inputs.subtrahend ?? node.b)
+		updateNode<SubtractNode>(this.editor, shape, (node) => ({
+			...node,
+			lastResult: result,
+		}))
 		return {
-			output: (inputs.minuend ?? node.a) - (inputs.subtrahend ?? node.b),
+			output: result,
 		}
 	}
-	getOutputInfo(_shape: NodeShape, _node: SubtractNode, _inputs: InfoValues): InfoValues {
-		return {}
+	getOutputInfo(shape: NodeShape, node: SubtractNode, inputs: InfoValues): InfoValues {
+		return {
+			output: {
+				value: node.lastResult ?? 0,
+				isOutOfDate: areAnyInputsOutOfDate(inputs) || shape.props.isOutOfDate,
+			},
+		}
 	}
 	Component = SubtractNodeComponent
 }

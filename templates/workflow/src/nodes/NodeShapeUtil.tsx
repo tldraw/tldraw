@@ -17,9 +17,9 @@ import {
 import { NODE_WIDTH_PX, PORT_RADIUS_PX } from '../constants'
 import { executionState } from '../execution/executionState'
 import { Port, ShapePort } from '../ports/Port'
-import { getNodeOutputPortValues, getNodePorts } from './nodePorts'
+import { getNodeOutputPortInfo, getNodePorts } from './nodePorts'
 import { getNodeDefinition, getNodeHeightPx, NodeBody, NodeType } from './nodeTypes'
-import { NodeValue } from './types/shared'
+import { NodeValue, STOP_EXECUTION } from './types/shared'
 
 // Define our custom node shape type that extends tldraw's base shape system
 export type NodeShape = TLBaseShape<'node', { node: NodeType; isOutOfDate: boolean }>
@@ -154,9 +154,11 @@ function NodeShape({ shape }: { shape: NodeShape }) {
 	// Get the node's output value
 	const output = useValue(
 		'output',
-		() => getNodeOutputPortValues(editor, shape.id)?.output ?? undefined,
+		() => getNodeOutputPortInfo(editor, shape.id)?.output ?? undefined,
 		[editor, shape.id]
 	)
+
+	console.log(shape.id, { shape, output })
 
 	// Check if this node is currently executing using our execution state
 	const isExecuting = useValue(
@@ -178,7 +180,7 @@ function NodeShape({ shape }: { shape: NodeShape }) {
 				{output !== undefined && (
 					<>
 						<div className="NodeShape-output">
-							<NodeValue value={output} />
+							<NodeValue value={output.isOutOfDate ? STOP_EXECUTION : output.value} />
 						</div>
 						<Port shapeId={shape.id} portId="output" />
 					</>
