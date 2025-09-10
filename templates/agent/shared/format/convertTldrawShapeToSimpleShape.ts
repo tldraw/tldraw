@@ -16,7 +16,7 @@ import {
 } from 'tldraw'
 import { convertTldrawFillToSimpleFill } from './SimpleFill'
 import { convertTldrawFontSizeAndScaleToSimpleFontSize } from './SimpleFontSize'
-import { ISimpleGeoShapeType } from './SimpleGeoShapeType'
+import { SimpleGeoShapeType } from './SimpleGeoShapeType'
 import {
 	SimpleArrowShape,
 	SimpleDrawShape,
@@ -259,7 +259,7 @@ function getShapeBounds(shape: TLShape, editor: Editor): Box {
 	return mockBounds
 }
 
-const GEO_TO_SIMPLE_TYPES: Record<TLGeoShapeGeoStyle, ISimpleGeoShapeType> = {
+const GEO_TO_SIMPLE_TYPES: Record<TLGeoShapeGeoStyle, SimpleGeoShapeType> = {
 	rectangle: 'rectangle',
 	ellipse: 'ellipse',
 	triangle: 'triangle',

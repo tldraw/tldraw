@@ -2,12 +2,12 @@ import { z } from 'zod'
 import { SimpleColor } from './SimpleColor'
 import { SimpleFillSchema } from './SimpleFill'
 import { SimpleFontSize } from './SimpleFontSize'
-import { SimpleGeoShapeType } from './SimpleGeoShapeType'
+import { SimpleGeoShapeTypeSchema } from './SimpleGeoShapeType'
 
 const SimpleLabel = z.string()
 
 export const SimpleGeoShape = z.object({
-	_type: SimpleGeoShapeType,
+	_type: SimpleGeoShapeTypeSchema,
 	color: SimpleColor,
 	fill: SimpleFillSchema,
 	h: z.number(),
