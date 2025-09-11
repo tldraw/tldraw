@@ -464,11 +464,21 @@ To add support for a different model, add the model's definition to `AGENT_MODEL
 
 If you need to add any extra setup or configuration for your provider, you can add it to the `AgentService.ts` file.
 
-## Let the agent create custom shapes
+## Support custom shapes
 
-If your app includes [custom shapes](https://tldraw.dev/docs/shapes#Custom-shapes-1), the agent will be able to see, move, delete, resize, rotate and arrange them with no extra setup. However, it won't be able to create them.
+If your app includes [custom shapes](https://tldraw.dev/docs/shapes#Custom-shapes-1), the agent will be able to see, move, delete, resize, rotate and arrange them with no extra setup. However, you might want to also let the agent create and edit them, and read their custom properties.
 
-To let the agent create your custom shape, add a new [agent action](#change-what-the-agent-can-do) for it. For example, this action lets the agent create a custom "sticker" shape:
+To support custom shapes, you have two main options:
+
+1. Add an action that lets the agent create your custom shape.\
+   See the [Let the agent create custom shapes with an action](#let-the-agent-create-custom-shapes-with-an-action) section below.
+
+2. Add your custom shape to the schema so that the agent read, edit and create it like any other shape.\
+   See the [Add your custom shape to the schema](#add-your-custom-shape-to-the-schema) section below.
+
+## Let the agent create a custom shape with an action
+
+To add partial support for a custom shape, let the agent create it with an [agent action](#change-what-the-agent-can-do). For example, this action lets the agent create a custom "sticker" shape:
 
 ```ts
 const StickerAction = z
@@ -525,9 +535,7 @@ export class StickerActionUtil extends AgentActionUtil<StickerAction> {
 }
 ```
 
-## Let the agent read your custom shape's properties
-
-If your app includes [custom shapes](https://tldraw.dev/docs/shapes#Custom-shapes-1), the agent will be able to see, move, delete, resize, rotate and arrange them with no extra setup. However, it won't be able to read or edit their custom properties.
+## Add a custom shape to the schema
 
 To let the agent see the custom properties of your custom shape, add it to the schema in `SimpleShape.ts`.
 
