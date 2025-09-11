@@ -1,6 +1,7 @@
 import { MigrationSequence, Store } from '@tldraw/store'
 import { TLShape, TLStore, TLStoreSnapshot } from '@tldraw/tlschema'
 import { annotateError, Required } from '@tldraw/utils'
+import classNames from 'classnames'
 import React, {
 	memo,
 	ReactNode,
@@ -12,8 +13,6 @@ import React, {
 	useState,
 	useSyncExternalStore,
 } from 'react'
-
-import classNames from 'classnames'
 import { version } from '../version'
 import { DefaultErrorFallback } from './components/default-components/DefaultErrorFallback'
 import { OptionalErrorBoundary } from './components/ErrorBoundary'
@@ -188,13 +187,6 @@ export interface TldrawEditorBaseProps {
 	 * Options for syncing the editor's camera state with the URL.
 	 */
 	deepLinks?: true | TLDeepLinkOptions
-
-	/**
-	 * Predicate for whether or not a shape should be hidden.
-	 *
-	 * @deprecated Use {@link TldrawEditorBaseProps#getShapeVisibility} instead.
-	 */
-	isShapeHidden?(shape: TLShape, editor: Editor): boolean
 
 	/**
 	 * Provides a way to hide shapes.
@@ -412,8 +404,6 @@ function TldrawEditorWithReadyStore({
 	options,
 	licenseKey,
 	deepLinks: _deepLinks,
-	// eslint-disable-next-line @typescript-eslint/no-deprecated
-	isShapeHidden,
 	getShapeVisibility,
 	assetUrls,
 }: Required<
@@ -473,7 +463,6 @@ function TldrawEditorWithReadyStore({
 				textOptions,
 				options,
 				licenseKey,
-				isShapeHidden,
 				getShapeVisibility,
 				fontAssetUrls: assetUrls?.fonts,
 			})
@@ -509,7 +498,6 @@ function TldrawEditorWithReadyStore({
 			user,
 			setEditor,
 			licenseKey,
-			isShapeHidden,
 			getShapeVisibility,
 			textOptions,
 			assetUrls,

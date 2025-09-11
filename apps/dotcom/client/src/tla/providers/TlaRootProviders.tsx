@@ -56,7 +56,10 @@ export function Component() {
 	const [locale, setLocale] = useState<string>('en')
 	const [theme, setTheme] = useState<'light' | 'dark' | 'system'>('light')
 	const handleThemeChange = (theme: 'light' | 'dark' | 'system') => setTheme(theme)
-	const handleLocaleChange = (locale: string) => setLocale(locale)
+	const handleLocaleChange = (locale: string) => {
+		setLocale(locale)
+		document.documentElement.lang = locale
+	}
 	const isFocusMode = useValue(
 		'isFocusMode',
 		() => !!globalEditor.get()?.getInstanceState().isFocusMode,
@@ -135,7 +138,7 @@ function InsideOfContainerContext({ children }: { children: ReactNode }) {
 					<DefaultToasts />
 					<DefaultA11yAnnouncer />
 					<PutToastsInApp />
-					<TlaCookieConsent />
+					{currentEditor && <TlaCookieConsent />}
 				</TldrawUiContextProvider>
 			</TldrawUiA11yProvider>
 		</EditorContext.Provider>

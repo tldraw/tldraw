@@ -46,6 +46,17 @@ const records = [
 const makeSnapshot = (records: TLRecord[], others: Partial<RoomSnapshot> = {}) => ({
 	documents: records.map((r) => ({ state: r, lastChangedClock: 0 })),
 	clock: 0,
+	documentClock: 0,
+	...others,
+})
+
+// Helper to create legacy snapshots without documentClock field
+const makeLegacySnapshot = (
+	records: TLRecord[],
+	others: Partial<Omit<RoomSnapshot, 'documentClock'>> = {}
+) => ({
+	documents: records.map((r) => ({ state: r, lastChangedClock: 0 })),
+	clock: 0,
 	...others,
 })
 
@@ -719,5 +730,188 @@ describe('isReadonly', () => {
 		  "type": "data",
 		}
 	`)
+	})
+
+	describe('Backward compatibility with existing snapshots', () => {
+		it('can load snapshot without documentClock field', () => {
+			const legacySnapshot = makeLegacySnapshot(records)
+
+			const room = new TLSyncRoom<TLRecord, undefined>({
+				schema,
+				snapshot: legacySnapshot,
+			})
+
+			// Room should load successfully without errors
+			expect(room.getSnapshot().documents.length).toBe(2)
+
+			// documentClock should be calculated from existing data
+			const snapshot = room.getSnapshot()
+			expect(snapshot.documentClock).toBe(0) // max lastChangedClock from documents
+		})
+
+		it('calculates documentClock correctly from documents with different lastChangedClock values', () => {
+			const legacySnapshot = makeLegacySnapshot(records, {
+				documents: [
+					{ state: records[0], lastChangedClock: 5 },
+					{ state: records[1], lastChangedClock: 10 },
+				],
+			})
+
+			const room = new TLSyncRoom<TLRecord, undefined>({
+				schema,
+				snapshot: legacySnapshot,
+			})
+
+			const snapshot = room.getSnapshot()
+			expect(snapshot.documentClock).toBe(10) // max lastChangedClock
+		})
+
+		it('calculates documentClock correctly from tombstones', () => {
+			const legacySnapshot = makeLegacySnapshot(records, {
+				documents: [{ state: records[0], lastChangedClock: 3 }],
+				tombstones: {
+					'shape:deleted1': 7,
+					'shape:deleted2': 12,
+				},
+			})
+
+			const room = new TLSyncRoom<TLRecord, undefined>({
+				schema,
+				snapshot: legacySnapshot,
+			})
+
+			const snapshot = room.getSnapshot()
+			expect(snapshot.documentClock).toBe(12) // max of document (3) and tombstones (7, 12)
+		})
+
+		it('handles empty snapshot gracefully', () => {
+			const emptyLegacySnapshot = makeLegacySnapshot([], {
+				documents: [],
+				tombstones: {},
+			})
+
+			const room = new TLSyncRoom<TLRecord, undefined>({
+				schema,
+				snapshot: emptyLegacySnapshot,
+			})
+
+			const snapshot = room.getSnapshot()
+			expect(snapshot.documentClock).toBe(0) // no documents or tombstones
+		})
+
+		it('handles snapshot with only tombstones', () => {
+			const legacySnapshot = makeLegacySnapshot([], {
+				documents: [],
+				tombstones: {
+					'shape:deleted1': 5,
+					'shape:deleted2': 8,
+				},
+			})
+
+			const room = new TLSyncRoom<TLRecord, undefined>({
+				schema,
+				snapshot: legacySnapshot,
+			})
+
+			const snapshot = room.getSnapshot()
+			expect(snapshot.documentClock).toBe(8) // max tombstone clock
+		})
+
+		it('preserves explicit documentClock when present', () => {
+			const snapshotWithDocumentClock = makeSnapshot(records, {
+				documentClock: 15,
+			})
+
+			const room = new TLSyncRoom<TLRecord, undefined>({
+				schema,
+				snapshot: snapshotWithDocumentClock,
+			})
+
+			const snapshot = room.getSnapshot()
+			expect(snapshot.documentClock).toBe(15) // should preserve explicit value
+		})
+
+		describe('Document clock initialization logic', () => {
+			it('sets documentClock to room clock when migrations run (didIncrementClock = true)', () => {
+				// Create a schema with a migration that will update documents
+				const schemaWithMigration = createTLSchema({
+					migrations: [
+						{
+							sequenceId: 'test-migration',
+							retroactive: false,
+							sequence: [
+								{
+									id: 'test-migration/1',
+									scope: 'record',
+									filter: (record: any) => record.typeName === 'document',
+									up: (record: any) => {
+										// Modify the record to trigger clock increment
+										return { ...record, meta: { ...record.meta, migrated: true } }
+									},
+								},
+							],
+						},
+					],
+				})
+
+				const snapshotWithDocumentClock = makeSnapshot(records, {
+					documentClock: 5,
+					clock: 10,
+				})
+
+				const onDataChange = vi.fn()
+				const room = new TLSyncRoom<TLRecord, undefined>({
+					schema: schemaWithMigration,
+					snapshot: snapshotWithDocumentClock,
+					onDataChange,
+				})
+
+				// Migration should have run, incrementing the clock
+				expect(room.getSnapshot().clock).toBe(11)
+				expect(room.getSnapshot().documentClock).toBe(11)
+				expect(onDataChange).toHaveBeenCalled()
+			})
+
+			it('preserves documentClock from snapshot when no migrations run (didIncrementClock = false)', () => {
+				const snapshotWithDocumentClock = makeSnapshot(records, {
+					documentClock: 15,
+					clock: 20,
+				})
+
+				const onDataChange = vi.fn()
+				const room = new TLSyncRoom<TLRecord, undefined>({
+					schema,
+					snapshot: snapshotWithDocumentClock,
+					onDataChange,
+				})
+
+				// No migrations should have run
+				expect(room.getSnapshot().documentClock).toBe(15)
+				expect(room.getSnapshot().clock).toBe(20)
+				expect(onDataChange).not.toHaveBeenCalled()
+			})
+
+			it('calculates documentClock when snapshot lacks documentClock field (didIncrementClock = false)', () => {
+				const legacySnapshot = makeLegacySnapshot(records, {
+					documents: [
+						{ state: records[0], lastChangedClock: 7 },
+						{ state: records[1], lastChangedClock: 12 },
+					],
+					clock: 15,
+				})
+
+				const onDataChange = vi.fn()
+				const room = new TLSyncRoom<TLRecord, undefined>({
+					schema,
+					snapshot: legacySnapshot,
+					onDataChange,
+				})
+
+				// Should calculate from existing data
+				expect(room.getSnapshot().documentClock).toBe(12) // max lastChangedClock
+				expect(room.getSnapshot().clock).toBe(15) // clock from snapshot
+				expect(onDataChange).not.toHaveBeenCalled()
+			})
+		})
 	})
 })

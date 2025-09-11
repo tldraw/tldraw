@@ -213,7 +213,7 @@ export function TldrawUiMenuItem<
 						icon={icon}
 						onSelect={onSelect}
 						onDragStart={onDragStart}
-						labelToUse={labelToUse}
+						labelStr={labelStr}
 						titleStr={titleStr}
 						disabled={disabled}
 						isSelected={isSelected}
@@ -247,7 +247,7 @@ export function TldrawUiMenuItem<
 						icon={icon}
 						onSelect={onSelect}
 						onDragStart={onDragStart}
-						labelToUse={labelToUse}
+						labelStr={labelStr}
 						titleStr={titleStr}
 						disabled={disabled}
 						isSelected={isSelected}
@@ -392,7 +392,7 @@ function useDraggableEvents(
 
 function DraggableToolbarButton({
 	id,
-	labelToUse,
+	labelStr,
 	titleStr,
 	disabled,
 	isSelected,
@@ -403,7 +403,7 @@ function DraggableToolbarButton({
 }: {
 	id: string
 	disabled: boolean
-	labelToUse?: string
+	labelStr?: string
 	titleStr?: string
 	isSelected?: boolean
 	icon: TLUiMenuItemProps['icon']
@@ -416,7 +416,7 @@ function DraggableToolbarButton({
 	if (overflow) {
 		return (
 			<TldrawUiToolbarButton
-				aria-label={labelToUse}
+				aria-label={labelStr}
 				aria-pressed={isSelected ? 'true' : 'false'}
 				isActive={isSelected}
 				className="tlui-button-grid__button"
@@ -434,7 +434,7 @@ function DraggableToolbarButton({
 
 	return (
 		<TldrawUiToolbarButton
-			aria-label={labelToUse}
+			aria-label={labelStr}
 			aria-pressed={isSelected ? 'true' : 'false'}
 			data-testid={`tools.${id}`}
 			data-value={id}

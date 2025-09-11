@@ -82,7 +82,10 @@ export function TlaPublishTab({ file }: { file: TlaFile }) {
 							</TlaMenuControlLabel>
 							<TlaMenuControlInfoTooltip
 								onClick={() =>
-									trackEvent('open-url', { url: learnMoreUrl, source: 'file-share-menu' })
+									trackEvent('open-url', {
+										destinationUrl: learnMoreUrl,
+										source: 'file-share-menu',
+									})
 								}
 								href={learnMoreUrl}
 							>

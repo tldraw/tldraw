@@ -94,6 +94,7 @@ export interface TLUiToolbarToggleGroupProps extends React.HTMLAttributes<HTMLDi
 	// TODO: fix up this type later
 	defaultValue?: any
 	type: 'single' | 'multiple'
+	asChild?: boolean
 }
 
 /** @public @react */
@@ -101,10 +102,12 @@ export const TldrawUiToolbarToggleGroup = ({
 	children,
 	className,
 	type,
+	asChild,
 	...props
 }: TLUiToolbarToggleGroupProps) => {
 	return (
 		<_Toolbar.ToggleGroup
+			asChild={asChild}
 			type={type}
 			{...props}
 			// TODO: this fixes a bug in Radix until they fix it.

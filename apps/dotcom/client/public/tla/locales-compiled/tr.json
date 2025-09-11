@@ -33,12 +33,6 @@
       "value": "Otomatik"
     }
   ],
-  "0776e18496": [
-    {
-      "type": 0,
-      "value": "Kaydet ve paylaş"
-    }
-  ],
   "07dbd11b21": [
     {
       "type": 0,
@@ -117,12 +111,6 @@
       "value": "Bu oda boyut sınırına yaklaşıyor. İçeriğin bir kısmını kaldırmayı veya yeni bir dosya başlatmayı düşünün."
     }
   ],
-  "22d84a12fd": [
-    {
-      "type": 0,
-      "value": "Figjam ama tldraw"
-    }
-  ],
   "250ddea65c": [
     {
       "type": 0,
@@ -133,12 +121,6 @@
     {
       "type": 0,
       "value": "Yüklenemedi"
-    }
-  ],
-  "2c61d18599": [
-    {
-      "type": 0,
-      "value": "Miro ama iyi ve özgür"
     }
   ],
   "2deec2cb74": [
@@ -171,12 +153,6 @@
       "value": "Düzenleyici"
     }
   ],
-  "37b3dca331": [
-    {
-      "type": 0,
-      "value": "Lütfen giriş yapın"
-    }
-  ],
   "3bd1b98dbd": [
     {
       "type": 0,
@@ -195,22 +171,10 @@
       "value": "Hepsini kabul et"
     }
   ],
-  "3fc6d0c83a": [
-    {
-      "type": 0,
-      "value": "Arkadaş ekle"
-    }
-  ],
   "42e53c47c1": [
     {
       "type": 0,
       "value": "Erişim isteğinde bulunmak için sahibiyle iletişime geçin."
-    }
-  ],
-  "44281ab6e5": [
-    {
-      "type": 0,
-      "value": "Giriş yap"
     }
   ],
   "44db318ee5": [
@@ -247,12 +211,6 @@
     {
       "type": 0,
       "value": "Tekrar yükle"
-    }
-  ],
-  "4ea0bb66f7": [
-    {
-      "type": 0,
-      "value": "Bir hesap güzel olurdu"
     }
   ],
   "50db1b7e1e": [
@@ -337,12 +295,6 @@
       "value": "Eski tarayıcı algılandı. Bu uygulamayı kullanmak için lütfen tarayıcınızı güncelleyin."
     }
   ],
-  "5bef23eb7e": [
-    {
-      "type": 0,
-      "value": "Hesabınızı oluşturun"
-    }
-  ],
   "5d26ae7550": [
     {
       "type": 0,
@@ -383,12 +335,6 @@
     {
       "type": 0,
       "value": "tldraw'ın yeni bir sürümü mevcut. Devam etmek için lütfen sayfayı yeniden yükleyin."
-    }
-  ],
-  "697c59072d": [
-    {
-      "type": 0,
-      "value": "Kaydetmek için oturum açın"
     }
   ],
   "6a26f54883": [
@@ -493,12 +439,6 @@
       "value": "Sürümü geri yükle"
     }
   ],
-  "7c7d5d493e": [
-    {
-      "type": 0,
-      "value": "Lütfen kaydolun"
-    }
-  ],
   "7cb5f8b4a5": [
     {
       "type": 0,
@@ -557,12 +497,6 @@
       "value": "."
     }
   ],
-  "84c89d47c7": [
-    {
-      "type": 0,
-      "value": "Ücretsiz paylaşın"
-    }
-  ],
   "85a082de1b": [
     {
       "type": 0,
@@ -589,12 +523,6 @@
     {
       "type": 0,
       "value": "Düzenlemeye devam etmek için lütfen odayı dosyalarınıza kopyalayın."
-    }
-  ],
-  "8ea211024d": [
-    {
-      "type": 0,
-      "value": "Ücretsiz bir hesap oluşturun"
     }
   ],
   "8eb2c00e96": [
@@ -753,12 +681,6 @@
       "value": "Misafir kullanıcı"
     }
   ],
-  "b52dc007ac": [
-    {
-      "type": 0,
-      "value": "Kayıt ol (ücretsiz ve iyi)"
-    }
-  ],
   "b6d4223e60": [
     {
       "type": 0,
@@ -837,28 +759,10 @@
       "value": ".tldr dosyalarını yükle"
     }
   ],
-  "bffe9a3c9a": [
-    {
-      "type": 0,
-      "value": "Giriş yapmak"
-    }
-  ],
-  "c079282475": [
-    {
-      "type": 0,
-      "value": "Çalışmanızı paylaşın"
-    }
-  ],
   "c2276c9127": [
     {
       "type": 0,
       "value": "Paylaşım hakkında daha fazla bilgi edinin."
-    }
-  ],
-  "c24e43cd1a": [
-    {
-      "type": 0,
-      "value": "Kaydolacaksın değil mi?"
     }
   ],
   "c303bd1095": [
@@ -891,12 +795,6 @@
       "value": "Oturumu kapat"
     }
   ],
-  "c8c6a6504a": [
-    {
-      "type": 0,
-      "value": "Kaydolmalısın"
-    }
-  ],
   "cceaefbc20": [
     {
       "type": 0,
@@ -913,12 +811,6 @@
     {
       "type": 0,
       "value": "Yayınlama hakkında daha fazla bilgi edinin."
-    }
-  ],
-  "d0eedb7995": [
-    {
-      "type": 0,
-      "value": "Hey"
     }
   ],
   "d3d2e61733": [
@@ -945,28 +837,10 @@
       "value": "Tekrar Dene"
     }
   ],
-  "d8a50c79a7": [
-    {
-      "type": 0,
-      "value": "Benimle tldraw'a gel"
-    }
-  ],
   "d9100f3e10": [
     {
       "type": 0,
       "value": "İçeriği görmek için buraya gidin"
-    }
-  ],
-  "da404df474": [
-    {
-      "type": 0,
-      "value": "Çalışmanızı kaydedin"
-    }
-  ],
-  "db4c2dab9a": [
-    {
-      "type": 0,
-      "value": "Excalidraw değil"
     }
   ],
   "dbbebf3c03": [
@@ -1101,12 +975,6 @@
     {
       "type": 0,
       "value": "Bu dosyayı silmek istediğinizden emin misiniz?"
-    }
-  ],
-  "fd27891570": [
-    {
-      "type": 0,
-      "value": "Bekleme listesine katılın"
     }
   ],
   "fed5ec05eb": [

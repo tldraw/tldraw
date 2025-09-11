@@ -8,15 +8,22 @@ This is a TypeScript monorepo containing the complete tldraw ecosystem - from th
 
 **Repository Purpose:** Develop and maintain tldraw as both an open-source SDK for developers and a commercial collaborative whiteboard service.
 
+**Version:** 3.15.1 across all packages  
+**Node.js:** ^20.0.0 required  
+**React:** ^18.0.0 || ^19.0.0 peer dependency
+
 ## Essential Commands
 
 ### Development Commands
 
 - `yarn dev` - Start development server for examples app (main SDK showcase)
 - `yarn dev-app` - Start tldraw.com client app development
-- `yarn dev-docs` - Start documentation site development
+- `yarn dev-docs` - Start documentation site development (tldraw.dev)
+- `yarn dev-vscode` - Start VSCode extension development
+- `yarn dev-template <template>` - Run a specific template (e.g., vite, nextjs, workflow)
 - `yarn refresh-assets` - Refresh and bundle assets after changes
 - `yarn refresh-context` - Review and update CONTEXT.md files using Claude Code CLI
+- `yarn context` - Find and display nearest CONTEXT.md file (supports -v, -r, -u flags)
 
 ### Building
 
@@ -27,11 +34,13 @@ This is a TypeScript monorepo containing the complete tldraw ecosystem - from th
 
 ### Testing
 
-- `yarn test` - Run all tests (slow, avoid unless necessary)
 - `yarn test run` - Run tests in specific workspace (cd to workspace first)
+- `yarn test run --grep "pattern"` - Filter tests by pattern
+- `yarn vitest` - Run all tests (slow, avoid unless necessary)
 - `yarn test-ci` - Run tests in CI mode
 - `yarn e2e` - Run end-to-end tests for examples
 - `yarn e2e-dotcom` - Run end-to-end tests for tldraw.com
+- `yarn e2e-ui` - Run E2E tests with Playwright UI
 
 ### Code Quality
 
@@ -54,19 +63,36 @@ This is a TypeScript monorepo containing the complete tldraw ecosystem - from th
 - `@tldraw/sync` + `@tldraw/sync-core` - Multiplayer collaboration system
 - `@tldraw/utils` - Shared utilities across packages
 - `@tldraw/validate` - Lightweight validation library
+- `@tldraw/ai` - AI module SDK addon
+- `@tldraw/create-tldraw` - npm create tldraw CLI tool
+- `@tldraw/dotcom-shared` - Shared utilities for dotcom application
+- `@tldraw/namespaced-tldraw` - Namespaced tldraw components
+- `@tldraw/state-react` - React integration for state management
+- `@tldraw/worker-shared` - Shared utilities for Cloudflare Workers
 
 **Applications (`apps/`)** - Production applications and examples:
 
-- `apps/examples/` - SDK examples and demos (primary development environment)
+- `apps/examples/` - SDK examples and demos (primary development environment, 130+ examples)
 - `apps/docs/` - Documentation website (tldraw.dev) built with Next.js
-- `apps/dotcom/client/` - tldraw.com React frontend application
-- `apps/dotcom/sync-worker/` - Cloudflare Worker handling multiplayer backend
-- `apps/dotcom/asset-upload-worker/` - Cloudflare Worker for media uploads
-- `apps/vscode/` - tldraw VSCode extension
+- `apps/dotcom/client/` - tldraw.com React frontend application with auth, file management
+- `apps/dotcom/sync-worker/` - Cloudflare Worker handling multiplayer backend and real-time sync
+- `apps/dotcom/asset-upload-worker/` - Cloudflare Worker for media uploads to R2
+- `apps/dotcom/image-resize-worker/` - Cloudflare Worker for image optimization
+- `apps/dotcom/zero-cache/` - Database synchronization layer using Rocicorp Zero
+- `apps/vscode/` - tldraw VSCode extension for .tldr files
+- `apps/analytics/` - Analytics service (UMD library for cookie consent and tracking)
+- `apps/bemo-worker/` - Bemo worker service for collaboration and asset management
 
 **Templates (`templates/`)** - Framework starter templates:
 
-- Integration examples for Vite, Next.js, Vue, sync setup, AI integration
+- `vite/` - Vite integration example (fastest way to get started)
+- `nextjs/` - Next.js integration example with SSR support
+- `vue/` - Vue integration example
+- `sync-cloudflare/` - Multiplayer implementation with Cloudflare Durable Objects
+- `ai/` - AI integration example
+- `branching-chat/` - AI-powered conversational UI with node-based chat trees
+- `workflow/` - Node-based visual programming interface for executable workflows
+- `chat/`, `agent/`, `simple-server-example/` - Additional use case examples
 
 ### Core SDK Architecture
 
@@ -156,13 +182,16 @@ This is a TypeScript monorepo containing the complete tldraw ecosystem - from th
 ```
 apps/
 ├── examples/          # SDK examples and demos (primary development environment)
-├── docs/             # Documentation site (tldraw.dev) built with Next.js
-├── dotcom/           # tldraw.com application
-│   ├── client/       # Frontend React app
-│   ├── sync-worker/  # Cloudflare Worker handling multiplayer backend
-│   ├── asset-upload-worker/  # Cloudflare Worker for media uploads
-│   └── image-resize-worker/  # Cloudflare Worker for image processing
-└── vscode/           # tldraw VSCode extension
+├── docs/             # Documentation site (tldraw.dev) built with Next.js + SQLite + Algolia
+├── dotcom/           # tldraw.com application stack
+│   ├── client/       # Frontend React app with Clerk auth
+│   ├── sync-worker/  # Cloudflare Worker for multiplayer backend + file management
+│   ├── asset-upload-worker/  # Cloudflare Worker for media uploads to R2
+│   ├── image-resize-worker/  # Cloudflare Worker for image optimization + format conversion
+│   └── zero-cache/   # Future database synchronization layer (Rocicorp Zero + PostgreSQL)
+├── vscode/           # tldraw VSCode extension (.tldr file support)
+├── analytics/        # Analytics service (UMD library with GDPR compliance)
+└── bemo-worker/      # Bemo worker service (collaboration + asset management)
 
 packages/
 ├── editor/           # Core editor engine (foundational canvas editor)
@@ -174,13 +203,32 @@ packages/
 ├── sync-core/        # Core multiplayer functionality
 ├── utils/            # Shared utilities across packages
 ├── validate/         # Lightweight validation library
-└── assets/           # Icons, fonts, translations (managed centrally)
+├── assets/           # Icons, fonts, translations (managed centrally)
+├── ai/               # AI module SDK addon
+├── create-tldraw/    # npm create tldraw CLI tool
+├── dotcom-shared/    # Shared utilities for dotcom application
+├── namespaced-tldraw/ # Namespaced tldraw components
+├── state-react/      # React integration for state management
+└── worker-shared/    # Shared utilities for Cloudflare Workers
 
 templates/            # Starter templates for different frameworks
-├── vite/            # Vite integration example
-├── nextjs/          # Next.js integration example
-├── sync-cloudflare/ # Multiplayer implementation example
-└── ai/              # AI integration example
+├── vite/            # Vite integration example (fastest way to start)
+├── nextjs/          # Next.js integration example with SSR
+├── vue/             # Vue integration example
+├── sync-cloudflare/ # Multiplayer implementation with Cloudflare Durable Objects
+├── ai/              # AI integration example
+├── branching-chat/  # AI-powered conversational UI with node-based chat trees
+├── workflow/        # Node-based visual programming interface for workflows
+├── chat/            # Chat template
+├── agent/           # Agent template
+└── simple-server-example/ # Simple server example
+
+internal/             # Internal development tools and configuration
+├── apps-script/     # Google Apps Script configuration for Meet integration
+├── config/          # Shared TypeScript, API, and test configurations
+├── dev-tools/       # Git bisect helper tool for debugging
+├── health-worker/   # Updown.io webhook → Discord alert forwarding
+└── scripts/         # Build, deployment, and maintenance automation
 ```
 
 ## Development Infrastructure
@@ -294,12 +342,14 @@ Custom incremental build system optimized for monorepos:
 
 ### tldraw.com Infrastructure
 
-**Production Application:**
+**Production Application Stack:**
 
-- React frontend (`apps/dotcom/client`)
-- Cloudflare Workers backend for sync, assets, image processing
-- PostgreSQL database for user data and file persistence
-- Real-time collaboration with room-based isolation
+- **Frontend**: React SPA with Vite, Clerk auth, React Router, FormatJS i18n
+- **Real-time Sync**: Cloudflare Workers + Durable Objects for multiplayer collaboration
+- **Database**: PostgreSQL with Zero (Rocicorp) for optimistic client-server sync
+- **Asset Pipeline**: R2 storage + image optimization + CDN delivery
+- **Authentication**: Clerk integration with JWT-based API access
+- **File Management**: Complete file system with sharing, publishing, version history
 
 ## Development Patterns
 
@@ -336,7 +386,9 @@ Custom incremental build system optimized for monorepos:
 - Import required CSS: `import 'tldraw/tldraw.css'` (full) or `import '@tldraw/editor/editor.css'` (editor only)
 - Requires React 18+ and modern bundler support
 - Works with Vite, Next.js, Create React App, and other React frameworks
-- See templates directory for framework-specific examples (templates/vite, templates/nextjs, etc.)
+- See templates directory for framework-specific examples
+- Asset URLs configurable via `@tldraw/assets` package (imports, URLs, or self-hosted strategies)
+- Use `npm create tldraw` CLI for quick project scaffolding
 
 ## Performance Considerations
 
@@ -355,6 +407,7 @@ Custom incremental build system optimized for monorepos:
 - Computed values cached until dependencies change
 - Store changes batched to prevent cascading updates
 - Component re-renders minimized through React.memo and signal integration
+- Uses `__unsafe__getWithoutCapture()` for performance-critical paths
 
 ### Memory Management
 
@@ -378,5 +431,132 @@ Custom incremental build system optimized for monorepos:
 - SDK-first development - tldraw.com built using the same APIs
 - Extensive examples and documentation for SDK adoption
 - Community-driven with transparent development process
+
+## Advanced Features and Integrations
+
+### AI Integration (`@tldraw/ai`)
+
+- **Visual AI Understanding**: AI models can see and understand canvas content via screenshots
+- **Streaming Responses**: Real-time AI shape generation and modifications
+- **Transform Pipeline**: Extensible system for customizing AI behavior
+- **Multi-Modal Prompts**: Text and image inputs with structured change outputs
+- **History Integration**: AI changes fully integrated with undo/redo system
+
+### Asset Management
+
+**Centralized Assets (`@tldraw/assets`):**
+
+- **Icon System**: 80+ icons in optimized SVG sprite format
+- **Typography**: IBM Plex fonts (Sans, Serif, Mono) + Shantell Sans (handwritten)
+- **Internationalization**: 40+ languages with regional variants (RTL support)
+- **Embed Icons**: Service icons for external content (YouTube, Figma, etc.)
+- **Export Strategies**: Multiple formats (imports, URLs, self-hosted) for different bundlers
+
+**Dynamic Asset Pipeline:**
+
+- **Upload Workers**: Cloudflare R2 + image optimization + format conversion (AVIF/WebP)
+- **CDN Delivery**: Global asset distribution with intelligent caching
+- **External Content**: Bookmark unfurling, embed metadata extraction
+- **Deduplication**: Hash-based asset deduplication across uploads
+
+### Collaboration Features
+
+**Real-Time Multiplayer:**
+
+- **Presence System**: Live cursors, selections, and user awareness indicators
+- **Conflict Resolution**: Operational transformation for concurrent edits
+- **Connection Reliability**: Automatic reconnection with exponential backoff
+- **Permission Management**: File-level access control (view/edit/owner)
+
+**Data Synchronization:**
+
+- **Optimistic Updates**: Immediate UI feedback with server reconciliation
+- **Offline Support**: Queue changes during network issues, sync on reconnect
+- **Version Control**: Complete change history with restore capability
+- **Schema Migration**: Automatic data migration for schema evolution
+
+### Extension and Customization
+
+**Developer Tools:**
+
+- **CLI Scaffolding**: `npm create tldraw` with interactive template selection
+- **VSCode Integration**: Full editor for .tldr files with webview-based rendering
+- **Testing Utilities**: TestEditor, comprehensive E2E test suites
+- **Performance Monitoring**: Built-in performance tracking and analysis
+
+**Extension Points:**
+
+- **Custom Shapes**: ShapeUtil classes for new shape types
+- **Custom Tools**: StateNode state machines for interactive tools
+- **Custom Bindings**: BindingUtil classes for shape relationships
+- **Custom UI**: Complete component override system
+- **External Content**: Handlers for custom import/export formats
+
+## Technical Deep Dive
+
+### Reactive Architecture Details
+
+**Signals System (`@tldraw/state`):**
+
+- **Atom/Computed Pattern**: Mutable atoms + derived computed values
+- **Dependency Tracking**: Automatic capture of signal dependencies during computation
+- **Memory Optimization**: ArraySet hybrid data structure, WeakCache for object-keyed caches
+- **Effect Scheduling**: Pluggable scheduling (immediate vs animation frame throttled)
+- **Transaction Support**: Atomic multi-state updates with rollback capability
+
+**Store System (`@tldraw/store`):**
+
+- **Record Management**: Type-safe record storage with validation and migrations
+- **Query System**: Reactive indexes with incremental updates
+- **Side Effects**: Lifecycle hooks for create/update/delete operations
+- **History Tracking**: Change diffs with configurable history length
+- **Schema Evolution**: Version-based migration system with dependencies
+
+### Database and Persistence
+
+**Client-Side Storage:**
+
+- **IndexedDB**: Local persistence with automatic migrations
+- **Store Snapshots**: Complete document state serialization
+- **Asset Caching**: Local asset storage with deduplication
+- **User Preferences**: Settings persistence across sessions
+
+**Server-Side Infrastructure:**
+
+- **PostgreSQL**: Source of truth for user data, files, metadata
+- **R2 Object Storage**: Durable asset storage with global replication
+- **Durable Objects**: Stateful compute for room management and real-time sync
+- **Zero Sync**: Optimistic synchronization with conflict resolution
+
+## Development Workflow Best Practices
+
+### Getting Started
+
+1. **Clone and Setup**: `git clone` → `yarn install`
+2. **Start Development**: `yarn dev` (examples app at localhost:5420)
+3. **Run Tests**: `cd packages/editor && yarn test run` for specific packages
+4. **Check Types**: `yarn typecheck` before commits
+5. **Follow Patterns**: Read relevant CONTEXT.md files and existing code
+
+### Creating Examples
+
+- **Location**: `apps/examples/src/examples/your-example/`
+- **Structure**: README.md with frontmatter + YourExample.tsx component
+- **Guidelines**: See `apps/examples/writing-examples.md` for detailed patterns
+- **Categories**: getting-started, configuration, editor-api, shapes/tools, etc.
+
+### Package Development
+
+- **Testing**: Run tests from package directory, not root
+- **API Changes**: Run `yarn api-check` to validate public API surface
+- **Dependencies**: Check existing usage before adding new libraries
+- **Documentation**: API docs auto-generated from TSDoc comments
+
+### Performance Guidelines
+
+- **Use Signals**: Leverage reactive system for automatic optimization
+- **Batch Updates**: Use transactions for multiple state changes
+- **Memory Management**: Dispose of effects and subscriptions properly
+- **Asset Optimization**: Use appropriate asset export strategy for your bundler
 
 This context file provides the essential architectural understanding needed to navigate and contribute to the tldraw codebase effectively.

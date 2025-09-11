@@ -46,7 +46,7 @@ export function TlaSidebarCreateFileButton() {
 			className={styles.sidebarCreateFileButton}
 			onClick={handleSidebarCreate}
 			data-testid="tla-create-file"
-			title={createTitle}
+			aria-label={createTitle}
 		>
 			<TlaIcon icon="edit-strong" />
 		</button>

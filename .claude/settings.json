@@ -6,10 +6,23 @@
 				"hooks": [
 					{
 						"type": "command",
-						"command": "jq -r '.tool_input.file_path' | { read file_path; npx prettier --write \"$file_path\"; }"
+						"command": "jq -r '.tool_input.file_path' | { read file_path; yarn run -T prettier --write \"$file_path\"; }"
 					}
 				]
 			}
+		]
+	},
+	"permissions": {
+		"allow": [
+			"WebSearch",
+			"Bash(gh pr:*)",
+			"Bash(yarn install)",
+			"Bash(yarn test:*)",
+			"Bash(yarn lint:*)",
+			"Bash(yarn typecheck)",
+			"Bash(git add:*)",
+			"mcp__Context7__resolve-library-id",
+			"mcp__Context7__get-library-docs"
 		]
 	}
 }

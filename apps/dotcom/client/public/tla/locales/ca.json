@@ -14,9 +14,6 @@
   "06b9281e39": {
     "translation": "Automàtic"
   },
-  "0776e18496": {
-    "translation": "Desa i comparteix"
-  },
   "07dbd11b21": {
     "translation": "Fitxer sense títol"
   },
@@ -56,17 +53,11 @@
   "21bfb2dc2e": {
     "translation": "Aquesta sala s'acosta al seu límit de mida. Penseu en la possibilitat d'eliminar part del contingut o iniciar un fitxer nou."
   },
-  "22d84a12fd": {
-    "translation": "Figjam però tldraw"
-  },
   "250ddea65c": {
     "translation": "Sobre tldraw"
   },
   "299cb00a7a": {
     "translation": "La càrrega ha fallat"
-  },
-  "2c61d18599": {
-    "translation": "Miro però bo i gratuït"
   },
   "2deec2cb74": {
     "translation": "Aquesta sala ha arribat al límit de mida i és possible que els canvis ja no es puguin desar. Elimina part del contingut o inicia un fitxer nou."
@@ -83,9 +74,6 @@
   "344a7f427f": {
     "translation": "Editor"
   },
-  "37b3dca331": {
-    "translation": "Si us plau, inicia la sessió"
-  },
   "3bd1b98dbd": {
     "translation": "No es poden publicar els canvis."
   },
@@ -95,14 +83,8 @@
   "3d0238bf16": {
     "translation": "Accepta-ho tot"
   },
-  "3fc6d0c83a": {
-    "translation": "Afegeix un amic"
-  },
   "42e53c47c1": {
     "translation": "Contacta amb el propietari per sol·licitar accés."
-  },
-  "44281ab6e5": {
-    "translation": "Inicia la sessió"
   },
   "44db318ee5": {
     "translation": "Obteniu ajuda a Discord"
@@ -121,9 +103,6 @@
   },
   "4d1c8263ba": {
     "translation": "Torna a carregar"
-  },
-  "4ea0bb66f7": {
-    "translation": "Un compte estaria bé"
   },
   "50db1b7e1e": {
     "translation": "No es pot anul·lar la publicació del fitxer."
@@ -161,9 +140,6 @@
   "5bec508475": {
     "translation": "S'ha detectat un navegador antic. Actualitzeu el navegador per utilitzar aquesta aplicació."
   },
-  "5bef23eb7e": {
-    "translation": "Crea el teu compte"
-  },
   "5d26ae7550": {
     "translation": "No hem pogut penjar part del contingut que vas crear abans d'iniciar la sessió."
   },
@@ -184,9 +160,6 @@
   },
   "6637a98151": {
     "translation": "Hi ha disponible una nova versió de tldraw. Torneu a carregar la pàgina per continuar."
-  },
-  "697c59072d": {
-    "translation": "Inicia la sessió per desar"
   },
   "6a26f54883": {
     "translation": "Ajuda"
@@ -239,9 +212,6 @@
   "7be10fc592": {
     "translation": "Restaurar versió"
   },
-  "7c7d5d493e": {
-    "translation": "Si us plau, registreu-vos"
-  },
   "7cb5f8b4a5": {
     "translation": "Oblida't"
   },
@@ -257,9 +227,6 @@
   "815e116a2e": {
     "translation": "Tens algun error, problema o idea per a tldraw? Fes-nos-ho saber! Emplena aquest formulari i et contactarem per correu electrònic si cal. També pots <discord>xatejar amb nosaltres a Discord</discord> o <github>enviar un problema a GitHub</github>."
   },
-  "84c89d47c7": {
-    "translation": "Comparteix gratuïtament"
-  },
   "85a082de1b": {
     "translation": "Actualitzeu la pàgina per obtenir la darrera versió de tldraw."
   },
@@ -271,9 +238,6 @@
   },
   "8b1946f965": {
     "translation": "Per continuar editant, copieu la sala als vostres fitxers."
-  },
-  "8ea211024d": {
-    "translation": "Crea un compte gratuït"
   },
   "8eb2c00e96": {
     "translation": "Compartit amb tu"
@@ -351,9 +315,6 @@
   "b028909917": {
     "translation": "Usuari convidat"
   },
-  "b52dc007ac": {
-    "translation": "Registra't (gratuït i bo)"
-  },
   "b6d4223e60": {
     "translation": "Inicia sessió"
   },
@@ -375,17 +336,8 @@
   "bcb62136a3": {
     "translation": "Carregueu fitxers .tldr"
   },
-  "bffe9a3c9a": {
-    "translation": "Inicia la sessió"
-  },
-  "c079282475": {
-    "translation": "Comparteix la teva feina"
-  },
   "c2276c9127": {
     "translation": "Més informació sobre com compartir."
-  },
-  "c24e43cd1a": {
-    "translation": "T'hi apuntaràs, oi?"
   },
   "c303bd1095": {
     "translation": "No es pot publicar el fitxer."
@@ -402,9 +354,6 @@
   "c87aacf567": {
     "translation": "Tanca la sessió"
   },
-  "c8c6a6504a": {
-    "translation": "T'hauries de registrar"
-  },
   "cceaefbc20": {
     "translation": "Comparteix aquest fitxer"
   },
@@ -413,9 +362,6 @@
   },
   "cea291e45e": {
     "translation": "Més informació sobre la publicació."
-  },
-  "d0eedb7995": {
-    "translation": "Ei"
   },
   "d3d2e61733": {
     "translation": "Tancar"
@@ -429,17 +375,8 @@
   "d876a9fe1a": {
     "translation": "Torna-ho a provar"
   },
-  "d8a50c79a7": {
-    "translation": "Vine amb mi a dibuixar"
-  },
   "d9100f3e10": {
     "translation": "Entra aquí per veure el contingut"
-  },
-  "da404df474": {
-    "translation": "Desa la teva feina"
-  },
-  "db4c2dab9a": {
-    "translation": "No és Excalidraw"
   },
   "dbbebf3c03": {
     "translation": "Només convidar"
@@ -500,9 +437,6 @@
   },
   "fd1be3efcf": {
     "translation": "Esteu segur que voleu suprimir aquest fitxer?"
-  },
-  "fd27891570": {
-    "translation": "Uneix-te a la llista d'espera"
   },
   "fed5ec05eb": {
     "translation": "Enllaç copiat"
