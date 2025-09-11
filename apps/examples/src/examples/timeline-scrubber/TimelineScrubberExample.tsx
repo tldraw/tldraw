@@ -1,6 +1,13 @@
-import { RecordsDiff, reverseRecordsDiff, squashRecordDiffs } from '@tldraw/store'
 import { useCallback, useEffect, useState } from 'react'
-import { Tldraw, TldrawUiSlider, track, useEditor } from 'tldraw'
+import {
+	RecordsDiff,
+	reverseRecordsDiff,
+	squashRecordDiffs,
+	Tldraw,
+	TldrawUiSlider,
+	track,
+	useEditor,
+} from 'tldraw'
 import 'tldraw/tldraw.css'
 import './timeline-scrubber.css'
 
