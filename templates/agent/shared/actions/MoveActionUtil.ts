@@ -50,11 +50,12 @@ export class MoveActionUtil extends AgentActionUtil<MoveAction> {
 
 	override applyAction(action: Streaming<MoveAction>, helpers: AgentHelpers) {
 		if (!action.complete) return
+		if (!this.agent) return
+		const { editor } = this.agent
 
 		// Translate the position back to the chat's position
 		const { x, y } = helpers.removeOffsetFromVec({ x: action.x, y: action.y })
 
-		const { editor } = helpers
 		const shapeId = `shape:${action.shapeId}` as TLShapeId
 		const shape = editor.getShape(shapeId)
 		if (!shape) return

@@ -59,7 +59,7 @@ export class PenActionUtil extends AgentActionUtil<PenAction> {
 	}
 
 	override applyAction(action: Streaming<PenAction>, helpers: AgentHelpers) {
-		const { editor } = helpers
+		if (!this.agent) return
 
 		if (!action.points) return
 		if (action.points.length === 0) return
@@ -107,7 +107,7 @@ export class PenActionUtil extends AgentActionUtil<PenAction> {
 			},
 		]
 
-		editor.createShape<TLDrawShape>({
+		this.agent.editor.createShape<TLDrawShape>({
 			id: createShapeId(),
 			type: 'draw',
 			x: minX,

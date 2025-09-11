@@ -40,10 +40,10 @@ export class DeleteActionUtil extends AgentActionUtil<DeleteAction> {
 		return action
 	}
 
-	override applyAction(action: Streaming<DeleteAction>, helpers: AgentHelpers) {
+	override applyAction(action: Streaming<DeleteAction>) {
 		if (!action.complete) return
-		const { editor } = helpers
+		if (!this.agent) return
 
-		editor.deleteShape(`shape:${action.shapeId}` as TLShapeId)
+		this.agent.editor.deleteShape(`shape:${action.shapeId}` as TLShapeId)
 	}
 }

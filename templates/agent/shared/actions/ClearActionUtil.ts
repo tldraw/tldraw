@@ -1,5 +1,4 @@
 import z from 'zod'
-import { AgentHelpers } from '../AgentHelpers'
 import { Streaming } from '../types/Streaming'
 import { AgentActionUtil } from './AgentActionUtil'
 
@@ -40,12 +39,14 @@ export class ClearActionUtil extends AgentActionUtil<ClearAction> {
 	/**
 	 * Tell the model how to apply the action
 	 */
-	override applyAction(action: Streaming<ClearAction>, helpers: AgentHelpers) {
+	override applyAction(action: Streaming<ClearAction>) {
 		// Don't do anything if the action hasn't finished streaming
 		if (!action.complete) return
 
 		// Delete all shapes on the page
-		const { editor } = helpers
+		if (!this.agent) return
+		const { editor } = this.agent
+
 		const allShapes = editor.getCurrentPageShapes()
 		editor.deleteShapes(allShapes)
 	}

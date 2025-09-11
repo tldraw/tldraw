@@ -35,11 +35,11 @@ export class AlignActionUtil extends AgentActionUtil<AlignAction> {
 		return action
 	}
 
-	override applyAction(action: Streaming<AlignAction>, helpers: AgentHelpers) {
+	override applyAction(action: Streaming<AlignAction>) {
 		if (!action.complete) return
-		const { editor } = helpers
+		if (!this.agent) return
 
-		editor.alignShapes(
+		this.agent.editor.alignShapes(
 			action.shapeIds.map((id) => `shape:${id}` as TLShapeId),
 			action.alignment
 		)

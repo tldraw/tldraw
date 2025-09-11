@@ -1,5 +1,4 @@
 import { z } from 'zod'
-import { AgentHelpers } from '../AgentHelpers'
 import { Streaming } from '../types/Streaming'
 import { AgentActionUtil } from './AgentActionUtil'
 
@@ -29,9 +28,9 @@ export class TodoListActionUtil extends AgentActionUtil<TodoListAction> {
 		return null
 	}
 
-	override applyAction(action: Streaming<TodoListAction>, helpers: AgentHelpers) {
+	override applyAction(action: Streaming<TodoListAction>) {
 		if (!action.complete) return
-		const { agent } = helpers
+		if (!this.agent) return
 
 		const todoItem = {
 			id: action.id,
@@ -39,7 +38,7 @@ export class TodoListActionUtil extends AgentActionUtil<TodoListAction> {
 			text: action.text,
 		}
 
-		agent.$todoList.update((todoItems) => {
+		this.agent.$todoList.update((todoItems) => {
 			const index = todoItems.findIndex((item) => item.id === action.id)
 			if (index !== -1) {
 				return [...todoItems.slice(0, index), todoItem, ...todoItems.slice(index + 1)]

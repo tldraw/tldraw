@@ -37,10 +37,12 @@ export class BringToFrontActionUtil extends AgentActionUtil<BringToFrontAction> 
 		return action
 	}
 
-	override applyAction(action: Streaming<BringToFrontAction>, helpers: AgentHelpers) {
-		const { editor } = helpers
+	override applyAction(action: Streaming<BringToFrontAction>) {
+		if (!this.agent) return
 
 		if (!action.shapeIds) return
-		editor.bringToFront(action.shapeIds.map((shapeId) => `shape:${shapeId}` as TLShapeId))
+		this.agent.editor.bringToFront(
+			action.shapeIds.map((shapeId) => `shape:${shapeId}` as TLShapeId)
+		)
 	}
 }

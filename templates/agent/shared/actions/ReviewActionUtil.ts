@@ -42,7 +42,7 @@ export class ReviewActionUtil extends AgentActionUtil<ReviewAction> {
 
 	override applyAction(action: Streaming<ReviewAction>, helpers: AgentHelpers) {
 		if (!action.complete) return
-		const { agent } = helpers
+		if (!this.agent) return
 
 		const reviewBounds = helpers.removeOffsetFromBox({
 			x: action.x,
@@ -58,13 +58,13 @@ export class ReviewActionUtil extends AgentActionUtil<ReviewAction> {
 		}
 
 		// If the review area is outside the already-scheduled bounds, expand the bounds to include it
-		const scheduledRequest = agent.$scheduledRequest.get()
+		const scheduledRequest = this.agent.$scheduledRequest.get()
 		const bounds = scheduledRequest
 			? Box.From(scheduledRequest.bounds).union(reviewBounds)
 			: reviewBounds
 
 		// Schedule the review
-		agent.schedule({
+		this.agent.schedule({
 			bounds,
 			message: getReviewMessage(action.intent),
 			contextItems: [contextArea],
