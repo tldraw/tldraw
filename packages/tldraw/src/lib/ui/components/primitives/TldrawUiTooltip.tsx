@@ -241,6 +241,7 @@ export const TldrawUiTooltip = forwardRef<HTMLButtonElement, TldrawUiTooltipProp
 		const editor = useMaybeEditor()
 		const tooltipId = useRef<string>(uniqueId())
 		const hasProvider = useContext(TooltipSingletonContext)
+		const showUiLabels = useValue('showUiLabels', () => editor?.user.getShowUiLabels(), [editor])
 
 		const orientationCtx = useTldrawUiOrientation()
 		const sideToUse = side ?? orientationCtx.tooltipSide
@@ -259,8 +260,13 @@ export const TldrawUiTooltip = forwardRef<HTMLButtonElement, TldrawUiTooltipProp
 			return <>{children}</>
 		}
 
-		const delayDurationToUse =
-			delayDuration ?? (editor?.options.tooltipDelayMs || DEFAULT_TOOLTIP_DELAY_MS)
+		let delayDurationToUse
+		if (showUiLabels) {
+			delayDurationToUse = 0
+		} else {
+			delayDurationToUse =
+				delayDuration ?? (editor?.options.tooltipDelayMs || DEFAULT_TOOLTIP_DELAY_MS)
+		}
 
 		// Fallback to old behavior if no provider
 		if (!hasProvider) {
