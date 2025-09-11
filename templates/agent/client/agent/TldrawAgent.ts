@@ -383,11 +383,27 @@ export class TldrawAgent {
 
 	/**
 	 * Schedule further work for the agent to do after this request has finished.
+	 * What you schedule will get merged with the currently scheduled request, if there is one.
 	 *
-	 * If there's no request scheduled yet, schedule one.
-	 * If there's already a scheduled request, modify it, appending where possible.
+	 * @example
+	 * ```tsx
+	 * // Add an instruction
+	 * agent.schedule('Add more detail.')
+	 * ```
 	 *
-	 * @param input - What to schedule.
+	 * @example
+	 * ```tsx
+	 * // Move the viewport
+	 * agent.schedule({
+	 *  bounds: { x: 0, y: 0, w: 100, h: 100 },
+	 * })
+	 * ```
+	 *
+	 * @example
+	 * ```tsx
+	 * // Add data to the request
+	 * agent.schedule({ data: [value] })
+	 * ```
 	 */
 	schedule(input: AgentInput) {
 		const scheduledRequest = this.$scheduledRequest.get()
@@ -429,6 +445,12 @@ export class TldrawAgent {
 	 *  message: 'Add more detail to this area.',
 	 *  bounds: { x: 0, y: 0, w: 100, h: 100 },
 	 * })
+	 * ```
+	 *
+	 * @example
+	 * ```tsx
+	 * // Cancel the scheduled request
+	 * agent.setScheduledRequest(null)
 	 * ```
 	 *
 	 * @param input - What to set the scheduled request to, or null to cancel

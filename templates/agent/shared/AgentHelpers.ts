@@ -360,6 +360,31 @@ export class AgentHelpers {
 	}
 
 	/**
+	 * Round a number and save its diff so that it can be restored later.
+	 * @param number - The number to round.
+	 * @param key - The key to save the diff under.
+	 * @returns The rounded number.
+	 */
+	roundAndSaveNumber(number: number, key: string): number {
+		const roundedNumber = Math.round(number)
+		const diff = roundedNumber - number
+		this.roundingDiffMap.set(key, diff)
+		return roundedNumber
+	}
+
+	/**
+	 * Reverse the rounding of a number and restore the original value.
+	 * @param number - The number to unround.
+	 * @param key - The key to restore the diff from.
+	 * @returns The unrounded number.
+	 */
+	unroundAndRestoreNumber(number: number, key: string): number {
+		const diff = this.roundingDiffMap.get(key)
+		if (diff === undefined) return number
+		return number + diff
+	}
+
+	/**
 	 * Round a number property of a shape, and save the diff so that it can be restored later.
 	 * @param shape - The shape to round.
 	 * @param property - The property to round.
@@ -369,12 +394,10 @@ export class AgentHelpers {
 		if (typeof shape[property] !== 'number') return shape
 
 		const value = shape[property]
-		const roundedValue = Math.round(value)
-		const diff = roundedValue - value
-		;(shape[property] as number) = roundedValue
-
 		const key = `${shape.shapeId}_${property as string}`
-		this.roundingDiffMap.set(key, diff)
+		const roundedValue = this.roundAndSaveNumber(value, key)
+
+		;(shape[property] as number) = roundedValue
 		return shape
 	}
 

@@ -35,6 +35,7 @@ With its default configuration, the agent can perform the following actions:
 - Keep track of its task by writing and updating a todo list.
 - Move its viewport to look at different parts of the canvas.
 - Schedule further work and reviews to be carried out in follow-up requests.
+- Call example external APIs: Looking up country information, retrieving a random Wikipedia article.
 
 To make decisions on what to do, we send the agent information from various sources:
 
@@ -64,12 +65,7 @@ You can optionally specify further details about the request in the form of an `
 ```ts
 agent.prompt({
 	message: 'Draw a cat in this area',
-	bounds: {
-		x: 0,
-		y: 0,
-		w: 300,
-		h: 400,
-	},
+	bounds: { x: 0, y: 0, w: 300, h: 400 },
 })
 ```
 
@@ -159,7 +155,7 @@ const ClearAction = z
 	})
 
 // Infer the action's type
-type IClearAction = z.infer<typeof ClearAction>
+type ClearAction = z.infer<typeof ClearAction>
 ```
 
 Create an agent action util:
@@ -193,7 +189,7 @@ There are other methods available on the `AgentActionUtil` class that you can ov
 
 - `getInfo` - Determine how the action gets displayed in the chat panel UI.
 - `savesToHistory` - Control whether actions get saved to chat history or not.
-- `sanitizeAction` - Apply transformations to the action before saving it to history and applying it. More details on [transformations](#transformations) below.
+- `sanitizeAction` - Sanitize the action before saving it to history and applying it. More details on [sanitization](#sanitize-data-received-from-the-model) below.
 
 ## Change how actions appear in chat history
 
@@ -242,23 +238,20 @@ override applyAction(action: Streaming<IAddDetailAction>, helpers: AgentHelpers)
 }
 ```
 
-You can pass a callback to the `schedule` method to create a request based on the currently scheduled request. If there is nothing scheduled, the callback will be called with the default request.
+As with the `prompt` method, you can specify further details about the request.
 
 ```ts
-override applyAction(action: Streaming<IMoveRightAction>, helpers: AgentHelpers) {
-	if (!action.complete) return
+agent.schedule((prev) => ({
+	message: 'Add more detail in this area.',
+	bounds: { x: 0, y: 0, w: 100, h: 100 },
+}))
+```
 
-	const { agent } = helpers
-	agent.schedule((prev) => ({
-		bounds: {
-			// Move the viewport to the right
-			x: prev.bounds.x + 200,
-			y: prev.bounds.y,
-			w: prev.bounds.w,
-			h: prev.bounds.h,
-		},
-	}))
-}
+You can schedule multiple things by calling the `schedule` method more than once.
+
+```ts
+agent.schedule('Add more detail to the canvas.')
+agent.schedule('Check for spelling mistakes.')
 ```
 
 You can also schedule further work by adding to the agent's todo list. It won't stop working until all todos are resolved.
@@ -274,7 +267,7 @@ override applyAction(action: Streaming<IAddDetailAction>, helpers: AgentHelpers)
 
 ## Retrieve data from an external API
 
-To let the agent retrieve information from an external API, fetch and return it within the `applyAction` method. The agent will have access to it within its next scheduled request, if there is one.
+To let the agent retrieve information from an external API, fetch the data within `applyAction` and schedule a follow-up request with any data you want the agent to have access to.
 
 ```ts
 override async applyAction(
@@ -284,15 +277,13 @@ override async applyAction(
 	if (!action.complete) return
 	const { agent } = helpers
 
-	// Schedule a follow-up request so the agent can use the data
-	agent.schedule("Here's a random Wikipedia article.")
-
 	// Fetch from the external API
-	return await fetchRandomWikipediaArticle()
+	const article = await fetchRandomWikipediaArticle()
+
+	// Schedule a follow-up request with the data
+	agent.schedule({ data: [article] })
 }
 ```
-
-Values returned from an action's `applyAction()` method will be added to the `actionResults` property of the next request. By default, the `ActionResultsPartUtil` adds them all to the prompt.
 
 ## Sanitize data received from the model
 
@@ -357,6 +348,28 @@ override applyAction(action: Streaming<IMoveAction>, helpers: AgentHelpers) {
 
 	// Do something with the position...
 }
+```
+
+It's a good idea to round numbers before sending them to the model. If you want to be able to restore the original number later, use the `roundAndSaveNumber` and `unroundAndRestoreNumber` methods.
+
+```ts
+// In `getPart`...
+const roundedX = helpers.roundAndSaveNumber(x, 'my_key_x')
+const roundedY = helpers.roundAndSaveNumber(y, 'my_key_y')
+
+// In `applyAction`...
+const unroundedX = helpers.unroundAndRestoreNumber(x, 'my_key_x')
+const unroundedY = helpers.unroundAndRestoreNumber(y, 'my_key_y')
+```
+
+To round all the numbers on a shape, use the `roundShape` and `unroundShape` methods. See the [shapes](#send-shapes-to-the-model) section below for more details on sending shapes to the model.
+
+```ts
+// In `getPart`...
+const roundedShape = helpers.roundShape(shape)
+
+// In `applyAction`...
+const unroundedShape = helpers.unroundShape(roundedShape)
 ```
 
 ## Send shapes to the model
