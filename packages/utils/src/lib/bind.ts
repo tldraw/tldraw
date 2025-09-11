@@ -9,6 +9,10 @@ import { assert } from './control'
  * `@bind` is a decorator that binds the method to the instance of the class (legacy stage-2
  * typescript decorators).
  *
+ * @param target - The prototype of the class being decorated
+ * @param propertyKey - The name of the method being decorated
+ * @param descriptor - The property descriptor for the method
+ * @returns The modified property descriptor
  * @public
  */
 export function bind<T extends (...args: any[]) => any>(
@@ -20,6 +24,8 @@ export function bind<T extends (...args: any[]) => any>(
 /**
  * `@bind` is a decorator that binds the method to the instance of the class (TC39 decorators).
  *
+ * @param originalMethod - The original method being decorated
+ * @param context - The decorator context for the method
  * @public
  */
 export function bind<This extends object, T extends (...args: any[]) => any>(
@@ -27,7 +33,14 @@ export function bind<This extends object, T extends (...args: any[]) => any>(
 	context: ClassMethodDecoratorContext<This, T>
 ): void
 
-/** @public */
+/**
+ * `@bind` decorator implementation that handles both legacy and TC39 decorator formats.
+ * Automatically binds the decorated method to the class instance.
+ *
+ * @param args - Either legacy decorator arguments or TC39 decorator arguments
+ * @returns Property descriptor for legacy decorators, or void for TC39 decorators
+ * @public
+ */
 export function bind(
 	...args: // legacy stage-2 typescript decorators
 	| [_target: object, propertyKey: string, descriptor: PropertyDescriptor]

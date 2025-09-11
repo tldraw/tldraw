@@ -63,26 +63,6 @@ console.log(rotated) // ['text', 'select', 'draw', 'eraser']
 
 This is particularly useful for cycling through tools or shifting z-order arrangements.
 
-#### Finding Extremes
-
-When you need to find items by their properties, use `minBy` and `maxBy`:
-
-```ts
-import { minBy, maxBy } from '@tldraw/utils'
-
-const shapes = [
-	{ id: 'a', area: 100 },
-	{ id: 'b', area: 50 },
-	{ id: 'c', area: 200 },
-]
-
-const smallest = minBy(shapes, (shape) => shape.area)
-console.log(smallest) // { id: 'b', area: 50 }
-
-const largest = maxBy(shapes, (shape) => shape.area)
-console.log(largest) // { id: 'c', area: 200 }
-```
-
 #### Splitting Collections
 
 You partition arrays based on conditions using `partition`:
@@ -101,85 +81,7 @@ console.log(selected) // [{ id: 'a', selected: true }, { id: 'c', selected: true
 console.log(unselected) // [{ id: 'b', selected: false }]
 ```
 
-#### Array Cleaning and Grouping
-
-Remove null/undefined values and group items:
-
-```ts
-import { compact, groupBy } from '@tldraw/utils'
-
-// Remove null and undefined values
-const messy = [1, null, 2, undefined, 3]
-const clean = compact(messy) // [1, 2, 3]
-
-// Group items by a property
-const users = [
-	{ name: 'Alice', role: 'admin' },
-	{ name: 'Bob', role: 'user' },
-	{ name: 'Charlie', role: 'admin' },
-]
-
-const grouped = groupBy(users, (user) => user.role)
-console.log(grouped)
-// {
-//   admin: [{ name: 'Alice', role: 'admin' }, { name: 'Charlie', role: 'admin' }],
-//   user: [{ name: 'Bob', role: 'user' }]
-// }
-```
-
-### Object Operations: Safe Property Access
-
-Working with objects safely requires careful handling of keys, values, and type preservation. The object utilities provide this safety while maintaining TypeScript's type information.
-
-#### Type-Safe Key and Value Extraction
-
-You extract object properties with full type safety:
-
-```ts
-import { objectMapKeys, objectMapValues, objectMapEntries } from '@tldraw/utils'
-
-const tools = {
-	select: { name: 'Select', icon: '👆' },
-	draw: { name: 'Draw', icon: '✏️' },
-	eraser: { name: 'Eraser', icon: '🧹' },
-} as const
-
-const toolIds = objectMapKeys(tools)
-console.log(toolIds) // ['select', 'draw', 'eraser'] (typed as string[])
-
-const toolConfigs = objectMapValues(tools)
-// [{ name: 'Select', icon: '👆' }, ...] (fully typed)
-
-const entries = objectMapEntries(tools)
-// [['select', { name: 'Select', icon: '👆' }], ...] (typed tuples)
-```
-
-#### Filtering and Transforming
-
-You can filter object entries while preserving types:
-
-```ts
-import { filterEntries } from '@tldraw/utils'
-
-const shapeTypes = {
-	geo: { complex: false, builtin: true },
-	draw: { complex: true, builtin: true },
-	custom: { complex: false, builtin: false },
-}
-
-const builtinTypes = filterEntries(shapeTypes, (key, value) => value.builtin)
-console.log(builtinTypes) // { geo: { complex: false, builtin: true }, draw: { complex: true, builtin: true } }
-```
-
-Transform object values with `mapObjectMapValues`:
-
-```ts
-import { mapObjectMapValues } from '@tldraw/utils'
-
-const counts = { shapes: 5, tools: 3, bindings: 2 }
-const labels = mapObjectMapValues(counts, (key, count) => `${count} ${key}`)
-console.log(labels) // { shapes: '5 shapes', tools: '3 tools', bindings: '2 bindings' }
-```
+> Note: `partition` is marked as `@internal` in the source code but is exported for use. It may change without notice in minor versions.
 
 ### Error Handling: The Result Pattern
 
@@ -297,10 +199,10 @@ await Promise.all([save1, save2, save3])
 
 #### Task Timing and Cleanup
 
-You can add delays between tasks and clean up when needed:
+You can add a timeout between tasks and clean up when needed:
 
 ```ts
-// 500ms delay between tasks
+// 500ms timeout between tasks
 const queue = new ExecutionQueue(500)
 
 // Queue some operations
@@ -333,7 +235,7 @@ function getBoundingBox(shape: Shape): BoundingBox {
 }
 ```
 
-Each time you call `getBoundingBox` with the same shape object, it returns the cached result. When the shape object is garbage collected, the cache entry is automatically cleaned up.
+Each time you call `getBoundingBox` with the same shape object, it returns the cached result. When the shape object is garbage collected, the cache entry is automatically cleaned up by the underlying WeakMap.
 
 #### Multiple Cache Layers
 
@@ -405,11 +307,8 @@ You can also generate a sequence of indices starting from a specific point:
 ```ts
 import { getIndices } from '@tldraw/utils'
 
-// Generate 5 indices starting from 'a1'
-const indices = getIndices(5) // ['a1', 'a2', 'a3', 'a4', 'a5']
-
-// Or start from a custom index
-const customIndices = getIndices(3, 'b1' as IndexKey) // ['b1', 'b2', 'b3']
+// Generate 5 indices starting from 'a1' (returns start + n indices)
+const indices = getIndices(5, 'a1') // ['a1', 'a2', 'a3', 'a4', 'a5', 'a6']
 ```
 
 The IndexKey system ensures that insertion operations always succeed, even with complex reordering scenarios.
@@ -557,35 +456,6 @@ debouncedSave.cancel()
 
 Understanding where time is spent helps optimize tldraw applications.
 
-#### Measuring Function Duration
-
-You can measure how long operations take:
-
-```ts
-import { measureDuration } from '@tldraw/utils'
-
-const { duration, result } = measureDuration(() => {
-	return expensiveCalculation()
-})
-
-console.log(`Calculation took ${duration}ms and returned:`, result)
-```
-
-#### Callback-Based Measurement
-
-For operations that use callbacks to signal completion:
-
-```ts
-import { measureCbDuration } from '@tldraw/utils'
-
-const { duration, result } = await measureCbDuration((done) => {
-	performAsyncOperation((result) => {
-		done() // Signal completion
-		return result
-	})
-})
-```
-
 #### Performance Tracking
 
 Use `PerformanceTracker` for detailed timing analysis:
@@ -595,17 +465,13 @@ import { PerformanceTracker } from '@tldraw/utils'
 
 const tracker = new PerformanceTracker()
 
-tracker.mark('render-start')
+tracker.start('render')
 renderShapes()
-tracker.mark('render-end')
+tracker.stop()
 
-tracker.mark('interaction-start')
+tracker.start('interaction')
 handleUserInteraction()
-tracker.mark('interaction-end')
-
-// Measure the duration between marks
-tracker.measure('render-time', 'render-start', 'render-end')
-tracker.measure('interaction-time', 'interaction-start', 'interaction-end')
+tracker.stop()
 ```
 
 > Tip: Performance measurements integrate with browser DevTools Performance tab for detailed analysis.
@@ -664,42 +530,13 @@ const different = otherRandom() // Different value
 
 ## 5. Cross-Platform Compatibility
 
-### Network Operations
-
-The utils package provides consistent network APIs across different JavaScript environments.
-
-#### Universal Fetch
-
-Use the provided `fetch` for consistent behavior:
-
-```ts
-import { fetch } from '@tldraw/utils'
-
-// Works in browser, Node.js, and other environments
-const response = await fetch('https://api.example.com/data')
-const data = await response.json()
-```
-
-#### Universal Image
-
-Use the provided `Image` constructor:
-
-```ts
-import { Image } from '@tldraw/utils'
-
-// Works across environments with appropriate polyfills
-const img = new Image()
-img.onload = () => console.log(`Loaded ${img.width}x${img.height}`)
-img.src = imageUrl
-```
-
 ### Storage Operations
 
 Browser storage operations need careful error handling for quota limits and privacy modes.
 
 #### LocalStorage with Error Handling
 
-The storage utilities handle errors gracefully:
+The storage utilities handle errors gracefully (note that these functions are marked as `@internal` but are exported for use):
 
 ```ts
 import { getFromLocalStorage, setInLocalStorage, clearLocalStorage } from '@tldraw/utils'
@@ -717,11 +554,14 @@ clearLocalStorage()
 Session storage works identically:
 
 ```ts
-import { getFromSessionStorage, setInSessionStorage } from '@tldraw/utils'
+import { getFromSessionStorage, setInSessionStorage, clearSessionStorage } from '@tldraw/utils'
 
 // Temporary data for the current session
 setInSessionStorage('current-tool', 'select')
 const currentTool = getFromSessionStorage('current-tool')
+
+// Clear all session data when needed
+clearSessionStorage()
 ```
 
 ### File Operations
@@ -825,8 +665,8 @@ try {
 	performRiskyOperation()
 } catch (error) {
 	annotateError(error, {
-		tags: { operation: { value: 'shape-creation' } },
-		extras: { shapeId: 'shape-123', userId: currentUser.id },
+		tags: { operation: 'shape-creation' },
+		extras: { shapeId: 'shape-123' },
 	})
 
 	// Later, retrieve the context
@@ -852,9 +692,9 @@ import { uniqueId, mockUniqueId, restoreUniqueId } from '@tldraw/utils'
 const id = uniqueId() // 'VxhUYo3k8GsLmWkjhGq9e'
 
 // Mock IDs for testing (returns predictable sequence)
-mockUniqueId()
+mockUniqueId(() => 'mock-id-0')
 const testId1 = uniqueId() // 'mock-id-0'
-const testId2 = uniqueId() // 'mock-id-1'
+const testId2 = uniqueId() // 'mock-id-0'
 
 // Restore normal ID generation
 restoreUniqueId()
@@ -906,13 +746,13 @@ Extract values from iterables:
 import { getFirstFromIterable } from '@tldraw/utils'
 
 const set = new Set([1, 2, 3])
-const first = getFirstFromIterable(set) // 1
+const first = getFirstFromIterable(set)
 
 const map = new Map([
 	['a', 1],
 	['b', 2],
 ])
-const firstValue = getFirstFromIterable(map) // 1
+const firstValue = getFirstFromIterable(map)
 ```
 
 #### Method Binding Decorator
@@ -958,7 +798,7 @@ function handleShapeType(shape: Shape) {
 			return handleCircle(shape)
 		default:
 			// TypeScript error if new shape types are added but not handled
-			throw exhaustiveSwitchError(shape.type)
+			throw exhaustiveSwitchError(shape)
 	}
 }
 ```
@@ -992,16 +832,14 @@ function processUserInput(data: unknown) {
 When creating custom shapes, utils provide essential building blocks:
 
 ```ts
-import { WeakCache, Result, assert, getIndexBetween, measureDuration } from '@tldraw/utils'
+import { WeakCache, Result, assert, getIndexBetween } from '@tldraw/utils'
 
 class CustomShapeUtil extends BaseBoxShapeUtil<CustomShape> {
 	private geometryCache = new WeakCache<CustomShape, Geometry>()
 
 	getGeometry(shape: CustomShape): Geometry {
 		return this.geometryCache.get(shape, (s) => {
-			const { duration, result } = measureDuration(() => this.computeComplexGeometry(s))
-			console.log(`Geometry computation took ${duration}ms`)
-			return result
+			return this.computeComplexGeometry(s)
 		})
 	}
 
