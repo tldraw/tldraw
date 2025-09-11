@@ -89,6 +89,10 @@ export const storeMigrations = createMigrationSequence({
 					}
 				}
 			},
+			down: () => {
+				// noop
+				// Enables tlsync to support older clients so as to not force people to refresh immediately after deploying.
+			},
 		},
 	],
 })

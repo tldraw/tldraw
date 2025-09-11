@@ -228,7 +228,7 @@ describe('Store removing Icon and Code shapes', () => {
 })
 
 describe('Fixing index keys', () => {
-	const { up } = getTestMigration(storeVersions.FixIndexKeys)
+	const { up, down } = getTestMigration(storeVersions.FixIndexKeys)
 	test('up works as expected', () => {
 		const snapshot = [
 			ShapeRecord.create({
@@ -255,6 +255,19 @@ describe('Fixing index keys', () => {
 		expect(fixed.find((s) => s.id === 'shape:2')?.index).not.toBe('a00')
 		expect(fixed.find((s) => s.id === 'shape:2')?.index).toMatch(/^a0[1-9A-Za-z]{3}$/)
 		expect(fixed.find((s) => s.id === 'shape:3')?.index).toBe('a111')
+	})
+
+	test('down works as expected', () => {
+		const snapshot = [
+			ShapeRecord.create({
+				type: 'shape',
+				id: 'shape:1',
+				parentId: 'page:any',
+				index: 'a00',
+			} as any),
+		]
+		const unchanged = snapshot.map((shape) => down(shape))
+		expect(unchanged.find((s) => s.id === 'shape:1')?.index).toBe('a00')
 	})
 })
 
