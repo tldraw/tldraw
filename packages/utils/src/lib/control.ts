@@ -3,7 +3,7 @@ import { omitFromStackTrace } from './function'
 /**
  * Represents a successful result containing a value.
  *
- * @description Interface for the success case of a Result type, containing the computed value.
+ * Interface for the success case of a Result type, containing the computed value.
  * Used in conjunction with ErrorResult to create a discriminated union for error handling.
  *
  * @example
@@ -22,7 +22,7 @@ export interface OkResult<T> {
 /**
  * Represents a failed result containing an error.
  *
- * @description Interface for the error case of a Result type, containing the error information.
+ * Interface for the error case of a Result type, containing the error information.
  * Used in conjunction with OkResult to create a discriminated union for error handling.
  *
  * @example
@@ -41,7 +41,7 @@ export interface ErrorResult<E> {
 /**
  * A discriminated union type for handling success and error cases.
  *
- * @description Represents either a successful result with a value or a failed result with an error.
+ * Represents either a successful result with a value or a failed result with an error.
  * This pattern provides type-safe error handling without throwing exceptions. The 'ok' property
  * serves as the discriminant for type narrowing.
  *
@@ -68,7 +68,7 @@ export type Result<T, E> = OkResult<T> | ErrorResult<E>
 /**
  * Utility object for creating Result instances.
  *
- * @description Provides factory methods for creating OkResult and ErrorResult instances.
+ * Provides factory methods for creating OkResult and ErrorResult instances.
  * This is the preferred way to construct Result values for consistent structure.
  *
  * @example
@@ -107,7 +107,7 @@ export const Result = {
 /**
  * Throws an error for unhandled switch cases in exhaustive switch statements.
  *
- * @description Utility function to ensure exhaustive handling of discriminated unions in switch
+ * Utility function to ensure exhaustive handling of discriminated unions in switch
  * statements. When called, it indicates a programming error where a case was not handled.
  * The TypeScript 'never' type ensures this function is only reachable if all cases aren't covered.
  *
@@ -139,7 +139,7 @@ export function exhaustiveSwitchError(value: never, property?: string): never {
 /**
  * Assert that a value is truthy, throwing an error if it's not.
  *
- * @description TypeScript assertion function that throws an error if the provided value is falsy.
+ * TypeScript assertion function that throws an error if the provided value is falsy.
  * After this function executes successfully, TypeScript narrows the type to exclude falsy values.
  * Stack trace is omitted from the error for cleaner debugging.
  *
@@ -166,7 +166,7 @@ export const assert: (value: unknown, message?: string) => asserts value = omitF
 /**
  * Assert that a value is not null or undefined.
  *
- * @description Throws an error if the value is null or undefined, otherwise returns the value
+ * Throws an error if the value is null or undefined, otherwise returns the value
  * with a refined type that excludes null and undefined. Stack trace is omitted for cleaner debugging.
  *
  * @param value - The value to check for null/undefined
@@ -193,7 +193,7 @@ export const assertExists = omitFromStackTrace(<T>(value: T, message?: string): 
 /**
  * Create a Promise with externally accessible resolve and reject functions.
  *
- * @description Creates a Promise along with its resolve and reject functions exposed as
+ * Creates a Promise along with its resolve and reject functions exposed as
  * properties on the returned object. This allows external code to control when the
  * Promise resolves or rejects, useful for coordination between async operations.
  *
@@ -233,7 +233,7 @@ export function promiseWithResolve<T>(): Promise<T> & {
 /**
  * Create a Promise that resolves after a specified delay.
  *
- * @description Utility function for introducing delays in async code. Returns a Promise
+ * Utility function for introducing delays in async code. Returns a Promise
  * that resolves with undefined after the specified number of milliseconds. Useful for
  * implementing timeouts, rate limiting, or adding delays in testing scenarios.
  *

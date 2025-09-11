@@ -3,7 +3,7 @@ import { sleep } from './control'
 /**
  * A queue that executes tasks sequentially with optional delay between tasks.
  *
- * @description ExecutionQueue ensures that tasks are executed one at a time in the order they were added,
+ * ExecutionQueue ensures that tasks are executed one at a time in the order they were added,
  * with an optional timeout delay between each task execution. This is useful for rate limiting,
  * preventing race conditions, or controlling the flow of asynchronous operations.
  *
@@ -37,7 +37,7 @@ export class ExecutionQueue {
 	/**
 	 * Creates a new ExecutionQueue.
 	 *
-	 * @description Creates a new execution queue that will process tasks sequentially.
+	 * Creates a new execution queue that will process tasks sequentially.
 	 * If a timeout is provided, there will be a delay between each task execution,
 	 * which is useful for rate limiting or controlling execution flow.
 	 *
@@ -57,7 +57,7 @@ export class ExecutionQueue {
 	/**
 	 * Checks if the queue is empty and not currently running a task.
 	 *
-	 * @description Determines whether the execution queue has completed all tasks and is idle.
+	 * Determines whether the execution queue has completed all tasks and is idle.
 	 * Returns true only when there are no pending tasks in the queue AND no task is currently being executed.
 	 *
 	 * @returns True if the queue has no pending tasks and is not currently executing
@@ -97,7 +97,7 @@ export class ExecutionQueue {
 	/**
 	 * Adds a task to the queue and returns a promise that resolves with the task's result.
 	 *
-	 * @description Enqueues a task for sequential execution. The task will be executed after all
+	 * Enqueues a task for sequential execution. The task will be executed after all
 	 * previously queued tasks have completed. If a timeout was specified in the constructor,
 	 * there will be a delay between this task and the next one.
 	 *
@@ -128,7 +128,7 @@ export class ExecutionQueue {
 	/**
 	 * Clears all pending tasks from the queue.
 	 *
-	 * @description Immediately removes all pending tasks from the queue. Any currently
+	 * Immediately removes all pending tasks from the queue. Any currently
 	 * running task will complete normally, but no additional tasks will be executed.
 	 * This method does not wait for the current task to finish.
 	 *

@@ -1,7 +1,7 @@
 /**
  * A lightweight cache implementation using WeakMap for storing key-value pairs.
  *
- * @description A micro cache that stores computed values associated with object keys.
+ * A micro cache that stores computed values associated with object keys.
  * Uses WeakMap internally, which means keys can be garbage collected when no other
  * references exist, and only object keys are supported. Provides lazy computation
  * with memoization.
@@ -25,7 +25,7 @@ export class WeakCache<K extends object, V> {
 	/**
 	 * The internal WeakMap storage for cached key-value pairs.
 	 *
-	 * @description Stores the mapping from object keys to their computed values.
+	 * Stores the mapping from object keys to their computed values.
 	 * Being a WeakMap, it allows keys to be garbage collected when no other
 	 * references exist.
 	 */
@@ -34,7 +34,7 @@ export class WeakCache<K extends object, V> {
 	/**
 	 * Get the cached value for a given key, computing it if not already cached.
 	 *
-	 * @description Retrieves the cached value associated with the given key. If no cached
+	 * Retrieves the cached value associated with the given key. If no cached
 	 * value exists, calls the provided callback function to compute the value, stores it
 	 * in the cache, and returns it. Subsequent calls with the same key will return the
 	 * cached value without recomputation.

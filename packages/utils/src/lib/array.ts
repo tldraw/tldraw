@@ -1,7 +1,7 @@
 /**
  * Rotate the contents of an array by a specified offset.
  *
- * @description Creates a new array with elements rotated by the specified number of positions.
+ * Creates a new array with elements rotated by the specified number of positions.
  * Positive offset rotates elements to the right, negative offset rotates to the left.
  *
  * @param arr - The array to rotate
@@ -23,7 +23,7 @@ export function rotateArray<T>(arr: T[], offset: number): T[] {
 /**
  * Remove duplicate items from an array.
  *
- * @description Creates a new array with duplicate items removed. Uses strict equality by default,
+ * Creates a new array with duplicate items removed. Uses strict equality by default,
  * or a custom equality function if provided. Order of first occurrence is preserved.
  *
  * @param input - The array to deduplicate
@@ -57,7 +57,7 @@ export function dedupe<T>(input: T[], equals?: (a: any, b: any) => boolean): T[]
 /**
  * Remove null and undefined values from an array.
  *
- * @description Creates a new array with all null and undefined values filtered out.
+ * Creates a new array with all null and undefined values filtered out.
  * The resulting array has a refined type that excludes null and undefined.
  *
  * @param arr - The array to compact
@@ -77,7 +77,7 @@ export function compact<T>(arr: T[]): NonNullable<T>[] {
 /**
  * Get the last element of an array.
  *
- * @description Returns the last element of an array, or undefined if the array is empty.
+ * Returns the last element of an array, or undefined if the array is empty.
  * Works with readonly arrays and preserves the element type.
  *
  * @param arr - The array to get the last element from
@@ -98,7 +98,7 @@ export function last<T>(arr: readonly T[]): T | undefined {
 /**
  * Find the item in an array with the minimum value according to a function.
  *
- * @description Finds the array item that produces the smallest value when passed through
+ * Finds the array item that produces the smallest value when passed through
  * the provided function. Returns undefined for empty arrays.
  *
  * @param arr - The array to search
@@ -131,7 +131,7 @@ export function minBy<T>(arr: readonly T[], fn: (item: T) => number): T | undefi
 /**
  * Find the item in an array with the maximum value according to a function.
  *
- * @description Finds the array item that produces the largest value when passed through
+ * Finds the array item that produces the largest value when passed through
  * the provided function. Returns undefined for empty arrays.
  *
  * @param arr - The array to search
@@ -164,7 +164,7 @@ export function maxBy<T>(arr: readonly T[], fn: (item: T) => number): T | undefi
 /**
  * Split an array into two arrays based on a predicate function.
  *
- * @description Partitions an array into two arrays: one containing items that satisfy
+ * Partitions an array into two arrays: one containing items that satisfy
  * the predicate, and another containing items that do not. The original array order is preserved.
  *
  * @param arr - The array to partition
@@ -200,7 +200,7 @@ export function partition<T>(arr: T[], predicate: (item: T) => boolean): [T[], T
 /**
  * Check if two arrays are shallow equal.
  *
- * @description Compares two arrays for shallow equality by checking if they have the same length
+ * Compares two arrays for shallow equality by checking if they have the same length
  * and the same elements at each index using Object.is comparison. Returns true if arrays are
  * the same reference, have different lengths, or any elements differ.
  *
@@ -235,7 +235,7 @@ export function areArraysShallowEqual<T>(arr1: readonly T[], arr2: readonly T[])
 /**
  * Merge custom entries with defaults, replacing defaults that have matching keys.
  *
- * @description Combines two arrays by keeping all custom entries and only the default entries
+ * Combines two arrays by keeping all custom entries and only the default entries
  * that don't have a matching key in the custom entries. Custom entries always override defaults.
  * The result contains remaining defaults first, followed by all custom entries.
  *

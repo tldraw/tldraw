@@ -1,7 +1,7 @@
 /**
  * Create a debounced version of a function that delays execution until after a specified wait time.
  *
- * @description Debouncing ensures that a function is only executed once after a specified delay,
+ * Debouncing ensures that a function is only executed once after a specified delay,
  * even if called multiple times in rapid succession. Each new call resets the timer. The debounced
  * function returns a Promise that resolves with the result of the original function. Includes a
  * cancel method to prevent execution if needed.

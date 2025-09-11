@@ -3,7 +3,7 @@ import { fetch } from './network'
 /**
  * Utility class providing helper methods for file and blob operations.
  *
- * @description FileHelpers contains static methods for common file operations including
+ * FileHelpers contains static methods for common file operations including
  * URL fetching, format conversion, and MIME type manipulation. All methods work with
  * web APIs like fetch, FileReader, and Blob/File objects.
  *
@@ -25,7 +25,7 @@ export class FileHelpers {
 	/**
 	 * Converts a URL to an ArrayBuffer by fetching the resource.
 	 *
-	 * @description Fetches the resource at the given URL and returns its content as an ArrayBuffer.
+	 * Fetches the resource at the given URL and returns its content as an ArrayBuffer.
 	 * This is useful for loading binary data like images, videos, or other file types.
 	 *
 	 * @param url - The URL of the file to fetch
@@ -45,7 +45,7 @@ export class FileHelpers {
 	/**
 	 * Converts a URL to a Blob by fetching the resource.
 	 *
-	 * @description Fetches the resource at the given URL and returns its content as a Blob object.
+	 * Fetches the resource at the given URL and returns its content as a Blob object.
 	 * Blobs are useful for handling file data in web applications.
 	 *
 	 * @param url - The URL of the file to fetch
@@ -66,7 +66,7 @@ export class FileHelpers {
 	/**
 	 * Converts a URL to a data URL by fetching the resource.
 	 *
-	 * @description Fetches the resource at the given URL and converts it to a base64-encoded data URL.
+	 * Fetches the resource at the given URL and converts it to a base64-encoded data URL.
 	 * If the URL is already a data URL, it returns the URL unchanged. This is useful for embedding
 	 * resources directly in HTML or CSS.
 	 *
@@ -91,7 +91,7 @@ export class FileHelpers {
 	/**
 	 * Convert a Blob to a base64 encoded data URL.
 	 *
-	 * @description Converts a Blob object to a base64-encoded data URL using the FileReader API.
+	 * Converts a Blob object to a base64-encoded data URL using the FileReader API.
 	 * This is useful for displaying images or embedding file content directly in HTML.
 	 *
 	 * @param file - The Blob object to convert
@@ -123,7 +123,7 @@ export class FileHelpers {
 	/**
 	 * Convert a Blob to a unicode text string.
 	 *
-	 * @description Reads the content of a Blob object as a UTF-8 text string using the FileReader API.
+	 * Reads the content of a Blob object as a UTF-8 text string using the FileReader API.
 	 * This is useful for reading text files or extracting text content from blobs.
 	 *
 	 * @param file - The Blob object to convert to text
@@ -155,7 +155,7 @@ export class FileHelpers {
 	/**
 	 * Creates a new Blob or File with a different MIME type.
 	 *
-	 * @description Creates a copy of the given Blob or File with a new MIME type while preserving
+	 * Creates a copy of the given Blob or File with a new MIME type while preserving
 	 * all other properties. If the current MIME type already matches the new one, returns the
 	 * original object unchanged. For File objects, preserves the filename.
 	 *
