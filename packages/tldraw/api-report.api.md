@@ -4376,7 +4376,7 @@ export interface TLUiSliderProps {
     // (undocumented)
     min?: number;
     // (undocumented)
-    onHistoryMark(id: string): void;
+    onHistoryMark?(id: string): void;
     // (undocumented)
     onValueChange(value: number): void;
     // (undocumented)

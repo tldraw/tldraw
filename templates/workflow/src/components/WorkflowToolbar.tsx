@@ -31,7 +31,7 @@ import {
 	XBoxToolbarItem,
 } from 'tldraw'
 import { NodeShape } from '../nodes/NodeShapeUtil'
-import { NodeDefinitions, NodeType } from '../nodes/nodeTypes'
+import { getNodeDefinitions, NodeType } from '../nodes/nodeTypes'
 import { MATH_MENU_ID, MathematicalToolbarItem } from './MathematicalToolbarItem'
 
 function createNodeShape(editor: Editor, shapeId: TLShapeId, center: Vec, node: NodeType) {
@@ -64,7 +64,7 @@ function createNodeShape(editor: Editor, shapeId: TLShapeId, center: Vec, node: 
 
 export const overrides: TLUiOverrides = {
 	tools: (editor, tools, _) => {
-		for (const nodeDef of NodeDefinitions) {
+		for (const nodeDef of Object.values(getNodeDefinitions(editor))) {
 			tools[`node-${nodeDef.type}`] = {
 				id: `node-${nodeDef.type}`,
 				label: nodeDef.title,
