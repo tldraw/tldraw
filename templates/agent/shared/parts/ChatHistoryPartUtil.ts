@@ -16,8 +16,8 @@ export class ChatHistoryPartUtil extends PromptPartUtil<ChatHistoryPart> {
 		return Infinity // history should appear first in the prompt (low priority)
 	}
 
-	override async getPart(_request: AgentRequest, agentHelpers: AgentHelpers) {
-		const { agent } = agentHelpers
+	override async getPart(_request: AgentRequest, helpers: AgentHelpers) {
+		const { agent } = helpers
 
 		const items = agent.$chatHistory.get()
 
@@ -26,8 +26,8 @@ export class ChatHistoryPartUtil extends PromptPartUtil<ChatHistoryPart> {
 
 			// Offset and round the context items of each history item
 			const contextItems = historyItem.contextItems.map((contextItem) => {
-				const offsetContextItem = agentHelpers.applyOffsetToContextItem(contextItem)
-				return agentHelpers.roundContextItem(offsetContextItem)
+				const offsetContextItem = helpers.applyOffsetToContextItem(contextItem)
+				return helpers.roundContextItem(offsetContextItem)
 			})
 
 			historyItem.contextItems = contextItems

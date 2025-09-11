@@ -15,11 +15,8 @@ export class ScreenshotPartUtil extends PromptPartUtil<ScreenshotPart> {
 		return 40 // screenshot after text content (medium priority)
 	}
 
-	override async getPart(
-		request: AgentRequest,
-		agentHelpers: AgentHelpers
-	): Promise<ScreenshotPart> {
-		const { editor } = agentHelpers
+	override async getPart(request: AgentRequest, helpers: AgentHelpers): Promise<ScreenshotPart> {
+		const { editor } = helpers
 		const contextBounds = request.bounds
 
 		const contextBoundsBox = Box.From(contextBounds)

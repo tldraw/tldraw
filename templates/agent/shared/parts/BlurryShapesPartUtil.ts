@@ -17,8 +17,8 @@ export class BlurryShapesPartUtil extends PromptPartUtil<BlurryShapesPart> {
 		return 70
 	}
 
-	override getPart(request: AgentRequest, agentHelpers: AgentHelpers): BlurryShapesPart {
-		const { editor } = agentHelpers
+	override getPart(request: AgentRequest, helpers: AgentHelpers): BlurryShapesPart {
+		const { editor } = helpers
 		const shapes = editor.getCurrentPageShapesSorted()
 		const contextBoundsBox = Box.From(request.bounds)
 
@@ -38,8 +38,8 @@ export class BlurryShapesPartUtil extends PromptPartUtil<BlurryShapesPart> {
 
 		// Apply the offset and round the blurry shapes
 		const normalizedBlurryShapes = blurryShapes.map((shape) => {
-			const bounds = agentHelpers.roundBox(
-				agentHelpers.applyOffsetToBox({
+			const bounds = helpers.roundBox(
+				helpers.applyOffsetToBox({
 					x: shape.x,
 					y: shape.y,
 					w: shape.w,

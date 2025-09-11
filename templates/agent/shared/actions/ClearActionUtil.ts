@@ -40,12 +40,12 @@ export class ClearActionUtil extends AgentActionUtil<ClearAction> {
 	/**
 	 * Tell the model how to apply the action
 	 */
-	override applyAction(action: Streaming<ClearAction>, agentHelpers: AgentHelpers) {
+	override applyAction(action: Streaming<ClearAction>, helpers: AgentHelpers) {
 		// Don't do anything if the action hasn't finished streaming
 		if (!action.complete) return
 
 		// Delete all shapes on the page
-		const { editor } = agentHelpers
+		const { editor } = helpers
 		const allShapes = editor.getCurrentPageShapes()
 		editor.deleteShapes(allShapes)
 	}

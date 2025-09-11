@@ -33,9 +33,9 @@ export class AddDetailActionUtil extends AgentActionUtil<AddDetailAction> {
 		}
 	}
 
-	override applyAction(action: Streaming<AddDetailAction>, agentHelpers: AgentHelpers) {
+	override applyAction(action: Streaming<AddDetailAction>, helpers: AgentHelpers) {
 		if (!action.complete) return
-		const { agent } = agentHelpers
+		const { agent } = helpers
 		agent.schedule('Add detail to the canvas.')
 	}
 }

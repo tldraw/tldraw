@@ -33,23 +33,23 @@ export class PlaceActionUtil extends AgentActionUtil<PlaceAction> {
 		}
 	}
 
-	override sanitizeAction(action: Streaming<PlaceAction>, agentHelpers: AgentHelpers) {
+	override sanitizeAction(action: Streaming<PlaceAction>, helpers: AgentHelpers) {
 		if (!action.complete) return action
 
-		const shapeId = agentHelpers.ensureShapeIdExists(action.shapeId)
+		const shapeId = helpers.ensureShapeIdExists(action.shapeId)
 		if (!shapeId) return null
 		action.shapeId = shapeId
 
-		const referenceShapeId = agentHelpers.ensureShapeIdExists(action.referenceShapeId)
+		const referenceShapeId = helpers.ensureShapeIdExists(action.referenceShapeId)
 		if (!referenceShapeId) return null
 		action.referenceShapeId = referenceShapeId
 
 		return action
 	}
 
-	override applyAction(action: Streaming<PlaceAction>, agentHelpers: AgentHelpers) {
+	override applyAction(action: Streaming<PlaceAction>, helpers: AgentHelpers) {
 		if (!action.complete) return
-		const { editor } = agentHelpers
+		const { editor } = helpers
 
 		const { side, sideOffset = 0, align, alignOffset = 0 } = action
 		const referenceShapeId = `shape:${action.referenceShapeId}` as TLShapeId

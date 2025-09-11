@@ -17,8 +17,8 @@ export class PeripheralShapesPartUtil extends PromptPartUtil<PeripheralShapesPar
 		return 65 // peripheral content after viewport shapes (low priority)
 	}
 
-	override getPart(request: AgentRequest, agentHelpers: AgentHelpers): PeripheralShapesPart {
-		const { editor } = agentHelpers
+	override getPart(request: AgentRequest, helpers: AgentHelpers): PeripheralShapesPart {
+		const { editor } = helpers
 		const shapes = editor.getCurrentPageShapesSorted()
 		const contextBounds = request.bounds
 
@@ -37,10 +37,10 @@ export class PeripheralShapesPartUtil extends PromptPartUtil<PeripheralShapesPar
 
 		// Apply the offset and round the clusters
 		const normalizedClusters = clusters.map((cluster) => {
-			const offsetBounds = agentHelpers.applyOffsetToBox(cluster.bounds)
+			const offsetBounds = helpers.applyOffsetToBox(cluster.bounds)
 			return {
 				numberOfShapes: cluster.numberOfShapes,
-				bounds: agentHelpers.roundBox(offsetBounds),
+				bounds: helpers.roundBox(offsetBounds),
 			}
 		})
 

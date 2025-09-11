@@ -17,8 +17,8 @@ export class SelectedShapesPartUtil extends PromptPartUtil<SelectedShapesPart> {
 		return 55 // selected shapes after context items (low priority)
 	}
 
-	override getPart(_request: AgentRequest, agentHelpers: AgentHelpers): SelectedShapesPart {
-		const { editor } = agentHelpers
+	override getPart(_request: AgentRequest, helpers: AgentHelpers): SelectedShapesPart {
+		const { editor } = helpers
 		const userSelectedShapes = editor.getSelectedShapes().map((v) => structuredClone(v)) ?? []
 
 		const simpleShapes: SimpleShape[] = []
@@ -31,8 +31,8 @@ export class SelectedShapesPartUtil extends PromptPartUtil<SelectedShapesPart> {
 		}
 
 		const normalizedSimpleShapes = simpleShapes.map((shape) => {
-			const offsetShape = agentHelpers.applyOffsetToShape(shape)
-			return agentHelpers.roundShape(offsetShape)
+			const offsetShape = helpers.applyOffsetToShape(shape)
+			return helpers.roundShape(offsetShape)
 		})
 
 		return {

@@ -33,33 +33,33 @@ export class CreateActionUtil extends AgentActionUtil<CreateAction> {
 		}
 	}
 
-	override sanitizeAction(action: Streaming<CreateAction>, agentHelpers: AgentHelpers) {
+	override sanitizeAction(action: Streaming<CreateAction>, helpers: AgentHelpers) {
 		if (!action.complete) return action
 
 		const { shape } = action
 
 		// Ensure the created shape has a unique ID
-		shape.shapeId = agentHelpers.ensureShapeIdIsUnique(shape.shapeId)
+		shape.shapeId = helpers.ensureShapeIdIsUnique(shape.shapeId)
 
 		// If the shape is an arrow, ensure the from and to IDs are real shapes
 		if (shape._type === 'arrow') {
 			if (shape.fromId) {
-				shape.fromId = agentHelpers.ensureShapeIdExists(shape.fromId)
+				shape.fromId = helpers.ensureShapeIdExists(shape.fromId)
 			}
 			if (shape.toId) {
-				shape.toId = agentHelpers.ensureShapeIdExists(shape.toId)
+				shape.toId = helpers.ensureShapeIdExists(shape.toId)
 			}
 		}
 
 		return action
 	}
 
-	override applyAction(action: Streaming<CreateAction>, agentHelpers: AgentHelpers) {
+	override applyAction(action: Streaming<CreateAction>, helpers: AgentHelpers) {
 		if (!action.complete) return
-		const { editor } = agentHelpers
+		const { editor } = helpers
 
 		// Translate the shape back to the chat's position
-		action.shape = agentHelpers.removeOffsetFromShape(action.shape)
+		action.shape = helpers.removeOffsetFromShape(action.shape)
 
 		const shapeDefault = getShapeDefault(action.shape._type)
 

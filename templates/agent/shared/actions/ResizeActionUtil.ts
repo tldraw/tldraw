@@ -36,16 +36,16 @@ export class ResizeActionUtil extends AgentActionUtil<ResizeAction> {
 		}
 	}
 
-	override sanitizeAction(action: Streaming<ResizeAction>, agentHelpers: AgentHelpers) {
-		const shapeIds = agentHelpers.ensureShapeIdsExist(action.shapeIds ?? [])
+	override sanitizeAction(action: Streaming<ResizeAction>, helpers: AgentHelpers) {
+		const shapeIds = helpers.ensureShapeIdsExist(action.shapeIds ?? [])
 		if (shapeIds.length === 0) return null
 
 		action.shapeIds = shapeIds
 		return action
 	}
 
-	override applyAction(action: Streaming<ResizeAction>, agentHelpers: AgentHelpers) {
-		const { editor } = agentHelpers
+	override applyAction(action: Streaming<ResizeAction>, helpers: AgentHelpers) {
+		const { editor } = helpers
 
 		if (
 			!action.shapeIds ||
@@ -57,7 +57,7 @@ export class ResizeActionUtil extends AgentActionUtil<ResizeAction> {
 			return
 		}
 
-		const origin = agentHelpers.removeOffsetFromVec({ x: action.originX, y: action.originY })
+		const origin = helpers.removeOffsetFromVec({ x: action.originX, y: action.originY })
 		const shapeIds = action.shapeIds.map((shapeId) => `shape:${shapeId}` as TLShapeId)
 
 		for (const shapeId of shapeIds) {

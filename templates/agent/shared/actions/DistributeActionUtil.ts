@@ -32,14 +32,14 @@ export class DistributeActionUtil extends AgentActionUtil<DistributeAction> {
 		}
 	}
 
-	override sanitizeAction(action: Streaming<DistributeAction>, agentHelpers: AgentHelpers) {
-		action.shapeIds = agentHelpers.ensureShapeIdsExist(action.shapeIds ?? [])
+	override sanitizeAction(action: Streaming<DistributeAction>, helpers: AgentHelpers) {
+		action.shapeIds = helpers.ensureShapeIdsExist(action.shapeIds ?? [])
 		return action
 	}
 
-	override applyAction(action: Streaming<DistributeAction>, agentHelpers: AgentHelpers) {
+	override applyAction(action: Streaming<DistributeAction>, helpers: AgentHelpers) {
 		if (!action.complete) return
-		const { editor } = agentHelpers
+		const { editor } = helpers
 
 		editor.distributeShapes(
 			action.shapeIds.map((id) => `shape:${id}` as TLShapeId),

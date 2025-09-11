@@ -11,7 +11,7 @@ export abstract class PromptPartUtil<T extends BasePromptPart = BasePromptPart> 
 	 * Get some data to add to the prompt.
 	 * @returns The prompt part.
 	 */
-	abstract getPart(request: AgentRequest, agentHelpers: AgentHelpers): Promise<T> | T
+	abstract getPart(request: AgentRequest, helpers: AgentHelpers): Promise<T> | T
 
 	/**
 	 * Get priority for this prompt part to determine its position in the prompt.

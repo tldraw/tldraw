@@ -32,13 +32,13 @@ export class SendToBackActionUtil extends AgentActionUtil<SendToBackAction> {
 		}
 	}
 
-	override sanitizeAction(action: Streaming<SendToBackAction>, agentHelpers: AgentHelpers) {
-		action.shapeIds = agentHelpers.ensureShapeIdsExist(action.shapeIds ?? [])
+	override sanitizeAction(action: Streaming<SendToBackAction>, helpers: AgentHelpers) {
+		action.shapeIds = helpers.ensureShapeIdsExist(action.shapeIds ?? [])
 		return action
 	}
 
-	override applyAction(action: Streaming<SendToBackAction>, agentHelpers: AgentHelpers) {
-		const { editor } = agentHelpers
+	override applyAction(action: Streaming<SendToBackAction>, helpers: AgentHelpers) {
+		const { editor } = helpers
 
 		if (!action.shapeIds) return
 		editor.sendToBack(action.shapeIds.map((shapeId) => `shape:${shapeId}` as TLShapeId))

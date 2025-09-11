@@ -30,19 +30,19 @@ export class DeleteActionUtil extends AgentActionUtil<DeleteAction> {
 		}
 	}
 
-	override sanitizeAction(action: Streaming<DeleteAction>, agentHelpers: AgentHelpers) {
+	override sanitizeAction(action: Streaming<DeleteAction>, helpers: AgentHelpers) {
 		if (!action.complete) return action
 
-		const shapeId = agentHelpers.ensureShapeIdExists(action.shapeId)
+		const shapeId = helpers.ensureShapeIdExists(action.shapeId)
 		if (!shapeId) return null
 
 		action.shapeId = shapeId
 		return action
 	}
 
-	override applyAction(action: Streaming<DeleteAction>, agentHelpers: AgentHelpers) {
+	override applyAction(action: Streaming<DeleteAction>, helpers: AgentHelpers) {
 		if (!action.complete) return
-		const { editor } = agentHelpers
+		const { editor } = helpers
 
 		editor.deleteShape(`shape:${action.shapeId}` as TLShapeId)
 	}

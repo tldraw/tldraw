@@ -263,15 +263,15 @@ export class TldrawAgent {
 	 * Get a full prompt based on a request.
 	 *
 	 * @param request - The request to use for the prompt.
-	 * @param agentHelpers - The agentHelpers to use.
+	 * @param helpers - The helpers to use.
 	 * @returns The fully assembled prompt.
 	 */
-	async preparePrompt(request: AgentRequest, agentHelpers: AgentHelpers): Promise<AgentPrompt> {
+	async preparePrompt(request: AgentRequest, helpers: AgentHelpers): Promise<AgentPrompt> {
 		const { promptPartUtils } = this
 		const transformedParts: PromptPart[] = []
 
 		for (const util of Object.values(promptPartUtils)) {
-			const part = await util.getPart(request, agentHelpers)
+			const part = await util.getPart(request, helpers)
 			if (!part) continue
 			transformedParts.push(part)
 		}
@@ -457,7 +457,7 @@ export class TldrawAgent {
 	/**
 	 * Make the agent perform an action.
 	 * @param action The action to make the agent do.
-	 * @param helpers The agentHelpers to use.
+	 * @param helpers The helpers to use.
 	 * @returns The diff of the action, and a promise for when the action is finished
 	 */
 	act(
@@ -712,10 +712,10 @@ function requestAgent({
 	let cancelled = false
 	const controller = new AbortController()
 	const signal = controller.signal
-	const agentHelpers = new AgentHelpers(agent)
+	const helpers = new AgentHelpers(agent)
 
 	const requestPromise = new Promise<void>((resolve) => {
-		agent.preparePrompt(request, agentHelpers).then(async (prompt) => {
+		agent.preparePrompt(request, helpers).then(async (prompt) => {
 			let incompleteDiff: RecordsDiff<TLRecord> | null = null
 			const actionPromises: Promise<void>[] = []
 			try {
@@ -725,8 +725,8 @@ function requestAgent({
 						() => {
 							const actionUtil = agent.getAgentActionUtil(action._type)
 
-							// agentHelpers the agent's action
-							const transformedAction = actionUtil.sanitizeAction(action, agentHelpers)
+							// helpers the agent's action
+							const transformedAction = actionUtil.sanitizeAction(action, helpers)
 							if (!transformedAction) {
 								incompleteDiff = null
 								return
@@ -739,7 +739,7 @@ function requestAgent({
 							}
 
 							// Apply the action to the app and editor
-							const { diff, promise } = agent.act(transformedAction, agentHelpers)
+							const { diff, promise } = agent.act(transformedAction, helpers)
 
 							if (promise) {
 								actionPromises.push(promise)

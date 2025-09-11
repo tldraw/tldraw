@@ -31,9 +31,9 @@ export class CountShapesActionUtil extends AgentActionUtil<CountShapesAction> {
 		}
 	}
 
-	override async applyAction(action: Streaming<CountShapesAction>, agentHelpers: AgentHelpers) {
+	override async applyAction(action: Streaming<CountShapesAction>, helpers: AgentHelpers) {
 		if (!action.complete) return
-		const { agent, editor } = agentHelpers
+		const { agent, editor } = helpers
 
 		// Add the shape count to the next request
 		agent.schedule({

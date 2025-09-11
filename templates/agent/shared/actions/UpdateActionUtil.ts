@@ -36,40 +36,40 @@ export class UpdateActionUtil extends AgentActionUtil<UpdateAction> {
 		}
 	}
 
-	override sanitizeAction(action: Streaming<UpdateAction>, agentHelpers: AgentHelpers) {
+	override sanitizeAction(action: Streaming<UpdateAction>, helpers: AgentHelpers) {
 		if (!action.complete) return action
 
 		const { update } = action
 
 		// Ensure the shape ID refers to a real shape
-		const shapeId = agentHelpers.ensureShapeIdExists(update.shapeId)
+		const shapeId = helpers.ensureShapeIdExists(update.shapeId)
 		if (!shapeId) return null
 		update.shapeId = shapeId
 
 		// If it's an arrow, ensure the from and to IDs refer to real shapes
 		if (update._type === 'arrow') {
 			if (update.fromId) {
-				update.fromId = agentHelpers.ensureShapeIdExists(update.fromId)
+				update.fromId = helpers.ensureShapeIdExists(update.fromId)
 			}
 			if (update.toId) {
-				update.toId = agentHelpers.ensureShapeIdExists(update.toId)
+				update.toId = helpers.ensureShapeIdExists(update.toId)
 			}
 		}
 
 		// Unround the shape to restore the original values
-		action.update = agentHelpers.unroundShape(action.update)
+		action.update = helpers.unroundShape(action.update)
 
 		return action
 	}
 
-	override applyAction(action: Streaming<UpdateAction>, agentHelpers: AgentHelpers) {
+	override applyAction(action: Streaming<UpdateAction>, helpers: AgentHelpers) {
 		if (!action.complete) return
-		const { editor } = agentHelpers
+		const { editor } = helpers
 
 		// Translate the shape back to the chat's position
-		action.update = agentHelpers.removeOffsetFromShape(action.update)
+		action.update = helpers.removeOffsetFromShape(action.update)
 
-		const simpleShapeId = agentHelpers.ensureShapeIdExists(action.update.shapeId)
+		const simpleShapeId = helpers.ensureShapeIdExists(action.update.shapeId)
 		if (!simpleShapeId) return
 		const shapeId = convertSimpleIdToTldrawId(simpleShapeId)
 

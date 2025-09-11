@@ -30,14 +30,14 @@ export class AlignActionUtil extends AgentActionUtil<AlignAction> {
 		}
 	}
 
-	override sanitizeAction(action: Streaming<AlignAction>, agentHelpers: AgentHelpers) {
-		action.shapeIds = agentHelpers.ensureShapeIdsExist(action.shapeIds ?? [])
+	override sanitizeAction(action: Streaming<AlignAction>, helpers: AgentHelpers) {
+		action.shapeIds = helpers.ensureShapeIdsExist(action.shapeIds ?? [])
 		return action
 	}
 
-	override applyAction(action: Streaming<AlignAction>, agentHelpers: AgentHelpers) {
+	override applyAction(action: Streaming<AlignAction>, helpers: AgentHelpers) {
 		if (!action.complete) return
-		const { editor } = agentHelpers
+		const { editor } = helpers
 
 		editor.alignShapes(
 			action.shapeIds.map((id) => `shape:${id}` as TLShapeId),

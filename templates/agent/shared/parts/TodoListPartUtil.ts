@@ -15,10 +15,10 @@ export class TodoListPartUtil extends PromptPartUtil<TodoListPart> {
 		return 10
 	}
 
-	override getPart(_request: AgentRequest, agentHelpers: AgentHelpers): TodoListPart {
+	override getPart(_request: AgentRequest, helpers: AgentHelpers): TodoListPart {
 		return {
 			type: 'todoList',
-			items: agentHelpers.agent.$todoList.get(),
+			items: helpers.agent.$todoList.get(),
 		}
 	}
 

@@ -40,11 +40,11 @@ export class ReviewActionUtil extends AgentActionUtil<ReviewAction> {
 		}
 	}
 
-	override applyAction(action: Streaming<ReviewAction>, agentHelpers: AgentHelpers) {
+	override applyAction(action: Streaming<ReviewAction>, helpers: AgentHelpers) {
 		if (!action.complete) return
-		const { agent } = agentHelpers
+		const { agent } = helpers
 
-		const reviewBounds = agentHelpers.removeOffsetFromBox({
+		const reviewBounds = helpers.removeOffsetFromBox({
 			x: action.x,
 			y: action.y,
 			w: action.w,

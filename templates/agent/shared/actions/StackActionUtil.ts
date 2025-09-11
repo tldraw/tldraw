@@ -34,17 +34,17 @@ export class StackActionUtil extends AgentActionUtil<IAgentStackEvent> {
 		}
 	}
 
-	override sanitizeAction(action: Streaming<IAgentStackEvent>, agentHelpers: AgentHelpers) {
+	override sanitizeAction(action: Streaming<IAgentStackEvent>, helpers: AgentHelpers) {
 		if (!action.complete) return action
 
-		action.shapeIds = agentHelpers.ensureShapeIdsExist(action.shapeIds)
+		action.shapeIds = helpers.ensureShapeIdsExist(action.shapeIds)
 
 		return action
 	}
 
-	override applyAction(action: Streaming<IAgentStackEvent>, agentHelpers: AgentHelpers) {
+	override applyAction(action: Streaming<IAgentStackEvent>, helpers: AgentHelpers) {
 		if (!action.complete) return
-		const { editor } = agentHelpers
+		const { editor } = helpers
 
 		editor.stackShapes(
 			action.shapeIds.map((id) => `shape:${id}` as TLShapeId),

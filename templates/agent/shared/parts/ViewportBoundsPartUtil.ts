@@ -16,16 +16,16 @@ export class ViewportBoundsPartUtil extends PromptPartUtil<ViewportBoundsPart> {
 		return 75 // viewport should go after context bounds (low priority)
 	}
 
-	override getPart(request: AgentRequest, agentHelpers: AgentHelpers): ViewportBoundsPart {
-		const { editor } = agentHelpers
+	override getPart(request: AgentRequest, helpers: AgentHelpers): ViewportBoundsPart {
+		const { editor } = helpers
 		const userBounds = editor.getViewportPageBounds()
-		const offsetUserBounds = agentHelpers.applyOffsetToBox(userBounds)
-		const offsetAgentBounds = agentHelpers.applyOffsetToBox(request.bounds)
+		const offsetUserBounds = helpers.applyOffsetToBox(userBounds)
+		const offsetAgentBounds = helpers.applyOffsetToBox(request.bounds)
 
 		return {
 			type: 'viewportBounds',
-			userBounds: agentHelpers.roundBox(offsetUserBounds),
-			agentBounds: agentHelpers.roundBox(offsetAgentBounds),
+			userBounds: helpers.roundBox(offsetUserBounds),
+			agentBounds: helpers.roundBox(offsetAgentBounds),
 		}
 	}
 

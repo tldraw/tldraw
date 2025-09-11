@@ -16,10 +16,10 @@ export class ContextItemsPartUtil extends PromptPartUtil<ContextItemsPart> {
 		return 60 // context items in middle (low priority)
 	}
 
-	override getPart(request: AgentRequest, agentHelpers: AgentHelpers): ContextItemsPart {
+	override getPart(request: AgentRequest, helpers: AgentHelpers): ContextItemsPart {
 		const items = request.contextItems.map((contextItem) => {
-			const offsetContextItem = agentHelpers.applyOffsetToContextItem(contextItem)
-			return agentHelpers.roundContextItem(offsetContextItem)
+			const offsetContextItem = helpers.applyOffsetToContextItem(contextItem)
+			return helpers.roundContextItem(offsetContextItem)
 		})
 
 		return {

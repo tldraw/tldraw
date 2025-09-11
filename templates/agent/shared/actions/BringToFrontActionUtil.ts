@@ -32,13 +32,13 @@ export class BringToFrontActionUtil extends AgentActionUtil<BringToFrontAction> 
 		}
 	}
 
-	override sanitizeAction(action: Streaming<BringToFrontAction>, agentHelpers: AgentHelpers) {
-		action.shapeIds = agentHelpers.ensureShapeIdsExist(action.shapeIds ?? [])
+	override sanitizeAction(action: Streaming<BringToFrontAction>, helpers: AgentHelpers) {
+		action.shapeIds = helpers.ensureShapeIdsExist(action.shapeIds ?? [])
 		return action
 	}
 
-	override applyAction(action: Streaming<BringToFrontAction>, agentHelpers: AgentHelpers) {
-		const { editor } = agentHelpers
+	override applyAction(action: Streaming<BringToFrontAction>, helpers: AgentHelpers) {
+		const { editor } = helpers
 
 		if (!action.shapeIds) return
 		editor.bringToFront(action.shapeIds.map((shapeId) => `shape:${shapeId}` as TLShapeId))

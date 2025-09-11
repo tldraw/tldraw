@@ -34,8 +34,8 @@ export class UserActionHistoryPartUtil extends PromptPartUtil<UserActionHistoryP
 		return 40
 	}
 
-	override getPart(_request: AgentRequest, agentHelpers: AgentHelpers): UserActionHistoryPart {
-		const { editor, agent } = agentHelpers
+	override getPart(_request: AgentRequest, helpers: AgentHelpers): UserActionHistoryPart {
+		const { editor, agent } = helpers
 
 		// Get the action history and clear it so that we can start tracking changes for the next request
 		const diffs = agent.$userActionHistory.get()
@@ -79,14 +79,14 @@ export class UserActionHistoryPartUtil extends PromptPartUtil<UserActionHistoryP
 			const changeSimpleShape = getSimpleShapeChange(fromSimpleShape, toSimpleShape)
 			if (!changeSimpleShape) continue
 
-			const before = agentHelpers.applyOffsetToShapePartial(changeSimpleShape.from)
-			const after = agentHelpers.applyOffsetToShapePartial(changeSimpleShape.to)
+			const before = helpers.applyOffsetToShapePartial(changeSimpleShape.from)
+			const after = helpers.applyOffsetToShapePartial(changeSimpleShape.to)
 
 			part.updated.push({
 				shapeId: toSimpleShape.shapeId,
 				type: toSimpleShape._type,
-				before: agentHelpers.roundShapePartial(before),
-				after: agentHelpers.roundShapePartial(after),
+				before: helpers.roundShapePartial(before),
+				after: helpers.roundShapePartial(after),
 			})
 		}
 

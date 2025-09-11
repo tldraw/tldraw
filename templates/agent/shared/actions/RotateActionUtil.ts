@@ -35,19 +35,19 @@ export class RotateActionUtil extends AgentActionUtil<RotateAction> {
 		}
 	}
 
-	override sanitizeAction(action: Streaming<RotateAction>, agentHelpers: AgentHelpers) {
-		action.shapeIds = agentHelpers.ensureShapeIdsExist(action.shapeIds ?? [])
+	override sanitizeAction(action: Streaming<RotateAction>, helpers: AgentHelpers) {
+		action.shapeIds = helpers.ensureShapeIdsExist(action.shapeIds ?? [])
 		return action
 	}
 
-	override applyAction(action: Streaming<RotateAction>, agentHelpers: AgentHelpers) {
-		const { editor } = agentHelpers
+	override applyAction(action: Streaming<RotateAction>, helpers: AgentHelpers) {
+		const { editor } = helpers
 
 		if (!action.shapeIds || !action.degrees || !action.originX || !action.originY) {
 			return
 		}
 
-		const origin = agentHelpers.removeOffsetFromVec({ x: action.originX, y: action.originY })
+		const origin = helpers.removeOffsetFromVec({ x: action.originX, y: action.originY })
 		const shapeIds = action.shapeIds.map((shapeId) => `shape:${shapeId}` as TLShapeId)
 		const radians = (action.degrees * Math.PI) / 180
 

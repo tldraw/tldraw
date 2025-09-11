@@ -43,28 +43,28 @@ export class PenActionUtil extends AgentActionUtil<PenAction> {
 		}
 	}
 
-	override sanitizeAction(action: Streaming<PenAction>, agentHelpers: AgentHelpers) {
+	override sanitizeAction(action: Streaming<PenAction>, helpers: AgentHelpers) {
 		if (!action.points) return action
 
 		// This is a complex action for the model, so validate the data it gives us
 		const validPoints = action.points
-			.map((point) => agentHelpers.ensureValueIsVec(point))
+			.map((point) => helpers.ensureValueIsVec(point))
 			.filter((v) => v !== null)
 
 		action.points = validPoints
-		action.closed = agentHelpers.ensureValueIsBoolean(action.closed) ?? false
-		action.fill = agentHelpers.ensureValueIsSimpleFill(action.fill) ?? 'none'
+		action.closed = helpers.ensureValueIsBoolean(action.closed) ?? false
+		action.fill = helpers.ensureValueIsSimpleFill(action.fill) ?? 'none'
 
 		return action
 	}
 
-	override applyAction(action: Streaming<PenAction>, agentHelpers: AgentHelpers) {
-		const { editor } = agentHelpers
+	override applyAction(action: Streaming<PenAction>, helpers: AgentHelpers) {
+		const { editor } = helpers
 
 		if (!action.points) return
 		if (action.points.length === 0) return
 
-		action.points = action.points.map((point) => agentHelpers.removeOffsetFromVec(point))
+		action.points = action.points.map((point) => helpers.removeOffsetFromVec(point))
 
 		if (action.closed) {
 			const firstPoint = action.points[0]

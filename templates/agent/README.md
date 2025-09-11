@@ -172,12 +172,12 @@ export class ClearActionUtil extends AgentActionUtil<IClearAction> {
 		return ClearAction
 	}
 
-	override applyAction(action: Streaming<IClearAction>, agentHelpers: AgentHelpers) {
+	override applyAction(action: Streaming<IClearAction>, helpers: AgentHelpers) {
 		// Don't do anything until the action has finished streaming
 		if (!action.complete) return
 
 		// Delete all shapes on the page
-		const { editor } = agentHelpers
+		const { editor } = helpers
 		const shapes = editor.getCurrentPageShapes()
 		editor.deleteShapes(shapes)
 	}
@@ -234,10 +234,10 @@ You can let the agent work over multiple turns by scheduling further work using 
 This example shows how to schedule an extra step for adding detail to the canvas.
 
 ```ts
-override applyAction(action: Streaming<IAddDetailAction>, agentHelpers: AgentHelpers) {
+override applyAction(action: Streaming<IAddDetailAction>, helpers: AgentHelpers) {
 	if (!action.complete) return
 
-	const { agent } = agentHelpers
+	const { agent } = helpers
 	agent.schedule('Add more detail to the canvas.')
 }
 ```
@@ -245,10 +245,10 @@ override applyAction(action: Streaming<IAddDetailAction>, agentHelpers: AgentHel
 You can pass a callback to the `schedule` method to create a request based on the currently scheduled request. If there is nothing scheduled, the callback will be called with the default request.
 
 ```ts
-override applyAction(action: Streaming<IMoveRightAction>, agentHelpers: AgentHelpers) {
+override applyAction(action: Streaming<IMoveRightAction>, helpers: AgentHelpers) {
 	if (!action.complete) return
 
-	const { agent } = agentHelpers
+	const { agent } = helpers
 	agent.schedule((prev) => ({
 		bounds: {
 			// Move the viewport to the right
@@ -264,10 +264,10 @@ override applyAction(action: Streaming<IMoveRightAction>, agentHelpers: AgentHel
 You can also schedule further work by adding to the agent's todo list. It won't stop working until all todos are resolved.
 
 ```ts
-override applyAction(action: Streaming<IAddDetailAction>, agentHelpers: AgentHelpers) {
+override applyAction(action: Streaming<IAddDetailAction>, helpers: AgentHelpers) {
 	if (!action.complete) return
 
-	const { agent } = agentHelpers
+	const { agent } = helpers
 	agent.addTodo('Check for spelling mistakes.')
 }
 ```
@@ -279,10 +279,10 @@ To let the agent retrieve information from an external API, fetch and return it 
 ```ts
 override async applyAction(
 	action: Streaming<IRandomWikipediaArticleAction>,
-	agentHelpers: AgentHelpers
+	helpers: AgentHelpers
 ) {
 	if (!action.complete) return
-	const { agent } = agentHelpers
+	const { agent } = helpers
 
 	// Schedule a follow-up request so the agent can use the data
 	agent.schedule("Here's a random Wikipedia article.")
@@ -303,11 +303,11 @@ To correct incoming mistakes, apply fixes in the `sanitizeAction` method of an a
 For example, ensure that a shape ID received from the model refers to an existing shape by using the `ensureShapeIdExists` method.
 
 ```ts
-override sanitizeAction(action: Streaming<IDeleteAction>, agentHelpers: AgentHelpers) {
+override sanitizeAction(action: Streaming<IDeleteAction>, helpers: AgentHelpers) {
 	if (!action.complete) return action
 
 	// Ensure the shape ID refers to an existing shape
-	action.shapeId = agentHelpers.ensureShapeIdExists(action.shapeId)
+	action.shapeId = helpers.ensureShapeIdExists(action.shapeId)
 
 	// If the shape ID doesn't refer to an existing shape, cancel the action
 	if (!action.shapeId) return null
@@ -329,14 +329,14 @@ By default, every position sent to the model is offset by the starting position 
 To apply this offset to a position sent to the model, use the `applyOffsetToVec` method.
 
 ```ts
-override getPart(request: AgentRequest, agentHelpers: AgentHelpers): ViewportCenterPart {
-	const { editor } = agentHelpers
+override getPart(request: AgentRequest, helpers: AgentHelpers): ViewportCenterPart {
+	const { editor } = helpers
 
 	// Get the center of the user's viewport
 	const viewportCenter = editor.getViewportBounds().center
 
 	// Apply the chat's offset to the vector
-	const offsetViewportCenter = agentHelpers.applyOffsetToVec(viewportCenter)
+	const offsetViewportCenter = helpers.applyOffsetToVec(viewportCenter)
 
 	// Return the prompt part
 	return {
@@ -349,11 +349,11 @@ override getPart(request: AgentRequest, agentHelpers: AgentHelpers): ViewportCen
 To remove the offset from a position received from the model, use the `removeOffsetFromVec` method.
 
 ```ts
-override applyAction(action: Streaming<IMoveAction>, agentHelpers: AgentHelpers) {
+override applyAction(action: Streaming<IMoveAction>, helpers: AgentHelpers) {
 	if (!action.complete) return
 
 	// Remove the offset from the position
-	const position = agentHelpers.removeOffsetFromVec({ x: action.x, y: action.y })
+	const position = helpers.removeOffsetFromVec({ x: action.x, y: action.y })
 
 	// Do something with the position...
 }
@@ -374,8 +374,8 @@ To send the model some shapes in one of these formats, use one of the conversion
 This example picks one random shape on the canvas and sends it to the model in the Simple format.
 
 ```ts
-override getPart(request: AgentRequest, agentHelpers: AgentHelpers): RandomShapePart {
-	const { editor } = agentHelpers
+override getPart(request: AgentRequest, helpers: AgentHelpers): RandomShapePart {
+	const { editor } = helpers
 
 	// Get a random shape
 	const shapes = editor.getCurrentPageShapes()
@@ -385,8 +385,8 @@ override getPart(request: AgentRequest, agentHelpers: AgentHelpers): RandomShape
 	const simpleShape = convertTldrawShapeToSimpleShape(randomShape, editor)
 
 	// Normalize the shape's position
-	const offsetShape = agentHelpers.applyOffsetToShape(simpleShape)
-	const roundedShape = agentHelpers.roundShape(offsetShape)
+	const offsetShape = helpers.applyOffsetToShape(simpleShape)
+	const roundedShape = helpers.roundShape(offsetShape)
 
 	return {
 		type: 'random-shape',
@@ -487,14 +487,14 @@ export class StickerActionUtil extends AgentActionUtil<IStickerAction> {
 		}
 	}
 
-	override applyAction(action: Streaming<IStickerAction>, agentHelpers: AgentHelpers) {
+	override applyAction(action: Streaming<IStickerAction>, helpers: AgentHelpers) {
 		if (!action.complete) return
 
 		// Normalize the position
-		const position = agentHelpers.removeOffsetFromVec({ x: action.x, y: action.y })
+		const position = helpers.removeOffsetFromVec({ x: action.x, y: action.y })
 
 		// Create the custom shape
-		const { editor } = agentHelpers
+		const { editor } = helpers
 		editor.createShape({
 			type: 'sticker',
 			id: createShapeId(),

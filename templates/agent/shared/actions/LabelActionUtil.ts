@@ -29,19 +29,19 @@ export class LabelActionUtil extends AgentActionUtil<ILabelEvent> {
 		}
 	}
 
-	override sanitizeAction(action: Streaming<ILabelEvent>, agentHelpers: AgentHelpers) {
+	override sanitizeAction(action: Streaming<ILabelEvent>, helpers: AgentHelpers) {
 		if (!action.complete) return action
 
-		const shapeId = agentHelpers.ensureShapeIdExists(action.shapeId)
+		const shapeId = helpers.ensureShapeIdExists(action.shapeId)
 		if (!shapeId) return null
 
 		action.shapeId = shapeId
 		return action
 	}
 
-	override applyAction(action: Streaming<ILabelEvent>, agentHelpers: AgentHelpers) {
+	override applyAction(action: Streaming<ILabelEvent>, helpers: AgentHelpers) {
 		if (!action.complete) return
-		const { editor } = agentHelpers
+		const { editor } = helpers
 
 		const shapeId = `shape:${action.shapeId}` as TLShapeId
 		const shape = editor.getShape(shapeId)

@@ -29,9 +29,9 @@ export class TodoListActionUtil extends AgentActionUtil<TodoListAction> {
 		return null
 	}
 
-	override applyAction(action: Streaming<TodoListAction>, agentHelpers: AgentHelpers) {
+	override applyAction(action: Streaming<TodoListAction>, helpers: AgentHelpers) {
 		if (!action.complete) return
-		const { agent } = agentHelpers
+		const { agent } = helpers
 
 		const todoItem = {
 			id: action.id,

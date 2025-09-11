@@ -30,17 +30,17 @@ export class MoveActionUtil extends AgentActionUtil<MoveAction> {
 		}
 	}
 
-	override sanitizeAction(action: Streaming<MoveAction>, agentHelpers: AgentHelpers) {
+	override sanitizeAction(action: Streaming<MoveAction>, helpers: AgentHelpers) {
 		if (!action.complete) return action
 
 		// Make sure the shape ID refers to a real shape
-		const shapeId = agentHelpers.ensureShapeIdExists(action.shapeId)
+		const shapeId = helpers.ensureShapeIdExists(action.shapeId)
 		if (!shapeId) return null
 		action.shapeId = shapeId
 
 		// Make sure the x and y values are numbers
-		const floatX = agentHelpers.ensureValueIsNumber(action.x)
-		const floatY = agentHelpers.ensureValueIsNumber(action.y)
+		const floatX = helpers.ensureValueIsNumber(action.x)
+		const floatY = helpers.ensureValueIsNumber(action.y)
 		if (floatX === null || floatY === null) return null
 		action.x = floatX
 		action.y = floatY
@@ -48,13 +48,13 @@ export class MoveActionUtil extends AgentActionUtil<MoveAction> {
 		return action
 	}
 
-	override applyAction(action: Streaming<MoveAction>, agentHelpers: AgentHelpers) {
+	override applyAction(action: Streaming<MoveAction>, helpers: AgentHelpers) {
 		if (!action.complete) return
 
 		// Translate the position back to the chat's position
-		const { x, y } = agentHelpers.removeOffsetFromVec({ x: action.x, y: action.y })
+		const { x, y } = helpers.removeOffsetFromVec({ x: action.x, y: action.y })
 
-		const { editor } = agentHelpers
+		const { editor } = helpers
 		const shapeId = `shape:${action.shapeId}` as TLShapeId
 		const shape = editor.getShape(shapeId)
 		if (!shape) return
