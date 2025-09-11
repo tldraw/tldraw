@@ -1,11 +1,15 @@
 import { Box, Editor, TLShape } from 'tldraw'
 import { PeripheralShapeCluster } from './PeripheralShapesCluster'
 
-export function convertTldrawShapesToPeripheralShapes(
-	editor: Editor,
-	shapes: TLShape[],
+export function convertTldrawShapesToPeripheralShapes({
+	editor,
+	shapes,
+	boundsExpand,
+}: {
+	editor: Editor
+	shapes: TLShape[]
 	boundsExpand: number
-): PeripheralShapeCluster[] {
+}): PeripheralShapeCluster[] {
 	if (shapes.length === 0) return []
 	const groups: { shapes: TLShape[]; bounds: Box; numberOfShapes: number }[] = []
 

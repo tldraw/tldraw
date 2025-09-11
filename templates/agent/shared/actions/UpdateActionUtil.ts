@@ -3,7 +3,7 @@ import z from 'zod'
 import { AgentHelpers } from '../AgentHelpers'
 import {
 	convertSimpleIdToTldrawId,
-	convertSimpleShapeToTldrawShapeWithDefaults,
+	convertSimpleShapeToTldrawShape,
 } from '../format/convertSimpleShapeToTldrawShape'
 import { SimpleShapeSchema } from '../format/SimpleShape'
 import { Streaming } from '../types/Streaming'
@@ -79,7 +79,7 @@ export class UpdateActionUtil extends AgentActionUtil<UpdateAction> {
 			throw new Error(`Shape ${shapeId} not found in canvas`)
 		}
 
-		const result = convertSimpleShapeToTldrawShapeWithDefaults({
+		const result = convertSimpleShapeToTldrawShape({
 			editor,
 			simpleShape: action.update,
 			defaultShape: existingShape,

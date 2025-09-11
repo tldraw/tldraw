@@ -2,7 +2,7 @@ import { IndexKey, toRichText } from 'tldraw'
 import z from 'zod'
 import { AgentHelpers } from '../AgentHelpers'
 import {
-	convertSimpleShapeToTldrawShapeWithDefaults,
+	convertSimpleShapeToTldrawShape,
 	SIMPLE_TO_GEO_TYPES,
 } from '../format/convertSimpleShapeToTldrawShape'
 import { SimpleShape, SimpleShapeSchema } from '../format/SimpleShape'
@@ -63,7 +63,7 @@ export class CreateActionUtil extends AgentActionUtil<CreateAction> {
 
 		const shapeDefault = getShapeDefault(action.shape._type)
 
-		const result = convertSimpleShapeToTldrawShapeWithDefaults({
+		const result = convertSimpleShapeToTldrawShape({
 			editor,
 			simpleShape: action.shape,
 			defaultShape: shapeDefault,

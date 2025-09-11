@@ -24,7 +24,7 @@ export class SelectedShapesPartUtil extends PromptPartUtil<SelectedShapesPart> {
 		const simpleShapes: SimpleShape[] = []
 		for (const shape of userSelectedShapes) {
 			if (!shape) continue
-			const simpleShape = convertTldrawShapeToSimpleShape(shape, editor)
+			const simpleShape = convertTldrawShapeToSimpleShape({ shape, editor })
 			if (simpleShape) {
 				simpleShapes.push(simpleShape)
 			}

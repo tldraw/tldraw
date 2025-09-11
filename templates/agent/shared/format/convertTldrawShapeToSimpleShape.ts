@@ -31,22 +31,28 @@ import {
 /**
  * Convert a tldraw shape to a simple shape
  */
-export function convertTldrawShapeToSimpleShape(shape: TLShape, editor: Editor): SimpleShape {
+export function convertTldrawShapeToSimpleShape({
+	shape,
+	editor,
+}: {
+	shape: TLShape
+	editor: Editor
+}): SimpleShape {
 	switch (shape.type) {
 		case 'text':
-			return convertTextShapeToSimple(editor, shape as TLTextShape)
+			return convertTextShapeToSimple({ editor, shape: shape as TLTextShape })
 		case 'geo':
-			return convertGeoShapeToSimple(editor, shape as TLGeoShape)
+			return convertGeoShapeToSimple({ editor, shape: shape as TLGeoShape })
 		case 'line':
-			return convertLineShapeToSimple(editor, shape as TLLineShape)
+			return convertLineShapeToSimple({ editor, shape: shape as TLLineShape })
 		case 'arrow':
-			return convertArrowShapeToSimple(editor, shape as TLArrowShape)
+			return convertArrowShapeToSimple({ editor, shape: shape as TLArrowShape })
 		case 'note':
-			return convertNoteShapeToSimple(editor, shape as TLNoteShape)
+			return convertNoteShapeToSimple({ editor, shape: shape as TLNoteShape })
 		case 'draw':
-			return convertDrawShapeToSimple(editor, shape as TLDrawShape)
+			return convertDrawShapeToSimple({ shape: shape as TLDrawShape })
 		default:
-			return convertUnknownShapeToSimple(editor, shape)
+			return convertUnknownShapeToSimple({ editor, shape })
 	}
 }
 
@@ -71,7 +77,7 @@ export function convertTldrawIdToSimpleId(id: TLShapeId): string {
 	return id.slice('shape:'.length)
 }
 
-function convertDrawShapeToSimple(_editor: Editor, shape: TLDrawShape): SimpleDrawShape {
+function convertDrawShapeToSimple({ shape }: { shape: TLDrawShape }): SimpleDrawShape {
 	return {
 		_type: 'draw',
 		color: shape.props.color,
@@ -81,11 +87,17 @@ function convertDrawShapeToSimple(_editor: Editor, shape: TLDrawShape): SimpleDr
 	}
 }
 
-function convertTextShapeToSimple(editor: Editor, shape: TLTextShape): SimpleTextShape {
+function convertTextShapeToSimple({
+	editor,
+	shape,
+}: {
+	editor: Editor
+	shape: TLTextShape
+}): SimpleTextShape {
 	const util = editor.getShapeUtil(shape)
 	const text = util.getText(shape) ?? ''
 
-	const bounds = getShapeBounds(shape, editor)
+	const bounds = getShapeBounds({ shape, editor })
 	const textSize = shape.props.size
 	const textAlign = shape.props.textAlign
 	const textWidth = shape.props.w
@@ -117,11 +129,17 @@ function convertTextShapeToSimple(editor: Editor, shape: TLTextShape): SimpleTex
 	}
 }
 
-function convertGeoShapeToSimple(editor: Editor, shape: TLGeoShape): SimpleGeoShape {
+function convertGeoShapeToSimple({
+	editor,
+	shape,
+}: {
+	editor: Editor
+	shape: TLGeoShape
+}): SimpleGeoShape {
 	const util = editor.getShapeUtil(shape)
 	const text = util.getText(shape)
 
-	const bounds = getShapeBounds(shape, editor)
+	const bounds = getShapeBounds({ shape, editor })
 
 	const shapeTextAlign = shape.props.align
 	let newTextAlign: SimpleGeoShape['textAlign']
@@ -155,8 +173,14 @@ function convertGeoShapeToSimple(editor: Editor, shape: TLGeoShape): SimpleGeoSh
 	}
 }
 
-function convertLineShapeToSimple(editor: Editor, shape: TLLineShape): SimpleLineShape {
-	const bounds = getShapeBounds(shape, editor)
+function convertLineShapeToSimple({
+	editor,
+	shape,
+}: {
+	editor: Editor
+	shape: TLLineShape
+}): SimpleLineShape {
+	const bounds = getShapeBounds({ shape, editor })
 
 	const points = Object.values(shape.props.points).sort((a, b) => a.index.localeCompare(b.index))
 	return {
@@ -171,8 +195,14 @@ function convertLineShapeToSimple(editor: Editor, shape: TLLineShape): SimpleLin
 	}
 }
 
-function convertArrowShapeToSimple(editor: Editor, shape: TLArrowShape): SimpleArrowShape {
-	const bounds = getShapeBounds(shape, editor)
+function convertArrowShapeToSimple({
+	editor,
+	shape,
+}: {
+	editor: Editor
+	shape: TLArrowShape
+}): SimpleArrowShape {
+	const bounds = getShapeBounds({ shape, editor })
 
 	const bindings = editor.store.query.records('binding').get()
 	const arrowBindings = bindings.filter(
@@ -197,11 +227,17 @@ function convertArrowShapeToSimple(editor: Editor, shape: TLArrowShape): SimpleA
 	}
 }
 
-function convertNoteShapeToSimple(editor: Editor, shape: TLNoteShape): SimpleNoteShape {
+function convertNoteShapeToSimple({
+	editor,
+	shape,
+}: {
+	editor: Editor
+	shape: TLNoteShape
+}): SimpleNoteShape {
 	const util = editor.getShapeUtil(shape)
 	const text = util.getText(shape)
 
-	const bounds = getShapeBounds(shape, editor)
+	const bounds = getShapeBounds({ shape, editor })
 
 	return {
 		_type: 'note',
@@ -214,8 +250,14 @@ function convertNoteShapeToSimple(editor: Editor, shape: TLNoteShape): SimpleNot
 	}
 }
 
-function convertUnknownShapeToSimple(editor: Editor, shape: TLShape): SimpleUnknownShape {
-	const bounds = getShapeBounds(shape, editor)
+function convertUnknownShapeToSimple({
+	editor,
+	shape,
+}: {
+	editor: Editor
+	shape: TLShape
+}): SimpleUnknownShape {
+	const bounds = getShapeBounds({ shape, editor })
 
 	return {
 		_type: 'unknown',
@@ -227,7 +269,7 @@ function convertUnknownShapeToSimple(editor: Editor, shape: TLShape): SimpleUnkn
 	}
 }
 
-function getShapeBounds(shape: TLShape, editor: Editor): Box {
+function getShapeBounds({ shape, editor }: { shape: TLShape; editor: Editor }): Box {
 	const bounds = editor.getShapePageBounds(shape)
 	if (bounds) {
 		return bounds

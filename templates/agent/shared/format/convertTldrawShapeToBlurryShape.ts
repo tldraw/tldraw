@@ -9,10 +9,13 @@ import { SimpleShape } from './SimpleShape'
 /**
  * Convert a tldraw shape to the blurry shape format
  */
-export function convertTldrawShapeToBlurryShape(
-	shape: TLShape,
+export function convertTldrawShapeToBlurryShape({
+	shape,
+	editor,
+}: {
+	shape: TLShape
 	editor: Editor
-): BlurryShape | null {
+}): BlurryShape | null {
 	const bounds = editor.getShapeMaskedPageBounds(shape)
 	if (!bounds) return null
 

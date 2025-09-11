@@ -32,7 +32,7 @@ export class BlurryShapesPartUtil extends PromptPartUtil<BlurryShapesPart> {
 		// Convert the shapes to the blurry shape format
 		const blurryShapes = shapesInBounds
 			.map((shape) => {
-				return convertTldrawShapeToBlurryShape(shape, editor)
+				return convertTldrawShapeToBlurryShape({ shape, editor })
 			})
 			.filter((s) => s !== null)
 

@@ -25,7 +25,7 @@ export class PeripheralShapesPartUtil extends PromptPartUtil<PeripheralShapesPar
 		const contextBoundsBox = Box.From(contextBounds)
 
 		// Get all shapes that are outside the context bounds (these are what we want to peripheralize)
-		const shapesToPeripheralize = shapes.filter((shape) => {
+		const shapesOutsideViewport = shapes.filter((shape) => {
 			const bounds = editor.getShapeMaskedPageBounds(shape)
 			if (!bounds) return
 			if (contextBoundsBox.includes(bounds)) return
@@ -33,7 +33,11 @@ export class PeripheralShapesPartUtil extends PromptPartUtil<PeripheralShapesPar
 		})
 
 		// Convert the shapes to peripheral shape cluster format
-		const clusters = convertTldrawShapesToPeripheralShapes(editor, shapesToPeripheralize, 75)
+		const clusters = convertTldrawShapesToPeripheralShapes({
+			editor,
+			shapes: shapesOutsideViewport,
+			boundsExpand: 75,
+		})
 
 		// Apply the offset and round the clusters
 		const normalizedClusters = clusters.map((cluster) => {

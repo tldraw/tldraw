@@ -63,7 +63,7 @@ export class UserActionHistoryPartUtil extends PromptPartUtil<UserActionHistoryP
 		// Collect user-removed shapes
 		for (const shape of Object.values(removed)) {
 			if (shape.typeName !== 'shape') continue
-			const simpleShape = convertTldrawShapeToSimpleShape(shape, editor)
+			const simpleShape = convertTldrawShapeToSimpleShape({ shape, editor })
 			part.removed.push({
 				shapeId: simpleShape.shapeId,
 				type: simpleShape._type,
@@ -73,8 +73,8 @@ export class UserActionHistoryPartUtil extends PromptPartUtil<UserActionHistoryP
 		// Collect user-updated shapes
 		for (const [from, to] of Object.values(updated)) {
 			if (from.typeName !== 'shape' || to.typeName !== 'shape') continue
-			const fromSimpleShape = convertTldrawShapeToSimpleShape(from, editor)
-			const toSimpleShape = convertTldrawShapeToSimpleShape(to, editor)
+			const fromSimpleShape = convertTldrawShapeToSimpleShape({ shape: from, editor })
+			const toSimpleShape = convertTldrawShapeToSimpleShape({ shape: to, editor })
 
 			const changeSimpleShape = getSimpleShapeChange(fromSimpleShape, toSimpleShape)
 			if (!changeSimpleShape) continue

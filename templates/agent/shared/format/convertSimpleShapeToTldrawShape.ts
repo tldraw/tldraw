@@ -35,52 +35,14 @@ import {
 	SimpleUnknownShape,
 } from './SimpleShape'
 
-export function convertSimpleIdToTldrawId(id: string): TLShapeId {
-	return ('shape:' + id) as TLShapeId
-}
-
-export function convertSimpleTypeToTldrawType(
-	type: SimpleShape['_type']
-): TLGeoShapeGeoStyle | TLDefaultShape['type'] | 'unknown' {
-	if (type in SIMPLE_TO_GEO_TYPES) {
-		return convertSimpleGeoTypeToTldrawGeoGeoType(type as SimpleGeoShapeType) as TLGeoShapeGeoStyle
-	}
-	return type as TLDefaultShape['type'] | 'unknown'
-}
-
-export function convertSimpleGeoTypeToTldrawGeoGeoType(
-	type: SimpleGeoShapeType
-): TLGeoShapeGeoStyle {
-	return SIMPLE_TO_GEO_TYPES[type]
-}
-
-export const SIMPLE_TO_GEO_TYPES: Record<SimpleGeoShapeType, TLGeoShapeGeoStyle> = {
-	rectangle: 'rectangle',
-	ellipse: 'ellipse',
-	triangle: 'triangle',
-	diamond: 'diamond',
-	hexagon: 'hexagon',
-	pill: 'oval',
-	cloud: 'cloud',
-	'x-box': 'x-box',
-	'check-box': 'check-box',
-	heart: 'heart',
-	pentagon: 'pentagon',
-	octagon: 'octagon',
-	star: 'star',
-	'parallelogram-right': 'rhombus',
-	'parallelogram-left': 'rhombus-2',
-	trapezoid: 'trapezoid',
-	'fat-arrow-right': 'arrow-right',
-	'fat-arrow-left': 'arrow-left',
-	'fat-arrow-up': 'arrow-up',
-	'fat-arrow-down': 'arrow-down',
-} as const
-
 /**
  * Convert a SimpleShape to a shape object to a tldraw shape using defaultShape for fallback values
+ * @param editor - The tldraw editor instance
+ * @param simpleShape - The simple shape to convert
+ * @param defaultShape - The default shape to use for fallback values
+ * @returns The converted shape and bindings
  */
-export function convertSimpleShapeToTldrawShapeWithDefaults({
+export function convertSimpleShapeToTldrawShape({
 	editor,
 	simpleShape,
 	defaultShape,
@@ -526,6 +488,48 @@ export function convertSimpleShapeToTldrawShapeWithDefaults({
 			throw new Error(`Unsupported shape type: ${shapeType}`)
 	}
 }
+
+export function convertSimpleIdToTldrawId(id: string): TLShapeId {
+	return ('shape:' + id) as TLShapeId
+}
+
+export function convertSimpleTypeToTldrawType(
+	type: SimpleShape['_type']
+): TLGeoShapeGeoStyle | TLDefaultShape['type'] | 'unknown' {
+	if (type in SIMPLE_TO_GEO_TYPES) {
+		return convertSimpleGeoTypeToTldrawGeoGeoType(type as SimpleGeoShapeType) as TLGeoShapeGeoStyle
+	}
+	return type as TLDefaultShape['type'] | 'unknown'
+}
+
+export function convertSimpleGeoTypeToTldrawGeoGeoType(
+	type: SimpleGeoShapeType
+): TLGeoShapeGeoStyle {
+	return SIMPLE_TO_GEO_TYPES[type]
+}
+
+export const SIMPLE_TO_GEO_TYPES: Record<SimpleGeoShapeType, TLGeoShapeGeoStyle> = {
+	rectangle: 'rectangle',
+	ellipse: 'ellipse',
+	triangle: 'triangle',
+	diamond: 'diamond',
+	hexagon: 'hexagon',
+	pill: 'oval',
+	cloud: 'cloud',
+	'x-box': 'x-box',
+	'check-box': 'check-box',
+	heart: 'heart',
+	pentagon: 'pentagon',
+	octagon: 'octagon',
+	star: 'star',
+	'parallelogram-right': 'rhombus',
+	'parallelogram-left': 'rhombus-2',
+	trapezoid: 'trapezoid',
+	'fat-arrow-right': 'arrow-right',
+	'fat-arrow-left': 'arrow-left',
+	'fat-arrow-up': 'arrow-up',
+	'fat-arrow-down': 'arrow-down',
+} as const
 
 /**
  * Helper function to calculate the best normalized anchor point for arrow binding
