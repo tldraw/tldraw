@@ -1,6 +1,7 @@
 import { useSyncDemo } from '@tldraw/sync'
 import { Tldraw, useEditor, useValue } from 'tldraw'
 import 'tldraw/tldraw.css'
+import './sync-custom-people-menu.css'
 
 // [1]
 const components = {
@@ -27,82 +28,37 @@ function CustomPeopleMenu() {
 
 	// [a]
 	const myUserColor = useValue('user', () => editor.user.getColor(), [editor])
-	const myUserName = useValue('user', () => editor.user.getName(), [editor])
+	const myUserName = useValue('user', () => editor.user.getName() || 'Guest', [editor])
 	const myUserId = useValue('user', () => editor.user.getId(), [editor])
 
 	// [b]
 	const allOtherPresences = useValue('presences', () => editor.getCollaborators(), [editor])
 
-	// Early return if user data is not available
-	if (!myUserName || !myUserId) {
-		return null
-	}
-
 	return (
-		<div
-			style={{
-				background: '#f5f5f5',
-				padding: 4,
-				display: 'flex',
-				flexDirection: 'column',
-				gap: 12,
-				width: 320,
-			}}
-		>
+		<div className="custom-people-menu">
 			{/* [c] */}
-			<div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
-				<h4 style={{ margin: 0 }}>Me</h4>
-				<div
-					style={{
-						display: 'flex',
-						alignItems: 'center',
-						padding: '8px 12px',
-						gap: 8,
-					}}
-				>
-					<div
-						style={{
-							width: 16,
-							height: 16,
-							borderRadius: '50%',
-							background: myUserColor,
-							marginRight: 8,
-						}}
-					/>
-					<span style={{ color: myUserColor }}>
-						{myUserName || 'Huppy'}, ID: {myUserId}
+			<div className="user-section">
+				<h4 className="section-title">Me</h4>
+				<div className="user-info">
+					<div className="user-avatar" style={{ background: myUserColor }} />
+					<span className="user-name" style={{ color: myUserColor }}>
+						{myUserName}, ID: {myUserId}
 					</span>
 				</div>
 			</div>
 
 			{/* [d] */}
 			{allOtherPresences.length > 0 && (
-				<div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
-					<h4 style={{ margin: 0 }}>Other connected users:</h4>
-					<div style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
+				<div className="other-users-section">
+					<h4 className="section-title">Other connected users:</h4>
+					<div className="other-users-list">
 						{allOtherPresences.map(({ userId, userName, color, cursor }) => (
-							<div
-								key={userId}
-								style={{
-									display: 'flex',
-									alignItems: 'center',
-									padding: '6px 12px',
-									gap: 8,
-								}}
-							>
-								<div
-									style={{
-										width: 16,
-										height: 16,
-										borderRadius: '50%',
-										background: color,
-										marginRight: 8,
-									}}
-								/>
-								<span style={{ wordBreak: 'break-word', width: 170, color: color }}>
+							<div key={userId} className="other-user-item">
+								<div className="other-user-avatar" style={{ background: color }} />
+								<span className="other-user-name" style={{ color: color }}>
 									{userName || `ID: ${userId}`}
 								</span>
-								<span style={{ width: 80, color: '#aaa', fontSize: 12, marginLeft: 8 }}>
+								<span className="cursor-info">
 									Cursor
 									<br />
 									{cursor && Number.isFinite(cursor.x) && Number.isFinite(cursor.y)
