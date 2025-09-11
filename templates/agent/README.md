@@ -608,7 +608,7 @@ To allow the agent to edit your custom shape's properties, tell the app how to c
 
 ```ts
 export function convertSimpleShapeToTldrawShape(
-	editor: Editor, 
+	editor: Editor,
 	simpleShape: TLShape
 	{ defaultShape }: { defaultShape: Partial<TLShape> }
 ): {
