@@ -96,7 +96,7 @@ When working with existing tests:
 
 If testing editor functionality, remember to use the tldraw workspace for access to default shapes and tools.
 
-When writing tests, NEVER modify the source code that you are testing
+When writing tests, NEVER modify the source code that you are testing.
 
 Use test.fails on tests that are failing if you are >75% confident that the tests themselves are correct and that the underlying issue is with the code you're testing. It is possible that the code that you're testing has a bug in it. Do not try to fix the bug. Do not try to write your test in a way that causes the test to pass despite the bug.
 
