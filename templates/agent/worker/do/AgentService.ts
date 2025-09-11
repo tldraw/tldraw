@@ -58,6 +58,7 @@ async function* streamActions(
 	const geminiThinkingBudget = model.modelId === 'gemini-2.5-pro' ? 128 : 0
 
 	const messages = buildMessages(prompt)
+	console.log('messages', JSON.stringify(messages, null, 2))
 	const systemPrompt = buildSystemPrompt(prompt)
 
 	try {
@@ -93,6 +94,7 @@ async function* streamActions(
 
 		let startTime = Date.now()
 		for await (const text of textStream) {
+			console.log('text', text)
 			buffer += text
 
 			const partialObject = closeAndParseJson(buffer)
