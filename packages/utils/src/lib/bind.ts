@@ -6,13 +6,29 @@
 import { assert } from './control'
 
 /**
- * `@bind` is a decorator that binds the method to the instance of the class (legacy stage-2
- * typescript decorators).
+ * Decorator that binds a method to its class instance (legacy stage-2 TypeScript decorators).
+ * When applied to a class method, ensures `this` always refers to the class instance,
+ * even when the method is called as a callback or event handler.
  *
  * @param target - The prototype of the class being decorated
  * @param propertyKey - The name of the method being decorated
- * @param descriptor - The property descriptor for the method
- * @returns The modified property descriptor
+ * @param descriptor - The property descriptor for the method being decorated
+ * @returns The modified property descriptor with bound method access
+ * @example
+ * ```typescript
+ * class MyClass {
+ *   name = 'example';
+ *
+ *   @bind
+ *   getName() {
+ *     return this.name;
+ *   }
+ * }
+ *
+ * const instance = new MyClass();
+ * const callback = instance.getName;
+ * console.log(callback()); // 'example' (this is properly bound)
+ * ```
  * @public
  */
 export function bind<T extends (...args: any[]) => any>(
@@ -22,10 +38,26 @@ export function bind<T extends (...args: any[]) => any>(
 ): TypedPropertyDescriptor<T>
 
 /**
- * `@bind` is a decorator that binds the method to the instance of the class (TC39 decorators).
+ * Decorator that binds a method to its class instance (TC39 decorators standard).
+ * When applied to a class method, ensures `this` always refers to the class instance,
+ * even when the method is called as a callback or event handler.
  *
  * @param originalMethod - The original method being decorated
- * @param context - The decorator context for the method
+ * @param context - The decorator context containing metadata about the method
+ * @example
+ * ```typescript
+ * class EventHandler {
+ *   message = 'Hello World';
+ *
+ *   @bind
+ *   handleClick() {
+ *     console.log(this.message);
+ *   }
+ * }
+ *
+ * const handler = new EventHandler();
+ * document.addEventListener('click', handler.handleClick); // 'this' is properly bound
+ * ```
  * @public
  */
 export function bind<This extends object, T extends (...args: any[]) => any>(
@@ -34,11 +66,31 @@ export function bind<This extends object, T extends (...args: any[]) => any>(
 ): void
 
 /**
- * `@bind` decorator implementation that handles both legacy and TC39 decorator formats.
- * Automatically binds the decorated method to the class instance.
+ * Universal decorator implementation that handles both legacy stage-2 and TC39 decorator formats.
+ * Automatically detects the decorator format based on the number of arguments and binds the
+ * decorated method to the class instance, preventing common `this` context issues.
  *
- * @param args - Either legacy decorator arguments or TC39 decorator arguments
+ * @param args - Either legacy decorator arguments (target, propertyKey, descriptor) or TC39 decorator arguments (originalMethod, context)
  * @returns Property descriptor for legacy decorators, or void for TC39 decorators
+ * @example
+ * ```typescript
+ * // Works with both decorator formats
+ * class Calculator {
+ *   multiplier = 2;
+ *
+ *   @bind
+ *   multiply(value: number) {
+ *     return value * this.multiplier;
+ *   }
+ * }
+ *
+ * const calc = new Calculator();
+ * const multiplyFn = calc.multiply;
+ * console.log(multiplyFn(5)); // 10 (this.multiplier is accessible)
+ *
+ * // Useful for event handlers and callbacks
+ * setTimeout(calc.multiply, 100, 3); // 6
+ * ```
  * @public
  */
 export function bind(

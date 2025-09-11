@@ -25,9 +25,7 @@ export class WeakCache<K extends object, V> {
 	/**
 	 * The internal WeakMap storage for cached key-value pairs.
 	 *
-	 * Stores the mapping from object keys to their computed values.
-	 * Being a WeakMap, it allows keys to be garbage collected when no other
-	 * references exist.
+	 * @public
 	 */
 	items = new WeakMap<K, V>()
 
@@ -39,9 +37,9 @@ export class WeakCache<K extends object, V> {
 	 * in the cache, and returns it. Subsequent calls with the same key will return the
 	 * cached value without recomputation.
 	 *
-	 * @param item - The object key to get the cached value for
-	 * @param cb - The callback function to compute the value if not cached
-	 * @returns The cached or newly computed value
+	 * @param item - The object key to retrieve the cached value for
+	 * @param cb - Callback function that computes the value when not already cached
+	 * @returns The cached value if it exists, otherwise the newly computed value from the callback
 	 *
 	 * @example
 	 * ```ts
