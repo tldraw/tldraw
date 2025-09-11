@@ -34,6 +34,7 @@ import {
 import styles from '../sidebar.module.css'
 import { TlaSidebarFileLinkMenu } from './TlaSidebarFileLinkMenu'
 import { TlaSidebarRenameInline } from './TlaSidebarRenameInline'
+import { pinIcon } from './pinIcon'
 import { RecentFile } from './sidebar-shared'
 
 const ACTIVE_FILE_LINK_ID = 'tla-active-file-link'
@@ -144,42 +145,6 @@ export const sidebarMessages = defineMessages({
 	renameFile: { defaultMessage: 'Rename file' },
 })
 
-const pinIcon = (
-	<svg
-		style={{
-			position: 'relative',
-			top: '1.5px',
-			left: '-0.5px',
-		}}
-		width="7"
-		height="12"
-		viewBox="0 0 7 12"
-		fill="none"
-		xmlns="http://www.w3.org/2000/svg"
-	>
-		<line
-			x1="3.5"
-			y1="2.5"
-			x2="3.5"
-			y2="11.5"
-			stroke="var(--tla-color-text-3)"
-			strokeLinecap="round"
-		/>
-		<path
-			d="M1.41401 5.22285C1.50672 5.08364 1.66291 5 1.83017 5H5.15007C5.31647 5 5.47196 5.08277 5.56487 5.22081L6.91103 7.22081C7.13458 7.55294 6.89659 8 6.49624 8H0.498231C0.0989923 8 -0.139225 7.55514 0.0820717 7.22285L1.41401 5.22285Z"
-			fill="var(--tla-color-text-3)"
-		/>
-		<path
-			d="M1.79952 1H5.18129L5.61333 6.00328H1.38672L1.79952 1Z"
-			fill="var(--tla-color-text-3)"
-		/>
-		<path
-			d="M0.64999 0.621484C0.570933 0.305857 0.809629 0 1.13501 0H5.86503C6.19041 0 6.4291 0.305857 6.35005 0.621484L6.09957 1.62148C6.04385 1.84396 5.84391 2 5.61456 2H1.38548C1.15613 2 0.956189 1.84396 0.900464 1.62148L0.64999 0.621484Z"
-			fill="var(--tla-color-text-3)"
-		/>
-	</svg>
-)
-
 export function TlaSidebarFileLinkInner({
 	isPinned,
 	testId,
@@ -247,14 +212,7 @@ export function TlaSidebarFileLinkInner({
 	if (!file) return null
 
 	if (isRenaming) {
-		return (
-			<TlaSidebarRenameInline
-				source="sidebar"
-				fileId={fileId}
-				onClose={onClose}
-				context={context}
-			/>
-		)
+		return <TlaSidebarRenameInline source="sidebar" fileId={fileId} onClose={onClose} />
 	}
 
 	return (

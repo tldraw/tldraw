@@ -6,7 +6,6 @@ import { useApp } from '../../../hooks/useAppState'
 import { F } from '../../../utils/i18n'
 import styles from '../sidebar.module.css'
 import { ReorderCursor } from './ReorderCursor'
-import { RecentFile } from './sidebar-shared'
 import { TlaSidebarDropZone } from './TlaSidebarDropZone'
 import { TlaSidebarFileLink } from './TlaSidebarFileLink'
 import { TlaSidebarGroupItem } from './TlaSidebarGroupItem'
@@ -30,43 +29,19 @@ export function TlaSidebarRecentFilesNew() {
 	// Get group memberships from the server
 	const groupMemberships = useValue('groupMemberships', () => app.getGroupMemberships(), [app])
 
-	const files = useValue(
-		'recent user files',
-		() => {
-			const groupMemberships = app.getGroupMemberships()
-			const recentFiles = app.getUserRecentFiles()
-			if (!recentFiles) return null
-
-			const pinnedFiles: RecentFile[] = []
-			const otherFiles: RecentFile[] = []
-
-			for (const item of recentFiles) {
-				const { isPinned } = item
-				if (
-					groupMemberships.some((group) => group.groupFiles.some((g) => g.fileId === item.fileId))
-				)
-					continue
-				if (isPinned) {
-					pinnedFiles.push(item)
-				} else {
-					otherFiles.push(item)
-				}
-			}
-
-			return pinnedFiles.concat(otherFiles)
-		},
-		[app]
-	)
+	const files = useValue('my files', () => app.getMyFiles(), [app])
 
 	if (!files) throw Error('Could not get files')
+	const numPinnedFiles = files.filter((f) => f.isPinned).length
 
 	const MAX_FILES_TO_SHOW = Math.max(
 		groupMemberships.length > 0 ? 6 : +Infinity,
-		files.filter((f) => f.isPinned).length
+		numPinnedFiles + 4
 	)
-	const isOverflowing = files.length > MAX_FILES_TO_SHOW
-	const filesToShow = files.slice(0, MAX_FILES_TO_SHOW)
-	const hiddenFiles = files.slice(MAX_FILES_TO_SHOW)
+	const slop = 2
+	const isOverflowing = files.length > MAX_FILES_TO_SHOW + slop
+	const filesToShow = isOverflowing ? files.slice(0, MAX_FILES_TO_SHOW) : files
+	const hiddenFiles = isOverflowing ? files.slice(MAX_FILES_TO_SHOW) : []
 
 	return (
 		<Fragment>

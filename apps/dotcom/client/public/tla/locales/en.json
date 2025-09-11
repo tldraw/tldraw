@@ -596,11 +596,5 @@
   },
   "ffcd73e997": {
     "translation": "Import file…"
-  },
-  "tla.sidebar.createGroup": {
-    "translation": "Create new group"
-  },
-  "tla.sidebar.createGroupInputPlaceholder": {
-    "translation": "Enter group name..."
   }
 }

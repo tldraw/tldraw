@@ -13,7 +13,7 @@ export function TlaSidebarRecentFiles() {
 	const results = useValue(
 		'recent user files',
 		() => {
-			const recentFiles = app.getUserRecentFiles()
+			const recentFiles = app.getMyFiles()
 			if (!recentFiles) return null
 
 			const { today, yesterday, thisWeek, thisMonth } = getRelevantDates()

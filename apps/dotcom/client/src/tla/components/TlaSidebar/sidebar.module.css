@@ -557,19 +557,32 @@
 }
 
 .sidebarFileListItemRenameInputWrapper {
-	background-color: var(--tla-color-sidebar);
-	outline: 1px solid var(--color-primary);
+	display: flex;
+	align-items: center;
+	justify-content: flex-start;
+	padding: 0px 8px 0px calc(8px + var(--tla-sidebar-group-item-padding-left, 0px));
 	outline-offset: -2px;
-	border-radius: 6px;
+	gap: 8px;
+	position: relative;
 }
 
-.sidebarFileListItemRenameInputWrapper > div {
+.sidebarFileListItemRenameInputWrapper::before {
+	content: '';
+	position: absolute;
+	bottom: 0px;
+	inset: 0px;
+	border-radius: 6px;
+	background-color: white;
+	border: 1px solid var(--tla-color-primary);
+}
+
+.sidebarFileListItemRenameInputWrapper div:global(.tlui-input__wrapper) {
 	height: 36px;
-	padding: 0px 8px 0px 8px;
 }
 
 .sidebarFileListItemRenameInput {
 	height: 36px;
+	align-self: flex-start;
 	flex: 1 1 auto;
 	white-space: nowrap;
 	overflow: hidden;
@@ -1030,7 +1043,7 @@ body[data-dragging-type] {
 .sidebarGroupItemEmpty {
 	color: var(--tla-color-text-4);
 	font-size: 12px;
-	padding: 8px;
+	padding: 8px 8px 8px calc(8px + var(--tla-sidebar-group-item-padding-left));
 }
 
 /* -------------------- Drop Zone Styles ------------------- */

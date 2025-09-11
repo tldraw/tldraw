@@ -1342,17 +1342,5 @@
       "type": 0,
       "value": "Import file…"
     }
-  ],
-  "tla.sidebar.createGroup": [
-    {
-      "type": 0,
-      "value": "Create new group"
-    }
-  ],
-  "tla.sidebar.createGroupInputPlaceholder": [
-    {
-      "type": 0,
-      "value": "Enter group name..."
-    }
   ]
 }

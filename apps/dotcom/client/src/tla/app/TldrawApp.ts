@@ -431,11 +431,12 @@ export class TldrawApp {
 	>()
 
 	@computed({ isEqual })
-	getUserRecentFiles() {
+	getMyFiles() {
 		const myFiles = objectMapFromEntries(this.getUserOwnFiles().map((f) => [f.id, f]))
 		const myStates = objectMapFromEntries(this.getUserFileStates().map((f) => [f.fileId, f]))
 
 		const myFileIds = new Set<string>([...objectMapKeys(myFiles), ...objectMapKeys(myStates)])
+		const myGroupMemberships = this.getGroupMemberships()
 
 		const nextRecentFileOrdering: {
 			fileId: TlaFile['id']
@@ -456,6 +457,12 @@ export class TldrawApp {
 				// if the file is deleted, we don't want to show it in the recent files
 				continue
 			}
+
+			// if the file is in a group we have access to, we don't want to show it in my files
+			if (myGroupMemberships.some((g) => g.groupFiles.some((gf) => gf.fileId === fileId))) {
+				continue
+			}
+
 			const existing = this.lastRecentFileOrdering?.find((f) => f.fileId === fileId)
 			const isPinned = state.isPinned ?? false
 
@@ -746,7 +753,7 @@ export class TldrawApp {
 		if (isPinning) {
 			// Get all currently pinned files to find the next index
 			const lowestIndex = this.getFileState(
-				this.getUserRecentFiles()?.find((f) => f.isPinned)?.fileId ?? ''
+				this.getMyFiles()?.find((f) => f.isPinned)?.fileId ?? ''
 			)?.pinnedIndex
 			const nextIndex = getIndexBelow(lowestIndex)
 			updateData.pinnedIndex = nextIndex
@@ -1141,7 +1148,7 @@ export class TldrawApp {
 		}
 
 		// If file is in recent files (not in a group)
-		const recentFiles = this.getUserRecentFiles()
+		const recentFiles = this.getMyFiles()
 		if (!recentFiles) return
 
 		const groupMemberships = this.getGroupMemberships()

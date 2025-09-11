@@ -99,10 +99,13 @@ const GroupFileList = memo(function GroupFileList({
 
 	if (!group) return null
 
-	const MAX_FILES_TO_SHOW = 4
-	const isOverflowing = files.length > MAX_FILES_TO_SHOW
-	const filesToShow = files.slice(0, MAX_FILES_TO_SHOW)
-	const hiddenFiles = files.slice(MAX_FILES_TO_SHOW)
+	const numPinnedFiles = files.filter((f) => !!app.getFileState(f.id)?.isPinned).length
+
+	const MAX_FILES_TO_SHOW = numPinnedFiles + 4
+	const slop = 2
+	const isOverflowing = files.length > MAX_FILES_TO_SHOW + slop
+	const filesToShow = isOverflowing ? files.slice(0, MAX_FILES_TO_SHOW) : files
+	const hiddenFiles = isOverflowing ? files.slice(MAX_FILES_TO_SHOW) : []
 
 	if (filesToShow.length === 0)
 		return <GroupEmptyState groupId={groupId} onCreateFile={onCreateFile} />
