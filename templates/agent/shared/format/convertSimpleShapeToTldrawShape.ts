@@ -42,15 +42,11 @@ import {
  * @param defaultShape - The default shape to use for fallback values
  * @returns The converted shape and bindings
  */
-export function convertSimpleShapeToTldrawShape({
-	editor,
-	simpleShape,
-	defaultShape,
-}: {
-	editor: Editor
-	simpleShape: SimpleShape
-	defaultShape: Partial<TLShape>
-}): { shape: TLShape; bindings?: TLBindingCreate[] } {
+export function convertSimpleShapeToTldrawShape(
+	editor: Editor,
+	simpleShape: SimpleShape,
+	{ defaultShape = {} }: { defaultShape?: Partial<TLShape> } = {}
+): { shape: TLShape; bindings?: TLBindingCreate[] } {
 	const shapeType = convertSimpleTypeToTldrawType(simpleShape._type)
 	const shapeId = convertSimpleIdToTldrawId(simpleShape.shapeId)
 

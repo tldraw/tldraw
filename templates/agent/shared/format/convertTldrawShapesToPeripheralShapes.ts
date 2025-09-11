@@ -1,22 +1,18 @@
 import { Box, Editor, TLShape } from 'tldraw'
 import { PeripheralShapeCluster } from './PeripheralShapesCluster'
 
-export function convertTldrawShapesToPeripheralShapes({
-	editor,
-	shapes,
-	boundsExpand,
-}: {
-	editor: Editor
-	shapes: TLShape[]
-	boundsExpand: number
-}): PeripheralShapeCluster[] {
+export function convertTldrawShapesToPeripheralShapes(
+	editor: Editor,
+	shapes: TLShape[],
+	{ padding = 0 }: { padding?: number } = {}
+): PeripheralShapeCluster[] {
 	if (shapes.length === 0) return []
 	const groups: { shapes: TLShape[]; bounds: Box; numberOfShapes: number }[] = []
 
 	const expandedBounds = shapes.map((shape) => {
 		return {
 			shape,
-			bounds: editor.getShapeMaskedPageBounds(shape)!.clone().expandBy(boundsExpand),
+			bounds: editor.getShapeMaskedPageBounds(shape)!.clone().expandBy(padding),
 		}
 	})
 	for (let i = 0; i < expandedBounds.length; i++) {
@@ -49,7 +45,7 @@ export function convertTldrawShapesToPeripheralShapes({
 	}
 
 	return groups.map((group) => {
-		const shrunkBounds = group.bounds.clone().expandBy(-boundsExpand)
+		const shrunkBounds = group.bounds.clone().expandBy(-padding)
 		return {
 			bounds: shrunkBounds,
 			numberOfShapes: group.numberOfShapes,

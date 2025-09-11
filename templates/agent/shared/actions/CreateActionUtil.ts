@@ -61,9 +61,7 @@ export class CreateActionUtil extends AgentActionUtil<CreateAction> {
 		// Translate the shape back to the chat's position
 		action.shape = helpers.removeOffsetFromShape(action.shape)
 
-		const result = convertSimpleShapeToTldrawShape({
-			editor,
-			simpleShape: action.shape,
+		const result = convertSimpleShapeToTldrawShape(editor, action.shape, {
 			defaultShape: getDefaultShape(action.shape._type),
 		})
 

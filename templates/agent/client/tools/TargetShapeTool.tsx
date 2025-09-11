@@ -80,7 +80,7 @@ class TargetShapePointing extends StateNode {
 			for (const agent of agents) {
 				agent.addToContext({
 					type: 'shape',
-					shape: convertTldrawShapeToSimpleShape({ shape: this.shape, editor: this.editor }),
+					shape: convertTldrawShapeToSimpleShape(this.editor, this.shape),
 					source: 'user',
 				})
 			}
@@ -119,7 +119,7 @@ class TargetShapeDragging extends StateNode {
 				for (const agent of agents) {
 					agent.addToContext({
 						type: 'shape',
-						shape: convertTldrawShapeToSimpleShape({ shape, editor: this.editor }),
+						shape: convertTldrawShapeToSimpleShape(this.editor, shape),
 						source: 'user',
 					})
 				}
@@ -128,9 +128,7 @@ class TargetShapeDragging extends StateNode {
 			for (const agent of agents) {
 				agent.addToContext({
 					type: 'shapes',
-					shapes: this.shapes.map((shape) =>
-						convertTldrawShapeToSimpleShape({ shape, editor: this.editor })
-					),
+					shapes: this.shapes.map((shape) => convertTldrawShapeToSimpleShape(this.editor, shape)),
 					source: 'user',
 				})
 			}

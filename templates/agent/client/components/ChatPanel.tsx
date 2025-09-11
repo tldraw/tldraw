@@ -39,7 +39,7 @@ export function ChatPanel({ agent }: { agent: TldrawAgent }) {
 			// Prompt the agent
 			const selectedShapes = editor
 				.getSelectedShapes()
-				.map((shape) => convertTldrawShapeToSimpleShape({ shape, editor }))
+				.map((shape) => convertTldrawShapeToSimpleShape(editor, shape))
 
 			await agent.prompt({
 				message,

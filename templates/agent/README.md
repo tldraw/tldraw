@@ -465,6 +465,8 @@ If you need to add any extra setup or configuration for your provider, you can a
 
 ## Let the agent create custom shapes
 
+If your app includes [custom shapes](https://tldraw.dev/docs/shapes#Custom-shapes-1), the agent will be able to see, move, delete, resize, rotate and arrange them with no extra setup. However, it won't be able to create them.
+
 To let the agent create your custom shape, add a new [agent action](#change-what-the-agent-can-do) for it. For example, this action lets the agent create a custom "sticker" shape:
 
 ```ts
@@ -480,27 +482,30 @@ const StickerAction = z
 		description: 'Add a sticker to the canvas.',
 	})
 
-type IStickerAction = z.infer<typeof StickerAction>
+type StickerAction = z.infer<typeof StickerAction>
 ```
 
 Define how the action gets applied to the canvas by creating an action util:
 
 ```ts
-export class StickerActionUtil extends AgentActionUtil<IStickerAction> {
+export class StickerActionUtil extends AgentActionUtil<StickerAction> {
 	static override type = 'sticker' as const
 
+	// Tell the model how to use the action
 	override getSchema() {
 		return StickerAction
 	}
 
-	override getInfo(action: Streaming<IStickerAction>) {
+	// How to display the action in chat history
+	override getInfo(action: Streaming<StickerAction>) {
 		return {
 			icon: 'pencil' as const,
 			description: 'Added a sticker',
 		}
 	}
 
-	override applyAction(action: Streaming<IStickerAction>, helpers: AgentHelpers) {
+	// Execute the action
+	override applyAction(action: Streaming<StickerAction>, helpers: AgentHelpers) {
 		if (!action.complete) return
 
 		// Normalize the position
@@ -521,7 +526,7 @@ export class StickerActionUtil extends AgentActionUtil<IStickerAction> {
 
 ## Let the agent read your custom shape's properties
 
-If your app includes [custom shapes](https://tldraw.dev/docs/shapes#Custom-shapes-1), the agent will be able to see, move, delete, resize, rotate and arrange them with no extra setup. However, it won't be able to view or edit their custom properties.
+If your app includes [custom shapes](https://tldraw.dev/docs/shapes#Custom-shapes-1), the agent will be able to see, move, delete, resize, rotate and arrange them with no extra setup. However, it won't be able to read or edit their custom properties.
 
 To let the agent see the custom properties of your custom shape, add it to the schema in `SimpleShape.ts`.
 
@@ -567,14 +572,14 @@ const SIMPLE_SHAPES = [
 ] as const
 ```
 
-Let the agent convert your custom shape into the `SimpleShape` format by adding it as a case in `convertTldrawShapeToSimpleShape.ts`.
+Tell the app how to convert your custom shape into the `SimpleShape` format by adding it as a case in `convertTldrawShapeToSimpleShape.ts`.
 
 ```ts
-export function convertTldrawShapeToSimpleShape(shape: TLShape, editor: Editor): ISimpleShape {
+export function convertTldrawShapeToSimpleShape(editor: Editor, shape: TLShape): ISimpleShape {
 	switch (shape.type) {
 		// ...
 		case 'sticker':
-			const bounds = editor.getShapeMaskedPageBounds(shape)
+			const bounds = getShapeBounds(shape)
 			if (!bounds) {
 				throw new Error('Could not get bounds for sticker shape')
 			}

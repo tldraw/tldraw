@@ -33,10 +33,8 @@ export class PeripheralShapesPartUtil extends PromptPartUtil<PeripheralShapesPar
 		})
 
 		// Convert the shapes to peripheral shape cluster format
-		const clusters = convertTldrawShapesToPeripheralShapes({
-			editor,
-			shapes: shapesOutsideViewport,
-			boundsExpand: 75,
+		const clusters = convertTldrawShapesToPeripheralShapes(editor, shapesOutsideViewport, {
+			padding: 75,
 		})
 
 		// Apply the offset and round the clusters
