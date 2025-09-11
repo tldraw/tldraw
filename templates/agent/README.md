@@ -161,14 +161,14 @@ type ClearAction = z.infer<typeof ClearAction>
 Create an agent action util:
 
 ```ts
-export class ClearActionUtil extends AgentActionUtil<IClearAction> {
+export class ClearActionUtil extends AgentActionUtil<ClearAction> {
 	static override type = 'clear' as const
 
 	override getSchema() {
 		return ClearAction
 	}
 
-	override applyAction(action: Streaming<IClearAction>) {
+	override applyAction(action: Streaming<ClearAction>) {
 		// Don't do anything until the action has finished streaming
 		if (!action.complete) return
 
@@ -232,7 +232,7 @@ You can let the agent work over multiple turns by scheduling further work using 
 This example shows how to schedule an extra step for adding detail to the canvas.
 
 ```ts
-override applyAction(action: Streaming<IAddDetailAction>) {
+override applyAction(action: Streaming<AddDetailAction>) {
 	if (!action.complete) return
 	if (!this.agent) return
 	this.agent.schedule('Add more detail to the canvas.')
@@ -258,7 +258,7 @@ agent.schedule('Check for spelling mistakes.')
 You can also schedule further work by adding to the agent's todo list. It won't stop working until all todos are resolved.
 
 ```ts
-override applyAction(action: Streaming<IAddDetailAction>) {
+override applyAction(action: Streaming<AddDetailAction>) {
 	if (!action.complete) return
 	if (!this.agent) return
 
@@ -272,7 +272,7 @@ To let the agent retrieve information from an external API, fetch the data withi
 
 ```ts
 override async applyAction(
-	action: Streaming<IRandomWikipediaArticleAction>
+	action: Streaming<RandomWikipediaArticleAction>
 ) {
 	if (!action.complete) return
 	if (!this.agent) return
@@ -294,7 +294,7 @@ To correct incoming mistakes, apply fixes in the `sanitizeAction` method of an a
 For example, ensure that a shape ID received from the model refers to an existing shape by using the `ensureShapeIdExists` method.
 
 ```ts
-override sanitizeAction(action: Streaming<IDeleteAction>, helpers: AgentHelpers) {
+override sanitizeAction(action: Streaming<DeleteAction>, helpers: AgentHelpers) {
 	if (!action.complete) return action
 
 	// Ensure the shape ID refers to an existing shape
@@ -340,7 +340,7 @@ override getPart(request: AgentRequest, helpers: AgentHelpers): ViewportCenterPa
 To remove the offset from a position received from the model, use the `removeOffsetFromVec` method.
 
 ```ts
-override applyAction(action: Streaming<IMoveAction>, helpers: AgentHelpers) {
+override applyAction(action: Streaming<MoveAction>, helpers: AgentHelpers) {
 	if (!action.complete) return
 
 	// Remove the offset from the position
