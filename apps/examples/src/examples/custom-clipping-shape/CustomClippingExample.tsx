@@ -2,6 +2,7 @@ import {
 	createShapeId,
 	DefaultToolbar,
 	DefaultToolbarContent,
+	stopEventPropagation,
 	TLComponents,
 	Tldraw,
 	TldrawUiMenuItem,
@@ -58,6 +59,8 @@ function ToggleClippingButton() {
 				onClick={() => {
 					isClippingEnabled$.update((prev) => !prev)
 				}}
+				onPointerDown={stopEventPropagation}
+				onPointerUp={stopEventPropagation}
 			>
 				{clippingEnabled ? '✂️ Disable Clipping' : '○ Enable Clipping'}
 			</button>
