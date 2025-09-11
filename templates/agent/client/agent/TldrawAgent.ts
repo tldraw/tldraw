@@ -741,7 +741,6 @@ function requestAgent({ agent, request }: { agent: TldrawAgent; request: AgentRe
 
 	const requestPromise = (async () => {
 		const prompt = await agent.preparePrompt(request, helpers)
-		console.log('PROMPT SENT', prompt)
 		let incompleteDiff: RecordsDiff<TLRecord> | null = null
 		const actionPromises: Promise<void>[] = []
 		try {
