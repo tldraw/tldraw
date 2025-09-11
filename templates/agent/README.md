@@ -604,41 +604,6 @@ export function convertTldrawShapeToSimpleShape(editor: Editor, shape: TLShape):
 }
 ```
 
-## Let the agent edit your custom shape's properties
-
-TODO
-
-<!-- 4. Now the agent can see and fully understand stickers on the canvas. However, it still can't create or edit them. To allow them to do this, head to `CreateActionUtil.ts` and `UpdateActionUtil.ts` respectively and add support for those. This is where `SimpleShape` format shapes, which is what the model outputs, are converted to the 'real' format required by the canvas.
-
-Here's how the new shape is handled in `CreateActionUtil.ts`'s `getTldrawAiChangesFromCreateAction()` function. It's handled very similarly in `UpdateActionUtil.ts`
-
-```ts
-case 'sticker': {
-	const stickerShape = shape as MyCustomStickerShape
-	changes.push({
-		type: 'createShape',
-		description: action.intent ?? '',
-		shape: {
-			id: shapeId,
-			type: 'sticker',
-			x: stickerShape.x,
-			y: stickerShape.y,
-			props: {
-				stickerType: stickerShape.stickerType,
-			},
-			meta: {
-				note: stickerShape.note ?? '',
-			},
-		},
-	})
-	break
-}
-```
-
-The model can now see, create, and update the sticker type of your hypothetical `MyCustomStickerShape` shape. -->
-
-<!-- > _Why does `_type` start with an underscore? And why are the properties of all of the simple shapes in alphabetical order?_ Good question! Unfortunately as users of LLMs we exist at the behest of their strange quirks we've found this helps for some models: in this case the quirk was [property ordering.](https://ai.google.dev/gemini-api/docs/structured-output#property-ordering) If you have no intention of using Gemini, you can remove the underscores from `_type` and change the orders of the properties to be more reasonable at your own peril. -->
-
 ## License
 
 This project is part of the tldraw SDK. It is provided under the [tldraw SDK license](https://github.com/tldraw/tldraw/blob/main/LICENSE.md).
