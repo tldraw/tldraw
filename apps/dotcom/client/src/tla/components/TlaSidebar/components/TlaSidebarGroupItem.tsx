@@ -35,26 +35,6 @@ const groupMessages = defineMessages({
 	copied: { defaultMessage: 'Copied invite link' },
 })
 
-const TriangleIcon = ({ angle = 0 }: { angle?: number }) => {
-	return (
-		<svg
-			width="8"
-			height="8"
-			viewBox="4 4 8 8"
-			fill="none"
-			xmlns="http://www.w3.org/2000/svg"
-			style={{
-				transform: `rotate(${angle + 180}deg)`,
-			}}
-		>
-			<path
-				d="M5.12764 7.30697C4.8722 6.97854 5.10625 6.5 5.52232 6.5H10.4777C10.8938 6.5 11.1278 6.97854 10.8724 7.30697L8.39468 10.4926C8.1945 10.7499 7.8055 10.7499 7.60532 10.4926L5.12764 7.30697Z"
-				fill="currentColor"
-			/>
-		</svg>
-	)
-}
-
 function GroupEmptyState({ groupId, onCreateFile }: { groupId: string; onCreateFile(): void }) {
 	const app = useApp()
 	return (
@@ -256,7 +236,7 @@ function GroupMenuContent({ groupId }: { groupId: string }) {
 	)
 }
 
-export function TlaSidebarGroupItem({ groupId }: { groupId: string }) {
+export function TlaSidebarGroupItem({ groupId, index }: { groupId: string; index: number }) {
 	const [menuIsOpen] = useMenuIsOpen(`group-menu-${groupId}-sidebar`)
 	const [contextMenuIsOpen] = useMenuIsOpen(`group-context-menu-${groupId}`)
 	const app = useApp()
@@ -343,7 +323,6 @@ export function TlaSidebarGroupItem({ groupId }: { groupId: string }) {
 			{...attributes}
 			className={isDragging ? styles.sidebarGroupItemDragging : undefined}
 			data-group-id={group.groupId}
-			data-group-index={group.index}
 			data-no-animation={isNoAnimation}
 		>
 			<_ContextMenu.Root onOpenChange={handleContextMenuOpenChange} modal={false}>
@@ -354,6 +333,7 @@ export function TlaSidebarGroupItem({ groupId }: { groupId: string }) {
 							open={isExpanded}
 							data-dragging={isDragging}
 							data-is-empty={isEmpty}
+							data-group-index={index}
 							data-is-expanded={isExpanded}
 							data-menu-open={menuIsOpen || contextMenuIsOpen}
 						>
@@ -374,7 +354,7 @@ export function TlaSidebarGroupItem({ groupId }: { groupId: string }) {
 									<div
 										className={styles.sidebarGroupItemTitle}
 										style={{
-											marginLeft: isExpanded ? -6 : 0,
+											marginLeft: isExpanded ? 0 : 0,
 											transition: 'margin-left 0.14s ease-in-out',
 										}}
 										onClick={() => setIsExpanded(!isExpanded)}

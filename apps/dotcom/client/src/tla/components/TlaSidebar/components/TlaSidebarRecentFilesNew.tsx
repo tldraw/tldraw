@@ -1,9 +1,9 @@
 import { patch } from 'patchfork'
 import { Collapsible } from 'radix-ui'
-import { Fragment, useState } from 'react'
-import { useDialogs, useValue } from 'tldraw'
+import { Fragment } from 'react'
+import { useValue } from 'tldraw'
 import { useApp } from '../../../hooks/useAppState'
-import { defineMessages, F, useIntl } from '../../../utils/i18n'
+import { F } from '../../../utils/i18n'
 import styles from '../sidebar.module.css'
 import { ReorderCursor } from './ReorderCursor'
 import { RecentFile } from './sidebar-shared'
@@ -11,30 +11,8 @@ import { TlaSidebarDropZone } from './TlaSidebarDropZone'
 import { TlaSidebarFileLink } from './TlaSidebarFileLink'
 import { TlaSidebarGroupItem } from './TlaSidebarGroupItem'
 
-const messages = defineMessages({
-	createGroup: {
-		id: 'tla.sidebar.createGroup',
-		defaultMessage: 'Create new group',
-	},
-	createGroupInputPlaceholder: {
-		id: 'tla.sidebar.createGroupInputPlaceholder',
-		defaultMessage: 'Enter group name...',
-	},
-})
-
-declare global {
-	interface Window {
-		useDialogForGroupCreation: boolean
-	}
-}
-window.useDialogForGroupCreation = true
-
 export function TlaSidebarRecentFilesNew() {
 	const app = useApp()
-	const intl = useIntl()
-	const { addDialog } = useDialogs()
-
-	const [isCreatingGroup, setIsCreatingGroup] = useState(false)
 	// Demo flag to switch between inline input and dialog
 
 	const isShowingAll = useValue('isShowingAll', () => app.sidebarState.get().recentFilesShowMore, [
@@ -92,6 +70,11 @@ export function TlaSidebarRecentFilesNew() {
 
 	return (
 		<Fragment>
+			<div
+				style={{ fontSize: 12, paddingLeft: 6, paddingTop: 12, color: 'var(--tla-color-text-3)' }}
+			>
+				<F defaultMessage="My files" />
+			</div>
 			<div style={{ height: 8 }}></div>
 			{filesToShow.length > 0 && (
 				<TlaSidebarDropZone id="my-files-drop-zone">
@@ -139,7 +122,11 @@ export function TlaSidebarRecentFilesNew() {
 				// or whatever.
 				// If radix's Collapsible had 'opening' and 'closing' states instead of just 'open' and 'closed'
 				// we wouldn't need this.
-				<TlaSidebarGroupItem key={`group-${group.group.id}-${i}`} groupId={group.group.id} />
+				<TlaSidebarGroupItem
+					key={`group-${group.group.id}-${i}`}
+					groupId={group.group.id}
+					index={i}
+				/>
 			))}
 			{/* Global drag cursor for group reordering */}
 			<ReorderCursor

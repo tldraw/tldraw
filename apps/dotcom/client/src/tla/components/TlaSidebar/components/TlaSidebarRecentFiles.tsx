@@ -70,7 +70,7 @@ export function TlaSidebarRecentFiles() {
 				>
 					{results.pinnedFiles.map((item, i) => (
 						<TlaSidebarFileLink
-							context="my-files"
+							context="my-files-pinned"
 							key={'file_link_pinned_' + item.fileId}
 							item={item}
 							testId={`tla-file-link-pinned-${i}`}

@@ -735,6 +735,10 @@
 	width: 100%;
 }
 
+.sidebarGroupItem .showAllButton {
+	padding-left: calc(8px + var(--tla-sidebar-group-item-padding-left));
+}
+
 .showAllButton:hover {
 	color: var(--tla-color-text-1);
 }
@@ -780,6 +784,10 @@
 	width: 100%;
 	margin-bottom: 0px;
 	transition: margin-bottom 0.15s cubic-bezier(0.4, 0, 0.2, 1);
+	--tla-sidebar-group-item-padding-left: 8px;
+}
+.sidebarGroupItem .sidebarFileListItemContent {
+	padding-left: var(--tla-sidebar-group-item-padding-left);
 }
 
 .sidebarGroupItemDragging {
@@ -802,9 +810,8 @@
 .sidebarGroupItem[data-state='open'] {
 	margin-bottom: 12px;
 }
-
 .sidebarGroupItem:has(.sidebarGroupItemHeader:hover)::after,
-.sidebarGroupItem[data-is-empty='true'][data-is-expanded='true']::after,
+.sidebarGroupItem[data-is-empty='true'][data-is-expanded='true'][data-group-index='0']::after,
 .sidebarGroupItem[data-menu-open='true']::after,
 .sidebarGroupItem[data-dragging='true']::after {
 	display: block;

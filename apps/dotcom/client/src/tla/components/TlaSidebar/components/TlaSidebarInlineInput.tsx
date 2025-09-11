@@ -12,6 +12,7 @@ export interface TlaSidebarInlineInputProps {
 	wrapperClassName?: string
 	autoFocus?: boolean
 	'data-testid'?: string
+	leftPadding?: number
 }
 
 export function TlaSidebarInlineInput({
@@ -23,6 +24,7 @@ export function TlaSidebarInlineInput({
 	wrapperClassName,
 	autoFocus = true,
 	'data-testid': dataTestId,
+	leftPadding = 0,
 }: TlaSidebarInlineInputProps) {
 	const ref = useRef<HTMLInputElement>(null)
 	const wasSaved = useRef(false)
@@ -47,7 +49,10 @@ export function TlaSidebarInlineInput({
 	}, [onCancel])
 
 	return (
-		<div className={classNames(styles.sidebarFileListItemRenameInputWrapper, wrapperClassName)}>
+		<div
+			className={classNames(styles.sidebarFileListItemRenameInputWrapper, wrapperClassName)}
+			style={{ paddingLeft: leftPadding }}
+		>
 			<TldrawUiInput
 				ref={ref}
 				data-testid={dataTestId}
