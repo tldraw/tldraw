@@ -7,7 +7,7 @@ Add comprehensive JSDoc comments to all exported functions, classes, interfaces,
 
 For each exported item, include:
 
-- **@description** - Clear, concise description of what it does
+- A concise description of what it does. Do not use the @description tag.
 - **@param** - For each parameter with type and description
 - **@returns** - Return type and description
 - **@example** - Code example showing typical usage (required for functions, class methods, and classes)

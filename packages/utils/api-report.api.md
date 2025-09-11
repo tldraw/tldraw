@@ -12,17 +12,17 @@ import { default as uniq } from 'lodash.uniq';
 // @internal
 export function annotateError(error: unknown, annotations: Partial<ErrorAnnotations>): void;
 
-// @internal (undocumented)
+// @internal
 export function areArraysShallowEqual<T>(arr1: readonly T[], arr2: readonly T[]): boolean;
 
 // @internal (undocumented)
 export function areObjectsShallowEqual<T extends object>(obj1: T, obj2: T): boolean;
 
-// @internal (undocumented)
+// @internal
 const assert_2: (value: unknown, message?: string) => asserts value;
 export { assert_2 as assert }
 
-// @internal (undocumented)
+// @internal
 export const assertExists: <T>(value: T, message?: string | undefined) => NonNullable<T>;
 
 // @public
@@ -37,7 +37,7 @@ export function clearLocalStorage(): void;
 // @internal
 export function clearSessionStorage(): void;
 
-// @internal (undocumented)
+// @internal
 export function compact<T>(arr: T[]): NonNullable<T>[];
 
 // @public
@@ -75,7 +75,7 @@ export interface ErrorAnnotations {
     tags: Record<string, bigint | boolean | null | number | string | symbol | undefined>;
 }
 
-// @public (undocumented)
+// @public
 export interface ErrorResult<E> {
     // (undocumented)
     readonly error: E;
@@ -83,18 +83,19 @@ export interface ErrorResult<E> {
     readonly ok: false;
 }
 
-// @internal (undocumented)
+// @internal
 export class ExecutionQueue {
+    // @public
     constructor(timeout?: number | undefined);
-    // (undocumented)
+    // @public
     close(): void;
-    // (undocumented)
+    // @public
     isEmpty(): boolean;
-    // (undocumented)
+    // @public
     push<T>(task: () => T): Promise<Awaited<T>>;
 }
 
-// @internal (undocumented)
+// @internal
 export function exhaustiveSwitchError(value: never, property?: string): never;
 
 // @public (undocumented)
@@ -141,7 +142,7 @@ export function fpsThrottle(fn: {
 // @internal (undocumented)
 export function getChangedKeys<T extends object>(obj1: T, obj2: T): (keyof T)[];
 
-// @internal (undocumented)
+// @internal
 export function getErrorAnnotations(error: Error): ErrorAnnotations;
 
 // @public
@@ -244,7 +245,7 @@ export type JsonPrimitive = boolean | null | number | string;
 // @public (undocumented)
 export type JsonValue = JsonArray | JsonObject | JsonPrimitive;
 
-// @internal (undocumented)
+// @internal
 export function last<T>(arr: readonly T[]): T | undefined;
 
 // @public
@@ -271,7 +272,7 @@ export function mapObjectMapValues<Key extends string, ValueBefore, ValueAfter>(
     [K in Key]: ValueAfter;
 };
 
-// @internal (undocumented)
+// @internal
 export function maxBy<T>(arr: readonly T[], fn: (item: T) => number): T | undefined;
 
 // @internal (undocumented)
@@ -315,12 +316,12 @@ export class MediaHelpers {
     static usingObjectURL<T>(blob: Blob, fn: (url: string) => Promise<T>): Promise<T>;
 }
 
-// @internal (undocumented)
+// @internal
 export function mergeArraysAndReplaceDefaults<const Key extends string, T extends {
     [K in Key]: string;
 }>(key: Key, customEntries: readonly T[], defaults: readonly T[]): T[];
 
-// @internal (undocumented)
+// @internal
 export function minBy<T>(arr: readonly T[], fn: (item: T) => number): T | undefined;
 
 // @internal (undocumented)
@@ -357,7 +358,7 @@ export function objectMapValues<Key extends string, Value>(object: {
     [K in Key]: Value;
 }): Array<Value>;
 
-// @public (undocumented)
+// @public
 export interface OkResult<T> {
     // (undocumented)
     readonly ok: true;
@@ -414,7 +415,7 @@ export class PngHelpers {
     static setPhysChunk(view: DataView, dpr?: number, options?: BlobPropertyBag): Blob;
 }
 
-// @internal (undocumented)
+// @internal
 export function promiseWithResolve<T>(): Promise<T> & {
     reject(reason?: any): void;
     resolve(value: T): void;
@@ -437,10 +438,10 @@ export { Required_2 as Required }
 // @internal (undocumented)
 export function restoreUniqueId(): void;
 
-// @public (undocumented)
+// @public
 export type Result<T, E> = ErrorResult<E> | OkResult<T>;
 
-// @public (undocumented)
+// @public
 export const Result: {
     err<E>(error: E): ErrorResult<E>;
     ok<T>(value: T): OkResult<T>;
@@ -469,7 +470,7 @@ export function setInLocalStorage(key: string, value: string): void;
 // @internal
 export function setInSessionStorage(key: string, value: string): void;
 
-// @internal (undocumented)
+// @internal
 export function sleep(ms: number): Promise<void>;
 
 // @public (undocumented)
