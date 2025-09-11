@@ -61,12 +61,10 @@ export class CreateActionUtil extends AgentActionUtil<CreateAction> {
 		// Translate the shape back to the chat's position
 		action.shape = helpers.removeOffsetFromShape(action.shape)
 
-		const shapeDefault = getShapeDefault(action.shape._type)
-
 		const result = convertSimpleShapeToTldrawShape({
 			editor,
 			simpleShape: action.shape,
-			defaultShape: shapeDefault,
+			defaultShape: getDefaultShape(action.shape._type),
 		})
 
 		editor.createShape(result.shape)
@@ -86,7 +84,7 @@ export class CreateActionUtil extends AgentActionUtil<CreateAction> {
 	}
 }
 
-function getShapeDefault(shapeType: SimpleShape['_type']) {
+function getDefaultShape(shapeType: SimpleShape['_type']) {
 	const isGeo = shapeType in SIMPLE_TO_GEO_TYPES
 	return isGeo
 		? SHAPE_DEFAULTS.geo

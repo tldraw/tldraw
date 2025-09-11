@@ -118,7 +118,7 @@ export function convertSimpleShapeToTldrawShape({
 					y: correctedTextCoords.y,
 					rotation: defaultTextShape.rotation ?? 0,
 					index: defaultTextShape.index ?? ('a1' as IndexKey),
-					parentId: editor.getCurrentPageId(),
+					parentId: defaultTextShape.parentId ?? editor.getCurrentPageId(),
 					isLocked: defaultTextShape.isLocked ?? false,
 					opacity: defaultTextShape.opacity ?? 1,
 					props: {
@@ -158,7 +158,7 @@ export function convertSimpleShapeToTldrawShape({
 					y: minY,
 					rotation: defaultLineShape.rotation ?? 0,
 					index: defaultLineShape.index ?? ('a1' as IndexKey),
-					parentId: editor.getCurrentPageId(),
+					parentId: defaultLineShape.parentId ?? editor.getCurrentPageId(),
 					isLocked: defaultLineShape.isLocked ?? false,
 					opacity: defaultLineShape.opacity ?? 1,
 					props: {
@@ -218,7 +218,7 @@ export function convertSimpleShapeToTldrawShape({
 				y: minY,
 				rotation: defaultArrowShape.rotation ?? 0,
 				index: defaultArrowShape.index ?? ('a1' as IndexKey),
-				parentId: editor.getCurrentPageId(),
+				parentId: defaultArrowShape.parentId ?? editor.getCurrentPageId(),
 				isLocked: defaultArrowShape.isLocked ?? false,
 				opacity: defaultArrowShape.opacity ?? 1,
 				props: {
@@ -340,8 +340,6 @@ export function convertSimpleShapeToTldrawShape({
 				fill = convertSimpleFillToTldrawFill('none')
 			}
 
-			console.log('pageId', editor.getCurrentPageId())
-
 			return {
 				shape: {
 					id: shapeId,
@@ -351,7 +349,7 @@ export function convertSimpleShapeToTldrawShape({
 					y: geoShape.y ?? defaultGeoShape.y ?? 0,
 					rotation: defaultGeoShape.rotation ?? 0,
 					index: defaultGeoShape.index ?? ('a1' as IndexKey),
-					parentId: editor.getCurrentPageId(),
+					parentId: defaultGeoShape.parentId ?? editor.getCurrentPageId(),
 					isLocked: defaultGeoShape.isLocked ?? false,
 					opacity: defaultGeoShape.opacity ?? 1,
 					props: {
@@ -401,7 +399,7 @@ export function convertSimpleShapeToTldrawShape({
 					y: noteShape.y ?? defaultNoteShape.y ?? 0,
 					rotation: defaultNoteShape.rotation ?? 0,
 					index: defaultNoteShape.index ?? ('a1' as IndexKey),
-					parentId: editor.getCurrentPageId(),
+					parentId: defaultNoteShape.parentId ?? editor.getCurrentPageId(),
 					isLocked: defaultNoteShape.isLocked ?? false,
 					opacity: defaultNoteShape.opacity ?? 1,
 					props: {
@@ -447,7 +445,7 @@ export function convertSimpleShapeToTldrawShape({
 					y: defaultDrawShape.y ?? 0,
 					rotation: defaultDrawShape.rotation ?? 0,
 					index: defaultDrawShape.index ?? ('a1' as IndexKey),
-					parentId: editor.getCurrentPageId(),
+					parentId: defaultDrawShape.parentId ?? editor.getCurrentPageId(),
 					isLocked: defaultDrawShape.isLocked ?? false,
 					opacity: defaultDrawShape.opacity ?? 1,
 					props: {
@@ -473,7 +471,7 @@ export function convertSimpleShapeToTldrawShape({
 					y: unknownShape.y ?? defaultShape.y ?? 0,
 					rotation: defaultShape.rotation ?? 0,
 					index: defaultShape.index ?? ('a1' as IndexKey),
-					parentId: editor.getCurrentPageId(),
+					parentId: defaultShape.parentId ?? editor.getCurrentPageId(),
 					isLocked: defaultShape.isLocked ?? false,
 					opacity: defaultShape.opacity ?? 1,
 					props: defaultShape.props ?? {},

@@ -706,61 +706,58 @@ function requestAgent({ agent, request }: { agent: TldrawAgent; request: AgentRe
 	const signal = controller.signal
 	const helpers = new AgentHelpers(agent)
 
-	const requestPromise = new Promise<void>((resolve) => {
-		agent.preparePrompt(request, helpers).then(async (prompt) => {
-			let incompleteDiff: RecordsDiff<TLRecord> | null = null
-			const actionPromises: Promise<void>[] = []
-			try {
-				for await (const action of streamAgent({ prompt, signal })) {
-					if (cancelled) break
-					editor.run(
-						() => {
-							const actionUtil = agent.getAgentActionUtil(action._type)
+	const requestPromise = (async () => {
+		const prompt = await agent.preparePrompt(request, helpers)
+		let incompleteDiff: RecordsDiff<TLRecord> | null = null
+		const actionPromises: Promise<void>[] = []
+		try {
+			for await (const action of streamAgent({ prompt, signal })) {
+				if (cancelled) break
+				editor.run(
+					() => {
+						const actionUtil = agent.getAgentActionUtil(action._type)
 
-							// helpers the agent's action
-							const transformedAction = actionUtil.sanitizeAction(action, helpers)
-							if (!transformedAction) {
-								incompleteDiff = null
-								return
-							}
-
-							// If there was a diff from an incomplete action, revert it so that we can reapply the action
-							if (incompleteDiff) {
-								const inversePrevDiff = reverseRecordsDiff(incompleteDiff)
-								editor.store.applyDiff(inversePrevDiff)
-							}
-
-							// Apply the action to the app and editor
-							const { diff, promise } = agent.act(transformedAction, helpers)
-
-							if (promise) {
-								actionPromises.push(promise)
-							}
-
-							// The the action is incomplete, save the diff so that we can revert it in the future
-							if (transformedAction.complete) {
-								incompleteDiff = null
-							} else {
-								incompleteDiff = diff
-							}
-						},
-						{
-							ignoreShapeLock: false,
-							history: 'ignore',
+						// helpers the agent's action
+						const transformedAction = actionUtil.sanitizeAction(action, helpers)
+						if (!transformedAction) {
+							incompleteDiff = null
+							return
 						}
-					)
-				}
-				await Promise.all(actionPromises)
-				resolve()
-			} catch (e) {
-				if (e === 'Cancelled by user' || (e instanceof Error && e.name === 'AbortError')) {
-					return
-				}
-				agent.onError(e)
-				resolve()
+
+						// If there was a diff from an incomplete action, revert it so that we can reapply the action
+						if (incompleteDiff) {
+							const inversePrevDiff = reverseRecordsDiff(incompleteDiff)
+							editor.store.applyDiff(inversePrevDiff)
+						}
+
+						// Apply the action to the app and editor
+						const { diff, promise } = agent.act(transformedAction, helpers)
+
+						if (promise) {
+							actionPromises.push(promise)
+						}
+
+						// The the action is incomplete, save the diff so that we can revert it in the future
+						if (transformedAction.complete) {
+							incompleteDiff = null
+						} else {
+							incompleteDiff = diff
+						}
+					},
+					{
+						ignoreShapeLock: false,
+						history: 'ignore',
+					}
+				)
 			}
-		})
-	})
+			await Promise.all(actionPromises)
+		} catch (e) {
+			if (e === 'Cancelled by user' || (e instanceof Error && e.name === 'AbortError')) {
+				return
+			}
+			agent.onError(e)
+		}
+	})()
 
 	const cancel = () => {
 		cancelled = true

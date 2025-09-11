@@ -69,10 +69,7 @@ export class UpdateActionUtil extends AgentActionUtil<UpdateAction> {
 		// Translate the shape back to the chat's position
 		action.update = helpers.removeOffsetFromShape(action.update)
 
-		const simpleShapeId = helpers.ensureShapeIdExists(action.update.shapeId)
-		if (!simpleShapeId) return
-		const shapeId = convertSimpleIdToTldrawId(simpleShapeId)
-
+		const shapeId = convertSimpleIdToTldrawId(action.update.shapeId)
 		const existingShape = editor.getShape(shapeId)
 
 		if (!existingShape) {
@@ -89,7 +86,7 @@ export class UpdateActionUtil extends AgentActionUtil<UpdateAction> {
 
 		// Handle arrow bindings if they exist
 		if (result.bindings) {
-			// First, clean up existing bindings for this arrow
+			// First, clean up existing bindings
 			const existingBindings = editor.getBindingsFromShape(shapeId, 'arrow')
 			for (const binding of existingBindings) {
 				editor.deleteBinding(binding.id as TLBindingId)
