@@ -34,6 +34,30 @@ __metadata:
   languageName: node
   linkType: hard
 
+"@ai-sdk/anthropic@npm:^2.0.2":
+  version: 2.0.11
+  resolution: "@ai-sdk/anthropic@npm:2.0.11"
+  dependencies:
+    "@ai-sdk/provider": "npm:2.0.0"
+    "@ai-sdk/provider-utils": "npm:3.0.7"
+  peerDependencies:
+    zod: ^3.25.76 || ^4
+  checksum: 10/6b7874d4857baee09020cb951f2367ef62ef97a22da9c9b61a0464015f8f39530e57b58d712ea570355a3d880acf4c6b9edf615a5aae1496de0c7d11ecfcf5f3
+  languageName: node
+  linkType: hard
+
+"@ai-sdk/gateway@npm:1.0.15":
+  version: 1.0.15
+  resolution: "@ai-sdk/gateway@npm:1.0.15"
+  dependencies:
+    "@ai-sdk/provider": "npm:2.0.0"
+    "@ai-sdk/provider-utils": "npm:3.0.7"
+  peerDependencies:
+    zod: ^3.25.76 || ^4
+  checksum: 10/97f5291b4be4dec62564aec68e7e174a145c00c7765abe51fff423e9485f36b9378290c753b78001cce584bfe230ed5cdbecccf505dceedafb286d5ddfd3861a
+  languageName: node
+  linkType: hard
+
 "@ai-sdk/gateway@npm:1.0.7":
   version: 1.0.7
   resolution: "@ai-sdk/gateway@npm:1.0.7"
@@ -11678,7 +11702,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"ai@npm:5.0.15, ai@npm:^5.0.15":
+"ai@npm:5.0.15":
   version: 5.0.15
   resolution: "ai@npm:5.0.15"
   dependencies:
@@ -11689,6 +11713,20 @@ __metadata:
   peerDependencies:
     zod: ^3.25.76 || ^4
   checksum: 10/a0077b55895555de7ef708faf41983d76f7a78b41fa3a1dd22faad19d63b1877350392927289c8724f3e69fc23044ffe84642ee0cea232e46186e485a8e4b7b7
+  languageName: node
+  linkType: hard
+
+"ai@npm:^5.0.15":
+  version: 5.0.30
+  resolution: "ai@npm:5.0.30"
+  dependencies:
+    "@ai-sdk/gateway": "npm:1.0.15"
+    "@ai-sdk/provider": "npm:2.0.0"
+    "@ai-sdk/provider-utils": "npm:3.0.7"
+    "@opentelemetry/api": "npm:1.9.0"
+  peerDependencies:
+    zod: ^3.25.76 || ^4
+  checksum: 10/9f56165d6a8b4a09b3c0881532c6d0f7708cf79f93d925f6b177916e941045556db4579fdfffa278089fc252d4aba7e7e9f8d16d47df69b2a43e70ee7158f91e
   languageName: node
   linkType: hard
 
@@ -27661,6 +27699,36 @@ __metadata:
   checksum: 10/9bd1c6ab68704dd10b8896fd66e28f3b4b4017a32b8802a9d57a565dee1704df45c249d8363bcaca235dbc0d9a7a90d6f1326f1e6b999f7809b36599a3f92eb3
   languageName: node
   linkType: hard
+
+"tldraw-agent@workspace:templates/agent":
+  version: 0.0.0-use.local
+  resolution: "tldraw-agent@workspace:templates/agent"
+  dependencies:
+    "@ai-sdk/anthropic": "npm:^2.0.2"
+    "@ai-sdk/google": "npm:^2.0.11"
+    "@ai-sdk/openai": "npm:^2.0.24"
+    "@cloudflare/vite-plugin": "npm:^1.9.0"
+    "@cloudflare/workers-types": "npm:^4.20250703.0"
+    "@google/generative-ai": "npm:^0.24.1"
+    "@tldraw/ai": "workspace:*"
+    "@tldraw/tlschema": "workspace:*"
+    "@types/react": "npm:^18.3.18"
+    "@types/react-dom": "npm:^18.3.5"
+    "@vitejs/plugin-react-swc": "npm:^3.10.2"
+    "@worker-tools/json-stream": "npm:^0.1.0-pre.12"
+    ai: "npm:^5.0.15"
+    best-effort-json-parser: "npm:^1.1.3"
+    itty-router: "npm:^5.0.18"
+    react: "npm:^18.3.1"
+    react-dom: "npm:^18.3.1"
+    react-markdown: "npm:^10.1.0"
+    tldraw: "workspace:*"
+    typescript: "npm:^5.8.3"
+    vite: "npm:^7.0.1"
+    wrangler: "npm:^4.23.0"
+    zod: "npm:^4.1.5"
+  languageName: unknown
+  linkType: soft
 
 "tldraw-ai-example@workspace:templates/ai":
   version: 0.0.0-use.local
