@@ -476,7 +476,7 @@ To support custom shapes, you have two main options:
 2. Add your custom shape to the schema so that the agent read, edit and create it like any other shape.\
    See the [Add your custom shape to the schema](#add-your-custom-shape-to-the-schema) section below.
 
-## Let the agent create a custom shape with an action
+### Let the agent create a custom shape with an action
 
 To add partial support for a custom shape, let the agent create it with an [agent action](#change-what-the-agent-can-do). For example, this action lets the agent create a custom "sticker" shape:
 
@@ -535,7 +535,7 @@ export class StickerActionUtil extends AgentActionUtil<StickerAction> {
 }
 ```
 
-## Add a custom shape to the schema
+### Add a custom shape to the schema
 
 To let the agent see the custom properties of your custom shape, add it to the schema in `SimpleShape.ts`.
 
@@ -586,7 +586,7 @@ const SIMPLE_SHAPES = [
 Tell the app how to convert your custom shape into the `SimpleShape` format by adding it as a case in `convertTldrawShapeToSimpleShape.ts`.
 
 ```ts
-export function convertTldrawShapeToSimpleShape(editor: Editor, shape: TLShape): ISimpleShape {
+export function convertTldrawShapeToSimpleShape(editor: Editor, shape: TLShape): SimpleShape {
 	switch (shape.type) {
 		// ...
 		case 'sticker':
@@ -598,6 +598,38 @@ export function convertTldrawShapeToSimpleShape(editor: Editor, shape: TLShape):
 				stickerType: shape.props.stickerType,
 				x: bounds.x,
 				y: bounds.y,
+			}
+		// ...
+	}
+}
+```
+
+To allow the agent to edit your custom shape's properties, tell the app how to convert your shape from the `SimpleShape` format that the model outputs to the actual format of your shape.
+
+```ts
+export function convertSimpleShapeToTldrawShape(
+	editor: Editor, 
+	simpleShape: TLShape
+	{ defaultShape }: { defaultShape: Partial<TLShape> }
+): {
+	switch (simpleShape.type) {
+		// ...
+		case 'sticker':
+			const shapeId = convertSimpleIdToTldrawId(simpleShape.shapeId)
+			return {
+				shape: {
+					id: shapeId
+					x: simpleShape.x,
+					y: simpleShape.y
+					// ...
+					props: {
+						// ...
+						stickerType: simpleShape.sitckerType
+					},
+					meta: {
+						note: simpleShape.note ?? ''
+					}
+				}
 			}
 		// ...
 	}

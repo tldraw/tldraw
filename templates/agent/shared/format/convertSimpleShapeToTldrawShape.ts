@@ -19,7 +19,6 @@ import {
 	Vec,
 	VecLike,
 } from 'tldraw'
-// import { convertSimpleIdToTldrawId, convertSimpleTypeToTldrawType } from './convertSimpleShapeToTldrawShape'
 import { asColor } from './SimpleColor'
 import { convertSimpleFillToTldrawFill } from './SimpleFill'
 import { convertSimpleFontSizeToTldrawFontSizeAndScale } from './SimpleFontSize'
