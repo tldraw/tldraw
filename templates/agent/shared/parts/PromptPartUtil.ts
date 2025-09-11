@@ -1,3 +1,4 @@
+import { Editor } from 'tldraw'
 import { TldrawAgent } from '../../client/agent/TldrawAgent'
 import { AgentModelName } from '../../worker/models'
 import { AgentHelpers } from '../AgentHelpers'
@@ -9,9 +10,11 @@ export abstract class PromptPartUtil<T extends BasePromptPart = BasePromptPart> 
 	static type: string
 
 	protected agent?: TldrawAgent
+	protected editor?: Editor
 
 	constructor(agent?: TldrawAgent) {
 		this.agent = agent
+		this.editor = agent?.editor
 	}
 
 	/**

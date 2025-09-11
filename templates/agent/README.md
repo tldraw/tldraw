@@ -235,7 +235,6 @@ This example shows how to schedule an extra step for adding detail to the canvas
 override applyAction(action: Streaming<IAddDetailAction>) {
 	if (!action.complete) return
 	if (!this.agent) return
-	
 	this.agent.schedule('Add more detail to the canvas.')
 }
 ```
@@ -262,7 +261,7 @@ You can also schedule further work by adding to the agent's todo list. It won't 
 override applyAction(action: Streaming<IAddDetailAction>) {
 	if (!action.complete) return
 	if (!this.agent) return
-	
+
 	this.agent.addTodo('Check for spelling mistakes.')
 }
 ```
@@ -322,11 +321,10 @@ To apply this offset to a position sent to the model, use the `applyOffsetToVec`
 
 ```ts
 override getPart(request: AgentRequest, helpers: AgentHelpers): ViewportCenterPart {
-	if (!this.agent) return {  part: 'user-viewport-center', center: null, }
-	const { editor } = this.agent
+	if (!this.editor) return { part: 'user-viewport-center', center: null, }
 
 	// Get the center of the user's viewport
-	const viewportCenter = editor.getViewportBounds().center
+	const viewportCenter = this.editor.getViewportBounds().center
 
 	// Apply the chat's offset to the vector
 	const offsetViewportCenter = helpers.applyOffsetToVec(viewportCenter)
@@ -390,8 +388,8 @@ This example picks one random shape on the canvas and sends it to the model in t
 
 ```ts
 override getPart(request: AgentRequest, helpers: AgentHelpers): RandomShapePart {
-	if (!this.agent) return { type: 'random-shape', shape: null}
-	const { editor } = this.agent
+	if (!this.editor) return { type: 'random-shape', shape: null}
+	const { editor } = this
 
 	// Get a random shape
 	const shapes = editor.getCurrentPageShapes()
@@ -510,7 +508,7 @@ export class StickerActionUtil extends AgentActionUtil<StickerAction> {
 	// Execute the action
 	override applyAction(action: Streaming<StickerAction>, helpers: AgentHelpers) {
 		if (!action.complete) return
-		if (this.agent) return
+		if (!this.agent) return
 
 		// Normalize the position
 		const position = helpers.removeOffsetFromVec({ x: action.x, y: action.y })

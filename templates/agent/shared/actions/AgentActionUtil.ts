@@ -10,9 +10,11 @@ export abstract class AgentActionUtil<T extends BaseAgentAction = BaseAgentActio
 	static type: string
 
 	protected agent?: TldrawAgent
+	protected editor?: Editor
 
 	constructor(agent?: TldrawAgent) {
 		this.agent = agent
+		this.editor = agent?.editor
 	}
 
 	/**
