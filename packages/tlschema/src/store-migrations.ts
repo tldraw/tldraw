@@ -1,6 +1,5 @@
 import { createMigrationIds, createMigrationSequence } from '@tldraw/store'
 import { objectMapEntries } from '@tldraw/utils'
-import { TLShape } from './records/TLShape'
 
 const Versions = createMigrationIds('com.tldraw.store', {
 	RemoveCodeAndIconShapeTypes: 1,
@@ -23,7 +22,8 @@ export const storeMigrations = createMigrationSequence({
 				for (const [id, record] of objectMapEntries(store)) {
 					if (
 						record.typeName === 'shape' &&
-						((record as TLShape).type === 'icon' || (record as TLShape).type === 'code')
+						'type' in record &&
+						(record.type === 'icon' || record.type === 'code')
 					) {
 						delete store[id]
 					}

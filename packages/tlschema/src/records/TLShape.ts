@@ -52,12 +52,17 @@ export type TLDefaultShape =
  * @public */
 export type TLUnknownShape = TLBaseShape<string, object>
 
+// eslint-disable-next-line @typescript-eslint/no-empty-object-type
+export interface GlobalShapePropsMap {}
+
+type Values<T> = T[keyof T]
+
 /**
  * The set of all shapes that are available in the editor, including unknown shapes.
  *
  * @public
  */
-export type TLShape = TLDefaultShape | TLUnknownShape
+export type TLShape = TLDefaultShape | Values<GlobalShapePropsMap>
 
 /** @public */
 export type TLShapePartial<T extends TLShape = TLShape> = T extends T
@@ -70,7 +75,7 @@ export type TLShapePartial<T extends TLShape = TLShape> = T extends T
 	: never
 
 /** @public */
-export type TLShapeId = RecordId<TLUnknownShape>
+export type TLShapeId = RecordId<TLShape>
 
 /** @public */
 export type TLParentId = TLPageId | TLShapeId
@@ -81,7 +86,7 @@ export const rootShapeVersions = createMigrationIds('com.tldraw.shape', {
 	HoistOpacity: 2,
 	AddMeta: 3,
 	AddWhite: 4,
-} as const)
+})
 
 /** @public */
 export const rootShapeMigrations = createRecordMigrationSequence({
@@ -202,7 +207,7 @@ export function createShapeRecordType(shapes: Record<string, SchemaPropsInfo>) {
 					createShapeValidator(type, props, meta)
 				)
 			)
-		),
+		) as any,
 	}).withDefaultProperties(() => ({
 		x: 0,
 		y: 0,

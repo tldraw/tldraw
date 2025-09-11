@@ -9,7 +9,7 @@ import {
 	stopEventPropagation,
 } from 'tldraw'
 
-type IMyPopupShape = TLBaseShape<
+export type IMyPopupShape = TLBaseShape<
 	'my-popup-shape',
 	{
 		w: number

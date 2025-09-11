@@ -31,7 +31,7 @@ export function AltTextEditor({ shapeId, onClose, source }: AltTextEditorProps) 
 
 	const handleComplete = () => {
 		trackEvent('set-alt-text', { source })
-		const shape = editor.getShape<TLShape & { props: { altText: string } }>(shapeId)
+		const shape = editor.getShape<Extract<TLShape, { props: { altText: string } }>>(shapeId)
 		if (!shape) return
 		editor.updateShapes([
 			{

@@ -2061,7 +2061,7 @@ describe('Note shape grid helper positions / pits', () => {
 		editor
 			.createShape({ type: 'note' })
 			.createShape({ type: 'note', x: 500, y: 500 })
-			.updateShape({ ...editor.getLastCreatedShape(), props: { growY: 100 } })
+			.updateShape({ ...editor.getLastCreatedShape<TLNoteShape>(), props: { growY: 100 } })
 			.pointerMove(600, 600)
 			// start translating
 			.pointerDown()
@@ -2080,7 +2080,7 @@ describe('Note shape grid helper positions / pits', () => {
 	it('Snaps correctly to the bottom when the not-translating shape has growY', () => {
 		editor
 			.createShape({ type: 'note' })
-			.updateShape({ ...editor.getLastCreatedShape(), props: { growY: 100 } })
+			.updateShape({ ...editor.getLastCreatedShape<TLNoteShape>(), props: { growY: 100 } })
 			.createShape({ type: 'note', x: 500, y: 500 })
 			.pointerMove(600, 600)
 			// start translating

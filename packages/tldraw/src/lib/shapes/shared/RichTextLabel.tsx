@@ -7,6 +7,7 @@ import {
 	TLDefaultVerticalAlignStyle,
 	TLEventInfo,
 	TLRichText,
+	TLShape,
 	TLShapeId,
 	preventDefault,
 	useEditor,
@@ -23,7 +24,7 @@ import { useEditableRichText } from './useEditableRichText'
 /** @public */
 export interface RichTextLabelProps {
 	shapeId: TLShapeId
-	type: string
+	type: Extract<TLShape, { props: { richText: TLRichText } }>['type']
 	font: TLDefaultFontStyle
 	fontSize: number
 	lineHeight: number

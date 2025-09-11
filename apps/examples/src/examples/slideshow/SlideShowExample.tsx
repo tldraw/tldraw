@@ -99,7 +99,7 @@ function InsideSlidesContext() {
 			}
 		})
 
-		const unsubs = [] as (() => void)[]
+		const unsubs: (() => void)[] = []
 
 		unsubs.push(
 			editor.sideEffects.registerBeforeChangeHandler('shape', (prev, next) => {

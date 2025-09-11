@@ -15,22 +15,26 @@ beforeEach(() => {
 
 it('Uses typescript generics', () => {
 	expect(() => {
-		// No error here because no generic, the editor doesn't know what this guy is
 		editor.updateShapes([
 			{
 				id: ids.box1,
 				type: 'geo',
-				props: { w: 'OH NO' },
+				props: {
+					// @ts-expect-error
+					w: 'OH NO',
+				},
 			},
 		])
 
-		// Yep error here because we are giving the wrong props to the shape
+		// error here because we are giving the wrong props to the shape
 		editor.updateShapes<TLGeoShape>([
 			{
 				id: ids.box1,
 				type: 'geo',
-				//@ts-expect-error
-				props: { w: 'OH NO' },
+				props: {
+					// @ts-expect-error
+					w: 'OH NO',
+				},
 			},
 		])
 

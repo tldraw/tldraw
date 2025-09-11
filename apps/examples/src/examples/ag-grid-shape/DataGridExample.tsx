@@ -6,6 +6,12 @@ import 'ag-grid-community/styles/ag-grid.css'
 import 'ag-grid-community/styles/ag-theme-quartz.css'
 import 'tldraw/tldraw.css'
 
+declare module '@tldraw/tlschema' {
+	export interface GlobalShapePropsMap {
+		'ag-grid': AgGridShape
+	}
+}
+
 type AgGridShape = TLBaseShape<
 	'ag-grid',
 	{ w: number; h: number; rowData: any[]; columnDefs: any[] }

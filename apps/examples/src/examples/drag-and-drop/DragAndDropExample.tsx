@@ -11,6 +11,13 @@ import {
 } from 'tldraw'
 import 'tldraw/tldraw.css'
 
+declare module '@tldraw/tlschema' {
+	export interface GlobalShapePropsMap {
+		'my-grid-shape': MyGridShape
+		'my-counter-shape': MyCounterShape
+	}
+}
+
 // [1]
 type MyGridShape = TLBaseShape<'my-grid-shape', Record<string, never>>
 type MyCounterShape = TLBaseShape<'my-counter-shape', Record<string, never>>
@@ -139,21 +146,21 @@ export default function DragAndDropExample() {
 
 /*
 [1]
-Define custom shape types using TLBaseShape. Each shape type needs a unique identifier and can have custom 
-properties. Here we use Record<string, never> since our shapes don't need any custom properties. These are 
+Define custom shape types using TLBaseShape. Each shape type needs a unique identifier and can have custom
+properties. Here we use Record<string, never> since our shapes don't need any custom properties. These are
 very basic custom shapes: see the custom shape examples for more complex examples.
 
 [2]
-Create a ShapeUtil for the counter shape. This defines how the shape behaves and renders. We disable resizing 
+Create a ShapeUtil for the counter shape. This defines how the shape behaves and renders. We disable resizing
 and use Circle2d geometry for collision detection. The component renders as a red circle using HTMLContainer.
 
 [3]
-Create a ShapeUtil for the grid shape. This creates a rectangular grid that can accept dropped shapes. We use 
+Create a ShapeUtil for the grid shape. This creates a rectangular grid that can accept dropped shapes. We use
 Rectangle2d geometry and render it with CSS grid lines using background gradients.
 
 [5]
 Override onDragShapesIn to handle when shapes are dragged into the grid. We filter for counter shapes that
-aren't already children of this grid, then reparent them to become children. This makes them move with the grid. 
+aren't already children of this grid, then reparent them to become children. This makes them move with the grid.
 
 [6]
 Override onDragShapesOut to handle when shapes are dragged out of the grid. If they're not being dragged to

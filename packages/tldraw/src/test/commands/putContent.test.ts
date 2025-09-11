@@ -25,6 +25,7 @@ describe('Migrations', () => {
 
 	it('Throws error if any shape is invalid due to wrong type', () => {
 		const withInvalidShapeType = structuredClone(clipboardContent)
+		// @ts-expect-error
 		withInvalidShapeType.shapes[0].type = 'invalid'
 		expect(() => editor.putContentOntoCurrentPage(withInvalidShapeType)).toThrow()
 	})

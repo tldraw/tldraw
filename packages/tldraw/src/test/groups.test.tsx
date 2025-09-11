@@ -35,14 +35,16 @@ const ids = {
 	groupA: createShapeId('groupA'),
 }
 
+type BoxShape = Extract<TLShape, { props: { fill: string } }>
+
 const box = (
 	id: TLShapeId,
 	x: number,
 	y: number,
 	w = 10,
 	h = 10,
-	fill = 'solid'
-): TLShapePartial => ({
+	fill: BoxShape['props']['fill'] = 'solid'
+): TLShapePartial<BoxShape> => ({
 	type: 'geo',
 	id,
 	x,

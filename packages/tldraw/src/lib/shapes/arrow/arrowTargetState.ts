@@ -346,7 +346,7 @@ export function updateArrowTargetState({
 	return result
 }
 
-const targetFilterFallback = { type: 'arrow' }
+const targetFilterFallback = { type: 'arrow' as const }
 
 /**
  * Funky math but we want the snap distance to be 4 at the minimum and either 16 or 15% of the

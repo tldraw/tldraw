@@ -210,7 +210,7 @@ export class DraggingHandle extends StateNode {
 			}
 			const endChanges = util.onHandleDragEnd?.(shape, handleDragInfo)
 			if (endChanges) {
-				this.editor.updateShapes([{ ...endChanges, id: shape.id, type: shape.type }])
+				this.editor.updateShapes([{ ...endChanges, id: shape.id }])
 			}
 		}
 

@@ -14,6 +14,10 @@ function ensureOnlyOneRedShape(editor: Editor, shapeId: TLShapeId) {
 	const otherRedShapesOnPage = Array.from(editor.getPageShapeIds(pageId))
 		.map((id) => editor.getShape(id)!)
 		.filter((otherShape) => otherShape.id !== shape.id && isRedShape(otherShape))
+		.filter(
+			(shape): shape is Extract<TLShape, { props: { color: string } }> =>
+				'color' in shape.props && typeof shape.props.color === 'string'
+		)
 
 	// set the color of all those shapes to black:
 	editor.updateShapes(

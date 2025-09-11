@@ -8,7 +8,7 @@ import {
 	stopEventPropagation,
 } from 'tldraw'
 
-type CounterShape = TLBaseShape<'counter', { w: number; h: number; count: number }>
+export type CounterShape = TLBaseShape<'counter', { w: number; h: number; count: number }>
 
 export class CounterShapeUtil extends BaseBoxShapeUtil<CounterShape> {
 	static override type = 'counter' as const
@@ -65,5 +65,5 @@ export class CounterShapeUtil extends BaseBoxShapeUtil<CounterShape> {
 
 export class CounterShapeTool extends BaseBoxShapeTool {
 	static override id = 'counter'
-	override shapeType = 'counter'
+	override shapeType = 'counter' as const
 }

@@ -143,7 +143,7 @@ export async function putExcalidrawContent(
 						align,
 						dash: getDash(element),
 						fill: getFill(element),
-					},
+					} as any,
 				})
 				break
 			}
@@ -165,7 +165,7 @@ export async function putExcalidrawContent(
 								})),
 							},
 						],
-					},
+					} as any,
 				})
 				break
 			}
@@ -192,7 +192,7 @@ export async function putExcalidrawContent(
 								})
 							),
 						},
-					},
+					} as any,
 				})
 
 				break
@@ -231,7 +231,7 @@ export async function putExcalidrawContent(
 						end: { x: end[0], y: end[1] },
 						arrowheadEnd: arrowheadsToArrowheadTypes[element.endArrowhead] ?? 'none',
 						arrowheadStart: arrowheadsToArrowheadTypes[element.startArrowhead] ?? 'none',
-					},
+					} as any,
 				})
 
 				if (startTargetId) {
@@ -281,7 +281,7 @@ export async function putExcalidrawContent(
 						color: colorsToColors[element.strokeColor] ?? 'black',
 						richText: toRichText(element.text),
 						textAlign: textAlignToTextAlignTypes[element.textAlign],
-					},
+					} as any,
 				})
 				break
 			}
@@ -313,7 +313,7 @@ export async function putExcalidrawContent(
 						w: element.width,
 						h: element.height,
 						assetId,
-					},
+					} as any,
 				})
 			}
 		}

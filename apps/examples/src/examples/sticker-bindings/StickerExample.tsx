@@ -25,6 +25,12 @@ import {
 } from 'tldraw'
 import 'tldraw/tldraw.css'
 
+declare module '@tldraw/tlschema' {
+	export interface GlobalShapePropsMap {
+		sticker: StickerShape
+	}
+}
+
 // eslint-disable-next-line @typescript-eslint/no-empty-object-type
 type StickerShape = TLBaseShape<'sticker', {}>
 

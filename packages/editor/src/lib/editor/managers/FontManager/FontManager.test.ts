@@ -1,4 +1,5 @@
-import { TLShape, TLShapeId, createShapeId } from '@tldraw/tlschema'
+import { TLParentId, TLShape, TLShapeId, createShapeId, toRichText } from '@tldraw/tlschema'
+import { IndexKey } from '@tldraw/utils'
 import { Mock, Mocked, vi } from 'vitest'
 import { Editor } from '../../Editor'
 import { FontManager, TLFontFace } from './FontManager'
@@ -41,12 +42,21 @@ describe('FontManager', () => {
 		x: 0,
 		y: 0,
 		rotation: 0,
-		index: 'a1' as any,
-		parentId: 'page:page' as any,
+		index: 'a1' as IndexKey,
+		parentId: 'page:page' as TLParentId,
 		opacity: 1,
 		isLocked: false,
 		meta: {},
-		props: {},
+		props: {
+			color: 'black',
+			size: 'xl',
+			font: 'serif',
+			textAlign: 'middle',
+			w: 100,
+			richText: toRichText('❤️'),
+			scale: 2,
+			autoSize: true,
+		},
 		typeName: 'shape' as const,
 	})
 

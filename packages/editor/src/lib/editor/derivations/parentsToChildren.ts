@@ -11,7 +11,7 @@ function fromScratch(
 ) {
 	const result: ParentShapeIdsToChildShapeIds = {}
 	const shapeIds = shapeIdsQuery.get()
-	const shapes = Array(shapeIds.size) as TLShape[]
+	const shapes = Array<TLShape>(shapeIds.size)
 	shapeIds.forEach((id) => shapes.push(store.get(id)!))
 
 	// Sort the shapes by index
