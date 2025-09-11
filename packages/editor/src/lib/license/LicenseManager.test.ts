@@ -300,6 +300,38 @@ describe('LicenseManager', () => {
 			)) as ValidLicenseKeyResult
 			expect(result.isDomainValid).toBe(false)
 		})
+
+		it('Succeeds if it is a native app', async () => {
+			// @ts-ignore
+			delete window.location
+			// @ts-ignore
+			window.location = new URL('app-bundle://app/index.html')
+
+			const nativeLicenseInfo = JSON.parse(STANDARD_LICENSE_INFO)
+			nativeLicenseInfo[PROPERTIES.FLAGS] = FLAGS.NATIVE_LICENSE
+			nativeLicenseInfo[PROPERTIES.HOSTS] = ['app-bundle:']
+			const nativeLicenseKey = await generateLicenseKey(JSON.stringify(nativeLicenseInfo), keyPair)
+			const result = (await licenseManager.getLicenseFromKey(
+				nativeLicenseKey
+			)) as ValidLicenseKeyResult
+			expect(result.isDomainValid).toBe(true)
+		})
+
+		it('Fails if it is a native app with the wrong protocol', async () => {
+			// @ts-ignore
+			delete window.location
+			// @ts-ignore
+			window.location = new URL('blah-blundle://app/index.html')
+
+			const nativeLicenseInfo = JSON.parse(STANDARD_LICENSE_INFO)
+			nativeLicenseInfo[PROPERTIES.FLAGS] = FLAGS.NATIVE_LICENSE
+			nativeLicenseInfo[PROPERTIES.HOSTS] = ['app-bundle:']
+			const nativeLicenseKey = await generateLicenseKey(JSON.stringify(nativeLicenseInfo), keyPair)
+			const result = (await licenseManager.getLicenseFromKey(
+				nativeLicenseKey
+			)) as ValidLicenseKeyResult
+			expect(result.isDomainValid).toBe(false)
+		})
 	})
 
 	describe('License types and flags', () => {
@@ -314,6 +346,17 @@ describe('LicenseManager', () => {
 				internalLicenseKey
 			)) as ValidLicenseKeyResult
 			expect(result.isInternalLicense).toBe(true)
+		})
+
+		it('Checks for native license', async () => {
+			const nativeLicenseInfo = JSON.parse(STANDARD_LICENSE_INFO)
+			nativeLicenseInfo[PROPERTIES.FLAGS] = FLAGS.NATIVE_LICENSE
+			const nativeLicenseKey = await generateLicenseKey(JSON.stringify(nativeLicenseInfo), keyPair)
+
+			const result = (await licenseManager.getLicenseFromKey(
+				nativeLicenseKey
+			)) as ValidLicenseKeyResult
+			expect(result.isNativeLicense).toBe(true)
 		})
 
 		it('Checks for license with watermark', async () => {
@@ -553,6 +596,7 @@ function getDefaultLicenseResult(overrides: Partial<ValidLicenseKeyResult>): Val
 		isAnnualLicense: true,
 		isAnnualLicenseExpired: false,
 		isInternalLicense: false,
+		isNativeLicense: false,
 		isDevelopment: false,
 		isDomainValid: true,
 		isPerpetualLicense: false,

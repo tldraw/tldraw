@@ -11,6 +11,7 @@ export const FLAGS = {
 	INTERNAL_LICENSE: 1 << 2,
 	WITH_WATERMARK: 1 << 3,
 	EVALUATION_LICENSE: 1 << 4,
+	NATIVE_LICENSE: 1 << 5,
 }
 const HIGHEST_FLAG = Math.max(...Object.values(FLAGS))
 
@@ -69,6 +70,7 @@ export interface ValidLicenseKeyResult {
 	isPerpetualLicense: boolean
 	isPerpetualLicenseExpired: boolean
 	isInternalLicense: boolean
+	isNativeLicense: boolean
 	isLicensedWithWatermark: boolean
 	isEvaluationLicense: boolean
 	isEvaluationLicenseExpired: boolean
@@ -271,6 +273,7 @@ export class LicenseManager {
 				isPerpetualLicense,
 				isPerpetualLicenseExpired: isPerpetualLicense && this.isPerpetualLicenseExpired(expiryDate),
 				isInternalLicense: this.isFlagEnabled(licenseInfo.flags, FLAGS.INTERNAL_LICENSE),
+				isNativeLicense: this.isNativeLicense(licenseInfo),
 				isLicensedWithWatermark: this.isFlagEnabled(licenseInfo.flags, FLAGS.WITH_WATERMARK),
 				isEvaluationLicense,
 				isEvaluationLicenseExpired:
@@ -323,8 +326,18 @@ export class LicenseManager {
 				}
 			}
 
+			// Native license support
+			// In this case, `normalizedHost` is actually a protocol, e.g. `app-bundle:`
+			if (this.isNativeLicense(licenseInfo) && window.location.protocol === normalizedHost) {
+				return true
+			}
+
 			return false
 		})
+	}
+
+	private isNativeLicense(licenseInfo: LicenseInfo) {
+		return this.isFlagEnabled(licenseInfo.flags, FLAGS.NATIVE_LICENSE)
 	}
 
 	private getExpirationDateWithoutGracePeriod(expiryDate: Date) {
