@@ -111,15 +111,11 @@ export { fetch_2 as fetch }
 export class FileHelpers {
     static blobToDataUrl(file: Blob): Promise<string>;
     static blobToText(file: Blob): Promise<string>;
-    // (undocumented)
     static rewriteMimeType(blob: Blob, newMimeType: string): Blob;
     // (undocumented)
     static rewriteMimeType(blob: File, newMimeType: string): File;
-    // (undocumented)
     static urlToArrayBuffer(url: string): Promise<ArrayBuffer>;
-    // (undocumented)
     static urlToBlob(url: string): Promise<Blob>;
-    // (undocumented)
     static urlToDataUrl(url: string): Promise<string>;
 }
 

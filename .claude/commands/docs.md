@@ -1,3 +1,25 @@
+---
+description: Create or update the DOCS.md file for the provided folder.
+allowed-tools: Read, Edit, MultiEdit
+---
+
+1. Read the source code in the provided directory.
+2. Read the DOCS.md file in the provided directory.
+
+Create or update the DOCS.md file in the provided directory. Be sure that your work is accurate to the source code in the file. If a DOCS.md already exists, update the DOCS.md file with the new information and double-check that the file is up to date and accurate to the source code.
+
+## Created At
+
+At the top of the DOCS.md file, beneath the header, include a "Last updated" line that indicates the date of the last update to the file. It should follow this pattern:
+
+```markdown
+# Title of the page
+
+This document was last updated: 2025-12-31
+```
+
+Use the style guide below to guide your writing:
+
 # DOCS.md Style Guide
 
 This guide establishes consistent patterns for writing DOCS.md files across the tldraw monorepo, based on the exemplary structure and style developed for @tldraw/state. The purpose of DOCS.md files is to provide documentation for human readers who are interested in learning about the tldraw SDK and its various packages.
@@ -22,7 +44,11 @@ Use numbered sections for major topics, progressing from simple to complex:
 ## 5. Debugging
 
 ## 6. Integration
+
+## 7. Internal
 ```
+
+Use the internal section to document the internal operation of the application or package. This should be higher level—you do not need to document every private method or unexported item, however a reader should be able to get a feel for how the code works behind the scenes.
 
 ### 2. Hierarchical Subsections
 
@@ -94,8 +120,6 @@ const user = atom('user', { name: 'Alice', age: 30 })
 
 > Tip: The name is used for debugging purposes, specifically for the `whyAmIRunning` function described later in these docs.
 
-````
-
 ### Code Formatting Standards
 
 - Always specify language in code blocks: `ts`, `tsx`, `js`, `bash`
@@ -130,7 +154,7 @@ Use consistent callout formatting with specific purposes:
 > Tip: The stop function is perfect for "fire-and-forget" effects
 
 > Note: This will only work if the dependency has actually changed
-````
+```
 
 **"Tip" callouts** should provide:
 
@@ -261,8 +285,6 @@ react('log details', () => {
 ```
 ````
 
-```
-
 ## Package-Specific Adaptations
 
 ### For Core Libraries (like @tldraw/state)
@@ -345,27 +367,34 @@ Follow these patterns to create documentation that empowers developers and reduc
 The most distinctive aspect of the @tldraw/state documentation is how it guides readers through discovery rather than just explaining features. Key techniques:
 
 ### Predictive Statements
+
 Before showing code, tell readers what they'll observe:
+
 - "In just a few lines, you've created reactive state that automatically alerts the user when it changes."
 - "Now, if we change a dependency... the computed signal automatically updates!"
 
 ### Exploratory Questions
+
 Frame features as solutions to problems readers might have:
+
 - "When you update multiple atoms that are dependencies of the same reaction, you might cause the reaction to re-run multiple times."
 - "Sometimes, however, you need to read a signal's value _without_ creating this dependency."
 
 ### Cumulative Understanding
+
 Each section builds on previous knowledge while introducing one new concept:
+
 - Use variables from earlier examples in new contexts
 - Reference concepts by name that were introduced earlier
 - Show how new features solve limitations of previous approaches
 
 ### Discovery Moments
+
 Create "aha" moments by showing counterintuitive or powerful behavior:
+
 - Automatic dependency tracking
 - Lazy evaluation benefits
 - Transaction rollback behavior
 - The power of `whyAmIRunning()` for debugging
 
 This approach transforms documentation from reference material into a guided learning experience that builds deep understanding rather than surface-level feature awareness.
-```
