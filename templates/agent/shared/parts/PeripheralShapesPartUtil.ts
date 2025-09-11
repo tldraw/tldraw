@@ -7,7 +7,7 @@ import { BasePromptPart } from '../types/BasePromptPart'
 import { PromptPartUtil } from './PromptPartUtil'
 
 export interface PeripheralShapesPart extends BasePromptPart<'peripheralShapes'> {
-	clusters: PeripheralShapeCluster[]
+	clusters: PeripheralShapeCluster[] | null
 }
 
 export class PeripheralShapesPartUtil extends PromptPartUtil<PeripheralShapesPart> {
@@ -18,7 +18,9 @@ export class PeripheralShapesPartUtil extends PromptPartUtil<PeripheralShapesPar
 	}
 
 	override getPart(request: AgentRequest, helpers: AgentHelpers): PeripheralShapesPart {
-		const { editor } = helpers
+		if (!this.agent) return { type: 'peripheralShapes', clusters: null }
+		const { editor } = this.agent
+
 		const shapes = editor.getCurrentPageShapesSorted()
 		const contextBounds = request.bounds
 
@@ -26,6 +28,7 @@ export class PeripheralShapesPartUtil extends PromptPartUtil<PeripheralShapesPar
 
 		// Get all shapes that are outside the context bounds (these are what we want to peripheralize)
 		const shapesOutsideViewport = shapes.filter((shape) => {
+			if (!editor) return false
 			const bounds = editor.getShapeMaskedPageBounds(shape)
 			if (!bounds) return
 			if (contextBoundsBox.includes(bounds)) return
@@ -53,7 +56,7 @@ export class PeripheralShapesPartUtil extends PromptPartUtil<PeripheralShapesPar
 	}
 
 	override buildContent({ clusters }: PeripheralShapesPart): string[] {
-		if (clusters.length === 0) {
+		if (!clusters || clusters.length === 0) {
 			return []
 		}
 

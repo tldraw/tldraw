@@ -47,9 +47,10 @@ export class PlaceActionUtil extends AgentActionUtil<PlaceAction> {
 		return action
 	}
 
-	override applyAction(action: Streaming<PlaceAction>, helpers: AgentHelpers) {
+	override applyAction(action: Streaming<PlaceAction>) {
 		if (!action.complete) return
-		const { editor } = helpers
+		if (!this.agent) return
+		const { editor } = this.agent
 
 		const { side, sideOffset = 0, align, alignOffset = 0 } = action
 		const referenceShapeId = `shape:${action.referenceShapeId}` as TLShapeId

@@ -5,8 +5,8 @@ import { BasePromptPart } from '../types/BasePromptPart'
 import { PromptPartUtil } from './PromptPartUtil'
 
 export interface ViewportBoundsPart extends BasePromptPart<'viewportBounds'> {
-	userBounds: BoxModel
-	agentBounds: BoxModel
+	userBounds: BoxModel | null
+	agentBounds: BoxModel | null
 }
 
 export class ViewportBoundsPartUtil extends PromptPartUtil<ViewportBoundsPart> {
@@ -17,8 +17,9 @@ export class ViewportBoundsPartUtil extends PromptPartUtil<ViewportBoundsPart> {
 	}
 
 	override getPart(request: AgentRequest, helpers: AgentHelpers): ViewportBoundsPart {
-		const { editor } = helpers
-		const userBounds = editor.getViewportPageBounds()
+		if (!this.agent) return { type: 'viewportBounds', userBounds: null, agentBounds: null }
+
+		const userBounds = this.agent.editor.getViewportPageBounds()
 		const offsetUserBounds = helpers.applyOffsetToBox(userBounds)
 		const offsetAgentBounds = helpers.applyOffsetToBox(request.bounds)
 
@@ -31,6 +32,8 @@ export class ViewportBoundsPartUtil extends PromptPartUtil<ViewportBoundsPart> {
 
 	override buildContent({ userBounds, agentBounds }: ViewportBoundsPart): string[] {
 		const agentViewportBounds = agentBounds
+
+		if (!agentViewportBounds || !userBounds) return []
 
 		const doUserAndAgentShareViewport =
 			withinPercent(agentViewportBounds.x, userBounds.x, 5) &&

@@ -56,7 +56,8 @@ export class CreateActionUtil extends AgentActionUtil<CreateAction> {
 
 	override applyAction(action: Streaming<CreateAction>, helpers: AgentHelpers) {
 		if (!action.complete) return
-		const { editor } = helpers
+		if (!this.agent) return
+		const { editor } = this.agent
 
 		// Translate the shape back to the chat's position
 		action.shape = helpers.removeOffsetFromShape(action.shape)

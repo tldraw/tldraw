@@ -1,5 +1,4 @@
 import { Box, FileHelpers } from 'tldraw'
-import { AgentHelpers } from '../AgentHelpers'
 import { AgentRequest } from '../types/AgentRequest'
 import { BasePromptPart } from '../types/BasePromptPart'
 import { PromptPartUtil } from './PromptPartUtil'
@@ -15,13 +14,16 @@ export class ScreenshotPartUtil extends PromptPartUtil<ScreenshotPart> {
 		return 40 // screenshot after text content (medium priority)
 	}
 
-	override async getPart(request: AgentRequest, helpers: AgentHelpers): Promise<ScreenshotPart> {
-		const { editor } = helpers
+	override async getPart(request: AgentRequest): Promise<ScreenshotPart> {
+		if (!this.agent) return { type: 'screenshot', screenshot: null }
+		const { editor } = this.agent
+
 		const contextBounds = request.bounds
 
 		const contextBoundsBox = Box.From(contextBounds)
 
 		const shapes = editor.getCurrentPageShapesSorted().filter((shape) => {
+			if (!editor) return false
 			const bounds = editor.getShapeMaskedPageBounds(shape)
 			if (!bounds) return false
 			return contextBoundsBox.includes(bounds)

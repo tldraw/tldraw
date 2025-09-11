@@ -39,9 +39,10 @@ export class LabelActionUtil extends AgentActionUtil<ILabelEvent> {
 		return action
 	}
 
-	override applyAction(action: Streaming<ILabelEvent>, helpers: AgentHelpers) {
+	override applyAction(action: Streaming<ILabelEvent>) {
 		if (!action.complete) return
-		const { editor } = helpers
+		if (!this.agent) return
+		const { editor } = this.agent
 
 		const shapeId = `shape:${action.shapeId}` as TLShapeId
 		const shape = editor.getShape(shapeId)

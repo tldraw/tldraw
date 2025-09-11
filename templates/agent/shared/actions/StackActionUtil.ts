@@ -42,11 +42,11 @@ export class StackActionUtil extends AgentActionUtil<IAgentStackEvent> {
 		return action
 	}
 
-	override applyAction(action: Streaming<IAgentStackEvent>, helpers: AgentHelpers) {
+	override applyAction(action: Streaming<IAgentStackEvent>) {
 		if (!action.complete) return
-		const { editor } = helpers
+		if (!this.agent) return
 
-		editor.stackShapes(
+		this.agent.editor.stackShapes(
 			action.shapeIds.map((id) => `shape:${id}` as TLShapeId),
 			action.direction,
 			Math.min(action.gap, 1)

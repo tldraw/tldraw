@@ -1,4 +1,6 @@
+import { Editor } from 'tldraw'
 import z from 'zod'
+import { TldrawAgent } from '../../client/agent/TldrawAgent'
 import { AgentHelpers } from '../AgentHelpers'
 import { BaseAgentAction } from '../types/BaseAgentAction'
 import { ChatHistoryInfo } from '../types/ChatHistoryInfo'
@@ -6,6 +8,12 @@ import { Streaming } from '../types/Streaming'
 
 export abstract class AgentActionUtil<T extends BaseAgentAction = BaseAgentAction> {
 	static type: string
+
+	protected agent?: TldrawAgent
+
+	constructor(agent?: TldrawAgent) {
+		this.agent = agent
+	}
 
 	/**
 	 * Get a schema to use for the model's response.
@@ -58,6 +66,6 @@ export abstract class AgentActionUtil<T extends BaseAgentAction = BaseAgentActio
 }
 
 export interface AgentActionUtilConstructor<T extends BaseAgentAction = BaseAgentAction> {
-	new (): AgentActionUtil<T>
+	new (agent: TldrawAgent, editor: Editor): AgentActionUtil<T>
 	type: T['_type']
 }

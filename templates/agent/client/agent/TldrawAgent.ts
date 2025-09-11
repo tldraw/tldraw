@@ -125,8 +125,8 @@ export class TldrawAgent {
 
 		$agentsAtom.update(editor, (agents) => [...agents, this])
 
-		this.agentActionUtils = getAgentActionUtilsRecord()
-		this.promptPartUtils = getPromptPartUtilsRecord()
+		this.agentActionUtils = getAgentActionUtilsRecord(this)
+		this.promptPartUtils = getPromptPartUtilsRecord(this)
 		this.unknownActionUtil = this.agentActionUtils.unknown
 
 		persistAtomInLocalStorage(this.$chatHistory, `${id}:chat-history`)

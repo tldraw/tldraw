@@ -41,7 +41,7 @@ export class RotateActionUtil extends AgentActionUtil<RotateAction> {
 	}
 
 	override applyAction(action: Streaming<RotateAction>, helpers: AgentHelpers) {
-		const { editor } = helpers
+		if (!this.agent) return
 
 		if (!action.shapeIds || !action.degrees || !action.originX || !action.originY) {
 			return
@@ -51,6 +51,6 @@ export class RotateActionUtil extends AgentActionUtil<RotateAction> {
 		const shapeIds = action.shapeIds.map((shapeId) => `shape:${shapeId}` as TLShapeId)
 		const radians = (action.degrees * Math.PI) / 180
 
-		editor.rotateShapesBy(shapeIds, radians, { center: origin })
+		this.agent.editor.rotateShapesBy(shapeIds, radians, { center: origin })
 	}
 }

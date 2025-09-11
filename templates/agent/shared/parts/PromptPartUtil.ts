@@ -1,3 +1,4 @@
+import { TldrawAgent } from '../../client/agent/TldrawAgent'
 import { AgentModelName } from '../../worker/models'
 import { AgentHelpers } from '../AgentHelpers'
 import { AgentMessage, AgentMessageContent } from '../types/AgentMessage'
@@ -6,6 +7,12 @@ import { BasePromptPart } from '../types/BasePromptPart'
 
 export abstract class PromptPartUtil<T extends BasePromptPart = BasePromptPart> {
 	static type: string
+
+	protected agent?: TldrawAgent
+
+	constructor(agent?: TldrawAgent) {
+		this.agent = agent
+	}
 
 	/**
 	 * Get some data to add to the prompt.

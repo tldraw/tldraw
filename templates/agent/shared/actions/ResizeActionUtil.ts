@@ -45,7 +45,7 @@ export class ResizeActionUtil extends AgentActionUtil<ResizeAction> {
 	}
 
 	override applyAction(action: Streaming<ResizeAction>, helpers: AgentHelpers) {
-		const { editor } = helpers
+		if (!this.agent) return
 
 		if (
 			!action.shapeIds ||
@@ -61,7 +61,11 @@ export class ResizeActionUtil extends AgentActionUtil<ResizeAction> {
 		const shapeIds = action.shapeIds.map((shapeId) => `shape:${shapeId}` as TLShapeId)
 
 		for (const shapeId of shapeIds) {
-			editor.resizeShape(shapeId, { x: action.scaleX, y: action.scaleY }, { scaleOrigin: origin })
+			this.agent.editor.resizeShape(
+				shapeId,
+				{ x: action.scaleX, y: action.scaleY },
+				{ scaleOrigin: origin }
+			)
 		}
 	}
 }

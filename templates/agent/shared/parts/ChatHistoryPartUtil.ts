@@ -6,7 +6,7 @@ import { ChatHistoryItem } from '../types/ChatHistoryItem'
 import { PromptPartUtil } from './PromptPartUtil'
 
 export interface ChatHistoryPart extends BasePromptPart<'chatHistory'> {
-	items: ChatHistoryItem[]
+	items: ChatHistoryItem[] | null
 }
 
 export class ChatHistoryPartUtil extends PromptPartUtil<ChatHistoryPart> {
@@ -17,9 +17,9 @@ export class ChatHistoryPartUtil extends PromptPartUtil<ChatHistoryPart> {
 	}
 
 	override async getPart(_request: AgentRequest, helpers: AgentHelpers) {
-		const { agent } = helpers
+		if (!this.agent) return { type: 'chatHistory' as const, items: null }
 
-		const items = agent.$chatHistory.get()
+		const items = this.agent.$chatHistory.get()
 
 		for (const historyItem of items) {
 			if (historyItem.type !== 'prompt') continue
@@ -40,6 +40,8 @@ export class ChatHistoryPartUtil extends PromptPartUtil<ChatHistoryPart> {
 	}
 
 	override buildMessages({ items }: ChatHistoryPart): AgentMessage[] {
+		if (!items) return []
+
 		const messages: AgentMessage[] = []
 		const priority = this.getPriority()
 

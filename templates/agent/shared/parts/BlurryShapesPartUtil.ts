@@ -7,7 +7,7 @@ import { BasePromptPart } from '../types/BasePromptPart'
 import { PromptPartUtil } from './PromptPartUtil'
 
 export interface BlurryShapesPart extends BasePromptPart<'blurryShapes'> {
-	shapes: BlurryShape[]
+	shapes: BlurryShape[] | null
 }
 
 export class BlurryShapesPartUtil extends PromptPartUtil<BlurryShapesPart> {
@@ -18,12 +18,15 @@ export class BlurryShapesPartUtil extends PromptPartUtil<BlurryShapesPart> {
 	}
 
 	override getPart(request: AgentRequest, helpers: AgentHelpers): BlurryShapesPart {
-		const { editor } = helpers
+		if (!this.agent) return { type: 'blurryShapes', shapes: null }
+		const { editor } = this.agent
+
 		const shapes = editor.getCurrentPageShapesSorted()
 		const contextBoundsBox = Box.From(request.bounds)
 
 		// Get all shapes within the agent's viewport
 		const shapesInBounds = shapes.filter((shape) => {
+			if (!editor) return false
 			const bounds = editor.getShapeMaskedPageBounds(shape)
 			if (!bounds) return false
 			return contextBoundsBox.includes(bounds)
@@ -32,6 +35,7 @@ export class BlurryShapesPartUtil extends PromptPartUtil<BlurryShapesPart> {
 		// Convert the shapes to the blurry shape format
 		const blurryShapes = shapesInBounds
 			.map((shape) => {
+				if (!editor) return null
 				return convertTldrawShapeToBlurryShape(editor, shape)
 			})
 			.filter((s) => s !== null)
@@ -56,7 +60,7 @@ export class BlurryShapesPartUtil extends PromptPartUtil<BlurryShapesPart> {
 	}
 
 	override buildContent({ shapes }: BlurryShapesPart): string[] {
-		if (shapes.length === 0) return ['There are no shapes in your view at the moment.']
+		if (!shapes || shapes.length === 0) return ['There are no shapes in your view at the moment.']
 
 		return [`These are the shapes you can currently see:`, JSON.stringify(shapes)]
 	}

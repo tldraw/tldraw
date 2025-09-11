@@ -38,7 +38,7 @@ export class SetMyViewActionUtil extends AgentActionUtil<SetMyViewAction> {
 
 	override applyAction(action: Streaming<SetMyViewAction>, helpers: AgentHelpers) {
 		if (!action.complete) return
-		const { agent } = helpers
+		if (!this.agent) return
 
 		const bounds = helpers.removeOffsetFromBox({
 			x: action.x,
@@ -47,6 +47,6 @@ export class SetMyViewActionUtil extends AgentActionUtil<SetMyViewAction> {
 			h: action.h,
 		})
 
-		agent.schedule({ bounds })
+		this.agent.schedule({ bounds })
 	}
 }

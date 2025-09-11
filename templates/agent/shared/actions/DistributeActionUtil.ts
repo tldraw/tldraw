@@ -37,11 +37,11 @@ export class DistributeActionUtil extends AgentActionUtil<DistributeAction> {
 		return action
 	}
 
-	override applyAction(action: Streaming<DistributeAction>, helpers: AgentHelpers) {
+	override applyAction(action: Streaming<DistributeAction>) {
 		if (!action.complete) return
-		const { editor } = helpers
+		if (!this.agent) return
 
-		editor.distributeShapes(
+		this.agent.editor.distributeShapes(
 			action.shapeIds.map((id) => `shape:${id}` as TLShapeId),
 			action.direction
 		)
