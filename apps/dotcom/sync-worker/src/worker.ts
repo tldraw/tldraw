@@ -233,6 +233,8 @@ export function isAllowedOrigin(origin: string) {
 	if (origin === 'http://localhost:5420') return origin
 	if (origin === 'https://meet.google.com') return origin
 	if (origin.endsWith('.tldraw.com')) return origin
+	if (origin.endsWith('.tldraw.dev')) return origin
+	if (origin.endsWith('.tldraw.club')) return origin
 	if (origin.endsWith('-tldraw.vercel.app')) return origin
 	return undefined
 }

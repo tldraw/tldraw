@@ -1,6 +1,5 @@
 import { expect } from '@playwright/test'
-import { sleep } from 'tldraw'
-import { getAllShapeTypes, setup } from '../shared-e2e'
+import { getAllShapeTypes, setup, sleep } from '../shared-e2e'
 import test from './fixtures/fixtures'
 
 test.describe('when selecting a tool from the toolbar', () => {

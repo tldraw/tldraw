@@ -82,15 +82,15 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@ai-sdk/openai@npm:^2.0.11":
-  version: 2.0.23
-  resolution: "@ai-sdk/openai@npm:2.0.23"
+"@ai-sdk/openai@npm:^2.0.24":
+  version: 2.0.24
+  resolution: "@ai-sdk/openai@npm:2.0.24"
   dependencies:
     "@ai-sdk/provider": "npm:2.0.0"
-    "@ai-sdk/provider-utils": "npm:3.0.7"
+    "@ai-sdk/provider-utils": "npm:3.0.8"
   peerDependencies:
     zod: ^3.25.76 || ^4
-  checksum: 10/76969eedb5f3718514a95f1d0dc62783347517d91178e9e18302044c3acc7e9b1321874940437888065a2c598a07b6a10cf273cdce192a523cce6c8dc5ffcdbb
+  checksum: 10/c15ffe86ebcf854e44a93d933b1f622358beffb3f3731c1f44b0ba8c75533ee0a39704597c309963a8ccc95c4eaf845805a61ae09dfe7e45bf18019cb350e773
   languageName: node
   linkType: hard
 
@@ -118,6 +118,19 @@ __metadata:
   peerDependencies:
     zod: ^3.25.76 || ^4
   checksum: 10/7d3feb4c617360faa1554b6f1b0db38f53eadc67ce952aa08cc87efbc08e6e54acf3ba0a78f8eedd2e2d850cbf5b681badecbebdfc3c2e3e6fb1dca97fa818c3
+  languageName: node
+  linkType: hard
+
+"@ai-sdk/provider-utils@npm:3.0.8":
+  version: 3.0.8
+  resolution: "@ai-sdk/provider-utils@npm:3.0.8"
+  dependencies:
+    "@ai-sdk/provider": "npm:2.0.0"
+    "@standard-schema/spec": "npm:^1.0.0"
+    eventsource-parser: "npm:^3.0.5"
+  peerDependencies:
+    zod: ^3.25.76 || ^4
+  checksum: 10/62113bcad1aeaec6d097d63b3b84154b3eaacf6074cc48e2f5bfc19a5e82360e055ac3b097eacbb66822ee398129fd2db148099c6aa59169b7a2e86c82570649
   languageName: node
   linkType: hard
 
@@ -3490,6 +3503,21 @@ __metadata:
   bin:
     clasp: build/src/index.js
   checksum: 10/421b283df24d32fbaea26f4e51e7512201aab28612c8033f4e4c5ed5d6cd59a2eec65b5386fb7db33ca3a9c28e3e4ed4db807ae2bb3db739b0b94b03a17fc195
+  languageName: node
+  linkType: hard
+
+"@google/genai@npm:^1.17.0":
+  version: 1.17.0
+  resolution: "@google/genai@npm:1.17.0"
+  dependencies:
+    google-auth-library: "npm:^9.14.2"
+    ws: "npm:^8.18.0"
+  peerDependencies:
+    "@modelcontextprotocol/sdk": ^1.11.4
+  peerDependenciesMeta:
+    "@modelcontextprotocol/sdk":
+      optional: true
+  checksum: 10/b46b6bf35bebce515ebbd554c1db2af385012740aac476158c37b169192760db615bd77418f49443fffbf6980f1616f3d10ec6b630f5b8d41e702bd685376b41
   languageName: node
   linkType: hard
 
@@ -17548,7 +17576,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"google-auth-library@npm:^9.15.1":
+"google-auth-library@npm:^9.14.2, google-auth-library@npm:^9.15.1":
   version: 9.15.1
   resolution: "google-auth-library@npm:9.15.1"
   dependencies:
@@ -27678,7 +27706,7 @@ __metadata:
   dependencies:
     "@ai-sdk/anthropic": "npm:^2.0.2"
     "@ai-sdk/google": "npm:^2.0.11"
-    "@ai-sdk/openai": "npm:^2.0.11"
+    "@ai-sdk/openai": "npm:^2.0.24"
     "@cloudflare/vite-plugin": "npm:^1.9.0"
     "@cloudflare/workers-types": "npm:^4.20250703.0"
     "@google/generative-ai": "npm:^0.24.1"
@@ -27728,12 +27756,36 @@ __metadata:
   languageName: unknown
   linkType: soft
 
+"tldraw-branching-chat@workspace:templates/branching-chat":
+  version: 0.0.0-use.local
+  resolution: "tldraw-branching-chat@workspace:templates/branching-chat"
+  dependencies:
+    "@ai-sdk/openai": "npm:^2.0.24"
+    "@cloudflare/vite-plugin": "npm:^1.9.0"
+    "@cloudflare/workers-types": "npm:^4.20250703.0"
+    "@types/react": "npm:^18.3.18"
+    "@types/react-dom": "npm:^18.3.5"
+    "@vitejs/plugin-react-swc": "npm:^3.10.2"
+    ai: "npm:^5.0.15"
+    classnames: "npm:^2.5.1"
+    itty-router: "npm:^5.0.18"
+    radix-ui: "npm:^1.4.2"
+    react: "npm:^18.3.1"
+    react-dom: "npm:^18.3.1"
+    tldraw: "workspace:*"
+    typescript: "npm:^5.8.3"
+    vite: "npm:^7.0.1"
+    wrangler: "npm:^4.23.0"
+  languageName: unknown
+  linkType: soft
+
 "tldraw-chat-app-example@workspace:templates/chat":
   version: 0.0.0-use.local
   resolution: "tldraw-chat-app-example@workspace:templates/chat"
   dependencies:
     "@ai-sdk/google": "npm:^2.0.11"
     "@ai-sdk/react": "npm:^2.0.15"
+    "@google/genai": "npm:^1.17.0"
     "@types/node": "npm:^22.15.31"
     "@types/react": "npm:^18.3.18"
     "@types/react-dom": "npm:^18.3.5"

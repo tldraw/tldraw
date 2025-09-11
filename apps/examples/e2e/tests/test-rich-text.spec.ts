@@ -1,6 +1,5 @@
 import { expect } from '@playwright/test'
-import { sleep } from 'tldraw'
-import { setup } from '../shared-e2e'
+import { setup, sleep } from '../shared-e2e'
 import test from './fixtures/fixtures'
 
 test.describe('more rich text', () => {

@@ -1,6 +1,5 @@
 import fs from 'fs'
 import path from 'path'
-import { uniqueId } from 'tldraw'
 import { getRandomName, openNewTab } from '../fixtures/helpers'
 import { expect, test } from '../fixtures/tla-test'
 
@@ -463,7 +462,7 @@ test('can export a file as an image', async ({ page, shareMenu }) => {
 })
 
 test('can follow a deep link to a never-seen file', async ({ editor, browser, shareMenu }) => {
-	const text = uniqueId()
+	const text = Math.random().toString(36).substring(2, 15)
 	await editor.createNewPage()
 	await editor.createTextShape(text)
 
@@ -486,7 +485,7 @@ test('can follow a deep link to a never-seen file', async ({ editor, browser, sh
 })
 
 test('can follow a deep link to an already-seen file', async ({ editor, shareMenu, browser }) => {
-	const text = uniqueId()
+	const text = Math.random().toString(36).substring(2, 15)
 
 	await shareMenu.open()
 	await shareMenu.inviteTabButton.click()

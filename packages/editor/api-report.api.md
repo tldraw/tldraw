@@ -1646,6 +1646,8 @@ export abstract class Geometry2d {
     // (undocumented)
     get bounds(): Box;
     // (undocumented)
+    get boundsVertices(): Vec[];
+    // (undocumented)
     get center(): Vec;
     // (undocumented)
     debugColor?: string;
@@ -1654,9 +1656,13 @@ export abstract class Geometry2d {
     // (undocumented)
     distanceToPoint(point: VecLike, hitInside?: boolean, filters?: Geometry2dFilters): number;
     // (undocumented)
+    excludeFromShapeBounds: boolean;
+    // (undocumented)
     getArea(): number;
     // (undocumented)
     getBounds(): Box;
+    // (undocumented)
+    getBoundsVertices(): Vec[];
     // (undocumented)
     getLength(_filters?: Geometry2dFilters): number;
     // (undocumented)
@@ -1836,6 +1842,8 @@ export class Group2d extends Geometry2d {
     distanceToPoint(point: VecLike, hitInside?: boolean, filters?: Geometry2dFilters): number;
     // (undocumented)
     getArea(): number;
+    // (undocumented)
+    getBoundsVertices(): Vec[];
     // (undocumented)
     getLength(filters?: Geometry2dFilters): number;
     // (undocumented)
@@ -2042,6 +2050,9 @@ export function kickoutOccludedShapes(editor: Editor, shapeIds: TLShapeId[], opt
 }): void;
 
 // @internal (undocumented)
+export const LICENSE_TIMEOUT = 5000;
+
+// @internal (undocumented)
 export type LicenseFromKeyResult = InvalidLicenseKeyResult | ValidLicenseKeyResult;
 
 // @internal (undocumented)
@@ -2076,7 +2087,7 @@ export class LicenseManager {
 }
 
 // @internal (undocumented)
-export type LicenseState = 'internal-expired' | 'licensed-with-watermark' | 'licensed' | 'pending' | 'unlicensed';
+export type LicenseState = 'expired' | 'licensed-with-watermark' | 'licensed' | 'pending' | 'unlicensed-production' | 'unlicensed';
 
 // @public (undocumented)
 export function linesIntersect(A: VecLike, B: VecLike, C: VecLike, D: VecLike): boolean;
@@ -2558,6 +2569,7 @@ export abstract class ShapeUtil<Shape extends TLUnknownShape = TLUnknownShape> {
     canBeLaidOut(_shape: Shape, _info: TLShapeUtilCanBeLaidOutOpts): boolean;
     canBind(_opts: TLShapeUtilCanBindOpts): boolean;
     canCrop(_shape: Shape): boolean;
+    canCull(_shape: Shape): boolean;
     canEdit(_shape: Shape): boolean;
     canEditInReadonly(_shape: Shape): boolean;
     canReceiveNewChildrenOfType(_shape: Shape, _type: TLShape['type']): boolean;
@@ -4370,6 +4382,8 @@ export class TransformedGeometry2d extends Geometry2d {
     // (undocumented)
     distanceToPoint(point: VecLike, hitInside?: boolean, filters?: Geometry2dFilters): number;
     // (undocumented)
+    getBoundsVertices(): Vec[];
+    // (undocumented)
     getSvgPathData(): string;
     // (undocumented)
     getVertices(filters: Geometry2dFilters): Vec[];
@@ -4395,6 +4409,8 @@ export class TransformedGeometry2d extends Geometry2d {
 export interface TransformedGeometry2dOptions {
     // (undocumented)
     debugColor?: string;
+    // (undocumented)
+    excludeFromShapeBounds?: boolean;
     // (undocumented)
     ignore?: boolean;
     // (undocumented)
@@ -4580,6 +4596,8 @@ export function useViewportHeight(): number;
 // @internal (undocumented)
 export interface ValidLicenseKeyResult {
     // (undocumented)
+    daysSinceExpiry: number;
+    // (undocumented)
     expiryDate: Date;
     // (undocumented)
     isAnnualLicense: boolean;
@@ -4589,6 +4607,10 @@ export interface ValidLicenseKeyResult {
     isDevelopment: boolean;
     // (undocumented)
     isDomainValid: boolean;
+    // (undocumented)
+    isEvaluationLicense: boolean;
+    // (undocumented)
+    isEvaluationLicenseExpired: boolean;
     // (undocumented)
     isInternalLicense: boolean;
     // (undocumented)
