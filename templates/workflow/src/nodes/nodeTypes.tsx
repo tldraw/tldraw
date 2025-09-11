@@ -9,6 +9,7 @@ import { NodeShape } from './NodeShapeUtil'
 import { AddNodeType } from './types/AddNode'
 import { ConditionalNodeType } from './types/ConditionalNode'
 import { DivideNodeType } from './types/DivideNode'
+import { EarthquakeNodeType } from './types/EarthquakeNode'
 import { MultiplyNodeType } from './types/MultiplyNode'
 import {
 	ExecutionResult,
@@ -27,6 +28,7 @@ export const NodeDefinitions = {
 	divide: DivideNodeType,
 	conditional: ConditionalNodeType,
 	slider: SliderNodeType,
+	earthquake: EarthquakeNodeType,
 } satisfies Record<string, NodeDefinitionConstructor<any>>
 
 /**
