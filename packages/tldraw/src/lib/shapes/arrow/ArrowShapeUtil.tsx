@@ -184,7 +184,6 @@ export class ArrowShapeUtil extends ShapeUtil<TLArrowShape> {
 			richText: toRichText(''),
 			labelPosition: 0.5,
 			font: 'draw',
-			scale: 1,
 		}
 	}
 
@@ -788,7 +787,7 @@ export class ArrowShapeUtil extends ShapeUtil<TLArrowShape> {
 						verticalAlign="middle"
 						labelColor={getColorValue(theme, shape.props.labelColor, 'solid')}
 						richText={shape.props.richText}
-						textWidth={labelPosition.box.w - ARROW_LABEL_PADDING * 2 * shape.props.scale}
+						textWidth={labelPosition.box.w - ARROW_LABEL_PADDING * 2 * shape.scale}
 						isSelected={isSelected}
 						padding={0}
 						style={{
@@ -818,7 +817,7 @@ export class ArrowShapeUtil extends ShapeUtil<TLArrowShape> {
 
 		if (Vec.Equals(start, end)) return null
 
-		const strokeWidth = STROKE_SIZES[shape.props.size] * shape.props.scale
+		const strokeWidth = STROKE_SIZES[shape.props.size] * shape.scale
 
 		const as = info.start.arrowhead && getArrowheadPathForType(info, 'start', strokeWidth)
 		const ae = info.end.arrowhead && getArrowheadPathForType(info, 'end', strokeWidth)
@@ -837,8 +836,8 @@ export class ArrowShapeUtil extends ShapeUtil<TLArrowShape> {
 					y={toDomPrecision(labelBounds.y)}
 					width={labelBounds.w}
 					height={labelBounds.h}
-					rx={3.5 * shape.props.scale}
-					ry={3.5 * shape.props.scale}
+					rx={3.5 * shape.scale}
+					ry={3.5 * shape.scale}
 				/>
 			)
 		}
@@ -852,7 +851,7 @@ export class ArrowShapeUtil extends ShapeUtil<TLArrowShape> {
 				{includeClipPath && (
 					<defs>
 						<ArrowClipPath
-							radius={3.5 * shape.props.scale}
+							radius={3.5 * shape.scale}
 							hasText={!isEmpty}
 							bounds={bounds}
 							labelBounds={labelBounds}
@@ -925,7 +924,7 @@ export class ArrowShapeUtil extends ShapeUtil<TLArrowShape> {
 	override toSvg(shape: TLArrowShape, ctx: SvgExportContext) {
 		ctx.addExportDef(getFillDefForExport(shape.props.fill))
 		const theme = getDefaultColorTheme(ctx)
-		const scaleFactor = 1 / shape.props.scale
+		const scaleFactor = 1 / shape.scale
 
 		return (
 			<g transform={`scale(${scaleFactor})`}>
@@ -939,7 +938,7 @@ export class ArrowShapeUtil extends ShapeUtil<TLArrowShape> {
 					richText={shape.props.richText}
 					bounds={getArrowLabelPosition(this.editor, shape)
 						.box.clone()
-						.expandBy(-ARROW_LABEL_PADDING * shape.props.scale)}
+						.expandBy(-ARROW_LABEL_PADDING * shape.scale)}
 					padding={0}
 					showTextOutline={true}
 				/>
@@ -967,7 +966,6 @@ export class ArrowShapeUtil extends ShapeUtil<TLArrowShape> {
 	): TLArrowShapeProps {
 		return {
 			...(progress > 0.5 ? endShape.props : startShape.props),
-			scale: lerp(startShape.props.scale, endShape.props.scale, progress),
 			start: {
 				x: lerp(startShape.props.start.x, endShape.props.start.x, progress),
 				y: lerp(startShape.props.start.y, endShape.props.start.y, progress),
@@ -1021,7 +1019,7 @@ const ArrowSvg = track(function ArrowSvg({
 
 	if (!info?.isValid) return null
 
-	const strokeWidth = STROKE_SIZES[shape.props.size] * shape.props.scale
+	const strokeWidth = STROKE_SIZES[shape.props.size] * shape.scale
 
 	const as = info.start.arrowhead && getArrowheadPathForType(info, 'start', strokeWidth)
 	const ae = info.end.arrowhead && getArrowheadPathForType(info, 'end', strokeWidth)
@@ -1067,7 +1065,7 @@ const ArrowSvg = track(function ArrowSvg({
 			<defs>
 				<clipPath id={clipPathId}>
 					<ArrowClipPath
-						radius={3.5 * shape.props.scale}
+						radius={3.5 * shape.scale}
 						hasText={isEditing || !isEmpty}
 						bounds={bounds}
 						labelBounds={labelPosition.box}
@@ -1111,7 +1109,7 @@ const ArrowSvg = track(function ArrowSvg({
 						d={as}
 						color={shape.props.color}
 						fill={shape.props.fill}
-						scale={shape.props.scale}
+						scale={shape.scale}
 					/>
 				)}
 				{ae && clipEndArrowhead && shape.props.fill !== 'none' && (
@@ -1120,7 +1118,7 @@ const ArrowSvg = track(function ArrowSvg({
 						d={ae}
 						color={shape.props.color}
 						fill={shape.props.fill}
-						scale={shape.props.scale}
+						scale={shape.scale}
 					/>
 				)}
 				{as && <path d={as} />}

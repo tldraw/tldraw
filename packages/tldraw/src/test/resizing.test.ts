@@ -3564,7 +3564,7 @@ describe('editor.resizeNoteShape', () => {
 
 		expect(editor.getShapePageBounds(ids.boxA)).toMatchObject({ x: 0, y: 0, w: 420, h: 420 })
 
-		expect(editor.getShape(noteBId)).toMatchObject({ x: 0, y: 0, props: { scale: 2.1 } }) // but scaled!
+		expect(editor.getShape(noteBId)).toMatchObject({ x: 0, y: 0, scale: 2.1 }) // but scaled!
 
 		expect(editor.getShapePageBounds(noteBId)).toMatchObject({ x: 0, y: 0, w: 420, h: 420 })
 	})

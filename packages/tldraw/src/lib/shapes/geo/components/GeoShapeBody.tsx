@@ -13,7 +13,7 @@ export function GeoShapeBody({
 	shouldScale: boolean
 	forceSolid: boolean
 }) {
-	const scaleToUse = shouldScale ? shape.props.scale : 1
+	const scaleToUse = shouldScale ? shape.scale : 1
 	const theme = useDefaultColorTheme()
 	const { props } = shape
 	const { color, fill, dash, size } = props

@@ -32,10 +32,7 @@ export function getCurvedArrowInfo(
 	const { arrowheadEnd, arrowheadStart } = shape.props
 	const bend = shape.props.bend
 
-	if (
-		Math.abs(bend) >
-		Math.abs(shape.props.bend * (WAY_TOO_BIG_ARROW_BEND_FACTOR * shape.props.scale))
-	) {
+	if (Math.abs(bend) > Math.abs(shape.props.bend * (WAY_TOO_BIG_ARROW_BEND_FACTOR * shape.scale))) {
 		return getStraightArrowInfo(editor, shape, bindings)
 	}
 
@@ -102,7 +99,7 @@ export function getCurvedArrowInfo(
 	let offsetA = 0
 	let offsetB = 0
 
-	let minLength = MIN_ARROW_LENGTH * shape.props.scale
+	let minLength = MIN_ARROW_LENGTH * shape.scale
 
 	if (startShapeInfo && !startShapeInfo.isExact) {
 		const startInPageSpace = Mat.applyToPoint(arrowPageTransform, tempA)
@@ -176,8 +173,8 @@ export function getCurvedArrowInfo(
 					('size' in startShapeInfo.shape.props
 						? STROKE_SIZES[startShapeInfo.shape.props.size] / 2
 						: 0)
-				offsetA = (BOUND_ARROW_OFFSET + strokeOffset) * shape.props.scale
-				minLength += strokeOffset * shape.props.scale
+				offsetA = (BOUND_ARROW_OFFSET + strokeOffset) * shape.scale
+				minLength += strokeOffset * shape.scale
 			}
 		}
 	}
@@ -254,8 +251,8 @@ export function getCurvedArrowInfo(
 				const strokeOffset =
 					STROKE_SIZES[shape.props.size] / 2 +
 					('size' in endShapeInfo.shape.props ? STROKE_SIZES[endShapeInfo.shape.props.size] / 2 : 0)
-				offsetB = (BOUND_ARROW_OFFSET + strokeOffset) * shape.props.scale
-				minLength += strokeOffset * shape.props.scale
+				offsetB = (BOUND_ARROW_OFFSET + strokeOffset) * shape.scale
+				minLength += strokeOffset * shape.scale
 			}
 		}
 	}
@@ -352,8 +349,7 @@ export function getCurvedArrowInfo(
 						Vec.FromAngle(
 							aCA +
 								dAB *
-									(Math.min(0.9, (MIN_ARROW_LENGTH * shape.props.scale) / lAB) *
-										(isClockwise ? 1 : -1))
+									(Math.min(0.9, (MIN_ARROW_LENGTH * shape.scale) / lAB) * (isClockwise ? 1 : -1))
 						).mul(handleArc.radius)
 					)
 			}

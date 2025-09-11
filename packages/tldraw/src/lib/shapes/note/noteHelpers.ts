@@ -105,7 +105,7 @@ export function getAvailableNoteAdjacentPositions(
 	for (const shape of editor.getCurrentPageShapes()) {
 		if (
 			!editor.isShapeOfType<TLNoteShape>(shape, 'note') ||
-			scale !== shape.props.scale ||
+			scale !== shape.scale ||
 			selectedShapeIds.has(shape.id)
 		) {
 			continue
@@ -178,7 +178,7 @@ export function getNoteShapeForAdjacentPosition(
 	// Start from the top of the stack, and work our way down
 	const allShapesOnPage = editor.getCurrentPageShapesSorted()
 
-	const minDistance = (NOTE_SIZE + editor.options.adjacentShapeMargin ** 2) ** shape.props.scale
+	const minDistance = (NOTE_SIZE + editor.options.adjacentShapeMargin ** 2) ** shape.scale
 
 	for (let i = allShapesOnPage.length - 1; i >= 0; i--) {
 		const otherNote = allShapesOnPage[i]
@@ -229,10 +229,7 @@ export function getNoteShapeForAdjacentPosition(
 		// We need to put the page point in the same coordinate space as the newly created shape (i.e its parent's space)
 		const topLeft = editor.getPointInParentSpace(
 			createdShape,
-			Vec.Sub(
-				center,
-				Vec.Rot(NOTE_CENTER_OFFSET.clone().mul(createdShape.props.scale), pageRotation)
-			)
+			Vec.Sub(center, Vec.Rot(NOTE_CENTER_OFFSET.clone().mul(createdShape.scale), pageRotation))
 		)
 
 		editor.updateShape({

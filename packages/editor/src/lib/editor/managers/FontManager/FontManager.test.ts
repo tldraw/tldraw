@@ -46,6 +46,7 @@ describe('FontManager', () => {
 		opacity: 1,
 		isLocked: false,
 		meta: {},
+		scale: 1,
 		props: {},
 		typeName: 'shape' as const,
 	})

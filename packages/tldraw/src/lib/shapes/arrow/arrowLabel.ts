@@ -115,7 +115,7 @@ const labelSizeCache = createComputedCache(
 			height = squishedHeight
 		}
 
-		return new Vec(width, height).addScalar(ARROW_LABEL_PADDING * 2 * shape.props.scale)
+		return new Vec(width, height).addScalar(ARROW_LABEL_PADDING * 2 * shape.scale)
 	},
 	{
 		areRecordsEqual: (a, b) => {
@@ -138,7 +138,7 @@ function getLabelToArrowPadding(shape: TLArrowShape) {
 		(LABEL_TO_ARROW_PADDING +
 			(strokeWidth - STROKE_SIZES.s) * 2 +
 			(strokeWidth === STROKE_SIZES.xl ? 20 : 0)) *
-		shape.props.scale
+		shape.scale
 
 	return labelToArrowPadding
 }
@@ -287,7 +287,7 @@ function furthest(from: VecLike, candidates: VecLike[]): VecLike | null {
 }
 
 export function getArrowLabelFontSize(shape: TLArrowShape) {
-	return ARROW_LABEL_FONT_SIZES[shape.props.size] * shape.props.scale
+	return ARROW_LABEL_FONT_SIZES[shape.props.size] * shape.scale
 }
 
 export function getArrowLabelDefaultPosition(editor: Editor, shape: TLArrowShape) {

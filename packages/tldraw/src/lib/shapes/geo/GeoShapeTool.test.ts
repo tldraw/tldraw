@@ -60,10 +60,10 @@ describe(GeoShapeTool, () => {
 		editor.pointerUp()
 
 		expect(editor.getLastCreatedShape()).toMatchObject({
+			scale: 1,
 			props: {
 				w: 50,
 				h: 50,
-				scale: 1,
 			},
 		})
 
@@ -77,10 +77,10 @@ describe(GeoShapeTool, () => {
 		editor.pointerUp()
 
 		expect(editor.getLastCreatedShape()).toMatchObject({
+			scale: 0.5,
 			props: {
-				w: 25,
-				h: 25,
-				scale: 0.5,
+				w: 49,
+				h: 49,
 			},
 		})
 
@@ -93,10 +93,10 @@ describe(GeoShapeTool, () => {
 		editor.pointerUp()
 
 		expect(editor.getLastCreatedShape()).toMatchObject({
+			scale: 2,
 			props: {
-				w: 100,
-				h: 100,
-				scale: 2,
+				w: 50.5,
+				h: 50.5,
 			},
 		})
 	})

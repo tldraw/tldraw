@@ -21,7 +21,6 @@ import {
 	getDefaultColorTheme,
 	getFontsFromRichText,
 	isEqual,
-	lerp,
 	noteShapeMigrations,
 	noteShapeProps,
 	resizeScaled,
@@ -114,18 +113,16 @@ export class NoteShapeUtil extends ShapeUtil<TLNoteShape> {
 			growY: 0,
 			fontSizeAdjustment: 0,
 			url: '',
-			scale: 1,
 		}
 	}
 
 	getGeometry(shape: TLNoteShape) {
 		const { labelHeight, labelWidth } = getLabelSize(this.editor, shape)
-		const { scale } = shape.props
 
-		const lh = labelHeight * scale
-		const lw = labelWidth * scale
-		const nw = NOTE_SIZE * scale
-		const nh = getNoteHeight(shape)
+		const lh = labelHeight
+		const lw = labelWidth
+		const nw = NOTE_SIZE
+		const nh = NOTE_SIZE + shape.props.growY
 
 		return new Group2d({
 			children: [
@@ -154,7 +151,7 @@ export class NoteShapeUtil extends ShapeUtil<TLNoteShape> {
 	}
 
 	override getHandles(shape: TLNoteShape): TLHandle[] {
-		const { scale } = shape.props
+		const { scale } = shape
 		const isCoarsePointer = this.editor.getInstanceState().isCoarsePointer
 		if (isCoarsePointer) return []
 
@@ -243,17 +240,8 @@ export class NoteShapeUtil extends ShapeUtil<TLNoteShape> {
 		const {
 			id,
 			type,
-			props: {
-				labelColor,
-				scale,
-				color,
-				font,
-				size,
-				align,
-				richText,
-				verticalAlign,
-				fontSizeAdjustment,
-			},
+			scale,
+			props: { labelColor, color, font, size, align, richText, verticalAlign, fontSizeAdjustment },
 		} = shape
 
 		const handleKeyDown = useNoteKeydownHandler(id)
@@ -328,7 +316,7 @@ export class NoteShapeUtil extends ShapeUtil<TLNoteShape> {
 	}
 
 	indicator(shape: TLNoteShape) {
-		const { scale } = shape.props
+		const { scale } = shape
 		return (
 			<rect
 				rx={scale}
@@ -393,7 +381,6 @@ export class NoteShapeUtil extends ShapeUtil<TLNoteShape> {
 	): TLNoteShapeProps {
 		return {
 			...(t > 0.5 ? endShape.props : startShape.props),
-			scale: lerp(startShape.props.scale, endShape.props.scale, t),
 		}
 	}
 }
@@ -522,14 +509,14 @@ function useNoteKeydownHandler(id: TLShapeId) {
 						editor.options.adjacentShapeMargin +
 						// If we're growing down, we need to account for the current shape's growY
 						(isCmdEnter && !e.shiftKey ? shape.props.growY : 0)) *
-					shape.props.scale
+					shape.scale
 
 				const adjacentCenter = new Vec(
 					isTab ? (e.shiftKey != isRTL ? -1 : 1) : 0,
 					isCmdEnter ? (e.shiftKey ? -1 : 1) : 0
 				)
 					.mul(offsetLength)
-					.add(NOTE_CENTER_OFFSET.clone().mul(shape.props.scale))
+					.add(NOTE_CENTER_OFFSET.clone().mul(shape.scale))
 					.rot(pageRotation)
 					.add(pageTransform.point())
 
@@ -545,7 +532,7 @@ function useNoteKeydownHandler(id: TLShapeId) {
 }
 
 function getNoteHeight(shape: TLNoteShape) {
-	return (NOTE_SIZE + shape.props.growY) * shape.props.scale
+	return (NOTE_SIZE + shape.props.growY) * shape.scale
 }
 
 function getNoteShadow(id: string, rotation: number, scale: number) {

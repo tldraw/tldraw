@@ -14,7 +14,6 @@ exports[`Draws a bunch > draw shape 1`] = `
     "isClosed": false,
     "isComplete": true,
     "isPen": false,
-    "scale": 1,
     "segments": [
       {
         "points": [
@@ -1280,6 +1279,7 @@ exports[`Draws a bunch > draw shape 1`] = `
     "size": "m",
   },
   "rotation": 0,
+  "scale": 1,
   "type": "draw",
   "typeName": "shape",
   "x": 511,

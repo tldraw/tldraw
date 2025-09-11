@@ -234,7 +234,7 @@ export class Drawing extends StateNode {
 					;(shapePartial as TLShapePartial<TLDrawShape>).props!.isClosed = this.getIsClosed(
 						segments,
 						shape.props.size,
-						shape.props.scale
+						shape.scale
 					)
 				}
 
@@ -255,9 +255,9 @@ export class Drawing extends StateNode {
 			type: this.shapeType,
 			x: originPagePoint.x,
 			y: originPagePoint.y,
+			scale: this.editor.user.getIsDynamicResizeMode() ? 1 / this.editor.getZoomLevel() : 1,
 			props: {
 				isPen: this.isPenOrStylus,
-				scale: this.editor.user.getIsDynamicResizeMode() ? 1 / this.editor.getZoomLevel() : 1,
 				segments: [
 					{
 						type: this.segmentMode,
@@ -289,7 +289,8 @@ export class Drawing extends StateNode {
 
 		const {
 			id,
-			props: { size, scale },
+			scale,
+			props: { size },
 		} = initialShape
 
 		const shape = this.editor.getShape<DrawableShape>(id)!
@@ -639,7 +640,7 @@ export class Drawing extends StateNode {
 
 					const newShapeId = createShapeId()
 
-					const props = this.editor.getShape<DrawableShape>(id)!.props
+					const shape = this.editor.getShape<DrawableShape>(id)!
 
 					if (!this.editor.canCreateShapes([newShapeId])) return this.cancel()
 					this.editor.createShape<DrawableShape>({
@@ -647,9 +648,9 @@ export class Drawing extends StateNode {
 						type: this.shapeType,
 						x: toFixed(inputs.currentPagePoint.x),
 						y: toFixed(inputs.currentPagePoint.y),
+						scale: shape.scale,
 						props: {
 							isPen: this.isPenOrStylus,
-							scale: props.scale,
 							segments: [
 								{
 									type: 'free',
@@ -659,9 +660,9 @@ export class Drawing extends StateNode {
 						},
 					})
 
-					const shape = this.editor.getShape<DrawableShape>(newShapeId)
+					const newShape = this.editor.getShape<DrawableShape>(newShapeId)
 
-					if (!shape) {
+					if (!newShape) {
 						// This would only happen if the page is full and no more shapes can be created. The bug would manifest as a crash when we try to clone the shape.
 						// todo: handle this type of thing better
 						return this.cancel()

@@ -11,7 +11,7 @@ import { TLResizeInfo } from '../ShapeUtil'
  *
  * @public */
 export function resizeScaled(
-	shape: TLBaseShape<any, { scale: number }>,
+	shape: TLBaseShape<any, any>,
 	{ initialBounds, scaleX, scaleY, newPoint, handle }: TLResizeInfo<any>
 ) {
 	let scaleDelta: number
@@ -54,8 +54,6 @@ export function resizeScaled(
 	return {
 		x,
 		y,
-		props: {
-			scale: scaleDelta * shape.props.scale,
-		},
+		scale: scaleDelta * shape.scale,
 	}
 }

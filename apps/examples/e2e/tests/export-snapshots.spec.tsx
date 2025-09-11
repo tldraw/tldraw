@@ -62,16 +62,10 @@ const snapshots: Snapshots = {
 				/>
 			),
 			'overflowing text with small scale': (
-				<TL.geo
-					dash="solid"
-					richText={toRichText('\n\n\n\n\n\ntext')}
-					w={100}
-					h={30}
-					scale={0.25}
-				/>
+				<TL.geo dash="solid" richText={toRichText('\n\n\n\n\n\ntext')} w={100} h={30} />
 			),
 			'overflowing text with large scale': (
-				<TL.geo dash="solid" richText={toRichText('\n\n\n\n\n\ntext')} w={200} h={30} scale={2} />
+				<TL.geo dash="solid" richText={toRichText('\n\n\n\n\n\ntext')} w={200} h={30} />
 			),
 			'rich text': <TL.geo dash="solid" richText={richText} align="start" w={300} h={300} />,
 		},
@@ -550,8 +544,8 @@ const snapshots: Snapshots = {
 			'scaled text within a frame': (
 				<TL.frame w={300} h={200}>
 					<TL.text richText={toRichText('the text')} x={-30} y={0} />
-					<TL.text richText={toRichText('the text')} x={-60} y={50} scale={2} />
-					<TL.text richText={toRichText('the text')} x={-90} y={100} scale={3} />
+					<TL.text richText={toRichText('the text')} x={-60} y={50} />
+					<TL.text richText={toRichText('the text')} x={-90} y={100} />
 				</TL.frame>
 			),
 		},

@@ -419,13 +419,13 @@ describe('When interacting with a shape...', () => {
 			rotation: 0,
 			isLocked: false,
 			opacity: 1,
+			scale: 1,
 			meta: {},
 			props: {
 				dash: 'draw',
 				size: 'm',
 				color: 'black',
 				spline: 'line',
-				scale: 1,
 				points: {
 					a1: { id: 'a1', index: 'a1' as any, x: 0, y: 0 },
 					a2: { id: 'a2', index: 'a2' as any, x: 100, y: 100 },
@@ -502,13 +502,13 @@ describe('When interacting with a shape...', () => {
 			rotation: 0,
 			isLocked: false,
 			opacity: 1,
+			scale: 1,
 			meta: {},
 			props: {
 				dash: 'draw',
 				size: 'm',
 				color: 'black',
 				spline: 'line',
-				scale: 1,
 				points: {
 					a1: { id: 'a1', index: 'a1' as any, x: 0, y: 0 },
 					a2: { id: 'a2', index: 'a2' as any, x: 100, y: 100 },

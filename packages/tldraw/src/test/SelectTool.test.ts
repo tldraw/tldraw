@@ -410,8 +410,8 @@ describe('When double clicking the selection edge', () => {
 				{
 					id,
 					type: 'text',
+					scale: 2,
 					props: {
-						scale: 2,
 						autoSize: false,
 						w: 200,
 						richText: toRichText('hello'),
@@ -426,7 +426,7 @@ describe('When double clicking the selection edge', () => {
 		// Previously, double clicking text edges would reset the scale and prevent editing. This is no longer the case.
 		//
 		// expect(editor.getEditingShapeId()).toBe(null)
-		// editor.expectShapeToMatch({ id, props: { scale: 1, autoSize: true } })
+		// editor.expectShapeToMatch({ id, scale: 1, props: { autoSize: true } })
 		// editor.doubleClick(100, 100, { target: 'selection', handle: 'left' })
 
 		expect(editor.getEditingShapeId()).toBe(id)

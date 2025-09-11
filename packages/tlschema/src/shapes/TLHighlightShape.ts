@@ -13,7 +13,6 @@ export interface TLHighlightShapeProps {
 	segments: TLDrawShapeSegment[]
 	isComplete: boolean
 	isPen: boolean
-	scale: number
 }
 
 /** @public */
@@ -26,7 +25,6 @@ export const highlightShapeProps: RecordProps<TLHighlightShape> = {
 	segments: T.arrayOf(DrawShapeSegment),
 	isComplete: T.boolean,
 	isPen: T.boolean,
-	scale: T.nonZeroNumber,
 }
 
 const Versions = createShapePropsMigrationIds('highlight', {

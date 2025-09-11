@@ -16,7 +16,6 @@ export interface TLTextShapeProps {
 	textAlign: TLDefaultTextAlignStyle
 	w: number
 	richText: TLRichText
-	scale: number
 	autoSize: boolean
 }
 
@@ -31,7 +30,6 @@ export const textShapeProps: RecordProps<TLTextShape> = {
 	textAlign: DefaultTextAlignStyle,
 	w: T.nonZeroNumber,
 	richText: richTextValidator,
-	scale: T.nonZeroNumber,
 	autoSize: T.boolean,
 }
 

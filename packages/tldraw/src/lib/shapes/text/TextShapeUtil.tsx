@@ -63,7 +63,6 @@ export class TextShapeUtil extends ShapeUtil<TLTextShape> {
 			font: 'draw',
 			textAlign: 'start',
 			autoSize: true,
-			scale: 1,
 			richText: toRichText(''),
 		}
 	}
@@ -73,21 +72,19 @@ export class TextShapeUtil extends ShapeUtil<TLTextShape> {
 	}
 
 	getGeometry(shape: TLTextShape, opts: TLGeometryOpts) {
-		const { scale } = shape.props
 		const { width, height } = this.getMinDimensions(shape)!
 		const context = opts?.context ?? 'none'
 		return new Rectangle2d({
 			x:
-				(context === '@tldraw/arrow-without-arrowhead'
+				context === '@tldraw/arrow-without-arrowhead'
 					? -this.options.extraArrowHorizontalPadding
-					: 0) * scale,
+					: 0,
 			width:
-				(width +
-					(context === '@tldraw/arrow-without-arrowhead'
-						? this.options.extraArrowHorizontalPadding * 2
-						: 0)) *
-				scale,
-			height: height * scale,
+				width +
+				(context === '@tldraw/arrow-without-arrowhead'
+					? this.options.extraArrowHorizontalPadding * 2
+					: 0),
+			height: height,
 			isFilled: true,
 			isLabel: true,
 		})
@@ -117,7 +114,8 @@ export class TextShapeUtil extends ShapeUtil<TLTextShape> {
 	component(shape: TLTextShape) {
 		const {
 			id,
-			props: { font, size, richText, color, scale, textAlign },
+			scale,
+			props: { font, size, richText, color, textAlign },
 		} = shape
 
 		const { width, height } = this.getMinDimensions(shape)
@@ -159,8 +157,8 @@ export class TextShapeUtil extends ShapeUtil<TLTextShape> {
 
 	override toSvg(shape: TLTextShape, ctx: SvgExportContext) {
 		const bounds = this.editor.getShapeGeometry(shape).bounds
-		const width = bounds.width / (shape.props.scale ?? 1)
-		const height = bounds.height / (shape.props.scale ?? 1)
+		const width = bounds.width
+		const height = bounds.height
 
 		const theme = getDefaultColorTheme(ctx)
 
@@ -199,7 +197,7 @@ export class TextShapeUtil extends ShapeUtil<TLTextShape> {
 				x,
 				y,
 				props: {
-					w: nextWidth / initialShape.props.scale,
+					w: nextWidth,
 					autoSize: false,
 				},
 			}
@@ -222,7 +220,7 @@ export class TextShapeUtil extends ShapeUtil<TLTextShape> {
 			prev.props.size !== next.props.size ||
 			prev.props.textAlign !== next.props.textAlign ||
 			prev.props.font !== next.props.font ||
-			(prev.props.scale !== 1 && next.props.scale === 1)
+			(prev.scale !== 1 && next.scale === 1)
 
 		const textDidChange = !isEqual(prev.props.richText, next.props.richText)
 
@@ -235,10 +233,10 @@ export class TextShapeUtil extends ShapeUtil<TLTextShape> {
 		// Will always be a fresh call to getTextSize
 		const boundsB = getTextSize(this.editor, next.props)
 
-		const wA = boundsA.width * prev.props.scale
-		const hA = boundsA.height * prev.props.scale
-		const wB = boundsB.width * next.props.scale
-		const hB = boundsB.height * next.props.scale
+		const wA = boundsA.width * prev.scale
+		const hA = boundsA.height * prev.scale
+		const wB = boundsB.width * next.scale
+		const hB = boundsB.height * next.scale
 
 		let delta: Vec | undefined
 
@@ -291,7 +289,7 @@ export class TextShapeUtil extends ShapeUtil<TLTextShape> {
 	// 		}
 	// 	}
 	// 	// If the shape is scaled, reset the scale to 1.
-	// 	if (shape.props.scale !== 1) {
+	// 	if (shape.scale !== 1) {
 	// 		return {
 	// 			id: shape.id,
 	// 			type: shape.type,

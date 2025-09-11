@@ -60,7 +60,6 @@ export interface TLGeoShapeProps {
 	w: number
 	h: number
 	growY: number
-	scale: number
 
 	// Text properties
 	labelColor: TLDefaultColorStyle
@@ -84,7 +83,6 @@ export const geoShapeProps: RecordProps<TLGeoShape> = {
 	w: T.nonZeroNumber,
 	h: T.nonZeroNumber,
 	growY: T.positiveNumber,
-	scale: T.nonZeroNumber,
 
 	// Text properties
 	labelColor: DefaultLabelColorStyle,

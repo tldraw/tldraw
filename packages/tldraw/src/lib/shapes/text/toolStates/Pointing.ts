@@ -129,11 +129,11 @@ export class Pointing extends StateNode {
 			type: 'text',
 			x: point.x,
 			y: point.y,
+			scale: this.editor.user.getIsDynamicResizeMode() ? 1 / this.editor.getZoomLevel() : 1,
 			props: {
 				richText: toRichText(''),
 				autoSize,
 				w: width,
-				scale: this.editor.user.getIsDynamicResizeMode() ? 1 / this.editor.getZoomLevel() : 1,
 			},
 		})
 

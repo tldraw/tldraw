@@ -91,6 +91,7 @@ export async function putExcalidrawContent(
 			isLocked: element.locked,
 			opacity: getOpacity(element.opacity),
 			meta: {},
+			scale: 1,
 		} as const
 
 		if (element.angle !== 0) {
@@ -151,6 +152,7 @@ export async function putExcalidrawContent(
 				tldrawContent.shapes.push({
 					...base,
 					type: 'draw',
+					scale: 1,
 					props: {
 						dash: getDash(element),
 						size: strokeWidthsToSizes[element.strokeWidth],
@@ -179,6 +181,7 @@ export async function putExcalidrawContent(
 				tldrawContent.shapes.push({
 					...base,
 					type: 'line',
+					scale: 1,
 					props: {
 						dash: getDash(element),
 						size: strokeWidthsToSizes[element.strokeWidth],
@@ -220,6 +223,7 @@ export async function putExcalidrawContent(
 				tldrawContent.shapes.push({
 					...base,
 					type: 'arrow',
+					scale: 1,
 					props: {
 						richText: toRichText(text),
 						kind: element.elbowed ? 'elbow' : 'arc',
@@ -274,9 +278,9 @@ export async function putExcalidrawContent(
 				tldrawContent.shapes.push({
 					...base,
 					type: 'text',
+					scale,
 					props: {
 						size,
-						scale,
 						font: fontFamilyToFontType[element.fontFamily] ?? 'draw',
 						color: colorsToColors[element.strokeColor] ?? 'black',
 						richText: toRichText(element.text),
@@ -309,6 +313,7 @@ export async function putExcalidrawContent(
 				tldrawContent.shapes.push({
 					...base,
 					type: 'image',
+					scale: 1,
 					props: {
 						w: element.width,
 						h: element.height,

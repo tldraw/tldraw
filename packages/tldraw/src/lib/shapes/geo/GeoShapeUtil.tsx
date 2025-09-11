@@ -66,7 +66,6 @@ export class GeoShapeUtil extends BaseBoxShapeUtil<TLGeoShape> {
 			dash: 'draw',
 			growY: 0,
 			url: '',
-			scale: 1,
 
 			// Text properties
 			color: 'black',
@@ -87,8 +86,8 @@ export class GeoShapeUtil extends BaseBoxShapeUtil<TLGeoShape> {
 		const path = getGeoShapePath(shape)
 		const unscaledlabelSize = getUnscaledLabelSize(this.editor, shape)
 		// unscaled w and h
-		const unscaledW = w / shape.props.scale
-		const unscaledH = h / shape.props.scale
+		const unscaledW = w / shape.scale
+		const unscaledH = h / shape.scale
 		const unscaledminWidth = Math.min(100, unscaledW / 2)
 		const unscaledMinHeight = Math.min(
 			LABEL_FONT_SIZES[shape.props.size] * TEXT_PROPS.lineHeight + LABEL_PADDING * 2,
@@ -114,16 +113,16 @@ export class GeoShapeUtil extends BaseBoxShapeUtil<TLGeoShape> {
 						shape.props.align === 'start'
 							? 0
 							: shape.props.align === 'end'
-								? (unscaledW - unscaledLabelWidth) * shape.props.scale
-								: ((unscaledW - unscaledLabelWidth) / 2) * shape.props.scale,
+								? (unscaledW - unscaledLabelWidth) * shape.scale
+								: ((unscaledW - unscaledLabelWidth) / 2) * shape.scale,
 					y:
 						shape.props.verticalAlign === 'start'
 							? 0
 							: shape.props.verticalAlign === 'end'
-								? (unscaledH - unscaledLabelHeight) * shape.props.scale
-								: ((unscaledH - unscaledLabelHeight) / 2) * shape.props.scale,
-					width: unscaledLabelWidth * shape.props.scale,
-					height: unscaledLabelHeight * shape.props.scale,
+								? (unscaledH - unscaledLabelHeight) * shape.scale
+								: ((unscaledH - unscaledLabelHeight) / 2) * shape.scale,
+					width: unscaledLabelWidth * shape.scale,
+					height: unscaledLabelHeight * shape.scale,
 					isFilled: true,
 					isLabel: true,
 					excludeFromShapeBounds: true,
@@ -214,9 +213,9 @@ export class GeoShapeUtil extends BaseBoxShapeUtil<TLGeoShape> {
 							shapeId={id}
 							type={type}
 							font={font}
-							fontSize={LABEL_FONT_SIZES[size] * shape.props.scale}
+							fontSize={LABEL_FONT_SIZES[size] * shape.scale}
 							lineHeight={TEXT_PROPS.lineHeight}
-							padding={LABEL_PADDING * shape.props.scale}
+							padding={LABEL_PADDING * shape.scale}
 							fill={fill}
 							align={align}
 							verticalAlign={verticalAlign}
@@ -237,7 +236,8 @@ export class GeoShapeUtil extends BaseBoxShapeUtil<TLGeoShape> {
 			this.editor,
 		])
 
-		const { size, dash, scale } = shape.props
+		const { size, dash } = shape.props
+		const { scale } = shape
 		const strokeWidth = STROKE_SIZES[size]
 
 		const path = getGeoShapePath(shape)
@@ -255,7 +255,7 @@ export class GeoShapeUtil extends BaseBoxShapeUtil<TLGeoShape> {
 	}
 
 	override toSvg(shape: TLGeoShape, ctx: SvgExportContext) {
-		const scale = shape.props.scale
+		const scale = shape.scale
 		// We need to scale the shape to 1x for export
 		const newShape = {
 			...shape,
@@ -303,9 +303,9 @@ export class GeoShapeUtil extends BaseBoxShapeUtil<TLGeoShape> {
 		shape: TLGeoShape,
 		{ handle, newPoint, scaleX, scaleY, initialShape }: TLResizeInfo<TLGeoShape>
 	) {
-		const unscaledInitialW = initialShape.props.w / initialShape.props.scale
-		const unscaledInitialH = initialShape.props.h / initialShape.props.scale
-		const unscaledGrowY = initialShape.props.growY / initialShape.props.scale
+		const unscaledInitialW = initialShape.props.w / initialShape.scale
+		const unscaledInitialH = initialShape.props.h / initialShape.scale
+		const unscaledGrowY = initialShape.props.growY / initialShape.scale
 		// use the w/h from props here instead of the initialBounds here,
 		// since cloud shapes calculated bounds can differ from the props w/h.
 		let unscaledW = unscaledInitialW * scaleX
@@ -326,8 +326,8 @@ export class GeoShapeUtil extends BaseBoxShapeUtil<TLGeoShape> {
 				...shape,
 				props: {
 					...shape.props,
-					w: newW * shape.props.scale,
-					h: newH * shape.props.scale,
+					w: newW * shape.scale,
+					h: newH * shape.scale,
 				},
 			})
 
@@ -340,8 +340,8 @@ export class GeoShapeUtil extends BaseBoxShapeUtil<TLGeoShape> {
 			unscaledH = nextH
 		}
 
-		const scaledW = unscaledW * shape.props.scale
-		const scaledH = unscaledH * shape.props.scale
+		const scaledW = unscaledW * shape.scale
+		const scaledH = unscaledH * shape.scale
 
 		const offset = new Vec(0, 0)
 
@@ -395,7 +395,7 @@ export class GeoShapeUtil extends BaseBoxShapeUtil<TLGeoShape> {
 			}
 		}
 
-		const unscaledPrevHeight = shape.props.h / shape.props.scale
+		const unscaledPrevHeight = shape.props.h / shape.scale
 		const unscaledNextHeight = getUnscaledLabelSize(this.editor, shape).h
 
 		let growY: number | null = null
@@ -414,7 +414,7 @@ export class GeoShapeUtil extends BaseBoxShapeUtil<TLGeoShape> {
 				props: {
 					...shape.props,
 					// scale the growY
-					growY: growY * shape.props.scale,
+					growY: growY * shape.scale,
 				},
 			}
 		}
@@ -444,9 +444,9 @@ export class GeoShapeUtil extends BaseBoxShapeUtil<TLGeoShape> {
 		}
 
 		// Get the prev width and height in unscaled values
-		const unscaledPrevWidth = prev.props.w / prev.props.scale
-		const unscaledPrevHeight = prev.props.h / prev.props.scale
-		const unscaledPrevGrowY = prev.props.growY / prev.props.scale
+		const unscaledPrevWidth = prev.props.w / prev.scale
+		const unscaledPrevHeight = prev.props.h / prev.scale
+		const unscaledPrevGrowY = prev.props.growY / prev.scale
 
 		// Get the next width and height in unscaled values
 		const unscaledNextLabelSize = getUnscaledLabelSize(this.editor, next)
@@ -472,8 +472,8 @@ export class GeoShapeUtil extends BaseBoxShapeUtil<TLGeoShape> {
 				props: {
 					...next.props,
 					// Scale the results
-					w: unscaledW * next.props.scale,
-					h: unscaledH * next.props.scale,
+					w: unscaledW * next.scale,
+					h: unscaledH * next.scale,
 					growY: 0,
 				},
 			}
@@ -490,14 +490,14 @@ export class GeoShapeUtil extends BaseBoxShapeUtil<TLGeoShape> {
 		}
 
 		if (growY !== null) {
-			const unscaledNextWidth = next.props.w / next.props.scale
+			const unscaledNextWidth = next.props.w / next.scale
 			return {
 				...next,
 				props: {
 					...next.props,
 					// Scale the results
-					growY: growY * next.props.scale,
-					w: Math.max(unscaledNextWidth, unscaledNextLabelSize.w) * next.props.scale,
+					growY: growY * next.scale,
+					w: Math.max(unscaledNextWidth, unscaledNextLabelSize.w) * next.scale,
 				},
 			}
 		}
@@ -508,7 +508,7 @@ export class GeoShapeUtil extends BaseBoxShapeUtil<TLGeoShape> {
 				props: {
 					...next.props,
 					// Scale the results
-					w: unscaledNextLabelSize.w * next.props.scale,
+					w: unscaledNextLabelSize.w * next.scale,
 				},
 			}
 		}
@@ -551,7 +551,6 @@ export class GeoShapeUtil extends BaseBoxShapeUtil<TLGeoShape> {
 			...(t > 0.5 ? endShape.props : startShape.props),
 			w: lerp(startShape.props.w, endShape.props.w, t),
 			h: lerp(startShape.props.h, endShape.props.h, t),
-			scale: lerp(startShape.props.scale, endShape.props.scale, t),
 		}
 	}
 }
@@ -593,7 +592,7 @@ function getUnscaledLabelSize(editor: Editor, shape: TLGeoShape) {
 			// A 'w' width that we're setting as the min-width
 			Math.ceil(minWidth + extraPaddings[size]),
 			// The actual text size
-			Math.ceil(w / shape.props.scale - LABEL_PADDING * 2)
+			Math.ceil(w / shape.scale - LABEL_PADDING * 2)
 		),
 	})
 

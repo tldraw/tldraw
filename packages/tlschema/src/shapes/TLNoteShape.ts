@@ -31,7 +31,6 @@ export interface TLNoteShapeProps {
 	growY: number
 	url: string
 	richText: TLRichText
-	scale: number
 }
 
 /** @public */
@@ -49,7 +48,6 @@ export const noteShapeProps: RecordProps<TLNoteShape> = {
 	growY: T.positiveNumber,
 	url: T.linkUrl,
 	richText: richTextValidator,
-	scale: T.nonZeroNumber,
 }
 
 const Versions = createShapePropsMigrationIds('note', {

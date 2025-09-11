@@ -404,6 +404,7 @@ export class BookmarkShapeUtil extends BaseBoxShapeUtil<TLBookmarkShape> {
             w: number;
         };
         rotation: number;
+        scale: number;
         type: "bookmark";
         typeName: "shape";
         x: number;
@@ -424,6 +425,7 @@ export class BookmarkShapeUtil extends BaseBoxShapeUtil<TLBookmarkShape> {
             w: number;
         };
         rotation: number;
+        scale: number;
         type: "bookmark";
         typeName: "shape";
         x: number;
@@ -1569,13 +1571,13 @@ export class GeoShapeUtil extends BaseBoxShapeUtil<TLGeoShape> {
             h: number;
             labelColor: TLDefaultColorStyle;
             richText: TLRichText;
-            scale: number;
             size: TLDefaultSizeStyle;
             url: string;
             verticalAlign: TLDefaultVerticalAlignStyle;
             w: number;
         };
         rotation: number;
+        scale: number;
         type: "geo";
         typeName: "shape";
         x: number;
@@ -1600,13 +1602,13 @@ export class GeoShapeUtil extends BaseBoxShapeUtil<TLGeoShape> {
             h: number;
             labelColor: TLDefaultColorStyle;
             richText: TLRichText;
-            scale: number;
             size: TLDefaultSizeStyle;
             url: string;
             verticalAlign: TLDefaultVerticalAlignStyle;
             w: number;
         };
         rotation: number;
+        scale: number;
         type: "geo";
         typeName: "shape";
         x: number;
@@ -1624,6 +1626,7 @@ export class GeoShapeUtil extends BaseBoxShapeUtil<TLGeoShape> {
             geo: "check-box";
         };
         rotation: number;
+        scale: number;
         type: "geo";
         typeName: "shape";
         x: number;
@@ -1639,6 +1642,7 @@ export class GeoShapeUtil extends BaseBoxShapeUtil<TLGeoShape> {
             geo: "rectangle";
         };
         rotation: number;
+        scale: number;
         type: "geo";
         typeName: "shape";
         x: number;
@@ -1938,11 +1942,11 @@ export class LineShapeUtil extends ShapeUtil<TLLineShape> {
                     y: number;
                 } | TLLineShapePoint;
             };
-            scale: number;
             size: TLDefaultSizeStyle;
             spline: TLLineShapeSplineStyle;
         };
         rotation: number;
+        scale: number;
         type: "line";
         typeName: "shape";
         x: number;
@@ -1967,11 +1971,11 @@ export class LineShapeUtil extends ShapeUtil<TLLineShape> {
                     y: number;
                 } | TLLineShapePoint;
             };
-            scale: number;
             size: TLDefaultSizeStyle;
             spline: TLLineShapeSplineStyle;
         };
         rotation: number;
+        scale: number;
         type: "line";
         typeName: "shape";
         x: number;
@@ -2090,12 +2094,12 @@ export class NoteShapeUtil extends ShapeUtil<TLNoteShape> {
             growY: number;
             labelColor: TLDefaultColorStyle;
             richText: TLRichText;
-            scale: number;
             size: TLDefaultSizeStyle;
             url: string;
             verticalAlign: TLDefaultVerticalAlignStyle;
         };
         rotation: number;
+        scale: number;
         type: "note";
         typeName: "shape";
         x: number;
@@ -2117,12 +2121,12 @@ export class NoteShapeUtil extends ShapeUtil<TLNoteShape> {
             growY: number;
             labelColor: TLDefaultColorStyle;
             richText: TLRichText;
-            scale: number;
             size: TLDefaultSizeStyle;
             url: string;
             verticalAlign: TLDefaultVerticalAlignStyle;
         };
         rotation: number;
+        scale: number;
         type: "note";
         typeName: "shape";
         x: number;
@@ -2130,9 +2134,7 @@ export class NoteShapeUtil extends ShapeUtil<TLNoteShape> {
     } | undefined;
     // (undocumented)
     onResize(shape: any, info: TLResizeInfo<any>): {
-        props: {
-            scale: number;
-        };
+        scale: number;
         x: number;
         y: number;
     } | undefined;
@@ -2905,12 +2907,12 @@ export class TextShapeUtil extends ShapeUtil<TLTextShape> {
             color: TLDefaultColorStyle;
             font: TLDefaultFontStyle;
             richText: TLRichText;
-            scale: number;
             size: TLDefaultSizeStyle;
             textAlign: TLDefaultTextAlignStyle;
             w: number;
         };
         rotation: number;
+        scale: number;
         type: "text";
         typeName: "shape";
         x: number;
@@ -2930,9 +2932,8 @@ export class TextShapeUtil extends ShapeUtil<TLTextShape> {
         y: number;
     } | {
         id: TLShapeId;
-        props: {
-            scale: number;
-        };
+        props?: undefined;
+        scale: number;
         type: "text";
         x: number;
         y: number;

@@ -886,6 +886,7 @@ export class Editor extends EventEmitter<TLEventMap> {
                 parentId: TLParentId;
                 props: any;
                 rotation: number;
+                scale: number;
                 type: "arrow";
                 typeName: "shape";
                 x: number;
@@ -899,6 +900,7 @@ export class Editor extends EventEmitter<TLEventMap> {
                 parentId: TLParentId;
                 props: any;
                 rotation: number;
+                scale: number;
                 type: "bookmark";
                 typeName: "shape";
                 x: number;
@@ -912,6 +914,7 @@ export class Editor extends EventEmitter<TLEventMap> {
                 parentId: TLParentId;
                 props: any;
                 rotation: number;
+                scale: number;
                 type: "draw";
                 typeName: "shape";
                 x: number;
@@ -925,6 +928,7 @@ export class Editor extends EventEmitter<TLEventMap> {
                 parentId: TLParentId;
                 props: any;
                 rotation: number;
+                scale: number;
                 type: "embed";
                 typeName: "shape";
                 x: number;
@@ -938,6 +942,7 @@ export class Editor extends EventEmitter<TLEventMap> {
                 parentId: TLParentId;
                 props: any;
                 rotation: number;
+                scale: number;
                 type: "frame";
                 typeName: "shape";
                 x: number;
@@ -951,6 +956,7 @@ export class Editor extends EventEmitter<TLEventMap> {
                 parentId: TLParentId;
                 props: any;
                 rotation: number;
+                scale: number;
                 type: "geo";
                 typeName: "shape";
                 x: number;
@@ -964,6 +970,7 @@ export class Editor extends EventEmitter<TLEventMap> {
                 parentId: TLParentId;
                 props: any;
                 rotation: number;
+                scale: number;
                 type: "group";
                 typeName: "shape";
                 x: number;
@@ -977,6 +984,7 @@ export class Editor extends EventEmitter<TLEventMap> {
                 parentId: TLParentId;
                 props: any;
                 rotation: number;
+                scale: number;
                 type: "highlight";
                 typeName: "shape";
                 x: number;
@@ -990,6 +998,7 @@ export class Editor extends EventEmitter<TLEventMap> {
                 parentId: TLParentId;
                 props: any;
                 rotation: number;
+                scale: number;
                 type: "image";
                 typeName: "shape";
                 x: number;
@@ -1003,6 +1012,7 @@ export class Editor extends EventEmitter<TLEventMap> {
                 parentId: TLParentId;
                 props: any;
                 rotation: number;
+                scale: number;
                 type: "line";
                 typeName: "shape";
                 x: number;
@@ -1016,6 +1026,7 @@ export class Editor extends EventEmitter<TLEventMap> {
                 parentId: TLParentId;
                 props: any;
                 rotation: number;
+                scale: number;
                 type: "note";
                 typeName: "shape";
                 x: number;
@@ -1029,6 +1040,7 @@ export class Editor extends EventEmitter<TLEventMap> {
                 parentId: TLParentId;
                 props: any;
                 rotation: number;
+                scale: number;
                 type: "text";
                 typeName: "shape";
                 x: number;
@@ -1042,6 +1054,7 @@ export class Editor extends EventEmitter<TLEventMap> {
                 parentId: TLParentId;
                 props: any;
                 rotation: number;
+                scale: number;
                 type: "video";
                 typeName: "shape";
                 x: number;
@@ -1055,6 +1068,7 @@ export class Editor extends EventEmitter<TLEventMap> {
                 parentId: TLParentId;
                 props: any;
                 rotation: number;
+                scale: number;
                 type: string;
                 typeName: "shape";
                 x: number;
@@ -2458,12 +2472,8 @@ export interface ResizeBoxOptions {
 }
 
 // @public
-export function resizeScaled(shape: TLBaseShape<any, {
+export function resizeScaled(shape: TLBaseShape<any, any>, { initialBounds, scaleX, scaleY, newPoint, handle }: TLResizeInfo<any>): {
     scale: number;
-}>, { initialBounds, scaleX, scaleY, newPoint, handle }: TLResizeInfo<any>): {
-    props: {
-        scale: number;
-    };
     x: number;
     y: number;
 };

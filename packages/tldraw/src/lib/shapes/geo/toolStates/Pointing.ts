@@ -30,11 +30,11 @@ export class Pointing extends StateNode {
 						type: 'geo',
 						x: newPoint.x,
 						y: newPoint.y,
+						scale: this.editor.user.getIsDynamicResizeMode() ? 1 / this.editor.getZoomLevel() : 1,
 						props: {
 							w: 1,
 							h: 1,
 							geo: this.editor.getStyleForNextShape(GeoShapeGeoStyle),
-							scale: this.editor.user.getIsDynamicResizeMode() ? 1 / this.editor.getZoomLevel() : 1,
 						},
 					},
 				])
@@ -94,9 +94,9 @@ export class Pointing extends StateNode {
 				type: 'geo',
 				x: originPagePoint.x,
 				y: originPagePoint.y,
+				scale,
 				props: {
 					geo: this.editor.getStyleForNextShape(GeoShapeGeoStyle),
-					scale,
 					...size,
 				},
 			},

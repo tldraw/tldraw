@@ -287,10 +287,10 @@ function SvgExport({
 						const pageTransform = editor.getShapePageTransform(shape)
 						let pageTransformString = pageTransform!.toCssString()
 						let scale = 1
-						if ('scale' in shape.props) {
-							if (shape.props.scale !== 1) {
-								scale = shape.props.scale
-								pageTransformString = `${pageTransformString} scale(${shape.props.scale}, ${shape.props.scale})`
+						if ('scale' in shape) {
+							if (shape.scale !== 1) {
+								scale = shape.scale
+								pageTransformString = `${pageTransformString} scale(${shape.scale}, ${shape.scale})`
 							}
 						}
 

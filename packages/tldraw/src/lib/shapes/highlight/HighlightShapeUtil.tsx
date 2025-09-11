@@ -14,7 +14,6 @@ import {
 	highlightShapeMigrations,
 	highlightShapeProps,
 	last,
-	lerp,
 	rng,
 	useValue,
 } from '@tldraw/editor'
@@ -69,7 +68,6 @@ export class HighlightShapeUtil extends ShapeUtil<TLHighlightShape> {
 			size: 'm',
 			isComplete: false,
 			isPen: false,
-			scale: 1,
 		}
 	}
 
@@ -145,32 +143,26 @@ export class HighlightShapeUtil extends ShapeUtil<TLHighlightShape> {
 	override toSvg(shape: TLHighlightShape) {
 		const strokeWidth = getStrokeWidth(shape)
 		const forceSolid = strokeWidth < 1.5
-		const scaleFactor = 1 / shape.props.scale
 		return (
-			<g transform={`scale(${scaleFactor})`}>
-				<HighlightRenderer
-					forceSolid={forceSolid}
-					strokeWidth={strokeWidth}
-					shape={shape}
-					opacity={this.options.overlayOpacity}
-				/>
-			</g>
+			<HighlightRenderer
+				forceSolid={forceSolid}
+				strokeWidth={strokeWidth}
+				shape={shape}
+				opacity={this.options.overlayOpacity}
+			/>
 		)
 	}
 
 	override toBackgroundSvg(shape: TLHighlightShape) {
 		const strokeWidth = getStrokeWidth(shape)
 		const forceSolid = strokeWidth < 1.5
-		const scaleFactor = 1 / shape.props.scale
 		return (
-			<g transform={`scale(${scaleFactor})`}>
-				<HighlightRenderer
-					forceSolid={forceSolid}
-					strokeWidth={strokeWidth}
-					shape={shape}
-					opacity={this.options.underlayOpacity}
-				/>
-			</g>
+			<HighlightRenderer
+				forceSolid={forceSolid}
+				strokeWidth={strokeWidth}
+				shape={shape}
+				opacity={this.options.underlayOpacity}
+			/>
 		)
 	}
 
@@ -207,7 +199,6 @@ export class HighlightShapeUtil extends ShapeUtil<TLHighlightShape> {
 			...(t > 0.5 ? endShape.props : startShape.props),
 			...endShape.props,
 			segments: interpolateSegments(startShape.props.segments, endShape.props.segments, t),
-			scale: lerp(startShape.props.scale, endShape.props.scale, t),
 		}
 	}
 }
@@ -250,7 +241,7 @@ function getHighlightStrokePoints(
 }
 
 function getStrokeWidth(shape: TLHighlightShape) {
-	return FONT_SIZES[shape.props.size] * 1.12 * shape.props.scale
+	return FONT_SIZES[shape.props.size] * 1.12
 }
 
 function getIsDot(shape: TLHighlightShape) {

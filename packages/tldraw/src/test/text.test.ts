@@ -19,10 +19,10 @@ describe('When editing text', () => {
 				type: 'text',
 				x: 0,
 				y: 0,
+				scale: 2,
 				props: {
 					richText: toRichText('Hello'),
 					textAlign: 'middle',
-					scale: 2,
 				},
 			},
 		])
@@ -54,10 +54,10 @@ describe('When editing text', () => {
 				x: 0,
 				y: 0,
 				rotation: Math.PI / 2,
+				scale: 2,
 				props: {
 					richText: toRichText('Hello'),
 					textAlign: 'middle',
-					scale: 2,
 				},
 			},
 		])
@@ -81,10 +81,10 @@ describe('When editing text', () => {
 				type: 'text',
 				x: 0,
 				y: 0,
+				scale: 2,
 				props: {
 					richText: toRichText('Hello'),
 					textAlign: 'start',
-					scale: 2,
 				},
 			},
 		])
@@ -115,10 +115,10 @@ describe('When editing text', () => {
 				type: 'text',
 				x: 0,
 				y: 0,
+				scale: 2,
 				props: {
 					richText: toRichText('Hello'),
 					textAlign: 'end',
-					scale: 2,
 				},
 			},
 		])
@@ -151,11 +151,11 @@ describe('When changing text size', () => {
 				type: 'text',
 				x: 0,
 				y: 0,
+				scale: 2,
 				props: {
 					richText: toRichText('Hello'),
 					size: 'm',
 					textAlign: 'middle',
-					scale: 2,
 				},
 			},
 		])
@@ -186,11 +186,11 @@ describe('When changing text size', () => {
 				type: 'text',
 				x: 0,
 				y: 0,
+				scale: 2,
 				props: {
 					richText: toRichText('Hello'),
 					size: 'm',
 					textAlign: 'start',
-					scale: 2,
 				},
 			},
 		])
@@ -221,11 +221,11 @@ describe('When changing text size', () => {
 				type: 'text',
 				x: 0,
 				y: 0,
+				scale: 2,
 				props: {
 					richText: toRichText('Hello'),
 					size: 'm',
 					textAlign: 'end',
-					scale: 2,
 				},
 			},
 		])

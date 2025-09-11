@@ -433,13 +433,13 @@ export function buildFromV1Document(editor: Editor, _document: unknown) {
 								{
 									...inCommon,
 									type: 'text',
+									scale: v1Shape.style.scale ?? 1,
 									props: {
 										richText: toRichText(v1Shape.text ?? ' '),
 										color: getV2Color(v1Shape.style.color),
 										size: getV2TextSize(v1Shape.style.size),
 										font: getV2Font(v1Shape.style.font),
 										textAlign: getV2TextAlign(v1Shape.style.textAlign),
-										scale: v1Shape.style.scale ?? 1,
 									},
 								},
 							])
@@ -457,6 +457,7 @@ export function buildFromV1Document(editor: Editor, _document: unknown) {
 								{
 									...inCommon,
 									type: 'image',
+									scale: 1,
 									props: {
 										w: coerceDimension(v1Shape.size[0]),
 										h: coerceDimension(v1Shape.size[1]),

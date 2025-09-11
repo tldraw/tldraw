@@ -60,7 +60,6 @@ export class LineShapeUtil extends ShapeUtil<TLLineShape> {
 				[start]: { id: start, index: start, x: 0, y: 0 },
 				[end]: { id: end, index: end, x: 0.1, y: 0.1 },
 			},
-			scale: 1,
 		}
 	}
 
@@ -187,7 +186,7 @@ export class LineShapeUtil extends ShapeUtil<TLLineShape> {
 	}
 
 	indicator(shape: TLLineShape) {
-		const strokeWidth = STROKE_SIZES[shape.props.size] * shape.props.scale
+		const strokeWidth = STROKE_SIZES[shape.props.size] * shape.scale
 		const path = getPathForLineShape(shape)
 		const { dash } = shape.props
 
@@ -297,7 +296,6 @@ export class LineShapeUtil extends ShapeUtil<TLLineShape> {
 					]
 				})
 			),
-			scale: lerp(startShape.props.scale, endShape.props.scale, t),
 		}
 	}
 }
@@ -336,11 +334,11 @@ function LineShapeSvg({
 	const path = getPathForLineShape(shape)
 	const { dash, color, size } = shape.props
 
-	const scaleFactor = 1 / shape.props.scale
+	const scaleFactor = 1 / shape.scale
 
 	const scale = shouldScale ? scaleFactor : 1
 
-	const strokeWidth = STROKE_SIZES[size] * shape.props.scale
+	const strokeWidth = STROKE_SIZES[size] * shape.scale
 
 	return path.toSvg({
 		style: dash,

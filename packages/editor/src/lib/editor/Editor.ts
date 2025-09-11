@@ -4614,7 +4614,10 @@ export class Editor extends EventEmitter<TLEventMap> {
 		const id = typeof shape === 'string' ? shape : shape.id
 		const freshShape = this.getShape(id)
 		if (!freshShape) throw Error('Editor.getTransform: shape not found')
-		return Mat.Identity().translate(freshShape.x, freshShape.y).rotate(freshShape.rotation)
+		return Mat.Identity()
+			.translate(freshShape.x, freshShape.y)
+			.rotate(freshShape.rotation)
+			.scale(freshShape.scale, freshShape.scale)
 	}
 
 	/**

@@ -32,6 +32,7 @@ interface CommonShapeProps {
 	ref?: string
 	children?: React.JSX.Element | React.JSX.Element[]
 	opacity?: number
+	scale?: number
 }
 
 type ShapeByType<Type extends TLDefaultShape['type']> = Extract<TLDefaultShape, { type: Type }>
@@ -220,7 +221,7 @@ export function shapesFromJsx(shapes: React.JSX.Element | Array<React.JSX.Elemen
 					if (key === 'x' || key === 'y' || key === 'ref' || key === 'id' || key === 'children') {
 						continue
 					}
-					if (key === 'rotation' || key === 'isLocked' || key === 'opacity') {
+					if (key === 'rotation' || key === 'isLocked' || key === 'opacity' || key === 'scale') {
 						shapePartial[key] = value as any
 						continue
 					}

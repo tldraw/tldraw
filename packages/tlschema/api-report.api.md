@@ -155,7 +155,7 @@ export function createShapeValidator<Type extends string, Props extends JsonObje
     [K in keyof Props]: T.Validatable<Props[K]>;
 }, meta?: {
     [K in keyof Meta]: T.Validatable<Meta[K]>;
-}): T.ObjectValidator<Expand<    { [P in "id" | "index" | "isLocked" | "meta" | "opacity" | "parentId" | "rotation" | "typeName" | "x" | "y" | (undefined extends Props ? never : "props") | (undefined extends Type ? never : "type")]: TLBaseShape<Type, Props>[P]; } & { [P_1 in (undefined extends Props ? "props" : never) | (undefined extends Type ? "type" : never)]?: TLBaseShape<Type, Props>[P_1] | undefined; }>>;
+}): T.ObjectValidator<Expand<    { [P in "id" | "index" | "isLocked" | "meta" | "opacity" | "parentId" | "rotation" | "scale" | "typeName" | "x" | "y" | (undefined extends Props ? never : "props") | (undefined extends Type ? never : "type")]: TLBaseShape<Type, Props>[P]; } & { [P_1 in (undefined extends Props ? "props" : never) | (undefined extends Type ? "type" : never)]?: TLBaseShape<Type, Props>[P_1] | undefined; }>>;
 
 // @public
 export function createTLSchema({ shapes, bindings, migrations, }?: {
@@ -735,8 +735,6 @@ export interface TLArrowShapeProps {
     // (undocumented)
     richText: TLRichText;
     // (undocumented)
-    scale: number;
-    // (undocumented)
     size: TLDefaultSizeStyle;
     // (undocumented)
     start: VecModel;
@@ -822,6 +820,8 @@ export interface TLBaseShape<Type extends string, Props extends object> extends 
     props: Props;
     // (undocumented)
     rotation: number;
+    // (undocumented)
+    scale: number;
     // (undocumented)
     type: Type;
     // (undocumented)
@@ -1010,8 +1010,6 @@ export interface TLDrawShapeProps {
     // (undocumented)
     isPen: boolean;
     // (undocumented)
-    scale: number;
-    // (undocumented)
     segments: TLDrawShapeSegment[];
     // (undocumented)
     size: TLDefaultSizeStyle;
@@ -1082,8 +1080,6 @@ export interface TLGeoShapeProps {
     // (undocumented)
     richText: TLRichText;
     // (undocumented)
-    scale: number;
-    // (undocumented)
     size: TLDefaultSizeStyle;
     // (undocumented)
     url: string;
@@ -1131,8 +1127,6 @@ export interface TLHighlightShapeProps {
     isComplete: boolean;
     // (undocumented)
     isPen: boolean;
-    // (undocumented)
-    scale: number;
     // (undocumented)
     segments: TLDrawShapeSegment[];
     // (undocumented)
@@ -1341,8 +1335,6 @@ export interface TLLineShapeProps {
     // (undocumented)
     points: Record<string, TLLineShapePoint>;
     // (undocumented)
-    scale: number;
-    // (undocumented)
     size: TLDefaultSizeStyle;
     // (undocumented)
     spline: TLLineShapeSplineStyle;
@@ -1370,8 +1362,6 @@ export interface TLNoteShapeProps {
     labelColor: TLDefaultColorStyle;
     // (undocumented)
     richText: TLRichText;
-    // (undocumented)
-    scale: number;
     // (undocumented)
     size: TLDefaultSizeStyle;
     // (undocumented)
@@ -1538,8 +1528,6 @@ export interface TLTextShapeProps {
     font: TLDefaultFontStyle;
     // (undocumented)
     richText: TLRichText;
-    // (undocumented)
-    scale: number;
     // (undocumented)
     size: TLDefaultSizeStyle;
     // (undocumented)

@@ -81,6 +81,7 @@ export const rootShapeVersions = createMigrationIds('com.tldraw.shape', {
 	HoistOpacity: 2,
 	AddMeta: 3,
 	AddWhite: 4,
+	AddScale: 5,
 } as const)
 
 /** @public */
@@ -133,6 +134,19 @@ export const rootShapeMigrations = createRecordMigrationSequence({
 				if (record.props.color === 'white') {
 					record.props.color = 'black'
 				}
+			},
+		},
+		{
+			id: rootShapeVersions.AddScale,
+			up: (record: any) => {
+				// Move scale from props to top level, defaulting to 1 if not present
+				record.scale = record.props.scale ?? 1
+				delete record.props.scale
+			},
+			down: (record: any) => {
+				// Move scale back to props
+				record.props.scale = record.scale ?? 1
+				delete record.scale
 			},
 		},
 	],
@@ -209,6 +223,7 @@ export function createShapeRecordType(shapes: Record<string, SchemaPropsInfo>) {
 		rotation: 0,
 		isLocked: false,
 		opacity: 1,
+		scale: 1,
 		meta: {},
 	}))
 }

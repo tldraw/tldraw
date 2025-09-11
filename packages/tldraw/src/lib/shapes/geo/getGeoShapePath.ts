@@ -28,7 +28,7 @@ function _getGeoPath(shape: TLGeoShape) {
 	const h = Math.max(1, shape.props.h + shape.props.growY)
 	const cx = w / 2
 	const cy = h / 2
-	const sw = STROKE_SIZES[shape.props.size] * shape.props.scale
+	const sw = STROKE_SIZES[shape.props.size] * shape.scale
 
 	const isFilled = shape.props.fill !== 'none'
 
@@ -187,7 +187,7 @@ function _getGeoPath(shape: TLGeoShape) {
 			return getXBoxPath(w, h, sw, shape.props.dash, isFilled)
 
 		case 'cloud':
-			return getCloudPath(w, h, shape.id, shape.props.size, shape.props.scale, isFilled)
+			return getCloudPath(w, h, shape.id, shape.props.size, shape.scale, isFilled)
 		default:
 			exhaustiveSwitchError(shape.props.geo)
 	}

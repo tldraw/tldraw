@@ -24,6 +24,7 @@ export function makePermissiveSchema(): TLSchema {
 		type: T.string,
 		isLocked: T.boolean,
 		opacity: opacityValidator,
+		scale: T.number,
 		props: T.jsonValue as any,
 		meta: T.jsonValue as any,
 	}) as (typeof schema)['types']['shape']['validator']

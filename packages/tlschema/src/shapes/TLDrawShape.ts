@@ -30,7 +30,6 @@ export interface TLDrawShapeProps {
 	isComplete: boolean
 	isClosed: boolean
 	isPen: boolean
-	scale: number
 }
 
 /** @public */
@@ -46,7 +45,6 @@ export const drawShapeProps: RecordProps<TLDrawShape> = {
 	isComplete: T.boolean,
 	isClosed: T.boolean,
 	isPen: T.boolean,
-	scale: T.nonZeroNumber,
 }
 
 const Versions = createShapePropsMigrationIds('draw', {

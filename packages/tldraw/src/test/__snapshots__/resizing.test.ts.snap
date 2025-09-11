@@ -15,7 +15,6 @@ exports[`When resizing a shape with children > Resizes a rotated draw shape > dr
     "isClosed": false,
     "isComplete": false,
     "isPen": false,
-    "scale": 1,
     "segments": [
       {
         "points": [
@@ -36,6 +35,7 @@ exports[`When resizing a shape with children > Resizes a rotated draw shape > dr
     "size": "m",
   },
   "rotation": 3.141592653589793,
+  "scale": 1,
   "type": "draw",
   "typeName": "shape",
   "x": 100,

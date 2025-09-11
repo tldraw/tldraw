@@ -16,7 +16,6 @@ import {
 	drawShapeProps,
 	getColorValue,
 	last,
-	lerp,
 	rng,
 	toFixed,
 	useEditor,
@@ -72,14 +71,13 @@ export class DrawShapeUtil extends ShapeUtil<TLDrawShape> {
 			isComplete: false,
 			isClosed: false,
 			isPen: false,
-			scale: 1,
 		}
 	}
 
 	getGeometry(shape: TLDrawShape) {
 		const points = getPointsFromSegments(shape.props.segments)
 
-		const sw = (STROKE_SIZES[shape.props.size] + 1) * shape.props.scale
+		const sw = STROKE_SIZES[shape.props.size] + 1
 
 		// A dot
 		if (shape.props.segments.length === 1) {
@@ -133,7 +131,7 @@ export class DrawShapeUtil extends ShapeUtil<TLDrawShape> {
 	indicator(shape: TLDrawShape) {
 		const allPointsFromSegments = getPointsFromSegments(shape.props.segments)
 
-		let sw = (STROKE_SIZES[shape.props.size] + 1) * shape.props.scale
+		let sw = STROKE_SIZES[shape.props.size] + 1
 
 		// eslint-disable-next-line react-hooks/rules-of-hooks
 		const forceSolid = useValue(
@@ -167,12 +165,7 @@ export class DrawShapeUtil extends ShapeUtil<TLDrawShape> {
 
 	override toSvg(shape: TLDrawShape, ctx: SvgExportContext) {
 		ctx.addExportDef(getFillDefForExport(shape.props.fill))
-		const scaleFactor = 1 / shape.props.scale
-		return (
-			<g transform={`scale(${scaleFactor})`}>
-				<DrawShapeSvg shape={shape} zoomOverride={1} />
-			</g>
-		)
+		return <DrawShapeSvg shape={shape} zoomOverride={1} />
 	}
 
 	override getCanvasSvgDefs(): TLShapeUtilCanvasSvgDef[] {
@@ -206,7 +199,7 @@ export class DrawShapeUtil extends ShapeUtil<TLDrawShape> {
 
 	override expandSelectionOutlinePx(shape: TLDrawShape): number {
 		const multiplier = shape.props.dash === 'draw' ? 1.6 : 1
-		return ((STROKE_SIZES[shape.props.size] * multiplier) / 2) * shape.props.scale
+		return (STROKE_SIZES[shape.props.size] * multiplier) / 2
 	}
 	override getInterpolatedProps(
 		startShape: TLDrawShape,
@@ -216,7 +209,6 @@ export class DrawShapeUtil extends ShapeUtil<TLDrawShape> {
 		return {
 			...(t > 0.5 ? endShape.props : startShape.props),
 			segments: interpolateSegments(startShape.props.segments, endShape.props.segments, t),
-			scale: lerp(startShape.props.scale, endShape.props.scale, t),
 		}
 	}
 }
@@ -240,7 +232,7 @@ function DrawShapeSvg({ shape, zoomOverride }: { shape: TLDrawShape; zoomOverrid
 
 	const showAsComplete = shape.props.isComplete || last(shape.props.segments)?.type === 'straight'
 
-	let sw = (STROKE_SIZES[shape.props.size] + 1) * shape.props.scale
+	let sw = STROKE_SIZES[shape.props.size] + 1
 	const forceSolid = useValue(
 		'force solid',
 		() => {
@@ -284,7 +276,7 @@ function DrawShapeSvg({ shape, zoomOverride }: { shape: TLDrawShape; zoomOverrid
 						theme={theme}
 						color={shape.props.color}
 						fill={shape.props.isClosed ? shape.props.fill : 'none'}
-						scale={shape.props.scale}
+						scale={shape.scale}
 					/>
 				) : null}
 				<path
@@ -309,7 +301,7 @@ function DrawShapeSvg({ shape, zoomOverride }: { shape: TLDrawShape; zoomOverrid
 				theme={theme}
 				color={shape.props.color}
 				fill={isDot || shape.props.isClosed ? shape.props.fill : 'none'}
-				scale={shape.props.scale}
+				scale={shape.scale}
 			/>
 			<path
 				d={solidStrokePath}

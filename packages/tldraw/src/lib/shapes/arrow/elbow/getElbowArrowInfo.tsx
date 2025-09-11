@@ -47,8 +47,8 @@ export function getElbowArrowInfo(
 	const shapeOptions = editor.getShapeUtil<ArrowShapeUtil>(arrow.type).options
 	const options: ElbowArrowOptions = {
 		elbowMidpoint: arrow.props.elbowMidPoint,
-		expandElbowLegLength: shapeOptions.expandElbowLegLength[arrow.props.size] * arrow.props.scale,
-		minElbowLegLength: shapeOptions.minElbowLegLength[arrow.props.size] * arrow.props.scale,
+		expandElbowLegLength: shapeOptions.expandElbowLegLength[arrow.props.size] * arrow.scale,
+		minElbowLegLength: shapeOptions.minElbowLegLength[arrow.props.size] * arrow.scale,
 	}
 
 	// Before we can do anything else, we need to find the start and end terminals of the arrow.
@@ -347,8 +347,8 @@ function getElbowArrowTerminalInfo(
 	binding: TLArrowBinding | undefined,
 	point: VecModel
 ): ElbowArrowTerminal {
-	const arrowStrokeSize = (STROKE_SIZES[arrow.props.size] * arrow.props.scale) / 2
-	const minEndSegmentLength = arrowStrokeSize * arrow.props.scale * 3
+	const arrowStrokeSize = (STROKE_SIZES[arrow.props.size] * arrow.scale) / 2
+	const minEndSegmentLength = arrowStrokeSize * arrow.scale * 3
 
 	if (binding) {
 		const target = editor.getShape(binding.toId)
@@ -357,12 +357,11 @@ function getElbowArrowTerminalInfo(
 			let arrowheadOffset = 0
 			const arrowheadProp = binding.props.terminal === 'start' ? 'arrowheadStart' : 'arrowheadEnd'
 			if (arrow.props[arrowheadProp] !== 'none') {
-				const targetScale = 'scale' in target.props ? target.props.scale : 1
+				const targetScale = 'scale' in target ? target.scale : 1
 				const targetStrokeSize =
 					'size' in target.props ? ((STROKE_SIZES[target.props.size] ?? 0) * targetScale) / 2 : 0
 
-				arrowheadOffset =
-					arrowStrokeSize + targetStrokeSize + BOUND_ARROW_OFFSET * arrow.props.scale
+				arrowheadOffset = arrowStrokeSize + targetStrokeSize + BOUND_ARROW_OFFSET * arrow.scale
 			}
 
 			let side: ElbowArrowSideWithAxis | null = null

@@ -20,7 +20,7 @@ const MIN_ARROW_BEND = 8
 
 export function getIsArrowStraight(shape: TLArrowShape) {
 	if (shape.props.kind !== 'arc') return false
-	return Math.abs(shape.props.bend) < MIN_ARROW_BEND * shape.props.scale // snap to +-8px
+	return Math.abs(shape.props.bend) < MIN_ARROW_BEND * shape.scale // snap to +-8px
 }
 
 export interface BoundShapeInfo<T extends TLShape = TLShape> {

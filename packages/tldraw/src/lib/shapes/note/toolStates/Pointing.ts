@@ -124,9 +124,7 @@ export function createNoteShape(editor: Editor, id: TLShapeId, center: Vec) {
 		type: 'note',
 		x: center.x,
 		y: center.y,
-		props: {
-			scale: editor.user.getIsDynamicResizeMode() ? 1 / editor.getZoomLevel() : 1,
-		},
+		scale: editor.user.getIsDynamicResizeMode() ? 1 / editor.getZoomLevel() : 1,
 	})
 
 	const shape = editor.getShape<TLNoteShape>(id)

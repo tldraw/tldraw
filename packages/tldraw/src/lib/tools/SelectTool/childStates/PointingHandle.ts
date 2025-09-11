@@ -96,7 +96,7 @@ export class PointingHandle extends StateNode {
 				// Center the shape on the current pointer
 				const centeredOnPointer = editor
 					.getPointInParentSpace(nextNote, editor.inputs.originPagePoint)
-					.sub(Vec.Rot(NOTE_CENTER_OFFSET.clone().mul(shape.props.scale), nextNote.rotation))
+					.sub(Vec.Rot(NOTE_CENTER_OFFSET.clone().mul(shape.scale), nextNote.rotation))
 				editor.updateShape({ ...nextNote, x: centeredOnPointer.x, y: centeredOnPointer.y })
 
 				// Then select and begin translating the shape
@@ -151,9 +151,9 @@ function getNoteForAdjacentPosition(
 		editor,
 		pagePoint,
 		pageRotation,
-		shape.props.growY * shape.props.scale,
+		shape.props.growY * shape.scale,
 		0,
-		shape.props.scale
+		shape.scale
 	)
 	const position = positions[handle.index]
 	if (position) {

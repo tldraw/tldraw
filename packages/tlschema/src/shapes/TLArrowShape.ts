@@ -70,7 +70,6 @@ export interface TLArrowShapeProps {
 	bend: number
 	richText: TLRichText
 	labelPosition: number
-	scale: number
 	elbowMidPoint: number
 }
 
@@ -93,7 +92,6 @@ export const arrowShapeProps: RecordProps<TLArrowShape> = {
 	bend: T.number,
 	richText: richTextValidator,
 	labelPosition: T.number,
-	scale: T.nonZeroNumber,
 	elbowMidPoint: T.number,
 }
 

@@ -416,7 +416,7 @@ function getTranslatingSnapshot(editor: Editor) {
 		noteAdjacentPositions = getAvailableNoteAdjacentPositions(
 			editor,
 			noteSnapshot.pageRotation,
-			noteSnapshot.shape.props.scale,
+			noteSnapshot.shape.scale,
 			noteSnapshot.shape.props.growY ?? 0
 		)
 	}
@@ -496,7 +496,7 @@ export function moveShapesToPoint({
 	} else {
 		// for sticky notes, snap to grid position next to other notes
 		if (noteSnapshot && noteAdjacentPositions) {
-			const { scale } = noteSnapshot.shape.props
+			const { scale } = noteSnapshot.shape
 			const pageCenter = noteSnapshot.pagePoint
 				.clone()
 				.add(delta)
