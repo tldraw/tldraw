@@ -2,8 +2,10 @@ import {
 	Box,
 	RotateCorner,
 	TLEmbedShape,
+	TLImageShape,
 	TLSelectionForegroundProps,
 	TLTextShape,
+	TLVideoShape,
 	getCursor,
 	tlenv,
 	toDomPrecision,
@@ -190,6 +192,10 @@ export const TldrawSelectionForeground = track(function TldrawSelectionForegroun
 		onlyShape &&
 		editor.isShapeOfType<TLTextShape>(onlyShape, 'text') &&
 		textHandleHeight * zoom >= 4
+	const isMediaShape =
+		onlyShape &&
+		(editor.isShapeOfType<TLImageShape>(onlyShape, 'image') ||
+			editor.isShapeOfType<TLVideoShape>(onlyShape, 'video'))
 
 	return (
 		<svg
@@ -244,7 +250,7 @@ export const TldrawSelectionForeground = track(function TldrawSelectionForegroun
 				<MobileRotateHandle
 					data-testid="selection.rotate.mobile"
 					cx={isSmallX ? -targetSize * 1.5 : width / 2}
-					cy={isSmallX ? height / 2 : height + targetSize * 1.5}
+					cy={isSmallX ? height / 2 : isMediaShape ? height + targetSize * 1.5 : -targetSize * 1.5}
 					size={size}
 					isHidden={hideMobileRotateHandle}
 				/>
