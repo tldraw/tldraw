@@ -359,7 +359,7 @@ export class TldrawAgent {
 		this.$activeRequest.set(request)
 
 		// Call an external helper function to request the agent
-		const { promise, cancel } = requestAgent({ agent: this, onError: this.onError, request })
+		const { promise, cancel } = requestAgent({ agent: this, request })
 
 		this.cancelFn = cancel
 		promise.finally(() => {
@@ -687,15 +687,7 @@ export class TldrawAgent {
  *
  * This is a helper function that is used internally by the agent.
  */
-function requestAgent({
-	agent,
-	request,
-	onError,
-}: {
-	agent: TldrawAgent
-	request: AgentRequest
-	onError: (e: any) => void
-}) {
+function requestAgent({ agent, request }: { agent: TldrawAgent; request: AgentRequest }) {
 	const { editor } = agent
 
 	// If the request is from the user, add it to chat history
@@ -764,7 +756,7 @@ function requestAgent({
 				if (e === 'Cancelled by user' || (e instanceof Error && e.name === 'AbortError')) {
 					return
 				}
-				onError(e)
+				agent.onError(e)
 				resolve()
 			}
 		})

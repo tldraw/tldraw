@@ -47,7 +47,7 @@ export class AgentService {
 	}
 }
 
-export async function* streamActions(
+async function* streamActions(
 	model: LanguageModel,
 	prompt: AgentPrompt
 ): AsyncGenerator<Streaming<AgentAction>> {
