@@ -244,7 +244,7 @@ export const TldrawSelectionForeground = track(function TldrawSelectionForegroun
 				<MobileRotateHandle
 					data-testid="selection.rotate.mobile"
 					cx={isSmallX ? -targetSize * 1.5 : width / 2}
-					cy={isSmallX ? height / 2 : -targetSize * 1.5}
+					cy={isSmallX ? height / 2 : height + targetSize * 1.5}
 					size={size}
 					isHidden={hideMobileRotateHandle}
 				/>
