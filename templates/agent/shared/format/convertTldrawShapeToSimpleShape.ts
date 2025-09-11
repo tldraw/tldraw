@@ -67,6 +67,29 @@ export function convertTldrawShapeToSimpleType(shape: TLShape): SimpleShape['_ty
 	}
 }
 
+const GEO_TO_SIMPLE_TYPES: Record<TLGeoShapeGeoStyle, SimpleGeoShapeType> = {
+	rectangle: 'rectangle',
+	ellipse: 'ellipse',
+	triangle: 'triangle',
+	diamond: 'diamond',
+	hexagon: 'hexagon',
+	oval: 'pill',
+	cloud: 'cloud',
+	'x-box': 'x-box',
+	'check-box': 'check-box',
+	heart: 'heart',
+	pentagon: 'pentagon',
+	octagon: 'octagon',
+	star: 'star',
+	rhombus: 'parallelogram-right',
+	'rhombus-2': 'parallelogram-left',
+	trapezoid: 'trapezoid',
+	'arrow-right': 'fat-arrow-right',
+	'arrow-left': 'fat-arrow-left',
+	'arrow-up': 'fat-arrow-up',
+	'arrow-down': 'fat-arrow-down',
+} as const
+
 export function convertTldrawIdToSimpleId(id: TLShapeId): string {
 	return id.slice('shape:'.length)
 }
@@ -251,26 +274,3 @@ function getSimpleBounds(editor: Editor, shape: TLShape): Box {
 	}
 	return mockBounds
 }
-
-const GEO_TO_SIMPLE_TYPES: Record<TLGeoShapeGeoStyle, SimpleGeoShapeType> = {
-	rectangle: 'rectangle',
-	ellipse: 'ellipse',
-	triangle: 'triangle',
-	diamond: 'diamond',
-	hexagon: 'hexagon',
-	oval: 'pill',
-	cloud: 'cloud',
-	'x-box': 'x-box',
-	'check-box': 'check-box',
-	heart: 'heart',
-	pentagon: 'pentagon',
-	octagon: 'octagon',
-	star: 'star',
-	rhombus: 'parallelogram-right',
-	'rhombus-2': 'parallelogram-left',
-	trapezoid: 'trapezoid',
-	'arrow-right': 'fat-arrow-right',
-	'arrow-left': 'fat-arrow-left',
-	'arrow-up': 'fat-arrow-up',
-	'arrow-down': 'fat-arrow-down',
-} as const
