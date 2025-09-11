@@ -553,7 +553,9 @@ const SimpleStickerShape = z
 	})
 ```
 
-It's worth considering how the agent should see your custom shape. You might want to leave out some properties and focus on showing the most important ones. It's also best to keep them in alphabetical order for better performance with Gemini models.
+The `_type` and `shapeId` properties are required so that the app can identify your shape. The `note` property is also required. The agent uses it to leave notes for itself.
+
+For optional properties, it's worth considering how the agent should see your custom shape. You might want to leave out some properties and focus on showing the most important ones. It's also best to keep them in alphabetical order for better performance with Gemini models.
 
 Enable your custom shape schema by adding it to the list of `SIMPLE_SHAPES` in the same file.
 
@@ -580,9 +582,6 @@ export function convertTldrawShapeToSimpleShape(editor: Editor, shape: TLShape):
 		// ...
 		case 'sticker':
 			const bounds = getShapeBounds(shape)
-			if (!bounds) {
-				throw new Error('Could not get bounds for sticker shape')
-			}
 			return {
 				_type: 'sticker',
 				note: (shape.meta.note as string) ?? '',
