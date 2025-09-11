@@ -1,6 +1,6 @@
-import { useValue } from 'tldraw'
 import {
 	ChatHistoryActionItem,
+	ChatHistoryContinuationItem,
 	ChatHistoryItem,
 	ChatHistoryPromptItem,
 } from '../../../shared/types/ChatHistoryItem'
@@ -11,26 +11,27 @@ import { ChatHistoryPrompt } from './ChatHistoryPrompt'
 
 export interface ChatHistorySection {
 	prompt: ChatHistoryPromptItem
-	actions: ChatHistoryActionItem[]
-	isFinalSection: boolean
+	items: (ChatHistoryActionItem | ChatHistoryContinuationItem)[]
 }
 
 export function ChatHistorySection({
 	section,
 	agent,
+	loading,
 }: {
 	section: ChatHistorySection
 	agent: TldrawAgent
+	loading: boolean
 }) {
-	const isGenerating = useValue('isGenerating', () => agent.isGenerating(), [agent])
-	const groups = getActionHistoryGroups(section.actions, agent)
+	const actions = section.items.filter((item) => item.type === 'action')
+	const groups = getActionHistoryGroups(actions, agent)
 	return (
 		<div className="chat-history-section">
 			<ChatHistoryPrompt item={section.prompt} editor={agent.editor} />
 			{groups.map((group, i) => {
 				return <ChatHistoryGroup key={'chat-history-group-' + i} group={group} agent={agent} />
 			})}
-			{section.isFinalSection && isGenerating && <SmallSpinner />}
+			{loading && <SmallSpinner />}
 		</div>
 	)
 }
@@ -40,15 +41,11 @@ export function getAgentHistorySections(items: ChatHistoryItem[]): ChatHistorySe
 
 	for (const item of items) {
 		if (item.type === 'prompt') {
-			sections.push({ prompt: item, actions: [], isFinalSection: false })
+			sections.push({ prompt: item, items: [] })
 			continue
 		}
 
-		sections[sections.length - 1].actions.push(item)
-	}
-
-	if (sections.length > 0) {
-		sections[sections.length - 1].isFinalSection = true
+		sections[sections.length - 1].items.push(item)
 	}
 
 	return sections

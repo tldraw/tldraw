@@ -330,6 +330,16 @@ export class TldrawAgent {
 			}
 		}
 
+		// Add the scheduled request to chat history
+		const resolvedData = await Promise.all(scheduledRequest.data)
+		this.$chatHistory.update((prev) => [
+			...prev,
+			{
+				type: 'continuation',
+				data: resolvedData,
+			},
+		])
+
 		// Handle the scheduled request
 		this.$scheduledRequest.set(null)
 		await this.prompt(scheduledRequest)
@@ -388,7 +398,8 @@ export class TldrawAgent {
 			return
 		}
 
-		const request = this.getFullRequestFromInput(input)
+		const request = this.getPartialRequestFromInput(input)
+
 		this.setScheduledRequest({
 			type: 'schedule',
 
@@ -708,6 +719,7 @@ function requestAgent({ agent, request }: { agent: TldrawAgent; request: AgentRe
 
 	const requestPromise = (async () => {
 		const prompt = await agent.preparePrompt(request, helpers)
+		console.log('PROMPT SENT', prompt)
 		let incompleteDiff: RecordsDiff<TLRecord> | null = null
 		const actionPromises: Promise<void>[] = []
 		try {

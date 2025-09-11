@@ -72,10 +72,19 @@ export function ChatHistory({ agent }: { agent: TldrawAgent }) {
 		previousScrollDistanceFromBottomRef.current = scrollDistanceFromBottom
 	}
 
+	const isGenerating = useValue('isGenerating', () => agent.isGenerating(), [agent])
+
 	return (
 		<div className="chat-history" ref={historyRef} onScroll={handleScroll}>
 			{sections.map((section, i) => {
-				return <ChatHistorySection key={'history-section-' + i} section={section} agent={agent} />
+				return (
+					<ChatHistorySection
+						key={'history-section-' + i}
+						section={section}
+						agent={agent}
+						loading={i === sections.length - 1 && isGenerating}
+					/>
+				)
 			})}
 		</div>
 	)

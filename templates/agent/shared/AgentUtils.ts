@@ -3,6 +3,7 @@ import { AgentActionUtil, AgentActionUtilConstructor } from './actions/AgentActi
 import { AlignActionUtil } from './actions/AlignActionUtil'
 import { BringToFrontActionUtil } from './actions/BringToFrontActionUtil'
 import { ClearActionUtil } from './actions/ClearActionUtil'
+import { CountryInfoActionUtil } from './actions/CountryInfoActionUtil'
 import { CountShapesActionUtil } from './actions/CountShapesActionUtil'
 import { CreateActionUtil } from './actions/CreateActionUtil'
 import { DeleteActionUtil } from './actions/DeleteActionUtil'
@@ -117,6 +118,7 @@ export const AGENT_ACTION_UTILS = [
 
 	// External APIs
 	RandomWikipediaArticleActionUtil,
+	CountryInfoActionUtil,
 	CountShapesActionUtil,
 
 	// Internal (required)

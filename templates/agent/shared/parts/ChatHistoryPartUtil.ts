@@ -53,9 +53,7 @@ export class ChatHistoryPartUtil extends PromptPartUtil<ChatHistoryPart> {
 		for (let i = 0; i < end; i++) {
 			const item = items[i]
 			const message = this.buildHistoryItemMessage(item, priority)
-			if (message) {
-				messages.push(message)
-			}
+			if (message) messages.push(message)
 		}
 
 		return messages
@@ -110,29 +108,42 @@ export class ChatHistoryPartUtil extends PromptPartUtil<ChatHistoryPart> {
 				return {
 					role: 'user',
 					content,
-					priority: priority,
+					priority,
+				}
+			}
+			case 'continuation': {
+				if (item.data.length === 0) {
+					return null
+				}
+				const text = `[DATA RETRIEVED]: ${JSON.stringify(item.data)}`
+				return {
+					role: 'assistant',
+					content: [{ type: 'text', text }],
+					priority,
 				}
 			}
 			case 'action': {
-				const { complete: _complete, time: _time, ...sanitizedEvent } = item.action || {}
-				const eventWasMessage = sanitizedEvent._type === 'message'
-				const eventWasThought = sanitizedEvent._type === 'think'
-
-				let textToSend: string
-				if (eventWasMessage) {
-					// the text here should probably never actually be undefined, but I figure this text is a more helpful fallback for the model than an empty string
-					textToSend = sanitizedEvent.text || '<message data lost>'
-				} else if (eventWasThought) {
-					// see above
-					textToSend = '[THOUGHT]: ' + (sanitizedEvent.text || '<thought data lost>')
-				} else {
-					textToSend = '[ACTION]: ' + JSON.stringify(sanitizedEvent)
+				const { action } = item
+				let text: string
+				switch (action._type) {
+					case 'message': {
+						text = action.text || '<message data lost>'
+						break
+					}
+					case 'think': {
+						text = '[THOUGHT]: ' + (action.text || '<thought data lost>')
+						break
+					}
+					default: {
+						const { complete: _complete, time: _time, ...rawAction } = action || {}
+						text = '[ACTION]: ' + JSON.stringify(rawAction)
+						break
+					}
 				}
-
 				return {
 					role: 'assistant',
-					content: [{ type: 'text', text: textToSend }],
-					priority: priority,
+					content: [{ type: 'text', text }],
+					priority,
 				}
 			}
 		}
