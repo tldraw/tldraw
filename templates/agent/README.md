@@ -168,12 +168,14 @@ export class ClearActionUtil extends AgentActionUtil<IClearAction> {
 		return ClearAction
 	}
 
-	override applyAction(action: Streaming<IClearAction>, helpers: AgentHelpers) {
+	override applyAction(action: Streaming<IClearAction>) {
 		// Don't do anything until the action has finished streaming
 		if (!action.complete) return
 
+		if (!this.agent) return
+		const { editor } = this.agent
+
 		// Delete all shapes on the page
-		const { editor } = helpers
 		const shapes = editor.getCurrentPageShapes()
 		editor.deleteShapes(shapes)
 	}
@@ -230,11 +232,11 @@ You can let the agent work over multiple turns by scheduling further work using 
 This example shows how to schedule an extra step for adding detail to the canvas.
 
 ```ts
-override applyAction(action: Streaming<IAddDetailAction>, helpers: AgentHelpers) {
+override applyAction(action: Streaming<IAddDetailAction>) {
 	if (!action.complete) return
-
-	const { agent } = helpers
-	agent.schedule('Add more detail to the canvas.')
+	if (!this.agent) return
+	
+	this.agent.schedule('Add more detail to the canvas.')
 }
 ```
 
@@ -257,11 +259,11 @@ agent.schedule('Check for spelling mistakes.')
 You can also schedule further work by adding to the agent's todo list. It won't stop working until all todos are resolved.
 
 ```ts
-override applyAction(action: Streaming<IAddDetailAction>, helpers: AgentHelpers) {
+override applyAction(action: Streaming<IAddDetailAction>) {
 	if (!action.complete) return
-
-	const { agent } = helpers
-	agent.addTodo('Check for spelling mistakes.')
+	if (!this.agent) return
+	
+	this.agent.addTodo('Check for spelling mistakes.')
 }
 ```
 
@@ -271,17 +273,16 @@ To let the agent retrieve information from an external API, fetch the data withi
 
 ```ts
 override async applyAction(
-	action: Streaming<IRandomWikipediaArticleAction>,
-	helpers: AgentHelpers
+	action: Streaming<IRandomWikipediaArticleAction>
 ) {
 	if (!action.complete) return
-	const { agent } = helpers
+	if (!this.agent) return
 
 	// Fetch from the external API
 	const article = await fetchRandomWikipediaArticle()
 
 	// Schedule a follow-up request with the data
-	agent.schedule({ data: [article] })
+	this.agent.schedule({ data: [article] })
 }
 ```
 
@@ -321,7 +322,8 @@ To apply this offset to a position sent to the model, use the `applyOffsetToVec`
 
 ```ts
 override getPart(request: AgentRequest, helpers: AgentHelpers): ViewportCenterPart {
-	const { editor } = helpers
+	if (!this.agent) return {  part: 'user-viewport-center', center: null, }
+	const { editor } = this.agent
 
 	// Get the center of the user's viewport
 	const viewportCenter = editor.getViewportBounds().center
@@ -331,8 +333,8 @@ override getPart(request: AgentRequest, helpers: AgentHelpers): ViewportCenterPa
 
 	// Return the prompt part
 	return {
+		part: 'user-viewport-center',
 		center: offsetViewportCenter,
-		part: "user-viewport-center",
 	}
 }
 ```
@@ -388,7 +390,8 @@ This example picks one random shape on the canvas and sends it to the model in t
 
 ```ts
 override getPart(request: AgentRequest, helpers: AgentHelpers): RandomShapePart {
-	const { editor } = helpers
+	if (!this.agent) return { type: 'random-shape', shape: null}
+	const { editor } = this.agent
 
 	// Get a random shape
 	const shapes = editor.getCurrentPageShapes()
@@ -507,13 +510,13 @@ export class StickerActionUtil extends AgentActionUtil<StickerAction> {
 	// Execute the action
 	override applyAction(action: Streaming<StickerAction>, helpers: AgentHelpers) {
 		if (!action.complete) return
+		if (this.agent) return
 
 		// Normalize the position
 		const position = helpers.removeOffsetFromVec({ x: action.x, y: action.y })
 
 		// Create the custom shape
-		const { editor } = helpers
-		editor.createShape({
+		this.agent.editor.createShape({
 			type: 'sticker',
 			id: createShapeId(),
 			x: position.x,

@@ -1,6 +1,5 @@
 import { JsonValue } from 'tldraw'
 import z from 'zod'
-import { AgentHelpers } from '../AgentHelpers'
 import { Streaming } from '../types/Streaming'
 import { AgentActionUtil } from './AgentActionUtil'
 
@@ -32,12 +31,12 @@ export class CountryInfoActionUtil extends AgentActionUtil<CountryInfoAction> {
 		}
 	}
 
-	override async applyAction(action: Streaming<CountryInfoAction>, helpers: AgentHelpers) {
+	override async applyAction(action: Streaming<CountryInfoAction>) {
 		// Wait until the action has finished streaming
 		if (!action.complete) return
-		const { agent } = helpers
+		if (!this.agent) return
 		const data = await fetchCountryInfo(action.code)
-		agent.schedule({ data: [data] })
+		this.agent.schedule({ data: [data] })
 	}
 }
 
