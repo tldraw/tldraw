@@ -1,4 +1,4 @@
-import { markEventAsHandled, tlenv, tltime, useMaybeEditor } from '@tldraw/editor'
+import { tlenv, tltime, useMaybeEditor } from '@tldraw/editor'
 import classNames from 'classnames'
 import * as React from 'react'
 import { TLUiTranslationKey } from '../../hooks/useTranslation/TLUiTranslationKey'
@@ -118,7 +118,7 @@ export const TldrawUiInput = React.forwardRef<HTMLInputElement, TLUiInputProps>(
 						// `onChange` with a duplicated text value.
 						if (isComposing.current) return
 						e.currentTarget.blur()
-						markEventAsHandled(e)
+						e.stopPropagation()
 						onComplete?.(e.currentTarget.value)
 						break
 					}
@@ -126,7 +126,7 @@ export const TldrawUiInput = React.forwardRef<HTMLInputElement, TLUiInputProps>(
 						e.currentTarget.value = rInitialValue.current
 						onCancel?.(e.currentTarget.value)
 						e.currentTarget.blur()
-						markEventAsHandled(e)
+						e.stopPropagation()
 						break
 					}
 				}
