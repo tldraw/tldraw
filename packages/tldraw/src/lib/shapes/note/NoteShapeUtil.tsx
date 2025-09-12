@@ -49,7 +49,7 @@ import {
 	TEXT_PROPS,
 } from '../shared/default-shape-constants'
 import { useDefaultColorTheme } from '../shared/useDefaultColorTheme'
-import { useIsReadyForEditing } from '../shared/useEditablePlainText'
+import { useIsReadyForEditing } from '../shared/useEditableRichText'
 import {
 	CLONE_HANDLE_MARGIN,
 	NOTE_CENTER_OFFSET,
