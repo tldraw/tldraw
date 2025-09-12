@@ -157,11 +157,13 @@ export function useEditableTextCommon(shapeId: TLShapeId) {
 		[editor, shapeId]
 	)
 
+	const handleDoubleClick: (e: React.MouseEvent) => void = markEventAsHandled
+
 	return {
 		handleFocus: noop,
 		handleBlur: noop,
 		handleInputPointerDown,
-		handleDoubleClick: markEventAsHandled,
+		handleDoubleClick,
 		handlePaste,
 		isEditing,
 		isReadyForEditing,

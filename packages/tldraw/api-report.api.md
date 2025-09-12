@@ -30,7 +30,6 @@ import { IndexKey } from '@tldraw/editor';
 import { JsonObject } from '@tldraw/editor';
 import { JSX as JSX_2 } from 'react/jsx-runtime';
 import { LANGUAGES } from '@tldraw/editor';
-import { markEventAsHandled } from '@tldraw/editor';
 import { MigrationFailureReason } from '@tldraw/editor';
 import { MigrationSequence } from '@tldraw/editor';
 import { NamedExoticComponent } from 'react';
@@ -5198,7 +5197,7 @@ export function useEditablePlainText(shapeId: TLShapeId, type: string, text?: st
     handleChange: ({ plaintext }: {
         plaintext: string;
     }) => void;
-    handleDoubleClick: typeof markEventAsHandled;
+    handleDoubleClick: (e: React_3.MouseEvent) => void;
     handleFocus: () => void;
     handleInputPointerDown: (e: React_3.PointerEvent) => void;
     handleKeyDown: (e: KeyboardEvent) => void;
@@ -5215,7 +5214,7 @@ export function useEditableRichText(shapeId: TLShapeId, type: string, richText?:
     handleChange: ({ richText }: {
         richText: TLRichText;
     }) => void;
-    handleDoubleClick: markEventAsHandled;
+    handleDoubleClick: (e: React.MouseEvent) => void;
     handleFocus: () => void;
     handleInputPointerDown: (e: React.PointerEvent) => void;
     handleKeyDown: (e: KeyboardEvent) => void;
