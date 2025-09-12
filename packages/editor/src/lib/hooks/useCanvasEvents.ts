@@ -10,6 +10,8 @@ import {
 import { getPointerInfo } from '../utils/getPointerInfo'
 import { useEditor } from './useEditor'
 
+const eventsHandledByInFrontOfTheCanvas = new WeakSet<Event>()
+
 export function useCanvasEvents() {
 	const editor = useEditor()
 	const currentTool = useValue('current tool', () => editor.getCurrentTool(), [editor])
@@ -17,6 +19,7 @@ export function useCanvasEvents() {
 	const events = useMemo(
 		function canvasEvents() {
 			function onPointerDown(e: React.PointerEvent) {
+				if (eventsHandledByInFrontOfTheCanvas.has(e.nativeEvent)) return
 				if ((e as any).isKilled) return
 
 				if (e.button === RIGHT_MOUSE_BUTTON) {
@@ -42,6 +45,7 @@ export function useCanvasEvents() {
 			}
 
 			function onPointerUp(e: React.PointerEvent) {
+				if (eventsHandledByInFrontOfTheCanvas.has(e.nativeEvent)) return
 				if ((e as any).isKilled) return
 				if (e.button !== 0 && e.button !== 1 && e.button !== 2 && e.button !== 5) return
 
@@ -56,6 +60,7 @@ export function useCanvasEvents() {
 			}
 
 			function onPointerEnter(e: React.PointerEvent) {
+				if (eventsHandledByInFrontOfTheCanvas.has(e.nativeEvent)) return
 				if ((e as any).isKilled) return
 				if (editor.getInstanceState().isPenMode && e.pointerType !== 'pen') return
 				const canHover = e.pointerType === 'mouse' || e.pointerType === 'pen'
@@ -63,6 +68,7 @@ export function useCanvasEvents() {
 			}
 
 			function onPointerLeave(e: React.PointerEvent) {
+				if (eventsHandledByInFrontOfTheCanvas.has(e.nativeEvent)) return
 				if ((e as any).isKilled) return
 				if (editor.getInstanceState().isPenMode && e.pointerType !== 'pen') return
 				const canHover = e.pointerType === 'mouse' || e.pointerType === 'pen'
@@ -70,11 +76,13 @@ export function useCanvasEvents() {
 			}
 
 			function onTouchStart(e: React.TouchEvent) {
+				if (eventsHandledByInFrontOfTheCanvas.has(e.nativeEvent)) return
 				;(e as any).isKilled = true
 				preventDefault(e)
 			}
 
 			function onTouchEnd(e: React.TouchEvent) {
+				if (eventsHandledByInFrontOfTheCanvas.has(e.nativeEvent)) return
 				;(e as any).isKilled = true
 				// check that e.target is an HTMLElement
 				if (!(e.target instanceof HTMLElement)) return
@@ -94,10 +102,12 @@ export function useCanvasEvents() {
 			}
 
 			function onDragOver(e: React.DragEvent<Element>) {
+				if (eventsHandledByInFrontOfTheCanvas.has(e.nativeEvent)) return
 				preventDefault(e)
 			}
 
 			async function onDrop(e: React.DragEvent<Element>) {
+				if (eventsHandledByInFrontOfTheCanvas.has(e.nativeEvent)) return
 				preventDefault(e)
 				stopEventPropagation(e)
 
@@ -124,19 +134,37 @@ export function useCanvasEvents() {
 			}
 
 			function onClick(e: React.MouseEvent) {
+				if (eventsHandledByInFrontOfTheCanvas.has(e.nativeEvent)) return
 				stopEventPropagation(e)
 			}
 
+			function markEventAsHandledByInFrontOfTheCanvas(e: { nativeEvent: Event }) {
+				eventsHandledByInFrontOfTheCanvas.add(e.nativeEvent)
+			}
+
 			return {
-				onPointerDown,
-				onPointerUp,
-				onPointerEnter,
-				onPointerLeave,
-				onDragOver,
-				onDrop,
-				onTouchStart,
-				onTouchEnd,
-				onClick,
+				canvas: {
+					onPointerDown,
+					onPointerUp,
+					onPointerEnter,
+					onPointerLeave,
+					onDragOver,
+					onDrop,
+					onTouchStart,
+					onTouchEnd,
+					onClick,
+				},
+				inFrontOfTheCanvas: {
+					onPointerDown: markEventAsHandledByInFrontOfTheCanvas,
+					onPointerUp: markEventAsHandledByInFrontOfTheCanvas,
+					onPointerEnter: markEventAsHandledByInFrontOfTheCanvas,
+					onPointerLeave: markEventAsHandledByInFrontOfTheCanvas,
+					onDragOver: markEventAsHandledByInFrontOfTheCanvas,
+					onDrop: markEventAsHandledByInFrontOfTheCanvas,
+					onTouchStart: markEventAsHandledByInFrontOfTheCanvas,
+					onTouchEnd: markEventAsHandledByInFrontOfTheCanvas,
+					onClick: markEventAsHandledByInFrontOfTheCanvas,
+				},
 			}
 		},
 		[editor]

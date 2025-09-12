@@ -136,7 +136,7 @@ export function DefaultCanvas({ className }: TLCanvasComponentProps) {
 				data-isselectinganything={isSelectingAnything}
 				className={classNames('tl-canvas', className)}
 				data-testid="canvas"
-				{...events}
+				{...events.canvas}
 			>
 				<svg className="tl-svg-context" aria-hidden="true">
 					<defs>
@@ -172,7 +172,7 @@ export function DefaultCanvas({ className }: TLCanvasComponentProps) {
 						<LiveCollaborators />
 					</div>
 				</div>
-				<div className="tl-canvas__in-front">
+				<div className="tl-canvas__in-front" {...events.inFrontOfTheCanvas}>
 					<InFrontOfTheCanvasWrapper />
 				</div>
 				<MovingCameraHitTestBlocker />

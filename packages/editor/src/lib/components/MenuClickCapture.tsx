@@ -21,7 +21,7 @@ export function MenuClickCapture() {
 	const showElement = isMenuOpen || isPointing
 
 	// Get the same events that we use on the canvas
-	const canvasEvents = useCanvasEvents()
+	const { canvas: canvasEvents } = useCanvasEvents()
 
 	// Keep track of the pointer state
 	const rPointerState = useRef({
