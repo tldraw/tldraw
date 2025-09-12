@@ -93,7 +93,7 @@ When working with existing tests:
    - Run tests to verify they pass
    - Check test coverage is comprehensive
    - Ensure new/updated tests integrate well with existing test suite
-   - Always run `yarn typecheck` to ensure no linter errors. Only run it on the specific test file you're working on.
+   - Always run `yarn typecheck` from the root of the project to ensure no linter errors. Only run it on the specific test file you're working on.
 
 ### Tips
 
@@ -101,7 +101,7 @@ If testing editor functionality, remember to use the tldraw workspace for access
 
 When writing tests, NEVER modify the source code that you are testing.
 
-Use test.fails on tests that are failing if you are >75% confident that the tests themselves are correct and that the underlying issue is with the code you're testing. It is possible that the code that you're testing has a bug in it. Do not try to fix the bug. Do not try to write your test in a way that causes the test to pass despite the bug.
+Use test.fails on tests that are failing if you are >75% confident that the tests themselves are correct and that the underlying issue is with the code you're testing. It is possible that the code that you're testing has a bug in it. Do **not** try to fix the bug. Do not try to write your test in a way that causes the test to pass despite the bug. Notify the user that there is a bug you've found,a nd the user will fix it.
 
 We have a linter that will remove any unused imports. You will need to add imports only when they are used.
 

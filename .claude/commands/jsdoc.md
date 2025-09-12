@@ -1,12 +1,12 @@
 ---
-description: Creat or update JSDoc comments for all exported items in the provided file or directory.
+description: Create or update JSDoc comments for all exported items in the provided file or directory.
 argument-hint: [file-path]
 allowed-tools: Read, Edit, MultiEdit
 ---
 
-# Documenting files with JSDoc commends
+# Documenting files with JSDoc comments
 
-Write comprehensive JSDoc commends for all exports in the file.
+Write comprehensive JSDoc comments for all exports in the file.
 
 ## Instructions
 
@@ -47,3 +47,8 @@ Focus on improving code documentation without changing any implementation detail
 Do not add JSDoc comments to items that are not exported.
 
 You can use `npx tsx` to run the code that you are testing.
+
+# Tips
+
+- Always escape angle brackets.
+- For function with an options argument, document the different options in a nested list, do not use `option.{NAME}`. 

@@ -49,16 +49,16 @@ export function debounce<T extends unknown[], U>(callback: (...args: T) => Promi
 // @public
 export function dedupe<T>(input: T[], equals?: (a: any, b: any) => boolean): T[];
 
-// @public (undocumented)
+// @public
 export const DEFAULT_SUPPORT_VIDEO_TYPES: readonly ("video/mp4" | "video/quicktime" | "video/webm")[];
 
-// @public (undocumented)
+// @public
 export const DEFAULT_SUPPORTED_IMAGE_TYPES: readonly ("image/apng" | "image/avif" | "image/gif" | "image/jpeg" | "image/png" | "image/svg+xml" | "image/webp")[];
 
-// @public (undocumented)
+// @public
 export const DEFAULT_SUPPORTED_MEDIA_TYPE_LIST: string;
 
-// @public (undocumented)
+// @public
 export const DEFAULT_SUPPORTED_MEDIA_TYPES: readonly ("image/apng" | "image/avif" | "image/gif" | "image/jpeg" | "image/png" | "image/svg+xml" | "image/webp" | "video/mp4" | "video/quicktime" | "video/webm")[];
 
 // @internal
@@ -291,24 +291,17 @@ export class MediaHelpers {
         h: number;
         w: number;
     }>;
-    // (undocumented)
     static getVideoFrameAsDataUrl(video: HTMLVideoElement, time?: number): Promise<string>;
     static getVideoSize(blob: Blob): Promise<{
         h: number;
         w: number;
     }>;
-    // (undocumented)
     static isAnimated(file: Blob): Promise<boolean>;
-    // (undocumented)
     static isAnimatedImageType(mimeType: null | string): boolean;
-    // (undocumented)
     static isImageType(mimeType: string): boolean;
-    // (undocumented)
     static isStaticImageType(mimeType: null | string): boolean;
-    // (undocumented)
     static isVectorImageType(mimeType: null | string): boolean;
     static loadVideo(src: string): Promise<HTMLVideoElement>;
-    // (undocumented)
     static usingObjectURL<T>(blob: Blob, fn: (url: string) => Promise<T>): Promise<T>;
 }
 
@@ -379,31 +372,25 @@ export class PerformanceTracker {
     stop(): void;
 }
 
-// @public (undocumented)
+// @public
 export class PngHelpers {
-    // (undocumented)
     static findChunk(view: DataView, type: string): {
         dataOffset: number;
         size: number;
         start: number;
     };
-    // (undocumented)
     static getChunkType(view: DataView, offset: number): string;
-    // (undocumented)
     static isPng(view: DataView, offset: number): boolean;
-    // (undocumented)
     static parsePhys(view: DataView, offset: number): {
         ppux: number;
         ppuy: number;
         unit: number;
     };
-    // (undocumented)
     static readChunks(view: DataView, offset?: number): Record<string, {
         dataOffset: number;
         size: number;
         start: number;
     }>;
-    // (undocumented)
     static setPhysChunk(view: DataView, dpr?: number, options?: BlobPropertyBag): Blob;
 }
 
