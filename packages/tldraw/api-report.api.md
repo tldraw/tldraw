@@ -4510,7 +4510,7 @@ export interface TLUiToolbarToggleItemProps extends React_3.HTMLAttributes<HTMLB
     // (undocumented)
     className?: string;
     // (undocumented)
-    tooltip?: React_3.ReactNode | string;
+    tooltip?: React_3.ReactNode;
     // (undocumented)
     type: 'icon' | 'tool';
     // (undocumented)
