@@ -4618,6 +4618,8 @@ export interface ValidLicenseKeyResult {
     // (undocumented)
     isLicenseParseable: true;
     // (undocumented)
+    isNativeLicense: boolean;
+    // (undocumented)
     isPerpetualLicense: boolean;
     // (undocumented)
     isPerpetualLicenseExpired: boolean;

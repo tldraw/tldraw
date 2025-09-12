@@ -6,11 +6,22 @@ import { importPublicKey, str2ab } from '../utils/licensing'
 const GRACE_PERIOD_DAYS = 30
 
 export const FLAGS = {
+	// -- MUTUALLY EXCLUSIVE FLAGS --
+	// Annual means the license expires after a time period, usually 1 year.
 	ANNUAL_LICENSE: 1,
+	// Perpetual means the license never expires up to the max supported version.
 	PERPETUAL_LICENSE: 1 << 1,
+
+	// -- ADDITIVE FLAGS --
+	// Internal means the license is for internal use only.
 	INTERNAL_LICENSE: 1 << 2,
+	// Watermark means the product is watermarked.
 	WITH_WATERMARK: 1 << 3,
+	// Evaluation means the license is for evaluation purposes only.
 	EVALUATION_LICENSE: 1 << 4,
+	// Native means the license is for native apps which switches
+	// on special-case logic.
+	NATIVE_LICENSE: 1 << 5,
 }
 const HIGHEST_FLAG = Math.max(...Object.values(FLAGS))
 
@@ -69,6 +80,7 @@ export interface ValidLicenseKeyResult {
 	isPerpetualLicense: boolean
 	isPerpetualLicenseExpired: boolean
 	isInternalLicense: boolean
+	isNativeLicense: boolean
 	isLicensedWithWatermark: boolean
 	isEvaluationLicense: boolean
 	isEvaluationLicenseExpired: boolean
@@ -271,6 +283,7 @@ export class LicenseManager {
 				isPerpetualLicense,
 				isPerpetualLicenseExpired: isPerpetualLicense && this.isPerpetualLicenseExpired(expiryDate),
 				isInternalLicense: this.isFlagEnabled(licenseInfo.flags, FLAGS.INTERNAL_LICENSE),
+				isNativeLicense: this.isNativeLicense(licenseInfo),
 				isLicensedWithWatermark: this.isFlagEnabled(licenseInfo.flags, FLAGS.WITH_WATERMARK),
 				isEvaluationLicense,
 				isEvaluationLicenseExpired:
@@ -292,6 +305,7 @@ export class LicenseManager {
 
 		return licenseInfo.hosts.some((host) => {
 			const normalizedHost = host.toLowerCase().trim()
+			const maybeProtocol = normalizedHost.endsWith(':') ? normalizedHost : undefined
 
 			// Allow the domain if listed and www variations, 'example.com' allows 'example.com' and 'www.example.com'
 			if (
@@ -323,8 +337,18 @@ export class LicenseManager {
 				}
 			}
 
+			// Native license support
+			// In this case, `normalizedHost` is actually a protocol, e.g. `app-bundle:`
+			if (this.isNativeLicense(licenseInfo) && window.location.protocol === maybeProtocol) {
+				return true
+			}
+
 			return false
 		})
+	}
+
+	private isNativeLicense(licenseInfo: LicenseInfo) {
+		return this.isFlagEnabled(licenseInfo.flags, FLAGS.NATIVE_LICENSE)
 	}
 
 	private getExpirationDateWithoutGracePeriod(expiryDate: Date) {
