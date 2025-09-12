@@ -7,8 +7,8 @@ import {
 	assert,
 	compact,
 	isDefined,
+	markEventAsHandled,
 	preventDefault,
-	stopEventPropagation,
 	uniq,
 	useEditor,
 	useMaybeEditor,
@@ -763,7 +763,7 @@ export function useNativeClipboardEvents() {
 
 		const paste = (e: ClipboardEvent) => {
 			if (disablingMiddleClickPaste) {
-				stopEventPropagation(e)
+				markEventAsHandled(e)
 				return
 			}
 

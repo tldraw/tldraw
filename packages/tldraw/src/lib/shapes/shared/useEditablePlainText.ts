@@ -3,9 +3,9 @@ import {
 	TLShapeId,
 	TLUnknownShape,
 	getPointerInfo,
+	markEventAsHandled,
 	noop,
 	preventDefault,
-	stopEventPropagation,
 	tlenv,
 	useEditor,
 	useValue,
@@ -136,7 +136,7 @@ export function useEditableTextCommon(shapeId: TLShapeId) {
 				shape: editor.getShape(shapeId)!,
 			})
 
-			stopEventPropagation(e) // we need to prevent blurring the input
+			e.stopPropagation() // we need to prevent blurring the input
 		},
 		[editor, shapeId]
 	)
@@ -161,7 +161,7 @@ export function useEditableTextCommon(shapeId: TLShapeId) {
 		handleFocus: noop,
 		handleBlur: noop,
 		handleInputPointerDown,
-		handleDoubleClick: stopEventPropagation,
+		handleDoubleClick: markEventAsHandled,
 		handlePaste,
 		isEditing,
 		isReadyForEditing,
