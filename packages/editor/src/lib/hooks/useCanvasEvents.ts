@@ -157,10 +157,6 @@ export function useCanvasEvents() {
 				inFrontOfTheCanvas: {
 					onPointerDown: markEventAsHandledByInFrontOfTheCanvas,
 					onPointerUp: markEventAsHandledByInFrontOfTheCanvas,
-					onPointerEnter: markEventAsHandledByInFrontOfTheCanvas,
-					onPointerLeave: markEventAsHandledByInFrontOfTheCanvas,
-					onDragOver: markEventAsHandledByInFrontOfTheCanvas,
-					onDrop: markEventAsHandledByInFrontOfTheCanvas,
 					onTouchStart: markEventAsHandledByInFrontOfTheCanvas,
 					onTouchEnd: markEventAsHandledByInFrontOfTheCanvas,
 					onClick: markEventAsHandledByInFrontOfTheCanvas,

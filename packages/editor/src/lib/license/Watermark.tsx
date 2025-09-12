@@ -58,7 +58,7 @@ const UnlicensedWatermark = memo(function UnlicensedWatermark({
 			data-unlicensed={true}
 			data-testid="tl-watermark-unlicensed"
 			draggable={false}
-			{...events}
+			{...events.canvas}
 		>
 			<button
 				draggable={false}
@@ -121,7 +121,7 @@ const WatermarkInner = memo(function WatermarkInner({
 			data-mobile={isMobile}
 			data-testid="tl-watermark-licensed"
 			draggable={false}
-			{...events}
+			{...events.canvas}
 		>
 			<button
 				draggable={false}
