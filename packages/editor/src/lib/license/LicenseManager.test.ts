@@ -266,7 +266,7 @@ describe('LicenseManager', () => {
 			delete window.location
 			// @ts-ignore
 			window.location = new URL(
-				'vscode-webview:vscode-webview://1ipd8pun8ud7nd7hv9d112g7evi7m10vak9vviuvia66ou6aibp3/index.html?id=6ec2dc7a-afe9-45d9-bd71-1749f9568d28&origin=955b256f-37e1-4a72-a2f4-ad633e88239c&swVersion=4&extensionId=tldraw-org.tldraw-vscode&platform=electron&vscode-resource-base-authority=vscode-resource.vscode-cdn.net&parentOrigin=vscode-file%3A%2F%2Fvscode-app'
+				'vscode-webview://1ipd8pun8ud7nd7hv9d112g7evi7m10vak9vviuvia66ou6aibp3/index.html?id=6ec2dc7a-afe9-45d9-bd71-1749f9568d28&origin=955b256f-37e1-4a72-a2f4-ad633e88239c&swVersion=4&extensionId=tldraw-org.tldraw-vscode&platform=electron&vscode-resource-base-authority=vscode-resource.vscode-cdn.net&parentOrigin=vscode-file%3A%2F%2Fvscode-app'
 			)
 
 			const permissiveHostsInfo = JSON.parse(STANDARD_LICENSE_INFO)
@@ -286,7 +286,7 @@ describe('LicenseManager', () => {
 			delete window.location
 			// @ts-ignore
 			window.location = new URL(
-				'vscode-webview:vscode-webview://1ipd8pun8ud7nd7hv9d112g7evi7m10vak9vviuvia66ou6aibp3/index.html?id=6ec2dc7a-afe9-45d9-bd71-1749f9568d28&origin=955b256f-37e1-4a72-a2f4-ad633e88239c&swVersion=4&extensionId=tldraw-org.tldraw-vscode&platform=electron&vscode-resource-base-authority=vscode-resource.vscode-cdn.net&parentOrigin=vscode-file%3A%2F%2Fvscode-app'
+				'vscode-webview://1ipd8pun8ud7nd7hv9d112g7evi7m10vak9vviuvia66ou6aibp3/index.html?id=6ec2dc7a-afe9-45d9-bd71-1749f9568d28&origin=955b256f-37e1-4a72-a2f4-ad633e88239c&swVersion=4&extensionId=tldraw-org.tldraw-vscode&platform=electron&vscode-resource-base-authority=vscode-resource.vscode-cdn.net&parentOrigin=vscode-file%3A%2F%2Fvscode-app'
 			)
 
 			const permissiveHostsInfo = JSON.parse(STANDARD_LICENSE_INFO)
@@ -310,6 +310,38 @@ describe('LicenseManager', () => {
 			const nativeLicenseInfo = JSON.parse(STANDARD_LICENSE_INFO)
 			nativeLicenseInfo[PROPERTIES.FLAGS] = FLAGS.NATIVE_LICENSE
 			nativeLicenseInfo[PROPERTIES.HOSTS] = ['app-bundle:']
+			const nativeLicenseKey = await generateLicenseKey(JSON.stringify(nativeLicenseInfo), keyPair)
+			const result = (await licenseManager.getLicenseFromKey(
+				nativeLicenseKey
+			)) as ValidLicenseKeyResult
+			expect(result.isDomainValid).toBe(true)
+		})
+
+		it('Succeeds if it is a native app with a wildcard', async () => {
+			// @ts-ignore
+			delete window.location
+			// @ts-ignore
+			window.location = new URL('app-bundle://unique-id-123/index.html')
+
+			const nativeLicenseInfo = JSON.parse(STANDARD_LICENSE_INFO)
+			nativeLicenseInfo[PROPERTIES.FLAGS] = FLAGS.NATIVE_LICENSE
+			nativeLicenseInfo[PROPERTIES.HOSTS] = ['^app-bundle://unique-id-123.*']
+			const nativeLicenseKey = await generateLicenseKey(JSON.stringify(nativeLicenseInfo), keyPair)
+			const result = (await licenseManager.getLicenseFromKey(
+				nativeLicenseKey
+			)) as ValidLicenseKeyResult
+			expect(result.isDomainValid).toBe(true)
+		})
+
+		it('Succeeds if it is a native app with a wildcard and search param', async () => {
+			// @ts-ignore
+			delete window.location
+			// @ts-ignore
+			window.location = new URL('app-bundle://app/index.html?unique-id-123')
+
+			const nativeLicenseInfo = JSON.parse(STANDARD_LICENSE_INFO)
+			nativeLicenseInfo[PROPERTIES.FLAGS] = FLAGS.NATIVE_LICENSE
+			nativeLicenseInfo[PROPERTIES.HOSTS] = ['^app-bundle://app.*unique-id-123.*']
 			const nativeLicenseKey = await generateLicenseKey(JSON.stringify(nativeLicenseInfo), keyPair)
 			const result = (await licenseManager.getLicenseFromKey(
 				nativeLicenseKey
