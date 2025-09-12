@@ -2150,6 +2150,11 @@ export class LocalIndexedDb {
 // @public (undocumented)
 export function loopToHtmlElement(elm: Element): HTMLElement;
 
+// @public
+export function markEventAsHandled(e: {
+    nativeEvent: Event;
+} | Event): void;
+
 // @public (undocumented)
 export class Mat {
     constructor(a: number, b: number, c: number, d: number, e: number, f: number);
@@ -2826,7 +2831,7 @@ export abstract class StateNode implements Partial<TLEventHandlers> {
     useCoalescedEvents: boolean;
 }
 
-// @public (undocumented)
+// @public @deprecated
 export const stopEventPropagation: (e: any) => any;
 
 // @internal (undocumented)
@@ -4840,6 +4845,11 @@ export class Vec {
 
 // @public (undocumented)
 export type VecLike = Vec | VecModel;
+
+// @public
+export function wasEventAlreadyHandled(e: {
+    nativeEvent: Event;
+} | Event): boolean;
 
 
 export * from "@tldraw/state";

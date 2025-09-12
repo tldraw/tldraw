@@ -6,7 +6,7 @@ import {
 	RecordProps,
 	T,
 	TLBaseShape,
-	stopEventPropagation,
+	markEventAsHandled,
 } from 'tldraw'
 
 type IMyPopupShape = TLBaseShape<
@@ -71,10 +71,10 @@ export class PopupShapeUtil extends BaseBoxShapeUtil<IMyPopupShape> {
 					perspective: `${Math.max(vpb.w, vpb.h)}px`,
 					perspectiveOrigin: `${px}px ${py}px`,
 				}}
-				onPointerDown={stopEventPropagation}
+				onPointerDown={markEventAsHandled}
 				onDoubleClick={(e) => {
 					setPopped((p) => !p)
-					stopEventPropagation(e)
+					markEventAsHandled(e)
 				}}
 			>
 				<div

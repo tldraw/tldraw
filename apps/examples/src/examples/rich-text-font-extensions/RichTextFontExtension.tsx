@@ -11,7 +11,7 @@ import {
 	TLTextOptions,
 	Tldraw,
 	defaultAddFontsFromNode,
-	stopEventPropagation,
+	markEventAsHandled,
 	tipTapDefaultExtensions,
 	useEditor,
 	useValue,
@@ -74,7 +74,7 @@ const components: TLComponents = {
 				<select
 					className="rich-text-font-extension-select"
 					value={currentFontFamily}
-					onPointerDown={stopEventPropagation}
+					onPointerDown={markEventAsHandled}
 					onChange={(e) => {
 						textEditor?.chain().focus().setFontFamily(e.target.value).run()
 					}}
@@ -88,7 +88,7 @@ const components: TLComponents = {
 				<select
 					className="rich-text-font-extension-select"
 					value={currentFontSize}
-					onPointerDown={stopEventPropagation}
+					onPointerDown={markEventAsHandled}
 					onChange={(e) => {
 						textEditor?.chain().focus().setFontSize(e.target.value).run()
 					}}

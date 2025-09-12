@@ -3,7 +3,7 @@ import { memo, useRef } from 'react'
 import { useCanvasEvents } from '../hooks/useCanvasEvents'
 import { useEditor } from '../hooks/useEditor'
 import { usePassThroughWheelEvents } from '../hooks/usePassThroughWheelEvents'
-import { preventDefault, stopEventPropagation } from '../utils/dom'
+import { markEventAsHandled, preventDefault } from '../utils/dom'
 import { runtime } from '../utils/runtime'
 import { watermarkDesktopSvg, watermarkMobileSvg } from '../watermarks'
 import { LicenseManager } from './LicenseManager'
@@ -64,7 +64,7 @@ const UnlicensedWatermark = memo(function UnlicensedWatermark({
 				draggable={false}
 				role="button"
 				onPointerDown={(e) => {
-					stopEventPropagation(e)
+					markEventAsHandled(e)
 					preventDefault(e)
 				}}
 				title="Unlicensed - click to get a license"
@@ -127,7 +127,7 @@ const WatermarkInner = memo(function WatermarkInner({
 				draggable={false}
 				role="button"
 				onPointerDown={(e) => {
-					stopEventPropagation(e)
+					markEventAsHandled(e)
 					preventDefault(e)
 				}}
 				title="made with tldraw"

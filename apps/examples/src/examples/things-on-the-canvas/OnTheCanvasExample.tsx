@@ -1,5 +1,5 @@
 import { useState } from 'react'
-import { stopEventPropagation, Tldraw, TLEditorComponents, track, useEditor } from 'tldraw'
+import { markEventAsHandled, Tldraw, TLEditorComponents, track, useEditor } from 'tldraw'
 import 'tldraw/tldraw.css'
 
 // There's a guide at the bottom of this file!
@@ -23,8 +23,7 @@ function MyComponent() {
 					userSelect: 'unset',
 					boxShadow: '0 0 0 1px rgba(0,0,0,0.1), 0 4px 8px rgba(0,0,0,0.1)',
 				}}
-				onPointerDown={stopEventPropagation}
-				onPointerMove={stopEventPropagation}
+				onPointerDown={markEventAsHandled}
 			>
 				<p>The count is {state}! </p>
 				<button onClick={() => setState((s) => s - 1)}>-1</button>
@@ -43,8 +42,7 @@ function MyComponent() {
 					userSelect: 'unset',
 					boxShadow: '0 0 0 1px rgba(0,0,0,0.1), 0 4px 8px rgba(0,0,0,0.1)',
 				}}
-				onPointerDown={stopEventPropagation}
-				onPointerMove={stopEventPropagation}
+				onPointerDown={markEventAsHandled}
 			>
 				<p>The count is {state}! </p>
 				<button onClick={() => setState((s) => s + 1)}>+1</button>

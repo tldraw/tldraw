@@ -1,7 +1,7 @@
 import { ModelMessage } from 'ai'
 import { useCallback } from 'react'
 import {
-	stopEventPropagation,
+	markEventAsHandled,
 	T,
 	TldrawUiButton,
 	TldrawUiButtonIcon,
@@ -186,7 +186,7 @@ export const MessageNode: NodeDefinition<MessageNode> = {
 						</div>
 						<div
 							style={{ padding: '4px 0px 0px 4px', flexGrow: 2 }}
-							onPointerDown={stopEventPropagation}
+							onPointerDown={markEventAsHandled}
 						>
 							<div style={{ padding: '0px 12px', borderRadius: 6, border: '1px solid #e2e8f0' }}>
 								<TldrawUiInput
@@ -200,7 +200,7 @@ export const MessageNode: NodeDefinition<MessageNode> = {
 							<TldrawUiButton
 								type="primary"
 								onClick={handleSend}
-								onPointerDown={stopEventPropagation}
+								onPointerDown={markEventAsHandled}
 							>
 								<TldrawUiButtonIcon icon={<SendIcon />} />
 							</TldrawUiButton>

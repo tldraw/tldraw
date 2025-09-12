@@ -6,7 +6,7 @@ import {
 	ShapeUtil,
 	T,
 	TLBaseShape,
-	stopEventPropagation,
+	markEventAsHandled,
 } from 'tldraw'
 
 export const EXAM_MARK_WIDTH = 80
@@ -106,9 +106,9 @@ export class ExamMarkUtil extends ShapeUtil<IExamMarkShape> {
 						onBlur={() => {
 							this.editor.setEditingShape(null)
 						}}
-						onPointerDown={isEditing ? stopEventPropagation : undefined}
-						onPointerUp={isEditing ? stopEventPropagation : undefined}
-						onPointerMove={isEditing ? stopEventPropagation : undefined}
+						onPointerDown={isEditing ? markEventAsHandled : undefined}
+						onPointerUp={isEditing ? markEventAsHandled : undefined}
+						onPointerMove={isEditing ? markEventAsHandled : undefined}
 					/>
 				</div>
 			</HTMLContainer>

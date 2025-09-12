@@ -1,7 +1,7 @@
 import { Dialog, VisuallyHidden } from 'radix-ui'
 import { useCallback, useMemo, useState } from 'react'
 import {
-	stopEventPropagation,
+	markEventAsHandled,
 	TldrawUiButton,
 	TldrawUiButtonIcon,
 	TldrawUiButtonLabel,
@@ -151,7 +151,7 @@ function OnCanvasComponentPickerItem<T extends NodeType>({
 			key={definition.type}
 			type="menu"
 			className="OnCanvasComponentPicker-button"
-			onPointerDown={stopEventPropagation}
+			onPointerDown={markEventAsHandled}
 			onClick={() => {
 				const state = onCanvasComponentPickerState.get(editor)
 				if (!state) return

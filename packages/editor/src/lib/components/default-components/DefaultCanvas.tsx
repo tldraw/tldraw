@@ -21,7 +21,7 @@ import { Mat } from '../../primitives/Mat'
 import { Vec } from '../../primitives/Vec'
 import { toDomPrecision } from '../../primitives/utils'
 import { debugFlags } from '../../utils/debug-flags'
-import { setStyleProperty } from '../../utils/dom'
+import { markEventAsHandled, setStyleProperty } from '../../utils/dom'
 import { GeometryDebuggingView } from '../GeometryDebuggingView'
 import { LiveCollaborators } from '../LiveCollaborators'
 import { MenuClickCapture } from '../MenuClickCapture'
@@ -172,7 +172,13 @@ export function DefaultCanvas({ className }: TLCanvasComponentProps) {
 						<LiveCollaborators />
 					</div>
 				</div>
-				<div className="tl-canvas__in-front">
+				<div
+					className="tl-canvas__in-front"
+					onPointerDown={markEventAsHandled}
+					onPointerUp={markEventAsHandled}
+					onTouchStart={markEventAsHandled}
+					onTouchEnd={markEventAsHandled}
+				>
 					<InFrontOfTheCanvasWrapper />
 				</div>
 				<MovingCameraHitTestBlocker />

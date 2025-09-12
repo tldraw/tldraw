@@ -5197,7 +5197,7 @@ export function useEditablePlainText(shapeId: TLShapeId, type: string, text?: st
     handleChange: ({ plaintext }: {
         plaintext: string;
     }) => void;
-    handleDoubleClick: (e: any) => any;
+    handleDoubleClick: (e: React_3.MouseEvent) => void;
     handleFocus: () => void;
     handleInputPointerDown: (e: React_3.PointerEvent) => void;
     handleKeyDown: (e: KeyboardEvent) => void;
@@ -5214,7 +5214,7 @@ export function useEditableRichText(shapeId: TLShapeId, type: string, richText?:
     handleChange: ({ richText }: {
         richText: TLRichText;
     }) => void;
-    handleDoubleClick: (e: any) => any;
+    handleDoubleClick: (e: React.MouseEvent) => void;
     handleFocus: () => void;
     handleInputPointerDown: (e: React.PointerEvent) => void;
     handleKeyDown: (e: KeyboardEvent) => void;
