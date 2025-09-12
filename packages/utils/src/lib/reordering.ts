@@ -22,7 +22,12 @@ export type IndexKey = string & { __brand: 'indexKey' }
  */
 export const ZERO_INDEX_KEY = 'a0' as IndexKey
 
-/** @internal */
+/**
+ * Validates that a string is a valid IndexKey.
+ * @param index - The string to validate.
+ * @throws Error if the index is invalid.
+ * @internal
+ */
 export function validateIndexKey(index: string): asserts index is IndexKey {
 	try {
 		generateJitteredKeyBetween(index, null)
@@ -36,6 +41,12 @@ export function validateIndexKey(index: string): asserts index is IndexKey {
  * @param below - The index below.
  * @param above - The index above.
  * @param n - The number of indices to get.
+ * @returns An array of n IndexKey values between below and above.
+ * @example
+ * ```ts
+ * const indices = getIndicesBetween('a0' as IndexKey, 'a2' as IndexKey, 2)
+ * console.log(indices) // ['a0V', 'a1']
+ * ```
  * @public
  */
 export function getIndicesBetween(
@@ -50,6 +61,12 @@ export function getIndicesBetween(
  * Get a number of indices above an index.
  * @param below - The index below.
  * @param n - The number of indices to get.
+ * @returns An array of n IndexKey values above the given index.
+ * @example
+ * ```ts
+ * const indices = getIndicesAbove('a0' as IndexKey, 3)
+ * console.log(indices) // ['a1', 'a2', 'a3']
+ * ```
  * @public
  */
 export function getIndicesAbove(below: IndexKey | null | undefined, n: number) {
@@ -60,6 +77,12 @@ export function getIndicesAbove(below: IndexKey | null | undefined, n: number) {
  * Get a number of indices below an index.
  * @param above - The index above.
  * @param n - The number of indices to get.
+ * @returns An array of n IndexKey values below the given index.
+ * @example
+ * ```ts
+ * const indices = getIndicesBelow('a2' as IndexKey, 2)
+ * console.log(indices) // ['a1', 'a0V']
+ * ```
  * @public
  */
 export function getIndicesBelow(above: IndexKey | null | undefined, n: number) {
@@ -70,6 +93,12 @@ export function getIndicesBelow(above: IndexKey | null | undefined, n: number) {
  * Get the index between two indices.
  * @param below - The index below.
  * @param above - The index above.
+ * @returns A single IndexKey value between below and above.
+ * @example
+ * ```ts
+ * const index = getIndexBetween('a0' as IndexKey, 'a2' as IndexKey)
+ * console.log(index) // 'a1'
+ * ```
  * @public
  */
 export function getIndexBetween(
@@ -82,6 +111,12 @@ export function getIndexBetween(
 /**
  * Get the index above a given index.
  * @param below - The index below.
+ * @returns An IndexKey value above the given index.
+ * @example
+ * ```ts
+ * const index = getIndexAbove('a0' as IndexKey)
+ * console.log(index) // 'a1'
+ * ```
  * @public
  */
 export function getIndexAbove(below: IndexKey | null | undefined = null) {
@@ -91,7 +126,13 @@ export function getIndexAbove(below: IndexKey | null | undefined = null) {
 /**
  * Get the index below a given index.
  * @param above - The index above.
- *  @public
+ * @returns An IndexKey value below the given index.
+ * @example
+ * ```ts
+ * const index = getIndexBelow('a2' as IndexKey)
+ * console.log(index) // 'a1'
+ * ```
+ * @public
  */
 export function getIndexBelow(above: IndexKey | null | undefined = null) {
 	return generateKeysFn(null, above, 1)[0] as IndexKey
@@ -100,7 +141,13 @@ export function getIndexBelow(above: IndexKey | null | undefined = null) {
 /**
  * Get n number of indices, starting at an index.
  * @param n - The number of indices to get.
- * @param start -  The index to start at.
+ * @param start - The index to start at.
+ * @returns An array containing the start index plus n additional IndexKey values.
+ * @example
+ * ```ts
+ * const indices = getIndices(3, 'a1' as IndexKey)
+ * console.log(indices) // ['a1', 'a2', 'a3', 'a4']
+ * ```
  * @public
  */
 export function getIndices(n: number, start = 'a1' as IndexKey) {
@@ -111,7 +158,18 @@ export function getIndices(n: number, start = 'a1' as IndexKey) {
  * Sort by index.
  * @param a - An object with an index property.
  * @param b - An object with an index property.
- * @public */
+ * @returns A number indicating sort order (-1, 0, or 1).
+ * @example
+ * ```ts
+ * const shapes = [
+ *   { id: 'b', index: 'a2' as IndexKey },
+ *   { id: 'a', index: 'a1' as IndexKey }
+ * ]
+ * const sorted = shapes.sort(sortByIndex)
+ * console.log(sorted) // [{ id: 'a', index: 'a1' }, { id: 'b', index: 'a2' }]
+ * ```
+ * @public
+ */
 export function sortByIndex<T extends { index: IndexKey }>(a: T, b: T) {
 	if (a.index < b.index) {
 		return -1

@@ -1,12 +1,15 @@
 /**
  * Linear interpolate between two values.
  *
+ * @param a - The start value
+ * @param b - The end value
+ * @param t - The interpolation factor (0-1)
+ * @returns The interpolated value
  * @example
- *
  * ```ts
- * const A = lerp(0, 1, 0.5)
+ * const halfway = lerp(0, 100, 0.5) // 50
+ * const quarter = lerp(10, 20, 0.25) // 12.5
  * ```
- *
  * @public
  */
 export function lerp(a: number, b: number, t: number) {
@@ -14,9 +17,18 @@ export function lerp(a: number, b: number, t: number) {
 }
 
 /**
- * Inverse lerp between two values. Given a value `n` in the range [a, b], returns a number between
+ * Inverse lerp between two values. Given a value `t` in the range [a, b], returns a number between
  * 0 and 1.
  *
+ * @param a - The start value of the range
+ * @param b - The end value of the range
+ * @param t - The value within the range [a, b]
+ * @returns The normalized position (0-1) of t within the range [a, b]
+ * @example
+ * ```ts
+ * const position = invLerp(0, 100, 25) // 0.25
+ * const normalized = invLerp(10, 20, 15) // 0.5
+ * ```
  * @public
  */
 export function invLerp(a: number, b: number, t: number) {
@@ -25,12 +37,23 @@ export function invLerp(a: number, b: number, t: number) {
 
 /**
  * Seeded random number generator, using [xorshift](https://en.wikipedia.org/wiki/Xorshift). The
- * result will always be betweeen -1 and 1.
+ * result will always be between -1 and 1.
  *
  * Adapted from [seedrandom](https://github.com/davidbau/seedrandom).
  *
+ * @param seed - The seed string for deterministic random generation (defaults to empty string)
+ * @returns A function that will return a random number between -1 and 1 each time it is called
+ * @example
+ * ```ts
+ * const random = rng('my-seed')
+ * const num1 = random() // Always the same for this seed
+ * const num2 = random() // Next number in sequence
+ *
+ * // Different seed produces different sequence
+ * const otherRandom = rng('other-seed')
+ * const different = otherRandom() // Different value
+ * ```
  * @public
- * @returns A function that will return a random number between -1 and 1 each time it is called.
  */
 export function rng(seed = '') {
 	let x = 0

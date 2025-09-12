@@ -24,13 +24,13 @@ Use the style guide below to guide your writing:
 
 This guide establishes consistent patterns for writing DOCS.md files across the tldraw monorepo, based on the exemplary structure and style developed for @tldraw/state. The purpose of DOCS.md files is to provide documentation for human readers who are interested in learning about the tldraw SDK and its various packages.
 
-> Important: You should presume the reader has a basic understanding of React and TypeScript and is interested in the tldraw SDK. The DOCS.md files are not meant to attract attention or interest directly—they are not marketing materials—so you should focus on the features and capabilities of the SDK rather than the product itself or its value propositions. Your writing should aspire to building trust among professionals.
+> Important: You should presume the reader has a basic understanding of React and TypeScript and is interested in the tldraw SDK. The DOCS.md files are not meant to attract attention or interest directly—they are not marketing materials—so you should focus on the features and capabilities of the SDK rather than the product itself or its value propositions. Your writing should aspire to build trust among professionals.
 
 ## Document Structure
 
 ### 1. Numbered Main Sections
 
-Use numbered sections for major topics, progressing from simple to complex:
+Use numbered sections for major topics, progressing from simple to complex. For example:
 
 ```markdown
 ## 1. Introduction

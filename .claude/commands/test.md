@@ -1,12 +1,14 @@
 ---
 description: Create or update vitest tests for the specified file or current context
-argument-hint: [file-path] [test-type]
+argument-hint: [file-path]
 allowed-tools: Read, Edit, MultiEdit, Bash(yarn test:*), Bash(yarn typecheck:*)
 ---
 
 # Test Creation and Management
 
 Create comprehensive vitest tests for tldraw codebase following project conventions.
+
+In order get a better idea of what the different components do and how they interact before writing the JSDoc comments, make sure to read the DOCS.md located at packages/[PACKAGE_NAME]/DOCS.md. Always read this file before starting your work.
 
 ## Instructions
 
@@ -91,6 +93,7 @@ When working with existing tests:
    - Run tests to verify they pass
    - Check test coverage is comprehensive
    - Ensure new/updated tests integrate well with existing test suite
+   - Always run `yarn typecheck` to ensure no linter errors. Only run it on the specific test file you're working on.
 
 ### Tips
 

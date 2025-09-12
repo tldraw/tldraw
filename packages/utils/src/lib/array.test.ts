@@ -11,7 +11,7 @@ import {
 } from './array'
 
 describe('rotateArray', () => {
-	test('should rotate array to the right with positive offset', () => {
+	test('should rotate array to the left with positive offset', () => {
 		// Based on JSDoc examples, this is the expected behavior
 		expect(rotateArray([1, 2, 3, 4], 1)).toEqual([2, 3, 4, 1])
 		expect(rotateArray([1, 2, 3, 4], 2)).toEqual([3, 4, 1, 2])
