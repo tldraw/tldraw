@@ -414,6 +414,7 @@ export const DEFAULT_TRANSLATION = {
 	'style-panel.opacity': 'Opacity',
 	'style-panel.size': 'Size',
 	'style-panel.spline': 'Spline',
+	'style-panel.selected': 'selected',
 	'tool-panel.title': 'Tools',
 	'tool-panel.more': 'More',
 	'navigation-zone.title': 'Navigation',
