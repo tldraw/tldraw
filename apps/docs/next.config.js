@@ -144,6 +144,10 @@ const nextConfig = {
 					destination: `https://${REWRITE_DOMAIN}/`,
 				},
 				{
+					source: '/404',
+					destination: `https://${REWRITE_DOMAIN}/404`,
+				},
+				{
 					source: '/blog/announcements',
 					destination: `https://${REWRITE_DOMAIN}/blog/category/announcements`,
 				},
@@ -164,8 +168,56 @@ const nextConfig = {
 					destination: `https://${REWRITE_DOMAIN}/blog/:path*`,
 				},
 				{
+					source: '/careers',
+					destination: `https://${REWRITE_DOMAIN}/careers`,
+				},
+				{
+					source: '/events',
+					destination: `https://${REWRITE_DOMAIN}/events`,
+				},
+				{
+					source: '/faq',
+					destination: `https://${REWRITE_DOMAIN}/faq`,
+				},
+				{
+					source: '/features/:path*',
+					destination: `https://${REWRITE_DOMAIN}/features/:path*`,
+				},
+				{
+					source: '/get-a-license/:path*',
+					destination: `https://${REWRITE_DOMAIN}/get-a-license/:path*`,
+				},
+				{
 					source: '/legal/:path*',
 					destination: `https://${REWRITE_DOMAIN}/legal/:path*`,
+				},
+				{
+					source: '/partner',
+					destination: `https://${REWRITE_DOMAIN}/partner`,
+				},
+				{
+					source: '/pricing',
+					destination: `https://${REWRITE_DOMAIN}/pricing`,
+				},
+				{
+					source: '/showcase',
+					destination: `https://${REWRITE_DOMAIN}/showcase`,
+				},
+				{
+					source: '/starterkits',
+					destination: `https://${REWRITE_DOMAIN}/starterkits`,
+				},
+				{
+					source: '/talk',
+					destination: `https://${REWRITE_DOMAIN}/talk`,
+				},
+				{
+					source: '/team',
+					destination: `https://${REWRITE_DOMAIN}/team`,
+				},
+				{
+					source: '/thanks',
+					destination: `https://${REWRITE_DOMAIN}/thanks`,
 				},
 			],
 		}
