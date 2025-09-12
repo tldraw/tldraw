@@ -42,7 +42,7 @@ import {
 } from '../shared/default-shape-constants'
 import { getFillDefForCanvas, getFillDefForExport } from '../shared/defaultStyleDefs'
 import { useDefaultColorTheme } from '../shared/useDefaultColorTheme'
-import { useIsReadyForEditing } from '../shared/useEditablePlainText'
+import { useIsReadyForEditing } from '../shared/useEditableRichText'
 import { GeoShapeBody } from './components/GeoShapeBody'
 import { getGeoShapePath } from './getGeoShapePath'
 

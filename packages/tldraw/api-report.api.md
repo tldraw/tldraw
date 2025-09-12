@@ -46,7 +46,6 @@ import { RecordProps } from '@tldraw/editor';
 import { Rectangle2d } from '@tldraw/editor';
 import { RecursivePartial } from '@tldraw/editor';
 import { RefAttributes } from 'react';
-import { RefObject } from 'react';
 import { Result } from '@tldraw/editor';
 import { RichTextFontVisitorState } from '@tldraw/editor';
 import { SerializedSchema } from '@tldraw/editor';
@@ -2353,54 +2352,6 @@ export function PeopleMenu({ children }: PeopleMenuProps): JSX_2.Element | null;
 export interface PeopleMenuProps {
     // (undocumented)
     children?: ReactNode;
-}
-
-// @public
-export const PlainTextArea: React_3.ForwardRefExoticComponent<TextAreaProps & React_3.RefAttributes<HTMLTextAreaElement>>;
-
-// @public
-export const PlainTextLabel: React_3.NamedExoticComponent<PlainTextLabelProps>;
-
-// @public (undocumented)
-export interface PlainTextLabelProps {
-    // (undocumented)
-    align: TLDefaultHorizontalAlignStyle;
-    // (undocumented)
-    bounds?: Box;
-    // (undocumented)
-    classNamePrefix?: string;
-    // (undocumented)
-    fill?: TLDefaultFillStyle;
-    // (undocumented)
-    font: TLDefaultFontStyle;
-    // (undocumented)
-    fontSize: number;
-    // (undocumented)
-    isSelected: boolean;
-    // (undocumented)
-    labelColor: string;
-    // (undocumented)
-    lineHeight: number;
-    // (undocumented)
-    onKeyDown?(e: KeyboardEvent): void;
-    // (undocumented)
-    padding?: number;
-    // (undocumented)
-    shapeId: TLShapeId;
-    // (undocumented)
-    style?: React_3.CSSProperties;
-    // (undocumented)
-    text?: string;
-    // (undocumented)
-    textHeight?: number;
-    // (undocumented)
-    textWidth?: number;
-    // (undocumented)
-    type: string;
-    // (undocumented)
-    verticalAlign: TLDefaultVerticalAlignStyle;
-    // (undocumented)
-    wrap?: boolean;
 }
 
 // @public (undocumented)
@@ -5192,23 +5143,6 @@ export function useDefaultHelpers(): {
 export function useDialogs(): TLUiDialogsContextType;
 
 // @public (undocumented)
-export function useEditablePlainText(shapeId: TLShapeId, type: string, text?: string): {
-    handleBlur: () => void;
-    handleChange: ({ plaintext }: {
-        plaintext: string;
-    }) => void;
-    handleDoubleClick: (e: any) => any;
-    handleFocus: () => void;
-    handleInputPointerDown: (e: React_3.PointerEvent) => void;
-    handleKeyDown: (e: KeyboardEvent) => void;
-    handlePaste: (e: ClipboardEvent | React_3.ClipboardEvent<HTMLTextAreaElement>) => void;
-    isEditing: boolean;
-    isEmpty: boolean;
-    isReadyForEditing: boolean;
-    rInput: React_3.RefObject<HTMLTextAreaElement>;
-};
-
-// @public (undocumented)
 export function useEditableRichText(shapeId: TLShapeId, type: string, richText?: TLRichText): {
     handleBlur: () => void;
     handleChange: ({ richText }: {
@@ -5216,13 +5150,13 @@ export function useEditableRichText(shapeId: TLShapeId, type: string, richText?:
     }) => void;
     handleDoubleClick: (e: any) => any;
     handleFocus: () => void;
-    handleInputPointerDown: (e: React.PointerEvent) => void;
+    handleInputPointerDown: (e: React_3.PointerEvent) => void;
     handleKeyDown: (e: KeyboardEvent) => void;
-    handlePaste: (e: ClipboardEvent | React.ClipboardEvent<HTMLTextAreaElement>) => void;
+    handlePaste: (e: ClipboardEvent | React_3.ClipboardEvent<HTMLTextAreaElement>) => void;
     isEditing: boolean;
     isEmpty: boolean | undefined;
     isReadyForEditing: boolean;
-    rInput: RefObject<HTMLDivElement>;
+    rInput: React_3.RefObject<HTMLDivElement>;
 };
 
 // @public (undocumented)
