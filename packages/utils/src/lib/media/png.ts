@@ -126,7 +126,7 @@ export class PngHelpers {
 		return {
 			ppux: view.getUint32(offset),
 			ppuy: view.getUint32(offset + 4),
-			unit: view.getUint8(offset + 4),
+			unit: view.getUint8(offset + 8),
 		}
 	}
 
