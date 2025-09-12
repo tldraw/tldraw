@@ -71,11 +71,13 @@ export function useCanvasEvents() {
 			}
 
 			function onTouchStart(e: React.TouchEvent) {
+				if (wasEventAlreadyHandled(e)) return
 				markEventAsHandled(e)
 				preventDefault(e)
 			}
 
 			function onTouchEnd(e: React.TouchEvent) {
+				if (wasEventAlreadyHandled(e)) return
 				markEventAsHandled(e)
 				// check that e.target is an HTMLElement
 				if (!(e.target instanceof HTMLElement)) return
@@ -95,10 +97,12 @@ export function useCanvasEvents() {
 			}
 
 			function onDragOver(e: React.DragEvent<Element>) {
+				if (wasEventAlreadyHandled(e)) return
 				preventDefault(e)
 			}
 
 			async function onDrop(e: React.DragEvent<Element>) {
+				if (wasEventAlreadyHandled(e)) return
 				preventDefault(e)
 				e.stopPropagation()
 
@@ -125,6 +129,7 @@ export function useCanvasEvents() {
 			}
 
 			function onClick(e: React.MouseEvent) {
+				if (wasEventAlreadyHandled(e)) return
 				e.stopPropagation()
 			}
 
