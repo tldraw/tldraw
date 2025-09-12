@@ -1,19 +1,5 @@
 import { markEventAsHandled, wasEventAlreadyHandled } from './dom'
 
-// Mock PointerEvent for Node.js test environment
-global.PointerEvent = class MockPointerEvent extends Event {
-	pointerId: number
-	clientX: number
-	clientY: number
-
-	constructor(type: string, options: any = {}) {
-		super(type, options)
-		this.pointerId = options.pointerId || 0
-		this.clientX = options.clientX || 0
-		this.clientY = options.clientY || 0
-	}
-} as any
-
 describe('Event handling utilities', () => {
 	describe('markEventAsHandled and wasEventAlreadyHandled', () => {
 		it('should track events as handled', () => {
