@@ -1,6 +1,7 @@
 import { useContainer } from '@tldraw/editor'
 import { ContextMenu as _ContextMenu } from 'radix-ui'
 import { ReactNode } from 'react'
+import { useDir } from '../../../hooks/useTranslation/useTranslation'
 import { useMenuIsOpen } from '../../../hooks/useMenuIsOpen'
 import { TLUiTranslationKey } from '../../../hooks/useTranslation/TLUiTranslationKey'
 import { useTranslation } from '../../../hooks/useTranslation/useTranslation'
@@ -34,6 +35,7 @@ export function TldrawUiMenuSubmenu<Translation extends string = string>({
 	const { type: menuType, sourceId } = useTldrawUiMenuContext()
 	const container = useContainer()
 	const msg = useTranslation()
+	const dir = useDir()
 	const labelToUse = label
 		? typeof label === 'string'
 			? label
@@ -62,14 +64,14 @@ export function TldrawUiMenuSubmenu<Translation extends string = string>({
 
 			return (
 				<ContextMenuSubWithMenu id={`${sourceId}-sub.${id}`}>
-					<_ContextMenu.ContextMenuSubTrigger dir="ltr" disabled={disabled} asChild>
+					<_ContextMenu.ContextMenuSubTrigger dir={dir} disabled={disabled} asChild>
 						<TldrawUiButton
 							data-testid={`${sourceId}-sub.${id}-button`}
 							type="menu"
 							className="tlui-menu__submenu__trigger"
 						>
 							<TldrawUiButtonLabel>{labelStr}</TldrawUiButtonLabel>
-							<TldrawUiButtonIcon icon="chevron-right" small />
+							<TldrawUiButtonIcon icon={dir === 'rtl' ? 'chevron-left' : 'chevron-right'} small />
 						</TldrawUiButton>
 					</_ContextMenu.ContextMenuSubTrigger>
 					<_ContextMenu.ContextMenuPortal container={container}>
