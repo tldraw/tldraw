@@ -30,6 +30,7 @@ export function invLerp(a: number, b: number, t: number) {
  * Adapted from [seedrandom](https://github.com/davidbau/seedrandom).
  *
  * @public
+ * @returns A function that will return a random number between -1 and 1 each time it is called.
  */
 export function rng(seed = '') {
 	let x = 0
