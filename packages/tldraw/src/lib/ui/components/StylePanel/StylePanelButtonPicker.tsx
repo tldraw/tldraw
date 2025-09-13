@@ -137,6 +137,7 @@ export const StylePanelButtonPicker = memo(function StylePanelButtonPicker<T ext
 				>
 					<Layout>
 						{items.map((item) => {
+							const isActive = value.type === 'shared' && value.value === item.value
 							const label =
 								title + ' — ' + msg(`${uiType}-style.${item.value}` as TLUiTranslationKey)
 							return (
@@ -145,10 +146,16 @@ export const StylePanelButtonPicker = memo(function StylePanelButtonPicker<T ext
 									key={item.value}
 									data-id={item.value}
 									data-testid={`style.${uiType}.${item.value}`}
-									aria-label={label}
+									aria-label={label + (isActive ? ` (${msg('style-panel.selected')})` : '')}
+									tooltip={
+										<>
+											<div>{label}</div>
+											{isActive ? <div>({msg('style-panel.selected')})</div> : null}
+										</>
+									}
 									value={item.value}
 									data-state={value.type === 'shared' && value.value === item.value ? 'on' : 'off'}
-									data-isactive={value.type === 'shared' && value.value === item.value}
+									data-isactive={isActive}
 									title={label}
 									style={
 										style === (DefaultColorStyle as StyleProp<unknown>)

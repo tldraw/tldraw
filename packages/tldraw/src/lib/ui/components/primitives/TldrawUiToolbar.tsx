@@ -127,7 +127,7 @@ export interface TLUiToolbarToggleItemProps extends React.HTMLAttributes<HTMLBut
 	className?: string
 	type: 'icon' | 'tool'
 	value: string
-	tooltip?: string
+	tooltip?: React.ReactNode
 }
 
 /** @public @react */

@@ -98,6 +98,7 @@ export function TlaSidebarFileLink({ item, testId }: { item: RecentFile; testId:
 
 export const sidebarMessages = defineMessages({
 	renameFile: { defaultMessage: 'Rename file' },
+	selected: { defaultMessage: 'selected' },
 })
 
 export function TlaSidebarFileLinkInner({
@@ -128,6 +129,7 @@ export function TlaSidebarFileLinkInner({
 	const focusCtx = useFileSidebarFocusContext()
 	const isSidebarOpenMobile = useIsSidebarOpenMobile()
 	const editor = useMaybeEditor()
+	const intl = useIntl()
 	const showUiLabels = useValue('showUiLabels', () => editor?.user.getShowUiLabels(), [editor])
 
 	useEffect(() => {
@@ -175,7 +177,9 @@ export function TlaSidebarFileLinkInner({
 			<Link
 				ref={linkRef}
 				onKeyDown={handleKeyDown}
-				aria-label={fileName}
+				aria-label={
+					fileName + (isActive ? ` (${intl.formatMessage(sidebarMessages.selected)})` : '')
+				}
 				onClick={(event) => {
 					// Don't navigate if we are already on the file page
 					// unless the user is holding ctrl or cmd to open in a new tab
