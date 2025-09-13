@@ -459,7 +459,7 @@ export const ResizeHandle = function ResizeHandle({
 			y={y}
 			width={width}
 			height={height}
-			cursor={cursor}
+			style={{ cursor }}
 			{...events}
 		/>
 	)
@@ -497,7 +497,7 @@ export const RotateCornerHandle = function RotateCornerHandle({
 			y={toDomPrecision(cy - targetSize * 3)}
 			width={toDomPrecision(Math.max(1, targetSize * 3))}
 			height={toDomPrecision(Math.max(1, targetSize * 3))}
-			cursor={cursor}
+			style={{ cursor }}
 			{...events}
 		/>
 	)
