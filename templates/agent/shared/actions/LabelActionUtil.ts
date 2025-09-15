@@ -1,4 +1,4 @@
-import { TLShape, TLShapeId, toRichText } from 'tldraw'
+import { TLRichText, TLShape, TLShapeId, toRichText } from 'tldraw'
 import z from 'zod'
 import { AgentHelpers } from '../AgentHelpers'
 import { Streaming } from '../types/Streaming'
@@ -15,7 +15,7 @@ const LabelAction = z
 
 type ILabelEvent = z.infer<typeof LabelAction>
 
-type ShapeWithRichText = Extract<TLShape, { props: { richText: unknown } }>
+type ShapeWithRichText = Extract<TLShape, { props: { richText: TLRichText } }>
 
 function isShapeWithRichText(shape: TLShape | null | undefined): shape is ShapeWithRichText {
 	return !!(shape && 'richText' in shape.props)

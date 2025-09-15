@@ -355,6 +355,10 @@ export function getDefaultUserPresence(store: TLStore, user: TLPresenceUserInfo)
 export function getShapePropKeysByStyle(props: Record<string, T.Validatable<any>>): Map<StyleProp<unknown>, string>;
 
 // @public (undocumented)
+export interface GlobalShapePropsMap {
+}
+
+// @public (undocumented)
 export const groupShapeMigrations: TLPropsMigrations;
 
 // @public (undocumented)
@@ -629,10 +633,12 @@ export type SetValue<T extends Set<any>> = T extends Set<infer U> ? U : never;
 export const shapeIdValidator: T.Validator<TLShapeId>;
 
 // @public (undocumented)
-export type ShapeWithCrop = TLBaseShape<string, {
-    crop: null | TLShapeCrop;
-    h: number;
-    w: number;
+export type ShapeWithCrop = Extract<TLShape, {
+    props: {
+        crop: null | TLShapeCrop;
+        h: number;
+        w: number;
+    };
 }>;
 
 // @public
@@ -1479,7 +1485,7 @@ export interface TLScribble {
 export type TLSerializedStore = SerializedStore<TLRecord>;
 
 // @public
-export type TLShape = TLDefaultShape | TLUnknownShape;
+export type TLShape = GlobalShapePropsMap[keyof GlobalShapePropsMap] | TLDefaultShape;
 
 // @public (undocumented)
 export interface TLShapeCrop {
@@ -1492,7 +1498,7 @@ export interface TLShapeCrop {
 }
 
 // @public (undocumented)
-export type TLShapeId = RecordId<TLUnknownShape>;
+export type TLShapeId = RecordId<TLShape>;
 
 // @public (undocumented)
 export type TLShapePartial<T extends TLShape = TLShape> = T extends T ? {
