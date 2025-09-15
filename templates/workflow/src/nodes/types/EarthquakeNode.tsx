@@ -44,7 +44,7 @@ interface EarthquakeApiResponse {
 export class EarthquakeNodeType extends NodeDefinition<EarthquakeNode> {
 	static type = 'earthquake'
 	static validator = EarthquakeNode
-	title = 'Earthquake'
+	title = 'Earthquake data'
 	heading = 'USGS Data'
 	icon = (<EarthquakeIcon />)
 
