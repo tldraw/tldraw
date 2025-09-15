@@ -21,7 +21,7 @@ export const SliderNode = T.object({
 	value: T.number,
 })
 
-export class SliderNodeType extends NodeDefinition<SliderNode> {
+export class SliderNodeDefinition extends NodeDefinition<SliderNode> {
 	static type = 'slider'
 	static validator = SliderNode
 	title = 'Slider'

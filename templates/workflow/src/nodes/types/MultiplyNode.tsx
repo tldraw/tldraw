@@ -30,7 +30,7 @@ export const MultiplyNode = T.object({
 	lastResult: T.number.nullable(),
 })
 
-export class MultiplyNodeType extends NodeDefinition<MultiplyNode> {
+export class MultiplyNodeDefinition extends NodeDefinition<MultiplyNode> {
 	static type = 'multiply'
 	static validator = MultiplyNode
 	title = 'Multiply'
