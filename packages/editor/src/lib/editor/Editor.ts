@@ -8831,8 +8831,13 @@ export class Editor extends EventEmitter<TLEventMap> {
 	 * Handle external content, such as files, urls, embeds, or plain text which has been put into the app, for example by pasting external text or dropping external images onto canvas.
 	 *
 	 * @param info - Info about the external content.
+	 * @param opts - Options for handling external content, including force flag to bypass readonly checks.
 	 */
-	async putExternalContent<E>(info: TLExternalContent<E>): Promise<void> {
+	async putExternalContent<E>(
+		info: TLExternalContent<E>,
+		opts = {} as { force?: boolean }
+	): Promise<void> {
+		if (!opts.force && this.getIsReadonly()) return
 		return this.externalContentHandlers[info.type]?.(info as any)
 	}
 
@@ -8840,8 +8845,13 @@ export class Editor extends EventEmitter<TLEventMap> {
 	 * Handle replacing external content.
 	 *
 	 * @param info - Info about the external content.
+	 * @param opts - Options for handling external content, including force flag to bypass readonly checks.
 	 */
-	async replaceExternalContent<E>(info: TLExternalContent<E>): Promise<void> {
+	async replaceExternalContent<E>(
+		info: TLExternalContent<E>,
+		opts = {} as { force?: boolean }
+	): Promise<void> {
+		if (!opts.force && this.getIsReadonly()) return
 		return this.externalContentHandlers[info.type]?.(info as any)
 	}
 
