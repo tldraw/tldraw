@@ -1,4 +1,4 @@
-import { TLNoteShape } from '@tldraw/tlschema'
+import { TLNoteShape } from '../../..'
 import { TestEditor } from '../../../test/TestEditor'
 import { NoteShapeTool } from './NoteShapeTool'
 
