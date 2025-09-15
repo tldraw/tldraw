@@ -22691,8 +22691,8 @@ __metadata:
   linkType: hard
 
 "openai@npm:^5.16.0":
-  version: 5.16.0
-  resolution: "openai@npm:5.16.0"
+  version: 5.20.2
+  resolution: "openai@npm:5.20.2"
   peerDependencies:
     ws: ^8.18.0
     zod: ^3.23.8
@@ -22703,7 +22703,7 @@ __metadata:
       optional: true
   bin:
     openai: bin/cli
-  checksum: 10/148f388bb6075ad8cccd326b157b60c98e44165e961f76bedbf85c5b0d8759181b38008dc469d6beb17e74c11ad5509351bff350633ae544752aae36a80bfa94
+  checksum: 10/89319edfd573c83b2cc2b96a84e8351823400b17562cf330d19619ce2f9bc77c149b323c127172b4d4aefe4416dd5daef505cae6f8ce6260889b1746556b38e3
   languageName: node
   linkType: hard
 
@@ -27719,7 +27719,6 @@ __metadata:
     "@cloudflare/vite-plugin": "npm:^1.9.0"
     "@cloudflare/workers-types": "npm:^4.20250703.0"
     "@google/generative-ai": "npm:^0.24.1"
-    "@tldraw/ai": "workspace:*"
     "@tldraw/tlschema": "workspace:*"
     "@types/react": "npm:^18.3.18"
     "@types/react-dom": "npm:^18.3.5"

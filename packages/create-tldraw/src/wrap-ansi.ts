@@ -129,25 +129,40 @@ function exec(string: string, columns: number, options: WrapAnsiOptions = {}) {
 	const indent = options.indent ?? ''
 	const indentLength = stringWidth(indent)
 
+	// Extract original leading whitespace if we want to preserve it
+	const originalLeadingWhitespace = string.match(/^(\s*)/)?.[1] || ''
+	const trimmedString = string.trimStart()
+
+	// Adjust column width to account for original leading whitespace on first row
+	const shouldPreserveLeadingWhitespace = (options.trim === false || options.indent) && originalLeadingWhitespace
+	const adjustedColumns = shouldPreserveLeadingWhitespace ?
+		columns - stringWidth(originalLeadingWhitespace) :
+		columns
+
 	let returnValue = ''
 	let escapeCode
 	let escapeUrl
 
-	const lengths = wordLengths(string)
+	const lengths = wordLengths(trimmedString)
 	let rows = ['']
+	let isFirstRow = true
+	const rowsWithIndent = new Set<number>()
 
-	for (const [index, word] of string.split(' ').entries()) {
-		if (options.trim !== false) {
+	for (const [index, word] of trimmedString.split(' ').entries()) {
+		if (options.trim !== false && !isFirstRow && !rowsWithIndent.has(rows.length - 1)) {
 			rows[rows.length - 1] = rows.at(-1)!.trimStart()
 		}
 
 		let rowLength = stringWidth(rows.at(-1)!)
 
 		if (index !== 0) {
-			if (rowLength >= columns && (options.wordWrap === false || options.trim === false)) {
+			const currentColumns = isFirstRow ? adjustedColumns : columns
+			if (rowLength >= currentColumns && (options.wordWrap === false || options.trim === false)) {
 				// If we start with a new word but the current row length equals the length of the columns, add a new row
 				rows.push(indent)
+				rowsWithIndent.add(rows.length - 1)
 				rowLength = indentLength
+				isFirstRow = false
 			}
 
 			if (rowLength > 0 || options.trim === false) {
@@ -157,30 +172,37 @@ function exec(string: string, columns: number, options: WrapAnsiOptions = {}) {
 		}
 
 		// In 'hard' wrap mode, the length of a line is never allowed to extend past 'columns'
-		if (options.hard && lengths[index] > columns) {
-			const remainingColumns = columns - rowLength
+		const currentColumns = isFirstRow ? adjustedColumns : columns
+		if (options.hard && lengths[index] > currentColumns) {
+			const remainingColumns = currentColumns - rowLength
 			const breaksStartingThisLine =
-				1 + Math.floor((lengths[index] - remainingColumns - 1) / columns)
-			const breaksStartingNextLine = Math.floor((lengths[index] - 1) / columns)
+				1 + Math.floor((lengths[index] - remainingColumns - 1) / currentColumns)
+			const breaksStartingNextLine = Math.floor((lengths[index] - 1) / currentColumns)
 			if (breaksStartingNextLine < breaksStartingThisLine) {
 				rows.push(indent)
+				rowsWithIndent.add(rows.length - 1)
+				isFirstRow = false
 			}
 
-			wrapWord(rows, word, columns, indent)
+			wrapWord(rows, word, currentColumns, indent)
 			continue
 		}
 
-		if (rowLength + lengths[index] > columns && rowLength > 0 && lengths[index] > 0) {
-			if (options.wordWrap === false && rowLength < columns) {
-				wrapWord(rows, word, columns, indent)
+		const currentColumnsForWrap = isFirstRow ? adjustedColumns : columns
+		if (rowLength + lengths[index] > currentColumnsForWrap && rowLength > 0 && lengths[index] > 0) {
+			if (options.wordWrap === false && rowLength < currentColumnsForWrap) {
+				wrapWord(rows, word, currentColumnsForWrap, indent)
 				continue
 			}
 
 			rows.push(indent)
+			rowsWithIndent.add(rows.length - 1)
+			isFirstRow = false
 		}
 
-		if (rowLength + lengths[index] > columns && options.wordWrap === false) {
-			wrapWord(rows, word, columns, indent)
+		const newCurrentColumns = isFirstRow ? adjustedColumns : columns
+		if (rowLength + lengths[index] > newCurrentColumns && options.wordWrap === false) {
+			wrapWord(rows, word, newCurrentColumns, indent)
 			continue
 		}
 
@@ -189,6 +211,13 @@ function exec(string: string, columns: number, options: WrapAnsiOptions = {}) {
 
 	if (options.trim !== false) {
 		rows = rows.map((row) => stringVisibleTrimSpacesRight(row))
+	}
+
+	// Add original leading whitespace to the first row when needed
+	if (originalLeadingWhitespace && rows.length > 0) {
+		if (options.trim === false || options.indent) {
+			rows[0] = originalLeadingWhitespace + rows[0]
+		}
 	}
 
 	const preString = rows.join('\n')

@@ -90,15 +90,12 @@ describe('wrapAnsi', () => {
 			const result = wrapAnsi(input, 20, { indent: '  ' })
 			const lines = result.split('\n')
 
-			// First line should not be indented
+			// First line should not be indented (no original leading whitespace)
 			expect(lines[0]).not.toMatch(/^ {2}/)
 
-			// Only the last line should be indented
-			expect(lines[lines.length - 1]).toMatch(/^ {2}/)
-
-			// Middle lines should not be indented
-			for (let i = 1; i < lines.length - 1; i++) {
-				expect(lines[i]).not.toMatch(/^ {2}/)
+			// All wrapped lines should be indented
+			for (let i = 1; i < lines.length; i++) {
+				expect(lines[i]).toMatch(/^ {2}/)
 			}
 		})
 
@@ -199,6 +196,65 @@ describe('wrapAnsi', () => {
 			const lines = result.split('\n')
 
 			expect(lines[0]).toMatch(/^ {2}/)
+		})
+
+		it('should preserve original leading whitespace on first line and apply indent to wrapped lines', () => {
+			const input = '     Display this help message that is long enough to wrap around'
+			const result = wrapAnsi(input, 30, { indent: '     ' })
+			const lines = result.split('\n')
+
+			// Should have multiple lines due to wrapping
+			expect(lines.length).toBeGreaterThan(1)
+
+			// First line should preserve original leading whitespace
+			expect(lines[0]).toMatch(/^ {5}/)
+
+			// Wrapped lines should use the indent option
+			for (let i = 1; i < lines.length; i++) {
+				expect(lines[i]).toMatch(/^ {5}/)
+			}
+		})
+
+		it('should preserve original leading whitespace only on first line when no indent specified', () => {
+			const input = '     Display this help message that is long enough to wrap around'
+			const result = wrapAnsi(input, 30, {})
+			const lines = result.split('\n')
+
+			// Should have multiple lines due to wrapping
+			expect(lines.length).toBeGreaterThan(1)
+
+			// First line should NOT preserve original leading whitespace (default trim: true)
+			expect(lines[0]).not.toMatch(/^ {5}/)
+
+			// Wrapped lines should not have any leading whitespace
+			for (let i = 1; i < lines.length; i++) {
+				expect(lines[i]).not.toMatch(/^ /)
+			}
+		})
+
+		it('should respect column limit when first line has original leading whitespace', () => {
+			const input = '     Real-time multiplayer for tldraw, built with Cloudflare Durable Objects.'
+			const result = wrapAnsi(input, 56, { indent: '     ' })
+			const lines = result.split('\n')
+
+			// Should have multiple lines due to wrapping
+			expect(lines.length).toBeGreaterThan(1)
+
+			// First line should not exceed column limit
+			expect(lines[0].length).toBeLessThanOrEqual(56)
+
+			// All lines should respect column limit
+			lines.forEach(line => {
+				expect(line.length).toBeLessThanOrEqual(56)
+			})
+
+			// First line should preserve original leading whitespace
+			expect(lines[0]).toMatch(/^ {5}/)
+
+			// Wrapped lines should use indent
+			for (let i = 1; i < lines.length; i++) {
+				expect(lines[i]).toMatch(/^ {5}/)
+			}
 		})
 
 		it('should handle multiple spaces between words', () => {
