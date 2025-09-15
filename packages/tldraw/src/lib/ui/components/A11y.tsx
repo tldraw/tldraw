@@ -1,7 +1,7 @@
 import {
 	debugFlags,
 	Editor,
-	stopEventPropagation,
+	markEventAsHandled,
 	TLGeoShape,
 	TLShapeId,
 	unsafe__withoutCapture,
@@ -23,7 +23,7 @@ export function SkipToMainContent() {
 
 	const handleNavigateToFirstShape = useCallback(
 		(e: MouseEvent | KeyboardEvent) => {
-			stopEventPropagation(e)
+			markEventAsHandled(e)
 			button.current?.blur()
 			const shapes = editor.getCurrentPageShapesInReadingOrder()
 			if (!shapes.length) return

@@ -4,7 +4,7 @@ import {
 	RecordProps,
 	T,
 	TLBaseShape,
-	stopEventPropagation,
+	markEventAsHandled,
 } from 'tldraw'
 
 // There's a guide at the bottom of this file!
@@ -50,7 +50,7 @@ export class EditableShapeUtil extends BaseBoxShapeUtil<IMyEditableShape> {
 			<HTMLContainer
 				id={shape.id}
 				// [b]
-				onPointerDown={isEditing ? stopEventPropagation : undefined}
+				onPointerDown={isEditing ? markEventAsHandled : undefined}
 				style={{
 					pointerEvents: isEditing ? 'all' : 'none',
 					backgroundColor: '#efefef',

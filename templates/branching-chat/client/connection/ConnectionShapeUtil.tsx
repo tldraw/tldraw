@@ -16,7 +16,7 @@ import {
 	VecModel,
 	clamp,
 	createShapeId,
-	stopEventPropagation,
+	markEventAsHandled,
 	useEditor,
 	useUniqueSafeId,
 	useValue,
@@ -360,7 +360,7 @@ function ConnectionCenterHandle({
 			style={{
 				transform: `translate(${center.x}px, ${center.y}px) scale(max(0.5, calc(1 / var(--tl-zoom))))`,
 			}}
-			onPointerDown={stopEventPropagation}
+			onPointerDown={markEventAsHandled}
 			onClick={() => {
 				insertNodeWithinConnection(editor, connection, 'vertical')
 			}}
