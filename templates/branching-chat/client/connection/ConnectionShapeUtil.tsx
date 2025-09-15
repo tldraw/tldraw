@@ -38,6 +38,12 @@ import {
 } from './ConnectionBindingUtil'
 import { insertNodeWithinConnection } from './insertNodeWithinConnection'
 
+declare module '@tldraw/tlschema' {
+	export interface GlobalShapePropsMap {
+		connection: ConnectionShape
+	}
+}
+
 /**
  * A connection shape is a directed connection between two node shapes. It has a start point, and an
  * end point. These are called "terminals" in the code.

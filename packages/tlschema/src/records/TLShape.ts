@@ -52,17 +52,16 @@ export type TLDefaultShape =
  * @public */
 export type TLUnknownShape = TLBaseShape<string, object>
 
+/** @public */
 // eslint-disable-next-line @typescript-eslint/no-empty-object-type
 export interface GlobalShapePropsMap {}
-
-type Values<T> = T[keyof T]
 
 /**
  * The set of all shapes that are available in the editor, including unknown shapes.
  *
  * @public
  */
-export type TLShape = TLDefaultShape | Values<GlobalShapePropsMap>
+export type TLShape = TLDefaultShape | GlobalShapePropsMap[keyof GlobalShapePropsMap]
 
 /** @public */
 export type TLShapePartial<T extends TLShape = TLShape> = T extends T

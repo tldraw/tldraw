@@ -200,7 +200,7 @@ function moveNodesIfNeeded(
 				},
 				...Array.from(toNudge.entries()).map(([id, nudge]) => ({
 					id,
-					type: 'node',
+					type: 'node' as const,
 					x: nudge.initialX + nudge.amountX,
 					y: nudge.initialY + nudge.amountY,
 				})),

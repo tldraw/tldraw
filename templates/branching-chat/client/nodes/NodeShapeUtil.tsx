@@ -26,6 +26,12 @@ import {
 	NodeTypePorts,
 } from './nodeTypes'
 
+declare module '@tldraw/tlschema' {
+	export interface GlobalShapePropsMap {
+		node: NodeShape
+	}
+}
+
 // Define our custom node shape type that extends tldraw's base shape system
 export type NodeShape = TLBaseShape<'node', { node: NodeType }>
 
