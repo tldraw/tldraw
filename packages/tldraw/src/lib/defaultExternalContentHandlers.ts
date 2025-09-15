@@ -916,7 +916,7 @@ export function notifyIfFileNotAllowed(file: File, options: TLDefaultExternalCon
 
 		toasts.addToast({
 			title: msg('assets.files.size-too-big'),
-			description: `Maximum file size is ${formatBytes(maxAssetSize)}`,
+			description: msg('assets.files.maximum-size').replace('{size}', formatBytes(maxAssetSize)),
 			severity: 'error',
 		})
 		return false
