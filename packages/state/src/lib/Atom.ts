@@ -66,6 +66,8 @@ export interface Atom<Value, Diff = unknown> extends Signal<Value, Diff> {
 }
 
 /**
+ * Internal implementation of the Atom interface. This class should not be used directly - use the {@link atom} function instead.
+ *
  * @internal
  */
 class __Atom__<Value, Diff = unknown> implements Atom<Value, Diff> {
@@ -85,25 +87,76 @@ class __Atom__<Value, Diff = unknown> implements Atom<Value, Diff> {
 		this.computeDiff = options.computeDiff
 	}
 
+	/**
+	 * Custom equality function for comparing values, or null to use default equality.
+	 * @internal
+	 */
 	readonly isEqual: null | ((a: any, b: any) => boolean)
 
+	/**
+	 * Optional function to compute diffs between old and new values.
+	 * @internal
+	 */
 	computeDiff?: ComputeDiff<Value, Diff>
 
+	/**
+	 * The global epoch when this atom was last changed.
+	 * @internal
+	 */
 	lastChangedEpoch = getGlobalEpoch()
 
+	/**
+	 * Set of child signals that depend on this atom.
+	 * @internal
+	 */
 	children = new ArraySet<Child>()
 
+	/**
+	 * Optional history buffer for tracking changes over time.
+	 * @internal
+	 */
 	historyBuffer?: HistoryBuffer<Diff>
 
+	/**
+	 * Gets the current value without capturing it as a dependency in the current reactive context.
+	 * This is unsafe because it breaks the reactivity chain - use with caution.
+	 *
+	 * @param _ignoreErrors - Unused parameter for API compatibility
+	 * @returns The current value
+	 * @internal
+	 */
 	__unsafe__getWithoutCapture(_ignoreErrors?: boolean): Value {
 		return this.current
 	}
 
+	/**
+	 * Gets the current value of this atom. When called within a computed signal or reaction,
+	 * this atom will be automatically captured as a dependency.
+	 *
+	 * @returns The current value
+	 * @example
+	 * ```ts
+	 * const count = atom('count', 5)
+	 * console.log(count.get()) // 5
+	 * ```
+	 */
 	get() {
 		maybeCaptureParent(this)
 		return this.current
 	}
 
+	/**
+	 * Sets the value of this atom to the given value. If the value is the same as the current value, this is a no-op.
+	 *
+	 * @param value - The new value to set
+	 * @param diff - The diff to use for the update. If not provided, the diff will be computed using {@link AtomOptions.computeDiff}
+	 * @returns The new value
+	 * @example
+	 * ```ts
+	 * const count = atom('count', 0)
+	 * count.set(5) // count.get() is now 5
+	 * ```
+	 */
 	set(value: Value, diff?: Diff): Value {
 		// If the value has not changed, do nothing.
 		if (this.isEqual?.(this.current, value) ?? equals(this.current, value)) {
@@ -136,10 +189,29 @@ class __Atom__<Value, Diff = unknown> implements Atom<Value, Diff> {
 		return value
 	}
 
+	/**
+	 * Updates the value of this atom using the given updater function. If the returned value is the same as the current value, this is a no-op.
+	 *
+	 * @param updater - A function that takes the current value and returns the new value
+	 * @returns The new value
+	 * @example
+	 * ```ts
+	 * const count = atom('count', 5)
+	 * count.update(n => n + 1) // count.get() is now 6
+	 * ```
+	 */
 	update(updater: (value: Value) => Value): Value {
 		return this.set(updater(this.current))
 	}
 
+	/**
+	 * Gets all the diffs that have occurred since the given epoch. When called within a computed
+	 * signal or reaction, this atom will be automatically captured as a dependency.
+	 *
+	 * @param epoch - The epoch to get changes since
+	 * @returns An array of diffs, or RESET_VALUE if history is insufficient
+	 * @internal
+	 */
 	getDiffSince(epoch: number): RESET_VALUE | Diff[] {
 		maybeCaptureParent(this)
 
@@ -152,7 +224,16 @@ class __Atom__<Value, Diff = unknown> implements Atom<Value, Diff> {
 	}
 }
 
+/**
+ * Singleton reference to the Atom constructor. Used internally to create atom instances.
+ * @internal
+ */
 export const _Atom = singleton('Atom', () => __Atom__)
+
+/**
+ * Type alias for instances of the internal Atom class.
+ * @internal
+ */
 export type _Atom = InstanceType<typeof _Atom>
 
 /**
@@ -192,6 +273,17 @@ export function atom<Value, Diff = unknown>(
 
 /**
  * Returns true if the given value is an {@link Atom}.
+ *
+ * @param value - The value to check
+ * @returns True if the value is an Atom, false otherwise
+ * @example
+ * ```ts
+ * const myAtom = atom('test', 42)
+ * const notAtom = 'hello'
+ *
+ * console.log(isAtom(myAtom)) // true
+ * console.log(isAtom(notAtom)) // false
+ * ```
  * @public
  */
 export function isAtom(value: unknown): value is Atom<unknown> {

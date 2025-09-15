@@ -2,7 +2,24 @@ import { Expand } from '@tldraw/utils'
 import { T } from '@tldraw/validate'
 import { StyleProp } from './StyleProp'
 
-/** @public */
+/**
+ * Array of default color names available in tldraw's color palette.
+ * These colors form the basis for the default color style system and are available
+ * in both light and dark theme variants.
+ *
+ * @example
+ * ```ts
+ * import { defaultColorNames } from '@tldraw/tlschema'
+ *
+ * // Create a color picker with all default colors
+ * const colorOptions = defaultColorNames.map(color => ({
+ *   name: color,
+ *   value: color
+ * }))
+ * ```
+ *
+ * @public
+ */
 export const defaultColorNames = [
 	'black',
 	'grey',
@@ -19,7 +36,26 @@ export const defaultColorNames = [
 	'white',
 ] as const
 
-/** @public */
+/**
+ * Defines the color variants available for each color in the default theme.
+ * Each color has multiple variants for different use cases like fills, strokes,
+ * patterns, and UI elements like frames and notes.
+ *
+ * @example
+ * ```ts
+ * import { TLDefaultColorThemeColor } from '@tldraw/tlschema'
+ *
+ * const blueColor: TLDefaultColorThemeColor = {
+ *   solid: '#4465e9',
+ *   semi: '#dce1f8',
+ *   pattern: '#6681ee',
+ *   fill: '#4465e9',
+ *   // ... other variants
+ * }
+ * ```
+ *
+ * @public
+ */
 export interface TLDefaultColorThemeColor {
 	solid: string
 	semi: string
@@ -36,7 +72,27 @@ export interface TLDefaultColorThemeColor {
 	highlightP3: string
 }
 
-/** @public */
+/**
+ * Complete color theme definition containing all colors and their variants
+ * for either light or dark mode. Includes base theme properties and all
+ * default colors with their respective color variants.
+ *
+ * @example
+ * ```ts
+ * import { TLDefaultColorTheme } from '@tldraw/tlschema'
+ *
+ * const customTheme: TLDefaultColorTheme = {
+ *   id: 'light',
+ *   text: '#000000',
+ *   background: '#ffffff',
+ *   solid: '#fcfffe',
+ *   black: { solid: '#000000', semi: '#cccccc', ... },
+ *   // ... other colors
+ * }
+ * ```
+ *
+ * @public
+ */
 export type TLDefaultColorTheme = Expand<
 	{
 		id: 'light' | 'dark'
@@ -46,7 +102,26 @@ export type TLDefaultColorTheme = Expand<
 	} & Record<(typeof defaultColorNames)[number], TLDefaultColorThemeColor>
 >
 
-/** @public */
+/**
+ * Complete color palette containing both light and dark theme definitions.
+ * This object provides the full color system used by tldraw's default themes,
+ * including all color variants and theme-specific adjustments.
+ *
+ * @example
+ * ```ts
+ * import { DefaultColorThemePalette } from '@tldraw/tlschema'
+ *
+ * // Get the dark theme colors
+ * const darkTheme = DefaultColorThemePalette.darkMode
+ * const redColor = darkTheme.red.solid // '#e03131'
+ *
+ * // Access light theme colors
+ * const lightTheme = DefaultColorThemePalette.lightMode
+ * const blueColor = lightTheme.blue.fill // '#4465e9'
+ * ```
+ *
+ * @public
+ */
 export const DefaultColorThemePalette: {
 	lightMode: TLDefaultColorTheme
 	darkMode: TLDefaultColorTheme
@@ -456,36 +531,179 @@ export const DefaultColorThemePalette: {
 	},
 }
 
-/** @public */
+/**
+ * Returns the appropriate default color theme based on the dark mode preference.
+ *
+ * @param opts - Configuration options
+ *   - isDarkMode - Whether to return the dark theme (true) or light theme (false)
+ * @returns The corresponding TLDefaultColorTheme (light or dark)
+ *
+ * @example
+ * ```ts
+ * import { getDefaultColorTheme } from '@tldraw/tlschema'
+ *
+ * // Get light theme
+ * const lightTheme = getDefaultColorTheme({ isDarkMode: false })
+ *
+ * // Get dark theme
+ * const darkTheme = getDefaultColorTheme({ isDarkMode: true })
+ *
+ * // Use with editor
+ * const theme = getDefaultColorTheme({ isDarkMode: window.matchMedia('(prefers-color-scheme: dark)').matches })
+ * ```
+ *
+ * @public
+ */
 export function getDefaultColorTheme(opts: { isDarkMode: boolean }): TLDefaultColorTheme {
 	return opts.isDarkMode ? DefaultColorThemePalette.darkMode : DefaultColorThemePalette.lightMode
 }
 
-/** @public */
+/**
+ * Default color style property used by tldraw shapes for their primary color.
+ * This style prop allows shapes to use any of the default color names and
+ * automatically saves the last used value for new shapes.
+ *
+ * @example
+ * ```ts
+ * import { DefaultColorStyle } from '@tldraw/tlschema'
+ *
+ * // Use in shape props definition
+ * interface MyShapeProps {
+ *   color: typeof DefaultColorStyle
+ *   // other props...
+ * }
+ *
+ * // Set color on a shape
+ * const shape = {
+ *   // ... other properties
+ *   props: {
+ *     color: 'red' as const,
+ *     // ... other props
+ *   }
+ * }
+ * ```
+ *
+ * @public
+ */
 export const DefaultColorStyle = StyleProp.defineEnum('tldraw:color', {
 	defaultValue: 'black',
 	values: defaultColorNames,
 })
 
-/** @public */
+/**
+ * Default label color style property used for text labels on shapes.
+ * This is separate from the main color style to allow different colors
+ * for shape fills/strokes versus their text labels.
+ *
+ * @example
+ * ```ts
+ * import { DefaultLabelColorStyle } from '@tldraw/tlschema'
+ *
+ * // Use in shape props definition
+ * interface MyShapeProps {
+ *   labelColor: typeof DefaultLabelColorStyle
+ *   // other props...
+ * }
+ *
+ * // Create a shape with different fill and label colors
+ * const shape = {
+ *   // ... other properties
+ *   props: {
+ *     color: 'blue' as const,
+ *     labelColor: 'white' as const,
+ *     // ... other props
+ *   }
+ * }
+ * ```
+ *
+ * @public
+ */
 export const DefaultLabelColorStyle = StyleProp.defineEnum('tldraw:labelColor', {
 	defaultValue: 'black',
 	values: defaultColorNames,
 })
 
-/** @public */
+/**
+ * Type representing a default color style value.
+ * This is a union type of all available default color names.
+ *
+ * @example
+ * ```ts
+ * import { TLDefaultColorStyle } from '@tldraw/tlschema'
+ *
+ * // Valid color values
+ * const redColor: TLDefaultColorStyle = 'red'
+ * const blueColor: TLDefaultColorStyle = 'blue'
+ *
+ * // Type guard usage
+ * function isValidColor(color: string): color is TLDefaultColorStyle {
+ *   return ['black', 'red', 'blue'].includes(color as TLDefaultColorStyle)
+ * }
+ * ```
+ *
+ * @public
+ */
 export type TLDefaultColorStyle = T.TypeOf<typeof DefaultColorStyle>
 
 const defaultColorNamesSet = new Set(defaultColorNames)
 
-/** @public */
+/**
+ * Type guard to check if a color value is one of the default theme colors.
+ * Useful for determining if a color can be looked up in the theme palette.
+ *
+ * @param color - The color value to check
+ * @returns True if the color is a default theme color, false otherwise
+ *
+ * @example
+ * ```ts
+ * import { isDefaultThemeColor, TLDefaultColorStyle } from '@tldraw/tlschema'
+ *
+ * const color: TLDefaultColorStyle = 'red'
+ *
+ * if (isDefaultThemeColor(color)) {
+ *   // color is guaranteed to be a default theme color
+ *   console.log(`${color} is a default theme color`)
+ * } else {
+ *   // color might be a custom hex value or other format
+ *   console.log(`${color} is a custom color`)
+ * }
+ * ```
+ *
+ * @public
+ */
 export function isDefaultThemeColor(
 	color: TLDefaultColorStyle
 ): color is (typeof defaultColorNames)[number] {
 	return defaultColorNamesSet.has(color as (typeof defaultColorNames)[number])
 }
 
-/** @public */
+/**
+ * Resolves a color style value to its actual CSS color string for a given theme and variant.
+ * If the color is not a default theme color, returns the color value as-is.
+ *
+ * @param theme - The color theme to use for resolution
+ * @param color - The color style value to resolve
+ * @param variant - Which variant of the color to return (solid, fill, pattern, etc.)
+ * @returns The CSS color string for the specified color and variant
+ *
+ * @example
+ * ```ts
+ * import { getColorValue, getDefaultColorTheme } from '@tldraw/tlschema'
+ *
+ * const theme = getDefaultColorTheme({ isDarkMode: false })
+ *
+ * // Get the solid variant of red
+ * const redSolid = getColorValue(theme, 'red', 'solid') // '#e03131'
+ *
+ * // Get the fill variant of blue
+ * const blueFill = getColorValue(theme, 'blue', 'fill') // '#4465e9'
+ *
+ * // Custom color passes through unchanged
+ * const customColor = getColorValue(theme, '#ff0000', 'solid') // '#ff0000'
+ * ```
+ *
+ * @public
+ */
 export function getColorValue(
 	theme: TLDefaultColorTheme,
 	color: TLDefaultColorStyle,

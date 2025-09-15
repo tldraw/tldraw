@@ -18,22 +18,22 @@ export function track<T extends FunctionComponent<any>>(baseComponent: T): React
 // @public
 export function useAtom<Value, Diff = unknown>(name: string, valueOrInitialiser: (() => Value) | Value, options?: AtomOptions<Value, Diff>): Atom<Value, Diff>;
 
-// @public (undocumented)
+// @public
 export function useComputed<Value>(name: string, compute: () => Value, deps: any[]): Computed<Value>;
 
 // @public
 export function useComputed<Value, Diff = unknown>(name: string, compute: () => Value, opts: ComputedOptions<Value, Diff>, deps: any[]): Computed<Value>;
 
-// @public (undocumented)
+// @public
 export function useQuickReactor(name: string, reactFn: () => void, deps?: any[]): void;
 
-// @public (undocumented)
+// @public
 export function useReactor(name: string, reactFn: () => void, deps?: any[] | undefined): void;
 
 // @public
 export function useStateTracking<T>(name: string, render: () => T, deps?: unknown[]): T;
 
-// @public (undocumented)
+// @public
 export function useValue<Value>(value: Signal<Value>): Value;
 
 // @public
