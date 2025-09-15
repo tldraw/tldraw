@@ -1,4 +1,3 @@
-import { useDraggable } from '@dnd-kit/core'
 import { TlaFile } from '@tldraw/dotcom-shared'
 import classNames from 'classnames'
 import { patch } from 'patchfork'
@@ -157,7 +156,7 @@ export function TlaSidebarFileLinkInner({
 	handleRenameAction,
 	onClose,
 	className,
-	context,
+	context: _context,
 }: {
 	fileId: string
 	isPinned: boolean
@@ -179,21 +178,6 @@ export function TlaSidebarFileLinkInner({
 	const canUpdateFile = useCanUpdateFile(fileId)
 	const isOwnFile = useIsFileOwner(fileId)
 	const file = useValue('file', () => app.getFile(fileId), [fileId, app])
-
-	const dnd = useDraggable({
-		id: context === 'my-files-pinned' ? fileId : `${fileId}:${context}`,
-		data:
-			context === 'my-files-pinned'
-				? {
-						type: 'pinned',
-						fileId,
-					}
-				: {
-						type: 'file',
-						fileId,
-					},
-		disabled: false,
-	})
 
 	const handleKeyDown = (e: KeyboardEvent) => {
 		if (!isActive) return
@@ -218,23 +202,14 @@ export function TlaSidebarFileLinkInner({
 	return (
 		<div
 			className={classNames(styles.sidebarFileListItem, styles.hoverable, className)}
-			data-dragging={dnd.isDragging}
 			data-active={isActive}
 			data-element="file-link"
 			data-testid={testId}
 			data-is-own-file={isOwnFile}
-			{...(context === 'my-files-pinned' && {
-				'data-pinned-file-id': fileId,
-				'data-pinned-index': app.getFileState(fileId)?.pinnedIndex || 'a0',
-			})}
 			onDoubleClick={canUpdateFile ? handleRenameAction : undefined}
 			// We use this id to scroll the active file link into view when creating or deleting files.
 			id={isActive ? ACTIVE_FILE_LINK_ID : undefined}
-			{...dnd.attributes}
-			{...dnd.listeners}
-			ref={dnd.setNodeRef}
 			role="listitem"
-			draggable={false}
 		>
 			<Link
 				ref={linkRef}

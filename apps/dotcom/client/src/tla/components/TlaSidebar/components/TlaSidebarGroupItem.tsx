@@ -1,4 +1,3 @@
-import { useDraggable } from '@dnd-kit/core'
 import { patch } from 'patchfork'
 import { Collapsible, ContextMenu as _ContextMenu } from 'radix-ui'
 import { memo, useCallback, useEffect, useRef } from 'react'
@@ -248,14 +247,6 @@ export function TlaSidebarGroupItem({ groupId, index }: { groupId: string; index
 	const trackEvent = useTldrawAppUiEvents()
 	const rCanCreate = useRef(true)
 
-	const { attributes, listeners, setNodeRef, isDragging } = useDraggable({
-		id: groupId,
-		data: {
-			type: 'group',
-			groupId,
-		},
-	})
-
 	const expansionState = useValue(
 		'expansionState',
 		() => {
@@ -321,20 +312,13 @@ export function TlaSidebarGroupItem({ groupId, index }: { groupId: string; index
 	if (!group) return null
 
 	return (
-		<div
-			ref={setNodeRef}
-			{...attributes}
-			className={isDragging ? styles.sidebarGroupItemDragging : undefined}
-			data-group-id={group.groupId}
-			data-no-animation={isNoAnimation}
-		>
+		<div className={undefined} data-group-id={group.groupId} data-no-animation={isNoAnimation}>
 			<_ContextMenu.Root onOpenChange={handleContextMenuOpenChange} modal={false}>
 				<_ContextMenu.Trigger>
 					<TlaSidebarDropZone id={`group-${groupId}-drop-zone`}>
 						<Collapsible.Root
 							className={styles.sidebarGroupItem}
 							open={isExpanded}
-							data-dragging={isDragging}
 							data-is-empty={isEmpty}
 							data-group-index={index}
 							data-is-expanded={isExpanded}
@@ -351,7 +335,6 @@ export function TlaSidebarGroupItem({ groupId, index }: { groupId: string; index
 											setIsExpanded(!isExpanded)
 										}
 									}}
-									{...listeners}
 									style={{ cursor: 'default' }}
 								>
 									<div

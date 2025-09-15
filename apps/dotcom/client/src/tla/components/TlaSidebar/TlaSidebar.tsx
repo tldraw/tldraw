@@ -1,7 +1,5 @@
-import { DndContext, PointerSensor, useSensor } from '@dnd-kit/core'
 import { memo, useCallback, useEffect } from 'react'
 import { useHasFlag } from '../../hooks/useHasFlag'
-import { useSidebarDragHandling } from '../../hooks/useSidebarDragHandling'
 import { useTldrFileDrop } from '../../hooks/useTldrFileDrop'
 import { useTldrawAppUiEvents } from '../../utils/app-ui-events'
 import { F } from '../../utils/i18n'
@@ -12,10 +10,8 @@ import {
 	useIsSidebarOpen,
 	useIsSidebarOpenMobile,
 } from '../../utils/local-session-state'
-import { HandleReordering } from './components/HandleReordering'
 import { TlaSidebarCookieConsent } from './components/TlaSidebarCookieConsent'
 import { TlaSidebarCreateFileButton } from './components/TlaSidebarCreateFileButton'
-import { TlaSidebarDragOverlay } from './components/TlaSidebarDragOverlay'
 import { TlaSidebarHelpMenu } from './components/TlaSidebarHelpMenu'
 import { TlaSidebarRecentFiles } from './components/TlaSidebarRecentFiles'
 import { TlaSidebarRecentFilesNew } from './components/TlaSidebarRecentFilesNew'
@@ -128,34 +124,15 @@ function LegacySidebarLayout() {
 	return <TlaSidebarRecentFiles />
 }
 
-import { restrictToVerticalAxis } from '@dnd-kit/modifiers'
 import { uniqueId, useDialogs } from 'tldraw'
 import { useApp } from '../../hooks/useAppState'
 import { CreateGroupDialog } from '../dialogs/CreateGroupDialog'
 import { TlaIcon } from '../TlaIcon/TlaIcon'
 
 function NewSidebarLayout() {
-	const { handleDragStart, handleDragMove, handleDragEnd, handleDragCancel } =
-		useSidebarDragHandling()
-
-	const pointerSensor = useSensor(PointerSensor, {
-		activationConstraint: {
-			distance: 5, // Only start dragging after moving 5px
-		},
-	})
-
 	return (
-		<DndContext
-			sensors={[pointerSensor]}
-			modifiers={[restrictToVerticalAxis]}
-			onDragStart={handleDragStart}
-			onDragEnd={handleDragEnd}
-			onDragCancel={handleDragCancel}
-			onDragMove={handleDragMove}
-		>
-			<HandleReordering />
+		<>
 			<TlaSidebarRecentFilesNew />
-			<TlaSidebarDragOverlay />
-		</DndContext>
+		</>
 	)
 }

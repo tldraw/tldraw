@@ -803,10 +803,6 @@
 	padding-left: var(--tla-sidebar-group-item-padding-left);
 }
 
-.sidebarGroupItemDragging {
-	position: relative;
-}
-
 .dropCursorLine {
 	height: 2px;
 	/* translateZ() is required to render at a consistent visual size */
@@ -1044,37 +1040,6 @@ body[data-dragging-type] {
 	color: var(--tla-color-text-4);
 	font-size: 12px;
 	padding: 8px 8px 8px calc(8px + var(--tla-sidebar-group-item-padding-left));
-}
-
-/* -------------------- Drop Zone Styles ------------------- */
-
-.sidebarDropZone {
-	position: relative;
-}
-
-.sidebarDropZoneActive::after {
-	display: block;
-	content: '';
-	position: absolute;
-	inset: -3px -5px;
-	border: 2px solid rgba(0, 122, 255, 0.7);
-	border-radius: 6px;
-	opacity: 1;
-}
-
-/* -------------------- Drag Overlay Styles ------------------- */
-
-/* Drag overlay uses the same styles as file list items */
-/* Ensure drag overlay doesn't interfere with clicks */
-[data-dnd-kit-drag-overlay] {
-	pointer-events: none !important;
-	user-select: none !important;
-}
-
-/* -------------------- Dragging State Styles ------------------- */
-
-.sidebarFileListItemDragging {
-	pointer-events: none;
 }
 
 [data-no-animation='true'] * {
