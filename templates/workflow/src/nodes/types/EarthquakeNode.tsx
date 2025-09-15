@@ -41,7 +41,7 @@ interface EarthquakeApiResponse {
 	features: EarthquakeFeature[]
 }
 
-export class EarthquakeNodeType extends NodeDefinition<EarthquakeNode> {
+export class EarthquakeNodeDefinition extends NodeDefinition<EarthquakeNode> {
 	static type = 'earthquake'
 	static validator = EarthquakeNode
 	title = 'Earthquake data'
