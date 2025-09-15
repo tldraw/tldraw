@@ -13,9 +13,25 @@ import { pageIdValidator, TLPage } from './TLPage'
 import { TLShapeId } from './TLShape'
 
 /**
- * TLInstancePageState
+ * State that is unique to a particular page within a particular browser tab.
+ * This record tracks all page-specific interaction state including selected shapes,
+ * editing state, hover state, and other transient UI state that is tied to
+ * both a specific page and a specific browser session.
  *
- * State that is unique to a particular page of the document in a particular browser tab
+ * Each combination of page and browser tab has its own TLInstancePageState record.
+ *
+ * @example
+ * ```ts
+ * const pageState: TLInstancePageState = {
+ *   id: 'instance_page_state:page1',
+ *   typeName: 'instance_page_state',
+ *   pageId: 'page:page1',
+ *   selectedShapeIds: ['shape:rect1', 'shape:circle2'],
+ *   hoveredShapeId: 'shape:text3',
+ *   editingShapeId: null,
+ *   focusedGroupId: null
+ * }
+ * ```
  *
  * @public
  */
@@ -32,7 +48,24 @@ export interface TLInstancePageState
 	meta: JsonObject
 }
 
-/** @public */
+/**
+ * Runtime validator for TLInstancePageState records. Validates the structure
+ * and types of all instance page state properties to ensure data integrity.
+ *
+ * @example
+ * ```ts
+ * const pageState = {
+ *   id: 'instance_page_state:page1',
+ *   typeName: 'instance_page_state',
+ *   pageId: 'page:page1',
+ *   selectedShapeIds: ['shape:rect1'],
+ *   // ... other properties
+ * }
+ * const isValid = instancePageStateValidator.isValid(pageState) // true
+ * ```
+ *
+ * @public
+ */
 export const instancePageStateValidator: T.Validator<TLInstancePageState> = T.model(
 	'instance_page_state',
 	T.object({
@@ -50,7 +83,13 @@ export const instancePageStateValidator: T.Validator<TLInstancePageState> = T.mo
 	})
 )
 
-/** @public */
+/**
+ * Migration version identifiers for TLInstancePageState records. Each version
+ * represents a schema change that requires data transformation when loading
+ * older documents.
+ *
+ * @public
+ */
 export const instancePageStateVersions = createMigrationIds('com.tldraw.instance_page_state', {
 	AddCroppingId: 1,
 	RemoveInstanceIdAndCameraId: 2,
@@ -59,7 +98,19 @@ export const instancePageStateVersions = createMigrationIds('com.tldraw.instance
 	RenamePropertiesAgain: 5,
 } as const)
 
-/** @public */
+/**
+ * Migration sequence for TLInstancePageState records. Defines how to transform
+ * instance page state records between different schema versions, ensuring data
+ * compatibility when loading documents created with different versions.
+ *
+ * @example
+ * ```ts
+ * // Migrations are applied automatically when loading documents
+ * const migrated = instancePageStateMigrations.migrate(oldState, targetVersion)
+ * ```
+ *
+ * @public
+ */
 export const instancePageStateMigrations = createRecordMigrationSequence({
 	sequenceId: 'com.tldraw.instance_page_state',
 	recordType: 'instance_page_state',
@@ -132,7 +183,25 @@ export const instancePageStateMigrations = createRecordMigrationSequence({
 	],
 })
 
-/** @public */
+/**
+ * The RecordType definition for TLInstancePageState records. Defines validation,
+ * scope, and default properties for instance page state records.
+ *
+ * Instance page states are scoped to the session level, meaning they are
+ * specific to a browser tab and don't persist across sessions or sync
+ * in collaborative environments.
+ *
+ * @example
+ * ```ts
+ * const pageState = InstancePageStateRecordType.create({
+ *   id: 'instance_page_state:page1',
+ *   pageId: 'page:page1',
+ *   selectedShapeIds: ['shape:rect1']
+ * })
+ * ```
+ *
+ * @public
+ */
 export const InstancePageStateRecordType = createRecordType<TLInstancePageState>(
 	'instance_page_state',
 	{
@@ -164,5 +233,17 @@ export const InstancePageStateRecordType = createRecordType<TLInstancePageState>
 	})
 )
 
-/** @public */
+/**
+ * A unique identifier for TLInstancePageState records.
+ *
+ * Instance page state IDs follow the format 'instance_page_state:' followed
+ * by a unique identifier, typically related to the page ID.
+ *
+ * @example
+ * ```ts
+ * const stateId: TLInstancePageStateId = 'instance_page_state:page1'
+ * ```
+ *
+ * @public
+ */
 export type TLInstancePageStateId = RecordId<TLInstancePageState>

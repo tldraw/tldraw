@@ -22,7 +22,21 @@ import {
 } from '../styles/TLVerticalAlignStyle'
 import { TLBaseShape } from './TLBaseShape'
 
-/** @public */
+/**
+ * Style property defining the geometric shape type for geo shapes.
+ * Provides a variety of built-in geometric forms including basic shapes,
+ * polygons, arrows, and special shapes.
+ *
+ * @public
+ * @example
+ * ```ts
+ * // Use in shape props
+ * const props = {
+ *   geo: 'rectangle', // or 'ellipse', 'triangle', etc.
+ *   // other properties...
+ * }
+ * ```
+ */
 export const GeoShapeGeoStyle = StyleProp.defineEnum('tldraw:geo', {
 	defaultValue: 'rectangle',
 	values: [
@@ -49,34 +63,105 @@ export const GeoShapeGeoStyle = StyleProp.defineEnum('tldraw:geo', {
 	],
 })
 
-/** @public */
+/**
+ * Type representing valid geometric shape styles for geo shapes.
+ *
+ * @public
+ */
 export type TLGeoShapeGeoStyle = T.TypeOf<typeof GeoShapeGeoStyle>
 
-/** @public */
+/**
+ * Properties for the geo shape, which renders various geometric forms with styling and text.
+ *
+ * @public
+ */
 export interface TLGeoShapeProps {
+	/** Geometric shape type (rectangle, ellipse, triangle, etc.) */
 	geo: TLGeoShapeGeoStyle
+	/** Dash pattern style for the shape outline */
 	dash: TLDefaultDashStyle
+	/** URL link associated with the shape */
 	url: string
+	/** Width of the shape in pixels */
 	w: number
+	/** Height of the shape in pixels */
 	h: number
+	/** Additional vertical growth for text content */
 	growY: number
+	/** Scale factor applied to the shape */
 	scale: number
 
-	// Text properties
+	/** Color style for text label */
 	labelColor: TLDefaultColorStyle
+	/** Color style for the shape outline */
 	color: TLDefaultColorStyle
+	/** Fill style for the shape interior */
 	fill: TLDefaultFillStyle
+	/** Size/thickness style for outline and text */
 	size: TLDefaultSizeStyle
+	/** Font style for text content */
 	font: TLDefaultFontStyle
+	/** Horizontal alignment for text content */
 	align: TLDefaultHorizontalAlignStyle
+	/** Vertical alignment for text content */
 	verticalAlign: TLDefaultVerticalAlignStyle
+	/** Rich text content displayed within the shape */
 	richText: TLRichText
 }
 
-/** @public */
+/**
+ * A geo shape represents geometric forms like rectangles, ellipses, triangles, and other
+ * predefined shapes. Geo shapes support styling, text content, and can act as containers.
+ *
+ * @public
+ * @example
+ * ```ts
+ * const geoShape: TLGeoShape = {
+ *   id: createShapeId(),
+ *   typeName: 'shape',
+ *   type: 'geo',
+ *   x: 100,
+ *   y: 100,
+ *   rotation: 0,
+ *   index: 'a1',
+ *   parentId: 'page:page1',
+ *   isLocked: false,
+ *   opacity: 1,
+ *   props: {
+ *     geo: 'rectangle',
+ *     w: 200,
+ *     h: 100,
+ *     color: 'black',
+ *     fill: 'solid',
+ *     dash: 'solid',
+ *     size: 'm',
+ *     font: 'draw',
+ *     align: 'middle',
+ *     verticalAlign: 'middle',
+ *     richText: toRichText('Hello World'),
+ *     labelColor: 'black',
+ *     url: '',
+ *     growY: 0,
+ *     scale: 1
+ *   },
+ *   meta: {}
+ * }
+ * ```
+ */
 export type TLGeoShape = TLBaseShape<'geo', TLGeoShapeProps>
 
-/** @public */
+/**
+ * Validation schema for geo shape properties.
+ *
+ * @public
+ * @example
+ * ```ts
+ * // Validate geo shape properties
+ * const isValidGeo = geoShapeProps.geo.isValid('rectangle')
+ * const isValidSize = geoShapeProps.w.isValid(100)
+ * const isValidText = geoShapeProps.richText.isValid(toRichText('Hello'))
+ * ```
+ */
 export const geoShapeProps: RecordProps<TLGeoShape> = {
 	geo: GeoShapeGeoStyle,
 	dash: DefaultDashStyle,
@@ -110,9 +195,20 @@ const geoShapeVersions = createShapePropsMigrationIds('geo', {
 	AddRichText: 10,
 })
 
+/**
+ * Version identifiers for geo shape migrations.
+ *
+ * @public
+ */
 export { geoShapeVersions as geoShapeVersions }
 
-/** @public */
+/**
+ * Migration sequence for geo shape properties across different schema versions.
+ * Handles evolution of geo shapes including URL support, label colors, alignment changes,
+ * and the transition from plain text to rich text.
+ *
+ * @public
+ */
 export const geoShapeMigrations = createShapePropsMigrationSequence({
 	sequence: [
 		{
