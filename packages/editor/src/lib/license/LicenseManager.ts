@@ -323,11 +323,8 @@ export class LicenseManager {
 
 			// Native license support
 			// In this case, `normalizedHost` is actually a protocol, e.g. `app-bundle:`
-			if (
-				this.isNativeLicense(licenseInfo) &&
-				new RegExp(normalizedHostOrUrlRegex).test(window.location.href)
-			) {
-				return true
+			if (this.isNativeLicense(licenseInfo)) {
+				return new RegExp(normalizedHostOrUrlRegex).test(window.location.href)
 			}
 
 			// Glob testing, we only support '*.somedomain.com' right now.
