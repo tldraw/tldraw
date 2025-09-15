@@ -178,6 +178,9 @@ export class LicenseManager {
 		const url = new URL(WATERMARK_TRACK_SRC)
 		url.searchParams.set('version', version)
 		url.searchParams.set('license_type', trackType)
+		if ('license' in result) {
+			url.searchParams.set('license_id', result.license.id)
+		}
 
 		// eslint-disable-next-line no-restricted-globals
 		fetch(url.toString())
