@@ -2,47 +2,80 @@
 import { Signal, computed, react } from '@tldraw/state'
 import { useMemo, useSyncExternalStore } from 'react'
 
-/** @public */
-export function useValue<Value>(value: Signal<Value>): Value
-
 /**
- * Extracts the value from a signal and subscribes to it.
+ * Extracts the current value from a signal and subscribes the component to changes.
  *
- * Note that you do not need to use this hook if you are wrapping the component with {@link track}
+ * This is the most straightforward way to read signal values in React components.
+ * When the signal changes, the component will automatically re-render with the new value.
+ *
+ * Note: You do not need to use this hook if you are wrapping the component with {@link track},
+ * as tracked components automatically subscribe to any signals accessed with `.get()`.
+ *
+ * @param value - The signal to read the value from
+ * @returns The current value of the signal
  *
  * @example
  * ```ts
- * const Counter: React.FC = () => {
- *   const $count = useAtom('count', 0)
- *   const increment = useCallback(() => $count.set($count.get() + 1), [count])
- *   const currentCount = useValue($count)
- *   return <button onClick={increment}>{currentCount}</button>
+ * import { atom } from '@tldraw/state'
+ * import { useValue } from '@tldraw/state-react'
+ *
+ * const count = atom('count', 0)
+ *
+ * function Counter() {
+ *   const currentCount = useValue(count)
+ *   return (
+ *     <button onClick={() => count.set(currentCount + 1)}>
+ *       Count: {currentCount}
+ *     </button>
+ *   )
  * }
  * ```
  *
- * You can also pass a function to compute the value and it will be memoized as in `useComputed`:
+ * @public
+ */
+export function useValue<Value>(value: Signal<Value>): Value
+
+/**
+ * Creates a computed value with automatic dependency tracking and subscribes to changes.
+ *
+ * This overload allows you to compute a value from one or more signals with automatic
+ * memoization. The computed function will only re-execute when its dependencies change,
+ * and the component will only re-render when the computed result changes.
+ *
+ * @param name - A descriptive name for debugging purposes
+ * @param fn - Function that computes the value, should call `.get()` on any signals it depends on
+ * @param deps - Array of signals that the computed function depends on
+ * @returns The computed value
  *
  * @example
  * ```ts
- * type GreeterProps = {
- *   firstName: Signal<string>
- *   lastName: Signal<string>
- * }
+ * import { atom } from '@tldraw/state'
+ * import { useValue } from '@tldraw/state-react'
  *
- * const Greeter = track(function Greeter({ firstName, lastName }: GreeterProps) {
- *   const fullName = useValue('fullName', () => `${firstName.get()} ${lastName.get()}`, [
- *     firstName,
- *     lastName,
- *   ])
+ * const firstName = atom('firstName', 'John')
+ * const lastName = atom('lastName', 'Doe')
+ *
+ * function UserGreeting() {
+ *   const fullName = useValue('fullName', () => {
+ *     return `${firstName.get()} ${lastName.get()}`
+ *   }, [firstName, lastName])
+ *
  *   return <div>Hello {fullName}!</div>
- * })
+ * }
  * ```
  *
  * @public
  */
 export function useValue<Value>(name: string, fn: () => Value, deps: unknown[]): Value
 
-/** @public */
+/**
+ * Implementation function for useValue hook overloads.
+ *
+ * Handles both single signal subscription and computed value creation with dependency tracking.
+ * Uses React's useSyncExternalStore for efficient subscription management and automatic cleanup.
+ *
+ * @internal
+ */
 export function useValue() {
 	const args = arguments
 	// deps will be either the computed or the deps array
