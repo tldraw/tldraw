@@ -52,7 +52,10 @@ function HtmlCssShapeComponent({ shape }: { shape: HtmlCssShape }) {
 
 export default function EndToEnd() {
 	// Use test license key if available, otherwise use the default
-	const licenseKey = (window as any).__TLDRAW_LICENSE_KEY__ || getLicenseKey()
+	// Check if __TLDRAW_LICENSE_KEY__ was explicitly set (including null/undefined/empty string)
+	const testLicenseKey = (window as any).__TLDRAW_LICENSE_KEY__
+	const hasExplicitTestKey = Object.prototype.hasOwnProperty.call(window, '__TLDRAW_LICENSE_KEY__')
+	const licenseKey = hasExplicitTestKey ? testLicenseKey : getLicenseKey()
 
 	useLayoutEffect(() => {
 		if (customElements.get('custom-element')) return

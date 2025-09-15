@@ -171,9 +171,3 @@ export function useEditableTextCommon(shapeId: TLShapeId) {
 		isReadyForEditing,
 	}
 }
-
-/**
- * @deprecated Use `useEditablePlainText` instead.
- * @public
- */
-export const useEditableText = useEditablePlainText

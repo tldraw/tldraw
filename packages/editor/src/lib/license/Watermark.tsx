@@ -28,12 +28,74 @@ export const Watermark = memo(function Watermark() {
 	return (
 		<>
 			<LicenseStyles />
-			<WatermarkInner src={isMobile ? WATERMARK_MOBILE_LOCAL_SRC : WATERMARK_DESKTOP_LOCAL_SRC} />
+			<WatermarkInner
+				src={isMobile ? WATERMARK_MOBILE_LOCAL_SRC : WATERMARK_DESKTOP_LOCAL_SRC}
+				isUnlicensed={licenseManagerState === 'unlicensed'}
+			/>
 		</>
 	)
 })
 
-const WatermarkInner = memo(function WatermarkInner({ src }: { src: string }) {
+const UnlicensedWatermark = memo(function UnlicensedWatermark({
+	isDebugMode,
+	isMobile,
+}: {
+	isDebugMode: boolean
+	isMobile: boolean
+}) {
+	const events = useCanvasEvents()
+	const ref = useRef<HTMLDivElement>(null)
+	usePassThroughWheelEvents(ref)
+
+	const url = 'https://tldraw.dev/?utm_source=dotcom&utm_medium=organic&utm_campaign=watermark'
+
+	return (
+		<div
+			ref={ref}
+			className={LicenseManager.className}
+			data-debug={isDebugMode}
+			data-mobile={isMobile}
+			data-unlicensed={true}
+			data-testid="tl-watermark-unlicensed"
+			draggable={false}
+			{...events}
+		>
+			<button
+				draggable={false}
+				role="button"
+				onPointerDown={(e) => {
+					stopEventPropagation(e)
+					preventDefault(e)
+				}}
+				title="Unlicensed - click to get a license"
+				onClick={() => runtime.openWindow(url, '_blank')}
+				style={{
+					position: 'absolute',
+					pointerEvents: 'all',
+					cursor: 'pointer',
+					color: 'var(--tl-color-text)',
+					opacity: 0.8,
+					border: 0,
+					padding: 0,
+					backgroundColor: 'transparent',
+					fontSize: '11px',
+					fontWeight: '600',
+					textAlign: 'center',
+				}}
+			>
+				Unlicensed
+			</button>
+		</div>
+	)
+})
+
+const WatermarkInner = memo(function WatermarkInner({
+	src,
+	isUnlicensed,
+}: {
+	src: string
+	isUnlicensed: boolean
+}) {
 	const editor = useEditor()
 	const isDebugMode = useValue('debug mode', () => editor.getInstanceState().isDebugMode, [editor])
 	const isMobile = useValue('is mobile', () => editor.getViewportScreenBounds().width < 700, [
@@ -47,12 +109,17 @@ const WatermarkInner = memo(function WatermarkInner({ src }: { src: string }) {
 	const maskCss = `url('${src}') center 100% / 100% no-repeat`
 	const url = 'https://tldraw.dev/?utm_source=dotcom&utm_medium=organic&utm_campaign=watermark'
 
+	if (isUnlicensed) {
+		return <UnlicensedWatermark isDebugMode={isDebugMode} isMobile={isMobile} />
+	}
+
 	return (
 		<div
 			ref={ref}
 			className={LicenseManager.className}
 			data-debug={isDebugMode}
 			data-mobile={isMobile}
+			data-testid="tl-watermark-licensed"
 			draggable={false}
 			{...events}
 		>
@@ -86,8 +153,8 @@ To remove the watermark, please purchase a license at tldraw.dev.
 
 	.${className} {
 		position: absolute;
-		bottom: var(--tl-space-2);
-		right: var(--tl-space-2);
+		bottom: max(var(--tl-space-2), env(safe-area-inset-bottom));
+		right: max(var(--tl-space-2), env(safe-area-inset-right));
 		width: 96px;
 		height: 32px;
 		display: flex;
@@ -116,12 +183,12 @@ To remove the watermark, please purchase a license at tldraw.dev.
 	}
 
 	.${className}[data-debug='true'] {
-		bottom: 46px;
+		bottom: max(46px, env(safe-area-inset-bottom));
 	}
 
 	.${className}[data-mobile='true'] {
 		border-radius: 4px 0px 0px 4px;
-		right: -2px;
+		right: max(-2px, calc(env(safe-area-inset-right) - 2px));
 		width: 8px;
 		height: 48px;
 	}

@@ -136,6 +136,9 @@ describe('T.indexKey', () => {
 		expect(() => T.indexKey.validate('a')).toThrowErrorMatchingInlineSnapshot(
 			`[ValidationError: At null: Expected an index key, got "a"]`
 		)
+		expect(() => T.indexKey.validate('a00')).toThrowErrorMatchingInlineSnapshot(
+			`[ValidationError: At null: Expected an index key, got "a00"]`
+		)
 		expect(() => T.indexKey.validate('')).toThrowErrorMatchingInlineSnapshot(
 			`[ValidationError: At null: Expected an index key, got ""]`
 		)

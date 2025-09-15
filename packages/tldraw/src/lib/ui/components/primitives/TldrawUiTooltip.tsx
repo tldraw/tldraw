@@ -6,6 +6,7 @@ import React, {
 	ReactNode,
 	useContext,
 	useEffect,
+	useLayoutEffect,
 	useRef,
 	useState,
 } from 'react'
@@ -24,18 +25,20 @@ export interface TldrawUiTooltipProps {
 	delayDuration?: number
 }
 
+interface CurrentTooltip {
+	id: string
+	content: ReactNode
+	side: 'top' | 'right' | 'bottom' | 'left'
+	sideOffset: number
+	showOnMobile: boolean
+	targetElement: HTMLElement
+	delayDuration: number
+}
+
 // Singleton tooltip manager
 class TooltipManager {
 	private static instance: TooltipManager | null = null
-	private currentTooltip = atom<{
-		id: string
-		content: ReactNode
-		side: 'top' | 'right' | 'bottom' | 'left'
-		sideOffset: number
-		showOnMobile: boolean
-		targetElement: HTMLElement
-		delayDuration: number
-	} | null>('current tooltip', null)
+	private currentTooltip = atom<CurrentTooltip | null>('current tooltip', null)
 	private destroyTimeoutId: number | null = null
 
 	static getInstance(): TooltipManager {
@@ -69,6 +72,15 @@ class TooltipManager {
 			showOnMobile,
 			targetElement,
 			delayDuration,
+		})
+	}
+
+	updateCurrentTooltip(tooltipId: string, update: (tooltip: CurrentTooltip) => CurrentTooltip) {
+		this.currentTooltip.update((tooltip) => {
+			if (tooltip?.id === tooltipId) {
+				return update(tooltip)
+			}
+			return tooltip
 		})
 	}
 
@@ -142,12 +154,22 @@ function TooltipSingleton() {
 	const [isOpen, setIsOpen] = useState(false)
 	const triggerRef = useRef<HTMLDivElement>(null)
 	const isFirstShowRef = useRef(true)
+	const editor = useMaybeEditor()
 
 	const currentTooltip = useValue(
 		'current tooltip',
 		() => tooltipManager.getCurrentTooltipData(),
 		[]
 	)
+
+	const cameraState = useValue('camera state', () => editor?.getCameraState(), [editor])
+
+	// Hide tooltip when camera is moving (panning/zooming)
+	useEffect(() => {
+		if (cameraState === 'moving' && isOpen && currentTooltip) {
+			tooltipManager.hideTooltip(editor, currentTooltip.id, true)
+		}
+	}, [cameraState, isOpen, currentTooltip, editor])
 
 	// Update open state and trigger position
 	useEffect(() => {
@@ -231,11 +253,10 @@ export const TldrawUiTooltip = forwardRef<HTMLButtonElement, TldrawUiTooltipProp
 		const editor = useMaybeEditor()
 		const tooltipId = useRef<string>(uniqueId())
 		const hasProvider = useContext(TooltipSingletonContext)
+		const showUiLabels = useValue('showUiLabels', () => editor?.user.getShowUiLabels(), [editor])
 
 		const orientationCtx = useTldrawUiOrientation()
 		const sideToUse = side ?? orientationCtx.tooltipSide
-
-		const camera = useValue('camera', () => editor?.getCamera(), [])
 
 		useEffect(() => {
 			const currentTooltipId = tooltipId.current
@@ -246,17 +267,30 @@ export const TldrawUiTooltip = forwardRef<HTMLButtonElement, TldrawUiTooltipProp
 			}
 		}, [editor, hasProvider])
 
-		useEffect(() => {
-			tooltipManager.hideTooltip(editor, tooltipId.current, true)
-		}, [editor, camera])
+		useLayoutEffect(() => {
+			if (hasProvider && tooltipManager.getCurrentTooltipData()?.id === tooltipId.current) {
+				tooltipManager.updateCurrentTooltip(tooltipId.current, (tooltip) => ({
+					...tooltip,
+					content,
+					side: sideToUse,
+					sideOffset,
+					showOnMobile,
+				}))
+			}
+		}, [content, sideToUse, sideOffset, showOnMobile, hasProvider])
 
 		// Don't show tooltip if disabled, no content, or UI labels are disabled
 		if (disabled || !content) {
 			return <>{children}</>
 		}
 
-		const delayDurationToUse =
-			delayDuration ?? (editor?.options.tooltipDelayMs || DEFAULT_TOOLTIP_DELAY_MS)
+		let delayDurationToUse
+		if (showUiLabels) {
+			delayDurationToUse = 0
+		} else {
+			delayDurationToUse =
+				delayDuration ?? (editor?.options.tooltipDelayMs || DEFAULT_TOOLTIP_DELAY_MS)
+		}
 
 		// Fallback to old behavior if no provider
 		if (!hasProvider) {

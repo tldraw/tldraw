@@ -25,7 +25,7 @@ import {
 	CONNECTION_CENTER_HANDLE_HOVER_SIZE_PX,
 	CONNECTION_CENTER_HANDLE_SIZE_PX,
 } from '../constants'
-import { getAllConnectedNodes, getNodeOutputPortValues, getNodePorts } from '../nodes/nodePorts'
+import { getAllConnectedNodes, getNodeOutputPortInfo, getNodePorts } from '../nodes/nodePorts'
 import { STOP_EXECUTION } from '../nodes/types/shared'
 import { getPortAtPoint } from '../ports/getPortAtPoint'
 import { updatePortState } from '../ports/portState'
@@ -313,9 +313,9 @@ function ConnectionShape({ connection }: { connection: ConnectionShape }) {
 			if (!bindings.start) return false
 			const originShapeId = bindings.start?.toId
 			if (!originShapeId) return false
-			const outputs = getNodeOutputPortValues(editor, originShapeId)
-			const outputValue = outputs[bindings.start.props.portId]
-			return outputValue === STOP_EXECUTION
+			const outputs = getNodeOutputPortInfo(editor, originShapeId)
+			const output = outputs[bindings.start.props.portId]
+			return output.value === STOP_EXECUTION
 		},
 		[connection.id, editor]
 	)

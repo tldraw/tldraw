@@ -7,6 +7,7 @@ import {
 	TldrawUiMenuContextProvider,
 	TldrawUiTooltip,
 	preventDefault,
+	useMaybeEditor,
 	useMenuIsOpen,
 	useValue,
 } from 'tldraw'
@@ -126,6 +127,8 @@ export function TlaSidebarFileLinkInner({
 	const app = useApp()
 	const focusCtx = useFileSidebarFocusContext()
 	const isSidebarOpenMobile = useIsSidebarOpenMobile()
+	const editor = useMaybeEditor()
+	const showUiLabels = useValue('showUiLabels', () => editor?.user.getShowUiLabels(), [editor])
 
 	useEffect(() => {
 		// on mount, trigger rename action if this is a new file.
@@ -158,6 +161,7 @@ export function TlaSidebarFileLinkInner({
 	return (
 		<div
 			className={classNames(styles.sidebarFileListItem, styles.hoverable)}
+			data-show-ui-labels={showUiLabels}
 			data-active={isActive}
 			data-element="file-link"
 			data-testid={testId}

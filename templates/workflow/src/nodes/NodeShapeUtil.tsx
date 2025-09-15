@@ -7,6 +7,7 @@ import {
 	Rectangle2d,
 	resizeBox,
 	ShapeUtil,
+	T,
 	TLBaseShape,
 	TLResizeInfo,
 	useEditor,
@@ -16,29 +17,25 @@ import {
 import { NODE_WIDTH_PX, PORT_RADIUS_PX } from '../constants'
 import { executionState } from '../execution/executionState'
 import { Port, ShapePort } from '../ports/Port'
-import { getNodeOutputPortValues, getNodePorts } from './nodePorts'
-import {
-	getNodeDefinition,
-	getNodeHeightPx,
-	NodeBody,
-	NodeDefinitions,
-	NodeType,
-} from './nodeTypes'
-import { NodeValue } from './types/shared'
+import { getNodeOutputPortInfo, getNodePorts } from './nodePorts'
+import { getNodeDefinition, getNodeHeightPx, NodeBody, NodeType } from './nodeTypes'
+import { NodeValue, STOP_EXECUTION } from './types/shared'
 
 // Define our custom node shape type that extends tldraw's base shape system
-export type NodeShape = TLBaseShape<'node', { node: NodeType }>
+export type NodeShape = TLBaseShape<'node', { node: NodeType; isOutOfDate: boolean }>
 
 // This class extends tldraw's ShapeUtil to define how our custom node shapes behave
 export class NodeShapeUtil extends ShapeUtil<NodeShape> {
 	static override type = 'node' as const
 	static override props: RecordProps<NodeShape> = {
 		node: NodeType,
+		isOutOfDate: T.boolean,
 	}
 
 	getDefaultProps(): NodeShape['props'] {
 		return {
-			node: NodeDefinitions[0].getDefault(),
+			node: getNodeDefinition(this.editor, 'add').getDefault(),
+			isOutOfDate: false,
 		}
 	}
 
@@ -82,12 +79,13 @@ export class NodeShapeUtil extends ShapeUtil<NodeShape> {
 					isFilled: true,
 					// not a label, but this hack excludes them from the selection bounds which is useful
 					isLabel: true,
+					excludeFromShapeBounds: true,
 				})
 		)
 
 		const bodyGeometry = new Rectangle2d({
 			width: NODE_WIDTH_PX,
-			height: getNodeHeightPx(shape.props.node),
+			height: getNodeHeightPx(this.editor, shape),
 			isFilled: true,
 		})
 
@@ -113,6 +111,7 @@ export class NodeShapeUtil extends ShapeUtil<NodeShape> {
 // SVG indicator component that shows selection bounds and ports
 function NodeShapeIndicator({ shape, ports }: { shape: NodeShape; ports: ShapePort[] }) {
 	const id = useUniqueSafeId()
+	const editor = useEditor()
 
 	return (
 		<>
@@ -120,7 +119,7 @@ function NodeShapeIndicator({ shape, ports }: { shape: NodeShape; ports: ShapePo
 			<mask id={id}>
 				<rect
 					width={NODE_WIDTH_PX + 10}
-					height={getNodeHeightPx(shape.props.node) + 10}
+					height={getNodeHeightPx(editor, shape) + 10}
 					fill="white"
 					x={-5}
 					y={-5}
@@ -139,7 +138,7 @@ function NodeShapeIndicator({ shape, ports }: { shape: NodeShape; ports: ShapePo
 			<rect
 				rx={9}
 				width={NODE_WIDTH_PX}
-				height={getNodeHeightPx(shape.props.node)}
+				height={getNodeHeightPx(editor, shape)}
 				mask={`url(#${id})`}
 			/>
 			{ports.map((port) => (
@@ -156,7 +155,7 @@ function NodeShape({ shape }: { shape: NodeShape }) {
 	// Get the node's output value
 	const output = useValue(
 		'output',
-		() => getNodeOutputPortValues(editor, shape.id)?.output ?? undefined,
+		() => getNodeOutputPortInfo(editor, shape.id)?.output ?? undefined,
 		[editor, shape.id]
 	)
 
@@ -167,7 +166,7 @@ function NodeShape({ shape }: { shape: NodeShape }) {
 		[editor, shape.id]
 	)
 
-	const nodeDefinition = getNodeDefinition(shape.props.node)
+	const nodeDefinition = getNodeDefinition(editor, shape.props.node)
 
 	return (
 		<HTMLContainer
@@ -180,7 +179,7 @@ function NodeShape({ shape }: { shape: NodeShape }) {
 				{output !== undefined && (
 					<>
 						<div className="NodeShape-output">
-							<NodeValue value={output} />
+							<NodeValue value={output.isOutOfDate ? STOP_EXECUTION : output.value} />
 						</div>
 						<Port shapeId={shape.id} portId="output" />
 					</>

@@ -13,7 +13,7 @@ export interface TLUiSliderProps {
 	label: string
 	title: string
 	onValueChange(value: number): void
-	onHistoryMark(id: string): void
+	onHistoryMark?(id: string): void
 	'data-testid'?: string
 	ariaValueModifier?: number
 }
@@ -53,7 +53,7 @@ export const TldrawUiSlider = React.forwardRef<HTMLDivElement, TLUiSliderProps>(
 
 	const handlePointerDown = useCallback(() => {
 		tooltipManager.hideAllTooltips()
-		onHistoryMark('click slider')
+		onHistoryMark?.('click slider')
 	}, [onHistoryMark])
 
 	// N.B. This is a bit silly. The Radix slider auto-focuses which
