@@ -6,24 +6,27 @@ import {
 	DefaultVerticalAlignStyle,
 	FONT_FAMILIES,
 	Geometry2d,
+	getColorValue,
 	LABEL_FONT_SIZES,
-	PlainTextLabel,
 	Polygon2d,
 	RecordPropsType,
+	renderPlaintextFromRichText,
+	resizeBox,
+	RichTextLabel,
+	richTextValidator,
 	ShapeUtil,
+	structuredClone,
 	T,
 	TEXT_PROPS,
 	TLBaseShape,
 	TLHandle,
 	TLHandleDragInfo,
 	TLResizeInfo,
-	Vec,
-	ZERO_INDEX_KEY,
-	getColorValue,
-	resizeBox,
-	structuredClone,
+	toRichText,
 	useDefaultColorTheme,
+	Vec,
 	vecModelValidator,
+	ZERO_INDEX_KEY,
 } from 'tldraw'
 import { getSpeechBubbleVertices, getTailIntersectionPoint } from './helpers'
 
@@ -48,7 +51,7 @@ export const speechBubbleShapeProps = {
 	align: DefaultHorizontalAlignStyle,
 	verticalAlign: DefaultVerticalAlignStyle,
 	growY: T.positiveNumber,
-	text: T.string,
+	richText: richTextValidator,
 	tail: vecModelValidator,
 }
 
@@ -84,7 +87,7 @@ export class SpeechBubbleUtil extends ShapeUtil<SpeechBubbleShape> {
 			align: 'middle',
 			verticalAlign: 'start',
 			growY: 0,
-			text: '',
+			richText: toRichText(''),
 			tail: { x: 0.5, y: 1.5 },
 		}
 	}
@@ -176,7 +179,7 @@ export class SpeechBubbleUtil extends ShapeUtil<SpeechBubbleShape> {
 		const {
 			id,
 			type,
-			props: { color, font, size, align, text },
+			props: { color, font, size, align, richText },
 		} = shape
 		const vertices = getSpeechBubbleVertices(shape)
 		const pathData = 'M' + vertices[0] + 'L' + vertices.slice(1) + 'Z'
@@ -194,7 +197,7 @@ export class SpeechBubbleUtil extends ShapeUtil<SpeechBubbleShape> {
 						fill={'none'}
 					/>
 				</svg>
-				<PlainTextLabel
+				<RichTextLabel
 					shapeId={id}
 					type={type}
 					font={font}
@@ -203,7 +206,7 @@ export class SpeechBubbleUtil extends ShapeUtil<SpeechBubbleShape> {
 					lineHeight={TEXT_PROPS.lineHeight}
 					align={align}
 					verticalAlign="start"
-					text={text}
+					richText={richText}
 					labelColor={getColorValue(theme, color, 'solid')}
 					isSelected={isSelected}
 					wrap
@@ -231,7 +234,8 @@ export class SpeechBubbleUtil extends ShapeUtil<SpeechBubbleShape> {
 	getGrowY(shape: SpeechBubbleShape, prevGrowY = 0) {
 		const PADDING = 17
 
-		const nextTextSize = this.editor.textMeasure.measureText(shape.props.text, {
+		const plainText = renderPlaintextFromRichText(this.editor, shape.props.richText)
+		const nextTextSize = this.editor.textMeasure.measureText(plainText, {
 			...TEXT_PROPS,
 			fontFamily: FONT_FAMILIES[shape.props.font],
 			fontSize: LABEL_FONT_SIZES[shape.props.size],

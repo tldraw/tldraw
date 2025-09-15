@@ -10,8 +10,9 @@ import {
 	useEditor,
 	useValue,
 } from '@tldraw/editor'
+// Text helper functions recreated locally
+const normalizeText = (text: string) => text.replace(/\r?\n|\r/g, '\n')
 import React, { useCallback, useEffect, useRef } from 'react'
-import { TextHelpers } from './TextHelpers'
 
 /** @public */
 export function useEditablePlainText(shapeId: TLShapeId, type: string, text?: string) {
@@ -75,7 +76,7 @@ export function useEditablePlainText(shapeId: TLShapeId, type: string, text?: st
 		({ plaintext }: { plaintext: string }) => {
 			if (editor.getEditingShapeId() !== shapeId) return
 
-			const normalizedPlaintext = TextHelpers.normalizeText(plaintext || '')
+			const normalizedPlaintext = normalizeText(plaintext || '')
 			editor.updateShape<TLUnknownShape & { props: { text: string } }>({
 				id: shapeId,
 				type,

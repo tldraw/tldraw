@@ -1,6 +1,19 @@
 import { preventDefault, stopEventPropagation } from '@tldraw/editor'
 import React from 'react'
-import { TextAreaProps } from './RichTextArea'
+
+/** @public */
+export interface TextAreaProps {
+	isEditing: boolean
+	text?: string
+	shapeId: any
+	handleFocus: (e: React.FocusEvent<HTMLTextAreaElement>) => void
+	handleChange: ({ plaintext }: { plaintext: string }) => void
+	handleKeyDown: (e: KeyboardEvent) => void
+	handlePaste: (e: React.ClipboardEvent<HTMLTextAreaElement>) => void
+	handleBlur: (e: React.FocusEvent<HTMLTextAreaElement>) => void
+	handleInputPointerDown: (e: React.PointerEvent) => void
+	handleDoubleClick: (e: React.MouseEvent<HTMLTextAreaElement>) => void
+}
 
 /**
  * A plain text area that can be used for basic editing text.

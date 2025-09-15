@@ -6,11 +6,21 @@ import {
 	TLDefaultVerticalAlignStyle,
 	TLShapeId,
 } from '@tldraw/editor'
+// Text helper functions recreated locally
+const normalizeTextForDom = (text: string) =>
+	text
+		.replace(/\r?\n|\r/g, '\n')
+		.split('\n')
+		.map((x) => x || ' ')
+		.join('\n')
 import React from 'react'
-import { PlainTextArea } from '../text/PlainTextArea'
-import { TextHelpers } from './TextHelpers'
-import { isLegacyAlign } from './legacyProps'
+import { PlainTextArea } from './PlainTextArea'
 import { useEditablePlainText } from './useEditablePlainText'
+
+// Simple helper to check for legacy align values
+function isLegacyAlign(align: string) {
+	return align === 'start' || align === 'end'
+}
 
 /** @public */
 export interface PlainTextLabelProps {
@@ -37,8 +47,8 @@ export interface PlainTextLabelProps {
 
 /**
  * Renders a text label that can be used inside of shapes.
- * The component has the ability to be edited in place and furthermore
- * supports rich text editing.
+ * The component has the ability to be edited in place and supports
+ * plain text editing only (no rich text formatting).
  *
  * @public @react
  */
@@ -64,7 +74,7 @@ export const PlainTextLabel = React.memo(function PlainTextLabel({
 	const { rInput, isEmpty, isEditing, isReadyForEditing, ...editableTextRest } =
 		useEditablePlainText(shapeId, type, plaintext)
 
-	const finalPlainText = TextHelpers.normalizeTextForDom(plaintext || '')
+	const finalPlainText = normalizeTextForDom(plaintext || '')
 	const hasText = finalPlainText.length > 0
 
 	const legacyAlign = isLegacyAlign(align)
