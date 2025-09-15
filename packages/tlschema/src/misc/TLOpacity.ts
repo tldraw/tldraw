@@ -27,7 +27,7 @@ export type TLOpacityType = number
  * runtime type checking for opacity properties throughout the editor.
  *
  * @param n - The number to validate as an opacity value
- * @throws {T.ValidationError} When the value is not between 0 and 1
+ * @throws T.ValidationError When the value is not between 0 and 1
  *
  * @example
  * ```ts

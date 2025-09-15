@@ -278,10 +278,10 @@ export type TLStore = Store<TLRecord, TLStoreProps>
  * during store initialization.
  *
  * @param options - The validation failure details
- * @param options.error - The validation error that occurred
- * @param options.phase - The store operation phase when validation failed
- * @param options.record - The invalid record that caused the failure
- * @param options.recordBefore - The previous state of the record (if applicable)
+ *   - error - The validation error that occurred
+ *   - phase - The store operation phase when validation failed
+ *   - record - The invalid record that caused the failure
+ *   - recordBefore - The previous state of the record (if applicable)
  * @returns The record to use (typically throws the annotated error)
  * @throws The original validation error with additional debugging context
  *

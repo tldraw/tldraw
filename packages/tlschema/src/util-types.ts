@@ -8,8 +8,6 @@
  * The type uses TypeScript's `infer` keyword to capture the generic parameter
  * of the Set type, making it reusable across different Set types.
  *
- * @template T - The Set type to extract the value type from
- *
  * @example
  * ```ts
  * import { SetValue } from '@tldraw/tlschema'

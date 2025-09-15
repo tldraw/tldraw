@@ -535,7 +535,7 @@ export const DefaultColorThemePalette: {
  * Returns the appropriate default color theme based on the dark mode preference.
  *
  * @param opts - Configuration options
- * @param opts.isDarkMode - Whether to return the dark theme (true) or light theme (false)
+ *   - isDarkMode - Whether to return the dark theme (true) or light theme (false)
  * @returns The corresponding TLDefaultColorTheme (light or dark)
  *
  * @example

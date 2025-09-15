@@ -191,9 +191,9 @@ export const defaultBindingSchemas = {
  * all shapes to ensure consistency across the application.
  *
  * @param options - Configuration options for the schema
- * @param options.shapes - Shape schema configurations. Defaults to defaultShapeSchemas if not provided
- * @param options.bindings - Binding schema configurations. Defaults to defaultBindingSchemas if not provided
- * @param options.migrations - Additional migration sequences to include in the schema
+ *   - shapes - Shape schema configurations. Defaults to defaultShapeSchemas if not provided
+ *   - bindings - Binding schema configurations. Defaults to defaultBindingSchemas if not provided
+ *   - migrations - Additional migration sequences to include in the schema
  * @returns A complete TLSchema ready for use with Store creation
  *
  * @public

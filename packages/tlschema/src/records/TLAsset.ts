@@ -110,8 +110,6 @@ export const assetMigrations = createRecordMigrationSequence({
  * Partial type for TLAsset allowing optional properties except id and type.
  * Useful for creating or updating assets where not all properties need to be specified.
  *
- * @template T - The specific asset type to create a partial for
- *
  * @example
  * ```ts
  * // Create a partial asset for updating

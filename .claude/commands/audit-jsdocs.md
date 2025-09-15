@@ -15,7 +15,12 @@ Use given subagents to audit the JSDocs for all exported functions, classes, int
 - `$1` (optional): File/directory path to audit (if not provided, uses the current directory)
 
 # Make a todo list
-If you're working in a directory, you may have lots of files to review. Make a todo to audit each item. Exlcude tests.
+If you're working in a directory, you may have lots of files to review. Make a todo to audit each item. 
+
+However you should exlcude a few typres of items
+
+1. Exlcude tests
+2. Exclude any index.ts
 
 # Audit each file
 

@@ -8,7 +8,7 @@ allowed-tools: Read, Edit, MultiEdit, Bash(yarn test:*), Bash(yarn typecheck:*)
 
 Create comprehensive vitest tests for tldraw codebase following project conventions.
 
-In order get a better idea of what the different components do and how they interact before writing the JSDoc comments, make sure to read the DOCS.md located at packages/[PACKAGE_NAME]/DOCS.md. Always read this file before starting your work.
+In order get a better idea of what the different components do and how they interact before writing the JSDoc comments, make sure to read the DOCS.md located at packages/[PACKAGE_NAME]/DOCS.md, and/or CONTEXT.md located at packages/[PACKAGE_NAME]/CONTEXT.md (if it exists). Always read these files before starting your work.
 
 ## Instructions
 

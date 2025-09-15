@@ -83,8 +83,6 @@ export type TLBinding = TLDefaultBinding | TLUnknownBinding
  * Type for updating existing bindings with partial properties.
  * Only the id and type are required, all other properties are optional.
  *
- * @template T - The specific binding type being updated
- *
  * @example
  * ```ts
  * // Update arrow binding properties
@@ -114,8 +112,6 @@ export type TLBindingUpdate<T extends TLBinding = TLBinding> = Expand<{
 /**
  * Type for creating new bindings with required fromId and toId.
  * The id is optional and will be generated if not provided.
- *
- * @template T - The specific binding type being created
  *
  * @example
  * ```ts
@@ -328,10 +324,8 @@ export function createBindingPropsMigrationSequence(
 
 /**
  * Creates properly formatted migration IDs for binding property migrations.
- * Follows the convention: 'com.tldraw.binding.{bindingType}/{version}'
+ * Follows the convention: 'com.tldraw.binding.\{bindingType\}/\{version\}'
  *
- * @template S - The binding type string
- * @template T - The migration version record
  * @param bindingType - The type of binding these migrations apply to
  * @param ids - Object mapping migration names to version numbers
  * @returns Object with formatted migration IDs
