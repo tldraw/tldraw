@@ -47,6 +47,7 @@ const Book = createRecordType<Book>('book', {
 	inStock: true,
 	publishedYear: new Date().getFullYear()
 }))
+```
 
 // Create a new book
 ## 2. Core Concepts
@@ -205,7 +206,6 @@ const inStockBooksByAuthor = computed('inStockBooksByAuthor', () => {
 
 // The computed value automatically updates when in-stock books change
 console.log(inStockBooksByAuthor.get()) // Map<RecordId<Author>, Book[]>
-```
 ```
 
 ### The Store: Your Reactive Database
