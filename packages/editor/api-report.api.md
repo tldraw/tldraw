@@ -2835,8 +2835,6 @@ export abstract class StateNode implements Partial<TLEventHandlers> {
     useCoalescedEvents: boolean;
 }
 
-// @public @deprecated
-export const stopEventPropagation: (e: any) => any;
 
 // @internal (undocumented)
 export type StoreName = (typeof Table)[keyof typeof Table];

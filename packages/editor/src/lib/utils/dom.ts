@@ -78,15 +78,6 @@ export function releasePointerCapture(
 	}
 }
 
-/**
- * Calls `event.stopPropagation()`.
- *
- * @deprecated Use {@link markEventAsHandled} instead, or manually call `event.stopPropagation()` if
- * that's what you really want.
- *
- * @public
- */
-export const stopEventPropagation = (e: any) => e.stopPropagation()
 
 const handledEvents = new WeakSet<Event>()
 
