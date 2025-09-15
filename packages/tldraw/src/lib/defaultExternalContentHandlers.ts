@@ -901,8 +901,22 @@ export function notifyIfFileNotAllowed(file: File, options: TLDefaultExternalCon
 	}
 
 	if (file.size > maxAssetSize) {
+		const formatBytes = (bytes: number): string => {
+			if (bytes === 0) return '0 bytes'
+
+			const units = ['bytes', 'KB', 'MB', 'GB', 'TB', 'PB']
+			const base = 1024
+			const unitIndex = Math.floor(Math.log(bytes) / Math.log(base))
+
+			const value = bytes / Math.pow(base, unitIndex)
+			const formatted = value % 1 === 0 ? value.toString() : value.toFixed(2)
+
+			return `${formatted} ${units[unitIndex]}`
+		}
+
 		toasts.addToast({
 			title: msg('assets.files.size-too-big'),
+			description: `Maximum file size is ${formatBytes(maxAssetSize)}`,
 			severity: 'error',
 		})
 		return false
