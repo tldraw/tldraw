@@ -9,25 +9,87 @@ import {
 	validateIndexKey,
 } from '@tldraw/utils'
 
-/** @public */
+/**
+ * A function that validates and returns a value of type T from unknown input.
+ * The function should throw a ValidationError if the value is invalid.
+ *
+ * @param value - The unknown value to validate
+ * @returns The validated value of type T
+ * @throws \{ValidationError\} When the value doesn't match the expected type
+ * @example
+ * ```ts
+ * const stringValidator: ValidatorFn<string> = (value) => {
+ *   if (typeof value !== 'string') {
+ *     throw new ValidationError('Expected string')
+ *   }
+ *   return value
+ * }
+ * ```
+ * @public
+ */
 export type ValidatorFn<T> = (value: unknown) => T
-/** @public */
+/**
+ * A performance-optimized validation function that can use a previously validated value
+ * to avoid revalidating unchanged parts of the data structure.
+ *
+ * @param knownGoodValue - A previously validated value of type In
+ * @param value - The unknown value to validate
+ * @returns The validated value of type Out
+ * @throws ValidationError When the value doesn't match the expected type
+ * @example
+ * ```ts
+ * const optimizedValidator: ValidatorUsingKnownGoodVersionFn<User> = (
+ *   knownGood,
+ *   newValue
+ * ) => {
+ *   if (Object.is(knownGood, newValue)) return knownGood
+ *   return fullValidation(newValue)
+ * }
+ * ```
+ * @public
+ */
 export type ValidatorUsingKnownGoodVersionFn<In, Out = In> = (
 	knownGoodValue: In,
 	value: unknown
 ) => Out
 
-/** @public */
+/**
+ * Interface for objects that can validate unknown values and return typed results.
+ * This is the core interface implemented by all validators in the validation system.
+ *
+ * @example
+ * ```ts
+ * const customValidator: Validatable<number> = {
+ *   validate(value) {
+ *     if (typeof value !== 'number') {
+ *       throw new ValidationError('Expected number')
+ *     }
+ *     return value
+ *   }
+ * }
+ * ```
+ * @public
+ */
 export interface Validatable<T> {
+	/**
+	 * Validates an unknown value and returns it with the correct type.
+	 *
+	 * @param value - The unknown value to validate
+	 * @returns The validated value with type T
+	 * @throws ValidationError When validation fails
+	 */
 	validate(value: unknown): T
 	/**
-	 * This is a performance optimizing version of validate that can use a previous
-	 * version of the value to avoid revalidating every part of the new value if
-	 * any part of it has not changed since the last validation.
+	 * Performance-optimized validation that can use a previously validated value
+	 * to avoid revalidating unchanged parts of the data structure.
 	 *
 	 * If the value has not changed but is not referentially equal, the function
 	 * should return the previous value.
-	 * @returns
+	 *
+	 * @param knownGoodValue - A previously validated value
+	 * @param newValue - The new value to validate
+	 * @returns The validated value, potentially reusing the known good value for performance
+	 * @throws ValidationError When validation fails
 	 */
 	validateUsingKnownGoodVersion?(knownGoodValue: T, newValue: unknown): T
 }
@@ -61,10 +123,33 @@ function formatPath(path: ReadonlyArray<number | string>): string | null {
 	return formattedPath
 }
 
-/** @public */
+/**
+ * Error thrown when validation fails. Provides detailed information about what went wrong
+ * and where in the data structure the error occurred.
+ *
+ * @example
+ * ```ts
+ * try {
+ *   validator.validate(invalidData)
+ * } catch (error) {
+ *   if (error instanceof ValidationError) {
+ *     console.log(error.message) // "At users.0.email: Expected valid URL"
+ *     console.log(error.path) // ['users', 0, 'email']
+ *     console.log(error.rawMessage) // "Expected valid URL"
+ *   }
+ * }
+ * ```
+ * @public
+ */
 export class ValidationError extends Error {
 	override name = 'ValidationError'
 
+	/**
+	 * Creates a new ValidationError with contextual information about where the error occurred.
+	 *
+	 * @param rawMessage - The raw error message without path information
+	 * @param path - Array indicating the location in the data structure where validation failed
+	 */
 	constructor(
 		public readonly rawMessage: string,
 		public readonly path: ReadonlyArray<number | string> = []
@@ -110,19 +195,67 @@ function typeToString(value: unknown): string {
 	}
 }
 
-/** @public */
+/**
+ * Utility type that extracts the validated type from a Validatable object.
+ * Useful for deriving TypeScript types from validator definitions.
+ *
+ * @example
+ * ```ts
+ * const userValidator = T.object({ name: T.string, age: T.number })
+ * type User = TypeOf<typeof userValidator> // { name: string; age: number }
+ * ```
+ * @public
+ */
 export type TypeOf<V extends Validatable<any>> = V extends Validatable<infer T> ? T : never
 
-/** @public */
+/**
+ * The main validator class that implements the Validatable interface. This is the base class
+ * for all validators and provides methods for validation, type checking, and composing validators.
+ *
+ * @example
+ * ```ts
+ * const numberValidator = new Validator((value) => {
+ *   if (typeof value !== 'number') {
+ *     throw new ValidationError('Expected number')
+ *   }
+ *   return value
+ * })
+ *
+ * const result = numberValidator.validate(42) // Returns 42 as number
+ * ```
+ * @public
+ */
 export class Validator<T> implements Validatable<T> {
+	/**
+	 * Creates a new Validator instance.
+	 *
+	 * @param validationFn - Function that validates and returns a value of type T
+	 * @param validateUsingKnownGoodVersionFn - Optional performance-optimized validation function
+	 */
 	constructor(
 		readonly validationFn: ValidatorFn<T>,
 		readonly validateUsingKnownGoodVersionFn?: ValidatorUsingKnownGoodVersionFn<T>
 	) {}
 
 	/**
-	 * Asserts that the passed value is of the correct type and returns it. The returned value is
+	 * Validates an unknown value and returns it with the correct type. The returned value is
 	 * guaranteed to be referentially equal to the passed value.
+	 *
+	 * @param value - The unknown value to validate
+	 * @returns The validated value with type T
+	 * @throws ValidationError When validation fails
+	 * @example
+	 * ```ts
+	 * import { T } from '@tldraw/validate'
+	 *
+	 * const name = T.string.validate("Alice") // Returns "Alice" as string
+	 * const title = T.string.validate("") // Returns "" (empty strings are valid)
+	 *
+	 * // These will throw ValidationError:
+	 * T.string.validate(123) // Expected string, got a number
+	 * T.string.validate(null) // Expected string, got null
+	 * T.string.validate(undefined) // Expected string, got undefined
+	 * ```
 	 */
 	validate(value: unknown): T {
 		const validated = this.validationFn(value)
@@ -132,6 +265,31 @@ export class Validator<T> implements Validatable<T> {
 		return validated
 	}
 
+	/**
+	 * Performance-optimized validation using a previously validated value. If the new value
+	 * is referentially equal to the known good value, returns the known good value immediately.
+	 *
+	 * @param knownGoodValue - A previously validated value
+	 * @param newValue - The new value to validate
+	 * @returns The validated value, potentially reusing the known good value
+	 * @throws ValidationError When validation fails
+	 * @example
+	 * ```ts
+	 * import { T } from '@tldraw/validate'
+	 *
+	 * const userValidator = T.object({
+	 *   name: T.string,
+	 *   settings: T.object({ theme: T.literalEnum('light', 'dark') })
+	 * })
+	 *
+	 * const user = userValidator.validate({ name: "Alice", settings: { theme: "light" } })
+	 *
+	 * // Later, with partially changed data:
+	 * const newData = { name: "Alice", settings: { theme: "dark" } }
+	 * const updated = userValidator.validateUsingKnownGoodVersion(user, newData)
+	 * // Only validates the changed 'theme' field for better performance
+	 * ```
+	 */
 	validateUsingKnownGoodVersion(knownGoodValue: T, newValue: unknown): T {
 		if (Object.is(knownGoodValue, newValue)) {
 			return knownGoodValue as T
@@ -144,7 +302,28 @@ export class Validator<T> implements Validatable<T> {
 		return this.validate(newValue)
 	}
 
-	/** Checks that the passed value is of the correct type. */
+	/**
+	 * Type guard that checks if a value is valid without throwing an error.
+	 *
+	 * @param value - The value to check
+	 * @returns True if the value is valid, false otherwise
+	 * @example
+	 * ```ts
+	 * import { T } from '@tldraw/validate'
+	 *
+	 * function processUserInput(input: unknown) {
+	 *   if (T.string.isValid(input)) {
+	 *     // input is now typed as string within this block
+	 *     return input.toUpperCase()
+	 *   }
+	 *   if (T.number.isValid(input)) {
+	 *     // input is now typed as number within this block
+	 *     return input.toFixed(2)
+	 *   }
+	 *   throw new Error('Expected string or number')
+	 * }
+	 * ```
+	 */
 	isValid(value: unknown): value is T {
 		try {
 			this.validate(value)
@@ -155,24 +334,87 @@ export class Validator<T> implements Validatable<T> {
 	}
 
 	/**
-	 * Returns a new validator that also accepts null or undefined. The resulting value will always be
-	 * null.
+	 * Returns a new validator that also accepts null values.
+	 *
+	 * @returns A new validator that accepts T or null
+	 * @example
+	 * ```ts
+	 * import { T } from '@tldraw/validate'
+	 *
+	 * const assetValidator = T.object({
+	 *   id: T.string,
+	 *   name: T.string,
+	 *   src: T.srcUrl.nullable(), // Can be null if not loaded yet
+	 *   mimeType: T.string.nullable()
+	 * })
+	 *
+	 * const asset = assetValidator.validate({
+	 *   id: "image-123",
+	 *   name: "photo.jpg",
+	 *   src: null, // Valid - asset not loaded yet
+	 *   mimeType: "image/jpeg"
+	 * })
+	 * ```
 	 */
 	nullable(): Validator<T | null> {
 		return nullable(this)
 	}
 
 	/**
-	 * Returns a new validator that also accepts null or undefined. The resulting value will always be
-	 * null.
+	 * Returns a new validator that also accepts undefined values.
+	 *
+	 * @returns A new validator that accepts T or undefined
+	 * @example
+	 * ```ts
+	 * import { T } from '@tldraw/validate'
+	 *
+	 * const shapeConfigValidator = T.object({
+	 *   type: T.literal('rectangle'),
+	 *   x: T.number,
+	 *   y: T.number,
+	 *   label: T.string.optional(), // Optional property
+	 *   metadata: T.object({ created: T.string }).optional()
+	 * })
+	 *
+	 * // Both of these are valid:
+	 * const shape1 = shapeConfigValidator.validate({ type: 'rectangle', x: 0, y: 0 })
+	 * const shape2 = shapeConfigValidator.validate({
+	 *   type: 'rectangle', x: 0, y: 0, label: "My Shape"
+	 * })
+	 * ```
 	 */
 	optional(): Validator<T | undefined> {
 		return optional(this)
 	}
 
 	/**
-	 * Refine this validation to a new type. The passed-in validation function should throw an error
-	 * if the value can't be converted to the new type, or return the new type otherwise.
+	 * Creates a new validator by refining this validator with additional logic that can transform
+	 * the validated value to a new type.
+	 *
+	 * @param otherValidationFn - Function that transforms/validates the value to type U
+	 * @returns A new validator that validates to type U
+	 * @throws ValidationError When validation or refinement fails
+	 * @example
+	 * ```ts
+	 * import { T, ValidationError } from '@tldraw/validate'
+	 *
+	 * // Transform string to ensure it starts with a prefix
+	 * const prefixedIdValidator = T.string.refine((id) => {
+	 *   return id.startsWith('shape:') ? id : `shape:${id}`
+	 * })
+	 *
+	 * const id1 = prefixedIdValidator.validate("rectangle-123") // Returns "shape:rectangle-123"
+	 * const id2 = prefixedIdValidator.validate("shape:circle-456") // Returns "shape:circle-456"
+	 *
+	 * // Parse and validate JSON strings
+	 * const jsonValidator = T.string.refine((str) => {
+	 *   try {
+	 *     return JSON.parse(str)
+	 *   } catch {
+	 *     throw new ValidationError('Invalid JSON string')
+	 *   }
+	 * })
+	 * ```
 	 */
 	refine<U>(otherValidationFn: (value: T) => U): Validator<U> {
 		return new Validator(
@@ -191,19 +433,49 @@ export class Validator<T> implements Validatable<T> {
 	}
 
 	/**
-	 * Refine this validation with an additional check that doesn't change the resulting value.
+	 * Adds an additional validation check without changing the resulting value type.
+	 * Can be called with just a check function, or with a name for better error messages.
 	 *
+	 * @param name - Name for the check (used in error messages)
+	 * @param checkFn - Function that validates the value (should throw on invalid input)
+	 * @returns A new validator with the additional check
+	 * @throws ValidationError When the check fails
 	 * @example
-	 *
 	 * ```ts
-	 * const numberLessThan10Validator = T.number.check((value) => {
-	 * 	if (value >= 10) {
-	 * 		throw new ValidationError(`Expected number less than 10, got ${value}`)
-	 * 	}
+	 * import { T, ValidationError } from '@tldraw/validate'
+	 *
+	 * // Basic check without name
+	 * const evenNumber = T.number.check((value) => {
+	 *   if (value % 2 !== 0) {
+	 *     throw new ValidationError('Expected even number')
+	 *   }
 	 * })
+	 *
+	 * // Named checks for better error messages in complex validators
+	 * const shapePositionValidator = T.object({
+	 *   x: T.number.check('finite', (value) => {
+	 *     if (!Number.isFinite(value)) {
+	 *       throw new ValidationError('Position must be finite')
+	 *     }
+	 *   }),
+	 *   y: T.number.check('within-bounds', (value) => {
+	 *     if (value < -10000 || value > 10000) {
+	 *       throw new ValidationError('Position must be within bounds (-10000 to 10000)')
+	 *     }
+	 *   })
+	 * })
+	 *
+	 * // Error will be: "At x (check finite): Position must be finite"
 	 * ```
 	 */
 	check(name: string, checkFn: (value: T) => void): Validator<T>
+	/**
+	 * Adds an additional validation check without changing the resulting value type.
+	 *
+	 * @param checkFn - Function that validates the value (should throw on invalid input)
+	 * @returns A new validator with the additional check
+	 * @throws ValidationError When the check fails
+	 */
 	check(checkFn: (value: T) => void): Validator<T>
 	check(nameOrCheckFn: string | ((value: T) => void), checkFn?: (value: T) => void): Validator<T> {
 		if (typeof nameOrCheckFn === 'string') {
@@ -220,8 +492,25 @@ export class Validator<T> implements Validatable<T> {
 	}
 }
 
-/** @public */
+/**
+ * Validator for arrays where each element is validated using the provided item validator.
+ * Extends the base Validator class with array-specific validation methods.
+ *
+ * @example
+ * ```ts
+ * const stringArray = new ArrayOfValidator(T.string)
+ * const numbers = stringArray.validate(["a", "b", "c"]) // Returns string[]
+ *
+ * const userArray = T.arrayOf(T.object({ name: T.string, age: T.number }))
+ * ```
+ * @public
+ */
 export class ArrayOfValidator<T> extends Validator<T[]> {
+	/**
+	 * Creates a new ArrayOfValidator.
+	 *
+	 * @param itemValidator - Validator used to validate each array element
+	 */
 	constructor(readonly itemValidator: Validatable<T>) {
 		super(
 			(value) => {
@@ -259,6 +548,18 @@ export class ArrayOfValidator<T> extends Validator<T[]> {
 		)
 	}
 
+	/**
+	 * Returns a new validator that ensures the array is not empty.
+	 *
+	 * @returns A new validator that rejects empty arrays
+	 * @throws ValidationError When the array is empty
+	 * @example
+	 * ```ts
+	 * const nonEmptyStrings = T.arrayOf(T.string).nonEmpty()
+	 * nonEmptyStrings.validate(["hello"]) // Valid
+	 * nonEmptyStrings.validate([]) // Throws ValidationError
+	 * ```
+	 */
 	nonEmpty() {
 		return this.check((value) => {
 			if (value.length === 0) {
@@ -267,6 +568,18 @@ export class ArrayOfValidator<T> extends Validator<T[]> {
 		})
 	}
 
+	/**
+	 * Returns a new validator that ensures the array has more than one element.
+	 *
+	 * @returns A new validator that requires at least 2 elements
+	 * @throws ValidationError When the array has 1 or fewer elements
+	 * @example
+	 * ```ts
+	 * const multipleItems = T.arrayOf(T.string).lengthGreaterThan1()
+	 * multipleItems.validate(["a", "b"]) // Valid
+	 * multipleItems.validate(["a"]) // Throws ValidationError
+	 * ```
+	 */
 	lengthGreaterThan1() {
 		return this.check((value) => {
 			if (value.length <= 1) {
@@ -276,8 +589,33 @@ export class ArrayOfValidator<T> extends Validator<T[]> {
 	}
 }
 
-/** @public */
+/**
+ * Validator for objects with a defined shape. Each property is validated using its corresponding
+ * validator from the config object. Can be configured to allow or reject unknown properties.
+ *
+ * @example
+ * ```ts
+ * const userValidator = new ObjectValidator({
+ *   name: T.string,
+ *   age: T.number,
+ *   email: T.string.optional()
+ * })
+ *
+ * const user = userValidator.validate({
+ *   name: "Alice",
+ *   age: 25,
+ *   email: "alice@example.com"
+ * })
+ * ```
+ * @public
+ */
 export class ObjectValidator<Shape extends object> extends Validator<Shape> {
+	/**
+	 * Creates a new ObjectValidator.
+	 *
+	 * @param config - Object mapping property names to their validators
+	 * @param shouldAllowUnknownProperties - Whether to allow properties not defined in config
+	 */
 	constructor(
 		public readonly config: {
 			readonly [K in keyof Shape]: Validatable<Shape[K]>
@@ -353,22 +691,33 @@ export class ObjectValidator<Shape extends object> extends Validator<Shape> {
 		)
 	}
 
+	/**
+	 * Returns a new validator that allows unknown properties in the validated object.
+	 *
+	 * @returns A new ObjectValidator that accepts extra properties
+	 * @example
+	 * ```ts
+	 * const flexibleUser = T.object({ name: T.string }).allowUnknownProperties()
+	 * flexibleUser.validate({ name: "Alice", extra: "allowed" }) // Valid
+	 * ```
+	 */
 	allowUnknownProperties() {
 		return new ObjectValidator(this.config, true)
 	}
 
 	/**
-	 * Extend an object validator by adding additional properties.
+	 * Creates a new ObjectValidator by extending this validator with additional properties.
 	 *
+	 * @param extension - Object mapping new property names to their validators
+	 * @returns A new ObjectValidator that validates both original and extended properties
 	 * @example
-	 *
 	 * ```ts
-	 * const animalValidator = T.object({
-	 * 	name: T.string,
+	 * const baseUser = T.object({ name: T.string, age: T.number })
+	 * const adminUser = baseUser.extend({
+	 *   permissions: T.arrayOf(T.string),
+	 *   isAdmin: T.boolean
 	 * })
-	 * const catValidator = animalValidator.extend({
-	 * 	meowVolume: T.number,
-	 * })
+	 * // adminUser validates: { name: string; age: number; permissions: string[]; isAdmin: boolean }
 	 * ```
 	 */
 	extend<Extension extends Record<string, unknown>>(extension: {
@@ -380,19 +729,53 @@ export class ObjectValidator<Shape extends object> extends Validator<Shape> {
 	}
 }
 
-// pass this into itself e.g. Config extends UnionObjectSchemaConfig<Key, Config>
-/** @public */
+/**
+ * Configuration type for union validators. Each variant must be a validator that produces
+ * an object with the discriminator key set to the variant name.
+ *
+ * @example
+ * ```ts
+ * type ShapeConfig = UnionValidatorConfig<'type', {
+ *   circle: Validatable<{ type: 'circle'; radius: number }>
+ *   square: Validatable<{ type: 'square'; size: number }>
+ * }>
+ * ```
+ * @public
+ */
 export type UnionValidatorConfig<Key extends string, Config> = {
 	readonly [Variant in keyof Config]: Validatable<any> & {
 		validate(input: any): { readonly [K in Key]: Variant }
 	}
 }
-/** @public */
+/**
+ * Validator for discriminated union types. Validates objects that can be one of several variants,
+ * distinguished by a discriminator property (key) that indicates which variant the object represents.
+ *
+ * @example
+ * ```ts
+ * const shapeValidator = new UnionValidator('type', {
+ *   circle: T.object({ type: T.literal('circle'), radius: T.number }),
+ *   square: T.object({ type: T.literal('square'), size: T.number })
+ * }, () => { throw new Error('Unknown shape') }, false)
+ *
+ * const circle = shapeValidator.validate({ type: 'circle', radius: 5 })
+ * // circle is typed as { type: 'circle'; radius: number }
+ * ```
+ * @public
+ */
 export class UnionValidator<
 	Key extends string,
 	Config extends UnionValidatorConfig<Key, Config>,
 	UnknownValue = never,
 > extends Validator<TypeOf<Config[keyof Config]> | UnknownValue> {
+	/**
+	 * Creates a new UnionValidator.
+	 *
+	 * @param key - The discriminator property name used to determine the variant
+	 * @param config - Object mapping variant names to their validators
+	 * @param unknownValueValidation - Function to handle unknown variants
+	 * @param useNumberKeys - Whether the discriminator uses number keys instead of strings
+	 */
 	constructor(
 		private readonly key: Key,
 		private readonly config: Config,
@@ -458,6 +841,20 @@ export class UnionValidator<
 		return { matchingSchema, variant }
 	}
 
+	/**
+	 * Returns a new UnionValidator that can handle unknown variants using the provided function.
+	 *
+	 * @param unknownValueValidation - Function to validate/transform unknown variants
+	 * @returns A new UnionValidator that accepts unknown variants
+	 * @example
+	 * ```ts
+	 * const shapeValidator = T.union('type', { circle: circleValidator })
+	 *   .validateUnknownVariants((obj, variant) => {
+	 *     console.warn(`Unknown shape type: ${variant}`)
+	 *     return obj as UnknownShape
+	 *   })
+	 * ```
+	 */
 	validateUnknownVariants<Unknown>(
 		unknownValueValidation: (value: object, variant: string) => Unknown
 	): UnionValidator<Key, Config, Unknown> {
@@ -465,8 +862,29 @@ export class UnionValidator<
 	}
 }
 
-/** @public */
+/**
+ * Validator for dictionary/map objects where both keys and values are validated.
+ * Useful for validating objects used as key-value stores.
+ *
+ * @example
+ * ```ts
+ * const scoreDict = new DictValidator(T.string, T.number)
+ * const scores = scoreDict.validate({
+ *   "alice": 100,
+ *   "bob": 85,
+ *   "charlie": 92
+ * })
+ * // scores is typed as Record<string, number>
+ * ```
+ * @public
+ */
 export class DictValidator<Key extends string, Value> extends Validator<Record<Key, Value>> {
+	/**
+	 * Creates a new DictValidator.
+	 *
+	 * @param keyValidator - Validator for object keys
+	 * @param valueValidator - Validator for object values
+	 */
 	constructor(
 		public readonly keyValidator: Validatable<Key>,
 		public readonly valueValidator: Validatable<Value>
@@ -543,30 +961,51 @@ function typeofValidator<T>(type: string): Validator<T> {
 }
 
 /**
- * Validation that accepts any value. Useful as a starting point for building your own custom
- * validations.
+ * Validator that accepts any value without type checking. Useful as a starting point for
+ * building custom validations or when you need to accept truly unknown data.
  *
+ * @example
+ * ```ts
+ * const result = T.unknown.validate(anything) // Returns the value as-is
+ * // result is typed as unknown
+ * ```
  * @public
  */
 export const unknown = new Validator((value) => value)
 /**
- * Validation that accepts any value. Generally this should be avoided, but you can use it as an
- * escape hatch if you want to work without validations for e.g. a prototype.
+ * Validator that accepts any value and types it as 'any'. This should generally be avoided
+ * as it bypasses type safety, but can be used as an escape hatch for prototyping.
  *
+ * @example
+ * ```ts
+ * const result = T.any.validate(anything) // Returns the value as any
+ * // result is typed as any - use with caution!
+ * ```
  * @public
  */
 export const any = new Validator((value): any => value)
 
 /**
- * Validates that a value is a string.
+ * Validator that ensures a value is a string.
  *
+ * @example
+ * ```ts
+ * const name = T.string.validate("hello") // Returns "hello" as string
+ * T.string.validate(123) // Throws ValidationError: "Expected string, got a number"
+ * ```
  * @public
  */
 export const string = typeofValidator<string>('string')
 
 /**
- * Validates that a value is a finite non-NaN number.
+ * Validator that ensures a value is a finite, non-NaN number. Rejects Infinity, -Infinity, and NaN.
  *
+ * @example
+ * ```ts
+ * const count = T.number.validate(42) // Returns 42 as number
+ * T.number.validate(NaN) // Throws ValidationError: "Expected a number, got NaN"
+ * T.number.validate(Infinity) // Throws ValidationError: "Expected a finite number, got Infinity"
+ * ```
  * @public
  */
 export const number = typeofValidator<number>('number').check((number) => {
@@ -578,40 +1017,73 @@ export const number = typeofValidator<number>('number').check((number) => {
 	}
 })
 /**
- * Fails if value \< 0
+ * Validator that ensures a value is a non-negative number (\>= 0).
+ * Despite the name "positive", this validator accepts zero.
  *
+ * @example
+ * ```ts
+ * const price = T.positiveNumber.validate(29.99) // Returns 29.99
+ * const free = T.positiveNumber.validate(0) // Returns 0 (valid)
+ * T.positiveNumber.validate(-1) // Throws ValidationError: "Expected a positive number, got -1"
+ * ```
  * @public
  */
 export const positiveNumber = number.check((value) => {
 	if (value < 0) throw new ValidationError(`Expected a positive number, got ${value}`)
 })
 /**
- * Fails if value \<= 0
+ * Validator that ensures a value is a positive number (\> 0). Rejects zero and negative numbers.
  *
+ * @example
+ * ```ts
+ * const quantity = T.nonZeroNumber.validate(0.01) // Returns 0.01
+ * T.nonZeroNumber.validate(0) // Throws ValidationError: "Expected a non-zero positive number, got 0"
+ * T.nonZeroNumber.validate(-5) // Throws ValidationError: "Expected a non-zero positive number, got -5"
+ * ```
  * @public
  */
 export const nonZeroNumber = number.check((value) => {
 	if (value <= 0) throw new ValidationError(`Expected a non-zero positive number, got ${value}`)
 })
 /**
- * Fails if number is not an integer
+ * Validator that ensures a value is an integer (whole number).
  *
+ * @example
+ * ```ts
+ * const count = T.integer.validate(42) // Returns 42
+ * T.integer.validate(3.14) // Throws ValidationError: "Expected an integer, got 3.14"
+ * T.integer.validate(-5) // Returns -5 (negative integers are valid)
+ * ```
  * @public
  */
 export const integer = number.check((value) => {
 	if (!Number.isInteger(value)) throw new ValidationError(`Expected an integer, got ${value}`)
 })
 /**
- * Fails if value \< 0 and is not an integer
+ * Validator that ensures a value is a non-negative integer (\>= 0).
+ * Despite the name "positive", this validator accepts zero.
  *
+ * @example
+ * ```ts
+ * const index = T.positiveInteger.validate(5) // Returns 5
+ * const start = T.positiveInteger.validate(0) // Returns 0 (valid)
+ * T.positiveInteger.validate(-1) // Throws ValidationError: "Expected a positive integer, got -1"
+ * T.positiveInteger.validate(3.14) // Throws ValidationError: "Expected an integer, got 3.14"
+ * ```
  * @public
  */
 export const positiveInteger = integer.check((value) => {
 	if (value < 0) throw new ValidationError(`Expected a positive integer, got ${value}`)
 })
 /**
- * Fails if value \<= 0 and is not an integer
+ * Validator that ensures a value is a positive integer (\> 0). Rejects zero and negative integers.
  *
+ * @example
+ * ```ts
+ * const itemCount = T.nonZeroInteger.validate(1) // Returns 1
+ * T.nonZeroInteger.validate(0) // Throws ValidationError: "Expected a non-zero positive integer, got 0"
+ * T.nonZeroInteger.validate(-5) // Throws ValidationError: "Expected a non-zero positive integer, got -5"
+ * ```
  * @public
  */
 export const nonZeroInteger = integer.check((value) => {
@@ -619,26 +1091,44 @@ export const nonZeroInteger = integer.check((value) => {
 })
 
 /**
- * Validates that a value is boolean.
+ * Validator that ensures a value is a boolean.
  *
+ * @example
+ * ```ts
+ * const isActive = T.boolean.validate(true) // Returns true
+ * const isEnabled = T.boolean.validate(false) // Returns false
+ * T.boolean.validate("true") // Throws ValidationError: "Expected boolean, got a string"
+ * ```
  * @public
  */
 export const boolean = typeofValidator<boolean>('boolean')
 /**
- * Validates that a value is a bigint.
+ * Validator that ensures a value is a bigint.
  *
+ * @example
+ * ```ts
+ * const largeNumber = T.bigint.validate(123n) // Returns 123n
+ * T.bigint.validate(123) // Throws ValidationError: "Expected bigint, got a number"
+ * ```
  * @public
  */
 export const bigint = typeofValidator<bigint>('bigint')
 /**
- * Validates that a value matches another that was passed in.
+ * Creates a validator that only accepts a specific literal value.
  *
+ * @param expectedValue - The exact value that must be matched
+ * @returns A validator that only accepts the specified literal value
+ * @throws ValidationError When the value doesn't match the expected literal
  * @example
- *
  * ```ts
  * const trueValidator = T.literal(true)
- * ```
+ * trueValidator.validate(true) // Returns true
+ * trueValidator.validate(false) // Throws ValidationError
  *
+ * const statusValidator = T.literal("active")
+ * statusValidator.validate("active") // Returns "active"
+ * statusValidator.validate("inactive") // Throws ValidationError
+ * ```
  * @public
  */
 export function literal<T extends string | number | boolean>(expectedValue: T): Validator<T> {
@@ -651,8 +1141,17 @@ export function literal<T extends string | number | boolean>(expectedValue: T): 
 }
 
 /**
- * Validates that a value is an array. To check the contents of the array, use T.arrayOf.
+ * Validator that ensures a value is an array. Does not validate the contents of the array.
+ * Use T.arrayOf() to validate both the array structure and its contents.
  *
+ * @example
+ * ```ts
+ * const items = T.array.validate([1, "hello", true]) // Returns unknown[]
+ * T.array.validate("not array") // Throws ValidationError: "Expected an array, got a string"
+ *
+ * // For typed arrays, use T.arrayOf:
+ * const numbers = T.arrayOf(T.number).validate([1, 2, 3]) // Returns number[]
+ * ```
  * @public
  */
 export const array = new Validator<unknown[]>((value) => {
@@ -663,15 +1162,37 @@ export const array = new Validator<unknown[]>((value) => {
 })
 
 /**
- * Validates that a value is an array whose contents matches the passed-in validator.
+ * Creates a validator for arrays where each element is validated using the provided validator.
  *
+ * @param itemValidator - Validator to use for each array element
+ * @returns An ArrayOfValidator that validates both array structure and element types
+ * @throws ValidationError When the value is not an array or when any element is invalid
+ * @example
+ * ```ts
+ * const numberArray = T.arrayOf(T.number)
+ * numberArray.validate([1, 2, 3]) // Returns number[]
+ * numberArray.validate([1, "2", 3]) // Throws ValidationError at index 1
+ *
+ * const userArray = T.arrayOf(T.object({ name: T.string, age: T.number }))
+ * ```
  * @public
  */
 export function arrayOf<T>(itemValidator: Validatable<T>): ArrayOfValidator<T> {
 	return new ArrayOfValidator(itemValidator)
 }
 
-/** @public */
+/**
+ * Validator that ensures a value is an object (non-null, non-array). Does not validate
+ * the properties of the object.
+ *
+ * @example
+ * ```ts
+ * const obj = T.unknownObject.validate({ any: "properties" }) // Returns Record<string, unknown>
+ * T.unknownObject.validate(null) // Throws ValidationError: "Expected object, got null"
+ * T.unknownObject.validate([1, 2, 3]) // Throws ValidationError: "Expected object, got an array"
+ * ```
+ * @public
+ */
 export const unknownObject = new Validator<Record<string, unknown>>((value) => {
 	if (typeof value !== 'object' || value === null) {
 		throw new ValidationError(`Expected object, got ${typeToString(value)}`)
@@ -680,8 +1201,29 @@ export const unknownObject = new Validator<Record<string, unknown>>((value) => {
 })
 
 /**
- * Validate an object has a particular shape.
+ * Creates a validator for objects with a defined shape. Each property is validated using
+ * its corresponding validator from the config object.
  *
+ * @param config - Object mapping property names to their validators
+ * @returns An ObjectValidator that validates the object structure and all properties
+ * @throws ValidationError When the value is not an object or when any property is invalid
+ * @example
+ * ```ts
+ * const userValidator = T.object({
+ *   name: T.string,
+ *   age: T.number,
+ *   email: T.string.optional(),
+ *   isActive: T.boolean
+ * })
+ *
+ * const user = userValidator.validate({
+ *   name: "Alice",
+ *   age: 25,
+ *   email: "alice@example.com",
+ *   isActive: true
+ * })
+ * // user is typed with full type safety
+ * ```
  * @public
  */
 export function object<Shape extends object>(config: {
@@ -722,8 +1264,15 @@ function isValidJson(value: any): value is JsonValue {
 }
 
 /**
- * Validate that a value is valid JSON.
+ * Validator that ensures a value is valid JSON (string, number, boolean, null, array, or plain object).
+ * Rejects functions, undefined, symbols, and other non-JSON values.
  *
+ * @example
+ * ```ts
+ * const data = T.jsonValue.validate({ name: "Alice", scores: [1, 2, 3], active: true })
+ * T.jsonValue.validate(undefined) // Throws ValidationError
+ * T.jsonValue.validate(() => {}) // Throws ValidationError
+ * ```
  * @public
  */
 export const jsonValue: Validator<JsonValue> = new Validator<JsonValue>(
@@ -786,8 +1335,19 @@ export const jsonValue: Validator<JsonValue> = new Validator<JsonValue>(
 )
 
 /**
- * Validate an object has a particular shape.
+ * Creates a validator for JSON dictionaries (objects with string keys and JSON-serializable values).
  *
+ * @returns A DictValidator that validates string keys and JSON values
+ * @throws ValidationError When keys are not strings or values are not JSON-serializable
+ * @example
+ * ```ts
+ * const config = T.jsonDict().validate({
+ *   "setting1": "value",
+ *   "setting2": 42,
+ *   "setting3": ["a", "b", "c"],
+ *   "setting4": { nested: true }
+ * })
+ * ```
  * @public
  */
 export function jsonDict(): DictValidator<string, JsonValue> {
@@ -795,8 +1355,23 @@ export function jsonDict(): DictValidator<string, JsonValue> {
 }
 
 /**
- * Validation that an option is a dict with particular keys and values.
+ * Creates a validator for dictionary objects where both keys and values are validated.
+ * Useful for validating objects used as key-value maps.
  *
+ * @param keyValidator - Validator for object keys
+ * @param valueValidator - Validator for object values
+ * @returns A DictValidator that validates all keys and values
+ * @throws ValidationError When any key or value is invalid
+ * @example
+ * ```ts
+ * const scores = T.dict(T.string, T.number)
+ * scores.validate({ "alice": 100, "bob": 85 }) // Valid
+ *
+ * const userPrefs = T.dict(T.string, T.object({
+ *   theme: T.literalEnum('light', 'dark'),
+ *   notifications: T.boolean
+ * }))
+ * ```
  * @public
  */
 export function dict<Key extends string, Value>(
@@ -807,17 +1382,24 @@ export function dict<Key extends string, Value>(
 }
 
 /**
- * Validate a union of several object types. Each object must have a property matching `key` which
- * should be a unique string.
+ * Creates a validator for discriminated union types. Validates objects that can be one of
+ * several variants, distinguished by a discriminator property.
  *
+ * @param key - The discriminator property name used to determine the variant
+ * @param config - Object mapping variant names to their validators
+ * @returns A UnionValidator that validates based on the discriminator value
+ * @throws ValidationError When the discriminator is invalid or the variant validation fails
  * @example
- *
  * ```ts
- * const catValidator = T.object({ kind: T.literal('cat'), meow: T.boolean })
- * const dogValidator = T.object({ kind: T.literal('dog'), bark: T.boolean })
- * const animalValidator = T.union('kind', { cat: catValidator, dog: dogValidator })
- * ```
+ * const shapeValidator = T.union('type', {
+ *   circle: T.object({ type: T.literal('circle'), radius: T.number }),
+ *   square: T.object({ type: T.literal('square'), size: T.number }),
+ *   triangle: T.object({ type: T.literal('triangle'), base: T.number, height: T.number })
+ * })
  *
+ * const circle = shapeValidator.validate({ type: 'circle', radius: 5 })
+ * // circle is typed as { type: 'circle'; radius: number }
+ * ```
  * @public
  */
 export function union<Key extends string, Config extends UnionValidatorConfig<Key, Config>>(
@@ -840,6 +1422,13 @@ export function union<Key extends string, Config extends UnionValidatorConfig<Ke
 }
 
 /**
+ * Creates a validator for discriminated union types using number discriminators instead of strings.
+ * This is an internal function used for specific cases where numeric discriminators are needed.
+ *
+ * @param key - The discriminator property name used to determine the variant
+ * @param config - Object mapping variant names to their validators
+ * @returns A UnionValidator that validates based on numeric discriminator values
+ * @throws ValidationError When the discriminator is invalid or the variant validation fails
  * @internal
  */
 export function numberUnion<Key extends string, Config extends UnionValidatorConfig<Key, Config>>(
@@ -862,9 +1451,23 @@ export function numberUnion<Key extends string, Config extends UnionValidatorCon
 }
 
 /**
- * A named object with an ID. Errors will be reported as being part of the object with the given
- * name.
+ * Creates a validator for named model objects with enhanced error reporting. The model name
+ * will be included in error messages to provide better debugging context.
  *
+ * @param name - The name of the model (used in error messages)
+ * @param validator - The validator for the model structure
+ * @returns A Validator with enhanced error reporting that includes the model name
+ * @throws ValidationError With model name context when validation fails
+ * @example
+ * ```ts
+ * const userModel = T.model('User', T.object({
+ *   id: T.string,
+ *   name: T.string,
+ *   email: T.linkUrl
+ * }))
+ *
+ * // Error message will be: "At User.email: Expected a valid url, got 'invalid-email'"
+ * ```
  * @public
  */
 export function model<T extends { readonly id: string }>(
@@ -887,7 +1490,21 @@ export function model<T extends { readonly id: string }>(
 	)
 }
 
-/** @public */
+/**
+ * Creates a validator that only accepts values from a given Set of allowed values.
+ *
+ * @param values - Set containing the allowed values
+ * @returns A validator that only accepts values from the provided set
+ * @throws ValidationError When the value is not in the allowed set
+ * @example
+ * ```ts
+ * const allowedColors = new Set(['red', 'green', 'blue'] as const)
+ * const colorValidator = T.setEnum(allowedColors)
+ * colorValidator.validate('red') // Returns 'red'
+ * colorValidator.validate('yellow') // Throws ValidationError
+ * ```
+ * @public
+ */
 export function setEnum<T>(values: ReadonlySet<T>): Validator<T> {
 	return new Validator((value) => {
 		if (!values.has(value as T)) {
@@ -898,7 +1515,20 @@ export function setEnum<T>(values: ReadonlySet<T>): Validator<T> {
 	})
 }
 
-/** @public */
+/**
+ * Creates a validator that accepts either the validated type or undefined.
+ *
+ * @param validator - The base validator to make optional
+ * @returns A validator that accepts T or undefined
+ * @example
+ * ```ts
+ * const optionalString = T.optional(T.string)
+ * optionalString.validate("hello") // Returns "hello"
+ * optionalString.validate(undefined) // Returns undefined
+ * optionalString.validate(null) // Throws ValidationError
+ * ```
+ * @public
+ */
 export function optional<T>(validator: Validatable<T>): Validator<T | undefined> {
 	return new Validator(
 		(value) => {
@@ -916,7 +1546,20 @@ export function optional<T>(validator: Validatable<T>): Validator<T | undefined>
 	)
 }
 
-/** @public */
+/**
+ * Creates a validator that accepts either the validated type or null.
+ *
+ * @param validator - The base validator to make nullable
+ * @returns A validator that accepts T or null
+ * @example
+ * ```ts
+ * const nullableString = T.nullable(T.string)
+ * nullableString.validate("hello") // Returns "hello"
+ * nullableString.validate(null) // Returns null
+ * nullableString.validate(undefined) // Throws ValidationError
+ * ```
+ * @public
+ */
 export function nullable<T>(validator: Validatable<T>): Validator<T | null> {
 	return new Validator(
 		(value) => {
@@ -933,7 +1576,21 @@ export function nullable<T>(validator: Validatable<T>): Validator<T | null> {
 	)
 }
 
-/** @public */
+/**
+ * Creates a validator that only accepts one of the provided literal values.
+ * This is a convenience function that creates a setEnum from the provided values.
+ *
+ * @param values - The allowed literal values
+ * @returns A validator that only accepts the provided literal values
+ * @throws ValidationError When the value is not one of the allowed literals
+ * @example
+ * ```ts
+ * const themeValidator = T.literalEnum('light', 'dark', 'auto')
+ * themeValidator.validate('light') // Returns 'light'
+ * themeValidator.validate('blue') // Throws ValidationError: Expected "light" or "dark" or "auto", got blue
+ * ```
+ * @public
+ */
 export function literalEnum<const Values extends readonly unknown[]>(
 	...values: Values
 ): Validator<Values[number]> {
@@ -958,8 +1615,16 @@ function parseUrl(str: string) {
 const validLinkProtocols = new Set(['http:', 'https:', 'mailto:'])
 
 /**
- * Validates that a value is a url safe to use as a link.
+ * Validator for URLs that are safe to use as user-facing links. Accepts http, https, and mailto protocols.
+ * This validator provides security by rejecting potentially dangerous protocols like javascript:.
  *
+ * @example
+ * ```ts
+ * const link = T.linkUrl.validate("https://example.com") // Valid
+ * const email = T.linkUrl.validate("mailto:user@example.com") // Valid
+ * T.linkUrl.validate("") // Valid (empty string allowed)
+ * T.linkUrl.validate("javascript:alert(1)") // Throws ValidationError (unsafe protocol)
+ * ```
  * @public
  */
 export const linkUrl = string.check((value) => {
@@ -977,8 +1642,16 @@ export const linkUrl = string.check((value) => {
 const validSrcProtocols = new Set(['http:', 'https:', 'data:', 'asset:'])
 
 /**
- * Validates that a valid is a url safe to load as an asset.
+ * Validator for URLs that are safe to use as asset sources. Accepts http, https, data, and asset protocols.
+ * The asset: protocol refers to tldraw's local IndexedDB object store.
  *
+ * @example
+ * ```ts
+ * const imageUrl = T.srcUrl.validate("https://example.com/image.png") // Valid
+ * const dataUrl = T.srcUrl.validate("data:image/png;base64,iVBORw0...") // Valid
+ * const assetUrl = T.srcUrl.validate("asset:abc123") // Valid (local asset reference)
+ * T.srcUrl.validate("") // Valid (empty string allowed)
+ * ```
  * @public
  */
 export const srcUrl = string.check((value) => {
@@ -993,8 +1666,15 @@ export const srcUrl = string.check((value) => {
 })
 
 /**
- * Validates an http(s) url
+ * Validator for HTTP and HTTPS URLs only. Rejects all other protocols.
  *
+ * @example
+ * ```ts
+ * const apiUrl = T.httpUrl.validate("https://api.example.com") // Valid
+ * const httpUrl = T.httpUrl.validate("http://localhost:3000") // Valid
+ * T.httpUrl.validate("") // Valid (empty string allowed)
+ * T.httpUrl.validate("ftp://files.example.com") // Throws ValidationError (not http/https)
+ * ```
  * @public
  */
 export const httpUrl = string.check((value) => {
@@ -1009,7 +1689,15 @@ export const httpUrl = string.check((value) => {
 })
 
 /**
- * Validates that a value is an IndexKey.
+ * Validator for IndexKey values used in tldraw's indexing system. An IndexKey is a string
+ * that meets specific format requirements for use as a database index.
+ *
+ * @throws ValidationError When the string is not a valid IndexKey format
+ * @example
+ * ```ts
+ * const key = T.indexKey.validate("valid_index_key") // Returns IndexKey
+ * T.indexKey.validate("invalid key!") // Throws ValidationError (invalid format)
+ * ```
  * @public
  */
 export const indexKey = string.refine<IndexKey>((key) => {
@@ -1022,8 +1710,20 @@ export const indexKey = string.refine<IndexKey>((key) => {
 })
 
 /**
- * Validate a value against one of two types.
+ * Creates a validator that accepts values matching either of two validators.
+ * Tries the first validator, and if it fails, tries the second validator.
  *
+ * @param v1 - The first validator to try
+ * @param v2 - The second validator to try if the first fails
+ * @returns A validator that accepts values matching either validator
+ * @throws ValidationError When the value matches neither validator (throws error from v2)
+ * @example
+ * ```ts
+ * const stringOrNumber = T.or(T.string, T.number)
+ * stringOrNumber.validate("hello") // Returns "hello" as string
+ * stringOrNumber.validate(42) // Returns 42 as number
+ * stringOrNumber.validate(true) // Throws ValidationError from number validator
+ * ```
  * @public
  */
 export function or<T1, T2>(v1: Validatable<T1>, v2: Validatable<T2>): Validator<T1 | T2> {

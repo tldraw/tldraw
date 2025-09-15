@@ -55,4 +55,4 @@ Always explain your changes briefly, highlighting what inaccuracies you found in
 # Tips
 
 - Always escape angle brackets.
-- For function with an options argument, document the different options in a nested list, do not use `option.{NAME}`.
+- For functions with an options argument, document the different options in a nested list, do not use `option.{NAME}`.
