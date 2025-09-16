@@ -171,6 +171,19 @@ function TooltipSingleton() {
 		}
 	}, [cameraState, isOpen, currentTooltip, editor])
 
+	useEffect(() => {
+		function handleKeyDown(event: KeyboardEvent) {
+			if (event.key === 'Escape' && currentTooltip) {
+				tooltipManager.hideTooltip(editor, currentTooltip.id)
+			}
+		}
+
+		document.addEventListener('keydown', handleKeyDown)
+		return () => {
+			document.removeEventListener('keydown', handleKeyDown)
+		}
+	}, [editor, currentTooltip])
+
 	// Update open state and trigger position
 	useEffect(() => {
 		let timer: ReturnType<typeof setTimeout> | null = null
@@ -266,19 +279,6 @@ export const TldrawUiTooltip = forwardRef<HTMLButtonElement, TldrawUiTooltipProp
 				}
 			}
 		}, [editor, hasProvider])
-
-		useEffect(() => {
-			function handleKeyDown(event: KeyboardEvent) {
-				if (event.key === 'Escape') {
-					tooltipManager.hideTooltip(editor, tooltipId.current)
-				}
-			}
-
-			document.addEventListener('keydown', handleKeyDown)
-			return () => {
-				document.removeEventListener('keydown', handleKeyDown)
-			}
-		}, [editor])
 
 		useLayoutEffect(() => {
 			if (hasProvider && tooltipManager.getCurrentTooltipData()?.id === tooltipId.current) {
