@@ -15,6 +15,8 @@ keywords:
 
 <StarterKitEmbed id="agent" />
 
+---
+
 ## Try it yourself
 
 To build with an agent starter kit, run this command in your terminal:
@@ -22,6 +24,8 @@ To build with an agent starter kit, run this command in your terminal:
 ```bash
 npm create tldraw@latest -- --template agent
 ```
+
+---
 
 ## Use cases
 
@@ -319,7 +323,7 @@ override applyAction(action: Streaming<AddDetailAction>) {
 }
 ```
 
-### **Retrieve data from an external API**
+### Retrieve data from an external API
 
 To let the agent retrieve information from an external API, fetch the data within `applyAction` and schedule a follow-up request with any data you want the agent to have access to.
 
@@ -510,9 +514,9 @@ If you need to add any extra setup or configuration for your provider, you can a
 
 ---
 
-### **Support custom shapes**
+### Support custom shapes
 
-If your app includes [custom shapes](https://tldraw.dev/docs/shapes#Custom-shapes-1), the agent will be able to see, move, delete, resize, rotate and arrange them with no extra setup. However, you might want to also let the agent create and edit them, and read their custom properties.
+If your app includes [custom shapes](/docs/shapes#Custom-shapes-1), the agent will be able to see, move, delete, resize, rotate and arrange them with no extra setup. However, you might want to also let the agent create and edit them, and read their custom properties.
 
 To support custom shapes, you have two main options:
 
@@ -684,6 +688,8 @@ export function convertSimpleShapeToTldrawShape(
 }
 ```
 
+---
+
 ## Further reading
 
 - **[Multiplayer Starter Kit](/starter-kits/multiplayer)**: Use a tldraw multiplayer sync starter kit to build multi-user agent environments.
@@ -691,3 +697,9 @@ export function convertSimpleShapeToTldrawShape(
 - **[Shape Utilities](/docs/shapes#Custom-shapes-1)**: Learn how to create custom shapes and extend tldraw's shape system with advanced geometry, rendering, and interaction patterns.
 
 - **[Editor State Management](/docs/editor)**: Learn how to work with tldraw's reactive state system, editor lifecycle, and event handling for complex canvas applications.
+
+---
+
+## Building with this starter kit?
+
+If you build something great, please share it with us in our [#show-and-tell](https://discord.tldraw.com/?utm_source=docs&utm_medium=organic&utm_campaign=sociallink) channel on Discord. We want to see what you've built!
