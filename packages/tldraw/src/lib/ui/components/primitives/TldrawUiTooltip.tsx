@@ -278,7 +278,7 @@ export const TldrawUiTooltip = forwardRef<HTMLButtonElement, TldrawUiTooltipProp
 			return () => {
 				document.removeEventListener('keydown', handleKeyDown)
 			}
-		}, [])
+		}, [editor])
 
 		useLayoutEffect(() => {
 			if (hasProvider && tooltipManager.getCurrentTooltipData()?.id === tooltipId.current) {
