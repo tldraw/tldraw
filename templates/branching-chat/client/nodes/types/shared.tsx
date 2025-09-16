@@ -4,20 +4,42 @@ import { PortId, ShapePort } from '../../ports/Port'
 import { NodeShape } from '../NodeShapeUtil'
 import { NodeType, NodeTypePorts } from '../nodeTypes'
 
-export interface NodeDefinition<Node extends { type: string }> {
-	type: Node['type']
-	validator: T.Validator<Node>
-	title: string
-	heading?: string
-	icon: TLUiIconJsx
-	getDefault: () => Node
-	getBodyWidthPx: (node: Node, editor: Editor) => number
-	getBodyHeightPx: (node: Node, editor: Editor) => number
-	getPorts: (node: Node, editor: Editor) => NodeTypePorts
-	computeOutput: (node: Node, inputs: Record<string, any>) => Promise<Record<string, any>>
-	onPortConnect?: (editor: Editor, shape: NodeShape, node: Node, port: PortId) => void
-	onPortDisconnect?: (editor: Editor, shape: NodeShape, node: Node, port: PortId) => void
-	Component: React.ComponentType<{ shape: NodeShape; node: Node }>
+export interface NodeComponentProps<Node extends { type: string }> {
+	shape: NodeShape
+	node: Node
+}
+
+export abstract class NodeDefinition<Node extends { type: string }> {
+	constructor(public readonly editor: Editor) {
+		const ctor = this.constructor as NodeDefinitionConstructor<Node>
+		this.type = ctor.type
+		this.validator = ctor.validator
+	}
+
+	readonly type: Node['type']
+	readonly validator: T.Validator<Node>
+	abstract readonly title: string
+	abstract readonly heading?: string
+	abstract readonly icon: TLUiIconJsx
+
+	abstract getDefault(): Node
+	abstract getBodyWidthPx(shape: NodeShape, node: Node): number
+	abstract getBodyHeightPx(shape: NodeShape, node: Node): number
+	abstract getPorts(shape: NodeShape, node: Node): NodeTypePorts
+	abstract computeOutput(
+		shape: NodeShape,
+		node: Node,
+		inputs: Record<string, any>
+	): Promise<Record<string, any>>
+	onPortConnect(_shape: NodeShape, _node: Node, _port: PortId): void {}
+	onPortDisconnect(_shape: NodeShape, _node: Node, _port: PortId): void {}
+	abstract Component: React.ComponentType<NodeComponentProps<Node>>
+}
+
+export interface NodeDefinitionConstructor<Node extends { type: string }> {
+	new (editor: Editor): NodeDefinition<Node>
+	readonly type: Node['type']
+	readonly validator: T.Validator<Node>
 }
 
 /**
@@ -48,7 +70,7 @@ export function updateNode<T extends NodeType>(
 	shape: NodeShape,
 	update: (node: T) => T
 ) {
-	editor.updateShape({
+	editor.updateShape<NodeShape>({
 		id: shape.id,
 		type: shape.type,
 		props: { node: update(shape.props.node as T) },
