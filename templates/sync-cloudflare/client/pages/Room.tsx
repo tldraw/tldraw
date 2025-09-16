@@ -1,12 +1,12 @@
 import { useSync } from '@tldraw/sync'
+import { useParams } from 'react-router-dom'
 import { Tldraw } from 'tldraw'
-import { getBookmarkPreview } from './getBookmarkPreview'
-import { multiplayerAssetStore } from './multiplayerAssetStore'
+import { getBookmarkPreview } from '../getBookmarkPreview'
+import { multiplayerAssetStore } from '../multiplayerAssetStore'
 
-// In this example, the room ID is hard-coded. You can set this however you like though.
-const roomId = 'test-room'
+export function Room() {
+	const { roomId } = useParams<{ roomId: string }>()
 
-function App() {
 	// Create a store connected to multiplayer.
 	const store = useSync({
 		// We need to know the websockets URI...
@@ -21,6 +21,7 @@ function App() {
 				// we can pass the connected store into the Tldraw component which will handle
 				// loading states & enable multiplayer UX like cursors & a presence menu
 				store={store}
+				deepLinks
 				onMount={(editor) => {
 					// when the editor is ready, we need to register our bookmark unfurling service
 					editor.registerExternalAssetHandler('url', getBookmarkPreview)
@@ -29,5 +30,3 @@ function App() {
 		</div>
 	)
 }
-
-export default App

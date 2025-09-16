@@ -24764,6 +24764,18 @@ __metadata:
   languageName: node
   linkType: hard
 
+"react-router-dom@npm:^7.9.1":
+  version: 7.9.1
+  resolution: "react-router-dom@npm:7.9.1"
+  dependencies:
+    react-router: "npm:7.9.1"
+  peerDependencies:
+    react: ">=18"
+    react-dom: ">=18"
+  checksum: 10/84525d182d913d74299213a60da8d2a49b233aa626dd9216f68e513a81cb33a19d1c50eaf09684b9283ae2d5d8cd0cdcc2ae6cd554ea5d8e4e016b442252ddc9
+  languageName: node
+  linkType: hard
+
 "react-router@npm:6.30.1":
   version: 6.30.1
   resolution: "react-router@npm:6.30.1"
@@ -24772,6 +24784,22 @@ __metadata:
   peerDependencies:
     react: ">=16.8"
   checksum: 10/880d6cafd6376dd1e624f6f600b7a208c4142d60eaea66241980ef57260c237b3465c3ff96b28f21ae354410345bbbb1817c3bba083012aade6626027d53506f
+  languageName: node
+  linkType: hard
+
+"react-router@npm:7.9.1":
+  version: 7.9.1
+  resolution: "react-router@npm:7.9.1"
+  dependencies:
+    cookie: "npm:^1.0.1"
+    set-cookie-parser: "npm:^2.6.0"
+  peerDependencies:
+    react: ">=18"
+    react-dom: ">=18"
+  peerDependenciesMeta:
+    react-dom:
+      optional: true
+  checksum: 10/f15aa70bfe95bf05f755283c2b67d3316cd037c99aebf5cc6b4fd49db99a5a4a36ba0664661a84bf7d60a7643dd0457f1835896891dbf7b8f16e670e79e80491
   languageName: node
   linkType: hard
 
@@ -27785,6 +27813,7 @@ __metadata:
     lodash.throttle: "npm:^4.1.1"
     react: "npm:^18.3.1"
     react-dom: "npm:^18.3.1"
+    react-router-dom: "npm:^7.9.1"
     tldraw: "workspace:*"
     typescript: "npm:^5.8.3"
     vite: "npm:^7.0.1"
