@@ -246,8 +246,8 @@ export interface StoreSchemaOptions<R extends UnknownRecord, P> {
  * @example
  * ```ts
  * // Define record types
- * const Book = createRecordType\<Book\>('book', { scope: 'document' })
- * const Author = createRecordType\<Author\>('author', { scope: 'document' })
+ * const Book = createRecordType<Book>('book', { scope: 'document' })
+ * const Author = createRecordType<Author>('author', { scope: 'document' })
  *
  * // Create schema with migrations
  * const schema = StoreSchema.create(
@@ -280,8 +280,8 @@ export class StoreSchema<R extends UnknownRecord, P = unknown> {
 	 *
 	 * @example
 	 * ```ts
-	 * const Book = createRecordType\<Book\>('book', { scope: 'document' })
-	 * const Author = createRecordType\<Author\>('author', { scope: 'document' })
+	 * const Book = createRecordType<Book>('book', { scope: 'document' })
+	 * const Author = createRecordType<Author>('author', { scope: 'document' })
 	 *
 	 * const schema = StoreSchema.create(
 	 *   {

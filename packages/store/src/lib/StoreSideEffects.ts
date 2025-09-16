@@ -65,7 +65,7 @@ export type StoreAfterCreateHandler<R extends UnknownRecord> = (
  * ```ts
  * const handler: StoreBeforeChangeHandler<ShapeRecord> = (prev, next, source) => {
  *   // Prevent shapes from being moved outside the canvas bounds
- *   if (next.x \< 0 || next.y \< 0) {
+ *   if (next.x < 0 || next.y < 0) {
  *     return prev // Block the change
  *   }
  *   return next

@@ -17,7 +17,7 @@ type RangeTuple<Diff> = [fromEpoch: number, toEpoch: number, diff: Diff]
  *
  * @example
  * ```ts
- * const buffer = new HistoryBuffer\<string\>(5)
+ * const buffer = new HistoryBuffer<string>(5)
  * buffer.pushEntry(0, 1, 'first change')
  * buffer.pushEntry(1, 2, 'second change')
  * const changes = buffer.getChangesSince(0) // ['first change', 'second change']
@@ -44,7 +44,7 @@ export class HistoryBuffer<Diff> {
 	 * @param capacity - Maximum number of diffs to store in the buffer
 	 * @example
 	 * ```ts
-	 * const buffer = new HistoryBuffer\<number\>(10) // Store up to 10 diffs
+	 * const buffer = new HistoryBuffer<number>(10) // Store up to 10 diffs
 	 * ```
 	 */
 	constructor(private readonly capacity: number) {
@@ -62,7 +62,7 @@ export class HistoryBuffer<Diff> {
 	 * @param diff - The diff representing the change, or RESET_VALUE to clear history
 	 * @example
 	 * ```ts
-	 * const buffer = new HistoryBuffer\<string\>(5)
+	 * const buffer = new HistoryBuffer<string>(5)
 	 * buffer.pushEntry(0, 1, 'added text')
 	 * buffer.pushEntry(1, 2, RESET_VALUE) // Clears the buffer
 	 * ```
@@ -90,7 +90,7 @@ export class HistoryBuffer<Diff> {
 	 *
 	 * @example
 	 * ```ts
-	 * const buffer = new HistoryBuffer\<string\>(5)
+	 * const buffer = new HistoryBuffer<string>(5)
 	 * buffer.pushEntry(0, 1, 'change')
 	 * buffer.clear()
 	 * console.log(buffer.getChangesSince(0)) // RESET_VALUE
@@ -113,7 +113,7 @@ export class HistoryBuffer<Diff> {
 	 * @returns Array of diffs since the epoch, or RESET_VALUE if history is insufficient
 	 * @example
 	 * ```ts
-	 * const buffer = new HistoryBuffer\<string\>(5)
+	 * const buffer = new HistoryBuffer<string>(5)
 	 * buffer.pushEntry(0, 1, 'first')
 	 * buffer.pushEntry(1, 2, 'second')
 	 * const changes = buffer.getChangesSince(0) // ['first', 'second']
