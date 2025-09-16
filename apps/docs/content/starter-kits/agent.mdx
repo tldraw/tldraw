@@ -57,17 +57,17 @@ The Agent Starter Kit builds on tldraw's extensible architecture.
 
 ### 1. User input
 
-To make decisions on what to do, the agent gathers the information from various sources:
+To decide what actions to take, the agent gathers information from various sources:
 
-- The user's message.
-- The user's current selection of shapes.
-- What the user can currently see on their screen.
-- Any additional context that the user has provided, such as specific shapes or a particular position or area on the canvas.
-- Actions the user has recently taken.
-- A screenshot of the agent's current view of the canvas.
-- A simplified format of all shapes within the agent's viewport.
-- Information on clusters of shapes outside the agent's viewport.
-- The history of the current session, including the user's messages and all the agent's actions.
+- The user's message
+- The user's current selection of shapes
+- What the user can currently see on their screen
+- Any additional context the user has provided, such as specific shapes or a particular position or area on the canvas
+- Recent actions taken by the user
+- A screenshot of the agent's current view of the canvas
+- A simplified representation of all shapes within the agent's viewport
+- Information about clusters of shapes outside the agent's viewport
+- The history of the current session, including the user's messages and all of the agent's actions
 
 ### 2. Visual context system: Canvas understanding
 
@@ -686,8 +686,8 @@ export function convertSimpleShapeToTldrawShape(
 
 ## Further reading
 
-**Custom shape integration**: Learn how to enable your agent to understand and manipulate custom shape types specific to your domain or application requirements.
+- **[Multiplayer Starter Kit](/starter-kits/multiplayer)**: Use a tldraw multiplayer sync starter kit to build multi-user agent environments.
 
-**Real-time collaboration**: Learn how to build multi-user agent environments where multiple AI assistants and human users can collaborate on the same canvas simultaneously.
+- **[Shape Utilities](/docs/shapes#Custom-shapes-1)**: Learn how to create custom shapes and extend tldraw's shape system with advanced geometry, rendering, and interaction patterns.
 
-**tldraw teach**
+- **[Editor State Management](/docs/editor)**: Learn how to work with tldraw's reactive state system, editor lifecycle, and event handling for complex canvas applications.
