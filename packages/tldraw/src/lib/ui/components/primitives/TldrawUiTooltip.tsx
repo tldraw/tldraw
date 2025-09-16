@@ -267,6 +267,19 @@ export const TldrawUiTooltip = forwardRef<HTMLButtonElement, TldrawUiTooltipProp
 			}
 		}, [editor, hasProvider])
 
+		useEffect(() => {
+			function handleKeyDown(event: KeyboardEvent) {
+				if (event.key === 'Escape') {
+					tooltipManager.hideTooltip(editor, tooltipId.current)
+				}
+			}
+
+			document.addEventListener('keydown', handleKeyDown)
+			return () => {
+				document.removeEventListener('keydown', handleKeyDown)
+			}
+		}, [])
+
 		useLayoutEffect(() => {
 			if (hasProvider && tooltipManager.getCurrentTooltipData()?.id === tooltipId.current) {
 				tooltipManager.updateCurrentTooltip(tooltipId.current, (tooltip) => ({

@@ -3243,7 +3243,7 @@ export function TldrawUiMenuActionCheckboxItem({ actionId, ...rest }: TLUiMenuAc
 export function TldrawUiMenuActionItem({ actionId, ...rest }: TLUiMenuActionItemProps): JSX_2.Element | null;
 
 // @public (undocumented)
-export function TldrawUiMenuCheckboxItem<TranslationKey extends string = string, IconType extends string = string>({ id, kbd, label, readonlyOk, onSelect, toggle, disabled, checked, }: TLUiMenuCheckboxItemProps<TranslationKey, IconType>): JSX_2.Element | null;
+export function TldrawUiMenuCheckboxItem<TranslationKey extends string = string, IconType extends string = string>({ id, kbd, label, lang, readonlyOk, onSelect, toggle, disabled, checked, }: TLUiMenuCheckboxItemProps<TranslationKey, IconType>): JSX_2.Element | null;
 
 // @public (undocumented)
 export function TldrawUiMenuContextProvider({ type, sourceId, children, }: TLUiMenuContextProviderProps): JSX_2.Element;
@@ -4226,6 +4226,8 @@ export interface TLUiMenuCheckboxItemProps<TranslationKey extends string = strin
     label?: {
         [key: string]: TranslationKey;
     } | TranslationKey;
+    // (undocumented)
+    lang?: string;
     // (undocumented)
     onSelect(source: TLUiEventSource): Promise<void> | void;
     // (undocumented)

@@ -70,6 +70,7 @@ export function AltTextEditor({ shapeId, onClose, source }: AltTextEditorProps) 
 				data-testid="media-toolbar.alt-text-input"
 				value={altText}
 				placeholder={msg('tool.media-alt-text-desc')}
+				aria-label={msg('tool.media-alt-text-desc')}
 				onValueChange={handleValueChange}
 				onComplete={handleComplete}
 				onCancel={handleAltTextCancel}

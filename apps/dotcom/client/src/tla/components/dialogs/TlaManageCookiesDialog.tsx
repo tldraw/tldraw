@@ -45,22 +45,23 @@ export function TlaManageCookiesDialog() {
 					</p>
 					<TlaMenuControlGroup>
 						<TlaMenuControl>
-							<TlaMenuControlLabel>
+							<TlaMenuControlLabel htmlFor="essential-cookies-switch">
 								<F defaultMessage="Essential cookies" />
 							</TlaMenuControlLabel>
 							<TlaMenuControlInfoTooltip showOnMobile>
 								<F defaultMessage="We use these cookies to save your files and settings." />
 							</TlaMenuControlInfoTooltip>
-							<TlaMenuSwitch checked={true} disabled />
+							<TlaMenuSwitch id="essential-cookies-switch" checked={true} disabled />
 						</TlaMenuControl>
 						<TlaMenuControl>
-							<TlaMenuControlLabel>
+							<TlaMenuControlLabel htmlFor="analytics-switch">
 								<F defaultMessage="Analytics" />
 							</TlaMenuControlLabel>
 							<TlaMenuControlInfoTooltip showOnMobile>
 								<F defaultMessage="We use analytics cookies to make tldraw better." />
 							</TlaMenuControlInfoTooltip>
 							<TlaMenuSwitch
+								id="analytics-switch"
 								checked={consent === true}
 								onChange={() => updateConsent(!(consent === true))}
 							/>

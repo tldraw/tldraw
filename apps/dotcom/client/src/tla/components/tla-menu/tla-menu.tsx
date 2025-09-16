@@ -75,8 +75,18 @@ export function TlaMenuControlInfoTooltip({
 }
 
 // A label for a control
-export function TlaMenuControlLabel({ children }: { children: ReactNode }) {
-	return <label className={classNames(styles.menuLabel, 'tla-text_ui__medium')}>{children}</label>
+export function TlaMenuControlLabel({
+	children,
+	htmlFor,
+}: {
+	children: ReactNode
+	htmlFor: string
+}) {
+	return (
+		<label className={classNames(styles.menuLabel, 'tla-text_ui__medium')} htmlFor={htmlFor}>
+			{children}
+		</label>
+	)
 }
 
 // A detail
@@ -89,6 +99,7 @@ export function TlaMenuDetail({ children }: { children: ReactNode }) {
 /* --------------------- Select --------------------- */
 
 export function TlaMenuSelect<T extends string>({
+	id,
 	label,
 	value,
 	disabled,
@@ -96,6 +107,7 @@ export function TlaMenuSelect<T extends string>({
 	options,
 	'data-testid': dataTestId,
 }: {
+	id: string
 	label: string
 	value: T
 	disabled?: boolean
@@ -141,6 +153,7 @@ export function TlaMenuSelect<T extends string>({
 				onValueChange={handleChange}
 			>
 				<_Select.Trigger
+					id={id}
 					className={styles.menuSelectTrigger}
 					disabled={disabled}
 					aria-label={label}
@@ -177,12 +190,13 @@ export function TlaMenuSelect<T extends string>({
 /* --------------------- Switch --------------------- */
 
 export interface TlaMenuSwitchProps extends Omit<HTMLAttributes<HTMLInputElement>, 'onChange'> {
+	id: string
 	checked: boolean
 	onChange?(checked: boolean): void
 	disabled?: boolean
 }
 
-export function TlaMenuSwitch({ checked, onChange, disabled, ...rest }: TlaMenuSwitchProps) {
+export function TlaMenuSwitch({ id, checked, onChange, disabled, ...rest }: TlaMenuSwitchProps) {
 	const handleChange = useCallback(
 		(e: ChangeEvent<HTMLInputElement>) => {
 			onChange?.(e.currentTarget.checked)
@@ -200,6 +214,7 @@ export function TlaMenuSwitch({ checked, onChange, disabled, ...rest }: TlaMenuS
 		>
 			<div className={styles.menuSwitch} data-checked={checked} />
 			<input
+				id={id}
 				name="shared"
 				disabled={disabled}
 				role="switch"
