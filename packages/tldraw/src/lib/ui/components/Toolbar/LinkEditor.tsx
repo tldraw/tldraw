@@ -2,9 +2,9 @@ import { preventDefault, TiptapEditor, useEditor } from '@tldraw/editor'
 import { useEffect, useRef, useState } from 'react'
 import { useUiEvents } from '../../context/events'
 import { useTranslation } from '../../hooks/useTranslation/useTranslation'
+import { TldrawUiButton } from '../primitives/Button/TldrawUiButton'
 import { TldrawUiButtonIcon } from '../primitives/Button/TldrawUiButtonIcon'
 import { TldrawUiInput } from '../primitives/TldrawUiInput'
-import { TldrawUiToolbarButton } from '../primitives/TldrawUiToolbar'
 
 /** @public */
 export interface LinkEditorProps {
@@ -77,7 +77,7 @@ export function LinkEditor({ textEditor, value: initialValue, onClose }: LinkEdi
 				placeholder="example.com"
 				aria-label="example.com"
 			/>
-			<TldrawUiToolbarButton
+			<TldrawUiButton
 				className="tlui-rich-text__toolbar-link-visit"
 				title={msg('tool.rich-text-link-visit')}
 				type="icon"
@@ -86,8 +86,8 @@ export function LinkEditor({ textEditor, value: initialValue, onClose }: LinkEdi
 				disabled={!value}
 			>
 				<TldrawUiButtonIcon small icon="external-link" />
-			</TldrawUiToolbarButton>
-			<TldrawUiToolbarButton
+			</TldrawUiButton>
+			<TldrawUiButton
 				className="tlui-rich-text__toolbar-link-remove"
 				title={msg('tool.rich-text-link-remove')}
 				data-testid="rich-text.link-remove"
@@ -96,7 +96,7 @@ export function LinkEditor({ textEditor, value: initialValue, onClose }: LinkEdi
 				onClick={handleRemoveLink}
 			>
 				<TldrawUiButtonIcon small icon="trash" />
-			</TldrawUiToolbarButton>
+			</TldrawUiButton>
 		</>
 	)
 }
