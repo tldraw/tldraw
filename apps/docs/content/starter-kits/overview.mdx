@@ -1,0 +1,79 @@
+---
+title: Starter Kits Overview
+status: published
+author: tldraw
+date: 9/16/2024
+order: 1
+keywords:
+  - starter kit
+  - templates
+  - examples
+---
+
+Starter Kits are application templates built on top of the tldraw SDK. They provide implementations of common canvas-based use cases, including frontend components and starting points for backend infrastructure and deployment configuration.
+
+---
+
+## Starter Kit Benefits
+
+- **Customizable UI**: All components use standard tldraw APIs so you can add custom shapes, tools, and change the UI.
+- **Extensible foundation**: Built on the same reactive architecture powering the [tldraw.com](http://tldraw.com) whiteboard.
+- **Scalable infrastructure**: easy integrations for real-time collaboration, asset management, and error handling.
+
+---
+
+## Try it yourself
+
+Run this command in your terminal to build with starter kits:
+
+```jsx
+npm create tldraw@latest
+```
+
+---
+
+## Available Starter Kits
+
+### Workflow
+
+Visual node-based builder with drag-and-drop nodes, automatic routing, and execution management.
+
+**Use cases:** automation builders, workflow editors, data pipelines
+
+### Chat
+
+Canvas for sketching, annotation, and markup before sending to AI.
+
+**Use cases:** design feedback, education, documentation
+
+### Agent
+
+Enabling AI agents to interpret and interact with canvas drawings and elements.
+
+**Use cases:** diagram generation, shape recognition, visual rendering
+
+### Branching chat
+
+Visual branching conversation interface that lets you create interactive chat trees with AI integration.
+
+**Use cases:** interactive chatbots, conversation design tools, interactive storytelling, visual conversation prototyping
+
+### Multiplayer sync
+
+Self-hosted tldraw with real-time multiplayer collaboration powered by tldraw sync and Cloudflare Durable Objects.
+
+**Use cases:** collaborative whiteboards, team workspaces, real-time design tools, multiplayer applications
+
+---
+
+## License
+
+Starter Kits are distributed under the same licensing terms as the tldraw SDK.
+
+---
+
+## Further Reading
+
+- **Custom shapes**: Learn how to create domain-specific shapes with custom geometry, rendering, and interaction behavior.
+- **Real-time collaboration**: Learn more about implementing WebSocket-based synchronization and conflict resolution for multi-user applications.
+- **Editor architecture**: Learn how tldraw's reactive state system, shape utilities, and tool hierarchies work together to build canvas applications.
