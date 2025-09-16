@@ -1584,6 +1584,19 @@ export function ActionsProvider({ overrides, children }: ActionsProviderProps) {
 				onSelect: async (source) => {
 					if (!canApplySelectionAction()) return
 
+					const onlySelectedShape = editor.getOnlySelectedShape()
+					if (
+						onlySelectedShape &&
+						(editor.isShapeOfType<TLImageShape>(onlySelectedShape, 'image') ||
+							editor.isShapeOfType<TLVideoShape>(onlySelectedShape, 'video'))
+					) {
+						const firstToolbarButton = editor
+							.getContainer()
+							.querySelector('.tlui-contextual-toolbar button:first-child') as HTMLElement | null
+						firstToolbarButton?.focus()
+						return
+					}
+
 					const firstButton = editor
 						.getContainer()
 						.querySelector('.tlui-style-panel button') as HTMLElement | null
