@@ -85,13 +85,9 @@ export interface ErrorResult<E> {
 
 // @internal
 export class ExecutionQueue {
-    // @public
     constructor(timeout?: number | undefined);
-    // @public
     close(): void;
-    // @public
     isEmpty(): boolean;
-    // @public
     push<T>(task: () => T): Promise<Awaited<T>>;
 }
 

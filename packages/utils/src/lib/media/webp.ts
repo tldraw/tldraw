@@ -3,25 +3,7 @@
  * Copyright (c) Sindre Sorhus <sindresorhus@gmail.com> (https://sindresorhus.com)
  */
 
-/**
- * Checks if buffer contains WebP image by examining the file signature.
- * WebP files have the signature "WEBP" starting at byte 8.
- *
- * @param buffer - The ArrayBuffer containing the image data to check
- * @returns True if the buffer contains a WebP image, false otherwise
- * @example
- * ```ts
- * // Check if uploaded file is WebP format
- * const file = event.target.files[0]
- * const buffer = await file.arrayBuffer()
- * if (isWebP(buffer)) {
- *   console.log('File is WebP format')
- * }
- * ```
- * @public
- */
-export function isWebP(buffer: ArrayBuffer): boolean {
-	const view = new Uint8Array(buffer)
+function isWebp(view: Uint8Array) {
 	if (!view || view.length < 12) {
 		return false
 	}
@@ -45,11 +27,11 @@ export function isWebP(buffer: ArrayBuffer): boolean {
  * @public
  */
 export function isWebpAnimated(buffer: ArrayBuffer) {
-	if (!isWebP(buffer)) {
+	const view = new Uint8Array(buffer)
+
+	if (!isWebp(view)) {
 		return false
 	}
-
-	const view = new Uint8Array(buffer)
 
 	if (!view || view.length < 21) {
 		return false

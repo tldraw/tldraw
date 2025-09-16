@@ -50,7 +50,6 @@ export class ExecutionQueue {
 	 * // Create queue with 500ms delay between tasks
 	 * const slowQueue = new ExecutionQueue(500)
 	 * ```
-	 * @public
 	 */
 	constructor(private readonly timeout?: number) {}
 
@@ -70,7 +69,6 @@ export class ExecutionQueue {
 	 * queue.push(() => console.log('task'))
 	 * console.log(queue.isEmpty()) // false - task is running/pending
 	 * ```
-	 * @public
 	 */
 	isEmpty() {
 		return this.queue.length === 0 && !this.running
@@ -116,7 +114,6 @@ export class ExecutionQueue {
 	 * // Add sync task
 	 * const number = await queue.push(() => 42)
 	 * ```
-	 * @public
 	 */
 	async push<T>(task: () => T): Promise<Awaited<T>> {
 		return new Promise<Awaited<T>>((resolve, reject) => {
@@ -146,7 +143,6 @@ export class ExecutionQueue {
 	 * queue.close()
 	 * // Only 'task 1' will execute if it was already running
 	 * ```
-	 * @public
 	 */
 	close() {
 		this.queue = []

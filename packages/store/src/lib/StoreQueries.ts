@@ -303,7 +303,7 @@ export class StoreQueries<R extends UnknownRecord> {
 					if (!res.has(value)) {
 						res.set(value, new Set())
 					}
-					res.get(value)!.add(record.id as IdOf<S>)
+					res.get(value)!.add(record.id)
 				}
 			}
 
