@@ -2,9 +2,9 @@ import { preventDefault, TLShape, TLShapeId, useEditor } from '@tldraw/editor'
 import { useCallback, useEffect, useRef, useState } from 'react'
 import { useUiEvents } from '../../context/events'
 import { useTranslation } from '../../hooks/useTranslation/useTranslation'
+import { TldrawUiButton } from '../primitives/Button/TldrawUiButton'
 import { TldrawUiButtonIcon } from '../primitives/Button/TldrawUiButtonIcon'
 import { TldrawUiInput } from '../primitives/TldrawUiInput'
-import { TldrawUiToolbarButton } from '../primitives/TldrawUiToolbar'
 
 /** @public */
 export interface AltTextEditorProps {
@@ -77,7 +77,7 @@ export function AltTextEditor({ shapeId, onClose, source }: AltTextEditorProps) 
 				disabled={isReadonly}
 			/>
 			{!isReadonly && (
-				<TldrawUiToolbarButton
+				<TldrawUiButton
 					title={msg('tool.media-alt-text-confirm')}
 					data-testid="tool.media-alt-text-confirm"
 					type="icon"
@@ -85,7 +85,7 @@ export function AltTextEditor({ shapeId, onClose, source }: AltTextEditorProps) 
 					onClick={handleConfirm}
 				>
 					<TldrawUiButtonIcon small icon="check" />
-				</TldrawUiToolbarButton>
+				</TldrawUiButton>
 			)}
 		</>
 	)
