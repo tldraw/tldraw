@@ -244,7 +244,7 @@ describe('wrapAnsi', () => {
 			expect(lines[0].length).toBeLessThanOrEqual(56)
 
 			// All lines should respect column limit
-			lines.forEach(line => {
+			lines.forEach((line) => {
 				expect(line.length).toBeLessThanOrEqual(56)
 			})
 

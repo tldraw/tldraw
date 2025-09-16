@@ -134,10 +134,11 @@ function exec(string: string, columns: number, options: WrapAnsiOptions = {}) {
 	const trimmedString = string.trimStart()
 
 	// Adjust column width to account for original leading whitespace on first row
-	const shouldPreserveLeadingWhitespace = (options.trim === false || options.indent) && originalLeadingWhitespace
-	const adjustedColumns = shouldPreserveLeadingWhitespace ?
-		columns - stringWidth(originalLeadingWhitespace) :
-		columns
+	const shouldPreserveLeadingWhitespace =
+		(options.trim === false || options.indent) && originalLeadingWhitespace
+	const adjustedColumns = shouldPreserveLeadingWhitespace
+		? columns - stringWidth(originalLeadingWhitespace)
+		: columns
 
 	let returnValue = ''
 	let escapeCode
