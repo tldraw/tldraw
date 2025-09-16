@@ -118,6 +118,16 @@ export function useTranslation() {
 	)
 }
 
+/**
+ * Return current app's dir
+ * @returns 'ltr' | 'rtl'
+ * @public
+ */
+export function useDir(): 'ltr' | 'rtl' {
+	const translation = useCurrentTranslation()
+	return translation.dir
+}
+
 export function untranslated(string: string) {
 	return string as TLUiTranslationKey
 }

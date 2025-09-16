@@ -2,6 +2,7 @@ import { USER_COLORS, track, useContainer, useEditor } from '@tldraw/editor'
 import { Popover as _Popover } from 'radix-ui'
 import React, { useCallback, useRef, useState } from 'react'
 import { useUiEvents } from '../../context/events'
+import { useDir } from '../../hooks/useTranslation/useTranslation'
 import { useTranslation } from '../../hooks/useTranslation/useTranslation'
 import { TldrawUiButton } from '../primitives/Button/TldrawUiButton'
 import { TldrawUiButtonIcon } from '../primitives/Button/TldrawUiButtonIcon'
@@ -12,6 +13,7 @@ export const UserPresenceColorPicker = track(function UserPresenceColorPicker() 
 	const container = useContainer()
 	const msg = useTranslation()
 	const trackEvent = useUiEvents()
+	const dir = useDir()
 
 	const rPointing = useRef(false)
 
@@ -83,7 +85,7 @@ export const UserPresenceColorPicker = track(function UserPresenceColorPicker() 
 
 	return (
 		<_Popover.Root onOpenChange={handleOpenChange} open={isOpen}>
-			<_Popover.Trigger dir="ltr" asChild>
+			<_Popover.Trigger dir={dir} asChild>
 				<TldrawUiButton
 					type="icon"
 					className="tlui-people-menu__user__color"
@@ -95,7 +97,7 @@ export const UserPresenceColorPicker = track(function UserPresenceColorPicker() 
 			</_Popover.Trigger>
 			<_Popover.Portal container={container}>
 				<_Popover.Content
-					dir="ltr"
+					dir={dir}
 					className="tlui-menu tlui-people-menu__user__color-picker"
 					align="start"
 					side="left"

@@ -14,7 +14,7 @@ import { useBreakpoint } from '../../context/breakpoints'
 import { useUiEvents } from '../../context/events'
 import { useMenuIsOpen } from '../../hooks/useMenuIsOpen'
 import { useReadonly } from '../../hooks/useReadonly'
-import { useTranslation } from '../../hooks/useTranslation/useTranslation'
+import { useDir, useTranslation } from '../../hooks/useTranslation/useTranslation'
 import { TldrawUiButton } from '../primitives/Button/TldrawUiButton'
 import { TldrawUiButtonCheck } from '../primitives/Button/TldrawUiButtonCheck'
 import { TldrawUiButtonIcon } from '../primitives/Button/TldrawUiButtonIcon'
@@ -35,6 +35,7 @@ export const DefaultPageMenu = memo(function DefaultPageMenu() {
 	const trackEvent = useUiEvents()
 	const msg = useTranslation()
 	const breakpoint = useBreakpoint()
+	const dir = useDir()
 
 	const handleOpenChange = useCallback(() => setIsEditing(false), [])
 
@@ -322,7 +323,7 @@ export const DefaultPageMenu = memo(function DefaultPageMenu() {
 			</TldrawUiPopoverTrigger>
 			<TldrawUiPopoverContent
 				side="bottom"
-				align="start"
+				align={dir === 'rtl' ? 'end' : 'start'}
 				sideOffset={0}
 				disableEscapeKeyDown={isEditing}
 			>
