@@ -35,7 +35,7 @@ export const AddNode = T.object({
 	lastResult: T.number.nullable(),
 })
 
-export class AddNodeType extends NodeDefinition<AddNode> {
+export class AddNodeDefinition extends NodeDefinition<AddNode> {
 	static type = 'add'
 	static validator = AddNode
 	title = 'Add'

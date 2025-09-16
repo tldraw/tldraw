@@ -122,6 +122,7 @@ export type TLUiTranslationKey =
 	| 'action.zoom-to-fit'
 	| 'action.zoom-to-selection'
 	| 'assets.files.size-too-big'
+	| 'assets.files.maximum-size'
 	| 'assets.files.type-not-allowed'
 	| 'assets.files.upload-failed'
 	| 'assets.files.amount-too-many'

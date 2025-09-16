@@ -30,7 +30,7 @@ export const SubtractNode = T.object({
 	lastResult: T.number.nullable(),
 })
 
-export class SubtractNodeType extends NodeDefinition<SubtractNode> {
+export class SubtractNodeDefinition extends NodeDefinition<SubtractNode> {
 	static type = 'subtract'
 	static validator = SubtractNode
 	title = 'Subtract'

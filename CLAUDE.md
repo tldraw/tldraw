@@ -133,7 +133,6 @@ packages/
 ├── utils/            # Shared utilities
 ├── validate/         # Lightweight validation library
 ├── assets/           # Icons, fonts, translations
-├── ai/               # AI module SDK addon
 └── create-tldraw/    # npm create tldraw CLI
 
 templates/            # Starter templates for different frameworks

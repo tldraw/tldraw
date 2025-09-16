@@ -123,6 +123,7 @@ export const DEFAULT_TRANSLATION = {
 	'action.zoom-to-fit': 'Zoom to fit',
 	'action.zoom-to-selection': 'Zoom to selection',
 	'assets.files.size-too-big': 'File size is too big',
+	'assets.files.maximum-size': 'Maximum file size is {size}',
 	'assets.files.type-not-allowed': 'File type is not allowed',
 	'assets.files.upload-failed': 'Upload failed',
 	'assets.files.amount-too-many': 'Too many files',
