@@ -118,7 +118,7 @@ export function attach(parent: Signal<any>, child: Child) {
  * This function performs equality checks in the following order:
  * 1. Reference equality (`===`)
  * 2. `Object.is()` equality (handles NaN and -0/+0 cases)
- * 3. Custom `.equals()` method if both values have one
+ * 3. Custom `.equals()` method when the left-hand value provides one
  *
  * This is used internally to determine if a signal's value has actually changed
  * when setting new values, preventing unnecessary updates and re-computations.
@@ -130,7 +130,7 @@ export function attach(parent: Signal<any>, child: Child) {
  * ```ts
  * equals(1, 1) // true
  * equals(NaN, NaN) // true (unlike === which returns false)
- * equals({ equals: (other) => this.id === other.id }, { id: 1 }) // Uses custom equals method
+ * equals({ equals: (other: any) => other.id === 1 }, { id: 1 }) // Uses custom equals method
  * ```
  * @internal
  */
@@ -142,11 +142,11 @@ export function equals(a: any, b: any): boolean {
 
 /**
  * A TypeScript utility function for exhaustiveness checking in switch statements and
- * conditional branches. This function should never be called at runtime - it exists
- * purely for compile-time type checking.
+ * conditional branches. This function should never be called at runtime—it exists
+ * purely for compile-time type checking and is `undefined` in emitted JavaScript.
  *
  * @param x - A value that should be of type `never`
- * @throws Will throw an error if called at runtime
+ * @throws Always at runtime because the identifier is undefined
  * @example
  * ```ts
  * type Color = 'red' | 'blue'
