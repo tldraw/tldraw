@@ -34,11 +34,18 @@ export const AGENT_MODEL_DEFINITIONS = {
 	},
 
 	// Recommended
-	'gemini-2.5-flash': {
-		name: 'gemini-2.5-flash',
-		id: 'gemini-2.5-flash',
-		provider: 'google',
+	'claude-3.5-sonnet': {
+		name: 'claude-3.5-sonnet',
+		id: 'claude-3-5-sonnet-latest',
+		provider: 'anthropic',
 	},
+
+	// Recommended
+	// 'gemini-2.5-flash': {
+	// 	name: 'gemini-2.5-flash',
+	// 	id: 'gemini-2.5-flash',
+	// 	provider: 'google',
+	// },
 
 	// Not recommended
 	// 'gemini-2.5-pro': {
@@ -56,16 +63,16 @@ export const AGENT_MODEL_DEFINITIONS = {
 	// },
 
 	// Mildly recommended
-	'gpt-4.1': {
-		name: 'gpt-4.1',
-		id: 'gpt-4.1-2025-04-14',
-		provider: 'openai',
-	},
+	// 'gpt-4.1': {
+	// 	name: 'gpt-4.1',
+	// 	id: 'gpt-4.1-2025-04-14',
+	// 	provider: 'openai',
+	// },
 
 	// Mildly recommended
-	'gpt-4o': {
-		name: 'gpt-4o',
-		id: 'gpt-4o',
-		provider: 'openai',
-	},
+	// 'gpt-4o': {
+	// 	name: 'gpt-4o',
+	// 	id: 'gpt-4o',
+	// 	provider: 'openai',
+	// },
 } as const
