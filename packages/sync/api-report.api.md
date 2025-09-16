@@ -13,7 +13,7 @@ import { TLStore } from 'tldraw';
 import { TLStoreSchemaOptions } from 'tldraw';
 import { TLStoreWithStatus } from 'tldraw';
 
-// @public (undocumented)
+// @public
 export type RemoteTLStoreWithStatus = Exclude<TLStoreWithStatus, {
     status: 'not-synced';
 } | {
