@@ -171,6 +171,10 @@ const nextConfig = {
 					destination: `https://${REWRITE_DOMAIN}/careers`,
 				},
 				{
+					source: '/company',
+					destination: `https://${REWRITE_DOMAIN}/company`,
+				},
+				{
 					source: '/events',
 					destination: `https://${REWRITE_DOMAIN}/events`,
 				},
@@ -203,16 +207,8 @@ const nextConfig = {
 					destination: `https://${REWRITE_DOMAIN}/showcase`,
 				},
 				{
-					source: '/starterkits',
-					destination: `https://${REWRITE_DOMAIN}/starterkits`,
-				},
-				{
-					source: '/talk',
-					destination: `https://${REWRITE_DOMAIN}/talk`,
-				},
-				{
-					source: '/team',
-					destination: `https://${REWRITE_DOMAIN}/team`,
+					source: '/starter-kits',
+					destination: `https://${REWRITE_DOMAIN}/starter-kits`,
 				},
 				{
 					source: '/thanks',
