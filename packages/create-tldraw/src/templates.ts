@@ -46,7 +46,7 @@ export const TEMPLATES: Template[] = [
 	{
 		name: 'Workflow',
 		description:
-			'Build visual tools where users drag and connect nodes, think automation builders with a canvas interface. ',
+			'Build visual tools where users drag and connect nodes, think automation builders with a canvas interface.',
 		shortDescription: 'Visual node-based builder for workflows.',
 		repo: 'tldraw/workflow-template',
 	},

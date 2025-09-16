@@ -261,14 +261,13 @@ function getHelp() {
 		const indent = ' '.repeat(templatePrefix.length + GAP_SIZE)
 		for (const template of TEMPLATES) {
 			lines.push(`${templatePrefix}${formatTemplateId(template)}`)
-			const input = `${indent}${template.shortDescription ?? template.description}`
-			console.log(
-				`wrapAnsi(${JSON.stringify(input)}, ${process.stdout.columns}, { indent: ${JSON.stringify(indent)} })`,
-				'=>',
-				JSON.stringify(wrapAnsi(input, process.stdout.columns, { indent }))
+			lines.push(
+				wrapAnsi(
+					`${indent}${template.shortDescription ?? template.description}`,
+					process.stdout.columns,
+					{ indent }
+				)
 			)
-			console.log('input length', input.length)
-			lines.push(wrapAnsi(input, process.stdout.columns, { indent }))
 		}
 	} else {
 		const indent = ' '.repeat(idealIndentSize)
