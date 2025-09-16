@@ -52,6 +52,7 @@ const sectionConfig: Record<string, SearchConfig | null> = {
 		priority: 4,
 		splitHeadings: true,
 	},
+	'starter-kits': null,
 	legal: null,
 	blog: {
 		index: 'blog',

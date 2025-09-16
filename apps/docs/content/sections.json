@@ -7,6 +7,13 @@
 		"sidebar_behavior": "show-links"
 	},
 	{
+		"id": "starter-kits",
+		"title": "Starter Kits",
+		"description": "Ready-to-use templates to jumpstart your tldraw projects.",
+		"categories": [],
+		"sidebar_behavior": "show-links"
+	},
+	{
 		"id": "releases",
 		"title": "Releases",
 		"description": "Introduction articles for tldraw.",

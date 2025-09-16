@@ -41,6 +41,9 @@ export function generateSection(section: InputSection, articles: Articles, index
 	for (const file of files) {
 		const filename = file.toString()
 		if (filename.startsWith('.')) continue
+		if (!isExamplesSection && !filename.endsWith('.mdx') && !filename.endsWith('.md')) {
+			throw new Error(`no non .md / mdx files pls: ${filename}`)
+		}
 
 		// Get the parsed file content using matter
 		const pathname = isExamplesSection
