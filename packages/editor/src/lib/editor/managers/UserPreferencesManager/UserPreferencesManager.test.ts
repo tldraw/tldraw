@@ -30,6 +30,7 @@ describe('UserPreferencesManager', () => {
 		isWrapMode: false,
 		isDynamicSizeMode: false,
 		isPasteAtCursorMode: false,
+		isTrackpad: null,
 		...overrides,
 	})
 
@@ -233,6 +234,7 @@ describe('UserPreferencesManager', () => {
 				isDarkMode: false, // light mode
 				isWrapMode: mockUserPreferences.isWrapMode,
 				isDynamicResizeMode: mockUserPreferences.isDynamicSizeMode,
+				isTrackpad: null,
 			})
 		})
 
@@ -451,6 +453,22 @@ describe('UserPreferencesManager', () => {
 				expect(userPreferencesManager.getIsPasteAtCursorMode()).toBe(
 					defaultUserPreferences.isPasteAtCursorMode
 				)
+			})
+		})
+
+		describe('getIsTrackpad', () => {
+			it('should return user trackpad setting', () => {
+				expect(userPreferencesManager.getIsTrackpad()).toBe(null)
+			})
+
+			it('should return false if isTrackpad is false', () => {
+				userPreferencesAtom.set({ ...mockUserPreferences, isTrackpad: false })
+				expect(userPreferencesManager.getIsTrackpad()).toBe(false)
+			})
+
+			it('should return true if isTrackpad is true', () => {
+				userPreferencesAtom.set({ ...mockUserPreferences, isTrackpad: true })
+				expect(userPreferencesManager.getIsTrackpad()).toBe(true)
 			})
 		})
 	})

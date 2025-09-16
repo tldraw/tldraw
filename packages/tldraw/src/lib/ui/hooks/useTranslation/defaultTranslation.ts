@@ -3,6 +3,8 @@
 
 /** @internal */
 export const DEFAULT_TRANSLATION = {
+	'action.toggle-mouse': 'Mouse',
+	'action.toggle-trackpad': 'Trackpad',
 	'action.convert-to-bookmark': 'Convert to Bookmark',
 	'action.convert-to-embed': 'Convert to Embed',
 	'action.open-embed-link': 'Open link',
@@ -312,6 +314,7 @@ export const DEFAULT_TRANSLATION = {
 	'menu.language': 'Language',
 	'menu.preferences': 'Preferences',
 	'menu.view': 'View',
+	'menu.mouse-trackpad': 'Mouse or trackpad',
 	'context-menu.title': 'Context menu',
 	'context-menu.edit': 'Edit',
 	'context-menu.arrange': 'Arrange',

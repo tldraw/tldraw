@@ -3,6 +3,8 @@
 
 /** @public */
 export type TLUiTranslationKey =
+	| 'action.toggle-mouse'
+	| 'action.toggle-trackpad'
 	| 'action.convert-to-bookmark'
 	| 'action.convert-to-embed'
 	| 'action.open-embed-link'
@@ -311,6 +313,7 @@ export type TLUiTranslationKey =
 	| 'menu.language'
 	| 'menu.preferences'
 	| 'menu.view'
+	| 'menu.mouse-trackpad'
 	| 'context-menu.title'
 	| 'context-menu.edit'
 	| 'context-menu.arrange'

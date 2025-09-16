@@ -50,6 +50,7 @@ export class UserPreferencesManager {
 			isWrapMode: this.getIsWrapMode(),
 			isDynamicResizeMode: this.getIsDynamicResizeMode(),
 			showUiLabels: this.getShowUiLabels(),
+			isTrackpad: this.getIsTrackpad(),
 		}
 	}
 
@@ -123,5 +124,9 @@ export class UserPreferencesManager {
 
 	@computed getShowUiLabels() {
 		return this.user.userPreferences.get().showUiLabels ?? defaultUserPreferences.showUiLabels
+	}
+
+	@computed getIsTrackpad() {
+		return this.user.userPreferences.get().isTrackpad ?? defaultUserPreferences.isTrackpad
 	}
 }

@@ -730,6 +730,7 @@ export const defaultUserPreferences: Readonly<{
     isDynamicSizeMode: false;
     isPasteAtCursorMode: false;
     isSnapMode: false;
+    isTrackpad: null;
     isWrapMode: false;
     locale: "ar" | "bn" | "ca" | "cs" | "da" | "de" | "el" | "en" | "es" | "fa" | "fi" | "fr" | "gl" | "gu-in" | "he" | "hi-in" | "hr" | "hu" | "id" | "it" | "ja" | "km-kh" | "kn" | "ko-kr" | "ml" | "mr" | "ms" | "ne" | "nl" | "no" | "pa" | "pl" | "pt-br" | "pt-pt" | "ro" | "ru" | "sl" | "so" | "sv" | "ta" | "te" | "th" | "tl" | "tr" | "uk" | "ur" | "vi" | "zh-cn" | "zh-tw";
     name: "";
@@ -4355,6 +4356,8 @@ export interface TLUserPreferences {
     // (undocumented)
     isSnapMode?: boolean | null;
     // (undocumented)
+    isTrackpad?: boolean | null;
+    // (undocumented)
     isWrapMode?: boolean | null;
     // (undocumented)
     locale?: null | string;
@@ -4532,6 +4535,8 @@ export class UserPreferencesManager {
     // (undocumented)
     getIsSnapMode(): boolean;
     // (undocumented)
+    getIsTrackpad(): boolean | null;
+    // (undocumented)
     getIsWrapMode(): boolean;
     // (undocumented)
     getLocale(): string;
@@ -4549,6 +4554,7 @@ export class UserPreferencesManager {
         isDarkMode: boolean;
         isDynamicResizeMode: boolean;
         isSnapMode: boolean;
+        isTrackpad: boolean | null;
         isWrapMode: boolean;
         locale: string;
         name: string;

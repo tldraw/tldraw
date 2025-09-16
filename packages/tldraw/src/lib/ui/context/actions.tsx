@@ -1367,6 +1367,60 @@ export function ActionsProvider({ overrides, children }: ActionsProviderProps) {
 				},
 			},
 			{
+				id: 'toggle-trackpad',
+				label: 'action.toggle-trackpad',
+				onSelect(source) {
+					trackEvent('toggle-trackpad', { source })
+					const isTrackpad = editor.user.getUserPreferences().isTrackpad
+					switch (isTrackpad) {
+						case null:
+							editor.user.updateUserPreferences({
+								isTrackpad: true,
+							})
+							break
+						case true:
+							editor.user.updateUserPreferences({
+								isTrackpad: null,
+							})
+							break
+						case false:
+							editor.user.updateUserPreferences({
+								isTrackpad: true,
+							})
+							break
+					}
+					return
+				},
+				checkbox: true,
+			},
+			{
+				id: 'toggle-mouse',
+				label: 'action.toggle-mouse',
+				onSelect(source) {
+					trackEvent('toggle-mouse', { source })
+					const isTrackpad = editor.user.getUserPreferences().isTrackpad
+					switch (isTrackpad) {
+						case null:
+							editor.user.updateUserPreferences({
+								isTrackpad: false,
+							})
+							break
+						case false:
+							editor.user.updateUserPreferences({
+								isTrackpad: null,
+							})
+							break
+						case true:
+							editor.user.updateUserPreferences({
+								isTrackpad: false,
+							})
+							break
+					}
+					return
+				},
+				checkbox: true,
+			},
+			{
 				id: 'toggle-grid',
 				label: {
 					default: 'action.toggle-grid',

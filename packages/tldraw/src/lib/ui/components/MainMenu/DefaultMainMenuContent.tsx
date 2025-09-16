@@ -32,6 +32,7 @@ import {
 	ZoomToFitMenuItem,
 	ZoomToSelectionMenuItem,
 } from '../menu-items'
+import { PointerPeripheralMenu } from '../PointerPeripheralMenu'
 import { TldrawUiMenuActionItem } from '../primitives/menus/TldrawUiMenuActionItem'
 import { TldrawUiMenuGroup } from '../primitives/menus/TldrawUiMenuGroup'
 import { TldrawUiMenuSubmenu } from '../primitives/menus/TldrawUiMenuSubmenu'
@@ -163,6 +164,9 @@ export function PreferencesGroup() {
 					<ToggleDynamicSizeModeItem />
 					<TogglePasteAtCursorItem />
 					<ToggleDebugModeItem />
+				</TldrawUiMenuGroup>
+				<TldrawUiMenuGroup id="mouse-trackpad">
+					<PointerPeripheralMenu />
 				</TldrawUiMenuGroup>
 				<TldrawUiMenuGroup id="color-scheme">
 					<ColorSchemeMenu />

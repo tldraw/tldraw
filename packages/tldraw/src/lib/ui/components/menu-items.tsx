@@ -607,6 +607,28 @@ export function ToggleFocusModeItem() {
 }
 
 /** @public @react */
+export function ToggleTrackpadItem() {
+	const editor = useEditor()
+	const isTrackpad = useValue('isTrackpad', () => editor.user.getUserPreferences().isTrackpad, [
+		editor,
+	])
+
+	const toggle = isTrackpad === null ? false : isTrackpad
+	return <TldrawUiMenuActionCheckboxItem actionId="toggle-trackpad" checked={toggle} />
+}
+
+/** @public @react */
+export function ToggleMouseItem() {
+	const editor = useEditor()
+	const isTrackpad = useValue('isTrackpad', () => editor.user.getUserPreferences().isTrackpad, [
+		editor,
+	])
+
+	const toggle = isTrackpad === null ? true : isTrackpad
+	return <TldrawUiMenuActionCheckboxItem actionId="toggle-mouse" checked={!toggle} />
+}
+
+/** @public @react */
 export function ToggleEdgeScrollingItem() {
 	const editor = useEditor()
 	const edgeScrollSpeed = useValue('edgeScrollSpeed', () => editor.user.getEdgeScrollSpeed(), [
