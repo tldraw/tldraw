@@ -1,4 +1,4 @@
-import { TldrawUiButton, stopEventPropagation, track, useEditor, useValue } from 'tldraw'
+import { TldrawUiButton, markEventAsHandled, track, useEditor, useValue } from 'tldraw'
 import { moveToSlide, useCurrentSlide, useSlides } from './useSlides'
 
 export const SlidesPanel = track(() => {
@@ -9,7 +9,7 @@ export const SlidesPanel = track(() => {
 
 	if (slides.length === 0) return null
 	return (
-		<div className="slides-panel scroll-light" onPointerDown={(e) => stopEventPropagation(e)}>
+		<div className="slides-panel scroll-light" onPointerDown={markEventAsHandled}>
 			{slides.map((slide, i) => {
 				const isSelected = selectedShapes.includes(slide)
 				return (

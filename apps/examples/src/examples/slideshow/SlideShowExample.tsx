@@ -4,7 +4,7 @@ import {
 	TLFrameShape,
 	Tldraw,
 	createShapeId,
-	stopEventPropagation,
+	markEventAsHandled,
 	transact,
 	useValue,
 } from 'tldraw'
@@ -155,7 +155,7 @@ function Slides() {
 					}}
 					onPointerDown={(e) => {
 						if (slide.id !== slides.getCurrentSlideId()) {
-							stopEventPropagation(e)
+							markEventAsHandled(e)
 							slides.setCurrentSlide(slide.id)
 						}
 					}}
@@ -172,7 +172,7 @@ function Slides() {
 						height: 40,
 						pointerEvents: 'all',
 					}}
-					onPointerDown={stopEventPropagation}
+					onPointerDown={markEventAsHandled}
 					onClick={() => {
 						const newSlide = slides.newSlide(slide.index + 1)
 						slides.setCurrentSlide(newSlide.id)
@@ -190,7 +190,7 @@ function Slides() {
 					height: 40,
 					pointerEvents: 'all',
 				}}
-				onPointerDown={stopEventPropagation}
+				onPointerDown={markEventAsHandled}
 				onClick={() => {
 					const slide = slides.newSlide(lowestIndex - 1)
 					slides.setCurrentSlide(slide.id)
@@ -207,7 +207,7 @@ function Slides() {
 					height: 40,
 					pointerEvents: 'all',
 				}}
-				onPointerDown={stopEventPropagation}
+				onPointerDown={markEventAsHandled}
 				onClick={() => {
 					const slide = slides.newSlide(highestIndex + 1)
 					slides.setCurrentSlide(slide.id)
@@ -233,7 +233,7 @@ function SlideControls() {
 					width: 50,
 					height: 50,
 				}}
-				onPointerDown={stopEventPropagation}
+				onPointerDown={markEventAsHandled}
 				onClick={() => slides.prevSlide()}
 			>
 				{`<`}
@@ -247,7 +247,7 @@ function SlideControls() {
 					width: 50,
 					height: 50,
 				}}
-				onPointerDown={stopEventPropagation}
+				onPointerDown={markEventAsHandled}
 				onClick={() => slides.nextSlide()}
 			>
 				{`>`}

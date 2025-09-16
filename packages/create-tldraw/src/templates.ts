@@ -37,14 +37,14 @@ export const TEMPLATES: Template[] = [
 		repo: 'tldraw/chat-template',
 	},
 	{
-		name: 'Multiplayer sync',
+		name: 'Multiplayer',
 		description:
 			'Bring multiplayer mode to your tldraw canvas app. Self-hosted and powered by tldraw sync and Cloudflare Durable Objects.',
 		shortDescription: 'Real-time multiplayer for tldraw, built with Cloudflare Durable Objects.',
 		repo: 'tldraw/tldraw-sync-cloudflare',
 	},
 	{
-		name: 'Workflows',
+		name: 'Workflow',
 		description:
 			'Build visual tools where users drag and connect nodes, think automation builders with a canvas interface. ',
 		shortDescription: 'Visual node-based builder for workflows.',

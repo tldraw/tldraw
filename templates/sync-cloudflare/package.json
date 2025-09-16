@@ -12,7 +12,7 @@
 	"tldraw_template": {
 		"repo": "tldraw/tldraw-sync-cloudflare",
 		"cli": {
-			"name": "Multiplayer sync",
+			"name": "Multiplayer",
 			"description": "Bring multiplayer mode to your tldraw canvas app. Self-hosted and powered by tldraw sync and Cloudflare Durable Objects.",
 			"shortDescription": "Real-time multiplayer for tldraw, built with Cloudflare Durable Objects."
 		},

@@ -44,7 +44,7 @@ import { LicenseProvider } from './license/LicenseProvider'
 import { Watermark } from './license/Watermark'
 import { TldrawOptions } from './options'
 import { TLDeepLinkOptions } from './utils/deepLinks'
-import { stopEventPropagation } from './utils/dom'
+import { markEventAsHandled } from './utils/dom'
 import { TLTextOptions } from './utils/richText'
 import { TLStoreWithStatus } from './utils/sync/StoreWithStatus'
 
@@ -275,7 +275,7 @@ export const TldrawEditor = memo(function TldrawEditor({
 			data-tldraw={version}
 			draggable={false}
 			className={classNames(`${TL_CONTAINER_CLASS} tl-theme__light`, className)}
-			onPointerDown={stopEventPropagation}
+			onPointerDown={markEventAsHandled}
 			tabIndex={-1}
 			role="application"
 			aria-label={_options?.branding ?? 'tldraw'}

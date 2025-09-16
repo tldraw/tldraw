@@ -1,4 +1,4 @@
-import { preventDefault, stopEventPropagation } from '@tldraw/editor'
+import { markEventAsHandled, preventDefault } from '@tldraw/editor'
 import React from 'react'
 import { TextAreaProps } from './RichTextArea'
 
@@ -46,8 +46,8 @@ export const PlainTextArea = React.forwardRef<HTMLTextAreaElement, TextAreaProps
 			onChange={onChange}
 			onKeyDown={(e) => handleKeyDown(e.nativeEvent)}
 			onBlur={handleBlur}
-			onTouchEnd={stopEventPropagation}
-			onContextMenu={isEditing ? stopEventPropagation : undefined}
+			onTouchEnd={markEventAsHandled}
+			onContextMenu={isEditing ? (e) => e.stopPropagation() : undefined}
 			onPointerDown={handleInputPointerDown}
 			onPaste={handlePaste}
 			onDoubleClick={handleDoubleClick}

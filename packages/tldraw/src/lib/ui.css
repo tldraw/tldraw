@@ -578,6 +578,12 @@
 	box-shadow: var(--tl-shadow-3);
 }
 
+@media (max-height: 600px) {
+	.tlui-menu {
+		max-height: 70vh;
+	}
+}
+
 .tlui-menu::-webkit-scrollbar {
 	display: none;
 }

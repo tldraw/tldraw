@@ -2,7 +2,12 @@ import { useValue } from '@tldraw/state-react'
 import { useEffect } from 'react'
 import { Editor } from '../editor/Editor'
 import { TLKeyboardEventInfo } from '../editor/types/event-types'
-import { activeElementShouldCaptureKeys, preventDefault, stopEventPropagation } from '../utils/dom'
+import {
+	activeElementShouldCaptureKeys,
+	markEventAsHandled,
+	preventDefault,
+	wasEventAlreadyHandled,
+} from '../utils/dom'
 import { isAccelKey } from '../utils/keyboard'
 import { useContainer } from './useContainer'
 import { useEditor } from './useEditor'
@@ -29,7 +34,7 @@ export function useDocumentEvents() {
 			// re-dispatched, which would lead to an infinite loop.
 			if ((e as any).isSpecialRedispatchedEvent) return
 			preventDefault(e)
-			stopEventPropagation(e)
+			e.stopPropagation()
 			const cvs = container.querySelector('.tl-canvas')
 			if (!cvs) return
 			const newEvent = new DragEvent(e.type, e)
@@ -103,8 +108,8 @@ export function useDocumentEvents() {
 				preventDefault(e)
 			}
 
-			if ((e as any).isKilled) return
-			;(e as any).isKilled = true
+			if (wasEventAlreadyHandled(e)) return
+			markEventAsHandled(e)
 			const hasSelectedShapes = !!editor.getSelectedShapeIds().length
 
 			switch (e.key) {
@@ -211,8 +216,8 @@ export function useDocumentEvents() {
 		}
 
 		const handleKeyUp = (e: KeyboardEvent) => {
-			if ((e as any).isKilled) return
-			;(e as any).isKilled = true
+			if (wasEventAlreadyHandled(e)) return
+			markEventAsHandled(e)
 
 			if (areShortcutsDisabled(editor)) {
 				return
