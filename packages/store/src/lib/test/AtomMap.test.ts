@@ -625,4 +625,457 @@ describe('AtomMap', () => {
 			expect(map.size).toBe(1)
 		})
 	})
+
+	describe('constructor additional tests', () => {
+		it('should work with different types of keys and values', () => {
+			const entries: [number, string][] = [
+				[1, 'one'],
+				[2, 'two'],
+			]
+			const map = new AtomMap<number, string>('typed', entries)
+			expect(map.get(1)).toBe('one')
+			expect(map.get(2)).toBe('two')
+		})
+
+		it('should work with object keys and values', () => {
+			const key1 = { id: 1 }
+			const key2 = { id: 2 }
+			const value1 = { name: 'first' }
+			const value2 = { name: 'second' }
+			const map = new AtomMap('objects', [
+				[key1, value1],
+				[key2, value2],
+			])
+			expect(map.get(key1)).toBe(value1)
+			expect(map.get(key2)).toBe(value2)
+		})
+
+		it('should accept iterable that is not an array', () => {
+			const entriesSet = new Set([
+				['a', 1],
+				['b', 2],
+			] as [string, number][])
+			const map = new AtomMap('from-set', entriesSet)
+			expect(map.size).toBe(2)
+			expect(map.get('a')).toBe(1)
+			expect(map.get('b')).toBe(2)
+		})
+	})
+
+	describe('getAtom', () => {
+		it('should return the atom for an existing key', () => {
+			const map = new AtomMap('test')
+			map.set('key', 'value')
+			const atom = map.getAtom('key')
+			expect(atom).toBeDefined()
+			expect(atom!.get()).toBe('value')
+		})
+
+		it('should return undefined for a non-existing key', () => {
+			const map = new AtomMap('test')
+			const atom = map.getAtom('nonexistent')
+			expect(atom).toBeUndefined()
+		})
+
+		it('should track access for non-existing keys', () => {
+			const map = new AtomMap('test')
+			const reactor = testReactor('test', () => {
+				const atom = map.getAtom('key')
+				return atom ? atom.get() : undefined
+			})
+			expect(reactor).toHaveBeenCalledTimes(1)
+			expect(reactor).toHaveLastReturnedWith(undefined)
+
+			// Adding the key should trigger reaction
+			map.set('key', 'value')
+			expect(reactor).toHaveBeenCalledTimes(2)
+			expect(reactor).toHaveLastReturnedWith('value')
+		})
+
+		it('should return atom that can be used reactively', () => {
+			const map = new AtomMap('test')
+			map.set('key', 'initial')
+			const atom = map.getAtom('key')!
+			const reactor = testReactor('test', () => atom.get())
+			expect(reactor).toHaveBeenCalledTimes(1)
+			expect(reactor).toHaveLastReturnedWith('initial')
+
+			// Updating through map should trigger reaction on atom
+			map.set('key', 'updated')
+			expect(reactor).toHaveBeenCalledTimes(2)
+			expect(reactor).toHaveLastReturnedWith('updated')
+		})
+	})
+
+	describe('__unsafe__getWithoutCapture', () => {
+		it('should return the value without creating reactive dependencies', () => {
+			const map = new AtomMap('test')
+			map.set('key', 'value')
+			const reactor = testReactor('test', () => map.__unsafe__getWithoutCapture('key'))
+			expect(reactor).toHaveBeenCalledTimes(1)
+			expect(reactor).toHaveLastReturnedWith('value')
+
+			// Updating the key should NOT trigger reaction
+			map.set('key', 'updated')
+			expect(reactor).toHaveBeenCalledTimes(1) // Still only called once
+
+			// But we can still get the updated value
+			expect(map.__unsafe__getWithoutCapture('key')).toBe('updated')
+		})
+
+		it('should return undefined for non-existing key without tracking', () => {
+			const map = new AtomMap('test')
+			const reactor = testReactor('test', () => map.__unsafe__getWithoutCapture('nonexistent'))
+			expect(reactor).toHaveBeenCalledTimes(1)
+			expect(reactor).toHaveLastReturnedWith(undefined)
+
+			// Adding the key should NOT trigger reaction
+			map.set('nonexistent', 'value')
+			expect(reactor).toHaveBeenCalledTimes(1) // Still only called once
+		})
+	})
+
+	describe('__unsafe__hasWithoutCapture', () => {
+		it('should return true for existing keys without reactive dependencies', () => {
+			const map = new AtomMap('test')
+			map.set('key', 'value')
+			const reactor = testReactor('test', () => map.__unsafe__hasWithoutCapture('key'))
+			expect(reactor).toHaveBeenCalledTimes(1)
+			expect(reactor).toHaveLastReturnedWith(true)
+
+			// Deleting the key should NOT trigger reaction
+			map.delete('key')
+			expect(reactor).toHaveBeenCalledTimes(1) // Still only called once
+		})
+
+		it('should return false for non-existing keys without tracking', () => {
+			const map = new AtomMap('test')
+			const reactor = testReactor('test', () => map.__unsafe__hasWithoutCapture('nonexistent'))
+			expect(reactor).toHaveBeenCalledTimes(1)
+			expect(reactor).toHaveLastReturnedWith(false)
+
+			// Adding the key should NOT trigger reaction
+			map.set('nonexistent', 'value')
+			expect(reactor).toHaveBeenCalledTimes(1) // Still only called once
+		})
+	})
+
+	describe('update', () => {
+		it('should update an existing value using updater function', () => {
+			const map = new AtomMap<string, number>('test')
+			map.set('count', 5)
+			map.update('count', (count) => count + 1)
+			expect(map.get('count')).toBe(6)
+		})
+
+		it('should throw error when trying to update non-existing key', () => {
+			const map = new AtomMap<string, string>('test')
+			expect(() => {
+				map.update('nonexistent', (value) => value)
+			}).toThrow('AtomMap: key nonexistent not found')
+		})
+
+		it('should trigger reactions when updating', () => {
+			const map = new AtomMap<string, number>('test')
+			map.set('count', 1)
+			const reactor = testReactor('test', () => map.get('count'))
+			expect(reactor).toHaveBeenCalledTimes(1)
+			expect(reactor).toHaveLastReturnedWith(1)
+
+			map.update('count', (count) => count * 2)
+			expect(reactor).toHaveBeenCalledTimes(2)
+			expect(reactor).toHaveLastReturnedWith(2)
+		})
+
+		it('should work with complex updater functions', () => {
+			const map = new AtomMap<string, { count: number; name: string }>('test')
+			map.set('item', { count: 1, name: 'initial' })
+			map.update('item', (item) => ({ ...item, count: item.count + 5, name: 'updated' }))
+			expect(map.get('item')).toEqual({ count: 6, name: 'updated' })
+		})
+
+		it('should handle updater function that returns the same value', () => {
+			const map = new AtomMap<string, string>('test')
+			map.set('value', 'unchanged')
+			const reactor = testReactor('test', () => map.get('value'))
+			expect(reactor).toHaveBeenCalledTimes(1)
+
+			map.update('value', (value) => value) // Return same value
+			// atom.set is called but may not trigger if state library optimizes away same values
+			// The important thing is that the operation doesn't fail
+			expect(map.get('value')).toBe('unchanged')
+		})
+	})
+
+	describe('Symbol.iterator', () => {
+		it('should make the map iterable with for...of loops', () => {
+			const map = new AtomMap('test', [
+				['a', 1],
+				['b', 2],
+				['c', 3],
+			])
+			const entries: [string, number][] = []
+			for (const [key, value] of map) {
+				entries.push([key, value])
+			}
+			expect(entries).toEqual([
+				['a', 1],
+				['b', 2],
+				['c', 3],
+			])
+		})
+
+		it('should return the same iterator as entries()', () => {
+			const map = new AtomMap('test', [
+				['a', 1],
+				['b', 2],
+			])
+			const defaultIterator = map[Symbol.iterator]()
+			const entriesIterator = map.entries()
+
+			expect(Array.from(defaultIterator)).toEqual(Array.from(entriesIterator))
+		})
+
+		it('should work with spread operator', () => {
+			const map = new AtomMap('test', [
+				['a', 1],
+				['b', 2],
+			])
+			const entries = [...map]
+			expect(entries).toEqual([
+				['a', 1],
+				['b', 2],
+			])
+		})
+
+		it('should work with Array.from', () => {
+			const map = new AtomMap('test', [
+				['x', 10],
+				['y', 20],
+			])
+			const entries = Array.from(map)
+			expect(entries).toEqual([
+				['x', 10],
+				['y', 20],
+			])
+		})
+	})
+
+	describe('Symbol.toStringTag', () => {
+		it('should have correct toString tag', () => {
+			const map = new AtomMap('test')
+			expect(Object.prototype.toString.call(map)).toBe('[object AtomMap]')
+		})
+
+		it('should have Symbol.toStringTag property', () => {
+			const map = new AtomMap('test')
+			expect(map[Symbol.toStringTag]).toBe('AtomMap')
+		})
+	})
+
+	describe('Map interface compatibility', () => {
+		it('should behave like a standard Map for basic operations', () => {
+			const atomMap = new AtomMap<string, number>('atom')
+			const standardMap = new Map<string, number>()
+
+			// Test basic operations in parallel
+			atomMap.set('a', 1)
+			standardMap.set('a', 1)
+			expect(atomMap.get('a')).toBe(standardMap.get('a'))
+			expect(atomMap.has('a')).toBe(standardMap.has('a'))
+			expect(atomMap.size).toBe(standardMap.size)
+
+			atomMap.set('b', 2)
+			standardMap.set('b', 2)
+			expect(atomMap.size).toBe(standardMap.size)
+
+			expect(atomMap.delete('a')).toBe(standardMap.delete('a'))
+			expect(atomMap.has('a')).toBe(standardMap.has('a'))
+			expect(atomMap.size).toBe(standardMap.size)
+
+			expect(atomMap.delete('nonexistent')).toBe(standardMap.delete('nonexistent'))
+		})
+
+		it('should have same iterator behavior as standard Map', () => {
+			const entries: [string, number][] = [
+				['a', 1],
+				['b', 2],
+				['c', 3],
+			]
+			const atomMap = new AtomMap('atom', entries)
+			const standardMap = new Map(entries)
+
+			expect(Array.from(atomMap.keys())).toEqual(Array.from(standardMap.keys()))
+			expect(Array.from(atomMap.values())).toEqual(Array.from(standardMap.values()))
+			expect(Array.from(atomMap.entries())).toEqual(Array.from(standardMap.entries()))
+			expect(Array.from(atomMap)).toEqual(Array.from(standardMap))
+		})
+
+		it('should behave like Map with forEach', () => {
+			const entries: [string, number][] = [
+				['a', 1],
+				['b', 2],
+			]
+			const atomMap = new AtomMap('atom', entries)
+			const standardMap = new Map(entries)
+
+			const atomResults: Array<[string, number]> = []
+			const mapResults: Array<[string, number]> = []
+
+			atomMap.forEach((value, key) => atomResults.push([key, value]))
+			standardMap.forEach((value, key) => mapResults.push([key, value]))
+
+			expect(atomResults).toEqual(mapResults)
+		})
+	})
+
+	describe('edge cases and error conditions', () => {
+		it('should handle null and undefined values correctly', () => {
+			const map = new AtomMap<string, any>('test')
+			map.set('null', null)
+			map.set('undefined', undefined)
+			map.set('zero', 0)
+			map.set('false', false)
+			map.set('empty', '')
+
+			expect(map.get('null')).toBe(null)
+			expect(map.get('undefined')).toBe(undefined)
+			expect(map.get('zero')).toBe(0)
+			expect(map.get('false')).toBe(false)
+			expect(map.get('empty')).toBe('')
+
+			expect(map.has('null')).toBe(true)
+			expect(map.has('undefined')).toBe(true)
+			expect(map.has('zero')).toBe(true)
+			expect(map.has('false')).toBe(true)
+			expect(map.has('empty')).toBe(true)
+
+			expect(map.size).toBe(5)
+		})
+
+		it('should handle symbol keys', () => {
+			const sym1 = Symbol('key1')
+			const sym2 = Symbol('key2')
+			const map = new AtomMap<symbol, string>('symbols')
+
+			map.set(sym1, 'value1')
+			map.set(sym2, 'value2')
+
+			expect(map.get(sym1)).toBe('value1')
+			expect(map.get(sym2)).toBe('value2')
+			expect(map.has(sym1)).toBe(true)
+			expect(map.has(sym2)).toBe(true)
+			expect(map.size).toBe(2)
+		})
+
+		it('should handle object references correctly', () => {
+			const obj1 = { id: 1 }
+			const obj2 = { id: 1 } // Same content but different object
+			const map = new AtomMap<object, string>('objects')
+
+			map.set(obj1, 'first')
+			map.set(obj2, 'second')
+
+			// Should be treated as different keys
+			expect(map.get(obj1)).toBe('first')
+			expect(map.get(obj2)).toBe('second')
+			expect(map.size).toBe(2)
+		})
+
+		it('should handle empty string keys', () => {
+			const map = new AtomMap<string, number>('test')
+			map.set('', 42)
+			expect(map.get('')).toBe(42)
+			expect(map.has('')).toBe(true)
+			expect(map.size).toBe(1)
+		})
+
+		it('should handle concurrent modifications during iteration', () => {
+			const map = new AtomMap('test', [
+				['a', 1],
+				['b', 2],
+				['c', 3],
+			])
+			const entries: [string, number][] = []
+
+			// This should not throw or cause issues
+			for (const [key, value] of map) {
+				entries.push([key, value])
+				if (key === 'b') {
+					map.set('d', 4) // Add during iteration
+				}
+			}
+
+			// Check that all original entries were found (arrays need deep equality)
+			expect(entries.find(([k, v]) => k === 'a' && v === 1)).toBeDefined()
+			expect(entries.find(([k, v]) => k === 'b' && v === 2)).toBeDefined()
+			expect(entries.find(([k, v]) => k === 'c' && v === 3)).toBeDefined()
+			expect(map.size).toBe(4) // But map should have the new entry
+		})
+	})
+
+	describe('method chaining', () => {
+		it('should support method chaining with set', () => {
+			const map = new AtomMap('test')
+			const result = map.set('a', 1).set('b', 2).set('c', 3)
+			expect(result).toBe(map) // Should return the same instance
+			expect(map.size).toBe(3)
+			expect(map.get('a')).toBe(1)
+			expect(map.get('b')).toBe(2)
+			expect(map.get('c')).toBe(3)
+		})
+
+		it('should allow operations after other operations (delete returns boolean)', () => {
+			const map = new AtomMap('test', [['initial', 0]])
+			// delete returns boolean, not the map, so we can't chain
+			map.delete('initial')
+			map.set('a', 1).set('b', 2)
+			expect(map.size).toBe(2)
+			expect(map.has('initial')).toBe(false)
+			expect(map.get('a')).toBe(1)
+			expect(map.get('b')).toBe(2)
+		})
+	})
+
+	describe('UNINITIALIZED handling', () => {
+		it('should properly handle UNINITIALIZED values in atoms', () => {
+			const map = new AtomMap('test')
+			map.set('key', 'value')
+
+			// Get the atom directly
+			const atom = map.getAtom('key')!
+			expect(atom.get()).toBe('value')
+
+			// Delete the key, which should set the atom to UNINITIALIZED
+			const deleted = map.delete('key')
+			expect(deleted).toBe(true)
+
+			// The atom should now contain UNINITIALIZED but map operations shouldn't see it
+			expect(map.get('key')).toBeUndefined()
+			expect(map.has('key')).toBe(false)
+		})
+
+		it('should not iterate over UNINITIALIZED values', () => {
+			const map = new AtomMap('test', [
+				['a', 1],
+				['b', 2],
+				['c', 3],
+			])
+
+			// Delete middle entry
+			map.delete('b')
+
+			const entries = Array.from(map.entries())
+			const keys = Array.from(map.keys())
+			const values = Array.from(map.values())
+
+			expect(entries).toEqual([
+				['a', 1],
+				['c', 3],
+			])
+			expect(keys).toEqual(['a', 'c'])
+			expect(values).toEqual([1, 3])
+			expect(map.size).toBe(2)
+		})
+	})
 })
