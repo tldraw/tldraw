@@ -72,7 +72,7 @@ function TlaSharedToggle({ isShared, fileId }: { isShared: boolean; fileId: stri
 	const learnMoreUrl = 'https://tldraw.notion.site/Sharing-1283e4c324c080a69618ff37eb3fc98f'
 	return (
 		<TlaMenuControl>
-			<TlaMenuControlLabel htmlFor="shared-link-shared-switch">
+			<TlaMenuControlLabel htmlFor="tla-shared-link-shared-switch">
 				<F defaultMessage="Share this file" />
 			</TlaMenuControlLabel>
 			<TlaMenuControlInfoTooltip
@@ -84,7 +84,7 @@ function TlaSharedToggle({ isShared, fileId }: { isShared: boolean; fileId: stri
 				<F defaultMessage="Learn more about sharing." />
 			</TlaMenuControlInfoTooltip>
 			<TlaMenuSwitch
-				id="shared-link-shared-switch"
+				id="tla-shared-link-shared-switch"
 				data-testid="shared-link-shared-switch"
 				checked={!!isShared}
 				onChange={handleToggleShared}
@@ -119,11 +119,11 @@ function TlaSelectSharedLinkType({ fileId }: { fileId: string }) {
 
 	return (
 		<TlaMenuControl>
-			<TlaMenuControlLabel htmlFor="shared-link-type-select">
+			<TlaMenuControlLabel htmlFor="tla-shared-link-type-select">
 				<F defaultMessage="Anyone with the link" />
 			</TlaMenuControlLabel>
 			<TlaMenuSelect
-				id="shared-link-type-select"
+				id="tla-shared-link-type-select"
 				data-testid="shared-link-type-select"
 				label={label}
 				value={sharedLinkType!}

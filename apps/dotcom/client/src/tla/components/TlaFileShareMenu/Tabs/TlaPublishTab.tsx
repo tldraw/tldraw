@@ -77,7 +77,7 @@ export function TlaPublishTab({ file }: { file: TlaFile }) {
 				<TlaMenuControlGroup>
 					{isOwner && (
 						<TlaMenuControl>
-							<TlaMenuControlLabel htmlFor="publish-this-file-switch">
+							<TlaMenuControlLabel htmlFor="tla-publish-this-file-switch">
 								<F defaultMessage="Publish this file" />
 							</TlaMenuControlLabel>
 							<TlaMenuControlInfoTooltip
@@ -92,7 +92,7 @@ export function TlaPublishTab({ file }: { file: TlaFile }) {
 								<F defaultMessage="Learn more about publishing." />
 							</TlaMenuControlInfoTooltip>
 							<TlaMenuSwitch
-								id="publish-this-file-switch"
+								id="tla-publish-this-file-switch"
 								checked={published}
 								onChange={() => (published ? unpublish() : publish(false))}
 							/>

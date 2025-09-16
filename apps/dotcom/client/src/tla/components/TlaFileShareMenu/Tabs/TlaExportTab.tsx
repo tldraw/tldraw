@@ -89,10 +89,10 @@ function ExportPaddingToggle({
 
 	return (
 		<TlaMenuControl>
-			<TlaMenuControlLabel htmlFor="export-padding-switch">
+			<TlaMenuControlLabel htmlFor="tla-export-padding-switch">
 				<F defaultMessage="Padding" />
 			</TlaMenuControlLabel>
-			<TlaMenuSwitch id="export-padding-switch" checked={value} onChange={handleChange} />
+			<TlaMenuSwitch id="tla-export-padding-switch" checked={value} onChange={handleChange} />
 		</TlaMenuControl>
 	)
 }
@@ -117,10 +117,10 @@ function ExportBackgroundToggle({
 
 	return (
 		<TlaMenuControl>
-			<TlaMenuControlLabel htmlFor="export-background-switch">
+			<TlaMenuControlLabel htmlFor="tla-export-background-switch">
 				<F defaultMessage="Background" />
 			</TlaMenuControlLabel>
-			<TlaMenuSwitch id="export-background-switch" checked={value} onChange={handleChange} />
+			<TlaMenuSwitch id="tla-export-background-switch" checked={value} onChange={handleChange} />
 		</TlaMenuControl>
 	)
 }
@@ -147,11 +147,11 @@ function ExportFormatSelect({
 
 	return (
 		<TlaMenuControl>
-			<TlaMenuControlLabel htmlFor="export-format-select">
+			<TlaMenuControlLabel htmlFor="tla-export-format-select">
 				<F defaultMessage="Export as" />
 			</TlaMenuControlLabel>
 			<TlaMenuSelect
-				id="export-format-select"
+				id="tla-export-format-select"
 				value={value}
 				label={value === 'svg' ? 'SVG' : 'PNG'}
 				onChange={handleChange}
@@ -189,11 +189,11 @@ function ExportThemeSelect({
 
 	return (
 		<TlaMenuControl>
-			<TlaMenuControlLabel htmlFor="export-theme-select">
+			<TlaMenuControlLabel htmlFor="tla-export-theme-select">
 				<F defaultMessage="Theme" />
 			</TlaMenuControlLabel>
 			<TlaMenuSelect
-				id="export-theme-select"
+				id="tla-export-theme-select"
 				value={value}
 				label={label}
 				onChange={handleChange}
