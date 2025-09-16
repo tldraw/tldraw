@@ -1,15 +1,34 @@
 import { InstancePresenceRecordType, PageRecordType } from '@tldraw/tlschema'
 import { createTLSchema, createTLStore, ZERO_INDEX_KEY } from 'tldraw'
-import { vi } from 'vitest'
-import { WebSocketMinimal } from '../lib/ServerSocketAdapter'
-import { TLSocketRoom } from '../lib/TLSocketRoom'
+import { beforeEach, describe, expect, it, vi } from 'vitest'
 import { RecordOpType } from '../lib/diff'
 import { getTlsyncProtocolVersion } from '../lib/protocol'
+import { WebSocketMinimal } from '../lib/ServerSocketAdapter'
+import { TLSocketRoom, TLSyncLog } from '../lib/TLSocketRoom'
+import { TLSyncErrorCloseEventReason } from '../lib/TLSyncClient'
 
 function getStore() {
 	const schema = createTLSchema()
 	const store = createTLStore({ schema })
 	return store
+}
+
+// Mock WebSocket implementation for testing
+function createMockSocket(overrides: Partial<WebSocketMinimal> = {}): WebSocketMinimal {
+	return {
+		send: vi.fn(),
+		close: vi.fn(),
+		readyState: WebSocket.OPEN,
+		addEventListener: vi.fn(),
+		removeEventListener: vi.fn(),
+		...overrides,
+	}
+}
+
+// Helper to create test session metadata
+interface TestSessionMeta {
+	userId: string
+	userName: string
 }
 
 describe(TLSocketRoom, () => {
@@ -405,6 +424,625 @@ describe(TLSocketRoom, () => {
 
 			const result = room.getCurrentSnapshot()
 			expect(result.schema).toEqual(originalSchema)
+		})
+	})
+
+	describe('Constructor options', () => {
+		it('initializes with default schema when none provided', () => {
+			const room = new TLSocketRoom({})
+			expect(room.getCurrentSnapshot().schema).toBeDefined()
+		})
+
+		it('uses custom schema when provided', () => {
+			const customSchema = createTLSchema()
+			const room = new TLSocketRoom({ schema: customSchema })
+			expect(room.getCurrentSnapshot().schema).toEqual(customSchema.serialize())
+		})
+
+		it('sets up logging with default console.error when log option missing', () => {
+			const consoleSpy = vi.spyOn(console, 'error').mockImplementation(() => {})
+			const room = new TLSocketRoom({})
+			// Create a session first, then send invalid message to trigger JSON parse error
+			const socket = createMockSocket()
+			room.handleSocketConnect({
+				sessionId: 'test-session',
+				socket,
+			})
+			// Send invalid JSON to trigger JSON parse error which should call console.error
+			room.handleSocketMessage('test-session', '{invalid json')
+			expect(consoleSpy).toHaveBeenCalled()
+			consoleSpy.mockRestore()
+		})
+
+		it('uses custom logger when provided', () => {
+			const mockLog: TLSyncLog = {
+				warn: vi.fn(),
+				error: vi.fn(),
+			}
+			const room = new TLSocketRoom({ log: mockLog })
+			// Create a session first, then send invalid message
+			const socket = createMockSocket()
+			room.handleSocketConnect({
+				sessionId: 'test-session',
+				socket,
+			})
+			// Send invalid JSON to trigger JSON parse error which should call log.error
+			room.handleSocketMessage('test-session', '{invalid json')
+			expect(mockLog.error).toHaveBeenCalled()
+		})
+
+		it('initializes with custom client timeout', () => {
+			const customTimeout = 15000
+			const room = new TLSocketRoom({ clientTimeout: customTimeout })
+			expect(room.opts.clientTimeout).toBe(customTimeout)
+		})
+	})
+
+	describe('Session management', () => {
+		let room: TLSocketRoom
+		let onSessionRemoved: ReturnType<typeof vi.fn>
+
+		beforeEach(() => {
+			onSessionRemoved = vi.fn()
+			room = new TLSocketRoom({ onSessionRemoved })
+		})
+
+		it('returns correct number of active sessions', () => {
+			expect(room.getNumActiveSessions()).toBe(0)
+
+			const socket = createMockSocket()
+			room.handleSocketConnect({
+				sessionId: 'test-session',
+				socket,
+			})
+
+			// Need to complete connection handshake
+			const connectRequest = {
+				type: 'connect' as const,
+				connectRequestId: 'connect-1',
+				lastServerClock: 0,
+				protocolVersion: getTlsyncProtocolVersion(),
+				schema: createTLSchema().serialize(),
+			}
+			room.handleSocketMessage('test-session', JSON.stringify(connectRequest))
+
+			expect(room.getNumActiveSessions()).toBe(1)
+		})
+
+		it('handles multiple concurrent sessions', () => {
+			const sessions = ['session1', 'session2', 'session3']
+			const sockets = sessions.map(() => createMockSocket())
+
+			sessions.forEach((sessionId, index) => {
+				room.handleSocketConnect({
+					sessionId,
+					socket: sockets[index],
+				})
+
+				const connectRequest = {
+					type: 'connect' as const,
+					connectRequestId: `connect-${index}`,
+					lastServerClock: 0,
+					protocolVersion: getTlsyncProtocolVersion(),
+					schema: createTLSchema().serialize(),
+				}
+				room.handleSocketMessage(sessionId, JSON.stringify(connectRequest))
+			})
+
+			expect(room.getNumActiveSessions()).toBe(3)
+
+			const sessionInfo = room.getSessions()
+			expect(sessionInfo).toHaveLength(3)
+			expect(sessionInfo.every((s) => s.isConnected)).toBe(true)
+		})
+
+		it('handles readonly sessions correctly', () => {
+			const socket = createMockSocket()
+			room.handleSocketConnect({
+				sessionId: 'readonly-session',
+				socket,
+				isReadonly: true,
+			})
+
+			const connectRequest = {
+				type: 'connect' as const,
+				connectRequestId: 'connect-1',
+				lastServerClock: 0,
+				protocolVersion: getTlsyncProtocolVersion(),
+				schema: createTLSchema().serialize(),
+			}
+			room.handleSocketMessage('readonly-session', JSON.stringify(connectRequest))
+
+			const sessions = room.getSessions()
+			expect(sessions[0].isReadonly).toBe(true)
+		})
+	})
+
+	describe('Message handling', () => {
+		let room: TLSocketRoom
+		let socket: WebSocketMinimal
+		let onBeforeSendMessage: ReturnType<typeof vi.fn>
+		let onAfterReceiveMessage: ReturnType<typeof vi.fn>
+
+		beforeEach(() => {
+			onBeforeSendMessage = vi.fn()
+			onAfterReceiveMessage = vi.fn()
+			room = new TLSocketRoom({
+				onBeforeSendMessage,
+				onAfterReceiveMessage,
+			})
+			socket = createMockSocket()
+		})
+
+		it('logs warning for messages from unknown sessions', () => {
+			const mockLog: TLSyncLog = { warn: vi.fn(), error: vi.fn() }
+			const roomWithLog = new TLSocketRoom({ log: mockLog })
+
+			roomWithLog.handleSocketMessage('unknown-session', 'test')
+
+			expect(mockLog.warn).toHaveBeenCalledWith(
+				'Received message from unknown session',
+				'unknown-session'
+			)
+		})
+
+		it('handles malformed JSON messages', () => {
+			const mockLog: TLSyncLog = { warn: vi.fn(), error: vi.fn() }
+			const roomWithLog = new TLSocketRoom({ log: mockLog })
+
+			roomWithLog.handleSocketConnect({
+				sessionId: 'test-session',
+				socket,
+			})
+
+			// Send invalid JSON
+			roomWithLog.handleSocketMessage('test-session', '{invalid json')
+
+			expect(mockLog.error).toHaveBeenCalled()
+		})
+
+		it('handles binary messages correctly', () => {
+			room.handleSocketConnect({
+				sessionId: 'test-session',
+				socket,
+			})
+
+			const message = JSON.stringify({
+				type: 'connect',
+				connectRequestId: 'connect-1',
+				lastServerClock: 0,
+				protocolVersion: getTlsyncProtocolVersion(),
+				schema: createTLSchema().serialize(),
+			})
+
+			const buffer = new TextEncoder().encode(message)
+			room.handleSocketMessage('test-session', buffer)
+
+			// Should process the message without error
+			expect(room.getSessions()).toHaveLength(1)
+		})
+
+		it('calls onBeforeSendMessage for outgoing messages', () => {
+			room.handleSocketConnect({
+				sessionId: 'test-session',
+				socket,
+			})
+
+			const connectRequest = {
+				type: 'connect' as const,
+				connectRequestId: 'connect-1',
+				lastServerClock: 0,
+				protocolVersion: getTlsyncProtocolVersion(),
+				schema: createTLSchema().serialize(),
+			}
+			room.handleSocketMessage('test-session', JSON.stringify(connectRequest))
+
+			expect(onBeforeSendMessage).toHaveBeenCalled()
+			const call = onBeforeSendMessage.mock.calls[0][0]
+			expect(call.sessionId).toBe('test-session')
+			expect(call.message).toBeDefined()
+			expect(call.stringified).toBeDefined()
+		})
+
+		it('calls onAfterReceiveMessage for valid incoming messages', () => {
+			room.handleSocketConnect({
+				sessionId: 'test-session',
+				socket,
+			})
+
+			const connectRequest = {
+				type: 'connect' as const,
+				connectRequestId: 'connect-1',
+				lastServerClock: 0,
+				protocolVersion: getTlsyncProtocolVersion(),
+				schema: createTLSchema().serialize(),
+			}
+			room.handleSocketMessage('test-session', JSON.stringify(connectRequest))
+
+			expect(onAfterReceiveMessage).toHaveBeenCalled()
+			const call = onAfterReceiveMessage.mock.calls[0][0]
+			expect(call.sessionId).toBe('test-session')
+			expect(call.message).toBeDefined()
+			expect(call.stringified).toBeDefined()
+		})
+	})
+
+	describe('WebSocket error handling', () => {
+		let room: TLSocketRoom
+		let socket: WebSocketMinimal
+
+		beforeEach(() => {
+			room = new TLSocketRoom({})
+			socket = createMockSocket()
+		})
+
+		it('handles socket errors correctly', () => {
+			room.handleSocketConnect({
+				sessionId: 'test-session',
+				socket,
+			})
+
+			const connectRequest = {
+				type: 'connect' as const,
+				connectRequestId: 'connect-1',
+				lastServerClock: 0,
+				protocolVersion: getTlsyncProtocolVersion(),
+				schema: createTLSchema().serialize(),
+			}
+			room.handleSocketMessage('test-session', JSON.stringify(connectRequest))
+
+			expect(room.getSessions()).toHaveLength(1)
+
+			// Trigger socket error - should not throw
+			expect(() => room.handleSocketError('test-session')).not.toThrow()
+		})
+
+		it('handles socket close correctly', () => {
+			room.handleSocketConnect({
+				sessionId: 'test-session',
+				socket,
+			})
+
+			const connectRequest = {
+				type: 'connect' as const,
+				connectRequestId: 'connect-1',
+				lastServerClock: 0,
+				protocolVersion: getTlsyncProtocolVersion(),
+				schema: createTLSchema().serialize(),
+			}
+			room.handleSocketMessage('test-session', JSON.stringify(connectRequest))
+
+			expect(room.getSessions()).toHaveLength(1)
+
+			// Trigger socket close - should not throw
+			expect(() => room.handleSocketClose('test-session')).not.toThrow()
+		})
+	})
+
+	describe('Record operations', () => {
+		let room: TLSocketRoom
+
+		beforeEach(() => {
+			const store = getStore()
+			store.ensureStoreIsUsable()
+			room = new TLSocketRoom({
+				initialSnapshot: store.getStoreSnapshot(),
+			})
+		})
+
+		it('returns undefined for non-existent records', () => {
+			const record = room.getRecord('nonexistent:record')
+			expect(record).toBeUndefined()
+		})
+
+		it('returns deep clone of existing records', () => {
+			// Get a record that should exist
+			const record = room.getRecord('document:document')
+			expect(record).toBeDefined()
+			expect(record?.typeName).toBe('document')
+
+			// Verify it's a deep clone by modifying it
+			if (record && record.typeName === 'document') {
+				;(record as any).name = 'modified'
+				const record2 = room.getRecord('document:document')
+				expect((record2 as any)?.name).not.toBe('modified')
+			}
+		})
+	})
+
+	describe('Custom messages', () => {
+		let room: TLSocketRoom
+		let socket: WebSocketMinimal
+
+		beforeEach(() => {
+			room = new TLSocketRoom({})
+			socket = createMockSocket()
+		})
+
+		it('sends custom messages to connected sessions', () => {
+			room.handleSocketConnect({
+				sessionId: 'test-session',
+				socket,
+			})
+
+			const connectRequest = {
+				type: 'connect' as const,
+				connectRequestId: 'connect-1',
+				lastServerClock: 0,
+				protocolVersion: getTlsyncProtocolVersion(),
+				schema: createTLSchema().serialize(),
+			}
+			room.handleSocketMessage('test-session', JSON.stringify(connectRequest))
+
+			const customData = { type: 'notification', message: 'Hello World' }
+			room.sendCustomMessage('test-session', customData)
+
+			expect(socket.send).toHaveBeenCalledWith(JSON.stringify({ type: 'custom', data: customData }))
+		})
+
+		it('handles custom message to non-existent session gracefully', () => {
+			// Should not throw an error
+			expect(() => {
+				room.sendCustomMessage('nonexistent-session', { test: 'data' })
+			}).not.toThrow()
+		})
+	})
+
+	describe('Session closing', () => {
+		let room: TLSocketRoom
+		let socket: WebSocketMinimal
+
+		beforeEach(() => {
+			room = new TLSocketRoom({})
+			socket = createMockSocket()
+		})
+
+		it('closes session without fatal reason', () => {
+			room.handleSocketConnect({
+				sessionId: 'test-session',
+				socket,
+			})
+
+			const connectRequest = {
+				type: 'connect' as const,
+				connectRequestId: 'connect-1',
+				lastServerClock: 0,
+				protocolVersion: getTlsyncProtocolVersion(),
+				schema: createTLSchema().serialize(),
+			}
+			room.handleSocketMessage('test-session', JSON.stringify(connectRequest))
+
+			room.closeSession('test-session')
+
+			// Session should be removed
+			expect(room.getSessions()).toHaveLength(0)
+		})
+
+		it('closes session with fatal reason', () => {
+			room.handleSocketConnect({
+				sessionId: 'test-session',
+				socket,
+			})
+
+			const connectRequest = {
+				type: 'connect' as const,
+				connectRequestId: 'connect-1',
+				lastServerClock: 0,
+				protocolVersion: getTlsyncProtocolVersion(),
+				schema: createTLSchema().serialize(),
+			}
+			room.handleSocketMessage('test-session', JSON.stringify(connectRequest))
+
+			room.closeSession('test-session', TLSyncErrorCloseEventReason.FORBIDDEN)
+
+			// Session should be removed
+			expect(room.getSessions()).toHaveLength(0)
+		})
+	})
+
+	describe('Room lifecycle', () => {
+		it('starts as open room', () => {
+			const room = new TLSocketRoom({})
+			expect(room.isClosed()).toBe(false)
+		})
+
+		it('closes room correctly', () => {
+			const room = new TLSocketRoom({})
+			const socket = createMockSocket()
+
+			room.handleSocketConnect({
+				sessionId: 'test-session',
+				socket,
+			})
+
+			const connectRequest = {
+				type: 'connect' as const,
+				connectRequestId: 'connect-1',
+				lastServerClock: 0,
+				protocolVersion: getTlsyncProtocolVersion(),
+				schema: createTLSchema().serialize(),
+			}
+			room.handleSocketMessage('test-session', JSON.stringify(connectRequest))
+
+			expect(room.getSessions()).toHaveLength(1)
+
+			// Close the room
+			room.close()
+
+			// Room should be marked as closed
+			expect(room.isClosed()).toBe(true)
+		})
+	})
+
+	describe('Store updates', () => {
+		it('executes async store updates', async () => {
+			const store = getStore()
+			store.ensureStoreIsUsable()
+			const room = new TLSocketRoom({
+				initialSnapshot: store.getStoreSnapshot(),
+			})
+
+			const initialClock = room.getCurrentDocumentClock()
+
+			await room.updateStore(async (store) => {
+				const page = PageRecordType.create({
+					id: PageRecordType.createId('new-page'),
+					name: 'New Page',
+					index: ZERO_INDEX_KEY,
+				})
+				store.put(page)
+			})
+
+			expect(room.getCurrentDocumentClock()).toBeGreaterThan(initialClock)
+		})
+
+		it('handles errors in store updates', async () => {
+			const store = getStore()
+			store.ensureStoreIsUsable()
+			const room = new TLSocketRoom({
+				initialSnapshot: store.getStoreSnapshot(),
+			})
+
+			await expect(async () => {
+				await room.updateStore(() => {
+					throw new Error('Test error')
+				})
+			}).rejects.toThrow('Test error')
+		})
+	})
+
+	describe('Session metadata handling', () => {
+		it('handles sessions with metadata correctly', () => {
+			const roomWithMeta = new TLSocketRoom<any, TestSessionMeta>({})
+			const socket = createMockSocket()
+			const meta: TestSessionMeta = { userId: 'user123', userName: 'Alice' }
+
+			roomWithMeta.handleSocketConnect({
+				sessionId: 'meta-session',
+				socket,
+				meta,
+			})
+
+			const connectRequest = {
+				type: 'connect' as const,
+				connectRequestId: 'connect-1',
+				lastServerClock: 0,
+				protocolVersion: getTlsyncProtocolVersion(),
+				schema: createTLSchema().serialize(),
+			}
+			roomWithMeta.handleSocketMessage('meta-session', JSON.stringify(connectRequest))
+
+			const sessions = roomWithMeta.getSessions()
+			expect(sessions[0].meta).toEqual(meta)
+		})
+	})
+
+	describe('Clock operations', () => {
+		it('returns current document clock', () => {
+			const room = new TLSocketRoom({})
+			const clock = room.getCurrentDocumentClock()
+			expect(typeof clock).toBe('number')
+			expect(clock).toBeGreaterThanOrEqual(0)
+		})
+
+		it('increments clock after store updates', async () => {
+			const store = getStore()
+			store.ensureStoreIsUsable()
+			const room = new TLSocketRoom({
+				initialSnapshot: store.getStoreSnapshot(),
+			})
+
+			const initialClock = room.getCurrentDocumentClock()
+
+			await room.updateStore((store) => {
+				store.put(
+					PageRecordType.create({
+						id: PageRecordType.createId('test-page'),
+						name: 'Test',
+						index: ZERO_INDEX_KEY,
+					})
+				)
+			})
+
+			expect(room.getCurrentDocumentClock()).toBeGreaterThan(initialClock)
+		})
+	})
+
+	describe('Snapshot serialization', () => {
+		it('returns serialized snapshot as JSON string', () => {
+			const store = getStore()
+			store.ensureStoreIsUsable()
+			const room = new TLSocketRoom({
+				initialSnapshot: store.getStoreSnapshot(),
+			})
+
+			const serialized = room.getCurrentSerializedSnapshot()
+			expect(typeof serialized).toBe('string')
+
+			const parsed = JSON.parse(serialized)
+			expect(parsed.clock).toBeDefined()
+			expect(parsed.documents).toBeDefined()
+		})
+
+		it('serialized snapshot matches regular snapshot', () => {
+			const store = getStore()
+			store.ensureStoreIsUsable()
+			const room = new TLSocketRoom({
+				initialSnapshot: store.getStoreSnapshot(),
+			})
+
+			const snapshot = room.getCurrentSnapshot()
+			const serialized = room.getCurrentSerializedSnapshot()
+
+			expect(JSON.parse(serialized)).toEqual(snapshot)
+		})
+	})
+
+	describe('Edge cases', () => {
+		it('handles connecting same session ID multiple times', () => {
+			const room = new TLSocketRoom({})
+			const socket1 = createMockSocket()
+			const socket2 = createMockSocket()
+
+			room.handleSocketConnect({
+				sessionId: 'duplicate-session',
+				socket: socket1,
+			})
+
+			// Connect with same session ID should replace previous connection
+			room.handleSocketConnect({
+				sessionId: 'duplicate-session',
+				socket: socket2,
+			})
+
+			// Only one session should exist
+			expect(room.getNumActiveSessions()).toBe(1)
+		})
+
+		it('handles empty message gracefully', () => {
+			const room = new TLSocketRoom({})
+			const socket = createMockSocket()
+
+			room.handleSocketConnect({
+				sessionId: 'test-session',
+				socket,
+			})
+
+			// Should not throw
+			expect(() => {
+				room.handleSocketMessage('test-session', '')
+			}).not.toThrow()
+		})
+
+		it('handles null/undefined values in options', () => {
+			// Should not throw when initializing with null values
+			expect(() => {
+				new TLSocketRoom({
+					initialSnapshot: undefined,
+					schema: undefined,
+					clientTimeout: undefined,
+				})
+			}).not.toThrow()
 		})
 	})
 })
