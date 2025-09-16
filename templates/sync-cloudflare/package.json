@@ -10,12 +10,11 @@
 	"license": "MIT",
 	"type": "module",
 	"tldraw_template": {
-		"publish": {
-			"repo": "tldraw/tldraw-sync-cloudflare",
-			"name": "Multiplayer sync",
-			"description": "Self-hosted tldraw with realtime multiplayer, powered by tldraw sync and Cloudflare Durable Objects. Built with Vite and TypeScript.",
-			"category": "app",
-			"order": 1
+		"repo": "tldraw/tldraw-sync-cloudflare",
+		"cli": {
+			"name": "Multiplayer",
+			"description": "Bring multiplayer mode to your tldraw canvas app. Self-hosted and powered by tldraw sync and Cloudflare Durable Objects.",
+			"shortDescription": "Real-time multiplayer for tldraw, built with Cloudflare Durable Objects."
 		},
 		"scripts": {
 			"lint": null

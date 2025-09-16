@@ -20,7 +20,7 @@ import picocolors from 'picocolors'
 import { wrapAnsi } from './wrap-ansi'
 
 export type GroupSelectOption<Value> = Option<Value> & {
-	group: string
+	group?: string
 	hint: string
 }
 
@@ -79,6 +79,8 @@ export function groupSelect<Value>(opts: GroupSelectOptions<Value>) {
 			picocolors.cyan(S_BAR),
 			'    ',
 			option.hint,
+			'\n',
+			picocolors.cyan(S_BAR),
 		].join('')
 	}
 
@@ -110,7 +112,7 @@ export function groupSelect<Value>(opts: GroupSelectOptions<Value>) {
 			}
 
 			const selectedOption = this.options[this.cursor]
-			let previousGroup = ''
+			let previousGroup = undefined
 			const body = []
 
 			for (const option of this.options) {

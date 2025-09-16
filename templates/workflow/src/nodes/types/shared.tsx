@@ -18,6 +18,8 @@ import { getNodeInputPortValues } from '../nodePorts'
 import { NodeShape } from '../NodeShapeUtil'
 import { NodeType } from '../nodeTypes'
 
+export type WorkflowValue = number
+
 /**
  * A special value that can be returned from a node to indicate that execution should stop.
  */
@@ -25,15 +27,15 @@ export type STOP_EXECUTION = typeof STOP_EXECUTION
 export const STOP_EXECUTION = Symbol('STOP_EXECUTION')
 
 export interface InfoValues {
-	[key: string]: { value: number | STOP_EXECUTION; isOutOfDate: boolean }
+	[key: string]: { value: WorkflowValue | STOP_EXECUTION; isOutOfDate: boolean }
 }
 
 export interface ExecutionResult {
-	[key: string]: number | STOP_EXECUTION
+	[key: string]: WorkflowValue | STOP_EXECUTION
 }
 
 export interface InputValues {
-	[key: string]: number
+	[key: string]: WorkflowValue
 }
 
 export interface NodeComponentProps<Node extends { type: string }> {

@@ -10,6 +10,12 @@
 	},
 	"type": "module",
 	"tldraw_template": {
+		"repo": "tldraw/agent-template",
+		"cli": {
+			"name": "Agent",
+			"description": "Enable AI agents to interpret and interact with canvas drawings and elements.",
+			"shortDescription": "An AI-powered agent."
+		},
 		"scripts": {
 			"lint": null
 		}
