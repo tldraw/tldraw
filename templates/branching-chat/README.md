@@ -86,7 +86,7 @@ yarn build
 npx wrangler deploy
 ```
 
-Make sure to set your `OPENAI_API_KEY` in your Cloudflare Workers environment variables.
+Make sure to set your `GOOGLE_GENERATIVE_AI_API_KEY` in your Cloudflare Workers environment variables.
 
 ## Customization
 
@@ -94,11 +94,11 @@ Make sure to set your `OPENAI_API_KEY` in your Cloudflare Workers environment va
 
 1. Create a new node definition in `/client/nodes/types/`
 2. Add to the `NodeDefinitions` array in `nodeTypes.tsx`
-3. Implement required methods: `Component`, `getPorts`, `computeOutput`
+3. Implement required methods: `Component`, `getPorts`, etc.
 
 ### Changing AI Providers
 
-Modify the `/worker/routes/` to use different AI providers supported by the Vercel AI SDK:
+Modify `/worker/worker.ts` to use different AI providers supported by the Vercel AI SDK:
 
 ```javascript
 import { anthropic } from '@ai-sdk/anthropic'

@@ -70,24 +70,6 @@ export class MessageNodeDefinition extends NodeDefinition<MessageNode> {
 			},
 		}
 	}
-	async computeOutput(_shape: NodeShape, _node: MessageNode, _inputs: Record<string, any>) {
-		return {
-			message: 'hello',
-		}
-	}
-
-	onPortConnect(shape: NodeShape, _node: MessageNode, portId: string): void {
-		if (!portId.startsWith('item_')) return
-		updateNode<MessageNode>(this.editor, shape, (node) => ({
-			...node,
-		}))
-	}
-
-	onPortDisconnect(shape: NodeShape, _node: MessageNode): void {
-		updateNode<MessageNode>(this.editor, shape, (node) => ({
-			...node,
-		}))
-	}
 
 	Component = MessageNodeComponent
 }

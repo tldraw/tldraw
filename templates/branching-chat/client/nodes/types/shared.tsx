@@ -26,11 +26,6 @@ export abstract class NodeDefinition<Node extends { type: string }> {
 	abstract getBodyWidthPx(shape: NodeShape, node: Node): number
 	abstract getBodyHeightPx(shape: NodeShape, node: Node): number
 	abstract getPorts(shape: NodeShape, node: Node): NodeTypePorts
-	abstract computeOutput(
-		shape: NodeShape,
-		node: Node,
-		inputs: Record<string, any>
-	): Promise<Record<string, any>>
 	onPortConnect(_shape: NodeShape, _node: Node, _port: PortId): void {}
 	onPortDisconnect(_shape: NodeShape, _node: Node, _port: PortId): void {}
 	abstract Component: React.ComponentType<NodeComponentProps<Node>>
