@@ -909,7 +909,7 @@ export function notifyIfFileNotAllowed(file: File, options: TLDefaultExternalCon
 			const unitIndex = Math.floor(Math.log(bytes) / Math.log(base))
 
 			const value = bytes / Math.pow(base, unitIndex)
-			const formatted = value % 1 === 0 ? value.toString() : value.toFixed(2)
+			const formatted = value % 1 === 0 ? value.toString() : value.toFixed(1)
 
 			return `${formatted} ${units[unitIndex]}`
 		}
