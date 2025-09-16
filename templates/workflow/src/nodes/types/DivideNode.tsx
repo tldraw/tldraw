@@ -77,12 +77,13 @@ export class DivideNodeType extends NodeDefinition<DivideNode> {
 		await sleep(1000)
 
 		const result = (inputs.dividend ?? node.a) / (inputs.divisor ?? node.b)
+		const validResult = !Number.isFinite(result) ? null : result
 		updateNode<DivideNode>(this.editor, shape, (node) => ({
 			...node,
-			lastResult: result,
+			lastResult: validResult,
 		}))
 		return {
-			output: result,
+			output: validResult ?? 0,
 		}
 	}
 	getOutputInfo(shape: NodeShape, node: DivideNode, inputs: InfoValues): InfoValues {

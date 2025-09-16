@@ -304,14 +304,13 @@ export class LicenseManager {
 		const currentHostname = window.location.hostname.toLowerCase()
 
 		return licenseInfo.hosts.some((host) => {
-			const normalizedHost = host.toLowerCase().trim()
-			const maybeProtocol = normalizedHost.endsWith(':') ? normalizedHost : undefined
+			const normalizedHostOrUrlRegex = host.toLowerCase().trim()
 
 			// Allow the domain if listed and www variations, 'example.com' allows 'example.com' and 'www.example.com'
 			if (
-				normalizedHost === currentHostname ||
-				`www.${normalizedHost}` === currentHostname ||
-				normalizedHost === `www.${currentHostname}`
+				normalizedHostOrUrlRegex === currentHostname ||
+				`www.${normalizedHostOrUrlRegex}` === currentHostname ||
+				normalizedHostOrUrlRegex === `www.${currentHostname}`
 			) {
 				return true
 			}
@@ -320,6 +319,12 @@ export class LicenseManager {
 			if (host === '*') {
 				// All domains allowed.
 				return true
+			}
+
+			// Native license support
+			// In this case, `normalizedHost` is actually a protocol, e.g. `app-bundle:`
+			if (this.isNativeLicense(licenseInfo)) {
+				return new RegExp(normalizedHostOrUrlRegex).test(window.location.href)
 			}
 
 			// Glob testing, we only support '*.somedomain.com' right now.
@@ -332,15 +337,9 @@ export class LicenseManager {
 			if (window.location.protocol === 'vscode-webview:') {
 				const currentUrl = new URL(window.location.href)
 				const extensionId = currentUrl.searchParams.get('extensionId')
-				if (normalizedHost === extensionId) {
+				if (normalizedHostOrUrlRegex === extensionId) {
 					return true
 				}
-			}
-
-			// Native license support
-			// In this case, `normalizedHost` is actually a protocol, e.g. `app-bundle:`
-			if (this.isNativeLicense(licenseInfo) && window.location.protocol === maybeProtocol) {
-				return true
 			}
 
 			return false

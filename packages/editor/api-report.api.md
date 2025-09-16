@@ -1365,7 +1365,9 @@ export class Editor extends EventEmitter<TLEventMap> {
         preservePosition?: boolean;
         select?: boolean;
     }): this;
-    putExternalContent<E>(info: TLExternalContent<E>): Promise<void>;
+    putExternalContent<E>(info: TLExternalContent<E>, opts?: {
+        force?: boolean;
+    }): Promise<void>;
     redo(): this;
     registerDeepLinkListener(opts?: TLDeepLinkOptions): () => void;
     registerExternalAssetHandler<T extends TLExternalAsset['type']>(type: T, handler: ((info: TLExternalAsset & {
@@ -1376,7 +1378,9 @@ export class Editor extends EventEmitter<TLEventMap> {
     }> : TLExternalContent<E>) => void) | null): this;
     renamePage(page: TLPage | TLPageId, name: string): this;
     reparentShapes(shapes: TLShape[] | TLShapeId[], parentId: TLParentId, insertIndex?: IndexKey): this;
-    replaceExternalContent<E>(info: TLExternalContent<E>): Promise<void>;
+    replaceExternalContent<E>(info: TLExternalContent<E>, opts?: {
+        force?: boolean;
+    }): Promise<void>;
     resetZoom(point?: Vec, opts?: TLCameraMoveOptions): this;
     resizeShape(shape: TLShape | TLShapeId, scale: VecLike, opts?: TLResizeShapeOptions): this;
     // (undocumented)
