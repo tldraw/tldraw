@@ -1,5 +1,5 @@
 
-name = "sync-template"
+name = "multiplayer-template"
 main = "worker/worker.ts"
 compatibility_date = "2025-05-08"
 compatibility_flags = ["nodejs_compat"]
@@ -19,7 +19,7 @@ bindings = [
 ]
 
 [[routes]]
-pattern = "sync.templates.tldraw.dev"
+pattern = "multiplayer.templates.tldraw.dev"
 custom_domain = true
 
 # Durable objects require migrations to create/modify/delete them
@@ -30,5 +30,5 @@ new_classes = ["TldrawDurableObject"]
 # We store rooms and asset uploads in an R2 bucket
 [[r2_buckets]]
 binding = 'TLDRAW_BUCKET'
-bucket_name = 'sync-template'
-preview_bucket_name = 'sync-template-preview'
+bucket_name = 'multiplayer-template'
+preview_bucket_name = 'multiplayer-template-preview'
