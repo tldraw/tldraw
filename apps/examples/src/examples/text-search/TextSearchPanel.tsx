@@ -4,7 +4,7 @@ import {
 	Editor,
 	TLShape,
 	TldrawUiButton,
-	stopEventPropagation,
+	markEventAsHandled,
 	track,
 	useEditor,
 } from 'tldraw'
@@ -63,7 +63,7 @@ export const TextSearchPanel = track(() => {
 	return (
 		<div
 			className="text-search-panel scroll-light"
-			onPointerDown={(e) => stopEventPropagation(e)}
+			onPointerDown={(e) => markEventAsHandled(e)}
 			onKeyDown={keyDown}
 		>
 			<input

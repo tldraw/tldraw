@@ -30,7 +30,7 @@ export const DivideNode = T.object({
 	lastResult: T.number.nullable(),
 })
 
-export class DivideNodeType extends NodeDefinition<DivideNode> {
+export class DivideNodeDefinition extends NodeDefinition<DivideNode> {
 	static type = 'divide'
 	static validator = DivideNode
 	title = 'Divide'

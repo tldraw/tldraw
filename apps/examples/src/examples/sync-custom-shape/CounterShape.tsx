@@ -5,7 +5,7 @@ import {
 	HTMLContainer,
 	T,
 	TLBaseShape,
-	stopEventPropagation,
+	markEventAsHandled,
 } from 'tldraw'
 
 type CounterShape = TLBaseShape<'counter', { w: number; h: number; count: number }>
@@ -47,11 +47,11 @@ export class CounterShapeUtil extends BaseBoxShapeUtil<CounterShape> {
 					gap: 8,
 				}}
 			>
-				<button onClick={(e) => onClick(e, -1)} onPointerDown={stopEventPropagation}>
+				<button onClick={(e) => onClick(e, -1)} onPointerDown={markEventAsHandled}>
 					-
 				</button>
 				<span>{shape.props.count}</span>
-				<button onClick={(e) => onClick(e, 1)} onPointerDown={stopEventPropagation}>
+				<button onClick={(e) => onClick(e, 1)} onPointerDown={markEventAsHandled}>
 					+
 				</button>
 			</HTMLContainer>

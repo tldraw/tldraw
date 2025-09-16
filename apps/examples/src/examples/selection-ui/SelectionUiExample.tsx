@@ -3,7 +3,7 @@ import {
 	Tldraw,
 	Vec,
 	intersectLineSegmentPolygon,
-	stopEventPropagation,
+	markEventAsHandled,
 	useEditor,
 	useValue,
 } from 'tldraw'
@@ -45,7 +45,7 @@ const components: TLComponents = {
 					transform: `translate(${info.x}px, ${info.y}px) rotate(${info.rotation}rad)`,
 					pointerEvents: 'all',
 				}}
-				onPointerDown={stopEventPropagation}
+				onPointerDown={markEventAsHandled}
 			>
 				<DuplicateInDirectionButton y={-40} x={info.width / 2 - 16} rotation={-(Math.PI / 2)} />
 				<DuplicateInDirectionButton y={info.height / 2 - 16} x={info.width + 8} rotation={0} />
@@ -95,7 +95,7 @@ function DuplicateInDirectionButton({
 				pointerEvents: 'all',
 				transform: `translate(${x}px, ${y}px) rotate(${rotation}rad)`,
 			}}
-			onPointerDown={stopEventPropagation}
+			onPointerDown={markEventAsHandled}
 			onClick={() => {
 				const selectionRotation = editor.getSelectionRotation() ?? 0
 				const rotatedPageBounds = editor.getSelectionRotatedPageBounds()!
