@@ -11,7 +11,7 @@ export function DocsSearchBar() {
 	return (
 		<motion.div
 			className="hidden md:flex mx-auto px-5 sticky top-4 z-10 xl:max-w-3xl xl:px-0"
-			style={{ width }}
+			style={{ width, marginTop: '-56px' }}
 		>
 			<motion.div className="hidden lg:block xl:hidden shrink-0" style={{ width: offset }} />
 			<div className="lg:max-w-3xl lg:pl-12 xl:pr-12 grow">
