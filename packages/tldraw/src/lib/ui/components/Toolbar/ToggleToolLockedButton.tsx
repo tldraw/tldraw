@@ -37,7 +37,6 @@ export function ToggleToolLockedButton({ activeToolId }: ToggleToolLockedButtonP
 		<TldrawUiTooltip content={tooltipContent}>
 			<TldrawUiButton
 				type="normal"
-				title={tooltipContent}
 				data-testid="tool-lock"
 				className={classNames('tlui-main-toolbar__lock-button', {
 					'tlui-main-toolbar__lock-button__mobile': breakpoint < PORTRAIT_BREAKPOINT.TABLET_SM,
