@@ -11,7 +11,6 @@ import {
 	toRichText,
 	useEditor,
 	useIsToolSelected,
-	useMarkEventAsHandled,
 	useTools,
 	useValue,
 } from 'tldraw'
@@ -47,7 +46,6 @@ const customUiOverrides: TLUiOverrides = {
 // [3]
 function ToggleClippingButton() {
 	const editor = useEditor()
-	const markEventAsHandled = useMarkEventAsHandled()
 
 	const clippingEnabled = useValue('isClippingEnabled', () => isClippingEnabled$.get(), [editor])
 
@@ -60,8 +58,8 @@ function ToggleClippingButton() {
 				onClick={() => {
 					isClippingEnabled$.update((prev) => !prev)
 				}}
-				onPointerDown={markEventAsHandled}
-				onPointerUp={markEventAsHandled}
+				onPointerDown={editor.markEventAsHandled}
+				onPointerUp={editor.markEventAsHandled}
 			>
 				{clippingEnabled ? '✂️ Disable Clipping' : '○ Enable Clipping'}
 			</button>

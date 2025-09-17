@@ -8,7 +8,6 @@ import {
 	TldrawUiMenuGroup,
 	TLShapeId,
 	useEditor,
-	useMarkEventAsHandled,
 	usePassThroughWheelEvents,
 	useQuickReactor,
 	useValue,
@@ -145,14 +144,13 @@ function OnCanvasComponentPickerItem<T extends NodeType>({
 	onClose: () => void
 }) {
 	const editor = useEditor()
-	const markEventAsHandled = useMarkEventAsHandled()
 
 	return (
 		<TldrawUiButton
 			key={definition.type}
 			type="menu"
 			className="OnCanvasComponentPicker-button"
-			onPointerDown={markEventAsHandled}
+			onPointerDown={editor.markEventAsHandled}
 			onClick={() => {
 				const state = onCanvasComponentPickerState.get(editor)
 				if (!state) return

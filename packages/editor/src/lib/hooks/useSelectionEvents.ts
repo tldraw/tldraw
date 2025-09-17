@@ -1,13 +1,7 @@
 import { useMemo } from 'react'
 import { RIGHT_MOUSE_BUTTON } from '../constants'
 import { TLSelectionHandle } from '../editor/types/selection-types'
-import {
-	loopToHtmlElement,
-	markEventAsHandled,
-	releasePointerCapture,
-	setPointerCapture,
-	wasEventAlreadyHandled,
-} from '../utils/dom'
+import { loopToHtmlElement, releasePointerCapture, setPointerCapture } from '../utils/dom'
 import { getPointerInfo } from '../utils/getPointerInfo'
 import { useEditor } from './useEditor'
 
@@ -18,7 +12,7 @@ export function useSelectionEvents(handle: TLSelectionHandle) {
 	const events = useMemo(
 		function selectionEvents() {
 			const onPointerDown: React.PointerEventHandler = (e) => {
-				if (wasEventAlreadyHandled(editor, e)) return
+				if (editor.wasEventAlreadyHandled(e)) return
 
 				if (e.button === RIGHT_MOUSE_BUTTON) {
 					editor.dispatch({
@@ -55,14 +49,14 @@ export function useSelectionEvents(handle: TLSelectionHandle) {
 					handle,
 					...getPointerInfo(editor, e),
 				})
-				markEventAsHandled(editor, e)
+				editor.markEventAsHandled(e)
 			}
 
 			// Track the last screen point
 			let lastX: number, lastY: number
 
 			function onPointerMove(e: React.PointerEvent) {
-				if (wasEventAlreadyHandled(editor, e)) return
+				if (editor.wasEventAlreadyHandled(e)) return
 				if (e.button !== 0) return
 				if (e.clientX === lastX && e.clientY === lastY) return
 				lastX = e.clientX
@@ -78,7 +72,7 @@ export function useSelectionEvents(handle: TLSelectionHandle) {
 			}
 
 			const onPointerUp: React.PointerEventHandler = (e) => {
-				if (wasEventAlreadyHandled(editor, e)) return
+				if (editor.wasEventAlreadyHandled(e)) return
 				if (e.button !== 0) return
 
 				editor.dispatch({

@@ -3,7 +3,6 @@ import {
 	TLShapeId,
 	TLUnknownShape,
 	getPointerInfo,
-	markEventAsHandled,
 	noop,
 	preventDefault,
 	tlenv,
@@ -157,18 +156,11 @@ export function useEditableTextCommon(shapeId: TLShapeId) {
 		[editor, shapeId]
 	)
 
-	const handleDoubleClick = useCallback(
-		(e: React.MouseEvent) => {
-			markEventAsHandled(editor, e)
-		},
-		[editor]
-	)
-
 	return {
 		handleFocus: noop,
 		handleBlur: noop,
 		handleInputPointerDown,
-		handleDoubleClick,
+		handleDoubleClick: editor.markEventAsHandled,
 		handlePaste,
 		isEditing,
 		isReadyForEditing,

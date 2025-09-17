@@ -6,7 +6,6 @@ import {
 	Editor,
 	TLShapeId,
 	useEditor,
-	useMarkEventAsHandled,
 	usePassThroughWheelEvents,
 	useQuickReactor,
 	useValue,
@@ -103,7 +102,6 @@ export function WorkflowRegions() {
 function WorkflowRegion({ workflow }: { workflow: WorkflowRegion }) {
 	const editor = useEditor()
 	const ref = useRef<HTMLDivElement>(null)
-	const markEventAsHandled = useMarkEventAsHandled()
 
 	// Check if this workflow is currently executing
 	const isExecuting = useValue(
@@ -158,7 +156,7 @@ function WorkflowRegion({ workflow }: { workflow: WorkflowRegion }) {
 		>
 			<button
 				className="WorkflowRegion-button"
-				onPointerDown={markEventAsHandled}
+				onPointerDown={editor.markEventAsHandled}
 				onClick={() => {
 					if (isExecuting) {
 						// Stop execution if currently running

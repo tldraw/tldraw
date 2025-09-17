@@ -1,12 +1,4 @@
-import {
-	TLComponents,
-	Tldraw,
-	Vec,
-	intersectLineSegmentPolygon,
-	useEditor,
-	useMarkEventAsHandled,
-	useValue,
-} from 'tldraw'
+import { TLComponents, Tldraw, Vec, intersectLineSegmentPolygon, useEditor, useValue } from 'tldraw'
 import 'tldraw/tldraw.css'
 
 const components: TLComponents = {
@@ -33,8 +25,6 @@ const components: TLComponents = {
 			[editor]
 		)
 
-		const markEventAsHandled = useMarkEventAsHandled()
-
 		if (!info) return
 
 		return (
@@ -47,7 +37,7 @@ const components: TLComponents = {
 					transform: `translate(${info.x}px, ${info.y}px) rotate(${info.rotation}rad)`,
 					pointerEvents: 'all',
 				}}
-				onPointerDown={markEventAsHandled}
+				onPointerDown={editor.markEventAsHandled}
 			>
 				<DuplicateInDirectionButton y={-40} x={info.width / 2 - 16} rotation={-(Math.PI / 2)} />
 				<DuplicateInDirectionButton y={info.height / 2 - 16} x={info.width + 8} rotation={0} />
@@ -87,7 +77,6 @@ function DuplicateInDirectionButton({
 	rotation: number
 }) {
 	const editor = useEditor()
-	const markEventAsHandled = useMarkEventAsHandled()
 
 	return (
 		<button
@@ -98,7 +87,7 @@ function DuplicateInDirectionButton({
 				pointerEvents: 'all',
 				transform: `translate(${x}px, ${y}px) rotate(${rotation}rad)`,
 			}}
-			onPointerDown={markEventAsHandled}
+			onPointerDown={editor.markEventAsHandled}
 			onClick={() => {
 				const selectionRotation = editor.getSelectionRotation() ?? 0
 				const rotatedPageBounds = editor.getSelectionRotatedPageBounds()!

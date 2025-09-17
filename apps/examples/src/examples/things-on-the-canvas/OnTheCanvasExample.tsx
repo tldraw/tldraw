@@ -1,5 +1,5 @@
 import { useState } from 'react'
-import { Tldraw, TLEditorComponents, track, useEditor, useMarkEventAsHandled } from 'tldraw'
+import { Tldraw, TLEditorComponents, track, useEditor } from 'tldraw'
 import 'tldraw/tldraw.css'
 
 // There's a guide at the bottom of this file!
@@ -7,7 +7,7 @@ import 'tldraw/tldraw.css'
 // [1]
 function MyComponent() {
 	const [state, setState] = useState(0)
-	const markEventAsHandled = useMarkEventAsHandled()
+	const editor = useEditor()
 
 	return (
 		<>
@@ -24,7 +24,7 @@ function MyComponent() {
 					userSelect: 'unset',
 					boxShadow: '0 0 0 1px rgba(0,0,0,0.1), 0 4px 8px rgba(0,0,0,0.1)',
 				}}
-				onPointerDown={markEventAsHandled}
+				onPointerDown={editor.markEventAsHandled}
 			>
 				<p>The count is {state}! </p>
 				<button onClick={() => setState((s) => s - 1)}>-1</button>
@@ -43,7 +43,7 @@ function MyComponent() {
 					userSelect: 'unset',
 					boxShadow: '0 0 0 1px rgba(0,0,0,0.1), 0 4px 8px rgba(0,0,0,0.1)',
 				}}
-				onPointerDown={markEventAsHandled}
+				onPointerDown={editor.markEventAsHandled}
 			>
 				<p>The count is {state}! </p>
 				<button onClick={() => setState((s) => s + 1)}>+1</button>

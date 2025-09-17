@@ -1,10 +1,9 @@
 import { Editor } from '../editor/Editor'
-import { markEventAsHandled } from './dom'
 import { isAccelKey } from './keyboard'
 
 /** @public */
 export function getPointerInfo(editor: Editor, e: React.PointerEvent | PointerEvent) {
-	markEventAsHandled(editor, e)
+	editor.markEventAsHandled(e)
 
 	return {
 		point: {

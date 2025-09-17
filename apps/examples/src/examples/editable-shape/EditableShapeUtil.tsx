@@ -1,11 +1,4 @@
-import {
-	BaseBoxShapeUtil,
-	HTMLContainer,
-	RecordProps,
-	T,
-	TLBaseShape,
-	useMarkEventAsHandled,
-} from 'tldraw'
+import { BaseBoxShapeUtil, HTMLContainer, RecordProps, T, TLBaseShape } from 'tldraw'
 
 // There's a guide at the bottom of this file!
 
@@ -46,13 +39,12 @@ export class EditableShapeUtil extends BaseBoxShapeUtil<IMyEditableShape> {
 		// [a]
 		const isEditing = this.editor.getEditingShapeId() === shape.id
 		// eslint-disable-next-line react-hooks/rules-of-hooks
-		const markEventAsHandled = useMarkEventAsHandled()
 
 		return (
 			<HTMLContainer
 				id={shape.id}
 				// [b]
-				onPointerDown={isEditing ? markEventAsHandled : undefined}
+				onPointerDown={isEditing ? this.editor.markEventAsHandled : undefined}
 				style={{
 					pointerEvents: isEditing ? 'all' : 'none',
 					backgroundColor: '#efefef',
