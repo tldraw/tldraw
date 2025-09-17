@@ -87,8 +87,6 @@ export function updateArrowTargetState({
 		return null
 	}
 
-	const isExact = util.options.shouldBeExact(editor)
-
 	const arrowKind = arrow ? arrow.props.kind : editor.getStyleForNextShape(ArrowShapeKindStyle)
 
 	const target = editor.getShapeAtPoint(pointInPageSpace, {
@@ -165,7 +163,7 @@ export function updateArrowTargetState({
 		}
 	}
 
-	let precise = isPrecise || isExact
+	let precise = isPrecise
 
 	if (!precise) {
 		// If we're switching to a new bound shape, then precise only if moving slowly
@@ -185,6 +183,9 @@ export function updateArrowTargetState({
 			precise = true
 		}
 	}
+
+	const isExact = util.options.shouldBeExact(editor, precise)
+	if (isExact) precise = true
 
 	const shouldSnapCenter = !isExact && precise && targetGeometryInTargetSpace.isClosed
 	// const shouldSnapEdges = !isExact && (precise || !targetGeometryInTargetSpace.isClosed)
