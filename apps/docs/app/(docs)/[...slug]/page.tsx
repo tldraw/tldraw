@@ -73,10 +73,10 @@ export default async function Page(props: { params: Promise<{ slug: string | str
 				<main className="relative w-full px-5 pt-12 shrink md:pt-0 min-w-[1px]">
 					<DocsHeader article={content.article} />
 					<Content mdx={content.article.content ?? ''} type={content.article.sectionId} />
-					<div className="mx-auto w-full max-w-sm">
-						<DocsFeedbackWidget className="mb-12" />
-					</div>
 					<DocsFooter article={content.article} />
+					<div className="mx-auto w-full max-w-sm mt-8 mb-16">
+						<DocsFeedbackWidget />
+					</div>
 				</main>
 			) : (
 				<>

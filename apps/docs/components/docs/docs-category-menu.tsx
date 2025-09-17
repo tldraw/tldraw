@@ -14,12 +14,6 @@ const categoryLinks = [
 			['/quick-start', '/installation', '/releases'].some((e) => pathname.startsWith(e)),
 	},
 	{
-		caption: 'Starter Kits',
-		icon: CubeIcon,
-		href: '/starter-kits/overview',
-		active: (pathname: string) => ['/starter-kits'].some((e) => pathname.startsWith(e)),
-	},
-	{
 		caption: 'Guides',
 		icon: AcademicCapIcon,
 		href: '/docs/editor',
@@ -36,6 +30,12 @@ const categoryLinks = [
 		icon: PlayIcon,
 		href: '/examples',
 		active: (pathname: string) => pathname.startsWith('/examples'),
+	},
+	{
+		caption: 'Starter Kits',
+		icon: CubeIcon,
+		href: '/starter-kits/overview',
+		active: (pathname: string) => ['/starter-kits'].some((e) => pathname.startsWith(e)),
 	},
 ]
 
