@@ -2,43 +2,12 @@
 
 import { type IconName } from '@/components/common/icon'
 import { Logo } from '@/components/common/logo'
-import { MobileMenu } from '@/components/navigation/mobile-menu'
 import { SocialLink } from '@/components/navigation/social-link'
 import { SearchButton } from '@/components/search/SearchButton'
 import { motion, useScroll, useTransform } from 'framer-motion'
 import Link from 'next/link'
 import { usePathname } from 'next/navigation'
-import { Suspense } from 'react'
 import { ThemeSwitch } from '../common/theme-switch'
-
-const mainLinks = [
-	// { caption: 'Features', active: () => false, href: '/#features' },
-	{
-		caption: 'Docs',
-		href: '/quick-start',
-		active: (pathname: string) =>
-			[
-				'/quick-start',
-				'/installation',
-				'/releases',
-				'/docs',
-				'/community',
-				'/reference',
-				'/search',
-			].some((e) => pathname.startsWith(e)) && !pathname.startsWith('/search/blog'),
-	},
-	{
-		caption: 'Examples',
-		href: '/examples',
-		active: (pathname: string) => ['/examples'].some((e) => pathname.startsWith(e)),
-	},
-	{ caption: 'Pricing', active: () => false, href: '/#pricing' },
-	{
-		caption: 'Blog',
-		href: '/blog',
-		active: (pathname: string) => ['/blog', '/search/blog'].some((e) => pathname.startsWith(e)),
-	},
-]
 
 const socialLinks = [
 	{
@@ -85,9 +54,7 @@ export function Header() {
 					{!pathname?.startsWith('/search') && (
 						<SearchButton type={pathname?.startsWith('/blog') ? 'blog' : 'docs'} layout="mobile" />
 					)}
-					<Suspense>
-						<MobileMenu main={mainLinks} social={socialLinks} />
-					</Suspense>
+					<ThemeSwitch />
 				</div>
 			</nav>
 		</header>
