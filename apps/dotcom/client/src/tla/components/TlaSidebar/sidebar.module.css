@@ -505,29 +505,19 @@
 /* ------------------- File links ------------------- */
 
 .sidebarFileListItem {
-	background-color: var(--tla-color-sidebar);
-	position: relative;
-	width: 100%;
-	display: flex;
-	flex-direction: row;
-	align-items: center;
-	height: 36px;
-	padding: 0px 8px 0px 8px;
-}
-
-.sidebarFileListItemDragOverlay {
 	background-color: transparent;
+	/* Chrome hack to enable the drag image to have a transparent background */
+	opacity: 0.999;
 	position: relative;
 	width: 100%;
 	display: flex;
-	font-size: 14px;
 	flex-direction: row;
 	align-items: center;
 	height: 36px;
 	padding: 0px 8px 0px 8px;
 }
 
-.sidebarFileListItem[data-dragging='true'] {
+.sidebarFileListItem[data-is-dragging='true'] {
 	opacity: 0.5;
 	background: transparent;
 }
@@ -647,7 +637,7 @@
 	}
 	:global(.tla:has(.tl-container__focused:not(.tl-container__no-focus-ring)))
 		.sidebarFileListItemMenuTrigger,
-	.sidebarFileListItem[data-dragging='true'] .sidebarFileListItemMenuTrigger {
+	.sidebarFileListItem[data-is-dragging='true'] .sidebarFileListItemMenuTrigger {
 		visibility: visible;
 		display: flex;
 	}
@@ -802,6 +792,19 @@
 .sidebarGroupItem .sidebarFileListItemContent {
 	padding-left: var(--tla-sidebar-group-item-padding-left);
 }
+.dropping {
+	position: relative;
+}
+
+.dropping::after {
+	content: '';
+	position: absolute;
+	inset: -2px;
+	border-radius: 6px;
+	border: 2px solid rgba(0, 122, 255, 0.7);
+	pointer-events: none;
+	visibility: visible;
+}
 
 .dropCursorLine {
 	height: 2px;
@@ -810,8 +813,8 @@
 	will-change: top;
 	background-color: rgba(0, 122, 255, 0.7);
 	border-radius: 1.5px;
-	width: calc(100% - 24px);
-	left: 12px;
+	width: calc(100% - 32px);
+	left: 16px;
 	z-index: 1000;
 	pointer-events: none;
 	position: fixed;
@@ -822,7 +825,7 @@
 .sidebarGroupItem:has(.sidebarGroupItemHeader:hover)::after,
 .sidebarGroupItem[data-is-empty='true'][data-is-expanded='true'][data-group-index='0']::after,
 .sidebarGroupItem[data-menu-open='true']::after,
-.sidebarGroupItem[data-dragging='true']::after {
+.sidebarGroupItem[data-is-dragging='true']::after {
 	display: block;
 	content: '';
 	position: absolute;
@@ -835,28 +838,6 @@
 	z-index: 0;
 	pointer-events: none;
 	visibility: visible;
-}
-.sidebarGroupItem[data-dragging='true'] {
-	opacity: 0.3;
-}
-.sidebarGroupItem[data-dragging='true']::after {
-	background: transparent;
-}
-
-body[data-dragging-type] .sidebarGroupItem,
-body[data-dragging-type] .sidebarGroupItem *,
-body[data-dragging-type] .sidebarFileListItem,
-body[data-dragging-type] .sidebarFileListItem * {
-	/* THORNY EDGE CASE: Disable all pointer events during group drag */
-	/* This prevents accidental clicks, hovers, and other interactions */
-	/* while the user is dragging, which could interfere with the drag operation */
-	pointer-events: none !important;
-}
-
-/* EDGE CASE: Set grabbing cursor globally during drag operations */
-/* This gives visual feedback that a drag operation is in progress */
-body[data-dragging-type] {
-	cursor: grabbing !important;
 }
 
 .sidebarGroupItemHeader {
@@ -878,7 +859,7 @@ body[data-dragging-type] {
 
 @media (hover: hover) {
 	.sidebarGroupItemTitle:hover,
-	.sidebarGroupItem[data-dragging='true'] .sidebarGroupItemTitle {
+	.sidebarGroupItem[data-is-dragging='true'] .sidebarGroupItemTitle {
 		color: var(--tla-color-text-1);
 	}
 }
@@ -924,7 +905,7 @@ body[data-dragging-type] {
 @media (hover: hover) {
 	.sidebarGroupItem:has(.sidebarGroupItemHeader:hover) .sidebarGroupItemButtons,
 	.sidebarGroupItem[data-menu-open='true'] .sidebarGroupItemButtons,
-	.sidebarGroupItem[data-dragging='true'] .sidebarGroupItemButtons {
+	.sidebarGroupItem[data-is-dragging='true'] .sidebarGroupItemButtons {
 		opacity: 1;
 	}
 }

@@ -2,7 +2,6 @@ import { memo, useCallback, useEffect } from 'react'
 import { useHasFlag } from '../../hooks/useHasFlag'
 import { useTldrFileDrop } from '../../hooks/useTldrFileDrop'
 import { useTldrawAppUiEvents } from '../../utils/app-ui-events'
-import { F } from '../../utils/i18n'
 import {
 	getIsSidebarOpen,
 	toggleSidebar,
@@ -44,7 +43,7 @@ export const TlaSidebar = memo(function TlaSidebar() {
 		updateLocalSessionState(() => ({ isSidebarOpenMobile: false }))
 	}, [])
 
-	const { onDrop, onDragOver, onDragEnter, onDragLeave, isDraggingOver } = useTldrFileDrop()
+	const { onDrop, onDragOver, onDragEnter, onDragLeave } = useTldrFileDrop()
 
 	const hasGroups = useHasFlag('groups')
 	const addDialog = useDialogs().addDialog
@@ -83,11 +82,6 @@ export const TlaSidebar = memo(function TlaSidebar() {
 				onDragEnter={onDragEnter}
 				onDragLeave={onDragLeave}
 			>
-				{isDraggingOver && (
-					<div className={styles.sidebarDragOverlay}>
-						<F defaultMessage="Upload .tldr files" />
-					</div>
-				)}
 				<div className={styles.sidebarTopRow}>
 					<TlaSidebarWorkspaceLink />
 					{hasGroups && (

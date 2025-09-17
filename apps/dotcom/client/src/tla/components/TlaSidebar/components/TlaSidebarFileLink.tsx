@@ -13,9 +13,9 @@ import {
 	useValue,
 } from 'tldraw'
 import { routes } from '../../../../routeDefs'
-import { SidebarFileContext } from '../../../app/TldrawApp'
 import { useApp } from '../../../hooks/useAppState'
 import { useCanUpdateFile } from '../../../hooks/useCanUpdateFile'
+import { useDragTracking } from '../../../hooks/useDragTracking'
 import { useIsFileOwner } from '../../../hooks/useIsFileOwner'
 import { useTldrawAppUiEvents } from '../../../utils/app-ui-events'
 import { getIsCoarsePointer } from '../../../utils/getIsCoarsePointer'
@@ -64,12 +64,12 @@ export function TlaSidebarFileLink({
 	item,
 	testId,
 	className,
-	context,
+	groupId,
 }: {
 	item: RecentFile
 	testId: string
 	className?: string
-	context: SidebarFileContext
+	groupId: string
 }) {
 	const app = useApp()
 	const intl = useIntl()
@@ -86,7 +86,7 @@ export function TlaSidebarFileLink({
 
 	const isRenaming = useValue(
 		'shouldRename',
-		() => isEqual(app.sidebarState.get().renameState, { fileId, context }),
+		() => isEqual(app.sidebarState.get().renameState, { fileId, groupId }),
 		[fileId, app]
 	)
 
@@ -99,7 +99,7 @@ export function TlaSidebarFileLink({
 				app.updateFile(fileId, { name: newName })
 			}
 		} else {
-			patch(app.sidebarState).renameState({ fileId, context })
+			patch(app.sidebarState).renameState({ fileId, groupId })
 		}
 	}
 
@@ -110,6 +110,7 @@ export function TlaSidebarFileLink({
 			<_ContextMenu.Trigger>
 				<TlaSidebarFileLinkInner
 					fileId={fileId}
+					groupId={groupId}
 					fileName={fileName}
 					isPinned={isPinned}
 					testId={testId}
@@ -119,7 +120,6 @@ export function TlaSidebarFileLink({
 					isRenaming={isRenaming}
 					handleRenameAction={handleRenameAction}
 					className={className}
-					context={context}
 				/>
 			</_ContextMenu.Trigger>
 			<_ContextMenu.Content className="tlui-menu tlui-scrollable">
@@ -148,6 +148,7 @@ export function TlaSidebarFileLinkInner({
 	isPinned,
 	testId,
 	fileId,
+	groupId,
 	isActive,
 	// owner,
 	fileName,
@@ -156,9 +157,9 @@ export function TlaSidebarFileLinkInner({
 	handleRenameAction,
 	onClose,
 	className,
-	context: _context,
 }: {
 	fileId: string
+	groupId: string
 	isPinned: boolean
 	testId: string | number
 	isActive: boolean
@@ -168,12 +169,13 @@ export function TlaSidebarFileLinkInner({
 	handleRenameAction(): void
 	onClose(): void
 	className?: string
-	context: SidebarFileContext
 }) {
 	const trackEvent = useTldrawAppUiEvents()
 	const linkRef = useRef<HTMLAnchorElement | null>(null)
 	const app = useApp()
 	const isSidebarOpenMobile = useIsSidebarOpenMobile()
+
+	const { startDragTracking } = useDragTracking()
 
 	const canUpdateFile = useCanUpdateFile(fileId)
 	const isOwnFile = useIsFileOwner(fileId)
@@ -193,6 +195,13 @@ export function TlaSidebarFileLinkInner({
 		linkRef.current.focus({ preventScroll: preventScrollOnNavigation })
 	}, [isActive, linkRef])
 
+	const isDragging = useValue('isDragging', () => app.sidebarState.get().dragState?.id === fileId, [
+		fileId,
+		app,
+	])
+
+	const wrapperRef = useRef<HTMLDivElement>(null)
+
 	if (!file) return null
 
 	if (isRenaming) {
@@ -201,15 +210,32 @@ export function TlaSidebarFileLinkInner({
 
 	return (
 		<div
+			ref={wrapperRef}
 			className={classNames(styles.sidebarFileListItem, styles.hoverable, className)}
 			data-active={isActive}
 			data-element="file-link"
 			data-testid={testId}
 			data-is-own-file={isOwnFile}
+			data-drop-target-id={`file:${fileId}`}
+			data-is-dragging={isDragging}
+			data-is-pinned={isPinned}
 			onDoubleClick={canUpdateFile ? handleRenameAction : undefined}
 			// We use this id to scroll the active file link into view when creating or deleting files.
 			id={isActive ? ACTIVE_FILE_LINK_ID : undefined}
 			role="listitem"
+			draggable={true}
+			onDragStart={(event) => {
+				// Set native drag data for drag-to-new-tab functionality
+				const fileUrl = routes.tlaFile(fileId, { asUrl: true })
+				event.dataTransfer.effectAllowed = 'move'
+				event.dataTransfer.setData('text/uri-list', fileUrl)
+				startDragTracking({
+					groupId,
+					fileId,
+					clientX: event.clientX,
+					clientY: event.clientY,
+				})
+			}}
 		>
 			<Link
 				ref={linkRef}

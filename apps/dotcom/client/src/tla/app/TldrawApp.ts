@@ -5,6 +5,8 @@ import {
 	AcceptInviteResponseBody,
 	CreateFilesResponseBody,
 	CreateSnapshotRequestBody,
+	DragFileOperation,
+	DragReorderOperation,
 	LOCAL_FILE_PREFIX,
 	MAX_NUMBER_OF_FILES,
 	TlaFile,
@@ -24,7 +26,6 @@ import {
 	schema as zeroSchema,
 } from '@tldraw/dotcom-shared'
 import {
-	IndexKey,
 	Result,
 	assert,
 	compact,
@@ -75,7 +76,22 @@ import { createIntl, defineMessages, setupCreateIntl } from '../utils/i18n'
 import { updateLocalSessionState } from '../utils/local-session-state'
 import { Zero as ZeroPolyfill } from './zero-polyfill'
 
-export type SidebarFileContext = 'my-files' | 'group-files' | 'my-files-pinned'
+export interface DragGroupOperation {
+	reorder?: DragReorderOperation
+}
+
+export type DragState =
+	| null
+	| {
+			type: 'file'
+			id: string
+			operation: DragFileOperation
+	  }
+	| {
+			type: 'group'
+			id: string
+			operation: DragGroupOperation
+	  }
 
 export const TLDR_FILE_ENDPOINT = `/api/app/tldr`
 export const PUBLISH_ENDPOINT = `/api/app/publish`
@@ -342,7 +358,18 @@ export class TldrawApp {
 			date: number
 		}> = []
 
-		for (const file of group.groupFiles) {
+		const pinned = group.groupFiles.filter((f) => this.isPinned(f.fileId))
+		const unpinned = group.groupFiles.filter((f) => !this.isPinned(f.fileId))
+
+		pinned.sort((a, b) => {
+			const aState = this.getFileState(a.fileId)
+			const bState = this.getFileState(b.fileId)
+			const aIndex = aState?.pinnedIndex
+			const bIndex = bState?.pinnedIndex
+			return aIndex! < bIndex! ? -1 : 1
+		})
+
+		for (const file of unpinned) {
 			const existing = lastOrdering?.find((f) => f.fileId === file.fileId)
 
 			if (existing) {
@@ -364,11 +391,15 @@ export class TldrawApp {
 		this.lastGroupFileOrderings.set(groupId, nextOrdering)
 
 		// Return the actual file objects in the stable order
-		return compact(
-			nextOrdering.map((entry) => {
-				return group.groupFiles.find((file) => file.fileId === entry.fileId)?.file
-			})
-		)
+		return pinned
+			.map((f) => f.file)
+			.concat(
+				compact(
+					nextOrdering.map((entry) => {
+						return group.groupFiles.find((file) => file.fileId === entry.fileId)?.file
+					})
+				)
+			)
 	}
 
 	// Clear group file ordering to refresh on expand (like recent files on page reload)
@@ -545,6 +576,10 @@ export class TldrawApp {
 			name: this.getFallbackFileName(Date.now()),
 		})
 		return Result.ok({ fileId })
+	}
+
+	isPinned(fileId: string) {
+		return this.getFileState(fileId)?.isPinned ?? false
 	}
 
 	async createFile(
@@ -1088,28 +1123,9 @@ export class TldrawApp {
 		noAnimationGroups: new Set<string>(),
 		renameState: null as null | {
 			fileId: string
-			context: SidebarFileContext
+			groupId: string
 		},
-		dragState: null as
-			| null
-			| {
-					type: 'file'
-					fileId: string
-					context: SidebarFileContext
-					originDropZoneId?: string
-			  }
-			| {
-					type: 'group'
-					itemId: string
-					cursorLineY: number | null
-					nextIndex: IndexKey | null
-			  }
-			| {
-					type: 'pinned'
-					fileId: string
-					cursorLineY: number | null
-					nextIndex: IndexKey | null
-			  },
+		dragState: null as DragState,
 	})
 
 	ensureSidebarGroupExpanded(groupId: string) {

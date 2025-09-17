@@ -1,6 +1,14 @@
 import type { CustomMutatorDefs } from '@rocicorp/zero'
 import type { Transaction } from '@rocicorp/zero/out/zql/src/mutate/custom'
-import { assert, getIndexBelow, IndexKey, sortByIndex, uniqueId } from '@tldraw/utils'
+import {
+	assert,
+	getIndexAbove,
+	getIndexBelow,
+	getIndexBetween,
+	IndexKey,
+	sortByIndex,
+	uniqueId,
+} from '@tldraw/utils'
 import { MAX_NUMBER_OF_FILES } from './constants'
 import {
 	immutableColumns,
@@ -57,7 +65,7 @@ function assertValidId(id: string) {
 }
 
 export function createMutators(userId: string) {
-	return {
+	const mutators = {
 		user: {
 			insert: async (tx, user: TlaUser) => {
 				assert(userId === user.id, ZErrorCode.forbidden)
@@ -515,5 +523,110 @@ export function createMutators(userId: string) {
 				})
 			},
 		},
+		handleFileDragOperation: async (
+			tx,
+			{
+				fileId,
+				groupId,
+				operation,
+			}: { fileId: string; groupId: string; operation: DragFileOperation }
+		) => {
+			// TODO: auth
+			const file = await tx.query.file.where('id', '=', fileId).one().run()
+			if (!file) return
+			const finalGroupId = operation.move?.targetId ?? groupId
+			const isFileLink =
+				(groupId !== 'my-files' && file.owningGroupId !== groupId) ||
+				!(groupId === 'my-files' && file.ownerId !== userId)
+
+			// Execute move operation first (if any)
+			if (finalGroupId !== groupId) {
+				if (finalGroupId === 'my-files') {
+					// Move to my-files (ungroup)
+					await mutators.group.ungroupFile(tx, { fileId })
+				} else {
+					// Move to specific group
+					if (isFileLink) {
+						if (groupId !== 'my-files') {
+							await tx.mutate.group_file.delete({ fileId, groupId })
+						}
+						await tx.mutate.group_file.insert({
+							fileId,
+							groupId: finalGroupId,
+							createdAt: Date.now(),
+							updatedAt: Date.now(),
+						})
+					} else {
+						await mutators.group.moveFileToGroup(tx, { fileId, groupId: finalGroupId })
+					}
+				}
+			}
+
+			if (operation.reorder && operation.reorder.insertBeforeId !== fileId) {
+				const { insertBeforeId } = operation.reorder
+				let nextIndex = 'a0' as IndexKey
+				if (insertBeforeId === null) {
+					// insert at end
+					const lastPinnedFile = (
+						await tx.query.file_state
+							.where('userId', '=', userId)
+							.where('isPinned', '=', true)
+							.run()
+					)
+						.sort((a, b) => (a.pinnedIndex! > b.pinnedIndex! ? 1 : -1))
+						.pop()
+					if (lastPinnedFile) {
+						nextIndex = getIndexAbove(lastPinnedFile.pinnedIndex)
+					}
+				} else {
+					// insert before specific file
+					const fileStates = await tx.query.file_state
+						.where('userId', '=', userId)
+						.where('isPinned', '=', true)
+						.run()
+					fileStates.sort((a, b) => (a.pinnedIndex! > b.pinnedIndex! ? 1 : -1))
+					const targetIdx = fileStates.findIndex((f) => f.fileId === insertBeforeId)
+					const afterIndex = fileStates[targetIdx]?.pinnedIndex
+					const beforeIndex = fileStates[targetIdx - 1]?.pinnedIndex
+
+					nextIndex = getIndexBetween(beforeIndex, afterIndex)
+				}
+				await tx.mutate.file_state.upsert({
+					fileId,
+					userId,
+					pinnedIndex: nextIndex,
+					isPinned: true,
+				})
+			} else if (!operation.reorder) {
+				const currentState = await tx.query.file_state
+					.where('fileId', '=', fileId)
+					.where('userId', '=', userId)
+					.one()
+					.run()
+				if (currentState) {
+					await tx.mutate.file_state.update({
+						fileId,
+						userId,
+						isPinned: false,
+						lastEditAt: Date.now(),
+					})
+					await tx.mutate.file.update({
+						id: fileId,
+						updatedAt: Date.now(),
+					})
+				}
+			}
+		},
 	} as const satisfies CustomMutatorDefs<TlaSchema>
+	return mutators
+}
+
+export interface DragReorderOperation {
+	insertBeforeId: string | null // file ID to insert before, null for end
+	indicatorY: number
+}
+
+export interface DragFileOperation {
+	move?: { targetId: string }
+	reorder?: DragReorderOperation
 }

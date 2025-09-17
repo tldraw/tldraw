@@ -148,7 +148,7 @@ export function FileItems({
 		})
 		if (res.ok) {
 			app.ensureFileVisibleInSidebar(newFileId)
-			patch(app.sidebarState).renameState({ fileId: newFileId, context: 'my-files' })
+			patch(app.sidebarState).renameState({ fileId: newFileId, groupId: 'my-files' })
 			navigate(routes.tlaFile(newFileId))
 		}
 	}, [app, fileId, navigate, trackEvent, source])
