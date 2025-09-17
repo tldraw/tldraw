@@ -49,11 +49,11 @@ describe('ArrowShapeOptions', () => {
 
 			// Test without alt key
 			editor.inputs.altKey = false
-			expect(util.options.shouldBeExact(editor)).toBe(false)
+			expect(util.options.shouldBeExact(editor, false)).toBe(false)
 
 			// Test with alt key
 			editor.inputs.altKey = true
-			expect(util.options.shouldBeExact(editor)).toBe(true)
+			expect(util.options.shouldBeExact(editor, false)).toBe(true)
 		})
 
 		it('should have correct default shouldIgnoreTargets behavior (ctrl key)', () => {

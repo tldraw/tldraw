@@ -81,7 +81,7 @@ export interface ArrowShapeOptions {
 	 */
 	readonly hoverPreciseTimeout: number
 	/**
-	 * When pointing at a shape using the arrow tool or draggin an arrow terminal handle, how long
+	 * When pointing at a shape using the arrow tool or dragging an arrow terminal handle, how long
 	 * should we wait before we assume the user is targeting precisely instead of imprecisely.
 	 */
 	readonly pointingPreciseTimeout: number
@@ -91,7 +91,7 @@ export interface ArrowShapeOptions {
 	 * it stop at the edge of the target shape.
 	 */
 	// eslint-disable-next-line @typescript-eslint/method-signature-style
-	readonly shouldBeExact: (editor: Editor) => boolean
+	readonly shouldBeExact: (editor: Editor, isPrecise: boolean) => boolean
 	/**
 	 * When creating an arrow, should it bind to the target shape.
 	 */
