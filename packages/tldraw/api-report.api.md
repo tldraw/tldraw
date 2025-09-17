@@ -4133,6 +4133,8 @@ export interface TLUiImageToolbarProps {
 // @public (undocumented)
 export interface TLUiInputProps {
     // (undocumented)
+    'aria-label'?: string;
+    // (undocumented)
     'data-testid'?: string;
     // (undocumented)
     autoFocus?: boolean;
