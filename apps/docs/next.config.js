@@ -214,6 +214,18 @@ const nextConfig = {
 					source: '/thanks',
 					destination: `https://${REWRITE_DOMAIN}/thanks`,
 				},
+				{
+					source: '/releases',
+					destination: '/getting-started/releases',
+				},
+				{
+					source: '/quick-start',
+					destination: '/getting-started/quick-start',
+				},
+				{
+					source: '/installation',
+					destination: '/getting-started/installation',
+				},
 			],
 		}
 
