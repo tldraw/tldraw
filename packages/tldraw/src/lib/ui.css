@@ -1039,6 +1039,10 @@ tldraw? probably.
 	display: none;
 }
 
+.tlui-style-panel[data-ismobile='true'] .tlui-style-panel__section .tlui-row.tlui-toolbar {
+	flex-wrap: wrap;
+}
+
 .tlui-style-panel__section__common:not(:only-child) {
 	margin-bottom: 7px;
 	border-bottom: 1px solid var(--tl-color-divider);
