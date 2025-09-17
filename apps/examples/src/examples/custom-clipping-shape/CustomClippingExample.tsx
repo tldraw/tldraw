@@ -2,7 +2,6 @@ import {
 	createShapeId,
 	DefaultToolbar,
 	DefaultToolbarContent,
-	markEventAsHandled,
 	TLComponents,
 	Tldraw,
 	TldrawUiMenuItem,
@@ -12,6 +11,7 @@ import {
 	toRichText,
 	useEditor,
 	useIsToolSelected,
+	useMarkEventAsHandled,
 	useTools,
 	useValue,
 } from 'tldraw'
@@ -47,6 +47,7 @@ const customUiOverrides: TLUiOverrides = {
 // [3]
 function ToggleClippingButton() {
 	const editor = useEditor()
+	const markEventAsHandled = useMarkEventAsHandled()
 
 	const clippingEnabled = useValue('isClippingEnabled', () => isClippingEnabled$.get(), [editor])
 

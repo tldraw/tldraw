@@ -1,4 +1,4 @@
-import { markEventAsHandled, preventDefault } from '@tldraw/editor'
+import { preventDefault, useMarkEventAsHandled } from '@tldraw/editor'
 import React from 'react'
 import { TextAreaProps } from './RichTextArea'
 
@@ -24,6 +24,7 @@ export const PlainTextArea = React.forwardRef<HTMLTextAreaElement, TextAreaProps
 	const onChange = (e: React.ChangeEvent<HTMLTextAreaElement>) => {
 		handleChange({ plaintext: e.target.value })
 	}
+	const markEventAsHandled = useMarkEventAsHandled()
 
 	return (
 		<textarea

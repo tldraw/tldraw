@@ -18,14 +18,14 @@ export function useCanvasEvents() {
 	const events = useMemo(
 		function canvasEvents() {
 			function onPointerDown(e: React.PointerEvent) {
-				if (wasEventAlreadyHandled(e)) return
+				if (wasEventAlreadyHandled(editor, e)) return
 
 				if (e.button === RIGHT_MOUSE_BUTTON) {
 					editor.dispatch({
 						type: 'pointer',
 						target: 'canvas',
 						name: 'right_click',
-						...getPointerInfo(e),
+						...getPointerInfo(editor, e),
 					})
 					return
 				}
@@ -38,12 +38,12 @@ export function useCanvasEvents() {
 					type: 'pointer',
 					target: 'canvas',
 					name: 'pointer_down',
-					...getPointerInfo(e),
+					...getPointerInfo(editor, e),
 				})
 			}
 
 			function onPointerUp(e: React.PointerEvent) {
-				if (wasEventAlreadyHandled(e)) return
+				if (wasEventAlreadyHandled(editor, e)) return
 				if (e.button !== 0 && e.button !== 1 && e.button !== 2 && e.button !== 5) return
 
 				releasePointerCapture(e.currentTarget, e)
@@ -52,33 +52,33 @@ export function useCanvasEvents() {
 					type: 'pointer',
 					target: 'canvas',
 					name: 'pointer_up',
-					...getPointerInfo(e),
+					...getPointerInfo(editor, e),
 				})
 			}
 
 			function onPointerEnter(e: React.PointerEvent) {
-				if (wasEventAlreadyHandled(e)) return
+				if (wasEventAlreadyHandled(editor, e)) return
 				if (editor.getInstanceState().isPenMode && e.pointerType !== 'pen') return
 				const canHover = e.pointerType === 'mouse' || e.pointerType === 'pen'
 				editor.updateInstanceState({ isHoveringCanvas: canHover ? true : null })
 			}
 
 			function onPointerLeave(e: React.PointerEvent) {
-				if (wasEventAlreadyHandled(e)) return
+				if (wasEventAlreadyHandled(editor, e)) return
 				if (editor.getInstanceState().isPenMode && e.pointerType !== 'pen') return
 				const canHover = e.pointerType === 'mouse' || e.pointerType === 'pen'
 				editor.updateInstanceState({ isHoveringCanvas: canHover ? false : null })
 			}
 
 			function onTouchStart(e: React.TouchEvent) {
-				if (wasEventAlreadyHandled(e)) return
-				markEventAsHandled(e)
+				if (wasEventAlreadyHandled(editor, e)) return
+				markEventAsHandled(editor, e)
 				preventDefault(e)
 			}
 
 			function onTouchEnd(e: React.TouchEvent) {
-				if (wasEventAlreadyHandled(e)) return
-				markEventAsHandled(e)
+				if (wasEventAlreadyHandled(editor, e)) return
+				markEventAsHandled(editor, e)
 				// check that e.target is an HTMLElement
 				if (!(e.target instanceof HTMLElement)) return
 
@@ -97,12 +97,12 @@ export function useCanvasEvents() {
 			}
 
 			function onDragOver(e: React.DragEvent<Element>) {
-				if (wasEventAlreadyHandled(e)) return
+				if (wasEventAlreadyHandled(editor, e)) return
 				preventDefault(e)
 			}
 
 			async function onDrop(e: React.DragEvent<Element>) {
-				if (wasEventAlreadyHandled(e)) return
+				if (wasEventAlreadyHandled(editor, e)) return
 				preventDefault(e)
 				e.stopPropagation()
 
@@ -129,7 +129,7 @@ export function useCanvasEvents() {
 			}
 
 			function onClick(e: React.MouseEvent) {
-				if (wasEventAlreadyHandled(e)) return
+				if (wasEventAlreadyHandled(editor, e)) return
 				e.stopPropagation()
 			}
 
@@ -157,8 +157,8 @@ export function useCanvasEvents() {
 		let lastX: number, lastY: number
 
 		function onPointerMove(e: PointerEvent) {
-			if (wasEventAlreadyHandled(e)) return
-			markEventAsHandled(e)
+			if (wasEventAlreadyHandled(editor, e)) return
+			markEventAsHandled(editor, e)
 
 			if (e.clientX === lastX && e.clientY === lastY) return
 			lastX = e.clientX
@@ -174,7 +174,7 @@ export function useCanvasEvents() {
 					type: 'pointer',
 					target: 'canvas',
 					name: 'pointer_move',
-					...getPointerInfo(singleEvent),
+					...getPointerInfo(editor, singleEvent),
 				})
 			}
 		}

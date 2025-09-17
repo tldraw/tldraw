@@ -108,8 +108,8 @@ export function useDocumentEvents() {
 				preventDefault(e)
 			}
 
-			if (wasEventAlreadyHandled(e)) return
-			markEventAsHandled(e)
+			if (wasEventAlreadyHandled(editor, e)) return
+			markEventAsHandled(editor, e)
 			const hasSelectedShapes = !!editor.getSelectedShapeIds().length
 
 			switch (e.key) {
@@ -216,8 +216,8 @@ export function useDocumentEvents() {
 		}
 
 		const handleKeyUp = (e: KeyboardEvent) => {
-			if (wasEventAlreadyHandled(e)) return
-			markEventAsHandled(e)
+			if (wasEventAlreadyHandled(editor, e)) return
+			markEventAsHandled(editor, e)
 
 			if (areShortcutsDisabled(editor)) {
 				return

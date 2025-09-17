@@ -4,9 +4,9 @@ import {
 	Box,
 	BoxModel,
 	Editor,
-	markEventAsHandled,
 	TLShapeId,
 	useEditor,
+	useMarkEventAsHandled,
 	usePassThroughWheelEvents,
 	useQuickReactor,
 	useValue,
@@ -103,6 +103,7 @@ export function WorkflowRegions() {
 function WorkflowRegion({ workflow }: { workflow: WorkflowRegion }) {
 	const editor = useEditor()
 	const ref = useRef<HTMLDivElement>(null)
+	const markEventAsHandled = useMarkEventAsHandled()
 
 	// Check if this workflow is currently executing
 	const isExecuting = useValue(

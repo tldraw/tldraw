@@ -6,7 +6,7 @@ import {
 	RecordProps,
 	T,
 	TLBaseShape,
-	markEventAsHandled,
+	useMarkEventAsHandled,
 } from 'tldraw'
 
 type IMyPopupShape = TLBaseShape<
@@ -58,6 +58,8 @@ export class PopupShapeUtil extends BaseBoxShapeUtil<IMyPopupShape> {
 				elm.style.transform = `rotateX(20deg)`
 			}
 		}, [popped])
+
+		const markEventAsHandled = useMarkEventAsHandled()
 
 		const vpb = this.editor.getViewportPageBounds()
 		const spb = this.editor.getShapePageBounds(shape)!

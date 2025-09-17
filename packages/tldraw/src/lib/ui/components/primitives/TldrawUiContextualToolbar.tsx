@@ -3,10 +3,10 @@ import {
 	Box,
 	clamp,
 	Editor,
-	markEventAsHandled,
 	react,
 	useAtom,
 	useEditor,
+	useMarkEventAsHandled,
 	usePassThroughMouseOverEvents,
 	usePassThroughWheelEvents,
 	useValue,
@@ -52,6 +52,7 @@ export const TldrawUiContextualToolbar = ({
 }: TLUiContextualToolbarProps) => {
 	const editor = useEditor()
 	const toolbarRef = useRef<HTMLDivElement>(null)
+	const markEventAsHandled = useMarkEventAsHandled()
 
 	usePassThroughWheelEvents(toolbarRef as RefObject<HTMLDivElement>)
 	usePassThroughMouseOverEvents(toolbarRef as RefObject<HTMLDivElement>)

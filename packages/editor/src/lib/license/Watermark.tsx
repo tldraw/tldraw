@@ -43,6 +43,7 @@ const UnlicensedWatermark = memo(function UnlicensedWatermark({
 	isDebugMode: boolean
 	isMobile: boolean
 }) {
+	const editor = useEditor()
 	const events = useCanvasEvents()
 	const ref = useRef<HTMLDivElement>(null)
 	usePassThroughWheelEvents(ref)
@@ -64,7 +65,7 @@ const UnlicensedWatermark = memo(function UnlicensedWatermark({
 				draggable={false}
 				role="button"
 				onPointerDown={(e) => {
-					markEventAsHandled(e)
+					markEventAsHandled(editor, e)
 					preventDefault(e)
 				}}
 				title="Unlicensed - click to get a license"
@@ -127,7 +128,7 @@ const WatermarkInner = memo(function WatermarkInner({
 				draggable={false}
 				role="button"
 				onPointerDown={(e) => {
-					markEventAsHandled(e)
+					markEventAsHandled(editor, e)
 					preventDefault(e)
 				}}
 				title="made with tldraw"

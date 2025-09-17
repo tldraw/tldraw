@@ -23,7 +23,7 @@ export function SkipToMainContent() {
 
 	const handleNavigateToFirstShape = useCallback(
 		(e: MouseEvent | KeyboardEvent) => {
-			markEventAsHandled(e)
+			markEventAsHandled(editor, e)
 			button.current?.blur()
 			const shapes = editor.getCurrentPageShapesInReadingOrder()
 			if (!shapes.length) return

@@ -1,18 +1,28 @@
+import { TestEditor } from '../test/TestEditor'
 import { markEventAsHandled, wasEventAlreadyHandled } from './dom'
 
 describe('Event handling utilities', () => {
+	let editor: TestEditor
+
+	beforeEach(() => {
+		editor = new TestEditor()
+	})
+
+	afterEach(() => {
+		editor.dispose()
+	})
 	describe('markEventAsHandled and wasEventAlreadyHandled', () => {
 		it('should track events as handled', () => {
 			const mockEvent = new PointerEvent('pointerdown', { pointerId: 1 })
 
 			// Initially, event should not be marked as handled
-			expect(wasEventAlreadyHandled(mockEvent)).toBe(false)
+			expect(wasEventAlreadyHandled(editor, mockEvent)).toBe(false)
 
 			// Mark the event as handled
-			markEventAsHandled(mockEvent)
+			markEventAsHandled(editor, mockEvent)
 
 			// Now it should be marked as handled
-			expect(wasEventAlreadyHandled(mockEvent)).toBe(true)
+			expect(wasEventAlreadyHandled(editor, mockEvent)).toBe(true)
 		})
 
 		it('should work with React synthetic events', () => {
@@ -20,15 +30,15 @@ describe('Event handling utilities', () => {
 			const syntheticEvent = { nativeEvent }
 
 			// Initially not handled
-			expect(wasEventAlreadyHandled(syntheticEvent)).toBe(false)
-			expect(wasEventAlreadyHandled(nativeEvent)).toBe(false)
+			expect(wasEventAlreadyHandled(editor, syntheticEvent)).toBe(false)
+			expect(wasEventAlreadyHandled(editor, nativeEvent)).toBe(false)
 
 			// Mark synthetic event as handled
-			markEventAsHandled(syntheticEvent)
+			markEventAsHandled(editor, syntheticEvent)
 
 			// Both synthetic and native should be marked as handled
-			expect(wasEventAlreadyHandled(syntheticEvent)).toBe(true)
-			expect(wasEventAlreadyHandled(nativeEvent)).toBe(true)
+			expect(wasEventAlreadyHandled(editor, syntheticEvent)).toBe(true)
+			expect(wasEventAlreadyHandled(editor, nativeEvent)).toBe(true)
 		})
 
 		it('should handle multiple different events independently', () => {
@@ -37,18 +47,18 @@ describe('Event handling utilities', () => {
 			const event3 = new MouseEvent('click')
 
 			// Mark only event1 as handled
-			markEventAsHandled(event1)
+			markEventAsHandled(editor, event1)
 
-			expect(wasEventAlreadyHandled(event1)).toBe(true)
-			expect(wasEventAlreadyHandled(event2)).toBe(false)
-			expect(wasEventAlreadyHandled(event3)).toBe(false)
+			expect(wasEventAlreadyHandled(editor, event1)).toBe(true)
+			expect(wasEventAlreadyHandled(editor, event2)).toBe(false)
+			expect(wasEventAlreadyHandled(editor, event3)).toBe(false)
 
 			// Mark event2 as handled
-			markEventAsHandled(event2)
+			markEventAsHandled(editor, event2)
 
-			expect(wasEventAlreadyHandled(event1)).toBe(true)
-			expect(wasEventAlreadyHandled(event2)).toBe(true)
-			expect(wasEventAlreadyHandled(event3)).toBe(false)
+			expect(wasEventAlreadyHandled(editor, event1)).toBe(true)
+			expect(wasEventAlreadyHandled(editor, event2)).toBe(true)
+			expect(wasEventAlreadyHandled(editor, event3)).toBe(false)
 		})
 
 		it('should not interfere with event properties', () => {
@@ -59,7 +69,7 @@ describe('Event handling utilities', () => {
 			})
 
 			// Mark as handled
-			markEventAsHandled(event)
+			markEventAsHandled(editor, event)
 
 			// Event properties should remain unchanged
 			expect(event.pointerId).toBe(1)
@@ -78,17 +88,17 @@ describe('Event handling utilities', () => {
 				],
 			})
 
-			expect(wasEventAlreadyHandled(touchEvent)).toBe(false)
-			markEventAsHandled(touchEvent)
-			expect(wasEventAlreadyHandled(touchEvent)).toBe(true)
+			expect(wasEventAlreadyHandled(editor, touchEvent)).toBe(false)
+			markEventAsHandled(editor, touchEvent)
+			expect(wasEventAlreadyHandled(editor, touchEvent)).toBe(true)
 		})
 
 		it('should work with keyboard events', () => {
 			const keyEvent = new KeyboardEvent('keydown', { key: 'Enter' })
 
-			expect(wasEventAlreadyHandled(keyEvent)).toBe(false)
-			markEventAsHandled(keyEvent)
-			expect(wasEventAlreadyHandled(keyEvent)).toBe(true)
+			expect(wasEventAlreadyHandled(editor, keyEvent)).toBe(false)
+			markEventAsHandled(editor, keyEvent)
+			expect(wasEventAlreadyHandled(editor, keyEvent)).toBe(true)
 		})
 	})
 })

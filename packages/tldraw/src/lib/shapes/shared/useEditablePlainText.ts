@@ -129,7 +129,7 @@ export function useEditableTextCommon(shapeId: TLShapeId) {
 			// partially if we didn't dispatch/stop below.
 
 			editor.dispatch({
-				...getPointerInfo(e),
+				...getPointerInfo(editor, e),
 				type: 'pointer',
 				name: 'pointer_down',
 				target: 'shape',
@@ -157,7 +157,12 @@ export function useEditableTextCommon(shapeId: TLShapeId) {
 		[editor, shapeId]
 	)
 
-	const handleDoubleClick: (e: React.MouseEvent) => void = markEventAsHandled
+	const handleDoubleClick = useCallback(
+		(e: React.MouseEvent) => {
+			markEventAsHandled(editor, e)
+		},
+		[editor]
+	)
 
 	return {
 		handleFocus: noop,

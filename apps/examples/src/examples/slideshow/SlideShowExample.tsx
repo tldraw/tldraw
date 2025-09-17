@@ -4,8 +4,8 @@ import {
 	TLFrameShape,
 	Tldraw,
 	createShapeId,
-	markEventAsHandled,
 	transact,
+	useMarkEventAsHandled,
 	useValue,
 } from 'tldraw'
 import 'tldraw/tldraw.css'
@@ -134,6 +134,7 @@ function InsideSlidesContext() {
 
 function Slides() {
 	const slides = useSlides()
+	const markEventAsHandled = useMarkEventAsHandled()
 	const currentSlides = useValue('slides', () => slides.getCurrentSlides(), [slides])
 	const lowestIndex = currentSlides[0].index
 	const highestIndex = currentSlides[currentSlides.length - 1].index
@@ -221,6 +222,7 @@ function Slides() {
 
 function SlideControls() {
 	const slides = useSlides()
+	const markEventAsHandled = useMarkEventAsHandled()
 
 	return (
 		<>

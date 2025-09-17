@@ -452,6 +452,7 @@ export {
 	releasePointerCapture,
 	setPointerCapture,
 	stopEventPropagation,
+	useMarkEventAsHandled,
 	wasEventAlreadyHandled,
 } from './lib/utils/dom'
 export { EditorAtom } from './lib/utils/EditorAtom'

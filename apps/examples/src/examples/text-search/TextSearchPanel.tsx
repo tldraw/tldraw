@@ -63,7 +63,7 @@ export const TextSearchPanel = track(() => {
 	return (
 		<div
 			className="text-search-panel scroll-light"
-			onPointerDown={(e) => markEventAsHandled(e)}
+			onPointerDown={(e) => markEventAsHandled(editor, e)}
 			onKeyDown={keyDown}
 		>
 			<input

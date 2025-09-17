@@ -4,7 +4,7 @@ import {
 	RecordProps,
 	T,
 	TLBaseShape,
-	markEventAsHandled,
+	useMarkEventAsHandled,
 } from 'tldraw'
 
 // There's a guide at the bottom of this file!
@@ -45,6 +45,8 @@ export class EditableShapeUtil extends BaseBoxShapeUtil<IMyEditableShape> {
 	component(shape: IMyEditableShape) {
 		// [a]
 		const isEditing = this.editor.getEditingShapeId() === shape.id
+		// eslint-disable-next-line react-hooks/rules-of-hooks
+		const markEventAsHandled = useMarkEventAsHandled()
 
 		return (
 			<HTMLContainer

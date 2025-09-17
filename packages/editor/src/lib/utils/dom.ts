@@ -13,7 +13,10 @@ if the user clicks on a handle but the pointerup does not fire for
 whatever reason.
 */
 
-import React from 'react'
+import { WeakCache } from '@tldraw/utils'
+import React, { useCallback } from 'react'
+import { Editor } from '../editor/Editor'
+import { useEditor } from '../hooks/useEditor'
 import { debugFlags, pointerCaptureTrackingObject } from './debug-flags'
 
 /** @public */
@@ -88,7 +91,7 @@ export function releasePointerCapture(
  */
 export const stopEventPropagation = (e: any) => e.stopPropagation()
 
-const handledEvents = new WeakSet<Event>()
+const handledEvents = new WeakCache<Editor, WeakSet<Event>>()
 
 /**
  * In tldraw, events are sometimes handled by multiple components. For example, the shapes might
@@ -103,9 +106,9 @@ const handledEvents = new WeakSet<Event>()
  *
  * @public
  */
-export function markEventAsHandled(e: Event | { nativeEvent: Event }) {
+export function markEventAsHandled(editor: Editor, e: Event | { nativeEvent: Event }) {
 	const nativeEvent = 'nativeEvent' in e ? e.nativeEvent : e
-	handledEvents.add(nativeEvent)
+	handledEvents.get(editor, () => new WeakSet<Event>()).add(nativeEvent)
 }
 
 /**
@@ -113,9 +116,23 @@ export function markEventAsHandled(e: Event | { nativeEvent: Event }) {
  *
  * @public
  */
-export function wasEventAlreadyHandled(e: Event | { nativeEvent: Event }) {
+export function wasEventAlreadyHandled(editor: Editor, e: Event | { nativeEvent: Event }) {
 	const nativeEvent = 'nativeEvent' in e ? e.nativeEvent : e
-	return handledEvents.has(nativeEvent)
+	return handledEvents.get(editor, () => new WeakSet<Event>()).has(nativeEvent)
+}
+
+/**
+ * Create a {@link markEventAsHandled} function that is scoped to a specific editor.
+ * @public
+ */
+export function useMarkEventAsHandled() {
+	const editor = useEditor()
+	return useCallback(
+		(event: Event | { nativeEvent: Event }) => {
+			markEventAsHandled(editor, event)
+		},
+		[editor]
+	)
 }
 
 /** @internal */

@@ -763,7 +763,7 @@ export function useNativeClipboardEvents() {
 
 		const paste = (e: ClipboardEvent) => {
 			if (disablingMiddleClickPaste) {
-				markEventAsHandled(e)
+				markEventAsHandled(editor, e)
 				return
 			}
 

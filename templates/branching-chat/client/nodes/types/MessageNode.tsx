@@ -1,12 +1,12 @@
 import { ModelMessage } from 'ai'
 import { useCallback } from 'react'
 import {
-	markEventAsHandled,
 	T,
 	TldrawUiButton,
 	TldrawUiButtonIcon,
 	TldrawUiInput,
 	useEditor,
+	useMarkEventAsHandled,
 } from 'tldraw'
 import { HandleIcon } from '../../components/icons/HandleIcon'
 import { SendIcon } from '../../components/icons/SendIcon'
@@ -77,6 +77,7 @@ export const MessageNode: NodeDefinition<MessageNode> = {
 
 	Component: ({ node, shape }) => {
 		const editor = useEditor()
+		const markEventAsHandled = useMarkEventAsHandled()
 
 		const handleSend = useCallback(() => {
 			// 1. gather up parents and create message history

@@ -15,8 +15,8 @@ import {
 	VecModel,
 	clamp,
 	createShapeId,
-	markEventAsHandled,
 	useEditor,
+	useMarkEventAsHandled,
 	useValue,
 	vecModelValidator,
 } from 'tldraw'
@@ -338,6 +338,7 @@ function ConnectionCenterHandle({
 	center: Vec
 }) {
 	const editor = useEditor()
+	const markEventAsHandled = useMarkEventAsHandled()
 
 	// Only show the center handle when zoomed in and the connection is fully bound
 	const shouldShowCenterHandle = useValue(

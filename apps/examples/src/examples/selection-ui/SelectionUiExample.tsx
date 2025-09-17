@@ -3,8 +3,8 @@ import {
 	Tldraw,
 	Vec,
 	intersectLineSegmentPolygon,
-	markEventAsHandled,
 	useEditor,
+	useMarkEventAsHandled,
 	useValue,
 } from 'tldraw'
 import 'tldraw/tldraw.css'
@@ -32,6 +32,8 @@ const components: TLComponents = {
 			},
 			[editor]
 		)
+
+		const markEventAsHandled = useMarkEventAsHandled()
 
 		if (!info) return
 
@@ -85,6 +87,7 @@ function DuplicateInDirectionButton({
 	rotation: number
 }) {
 	const editor = useEditor()
+	const markEventAsHandled = useMarkEventAsHandled()
 
 	return (
 		<button

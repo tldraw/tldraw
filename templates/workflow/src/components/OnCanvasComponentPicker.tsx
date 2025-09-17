@@ -1,7 +1,6 @@
 import { Dialog, VisuallyHidden } from 'radix-ui'
 import { useCallback, useMemo, useState } from 'react'
 import {
-	markEventAsHandled,
 	TldrawUiButton,
 	TldrawUiButtonIcon,
 	TldrawUiButtonLabel,
@@ -9,6 +8,7 @@ import {
 	TldrawUiMenuGroup,
 	TLShapeId,
 	useEditor,
+	useMarkEventAsHandled,
 	usePassThroughWheelEvents,
 	useQuickReactor,
 	useValue,
@@ -145,6 +145,7 @@ function OnCanvasComponentPickerItem<T extends NodeType>({
 	onClose: () => void
 }) {
 	const editor = useEditor()
+	const markEventAsHandled = useMarkEventAsHandled()
 
 	return (
 		<TldrawUiButton

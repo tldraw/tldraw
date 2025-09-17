@@ -1,5 +1,5 @@
 import { useState } from 'react'
-import { markEventAsHandled, Tldraw, TLEditorComponents, track, useEditor } from 'tldraw'
+import { Tldraw, TLEditorComponents, track, useEditor, useMarkEventAsHandled } from 'tldraw'
 import 'tldraw/tldraw.css'
 
 // There's a guide at the bottom of this file!
@@ -7,6 +7,7 @@ import 'tldraw/tldraw.css'
 // [1]
 function MyComponent() {
 	const [state, setState] = useState(0)
+	const markEventAsHandled = useMarkEventAsHandled()
 
 	return (
 		<>

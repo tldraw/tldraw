@@ -21,7 +21,7 @@ import { Mat } from '../../primitives/Mat'
 import { Vec } from '../../primitives/Vec'
 import { toDomPrecision } from '../../primitives/utils'
 import { debugFlags } from '../../utils/debug-flags'
-import { markEventAsHandled, setStyleProperty } from '../../utils/dom'
+import { setStyleProperty, useMarkEventAsHandled } from '../../utils/dom'
 import { GeometryDebuggingView } from '../GeometryDebuggingView'
 import { LiveCollaborators } from '../LiveCollaborators'
 import { MenuClickCapture } from '../MenuClickCapture'
@@ -35,6 +35,7 @@ export interface TLCanvasComponentProps {
 /** @public @react */
 export function DefaultCanvas({ className }: TLCanvasComponentProps) {
 	const editor = useEditor()
+	const markEventAsHandled = useMarkEventAsHandled()
 
 	const { SelectionBackground, Background, SvgDefs, ShapeIndicators } = useEditorComponents()
 

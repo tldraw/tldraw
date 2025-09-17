@@ -47,11 +47,17 @@ export class CounterShapeUtil extends BaseBoxShapeUtil<CounterShape> {
 					gap: 8,
 				}}
 			>
-				<button onClick={(e) => onClick(e, -1)} onPointerDown={markEventAsHandled}>
+				<button
+					onClick={(e) => onClick(e, -1)}
+					onPointerDown={(e) => markEventAsHandled(this.editor, e)}
+				>
 					-
 				</button>
 				<span>{shape.props.count}</span>
-				<button onClick={(e) => onClick(e, 1)} onPointerDown={markEventAsHandled}>
+				<button
+					onClick={(e) => onClick(e, 1)}
+					onPointerDown={(e) => markEventAsHandled(this.editor, e)}
+				>
 					+
 				</button>
 			</HTMLContainer>

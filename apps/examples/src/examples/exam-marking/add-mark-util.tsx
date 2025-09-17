@@ -6,7 +6,7 @@ import {
 	ShapeUtil,
 	T,
 	TLBaseShape,
-	markEventAsHandled,
+	useMarkEventAsHandled,
 } from 'tldraw'
 
 export const EXAM_MARK_WIDTH = 80
@@ -78,6 +78,9 @@ export class ExamMarkUtil extends ShapeUtil<IExamMarkShape> {
 				})
 			}
 		}
+
+		// eslint-disable-next-line react-hooks/rules-of-hooks
+		const markEventAsHandled = useMarkEventAsHandled()
 
 		return (
 			<HTMLContainer id={shape.id}>

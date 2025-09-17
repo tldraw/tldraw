@@ -134,7 +134,7 @@ function BookmarkShapeComponent({ shape }: { shape: TLBookmarkShape }) {
 
 	const markAsHandledOnShiftKey = useCallback<PointerEventHandler>(
 		(e) => {
-			if (!editor.inputs.shiftKey) markEventAsHandled(e)
+			if (!editor.inputs.shiftKey) markEventAsHandled(editor, e)
 		},
 		[editor]
 	)

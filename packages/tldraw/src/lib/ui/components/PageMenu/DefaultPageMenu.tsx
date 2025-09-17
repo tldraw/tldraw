@@ -451,7 +451,7 @@ export const DefaultPageMenu = memo(function DefaultPageMenu() {
 											if (e.key === 'Enter') {
 												if (page.id === currentPage.id) {
 													toggleEditing()
-													markEventAsHandled(e)
+													markEventAsHandled(editor, e)
 												}
 											}
 										}}

@@ -11,9 +11,9 @@ import {
 	TLTextOptions,
 	Tldraw,
 	defaultAddFontsFromNode,
-	markEventAsHandled,
 	tipTapDefaultExtensions,
 	useEditor,
+	useMarkEventAsHandled,
 	useValue,
 } from 'tldraw'
 import 'tldraw/tldraw.css'
@@ -63,6 +63,8 @@ const components: TLComponents = {
 				setTextEditorState(null)
 			}
 		}, [textEditor])
+
+		const markEventAsHandled = useMarkEventAsHandled()
 
 		if (!textEditor) return null
 
