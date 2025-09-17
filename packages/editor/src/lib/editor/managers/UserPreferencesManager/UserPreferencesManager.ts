@@ -50,7 +50,7 @@ export class UserPreferencesManager {
 			isWrapMode: this.getIsWrapMode(),
 			isDynamicResizeMode: this.getIsDynamicResizeMode(),
 			showUiLabels: this.getShowUiLabels(),
-			isTrackpad: this.getIsTrackpad(),
+			inputMode: this.getInputMode(),
 		}
 	}
 
@@ -126,7 +126,7 @@ export class UserPreferencesManager {
 		return this.user.userPreferences.get().showUiLabels ?? defaultUserPreferences.showUiLabels
 	}
 
-	@computed getIsTrackpad() {
-		return this.user.userPreferences.get().isTrackpad ?? defaultUserPreferences.isTrackpad
+	@computed getInputMode() {
+		return this.user.userPreferences.get().inputMode ?? defaultUserPreferences.inputMode
 	}
 }

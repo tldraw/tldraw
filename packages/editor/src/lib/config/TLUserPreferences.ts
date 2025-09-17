@@ -25,7 +25,7 @@ export interface TLUserPreferences {
 	isDynamicSizeMode?: boolean | null
 	isPasteAtCursorMode?: boolean | null
 	showUiLabels?: boolean | null
-	isTrackpad?: boolean | null
+	inputMode?: 'trackpad' | 'mouse' | null
 }
 
 interface UserDataSnapshot {
@@ -55,7 +55,7 @@ export const userTypeValidator: T.Validator<TLUserPreferences> = T.object<TLUser
 	isDynamicSizeMode: T.boolean.nullable().optional(),
 	isPasteAtCursorMode: T.boolean.nullable().optional(),
 	showUiLabels: T.boolean.nullable().optional(),
-	isTrackpad: T.boolean.nullable().optional(),
+	inputMode: T.literalEnum('trackpad', 'mouse').nullable().optional(),
 })
 
 const Versions = {
@@ -165,7 +165,7 @@ export const defaultUserPreferences = Object.freeze({
 	isPasteAtCursorMode: false,
 	showUiLabels: false,
 	colorScheme: 'light',
-	isTrackpad: null,
+	inputMode: null,
 }) satisfies Readonly<Omit<TLUserPreferences, 'id'>>
 
 /** @public */

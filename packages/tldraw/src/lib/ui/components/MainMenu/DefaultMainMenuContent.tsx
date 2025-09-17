@@ -2,6 +2,7 @@ import { useCanRedo, useCanUndo } from '../../hooks/menu-hooks'
 import { AccessibilityMenu } from '../AccessibilityMenu'
 import { ColorSchemeMenu } from '../ColorSchemeMenu'
 import { KeyboardShortcutsMenuItem } from '../HelpMenu/DefaultHelpMenuContent'
+import { InputModeMenu } from '../InputModeMenu'
 import { LanguageMenu } from '../LanguageMenu'
 import {
 	ClipboardMenuGroup,
@@ -32,7 +33,6 @@ import {
 	ZoomToFitMenuItem,
 	ZoomToSelectionMenuItem,
 } from '../menu-items'
-import { PointerPeripheralMenu } from '../PointerPeripheralMenu'
 import { TldrawUiMenuActionItem } from '../primitives/menus/TldrawUiMenuActionItem'
 import { TldrawUiMenuGroup } from '../primitives/menus/TldrawUiMenuGroup'
 import { TldrawUiMenuSubmenu } from '../primitives/menus/TldrawUiMenuSubmenu'
@@ -165,8 +165,8 @@ export function PreferencesGroup() {
 					<TogglePasteAtCursorItem />
 					<ToggleDebugModeItem />
 				</TldrawUiMenuGroup>
-				<TldrawUiMenuGroup id="mouse-trackpad">
-					<PointerPeripheralMenu />
+				<TldrawUiMenuGroup id="input-mode">
+					<InputModeMenu />
 				</TldrawUiMenuGroup>
 				<TldrawUiMenuGroup id="color-scheme">
 					<ColorSchemeMenu />

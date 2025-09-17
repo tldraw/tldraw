@@ -30,7 +30,7 @@ describe('UserPreferencesManager', () => {
 		isWrapMode: false,
 		isDynamicSizeMode: false,
 		isPasteAtCursorMode: false,
-		isTrackpad: null,
+		inputMode: null,
 		...overrides,
 	})
 
@@ -234,7 +234,7 @@ describe('UserPreferencesManager', () => {
 				isDarkMode: false, // light mode
 				isWrapMode: mockUserPreferences.isWrapMode,
 				isDynamicResizeMode: mockUserPreferences.isDynamicSizeMode,
-				isTrackpad: null,
+				inputMode: mockUserPreferences.inputMode,
 			})
 		})
 
@@ -456,19 +456,19 @@ describe('UserPreferencesManager', () => {
 			})
 		})
 
-		describe('getIsTrackpad', () => {
-			it('should return user trackpad setting', () => {
-				expect(userPreferencesManager.getIsTrackpad()).toBe(null)
+		describe('getInputMode', () => {
+			it('should return user input mode setting', () => {
+				expect(userPreferencesManager.getInputMode()).toBe(null)
 			})
 
-			it('should return false if isTrackpad is false', () => {
-				userPreferencesAtom.set({ ...mockUserPreferences, isTrackpad: false })
-				expect(userPreferencesManager.getIsTrackpad()).toBe(false)
+			it('should return trackpad if input mode is trackpad', () => {
+				userPreferencesAtom.set({ ...mockUserPreferences, inputMode: 'trackpad' })
+				expect(userPreferencesManager.getInputMode()).toBe('trackpad')
 			})
 
-			it('should return true if isTrackpad is true', () => {
-				userPreferencesAtom.set({ ...mockUserPreferences, isTrackpad: true })
-				expect(userPreferencesManager.getIsTrackpad()).toBe(true)
+			it('should return mouse if input mode is mouse', () => {
+				userPreferencesAtom.set({ ...mockUserPreferences, inputMode: 'mouse' })
+				expect(userPreferencesManager.getInputMode()).toBe('mouse')
 			})
 		})
 	})

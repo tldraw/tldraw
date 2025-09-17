@@ -10336,11 +10336,11 @@ export class Editor extends EventEmitter<TLEventMap> {
 
 				const { panSpeed, zoomSpeed } = cameraOptions
 				let wheelBehavior = cameraOptions.wheelBehavior
-				const isTrackpad = this.user.getUserPreferences().isTrackpad
+				const inputMode = this.user.getUserPreferences().inputMode
 
-				// If the user has set their pointer peripheral preference, then use that to determine the wheel behavior
-				if (isTrackpad !== null) {
-					wheelBehavior = isTrackpad ? 'pan' : 'zoom'
+				// If the user has set their input mode preference, then use that to determine the wheel behavior
+				if (inputMode !== null) {
+					wheelBehavior = inputMode === 'trackpad' ? 'pan' : 'zoom'
 				}
 
 				if (wheelBehavior !== 'none') {
