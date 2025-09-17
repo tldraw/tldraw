@@ -4,7 +4,7 @@ on:
   workflow_dispatch:
     inputs:
       from:
-        description: 'From tag or ref'
+        description: 'From tag or ref. Usually the previous release tag.'
         required: true
         type: string
       to:
@@ -18,8 +18,8 @@ defaults:
     shell: bash
 
 jobs:
-  get_changelog:
-    name: 'Extract draft changelog'
+  deploy:
+    name: 'Get draft changlog'
     timeout-minutes: 60
     runs-on: ubuntu-latest
 
