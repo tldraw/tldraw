@@ -37,16 +37,6 @@ License keys control functionality and remove watermarks in production environme
 ### Basic integration
 
 ```tsx
-import { Tldraw } from 'tldraw'
-;<Tldraw
-	licenseKey="your-license-key-here"
-	// ... other props
-/>
-```
-
-### Environment variables
-
-```tsx
 <Tldraw
 	licenseKey={process.env.TLDRAW_LICENSE_KEY}
 	// ... other props
@@ -62,13 +52,6 @@ import { Tldraw } from 'tldraw'
 
 ## License key mechanics
 
-### What license keys control
-
-License keys encode several pieces of information:
-
-- **Validity period** - Expiration date for the license.
-- **Feature access** - Watermark display and functionality limits.
-
 ### Technical enforcement
 
 The SDK includes built-in validation that:
@@ -76,6 +59,7 @@ The SDK includes built-in validation that:
 - Verifies license key authenticity and expiration.
 - Detects whether you're running locally or in a production environment.
 - Based on license type, enforces watermark display.
+- If applicable, checks that it is being used on a valid domain.
 
 ### Validation process
 
@@ -94,7 +78,7 @@ Validation happens client-side during SDK initialization:
 The SDK automatically detects your deployment environment:
 
 - **Development environment**: Single computer without network deployment.
-- **Production environment**: Servers, cloud platforms, web applications, or network-accessible deployments.
+- **Production environment**: Servers, cloud platforms, or web applications.
 
 ### Watermark requirements
 
