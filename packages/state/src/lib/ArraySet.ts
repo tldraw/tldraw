@@ -42,12 +42,6 @@ export class ArraySet<T> {
 	}
 
 	/**
-	 * Add an item to the ArraySet if it is not already present.
-	 *
-	 * @param elem - The element to add.
-	 */
-
-	/**
 	 * Add an element to the ArraySet if it is not already present.
 	 *
 	 * @param elem - The element to add to the set
@@ -101,11 +95,6 @@ export class ArraySet<T> {
 	}
 
 	/**
-	 * Remove an item from the ArraySet if it is present.
-	 *
-	 * @param elem - The element to remove
-	 */
-	/**
 	 * Remove an element from the ArraySet if it is present.
 	 *
 	 * @param elem - The element to remove from the set
@@ -155,11 +144,6 @@ export class ArraySet<T> {
 		throw new Error('no set or array')
 	}
 
-	/**
-	 * Run a callback for each element in the ArraySet.
-	 *
-	 * @param visitor - The callback to run for each element.
-	 */
 	/**
 	 * Execute a callback function for each element in the ArraySet.
 	 *

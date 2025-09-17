@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest'
-import { isWebpAnimated } from './webp'
+import { isWebp, isWebpAnimated } from './webp'
 
 // Helper function to create a buffer with WebP signature
 function createWebpBuffer(size: number, animated = false): ArrayBuffer {
@@ -46,20 +46,6 @@ function createWebpBuffer(size: number, animated = false): ArrayBuffer {
 
 	return buffer
 }
-
-// Access internal isWebp function for comprehensive testing
-// We need to read the source file and extract the function
-function getIsWebpFunction(): (view: Uint8Array) => boolean {
-	// This is a test-only implementation based on the source
-	return function isWebp(view: Uint8Array) {
-		if (!view || view.length < 12) {
-			return false
-		}
-		return view[8] === 87 && view[9] === 69 && view[10] === 66 && view[11] === 80
-	}
-}
-
-const isWebp = getIsWebpFunction()
 
 describe('isWebp (internal function)', () => {
 	it('should return true for valid WebP signature', () => {

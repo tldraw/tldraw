@@ -6,7 +6,7 @@ import {
 	StoreSnapshot,
 	StoreValidationFailure,
 } from '@tldraw/store'
-import { IndexKey, JsonObject, annotateError, structuredClone } from '@tldraw/utils'
+import { IndexKey, JsonObject, annotateError, sortByIndex, structuredClone } from '@tldraw/utils'
 import { TLAsset, TLAssetId } from './records/TLAsset'
 import { CameraRecordType, TLCameraId } from './records/TLCamera'
 import { DocumentRecordType, TLDOCUMENT_ID } from './records/TLDocument'
@@ -16,16 +16,14 @@ import { InstancePageStateRecordType, TLInstancePageStateId } from './records/TL
 import { PointerRecordType, TLPOINTER_ID } from './records/TLPointer'
 import { TLRecord } from './records/TLRecord'
 
-function sortByIndex<T extends { index: string }>(a: T, b: T) {
-	if (a.index < b.index) {
-		return -1
-	} else if (a.index > b.index) {
-		return 1
-	}
-	return 0
-}
-
-function redactRecordForErrorReporting(record: any) {
+/**
+ * Redacts the source of an asset record for error reporting.
+ *
+ * @param record - The asset record to redact
+ * @returns The redacted record
+ * @internal
+ */
+export function redactRecordForErrorReporting(record: any) {
 	if (record.typeName === 'asset') {
 		if ('src' in record) {
 			record.src = '<redacted>'

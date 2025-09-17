@@ -688,5 +688,5 @@ export function computed() {
  * @public
  */
 export function isComputed(value: any): value is Computed<any> {
-	return value && value instanceof _Computed
+	return !!(value && value instanceof _Computed)
 }

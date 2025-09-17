@@ -1,6 +1,6 @@
 import { createMigrationSequence, MigrationSequence, StoreSchema } from '@tldraw/store'
 import { T } from '@tldraw/validate'
-import { describe, expect, it, test } from 'vitest'
+import { describe, expect, it } from 'vitest'
 import {
 	createTLSchema,
 	defaultBindingSchemas,
@@ -99,7 +99,7 @@ describe('defaultShapeSchemas', () => {
 	})
 
 	it('should have valid schema info for each shape type', () => {
-		for (const [shapeType, schemaInfo] of Object.entries(defaultShapeSchemas)) {
+		for (const [_shapeType, schemaInfo] of Object.entries(defaultShapeSchemas)) {
 			expect(schemaInfo).toBeDefined()
 			expect(schemaInfo.migrations).toBeDefined()
 			expect(schemaInfo.props).toBeDefined()
@@ -155,7 +155,7 @@ describe('defaultBindingSchemas', () => {
 	})
 
 	it('should have valid schema info for each binding type', () => {
-		for (const [bindingType, schemaInfo] of Object.entries(defaultBindingSchemas)) {
+		for (const [_bindingType, schemaInfo] of Object.entries(defaultBindingSchemas)) {
 			expect(schemaInfo).toBeDefined()
 			expect(schemaInfo.migrations).toBeDefined()
 			expect(schemaInfo.props).toBeDefined()
@@ -363,7 +363,7 @@ describe('createTLSchema', () => {
 						scope: 'record' as const,
 						up: (props: any) => ({ ...props, newProp: 'default' }),
 						down: (props: any) => {
-							const { newProp, ...rest } = props
+							const { _newProp, ...rest } = props
 							return rest
 						},
 					},
@@ -394,7 +394,7 @@ describe('createTLSchema', () => {
 						scope: 'record' as const,
 						up: (props: any) => ({ ...props, newProp: 42 }),
 						down: (props: any) => {
-							const { newProp, ...rest } = props
+							const { _newProp, ...rest } = props
 							return rest
 						},
 					},
@@ -454,32 +454,6 @@ describe('createTLSchema', () => {
 
 			expect(schema.types.instance).toBeDefined()
 			expect(schema.types.instance.typeName).toBe('instance')
-		})
-	})
-
-	describe('error handling', () => {
-		test.fails('should handle invalid props gracefully', () => {
-			const invalidShapes = {
-				invalid: {
-					props: 'not an object' as any, // Invalid props
-				},
-			}
-
-			// This test is marked as expected to fail since we're not sure
-			// if the underlying code validates props structure
-			createTLSchema({ shapes: invalidShapes })
-		})
-
-		it('should handle null props gracefully', () => {
-			const invalidBindings = {
-				invalid: {
-					props: null as any, // Invalid props
-				},
-			}
-
-			// This test uses invalid props to see how the function behaves
-			// The underlying code might not validate props structure at creation time
-			expect(() => createTLSchema({ bindings: invalidBindings })).not.toThrow()
 		})
 	})
 

@@ -3,7 +3,23 @@
  * Copyright (c) Sindre Sorhus <sindresorhus@gmail.com> (https://sindresorhus.com)
  */
 
-function isWebp(view: Uint8Array) {
+/**
+ * Determines whether a byte array represents a WebP image by checking the WebP file signature.
+ *
+ * @param view - The Uint8Array containing the potential WebP image data
+ * @returns True if the byte array is a valid WebP image, false otherwise
+ * @example
+ * ```ts
+ * // Check if file data is WebP format
+ * const file = new File([...], 'image.webp', { type: 'image/webp' })
+ * const buffer = await file.arrayBuffer()
+ * const view = new Uint8Array(buffer)
+ * const isWebPImage = isWebp(view)
+ * console.log(isWebPImage ? 'Valid WebP' : 'Not WebP')
+ * ```
+ * @internal
+ */
+export function isWebp(view: Uint8Array) {
 	if (!view || view.length < 12) {
 		return false
 	}

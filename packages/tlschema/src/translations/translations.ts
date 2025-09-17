@@ -68,7 +68,10 @@ export type TLLanguage = (typeof LANGUAGES)[number]
  * @public
  */
 export function getDefaultTranslationLocale(): TLLanguage['locale'] {
-	const locales = typeof window !== 'undefined' ? (window.navigator.languages ?? ['en']) : ['en']
+	const locales =
+		typeof window !== 'undefined' && window.navigator
+			? (window.navigator.languages ?? ['en'])
+			: ['en']
 	return _getDefaultTranslationLocale(locales)
 }
 

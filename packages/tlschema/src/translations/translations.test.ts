@@ -12,11 +12,6 @@ interface DefaultLanguageTest {
 	output: string
 }
 
-// Mock window.navigator for browser environment tests
-const mockNavigator = {
-	languages: ['en-US'],
-}
-
 const originalWindow = global.window
 
 describe('translations.ts', () => {
@@ -96,13 +91,12 @@ describe('translations.ts', () => {
 			expect(locale).toBe('en')
 		})
 
-		it.fails('should handle undefined navigator gracefully', () => {
+		it('should handle undefined navigator gracefully', () => {
 			// Mock browser environment without navigator
 			global.window = {
 				navigator: undefined,
 			} as any
 
-			// This test currently fails - the implementation should handle undefined navigator
 			const locale = getDefaultTranslationLocale()
 			expect(locale).toBe('en')
 		})

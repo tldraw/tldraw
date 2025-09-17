@@ -229,8 +229,8 @@ describe('types', () => {
 				sourceAtom.set(2)
 				computedSignal.get() // Force recomputation
 
-				// Epoch may change due to recomputation, but this tests the concept
-				expect(typeof computedSignal.lastChangedEpoch).toBe('number')
+				// The epoch should NOT change because the computed value is the same
+				expect(computedSignal.lastChangedEpoch).toBe(initialEpoch)
 			})
 		})
 
@@ -361,7 +361,7 @@ describe('types', () => {
 			childComputed.get()
 
 			// Verify that the computed signal has established parent dependencies
-			expect((childComputed as any).parents).toContain(parentAtom)
+			expect(childComputed.parents).toContain(parentAtom)
 			// Parent-child relationship exists in the dependency graph structure
 			expect(parentAtom.children).toBeInstanceOf(ArraySet)
 		})
@@ -374,7 +374,7 @@ describe('types', () => {
 			multiDependentComputed.get()
 
 			// Verify that the computed signal tracks both atoms as parents
-			const computedParents = (multiDependentComputed as any).parents
+			const computedParents = multiDependentComputed.parents
 			expect(computedParents).toContain(atom1)
 			expect(computedParents).toContain(atom2)
 			// Both atoms have children ArraySets that could contain dependencies
@@ -404,7 +404,7 @@ describe('types', () => {
 
 			// The dependency graph should update appropriately
 			// Verify the computed tracks the conditional atom and the current branch
-			const parents = (conditionalComputed as any).parents
+			const parents = conditionalComputed.parents
 			expect(parents).toContain(atom1) // Still needed for condition
 			expect(parents).toContain(atom3) // Now depends on atom3
 		})

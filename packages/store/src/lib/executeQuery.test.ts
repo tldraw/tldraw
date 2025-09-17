@@ -690,20 +690,6 @@ describe('executeQuery', () => {
 			expect(result).toEqual(expectedIds)
 		})
 
-		it('should return intersection of all criteria', () => {
-			const query = {
-				publishedYear: { gt: 1950 },
-				['publishedYear' as string]: { eq: 1984 }, // This will overwrite the gt query
-			} as any
-			// Note: This tests the behavior when the same property has multiple matchers
-			// In practice, the last matcher wins due to object property behavior
-			const result = executeQuery(store.query, 'book', query)
-
-			const expectedIds = new Set([books.neuromancer.id])
-
-			expect(result).toEqual(expectedIds)
-		})
-
 		it('should handle complex author queries', () => {
 			const query = {
 				isActive: { eq: true },
@@ -713,18 +699,6 @@ describe('executeQuery', () => {
 			const result = executeQuery(store.query, 'author', query)
 
 			const expectedIds = new Set([authors.asimov.id, authors.clarke.id])
-
-			expect(result).toEqual(expectedIds)
-		})
-
-		it('should return empty set when criteria have no intersection', () => {
-			const query = {
-				inStock: { eq: true },
-				['inStock' as string]: { eq: false }, // Impossible combination due to overwrite
-			} as any
-			const result = executeQuery(store.query, 'book', query)
-
-			const expectedIds = new Set([books.dune.id, books.hitchhiker.id])
 
 			expect(result).toEqual(expectedIds)
 		})

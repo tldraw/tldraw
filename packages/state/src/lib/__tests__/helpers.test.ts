@@ -123,12 +123,14 @@ describe('helpers', () => {
 				__debug_ancestor_epochs__: null,
 			}
 
-			// Mock the children.remove to return false (not found)
-			const removeSpy = vi.spyOn(parent.children, 'remove').mockReturnValue(false)
+			// Verify child is not in parent's children initially
+			expect(parent.children.size()).toBe(0)
+			expect(Array.from(parent.children)).not.toContain(child)
 
 			detach(parent, child)
 
-			expect(removeSpy).toHaveBeenCalledWith(child)
+			// Should still have no children
+			expect(parent.children.size()).toBe(0)
 		})
 
 		it('removes child from parent children when attached', () => {
@@ -145,11 +147,14 @@ describe('helpers', () => {
 
 			// First attach the child to establish the relationship
 			parent.children.add(child)
+			expect(parent.children.size()).toBe(1)
+			expect(Array.from(parent.children)).toContain(child)
 
-			const removeSpy = vi.spyOn(parent.children, 'remove')
 			detach(parent, child)
 
-			expect(removeSpy).toHaveBeenCalledWith(child)
+			// Child should be removed
+			expect(parent.children.size()).toBe(0)
+			expect(Array.from(parent.children)).not.toContain(child)
 		})
 
 		it('recursively detaches parent from its parents when parent has no children left and is a child', () => {
@@ -234,12 +239,16 @@ describe('helpers', () => {
 				__debug_ancestor_epochs__: null,
 			}
 
-			// Mock the children.add to return false (already exists)
-			const addSpy = vi.spyOn(parent.children, 'add').mockReturnValue(false)
+			// First attach the child
+			parent.children.add(child)
+			expect(parent.children.size()).toBe(1)
 
+			// Try to attach again - should not change anything
 			attach(parent, child)
 
-			expect(addSpy).toHaveBeenCalledWith(child)
+			// Should still have exactly one child
+			expect(parent.children.size()).toBe(1)
+			expect(Array.from(parent.children)).toContain(child)
 		})
 
 		it('adds child to parent children when not already attached', () => {
@@ -254,10 +263,14 @@ describe('helpers', () => {
 				__debug_ancestor_epochs__: null,
 			}
 
-			const addSpy = vi.spyOn(parent.children, 'add')
+			// Initially no children
+			expect(parent.children.size()).toBe(0)
+
 			attach(parent, child)
 
-			expect(addSpy).toHaveBeenCalledWith(child)
+			// Child should be added
+			expect(parent.children.size()).toBe(1)
+			expect(Array.from(parent.children)).toContain(child)
 		})
 
 		it('recursively attaches parent to its parents when parent is a child', () => {
@@ -306,6 +319,90 @@ describe('helpers', () => {
 
 			// Only the direct attachment should happen, no recursive behavior
 			expect(parent.children.isEmpty).toBe(false)
+		})
+
+		it('handles multiple attach/detach operations correctly', () => {
+			const parent = atom('parent', 1)
+			const child1: Child = {
+				parents: [],
+				parentEpochs: [],
+				parentSet: new ArraySet(),
+				name: 'child1',
+				lastTraversedEpoch: 0,
+				isActivelyListening: true,
+				__debug_ancestor_epochs__: null,
+			}
+			const child2: Child = {
+				parents: [],
+				parentEpochs: [],
+				parentSet: new ArraySet(),
+				name: 'child2',
+				lastTraversedEpoch: 0,
+				isActivelyListening: true,
+				__debug_ancestor_epochs__: null,
+			}
+
+			// Initially empty
+			expect(parent.children.size()).toBe(0)
+
+			// Attach first child
+			attach(parent, child1)
+			expect(parent.children.size()).toBe(1)
+			expect(Array.from(parent.children)).toContain(child1)
+
+			// Attach second child
+			attach(parent, child2)
+			expect(parent.children.size()).toBe(2)
+			expect(Array.from(parent.children)).toContain(child1)
+			expect(Array.from(parent.children)).toContain(child2)
+
+			// Detach first child
+			detach(parent, child1)
+			expect(parent.children.size()).toBe(1)
+			expect(Array.from(parent.children)).not.toContain(child1)
+			expect(Array.from(parent.children)).toContain(child2)
+
+			// Detach second child
+			detach(parent, child2)
+			expect(parent.children.size()).toBe(0)
+			expect(parent.children.isEmpty).toBe(true)
+		})
+
+		it('verifies ArraySet behavior with real attach/detach operations', () => {
+			const parent = atom('parent', 1)
+			const children: Child[] = []
+
+			// Create multiple children
+			for (let i = 0; i < 5; i++) {
+				children.push({
+					parents: [],
+					parentEpochs: [],
+					parentSet: new ArraySet(),
+					name: `child-${i}`,
+					lastTraversedEpoch: 0,
+					isActivelyListening: true,
+					__debug_ancestor_epochs__: null,
+				})
+			}
+
+			// Attach all children
+			children.forEach((child) => attach(parent, child))
+			expect(parent.children.size()).toBe(5)
+
+			// Verify all children are present
+			children.forEach((child) => {
+				expect(Array.from(parent.children)).toContain(child)
+			})
+
+			// Detach children in reverse order
+			for (let i = children.length - 1; i >= 0; i--) {
+				detach(parent, children[i])
+				expect(parent.children.size()).toBe(i)
+				expect(Array.from(parent.children)).not.toContain(children[i])
+			}
+
+			// Should be empty now
+			expect(parent.children.isEmpty).toBe(true)
 		})
 	})
 

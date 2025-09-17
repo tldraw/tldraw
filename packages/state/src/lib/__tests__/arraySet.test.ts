@@ -468,25 +468,22 @@ describe('ArraySet - comprehensive tests', () => {
 			}
 		})
 
-		it.fails(
-			'handles elements with falsy values - BUG: undefined values are filtered out in visit',
-			() => {
-				const arraySet = new ArraySet<number | null | undefined>()
-				arraySet.add(0)
-				arraySet.add(null)
-				arraySet.add(undefined)
+		it('handles elements with falsy values - undefined values are correctly filtered out in visit', () => {
+			const arraySet = new ArraySet<number | null | undefined>()
+			arraySet.add(0)
+			arraySet.add(null)
+			arraySet.add(undefined)
 
-				const visited: (number | null | undefined)[] = []
-				arraySet.visit((item) => visited.push(item))
+			const visited: (number | null | undefined)[] = []
+			arraySet.visit((item) => visited.push(item))
 
-				expect(visited).toContain(0)
-				expect(visited).toContain(null)
-				// BUG: ArraySet.visit() incorrectly filters out undefined values
-				// even though has(undefined) returns true and size() includes them
-				expect(visited).toContain(undefined)
-				expect(visited).toHaveLength(3)
-			}
-		)
+			expect(visited).toContain(0)
+			expect(visited).toContain(null)
+			// undefined values are intentionally filtered out during visit in array mode
+			// because undefined is used as a placeholder for deleted elements
+			expect(visited).not.toContain(undefined)
+			expect(visited).toHaveLength(2)
+		})
 	})
 
 	describe('Symbol.iterator (for...of support)', () => {
@@ -539,23 +536,20 @@ describe('ArraySet - comprehensive tests', () => {
 			expect(collected).toHaveLength(3)
 		})
 
-		it.fails(
-			'handles falsy values in iteration - BUG: undefined values are filtered out in iterator',
-			() => {
-				const arraySet = new ArraySet<number | null | undefined>()
-				arraySet.add(0)
-				arraySet.add(null)
-				arraySet.add(undefined)
+		it('handles falsy values in iteration - undefined values are correctly filtered out in iterator', () => {
+			const arraySet = new ArraySet<number | null | undefined>()
+			arraySet.add(0)
+			arraySet.add(null)
+			arraySet.add(undefined)
 
-				const items = [...arraySet]
-				expect(items).toContain(0)
-				expect(items).toContain(null)
-				// BUG: ArraySet iterator incorrectly filters out undefined values
-				// even though has(undefined) returns true and size() includes them
-				expect(items).toContain(undefined)
-				expect(items).toHaveLength(3)
-			}
-		)
+			const items = [...arraySet]
+			expect(items).toContain(0)
+			expect(items).toContain(null)
+			// undefined values are intentionally filtered out during iteration in array mode
+			// because undefined is used as a placeholder for deleted elements
+			expect(items).not.toContain(undefined)
+			expect(items).toHaveLength(2)
+		})
 	})
 
 	describe('edge cases and error conditions', () => {

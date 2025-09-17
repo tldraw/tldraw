@@ -1,6 +1,6 @@
 import { atom, Signal } from '@tldraw/state'
 import { Store } from '@tldraw/store'
-import { annotateError, IndexKey, structuredClone } from '@tldraw/utils'
+import { annotateError, IndexKey, sortByIndex, structuredClone } from '@tldraw/utils'
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 import { createTLSchema } from './createTLSchema'
 import { TLAssetId } from './records/TLAsset'
@@ -12,7 +12,13 @@ import { InstancePageStateRecordType } from './records/TLPageState'
 import { TLPOINTER_ID } from './records/TLPointer'
 import { TLRecord } from './records/TLRecord'
 import { TLShapeId } from './records/TLShape'
-import { createIntegrityChecker, onValidationFailure, TLAssetStore, TLStoreProps } from './TLStore'
+import {
+	createIntegrityChecker,
+	onValidationFailure,
+	redactRecordForErrorReporting,
+	TLAssetStore,
+	TLStoreProps,
+} from './TLStore'
 
 // Mock dependencies
 vi.mock('@tldraw/utils', async () => {
@@ -30,36 +36,26 @@ describe('TLStore utility functions', () => {
 	})
 
 	describe('sortByIndex', () => {
-		// Access the internal function through module inspection
-		const sortByIndex = (a: { index: string }, b: { index: string }) => {
-			if (a.index < b.index) {
-				return -1
-			} else if (a.index > b.index) {
-				return 1
-			}
-			return 0
-		}
-
 		it('should sort items by index in ascending order', () => {
 			const items = [
-				{ index: 'c', name: 'third' },
-				{ index: 'a', name: 'first' },
-				{ index: 'b', name: 'second' },
+				{ index: 'c' as IndexKey, name: 'third' },
+				{ index: 'a' as IndexKey, name: 'first' },
+				{ index: 'b' as IndexKey, name: 'second' },
 			]
 
 			const sorted = items.sort(sortByIndex)
 
 			expect(sorted).toEqual([
-				{ index: 'a', name: 'first' },
-				{ index: 'b', name: 'second' },
-				{ index: 'c', name: 'third' },
+				{ index: 'a' as IndexKey, name: 'first' },
+				{ index: 'b' as IndexKey, name: 'second' },
+				{ index: 'c' as IndexKey, name: 'third' },
 			])
 		})
 
 		it('should handle equal indices correctly', () => {
 			const items = [
-				{ index: 'a', name: 'first' },
-				{ index: 'a', name: 'duplicate' },
+				{ index: 'a' as IndexKey, name: 'first' },
+				{ index: 'a' as IndexKey, name: 'duplicate' },
 			]
 
 			const sorted = items.sort(sortByIndex)
@@ -84,8 +80,8 @@ describe('TLStore utility functions', () => {
 
 		it('should handle empty string indices', () => {
 			const items = [
-				{ index: '', name: 'empty' },
-				{ index: 'a', name: 'a' },
+				{ index: '' as IndexKey, name: 'empty' },
+				{ index: 'a' as IndexKey, name: 'a' },
 			]
 
 			const sorted = items.sort(sortByIndex)
@@ -96,11 +92,99 @@ describe('TLStore utility functions', () => {
 	})
 
 	describe('redactRecordForErrorReporting', () => {
-		it('should be tested indirectly through onValidationFailure', () => {
-			// The redactRecordForErrorReporting function is internal and not exported
-			// It is tested indirectly through the onValidationFailure function
-			// which calls it and uses structuredClone on the records
-			expect(true).toBe(true) // Placeholder test showing we understand the limitation
+		it('should redact src field from asset record', () => {
+			const assetRecord = {
+				id: 'asset:test',
+				typeName: 'asset',
+				type: 'image',
+				src: 'https://secret.com/image.png',
+				props: {
+					src: 'https://secret.com/props-image.png',
+					width: 100,
+					height: 100,
+				},
+			}
+
+			redactRecordForErrorReporting(assetRecord)
+
+			expect(assetRecord.src).toBe('<redacted>')
+			expect(assetRecord.props.src).toBe('<redacted>')
+			expect(assetRecord.props.width).toBe(100) // Other props should remain unchanged
+			expect(assetRecord.props.height).toBe(100)
+		})
+
+		it('should redact only props.src if top-level src does not exist', () => {
+			const assetRecord = {
+				id: 'asset:test',
+				typeName: 'asset',
+				type: 'video',
+				props: {
+					src: 'https://secret.com/video.mp4',
+					width: 200,
+					height: 150,
+				},
+			}
+
+			redactRecordForErrorReporting(assetRecord)
+
+			expect(assetRecord.props.src).toBe('<redacted>')
+			expect(assetRecord.props.width).toBe(200)
+			expect(assetRecord.props.height).toBe(150)
+		})
+
+		it('should not modify non-asset records', () => {
+			const shapeRecord = {
+				id: 'shape:test',
+				typeName: 'shape',
+				type: 'geo',
+				x: 100,
+				y: 200,
+				props: {
+					color: 'red',
+					size: 'medium',
+				},
+			}
+
+			const originalRecord = JSON.parse(JSON.stringify(shapeRecord))
+			redactRecordForErrorReporting(shapeRecord)
+
+			expect(shapeRecord).toEqual(originalRecord)
+		})
+
+		it('should handle asset records without src fields gracefully', () => {
+			const assetRecord = {
+				id: 'asset:test',
+				typeName: 'asset',
+				type: 'bookmark',
+				props: {
+					title: 'Test Bookmark',
+					description: 'A test bookmark',
+				},
+			}
+
+			const originalRecord = JSON.parse(JSON.stringify(assetRecord))
+			redactRecordForErrorReporting(assetRecord)
+
+			expect(assetRecord).toEqual(originalRecord)
+		})
+
+		it('should handle asset records with only top-level src', () => {
+			const assetRecord = {
+				id: 'asset:test',
+				typeName: 'asset',
+				type: 'image',
+				src: 'https://secret.com/image.png',
+				props: {
+					width: 100,
+					height: 100,
+				},
+			}
+
+			redactRecordForErrorReporting(assetRecord)
+
+			expect(assetRecord.src).toBe('<redacted>')
+			expect(assetRecord.props.width).toBe(100)
+			expect(assetRecord.props.height).toBe(100)
 		})
 	})
 })

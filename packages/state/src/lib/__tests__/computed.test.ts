@@ -783,13 +783,9 @@ describe('isComputed type guard', () => {
 		expect(isComputed({ get: () => 42 })).toBe(false)
 	})
 
-	// Bug documentation: isComputed returns input value instead of false for null/undefined
-	it.fails('should return false for null and undefined (currently buggy)', () => {
-		// Bug found: isComputed(null) and isComputed(undefined) return null/undefined instead of false
-		// This is due to the implementation: value && value instanceof _Computed
-		// When value is null/undefined, the expression evaluates to null/undefined, not false
-		expect(isComputed(null)).toBe(false) // Currently returns null due to bug
-		expect(isComputed(undefined)).toBe(false) // Currently returns undefined due to bug
+	it('should return false for null and undefined', () => {
+		expect(isComputed(null)).toBe(false)
+		expect(isComputed(undefined)).toBe(false)
 	})
 
 	it('should work as a type guard in conditional blocks', () => {
