@@ -3,39 +3,37 @@ name: Get draft changelog
 on:
   workflow_dispatch:
     inputs:
-      version:
-        description: The branch to get the changelog for
+      from:
+        description: 'From tag or ref'
         required: true
-        default: production
+        type: string
+      to:
+        description: 'To tag or ref (default: HEAD)'
+        required: false
+        type: string
+        default: 'HEAD'
 
 defaults:
   run:
     shell: bash
 
 jobs:
-  deploy:
-    name: 'Get draft changlog'
-    environment: npm deploy
+  get_changelog:
+    name: 'Extract draft changelog'
     timeout-minutes: 60
     runs-on: ubuntu-latest
 
     steps:
       - name: Check out code
-        uses: actions/checkout@v3
-
-      - name: Prepare repository
-        # Fetch full git history and tags for auto
-        run: git fetch --unshallow --tags
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
 
       - name: Run our setup
         uses: ./.github/actions/setup
 
-      - name: Generate changelog
-        run: |
-          yarn auto changelog --dry-run --base-branch ${{ inputs.version }}
-          yarn auto changelog --dry-run --base-branch ${{ inputs.version }} > changelog.md
-        env:
-          GH_TOKEN: ${{ github.token }}
+      - name: Extract changelog
+        run: yarn extract-draft-changelog ${{ inputs.from }} ${{ inputs.to }}
 
       - name: Upload changelog.md to artifacts
         uses: actions/upload-artifact@v4
