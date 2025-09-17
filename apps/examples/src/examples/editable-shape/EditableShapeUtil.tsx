@@ -38,7 +38,6 @@ export class EditableShapeUtil extends BaseBoxShapeUtil<IMyEditableShape> {
 	component(shape: IMyEditableShape) {
 		// [a]
 		const isEditing = this.editor.getEditingShapeId() === shape.id
-		// eslint-disable-next-line react-hooks/rules-of-hooks
 
 		return (
 			<HTMLContainer
