@@ -47,8 +47,8 @@ const messages = defineMessages({
 	forget: { defaultMessage: 'Forget' },
 	rename: { defaultMessage: 'Rename' },
 	copy: { defaultMessage: 'Copy' },
-	pin: { defaultMessage: 'Add to favorites' },
-	unpin: { defaultMessage: 'Remove from favorites' },
+	pin: { defaultMessage: 'Pin file' },
+	unpin: { defaultMessage: 'Unpin file' },
 	myFiles: { defaultMessage: 'My files' },
 })
 
@@ -148,7 +148,7 @@ export function FileItems({
 		})
 		if (res.ok) {
 			app.ensureFileVisibleInSidebar(newFileId)
-			patch(app.sidebarState).renameState({ fileId: newFileId, context: 'my-files' })
+			patch(app.sidebarState).renameState({ fileId: newFileId, groupId: 'my-files' })
 			navigate(routes.tlaFile(newFileId))
 		}
 	}, [app, fileId, navigate, trackEvent, source])

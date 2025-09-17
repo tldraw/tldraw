@@ -1,10 +1,7 @@
-import { DndContext, PointerSensor, useSensor } from '@dnd-kit/core'
 import { memo, useCallback, useEffect } from 'react'
 import { useHasFlag } from '../../hooks/useHasFlag'
-import { useSidebarDragHandling } from '../../hooks/useSidebarDragHandling'
 import { useTldrFileDrop } from '../../hooks/useTldrFileDrop'
 import { useTldrawAppUiEvents } from '../../utils/app-ui-events'
-import { F } from '../../utils/i18n'
 import {
 	getIsSidebarOpen,
 	toggleSidebar,
@@ -12,10 +9,8 @@ import {
 	useIsSidebarOpen,
 	useIsSidebarOpenMobile,
 } from '../../utils/local-session-state'
-import { HandleReordering } from './components/HandleReordering'
 import { TlaSidebarCookieConsent } from './components/TlaSidebarCookieConsent'
 import { TlaSidebarCreateFileButton } from './components/TlaSidebarCreateFileButton'
-import { TlaSidebarDragOverlay } from './components/TlaSidebarDragOverlay'
 import { TlaSidebarHelpMenu } from './components/TlaSidebarHelpMenu'
 import { TlaSidebarRecentFiles } from './components/TlaSidebarRecentFiles'
 import { TlaSidebarRecentFilesNew } from './components/TlaSidebarRecentFilesNew'
@@ -48,9 +43,27 @@ export const TlaSidebar = memo(function TlaSidebar() {
 		updateLocalSessionState(() => ({ isSidebarOpenMobile: false }))
 	}, [])
 
-	const { onDrop, onDragOver, onDragEnter, onDragLeave, isDraggingOver } = useTldrFileDrop()
+	const { onDrop, onDragOver, onDragEnter, onDragLeave } = useTldrFileDrop()
 
 	const hasGroups = useHasFlag('groups')
+	const addDialog = useDialogs().addDialog
+	const app = useApp()
+
+	const handleCreateGroup = () => {
+		// Use dialog if flag is set or on mobile
+		addDialog({
+			component: ({ onClose }) => (
+				<CreateGroupDialog
+					onClose={onClose}
+					onCreate={(name) => {
+						const id = uniqueId()
+						app.z.mutate.group.create({ id, name })
+						app.ensureSidebarGroupExpanded(id)
+					}}
+				/>
+			),
+		})
+	}
 
 	return (
 		<nav aria-hidden={!isSidebarOpen} style={{ visibility: isSidebarOpen ? 'visible' : 'hidden' }}>
@@ -69,13 +82,18 @@ export const TlaSidebar = memo(function TlaSidebar() {
 				onDragEnter={onDragEnter}
 				onDragLeave={onDragLeave}
 			>
-				{isDraggingOver && (
-					<div className={styles.sidebarDragOverlay}>
-						<F defaultMessage="Upload .tldr files" />
-					</div>
-				)}
 				<div className={styles.sidebarTopRow}>
 					<TlaSidebarWorkspaceLink />
+					{hasGroups && (
+						<button
+							className={styles.sidebarCreateFileButton}
+							onClick={handleCreateGroup}
+							data-testid="tla-create-file"
+							style={{ marginRight: -8, color: 'var(--tla-color-text-1)' }}
+						>
+							<TlaIcon icon="folder-new" />
+						</button>
+					)}
 					<TlaSidebarCreateFileButton />
 				</div>
 				<div className={styles.sidebarContent}>
@@ -100,30 +118,15 @@ function LegacySidebarLayout() {
 	return <TlaSidebarRecentFiles />
 }
 
-import { restrictToVerticalAxis } from '@dnd-kit/modifiers'
+import { uniqueId, useDialogs } from 'tldraw'
+import { useApp } from '../../hooks/useAppState'
+import { CreateGroupDialog } from '../dialogs/CreateGroupDialog'
+import { TlaIcon } from '../TlaIcon/TlaIcon'
 
 function NewSidebarLayout() {
-	const { handleDragStart, handleDragMove, handleDragEnd, handleDragCancel } =
-		useSidebarDragHandling()
-
-	const pointerSensor = useSensor(PointerSensor, {
-		activationConstraint: {
-			distance: 5, // Only start dragging after moving 5px
-		},
-	})
-
 	return (
-		<DndContext
-			sensors={[pointerSensor]}
-			modifiers={[restrictToVerticalAxis]}
-			onDragStart={handleDragStart}
-			onDragEnd={handleDragEnd}
-			onDragCancel={handleDragCancel}
-			onDragMove={handleDragMove}
-		>
-			<HandleReordering />
+		<>
 			<TlaSidebarRecentFilesNew />
-			<TlaSidebarDragOverlay />
-		</DndContext>
+		</>
 	)
 }

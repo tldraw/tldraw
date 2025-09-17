@@ -1,44 +1,16 @@
 import { patch } from 'patchfork'
 import { Collapsible } from 'radix-ui'
-import { Fragment, useState } from 'react'
-import { uniqueId, useDialogs, useValue } from 'tldraw'
+import { Fragment } from 'react'
+import { useValue } from 'tldraw'
 import { useApp } from '../../../hooks/useAppState'
-import { getIsCoarsePointer } from '../../../utils/getIsCoarsePointer'
-import { defineMessages, F, useIntl } from '../../../utils/i18n'
-import { CreateGroupDialog } from '../../dialogs/CreateGroupDialog'
+import { F } from '../../../utils/i18n'
 import styles from '../sidebar.module.css'
 import { ReorderCursor } from './ReorderCursor'
-import { RecentFile } from './sidebar-shared'
-import { TlaSidebarDropZone } from './TlaSidebarDropZone'
 import { TlaSidebarFileLink } from './TlaSidebarFileLink'
-import { TlaSidebarFileSection } from './TlaSidebarFileSection'
 import { TlaSidebarGroupItem } from './TlaSidebarGroupItem'
-import { TlaSidebarInlineInput } from './TlaSidebarInlineInput'
-
-const messages = defineMessages({
-	createGroup: {
-		id: 'tla.sidebar.createGroup',
-		defaultMessage: 'Create new group',
-	},
-	createGroupInputPlaceholder: {
-		id: 'tla.sidebar.createGroupInputPlaceholder',
-		defaultMessage: 'Enter group name...',
-	},
-})
-
-declare global {
-	interface Window {
-		useDialogForGroupCreation: boolean
-	}
-}
-window.useDialogForGroupCreation = true
 
 export function TlaSidebarRecentFilesNew() {
 	const app = useApp()
-	const intl = useIntl()
-	const { addDialog } = useDialogs()
-
-	const [isCreatingGroup, setIsCreatingGroup] = useState(false)
 	// Demo flag to switch between inline input and dialog
 
 	const isShowingAll = useValue('isShowingAll', () => app.sidebarState.get().recentFilesShowMore, [
@@ -56,184 +28,94 @@ export function TlaSidebarRecentFilesNew() {
 	// Get group memberships from the server
 	const groupMemberships = useValue('groupMemberships', () => app.getGroupMemberships(), [app])
 
-	const results = useValue(
-		'recent user files',
+	const files = useValue('my files', () => app.getMyFiles(), [app])
+	const showMyFilesDropState = useValue(
+		'showMyFilesDropState',
 		() => {
-			const groupMemberships = app.getGroupMemberships()
-			const recentFiles = app.getUserRecentFiles()
-			if (!recentFiles) return null
-
-			const pinnedFiles: RecentFile[] = []
-			const otherFiles: RecentFile[] = []
-
-			for (const item of recentFiles) {
-				const { isPinned } = item
-				if (isPinned) {
-					pinnedFiles.push(item)
-				}
-
-				// Add files to "My files" section regardless of pinned status (but exclude group files)
-				if (
-					!groupMemberships.some((group) => group.groupFiles.some((g) => g.fileId === item.fileId))
-				) {
-					otherFiles.push(item)
-				}
-			}
-
-			return {
-				pinnedFiles,
-				otherFiles,
-			}
+			const dragState = app.sidebarState.get().dragState
+			if (!dragState) return false
+			return (
+				dragState.type === 'file' &&
+				dragState.operation.move?.targetId === 'my-files' &&
+				!dragState.operation.reorder
+			)
 		},
 		[app]
 	)
 
-	const handleCreateGroup = () => {
-		const isMobile = getIsCoarsePointer()
-		// Use dialog if flag is set or on mobile
-		if (window.useDialogForGroupCreation || isMobile) {
-			addDialog({
-				component: ({ onClose }) => (
-					<CreateGroupDialog
-						onClose={onClose}
-						onCreate={(name) => {
-							const id = uniqueId()
-							app.z.mutate.group.create({ id, name })
-							app.ensureSidebarGroupExpanded(id)
-						}}
-					/>
-				),
-			})
-		} else {
-			setIsCreatingGroup(true)
-		}
-	}
+	if (!files) throw Error('Could not get files')
+	const numPinnedFiles = files.filter((f) => f.isPinned).length
 
-	const handleGroupCreateComplete = (name: string) => {
-		const id = uniqueId()
-		app.z.mutate.group.create({ id, name })
-		setIsCreatingGroup(false)
-		app.ensureSidebarGroupExpanded(id)
-	}
-
-	const handleGroupCreateCancel = () => {
-		setIsCreatingGroup(false)
-	}
-
-	if (!results) throw Error('Could not get files')
-
-	const MAX_FILES_TO_SHOW = groupMemberships.length > 0 ? 6 : +Infinity
-	const isOverflowing = results.otherFiles.length > MAX_FILES_TO_SHOW
-	const filesToShow = results.otherFiles.slice(0, MAX_FILES_TO_SHOW)
-	const hiddenFiles = results.otherFiles.slice(MAX_FILES_TO_SHOW)
+	const MAX_FILES_TO_SHOW = Math.max(
+		groupMemberships.length > 0 ? 6 : +Infinity,
+		numPinnedFiles + 4
+	)
+	const slop = 2
+	const isOverflowing = files.length > MAX_FILES_TO_SHOW + slop
+	const filesToShow = isOverflowing ? files.slice(0, MAX_FILES_TO_SHOW) : files
+	const hiddenFiles = isOverflowing ? files.slice(MAX_FILES_TO_SHOW) : []
 
 	return (
 		<Fragment>
-			{results.pinnedFiles.length > 0 && (
-				<TlaSidebarDropZone id="my-files-pinned-drop-zone">
-					<TlaSidebarFileSection title={<F defaultMessage="Favorites" />} onePixelOfPaddingAtTheTop>
-						{results.pinnedFiles.map((item, i) => (
-							<TlaSidebarFileLink
-								context="my-files-pinned"
-								key={'file_link_pinned_' + item.fileId}
-								item={item}
-								testId={`tla-file-link-pinned-${i}`}
-							/>
-						))}
-						{/* Pinned files reorder cursor */}
-						<ReorderCursor
-							dragStateSelector={(app) => {
-								const dragState = app.sidebarState.get().dragState
-								return dragState?.type === 'pinned' ? dragState.cursorLineY : null
-							}}
+			<div data-drop-target-id="my-files" className={showMyFilesDropState ? styles.dropping : ''}>
+				<div
+					style={{ fontSize: 12, paddingLeft: 6, paddingTop: 12, color: 'var(--tla-color-text-3)' }}
+				>
+					<F defaultMessage="My files" />
+				</div>
+				<div style={{ height: 8 }}></div>
+				{filesToShow.length > 0 &&
+					filesToShow.map((item, i) => (
+						<TlaSidebarFileLink
+							groupId="my-files"
+							key={'file_link_today_' + item.fileId}
+							item={item}
+							testId={`tla-file-link-today-${i}`}
 						/>
-					</TlaSidebarFileSection>
-				</TlaSidebarDropZone>
-			)}
-			{filesToShow.length > 0 && (
-				<TlaSidebarDropZone id="my-files-drop-zone">
-					<TlaSidebarFileSection
-						className={styles.sidebarFileSectionRecent}
-						title={<F defaultMessage="My files" />}
-					>
-						{filesToShow.map((item, i) => (
-							<TlaSidebarFileLink
-								context="my-files"
-								key={'file_link_today_' + item.fileId}
-								item={item}
-								testId={`tla-file-link-today-${i}`}
-							/>
-						))}
-					</TlaSidebarFileSection>
-				</TlaSidebarDropZone>
-			)}
-			{hiddenFiles.length > 0 && (
-				<Collapsible.Root open={isShowingAll}>
-					<Collapsible.Content className={styles.CollapsibleContent}>
-						{hiddenFiles.map((item, i) => (
-							<TlaSidebarFileLink
-								context="my-files"
-								key={'file_link_today_' + item.fileId}
-								item={item}
-								testId={`tla-file-link-today-${i}`}
-							/>
-						))}
-					</Collapsible.Content>
-					<Collapsible.Trigger asChild>
-						{isOverflowing &&
-							(isShowingAll ? (
-								<button className={styles.showAllButton} onClick={handleShowLess}>
-									<F defaultMessage="Show less" />
-								</button>
-							) : (
-								<button className={styles.showAllButton} onClick={handleShowMore}>
-									<F defaultMessage="Show more" />
-								</button>
+					))}
+				{hiddenFiles.length > 0 && (
+					<Collapsible.Root open={isShowingAll}>
+						<Collapsible.Content className={styles.CollapsibleContent}>
+							{hiddenFiles.map((item, i) => (
+								<TlaSidebarFileLink
+									groupId="my-files"
+									key={'file_link_today_' + item.fileId}
+									item={item}
+									testId={`tla-file-link-today-${i}`}
+								/>
 							))}
-					</Collapsible.Trigger>
-				</Collapsible.Root>
-			)}
-			<hr className={styles.sidebarFileSectionDivider} />
-			<TlaSidebarFileSection
-				className={styles.sidebarFileSectionGroups}
-				title={<F defaultMessage="Groups" />}
-				iconButton={
-					isCreatingGroup
-						? undefined
-						: {
-								icon: 'plus',
-								onClick: handleCreateGroup,
-								title: intl.formatMessage(messages.createGroup),
-							}
-				}
-			>
-				{isCreatingGroup && (
-					<TlaSidebarInlineInput
-						data-testid="tla-sidebar-create-group-input"
-						placeholder={intl.formatMessage(messages.createGroupInputPlaceholder)}
-						onComplete={handleGroupCreateComplete}
-						onCancel={handleGroupCreateCancel}
-						className={styles.sidebarGroupCreateInput}
-						wrapperClassName={styles.sidebarGroupCreateInputWrapper}
-					/>
+						</Collapsible.Content>
+						<Collapsible.Trigger asChild>
+							{isOverflowing &&
+								(isShowingAll ? (
+									<button className={styles.showAllButton} onClick={handleShowLess}>
+										<F defaultMessage="Show less" />
+									</button>
+								) : (
+									<button className={styles.showAllButton} onClick={handleShowMore}>
+										<F defaultMessage="Show more" />
+									</button>
+								))}
+						</Collapsible.Trigger>
+					</Collapsible.Root>
 				)}
-				{groupMemberships.map((group, i) => (
-					// Include the array index in the key to force a remount when the order changes
-					// this prevents a bug where the collapsible open animation replays when react moves
-					// an open group item within the list. I guess the browser thinks it's a new dom node
-					// or whatever.
-					// If radix's Collapsible had 'opening' and 'closing' states instead of just 'open' and 'closed'
-					// we wouldn't need this.
-					<TlaSidebarGroupItem key={`group-${group.group.id}-${i}`} groupId={group.group.id} />
-				))}
-				{/* Global drag cursor for group reordering */}
-				<ReorderCursor
-					dragStateSelector={(app) => {
-						const dragState = app.sidebarState.get().dragState
-						return dragState?.type === 'group' ? dragState.cursorLineY : null
-					}}
+			</div>
+			<div style={{ height: 12 }}></div>
+			{groupMemberships.map((group, i) => (
+				// Include the array index in the key to force a remount when the order changes
+				// this prevents a bug where the collapsible open animation replays when react moves
+				// an open group item within the list. I guess the browser thinks it's a new dom node
+				// or whatever.
+				// If radix's Collapsible had 'opening' and 'closing' states instead of just 'open' and 'closed'
+				// we wouldn't need this.
+				<TlaSidebarGroupItem
+					key={`group-${group.group.id}-${i}`}
+					groupId={group.group.id}
+					index={i}
 				/>
-			</TlaSidebarFileSection>
+			))}
+			{/* Global drag cursor for group reordering */}
+			<ReorderCursor />
 		</Fragment>
 	)
 }

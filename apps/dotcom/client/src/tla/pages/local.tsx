@@ -38,7 +38,7 @@ export function Component() {
 				return
 			}
 
-			const recentFiles = app.getUserRecentFiles()
+			const recentFiles = app.getMyFiles()
 			if (recentFiles.length === 0) {
 				const result = await app.createFile()
 				assert(result.ok, 'Failed to create file')

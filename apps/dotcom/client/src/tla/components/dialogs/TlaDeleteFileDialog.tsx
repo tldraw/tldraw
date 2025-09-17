@@ -29,7 +29,7 @@ export function TlaDeleteFileDialog({ fileId, onClose }: { fileId: string; onClo
 		if (!token) throw new Error('No token')
 		trackEvent('delete-file', { source: 'file-menu' })
 		await app.deleteOrForgetFile(fileId)
-		const recentFiles = app.getUserRecentFiles()
+		const recentFiles = app.getMyFiles()
 		if (recentFiles.length === 0) {
 			const result = await app.createFile()
 			if (result.ok) {

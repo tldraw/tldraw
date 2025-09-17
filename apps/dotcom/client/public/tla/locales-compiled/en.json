@@ -87,6 +87,12 @@
       "value": "Leave group"
     }
   ],
+  "12a6766ba1": [
+    {
+      "type": 0,
+      "value": "Unpin file"
+    }
+  ],
   "13ddd375ad": [
     {
       "type": 0,
@@ -259,6 +265,12 @@
     {
       "type": 0,
       "value": "tldraw"
+    }
+  ],
+  "47f493a590": [
+    {
+      "type": 0,
+      "value": "Pin file"
     }
   ],
   "4908687e50": [
@@ -533,12 +545,6 @@
       "value": "This week"
     }
   ],
-  "7188286e36": [
-    {
-      "type": 0,
-      "value": "Remove from favorites"
-    }
-  ],
   "71a29b007b": [
     {
       "type": 0,
@@ -761,12 +767,6 @@
       "value": "Rename"
     }
   ],
-  "910885435d": [
-    {
-      "type": 0,
-      "value": "Add to favorites"
-    }
-  ],
   "91e49bb0eb": [
     {
       "type": 0,
@@ -849,12 +849,6 @@
     {
       "type": 0,
       "value": "Export image"
-    }
-  ],
-  "a37ede2939": [
-    {
-      "type": 0,
-      "value": "Groups"
     }
   ],
   "a3debabee7": [
@@ -1005,12 +999,6 @@
       "value": "ownerName"
     }
   ],
-  "bcb62136a3": [
-    {
-      "type": 0,
-      "value": "Upload .tldr files"
-    }
-  ],
   "bffe9a3c9a": [
     {
       "type": 0,
@@ -1129,12 +1117,6 @@
     {
       "type": 0,
       "value": "Theme"
-    }
-  ],
-  "d789869473": [
-    {
-      "type": 0,
-      "value": "Favorites"
     }
   ],
   "d876a9fe1a": [
@@ -1353,18 +1335,6 @@
     {
       "type": 0,
       "value": "Import file…"
-    }
-  ],
-  "tla.sidebar.createGroup": [
-    {
-      "type": 0,
-      "value": "Create new group"
-    }
-  ],
-  "tla.sidebar.createGroupInputPlaceholder": [
-    {
-      "type": 0,
-      "value": "Enter group name..."
     }
   ]
 }

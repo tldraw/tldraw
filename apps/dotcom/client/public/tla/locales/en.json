@@ -41,6 +41,9 @@
   "129b9e34ea": {
     "translation": "Leave group"
   },
+  "12a6766ba1": {
+    "translation": "Unpin file"
+  },
   "13ddd375ad": {
     "translation": "Export as"
   },
@@ -127,6 +130,9 @@
   },
   "47839e47a5": {
     "translation": "tldraw"
+  },
+  "47f493a590": {
+    "translation": "Pin file"
   },
   "4908687e50": {
     "translation": "Are you sure you want to forget this file?"
@@ -239,9 +245,6 @@
   "70a6facb9d": {
     "translation": "This week"
   },
-  "7188286e36": {
-    "translation": "Remove from favorites"
-  },
   "71a29b007b": {
     "translation": "Have a bug, issue, or idea for tldraw? Let us know!"
   },
@@ -335,9 +338,6 @@
   "904a830405": {
     "translation": "Rename"
   },
-  "910885435d": {
-    "translation": "Add to favorites"
-  },
   "91e49bb0eb": {
     "translation": "Copy to my files"
   },
@@ -379,9 +379,6 @@
   },
   "a239905023": {
     "translation": "Export image"
-  },
-  "a37ede2939": {
-    "translation": "Groups"
   },
   "a3debabee7": {
     "translation": "Cookie policy"
@@ -434,9 +431,6 @@
   },
   "bc88b0e89e": {
     "translation": "Shared by {ownerName}"
-  },
-  "bcb62136a3": {
-    "translation": "Upload .tldr files"
   },
   "bffe9a3c9a": {
     "translation": "Log in"
@@ -497,9 +491,6 @@
   },
   "d721757161": {
     "translation": "Theme"
-  },
-  "d789869473": {
-    "translation": "Favorites"
   },
   "d876a9fe1a": {
     "translation": "Try Again"
@@ -602,11 +593,5 @@
   },
   "ffcd73e997": {
     "translation": "Import file…"
-  },
-  "tla.sidebar.createGroup": {
-    "translation": "Create new group"
-  },
-  "tla.sidebar.createGroupInputPlaceholder": {
-    "translation": "Enter group name..."
   }
 }

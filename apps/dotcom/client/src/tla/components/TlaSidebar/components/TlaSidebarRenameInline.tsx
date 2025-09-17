@@ -1,5 +1,6 @@
 import { useCallback } from 'react'
 import { useApp } from '../../../hooks/useAppState'
+import { useIsFilePinned } from '../../../hooks/useIsFilePinned'
 import { TLAppUiEventSource, useTldrawAppUiEvents } from '../../../utils/app-ui-events'
 import { TlaSidebarInlineInput } from './TlaSidebarInlineInput'
 
@@ -14,6 +15,7 @@ export function TlaSidebarRenameInline({
 }) {
 	const app = useApp()
 	const trackEvent = useTldrawAppUiEvents()
+	const isPinned = useIsFilePinned(fileId)
 
 	const handleComplete = useCallback(
 		(name: string) => {
@@ -31,6 +33,7 @@ export function TlaSidebarRenameInline({
 			defaultValue={app.getFileName(fileId)}
 			onComplete={handleComplete}
 			onCancel={onClose}
+			isPinned={isPinned}
 		/>
 	)
 }

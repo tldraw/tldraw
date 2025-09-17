@@ -2,12 +2,14 @@ import classNames from 'classnames'
 import { useCallback, useRef } from 'react'
 import { TldrawUiInput } from 'tldraw'
 import styles from '../sidebar.module.css'
+import { pinIcon } from './pinIcon'
 
 export interface TlaSidebarInlineInputProps {
 	defaultValue?: string
 	placeholder?: string
 	onComplete(value: string): void
 	onCancel(): void
+	isPinned?: boolean
 	className?: string
 	wrapperClassName?: string
 	autoFocus?: boolean
@@ -19,6 +21,7 @@ export function TlaSidebarInlineInput({
 	placeholder,
 	onComplete,
 	onCancel,
+	isPinned,
 	className,
 	wrapperClassName,
 	autoFocus = true,
@@ -48,6 +51,7 @@ export function TlaSidebarInlineInput({
 
 	return (
 		<div className={classNames(styles.sidebarFileListItemRenameInputWrapper, wrapperClassName)}>
+			{isPinned && pinIcon}
 			<TldrawUiInput
 				ref={ref}
 				data-testid={dataTestId}

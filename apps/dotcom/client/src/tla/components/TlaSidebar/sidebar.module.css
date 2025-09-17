@@ -505,36 +505,25 @@
 /* ------------------- File links ------------------- */
 
 .sidebarFileListItem {
-	background-color: var(--tla-color-sidebar);
-	position: relative;
-	width: 100%;
-	display: flex;
-	flex-direction: row;
-	align-items: center;
-	height: 36px;
-	padding: 0px 8px 0px 8px;
-}
-
-.sidebarFileListItemDragOverlay {
 	background-color: transparent;
+	/* Chrome hack to enable the drag image to have a transparent background */
+	opacity: 0.999;
 	position: relative;
 	width: 100%;
 	display: flex;
-	font-size: 14px;
 	flex-direction: row;
 	align-items: center;
 	height: 36px;
 	padding: 0px 8px 0px 8px;
 }
 
-.sidebarFileListItem[data-dragging='true'] {
+.sidebarFileListItem[data-is-dragging='true'] {
 	opacity: 0.5;
 	background: transparent;
 }
 
 .sidebarFileListItemContent {
 	flex: 1 1 auto;
-	overflow: hidden;
 	display: flex;
 	flex-direction: row;
 	align-items: center;
@@ -558,19 +547,32 @@
 }
 
 .sidebarFileListItemRenameInputWrapper {
-	background-color: var(--tla-color-sidebar);
-	outline: 1px solid var(--color-primary);
+	display: flex;
+	align-items: center;
+	justify-content: flex-start;
+	padding: 0px 8px 0px calc(8px + var(--tla-sidebar-group-item-padding-left, 0px));
 	outline-offset: -2px;
-	border-radius: 6px;
+	gap: 8px;
+	position: relative;
 }
 
-.sidebarFileListItemRenameInputWrapper > div {
+.sidebarFileListItemRenameInputWrapper::before {
+	content: '';
+	position: absolute;
+	bottom: 0px;
+	inset: 0px;
+	border-radius: 6px;
+	background-color: white;
+	border: 1px solid var(--tla-color-primary);
+}
+
+.sidebarFileListItemRenameInputWrapper div:global(.tlui-input__wrapper) {
 	height: 36px;
-	padding: 0px 8px 0px 8px;
 }
 
 .sidebarFileListItemRenameInput {
 	height: 36px;
+	align-self: flex-start;
 	flex: 1 1 auto;
 	white-space: nowrap;
 	overflow: hidden;
@@ -635,7 +637,7 @@
 	}
 	:global(.tla:has(.tl-container__focused:not(.tl-container__no-focus-ring)))
 		.sidebarFileListItemMenuTrigger,
-	.sidebarFileListItem[data-dragging='true'] .sidebarFileListItemMenuTrigger {
+	.sidebarFileListItem[data-is-dragging='true'] .sidebarFileListItemMenuTrigger {
 		visibility: visible;
 		display: flex;
 	}
@@ -736,6 +738,10 @@
 	width: 100%;
 }
 
+.sidebarGroupItem .showAllButton {
+	padding-left: calc(8px + var(--tla-sidebar-group-item-padding-left));
+}
+
 .showAllButton:hover {
 	color: var(--tla-color-text-1);
 }
@@ -781,10 +787,23 @@
 	width: 100%;
 	margin-bottom: 0px;
 	transition: margin-bottom 0.15s cubic-bezier(0.4, 0, 0.2, 1);
+	--tla-sidebar-group-item-padding-left: 8px;
+}
+.sidebarGroupItem .sidebarFileListItemContent {
+	padding-left: var(--tla-sidebar-group-item-padding-left);
+}
+.dropping {
+	position: relative;
 }
 
-.sidebarGroupItemDragging {
-	position: relative;
+.dropping::after {
+	content: '';
+	position: absolute;
+	inset: -2px;
+	border-radius: 6px;
+	border: 2px solid rgba(0, 122, 255, 0.7);
+	pointer-events: none;
+	visibility: visible;
 }
 
 .dropCursorLine {
@@ -794,8 +813,8 @@
 	will-change: top;
 	background-color: rgba(0, 122, 255, 0.7);
 	border-radius: 1.5px;
-	width: calc(100% - 24px);
-	left: 12px;
+	width: calc(100% - 32px);
+	left: 16px;
 	z-index: 1000;
 	pointer-events: none;
 	position: fixed;
@@ -803,10 +822,10 @@
 .sidebarGroupItem[data-state='open'] {
 	margin-bottom: 12px;
 }
-
 .sidebarGroupItem:has(.sidebarGroupItemHeader:hover)::after,
+.sidebarGroupItem[data-is-empty='true'][data-is-expanded='true'][data-group-index='0']::after,
 .sidebarGroupItem[data-menu-open='true']::after,
-.sidebarGroupItem[data-dragging='true']::after {
+.sidebarGroupItem[data-is-dragging='true']::after {
 	display: block;
 	content: '';
 	position: absolute;
@@ -819,28 +838,6 @@
 	z-index: 0;
 	pointer-events: none;
 	visibility: visible;
-}
-.sidebarGroupItem[data-dragging='true'] {
-	opacity: 0.3;
-}
-.sidebarGroupItem[data-dragging='true']::after {
-	background: transparent;
-}
-
-body[data-dragging-type] .sidebarGroupItem,
-body[data-dragging-type] .sidebarGroupItem *,
-body[data-dragging-type] .sidebarFileListItem,
-body[data-dragging-type] .sidebarFileListItem * {
-	/* THORNY EDGE CASE: Disable all pointer events during group drag */
-	/* This prevents accidental clicks, hovers, and other interactions */
-	/* while the user is dragging, which could interfere with the drag operation */
-	pointer-events: none !important;
-}
-
-/* EDGE CASE: Set grabbing cursor globally during drag operations */
-/* This gives visual feedback that a drag operation is in progress */
-body[data-dragging-type] {
-	cursor: grabbing !important;
 }
 
 .sidebarGroupItemHeader {
@@ -857,12 +854,12 @@ body[data-dragging-type] {
 	overflow: hidden;
 	gap: 8px;
 	cursor: pointer;
-	color: var(--tla-color-text-3);
+	color: var(--tla-color-text-1);
 }
 
 @media (hover: hover) {
 	.sidebarGroupItemTitle:hover,
-	.sidebarGroupItem[data-dragging='true'] .sidebarGroupItemTitle {
+	.sidebarGroupItem[data-is-dragging='true'] .sidebarGroupItemTitle {
 		color: var(--tla-color-text-1);
 	}
 }
@@ -908,7 +905,7 @@ body[data-dragging-type] {
 @media (hover: hover) {
 	.sidebarGroupItem:has(.sidebarGroupItemHeader:hover) .sidebarGroupItemButtons,
 	.sidebarGroupItem[data-menu-open='true'] .sidebarGroupItemButtons,
-	.sidebarGroupItem[data-dragging='true'] .sidebarGroupItemButtons {
+	.sidebarGroupItem[data-is-dragging='true'] .sidebarGroupItemButtons {
 		opacity: 1;
 	}
 }
@@ -1023,38 +1020,7 @@ body[data-dragging-type] {
 .sidebarGroupItemEmpty {
 	color: var(--tla-color-text-4);
 	font-size: 12px;
-	padding: 8px;
-}
-
-/* -------------------- Drop Zone Styles ------------------- */
-
-.sidebarDropZone {
-	position: relative;
-}
-
-.sidebarDropZoneActive::after {
-	display: block;
-	content: '';
-	position: absolute;
-	inset: -3px -5px;
-	border: 2px solid rgba(0, 122, 255, 0.7);
-	border-radius: 6px;
-	opacity: 1;
-}
-
-/* -------------------- Drag Overlay Styles ------------------- */
-
-/* Drag overlay uses the same styles as file list items */
-/* Ensure drag overlay doesn't interfere with clicks */
-[data-dnd-kit-drag-overlay] {
-	pointer-events: none !important;
-	user-select: none !important;
-}
-
-/* -------------------- Dragging State Styles ------------------- */
-
-.sidebarFileListItemDragging {
-	pointer-events: none;
+	padding: 8px 8px 8px calc(8px + var(--tla-sidebar-group-item-padding-left));
 }
 
 [data-no-animation='true'] * {

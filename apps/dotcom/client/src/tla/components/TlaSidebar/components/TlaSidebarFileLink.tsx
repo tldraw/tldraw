@@ -1,4 +1,3 @@
-import { useDraggable } from '@dnd-kit/core'
 import { TlaFile } from '@tldraw/dotcom-shared'
 import classNames from 'classnames'
 import { patch } from 'patchfork'
@@ -14,19 +13,14 @@ import {
 	useValue,
 } from 'tldraw'
 import { routes } from '../../../../routeDefs'
-import { SidebarFileContext } from '../../../app/TldrawApp'
 import { useApp } from '../../../hooks/useAppState'
 import { useCanUpdateFile } from '../../../hooks/useCanUpdateFile'
+import { useDragTracking } from '../../../hooks/useDragTracking'
 import { useIsFileOwner } from '../../../hooks/useIsFileOwner'
 import { useTldrawAppUiEvents } from '../../../utils/app-ui-events'
 import { getIsCoarsePointer } from '../../../utils/getIsCoarsePointer'
 import { F, defineMessages, useIntl } from '../../../utils/i18n'
-import {
-	toggleMobileSidebar,
-	updateLocalSessionState,
-	useIsSidebarOpenMobile,
-	useShouldHighlightFileLink,
-} from '../../../utils/local-session-state'
+import { toggleMobileSidebar, useIsSidebarOpenMobile } from '../../../utils/local-session-state'
 import { FileItems, FileItemsWrapper } from '../../TlaFileMenu/TlaFileMenu'
 import { TlaIcon } from '../../TlaIcon/TlaIcon'
 import {
@@ -39,6 +33,7 @@ import {
 import styles from '../sidebar.module.css'
 import { TlaSidebarFileLinkMenu } from './TlaSidebarFileLinkMenu'
 import { TlaSidebarRenameInline } from './TlaSidebarRenameInline'
+import { pinIcon } from './pinIcon'
 import { RecentFile } from './sidebar-shared'
 
 const ACTIVE_FILE_LINK_ID = 'tla-active-file-link'
@@ -69,12 +64,12 @@ export function TlaSidebarFileLink({
 	item,
 	testId,
 	className,
-	context,
+	groupId,
 }: {
 	item: RecentFile
 	testId: string
 	className?: string
-	context: SidebarFileContext
+	groupId: string
 }) {
 	const app = useApp()
 	const intl = useIntl()
@@ -91,9 +86,11 @@ export function TlaSidebarFileLink({
 
 	const isRenaming = useValue(
 		'shouldRename',
-		() => isEqual(app.sidebarState.get().renameState, { fileId, context }),
+		() => isEqual(app.sidebarState.get().renameState, { fileId, groupId }),
 		[fileId, app]
 	)
+
+	const isPinned = useValue('isPinned', () => !!app.getFileState(fileId)?.isPinned, [fileId, app])
 
 	const handleRenameAction = () => {
 		if (isMobile) {
@@ -102,7 +99,7 @@ export function TlaSidebarFileLink({
 				app.updateFile(fileId, { name: newName })
 			}
 		} else {
-			patch(app.sidebarState).renameState({ fileId, context })
+			patch(app.sidebarState).renameState({ fileId, groupId })
 		}
 	}
 
@@ -113,7 +110,9 @@ export function TlaSidebarFileLink({
 			<_ContextMenu.Trigger>
 				<TlaSidebarFileLinkInner
 					fileId={fileId}
+					groupId={groupId}
 					fileName={fileName}
+					isPinned={isPinned}
 					testId={testId}
 					isActive={isActive}
 					href={routes.tlaFile(fileId)}
@@ -121,7 +120,6 @@ export function TlaSidebarFileLink({
 					isRenaming={isRenaming}
 					handleRenameAction={handleRenameAction}
 					className={className}
-					context={context}
 				/>
 			</_ContextMenu.Trigger>
 			<_ContextMenu.Content className="tlui-menu tlui-scrollable">
@@ -147,8 +145,10 @@ export const sidebarMessages = defineMessages({
 })
 
 export function TlaSidebarFileLinkInner({
+	isPinned,
 	testId,
 	fileId,
+	groupId,
 	isActive,
 	// owner,
 	fileName,
@@ -157,9 +157,10 @@ export function TlaSidebarFileLinkInner({
 	handleRenameAction,
 	onClose,
 	className,
-	context,
 }: {
 	fileId: string
+	groupId: string
+	isPinned: boolean
 	testId: string | number
 	isActive: boolean
 	fileName: string
@@ -168,31 +169,17 @@ export function TlaSidebarFileLinkInner({
 	handleRenameAction(): void
 	onClose(): void
 	className?: string
-	context: SidebarFileContext
 }) {
 	const trackEvent = useTldrawAppUiEvents()
 	const linkRef = useRef<HTMLAnchorElement | null>(null)
 	const app = useApp()
 	const isSidebarOpenMobile = useIsSidebarOpenMobile()
 
+	const { startDragTracking } = useDragTracking()
+
 	const canUpdateFile = useCanUpdateFile(fileId)
 	const isOwnFile = useIsFileOwner(fileId)
 	const file = useValue('file', () => app.getFile(fileId), [fileId, app])
-
-	const dnd = useDraggable({
-		id: context === 'my-files-pinned' ? fileId : `${fileId}:${context}`,
-		data:
-			context === 'my-files-pinned'
-				? {
-						type: 'pinned',
-						fileId,
-					}
-				: {
-						type: 'file',
-						fileId,
-					},
-		disabled: false,
-	})
 
 	const handleKeyDown = (e: KeyboardEvent) => {
 		if (!isActive) return
@@ -208,9 +195,12 @@ export function TlaSidebarFileLinkInner({
 		linkRef.current.focus({ preventScroll: preventScrollOnNavigation })
 	}, [isActive, linkRef])
 
-	const isPinned = useValue('isPinned', () => !!app.getFileState(fileId)?.isPinned, [fileId, app])
+	const isDragging = useValue('isDragging', () => app.sidebarState.get().dragState?.id === fileId, [
+		fileId,
+		app,
+	])
 
-	const shouldHighlight = useShouldHighlightFileLink(fileId, context, isPinned)
+	const wrapperRef = useRef<HTMLDivElement>(null)
 
 	if (!file) return null
 
@@ -220,34 +210,38 @@ export function TlaSidebarFileLinkInner({
 
 	return (
 		<div
+			ref={wrapperRef}
 			className={classNames(styles.sidebarFileListItem, styles.hoverable, className)}
-			data-dragging={dnd.isDragging}
-			data-active={shouldHighlight}
+			data-active={isActive}
 			data-element="file-link"
 			data-testid={testId}
 			data-is-own-file={isOwnFile}
-			{...(context === 'my-files-pinned' && {
-				'data-pinned-file-id': fileId,
-				'data-pinned-index': app.getFileState(fileId)?.pinnedIndex || 'a0',
-			})}
+			data-drop-target-id={`file:${fileId}`}
+			data-is-dragging={isDragging}
+			data-is-pinned={isPinned}
 			onDoubleClick={canUpdateFile ? handleRenameAction : undefined}
 			// We use this id to scroll the active file link into view when creating or deleting files.
-			id={shouldHighlight ? ACTIVE_FILE_LINK_ID : undefined}
-			{...dnd.attributes}
-			{...dnd.listeners}
-			ref={dnd.setNodeRef}
+			id={isActive ? ACTIVE_FILE_LINK_ID : undefined}
 			role="listitem"
-			draggable={false}
+			draggable={true}
+			onDragStart={(event) => {
+				// Set native drag data for drag-to-new-tab functionality
+				const fileUrl = routes.tlaFile(fileId, { asUrl: true })
+				event.dataTransfer.effectAllowed = 'move'
+				event.dataTransfer.setData('text/uri-list', fileUrl)
+				startDragTracking({
+					groupId,
+					fileId,
+					clientX: event.clientX,
+					clientY: event.clientY,
+				})
+			}}
 		>
 			<Link
 				ref={linkRef}
 				onKeyDown={handleKeyDown}
 				aria-label={fileName}
 				onClick={(event) => {
-					updateLocalSessionState((state) => ({
-						...state,
-						lastNavigationClick: { fileId, context },
-					}))
 					// Don't navigate if we are already on the file page
 					// unless the user is holding ctrl or cmd to open in a new tab
 					if (isActive && !(event.ctrlKey || event.metaKey)) {
@@ -266,6 +260,7 @@ export function TlaSidebarFileLinkInner({
 				draggable={false}
 			/>
 			<div className={styles.sidebarFileListItemContent}>
+				{isPinned && pinIcon}
 				<div
 					className={classNames(
 						styles.sidebarFileListItemLabel,
