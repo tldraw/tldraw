@@ -3,9 +3,9 @@ import {
 	TLShapeId,
 	TLUnknownShape,
 	getPointerInfo,
+	markEventAsHandled,
 	noop,
 	preventDefault,
-	stopEventPropagation,
 	tlenv,
 	useEditor,
 	useValue,
@@ -136,7 +136,7 @@ export function useEditableTextCommon(shapeId: TLShapeId) {
 				shape: editor.getShape(shapeId)!,
 			})
 
-			stopEventPropagation(e) // we need to prevent blurring the input
+			e.stopPropagation() // we need to prevent blurring the input
 		},
 		[editor, shapeId]
 	)
@@ -157,11 +157,13 @@ export function useEditableTextCommon(shapeId: TLShapeId) {
 		[editor, shapeId]
 	)
 
+	const handleDoubleClick: (e: React.MouseEvent) => void = markEventAsHandled
+
 	return {
 		handleFocus: noop,
 		handleBlur: noop,
 		handleInputPointerDown,
-		handleDoubleClick: stopEventPropagation,
+		handleDoubleClick,
 		handlePaste,
 		isEditing,
 		isReadyForEditing,

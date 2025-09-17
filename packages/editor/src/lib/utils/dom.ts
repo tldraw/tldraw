@@ -78,8 +78,45 @@ export function releasePointerCapture(
 	}
 }
 
-/** @public */
+/**
+ * Calls `event.stopPropagation()`.
+ *
+ * @deprecated Use {@link markEventAsHandled} instead, or manually call `event.stopPropagation()` if
+ * that's what you really want.
+ *
+ * @public
+ */
 export const stopEventPropagation = (e: any) => e.stopPropagation()
+
+const handledEvents = new WeakSet<Event>()
+
+/**
+ * In tldraw, events are sometimes handled by multiple components. For example, the shapes might
+ * have events, but the canvas handles events too. The way that the canvas handles events can
+ * interfere with the with the shapes event handlers - for example, it calls `.preventDefault()` on
+ * `pointerDown`, which also prevents `click` events from firing on the shapes.
+ *
+ * You can use `.stopPropagation()` to prevent the event from propagating to the rest of the DOM,
+ * but that can impact non-tldraw event handlers set up elsewhere. By using `markEventAsHandled`,
+ * you'll stop other parts of tldraw from handling the event without impacting other, non-tldraw
+ * event handlers. See also {@link wasEventAlreadyHandled}.
+ *
+ * @public
+ */
+export function markEventAsHandled(e: Event | { nativeEvent: Event }) {
+	const nativeEvent = 'nativeEvent' in e ? e.nativeEvent : e
+	handledEvents.add(nativeEvent)
+}
+
+/**
+ * Checks if an event has already been handled. See {@link markEventAsHandled}.
+ *
+ * @public
+ */
+export function wasEventAlreadyHandled(e: Event | { nativeEvent: Event }) {
+	const nativeEvent = 'nativeEvent' in e ? e.nativeEvent : e
+	return handledEvents.has(nativeEvent)
+}
 
 /** @internal */
 export const setStyleProperty = (

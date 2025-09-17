@@ -10,11 +10,11 @@
 	"license": "MIT",
 	"type": "module",
 	"tldraw_template": {
-		"publish": {
-			"repo": "tldraw/branching-chat",
-			"name": "Branching chat starter kit",
-			"description": "A branching chat application using tldraw and OpenAI.",
-			"category": "app"
+		"repo": "tldraw/branching-chat-template",
+		"cli": {
+			"name": "Branching chat",
+			"description": "Create interactive chat trees using visual branching conversation interface with AI integration.",
+			"shortDescription": "A branching chat interface."
 		},
 		"scripts": {
 			"lint": null

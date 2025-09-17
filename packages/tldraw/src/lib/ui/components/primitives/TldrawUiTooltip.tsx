@@ -171,6 +171,20 @@ function TooltipSingleton() {
 		}
 	}, [cameraState, isOpen, currentTooltip, editor])
 
+	useEffect(() => {
+		function handleKeyDown(event: KeyboardEvent) {
+			if (event.key === 'Escape' && currentTooltip && isOpen) {
+				tooltipManager.hideTooltip(editor, currentTooltip.id)
+				event.stopPropagation()
+			}
+		}
+
+		document.addEventListener('keydown', handleKeyDown, { capture: true })
+		return () => {
+			document.removeEventListener('keydown', handleKeyDown, { capture: true })
+		}
+	}, [editor, currentTooltip, isOpen])
+
 	// Update open state and trigger position
 	useEffect(() => {
 		let timer: ReturnType<typeof setTimeout> | null = null

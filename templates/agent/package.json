@@ -10,6 +10,12 @@
 	},
 	"type": "module",
 	"tldraw_template": {
+		"repo": "tldraw/agent-template",
+		"cli": {
+			"name": "Agent",
+			"description": "Enable AI agents to interpret and interact with canvas drawings and elements.",
+			"shortDescription": "An AI-powered agent."
+		},
 		"scripts": {
 			"lint": null
 		}
@@ -26,7 +32,6 @@
 		"@ai-sdk/openai": "^2.0.24",
 		"@cloudflare/vite-plugin": "^1.9.0",
 		"@google/generative-ai": "^0.24.1",
-		"@tldraw/ai": "workspace:*",
 		"@tldraw/tlschema": "workspace:*",
 		"@worker-tools/json-stream": "^0.1.0-pre.12",
 		"ai": "^5.0.15",
