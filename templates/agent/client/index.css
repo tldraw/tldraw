@@ -64,7 +64,6 @@ body {
 
 .chat-panel {
 	position: relative;
-	
 }
 
 .chat-panel * {
@@ -175,11 +174,17 @@ body {
 }
 
 .chat-input textarea::-webkit-scrollbar {
+	width: 8px;
+	background: transparent;
+}
+
+.chat-input textarea::-webkit-scrollbar-track {
 	background: transparent;
 }
 
 .chat-input textarea::-webkit-scrollbar-thumb {
 	background: var(--tl-color-text-3);
+	border-radius: 4px;
 }
 
 .chat-input-submit {
@@ -324,6 +329,19 @@ body {
 	width: 100%;
 	scrollbar-width: 8px;
 	scrollbar-color: var(--tl-color-muted-1) transparent;
+}
+
+.chat-history::-webkit-scrollbar {
+	width: 8px;
+}
+
+.chat-history::-webkit-scrollbar-track {
+	background: transparent;
+}
+
+.chat-history::-webkit-scrollbar-thumb {
+	background: var(--tl-color-muted-1);
+	border-radius: 4px;
 }
 
 .chat-history-section {
