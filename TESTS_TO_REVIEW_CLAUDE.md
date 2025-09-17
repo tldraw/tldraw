@@ -146,21 +146,33 @@
 
 🚨 Needs human review! Reimplements the private `sortByIndex` helper inline and uses a placeholder assertion for `redactRecordForErrorReporting`, so the tests never exercise the actual implementation.
 
+    🤠 human review
+        - removed `sortByIndex` helper and fixed bug in TLStore where it `sortByIndex` was reimplemented instead of imported from utils package
+        - exported and documented `redactRecordForErrorReporting` from `TLStore.ts` so it can be used in tests, fixed tests
+
 ### packages/utils/src/lib/media/webp.test.ts
 
 🚨 Needs human review! Copies the unexported `isWebp` helper into the test suite; any regressions in the real function would go unnoticed because the duplicated logic always passes.
+
+    🤠 human review : exported and documented `isWebp` and edited test file to take into account
 
 ### packages/state/src/lib/**tests**/arraySet.test.ts
 
 🚨 Needs human review! Multiple `it.fails` cases document real bugs where `ArraySet.visit`/iterator drop `undefined` entries—confirmed against the implementation.
 
+    🤠 human review : the behavior is not a bug as claude thought and the tests were updated to reflect this
+
 ### packages/state/src/lib/**tests**/computed.test.ts
 
 🚨 Needs human review! `it.fails` documents that `isComputed(null/undefined)` returns the input instead of `false` due to a truthy check in `Computed.ts`.
 
+    🤠 human review : fixed `isComputed` and removed `it.fails` from test cases
+
 ### packages/tlschema/src/translations/translations.test.ts
 
 🚨 Needs human review! `it.fails` highlights that `getDefaultTranslationLocale` crashes when `window.navigator` is undefined because the implementation dereferences `navigator` before null checks.
+
+    🤠⁉️ human review: `getDefaultTranslationLocale` now returns default `['en']` if window is defined but navigator isn't
 
 ### packages/worker-shared/src/sentry.test.ts
 
@@ -178,33 +190,49 @@
 
 `test.fails` indicates `createTLSchema` does not validate the shape of custom schema props, so malformed definitions go through silently.
 
+    🤠⁉️ human review: deleted contrived tests
+
 ### packages/state/src/lib/**tests**/helpers.test.ts
 
 🚨 Needs human review! Incomplete testing of `__unsafe__getWithoutCapture` calls in `haveParentsChanged` function; mock-heavy approach for attach/detach may miss real integration issues; missing error handling tests.
+
+    🤠 human review: claude fixing these issues
 
 ### packages/state/src/lib/**tests**/transactions.test.ts
 
 🚨 Needs human review! Contains duplicate test cases (lines 562-580/904-922, 537-560/924-947) and AI-generated sections with generic names that need cleanup; some timing-dependent tests may be flaky.
 
+    🤠 human review: removed duplicates and renamed things to be better
+
 ### packages/state/src/lib/**tests**/types.test.ts
 
 🚨 Needs human review! Flaky epoch test (lines 232-234) was weakened to "made to pass" rather than fixed; tests access private properties via `any` casting breaking encapsulation.
+
+    🤠 human review: fixed flaky epoch test, removed casting as any
 
 ### packages/state/src/lib/**tests**/warnings.test.ts
 
 🚨 Needs human review! Non-deterministic test behavior due to module state persistence across test runs; conditional assertions make tests unreliable and dependent on execution order.
 
+    🤠 human review: mocked the module
+
 ### packages/store/src/lib/devFreeze.test.ts
 
 🚨 Needs human review! Critical issues with broken test logic - primitive handling inconsistency between production/development modes, circular reference "limitation" disguised as feature, tests "made to pass" rather than implementation fixed.
+
+    🤠 human review: claude just _really_ doesn't like `devFreeze` function, the tests are acutally fine from what I can tell
 
 ### packages/store/src/lib/executeQuery.test.ts
 
 🚨 Needs human review! Critical test logic error in duplicate property tests (lines 694-705, 721-730) - JavaScript object property overwrite makes tests not actually test claimed "multiple matchers" behavior.
 
+    🤠 human review: deleted contrived tests
+
 ### packages/store/src/lib/Store.test.ts
 
 🚨 Needs human review! Critical issues with fake validators using trivial pass-through validation (lines 27, 41, 54, 69) that bypass actual validation testing; missing validation error tests; incomplete side effects coverage.
+
+    🤠 human review: working on it
 
 ### packages/store/src/lib/StoreQueries.test.ts
 
