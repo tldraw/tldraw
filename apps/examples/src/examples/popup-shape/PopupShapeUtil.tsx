@@ -1,13 +1,6 @@
 /* eslint-disable react-hooks/rules-of-hooks */
 import { useEffect, useRef, useState } from 'react'
-import {
-	BaseBoxShapeUtil,
-	HTMLContainer,
-	RecordProps,
-	T,
-	TLBaseShape,
-	markEventAsHandled,
-} from 'tldraw'
+import { BaseBoxShapeUtil, HTMLContainer, RecordProps, T, TLBaseShape } from 'tldraw'
 
 type IMyPopupShape = TLBaseShape<
 	'my-popup-shape',
@@ -71,10 +64,10 @@ export class PopupShapeUtil extends BaseBoxShapeUtil<IMyPopupShape> {
 					perspective: `${Math.max(vpb.w, vpb.h)}px`,
 					perspectiveOrigin: `${px}px ${py}px`,
 				}}
-				onPointerDown={markEventAsHandled}
+				onPointerDown={this.editor.markEventAsHandled}
 				onDoubleClick={(e) => {
 					setPopped((p) => !p)
-					markEventAsHandled(e)
+					this.editor.markEventAsHandled(e)
 				}}
 			>
 				<div

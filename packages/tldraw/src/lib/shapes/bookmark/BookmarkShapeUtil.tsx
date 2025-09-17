@@ -13,7 +13,6 @@ import {
 	debounce,
 	getHashForString,
 	lerp,
-	markEventAsHandled,
 	tlenv,
 	toDomPrecision,
 	useEditor,
@@ -134,7 +133,7 @@ function BookmarkShapeComponent({ shape }: { shape: TLBookmarkShape }) {
 
 	const markAsHandledOnShiftKey = useCallback<PointerEventHandler>(
 		(e) => {
-			if (!editor.inputs.shiftKey) markEventAsHandled(e)
+			if (!editor.inputs.shiftKey) editor.markEventAsHandled(e)
 		},
 		[editor]
 	)

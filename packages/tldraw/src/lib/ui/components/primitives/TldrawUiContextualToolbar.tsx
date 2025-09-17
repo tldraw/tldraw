@@ -3,7 +3,6 @@ import {
 	Box,
 	clamp,
 	Editor,
-	markEventAsHandled,
 	react,
 	useAtom,
 	useEditor,
@@ -170,7 +169,7 @@ export const TldrawUiContextualToolbar = ({
 			data-visible={false}
 			data-testid="contextual-toolbar"
 			className={classNames('tlui-contextual-toolbar', className)}
-			onPointerDown={markEventAsHandled}
+			onPointerDown={editor.markEventAsHandled}
 		>
 			<TldrawUiToolbar
 				orientation="horizontal"

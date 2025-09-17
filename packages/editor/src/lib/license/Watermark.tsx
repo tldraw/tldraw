@@ -3,7 +3,7 @@ import { memo, useRef } from 'react'
 import { useCanvasEvents } from '../hooks/useCanvasEvents'
 import { useEditor } from '../hooks/useEditor'
 import { usePassThroughWheelEvents } from '../hooks/usePassThroughWheelEvents'
-import { markEventAsHandled, preventDefault } from '../utils/dom'
+import { preventDefault } from '../utils/dom'
 import { runtime } from '../utils/runtime'
 import { watermarkDesktopSvg, watermarkMobileSvg } from '../watermarks'
 import { LicenseManager } from './LicenseManager'
@@ -43,6 +43,7 @@ const UnlicensedWatermark = memo(function UnlicensedWatermark({
 	isDebugMode: boolean
 	isMobile: boolean
 }) {
+	const editor = useEditor()
 	const events = useCanvasEvents()
 	const ref = useRef<HTMLDivElement>(null)
 	usePassThroughWheelEvents(ref)
@@ -65,7 +66,7 @@ const UnlicensedWatermark = memo(function UnlicensedWatermark({
 				draggable={false}
 				role="button"
 				onPointerDown={(e) => {
-					markEventAsHandled(e)
+					editor.markEventAsHandled(e)
 					preventDefault(e)
 				}}
 				title="The tldraw SDK requires a license key to work in production. You can get a free 100-day trial license at tldraw.dev/pricing."
@@ -115,7 +116,7 @@ const WatermarkInner = memo(function WatermarkInner({
 				draggable={false}
 				role="button"
 				onPointerDown={(e) => {
-					markEventAsHandled(e)
+					editor.markEventAsHandled(e)
 					preventDefault(e)
 				}}
 				title="Build infinite canvas applications with the tldraw SDK. Learn more at https://tldraw.dev."
