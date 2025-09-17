@@ -92,6 +92,12 @@ export interface ArrowShapeOptions {
 	 */
 	// eslint-disable-next-line @typescript-eslint/method-signature-style
 	readonly shouldBeExact: (editor: Editor) => boolean
+
+	/**
+	 * Override to use exact instead of precise in arrow target state
+	 */
+	readonly preciseToExact: boolean
+
 	/**
 	 * When creating an arrow, should it bind to the target shape.
 	 */

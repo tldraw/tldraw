@@ -87,7 +87,7 @@ export function updateArrowTargetState({
 		return null
 	}
 
-	const isExact = util.options.shouldBeExact(editor)
+	const isExact = util.options.shouldBeExact(editor) || (isPrecise && util.options.preciseToExact)
 
 	const arrowKind = arrow ? arrow.props.kind : editor.getStyleForNextShape(ArrowShapeKindStyle)
 
