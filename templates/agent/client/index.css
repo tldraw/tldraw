@@ -3,11 +3,11 @@
 
 * {
 	box-sizing: border-box;
+	overscroll-behavior: none;
 }
 
 body {
 	font-family: 'Inter', sans-serif;
-	overscroll-behavior: none;
 }
 
 .tldraw-agent-container {
@@ -64,6 +64,7 @@ body {
 
 .chat-panel {
 	position: relative;
+	
 }
 
 .chat-panel * {
