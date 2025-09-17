@@ -171,6 +171,20 @@ function TooltipSingleton() {
 		}
 	}, [cameraState, isOpen, currentTooltip, editor])
 
+	useEffect(() => {
+		function handleKeyDown(event: KeyboardEvent) {
+			if (event.key === 'Escape' && currentTooltip && isOpen) {
+				tooltipManager.hideTooltip(editor, currentTooltip.id)
+				event.stopPropagation()
+			}
+		}
+
+		document.addEventListener('keydown', handleKeyDown, { capture: true })
+		return () => {
+			document.removeEventListener('keydown', handleKeyDown, { capture: true })
+		}
+	}, [editor, currentTooltip, isOpen])
+
 	// Update open state and trigger position
 	useEffect(() => {
 		let timer: ReturnType<typeof setTimeout> | null = null
@@ -293,9 +307,9 @@ export const TldrawUiTooltip = forwardRef<HTMLButtonElement, TldrawUiTooltipProp
 		}
 
 		// Fallback to old behavior if no provider
-		if (!hasProvider) {
+		if (!hasProvider || showUiLabels) {
 			return (
-				<_Tooltip.Root delayDuration={delayDurationToUse} disableHoverableContent>
+				<_Tooltip.Root delayDuration={delayDurationToUse} disableHoverableContent={!showUiLabels}>
 					<_Tooltip.Trigger asChild ref={ref}>
 						{children}
 					</_Tooltip.Trigger>

@@ -1,4 +1,8 @@
 /** @type {import('next').NextConfig} */
+
+// Configurable domain for rewrites
+const REWRITE_DOMAIN = 'tldrawdotdev.framer.website'
+
 const nextConfig = {
 	reactStrictMode: true,
 	experimental: {
@@ -130,6 +134,90 @@ const nextConfig = {
 				permanent: true,
 			},
 		]
+	},
+	async rewrites() {
+		const rewrites = {
+			beforeFiles: [
+				{
+					source: '/',
+					destination: `https://${REWRITE_DOMAIN}/`,
+				},
+				{
+					source: '/404',
+					destination: `https://${REWRITE_DOMAIN}/404`,
+				},
+				{
+					source: '/blog/announcements',
+					destination: `https://${REWRITE_DOMAIN}/blog/category/announcements`,
+				},
+				{
+					source: '/blog/case-studies',
+					destination: `https://${REWRITE_DOMAIN}/blog/category/case-studies`,
+				},
+				{
+					source: '/blog/product',
+					destination: `https://${REWRITE_DOMAIN}/blog/category/product`,
+				},
+				{
+					source: '/blog/release-notes',
+					destination: `https://${REWRITE_DOMAIN}/blog/category/release-notes`,
+				},
+				{
+					source: '/blog/:path*',
+					destination: `https://${REWRITE_DOMAIN}/blog/:path*`,
+				},
+				{
+					source: '/careers',
+					destination: `https://${REWRITE_DOMAIN}/careers`,
+				},
+				{
+					source: '/company',
+					destination: `https://${REWRITE_DOMAIN}/company`,
+				},
+				{
+					source: '/events',
+					destination: `https://${REWRITE_DOMAIN}/events`,
+				},
+				{
+					source: '/faq',
+					destination: `https://${REWRITE_DOMAIN}/faq`,
+				},
+				{
+					source: '/features/:path*',
+					destination: `https://${REWRITE_DOMAIN}/features/:path*`,
+				},
+				{
+					source: '/get-a-license/:path*',
+					destination: `https://${REWRITE_DOMAIN}/get-a-license/:path*`,
+				},
+				{
+					source: '/legal/:path*',
+					destination: `https://${REWRITE_DOMAIN}/legal/:path*`,
+				},
+				{
+					source: '/partner',
+					destination: `https://${REWRITE_DOMAIN}/partner`,
+				},
+				{
+					source: '/pricing',
+					destination: `https://${REWRITE_DOMAIN}/pricing`,
+				},
+				{
+					source: '/showcase',
+					destination: `https://${REWRITE_DOMAIN}/showcase`,
+				},
+				{
+					source: '/starter-kits',
+					destination: `https://${REWRITE_DOMAIN}/starter-kits`,
+				},
+				{
+					source: '/thanks',
+					destination: `https://${REWRITE_DOMAIN}/thanks`,
+				},
+			],
+		}
+
+		return rewrites
 	},
 }
 

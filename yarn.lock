@@ -27785,6 +27785,7 @@ __metadata:
     lodash.throttle: "npm:^4.1.1"
     react: "npm:^18.3.1"
     react-dom: "npm:^18.3.1"
+    react-router-dom: "npm:^6.28.2"
     tldraw: "workspace:*"
     typescript: "npm:^5.8.3"
     vite: "npm:^7.0.1"

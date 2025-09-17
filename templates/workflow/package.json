@@ -10,6 +10,12 @@
 	"license": "MIT",
 	"type": "module",
 	"tldraw_template": {
+		"repo": "tldraw/workflow-template",
+		"cli": {
+			"name": "Workflow",
+			"description": "Build visual tools where users drag and connect nodes, think automation builders with a canvas interface.",
+			"shortDescription": "Visual node-based builder for workflows."
+		},
 		"scripts": {
 			"lint": null
 		}

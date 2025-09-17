@@ -7,7 +7,7 @@ export class NavigationPanel {
 	readonly zoomMenuItems: { [key: string]: Locator }
 	constructor(private readonly page: Page) {
 		this.page = page
-		this.minimap = page.getByLabel('minimap')
+		this.minimap = page.getByTestId('minimap.canvas')
 		this.zoomMenuButton = page.getByTestId('minimap.zoom-menu-button')
 		this.toggleButton = page.getByTestId('minimap.toggle-button')
 		this.zoomMenuItems = {

@@ -494,6 +494,10 @@
 	-webkit-user-select: auto !important;
 }
 
+.tlui-input::placeholder {
+	color: var(--tl-color-text-3);
+}
+
 .tlui-input__wrapper {
 	width: 100%;
 	height: 44px;
@@ -576,6 +580,12 @@
 	overscroll-behavior: none;
 	background-color: var(--tl-color-panel);
 	box-shadow: var(--tl-shadow-3);
+}
+
+@media (max-height: 600px) {
+	.tlui-menu {
+		max-height: 70vh;
+	}
 }
 
 .tlui-menu::-webkit-scrollbar {

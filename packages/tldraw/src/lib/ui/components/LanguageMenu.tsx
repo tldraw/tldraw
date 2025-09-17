@@ -18,6 +18,7 @@ export function LanguageMenu() {
 				{LANGUAGES.map(({ locale, label }) => (
 					<TldrawUiMenuCheckboxItem
 						id={`language-${locale}`}
+						lang={locale}
 						key={locale}
 						title={locale}
 						label={label}
