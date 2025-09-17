@@ -41,6 +41,9 @@ export function generateSection(section: InputSection, articles: Articles, index
 	for (const file of files) {
 		const filename = file.toString()
 		if (filename.startsWith('.')) continue
+		if (!isExamplesSection && !filename.endsWith('.mdx') && !filename.endsWith('.md')) {
+			throw new Error(`no non .md / mdx files pls: ${filename}`)
+		}
 
 		// Get the parsed file content using matter
 		const pathname = isExamplesSection
@@ -179,6 +182,7 @@ function getArticleData({
 		author = 'api',
 		status = ArticleStatus.Draft,
 		title = 'Untitled article',
+		sidebarTitle = null,
 		description = null,
 		keywords = [],
 		date = null,
@@ -204,6 +208,7 @@ function getArticleData({
 		categoryId,
 		status,
 		title,
+		sidebarTitle,
 		description,
 		hero,
 		thumbnail,

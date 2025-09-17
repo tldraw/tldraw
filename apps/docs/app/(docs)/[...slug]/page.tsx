@@ -60,17 +60,24 @@ export default async function Page(props: { params: Promise<{ slug: string | str
 				<SearchButton type="docs" layout="mobile" className="hidden -mr-2 sm:block" />
 			</div>
 			{content.article.sectionId === 'examples' ? (
-				<>
-					<main className="relative w-full px-5 pt-12 shrink md:pt-0 min-w-[1px]">
-						<DocsHeader article={content.article} />
-						<Content mdx={content.article.content ?? ''} type={content.article.sectionId} />
-						<Example article={content.article} />
-						<div className="mx-auto w-full max-w-sm">
-							<DocsFeedbackWidget className="mb-12" />
-						</div>
-						<DocsFooter article={content.article} />
-					</main>
-				</>
+				<main className="relative w-full px-5 pt-12 shrink md:pt-0 min-w-[1px]">
+					<DocsHeader article={content.article} />
+					<Content mdx={content.article.content ?? ''} type={content.article.sectionId} />
+					<Example article={content.article} />
+					<div className="mx-auto w-full max-w-sm">
+						<DocsFeedbackWidget className="mb-12" />
+					</div>
+					<DocsFooter article={content.article} />
+				</main>
+			) : content.article.sectionId === 'starter-kits' ? (
+				<main className="relative w-full px-5 pt-12 shrink md:pt-0 min-w-[1px]">
+					<DocsHeader article={content.article} />
+					<Content mdx={content.article.content ?? ''} type={content.article.sectionId} />
+					<div className="mx-auto w-full max-w-sm">
+						<DocsFeedbackWidget className="mb-12" />
+					</div>
+					<DocsFooter article={content.article} />
+				</main>
 			) : (
 				<>
 					<main className="relative w-full max-w-3xl px-5 pt-12 shrink md:pr-0 lg:pl-12 xl:pr-12 md:pt-0 min-w-[1px]">
