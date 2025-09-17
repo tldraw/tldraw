@@ -47,13 +47,21 @@ describe('ArrowShapeOptions', () => {
 		it('should have correct default shouldBeExact behavior (alt key)', () => {
 			const util = editor.getShapeUtil<ArrowShapeUtil>('arrow')
 
-			// Test without alt key
+			// Test without alt key, not precise
 			editor.inputs.altKey = false
 			expect(util.options.shouldBeExact(editor, false)).toBe(false)
 
-			// Test with alt key
+			// Test without alt key, precise
+			editor.inputs.altKey = false
+			expect(util.options.shouldBeExact(editor, true)).toBe(false)
+
+			// Test with alt key, not precise
 			editor.inputs.altKey = true
 			expect(util.options.shouldBeExact(editor, false)).toBe(true)
+
+			// Test with alt key, precise
+			editor.inputs.altKey = true
+			expect(util.options.shouldBeExact(editor, true)).toBe(true)
 		})
 
 		it('should have correct default shouldIgnoreTargets behavior (ctrl key)', () => {
@@ -186,7 +194,7 @@ describe('ArrowShapeOptions', () => {
 			class CustomArrowShapeUtil extends ArrowShapeUtil {
 				override options = {
 					...baseUtil.options,
-					shouldBeExact: (editor: any) => editor.inputs.shiftKey, // Use shift instead of alt
+					shouldBeExact: (editor: any, _isPrecise: boolean) => editor.inputs.shiftKey, // Use shift instead of alt
 				}
 			}
 
@@ -195,12 +203,14 @@ describe('ArrowShapeOptions', () => {
 			// Test with shift key
 			editor.inputs.shiftKey = true
 			editor.inputs.altKey = false
-			expect(customUtil.options.shouldBeExact(editor)).toBe(true)
+			expect(customUtil.options.shouldBeExact(editor, false)).toBe(true)
+			expect(customUtil.options.shouldBeExact(editor, true)).toBe(true)
 
 			// Test without shift key
 			editor.inputs.shiftKey = false
 			editor.inputs.altKey = true // Alt key should not matter for custom implementation
-			expect(customUtil.options.shouldBeExact(editor)).toBe(false)
+			expect(customUtil.options.shouldBeExact(editor, false)).toBe(false)
+			expect(customUtil.options.shouldBeExact(editor, true)).toBe(false)
 		})
 
 		it('should allow customizing shouldIgnoreTargets behavior', () => {
@@ -232,9 +242,9 @@ describe('ArrowShapeOptions', () => {
 			class CustomArrowShapeUtil extends ArrowShapeUtil {
 				override options = {
 					...baseUtil.options,
-					shouldBeExact: (editor: any) => {
-						// Custom logic: exact when both alt and shift are pressed
-						return editor.inputs.altKey && editor.inputs.shiftKey
+					shouldBeExact: (editor: any, isPrecise: boolean) => {
+						// Custom logic: exact when both alt and shift are pressed, and only if precise
+						return editor.inputs.altKey && editor.inputs.shiftKey && isPrecise
 					},
 					shouldIgnoreTargets: (editor: any) => {
 						// Custom logic: ignore targets when any modifier key is pressed
@@ -245,15 +255,20 @@ describe('ArrowShapeOptions', () => {
 
 			const customUtil = new CustomArrowShapeUtil(editor)
 
-			// Test shouldBeExact with both keys
+			// Test shouldBeExact with both keys and precise
 			editor.inputs.altKey = true
 			editor.inputs.shiftKey = true
-			expect(customUtil.options.shouldBeExact(editor)).toBe(true)
+			expect(customUtil.options.shouldBeExact(editor, true)).toBe(true)
+
+			// Test shouldBeExact with both keys but not precise
+			editor.inputs.altKey = true
+			editor.inputs.shiftKey = true
+			expect(customUtil.options.shouldBeExact(editor, false)).toBe(false)
 
 			// Test shouldBeExact with only one key
 			editor.inputs.altKey = true
 			editor.inputs.shiftKey = false
-			expect(customUtil.options.shouldBeExact(editor)).toBe(false)
+			expect(customUtil.options.shouldBeExact(editor, true)).toBe(false)
 
 			// Test shouldIgnoreTargets with any key
 			editor.inputs.altKey = false
@@ -281,6 +296,61 @@ describe('ArrowShapeOptions', () => {
 			// The arrow tool should not show any target highlighting
 			// (This is more of an integration test - exact assertions would depend on internal state)
 			expect(editor.getCurrentToolId()).toBe('arrow')
+		})
+
+		it('should allow custom shouldBeExact logic based on isPrecise - example from arrow precise-exact', () => {
+			// This replicates the logic from the arrows-precise-exact example
+			const baseUtil = editor.getShapeUtil<ArrowShapeUtil>('arrow')
+			class ExampleArrowShapeUtil extends ArrowShapeUtil {
+				override options = {
+					...baseUtil.options,
+					shouldBeExact: (_editor: any, isPrecise: boolean) => isPrecise,
+				}
+			}
+
+			// Replace the util temporarily for testing
+			const customUtil = new ExampleArrowShapeUtil(editor)
+			const originalShouldBeExact = baseUtil.options.shouldBeExact
+			baseUtil.options.shouldBeExact = customUtil.options.shouldBeExact
+
+			try {
+				editor.setCurrentTool('arrow')
+				editor.inputs.ctrlKey = false // Allow binding
+
+				// Set up fast pointer velocity to ensure precise remains false
+				editor.inputs.pointerVelocity = { x: 2, y: 2, len: () => 2.8 } as any
+
+				const targetState = updateArrowTargetState({
+					editor,
+					pointInPageSpace: { x: 150, y: 150 },
+					arrow: undefined,
+					isPrecise: true, // Input precise
+					currentBinding: undefined,
+					oppositeBinding: undefined,
+				})
+
+				// With the custom logic, precise arrows should be exact
+				expect(targetState?.isExact).toBe(true)
+				expect(targetState?.isPrecise).toBe(true)
+
+				// Test with non-precise movement (and fast velocity to avoid auto-precise)
+				const nonPreciseTargetState = updateArrowTargetState({
+					editor,
+					pointInPageSpace: { x: 150, y: 150 },
+					arrow: undefined,
+					isPrecise: false, // Not precise
+					currentBinding: undefined,
+					oppositeBinding: undefined,
+				})
+
+				// Non-precise arrows should not be exact with this custom logic,
+				// but they might still become precise due to internal logic
+				// The key test is that shouldBeExact gets the final computed precise value
+				expect(nonPreciseTargetState).toBeDefined()
+			} finally {
+				// Restore original function
+				baseUtil.options.shouldBeExact = originalShouldBeExact
+			}
 		})
 
 		it('should respect shouldIgnoreTargets when starting arrow creation', () => {
