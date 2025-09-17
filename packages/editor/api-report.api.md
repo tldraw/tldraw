@@ -1780,7 +1780,7 @@ export function getPerfectDashProps(totalLength: number, strokeWidth: number, op
 };
 
 // @public (undocumented)
-export function getPointerInfo(e: PointerEvent | React.PointerEvent): {
+export function getPointerInfo(editor: Editor, e: PointerEvent | React.PointerEvent): {
     accelKey: boolean;
     altKey: boolean;
     button: number;
@@ -2155,7 +2155,7 @@ export class LocalIndexedDb {
 export function loopToHtmlElement(elm: Element): HTMLElement;
 
 // @public
-export function markEventAsHandled(e: {
+export function markEventAsHandled(editor: Editor, e: {
     nativeEvent: Event;
 } | Event): void;
 
@@ -4479,6 +4479,11 @@ export function useLocalStore(options: {
     snapshot?: TLEditorSnapshot | TLStoreSnapshot;
 } & TLStoreOptions): TLStoreWithStatus;
 
+// @public
+export function useMarkEventAsHandled(): (event: {
+    nativeEvent: Event;
+} | Event) => void;
+
 // @public (undocumented)
 export function useMaybeEditor(): Editor | null;
 
@@ -4851,7 +4856,7 @@ export class Vec {
 export type VecLike = Vec | VecModel;
 
 // @public
-export function wasEventAlreadyHandled(e: {
+export function wasEventAlreadyHandled(editor: Editor, e: {
     nativeEvent: Event;
 } | Event): boolean;
 
