@@ -1336,6 +1336,9 @@ export class Editor extends EventEmitter<TLEventMap> {
     isShapeOfType<T extends TLUnknownShape>(shapeId: TLUnknownShape['id'], type: T['type']): shapeId is T['id'];
     isShapeOrAncestorLocked(shape?: TLShape | TLShapeId): boolean;
     loadSnapshot(snapshot: Partial<TLEditorSnapshot> | TLStoreSnapshot, opts?: TLLoadSnapshotOptions): this;
+    markEventAsHandled(e: {
+        nativeEvent: Event;
+    } | Event): void;
     markHistoryStoppingPoint(name?: string): string;
     // (undocumented)
     menus: {
@@ -1509,6 +1512,9 @@ export class Editor extends EventEmitter<TLEventMap> {
     }>;
     readonly user: UserPreferencesManager;
     visitDescendants(parent: TLPage | TLParentId | TLShape, visitor: (id: TLShapeId) => false | void): this;
+    wasEventAlreadyHandled(e: {
+        nativeEvent: Event;
+    } | Event): boolean;
     zoomIn(point?: Vec, opts?: TLCameraMoveOptions): this;
     zoomOut(point?: Vec, opts?: TLCameraMoveOptions): this;
     zoomToBounds(bounds: BoxLike, opts?: {
@@ -1780,7 +1786,7 @@ export function getPerfectDashProps(totalLength: number, strokeWidth: number, op
 };
 
 // @public (undocumented)
-export function getPointerInfo(e: PointerEvent | React.PointerEvent): {
+export function getPointerInfo(editor: Editor, e: PointerEvent | React.PointerEvent): {
     accelKey: boolean;
     altKey: boolean;
     button: number;
@@ -2153,11 +2159,6 @@ export class LocalIndexedDb {
 
 // @public (undocumented)
 export function loopToHtmlElement(elm: Element): HTMLElement;
-
-// @public
-export function markEventAsHandled(e: {
-    nativeEvent: Event;
-} | Event): void;
 
 // @public (undocumented)
 export class Mat {
@@ -4849,11 +4850,6 @@ export class Vec {
 
 // @public (undocumented)
 export type VecLike = Vec | VecModel;
-
-// @public
-export function wasEventAlreadyHandled(e: {
-    nativeEvent: Event;
-} | Event): boolean;
 
 
 export * from "@tldraw/state";

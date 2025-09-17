@@ -2,12 +2,7 @@ import { useValue } from '@tldraw/state-react'
 import { useEffect } from 'react'
 import { Editor } from '../editor/Editor'
 import { TLKeyboardEventInfo } from '../editor/types/event-types'
-import {
-	activeElementShouldCaptureKeys,
-	markEventAsHandled,
-	preventDefault,
-	wasEventAlreadyHandled,
-} from '../utils/dom'
+import { activeElementShouldCaptureKeys, preventDefault } from '../utils/dom'
 import { isAccelKey } from '../utils/keyboard'
 import { useContainer } from './useContainer'
 import { useEditor } from './useEditor'
@@ -108,8 +103,8 @@ export function useDocumentEvents() {
 				preventDefault(e)
 			}
 
-			if (wasEventAlreadyHandled(editor, e)) return
-			markEventAsHandled(editor, e)
+			if (editor.wasEventAlreadyHandled(e)) return
+			editor.markEventAsHandled(e)
 			const hasSelectedShapes = !!editor.getSelectedShapeIds().length
 
 			switch (e.key) {
@@ -216,8 +211,8 @@ export function useDocumentEvents() {
 		}
 
 		const handleKeyUp = (e: KeyboardEvent) => {
-			if (wasEventAlreadyHandled(editor, e)) return
-			markEventAsHandled(editor, e)
+			if (editor.wasEventAlreadyHandled(e)) return
+			editor.markEventAsHandled(e)
 
 			if (areShortcutsDisabled(editor)) {
 				return

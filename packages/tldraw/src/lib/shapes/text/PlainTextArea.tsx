@@ -1,4 +1,4 @@
-import { preventDefault, useMarkEventAsHandled } from '@tldraw/editor'
+import { preventDefault, useEditor } from '@tldraw/editor'
 import React from 'react'
 import { TextAreaProps } from './RichTextArea'
 
@@ -21,10 +21,10 @@ export const PlainTextArea = React.forwardRef<HTMLTextAreaElement, TextAreaProps
 	},
 	ref
 ) {
+	const editor = useEditor()
 	const onChange = (e: React.ChangeEvent<HTMLTextAreaElement>) => {
 		handleChange({ plaintext: e.target.value })
 	}
-	const markEventAsHandled = useMarkEventAsHandled()
 
 	return (
 		<textarea
@@ -47,7 +47,7 @@ export const PlainTextArea = React.forwardRef<HTMLTextAreaElement, TextAreaProps
 			onChange={onChange}
 			onKeyDown={(e) => handleKeyDown(e.nativeEvent)}
 			onBlur={handleBlur}
-			onTouchEnd={markEventAsHandled}
+			onTouchEnd={editor.markEventAsHandled}
 			onContextMenu={isEditing ? (e) => e.stopPropagation() : undefined}
 			onPointerDown={handleInputPointerDown}
 			onPaste={handlePaste}

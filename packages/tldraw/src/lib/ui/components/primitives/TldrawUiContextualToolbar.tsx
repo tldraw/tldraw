@@ -6,7 +6,6 @@ import {
 	react,
 	useAtom,
 	useEditor,
-	useMarkEventAsHandled,
 	usePassThroughMouseOverEvents,
 	usePassThroughWheelEvents,
 	useValue,
@@ -52,7 +51,6 @@ export const TldrawUiContextualToolbar = ({
 }: TLUiContextualToolbarProps) => {
 	const editor = useEditor()
 	const toolbarRef = useRef<HTMLDivElement>(null)
-	const markEventAsHandled = useMarkEventAsHandled()
 
 	usePassThroughWheelEvents(toolbarRef as RefObject<HTMLDivElement>)
 	usePassThroughMouseOverEvents(toolbarRef as RefObject<HTMLDivElement>)
@@ -171,7 +169,7 @@ export const TldrawUiContextualToolbar = ({
 			data-visible={false}
 			data-testid="contextual-toolbar"
 			className={classNames('tlui-contextual-toolbar', className)}
-			onPointerDown={markEventAsHandled}
+			onPointerDown={editor.markEventAsHandled}
 		>
 			<TldrawUiToolbar
 				orientation="horizontal"

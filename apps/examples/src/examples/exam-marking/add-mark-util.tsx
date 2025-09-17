@@ -1,13 +1,5 @@
 import { useEffect, useRef, useState } from 'react'
-import {
-	HTMLContainer,
-	RecordProps,
-	Rectangle2d,
-	ShapeUtil,
-	T,
-	TLBaseShape,
-	useMarkEventAsHandled,
-} from 'tldraw'
+import { HTMLContainer, RecordProps, Rectangle2d, ShapeUtil, T, TLBaseShape } from 'tldraw'
 
 export const EXAM_MARK_WIDTH = 80
 export const EXAM_MARK_HEIGHT = 40
@@ -79,9 +71,6 @@ export class ExamMarkUtil extends ShapeUtil<IExamMarkShape> {
 			}
 		}
 
-		// eslint-disable-next-line react-hooks/rules-of-hooks
-		const markEventAsHandled = useMarkEventAsHandled()
-
 		return (
 			<HTMLContainer id={shape.id}>
 				<div
@@ -109,9 +98,9 @@ export class ExamMarkUtil extends ShapeUtil<IExamMarkShape> {
 						onBlur={() => {
 							this.editor.setEditingShape(null)
 						}}
-						onPointerDown={isEditing ? markEventAsHandled : undefined}
-						onPointerUp={isEditing ? markEventAsHandled : undefined}
-						onPointerMove={isEditing ? markEventAsHandled : undefined}
+						onPointerDown={isEditing ? this.editor.markEventAsHandled : undefined}
+						onPointerUp={isEditing ? this.editor.markEventAsHandled : undefined}
+						onPointerMove={isEditing ? this.editor.markEventAsHandled : undefined}
 					/>
 				</div>
 			</HTMLContainer>

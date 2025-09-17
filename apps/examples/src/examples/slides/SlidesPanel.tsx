@@ -1,4 +1,4 @@
-import { TldrawUiButton, track, useEditor, useMarkEventAsHandled, useValue } from 'tldraw'
+import { TldrawUiButton, track, useEditor, useValue } from 'tldraw'
 import { moveToSlide, useCurrentSlide, useSlides } from './useSlides'
 
 export const SlidesPanel = track(() => {
@@ -6,11 +6,10 @@ export const SlidesPanel = track(() => {
 	const slides = useSlides()
 	const currentSlide = useCurrentSlide()
 	const selectedShapes = useValue('selected shapes', () => editor.getSelectedShapes(), [editor])
-	const markEventAsHandled = useMarkEventAsHandled()
 
 	if (slides.length === 0) return null
 	return (
-		<div className="slides-panel scroll-light" onPointerDown={markEventAsHandled}>
+		<div className="slides-panel scroll-light" onPointerDown={editor.markEventAsHandled}>
 			{slides.map((slide, i) => {
 				const isSelected = selectedShapes.includes(slide)
 				return (

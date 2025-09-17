@@ -17,7 +17,6 @@ import {
 	clamp,
 	createShapeId,
 	useEditor,
-	useMarkEventAsHandled,
 	useUniqueSafeId,
 	useValue,
 	vecModelValidator,
@@ -338,7 +337,6 @@ function ConnectionCenterHandle({
 	center: Vec
 }) {
 	const editor = useEditor()
-	const markEventAsHandled = useMarkEventAsHandled()
 
 	// Only show the center handle when zoomed in and the connection is fully bound
 	const shouldShowCenterHandle = useValue(
@@ -361,7 +359,7 @@ function ConnectionCenterHandle({
 			style={{
 				transform: `translate(${center.x}px, ${center.y}px) scale(max(0.5, calc(1 / var(--tl-zoom))))`,
 			}}
-			onPointerDown={markEventAsHandled}
+			onPointerDown={editor.markEventAsHandled}
 			onClick={() => {
 				insertNodeWithinConnection(editor, connection, 'vertical')
 			}}

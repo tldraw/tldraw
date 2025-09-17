@@ -1,12 +1,7 @@
 import { TLArrowShape, TLLineShape, TLShapeId } from '@tldraw/tlschema'
 import * as React from 'react'
 import { Editor } from '../editor/Editor'
-import {
-	loopToHtmlElement,
-	releasePointerCapture,
-	setPointerCapture,
-	wasEventAlreadyHandled,
-} from '../utils/dom'
+import { loopToHtmlElement, releasePointerCapture, setPointerCapture } from '../utils/dom'
 import { getPointerInfo } from '../utils/getPointerInfo'
 import { useEditor } from './useEditor'
 
@@ -21,7 +16,7 @@ export function useHandleEvents(id: TLShapeId, handleId: string) {
 
 	return React.useMemo(() => {
 		const onPointerDown = (e: React.PointerEvent) => {
-			if (wasEventAlreadyHandled(editor, e)) return
+			if (editor.wasEventAlreadyHandled(e)) return
 
 			// Must set pointer capture on an HTML element!
 			const target = loopToHtmlElement(e.currentTarget)
@@ -45,7 +40,7 @@ export function useHandleEvents(id: TLShapeId, handleId: string) {
 		let lastX: number, lastY: number
 
 		const onPointerMove = (e: React.PointerEvent) => {
-			if (wasEventAlreadyHandled(editor, e)) return
+			if (editor.wasEventAlreadyHandled(e)) return
 			if (e.clientX === lastX && e.clientY === lastY) return
 			lastX = e.clientX
 			lastY = e.clientY
@@ -65,7 +60,7 @@ export function useHandleEvents(id: TLShapeId, handleId: string) {
 		}
 
 		const onPointerUp = (e: React.PointerEvent) => {
-			if (wasEventAlreadyHandled(editor, e)) return
+			if (editor.wasEventAlreadyHandled(e)) return
 
 			const target = loopToHtmlElement(e.currentTarget)
 			releasePointerCapture(target, e)

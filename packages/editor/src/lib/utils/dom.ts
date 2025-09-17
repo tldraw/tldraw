@@ -13,10 +13,7 @@ if the user clicks on a handle but the pointerup does not fire for
 whatever reason.
 */
 
-import { WeakCache } from '@tldraw/utils'
-import React, { useCallback } from 'react'
-import { Editor } from '../editor/Editor'
-import { useEditor } from '../hooks/useEditor'
+import React from 'react'
 import { debugFlags, pointerCaptureTrackingObject } from './debug-flags'
 
 /** @public */
@@ -84,56 +81,12 @@ export function releasePointerCapture(
 /**
  * Calls `event.stopPropagation()`.
  *
- * @deprecated Use {@link markEventAsHandled} instead, or manually call `event.stopPropagation()` if
+ * @deprecated Use {@link Editor.markEventAsHandled} instead, or manually call `event.stopPropagation()` if
  * that's what you really want.
  *
  * @public
  */
 export const stopEventPropagation = (e: any) => e.stopPropagation()
-
-const handledEvents = new WeakCache<Editor, WeakSet<Event>>()
-
-/**
- * In tldraw, events are sometimes handled by multiple components. For example, the shapes might
- * have events, but the canvas handles events too. The way that the canvas handles events can
- * interfere with the with the shapes event handlers - for example, it calls `.preventDefault()` on
- * `pointerDown`, which also prevents `click` events from firing on the shapes.
- *
- * You can use `.stopPropagation()` to prevent the event from propagating to the rest of the DOM,
- * but that can impact non-tldraw event handlers set up elsewhere. By using `markEventAsHandled`,
- * you'll stop other parts of tldraw from handling the event without impacting other, non-tldraw
- * event handlers. See also {@link wasEventAlreadyHandled}.
- *
- * @public
- */
-export function markEventAsHandled(editor: Editor, e: Event | { nativeEvent: Event }) {
-	const nativeEvent = 'nativeEvent' in e ? e.nativeEvent : e
-	handledEvents.get(editor, () => new WeakSet<Event>()).add(nativeEvent)
-}
-
-/**
- * Checks if an event has already been handled. See {@link markEventAsHandled}.
- *
- * @public
- */
-export function wasEventAlreadyHandled(editor: Editor, e: Event | { nativeEvent: Event }) {
-	const nativeEvent = 'nativeEvent' in e ? e.nativeEvent : e
-	return handledEvents.get(editor, () => new WeakSet<Event>()).has(nativeEvent)
-}
-
-/**
- * Create a {@link markEventAsHandled} function that is scoped to a specific editor.
- * @public
- */
-export function useMarkEventAsHandled() {
-	const editor = useEditor()
-	return useCallback(
-		(event: Event | { nativeEvent: Event }) => {
-			markEventAsHandled(editor, event)
-		},
-		[editor]
-	)
-}
 
 /** @internal */
 export const setStyleProperty = (

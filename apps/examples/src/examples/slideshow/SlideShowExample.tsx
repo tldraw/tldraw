@@ -1,13 +1,5 @@
 import { useEffect, useState } from 'react'
-import {
-	Editor,
-	TLFrameShape,
-	Tldraw,
-	createShapeId,
-	transact,
-	useMarkEventAsHandled,
-	useValue,
-} from 'tldraw'
+import { Editor, TLFrameShape, Tldraw, createShapeId, transact, useEditor, useValue } from 'tldraw'
 import 'tldraw/tldraw.css'
 import { SLIDE_MARGIN, SLIDE_SIZE, SlidesProvider, useSlides } from './SlidesManager'
 
@@ -133,8 +125,8 @@ function InsideSlidesContext() {
 }
 
 function Slides() {
+	const editor = useEditor()
 	const slides = useSlides()
-	const markEventAsHandled = useMarkEventAsHandled()
 	const currentSlides = useValue('slides', () => slides.getCurrentSlides(), [slides])
 	const lowestIndex = currentSlides[0].index
 	const highestIndex = currentSlides[currentSlides.length - 1].index
@@ -173,7 +165,7 @@ function Slides() {
 						height: 40,
 						pointerEvents: 'all',
 					}}
-					onPointerDown={markEventAsHandled}
+					onPointerDown={editor.markEventAsHandled}
 					onClick={() => {
 						const newSlide = slides.newSlide(slide.index + 1)
 						slides.setCurrentSlide(newSlide.id)
@@ -191,7 +183,7 @@ function Slides() {
 					height: 40,
 					pointerEvents: 'all',
 				}}
-				onPointerDown={markEventAsHandled}
+				onPointerDown={editor.markEventAsHandled}
 				onClick={() => {
 					const slide = slides.newSlide(lowestIndex - 1)
 					slides.setCurrentSlide(slide.id)
@@ -208,7 +200,7 @@ function Slides() {
 					height: 40,
 					pointerEvents: 'all',
 				}}
-				onPointerDown={markEventAsHandled}
+				onPointerDown={editor.markEventAsHandled}
 				onClick={() => {
 					const slide = slides.newSlide(highestIndex + 1)
 					slides.setCurrentSlide(slide.id)
@@ -222,7 +214,7 @@ function Slides() {
 
 function SlideControls() {
 	const slides = useSlides()
-	const markEventAsHandled = useMarkEventAsHandled()
+	const editor = useEditor()
 
 	return (
 		<>
@@ -235,7 +227,7 @@ function SlideControls() {
 					width: 50,
 					height: 50,
 				}}
-				onPointerDown={markEventAsHandled}
+				onPointerDown={editor.markEventAsHandled}
 				onClick={() => slides.prevSlide()}
 			>
 				{`<`}
@@ -249,7 +241,7 @@ function SlideControls() {
 					width: 50,
 					height: 50,
 				}}
-				onPointerDown={markEventAsHandled}
+				onPointerDown={editor.markEventAsHandled}
 				onClick={() => slides.nextSlide()}
 			>
 				{`>`}
