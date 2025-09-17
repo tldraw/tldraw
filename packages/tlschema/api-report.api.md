@@ -402,7 +402,7 @@ export function isShape(record?: UnknownRecord): record is TLShape;
 // @public
 export function isShapeId(id?: string): id is TLShapeId;
 
-// @public
+// @public (undocumented)
 export const LANGUAGES: readonly [{
     readonly label: "Bahasa Indonesia";
     readonly locale: "id";

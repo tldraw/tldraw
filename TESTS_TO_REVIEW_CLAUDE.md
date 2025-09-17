@@ -178,6 +178,8 @@
 
 🚨 Needs human review! `it.fails` shows `createSentry` doesn’t honor the documented “undefined means development” behavior and still calls `requiredEnv` when both `SENTRY_DSN` and `TLDRAW_ENV` are unset.
 
+    🤠 human review: deleted test and removed outdated comment that claude based the test on
+
 ### packages/sync-core/src/lib/ClientWebSocketAdapter.test.ts
 
 🚨 Needs human review! Several `it.fails` cases note missing reconnection behaviors (exponential backoff bounds, visibility-based delays, navigator.connection reactions) in `ReconnectManager`.
