@@ -35,6 +35,7 @@ export interface TLUiInputProps {
 	shouldManuallyMaintainScrollPositionWhenFocused?: boolean
 	value?: string
 	'data-testid'?: string
+	'aria-label'?: string
 }
 
 /** @public @react */
@@ -60,6 +61,7 @@ export const TldrawUiInput = React.forwardRef<HTMLInputElement, TLUiInputProps>(
 			value,
 			'data-testid': dataTestId,
 			disabled,
+			'aria-label': ariaLabel,
 		},
 		ref
 	) {
@@ -198,6 +200,7 @@ export const TldrawUiInput = React.forwardRef<HTMLInputElement, TLUiInputProps>(
 					onCompositionStart={handleCompositionStart}
 					onCompositionEnd={handleCompositionEnd}
 					autoFocus={autoFocus}
+					aria-label={ariaLabel}
 					placeholder={placeholder}
 					value={value}
 					data-testid={dataTestId}
