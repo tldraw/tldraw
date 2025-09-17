@@ -113,7 +113,7 @@ function migrateSnapshot(data: { version: number; user: any }) {
 	}
 
 	if (data.version < Versions.AddPointerPeripheral) {
-		data.user.isTrackpad = null
+		data.user.inputMode = null
 	}
 
 	// finally
