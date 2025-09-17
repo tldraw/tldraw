@@ -1,0 +1,151 @@
+# Tests to review
+
+- [x] packages/state/src/lib/**tests**/arraySet.test.ts
+- [x] packages/state/src/lib/**tests**/atom.test.ts
+- [x] packages/state/src/lib/**tests**/capture.test.ts
+- [x] packages/state/src/lib/**tests**/computed.test.ts
+- [x] packages/state/src/lib/**tests**/constants.test.ts
+- [x] packages/state/src/lib/**tests**/EffectScheduler.test.ts
+- [x] packages/state/src/lib/**tests**/helpers.test.ts
+- [x] packages/state/src/lib/**tests**/HistoryBuffer.test.ts
+- [x] packages/state/src/lib/**tests**/isSignal.test.ts
+- [x] packages/state/src/lib/**tests**/transactions.test.ts
+- [x] packages/state/src/lib/**tests**/types.test.ts
+- [x] packages/state/src/lib/**tests**/warnings.test.ts
+- [x] packages/store/src/lib/BaseRecord.test.ts
+- [x] packages/store/src/lib/devFreeze.test.ts
+- [x] packages/store/src/lib/executeQuery.test.ts
+- [x] packages/store/src/lib/ImmutableMap.test.ts
+- [x] packages/store/src/lib/IncrementalSetConstructor.test.ts
+- [x] packages/store/src/lib/migrate.test.ts
+- [x] packages/store/src/lib/RecordsDiff.test.ts
+- [x] packages/store/src/lib/setUtils.test.ts
+- [x] packages/store/src/lib/Store.test.ts
+- [x] packages/store/src/lib/StoreQueries.test.ts
+- [x] packages/store/src/lib/StoreSchema.test.ts
+- [x] packages/store/src/lib/test/AtomMap.test.ts
+- [x] packages/store/src/lib/test/recordType.test.ts
+- [x] packages/sync-core/src/lib/ClientWebSocketAdapter.test.ts
+- [x] packages/sync-core/src/lib/findMin.test.ts
+- [x] packages/sync-core/src/lib/protocol.test.ts
+- [x] packages/sync-core/src/lib/RoomSession.test.ts
+- [x] packages/sync-core/src/lib/server-types.test.ts
+- [x] packages/sync-core/src/lib/ServerSocketAdapter.test.ts
+- [x] packages/sync-core/src/lib/TLRemoteSyncError.test.ts
+- [x] packages/sync-core/src/lib/TLSyncClient.test.ts
+- [x] packages/sync-core/src/test/chunk.test.ts
+- [x] packages/sync-core/src/test/diff.test.ts
+- [x] packages/sync-core/src/test/TLSocketRoom.test.ts
+- [x] packages/sync-core/src/test/TLSyncRoom.test.ts
+- [x] packages/sync/src/useSync.test.ts
+- [x] packages/sync/src/useSyncDemo.test.ts
+- [x] packages/tlschema/src/assets/TLBaseAsset.test.ts
+- [x] packages/tlschema/src/assets/TLBookmarkAsset.test.ts
+- [x] packages/tlschema/src/assets/TLImageAsset.test.ts
+- [x] packages/tlschema/src/assets/TLVideoAsset.test.ts
+- [x] packages/tlschema/src/bindings/TLArrowBinding.test.ts
+- [x] packages/tlschema/src/bindings/TLBaseBinding.test.ts
+- [x] packages/tlschema/src/createPresenceStateDerivation.test.ts
+- [x] packages/tlschema/src/createTLSchema.test.ts
+- [x] packages/tlschema/src/misc/geometry-types.test.ts
+- [x] packages/tlschema/src/misc/id-validator.test.ts
+- [x] packages/tlschema/src/misc/TLColor.test.ts
+- [x] packages/tlschema/src/misc/TLCursor.test.ts
+- [x] packages/tlschema/src/misc/TLHandle.test.ts
+- [x] packages/tlschema/src/misc/TLOpacity.test.ts
+- [x] packages/tlschema/src/misc/TLScribble.test.ts
+- [x] packages/tlschema/src/records/TLAsset.test.ts
+- [x] packages/tlschema/src/records/TLBinding.test.ts
+- [x] packages/tlschema/src/records/TLCamera.test.ts
+- [x] packages/tlschema/src/records/TLDocument.test.ts
+- [x] packages/tlschema/src/records/TLInstance.test.ts
+- [x] packages/tlschema/src/records/TLPage.test.ts
+- [x] packages/tlschema/src/records/TLPageState.test.ts
+- [x] packages/tlschema/src/records/TLPointer.test.ts
+- [x] packages/tlschema/src/records/TLPresence.test.ts
+- [x] packages/tlschema/src/records/TLRecord.test.ts
+- [x] packages/tlschema/src/records/TLShape.test.ts
+- [x] packages/tlschema/src/recordsWithProps.test.ts
+- [x] packages/tlschema/src/shapes/ShapeWithCrop.test.ts
+- [x] packages/tlschema/src/shapes/TLArrowShape.test.ts
+- [x] packages/tlschema/src/shapes/TLBaseShape.test.ts
+- [x] packages/tlschema/src/shapes/TLBookmarkShape.test.ts
+- [x] packages/tlschema/src/shapes/TLDrawShape.test.ts
+- [x] packages/tlschema/src/shapes/TLEmbedShape.test.ts
+- [x] packages/tlschema/src/shapes/TLFrameShape.test.ts
+- [x] packages/tlschema/src/shapes/TLGeoShape.test.ts
+- [x] packages/tlschema/src/shapes/TLGroupShape.test.ts
+- [x] packages/tlschema/src/shapes/TLHighlightShape.test.ts
+- [x] packages/tlschema/src/shapes/TLImageShape.test.ts
+- [x] packages/tlschema/src/shapes/TLLineShape.test.ts
+- [x] packages/tlschema/src/shapes/TLNoteShape.test.ts
+- [x] packages/tlschema/src/shapes/TLTextShape.test.ts
+- [x] packages/tlschema/src/shapes/TLVideoShape.test.ts
+- [x] packages/tlschema/src/store-migrations.test.ts
+- [x] packages/tlschema/src/styles/StyleProp.test.ts
+- [x] packages/tlschema/src/styles/TLColorStyle.test.ts
+- [x] packages/tlschema/src/styles/TLDashStyle.test.ts
+- [x] packages/tlschema/src/styles/TLFillStyle.test.ts
+- [x] packages/tlschema/src/styles/TLFontStyle.test.ts
+- [x] packages/tlschema/src/styles/TLHorizontalAlignStyle.test.ts
+- [x] packages/tlschema/src/styles/TLSizeStyle.test.ts
+- [x] packages/tlschema/src/styles/TLTextAlignStyle.test.ts
+- [x] packages/tlschema/src/styles/TLVerticalAlignStyle.test.ts
+- [x] packages/tlschema/src/TLStore.test.ts
+- [x] packages/tlschema/src/translations/languages.test.ts
+- [x] packages/tlschema/src/translations/translations.test.ts
+- [x] packages/tlschema/src/util-types.test.ts
+- [x] packages/utils/src/lib/array.test.ts
+- [x] packages/utils/src/lib/bind.test.ts
+- [x] packages/utils/src/lib/cache.test.ts
+- [x] packages/utils/src/lib/control.test.ts
+- [x] packages/utils/src/lib/error.test.ts
+- [x] packages/utils/src/lib/file.test.ts
+- [x] packages/utils/src/lib/function.test.ts
+- [x] packages/utils/src/lib/hash.test.ts
+- [x] packages/utils/src/lib/id.test.ts
+- [x] packages/utils/src/lib/iterable.test.ts
+- [x] packages/utils/src/lib/json-value.test.ts
+- [x] packages/utils/src/lib/media/apng.test.ts
+- [x] packages/utils/src/lib/media/avif.test.ts
+- [x] packages/utils/src/lib/media/gif.test.ts
+- [x] packages/utils/src/lib/media/media.test.ts
+- [x] packages/utils/src/lib/media/webp.test.ts
+- [x] packages/utils/src/lib/network.test.ts
+- [x] packages/utils/src/lib/number.test.ts
+- [x] packages/utils/src/lib/object.test.ts
+- [x] packages/utils/src/lib/perf.test.ts
+- [x] packages/utils/src/lib/PerformanceTracker.test.ts
+- [x] packages/utils/src/lib/reordering.test.ts
+- [x] packages/utils/src/lib/retry.test.ts
+- [x] packages/utils/src/lib/sort.test.ts
+- [x] packages/utils/src/lib/storage.test.ts
+- [x] packages/utils/src/lib/stringEnum.test.ts
+- [x] packages/utils/src/lib/throttle.test.ts
+- [x] packages/utils/src/lib/timers.test.ts
+- [x] packages/utils/src/lib/types.test.ts
+- [x] packages/utils/src/lib/url.test.ts
+- [x] packages/utils/src/lib/value.test.ts
+- [x] packages/utils/src/lib/version.test.ts
+- [x] packages/utils/src/lib/warn.test.ts
+- [x] packages/validate/src/test/validation.test.ts
+- [x] packages/worker-shared/src/bookmarks.test.ts
+- [x] packages/worker-shared/src/env.test.ts
+- [x] packages/worker-shared/src/errors.test.ts
+- [x] packages/worker-shared/src/handleRequest.test.ts
+- [x] packages/worker-shared/src/sentry.test.ts
+- [x] packages/worker-shared/src/userAssetUploads.test.ts
+
+## Needs Human Review
+
+- `packages/tlschema/src/TLStore.test.ts`: Reimplements the private `sortByIndex` helper inline and uses a placeholder assertion for `redactRecordForErrorReporting`, so the tests never exercise the actual implementation.
+- `packages/utils/src/lib/media/webp.test.ts`: Copies the unexported `isWebp` helper into the test suite; any regressions in the real function would go unnoticed because the duplicated logic always passes.
+- `packages/state/src/lib/__tests__/arraySet.test.ts`: Multiple `it.fails` cases document real bugs where `ArraySet.visit`/iterator drop `undefined` entries—confirmed against the implementation.
+- `packages/state/src/lib/__tests__/computed.test.ts`: `it.fails` documents that `isComputed(null/undefined)` returns the input instead of `false` due to a truthy check in `Computed.ts`.
+- `packages/tlschema/src/translations/translations.test.ts`: `it.fails` highlights that `getDefaultTranslationLocale` crashes when `window.navigator` is undefined because the implementation dereferences `navigator` before null checks.
+- `packages/worker-shared/src/sentry.test.ts`: `it.fails` shows `createSentry` doesn’t honor the documented “undefined means development” behavior and still calls `requiredEnv` when both `SENTRY_DSN` and `TLDRAW_ENV` are unset.
+- `packages/sync-core/src/lib/ClientWebSocketAdapter.test.ts`: Several `it.fails` cases note missing reconnection behaviors (exponential backoff bounds, visibility-based delays, navigator.connection reactions) in `ReconnectManager`.
+- `packages/sync-core/src/lib/TLSyncClient.test.ts`: Multiple `it.fails` cases mark gaps in handling old connect responses and `push_result` actions (rebase/discard/commit) in `TLSyncClient`.
+- `packages/tlschema/src/createTLSchema.test.ts`: `test.fails` indicates `createTLSchema` does not validate the shape of custom schema props, so malformed definitions go through silently.
+- `packages/utils/src/lib/timers.test.ts`: Test fixtures mirror the implementation’s argument-packing bug and sidestep `disposeAll` gaps by giving every interval/raf a timeout context, so regressions in real usage would sail through.
+- `packages/utils/src/lib/version.test.ts`: The “package manager deduplication” scenario asserts we should warn on identical version triple-registrations, locking in the duplicate-detection bug instead of catching it.
