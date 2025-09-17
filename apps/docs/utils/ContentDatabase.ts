@@ -262,7 +262,7 @@ export class ContentDatabase {
 							const sidebarArticleLink: SidebarContentArticleLink = {
 								type: 'article',
 								articleId: article.id,
-								title: article.title,
+								title: article.sidebarTitle ?? article.title,
 								url: article.path,
 								groupId: article.groupId,
 							}
