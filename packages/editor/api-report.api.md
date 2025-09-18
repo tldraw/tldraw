@@ -2080,7 +2080,7 @@ export interface LicenseInfo {
 
 // @internal (undocumented)
 export class LicenseManager {
-    constructor(licenseKey: string | undefined, testPublicKey?: string, testEnvironment?: TestEnvironment);
+    constructor(licenseKey: string | undefined, testPublicKey?: string);
     // (undocumented)
     static className: string;
     // (undocumented)
@@ -2880,9 +2880,6 @@ export const Table: {
     readonly Schema: "schema";
     readonly SessionState: "session_state";
 };
-
-// @internal (undocumented)
-export type TestEnvironment = 'development' | 'production';
 
 // @public (undocumented)
 export class TextManager {
