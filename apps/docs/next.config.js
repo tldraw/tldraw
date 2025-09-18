@@ -168,7 +168,11 @@ const nextConfig = {
 					destination: `https://${REWRITE_DOMAIN}/blog/category/release-notes`,
 				},
 				{
-					source: '/blog/:path*',
+					source: '/blog',
+					destination: `https://${REWRITE_DOMAIN}/blog`,
+				},
+				{
+					source: '/blog/:path+',
 					destination: `https://${REWRITE_DOMAIN}/blog/:path*`,
 				},
 				{
