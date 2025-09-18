@@ -727,6 +727,7 @@ export const defaultUserPreferences: Readonly<{
     color: "#02B1CC" | "#11B3A3" | "#39B178" | "#55B467" | "#7B66DC" | "#9D5BD2" | "#BD54C6" | "#E34BA9" | "#EC5E41" | "#F04F88" | "#F2555A" | "#FF802B";
     colorScheme: "light";
     edgeScrollSpeed: 1;
+    inputMode: null;
     isDynamicSizeMode: false;
     isPasteAtCursorMode: false;
     isSnapMode: false;
@@ -4349,6 +4350,8 @@ export interface TLUserPreferences {
     // (undocumented)
     id: string;
     // (undocumented)
+    inputMode?: 'mouse' | 'trackpad' | null;
+    // (undocumented)
     isDynamicSizeMode?: boolean | null;
     // (undocumented)
     isPasteAtCursorMode?: boolean | null;
@@ -4524,6 +4527,8 @@ export class UserPreferencesManager {
     // (undocumented)
     getId(): string;
     // (undocumented)
+    getInputMode(): "mouse" | "trackpad" | null;
+    // (undocumented)
     getIsDarkMode(): boolean;
     // (undocumented)
     getIsDynamicResizeMode(): boolean;
@@ -4546,6 +4551,7 @@ export class UserPreferencesManager {
         color: string;
         colorScheme: "dark" | "light" | "system" | undefined;
         id: string;
+        inputMode: "mouse" | "trackpad" | null;
         isDarkMode: boolean;
         isDynamicResizeMode: boolean;
         isSnapMode: boolean;

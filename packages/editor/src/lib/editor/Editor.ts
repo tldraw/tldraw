@@ -10334,7 +10334,14 @@ export class Editor extends EventEmitter<TLEventMap> {
 
 				this._updateInputsFromEvent(info)
 
-				const { panSpeed, zoomSpeed, wheelBehavior } = cameraOptions
+				const { panSpeed, zoomSpeed } = cameraOptions
+				let wheelBehavior = cameraOptions.wheelBehavior
+				const inputMode = this.user.getUserPreferences().inputMode
+
+				// If the user has set their input mode preference, then use that to determine the wheel behavior
+				if (inputMode !== null) {
+					wheelBehavior = inputMode === 'trackpad' ? 'pan' : 'zoom'
+				}
 
 				if (wheelBehavior !== 'none') {
 					// Stop any camera animation

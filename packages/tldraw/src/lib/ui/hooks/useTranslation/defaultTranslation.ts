@@ -3,6 +3,11 @@
 
 /** @internal */
 export const DEFAULT_TRANSLATION = {
+	'action.toggle-auto-pan': 'Auto (trackpad)',
+	'action.toggle-auto-zoom': 'Auto (mouse)',
+	'action.toggle-auto-none': 'Auto',
+	'action.toggle-mouse': 'Mouse',
+	'action.toggle-trackpad': 'Trackpad',
 	'action.convert-to-bookmark': 'Convert to Bookmark',
 	'action.convert-to-embed': 'Convert to Embed',
 	'action.open-embed-link': 'Open link',
@@ -312,6 +317,7 @@ export const DEFAULT_TRANSLATION = {
 	'menu.language': 'Language',
 	'menu.preferences': 'Preferences',
 	'menu.view': 'View',
+	'menu.input-mode': 'Input mode',
 	'context-menu.title': 'Context menu',
 	'context-menu.edit': 'Edit',
 	'context-menu.arrange': 'Arrange',

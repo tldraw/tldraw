@@ -3,6 +3,11 @@
 
 /** @public */
 export type TLUiTranslationKey =
+	| 'action.toggle-auto-pan'
+	| 'action.toggle-auto-zoom'
+	| 'action.toggle-auto-none'
+	| 'action.toggle-mouse'
+	| 'action.toggle-trackpad'
 	| 'action.convert-to-bookmark'
 	| 'action.convert-to-embed'
 	| 'action.open-embed-link'
@@ -311,6 +316,7 @@ export type TLUiTranslationKey =
 	| 'menu.language'
 	| 'menu.preferences'
 	| 'menu.view'
+	| 'menu.input-mode'
 	| 'context-menu.title'
 	| 'context-menu.edit'
 	| 'context-menu.arrange'
