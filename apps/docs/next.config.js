@@ -138,6 +138,21 @@ const nextConfig = {
 				destination: '/releases',
 				permanent: true,
 			},
+			{
+				source: '/jobs',
+				destination: '/careers',
+				permanent: true,
+			},
+			{
+				source: '/legal/cla',
+				destination: '/legal/contributor-license-agreement',
+				permanent: true,
+			},
+			{
+				source: '/legal/trademarks',
+				destination: '/legal/trademark-guidelines',
+				permanent: true,
+			},
 		]
 	},
 	async rewrites() {
