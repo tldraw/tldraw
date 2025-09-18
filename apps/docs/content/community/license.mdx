@@ -6,139 +6,64 @@ date: 9/13/2023
 order: 2
 ---
 
-tldraw's source code and distributed packages (the tldraw SDK) are provided under the [tldraw license](/legal/tldraw-license). Our licensing model supports different use cases, from local development to commercial applications and hobby projects.
+This article is about the [tldraw license](/legal/tldraw-license). The tldraw SDK's source code and published packages are provided under the tldraw license.
 
-## License types at a glance
+Under its default terms, the tldraw SDK license permits use **only in development**.
 
-- **Default license** - Free for local development with watermark.
-- **Trial license** - 100 days free for production environments.
-- **Commercial license** - Full commercial rights for production environments.
-- **Hobby license** - Free for non-commercial hosted projects with watermark (by application).
+To use the tldraw SDK **in production**, you need either a:
 
-For more information, visit the [pricing page](/pricing).
+- [trial license](#trial-license) for evaluation;
+- [commercial license](#commercial-license) for commercial projects; or a
+- [hobby license](#hobby-license) for non-commercial projects.
 
----
+The SDK enforces its license using [license keys](#license-keys).
 
-## How to request your license key
+Trial, commercial, and hobby licenses each come with a license key. The SDK will work in production only when provided with a valid and active license key. See the [License Keys](#license-keys) section for more information about license keys.
 
-Requesting license key depends on the license type:
+### Trial license
 
-- **Default license** - No license needed.
-- **Trial license** - Fill out a [Trial License form](/get-a-license/trial) and we will email you a license key.
-- **Commercial license** - Speak with our [sales team](/get-a-license/plans) to determine your product needs.
-- **Hobby license** - Fill out a [Hobby License form](/get-a-license/hobby) and we will get in touch.
+You can get a free 100-day trial license by completing [this form](https://tldraw.dev/get-a-license/trial). When you submit the form, we will immediately begin your free trial and email you a [license key](#license-keys). You are allowed only one trial license per commercial unit. Please do not abuse trial licenses and tell your friends not to, either. During your trial, we [collect information](#data-collection) about where the SDK is used.
 
----
+The license key will stop working when the trial ends. If you wish to continue using tldraw in production after this date, you will need to get either a [commercial license](#commercial-license) or a [hobby license](#hobby-license).
 
-## How to use your license key
+### Commercial license
 
-License keys control functionality and remove watermarks in production environments. Here's how to integrate them:
+You can request a commercial license by completing [this form](https://tldraw.dev/get-a-license/plans). When you submit the form, our sales team will be in touch to learn about your requirements and discuss pricing. If your company has less than ten people, and if you have no special requirements, the price for a commercial license is $6000.
 
-### Basic integration
+### Hobby license
+
+For non-commercial projects, education projects, and small projects, we also provide a discretionary hobby license. You can request a hobby license by completing [this form](https://tldraw.dev/get-a-license/hobby). When you submit the form, our team may issue a license or reach out to learn about your project. When using the tldraw SDK under a hobby license, the "made with tldraw" watermark must be shown on the canvas.
+
+## License keys
+
+The tldraw SDK enforces its license using **license keys**.
+
+When you receive a trial, commercial, or hobby license, you will also receive a public license key that encodes information about your license. You can provide this license key to the SDK as shown below.
 
 ```tsx
-<Tldraw
-	licenseKey={process.env.TLDRAW_LICENSE_KEY}
-	// ... other props
-/>
+const myLicenseKey = 'tldraw-***********************'
+
+function App() {
+	return <Tldraw licenseKey={yourLicenseKey} />
+}
 ```
 
-### Key management best practices
+License keys are validated **on the client**. You can use them offline.
 
-- Store keys as environment variables, not in source code.
-- Monitor key expiration dates in your deployment pipeline.
+It safe for license keys to be public. Business and Hobby license keys will only work on pre-agreed domains. Trial license keys will work on any domain.
 
----
+The tldraw SDK will not work in production without a valid license key.
 
-## License key mechanics
+## Data collection
 
-### Technical enforcement
+When using the tldraw SDK under a commercial or hobby license, no information is sent to tldraw.
 
-The SDK includes built-in validation that:
+When using the tldraw SDK in production under a trial license, the tldraw SDK will ping tldraw's servers with a hash of the license key. This information is primarily for analytics purposes. No user data, canvas contents, or personally-identifiable information (PII) is sent or saved.
 
-- Verifies license key authenticity and expiration.
-- Detects whether you're running locally or in a production environment.
-- Based on license type, enforces watermark display.
-- If applicable, checks that it is being used on a valid domain.
+## Notes on Open Source
 
-### Validation process
+While the tldraw SDK is [source available](https://github.com/tldraw/tldraw), it is not permissively licensed. Many of our examples and demos are available under an MIT licenses, and you should feel free to use this code as if it were your own; however the any source code or packages licensed by the tldraw SDK would not be [Open Source](https://opensource.org/osd) by any definition.
 
-Validation happens client-side during SDK initialization:
+If you wish to include tldraw in an open source project, you may do so but the SDK itself must remain under its original license. This means that you and your down-stream users will require their own trial, commercial, or hobby license in order to use the SDK in production. In this case, please also see our [trademark guidelines](https://staging.tldraw.dev/legal/trademark-guidelines) that limit the use of the tldraw name and branding.
 
-1. Key format and signature verification.
-2. Expiration date checking.
-3. Environment type detection (local vs hosted).
-
----
-
-## Special conditions and requirements
-
-### Environment detection
-
-The SDK automatically detects your deployment environment:
-
-- **Development environment**: Single computer without network deployment.
-- **Production environment**: Servers, cloud platforms, or web applications.
-
-The SDK also works in offline mode.
-
-### Watermark requirements
-
-- Default and Hobby licenses must display the tldraw watermark.
-- You cannot disable, hide, remove, or alter the watermark under Default license.
-- Trial and Commercial licenses remove the watermark requirement.
-
-### Domain and usage restrictions
-
-- License keys may include domain restrictions (check your specific license terms).
-- You cannot distribute the SDK as a standalone product.
-- You cannot sublicense, rent, lease, or transfer license rights.
-- Must preserve all copyright and proprietary notices.
-
-### Trial Restrictions
-
-- Business Units are limited to one Trial License period unless otherwise approved by tldraw in writing.
-- The Trial License Key is requested in a self-service portal [LINK] and automatically expires after one hundred (100) days from day of issuance, at which point the Software will cease to function unless an active license key is implemented.
-
-### Offline usage
-
-No license requires network connectivity
-
-- Initial validation happens during SDK initialization.
-- In case of the watermark, a single fetch is sent for the watermark svg but the license would still work if the fetch would fail.
-
----
-
-## FAQ
-
-### What happens if I don't have a valid key?
-
-Without a valid key in production environments, the SDK will not function at all.
-
-### Can I use the key in development and test environments?
-
-Yes, license keys work across development, staging, and production environments. However, we do have domain restrictions in place, so if your environments have different domains, they need to be included in the licensed domains.
-
-### What should I do when my license is expiring?
-
-In order for tldraw SDK to function in production environments, the license key is needed. Reach out to the team who will help you get set up with the appropriate next license. To ensure uninterrupted service please reach out at least 30 days before your license key expires.
-
----
-
-## Legal and trademark notice
-
-### Ownership and rights
-
-tldraw retains all intellectual property rights to the SDK. This license grants you only the specific usage rights described [in the license](/legal/tldraw-license). All rights not expressly granted are reserved by tldraw.
-
-### Trademark usage
-
-The tldraw name, logo, and trademarks remain property of tldraw, Inc. Your license does not grant trademark usage rights beyond the required watermark display. See our [trademark policy](https://github.com/tldraw/tldraw/blob/main/TRADEMARKS.md) for more information.
-
----
-
-## Related resources
-
-- Learn more about [tldraw license](/legal/tldraw-license).
-- [**Pricing plans**](/pricing) - Compare license options and pricing.
-- [**Trademark policy**](https://github.com/tldraw/tldraw/blob/main/TRADEMARKS.md) - Additional trademark usage guidelines.
+The tldraw SDK is a product of a company. See [tldraw.dev](https://tldraw.dev/company) for more information about the company and the team.
