@@ -133,6 +133,11 @@ const nextConfig = {
 				destination: '/quick-start',
 				permanent: true,
 			},
+			{
+				source: '/releases-versioning',
+				destination: '/releases',
+				permanent: true,
+			},
 		]
 	},
 	async rewrites() {
