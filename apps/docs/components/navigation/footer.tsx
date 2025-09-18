@@ -56,7 +56,7 @@ export function Footer() {
 			<div className="flex flex-col w-full max-w-screen-xl gap-12 px-5 mx-auto sm:flex-row sm:justify-between">
 				<div className="flex-[2]">
 					<TldrawLink href="/" className="w-28">
-						<Logo className="h-6" />
+						<Logo className="h-6" forceWhite />
 					</TldrawLink>
 					<p className="mt-2 text-sm">The infinite canvas SDK</p>
 					<div className="mt-4 flex gap-5">
