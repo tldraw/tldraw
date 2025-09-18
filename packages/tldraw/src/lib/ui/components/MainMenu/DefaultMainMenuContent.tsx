@@ -165,13 +165,9 @@ export function PreferencesGroup() {
 					<TogglePasteAtCursorItem />
 					<ToggleDebugModeItem />
 				</TldrawUiMenuGroup>
-				<TldrawUiMenuGroup id="input-mode">
+				<TldrawUiMenuGroup id="user-interface-submenus">
 					<InputModeMenu />
-				</TldrawUiMenuGroup>
-				<TldrawUiMenuGroup id="color-scheme">
 					<ColorSchemeMenu />
-				</TldrawUiMenuGroup>
-				<TldrawUiMenuGroup id="accessibility-menu">
 					<AccessibilityMenu />
 				</TldrawUiMenuGroup>
 			</TldrawUiMenuSubmenu>
