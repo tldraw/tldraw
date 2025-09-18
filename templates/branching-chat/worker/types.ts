@@ -1,5 +1,4 @@
 export interface Environment {
-	OPENAI_API_KEY: string
-	AI_GATEWAY_API_KEY: string
+	GOOGLE_GENERATIVE_AI_API_KEY: string
 	LOG_LEVEL: 'debug' | 'none'
 }
