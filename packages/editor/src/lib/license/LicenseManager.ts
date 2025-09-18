@@ -88,9 +88,6 @@ export interface ValidLicenseKeyResult {
 }
 
 /** @internal */
-export type TestEnvironment = 'development' | 'production'
-
-/** @internal */
 export type TrackType = 'unlicensed' | 'with_watermark' | 'evaluation' | null
 
 /** @internal */
@@ -103,13 +100,9 @@ export class LicenseManager {
 	state = atom<LicenseState>('license state', 'pending')
 	public verbose = true
 
-	constructor(
-		licenseKey: string | undefined,
-		testPublicKey?: string,
-		testEnvironment?: TestEnvironment
-	) {
+	constructor(licenseKey: string | undefined, testPublicKey?: string) {
 		this.isTest = process.env.NODE_ENV === 'test'
-		this.isDevelopment = this.getIsDevelopment(testEnvironment)
+		this.isDevelopment = this.getIsDevelopment()
 		this.publicKey = testPublicKey || this.publicKey
 		this.isCryptoAvailable = !!crypto.subtle
 
@@ -131,14 +124,12 @@ export class LicenseManager {
 			})
 	}
 
-	private getIsDevelopment(testEnvironment?: TestEnvironment) {
-		if (testEnvironment === 'development') return true
-		if (testEnvironment === 'production') return false
-
+	private getIsDevelopment() {
 		// If we are using https on a non-localhost domain we assume it's a production env and a development one otherwise
 		return (
 			!['https:', 'vscode-webview:'].includes(window.location.protocol) ||
-			window.location.hostname === 'localhost'
+			window.location.hostname === 'localhost' ||
+			process.env.NODE_ENV !== 'production'
 		)
 	}
 
