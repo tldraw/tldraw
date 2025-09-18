@@ -138,6 +138,21 @@ const nextConfig = {
 				destination: '/releases',
 				permanent: true,
 			},
+			{
+				source: '/jobs',
+				destination: '/careers',
+				permanent: true,
+			},
+			{
+				source: '/legal/cla',
+				destination: '/legal/contributor-license-agreement',
+				permanent: true,
+			},
+			{
+				source: '/legal/trademarks',
+				destination: '/legal/trademark-guidelines',
+				permanent: true,
+			},
 		]
 	},
 	async rewrites() {
@@ -168,7 +183,11 @@ const nextConfig = {
 					destination: `https://${REWRITE_DOMAIN}/blog/category/release-notes`,
 				},
 				{
-					source: '/blog/:path*',
+					source: '/blog',
+					destination: `https://${REWRITE_DOMAIN}/blog`,
+				},
+				{
+					source: '/blog/:path+',
 					destination: `https://${REWRITE_DOMAIN}/blog/:path*`,
 				},
 				{

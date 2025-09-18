@@ -2,6 +2,7 @@ import { useCanRedo, useCanUndo } from '../../hooks/menu-hooks'
 import { AccessibilityMenu } from '../AccessibilityMenu'
 import { ColorSchemeMenu } from '../ColorSchemeMenu'
 import { KeyboardShortcutsMenuItem } from '../HelpMenu/DefaultHelpMenuContent'
+import { InputModeMenu } from '../InputModeMenu'
 import { LanguageMenu } from '../LanguageMenu'
 import {
 	ClipboardMenuGroup,
@@ -163,6 +164,9 @@ export function PreferencesGroup() {
 					<ToggleDynamicSizeModeItem />
 					<TogglePasteAtCursorItem />
 					<ToggleDebugModeItem />
+				</TldrawUiMenuGroup>
+				<TldrawUiMenuGroup id="input-mode">
+					<InputModeMenu />
 				</TldrawUiMenuGroup>
 				<TldrawUiMenuGroup id="color-scheme">
 					<ColorSchemeMenu />

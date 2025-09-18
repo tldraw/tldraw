@@ -50,6 +50,7 @@ export class UserPreferencesManager {
 			isWrapMode: this.getIsWrapMode(),
 			isDynamicResizeMode: this.getIsDynamicResizeMode(),
 			enhancedA11yMode: this.getEnhancedA11yMode(),
+			inputMode: this.getInputMode(),
 		}
 	}
 
@@ -123,5 +124,9 @@ export class UserPreferencesManager {
 
 	@computed getEnhancedA11yMode() {
 		return this.user.userPreferences.get().showUiLabels ?? defaultUserPreferences.showUiLabels
+	}
+
+	@computed getInputMode() {
+		return this.user.userPreferences.get().inputMode ?? defaultUserPreferences.inputMode
 	}
 }

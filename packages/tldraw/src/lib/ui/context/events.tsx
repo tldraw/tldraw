@@ -102,6 +102,7 @@ export interface TLUiEventMap {
 	'toggle-grid-mode': null
 	'toggle-wrap-mode': null
 	'toggle-focus-mode': null
+	'input-mode': { value: string }
 	'toggle-debug-mode': null
 	'toggle-dynamic-size-mode': null
 	'toggle-paste-at-cursor': null
