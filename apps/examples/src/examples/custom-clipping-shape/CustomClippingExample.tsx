@@ -2,7 +2,6 @@ import {
 	createShapeId,
 	DefaultToolbar,
 	DefaultToolbarContent,
-	markEventAsHandled,
 	TLComponents,
 	Tldraw,
 	TldrawUiMenuItem,
@@ -59,8 +58,8 @@ function ToggleClippingButton() {
 				onClick={() => {
 					isClippingEnabled$.update((prev) => !prev)
 				}}
-				onPointerDown={markEventAsHandled}
-				onPointerUp={markEventAsHandled}
+				onPointerDown={editor.markEventAsHandled}
+				onPointerUp={editor.markEventAsHandled}
 			>
 				{clippingEnabled ? '✂️ Disable Clipping' : '○ Enable Clipping'}
 			</button>

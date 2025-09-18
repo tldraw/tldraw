@@ -4,7 +4,6 @@ import {
 	Box,
 	BoxModel,
 	Editor,
-	markEventAsHandled,
 	TLShapeId,
 	useEditor,
 	usePassThroughWheelEvents,
@@ -157,7 +156,7 @@ function WorkflowRegion({ workflow }: { workflow: WorkflowRegion }) {
 		>
 			<button
 				className="WorkflowRegion-button"
-				onPointerDown={markEventAsHandled}
+				onPointerDown={editor.markEventAsHandled}
 				onClick={() => {
 					if (isExecuting) {
 						// Stop execution if currently running

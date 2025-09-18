@@ -1,5 +1,5 @@
 
-name = "tldraw-worker"
+name = "multiplayer-template"
 main = "worker/worker.ts"
 compatibility_date = "2025-05-08"
 compatibility_flags = ["nodejs_compat"]
@@ -18,6 +18,10 @@ bindings = [
     { name = "TLDRAW_DURABLE_OBJECT", class_name = "TldrawDurableObject" },
 ]
 
+[[routes]]
+pattern = "multiplayer.templates.tldraw.dev"
+custom_domain = true
+
 # Durable objects require migrations to create/modify/delete them
 [[migrations]]
 tag = "v1"
@@ -26,5 +30,5 @@ new_classes = ["TldrawDurableObject"]
 # We store rooms and asset uploads in an R2 bucket
 [[r2_buckets]]
 binding = 'TLDRAW_BUCKET'
-bucket_name = 'tldraw-content'
-preview_bucket_name = 'tldraw-content-preview'
+bucket_name = 'multiplayer-template'
+preview_bucket_name = 'multiplayer-template-preview'

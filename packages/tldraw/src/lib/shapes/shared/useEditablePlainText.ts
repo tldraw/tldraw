@@ -3,7 +3,6 @@ import {
 	TLShapeId,
 	TLUnknownShape,
 	getPointerInfo,
-	markEventAsHandled,
 	noop,
 	preventDefault,
 	tlenv,
@@ -129,7 +128,7 @@ export function useEditableTextCommon(shapeId: TLShapeId) {
 			// partially if we didn't dispatch/stop below.
 
 			editor.dispatch({
-				...getPointerInfo(e),
+				...getPointerInfo(editor, e),
 				type: 'pointer',
 				name: 'pointer_down',
 				target: 'shape',
@@ -157,13 +156,11 @@ export function useEditableTextCommon(shapeId: TLShapeId) {
 		[editor, shapeId]
 	)
 
-	const handleDoubleClick: (e: React.MouseEvent) => void = markEventAsHandled
-
 	return {
 		handleFocus: noop,
 		handleBlur: noop,
 		handleInputPointerDown,
-		handleDoubleClick,
+		handleDoubleClick: editor.markEventAsHandled,
 		handlePaste,
 		isEditing,
 		isReadyForEditing,

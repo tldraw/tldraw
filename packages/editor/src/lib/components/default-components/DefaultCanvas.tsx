@@ -21,7 +21,7 @@ import { Mat } from '../../primitives/Mat'
 import { Vec } from '../../primitives/Vec'
 import { toDomPrecision } from '../../primitives/utils'
 import { debugFlags } from '../../utils/debug-flags'
-import { markEventAsHandled, setStyleProperty } from '../../utils/dom'
+import { setStyleProperty } from '../../utils/dom'
 import { GeometryDebuggingView } from '../GeometryDebuggingView'
 import { LiveCollaborators } from '../LiveCollaborators'
 import { MenuClickCapture } from '../MenuClickCapture'
@@ -174,10 +174,10 @@ export function DefaultCanvas({ className }: TLCanvasComponentProps) {
 				</div>
 				<div
 					className="tl-canvas__in-front"
-					onPointerDown={markEventAsHandled}
-					onPointerUp={markEventAsHandled}
-					onTouchStart={markEventAsHandled}
-					onTouchEnd={markEventAsHandled}
+					onPointerDown={editor.markEventAsHandled}
+					onPointerUp={editor.markEventAsHandled}
+					onTouchStart={editor.markEventAsHandled}
+					onTouchEnd={editor.markEventAsHandled}
 				>
 					<InFrontOfTheCanvasWrapper />
 				</div>
