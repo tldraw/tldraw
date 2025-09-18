@@ -271,7 +271,7 @@ export class TldrawAgent {
 		const transformedParts: PromptPart[] = []
 
 		for (const util of Object.values(promptPartUtils)) {
-			const part = await util.getPart(request, helpers)
+			const part = await util.getPart(structuredClone(request), helpers)
 			if (!part) continue
 			transformedParts.push(part)
 		}
