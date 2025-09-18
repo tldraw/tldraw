@@ -17,6 +17,7 @@ import { Circle2d } from '@tldraw/editor';
 import { ComponentType } from 'react';
 import { CSSProperties } from 'react';
 import { Editor } from '@tldraw/editor';
+import { ElbowArrowSnap } from '@tldraw/editor';
 import { Extension } from '@tiptap/core';
 import { Extensions } from '@tiptap/core';
 import { ForwardRefExoticComponent } from 'react';
@@ -64,6 +65,7 @@ import { TLArrowBinding } from '@tldraw/editor';
 import { TLArrowBindingProps } from '@tldraw/editor';
 import { TLArrowShape } from '@tldraw/editor';
 import { TLArrowShapeArrowheadStyle } from '@tldraw/editor';
+import { TLArrowShapeKind } from '@tldraw/editor';
 import { TLArrowShapeProps } from '@tldraw/editor';
 import { TLAsset } from '@tldraw/editor';
 import { TLAssetId } from '@tldraw/editor';
@@ -333,6 +335,45 @@ export class ArrowShapeUtil extends ShapeUtil<TLArrowShape> {
     static type: "arrow";
 }
 
+// @public
+export interface ArrowTargetState {
+    // (undocumented)
+    anchorInPageSpace: VecLike;
+    // (undocumented)
+    arrowKind: TLArrowShapeKind;
+    // (undocumented)
+    centerInPageSpace: VecLike;
+    // (undocumented)
+    handlesInPageSpace: {
+        bottom: {
+            isEnabled: boolean;
+            point: VecLike;
+        };
+        left: {
+            isEnabled: boolean;
+            point: VecLike;
+        };
+        right: {
+            isEnabled: boolean;
+            point: VecLike;
+        };
+        top: {
+            isEnabled: boolean;
+            point: VecLike;
+        };
+    };
+    // (undocumented)
+    isExact: boolean;
+    // (undocumented)
+    isPrecise: boolean;
+    // (undocumented)
+    normalizedAnchor: VecLike;
+    // (undocumented)
+    snap: ElbowArrowSnap;
+    // (undocumented)
+    target: TLShape;
+}
+
 // @public (undocumented)
 export function ArrowToolbarItem(): JSX_2.Element;
 
@@ -481,6 +522,9 @@ export function centerSelectionAroundPoint(editor: Editor, position: VecLike): v
 
 // @public (undocumented)
 export function CheckBoxToolbarItem(): JSX_2.Element;
+
+// @public
+export function clearArrowTargetState(editor: Editor): void;
 
 // @public (undocumented)
 export function ClipboardMenuGroup(): JSX_2.Element;
@@ -1667,6 +1711,9 @@ export function getArrowBindings(editor: Editor, shape: TLArrowShape): TLArrowBi
 
 // @public (undocumented)
 export function getArrowInfo(editor: Editor, shape: TLArrowShape | TLShapeId): TLArrowInfo | undefined;
+
+// @public
+export function getArrowTargetState(editor: Editor): ArrowTargetState | null;
 
 // @public (undocumented)
 export function getArrowTerminalsInArrowSpace(editor: Editor, shape: TLArrowShape, bindings: TLArrowBindings): {
@@ -5113,6 +5160,24 @@ export function UnlockAllMenuItem(): JSX_2.Element;
 
 // @public (undocumented)
 export function unwrapLabel(label?: TLUiActionItem['label'], menuType?: string): string | undefined;
+
+// @public
+export function updateArrowTargetState({ editor, pointInPageSpace, arrow, isPrecise, currentBinding, oppositeBinding, }: UpdateArrowTargetStateOpts): ArrowTargetState | null;
+
+// @public
+export interface UpdateArrowTargetStateOpts {
+    // (undocumented)
+    arrow: TLArrowShape | undefined;
+    // (undocumented)
+    currentBinding: TLArrowBinding | undefined;
+    // (undocumented)
+    editor: Editor;
+    // (undocumented)
+    isPrecise: boolean;
+    oppositeBinding: TLArrowBinding | undefined;
+    // (undocumented)
+    pointInPageSpace: VecLike;
+}
 
 // @public (undocumented)
 export function useA11y(): TLUiA11yContextType;
