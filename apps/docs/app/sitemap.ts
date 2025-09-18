@@ -13,29 +13,26 @@ async function fetchFramerSitemap(
 
 		const xmlText = await response.text()
 
-		// Parse the XML sitemap
 		const urlRegex = /<url>\s*<loc>(.*?)<\/loc>/g
-		const sitemapEntries: MetadataRoute.Sitemap = []
+		const filteredFramerSitemap: MetadataRoute.Sitemap = []
 
 		let match
 		while ((match = urlRegex.exec(xmlText)) !== null) {
-			sitemapEntries.push({
-				url: match[1],
-			})
-		}
+			const url = match[1]
+			const path = new URL(url).pathname
 
-		// Filter out any Framer URLs that might conflict with docs routes
-		const filteredFramerSitemap = sitemapEntries.filter((entry) => {
-			const path = new URL(entry.url).pathname
-			// Exclude root path and any paths that start with docs routes
-			return (
+			// Filter out root path and any paths that conflict with docs routes
+			const shouldInclude =
 				path !== '/' &&
 				!docsSitemap.some((docsEntry) => {
 					const docsPath = new URL(docsEntry.url).pathname
 					return path === docsPath || (docsPath !== '/' && path.startsWith(docsPath))
 				})
-			)
-		})
+
+			if (shouldInclude) {
+				filteredFramerSitemap.push({ url })
+			}
+		}
 
 		return filteredFramerSitemap
 	} catch (error) {

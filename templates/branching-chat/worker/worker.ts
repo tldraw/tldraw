@@ -1,4 +1,4 @@
-import { createOpenAI } from '@ai-sdk/openai'
+import { createGoogleGenerativeAI } from '@ai-sdk/google'
 import { ExecutionContext } from '@cloudflare/workers-types'
 import { generateText, ModelMessage, smoothStream, streamText } from 'ai'
 import { WorkerEntrypoint } from 'cloudflare:workers'
@@ -20,16 +20,18 @@ export default class extends WorkerEntrypoint<Environment> {
 		return this.router.fetch(request, this.env, this.ctx)
 	}
 
+	private getModel(env: Environment) {
+		return createGoogleGenerativeAI({
+			apiKey: env.GOOGLE_GENERATIVE_AI_API_KEY,
+		})
+	}
+
 	// Generate a new response from the model
 	private async generate(request: IRequest, env: Environment) {
 		try {
-			const openai = createOpenAI({
-				apiKey: env.OPENAI_API_KEY,
-			})
-
 			const prompt = (await request.json()) as Array<ModelMessage>
 			const { text } = await generateText({
-				model: openai('gpt-5-nano'),
+				model: this.getModel(env)('gemini-2.5-flash'),
 				messages: prompt,
 			})
 
@@ -48,14 +50,10 @@ export default class extends WorkerEntrypoint<Environment> {
 	// Stream a new response from the model
 	private async stream(request: IRequest, env: Environment): Promise<Response> {
 		try {
-			const openai = createOpenAI({
-				apiKey: env.OPENAI_API_KEY,
-			})
-
 			const prompt = (await request.json()) as Array<ModelMessage>
 
 			const result = streamText({
-				model: openai('gpt-5-nano'),
+				model: this.getModel(env)('gemini-2.5-flash'),
 				messages: prompt,
 				experimental_transform: smoothStream(),
 			})

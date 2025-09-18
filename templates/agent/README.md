@@ -1,4 +1,4 @@
-# tldraw agent chat
+# tldraw agent
 
 This starter kit demonstrates how to build an AI agent that can manipulate the [tldraw](https://github.com/tldraw/tldraw) canvas.
 
