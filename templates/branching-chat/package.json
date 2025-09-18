@@ -27,8 +27,8 @@
 		"lint": "yarn run -T tsx ../../internal/scripts/lint.ts"
 	},
 	"dependencies": {
-		"@ai-sdk/openai": "^2.0.24",
-		"@cloudflare/vite-plugin": "^1.9.0",
+		"@ai-sdk/google": "^2.0.14",
+		"@cloudflare/vite-plugin": "^1.13.2",
 		"ai": "^5.0.15",
 		"classnames": "^2.5.1",
 		"itty-router": "^5.0.18",
@@ -36,10 +36,10 @@
 		"react": "^18.3.1",
 		"react-dom": "^18.3.1",
 		"tldraw": "workspace:*",
-		"wrangler": "^4.23.0"
+		"wrangler": "^4.37.1"
 	},
 	"devDependencies": {
-		"@cloudflare/workers-types": "^4.20250703.0",
+		"@cloudflare/workers-types": "^4.20250913.0",
 		"@types/react": "^18.3.18",
 		"@types/react-dom": "^18.3.5",
 		"@vitejs/plugin-react-swc": "^3.10.2",

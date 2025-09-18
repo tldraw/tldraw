@@ -86,6 +86,8 @@ export interface Group extends ContentPage {
 
 export interface Article extends ContentPage {
 	type: 'article'
+	/** The version of the article's title to show in the sidebar. */
+	sidebarTitle: string | null
 	/** The id of the group to which this article belongs. */
 	groupId: string | null
 	/** The index of this article inside of the article's group. */

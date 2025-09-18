@@ -133,6 +133,11 @@ const nextConfig = {
 				destination: '/quick-start',
 				permanent: true,
 			},
+			{
+				source: '/releases-versioning',
+				destination: '/releases',
+				permanent: true,
+			},
 		]
 	},
 	async rewrites() {
@@ -171,6 +176,10 @@ const nextConfig = {
 					destination: `https://${REWRITE_DOMAIN}/careers`,
 				},
 				{
+					source: '/company',
+					destination: `https://${REWRITE_DOMAIN}/company`,
+				},
+				{
 					source: '/events',
 					destination: `https://${REWRITE_DOMAIN}/events`,
 				},
@@ -203,20 +212,24 @@ const nextConfig = {
 					destination: `https://${REWRITE_DOMAIN}/showcase`,
 				},
 				{
-					source: '/starterkits',
-					destination: `https://${REWRITE_DOMAIN}/starterkits`,
-				},
-				{
-					source: '/talk',
-					destination: `https://${REWRITE_DOMAIN}/talk`,
-				},
-				{
-					source: '/team',
-					destination: `https://${REWRITE_DOMAIN}/team`,
+					source: '/starter-kits',
+					destination: `https://${REWRITE_DOMAIN}/starter-kits`,
 				},
 				{
 					source: '/thanks',
 					destination: `https://${REWRITE_DOMAIN}/thanks`,
+				},
+				{
+					source: '/releases',
+					destination: '/getting-started/releases',
+				},
+				{
+					source: '/quick-start',
+					destination: '/getting-started/quick-start',
+				},
+				{
+					source: '/installation',
+					destination: '/getting-started/installation',
 				},
 			],
 		}

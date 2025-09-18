@@ -2,7 +2,7 @@ import { ApiHeading } from '@/components/content/api-heading'
 import { Blockquote } from '@/components/content/blockquote'
 import { Callout } from '@/components/content/callout'
 import { Code, CodeLinks, FocusLines } from '@/components/content/code'
-import { Embed } from '@/components/content/embed'
+import { Embed, StarterKitEmbed } from '@/components/content/embed'
 import { Image } from '@/components/content/image'
 import { ParametersTable } from '@/components/content/parameters-table'
 import { ParametersTableDescription } from '@/components/content/parameters-table-description'
@@ -43,6 +43,7 @@ export function Content({ mdx, type }: { mdx: string; type?: string }) {
 				components={{
 					a: TldrawLink,
 					Embed,
+					StarterKitEmbed,
 					pre: Pre,
 					code: Code,
 					Image,

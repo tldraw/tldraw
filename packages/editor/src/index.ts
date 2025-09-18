@@ -447,12 +447,10 @@ export {
 export {
 	activeElementShouldCaptureKeys,
 	loopToHtmlElement,
-	markEventAsHandled,
 	preventDefault,
 	releasePointerCapture,
 	setPointerCapture,
 	stopEventPropagation,
-	wasEventAlreadyHandled,
 } from './lib/utils/dom'
 export { EditorAtom } from './lib/utils/EditorAtom'
 export { getIncrementedName } from './lib/utils/getIncrementedName'

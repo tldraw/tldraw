@@ -28,9 +28,9 @@
 	},
 	"dependencies": {
 		"@ai-sdk/anthropic": "^2.0.2",
-		"@ai-sdk/google": "^2.0.11",
+		"@ai-sdk/google": "^2.0.14",
 		"@ai-sdk/openai": "^2.0.24",
-		"@cloudflare/vite-plugin": "^1.9.0",
+		"@cloudflare/vite-plugin": "^1.13.2",
 		"@google/generative-ai": "^0.24.1",
 		"@tldraw/tlschema": "workspace:*",
 		"@worker-tools/json-stream": "^0.1.0-pre.12",
@@ -41,11 +41,11 @@
 		"react-dom": "^18.3.1",
 		"react-markdown": "^10.1.0",
 		"tldraw": "workspace:*",
-		"wrangler": "^4.23.0",
+		"wrangler": "^4.37.1",
 		"zod": "^4.1.5"
 	},
 	"devDependencies": {
-		"@cloudflare/workers-types": "^4.20250703.0",
+		"@cloudflare/workers-types": "^4.20250913.0",
 		"@types/react": "^18.3.18",
 		"@types/react-dom": "^18.3.5",
 		"@vitejs/plugin-react-swc": "^3.10.2",

@@ -1,12 +1,5 @@
 import { MouseEvent } from 'react'
-import {
-	BaseBoxShapeTool,
-	BaseBoxShapeUtil,
-	HTMLContainer,
-	T,
-	TLBaseShape,
-	markEventAsHandled,
-} from 'tldraw'
+import { BaseBoxShapeTool, BaseBoxShapeUtil, HTMLContainer, T, TLBaseShape } from 'tldraw'
 
 type CounterShape = TLBaseShape<'counter', { w: number; h: number; count: number }>
 
@@ -47,11 +40,11 @@ export class CounterShapeUtil extends BaseBoxShapeUtil<CounterShape> {
 					gap: 8,
 				}}
 			>
-				<button onClick={(e) => onClick(e, -1)} onPointerDown={markEventAsHandled}>
+				<button onClick={(e) => onClick(e, -1)} onPointerDown={this.editor.markEventAsHandled}>
 					-
 				</button>
 				<span>{shape.props.count}</span>
-				<button onClick={(e) => onClick(e, 1)} onPointerDown={markEventAsHandled}>
+				<button onClick={(e) => onClick(e, 1)} onPointerDown={this.editor.markEventAsHandled}>
 					+
 				</button>
 			</HTMLContainer>

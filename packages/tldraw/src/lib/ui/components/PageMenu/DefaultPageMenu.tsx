@@ -1,7 +1,6 @@
 import {
 	PageRecordType,
 	TLPageId,
-	markEventAsHandled,
 	releasePointerCapture,
 	setPointerCapture,
 	tlenv,
@@ -451,7 +450,7 @@ export const DefaultPageMenu = memo(function DefaultPageMenu() {
 											if (e.key === 'Enter') {
 												if (page.id === currentPage.id) {
 													toggleEditing()
-													markEventAsHandled(e)
+													editor.markEventAsHandled(e)
 												}
 											}
 										}}

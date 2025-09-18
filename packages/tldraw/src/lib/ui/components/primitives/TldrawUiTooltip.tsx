@@ -307,9 +307,9 @@ export const TldrawUiTooltip = forwardRef<HTMLButtonElement, TldrawUiTooltipProp
 		}
 
 		// Fallback to old behavior if no provider
-		if (!hasProvider) {
+		if (!hasProvider || showUiLabels) {
 			return (
-				<_Tooltip.Root delayDuration={delayDurationToUse} disableHoverableContent>
+				<_Tooltip.Root delayDuration={delayDurationToUse} disableHoverableContent={!showUiLabels}>
 					<_Tooltip.Trigger asChild ref={ref}>
 						{children}
 					</_Tooltip.Trigger>

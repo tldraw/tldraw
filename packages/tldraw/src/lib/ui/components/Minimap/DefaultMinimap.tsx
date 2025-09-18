@@ -159,7 +159,7 @@ export function DefaultMinimap() {
 				type: 'pointer',
 				target: 'canvas',
 				name: 'pointer_move',
-				...getPointerInfo(e),
+				...getPointerInfo(editor, e),
 				point: screenPoint,
 				isPen: editor.getInstanceState().isPenMode,
 			}

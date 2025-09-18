@@ -39,7 +39,7 @@
 		"tldraw": "workspace:*"
 	},
 	"devDependencies": {
-		"@cloudflare/vite-plugin": "^1.9.0",
+		"@cloudflare/vite-plugin": "^1.13.2",
 		"@types/lodash.throttle": "^4.1.9",
 		"@types/react": "^18.3.18",
 		"@types/react-dom": "^18.3.5",
@@ -47,6 +47,6 @@
 		"concurrently": "^9.1.2",
 		"typescript": "^5.8.3",
 		"vite": "^7.0.1",
-		"wrangler": "^4.23.0"
+		"wrangler": "^4.37.1"
 	}
 }

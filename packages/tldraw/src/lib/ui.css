@@ -168,7 +168,7 @@
 	min-height: 40px;
 	width: 100%;
 	gap: 8px;
-	margin: -4px 0px;
+	margin-top: -4px;
 }
 
 .tlui-button__menu::after {
@@ -1037,6 +1037,19 @@ tldraw? probably.
 
 .tlui-style-panel__section:empty {
 	display: none;
+}
+
+/*
+ * This is used in a couple places, like Align and Vertical Align.
+ * It's because we have a toolbar with a Toggle Group but then an adjacent button
+ * next to it that opens a popup.
+ */
+.tlui-style-panel__section .tlui-toolbar:has(.tlui-toolbar) {
+	flex-wrap: wrap;
+}
+
+.tlui-style-panel__section .tlui-toolbar:has(.tlui-toolbar) .tlui-style-panel__subheading {
+	margin-left: -2px;
 }
 
 .tlui-style-panel__section__common:not(:only-child) {
