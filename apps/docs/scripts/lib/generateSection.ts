@@ -247,7 +247,10 @@ function getArticlePath({
 		return `/${sectionId}/${articleId}`
 	}
 	if (sectionId === 'getting-started') {
-		return `/${articleId}`
+		// We used to remove the getting-started prefix from this path
+		// but it causes issues with clashing names folders (eg: "releases" page and "releases" folder)
+		// so now we apply that change with rewrites instead
+		return `/${sectionId}/${articleId}`
 	}
 	if (categoryId === sectionId + '_ucg') {
 		return `/${sectionId}/${articleId}` // index page

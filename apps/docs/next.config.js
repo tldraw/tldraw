@@ -133,6 +133,11 @@ const nextConfig = {
 				destination: '/quick-start',
 				permanent: true,
 			},
+			{
+				source: '/releases-versioning',
+				destination: '/releases',
+				permanent: true,
+			},
 		]
 	},
 	async rewrites() {
@@ -213,6 +218,18 @@ const nextConfig = {
 				{
 					source: '/thanks',
 					destination: `https://${REWRITE_DOMAIN}/thanks`,
+				},
+				{
+					source: '/releases',
+					destination: '/getting-started/releases',
+				},
+				{
+					source: '/quick-start',
+					destination: '/getting-started/quick-start',
+				},
+				{
+					source: '/installation',
+					destination: '/getting-started/installation',
 				},
 			],
 		}
