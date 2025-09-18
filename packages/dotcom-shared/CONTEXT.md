@@ -572,7 +572,7 @@ const UserPreferencesKeys = [
 	'isWrapMode', // Text wrapping
 	'isDynamicSizeMode', // Dynamic shape sizing
 	'isPasteAtCursorMode', // Paste behavior
-	'showUiLabels', // UI label visibility
+	'showUiLabels', // Enhanced a11y mode
 	'name', // Display name
 	'color', // User color for collaboration
 ] as const satisfies Array<keyof TlaUser>

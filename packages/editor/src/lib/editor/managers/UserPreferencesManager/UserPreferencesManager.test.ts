@@ -376,14 +376,16 @@ describe('UserPreferencesManager', () => {
 			})
 		})
 
-		describe('getShowUiLabels', () => {
+		describe('getEnhancedA11yMode', () => {
 			it('should return user show ui labels setting', () => {
-				expect(userPreferencesManager.getShowUiLabels()).toBe(mockUserPreferences.showUiLabels)
+				expect(userPreferencesManager.getEnhancedA11yMode()).toBe(mockUserPreferences.showUiLabels)
 			})
 
 			it('should return default show ui labels when null', () => {
 				userPreferencesAtom.set({ ...mockUserPreferences, showUiLabels: null })
-				expect(userPreferencesManager.getShowUiLabels()).toBe(defaultUserPreferences.showUiLabels)
+				expect(userPreferencesManager.getEnhancedA11yMode()).toBe(
+					defaultUserPreferences.showUiLabels
+				)
 			})
 		})
 

@@ -997,7 +997,7 @@
 	max-width: 148px;
 }
 
-.tlui-style-panel[data-show-ui-labels='true'] .tlui-button[data-isactive='true'] {
+.tlui-style-panel[data-enhanced-a11y-mode='true'] .tlui-button[data-isactive='true'] {
 	border-radius: 10px;
 	outline: 2px solid var(--tl-color-text);
 	outline-offset: -5px;

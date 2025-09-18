@@ -1270,16 +1270,16 @@ export function ActionsProvider({ overrides, children }: ActionsProviderProps) {
 				checkbox: true,
 			},
 			{
-				id: 'toggle-ui-labels',
+				id: 'enhanced-a11y-mode',
 				label: {
-					default: 'action.toggle-ui-labels',
-					menu: 'action.toggle-ui-labels.menu',
+					default: 'action.enhanced-a11y-mode',
+					menu: 'action.enhanced-a11y-mode.menu',
 				},
 				readonlyOk: true,
 				onSelect(source) {
-					trackEvent('toggle-ui-labels', { source })
+					trackEvent('enhanced-a11y-mode', { source })
 					editor.user.updateUserPreferences({
-						showUiLabels: !editor.user.getShowUiLabels(),
+						showUiLabels: !editor.user.getEnhancedA11yMode(),
 					})
 				},
 				checkbox: true,

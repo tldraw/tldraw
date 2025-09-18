@@ -4522,6 +4522,8 @@ export class UserPreferencesManager {
     getColor(): string;
     getEdgeScrollSpeed(): number;
     // (undocumented)
+    getEnhancedA11yMode(): boolean;
+    // (undocumented)
     getId(): string;
     // (undocumented)
     getIsDarkMode(): boolean;
@@ -4538,13 +4540,12 @@ export class UserPreferencesManager {
     // (undocumented)
     getName(): string;
     // (undocumented)
-    getShowUiLabels(): boolean;
-    // (undocumented)
     getUserPreferences(): {
         animationSpeed: number;
         areKeyboardShortcutsEnabled: boolean;
         color: string;
         colorScheme: "dark" | "light" | "system" | undefined;
+        enhancedA11yMode: boolean;
         id: string;
         isDarkMode: boolean;
         isDynamicResizeMode: boolean;
@@ -4552,7 +4553,6 @@ export class UserPreferencesManager {
         isWrapMode: boolean;
         locale: string;
         name: string;
-        showUiLabels: boolean;
     };
     // (undocumented)
     systemColorScheme: Atom<"dark" | "light", unknown>;
