@@ -123,7 +123,9 @@ export class UserPreferencesManager {
 	}
 
 	@computed getEnhancedA11yMode() {
-		return this.user.userPreferences.get().showUiLabels ?? defaultUserPreferences.showUiLabels
+		return (
+			this.user.userPreferences.get().enhancedA11yMode ?? defaultUserPreferences.enhancedA11yMode
+		)
 	}
 
 	@computed getInputMode() {

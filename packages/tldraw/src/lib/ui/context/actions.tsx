@@ -1279,7 +1279,7 @@ export function ActionsProvider({ overrides, children }: ActionsProviderProps) {
 				onSelect(source) {
 					trackEvent('enhanced-a11y-mode', { source })
 					editor.user.updateUserPreferences({
-						showUiLabels: !editor.user.getEnhancedA11yMode(),
+						enhancedA11yMode: !editor.user.getEnhancedA11yMode(),
 					})
 				},
 				checkbox: true,

@@ -297,7 +297,7 @@ export const TldrawUiTooltip = forwardRef<HTMLButtonElement, TldrawUiTooltipProp
 			}
 		}, [content, sideToUse, sideOffset, showOnMobile, hasProvider])
 
-		// Don't show tooltip if disabled, no content, or UI labels are disabled
+		// Don't show tooltip if disabled, no content, or enhanced accessibility mode is disabled
 		if (disabled || !content) {
 			return <>{children}</>
 		}

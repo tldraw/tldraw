@@ -727,6 +727,7 @@ export const defaultUserPreferences: Readonly<{
     color: "#02B1CC" | "#11B3A3" | "#39B178" | "#55B467" | "#7B66DC" | "#9D5BD2" | "#BD54C6" | "#E34BA9" | "#EC5E41" | "#F04F88" | "#F2555A" | "#FF802B";
     colorScheme: "light";
     edgeScrollSpeed: 1;
+    enhancedA11yMode: false;
     inputMode: null;
     isDynamicSizeMode: false;
     isPasteAtCursorMode: false;
@@ -734,7 +735,6 @@ export const defaultUserPreferences: Readonly<{
     isWrapMode: false;
     locale: "ar" | "bn" | "ca" | "cs" | "da" | "de" | "el" | "en" | "es" | "fa" | "fi" | "fr" | "gl" | "gu-in" | "he" | "hi-in" | "hr" | "hu" | "id" | "it" | "ja" | "km-kh" | "kn" | "ko-kr" | "ml" | "mr" | "ms" | "ne" | "nl" | "no" | "pa" | "pl" | "pt-br" | "pt-pt" | "ro" | "ru" | "sl" | "so" | "sv" | "ta" | "te" | "th" | "tl" | "tr" | "uk" | "ur" | "vi" | "zh-cn" | "zh-tw";
     name: "";
-    showUiLabels: false;
 }>;
 
 // @public
@@ -4348,6 +4348,8 @@ export interface TLUserPreferences {
     // (undocumented)
     edgeScrollSpeed?: null | number;
     // (undocumented)
+    enhancedA11yMode?: boolean | null;
+    // (undocumented)
     id: string;
     // (undocumented)
     inputMode?: 'mouse' | 'trackpad' | null;
@@ -4363,8 +4365,6 @@ export interface TLUserPreferences {
     locale?: null | string;
     // (undocumented)
     name?: null | string;
-    // (undocumented)
-    showUiLabels?: boolean | null;
 }
 
 // @public (undocumented)
