@@ -24,7 +24,9 @@ export const DefaultStylePanel = memo(function DefaultStylePanel({
 	children,
 }: TLUiStylePanelProps) {
 	const editor = useEditor()
-	const showUiLabels = useValue('showUiLabels', () => editor.user.getShowUiLabels(), [editor])
+	const enhancedA11yMode = useValue('enhancedA11yMode', () => editor.user.getEnhancedA11yMode(), [
+		editor,
+	])
 
 	const ref = useRef<HTMLDivElement>(null)
 	usePassThroughWheelEvents(ref)
@@ -62,7 +64,7 @@ export const DefaultStylePanel = memo(function DefaultStylePanel({
 				data-testid="style.panel"
 				className={classNames('tlui-style-panel', { 'tlui-style-panel__wrapper': !isMobile })}
 				data-ismobile={isMobile}
-				data-show-ui-labels={showUiLabels}
+				data-enhanced-a11y-mode={enhancedA11yMode}
 				onPointerLeave={handlePointerOut}
 			>
 				<StylePanelContextProvider styles={styles}>

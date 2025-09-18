@@ -267,7 +267,11 @@ export const TldrawUiTooltip = forwardRef<HTMLButtonElement, TldrawUiTooltipProp
 		const editor = useMaybeEditor()
 		const tooltipId = useRef<string>(uniqueId())
 		const hasProvider = useContext(TooltipSingletonContext)
-		const showUiLabels = useValue('showUiLabels', () => editor?.user.getShowUiLabels(), [editor])
+		const enhancedA11yMode = useValue(
+			'enhancedA11yMode',
+			() => editor?.user.getEnhancedA11yMode(),
+			[editor]
+		)
 
 		const orientationCtx = useTldrawUiOrientation()
 		const sideToUse = side ?? orientationCtx.tooltipSide
@@ -293,13 +297,13 @@ export const TldrawUiTooltip = forwardRef<HTMLButtonElement, TldrawUiTooltipProp
 			}
 		}, [content, sideToUse, sideOffset, showOnMobile, hasProvider])
 
-		// Don't show tooltip if disabled, no content, or UI labels are disabled
+		// Don't show tooltip if disabled, no content, or enhanced accessibility mode is disabled
 		if (disabled || !content) {
 			return <>{children}</>
 		}
 
 		let delayDurationToUse
-		if (showUiLabels) {
+		if (enhancedA11yMode) {
 			delayDurationToUse = 0
 		} else {
 			delayDurationToUse =
@@ -307,9 +311,12 @@ export const TldrawUiTooltip = forwardRef<HTMLButtonElement, TldrawUiTooltipProp
 		}
 
 		// Fallback to old behavior if no provider
-		if (!hasProvider || showUiLabels) {
+		if (!hasProvider || enhancedA11yMode) {
 			return (
-				<_Tooltip.Root delayDuration={delayDurationToUse} disableHoverableContent={!showUiLabels}>
+				<_Tooltip.Root
+					delayDuration={delayDurationToUse}
+					disableHoverableContent={!enhancedA11yMode}
+				>
 					<_Tooltip.Trigger asChild ref={ref}>
 						{children}
 					</_Tooltip.Trigger>

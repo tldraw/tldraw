@@ -23,7 +23,7 @@ describe('UserPreferencesManager', () => {
 		locale: 'en',
 		animationSpeed: 1,
 		areKeyboardShortcutsEnabled: true,
-		showUiLabels: false,
+		enhancedA11yMode: false,
 		edgeScrollSpeed: 1,
 		colorScheme: 'light',
 		isSnapMode: false,
@@ -228,7 +228,7 @@ describe('UserPreferencesManager', () => {
 				color: mockUserPreferences.color,
 				animationSpeed: mockUserPreferences.animationSpeed,
 				areKeyboardShortcutsEnabled: mockUserPreferences.areKeyboardShortcutsEnabled,
-				showUiLabels: mockUserPreferences.showUiLabels,
+				enhancedA11yMode: mockUserPreferences.enhancedA11yMode,
 				isSnapMode: mockUserPreferences.isSnapMode,
 				colorScheme: mockUserPreferences.colorScheme,
 				isDarkMode: false, // light mode
@@ -378,14 +378,18 @@ describe('UserPreferencesManager', () => {
 			})
 		})
 
-		describe('getShowUiLabels', () => {
-			it('should return user show ui labels setting', () => {
-				expect(userPreferencesManager.getShowUiLabels()).toBe(mockUserPreferences.showUiLabels)
+		describe('getEnhancedA11yMode', () => {
+			it('should return user enhanced a11y mode setting', () => {
+				expect(userPreferencesManager.getEnhancedA11yMode()).toBe(
+					mockUserPreferences.enhancedA11yMode
+				)
 			})
 
-			it('should return default show ui labels when null', () => {
-				userPreferencesAtom.set({ ...mockUserPreferences, showUiLabels: null })
-				expect(userPreferencesManager.getShowUiLabels()).toBe(defaultUserPreferences.showUiLabels)
+			it('should return default enhanced a11y mode when null', () => {
+				userPreferencesAtom.set({ ...mockUserPreferences, enhancedA11yMode: null })
+				expect(userPreferencesManager.getEnhancedA11yMode()).toBe(
+					defaultUserPreferences.enhancedA11yMode
+				)
 			})
 		})
 

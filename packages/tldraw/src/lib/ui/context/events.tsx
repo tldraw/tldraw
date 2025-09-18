@@ -109,7 +109,7 @@ export interface TLUiEventMap {
 	'toggle-lock': null
 	'toggle-reduce-motion': null
 	'toggle-keyboard-shortcuts': null
-	'toggle-ui-labels': null
+	'enhanced-a11y-mode': null
 	'toggle-edge-scrolling': null
 	'color-scheme': { value: string }
 	'exit-pen-mode': null

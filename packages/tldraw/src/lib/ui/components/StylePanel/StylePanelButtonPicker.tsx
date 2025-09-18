@@ -127,7 +127,7 @@ export const StylePanelButtonPicker = memo(function StylePanelButtonPicker<T ext
 
 	return (
 		<>
-			{ctx.showUiLabels && <StylePanelSubheading>{title}</StylePanelSubheading>}
+			{ctx.enhancedA11yMode && <StylePanelSubheading>{title}</StylePanelSubheading>}
 			<TldrawUiToolbar label={title}>
 				<TldrawUiToolbarToggleGroup
 					data-testid={`style.${uiType}`}

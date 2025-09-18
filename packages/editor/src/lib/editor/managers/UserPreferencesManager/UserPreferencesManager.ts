@@ -49,7 +49,7 @@ export class UserPreferencesManager {
 			isDarkMode: this.getIsDarkMode(),
 			isWrapMode: this.getIsWrapMode(),
 			isDynamicResizeMode: this.getIsDynamicResizeMode(),
-			showUiLabels: this.getShowUiLabels(),
+			enhancedA11yMode: this.getEnhancedA11yMode(),
 			inputMode: this.getInputMode(),
 		}
 	}
@@ -122,8 +122,10 @@ export class UserPreferencesManager {
 		)
 	}
 
-	@computed getShowUiLabels() {
-		return this.user.userPreferences.get().showUiLabels ?? defaultUserPreferences.showUiLabels
+	@computed getEnhancedA11yMode() {
+		return (
+			this.user.userPreferences.get().enhancedA11yMode ?? defaultUserPreferences.enhancedA11yMode
+		)
 	}
 
 	@computed getInputMode() {

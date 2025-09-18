@@ -340,7 +340,7 @@ interface User {
 	edgeScrollSpeed?: number // Canvas edge scrolling speed
 	colorScheme?: 'light' | 'dark' // UI theme preference
 	areKeyboardShortcutsEnabled?: boolean // Keyboard shortcuts toggle
-	showUiLabels?: boolean // UI label visibility
+	enhancedA11yMode?: boolean // Enhanced accessibility mode
 
 	// Drawing preferences
 	isSnapMode?: boolean // Shape snapping
