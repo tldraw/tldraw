@@ -14,7 +14,7 @@ async function fetchFramerSitemap(
 		const xmlText = await response.text()
 
 		// Parse the XML sitemap
-		const urlRegex = /<url>\s*<loc>(.*?)<\/loc>(?:\s*<lastmod>(.*?)<\/lastmod>)?\s*<\/url>/g
+		const urlRegex = /<url>\s*<loc>(.*?)<\/loc>/g
 		const sitemapEntries: MetadataRoute.Sitemap = []
 
 		let match
