@@ -5,6 +5,7 @@
 export const DEFAULT_TRANSLATION = {
 	'action.toggle-auto-pan': 'Auto (trackpad)',
 	'action.toggle-auto-zoom': 'Auto (mouse)',
+	'action.toggle-auto-none': 'Auto',
 	'action.toggle-mouse': 'Mouse',
 	'action.toggle-trackpad': 'Trackpad',
 	'action.convert-to-bookmark': 'Convert to Bookmark',

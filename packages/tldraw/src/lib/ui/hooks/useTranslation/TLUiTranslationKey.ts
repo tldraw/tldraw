@@ -5,6 +5,7 @@
 export type TLUiTranslationKey =
 	| 'action.toggle-auto-pan'
 	| 'action.toggle-auto-zoom'
+	| 'action.toggle-auto-none'
 	| 'action.toggle-mouse'
 	| 'action.toggle-trackpad'
 	| 'action.convert-to-bookmark'
