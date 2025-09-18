@@ -70,7 +70,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@ai-sdk/google@npm:^2.0.11, @ai-sdk/google@npm:^2.0.14":
+"@ai-sdk/google@npm:^2.0.14":
   version: 2.0.14
   resolution: "@ai-sdk/google@npm:2.0.14"
   dependencies:
@@ -27677,7 +27677,7 @@ __metadata:
   resolution: "tldraw-agent@workspace:templates/agent"
   dependencies:
     "@ai-sdk/anthropic": "npm:^2.0.2"
-    "@ai-sdk/google": "npm:^2.0.11"
+    "@ai-sdk/google": "npm:^2.0.14"
     "@ai-sdk/openai": "npm:^2.0.24"
     "@cloudflare/vite-plugin": "npm:^1.13.2"
     "@cloudflare/workers-types": "npm:^4.20250913.0"
@@ -27728,7 +27728,7 @@ __metadata:
   version: 0.0.0-use.local
   resolution: "tldraw-chat-app-example@workspace:templates/chat"
   dependencies:
-    "@ai-sdk/google": "npm:^2.0.11"
+    "@ai-sdk/google": "npm:^2.0.14"
     "@ai-sdk/react": "npm:^2.0.15"
     "@google/genai": "npm:^1.17.0"
     "@types/node": "npm:^22.15.31"

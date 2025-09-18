@@ -28,7 +28,7 @@
 	},
 	"dependencies": {
 		"@ai-sdk/anthropic": "^2.0.2",
-		"@ai-sdk/google": "^2.0.11",
+		"@ai-sdk/google": "^2.0.14",
 		"@ai-sdk/openai": "^2.0.24",
 		"@cloudflare/vite-plugin": "^1.13.2",
 		"@google/generative-ai": "^0.24.1",

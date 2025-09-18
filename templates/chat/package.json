@@ -26,7 +26,7 @@
 		"lint": "yarn run -T tsx ../../internal/scripts/lint.ts"
 	},
 	"dependencies": {
-		"@ai-sdk/google": "^2.0.11",
+		"@ai-sdk/google": "^2.0.14",
 		"@ai-sdk/react": "^2.0.15",
 		"@google/genai": "^1.17.0",
 		"@types/node": "^22.15.31",
