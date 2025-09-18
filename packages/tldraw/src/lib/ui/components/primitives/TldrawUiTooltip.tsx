@@ -6,6 +6,7 @@ import React, {
 	ReactNode,
 	useContext,
 	useEffect,
+	useLayoutEffect,
 	useRef,
 	useState,
 } from 'react'
@@ -24,18 +25,20 @@ export interface TldrawUiTooltipProps {
 	delayDuration?: number
 }
 
+interface CurrentTooltip {
+	id: string
+	content: ReactNode
+	side: 'top' | 'right' | 'bottom' | 'left'
+	sideOffset: number
+	showOnMobile: boolean
+	targetElement: HTMLElement
+	delayDuration: number
+}
+
 // Singleton tooltip manager
 class TooltipManager {
 	private static instance: TooltipManager | null = null
-	private currentTooltip = atom<{
-		id: string
-		content: ReactNode
-		side: 'top' | 'right' | 'bottom' | 'left'
-		sideOffset: number
-		showOnMobile: boolean
-		targetElement: HTMLElement
-		delayDuration: number
-	} | null>('current tooltip', null)
+	private currentTooltip = atom<CurrentTooltip | null>('current tooltip', null)
 	private destroyTimeoutId: number | null = null
 
 	static getInstance(): TooltipManager {
@@ -69,6 +72,15 @@ class TooltipManager {
 			showOnMobile,
 			targetElement,
 			delayDuration,
+		})
+	}
+
+	updateCurrentTooltip(tooltipId: string, update: (tooltip: CurrentTooltip) => CurrentTooltip) {
+		this.currentTooltip.update((tooltip) => {
+			if (tooltip?.id === tooltipId) {
+				return update(tooltip)
+			}
+			return tooltip
 		})
 	}
 
@@ -159,6 +171,20 @@ function TooltipSingleton() {
 		}
 	}, [cameraState, isOpen, currentTooltip, editor])
 
+	useEffect(() => {
+		function handleKeyDown(event: KeyboardEvent) {
+			if (event.key === 'Escape' && currentTooltip && isOpen) {
+				tooltipManager.hideTooltip(editor, currentTooltip.id)
+				event.stopPropagation()
+			}
+		}
+
+		document.addEventListener('keydown', handleKeyDown, { capture: true })
+		return () => {
+			document.removeEventListener('keydown', handleKeyDown, { capture: true })
+		}
+	}, [editor, currentTooltip, isOpen])
+
 	// Update open state and trigger position
 	useEffect(() => {
 		let timer: ReturnType<typeof setTimeout> | null = null
@@ -241,6 +267,11 @@ export const TldrawUiTooltip = forwardRef<HTMLButtonElement, TldrawUiTooltipProp
 		const editor = useMaybeEditor()
 		const tooltipId = useRef<string>(uniqueId())
 		const hasProvider = useContext(TooltipSingletonContext)
+		const enhancedA11yMode = useValue(
+			'enhancedA11yMode',
+			() => editor?.user.getEnhancedA11yMode(),
+			[editor]
+		)
 
 		const orientationCtx = useTldrawUiOrientation()
 		const sideToUse = side ?? orientationCtx.tooltipSide
@@ -254,18 +285,38 @@ export const TldrawUiTooltip = forwardRef<HTMLButtonElement, TldrawUiTooltipProp
 			}
 		}, [editor, hasProvider])
 
-		// Don't show tooltip if disabled, no content, or UI labels are disabled
+		useLayoutEffect(() => {
+			if (hasProvider && tooltipManager.getCurrentTooltipData()?.id === tooltipId.current) {
+				tooltipManager.updateCurrentTooltip(tooltipId.current, (tooltip) => ({
+					...tooltip,
+					content,
+					side: sideToUse,
+					sideOffset,
+					showOnMobile,
+				}))
+			}
+		}, [content, sideToUse, sideOffset, showOnMobile, hasProvider])
+
+		// Don't show tooltip if disabled, no content, or enhanced accessibility mode is disabled
 		if (disabled || !content) {
 			return <>{children}</>
 		}
 
-		const delayDurationToUse =
-			delayDuration ?? (editor?.options.tooltipDelayMs || DEFAULT_TOOLTIP_DELAY_MS)
+		let delayDurationToUse
+		if (enhancedA11yMode) {
+			delayDurationToUse = 0
+		} else {
+			delayDurationToUse =
+				delayDuration ?? (editor?.options.tooltipDelayMs || DEFAULT_TOOLTIP_DELAY_MS)
+		}
 
 		// Fallback to old behavior if no provider
-		if (!hasProvider) {
+		if (!hasProvider || enhancedA11yMode) {
 			return (
-				<_Tooltip.Root delayDuration={delayDurationToUse} disableHoverableContent>
+				<_Tooltip.Root
+					delayDuration={delayDurationToUse}
+					disableHoverableContent={!enhancedA11yMode}
+				>
 					<_Tooltip.Trigger asChild ref={ref}>
 						{children}
 					</_Tooltip.Trigger>

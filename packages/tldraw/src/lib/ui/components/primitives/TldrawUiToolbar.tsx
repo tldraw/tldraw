@@ -71,6 +71,7 @@ export const TldrawUiToolbarButton = React.forwardRef<HTMLButtonElement, TLUiToo
 				draggable={false}
 				data-isactive={isActive}
 				{...props}
+				aria-label={props.title}
 				// The tooltip takes care of this.
 				title={undefined}
 				className={classnames('tlui-button', `tlui-button__${type}`, props.className)}
@@ -127,7 +128,7 @@ export interface TLUiToolbarToggleItemProps extends React.HTMLAttributes<HTMLBut
 	className?: string
 	type: 'icon' | 'tool'
 	value: string
-	tooltip?: string
+	tooltip?: React.ReactNode
 }
 
 /** @public @react */

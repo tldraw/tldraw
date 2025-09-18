@@ -727,13 +727,14 @@ export const defaultUserPreferences: Readonly<{
     color: "#02B1CC" | "#11B3A3" | "#39B178" | "#55B467" | "#7B66DC" | "#9D5BD2" | "#BD54C6" | "#E34BA9" | "#EC5E41" | "#F04F88" | "#F2555A" | "#FF802B";
     colorScheme: "light";
     edgeScrollSpeed: 1;
+    enhancedA11yMode: false;
+    inputMode: null;
     isDynamicSizeMode: false;
     isPasteAtCursorMode: false;
     isSnapMode: false;
     isWrapMode: false;
     locale: "ar" | "bn" | "ca" | "cs" | "da" | "de" | "el" | "en" | "es" | "fa" | "fi" | "fr" | "gl" | "gu-in" | "he" | "hi-in" | "hr" | "hu" | "id" | "it" | "ja" | "km-kh" | "kn" | "ko-kr" | "ml" | "mr" | "ms" | "ne" | "nl" | "no" | "pa" | "pl" | "pt-br" | "pt-pt" | "ro" | "ru" | "sl" | "so" | "sv" | "ta" | "te" | "th" | "tl" | "tr" | "uk" | "ur" | "vi" | "zh-cn" | "zh-tw";
     name: "";
-    showUiLabels: false;
 }>;
 
 // @public
@@ -1336,6 +1337,9 @@ export class Editor extends EventEmitter<TLEventMap> {
     isShapeOfType<T extends TLUnknownShape>(shapeId: TLUnknownShape['id'], type: T['type']): shapeId is T['id'];
     isShapeOrAncestorLocked(shape?: TLShape | TLShapeId): boolean;
     loadSnapshot(snapshot: Partial<TLEditorSnapshot> | TLStoreSnapshot, opts?: TLLoadSnapshotOptions): this;
+    markEventAsHandled(e: {
+        nativeEvent: Event;
+    } | Event): void;
     markHistoryStoppingPoint(name?: string): string;
     // (undocumented)
     menus: {
@@ -1365,7 +1369,9 @@ export class Editor extends EventEmitter<TLEventMap> {
         preservePosition?: boolean;
         select?: boolean;
     }): this;
-    putExternalContent<E>(info: TLExternalContent<E>): Promise<void>;
+    putExternalContent<E>(info: TLExternalContent<E>, opts?: {
+        force?: boolean;
+    }): Promise<void>;
     redo(): this;
     registerDeepLinkListener(opts?: TLDeepLinkOptions): () => void;
     registerExternalAssetHandler<T extends TLExternalAsset['type']>(type: T, handler: ((info: TLExternalAsset & {
@@ -1376,7 +1382,9 @@ export class Editor extends EventEmitter<TLEventMap> {
     }> : TLExternalContent<E>) => void) | null): this;
     renamePage(page: TLPage | TLPageId, name: string): this;
     reparentShapes(shapes: TLShape[] | TLShapeId[], parentId: TLParentId, insertIndex?: IndexKey): this;
-    replaceExternalContent<E>(info: TLExternalContent<E>): Promise<void>;
+    replaceExternalContent<E>(info: TLExternalContent<E>, opts?: {
+        force?: boolean;
+    }): Promise<void>;
     resetZoom(point?: Vec, opts?: TLCameraMoveOptions): this;
     resizeShape(shape: TLShape | TLShapeId, scale: VecLike, opts?: TLResizeShapeOptions): this;
     // (undocumented)
@@ -1505,6 +1513,9 @@ export class Editor extends EventEmitter<TLEventMap> {
     }>;
     readonly user: UserPreferencesManager;
     visitDescendants(parent: TLPage | TLParentId | TLShape, visitor: (id: TLShapeId) => false | void): this;
+    wasEventAlreadyHandled(e: {
+        nativeEvent: Event;
+    } | Event): boolean;
     zoomIn(point?: Vec, opts?: TLCameraMoveOptions): this;
     zoomOut(point?: Vec, opts?: TLCameraMoveOptions): this;
     zoomToBounds(bounds: BoxLike, opts?: {
@@ -1646,6 +1657,8 @@ export abstract class Geometry2d {
     // (undocumented)
     get bounds(): Box;
     // (undocumented)
+    get boundsVertices(): Vec[];
+    // (undocumented)
     get center(): Vec;
     // (undocumented)
     debugColor?: string;
@@ -1654,9 +1667,13 @@ export abstract class Geometry2d {
     // (undocumented)
     distanceToPoint(point: VecLike, hitInside?: boolean, filters?: Geometry2dFilters): number;
     // (undocumented)
+    excludeFromShapeBounds: boolean;
+    // (undocumented)
     getArea(): number;
     // (undocumented)
     getBounds(): Box;
+    // (undocumented)
+    getBoundsVertices(): Vec[];
     // (undocumented)
     getLength(_filters?: Geometry2dFilters): number;
     // (undocumented)
@@ -1770,7 +1787,7 @@ export function getPerfectDashProps(totalLength: number, strokeWidth: number, op
 };
 
 // @public (undocumented)
-export function getPointerInfo(e: PointerEvent | React.PointerEvent): {
+export function getPointerInfo(editor: Editor, e: PointerEvent | React.PointerEvent): {
     accelKey: boolean;
     altKey: boolean;
     button: number;
@@ -1836,6 +1853,8 @@ export class Group2d extends Geometry2d {
     distanceToPoint(point: VecLike, hitInside?: boolean, filters?: Geometry2dFilters): number;
     // (undocumented)
     getArea(): number;
+    // (undocumented)
+    getBoundsVertices(): Vec[];
     // (undocumented)
     getLength(filters?: Geometry2dFilters): number;
     // (undocumented)
@@ -2042,6 +2061,9 @@ export function kickoutOccludedShapes(editor: Editor, shapeIds: TLShapeId[], opt
 }): void;
 
 // @internal (undocumented)
+export const LICENSE_TIMEOUT = 5000;
+
+// @internal (undocumented)
 export type LicenseFromKeyResult = InvalidLicenseKeyResult | ValidLicenseKeyResult;
 
 // @internal (undocumented)
@@ -2076,7 +2098,7 @@ export class LicenseManager {
 }
 
 // @internal (undocumented)
-export type LicenseState = 'internal-expired' | 'licensed-with-watermark' | 'licensed' | 'pending' | 'unlicensed';
+export type LicenseState = 'expired' | 'licensed-with-watermark' | 'licensed' | 'pending' | 'unlicensed-production' | 'unlicensed';
 
 // @public (undocumented)
 export function linesIntersect(A: VecLike, B: VecLike, C: VecLike, D: VecLike): boolean;
@@ -2558,6 +2580,7 @@ export abstract class ShapeUtil<Shape extends TLUnknownShape = TLUnknownShape> {
     canBeLaidOut(_shape: Shape, _info: TLShapeUtilCanBeLaidOutOpts): boolean;
     canBind(_opts: TLShapeUtilCanBindOpts): boolean;
     canCrop(_shape: Shape): boolean;
+    canCull(_shape: Shape): boolean;
     canEdit(_shape: Shape): boolean;
     canEditInReadonly(_shape: Shape): boolean;
     canReceiveNewChildrenOfType(_shape: Shape, _type: TLShape['type']): boolean;
@@ -2814,7 +2837,7 @@ export abstract class StateNode implements Partial<TLEventHandlers> {
     useCoalescedEvents: boolean;
 }
 
-// @public (undocumented)
+// @public @deprecated
 export const stopEventPropagation: (e: any) => any;
 
 // @internal (undocumented)
@@ -4325,7 +4348,11 @@ export interface TLUserPreferences {
     // (undocumented)
     edgeScrollSpeed?: null | number;
     // (undocumented)
+    enhancedA11yMode?: boolean | null;
+    // (undocumented)
     id: string;
+    // (undocumented)
+    inputMode?: 'mouse' | 'trackpad' | null;
     // (undocumented)
     isDynamicSizeMode?: boolean | null;
     // (undocumented)
@@ -4338,8 +4365,6 @@ export interface TLUserPreferences {
     locale?: null | string;
     // (undocumented)
     name?: null | string;
-    // (undocumented)
-    showUiLabels?: boolean | null;
 }
 
 // @public (undocumented)
@@ -4370,6 +4395,8 @@ export class TransformedGeometry2d extends Geometry2d {
     // (undocumented)
     distanceToPoint(point: VecLike, hitInside?: boolean, filters?: Geometry2dFilters): number;
     // (undocumented)
+    getBoundsVertices(): Vec[];
+    // (undocumented)
     getSvgPathData(): string;
     // (undocumented)
     getVertices(filters: Geometry2dFilters): Vec[];
@@ -4395,6 +4422,8 @@ export class TransformedGeometry2d extends Geometry2d {
 export interface TransformedGeometry2dOptions {
     // (undocumented)
     debugColor?: string;
+    // (undocumented)
+    excludeFromShapeBounds?: boolean;
     // (undocumented)
     ignore?: boolean;
     // (undocumented)
@@ -4496,7 +4525,11 @@ export class UserPreferencesManager {
     getColor(): string;
     getEdgeScrollSpeed(): number;
     // (undocumented)
+    getEnhancedA11yMode(): boolean;
+    // (undocumented)
     getId(): string;
+    // (undocumented)
+    getInputMode(): "mouse" | "trackpad" | null;
     // (undocumented)
     getIsDarkMode(): boolean;
     // (undocumented)
@@ -4512,21 +4545,20 @@ export class UserPreferencesManager {
     // (undocumented)
     getName(): string;
     // (undocumented)
-    getShowUiLabels(): boolean;
-    // (undocumented)
     getUserPreferences(): {
         animationSpeed: number;
         areKeyboardShortcutsEnabled: boolean;
         color: string;
         colorScheme: "dark" | "light" | "system" | undefined;
+        enhancedA11yMode: boolean;
         id: string;
+        inputMode: "mouse" | "trackpad" | null;
         isDarkMode: boolean;
         isDynamicResizeMode: boolean;
         isSnapMode: boolean;
         isWrapMode: boolean;
         locale: string;
         name: string;
-        showUiLabels: boolean;
     };
     // (undocumented)
     systemColorScheme: Atom<"dark" | "light", unknown>;
@@ -4580,6 +4612,8 @@ export function useViewportHeight(): number;
 // @internal (undocumented)
 export interface ValidLicenseKeyResult {
     // (undocumented)
+    daysSinceExpiry: number;
+    // (undocumented)
     expiryDate: Date;
     // (undocumented)
     isAnnualLicense: boolean;
@@ -4590,11 +4624,17 @@ export interface ValidLicenseKeyResult {
     // (undocumented)
     isDomainValid: boolean;
     // (undocumented)
+    isEvaluationLicense: boolean;
+    // (undocumented)
+    isEvaluationLicenseExpired: boolean;
+    // (undocumented)
     isInternalLicense: boolean;
     // (undocumented)
     isLicensedWithWatermark: boolean;
     // (undocumented)
     isLicenseParseable: true;
+    // (undocumented)
+    isNativeLicense: boolean;
     // (undocumented)
     isPerpetualLicense: boolean;
     // (undocumented)

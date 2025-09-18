@@ -71,6 +71,13 @@
 		"sidebar_behavior": "show-links"
 	},
 	{
+		"id": "starter-kits",
+		"title": "Starter Kits",
+		"description": "Ready-to-use templates to jumpstart your tldraw projects.",
+		"categories": [],
+		"sidebar_behavior": "show-links"
+	},
+	{
 		"id": "community",
 		"title": "Community",
 		"description": "Guides for contributing to tldraw's open source project.",

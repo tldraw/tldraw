@@ -4,7 +4,6 @@ import {
 	clamp,
 	Editor,
 	react,
-	stopEventPropagation,
 	useAtom,
 	useEditor,
 	usePassThroughMouseOverEvents,
@@ -170,7 +169,7 @@ export const TldrawUiContextualToolbar = ({
 			data-visible={false}
 			data-testid="contextual-toolbar"
 			className={classNames('tlui-contextual-toolbar', className)}
-			onPointerDown={stopEventPropagation}
+			onPointerDown={editor.markEventAsHandled}
 		>
 			<TldrawUiToolbar
 				orientation="horizontal"

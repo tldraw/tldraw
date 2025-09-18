@@ -41,7 +41,7 @@ export function createPostgresConnectionPool(env: Environment, name: string, max
 	const pool = new pg.Pool({
 		connectionString: env.BOTCOM_POSTGRES_POOLED_CONNECTION_STRING,
 		application_name: name,
-		idleTimeoutMillis: 1_000,
+		idleTimeoutMillis: 10_000,
 		max,
 		Client: LoggingClient,
 	})

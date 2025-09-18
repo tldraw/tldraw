@@ -1,12 +1,12 @@
 import { AtomMap, Editor, TLShapeId } from 'tldraw'
 import { NodeShape } from '../nodes/NodeShapeUtil'
 import {
-	getNodeOutputPortValues,
+	getNodeOutputPortInfo,
 	getNodePortConnections,
 	NodePortConnection,
 } from '../nodes/nodePorts'
-import { computeNodeOutput } from '../nodes/nodeTypes'
-import { STOP_EXECUTION } from '../nodes/types/shared'
+import { executeNode } from '../nodes/nodeTypes'
+import { ExecutionResult, STOP_EXECUTION } from '../nodes/types/shared'
 
 interface PendingExecutionGraphNode {
 	readonly state: 'waiting' | 'executing'
@@ -17,7 +17,7 @@ interface ExecutedExecutionGraphNode {
 	readonly state: 'executed'
 	readonly shape: NodeShape
 	readonly connections: NodePortConnection[]
-	readonly outputs: Record<string, number | STOP_EXECUTION>
+	readonly outputs: ExecutionResult
 }
 
 type ExecutionGraphNode = PendingExecutionGraphNode | ExecutedExecutionGraphNode
@@ -97,7 +97,7 @@ export class ExecutionGraph {
 		const inputs: Record<string, number> = {}
 
 		// Check all input connections (end ports) to see if dependencies are ready
-		for (const [portId, connection] of Object.entries(node.connections)) {
+		for (const connection of node.connections) {
 			if (!connection || connection.terminal !== 'end') continue
 
 			const dependency = this.nodesById.get(connection.connectedShapeId)
@@ -114,19 +114,19 @@ export class ExecutionGraph {
 					return
 				}
 
-				inputs[portId] = output
+				inputs[connection.ownPortId] = output
 			} else {
 				// If the dependency isn't in nodesById, it's not involved in this execution
 				// We should retrieve its cached value from last time
-				const outputs = getNodeOutputPortValues(this.editor, connection.connectedShapeId)
+				const outputs = getNodeOutputPortInfo(this.editor, connection.connectedShapeId)
 				const output = outputs[connection.connectedPortId]
 
-				if (output === STOP_EXECUTION) {
+				if (output.value === STOP_EXECUTION) {
 					// It still might be conditional though, and this branch may be disabled
 					return
 				}
 
-				inputs[portId] = output
+				inputs[connection.ownPortId] = output.value
 			}
 		}
 
@@ -136,11 +136,17 @@ export class ExecutionGraph {
 			state: 'executing',
 		})
 
-		// In a real app, you'd probably have your nodes do a "real" execution here. For simplicity,
-		// we're going to re-use our synchronous computeNodeOutput, but we'll add a delay so you can
-		// see what async execution might look like.
-		await new Promise((resolve) => setTimeout(resolve, 2000))
-		const outputs = computeNodeOutput(node.shape.props.node, inputs)
+		this.editor.updateShape<NodeShape>({
+			id: nodeId,
+			type: node.shape.type,
+			props: { isOutOfDate: true },
+		})
+		const outputs = await executeNode(this.editor, node.shape, inputs)
+		this.editor.updateShape<NodeShape>({
+			id: nodeId,
+			type: node.shape.type,
+			props: { isOutOfDate: false },
+		})
 
 		// Mark the node as executed with its outputs
 		this.nodesById.set(nodeId, {

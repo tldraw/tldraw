@@ -1680,3 +1680,18 @@ it('drops into the top-most frame, if there is one', () => {
 
 	expect(editor.getShape(rect)?.parentId).toBe(editor.getCurrentPageId())
 })
+
+it('does not get drop children of nested frame if they are occluded from the outer frame', () => {
+	const frame1Id = dragCreateFrame({ down: [100, 100], move: [300, 300], up: [300, 300] })
+	const frame2Id = dragCreateFrame({ down: [150, 150], move: [290, 290], up: [290, 290] })
+
+	const rect1 = createRect({ pos: [280, 160], size: [10, 30] })
+
+	expect(editor.getShape(rect1)?.parentId).toBe(frame2Id)
+	expect(editor.getShape(frame2Id)?.parentId).toBe(frame1Id)
+
+	editor.select(frame2Id)
+	editor.translateSelection(30, 0)
+
+	expect(editor.getShape(rect1)?.parentId).toBe(frame2Id)
+})

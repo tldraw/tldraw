@@ -1,6 +1,7 @@
 import { MigrationSequence, Store } from '@tldraw/store'
 import { TLShape, TLStore, TLStoreSnapshot } from '@tldraw/tlschema'
 import { annotateError, Required } from '@tldraw/utils'
+import classNames from 'classnames'
 import React, {
 	memo,
 	ReactNode,
@@ -12,8 +13,6 @@ import React, {
 	useState,
 	useSyncExternalStore,
 } from 'react'
-
-import classNames from 'classnames'
 import { version } from '../version'
 import { DefaultErrorFallback } from './components/default-components/DefaultErrorFallback'
 import { OptionalErrorBoundary } from './components/ErrorBoundary'
@@ -45,7 +44,6 @@ import { LicenseProvider } from './license/LicenseProvider'
 import { Watermark } from './license/Watermark'
 import { TldrawOptions } from './options'
 import { TLDeepLinkOptions } from './utils/deepLinks'
-import { stopEventPropagation } from './utils/dom'
 import { TLTextOptions } from './utils/richText'
 import { TLStoreWithStatus } from './utils/sync/StoreWithStatus'
 
@@ -276,7 +274,6 @@ export const TldrawEditor = memo(function TldrawEditor({
 			data-tldraw={version}
 			draggable={false}
 			className={classNames(`${TL_CONTAINER_CLASS} tl-theme__light`, className)}
-			onPointerDown={stopEventPropagation}
 			tabIndex={-1}
 			role="application"
 			aria-label={_options?.branding ?? 'tldraw'}

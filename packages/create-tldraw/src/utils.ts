@@ -48,11 +48,15 @@ export function toValidPackageName(projectName: string) {
 		.replace(/[^a-z\d\-~]+/g, '-')
 }
 
+export function cancel(): never {
+	outro('Setup cancelled.\n   No worries, come back anytime!')
+	process.exit(1)
+}
+
 export async function uncancel<T>(promise: Promise<T | symbol>): Promise<T> {
 	const result = await promise
 	if (isCancel(result)) {
-		outro(`it's cancelled`)
-		process.exit(1)
+		cancel()
 	}
 
 	return result as T

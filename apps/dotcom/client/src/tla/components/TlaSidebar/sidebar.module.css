@@ -451,6 +451,12 @@
 	padding: 0px 8px 0px 8px;
 }
 
+.sidebarFileListItem[data-active='true'][data-enhanced-a11y-mode='true'] {
+	border-radius: 4px;
+	outline: 2px solid var(--tl-color-text);
+	outline-offset: -2px;
+}
+
 .sidebarFileListItemContent {
 	flex: 1 1 auto;
 	overflow: hidden;

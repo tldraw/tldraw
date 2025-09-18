@@ -38,7 +38,7 @@ const user = table('user')
 		isWrapMode: boolean().optional(),
 		isDynamicSizeMode: boolean().optional(),
 		isPasteAtCursorMode: boolean().optional(),
-		showUiLabels: boolean().optional(),
+		enhancedA11yMode: boolean().optional(),
 		allowAnalyticsCookie: boolean().optional(),
 	})
 	.primaryKey('id')
@@ -572,7 +572,7 @@ const UserPreferencesKeys = [
 	'isWrapMode', // Text wrapping
 	'isDynamicSizeMode', // Dynamic shape sizing
 	'isPasteAtCursorMode', // Paste behavior
-	'showUiLabels', // UI label visibility
+	'enhancedA11yMode', // Enhanced a11y mode
 	'name', // Display name
 	'color', // User color for collaboration
 ] as const satisfies Array<keyof TlaUser>

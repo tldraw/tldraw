@@ -30,12 +30,12 @@ Key interactions include:
 - Draw, sketch, and create diagrams to supplement conversations
 - Annotate images and visual content directly on the canvas
 
-## Environment Setup
+## Environment setup
 
 Create a `.env.local` file in the root directory and add your Google Generative API key:
 
 ```
-OPENAI_API_KEY=your_openai_api_key_here
+GOOGLE_GENERATIVE_AI_API_KEY=your_gemini_api_key_here
 ```
 
 Get your API key from [Google AI Studio](https://aistudio.google.com/apikey).

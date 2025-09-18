@@ -334,6 +334,7 @@ export {
 	type TestEnvironment,
 	type ValidLicenseKeyResult,
 } from './lib/license/LicenseManager'
+export { LICENSE_TIMEOUT } from './lib/license/LicenseProvider'
 export { defaultTldrawOptions, type TldrawOptions } from './lib/options'
 export {
 	Box,

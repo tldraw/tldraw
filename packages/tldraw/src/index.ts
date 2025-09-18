@@ -107,6 +107,13 @@ export {
 export { ArrowShapeTool } from './lib/shapes/arrow/ArrowShapeTool'
 export { ArrowShapeUtil } from './lib/shapes/arrow/ArrowShapeUtil'
 export {
+	clearArrowTargetState,
+	getArrowTargetState,
+	updateArrowTargetState,
+	type ArrowTargetState,
+	type UpdateArrowTargetStateOpts,
+} from './lib/shapes/arrow/arrowTargetState'
+export {
 	type ElbowArrowBox,
 	type ElbowArrowBoxEdges,
 	type ElbowArrowBoxes,
@@ -296,6 +303,7 @@ export {
 	ToggleDebugModeItem,
 	ToggleDynamicSizeModeItem,
 	ToggleEdgeScrollingItem,
+	ToggleEnhancedA11yModeItem,
 	ToggleFocusModeItem,
 	ToggleGridItem,
 	ToggleKeyboardShortcutsItem,
@@ -305,7 +313,6 @@ export {
 	ToggleSnapModeItem,
 	ToggleToolLockItem,
 	ToggleTransparentBgMenuItem,
-	ToggleUiLabelsItem,
 	ToggleWrapModeItem,
 	UngroupMenuItem,
 	UnlockAllMenuItem,

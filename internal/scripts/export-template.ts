@@ -46,13 +46,8 @@ async function main() {
 		process.exit(1)
 	}
 
-	if (!exportConfig.publish) {
-		console.log('No publish key found in package.json. Skipping export.')
-		process.exit(0)
-	}
-
 	// clone the template repo:
-	const repoUrl = `https://${githubAuth}github.com/${exportConfig.publish.repo}.git`
+	const repoUrl = `https://${githubAuth}github.com/${exportConfig.repo}.git`
 	console.log(`Cloning ${repoUrl}...`)
 	await exec('git', ['clone', repoUrl, workingDir, '--depth', '1'])
 
