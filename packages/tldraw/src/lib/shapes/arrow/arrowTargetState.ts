@@ -27,6 +27,11 @@ import {
 	ElbowArrowSideDeltas,
 } from './elbow/definitions'
 
+/**
+ * Options passed to {@link updateArrowTargetState}.
+ *
+ * @public
+ */
 export interface UpdateArrowTargetStateOpts {
 	editor: Editor
 	pointInPageSpace: VecLike
@@ -37,6 +42,13 @@ export interface UpdateArrowTargetStateOpts {
 	oppositeBinding: TLArrowBinding | undefined
 }
 
+/**
+ * State representing what we're pointing to when drawing or updating an arrow. You can get this
+ * state using {@link getArrowTargetState}, and update it as part of an arrow interaction with
+ * {@link updateArrowTargetState} or {@link clearArrowTargetState}.
+ *
+ * @public
+ */
 export interface ArrowTargetState {
 	target: TLShape
 	arrowKind: TLArrowShapeKind
@@ -63,14 +75,32 @@ function getArrowTargetAtom(editor: Editor) {
 	return arrowTargetStore.get(editor, () => atom('arrowTarget', null))
 }
 
+/**
+ * Get the current arrow target state for an editor. See {@link ArrowTargetState} for more
+ * information.
+ *
+ * @public
+ */
 export function getArrowTargetState(editor: Editor) {
 	return getArrowTargetAtom(editor).get()
 }
 
+/**
+ * Clear the current arrow target state for an editor. See {@link ArrowTargetState} for more
+ * information.
+ *
+ * @public
+ */
 export function clearArrowTargetState(editor: Editor) {
 	getArrowTargetAtom(editor).set(null)
 }
 
+/**
+ * Update the current arrow target state for an editor. See {@link ArrowTargetState} for more
+ * information.
+ *
+ * @public
+ */
 export function updateArrowTargetState({
 	editor,
 	pointInPageSpace,
