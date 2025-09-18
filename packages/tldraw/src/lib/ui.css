@@ -1039,6 +1039,11 @@ tldraw? probably.
 	display: none;
 }
 
+/*
+ * This is used in a couple places, like Align and Vertical Align.
+ * It's because we have a toolbar with a Toggle Group but then an adjacent button
+ * next to it that opens a popup.
+ */
 .tlui-style-panel__section .tlui-toolbar:has(.tlui-toolbar) {
 	flex-wrap: wrap;
 }
