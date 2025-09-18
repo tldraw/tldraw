@@ -81,7 +81,7 @@ export interface ArrowShapeOptions {
 	 */
 	readonly hoverPreciseTimeout: number
 	/**
-	 * When pointing at a shape using the arrow tool or draggin an arrow terminal handle, how long
+	 * When pointing at a shape using the arrow tool or dragging an arrow terminal handle, how long
 	 * should we wait before we assume the user is targeting precisely instead of imprecisely.
 	 */
 	readonly pointingPreciseTimeout: number

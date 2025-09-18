@@ -139,6 +139,9 @@ export class DraggingHandle extends StateNode {
 
 	// Only relevant to arrows
 	private resetExactTimeout() {
+		const arrowUtil = this.editor.getShapeUtil<any>('arrow')
+		const timeoutValue = (arrowUtil.options as any)?.pointingPreciseTimeout ?? 750
+
 		if (this.exactTimeout !== -1) {
 			this.clearExactTimeout()
 		}
@@ -150,7 +153,7 @@ export class DraggingHandle extends StateNode {
 				this.update()
 			}
 			this.exactTimeout = -1
-		}, 750)
+		}, timeoutValue)
 	}
 
 	// Only relevant to arrows
