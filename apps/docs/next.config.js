@@ -3,6 +3,40 @@
 // Configurable domain for rewrites
 const REWRITE_DOMAIN = 'tldrawdotdev.framer.website'
 
+// Function to fetch Framer sitemap and generate dynamic rewrites
+async function getFramerRewrites() {
+	try {
+		const response = await fetch(`https://${REWRITE_DOMAIN}/sitemap.xml`)
+		if (!response.ok) {
+			throw new Error(`Failed to fetch Framer sitemap for rewrites: ${response.statusText}`)
+		}
+
+		const xmlText = await response.text()
+		const urlRegex = /<url>\s*<loc>(.*?)<\/loc>/g
+		const rewrites = []
+
+		let match
+		while ((match = urlRegex.exec(xmlText)) !== null) {
+			const url = match[1]
+			const path = new URL(url).pathname
+
+			// Skip root path since it's already handled
+			if (path !== '/') {
+				rewrites.push({
+					source: path,
+					destination: `https://${REWRITE_DOMAIN}${path}`,
+				})
+			}
+		}
+
+		console.log(`Generated ${rewrites.length} dynamic rewrites from Framer sitemap`)
+		return rewrites
+	} catch (error) {
+		console.error('Error fetching Framer sitemap for rewrites:', error)
+		throw error
+	}
+}
+
 const nextConfig = {
 	reactStrictMode: true,
 	experimental: {
@@ -141,6 +175,8 @@ const nextConfig = {
 		]
 	},
 	async rewrites() {
+		const dynamicFramerRewrites = await getFramerRewrites()
+
 		const rewrites = {
 			beforeFiles: [
 				{
@@ -151,74 +187,9 @@ const nextConfig = {
 					source: '/404',
 					destination: `https://${REWRITE_DOMAIN}/404`,
 				},
-				{
-					source: '/blog/announcements',
-					destination: `https://${REWRITE_DOMAIN}/blog/category/announcements`,
-				},
-				{
-					source: '/blog/case-studies',
-					destination: `https://${REWRITE_DOMAIN}/blog/category/case-studies`,
-				},
-				{
-					source: '/blog/product',
-					destination: `https://${REWRITE_DOMAIN}/blog/category/product`,
-				},
-				{
-					source: '/blog/release-notes',
-					destination: `https://${REWRITE_DOMAIN}/blog/category/release-notes`,
-				},
-				{
-					source: '/blog/:path*',
-					destination: `https://${REWRITE_DOMAIN}/blog/:path*`,
-				},
-				{
-					source: '/careers',
-					destination: `https://${REWRITE_DOMAIN}/careers`,
-				},
-				{
-					source: '/company',
-					destination: `https://${REWRITE_DOMAIN}/company`,
-				},
-				{
-					source: '/events',
-					destination: `https://${REWRITE_DOMAIN}/events`,
-				},
-				{
-					source: '/faq',
-					destination: `https://${REWRITE_DOMAIN}/faq`,
-				},
-				{
-					source: '/features/:path*',
-					destination: `https://${REWRITE_DOMAIN}/features/:path*`,
-				},
-				{
-					source: '/get-a-license/:path*',
-					destination: `https://${REWRITE_DOMAIN}/get-a-license/:path*`,
-				},
-				{
-					source: '/legal/:path*',
-					destination: `https://${REWRITE_DOMAIN}/legal/:path*`,
-				},
-				{
-					source: '/partner',
-					destination: `https://${REWRITE_DOMAIN}/partner`,
-				},
-				{
-					source: '/pricing',
-					destination: `https://${REWRITE_DOMAIN}/pricing`,
-				},
-				{
-					source: '/showcase',
-					destination: `https://${REWRITE_DOMAIN}/showcase`,
-				},
-				{
-					source: '/starter-kits',
-					destination: `https://${REWRITE_DOMAIN}/starter-kits`,
-				},
-				{
-					source: '/thanks',
-					destination: `https://${REWRITE_DOMAIN}/thanks`,
-				},
+				// Dynamic rewrites from Framer sitemap
+				...dynamicFramerRewrites,
+				// Internal docs rewrites
 				{
 					source: '/releases',
 					destination: '/getting-started/releases',
