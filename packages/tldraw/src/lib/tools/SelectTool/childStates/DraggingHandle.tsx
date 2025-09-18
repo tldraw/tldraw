@@ -13,6 +13,7 @@ import {
 	sortByIndex,
 	structuredClone,
 } from '@tldraw/editor'
+import { ArrowShapeUtil } from '../../../shapes/arrow/ArrowShapeUtil'
 import { clearArrowTargetState } from '../../../shapes/arrow/arrowTargetState'
 import { getArrowBindings } from '../../../shapes/arrow/shared'
 
@@ -135,12 +136,12 @@ export class DraggingHandle extends StateNode {
 	}
 
 	// Only relevant to arrows
-	private exactTimeout = -1 as any
+	private exactTimeout = -1
 
 	// Only relevant to arrows
 	private resetExactTimeout() {
-		const arrowUtil = this.editor.getShapeUtil<any>('arrow')
-		const timeoutValue = (arrowUtil.options as any)?.pointingPreciseTimeout ?? 750
+		const arrowUtil = this.editor.getShapeUtil<ArrowShapeUtil>('arrow')
+		const timeoutValue = arrowUtil.options.pointingPreciseTimeout
 
 		if (this.exactTimeout !== -1) {
 			this.clearExactTimeout()
