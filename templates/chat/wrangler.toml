@@ -1,0 +1,18 @@
+name = "chat-template"
+main = "worker/worker.ts"
+compatibility_date = "2024-12-30"
+assets = { not_found_handling = "single-page-application" }
+compatibility_flags = ["nodejs_compat"]
+preview_urls = true
+
+[observability]
+enabled = true
+
+[[r2_buckets]]
+binding = "CHAT_FILES"
+bucket_name = "chat-template"
+preview_bucket_name = "chat-template-preview"
+
+[[routes]]
+pattern = "chat.templates.tldraw.dev"
+custom_domain = true
