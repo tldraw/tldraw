@@ -39,6 +39,7 @@ export const user = table('user')
 		isWrapMode: boolean().optional(),
 		isDynamicSizeMode: boolean().optional(),
 		isPasteAtCursorMode: boolean().optional(),
+		inputMode: string().optional(),
 		enhancedA11yMode: boolean().optional(),
 		allowAnalyticsCookie: boolean().optional(),
 	})
