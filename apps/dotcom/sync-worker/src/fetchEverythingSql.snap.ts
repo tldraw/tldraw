@@ -30,8 +30,9 @@ SELECT
   "exportTheme"::text as "18",
   "flags"::text as "19",
   "id"::text as "20",
-  "locale"::text as "21",
-  "name"::text as "22"
+  "inputMode"::text as "21",
+  "locale"::text as "22",
+  "name"::text as "23"
 FROM public."user"
 WHERE "id" = $1
 UNION ALL
@@ -59,7 +60,8 @@ SELECT
   null::text as "19",
   null::text as "20",
   null::text as "21",
-  null::text as "22"
+  null::text as "22",
+  null::text as "23"
 FROM my_file_states
 UNION ALL
 SELECT
@@ -86,7 +88,8 @@ SELECT
   "publishedSlug"::text as "19",
   "sharedLinkType"::text as "20",
   "thumbnail"::text as "21",
-  null::text as "22"
+  null::text as "22",
+  null::text as "23"
 FROM all_files
 UNION ALL
 SELECT
@@ -113,7 +116,8 @@ SELECT
   null::text as "19",
   null::text as "20",
   null::text as "21",
-  null::text as "22"
+  null::text as "22",
+  null::text as "23"
 FROM public."user_mutation_number"
 WHERE "userId" = $1
 UNION ALL
@@ -141,7 +145,8 @@ SELECT
   null::text as "19",
   null::text as "20",
   null::text as "21",
-  null::text as "22"
+  null::text as "22",
+  null::text as "23"
 `
 
 export const columnNamesByAlias = {
@@ -167,8 +172,9 @@ export const columnNamesByAlias = {
 		'18': 'exportTheme',
 		'19': 'flags',
 		'20': 'id',
-		'21': 'locale',
-		'22': 'name',
+		'21': 'inputMode',
+		'22': 'locale',
+		'23': 'name',
 	},
 	file_state: {
 		'0': 'isFileOwner',
