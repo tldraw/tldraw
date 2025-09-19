@@ -727,13 +727,14 @@ export const defaultUserPreferences: Readonly<{
     color: "#02B1CC" | "#11B3A3" | "#39B178" | "#55B467" | "#7B66DC" | "#9D5BD2" | "#BD54C6" | "#E34BA9" | "#EC5E41" | "#F04F88" | "#F2555A" | "#FF802B";
     colorScheme: "light";
     edgeScrollSpeed: 1;
+    enhancedA11yMode: false;
+    inputMode: null;
     isDynamicSizeMode: false;
     isPasteAtCursorMode: false;
     isSnapMode: false;
     isWrapMode: false;
     locale: "ar" | "bn" | "ca" | "cs" | "da" | "de" | "el" | "en" | "es" | "fa" | "fi" | "fr" | "gl" | "gu-in" | "he" | "hi-in" | "hr" | "hu" | "id" | "it" | "ja" | "km-kh" | "kn" | "ko-kr" | "ml" | "mr" | "ms" | "ne" | "nl" | "no" | "pa" | "pl" | "pt-br" | "pt-pt" | "ro" | "ru" | "sl" | "so" | "sv" | "ta" | "te" | "th" | "tl" | "tr" | "uk" | "ur" | "vi" | "zh-cn" | "zh-tw";
     name: "";
-    showUiLabels: false;
 }>;
 
 // @public
@@ -2079,7 +2080,7 @@ export interface LicenseInfo {
 
 // @internal (undocumented)
 export class LicenseManager {
-    constructor(licenseKey: string | undefined, testPublicKey?: string, testEnvironment?: TestEnvironment);
+    constructor(licenseKey: string | undefined, testPublicKey?: string);
     // (undocumented)
     static className: string;
     // (undocumented)
@@ -2879,9 +2880,6 @@ export const Table: {
     readonly Schema: "schema";
     readonly SessionState: "session_state";
 };
-
-// @internal (undocumented)
-export type TestEnvironment = 'development' | 'production';
 
 // @public (undocumented)
 export class TextManager {
@@ -4347,7 +4345,11 @@ export interface TLUserPreferences {
     // (undocumented)
     edgeScrollSpeed?: null | number;
     // (undocumented)
+    enhancedA11yMode?: boolean | null;
+    // (undocumented)
     id: string;
+    // (undocumented)
+    inputMode?: 'mouse' | 'trackpad' | null;
     // (undocumented)
     isDynamicSizeMode?: boolean | null;
     // (undocumented)
@@ -4360,8 +4362,6 @@ export interface TLUserPreferences {
     locale?: null | string;
     // (undocumented)
     name?: null | string;
-    // (undocumented)
-    showUiLabels?: boolean | null;
 }
 
 // @public (undocumented)
@@ -4522,7 +4522,11 @@ export class UserPreferencesManager {
     getColor(): string;
     getEdgeScrollSpeed(): number;
     // (undocumented)
+    getEnhancedA11yMode(): boolean;
+    // (undocumented)
     getId(): string;
+    // (undocumented)
+    getInputMode(): "mouse" | "trackpad" | null;
     // (undocumented)
     getIsDarkMode(): boolean;
     // (undocumented)
@@ -4538,21 +4542,20 @@ export class UserPreferencesManager {
     // (undocumented)
     getName(): string;
     // (undocumented)
-    getShowUiLabels(): boolean;
-    // (undocumented)
     getUserPreferences(): {
         animationSpeed: number;
         areKeyboardShortcutsEnabled: boolean;
         color: string;
         colorScheme: "dark" | "light" | "system" | undefined;
+        enhancedA11yMode: boolean;
         id: string;
+        inputMode: "mouse" | "trackpad" | null;
         isDarkMode: boolean;
         isDynamicResizeMode: boolean;
         isSnapMode: boolean;
         isWrapMode: boolean;
         locale: string;
         name: string;
-        showUiLabels: boolean;
     };
     // (undocumented)
     systemColorScheme: Atom<"dark" | "light", unknown>;

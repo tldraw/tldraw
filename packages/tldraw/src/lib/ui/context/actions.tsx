@@ -1270,16 +1270,16 @@ export function ActionsProvider({ overrides, children }: ActionsProviderProps) {
 				checkbox: true,
 			},
 			{
-				id: 'toggle-ui-labels',
+				id: 'enhanced-a11y-mode',
 				label: {
-					default: 'action.toggle-ui-labels',
-					menu: 'action.toggle-ui-labels.menu',
+					default: 'action.enhanced-a11y-mode',
+					menu: 'action.enhanced-a11y-mode.menu',
 				},
 				readonlyOk: true,
 				onSelect(source) {
-					trackEvent('toggle-ui-labels', { source })
+					trackEvent('enhanced-a11y-mode', { source })
 					editor.user.updateUserPreferences({
-						showUiLabels: !editor.user.getShowUiLabels(),
+						enhancedA11yMode: !editor.user.getEnhancedA11yMode(),
 					})
 				},
 				checkbox: true,
@@ -1342,28 +1342,6 @@ export function ActionsProvider({ overrides, children }: ActionsProviderProps) {
 					if (updates.length > 0) {
 						editor.updateShapes(updates)
 					}
-				},
-			},
-			{
-				id: 'toggle-focus-mode',
-				label: {
-					default: 'action.toggle-focus-mode',
-					menu: 'action.toggle-focus-mode.menu',
-				},
-				readonlyOk: true,
-				kbd: 'cmd+.,ctrl+.',
-				checkbox: true,
-				onSelect(source) {
-					// this needs to be deferred because it causes the menu
-					// UI to unmount which puts us in a dodgy state
-					editor.timers.requestAnimationFrame(() => {
-						editor.run(() => {
-							trackEvent('toggle-focus-mode', { source })
-							helpers.clearDialogs()
-							helpers.clearToasts()
-							editor.updateInstanceState({ isFocusMode: !editor.getInstanceState().isFocusMode })
-						})
-					})
 				},
 			},
 			{

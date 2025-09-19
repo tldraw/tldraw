@@ -3,6 +3,11 @@
 
 /** @public */
 export type TLUiTranslationKey =
+	| 'action.toggle-auto-pan'
+	| 'action.toggle-auto-zoom'
+	| 'action.toggle-auto-none'
+	| 'action.toggle-mouse'
+	| 'action.toggle-trackpad'
 	| 'action.convert-to-bookmark'
 	| 'action.convert-to-embed'
 	| 'action.open-embed-link'
@@ -93,8 +98,8 @@ export type TLUiTranslationKey =
 	| 'action.toggle-reduce-motion'
 	| 'action.toggle-keyboard-shortcuts.menu'
 	| 'action.toggle-keyboard-shortcuts'
-	| 'action.toggle-ui-labels.menu'
-	| 'action.toggle-ui-labels'
+	| 'action.enhanced-a11y-mode.menu'
+	| 'action.enhanced-a11y-mode'
 	| 'action.toggle-edge-scrolling.menu'
 	| 'action.toggle-edge-scrolling'
 	| 'action.toggle-debug-mode.menu'
@@ -311,6 +316,7 @@ export type TLUiTranslationKey =
 	| 'menu.language'
 	| 'menu.preferences'
 	| 'menu.view'
+	| 'menu.input-mode'
 	| 'context-menu.title'
 	| 'context-menu.edit'
 	| 'context-menu.arrange'

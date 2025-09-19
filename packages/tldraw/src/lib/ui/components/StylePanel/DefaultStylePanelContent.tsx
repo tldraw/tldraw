@@ -91,7 +91,7 @@ const tldrawSupportedOpacities = [0.1, 0.25, 0.5, 0.75, 1] as const
 /** @public @react */
 export function StylePanelOpacityPicker() {
 	const editor = useEditor()
-	const { onHistoryMark, showUiLabels } = useStylePanelContext()
+	const { onHistoryMark, enhancedA11yMode } = useStylePanelContext()
 
 	const opacity = useValue('opacity', () => editor.getSharedOpacity(), [editor])
 	const trackEvent = useUiEvents()
@@ -126,7 +126,9 @@ export function StylePanelOpacityPicker() {
 
 	return (
 		<>
-			{showUiLabels && <StylePanelSubheading>{msg('style-panel.opacity')}</StylePanelSubheading>}
+			{enhancedA11yMode && (
+				<StylePanelSubheading>{msg('style-panel.opacity')}</StylePanelSubheading>
+			)}
 			<TldrawUiSlider
 				data-testid="style.opacity"
 				value={opacityIndex >= 0 ? opacityIndex : tldrawSupportedOpacities.length - 1}

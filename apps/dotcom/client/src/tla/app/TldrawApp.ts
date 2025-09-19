@@ -759,7 +759,7 @@ export class TldrawApp {
 			isWrapMode: restOfPreferences.isWrapMode ?? null,
 			isDynamicSizeMode: restOfPreferences.isDynamicSizeMode ?? null,
 			isPasteAtCursorMode: restOfPreferences.isPasteAtCursorMode ?? null,
-			showUiLabels: restOfPreferences.showUiLabels ?? null,
+			enhancedA11yMode: restOfPreferences.enhancedA11yMode ?? null,
 		})
 		if (didCreate) {
 			opts.trackEvent('create-user', { source: 'app' })
