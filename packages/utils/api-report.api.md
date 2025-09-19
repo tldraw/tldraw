@@ -41,7 +41,9 @@ export function clearSessionStorage(): void;
 export function compact<T>(arr: T[]): NonNullable<T>[];
 
 // @public
-export function debounce<T extends unknown[], U>(callback: (...args: T) => PromiseLike<U> | U, wait: number): {
+export function debounce<T extends unknown[], U>(callback: (...args: T) => PromiseLike<U> | U, wait: number, options?: {
+    leading?: boolean;
+}): {
     (...args: T): Promise<U>;
     cancel(): void;
 };
