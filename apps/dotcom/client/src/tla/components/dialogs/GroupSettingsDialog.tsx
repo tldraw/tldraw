@@ -2,7 +2,6 @@ import { Tooltip as _Tooltip } from 'radix-ui'
 import { useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import {
-	preventDefault,
 	TldrawUiButton,
 	TldrawUiDialogBody,
 	TldrawUiDialogCloseButton,
@@ -206,9 +205,11 @@ export function GroupSettingsDialog({ groupId, onClose }: GroupSettingsDialogPro
 							className={`${styles.noPadding} tlui-input`}
 							value={inviteUrl}
 							readOnly
+							onBlur={() => {
+								window.getSelection()?.collapseToEnd()
+							}}
 							onMouseDown={(e) => {
-								preventDefault(e)
-								e.stopPropagation()
+								e.preventDefault()
 								;(e.target as HTMLInputElement).select()
 							}}
 						/>
@@ -219,6 +220,9 @@ export function GroupSettingsDialog({ groupId, onClose }: GroupSettingsDialogPro
 									aria-label="Regenerate invite link"
 									onClick={handleRegenerateInviteLink}
 									disabled={isRegenerating}
+									style={{
+										transform: 'scale(0.9)',
+									}}
 								>
 									<TlaIcon
 										icon={showRefreshSuccess ? 'check' : 'refresh'}
@@ -234,6 +238,7 @@ export function GroupSettingsDialog({ groupId, onClose }: GroupSettingsDialogPro
 					</div>
 					<TlaButton
 						iconRight={copiedInviteLink ? 'check' : 'copy'}
+						iconRightClassName={styles.copyInviteLinkIconRight}
 						variant="primary"
 						onClick={handleCopyInviteLink}
 					>

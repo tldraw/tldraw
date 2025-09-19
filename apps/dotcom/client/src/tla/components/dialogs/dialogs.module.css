@@ -234,3 +234,7 @@
 	top: 50% !important;
 	transform: translateY(-50%) !important;
 }
+
+.copyInviteLinkIconRight {
+	right: 12.5px !important;
+}
