@@ -1,7 +1,7 @@
 import { expect } from '@playwright/test'
 import { Editor, TLGeoShape } from 'tldraw'
+import test from '../fixtures/fixtures'
 import { getAllShapeTypes, setup } from '../shared-e2e'
-import test from './fixtures/fixtures'
 
 declare const editor: Editor
 

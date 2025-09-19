@@ -30,10 +30,10 @@
 		"dev": "vite --host",
 		"build": "vite build",
 		"lint": "yarn run -T tsx ../../internal/scripts/lint.ts",
-		"e2e": "playwright test -c ./e2e/playwright.config.ts ./e2e/tests/!(test-perf).spec.ts",
-		"e2e-ui": "playwright test --ui -c ./e2e/playwright.config.ts ./e2e/tests/!(test-perf).spec.ts",
-		"e2e-perf": "playwright test --workers=1 -c ./e2e/playwright.config.ts ./e2e/tests/test-perf.spec.ts",
-		"e2e-perf-ui": "playwright test --ui -c ./e2e/playwright.config.ts ./e2e/tests/test-perf.spec.ts",
+		"e2e": "playwright test -c ./e2e/playwright.config.ts ./e2e/tests/**/*.spec.{ts,tsx}",
+		"e2e-ui": "playwright test --ui -c ./e2e/playwright.config.ts ./e2e/tests/**/*.spec.{ts,tsx}",
+		"e2e-perf": "playwright test --workers=1 -c ./e2e/playwright.config.ts ./e2e/perf/**/*.spec.{ts,tsx}",
+		"e2e-perf-ui": "playwright test --ui -c ./e2e/playwright.config.ts ./e2e/perf/**/*.spec.{ts,tsx}",
 		"test": "yarn run -T vitest --passWithNoTests",
 		"test-ci": "yarn run -T vitest run --passWithNoTests",
 		"test-coverage": "yarn run -T vitest run --coverage --passWithNoTests"
@@ -74,5 +74,6 @@
 		"remark-frontmatter": "^5.0.0",
 		"remark-html": "^16.0.1",
 		"vfile-matter": "^5.0.0"
-	}
+	},
+	"type": "module"
 }
