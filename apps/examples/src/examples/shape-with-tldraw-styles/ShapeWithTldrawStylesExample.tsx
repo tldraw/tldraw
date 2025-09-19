@@ -13,6 +13,12 @@ import {
 } from 'tldraw'
 import 'tldraw/tldraw.css'
 
+declare module '@tldraw/tlschema' {
+	export interface GlobalShapePropsMap {
+		myshape: IMyShape
+	}
+}
+
 // There's a guide at the bottom of this file!
 
 const FONT_SIZES: Record<TLDefaultSizeStyle, number> = {
@@ -23,7 +29,7 @@ const FONT_SIZES: Record<TLDefaultSizeStyle, number> = {
 }
 
 type IMyShape = TLBaseShape<
-	'myshape',
+	'myshapewithtldrawstyles',
 	{
 		w: number
 		h: number
@@ -34,7 +40,7 @@ type IMyShape = TLBaseShape<
 >
 
 class MyShapeUtil extends BaseBoxShapeUtil<IMyShape> {
-	static override type = 'myshape' as const
+	static override type = 'myshapewithtldrawstyles' as const
 
 	// [2]
 	static override props = {
@@ -88,16 +94,16 @@ export default function ShapeWithTldrawStylesExample() {
 			<Tldraw
 				shapeUtils={customShapeUtils}
 				onMount={(editor) => {
-					editor.createShape({ type: 'myshape', x: 100, y: 100 })
+					editor.createShape({ type: 'myshapewithtldrawstyles', x: 100, y: 100 })
 				}}
 			/>
 		</div>
 	)
 }
 
-/* 
+/*
 
-This file shows a custom shape that uses tldraw's default styles. 
+This file shows a custom shape that uses tldraw's default styles.
 For more on custom shapes, see our Custom Shape example.
 
 [1]

@@ -13,10 +13,16 @@ import {
 import 'tldraw/tldraw.css'
 import snapshot from './snapshot.json'
 
+declare module '@tldraw/tlschema' {
+	export interface GlobalShapePropsMap {
+		myshapewithmigrations: IMyShape
+	}
+}
+
 // There's a guide at the bottom of this file!
 
 export type IMyShape = TLBaseShape<
-	'myshape',
+	'myshapewithmigrations',
 	{
 		w: number
 		h: number
@@ -27,7 +33,7 @@ export type IMyShape = TLBaseShape<
 // [1]
 const versions = createShapePropsMigrationIds(
 	// this must match the shape type in the shape definition
-	'myshape',
+	'myshapewithmigrations',
 	{
 		AddColor: 1,
 	}
@@ -50,7 +56,7 @@ export const cardShapeMigrations = createShapePropsMigrationSequence({
 })
 
 export class MigratedShapeUtil extends BaseBoxShapeUtil<IMyShape> {
-	static override type = 'myshape' as const
+	static override type = 'myshapewithmigrations' as const
 
 	static override props = {
 		w: T.number,
@@ -105,11 +111,11 @@ export default function ShapeWithMigrationsExample() {
 	)
 }
 
-/* 
+/*
 Introduction:
 
 Sometimes you'll want to update the way a shape works in your application without breaking older
-versions of the shape that a user may have stored or persisted in memory. 
+versions of the shape that a user may have stored or persisted in memory.
 
 This example shows how you can use our migrations system to upgrade (or downgrade) user's data
 between different versions. Most of the code above is general "custom shape" code—see our custom
@@ -137,7 +143,7 @@ snapshot's `schema`). When the editor loads a snapshot, it compares its current 
 snapshot's schema to determine which migrations to apply to each record.
 
 In this example, we have a snapshot (snapshot.json) that we created in version 0, however our shape
-now has a 'color' prop that was added in version 1. 
+now has a 'color' prop that was added in version 1.
 
 The snapshot looks something like this:
 
@@ -163,7 +169,7 @@ The snapshot looks something like this:
 }
 ```
 
-Note that the shape in the snapshot doesn't have a 'color' prop. 
+Note that the shape in the snapshot doesn't have a 'color' prop.
 
 Note also that the schema's version for this shape is 0.
 

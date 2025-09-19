@@ -114,6 +114,7 @@ export {
 	isShape,
 	isShapeId,
 	rootShapeMigrations,
+	type GlobalShapePropsMap,
 	type TLDefaultShape,
 	type TLParentId,
 	type TLShape,
