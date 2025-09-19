@@ -875,7 +875,6 @@
 	display: flex;
 	gap: 8px;
 	align-items: center;
-	cursor: pointer;
 	padding: 6px 10px 6px 0px;
 	flex: 0 1 auto;
 	white-space: nowrap;

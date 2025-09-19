@@ -363,6 +363,7 @@ export function TlaSidebarGroupItem({ groupId, index }: { groupId: string; index
 							}}
 							style={{ cursor: 'default' }}
 							draggable={true}
+							onClick={() => setIsExpanded(!isExpanded)}
 							onDragStart={(event) => {
 								event.dataTransfer.effectAllowed = 'move'
 								event.dataTransfer.setData('text/plain', group.groupId)
@@ -380,7 +381,6 @@ export function TlaSidebarGroupItem({ groupId, index }: { groupId: string; index
 									marginLeft: isExpanded ? 0 : 0,
 									transition: 'margin-left 0.14s ease-in-out',
 								}}
-								onClick={() => setIsExpanded(!isExpanded)}
 							>
 								<TlaIcon icon={isExpanded ? 'folder-open' : 'folder'} style={{ top: -1 }} />
 								{group.group.name}
