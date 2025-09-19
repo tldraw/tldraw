@@ -750,6 +750,7 @@ export class TldrawApp {
 			flags: '',
 			allowAnalyticsCookie: null,
 			...restOfPreferences,
+			inputMode: restOfPreferences.inputMode ?? null,
 			locale: restOfPreferences.locale ?? null,
 			animationSpeed: restOfPreferences.animationSpeed ?? null,
 			areKeyboardShortcutsEnabled: restOfPreferences.areKeyboardShortcutsEnabled ?? null,
