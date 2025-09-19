@@ -248,7 +248,11 @@ function updateArrowheadPointWithBoundShape(
 	if (targetInt === undefined) {
 		// No intersection? The arrowhead point will be at the arrow terminal.
 		// if we _almost_ hit the target, just put the arrowhead at the target.
-		targetInt = targetShapeInfo.geometry.nearestPoint(targetTo)
+		targetInt = targetShapeInfo.geometry.nearestPoint(targetTo, {
+			includeLabels: false,
+			includeInternal: false,
+		})
+
 		if (!Vec.DistMin(targetInt, targetTo, 1)) {
 			return
 		}
