@@ -35,6 +35,7 @@ export const DEFAULT_EMBED_DEFINITIONS = [
 			}
 			return
 		},
+		skipOnPaste: true,
 	},
 	{
 		type: 'figma',
@@ -673,6 +674,7 @@ export interface EmbedDefinition {
 	readonly overridePermissions?: TLEmbedShapePermissions
 	readonly instructionLink?: string
 	readonly backgroundColor?: string
+	readonly skipOnPaste?: boolean
 	// TODO: FIXME this is ugly be required because some embeds have their own border radius for example spotify embeds
 	readonly overrideOutlineRadius?: number
 	// eslint-disable-next-line @typescript-eslint/method-signature-style

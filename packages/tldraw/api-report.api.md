@@ -627,6 +627,7 @@ export const DEFAULT_EMBED_DEFINITIONS: readonly [{
     readonly overridePermissions: {
         readonly 'allow-top-navigation': true;
     };
+    readonly skipOnPaste: true;
     readonly title: "tldraw";
     readonly toEmbedUrl: (url: string) => string | undefined;
     readonly type: "tldraw";
@@ -1324,6 +1325,8 @@ export interface EmbedDefinition {
     readonly overrideOutlineRadius?: number;
     // (undocumented)
     readonly overridePermissions?: TLEmbedShapePermissions;
+    // (undocumented)
+    readonly skipOnPaste?: boolean;
     // (undocumented)
     readonly title: string;
     // (undocumented)
