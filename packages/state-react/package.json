@@ -1,7 +1,7 @@
 {
 	"name": "@tldraw/state-react",
 	"description": "tldraw infinite canvas SDK (react bindings for state).",
-	"version": "4.0.0",
+	"version": "4.0.1",
 	"author": {
 		"name": "tldraw Inc.",
 		"email": "hello@tldraw.com"

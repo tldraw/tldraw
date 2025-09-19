@@ -1,3 +1,4 @@
+import { structuredClone } from 'tldraw'
 import { AgentHelpers } from '../AgentHelpers'
 import { AgentMessage, AgentMessageContent } from '../types/AgentMessage'
 import { AgentRequest } from '../types/AgentRequest'
@@ -19,7 +20,7 @@ export class ChatHistoryPartUtil extends PromptPartUtil<ChatHistoryPart> {
 	override async getPart(_request: AgentRequest, helpers: AgentHelpers) {
 		if (!this.agent) return { type: 'chatHistory' as const, items: null }
 
-		const items = this.agent.$chatHistory.get()
+		const items = structuredClone(this.agent.$chatHistory.get())
 
 		for (const historyItem of items) {
 			if (historyItem.type !== 'prompt') continue
