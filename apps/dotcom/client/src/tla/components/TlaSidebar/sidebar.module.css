@@ -916,31 +916,6 @@
 	}
 }
 
-.sidebarGroupItemButtonInline {
-	display: inline-flex;
-	align-items: center;
-	justify-content: center;
-	border-radius: 4px;
-	color: var(--tla-color-text-3);
-	font-weight: 700;
-	cursor: pointer;
-	position: relative;
-	outline: none;
-	border: none;
-	background: none;
-	margin: 0px;
-	padding: 0px;
-	font-size: 12px;
-	line-height: 1.3;
-	white-space: nowrap;
-	overflow: hidden;
-	text-overflow: ellipsis;
-}
-
-.sidebarGroupItemButtonInline:hover {
-	color: var(--tla-color-text-2);
-}
-
 .sidebarGroupEmptyStateIcon {
 	margin-left: 2px;
 	margin-right: 1px;
@@ -1018,9 +993,33 @@
 }
 
 .sidebarGroupItemEmpty {
-	color: var(--tla-color-text-4);
+	color: var(--tla-color-text-3);
 	font-size: 12px;
 	padding: 8px 8px 8px calc(8px + var(--tla-sidebar-group-item-padding-left));
+}
+
+.sidebarGroupItemButtonInline {
+	display: inline-flex;
+	color: var(--tla-color-text-2);
+	align-items: center;
+	justify-content: center;
+	border-radius: 4px;
+	cursor: pointer;
+	position: relative;
+	outline: none;
+	border: none;
+	background: none;
+	margin: 0px;
+	padding: 0px;
+	font-size: 12px;
+	line-height: 1.3;
+	white-space: nowrap;
+	overflow: hidden;
+	text-overflow: ellipsis;
+}
+
+.sidebarGroupItemButtonInline:hover {
+	color: var(--tla-color-text-1);
 }
 
 [data-no-animation='true'] * {
