@@ -1,9 +1,9 @@
+import { patch } from 'patchfork'
 import { useCallback, useRef } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { tltime } from 'tldraw'
 import { routes } from '../../../../routeDefs'
 import { useApp } from '../../../hooks/useAppState'
-import { useFileSidebarFocusContext } from '../../../providers/FileInputFocusProvider'
 import { useTldrawAppUiEvents } from '../../../utils/app-ui-events'
 import { getIsCoarsePointer } from '../../../utils/getIsCoarsePointer'
 import { useMsg } from '../../../utils/i18n'
@@ -20,17 +20,16 @@ export function TlaSidebarCreateFileButton() {
 
 	const rCanCreate = useRef(true)
 
-	const focusCtx = useFileSidebarFocusContext()
-
 	const handleSidebarCreate = useCallback(async () => {
 		if (!rCanCreate.current) return
 		const res = await app.createFile()
 		if (res.ok) {
 			const isMobile = getIsCoarsePointer()
 			if (!isMobile) {
-				focusCtx.shouldRenameNextNewFile = true
+				patch(app.sidebarState).renameState({ fileId: res.value.file.id, groupId: 'my-files' })
 			}
 			const { file } = res.value
+			app.ensureFileVisibleInSidebar(file.id)
 			navigate(routes.tlaFile(file.id))
 			trackEvent('create-file', { source: 'sidebar' })
 			rCanCreate.current = false
@@ -39,7 +38,7 @@ export function TlaSidebarCreateFileButton() {
 				toggleMobileSidebar(false)
 			}
 		}
-	}, [app, focusCtx, navigate, trackEvent])
+	}, [app, navigate, trackEvent])
 
 	return (
 		<button
@@ -48,7 +47,7 @@ export function TlaSidebarCreateFileButton() {
 			data-testid="tla-create-file"
 			title={createTitle}
 		>
-			<TlaIcon icon="edit-strong" />
+			<TlaIcon icon="edit-strong" style={{ left: 1 }} />
 		</button>
 	)
 }

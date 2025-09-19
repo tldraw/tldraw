@@ -89,6 +89,39 @@ export type UnpublishFileResponseBody =
 			message: string
 	  }
 
+export type GetInviteInfoResponseBody =
+	| {
+			error: false
+			groupId: string
+			groupName: string
+			isValid: true
+			inviteSecret: string
+	  }
+	| {
+			error: true
+			message: string
+	  }
+
+export type AcceptInviteResponseBody =
+	| {
+			error: false
+			message: string
+			groupId: string
+			groupName: string
+			success: true
+	  }
+	| {
+			error: false
+			message: string
+			groupId: string
+			groupName: string
+			alreadyMember: true
+	  }
+	| {
+			error: true
+			message: string
+	  }
+
 export interface ZStoreData {
 	file: TlaFile[]
 	file_state: TlaFileState[]

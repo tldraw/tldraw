@@ -47,6 +47,7 @@ describe('ChangeCollator', () => {
 					lastVisitAt: null,
 					isFileOwner: false,
 					isPinned: null,
+					pinnedIndex: null,
 				},
 				topics: ['user:alice'],
 			}

@@ -28,3 +28,213 @@
 .feedbackDialogTextArea::placeholder {
 	color: var(--color-text-3);
 }
+
+.noPadding {
+	padding: 0px;
+}
+
+.dialogInput {
+	border: 1px solid var(--tla-color-border);
+	border-radius: var(--radius-2);
+	padding: 0px var(--space-3);
+	display: flex;
+	align-items: center;
+	justify-content: center;
+	width: 100%;
+}
+
+.dialogInput:focus {
+	border: 1px solid var(--tla-color-primary);
+}
+
+.dialogFooter {
+	display: flex;
+	justify-content: flex-end;
+	flex-shrink: 0;
+}
+
+/* ----------------- Group Settings Dialog ---------------- */
+
+.groupSettingsBody {
+	max-width: 360px;
+	width: calc(100vw - 48px);
+}
+
+.section {
+	margin-bottom: 12px;
+	display: flex;
+	flex-direction: column;
+}
+
+.sectionLabel {
+	display: block;
+	margin-bottom: 8px;
+	font-weight: 500;
+}
+
+.sectionLabelLarge {
+	display: block;
+	margin-bottom: 12px;
+	font-weight: 500;
+}
+
+.inviteHeader {
+	display: flex;
+	align-items: center;
+	gap: 8px;
+}
+
+.helpIcon {
+	width: 16px;
+	height: 16px;
+	color: #666;
+	cursor: help;
+}
+
+.disabledIcon {
+	width: 16px;
+	height: 16px;
+	color: #ccc;
+	cursor: not-allowed;
+}
+
+.inviteInputContainer {
+	display: flex;
+	align-items: center;
+	margin-bottom: 8px;
+	border: 1px solid var(--tla-color-border);
+	border-radius: var(--radius-2);
+	padding: 0px 0px 0px var(--space-3);
+	height: 40px;
+}
+
+.divider {
+	margin: 12px 0;
+	border: none;
+	border-top: 1px solid #e0e0e0;
+}
+
+.membersList {
+	display: flex;
+	flex-direction: column;
+	gap: 4px;
+}
+
+.memberItem {
+	display: flex;
+	align-items: center;
+	gap: 10px;
+	padding: 6px 0;
+}
+
+.memberAvatar {
+	width: 24px;
+	height: 24px;
+	border-radius: 50%;
+	display: flex;
+	align-items: center;
+	justify-content: center;
+	color: white;
+	font-weight: bold;
+}
+
+.memberName {
+	flex: 1;
+}
+
+.memberRole {
+	color: var(--tla-color-text-3);
+	font-size: 12px;
+}
+
+.dangerZoneActions {
+	display: flex;
+	flex-direction: column;
+	align-items: flex-start;
+	gap: 8px;
+}
+
+.inlineButton {
+	background: none;
+	border: none;
+	cursor: pointer;
+	font-size: 12px;
+	font-weight: 500;
+	display: inline-block;
+	padding: 4px 0px;
+	color: var(--tla-color-text-1);
+}
+.inlineButton:hover {
+	text-decoration: underline;
+}
+
+.modalOverlay {
+	position: fixed;
+	top: 0;
+	left: 0;
+	right: 0;
+	bottom: 0;
+	background-color: rgba(0, 0, 0, 0.5);
+	display: flex;
+	align-items: center;
+	justify-content: center;
+	z-index: 1000;
+}
+
+.modalContent {
+	background-color: white;
+	padding: 24px;
+	border-radius: 8px;
+	max-width: 400px;
+	text-align: center;
+}
+
+.modalMessage {
+	margin-bottom: 16px;
+}
+
+.modalActions {
+	display: flex;
+	gap: 8px;
+	justify-content: center;
+}
+
+.selectWrapper {
+	display: flex;
+	position: relative;
+}
+
+.select {
+	display: inline-block;
+	appearance: none;
+	outline: none;
+	border: none;
+	padding: 4px 20px 4px 8px;
+	cursor: pointer;
+	position: relative;
+}
+
+.select:disabled {
+	cursor: default;
+}
+
+.selectWrapper:hover::after {
+	content: '';
+	pointer-events: none;
+	display: flex;
+	position: absolute;
+	inset: 0px -6px 0px 0px;
+	background-color: var(--tla-color-hover-2);
+	border-radius: var(--radius-1);
+}
+
+.menuSelectChevron {
+	position: absolute !important;
+	right: 0 !important;
+	top: 50% !important;
+	transform: translateY(-50%) !important;
+}
+
+.copyInviteLinkIconRight {
+	right: 12.5px !important;
+}

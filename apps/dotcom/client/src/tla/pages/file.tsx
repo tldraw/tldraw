@@ -1,9 +1,12 @@
 import { captureException } from '@sentry/react'
 import { useEffect } from 'react'
 import { useParams, useRouteError } from 'react-router-dom'
+import { useDialogs } from 'tldraw'
 import { TlaEditor } from '../components/TlaEditor/TlaEditor'
 import { TlaFileError } from '../components/TlaFileError/TlaFileError'
+import { TlaInviteDialog } from '../components/dialogs/TlaInviteDialog'
 import { useMaybeApp } from '../hooks/useAppState'
+import { useInviteDetails } from '../hooks/useInviteDetails'
 import { ReadyWrapper } from '../hooks/useIsReady'
 import { TlaAnonLayout } from '../layouts/TlaAnonLayout/TlaAnonLayout'
 import { TlaSidebarLayout } from '../layouts/TlaSidebarLayout/TlaSidebarLayout'
@@ -20,7 +23,10 @@ export function ErrorBoundary() {
 export function Component({ error }: { error?: unknown }) {
 	const { fileSlug } = useParams<{ fileSlug: string }>()
 	if (!fileSlug) throw Error('File id not found')
-	const userId = useMaybeApp()?.userId
+	const app = useMaybeApp()
+	const userId = app?.userId
+	const inviteInfo = useInviteDetails()
+	const dialogs = useDialogs()
 
 	const errorElem = error ? <TlaFileError error={error} /> : null
 
@@ -30,6 +36,20 @@ export function Component({ error }: { error?: unknown }) {
 			toggleSidebar(true)
 		}
 	}, [error, userId])
+
+	useEffect(() => {
+		if (inviteInfo && !inviteInfo.error) {
+			dialogs.addDialog({
+				component: ({ onClose }) => <TlaInviteDialog inviteInfo={inviteInfo} onClose={onClose} />,
+			})
+		}
+	}, [inviteInfo, dialogs])
+
+	useEffect(() => {
+		if (app && fileSlug) {
+			app.ensureFileVisibleInSidebar(fileSlug)
+		}
+	}, [app, fileSlug])
 
 	if (!userId) {
 		return (

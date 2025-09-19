@@ -1,0 +1,51 @@
+.overlay {
+	position: fixed;
+	inset: 0;
+	display: flex;
+	align-items: center;
+	justify-content: center;
+	background-color: var(--color-background);
+	z-index: 1000;
+}
+
+.dialog {
+	background-color: var(--color-panel);
+	padding: 32px;
+	border-radius: 8px;
+	box-shadow: 0 8px 32px rgba(0, 0, 0, 0.2);
+	max-width: 400px;
+	text-align: center;
+}
+
+.title {
+	margin: 0 0 16px 0;
+	font-size: 24px;
+}
+
+.description {
+	margin: 0 0 24px 0;
+	color: var(--color-text-1);
+}
+
+.actions {
+	display: flex;
+	gap: 12px;
+	justify-content: center;
+}
+
+.cancelButton {
+	padding: 8px 16px;
+	border: 1px solid var(--color-text-3);
+	background: transparent;
+	border-radius: 4px;
+	cursor: pointer;
+}
+
+.acceptButton {
+	padding: 8px 16px;
+	border: none;
+	background: var(--color-primary);
+	color: white;
+	border-radius: 4px;
+	cursor: pointer;
+}

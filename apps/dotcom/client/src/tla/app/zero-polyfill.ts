@@ -1,6 +1,4 @@
 import { MakeEntityQueriesFromSchema } from '@rocicorp/zero'
-import type { MakeCustomMutatorInterfaces } from '@rocicorp/zero/out/zero-client/src/client/custom'
-import type { SchemaCRUD } from '@rocicorp/zero/out/zql/src/mutate/custom'
 import {
 	OptimisticAppStore,
 	TlaMutators,
@@ -22,6 +20,8 @@ import {
 	transact,
 	uniqueId,
 } from 'tldraw'
+import type { MakeCustomMutatorInterfaces } from '../../../../../../node_modules/@rocicorp/zero/out/zero-client/src/client/custom'
+import type { SchemaCRUD } from '../../../../../../node_modules/@rocicorp/zero/out/zql/src/mutate/custom'
 import { TLAppUiContextType } from '../utils/app-ui-events'
 import { ClientCRUD } from './ClientCRUD'
 import { ClientQuery } from './ClientQuery'

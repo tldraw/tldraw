@@ -1,8 +1,17 @@
 import type { CustomMutatorDefs } from '@rocicorp/zero'
 import type { Transaction } from '@rocicorp/zero/out/zql/src/mutate/custom'
-import { assert, uniqueId } from '@tldraw/utils'
+import {
+	assert,
+	getIndexAbove,
+	getIndexBelow,
+	getIndexBetween,
+	IndexKey,
+	sortByIndex,
+	uniqueId,
+} from '@tldraw/utils'
 import { MAX_NUMBER_OF_FILES } from './constants'
 import {
+	immutableColumns,
 	TlaFile,
 	TlaFilePartial,
 	TlaFileState,
@@ -11,7 +20,6 @@ import {
 	TlaSchema,
 	TlaUser,
 	TlaUserPartial,
-	immutableColumns,
 } from './tlaSchema'
 import { ZErrorCode } from './types'
 
@@ -57,7 +65,7 @@ function assertValidId(id: string) {
 }
 
 export function createMutators(userId: string) {
-	return {
+	const mutators = {
 		user: {
 			insert: async (tx, user: TlaUser) => {
 				assert(userId === user.id, ZErrorCode.forbidden)
@@ -84,6 +92,52 @@ export function createMutators(userId: string) {
 
 				await tx.mutate.file.insert(file)
 				await tx.mutate.file_state.insert(fileState)
+			},
+			createGroupFile: async (
+				tx,
+				{ fileId, groupId, name }: { fileId: string; groupId: string; name: string }
+			) => {
+				const file = await tx.query.file.where('id', '=', fileId).one().run()
+				assert(!file, ZErrorCode.bad_request)
+				assertValidId(fileId)
+				assertValidId(groupId)
+				assert(name, ZErrorCode.bad_request)
+				const hasGroupAccess = await tx.query.group_user
+					.where('userId', '=', userId)
+					.where('groupId', '=', groupId)
+					.one()
+					.run()
+				assert(hasGroupAccess, ZErrorCode.forbidden)
+				// create file row, group_file row, file_state row
+				await tx.mutate.file.insert({
+					id: fileId,
+					name,
+					ownerId: null,
+					owningGroupId: groupId,
+					ownerName: '',
+					ownerAvatar: '',
+					thumbnail: '',
+					shared: true,
+					sharedLinkType: 'edit',
+					isEmpty: true,
+					published: false,
+					lastPublished: 0,
+					publishedSlug: uniqueId(),
+					createdAt: Date.now(),
+					updatedAt: Date.now(),
+					isDeleted: false,
+					createSource: null,
+				})
+				await tx.mutate.group_file.insert({
+					fileId,
+					groupId,
+					createdAt: Date.now(),
+					updatedAt: Date.now(),
+				})
+				await tx.mutate.file_state.insert({
+					fileId,
+					userId,
+				})
 			},
 			deleteOrForget: async (tx, { fileId }: { fileId: string }) => {
 				const file = await tx.query.file.where('id', '=', fileId).one().run()
@@ -158,6 +212,24 @@ export function createMutators(userId: string) {
 				disallowImmutableMutations(fileState, immutableColumns.file_state)
 				await tx.mutate.file_state.update(fileState)
 			},
+			updatePinnedIndex: async (tx, { fileId, index }: { fileId: string; index: IndexKey }) => {
+				assert(fileId, ZErrorCode.bad_request)
+				assert(typeof index === 'string', ZErrorCode.bad_request)
+
+				const fileState = await tx.query.file_state
+					.where('userId', '=', userId)
+					.where('fileId', '=', fileId)
+					.one()
+					.run()
+				assert(fileState, ZErrorCode.bad_request)
+				assert(fileState.isPinned, ZErrorCode.bad_request)
+
+				await tx.mutate.file_state.update({
+					userId,
+					fileId,
+					pinnedIndex: index,
+				})
+			},
 			delete: async (tx, fileState: { fileId: string; userId: string }) => {
 				assert(fileState.userId === userId, ZErrorCode.forbidden)
 				await tx.mutate.file_state.delete({ fileId: fileState.fileId, userId: fileState.userId })
@@ -175,14 +247,122 @@ export function createMutators(userId: string) {
 					createdAt: Date.now(),
 					updatedAt: Date.now(),
 				})
+				// Get user's existing groups to determine position for new group
+				const existingGroups = await tx.query.group_user.where('userId', '=', userId).run()
+
+				// Use tldraw's fractional indexing to place new group at the top
+				let index: IndexKey
+				if (existingGroups.length === 0) {
+					// First group gets 'a1'
+					index = 'a1' as IndexKey
+				} else {
+					// Find the highest index and place above it using proper fractional indexing
+					const sortedGroups = existingGroups.sort(sortByIndex)
+					const lowest = sortedGroups[0]?.index as IndexKey | undefined
+					// Generate a new index above the current highest
+					index = getIndexBelow(lowest)
+				}
+
 				await tx.mutate.group_user.insert({
 					userId,
 					groupId: id,
 					// these are set by the trigger
 					userName: '',
-					userEmail: '',
+					userColor: '#000000',
 					role: 'owner',
 					createdAt: Date.now(),
+					updatedAt: Date.now(),
+					index,
+				})
+			},
+			update: async (tx, { id, name }: { id: string; name: string }) => {
+				await assertUserHasFlag(tx, userId, 'groups')
+				assert(id, ZErrorCode.bad_request)
+				assert(name && name.trim(), ZErrorCode.bad_request)
+
+				// Check if user is a member of the group
+				const groupUser = await tx.query.group_user
+					.where('userId', '=', userId)
+					.where('groupId', '=', id)
+					.one()
+					.run()
+				assert(groupUser, ZErrorCode.forbidden)
+
+				// Only group owners can update the group name
+				assert(groupUser.role === 'owner', ZErrorCode.forbidden)
+
+				await tx.mutate.group.update({
+					id,
+					name: name.trim(),
+					updatedAt: Date.now(),
+				})
+			},
+			regenerateInvite: async (tx, { id }: { id: string }) => {
+				await assertUserHasFlag(tx, userId, 'groups')
+				assert(id, ZErrorCode.bad_request)
+
+				// Check if user is a member of the group
+				const groupUser = await tx.query.group_user
+					.where('userId', '=', userId)
+					.where('groupId', '=', id)
+					.one()
+					.run()
+				assert(groupUser, ZErrorCode.forbidden)
+
+				// Only group owners can regenerate invite links
+				assert(groupUser.role === 'owner', ZErrorCode.forbidden)
+
+				if (tx.location === 'server') {
+					await tx.mutate.group.update({
+						id,
+						inviteSecret: uniqueId(),
+						updatedAt: Date.now(),
+					})
+				}
+			},
+			setMemberRole: async (
+				tx,
+				{
+					groupId,
+					targetUserId,
+					role,
+				}: { groupId: string; targetUserId: string; role: 'admin' | 'owner' }
+			) => {
+				await assertUserHasFlag(tx, userId, 'groups')
+				assert(groupId, ZErrorCode.bad_request)
+				assert(targetUserId, ZErrorCode.bad_request)
+				assert(role === 'admin' || role === 'owner', ZErrorCode.bad_request)
+
+				// Acting user must be a member and an owner
+				const actingMembership = await tx.query.group_user
+					.where('userId', '=', userId)
+					.where('groupId', '=', groupId)
+					.one()
+					.run()
+				assert(actingMembership, ZErrorCode.forbidden)
+				assert(actingMembership.role === 'owner', ZErrorCode.forbidden)
+
+				// Target must be a member
+				const targetMembership = await tx.query.group_user
+					.where('userId', '=', targetUserId)
+					.where('groupId', '=', groupId)
+					.one()
+					.run()
+				assert(targetMembership, ZErrorCode.bad_request)
+
+				if (targetMembership.role === role) return
+
+				// Prevent demoting the last remaining owner
+				if (targetMembership.role === 'owner' && role === 'admin') {
+					const users = await tx.query.group_user.where('groupId', '=', groupId).run()
+					const owners = users.filter((u) => u.role === 'owner')
+					assert(owners.length > 1, ZErrorCode.forbidden)
+				}
+
+				await tx.mutate.group_user.update({
+					userId: targetUserId,
+					groupId,
+					role,
 					updatedAt: Date.now(),
 				})
 			},
@@ -207,32 +387,20 @@ export function createMutators(userId: string) {
 				// Only group owners can delete the group - admins cannot
 				assert(groupUser.role === 'owner', ZErrorCode.forbidden)
 
-				if (tx.location === 'server') {
-					await tx.mutate.group.update({ id: id, isDeleted: true })
-					// everything else will be cleaned up via triggers
-				} else {
-					// on the client, we can just delete the group
-					// and wait for the server to clean up and propagate the rest of the changes
-					await tx.mutate.group.delete({ id })
-					await tx.mutate.group_user.delete({ userId, groupId: id })
+				// Delete all group files
+				const groupFiles = await tx.query.group_file.where('groupId', '=', id).run()
+				for (const groupFile of groupFiles) {
+					await tx.mutate.group_file.delete({ fileId: groupFile.fileId, groupId: id })
 				}
-			},
-			acceptInvite: async (tx, { inviteSecret }: { inviteSecret: string }) => {
-				await assertUserHasFlag(tx, userId, 'groups')
-				// It only makes sense to run this on the server because the user doesn't have the
-				// group data on the client yet.
-				if (tx.location === 'client') return
-				const group = await tx.query.group.where('inviteSecret', '=', inviteSecret).one().run()
-				assert(group, ZErrorCode.bad_request)
-				await tx.mutate.group_user.insert({
-					userId,
-					groupId: group.id,
-					userName: '',
-					userEmail: '',
-					role: 'admin',
-					createdAt: Date.now(),
-					updatedAt: Date.now(),
-				})
+
+				// Mark all files owned by this group as deleted
+				const files = await tx.query.file.where('owningGroupId', '=', id).run()
+				for (const file of files) {
+					await tx.mutate.file.update({ id: file.id, isDeleted: true })
+				}
+
+				await tx.mutate.group.update({ id: id, isDeleted: true })
+				await tx.mutate.group_user.delete({ userId, groupId: id })
 			},
 			moveFileToGroup: async (tx, { fileId, groupId }: { fileId: string; groupId: string }) => {
 				await assertUserHasFlag(tx, userId, 'groups')
@@ -276,13 +444,33 @@ export function createMutators(userId: string) {
 				}
 
 				// Transfer file ownership from user to group
-				await tx.mutate.file.update({ id: fileId, owningGroupId: groupId, ownerId: null })
+				await tx.mutate.file.update({
+					id: fileId,
+					owningGroupId: groupId,
+					ownerId: null,
+					updatedAt: Date.now(),
+				})
 				await tx.mutate.group_file.insert({
 					fileId,
 					groupId,
 					createdAt: Date.now(),
 					updatedAt: Date.now(),
 				})
+			},
+			removeFileLink: async (tx, { fileId, groupId }: { fileId: string; groupId: string }) => {
+				await assertUserHasFlag(tx, userId, 'groups')
+				assert(fileId, ZErrorCode.bad_request)
+				assert(groupId, ZErrorCode.bad_request)
+				const group_file = await tx.query.group_file.where('fileId', '=', fileId).one().run()
+				assert(group_file, ZErrorCode.bad_request)
+				assert(group_file.groupId === groupId, ZErrorCode.bad_request)
+				const userHasGroupAccess = await tx.query.group_user
+					.where('userId', '=', userId)
+					.where('groupId', '=', groupId)
+					.one()
+					.run()
+				assert(userHasGroupAccess, ZErrorCode.forbidden)
+				await tx.mutate.group_file.delete({ fileId, groupId })
 			},
 			linkFileInGroup: async (tx, { fileId, groupId }: { fileId: string; groupId: string }) => {
 				await assertUserHasFlag(tx, userId, 'groups')
@@ -299,6 +487,146 @@ export function createMutators(userId: string) {
 					updatedAt: Date.now(),
 				})
 			},
+			ungroupFile: async (tx, { fileId }: { fileId: string }) => {
+				await assertUserHasFlag(tx, userId, 'groups')
+				assert(fileId, ZErrorCode.bad_request)
+				const file = await tx.query.file.where('id', '=', fileId).one().run()
+				assert(file, ZErrorCode.bad_request)
+				assert(file.owningGroupId, ZErrorCode.bad_request)
+				// make sure user has group access to the file
+				const hasGroupAccess = await tx.query.group_user
+					.where('userId', '=', userId)
+					.where('groupId', '=', file.owningGroupId)
+					.one()
+					.run()
+				assert(hasGroupAccess, ZErrorCode.forbidden)
+				await tx.mutate.file.update({ id: fileId, owningGroupId: null, ownerId: userId })
+				await tx.mutate.group_file.delete({ fileId, groupId: file.owningGroupId })
+				// todo: delete file_states for other users who no longer have access to the file?
+			},
+			updateIndex: async (tx, { groupId, index }: { groupId: string; index: IndexKey }) => {
+				await assertUserHasFlag(tx, userId, 'groups')
+				assert(groupId, ZErrorCode.bad_request)
+				assert(typeof index === 'string', ZErrorCode.bad_request)
+				// Check if user is a member of the group
+				const groupUser = await tx.query.group_user
+					.where('userId', '=', userId)
+					.where('groupId', '=', groupId)
+					.one()
+					.run()
+				assert(groupUser, ZErrorCode.forbidden)
+
+				await tx.mutate.group_user.update({
+					userId,
+					groupId,
+					index,
+				})
+			},
+		},
+		handleFileDragOperation: async (
+			tx,
+			{
+				fileId,
+				groupId,
+				operation,
+			}: { fileId: string; groupId: string; operation: DragFileOperation }
+		) => {
+			// TODO: auth
+			const file = await tx.query.file.where('id', '=', fileId).one().run()
+			if (!file) return
+			const finalGroupId = operation.move?.targetId ?? groupId
+			const isFileLink =
+				(groupId !== 'my-files' && file.owningGroupId !== groupId) ||
+				!(groupId === 'my-files' && file.ownerId !== userId)
+
+			// Execute move operation first (if any)
+			if (finalGroupId !== groupId) {
+				if (finalGroupId === 'my-files') {
+					// Move to my-files (ungroup)
+					await mutators.group.ungroupFile(tx, { fileId })
+				} else {
+					// Move to specific group
+					if (isFileLink) {
+						if (groupId !== 'my-files') {
+							await tx.mutate.group_file.delete({ fileId, groupId })
+						}
+						await tx.mutate.group_file.insert({
+							fileId,
+							groupId: finalGroupId,
+							createdAt: Date.now(),
+							updatedAt: Date.now(),
+						})
+					} else {
+						await mutators.group.moveFileToGroup(tx, { fileId, groupId: finalGroupId })
+					}
+				}
+			}
+
+			if (operation.reorder && operation.reorder.insertBeforeId !== fileId) {
+				const { insertBeforeId } = operation.reorder
+				let nextIndex = 'a0' as IndexKey
+				if (insertBeforeId === null) {
+					// insert at end
+					const lastPinnedFile = (
+						await tx.query.file_state
+							.where('userId', '=', userId)
+							.where('isPinned', '=', true)
+							.run()
+					)
+						.sort((a, b) => (a.pinnedIndex! > b.pinnedIndex! ? 1 : -1))
+						.pop()
+					if (lastPinnedFile) {
+						nextIndex = getIndexAbove(lastPinnedFile.pinnedIndex)
+					}
+				} else {
+					// insert before specific file
+					const fileStates = await tx.query.file_state
+						.where('userId', '=', userId)
+						.where('isPinned', '=', true)
+						.run()
+					fileStates.sort((a, b) => (a.pinnedIndex! > b.pinnedIndex! ? 1 : -1))
+					const targetIdx = fileStates.findIndex((f) => f.fileId === insertBeforeId)
+					const afterIndex = fileStates[targetIdx]?.pinnedIndex
+					const beforeIndex = fileStates[targetIdx - 1]?.pinnedIndex
+
+					nextIndex = getIndexBetween(beforeIndex, afterIndex)
+				}
+				await tx.mutate.file_state.upsert({
+					fileId,
+					userId,
+					pinnedIndex: nextIndex,
+					isPinned: true,
+				})
+			} else if (!operation.reorder) {
+				const currentState = await tx.query.file_state
+					.where('fileId', '=', fileId)
+					.where('userId', '=', userId)
+					.one()
+					.run()
+				if (currentState) {
+					await tx.mutate.file_state.update({
+						fileId,
+						userId,
+						isPinned: false,
+						lastEditAt: Date.now(),
+					})
+					await tx.mutate.file.update({
+						id: fileId,
+						updatedAt: Date.now(),
+					})
+				}
+			}
 		},
 	} as const satisfies CustomMutatorDefs<TlaSchema>
+	return mutators
+}
+
+export interface DragReorderOperation {
+	insertBeforeId: string | null // file ID to insert before, null for end
+	indicatorY: number
+}
+
+export interface DragFileOperation {
+	move?: { targetId: string }
+	reorder?: DragReorderOperation
 }

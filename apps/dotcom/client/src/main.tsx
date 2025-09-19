@@ -1,4 +1,5 @@
 import { ClerkProvider } from '@clerk/clerk-react'
+import { $patchable } from 'patchfork/symbols'
 import { createRoot } from 'react-dom/client'
 import { HelmetProvider } from 'react-helmet-async'
 import { RouterProvider, createBrowserRouter } from 'react-router-dom'
@@ -8,6 +9,23 @@ import { Head } from './components/Head/Head'
 import { routes } from './routeDefs'
 import { router } from './routes'
 
+declare module '@tldraw/state' {
+	// eslint-disable-next-line @typescript-eslint/no-unused-vars
+	interface Signal<Value, Diff = unknown> {
+		[$patchable]: {
+			get(): Value
+			set(v: Value): void
+		}
+	}
+}
+
+import { atom } from 'tldraw'
+const atomProto = Object.getPrototypeOf(atom('', ''))
+Object.defineProperty(atomProto, $patchable, {
+	get() {
+		return { set: atomProto.set.bind(this), get: atomProto.get.bind(this) }
+	},
+})
 const browserRouter = createBrowserRouter(router)
 
 // @ts-ignore this is fine

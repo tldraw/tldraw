@@ -348,6 +348,3 @@ CREATE TRIGGER "validate_group_file_association_trigger"
 BEFORE INSERT ON public."group_file"
 FOR EACH ROW
 EXECUTE FUNCTION validate_group_file_association();
-
-
-

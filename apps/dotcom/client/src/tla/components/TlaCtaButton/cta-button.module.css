@@ -52,6 +52,11 @@
 	z-index: 1;
 }
 
+.ctaButton:disabled {
+	opacity: 0.5;
+	pointer-events: none;
+}
+
 @media (hover: hover) {
 	.ctaButton:hover::before {
 		background-color: var(--tla-color-cta-hover);
