@@ -4,6 +4,7 @@ compatibility_date = "2024-12-30"
 assets = { not_found_handling = "single-page-application" }
 compatibility_flags = ["nodejs_compat"]
 preview_urls = true
+workers_dev = true
 
 [observability]
 enabled = true
