@@ -29,6 +29,7 @@
 	"main": "./src/index.ts",
 	"types": "./.tsbuild/index.d.ts",
 	"style": "./editor.css",
+	"type": "module",
 	"/* GOTCHA */": "files will include ./dist and index.d.ts by default, add any others you want to include in here",
 	"files": [
 		"editor.css"

@@ -1,12 +1,12 @@
 import { expect } from '@playwright/test'
-import { setup } from '../shared-e2e'
-import { createAnalyticsReporter, getTestContext } from './fixtures/analytics-reporter'
-import test from './fixtures/fixtures'
+import { createAnalyticsReporter, getTestContext } from '../fixtures/analytics-reporter'
+import test from '../fixtures/fixtures'
 import {
 	formatPerformanceResults,
 	PerformanceTestResult,
 	setupPerformanceTest,
-} from './fixtures/perf-utils'
+} from '../fixtures/perf-utils'
+import { setup } from '../shared-e2e'
 
 test.describe.configure({ mode: 'serial' })
 
