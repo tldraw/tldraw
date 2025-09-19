@@ -11,7 +11,7 @@ enabled = true
 [[r2_buckets]]
 binding = "CHAT_FILES"
 bucket_name = "chat-template"
-preview_bucket_name = "chat-template-preview"
+preview_bucket_name = "chat-template"
 
 [[routes]]
 pattern = "chat.templates.tldraw.dev"
