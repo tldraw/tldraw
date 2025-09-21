@@ -27952,7 +27952,7 @@ __metadata:
     react-markdown: "npm:^10.1.0"
     tldraw: "workspace:*"
     typescript: "npm:^5.8.3"
-    vite: "npm:^7.0.1"
+    vite: "npm:^6.0.1"
     wrangler: "npm:^4.37.1"
     zod: "npm:^4.1.5"
   languageName: unknown

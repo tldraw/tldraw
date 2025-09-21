@@ -1,6 +1,6 @@
 {
 	"permissions": {
-		"allow": ["Bash(yarn why:*)", "Bash(yarn dev)"],
+		"allow": ["Bash(yarn why:*)", "Bash(yarn dev)", "Bash(yarn build)"],
 		"deny": []
 	}
 }

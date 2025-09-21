@@ -1,7 +1,7 @@
 name = "agent-template"
 main = "worker/worker.ts"
 compatibility_date = "2024-12-30"
-assets = { not_found_handling = "single-page-application" }
+assets = { directory = "dist", not_found_handling = "single-page-application" }
 
 # Set up the durable object used for each tldraw room
 [durable_objects]

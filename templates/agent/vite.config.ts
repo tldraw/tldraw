@@ -13,5 +13,13 @@ export default defineConfig(() => {
 				/* EXCLUDE_FROM_TEMPLATE_EXPORT_END */
 			),
 		],
+		server: {
+			proxy: {
+				'/stream': {
+					target: 'http://localhost:8787',
+					changeOrigin: true,
+				},
+			},
+		},
 	}
 })
