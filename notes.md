@@ -48,5 +48,5 @@
 
   ## Run automatic
   ```
-  python automated_sketch.py test.JPG "draw a circle around each person's head" test_output.JPG --endpoint http://localhost:8789/stream
+  python automated_sketch.py test.JPG "draw a circle around each person's head" test_output.JPG --model gemini-2.5-flash --endpoint http://localhost:8789/stream
   ```

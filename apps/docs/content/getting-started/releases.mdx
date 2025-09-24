@@ -13,91 +13,204 @@ Unlike many JavaScript packages distributed on [NPM](https://www.npmjs.com/), th
 - Minor version bumps are released on a regular cadence - approximately monthly. **They may contain breaking changes**. We aim to make breaking changes as minimally disruptive as possible, but tldraw is actively evolving as we add new features. We recommend updating tldraw at a similar pace to our release cadence, and be sure to check the release notes.
 - Patch version bumps are for bugfixes and hotfixes that can't wait for the next cadence release.
 
+
+
 {/* START AUTO-GENERATED CHANGELOG */}
 
-## Current release: [v3.15.0](/releases/v3.15.0)
+## Current release: [v4.0.0](/releases/v4.0.0)
 
-This release adds `npm create tldraw` to bootstrap new tldraw projects. It also includes several small API additions, accessibility improvements, performance optimizations, and various bug fixes.
+Welcome to the notes for the 4.0 release of the tldraw SDK. Like our previous major releases, this release includes changes to our license as well as new resources for developers building infinite canvas apps and features with tldraw.
 
-### `npm create tldraw`
+## What's new
 
-You can now run `npm create tldraw` in your terminal to bootstrap a new tldraw project from our starter templates.
+### npm create tldraw
 
-![npm create tldraw](https://github.com/user-attachments/assets/7141d2cc-fb24-44c4-b440-2e6e00d3606b)
+This release includes our new CLI tool, available at `npm create tldraw`. You can use this tool to quickly create new tldraw projects using our templates and new starter kits.
 
-## Breaking changes
+### Starter kits
 
-There are no breaking changes in this release.
+This release includes four new starter kits:
 
-## User-facing changes
+- [agent](https://tldraw.dev/starter-kits/agent) is a Cursor-style chatbot starter. This kit replaces our AI module and AI template. If you're interested in driving AI interactions on the canvas, this is a great place to start hacking.
+- [workflow](https://tldraw.dev/starter-kits/workflow) is a React-flow style starter for node-and-wire applications. If you have an idea for a patch programming interface, an asynchronous workflow tool, or a ComfyUI-style pipeline for images or data, start with this one.
+- [branching chat](https://tldraw.dev/starter-kits/branching-chat) is a starter kit for branching AI chats, inspired by tweets by [Max Lee](https://x.com/maxleedev/status/1962938769914658984) and [Jacob Colling](https://x.com/JacobColling/status/1787659433431994392). Run with it!
+- [chat](https://tldraw.dev/starter-kits/chat) is a starter kit where the tldraw canvas is used to create and annotate images. If you're working on an app that features a chatbot (who isn't?) then give this one a spin and try out some ideas.
+- [multiplayer](https://tldraw.dev/starter-kits/multiplayer) is clean starter kit featuring our [tldraw sync](https://tldraw.dev/docs/sync) multiplayer backend. Build a multiplayer whiteboard, [game](https://x.com/btn0s/status/1965828679260643535), or bypass your school's chat app restrictions.
 
-- Improve the 'Select All' action to select within the common parent of the current selection. For example, if you select a shape within a frame, it will select all the shapes within that frame but not the frame itself. ([#6386](https://github.com/tldraw/tldraw/pull/6386))
+The starter kits are all MIT licensed, so go ahead and build with them as you like. Learn more on the [tldraw docs](https://tldraw.dev/starter-kits/overview) or get started by running `npm create tldraw` in your terminal.
 
-- Add a user preference option to turn off keyboard shortcuts. ([#6363](https://github.com/tldraw/tldraw/pull/6363))
+### Licensing changes
 
-## API additions
+Like our previous major releases, this release includes changes to our license. Fate and capital both demand that tldraw be sustainable, so these changes are designed to help us commercialize the SDK without cutting off community adoption.
 
-- Add several new `ShapeUtil` callbacks for handle interactions. ([#6489](https://github.com/tldraw/tldraw/pull/6489))
-  - Handle drag start and end callbacks: `onHandleDragStart` and `onHandleDragEnd`.
-  - Interaction cancellation callbacks: `onTranslateCancel`, `onResizeCancel`, `onRotateCancel`, and `onHandleDragCancel`.
+In this release, the SDK is only permitted to be used in development environments unless you have either a trial license, a commercial license, or a hobby license. These licenses come with a license key. The SDK will not work in production unless it has a valid license key.
 
-- Allow custom JSX for icons in UI components. ([#6486](https://github.com/tldraw/tldraw/pull/6486))
+If you are only using tldraw in localhost or development environments, then you do not need a license. If you wish to use the tldraw SDK in production, you can [get a free 100-day trial license](https://tldraw.dev/get-a-license/trial).
 
-  This applies to tool and action overrides as well as our button and menu item components.
+To use the tldraw SDK in production after the trial ends, commercial projects will require a [commercial license](https://tldraw.dev/get-a-license/plans) and non-commercial projects can apply for a [hobby license](https://tldraw.dev/get-a-license/hobby).
 
-- Add the `StateNode.addChild` method for dynamically adding functionality to tools. ([#6485](https://github.com/tldraw/tldraw/pull/6485))
+You can read more about our licensing [here](https://tldraw.dev/community/license). If you have any questions, please visit [our Discord](https://discord.tldraw.com/?utm_source=docs&utm_medium=organic&utm_campaign=sociallink) to chat with the team.
 
-- The `DefaultSpinner` component is now an SVG, and accepts SVG props like `width`, `height`, and `className`. ([#6459](https://github.com/tldraw/tldraw/pull/6459))
+## Features and improvements
 
-- Add a missing export of `HeartToolbarItem`. ([#6438](https://github.com/tldraw/tldraw/pull/6438))
+### Drag out of toolbar ([#4793](https://github.com/tldraw/tldraw/pull/4793))
 
-## Bug fixes
+You can now drag shapes out from the toolbar. It's easy to add this sort of interaction to your own user interfaces, too.
 
-- Fix HTML entities escaping in pasted content. ([#6396](https://github.com/tldraw/tldraw/pull/6396))
+### Accessibility: WCAG 2.2 level AA compliance
 
-- Fix measurement of fixed-size text shapes and labels. ([#6423](https://github.com/tldraw/tldraw/pull/6423))
+We've worked over the last months to improve the tldraw SDK's accessibility.
 
-- Fix an issue where text measurement could be wrong due to styles being leaked between measurements. ([#6419](https://github.com/tldraw/tldraw/pull/6419))
+With this release, and with the help of [Sarah Fossheim](https://fossheim.io/), we were able to complete enough improvements, features, and fixes to become compliant with the [WCAG 2.2 AA accessibility standard](https://www.wcag.com/blog/wcag-2-2-aa-summary-and-checklist-for-website-owners/). We will soon be publicly providing our [VPAT](https://www.wcag.com/solutions/vpat-accessibility-documentation/) compliance document which will provide further details.
 
-- Fix an issue that would cause arrows between circles to sometimes render incorrectly. ([#6417](https://github.com/tldraw/tldraw/pull/6417))
+- Added an Accessibility Mode that includes labels for the style panel, higher contrast selection rings, quicker tooltips, and several other features intended to improve accessibility ([#6444](https://github.com/tldraw/tldraw/pull/6444)).
+- Added new keyboard shortcuts for rotation, `Shift + <` and `Shift + >` with `Alt` for fine adjustments. ([#6447](https://github.com/tldraw/tldraw/pull/6447))
+- Fixed missing aria-labels in various places. ([#6721](https://github.com/tldraw/tldraw/pull/6721)) ([#6750](https://github.com/tldraw/tldraw/pull/6750))
+- Made menus scrollable when zoomed in. ([#6740](https://github.com/tldraw/tldraw/pull/6740))
+- Added contrast on our placeholder text and improved menu localization. ([#6750](https://github.com/tldraw/tldraw/pull/6750))
+- Made the image/video toolbars accessible by keyboard shortcut. ([#6750](https://github.com/tldraw/tldraw/pull/6750))
 
-- Fix text outline rendering in exported SVGs. ([#6371](https://github.com/tldraw/tldraw/pull/6371))
+### Custom shapes can clip their children ([#6649](https://github.com/tldraw/tldraw/pull/6649))
 
-- Fix some edge cases where errors were thrown after reaching the maximum number of shapes. ([#6359](https://github.com/tldraw/tldraw/pull/6359))
+Before this PR, only the built-in frame shape could clip its children. Now, any custom shape can clip its children.
 
-- Fix image toolbar reacting to camera movement. ([#6375](https://github.com/tldraw/tldraw/pull/6375))
+### Vertical toolbar ([#6532](https://github.com/tldraw/tldraw/pull/6532))
 
-- Update `fractional-indexing-jittered` to address an issue with certain null values. See [this PR](https://github.com/TMeerhof/fractional-indexing-jittered/pull/5). ([#6479](https://github.com/tldraw/tldraw/pull/6479))
+It's now easy to make tldraw's toolbar vertical. Override the `Toolbar` component, and set `orientation` to `vertical`:
 
-## Performance improvements
+```tsx
+`<Tldraw
+	components={{
+		Toolbar: () =>` <DefaultToolbar orientation="vertical" />,
+	}}
+/>
+```
 
-- Prevent unnecessarily dropped frames. ([#6464](https://github.com/tldraw/tldraw/pull/6464)) ([#6409](https://github.com/tldraw/tldraw/pull/6409))
+You can also now use `<TldrawUiMenuGroup />` to group together toolbar items.
 
-- Optimize the `useValue` hook. ([#6405](https://github.com/tldraw/tldraw/pull/6405))
+---
 
-- Optimize the `useReactor` hook. ([#6383](https://github.com/tldraw/tldraw/pull/6383))
+### Breaking changes
 
-- Optimize frame rendering performance. ([#6415](https://github.com/tldraw/tldraw/pull/6415))
+- All of tldraw's CSS variables now start with `--tl-`. If you're using any of our variables in your own css, you'll need to update your CSS. For example:
+  - `--color-background` is now `--tl-color-background`
+  - `--space-4` is now `--tl-space-4`
+  - `--tl-zoom` is still `--tl-zoom` ([#6568](https://github.com/tldraw/tldraw/pull/6568))
+- `Geometry2D`'s `isLabel` config option no longer excludes the geometry from the shape bounds calculations by default. A new separate flag `excludeFromShapeBounds` has been added for this. ([#6637](https://github.com/tldraw/tldraw/pull/6637))
+- Change the `open-url` event data - rename it from `url` to `destinationUrl` as `url` might shadow some automatically sent properties by analytics tools. ([#6654](https://github.com/tldraw/tldraw/pull/6654))
+- `InFrontOfTheCanvas` now renders as a child of `.tl-canvas`, in a `.tl-canvas__in-front` wrapper.
+- The `DefaultColorThemePalette` color theme object has been flattened. If you're using this object, you'll need to update to the new structure, using the `getColorValue` helper. ([#6466](https://github.com/tldraw/tldraw/pull/6466))
+- Arrow shapes now have a `richText` instead of a `text` prop. The data will migrate automatically, but if you're accessing or setting the `arrow.props.text` property directly, you'll need to update your code to use the new `arrow.props.richText` property. ([#6325](https://github.com/tldraw/tldraw/pull/6325))
+- We removed the `@tldraw/ai` module in favour of the new agent starter kit, which provides a more flexible and customizable API for building AI-powered canvas applications. To upgrade, we recommend cloning or copying relevant code from the agent starter kit, then using `useTldrawAgent`.
 
-## Accessibility improvements
+```ts
+const agent = useTldrawAgent(editor)
+agent.prompt('Draw a flowchart for how to update a web package.')
+```
 
-- Apply `aria-hidden` to more elements, and in more intelligent ways. ([#6471](https://github.com/tldraw/tldraw/pull/6471)) ([#6437](https://github.com/tldraw/tldraw/pull/6437))
+- We no longer swallow most events that happen on the canvas, & we removed `stopEventPropagation`. Most places that used it should be replaced with `editor.markEventAsHandled` which causes tldraw to ignore an event, but allows it to propagate out above tldraw. If you definitely still want stop propagation semantics, you can call `event.stopPropagation()` instead. ([#6733](https://github.com/tldraw/tldraw/pull/6733))
+- The style panel has been rewritten to be much easier to customize - similarly to the Toolbar. We removed the several old components (`ArrowheadStylePickerSet`, `CommonStylePickerSet`, `GeoStylePickerSet`, `OpacitySlider`, `SplineStylePickerSet`, `TextStylePickerSet`, `TldrawUiButtonPicker`), and replaced them with new `StylePanel*Picker` components. ([#6672](https://github.com/tldraw/tldraw/pull/6672))
+- The `tlui-buttons__horizontal` and `tlui-buttons__grid` class names have been replaced by `tlui-row` and `tlui-grid`. ([#6526](https://github.com/tldraw/tldraw/pull/6526))
+- The `tlui-toolbar` classnames have been renamed to `tlui-main-toolbar`
+- We removed a number of deprecated APIs:
+  - `Store.getSnapshot()` and `Store.loadSnapshot()` methods → use the same methods on `editor`.
+  - `RecordType.createCustomId()` method → use `RecordType.createId()`
+  - `Editor.mark()` method → replaced by `markHistoryStoppingPoint()`
+  - `Editor.batch()` method → replaced by `Editor.run()`
+  - `Editor.getSvg()` method → replaced by `Editor.getSvgElement()`
+  - `Editor.getDroppingOverShape()` method
+  - `Editor.getOpenMenus()` → replaced by `editor.menus.getOpenMenus()`
+  - `Editor.addOpenMenu()` → replaced by `editor.menus.addOpenMenu()`
+  - `Editor.deleteOpenMenu()` → replaced by `editor.menus.deleteOpenMenu()`
+  - `Editor.clearOpenMenus()` → replaced by `editor.menus.clearOpenMenus()`
+  - `Editor.getIsMenuOpen()` → replaced by `editor.menus.hasAnyOpenMenus()`
+  - `Editor.environment` property → replaced by `tlenv`
+  - `isShapeHidden` prop/option → replaced by `getShapeVisibility`
+  - `exportAs()` function overloads (multiple parameter signatures) → consolidated to options object
+  - `copyAs()` function overloads (multiple parameter signatures) → consolidated to options object
+  - `exportToBlob()` function → use `Editor.toImage`
+  - `useEditableText` → replaced by `useEditablePlainText`
+  - `TextLabel` → replaced by `PlainTextLabel`
+  - `useAsset` → replaced by `useImageOrVideoAsset`
+  - `TLSvgOptions` type alias → replaced by `TLSvgExportOptions`
+  - `Vec.norm()` method → replaced by `Vec.uni()`
+  - `Geometry2d.nearestPointOnLineSegment()` method
+  - `debugEnableLicensing()` function
 
-- Improve keyboard navigation. ([#6446](https://github.com/tldraw/tldraw/pull/6446))
+### Bug Fixes
 
-- Set `role="radiogroup"` on the `ToggleGroup` component. ([#6435](https://github.com/tldraw/tldraw/pull/6435))
+- Arrow labels are no longer cut off in image exports. ([#6637](https://github.com/tldraw/tldraw/pull/6637))
+- PNGs with that specify their physical pixel dimensions are now parsed correctly. ([#6735](https://github.com/tldraw/tldraw/pull/6735))
+- tldraw sync's `documentClock` no longer advances even if no document changes had occurred when loading a new snapshot. ([#6666](https://github.com/tldraw/tldraw/pull/6666))
+- Complex keyboard shortcuts are now formatted correctly on windows and linux. ([#6638](https://github.com/tldraw/tldraw/pull/6638))
+- Pointer events in editable shapes fire consistently on mobile. ([#6628](https://github.com/tldraw/tldraw/pull/6628))
+- On canvas UI renders in the correct place when the canvas is inset from the tldraw container. ([#6626](https://github.com/tldraw/tldraw/pull/6626))
+- Items marked with `usePassThroughWheelEvents` no longer block wheel events when the editor is not focused. ([#6640](https://github.com/tldraw/tldraw/pull/6640))
+- Embeds are now positioned correctly on Chrome when zoom isn't 100%. ([#6611](https://github.com/tldraw/tldraw/pull/6611))
+- Prevent the editor from remounting in a loop if given custom
+  assetUrls. ([#6605](https://github.com/tldraw/tldraw/pull/6605))
+- KeyboardShortcutsDialog override is now respected in more places. ([#6571](https://github.com/tldraw/tldraw/pull/6571))
+- Hollow shapes can now be bound-to by arrows when overlapping a filled shape. ([#6525](https://github.com/tldraw/tldraw/pull/6525))
+- `onDataChange` and `onPresenceChange` are now always passed to `TLSyncRoom`. ([#6549](https://github.com/tldraw/tldraw/pull/6549))
+- Deleting a page now correctly deletes all the shapes on that page. ([#6333](https://github.com/tldraw/tldraw/pull/6333))
+- `pointingPreciseTimeout` is now respected everywhere it should be. ([#6789](https://github.com/tldraw/tldraw/pull/6789))
 
-- Fix aria slider values and make dialogs scrollable via keyboard. ([#6431](https://github.com/tldraw/tldraw/pull/6431))
+### Improvements
 
-- Fix several other minor accessibility issues. ([#6358](https://github.com/tldraw/tldraw/pull/6358))
+- Hold command or control while erasing to erase only the first shape that you began erasing. Useful for erasing overlapping shapes! ([#6554](https://github.com/tldraw/tldraw/pull/6554))
+- Arrow labels now accept rich text formatting. ([#6325](https://github.com/tldraw/tldraw/pull/6325))
+- The toast shown when uploading a file that's too big now shows the maximum file size. ([#6745](https://github.com/tldraw/tldraw/pull/6745))
+- We switched up how we generate shape indexes to avoid incorrectly formatted indexes. ([#6646](https://github.com/tldraw/tldraw/pull/6646))
+- Migrations with explicit `dependsOn` constraints will now be scheduled as close as possible to the things they depend on. ([#6702](https://github.com/tldraw/tldraw/pull/6702))
+- Your tldraw license key will now be automatically pulled from an env var if it's set. We check `TLDRAW_LICENSE_KEY`, `NEXT_PUBLIC_TLDRAW_LICENSE_KEY`, `REACT_APP_TLDRAW_LICENSE_KEY`, `VITE_TLDRAW_LICENSE_KEY`, and `PUBLIC_TLDRAW_LICENSE_KEY`.
+- When exporting an annotated image, we no longer add padding unless the annotations stray over the bounds of the image.
+- We now completely skip initial font loading when `maxFontsToLoadBeforeRender` is 0. ([#6622](https://github.com/tldraw/tldraw/pull/6622))
+- `useSync` now only sends presence updates, like mouse and camera positions, when there are more than one unique user in a room. ([#6524](https://github.com/tldraw/tldraw/pull/6524))
+- tldraw sync has better server-side performance when dealing with large rooms. ([#6488](https://github.com/tldraw/tldraw/pull/6488))
 
-## Other improvements
+### API changes
 
-- Show max shapes alert when duplicating shapes. ([#6411](https://github.com/tldraw/tldraw/pull/6411))
+- Added support for sending custom messages from `TLSocketRoom` to connected clients. `TLSocketRoom` exposes a new method `sendCustomMessage` to send arbitrary data to a connected client, and `useSync` accepts a new callback `onCustomMessageReceived` to receive it. Special thanks to community contributor Fabian Iwand (@mootari) for this. ([#6614](https://github.com/tldraw/tldraw/pull/6614))
+- The `Editor.getShapesAtPoint` can now accept a number _or_ a number tuple for its `margin` option that will be used as the inner and outer margins. This works best when `hitInside` is `true`; if `hitInside` is false, then the larger of the two margins will be used for both inside and outside margin. ([#6525](https://github.com/tldraw/tldraw/pull/6525))
+- Added `ShapeUtil.isExportBoundsContainer`. If this returns true, exports of your shape won't have padding if their bounds contain all other shapes in the export. ([#6636](https://github.com/tldraw/tldraw/pull/6636))
+- Added `ShapeUtil.canCull`, which can be used to disable culling on certain shapes. ([#6699](https://github.com/tldraw/tldraw/pull/6699))
+- `RoomSnapshot` now has a `documentClock` field. ([#6666](https://github.com/tldraw/tldraw/pull/6666))
+- `TldrawOptions` now has `uiDragDistanceSquared` and `uiCourseDragDistanceSquared` for controlling the dragging threshold of UI components. ([#6596](https://github.com/tldraw/tldraw/pull/6596))
+- `TldrawUiMenuItem` now accepts `onDragFromToolbarToCreateShape` and `onDragStart` to facilitate dragging shapes out of a toolbar. ([#4793](https://github.com/tldraw/tldraw/pull/4793))
+- `TldrawUiInput` now accepts `aria-label`. ([#6760](https://github.com/tldraw/tldraw/pull/6760))
+- `TldrawUiMenuCheckboxItem` now accepts `lang`. ([#6750](https://github.com/tldraw/tldraw/pull/6750))
+- New translation keys for confirming a crop operation ([#6663](https://github.com/tldraw/tldraw/pull/6663)), rhombus 2 ([#6653](https://github.com/tldraw/tldraw/pull/6653)), selected tool states ([#6734](https://github.com/tldraw/tldraw/pull/6734)), max file size notices ([#6745](https://github.com/tldraw/tldraw/pull/6745)).
+- Adds `onDragFromToolbarToCreateShape`, `OnDragFromToolbarToCreateShapesOpts`, and `onDragStart` on `TldrawUiMenuItem` to facilitate dragging shapes out of a toolbar. ([#4793](https://github.com/tldraw/tldraw/pull/4793))
+- `TLSocketRoom#getRecord` return type now reflects that it returns `undefined` if the record was not found. ([#6488](https://github.com/tldraw/tldraw/pull/6488))
+- `StoreSchema#migrateStoreSnapshot` has a new option `mutateInputStore: boolean` which is false by default. If left false, it will copy the input store with `structuredClone`. If set to true the mutators will be allowed to mutate the input store. ([#6488](https://github.com/tldraw/tldraw/pull/6488))
+- Added the `overlapsPolygon` method to the `Geometry2D` class. ([#6679](https://github.com/tldraw/tldraw/pull/6679))
+- Added `editor.toImageDataUrl`, which is useful for applications that need to display or work with image data URLs directly instead of blob objects. ([#6624](https://github.com/tldraw/tldraw/pull/6624))
+- Expose `notifyIfFileNotAllowed` which is useful when creating custom file upload flows. ([#6625](https://github.com/tldraw/tldraw/pull/6625))
+- Added `TldrawUiRow` and `TldrawUiGrid` layout classes. ([#6526](https://github.com/tldraw/tldraw/pull/6526))
+- Added `EditorAtom`, a helper for storing editor UI state in an `Atom`. ([#6531](https://github.com/tldraw/tldraw/pull/6531))
+- There's now a `data-state` attribute on `.tl-container` which contains the current state tree path. This makes it easier to write styles based on the current interaction state. ([#6515](https://github.com/tldraw/tldraw/pull/6515))
+- Add an option to `squashRecordDiffs` to allow mutating the first diff instead of creating a new diff. ([#6533](https://github.com/tldraw/tldraw/pull/6533))
+- Add `ShapeWrapper` to the `components` prop to allow customizing how every single shape is rendered to the DOM. ([#6514](https://github.com/tldraw/tldraw/pull/6514))
+- `TldrawCropHandles`, `ToggleToolLockedButton`, `getHitShapeOnCanvasPointerDown`, `getAssetInfo`, `useUnlockedSelectedShapesCount`, and `LockGroup` are now exported publicly. ([#6513](https://github.com/tldraw/tldraw/pull/6513))
+- Add `editor.updatePointer()`, which is useful when you want an interaction to update in response to an external change, such as moving the camera or creating a shape. ([#6494](https://github.com/tldraw/tldraw/pull/6494))
+- Pass `isCreatingShape` to `ShapeUtil.onHandleDrag` and other handle drag callbacks. This will be true if the current interaction is creating the shape in question. ([#6493](https://github.com/tldraw/tldraw/pull/6493))
+- Add `onHandleDragStart` and `onHandleDragEnd` to `ShapeUtil` to complement `onHandleDrag`. ([#6489](https://github.com/tldraw/tldraw/pull/6489))
+- Add `onTranslateCancel`, `onResizeCancel`, `onRotateCancel`, and `onHandleDragCancel` callbacks to `ShapeUtil`. ([#6489](https://github.com/tldraw/tldraw/pull/6489))
+- Added optional `opts` parameter to `putExternalContent()` `replaceExternalContent()` with `force?: boolean` option
+- Added optional `opts` parameter to `replaceExternalContent(info, opts?)` method with `force?: boolean` option. Both methods now respect readonly state by default, but can bypass it with `{ force: true }` ([#6729](https://github.com/tldraw/tldraw/pull/6729))
+- `TldrawUiSlider`s `onHistoryMark` prop is now optional. ([#6718](https://github.com/tldraw/tldraw/pull/6718))
+- `clearArrowTargetState`, `getArrowTargetState`, and `updateArrowTargetState` are now part of the public API, making it possible to re-implement `TldrawOverlays`. ([#6788](https://github.com/tldraw/tldraw/pull/6788))
+- `ArrowShapeUtil.options.shouldBeExact` now accepts `isPrecise` as a
+  second argument. ([#6781](https://github.com/tldraw/tldraw/pull/6781))
 
-- Hide cropping toolbar while cropping. ([#6376](https://github.com/tldraw/tldraw/pull/6376))
+---
 
+That's it for this release! Breaking changes are minimal
+
+						
 ## Previous releases
+
+- [v3.15.0](/releases/v3.15.0)
 
 - [v3.14.0](/releases/v3.14.0)
 
@@ -140,3 +253,5 @@ There are no breaking changes in this release.
 - [v2.0.0](/releases/v2.0.0)
 
 {/* END AUTO-GENERATED CHANGELOG */}
+
+

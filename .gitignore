@@ -1,3 +1,6 @@
+datasets/*
+sketch_outputs/*
+
 # Logs
 logs
 *.log

@@ -1,4 +1,4 @@
-export const DEFAULT_MODEL_NAME = 'gemini-2.5-flash'
+export const DEFAULT_MODEL_NAME = 'gemini-2.5-pro'
 
 export type AgentModelName = keyof typeof AGENT_MODEL_DEFINITIONS
 export type AgentModelProvider = 'openai' | 'anthropic' | 'google'
@@ -41,12 +41,12 @@ export const AGENT_MODEL_DEFINITIONS = {
 	},
 
 	// Not recommended
-	// 'gemini-2.5-pro': {
-	// 	name: 'gemini-2.5-pro',
-	// 	id: 'gemini-2.5-pro',
-	// 	provider: 'google',
-	// 	thinking: true,
-	// },
+	'gemini-2.5-pro': {
+		name: 'gemini-2.5-pro',
+		id: 'gemini-2.5-pro',
+		provider: 'google',
+		thinking: true,
+	},
 
 	'gemini-2.5-flash': {
 		name: 'gemini-2.5-flash',

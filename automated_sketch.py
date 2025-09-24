@@ -273,15 +273,19 @@ def ensure_endpoint(endpoint: str) -> str:
 
 
 def parse_args(argv: Optional[Sequence[str]] = None) -> argparse.Namespace:
+    input_path = Path("datasets/labeling/bike.jpg")
+    output_path = Path("sketch_outputs/labeling/bike.jpg")
+    input_prompt = "draw a circle around the handlebars"
+
     parser = argparse.ArgumentParser(description="Automatically draw on an image with the tldraw agent")
-    parser.add_argument("input_image", help="Path to background image")
-    parser.add_argument("prompt", help="Instruction for the agent")
-    parser.add_argument("output_image", help="Destination for the annotated image")
+    parser.add_argument("--input_image", default=input_path, help="Path to background image")
+    parser.add_argument("--prompt", default=input_prompt, help="Instruction for the agent")
+    parser.add_argument("--output_image", default=output_path, help="Destination for the annotated image")
     parser.add_argument("--endpoint", default=DEFAULT_ENDPOINT,
                         help=f"Agent stream endpoint (default: {DEFAULT_ENDPOINT})")
     parser.add_argument("--session", default=None,
                         help="Session identifier for the worker (default: random)")
-    parser.add_argument("--model", default=DEFAULT_MODEL,
+    parser.add_argument("--model", default="gemini-2.5-pro",
                         help=f"Agent model name (default: {DEFAULT_MODEL})")
     parser.add_argument("--timeout", type=int, default=90,
                         help="Request timeout in seconds (default: 90)")
@@ -293,6 +297,7 @@ def main(argv: Optional[Sequence[str]] = None) -> int:
 
     input_path = Path(args.input_image)
     output_path = Path(args.output_image)
+
 
     try:
         image, data_url, width, height, scale = load_image(input_path)
