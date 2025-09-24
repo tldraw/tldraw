@@ -25,35 +25,41 @@ A code editor starter kit for executing JavaScript code that controls the tldraw
 Try running this example code by clicking the "Run" button or pressing Cmd/Ctrl+Enter:
 
 ```javascript
-// Create a blue rectangle
-editor.createShape({
-	id: createShapeId(),
-	type: 'geo',
-	x: 100,
-	y: 100,
-	props: {
-		w: 200,
-		h: 100,
-		geo: 'rectangle',
-		color: 'blue',
-		fill: 'solid',
-	},
-})
+// Create a beautiful spiral of circles
+const centerX = 400
+const centerY = 300
+const spiralTurns = 3
+const maxRadius = 150
+const numCircles = 60
 
-// Create a red circle
-editor.createShape({
-	id: createShapeId(),
-	type: 'geo',
-	x: 350,
-	y: 150,
-	props: {
-		w: 120,
-		h: 120,
-		geo: 'ellipse',
-		color: 'red',
-		fill: 'semi',
-	},
-})
+const colors = ['red', 'orange', 'yellow', 'green', 'blue', 'violet']
+
+// Create spiral of circles
+for (let i = 0; i < numCircles; i++) {
+	const progress = i / numCircles
+	const angle = progress * spiralTurns * Math.PI * 2
+	const radius = progress * maxRadius
+
+	const x = centerX + Math.cos(angle) * radius
+	const y = centerY + Math.sin(angle) * radius
+
+	const size = 20 + progress * 30 // Circles get bigger
+	const colorIndex = Math.floor(progress * colors.length)
+
+	editor.createShape({
+		id: createShapeId(),
+		type: 'geo',
+		x: x - size / 2,
+		y: y - size / 2,
+		props: {
+			w: size,
+			h: size,
+			geo: 'ellipse',
+			color: colors[colorIndex % colors.length],
+			fill: 'semi',
+		},
+	})
+}
 
 // Zoom to fit all shapes
 editor.zoomToFit()

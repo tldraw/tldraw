@@ -1,52 +1,64 @@
 import * as EditorExports from '@tldraw/editor'
-import console from 'console'
 import { useCallback, useEffect, useRef, useState } from 'react'
 import { createShapeId, Editor, Tldraw } from 'tldraw'
 import './App.css'
 
 const DEFAULT_CODE = `// Welcome to the tldraw code editor!
-// Use the 'editor' object to create shapes and interact with the canvas.
+// Create a beautiful spiral of circles using code
 // All editor exports are available under the '_' namespace.
 
-// Create a rectangle
+const centerX = 400
+const centerY = 300
+const spiralTurns = 3
+const maxRadius = 150
+const numCircles = 60
+
+const colors = ['red', 'orange', 'yellow', 'green', 'blue', 'violet']
+
+// Create spiral of circles
+for (let i = 0; i < numCircles; i++) {
+	const progress = i / numCircles
+	const angle = progress * spiralTurns * Math.PI * 2
+	const radius = progress * maxRadius
+
+	const x = centerX + Math.cos(angle) * radius
+	const y = centerY + Math.sin(angle) * radius
+
+	const size = 20 + progress * 30  // Circles get bigger along the spiral
+	const colorIndex = Math.floor(progress * colors.length)
+
+	editor.createShape({
+		id: createShapeId(),
+		type: 'geo',
+		x: x - size/2,
+		y: y - size/2,
+		props: {
+			w: size,
+			h: size,
+			geo: 'ellipse',
+			color: colors[colorIndex % colors.length],
+			fill: 'semi'
+		}
+	})
+}
+
+// Add a center circle
 editor.createShape({
 	id: createShapeId(),
 	type: 'geo',
-	x: 100,
-	y: 100,
+	x: centerX - 15,
+	y: centerY - 15,
 	props: {
-		w: 200,
-		h: 100,
-		geo: 'rectangle',
-		color: 'blue',
+		w: 30,
+		h: 30,
+		geo: 'ellipse',
+		color: 'black',
 		fill: 'solid'
 	}
 })
 
-// Create a circle
-editor.createShape({
-	id: createShapeId(),
-	type: 'geo',
-	x: 350,
-	y: 150,
-	props: {
-		w: 120,
-		h: 120,
-		geo: 'ellipse',
-		color: 'red',
-		fill: 'semi'
-	}
-})
-
-// Example using _ namespace for editor utilities
-console.log('Available editor utilities:', Object.keys(_))
-// Try: _.toRichText('**bold** text'), _.Vec.angle({x:0,y:0}, {x:100,y:100})
-
-// Your code is automatically saved to localStorage and restored on reload!
-
 // Zoom to fit all shapes
 editor.zoomToFit()
-editor.resetZoom()
 `
 
 const CHEAT_SHEET = [
@@ -202,32 +214,75 @@ function App() {
 		setIsRunning(true)
 		setError(null)
 
+		let originalCreateShape: any = null
+		let executionTimeout: NodeJS.Timeout | null = null
+
 		try {
 			// Clear previously generated shapes
 			clearGeneratedShapes()
 
 			// Override createShape to track generated shapes
-			const originalCreateShape = editor.createShape.bind(editor)
+			originalCreateShape = editor.createShape.bind(editor)
 			editor.createShape = ((shape: any) => {
-				const result = originalCreateShape(shape)
-				if (shape?.id) {
-					trackGeneratedShape(shape.id)
+				try {
+					const result = originalCreateShape(shape)
+					if (shape?.id) {
+						trackGeneratedShape(shape.id)
+					}
+					return result
+				} catch (shapeError) {
+					console.warn('Error creating shape:', shapeError)
+					throw shapeError
 				}
-				return result
 			}) as any
 
-			// Execute user code
-			const AsyncFunction = Object.getPrototypeOf(async function () {}).constructor
-			const func = new AsyncFunction('editor', 'createShapeId', code)
-			func(editor, createShapeId)
+			// Set up execution timeout to prevent infinite loops
+			let timeoutTriggered = false
+			executionTimeout = setTimeout(() => {
+				timeoutTriggered = true
+				throw new Error('Code execution timed out (5 seconds). Check for infinite loops.')
+			}, 5000)
 
-			// Restore original createShape
-			editor.createShape = originalCreateShape
+			// Execute user code in isolated context
+			const AsyncFunction = Object.getPrototypeOf(async function () {}).constructor
+			const func = new AsyncFunction('editor', 'createShapeId', '_', code)
+
+			// Wrap execution to catch any runtime errors
+			await Promise.resolve(func(editor, createShapeId, EditorExports))
+
+			// Clear timeout if execution completed successfully
+			if (executionTimeout && !timeoutTriggered) {
+				clearTimeout(executionTimeout)
+				executionTimeout = null
+			}
 		} catch (err) {
+			// Clear timeout on error
+			if (executionTimeout) {
+				clearTimeout(executionTimeout)
+				executionTimeout = null
+			}
+
 			const errorMessage = err instanceof Error ? err.message : 'Unknown error occurred'
 			setError(errorMessage)
 			console.error('Code execution error:', err)
+
+			// Prevent error from propagating to canvas
+			return
 		} finally {
+			// Always restore original createShape, even on error
+			if (originalCreateShape) {
+				try {
+					editor.createShape = originalCreateShape
+				} catch (restoreError) {
+					console.error('Failed to restore original createShape:', restoreError)
+				}
+			}
+
+			// Clear any remaining timeout
+			if (executionTimeout) {
+				clearTimeout(executionTimeout)
+			}
+
 			setIsRunning(false)
 		}
 	}, [code, editor, isRunning, clearGeneratedShapes, trackGeneratedShape])
