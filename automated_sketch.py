@@ -303,6 +303,16 @@ def main(argv: Optional[Sequence[str]] = None) -> int:
     print(f"Using screenshot dimensions: {width}x{height} (scale factor {scale:.3f})")
 
     prompt = build_prompt(args.prompt, data_url, width, height, args.model)
+
+    preview = json.loads(json.dumps(prompt))
+    screenshot_value = preview.get("screenshot", {}).get("screenshot")
+    if isinstance(screenshot_value, str):
+        preview["screenshot"]["screenshot"] = (
+            f"<{len(screenshot_value)} chars: {screenshot_value[:32]}...>"
+        )
+
+    print("Prompt payload:")
+    print(json.dumps(preview, indent=2))
     endpoint = ensure_endpoint(args.endpoint)
 
     session_id = args.session or uuid.uuid4().hex
