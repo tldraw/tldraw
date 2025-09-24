@@ -1,4 +1,4 @@
-export const DEFAULT_MODEL_NAME = 'claude-4-sonnet'
+export const DEFAULT_MODEL_NAME = 'gemini-2.5-flash'
 
 export type AgentModelName = keyof typeof AGENT_MODEL_DEFINITIONS
 export type AgentModelProvider = 'openai' | 'anthropic' | 'google'
@@ -40,13 +40,6 @@ export const AGENT_MODEL_DEFINITIONS = {
 		provider: 'anthropic',
 	},
 
-	// Recommended
-	// 'gemini-2.5-flash': {
-	// 	name: 'gemini-2.5-flash',
-	// 	id: 'gemini-2.5-flash',
-	// 	provider: 'google',
-	// },
-
 	// Not recommended
 	// 'gemini-2.5-pro': {
 	// 	name: 'gemini-2.5-pro',
@@ -54,6 +47,12 @@ export const AGENT_MODEL_DEFINITIONS = {
 	// 	provider: 'google',
 	// 	thinking: true,
 	// },
+
+	'gemini-2.5-flash': {
+		name: 'gemini-2.5-flash',
+		id: 'gemini-2.5-flash',
+		provider: 'google',
+	},
 
 	// Not recommended
 	// 'gpt-5': {

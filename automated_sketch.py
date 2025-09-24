@@ -28,7 +28,7 @@ import requests
 from PIL import Image, ImageDraw
 
 DEFAULT_ENDPOINT = "http://localhost:8787/stream"
-DEFAULT_MODEL = "claude-4-sonnet"
+DEFAULT_MODEL = "gemini-2.5-flash"
 PEN_ALPHA = 255
 FILL_ALPHA = 190
 MAX_SCREENSHOT_BYTES = 5 * 1024 * 1024 - 2048
