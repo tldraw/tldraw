@@ -19,6 +19,7 @@ import base64
 import io
 import json
 import sys
+import uuid
 from dataclasses import dataclass
 from pathlib import Path
 from typing import Dict, Iterable, List, Optional, Sequence, Tuple
@@ -91,7 +92,7 @@ class PenAction:
     style: str
 
 
-def load_image(image_path: Path) -> Tuple[Image.Image, str, int, int]:
+def load_image(image_path: Path) -> Tuple[Image.Image, str, int, int, float]:
     """Open the background image, ensure prompt encoding stays under limits."""
 
     if not image_path.exists():
@@ -100,12 +101,12 @@ def load_image(image_path: Path) -> Tuple[Image.Image, str, int, int]:
     with Image.open(image_path) as raw:
         base_rgba = raw.convert("RGBA")
 
-    prepared_rgba, data_url = prepare_prompt_image(base_rgba)
+    prepared_rgba, data_url, scale = prepare_prompt_image(base_rgba)
     width, height = prepared_rgba.size
-    return prepared_rgba, data_url, width, height
+    return prepared_rgba, data_url, width, height, scale
 
 
-def prepare_prompt_image(image: Image.Image) -> Tuple[Image.Image, str]:
+def prepare_prompt_image(image: Image.Image) -> Tuple[Image.Image, str, float]:
     """Compress / resize the image until the payload fits the 5 MB limit."""
 
     rgb_image = image.convert("RGB")
@@ -129,7 +130,7 @@ def prepare_prompt_image(image: Image.Image) -> Tuple[Image.Image, str]:
         data_url = f"data:image/jpeg;base64,{base64.b64encode(payload).decode('ascii')}"
 
         if len(payload) <= MAX_SCREENSHOT_BYTES:
-            return candidate.convert("RGBA"), data_url
+            return candidate.convert("RGBA"), data_url, scale
 
         # Remember best attempt so far in case we need to bail out
         best_rgba = candidate.convert("RGBA")
@@ -145,7 +146,8 @@ def prepare_prompt_image(image: Image.Image) -> Tuple[Image.Image, str]:
             continue
 
         # Last resort: return the smallest candidate even if still too large
-        return best_rgba, best_data_url or data_url
+        final_data_url = best_data_url or data_url
+        return best_rgba, final_data_url, scale
 
 
 def build_prompt(message: str, data_url: str, width: int, height: int, model: str) -> Dict[str, object]:
@@ -277,6 +279,8 @@ def parse_args(argv: Optional[Sequence[str]] = None) -> argparse.Namespace:
     parser.add_argument("output_image", help="Destination for the annotated image")
     parser.add_argument("--endpoint", default=DEFAULT_ENDPOINT,
                         help=f"Agent stream endpoint (default: {DEFAULT_ENDPOINT})")
+    parser.add_argument("--session", default=None,
+                        help="Session identifier for the worker (default: random)")
     parser.add_argument("--model", default=DEFAULT_MODEL,
                         help=f"Agent model name (default: {DEFAULT_MODEL})")
     parser.add_argument("--timeout", type=int, default=90,
@@ -291,19 +295,27 @@ def main(argv: Optional[Sequence[str]] = None) -> int:
     output_path = Path(args.output_image)
 
     try:
-        image, data_url, width, height = load_image(input_path)
+        image, data_url, width, height, scale = load_image(input_path)
     except Exception as exc:  # pragma: no cover - argument validation
         print(f"Error loading input image: {exc}", file=sys.stderr)
         return 1
 
+    print(f"Using screenshot dimensions: {width}x{height} (scale factor {scale:.3f})")
+
     prompt = build_prompt(args.prompt, data_url, width, height, args.model)
     endpoint = ensure_endpoint(args.endpoint)
 
-    print(f"Connecting to worker at {endpoint}...")
+    session_id = args.session or uuid.uuid4().hex
+    if '?' in endpoint:
+        endpoint_with_session = f"{endpoint}&sessionId={session_id}"
+    else:
+        endpoint_with_session = f"{endpoint}?sessionId={session_id}"
+
+    print(f"Connecting to worker at {endpoint_with_session}...")
 
     pen_actions: List[PenAction] = []
     try:
-        for payload in stream_actions(endpoint, prompt, args.timeout):
+        for payload in stream_actions(endpoint_with_session, prompt, args.timeout):
             parsed = parse_pen_action(payload)
             action_type = payload.get("_type")
             handled = False

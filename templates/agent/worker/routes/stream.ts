@@ -2,8 +2,9 @@ import { IRequest } from 'itty-router'
 import { Environment } from '../environment'
 
 export async function stream(request: IRequest, env: Environment) {
-	// eventually... use some kind of per-user id, so that each user has their own worker
-	const id = env.AGENT_DURABLE_OBJECT.idFromName('anonymous')
+	const url = new URL(request.url)
+	const sessionId = url.searchParams.get('sessionId') ?? 'anonymous'
+	const id = env.AGENT_DURABLE_OBJECT.idFromName(sessionId)
 	const DO = env.AGENT_DURABLE_OBJECT.get(id)
 	const response = await DO.fetch(request.url, {
 		method: 'POST',
