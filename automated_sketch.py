@@ -250,15 +250,20 @@ def render_pen_actions(image: Image.Image, pen_actions: Sequence[PenAction]) -> 
         side = max(max_x - min_x, max_y - min_y)
 
         half = side / 2
-        left = round(center_x - half)
-        top = round(center_y - half)
-        right = round(center_x + half)
-        bottom = round(center_y + half)
+        left = int(round(center_x - half))
+        top = int(round(center_y - half))
+        right = int(round(center_x + half))
+        bottom = int(round(center_y + half))
 
         left = max(0, left)
         top = max(0, top)
         right = min(canvas.width - 1, right)
         bottom = min(canvas.height - 1, bottom)
+
+        if right <= left:
+            right = min(canvas.width - 1, left + 1)
+        if bottom <= top:
+            bottom = min(canvas.height - 1, top + 1)
 
         stroke = (*action.color, PEN_ALPHA)
         width = base_width if action.style == "smooth" else max(1, base_width - 1)
@@ -273,43 +278,44 @@ def ensure_endpoint(endpoint: str) -> str:
 
 
 def parse_args(argv: Optional[Sequence[str]] = None) -> argparse.Namespace:
-    input_path = Path("datasets/labeling/bike.jpg")
-    output_path = Path("sketch_outputs/labeling/bike.jpg")
-    input_prompt = "draw a circle around the handlebars"
-
     parser = argparse.ArgumentParser(description="Automatically draw on an image with the tldraw agent")
-    parser.add_argument("--input_image", default=input_path, help="Path to background image")
-    parser.add_argument("--prompt", default=input_prompt, help="Instruction for the agent")
-    parser.add_argument("--output_image", default=output_path, help="Destination for the annotated image")
+    parser.add_argument("input_image", nargs="?", help="Path to a single image")
+    parser.add_argument("prompt", help="Instruction for the agent")
+    parser.add_argument("output_image", nargs="?", help="Destination for the annotated image")
     parser.add_argument("--endpoint", default=DEFAULT_ENDPOINT,
                         help=f"Agent stream endpoint (default: {DEFAULT_ENDPOINT})")
     parser.add_argument("--session", default=None,
                         help="Session identifier for the worker (default: random)")
-    parser.add_argument("--model", default="gemini-2.5-pro",
+    parser.add_argument("--model", default="gemini-2.5-flash",
                         help=f"Agent model name (default: {DEFAULT_MODEL})")
     parser.add_argument("--timeout", type=int, default=90,
                         help="Request timeout in seconds (default: 90)")
+    parser.add_argument("--input-dir", type=Path, default=None,
+                        help="Process every image in this directory")
+    parser.add_argument("--output-dir", type=Path, default=None,
+                        help="Output directory when using --input-dir")
+    parser.add_argument("--extensions", default=".jpg,.jpeg,.png",
+                        help="Comma-separated list of extensions to include in --input-dir mode")
     return parser.parse_args(argv)
 
 
-def main(argv: Optional[Sequence[str]] = None) -> int:
-    args = parse_args(argv)
-
-    input_path = Path(args.input_image)
-    output_path = Path(args.output_image)
-
-
+def process_image(
+    input_path: Path,
+    prompt: str,
+    output_path: Path,
+    args: argparse.Namespace,
+) -> int:
     try:
         image, data_url, width, height, scale = load_image(input_path)
     except Exception as exc:  # pragma: no cover - argument validation
-        print(f"Error loading input image: {exc}", file=sys.stderr)
+        print(f"Error loading input image '{input_path}': {exc}", file=sys.stderr)
         return 1
 
     print(f"Using screenshot dimensions: {width}x{height} (scale factor {scale:.3f})")
 
-    prompt = build_prompt(args.prompt, data_url, width, height, args.model)
+    prompt_payload = build_prompt(prompt, data_url, width, height, args.model)
 
-    preview = json.loads(json.dumps(prompt))
+    preview = json.loads(json.dumps(prompt_payload))
     screenshot_value = preview.get("screenshot", {}).get("screenshot")
     if isinstance(screenshot_value, str):
         preview["screenshot"]["screenshot"] = (
@@ -318,19 +324,18 @@ def main(argv: Optional[Sequence[str]] = None) -> int:
 
     print("Prompt payload:")
     print(json.dumps(preview, indent=2))
-    endpoint = ensure_endpoint(args.endpoint)
 
+    endpoint = ensure_endpoint(args.endpoint)
     session_id = args.session or uuid.uuid4().hex
-    if '?' in endpoint:
-        endpoint_with_session = f"{endpoint}&sessionId={session_id}"
-    else:
-        endpoint_with_session = f"{endpoint}?sessionId={session_id}"
+    endpoint_with_session = (
+        f"{endpoint}&sessionId={session_id}" if '?' in endpoint else f"{endpoint}?sessionId={session_id}"
+    )
 
     print(f"Connecting to worker at {endpoint_with_session}...")
 
     pen_actions: List[PenAction] = []
     try:
-        for payload in stream_actions(endpoint_with_session, prompt, args.timeout):
+        for payload in stream_actions(endpoint_with_session, prompt_payload, args.timeout):
             parsed = parse_pen_action(payload)
             action_type = payload.get("_type")
             handled = False
@@ -380,6 +385,47 @@ def main(argv: Optional[Sequence[str]] = None) -> int:
     image_to_save.save(output_path)
     print(f"Annotated image saved to {output_path}")
     return 0
+
+
+def main(argv: Optional[Sequence[str]] = None) -> int:
+    args = parse_args(argv)
+
+    if args.input_dir:
+        if args.output_dir is None:
+            print("Error: --output-dir is required when using --input-dir", file=sys.stderr)
+            return 1
+
+        exts = [ext.strip().lower() for ext in args.extensions.split(',') if ext.strip()]
+        images = sorted(
+            p for p in args.input_dir.glob('**/*')
+            if p.is_file() and p.suffix.lower() in exts
+        )
+
+        if not images:
+            print(f"No images found in {args.input_dir} for extensions {exts}", file=sys.stderr)
+            return 1
+
+        args.output_dir.mkdir(parents=True, exist_ok=True)
+        failures = 0
+        for img_path in images:
+            rel = img_path.relative_to(args.input_dir)
+            out_path = args.output_dir / rel.with_suffix('.png')
+            out_path.parent.mkdir(parents=True, exist_ok=True)
+            print(f"\n=== Processing {img_path} ===")
+            if process_image(img_path, args.prompt, out_path, args) != 0:
+                failures += 1
+
+        if failures:
+            print(f"Completed with {failures} failures.")
+            return 1
+        print("Batch processing complete.")
+        return 0
+
+    if not args.input_image or not args.output_image:
+        print("Error: input_image and output_image are required in single image mode", file=sys.stderr)
+        return 1
+
+    return process_image(Path(args.input_image), args.prompt, Path(args.output_image), args)
 
 
 if __name__ == "__main__":

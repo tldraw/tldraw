@@ -49,4 +49,53 @@
   ## Run automatic
   ```
   python automated_sketch.py test.JPG "draw a circle around each person's head" test_output.JPG --model gemini-2.5-flash --endpoint http://localhost:8789/stream
+
+
+  python automated_sketch.py "draw a bounding box around each person" \
+    --input-dir datasets/coco/val_subset_people_50/images \
+    --output-dir sketch_outputs/coco/val_subset_people_50/ \
+    --endpoint http://localhost:8789/stream
   ```
+
+
+## RefCOCO mini subset
+
+1. Download the official RefCOCO resources (annotations + refs pickles) and the
+   matching MS-COCO 2014 images:
+
+   ```bash
+   mkdir -p ~/data/refcoco/annotations ~/data/refcoco/images
+   curl -L -o ~/data/refcoco/annotations/refs(unc).zip \
+     http://bvisionweb1.cs.unc.edu/licheng/referit/data/refs(unc).zip
+   curl -L -o ~/data/refcoco/annotations/instances.json \
+     http://bvisionweb1.cs.unc.edu/licheng/referit/data/instances.json
+   # unzip refs
+   unzip ~/data/refcoco/annotations/refs(unc).zip -d ~/data/refcoco/annotations
+
+   # COCO train/val images (≈13 GB). Replace with your preferred mirror.
+   curl -L -o train2014.zip http://images.cocodataset.org/zips/train2014.zip
+   curl -L -o val2014.zip http://images.cocodataset.org/zips/val2014.zip
+   unzip train2014.zip -d ~/data/refcoco/images
+   unzip val2014.zip -d ~/data/refcoco/images
+   ```
+
+   (You can skip downloading both image splits if you only need the subset used
+   in RefCOCO; the val split alone is enough for quick tests.)
+
+2. Create a 50-image preview set with GT boxes overlaid:
+
+   ```bash
+   pip install pillow pycocotools
+   ```
+
+   ```bash
+   python scripts/refcoco_subset.py \
+     --refcoco-root ~/data/refcoco/annotations \
+     --image-root ~/data/refcoco/images \
+     --split val \
+     --count 50 \
+     --output-dir ~/data/refcoco_subset
+   ```
+
+   The output directory contains PNG files with bounding boxes and
+   `metadata.json` describing which references were used.
