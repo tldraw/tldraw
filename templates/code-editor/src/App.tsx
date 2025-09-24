@@ -1,4 +1,5 @@
 import * as EditorExports from '@tldraw/editor'
+import console from 'console'
 import { useCallback, useEffect, useRef, useState } from 'react'
 import { createShapeId, Editor, Tldraw } from 'tldraw'
 import './App.css'
