@@ -18,8 +18,10 @@ import argparse
 import base64
 import io
 import json
+import math
 import sys
 import uuid
+from datetime import datetime
 from dataclasses import dataclass
 from pathlib import Path
 from typing import Dict, Iterable, List, Optional, Sequence, Tuple
@@ -90,6 +92,154 @@ class PenAction:
     closed: bool
     fill: Optional[str]
     style: str
+
+
+@dataclass
+class BoundingBox:
+    x: float
+    y: float
+    w: float
+    h: float
+
+    def to_list(self) -> List[float]:
+        return [self.x, self.y, self.w, self.h]
+
+    def to_relative(self, width: int, height: int) -> "BoundingBox":
+        if width <= 0 or height <= 0:
+            return BoundingBox(0.0, 0.0, 0.0, 0.0)
+        return BoundingBox(
+            self.x / float(width),
+            self.y / float(height),
+            self.w / float(width),
+            self.h / float(height),
+        )
+
+
+@dataclass
+class PenBounds:
+    raw: BoundingBox
+    clamped: BoundingBox
+    square: BoundingBox
+
+
+def _clamp_extents(
+    left: float,
+    top: float,
+    right: float,
+    bottom: float,
+    width: int,
+    height: int,
+) -> Tuple[float, float, float, float]:
+    if width <= 0 or height <= 0:
+        return 0.0, 0.0, 1.0, 1.0
+
+    max_x = float(width)
+    max_y = float(height)
+
+    left = max(0.0, min(left, max_x))
+    top = max(0.0, min(top, max_y))
+    right = max(0.0, min(right, max_x))
+    bottom = max(0.0, min(bottom, max_y))
+
+    if right <= left:
+        if left >= max_x:
+            left = max_x - 1.0
+            right = max_x
+        else:
+            right = min(max_x, left + 1.0)
+
+    if bottom <= top:
+        if top >= max_y:
+            top = max_y - 1.0
+            bottom = max_y
+        else:
+            bottom = min(max_y, top + 1.0)
+
+    left = max(0.0, min(left, max_x))
+    top = max(0.0, min(top, max_y))
+    right = max(left + 1.0, min(right, max_x))
+    bottom = max(top + 1.0, min(bottom, max_y))
+
+    return left, top, right, bottom
+
+
+def compute_pen_bounds(
+    action: PenAction, width: int, height: int
+) -> Optional[PenBounds]:
+    if not action.points:
+        return None
+
+    xs = [point[0] for point in action.points]
+    ys = [point[1] for point in action.points]
+    if not xs or not ys:
+        return None
+
+    min_x = min(xs)
+    max_x = max(xs)
+    min_y = min(ys)
+    max_y = max(ys)
+
+    raw = BoundingBox(
+        min_x,
+        min_y,
+        max(1.0, max_x - min_x),
+        max(1.0, max_y - min_y),
+    )
+
+    cl_left, cl_top, cl_right, cl_bottom = _clamp_extents(
+        min_x, min_y, max_x, max_y, width, height
+    )
+    clamped = BoundingBox(cl_left, cl_top, cl_right - cl_left, cl_bottom - cl_top)
+
+    center_x = (min_x + max_x) / 2.0
+    center_y = (min_y + max_y) / 2.0
+    side = max(raw.w, raw.h)
+    half = side / 2.0
+    sq_left, sq_top, sq_right, sq_bottom = _clamp_extents(
+        center_x - half,
+        center_y - half,
+        center_x + half,
+        center_y + half,
+        width,
+        height,
+    )
+    square = BoundingBox(sq_left, sq_top, sq_right - sq_left, sq_bottom - sq_top)
+
+    return PenBounds(raw=raw, clamped=clamped, square=square)
+
+
+def extract_pen_bounds(
+    pen_actions: Sequence[PenAction], width: int, height: int
+) -> List[Optional[PenBounds]]:
+    return [compute_pen_bounds(action, width, height) for action in pen_actions]
+
+
+def serialize_pen_predictions(
+    pen_actions: Sequence[PenAction],
+    pen_bounds: Sequence[Optional[PenBounds]],
+    width: int,
+    height: int,
+) -> List[Dict[str, object]]:
+    entries: List[Dict[str, object]] = []
+    for idx, (action, bounds) in enumerate(zip(pen_actions, pen_bounds)):
+        if bounds is None:
+            continue
+        entries.append(
+            {
+                "pen_index": idx,
+                "num_points": len(action.points),
+                "style": action.style,
+                "closed": action.closed,
+                "color": action.color,
+                "raw_bbox": bounds.raw.to_list(),
+                "raw_bbox_relative": bounds.raw.to_relative(width, height).to_list(),
+                "clamped_bbox": bounds.clamped.to_list(),
+                "clamped_bbox_relative": bounds.clamped.to_relative(width, height).to_list(),
+                "square_bbox": bounds.square.to_list(),
+                "square_bbox_relative": bounds.square.to_relative(width, height).to_list(),
+            }
+        )
+    return entries
 
 
 def load_image(image_path: Path) -> Tuple[Image.Image, str, int, int, float]:
@@ -250,20 +400,30 @@ def render_pen_actions(image: Image.Image, pen_actions: Sequence[PenAction]) -> 
         side = max(max_x - min_x, max_y - min_y)
 
         half = side / 2
-        left = int(round(center_x - half))
-        top = int(round(center_y - half))
-        right = int(round(center_x + half))
-        bottom = int(round(center_y + half))
+        left = math.floor(center_x - half)
+        top = math.floor(center_y - half)
+        right = math.ceil(center_x + half)
+        bottom = math.ceil(center_y + half)
 
         left = max(0, left)
         top = max(0, top)
         right = min(canvas.width - 1, right)
         bottom = min(canvas.height - 1, bottom)
 
-        if right <= left:
-            right = min(canvas.width - 1, left + 1)
-        if bottom <= top:
-            bottom = min(canvas.height - 1, top + 1)
+        if right < left:
+            left, right = right, left
+        if bottom < top:
+            top, bottom = bottom, top
+
+        if right == left:
+            right = min(canvas.width - 1, right + 1)
+            if right == left:
+                continue
+
+        if bottom == top:
+            bottom = min(canvas.height - 1, bottom + 1)
+            if bottom == top:
+                continue
 
         stroke = (*action.color, PEN_ALPHA)
         width = base_width if action.style == "smooth" else max(1, base_width - 1)
@@ -296,6 +456,12 @@ def parse_args(argv: Optional[Sequence[str]] = None) -> argparse.Namespace:
                         help="Output directory when using --input-dir")
     parser.add_argument("--extensions", default=".jpg,.jpeg,.png",
                         help="Comma-separated list of extensions to include in --input-dir mode")
+    parser.add_argument(
+        "--log-json",
+        type=Path,
+        default=None,
+        help="Optional path to write bounding box predictions as JSON",
+    )
     return parser.parse_args(argv)
 
 
@@ -304,12 +470,12 @@ def process_image(
     prompt: str,
     output_path: Path,
     args: argparse.Namespace,
-) -> int:
+) -> Tuple[int, Optional[Dict[str, object]]]:
     try:
         image, data_url, width, height, scale = load_image(input_path)
     except Exception as exc:  # pragma: no cover - argument validation
         print(f"Error loading input image '{input_path}': {exc}", file=sys.stderr)
-        return 1
+        return 1, None
 
     print(f"Using screenshot dimensions: {width}x{height} (scale factor {scale:.3f})")
 
@@ -363,14 +529,19 @@ def process_image(
                 print(f"Skipping unsupported action payload: {payload}")
     except Exception as exc:  # pragma: no cover - runtime errors
         print(f"Agent request failed: {exc}", file=sys.stderr)
-        return 1
+        return 1, None
 
+    pen_bounds = extract_pen_bounds(pen_actions, width, height)
     if not pen_actions:
         print("The agent response did not contain any completed pen strokes.")
         print("Saving copy of the original image.")
         annotated = image
     else:
-        annotated = render_pen_actions(image, pen_actions)
+        try:
+            annotated = render_pen_actions(image, pen_actions)
+        except Exception as exc:
+            print(f"Failed to render pen strokes: {exc}", file=sys.stderr)
+            return 1, None
 
     output_path.parent.mkdir(parents=True, exist_ok=True)
 
@@ -384,7 +555,22 @@ def process_image(
 
     image_to_save.save(output_path)
     print(f"Annotated image saved to {output_path}")
-    return 0
+    record = {
+        "input_image": str(input_path),
+        "input_name": input_path.name,
+        "output_image": str(output_path),
+        "output_name": output_path.name,
+        "prompt": prompt,
+        "model": args.model,
+        "endpoint": endpoint,
+        "session_id": session_id,
+        "image_size": {"width": width, "height": height},
+        "scale": scale,
+        "pen_actions": len(pen_actions),
+        "predictions": serialize_pen_predictions(pen_actions, pen_bounds, width, height),
+    }
+
+    return 0, record
 
 
 def main(argv: Optional[Sequence[str]] = None) -> int:
@@ -405,27 +591,72 @@ def main(argv: Optional[Sequence[str]] = None) -> int:
             print(f"No images found in {args.input_dir} for extensions {exts}", file=sys.stderr)
             return 1
 
-        args.output_dir.mkdir(parents=True, exist_ok=True)
+        timestamp = datetime.utcnow().strftime("%Y%m%d-%H%M%S")
+        model_slug = args.model.replace('/', '_')
+        final_output_dir = args.output_dir / f"{timestamp}_{model_slug}"
+        final_output_dir.mkdir(parents=True, exist_ok=True)
         failures = 0
+        batch_records: List[Dict[str, object]] = []
         for img_path in images:
             rel = img_path.relative_to(args.input_dir)
-            out_path = args.output_dir / rel.with_suffix('.png')
+            out_path = final_output_dir / rel.with_suffix('.png')
             out_path.parent.mkdir(parents=True, exist_ok=True)
             print(f"\n=== Processing {img_path} ===")
-            if process_image(img_path, args.prompt, out_path, args) != 0:
+            status, record = process_image(img_path, args.prompt, out_path, args)
+            if status != 0:
                 failures += 1
+                continue
+            if record:
+                batch_records.append(record)
 
         if failures:
             print(f"Completed with {failures} failures.")
+            # Save predictions collected so far even if some failures occurred.
+        if batch_records:
+            log_path = args.log_json or (final_output_dir / "predictions.json")
+            log_payload = {
+                "created": datetime.utcnow().isoformat(timespec="seconds") + "Z",
+                "model": args.model,
+                "prompt": args.prompt,
+                "endpoint": ensure_endpoint(args.endpoint),
+                "input_dir": str(args.input_dir),
+                "output_dir": str(final_output_dir),
+                "total_images": len(images),
+                "processed_images": len(batch_records),
+                "failures": failures,
+                "images": batch_records,
+            }
+            log_path.parent.mkdir(parents=True, exist_ok=True)
+            with log_path.open("w", encoding="utf-8") as handle:
+                json.dump(log_payload, handle, indent=2)
+            print(f"Prediction log saved to {log_path}")
+
+        if failures:
             return 1
-        print("Batch processing complete.")
+        print(f"Batch processing complete. Outputs in {final_output_dir}")
         return 0
 
     if not args.input_image or not args.output_image:
         print("Error: input_image and output_image are required in single image mode", file=sys.stderr)
         return 1
 
-    return process_image(Path(args.input_image), args.prompt, Path(args.output_image), args)
+    status, record = process_image(Path(args.input_image), args.prompt, Path(args.output_image), args)
+    if status == 0 and args.log_json and record:
+        log_payload = {
+            "created": datetime.utcnow().isoformat(timespec="seconds") + "Z",
+            "model": args.model,
+            "prompt": args.prompt,
+            "endpoint": ensure_endpoint(args.endpoint),
+            "input_image": str(args.input_image),
+            "output_image": str(args.output_image),
+            "images": [record],
+        }
+        args.log_json.parent.mkdir(parents=True, exist_ok=True)
+        with args.log_json.open("w", encoding="utf-8") as handle:
+            json.dump(log_payload, handle, indent=2)
+        print(f"Prediction log saved to {args.log_json}")
+
+    return status
 
 
 if __name__ == "__main__":
