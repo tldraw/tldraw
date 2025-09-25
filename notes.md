@@ -99,3 +99,53 @@
 
    The output directory contains PNG files with bounding boxes and
    `metadata.json` describing which references were used.
+
+# Results
+
+## 50 person subset
+
+### gemini-2.5-flash
+Evaluation Summary:
+{
+  "images_total": 50,
+  "images_used_for_evaluation": 50,
+  "total_predictions": 402,
+  "total_ground_truth": 253,
+  "matches": 18,
+  "mean_iou": 0.7013135918469653,
+  "precision": 0.04477611940298507,
+  "recall": 0.07114624505928854,
+  "f1": 0.05496183206106871,
+  "iou_threshold": 0.5
+}
+
+### gemini-2.5-pro
+
+Evaluation Summary:
+{
+  "images_total": 50,
+  "images_used_for_evaluation": 44,
+  "total_predictions": 190,
+  "total_ground_truth": 192,
+  "matches": 18,
+  "mean_iou": 0.7108423129820621,
+  "precision": 0.09473684210526316,
+  "recall": 0.09375,
+  "f1": 0.09424083769633507,
+  "iou_threshold": 0.5
+}
+
+### claude-4-sonnet
+Evaluation Summary:
+{
+  "images_total": 50,
+  "images_used_for_evaluation": 48,
+  "total_predictions": 150,
+  "total_ground_truth": 246,
+  "matches": 20,
+  "mean_iou": 0.6296881715323085,
+  "precision": 0.13333333333333333,
+  "recall": 0.08130081300813008,
+  "f1": 0.10101010101010101,
+  "iou_threshold": 0.5
+}

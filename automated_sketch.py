@@ -30,9 +30,8 @@ import requests
 from PIL import Image, ImageDraw
 
 DEFAULT_ENDPOINT = "http://localhost:8787/stream"
-DEFAULT_MODEL = "gemini-2.5-flash"
+DEFAULT_MODEL = "claude-4-sonnet"
 PEN_ALPHA = 255
-FILL_ALPHA = 190
 MAX_SCREENSHOT_BYTES = 5 * 1024 * 1024 - 2048
 
 _COLOR_HEX: Dict[str, str] = {
@@ -119,7 +118,6 @@ class BoundingBox:
 class PenBounds:
     raw: BoundingBox
     clamped: BoundingBox
-    square: BoundingBox
 
 
 def _clamp_extents(
@@ -191,21 +189,7 @@ def compute_pen_bounds(
     )
     clamped = BoundingBox(cl_left, cl_top, cl_right - cl_left, cl_bottom - cl_top)
 
-    center_x = (min_x + max_x) / 2.0
-    center_y = (min_y + max_y) / 2.0
-    side = max(raw.w, raw.h)
-    half = side / 2.0
-    sq_left, sq_top, sq_right, sq_bottom = _clamp_extents(
-        center_x - half,
-        center_y - half,
-        center_x + half,
-        center_y + half,
-        width,
-        height,
-    )
-    square = BoundingBox(sq_left, sq_top, sq_right - sq_left, sq_bottom - sq_top)
-
-    return PenBounds(raw=raw, clamped=clamped, square=square)
+    return PenBounds(raw=raw, clamped=clamped)
 
 
 def extract_pen_bounds(
@@ -235,8 +219,6 @@ def serialize_pen_predictions(
                 "raw_bbox_relative": bounds.raw.to_relative(width, height).to_list(),
                 "clamped_bbox": bounds.clamped.to_list(),
                 "clamped_bbox_relative": bounds.clamped.to_relative(width, height).to_list(),
-                "square_bbox": bounds.square.to_list(),
-                "square_bbox_relative": bounds.square.to_relative(width, height).to_list(),
             }
         )
     return entries
@@ -395,34 +377,28 @@ def render_pen_actions(image: Image.Image, pen_actions: Sequence[PenAction]) -> 
         min_y = min(ys)
         max_y = max(ys)
 
-        center_x = (min_x + max_x) / 2
-        center_y = (min_y + max_y) / 2
-        side = max(max_x - min_x, max_y - min_y)
+        cl_left, cl_top, cl_right, cl_bottom = _clamp_extents(
+            min_x,
+            min_y,
+            max_x,
+            max_y,
+            canvas.width,
+            canvas.height,
+        )
 
-        half = side / 2
-        left = math.floor(center_x - half)
-        top = math.floor(center_y - half)
-        right = math.ceil(center_x + half)
-        bottom = math.ceil(center_y + half)
+        left = math.floor(cl_left)
+        top = math.floor(cl_top)
+        right = math.ceil(cl_right)
+        bottom = math.ceil(cl_bottom)
 
-        left = max(0, left)
-        top = max(0, top)
-        right = min(canvas.width - 1, right)
-        bottom = min(canvas.height - 1, bottom)
-
-        if right < left:
-            left, right = right, left
-        if bottom < top:
-            top, bottom = bottom, top
-
-        if right == left:
-            right = min(canvas.width - 1, right + 1)
-            if right == left:
+        if right <= left:
+            right = min(canvas.width - 1, left + 1)
+            if right <= left:
                 continue
 
-        if bottom == top:
-            bottom = min(canvas.height - 1, bottom + 1)
-            if bottom == top:
+        if bottom <= top:
+            bottom = min(canvas.height - 1, top + 1)
+            if bottom <= top:
                 continue
 
         stroke = (*action.color, PEN_ALPHA)
@@ -446,7 +422,7 @@ def parse_args(argv: Optional[Sequence[str]] = None) -> argparse.Namespace:
                         help=f"Agent stream endpoint (default: {DEFAULT_ENDPOINT})")
     parser.add_argument("--session", default=None,
                         help="Session identifier for the worker (default: random)")
-    parser.add_argument("--model", default="gemini-2.5-flash",
+    parser.add_argument("--model", default=DEFAULT_MODEL,
                         help=f"Agent model name (default: {DEFAULT_MODEL})")
     parser.add_argument("--timeout", type=int, default=90,
                         help="Request timeout in seconds (default: 90)")

@@ -45,7 +45,7 @@ def load_ground_truth(path: Path, category_id: Optional[int]) -> Dict[str, List[
     return images
 
 
-def load_predictions(path: Path, use_square: bool) -> Dict[str, List[List[float]]]:
+def load_predictions(path: Path) -> Dict[str, List[List[float]]]:
     if not path.exists():
         raise FileNotFoundError(f"Predictions file '{path}' not found")
 
@@ -57,8 +57,6 @@ def load_predictions(path: Path, use_square: bool) -> Dict[str, List[List[float]
     if not isinstance(entries, list):
         raise ValueError("Predictions JSON must contain an 'images' list")
 
-    key = "square_bbox" if use_square else "clamped_bbox"
-
     for entry in entries:
         input_name = entry.get("input_name")
         input_image = entry.get("input_image")
@@ -69,7 +67,7 @@ def load_predictions(path: Path, use_square: bool) -> Dict[str, List[List[float]
 
         boxes: List[List[float]] = []
         for pred in entry.get("predictions", []):
-            bbox = pred.get(key)
+            bbox = pred.get("clamped_bbox")
             if not bbox:
                 continue
             boxes.append([float(coord) for coord in bbox])
@@ -147,18 +145,24 @@ def evaluate_dataset(
     predictions: Dict[str, List[List[float]]],
     ground_truth: Dict[str, List[List[float]]],
     iou_threshold: float,
+    exclude_zero_predictions: bool = True,
 ) -> Tuple[Dict[str, object], Dict[str, object]]:
     per_image: Dict[str, object] = {}
     total_matches = 0
     total_predictions = 0
     total_ground_truth = 0
     iou_sum = 0.0
+    images_used_for_evaluation = 0
 
     image_names = set(predictions.keys()) | set(ground_truth.keys())
 
     for name in sorted(image_names):
         preds = predictions.get(name, [])
         gts = ground_truth.get(name, [])
+
+        # Skip images with zero predictions if flag is set
+        if exclude_zero_predictions and len(preds) == 0:
+            continue
 
         matches, unmatched_preds, unmatched_gts = match_boxes(preds, gts, iou_threshold)
 
@@ -186,13 +190,15 @@ def evaluate_dataset(
         total_predictions += len(preds)
         total_ground_truth += len(gts)
         iou_sum += image_iou_sum
+        images_used_for_evaluation += 1
 
     precision = total_matches / total_predictions if total_predictions else 0.0
     recall = total_matches / total_ground_truth if total_ground_truth else 0.0
     f1 = (2 * precision * recall / (precision + recall)) if precision + recall else 0.0
 
     summary = {
-        "images_evaluated": len(image_names),
+        "images_total": len(image_names),
+        "images_used_for_evaluation": images_used_for_evaluation,
         "total_predictions": total_predictions,
         "total_ground_truth": total_ground_truth,
         "matches": total_matches,
@@ -233,15 +239,22 @@ def parse_args() -> argparse.Namespace:
         help="Optional path to write detailed evaluation results as JSON",
     )
     parser.add_argument(
-        "--use-square",
-        action="store_true",
-        help="Evaluate using square bounding boxes instead of clamped boxes",
-    )
-    parser.add_argument(
         "--category-id",
         type=int,
         default=None,
         help="Filter ground truth annotations to a specific COCO category id",
+    )
+    parser.add_argument(
+        "--exclude-zero-predictions",
+        action="store_true",
+        default=True,
+        help="Exclude images with zero predictions from evaluation metrics (default: True)",
+    )
+    parser.add_argument(
+        "--include-zero-predictions",
+        action="store_false",
+        dest="exclude_zero_predictions",
+        help="Include images with zero predictions in evaluation metrics",
     )
     return parser.parse_args()
 
@@ -250,9 +263,9 @@ def main() -> int:
     args = parse_args()
 
     ground_truth = load_ground_truth(args.ground_truth, args.category_id)
-    predictions = load_predictions(args.predictions, args.use_square)
+    predictions = load_predictions(args.predictions)
 
-    summary, per_image = evaluate_dataset(predictions, ground_truth, args.iou_threshold)
+    summary, per_image = evaluate_dataset(predictions, ground_truth, args.iou_threshold, args.exclude_zero_predictions)
 
     print("Evaluation Summary:")
     print(json.dumps(summary, indent=2))
