@@ -86,6 +86,80 @@ describe('When in idle state', () => {
 		editor.cancel()
 		editor.expectToBeIn('select.idle')
 	})
+
+	it('starts editing selected text shape on Enter key', () => {
+		// Create a text shape using the same method as other tests
+		expect(editor.getCurrentPageShapes().length).toBe(0)
+		editor.setCurrentTool('text')
+		editor.pointerDown(0, 0)
+		editor.pointerUp()
+		editor.expectToBeIn('select.editing_shape')
+
+		// Update the text shape with some content
+		editor.updateShapes<TLTextShape>([
+			{
+				...editor.getCurrentPageShapes()[0]!,
+				type: 'text',
+				props: { richText: toRichText('Hello') },
+			},
+		])
+
+		// Exit editing mode
+		editor.cancel()
+		editor.expectToBeIn('select.idle')
+
+		// Verify the text shape exists and is selected
+		expect(editor.getCurrentPageShapes().length).toBe(1)
+		const textShape = editor.getCurrentPageShapes()[0]
+		expect(textShape.type).toBe('text')
+		editor.setSelectedShapes([textShape])
+
+		// Switch to text tool and press Enter
+		editor.setCurrentTool('text')
+		editor.expectToBeIn('text.idle')
+		editor.keyDown('Enter')
+
+		// Should transition to editing the selected text shape
+		editor.expectToBeIn('select.editing_shape')
+		expect(editor.getEditingShapeId()).toBe(textShape.id)
+	})
+
+	it('starts editing selected text shape on numpad Enter key', () => {
+		// Create a text shape using the same method as other tests
+		expect(editor.getCurrentPageShapes().length).toBe(0)
+		editor.setCurrentTool('text')
+		editor.pointerDown(0, 0)
+		editor.pointerUp()
+		editor.expectToBeIn('select.editing_shape')
+
+		// Update the text shape with some content
+		editor.updateShapes<TLTextShape>([
+			{
+				...editor.getCurrentPageShapes()[0]!,
+				type: 'text',
+				props: { richText: toRichText('Hello') },
+			},
+		])
+
+		// Exit editing mode
+		editor.cancel()
+		editor.expectToBeIn('select.idle')
+
+		// Verify the text shape exists and is selected
+		expect(editor.getCurrentPageShapes().length).toBe(1)
+		const textShape = editor.getCurrentPageShapes()[0]
+		expect(textShape.type).toBe('text')
+		editor.setSelectedShapes([textShape])
+
+		// Switch to text tool and press numpad Enter
+		editor.setCurrentTool('text')
+		editor.expectToBeIn('text.idle')
+		editor.keyDown('Enter', { code: 'NumpadEnter' })
+
+		// Should transition to editing the selected text shape
+		editor.expectToBeIn('select.editing_shape')
+		expect(editor.getEditingShapeId()).toBe(textShape.id)
+	})
 })
 
 describe('When in the pointing state', () => {
