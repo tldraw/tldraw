@@ -8,11 +8,12 @@ import path from 'path'
  */
 _config()
 
+const __dirname = path.dirname(new URL(import.meta.url).pathname)
+
 /**
  * See https://playwright.dev/docs/test-configuration.
  */
 const config: PlaywrightTestConfig = {
-	testDir: './tests',
 	globalSetup: './global-setup.ts',
 	globalTeardown: './global-teardown.ts',
 	/* Maximum time one test can run for. */

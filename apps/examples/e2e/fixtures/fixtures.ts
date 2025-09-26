@@ -1,5 +1,5 @@
 import { Page, test as base } from '@playwright/test'
-import { EndToEndApi } from '../../../src/misc/EndToEndApi'
+import { EndToEndApi } from '../../src/misc/EndToEndApi'
 import { ActionsMenu } from './menus/ActionsMenu'
 import { HelpMenu } from './menus/HelpMenu'
 import { MainMenu } from './menus/MainMenu'

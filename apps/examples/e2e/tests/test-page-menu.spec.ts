@@ -1,6 +1,6 @@
 import { expect } from '@playwright/test'
+import test from '../fixtures/fixtures'
 import { setup, sleep } from '../shared-e2e'
-import test from './fixtures/fixtures'
 
 test.describe('page menu', () => {
 	test.beforeEach(setup)

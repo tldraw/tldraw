@@ -1,5 +1,5 @@
+import test from '../fixtures/fixtures'
 import { setupWithShapes } from '../shared-e2e'
-import test from './fixtures/fixtures'
 
 test.beforeEach(setupWithShapes)
 
