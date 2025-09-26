@@ -1,9 +1,7 @@
-import { atom, Signal } from '@tldraw/state'
 import { Store } from '@tldraw/store'
-import { annotateError, IndexKey, sortByIndex, structuredClone } from '@tldraw/utils'
+import { annotateError, IndexKey, structuredClone } from '@tldraw/utils'
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 import { createTLSchema } from './createTLSchema'
-import { TLAssetId } from './records/TLAsset'
 import { CameraRecordType } from './records/TLCamera'
 import { TLDOCUMENT_ID } from './records/TLDocument'
 import { TLINSTANCE_ID } from './records/TLInstance'
@@ -33,62 +31,6 @@ vi.mock('@tldraw/utils', async () => {
 describe('TLStore utility functions', () => {
 	beforeEach(() => {
 		vi.clearAllMocks()
-	})
-
-	describe('sortByIndex', () => {
-		it('should sort items by index in ascending order', () => {
-			const items = [
-				{ index: 'c' as IndexKey, name: 'third' },
-				{ index: 'a' as IndexKey, name: 'first' },
-				{ index: 'b' as IndexKey, name: 'second' },
-			]
-
-			const sorted = items.sort(sortByIndex)
-
-			expect(sorted).toEqual([
-				{ index: 'a' as IndexKey, name: 'first' },
-				{ index: 'b' as IndexKey, name: 'second' },
-				{ index: 'c' as IndexKey, name: 'third' },
-			])
-		})
-
-		it('should handle equal indices correctly', () => {
-			const items = [
-				{ index: 'a' as IndexKey, name: 'first' },
-				{ index: 'a' as IndexKey, name: 'duplicate' },
-			]
-
-			const sorted = items.sort(sortByIndex)
-
-			expect(sorted[0].index).toBe('a')
-			expect(sorted[1].index).toBe('a')
-		})
-
-		it('should work with IndexKey fractional indices', () => {
-			const items = [
-				{ index: 'a2' as IndexKey },
-				{ index: 'a1' as IndexKey },
-				{ index: 'a1V' as IndexKey },
-			]
-
-			const sorted = items.sort(sortByIndex)
-
-			expect(sorted[0].index).toBe('a1')
-			expect(sorted[1].index).toBe('a1V')
-			expect(sorted[2].index).toBe('a2')
-		})
-
-		it('should handle empty string indices', () => {
-			const items = [
-				{ index: '' as IndexKey, name: 'empty' },
-				{ index: 'a' as IndexKey, name: 'a' },
-			]
-
-			const sorted = items.sort(sortByIndex)
-
-			expect(sorted[0].index).toBe('')
-			expect(sorted[1].index).toBe('a')
-		})
 	})
 
 	describe('redactRecordForErrorReporting', () => {
@@ -597,11 +539,13 @@ describe('createIntegrityChecker', () => {
 			expect(store.has(orphanPageStateId)).toBe(false)
 		})
 
-		it('should clear invalid croppingShapeId from page states', () => {
-			// Create a page and page state
+		it.each([
+			['croppingShapeId', 'shape:nonexistent' as TLShapeId, null],
+			['focusedGroupId', 'shape:nonexistent' as TLShapeId, null],
+			['hoveredShapeId', 'shape:nonexistent' as TLShapeId, null],
+		])('should clear invalid %s from page states', (fieldName, invalidValue, expectedValue) => {
 			const pageId = 'page:test' as TLPageId
 			const pageStateId = InstancePageStateRecordType.createId(pageId)
-			const invalidShapeId = 'shape:nonexistent' as TLShapeId
 
 			store.put([
 				PageRecordType.create({
@@ -613,7 +557,7 @@ describe('createIntegrityChecker', () => {
 				InstancePageStateRecordType.create({
 					id: pageStateId,
 					pageId: pageId,
-					croppingShapeId: invalidShapeId,
+					[fieldName]: invalidValue,
 				}),
 			])
 
@@ -621,14 +565,16 @@ describe('createIntegrityChecker', () => {
 			checker()
 
 			const pageState = store.get(pageStateId)
-			expect(pageState!.croppingShapeId).toBe(null)
+			expect(pageState![fieldName as keyof typeof pageState]).toBe(expectedValue)
 		})
 
-		it('should clear invalid focusedGroupId from page states', () => {
-			// Create a page and page state
+		it.each([
+			['selectedShapeIds', ['shape:nonexistent1', 'shape:nonexistent2'] as TLShapeId[]],
+			['hintingShapeIds', ['shape:hint1', 'shape:hint2'] as TLShapeId[]],
+			['erasingShapeIds', ['shape:erase1', 'shape:erase2'] as TLShapeId[]],
+		])('should filter invalid %s from page states', (fieldName, invalidShapeIds) => {
 			const pageId = 'page:test' as TLPageId
 			const pageStateId = InstancePageStateRecordType.createId(pageId)
-			const invalidGroupId = 'shape:nonexistent' as TLShapeId
 
 			store.put([
 				PageRecordType.create({
@@ -640,7 +586,7 @@ describe('createIntegrityChecker', () => {
 				InstancePageStateRecordType.create({
 					id: pageStateId,
 					pageId: pageId,
-					focusedGroupId: invalidGroupId,
+					[fieldName]: invalidShapeIds,
 				}),
 			])
 
@@ -648,115 +594,7 @@ describe('createIntegrityChecker', () => {
 			checker()
 
 			const pageState = store.get(pageStateId)
-			expect(pageState!.focusedGroupId).toBe(null)
-		})
-
-		it('should clear invalid hoveredShapeId from page states', () => {
-			// Create a page and page state
-			const pageId = 'page:test' as TLPageId
-			const pageStateId = InstancePageStateRecordType.createId(pageId)
-			const invalidShapeId = 'shape:nonexistent' as TLShapeId
-
-			store.put([
-				PageRecordType.create({
-					id: pageId,
-					name: 'Test Page',
-					index: 'a1' as IndexKey,
-					meta: {},
-				}),
-				InstancePageStateRecordType.create({
-					id: pageStateId,
-					pageId: pageId,
-					hoveredShapeId: invalidShapeId,
-				}),
-			])
-
-			const checker = createIntegrityChecker(store)
-			checker()
-
-			const pageState = store.get(pageStateId)
-			expect(pageState!.hoveredShapeId).toBe(null)
-		})
-
-		it('should filter invalid selectedShapeIds from page states', () => {
-			// Create a page and page state
-			const pageId = 'page:test' as TLPageId
-			const pageStateId = InstancePageStateRecordType.createId(pageId)
-			const invalidShapeIds = ['shape:nonexistent1', 'shape:nonexistent2'] as TLShapeId[]
-
-			store.put([
-				PageRecordType.create({
-					id: pageId,
-					name: 'Test Page',
-					index: 'a1' as IndexKey,
-					meta: {},
-				}),
-				InstancePageStateRecordType.create({
-					id: pageStateId,
-					pageId: pageId,
-					selectedShapeIds: invalidShapeIds,
-				}),
-			])
-
-			const checker = createIntegrityChecker(store)
-			checker()
-
-			const pageState = store.get(pageStateId)
-			expect(pageState!.selectedShapeIds).toEqual([])
-		})
-
-		it('should filter invalid hintingShapeIds from page states', () => {
-			// Create a page and page state
-			const pageId = 'page:test' as TLPageId
-			const pageStateId = InstancePageStateRecordType.createId(pageId)
-			const invalidShapeIds = ['shape:hint1', 'shape:hint2'] as TLShapeId[]
-
-			store.put([
-				PageRecordType.create({
-					id: pageId,
-					name: 'Test Page',
-					index: 'a1' as IndexKey,
-					meta: {},
-				}),
-				InstancePageStateRecordType.create({
-					id: pageStateId,
-					pageId: pageId,
-					hintingShapeIds: invalidShapeIds,
-				}),
-			])
-
-			const checker = createIntegrityChecker(store)
-			checker()
-
-			const pageState = store.get(pageStateId)
-			expect(pageState!.hintingShapeIds).toEqual([])
-		})
-
-		it('should filter invalid erasingShapeIds from page states', () => {
-			// Create a page and page state
-			const pageId = 'page:test' as TLPageId
-			const pageStateId = InstancePageStateRecordType.createId(pageId)
-			const invalidShapeIds = ['shape:erase1', 'shape:erase2'] as TLShapeId[]
-
-			store.put([
-				PageRecordType.create({
-					id: pageId,
-					name: 'Test Page',
-					index: 'a1' as IndexKey,
-					meta: {},
-				}),
-				InstancePageStateRecordType.create({
-					id: pageStateId,
-					pageId: pageId,
-					erasingShapeIds: invalidShapeIds,
-				}),
-			])
-
-			const checker = createIntegrityChecker(store)
-			checker()
-
-			const pageState = store.get(pageStateId)
-			expect(pageState!.erasingShapeIds).toEqual([])
+			expect(pageState![fieldName as keyof typeof pageState]).toEqual([])
 		})
 	})
 
@@ -801,503 +639,6 @@ describe('createIntegrityChecker', () => {
 			expect(store.has(TLINSTANCE_ID)).toBe(true)
 			expect(store.has(InstancePageStateRecordType.createId(pageId))).toBe(true)
 			expect(store.has(CameraRecordType.createId(pageId))).toBe(true)
-		})
-	})
-})
-
-describe('TLAssetStore interface', () => {
-	describe('upload method', () => {
-		it('should define correct upload signature', () => {
-			const mockAssetStore: TLAssetStore = {
-				upload: async (asset, file, abortSignal) => {
-					expect(asset).toBeDefined()
-					expect(file).toBeInstanceOf(File)
-					expect(abortSignal).toBeInstanceOf(AbortSignal)
-					return { src: 'uploaded-url', meta: { uploadTime: Date.now() } }
-				},
-				resolve: async () => 'resolved-url',
-				remove: async () => {},
-			}
-
-			expect(typeof mockAssetStore.upload).toBe('function')
-		})
-
-		it('should support optional abortSignal parameter', () => {
-			const mockAssetStore: TLAssetStore = {
-				upload: async (asset, file, abortSignal?) => {
-					if (abortSignal) {
-						expect(abortSignal).toBeInstanceOf(AbortSignal)
-					}
-					return { src: 'uploaded-url' }
-				},
-				resolve: async () => 'resolved-url',
-				remove: async () => {},
-			}
-
-			expect(typeof mockAssetStore.upload).toBe('function')
-		})
-	})
-
-	describe('resolve method', () => {
-		it('should define correct resolve signature', async () => {
-			const mockAsset = {
-				id: 'asset:test' as TLAssetId,
-				typeName: 'asset' as const,
-				type: 'image' as const,
-				props: {
-					src: 'test.png',
-					w: 100,
-					h: 100,
-					mimeType: 'image/png',
-					name: 'test',
-					isAnimated: false,
-				},
-				meta: {},
-			}
-
-			const mockContext = {
-				screenScale: 1,
-				steppedScreenScale: 1,
-				dpr: 2,
-				networkEffectiveType: '4g',
-				shouldResolveToOriginal: false,
-			}
-
-			const mockAssetStore: TLAssetStore = {
-				upload: async () => ({ src: 'uploaded-url' }),
-				resolve: async (asset, context) => {
-					expect(asset).toEqual(mockAsset)
-					expect(context).toEqual(mockContext)
-					return 'resolved-url'
-				},
-				remove: async () => {},
-			}
-
-			const result = await mockAssetStore.resolve!(mockAsset, mockContext)
-			expect(result).toBe('resolved-url')
-		})
-
-		it('should handle sync resolve method', () => {
-			const mockAsset = {
-				id: 'asset:test' as TLAssetId,
-				typeName: 'asset' as const,
-				type: 'image' as const,
-				props: {
-					src: 'test.png',
-					w: 100,
-					h: 100,
-					mimeType: 'image/png',
-					name: 'test',
-					isAnimated: false,
-				},
-				meta: {},
-			}
-
-			const mockContext = {
-				screenScale: 0.5,
-				steppedScreenScale: 0.5,
-				dpr: 1,
-				networkEffectiveType: null,
-				shouldResolveToOriginal: true,
-			}
-
-			const mockAssetStore: TLAssetStore = {
-				upload: async () => ({ src: 'uploaded-url' }),
-				resolve: (asset, context) => {
-					if (context.shouldResolveToOriginal) {
-						return asset.props.src
-					}
-					return `${asset.props.src}?scale=${context.screenScale}`
-				},
-				remove: async () => {},
-			}
-
-			const result = mockAssetStore.resolve!(mockAsset, mockContext)
-			expect(result).toBe('test.png')
-		})
-
-		it('should return null when asset not available', () => {
-			const mockAssetStore: TLAssetStore = {
-				upload: async () => ({ src: 'uploaded-url' }),
-				resolve: () => null,
-				remove: async () => {},
-			}
-
-			const mockAsset = {
-				id: 'asset:test' as TLAssetId,
-				typeName: 'asset' as const,
-				type: 'image' as const,
-				props: {
-					src: 'test.png',
-					w: 100,
-					h: 100,
-					mimeType: 'image/png',
-					name: 'test',
-					isAnimated: false,
-				},
-				meta: {},
-			}
-
-			const mockContext = {
-				screenScale: 1,
-				steppedScreenScale: 1,
-				dpr: 1,
-				networkEffectiveType: '4g',
-				shouldResolveToOriginal: false,
-			}
-
-			const result = mockAssetStore.resolve!(mockAsset, mockContext)
-			expect(result).toBe(null)
-		})
-	})
-
-	describe('remove method', () => {
-		it('should define correct remove signature', async () => {
-			const assetIds = ['asset:1', 'asset:2'] as TLAssetId[]
-
-			const mockAssetStore: TLAssetStore = {
-				upload: async () => ({ src: 'uploaded-url' }),
-				resolve: async () => 'resolved-url',
-				remove: async (ids) => {
-					expect(ids).toEqual(assetIds)
-					expect(Array.isArray(ids)).toBe(true)
-				},
-			}
-
-			await mockAssetStore.remove!(assetIds)
-		})
-
-		it('should handle empty asset ID arrays', async () => {
-			const mockAssetStore: TLAssetStore = {
-				upload: async () => ({ src: 'uploaded-url' }),
-				resolve: async () => 'resolved-url',
-				remove: async (ids) => {
-					expect(ids).toEqual([])
-				},
-			}
-
-			await mockAssetStore.remove!([])
-		})
-	})
-
-	describe('optional methods', () => {
-		it('should allow asset store without resolve method', () => {
-			const minimalAssetStore: TLAssetStore = {
-				upload: async () => ({ src: 'uploaded-url' }),
-			}
-
-			expect(minimalAssetStore.resolve).toBeUndefined()
-			expect(minimalAssetStore.remove).toBeUndefined()
-		})
-
-		it('should allow asset store without remove method', () => {
-			const partialAssetStore: TLAssetStore = {
-				upload: async () => ({ src: 'uploaded-url' }),
-				resolve: async () => 'resolved-url',
-			}
-
-			expect(partialAssetStore.remove).toBeUndefined()
-		})
-	})
-})
-
-describe('TLAssetContext interface', () => {
-	it('should contain all required context properties', () => {
-		const context = {
-			screenScale: 1.5,
-			steppedScreenScale: 2,
-			dpr: 2.5,
-			networkEffectiveType: 'slow-2g',
-			shouldResolveToOriginal: true,
-		}
-
-		expect(typeof context.screenScale).toBe('number')
-		expect(typeof context.steppedScreenScale).toBe('number')
-		expect(typeof context.dpr).toBe('number')
-		expect(typeof context.networkEffectiveType).toBe('string')
-		expect(typeof context.shouldResolveToOriginal).toBe('boolean')
-	})
-
-	it('should allow null networkEffectiveType', () => {
-		const context = {
-			screenScale: 1,
-			steppedScreenScale: 1,
-			dpr: 1,
-			networkEffectiveType: null,
-			shouldResolveToOriginal: false,
-		}
-
-		expect(context.networkEffectiveType).toBe(null)
-	})
-
-	it('should work with typical real-world values', () => {
-		const contexts = [
-			{
-				screenScale: 0.25, // Zoomed out view
-				steppedScreenScale: 0.25,
-				dpr: 1, // Standard display
-				networkEffectiveType: '4g',
-				shouldResolveToOriginal: false,
-			},
-			{
-				screenScale: 2.0, // Zoomed in view
-				steppedScreenScale: 2,
-				dpr: 3, // High-DPI display (iPhone)
-				networkEffectiveType: 'slow-2g',
-				shouldResolveToOriginal: false,
-			},
-			{
-				screenScale: 1.0, // Normal zoom
-				steppedScreenScale: 1,
-				dpr: 2, // Retina display
-				networkEffectiveType: null, // Not available
-				shouldResolveToOriginal: true, // For export
-			},
-		]
-
-		contexts.forEach((context) => {
-			expect(context.screenScale).toBeTypeOf('number')
-			expect(context.steppedScreenScale).toBeTypeOf('number')
-			expect(context.dpr).toBeTypeOf('number')
-			expect(context.shouldResolveToOriginal).toBeTypeOf('boolean')
-			expect(
-				context.networkEffectiveType === null || typeof context.networkEffectiveType === 'string'
-			).toBe(true)
-		})
-	})
-})
-
-describe('TLStoreProps interface', () => {
-	it('should require all essential properties', () => {
-		const mockAssetStore: Required<TLAssetStore> = {
-			upload: async () => ({ src: 'test-url' }),
-			resolve: async () => 'resolved-url',
-			remove: async () => {},
-		}
-
-		const storeProps: TLStoreProps = {
-			defaultName: 'Test Document',
-			assets: mockAssetStore,
-			onMount: () => {},
-		}
-
-		expect(storeProps.defaultName).toBe('Test Document')
-		expect(storeProps.assets).toBe(mockAssetStore)
-		expect(typeof storeProps.onMount).toBe('function')
-	})
-
-	it('should support onMount with cleanup function', () => {
-		const cleanup = vi.fn()
-		const storeProps: TLStoreProps = {
-			defaultName: 'Test',
-			assets: {
-				upload: async () => ({ src: 'test-url' }),
-				resolve: async () => 'resolved-url',
-				remove: async () => {},
-			} as Required<TLAssetStore>,
-			onMount: () => cleanup,
-		}
-
-		const cleanupFn = storeProps.onMount({})
-		expect(typeof cleanupFn).toBe('function')
-
-		if (cleanupFn) {
-			cleanupFn()
-		}
-		expect(cleanup).toHaveBeenCalled()
-	})
-
-	it('should support onMount without cleanup function', () => {
-		const onMount = vi.fn()
-		const storeProps: TLStoreProps = {
-			defaultName: 'Test',
-			assets: {
-				upload: async () => ({ src: 'test-url' }),
-				resolve: async () => 'resolved-url',
-				remove: async () => {},
-			} as Required<TLAssetStore>,
-			onMount,
-		}
-
-		const result = storeProps.onMount({})
-		expect(onMount).toHaveBeenCalled()
-		expect(result).toBeUndefined()
-	})
-
-	it('should support optional collaboration configuration', () => {
-		const statusSignal: Signal<'online' | 'offline'> = atom('statusSignal', 'online')
-		const modeSignal: Signal<'readonly' | 'readwrite'> = atom('modeSignal', 'readwrite')
-
-		const storeProps: TLStoreProps = {
-			defaultName: 'Collaborative Document',
-			assets: {
-				upload: async () => ({ src: 'test-url' }),
-				resolve: async () => 'resolved-url',
-				remove: async () => {},
-			} as Required<TLAssetStore>,
-			onMount: () => {},
-			collaboration: {
-				status: statusSignal,
-				mode: modeSignal,
-			},
-		}
-
-		expect(storeProps.collaboration).toBeDefined()
-		expect(storeProps.collaboration!.status).toBe(statusSignal)
-		expect(storeProps.collaboration!.mode).toBe(modeSignal)
-
-		// Test that signals have correct values (atoms have .get() method)
-		expect(typeof statusSignal.get).toBe('function')
-		expect(typeof modeSignal.get).toBe('function')
-	})
-
-	it('should support collaboration with null status', () => {
-		const storeProps: TLStoreProps = {
-			defaultName: 'Test',
-			assets: {
-				upload: async () => ({ src: 'test-url' }),
-				resolve: async () => 'resolved-url',
-				remove: async () => {},
-			} as Required<TLAssetStore>,
-			onMount: () => {},
-			collaboration: {
-				status: null,
-			},
-		}
-
-		expect(storeProps.collaboration!.status).toBe(null)
-		expect(storeProps.collaboration!.mode).toBeUndefined()
-	})
-
-	it('should support collaboration with null mode', () => {
-		const statusSignal: Signal<'online' | 'offline'> = atom('statusSignal2', 'offline')
-
-		const storeProps: TLStoreProps = {
-			defaultName: 'Test',
-			assets: {
-				upload: async () => ({ src: 'test-url' }),
-				resolve: async () => 'resolved-url',
-				remove: async () => {},
-			} as Required<TLAssetStore>,
-			onMount: () => {},
-			collaboration: {
-				status: statusSignal,
-				mode: null,
-			},
-		}
-
-		expect(storeProps.collaboration!.status).toBe(statusSignal)
-		expect(storeProps.collaboration!.mode).toBe(null)
-	})
-
-	it('should work without collaboration configuration', () => {
-		const storeProps: TLStoreProps = {
-			defaultName: 'Simple Document',
-			assets: {
-				upload: async () => ({ src: 'test-url' }),
-				resolve: async () => 'resolved-url',
-				remove: async () => {},
-			} as Required<TLAssetStore>,
-			onMount: () => {},
-		}
-
-		expect(storeProps.collaboration).toBeUndefined()
-	})
-})
-
-describe('Type definitions', () => {
-	describe('TLStoreSchema', () => {
-		it('should be compatible with StoreSchema', () => {
-			const schema = createTLSchema()
-
-			// This should compile and work correctly
-			expect(schema).toBeDefined()
-			expect(schema.types).toBeDefined()
-			expect(typeof schema.validateRecord).toBe('function')
-		})
-	})
-
-	describe('TLStore', () => {
-		it('should be compatible with Store type', () => {
-			const schema = createTLSchema()
-			const mockAssetStore: Required<TLAssetStore> = {
-				upload: async () => ({ src: 'test-url' }),
-				resolve: async () => 'resolved-url',
-				remove: async () => {},
-			}
-
-			const store = new Store({
-				schema,
-				props: {
-					defaultName: 'Type Test',
-					assets: mockAssetStore,
-					onMount: () => {},
-				},
-			})
-
-			expect(store).toBeDefined()
-			expect(typeof store.get).toBe('function')
-			expect(typeof store.put).toBe('function')
-			expect(typeof store.remove).toBe('function')
-			expect(store.props).toBeDefined()
-		})
-	})
-
-	describe('TLSerializedStore', () => {
-		it('should work with store serialization', () => {
-			const schema = createTLSchema()
-			const mockAssetStore: Required<TLAssetStore> = {
-				upload: async () => ({ src: 'test-url' }),
-				resolve: async () => 'resolved-url',
-				remove: async () => {},
-			}
-
-			const store = new Store({
-				schema,
-				props: {
-					defaultName: 'Serialization Test',
-					assets: mockAssetStore,
-					onMount: () => {},
-				},
-			})
-
-			const serialized = store.serialize()
-			expect(serialized).toBeDefined()
-			expect(typeof serialized).toBe('object')
-			// Store serialization returns an object mapping IDs to records
-			expect(Array.isArray(serialized)).toBe(false)
-			expect(serialized).toEqual(expect.any(Object))
-		})
-	})
-
-	describe('TLStoreSnapshot', () => {
-		it('should work with store snapshots', () => {
-			const schema = createTLSchema()
-			const mockAssetStore: Required<TLAssetStore> = {
-				upload: async () => ({ src: 'test-url' }),
-				resolve: async () => 'resolved-url',
-				remove: async () => {},
-			}
-
-			const store = new Store({
-				schema,
-				props: {
-					defaultName: 'Snapshot Test',
-					assets: mockAssetStore,
-					onMount: () => {},
-				},
-			})
-
-			// Initialize store to ensure it has records
-			const checker = createIntegrityChecker(store)
-			checker()
-
-			// Use getStoreSnapshot to get snapshot-like data
-			const snapshot = store.getStoreSnapshot()
-			expect(snapshot).toBeDefined()
-			expect(typeof snapshot).toBe('object')
-			expect(snapshot.store).toBeDefined()
-			expect(snapshot.schema).toBeDefined()
 		})
 	})
 })

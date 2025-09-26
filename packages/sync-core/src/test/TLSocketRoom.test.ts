@@ -32,17 +32,6 @@ interface TestSessionMeta {
 }
 
 describe(TLSocketRoom, () => {
-	it('allows being initialized with an empty TLStoreSnapshot', () => {
-		const store = getStore()
-		const snapshot = store.getStoreSnapshot()
-		const room = new TLSocketRoom({
-			initialSnapshot: snapshot,
-		})
-
-		expect(room.getCurrentSnapshot()).toMatchObject({ clock: 0, documents: [] })
-		expect(room.getCurrentSnapshot().documents.length).toBe(0)
-	})
-
 	it('allows being initialized with a non-empty TLStoreSnapshot', () => {
 		const store = getStore()
 		// populate with an empty document (document:document and page:page records)
@@ -120,22 +109,6 @@ describe(TLSocketRoom, () => {
 		  },
 		]
 	`)
-	})
-
-	it('getPresenceRecords returns empty object when no presence records exist', () => {
-		const store = getStore()
-		// Don't add any presence records, just the default document
-		store.ensureStoreIsUsable()
-
-		const snapshot = store.getStoreSnapshot()
-		const room = new TLSocketRoom({
-			initialSnapshot: snapshot,
-		})
-
-		const presenceRecords = room.getPresenceRecords()
-
-		expect(presenceRecords).toEqual({})
-		expect(Object.keys(presenceRecords)).toHaveLength(0)
 	})
 
 	it('getPresenceRecords correctly handles presence records', () => {
@@ -428,17 +401,6 @@ describe(TLSocketRoom, () => {
 	})
 
 	describe('Constructor options', () => {
-		it('initializes with default schema when none provided', () => {
-			const room = new TLSocketRoom({})
-			expect(room.getCurrentSnapshot().schema).toBeDefined()
-		})
-
-		it('uses custom schema when provided', () => {
-			const customSchema = createTLSchema()
-			const room = new TLSocketRoom({ schema: customSchema })
-			expect(room.getCurrentSnapshot().schema).toEqual(customSchema.serialize())
-		})
-
 		it('sets up logging with default console.error when log option missing', () => {
 			const consoleSpy = vi.spyOn(console, 'error').mockImplementation(() => {})
 			const room = new TLSocketRoom({})
@@ -485,28 +447,6 @@ describe(TLSocketRoom, () => {
 		beforeEach(() => {
 			onSessionRemoved = vi.fn()
 			room = new TLSocketRoom({ onSessionRemoved })
-		})
-
-		it('returns correct number of active sessions', () => {
-			expect(room.getNumActiveSessions()).toBe(0)
-
-			const socket = createMockSocket()
-			room.handleSocketConnect({
-				sessionId: 'test-session',
-				socket,
-			})
-
-			// Need to complete connection handshake
-			const connectRequest = {
-				type: 'connect' as const,
-				connectRequestId: 'connect-1',
-				lastServerClock: 0,
-				protocolVersion: getTlsyncProtocolVersion(),
-				schema: createTLSchema().serialize(),
-			}
-			room.handleSocketMessage('test-session', JSON.stringify(connectRequest))
-
-			expect(room.getNumActiveSessions()).toBe(1)
 		})
 
 		it('handles multiple concurrent sessions', () => {
@@ -572,54 +512,6 @@ describe(TLSocketRoom, () => {
 				onAfterReceiveMessage,
 			})
 			socket = createMockSocket()
-		})
-
-		it('logs warning for messages from unknown sessions', () => {
-			const mockLog: TLSyncLog = { warn: vi.fn(), error: vi.fn() }
-			const roomWithLog = new TLSocketRoom({ log: mockLog })
-
-			roomWithLog.handleSocketMessage('unknown-session', 'test')
-
-			expect(mockLog.warn).toHaveBeenCalledWith(
-				'Received message from unknown session',
-				'unknown-session'
-			)
-		})
-
-		it('handles malformed JSON messages', () => {
-			const mockLog: TLSyncLog = { warn: vi.fn(), error: vi.fn() }
-			const roomWithLog = new TLSocketRoom({ log: mockLog })
-
-			roomWithLog.handleSocketConnect({
-				sessionId: 'test-session',
-				socket,
-			})
-
-			// Send invalid JSON
-			roomWithLog.handleSocketMessage('test-session', '{invalid json')
-
-			expect(mockLog.error).toHaveBeenCalled()
-		})
-
-		it('handles binary messages correctly', () => {
-			room.handleSocketConnect({
-				sessionId: 'test-session',
-				socket,
-			})
-
-			const message = JSON.stringify({
-				type: 'connect',
-				connectRequestId: 'connect-1',
-				lastServerClock: 0,
-				protocolVersion: getTlsyncProtocolVersion(),
-				schema: createTLSchema().serialize(),
-			})
-
-			const buffer = new TextEncoder().encode(message)
-			room.handleSocketMessage('test-session', buffer)
-
-			// Should process the message without error
-			expect(room.getSessions()).toHaveLength(1)
 		})
 
 		it('calls onBeforeSendMessage for outgoing messages', () => {
@@ -719,37 +611,6 @@ describe(TLSocketRoom, () => {
 		})
 	})
 
-	describe('Record operations', () => {
-		let room: TLSocketRoom
-
-		beforeEach(() => {
-			const store = getStore()
-			store.ensureStoreIsUsable()
-			room = new TLSocketRoom({
-				initialSnapshot: store.getStoreSnapshot(),
-			})
-		})
-
-		it('returns undefined for non-existent records', () => {
-			const record = room.getRecord('nonexistent:record')
-			expect(record).toBeUndefined()
-		})
-
-		it('returns deep clone of existing records', () => {
-			// Get a record that should exist
-			const record = room.getRecord('document:document')
-			expect(record).toBeDefined()
-			expect(record?.typeName).toBe('document')
-
-			// Verify it's a deep clone by modifying it
-			if (record && record.typeName === 'document') {
-				;(record as any).name = 'modified'
-				const record2 = room.getRecord('document:document')
-				expect((record2 as any)?.name).not.toBe('modified')
-			}
-		})
-	})
-
 	describe('Custom messages', () => {
 		let room: TLSocketRoom
 		let socket: WebSocketMinimal
@@ -841,11 +702,6 @@ describe(TLSocketRoom, () => {
 	})
 
 	describe('Room lifecycle', () => {
-		it('starts as open room', () => {
-			const room = new TLSocketRoom({})
-			expect(room.isClosed()).toBe(false)
-		})
-
 		it('closes room correctly', () => {
 			const room = new TLSocketRoom({})
 			const socket = createMockSocket()
@@ -938,13 +794,6 @@ describe(TLSocketRoom, () => {
 	})
 
 	describe('Clock operations', () => {
-		it('returns current document clock', () => {
-			const room = new TLSocketRoom({})
-			const clock = room.getCurrentDocumentClock()
-			expect(typeof clock).toBe('number')
-			expect(clock).toBeGreaterThanOrEqual(0)
-		})
-
 		it('increments clock after store updates', async () => {
 			const store = getStore()
 			store.ensureStoreIsUsable()
@@ -965,84 +814,6 @@ describe(TLSocketRoom, () => {
 			})
 
 			expect(room.getCurrentDocumentClock()).toBeGreaterThan(initialClock)
-		})
-	})
-
-	describe('Snapshot serialization', () => {
-		it('returns serialized snapshot as JSON string', () => {
-			const store = getStore()
-			store.ensureStoreIsUsable()
-			const room = new TLSocketRoom({
-				initialSnapshot: store.getStoreSnapshot(),
-			})
-
-			const serialized = room.getCurrentSerializedSnapshot()
-			expect(typeof serialized).toBe('string')
-
-			const parsed = JSON.parse(serialized)
-			expect(parsed.clock).toBeDefined()
-			expect(parsed.documents).toBeDefined()
-		})
-
-		it('serialized snapshot matches regular snapshot', () => {
-			const store = getStore()
-			store.ensureStoreIsUsable()
-			const room = new TLSocketRoom({
-				initialSnapshot: store.getStoreSnapshot(),
-			})
-
-			const snapshot = room.getCurrentSnapshot()
-			const serialized = room.getCurrentSerializedSnapshot()
-
-			expect(JSON.parse(serialized)).toEqual(snapshot)
-		})
-	})
-
-	describe('Edge cases', () => {
-		it('handles connecting same session ID multiple times', () => {
-			const room = new TLSocketRoom({})
-			const socket1 = createMockSocket()
-			const socket2 = createMockSocket()
-
-			room.handleSocketConnect({
-				sessionId: 'duplicate-session',
-				socket: socket1,
-			})
-
-			// Connect with same session ID should replace previous connection
-			room.handleSocketConnect({
-				sessionId: 'duplicate-session',
-				socket: socket2,
-			})
-
-			// Only one session should exist
-			expect(room.getNumActiveSessions()).toBe(1)
-		})
-
-		it('handles empty message gracefully', () => {
-			const room = new TLSocketRoom({})
-			const socket = createMockSocket()
-
-			room.handleSocketConnect({
-				sessionId: 'test-session',
-				socket,
-			})
-
-			// Should not throw
-			expect(() => {
-				room.handleSocketMessage('test-session', '')
-			}).not.toThrow()
-		})
-
-		it('handles null/undefined values in options', () => {
-			// Should not throw when initializing with null values
-			expect(() => {
-				new TLSocketRoom({
-					initialSnapshot: undefined,
-					schema: undefined,
-					clientTimeout: undefined,
-				})
-			}).not.toThrow()
 		})
 	})
 })

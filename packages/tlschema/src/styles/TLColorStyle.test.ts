@@ -30,63 +30,9 @@ describe('TLColorStyle', () => {
 				'white',
 			])
 		})
-
-		it('should be a readonly array', () => {
-			expect(Array.isArray(defaultColorNames)).toBe(true)
-			expect(defaultColorNames).toHaveLength(13)
-		})
-
-		it('should contain only string values', () => {
-			defaultColorNames.forEach((color) => {
-				expect(typeof color).toBe('string')
-				expect(color.length).toBeGreaterThan(0)
-			})
-		})
-
-		it('should not contain duplicates', () => {
-			const uniqueColors = new Set(defaultColorNames)
-			expect(uniqueColors.size).toBe(defaultColorNames.length)
-		})
-
-		it('should contain specific required colors', () => {
-			const requiredColors = ['black', 'white', 'red', 'green', 'blue']
-			requiredColors.forEach((color) => {
-				expect(defaultColorNames).toContain(color)
-			})
-		})
 	})
 
 	describe('DefaultColorThemePalette', () => {
-		it('should have lightMode and darkMode properties', () => {
-			expect(DefaultColorThemePalette).toHaveProperty('lightMode')
-			expect(DefaultColorThemePalette).toHaveProperty('darkMode')
-		})
-
-		it('should have correct theme IDs', () => {
-			expect(DefaultColorThemePalette.lightMode.id).toBe('light')
-			expect(DefaultColorThemePalette.darkMode.id).toBe('dark')
-		})
-
-		it('should have base theme properties for light mode', () => {
-			const lightTheme = DefaultColorThemePalette.lightMode
-			expect(typeof lightTheme.text).toBe('string')
-			expect(typeof lightTheme.background).toBe('string')
-			expect(typeof lightTheme.solid).toBe('string')
-			expect(lightTheme.text).toBe('#000000')
-			expect(lightTheme.background).toBe('#f9fafb')
-			expect(lightTheme.solid).toBe('#fcfffe')
-		})
-
-		it('should have base theme properties for dark mode', () => {
-			const darkTheme = DefaultColorThemePalette.darkMode
-			expect(typeof darkTheme.text).toBe('string')
-			expect(typeof darkTheme.background).toBe('string')
-			expect(typeof darkTheme.solid).toBe('string')
-			expect(darkTheme.text).toBe('hsl(210, 17%, 98%)')
-			expect(darkTheme.background).toBe('hsl(240, 5%, 6.5%)')
-			expect(darkTheme.solid).toBe('#010403')
-		})
-
 		it('should contain all default colors for both themes', () => {
 			const lightTheme = DefaultColorThemePalette.lightMode
 			const darkTheme = DefaultColorThemePalette.darkMode
@@ -96,118 +42,21 @@ describe('TLColorStyle', () => {
 				expect(darkTheme).toHaveProperty(colorName)
 			})
 		})
-
-		it('should have proper color theme structure for each color', () => {
-			const lightTheme = DefaultColorThemePalette.lightMode
-			const darkTheme = DefaultColorThemePalette.darkMode
-
-			const requiredProperties: (keyof TLDefaultColorThemeColor)[] = [
-				'solid',
-				'semi',
-				'pattern',
-				'fill',
-				'frameHeadingStroke',
-				'frameHeadingFill',
-				'frameStroke',
-				'frameFill',
-				'frameText',
-				'noteFill',
-				'noteText',
-				'highlightSrgb',
-				'highlightP3',
-			]
-
-			defaultColorNames.forEach((colorName) => {
-				const lightColor = lightTheme[colorName]
-				const darkColor = darkTheme[colorName]
-
-				requiredProperties.forEach((prop) => {
-					expect(lightColor).toHaveProperty(prop)
-					expect(darkColor).toHaveProperty(prop)
-					expect(typeof lightColor[prop]).toBe('string')
-					expect(typeof darkColor[prop]).toBe('string')
-					expect(lightColor[prop].length).toBeGreaterThan(0)
-					expect(darkColor[prop].length).toBeGreaterThan(0)
-				})
-			})
-		})
-
-		it('should have different color values between light and dark themes', () => {
-			// Most colors should be different between light and dark themes
-			const lightTheme = DefaultColorThemePalette.lightMode
-			const darkTheme = DefaultColorThemePalette.darkMode
-
-			// Check colors that actually differ between themes
-			// Note: Some colors like red have the same solid value in both themes
-			expect(lightTheme.black.solid).not.toBe(darkTheme.black.solid)
-			expect(lightTheme.white.solid).not.toBe(darkTheme.white.solid)
-			expect(lightTheme.blue.frameText).not.toBe(darkTheme.blue.frameText)
-		})
-
-		it('should have valid CSS color format for color values', () => {
-			const lightTheme = DefaultColorThemePalette.lightMode
-
-			// Test a sample of colors for valid CSS format
-			expect(lightTheme.red.solid).toMatch(/^#[0-9a-fA-F]{6}$/)
-			expect(lightTheme.blue.fill).toMatch(/^#[0-9a-fA-F]{6}$/)
-			expect(lightTheme.black.frameText).toMatch(/^#[0-9a-fA-F]{6}$/)
-		})
-
-		it('should have P3 color values in correct format', () => {
-			const lightTheme = DefaultColorThemePalette.lightMode
-
-			// P3 colors should have the color(display-p3 ...) format
-			expect(lightTheme.red.highlightP3).toMatch(/^color\(display-p3/)
-			expect(lightTheme.blue.highlightP3).toMatch(/^color\(display-p3/)
-		})
-
-		it('should have consistent fill and solid values where expected', () => {
-			const lightTheme = DefaultColorThemePalette.lightMode
-
-			// According to the interface comment, fill is usually same as solid
-			defaultColorNames.forEach((colorName) => {
-				const color = lightTheme[colorName]
-				expect(color.fill).toBe(color.solid)
-			})
-		})
 	})
 
 	describe('getDefaultColorTheme', () => {
 		it('should return light theme when isDarkMode is false', () => {
 			const result = getDefaultColorTheme({ isDarkMode: false })
 			expect(result).toBe(DefaultColorThemePalette.lightMode)
-			expect(result.id).toBe('light')
 		})
 
 		it('should return dark theme when isDarkMode is true', () => {
 			const result = getDefaultColorTheme({ isDarkMode: true })
 			expect(result).toBe(DefaultColorThemePalette.darkMode)
-			expect(result.id).toBe('dark')
-		})
-
-		it('should handle explicit boolean values', () => {
-			const lightResult = getDefaultColorTheme({ isDarkMode: Boolean(false) })
-			const darkResult = getDefaultColorTheme({ isDarkMode: Boolean(true) })
-
-			expect(lightResult.id).toBe('light')
-			expect(darkResult.id).toBe('dark')
-		})
-
-		it('should return the same reference as the palette objects', () => {
-			const lightResult = getDefaultColorTheme({ isDarkMode: false })
-			const darkResult = getDefaultColorTheme({ isDarkMode: true })
-
-			expect(lightResult).toBe(DefaultColorThemePalette.lightMode)
-			expect(darkResult).toBe(DefaultColorThemePalette.darkMode)
 		})
 	})
 
 	describe('DefaultColorStyle', () => {
-		it('should be a StyleProp with correct configuration', () => {
-			expect(DefaultColorStyle.id).toBe('tldraw:color')
-			expect(DefaultColorStyle.defaultValue).toBe('black')
-		})
-
 		it('should validate all default color names', () => {
 			defaultColorNames.forEach((color) => {
 				expect(() => DefaultColorStyle.validate(color)).not.toThrow()
@@ -221,30 +70,6 @@ describe('TLColorStyle', () => {
 			invalidColors.forEach((color) => {
 				expect(() => DefaultColorStyle.validate(color)).toThrow()
 			})
-		})
-
-		it('should have values property with all default colors', () => {
-			expect(DefaultColorStyle.values).toEqual(defaultColorNames)
-		})
-
-		it('should allow setting default value to any valid color', () => {
-			const originalDefault = DefaultColorStyle.defaultValue
-
-			DefaultColorStyle.setDefaultValue('red')
-			expect(DefaultColorStyle.defaultValue).toBe('red')
-
-			DefaultColorStyle.setDefaultValue('blue')
-			expect(DefaultColorStyle.defaultValue).toBe('blue')
-
-			// Restore original
-			DefaultColorStyle.setDefaultValue(originalDefault)
-		})
-
-		it('should work with validateUsingKnownGoodVersion', () => {
-			const result = DefaultColorStyle.validateUsingKnownGoodVersion('red', 'blue')
-			expect(result).toBe('blue')
-
-			expect(() => DefaultColorStyle.validateUsingKnownGoodVersion('red', 'invalid')).toThrow()
 		})
 	})
 

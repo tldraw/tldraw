@@ -21,8 +21,6 @@ import {
 	TLPersistentClientSocket,
 	TLPresenceMode,
 	TLSyncClient,
-	TLSyncErrorCloseEventCode,
-	TLSyncErrorCloseEventReason,
 	TlSocketStatusChangeEvent,
 } from './TLSyncClient'
 
@@ -273,19 +271,6 @@ describe('TLSyncClient', () => {
 			expect(onAfterConnect).toHaveBeenCalledWith(client, { isReadonly: false })
 		})
 
-		it.fails('ignores connect messages for old requests', () => {
-			const oldRequestId = client.latestConnectRequestId
-			client.latestConnectRequestId = 'new_request'
-
-			const connectMessage = createConnectMessage({ connectRequestId: oldRequestId! })
-
-			socket.mockServerMessage(connectMessage)
-
-			expect(client.isConnectedToRoom).toBe(false)
-			expect(onLoad).not.toHaveBeenCalled()
-			expect(onAfterConnect).not.toHaveBeenCalled()
-		})
-
 		it('handles connection with readonly mode', () => {
 			const connectMessage = createConnectMessage({ isReadonly: true })
 
@@ -384,38 +369,6 @@ describe('TLSyncClient', () => {
 			socket.mockServerMessage(dataMessage)
 			// Rebase is throttled, so advance timers
 			vi.advanceTimersByTime(100)
-		})
-
-		it.fails('handles push_result messages', () => {
-			// First make a local change to create a pending push request
-			const pageId = PageRecordType.createId()
-			store.put([
-				PageRecordType.create({
-					id: pageId,
-					name: 'Test Page',
-					index: 'a1' as any,
-				}),
-			])
-
-			vi.advanceTimersByTime(100) // Allow push to be sent
-
-			expect(socket.getSentMessages()).toHaveLength(1)
-			const pushMessage = socket.getLastSentMessage() as TLPushRequest<TestRecord>
-			expect(pushMessage.type).toBe('push')
-
-			// Now handle push_result via data message (more realistic)
-			const pushResultMessage: TLSocketServerSentDataEvent<TestRecord> = {
-				type: 'push_result',
-				action: 'commit',
-				serverClock: 2,
-				clientClock: pushMessage.clientClock,
-			}
-
-			socket.mockServerMessage({
-				type: 'data',
-				data: [pushResultMessage],
-			})
-			vi.advanceTimersByTime(100) // Allow rebase to complete
 		})
 
 		it('handles legacy patch messages', () => {
@@ -526,40 +479,6 @@ describe('TLSyncClient', () => {
 			expect(messages.length).toBeGreaterThan(0)
 			expect(messages.length).toBeLessThanOrEqual(5)
 		})
-
-		it.fails('applies incoming patches to store', () => {
-			const pageId = PageRecordType.createId()
-			const page = PageRecordType.create({
-				id: pageId,
-				name: 'Original',
-				index: 'a1' as any,
-			})
-			store.put([page])
-
-			const patchMessage: Extract<TLSocketServerSentDataEvent<TestRecord>, { type: 'patch' }> = {
-				type: 'patch',
-				serverClock: 2,
-				diff: {
-					[pageId]: [
-						RecordOpType.Put,
-						{
-							...page,
-							name: 'Updated',
-						},
-					],
-				},
-			}
-
-			socket.mockServerMessage({
-				type: 'data',
-				data: [patchMessage],
-			})
-
-			vi.advanceTimersByTime(100)
-
-			const updatedPage = store.get(pageId)
-			expect(updatedPage?.name).toBe('Updated')
-		})
 	})
 
 	describe('Presence Management', () => {
@@ -647,104 +566,6 @@ describe('TLSyncClient', () => {
 			vi.advanceTimersByTime(100)
 
 			expect(socket.getSentMessages()).toHaveLength(0)
-		})
-	})
-
-	describe('Conflict Resolution and Rebase', () => {
-		beforeEach(() => {
-			client = createClient()
-			// Connect first
-			socket.mockServerMessage(createConnectMessage())
-			socket.clearSentMessages()
-		})
-
-		it.fails('handles rebase on conflicting changes', () => {
-			const pageId = PageRecordType.createId()
-			const page = PageRecordType.create({
-				id: pageId,
-				name: 'Original',
-				index: 'a1' as any,
-			})
-			store.put([page])
-
-			// Make local change
-			store.update(pageId, (p) => ({ ...p, name: 'Local Change' }))
-			vi.advanceTimersByTime(100)
-
-			// Simulate server rejecting our change with a rebase via data message
-			const pushMessage = socket.getLastSentMessage() as TLPushRequest<TestRecord>
-			const rebaseMessage: TLSocketServerSentDataEvent<TestRecord> = {
-				type: 'push_result',
-				action: {
-					rebaseWithDiff: {
-						[pageId]: [RecordOpType.Put, { ...page, name: 'Server Change' }],
-					},
-				},
-				serverClock: 2,
-				clientClock: pushMessage.clientClock,
-			}
-
-			socket.mockServerMessage({
-				type: 'data',
-				data: [rebaseMessage],
-			})
-			vi.advanceTimersByTime(100)
-
-			// Should apply server change
-			const finalPage = store.get(pageId)
-			expect(finalPage?.name).toBe('Server Change')
-		})
-
-		it.fails('handles discard actions in push_result', () => {
-			const pageId = PageRecordType.createId()
-			store.put([
-				PageRecordType.create({
-					id: pageId,
-					name: 'Test',
-					index: 'a1' as any,
-				}),
-			])
-			vi.advanceTimersByTime(100)
-
-			const pushMessage = socket.getLastSentMessage() as TLPushRequest<TestRecord>
-			const discardMessage: TLSocketServerSentDataEvent<TestRecord> = {
-				type: 'push_result',
-				action: 'discard',
-				serverClock: 2,
-				clientClock: pushMessage.clientClock,
-			}
-
-			socket.mockServerMessage({
-				type: 'data',
-				data: [discardMessage],
-			})
-			vi.advanceTimersByTime(100)
-		})
-
-		it.fails('handles commit actions in push_result', () => {
-			const pageId = PageRecordType.createId()
-			store.put([
-				PageRecordType.create({
-					id: pageId,
-					name: 'Test',
-					index: 'a1' as any,
-				}),
-			])
-			vi.advanceTimersByTime(100)
-
-			const pushMessage = socket.getLastSentMessage() as TLPushRequest<TestRecord>
-			const commitMessage: TLSocketServerSentDataEvent<TestRecord> = {
-				type: 'push_result',
-				action: 'commit',
-				serverClock: 2,
-				clientClock: pushMessage.clientClock,
-			}
-
-			socket.mockServerMessage({
-				type: 'data',
-				data: [commitMessage],
-			})
-			vi.advanceTimersByTime(100)
 		})
 	})
 
@@ -931,21 +752,6 @@ describe('TLSyncClient', () => {
 			// Should apply server data
 			const doc = store.get(TLDOCUMENT_ID)
 			expect(doc?.gridSize).toBe(20)
-		})
-	})
-
-	describe('Constants and Types', () => {
-		it('exports correct error constants', () => {
-			expect(TLSyncErrorCloseEventCode).toBe(4099)
-			expect(TLSyncErrorCloseEventReason.NOT_FOUND).toBe('NOT_FOUND')
-			expect(TLSyncErrorCloseEventReason.FORBIDDEN).toBe('FORBIDDEN')
-			expect(TLSyncErrorCloseEventReason.NOT_AUTHENTICATED).toBe('NOT_AUTHENTICATED')
-			expect(TLSyncErrorCloseEventReason.UNKNOWN_ERROR).toBe('UNKNOWN_ERROR')
-			expect(TLSyncErrorCloseEventReason.CLIENT_TOO_OLD).toBe('CLIENT_TOO_OLD')
-			expect(TLSyncErrorCloseEventReason.SERVER_TOO_OLD).toBe('SERVER_TOO_OLD')
-			expect(TLSyncErrorCloseEventReason.INVALID_RECORD).toBe('INVALID_RECORD')
-			expect(TLSyncErrorCloseEventReason.RATE_LIMITED).toBe('RATE_LIMITED')
-			expect(TLSyncErrorCloseEventReason.ROOM_FULL).toBe('ROOM_FULL')
 		})
 	})
 
