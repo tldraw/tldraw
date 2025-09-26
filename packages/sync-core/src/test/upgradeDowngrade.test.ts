@@ -13,7 +13,8 @@ import {
 import { vi, type Mock } from 'vitest'
 import { TLSyncClient, TLSyncErrorCloseEventReason } from '../lib/TLSyncClient'
 import { RoomSnapshot, TLRoomSocket } from '../lib/TLSyncRoom'
-import { getTlsyncProtocolVersion } from '../lib/protocol'
+import { RecordOpType, ValueOpType } from '../lib/diff'
+import { TLSocketServerSentEvent, getTlsyncProtocolVersion } from '../lib/protocol'
 import { TestServer } from './TestServer'
 import { TestSocketPair } from './TestSocketPair'
 
@@ -297,6 +298,55 @@ test('the server will run schema migrations on a snapshot', () => {
 	expect(snapshot.documents.find((u: any) => u.state.name === 'steve')).toBeDefined()
 })
 
+test('clients will receive updates from a snapshot migration upon connection', () => {
+	const t = new TestInstance()
+	t.oldSocketPair.connect()
+	t.newSocketPair.connect()
+
+	const bob = UserV2.create({ name: 'bob', birthdate: '2022-01-09' })
+	const joe = UserV2.create({ name: 'joe', birthdate: '2022-01-09' })
+	t.flush()
+	t.newClient.store.put([bob, joe])
+	t.flush()
+
+	const snapshot = t.server.room.getSnapshot()
+
+	t.oldSocketPair.disconnect()
+	t.newSocketPair.disconnect()
+
+	const newServer = new TestServer(schemaV3, snapshot)
+
+	const newClientSocketPair = new TestSocketPair('test_upgrade__brand_new', newServer)
+
+	// need to set these two things to get the message through
+	newClientSocketPair.callbacks['onReceiveMessage'] = vi.fn()
+	newClientSocketPair.clientSocket.connectionStatus = 'online'
+
+	const id = 'test_upgrade_brand_new'
+	const newClientSocket = mockSocket()
+	newServer.room.handleNewSession({
+		sessionId: id,
+		socket: newClientSocket,
+		meta: undefined,
+		isReadonly: false,
+	})
+	newServer.room.handleMessage(id, {
+		type: 'connect',
+		connectRequestId: 'test',
+		lastServerClock: snapshot.clock,
+		protocolVersion: getTlsyncProtocolVersion(),
+		schema: schemaV3.serialize(),
+	})
+
+	expect((newClientSocket.sendMessage as Mock).mock.calls[0][0]).toMatchObject({
+		// we should have added steve and deleted joe
+		diff: {
+			[joe.id]: [RecordOpType.Remove],
+			['user:steve']: [RecordOpType.Put, { name: 'steve', birthdate: '2022-02-02' }],
+		},
+	})
+})
+
 test('out-of-date clients will receive incompatibility errors', () => {
 	const v3server = new TestServer(schemaV3)
 
@@ -338,6 +388,42 @@ test('clients using an out-of-date protocol will receive compatibility errors', 
 		mockGetTlsyncProtocolVersion.mockReset()
 		mockGetTlsyncProtocolVersion.mockImplementation(actualProtocol.getTlsyncProtocolVersion)
 	}
+})
+
+// this can be deleted when the protocol gets to v7
+test('v5 special case should allow connections', () => {
+	const actualVersion = getTlsyncProtocolVersion()
+	if (actualVersion > 6) return
+
+	const v2server = new TestServer(schemaV2)
+
+	const id = 'test_upgrade_v3'
+	const socket = mockSocket()
+
+	v2server.room.handleNewSession({ sessionId: id, socket, meta: undefined, isReadonly: false })
+	v2server.room.handleMessage(id, {
+		type: 'connect',
+		connectRequestId: 'test',
+		lastServerClock: 0,
+		protocolVersion: 5,
+		schema: schemaV2.serialize(),
+	})
+
+	expect(socket.sendMessage).toHaveBeenCalledWith({
+		connectRequestId: 'test',
+		diff: {},
+		hydrationType: 'wipe_all',
+		protocolVersion: 6,
+		schema: {
+			schemaVersion: 2,
+			sequences: {
+				'com.tldraw.user': 1,
+			},
+		},
+		serverClock: 1,
+		type: 'connect',
+		isReadonly: false,
+	} satisfies TLSocketServerSentEvent<RV2>)
 })
 
 test('clients using a too-new protocol will receive compatibility errors', () => {
@@ -405,4 +491,315 @@ test('when the client is too new it cannot connect', () => {
 		// accurately determine that now.
 		TLSyncErrorCloseEventReason.CLIENT_TOO_OLD
 	)
+})
+
+describe('when the client is too old', () => {
+	function setup() {
+		const steve = UserV2.create({
+			id: UserV2.createId('steve'),
+			name: 'steve',
+			birthdate: null,
+		})
+		const jeff = UserV2.create({ id: UserV2.createId('jeff'), name: 'jeff', birthdate: null })
+		const annie = UserV2.create({
+			id: UserV2.createId('annie'),
+			name: 'annie',
+			birthdate: null,
+		})
+		const v2Server = new TestServer(schemaV2, {
+			clock: 10,
+			documents: [
+				{
+					state: steve,
+					lastChangedClock: 10,
+				},
+				{
+					state: jeff,
+					lastChangedClock: 10,
+				},
+				{
+					state: annie,
+					lastChangedClock: 10,
+				},
+			],
+			schema: schemaV1.serialize(),
+			tombstones: {},
+		})
+
+		const v2Id = 'test_upgrade_v2'
+		const v2Socket = mockSocket<RV2>()
+
+		const v2SendMessage = v2Socket.sendMessage as Mock
+
+		const v1Id = 'test_upgrade_v1'
+		const v1Socket = mockSocket<RV1>()
+
+		const v1SendMessage = v1Socket.sendMessage as Mock
+
+		v2Server.room.handleNewSession({
+			sessionId: v1Id,
+			socket: v1Socket as any,
+			meta: undefined,
+			isReadonly: false,
+		})
+		v2Server.room.handleMessage(v1Id, {
+			type: 'connect',
+			connectRequestId: 'test',
+			lastServerClock: 10,
+			protocolVersion: getTlsyncProtocolVersion(),
+			schema: schemaV1.serialize(),
+		})
+
+		v2Server.room.handleNewSession({
+			sessionId: v2Id,
+			socket: v2Socket,
+			meta: undefined,
+			isReadonly: false,
+		})
+		v2Server.room.handleMessage(v2Id, {
+			type: 'connect',
+			connectRequestId: 'test',
+			lastServerClock: 10,
+			protocolVersion: getTlsyncProtocolVersion(),
+			schema: schemaV2.serialize(),
+		})
+
+		expect(v2SendMessage).toHaveBeenCalledWith({
+			type: 'connect',
+			connectRequestId: 'test',
+			hydrationType: 'wipe_presence',
+			diff: {},
+			protocolVersion: getTlsyncProtocolVersion(),
+			schema: schemaV2.serialize(),
+			serverClock: 10,
+			isReadonly: false,
+		} satisfies TLSocketServerSentEvent<RV2>)
+
+		expect(v1SendMessage).toHaveBeenCalledWith({
+			type: 'connect',
+			connectRequestId: 'test',
+			hydrationType: 'wipe_presence',
+			diff: {},
+			protocolVersion: getTlsyncProtocolVersion(),
+			schema: schemaV2.serialize(),
+			serverClock: 10,
+			isReadonly: false,
+		} satisfies TLSocketServerSentEvent<RV2>)
+
+		v2SendMessage.mockClear()
+		v1SendMessage.mockClear()
+
+		return {
+			v2Server,
+			v2Id,
+			v1Id,
+			v2SendMessage,
+			v1SendMessage,
+			steve,
+			jeff,
+			annie,
+		}
+	}
+
+	let data: ReturnType<typeof setup>
+
+	beforeEach(() => {
+		data = setup()
+	})
+
+	it('allows deletions from v1 client', () => {
+		data.v2Server.room.handleMessage(data.v2Id, {
+			type: 'push',
+			clientClock: 1,
+			diff: {
+				[data.steve.id]: [RecordOpType.Remove],
+			},
+		})
+
+		expect(data.v2SendMessage).toHaveBeenCalledWith({
+			type: 'data',
+			data: [
+				{
+					type: 'push_result',
+					action: 'commit',
+					clientClock: 1,
+					serverClock: 11,
+				},
+			],
+		} satisfies TLSocketServerSentEvent<RV2>)
+	})
+
+	it('can handle patches from older clients', () => {
+		data.v2Server.room.handleMessage(data.v1Id, {
+			type: 'push',
+			clientClock: 1,
+			diff: {
+				[data.steve.id]: [RecordOpType.Patch, { name: [ValueOpType.Put, 'Jeff'] }],
+			},
+		})
+
+		expect(data.v1SendMessage).toHaveBeenCalledWith({
+			type: 'data',
+			data: [
+				{
+					type: 'push_result',
+					action: 'commit',
+					clientClock: 1,
+					serverClock: 11,
+				},
+			],
+		} satisfies TLSocketServerSentEvent<RV2>)
+
+		expect(data.v2SendMessage).toHaveBeenCalledWith({
+			type: 'data',
+			data: [
+				{
+					type: 'patch',
+					diff: {
+						[data.steve.id]: [
+							RecordOpType.Patch,
+							{
+								name: [ValueOpType.Put, 'Jeff'],
+							},
+						],
+					},
+					serverClock: 11,
+				},
+			],
+		} satisfies TLSocketServerSentEvent<RV2>)
+	})
+})
+
+describe('when the client is the same version', () => {
+	function setup() {
+		const steve = UserV2.create({
+			id: UserV2.createId('steve'),
+			name: 'steve',
+			birthdate: null,
+		})
+		const v2Server = new TestServer(schemaV2, {
+			clock: 10,
+			documents: [
+				{
+					state: steve,
+					lastChangedClock: 10,
+				},
+			],
+			schema: schemaV2.serialize(),
+			tombstones: {},
+		})
+
+		const aId = 'v2ClientA'
+		const aSocket = mockSocket<RV2>()
+
+		const bId = 'v2ClientB'
+		const bSocket = mockSocket<RV2>()
+
+		v2Server.room.handleNewSession({
+			sessionId: aId,
+			socket: aSocket,
+			meta: undefined,
+			isReadonly: false,
+		})
+		v2Server.room.handleMessage(aId, {
+			type: 'connect',
+			connectRequestId: 'test',
+			lastServerClock: 10,
+			protocolVersion: getTlsyncProtocolVersion(),
+			schema: JSON.parse(JSON.stringify(schemaV2.serialize())),
+		})
+
+		v2Server.room.handleNewSession({
+			sessionId: bId,
+			socket: bSocket,
+			meta: undefined,
+			isReadonly: false,
+		})
+		v2Server.room.handleMessage(bId, {
+			type: 'connect',
+			connectRequestId: 'test',
+			lastServerClock: 10,
+			protocolVersion: getTlsyncProtocolVersion(),
+			schema: JSON.parse(JSON.stringify(schemaV2.serialize())),
+		})
+
+		expect(aSocket.sendMessage).toHaveBeenCalledWith({
+			type: 'connect',
+			connectRequestId: 'test',
+			hydrationType: 'wipe_presence',
+			diff: {},
+			protocolVersion: getTlsyncProtocolVersion(),
+			schema: schemaV2.serialize(),
+			serverClock: 10,
+			isReadonly: false,
+		} satisfies TLSocketServerSentEvent<RV2>)
+
+		expect(bSocket.sendMessage).toHaveBeenCalledWith({
+			type: 'connect',
+			connectRequestId: 'test',
+			hydrationType: 'wipe_presence',
+			diff: {},
+			protocolVersion: getTlsyncProtocolVersion(),
+			schema: schemaV2.serialize(),
+			serverClock: 10,
+			isReadonly: false,
+		} satisfies TLSocketServerSentEvent<RV2>)
+		;(aSocket.sendMessage as Mock).mockClear()
+		;(bSocket.sendMessage as Mock).mockClear()
+
+		return {
+			v2Server,
+			aId,
+			bId,
+			v2ClientASendMessage: aSocket.sendMessage as Mock,
+			v2ClientBSendMessage: bSocket.sendMessage as Mock,
+			steve,
+		}
+	}
+
+	let data: ReturnType<typeof setup>
+
+	beforeEach(() => {
+		data = setup()
+	})
+
+	it('sends minimal patches', () => {
+		data.v2Server.room.handleMessage(data.aId, {
+			type: 'push',
+			clientClock: 1,
+			diff: {
+				[data.steve.id]: [RecordOpType.Patch, { name: [ValueOpType.Put, 'Jeff'] }],
+			},
+		})
+
+		expect(data.v2ClientASendMessage).toHaveBeenCalledWith({
+			type: 'data',
+			data: [
+				{
+					type: 'push_result',
+					action: 'commit',
+					clientClock: 1,
+					serverClock: 11,
+				},
+			],
+		} satisfies TLSocketServerSentEvent<RV2>)
+
+		expect(data.v2ClientBSendMessage).toHaveBeenCalledWith({
+			type: 'data',
+			data: [
+				{
+					type: 'patch',
+					diff: {
+						[data.steve.id]: [
+							RecordOpType.Patch,
+							{
+								name: [ValueOpType.Put, 'Jeff'],
+							},
+						],
+					},
+					serverClock: 11,
+				},
+			],
+		} satisfies TLSocketServerSentEvent<RV2>)
+	})
 })

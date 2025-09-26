@@ -280,4 +280,61 @@ describe('useSync', () => {
 			expect(typeof options.assets.resolve).toBe('function')
 		})
 	})
+
+	describe('documentation examples validation', () => {
+		it('should support basic multiplayer setup example', () => {
+			// Based on the JSDoc example in the source code
+			const store: RemoteTLStoreWithStatus = { status: 'loading' }
+
+			if (store.status === 'loading') {
+				expect(store.status).toBe('loading')
+			}
+
+			const errorStore: RemoteTLStoreWithStatus = {
+				status: 'error',
+				error: new Error('Connection failed'),
+			}
+
+			if (errorStore.status === 'error') {
+				expect(errorStore.error.message).toBe('Connection failed')
+			}
+
+			const syncedStore: RemoteTLStoreWithStatus = {
+				status: 'synced-remote',
+				connectionStatus: 'online',
+				store: {} as TLStore,
+			}
+
+			if (syncedStore.status === 'synced-remote') {
+				expect(syncedStore.connectionStatus).toBe('online')
+				expect(syncedStore.store).toBeDefined()
+			}
+		})
+
+		it('should support dynamic authentication example', () => {
+			// Based on the JSDoc example with reactive user info
+			const currentUser = atom('user', { id: 'user-1', name: 'Alice', color: '#ff0000' })
+
+			const options: UseSyncOptions = {
+				uri: async () => {
+					const token = 'fake-auth-token'
+					return `wss://myserver.com/sync/room-123?token=${token}`
+				},
+				assets: {} as TLAssetStore,
+				userInfo: currentUser, // Reactive signal
+				getUserPresence: (store, user) => {
+					return {
+						currentPageId: 'page:1' as any,
+						userId: user.id,
+						userName: user.name || 'Anonymous',
+						cursor: { x: 100, y: 200, type: 'default', rotation: 0 },
+					}
+				},
+			}
+
+			expect(typeof options.uri).toBe('function')
+			expect(options.userInfo).toBe(currentUser)
+			expect(typeof options.getUserPresence).toBe('function')
+		})
+	})
 })

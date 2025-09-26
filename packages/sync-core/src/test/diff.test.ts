@@ -410,6 +410,14 @@ describe('array diffing comprehensive', () => {
 
 describe('applyObjectDiff comprehensive', () => {
 	describe('basic operations', () => {
+		it('should return original object when no changes needed', () => {
+			const obj = { a: 1, b: 2 }
+			const diff: ObjectDiff = { a: [ValueOpType.Put, 1] }
+
+			const result = applyObjectDiff(obj, diff)
+			expect(result).toBe(obj) // Should be same reference
+		})
+
 		it('should create new object when changes are needed', () => {
 			const obj = { a: 1, b: 2 }
 			const diff: ObjectDiff = { a: [ValueOpType.Put, 5] }
@@ -437,6 +445,14 @@ describe('applyObjectDiff comprehensive', () => {
 			const result = applyObjectDiff(obj, diff)
 			expect(result).toEqual({ a: 1, c: 3 })
 			expect('b' in result).toBe(false)
+		})
+
+		it('should handle delete operations on non-existent keys', () => {
+			const obj = { a: 1, b: 2 }
+			const diff: ObjectDiff = { nonExistent: [ValueOpType.Delete] }
+
+			const result = applyObjectDiff(obj, diff)
+			expect(result).toBe(obj) // Should be same reference since no changes
 		})
 	})
 
@@ -482,6 +498,16 @@ describe('applyObjectDiff comprehensive', () => {
 			const result = applyObjectDiff(obj, diff)
 			expect(result.level1.level2.level3.value).toBe('new')
 		})
+
+		it('should skip patch when target is not an object', () => {
+			const obj = { a: 1, primitive: 'string' }
+			const diff: ObjectDiff = {
+				primitive: [ValueOpType.Patch, { nested: [ValueOpType.Put, 'value'] }],
+			}
+
+			const result = applyObjectDiff(obj, diff)
+			expect(result).toBe(obj) // Should be unchanged
+		})
 	})
 
 	describe('array operations', () => {
@@ -493,6 +519,26 @@ describe('applyObjectDiff comprehensive', () => {
 
 			const result = applyObjectDiff(obj, diff)
 			expect(result).toEqual({ arr: [1, 2, 3, 4, 5] })
+		})
+
+		it('should skip append when offset does not match array length', () => {
+			const obj = { arr: [1, 2, 3] }
+			const diff: ObjectDiff = {
+				arr: [ValueOpType.Append, [4, 5], 5], // Wrong offset
+			}
+
+			const result = applyObjectDiff(obj, diff)
+			expect(result).toBe(obj) // Should be unchanged
+		})
+
+		it('should skip append when target is not an array', () => {
+			const obj = { notArray: 'string' }
+			const diff: ObjectDiff = {
+				notArray: [ValueOpType.Append, [1, 2], 0],
+			}
+
+			const result = applyObjectDiff(obj, diff)
+			expect(result).toBe(obj) // Should be unchanged
 		})
 
 		it('should handle array patch operations', () => {
@@ -513,6 +559,30 @@ describe('applyObjectDiff comprehensive', () => {
 	})
 
 	describe('edge cases', () => {
+		it('should handle null objects', () => {
+			const obj = null
+			const diff: ObjectDiff = { a: [ValueOpType.Put, 1] }
+
+			const result = applyObjectDiff(obj as any, diff)
+			expect(result).toBeNull()
+		})
+
+		it('should handle undefined objects', () => {
+			const obj = undefined
+			const diff: ObjectDiff = { a: [ValueOpType.Put, 1] }
+
+			const result = applyObjectDiff(obj as any, diff)
+			expect(result).toBeUndefined()
+		})
+
+		it('should handle primitive objects', () => {
+			const obj = 'string'
+			const diff: ObjectDiff = { a: [ValueOpType.Put, 1] }
+
+			const result = applyObjectDiff(obj as any, diff)
+			expect(result).toBe('string')
+		})
+
 		it('should handle empty diffs', () => {
 			const obj = { a: 1, b: 2 }
 			const diff: ObjectDiff = {}
@@ -520,6 +590,21 @@ describe('applyObjectDiff comprehensive', () => {
 			const result = applyObjectDiff(obj, diff)
 			expect(result).toBe(obj) // Should be same reference
 		})
+	})
+})
+
+describe('constants and types', () => {
+	it('should have correct RecordOpType values', () => {
+		expect(RecordOpType.Put).toBe('put')
+		expect(RecordOpType.Patch).toBe('patch')
+		expect(RecordOpType.Remove).toBe('remove')
+	})
+
+	it('should have correct ValueOpType values', () => {
+		expect(ValueOpType.Put).toBe('put')
+		expect(ValueOpType.Delete).toBe('delete')
+		expect(ValueOpType.Append).toBe('append')
+		expect(ValueOpType.Patch).toBe('patch')
 	})
 })
 
@@ -580,5 +665,19 @@ describe('complex scenarios', () => {
 			'shape:2': [RecordOpType.Patch, { x: [ValueOpType.Put, 300] }],
 			'shape:3': [RecordOpType.Remove],
 		})
+	})
+
+	it('should preserve object references when applying identity diffs', () => {
+		const nested = { deep: { value: 'unchanged' } }
+		const obj = { a: 1, b: nested }
+
+		// Diff that doesn't actually change anything
+		const diff: ObjectDiff = {
+			a: [ValueOpType.Put, 1], // Same value
+			b: [ValueOpType.Patch, {}], // Empty patch
+		}
+
+		const result = applyObjectDiff(obj, diff)
+		expect(result).toBe(obj) // Should preserve reference when no actual changes
 	})
 })

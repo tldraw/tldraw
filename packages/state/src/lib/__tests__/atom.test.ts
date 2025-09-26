@@ -200,32 +200,156 @@ test('isEqual can provide custom equality checks', () => {
 })
 
 describe('isAtom', () => {
-	it('distinguishes atoms from other values', () => {
+	it('returns true for atom instances', () => {
 		const a = atom('test', 42)
-		const c = computed('c', () => a.get() * 2)
-
 		expect(isAtom(a)).toBe(true)
-		expect(isAtom(c)).toBe(false)
+	})
+
+	it('returns false for non-atom values', () => {
+		expect(isAtom(42)).toBe(false)
+		expect(isAtom('hello')).toBe(false)
 		expect(isAtom({})).toBe(false)
+		expect(isAtom([])).toBe(false)
 		expect(isAtom(null)).toBe(false)
+		expect(isAtom(undefined)).toBe(false)
+		expect(isAtom(true)).toBe(false)
+	})
+
+	it('returns false for computed signals', () => {
+		const a = atom('a', 1)
+		const c = computed('c', () => a.get() * 2)
+		expect(isAtom(c)).toBe(false)
+	})
+
+	it('returns false for functions', () => {
+		const fn = () => 42
+		expect(isAtom(fn)).toBe(false)
+	})
+})
+
+describe('atom edge cases', () => {
+	it('handles falsy values correctly', () => {
+		const a1 = atom('zero', 0)
+		const a2 = atom('false', false)
+		const a3 = atom('null', null)
+		const a4 = atom('undefined', undefined)
+		const a5 = atom('empty string', '')
+
+		expect(a1.get()).toBe(0)
+		expect(a2.get()).toBe(false)
+		expect(a3.get()).toBe(null)
+		expect(a4.get()).toBe(undefined)
+		expect(a5.get()).toBe('')
+	})
+
+	it('handles NaN values correctly', () => {
+		const a = atom('nan', NaN)
+		expect(a.get()).toBeNaN()
+
+		// Setting the same NaN should not advance epoch
+		const startEpoch = getGlobalEpoch()
+		a.set(NaN)
+		expect(getGlobalEpoch()).toBe(startEpoch)
+
+		// Setting a different number should advance epoch
+		a.set(42)
+		expect(getGlobalEpoch()).toBe(startEpoch + 1)
+		expect(a.get()).toBe(42)
+	})
+
+	it('handles -0 and +0 correctly', () => {
+		const a = atom('zero', -0)
+		expect(a.get()).toBe(-0)
+		expect(Object.is(a.get(), -0)).toBe(true)
+
+		// -0 === +0 is true, so atoms consider them equal and should not advance epoch
+		const startEpoch = getGlobalEpoch()
+		a.set(+0)
+		// Should NOT advance epoch because -0 === +0 is true (first check in equals())
+		expect(getGlobalEpoch()).toBe(startEpoch)
+		expect(a.get()).toBe(-0) // Should keep original value
+	})
+
+	it('works with complex nested objects', () => {
+		const complex = {
+			array: [1, 2, { nested: true }],
+			map: new Map([['key', 'value']]),
+			set: new Set([1, 2, 3]),
+			func: () => 'test',
+		}
+
+		const a = atom('complex', complex)
+		expect(a.get()).toBe(complex)
+		expect((a.get().array[2] as any).nested).toBe(true)
+		expect(a.get().map.get('key')).toBe('value')
+		expect(a.get().set.has(2)).toBe(true)
+		expect(a.get().func()).toBe('test')
 	})
 })
 
 describe('atom with custom isEqual', () => {
-	it('uses custom equality to prevent unnecessary updates', () => {
-		const obj1 = { id: 1, data: 'test' }
-		const obj2 = { id: 1, data: 'different' } // Same ID, different data
+	it('uses custom equality for object comparison', () => {
+		interface Person {
+			id: number
+			name: string
+			age: number
+		}
 
-		const a = atom('custom-equal', obj1, {
-			isEqual: (a, b) => a.id === b.id,
+		const person1: Person = { id: 1, name: 'Alice', age: 25 }
+		const person2: Person = { id: 1, name: 'Alice', age: 30 } // Different age, same id
+		const person3: Person = { id: 2, name: 'Bob', age: 25 } // Different id
+
+		const a = atom('person', person1, {
+			isEqual: (a: Person, b: Person) => a.id === b.id,
 		})
 
 		const startEpoch = getGlobalEpoch()
-		a.set(obj2)
 
-		// Should not advance epoch due to custom equality
+		// Should not advance epoch - same ID
+		a.set(person2)
 		expect(getGlobalEpoch()).toBe(startEpoch)
-		expect(a.get()).toBe(obj1) // Should keep original
+		expect(a.get()).toBe(person1) // Should keep original
+
+		// Should advance epoch - different ID
+		a.set(person3)
+		expect(getGlobalEpoch()).toBe(startEpoch + 1)
+		expect(a.get()).toBe(person3)
+	})
+
+	it('handles null/undefined in custom isEqual', () => {
+		const a = atom('nullable', null, {
+			isEqual: (a, b) => {
+				if (a === null && b === null) return true
+				if (a === null || b === null) return false
+				return (a as any).value === (b as any).value
+			},
+		})
+
+		const startEpoch = getGlobalEpoch()
+
+		// null to null should not advance
+		a.set(null)
+		expect(getGlobalEpoch()).toBe(startEpoch)
+
+		// null to object should advance
+		a.set({ value: 'test' } as any)
+		expect(getGlobalEpoch()).toBe(startEpoch + 1)
+	})
+})
+
+describe('__unsafe__getWithoutCapture', () => {
+	it('returns current value without capturing', () => {
+		const a = atom('test', 42)
+		expect(a.__unsafe__getWithoutCapture()).toBe(42)
+
+		a.set(100)
+		expect(a.__unsafe__getWithoutCapture()).toBe(100)
+	})
+
+	it('ignores errors parameter', () => {
+		const a = atom('test', 42)
+		expect(a.__unsafe__getWithoutCapture(true)).toBe(42)
+		expect(a.__unsafe__getWithoutCapture(false)).toBe(42)
 	})
 })
 
@@ -329,6 +453,104 @@ describe('atom update method', () => {
 	})
 })
 
+describe('atom with objects having equals method', () => {
+	it('uses object.equals method for comparison', () => {
+		class ValueObject {
+			constructor(public value: number) {}
+
+			equals(other: ValueObject): boolean {
+				return this.value === other.value
+			}
+		}
+
+		const obj1 = new ValueObject(42)
+		const obj2 = new ValueObject(42) // Same value, different instance
+		const obj3 = new ValueObject(100) // Different value
+
+		const a = atom('value-object', obj1)
+		const startEpoch = getGlobalEpoch()
+
+		// Should not advance epoch - same value via equals method
+		a.set(obj2)
+		expect(getGlobalEpoch()).toBe(startEpoch)
+		expect(a.get()).toBe(obj1) // Should keep original
+
+		// Should advance epoch - different value
+		a.set(obj3)
+		expect(getGlobalEpoch()).toBe(startEpoch + 1)
+		expect(a.get()).toBe(obj3)
+	})
+
+	it('handles asymmetric equals method', () => {
+		class AsymmetricObject {
+			constructor(
+				public value: number,
+				public acceptsAll: boolean = false
+			) {}
+
+			equals(other: AsymmetricObject): boolean {
+				if (this.acceptsAll) return true
+				return this.value === other.value
+			}
+		}
+
+		const obj1 = new AsymmetricObject(42, true) // Accepts all
+		const obj2 = new AsymmetricObject(100)
+
+		const a = atom('asymmetric', obj1)
+		const startEpoch = getGlobalEpoch()
+
+		// Should not advance epoch - obj1.equals(obj2) returns true
+		a.set(obj2)
+		expect(getGlobalEpoch()).toBe(startEpoch)
+		expect(a.get()).toBe(obj1) // Should keep original
+	})
+})
+
+describe('atom initialization', () => {
+	it('creates atom with just name and value', () => {
+		const a = atom('simple', 42)
+		expect(a.name).toBe('simple')
+		expect(a.get()).toBe(42)
+	})
+
+	it('creates atom with empty options', () => {
+		const a = atom('empty-options', 42, {})
+		expect(a.get()).toBe(42)
+	})
+
+	it('creates atom with only historyLength option', () => {
+		const a = atom('history-only', 42, { historyLength: 5 })
+		expect(a.get()).toBe(42)
+		// Should have empty history initially
+		expect(a.getDiffSince(getGlobalEpoch())).toEqual([])
+	})
+
+	it('creates atom with only computeDiff option', () => {
+		const a = atom('diff-only', 42, { computeDiff: (a, b) => b - a })
+		expect(a.get()).toBe(42)
+		// Without historyLength, computeDiff should not be used
+		const startEpoch = getGlobalEpoch()
+		a.set(50)
+		expect(a.getDiffSince(startEpoch)).toBe(RESET_VALUE)
+	})
+
+	it('creates atom with only isEqual option', () => {
+		const a = atom(
+			'equal-only',
+			{ value: 42 },
+			{
+				isEqual: (a, b) => a.value === b.value,
+			}
+		)
+		expect(a.get().value).toBe(42)
+
+		const startEpoch = getGlobalEpoch()
+		a.set({ value: 42 }) // Same value, different object
+		expect(getGlobalEpoch()).toBe(startEpoch) // Should not advance
+	})
+})
+
 describe('atom getDiffSince', () => {
 	it('returns empty array when no changes since epoch', () => {
 		const a = atom('test', 1, { historyLength: 3, computeDiff: (a, b) => b - a })
@@ -360,5 +582,117 @@ describe('atom getDiffSince', () => {
 
 		a.set(2)
 		expect(a.getDiffSince(startEpoch)).toBe(RESET_VALUE)
+	})
+})
+
+describe('atom name property', () => {
+	it('stores and exposes the name correctly', () => {
+		const a = atom('my-test-atom', 42)
+		expect(a.name).toBe('my-test-atom')
+	})
+
+	it('handles empty string name', () => {
+		const a = atom('', 42)
+		expect(a.name).toBe('')
+	})
+
+	it('handles special characters in name', () => {
+		const a = atom('test-atom_123!@#$%', 42)
+		expect(a.name).toBe('test-atom_123!@#$%')
+	})
+})
+
+describe('atom type safety', () => {
+	it('maintains type safety with complex types', () => {
+		interface ComplexType {
+			id: string
+			data: number[]
+			metadata: { [key: string]: any }
+		}
+
+		const initial: ComplexType = {
+			id: 'test',
+			data: [1, 2, 3],
+			metadata: { foo: 'bar' },
+		}
+
+		const a = atom('complex', initial)
+
+		// Should maintain type information
+		expect(a.get().id).toBe('test')
+		expect(a.get().data).toEqual([1, 2, 3])
+		expect(a.get().metadata.foo).toBe('bar')
+
+		// Update with new value of same type
+		const updated: ComplexType = {
+			id: 'updated',
+			data: [4, 5, 6],
+			metadata: { baz: 'qux' },
+		}
+
+		a.set(updated)
+		expect(a.get()).toBe(updated)
+	})
+})
+
+describe('atom with unusual values', () => {
+	it('handles Symbol values', () => {
+		const sym1 = Symbol('test1')
+		const sym2 = Symbol('test2')
+
+		const a = atom('symbol', sym1)
+		expect(a.get()).toBe(sym1)
+
+		const startEpoch = getGlobalEpoch()
+		a.set(sym2 as any)
+		expect(getGlobalEpoch()).toBe(startEpoch + 1)
+		expect(a.get()).toBe(sym2)
+	})
+
+	it('handles BigInt values', () => {
+		const big1 = BigInt(123456789012345678901234567890n)
+		const big2 = BigInt(987654321098765432109876543210n)
+
+		const a = atom('bigint', big1)
+		expect(a.get()).toBe(big1)
+
+		const startEpoch = getGlobalEpoch()
+		a.set(big1) // Same value
+		expect(getGlobalEpoch()).toBe(startEpoch)
+
+		a.set(big2) // Different value
+		expect(getGlobalEpoch()).toBe(startEpoch + 1)
+		expect(a.get()).toBe(big2)
+	})
+
+	it('handles Date objects', () => {
+		const date1 = new Date('2023-01-01')
+		const date2 = new Date('2023-01-01') // Same time, different object
+		const date3 = new Date('2023-12-31') // Different time
+
+		const a = atom('date', date1)
+		expect(a.get()).toBe(date1)
+
+		const startEpoch = getGlobalEpoch()
+		a.set(date2) // Different object, should advance epoch
+		expect(getGlobalEpoch()).toBe(startEpoch + 1)
+		expect(a.get()).toBe(date2)
+
+		a.set(date3)
+		expect(getGlobalEpoch()).toBe(startEpoch + 2)
+		expect(a.get()).toBe(date3)
+	})
+
+	it('handles RegExp objects', () => {
+		const regex1 = /test/g
+		const regex2 = /test/g // Same pattern, different object
+
+		const a = atom('regex', regex1)
+		expect(a.get()).toBe(regex1)
+
+		const startEpoch = getGlobalEpoch()
+		a.set(regex2) // Different object, should advance epoch
+		expect(getGlobalEpoch()).toBe(startEpoch + 1)
+		expect(a.get()).toBe(regex2)
 	})
 })

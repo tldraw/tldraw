@@ -160,6 +160,8 @@ test('useValue throws synchronously during render when the computed throws', asy
 	const theAtom = atom<Error | null>('map', null)
 	let caughtError = null as null | Error
 
+	// Suppress React's console.error for this test
+
 	function Component({ id }: { id: string }) {
 		const value = useValue(
 			'value',
@@ -188,6 +190,8 @@ test('useValue throws synchronously during render when the computed throws', asy
 
 	expect(view!.asFragment().textContent).toMatchInlineSnapshot('"1"')
 
+	// ignore console.error here because react will log the error to console.error
+	// even though it's caught by the error boundary
 	const originalError = console.error
 	console.error = vi.fn()
 	try {
@@ -201,4 +205,5 @@ test('useValue throws synchronously during render when the computed throws', asy
 	expect(caughtError).toBeInstanceOf(Error)
 	expect(caughtError?.message).toBe('test')
 	expect(view!.getByTestId('error-boundary')).toBeTruthy()
+	expect(view!.getByTestId('error-boundary').textContent).toBe('Error: test')
 })

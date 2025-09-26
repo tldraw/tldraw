@@ -92,15 +92,14 @@ type Op =
 	| { type: 'start_reactor'; id: string }
 	| { type: 'stop_reactor'; id: string }
 
-// Reduced complexity for more focused testing - still covers all interactions
-const MAX_ATOMS = 6
-const MAX_ATOMS_IN_ATOMS = 6
-const MAX_DERIVATIONS = 6
-const MAX_DERIVATIONS_IN_DERIVATIONS = 6
-const MAX_ATOMS_IN_DERIVATIONS = 6
-const MAX_REACTORS = 6
+const MAX_ATOMS = 10
+const MAX_ATOMS_IN_ATOMS = 10
+const MAX_DERIVATIONS = 10
+const MAX_DERIVATIONS_IN_DERIVATIONS = 10
+const MAX_ATOMS_IN_DERIVATIONS = 10
+const MAX_REACTORS = 10
 const MAX_DEPENDENCIES_PER_ATOM = 3
-const MAX_OPS_IN_TRANSACTION = 6
+const MAX_OPS_IN_TRANSACTION = 10
 
 class Test {
 	source: RandomSource
@@ -352,8 +351,8 @@ class Test {
 	}
 }
 
-const NUM_TESTS = 5 // Reduced from 20 - still effective for finding issues
-const NUM_OPS_PER_TEST = 500 // Reduced from 1000 - sufficient for testing reactive behavior
+const NUM_TESTS = 20
+const NUM_OPS_PER_TEST = 1000
 
 function runTest(seed: number) {
 	const test = new Test(seed)
@@ -364,12 +363,9 @@ function runTest(seed: number) {
 	}
 }
 
-// Use deterministic seeds for consistent testing
-const DETERMINISTIC_SEEDS = [123456, 789012, 345678, 901234, 567890]
-
 for (let i = 0; i < NUM_TESTS; i++) {
-	const seed = DETERMINISTIC_SEEDS[i]
-	test('fuzz test with seed ' + seed, () => {
+	const seed = Math.floor(Math.random() * 1000000)
+	test('fuzzzzzz ' + seed, () => {
 		runTest(seed)
 	})
 }

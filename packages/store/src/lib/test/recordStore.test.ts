@@ -4,7 +4,7 @@ import { BaseRecord, RecordId } from '../BaseRecord'
 import { createMigrationSequence } from '../migrate'
 import { RecordsDiff, reverseRecordsDiff } from '../RecordsDiff'
 import { createRecordType } from '../RecordType'
-import { CollectionDiff, Store } from '../Store'
+import { CollectionDiff, HistoryEntry, Store } from '../Store'
 import { StoreSchema } from '../StoreSchema'
 
 interface Book extends BaseRecord<'book', RecordId<Book>> {
@@ -278,11 +278,15 @@ describe('Store', () => {
 
 		store.put([Author.create({ name: 'J.R.R Tolkein', id: Author.createId('tolkein') })])
 
-		expect(lastIdDiff).toEqual([
-			{
-				added: new Set(['author:tolkein']),
-			},
-		])
+		expect(lastIdDiff).toMatchInlineSnapshot(`
+		      [
+		        {
+		          "added": Set {
+		            "author:tolkein",
+		          },
+		        },
+		      ]
+	    `)
 
 		transact(() => {
 			store.put([Author.create({ name: 'James McAvoy', id: Author.createId('mcavoy') })])
@@ -290,12 +294,19 @@ describe('Store', () => {
 			store.remove([Author.createId('tolkein')])
 		})
 
-		expect(lastIdDiff).toEqual([
-			{
-				added: new Set(['author:mcavoy', 'author:cassidy']),
-				removed: new Set(['author:tolkein']),
-			},
-		])
+		expect(lastIdDiff).toMatchInlineSnapshot(`
+		      [
+		        {
+		          "added": Set {
+		            "author:mcavoy",
+		            "author:cassidy",
+		          },
+		          "removed": Set {
+		            "author:tolkein",
+		          },
+		        },
+		      ]
+	    `)
 	})
 
 	it('supports listening for changes to the whole store', async () => {
@@ -326,9 +337,49 @@ describe('Store', () => {
 
 		await new Promise((resolve) => requestAnimationFrame(resolve))
 		expect(listener).toHaveBeenCalledTimes(1)
-		expect(listener.mock.lastCall?.[0].changes.added).toHaveProperty('author:tolkein')
-		expect(listener.mock.lastCall?.[0].changes.added).toHaveProperty('book:hobbit')
-		expect(listener.mock.lastCall?.[0].source).toBe('user')
+		expect(listener.mock.lastCall?.[0]).toMatchInlineSnapshot(`
+		{
+		  "changes": {
+		    "added": {
+		      "author:cassidy": {
+		        "id": "author:cassidy",
+		        "isPseudonym": false,
+		        "name": "Butch Cassidy",
+		        "typeName": "author",
+		      },
+		      "author:mcavoy": {
+		        "id": "author:mcavoy",
+		        "isPseudonym": false,
+		        "name": "James McAvoy",
+		        "typeName": "author",
+		      },
+		      "author:tolkein": {
+		        "id": "author:tolkein",
+		        "isPseudonym": false,
+		        "name": "J.R.R Tolkein",
+		        "typeName": "author",
+		      },
+		      "book:hobbit": {
+		        "author": "author:tolkein",
+		        "id": "book:hobbit",
+		        "numPages": 300,
+		        "title": "The Hobbit",
+		        "typeName": "book",
+		      },
+		      "book:lotr": {
+		        "author": "author:tolkein",
+		        "id": "book:lotr",
+		        "numPages": 1000,
+		        "title": "The Lord of the Rings",
+		        "typeName": "book",
+		      },
+		    },
+		    "removed": {},
+		    "updated": {},
+		  },
+		  "source": "user",
+		}
+	`)
 
 		transact(() => {
 			store.update(Author.createId('tolkein'), (author) => ({
@@ -341,9 +392,47 @@ describe('Store', () => {
 		await new Promise((resolve) => requestAnimationFrame(resolve))
 		expect(listener).toHaveBeenCalledTimes(2)
 
-		expect(listener.mock.lastCall?.[0].changes.updated).toHaveProperty('author:tolkein')
-		expect(listener.mock.lastCall?.[0].changes.updated).toHaveProperty('book:lotr')
-		expect(listener.mock.lastCall?.[0].source).toBe('user')
+		expect(listener.mock.lastCall?.[0]).toMatchInlineSnapshot(`
+		{
+		  "changes": {
+		    "added": {},
+		    "removed": {},
+		    "updated": {
+		      "author:tolkein": [
+		        {
+		          "id": "author:tolkein",
+		          "isPseudonym": false,
+		          "name": "J.R.R Tolkein",
+		          "typeName": "author",
+		        },
+		        {
+		          "id": "author:tolkein",
+		          "isPseudonym": false,
+		          "name": "Jimmy Tolks",
+		          "typeName": "author",
+		        },
+		      ],
+		      "book:lotr": [
+		        {
+		          "author": "author:tolkein",
+		          "id": "book:lotr",
+		          "numPages": 1000,
+		          "title": "The Lord of the Rings",
+		          "typeName": "book",
+		        },
+		        {
+		          "author": "author:tolkein",
+		          "id": "book:lotr",
+		          "numPages": 42,
+		          "title": "The Lord of the Rings",
+		          "typeName": "book",
+		        },
+		      ],
+		    },
+		  },
+		  "source": "user",
+		}
+	`)
 
 		transact(() => {
 			store.update(Author.createId('mcavoy'), (author) => ({
@@ -356,9 +445,39 @@ describe('Store', () => {
 		await new Promise((resolve) => requestAnimationFrame(resolve))
 		expect(listener).toHaveBeenCalledTimes(3)
 
-		expect(listener.mock.lastCall?.[0].changes.updated).toHaveProperty('author:mcavoy')
-		expect(listener.mock.lastCall?.[0].changes.removed).toHaveProperty('book:lotr')
-		expect(listener.mock.lastCall?.[0].source).toBe('user')
+		expect(listener.mock.lastCall?.[0]).toMatchInlineSnapshot(`
+		{
+		  "changes": {
+		    "added": {},
+		    "removed": {
+		      "book:lotr": {
+		        "author": "author:tolkein",
+		        "id": "book:lotr",
+		        "numPages": 42,
+		        "title": "The Lord of the Rings",
+		        "typeName": "book",
+		      },
+		    },
+		    "updated": {
+		      "author:mcavoy": [
+		        {
+		          "id": "author:mcavoy",
+		          "isPseudonym": false,
+		          "name": "James McAvoy",
+		          "typeName": "author",
+		        },
+		        {
+		          "id": "author:mcavoy",
+		          "isPseudonym": false,
+		          "name": "Sookie Houseboat",
+		          "typeName": "author",
+		        },
+		      ],
+		    },
+		  },
+		  "source": "user",
+		}
+	`)
 	})
 
 	it('supports filtering history by scope', () => {
@@ -386,8 +505,49 @@ describe('Store', () => {
 
 		expect(listener).toHaveBeenCalledTimes(1)
 
-		expect(listener.mock.calls[0][0].changes.added).toHaveProperty('visit:jimmy')
-		expect(listener.mock.calls[0][0].changes.added).not.toHaveProperty('author:salinger')
+		expect(listener.mock.calls[0][0].changes).toMatchInlineSnapshot(`
+		{
+		  "added": {
+		    "visit:jimmy": {
+		      "booksInBasket": [],
+		      "id": "visit:jimmy",
+		      "typeName": "visit",
+		      "visitorName": "Jimmy Beans",
+		    },
+		  },
+		  "removed": {},
+		  "updated": {},
+		}
+	`)
+	})
+
+	it('supports filtering history by scope (2)', () => {
+		const listener = vi.fn()
+		store.listen(listener, {
+			scope: 'document',
+		})
+
+		store.put([
+			Author.create({ name: 'J.D. Salinger', id: Author.createId('salinger') }),
+			Visit.create({ id: Visit.createId('jimmy'), visitorName: 'Jimmy Beans' }),
+		])
+
+		expect(listener).toHaveBeenCalledTimes(1)
+
+		expect(listener.mock.calls[0][0].changes).toMatchInlineSnapshot(`
+		{
+		  "added": {
+		    "author:salinger": {
+		      "id": "author:salinger",
+		      "isPseudonym": false,
+		      "name": "J.D. Salinger",
+		      "typeName": "author",
+		    },
+		  },
+		  "removed": {},
+		  "updated": {},
+		}
+	`)
 	})
 
 	it('supports filtering history by source', () => {
@@ -417,9 +577,131 @@ describe('Store', () => {
 
 		expect(listener).toHaveBeenCalledTimes(1)
 
-		expect(listener.mock.calls[0][0].changes.added).toHaveProperty('author:tolkien')
-		expect(listener.mock.calls[0][0].changes.added).toHaveProperty('book:hobbit')
-		expect(listener.mock.calls[0][0].source).toBe('remote')
+		expect(listener.mock.calls[0][0].changes).toMatchInlineSnapshot(`
+		{
+		  "added": {
+		    "author:tolkien": {
+		      "id": "author:tolkien",
+		      "isPseudonym": false,
+		      "name": "J.R.R Tolkien",
+		      "typeName": "author",
+		    },
+		    "book:hobbit": {
+		      "author": "author:tolkien",
+		      "id": "book:hobbit",
+		      "numPages": 300,
+		      "title": "The Hobbit",
+		      "typeName": "book",
+		    },
+		  },
+		  "removed": {},
+		  "updated": {},
+		}
+	`)
+	})
+
+	it('supports filtering history by source (user)', () => {
+		const listener = vi.fn()
+		store.listen(listener, {
+			source: 'user',
+		})
+
+		store.mergeRemoteChanges(() => {
+			store.put([
+				Author.create({ name: 'J.R.R Tolkien', id: Author.createId('tolkien') }),
+				Book.create({
+					title: 'The Hobbit',
+					id: Book.createId('hobbit'),
+					author: Author.createId('tolkien'),
+					numPages: 300,
+				}),
+			])
+		})
+
+		expect(listener).toHaveBeenCalledTimes(0)
+
+		store.put([
+			Author.create({ name: 'J.D. Salinger', id: Author.createId('salinger') }),
+			Visit.create({ id: Visit.createId('jimmy'), visitorName: 'Jimmy Beans' }),
+		])
+
+		expect(listener).toHaveBeenCalledTimes(1)
+
+		expect(listener.mock.calls[0][0].changes).toMatchInlineSnapshot(`
+		{
+		  "added": {
+		    "author:salinger": {
+		      "id": "author:salinger",
+		      "isPseudonym": false,
+		      "name": "J.D. Salinger",
+		      "typeName": "author",
+		    },
+		    "visit:jimmy": {
+		      "booksInBasket": [],
+		      "id": "visit:jimmy",
+		      "typeName": "visit",
+		      "visitorName": "Jimmy Beans",
+		    },
+		  },
+		  "removed": {},
+		  "updated": {},
+		}
+	`)
+	})
+
+	it('does not keep global history if no listeners are attached', () => {
+		store.put([Author.create({ name: 'J.R.R Tolkein', id: Author.createId('tolkein') })])
+		expect((store as any).historyAccumulator._history).toHaveLength(0)
+	})
+
+	it('flushes history before attaching listeners', async () => {
+		try {
+			// @ts-expect-error
+			globalThis.__FORCE_RAF_IN_TESTS__ = true
+			store.put([Author.create({ name: 'J.R.R Tolkein', id: Author.createId('tolkein') })])
+			const firstListener = vi.fn()
+			store.listen(firstListener)
+			expect(firstListener).toHaveBeenCalledTimes(0)
+
+			store.put([Author.create({ name: 'Chips McCoy', id: Author.createId('chips') })])
+
+			expect(firstListener).toHaveBeenCalledTimes(0)
+
+			const secondListener = vi.fn()
+
+			store.listen(secondListener)
+
+			expect(firstListener).toHaveBeenCalledTimes(1)
+			expect(secondListener).toHaveBeenCalledTimes(0)
+
+			await new Promise((resolve) => requestAnimationFrame(resolve))
+
+			expect(firstListener).toHaveBeenCalledTimes(1)
+			expect(secondListener).toHaveBeenCalledTimes(0)
+		} finally {
+			// @ts-expect-error
+			globalThis.__FORCE_RAF_IN_TESTS__ = false
+		}
+	})
+
+	it('does not overwrite default properties with undefined', () => {
+		const tolkein = Author.create({ name: 'J.R.R Tolkein', id: Author.createId('tolkein') })
+		expect(tolkein.isPseudonym).toBe(false)
+
+		const harkaway = Author.create({
+			name: 'Nick Harkaway',
+			id: Author.createId('harkaway'),
+			isPseudonym: true,
+		})
+		expect(harkaway.isPseudonym).toBe(true)
+
+		const burns = Author.create({
+			name: 'Anna Burns',
+			id: Author.createId('burns'),
+			isPseudonym: undefined,
+		})
+
+		expect(burns.isPseudonym).toBe(false)
 	})
 
 	it('allows changed to be merged without triggering listeners', () => {
@@ -620,23 +902,71 @@ describe('diffs', () => {
 	})
 
 	it('produces diffs from `extractingChanges`', () => {
-		const addedDiff = store.extractingChanges(() => {
-			store.put([Author.create({ name: 'J.R.R Tolkein', id: authorId })])
-			store.put([Book.create({ title: 'The Hobbit', id: bookId, author: authorId, numPages: 300 })])
-		})
-		expect(addedDiff.added).toHaveProperty('author:tolkein')
-		expect(addedDiff.added).toHaveProperty('book:hobbit')
-		expect(Object.keys(addedDiff.removed)).toHaveLength(0)
-		expect(Object.keys(addedDiff.updated)).toHaveLength(0)
+		expect(
+			store.extractingChanges(() => {
+				store.put([Author.create({ name: 'J.R.R Tolkein', id: authorId })])
+				store.put([
+					Book.create({ title: 'The Hobbit', id: bookId, author: authorId, numPages: 300 }),
+				])
+			})
+		).toMatchInlineSnapshot(`
+		{
+		  "added": {
+		    "author:tolkein": {
+		      "id": "author:tolkein",
+		      "isPseudonym": false,
+		      "name": "J.R.R Tolkein",
+		      "typeName": "author",
+		    },
+		    "book:hobbit": {
+		      "author": "author:tolkein",
+		      "id": "book:hobbit",
+		      "numPages": 300,
+		      "title": "The Hobbit",
+		      "typeName": "book",
+		    },
+		  },
+		  "removed": {},
+		  "updated": {},
+		}
+	`)
 
-		const removedDiff = store.extractingChanges(() => {
-			store.remove([authorId])
-			store.update(bookId, (book) => ({ ...book, title: 'The Hobbit: There and Back Again' }))
-		})
-		expect(Object.keys(removedDiff.added)).toHaveLength(0)
-		expect(removedDiff.removed).toHaveProperty('author:tolkein')
-		expect(removedDiff.updated).toHaveProperty('book:hobbit')
-		expect((removedDiff.updated[bookId][1] as Book).title).toBe('The Hobbit: There and Back Again')
+		expect(
+			store.extractingChanges(() => {
+				store.remove([authorId])
+				store.update(bookId, (book) => ({ ...book, title: 'The Hobbit: There and Back Again' }))
+			})
+		).toMatchInlineSnapshot(`
+		{
+		  "added": {},
+		  "removed": {
+		    "author:tolkein": {
+		      "id": "author:tolkein",
+		      "isPseudonym": false,
+		      "name": "J.R.R Tolkein",
+		      "typeName": "author",
+		    },
+		  },
+		  "updated": {
+		    "book:hobbit": [
+		      {
+		        "author": "author:tolkein",
+		        "id": "book:hobbit",
+		        "numPages": 300,
+		        "title": "The Hobbit",
+		        "typeName": "book",
+		      },
+		      {
+		        "author": "author:tolkein",
+		        "id": "book:hobbit",
+		        "numPages": 300,
+		        "title": "The Hobbit: There and Back Again",
+		        "typeName": "book",
+		      },
+		    ],
+		  },
+		}
+	`)
 	})
 	it('produces diffs from `addHistoryInterceptor`', () => {
 		const diffs: any[] = []
@@ -648,17 +978,80 @@ describe('diffs', () => {
 			Book.create({ title: 'The Hobbit', id: bookId, author: authorId, numPages: 300 }),
 		])
 		expect(interceptor).toHaveBeenCalledTimes(1)
-		expect(diffs[0].changes.added).toHaveProperty('author:tolkein')
-		expect(diffs[0].changes.added).toHaveProperty('book:hobbit')
-		expect(diffs[0].source).toBe('user')
 
 		store.extractingChanges(() => {
 			store.remove([authorId])
+
 			store.update(bookId, (book) => ({ ...book, title: 'The Hobbit: There and Back Again' }))
 		})
 		expect(interceptor).toHaveBeenCalledTimes(3)
-		expect(diffs[1].changes.removed).toHaveProperty('author:tolkein')
-		expect(diffs[2].changes.updated).toHaveProperty('book:hobbit')
+
+		expect(diffs).toMatchInlineSnapshot(`
+		[
+		  {
+		    "changes": {
+		      "added": {
+		        "author:tolkein": {
+		          "id": "author:tolkein",
+		          "isPseudonym": false,
+		          "name": "J.R.R Tolkein",
+		          "typeName": "author",
+		        },
+		        "book:hobbit": {
+		          "author": "author:tolkein",
+		          "id": "book:hobbit",
+		          "numPages": 300,
+		          "title": "The Hobbit",
+		          "typeName": "book",
+		        },
+		      },
+		      "removed": {},
+		      "updated": {},
+		    },
+		    "source": "user",
+		  },
+		  {
+		    "changes": {
+		      "added": {},
+		      "removed": {
+		        "author:tolkein": {
+		          "id": "author:tolkein",
+		          "isPseudonym": false,
+		          "name": "J.R.R Tolkein",
+		          "typeName": "author",
+		        },
+		      },
+		      "updated": {},
+		    },
+		    "source": "user",
+		  },
+		  {
+		    "changes": {
+		      "added": {},
+		      "removed": {},
+		      "updated": {
+		        "book:hobbit": [
+		          {
+		            "author": "author:tolkein",
+		            "id": "book:hobbit",
+		            "numPages": 300,
+		            "title": "The Hobbit",
+		            "typeName": "book",
+		          },
+		          {
+		            "author": "author:tolkein",
+		            "id": "book:hobbit",
+		            "numPages": 300,
+		            "title": "The Hobbit: There and Back Again",
+		            "typeName": "book",
+		          },
+		        ],
+		      },
+		    },
+		    "source": "user",
+		  },
+		]
+	`)
 	})
 
 	it('can apply and invert diffs', () => {
@@ -794,12 +1187,64 @@ describe('callbacks', () => {
 		)
 	})
 
-	test('side effects during mergeRemoteChanges have correct source tracking', () => {
+	it('keeps firing operation complete callbacks until all are cleared', () => {
+		// steps:
+		// 0, 1, 2: after change increment pages
+		// 3: after change, do nothing
+		// 4: operation complete, increment pages by 1000
+		// 5, 6: after change increment pages
+		// 7: after change, do nothing
+		// 8: operation complete, do nothing
+		// 9: done!
+		let step = 0
+
+		store.put([book1])
+
+		onAfterChange.mockImplementation((prev: any, next: any) => {
+			if ([0, 1, 2, 5, 6].includes(step)) {
+				step++
+				store.put([{ ...next, numPages: next.numPages + 1 }])
+			} else if ([3, 7].includes(step)) {
+				step++
+			} else {
+				throw new Error(`Wrong step: ${step}`)
+			}
+		})
+
+		onOperationComplete.mockImplementation(() => {
+			if (step === 4) {
+				step++
+				const book = store.get(book1Id)!
+				store.put([{ ...book, numPages: book.numPages + 1000 }])
+			} else if (step === 8) {
+				step++
+			} else {
+				throw new Error(`Wrong step: ${step}`)
+			}
+		})
+
+		store.put([{ ...book1, numPages: 2 }])
+
+		expect(store.get(book1Id)!.numPages).toBe(1007)
+		expect(step).toBe(9)
+	})
+
+	test('fired during mergeRemoteChanges are flushed at the end so that they end up receiving remote source but outputting user source changes', () => {
+		const diffs: HistoryEntry<Book>[] = []
+		store.listen((entry) => {
+			diffs.push(entry)
+		})
+
 		const firstOrderEffectSources: string[] = []
 		store.sideEffects.registerAfterCreateHandler('book', (record, source) => {
 			firstOrderEffectSources.push(source)
 			if (record.title.startsWith('Harry Potter')) {
-				store.put([{ ...record, title: record.title + ' is a really great book fr fr' }])
+				store.put([
+					{
+						...record,
+						title: record.title + ' is a really great book fr fr',
+					},
+				])
 			}
 		})
 
@@ -809,14 +1254,72 @@ describe('callbacks', () => {
 		})
 
 		store.mergeRemoteChanges(() => {
-			store.put([{ ...book1, title: "Harry Potter and the Philosopher's Stone" }])
+			store.put([
+				{
+					...book1,
+					title: "Harry Potter and the Philosopher's Stone",
+				},
+			])
 		})
 
-		// First-order effects should maintain remote source
-		expect(firstOrderEffectSources).toEqual(['remote'])
+		expect(firstOrderEffectSources).toMatchInlineSnapshot(`
+		[
+		  "remote",
+		]
+	`)
 
-		// Recursive changes within side effects are always user source
-		expect(secondOrderEffectSources).toEqual(['user'])
+		// recursive changes are always user
+		expect(secondOrderEffectSources).toMatchInlineSnapshot(`
+		[
+		  "user",
+		]
+	`)
+
+		expect(diffs).toMatchInlineSnapshot(`
+		[
+		  {
+		    "changes": {
+		      "added": {
+		        "book:darkness": {
+		          "author": "author:ursula",
+		          "id": "book:darkness",
+		          "numPages": 1,
+		          "title": "Harry Potter and the Philosopher's Stone",
+		          "typeName": "book",
+		        },
+		      },
+		      "removed": {},
+		      "updated": {},
+		    },
+		    "source": "remote",
+		  },
+		  {
+		    "changes": {
+		      "added": {},
+		      "removed": {},
+		      "updated": {
+		        "book:darkness": [
+		          {
+		            "author": "author:ursula",
+		            "id": "book:darkness",
+		            "numPages": 1,
+		            "title": "Harry Potter and the Philosopher's Stone",
+		            "typeName": "book",
+		          },
+		          {
+		            "author": "author:ursula",
+		            "id": "book:darkness",
+		            "numPages": 1,
+		            "title": "Harry Potter and the Philosopher's Stone is a really great book fr fr",
+		            "typeName": "book",
+		          },
+		        ],
+		      },
+		    },
+		    "source": "user",
+		  },
+		]
+	`)
 	})
 
 	test('noop changes do not fire with store.atomic', () => {
@@ -843,7 +1346,7 @@ describe('callbacks', () => {
 		expect(onAfterChange).toHaveBeenCalledTimes(1)
 	})
 
-	test('atomic blocks with callback overrides work correctly', () => {
+	test('an atomic block with callbacks enabled can be overridden with an atomic block with callbacks disabled which causes the beforeCallbacks only to not run', () => {
 		store.atomic(() => {
 			store.put([book1])
 			store.atomic(() => {
@@ -851,8 +1354,32 @@ describe('callbacks', () => {
 			}, false)
 		})
 
-		// Should have called before once (for outer atomic) but after twice (both books)
 		expect(onBeforeCreate).toHaveBeenCalledTimes(1)
 		expect(onAfterCreate).toHaveBeenCalledTimes(2)
+
+		store.atomic(() => {
+			store.update(book1Id, (book) => ({
+				...book,
+				numPages: book.numPages + 1,
+			}))
+			store.atomic(() => {
+				store.update(book2Id, (book) => ({
+					...book,
+					numPages: book.numPages + 1,
+				}))
+			}, false)
+		})
+
+		expect(onBeforeChange).toHaveBeenCalledTimes(1)
+		expect(onAfterChange).toHaveBeenCalledTimes(2)
+
+		store.atomic(() => {
+			store.remove([book1Id])
+			store.atomic(() => {
+				store.remove([book2Id])
+			}, false)
+		})
+		expect(onBeforeDelete).toHaveBeenCalledTimes(1)
+		expect(onAfterDelete).toHaveBeenCalledTimes(2)
 	})
 })

@@ -1,11 +1,22 @@
 import { vi } from 'vitest'
 import { atom } from '../Atom'
 import { computed } from '../Computed'
-import { EffectScheduler, react, reactor } from '../EffectScheduler'
-import { advanceGlobalEpoch, transact } from '../transactions'
+import { GLOBAL_START_EPOCH } from '../constants'
+import { EffectScheduler, react, reactor, type Reactor } from '../EffectScheduler'
+import { advanceGlobalEpoch, getGlobalEpoch, transact } from '../transactions'
 
 describe('EffectScheduler', () => {
 	describe('constructor and basic properties', () => {
+		it('creates an effect scheduler with name and function', () => {
+			const effect = vi.fn()
+			const scheduler = new EffectScheduler('test-effect', effect)
+
+			expect(scheduler.name).toBe('test-effect')
+			expect(scheduler.isActivelyListening).toBe(false)
+			expect(scheduler.scheduleCount).toBe(0)
+			expect(scheduler.lastTraversedEpoch).toBe(GLOBAL_START_EPOCH)
+		})
+
 		it('accepts options with custom scheduleEffect function', () => {
 			const effect = vi.fn()
 			const customScheduler = vi.fn()
@@ -19,9 +30,40 @@ describe('EffectScheduler', () => {
 			expect(customScheduler).toHaveBeenCalledTimes(1)
 			expect(customScheduler).toHaveBeenCalledWith(scheduler.maybeExecute)
 		})
+
+		it('initializes with empty parent arrays', () => {
+			const scheduler = new EffectScheduler('test', vi.fn())
+
+			expect(scheduler.parentSet.isEmpty).toBe(true)
+			expect(scheduler.parents).toEqual([])
+			expect(scheduler.parentEpochs).toEqual([])
+		})
 	})
 
 	describe('attach and detach', () => {
+		it('starts and stops actively listening', () => {
+			const scheduler = new EffectScheduler('test', vi.fn())
+
+			expect(scheduler.isActivelyListening).toBe(false)
+
+			scheduler.attach()
+			expect(scheduler.isActivelyListening).toBe(true)
+
+			scheduler.detach()
+			expect(scheduler.isActivelyListening).toBe(false)
+		})
+
+		it('can be attached and detached multiple times', () => {
+			const scheduler = new EffectScheduler('test', vi.fn())
+
+			scheduler.attach()
+			scheduler.detach()
+			scheduler.attach()
+			scheduler.detach()
+
+			expect(scheduler.isActivelyListening).toBe(false)
+		})
+
 		test('when you detach and reattach, it retains the parents without rerunning', () => {
 			const a = atom('a', 1)
 			let numReactions = 0
@@ -82,6 +124,35 @@ describe('EffectScheduler', () => {
 	})
 
 	describe('execute', () => {
+		it('runs the effect function and returns result', () => {
+			const effect = vi.fn().mockReturnValue('test-result')
+			const scheduler = new EffectScheduler('test', effect)
+
+			const result = scheduler.execute()
+
+			expect(effect).toHaveBeenCalledTimes(1)
+			expect(result).toBe('test-result')
+		})
+
+		it('passes lastReactedEpoch to effect function', () => {
+			const effect = vi.fn()
+			const scheduler = new EffectScheduler('test', effect)
+
+			scheduler.execute()
+
+			expect(effect).toHaveBeenCalledWith(GLOBAL_START_EPOCH)
+		})
+
+		it('updates lastReactedEpoch after execution', () => {
+			const scheduler = new EffectScheduler('test', vi.fn())
+			const initialEpoch = getGlobalEpoch()
+
+			scheduler.execute()
+
+			// Private property access for testing
+			expect((scheduler as any).lastReactedEpoch).toBe(initialEpoch)
+		})
+
 		it('captures parents during execution', () => {
 			const a = atom('a', 1)
 			const scheduler = new EffectScheduler('test', () => {
@@ -109,6 +180,16 @@ describe('EffectScheduler', () => {
 			expect(scheduler.parents).toContain(b)
 		})
 
+		it('handles exceptions in effect function', () => {
+			const error = new Error('test error')
+			const effect = vi.fn().mockImplementation(() => {
+				throw error
+			})
+			const scheduler = new EffectScheduler('test', effect)
+
+			expect(() => scheduler.execute()).toThrow('test error')
+		})
+
 		it('captures parents even when effect throws', () => {
 			const a = atom('a', 1)
 			const scheduler = new EffectScheduler('test', () => {
@@ -121,9 +202,38 @@ describe('EffectScheduler', () => {
 			expect(scheduler.parents.length).toBe(1)
 			expect(scheduler.parents[0]).toBe(a)
 		})
+
+		it('returns different types correctly', () => {
+			const stringScheduler = new EffectScheduler('string', () => 'hello')
+			const numberScheduler = new EffectScheduler('number', () => 42)
+			const objectScheduler = new EffectScheduler('object', () => ({ x: 1 }))
+
+			expect(stringScheduler.execute()).toBe('hello')
+			expect(numberScheduler.execute()).toBe(42)
+			expect(objectScheduler.execute()).toEqual({ x: 1 })
+		})
 	})
 
 	describe('scheduleEffect', () => {
+		it('increments schedule count', () => {
+			const scheduler = new EffectScheduler('test', vi.fn())
+
+			expect(scheduler.scheduleCount).toBe(0)
+			scheduler.scheduleEffect()
+			expect(scheduler.scheduleCount).toBe(1)
+			scheduler.scheduleEffect()
+			expect(scheduler.scheduleCount).toBe(2)
+		})
+
+		it('executes immediately when no custom scheduler provided', () => {
+			const effect = vi.fn()
+			const scheduler = new EffectScheduler('test', effect)
+
+			scheduler.scheduleEffect()
+
+			expect(effect).toHaveBeenCalledTimes(1)
+		})
+
 		it('uses custom scheduleEffect when provided', () => {
 			const effect = vi.fn()
 			const customScheduler = vi.fn()
@@ -201,6 +311,16 @@ describe('EffectScheduler', () => {
 	})
 
 	describe('maybeExecute', () => {
+		it('executes effect when actively listening', () => {
+			const effect = vi.fn()
+			const scheduler = new EffectScheduler('test', effect)
+
+			scheduler.attach()
+			scheduler.maybeExecute()
+
+			expect(effect).toHaveBeenCalledTimes(1)
+		})
+
 		it('does not execute when not actively listening', () => {
 			const effect = vi.fn()
 			const scheduler = new EffectScheduler('test', effect)
@@ -220,9 +340,42 @@ describe('EffectScheduler', () => {
 
 			expect(effect).not.toHaveBeenCalled()
 		})
+
+		it('can be called multiple times safely', () => {
+			const effect = vi.fn()
+			const scheduler = new EffectScheduler('test', effect)
+
+			scheduler.attach()
+			scheduler.maybeExecute()
+			scheduler.maybeExecute()
+			scheduler.maybeExecute()
+
+			expect(effect).toHaveBeenCalledTimes(3)
+		})
 	})
 
 	describe('maybeScheduleEffect', () => {
+		it('does not schedule when not actively listening', () => {
+			const effect = vi.fn()
+			const scheduler = new EffectScheduler('test', effect)
+
+			scheduler.maybeScheduleEffect()
+
+			expect(scheduler.scheduleCount).toBe(0)
+			expect(effect).not.toHaveBeenCalled()
+		})
+
+		it('does not schedule when already at current epoch', () => {
+			const effect = vi.fn()
+			const scheduler = new EffectScheduler('test', effect)
+
+			scheduler.attach()
+			scheduler.execute() // This sets lastReactedEpoch to current
+			scheduler.maybeScheduleEffect()
+
+			expect(scheduler.scheduleCount).toBe(0)
+		})
+
 		it('schedules when epoch has advanced', () => {
 			const a = atom('a', 1)
 			const effect = vi.fn(() => a.get())
@@ -248,6 +401,36 @@ describe('EffectScheduler', () => {
 			scheduler.maybeScheduleEffect()
 
 			expect(scheduler.scheduleCount).toBe(0)
+		})
+
+		it('schedules on first run when no parents exist', () => {
+			const effect = vi.fn()
+			const scheduler = new EffectScheduler('test', effect)
+
+			scheduler.attach()
+			advanceGlobalEpoch()
+			scheduler.maybeScheduleEffect()
+
+			expect(scheduler.scheduleCount).toBe(1)
+		})
+
+		it('updates lastReactedEpoch when parents have not changed', () => {
+			const a = atom('a', 1)
+			const effect = vi.fn(() => a.get())
+			const scheduler = new EffectScheduler('test', effect)
+
+			scheduler.attach()
+			scheduler.execute()
+
+			const initialEpoch = (scheduler as any).lastReactedEpoch
+			advanceGlobalEpoch()
+			const newEpoch = getGlobalEpoch()
+
+			scheduler.maybeScheduleEffect()
+
+			// Should update lastReactedEpoch even when not scheduling
+			expect((scheduler as any).lastReactedEpoch).toBe(newEpoch)
+			expect((scheduler as any).lastReactedEpoch).toBeGreaterThan(initialEpoch)
 		})
 	})
 
@@ -482,9 +665,62 @@ describe('EffectScheduler', () => {
 			expect(scheduler.parents).toEqual([a])
 			expect(scheduler.parentSet.has(a)).toBe(true)
 		})
+
+		it('handles errors in custom scheduleEffect', () => {
+			const effect = vi.fn()
+			const customScheduler = vi.fn().mockImplementation(() => {
+				throw new Error('scheduler error')
+			})
+
+			const scheduler = new EffectScheduler('test', effect, {
+				scheduleEffect: customScheduler,
+			})
+
+			expect(() => scheduler.scheduleEffect()).toThrow('scheduler error')
+			expect(scheduler.scheduleCount).toBe(1) // Should still increment
+		})
+
+		it('propagates errors from maybeExecute', () => {
+			const effect = vi.fn().mockImplementation(() => {
+				throw new Error('effect error')
+			})
+			const scheduler = new EffectScheduler('test', effect)
+
+			scheduler.attach()
+			expect(() => scheduler.maybeExecute()).toThrow('effect error')
+		})
 	})
 
 	describe('performance and edge cases', () => {
+		it('handles effects with no dependencies', () => {
+			let count = 0
+			const scheduler = new EffectScheduler('test', () => {
+				count++
+				return count
+			})
+
+			scheduler.attach()
+			const result = scheduler.execute()
+
+			expect(result).toBe(1)
+			expect(scheduler.parents).toEqual([])
+		})
+
+		it('handles rapid attach/detach cycles', () => {
+			const a = atom('a', 1)
+			const effect = vi.fn(() => a.get())
+			const scheduler = new EffectScheduler('test', effect)
+
+			for (let i = 0; i < 10; i++) {
+				scheduler.attach()
+				scheduler.execute()
+				scheduler.detach()
+			}
+
+			expect(effect).toHaveBeenCalledTimes(10)
+			expect(scheduler.isActivelyListening).toBe(false)
+		})
+
 		it('handles large numbers of dependencies', () => {
 			const atoms = Array.from({ length: 100 }, (_, i) => atom(`atom-${i}`, i))
 			const scheduler = new EffectScheduler('test', () => {
@@ -520,6 +756,56 @@ describe('EffectScheduler', () => {
 
 			a.set(2)
 			expect(result).toBe(48) // 2 * 2 * 3 * 4
+		})
+
+		it('handles effects that modify their own dependencies', () => {
+			const a = atom('a', 0)
+			let iterations = 0
+
+			const scheduler = new EffectScheduler('test', () => {
+				const current = a.get()
+				iterations++
+				if (current < 3) {
+					a.set(current + 1)
+				}
+			})
+
+			scheduler.attach()
+			// This will actually work for direct execution, but would cause infinite loops with reactions
+			// The protection happens in the transaction/reaction system, not in individual scheduler execution
+			scheduler.execute()
+			expect(iterations).toBeGreaterThan(0)
+			expect(a.get()).toBe(3) // Should have incremented to 3
+		})
+	})
+
+	describe('debug and internal properties', () => {
+		it('has debug ancestor epochs initially null', () => {
+			const scheduler = new EffectScheduler('test', vi.fn())
+			expect(scheduler.__debug_ancestor_epochs__).toBe(null)
+		})
+
+		it('maintains schedule count independently of execution', () => {
+			const customScheduler = vi.fn()
+			const scheduler = new EffectScheduler('test', vi.fn(), {
+				scheduleEffect: customScheduler,
+			})
+
+			scheduler.scheduleEffect()
+			scheduler.scheduleEffect()
+			scheduler.scheduleEffect()
+
+			expect(scheduler.scheduleCount).toBe(3)
+			expect(customScheduler).toHaveBeenCalledTimes(3)
+		})
+
+		it('maintains lastTraversedEpoch correctly', () => {
+			const scheduler = new EffectScheduler('test', vi.fn())
+
+			expect(scheduler.lastTraversedEpoch).toBe(GLOBAL_START_EPOCH)
+
+			// This property is internal and may be updated by the dependency tracking system
+			// We mainly verify it starts with the expected value
 		})
 	})
 })
@@ -569,10 +855,52 @@ describe('react function', () => {
 
 		stop()
 	})
+
+	it('returns a working stop function', () => {
+		const a = atom('a', 1)
+		let executions = 0
+
+		const stop = react('test', () => {
+			a.get()
+			executions++
+		})
+
+		expect(executions).toBe(1)
+
+		a.set(2)
+		expect(executions).toBe(2)
+
+		stop()
+
+		a.set(3)
+		expect(executions).toBe(2) // Should not execute after stop
+	})
+
+	it('passes lastReactedEpoch to effect function', () => {
+		const epochValues: number[] = []
+
+		const stop = react('test', (epoch) => {
+			epochValues.push(epoch)
+		})
+
+		expect(epochValues).toHaveLength(1)
+		expect(epochValues[0]).toBe(GLOBAL_START_EPOCH)
+
+		stop()
+	})
 })
 
 describe('reactor function and Reactor interface', () => {
 	describe('reactor creation', () => {
+		it('creates a reactor with scheduler', () => {
+			const effect = vi.fn()
+			const r = reactor('test', effect)
+
+			expect(r.scheduler).toBeInstanceOf(EffectScheduler)
+			expect(r.scheduler.name).toBe('test')
+			expect(r.scheduler.isActivelyListening).toBe(false)
+		})
+
 		it('accepts options', () => {
 			const customScheduler = vi.fn()
 			const r = reactor('test', vi.fn(), {
@@ -587,6 +915,28 @@ describe('reactor function and Reactor interface', () => {
 	})
 
 	describe('start and stop', () => {
+		it('can be started and stopped', () => {
+			const a = atom('a', 1)
+			let result = 0
+
+			const r = reactor('test', () => {
+				result = a.get()
+			})
+
+			expect(r.scheduler.isActivelyListening).toBe(false)
+			expect(result).toBe(0)
+
+			r.start()
+			expect(r.scheduler.isActivelyListening).toBe(true)
+			expect(result).toBe(1)
+
+			r.stop()
+			expect(r.scheduler.isActivelyListening).toBe(false)
+
+			a.set(2)
+			expect(result).toBe(1) // Should not update when stopped
+		})
+
 		it('can be restarted after stopping', () => {
 			const a = atom('a', 1)
 			let result = 0
@@ -615,6 +965,13 @@ describe('reactor function and Reactor interface', () => {
 
 			r.start() // Should use maybeScheduleEffect, not execute immediately
 			expect(effect).toHaveBeenCalledTimes(1) // Still only once since no dependencies changed
+		})
+
+		it('handles stop when not started', () => {
+			const r = reactor('test', vi.fn())
+
+			expect(() => r.stop()).not.toThrow()
+			expect(r.scheduler.isActivelyListening).toBe(false)
 		})
 	})
 
@@ -743,6 +1100,34 @@ describe('reactor function and Reactor interface', () => {
 			// Continue normal reactivity
 			a.set(3)
 			expect(result).toBe(30)
+		})
+	})
+
+	describe('type safety', () => {
+		it('correctly types return value', () => {
+			const stringReactor = reactor('string', () => 'hello')
+			const numberReactor = reactor('number', () => 42)
+
+			// These should be typed correctly
+			const r1: Reactor<string> = stringReactor
+			const r2: Reactor<number> = numberReactor
+
+			expect(r1.scheduler.name).toBe('string')
+			expect(r2.scheduler.name).toBe('number')
+		})
+
+		it('supports generic type parameter', () => {
+			interface TestType {
+				value: number
+				label: string
+			}
+
+			const r: Reactor<TestType> = reactor('typed', () => ({
+				value: 42,
+				label: 'test',
+			}))
+
+			expect(r.scheduler).toBeInstanceOf(EffectScheduler)
 		})
 	})
 })

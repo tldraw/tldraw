@@ -1,5 +1,5 @@
 import { atom, computed, RESET_VALUE } from '@tldraw/state'
-import { beforeEach, describe, expect, it } from 'vitest'
+import { beforeEach, describe, expect, it, test } from 'vitest'
 import { BaseRecord, RecordId } from './BaseRecord'
 import { createRecordType } from './RecordType'
 import { Store } from './Store'
@@ -131,7 +131,32 @@ beforeEach(() => {
 	store.put([...Object.values(authors), ...Object.values(books)])
 })
 
+describe('StoreQueries constructor and initialization', () => {
+	it('should be created with recordMap and history', () => {
+		expect(queries).toBeInstanceOf(StoreQueries)
+		expect(queries).toBeDefined()
+	})
+
+	it('should have empty caches initially', () => {
+		// Access private properties for testing
+		const indexCache = (queries as any).indexCache
+		const historyCache = (queries as any).historyCache
+
+		expect(indexCache.size).toBe(0)
+		expect(historyCache.size).toBe(0)
+	})
+})
+
 describe('filterHistory method', () => {
+	it('should cache filtered history computations', () => {
+		const authorHistory1 = queries.filterHistory('author')
+		const authorHistory2 = queries.filterHistory('author')
+		const bookHistory = queries.filterHistory('book')
+
+		expect(authorHistory1).toBe(authorHistory2)
+		expect(authorHistory1).not.toBe(bookHistory)
+	})
+
 	it('should filter changes by type correctly', () => {
 		const authorHistory = queries.filterHistory('author')
 		const initialEpoch = authorHistory.get()
@@ -162,7 +187,7 @@ describe('filterHistory method', () => {
 		const authorHistory = queries.filterHistory('author')
 		authorHistory.get()
 
-		const lastChangedEpoch = authorHistory.lastChangedEpoch
+		let lastChangedEpoch = authorHistory.lastChangedEpoch
 
 		// Update an author
 		store.put([{ ...authors.asimov, age: 73 }])
@@ -184,7 +209,7 @@ describe('filterHistory method', () => {
 		const authorHistory = queries.filterHistory('author')
 		authorHistory.get()
 
-		const lastChangedEpoch = authorHistory.lastChangedEpoch
+		let lastChangedEpoch = authorHistory.lastChangedEpoch
 
 		// Remove an author
 		store.remove([authors.bradbury.id])
@@ -247,6 +272,15 @@ describe('filterHistory method', () => {
 })
 
 describe('index method', () => {
+	it('should cache index computations', () => {
+		const nameIndex1 = queries.index('author', 'name')
+		const nameIndex2 = queries.index('author', 'name')
+		const ageIndex = queries.index('author', 'age')
+
+		expect(nameIndex1).toBe(nameIndex2)
+		expect(nameIndex1).not.toBe(ageIndex)
+	})
+
 	it('should create correct index mappings', () => {
 		const nameIndex = queries.index('author', 'name')
 		const index = nameIndex.get()
@@ -258,7 +292,7 @@ describe('index method', () => {
 
 	it('should update indexes when records are added', () => {
 		const nameIndex = queries.index('author', 'name')
-		const _initialIndex = nameIndex.get()
+		const initialIndex = nameIndex.get()
 
 		const newAuthor = Author.create({ name: 'New Author' })
 		const lastEpoch = nameIndex.lastChangedEpoch
@@ -301,6 +335,82 @@ describe('index method', () => {
 			expect(diff[0].get('Dr. Isaac Asimov')).toEqual({ added: new Set([authors.asimov.id]) })
 		}
 	})
+
+	it('should handle property updates that dont change index key', () => {
+		const nameIndex = queries.index('author', 'name')
+		nameIndex.get() // Initialize
+
+		const lastEpoch = nameIndex.lastChangedEpoch
+
+		// Update author age (not indexed property)
+		store.put([{ ...authors.asimov, age: 73 }])
+
+		// Index should not change
+		expect(nameIndex.lastChangedEpoch).toBe(lastEpoch)
+	})
+
+	it('should handle multiple authors with same name', () => {
+		const author1 = Author.create({ name: 'John Smith' })
+		const author2 = Author.create({ name: 'John Smith' })
+
+		store.put([author1, author2])
+
+		const nameIndex = queries.index('author', 'name')
+		expect(nameIndex.get().get('John Smith')).toEqual(new Set([author1.id, author2.id]))
+	})
+
+	it('should handle index updates with empty value cleanup', () => {
+		const author = Author.create({ name: 'Temp Author' })
+		store.put([author])
+
+		const nameIndex = queries.index('author', 'name')
+		expect(nameIndex.get().get('Temp Author')).toEqual(new Set([author.id]))
+
+		const lastEpoch = nameIndex.lastChangedEpoch
+
+		// Remove the author
+		store.remove([author.id])
+
+		// Access the index to trigger the update
+		const updatedIndex = nameIndex.get()
+		expect(nameIndex.lastChangedEpoch).toBeGreaterThan(lastEpoch)
+		// Empty sets should be removed from index
+		expect(updatedIndex.get('Temp Author')).toBeUndefined()
+	})
+})
+
+describe('__uncached_createIndex method', () => {
+	it('should create index without caching', () => {
+		// Access private method for testing
+		const index1 = (queries as any).__uncached_createIndex('author', 'name')
+		const index2 = (queries as any).__uncached_createIndex('author', 'name')
+
+		// Should be different instances
+		expect(index1).not.toBe(index2)
+
+		// But should have same data
+		expect(index1.get()).toEqual(index2.get())
+	})
+
+	it('should handle from-scratch index building', () => {
+		const index = (queries as any).__uncached_createIndex('author', 'isActive')
+		const indexMap = index.get()
+
+		// Count active authors
+		const activeIds = new Set()
+		const inactiveIds = new Set()
+
+		Object.values(authors).forEach((author) => {
+			if (author.isActive) {
+				activeIds.add(author.id)
+			} else {
+				inactiveIds.add(author.id)
+			}
+		})
+
+		expect(indexMap.get(true)).toEqual(activeIds)
+		expect(indexMap.get(false)).toEqual(inactiveIds)
+	})
 })
 
 describe('record method', () => {
@@ -318,6 +428,23 @@ describe('record method', () => {
 		}))
 
 		expect(nonexistentQuery.get()).toBeUndefined()
+	})
+
+	it('should return first match when multiple records match', () => {
+		// Create multiple authors with same age
+		const author1 = Author.create({ name: 'Author 1', age: 99 })
+		const author2 = Author.create({ name: 'Author 2', age: 99 })
+		store.put([author1, author2])
+
+		const query = queries.record('author', () => ({
+			age: { eq: 99 },
+		}))
+
+		const result = query.get()
+		expect(result).toBeDefined()
+		expect(result!.age).toBe(99)
+		// Should be one of the two authors
+		expect([author1.id, author2.id]).toContain(result!.id)
 	})
 
 	it('should update reactively when matching record changes', () => {
@@ -344,6 +471,14 @@ describe('record method', () => {
 
 		targetName.set('William Gibson')
 		expect(query.get()).toEqual(authors.gibson)
+	})
+
+	it('should handle empty query (match any)', () => {
+		const query = queries.record('author')
+		const result = query.get()
+
+		expect(result).toBeDefined()
+		expect(result!.typeName).toBe('author')
 	})
 
 	it('should handle complex query conditions', () => {
@@ -448,6 +583,28 @@ describe('records method', () => {
 		expect(cyberpunkBooks).toHaveLength(1)
 		expect(cyberpunkBooks[0]).toEqual(books.neuromancer)
 	})
+
+	it('should use shallow array equality for performance', () => {
+		const query = queries.records('book')
+		const result1 = query.get()
+
+		// No changes, should return same array reference
+		const result2 = query.get()
+		expect(result1).toBe(result2)
+
+		// Add a record, should return new array
+		const newBook = Book.create({
+			title: 'New Book',
+			authorId: authors.asimov.id,
+			publishedYear: 2023,
+			inStock: true,
+			rating: 3,
+		})
+		store.put([newBook])
+
+		const result3 = query.get()
+		expect(result3).not.toBe(result1)
+	})
 })
 
 describe('ids method', () => {
@@ -477,12 +634,52 @@ describe('ids method', () => {
 		})
 	})
 
+	it('should handle neq (not equal) queries', () => {
+		const notSciFiIds = queries.ids('book', () => ({
+			category: { neq: 'sci-fi' },
+		}))
+
+		const ids = notSciFiIds.get()
+		ids.forEach((id) => {
+			const book = store.get(id)!
+			expect(book.category).not.toBe('sci-fi')
+		})
+	})
+
+	it('should handle gt (greater than) queries', () => {
+		const modernBooksIds = queries.ids('book', () => ({
+			publishedYear: { gt: 1960 },
+		}))
+
+		const ids = modernBooksIds.get()
+		ids.forEach((id) => {
+			const book = store.get(id)!
+			expect(book.publishedYear).toBeGreaterThan(1960)
+		})
+	})
+
+	it('should handle complex query combinations', () => {
+		const complexQuery = queries.ids('book', () => ({
+			rating: { gt: 3 },
+			inStock: { eq: true },
+			category: { neq: 'romance' },
+		}))
+
+		const ids = complexQuery.get()
+		ids.forEach((id) => {
+			const book = store.get(id)!
+			expect(book.rating).toBeGreaterThan(3)
+			expect(book.inStock).toBe(true)
+			expect(book.category).not.toBe('romance')
+		})
+	})
+
 	it('should update with collection diffs when records change', () => {
 		const inStockIds = queries.ids('book', () => ({
 			inStock: { eq: true },
 		}))
 
-		const _initialIds = inStockIds.get()
+		const initialIds = inStockIds.get()
 		const lastEpoch = inStockIds.lastChangedEpoch
 
 		// Add a new book
@@ -504,6 +701,16 @@ describe('ids method', () => {
 			expect(diff).toHaveLength(1)
 			expect(diff[0].added?.has(newBook.id)).toBe(true)
 		}
+	})
+
+	it('should handle empty query result', () => {
+		const impossibleQuery = queries.ids('book', () => ({
+			publishedYear: { gt: 3000 },
+		}))
+
+		const ids = impossibleQuery.get()
+		expect(ids).toBeInstanceOf(Set)
+		expect(ids.size).toBe(0)
 	})
 
 	it('should handle reactive query parameters with from-scratch rebuild', () => {
@@ -550,6 +757,32 @@ describe('ids method', () => {
 			expect(diff[0].added?.has(books.dune.id)).toBe(true)
 		}
 	})
+
+	it('should handle add then remove operations efficiently', () => {
+		const query = queries.ids('book', () => ({
+			category: { eq: 'mystery' },
+		}))
+
+		query.get() // Initialize
+		const lastEpoch = query.lastChangedEpoch
+
+		// Add a mystery book then remove it
+		const mysteryBook = Book.create({
+			title: 'Mystery Book',
+			authorId: authors.asimov.id,
+			publishedYear: 2023,
+			inStock: true,
+			rating: 3,
+			category: 'mystery',
+		})
+
+		store.put([mysteryBook])
+		store.remove([mysteryBook.id])
+
+		// Should not change the query result since add/remove canceled out
+		const diff = query.getDiffSince(lastEpoch)
+		expect(diff).toEqual([])
+	})
 })
 
 describe('exec method', () => {
@@ -562,6 +795,14 @@ describe('exec method', () => {
 		expect(result.every((author) => author.isActive === true)).toBe(true)
 	})
 
+	it('should return empty array for no matches', () => {
+		const result = queries.exec('book', {
+			publishedYear: { gt: 3000 },
+		})
+
+		expect(result).toEqual([])
+	})
+
 	it('should handle complex query conditions', () => {
 		const result = queries.exec('book', {
 			rating: { eq: 5 },
@@ -570,6 +811,203 @@ describe('exec method', () => {
 
 		expect(result.every((book) => book.rating === 5 && book.category === 'sci-fi')).toBe(true)
 		expect(result.length).toBeGreaterThan(0)
+	})
+
+	it('should return current state without reactivity', () => {
+		// Execute query
+		const initialResult = queries.exec('book', {
+			inStock: { eq: true },
+		})
+		const initialCount = initialResult.length
+
+		// Add a new book
+		const newBook = Book.create({
+			title: 'New Book',
+			authorId: authors.asimov.id,
+			publishedYear: 2023,
+			inStock: true,
+			rating: 3,
+		})
+		store.put([newBook])
+
+		// Execute same query again - should get updated results
+		const secondResult = queries.exec('book', {
+			inStock: { eq: true },
+		})
+
+		expect(secondResult.length).toBe(initialCount + 1)
+		expect(secondResult.some((book) => book.id === newBook.id)).toBe(true)
+	})
+
+	it('should handle all query matcher types', () => {
+		// Test eq matcher
+		const eqResult = queries.exec('book', {
+			category: { eq: 'sci-fi' },
+		})
+		expect(eqResult.every((book) => book.category === 'sci-fi')).toBe(true)
+
+		// Test neq matcher
+		const neqResult = queries.exec('book', {
+			category: { neq: 'sci-fi' },
+		})
+		expect(neqResult.every((book) => book.category !== 'sci-fi')).toBe(true)
+
+		// Test gt matcher
+		const gtResult = queries.exec('book', {
+			publishedYear: { gt: 1960 },
+		})
+		expect(gtResult.every((book) => book.publishedYear > 1960)).toBe(true)
+	})
+
+	it('should handle empty query object', () => {
+		const result = queries.exec('author', {})
+
+		// exec with empty query returns empty array (different from ids/records methods)
+		expect(result).toHaveLength(0)
+		expect(Array.isArray(result)).toBe(true)
+	})
+})
+
+describe('performance and edge cases', () => {
+	it('should handle large datasets efficiently', () => {
+		// Create many authors
+		const manyAuthors = Array.from({ length: 1000 }, (_, i) =>
+			Author.create({
+				name: `Author ${i}`,
+				age: 20 + (i % 80),
+				isActive: i % 3 === 0,
+			})
+		)
+
+		store.put(manyAuthors)
+
+		// Create index and query
+		const ageIndex = queries.index('author', 'age')
+		const youngAuthors = queries.ids('author', () => ({
+			age: { gt: 25 },
+		}))
+
+		// These operations should complete quickly
+		const indexResult = ageIndex.get()
+		const queryResult = youngAuthors.get()
+
+		expect(indexResult).toBeInstanceOf(Map)
+		expect(queryResult).toBeInstanceOf(Set)
+	})
+
+	it('should handle concurrent index access', () => {
+		const nameIndex = queries.index('author', 'name')
+		const ageIndex = queries.index('author', 'age')
+		const activeIndex = queries.index('author', 'isActive')
+
+		// Access all indexes
+		const names = nameIndex.get()
+		const ages = ageIndex.get()
+		const actives = activeIndex.get()
+
+		expect(names).toBeInstanceOf(Map)
+		expect(ages).toBeInstanceOf(Map)
+		expect(actives).toBeInstanceOf(Map)
+
+		// Verify they track the same records
+		const allIds = new Set(
+			[...names.values(), ...ages.values(), ...actives.values()]
+				.flat()
+				.map((set) => [...set])
+				.flat()
+		)
+		expect(allIds.size).toBeGreaterThan(0)
+	})
+
+	it('should handle invalid query parameters gracefully', () => {
+		// This should not throw but return empty results
+		const invalidQuery = queries.ids(
+			'book',
+			() =>
+				({
+					nonexistentProperty: { eq: 'value' },
+				}) as any
+		)
+
+		const result = invalidQuery.get()
+		expect(result).toBeInstanceOf(Set)
+	})
+
+	it('should maintain cache consistency across operations', () => {
+		// Create a fresh store to test cache behavior in isolation
+		const freshStore = new Store({
+			props: {},
+			schema: StoreSchema.create<Author | Book>({
+				author: Author,
+				book: Book,
+			}),
+		})
+		const freshQueries = freshStore.query
+
+		const indexCache = (freshQueries as any).indexCache
+		const historyCache = (freshQueries as any).historyCache
+
+		// Initially empty
+		expect(indexCache.size).toBe(0)
+		expect(historyCache.size).toBe(0)
+
+		// Create some cached items
+		freshQueries.index('author', 'name')
+		freshQueries.index('book', 'title')
+		freshQueries.filterHistory('author')
+
+		expect(indexCache.size).toBe(2)
+		// Note: creating indexes also creates filtered history entries internally
+		expect(historyCache.size).toBeGreaterThanOrEqual(1)
+
+		const initialHistoryCacheSize = historyCache.size
+
+		// Operations should not clear caches
+		freshStore.put([Author.create({ name: 'Cache Test' })])
+
+		expect(indexCache.size).toBe(2)
+		expect(historyCache.size).toBe(initialHistoryCacheSize)
+	})
+
+	it('should handle store with no records of queried type', () => {
+		// Remove all books
+		Object.values(books).forEach((book) => store.remove([book.id]))
+
+		const bookQuery = queries.ids('book')
+		const result = bookQuery.get()
+
+		expect(result).toBeInstanceOf(Set)
+		expect(result.size).toBe(0)
+	})
+
+	it('should handle reset values in history gracefully', () => {
+		const authorHistory = queries.filterHistory('author')
+		authorHistory.get()
+
+		// Force a reset by accessing diff from very old epoch
+		const veryOldEpoch = 0
+		const diff = authorHistory.getDiffSince(veryOldEpoch)
+
+		expect(diff).toBe(RESET_VALUE)
+	})
+
+	test('should handle property values of different types in indexes', () => {
+		// Create index on boolean property
+		const activeIndex = queries.index('author', 'isActive')
+		const activeMap = activeIndex.get()
+
+		expect(activeMap.has(true)).toBe(true)
+		expect(activeMap.has(false)).toBe(true)
+
+		// Create index on number property
+		const ageIndex = queries.index('author', 'age')
+		const ageMap = ageIndex.get()
+
+		expect(ageMap.size).toBeGreaterThan(0)
+		for (const [age, ids] of ageMap) {
+			expect(typeof age).toBe('number')
+			expect(ids).toBeInstanceOf(Set)
+		}
 	})
 })
 

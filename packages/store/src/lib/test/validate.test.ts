@@ -1,6 +1,6 @@
 import { BaseRecord, IdOf, RecordId } from '../BaseRecord'
 import { createRecordType } from '../RecordType'
-import { Store } from '../Store'
+import { SerializedStore, Store } from '../Store'
 import { StoreSchema } from '../StoreSchema'
 
 interface Book extends BaseRecord<'book', RecordId<Book>> {
@@ -13,11 +13,11 @@ const Book = createRecordType<Book>('book', {
 	validator: {
 		validate(value) {
 			const book = value as Book
-			if (!book.id.startsWith('book:')) throw Error('Invalid book ID')
-			if (book.typeName !== 'book') throw Error('Invalid book typeName')
-			if (typeof book.title !== 'string') throw Error('Invalid book title')
-			if (!Number.isFinite(book.numPages)) throw Error('Invalid book numPages')
-			if (book.numPages < 0) throw Error('Book numPages cannot be negative')
+			if (!book.id.startsWith('book:')) throw Error()
+			if (book.typeName !== 'book') throw Error()
+			if (typeof book.title !== 'string') throw Error()
+			if (!Number.isFinite(book.numPages)) throw Error()
+			if (book.numPages < 0) throw Error()
 			return book
 		},
 	},
@@ -33,10 +33,10 @@ const Author = createRecordType<Author>('author', {
 	validator: {
 		validate(value) {
 			const author = value as Author
-			if (author.typeName !== 'author') throw Error('Invalid author typeName')
-			if (!author.id.startsWith('author:')) throw Error('Invalid author ID')
-			if (typeof author.name !== 'string') throw Error('Invalid author name')
-			if (typeof author.isPseudonym !== 'boolean') throw Error('Invalid author isPseudonym')
+			if (author.typeName !== 'author') throw Error()
+			if (!author.id.startsWith('author:')) throw Error()
+			if (typeof author.name !== 'string') throw Error()
+			if (typeof author.isPseudonym !== 'boolean') throw Error()
 			return author
 		},
 	},
@@ -50,27 +50,129 @@ const schema = StoreSchema.create<Book | Author>({
 	author: Author,
 })
 
-describe('Store validation integration', () => {
-	it('validates business logic constraints during record operations', () => {
-		const store = new Store({ schema, props: {} })
+describe('Store with validation', () => {
+	let store: Store<Book | Author>
 
-		// Valid record should be accepted
+	beforeEach(() => {
+		store = new Store({ schema, props: {} })
+	})
+
+	it('Accepts valid records and rejects invalid records', () => {
 		store.put([Author.create({ name: 'J.R.R Tolkein', id: Author.createId('tolkein') })])
-		expect(store.query.records('author').get()).toHaveLength(1)
 
-		// Invalid record should be rejected due to business logic constraint
+		expect(store.query.records('author').get()).toEqual([
+			{ id: 'author:tolkein', typeName: 'author', name: 'J.R.R Tolkein', isPseudonym: false },
+		])
+
 		expect(() => {
 			store.put([
 				{
 					id: Book.createId('the-hobbit'),
 					typeName: 'book',
 					title: 'The Hobbit',
-					numPages: -1, // Business logic: pages cannot be negative
+					numPages: -1, // <---- Invalid!
 					author: Author.createId('tolkein'),
 				},
 			])
-		}).toThrow('Book numPages cannot be negative')
+		}).toThrow()
 
 		expect(store.query.records('book').get()).toEqual([])
+	})
+})
+
+describe('Validating initial data', () => {
+	let snapshot: SerializedStore<Book | Author>
+
+	beforeEach(() => {
+		const authorId = Author.createId('tolkein')
+		const authorRecord = Author.create({ name: 'J.R.R Tolkein', id: authorId })
+		const bookId = Book.createId('the-hobbit')
+		const bookRecord = Book.create({
+			title: 'The Hobbit',
+			numPages: 300,
+			author: authorId,
+			id: bookId,
+		})
+
+		snapshot = {
+			[authorId]: authorRecord,
+			[bookId]: bookRecord,
+		}
+	})
+
+	it('Validates initial data', () => {
+		expect(() => {
+			new Store<Book | Author>({ schema, initialData: snapshot, props: {} })
+		}).not.toThrow()
+
+		expect(() => {
+			// @ts-expect-error
+			snapshot[0].name = 4
+
+			new Store<Book | Author>({ schema, initialData: snapshot, props: {} })
+		}).toThrow()
+	})
+})
+
+describe('Create & update validations', () => {
+	const authorId = Author.createId('tolkein')
+	const bookId = Book.createId('the-hobbit')
+	const initialAuthor = Author.create({ name: 'J.R.R Tolkein', id: authorId })
+	const invalidBook = Book.create({
+		// @ts-expect-error - deliberately invalid data
+		title: 4,
+		numPages: 300,
+		author: authorId,
+		id: bookId,
+	})
+	const validBook = Book.create({
+		title: 'The Hobbit',
+		numPages: 300,
+		author: authorId,
+		id: bookId,
+	})
+
+	it('Prevents creating a store with invalid records', () => {
+		expect(
+			() =>
+				new Store<Book | Author>({
+					schema,
+					initialData: { [bookId]: invalidBook, [authorId]: initialAuthor },
+					props: {},
+				})
+		).toThrow()
+	})
+
+	it('Prevents updating invalid records to a store', () => {
+		const store = new Store<Book | Author>({
+			schema,
+			initialData: { [bookId]: validBook, [authorId]: initialAuthor },
+			props: {},
+		})
+
+		expect(() => {
+			store.put([invalidBook])
+		}).toThrow()
+	})
+
+	it('Prevents adding invalid records to a store', () => {
+		const newAuthorId = Author.createId('shearing')
+		const store = new Store<Book | Author>({
+			schema,
+			initialData: { [bookId]: validBook, [authorId]: initialAuthor },
+			props: {},
+		})
+
+		expect(() => {
+			store.put([
+				Author.create({
+					// @ts-expect-error - deliberately invalid data
+					name: 5,
+					id: newAuthorId,
+				}),
+			])
+		}).toThrow()
+
+		expect(store.get(newAuthorId)).toBeUndefined()
 	})
 })

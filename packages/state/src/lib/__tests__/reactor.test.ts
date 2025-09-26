@@ -1,10 +1,24 @@
 import { vi } from 'vitest'
 import { atom } from '../Atom'
-import { reactor } from '../EffectScheduler'
-import { transact } from '../transactions'
+import { react, reactor } from '../EffectScheduler'
+import { advanceGlobalEpoch, transact } from '../transactions'
 
 describe('reactors', () => {
-	it('prevents infinite update loops', () => {
+	it('can be started and stopped ', () => {
+		const a = atom('', 1)
+		const r = reactor('', () => {
+			a.get()
+		})
+		expect(r.scheduler.isActivelyListening).toBe(false)
+		r.start()
+		expect(r.scheduler.isActivelyListening).toBe(true)
+		r.stop()
+		expect(r.scheduler.isActivelyListening).toBe(false)
+		r.start()
+		expect(r.scheduler.isActivelyListening).toBe(true)
+	})
+
+	it('can not set atom values indefinitely', () => {
 		const a = atom('', 1)
 		const r = reactor('', () => {
 			if (a.get() < +Infinity) {
@@ -16,7 +30,7 @@ describe('reactors', () => {
 		)
 	})
 
-	it('batches multiple atom updates in transactions', () => {
+	it('will never be called twice after a single state update, even if that update affects multiple atoms to which the reactor is subscribed', () => {
 		const atomA = atom('', 1)
 		const atomB = atom('', 1)
 
@@ -37,7 +51,38 @@ describe('reactors', () => {
 		expect(react).toHaveBeenCalledTimes(2)
 	})
 
-	it('manages parent-child dependencies during start/stop lifecycle', () => {
+	it('will not react if stopped', () => {
+		const a = atom('', 1)
+		const react = vi.fn(() => {
+			a.get()
+		})
+		const r = reactor('', react)
+
+		r.scheduler.maybeScheduleEffect()
+
+		expect(react).not.toHaveBeenCalled()
+	})
+
+	it('will not react if the parents have not changed', () => {
+		const a = atom('', 1)
+		const react = vi
+			.fn(() => {
+				a.get()
+			})
+			.mockName('react')
+		const r = reactor('', react)
+
+		r.start()
+		expect(react).toHaveBeenCalledTimes(1)
+
+		advanceGlobalEpoch()
+		r.scheduler.maybeScheduleEffect()
+		expect(react).toHaveBeenCalledTimes(1)
+	})
+})
+
+describe('stopping', () => {
+	it('works', () => {
 		const a = atom('', 1)
 
 		const rfn = vi.fn(() => {
@@ -63,51 +108,90 @@ describe('reactors', () => {
 		a.set(2)
 
 		expect(rfn).toHaveBeenCalledTimes(2)
-	})
 
-	it('respects force option when restarting', () => {
-		const a = atom('', 1)
+		a.set(3)
 
-		const rfn = vi.fn(() => {
-			a.get()
-		})
-
-		const r = reactor('', rfn)
-		r.start()
-
-		expect(rfn).toHaveBeenCalledTimes(1)
-
-		r.stop()
-
-		// Without force, should not re-execute if nothing changed
-		r.start()
-		expect(rfn).toHaveBeenCalledTimes(1)
-
-		r.stop()
-
-		// With force, should re-execute even if nothing changed
-		r.start({ force: true })
 		expect(rfn).toHaveBeenCalledTimes(2)
+
+		expect(a.children.isEmpty).toBe(true)
+	})
+})
+
+test('.start() by default does not trigger a reaction if nothing has changed', () => {
+	const a = atom('', 1)
+
+	const rfn = vi.fn(() => {
+		a.get()
 	})
 
-	it('integrates with custom effect schedulers', () => {
-		let numSchedules = 0
-		let numExecutes = 0
+	const r = reactor('', rfn)
+	r.start()
 
-		const r = reactor(
-			'',
-			() => {
-				numExecutes++
+	expect(rfn).toHaveBeenCalledTimes(1)
+
+	r.stop()
+
+	r.start()
+
+	expect(rfn).toHaveBeenCalledTimes(1)
+})
+
+test('.start({force: true}) will trigger a reaction even if nothing has changed', () => {
+	const a = atom('', 1)
+
+	const rfn = vi.fn(() => {
+		a.get()
+	})
+
+	const r = reactor('', rfn)
+	r.start()
+
+	expect(rfn).toHaveBeenCalledTimes(1)
+
+	r.stop()
+
+	r.start({ force: true })
+
+	expect(rfn).toHaveBeenCalledTimes(2)
+})
+
+test('.start with a custom scheduler only schedules an effect, it does not execute it immediately', () => {
+	let numSchedules = 0
+	let numExecutes = 0
+
+	const r = reactor(
+		'',
+		() => {
+			numExecutes++
+		},
+		{
+			scheduleEffect: () => {
+				numSchedules++
 			},
-			{
-				scheduleEffect: () => {
-					numSchedules++
-				},
-			}
-		)
-		r.start()
+		}
+	)
+	r.start()
 
-		expect(numSchedules).toBe(1)
-		expect(numExecutes).toBe(0)
-	})
+	expect(numSchedules).toBe(1)
+	expect(numExecutes).toBe(0)
+})
+
+test('react() with a custom scheduler only schedules an effect, it does not execute it immediately', () => {
+	let numSchedules = 0
+	let numExecutes = 0
+
+	react(
+		'',
+		() => {
+			numExecutes++
+		},
+		{
+			scheduleEffect: () => {
+				numSchedules++
+			},
+		}
+	)
+
+	expect(numSchedules).toBe(1)
+	expect(numExecutes).toBe(0)
 })

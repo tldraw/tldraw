@@ -107,7 +107,7 @@ test('tracked components can use refs', async () => {
 	expect(ref.current?.handle).toBe('world')
 })
 
-test('tracked components update when the state they reference updates', async () => {
+test('tracked components update when the state they refernce updates', async () => {
 	const a = atom('a', 1)
 
 	const C = track(function Component() {

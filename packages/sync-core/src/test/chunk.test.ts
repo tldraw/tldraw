@@ -123,6 +123,7 @@ describe('json unchunker', () => {
 	})
 	it('returns an error if one of the chunks was missing', () => {
 		const chunks = chunk('{"hello": world"}', 10)
+		expect(chunks).toHaveLength(3)
 
 		const unchunker = new JsonChunkAssembler()
 		expect(unchunker.handleMessage(chunks[0])).toBeNull()
@@ -137,6 +138,7 @@ describe('json unchunker', () => {
 
 	it('returns an error if the chunk stream ends abruptly', () => {
 		const chunks = chunk('{"hello": world"}', 10)
+		expect(chunks).toHaveLength(3)
 
 		const unchunker = new JsonChunkAssembler()
 		expect(unchunker.handleMessage(chunks[0])).toBeNull()
@@ -204,11 +206,15 @@ describe('json unchunker', () => {
 
 		// Start a chunk sequence
 		expect(unchunker.handleMessage('1_hello')).toBeNull()
+		expect(unchunker.state).not.toBe('idle')
 
 		// Send malformed chunk to trigger error
 		const result = unchunker.handleMessage('invalid_chunk_format')
 		assert(result && 'error' in result, 'expected error result')
 		expect(result.error.message).toContain('Invalid chunk')
+
+		// State should be reset to idle
+		expect(unchunker.state).toBe('idle')
 
 		// Should be able to process normal messages again
 		expect(unchunker.handleMessage('{"test": true}')).toMatchObject({ data: { test: true } })
@@ -219,6 +225,7 @@ describe('json unchunker', () => {
 		const result = unchunker.handleMessage('abc_invalid_number')
 		assert(result && 'error' in result, 'expected error result')
 		expect(result.error.message).toContain('Invalid chunk')
+		expect(unchunker.state).toBe('idle')
 	})
 
 	it('handles single chunk with number prefix correctly', () => {
@@ -228,6 +235,35 @@ describe('json unchunker', () => {
 			data: { single: 'chunk' },
 			stringified: '{"single": "chunk"}',
 		})
+		expect(unchunker.state).toBe('idle')
+	})
+
+	it('maintains correct state during partial chunk sequences', () => {
+		const unchunker = new JsonChunkAssembler()
+
+		// Initial state should be idle
+		expect(unchunker.state).toBe('idle')
+
+		// First chunk should set up chunking state
+		expect(unchunker.handleMessage('2_{"message":')).toBeNull()
+		expect(unchunker.state).not.toBe('idle')
+		if (unchunker.state !== 'idle') {
+			expect(unchunker.state.totalChunks).toBe(3)
+			expect(unchunker.state.chunksReceived).toEqual(['{"message":'])
+		}
+
+		// Second chunk should maintain state
+		expect(unchunker.handleMessage('1_ "hello')).toBeNull()
+		if (unchunker.state !== 'idle') {
+			expect(unchunker.state.chunksReceived).toEqual(['{"message":', ' "hello'])
+		}
+
+		// Final chunk should complete and reset state
+		const result = unchunker.handleMessage('0_ world"}')
+		expect(result).toMatchObject({
+			data: { message: 'hello world' },
+		})
+		expect(unchunker.state).toBe('idle')
 	})
 
 	it('handles chunks with empty data parts', () => {
@@ -255,6 +291,7 @@ describe('json unchunker', () => {
 		const result = unchunker.handleMessage('{"interrupt": true}')
 		assert(result && 'error' in result, 'expected error result')
 		expect(result.error.message).toBe('Unexpected non-chunk message')
+		expect(unchunker.state).toBe('idle')
 
 		// Should be able to process messages normally again
 		expect(unchunker.handleMessage('{"ok": true}')).toMatchObject({ data: { ok: true } })
@@ -270,6 +307,7 @@ describe('json unchunker', () => {
 		const result = unchunker.handleMessage('0_part3')
 		assert(result && 'error' in result, 'expected error result')
 		expect(result.error.message).toBe('Chunks received in wrong order')
+		expect(unchunker.state).toBe('idle')
 	})
 
 	it('handles JSON parse error in completed chunk sequence', () => {
@@ -281,6 +319,7 @@ describe('json unchunker', () => {
 
 		assert(result && 'error' in result, 'expected error result')
 		expect(result.error).toBeInstanceOf(Error)
+		expect(unchunker.state).toBe('idle')
 	})
 })
 
@@ -337,6 +376,27 @@ describe('chunk function edge cases', () => {
 		expect(reconstructed).toEqual(unicodeString)
 	})
 
+	it('handles maximum chunk numbers correctly', () => {
+		// Test with a very small chunk size to generate many chunks
+		const result = chunk('a'.repeat(200), 2)
+
+		// Should have many chunks
+		expect(result.length).toBeGreaterThan(50)
+
+		// First chunk should have highest number
+		const firstChunkMatch = /^(\d+)_/.exec(result[0])
+		assert(firstChunkMatch, 'first chunk should match pattern')
+		const firstChunkNumber = parseInt(firstChunkMatch[1], 10)
+
+		// Last chunk should be 0
+		const lastChunkMatch = /^(\d+)_/.exec(result[result.length - 1])
+		assert(lastChunkMatch, 'last chunk should match pattern')
+		expect(parseInt(lastChunkMatch[1], 10)).toBe(0)
+
+		// Total chunks should match first chunk number + 1
+		expect(result.length).toBe(firstChunkNumber + 1)
+	})
+
 	it('ensures no chunk exceeds maxSafeMessageSize', () => {
 		const maxSize = 15
 		const testString = 'hello world this is a long message'
@@ -344,6 +404,24 @@ describe('chunk function edge cases', () => {
 
 		for (const chunk of result) {
 			expect(chunk.length).toBeLessThanOrEqual(maxSize)
+		}
+	})
+
+	it('handles zero maxSafeMessageSize gracefully', () => {
+		// Should still create chunks with minimum size of 1 character + prefix
+		const result = chunk('test', 0)
+		expect(result.length).toBeGreaterThan(1)
+		for (const chunk of result) {
+			expect(chunk.length).toBeGreaterThan(0)
+		}
+	})
+
+	it('handles negative maxSafeMessageSize gracefully', () => {
+		// Should still work, falling back to minimum viable size
+		const result = chunk('test', -10)
+		expect(result.length).toBeGreaterThan(0)
+		for (const chunk of result) {
+			expect(chunk.length).toBeGreaterThan(0)
 		}
 	})
 
@@ -362,5 +440,26 @@ describe('chunk function edge cases', () => {
 			.join('')
 
 		expect(reconstructed).toEqual(veryLargeString)
+	})
+
+	it('handles prefix length calculation correctly for large chunk counts', () => {
+		// Test case that results in many chunks to test prefix length calculation
+		const result = chunk('x'.repeat(1000), 6) // Use larger limit to accommodate prefix
+
+		// Verify that each chunk respects the size limit accounting for prefix
+		for (const chunk of result) {
+			expect(chunk.length).toBeLessThanOrEqual(6)
+			expect(chunk).toMatch(/^\d+_.*$/)
+		}
+
+		// Verify reconstruction
+		const reconstructed = result
+			.map((chunk) => {
+				const match = /^(\d+)_(.*)$/.exec(chunk)
+				return match ? match[2] : chunk
+			})
+			.join('')
+
+		expect(reconstructed).toEqual('x'.repeat(1000))
 	})
 })

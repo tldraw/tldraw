@@ -3,6 +3,31 @@ import { testSchemaV0 } from './testSchema.v0'
 import { testSchemaV1 } from './testSchema.v1'
 
 const serializedV0Schenma = testSchemaV0.serialize()
+const serializedV1Schenma = testSchemaV1.serialize()
+
+test('serializedV0Schenma', () => {
+	expect(serializedV0Schenma).toMatchInlineSnapshot(`
+		{
+		  "schemaVersion": 2,
+		  "sequences": {},
+		}
+	`)
+})
+
+test('serializedV1Schenma', () => {
+	expect(serializedV1Schenma).toMatchInlineSnapshot(`
+		{
+		  "schemaVersion": 2,
+		  "sequences": {
+		    "com.tldraw.shape": 2,
+		    "com.tldraw.shape.oval": 1,
+		    "com.tldraw.shape.rectangle": 1,
+		    "com.tldraw.store": 1,
+		    "com.tldraw.user": 2,
+		  },
+		}
+	`)
+})
 
 test('unknown types fail', () => {
 	expect(
