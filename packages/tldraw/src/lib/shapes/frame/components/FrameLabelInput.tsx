@@ -1,12 +1,16 @@
 import { TLFrameShape, TLShapeId, useEditor } from '@tldraw/editor'
-import { forwardRef, useCallback } from 'react'
+import { forwardRef, useCallback, useEffect } from 'react'
 import { defaultEmptyAs } from '../FrameShapeUtil'
+import { useBreakpoint } from '../../../ui/context/breakpoints'
+import { PORTRAIT_BREAKPOINT } from '../../../ui/constants'
 
 export const FrameLabelInput = forwardRef<
 	HTMLInputElement,
-	{ id: TLShapeId; name: string; isEditing: boolean }
+	{ id: TLShapeId; name: string; isEditing: boolean; }
 >(({ id, name, isEditing }, ref) => {
 	const editor = useEditor()
+	const breakpoint = useBreakpoint()
+  	const isMobile = breakpoint <= PORTRAIT_BREAKPOINT.MOBILE
 
 	const handlePointerDown = useCallback(
 		(e: React.PointerEvent) => {
@@ -68,16 +72,46 @@ export const FrameLabelInput = forwardRef<
 		[id, editor]
 	)
 
+	/* Actual Rename */
+	const renameFrame = useCallback(
+		(newname: string) => {
+			const shape = editor.getShape<TLFrameShape>(id)
+			if (!shape) return
+
+			const name = shape.props.name
+			if (name === newname) return
+
+			editor.updateShapes([
+				{
+					id,
+					type: 'frame',
+					props: { name: newname },
+				},
+			])
+		},
+		[id, editor]
+	)
+
+	/* Mobile rename uses window.prompt */
+	useEffect(() => {
+		if (isEditing && isMobile) {
+			const newname = window.prompt('Rename frame', name)
+			if (newname) {
+				renameFrame(newname)
+			}
+		}
+	}, [isEditing, isMobile, name, renameFrame])
+
 	return (
-		<div className={`tl-frame-label ${isEditing ? 'tl-frame-label__editing' : ''}`}>
+		<div className={`tl-frame-label ${(isEditing && !isMobile) ? 'tl-frame-label__editing' : ''}`}>
 			<input
 				className="tl-frame-name-input"
 				ref={ref}
-				disabled={!isEditing}
-				readOnly={!isEditing}
+				disabled={!isEditing || isMobile}
+				readOnly={!isEditing && !isMobile}
 				style={{ display: isEditing ? undefined : 'none' }}
 				value={name}
-				autoFocus
+				autoFocus={!isMobile}
 				onKeyDown={handleKeyDown}
 				onBlur={handleBlur}
 				onChange={handleChange}
