@@ -11,6 +11,12 @@ import { vi } from 'vitest'
 import { TestEditor } from './TestEditor'
 import { TL } from './test-jsx'
 
+declare module '@tldraw/tlschema' {
+	export interface GlobalShapePropsMap {
+		uncullable: UncullableShape
+	}
+}
+
 // Custom uncullable shape type for testing canCull override
 type UncullableShape = TLBaseShape<'uncullable', { w: number; h: number }>
 

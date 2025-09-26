@@ -1,4 +1,4 @@
-import { T, TLBaseShape, track, useEditor } from '@tldraw/editor'
+import { T, TLShape, track, useEditor } from '@tldraw/editor'
 import { useCallback, useEffect, useRef, useState } from 'react'
 import { TLUiDialogProps } from '../context/dialogs'
 import { useTranslation } from '../hooks/useTranslation/useTranslation'
@@ -25,20 +25,28 @@ function validateUrl(url: string) {
 	return { isValid: false, hasProtocol: false }
 }
 
-type ShapeWithUrl = TLBaseShape<string, { url: string }>
+type ShapeWithUrl = Extract<TLShape, { props: { url: string } }>
+
+function isShapeWithUrl(shape: TLShape | null | undefined): shape is ShapeWithUrl {
+	return !!(shape && 'url' in shape.props && typeof shape.props.url === 'string')
+}
+
+function assertShapeWithUrl(shape: TLShape | null | undefined): asserts shape is ShapeWithUrl {
+	if (!isShapeWithUrl(shape)) {
+		throw new Error('Shape is not a valid ShapeWithUrl')
+	}
+}
 
 export const EditLinkDialog = track(function EditLinkDialog({ onClose }: TLUiDialogProps) {
 	const editor = useEditor()
 
 	const selectedShape = editor.getOnlySelectedShape()
 
-	if (
-		!(selectedShape && 'url' in selectedShape.props && typeof selectedShape.props.url === 'string')
-	) {
+	if (!isShapeWithUrl(selectedShape)) {
 		return null
 	}
 
-	return <EditLinkDialogInner onClose={onClose} selectedShape={selectedShape as ShapeWithUrl} />
+	return <EditLinkDialogInner onClose={onClose} selectedShape={selectedShape} />
 })
 
 export const EditLinkDialogInner = track(function EditLinkDialogInner({
@@ -98,6 +106,7 @@ export const EditLinkDialogInner = track(function EditLinkDialogInner({
 	const handleClear = useCallback(() => {
 		const onlySelectedShape = editor.getOnlySelectedShape()
 		if (!onlySelectedShape) return
+		assertShapeWithUrl(onlySelectedShape)
 		editor.updateShapes([
 			{ id: onlySelectedShape.id, type: onlySelectedShape.type, props: { url: '' } },
 		])
@@ -108,6 +117,7 @@ export const EditLinkDialogInner = track(function EditLinkDialogInner({
 		const onlySelectedShape = editor.getOnlySelectedShape()
 
 		if (!onlySelectedShape) return
+		assertShapeWithUrl(onlySelectedShape)
 
 		// ? URL is a magic value
 		if (onlySelectedShape && 'url' in onlySelectedShape.props) {
