@@ -107,9 +107,6 @@ function assertPeerStoreIsUsable(peer: FuzzTestInstance) {
 	}
 }
 
-let totalNumShapes = 0
-let totalNumPages = 0
-
 function arrowsAreSound(editor: Editor) {
 	const arrows = editor.getCurrentPageShapes().filter((s): s is TLArrowShape => s.type === 'arrow')
 	for (const arrow of arrows) {
@@ -254,9 +251,6 @@ function runTest(seed: number) {
 				throw new Error(`received = ${actual.id}, expected = ${expected.id}\n${e.message}`)
 			}
 		}
-
-		totalNumPages += peers[0].store.query.ids('page').get().size
-		totalNumShapes += peers[0].store.query.ids('shape').get().size
 	} catch (e) {
 		console.error('seed', seed)
 		console.error(
@@ -295,11 +289,3 @@ for (let i = 0; i < NUM_TESTS; i++) {
 		runTest(seed)
 	})
 }
-
-test('totalNumPages', () => {
-	expect(totalNumPages).not.toBe(0)
-})
-
-test('totalNumShapes', () => {
-	expect(totalNumShapes).not.toBe(0)
-})

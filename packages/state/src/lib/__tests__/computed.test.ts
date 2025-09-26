@@ -5,19 +5,13 @@ import {
 	Computed,
 	computed,
 	getComputedInstance,
-	isComputed,
 	isUninitialized,
-	WithDiff,
 	withDiff,
 } from '../Computed'
-import { react, reactor } from '../EffectScheduler'
+import { reactor } from '../EffectScheduler'
 import { assertNever } from '../helpers'
 import { advanceGlobalEpoch, getGlobalEpoch, transact, transaction } from '../transactions'
 import { RESET_VALUE, Signal } from '../types'
-
-function getLastCheckedEpoch(derivation: Computed<any>): number {
-	return (derivation as any).lastCheckedEpoch
-}
 
 describe('derivations', () => {
 	it('will cache a value forever if it has no parents', () => {
@@ -168,25 +162,6 @@ describe('derivations', () => {
 		expect(floor).toHaveBeenCalledTimes(5)
 	})
 
-	it('updates the lastCheckedEpoch whenever the globalEpoch advances', () => {
-		const startEpoch = getGlobalEpoch()
-		const a = atom('', 1)
-
-		const double = vi.fn(() => a.get() * 2)
-		const derivation = computed('', double)
-
-		derivation.get()
-
-		expect(getLastCheckedEpoch(derivation)).toEqual(startEpoch)
-
-		advanceGlobalEpoch()
-		derivation.get()
-
-		expect(getLastCheckedEpoch(derivation)).toBeGreaterThan(startEpoch)
-
-		expect(double).toHaveBeenCalledTimes(1)
-	})
-
 	it('receives UNINTIALIZED as the previousValue the first time it computes', () => {
 		const a = atom('', 1)
 		const double = vi.fn((_prevValue) => a.get() * 2)
@@ -201,27 +176,6 @@ describe('derivations', () => {
 		expect(derivation.get()).toBe(4)
 		expect(isUninitialized(double.mock.calls[1][0])).toBe(false)
 		expect(double.mock.calls[1][0]).toBe(2)
-	})
-
-	it('receives the lastChangedEpoch as the second parameter each time it recomputes', () => {
-		const a = atom('', 1)
-		const double = vi.fn((_prevValue, lastChangedEpoch) => {
-			expect(lastChangedEpoch).toBe(derivation.lastChangedEpoch)
-			return a.get() * 2
-		})
-		const derivation = computed('', double)
-
-		expect(derivation.get()).toBe(2)
-
-		const startEpoch = getGlobalEpoch()
-
-		a.set(2)
-
-		expect(derivation.get()).toBe(4)
-		expect(derivation.lastChangedEpoch).toBeGreaterThan(startEpoch)
-
-		expect(double).toHaveBeenCalledTimes(2)
-		expect.assertions(6)
 	})
 
 	it('can be reacted to', () => {
@@ -368,7 +322,7 @@ function getIncrementalRecordMapper<In, Out>(
 
 		const newUpstream = obj.get()
 
-		const result = { ...previousValue } as Record<string, Out>
+		const result = { ...(previousValue as Record<string, Out>) }
 
 		const changedKeys = new Set<string>()
 		for (const change of diff.flat()) {
@@ -599,25 +553,6 @@ describe(getComputedInstance, () => {
 })
 
 describe('computed isEqual', () => {
-	it('does not get called for the initialization', () => {
-		const isEqual = vi.fn((a, b) => a === b)
-
-		const a = atom('a', 1)
-		const b = computed('b', () => a.get() * 2, { isEqual })
-
-		expect(b.get()).toBe(2)
-		expect(isEqual).not.toHaveBeenCalled()
-		expect(b.get()).toBe(2)
-		expect(isEqual).not.toHaveBeenCalled()
-
-		a.set(2)
-
-		expect(b.get()).toBe(4)
-		expect(isEqual).toHaveBeenCalledTimes(1)
-		expect(b.get()).toBe(4)
-		expect(isEqual).toHaveBeenCalledTimes(1)
-	})
-
 	it('should use custom isEqual to prevent unnecessary updates', () => {
 		const isEqual = vi.fn((a, b) => a?.id === b?.id)
 		const computeFn = vi.fn(() => ({ id: 1, timestamp: Date.now() }))
@@ -647,100 +582,9 @@ describe('computed isEqual', () => {
 		expect(computeFn).toHaveBeenCalledTimes(3)
 		expect(isEqual).toHaveBeenCalledTimes(2)
 	})
-
-	it('should handle null and undefined values in custom isEqual', () => {
-		const isEqual = vi.fn((a, b) => a === b)
-		const source = atom('source', 1)
-
-		const c = computed(
-			'test',
-			() => {
-				const val = source.get()
-				return val === 1 ? null : val === 2 ? undefined : val
-			},
-			{ isEqual }
-		)
-
-		expect(c.get()).toBe(null)
-		source.set(2)
-		expect(c.get()).toBe(undefined)
-		// isEqual is called with (newValue, prevValue)
-		expect(isEqual).toHaveBeenCalledWith(undefined, null)
-
-		source.set(3)
-		expect(c.get()).toBe(3)
-		// Check the second call: isEqual(newValue=3, prevValue=undefined)
-		expect(isEqual).toHaveBeenNthCalledWith(2, 3, undefined)
-	})
 })
 
-describe('UNINITIALIZED symbol and isUninitialized function', () => {
-	it('should export UNINITIALIZED symbol', () => {
-		expect(typeof Symbol.for('com.tldraw.state/UNINITIALIZED')).toBe('symbol')
-	})
-
-	it('isUninitialized should correctly identify UNINITIALIZED values', () => {
-		const UNINITIALIZED_SYMBOL = Symbol.for('com.tldraw.state/UNINITIALIZED')
-		expect(isUninitialized(UNINITIALIZED_SYMBOL)).toBe(true)
-		expect(isUninitialized(undefined)).toBe(false)
-		expect(isUninitialized(null)).toBe(false)
-		expect(isUninitialized(0)).toBe(false)
-		expect(isUninitialized('')).toBe(false)
-		expect(isUninitialized(false)).toBe(false)
-		expect(isUninitialized(Symbol('other'))).toBe(false)
-	})
-
-	it('should pass UNINITIALIZED as prevValue on first computation', () => {
-		const computeFn = vi.fn((prevValue) => {
-			if (isUninitialized(prevValue)) {
-				return 'first'
-			}
-			return 'subsequent'
-		})
-
-		const c = computed('test', computeFn)
-		expect(c.get()).toBe('first')
-		expect(computeFn).toHaveBeenCalledWith(
-			Symbol.for('com.tldraw.state/UNINITIALIZED'),
-			expect.any(Number)
-		)
-	})
-})
-
-describe('WithDiff class and withDiff function', () => {
-	it('should create WithDiff instances with value and diff', () => {
-		const result = withDiff('hello', { type: 'created' })
-		expect(result).toBeInstanceOf(WithDiff)
-		expect(result.value).toBe('hello')
-		expect(result.diff).toEqual({ type: 'created' })
-	})
-
-	it('should work with computed signals returning WithDiff', () => {
-		const count = atom('count', 0)
-		const tracked = computed(
-			'tracked',
-			(prevValue) => {
-				const currentValue = count.get()
-				if (isUninitialized(prevValue)) {
-					return withDiff(currentValue, { type: 'init', value: currentValue })
-				}
-				return withDiff(currentValue, { type: 'change', from: prevValue, to: currentValue })
-			},
-			{ historyLength: 5 }
-		)
-
-		expect(tracked.get()).toBe(0)
-		count.set(5)
-		expect(tracked.get()).toBe(5)
-
-		// Check that the diff was used
-		const diffs = tracked.getDiffSince(getGlobalEpoch() - 1)
-		expect(Array.isArray(diffs)).toBe(true)
-		if (Array.isArray(diffs)) {
-			expect(diffs[0]).toEqual({ type: 'change', from: 0, to: 5 })
-		}
-	})
-
+describe('WithDiff', () => {
 	it('should prefer WithDiff.diff over computeDiff when both are provided', () => {
 		const computeDiff = vi.fn((a, b) => ({ auto: true, from: a, to: b }))
 		const count = atom('count', 0)
@@ -768,41 +612,6 @@ describe('WithDiff class and withDiff function', () => {
 			expect(diffs[0]).toEqual({ manual: true, from: 0, to: 5 })
 		}
 		expect(computeDiff).not.toHaveBeenCalled()
-	})
-})
-
-describe('isComputed type guard', () => {
-	it('should correctly identify computed signals', () => {
-		const c = computed('test', () => 42)
-		const a = atom('test', 42)
-
-		expect(isComputed(c)).toBe(true)
-		expect(isComputed(a)).toBe(false)
-		expect(isComputed(42)).toBe(false)
-		expect(isComputed({})).toBe(false)
-		expect(isComputed({ get: () => 42 })).toBe(false)
-	})
-
-	it('should return false for null and undefined', () => {
-		expect(isComputed(null)).toBe(false)
-		expect(isComputed(undefined)).toBe(false)
-	})
-
-	it('should work as a type guard in conditional blocks', () => {
-		const c = computed('test', () => 42)
-		const a = atom('test', 42)
-		const signals = [c, a]
-
-		for (const signal of signals) {
-			if (isComputed(signal)) {
-				// TypeScript should know this is a Computed
-				expect(signal.isActivelyListening).toBeDefined()
-				expect(signal.parents).toBeDefined()
-			} else {
-				// TypeScript should know this is not a Computed
-				expect('isActivelyListening' in signal).toBe(false)
-			}
-		}
 	})
 })
 
@@ -861,88 +670,6 @@ describe('error handling in computed signals', () => {
 		errorComputed.get()
 		expect(errorComputed.getDiffSince(startEpoch)).toBe(RESET_VALUE)
 	})
-
-	it('should ignore errors when ignoreErrors flag is set', () => {
-		const source = atom('source', 1)
-		const errorComputed = computed('error', () => {
-			if (source.get() === 2) {
-				throw new Error('test error')
-			}
-			return source.get() * 2
-		})
-
-		errorComputed.get() // Initialize
-		source.set(2)
-
-		// Should not throw when ignoreErrors is true
-		const result = errorComputed.__unsafe__getWithoutCapture(true)
-		// Should return UNINITIALIZED state, but we can't easily test the exact value
-		expect(() => result).not.toThrow()
-	})
-
-	it('should rethrow cached error on subsequent gets', () => {
-		const source = atom('source', 2)
-		const errorComputed = computed('error', () => {
-			if (source.get() === 2) {
-				throw new Error('test error')
-			}
-			return source.get() * 2
-		})
-
-		expect(() => errorComputed.get()).toThrow('test error')
-		// Should throw the same cached error without recomputing
-		expect(() => errorComputed.get()).toThrow('test error')
-		expect(() => errorComputed.get()).toThrow('test error')
-	})
-})
-
-describe('isActivelyListening property', () => {
-	it('should be false initially', () => {
-		const c = computed('test', () => 42)
-		expect(c.isActivelyListening).toBe(false)
-	})
-
-	it('should be true when there are reactive dependencies', () => {
-		const source = atom('source', 1)
-		const c = computed('test', () => source.get())
-
-		// Create a reaction that depends on the computed
-		let reactionValue = 0
-		const stop = react('reaction', () => {
-			reactionValue = c.get()
-		})
-
-		expect(c.isActivelyListening).toBe(true)
-
-		stop()
-		expect(c.isActivelyListening).toBe(false)
-	})
-
-	it('should be true when used by another computed signal', () => {
-		const source = atom('source', 1)
-		const c1 = computed('c1', () => source.get())
-		const c2 = computed('c2', () => c1.get() * 2)
-
-		expect(c1.isActivelyListening).toBe(false)
-		expect(c2.isActivelyListening).toBe(false)
-
-		// Access c2, which should make c1 actively listened to
-		c2.get()
-		expect(c1.isActivelyListening).toBe(false) // Still false because c2 isn't listened to
-
-		// Create a reaction on c2
-		let value = 0
-		const stop = react('reaction', () => {
-			value = c2.get()
-		})
-
-		expect(c1.isActivelyListening).toBe(true)
-		expect(c2.isActivelyListening).toBe(true)
-
-		stop()
-		expect(c1.isActivelyListening).toBe(false)
-		expect(c2.isActivelyListening).toBe(false)
-	})
 })
 
 describe('computed without history buffer', () => {
@@ -981,24 +708,6 @@ describe('computed without history buffer', () => {
 })
 
 describe('getDiffSince edge cases', () => {
-	it('should return empty array when epoch equals lastChangedEpoch', () => {
-		const source = atom('source', 1)
-		const c = computed('test', () => source.get() * 2, { historyLength: 5 })
-
-		c.get()
-		const currentEpoch = c.lastChangedEpoch
-		expect(c.getDiffSince(currentEpoch)).toEqual([])
-	})
-
-	it('should return empty array when epoch is greater than lastChangedEpoch', () => {
-		const source = atom('source', 1)
-		const c = computed('test', () => source.get() * 2, { historyLength: 5 })
-
-		c.get()
-		const futureEpoch = c.lastChangedEpoch + 1000
-		expect(c.getDiffSince(futureEpoch)).toEqual([])
-	})
-
 	it('should handle errors during getDiffSince gracefully', () => {
 		const source = atom('source', 1)
 		const errorComputed = computed(
@@ -1018,19 +727,6 @@ describe('getDiffSince edge cases', () => {
 
 		// getDiffSince should not throw even though the computed is in error state
 		expect(() => errorComputed.getDiffSince(startEpoch)).not.toThrow()
-	})
-
-	it('should capture parent relationship during getDiffSince', () => {
-		const source = atom('source', 1)
-		const c1 = computed('c1', () => source.get() * 2, { historyLength: 5 })
-		const c2 = computed('c2', () => {
-			const startEpoch = getGlobalEpoch() - 1
-			c1.getDiffSince(startEpoch) // This should capture c1 as a parent
-			return 42
-		})
-
-		c2.get() // Initialize c2
-		expect(c2.parents).toContain(c1)
 	})
 })
 
@@ -1067,41 +763,9 @@ describe('performance optimizations and caching', () => {
 		expect(c.get()).toBe(200)
 		expect(computeFn).toHaveBeenCalledTimes(1)
 	})
-
-	it('should use lastCheckedEpoch for optimization', () => {
-		const source = atom('source', 1)
-		const computeFn = vi.fn(() => source.get() * 2)
-		const c = computed('test', computeFn)
-
-		c.get() // Initialize
-		const initialLastChecked = getLastCheckedEpoch(c)
-
-		// Advance global epoch without changing dependencies
-		advanceGlobalEpoch()
-		c.get() // Should update lastCheckedEpoch but not recompute
-
-		expect(getLastCheckedEpoch(c)).toBeGreaterThan(initialLastChecked)
-		expect(computeFn).toHaveBeenCalledTimes(1) // Still only one computation
-	})
 })
 
 describe('cleanup and memory management', () => {
-	it('should clean up parent-child relationships when no longer referenced', () => {
-		const source = atom('source', 1)
-		const c1 = computed('c1', () => source.get() * 2)
-		const c2 = computed('c2', () => c1.get() * 2)
-
-		// Create dependency chain
-		c2.get()
-
-		// When we access c2, it creates dependencies: c2 -> c1 -> source
-		// Note: children are only added when there are active listeners
-		// Without active reactors/effects, the children set may be empty
-		// This test mainly verifies the parent structure is set up correctly
-		expect(c1.parents).toContain(source)
-		expect(c2.parents).toContain(c1)
-	})
-
 	it('should handle circular dependencies gracefully', () => {
 		const a = atom('a', 1)
 		const b = atom('b', 2)

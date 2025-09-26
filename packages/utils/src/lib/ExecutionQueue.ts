@@ -88,6 +88,7 @@ export class ExecutionQueue {
 		} finally {
 			// this try/finally should not be needed because the tasks don't throw
 			// but better safe than sorry
+			// console.log('\n\n\nrunning false\n\n\n')
 			this.running = false
 		}
 	}

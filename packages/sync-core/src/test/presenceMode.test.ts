@@ -1,6 +1,6 @@
 import { atom, computed, Signal } from '@tldraw/state'
 import { BaseRecord, createRecordType, RecordId, Store, StoreSchema } from '@tldraw/store'
-import { vi } from 'vitest'
+import { afterEach, expect, test, vi } from 'vitest'
 import { TLSyncClient } from '../lib/TLSyncClient'
 import { TestServer } from './TestServer'
 import { TestSocketPair } from './TestSocketPair'
@@ -91,7 +91,6 @@ test('presence is pushed on change when mode is full', () => {
 	const presenceSignal = atom('', presence)
 
 	const t = new TestInstance(presenceSignal, 'full')
-	t.socketPair.connect()
 	t.flush()
 
 	const session = t.server.room.sessions.values().next().value
@@ -122,7 +121,6 @@ test('presence is only pushed once on connect when mode is solo', () => {
 	const presenceSignal = atom('', presence)
 
 	const t = new TestInstance(presenceSignal, 'solo')
-	t.socketPair.connect()
 	t.flush()
 
 	const session = t.server.room.sessions.values().next().value
