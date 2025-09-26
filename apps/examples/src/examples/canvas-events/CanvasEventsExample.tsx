@@ -3,54 +3,55 @@ import { TLEventInfo, Tldraw } from 'tldraw'
 import 'tldraw/tldraw.css'
 
 // There's a guide at the bottom of this file!
+type TimedEvent = TLEventInfo & { lastUpdated: number }
 
 export default function CanvasEventsExample() {
-	const [events, setEvents] = useState<any[]>([])
+	const [events, setEvents] = useState<Record<string, TimedEvent>>({})
 
 	const handleEvent = useCallback((data: TLEventInfo) => {
-		setEvents((events) => {
-			const newEvents = events.slice(0, 100)
-			if (
-				newEvents[newEvents.length - 1] &&
-				newEvents[newEvents.length - 1].type === 'pointer' &&
-				data.type === 'pointer' &&
-				data.target === 'canvas'
-			) {
-				newEvents[newEvents.length - 1] = data
-			} else {
-				newEvents.unshift(data)
-			}
-			return newEvents
-		})
+		// Update the event entry for this event type with new data
+		// This replaces previous event data of this type completely, keeping one per type
+		setEvents((prevEvents) => ({
+			...prevEvents,
+			[data.type]: {
+			...data,
+			lastUpdated: Date.now(),
+			},
+		}))
 	}, [])
+
+	// Convert events to array and sort by lastUpdated descending (most recent first)
+	const eventsArray = Object.values(events).sort(
+		(a, b) => a.lastUpdated - b.lastUpdated
+	)
 
 	return (
 		<div style={{ display: 'flex' }}>
 			<div style={{ width: '50%', height: '100vh' }}>
 				<Tldraw
-					onMount={(editor) => {
-						editor.on('event', (event) => handleEvent(event))
-					}}
+				onMount={(editor) => {
+					editor.on('event', (event) => handleEvent(event))
+				}}
 				/>
 			</div>
 			<div
 				style={{
-					width: '50%',
-					height: '100vh',
-					padding: 8,
-					background: '#eee',
-					border: 'none',
-					fontFamily: 'monospace',
-					fontSize: 12,
-					borderLeft: 'solid 2px #333',
-					display: 'flex',
-					flexDirection: 'column-reverse',
-					overflow: 'auto',
-					whiteSpace: 'pre-wrap',
+				width: '50%',
+				height: '100vh',
+				padding: 8,
+				background: '#eee',
+				border: 'none',
+				fontFamily: 'monospace',
+				fontSize: 12,
+				borderLeft: 'solid 2px #333',
+				display: 'flex',
+				flexDirection: 'column-reverse',
+				overflow: 'auto',
+				whiteSpace: 'pre-wrap',
 				}}
 				onCopy={(event) => event.stopPropagation()}
 			>
-				<div>{JSON.stringify(events, undefined, 2)}</div>
+				<pre>{JSON.stringify(eventsArray, undefined, 2)}</pre>
 			</div>
 		</div>
 	)
