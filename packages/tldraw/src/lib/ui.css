@@ -621,7 +621,17 @@
 	background: linear-gradient(270deg, rgba(144, 144, 144, 0) 0%, var(--tl-color-muted-2) 100%);
 }
 
-@media (hover: hover) {
+@media (hover: hover) {	
+	.tlui-menu__submenu__trigger:hover::after {
+		opacity: 1;
+		background: linear-gradient(90deg, rgba(144, 144, 144, 0) 0%, var(--tl-color-muted-2) 100%);
+	}
+	
+	.tlui-menu__submenu__trigger[data-direction='left']:hover::after {
+		opacity: 1;
+		background: linear-gradient(270deg, rgba(144, 144, 144, 0) 0%, var(--tl-color-muted-2) 100%);
+	}
+
 	.tlui-menu__submenu__trigger[data-state='open']:not(:hover)::after {
 		opacity: 1;
 		background: linear-gradient(90deg, rgba(144, 144, 144, 0) 0%, var(--tl-color-muted-2) 100%);
