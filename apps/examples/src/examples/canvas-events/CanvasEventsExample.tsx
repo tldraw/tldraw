@@ -36,18 +36,18 @@ export default function CanvasEventsExample() {
 			</div>
 			<div
 				style={{
-				width: '50%',
-				height: '100vh',
-				padding: 8,
-				background: '#eee',
-				border: 'none',
-				fontFamily: 'monospace',
-				fontSize: 12,
-				borderLeft: 'solid 2px #333',
-				display: 'flex',
-				flexDirection: 'column-reverse',
-				overflow: 'auto',
-				whiteSpace: 'pre-wrap',
+					width: '50%',
+					height: '100vh',
+					padding: 8,
+					background: '#eee',
+					border: 'none',
+					fontFamily: 'monospace',
+					fontSize: 12,
+					borderLeft: 'solid 2px #333',
+					display: 'flex',
+					flexDirection: 'column-reverse',
+					overflow: 'auto',
+					whiteSpace: 'pre-wrap',
 				}}
 				onCopy={(event) => event.stopPropagation()}
 			>
