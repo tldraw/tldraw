@@ -67,6 +67,7 @@ test('going up from 0', () => {
 	const persistedSchema = makePersistedSchema([foo, 0], [bar, 0])
 
 	const r = makeTestRecord(persistedSchema)
+	expect(r.versions).toEqual({ foo: 0, bar: 0 })
 	const update = schema.migratePersistedRecord(r, persistedSchema)
 	assert(update.type === 'success', 'the update should be successful')
 
@@ -84,13 +85,14 @@ test('going up with a retroactive: true and a retroactive: false', () => {
 	const persistedSchema = makePersistedSchema()
 
 	const r = makeTestRecord(persistedSchema)
+	expect(r.versions).toEqual({})
 	const update = schema.migratePersistedRecord(r, persistedSchema)
 	assert(update.type === 'success', 'the update should be successful')
 
 	// the original record did not change
 	expect(r.versions).toEqual({})
 
-	// the updated record has the new versions (only retroactive migration applied)
+	// the updated record has the new versions
 	expect((update.value as TestRecordType).versions).toEqual({ foo: 2 })
 })
 
@@ -101,6 +103,7 @@ test('going down to 0s', () => {
 	const persistedSchema = makePersistedSchema([foo, 0], [bar, 0])
 
 	const r = makeTestRecord(schema.serialize())
+	expect(r.versions).toEqual({ foo: 2, bar: 3 })
 	const downgrade = schema.migratePersistedRecord(r, persistedSchema, 'down')
 	assert(downgrade.type === 'success', 'the downgrade should be successful')
 
@@ -118,13 +121,14 @@ test('going down with a retroactive: true and a retroactive: false', () => {
 	const persistedSchema = makePersistedSchema()
 
 	const r = makeTestRecord(schema.serialize())
+	expect(r.versions).toEqual({ foo: 2, bar: 3 })
 	const downgrade = schema.migratePersistedRecord(r, persistedSchema, 'down')
 	assert(downgrade.type === 'success', 'the downgrade should be successful')
 
 	// the original record did not change
 	expect(r.versions).toEqual({ foo: 2, bar: 3 })
 
-	// only the retroactive migrations were undone
+	// only the foo migrations were undone
 	expect((downgrade.value as TestRecordType).versions).toEqual({ foo: 0, bar: 3 })
 })
 

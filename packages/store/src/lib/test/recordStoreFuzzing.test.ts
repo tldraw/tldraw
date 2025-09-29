@@ -114,11 +114,11 @@ const AUTHOR_NAMES = [
 type AuthorName = (typeof AUTHOR_NAMES)[number]
 
 function getRandomBookName(getRandomNumber: () => number) {
-	return BOOK_NAMES[Math.floor(getRandomNumber() * BOOK_NAMES.length)]
+	return BOOK_NAMES[Math.floor(getRandomNumber() * 11)]
 }
 
 function getRandomAuthorName(getRandomNumber: () => number) {
-	return AUTHOR_NAMES[Math.floor(getRandomNumber() * AUTHOR_NAMES.length)]
+	return AUTHOR_NAMES[Math.floor(getRandomNumber() * 11)]
 }
 
 function getRandomBookFromStore(store: Store<Book | Author>, getRandomNumber: () => number): Book {
@@ -323,7 +323,7 @@ function reacreateSetFromDiffs<T>(diffs: CollectionDiff<T>[]) {
 	return result
 }
 
-const NUM_OPS = 50
+const NUM_OPS = 200
 
 function runTest(seed: number) {
 	const store = new Store({
@@ -407,6 +407,9 @@ function runTest(seed: number) {
 					deletedRecords.add(r)
 					store.remove([op.id])
 
+					if (op.id === 'book:0.5525377229080933') {
+						store.query.index('book', 'title').get()
+					}
 					break
 				}
 				case 'set_author_id_query_param': {
@@ -486,7 +489,7 @@ function runTest(seed: number) {
 	}
 }
 
-const NUM_TESTS = 5
+const NUM_TESTS = 100
 for (let i = 0; i < NUM_TESTS; i++) {
 	const seed = Math.floor(Math.random() * 1000000)
 	test('with seed ' + seed, () => {
@@ -494,7 +497,15 @@ for (let i = 0; i < NUM_TESTS; i++) {
 	})
 }
 
-// Keep one regression test to ensure previously found issues don't regress
+// regression tests
 test('(regression) with seed 128383', () => {
 	runTest(128383)
+})
+
+test('(regression) with seed 894844', () => {
+	runTest(894844)
+})
+
+test('(regression) with seed 436077', () => {
+	runTest(436077)
 })
