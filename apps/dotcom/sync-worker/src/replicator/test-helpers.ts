@@ -195,6 +195,7 @@ export function createMockUser(
 		colorScheme: 'auto',
 		isSnapMode: false,
 		isWrapMode: false,
+		inputMode: null,
 		isDynamicSizeMode: false,
 		isPasteAtCursorMode: false,
 		allowAnalyticsCookie: false,
