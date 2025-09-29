@@ -81,6 +81,7 @@
 	"action.stretch-horizontal.short": "Sträck ut H",
 	"action.stretch-vertical": "Sträck ut vertikalt",
 	"action.stretch-vertical.short": "Sträck ut V",
+	"action.toggle-auto-none": "Auto",
 	"action.toggle-auto-size": "Aktivera automatisk storlek",
 	"action.toggle-dark-mode": "Aktivera mörkt läge",
 	"action.toggle-dark-mode.menu": "Mörkt läge",
