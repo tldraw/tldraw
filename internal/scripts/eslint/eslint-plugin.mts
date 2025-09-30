@@ -1,24 +1,20 @@
-// eslint plugins can't use esm
-
-// @ts-ignore - no import/require
-import ts = require('typescript')
-// @ts-ignore - no import/require
-import utils = require('@typescript-eslint/utils')
+/* eslint-disable local/no-whilst */
 import { TSDocParser } from '@microsoft/tsdoc'
+import * as utils from '@typescript-eslint/utils'
 import { RuleContext } from '@typescript-eslint/utils/dist/ts-eslint'
+import { isReassignmentTarget } from 'tsutils'
+import ts from 'typescript'
 
-const { isReassignmentTarget } = require('tsutils') as typeof import('tsutils')
-
-const { ESLintUtils } = utils
+const { AST_NODE_TYPES, ESLintUtils } = utils
 import TSESTree = utils.TSESTree
 
-exports.rules = {
+const rules = {
 	// Rule to enforce using "while" instead of "whilst"
 	'no-whilst': ESLintUtils.RuleCreator.withoutDocs({
 		create(context) {
 			// If we're in the ESLint plugin file, don't apply the rule to avoid
 			// self-reference issues
-			if (context.filename.includes('eslint-plugin.ts')) {
+			if (context.filename.includes('eslint-plugin.mjs')) {
 				return {}
 			}
 
@@ -420,29 +416,29 @@ exports.rules = {
 				const services = ESLintUtils.getParserServices(context)
 
 				const parent = node.parent!
-				if (parent.type === utils.AST_NODE_TYPES.VariableDeclarator && isComponentName(parent.id)) {
+				if (parent.type === AST_NODE_TYPES.VariableDeclarator && isComponentName(parent.id)) {
 					const propsType = services.esTreeNodeToTSNodeMap.get(node).parameters[0]?.type
 					checkComponentDeclaration(services, parent, propsType)
 				}
 
-				if (parent.type === utils.AST_NODE_TYPES.CallExpression) {
+				if (parent.type === AST_NODE_TYPES.CallExpression) {
 					const callee = parent.callee
 					const grandparent = parent.parent!
 
 					const isMemoFn =
-						(callee.type === utils.AST_NODE_TYPES.Identifier && callee.name === 'memo') ||
-						(callee.type === utils.AST_NODE_TYPES.MemberExpression &&
-							callee.property.type === utils.AST_NODE_TYPES.Identifier &&
+						(callee.type === AST_NODE_TYPES.Identifier && callee.name === 'memo') ||
+						(callee.type === AST_NODE_TYPES.MemberExpression &&
+							callee.property.type === AST_NODE_TYPES.Identifier &&
 							callee.property.name === 'memo')
 
 					const isForwardRefFn =
-						(callee.type === utils.AST_NODE_TYPES.Identifier && callee.name === 'forwardRef') ||
-						(callee.type === utils.AST_NODE_TYPES.MemberExpression &&
-							callee.property.type === utils.AST_NODE_TYPES.Identifier &&
+						(callee.type === AST_NODE_TYPES.Identifier && callee.name === 'forwardRef') ||
+						(callee.type === AST_NODE_TYPES.MemberExpression &&
+							callee.property.type === AST_NODE_TYPES.Identifier &&
 							callee.property.name === 'forwardRef')
 
 					const isComponenty =
-						grandparent.type === utils.AST_NODE_TYPES.VariableDeclarator &&
+						grandparent.type === AST_NODE_TYPES.VariableDeclarator &&
 						isComponentName(grandparent.id)
 
 					if (isMemoFn && isComponenty) {
@@ -561,7 +557,7 @@ exports.rules = {
 					checkParams(context, node, node.params, node.id?.name || 'anonymous function')
 				},
 				MethodDefinition(node: TSESTree.MethodDefinition) {
-					if (node.value.type === utils.AST_NODE_TYPES.FunctionExpression) {
+					if (node.value.type === AST_NODE_TYPES.FunctionExpression) {
 						checkParams(
 							context,
 							node,
@@ -591,6 +587,8 @@ exports.rules = {
 		},
 	}),
 }
+
+export default { rules }
 
 function checkParams(
 	context: RuleContext<'paramMismatch' | 'paramMissing', []>,
