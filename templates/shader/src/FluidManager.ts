@@ -40,16 +40,36 @@ export interface FluidManagerConfig {
 	boundsSampleCount: number
 	/** Range for random splat counts [min, max] */
 	randomSplatsRange: [number, number]
-	/** Enable bloom effect */
-	bloom: boolean
-	/** Enable sunrays effect */
-	sunrays: boolean
-	/** Background color override */
-	backgroundColor: { r: number; g: number; b: number }
 	/** Custom color map for dark mode */
 	darkModeColorMap: Record<string, [number, number, number]>
 	/** Custom color map for light mode */
 	lightModeColorMap: Record<string, [number, number, number]>
+
+	// Fluid simulation properties
+	simResolution: number
+	dyeResolution: number
+	densityDissipation: number
+	velocityDissipation: number
+	pressure: number
+	pressureIterations: number
+	curl: number
+	splatRadius: number
+	splatForce: number
+	shading: boolean
+	colorful: boolean
+	colorUpdateSpeed: number
+	paused: boolean
+	backColor: { r: number; g: number; b: number }
+	transparent: boolean
+	bloom: boolean
+	bloomIterations: number
+	bloomResolution: number
+	bloomIntensity: number
+	bloomThreshold: number
+	bloomSoftKnee: number
+	sunrays: boolean
+	sunraysResolution: number
+	sunraysWeight: number
 }
 
 const DEFAULT_CONFIG: FluidManagerConfig = {
@@ -57,11 +77,34 @@ const DEFAULT_CONFIG: FluidManagerConfig = {
 	velocityScale: 0.01,
 	boundsSampleCount: 20,
 	randomSplatsRange: [5, 20],
-	bloom: true,
-	sunrays: true,
-	backgroundColor: { r: 249, g: 250, b: 251 },
 	darkModeColorMap: DEFAULT_DARK_MODE_COLOR_MAP,
 	lightModeColorMap: DEFAULT_LIGHT_MODE_COLOR_MAP,
+
+	// Fluid simulation defaults
+	simResolution: 128,
+	dyeResolution: 1024,
+	densityDissipation: 1,
+	velocityDissipation: 0.2,
+	pressure: 0.8,
+	pressureIterations: 20,
+	curl: 30,
+	splatRadius: 0.25,
+	splatForce: 6000,
+	shading: true,
+	colorful: true,
+	colorUpdateSpeed: 10,
+	paused: false,
+	backColor: { r: 0, g: 0, b: 0 },
+	transparent: false,
+	bloom: true,
+	bloomIterations: 8,
+	bloomResolution: 256,
+	bloomIntensity: 0.8,
+	bloomThreshold: 0.6,
+	bloomSoftKnee: 0.7,
+	sunrays: true,
+	sunraysResolution: 196,
+	sunraysWeight: 1.0,
 }
 
 /**
@@ -70,7 +113,7 @@ const DEFAULT_CONFIG: FluidManagerConfig = {
  */
 export class FluidManager {
 	private fluidSim: FluidSimulation | null = null
-	private config: Required<FluidManagerConfig> = DEFAULT_CONFIG
+	private config: FluidManagerConfig
 	private darkMode: boolean = false
 	private disposables = new Set<() => void>()
 	private isPointerEffectActive = false
@@ -131,12 +174,33 @@ export class FluidManager {
 		this.canvas.width = rect.width * resolutionScale
 		this.canvas.height = rect.height * resolutionScale
 
-		const backgroundColor = darkMode ? { r: 0, g: 0, b: 0 } : this.config.backgroundColor
+		const backgroundColor = darkMode ? { r: 0, g: 0, b: 0 } : this.config.backColor
 
 		this.fluidSim = new FluidSimulation(this.canvas, {
+			SIM_RESOLUTION: this.config.simResolution,
+			DYE_RESOLUTION: this.config.dyeResolution,
+			DENSITY_DISSIPATION: this.config.densityDissipation,
+			VELOCITY_DISSIPATION: this.config.velocityDissipation,
+			PRESSURE: this.config.pressure,
+			PRESSURE_ITERATIONS: this.config.pressureIterations,
+			CURL: this.config.curl,
+			SPLAT_RADIUS: this.config.splatRadius,
+			SPLAT_FORCE: this.config.splatForce,
+			SHADING: this.config.shading,
+			COLORFUL: this.config.colorful,
+			COLOR_UPDATE_SPEED: this.config.colorUpdateSpeed,
+			PAUSED: this.config.paused,
 			BACK_COLOR: backgroundColor,
-			BLOOM: this.config.bloom ?? darkMode,
-			SUNRAYS: this.config.sunrays ?? darkMode,
+			TRANSPARENT: this.config.transparent,
+			BLOOM: this.config.bloom,
+			BLOOM_ITERATIONS: this.config.bloomIterations,
+			BLOOM_RESOLUTION: this.config.bloomResolution,
+			BLOOM_INTENSITY: this.config.bloomIntensity,
+			BLOOM_THRESHOLD: this.config.bloomThreshold,
+			BLOOM_SOFT_KNEE: this.config.bloomSoftKnee,
+			SUNRAYS: this.config.sunrays,
+			SUNRAYS_RESOLUTION: this.config.sunraysResolution,
+			SUNRAYS_WEIGHT: this.config.sunraysWeight,
 		})
 
 		this.fluidSim.start()
