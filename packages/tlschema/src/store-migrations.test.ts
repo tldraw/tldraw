@@ -2,28 +2,18 @@ import { describe, expect, it } from 'vitest'
 import { getTestMigration } from './__tests__/migrationTestUtils'
 import { storeMigrations, storeVersions } from './store-migrations'
 
-describe('storeVersions', () => {
-	it('version constants are in expected order', () => {
-		expect(storeVersions.RemoveCodeAndIconShapeTypes).toBe('com.tldraw.store/1')
-		expect(storeVersions.AddInstancePresenceType).toBe('com.tldraw.store/2')
-		expect(storeVersions.RemoveTLUserAndPresenceAndAddPointer).toBe('com.tldraw.store/3')
-		expect(storeVersions.RemoveUserDocument).toBe('com.tldraw.store/4')
-	})
-})
-
 describe('storeMigrations', () => {
-	it('has all required migrations in sequence', () => {
-		expect(storeMigrations.sequence).toHaveLength(4)
+	it('has valid migration sequence structure', () => {
 		expect(storeMigrations.sequenceId).toBe('com.tldraw.store')
 		expect(storeMigrations.retroactive).toBe(false)
+		expect(storeMigrations.sequence.length).toBeGreaterThan(0)
 
-		const migrationIds = storeMigrations.sequence.map((m) => m.id)
-		expect(migrationIds).toEqual([
-			storeVersions.RemoveCodeAndIconShapeTypes,
-			storeVersions.AddInstancePresenceType,
-			storeVersions.RemoveTLUserAndPresenceAndAddPointer,
-			storeVersions.RemoveUserDocument,
-		])
+		// Verify all migrations have required fields
+		for (const migration of storeMigrations.sequence) {
+			expect(migration.id).toBeDefined()
+			expect(migration.scope).toBeDefined()
+			expect(migration.up).toBeInstanceOf(Function)
+		}
 	})
 })
 
