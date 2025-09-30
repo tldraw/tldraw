@@ -22608,16 +22608,6 @@ __metadata:
   languageName: node
   linkType: hard
 
-"openai@npm:^3.2.1":
-  version: 3.3.0
-  resolution: "openai@npm:3.3.0"
-  dependencies:
-    axios: "npm:^0.26.0"
-    form-data: "npm:^4.0.0"
-  checksum: 10/613fb92552b68dbe915b98eb7d3c0a60a9cc6b6d109ff7ad8d05cca149b8511f2a2cd57fd990bea84bd5bc324e23a5401f635ad7b66976cb0bc6edcc32425ba9
-  languageName: node
-  linkType: hard
-
 "opencontrol@npm:0.0.6":
   version: 0.0.6
   resolution: "opencontrol@npm:0.0.6"
