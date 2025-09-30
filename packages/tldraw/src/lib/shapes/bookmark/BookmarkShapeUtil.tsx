@@ -13,7 +13,6 @@ import {
 	debounce,
 	getHashForString,
 	lerp,
-	stopEventPropagation,
 	tlenv,
 	toDomPrecision,
 	useEditor,
@@ -132,9 +131,9 @@ function BookmarkShapeComponent({ shape }: { shape: TLBookmarkShape }) {
 	const [isFaviconValid, setIsFaviconValid] = useState(true)
 	const onFaviconError = () => setIsFaviconValid(false)
 
-	const useStopPropagationOnShiftKey = useCallback<PointerEventHandler>(
+	const markAsHandledOnShiftKey = useCallback<PointerEventHandler>(
 		(e) => {
-			if (!editor.inputs.shiftKey) stopEventPropagation(e)
+			if (!editor.inputs.shiftKey) editor.markEventAsHandled(e)
 		},
 		[editor]
 	)
@@ -182,8 +181,8 @@ function BookmarkShapeComponent({ shape }: { shape: TLBookmarkShape }) {
 						target="_blank"
 						rel="noopener noreferrer"
 						draggable={false}
-						onPointerDown={useStopPropagationOnShiftKey}
-						onPointerUp={useStopPropagationOnShiftKey}
+						onPointerDown={markAsHandledOnShiftKey}
+						onPointerUp={markAsHandledOnShiftKey}
 					>
 						{isFaviconValid && asset?.props.favicon ? (
 							<img

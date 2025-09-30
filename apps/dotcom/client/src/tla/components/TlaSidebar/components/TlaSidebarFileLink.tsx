@@ -7,6 +7,7 @@ import {
 	TldrawUiMenuContextProvider,
 	TldrawUiTooltip,
 	preventDefault,
+	useMaybeEditor,
 	useMenuIsOpen,
 	useValue,
 } from 'tldraw'
@@ -97,6 +98,7 @@ export function TlaSidebarFileLink({ item, testId }: { item: RecentFile; testId:
 
 export const sidebarMessages = defineMessages({
 	renameFile: { defaultMessage: 'Rename file' },
+	selected: { defaultMessage: 'selected' },
 })
 
 export function TlaSidebarFileLinkInner({
@@ -126,6 +128,11 @@ export function TlaSidebarFileLinkInner({
 	const app = useApp()
 	const focusCtx = useFileSidebarFocusContext()
 	const isSidebarOpenMobile = useIsSidebarOpenMobile()
+	const editor = useMaybeEditor()
+	const intl = useIntl()
+	const enhancedA11yMode = useValue('enhancedA11yMode', () => editor?.user.getEnhancedA11yMode(), [
+		editor,
+	])
 
 	useEffect(() => {
 		// on mount, trigger rename action if this is a new file.
@@ -158,6 +165,7 @@ export function TlaSidebarFileLinkInner({
 	return (
 		<div
 			className={classNames(styles.sidebarFileListItem, styles.hoverable)}
+			data-enhanced-a11y-mode={enhancedA11yMode}
 			data-active={isActive}
 			data-element="file-link"
 			data-testid={testId}
@@ -171,7 +179,9 @@ export function TlaSidebarFileLinkInner({
 			<Link
 				ref={linkRef}
 				onKeyDown={handleKeyDown}
-				aria-label={fileName}
+				aria-label={
+					fileName + (isActive ? ` (${intl.formatMessage(sidebarMessages.selected)})` : '')
+				}
 				onClick={(event) => {
 					// Don't navigate if we are already on the file page
 					// unless the user is holding ctrl or cmd to open in a new tab

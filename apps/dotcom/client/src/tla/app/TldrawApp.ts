@@ -750,6 +750,7 @@ export class TldrawApp {
 			flags: '',
 			allowAnalyticsCookie: null,
 			...restOfPreferences,
+			inputMode: restOfPreferences.inputMode ?? null,
 			locale: restOfPreferences.locale ?? null,
 			animationSpeed: restOfPreferences.animationSpeed ?? null,
 			areKeyboardShortcutsEnabled: restOfPreferences.areKeyboardShortcutsEnabled ?? null,
@@ -759,7 +760,7 @@ export class TldrawApp {
 			isWrapMode: restOfPreferences.isWrapMode ?? null,
 			isDynamicSizeMode: restOfPreferences.isDynamicSizeMode ?? null,
 			isPasteAtCursorMode: restOfPreferences.isPasteAtCursorMode ?? null,
-			showUiLabels: restOfPreferences.showUiLabels ?? null,
+			enhancedA11yMode: restOfPreferences.enhancedA11yMode ?? null,
 		})
 		if (didCreate) {
 			opts.trackEvent('create-user', { source: 'app' })

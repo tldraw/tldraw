@@ -50,6 +50,7 @@ export interface TransformedGeometry2dOptions {
 	isInternal?: boolean
 	debugColor?: string
 	ignore?: boolean
+	excludeFromShapeBounds?: boolean
 }
 
 /** @public */
@@ -66,11 +67,17 @@ export abstract class Geometry2d {
 	isLabel = false
 	isEmptyLabel = false
 	isInternal = false
+	excludeFromShapeBounds = false
 	debugColor?: string
 	ignore?: boolean
 
 	constructor(opts: Geometry2dOptions) {
-		const { isLabel = false, isEmptyLabel = false, isInternal = false } = opts
+		const {
+			isLabel = false,
+			isEmptyLabel = false,
+			isInternal = false,
+			excludeFromShapeBounds = false,
+		} = opts
 		this.isFilled = opts.isFilled
 		this.isClosed = opts.isClosed
 		this.debugColor = opts.debugColor
@@ -78,6 +85,7 @@ export abstract class Geometry2d {
 		this.isLabel = isLabel
 		this.isEmptyLabel = isEmptyLabel
 		this.isInternal = isInternal
+		this.excludeFromShapeBounds = excludeFromShapeBounds
 	}
 
 	isExcludedByFilter(filters?: Geometry2dFilters) {
@@ -301,8 +309,23 @@ export abstract class Geometry2d {
 		return this._vertices
 	}
 
+	getBoundsVertices(): Vec[] {
+		if (this.excludeFromShapeBounds) return []
+		return this.vertices
+	}
+
+	private _boundsVertices: Vec[] | undefined
+
+	// eslint-disable-next-line no-restricted-syntax
+	get boundsVertices(): Vec[] {
+		if (!this._boundsVertices) {
+			this._boundsVertices = this.getBoundsVertices()
+		}
+		return this._boundsVertices
+	}
+
 	getBounds() {
-		return Box.FromPoints(this.vertices)
+		return Box.FromPoints(this.boundsVertices)
 	}
 
 	private _bounds: Box | undefined
@@ -427,6 +450,10 @@ export class TransformedGeometry2d extends Geometry2d {
 
 	getVertices(filters: Geometry2dFilters): Vec[] {
 		return this.geometry.getVertices(filters).map((v) => Mat.applyToPoint(this.matrix, v))
+	}
+
+	getBoundsVertices(): Vec[] {
+		return this.geometry.getBoundsVertices().map((v) => Mat.applyToPoint(this.matrix, v))
 	}
 
 	nearestPoint(point: VecLike, filters?: Geometry2dFilters): Vec {

@@ -6,11 +6,22 @@ import { importPublicKey, str2ab } from '../utils/licensing'
 const GRACE_PERIOD_DAYS = 30
 
 export const FLAGS = {
+	// -- MUTUALLY EXCLUSIVE FLAGS --
+	// Annual means the license expires after a time period, usually 1 year.
 	ANNUAL_LICENSE: 1,
+	// Perpetual means the license never expires up to the max supported version.
 	PERPETUAL_LICENSE: 1 << 1,
+
+	// -- ADDITIVE FLAGS --
+	// Internal means the license is for internal use only.
 	INTERNAL_LICENSE: 1 << 2,
+	// Watermark means the product is watermarked.
 	WITH_WATERMARK: 1 << 3,
+	// Evaluation means the license is for evaluation purposes only.
 	EVALUATION_LICENSE: 1 << 4,
+	// Native means the license is for native apps which switches
+	// on special-case logic.
+	NATIVE_LICENSE: 1 << 5,
 }
 const HIGHEST_FLAG = Math.max(...Object.values(FLAGS))
 
@@ -69,14 +80,12 @@ export interface ValidLicenseKeyResult {
 	isPerpetualLicense: boolean
 	isPerpetualLicenseExpired: boolean
 	isInternalLicense: boolean
+	isNativeLicense: boolean
 	isLicensedWithWatermark: boolean
 	isEvaluationLicense: boolean
 	isEvaluationLicenseExpired: boolean
 	daysSinceExpiry: number
 }
-
-/** @internal */
-export type TestEnvironment = 'development' | 'production'
 
 /** @internal */
 export type TrackType = 'unlicensed' | 'with_watermark' | 'evaluation' | null
@@ -91,13 +100,9 @@ export class LicenseManager {
 	state = atom<LicenseState>('license state', 'pending')
 	public verbose = true
 
-	constructor(
-		licenseKey: string | undefined,
-		testPublicKey?: string,
-		testEnvironment?: TestEnvironment
-	) {
+	constructor(licenseKey: string | undefined, testPublicKey?: string) {
 		this.isTest = process.env.NODE_ENV === 'test'
-		this.isDevelopment = this.getIsDevelopment(testEnvironment)
+		this.isDevelopment = this.getIsDevelopment()
 		this.publicKey = testPublicKey || this.publicKey
 		this.isCryptoAvailable = !!crypto.subtle
 
@@ -119,14 +124,12 @@ export class LicenseManager {
 			})
 	}
 
-	private getIsDevelopment(testEnvironment?: TestEnvironment) {
-		if (testEnvironment === 'development') return true
-		if (testEnvironment === 'production') return false
-
+	private getIsDevelopment() {
 		// If we are using https on a non-localhost domain we assume it's a production env and a development one otherwise
 		return (
 			!['https:', 'vscode-webview:'].includes(window.location.protocol) ||
-			window.location.hostname === 'localhost'
+			window.location.hostname === 'localhost' ||
+			process.env.NODE_ENV !== 'production'
 		)
 	}
 
@@ -166,6 +169,12 @@ export class LicenseManager {
 		const url = new URL(WATERMARK_TRACK_SRC)
 		url.searchParams.set('version', version)
 		url.searchParams.set('license_type', trackType)
+		if ('license' in result) {
+			url.searchParams.set('license_id', result.license.id)
+		}
+		if (process.env.NODE_ENV) {
+			url.searchParams.set('environment', process.env.NODE_ENV)
+		}
 
 		// eslint-disable-next-line no-restricted-globals
 		fetch(url.toString())
@@ -271,6 +280,7 @@ export class LicenseManager {
 				isPerpetualLicense,
 				isPerpetualLicenseExpired: isPerpetualLicense && this.isPerpetualLicenseExpired(expiryDate),
 				isInternalLicense: this.isFlagEnabled(licenseInfo.flags, FLAGS.INTERNAL_LICENSE),
+				isNativeLicense: this.isNativeLicense(licenseInfo),
 				isLicensedWithWatermark: this.isFlagEnabled(licenseInfo.flags, FLAGS.WITH_WATERMARK),
 				isEvaluationLicense,
 				isEvaluationLicenseExpired:
@@ -291,13 +301,13 @@ export class LicenseManager {
 		const currentHostname = window.location.hostname.toLowerCase()
 
 		return licenseInfo.hosts.some((host) => {
-			const normalizedHost = host.toLowerCase().trim()
+			const normalizedHostOrUrlRegex = host.toLowerCase().trim()
 
 			// Allow the domain if listed and www variations, 'example.com' allows 'example.com' and 'www.example.com'
 			if (
-				normalizedHost === currentHostname ||
-				`www.${normalizedHost}` === currentHostname ||
-				normalizedHost === `www.${currentHostname}`
+				normalizedHostOrUrlRegex === currentHostname ||
+				`www.${normalizedHostOrUrlRegex}` === currentHostname ||
+				normalizedHostOrUrlRegex === `www.${currentHostname}`
 			) {
 				return true
 			}
@@ -306,6 +316,12 @@ export class LicenseManager {
 			if (host === '*') {
 				// All domains allowed.
 				return true
+			}
+
+			// Native license support
+			// In this case, `normalizedHost` is actually a protocol, e.g. `app-bundle:`
+			if (this.isNativeLicense(licenseInfo)) {
+				return new RegExp(normalizedHostOrUrlRegex).test(window.location.href)
 			}
 
 			// Glob testing, we only support '*.somedomain.com' right now.
@@ -318,13 +334,17 @@ export class LicenseManager {
 			if (window.location.protocol === 'vscode-webview:') {
 				const currentUrl = new URL(window.location.href)
 				const extensionId = currentUrl.searchParams.get('extensionId')
-				if (normalizedHost === extensionId) {
+				if (normalizedHostOrUrlRegex === extensionId) {
 					return true
 				}
 			}
 
 			return false
 		})
+	}
+
+	private isNativeLicense(licenseInfo: LicenseInfo) {
+		return this.isFlagEnabled(licenseInfo.flags, FLAGS.NATIVE_LICENSE)
 	}
 
 	private getExpirationDateWithoutGracePeriod(expiryDate: Date) {
@@ -389,22 +409,27 @@ export class LicenseManager {
 		// If we added a new flag it will be twice the value of the currently highest flag.
 		// And if all the current flags are on we would get the `HIGHEST_FLAG * 2 - 1`, so anything higher than that means there are new flags.
 		if (result.license.flags >= HIGHEST_FLAG * 2) {
-			this.outputMessages([
-				'This tldraw license contains some unknown flags.',
-				'You may want to update tldraw packages to a newer version to get access to new functionality.',
-			])
+			this.outputMessages(
+				[
+					'Warning: This tldraw license contains some unknown flags.',
+					'This will still work, however, you may want to update tldraw packages to a newer version to get access to new functionality.',
+				],
+				'warning'
+			)
 		}
 	}
 
-	private outputMessages(messages: string[]) {
+	private outputMessages(messages: string[], type: 'warning' | 'error' = 'error') {
 		if (this.isTest) return
 		if (this.verbose) {
 			this.outputDelimiter()
 			for (const message of messages) {
+				const color = type === 'warning' ? 'orange' : 'crimson'
+				const bgColor = type === 'warning' ? 'orange' : 'crimson'
 				// eslint-disable-next-line no-console
 				console.log(
 					`%c${message}`,
-					`color: white; background: crimson; padding: 2px; border-radius: 3px;`
+					`color: ${color}; background: ${bgColor}; padding: 2px; border-radius: 3px;`
 				)
 			}
 			this.outputDelimiter()

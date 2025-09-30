@@ -19,7 +19,7 @@ export function useFixSafariDoubleTapZoomPencilEvents(ref: React.RefObject<HTMLE
 
 		const handleEvent = (e: PointerEvent | TouchEvent) => {
 			if (e instanceof PointerEvent && e.pointerType === 'pen') {
-				;(e as any).isKilled = true
+				editor.markEventAsHandled(e)
 				const { target } = e
 
 				// Allow events to propagate if the app is editing a shape, or if the event is occurring in a text area or input

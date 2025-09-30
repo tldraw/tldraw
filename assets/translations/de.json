@@ -81,6 +81,7 @@
 	"action.stretch-horizontal.short": "Horizontal auseinanderziehen",
 	"action.stretch-vertical": "Vertikal auseinanderziehen",
 	"action.stretch-vertical.short": "Vertikal auseinanderziehen",
+	"action.toggle-auto-none": "Automatisch",
 	"action.toggle-auto-size": "Automatische Größe umschalten",
 	"action.toggle-dark-mode": "Dunkelmodus umschalten",
 	"action.toggle-dark-mode.menu": "Dunkelmodus",

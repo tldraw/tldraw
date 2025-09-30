@@ -2,6 +2,7 @@ import * as HeroiconsSolid from '@heroicons/react/20/solid'
 import * as HeroiconsOutline from '@heroicons/react/24/outline'
 import { DiscordIcon } from './discord'
 import { GithubIcon } from './github'
+import { LinkedinIcon } from './linkedin'
 import { TldrawIcon } from './tldraw'
 import { TwitterIcon } from './twitter'
 
@@ -11,6 +12,7 @@ const icons = {
 	github: GithubIcon,
 	tldraw: TldrawIcon,
 	twitter: TwitterIcon,
+	linkedin: LinkedinIcon,
 	paperclip: HeroiconsOutline.PaperClipIcon,
 	play: HeroiconsSolid.PlayIcon,
 	copy: HeroiconsOutline.ClipboardIcon,

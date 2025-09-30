@@ -1,4 +1,4 @@
-import { stopEventPropagation, useEditor, useValue } from '@tldraw/editor'
+import { useEditor, useValue } from '@tldraw/editor'
 import classNames from 'classnames'
 import { PointerEventHandler, useCallback } from 'react'
 
@@ -8,9 +8,9 @@ const LINK_ICON =
 export function HyperlinkButton({ url }: { url: string }) {
 	const editor = useEditor()
 	const hideButton = useValue('zoomLevel', () => editor.getZoomLevel() < 0.32, [editor])
-	const useStopPropagationOnShiftKey = useCallback<PointerEventHandler>(
+	const markAsHandledOnShiftKey = useCallback<PointerEventHandler>(
 		(e) => {
-			if (!editor.inputs.shiftKey) stopEventPropagation(e)
+			if (!editor.inputs.shiftKey) editor.markEventAsHandled(e)
 		},
 		[editor]
 	)
@@ -22,8 +22,8 @@ export function HyperlinkButton({ url }: { url: string }) {
 			href={url}
 			target="_blank"
 			rel="noopener noreferrer"
-			onPointerDown={useStopPropagationOnShiftKey}
-			onPointerUp={useStopPropagationOnShiftKey}
+			onPointerDown={markAsHandledOnShiftKey}
+			onPointerUp={markAsHandledOnShiftKey}
 			title={url}
 			draggable={false}
 		>

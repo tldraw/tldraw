@@ -58,6 +58,8 @@ function ToggleClippingButton() {
 				onClick={() => {
 					isClippingEnabled$.update((prev) => !prev)
 				}}
+				onPointerDown={editor.markEventAsHandled}
+				onPointerUp={editor.markEventAsHandled}
 			>
 				{clippingEnabled ? '✂️ Disable Clipping' : '○ Enable Clipping'}
 			</button>

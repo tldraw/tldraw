@@ -11,13 +11,13 @@ SELECT
   'user' as "table",
   "allowAnalyticsCookie"::boolean as "0",
   "areKeyboardShortcutsEnabled"::boolean as "1",
-  "exportBackground"::boolean as "2",
-  "exportPadding"::boolean as "3",
-  "isDynamicSizeMode"::boolean as "4",
-  "isPasteAtCursorMode"::boolean as "5",
-  "isSnapMode"::boolean as "6",
-  "isWrapMode"::boolean as "7",
-  "showUiLabels"::boolean as "8",
+  "enhancedA11yMode"::boolean as "2",
+  "exportBackground"::boolean as "3",
+  "exportPadding"::boolean as "4",
+  "isDynamicSizeMode"::boolean as "5",
+  "isPasteAtCursorMode"::boolean as "6",
+  "isSnapMode"::boolean as "7",
+  "isWrapMode"::boolean as "8",
   "animationSpeed"::bigint as "9",
   "createdAt"::bigint as "10",
   "edgeScrollSpeed"::bigint as "11",
@@ -30,8 +30,9 @@ SELECT
   "exportTheme"::text as "18",
   "flags"::text as "19",
   "id"::text as "20",
-  "locale"::text as "21",
-  "name"::text as "22"
+  "inputMode"::text as "21",
+  "locale"::text as "22",
+  "name"::text as "23"
 FROM public."user"
 WHERE "id" = $1
 UNION ALL
@@ -59,7 +60,8 @@ SELECT
   null::text as "19",
   null::text as "20",
   null::text as "21",
-  null::text as "22"
+  null::text as "22",
+  null::text as "23"
 FROM my_file_states
 UNION ALL
 SELECT
@@ -86,7 +88,8 @@ SELECT
   "publishedSlug"::text as "19",
   "sharedLinkType"::text as "20",
   "thumbnail"::text as "21",
-  null::text as "22"
+  null::text as "22",
+  null::text as "23"
 FROM all_files
 UNION ALL
 SELECT
@@ -113,7 +116,8 @@ SELECT
   null::text as "19",
   null::text as "20",
   null::text as "21",
-  null::text as "22"
+  null::text as "22",
+  null::text as "23"
 FROM public."user_mutation_number"
 WHERE "userId" = $1
 UNION ALL
@@ -141,20 +145,21 @@ SELECT
   null::text as "19",
   null::text as "20",
   null::text as "21",
-  null::text as "22"
+  null::text as "22",
+  null::text as "23"
 `
 
 export const columnNamesByAlias = {
 	user: {
 		'0': 'allowAnalyticsCookie',
 		'1': 'areKeyboardShortcutsEnabled',
-		'2': 'exportBackground',
-		'3': 'exportPadding',
-		'4': 'isDynamicSizeMode',
-		'5': 'isPasteAtCursorMode',
-		'6': 'isSnapMode',
-		'7': 'isWrapMode',
-		'8': 'showUiLabels',
+		'2': 'enhancedA11yMode',
+		'3': 'exportBackground',
+		'4': 'exportPadding',
+		'5': 'isDynamicSizeMode',
+		'6': 'isPasteAtCursorMode',
+		'7': 'isSnapMode',
+		'8': 'isWrapMode',
 		'9': 'animationSpeed',
 		'10': 'createdAt',
 		'11': 'edgeScrollSpeed',
@@ -167,8 +172,9 @@ export const columnNamesByAlias = {
 		'18': 'exportTheme',
 		'19': 'flags',
 		'20': 'id',
-		'21': 'locale',
-		'22': 'name',
+		'21': 'inputMode',
+		'22': 'locale',
+		'23': 'name',
 	},
 	file_state: {
 		'0': 'isFileOwner',

@@ -1,3 +1,5 @@
+import PdfJSWorkerSrc from 'pdfjs-dist/build/pdf.worker.min.mjs?url'
+
 import { useState } from 'react'
 import { AssetRecordType, Box, TLAssetId, TLShapeId, createShapeId } from 'tldraw'
 import tldrawPdf from './assets/tldraw.pdf'
@@ -22,10 +24,8 @@ export function PdfPicker({ onOpenPdf }: { onOpenPdf(pdf: Pdf): void }) {
 
 	async function loadPdf(name: string, source: ArrayBuffer): Promise<Pdf> {
 		const PdfJS = await import('pdfjs-dist')
-		PdfJS.GlobalWorkerOptions.workerSrc = new URL(
-			'pdfjs-dist/build/pdf.worker.min.mjs',
-			import.meta.url
-		).toString()
+		PdfJS.GlobalWorkerOptions.workerSrc = PdfJSWorkerSrc
+
 		const pdf = await PdfJS.getDocument(source.slice(0)).promise
 		const pages: PdfPage[] = []
 

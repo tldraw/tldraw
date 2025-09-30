@@ -833,3 +833,93 @@ describe('selectAll', () => {
 		setSelectedShapesSpy.mockRestore()
 	})
 })
+
+describe('putExternalContent', () => {
+	let mockHandler: any
+
+	beforeEach(() => {
+		mockHandler = vi.fn()
+		editor.registerExternalContentHandler('text', mockHandler)
+	})
+
+	it('calls external content handler when not readonly', async () => {
+		vi.spyOn(editor, 'getIsReadonly').mockReturnValue(false)
+
+		const info = { type: 'text' as const, text: 'test-data' }
+		await editor.putExternalContent(info)
+
+		expect(mockHandler).toHaveBeenCalledWith(info)
+	})
+
+	it('does not call external content handler when readonly', async () => {
+		vi.spyOn(editor, 'getIsReadonly').mockReturnValue(true)
+
+		const info = { type: 'text' as const, text: 'test-data' }
+		await editor.putExternalContent(info)
+
+		expect(mockHandler).not.toHaveBeenCalled()
+	})
+
+	it('calls external content handler when readonly but force is true', async () => {
+		vi.spyOn(editor, 'getIsReadonly').mockReturnValue(true)
+
+		const info = { type: 'text' as const, text: 'test-data' }
+		await editor.putExternalContent(info, { force: true })
+
+		expect(mockHandler).toHaveBeenCalledWith(info)
+	})
+
+	it('calls external content handler when force is false and not readonly', async () => {
+		vi.spyOn(editor, 'getIsReadonly').mockReturnValue(false)
+
+		const info = { type: 'text' as const, text: 'test-data' }
+		await editor.putExternalContent(info, { force: false })
+
+		expect(mockHandler).toHaveBeenCalledWith(info)
+	})
+})
+
+describe('replaceExternalContent', () => {
+	let mockHandler: any
+
+	beforeEach(() => {
+		mockHandler = vi.fn()
+		editor.registerExternalContentHandler('text', mockHandler)
+	})
+
+	it('calls external content handler when not readonly', async () => {
+		vi.spyOn(editor, 'getIsReadonly').mockReturnValue(false)
+
+		const info = { type: 'text' as const, text: 'test-data' }
+		await editor.replaceExternalContent(info)
+
+		expect(mockHandler).toHaveBeenCalledWith(info)
+	})
+
+	it('does not call external content handler when readonly', async () => {
+		vi.spyOn(editor, 'getIsReadonly').mockReturnValue(true)
+
+		const info = { type: 'text' as const, text: 'test-data' }
+		await editor.replaceExternalContent(info)
+
+		expect(mockHandler).not.toHaveBeenCalled()
+	})
+
+	it('calls external content handler when readonly but force is true', async () => {
+		vi.spyOn(editor, 'getIsReadonly').mockReturnValue(true)
+
+		const info = { type: 'text' as const, text: 'test-data' }
+		await editor.replaceExternalContent(info, { force: true })
+
+		expect(mockHandler).toHaveBeenCalledWith(info)
+	})
+
+	it('calls external content handler when force is false and not readonly', async () => {
+		vi.spyOn(editor, 'getIsReadonly').mockReturnValue(false)
+
+		const info = { type: 'text' as const, text: 'test-data' }
+		await editor.replaceExternalContent(info, { force: false })
+
+		expect(mockHandler).toHaveBeenCalledWith(info)
+	})
+})

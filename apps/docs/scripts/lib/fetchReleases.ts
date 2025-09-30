@@ -90,7 +90,7 @@ export async function fetchReleases() {
 				process.cwd(),
 				'content',
 				'getting-started',
-				'releases-versioning.mdx'
+				'releases.mdx'
 			)
 			const releasesPageContent = fs.readFileSync(releasesPagePath, 'utf-8')
 
