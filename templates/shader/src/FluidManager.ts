@@ -44,8 +44,6 @@ export interface FluidManagerConfig {
 	darkModeColorMap: Record<string, [number, number, number]>
 	/** Custom color map for light mode */
 	lightModeColorMap: Record<string, [number, number, number]>
-
-	// Fluid simulation properties
 	/** Resolution of the simulation grid (lower = faster, higher = more detailed) */
 	simResolution: number
 	/** Resolution of the dye texture (affects visual quality) */
