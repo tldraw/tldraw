@@ -1,151 +1,305 @@
-# Tests to review
+# Tests to Review
 
-- [x] packages/state/src/lib/**tests**/arraySet.test.ts
-- [x] packages/state/src/lib/**tests**/atom.test.ts
-- [x] packages/state/src/lib/**tests**/capture.test.ts
-- [x] packages/state/src/lib/**tests**/computed.test.ts
-- [x] packages/state/src/lib/**tests**/constants.test.ts
-- [x] packages/state/src/lib/**tests**/EffectScheduler.test.ts
-- [x] packages/state/src/lib/**tests**/helpers.test.ts
-- [x] packages/state/src/lib/**tests**/HistoryBuffer.test.ts
-- [x] packages/state/src/lib/**tests**/isSignal.test.ts
-- [x] packages/state/src/lib/**tests**/transactions.test.ts
-- [x] packages/state/src/lib/**tests**/types.test.ts
-- [x] packages/state/src/lib/**tests**/warnings.test.ts
-- [x] packages/store/src/lib/BaseRecord.test.ts
-- [x] packages/store/src/lib/devFreeze.test.ts
-- [x] packages/store/src/lib/executeQuery.test.ts
-- [x] packages/store/src/lib/ImmutableMap.test.ts
-- [x] packages/store/src/lib/IncrementalSetConstructor.test.ts
-- [x] packages/store/src/lib/migrate.test.ts
-- [x] packages/store/src/lib/RecordsDiff.test.ts
-- [x] packages/store/src/lib/setUtils.test.ts
-- [x] packages/store/src/lib/Store.test.ts
-- [x] packages/store/src/lib/StoreQueries.test.ts
-- [x] packages/store/src/lib/StoreSchema.test.ts
-- [x] packages/store/src/lib/test/AtomMap.test.ts
-- [x] packages/store/src/lib/test/recordType.test.ts
-- [x] packages/sync-core/src/lib/ClientWebSocketAdapter.test.ts
-- [x] packages/sync-core/src/lib/findMin.test.ts
-- [x] packages/sync-core/src/lib/protocol.test.ts
-- [x] packages/sync-core/src/lib/RoomSession.test.ts
-- [x] packages/sync-core/src/lib/server-types.test.ts
-- [x] packages/sync-core/src/lib/ServerSocketAdapter.test.ts
-- [x] packages/sync-core/src/lib/TLRemoteSyncError.test.ts
-- [x] packages/sync-core/src/lib/TLSyncClient.test.ts
-- [x] packages/sync-core/src/test/chunk.test.ts
-- [x] packages/sync-core/src/test/diff.test.ts
-- [x] packages/sync-core/src/test/TLSocketRoom.test.ts
-- [x] packages/sync-core/src/test/TLSyncRoom.test.ts
-- [x] packages/sync/src/useSync.test.ts
-- [x] packages/sync/src/useSyncDemo.test.ts
-- [x] packages/tlschema/src/assets/TLBaseAsset.test.ts
-- [x] packages/tlschema/src/assets/TLBookmarkAsset.test.ts
-- [x] packages/tlschema/src/assets/TLImageAsset.test.ts
-- [x] packages/tlschema/src/assets/TLVideoAsset.test.ts
-- [x] packages/tlschema/src/bindings/TLArrowBinding.test.ts
-- [x] packages/tlschema/src/bindings/TLBaseBinding.test.ts
-- [x] packages/tlschema/src/createPresenceStateDerivation.test.ts
-- [x] packages/tlschema/src/createTLSchema.test.ts
-- [x] packages/tlschema/src/misc/geometry-types.test.ts
-- [x] packages/tlschema/src/misc/id-validator.test.ts
-- [x] packages/tlschema/src/misc/TLColor.test.ts
-- [x] packages/tlschema/src/misc/TLCursor.test.ts
-- [x] packages/tlschema/src/misc/TLHandle.test.ts
-- [x] packages/tlschema/src/misc/TLOpacity.test.ts
-- [x] packages/tlschema/src/misc/TLScribble.test.ts
-- [x] packages/tlschema/src/records/TLAsset.test.ts
-- [x] packages/tlschema/src/records/TLBinding.test.ts
-- [x] packages/tlschema/src/records/TLCamera.test.ts
-- [x] packages/tlschema/src/records/TLDocument.test.ts
-- [x] packages/tlschema/src/records/TLInstance.test.ts
-- [x] packages/tlschema/src/records/TLPage.test.ts
-- [x] packages/tlschema/src/records/TLPageState.test.ts
-- [x] packages/tlschema/src/records/TLPointer.test.ts
-- [x] packages/tlschema/src/records/TLPresence.test.ts
-- [x] packages/tlschema/src/records/TLRecord.test.ts
-- [x] packages/tlschema/src/records/TLShape.test.ts
-- [x] packages/tlschema/src/recordsWithProps.test.ts
-- [x] packages/tlschema/src/shapes/ShapeWithCrop.test.ts
-- [x] packages/tlschema/src/shapes/TLArrowShape.test.ts
-- [x] packages/tlschema/src/shapes/TLBaseShape.test.ts
-- [x] packages/tlschema/src/shapes/TLBookmarkShape.test.ts
-- [x] packages/tlschema/src/shapes/TLDrawShape.test.ts
-- [x] packages/tlschema/src/shapes/TLEmbedShape.test.ts
-- [x] packages/tlschema/src/shapes/TLFrameShape.test.ts
-- [x] packages/tlschema/src/shapes/TLGeoShape.test.ts
-- [x] packages/tlschema/src/shapes/TLGroupShape.test.ts
-- [x] packages/tlschema/src/shapes/TLHighlightShape.test.ts
-- [x] packages/tlschema/src/shapes/TLImageShape.test.ts
-- [x] packages/tlschema/src/shapes/TLLineShape.test.ts
-- [x] packages/tlschema/src/shapes/TLNoteShape.test.ts
-- [x] packages/tlschema/src/shapes/TLTextShape.test.ts
-- [x] packages/tlschema/src/shapes/TLVideoShape.test.ts
-- [x] packages/tlschema/src/store-migrations.test.ts
-- [x] packages/tlschema/src/styles/StyleProp.test.ts
-- [x] packages/tlschema/src/styles/TLColorStyle.test.ts
-- [x] packages/tlschema/src/styles/TLDashStyle.test.ts
-- [x] packages/tlschema/src/styles/TLFillStyle.test.ts
-- [x] packages/tlschema/src/styles/TLFontStyle.test.ts
-- [x] packages/tlschema/src/styles/TLHorizontalAlignStyle.test.ts
-- [x] packages/tlschema/src/styles/TLSizeStyle.test.ts
-- [x] packages/tlschema/src/styles/TLTextAlignStyle.test.ts
-- [x] packages/tlschema/src/styles/TLVerticalAlignStyle.test.ts
-- [x] packages/tlschema/src/TLStore.test.ts
-- [x] packages/tlschema/src/translations/languages.test.ts
-- [x] packages/tlschema/src/translations/translations.test.ts
-- [x] packages/tlschema/src/util-types.test.ts
-- [x] packages/utils/src/lib/array.test.ts
-- [x] packages/utils/src/lib/bind.test.ts
-- [x] packages/utils/src/lib/cache.test.ts
-- [x] packages/utils/src/lib/control.test.ts
-- [x] packages/utils/src/lib/error.test.ts
-- [x] packages/utils/src/lib/file.test.ts
-- [x] packages/utils/src/lib/function.test.ts
-- [x] packages/utils/src/lib/hash.test.ts
-- [x] packages/utils/src/lib/id.test.ts
-- [x] packages/utils/src/lib/iterable.test.ts
-- [x] packages/utils/src/lib/json-value.test.ts
-- [x] packages/utils/src/lib/media/apng.test.ts
-- [x] packages/utils/src/lib/media/avif.test.ts
-- [x] packages/utils/src/lib/media/gif.test.ts
-- [x] packages/utils/src/lib/media/media.test.ts
-- [x] packages/utils/src/lib/media/webp.test.ts
-- [x] packages/utils/src/lib/network.test.ts
-- [x] packages/utils/src/lib/number.test.ts
-- [x] packages/utils/src/lib/object.test.ts
-- [x] packages/utils/src/lib/perf.test.ts
-- [x] packages/utils/src/lib/PerformanceTracker.test.ts
-- [x] packages/utils/src/lib/reordering.test.ts
-- [x] packages/utils/src/lib/retry.test.ts
-- [x] packages/utils/src/lib/sort.test.ts
-- [x] packages/utils/src/lib/storage.test.ts
-- [x] packages/utils/src/lib/stringEnum.test.ts
-- [x] packages/utils/src/lib/throttle.test.ts
-- [x] packages/utils/src/lib/timers.test.ts
-- [x] packages/utils/src/lib/types.test.ts
-- [x] packages/utils/src/lib/url.test.ts
-- [x] packages/utils/src/lib/value.test.ts
-- [x] packages/utils/src/lib/version.test.ts
-- [x] packages/utils/src/lib/warn.test.ts
-- [x] packages/validate/src/test/validation.test.ts
-- [x] packages/worker-shared/src/bookmarks.test.ts
-- [x] packages/worker-shared/src/env.test.ts
-- [x] packages/worker-shared/src/errors.test.ts
-- [x] packages/worker-shared/src/handleRequest.test.ts
-- [x] packages/worker-shared/src/sentry.test.ts
-- [x] packages/worker-shared/src/userAssetUploads.test.ts
+This document identifies test files that may need cleanup based on the following criteria:
 
-## Needs Human Review
+- Tests should focus on business logic, not trivial operations
+- Tests should not test simple field creation/deletion or basic type operations
+- Tests should be maintainable and not brittle
+- Tests should not over-mock to the point of not testing underlying code
+- Tests should not duplicate coverage already provided elsewhere
+- Tests should not test things TypeScript already catches
+- Tests should not test trivial object creation
 
-- `packages/tlschema/src/TLStore.test.ts`: Reimplements the private `sortByIndex` helper inline and uses a placeholder assertion for `redactRecordForErrorReporting`, so the tests never exercise the actual implementation.
-- `packages/utils/src/lib/media/webp.test.ts`: Copies the unexported `isWebp` helper into the test suite; any regressions in the real function would go unnoticed because the duplicated logic always passes.
-- `packages/state/src/lib/__tests__/arraySet.test.ts`: Multiple `it.fails` cases document real bugs where `ArraySet.visit`/iterator drop `undefined` entries—confirmed against the implementation.
-- `packages/state/src/lib/__tests__/computed.test.ts`: `it.fails` documents that `isComputed(null/undefined)` returns the input instead of `false` due to a truthy check in `Computed.ts`.
-- `packages/tlschema/src/translations/translations.test.ts`: `it.fails` highlights that `getDefaultTranslationLocale` crashes when `window.navigator` is undefined because the implementation dereferences `navigator` before null checks.
-- `packages/worker-shared/src/sentry.test.ts`: `it.fails` shows `createSentry` doesn’t honor the documented “undefined means development” behavior and still calls `requiredEnv` when both `SENTRY_DSN` and `TLDRAW_ENV` are unset.
-- `packages/sync-core/src/lib/ClientWebSocketAdapter.test.ts`: Several `it.fails` cases note missing reconnection behaviors (exponential backoff bounds, visibility-based delays, navigator.connection reactions) in `ReconnectManager`.
-- `packages/sync-core/src/lib/TLSyncClient.test.ts`: Multiple `it.fails` cases mark gaps in handling old connect responses and `push_result` actions (rebase/discard/commit) in `TLSyncClient`.
-- `packages/tlschema/src/createTLSchema.test.ts`: `test.fails` indicates `createTLSchema` does not validate the shape of custom schema props, so malformed definitions go through silently.
-- `packages/utils/src/lib/timers.test.ts`: Test fixtures mirror the implementation’s argument-packing bug and sidestep `disposeAll` gaps by giving every interval/raf a timeout context, so regressions in real usage would sail through.
-- `packages/utils/src/lib/version.test.ts`: The “package manager deduplication” scenario asserts we should warn on identical version triple-registrations, locking in the duplicate-detection bug instead of catching it.
+## Analysis Results
+
+### Packages Analyzed
+
+- [x] packages/worker-shared
+- [x] packages/validate
+- [x] packages/utils
+- [x] packages/tlschema
+- [x] packages/sync
+- [x] packages/sync-core
+- [x] packages/store
+- [x] packages/state
+- [x] packages/state-react
+
+---
+
+## packages/worker-shared
+
+### Tests Needing Cleanup
+
+**`src/index.test.ts`**
+
+- **Issue**: Contains only a trivial "works" test that does nothing
+- **Problem**: This test serves no purpose other than making vitest pass - tests TypeScript compilation rather than business logic
+- **Recommendation**: Delete this file entirely as it provides no value
+
+**`src/env.test.ts`**
+
+- **Issues Found**:
+  - `returns environment when all required variables are present` - Tests trivial object return behavior that TypeScript guarantees
+  - `accepts falsy values except undefined` - Tests type system behavior rather than business logic
+  - `handles empty keys object` - Tests trivial edge case with no business value
+- **Business Logic Tests (Keep)**: The error throwing tests are valuable as they test the actual validation logic
+
+**`src/sentry.test.ts`**
+
+- **Issues Found**:
+  - Tests primarily mock setup and basic object creation rather than business logic
+  - Heavy mocking obscures what's actually being tested
+  - `returns null when SENTRY_DSN is undefined` - Tests simple conditional logic that could be caught by TypeScript
+- **Recommendation**: Simplify to focus on core Sentry configuration logic rather than mocking internals
+
+**`src/handleRequest.test.ts`**
+
+- **Issues Found**:
+  - `handles after function throwing error` - Over-engineered test with excessive mocking
+  - `parseRequestQuery` and `parseRequestBody` tests mostly validate the validation library rather than business logic
+  - Heavy mocking of router, request objects obscures actual functionality being tested
+- **Business Logic Tests (Keep)**: Error handling and status code generation tests have value
+
+**`src/userAssetUploads.test.ts`**
+
+- **Issues Found**:
+  - Extensive mocking of R2 bucket interface that doesn't test real bucket behavior
+  - `propagates bucket errors` tests simple error re-throwing without business logic
+  - `returns 409 when asset already exists` - While this tests business logic, the extensive interface mocking reduces confidence
+- **Business Logic Tests (Keep)**: Cache behavior and response status logic are valuable
+
+**`src/bookmarks.test.ts`**
+
+- **Tests Look Good**: This file focuses on real business logic - URL validation, metadata extraction, image processing workflows, error handling. The mocking is appropriate and tests actual functionality.
+
+---
+
+## packages/validate
+
+### Tests Analysis
+
+**`src/test/validation.test.ts`**
+
+- **Tests Look Good**: This file tests core validation library functionality - error messages, union types, refinement logic, performance optimizations. All tests focus on essential business logic of the validation system.
+
+**`src/test/validation.fuzz.test.ts`**
+
+- **Tests Look Good**: Property-based/fuzz testing is valuable for validation libraries. Tests random data generation and validation edge cases that might not be covered by unit tests.
+
+**Overall Assessment**: The validate package has well-written tests that focus on the actual validation business logic rather than trivial operations.
+
+---
+
+## packages/utils
+
+### Tests Analysis
+
+**Overall Assessment**: Most utils tests focus on legitimate business logic and behavior verification. However, some tests show patterns that could be cleaned up:
+
+### Tests with Minor Issues
+
+**`src/lib/value.test.ts`**
+
+- **Minor Issues**:
+  - Tests like `isDefined` checking basic type comparisons that TypeScript would catch
+  - Simple null/undefined checks are somewhat redundant with type system
+- **Keep**: Tests involving filter behavior and edge cases are valuable
+
+**`src/lib/object.test.ts`**
+
+- **Minor Issues**:
+  - `hasOwnProperty` tests checking basic property existence - mostly testing JavaScript fundamentals
+  - `getOwnProperty` basic value retrieval tests
+- **Keep**: Tests for edge cases like null prototype objects and overridden hasOwnProperty
+
+**`src/lib/array.test.ts`**
+
+- **Tests Look Good**: Focus on algorithm correctness (rotation, deduplication, etc.) - this is genuine business logic
+
+**`src/lib/id.test.ts`**
+
+- **Minor Issues**:
+  - Tests for basic ID generation and length checking are somewhat trivial
+- **Keep**: Uniqueness verification tests are valuable for ID generation
+
+**`src/lib/bind.test.ts`**
+
+- **Tests Look Good**: Tests decorator functionality which is complex business logic that needs verification
+
+**`src/lib/debounce.test.ts`**
+
+- **Tests Look Good**: Tests timing behavior and promise handling - essential for debounce functionality
+
+**`src/lib/cache.test.ts`**
+
+- **Tests Look Good**: Tests caching logic, callback invocation patterns - real business logic
+
+### Recommendation
+
+The utils package mostly has appropriate tests. The few minor issues involve tests that verify basic JavaScript/TypeScript behavior rather than complex utility logic. Most tests appropriately verify algorithmic correctness and edge case handling.
+
+---
+
+## packages/tlschema
+
+### Tests Analysis - Major Issues Found
+
+**Overall Assessment**: This package has the most problematic tests of all analyzed packages. The majority of tests focus on trivial validation rather than business logic.
+
+### Tests Needing Cleanup
+
+**Most asset, shape, and record test files (`src/assets/*.test.ts`, `src/shapes/*.test.ts`, `src/records/*.test.ts`)**
+
+- **Major Issues**:
+  - Tests like `should accept valid shape IDs` and `should reject IDs without shape prefix` are testing basic string validation
+  - ID validation tests are redundant with TypeScript and the validation library
+  - Object creation tests that simply verify field assignment
+  - Simple validation of required vs optional fields
+
+**`src/misc/TLColor.test.ts`**
+
+- **Major Issues**:
+  - `should contain all expected canvas UI color types` - Tests a static Set contains expected values (trivial)
+  - `should validate all valid canvas UI color types` - Tests basic enum validation already covered by type system
+
+**`src/translations/languages.test.ts`**
+
+- **Major Issues**:
+  - `should have unique locale identifiers` - Tests array uniqueness (trivial operation)
+  - `should follow BCP 47 format patterns` - Tests regex pattern matching (not business logic)
+  - `should contain data and have correct structure` - Tests basic object property existence
+
+### Pattern of Problems
+
+The tlschema package tests suffer from a systematic issue: they primarily test the validation schemas rather than any complex business logic. These are essentially testing:
+
+1. **Type validation** - Already handled by TypeScript
+2. **Schema validation** - Already tested in the @tldraw/validate package
+3. **Basic object creation** - Trivial operations
+4. **String pattern matching** - No business logic involved
+
+### Recommended Actions
+
+**High Priority for Cleanup**:
+
+- All basic ID validation tests across assets, shapes, records
+- Object structure validation tests
+- Basic field presence/absence tests
+- Simple enum/set membership tests
+
+**Keep** (if any):
+
+- Migration tests (actual business logic)
+- Complex validation scenarios with business rules
+- Edge case handling that involves domain-specific logic
+
+### Impact
+
+Removing these trivial tests would significantly reduce maintenance overhead while losing no meaningful test coverage, as the underlying functionality is already covered by TypeScript's type system and the validation library's own tests.
+
+---
+
+## packages/sync
+
+### Tests Analysis
+
+**`src/index.test.ts`**
+
+- **Major Issue**: Contains only a trivial "make ci pass with empty test" placeholder
+- **Recommendation**: Delete this file entirely
+
+**`src/useSyncDemo.test.ts`**
+
+- **Tests Look Good**: This file tests real business logic - URI encoding, host configuration, asset upload restrictions, bookmark metadata handling, file name sanitization. All tests focus on actual functionality rather than trivial operations.
+
+---
+
+## packages/sync-core
+
+### Tests Analysis
+
+**`src/lib/protocol.test.ts`**
+
+- **Issues Found**:
+  - `should return version 7 as the current version` - Tests a simple constant return value
+  - `should contain all expected incompatibility reason constants` - Tests static constant values
+- **Recommendation**: These are trivial constant tests that provide no business value
+
+**`src/lib/server-types.test.ts`**
+
+- **Tests Look Good**: Tests JSON serialization compatibility for database storage - this is legitimate business logic for persistence systems
+
+**Other test files** (sampled):
+
+- Most sync-core tests appear to focus on complex synchronization logic, protocol handling, and system integration - appropriate for testing
+
+---
+
+## packages/store
+
+### Tests Analysis
+
+**`src/lib/BaseRecord.test.ts`**
+
+- **Minor Issues**:
+  - `should return true/false for valid/invalid records` - Basic type checking tests
+  - `should work as type guard` - Testing TypeScript's type system behavior
+- **Keep**: The tests do verify runtime type guard behavior which has some value
+
+**`src/lib/setUtils.test.ts`**
+
+- **Tests Look Good**: Tests set operations algorithms (intersection, diffing) - legitimate mathematical business logic
+
+**Overall Assessment**: Store package tests mostly focus on complex data structure operations, migrations, queries, and reactive patterns - appropriate testing for a sophisticated storage system.
+
+---
+
+## packages/state
+
+### Tests Analysis
+
+**`src/lib/__tests__/atom.test.ts`**
+
+- **Tests Look Good**: Tests core reactive state functionality - atom creation, updates, epoch management, history tracking. This is complex business logic that needs verification.
+
+**Overall Assessment**: State package tests focus on reactive programming primitives, effect scheduling, transaction management - all complex business logic that requires thorough testing.
+
+---
+
+## packages/state-react
+
+### Tests Analysis
+
+**`src/lib/useAtom.test.tsx`**
+
+- **Tests Look Good**: Tests React integration with state system - hook behavior, re-render patterns, atom lifecycle management. Complex integration logic that needs verification.
+
+**Overall Assessment**: State-react package tests focus on React integration patterns and hook behavior - legitimate testing of complex integration logic.
+
+---
+
+## Summary
+
+### Packages with Major Test Issues
+
+1. **packages/tlschema** - Extensive trivial validation testing
+2. **packages/worker-shared** - Multiple files with over-mocking and trivial tests
+3. **packages/sync** - One completely empty test file
+
+### Packages with Minor Issues
+
+4. **packages/utils** - Some basic JavaScript behavior tests
+5. **packages/store** - Minor type checking tests
+
+### Packages with Good Tests
+
+6. **packages/validate** - Well-focused validation business logic
+7. **packages/sync-core** - Complex synchronization logic testing
+8. **packages/state** - Reactive programming primitives
+9. **packages/state-react** - React integration patterns
+
+### Overall Recommendation
+
+The **packages/tlschema** package should be the highest priority for test cleanup, as it contains the most systematic issues with trivial validation testing that duplicates TypeScript's type checking capabilities.
+
+---

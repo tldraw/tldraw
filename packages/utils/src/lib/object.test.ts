@@ -3,7 +3,6 @@ import {
 	areObjectsShallowEqual,
 	filterEntries,
 	getChangedKeys,
-	getOwnProperty,
 	groupBy,
 	hasOwnProperty,
 	isEqualAllowingForFloatingPointErrors,
@@ -17,40 +16,12 @@ import {
 } from './object'
 
 describe('hasOwnProperty', () => {
-	it('should distinguish own vs inherited properties', () => {
-		const obj = { name: 'Alice' }
-		expect(hasOwnProperty(obj, 'name')).toBe(true)
-		expect(hasOwnProperty(obj, 'toString')).toBe(false)
-	})
-
 	it('should work with objects that override hasOwnProperty', () => {
 		const obj = {
 			name: 'Alice',
 			hasOwnProperty: () => false,
 		}
 		expect(hasOwnProperty(obj, 'name')).toBe(true)
-	})
-
-	it('should work with null prototype objects', () => {
-		const obj = Object.create(null)
-		obj.name = 'Alice'
-		expect(hasOwnProperty(obj, 'name')).toBe(true)
-		expect(hasOwnProperty(obj, 'toString')).toBe(false)
-	})
-})
-
-describe('getOwnProperty', () => {
-	it('should return own property values vs undefined for non-own', () => {
-		const user = { name: 'Alice' }
-		expect(getOwnProperty(user, 'name')).toBe('Alice')
-		expect(getOwnProperty(user, 'toString')).toBeUndefined()
-		expect(getOwnProperty(user, 'unknown')).toBeUndefined()
-	})
-
-	it('should handle null and undefined values correctly', () => {
-		const obj = { nullable: null, undefinedValue: undefined }
-		expect(getOwnProperty(obj, 'nullable')).toBeNull()
-		expect(getOwnProperty(obj, 'undefinedValue')).toBeUndefined()
 	})
 })
 

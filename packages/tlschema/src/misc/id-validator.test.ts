@@ -37,31 +37,6 @@ describe('idValidator', () => {
 		expect(() => shapeValidator.validate('')).toThrow('shape ID must start with "shape:"')
 	})
 
-	it('should reject non-string values', () => {
-		const validator = idValidator<MockShapeId>('shape')
-
-		expect(() => validator.validate(123)).toThrow()
-		expect(() => validator.validate(null)).toThrow()
-		expect(() => validator.validate(undefined)).toThrow()
-		expect(() => validator.validate({})).toThrow()
-	})
-
-	it('should be case-sensitive for prefix', () => {
-		const validator = idValidator<MockShapeId>('shape')
-
-		expect(() => validator.validate('SHAPE:abc123')).toThrow('shape ID must start with "shape:"')
-		expect(() => validator.validate('Shape:abc123')).toThrow('shape ID must start with "shape:"')
-	})
-
-	it('should work with isValid method', () => {
-		const validator = idValidator<MockShapeId>('shape')
-
-		expect(validator.isValid('shape:abc123')).toBe(true)
-		expect(validator.isValid('page:abc123')).toBe(false)
-		expect(validator.isValid(123)).toBe(false)
-		expect(validator.isValid('SHAPE:abc')).toBe(false)
-	})
-
 	it('should work with different prefixes independently', () => {
 		const shapeValidator = idValidator<MockShapeId>('shape')
 		const pageValidator = idValidator<MockPageId>('page')

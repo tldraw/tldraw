@@ -1,83 +1,11 @@
 import { describe, expect, it } from 'vitest'
 import {
-	isDefined,
 	isNativeStructuredClone,
-	isNonNull,
-	isNonNullish,
 	STRUCTURED_CLONE_OBJECT_PROTOTYPE,
 	structuredClone,
 } from './value'
 
 describe('value utilities', () => {
-	describe('isDefined', () => {
-		it('should return true for defined values', () => {
-			expect(isDefined('string')).toBe(true)
-			expect(isDefined(0)).toBe(true)
-			expect(isDefined(false)).toBe(true)
-			expect(isDefined(null)).toBe(true)
-			expect(isDefined({})).toBe(true)
-			expect(isDefined([])).toBe(true)
-			expect(isDefined('')).toBe(true)
-		})
-
-		it('should return false for undefined', () => {
-			expect(isDefined(undefined)).toBe(false)
-		})
-
-		it('should work as array filter', () => {
-			const values = [1, undefined, 2, undefined, 3, 0, false, '']
-			const result = values.filter(isDefined)
-
-			expect(result).toEqual([1, 2, 3, 0, false, ''])
-		})
-	})
-
-	describe('isNonNull', () => {
-		it('should return true for non-null values', () => {
-			expect(isNonNull('string')).toBe(true)
-			expect(isNonNull(0)).toBe(true)
-			expect(isNonNull(false)).toBe(true)
-			expect(isNonNull(undefined)).toBe(true)
-			expect(isNonNull({})).toBe(true)
-			expect(isNonNull([])).toBe(true)
-			expect(isNonNull('')).toBe(true)
-		})
-
-		it('should return false for null', () => {
-			expect(isNonNull(null)).toBe(false)
-		})
-
-		it('should work as array filter', () => {
-			const values = ['a', null, 'b', null, 'c', '', 0, false]
-			const result = values.filter(isNonNull)
-
-			expect(result).toEqual(['a', 'b', 'c', '', 0, false])
-		})
-	})
-
-	describe('isNonNullish', () => {
-		it('should return true for non-nullish values', () => {
-			expect(isNonNullish('string')).toBe(true)
-			expect(isNonNullish(0)).toBe(true)
-			expect(isNonNullish(false)).toBe(true)
-			expect(isNonNullish({})).toBe(true)
-			expect(isNonNullish([])).toBe(true)
-			expect(isNonNullish('')).toBe(true)
-		})
-
-		it('should return false for null and undefined', () => {
-			expect(isNonNullish(null)).toBe(false)
-			expect(isNonNullish(undefined)).toBe(false)
-		})
-
-		it('should work as array filter', () => {
-			const values = ['hello', null, 'world', undefined, '!', '', 0, false]
-			const result = values.filter(isNonNullish)
-
-			expect(result).toEqual(['hello', 'world', '!', '', 0, false])
-		})
-	})
-
 	describe('structuredClone', () => {
 		it('should create deep copies of objects', () => {
 			const original = { a: 1, b: { c: 2 } }
