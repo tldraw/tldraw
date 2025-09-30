@@ -35,6 +35,9 @@
   "110a4b01be": {
     "translation": "Publiceren"
   },
+  "12c8a9838c": {
+    "translation": "Probeer de tldraw SDK"
+  },
   "13ddd375ad": {
     "translation": "Exporteren als"
   },
@@ -94,6 +97,12 @@
   },
   "47839e47a5": {
     "translation": "tldraw"
+  },
+  "7697920637": {
+    "translation": "Gelieve opnieuw te laden"
+  },
+  "764671e008": {
+    "translation": "Chat met ons op Discord"
   },
   "4908687e50": {
     "translation": "Weet u zeker dat u dit bestand wilt vergeten?"
@@ -190,12 +199,6 @@
   },
   "761e93ede9": {
     "translation": "Cookies beheren"
-  },
-  "7697920637": {
-    "translation": "Gelieve opnieuw te laden"
-  },
-  "764671e008": {
-    "translation": "Chat met ons op Discord"
   },
   "777f9e90cf": {
     "translation": "Ongeldig verzoek."
@@ -413,6 +416,9 @@
   },
   "ede55d955f": {
     "translation": "Lees ons <a>cookiebeleid</a> voor meer informatie."
+  },
+  "ef7de3f485": {
+    "translation": "gekozen"
   },
   "f09b16bc5f": {
     "translation": "We gebruiken cookies om ervoor te zorgen dat u ingelogd blijft, om uw bestanden te synchroniseren en om analyses te verzamelen waarmee we tldraw kunnen verbeteren."
