@@ -237,7 +237,7 @@ export interface TLConnectRequest {
 }
 
 // @public (undocumented)
-export type TLCustomMessageHandler = (message: any) => void;
+export type TLCustomMessageHandler = (this: null, data: any) => void;
 
 // @public @deprecated (undocumented)
 export const TLIncompatibilityReason: {

@@ -71,7 +71,7 @@ export type TLSyncErrorCloseEventReason =
  * @public
  */
 /** @public */
-export type TLCustomMessageHandler = (message: any) => void
+export type TLCustomMessageHandler = (this: null, data: any) => void
 
 /**
  * @public
