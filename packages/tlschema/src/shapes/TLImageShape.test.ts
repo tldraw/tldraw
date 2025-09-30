@@ -70,7 +70,7 @@ describe('TLImageShape', () => {
 				},
 			]
 
-			edgeCaseCrops.forEach((crop, index) => {
+			edgeCaseCrops.forEach((crop, _index) => {
 				expect(() => ImageShapeCrop.validate(crop)).not.toThrow()
 			})
 		})

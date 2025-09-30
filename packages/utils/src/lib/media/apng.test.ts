@@ -1,13 +1,6 @@
 import { describe, expect, it } from 'vitest'
 import { isApngAnimated } from './apng'
 
-// Polyfill TextDecoder/TextEncoder for test environment
-if (typeof globalThis.TextDecoder === 'undefined') {
-	const { TextDecoder, TextEncoder } = require('util')
-	globalThis.TextDecoder = TextDecoder
-	globalThis.TextEncoder = TextEncoder
-}
-
 describe('isApngAnimated', () => {
 	it('returns false for empty ArrayBuffer', () => {
 		const buffer = new ArrayBuffer(0)

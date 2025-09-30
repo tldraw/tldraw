@@ -15,7 +15,7 @@ describe('createPropsMigration', () => {
 			id: 'com.test.shape.custom/1' as const,
 			up: (props: any) => ({ ...props, newProp: 'added' }),
 			down: (props: any) => {
-				const { newProp, ...rest } = props
+				const { newProp: _newProp, ...rest } = props
 				return rest
 			},
 		}
@@ -57,7 +57,7 @@ describe('createPropsMigration', () => {
 			id: 'com.test.shape.custom/1' as const,
 			up: (props: any) => ({ ...props, newProp: 'added' }),
 			down: (props: any) => {
-				const { newProp, ...rest } = props
+				const { newProp: _newProp, ...rest } = props
 				return rest
 			},
 		}
@@ -104,7 +104,7 @@ describe('processPropsMigrations', () => {
 					id: 'com.tldraw.shape.custom/1',
 					up: (props: any) => ({ ...props, v: 1 }),
 					down: (props: any) => {
-						const { v, ...rest } = props
+						const { v: _v, ...rest } = props
 						return rest
 					},
 				},
@@ -145,7 +145,7 @@ describe('processPropsMigrations', () => {
 				1: {
 					up: vi.fn((record: any) => ({ ...record, version: 1 })),
 					down: vi.fn((record: any) => {
-						const { version, ...rest } = record
+						const { version: _version, ...rest } = record
 						return rest
 					}),
 				},

@@ -9624,6 +9624,7 @@ __metadata:
     lazyrepo: "npm:0.0.0-alpha.27"
     toucan-js: "npm:^3.4.0"
     typescript: "npm:^5.8.3"
+    vitest: "npm:^3.2.4"
   languageName: unknown
   linkType: soft
 

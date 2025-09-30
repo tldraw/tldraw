@@ -37,8 +37,8 @@ describe('WeakCache', () => {
 		const key2 = { id: 1 } // Different object with same properties
 		const callback = vi.fn((item: { id: number }) => `value-${item.id}`)
 
-		const result1 = cache.get(key1, callback)
-		const result2 = cache.get(key2, callback)
+		const _result1 = cache.get(key1, callback)
+		const _result2 = cache.get(key2, callback)
 
 		expect(callback).toHaveBeenCalledTimes(2)
 	})

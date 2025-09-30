@@ -27,7 +27,7 @@ import { useAtom, track } from '@tldraw/state-react'
 
 const Counter = track(function Counter() {
   const count = useAtom('count', 0)
-  
+
   return (
     <button onClick={() => count.set(count.get() + 1)}>
       Count: {count.get()}
@@ -77,7 +77,7 @@ function UserProfile() {
   const fullName = useValue('fullName', () => {
     return `${firstName.get()} ${lastName.get()}`
   }, [firstName, lastName])
-  
+
   return <div>User: {fullName}</div>
 }
 ```
@@ -96,16 +96,16 @@ import { useAtom } from '@tldraw/state-react'
 function TodoItem() {
   const completed = useAtom('completed', false)
   const text = useAtom('text', 'New todo')
-  
+
   return (
     <div>
-      <input 
-        type="checkbox" 
-        checked={completed.get()} 
+      <input
+        type="checkbox"
+        checked={completed.get()}
         onChange={(e) => completed.set(e.target.checked)}
       />
-      <input 
-        value={text.get()} 
+      <input
+        value={text.get()}
         onChange={(e) => text.set(e.target.value)}
       />
     </div>
@@ -123,7 +123,7 @@ function DataProcessor() {
     // This function only runs once when the component mounts
     return processLargeDataset()
   })
-  
+
   return <div>Processing {expensiveData.get().length} items</div>
 }
 ```
@@ -133,9 +133,13 @@ function DataProcessor() {
 You can customize atom behavior with options:
 
 ```ts
-const user = useAtom('user', { id: 1, name: 'Alice' }, {
-  isEqual: (a, b) => a.id === b.id  // Only update if ID changes
-})
+const user = useAtom(
+	'user',
+	{ id: 1, name: 'Alice' },
+	{
+		isEqual: (a, b) => a.id === b.id, // Only update if ID changes
+	}
+)
 ```
 
 ### useComputed: Component-Local Computed Values
@@ -152,7 +156,7 @@ function ShoppingCart() {
   const total = useComputed('total', () => {
     return items.get().reduce((sum, item) => sum + item.price, 0)
   }, [items])
-  
+
   return <div>Total: ${total.get().toFixed(2)}</div>
 }
 ```
@@ -162,11 +166,16 @@ function ShoppingCart() {
 You can provide options for custom equality checking and diff computation:
 
 ```ts
-const optimizedData = useComputed('processed', () => {
-  return heavyProcessing(rawData.get())
-}, {
-  isEqual: (a, b) => a.checksum === b.checksum
-}, [rawData])
+const optimizedData = useComputed(
+	'processed',
+	() => {
+		return heavyProcessing(rawData.get())
+	},
+	{
+		isEqual: (a, b) => a.checksum === b.checksum,
+	},
+	[rawData]
+)
 ```
 
 > Tip: Use computed values to avoid expensive recalculations. They only recalculate when their dependencies actually change.
@@ -208,7 +217,7 @@ interface UserCardProps {
 
 const UserCard = track(function UserCard({ userId }: UserCardProps) {
   const user = useValue('user', () => getUserById(userId), [userId])
-  
+
   return (
     <div>
       <h3>{user.name}</h3>
@@ -241,12 +250,12 @@ import { useStateTracking } from '@tldraw/state-react'
 
 function CustomComponent() {
   const [regularState, setRegularState] = useState(0)
-  
+
   const reactiveContent = useStateTracking('reactive-section', () => {
     // Only this part is reactive to signals
     return <div>Current theme: {theme.get()}</div>
   }, []) // deps array is optional
-  
+
   return (
     <div>
       <button onClick={() => setRegularState(s => s + 1)}>
@@ -273,12 +282,12 @@ import { useReactor } from '@tldraw/state-react'
 
 function CanvasRenderer() {
   const shapes = useAtom('shapes', [])
-  
+
   useReactor('canvas-update', () => {
     // This runs at most once per animation frame
     redrawCanvas(shapes.get())
   }, [shapes])
-  
+
   return <canvas ref={canvasRef} />
 }
 ```
@@ -293,7 +302,7 @@ Use `useReactor` for any visual updates or DOM manipulations:
 function AnimatedCounter() {
   const count = useAtom('count', 0)
   const elementRef = useRef<HTMLDivElement>(null)
-  
+
   useReactor('animate-color', () => {
     const element = elementRef.current
     if (element) {
@@ -301,7 +310,7 @@ function AnimatedCounter() {
       element.style.backgroundColor = count.get() > 10 ? 'green' : 'blue'
     }
   }, [count])
-  
+
   return (
     <div ref={elementRef}>
       <button onClick={() => count.set(count.get() + 1)}>
@@ -321,7 +330,7 @@ import { useQuickReactor } from '@tldraw/state-react'
 
 function DataSynchronizer() {
   const criticalData = useAtom('criticalData', null)
-  
+
   useQuickReactor('sync-data', () => {
     const data = criticalData.get()
     if (data) {
@@ -329,7 +338,7 @@ function DataSynchronizer() {
       sendToServer(data)
     }
   }, [criticalData])
-  
+
   return <div>Sync status updated</div>
 }
 ```
@@ -337,12 +346,14 @@ function DataSynchronizer() {
 #### When to Use Quick vs Throttled Effects
 
 **Use `useReactor` (throttled) for:**
+
 - Visual updates and animations
 - DOM manipulations
 - Canvas rendering
 - UI state changes
 
 **Use `useQuickReactor` (immediate) for:**
+
 - Data synchronization
 - Network requests
 - Critical state updates
@@ -352,17 +363,17 @@ function DataSynchronizer() {
 function ComprehensiveExample() {
   const userInput = useAtom('userInput', '')
   const selectedItems = useAtom('selectedItems', [])
-  
+
   // Throttled: Visual feedback
   useReactor('visual-feedback', () => {
     updateHighlightedElements(selectedItems.get())
   }, [selectedItems])
-  
-  // Immediate: Data persistence  
+
+  // Immediate: Data persistence
   useQuickReactor('save-draft', () => {
     saveDraft(userInput.get())
   }, [userInput])
-  
+
   return (
     <div>
       <input onChange={(e) => userInput.set(e.target.value)} />
@@ -411,17 +422,17 @@ function BulkUpdater() {
   const firstName = useAtom('firstName', '')
   const lastName = useAtom('lastName', '')
   const email = useAtom('email', '')
-  
+
   const updateUser = (userData: UserData) => {
     transact(() => {
       // All three updates happen atomically
       firstName.set(userData.firstName)
-      lastName.set(userData.lastName)  
+      lastName.set(userData.lastName)
       email.set(userData.email)
     })
     // Components re-render only once after all changes
   }
-  
+
   return <button onClick={() => updateUser(newData)}>Update User</button>
 }
 ```
@@ -435,12 +446,12 @@ You can use reactive effects to sync with external systems:
 ```ts
 function LocalStorageSync() {
   const preferences = useAtom('preferences', {})
-  
+
   // Save to localStorage when preferences change
   useQuickReactor('save-preferences', () => {
     localStorage.setItem('prefs', JSON.stringify(preferences.get()))
   }, [preferences])
-  
+
   // Load from localStorage on mount
   useEffect(() => {
     const saved = localStorage.getItem('prefs')
@@ -448,7 +459,7 @@ function LocalStorageSync() {
       preferences.set(JSON.parse(saved))
     }
   }, [])
-  
+
   return <div>Preferences synced!</div>
 }
 ```
@@ -458,18 +469,18 @@ function LocalStorageSync() {
 ```ts
 function RealtimeData() {
   const liveData = useAtom('liveData', {})
-  
+
   useEffect(() => {
     const ws = new WebSocket('ws://localhost:8080')
-    
+
     ws.onmessage = (event) => {
       const data = JSON.parse(event.data)
       liveData.set(data)  // Updates trigger reactive re-renders
     }
-    
+
     return () => ws.close()
   }, [])
-  
+
   return <div>Live data: {JSON.stringify(liveData.get())}</div>
 }
 ```
@@ -481,15 +492,15 @@ You can create custom hooks that combine multiple state-react hooks:
 ```ts
 function useCounter(initialValue = 0) {
   const count = useAtom('count', initialValue)
-  
+
   const increment = useCallback(() => count.update(n => n + 1), [count])
   const decrement = useCallback(() => count.update(n => n - 1), [count])
   const reset = useCallback(() => count.set(initialValue), [count, initialValue])
-  
+
   return {
     count: count.get(),
     increment,
-    decrement, 
+    decrement,
     reset
   }
 }
@@ -497,7 +508,7 @@ function useCounter(initialValue = 0) {
 // Usage
 const CounterComponent = track(function CounterComponent() {
   const { count, increment, decrement, reset } = useCounter(10)
-  
+
   return (
     <div>
       <span>{count}</span>
@@ -522,13 +533,13 @@ import { whyAmIRunning } from '@tldraw/state'
 
 const DebuggableComponent = track(function DebuggableComponent() {
   const userStatus = useValue(currentUser, user => user.status, [currentUser])
-  const themeColor = useValue(appTheme, theme => theme.primaryColor, [appTheme]) 
-  
+  const themeColor = useValue(appTheme, theme => theme.primaryColor, [appTheme])
+
   // Debug why this component is re-rendering
   if (process.env.NODE_ENV === 'development') {
     whyAmIRunning()
   }
-  
+
   return (
     <div style={{ color: themeColor }}>
       Status: {userStatus}
@@ -552,17 +563,17 @@ You can debug reactive effects by adding logging:
 ```ts
 function DebuggableEffects() {
   const data = useAtom('data', [])
-  
+
   useReactor('debug-data-changes', () => {
     console.log('Data changed:', data.get())
     console.log('Change triggered at:', new Date().toISOString())
-    
+
     // Use whyAmIRunning to see what caused this effect
     if (process.env.NODE_ENV === 'development') {
       whyAmIRunning()
     }
   }, [data])
-  
+
   return <div>Check console for debug info</div>
 }
 ```
@@ -576,16 +587,16 @@ const MonitoredComponent = track(function MonitoredComponent({ userId }: Props) 
   if (process.env.NODE_ENV === 'development') {
     console.log('Component rendering for user:', userId)
   }
-  
+
   const user = useValue('user', () => {
     console.log('Fetching user data...')
     return getUserById(userId)
   }, [userId])
-  
+
   if (process.env.NODE_ENV === 'development') {
     console.log('User data:', user)
   }
-  
+
   return <div>User: {user.name}</div>
 })
 ```
@@ -594,7 +605,7 @@ const MonitoredComponent = track(function MonitoredComponent({ userId }: Props) 
 
 @tldraw/state-react works seamlessly with React DevTools:
 
-- Components wrapped with `track` appear as "Memo(ComponentName)" 
+- Components wrapped with `track` appear as "Memo(ComponentName)"
 - Signal updates trigger normal React re-render detection
 - Props changes are tracked separately from signal changes
 - Use React DevTools Profiler to identify performance bottlenecks
@@ -614,7 +625,7 @@ const MonolithicComponent = track(function MonolithicComponent() {
   const posts = useAtom('posts', [])
   const comments = useAtom('comments', [])
   const theme = useAtom('theme', 'light')
-  
+
   // 100+ lines of mixed logic...
 })
 
@@ -640,7 +651,7 @@ const currentUser = useAtom('currentUser', null)
 const selectedShapes = useAtom('selectedShapes', [])
 const editorMode = useAtom('editorMode', 'select')
 
-// ❌ Avoid: Generic names without context  
+// ❌ Avoid: Generic names without context
 const data = useAtom('data', null)
 const state = useAtom('state', {})
 const items = useAtom('items', [])
@@ -654,21 +665,21 @@ Keep effects focused and well-named:
 function WellOrganizedComponent() {
   const shapes = useAtom('shapes', [])
   const camera = useAtom('camera', { x: 0, y: 0, z: 1 })
-  
+
   // Visual updates - throttled
   useReactor('update-viewport', () => {
     updateViewportTransform(camera.get())
   }, [camera])
-  
+
   useReactor('render-shapes', () => {
     renderShapes(shapes.get())
   }, [shapes])
-  
+
   // Data persistence - immediate
   useQuickReactor('save-document', () => {
     saveDocument({ shapes: shapes.get(), camera: camera.get() })
   }, [shapes, camera])
-  
+
   return <canvas />
 }
 ```
@@ -680,7 +691,7 @@ Handle errors gracefully in reactive code:
 ```ts
 const SafeDataComponent = track(function SafeDataComponent() {
   const [error, setError] = useState(null)
-  
+
   const userData = useValue('userData', () => {
     try {
       return processUserData(rawUserData.get())
@@ -689,11 +700,11 @@ const SafeDataComponent = track(function SafeDataComponent() {
       return null
     }
   }, [rawUserData])
-  
+
   if (error) {
     return <ErrorMessage error={error} />
   }
-  
+
   return <UserDisplay data={userData} />
 })
 ```
@@ -708,19 +719,19 @@ import { atom } from '@tldraw/state'
 
 test('component updates when signal changes', () => {
   const nameSignal = atom('name', 'Initial')
-  
+
   const TestComponent = track(function TestComponent() {
     return <div data-testid="name">{nameSignal.get()}</div>
   })
-  
+
   const { getByTestId } = render(<TestComponent />)
-  
+
   expect(getByTestId('name')).toHaveTextContent('Initial')
-  
+
   act(() => {
     nameSignal.set('Updated')
   })
-  
+
   expect(getByTestId('name')).toHaveTextContent('Updated')
 })
 ```
@@ -756,7 +767,7 @@ import { transact } from '@tldraw/state'
 
 function BatchedUpdates() {
   const user = useAtom('user', { name: '', email: '' })
-  
+
   const updateUser = (newData: UserData) => {
     transact(() => {
       // Multiple updates happen atomically
@@ -765,7 +776,7 @@ function BatchedUpdates() {
     })
     // Component only re-renders once after both changes
   }
-  
+
   return <button onClick={() => updateUser(formData)}>Update</button>
 }
 ```

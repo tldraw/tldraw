@@ -1,13 +1,6 @@
 import { describe, expect, it } from 'vitest'
 import { isGIF, isGifAnimated } from './gif'
 
-// Polyfill TextDecoder for this test
-if (typeof globalThis.TextDecoder === 'undefined') {
-	const { TextDecoder, TextEncoder } = require('util')
-	globalThis.TextDecoder = TextDecoder
-	globalThis.TextEncoder = TextEncoder
-}
-
 describe('isGIF', () => {
 	it('should return true for valid GIF header', () => {
 		const buffer = new ArrayBuffer(10)

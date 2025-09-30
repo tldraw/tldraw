@@ -47,6 +47,7 @@ export class HistoryBuffer<Diff> {
 	 * const buffer = new HistoryBuffer<number>(10) // Store up to 10 diffs
 	 * ```
 	 */
+	// eslint-disable-next-line local/tsdoc-param-matching
 	constructor(private readonly capacity: number) {
 		this.buffer = new Array(capacity)
 	}

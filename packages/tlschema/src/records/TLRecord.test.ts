@@ -28,7 +28,6 @@ describe('TLRecord', () => {
 					return `Pointer at (${record.x}, ${record.y})`
 				default:
 					// This should never be reached if all cases are handled
-					const _exhaustive: never = record
 					return 'Unknown record type'
 			}
 		}

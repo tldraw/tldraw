@@ -73,7 +73,7 @@ describe('version utilities', () => {
 		})
 
 		it('should handle clearing when no timeout is scheduled', () => {
-			const clearTimeoutSpy = vi.spyOn(global, 'clearTimeout')
+			const _clearTimeoutSpy = vi.spyOn(global, 'clearTimeout')
 			clearRegisteredVersionsForTests()
 
 			// Should not throw when clearing empty state

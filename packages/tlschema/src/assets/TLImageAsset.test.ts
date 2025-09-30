@@ -89,7 +89,7 @@ describe('TLImageAsset', () => {
 	})
 
 	describe('MakeUrlsValid migration', () => {
-		const { up, down } = getTestMigration(imageAssetVersions.MakeUrlsValid)
+		const { up, down: _down } = getTestMigration(imageAssetVersions.MakeUrlsValid)
 
 		it('should clean invalid src URLs in up migration', () => {
 			const assetWithInvalidSrc = {

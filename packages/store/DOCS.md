@@ -9,6 +9,7 @@ A reactive record storage library built on `@tldraw/state` that provides type-sa
 The `@tldraw/store` manages collections of typed **records** - immutable objects that represent your application's data. Unlike traditional databases, every piece of data in the store is reactive, meaning your application will automatically update when the underlying data changes.
 
 The store provides:
+
 - **Reactive storage** - Data changes automatically trigger updates throughout your application
 - **Type safety** - Full TypeScript support with compile-time validation
 - **Change tracking** - Complete history of all modifications with undo/redo support
@@ -45,11 +46,12 @@ const Book = createRecordType<Book>('book', {
 	scope: 'document', // Persistence behavior
 }).withDefaultProperties(() => ({
 	inStock: true,
-	publishedYear: new Date().getFullYear()
+	publishedYear: new Date().getFullYear(),
 }))
 ```
 
 // Create a new book
+
 ## 2. Core Concepts
 
 ### Records: The Foundation
@@ -145,7 +147,7 @@ Use the `update` method to modify existing records:
 // Update a book's stock status
 store.update(book.id, (currentBook) => ({
 	...currentBook,
-	inStock: false
+	inStock: false,
 }))
 ```
 
@@ -239,7 +241,7 @@ You add records to the store using the `put` method:
 const books = [
 	Book.create({ title: '1984', author: 'George Orwell' }),
 	Book.create({ title: 'Animal Farm', author: 'George Orwell' }),
-	Book.create({ title: 'Brave New World', author: 'Aldous Huxley' })
+	Book.create({ title: 'Brave New World', author: 'Aldous Huxley' }),
 ]
 
 // Add them to the store
@@ -272,7 +274,7 @@ Use the `update` method to modify existing records:
 // Update a book's stock status
 store.update(book.id, (currentBook) => ({
 	...currentBook,
-	inStock: false
+	inStock: false,
 }))
 ```
 
@@ -317,7 +319,7 @@ import { computed } from '@tldraw/state'
 // Create a reactive query for books in stock by author
 const inStockBooksByAuthor = computed('inStockBooksByAuthor', () => {
 	const results = new Map<string, Book[]>()
-	
+
 	// Get all books
 	for (const book of store.allRecords()) {
 		if (book.typeName === 'book' && book.inStock) {
@@ -326,7 +328,7 @@ const inStockBooksByAuthor = computed('inStockBooksByAuthor', () => {
 			results.set(book.author, authorBooks)
 		}
 	}
-	
+
 	return results
 })
 
@@ -341,14 +343,14 @@ You can create reactive computations that track changes to specific record types
 ```ts
 import { react } from '@tldraw/state'
 
-// Get a reactive history computation for books only  
+// Get a reactive history computation for books only
 const bookHistory = store.query.filterHistory('book')
 
 // React to book changes
 const dispose = react('book-changes', () => {
 	const currentEpoch = bookHistory.get()
 	console.log('Book history updated, current epoch:', currentEpoch)
-	
+
 	// You can get the actual changes using getDiffSince if needed
 	// const changes = bookHistory.getDiffSince(previousEpoch)
 })
@@ -364,15 +366,15 @@ Records have different **scopes** that determine how they're persisted and synch
 
 ```ts
 const DocumentRecord = createRecordType<DocumentData>('document', {
-	scope: 'document' // Persisted and synced across instances
+	scope: 'document', // Persisted and synced across instances
 })
 
 const SessionRecord = createRecordType<SessionData>('session', {
-	scope: 'session' // Per-instance, may be persisted but not synced
+	scope: 'session', // Per-instance, may be persisted but not synced
 })
 
 const PresenceRecord = createRecordType<PresenceData>('presence', {
-	scope: 'presence' // Per-instance, synced but not persisted (like cursors)
+	scope: 'presence', // Per-instance, synced but not persisted (like cursors)
 })
 ```
 
@@ -408,7 +410,7 @@ store.loadStoreSnapshot(saved)
 // React when books are created
 store.sideEffects.registerAfterCreateHandler('book', (book, source) => {
 	console.log(`New book added: ${book.title}`)
-	
+
 	// Update author statistics
 	updateAuthorBookCount(book.authorId, 1)
 })
@@ -463,7 +465,7 @@ store.sideEffects.registerBeforeCreateHandler('book', (book, source) => {
 	// Always store titles in title case
 	return {
 		...book,
-		title: toTitleCase(book.title)
+		title: toTitleCase(book.title),
 	}
 })
 ```
@@ -495,9 +497,9 @@ const bookMigrations = createMigrationSequence({
 				record.publishDate = new Date(record.publishedYear, 0, 1).toISOString()
 				delete record.publishedYear
 				return record
-			}
+			},
 		},
-		
+
 		// Migration 2: Add genre field with default
 		{
 			id: 'com.myapp.book/add-genre',
@@ -509,18 +511,18 @@ const bookMigrations = createMigrationSequence({
 			down: (record: any) => {
 				delete record.genre
 				return record
-			}
-		}
-	]
+			},
+		},
+	],
 })
 
 // Include migrations in your schema
 const schema = StoreSchema.create(
 	{
-		book: Book
+		book: Book,
 	},
 	{
-		migrations: [bookMigrations]
+		migrations: [bookMigrations],
 	}
 )
 ```
@@ -551,13 +553,10 @@ The store automatically ensures that related operations happen atomically. When 
 Create **computed caches** for expensive derivations that should be memoized per record:
 
 ```ts
-const expensiveBookData = store.createComputedCache(
-	'expensiveBookData',
-	(book: Book) => {
-		// This expensive computation is cached per book
-		return performExpensiveAnalysis(book)
-	}
-)
+const expensiveBookData = store.createComputedCache('expensiveBookData', (book: Book) => {
+	// This expensive computation is cached per book
+	return performExpensiveAnalysis(book)
+})
 
 // Access cached data
 const analysis = expensiveBookData.get(book.id)
@@ -604,7 +603,7 @@ const removeDocumentListener = store.listen(
 	},
 	{
 		source: 'user',
-		scope: 'document'
+		scope: 'document',
 	}
 )
 ```
@@ -624,8 +623,6 @@ try {
 
 > Tip: Validation runs in development mode to help catch errors early. Make sure your validators are efficient since they run on every change.
 
-
-
 ## 10. Integration
 
 ### Framework Integration
@@ -637,7 +634,7 @@ import { track } from '@tldraw/state-react'
 
 const BookList = track(() => {
 	const books = store.allRecords().filter(r => r.typeName === 'book')
-	
+
 	return (
 		<ul>
 			{books.map(book => (
@@ -740,17 +737,15 @@ Create typed repositories for cleaner APIs:
 ```ts
 class BookRepository {
 	constructor(private store: Store<Book>) {}
-	
+
 	findByAuthor(author: string): Book[] {
-		return this.store.allRecords()
-			.filter(book => book.author === author)
+		return this.store.allRecords().filter((book) => book.author === author)
 	}
-	
+
 	getInStock(): Book[] {
-		return this.store.allRecords()
-			.filter(book => book.inStock)
+		return this.store.allRecords().filter((book) => book.inStock)
 	}
-	
+
 	create(data: Omit<Book, 'id' | 'typeName'>): Book {
 		const book = Book.create(data)
 		this.store.put([book])

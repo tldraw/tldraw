@@ -32,7 +32,7 @@ function MyApp() {
   // Store progresses through these states:
   if (store.status === 'loading') return <div>Connecting...</div>
   if (store.status === 'error') return <div>Connection failed: {store.error.message}</div>
-  
+
   // store.status === 'synced-remote'
   return <Tldraw store={store.store} />
 }
@@ -50,8 +50,8 @@ The store moves through three distinct states as it establishes and maintains co
 
 ```ts
 const store = useSync({
-  uri: wsUri,
-  assets: myAssets,
+	uri: wsUri,
+	assets: myAssets,
 })
 ```
 
@@ -63,17 +63,17 @@ The presence system automatically optimizes itself based on room occupancy, swit
 
 ```ts
 const myAssetStore = {
-  upload: async (asset, file) => {
-    // Upload file to your storage service
-    const url = await uploadToStorage(file)
-    return { src: url }
-  },
-  
-  resolve: (asset, context) => {
-    // Return optimized URLs based on context
-    // (screen DPI, network quality, display size)
-    return getOptimizedUrl(asset.src, context)
-  }
+	upload: async (asset, file) => {
+		// Upload file to your storage service
+		const url = await uploadToStorage(file)
+		return { src: url }
+	},
+
+	resolve: (asset, context) => {
+		// Return optimized URLs based on context
+		// (screen DPI, network quality, display size)
+		return getOptimizedUrl(asset.src, context)
+	},
 }
 ```
 
@@ -149,13 +149,13 @@ You can provide connection URIs dynamically, which is essential for authenticati
 
 ```ts
 const store = useSync({
-  uri: async () => {
-    const token = await getAuthToken()
-    const roomId = getCurrentRoomId()
-    return `wss://myserver.com/sync/${roomId}?token=${token}`
-  },
-  assets: authenticatedAssetStore,
-  userInfo: userSignal, // Can be a reactive signal that updates
+	uri: async () => {
+		const token = await getAuthToken()
+		const roomId = getCurrentRoomId()
+		return `wss://myserver.com/sync/${roomId}?token=${token}`
+	},
+	assets: authenticatedAssetStore,
+	userInfo: userSignal, // Can be a reactive signal that updates
 })
 ```
 
@@ -169,22 +169,22 @@ User information can be static or reactive. Using reactive signals allows the pr
 import { atom } from '@tldraw/state'
 
 const currentUser = atom('currentUser', {
-  id: 'user-123',
-  name: 'Alice',
-  color: '#ff0000'
+	id: 'user-123',
+	name: 'Alice',
+	color: '#ff0000',
 })
 
 const store = useSync({
-  uri: wsUri,
-  assets: myAssets,
-  userInfo: currentUser, // Reactive signal
+	uri: wsUri,
+	assets: myAssets,
+	userInfo: currentUser, // Reactive signal
 })
 
 // Later, when user updates their profile:
 currentUser.set({
-  id: 'user-123',
-  name: 'Alice Cooper', // Updated name
-  color: '#00ff00' // New color
+	id: 'user-123',
+	name: 'Alice Cooper', // Updated name
+	color: '#00ff00', // New color
 })
 // Presence automatically updates for all connected users
 ```
@@ -197,20 +197,20 @@ Note that the `store` object passed to this function is a `TLStore` instance, an
 
 ```ts
 const store = useSync({
-  uri: wsUri,
-  assets: myAssets,
-  getUserPresence: (store, user) => {
-    // This function is called whenever the store changes.
-    // You can use it to derive presence information from the store.
-    // To get information like cursor position, you may need to
-    // find a way to access your <Tldraw /> component's editor instance.
-    
-    return {
-      userId: user.id,
-      userName: user.name,
-      // ... and other properties from TLPresenceStateInfo
-    }
-  },
+	uri: wsUri,
+	assets: myAssets,
+	getUserPresence: (store, user) => {
+		// This function is called whenever the store changes.
+		// You can use it to derive presence information from the store.
+		// To get information like cursor position, you may need to
+		// find a way to access your <Tldraw /> component's editor instance.
+
+		return {
+			userId: user.id,
+			userName: user.name,
+			// ... and other properties from TLPresenceStateInfo
+		}
+	},
 })
 ```
 
@@ -220,41 +220,41 @@ A complete asset store handles both uploading new files and resolving existing a
 
 ```ts
 const productionAssetStore = {
-  upload: async (asset, file) => {
-    // Generate unique filename
-    const filename = `${Date.now()}-${file.name}`
-    
-    // Upload to your storage service
-    const formData = new FormData()
-    formData.append('file', file)
-    formData.append('filename', filename)
-    
-    const response = await fetch('/api/upload', {
-      method: 'POST',
-      body: formData,
-      headers: {
-        'Authorization': `Bearer ${await getAuthToken()}`
-      }
-    })
-    
-    const { url } = await response.json()
-    return { src: url }
-  },
+	upload: async (asset, file) => {
+		// Generate unique filename
+		const filename = `${Date.now()}-${file.name}`
 
-  resolve: (asset, context) => {
-    const baseUrl = asset.src
-    
-    // Return different resolutions based on context
-    if (context.shouldResolveToOriginal) {
-      return baseUrl // Full quality for printing/export
-    }
-    
-    // Optimize based on display size and screen density
-    const targetWidth = Math.ceil(context.screenScale * context.imageSize.w)
-    const targetHeight = Math.ceil(context.screenScale * context.imageSize.h)
-    
-    return `${baseUrl}?w=${targetWidth}&h=${targetHeight}&q=${context.networkQuality}`
-  }
+		// Upload to your storage service
+		const formData = new FormData()
+		formData.append('file', file)
+		formData.append('filename', filename)
+
+		const response = await fetch('/api/upload', {
+			method: 'POST',
+			body: formData,
+			headers: {
+				Authorization: `Bearer ${await getAuthToken()}`,
+			},
+		})
+
+		const { url } = await response.json()
+		return { src: url }
+	},
+
+	resolve: (asset, context) => {
+		const baseUrl = asset.src
+
+		// Return different resolutions based on context
+		if (context.shouldResolveToOriginal) {
+			return baseUrl // Full quality for printing/export
+		}
+
+		// Optimize based on display size and screen density
+		const targetWidth = Math.ceil(context.screenScale * context.imageSize.w)
+		const targetHeight = Math.ceil(context.screenScale * context.imageSize.h)
+
+		return `${baseUrl}?w=${targetWidth}&h=${targetHeight}&q=${context.networkQuality}`
+	},
 }
 ```
 
@@ -267,11 +267,11 @@ The sync system provides granular connection status information to help you buil
 ```ts
 function ConnectionAwareApp() {
   const store = useSync({ /* ... */ })
-  
+
   if (store.status === 'loading') {
     return <div>Establishing connection...</div>
   }
-  
+
   if (store.status === 'error') {
     return (
       <div>
@@ -283,7 +283,7 @@ function ConnectionAwareApp() {
       </div>
     )
   }
-  
+
   // store.status === 'synced-remote'
   return (
     <div>
@@ -297,11 +297,11 @@ function NetworkIndicator({ status }) {
   if (status === 'offline') {
     return <div className="warning">Working offline - changes will sync when reconnected</div>
   }
-  
+
   if (status === 'online') {
     return <div className="success">Connected and syncing</div>
   }
-  
+
   return null
 }
 ```
@@ -315,9 +315,9 @@ The sync system handles network interruptions gracefully with automatic reconnec
 ```ts
 // No additional code needed - reconnection is automatic
 const store = useSync({
-  uri: 'wss://myserver.com/sync/room-123',
-  assets: myAssets,
-  userInfo: currentUser,
+	uri: 'wss://myserver.com/sync/room-123',
+	assets: myAssets,
+	userInfo: currentUser,
 })
 
 // The system automatically:
@@ -335,27 +335,27 @@ Different types of connection errors require different handling strategies:
 ```ts
 function ErrorHandlingApp() {
   const store = useSync({ /* ... */ })
-  
+
   if (store.status === 'error') {
     const error = store.error
-    
+
     // Check specific error types for appropriate responses
     if (error.reason === 'NOT_FOUND') {
       return <div>Room not found. Please check the room ID.</div>
     }
-    
+
     if (error.reason === 'FORBIDDEN') {
       return <div>Access denied. Please check your permissions.</div>
     }
-    
+
     if (error.reason === 'NOT_AUTHENTICATED') {
       return <div>Authentication required. <button onClick={login}>Login</button></div>
     }
-    
+
     if (error.reason === 'RATE_LIMITED') {
       return <div>Too many requests. Please wait before retrying.</div>
     }
-    
+
     // Generic network or server error
     return (
       <div>
@@ -365,7 +365,7 @@ function ErrorHandlingApp() {
       </div>
     )
   }
-  
+
   return <Tldraw store={store.store} />
 }
 ```
@@ -392,20 +392,21 @@ function DebuggableApp() {
       console.log('Sync Event:', name, data)
     }
   })
-  
+
   useEffect(() => {
     console.log('Store status changed:', store.status)
-    
+
     if (store.status === 'synced-remote') {
       console.log('Connection status:', store.connectionStatus)
     }
   }, [store.status, store.status === 'synced-remote' ? store.connectionStatus : null])
-  
+
   return <Tldraw store={store.store} />
 }
 ```
 
 This will log events like:
+
 ```
 Sync Event: room-not-found { roomId: "room-123" }
 Sync Event: connected { isReadonly: false }
@@ -420,8 +421,8 @@ The demo asset store includes network quality detection that affects image resol
 ```ts
 // In the demo environment, you can observe network adaptation:
 const store = useSyncDemo({
-  roomId: 'debug-room',
-  userInfo: currentUser
+	roomId: 'debug-room',
+	userInfo: currentUser,
 })
 
 // Images automatically adjust quality based on:
@@ -450,7 +451,7 @@ function PresenceDebuggingApp() {
       return presence
     },
   })
-  
+
   useEffect(() => {
     if (store.status === 'synced-remote') {
       // Monitor presence mode changes
@@ -459,11 +460,11 @@ function PresenceDebuggingApp() {
         console.log('Active users:', presences.length)
         console.log('Presence mode:', presences.length > 1 ? 'collaborative' : 'solo')
       })
-      
+
       return unsubscribe
     }
   }, [store])
-  
+
   return <Tldraw store={store.store} />
 }
 ```
@@ -492,12 +493,12 @@ When using token authentication, ensure tokens remain valid throughout the sessi
 
 ```ts
 const store = useSync({
-  uri: async () => {
-    const token = await refreshTokenIfNeeded() // Ensure token is fresh
-    return `wss://myserver.com/sync?token=${token}`
-  },
-  assets: myAssets,
-  userInfo: currentUser,
+	uri: async () => {
+		const token = await refreshTokenIfNeeded() // Ensure token is fresh
+		return `wss://myserver.com/sync?token=${token}`
+	},
+	assets: myAssets,
+	userInfo: currentUser,
 })
 ```
 
@@ -507,27 +508,27 @@ Asset upload failures often relate to CORS configuration or authentication:
 
 ```ts
 const debugAssetStore = {
-  upload: async (asset, file) => {
-    console.log('Uploading asset:', {
-      name: file.name,
-      size: file.size,
-      type: file.type
-    })
-    
-    try {
-      const result = await uploadToServer(file)
-      console.log('Upload successful:', result)
-      return result
-    } catch (error) {
-      console.error('Upload failed:', error)
-      throw error
-    }
-  },
-  
-  resolve: (asset, context) => {
-    console.log('Resolving asset:', asset.src, 'with context:', context)
-    return asset.src
-  }
+	upload: async (asset, file) => {
+		console.log('Uploading asset:', {
+			name: file.name,
+			size: file.size,
+			type: file.type,
+		})
+
+		try {
+			const result = await uploadToServer(file)
+			console.log('Upload successful:', result)
+			return result
+		} catch (error) {
+			console.error('Upload failed:', error)
+			throw error
+		}
+	},
+
+	resolve: (asset, context) => {
+		console.log('Resolving asset:', asset.src, 'with context:', context)
+		return asset.src
+	},
 }
 ```
 
@@ -542,11 +543,11 @@ import { useAuth } from './auth-system'
 
 function AuthenticatedApp() {
   const { user, getToken } = useAuth()
-  
+
   const store = useSync({
     uri: async () => {
       if (!user) throw new Error('Not authenticated')
-      
+
       const token = await getToken()
       return `wss://myserver.com/sync/room-123?token=${token}&userId=${user.id}`
     },
@@ -557,11 +558,11 @@ function AuthenticatedApp() {
     },
     assets: createAuthenticatedAssetStore(getToken),
   })
-  
+
   if (!user) {
     return <LoginPrompt />
   }
-  
+
   return <Tldraw store={store.store} />
 }
 ```
@@ -573,7 +574,7 @@ Handle authentication state changes gracefully by recreating the sync connection
 ```ts
 function SessionManagedApp() {
   const { user, sessionId } = useAuth()
-  
+
   // Recreate sync connection when session changes
   const store = useSync({
     uri: `wss://myserver.com/sync?session=${sessionId}`,
@@ -584,14 +585,14 @@ function SessionManagedApp() {
     } : null,
     assets: myAssetStore,
   })
-  
+
   // Handle logout
   const handleLogout = () => {
     // Sync connection will automatically clean up
     // when component unmounts or deps change
     logout()
   }
-  
+
   return (
     <div>
       {user && <button onClick={handleLogout}>Logout</button>}
@@ -612,11 +613,11 @@ function PermissionAwareApp() {
     assets: myAssets,
     userInfo: currentUser,
   })
-  
+
   if (store.status === 'synced-remote') {
     // Server can set readonly mode based on user permissions
     const isReadonly = store.store.collaboration?.mode === 'readonly'
-    
+
     if (isReadonly) {
       return (
         <div>
@@ -626,7 +627,7 @@ function PermissionAwareApp() {
       )
     }
   }
-  
+
   return <Tldraw store={store.store} />
 }
 ```

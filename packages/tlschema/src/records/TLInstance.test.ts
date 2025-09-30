@@ -19,7 +19,7 @@ const mockColorStyle = {
 } as unknown as StyleProp<string>
 
 const mockStylesMap = new Map([['color', mockColorStyle]])
-const InstanceRecordType = createInstanceRecordType(mockStylesMap)
+createInstanceRecordType(mockStylesMap)
 
 describe('shouldKeyBePreservedBetweenSessions', () => {
 	it('should preserve user preferences', () => {

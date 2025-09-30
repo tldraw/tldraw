@@ -51,6 +51,7 @@ export class ExecutionQueue {
 	 * const slowQueue = new ExecutionQueue(500)
 	 * ```
 	 */
+	// eslint-disable-next-line local/tsdoc-param-matching
 	constructor(private readonly timeout?: number) {}
 
 	/**

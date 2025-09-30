@@ -15,7 +15,7 @@ import { TLSyncClient } from '@tldraw/sync-core'
 const syncClient = new TLSyncClient({
 	store: myTldrawStore,
 	socket: myWebSocketAdapter,
-	roomId: 'drawing-room-123'
+	roomId: 'drawing-room-123',
 })
 
 syncClient.connect()
@@ -44,7 +44,7 @@ A **room** represents a collaborative document space where multiple users can wo
 // Server-side room management
 const room = new TLSyncRoom({
 	store: serverStore,
-	roomId: 'drawing-room-123'
+	roomId: 'drawing-room-123',
 })
 
 // Each connected client creates a session
@@ -60,10 +60,13 @@ Instead of sending entire document states, sync-core uses **network diffs** - co
 ```ts
 // Example network diff for updating a shape's position
 const diff = {
-	'shape:abc123': [RecordOpType.Patch, {
-		x: [ValueOpType.Put, 150],
-		y: [ValueOpType.Put, 200]
-	}]
+	'shape:abc123': [
+		RecordOpType.Patch,
+		{
+			x: [ValueOpType.Put, 150],
+			y: [ValueOpType.Put, 200],
+		},
+	],
 }
 ```
 
@@ -82,7 +85,7 @@ import { TLSyncClient, ClientWebSocketAdapter } from '@tldraw/sync-core'
 
 // Create your tldraw store
 const store = createTLStore({
-	schema: createTLSchema()
+	schema: createTLSchema(),
 })
 
 // Create a WebSocket connection
@@ -92,7 +95,7 @@ const socket = new ClientWebSocketAdapter('ws://localhost:3000/sync')
 const syncClient = new TLSyncClient({
 	store,
 	socket,
-	roomId: 'my-drawing-room'
+	roomId: 'my-drawing-room',
 })
 
 // Start synchronization
@@ -111,7 +114,7 @@ import { react } from '@tldraw/state'
 // React to connection status changes
 react('connection status', () => {
 	const status = syncClient.status.get()
-	
+
 	switch (status) {
 		case 'offline':
 			console.log('No network connection')
@@ -158,28 +161,28 @@ import { TLSyncRoom } from '@tldraw/sync-core'
 
 class CollaborationServer {
 	private rooms = new Map<string, TLSyncRoom>()
-	
+
 	getOrCreateRoom(roomId: string) {
 		if (!this.rooms.has(roomId)) {
 			const room = new TLSyncRoom({
 				store: this.createRoomStore(),
 				roomId,
 				// Optional persistence adapter
-				persistenceAdapter: this.createPersistenceAdapter(roomId)
+				persistenceAdapter: this.createPersistenceAdapter(roomId),
 			})
-			
+
 			this.rooms.set(roomId, room)
 		}
-		
+
 		return this.rooms.get(roomId)!
 	}
-	
+
 	handleClientConnection(socket: WebSocket, roomId: string) {
 		const room = this.getOrCreateRoom(roomId)
 		room.handleSocketConnect(socket, {
 			sessionId: generateSessionId(),
 			userId: extractUserId(socket),
-			isReadonly: checkPermissions(socket)
+			isReadonly: checkPermissions(socket),
 		})
 	}
 }
@@ -196,15 +199,15 @@ import { TLPersistentClientSocket } from '@tldraw/sync-core'
 
 class CustomSocketAdapter implements TLPersistentClientSocket {
 	status = atom<TLPersistentClientSocketStatus>('offline')
-	
+
 	sendMessage(message: any): void {
 		// Your custom sending logic
 		this.customWebSocket.send(JSON.stringify(message))
 	}
-	
+
 	onReceiveMessage = createNanoEvents<any>()
 	onStatusChange = createNanoEvents<TLPersistentClientSocketStatus>()
-	
+
 	restart(): void {
 		// Your reconnection logic
 	}
@@ -243,7 +246,7 @@ Sync-core supports real-time presence information like cursor positions:
 syncClient.updatePresence({
 	cursor: { x: 150, y: 200 },
 	selection: ['shape:abc123'],
-	userName: 'Alice'
+	userName: 'Alice',
 })
 
 // Other clients receive presence updates
@@ -265,15 +268,15 @@ When your application's data schema changes, sync-core coordinates migrations ac
 const schema = createTLSchema({
 	// Your shape definitions
 	shapes: {
-		myShape: MyShapeUtil
-	}
+		myShape: MyShapeUtil,
+	},
 })
 
 // The client sends its schema version during connection
 const syncClient = new TLSyncClient({
 	store: createTLStore({ schema }),
 	socket,
-	roomId: 'room-123'
+	roomId: 'room-123',
 })
 ```
 
@@ -296,7 +299,9 @@ Monitor the detailed connection lifecycle:
 ```ts
 import { TLSyncClient } from '@tldraw/sync-core'
 
-const syncClient = new TLSyncClient({ /* ... */ })
+const syncClient = new TLSyncClient({
+	/* ... */
+})
 
 // Enable detailed logging
 syncClient.onReceiveMessage((message) => {
@@ -345,20 +350,23 @@ Understand what changes are being synchronized:
 import { diffRecord } from '@tldraw/sync-core'
 
 // Monitor store changes and see their diff representation
-const unsubscribe = store.listen((entry) => {
-	if (entry.changes.length > 0) {
-		for (const change of entry.changes) {
-			console.log('Change type:', change.source)
-			console.log('Record diff:', change)
-			
-			// For detailed diff analysis
-			if (change.type === 'update') {
-				const diff = diffRecord(change.prev, change.record)
-				console.log('Network diff would be:', diff)
+const unsubscribe = store.listen(
+	(entry) => {
+		if (entry.changes.length > 0) {
+			for (const change of entry.changes) {
+				console.log('Change type:', change.source)
+				console.log('Record diff:', change)
+
+				// For detailed diff analysis
+				if (change.type === 'update') {
+					const diff = diffRecord(change.prev, change.record)
+					console.log('Network diff would be:', diff)
+				}
 			}
 		}
-	}
-}, { source: 'user' })
+	},
+	{ source: 'user' }
+)
 
 // Example output:
 // Change type: user
@@ -374,12 +382,14 @@ On the server side, inspect room and session states:
 class DebuggableRoom extends TLSyncRoom {
 	debugSessions() {
 		console.log(`Room ${this.roomId} has ${this.getNumActiveConnections()} connections:`)
-		
+
 		for (const [sessionId, session] of this.sessions) {
-			console.log(`  ${sessionId}: ${session.state} (${session.isReadonly ? 'readonly' : 'read-write'})`)
+			console.log(
+				`  ${sessionId}: ${session.state} (${session.isReadonly ? 'readonly' : 'read-write'})`
+			)
 		}
 	}
-	
+
 	debugLastChange() {
 		console.log('Last document change:', this.documentState.clock)
 		console.log('Store has', Object.keys(this.store.serialize()).length, 'records')
@@ -387,7 +397,9 @@ class DebuggableRoom extends TLSyncRoom {
 }
 
 // Use during development
-const room = new DebuggableRoom({ /* ... */ })
+const room = new DebuggableRoom({
+	/* ... */
+})
 setInterval(() => room.debugSessions(), 5000)
 ```
 
@@ -402,10 +414,10 @@ syncClient.onReceiveMessage((message) => {
 			console.error('Schema mismatch:', {
 				clientSchema: message.clientSchema,
 				serverSchema: message.serverSchema,
-				reason: message.reason
+				reason: message.reason,
 			})
 			break
-			
+
 		case 'error':
 			console.error('Sync error:', message.error)
 			// Common causes:
@@ -420,7 +432,7 @@ syncClient.onReceiveMessage((message) => {
 syncClient.socket.onStatusChange((status) => {
 	if (status === 'offline') {
 		console.log('Connection lost - check network and server health')
-		
+
 		// Attempt manual reconnection
 		setTimeout(() => {
 			syncClient.socket.restart()
@@ -438,34 +450,35 @@ class SyncProfiler {
 	private messageCount = 0
 	private bytesTransferred = 0
 	private roundTripTimes: number[] = []
-	
+
 	profile(syncClient: TLSyncClient) {
 		const startTime = Date.now()
-		
+
 		syncClient.onReceiveMessage((message) => {
 			this.messageCount++
 			this.bytesTransferred += JSON.stringify(message).length
-			
+
 			// Track ping/pong for latency
 			if (message.type === 'pong') {
 				const roundTrip = Date.now() - message.sentAt
 				this.roundTripTimes.push(roundTrip)
 			}
 		})
-		
+
 		// Periodic reporting
 		setInterval(() => {
-			const avgLatency = this.roundTripTimes.length > 0 
-				? this.roundTripTimes.reduce((a, b) => a + b, 0) / this.roundTripTimes.length
-				: 0
-				
+			const avgLatency =
+				this.roundTripTimes.length > 0
+					? this.roundTripTimes.reduce((a, b) => a + b, 0) / this.roundTripTimes.length
+					: 0
+
 			console.log('Sync Performance:', {
 				uptime: Date.now() - startTime,
 				messages: this.messageCount,
 				bytesTransferred: this.bytesTransferred,
-				avgLatencyMs: avgLatency
+				avgLatencyMs: avgLatency,
 			})
-			
+
 			this.roundTripTimes = [] // Reset for next period
 		}, 30000)
 	}
@@ -490,15 +503,15 @@ import { useEffect, useState } from 'react'
 function CollaborationStatusBadge() {
 	const editor = useEditor()
 	const [status, setStatus] = useState<string>('offline')
-	
+
 	useEffect(() => {
 		if (!editor.store.syncClient) return
-		
+
 		return react('sync status', () => {
 			setStatus(editor.store.syncClient.status.get())
 		})
 	}, [editor])
-	
+
 	return (
 		<div className={`status-badge ${status}`}>
 			{status === 'online' ? '🟢 Connected' : '🔴 Offline'}
@@ -517,28 +530,30 @@ Integrate with your existing database or storage systems:
 import { TLSyncRoom } from '@tldraw/sync-core'
 
 class DatabasePersistenceAdapter {
-	constructor(private db: Database, private roomId: string) {}
-	
+	constructor(
+		private db: Database,
+		private roomId: string
+	) {}
+
 	async loadRoom(): Promise<SerializedStore> {
-		const roomData = await this.db.query(
-			'SELECT document_state FROM rooms WHERE id = ?',
-			[this.roomId]
-		)
+		const roomData = await this.db.query('SELECT document_state FROM rooms WHERE id = ?', [
+			this.roomId,
+		])
 		return JSON.parse(roomData.document_state)
 	}
-	
+
 	async saveRoom(serializedStore: SerializedStore): Promise<void> {
-		await this.db.query(
-			'UPDATE rooms SET document_state = ?, updated_at = NOW() WHERE id = ?',
-			[JSON.stringify(serializedStore), this.roomId]
-		)
+		await this.db.query('UPDATE rooms SET document_state = ?, updated_at = NOW() WHERE id = ?', [
+			JSON.stringify(serializedStore),
+			this.roomId,
+		])
 	}
 }
 
 const room = new TLSyncRoom({
 	store: createTLStore({ schema }),
 	roomId: 'room-123',
-	persistenceAdapter: new DatabasePersistenceAdapter(myDatabase, 'room-123')
+	persistenceAdapter: new DatabasePersistenceAdapter(myDatabase, 'room-123'),
 })
 ```
 
@@ -550,17 +565,20 @@ Implement custom authentication by extending the WebSocket adapter:
 
 ```ts
 class AuthenticatedSocketAdapter extends ClientWebSocketAdapter {
-	constructor(url: string, private authToken: string) {
+	constructor(
+		url: string,
+		private authToken: string
+	) {
 		super(url)
 	}
-	
+
 	protected connect(): void {
 		this.ws = new WebSocket(this.url, [], {
 			headers: {
-				'Authorization': `Bearer ${this.authToken}`
-			}
+				Authorization: `Bearer ${this.authToken}`,
+			},
 		})
-		
+
 		this.setupEventHandlers()
 	}
 }
@@ -569,7 +587,7 @@ class AuthenticatedSocketAdapter extends ClientWebSocketAdapter {
 room.handleSocketConnect(socket, {
 	sessionId: generateSessionId(),
 	userId: extractUserFromToken(authToken),
-	isReadonly: !hasEditPermission(authToken, roomId)
+	isReadonly: !hasEditPermission(authToken, roomId),
 })
 ```
 
@@ -580,22 +598,22 @@ Manage multiple collaborative documents in a single application:
 ```ts
 class RoomManager {
 	private rooms = new Map<string, TLSyncClient>()
-	
+
 	joinRoom(roomId: string): TLSyncClient {
 		if (this.rooms.has(roomId)) {
 			return this.rooms.get(roomId)!
 		}
-		
+
 		const store = createTLStore({ schema: mySchema })
 		const socket = new ClientWebSocketAdapter(`ws://localhost:3000/rooms/${roomId}`)
 		const syncClient = new TLSyncClient({ store, socket, roomId })
-		
+
 		this.rooms.set(roomId, syncClient)
 		syncClient.connect()
-		
+
 		return syncClient
 	}
-	
+
 	leaveRoom(roomId: string): void {
 		const client = this.rooms.get(roomId)
 		if (client) {
@@ -621,21 +639,21 @@ export default {
 		if (request.headers.get('Upgrade') !== 'websocket') {
 			return new Response('Expected websocket', { status: 426 })
 		}
-		
+
 		const { 0: client, 1: server } = new WebSocketPair()
 		const roomId = new URL(request.url).pathname.split('/').pop()
-		
+
 		const room = this.getOrCreateRoom(roomId, env)
 		room.handleSocketConnect(server, {
 			sessionId: crypto.randomUUID(),
 			// Extract user info from request headers or auth
 		})
-		
+
 		return new Response(null, {
 			status: 101,
-			webSocket: client
+			webSocket: client,
 		})
-	}
+	},
 }
 ```
 
