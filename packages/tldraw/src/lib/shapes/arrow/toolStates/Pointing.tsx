@@ -163,7 +163,7 @@ export class Pointing extends StateNode {
 			const endHandle = handles.find((h) => h.id === 'end')!
 			const change = util.onHandleDrag?.(this.editor.getShape(shape)!, {
 				handle: { ...endHandle, x: point.x, y: point.y },
-				isPrecise: false,
+				isPrecise: this.isPrecise,
 				isCreatingShape: true,
 				initial: initial,
 			})

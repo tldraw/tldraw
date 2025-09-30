@@ -18,6 +18,8 @@ import { getNodeInputPortValues } from '../nodePorts'
 import { NodeShape } from '../NodeShapeUtil'
 import { NodeType } from '../nodeTypes'
 
+export type WorkflowValue = number
+
 /**
  * A special value that can be returned from a node to indicate that execution should stop.
  */
@@ -25,15 +27,15 @@ export type STOP_EXECUTION = typeof STOP_EXECUTION
 export const STOP_EXECUTION = Symbol('STOP_EXECUTION')
 
 export interface InfoValues {
-	[key: string]: { value: number | STOP_EXECUTION; isOutOfDate: boolean }
+	[key: string]: { value: WorkflowValue | STOP_EXECUTION; isOutOfDate: boolean }
 }
 
 export interface ExecutionResult {
-	[key: string]: number | STOP_EXECUTION
+	[key: string]: WorkflowValue | STOP_EXECUTION
 }
 
 export interface InputValues {
-	[key: string]: number
+	[key: string]: WorkflowValue
 }
 
 export interface NodeComponentProps<Node extends { type: string }> {
@@ -86,12 +88,13 @@ export const outputPort: ShapePort = {
 export function updateNode<T extends NodeType>(
 	editor: Editor,
 	shape: NodeShape,
-	update: (node: T) => T
+	update: (node: T) => T,
+	isOutOfDate: boolean = true
 ) {
 	editor.updateShape<NodeShape>({
 		id: shape.id,
 		type: shape.type,
-		props: { node: update(shape.props.node as T), isOutOfDate: true },
+		props: { node: update(shape.props.node as T), isOutOfDate },
 	})
 }
 
@@ -205,6 +208,41 @@ export function NodeInputRow({
 }
 
 /**
+ * Format a number to display with up to 5 significant figures, using suffixes for large numbers.
+ */
+function formatNumber(value: number): string {
+	// Handle special cases
+	if (value === 0) return '0'
+	if (!isFinite(value)) return value.toString()
+
+	const absValue = Math.abs(value)
+	const sign = value < 0 ? '-' : ''
+
+	// For very large numbers, use suffixes
+	if (absValue >= 1_000_000_000) {
+		return sign + (absValue / 1_000_000_000).toPrecision(3) + 'B'
+	}
+	if (absValue >= 1_000_000) {
+		return sign + (absValue / 1_000_000).toPrecision(3) + 'M'
+	}
+	if (absValue >= 1_000) {
+		return sign + (absValue / 1_000).toPrecision(3) + 'k'
+	}
+
+	// For smaller numbers, use up to 5 significant figures
+	if (absValue >= 1) {
+		// For numbers >= 1, limit to 5 significant figures
+		return sign + absValue.toPrecision(5).replace(/\.?0+$/, '')
+	} else if (absValue >= 0.001) {
+		// For numbers between 0.001 and 1, show up to 5 significant figures
+		return sign + absValue.toPrecision(3)
+	} else {
+		// For very small numbers, use scientific notation
+		return value.toExponential(2)
+	}
+}
+
+/**
  * A value within a node. If the value is STOP_EXECUTION, a placeholder is shown instead.
  */
 export function NodeValue({ value }: { value: number | STOP_EXECUTION }) {
@@ -212,7 +250,7 @@ export function NodeValue({ value }: { value: number | STOP_EXECUTION }) {
 		return <div className="NodeValue_placeholder" />
 	}
 
-	return value
+	return formatNumber(value)
 }
 
 export function areAnyInputsOutOfDate(inputs: InfoValues): boolean {

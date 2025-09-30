@@ -1,7 +1,7 @@
 import { HALF_PI, TLArrowShape, TLShapeId, createShapeId, toRichText } from '@tldraw/editor'
 import { vi } from 'vitest'
 import { TestEditor } from '../../../test/TestEditor'
-import { createOrUpdateArrowBinding, getArrowBindings } from './shared'
+import { createOrUpdateArrowBinding, getArrowBindings, getArrowInfo } from './shared'
 
 let editor: TestEditor
 
@@ -618,5 +618,215 @@ describe('Arrow export bounds', () => {
 		const arrow = editor.getShape(ids.arrow1) as TLArrowShape
 		expect(arrow.props.richText).toBeDefined()
 		expect(arrow.props.richText).not.toBeNull()
+	})
+})
+
+describe('Arrow terminal positioning bug fix', () => {
+	const data = {
+		document: {
+			store: {
+				'shape:1Hm61DGAsY0uqEO-kt75l': {
+					x: 637.2890625,
+					y: 383.9296875,
+					rotation: 0,
+					isLocked: false,
+					opacity: 1,
+					meta: {},
+					id: 'shape:1Hm61DGAsY0uqEO-kt75l',
+					type: 'geo',
+					props: {
+						w: 230.66796875,
+						h: 114.796875,
+						geo: 'rectangle',
+						dash: 'draw',
+						growY: 0,
+						url: '',
+						scale: 1,
+						color: 'black',
+						labelColor: 'black',
+						fill: 'none',
+						size: 'm',
+						font: 'draw',
+						align: 'middle',
+						verticalAlign: 'middle',
+						richText: {
+							type: 'doc',
+							content: [
+								{
+									type: 'paragraph',
+								},
+							],
+						},
+					},
+					parentId: 'page:page',
+					index: 'a1',
+					typeName: 'shape',
+				},
+				'binding:nekxhMCGaoEJO98DEqWgo': {
+					meta: {},
+					id: 'binding:nekxhMCGaoEJO98DEqWgo',
+					type: 'arrow',
+					fromId: 'shape:j0HKQihjBXqMqgVhfRhDS',
+					toId: 'shape:1Hm61DGAsY0uqEO-kt75l',
+					props: {
+						isPrecise: true,
+						isExact: false,
+						normalizedAnchor: {
+							x: 0.13182672605036325,
+							y: 0.8036953858717844,
+						},
+						snap: 'none',
+						terminal: 'start',
+					},
+					typeName: 'binding',
+				},
+				'binding:kWamalL_QSq_kFPZDgp7Z': {
+					meta: {},
+					id: 'binding:kWamalL_QSq_kFPZDgp7Z',
+					type: 'arrow',
+					fromId: 'shape:j0HKQihjBXqMqgVhfRhDS',
+					toId: 'shape:1Hm61DGAsY0uqEO-kt75l',
+					props: {
+						isPrecise: true,
+						isExact: false,
+						normalizedAnchor: {
+							x: 0.7138744475114731,
+							y: 0.45797604464407243,
+						},
+						snap: 'none',
+						terminal: 'end',
+					},
+					typeName: 'binding',
+				},
+				'shape:j0HKQihjBXqMqgVhfRhDS': {
+					x: 665.296875,
+					y: 477.59765625,
+					rotation: 0,
+					isLocked: false,
+					opacity: 1,
+					meta: {},
+					id: 'shape:j0HKQihjBXqMqgVhfRhDS',
+					type: 'arrow',
+					props: {
+						kind: 'arc',
+						elbowMidPoint: 0.5,
+						dash: 'draw',
+						size: 'm',
+						fill: 'none',
+						color: 'black',
+						labelColor: 'black',
+						bend: 0,
+						start: {
+							x: 0,
+							y: 0,
+						},
+						end: {
+							x: 2,
+							y: 0,
+						},
+						arrowheadStart: 'none',
+						arrowheadEnd: 'arrow',
+						richText: {
+							type: 'doc',
+							content: [
+								{
+									type: 'paragraph',
+								},
+							],
+						},
+						labelPosition: 0.5,
+						font: 'draw',
+						scale: 1,
+					},
+					parentId: 'page:page',
+					index: 'a2lbpzZG',
+					typeName: 'shape',
+				},
+				'page:page': {
+					meta: {},
+					id: 'page:page',
+					name: 'Page 1',
+					index: 'a1',
+					typeName: 'page',
+				},
+				'document:document': {
+					gridSize: 10,
+					name: '',
+					meta: {},
+					id: 'document:document',
+					typeName: 'document',
+				},
+			},
+			schema: {
+				schemaVersion: 2,
+				sequences: {
+					'com.tldraw.store': 5,
+					'com.tldraw.asset': 1,
+					'com.tldraw.camera': 1,
+					'com.tldraw.document': 2,
+					'com.tldraw.instance': 25,
+					'com.tldraw.instance_page_state': 5,
+					'com.tldraw.page': 1,
+					'com.tldraw.instance_presence': 6,
+					'com.tldraw.pointer': 1,
+					'com.tldraw.shape': 4,
+					'com.tldraw.asset.bookmark': 2,
+					'com.tldraw.asset.image': 5,
+					'com.tldraw.asset.video': 5,
+					'com.tldraw.shape.group': 0,
+					'com.tldraw.shape.text': 3,
+					'com.tldraw.shape.bookmark': 2,
+					'com.tldraw.shape.draw': 2,
+					'com.tldraw.shape.geo': 10,
+					'com.tldraw.shape.note': 9,
+					'com.tldraw.shape.line': 5,
+					'com.tldraw.shape.frame': 1,
+					'com.tldraw.shape.arrow': 7,
+					'com.tldraw.shape.highlight': 1,
+					'com.tldraw.shape.embed': 4,
+					'com.tldraw.shape.image': 5,
+					'com.tldraw.shape.video': 4,
+					'com.tldraw.binding.arrow': 1,
+				},
+			},
+		},
+		session: {
+			version: 0,
+			currentPageId: 'page:page',
+			exportBackground: true,
+			isFocusMode: false,
+			isDebugMode: false,
+			isToolLocked: false,
+			isGridMode: false,
+			pageStates: [
+				{
+					pageId: 'page:page',
+					camera: {
+						x: 0,
+						y: 0,
+						z: 1,
+					},
+					selectedShapeIds: ['shape:j0HKQihjBXqMqgVhfRhDS'],
+					focusedGroupId: null,
+				},
+			],
+		},
+	}
+
+	it('should position straight arrow terminals on shape boundary, not text label boundary', () => {
+		// Create a geo shape with text label
+		editor.loadSnapshot(data as any)
+
+		const arrow = editor.getShape('shape:j0HKQihjBXqMqgVhfRhDS' as TLShapeId) as TLArrowShape
+		expect(arrow).toBeDefined()
+
+		expect(getArrowBindings(editor, arrow)).toMatchObject({
+			end: { props: { isPrecise: true } },
+			start: { props: { isPrecise: true } },
+		})
+
+		const info = getArrowInfo(editor, arrow)
+		expect(info?.start.handle).toEqual(info?.start.point)
+		expect(info?.end.handle).toEqual(info?.end.point)
 	})
 })

@@ -75,7 +75,7 @@ export const ConditionalNode = T.object({
 	previousResult: T.literalEnum('lhs', 'rhs').nullable(),
 })
 
-export class ConditionalNodeType extends NodeDefinition<ConditionalNode> {
+export class ConditionalNodeDefinition extends NodeDefinition<ConditionalNode> {
 	static type = 'conditional'
 	static validator = ConditionalNode
 	title = 'Conditional'

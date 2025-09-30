@@ -81,6 +81,7 @@
 	"action.stretch-horizontal.short": "Étirer H",
 	"action.stretch-vertical": "Étirer verticalement",
 	"action.stretch-vertical.short": "Étirer V",
+	"action.toggle-auto-none": "Auto",
 	"action.toggle-auto-size": "Activer le dimensionnement automatique",
 	"action.toggle-dark-mode": "Activer le mode sombre",
 	"action.toggle-dark-mode.menu": "Mode sombre",

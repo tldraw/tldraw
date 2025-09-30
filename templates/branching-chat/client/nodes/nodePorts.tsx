@@ -16,7 +16,7 @@ export function getNodePorts(editor: Editor, shape: NodeShape | TLShapeId): Node
 }
 const nodePortsCache = createComputedCache(
 	'ports',
-	(editor: Editor, node: NodeShape): NodeTypePorts => getNodeTypePorts(node.props.node, editor)
+	(editor: Editor, node: NodeShape): NodeTypePorts => getNodeTypePorts(editor, node)
 )
 
 /**

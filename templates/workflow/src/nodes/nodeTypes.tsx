@@ -6,27 +6,29 @@ import {
 } from '../constants'
 import { PortId, ShapePort } from '../ports/Port'
 import { NodeShape } from './NodeShapeUtil'
-import { AddNodeType } from './types/AddNode'
-import { ConditionalNodeType } from './types/ConditionalNode'
-import { DivideNodeType } from './types/DivideNode'
-import { MultiplyNodeType } from './types/MultiplyNode'
+import { AddNodeDefinition } from './types/AddNode'
+import { ConditionalNodeDefinition } from './types/ConditionalNode'
+import { DivideNodeDefinition } from './types/DivideNode'
+import { EarthquakeNodeDefinition } from './types/EarthquakeNode'
+import { MultiplyNodeDefinition } from './types/MultiplyNode'
 import {
 	ExecutionResult,
 	InfoValues,
 	NodeDefinition,
 	NodeDefinitionConstructor,
 } from './types/shared'
-import { SliderNodeType } from './types/SliderNode'
-import { SubtractNodeType } from './types/SubtractNode'
+import { SliderNodeDefinition } from './types/SliderNode'
+import { SubtractNodeDefinition } from './types/SubtractNode'
 
 /** All our node types */
 export const NodeDefinitions = {
-	add: AddNodeType,
-	subtract: SubtractNodeType,
-	multiply: MultiplyNodeType,
-	divide: DivideNodeType,
-	conditional: ConditionalNodeType,
-	slider: SliderNodeType,
+	add: AddNodeDefinition,
+	subtract: SubtractNodeDefinition,
+	multiply: MultiplyNodeDefinition,
+	divide: DivideNodeDefinition,
+	conditional: ConditionalNodeDefinition,
+	slider: SliderNodeDefinition,
+	earthquake: EarthquakeNodeDefinition,
 } satisfies Record<string, NodeDefinitionConstructor<any>>
 
 /**

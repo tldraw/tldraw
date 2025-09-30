@@ -1,11 +1,19 @@
-import { compact, groupBy } from '@tldraw/utils'
+import { compact } from '@tldraw/utils'
 import { join } from 'path'
 import { REPO_ROOT, writeCodeFile } from './lib/file'
 import { getAllWorkspacePackages } from './lib/workspace'
 
 async function main() {
 	const packages = await getAllWorkspacePackages()
-	const templates = compact(packages.map((pkg) => pkg.packageJson.tldraw_template?.publish))
+	const templates = compact(
+		packages.map((pkg) => {
+			if (!pkg.packageJson.tldraw_template?.cli) return null
+			return {
+				...pkg.packageJson.tldraw_template.cli,
+				repo: pkg.packageJson.tldraw_template.repo,
+			}
+		})
+	)
 	const sortedTemplates = templates.sort((a, b) => {
 		// sort by order, undefined values go last; then by name
 		if (a.order === b.order) return a.name.localeCompare(b.name)
@@ -14,23 +22,16 @@ async function main() {
 		return a.order! - b.order! // sort by order
 	})
 
-	const templatesByCategory = groupBy(sortedTemplates, (t) => t.category)
-
 	const code = `
 		export interface Template {
 			repo: string
 			name: string
 			description: string
-			category: 'framework' | 'app'
+			shortDescription?: string
 			order?: number
 		}
 
-		export interface Templates {
-			framework: Template[]
-			app: Template[]
-		}
-
-		export const TEMPLATES: Templates = ${JSON.stringify(templatesByCategory, null, 2)}
+		export const TEMPLATES: Template[] = ${JSON.stringify(sortedTemplates, null, 2)}
 	`
 	await writeCodeFile(
 		'refresh-create-templates.ts',

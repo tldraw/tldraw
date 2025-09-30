@@ -15,7 +15,6 @@ import {
 	VecModel,
 	clamp,
 	createShapeId,
-	stopEventPropagation,
 	useEditor,
 	useValue,
 	vecModelValidator,
@@ -360,7 +359,7 @@ function ConnectionCenterHandle({
 			style={{
 				transform: `translate(${center.x}px, ${center.y}px) scale(max(0.5, calc(1 / var(--tl-zoom))))`,
 			}}
-			onPointerDown={stopEventPropagation}
+			onPointerDown={editor.markEventAsHandled}
 			onClick={() => {
 				insertNodeWithinConnection(editor, connection)
 			}}

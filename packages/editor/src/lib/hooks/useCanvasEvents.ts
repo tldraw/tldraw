@@ -1,12 +1,7 @@
 import { useValue } from '@tldraw/state-react'
 import React, { useEffect, useMemo } from 'react'
 import { RIGHT_MOUSE_BUTTON } from '../constants'
-import {
-	preventDefault,
-	releasePointerCapture,
-	setPointerCapture,
-	stopEventPropagation,
-} from '../utils/dom'
+import { preventDefault, releasePointerCapture, setPointerCapture } from '../utils/dom'
 import { getPointerInfo } from '../utils/getPointerInfo'
 import { useEditor } from './useEditor'
 
@@ -17,14 +12,14 @@ export function useCanvasEvents() {
 	const events = useMemo(
 		function canvasEvents() {
 			function onPointerDown(e: React.PointerEvent) {
-				if ((e as any).isKilled) return
+				if (editor.wasEventAlreadyHandled(e)) return
 
 				if (e.button === RIGHT_MOUSE_BUTTON) {
 					editor.dispatch({
 						type: 'pointer',
 						target: 'canvas',
 						name: 'right_click',
-						...getPointerInfo(e),
+						...getPointerInfo(editor, e),
 					})
 					return
 				}
@@ -37,12 +32,12 @@ export function useCanvasEvents() {
 					type: 'pointer',
 					target: 'canvas',
 					name: 'pointer_down',
-					...getPointerInfo(e),
+					...getPointerInfo(editor, e),
 				})
 			}
 
 			function onPointerUp(e: React.PointerEvent) {
-				if ((e as any).isKilled) return
+				if (editor.wasEventAlreadyHandled(e)) return
 				if (e.button !== 0 && e.button !== 1 && e.button !== 2 && e.button !== 5) return
 
 				releasePointerCapture(e.currentTarget, e)
@@ -51,31 +46,33 @@ export function useCanvasEvents() {
 					type: 'pointer',
 					target: 'canvas',
 					name: 'pointer_up',
-					...getPointerInfo(e),
+					...getPointerInfo(editor, e),
 				})
 			}
 
 			function onPointerEnter(e: React.PointerEvent) {
-				if ((e as any).isKilled) return
+				if (editor.wasEventAlreadyHandled(e)) return
 				if (editor.getInstanceState().isPenMode && e.pointerType !== 'pen') return
 				const canHover = e.pointerType === 'mouse' || e.pointerType === 'pen'
 				editor.updateInstanceState({ isHoveringCanvas: canHover ? true : null })
 			}
 
 			function onPointerLeave(e: React.PointerEvent) {
-				if ((e as any).isKilled) return
+				if (editor.wasEventAlreadyHandled(e)) return
 				if (editor.getInstanceState().isPenMode && e.pointerType !== 'pen') return
 				const canHover = e.pointerType === 'mouse' || e.pointerType === 'pen'
 				editor.updateInstanceState({ isHoveringCanvas: canHover ? false : null })
 			}
 
 			function onTouchStart(e: React.TouchEvent) {
-				;(e as any).isKilled = true
+				if (editor.wasEventAlreadyHandled(e)) return
+				editor.markEventAsHandled(e)
 				preventDefault(e)
 			}
 
 			function onTouchEnd(e: React.TouchEvent) {
-				;(e as any).isKilled = true
+				if (editor.wasEventAlreadyHandled(e)) return
+				editor.markEventAsHandled(e)
 				// check that e.target is an HTMLElement
 				if (!(e.target instanceof HTMLElement)) return
 
@@ -94,12 +91,14 @@ export function useCanvasEvents() {
 			}
 
 			function onDragOver(e: React.DragEvent<Element>) {
+				if (editor.wasEventAlreadyHandled(e)) return
 				preventDefault(e)
 			}
 
 			async function onDrop(e: React.DragEvent<Element>) {
+				if (editor.wasEventAlreadyHandled(e)) return
 				preventDefault(e)
-				stopEventPropagation(e)
+				e.stopPropagation()
 
 				if (e.dataTransfer?.files?.length) {
 					const files = Array.from(e.dataTransfer.files)
@@ -124,7 +123,8 @@ export function useCanvasEvents() {
 			}
 
 			function onClick(e: React.MouseEvent) {
-				stopEventPropagation(e)
+				if (editor.wasEventAlreadyHandled(e)) return
+				e.stopPropagation()
 			}
 
 			return {
@@ -151,8 +151,8 @@ export function useCanvasEvents() {
 		let lastX: number, lastY: number
 
 		function onPointerMove(e: PointerEvent) {
-			if ((e as any).isKilled) return
-			;(e as any).isKilled = true
+			if (editor.wasEventAlreadyHandled(e)) return
+			editor.markEventAsHandled(e)
 
 			if (e.clientX === lastX && e.clientY === lastY) return
 			lastX = e.clientX
@@ -168,7 +168,7 @@ export function useCanvasEvents() {
 					type: 'pointer',
 					target: 'canvas',
 					name: 'pointer_move',
-					...getPointerInfo(singleEvent),
+					...getPointerInfo(editor, singleEvent),
 				})
 			}
 		}

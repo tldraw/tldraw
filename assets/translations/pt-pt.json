@@ -81,6 +81,7 @@
 	"action.stretch-horizontal.short": "Esticar H",
 	"action.stretch-vertical": "Esticar verticalmente",
 	"action.stretch-vertical.short": "Esticar V",
+	"action.toggle-auto-none": "Automático",
 	"action.toggle-auto-size": "Alternar tamanho automático",
 	"action.toggle-dark-mode": "Modo Escuro",
 	"action.toggle-dark-mode.menu": "Modo Escuro",

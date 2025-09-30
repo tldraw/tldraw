@@ -84,6 +84,8 @@ function EditorA() {
 				tabIndex={-1}
 				onFocus={() => setFocusedEditor((window as any).EDITOR_A)}
 				style={{ height: 600 }}
+				// Capture pointer down events that happen within the editor
+				onPointerDown={(e) => e.stopPropagation()}
 			>
 				<Tldraw
 					persistenceKey="steve"
@@ -102,7 +104,6 @@ function EditorA() {
 // [4]
 function EditorB() {
 	const { setFocusedEditor } = useContext(focusedEditorContext)
-
 	return (
 		<div>
 			<h2>B</h2>
@@ -126,7 +127,6 @@ function EditorB() {
 
 function EditorC() {
 	const { setFocusedEditor } = useContext(focusedEditorContext)
-
 	return (
 		<div>
 			<h2>C</h2>

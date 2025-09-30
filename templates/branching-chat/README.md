@@ -29,18 +29,16 @@ Perfect for building chatbots, interactive storytelling, conversation design too
 yarn install
 ```
 
-### 2. Environment Setup
+### 2. Environment setup
 
-Create a `.dev.vars` file in the root directory:
+Create a `.env` file in the root directory and add your Google Generative API key:
 
-```bash
-OPENAI_API_KEY=your_openai_api_key_here
+```
+GOOGLE_GENERATIVE_AI_API_KEY=your_gemini_api_key_here
 ```
 
-**Get your API key:**
-
-- OpenAI: [platform.openai.com](https://platform.openai.com/api-keys)
-- Or use any compatible provider via [Vercel AI SDK](https://sdk.vercel.ai/providers)
+Get your API key from [Google AI Studio](https://aistudio.google.com/apikey).
+You can also switch to a different provider using the [Vercel AI SDK](https://ai-sdk.dev/providers/ai-sdk-providers).
 
 ### 3. Start Development
 
@@ -88,7 +86,7 @@ yarn build
 npx wrangler deploy
 ```
 
-Make sure to set your `OPENAI_API_KEY` in your Cloudflare Workers environment variables.
+Make sure to set your `GOOGLE_GENERATIVE_AI_API_KEY` in your Cloudflare Workers environment variables.
 
 ## Customization
 
@@ -96,11 +94,11 @@ Make sure to set your `OPENAI_API_KEY` in your Cloudflare Workers environment va
 
 1. Create a new node definition in `/client/nodes/types/`
 2. Add to the `NodeDefinitions` array in `nodeTypes.tsx`
-3. Implement required methods: `Component`, `getPorts`, `computeOutput`
+3. Implement required methods: `Component`, `getPorts`, etc.
 
 ### Changing AI Providers
 
-Modify the `/worker/routes/` to use different AI providers supported by the Vercel AI SDK:
+Modify `/worker/worker.ts` to use different AI providers supported by the Vercel AI SDK:
 
 ```javascript
 import { anthropic } from '@ai-sdk/anthropic'

@@ -1270,16 +1270,16 @@ export function ActionsProvider({ overrides, children }: ActionsProviderProps) {
 				checkbox: true,
 			},
 			{
-				id: 'toggle-ui-labels',
+				id: 'enhanced-a11y-mode',
 				label: {
-					default: 'action.toggle-ui-labels',
-					menu: 'action.toggle-ui-labels.menu',
+					default: 'action.enhanced-a11y-mode',
+					menu: 'action.enhanced-a11y-mode.menu',
 				},
 				readonlyOk: true,
 				onSelect(source) {
-					trackEvent('toggle-ui-labels', { source })
+					trackEvent('enhanced-a11y-mode', { source })
 					editor.user.updateUserPreferences({
-						showUiLabels: !editor.user.getShowUiLabels(),
+						enhancedA11yMode: !editor.user.getEnhancedA11yMode(),
 					})
 				},
 				checkbox: true,
@@ -1583,6 +1583,19 @@ export function ActionsProvider({ overrides, children }: ActionsProviderProps) {
 				isRequiredA11yAction: true,
 				onSelect: async (source) => {
 					if (!canApplySelectionAction()) return
+
+					const onlySelectedShape = editor.getOnlySelectedShape()
+					if (
+						onlySelectedShape &&
+						(editor.isShapeOfType<TLImageShape>(onlySelectedShape, 'image') ||
+							editor.isShapeOfType<TLVideoShape>(onlySelectedShape, 'video'))
+					) {
+						const firstToolbarButton = editor
+							.getContainer()
+							.querySelector('.tlui-contextual-toolbar button:first-child') as HTMLElement | null
+						firstToolbarButton?.focus()
+						return
+					}
 
 					const firstButton = editor
 						.getContainer()

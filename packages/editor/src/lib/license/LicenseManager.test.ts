@@ -36,13 +36,15 @@ describe('LicenseManager', () => {
 	let licenseManager: LicenseManager
 
 	beforeAll(() => {
+		process.env.NODE_ENV = 'production'
 		return new Promise((resolve) => {
 			generateKeyPair().then((kp) => {
 				keyPair = kp
-				licenseManager = new LicenseManager('', keyPair.publicKey, 'production')
+				licenseManager = new LicenseManager('', keyPair.publicKey)
 				resolve(void 0)
 			})
 		})
+		process.env.NODE_ENV = 'test'
 	})
 
 	beforeEach(() => {
@@ -58,7 +60,7 @@ describe('LicenseManager', () => {
 			expect(result).toMatchObject({ isLicenseParseable: false, reason: 'no-key-provided' })
 		})
 
-		it('Signals that it is development mode when appropriate', async () => {
+		it('Signals that it is development mode when localhost', async () => {
 			const schemes = ['http', 'https']
 			for (const scheme of schemes) {
 				// @ts-ignore
@@ -66,7 +68,7 @@ describe('LicenseManager', () => {
 				// @ts-ignore
 				window.location = new URL(`${scheme}://localhost:3000`)
 
-				const testEnvLicenseManager = new LicenseManager('', keyPair.publicKey, 'development')
+				const testEnvLicenseManager = new LicenseManager('', keyPair.publicKey)
 				const licenseKey = await generateLicenseKey(STANDARD_LICENSE_INFO, keyPair)
 				const result = await testEnvLicenseManager.getLicenseFromKey(licenseKey)
 				expect(result).toMatchObject({
@@ -77,6 +79,66 @@ describe('LicenseManager', () => {
 			}
 		})
 
+		it('Signals that it is development mode when NODE_ENV is not production', async () => {
+			process.env.NODE_ENV = 'development'
+			// @ts-ignore
+			delete window.location
+			// @ts-ignore
+			window.location = new URL(`https://www.example.com`)
+
+			const testEnvLicenseManager = new LicenseManager('', keyPair.publicKey)
+			const licenseKey = await generateLicenseKey(STANDARD_LICENSE_INFO, keyPair)
+			const result = await testEnvLicenseManager.getLicenseFromKey(licenseKey)
+			expect(result).toMatchObject({
+				isLicenseParseable: true,
+				isDomainValid: true,
+				isDevelopment: true,
+			})
+			const licenseState = testEnvLicenseManager.state.get()
+			expect(licenseState).toBe('unlicensed')
+			process.env.NODE_ENV = 'test'
+		})
+
+		it('Signals that it is development mode when NODE_ENV is "test"', async () => {
+			process.env.NODE_ENV = 'test'
+			// @ts-ignore
+			delete window.location
+			// @ts-ignore
+			window.location = new URL(`https://www.example.com`)
+
+			const testEnvLicenseManager = new LicenseManager('', keyPair.publicKey)
+			const licenseKey = await generateLicenseKey(STANDARD_LICENSE_INFO, keyPair)
+			const result = await testEnvLicenseManager.getLicenseFromKey(licenseKey)
+			expect(result).toMatchObject({
+				isLicenseParseable: true,
+				isDomainValid: true,
+				isDevelopment: true,
+			})
+			const licenseState = testEnvLicenseManager.state.get()
+			expect(licenseState).toBe('unlicensed')
+			process.env.NODE_ENV = 'test'
+		})
+
+		it('Signals that it is not development mode when NODE_ENV is production', async () => {
+			process.env.NODE_ENV = 'production'
+			// @ts-ignore
+			delete window.location
+			// @ts-ignore
+			window.location = new URL(`https://www.example.com`)
+
+			const testEnvLicenseManager = new LicenseManager('', keyPair.publicKey)
+			const licenseKey = await generateLicenseKey(STANDARD_LICENSE_INFO, keyPair)
+			const result = await testEnvLicenseManager.getLicenseFromKey(licenseKey)
+			expect(result).toMatchObject({
+				isLicenseParseable: true,
+				isDomainValid: true,
+				isDevelopment: false,
+			})
+			const licenseState = testEnvLicenseManager.state.get()
+			expect(licenseState).toBe('unlicensed-production')
+			process.env.NODE_ENV = 'test'
+		})
+
 		it('Cleanses out valid keys that accidentally have zero-width characters or newlines', async () => {
 			const cleanLicenseKey = await generateLicenseKey(STANDARD_LICENSE_INFO, keyPair)
 			const dirtyLicenseKey = cleanLicenseKey + '\u200B\u200D\uFEFF\n\r'
@@ -85,10 +147,12 @@ describe('LicenseManager', () => {
 		})
 
 		it('Fails if garbage key provided', async () => {
-			const badPublicKeyLicenseManager = new LicenseManager('', 'badpublickey', 'production')
+			process.env.NODE_ENV = 'production'
+			const badPublicKeyLicenseManager = new LicenseManager('', 'badpublickey')
 			const invalidLicenseKey = await generateLicenseKey(STANDARD_LICENSE_INFO, keyPair)
 			const result = await badPublicKeyLicenseManager.getLicenseFromKey(invalidLicenseKey)
 			expect(result).toMatchObject({ isLicenseParseable: false, reason: 'invalid-license-key' })
+			process.env.NODE_ENV = 'test'
 		})
 
 		it('Fails if non-JSON parseable message is provided', async () => {
@@ -266,7 +330,7 @@ describe('LicenseManager', () => {
 			delete window.location
 			// @ts-ignore
 			window.location = new URL(
-				'vscode-webview:vscode-webview://1ipd8pun8ud7nd7hv9d112g7evi7m10vak9vviuvia66ou6aibp3/index.html?id=6ec2dc7a-afe9-45d9-bd71-1749f9568d28&origin=955b256f-37e1-4a72-a2f4-ad633e88239c&swVersion=4&extensionId=tldraw-org.tldraw-vscode&platform=electron&vscode-resource-base-authority=vscode-resource.vscode-cdn.net&parentOrigin=vscode-file%3A%2F%2Fvscode-app'
+				'vscode-webview://1ipd8pun8ud7nd7hv9d112g7evi7m10vak9vviuvia66ou6aibp3/index.html?id=6ec2dc7a-afe9-45d9-bd71-1749f9568d28&origin=955b256f-37e1-4a72-a2f4-ad633e88239c&swVersion=4&extensionId=tldraw-org.tldraw-vscode&platform=electron&vscode-resource-base-authority=vscode-resource.vscode-cdn.net&parentOrigin=vscode-file%3A%2F%2Fvscode-app'
 			)
 
 			const permissiveHostsInfo = JSON.parse(STANDARD_LICENSE_INFO)
@@ -286,7 +350,7 @@ describe('LicenseManager', () => {
 			delete window.location
 			// @ts-ignore
 			window.location = new URL(
-				'vscode-webview:vscode-webview://1ipd8pun8ud7nd7hv9d112g7evi7m10vak9vviuvia66ou6aibp3/index.html?id=6ec2dc7a-afe9-45d9-bd71-1749f9568d28&origin=955b256f-37e1-4a72-a2f4-ad633e88239c&swVersion=4&extensionId=tldraw-org.tldraw-vscode&platform=electron&vscode-resource-base-authority=vscode-resource.vscode-cdn.net&parentOrigin=vscode-file%3A%2F%2Fvscode-app'
+				'vscode-webview://1ipd8pun8ud7nd7hv9d112g7evi7m10vak9vviuvia66ou6aibp3/index.html?id=6ec2dc7a-afe9-45d9-bd71-1749f9568d28&origin=955b256f-37e1-4a72-a2f4-ad633e88239c&swVersion=4&extensionId=tldraw-org.tldraw-vscode&platform=electron&vscode-resource-base-authority=vscode-resource.vscode-cdn.net&parentOrigin=vscode-file%3A%2F%2Fvscode-app'
 			)
 
 			const permissiveHostsInfo = JSON.parse(STANDARD_LICENSE_INFO)
@@ -297,6 +361,70 @@ describe('LicenseManager', () => {
 			)
 			const result = (await licenseManager.getLicenseFromKey(
 				permissiveLicenseKey
+			)) as ValidLicenseKeyResult
+			expect(result.isDomainValid).toBe(false)
+		})
+
+		it('Succeeds if it is a native app', async () => {
+			// @ts-ignore
+			delete window.location
+			// @ts-ignore
+			window.location = new URL('app-bundle://app/index.html')
+
+			const nativeLicenseInfo = JSON.parse(STANDARD_LICENSE_INFO)
+			nativeLicenseInfo[PROPERTIES.FLAGS] = FLAGS.NATIVE_LICENSE
+			nativeLicenseInfo[PROPERTIES.HOSTS] = ['app-bundle:']
+			const nativeLicenseKey = await generateLicenseKey(JSON.stringify(nativeLicenseInfo), keyPair)
+			const result = (await licenseManager.getLicenseFromKey(
+				nativeLicenseKey
+			)) as ValidLicenseKeyResult
+			expect(result.isDomainValid).toBe(true)
+		})
+
+		it('Succeeds if it is a native app with a wildcard', async () => {
+			// @ts-ignore
+			delete window.location
+			// @ts-ignore
+			window.location = new URL('app-bundle://unique-id-123/index.html')
+
+			const nativeLicenseInfo = JSON.parse(STANDARD_LICENSE_INFO)
+			nativeLicenseInfo[PROPERTIES.FLAGS] = FLAGS.NATIVE_LICENSE
+			nativeLicenseInfo[PROPERTIES.HOSTS] = ['^app-bundle://unique-id-123.*']
+			const nativeLicenseKey = await generateLicenseKey(JSON.stringify(nativeLicenseInfo), keyPair)
+			const result = (await licenseManager.getLicenseFromKey(
+				nativeLicenseKey
+			)) as ValidLicenseKeyResult
+			expect(result.isDomainValid).toBe(true)
+		})
+
+		it('Succeeds if it is a native app with a wildcard and search param', async () => {
+			// @ts-ignore
+			delete window.location
+			// @ts-ignore
+			window.location = new URL('app-bundle://app/index.html?unique-id-123')
+
+			const nativeLicenseInfo = JSON.parse(STANDARD_LICENSE_INFO)
+			nativeLicenseInfo[PROPERTIES.FLAGS] = FLAGS.NATIVE_LICENSE
+			nativeLicenseInfo[PROPERTIES.HOSTS] = ['^app-bundle://app.*unique-id-123.*']
+			const nativeLicenseKey = await generateLicenseKey(JSON.stringify(nativeLicenseInfo), keyPair)
+			const result = (await licenseManager.getLicenseFromKey(
+				nativeLicenseKey
+			)) as ValidLicenseKeyResult
+			expect(result.isDomainValid).toBe(true)
+		})
+
+		it('Fails if it is a native app with the wrong protocol', async () => {
+			// @ts-ignore
+			delete window.location
+			// @ts-ignore
+			window.location = new URL('blah-blundle://app/index.html')
+
+			const nativeLicenseInfo = JSON.parse(STANDARD_LICENSE_INFO)
+			nativeLicenseInfo[PROPERTIES.FLAGS] = FLAGS.NATIVE_LICENSE
+			nativeLicenseInfo[PROPERTIES.HOSTS] = ['app-bundle:']
+			const nativeLicenseKey = await generateLicenseKey(JSON.stringify(nativeLicenseInfo), keyPair)
+			const result = (await licenseManager.getLicenseFromKey(
+				nativeLicenseKey
 			)) as ValidLicenseKeyResult
 			expect(result.isDomainValid).toBe(false)
 		})
@@ -314,6 +442,17 @@ describe('LicenseManager', () => {
 				internalLicenseKey
 			)) as ValidLicenseKeyResult
 			expect(result.isInternalLicense).toBe(true)
+		})
+
+		it('Checks for native license', async () => {
+			const nativeLicenseInfo = JSON.parse(STANDARD_LICENSE_INFO)
+			nativeLicenseInfo[PROPERTIES.FLAGS] = FLAGS.NATIVE_LICENSE
+			const nativeLicenseKey = await generateLicenseKey(JSON.stringify(nativeLicenseInfo), keyPair)
+
+			const result = (await licenseManager.getLicenseFromKey(
+				nativeLicenseKey
+			)) as ValidLicenseKeyResult
+			expect(result.isNativeLicense).toBe(true)
 		})
 
 		it('Checks for license with watermark', async () => {
@@ -553,6 +692,7 @@ function getDefaultLicenseResult(overrides: Partial<ValidLicenseKeyResult>): Val
 		isAnnualLicense: true,
 		isAnnualLicenseExpired: false,
 		isInternalLicense: false,
+		isNativeLicense: false,
 		isDevelopment: false,
 		isDomainValid: true,
 		isPerpetualLicense: false,
