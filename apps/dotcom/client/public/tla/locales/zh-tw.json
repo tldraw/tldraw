@@ -35,6 +35,9 @@
   "110a4b01be": {
     "translation": "發布"
   },
+  "12c8a9838c": {
+    "translation": "嘗試 tldraw SDK"
+  },
   "13ddd375ad": {
     "translation": "匯出為"
   },
@@ -94,6 +97,12 @@
   },
   "47839e47a5": {
     "translation": "tldraw"
+  },
+  "7697920637": {
+    "translation": "請重新加載"
+  },
+  "764671e008": {
+    "translation": "在 Discord 上與我們聊天"
   },
   "4908687e50": {
     "translation": "您確定要遺忘此檔案嗎？"
@@ -190,12 +199,6 @@
   },
   "761e93ede9": {
     "translation": "管理cookies"
-  },
-  "7697920637": {
-    "translation": "請重新加載"
-  },
-  "764671e008": {
-    "translation": "在 Discord 上與我們聊天"
   },
   "777f9e90cf": {
     "translation": "無效的請求。"
@@ -413,6 +416,9 @@
   },
   "ede55d955f": {
     "translation": "請閱讀我們的<a>cookie 政策</a>以了解更多資訊。"
+  },
+  "ef7de3f485": {
+    "translation": "已選擇"
   },
   "f09b16bc5f": {
     "translation": "我們使用 cookie 來讓您保持登入狀態、同步您的檔案並收集分析資料以幫助我們改善 tldraw。"
