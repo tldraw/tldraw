@@ -64,7 +64,7 @@ export interface Environment {
 	HEALTH_CHECK_BEARER_TOKEN: string | undefined
 
 	ANALYTICS_API_URL: string | undefined
-	ANALYTICS_DELETION_API_TOKEN: string | undefined
+	ANALYTICS_API_TOKEN: string | undefined
 
 	RATE_LIMITER: RateLimit
 

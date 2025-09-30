@@ -208,10 +208,10 @@ async function deleteUserFromAnalytics(
 	env: Environment,
 	sendProgress?: (step: string, message: string, details?: any) => void
 ) {
-	if (!env.ANALYTICS_API_URL || !env.ANALYTICS_DELETION_API_TOKEN) {
+	if (!env.ANALYTICS_API_URL || !env.ANALYTICS_API_TOKEN) {
 		sendProgress?.(
 			'analytics',
-			'Skipping analytics deletion - missing configuration (ANALYTICS_API_URL or ANALYTICS_DELETION_API_TOKEN)'
+			'Skipping analytics deletion - missing configuration (ANALYTICS_API_URL or ANALYTICS_API_TOKEN)'
 		)
 		return
 	}
@@ -221,7 +221,7 @@ async function deleteUserFromAnalytics(
 			method: 'POST',
 			headers: {
 				'Content-Type': 'application/json',
-				Authorization: `Bearer ${env.ANALYTICS_DELETION_API_TOKEN}`,
+				Authorization: `Bearer ${env.ANALYTICS_API_TOKEN}`,
 			},
 			body: JSON.stringify({
 				clerk_id: userId,
