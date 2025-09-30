@@ -16,6 +16,36 @@ export const FluidRenderer = memo(({ config = {} }: { config?: Partial<FluidMana
 
 		manager.initialize(darkMode)
 
+		function handlePointerDown(e: PointerEvent) {
+			const elm = e.target! as HTMLElement
+			elm.setPointerCapture(e.pointerId)
+			manager.handlePointerDown()
+		}
+
+		function handlePointerUp(e: PointerEvent) {
+			const elm = e.target! as HTMLElement
+			elm.releasePointerCapture(e.pointerId)
+			manager.handlePointerUp()
+		}
+
+		function handlePointerMove() {
+			manager.handlePointerMove()
+		}
+
+		document.addEventListener('pointermove', handlePointerMove)
+		document.addEventListener('pointerdown', handlePointerDown)
+		document.addEventListener('pointerup', handlePointerUp)
+
+		return () => {
+			document.removeEventListener('pointermove', handlePointerMove)
+			document.removeEventListener('pointerdown', handlePointerDown)
+			document.removeEventListener('pointerup', handlePointerUp)
+
+			manager.handlePointerUp()
+			manager.dispose()
+			rFluidManager.current = null
+		}
+
 		return () => {
 			manager.dispose()
 			rFluidManager.current = null

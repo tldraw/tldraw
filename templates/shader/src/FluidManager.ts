@@ -1,26 +1,5 @@
-import { Box, Editor, react, throttle, TLShape, TLShapeId, Vec } from 'tldraw'
+import { Box, Editor, react, throttle, TLShape, Vec } from 'tldraw'
 import { FluidSimulation } from './fluid'
-
-export interface FluidManagerConfig {
-	/** Quality mode affects canvas resolution */
-	qualityMode: 'low' | 'medium' | 'high'
-	/** Scale factor for velocity calculations */
-	velocityScale: number
-	/** Number of sample points for bounds-based shapes */
-	boundsSampleCount: number
-	/** Range for random splat counts [min, max] */
-	randomSplatsRange: [number, number]
-	/** Enable bloom effect */
-	bloom: boolean
-	/** Enable sunrays effect */
-	sunrays: boolean
-	/** Background color override */
-	backgroundColor: { r: number; g: number; b: number }
-	/** Custom color map for dark mode */
-	darkModeColorMap: Record<string, [number, number, number]>
-	/** Custom color map for light mode */
-	lightModeColorMap: Record<string, [number, number, number]>
-}
 
 const DEFAULT_DARK_MODE_COLOR_MAP: Record<string, [number, number, number]> = {
 	black: [0.04, 0.04, 0.04],
@@ -52,13 +31,34 @@ const DEFAULT_LIGHT_MODE_COLOR_MAP: Record<string, [number, number, number]> = {
 	red: [0.5, 0.15, 0.15],
 }
 
+export interface FluidManagerConfig {
+	/** Quality mode affects canvas resolution */
+	quality: number
+	/** Scale factor for velocity calculations */
+	velocityScale: number
+	/** Number of sample points for bounds-based shapes */
+	boundsSampleCount: number
+	/** Range for random splat counts [min, max] */
+	randomSplatsRange: [number, number]
+	/** Enable bloom effect */
+	bloom: boolean
+	/** Enable sunrays effect */
+	sunrays: boolean
+	/** Background color override */
+	backgroundColor: { r: number; g: number; b: number }
+	/** Custom color map for dark mode */
+	darkModeColorMap: Record<string, [number, number, number]>
+	/** Custom color map for light mode */
+	lightModeColorMap: Record<string, [number, number, number]>
+}
+
 const DEFAULT_CONFIG: FluidManagerConfig = {
-	qualityMode: 'medium',
+	quality: 0.5,
 	velocityScale: 0.01,
 	boundsSampleCount: 20,
 	randomSplatsRange: [5, 20],
-	bloom: false,
-	sunrays: false,
+	bloom: true,
+	sunrays: true,
 	backgroundColor: { r: 249, g: 250, b: 251 },
 	darkModeColorMap: DEFAULT_DARK_MODE_COLOR_MAP,
 	lightModeColorMap: DEFAULT_LIGHT_MODE_COLOR_MAP,
@@ -70,10 +70,10 @@ const DEFAULT_CONFIG: FluidManagerConfig = {
  */
 export class FluidManager {
 	private fluidSim: FluidSimulation | null = null
-	private prevShapes: Map<TLShapeId, TLShape> = new Map()
 	private config: Required<FluidManagerConfig> = DEFAULT_CONFIG
 	private darkMode: boolean = false
 	private disposables = new Set<() => void>()
+	private isPointerEffectActive = false
 
 	constructor(
 		private canvas: HTMLCanvasElement,
@@ -86,17 +86,34 @@ export class FluidManager {
 		}
 
 		this.disposables.add(
-			react('laserReactor', () => {
-				const isInLaserTool = editor.isInAny('laser.pointing', 'laser.lasering', 'eraser.erasing')
-				const position = editor.inputs.currentScreenPoint
-				this.updatePointerTool(isInLaserTool, position)
+			react('tool changes', () => {
+				const currentTool = editor.getCurrentToolId()
+				if (currentTool === 'eraser') {
+					this.isPointerEffectActive = true
+				} else {
+					if (this.isPointerEffectActive) {
+						this.handlePointerUp()
+					}
+					this.isPointerEffectActive = false
+				}
 			})
 		)
+
 		this.disposables.add(
-			react('shapeChanges', () => {
-				const currentShapes = this.editor.getCurrentPageShapes()
-				this.updateShapes(currentShapes)
-			})
+			editor.store.listen(
+				(diff) => {
+					const added = Object.values(diff.changes.added).filter(
+						(record) => record.typeName === 'shape'
+					) as TLShape[]
+
+					const updated = Object.values(diff.changes.updated).filter(
+						([record]) => record.typeName === 'shape'
+					) as [TLShape, TLShape][]
+
+					this.updateShapes(added, updated)
+				},
+				{ scope: 'document' }
+			)
 		)
 	}
 
@@ -107,8 +124,7 @@ export class FluidManager {
 	initialize(darkMode: boolean = false): void {
 		this.darkMode = darkMode
 
-		const resolutionScale =
-			this.config.qualityMode === 'high' ? 1.0 : this.config.qualityMode === 'medium' ? 0.5 : 0.25
+		const resolutionScale = this.config.quality
 
 		// Set canvas internal resolution based on display size
 		const rect = this.canvas.getBoundingClientRect()
@@ -134,120 +150,61 @@ export class FluidManager {
 			this.fluidSim.destroy()
 			this.fluidSim = null
 		}
-		this.prevShapes.clear()
 		this.disposables.forEach((dispose) => dispose())
 		this.disposables.clear()
 	}
 
 	/**
-	 * Update the dark mode setting and reinitialize the simulation.
+	 * Handle pointer down.
 	 */
-	setDarkMode = (darkMode: boolean): void => {
-		this.darkMode = darkMode
-		this.dispose()
-		this.initialize(darkMode)
-	}
-
-	/**
-	 * Start a drag interaction at the given normalized screen coordinates.
-	 * @param x - Normalized x coordinate (0-1)
-	 * @param y - Normalized y coordinate (0-1)
-	 */
-	startDrag = (x: number, y: number): void => {
+	handlePointerDown = (): void => {
+		if (!this.isPointerEffectActive) return
+		const { x, y } = this.getNormalizedPosition()
 		this.fluidSim?.startDrag(x, y)
 	}
 
 	/**
-	 * Update the current drag position.
-	 * @param x - Normalized x coordinate (0-1)
-	 * @param y - Normalized y coordinate (0-1)
+	 * Handle pointer movement.
 	 */
-	updateDrag = (x: number, y: number): void => {
+	handlePointerMove = (): void => {
+		if (!this.isPointerEffectActive || !this.editor.inputs.isDragging) return
+		const { x, y } = this.getNormalizedPosition()
 		this.fluidSim?.updateDrag(x, y)
 	}
 
 	/**
-	 * End the current drag interaction.
+	 * Handle pointer up.
 	 */
-	endDrag = (): void => {
+	handlePointerUp = (): void => {
+		if (!this.isPointerEffectActive || !this.editor.inputs.isDragging) return
 		this.fluidSim?.endDrag()
 	}
 
-	/**
-	 * Add random splats to the simulation.
-	 * @param count - Optional number of splats (uses random range from config if not provided)
-	 */
-	addRandomSplats = (count?: number): void => {
-		const [min, max] = this.config.randomSplatsRange
-		const splatCount = count ?? Math.floor(Math.random() * (max - min)) + min
-		this.fluidSim?.addRandomSplats(splatCount)
+	// Private helper methods
+
+	private getNormalizedPosition() {
+		const point = this.editor.inputs.currentScreenPoint
+		const vsb = this.editor.getViewportScreenBounds()
+		const normalizedPosition = this.screenToNormalizedScreen(point, vsb)
+		return normalizedPosition
 	}
 
 	/**
 	 * Process shape changes and update fluid simulation accordingly.
 	 * Call this method when shapes are created, modified, or deleted.
 	 */
-	updateShapes = throttle((currentShapes: TLShape[]): void => {
+	updateShapes = throttle((created: TLShape[], updated: [TLShape, TLShape][]): void => {
 		if (!this.fluidSim) return
-		const currentShapeMap = new Map(currentShapes.map((shape) => [shape.id, shape]))
 		const vsb = this.editor.getViewportScreenBounds()
 
-		// Check for changed shapes
-		currentShapes.forEach((shape) => {
-			const prevShape = this.prevShapes.get(shape.id)
-
-			if (!prevShape) {
-				// New shape - create splats from its geometry
-				this.handleNewShape(shape, vsb)
-			} else {
-				// Check if shape has changed (position, size, rotation)
-				const hasChanged =
-					prevShape.x !== shape.x ||
-					prevShape.y !== shape.y ||
-					prevShape.rotation !== shape.rotation ||
-					this.shapePropsChanged(prevShape.props, shape.props)
-
-				if (hasChanged) {
-					this.handleShapeChange(shape, prevShape, vsb)
-				}
-			}
+		created.forEach((shape) => {
+			this.handleNewShape(shape, vsb)
 		})
 
-		// Clean up deleted shapes from tracking (prevent memory leak)
-		this.prevShapes.forEach((_, id) => {
-			if (!currentShapeMap.has(id)) {
-				this.prevShapes.delete(id)
-			}
+		updated.forEach(([prevShape, shape]) => {
+			this.handleShapeChange(shape, prevShape, vsb)
 		})
-
-		// Update the previous shapes reference
-		this.prevShapes = currentShapeMap
-	}, 120)
-
-	/**
-	 * Handle pointer movement for laser/eraser tools.
-	 * @param isActive - Whether the tool is currently active
-	 * @param screenPoint - Current screen point
-	 */
-	updatePointerTool = (isActive: boolean, screenPoint: Vec): void => {
-		if (!isActive) {
-			this.endDrag()
-			return
-		}
-
-		const vsb = this.editor.getViewportScreenBounds()
-		const normalizedPosition = this.screenToNormalizedScreen(screenPoint, vsb)
-		this.startDrag(normalizedPosition.x, normalizedPosition.y)
-	}
-
-	/**
-	 * Get configuration value.
-	 */
-	getConfig = (): Readonly<Required<FluidManagerConfig>> => {
-		return this.config
-	}
-
-	// Private helper methods
+	}, 32)
 
 	private handleNewShape = (shape: TLShape, vsb: Box): void => {
 		const geometryData = this.extractShapeGeometry(shape, vsb)
@@ -265,11 +222,12 @@ export class FluidManager {
 	private handleShapeChange = (shape: TLShape, prevShape: TLShape, vsb: Box): void => {
 		const geometryData = this.extractShapeGeometry(shape, vsb)
 		const color = this.getShapeColor(shape)
+		const { velocityScale } = this.config
 		if (geometryData.points.length > 0) {
 			// Calculate velocity based on position change
 			const velocity = {
-				x: (shape.x - prevShape.x) * this.config.velocityScale,
-				y: (shape.y - prevShape.y) * this.config.velocityScale,
+				x: (shape.x - prevShape.x) * velocityScale,
+				y: (shape.y - prevShape.y) * velocityScale,
 			}
 			this.fluidSim!.createSplatsFromGeometry(
 				geometryData.points,
@@ -291,10 +249,13 @@ export class FluidManager {
 			// Convert tldraw color names to RGB values
 			const colorMap = this.darkMode ? this.config.darkModeColorMap : this.config.lightModeColorMap
 
-			return colorMap[colorValue] || (this.darkMode ? [0.4, 0.4, 0.7] : [0.08, 0.08, 0.14]) // Default blue-ish
+			return (
+				colorMap[colorValue] ||
+				(this.darkMode ? DEFAULT_DARK_MODE_COLOR_MAP.blue : DEFAULT_LIGHT_MODE_COLOR_MAP.blue)
+			) // Default blue-ish
 		} catch (error) {
 			console.warn('Failed to extract color for shape:', shape.type, error)
-			return this.darkMode ? [0.4, 0.4, 0.7] : [0.08, 0.08, 0.14] // Default color
+			return this.darkMode ? DEFAULT_DARK_MODE_COLOR_MAP.blue : DEFAULT_LIGHT_MODE_COLOR_MAP.blue // Default color
 		}
 	}
 
@@ -438,12 +399,5 @@ export class FluidManager {
 			x: position.x / vsb.w,
 			y: (position.y / vsb.h) * -1 + 1,
 		}
-	}
-
-	private shapePropsChanged = (prevProps: any, currentProps: any): boolean => {
-		for (const key of Object.keys(prevProps)) {
-			if (prevProps[key] !== currentProps[key]) return true
-		}
-		return false
 	}
 }
