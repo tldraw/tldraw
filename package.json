@@ -81,6 +81,9 @@
 	"lint-staged": {
 		"*.{js,jsx,ts,tsx,json}": [
 			"prettier --write --cache --log-level=warn"
+		],
+		"**/*.{md,mdx}": [
+			"cspell"
 		]
 	},
 	"devDependencies": {
@@ -103,6 +106,7 @@
 		"@vitest/coverage-v8": "^3.2.4",
 		"@vitest/ui": "^3.2.4",
 		"auto": "^11.3.0",
+		"cspell": "^8.18.1",
 		"eslint": "^9.19.0",
 		"eslint-config-prettier": "^9.1.0",
 		"eslint-plugin-formatjs": "^5.4.0",

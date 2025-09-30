@@ -8,4 +8,3 @@ npx lazy run build-i18n
 git add apps/*/locales/*.json
 git add apps/*/locales-compiled/*.json
 yarn lint-staged
-npx cspell "**/*.md"
