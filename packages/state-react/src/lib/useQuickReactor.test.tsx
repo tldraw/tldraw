@@ -7,7 +7,7 @@ import { useQuickReactor } from './useQuickReactor'
 
 describe('useQuickReactor', () => {
 	let mockEffectFn: ReturnType<typeof vi.fn>
-	let component: () => JSX.Element
+	let _component: () => React.JSX.Element
 	let view: RenderResult
 
 	beforeEach(() => {
@@ -90,7 +90,7 @@ describe('useQuickReactor', () => {
 
 	describe('dependency array behavior', () => {
 		it('recreates the reactor when dependencies change', async () => {
-			let dep = 'dep1'
+			const dep = 'dep1'
 			let setDep: (newDep: string) => void
 			const reactorExecutions: string[] = []
 
@@ -172,7 +172,7 @@ describe('useQuickReactor', () => {
 		})
 
 		it('cleans up the previous scheduler when dependencies change', async () => {
-			let dep = 1
+			const dep = 1
 			let setDep: (newDep: number) => void
 			const oldAtom = atom('old', 'old-value')
 			const newAtom = atom('new', 'new-value')

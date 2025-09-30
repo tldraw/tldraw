@@ -43,7 +43,7 @@ class MockSocket implements TLPersistentClientSocket<TestRecord> {
 		this.sentMessages.push(msg)
 	}
 
-	onReceiveMessage = (callback: (val: TLSocketServerSentEvent<TestRecord>) => void) => {
+	onReceiveMessage(callback: (val: TLSocketServerSentEvent<TestRecord>) => void) {
 		this.messageListeners.push(callback)
 		return () => {
 			const index = this.messageListeners.indexOf(callback)
@@ -51,7 +51,7 @@ class MockSocket implements TLPersistentClientSocket<TestRecord> {
 		}
 	}
 
-	onStatusChange = (callback: (params: TlSocketStatusChangeEvent) => void) => {
+	onStatusChange(callback: (params: TlSocketStatusChangeEvent) => void) {
 		this.statusListeners.push(callback)
 		return () => {
 			const index = this.statusListeners.indexOf(callback)
@@ -180,14 +180,14 @@ describe('TLSyncClient', () => {
 			socket: TLPersistentClientSocket<TestRecord>
 			presence: Atom<TestRecord | null>
 			presenceMode?: Atom<TLPresenceMode>
-			onLoad: (self: TLSyncClient<TestRecord, Store<TestRecord, any>>) => void
-			onSyncError: (reason: string) => void
-			onCustomMessageReceived?: (data: any) => void
-			onAfterConnect?: (
+			onLoad(self: TLSyncClient<TestRecord, Store<TestRecord, any>>): void
+			onSyncError(reason: string): void
+			onCustomMessageReceived?(data: any): void
+			onAfterConnect?(
 				self: TLSyncClient<TestRecord, Store<TestRecord, any>>,
 				details: { isReadonly: boolean }
-			) => void
-			didCancel?: () => boolean
+			): void
+			didCancel?(): boolean
 		}> = {}
 	): TLSyncClient<TestRecord, Store<TestRecord, any>> {
 		return new TLSyncClient<TestRecord, Store<TestRecord, any>>({

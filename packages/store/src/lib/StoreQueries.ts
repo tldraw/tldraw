@@ -97,8 +97,8 @@ export class StoreQueries<R extends UnknownRecord> {
 	/**
 	 * Creates a new StoreQueries instance.
 	 *
-	 * @param recordMap - The atom map containing all records in the store
-	 * @param history - The atom tracking the store's change history with diffs
+	 * recordMap - The atom map containing all records in the store
+	 * history - The atom tracking the store's change history with diffs
 	 *
 	 * @internal
 	 */

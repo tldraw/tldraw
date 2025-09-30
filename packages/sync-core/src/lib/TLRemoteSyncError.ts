@@ -47,7 +47,7 @@ export class TLRemoteSyncError extends Error {
 	/**
 	 * Creates a new TLRemoteSyncError with the specified reason.
 	 *
-	 * @param reason - The specific reason code or custom string describing why the sync failed.
+	 * reason - The specific reason code or custom string describing why the sync failed.
 	 *                 When using predefined reasons from TLSyncErrorCloseEventReason, the client
 	 *                 can handle specific error types appropriately. Custom strings allow for
 	 *                 application-specific error details.

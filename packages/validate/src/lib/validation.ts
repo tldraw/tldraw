@@ -147,8 +147,8 @@ export class ValidationError extends Error {
 	/**
 	 * Creates a new ValidationError with contextual information about where the error occurred.
 	 *
-	 * @param rawMessage - The raw error message without path information
-	 * @param path - Array indicating the location in the data structure where validation failed
+	 * rawMessage - The raw error message without path information
+	 * path - Array indicating the location in the data structure where validation failed
 	 */
 	constructor(
 		public readonly rawMessage: string,
@@ -229,8 +229,8 @@ export class Validator<T> implements Validatable<T> {
 	/**
 	 * Creates a new Validator instance.
 	 *
-	 * @param validationFn - Function that validates and returns a value of type T
-	 * @param validateUsingKnownGoodVersionFn - Optional performance-optimized validation function
+	 * validationFn - Function that validates and returns a value of type T
+	 * validateUsingKnownGoodVersionFn - Optional performance-optimized validation function
 	 */
 	constructor(
 		readonly validationFn: ValidatorFn<T>,
@@ -509,7 +509,7 @@ export class ArrayOfValidator<T> extends Validator<T[]> {
 	/**
 	 * Creates a new ArrayOfValidator.
 	 *
-	 * @param itemValidator - Validator used to validate each array element
+	 * itemValidator - Validator used to validate each array element
 	 */
 	constructor(readonly itemValidator: Validatable<T>) {
 		super(
@@ -613,8 +613,8 @@ export class ObjectValidator<Shape extends object> extends Validator<Shape> {
 	/**
 	 * Creates a new ObjectValidator.
 	 *
-	 * @param config - Object mapping property names to their validators
-	 * @param shouldAllowUnknownProperties - Whether to allow properties not defined in config
+	 * config - Object mapping property names to their validators
+	 * shouldAllowUnknownProperties - Whether to allow properties not defined in config
 	 */
 	constructor(
 		public readonly config: {
@@ -771,10 +771,10 @@ export class UnionValidator<
 	/**
 	 * Creates a new UnionValidator.
 	 *
-	 * @param key - The discriminator property name used to determine the variant
-	 * @param config - Object mapping variant names to their validators
-	 * @param unknownValueValidation - Function to handle unknown variants
-	 * @param useNumberKeys - Whether the discriminator uses number keys instead of strings
+	 * key - The discriminator property name used to determine the variant
+	 * config - Object mapping variant names to their validators
+	 * unknownValueValidation - Function to handle unknown variants
+	 * useNumberKeys - Whether the discriminator uses number keys instead of strings
 	 */
 	constructor(
 		private readonly key: Key,
@@ -882,8 +882,8 @@ export class DictValidator<Key extends string, Value> extends Validator<Record<K
 	/**
 	 * Creates a new DictValidator.
 	 *
-	 * @param keyValidator - Validator for object keys
-	 * @param valueValidator - Validator for object values
+	 * keyValidator - Validator for object keys
+	 * valueValidator - Validator for object values
 	 */
 	constructor(
 		public readonly keyValidator: Validatable<Key>,

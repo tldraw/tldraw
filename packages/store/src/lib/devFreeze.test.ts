@@ -26,7 +26,7 @@ describe('devFreeze', () => {
 		})
 
 		it('should not validate prototypes in production mode', () => {
-			const consoleSpy = vi.spyOn(console, 'error').mockImplementation(() => {})
+			const _consoleSpy = vi.spyOn(console, 'error').mockImplementation(() => {})
 
 			// Create object with custom prototype that would normally throw
 			class CustomClass {
@@ -35,7 +35,7 @@ describe('devFreeze', () => {
 			const obj = new CustomClass()
 
 			expect(() => devFreeze(obj)).not.toThrow()
-			expect(consoleSpy).not.toHaveBeenCalled()
+			expect(_consoleSpy).not.toHaveBeenCalled()
 		})
 	})
 
@@ -68,7 +68,7 @@ describe('devFreeze', () => {
 		})
 
 		it('should reject primitives', () => {
-			const consoleSpy = vi.spyOn(console, 'error').mockImplementation(() => {})
+			const _consoleSpy = vi.spyOn(console, 'error').mockImplementation(() => {})
 
 			// Primitives have built-in prototypes that aren't allowed
 			expect(() => devFreeze('string')).toThrow('cannot include non-js data in a record')
@@ -104,7 +104,7 @@ describe('devFreeze', () => {
 		})
 
 		it('should reject invalid prototypes', () => {
-			const consoleSpy = vi.spyOn(console, 'error').mockImplementation(() => {})
+			const _consoleSpy = vi.spyOn(console, 'error').mockImplementation(() => {})
 
 			// Custom class instances
 			class CustomClass {

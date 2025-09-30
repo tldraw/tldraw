@@ -131,7 +131,7 @@ export class ServerSocketAdapter<R extends UnknownRecord> implements TLRoomSocke
 	/**
 	 * Creates a new ServerSocketAdapter instance.
 	 *
-	 * @param opts - Configuration options for the adapter
+	 * opts - Configuration options for the adapter
 	 */
 	constructor(public readonly opts: ServerSocketAdapterOptions<R>) {}
 

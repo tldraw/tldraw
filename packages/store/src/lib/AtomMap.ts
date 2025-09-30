@@ -12,8 +12,8 @@ export class AtomMap<K, V> implements Map<K, V> {
 	/**
 	 * Creates a new AtomMap instance.
 	 *
-	 * @param name - A unique name for this map, used for atom identification
-	 * @param entries - Optional initial entries to populate the map with
+	 * name - A unique name for this map, used for atom identification
+	 * entries - Optional initial entries to populate the map with
 	 * @example
 	 * ```ts
 	 * // Create an empty map

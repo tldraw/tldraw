@@ -9521,6 +9521,7 @@ __metadata:
     typescript: "npm:^5.8.3"
     uuid-by-string: "npm:^4.0.0"
     uuid-readable: "npm:^0.0.2"
+    vitest: "npm:^3.2.4"
     ws: "npm:^8.18.0"
   peerDependencies:
     react: ^18.2.0 || ^19.0.0

@@ -41,7 +41,7 @@ export class ExecutionQueue {
 	 * If a timeout is provided, there will be a delay between each task execution,
 	 * which is useful for rate limiting or controlling execution flow.
 	 *
-	 * @param timeout - Optional delay in milliseconds between task executions
+	 * timeout - Optional delay in milliseconds between task executions
 	 * @example
 	 * ```ts
 	 * // Create queue without delay
@@ -51,7 +51,6 @@ export class ExecutionQueue {
 	 * const slowQueue = new ExecutionQueue(500)
 	 * ```
 	 */
-	// eslint-disable-next-line local/tsdoc-param-matching
 	constructor(private readonly timeout?: number) {}
 
 	/**

@@ -631,7 +631,7 @@ describe('ReconnectManager', () => {
 			wsServer.close()
 
 			// Simulate network coming back online
-			const originalDelay = adapter._reconnectManager.intendedDelay
+			const _originalDelay = adapter._reconnectManager.intendedDelay
 			window.dispatchEvent(new Event('online'))
 
 			// Should reset delay for immediate reconnection attempt
@@ -664,7 +664,7 @@ describe('ReconnectManager', () => {
 			await waitFor(() => adapter._ws?.readyState !== WebSocket.OPEN)
 
 			// Simulate connection change
-			const originalDelay = adapter._reconnectManager.intendedDelay
+			const _originalDelay = adapter._reconnectManager.intendedDelay
 			mockConnection.dispatchEvent(new Event('change'))
 
 			// Should attempt reconnection

@@ -446,8 +446,8 @@ export class ReconnectManager {
 	/**
 	 * Creates a new ReconnectManager instance.
 	 *
-	 * @param socketAdapter - The ClientWebSocketAdapter instance to manage
-	 * @param getUri - Function that returns the WebSocket URI for connection attempts
+	 * socketAdapter - The ClientWebSocketAdapter instance to manage
+	 * getUri - Function that returns the WebSocket URI for connection attempts
 	 */
 	constructor(
 		private socketAdapter: ClientWebSocketAdapter,

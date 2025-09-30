@@ -113,7 +113,7 @@ export class TLSocketRoom<R extends UnknownRecord = UnknownRecord, SessionMeta =
 	/**
 	 * Creates a new TLSocketRoom instance for managing collaborative document synchronization.
 	 *
-	 * @param opts - Configuration options for the room
+	 * opts - Configuration options for the room
 	 *   - initialSnapshot - Optional initial document state to load
 	 *   - schema - Store schema defining record types and validation
 	 *   - clientTimeout - Milliseconds to wait before disconnecting inactive clients

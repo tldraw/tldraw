@@ -70,8 +70,8 @@ export class RecordType<
 	/**
 	 * Creates a new RecordType instance.
 	 *
-	 * @param typeName - The unique type name for records created by this RecordType
-	 * @param config - Configuration object for the RecordType
+	 * typeName - The unique type name for records created by this RecordType
+	 * config - Configuration object for the RecordType
 	 *   - createDefaultProperties - Function that returns default properties for new records
 	 *   - validator - Optional validator function for record validation
 	 *   - scope - Optional scope determining persistence behavior (defaults to 'document')

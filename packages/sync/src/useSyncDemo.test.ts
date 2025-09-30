@@ -6,8 +6,8 @@ vi.mock('react', async () => {
 	const actual = await vi.importActual('react')
 	return {
 		...actual,
-		useMemo: vi.fn((fn, deps) => fn()),
-		useCallback: vi.fn((fn, deps) => fn),
+		useMemo: vi.fn((fn, _deps) => fn()),
+		useCallback: vi.fn((fn, _deps) => fn),
 	}
 })
 vi.mock('tldraw', async () => {

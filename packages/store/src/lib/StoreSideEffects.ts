@@ -204,7 +204,7 @@ export class StoreSideEffects<R extends UnknownRecord> {
 	/**
 	 * Creates a new side effects manager for the given store.
 	 *
-	 * @param store - The store instance to manage side effects for
+	 * store - The store instance to manage side effects for
 	 */
 	constructor(private readonly store: Store<R>) {}
 
