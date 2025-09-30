@@ -46,29 +46,53 @@ export interface FluidManagerConfig {
 	lightModeColorMap: Record<string, [number, number, number]>
 
 	// Fluid simulation properties
+	/** Resolution of the simulation grid (lower = faster, higher = more detailed) */
 	simResolution: number
+	/** Resolution of the dye texture (affects visual quality) */
 	dyeResolution: number
+	/** Rate at which dye density dissipates (0 = never fades, higher = fades faster) */
 	densityDissipation: number
+	/** Rate at which velocity dissipates (0 = perpetual motion, higher = stops faster) */
 	velocityDissipation: number
+	/** Pressure strength for velocity field calculations */
 	pressure: number
+	/** Number of iterations for pressure solver (higher = more accurate but slower) */
 	pressureIterations: number
+	/** Vorticity confinement strength (creates swirling patterns) */
 	curl: number
+	/** Radius of splat effect (size of fluid disturbance) */
 	splatRadius: number
+	/** Force applied to splats (strength of fluid disturbance) */
 	splatForce: number
+	/** Enable shading effect (adds depth perception) */
 	shading: boolean
+	/** Enable colorful mode (automatically cycles colors) */
 	colorful: boolean
+	/** Speed of automatic color updates (when colorful is true) */
 	colorUpdateSpeed: number
+	/** Pause the simulation */
 	paused: boolean
+	/** Background color (RGB values 0-255) */
 	backColor: { r: number; g: number; b: number }
+	/** Transparent background */
 	transparent: boolean
+	/** Enable bloom post-processing effect */
 	bloom: boolean
+	/** Number of bloom blur iterations */
 	bloomIterations: number
+	/** Resolution for bloom effect */
 	bloomResolution: number
+	/** Bloom effect intensity */
 	bloomIntensity: number
+	/** Brightness threshold for bloom effect */
 	bloomThreshold: number
+	/** Bloom soft knee (smoothness of threshold transition) */
 	bloomSoftKnee: number
+	/** Enable sunrays post-processing effect */
 	sunrays: boolean
+	/** Resolution for sunrays effect */
 	sunraysResolution: number
+	/** Sunrays effect weight (intensity) */
 	sunraysWeight: number
 }
 
@@ -79,7 +103,6 @@ const DEFAULT_CONFIG: FluidManagerConfig = {
 	randomSplatsRange: [5, 20],
 	darkModeColorMap: DEFAULT_DARK_MODE_COLOR_MAP,
 	lightModeColorMap: DEFAULT_LIGHT_MODE_COLOR_MAP,
-
 	// Fluid simulation defaults
 	simResolution: 128,
 	dyeResolution: 1024,
