@@ -51,7 +51,7 @@ import {
 	getTlsyncProtocolVersion,
 } from './protocol'
 
-/** @internal */
+/** @public */
 export interface TLRoomSocket<R extends UnknownRecord> {
 	isOpen: boolean
 	sendMessage(msg: TLSocketServerSentEvent<R>): void
@@ -67,7 +67,7 @@ export const DATA_MESSAGE_DEBOUNCE_INTERVAL = 1000 / 60
 
 const timeSince = (time: number) => Date.now() - time
 
-/** @internal */
+/** @public */
 export class DocumentState<R extends UnknownRecord> {
 	static createWithoutValidating<R extends UnknownRecord>(
 		state: R,
@@ -140,7 +140,7 @@ function getDocumentClock(snapshot: RoomSnapshot) {
  * A room is a workspace for a group of clients. It allows clients to collaborate on documents
  * within that workspace.
  *
- * @internal
+ * @public
  */
 export class TLSyncRoom<R extends UnknownRecord, SessionMeta> {
 	// A table of connected clients
@@ -201,7 +201,10 @@ export class TLSyncRoom<R extends UnknownRecord, SessionMeta> {
 	}>()
 
 	// Values associated with each uid (must be serializable).
-	/** @internal */
+	/**
+	 * The documents in the room
+	 * @public
+	 */
 	documents: AtomMap<string, DocumentState<R>>
 	tombstones: AtomMap<string, number>
 
@@ -526,7 +529,6 @@ export class TLSyncRoom<R extends UnknownRecord, SessionMeta> {
 		}
 	}
 
-	/** @internal */
 	private removeSession(sessionId: string, fatalReason?: string) {
 		const session = this.sessions.get(sessionId)
 		if (!session) {
@@ -643,7 +645,7 @@ export class TLSyncRoom<R extends UnknownRecord, SessionMeta> {
 	 * When a client connects to the room, add them to the list of clients and then merge the history
 	 * down into the snapshots.
 	 *
-	 * @internal
+	 * @public
 	 */
 	handleNewSession(opts: {
 		sessionId: string

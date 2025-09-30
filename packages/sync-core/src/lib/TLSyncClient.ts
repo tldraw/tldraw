@@ -24,7 +24,7 @@ import {
 	getTlsyncProtocolVersion,
 } from './protocol'
 
-/** @internal */
+/** @public */
 export type SubscribingFn<T> = (cb: (val: T) => void) => () => void
 
 /**
@@ -70,10 +70,11 @@ export type TLSyncErrorCloseEventReason =
  * Event handler for userland socket messages
  * @public
  */
-export type TLCustomMessageHandler = (this: null, data: any) => void
+/** @public */
+export type TLCustomMessageHandler = (message: any) => void
 
 /**
- * @internal
+ * @public
  */
 export type TlSocketStatusChangeEvent =
 	| {
@@ -83,20 +84,20 @@ export type TlSocketStatusChangeEvent =
 			status: 'error'
 			reason: string
 	  }
-/** @internal */
+/** @public */
 export type TLSocketStatusListener = (params: TlSocketStatusChangeEvent) => void
 
-/** @internal */
+/** @public */
 export type TLPersistentClientSocketStatus = 'online' | 'offline' | 'error'
 
-/** @internal */
+/** @public */
 export type TLPresenceMode = 'solo' | 'full'
 /**
  * A socket that can be used to send and receive messages to the server. It should handle staying
  * open and reconnecting when the connection is lost. In actual client code this will be a wrapper
  * around a websocket or socket.io or something similar.
  *
- * @internal
+ * @public
  */
 export interface TLPersistentClientSocket<R extends UnknownRecord = UnknownRecord> {
 	/** Whether there is currently an open connection to the server. */
@@ -121,7 +122,7 @@ const MAX_TIME_TO_WAIT_FOR_SERVER_INTERACTION_BEFORE_RESETTING_CONNECTION = PING
  *
  * It uses a git-style push/pull/rebase model.
  *
- * @internal
+ * @public
  */
 export class TLSyncClient<R extends UnknownRecord, S extends Store<R> = Store<R>> {
 	/** The last clock time from the most recent server update */
