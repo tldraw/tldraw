@@ -172,6 +172,9 @@ export class LicenseManager {
 		if ('license' in result) {
 			url.searchParams.set('license_id', result.license.id)
 		}
+		if (process.env.NODE_ENV) {
+			url.searchParams.set('environment', process.env.NODE_ENV)
+		}
 
 		// eslint-disable-next-line no-restricted-globals
 		fetch(url.toString())
