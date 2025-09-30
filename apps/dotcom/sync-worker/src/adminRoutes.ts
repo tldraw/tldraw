@@ -286,16 +286,15 @@ async function performUserDeletion(
 		await tx.deleteFrom('user').where('id', '=', userRow.id).execute()
 	})
 
-	sendProgress?.('analytics', 'Deleting user from analytics...')
-
-	// Delete user from analytics service
-	await deleteUserFromAnalytics(userRow.id, env, sendProgress)
-
 	sendProgress?.('clerk', 'Deleting user from Clerk...')
 
 	// Delete user from Clerk
 	const clerk = getClerkClient(env)
 	await clerk.users.deleteUser(userRow.id)
+
+	// Delete user from analytics service
+	sendProgress?.('analytics', 'Deleting user from analytics...')
+	await deleteUserFromAnalytics(userRow.id, env, sendProgress)
 
 	sendProgress?.('durable_object', 'Cleaning up user durable object state...')
 
