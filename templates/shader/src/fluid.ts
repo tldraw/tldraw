@@ -1532,10 +1532,6 @@ export class FluidSimulation {
 		// Use adaptive decimation based on shape size and point density
 		const decimatedGeometry = this.adaptiveDecimatePoints(geometry)
 
-		console.log(
-			`Geometry decimation: ${geometry.length} -> ${decimatedGeometry.length} points (${isClosed ? 'closed' : 'open'})`
-		)
-
 		// Skip interpolation for very dense geometry to improve performance
 		let finalPoints: Array<{ x: number; y: number }>
 

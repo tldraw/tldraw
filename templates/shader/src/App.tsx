@@ -8,7 +8,6 @@ function App() {
 				persistenceKey="shader"
 				components={{
 					Background: FluidRenderer,
-					// Canvas: DefaultCanvas,
 				}}
 			/>
 		</div>
