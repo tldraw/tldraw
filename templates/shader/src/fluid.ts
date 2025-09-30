@@ -1569,7 +1569,6 @@ export class FluidSimulation {
 			// Sample evenly spaced points from the final set
 			const step = Math.ceil(finalPoints.length / 200)
 			finalPoints = finalPoints.filter((_, index) => index % step === 0)
-			console.log(`Limited to ${finalPoints.length} points for performance`)
 		}
 
 		// Create splats from optimized points

@@ -183,10 +183,12 @@ export class FluidManager {
 	// Private helper methods
 
 	private getNormalizedPosition() {
-		const point = this.editor.inputs.currentScreenPoint
+		const position = this.editor.inputs.currentScreenPoint
 		const vsb = this.editor.getViewportScreenBounds()
-		const normalizedPosition = this.screenToNormalizedScreen(point, vsb)
-		return normalizedPosition
+		return {
+			x: position.x / vsb.w,
+			y: (position.y / vsb.h) * -1 + 1,
+		}
 	}
 
 	/**
@@ -198,11 +200,29 @@ export class FluidManager {
 		const vsb = this.editor.getViewportScreenBounds()
 
 		created.forEach((shape) => {
+			if (shape.type === 'group') {
+				const children = this.editor.getSortedChildIdsForParent(shape.id)
+				children.forEach((childId) => {
+					const child = this.editor.getShape(childId)
+					if (!child) return
+					this.handleNewShape(child, vsb)
+				})
+				return
+			}
 			this.handleNewShape(shape, vsb)
 		})
 
 		updated.forEach(([prevShape, shape]) => {
-			this.handleShapeChange(shape, prevShape, vsb)
+			if (shape.type === 'group') {
+				const children = this.editor.getSortedChildIdsForParent(shape.id)
+				children.forEach((childId) => {
+					const child = this.editor.getShape(childId)
+					if (!child) return
+					this.handleNewShape(child, vsb)
+				})
+			} else {
+				this.handleShapeChange(shape, prevShape, vsb)
+			}
 		})
 	}, 32)
 
@@ -309,11 +329,12 @@ export class FluidManager {
 			if (!transform) return { points: [], isClosed: false }
 
 			// Check if geometry has isClosed property
-			if ('isClosed' in geometry && typeof geometry.isClosed === 'boolean') {
-				isClosed = geometry.isClosed
+			if (shape.type === 'arrow' || shape.type === 'line') {
+				isClosed = false
 			} else {
-				// Infer from shape type if not available
-				isClosed = shape.type !== 'arrow' && shape.type !== 'line'
+				if ('isClosed' in geometry && typeof geometry.isClosed === 'boolean') {
+					isClosed = geometry.isClosed
+				}
 			}
 
 			// Sample points along the geometry
@@ -326,45 +347,21 @@ export class FluidManager {
 				// Sample points around the perimeter using bounds
 				const bounds = geometry.bounds
 				const sampleCount = this.config.boundsSampleCount
-
-				for (let i = 0; i < sampleCount; i++) {
-					const t = i / sampleCount
-					let x, y
-
-					if (t < 0.25) {
-						// Top edge
-						const edgeT = t * 4
-						x = bounds.minX + edgeT * (bounds.maxX - bounds.minX)
-						y = bounds.minY
-					} else if (t < 0.5) {
-						// Right edge
-						const edgeT = (t - 0.25) * 4
-						x = bounds.maxX
-						y = bounds.minY + edgeT * (bounds.maxY - bounds.minY)
-					} else if (t < 0.75) {
-						// Bottom edge
-						const edgeT = (t - 0.5) * 4
-						x = bounds.maxX - edgeT * (bounds.maxX - bounds.minX)
-						y = bounds.maxY
-					} else {
-						// Left edge
-						const edgeT = (t - 0.75) * 4
-						x = bounds.minX
-						y = bounds.maxY - edgeT * (bounds.maxY - bounds.minY)
+				const corners = bounds.corners
+				const pointsPerEdge = Math.ceil(sampleCount / 4)
+				for (let j = 0; j < 4; j++) {
+					for (let i = 0; i < pointsPerEdge; i++) {
+						points.push(
+							transformAndNormalize(
+								Vec.Lrp(corners[j], corners[(j + 1) % 4], i / pointsPerEdge),
+								transform
+							)
+						)
 					}
-
-					points.push(transformAndNormalize({ x, y }, transform))
 				}
+
 				// Bounds-based shapes are typically closed
 				isClosed = true
-			}
-
-			// If we didn't get points from outline, try vertices
-			if (points.length === 0) {
-				const vertices = geometry.vertices
-				vertices.forEach((vertex) => {
-					points.push(transformAndNormalize(vertex, transform))
-				})
 			}
 
 			return { points, isClosed }
@@ -388,16 +385,6 @@ export class FluidManager {
 				],
 				isClosed: fallbackIsClosed,
 			}
-		}
-	}
-
-	/**
-	 * Convert screen coordinates to normalized screen coordinates (0-1 range).
-	 */
-	private screenToNormalizedScreen = (position: Vec, vsb: Box): { x: number; y: number } => {
-		return {
-			x: position.x / vsb.w,
-			y: (position.y / vsb.h) * -1 + 1,
 		}
 	}
 }
