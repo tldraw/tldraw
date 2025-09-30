@@ -338,22 +338,27 @@ export class LicenseManager {
 		// If we added a new flag it will be twice the value of the currently highest flag.
 		// And if all the current flags are on we would get the `HIGHEST_FLAG * 2 - 1`, so anything higher than that means there are new flags.
 		if (result.license.flags >= HIGHEST_FLAG * 2) {
-			this.outputMessages([
-				'This tldraw license contains some unknown flags.',
-				'You may want to update tldraw packages to a newer version to get access to new functionality.',
-			])
+			this.outputMessages(
+				[
+					'Warning: This tldraw license contains some unknown flags.',
+					'This will still work, however, you may want to update tldraw packages to a newer version to get access to new functionality.',
+				],
+				'warning'
+			)
 		}
 	}
 
-	private outputMessages(messages: string[]) {
+	private outputMessages(messages: string[], type: 'warning' | 'error' = 'error') {
 		if (this.isTest) return
 		if (this.verbose) {
 			this.outputDelimiter()
 			for (const message of messages) {
+				const color = type === 'warning' ? 'orange' : 'crimson'
+				const bgColor = type === 'warning' ? 'orange' : 'crimson'
 				// eslint-disable-next-line no-console
 				console.log(
 					`%c${message}`,
-					`color: white; background: crimson; padding: 2px; border-radius: 3px;`
+					`color: ${color}; background: ${bgColor}; padding: 2px; border-radius: 3px;`
 				)
 			}
 			this.outputDelimiter()
