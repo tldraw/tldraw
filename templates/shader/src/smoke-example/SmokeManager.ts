@@ -280,11 +280,11 @@ export class SmokeManager extends WebGLManager {
 		this.gl.shaderSource(shader, source)
 		this.gl.compileShader(shader)
 
-		// Check for GL errors
-		const error = this.gl.getError()
-		if (error !== this.gl.NO_ERROR) {
-			console.error('GL error after compileShader:', error)
-		}
+		// // Check for GL errors
+		// const error = this.gl.getError()
+		// if (error !== this.gl.NO_ERROR) {
+		// 	console.error('GL error after compileShader:', error)
+		// }
 
 		const compileStatus = this.gl.getShaderParameter(shader, this.gl.COMPILE_STATUS)
 		const shaderType = type === this.gl.VERTEX_SHADER ? 'VERTEX' : 'FRAGMENT'
@@ -452,10 +452,10 @@ export class SmokeManager extends WebGLManager {
 		this.gl.drawArrays(this.gl.TRIANGLE_STRIP, 0, 4)
 
 		// Check for GL errors
-		const err = this.gl.getError()
-		if (err !== this.gl.NO_ERROR) {
-			console.error('GL error during draw:', err)
-		}
+		// const err = this.gl.getError()
+		// if (err !== this.gl.NO_ERROR) {
+		// 	console.error('GL error during draw:', err)
+		// }
 
 		// Unbind VAO
 		if (this.vao && this.gl instanceof WebGL2RenderingContext) {
