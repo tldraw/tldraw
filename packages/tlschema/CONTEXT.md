@@ -121,7 +121,7 @@ Each shape defines:
 
 ### Binding system
 
-**Binding Architecture (`src/bindings/`):**
+**Binding architecture (`src/bindings/`):**
 
 - `TLBaseBinding` - Base interface for shape connections
 - `TLArrowBinding` - Connects arrows to shapes with precise positioning
