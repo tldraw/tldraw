@@ -1562,8 +1562,6 @@ export class FluidSimulation {
 			finalPoints = this.decimatePoints(interpolatedPoints, 0.005)
 		}
 
-		// console.log(`Final point count: ${finalPoints.length}`)
-
 		// Limit maximum points for performance
 		if (finalPoints.length > 200) {
 			// Sample evenly spaced points from the final set

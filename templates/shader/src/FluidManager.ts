@@ -229,6 +229,7 @@ export class FluidManager {
 
 	/**
 	 * Clean up resources and dispose of the fluid simulation.
+	 * Destroys the fluid simulation instance and clears all registered disposables.
 	 */
 	dispose = (): void => {
 		if (this.fluidSim) {
@@ -240,7 +241,8 @@ export class FluidManager {
 	}
 
 	/**
-	 * Handle pointer down.
+	 * Handle pointer down event.
+	 * Initiates drag interaction with the fluid simulation when the eraser tool is active.
 	 */
 	handlePointerDown = (): void => {
 		if (!this.isPointerEffectActive) return
@@ -249,7 +251,8 @@ export class FluidManager {
 	}
 
 	/**
-	 * Handle pointer movement.
+	 * Handle pointer move event.
+	 * Updates drag position in the fluid simulation during active dragging.
 	 */
 	handlePointerMove = (): void => {
 		if (!this.isPointerEffectActive || !this.editor.inputs.isDragging) return
@@ -258,15 +261,18 @@ export class FluidManager {
 	}
 
 	/**
-	 * Handle pointer up.
+	 * Handle pointer up event.
+	 * Ends drag interaction with the fluid simulation.
 	 */
 	handlePointerUp = (): void => {
 		if (!this.isPointerEffectActive || !this.editor.inputs.isDragging) return
 		this.fluidSim?.endDrag()
 	}
 
-	// Private helper methods
-
+	/**
+	 * Get the current pointer position normalized to fluid simulation coordinates.
+	 * @returns Normalized coordinates where x and y are in the range [0, 1], with y inverted for WebGL.
+	 */
 	private getNormalizedPosition() {
 		const position = this.editor.inputs.currentScreenPoint
 		const vsb = this.editor.getViewportScreenBounds()
@@ -278,7 +284,10 @@ export class FluidManager {
 
 	/**
 	 * Process shape changes and update fluid simulation accordingly.
-	 * Call this method when shapes are created, modified, or deleted.
+	 * Handles both newly created shapes and updated shapes, including group shapes.
+	 * Throttled to run at most once every 32ms for performance.
+	 * @param created - Array of newly created shapes
+	 * @param updated - Array of tuples containing [previousShape, currentShape] for updated shapes
 	 */
 	updateShapes = throttle((created: TLShape[], updated: [TLShape, TLShape][]): void => {
 		if (!this.fluidSim) return
@@ -311,6 +320,11 @@ export class FluidManager {
 		})
 	}, 32)
 
+	/**
+	 * Handle a newly created shape by extracting its geometry and creating fluid splats.
+	 * @param shape - The newly created shape
+	 * @param vsb - The viewport screen bounds
+	 */
 	private handleNewShape = (shape: TLShape, vsb: Box): void => {
 		const geometryData = this.extractShapeGeometry(shape, vsb)
 		const color = this.getShapeColor(shape)
@@ -324,6 +338,12 @@ export class FluidManager {
 		}
 	}
 
+	/**
+	 * Handle a shape update by calculating velocity from position change and creating fluid splats.
+	 * @param shape - The current state of the shape
+	 * @param prevShape - The previous state of the shape
+	 * @param vsb - The viewport screen bounds
+	 */
 	private handleShapeChange = (shape: TLShape, prevShape: TLShape, vsb: Box): void => {
 		const geometryData = this.extractShapeGeometry(shape, vsb)
 		const color = this.getShapeColor(shape)
@@ -343,6 +363,12 @@ export class FluidManager {
 		}
 	}
 
+	/**
+	 * Extract the color from a shape and convert it to RGB values.
+	 * Uses the appropriate color map based on dark mode setting.
+	 * @param shape - The shape to extract color from
+	 * @returns RGB color values in the range [0, 1]
+	 */
 	private getShapeColor(shape: TLShape): [number, number, number] {
 		try {
 			// Try to get color from shape props
@@ -364,6 +390,11 @@ export class FluidManager {
 		}
 	}
 
+	/**
+	 * Check if a shape has a valid string color property.
+	 * @param shape - The shape to check
+	 * @returns True if the shape has a string color property
+	 */
 	private hasStringColorProp(shape: TLShape): boolean {
 		return (
 			shape &&
