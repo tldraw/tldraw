@@ -62,7 +62,7 @@ A React-based webview application that renders the tldraw editor:
 - `yarn dev` (from editor/) - Start editor development server
 - `yarn build` (from editor/) - Build editor bundle
 
-## Extension lConfiguration
+## Extension configuration
 
 The extension contributes:
 
@@ -85,7 +85,7 @@ The extension contributes:
 - Manual publishing via `yarn publish` command
 - Direct .vsix downloads available from repository
 
-## Key lDependencies
+## Key dependencies
 
 - **VS Code API**: Core extension functionality
 - **tldraw**: Full tldraw SDK for editor capabilities

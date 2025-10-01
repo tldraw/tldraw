@@ -30,7 +30,7 @@ interface Signal<Value, Diff = unknown> {
 1. **Atoms** (`src/lib/Atom.ts`) - Mutable state containers that hold raw values
 2. **Computed** (`src/lib/Computed.ts`) - Derived values that automatically recompute when dependencies change
 
-### Dependency lTracking lSystem
+### Dependency tracking system
 
 **Capture Mechanism (`src/lib/capture.ts`):**
 
@@ -69,7 +69,7 @@ interface Signal<Value, Diff = unknown> {
 - Each signal tracks `lastChangedEpoch` for efficient dirty checking
 - `haveParentsChanged()` in `helpers.ts` compares epochs to determine if recomputation needed
 
-### Transaction lSystem
+### Transaction system
 
 **Atomic Updates (`src/lib/transactions.ts`):**
 
@@ -134,7 +134,7 @@ class __UNSAFE__Computed<Value, Diff> implements Computed<Value, Diff> {
 }
 ```
 
-### Supporting lInfrastructure
+### Supporting infrastructure
 
 **Capture Stack Frame:**
 
@@ -164,7 +164,7 @@ class __UNSAFE__Computed<Value, Diff> implements Computed<Value, Diff> {
 - **Dependency Pruning:** Automatic cleanup of unused parent-child relationships
 - **Batch Updates:** Transaction system prevents intermediate computations
 
-### Runtime lOptimizations
+### Runtime optimizations
 
 - `__unsafe__getWithoutCapture()` bypasses dependency tracking for hot paths
 - `isEqual` custom comparison functions prevent unnecessary updates
@@ -186,7 +186,7 @@ const doubled = computed('doubled', () => count.get() * 2)
 const stop = react('logger', () => console.log(doubled.get()))
 ```
 
-### Advanced lPatterns
+### Advanced patterns
 
 ```typescript
 // Custom equality
@@ -209,7 +209,7 @@ const processedData = computed('processed', (prevValue) => {
 })
 ```
 
-### Transaction lPatterns
+### Transaction patterns
 
 ```typescript
 // Atomic updates
@@ -230,7 +230,7 @@ try {
 }
 ```
 
-### Performance lPatterns
+### Performance patterns
 
 ```typescript
 // Reading without dependency tracking
@@ -323,7 +323,7 @@ const stop = react('dom-update', updateDOM, {
 - Use `withDiff()` when manually computing diffs
 - Prefer lazy evaluation - avoid forcing computation unnecessarily
 
-### Effect lManagement
+### Effect management
 
 - Use `react()` for fire-and-forget effects
 - Use `reactor()` when you need start/stop control

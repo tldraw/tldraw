@@ -24,7 +24,7 @@ registerTldrawLibraryVersion(
 )
 ```
 
-### Package lStructure
+### Package structure
 
 ```
 namespaced-tldraw/
@@ -39,9 +39,9 @@ namespaced-tldraw/
 └── api-report.api.md         # API report in package root
 ```
 
-## Distribution lStrategy
+## Distribution strategy
 
-### Build lSystem lIntegration
+### Build system integration
 
 Uses tsx wrapper for build processes:
 
@@ -82,7 +82,7 @@ writeFileSync(destination, content)
 
 ## Global usage support
 
-### Version lRegistration lSystem
+### Version registration system
 
 Enables version tracking for CDN and global usage using globalThis casting:
 
@@ -114,7 +114,7 @@ Designed for script tag and global usage:
 </script>
 ```
 
-## Package lDependencies
+## Package dependencies
 
 ### Minimal dependency chain
 
@@ -132,7 +132,7 @@ Single dependency on core tldraw package:
 }
 ```
 
-### Development lDependencies
+### Development dependencies
 
 Build and development tooling:
 
@@ -244,7 +244,7 @@ import { Tldraw, Editor, createShapeId } from '@tldraw/tldraw'
 // No code changes required for migration
 ```
 
-### Version lMonitoring
+### Version monitoring
 
 Applications that need to track tldraw version usage:
 
@@ -273,7 +273,7 @@ yarn dev  # Monitors ../tldraw/tldraw.css for changes
 yarn build  # Copies CSS before building distributions
 ```
 
-### Testing lEnvironment
+### Testing environment
 
 Jest configuration with correct testEnvironment path:
 

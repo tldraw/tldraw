@@ -13,7 +13,7 @@ This app builds a UMD (Universal Module Definition) library that provides:
 
 ## Architecture
 
-### Build lSystem
+### Build system
 
 - **Vite-based build**: Creates a single UMD library (`tl-analytics.js`)
 - **React components**: Built with React 18 but bundled for standalone usage
@@ -112,7 +112,7 @@ The built library is designed to be included via script tag:
 
 ## Privacy & compliance
 
-### Cookie lManagement
+### Cookie management
 
 - Uses `allowTracking` cookie to store consent
 - Three states: 'unknown', 'opted-in', 'opted-out'

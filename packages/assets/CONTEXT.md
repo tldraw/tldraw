@@ -8,7 +8,7 @@ The `@tldraw/assets` package contains all static assets used by tldraw, includin
 
 ### Asset categories
 
-#### Icons lSystem
+#### Icons system
 
 Single SVG sprite with fragment identifiers for efficient icon delivery:
 
@@ -30,7 +30,7 @@ icons: {
 - **UI Icons**: `chevron-*`, `align-*`, `zoom-*`, `undo`, `redo`, etc.
 - **Action Icons**: `duplicate`, `delete`, `lock`, `group`, `share`, etc.
 
-#### Typography lSystem
+#### Typography system
 
 Complete font family with multiple weights and styles:
 
@@ -62,7 +62,7 @@ fonts: {
 }
 ```
 
-#### Internationalization lSystem
+#### Internationalization system
 
 Comprehensive translation support for 40+ languages:
 
@@ -187,7 +187,7 @@ function formatAssetUrl(assetUrl: AssetUrl, format: AssetUrlOptions = {}) {
 - **Development**: Serve assets from local dev server
 - **Self-Hosting**: Package assets with application bundle
 
-### Type lSystem
+### Type system
 
 #### Asset uRL types
 
@@ -205,7 +205,7 @@ interface AssetUrls {
 }
 ```
 
-### Build lSystem lIntegration
+### Build system integration
 
 #### Automatic generation
 
@@ -234,7 +234,7 @@ Special handling for Vite bundler:
 
 ## Language support
 
-### Translation lArchitecture
+### Translation architecture
 
 Comprehensive internationalization with regional variants:
 
@@ -270,7 +270,7 @@ Centralized language configuration:
 ]
 ```
 
-## External lService lIntegration
+## External service integration
 
 ### Embed service icons
 
@@ -297,7 +297,7 @@ embedIcons: {
 
 ## Performance optimizations
 
-### Icon lSprite lSystem
+### Icon sprite system
 
 All icons merged into single SVG sprite for optimal loading:
 
@@ -318,7 +318,7 @@ All icons merged into single SVG sprite for optimal loading:
 - **Fragment Addressing**: Access via `#icon-name`
 - **Bundle Optimization**: Unused icons can be tree-shaken
 
-### Font lLoading lStrategy
+### Font loading strategy
 
 Optimized web font delivery:
 

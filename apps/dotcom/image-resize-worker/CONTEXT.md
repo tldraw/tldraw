@@ -85,7 +85,7 @@ const format = accept.includes('image/avif')
 		: null // Original format
 ```
 
-### Origin lValidation lSystem
+### Origin validation system
 
 Security mechanism to prevent abuse by validating request origins:
 
@@ -106,7 +106,7 @@ isValidOrigin(origin: string) {
 }
 ```
 
-### Routing lArchitecture
+### Routing architecture
 
 Two distinct routing modes based on origin:
 
@@ -182,7 +182,7 @@ function parseEtag(etag: string) {
 
 ## Environment configuration
 
-### Worker lEnvironment lInterface
+### Worker environment interface
 
 ```typescript
 interface Environment {
@@ -225,14 +225,14 @@ route = { pattern = "images.tldraw.xyz", custom_domain = true }
 
 ## Dependencies
 
-### Core lWorker lLibraries
+### Core worker libraries
 
 - **@tldraw/worker-shared**: Request handling, routing, and error management utilities
 - **@tldraw/dotcom-shared**: Shared constants and configurations (APP_ASSET_UPLOAD_ENDPOINT)
 - **@tldraw/validate**: Type-safe input validation for query parameters
 - **itty-router**: Lightweight HTTP routing for Cloudflare Workers
 
-### Development lDependencies
+### Development dependencies
 
 - **@cloudflare/workers-types**: TypeScript definitions for Workers APIs
 - **wrangler**: Cloudflare Workers CLI and deployment tool
@@ -285,7 +285,7 @@ GET / assets.tldraw.com / image.jpg
 // Fallback: Original JPEG format
 ```
 
-### Asset lUpload lIntegration
+### Asset upload integration
 
 Works with tldraw's multiplayer asset system:
 

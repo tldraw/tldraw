@@ -83,7 +83,7 @@ The branching chat template is a full-stack application that combines tldraw's i
 4. **AI Processing**: Complete conversation context sent to AI endpoint
 5. **Streaming Response**: AI response streamed back and displayed in real-time
 
-### Port lSystem
+### Port system
 
 - **Input Ports**: Allow incoming connections from previous conversation steps
 - **Output Ports**: Allow outgoing connections to next conversation steps
@@ -137,13 +137,13 @@ The template uses Cloudflare Workers for the backend:
 
 ## Integration with tldraw
 
-### Custom lShape lSystem
+### Custom shape system
 
 - Extends tldraw's shape system with `NodeShapeUtil`
 - Custom geometry, rendering, and interaction handling
 - Maintains tldraw's reactive state management
 
-### Custom lTools
+### Custom tools
 
 - `PointingPort` tool for creating connections
 - Integrated into tldraw's select tool state machine
@@ -179,7 +179,7 @@ yarn build    # Build frontend
 wrangler deploy    # Deploy to Cloudflare
 ```
 
-## File lStructure
+## File structure
 
 ```
 /templates/branching-chat/

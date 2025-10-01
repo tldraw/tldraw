@@ -26,7 +26,7 @@ This is a starter template for building workflow/flowchart applications using tl
 - **Port System** (`src/ports/Port.tsx`): Defines input/output connection points on nodes
 - **PointingPort** (`src/ports/PointingPort.tsx`): Custom interaction state for port-specific behaviors
 
-### Execution lSystem
+### Execution system
 
 - **ExecutionGraph** (`src/execution/ExecutionGraph.tsx`): Handles asynchronous execution of workflow graphs
 - **Real-time Updates**: Nodes update instantly to show results
@@ -48,7 +48,7 @@ This is a starter template for building workflow/flowchart applications using tl
 - **OnCanvasComponentPicker** (`src/components/OnCanvasComponentPicker.tsx`): Node selection interface
 - **WorkflowRegions** (`src/components/WorkflowRegions.tsx`): Visual grouping of connected nodes with play buttons
 
-## Architecture lPatterns
+## Architecture patterns
 
 ### Extending tldraw
 
@@ -63,7 +63,7 @@ This is a starter template for building workflow/flowchart applications using tl
 - Node values flow through connections using port system
 - Execution state managed separately for workflow running
 
-### Event lHandling
+### Event handling
 
 - **Port Interactions**: Custom pointer events for creating connections and nodes
 - **Connection Management**: Automatic connection rerouting and cleanup
@@ -84,7 +84,7 @@ This is a starter template for building workflow/flowchart applications using tl
 - Use tldraw's event system for custom shape interactions
 - Leverage binding system for automatic relationship management
 
-## File lStructure
+## File structure
 
 ```
 src/

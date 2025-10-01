@@ -20,7 +20,7 @@ A modern React SPA built with Vite that provides the complete tldraw.com user ex
 - **Internationalization**: FormatJS for i18n support
 - **Monitoring**: Sentry for error tracking, PostHog for analytics
 
-### Application lStructure
+### Application structure
 
 ```
 src/
@@ -69,9 +69,9 @@ src/
 - **Responsive UI**: Adaptive interface for different screen sizes
 - **Keyboard Shortcuts**: Comprehensive hotkey system
 
-## Routing lArchitecture
+## Routing architecture
 
-### Route lStructure
+### Route structure
 
 ```typescript
 // Main application routes
@@ -102,7 +102,7 @@ src/
 - **User-friendly Messages**: Contextual error messages
 - **Sentry Integration**: Automatic error reporting
 
-## Data lManagement
+## Data management
 
 ### Client-side storage
 
@@ -125,9 +125,9 @@ src/
 - **Image Resize Worker**: Image processing and optimization
 - **Zero Server**: Data persistence and sync
 
-## Development lEnvironment
+## Development environment
 
-### Build lConfiguration
+### Build configuration
 
 - **Vite Config**: Modern build tooling with HMR
 - **Environment Variables**: Config via .env files
@@ -248,7 +248,7 @@ yarn lint        # Code quality checks
 
 ## Integration points
 
-### Backend lServices
+### Backend services
 
 - **Sync Worker**: Real-time collaboration
 - **Asset Upload Worker**: File upload handling

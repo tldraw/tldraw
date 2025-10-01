@@ -70,7 +70,7 @@ Client Request → Cloudflare Edge → Worker → R2 Storage
 - Custom Domain: `assets.tldraw.xyz`
 - Zone: `tldraw.xyz`
 
-## Storage lStructure
+## Storage structure
 
 ### R2 buckets
 
@@ -86,7 +86,7 @@ Client Request → Cloudflare Edge → Worker → R2 Storage
 - **Range Support**: Efficient streaming for large assets
 - **ETag Headers**: For conditional requests and validation
 
-## Worker lImplementation
+## Worker implementation
 
 ### Entry point (`src/worker.ts`)
 
@@ -108,7 +108,7 @@ export default class Worker extends WorkerEntrypoint<Environment> {
 - **SENTRY_DSN**: Error tracking configuration
 - **MEASURE**: Analytics Engine binding
 
-## Shared lDependencies
+## Shared dependencies
 
 ### @tldraw/worker-shared
 
@@ -120,7 +120,7 @@ Provides common functionality across all tldraw workers:
 - **createRouter**: Router setup with middleware
 - **CORS handling**: Cross-origin request support
 
-### Key lFunctions
+### Key functions
 
 - Upload validation and R2 storage operations
 - Cache-aware asset retrieval with range support
@@ -170,7 +170,7 @@ yarn lint        # Code quality checks
 - **Environment-specific**: Different names/buckets per environment
 - **Version Metadata**: Automatic version tracking
 
-## Usage lIntegration
+## Usage integration
 
 ### Client integration
 
@@ -222,7 +222,7 @@ const imageUrl = `${WORKER_URL}/uploads/${objectName}`
 - **No Versioning**: Object names must be unique per upload
 - **No Metadata**: Minimal asset information beyond HTTP headers
 
-## Related lServices
+## Related services
 
 ### Companion workers
 

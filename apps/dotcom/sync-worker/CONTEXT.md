@@ -63,7 +63,7 @@ export class TLPostgresReplicator extends DurableObject<Environment> {
 }
 ```
 
-### Request lRouting lSystem
+### Request routing system
 
 The worker handles multiple types of requests through a comprehensive routing system:
 
@@ -135,7 +135,7 @@ The worker handles multiple types of requests through a comprehensive routing sy
 .get('/snapshot/:roomId', getRoomSnapshot)
 ```
 
-## Data lPersistence lArchitecture
+## Data persistence architecture
 
 ### Multi-Layer storage system
 
@@ -204,7 +204,7 @@ interface DocumentInfo {
 }
 ```
 
-### Persistence lStrategy
+### Persistence strategy
 
 The worker implements intelligent persistence with configurable intervals:
 
@@ -245,7 +245,7 @@ room.handleSocketConnect({
 })
 ```
 
-#### Message lHandling
+#### Message handling
 
 ```typescript
 // Real-time message processing and broadcasting
@@ -259,7 +259,7 @@ onBeforeSendMessage: ({ message, stringified }) => {
 }
 ```
 
-#### Session lManagement
+#### Session management
 
 ```typescript
 // Automatic cleanup when users disconnect
@@ -296,7 +296,7 @@ The worker uses tldraw's sync system for operational transformation:
 
 The worker supports multiple authentication providers:
 
-#### Clerk lIntegration
+#### Clerk integration
 
 ```typescript
 // JWT-based authentication with Clerk
@@ -307,7 +307,7 @@ if (auth) {
 }
 ```
 
-#### Permission lSystem
+#### Permission system
 
 ```typescript
 // File-based permissions
@@ -331,7 +331,7 @@ if (rateLimited) {
 }
 ```
 
-## File lManagement lSystem
+## File management system
 
 ### File lifecycle
 
@@ -515,7 +515,7 @@ zone_name = "tldraw.com"
 pattern = "www.tldraw.com/api/*"
 ```
 
-### Durable lObject lConfiguration
+### Durable object configuration
 
 All environments use the same Durable Object setup:
 
@@ -554,7 +554,7 @@ binding = "SLUG_TO_READONLY_SLUG"
 id = "2fb5fc7f7ca54a5a9dfae1b07a30a778"
 ```
 
-## Data lSynchronization lSystem
+## Data synchronization system
 
 ### Zero/Rocicorp integration
 
@@ -582,7 +582,7 @@ const schema = {
 }
 ```
 
-#### Mutation lSystem
+#### Mutation system
 
 ```typescript
 // Type-safe mutations with validation
@@ -620,7 +620,7 @@ export class TLPostgresReplicator extends DurableObject<Environment> {
 }
 ```
 
-### Conflict lResolution lStrategy
+### Conflict resolution strategy
 
 ```typescript
 // Optimistic updates with server reconciliation
@@ -765,9 +765,9 @@ async function isRateLimited(env: Environment, identifier: string): Promise<bool
 
 ## Error handling and monitoring
 
-### Comprehensive lError lTracking
+### Comprehensive error tracking
 
-#### Sentry lIntegration
+#### Sentry integration
 
 ```typescript
 // Automatic error reporting with context
@@ -863,7 +863,7 @@ async loadFromDatabase(slug: string): Promise<DBLoadResult> {
 - **Presence Tracking**: Real-time cursors and user awareness
 - **Session Management**: Automatic cleanup and resource management
 
-### Distributed lArchitecture
+### Distributed architecture
 
 - **Edge Computing**: Deployed globally on Cloudflare Workers
 - **Durable Objects**: Stateful, location-pinned computing units

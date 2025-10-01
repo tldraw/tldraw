@@ -388,7 +388,7 @@ function getRunCommand(manager: PackageManager, command: string): string {
 
 ### Error handling
 
-#### Comprehensive lError lManagement
+#### Comprehensive error management
 
 Graceful error handling throughout the CLI with user-friendly messaging:
 
@@ -454,7 +454,7 @@ esbuild src/main.ts \
 - **Node.js Target**: Optimized for Node.js 18+ runtime environments
 - **Development Watch**: `scripts/dev.sh` provides watch mode for development
 
-### Distribution lStrategy
+### Distribution strategy
 
 Optimized package structure for CLI distribution:
 
@@ -472,7 +472,7 @@ Optimized package structure for CLI distribution:
 
 ### Development workflow
 
-#### Development lScripts
+#### Development scripts
 
 Streamlined development experience:
 
@@ -501,7 +501,7 @@ dist-cjs/
 └── main.cjs         → Single bundled CommonJS output
 ```
 
-## Testing lConfiguration
+## Testing configuration
 
 ### Jest setup
 
@@ -575,7 +575,7 @@ npx create-tldraw my-drawing-app --template vite-template
 npx create-tldraw ./existing-dir --overwrite
 ```
 
-### Advanced lUsage lPatterns
+### Advanced usage patterns
 
 ```bash
 # Corporate environments with specific package managers
@@ -598,7 +598,7 @@ npm run build        # Create production build
 npm run typecheck    # Validate TypeScript
 ```
 
-## Template lDevelopment
+## Template development
 
 ### Automatic template generation
 
@@ -645,7 +645,7 @@ Automated validation for template integrity:
 - **Dependency Audit**: Check for security vulnerabilities in dependencies
 - **Documentation Review**: README must include setup and usage instructions
 
-## Development lFeatures
+## Development features
 
 ### Enhanced CLI experience
 

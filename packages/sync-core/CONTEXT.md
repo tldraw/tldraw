@@ -61,7 +61,7 @@ Responsibilities:
 - **Persistence**: Coordinate with storage backends
 - **Schema Management**: Handle schema migrations and compatibility
 
-### Protocol lSystem
+### Protocol system
 
 #### WebSocket Protocol (`protocol.ts`)
 
@@ -94,7 +94,7 @@ type TLSocketServerSentEvent =
 4. **Presence Sync**: Real-time user cursor/selection state
 5. **Graceful Disconnect**: Proper cleanup and persistence
 
-### Diff lSystem
+### Diff system
 
 #### `NetworkDiff` - efficient change representation
 
@@ -127,7 +127,7 @@ type ValueOp =
 	| [ValueOpType.Delete] // Remove property
 ```
 
-### Session lManagement
+### Session management
 
 #### `RoomSession` - individual client sessions
 
@@ -189,7 +189,7 @@ Handles automatic reconnection with exponential backoff:
 
 ### Data consistency
 
-#### Conflict lResolution lStrategy
+#### Conflict resolution strategy
 
 **Server Authoritative Model:**
 
@@ -267,7 +267,7 @@ class TLRemoteSyncError extends Error {
 - **Diff-Based Sync**: Only transmit actual changes
 - **Rollback Support**: Maintain history for conflict resolution
 
-### Async lState lManagement
+### Async state management
 
 - **Promise-Based APIs**: Async operations return promises
 - **Effect Scheduling**: Coordinate updates with React lifecycle
@@ -283,7 +283,7 @@ class TLRemoteSyncError extends Error {
 4. **Ping/Pong**: Keepalive for connection health
 5. **Error**: Communicate protocol violations
 
-### Reliability lFeatures
+### Reliability features
 
 - **Message Ordering**: Guaranteed order of operations
 - **Duplicate Detection**: Prevent duplicate message processing
@@ -324,7 +324,7 @@ class TLRemoteSyncError extends Error {
 - **Reconnection Sync**: State reconciliation after network recovery
 - **Partial Sync**: Handle incomplete synchronization
 
-### Scalable lArchitecture
+### Scalable architecture
 
 - **Room-Based Isolation**: Separate sync contexts per document
 - **Horizontal Scaling**: Support multiple server instances

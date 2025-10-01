@@ -11,7 +11,7 @@ This is the tldraw SDK examples application - a comprehensive showcase and devel
 
 ## Architecture
 
-### Core lStructure
+### Core structure
 
 - **Entry Point**: `src/index.tsx` - Main application entry
 - **Example Wrapper**: `src/ExampleWrapper.tsx` - Provides consistent layout and error boundaries
@@ -58,7 +58,7 @@ Examples are organized into these categories:
 - **Custom UI**: Interface modifications (`custom-ui`, `toolbar-groups`)
 - **Custom Styling**: Visual customization (`custom-grid`, `frame-colors`)
 
-### Advanced lFeatures
+### Advanced features
 
 - **Collaboration**: Real-time sync (`sync-demo`, `sync-custom-presence`)
 - **Bindings**: Shape relationships (`pin-bindings`, `layout-bindings`)
@@ -111,7 +111,7 @@ export default function YourExample() {
 }
 ```
 
-### Code lStyle lGuidelines
+### Code style guidelines
 
 - Use numbered footnote comments: `// [1]`, `// [2]` with explanations at bottom
 - Keep examples focused and minimal for "tight" examples
@@ -135,7 +135,7 @@ export default function YourExample() {
 - **Performance Tests**: Dedicated performance testing suite
 - **Error Boundaries**: Built-in error handling for example failures
 
-## Key lDependencies
+## Key dependencies
 
 ### Core tldraw packages
 
@@ -144,7 +144,7 @@ export default function YourExample() {
 - `@tldraw/state` - Reactive state management
 - `@tldraw/sync` - Collaboration features
 
-### Supporting lLibraries
+### Supporting libraries
 
 - `react-router-dom` - Client-side routing
 - `@tiptap/core` - Rich text editing (some examples)

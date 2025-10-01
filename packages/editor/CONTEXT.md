@@ -39,7 +39,7 @@ The `@tldraw/editor` package is the foundational layer of tldraw - a minimal inf
 - Can accept external stores or create internal ones
 - Handles loading states and sync status
 
-### State lManagement lArchitecture
+### State management architecture
 
 **Reactive Signals System:**
 
@@ -103,7 +103,7 @@ The `@tldraw/editor` package is the foundational layer of tldraw - a minimal inf
 - BindingUtils define visual indicators and interaction behavior
 - Automatically updated when connected shapes change
 
-### Manager lSystem
+### Manager system
 
 The editor uses specialized managers for different concerns:
 
@@ -120,7 +120,7 @@ The editor uses specialized managers for different concerns:
 - `TickManager` - Animation frame management
 - `UserPreferencesManager` - User settings persistence
 
-### Component lSystem
+### Component system
 
 **Default Components (`src/lib/components/default-components/`)**
 
@@ -144,7 +144,7 @@ The editor uses specialized managers for different concerns:
 - Shape-specific indicators defined in ShapeUtil.indicator()
 - Binding indicators for relationship visualization
 
-### Text lEditing lIntegration
+### Text editing integration
 
 **Tiptap Integration:**
 
@@ -176,7 +176,7 @@ The editor uses specialized managers for different concerns:
 - Hit testing and intersection calculations
 - Point-in-shape and shape-shape collision detection
 
-### Event lSystem
+### Event system
 
 **Event Flow:**
 
@@ -302,7 +302,7 @@ class MyShapeUtil extends ShapeUtil<TLMyShape> {
 ```
 ````
 
-### Creating lCustom lTools
+### Creating custom tools
 
 ```typescript
 export class MyTool extends StateNode {
@@ -343,7 +343,7 @@ editor.batch(() => {
 })
 ```
 
-### Testing lPatterns
+### Testing patterns
 
 ```typescript
 import { TestEditor } from './test/TestEditor'

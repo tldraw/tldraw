@@ -116,7 +116,7 @@ Use cases:
 - Non-visual side effects
 - Critical updates that can't wait for next frame
 
-### Component lTracking
+### Component tracking
 
 #### `track` - higher-Order component
 
@@ -230,7 +230,7 @@ The `EffectScheduler` itself is agnostic to timing - it delegates scheduling to 
 
 ## Key design patterns
 
-### React lIntegration lStrategy
+### React integration strategy
 
 The package uses several React patterns for optimal integration:
 
@@ -241,7 +241,7 @@ The package uses several React patterns for optimal integration:
 
 ### Performance optimizations
 
-#### Throttling lStrategy
+#### Throttling strategy
 
 ```typescript
 // Frame-throttled updates for visual changes
@@ -263,14 +263,14 @@ useQuickReactor(
 )
 ```
 
-#### Dependency lManagement
+#### Dependency management
 
 - Explicit dependency arrays like React hooks
 - Automatic signal dependency tracking during execution
 - Efficient change detection using epoch-based snapshots
 - `scheduleCount` mechanism in `useStateTracking` for batched updates
 
-### Error lHandling lPatterns
+### Error handling patterns
 
 The package includes comprehensive error handling:
 
@@ -329,7 +329,7 @@ const atom = useAtom('myAtom', initialValue)
 
 ## Usage patterns
 
-### Basic lComponent lTracking
+### Basic component tracking
 
 ```typescript
 const Counter = track(function Counter() {
@@ -378,7 +378,7 @@ const DataSyncComponent = track(function DataSync() {
 })
 ```
 
-### Manual lState lTracking
+### Manual state tracking
 
 ```typescript
 function CustomComponent() {
@@ -417,7 +417,7 @@ function CustomComponent() {
 - Performance: Fine-grained control over tracking behavior
 - Use when: You need manual control over the tracking lifecycle
 
-### Optimization lGuidelines
+### Optimization guidelines
 
 1. **Prefer `$` prefix**: Use consistent naming for signals (`$count`, `$user`)
 2. **Batch related changes**: Group signal updates to minimize renders
@@ -434,7 +434,7 @@ function CustomComponent() {
 
 ## Integration with tldraw
 
-### Editor lComponents
+### Editor components
 
 Used throughout tldraw's React components:
 

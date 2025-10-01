@@ -226,7 +226,7 @@ FOR EACH ROW
 EXECUTE FUNCTION delete_file_states();
 ```
 
-## Development lEnvironment
+## Development environment
 
 ### Docker composition
 
@@ -290,7 +290,7 @@ nodemon --watch ./.schema.js \
   --signal SIGINT
 ```
 
-### Environment lManagement
+### Environment management
 
 Environment variables for different deployment stages:
 
@@ -316,7 +316,7 @@ ZERO_LAZY_STARTUP = 'true'
 
 ## Data model and relationships
 
-### User lManagement
+### User management
 
 Complete user profile and preferences:
 
@@ -409,7 +409,7 @@ interface FileState {
 }
 ```
 
-### Mutation lTracking
+### Mutation tracking
 
 Change tracking for synchronization:
 
@@ -532,9 +532,9 @@ timeout = "5s"                # Request timeout
 path = "/"                    # Health check path
 ```
 
-### Production lConsiderations
+### Production considerations
 
-#### Database lConfiguration
+#### Database configuration
 
 ```sql
 -- Production PostgreSQL settings for logical replication
@@ -624,7 +624,7 @@ const zero = new Zero({
 # Automatic failover and recovery
 ```
 
-#### Resource lManagement
+#### Resource management
 
 ```typescript
 // Memory-efficient data structures
@@ -646,7 +646,7 @@ const zero = new Zero({
 
 ### Database maintenance
 
-#### Migration lManagement
+#### Migration management
 
 ```bash
 # Apply new migrations
@@ -689,7 +689,7 @@ pg_restore --verbose --clean --no-acl --no-owner \
 
 ### Monitoring and debugging
 
-#### Performance lMonitoring
+#### Performance monitoring
 
 ```typescript
 // Zero provides built-in metrics
@@ -710,7 +710,7 @@ pg_restore --verbose --clean --no-acl --no-owner \
 }
 ```
 
-#### Error lTracking
+#### Error tracking
 
 ```typescript
 // Comprehensive error logging

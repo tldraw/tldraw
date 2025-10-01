@@ -44,7 +44,7 @@ type TLRecord =
 - `defaultBindingSchemas` - Built-in binding configurations
 - Automatic migration sequence coordination
 
-### Shape lSystem lArchitecture
+### Shape system architecture
 
 **Base Shape Structure (`src/shapes/TLBaseShape.ts`):**
 
@@ -79,7 +79,7 @@ Each shape defines:
 - Migration sequence for schema evolution
 - Style property integration
 
-### Style lSystem
+### Style system
 
 **StyleProp Architecture (`src/styles/StyleProp.ts`):**
 
@@ -104,7 +104,7 @@ Each shape defines:
 - CSS custom properties integration
 - Frame and note-specific color variants
 
-### Asset lSystem
+### Asset system
 
 **Asset Types (`src/assets/`):**
 
@@ -128,7 +128,7 @@ Each shape defines:
 - Binding creation, validation, and lifecycle management
 - Integration with shape deletion and updates
 
-### Validation lSystem
+### Validation system
 
 **Validation Infrastructure:**
 
@@ -177,7 +177,7 @@ const migrations = createMigrationSequence({
 
 ## Key data structures
 
-### Shape lProperty lSystem
+### Shape property system
 
 **Properties with Styles:**
 
@@ -220,7 +220,7 @@ const AssetRecordType = createRecordType<TLAsset>('asset', {
 }).withDefaultProperties(() => ({ meta: {} }))
 ```
 
-### Complex lType lPatterns
+### Complex type patterns
 
 **Rich Text (`src/misc/TLRichText.ts`):**
 
@@ -383,7 +383,7 @@ Each shape file (~100-200 lines) includes:
 - **`src/createPresenceStateDerivation.ts`** - Real-time presence logic
 - **`src/store-migrations.ts`** - Historical store structure changes
 
-## Type lSystem lPatterns
+## Type system patterns
 
 ### ID system
 
@@ -408,7 +408,7 @@ interface ShapeProps {
 }
 ```
 
-### Validation lIntegration
+### Validation integration
 
 - All properties validated at runtime
 - Custom validation for complex types
@@ -417,7 +417,7 @@ interface ShapeProps {
 
 ## Store integration points
 
-### Schema lConfiguration
+### Schema configuration
 
 ```typescript
 const schema = createTLSchema({
@@ -438,7 +438,7 @@ const store = new Store({
 })
 ```
 
-### Asset lStore lIntegration
+### Asset store integration
 
 ```typescript
 interface TLAssetStore {
@@ -458,7 +458,7 @@ interface TLAssetStore {
 4. **Document breaking changes** and migration requirements
 5. **Handle migration failures gracefully** with validation fallbacks
 
-### Shape lDevelopment
+### Shape development
 
 1. **Follow existing patterns** for props structure and validation
 2. **Use style properties** for attributes that should be shared across shapes
@@ -466,7 +466,7 @@ interface TLAssetStore {
 4. **Consider performance implications** of complex property validation
 5. **Design for extensibility** while maintaining type safety
 
-### Validation lStrategy
+### Validation strategy
 
 1. **Use appropriate validators** from `@tldraw/validate`
 2. **Implement custom validators** for domain-specific types
@@ -474,7 +474,7 @@ interface TLAssetStore {
 4. **Test validation edge cases** thoroughly
 5. **Consider validation performance** for large datasets
 
-### Migration lStrategy
+### Migration strategy
 
 1. **Plan migration paths** before making schema changes
 2. **Group related changes** into single migration steps
@@ -507,7 +507,7 @@ interface TLAssetStore {
 
 ## Key components deep dive
 
-### Style lProperty lSystem
+### Style property system
 
 **Style Property Lifecycle:**
 
@@ -523,7 +523,7 @@ interface TLAssetStore {
 - **Enum-based:** `StyleProp.defineEnum()` with predefined values
 - **Theme integration:** Colors that adapt to light/dark themes
 
-### Shape lProperty lPatterns
+### Shape property patterns
 
 **Geometric Properties:**
 
@@ -543,7 +543,7 @@ interface TLAssetStore {
 - Asset references (`assetId` for media shapes)
 - URLs and metadata for external content
 
-### Record lScope lSystem
+### Record scope system
 
 **Scope Types:**
 
@@ -574,7 +574,7 @@ interface TLAssetStore {
 - **Custom migrations** for schema evolution
 - **Custom style properties** for shared styling
 
-### Framework lIntegration
+### Framework integration
 
 - Framework-agnostic type definitions
 - React integration via editor package

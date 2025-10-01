@@ -57,7 +57,7 @@ async function handleApiRequest({
 }
 ```
 
-#### Input lValidation
+#### Input validation
 
 Type-safe request parsing with validation:
 
@@ -272,7 +272,7 @@ async function trySaveImage(
 
 Sentry integration for production error tracking:
 
-#### Sentry lConfiguration
+#### Sentry configuration
 
 ```typescript
 import { Toucan } from 'toucan-js'
@@ -358,7 +358,7 @@ function forbidden() {
 **Range Requests**: Support for partial content delivery
 **Immutable Assets**: Long-term caching for uploaded content
 
-### Bookmark lSystem
+### Bookmark system
 
 **Metadata Extraction**: Rich preview data from web pages
 **Image Optimization**: Automatic image resizing and quality optimization
@@ -469,7 +469,7 @@ await Promise.all([
 const { title, description, image, favicon } = await response.json()
 ```
 
-## Cloudflare lWorkers lIntegration
+## Cloudflare workers integration
 
 ### R2 storage integration
 
@@ -521,7 +521,7 @@ if (cachedResponse) return cachedResponse
 context.waitUntil(caches.default.put(cacheKey, response.clone()))
 ```
 
-## Environment lManagement
+## Environment management
 
 ### Type-Safe environment variables
 
@@ -542,7 +542,7 @@ const { SENTRY_DSN, WORKER_NAME } = requiredEnv(env, {
 // TypeScript guarantees these are defined
 ```
 
-### Environment lValidation
+### Environment validation
 
 ```typescript
 function requiredEnv<T extends object>(
@@ -558,7 +558,7 @@ function requiredEnv<T extends object>(
 }
 ```
 
-## Error lHandling lSystem
+## Error handling system
 
 ### Standard HTTP errors
 
@@ -576,7 +576,7 @@ function forbidden() {
 throw new StatusError(400, `Query parameters: ${validationMessage}`)
 ```
 
-### Monitoring lIntegration
+### Monitoring integration
 
 ```typescript
 // Automatic error reporting
@@ -629,7 +629,7 @@ const sentry = new Toucan({
 
 ## Security considerations
 
-### Input lValidation
+### Input validation
 
 - **URL Validation**: Ensure valid HTTP/HTTPS URLs for bookmarks
 - **File Type Validation**: Verify content types for uploads
@@ -650,7 +650,7 @@ const sentry = new Toucan({
 - **Sandbox Execution**: Workers isolated from sensitive systems
 - **Monitoring**: Comprehensive error and security event tracking
 
-## Deployment lArchitecture
+## Deployment architecture
 
 ### Worker distribution
 
@@ -663,7 +663,7 @@ Edge Locations (Global)
     └── worker-shared/   # Shared utilities (this package)
 ```
 
-### Service lIntegration
+### Service integration
 
 - **R2 Storage**: Asset persistence and delivery
 - **Cache API**: Performance optimization
@@ -672,7 +672,7 @@ Edge Locations (Global)
 
 ## Key benefits
 
-### Development lExperience
+### Development experience
 
 - **Type Safety**: Full TypeScript support for worker development
 - **Reusable Patterns**: Common worker utilities abstracted

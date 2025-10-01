@@ -116,7 +116,7 @@ const fileStateRelationships = relationships(file_state, ({ one }) => ({
 
 Real-time UI updates with optimistic mutations:
 
-#### Store lArchitecture
+#### Store architecture
 
 ```typescript
 class OptimisticAppStore {
@@ -200,7 +200,7 @@ applyUpdate(prev: ZStoreData, update: ZRowUpdate): ZStoreData {
 }
 ```
 
-### Permission lSystem
+### Permission system
 
 Role-based access control for collaborative features:
 
@@ -307,7 +307,7 @@ function disallowImmutableMutations(data, immutableColumns) {
 
 Comprehensive type definitions for client-server communication:
 
-#### Room lManagement
+#### Room management
 
 ```typescript
 interface CreateRoomRequestBody {
@@ -326,7 +326,7 @@ type CreateSnapshotResponseBody =
 	| { error: true; message: string }
 ```
 
-#### File lOperations
+#### File operations
 
 ```typescript
 interface CreateFilesRequestBody {
@@ -395,7 +395,7 @@ const ROOM_SIZE_LIMIT_MB = 25 // Room data size limit
 
 ### Error handling
 
-#### Error lCode lSystem
+#### Error code system
 
 ```typescript
 const ZErrorCode = stringEnum(
@@ -454,7 +454,7 @@ assert(file.id.length >= 16, ZErrorCode.bad_request)
 **Authorization**: Row-level security with permission expressions
 **Data Isolation**: Users can only access permitted data
 
-## Data lFlow lPatterns
+## Data flow patterns
 
 ### Mutation flow
 
@@ -555,7 +555,7 @@ if (clientVersion < MIN_Z_PROTOCOL_VERSION) {
 }
 ```
 
-## User lPreferences lSystem
+## User preferences system
 
 ### Preferences schema
 
@@ -578,7 +578,7 @@ const UserPreferencesKeys = [
 ] as const satisfies Array<keyof TlaUser>
 ```
 
-### Export lConfiguration
+### Export configuration
 
 ```typescript
 interface TlaUser {
@@ -638,7 +638,7 @@ await mutators.file.update({
 })
 ```
 
-## Feedback lSystem
+## Feedback system
 
 ### User feedback collection
 
@@ -652,9 +652,9 @@ interface SubmitFeedbackRequestBody {
 const MAX_PROBLEM_DESCRIPTION_LENGTH = 2000
 ```
 
-## License lManagement
+## License management
 
-### License lKey lSystem
+### License key system
 
 ```typescript
 // License validation for pro features

@@ -63,7 +63,7 @@ Status progression:
 2. **synced-remote**: Successfully connected and synchronized
 3. **error**: Connection failed or sync error occurred
 
-### Connection lManagement
+### Connection management
 
 #### WebSocket connection lifecycle
 
@@ -119,9 +119,9 @@ onSyncError(reason) {
 }
 ```
 
-### Presence lSystem
+### Presence system
 
-#### User lPresence lManagement
+#### User presence management
 
 Real-time user cursor and selection synchronization:
 
@@ -193,7 +193,7 @@ function createDemoAssetStore(host: string): TLAssetStore {
 }
 ```
 
-#### Asset lResolution lStrategy
+#### Asset resolution strategy
 
 Smart image optimization for performance:
 
@@ -232,9 +232,9 @@ Robust recovery from connection issues:
 - **Conflict Resolution**: Handle overlapping changes gracefully
 - **Store Validation**: Ensure store remains usable after reconnection
 
-## Demo lServer lIntegration
+## Demo server integration
 
-### Hosted lDemo lEnvironment
+### Hosted demo environment
 
 Pre-configured integration with tldraw's demo infrastructure:
 
@@ -299,7 +299,7 @@ function DemoApp() {
 }
 ```
 
-### Custom lPresence lImplementation
+### Custom presence implementation
 
 ```typescript
 const store = useSync({
@@ -318,7 +318,7 @@ const store = useSync({
 })
 ```
 
-### Authentication lIntegration
+### Authentication integration
 
 ```typescript
 const store = useSync({
@@ -373,7 +373,7 @@ const store = useSync({
 
 ## Dependencies
 
-### Core lDependencies
+### Core dependencies
 
 - **@tldraw/sync-core**: Core synchronization infrastructure
 - **@tldraw/state-react**: React integration for reactive state

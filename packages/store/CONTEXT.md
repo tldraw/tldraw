@@ -20,7 +20,7 @@ The `Store` class (`src/lib/Store.ts`) is the central orchestrator that manages:
 - Side effects through `StoreSideEffects`
 - Query capabilities through `StoreQueries`
 
-### Record lSystem
+### Record system
 
 **BaseRecord Interface (`src/lib/BaseRecord.ts`):**
 
@@ -44,7 +44,7 @@ interface BaseRecord<TypeName extends string, Id extends RecordId<UnknownRecord>
 - **`session`** - Per-instance only, not synced but may be persisted
 - **`presence`** - Per-instance, synced but not persisted (e.g., cursors)
 
-### Reactive lStorage lArchitecture
+### Reactive storage architecture
 
 **AtomMap (`src/lib/AtomMap.ts`):**
 
@@ -121,7 +121,7 @@ interface RecordsDiff<R extends UnknownRecord> {
 - `createMigrationSequence()` - Builder for migration sequences
 - `parseMigrationId()` - Version parsing and validation
 
-### Side lEffects lSystem
+### Side effects system
 
 **StoreSideEffects (`src/lib/StoreSideEffects.ts`):**
 
@@ -175,7 +175,7 @@ StoreAfterDeleteHandler<R>  - Clean up after deletions
 - `UNINITIALIZED` marker for deleted values
 - Efficient batch operations via transactions
 
-### Query lSystem lArchitecture
+### Query system architecture
 
 **Reactive Indexing:**
 
@@ -243,7 +243,7 @@ const schema = StoreSchema.create(
 )
 ```
 
-### Store lUsage lPatterns
+### Store usage patterns
 
 ```typescript
 // Create store
@@ -346,7 +346,7 @@ const migrations = createMigrationSequence({
 - **Migration Sequences** - Schema evolution over time
 - **Query Expressions** - Complex record filtering
 
-### Framework lIntegration
+### Framework integration
 
 - Framework-agnostic core with React bindings available
 - Store instances can be shared across components
@@ -362,7 +362,7 @@ const migrations = createMigrationSequence({
 - **`src/lib/BaseRecord.ts`** - Record type definitions (~25 lines)
 - **`src/lib/RecordType.ts`** - Record factory and management (~200 lines)
 
-### Change lManagement
+### Change management
 
 - **`src/lib/RecordsDiff.ts`** - Diff operations and utilities (~200 lines)
 - **`src/lib/StoreQueries.ts`** - Reactive indexing system (~400 lines)
@@ -373,7 +373,7 @@ const migrations = createMigrationSequence({
 - **`src/lib/StoreSchema.ts`** - Schema management (~300 lines)
 - **`src/lib/migrate.ts`** - Migration system (~500 lines)
 
-### Support lInfrastructure
+### Support infrastructure
 
 - **`src/lib/executeQuery.ts`** - Query evaluation engine
 - **`src/lib/IncrementalSetConstructor.ts`** - Efficient set operations
@@ -389,14 +389,14 @@ const migrations = createMigrationSequence({
 - Design records for efficient diffing when needed
 - Implement proper validation for data integrity
 
-### Store lConfiguration
+### Store configuration
 
 - Initialize stores with appropriate schema and props
 - Configure migration sequences for schema evolution
 - Set up side effects for business logic enforcement
 - Use scoped listeners for performance optimization
 
-### Query lPatterns
+### Query patterns
 
 - Leverage reactive indexes for frequently accessed data
 - Use computed signals to derive complex query results
@@ -419,7 +419,7 @@ const migrations = createMigrationSequence({
 
 ## Testing patterns
 
-### Test lStructure
+### Test structure
 
 - Unit tests for individual components in `src/lib/test/`
 - Integration tests for store operations
