@@ -146,7 +146,7 @@ Each shape defines:
 
 ### Migration system
 
-**Migration Architecture:**
+**Migration architecture:**
 
 - **Store-level migrations** (`src/store-migrations.ts`) - Structural changes
 - **Record-level migrations** - Individual record type evolution
