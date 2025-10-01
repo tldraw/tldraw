@@ -645,8 +645,8 @@ interface TLAssetStore {
 3. **Style Property Conflicts:** Multiple properties with same ID
 4. **ID Type Confusion:** Using wrong ID types for references
 5. **Schema Breaking Changes:** Changes without proper migrations
-6. **Asset Reference Issues:** Orphaned asset references after deletion
-7. **Scope Misuse:** Wrong record scope affecting sync/persistence behavior
+6. **Asset reference issues:** Orphaned asset references after deletion
+7. **Scope misuse:** Wrong record scope affecting sync/persistence behavior
 
 ## Package dependencies and integration
 
