@@ -588,7 +588,7 @@ npx create-tldraw ci-app --template nextjs-template --overwrite
 npx create-tldraw && cd $(ls -t | head -1) && npm run dev
 ```
 
-### Post-Creation workflow
+### Post-creation workflow
 
 ```bash
 cd my-tldraw-app
