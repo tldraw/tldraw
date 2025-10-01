@@ -1,7 +1,7 @@
 {
 	"name": "@tldraw/sync-core",
 	"description": "tldraw infinite canvas SDK (multiplayer sync).",
-	"version": "3.14.2",
+	"version": "4.0.2",
 	"author": {
 		"name": "tldraw GB Ltd.",
 		"email": "hello@tldraw.com"
@@ -28,18 +28,20 @@
 	"/* NOTE */": "These `main` and `types` fields are rewritten by the build script. They are not the actual values we publish",
 	"main": "./src/index.ts",
 	"types": "./.tsbuild/index.d.ts",
+	"type": "module",
 	"/* GOTCHA */": "files will include ./dist and index.d.ts by default, add any others you want to include in here",
 	"files": [],
 	"scripts": {
-		"test-ci": "lazy inherit",
-		"test": "yarn run -T jest",
-		"test-coverage": "lazy inherit",
+		"test-ci": "yarn run -T vitest run --passWithNoTests",
+		"test": "yarn run -T vitest --passWithNoTests",
+		"test-coverage": "yarn run -T vitest run --coverage --passWithNoTests",
 		"lint": "yarn run -T tsx ../../internal/scripts/lint.ts",
 		"build": "yarn run -T tsx ../../internal/scripts/build-package.ts",
 		"build-api": "yarn run -T tsx ../../internal/scripts/build-api.ts",
 		"prepack": "yarn run -T tsx ../../internal/scripts/prepack.ts",
 		"postpack": "../../internal/scripts/postpack.sh",
-		"pack-tarball": "yarn pack"
+		"pack-tarball": "yarn pack",
+		"context": "yarn run -T tsx ../../internal/scripts/context.ts"
 	},
 	"devDependencies": {
 		"@types/react": "^18.3.18",
@@ -49,21 +51,8 @@
 		"tldraw": "workspace:*",
 		"typescript": "^5.8.3",
 		"uuid-by-string": "^4.0.0",
-		"uuid-readable": "^0.0.2"
-	},
-	"jest": {
-		"resolver": "<rootDir>/jestResolver.js",
-		"preset": "../../internal/config/jest/node/jest-preset.js",
-		"testEnvironment": "../../../packages/utils/patchedJestJsDom.js",
-		"moduleNameMapper": {
-			"^~(.*)": "<rootDir>/src/$1"
-		},
-		"transformIgnorePatterns": [
-			"ignore everything. swc is fast enough to transform everything"
-		],
-		"setupFiles": [
-			"./setupJest.js"
-		]
+		"uuid-readable": "^0.0.2",
+		"vitest": "^3.2.4"
 	},
 	"dependencies": {
 		"@tldraw/state": "workspace:*",

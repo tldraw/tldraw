@@ -2,6 +2,8 @@ import { atom, isSignal, transact } from '@tldraw/state'
 import { useAtom } from '@tldraw/state-react'
 import {
 	ClientWebSocketAdapter,
+	TLCustomMessageHandler,
+	TLPresenceMode,
 	TLRemoteSyncError,
 	TLSyncClient,
 	TLSyncErrorCloseEventReason,
@@ -25,6 +27,7 @@ import {
 	getDefaultUserPresence,
 	getUserPreferences,
 	uniqueId,
+	useEvent,
 	useReactiveEvent,
 	useRefState,
 	useShallowObjectIdentity,
@@ -33,6 +36,8 @@ import {
 } from 'tldraw'
 
 const MULTIPLAYER_EVENT_NAME = 'multiplayer.client'
+
+const defaultCustomMessageHandler: TLCustomMessageHandler = () => {}
 
 /** @public */
 export type RemoteTLStoreWithStatus = Exclude<
@@ -77,6 +82,7 @@ export function useSync(opts: UseSyncOptions & TLStoreSchemaOptions): RemoteTLSt
 		trackAnalyticsEvent: track,
 		userInfo,
 		getUserPresence: _getUserPresence,
+		onCustomMessageReceived: _onCustomMessageReceived,
 		...schemaOpts
 	} = opts
 
@@ -89,6 +95,7 @@ export function useSync(opts: UseSyncOptions & TLStoreSchemaOptions): RemoteTLSt
 
 	const prefs = useShallowObjectIdentity(userInfo)
 	const getUserPresence = useReactiveEvent(_getUserPresence ?? getDefaultUserPresence)
+	const onCustomMessageReceived = useEvent(_onCustomMessageReceived ?? defaultCustomMessageHandler)
 
 	const userAtom = useAtom<TLPresenceUserInfo | Signal<TLPresenceUserInfo> | undefined>(
 		'userAtom',
@@ -165,6 +172,15 @@ export function useSync(opts: UseSyncOptions & TLStoreSchemaOptions): RemoteTLSt
 			})
 		})
 
+		const otherUserPresences = store.query.ids('instance_presence', () => ({
+			userId: { neq: userPreferences.get().id },
+		}))
+
+		const presenceMode = computed<TLPresenceMode>('presenceMode', () => {
+			if (otherUserPresences.get().size === 0) return 'solo'
+			return 'full'
+		})
+
 		const client = new TLSyncClient({
 			store,
 			socket,
@@ -209,7 +225,9 @@ export function useSync(opts: UseSyncOptions & TLStoreSchemaOptions): RemoteTLSt
 					store.ensureStoreIsUsable()
 				})
 			},
+			onCustomMessageReceived,
 			presence,
+			presenceMode,
 		})
 
 		return () => {
@@ -218,7 +236,18 @@ export function useSync(opts: UseSyncOptions & TLStoreSchemaOptions): RemoteTLSt
 			socket.close()
 			setState(null)
 		}
-	}, [assets, onMount, userAtom, roomId, schema, setState, track, uri, getUserPresence])
+	}, [
+		assets,
+		onMount,
+		userAtom,
+		roomId,
+		schema,
+		setState,
+		track,
+		uri,
+		getUserPresence,
+		onCustomMessageReceived,
+	])
 
 	return useValue<RemoteTLStoreWithStatus>(
 		'remote synced store',
@@ -268,6 +297,11 @@ export interface UseSyncOptions {
 	 * Note that storing base64 blobs inline in JSON is very inefficient and will cause performance issues quickly with large images and videos.
 	 */
 	assets: TLAssetStore
+
+	/**
+	 * A handler for custom socket messages.
+	 */
+	onCustomMessageReceived?(data: any): void
 
 	/** @internal */
 	onMount?(editor: Editor): void

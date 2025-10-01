@@ -5,57 +5,58 @@
 	height: 100%;
 	font-size: 12px;
 	/* Spacing */
-	--space-1: 2px;
-	--space-2: 4px;
-	--space-3: 8px;
-	--space-4: 12px;
-	--space-5: 16px;
-	--space-6: 20px;
-	--space-7: 28px;
-	--space-8: 32px;
-	--space-9: 64px;
-	--space-10: 72px;
+	--tl-space-1: 2px;
+	--tl-space-2: 4px;
+	--tl-space-3: 8px;
+	--tl-space-4: 12px;
+	--tl-space-5: 16px;
+	--tl-space-6: 20px;
+	--tl-space-7: 28px;
+	--tl-space-8: 32px;
+	--tl-space-9: 64px;
+	--tl-space-10: 72px;
 	/* Radius */
-	--radius-0: 2px;
-	--radius-1: 4px;
-	--radius-2: 6px;
-	--radius-3: 9px;
-	--radius-4: 11px;
+	--tl-radius-0: 2px;
+	--tl-radius-1: 4px;
+	--tl-radius-2: 6px;
+	--tl-radius-3: 9px;
+	--tl-radius-4: 11px;
 
 	/* Canvas z-index */
-	--layer-canvas-hidden: -999999;
-	--layer-canvas-background: 100;
-	--layer-canvas-grid: 150;
-	--layer-watermark: 200;
-	--layer-canvas-shapes: 300;
-	--layer-canvas-overlays: 500;
-	--layer-canvas-blocker: 10000;
+	--tl-layer-canvas-hidden: -999999;
+	--tl-layer-canvas-background: 100;
+	--tl-layer-canvas-grid: 150;
+	--tl-layer-watermark: 200;
+	--tl-layer-canvas-shapes: 300;
+	--tl-layer-canvas-overlays: 500;
+	--tl-layer-canvas-in-front: 600;
+	--tl-layer-canvas-blocker: 10000;
 
 	/* Canvas overlays z-index */
-	--layer-overlays-collaborator-scribble: 10;
-	--layer-overlays-collaborator-brush: 20;
-	--layer-overlays-collaborator-shape-indicator: 30;
-	--layer-overlays-user-scribble: 40;
-	--layer-overlays-user-brush: 50;
-	--layer-overlays-user-snapline: 90;
-	--layer-overlays-selection-fg: 100;
+	--tl-layer-overlays-collaborator-scribble: 10;
+	--tl-layer-overlays-collaborator-brush: 20;
+	--tl-layer-overlays-collaborator-shape-indicator: 30;
+	--tl-layer-overlays-user-scribble: 40;
+	--tl-layer-overlays-user-brush: 50;
+	--tl-layer-overlays-user-snapline: 90;
+	--tl-layer-overlays-selection-fg: 100;
 	/* User handles need to be above selection edges / corners, matters for sticky note clone handles */
-	--layer-overlays-user-handles: 105;
-	--layer-overlays-user-indicator-hint: 110;
-	--layer-overlays-custom: 115;
-	--layer-overlays-collaborator-cursor-hint: 120;
-	--layer-overlays-collaborator-cursor: 130;
+	--tl-layer-overlays-user-handles: 105;
+	--tl-layer-overlays-user-indicator-hint: 110;
+	--tl-layer-overlays-custom: 115;
+	--tl-layer-overlays-collaborator-cursor-hint: 120;
+	--tl-layer-overlays-collaborator-cursor: 130;
 
 	/* Text editor z-index */
-	--layer-text-container: 1;
-	--layer-text-content: 3;
-	--layer-text-editor: 4;
+	--tl-layer-text-container: 1;
+	--tl-layer-text-content: 3;
+	--tl-layer-text-editor: 4;
 
 	/* Error fallback z-index */
-	--layer-error-overlay: 1;
-	--layer-error-canvas: 2;
-	--layer-error-canvas-after: 3;
-	--layer-error-content: 4;
+	--tl-layer-error-overlay: 1;
+	--tl-layer-error-canvas: 2;
+	--tl-layer-error-canvas-after: 3;
+	--tl-layer-error-content: 4;
 
 	/* Misc */
 	--tl-zoom: 1;
@@ -120,12 +121,15 @@
 	--tl-font-serif: 'tldraw_serif', serif;
 	--tl-font-mono: 'tldraw_mono', monospace;
 	/* text outline */
-	--a: calc(min(0.5, 1 / var(--tl-zoom)) * 2px);
-	--b: calc(min(0.5, 1 / var(--tl-zoom)) * -2px);
+	--tl-text-outline-a: calc(min(0.5, 1 / var(--tl-zoom)) * 2px);
+	--tl-text-outline-b: calc(min(0.5, 1 / var(--tl-zoom)) * -2px);
 	--tl-text-outline-reference:
-		0 var(--b) 0 var(--color-background), 0 var(--a) 0 var(--color-background),
-		var(--b) var(--b) 0 var(--color-background), var(--a) var(--b) 0 var(--color-background),
-		var(--a) var(--a) 0 var(--color-background), var(--b) var(--a) 0 var(--color-background);
+		0 var(--tl-text-outline-b) 0 var(--tl-color-background),
+		0 var(--tl-text-outline-a) 0 var(--tl-color-background),
+		var(--tl-text-outline-b) var(--tl-text-outline-b) 0 var(--tl-color-background),
+		var(--tl-text-outline-a) var(--tl-text-outline-b) 0 var(--tl-color-background),
+		var(--tl-text-outline-a) var(--tl-text-outline-a) 0 var(--tl-color-background),
+		var(--tl-text-outline-b) var(--tl-text-outline-a) 0 var(--tl-color-background);
 	--tl-text-outline: var(--tl-text-outline-reference);
 	/* own properties */
 	position: relative;
@@ -133,116 +137,118 @@
 	height: 100%;
 	width: 100%;
 	overflow: clip;
-	color: var(--color-text);
+	color: var(--tl-color-text);
 }
 
 .tl-theme__light {
 	/* Canvas */
-	--color-snap: hsl(0, 76%, 60%);
-	--color-selection-fill: hsl(210, 100%, 56%, 24%);
-	--color-selection-stroke: hsl(214, 84%, 56%);
-	--color-background: hsl(210, 20%, 98%);
-	--color-brush-fill: hsl(0, 0%, 56%, 10.2%);
-	--color-brush-stroke: hsl(0, 0%, 56%, 25.1%);
-	--color-grid: hsl(0, 0%, 43%);
+	--tl-color-snap: hsl(0, 76%, 60%);
+	--tl-color-selection-fill: hsl(210, 100%, 56%, 24%);
+	--tl-color-selection-stroke: hsl(214, 84%, 56%);
+	--tl-color-background: hsl(210, 20%, 98%);
+	--tl-color-brush-fill: hsl(0, 0%, 56%, 10.2%);
+	--tl-color-brush-stroke: hsl(0, 0%, 56%, 25.1%);
+	--tl-color-grid: hsl(0, 0%, 43%);
 	/* UI */
-	--color-low: hsl(204, 16%, 94%);
-	--color-low-border: hsl(204, 16%, 92%);
-	--color-culled: hsl(204, 14%, 93%);
-	--color-muted-none: hsl(0, 0%, 0%, 0%);
-	--color-muted-0: hsl(0, 0%, 0%, 2%);
-	--color-muted-1: hsl(0, 0%, 0%, 10%);
-	--color-muted-2: hsl(0, 0%, 0%, 4.3%);
-	--color-hint: hsl(0, 0%, 0%, 5.5%);
-	--color-overlay: hsl(0, 0%, 0%, 20%);
-	--color-divider: hsl(0, 0%, 91%);
-	--color-panel: hsl(0, 0%, 99%);
-	--color-panel-contrast: hsl(0, 0%, 100%);
-	--color-panel-overlay: hsl(0, 0%, 100%, 82%);
-	--color-panel-transparent: hsla(0, 0%, 99%, 0%);
-	--color-selected: hsl(214, 84%, 56%);
-	--color-selected-contrast: hsl(0, 0%, 100%);
-	--color-focus: hsl(219, 65%, 50%);
+	--tl-color-low: hsl(204, 16%, 94%);
+	--tl-color-low-border: hsl(204, 16%, 92%);
+	--tl-color-culled: hsl(204, 14%, 93%);
+	--tl-color-muted-none: hsl(0, 0%, 0%, 0%);
+	--tl-color-muted-0: hsl(0, 0%, 0%, 2%);
+	--tl-color-muted-1: hsl(0, 0%, 0%, 10%);
+	--tl-color-muted-2: hsl(0, 0%, 0%, 4.3%);
+	--tl-color-hint: hsl(0, 0%, 0%, 5.5%);
+	--tl-color-overlay: hsl(0, 0%, 0%, 20%);
+	--tl-color-divider: hsl(0, 0%, 91%);
+	--tl-color-panel: hsl(0, 0%, 99%);
+	--tl-color-panel-contrast: hsl(0, 0%, 100%);
+	--tl-color-panel-overlay: hsl(0, 0%, 100%, 82%);
+	--tl-color-panel-transparent: hsla(0, 0%, 99%, 0%);
+	--tl-color-selected: hsl(214, 84%, 56%);
+	--tl-color-selected-contrast: hsl(0, 0%, 100%);
+	--tl-color-focus: hsl(219, 65%, 50%);
+	--tl-color-tooltip: hsla(200, 14%, 4%, 1);
 	/* Text */
-	--color-text: hsl(0, 0%, 0%);
-	--color-text-0: hsl(0, 0%, 11%);
-	--color-text-1: hsl(0, 0%, 18%);
-	--color-text-3: hsl(204, 4%, 45%);
-	--color-text-shadow: hsl(0, 0%, 100%);
-	--color-text-highlight: hsl(52, 100%, 50%);
-	--color-text-highlight-p3: color(display-p3 0.972 0.8205 0.05);
+	--tl-color-text: hsl(0, 0%, 0%);
+	--tl-color-text-0: hsl(0, 0%, 11%);
+	--tl-color-text-1: hsl(0, 0%, 18%);
+	--tl-color-text-3: hsl(204, 4%, 45%);
+	--tl-color-text-shadow: hsl(0, 0%, 100%);
+	--tl-color-text-highlight: hsl(52, 100%, 50%);
+	--tl-color-text-highlight-p3: color(display-p3 0.972 0.8205 0.05);
 	/* Named */
-	--color-primary: hsl(214, 84%, 56%);
-	--color-success: hsl(123, 46%, 34%);
-	--color-info: hsl(201, 98%, 41%);
-	--color-warning: hsl(27, 98%, 47%);
-	--color-danger: hsl(0, 90%, 43%);
-	--color-laser: hsl(0, 100%, 50%);
+	--tl-color-primary: hsl(214, 84%, 56%);
+	--tl-color-success: hsl(123, 46%, 34%);
+	--tl-color-info: hsl(201, 98%, 41%);
+	--tl-color-warning: hsl(27, 98%, 47%);
+	--tl-color-danger: hsl(0, 90%, 43%);
+	--tl-color-laser: hsl(0, 100%, 50%);
 	/* Shadows */
-	--shadow-1: 0px 1px 2px hsl(0, 0%, 0%, 25%), 0px 1px 3px hsl(0, 0%, 0%, 9%);
-	--shadow-2:
+	--tl-shadow-1: 0px 1px 2px hsl(0, 0%, 0%, 25%), 0px 1px 3px hsl(0, 0%, 0%, 9%);
+	--tl-shadow-2:
 		0px 0px 2px hsl(0, 0%, 0%, 16%), 0px 2px 3px hsl(0, 0%, 0%, 24%),
-		0px 2px 6px hsl(0, 0%, 0%, 0.1), inset 0px 0px 0px 1px var(--color-panel-contrast);
-	--shadow-3:
+		0px 2px 6px hsl(0, 0%, 0%, 0.1), inset 0px 0px 0px 1px var(--tl-color-panel-contrast);
+	--tl-shadow-3:
 		0px 1px 2px hsl(0, 0%, 0%, 28%), 0px 2px 6px hsl(0, 0%, 0%, 14%),
-		inset 0px 0px 0px 1px var(--color-panel-contrast);
-	--shadow-4:
+		inset 0px 0px 0px 1px var(--tl-color-panel-contrast);
+	--tl-shadow-4:
 		0px 0px 3px hsl(0, 0%, 0%, 19%), 0px 5px 4px hsl(0, 0%, 0%, 16%),
-		0px 2px 16px hsl(0, 0%, 0%, 6%), inset 0px 0px 0px 1px var(--color-panel-contrast);
+		0px 2px 16px hsl(0, 0%, 0%, 6%), inset 0px 0px 0px 1px var(--tl-color-panel-contrast);
 }
 
 .tl-theme__dark {
 	/* Canvas */
-	--color-snap: hsl(0, 76%, 60%);
-	--color-selection-fill: hsl(209, 100%, 57%, 20%);
-	--color-selection-stroke: hsl(214, 84%, 56%);
-	--color-background: hsl(240, 5%, 6.5%);
-	--color-brush-fill: hsl(0, 0%, 71%, 5.1%);
-	--color-brush-stroke: hsl(0, 0%, 71%, 25.1%);
-	--color-grid: hsl(0, 0%, 40%);
+	--tl-color-snap: hsl(0, 76%, 60%);
+	--tl-color-selection-fill: hsl(209, 100%, 57%, 20%);
+	--tl-color-selection-stroke: hsl(214, 84%, 56%);
+	--tl-color-background: hsl(240, 5%, 6.5%);
+	--tl-color-brush-fill: hsl(0, 0%, 71%, 5.1%);
+	--tl-color-brush-stroke: hsl(0, 0%, 71%, 25.1%);
+	--tl-color-grid: hsl(0, 0%, 40%);
 	/* UI */
-	--color-low: hsl(260, 4.5%, 10.5%);
-	--color-low-border: hsl(207, 10%, 10%);
-	--color-culled: hsl(210, 11%, 19%);
-	--color-muted-none: hsl(0, 0%, 100%, 0%);
-	--color-muted-0: hsl(0, 0%, 100%, 2%);
-	--color-muted-1: hsl(0, 0%, 100%, 10%);
-	--color-muted-2: hsl(0, 0%, 100%, 5%);
-	--color-hint: hsl(0, 0%, 100%, 7%);
-	--color-overlay: hsl(0, 0%, 0%, 50%);
-	--color-divider: hsl(240, 9%, 22%);
-	--color-panel: hsl(235, 6.8%, 13.5%);
-	--color-panel-contrast: hsl(245, 12%, 23%);
-	--color-panel-overlay: hsl(210, 10%, 24%, 82%);
-	--color-panel-transparent: hsla(235, 6.8%, 13.5%, 0%);
-	--color-selected: hsl(217, 89%, 61%);
-	--color-selected-contrast: hsl(0, 0%, 100%);
-	--color-focus: hsl(217, 76%, 80%);
+	--tl-color-low: hsl(260, 4.5%, 10.5%);
+	--tl-color-low-border: hsl(207, 10%, 10%);
+	--tl-color-culled: hsl(210, 11%, 19%);
+	--tl-color-muted-none: hsl(0, 0%, 100%, 0%);
+	--tl-color-muted-0: hsl(0, 0%, 100%, 2%);
+	--tl-color-muted-1: hsl(0, 0%, 100%, 10%);
+	--tl-color-muted-2: hsl(0, 0%, 100%, 5%);
+	--tl-color-hint: hsl(0, 0%, 100%, 7%);
+	--tl-color-overlay: hsl(0, 0%, 0%, 50%);
+	--tl-color-divider: hsl(240, 9%, 22%);
+	--tl-color-panel: hsl(235, 6.8%, 13.5%);
+	--tl-color-panel-contrast: hsl(245, 12%, 23%);
+	--tl-color-panel-overlay: hsl(210, 10%, 24%, 82%);
+	--tl-color-panel-transparent: hsla(235, 6.8%, 13.5%, 0%);
+	--tl-color-selected: hsl(217, 89%, 61%);
+	--tl-color-selected-contrast: hsl(0, 0%, 100%);
+	--tl-color-focus: hsl(217, 76%, 80%);
+	--tl-color-tooltip: hsla(0, 0%, 100%, 1);
 	/* Text */
-	--color-text: hsl(210, 17%, 98%);
-	--color-text-0: hsl(0, 9%, 94%);
-	--color-text-1: hsl(0, 0%, 85%);
-	--color-text-3: hsl(204, 4%, 75%);
-	--color-text-shadow: hsl(210, 13%, 18%);
-	--color-text-highlight: hsl(52, 100%, 41%);
-	--color-text-highlight-p3: color(display-p3 0.8078 0.6225 0.0312);
+	--tl-color-text: hsl(210, 17%, 98%);
+	--tl-color-text-0: hsl(0, 9%, 94%);
+	--tl-color-text-1: hsl(0, 0%, 85%);
+	--tl-color-text-3: hsl(204, 4%, 75%);
+	--tl-color-text-shadow: hsl(210, 13%, 18%);
+	--tl-color-text-highlight: hsl(52, 100%, 41%);
+	--tl-color-text-highlight-p3: color(display-p3 0.8078 0.6225 0.0312);
 	/* Named */
-	--color-primary: hsl(214, 84%, 56%);
-	--color-success: hsl(123, 38%, 57%);
-	--color-info: hsl(199, 92%, 56%);
-	--color-warning: hsl(36, 100%, 57%);
-	--color-danger: hsl(0, 82%, 66%);
-	--color-laser: hsl(0, 100%, 50%);
+	--tl-color-primary: hsl(214, 84%, 56%);
+	--tl-color-success: hsl(123, 38%, 57%);
+	--tl-color-info: hsl(199, 92%, 56%);
+	--tl-color-warning: hsl(36, 100%, 57%);
+	--tl-color-danger: hsl(0, 82%, 66%);
+	--tl-color-laser: hsl(0, 100%, 50%);
 	/* Shadows */
-	--shadow-1:
+	--tl-shadow-1:
 		0px 1px 2px hsl(0, 0%, 0%, 16.1%), 0px 1px 3px hsl(0, 0%, 0%, 22%),
-		inset 0px 0px 0px 1px var(--color-panel-contrast);
-	--shadow-2:
+		inset 0px 0px 0px 1px var(--tl-color-panel-contrast);
+	--tl-shadow-2:
 		0px 1px 3px hsl(0, 0%, 0%, 66.6%), 0px 2px 6px hsl(0, 0%, 0%, 33%),
-		inset 0px 0px 0px 1px var(--color-panel-contrast);
-	--shadow-3:
+		inset 0px 0px 0px 1px var(--tl-color-panel-contrast);
+	--tl-shadow-3:
 		0px 1px 3px hsl(0, 0%, 0%, 50%), 0px 2px 12px hsl(0, 0%, 0%, 50%),
-		inset 0px 0px 0px 1px var(--color-panel-contrast);
+		inset 0px 0px 0px 1px var(--tl-color-panel-contrast);
 }
 
 .tl-counter-scaled {
@@ -268,7 +274,7 @@
 }
 
 .tl-container__focused {
-	outline: 1px solid var(--color-low);
+	outline: 1px solid var(--tl-color-low);
 }
 
 input,
@@ -284,7 +290,7 @@ input,
 	inset: 0px;
 	height: 100%;
 	width: 100%;
-	color: var(--color-text);
+	color: var(--tl-color-text);
 	cursor: var(--tl-cursor);
 	overflow: clip;
 	content-visibility: auto;
@@ -292,9 +298,16 @@ input,
 	contain: strict;
 }
 
+.tl-canvas__in-front {
+	position: absolute;
+	inset: 0;
+	pointer-events: none;
+	z-index: var(--tl-layer-canvas-in-front);
+}
+
 .tl-shapes {
 	position: relative;
-	z-index: var(--layer-canvas-shapes);
+	z-index: var(--tl-layer-canvas-shapes);
 }
 
 .tl-overlays {
@@ -305,7 +318,7 @@ input,
 	width: 100%;
 	contain: strict;
 	pointer-events: none;
-	z-index: var(--layer-canvas-overlays);
+	z-index: var(--tl-layer-canvas-overlays);
 }
 
 .tl-overlays__item {
@@ -329,7 +342,7 @@ input,
 /* ------------------- Background ------------------- */
 
 .tl-background__wrapper {
-	z-index: var(--layer-canvas-background);
+	z-index: var(--tl-layer-canvas-background);
 	position: absolute;
 	inset: 0px;
 	height: 100%;
@@ -337,7 +350,7 @@ input,
 }
 
 .tl-background {
-	background-color: var(--color-background);
+	background-color: var(--tl-color-background);
 	width: 100%;
 	height: 100%;
 }
@@ -351,12 +364,12 @@ input,
 	height: 100%;
 	touch-action: none;
 	pointer-events: none;
-	z-index: var(--layer-canvas-grid);
+	z-index: var(--tl-layer-canvas-grid);
 	contain: strict;
 }
 
 .tl-grid-dot {
-	fill: var(--color-grid);
+	fill: var(--tl-color-grid);
 }
 
 /* --------------------- Layers --------------------- */
@@ -374,54 +387,54 @@ input,
 
 /* back of the stack, behind user's stuff */
 .tl-collaborator__scribble {
-	z-index: var(--layer-overlays-collaborator-scribble);
+	z-index: var(--tl-layer-overlays-collaborator-scribble);
 }
 
 .tl-collaborator__brush {
-	z-index: var(--layer-overlays-collaborator-brush);
+	z-index: var(--tl-layer-overlays-collaborator-brush);
 }
 
 .tl-collaborator__shape-indicator {
-	z-index: var(--layer-overlays-collaborator-shape-indicator);
+	z-index: var(--tl-layer-overlays-collaborator-shape-indicator);
 }
 
 .tl-user-scribble {
-	z-index: var(--layer-overlays-user-scribble);
+	z-index: var(--tl-layer-overlays-user-scribble);
 }
 
 .tl-user-brush {
-	z-index: var(--layer-overlays-user-brush);
+	z-index: var(--tl-layer-overlays-user-brush);
 }
 
 .tl-user-handles {
-	z-index: var(--layer-overlays-user-handles);
+	z-index: var(--tl-layer-overlays-user-handles);
 }
 
 .tl-user-snapline {
-	z-index: var(--layer-overlays-user-snapline);
+	z-index: var(--tl-layer-overlays-user-snapline);
 }
 
 .tl-selection__fg {
 	pointer-events: none;
-	z-index: var(--layer-overlays-selection-fg);
+	z-index: var(--tl-layer-overlays-selection-fg);
 }
 
 .tl-user-indicator__hint {
-	z-index: var(--layer-overlays-user-indicator-hint);
+	z-index: var(--tl-layer-overlays-user-indicator-hint);
 	stroke-width: calc(2.5px * var(--tl-scale));
 }
 
 .tl-custom-overlays {
-	z-index: var(--layer-overlays-custom);
+	z-index: var(--tl-layer-overlays-custom);
 }
 
 /* behind collaborator cursor */
 .tl-collaborator__cursor-hint {
-	z-index: var(--layer-overlays-collaborator-cursor-hint);
+	z-index: var(--tl-layer-overlays-collaborator-cursor-hint);
 }
 
 .tl-collaborator__cursor {
-	z-index: var(--layer-overlays-collaborator-cursor);
+	z-index: var(--tl-layer-overlays-collaborator-cursor);
 }
 
 .tl-cursor {
@@ -442,32 +455,32 @@ input,
 .tl-selection__fg__outline {
 	fill: none;
 	pointer-events: none;
-	stroke: var(--color-selection-stroke);
+	stroke: var(--tl-color-selection-stroke);
 	stroke-width: calc(1.5px * var(--tl-scale));
 }
 
 .tl-corner-handle {
 	pointer-events: none;
-	stroke: var(--color-selection-stroke);
-	fill: var(--color-background);
+	stroke: var(--tl-color-selection-stroke);
+	fill: var(--tl-color-background);
 	stroke-width: calc(1.5px * var(--tl-scale));
 }
 
 .tl-text-handle {
 	pointer-events: none;
-	fill: var(--color-selection-stroke);
+	fill: var(--tl-color-selection-stroke);
 }
 
 .tl-corner-crop-handle {
 	pointer-events: none;
 	fill: none;
-	stroke: var(--color-selection-stroke);
+	stroke: var(--tl-color-selection-stroke);
 }
 
 .tl-corner-crop-edge-handle {
 	pointer-events: none;
 	fill: none;
-	stroke: var(--color-selection-stroke);
+	stroke: var(--tl-color-selection-stroke);
 }
 
 .tl-mobile-rotate__bg {
@@ -477,8 +490,8 @@ input,
 
 .tl-mobile-rotate__fg {
 	pointer-events: none;
-	stroke: var(--color-selection-stroke);
-	fill: var(--color-background);
+	stroke: var(--tl-color-selection-stroke);
+	fill: var(--tl-color-background);
 	stroke-width: calc(1.5px * var(--tl-scale));
 }
 
@@ -508,8 +521,8 @@ input,
 	text-overflow: ellipsis;
 	font-size: 12px;
 	font-family: var(--font-body);
-	border-radius: var(--radius-2);
-	color: var(--color-selected-contrast);
+	border-radius: var(--tl-radius-2);
+	color: var(--tl-color-selected-contrast);
 }
 
 .tl-nametag-title {
@@ -527,7 +540,7 @@ input,
 	font-size: 12px;
 	font-family: var(--font-body);
 	text-shadow: var(--tl-text-outline);
-	color: var(--color-selected-contrast);
+	color: var(--tl-color-selected-contrast);
 }
 
 .tl-nametag-chat {
@@ -536,31 +549,31 @@ input,
 	left: 13px;
 	width: fit-content;
 	height: fit-content;
-	color: var(--color-selected-contrast);
+	color: var(--tl-color-selected-contrast);
 	white-space: nowrap;
 	position: absolute;
 	padding: 3px 6px;
 	font-size: 12px;
 	font-family: var(--font-body);
 	opacity: 1;
-	border-radius: var(--radius-2);
+	border-radius: var(--tl-radius-2);
 }
 
 .tl-cursor-chat {
 	position: absolute;
-	color: var(--color-selected-contrast);
+	color: var(--tl-color-selected-contrast);
 	white-space: nowrap;
 	padding: 3px 6px;
 	font-size: 12px;
 	font-family: var(--font-body);
 	pointer-events: none;
-	z-index: var(--layer-cursor);
+	z-index: var(--tl-layer-cursor);
 	margin-top: 16px;
 	margin-left: 13px;
 	opacity: 1;
 	border: none;
 	user-select: text;
-	border-radius: var(--radius-2);
+	border-radius: var(--tl-radius-2);
 }
 
 .tl-cursor-chat .tl-cursor-chat__bubble {
@@ -568,13 +581,13 @@ input,
 }
 
 .tl-cursor-chat::selection {
-	background: var(--color-selected);
-	color: var(--color-selected-contrast);
+	background: var(--tl-color-selected);
+	color: var(--tl-color-selected-contrast);
 	text-shadow: none;
 }
 
 .tl-cursor-chat::placeholder {
-	color: var(--color-selected-contrast);
+	color: var(--tl-color-selected-contrast);
 	opacity: 0.7;
 }
 
@@ -645,7 +658,7 @@ input,
 	background: none;
 	border-image: none;
 	border: 0px;
-	caret-color: var(--color-text);
+	caret-color: var(--tl-color-text);
 	color: inherit;
 	column-count: initial !important;
 	display: inline-block;
@@ -676,11 +689,17 @@ input,
 }
 
 .tl-text-measure {
+	z-index: var(--tl-layer-canvas-hidden);
+	opacity: 0;
+	visibility: hidden;
+
+	/* pointer-events: all; */
+	/* opacity: 1; */
+	/* z-index: 99999;  */
+
 	position: absolute;
-	z-index: var(--layer-canvas-hidden);
 	top: 0px;
 	left: 0px;
-	opacity: 0;
 	width: max-content;
 	box-sizing: border-box;
 	pointer-events: none;
@@ -691,7 +710,6 @@ input,
 	border: none;
 	user-select: none;
 	contain: style paint;
-	visibility: hidden;
 	/* N.B. This property, while discouraged ("intended for Document Type Definition (DTD) designers") is necessary for ensuring correct mixed RTL/LTR behavior when exporting SVGs. */
 	unicode-bidi: plaintext;
 	-webkit-user-select: none;
@@ -740,8 +758,8 @@ input,
 }
 
 .tl-text-input::selection {
-	background: var(--color-selected);
-	color: var(--color-selected-contrast);
+	background: var(--tl-color-selected);
+	color: var(--tl-color-selected-contrast);
 	text-shadow: none;
 }
 
@@ -751,7 +769,7 @@ input,
 	display: flex;
 	justify-content: center;
 	align-items: center;
-	color: var(--color-text);
+	color: var(--tl-color-text);
 	text-shadow: var(--tl-text-outline);
 	line-height: inherit;
 	position: absolute;
@@ -795,7 +813,7 @@ input,
 
 .tl-text-wrapper .tl-text-content {
 	pointer-events: all;
-	z-index: var(--layer-text-content);
+	z-index: var(--tl-layer-text-content);
 }
 
 .tl-text-label__inner > .tl-text-content {
@@ -805,7 +823,7 @@ input,
 	padding: inherit;
 	height: fit-content;
 	width: fit-content;
-	border-radius: var(--radius-1);
+	border-radius: var(--tl-radius-1);
 	max-width: 100%;
 }
 
@@ -818,7 +836,7 @@ input,
 }
 
 .tl-text-wrapper[data-isselected='true'] .tl-text-input {
-	z-index: var(--layer-text-editor);
+	z-index: var(--tl-layer-text-editor);
 	pointer-events: all;
 }
 
@@ -913,7 +931,7 @@ input,
 }
 
 .tl-rich-text a {
-	color: var(--color-primary);
+	color: var(--tl-color-primary);
 	text-decoration: underline;
 }
 
@@ -936,14 +954,14 @@ input,
 }
 
 .tl-theme__dark .tl-rich-text mark {
-	background-color: var(--color-text-highlight);
+	background-color: var(--tl-color-text-highlight);
 	color: currentColor;
 }
 
 @supports (color: color(display-p3 1 1 1)) {
 	@media (color-gamut: p3) {
 		.tl-container:not(.tl-theme__force-sRGB) .tl-rich-text mark {
-			background-color: var(--color-text-highlight-p3);
+			background-color: var(--tl-color-text-highlight-p3);
 		}
 	}
 }
@@ -955,15 +973,15 @@ input,
 /* --------------------- Loading -------------------- */
 
 .tl-loading {
-	background-color: var(--color-background);
-	color: var(--color-text-1);
+	background-color: var(--tl-color-background);
+	color: var(--tl-color-text-1);
 	height: 100%;
 	width: 100%;
 	display: flex;
 	flex-direction: column;
 	justify-content: center;
 	align-items: center;
-	gap: var(--space-2);
+	gap: var(--tl-space-2);
 	font-size: 14px;
 	font-weight: 500;
 	opacity: 0;
@@ -971,7 +989,7 @@ input,
 	animation-delay: 0.2s;
 	position: absolute;
 	inset: 0px;
-	z-index: var(--layer-canvas-blocker);
+	z-index: var(--tl-layer-canvas-blocker);
 }
 
 @keyframes tl-fade-in {
@@ -1004,8 +1022,8 @@ input,
 }
 
 .tl-brush__default {
-	stroke: var(--color-brush-stroke);
-	fill: var(--color-brush-fill);
+	stroke: var(--tl-color-brush-stroke);
+	fill: var(--tl-color-brush-fill);
 }
 
 /* -------------------- Scribble -------------------- */
@@ -1020,13 +1038,13 @@ input,
 /* ---------------------- Snaps --------------------- */
 
 .tl-snap-indicator {
-	stroke: var(--color-snap);
+	stroke: var(--tl-color-snap);
 	stroke-width: calc(1px * var(--tl-scale));
 	fill: none;
 }
 
 .tl-snap-point {
-	stroke: var(--color-snap);
+	stroke: var(--tl-color-snap);
 	stroke-width: calc(1px * var(--tl-scale));
 	fill: none;
 }
@@ -1046,7 +1064,7 @@ input,
 	justify-content: center;
 	font-size: 12px;
 	font-weight: 400;
-	color: var(--color-text-1);
+	color: var(--tl-color-text-1);
 	padding: 13px;
 	cursor: var(--tl-cursor-pointer);
 	border: none;
@@ -1064,13 +1082,13 @@ input,
 	display: block;
 	width: calc(100% - 12px);
 	height: calc(100% - 12px);
-	border-radius: var(--radius-1);
-	background-color: var(--color-background);
+	border-radius: var(--tl-radius-1);
+	background-color: var(--tl-color-background);
 	pointer-events: none;
 }
 
 .tl-hyperlink-button:focus-visible {
-	color: var(--color-selected);
+	color: var(--tl-color-selected);
 }
 
 .tl-hyperlink__icon {
@@ -1097,8 +1115,8 @@ input,
 }
 
 .tl-handle__fg {
-	fill: var(--color-selected-contrast);
-	stroke: var(--color-selection-stroke);
+	fill: var(--tl-color-selected-contrast);
+	stroke: var(--tl-color-selection-stroke);
 	stroke-width: calc(1.5px * var(--tl-scale));
 	pointer-events: none;
 }
@@ -1108,7 +1126,7 @@ input,
 }
 
 .tl-handle__clone > .tl-handle__fg {
-	fill: var(--color-selection-stroke);
+	fill: var(--tl-color-selection-stroke);
 	stroke: none;
 }
 
@@ -1118,7 +1136,7 @@ input,
 
 @media (pointer: coarse) {
 	.tl-handle__bg:active {
-		fill: var(--color-selection-fill);
+		fill: var(--tl-color-selection-fill);
 	}
 
 	.tl-handle__create {
@@ -1174,13 +1192,13 @@ input,
 	stroke-linejoin: round;
 	/* content-visibility: auto; */
 	transform-origin: top left;
-	color: var(--color-text-1);
+	color: var(--tl-color-text-1);
 }
 
 /* -------------------- Group shape ------------------ */
 
 .tl-group {
-	stroke: var(--color-text);
+	stroke: var(--tl-color-text);
 	stroke-width: calc(1px * var(--tl-scale));
 	opacity: 0.5;
 }
@@ -1198,12 +1216,12 @@ input,
 	justify-content: center;
 	align-items: center;
 	text-align: center;
-	color: var(--color-text);
+	color: var(--tl-color-text);
 	text-shadow: var(--tl-text-outline);
 }
 
 .tl-shape[data-shape-type='arrow'] .tl-text-label__inner {
-	border-radius: var(--radius-1);
+	border-radius: var(--tl-radius-1);
 	box-sizing: content-box;
 	height: max-content;
 	width: max-content;
@@ -1214,22 +1232,22 @@ input,
 }
 
 .tl-arrow-hint {
-	stroke: var(--color-text-1);
+	stroke: var(--tl-color-text-1);
 	fill: none;
 	stroke-linecap: round;
 	overflow: visible;
 }
 
 .tl-arrow-hint-handle {
-	fill: var(--color-selected-contrast);
-	stroke: var(--color-selection-stroke);
+	fill: var(--tl-color-selected-contrast);
+	stroke: var(--tl-color-selection-stroke);
 	stroke-width: calc(1.5px * var(--tl-scale));
 	r: calc(4px * var(--tl-scale));
 }
 
 .tl-arrow-hint-snap {
 	stroke: transparent;
-	fill: var(--color-selection-fill);
+	fill: var(--tl-color-selection-fill);
 	r: calc(12px * var(--tl-scale));
 }
 
@@ -1249,40 +1267,40 @@ input,
 	width: 100%;
 	height: 100%;
 	position: relative;
-	border: 1px solid var(--color-panel-contrast);
-	background-color: var(--color-panel);
-	border-radius: var(--radius-2);
+	border: 1px solid var(--tl-color-panel-contrast);
+	background-color: var(--tl-color-panel);
+	border-radius: var(--tl-radius-2);
 	display: flex;
 	flex-direction: column;
 	overflow: hidden;
 }
 
 .tl-bookmark__container--safariExport {
-	border: 1px solid var(--color-divider);
+	border: 1px solid var(--tl-color-divider);
 }
 
 .tl-bookmark__image_container {
 	flex: 1 1 100%;
 	overflow: hidden;
-	border-top-left-radius: var(--radius-1);
-	border-top-right-radius: var(--radius-1);
+	border-top-left-radius: var(--tl-radius-1);
+	border-top-right-radius: var(--tl-radius-1);
 	width: 100%;
 	height: 100%;
 	display: flex;
 	justify-content: flex-end;
 	align-items: flex-start;
-	box-shadow: inset 0px 0px 0px 1px var(--color-divider);
+	box-shadow: inset 0px 0px 0px 1px var(--tl-color-divider);
 }
 
 .tl-bookmark__image_container > .tl-hyperlink-button::after {
-	background-color: var(--color-panel);
+	background-color: var(--tl-color-panel);
 }
 
 .tl-bookmark__placeholder {
 	width: 100%;
 	height: 100%;
-	background-color: var(--color-muted-2);
-	border-bottom: 1px solid var(--color-muted-2);
+	background-color: var(--tl-color-muted-2);
+	border-bottom: 1px solid var(--tl-color-muted-2);
 }
 
 .tl-bookmark__image {
@@ -1290,12 +1308,12 @@ input,
 	height: 100%;
 	object-fit: cover;
 	object-position: center;
-	border-bottom: 1px solid var(--color-muted-2);
+	border-bottom: 1px solid var(--tl-color-muted-2);
 }
 
 .tl-bookmark__copy_container {
-	background-color: var(--color-muted-0);
-	padding: var(--space-4);
+	background-color: var(--tl-color-muted-0);
+	padding: var(--tl-space-4);
 	pointer-events: all;
 	display: flex;
 	flex-direction: column;
@@ -1315,7 +1333,7 @@ input,
 	font-size: 16px;
 	line-height: 1.6;
 	font-weight: bold;
-	padding-bottom: var(--space-2);
+	padding-bottom: var(--tl-space-2);
 	overflow: hidden;
 	max-height: calc((16px * 1.6) * 2);
 	-webkit-box-orient: vertical;
@@ -1335,19 +1353,19 @@ input,
 	line-clamp: 3;
 	text-overflow: ellipsis;
 	display: -webkit-box;
-	color: var(--color-text-2);
-	margin: var(--space-2) 0px;
+	color: var(--tl-color-text-2);
+	margin: var(--tl-space-2) 0px;
 }
 
 .tl-bookmark__heading + .tl-bookmark__link,
 .tl-bookmark__description + .tl-bookmark__link {
-	margin-top: var(--space-3);
+	margin-top: var(--tl-space-3);
 }
 .tl-bookmark__link {
 	font-size: 12px;
 	pointer-events: all;
 	display: flex;
-	color: var(--color-text-2);
+	color: var(--tl-color-text-2);
 	align-items: center;
 	cursor: var(--tl-cursor-pointer);
 	width: fit-content;
@@ -1389,7 +1407,7 @@ input,
 	width: 100%;
 	height: 100%;
 	pointer-events: all;
-	/* background-color: var(--color-background); */
+	/* background-color: var(--tl-color-background); */
 
 	display: flex;
 	justify-content: center;
@@ -1418,7 +1436,7 @@ input,
 	height: 100%;
 	pointer-events: all;
 	opacity: 1;
-	z-index: var(--layer-text-container);
+	z-index: var(--tl-layer-text-container);
 	border-radius: 1px;
 }
 
@@ -1434,22 +1452,22 @@ input,
 }
 
 .tl-frame__creating {
-	stroke: var(--color-selected);
+	stroke: var(--tl-color-selected);
 	fill: none;
 }
 
 .tl-frame-heading {
-	--frame-padding-x: 6px;
-	--frame-height: 24px;
-	--frame-minimum-width: 32px;
-	--frame-offset-width: 16px;
+	--tl-frame-padding-x: 6px;
+	--tl-frame-height: 24px;
+	--tl-frame-minimum-width: 32px;
+	--tl-frame-offset-width: 16px;
 	display: flex;
 	align-items: center;
 	position: absolute;
 	transform-origin: 0% 100%;
 	overflow: hidden;
 	max-width: 100%;
-	min-width: var(--frame-minimum-width);
+	min-width: var(--tl-frame-minimum-width);
 	height: auto;
 	font-size: 12px;
 	padding-bottom: 4px;
@@ -1461,18 +1479,18 @@ input,
 	/* scale from bottom left corner so we can pin it to the top left corner of the frame */
 	transform-origin: 0% 100%;
 	display: flex;
-	height: var(--frame-height);
+	height: var(--tl-frame-height);
 	width: 100%;
 	align-items: center;
-	border-radius: var(--radius-1);
+	border-radius: var(--tl-radius-1);
 }
 
 .tl-frame-label {
 	pointer-events: all;
 	overflow: hidden;
 	text-overflow: ellipsis;
-	padding: 0px var(--frame-padding-x);
-	border-radius: var(--radius-1);
+	padding: 0px var(--tl-frame-padding-x);
+	border-radius: var(--tl-radius-1);
 	position: relative;
 	font-size: inherit;
 	white-space: pre;
@@ -1482,12 +1500,12 @@ input,
 	color: transparent;
 	white-space: pre;
 	width: auto;
-	min-width: var(--frame-minimum-width);
+	min-width: var(--tl-frame-minimum-width);
 	height: 100%;
 	overflow: visible;
-	background-color: var(--color-panel);
-	border-color: var(--color-selected);
-	box-shadow: inset 0px 0px 0px 1.5px var(--color-selected);
+	background-color: var(--tl-color-panel);
+	border-color: var(--tl-color-selected);
+	box-shadow: inset 0px 0px 0px 1.5px var(--tl-color-selected);
 }
 
 .tl-frame-name-input {
@@ -1495,7 +1513,7 @@ input,
 	border: none;
 	background: none;
 	outline: none;
-	padding: 0px var(--frame-padding-x);
+	padding: 0px var(--tl-frame-padding-x);
 	inset: 0px;
 	height: 100%;
 	width: 100%;
@@ -1503,8 +1521,8 @@ input,
 	font-family: inherit;
 	font-weight: inherit;
 	width: 100%;
-	color: var(--color-text-1);
-	border-radius: var(--radius-1);
+	color: var(--tl-color-text-1);
+	border-radius: var(--tl-radius-1);
 	user-select: all;
 	-webkit-user-select: text;
 	white-space: pre;
@@ -1524,7 +1542,7 @@ input,
 
 .tl-embed {
 	border: none;
-	border-radius: var(--radius-2);
+	border-radius: var(--tl-radius-2);
 }
 
 /* -------------- Shape error boundary -------------- */
@@ -1532,11 +1550,11 @@ input,
 .tl-shape-error-boundary {
 	width: 100%;
 	height: 100%;
-	background-color: var(--color-muted-1);
+	background-color: var(--tl-color-muted-1);
 	border-width: calc(1px * var(--tl-scale));
-	border-color: var(--color-muted-1);
+	border-color: var(--tl-color-muted-1);
 	border-style: solid;
-	border-radius: calc(var(--radius-1) * var(--tl-scale));
+	border-radius: calc(var(--tl-radius-1) * var(--tl-scale));
 	display: flex;
 	flex-direction: column;
 	align-items: center;
@@ -1545,7 +1563,7 @@ input,
 	position: relative;
 	pointer-events: all;
 	overflow: hidden;
-	padding: var(--space-2);
+	padding: var(--tl-space-2);
 }
 
 .tl-shape-error-boundary::before {
@@ -1553,7 +1571,7 @@ input,
 	content: 'Error';
 	font-size: 12px;
 	font-family: inherit;
-	color: var(--color-text-0);
+	color: var(--tl-color-text-0);
 }
 
 /* ----------------- Error boundary ----------------- */
@@ -1564,9 +1582,9 @@ input,
 	display: flex;
 	align-items: center;
 	justify-content: center;
-	padding: var(--space-4);
-	background-color: var(--color-background);
-	color: var(--color-text-1);
+	padding: var(--tl-space-4);
+	background-color: var(--tl-color-background);
+	color: var(--tl-color-text-1);
 	position: absolute;
 }
 
@@ -1575,8 +1593,8 @@ input,
 	inset: 0px;
 	height: 100%;
 	width: 100%;
-	z-index: var(--layer-error-overlay);
-	background-color: var(--color-overlay);
+	z-index: var(--tl-layer-error-overlay);
+	background-color: var(--tl-color-overlay);
 }
 
 .tl-error-boundary__content * {
@@ -1591,7 +1609,7 @@ input,
 	inset: 0px;
 	height: 100%;
 	width: 100%;
-	z-index: var(--layer-error-canvas);
+	z-index: var(--tl-layer-error-canvas);
 }
 
 /* some browsers seem to have some weird interactions between stacking contexts
@@ -1604,7 +1622,7 @@ it from receiving any pointer events or affecting the cursor. */
 	inset: 0px;
 	height: 100%;
 	width: 100%;
-	z-index: var(--layer-error-canvas-after);
+	z-index: var(--tl-layer-error-canvas-after);
 	pointer-events: all;
 }
 
@@ -1614,16 +1632,16 @@ it from receiving any pointer events or affecting the cursor. */
 	max-width: 100%;
 	width: 400px;
 	max-height: 100%;
-	background-color: var(--color-panel);
+	background-color: var(--tl-color-panel);
 	padding: 16px;
 	border-radius: 16px;
-	box-shadow: var(--shadow-2);
+	box-shadow: var(--tl-shadow-2);
 	font-size: 14px;
 	font-weight: 400;
 	display: flex;
 	flex-direction: column;
 	overflow: auto;
-	z-index: var(--layer-error-content);
+	z-index: var(--tl-layer-error-content);
 	gap: 12px;
 }
 
@@ -1638,10 +1656,10 @@ it from receiving any pointer events or affecting the cursor. */
 }
 
 .tl-error-boundary__content h4 {
-	border: 1px solid var(--color-low-border);
+	border: 1px solid var(--tl-color-low-border);
 	margin: -6px 0 0 0;
-	padding: var(--space-5);
-	border-radius: var(--radius-2);
+	padding: var(--tl-space-5);
+	border-radius: var(--tl-radius-2);
 	font-weight: normal;
 }
 
@@ -1651,10 +1669,10 @@ it from receiving any pointer events or affecting the cursor. */
 }
 
 .tl-error-boundary__content pre {
-	background-color: var(--color-muted-2);
+	background-color: var(--tl-color-muted-2);
 	margin-top: 0;
-	padding: var(--space-5);
-	border-radius: var(--radius-2);
+	padding: var(--tl-space-5);
+	border-radius: var(--tl-radius-2);
 	overflow: auto;
 	font-size: 12px;
 	max-height: 320px;
@@ -1666,15 +1684,15 @@ it from receiving any pointer events or affecting the cursor. */
 	font-family: inherit;
 	font-size: 14px;
 	font-weight: 500;
-	padding: var(--space-4);
-	border-radius: var(--radius-3);
+	padding: var(--tl-space-4);
+	border-radius: var(--tl-radius-3);
 	cursor: var(--tl-cursor-pointer);
 	color: inherit;
 	background-color: transparent;
 }
 
 .tl-error-boundary__content a {
-	color: var(--color-selected);
+	color: var(--tl-color-selected);
 	font-weight: 500;
 	text-decoration: none;
 }
@@ -1686,31 +1704,31 @@ it from receiving any pointer events or affecting the cursor. */
 
 .tl-error-boundary__content__error button {
 	position: absolute;
-	top: var(--space-2);
-	right: var(--space-2);
+	top: var(--tl-space-2);
+	right: var(--tl-space-2);
 	font-size: 12px;
-	padding: var(--space-2) var(--space-3);
-	background-color: var(--color-panel);
-	border-radius: var(--radius-1);
+	padding: var(--tl-space-2) var(--tl-space-3);
+	background-color: var(--tl-color-panel);
+	border-radius: var(--tl-radius-1);
 }
 
 .tl-error-boundary__content__actions {
 	display: flex;
 	justify-content: space-between;
-	gap: var(--space-4);
+	gap: var(--tl-space-4);
 	margin: 0px;
 	margin-left: -4px;
 }
 .tl-error-boundary__content__actions__group {
 	display: flex;
-	gap: var(--space-4);
+	gap: var(--tl-space-4);
 }
 .tl-error-boundary__content .tl-error-boundary__reset {
-	color: var(--color-danger);
+	color: var(--tl-color-danger);
 }
 .tl-error-boundary__content .tl-error-boundary__refresh {
-	background-color: var(--color-primary);
-	color: var(--color-selected-contrast);
+	background-color: var(--tl-color-primary);
+	color: var(--tl-color-selected-contrast);
 }
 .tl-container__focused:not(.tl-container__no-focus-ring)
 	.tlui-button.tl-error-boundary__refresh:focus-visible {
@@ -1722,7 +1740,7 @@ it from receiving any pointer events or affecting the cursor. */
 
 .tl-hit-test-blocker {
 	position: absolute;
-	z-index: var(--layer-canvas-blocker);
+	z-index: var(--tl-layer-canvas-blocker);
 	inset: 0px;
 	width: 100%;
 	height: 100%;
@@ -1742,32 +1760,32 @@ it from receiving any pointer events or affecting the cursor. */
 
 	.tl-handle__bg:hover {
 		cursor: var(--tl-cursor-grab);
-		fill: var(--color-selection-fill);
+		fill: var(--tl-color-selection-fill);
 	}
 
 	.tl-bookmark__link:hover {
-		color: var(--color-selected);
+		color: var(--tl-color-selected);
 	}
 
 	.tl-hyperlink-button:hover {
-		color: var(--color-selected);
+		color: var(--tl-color-selected);
 	}
 
 	.tl-error-boundary__content button:hover {
-		background-color: var(--color-low);
+		background-color: var(--tl-color-low);
 	}
 	.tl-error-boundary__content a:hover {
-		color: var(--color-text-1);
+		color: var(--tl-color-text-1);
 	}
 	.tl-error-boundary__content .tl-error-boundary__refresh:hover {
-		background-color: var(--color-primary);
+		background-color: var(--tl-color-primary);
 		opacity: 0.9;
 	}
 
 	/* These three rules help preserve clicking into specific points in text areas *while*
  * already in edit mode when jumping from shape to shape. */
 	.tl-canvas[data-iseditinganything='true'] .tl-text-wrapper:hover .tl-text-input {
-		z-index: var(--layer-text-editor);
+		z-index: var(--tl-layer-text-editor);
 		pointer-events: all;
 	}
 }

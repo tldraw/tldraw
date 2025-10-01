@@ -1,14 +1,19 @@
 import { RefObject, useEffect } from 'react'
 import { preventDefault } from '../utils/dom'
 import { useContainer } from './useContainer'
+import { useMaybeEditor } from './useEditor'
 
 /** @public */
 export function usePassThroughWheelEvents(ref: RefObject<HTMLElement>) {
 	if (!ref) throw Error('usePassThroughWheelEvents must be passed a ref')
 	const container = useContainer()
+	const editor = useMaybeEditor()
 
 	useEffect(() => {
 		function onWheel(e: WheelEvent) {
+			// Only pass through wheel events if the editor is focused
+			if (!editor?.getInstanceState().isFocused) return
+
 			if ((e as any).isSpecialRedispatchedEvent) return
 
 			// if the element is scrollable, don't redispatch the event
@@ -32,5 +37,5 @@ export function usePassThroughWheelEvents(ref: RefObject<HTMLElement>) {
 		return () => {
 			elm.removeEventListener('wheel', onWheel)
 		}
-	}, [container, ref])
+	}, [container, editor, ref])
 }

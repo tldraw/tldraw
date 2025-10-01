@@ -1,4 +1,4 @@
-import { BoxModel } from '@tldraw/tlschema'
+import { BoxModel, TLShape } from '@tldraw/tlschema'
 import { Box } from '../../primitives/Box'
 import { VecLike } from '../../primitives/Vec'
 
@@ -71,12 +71,6 @@ export interface TLImageExportOptions extends TLSvgExportOptions {
 	 */
 	format?: TLExportType
 }
-
-/**
- * @public
- * @deprecated use {@link TLImageExportOptions} instead
- */
-export type TLSvgOptions = TLImageExportOptions
 
 /** @public */
 export interface TLCameraMoveOptions {
@@ -205,4 +199,57 @@ export interface TLUpdatePointerOptions {
 	accelKey?: boolean
 	isPen?: boolean
 	button?: number
+}
+
+/**
+ * Options to {@link Editor.getShapeAtPoint}.
+ *
+ * @public
+ */
+export interface TLGetShapeAtPointOptions {
+	/**
+	 * The margin to apply to the shape.
+	 * If a number, it will be applied to both the inside and outside of the shape.
+	 * If an array, the first element will be applied to the inside of the shape, and the second element will be applied to the outside.
+	 *
+	 * @example
+	 * ```ts
+	 * // Get the shape at the center of the screen
+	 * const shape = editor.getShapeAtProps({
+	 *   margin: 10,
+	 * })
+	 *
+	 * // Get the shape at the center of the screen with a 10px inner margin and a 5px outer margin
+	 * const shape = editor.getShapeAtProps({
+	 *   margin: [10, 5],
+	 * })
+	 * ```
+	 */
+	margin?: number | [number, number]
+	/**
+	 * Whether to register hits inside of shapes (beyond the margin), such as the inside of a solid shape.
+	 */
+	hitInside?: boolean
+	/**
+	 * Whether to register hits on locked shapes.
+	 */
+	hitLocked?: boolean
+	/**
+	 * Whether to register hits on labels.
+	 */
+	hitLabels?: boolean
+	/**
+	 * Whether to only return hits on shapes that are currently being rendered.
+	 * todo: rename this to hitCulled or hitNotRendering
+	 */
+	renderingOnly?: boolean
+	/**
+	 * Whether to register hits on the inside of frame shapes.
+	 * todo: rename this to hitInsideFrames
+	 */
+	hitFrameInside?: boolean
+	/**
+	 * A filter function to apply to the shapes.
+	 */
+	filter?(shape: TLShape): boolean
 }

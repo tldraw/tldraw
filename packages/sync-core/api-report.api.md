@@ -193,6 +193,8 @@ export interface RoomSnapshot {
     // (undocumented)
     clock: number;
     // (undocumented)
+    documentClock?: number;
+    // (undocumented)
     documents: Array<{
         lastChangedClock: number;
         state: UnknownRecord;
@@ -234,6 +236,9 @@ export interface TLConnectRequest {
     type: 'connect';
 }
 
+// @public
+export type TLCustomMessageHandler = (this: null, data: any) => void;
+
 // @internal @deprecated (undocumented)
 export const TLIncompatibilityReason: {
     readonly ClientTooOld: "clientTooOld";
@@ -262,6 +267,9 @@ export interface TLPingRequest {
     // (undocumented)
     type: 'ping';
 }
+
+// @internal (undocumented)
+export type TLPresenceMode = 'full' | 'solo';
 
 // @internal (undocumented)
 export interface TLPushRequest<R extends UnknownRecord> {
@@ -381,6 +389,7 @@ export class TLSocketRoom<R extends UnknownRecord = UnknownRecord, SessionMeta =
         }) => void;
         schema?: StoreSchema<R, any>;
     };
+    sendCustomMessage(sessionId: string, data: any): void;
     updateStore(updater: (store: RoomStoreMethods<R>) => Promise<void> | void): Promise<void>;
 }
 
@@ -409,6 +418,9 @@ export type TLSocketServerSentEvent<R extends UnknownRecord> = {
     serverClock: number;
     type: 'connect';
 } | {
+    data: any;
+    type: 'custom';
+} | {
     data: TLSocketServerSentDataEvent<R>[];
     type: 'data';
 } | {
@@ -436,9 +448,11 @@ export class TLSyncClient<R extends UnknownRecord, S extends Store<R> = Store<R>
         onAfterConnect?(self: TLSyncClient<R, S>, details: {
             isReadonly: boolean;
         }): void;
+        onCustomMessageReceived?: TLCustomMessageHandler;
         onLoad(self: TLSyncClient<R, S>): void;
         onSyncError(reason: string): void;
         presence: Signal<null | R>;
+        presenceMode?: Signal<TLPresenceMode>;
         socket: TLPersistentClientSocket<R>;
         store: S;
     });
@@ -450,7 +464,6 @@ export class TLSyncClient<R extends UnknownRecord, S extends Store<R> = Store<R>
     incomingDiffBuffer: TLSocketServerSentDataEvent<R>[];
     // (undocumented)
     isConnectedToRoom: boolean;
-    isSoloMode: boolean;
     // (undocumented)
     lastPushedPresenceState: null | R;
     // (undocumented)
@@ -458,6 +471,8 @@ export class TLSyncClient<R extends UnknownRecord, S extends Store<R> = Store<R>
     readonly onAfterConnect?: (self: this, details: {
         isReadonly: boolean;
     }) => void;
+    // (undocumented)
+    readonly presenceMode: Signal<TLPresenceMode> | undefined;
     // (undocumented)
     readonly presenceState: Signal<null | R> | undefined;
     // (undocumented)
@@ -545,6 +560,7 @@ export class TLSyncRoom<R extends UnknownRecord, SessionMeta> {
     rejectSession(sessionId: string, fatalReason?: string | TLSyncErrorCloseEventReason): void;
     // (undocumented)
     readonly schema: StoreSchema<R, any>;
+    sendCustomMessage(sessionId: string, data: any): void;
     // (undocumented)
     readonly serializedSchema: SerializedSchema;
     // (undocumented)

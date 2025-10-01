@@ -30,7 +30,7 @@ export interface AtomOptions<Value, Diff> {
 	 * By default, values are compared using first using strict equality (`===`), then `Object.is`, and finally any `.equals` method present in the object's prototype chain.
 	 * @param a - The old value
 	 * @param b - The new value
-	 * @returns
+	 * @returns True if the values are equal, false otherwise.
 	 */
 	isEqual?(a: any, b: any): boolean
 }

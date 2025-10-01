@@ -9,13 +9,7 @@
 	"homepage": "https://tldraw.dev",
 	"license": "MIT",
 	"tldraw_template": {
-		"publish": {
-			"repo": "tldraw/nextjs-template",
-			"name": "Next.js + tldraw",
-			"description": "tldraw in a Next.js app, with TypeScript.",
-			"category": "framework",
-			"order": 2
-		},
+		"repo": "tldraw/nextjs-template",
 		"scripts": {
 			"lint": "next lint"
 		}
@@ -30,7 +24,7 @@
 		"@types/node": "^22.15.31",
 		"@types/react": "^18.3.18",
 		"@types/react-dom": "^18.3.5",
-		"next": "^14.2.30",
+		"next": "^15.4.6",
 		"react": "^18.3.1",
 		"react-dom": "^18.3.1",
 		"tldraw": "workspace:*",

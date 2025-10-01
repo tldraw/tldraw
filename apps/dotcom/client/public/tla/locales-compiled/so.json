@@ -33,12 +33,6 @@
       "value": "Baabuur"
     }
   ],
-  "0776e18496": [
-    {
-      "type": 0,
-      "value": "Keydso oo wadaag"
-    }
-  ],
   "07dbd11b21": [
     {
       "type": 0,
@@ -81,6 +75,12 @@
       "value": "Daabac"
     }
   ],
+  "12c8a9838c": [
+    {
+      "type": 0,
+      "value": "Isku day tldraw SDK"
+    }
+  ],
   "13ddd375ad": [
     {
       "type": 0,
@@ -105,10 +105,16 @@
       "value": "Maanta"
     }
   ],
-  "22d84a12fd": [
+  "20976e7bec": [
     {
       "type": 0,
-      "value": "Fiican laakiin tldraw"
+      "value": "Qolku waa buuxaa"
+    }
+  ],
+  "21bfb2dc2e": [
+    {
+      "type": 0,
+      "value": "Qolkan waxa uu ku soo dhawaanayaa cabbirkiisa. Tixgeli inaad tirtirto qaar ka mid ah nuxurka ama bilawdo fayl cusub."
     }
   ],
   "250ddea65c": [
@@ -123,10 +129,10 @@
       "value": "Soo dejintu waa fashilantay"
     }
   ],
-  "2c61d18599": [
+  "2deec2cb74": [
     {
       "type": 0,
-      "value": "Miro laakiin wanaagsan oo xor ah"
+      "value": "Qolkaani waxa uu gaadhay xadka cabbirkiisa waxaana laga yaabaa in isbeddelada aan la kaydin. Ka saar qaar ka mid ah nuxurka ama bilow fayl cusub."
     }
   ],
   "31246941ad": [
@@ -153,12 +159,6 @@
       "value": "Tafatire"
     }
   ],
-  "37b3dca331": [
-    {
-      "type": 0,
-      "value": "Fadlan soo gal"
-    }
-  ],
   "3bd1b98dbd": [
     {
       "type": 0,
@@ -177,22 +177,10 @@
       "value": "Aqbal dhammaan"
     }
   ],
-  "3fc6d0c83a": [
-    {
-      "type": 0,
-      "value": "Ku dar saaxiib"
-    }
-  ],
   "42e53c47c1": [
     {
       "type": 0,
       "value": "La xidhiidh mulkiilaha si aad u codsato gelitaanka"
-    }
-  ],
-  "44281ab6e5": [
-    {
-      "type": 0,
-      "value": "Soo gal"
     }
   ],
   "44db318ee5": [
@@ -229,12 +217,6 @@
     {
       "type": 0,
       "value": "Dib u soo deji"
-    }
-  ],
-  "4ea0bb66f7": [
-    {
-      "type": 0,
-      "value": "Xisaabtu way fiicnaan lahayd"
     }
   ],
   "50db1b7e1e": [
@@ -301,6 +283,12 @@
       "value": "La wadaag"
     }
   ],
+  "5bb6cf3b53": [
+    {
+      "type": 0,
+      "value": "Qolku wuu weynaadaa"
+    }
+  ],
   "5bcc12ace8": [
     {
       "type": 0,
@@ -311,12 +299,6 @@
     {
       "type": 0,
       "value": "browser hore waa la helay Fadlan cusboonaysii biraawsarkaaga si aad u isticmaasho abkan."
-    }
-  ],
-  "5bef23eb7e": [
-    {
-      "type": 0,
-      "value": "Samee akoonkaaga"
     }
   ],
   "5d26ae7550": [
@@ -359,12 +341,6 @@
     {
       "type": 0,
       "value": "Nooc cusub oo tldraw ah ayaa diyaar ah. Fadlan dib u soo deji bogga si aad u sii waddo."
-    }
-  ],
-  "697c59072d": [
-    {
-      "type": 0,
-      "value": "Soo gal si aad u kaydsato"
     }
   ],
   "6a26f54883": [
@@ -445,6 +421,12 @@
       "value": "Codsi aan sax ahayn"
     }
   ],
+  "78e9815992": [
+    {
+      "type": 0,
+      "value": "Helay"
+    }
+  ],
   "797799f35e": [
     {
       "type": 0,
@@ -461,12 +443,6 @@
     {
       "type": 0,
       "value": "Soo celi nooca"
-    }
-  ],
-  "7c7d5d493e": [
-    {
-      "type": 0,
-      "value": "Fadlan isdiiwaangeli"
     }
   ],
   "7cb5f8b4a5": [
@@ -527,12 +503,6 @@
       "value": "."
     }
   ],
-  "84c89d47c7": [
-    {
-      "type": 0,
-      "value": "La wadaag bilaash"
-    }
-  ],
   "85a082de1b": [
     {
       "type": 0,
@@ -563,12 +533,6 @@
     {
       "type": 0,
       "value": "Si aad u sii waddo tafatirka fadlan ku koobi qolka faylashaada."
-    }
-  ],
-  "8ea211024d": [
-    {
-      "type": 0,
-      "value": "Abuur xisaab bilaash ah"
     }
   ],
   "8eb2c00e96": [
@@ -727,12 +691,6 @@
       "value": "Isticmaalaha martida"
     }
   ],
-  "b52dc007ac": [
-    {
-      "type": 0,
-      "value": "Isdiiwaangeli (lacag iyo wanaag)"
-    }
-  ],
   "b6d4223e60": [
     {
       "type": 0,
@@ -815,28 +773,10 @@
       "value": "Soo rar faylasha tldr"
     }
   ],
-  "bffe9a3c9a": [
-    {
-      "type": 0,
-      "value": "Soo gal"
-    }
-  ],
-  "c079282475": [
-    {
-      "type": 0,
-      "value": "La wadaag shaqadaada"
-    }
-  ],
   "c2276c9127": [
     {
       "type": 0,
       "value": "Wax badan ka baro wadaagga"
-    }
-  ],
-  "c24e43cd1a": [
-    {
-      "type": 0,
-      "value": "Waad saxiixi doontaa, ma aha?"
     }
   ],
   "c303bd1095": [
@@ -869,12 +809,6 @@
       "value": "Saxiix"
     }
   ],
-  "c8c6a6504a": [
-    {
-      "type": 0,
-      "value": "Waa inaad is-diiwaangelisaa"
-    }
-  ],
   "cceaefbc20": [
     {
       "type": 0,
@@ -891,12 +825,6 @@
     {
       "type": 0,
       "value": "Wax badan ka baro daabacaadda"
-    }
-  ],
-  "d0eedb7995": [
-    {
-      "type": 0,
-      "value": "haye"
     }
   ],
   "d3d2e61733": [
@@ -923,28 +851,10 @@
       "value": "Isku day Mar Kale"
     }
   ],
-  "d8a50c79a7": [
-    {
-      "type": 0,
-      "value": "I soo raac si aad u tldraw"
-    }
-  ],
   "d9100f3e10": [
     {
       "type": 0,
       "value": "Tag halkan si aad u aragto waxa ku jira"
-    }
-  ],
-  "da404df474": [
-    {
-      "type": 0,
-      "value": "Shaqadaada badbaadi"
-    }
-  ],
-  "db4c2dab9a": [
-    {
-      "type": 0,
-      "value": "Ma aha Excalidraw"
     }
   ],
   "dbbebf3c03": [
@@ -1029,6 +939,12 @@
       "value": "a"
     }
   ],
+  "ef7de3f485": [
+    {
+      "type": 0,
+      "value": "la doortay"
+    }
+  ],
   "f09b16bc5f": [
     {
       "type": 0,
@@ -1075,12 +991,6 @@
     {
       "type": 0,
       "value": "Ma hubtaa inaad rabto inaad tirtirto faylkan?"
-    }
-  ],
-  "fd27891570": [
-    {
-      "type": 0,
-      "value": "Ku biir liiska sugitaanka"
     }
   ],
   "fed5ec05eb": [

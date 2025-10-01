@@ -13,7 +13,7 @@ export class UserPreferencesManager {
 		private readonly user: TLUser,
 		private readonly inferDarkMode: boolean
 	) {
-		if (typeof window === 'undefined' || !('matchMedia' in window)) return
+		if (typeof window === 'undefined' || !window.matchMedia) return
 
 		const darkModeMediaQuery = window.matchMedia('(prefers-color-scheme: dark)')
 		if (darkModeMediaQuery?.matches) {
@@ -49,6 +49,8 @@ export class UserPreferencesManager {
 			isDarkMode: this.getIsDarkMode(),
 			isWrapMode: this.getIsWrapMode(),
 			isDynamicResizeMode: this.getIsDynamicResizeMode(),
+			enhancedA11yMode: this.getEnhancedA11yMode(),
+			inputMode: this.getInputMode(),
 		}
 	}
 
@@ -118,5 +120,15 @@ export class UserPreferencesManager {
 			this.user.userPreferences.get().isPasteAtCursorMode ??
 			defaultUserPreferences.isPasteAtCursorMode
 		)
+	}
+
+	@computed getEnhancedA11yMode() {
+		return (
+			this.user.userPreferences.get().enhancedA11yMode ?? defaultUserPreferences.enhancedA11yMode
+		)
+	}
+
+	@computed getInputMode() {
+		return this.user.userPreferences.get().inputMode ?? defaultUserPreferences.inputMode
 	}
 }

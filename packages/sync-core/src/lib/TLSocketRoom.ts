@@ -24,6 +24,10 @@ export class TLSocketRoom<R extends UnknownRecord = UnknownRecord, SessionMeta =
 		{ assembler: JsonChunkAssembler; socket: WebSocketMinimal; unlisten: () => void }
 	>()
 	readonly log?: TLSyncLog
+	private readonly syncCallbacks: {
+		onDataChange?(): void
+		onPresenceChange?(): void
+	}
 
 	constructor(
 		public readonly opts: {
@@ -65,11 +69,14 @@ export class TLSocketRoom<R extends UnknownRecord = UnknownRecord, SessionMeta =
 				? convertStoreSnapshotToRoomSnapshot(opts.initialSnapshot!)
 				: opts.initialSnapshot
 
-		this.room = new TLSyncRoom<R, SessionMeta>({
-			schema: opts.schema ?? (createTLSchema() as any),
-			snapshot: initialSnapshot,
+		this.syncCallbacks = {
 			onDataChange: opts.onDataChange,
 			onPresenceChange: opts.onPresenceChange,
+		}
+		this.room = new TLSyncRoom<R, SessionMeta>({
+			...this.syncCallbacks,
+			schema: opts.schema ?? (createTLSchema() as any),
+			snapshot: initialSnapshot,
 			log: opts.log,
 		})
 		this.room.events.on('session_removed', (args) => {
@@ -301,11 +308,12 @@ export class TLSocketRoom<R extends UnknownRecord = UnknownRecord, SessionMeta =
 			snapshot = convertStoreSnapshotToRoomSnapshot(snapshot)
 		}
 		const oldRoom = this.room
-		const oldIds = oldRoom.getSnapshot().documents.map((d) => d.state.id)
+		const oldRoomSnapshot = oldRoom.getSnapshot()
+		const oldIds = oldRoomSnapshot.documents.map((d) => d.state.id)
 		const newIds = new Set(snapshot.documents.map((d) => d.state.id))
 		const removedIds = oldIds.filter((id) => !newIds.has(id))
 
-		const tombstones = { ...snapshot.tombstones }
+		const tombstones: RoomSnapshot['tombstones'] = { ...oldRoomSnapshot.tombstones }
 		removedIds.forEach((id) => {
 			tombstones[id] = oldRoom.clock + 1
 		})
@@ -314,15 +322,18 @@ export class TLSocketRoom<R extends UnknownRecord = UnknownRecord, SessionMeta =
 		})
 
 		const newRoom = new TLSyncRoom<R, SessionMeta>({
+			...this.syncCallbacks,
 			schema: oldRoom.schema,
 			snapshot: {
 				clock: oldRoom.clock + 1,
+				documentClock: oldRoom.clock + 1,
 				documents: snapshot.documents.map((d) => ({
 					lastChangedClock: oldRoom.clock + 1,
 					state: d.state,
 				})),
 				schema: snapshot.schema,
 				tombstones,
+				tombstoneHistoryStartsAtClock: oldRoomSnapshot.tombstoneHistoryStartsAtClock,
 			},
 			log: this.log,
 		})
@@ -355,6 +366,16 @@ export class TLSocketRoom<R extends UnknownRecord = UnknownRecord, SessionMeta =
 	 */
 	async updateStore(updater: (store: RoomStoreMethods<R>) => void | Promise<void>) {
 		return this.room.updateStore(updater)
+	}
+
+	/**
+	 * Send a custom message to a connected client.
+	 *
+	 * @param sessionId - The id of the session to send the message to.
+	 * @param data - The payload to send.
+	 */
+	sendCustomMessage(sessionId: string, data: any) {
+		this.room.sendCustomMessage(sessionId, data)
 	}
 
 	/**
@@ -394,6 +415,7 @@ export type OmitVoid<T, KS extends keyof T = keyof T> = {
 function convertStoreSnapshotToRoomSnapshot(snapshot: TLStoreSnapshot): RoomSnapshot {
 	return {
 		clock: 0,
+		documentClock: 0,
 		documents: objectMapValues(snapshot.store).map((state) => ({
 			state,
 			lastChangedClock: 0,

@@ -8,7 +8,7 @@ export interface EventData {
 }
 
 export function writeDataPoint(
-	sentry: ReturnType<typeof createSentry>,
+	sentry: ReturnType<typeof createSentry> | undefined,
 	measure: Analytics | undefined,
 	env: Environment,
 	name: string,

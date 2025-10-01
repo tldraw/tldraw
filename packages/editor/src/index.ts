@@ -265,9 +265,9 @@ export {
 	type TLCameraMoveOptions,
 	type TLCameraOptions,
 	type TLExportType,
+	type TLGetShapeAtPointOptions,
 	type TLImageExportOptions,
 	type TLSvgExportOptions,
-	type TLSvgOptions,
 	type TLUpdatePointerOptions,
 } from './lib/editor/types/misc-types'
 export {
@@ -330,9 +330,10 @@ export {
 	type InvalidLicenseReason,
 	type LicenseFromKeyResult,
 	type LicenseInfo,
-	type TestEnvironment,
+	type LicenseState,
 	type ValidLicenseKeyResult,
 } from './lib/license/LicenseManager'
+export { LICENSE_TIMEOUT } from './lib/license/LicenseProvider'
 export { defaultTldrawOptions, type TldrawOptions } from './lib/options'
 export {
 	Box,
@@ -450,6 +451,7 @@ export {
 	setPointerCapture,
 	stopEventPropagation,
 } from './lib/utils/dom'
+export { EditorAtom } from './lib/utils/EditorAtom'
 export { getIncrementedName } from './lib/utils/getIncrementedName'
 export { getPointerInfo } from './lib/utils/getPointerInfo'
 export { getSvgPathFromPoints } from './lib/utils/getSvgPathFromPoints'
@@ -482,14 +484,6 @@ export { LocalIndexedDb, Table, type StoreName } from './lib/utils/sync/LocalInd
 export { type TLStoreWithStatus } from './lib/utils/sync/StoreWithStatus'
 export { uniq } from './lib/utils/uniq'
 export { openWindow } from './lib/utils/window-open'
-
-/**
- * @deprecated Licensing is now enabled in the tldraw SDK.
- * @public */
-export function debugEnableLicensing() {
-	// noop
-	return
-}
 
 registerTldrawLibraryVersion(
 	(globalThis as any).TLDRAW_LIBRARY_NAME,

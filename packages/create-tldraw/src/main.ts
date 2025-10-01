@@ -6,9 +6,10 @@ import process from 'node:process'
 import { Readable } from 'node:stream'
 import picocolors from 'picocolors'
 import * as tar from 'tar'
-import { groupSelect } from './group-select'
+import { groupSelect, GroupSelectOption } from './group-select'
 import { Template, TEMPLATES } from './templates'
 import {
+	cancel,
 	emptyDir,
 	formatTargetDir,
 	getInstallCommand,
@@ -20,25 +21,9 @@ import {
 	nicelog,
 	pathToName,
 } from './utils'
+import { wrapAnsi } from './wrap-ansi'
 
 const DEBUG = !!process.env.DEBUG
-
-const allTemplates = [...TEMPLATES.framework, ...TEMPLATES.app]
-
-const HELP = `\
-Usage: create-tldraw [OPTION]... [DIRECTORY]
-
-Create a new project using tldraw.
-With no arguments, start the CLI in interactive mode.
-
-Options:
-  -h, --help                 display this help message
-  -t, --template NAME        use a specific template
-  -o, --overwrite            overwrite the target directory if it exists
-
-Available templates:
-${allTemplates.map((t) => ` • ${t.repo.replace(/^tldraw\//, '')}`).join('\n')}
-`
 
 async function main() {
 	intro(`Let's build a tldraw app!`)
@@ -54,7 +39,7 @@ async function main() {
 	})
 
 	if (args.help) {
-		nicelog(HELP)
+		nicelog(getHelp())
 		process.exit(0)
 	}
 
@@ -75,6 +60,8 @@ async function main() {
 	}
 	doneMessage.push(`   ${getInstallCommand(manager)}`)
 	doneMessage.push(`   ${getRunCommand(manager, 'dev')}`)
+	doneMessage.push('')
+	doneMessage.push('   Happy building!')
 
 	outro(doneMessage.join('\n'))
 }
@@ -87,12 +74,7 @@ main().catch((err) => {
 
 async function templatePicker(argOption?: string) {
 	if (argOption) {
-		const template = allTemplates.find((t) => {
-			return (
-				t.repo.replace(/^tldraw\//, '').toLowerCase() === argOption.toLowerCase() ||
-				t.name.toLowerCase() === argOption.toLowerCase()
-			)
-		})
+		const template = TEMPLATES.find((t) => formatTemplateId(t) === argOption.toLowerCase().trim())
 
 		if (!template) {
 			outro(`Template ${argOption} not found`)
@@ -102,22 +84,16 @@ async function templatePicker(argOption?: string) {
 		return template
 	}
 
-	function formatTemplates(templates: Template[], groupLabel: string) {
-		return templates.map((template) => ({
-			label: template.name,
-			hint: template.description,
-			value: template,
-			group: groupLabel,
-		}))
-	}
-
 	return await handleCancel(
 		groupSelect({
-			message: 'Select a template',
-			options: [
-				...formatTemplates(TEMPLATES.framework, 'Frameworks'),
-				...formatTemplates(TEMPLATES.app, 'Apps'),
-			],
+			message: 'Select a template:',
+			options: TEMPLATES.map(
+				(template): GroupSelectOption<Template> => ({
+					label: template.name,
+					hint: template.description,
+					value: template,
+				})
+			),
 		})
 	)
 }
@@ -178,8 +154,7 @@ async function ensureDirectoryEmpty(targetDir: string, overwriteArg: boolean) {
 			})
 
 	if (overwrite === 'no') {
-		outro(`it's cancelled`)
-		process.exit(1)
+		cancel()
 	}
 
 	if (overwrite === 'yes') {
@@ -229,4 +204,88 @@ async function renameTemplate(name: string, targetDir: string) {
 	delete packageJson.license
 
 	writeFileSync(resolve(targetDir, 'package.json'), JSON.stringify(packageJson, null, '\t') + '\n')
+}
+
+function formatTemplateId(template: Template) {
+	return template.name.trim().toLowerCase().replace(/\s+/g, '-')
+}
+
+function getHelp() {
+	const options = [
+		{ flags: '-h, --help', description: 'Display this help message.' },
+		{ flags: '-t, --template NAME', description: 'Use a specific template.' },
+		{ flags: '-o, --overwrite', description: 'Overwrite the target directory if it exists.' },
+	]
+
+	const GAP_SIZE = 2
+	const optionPrefix = '   '
+	const templatePrefix = ' • '
+
+	const idealIndentSize =
+		Math.max(
+			...options.map((o) => o.flags.length),
+			...TEMPLATES.map((t) => formatTemplateId(t).length)
+		) +
+		GAP_SIZE +
+		templatePrefix.length
+
+	const isNarrow = process.stdout.columns < idealIndentSize + 50
+
+	const lines = [
+		picocolors.bold('Usage: create-tldraw [OPTION]... [DIRECTORY]'),
+		'',
+		'Create a new tldraw project.',
+		"With no arguments, you'll be guided through an interactive setup.",
+		'',
+		picocolors.bold('Options:'),
+	]
+
+	if (isNarrow) {
+		const indent = ' '.repeat(optionPrefix.length + GAP_SIZE)
+		for (const option of options) {
+			lines.push(`${optionPrefix}${option.flags}`)
+			lines.push(wrapAnsi(`${indent}${option.description}`, process.stdout.columns, { indent }))
+		}
+	} else {
+		const indent = ' '.repeat(idealIndentSize)
+		for (const option of options) {
+			const start = `${optionPrefix}${option.flags}`.padEnd(idealIndentSize, ' ')
+			lines.push(wrapAnsi(`${start}${option.description}`, process.stdout.columns, { indent }))
+		}
+	}
+
+	lines.push('')
+	lines.push(picocolors.bold('Available starter kits:'))
+
+	if (isNarrow) {
+		const indent = ' '.repeat(templatePrefix.length + GAP_SIZE)
+		for (const template of TEMPLATES) {
+			lines.push(`${templatePrefix}${formatTemplateId(template)}`)
+			lines.push(
+				wrapAnsi(
+					`${indent}${template.shortDescription ?? template.description}`,
+					process.stdout.columns,
+					{ indent }
+				)
+			)
+		}
+	} else {
+		const indent = ' '.repeat(idealIndentSize)
+		for (const template of TEMPLATES) {
+			const start = `${templatePrefix}${formatTemplateId(template)}`.padEnd(idealIndentSize, ' ')
+			lines.push(
+				wrapAnsi(
+					`${start}${template.shortDescription ?? template.description}`,
+					process.stdout.columns,
+					{
+						indent,
+					}
+				)
+			)
+		}
+	}
+
+	lines.push('')
+
+	return lines.join('\n')
 }

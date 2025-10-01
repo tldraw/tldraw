@@ -5,25 +5,24 @@
 	"/* NOTE */": "These `main` and `types` fields are rewritten by the build script. They are not the actual values we publish",
 	"main": "./src/index.ts",
 	"types": "./.tsbuild/index.d.ts",
+	"type": "module",
 	"/* GOTCHA */": "files will include ./dist and index.d.ts by default, add any others you want to include in here",
 	"files": [],
 	"dependencies": {
-		"@cloudflare/workers-types": "^4.20250703.0",
+		"@cloudflare/workers-types": "^4.20250913.0",
 		"@tldraw/utils": "workspace:*",
 		"@tldraw/validate": "workspace:*",
-		"cloudflare-workers-unfurl": "^0.0.7",
+		"cloudflare-workers-unfurl": "^0.0.8",
 		"itty-router": "^5.0.18",
 		"lazyrepo": "0.0.0-alpha.27",
 		"toucan-js": "^3.4.0",
 		"typescript": "^5.8.3"
 	},
 	"scripts": {
-		"test-ci": "lazy inherit",
-		"test": "yarn run -T jest",
-		"lint": "yarn run -T tsx ../../internal/scripts/lint.ts"
-	},
-	"jest": {
-		"preset": "../../internal/config/jest/node/jest-preset.js",
-		"testEnvironment": "jsdom"
+		"test-ci": "yarn run -T vitest run --passWithNoTests",
+		"test": "yarn run -T vitest --passWithNoTests",
+		"lint": "yarn run -T tsx ../../internal/scripts/lint.ts",
+		"test-coverage": "yarn run -T vitest run --coverage --passWithNoTests",
+		"context": "yarn run -T tsx ../../internal/scripts/context.ts"
 	}
 }

@@ -1,7 +1,7 @@
 {
 	"name": "@tldraw/assets",
 	"description": "tldraw infinite canvas SDK (assets).",
-	"version": "3.14.2",
+	"version": "4.0.2",
 	"author": {
 		"name": "tldraw Inc.",
 		"email": "hello@tldraw.com"
@@ -44,7 +44,9 @@
 	],
 	"scripts": {
 		"pack-tarball": "yarn pack",
-		"lint": "yarn run -T tsx ../../internal/scripts/lint.ts"
+		"lint": "yarn run -T tsx ../../internal/scripts/lint.ts",
+		"test-coverage": "yarn run -T vitest run --coverage --passWithNoTests",
+		"context": "yarn run -T tsx ../../internal/scripts/context.ts"
 	},
 	"dependencies": {
 		"@tldraw/utils": "workspace:*"
@@ -53,14 +55,5 @@
 		"lazyrepo": "0.0.0-alpha.27",
 		"ts-node-dev": "^1.1.8",
 		"typescript": "^5.8.3"
-	},
-	"jest": {
-		"preset": "../../internal/config/jest/node/jest-preset.js",
-		"setupFiles": [
-			"raf/polyfill"
-		],
-		"moduleNameMapper": {
-			"^~(.*)": "<rootDir>/src/$1"
-		}
 	}
 }

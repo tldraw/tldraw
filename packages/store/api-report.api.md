@@ -126,15 +126,6 @@ export function createRecordType<R extends UnknownRecord>(typeName: R['typeName'
     validator?: StoreValidator<R>;
 }): RecordType<R, keyof Omit<R, 'id' | 'typeName'>>;
 
-// @public @deprecated (undocumented)
-export function defineMigrations(opts: {
-    currentVersion?: number;
-    firstVersion?: number;
-    migrators?: Record<number, LegacyMigration>;
-    subTypeKey?: string;
-    subTypeMigrations?: Record<string, LegacyBaseMigrationsInfo>;
-}): LegacyMigrations;
-
 // @public
 export function devFreeze<T>(object: T): T;
 
@@ -301,8 +292,6 @@ export class RecordType<R extends UnknownRecord, RequiredProperties extends keyo
     });
     clone(record: R): R;
     create(properties: Expand<Pick<R, RequiredProperties> & Omit<Partial<R>, RequiredProperties>>): R;
-    // @deprecated
-    createCustomId(id: string): IdOf<R>;
     // (undocumented)
     readonly createDefaultProperties: () => Exclude<Omit<R, 'id' | 'typeName'>, RequiredProperties>;
     createId(customUniquePart?: string): IdOf<R>;
@@ -366,7 +355,9 @@ export interface SerializedSchemaV2 {
 export type SerializedStore<R extends UnknownRecord> = Record<IdOf<R>, R>;
 
 // @public
-export function squashRecordDiffs<T extends UnknownRecord>(diffs: RecordsDiff<T>[]): RecordsDiff<T>;
+export function squashRecordDiffs<T extends UnknownRecord>(diffs: RecordsDiff<T>[], options?: {
+    mutateFirstDiff?: boolean;
+}): RecordsDiff<T>;
 
 // @internal
 export function squashRecordDiffsMutable<T extends UnknownRecord>(target: RecordsDiff<T>, diffs: RecordsDiff<T>[]): void;
@@ -413,8 +404,6 @@ export class Store<R extends UnknownRecord = UnknownRecord, Props = unknown> {
     // (undocumented)
     _flushHistory(): void;
     get<K extends IdOf<R>>(id: K): RecordFromId<K> | undefined;
-    // @deprecated (undocumented)
-    getSnapshot(scope?: 'all' | RecordScope): StoreSnapshot<R>;
     getStoreSnapshot(scope?: 'all' | RecordScope): StoreSnapshot<R>;
     has<K extends IdOf<R>>(id: K): boolean;
     readonly history: Atom<number, RecordsDiff<R>>;
@@ -422,8 +411,6 @@ export class Store<R extends UnknownRecord = UnknownRecord, Props = unknown> {
     // @internal (undocumented)
     isPossiblyCorrupted(): boolean;
     listen(onHistory: StoreListener<R>, filters?: Partial<StoreListenerFilters>): () => void;
-    // @deprecated (undocumented)
-    loadSnapshot(snapshot: StoreSnapshot<R>): void;
     loadStoreSnapshot(snapshot: StoreSnapshot<R>): void;
     // @internal (undocumented)
     markAsPossiblyCorrupted(): void;
@@ -574,7 +561,7 @@ export class StoreSchema<R extends UnknownRecord, P = unknown> {
     readonly migrations: Record<string, MigrationSequence>;
     // (undocumented)
     serialize(): SerializedSchemaV2;
-    // @deprecated (undocumented)
+    // @internal @deprecated (undocumented)
     serializeEarliestVersion(): SerializedSchema;
     // (undocumented)
     readonly sortedMigrations: readonly Migration[];

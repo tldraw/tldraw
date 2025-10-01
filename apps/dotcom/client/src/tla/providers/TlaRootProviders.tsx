@@ -23,6 +23,7 @@ import { SignedInAnalytics, SignedOutAnalytics } from '../../utils/analytics'
 import { globalEditor } from '../../utils/globalEditor'
 import { MaybeForceUserRefresh } from '../components/MaybeForceUserRefresh/MaybeForceUserRefresh'
 import { components } from '../components/TlaEditor/TlaEditor'
+import { TlaCookieConsent } from '../components/dialogs/TlaCookieConsent'
 import { AppStateProvider, useMaybeApp } from '../hooks/useAppState'
 import { UserProvider } from '../hooks/useUser'
 import '../styles/tla.css'
@@ -55,7 +56,10 @@ export function Component() {
 	const [locale, setLocale] = useState<string>('en')
 	const [theme, setTheme] = useState<'light' | 'dark' | 'system'>('light')
 	const handleThemeChange = (theme: 'light' | 'dark' | 'system') => setTheme(theme)
-	const handleLocaleChange = (locale: string) => setLocale(locale)
+	const handleLocaleChange = (locale: string) => {
+		setLocale(locale)
+		document.documentElement.lang = locale
+	}
 	const isFocusMode = useValue(
 		'isFocusMode',
 		() => !!globalEditor.get()?.getInstanceState().isFocusMode,
@@ -134,6 +138,7 @@ function InsideOfContainerContext({ children }: { children: ReactNode }) {
 					<DefaultToasts />
 					<DefaultA11yAnnouncer />
 					<PutToastsInApp />
+					{currentEditor && <TlaCookieConsent />}
 				</TldrawUiContextProvider>
 			</TldrawUiA11yProvider>
 		</EditorContext.Provider>

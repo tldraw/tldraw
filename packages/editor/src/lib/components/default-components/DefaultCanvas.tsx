@@ -22,7 +22,6 @@ import { Vec } from '../../primitives/Vec'
 import { toDomPrecision } from '../../primitives/utils'
 import { debugFlags } from '../../utils/debug-flags'
 import { setStyleProperty } from '../../utils/dom'
-import { nearestMultiple } from '../../utils/nearestMultiple'
 import { GeometryDebuggingView } from '../GeometryDebuggingView'
 import { LiveCollaborators } from '../LiveCollaborators'
 import { MenuClickCapture } from '../MenuClickCapture'
@@ -173,10 +172,18 @@ export function DefaultCanvas({ className }: TLCanvasComponentProps) {
 						<LiveCollaborators />
 					</div>
 				</div>
+				<div
+					className="tl-canvas__in-front"
+					onPointerDown={editor.markEventAsHandled}
+					onPointerUp={editor.markEventAsHandled}
+					onTouchStart={editor.markEventAsHandled}
+					onTouchEnd={editor.markEventAsHandled}
+				>
+					<InFrontOfTheCanvasWrapper />
+				</div>
 				<MovingCameraHitTestBlocker />
 			</div>
 			<MenuClickCapture />
-			<InFrontOfTheCanvasWrapper />
 		</>
 	)
 }
@@ -390,18 +397,9 @@ function ShapesWithSVGs() {
 
 	const renderingShapes = useValue('rendering shapes', () => editor.getRenderingShapes(), [editor])
 
-	const dprMultiple = useValue(
-		'dpr multiple',
-		() =>
-			// dprMultiple is the smallest number we can multiply dpr by to get an integer
-			// it's usually 1, 2, or 4 (for e.g. dpr of 2, 2.5 and 2.25 respectively)
-			nearestMultiple(Math.floor(editor.getInstanceState().devicePixelRatio * 100) / 100),
-		[editor]
-	)
-
 	return renderingShapes.map((result) => (
 		<Fragment key={result.id + '_fragment'}>
-			<Shape {...result} dprMultiple={dprMultiple} />
+			<Shape {...result} />
 			<DebugSvgCopy id={result.id} mode="iframe" />
 		</Fragment>
 	))
@@ -436,19 +434,10 @@ function ShapesToDisplay() {
 
 	const renderingShapes = useValue('rendering shapes', () => editor.getRenderingShapes(), [editor])
 
-	const dprMultiple = useValue(
-		'dpr multiple',
-		() =>
-			// dprMultiple is the smallest number we can multiply dpr by to get an integer
-			// it's usually 1, 2, or 4 (for e.g. dpr of 2, 2.5 and 2.25 respectively)
-			nearestMultiple(Math.floor(editor.getInstanceState().devicePixelRatio * 100) / 100),
-		[editor]
-	)
-
 	return (
 		<>
 			{renderingShapes.map((result) => (
-				<Shape key={result.id + '_shape'} {...result} dprMultiple={dprMultiple} />
+				<Shape key={result.id + '_shape'} {...result} />
 			))}
 			{tlenv.isSafari && <ReflowIfNeeded />}
 		</>

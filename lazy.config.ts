@@ -21,7 +21,12 @@ const config = {
 	scripts: {
 		build: {
 			baseCommand: 'exit 0',
-			runsAfter: { prebuild: {}, 'refresh-assets': {}, 'build-i18n': {} },
+			runsAfter: {
+				prebuild: {},
+				'refresh-assets': {},
+				'build-eslint-plugin': {},
+				'build-i18n': {},
+			},
 			workspaceOverrides: {
 				'apps/vscode/*': { runsAfter: { 'refresh-assets': {} } },
 				'packages/*': {
@@ -49,7 +54,7 @@ const config = {
 		},
 		dev: {
 			execution: 'independent',
-			runsAfter: { predev: {}, 'refresh-assets': {}, 'build-i18n': {} },
+			runsAfter: { predev: {}, 'refresh-assets': {}, 'build-eslint-plugin': {}, 'build-i18n': {} },
 			cache: 'none',
 			workspaceOverrides: {
 				'apps/vscode/*': { runsAfter: { build: { in: 'self-only' } } },
@@ -61,18 +66,15 @@ const config = {
 		'e2e-x10': {
 			cache: 'none',
 		},
-		'test-ci': {
-			baseCommand: 'yarn run -T jest',
-			runsAfter: { 'refresh-assets': {} },
+		'build-eslint-plugin': {
+			execution: 'top-level',
+			baseCommand: 'cd internal/scripts/eslint && tsc -p tsconfig.json',
 			cache: {
-				inputs: {
-					exclude: ['*.tsbuildinfo'],
-				},
+				inputs: [
+					'<rootDir>/internal/scripts/eslint/eslint-plugin.mts',
+					'<rootDir>/internal/scripts/eslint/tsconfig.json',
+				],
 			},
-		},
-		'test-coverage': {
-			baseCommand: 'yarn run -T jest --coverage',
-			runsAfter: { 'refresh-assets': {} },
 		},
 		lint: {
 			execution: 'independent',
@@ -82,6 +84,10 @@ const config = {
 					exclude: ['*.tsbuildinfo'],
 				},
 			},
+		},
+		context: {
+			execution: 'independent',
+			cache: 'none',
 		},
 		'pack-tarball': {
 			parallel: false,
@@ -111,6 +117,7 @@ const config = {
 			},
 			runsAfter: {
 				'refresh-assets': {},
+				'build-eslint-plugin': {},
 				'maybe-clean-tsbuildinfo': {},
 			},
 		},

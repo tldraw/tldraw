@@ -1,0 +1,44 @@
+{
+	"name": "tldraw-chat-app-example",
+	"version": "0.1.0",
+	"private": true,
+	"author": {
+		"name": "tldraw GB Ltd.",
+		"email": "hello@tldraw.com"
+	},
+	"homepage": "https://tldraw.dev",
+	"license": "MIT",
+	"tldraw_template": {
+		"repo": "tldraw/chat-template",
+		"cli": {
+			"name": "Chat",
+			"description": "Use tldraw to add sketches and annotated images as visual context in an LLM chat interface.",
+			"shortDescription": "A chat UI with sketches and images as context for AI."
+		},
+		"scripts": {
+			"lint": null
+		}
+	},
+	"scripts": {
+		"dev": "next dev",
+		"build": "next build",
+		"start": "next start",
+		"lint": "yarn run -T tsx ../../internal/scripts/lint.ts"
+	},
+	"dependencies": {
+		"@ai-sdk/google": "^2.0.14",
+		"@ai-sdk/react": "^2.0.15",
+		"@google/genai": "^1.17.0",
+		"@types/node": "^22.15.31",
+		"@types/react": "^18.3.18",
+		"@types/react-dom": "^18.3.5",
+		"ai": "^5.0.15",
+		"next": "^15.4.6",
+		"react": "^18.3.1",
+		"react-dom": "^18.3.1",
+		"react-markdown": "^10.1.0",
+		"tldraw": "workspace:*",
+		"typescript": "^5.8.3",
+		"zod": "^4.1.5"
+	}
+}

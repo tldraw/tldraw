@@ -5,7 +5,6 @@ import {
 	getPointerInfo,
 	noop,
 	preventDefault,
-	stopEventPropagation,
 	tlenv,
 	useEditor,
 	useValue,
@@ -129,14 +128,14 @@ export function useEditableTextCommon(shapeId: TLShapeId) {
 			// partially if we didn't dispatch/stop below.
 
 			editor.dispatch({
-				...getPointerInfo(e),
+				...getPointerInfo(editor, e),
 				type: 'pointer',
 				name: 'pointer_down',
 				target: 'shape',
 				shape: editor.getShape(shapeId)!,
 			})
 
-			stopEventPropagation(e) // we need to prevent blurring the input
+			e.stopPropagation() // we need to prevent blurring the input
 		},
 		[editor, shapeId]
 	)
@@ -161,15 +160,9 @@ export function useEditableTextCommon(shapeId: TLShapeId) {
 		handleFocus: noop,
 		handleBlur: noop,
 		handleInputPointerDown,
-		handleDoubleClick: stopEventPropagation,
+		handleDoubleClick: editor.markEventAsHandled,
 		handlePaste,
 		isEditing,
 		isReadyForEditing,
 	}
 }
-
-/**
- * @deprecated Use `useEditablePlainText` instead.
- * @public
- */
-export const useEditableText = useEditablePlainText

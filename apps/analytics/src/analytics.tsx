@@ -81,8 +81,6 @@ export default function Analytics() {
 				if (window.TL_GOOGLE_ADS_ID) {
 					ReactGA.gtag('config', window.TL_GOOGLE_ADS_ID)
 				}
-
-				ReactGA.send('pageview')
 			}
 
 			isConfigured = true

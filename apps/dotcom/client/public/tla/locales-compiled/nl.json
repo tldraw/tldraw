@@ -33,12 +33,6 @@
       "value": "Auto"
     }
   ],
-  "0776e18496": [
-    {
-      "type": 0,
-      "value": "Opslaan en delen"
-    }
-  ],
   "07dbd11b21": [
     {
       "type": 0,
@@ -81,6 +75,12 @@
       "value": "Publiceren"
     }
   ],
+  "12c8a9838c": [
+    {
+      "type": 0,
+      "value": "Probeer de tldraw SDK"
+    }
+  ],
   "13ddd375ad": [
     {
       "type": 0,
@@ -105,10 +105,16 @@
       "value": "Vandaag"
     }
   ],
-  "22d84a12fd": [
+  "20976e7bec": [
     {
       "type": 0,
-      "value": "Figjam maar tldraw"
+      "value": "Kamer is vol"
+    }
+  ],
+  "21bfb2dc2e": [
+    {
+      "type": 0,
+      "value": "Deze ruimte nadert zijn maximale grootte. Overweeg om wat inhoud te verwijderen of een nieuw bestand te maken."
     }
   ],
   "250ddea65c": [
@@ -123,10 +129,10 @@
       "value": "Uploaden mislukt"
     }
   ],
-  "2c61d18599": [
+  "2deec2cb74": [
     {
       "type": 0,
-      "value": "Miro maar dan goed en gratis"
+      "value": "Deze ruimte heeft de maximale bestandsgrootte bereikt en wijzigingen worden mogelijk niet meer opgeslagen. Verwijder wat inhoud of begin een nieuw bestand."
     }
   ],
   "31246941ad": [
@@ -153,12 +159,6 @@
       "value": "Editor"
     }
   ],
-  "37b3dca331": [
-    {
-      "type": 0,
-      "value": "Meld u aan"
-    }
-  ],
   "3bd1b98dbd": [
     {
       "type": 0,
@@ -177,22 +177,10 @@
       "value": "Alles accepteren"
     }
   ],
-  "3fc6d0c83a": [
-    {
-      "type": 0,
-      "value": "Vriend toevoegen"
-    }
-  ],
   "42e53c47c1": [
     {
       "type": 0,
       "value": "Neem contact op met de eigenaar om toegang aan te vragen."
-    }
-  ],
-  "44281ab6e5": [
-    {
-      "type": 0,
-      "value": "Aanmelden"
     }
   ],
   "44db318ee5": [
@@ -229,12 +217,6 @@
     {
       "type": 0,
       "value": "Opnieuw laden"
-    }
-  ],
-  "4ea0bb66f7": [
-    {
-      "type": 0,
-      "value": "Een account zou leuk zijn"
     }
   ],
   "50db1b7e1e": [
@@ -301,6 +283,12 @@
       "value": "Deel"
     }
   ],
+  "5bb6cf3b53": [
+    {
+      "type": 0,
+      "value": "Kamer wordt groot"
+    }
+  ],
   "5bcc12ace8": [
     {
       "type": 0,
@@ -311,12 +299,6 @@
     {
       "type": 0,
       "value": "Oude browser gedetecteerd. Werk uw browser bij om deze app te gebruiken."
-    }
-  ],
-  "5bef23eb7e": [
-    {
-      "type": 0,
-      "value": "Maak uw account aan"
     }
   ],
   "5d26ae7550": [
@@ -359,12 +341,6 @@
     {
       "type": 0,
       "value": "Er is een nieuwe versie van tldraw beschikbaar. Laad de pagina opnieuw om verder te gaan."
-    }
-  ],
-  "697c59072d": [
-    {
-      "type": 0,
-      "value": "Meld u aan om op te slaan"
     }
   ],
   "6a26f54883": [
@@ -445,6 +421,12 @@
       "value": "Ongeldig verzoek."
     }
   ],
+  "78e9815992": [
+    {
+      "type": 0,
+      "value": "Ik heb het"
+    }
+  ],
   "797799f35e": [
     {
       "type": 0,
@@ -461,12 +443,6 @@
     {
       "type": 0,
       "value": "Versie herstellen"
-    }
-  ],
-  "7c7d5d493e": [
-    {
-      "type": 0,
-      "value": "Meld je aan"
     }
   ],
   "7cb5f8b4a5": [
@@ -527,12 +503,6 @@
       "value": "."
     }
   ],
-  "84c89d47c7": [
-    {
-      "type": 0,
-      "value": "Deel gratis"
-    }
-  ],
   "85a082de1b": [
     {
       "type": 0,
@@ -559,12 +529,6 @@
     {
       "type": 0,
       "value": "Om door te kunnen gaan met bewerken, kopieer je de kamer naar je bestanden."
-    }
-  ],
-  "8ea211024d": [
-    {
-      "type": 0,
-      "value": "Maak een gratis account aan"
     }
   ],
   "8eb2c00e96": [
@@ -723,12 +687,6 @@
       "value": "Gastgebruiker"
     }
   ],
-  "b52dc007ac": [
-    {
-      "type": 0,
-      "value": "Aanmelden (gratis en goed)"
-    }
-  ],
   "b6d4223e60": [
     {
       "type": 0,
@@ -811,28 +769,10 @@
       "value": "Upload .tldr-bestanden"
     }
   ],
-  "bffe9a3c9a": [
-    {
-      "type": 0,
-      "value": "Inloggen"
-    }
-  ],
-  "c079282475": [
-    {
-      "type": 0,
-      "value": "Deel je werk"
-    }
-  ],
   "c2276c9127": [
     {
       "type": 0,
       "value": "Meer informatie over delen."
-    }
-  ],
-  "c24e43cd1a": [
-    {
-      "type": 0,
-      "value": "Je schrijft je toch wel in?"
     }
   ],
   "c303bd1095": [
@@ -865,12 +805,6 @@
       "value": "Afmelden"
     }
   ],
-  "c8c6a6504a": [
-    {
-      "type": 0,
-      "value": "Je moet je aanmelden"
-    }
-  ],
   "cceaefbc20": [
     {
       "type": 0,
@@ -887,12 +821,6 @@
     {
       "type": 0,
       "value": "Meer informatie over publiceren."
-    }
-  ],
-  "d0eedb7995": [
-    {
-      "type": 0,
-      "value": "Hoi"
     }
   ],
   "d3d2e61733": [
@@ -919,28 +847,10 @@
       "value": "Probeer het opnieuw"
     }
   ],
-  "d8a50c79a7": [
-    {
-      "type": 0,
-      "value": "Kom met mij mee om te tekenen"
-    }
-  ],
   "d9100f3e10": [
     {
       "type": 0,
       "value": "Ga hierheen om de inhoud te bekijken"
-    }
-  ],
-  "da404df474": [
-    {
-      "type": 0,
-      "value": "Bewaar uw werk"
-    }
-  ],
-  "db4c2dab9a": [
-    {
-      "type": 0,
-      "value": "Niet Excalidraw"
     }
   ],
   "dbbebf3c03": [
@@ -1029,6 +939,12 @@
       "value": " voor meer informatie."
     }
   ],
+  "ef7de3f485": [
+    {
+      "type": 0,
+      "value": "gekozen"
+    }
+  ],
   "f09b16bc5f": [
     {
       "type": 0,
@@ -1075,12 +991,6 @@
     {
       "type": 0,
       "value": "Weet u zeker dat u dit bestand wilt verwijderen?"
-    }
-  ],
-  "fd27891570": [
-    {
-      "type": 0,
-      "value": "Schrijf je in op de wachtlijst"
     }
   ],
   "fed5ec05eb": [

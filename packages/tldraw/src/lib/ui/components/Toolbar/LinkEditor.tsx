@@ -75,6 +75,7 @@ export function LinkEditor({ textEditor, value: initialValue, onClose }: LinkEdi
 				onComplete={handleLinkComplete}
 				onCancel={handleLinkCancel}
 				placeholder="example.com"
+				aria-label="example.com"
 			/>
 			<TldrawUiButton
 				className="tlui-rich-text__toolbar-link-visit"

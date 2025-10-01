@@ -14,9 +14,6 @@
   "06b9281e39": {
     "translation": "Automatisch"
   },
-  "0776e18496": {
-    "translation": "Speichern und teilen"
-  },
   "07dbd11b21": {
     "translation": "Datei ohne Titel"
   },
@@ -38,6 +35,9 @@
   "110a4b01be": {
     "translation": "Veröffentlichen"
   },
+  "12c8a9838c": {
+    "translation": "Testen Sie das tldraw SDK"
+  },
   "13ddd375ad": {
     "translation": "Exportieren als"
   },
@@ -50,8 +50,11 @@
   "1dd1c5fb7f": {
     "translation": "Heute"
   },
-  "22d84a12fd": {
-    "translation": "Figjam aber tldraw"
+  "20976e7bec": {
+    "translation": "Der Raum ist voll"
+  },
+  "21bfb2dc2e": {
+    "translation": "Dieser Raum erreicht seine maximale Größe. Entfernen Sie ggf. Inhalte oder erstellen Sie eine neue Datei."
   },
   "250ddea65c": {
     "translation": "Über tldraw"
@@ -59,8 +62,8 @@
   "299cb00a7a": {
     "translation": "Hochladen fehlgeschlagen"
   },
-  "2c61d18599": {
-    "translation": "Miro aber gut und kostenlos"
+  "2deec2cb74": {
+    "translation": "Dieser Raum hat seine Größenbeschränkung erreicht und Änderungen können möglicherweise nicht mehr gespeichert werden. Entfernen Sie Inhalte oder beginnen Sie eine neue Datei."
   },
   "31246941ad": {
     "translation": "Um diese Datei anzuzeigen, müssen Sie sich anmelden."
@@ -74,9 +77,6 @@
   "344a7f427f": {
     "translation": "Editor"
   },
-  "37b3dca331": {
-    "translation": "Bitte anmelden"
-  },
   "3bd1b98dbd": {
     "translation": "Die Änderungen können nicht veröffentlicht werden."
   },
@@ -86,14 +86,8 @@
   "3d0238bf16": {
     "translation": "Alle akzeptieren"
   },
-  "3fc6d0c83a": {
-    "translation": "Freund hinzufügen"
-  },
   "42e53c47c1": {
     "translation": "Kontaktieren Sie den Eigentümer, um Zugriff anzufordern."
-  },
-  "44281ab6e5": {
-    "translation": "Anmelden"
   },
   "44db318ee5": {
     "translation": "Holen Sie sich Hilfe auf Discord"
@@ -104,6 +98,12 @@
   "47839e47a5": {
     "translation": "tldraw"
   },
+  "7697920637": {
+    "translation": "Bitte neu laden"
+  },
+  "764671e008": {
+    "translation": "Chatten Sie mit uns auf Discord"
+  },
   "4908687e50": {
     "translation": "Möchten Sie diese Datei wirklich vergessen?"
   },
@@ -112,9 +112,6 @@
   },
   "4d1c8263ba": {
     "translation": "Neu laden"
-  },
-  "4ea0bb66f7": {
-    "translation": "Ein Account wäre nett"
   },
   "50db1b7e1e": {
     "translation": "Die Veröffentlichung für diese Datei kann nicht aufgehoben werden."
@@ -143,14 +140,14 @@
   "5a95a425f7": {
     "translation": "Teilen"
   },
+  "5bb6cf3b53": {
+    "translation": "Das Zimmer wird größer"
+  },
   "5bcc12ace8": {
     "translation": "Dieser Raum ist jetzt schreibgeschützt"
   },
   "5bec508475": {
     "translation": "Alter Browser erkannt. Bitte aktualisieren Sie Ihren Browser, um diese App zu verwenden."
-  },
-  "5bef23eb7e": {
-    "translation": "Erstellen Sie Ihr Konto"
   },
   "5d26ae7550": {
     "translation": "Wir konnten den von Ihnen vor Ihrer Anmeldung erstellten Inhalt teilweise nicht hochladen."
@@ -172,9 +169,6 @@
   },
   "6637a98151": {
     "translation": "Eine neue Version von tldraw ist verfügbar. Bitte laden Sie die Seite neu, um fortzufahren."
-  },
-  "697c59072d": {
-    "translation": "Anmelden, um zu speichern"
   },
   "6a26f54883": {
     "translation": "Hilfe"
@@ -206,14 +200,11 @@
   "761e93ede9": {
     "translation": "Cookies anpassen"
   },
-  "7697920637": {
-    "translation": "Bitte neu laden"
-  },
-  "764671e008": {
-    "translation": "Chatten Sie mit uns auf Discord"
-  },
   "777f9e90cf": {
     "translation": "Ungültige Anfrage."
+  },
+  "78e9815992": {
+    "translation": "Habe es"
   },
   "797799f35e": {
     "translation": "Senden Sie ein Problem auf GitHub"
@@ -223,9 +214,6 @@
   },
   "7be10fc592": {
     "translation": "Version wiederherstellen"
-  },
-  "7c7d5d493e": {
-    "translation": "Bitte anmelden"
   },
   "7cb5f8b4a5": {
     "translation": "Vergessen"
@@ -242,9 +230,6 @@
   "815e116a2e": {
     "translation": "Haben Sie einen Fehler, ein Problem oder eine Idee für tldraw? Lassen Sie es uns wissen! Füllen Sie dieses Formular aus und wir melden uns bei Bedarf per E-Mail. Sie können auch <discord>mit uns auf Discord chatten</discord> oder <github>ein Problem auf GitHub melden</github>."
   },
-  "84c89d47c7": {
-    "translation": "Kostenlos teilen"
-  },
   "85a082de1b": {
     "translation": "Bitte aktualisieren Sie die Seite und holden Sie sich die neueste Version von tldraw."
   },
@@ -256,9 +241,6 @@
   },
   "8b1946f965": {
     "translation": "Um mit der Bearbeitung fortzufahren, kopieren Sie den Raum bitte in Ihre Dateien."
-  },
-  "8ea211024d": {
-    "translation": "Kostenloses Konto erstellen"
   },
   "8eb2c00e96": {
     "translation": "Mit Ihnen geteilt"
@@ -336,9 +318,6 @@
   "b028909917": {
     "translation": "Gastbenutzer"
   },
-  "b52dc007ac": {
-    "translation": "Anmelden (kostenlos und gut)"
-  },
   "b6d4223e60": {
     "translation": "Anmelden"
   },
@@ -360,17 +339,8 @@
   "bcb62136a3": {
     "translation": ".tldr-Dateien hochladen"
   },
-  "bffe9a3c9a": {
-    "translation": "Einloggen"
-  },
-  "c079282475": {
-    "translation": "Teilen Sie Ihre Arbeit"
-  },
   "c2276c9127": {
     "translation": "Erfahren Sie mehr über das Teilen."
-  },
-  "c24e43cd1a": {
-    "translation": "Du wirst dich doch anmelden, oder?"
   },
   "c303bd1095": {
     "translation": "Diese Datei kann nicht veröffentlicht werden."
@@ -387,9 +357,6 @@
   "c87aacf567": {
     "translation": "Abmelden"
   },
-  "c8c6a6504a": {
-    "translation": "Sie sollten sich anmelden"
-  },
   "cceaefbc20": {
     "translation": "Diese Datei teilen"
   },
@@ -398,9 +365,6 @@
   },
   "cea291e45e": {
     "translation": "Erfahren Sie mehr über das Veröffentlichen."
-  },
-  "d0eedb7995": {
-    "translation": "Hey"
   },
   "d3d2e61733": {
     "translation": "Schließen"
@@ -414,17 +378,8 @@
   "d876a9fe1a": {
     "translation": "Erneut versuchen"
   },
-  "d8a50c79a7": {
-    "translation": "Komm mit mir zum Zeichnen"
-  },
   "d9100f3e10": {
     "translation": "Hier können Sie den Inhalt sehen"
-  },
-  "da404df474": {
-    "translation": "Speichern Sie Ihre Arbeit"
-  },
-  "db4c2dab9a": {
-    "translation": "Nicht Excalidraw"
   },
   "dbbebf3c03": {
     "translation": "Nur einladen"
@@ -462,6 +417,9 @@
   "ede55d955f": {
     "translation": "Lesen Sie unsere <a>Cookie-Richtlinie</a>, um mehr zu erfahren."
   },
+  "ef7de3f485": {
+    "translation": "ausgewählt"
+  },
   "f09b16bc5f": {
     "translation": "Wir verwenden Cookies, um Sie angemeldet zu halten, Ihre Dateien zu synchronisieren und Analysen zu sammeln, die uns bei der Verbesserung von tldraw helfen."
   },
@@ -485,9 +443,6 @@
   },
   "fd1be3efcf": {
     "translation": "Möchten Sie diese Datei wirklich löschen?"
-  },
-  "fd27891570": {
-    "translation": "Tragen Sie sich in die Warteliste ein"
   },
   "fed5ec05eb": {
     "translation": "Link kopiert"

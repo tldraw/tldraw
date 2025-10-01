@@ -12,6 +12,7 @@ import {
 	READ_ONLY_PREFIX,
 	ROOM_OPEN_MODE,
 	ROOM_PREFIX,
+	ROOM_SIZE_LIMIT_MB,
 	SNAPSHOT_PREFIX,
 	TlaFile,
 	type RoomOpenMode,
@@ -84,7 +85,6 @@ async function canAccessTestProductionFile(
 }
 
 const MB = 1024 * 1024
-const ROOM_SIZE_LIMIT_MB = 25
 
 export class TLDrawDurableObject extends DurableObject {
 	// A unique identifier for this instance of the Durable Object
@@ -749,27 +749,49 @@ export class TLDrawDurableObject extends DurableObject {
 		snapshot: RoomSnapshot,
 		key: string
 	) {
-		const out1 = await this.r2.rooms.createMultipartUpload(key)
-		const out2 = await this.r2.versionCache.createMultipartUpload(
-			key + `/${new Date().toISOString()}`
-		)
+		// Upload to rooms bucket first
+		const roomSizeMB = await this._uploadSnapshotToBucket(this.r2.rooms, snapshot, key)
+		// Update storage percentage
+		if (roomSizeMB !== null) {
+			await this.addRoomStorageUsedPercentage(room, roomSizeMB, true)
+		}
+
+		// Then upload to version cache
+		const versionKey = `${key}/${new Date().toISOString()}`
+		await this._uploadSnapshotToBucket(this.r2.versionCache, snapshot, versionKey)
+	}
+
+	private async _uploadSnapshotToBucket(bucket: R2Bucket, snapshot: RoomSnapshot, key: string) {
+		try {
+			// Try multipart upload first
+			return await this._uploadSnapshotToBucketMultipart(bucket, snapshot, key)
+		} catch (multipartError) {
+			this.reportError(
+				new Error(`Multipart upload failed, falling back to simple PUT: ${multipartError}`)
+			)
+			// Fallback to simple PUT
+			return await this._uploadSnapshotToBucketSimple(bucket, snapshot, key)
+		}
+	}
+
+	private async _uploadSnapshotToBucketMultipart(
+		bucket: R2Bucket,
+		snapshot: RoomSnapshot,
+		key: string
+	) {
+		const out = await bucket.createMultipartUpload(key)
 
 		try {
 			// 5MB buffer
 			const fiveMB = 5 * MB
 			const buffer = new Uint8Array(fiveMB)
-			const parts1: R2UploadedPart[] = []
-			const parts2: R2UploadedPart[] = []
+			const parts: R2UploadedPart[] = []
 			let partNumber = 1
 			let offset = 0
 
 			const uploadBuffer = async (data: Uint8Array) => {
-				const [p1, p2] = await Promise.all([
-					out1.uploadPart(partNumber, data),
-					out2.uploadPart(partNumber, data),
-				])
-				parts1.push(p1)
-				parts2.push(p2)
+				const part = await out.uploadPart(partNumber, data)
+				parts.push(part)
 				partNumber++
 			}
 
@@ -799,14 +821,29 @@ export class TLDrawDurableObject extends DurableObject {
 				await uploadBuffer(buffer.subarray(0, offset))
 			}
 
-			const [roomObject] = await Promise.all([out1.complete(parts1), out2.complete(parts2)])
-			if (roomObject) {
-				await this.addRoomStorageUsedPercentage(room, roomObject.size / MB, true)
+			const result = await out.complete(parts)
+			if (result) {
+				return result.size / MB
 			}
+			return null
 		} catch (e) {
-			await Promise.all([out1.abort(), out2.abort()])
+			await out.abort()
 			throw e
 		}
+	}
+
+	private async _uploadSnapshotToBucketSimple(
+		bucket: R2Bucket,
+		snapshot: RoomSnapshot,
+		key: string
+	) {
+		const serialized = JSON.stringify(snapshot)
+		const result = await bucket.put(key, serialized)
+		if (result) {
+			return result.size / MB
+		}
+
+		return null
 	}
 
 	private reportError(e: unknown) {

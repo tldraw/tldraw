@@ -33,12 +33,6 @@
       "value": "Auto"
     }
   ],
-  "0776e18496": [
-    {
-      "type": 0,
-      "value": "Salva e condividi"
-    }
-  ],
   "07dbd11b21": [
     {
       "type": 0,
@@ -81,6 +75,12 @@
       "value": "Pubblica"
     }
   ],
+  "12c8a9838c": [
+    {
+      "type": 0,
+      "value": "Prova l'SDK tldraw"
+    }
+  ],
   "13ddd375ad": [
     {
       "type": 0,
@@ -105,10 +105,16 @@
       "value": "Oggi"
     }
   ],
-  "22d84a12fd": [
+  "20976e7bec": [
     {
       "type": 0,
-      "value": "Figjam ma tldraw"
+      "value": "La stanza è piena"
+    }
+  ],
+  "21bfb2dc2e": [
+    {
+      "type": 0,
+      "value": "Questa stanza sta per raggiungere il limite di dimensioni. Valuta la possibilità di rimuovere alcuni contenuti o di creare un nuovo file."
     }
   ],
   "250ddea65c": [
@@ -123,10 +129,10 @@
       "value": "Caricamento non riuscito"
     }
   ],
-  "2c61d18599": [
+  "2deec2cb74": [
     {
       "type": 0,
-      "value": "Miro ma buono e libero"
+      "value": "Questa stanza ha raggiunto il limite di dimensioni e le modifiche potrebbero non essere più salvate. Rimuovi alcuni contenuti o crea un nuovo file."
     }
   ],
   "31246941ad": [
@@ -153,12 +159,6 @@
       "value": "Editor"
     }
   ],
-  "37b3dca331": [
-    {
-      "type": 0,
-      "value": "Per favore accedi"
-    }
-  ],
   "3bd1b98dbd": [
     {
       "type": 0,
@@ -177,22 +177,10 @@
       "value": "Accetta tutto"
     }
   ],
-  "3fc6d0c83a": [
-    {
-      "type": 0,
-      "value": "Aggiungi amico"
-    }
-  ],
   "42e53c47c1": [
     {
       "type": 0,
       "value": "Contatta il proprietario per richiedere l'accesso."
-    }
-  ],
-  "44281ab6e5": [
-    {
-      "type": 0,
-      "value": "Accedi"
     }
   ],
   "44db318ee5": [
@@ -229,12 +217,6 @@
     {
       "type": 0,
       "value": "Ricarica"
-    }
-  ],
-  "4ea0bb66f7": [
-    {
-      "type": 0,
-      "value": "Un account sarebbe bello"
     }
   ],
   "50db1b7e1e": [
@@ -301,6 +283,12 @@
       "value": "Condividi"
     }
   ],
+  "5bb6cf3b53": [
+    {
+      "type": 0,
+      "value": "La stanza sta diventando grande"
+    }
+  ],
   "5bcc12ace8": [
     {
       "type": 0,
@@ -311,12 +299,6 @@
     {
       "type": 0,
       "value": "Rilevato browser obsoleto. Aggiorna il browser per utilizzare questa app."
-    }
-  ],
-  "5bef23eb7e": [
-    {
-      "type": 0,
-      "value": "Crea il tuo account"
     }
   ],
   "5d26ae7550": [
@@ -359,12 +341,6 @@
     {
       "type": 0,
       "value": "È disponibile una nuova versione di tldraw. Ricarica la pagina per continuare."
-    }
-  ],
-  "697c59072d": [
-    {
-      "type": 0,
-      "value": "Accedi per salvare"
     }
   ],
   "6a26f54883": [
@@ -445,6 +421,12 @@
       "value": "Richiesta non valida."
     }
   ],
+  "78e9815992": [
+    {
+      "type": 0,
+      "value": "Fatto"
+    }
+  ],
   "797799f35e": [
     {
       "type": 0,
@@ -461,12 +443,6 @@
     {
       "type": 0,
       "value": "Ripristina versione"
-    }
-  ],
-  "7c7d5d493e": [
-    {
-      "type": 0,
-      "value": "Per favore, registrati"
     }
   ],
   "7cb5f8b4a5": [
@@ -527,12 +503,6 @@
       "value": "."
     }
   ],
-  "84c89d47c7": [
-    {
-      "type": 0,
-      "value": "Condividi gratuitamente"
-    }
-  ],
   "85a082de1b": [
     {
       "type": 0,
@@ -563,12 +533,6 @@
     {
       "type": 0,
       "value": "Per continuare la modifica, copia la stanza nei tuoi file."
-    }
-  ],
-  "8ea211024d": [
-    {
-      "type": 0,
-      "value": "Crea un account gratuito"
     }
   ],
   "8eb2c00e96": [
@@ -727,12 +691,6 @@
       "value": "Utente ospite"
     }
   ],
-  "b52dc007ac": [
-    {
-      "type": 0,
-      "value": "Iscriviti (gratuito e valido)"
-    }
-  ],
   "b6d4223e60": [
     {
       "type": 0,
@@ -815,28 +773,10 @@
       "value": "Carica file .tldr"
     }
   ],
-  "bffe9a3c9a": [
-    {
-      "type": 0,
-      "value": "Login"
-    }
-  ],
-  "c079282475": [
-    {
-      "type": 0,
-      "value": "Condividi il tuo lavoro"
-    }
-  ],
   "c2276c9127": [
     {
       "type": 0,
       "value": "Maggiori informazioni sulla condivisione."
-    }
-  ],
-  "c24e43cd1a": [
-    {
-      "type": 0,
-      "value": "Ti iscriverai, vero?"
     }
   ],
   "c303bd1095": [
@@ -869,12 +809,6 @@
       "value": "Esci"
     }
   ],
-  "c8c6a6504a": [
-    {
-      "type": 0,
-      "value": "Dovresti iscriverti"
-    }
-  ],
   "cceaefbc20": [
     {
       "type": 0,
@@ -891,12 +825,6 @@
     {
       "type": 0,
       "value": "Maggiori informazioni sulla pubblicazione."
-    }
-  ],
-  "d0eedb7995": [
-    {
-      "type": 0,
-      "value": "EHI"
     }
   ],
   "d3d2e61733": [
@@ -923,28 +851,10 @@
       "value": "Riprova"
     }
   ],
-  "d8a50c79a7": [
-    {
-      "type": 0,
-      "value": "Vieni con me a tldraw"
-    }
-  ],
   "d9100f3e10": [
     {
       "type": 0,
       "value": "Vai qui per vedere i contenuti"
-    }
-  ],
-  "da404df474": [
-    {
-      "type": 0,
-      "value": "Salva il tuo lavoro"
-    }
-  ],
-  "db4c2dab9a": [
-    {
-      "type": 0,
-      "value": "Non Excalidraw"
     }
   ],
   "dbbebf3c03": [
@@ -1033,6 +943,12 @@
       "value": "."
     }
   ],
+  "ef7de3f485": [
+    {
+      "type": 0,
+      "value": "selezionato"
+    }
+  ],
   "f09b16bc5f": [
     {
       "type": 0,
@@ -1079,12 +995,6 @@
     {
       "type": 0,
       "value": "Confermi di voler eliminare questo file?"
-    }
-  ],
-  "fd27891570": [
-    {
-      "type": 0,
-      "value": "Unisciti alla lista d'attesa"
     }
   ],
   "fed5ec05eb": [

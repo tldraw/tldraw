@@ -1,4 +1,4 @@
-import { TLFrameShape, TLShapeId, stopEventPropagation, useEditor } from '@tldraw/editor'
+import { TLFrameShape, TLShapeId, useEditor } from '@tldraw/editor'
 import { forwardRef, useCallback } from 'react'
 import { defaultEmptyAs } from '../FrameShapeUtil'
 
@@ -8,12 +8,19 @@ export const FrameLabelInput = forwardRef<
 >(({ id, name, isEditing }, ref) => {
 	const editor = useEditor()
 
+	const handlePointerDown = useCallback(
+		(e: React.PointerEvent) => {
+			if (isEditing) editor.markEventAsHandled(e)
+		},
+		[editor, isEditing]
+	)
+
 	const handleKeyDown = useCallback(
 		(e: React.KeyboardEvent<HTMLInputElement>) => {
 			if (e.key === 'Enter' && !e.nativeEvent.isComposing) {
 				// need to prevent the enter keydown making it's way up to the Idle state
 				// and sending us back into edit mode
-				stopEventPropagation(e)
+				editor.markEventAsHandled(e)
 				e.currentTarget.blur()
 				editor.setEditingShape(null)
 			}
@@ -74,7 +81,7 @@ export const FrameLabelInput = forwardRef<
 				onKeyDown={handleKeyDown}
 				onBlur={handleBlur}
 				onChange={handleChange}
-				onPointerDown={isEditing ? stopEventPropagation : undefined}
+				onPointerDown={handlePointerDown}
 				draggable={false}
 			/>
 			{defaultEmptyAs(name, 'Frame') + String.fromCharCode(8203)}

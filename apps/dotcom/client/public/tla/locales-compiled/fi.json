@@ -33,12 +33,6 @@
       "value": "Auto"
     }
   ],
-  "0776e18496": [
-    {
-      "type": 0,
-      "value": "Tallenna ja jaa"
-    }
-  ],
   "07dbd11b21": [
     {
       "type": 0,
@@ -81,6 +75,12 @@
       "value": "Julkaista"
     }
   ],
+  "12c8a9838c": [
+    {
+      "type": 0,
+      "value": "Kokeile tldraw SDK:ta"
+    }
+  ],
   "13ddd375ad": [
     {
       "type": 0,
@@ -105,10 +105,16 @@
       "value": "Tänään"
     }
   ],
-  "22d84a12fd": [
+  "20976e7bec": [
     {
       "type": 0,
-      "value": "Figjam, mutta tldraw"
+      "value": "Huone on täynnä"
+    }
+  ],
+  "21bfb2dc2e": [
+    {
+      "type": 0,
+      "value": "Tämä huone lähestyy kokorajoitustaan. Harkitse sisällön poistamista tai uuden tiedoston aloittamista."
     }
   ],
   "250ddea65c": [
@@ -123,10 +129,10 @@
       "value": "Lataus epäonnistui"
     }
   ],
-  "2c61d18599": [
+  "2deec2cb74": [
     {
       "type": 0,
-      "value": "Miro, mutta hyvä ja ilmainen"
+      "value": "Tämä huone on saavuttanut kokorajoituksensa, eikä muutoksia ehkä enää tallenneta. Poista sisältöä tai aloita uusi tiedosto."
     }
   ],
   "31246941ad": [
@@ -153,12 +159,6 @@
       "value": "Toimittaja"
     }
   ],
-  "37b3dca331": [
-    {
-      "type": 0,
-      "value": "Kirjaudu sisään"
-    }
-  ],
   "3bd1b98dbd": [
     {
       "type": 0,
@@ -177,22 +177,10 @@
       "value": "Hyväksy kaikki"
     }
   ],
-  "3fc6d0c83a": [
-    {
-      "type": 0,
-      "value": "Lisää ystävä"
-    }
-  ],
   "42e53c47c1": [
     {
       "type": 0,
       "value": "Pyydä käyttöoikeutta ottamalla yhteyttä omistajaan."
-    }
-  ],
-  "44281ab6e5": [
-    {
-      "type": 0,
-      "value": "Kirjaudu sisään"
     }
   ],
   "44db318ee5": [
@@ -229,12 +217,6 @@
     {
       "type": 0,
       "value": "Lataa uudelleen"
-    }
-  ],
-  "4ea0bb66f7": [
-    {
-      "type": 0,
-      "value": "Tili olisi kiva"
     }
   ],
   "50db1b7e1e": [
@@ -301,6 +283,12 @@
       "value": "Jakaa"
     }
   ],
+  "5bb6cf3b53": [
+    {
+      "type": 0,
+      "value": "Huone kasvaa suureksi"
+    }
+  ],
   "5bcc12ace8": [
     {
       "type": 0,
@@ -311,12 +299,6 @@
     {
       "type": 0,
       "value": "Vanha selain havaittu. Päivitä selaimesi käyttääksesi tätä sovellusta."
-    }
-  ],
-  "5bef23eb7e": [
-    {
-      "type": 0,
-      "value": "Luo tili"
     }
   ],
   "5d26ae7550": [
@@ -359,12 +341,6 @@
     {
       "type": 0,
       "value": "Uusi versio tldraw:sta on saatavilla. Jatka lataamalla sivu uudelleen."
-    }
-  ],
-  "697c59072d": [
-    {
-      "type": 0,
-      "value": "Kirjaudu sisään tallentaaksesi"
     }
   ],
   "6a26f54883": [
@@ -445,6 +421,12 @@
       "value": "Virheellinen pyyntö."
     }
   ],
+  "78e9815992": [
+    {
+      "type": 0,
+      "value": "Selvä"
+    }
+  ],
   "797799f35e": [
     {
       "type": 0,
@@ -461,12 +443,6 @@
     {
       "type": 0,
       "value": "Palauta versio"
-    }
-  ],
-  "7c7d5d493e": [
-    {
-      "type": 0,
-      "value": "Ole hyvä ja rekisteröidy"
     }
   ],
   "7cb5f8b4a5": [
@@ -527,12 +503,6 @@
       "value": "."
     }
   ],
-  "84c89d47c7": [
-    {
-      "type": 0,
-      "value": "Jaa ilmaiseksi"
-    }
-  ],
   "85a082de1b": [
     {
       "type": 0,
@@ -563,12 +533,6 @@
     {
       "type": 0,
       "value": "Jatkaaksesi muokkaamista, kopioi huone tiedostoihisi."
-    }
-  ],
-  "8ea211024d": [
-    {
-      "type": 0,
-      "value": "Luo ilmainen tili"
     }
   ],
   "8eb2c00e96": [
@@ -727,12 +691,6 @@
       "value": "Vieraskäyttäjä"
     }
   ],
-  "b52dc007ac": [
-    {
-      "type": 0,
-      "value": "Rekisteröidy (ilmainen ja hyvä)"
-    }
-  ],
   "b6d4223e60": [
     {
       "type": 0,
@@ -815,28 +773,10 @@
       "value": "Lataa .tldr-tiedostoja"
     }
   ],
-  "bffe9a3c9a": [
-    {
-      "type": 0,
-      "value": "Kirjaudu sisään"
-    }
-  ],
-  "c079282475": [
-    {
-      "type": 0,
-      "value": "Jaa työsi"
-    }
-  ],
   "c2276c9127": [
     {
       "type": 0,
       "value": "Lisätietoja jakamisesta."
-    }
-  ],
-  "c24e43cd1a": [
-    {
-      "type": 0,
-      "value": "Ilmoittauduthan mukaan, eikö niin?"
     }
   ],
   "c303bd1095": [
@@ -869,12 +809,6 @@
       "value": "Kirjaudu ulos"
     }
   ],
-  "c8c6a6504a": [
-    {
-      "type": 0,
-      "value": "Sinun pitäisi rekisteröityä"
-    }
-  ],
   "cceaefbc20": [
     {
       "type": 0,
@@ -891,12 +825,6 @@
     {
       "type": 0,
       "value": "Lisätietoja julkaisemisesta."
-    }
-  ],
-  "d0eedb7995": [
-    {
-      "type": 0,
-      "value": "Hei"
     }
   ],
   "d3d2e61733": [
@@ -923,28 +851,10 @@
       "value": "Yritä uudelleen"
     }
   ],
-  "d8a50c79a7": [
-    {
-      "type": 0,
-      "value": "Tule kanssani piirtämään"
-    }
-  ],
   "d9100f3e10": [
     {
       "type": 0,
       "value": "Siirry tänne nähdäksesi sisällön"
-    }
-  ],
-  "da404df474": [
-    {
-      "type": 0,
-      "value": "Tallenna työsi"
-    }
-  ],
-  "db4c2dab9a": [
-    {
-      "type": 0,
-      "value": "Ei Excalidraw"
     }
   ],
   "dbbebf3c03": [
@@ -1033,6 +943,12 @@
       "value": "."
     }
   ],
+  "ef7de3f485": [
+    {
+      "type": 0,
+      "value": "valittu"
+    }
+  ],
   "f09b16bc5f": [
     {
       "type": 0,
@@ -1079,12 +995,6 @@
     {
       "type": 0,
       "value": "Haluatko varmasti poistaa tämän tiedoston?"
-    }
-  ],
-  "fd27891570": [
-    {
-      "type": 0,
-      "value": "Liity odotuslistalle"
     }
   ],
   "fed5ec05eb": [

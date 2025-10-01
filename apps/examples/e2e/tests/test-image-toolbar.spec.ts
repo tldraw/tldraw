@@ -1,7 +1,7 @@
 import { expect } from '@playwright/test'
 import { Editor, TLAssetId, TLImageShape } from 'tldraw'
+import test from '../fixtures/fixtures'
 import { setup } from '../shared-e2e'
-import test from './fixtures/fixtures'
 
 declare const editor: Editor
 
@@ -59,7 +59,7 @@ test.describe('Image toolbar behaviour', () => {
 	test('zoom slider changes image crop', async ({ page, isMobile }) => {
 		if (isMobile) return
 
-		const manipulator = page.getByTitle('Crop image')
+		const manipulator = page.getByTestId('tool.image-crop')
 		await manipulator.click()
 
 		// Find and use the slider
@@ -88,11 +88,11 @@ test.describe('Image toolbar behaviour', () => {
 	test('aspect ratio dropdown changes image crop', async ({ page, isMobile }) => {
 		if (isMobile) return
 
-		const manipulator = page.getByTitle('Crop image')
+		const manipulator = page.getByTestId('tool.image-crop')
 		await manipulator.click()
 
 		// Open aspect ratio dropdown
-		await page.getByTitle('Aspect Ratio').click()
+		await page.getByTestId('tool.image-aspect-ratio').click()
 
 		// Select the square option
 		await page.getByText('Square').click()
@@ -122,7 +122,7 @@ test.describe('Image toolbar behaviour', () => {
 	test.skip('flip buttons flip the image', async ({ page, isMobile }) => {
 		if (isMobile) return
 
-		const manipulator = page.getByTitle('Crop image')
+		const manipulator = page.getByTestId('tool.image-crop')
 		await manipulator.click()
 
 		// Get initial state
@@ -137,7 +137,7 @@ test.describe('Image toolbar behaviour', () => {
 		})
 
 		// Click flip horizontal button
-		await page.getByTitle('Flip horizontally').click()
+		await page.getByTestId('tool.image-flip-horizontal').click()
 
 		// Check horizontal flip state
 		const afterHorizontalFlip = await page.evaluate(() => {
@@ -154,7 +154,7 @@ test.describe('Image toolbar behaviour', () => {
 		expect(afterHorizontalFlip.w).toEqual(initialState.w) // Width shouldn't change
 
 		// Click flip vertical button
-		await page.getByTitle('Flip vertically').click()
+		await page.getByTestId('tool.image-flip-vertical').click()
 
 		// Check vertical flip state
 		const afterVerticalFlip = await page.evaluate(() => {
@@ -175,13 +175,13 @@ test.describe('Image toolbar behaviour', () => {
 		if (isMobile) return
 
 		// Click the Alt Text button
-		await page.getByTitle('Alternative text').click()
+		await page.getByTestId('tool.image-alt-text').click()
 
 		// Enter some alt text
 		await page.getByTestId('media-toolbar.alt-text-input').fill('A test image for e2e testing')
 
 		// Save the alt text
-		await page.getByTitle('Confirm').click()
+		await page.getByTestId('tool.media-alt-text-confirm').click()
 
 		// Check that the alt text was saved
 		const altText = await page.evaluate(() => {
@@ -202,7 +202,7 @@ test.describe('Image toolbar behaviour', () => {
 		})
 
 		// Click the replace image button
-		await page.getByTitle('Replace media').click()
+		await page.getByTestId('tool.image-replace').click()
 
 		// This would typically open a file dialog, which is hard to test in Playwright
 		// Instead, we'll directly trigger the image replacement through evaluation

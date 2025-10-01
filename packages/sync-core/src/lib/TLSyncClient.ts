@@ -67,6 +67,12 @@ export type TLSyncErrorCloseEventReason =
 	(typeof TLSyncErrorCloseEventReason)[keyof typeof TLSyncErrorCloseEventReason]
 
 /**
+ * Event handler for userland socket messages
+ * @public
+ */
+export type TLCustomMessageHandler = (this: null, data: any) => void
+
+/**
  * @internal
  */
 export type TlSocketStatusChangeEvent =
@@ -82,6 +88,9 @@ export type TLSocketStatusListener = (params: TlSocketStatusChangeEvent) => void
 
 /** @internal */
 export type TLPersistentClientSocketStatus = 'online' | 'offline' | 'error'
+
+/** @internal */
+export type TLPresenceMode = 'solo' | 'full'
 /**
  * A socket that can be used to send and receive messages to the server. It should handle staying
  * open and reconnecting when the connection is lost. In actual client code this will be a wrapper
@@ -139,6 +148,7 @@ export class TLSyncClient<R extends UnknownRecord, S extends Store<R> = Store<R>
 	readonly socket: TLPersistentClientSocket<R>
 
 	readonly presenceState: Signal<R | null> | undefined
+	readonly presenceMode: Signal<TLPresenceMode> | undefined
 
 	// isOnline is true when we have an open socket connection and we have
 	// established a connection with the server room (i.e. we have received a 'connect' message)
@@ -162,12 +172,7 @@ export class TLSyncClient<R extends UnknownRecord, S extends Store<R> = Store<R>
 	 */
 	public readonly onAfterConnect?: (self: this, details: { isReadonly: boolean }) => void
 
-	/**
-	 * If true, the client will not send any presence updates to the server as well
-	 * as lowering the rebase rate.
-	 */
-	// TODO TODO TODO
-	public isSoloMode = false
+	private readonly onCustomMessageReceived?: TLCustomMessageHandler
 
 	private isDebugging = false
 	private debug(...args: any[]) {
@@ -185,8 +190,10 @@ export class TLSyncClient<R extends UnknownRecord, S extends Store<R> = Store<R>
 		store: S
 		socket: TLPersistentClientSocket<R>
 		presence: Signal<R | null>
+		presenceMode?: Signal<TLPresenceMode>
 		onLoad(self: TLSyncClient<R, S>): void
 		onSyncError(reason: string): void
+		onCustomMessageReceived?: TLCustomMessageHandler
 		onAfterConnect?(self: TLSyncClient<R, S>, details: { isReadonly: boolean }): void
 		didCancel?(): boolean
 	}) {
@@ -200,12 +207,12 @@ export class TLSyncClient<R extends UnknownRecord, S extends Store<R> = Store<R>
 		this.store = config.store
 		this.socket = config.socket
 		this.onAfterConnect = config.onAfterConnect
-		// TODO TODO TODO
-		this.isSoloMode = false
+		this.onCustomMessageReceived = config.onCustomMessageReceived
 
 		let didLoad = false
 
 		this.presenceState = config.presence
+		this.presenceMode = config.presenceMode
 
 		this.disposables.push(
 			// when local 'user' changes are made, send them to the server
@@ -283,6 +290,8 @@ export class TLSyncClient<R extends UnknownRecord, S extends Store<R> = Store<R>
 			this.disposables.push(
 				react('pushPresence', () => {
 					if (this.didCancel?.()) return this.close()
+					const mode = this.presenceMode?.get()
+					if (mode !== 'full') return
 					this.pushPresence(this.presenceState!.get())
 				})
 			)
@@ -324,9 +333,12 @@ export class TLSyncClient<R extends UnknownRecord, S extends Store<R> = Store<R>
 			this.lastServerClock = 0
 		}
 		// kill all presence state
-		this.store.mergeRemoteChanges(() => {
-			this.store.remove(Object.keys(this.store.serialize('presence')) as any)
-		})
+		const keys = Object.keys(this.store.serialize('presence')) as any
+		if (keys.length > 0) {
+			this.store.mergeRemoteChanges(() => {
+				this.store.remove(keys)
+			})
+		}
 		this.lastPushedPresenceState = null
 		this.isConnectedToRoom = false
 		this.pendingPushRequests = []
@@ -408,6 +420,10 @@ export class TLSyncClient<R extends UnknownRecord, S extends Store<R> = Store<R>
 			// this.store.applyDiff(stashedChanges, false)
 
 			this.onAfterConnect?.(this, { isReadonly: event.isReadonly })
+			const presence = this.presenceState?.get()
+			if (presence) {
+				this.pushPresence(presence)
+			}
 		})
 
 		this.lastServerClock = event.serverClock
@@ -444,6 +460,10 @@ export class TLSyncClient<R extends UnknownRecord, S extends Store<R> = Store<R>
 			case 'pong':
 				// noop, we only use ping/pong to set lastSeverInteractionTimestamp
 				break
+			case 'custom':
+				this.onCustomMessageReceived?.call(null, event.data)
+				break
+
 			default:
 				exhaustiveSwitchError(event)
 		}
@@ -562,7 +582,7 @@ export class TLSyncClient<R extends UnknownRecord, S extends Store<R> = Store<R>
 				}
 			}
 		},
-		() => (this.isSoloMode ? 1 : 30)
+		() => (this.presenceMode?.get() === 'solo' ? 1 : 30)
 	)
 
 	/**
@@ -671,5 +691,7 @@ export class TLSyncClient<R extends UnknownRecord, S extends Store<R> = Store<R>
 		}
 	}
 
-	private scheduleRebase = fpsThrottle(this.rebase, () => (this.isSoloMode ? 1 : 30))
+	private scheduleRebase = fpsThrottle(this.rebase, () =>
+		this.presenceMode?.get() === 'solo' ? 1 : 30
+	)
 }

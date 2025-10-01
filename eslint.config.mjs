@@ -11,7 +11,7 @@ import react from 'eslint-plugin-react'
 import reactHooks from 'eslint-plugin-react-hooks'
 import path from 'node:path'
 import { fileURLToPath } from 'node:url'
-import localRules from './.eslintplugin.js'
+import localRules from './internal/scripts/eslint/eslint-plugin.mjs'
 
 const __filename = fileURLToPath(import.meta.url)
 const __dirname = path.dirname(__filename)
@@ -45,8 +45,6 @@ export default [
 			'**/lazy.config.ts',
 			'**/next.config.js',
 			'**/setupTests.js',
-			'**/setupJest.js',
-			'**/jestResolver.js',
 			'apps/vscode/extension/editor',
 			'apps/examples/www',
 			'apps/docs/api-content.json',
@@ -60,12 +58,14 @@ export default [
 			'apps/docs/postcss.config.js',
 			'apps/docs/tailwind.config.js',
 			'apps/dotcom/client/public/sw.js',
-			'**/patchedJestJsDom.js',
+			'apps/analytics/public/*',
 			'**/.clasp.json',
 			'**/*.mjs',
 			'**/.*.js',
 			'packages/assets/*',
 			'packages/create-tldraw/cli.cjs',
+			'**/*/vitest.config.ts',
+			'**/*/setupVitest.js',
 		],
 	},
 	...compat.extends(
@@ -400,6 +400,7 @@ export default [
 			'local/prefer-class-methods': 'off',
 			'no-restricted-syntax': 'off',
 			'no-console': 'off',
+			'@typescript-eslint/method-signature-style': 'off',
 		},
 	},
 ]

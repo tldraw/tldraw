@@ -3,14 +3,14 @@ import { T } from '@tldraw/validate'
 export const EXPORT_CONFIG_KEY = 'tldraw_template' as const
 
 export const TemplateConfig = T.object({
-	publish: T.object({
-		repo: T.string,
+	repo: T.string,
+	cli: T.object({
 		name: T.string,
 		description: T.string,
-		category: T.literalEnum('framework', 'app'),
+		shortDescription: T.string.optional(),
 		order: T.number.optional(),
 	}).optional(),
-	scripts: T.dict(T.string, T.nullable(T.string)),
+	scripts: T.dict(T.string, T.nullable(T.string)).optional(),
 })
 export type TemplateConfig = T.TypeOf<typeof TemplateConfig>
 
