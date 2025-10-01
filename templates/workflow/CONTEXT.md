@@ -30,7 +30,7 @@ This is a starter template for building workflow/flowchart applications using tl
 
 - **ExecutionGraph** (`src/execution/ExecutionGraph.tsx`): Handles asynchronous execution of workflow graphs
 - **Real-time Updates**: Nodes update instantly to show results
-- **Async Execution**: Demonstrates how workflows might execute against real services
+- **Async execution**: Demonstrates how workflows might execute against real services
 
 ## Key features
 
