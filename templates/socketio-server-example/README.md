@@ -1,8 +1,8 @@
-# tldraw sync, simple Node/Bun server example
+# tldraw sync, custom transport example
 
-This is a simple example of a backend for [tldraw sync](https://tldraw.dev/docs/sync) with a Node or Bun server.
+This is a simple example of a backend for [tldraw sync](https://tldraw.dev/docs/sync) hosted on Node, with a custom socket.io transport instead of our default websocket-based one.
 
-Run `yarn dev-node` or `yarn dev-bun` in this folder to start the server + client.
+Run `yarn dev` in this folder to start the server + client.
 
 For a production-ready example specific to Cloudflare, see /templates/sync-cloudflare.
 
