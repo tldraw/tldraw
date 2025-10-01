@@ -18,7 +18,7 @@ import { TLRecord } from '@tldraw/tlschema';
 import { TLStoreSnapshot } from '@tldraw/tlschema';
 import { UnknownRecord } from '@tldraw/store';
 
-// @internal (undocumented)
+// @public (undocumented)
 export type AppendOp = [type: typeof ValueOpType.Append, values: unknown[], offset: number];
 
 // @internal (undocumented)
@@ -56,7 +56,7 @@ export class ClientWebSocketAdapter implements TLPersistentClientSocket<TLRecord
     _ws: null | WebSocket;
 }
 
-// @internal (undocumented)
+// @public (undocumented)
 export type DeleteOp = [type: typeof ValueOpType.Delete];
 
 // @internal (undocumented)
@@ -90,7 +90,7 @@ export interface NetworkDiff<R extends UnknownRecord> {
     [id: string]: RecordOp<R>;
 }
 
-// @internal (undocumented)
+// @public (undocumented)
 export interface ObjectDiff {
     // (undocumented)
     [k: string]: ValueOp;
@@ -101,7 +101,7 @@ export type OmitVoid<T, KS extends keyof T = keyof T> = {
     [K in KS extends any ? (void extends T[KS] ? never : KS) : never]: T[K];
 };
 
-// @internal (undocumented)
+// @public (undocumented)
 export type PatchOp = [type: typeof ValueOpType.Patch, diff: ObjectDiff];
 
 // @internal (undocumented)
@@ -114,7 +114,7 @@ export interface PersistedRoomSnapshotForSupabase {
     slug: string;
 }
 
-// @internal (undocumented)
+// @public (undocumented)
 export type PutOp = [type: typeof ValueOpType.Put, value: unknown];
 
 // @internal (undocumented)
@@ -132,8 +132,6 @@ export class ReconnectManager {
     maybeReconnected(): void;
 }
 
-// Warning: (ae-incompatible-release-tags) The symbol "RecordOp" is marked as @public, but its signature references "ObjectDiff" which is marked as @internal
-//
 // @public (undocumented)
 export type RecordOp<R extends UnknownRecord> = [typeof RecordOpType.Patch, ObjectDiff] | [typeof RecordOpType.Put, R] | [typeof RecordOpType.Remove];
 
@@ -281,8 +279,6 @@ export interface TLPushRequest<R extends UnknownRecord> {
     clientClock: number;
     // (undocumented)
     diff?: NetworkDiff<R>;
-    // Warning: (ae-incompatible-release-tags) The symbol "presence" is marked as @public, but its signature references "ObjectDiff" which is marked as @internal
-    //
     // (undocumented)
     presence?: [typeof RecordOpType.Patch, ObjectDiff] | [typeof RecordOpType.Put, R];
     // (undocumented)
@@ -578,10 +574,10 @@ export class TLSyncRoom<R extends UnknownRecord, SessionMeta> {
     updateStore(updater: (store: RoomStoreMethods<R>) => Promise<void> | void): Promise<void>;
 }
 
-// @internal (undocumented)
+// @public (undocumented)
 export type ValueOp = AppendOp | DeleteOp | PatchOp | PutOp;
 
-// @internal (undocumented)
+// @public (undocumented)
 export const ValueOpType: {
     readonly Append: "append";
     readonly Delete: "delete";
@@ -589,7 +585,7 @@ export const ValueOpType: {
     readonly Put: "put";
 };
 
-// @internal (undocumented)
+// @public (undocumented)
 export type ValueOpType = (typeof ValueOpType)[keyof typeof ValueOpType];
 
 // @public
