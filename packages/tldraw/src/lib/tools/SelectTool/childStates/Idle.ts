@@ -516,7 +516,7 @@ export class Idle extends StateNode {
 	}
 
 	override onKeyUp(info: TLKeyboardEventInfo) {
-		switch (info.code) {
+		switch (info.key) {
 			case 'Enter': {
 				// Because Enter onKeyDown can happen outside the canvas (but then focus the canvas potentially),
 				// we need to check if the canvas was initially selecting something before continuing.
