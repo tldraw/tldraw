@@ -24,7 +24,7 @@ import {
 	getTlsyncProtocolVersion,
 } from './protocol'
 
-/** @internal */
+/** @public */
 export type SubscribingFn<T> = (cb: (val: T) => void) => () => void
 
 /**
@@ -96,7 +96,7 @@ export type TLPresenceMode = 'solo' | 'full'
  * open and reconnecting when the connection is lost. In actual client code this will be a wrapper
  * around a websocket or socket.io or something similar.
  *
- * @internal
+ * @public
  */
 export interface TLPersistentClientSocket<R extends UnknownRecord = UnknownRecord> {
 	/** Whether there is currently an open connection to the server. */
@@ -109,6 +109,8 @@ export interface TLPersistentClientSocket<R extends UnknownRecord = UnknownRecor
 	onStatusChange: SubscribingFn<TlSocketStatusChangeEvent>
 	/** Restart the connection */
 	restart(): void
+	/** Close the connection */
+	close(): void
 }
 
 const PING_INTERVAL = 5000

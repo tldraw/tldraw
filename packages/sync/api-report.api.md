@@ -7,8 +7,10 @@
 import { Editor } from 'tldraw';
 import { Signal } from 'tldraw';
 import { TLAssetStore } from 'tldraw';
+import { TLPersistentClientSocket } from '@tldraw/sync-core';
 import { TLPresenceStateInfo } from 'tldraw';
 import { TLPresenceUserInfo } from 'tldraw';
+import { TLRecord } from 'tldraw';
 import { TLStore } from 'tldraw';
 import { TLStoreSchemaOptions } from 'tldraw';
 import { TLStoreWithStatus } from 'tldraw';
@@ -23,11 +25,20 @@ export type RemoteTLStoreWithStatus = Exclude<TLStoreWithStatus, {
 // @public
 export function useSync(opts: UseSyncOptions & TLStoreSchemaOptions): RemoteTLStoreWithStatus;
 
+// @public (undocumented)
+export type UseSyncConnectFn = (query: {
+    sessionId: string;
+    storeId: string;
+}) => TLPersistentClientSocket<TLRecord>;
+
 // @public
 export function useSyncDemo(options: UseSyncDemoOptions & TLStoreSchemaOptions): RemoteTLStoreWithStatus;
 
 // @public (undocumented)
 export interface UseSyncDemoOptions {
+    // Warning: (ae-unresolved-inheritdoc-reference) The @inheritDoc reference could not be resolved: No member was found with name "getUserPresence"
+    //
+    // (undocumented)
     getUserPresence?(store: TLStore, user: TLPresenceUserInfo): null | TLPresenceStateInfo;
     // @internal (undocumented)
     host?: string;
@@ -36,7 +47,10 @@ export interface UseSyncDemoOptions {
 }
 
 // @public
-export interface UseSyncOptions {
+export type UseSyncOptions = UseSyncOptionsWithConnectFn | UseSyncOptionsWithUri;
+
+// @public
+export interface UseSyncOptionsBase {
     assets: TLAssetStore;
     getUserPresence?(store: TLStore, user: TLPresenceUserInfo): null | TLPresenceStateInfo;
     onCustomMessageReceived?(data: any): void;
@@ -48,8 +62,22 @@ export interface UseSyncOptions {
     trackAnalyticsEvent?(name: string, data: {
         [key: string]: any;
     }): void;
-    uri: (() => Promise<string> | string) | string;
     userInfo?: Signal<TLPresenceUserInfo> | TLPresenceUserInfo;
+}
+
+// @public (undocumented)
+export interface UseSyncOptionsWithConnectFn extends UseSyncOptionsBase {
+    // (undocumented)
+    connect: UseSyncConnectFn;
+    // (undocumented)
+    uri?: undefined;
+}
+
+// @public (undocumented)
+export interface UseSyncOptionsWithUri extends UseSyncOptionsBase {
+    // (undocumented)
+    connect?: undefined;
+    uri: (() => Promise<string> | string) | string;
 }
 
 

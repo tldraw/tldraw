@@ -84,7 +84,7 @@ export function getNetworkDiff<R extends UnknownRecord>(diff: RecordsDiff<R>): N
 // @internal (undocumented)
 export function getTlsyncProtocolVersion(): number;
 
-// @internal
+// @public
 export interface NetworkDiff<R extends UnknownRecord> {
     // (undocumented)
     [id: string]: RecordOp<R>;
@@ -132,17 +132,19 @@ export class ReconnectManager {
     maybeReconnected(): void;
 }
 
-// @internal (undocumented)
+// Warning: (ae-incompatible-release-tags) The symbol "RecordOp" is marked as @public, but its signature references "ObjectDiff" which is marked as @internal
+//
+// @public (undocumented)
 export type RecordOp<R extends UnknownRecord> = [typeof RecordOpType.Patch, ObjectDiff] | [typeof RecordOpType.Put, R] | [typeof RecordOpType.Remove];
 
-// @internal (undocumented)
+// @public (undocumented)
 export const RecordOpType: {
     readonly Patch: "patch";
     readonly Put: "put";
     readonly Remove: "remove";
 };
 
-// @internal (undocumented)
+// @public (undocumented)
 export type RecordOpType = (typeof RecordOpType)[keyof typeof RecordOpType];
 
 // @internal (undocumented)
@@ -219,10 +221,10 @@ export interface RoomStoreMethods<R extends UnknownRecord = UnknownRecord> {
     put(record: R): void;
 }
 
-// @internal (undocumented)
+// @public (undocumented)
 export type SubscribingFn<T> = (cb: (val: T) => void) => () => void;
 
-// @internal (undocumented)
+// @public (undocumented)
 export interface TLConnectRequest {
     // (undocumented)
     connectRequestId: string;
@@ -250,10 +252,12 @@ export const TLIncompatibilityReason: {
 // @internal @deprecated (undocumented)
 export type TLIncompatibilityReason = (typeof TLIncompatibilityReason)[keyof typeof TLIncompatibilityReason];
 
-// @internal
+// @public
 export interface TLPersistentClientSocket<R extends UnknownRecord = UnknownRecord> {
+    close(): void;
     connectionStatus: 'error' | 'offline' | 'online';
     onReceiveMessage: SubscribingFn<TLSocketServerSentEvent<R>>;
+    // Warning: (ae-incompatible-release-tags) The symbol "onStatusChange" is marked as @public, but its signature references "TlSocketStatusChangeEvent" which is marked as @internal
     onStatusChange: SubscribingFn<TlSocketStatusChangeEvent>;
     restart(): void;
     sendMessage(msg: TLSocketClientSentEvent<R>): void;
@@ -262,7 +266,7 @@ export interface TLPersistentClientSocket<R extends UnknownRecord = UnknownRecor
 // @internal (undocumented)
 export type TLPersistentClientSocketStatus = 'error' | 'offline' | 'online';
 
-// @internal (undocumented)
+// @public (undocumented)
 export interface TLPingRequest {
     // (undocumented)
     type: 'ping';
@@ -271,12 +275,14 @@ export interface TLPingRequest {
 // @internal (undocumented)
 export type TLPresenceMode = 'full' | 'solo';
 
-// @internal (undocumented)
+// @public (undocumented)
 export interface TLPushRequest<R extends UnknownRecord> {
     // (undocumented)
     clientClock: number;
     // (undocumented)
     diff?: NetworkDiff<R>;
+    // Warning: (ae-incompatible-release-tags) The symbol "presence" is marked as @public, but its signature references "ObjectDiff" which is marked as @internal
+    //
     // (undocumented)
     presence?: [typeof RecordOpType.Patch, ObjectDiff] | [typeof RecordOpType.Put, R];
     // (undocumented)
@@ -302,7 +308,7 @@ export interface TLRoomSocket<R extends UnknownRecord> {
     sendMessage(msg: TLSocketServerSentEvent<R>): void;
 }
 
-// @internal (undocumented)
+// @public (undocumented)
 export type TLSocketClientSentEvent<R extends UnknownRecord> = TLConnectRequest | TLPingRequest | TLPushRequest<R>;
 
 // @public (undocumented)
@@ -393,7 +399,7 @@ export class TLSocketRoom<R extends UnknownRecord = UnknownRecord, SessionMeta =
     updateStore(updater: (store: RoomStoreMethods<R>) => Promise<void> | void): Promise<void>;
 }
 
-// @internal (undocumented)
+// @public (undocumented)
 export type TLSocketServerSentDataEvent<R extends UnknownRecord> = {
     action: 'commit' | 'discard' | {
         rebaseWithDiff: NetworkDiff<R>;
@@ -407,7 +413,7 @@ export type TLSocketServerSentDataEvent<R extends UnknownRecord> = {
     type: 'patch';
 };
 
-// @internal (undocumented)
+// @public (undocumented)
 export type TLSocketServerSentEvent<R extends UnknownRecord> = {
     connectRequestId: string;
     diff: NetworkDiff<R>;
@@ -599,6 +605,10 @@ export interface WebSocketMinimal {
     // (undocumented)
     send: (data: string) => void;
 }
+
+// Warnings were encountered during analysis:
+//
+// src/lib/protocol.ts:49:20 - (ae-incompatible-release-tags) The symbol "reason" is marked as @public, but its signature references "TLIncompatibilityReason" which is marked as @internal
 
 // (No @packageDocumentation comment for this package)
 

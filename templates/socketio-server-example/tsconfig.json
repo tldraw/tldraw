@@ -1,0 +1,11 @@
+{
+	"extends": "../../internal/config/tsconfig.base.json",
+	"include": ["src", "scripts", "vite.config.mts"],
+	"exclude": ["node_modules", "dist", ".tsbuild*"],
+	"compilerOptions": { "noEmit": true, "emitDeclarationOnly": false, "types": ["bun", "node"] },
+	"references": [
+		{ "path": "../../packages/sync" },
+		{ "path": "../../packages/sync-core" },
+		{ "path": "../../packages/tldraw" }
+	]
+}

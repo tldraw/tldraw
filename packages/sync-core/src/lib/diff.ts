@@ -1,17 +1,17 @@
 import { RecordsDiff, UnknownRecord } from '@tldraw/store'
 import { isEqual, objectMapEntries, objectMapValues } from '@tldraw/utils'
 
-/** @internal */
+/** @public */
 export const RecordOpType = {
 	Put: 'put',
 	Patch: 'patch',
 	Remove: 'remove',
 } as const
 
-/** @internal */
+/** @public */
 export type RecordOpType = (typeof RecordOpType)[keyof typeof RecordOpType]
 
-/** @internal */
+/** @public */
 export type RecordOp<R extends UnknownRecord> =
 	| [typeof RecordOpType.Put, R]
 	| [typeof RecordOpType.Patch, ObjectDiff]
@@ -24,7 +24,7 @@ export type RecordOp<R extends UnknownRecord> =
  *
  * Each key in this object is the id of a record that has been added, updated, or removed.
  *
- * @internal
+ * @public
  */
 export interface NetworkDiff<R extends UnknownRecord> {
 	[id: string]: RecordOp<R>
