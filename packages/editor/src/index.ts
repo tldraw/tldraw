@@ -331,7 +331,6 @@ export {
 	type LicenseFromKeyResult,
 	type LicenseInfo,
 	type LicenseState,
-	type TestEnvironment,
 	type ValidLicenseKeyResult,
 } from './lib/license/LicenseManager'
 export { LICENSE_TIMEOUT } from './lib/license/LicenseProvider'

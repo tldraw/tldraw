@@ -190,6 +190,8 @@
 	border-radius: 9999px;
 	position: relative;
 	cursor: pointer;
+	border: 0;
+	padding: 0;
 }
 
 .tl-analytics-checkbox[data-state='checked'] {

@@ -88,9 +88,6 @@ export interface ValidLicenseKeyResult {
 }
 
 /** @internal */
-export type TestEnvironment = 'development' | 'production'
-
-/** @internal */
 export type TrackType = 'unlicensed' | 'with_watermark' | 'evaluation' | null
 
 /** @internal */
@@ -103,13 +100,9 @@ export class LicenseManager {
 	state = atom<LicenseState>('license state', 'pending')
 	public verbose = true
 
-	constructor(
-		licenseKey: string | undefined,
-		testPublicKey?: string,
-		testEnvironment?: TestEnvironment
-	) {
+	constructor(licenseKey: string | undefined, testPublicKey?: string) {
 		this.isTest = process.env.NODE_ENV === 'test'
-		this.isDevelopment = this.getIsDevelopment(testEnvironment)
+		this.isDevelopment = this.getIsDevelopment()
 		this.publicKey = testPublicKey || this.publicKey
 		this.isCryptoAvailable = !!crypto.subtle
 
@@ -131,14 +124,12 @@ export class LicenseManager {
 			})
 	}
 
-	private getIsDevelopment(testEnvironment?: TestEnvironment) {
-		if (testEnvironment === 'development') return true
-		if (testEnvironment === 'production') return false
-
+	private getIsDevelopment() {
 		// If we are using https on a non-localhost domain we assume it's a production env and a development one otherwise
 		return (
 			!['https:', 'vscode-webview:'].includes(window.location.protocol) ||
-			window.location.hostname === 'localhost'
+			window.location.hostname === 'localhost' ||
+			process.env.NODE_ENV !== 'production'
 		)
 	}
 
@@ -180,6 +171,9 @@ export class LicenseManager {
 		url.searchParams.set('license_type', trackType)
 		if ('license' in result) {
 			url.searchParams.set('license_id', result.license.id)
+		}
+		if (process.env.NODE_ENV) {
+			url.searchParams.set('environment', process.env.NODE_ENV)
 		}
 
 		// eslint-disable-next-line no-restricted-globals
@@ -415,22 +409,27 @@ export class LicenseManager {
 		// If we added a new flag it will be twice the value of the currently highest flag.
 		// And if all the current flags are on we would get the `HIGHEST_FLAG * 2 - 1`, so anything higher than that means there are new flags.
 		if (result.license.flags >= HIGHEST_FLAG * 2) {
-			this.outputMessages([
-				'This tldraw license contains some unknown flags.',
-				'You may want to update tldraw packages to a newer version to get access to new functionality.',
-			])
+			this.outputMessages(
+				[
+					'Warning: This tldraw license contains some unknown flags.',
+					'This will still work, however, you may want to update tldraw packages to a newer version to get access to new functionality.',
+				],
+				'warning'
+			)
 		}
 	}
 
-	private outputMessages(messages: string[]) {
+	private outputMessages(messages: string[], type: 'warning' | 'error' = 'error') {
 		if (this.isTest) return
 		if (this.verbose) {
 			this.outputDelimiter()
 			for (const message of messages) {
+				const color = type === 'warning' ? 'orange' : 'crimson'
+				const bgColor = type === 'warning' ? 'orange' : 'crimson'
 				// eslint-disable-next-line no-console
 				console.log(
 					`%c${message}`,
-					`color: white; background: crimson; padding: 2px; border-radius: 3px;`
+					`color: ${color}; background: ${bgColor}; padding: 2px; border-radius: 3px;`
 				)
 			}
 			this.outputDelimiter()

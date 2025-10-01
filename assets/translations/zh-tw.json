@@ -81,6 +81,7 @@
 	"action.stretch-horizontal.short": "水平延展",
 	"action.stretch-vertical": "垂直延展",
 	"action.stretch-vertical.short": "垂直延展",
+	"action.toggle-auto-none": "自動",
 	"action.toggle-auto-size": "切換自動大小",
 	"action.toggle-dark-mode": "切換深色模式",
 	"action.toggle-dark-mode.menu": "深色模式",
