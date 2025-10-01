@@ -1,8 +1,8 @@
 import { memo, useLayoutEffect, useRef } from 'react'
-import { useEditor, useIsDarkMode, useValue } from 'tldraw'
+import { DefaultStylePanel, Tldraw, useEditor, useIsDarkMode, useValue } from 'tldraw'
+import { ConfigPanel } from './ConfigPanel'
 import { FluidManager } from './FluidManager'
 import { fluidConfig } from './fluid-config'
-import './shader.css'
 
 export const FluidRenderer = memo(() => {
 	const editor = useEditor()
@@ -53,3 +53,22 @@ export const FluidRenderer = memo(() => {
 
 	return <canvas ref={rCanvas} className="shader-canvas" />
 })
+
+export function FluidExample() {
+	return (
+		<Tldraw
+			persistenceKey="shader"
+			components={{
+				Background: FluidRenderer,
+				StylePanel: () => {
+					return (
+						<div style={{ display: 'flex', flexDirection: 'row' }}>
+							<ConfigPanel />
+							<DefaultStylePanel />
+						</div>
+					)
+				},
+			}}
+		/>
+	)
+}

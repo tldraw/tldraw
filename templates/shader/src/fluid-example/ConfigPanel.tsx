@@ -1,10 +1,10 @@
-import { useCallback, useState } from 'react'
-import { TldrawUiIcon, TldrawUiSlider, useValue } from 'tldraw'
-import { DEFAULT_CONFIG } from './FluidManager'
+import { useCallback } from 'react'
+import { TldrawUiIcon, TldrawUiSlider, useLocalStorageState, useValue } from 'tldraw'
+import { DEFAULT_CONFIG, FluidManagerConfig } from './FluidManager'
 import { fluidConfig } from './fluid-config'
 
 export function ConfigPanel() {
-	const [isExpanded, setIsExpanded] = useState(true)
+	const [isExpanded, setIsExpanded] = useLocalStorageState('shader-config-panel-expanded', true)
 
 	const handleReset = useCallback(() => {
 		fluidConfig.set(DEFAULT_CONFIG)
@@ -12,7 +12,7 @@ export function ConfigPanel() {
 
 	const toggleExpanded = useCallback(() => {
 		setIsExpanded((expanded) => !expanded)
-	}, [])
+	}, [setIsExpanded])
 
 	return (
 		<div
@@ -96,6 +96,11 @@ export function ConfigPanel() {
 	)
 }
 
+// Extract keys from FluidManagerConfig where the value type matches T
+type KeyForType<U, T> = {
+	[K in keyof U]: U[K] extends T ? K : never
+}[keyof U]
+
 function FloatSlider({
 	prop,
 	label,
@@ -103,13 +108,13 @@ function FloatSlider({
 	max,
 	step = 0.01,
 }: {
-	prop: string
+	prop: KeyForType<FluidManagerConfig, number>
 	label: string
 	min: number
 	max: number
 	step?: number
 }) {
-	const value = useValue(prop, () => (fluidConfig.get() as any)[prop], [])
+	const value = useValue(prop, () => fluidConfig.get()[prop], [])
 	const steps = Math.ceil((max - min) / step)
 
 	return (
@@ -135,12 +140,12 @@ function IntSlider({
 	min,
 	max,
 }: {
-	prop: string
+	prop: KeyForType<FluidManagerConfig, number>
 	label: string
 	min: number
 	max: number
 }) {
-	const value = useValue(prop, () => (fluidConfig.get() as any)[prop], [])
+	const value = useValue(prop, () => fluidConfig.get()[prop], [])
 
 	return (
 		<div className="shader-slider-container">
@@ -165,12 +170,12 @@ function ResolutionSlider({
 	min,
 	max,
 }: {
-	prop: string
+	prop: KeyForType<FluidManagerConfig, number>
 	label: string
 	min: number
 	max: number
 }) {
-	const value = useValue(prop, () => (fluidConfig.get() as any)[prop], [])
+	const value = useValue(prop, () => fluidConfig.get()[prop], [])
 	const steps = Math.log2(max / min)
 
 	return (
@@ -191,8 +196,14 @@ function ResolutionSlider({
 	)
 }
 
-function BooleanControl({ prop, label }: { prop: string; label: string }) {
-	const value = useValue(prop, () => (fluidConfig.get() as any)[prop], [])
+function BooleanControl({
+	prop,
+	label,
+}: {
+	prop: KeyForType<FluidManagerConfig, boolean>
+	label: string
+}) {
+	const value = useValue(prop, () => fluidConfig.get()[prop], [])
 
 	return (
 		<label className="shader-boolean-control">
