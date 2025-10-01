@@ -20,6 +20,9 @@
   "08331c1710": {
     "translation": "Satsgrænsen er overskredet. Prøv igen senere."
   },
+  "08bd40c754": {
+    "translation": "Konto"
+  },
   "0b27918290": {
     "translation": "Fil"
   },
@@ -31,6 +34,9 @@
   },
   "110a4b01be": {
     "translation": "Offentliggøre"
+  },
+  "12c8a9838c": {
+    "translation": "Prøv tldraw SDK'et"
   },
   "13ddd375ad": {
     "translation": "Eksporter som"
@@ -44,11 +50,20 @@
   "1dd1c5fb7f": {
     "translation": "I dag"
   },
+  "20976e7bec": {
+    "translation": "Rummet er fuldt"
+  },
+  "21bfb2dc2e": {
+    "translation": "Dette rum nærmer sig sin størrelsesgrænse. Overvej at fjerne noget indhold eller starte en ny fil."
+  },
   "250ddea65c": {
     "translation": "Om tldraw"
   },
   "299cb00a7a": {
     "translation": "Upload mislykkedes"
+  },
+  "2deec2cb74": {
+    "translation": "Dette rum har nået sin størrelsesgrænse, og ændringerne kan muligvis ikke længere gemmes. Fjern noget indhold, eller start en ny fil."
   },
   "31246941ad": {
     "translation": "Du skal logge ind for at se denne fil."
@@ -82,6 +97,12 @@
   },
   "47839e47a5": {
     "translation": "tltegn"
+  },
+  "7697920637": {
+    "translation": "Genindlæs venligst"
+  },
+  "764671e008": {
+    "translation": "Chat med os på Discord"
   },
   "4908687e50": {
     "translation": "Er du sikker på, at du vil glemme denne fil?"
@@ -118,6 +139,15 @@
   },
   "5a95a425f7": {
     "translation": "Dele"
+  },
+  "5bb6cf3b53": {
+    "translation": "Rummet bliver stort"
+  },
+  "5bcc12ace8": {
+    "translation": "Dette rum er nu skrivebeskyttet"
+  },
+  "5bec508475": {
+    "translation": "Gammel browser fundet. Opdater venligst din browser for at bruge denne app."
   },
   "5d26ae7550": {
     "translation": "Vi kunne ikke uploade noget af det indhold, du oprettede, før du loggede ind."
@@ -170,20 +200,20 @@
   "761e93ede9": {
     "translation": "Administrer cookies"
   },
-  "7697920637": {
-    "translation": "Genindlæs venligst"
-  },
-  "764671e008": {
-    "translation": "Chat med os på Discord"
-  },
   "777f9e90cf": {
     "translation": "Ugyldig anmodning."
+  },
+  "78e9815992": {
+    "translation": "Forstået"
   },
   "797799f35e": {
     "translation": "Indsend et problem på GitHub"
   },
   "7b1329f5ca": {
     "translation": "Brugermanual"
+  },
+  "7be10fc592": {
+    "translation": "Gendan version"
   },
   "7cb5f8b4a5": {
     "translation": "Glemme"
@@ -209,6 +239,9 @@
   "86c66437fd": {
     "translation": "Omdøb fil"
   },
+  "8b1946f965": {
+    "translation": "For at fortsætte redigeringen skal du kopiere rummet til dine filer."
+  },
   "8eb2c00e96": {
     "translation": "Delt med dig"
   },
@@ -232,6 +265,9 @@
   },
   "9bef626805": {
     "translation": "Slet fil"
+  },
+  "9c258b8f88": {
+    "translation": "Dette anonyme tldraw multiplayer-rum er nu skrivebeskyttet. For at fortsætte med at redigere, skal du logge ind og kopiere det til dine filer."
   },
   "9ceb927baa": {
     "translation": "Udgiv denne fil"
@@ -287,6 +323,9 @@
   },
   "b758336699": {
     "translation": "Kopiér link"
+  },
+  "ba0318cb81": {
+    "translation": "Log ind for at dele"
   },
   "bb792693e2": {
     "translation": "Frigør"
@@ -377,6 +416,9 @@
   },
   "ede55d955f": {
     "translation": "Læs vores <a>cookiepolitik</a> for at få mere at vide."
+  },
+  "ef7de3f485": {
+    "translation": "udvalgte"
   },
   "f09b16bc5f": {
     "translation": "Vi bruger cookies til at holde dig logget ind, synkronisere dine filer og indsamle analyser, der kan hjælpe os med at forbedre tldraw."

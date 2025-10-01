@@ -12,11 +12,10 @@ import { parseMarkdown } from '@/utils/parse-markdown'
 import { Metadata } from 'next'
 import { notFound } from 'next/navigation'
 
-export async function generateMetadata({
-	params,
-}: {
-	params: { slug: string | string[] }
+export async function generateMetadata(props: {
+	params: Promise<{ slug: string | string[] }>
 }): Promise<Metadata> {
+	const params = await props.params
 	const path = typeof params.slug === 'string' ? [params.slug] : params.slug
 	const content = await db.getPageContent(`/${path.join('/')}`)
 	if (!content || content.type !== 'article') notFound()
@@ -39,7 +38,8 @@ export async function generateStaticParams() {
 		.map((path) => ({ slug: path.slice(1).split('/') }))
 }
 
-export default async function Page({ params }: { params: { slug: string | string[] } }) {
+export default async function Page(props: { params: Promise<{ slug: string | string[] }> }) {
+	const params = await props.params
 	const path = typeof params.slug === 'string' ? [params.slug] : params.slug
 	const content = await db.getPageContent(`/${path.join('/')}`)
 	if (!content || content.type !== 'article') notFound()
@@ -60,17 +60,24 @@ export default async function Page({ params }: { params: { slug: string | string
 				<SearchButton type="docs" layout="mobile" className="hidden -mr-2 sm:block" />
 			</div>
 			{content.article.sectionId === 'examples' ? (
-				<>
-					<main className="relative w-full px-5 pt-12 shrink md:pt-0 min-w-[1px]">
-						<DocsHeader article={content.article} />
-						<Content mdx={content.article.content ?? ''} type={content.article.sectionId} />
-						<Example article={content.article} />
-						<div className="mx-auto w-full max-w-sm">
-							<DocsFeedbackWidget className="mb-12" />
-						</div>
-						<DocsFooter article={content.article} />
-					</main>
-				</>
+				<main className="relative w-full px-5 pt-12 shrink md:pt-0 min-w-[1px]">
+					<DocsHeader article={content.article} />
+					<Content mdx={content.article.content ?? ''} type={content.article.sectionId} />
+					<Example article={content.article} />
+					<div className="mx-auto w-full max-w-sm">
+						<DocsFeedbackWidget className="mb-12" />
+					</div>
+					<DocsFooter article={content.article} />
+				</main>
+			) : content.article.sectionId === 'starter-kits' ? (
+				<main className="relative w-full px-5 pt-12 shrink md:pt-0 min-w-[1px]">
+					<DocsHeader article={content.article} />
+					<Content mdx={content.article.content ?? ''} type={content.article.sectionId} />
+					<DocsFooter article={content.article} />
+					<div className="mx-auto w-full max-w-sm mt-8 mb-16">
+						<DocsFeedbackWidget />
+					</div>
+				</main>
 			) : (
 				<>
 					<main className="relative w-full max-w-3xl px-5 pt-12 shrink md:pr-0 lg:pl-12 xl:pr-12 md:pt-0 min-w-[1px]">

@@ -26,10 +26,7 @@
 
 .tl-analytics-banner {
 	position: fixed;
-	bottom: 8px;
-	left: 8px;
 	z-index: 1000;
-	max-width: 100%;
 	padding: 12px;
 	border-radius: 8px;
 	box-shadow: var(--tl-analytics-shadow);
@@ -38,6 +35,12 @@
 	display: flex;
 	flex-direction: column;
 	gap: 12px;
+	/* Safe area aware overrides */
+	bottom: max(8px, env(safe-area-inset-bottom));
+	left: max(8px, env(safe-area-inset-left));
+	max-width: calc(
+		100% - max(8px, env(safe-area-inset-left)) - max(8px, env(safe-area-inset-right))
+	);
 }
 
 @media (min-width: 640px) {
@@ -187,6 +190,8 @@
 	border-radius: 9999px;
 	position: relative;
 	cursor: pointer;
+	border: 0;
+	padding: 0;
 }
 
 .tl-analytics-checkbox[data-state='checked'] {

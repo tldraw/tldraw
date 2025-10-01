@@ -42,15 +42,21 @@ export function isRecordsDiffEmpty<T extends UnknownRecord>(diff: RecordsDiff<T>
  * Squash a collection of diffs into a single diff.
  *
  * @param diffs - An array of diffs to squash.
+ * @param options - An optional object with a `mutateFirstDiff` property. If `mutateFirstDiff` is true, the first diff in the array will be mutated in-place.
  * @returns A single diff that represents the squashed diffs.
  * @public
  */
 export function squashRecordDiffs<T extends UnknownRecord>(
-	diffs: RecordsDiff<T>[]
+	diffs: RecordsDiff<T>[],
+	options?: {
+		mutateFirstDiff?: boolean
+	}
 ): RecordsDiff<T> {
-	const result = { added: {}, removed: {}, updated: {} } as RecordsDiff<T>
+	const result = options?.mutateFirstDiff
+		? diffs[0]
+		: ({ added: {}, removed: {}, updated: {} } as RecordsDiff<T>)
 
-	squashRecordDiffsMutable(result, diffs)
+	squashRecordDiffsMutable(result, options?.mutateFirstDiff ? diffs.slice(1) : diffs)
 	return result
 }
 

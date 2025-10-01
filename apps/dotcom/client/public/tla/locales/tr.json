@@ -20,6 +20,9 @@
   "08331c1710": {
     "translation": "Kullanım sınırı aşıldı, daha sonra tekrar deneyin."
   },
+  "08bd40c754": {
+    "translation": "Hesap"
+  },
   "0b27918290": {
     "translation": "Dosya"
   },
@@ -31,6 +34,9 @@
   },
   "110a4b01be": {
     "translation": "Yayınla"
+  },
+  "12c8a9838c": {
+    "translation": "tldraw SDK'sını deneyin"
   },
   "13ddd375ad": {
     "translation": "Dışa aktarma formatı"
@@ -44,11 +50,20 @@
   "1dd1c5fb7f": {
     "translation": "Bugün"
   },
+  "20976e7bec": {
+    "translation": "Oda dolu"
+  },
+  "21bfb2dc2e": {
+    "translation": "Bu oda boyut sınırına yaklaşıyor. İçeriğin bir kısmını kaldırmayı veya yeni bir dosya başlatmayı düşünün."
+  },
   "250ddea65c": {
     "translation": "tldraw hakkında"
   },
   "299cb00a7a": {
     "translation": "Yüklenemedi"
+  },
+  "2deec2cb74": {
+    "translation": "Bu oda boyut sınırına ulaştı ve değişiklikler artık kaydedilemeyebilir. İçeriğin bir kısmını kaldırın veya yeni bir dosya başlatın."
   },
   "31246941ad": {
     "translation": "Bu dosyayı görüntülemek için oturum açmanız gerekiyor."
@@ -82,6 +97,12 @@
   },
   "47839e47a5": {
     "translation": "tldraw"
+  },
+  "7697920637": {
+    "translation": "Lütfen yeniden yükleyin"
+  },
+  "764671e008": {
+    "translation": "Discord'da bizimle sohbet edin"
   },
   "4908687e50": {
     "translation": "Bu dosyayı unutmak istediğinizden emin misiniz?"
@@ -118,6 +139,15 @@
   },
   "5a95a425f7": {
     "translation": "Paylaş"
+  },
+  "5bb6cf3b53": {
+    "translation": "Oda büyüyor"
+  },
+  "5bcc12ace8": {
+    "translation": "Bu oda artık salt okunur"
+  },
+  "5bec508475": {
+    "translation": "Eski tarayıcı algılandı. Bu uygulamayı kullanmak için lütfen tarayıcınızı güncelleyin."
   },
   "5d26ae7550": {
     "translation": "Oturum açmadan önce oluşturduğunuz bazı içerikleri yükleyemedik."
@@ -170,20 +200,20 @@
   "761e93ede9": {
     "translation": "Çerezleri yönet"
   },
-  "7697920637": {
-    "translation": "Lütfen yeniden yükleyin"
-  },
-  "764671e008": {
-    "translation": "Discord'da bizimle sohbet edin"
-  },
   "777f9e90cf": {
     "translation": "Geçersiz istek"
+  },
+  "78e9815992": {
+    "translation": "Anladım"
   },
   "797799f35e": {
     "translation": "GitHub'da bir sorun bildirin"
   },
   "7b1329f5ca": {
     "translation": "Kullanıcı kılavuzu"
+  },
+  "7be10fc592": {
+    "translation": "Sürümü geri yükle"
   },
   "7cb5f8b4a5": {
     "translation": "Unut"
@@ -209,6 +239,9 @@
   "86c66437fd": {
     "translation": "Dosyayı yeniden adlandır"
   },
+  "8b1946f965": {
+    "translation": "Düzenlemeye devam etmek için lütfen odayı dosyalarınıza kopyalayın."
+  },
   "8eb2c00e96": {
     "translation": "Sizinle paylaşıldı"
   },
@@ -232,6 +265,9 @@
   },
   "9bef626805": {
     "translation": "Dosyayı sil"
+  },
+  "9c258b8f88": {
+    "translation": "Bu anonim tldraw çok oyunculu odası artık salt okunur. Düzenlemeye devam etmek için lütfen oturum açın ve dosyalarınıza kopyalayın."
   },
   "9ceb927baa": {
     "translation": "Bu dosyayı yayınla"
@@ -287,6 +323,9 @@
   },
   "b758336699": {
     "translation": "Bağlantıyı kopyala"
+  },
+  "ba0318cb81": {
+    "translation": "Paylaşmak için oturum açın"
   },
   "bb792693e2": {
     "translation": "SabitlemeyI kaldır"
@@ -377,6 +416,9 @@
   },
   "ede55d955f": {
     "translation": "Daha fazla bilgi edinmek için <a>çerez politikamızı</a> okuyun."
+  },
+  "ef7de3f485": {
+    "translation": "seçilmiş"
   },
   "f09b16bc5f": {
     "translation": "Oturumunuzu açık tutmak, dosyalarınızı senkronize etmek ve tldraw'ı iyileştirmemize yardımcı olacak analizleri toplamak için çerezleri kullanıyoruz."

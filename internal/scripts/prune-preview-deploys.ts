@@ -39,82 +39,87 @@ async function isPrClosedForAWhile(prNumber: number) {
 		}
 		throw err
 	}
-	const twoDays = 1000 * 60 * 60 * 24 * 2
+	const timeout = 1000 * 60 * 60 * 24 * 2 // two days
 	const result =
 		prResult.data.state === 'closed' &&
-		Date.now() - new Date(prResult.data.closed_at!).getTime() > twoDays
+		Date.now() - new Date(prResult.data.closed_at!).getTime() > timeout
 	_isPrClosedCache.set(prNumber, result)
 	return result
 }
 
 const CLOUDFLARE_WORKER_REGEX = /^pr-(\d+)-/
+const CLOUDFLARE_SYNC_WORKER_REGEX = /^pr-\d+-tldraw-multiplayer$/
+
+async function cloudflareApi(endpoint: string, options: RequestInit = {}): Promise<Response> {
+	const url = `https://api.cloudflare.com/client/v4/accounts/${env.CLOUDFLARE_ACCOUNT_ID}${endpoint}`
+	return fetch(url, {
+		...options,
+		headers: {
+			Authorization: `Bearer ${env.CLOUDFLARE_API_TOKEN}`,
+			'Content-Type': 'application/json',
+		},
+	})
+}
+
 async function listPreviewWorkerDeployments() {
-	const res = await fetch(
-		`https://api.cloudflare.com/client/v4/accounts/${env.CLOUDFLARE_ACCOUNT_ID}/workers/scripts`,
-		{
-			headers: {
-				Authorization: `Bearer ${env.CLOUDFLARE_API_TOKEN}`,
-				'Content-Type': 'application/json',
-			},
-		}
-	)
-
+	const res = await cloudflareApi('/workers/scripts')
 	const data = (await res.json()) as ListWorkersResult
-
 	if (!data.success) {
 		throw new Error('Failed to list workers ' + JSON.stringify(data))
 	}
+	return (
+		data.result
+			.map((r) => r.id)
+			.filter((id) => id.match(CLOUDFLARE_WORKER_REGEX))
+			// We want to delete the image optimizers first since they have a service binding to the main workers
+			.sort((a, b) => {
+				if (a.includes('image-optimizer')) return -1
+				if (b.includes('image-optimizer')) return 1
+				return 0
+			})
+	)
+}
 
-	return data.result.map((r) => r.id).filter((id) => id.match(CLOUDFLARE_WORKER_REGEX))
+async function deleteQueue(queueName: string) {
+	nicelog('Deleting queue:', queueName)
+	await exec('npx', ['wrangler', 'queues', 'delete', queueName], {
+		env: { CI: '1' },
+	})
+}
+
+async function deleteQueueConsumer(queueName: string, scriptName: string) {
+	nicelog('Deleting queue consumer:', scriptName, 'from queue:', queueName)
+	await exec('npx', ['wrangler', 'queues', 'consumer', 'worker', 'remove', queueName, scriptName], {
+		env: { CI: '1' },
+	})
+}
+
+async function deletePreviewWorker(workerName: string) {
+	nicelog('Deleting worker:', workerName)
+	await exec('npx', ['wrangler', 'delete', '--name', workerName], {
+		env: { CI: '1' },
+	})
 }
 
 async function deletePreviewWorkerDeployment(id: string) {
-	const prNumber = Number(id.match(CLOUDFLARE_WORKER_REGEX)?.[1])
-	const queueId = `tldraw-multiplayer-queue-pr-${prNumber}`
-	console.log('PR number', prNumber)
-	console.log('Queue id', queueId)
+	// We want to delete the queue consumer and the queue only once. We'll do it just before we delete the worker
+	if (id.match(CLOUDFLARE_SYNC_WORKER_REGEX)) {
+		const prNumber = Number(id.match(CLOUDFLARE_WORKER_REGEX)?.[1])
+		const queueName = `tldraw-multiplayer-queue-pr-${prNumber}`
 
-	// Delete queue consumer
-	const queueConsumerDeleteUrl = `https://api.cloudflare.com/client/v4/accounts/${env.CLOUDFLARE_ACCOUNT_ID}/queues/${queueId}/consumers/${id}`
-	const queueConsumerDeleteReq = await fetch(queueConsumerDeleteUrl, {
-		method: 'DELETE',
-		headers: {
-			Authorization: `Bearer ${env.CLOUDFLARE_API_TOKEN}`,
-			'Content-Type': 'application/json',
-		},
-	})
-	if (!queueConsumerDeleteReq.ok) {
-		throw new Error(
-			'Failed to delete queue consumer ' + JSON.stringify(await queueConsumerDeleteReq.json())
-		)
-	}
-
-	const url = `https://api.cloudflare.com/client/v4/accounts/${env.CLOUDFLARE_ACCOUNT_ID}/workers/scripts/${id}`
-	nicelog('DELETE', url)
-	const res = await fetch(url, {
-		method: 'DELETE',
-		headers: {
-			Authorization: `Bearer ${env.CLOUDFLARE_API_TOKEN}`,
-			'Content-Type': 'application/json',
-		},
-	})
-	nicelog('status', res.status)
-
-	if (!res.ok) {
-		throw new Error('Failed to delete worker ' + JSON.stringify(await res.json()))
-	}
-
-	const queueUrl = `https://api.cloudflare.com/client/v4/accounts/${env.CLOUDFLARE_ACCOUNT_ID}/queues/${queueId}`
-	const queueRes = await fetch(queueUrl, {
-		method: 'DELETE',
-		headers: {
-			Authorization: `Bearer ${env.CLOUDFLARE_API_TOKEN}`,
-			'Content-Type': 'application/json',
-		},
-	})
-	if (!queueRes.ok) {
-		// This might happen for old PRs that didn't have queues yet
-		console.log('Failed to delete queue ' + JSON.stringify(await queueRes.json()))
+		try {
+			await deleteQueueConsumer(queueName, id)
+		} catch (err) {
+			nicelog(`Failed to delete consumer ${id}: ${err}`)
+		}
+		await deletePreviewWorker(id)
+		try {
+			await deleteQueue(queueName)
+		} catch (err) {
+			nicelog(`Failed to delete queue ${queueName}: ${err}`)
+		}
+	} else {
+		await deletePreviewWorker(id)
 	}
 }
 
@@ -217,8 +222,10 @@ async function deleteSstPreviewApp(stage: string) {
 	await exec('yarn', ['sst', 'remove', '--stage', stage])
 }
 
+const deletionErrors: string[] = []
+
 async function main() {
-	nicelog('Pruning preview deployments')
+	nicelog('Getting queues information')
 	await processItems(listPreviewWorkerDeployments, deletePreviewWorkerDeployment)
 	nicelog('\nPruning preview databases')
 	await processItems(listPreviewDatabases, deletePreviewDatabase)
@@ -227,6 +234,13 @@ async function main() {
 	nicelog('\nPruning sst preview stages')
 	await processItems(listAmazonClusters, deleteSstPreviewApp)
 	nicelog('\nDone')
+	if (deletionErrors.length > 0) {
+		nicelog('\nDeletion errors:')
+		for (const error of deletionErrors) {
+			nicelog(error)
+		}
+		process.exit(1)
+	}
 }
 
 async function processItems(
@@ -242,7 +256,11 @@ async function processItems(
 		}
 		if (await isPrClosedForAWhile(number)) {
 			nicelog(`Deleting ${item} because PR is closed`)
-			await deleteFn(item)
+			try {
+				await deleteFn(item)
+			} catch (err) {
+				deletionErrors.push(`${item}: ${err}`)
+			}
 		} else {
 			nicelog(`Skipping ${item} because PR is still open`)
 		}

@@ -4,18 +4,21 @@ import { LegacyMigrations, MigrationSequence } from '@tldraw/store'
 import {
 	RecordProps,
 	TLHandle,
+	TLParentId,
 	TLPropsMigrations,
 	TLShape,
 	TLShapeCrop,
+	TLShapeId,
 	TLShapePartial,
 	TLUnknownShape,
 } from '@tldraw/tlschema'
+import { IndexKey } from '@tldraw/utils'
 import { ReactElement } from 'react'
 import { Box, SelectionHandle } from '../../primitives/Box'
 import { Vec } from '../../primitives/Vec'
 import { Geometry2d } from '../../primitives/geometry/Geometry2d'
 import type { Editor } from '../Editor'
-import { TLFontFace } from '../managers/FontManager'
+import { TLFontFace } from '../managers/FontManager/FontManager'
 import { BoundsSnapGeometry } from '../managers/SnapManager/BoundsSnaps'
 import { HandleSnapGeometry } from '../managers/SnapManager/HandleSnaps'
 import { SvgExportContext } from '../types/SvgExportContext'
@@ -281,6 +284,17 @@ export abstract class ShapeUtil<Shape extends TLUnknownShape = TLUnknownShape> {
 	}
 
 	/**
+	 * Whether this shape can be culled. By default, shapes are culled for
+	 * performance reasons when they are outside of the viewport. Culled shapes are still rendered
+	 * to the DOM, but have their `display` property set to `none`.
+	 *
+	 * @param shape - The shape.
+	 */
+	canCull(_shape: Shape): boolean {
+		return true
+	}
+
+	/**
 	 * Does this shape provide a background for its children? If this is true,
 	 * then any children with a `renderBackground` method will have their
 	 * backgrounds rendered _above_ this shape. Otherwise, the children's
@@ -292,6 +306,27 @@ export abstract class ShapeUtil<Shape extends TLUnknownShape = TLUnknownShape> {
 	providesBackgroundForChildren(_shape: Shape): boolean {
 		return false
 	}
+
+	/**
+	 * Get the clip path to apply to this shape's children.
+	 *
+	 * @param shape - The shape to get the clip path for
+	 * @returns Array of points defining the clipping polygon in local coordinates, or undefined if no clipping
+	 * @public
+	 */
+	getClipPath?(shape: Shape): Vec[] | undefined
+
+	/**
+	 * Whether a specific child shape should be clipped by this shape.
+	 * Only called if getClipPath returns a valid polygon.
+	 *
+	 * If not defined, the default behavior is to clip all children.
+	 *
+	 * @param child - The child shape to check
+	 * @returns boolean indicating if this child should be clipped
+	 * @public
+	 */
+	shouldClipChild?(child: TLShape): boolean
 
 	/**
 	 * Whether the shape should hide its resize handles when selected.
@@ -335,6 +370,20 @@ export abstract class ShapeUtil<Shape extends TLUnknownShape = TLUnknownShape> {
 	 * @public
 	 */
 	isAspectRatioLocked(_shape: Shape): boolean {
+		return false
+	}
+
+	/**
+	 * By default, the bounds of an image export are the bounds of all the shapes it contains, plus
+	 * some padding. If an export includes a shape where `isExportBoundsContainer` is true, then the
+	 * padding is skipped _if the bounds of that shape contains all the other shapes_. This is
+	 * useful in cases like annotating on top of an image, where you usually want to avoid extra
+	 * padding around the image if you don't need it.
+	 *
+	 * @param _shape - The shape to check
+	 * @returns True if this shape should be treated as an export bounds container
+	 */
+	isExportBoundsContainer(_shape: Shape): boolean {
 		return false
 	}
 
@@ -384,17 +433,6 @@ export abstract class ShapeUtil<Shape extends TLUnknownShape = TLUnknownShape> {
 	 * @public
 	 */
 	canReceiveNewChildrenOfType(_shape: Shape, _type: TLShape['type']) {
-		return false
-	}
-
-	/**
-	 * Get whether the shape can receive children of a given type.
-	 *
-	 * @param shape - The shape type.
-	 * @param shapes - The shapes that are being dropped.
-	 * @public
-	 */
-	canDropShapes(_shape: Shape, _shapes: TLShape[]) {
 		return false
 	}
 
@@ -517,7 +555,16 @@ export abstract class ShapeUtil<Shape extends TLUnknownShape = TLUnknownShape> {
 	): Omit<TLShapePartial<Shape>, 'id' | 'type'> | undefined | void
 
 	/**
-	 * A callback called when some other shapes are dragged over this one.
+	 * A callback called when some other shapes are dragged into this one. This fires when the shapes are dragged over the shape for the first time.
+	 *
+	 * @param shape - The shape.
+	 * @param shapes - The shapes that are being dragged in.
+	 * @public
+	 */
+	onDragShapesIn?(shape: Shape, shapes: TLShape[], info: TLDragShapesInInfo): void
+
+	/**
+	 * A callback called when some other shapes are dragged over this one. This fires when the shapes are dragged over the shape for the first time (after the onDragShapesIn callback), and again on every update while the shapes are being dragged.
 	 *
 	 * @example
 	 *
@@ -531,7 +578,7 @@ export abstract class ShapeUtil<Shape extends TLUnknownShape = TLUnknownShape> {
 	 * @param shapes - The shapes that are being dragged over this one.
 	 * @public
 	 */
-	onDragShapesOver?(shape: Shape, shapes: TLShape[]): void
+	onDragShapesOver?(shape: Shape, shapes: TLShape[], info: TLDragShapesOverInfo): void
 
 	/**
 	 * A callback called when some other shapes are dragged out of this one.
@@ -540,7 +587,7 @@ export abstract class ShapeUtil<Shape extends TLUnknownShape = TLUnknownShape> {
 	 * @param shapes - The shapes that are being dragged out.
 	 * @public
 	 */
-	onDragShapesOut?(shape: Shape, shapes: TLShape[]): void
+	onDragShapesOut?(shape: Shape, shapes: TLShape[], info: TLDragShapesOutInfo): void
 
 	/**
 	 * A callback called when some other shapes are dropped over this one.
@@ -549,7 +596,7 @@ export abstract class ShapeUtil<Shape extends TLUnknownShape = TLUnknownShape> {
 	 * @param shapes - The shapes that are being dropped over this one.
 	 * @public
 	 */
-	onDropShapesOver?(shape: Shape, shapes: TLShape[]): void
+	onDropShapesOver?(shape: Shape, shapes: TLShape[], info: TLDropShapesOverInfo): void
 
 	/**
 	 * A callback called when a shape starts being resized.
@@ -584,6 +631,15 @@ export abstract class ShapeUtil<Shape extends TLUnknownShape = TLUnknownShape> {
 	onResizeEnd?(initial: Shape, current: Shape): TLShapePartial<Shape> | void
 
 	/**
+	 * A callback called when a shape resize is cancelled.
+	 *
+	 * @param initial - The shape at the start of the resize.
+	 * @param current - The current shape.
+	 * @public
+	 */
+	onResizeCancel?(initial: Shape, current: Shape): void
+
+	/**
 	 * A callback called when a shape starts being translated.
 	 *
 	 * @param shape - The shape.
@@ -613,6 +669,25 @@ export abstract class ShapeUtil<Shape extends TLUnknownShape = TLUnknownShape> {
 	onTranslateEnd?(initial: Shape, current: Shape): TLShapePartial<Shape> | void
 
 	/**
+	 * A callback called when a shape translation is cancelled.
+	 *
+	 * @param initial - The shape at the start of the translation.
+	 * @param current - The current shape.
+	 * @public
+	 */
+	onTranslateCancel?(initial: Shape, current: Shape): void
+
+	/**
+	 * A callback called when a shape's handle starts being dragged.
+	 *
+	 * @param shape - The shape.
+	 * @param info - An object containing the handle and whether the handle is 'precise' or not.
+	 * @returns A change to apply to the shape, or void.
+	 * @public
+	 */
+	onHandleDragStart?(shape: Shape, info: TLHandleDragInfo<Shape>): TLShapePartial<Shape> | void
+
+	/**
 	 * A callback called when a shape's handle changes.
 	 *
 	 * @param shape - The current shape.
@@ -621,6 +696,25 @@ export abstract class ShapeUtil<Shape extends TLUnknownShape = TLUnknownShape> {
 	 * @public
 	 */
 	onHandleDrag?(shape: Shape, info: TLHandleDragInfo<Shape>): TLShapePartial<Shape> | void
+
+	/**
+	 * A callback called when a shape's handle finishes being dragged.
+	 *
+	 * @param current - The current shape.
+	 * @param info - An object containing the handle and whether the handle is 'precise' or not.
+	 * @returns A change to apply to the shape, or void.
+	 * @public
+	 */
+	onHandleDragEnd?(current: Shape, info: TLHandleDragInfo<Shape>): TLShapePartial<Shape> | void
+
+	/**
+	 * A callback called when a shape's handle drag is cancelled.
+	 *
+	 * @param current - The current shape.
+	 * @param info - An object containing the handle and whether the handle is 'precise' or not.
+	 * @public
+	 */
+	onHandleDragCancel?(current: Shape, info: TLHandleDragInfo<Shape>): void
 
 	/**
 	 * A callback called when a shape starts being rotated.
@@ -650,6 +744,15 @@ export abstract class ShapeUtil<Shape extends TLUnknownShape = TLUnknownShape> {
 	 * @public
 	 */
 	onRotateEnd?(initial: Shape, current: Shape): TLShapePartial<Shape> | void
+
+	/**
+	 * A callback called when a shape rotation is cancelled.
+	 *
+	 * @param initial - The shape at the start of the rotation.
+	 * @param current - The current shape.
+	 * @public
+	 */
+	onRotateCancel?(initial: Shape, current: Shape): void
 
 	/**
 	 * Not currently used.
@@ -745,6 +848,37 @@ export interface TLCropInfo<T extends TLShape> {
 	crop: TLShapeCrop
 	uncroppedSize: { w: number; h: number }
 	initialShape: T
+	aspectRatioLocked?: boolean
+}
+
+/** @public */
+export interface TLDragShapesInInfo {
+	initialDraggingOverShapeId: TLShapeId | null
+	prevDraggingOverShapeId: TLShapeId | null
+	initialParentIds: Map<TLShapeId, TLParentId>
+	initialIndices: Map<TLShapeId, IndexKey>
+}
+
+/** @public */
+export interface TLDragShapesOverInfo {
+	initialDraggingOverShapeId: TLShapeId | null
+	initialParentIds: Map<TLShapeId, TLParentId>
+	initialIndices: Map<TLShapeId, IndexKey>
+}
+
+/** @public */
+export interface TLDragShapesOutInfo {
+	nextDraggingOverShapeId: TLShapeId | null
+	initialDraggingOverShapeId: TLShapeId | null
+	initialParentIds: Map<TLShapeId, TLParentId>
+	initialIndices: Map<TLShapeId, IndexKey>
+}
+
+/** @public */
+export interface TLDropShapesOverInfo {
+	initialDraggingOverShapeId: TLShapeId | null
+	initialParentIds: Map<TLShapeId, TLParentId>
+	initialIndices: Map<TLShapeId, IndexKey>
 }
 
 /**
@@ -787,5 +921,6 @@ export interface TLResizeInfo<T extends TLShape> {
 export interface TLHandleDragInfo<T extends TLShape> {
 	handle: TLHandle
 	isPrecise: boolean
+	isCreatingShape: boolean
 	initial?: T | undefined
 }

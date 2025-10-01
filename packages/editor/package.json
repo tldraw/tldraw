@@ -1,7 +1,7 @@
 {
 	"name": "@tldraw/editor",
-	"description": "A tiny little drawing app (editor).",
-	"version": "3.13.0",
+	"description": "tldraw infinite canvas SDK (editor).",
+	"version": "4.0.2",
 	"author": {
 		"name": "tldraw Inc.",
 		"email": "hello@tldraw.com"
@@ -17,6 +17,7 @@
 	},
 	"keywords": [
 		"tldraw",
+		"sdk",
 		"drawing",
 		"app",
 		"development",
@@ -28,26 +29,28 @@
 	"main": "./src/index.ts",
 	"types": "./.tsbuild/index.d.ts",
 	"style": "./editor.css",
+	"type": "module",
 	"/* GOTCHA */": "files will include ./dist and index.d.ts by default, add any others you want to include in here",
 	"files": [
 		"editor.css"
 	],
 	"scripts": {
-		"test-ci": "lazy inherit",
-		"test": "yarn run -T jest",
+		"test-ci": "yarn run -T vitest run --passWithNoTests",
+		"test": "yarn run -T vitest --passWithNoTests",
 		"benchmark": "yarn run -T tsx ./internal/scripts/benchmark.ts",
-		"test-coverage": "lazy inherit",
+		"test-coverage": "yarn run -T vitest run --coverage --passWithNoTests",
 		"build": "yarn run -T tsx ../../internal/scripts/build-package.ts",
 		"build-api": "yarn run -T tsx ../../internal/scripts/build-api.ts",
 		"prepack": "yarn run -T tsx ../../internal/scripts/prepack.ts",
 		"postpack": "../../internal/scripts/postpack.sh",
 		"pack-tarball": "yarn pack",
-		"lint": "yarn run -T tsx ../../internal/scripts/lint.ts"
+		"lint": "yarn run -T tsx ../../internal/scripts/lint.ts",
+		"context": "yarn run -T tsx ../../internal/scripts/context.ts"
 	},
 	"dependencies": {
-		"@tiptap/core": "3.0.0-next.8",
-		"@tiptap/pm": "3.0.0-next.8",
-		"@tiptap/react": "3.0.0-next.8",
+		"@tiptap/core": "3.6.2",
+		"@tiptap/pm": "3.6.2",
+		"@tiptap/react": "3.6.2",
 		"@tldraw/state": "workspace:*",
 		"@tldraw/state-react": "workspace:*",
 		"@tldraw/store": "workspace:*",
@@ -60,8 +63,7 @@
 		"core-js": "^3.40.0",
 		"eventemitter3": "^4.0.7",
 		"idb": "^7.1.1",
-		"is-plain-object": "^5.0.0",
-		"lodash.isequal": "^4.5.0"
+		"is-plain-object": "^5.0.0"
 	},
 	"peerDependencies": {
 		"react": "^18.2.0 || ^19.0.0",
@@ -69,40 +71,16 @@
 	},
 	"devDependencies": {
 		"@peculiar/webcrypto": "^1.5.0",
-		"@testing-library/jest-dom": "^5.17.0",
 		"@testing-library/react": "^15.0.7",
 		"@types/benchmark": "^2.1.5",
 		"@types/react": "^18.3.18",
 		"@types/wicg-file-system-access": "^2020.9.8",
 		"benchmark": "^2.1.4",
 		"fake-indexeddb": "^4.0.2",
-		"jest-canvas-mock": "^2.5.2",
-		"jest-environment-jsdom": "^29.7.0",
 		"lazyrepo": "0.0.0-alpha.27",
 		"react": "^18.3.1",
 		"react-dom": "^18.3.1",
-		"resize-observer-polyfill": "^1.5.1"
-	},
-	"jest": {
-		"preset": "../../internal/config/jest/node/jest-preset.js",
-		"testEnvironment": "../../../packages/utils/patchedJestJsDom.js",
-		"fakeTimers": {
-			"enableGlobally": true
-		},
-		"testPathIgnorePatterns": [
-			"^.+\\.*.css$"
-		],
-		"moduleNameMapper": {
-			"^~(.*)": "<rootDir>/src/$1",
-			"\\.(css|less|scss|sass)$": "identity-obj-proxy"
-		},
-		"setupFiles": [
-			"raf/polyfill",
-			"jest-canvas-mock",
-			"<rootDir>/setupTests.js"
-		],
-		"setupFilesAfterEnv": [
-			"../../internal/config/setupJest.ts"
-		]
+		"resize-observer-polyfill": "^1.5.1",
+		"vitest": "^3.2.4"
 	}
 }

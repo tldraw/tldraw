@@ -56,25 +56,30 @@ export function createMutators(userId: string) {
 			},
 		},
 		file: {
-			insert: async (tx, file: TlaFile) => {
-				assert(file.ownerId === userId, ZErrorCode.forbidden)
-				await assertNotMaxFiles(tx, userId)
-
-				await tx.mutate.file.insert(file)
-			},
 			insertWithFileState: async (
 				tx,
 				{ file, fileState }: { file: TlaFile; fileState: TlaFileState }
 			) => {
 				assert(file.ownerId === userId, ZErrorCode.forbidden)
 				await assertNotMaxFiles(tx, userId)
+				assert(file.id.match(/^[a-zA-Z0-9_-]+$/), ZErrorCode.bad_request)
+				assert(file.id.length <= 32, ZErrorCode.bad_request)
+				assert(file.id.length >= 16, ZErrorCode.bad_request)
+				assert(file.id === fileState.fileId, ZErrorCode.bad_request)
+				assert(fileState.userId === userId, ZErrorCode.forbidden)
 
-				await tx.mutate.file.upsert(file)
+				await tx.mutate.file.insert(file)
 				await tx.mutate.file_state.upsert(fileState)
 			},
 			deleteOrForget: async (tx, file: TlaFile) => {
 				await tx.mutate.file_state.delete({ fileId: file.id, userId })
 				if (file?.ownerId === userId) {
+					if (tx.location === 'server') {
+						// todo: use a sql trigger for this like we do for setting shared to false
+						await tx.dbTransaction.query(`delete from public.file_state where "fileId" = $1`, [
+							file.id,
+						])
+					}
 					await tx.mutate.file.update({
 						id: file.id,
 						ownerId: file.ownerId,
@@ -109,6 +114,7 @@ export function createMutators(userId: string) {
 						assert(file?.shared, ZErrorCode.forbidden)
 					}
 				}
+				// use upsert under the hood here for a little fault tolerance
 				await tx.mutate.file_state.upsert(fileState)
 			},
 			update: async (tx, fileState: TlaFileStatePartial) => {

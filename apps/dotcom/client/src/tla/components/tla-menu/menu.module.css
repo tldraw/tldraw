@@ -26,6 +26,10 @@
 	height: 32px;
 }
 
+.menuControlRow > *:not(:only-child):nth-last-of-type(1) {
+	padding-left: 4px;
+}
+
 .menuInfoTriggerContainer {
 	flex-grow: 2;
 }
@@ -38,12 +42,12 @@
 	flex-shrink: 0;
 	height: 40px;
 	width: 40px;
-	color: var(--color-text-3);
+	color: var(--tl-color-text-3);
 	cursor: pointer;
 }
 
 .menuInfoTrigger a {
-	color: var(--color-text-3);
+	color: var(--tl-color-text-3);
 	text-decoration: none;
 }
 
@@ -51,8 +55,8 @@
 	display: block;
 	content: '';
 	position: absolute;
-	border-radius: var(--radius-2);
-	background: var(--color-muted-2);
+	border-radius: var(--tl-radius-2);
+	background: var(--tl-color-muted-2);
 	inset: 6px;
 	border-radius: 100%;
 	opacity: 0;
@@ -60,7 +64,7 @@
 }
 
 .menuInfoTrigger:focus-visible {
-	outline: 2px solid var(--color-focus);
+	outline: 2px solid var(--tl-color-focus);
 	outline-offset: -10px;
 	border-radius: 100%;
 }
@@ -68,7 +72,7 @@
 @media (hover: hover) {
 	.menuInfoTrigger:not(:disabled):hover {
 		z-index: 1;
-		color: var(--color-text-1);
+		color: var(--tla-color-text-1);
 	}
 
 	.menuInfoTrigger:not(:disabled):hover::after {
@@ -77,12 +81,17 @@
 }
 
 .menuLabel {
-	color: var(--color-text-1);
+	color: var(--tla-color-text-1);
+	overflow: hidden;
+	text-overflow: ellipsis;
+	white-space: nowrap;
 }
 
 .menuPopover {
 	padding: 40px 12px 12px 12px;
 	min-width: 160px;
+	max-width: 160px;
+	overflow: hidden;
 }
 
 .menuLabel + .menuInfoTrigger {
@@ -117,39 +126,79 @@
 	padding-left: 2px;
 }
 
-/* need to targe	t the parent div, ugh, can't target via a className */
+.menuSelectTrigger::after {
+	content: '';
+	display: block;
+	position: absolute;
+	background-color: var(--tl-color-muted-2);
+	inset: -4px;
+	border-radius: 6px;
+	opacity: 0;
+}
+
+/* need to target the parent div, ugh, can't target via a className */
 div:has(> .menuSelectContent) {
 	position: absolute !important;
-	top: 12px;
-	right: 0;
+	top: 17px;
+	right: -8px;
 	left: auto !important;
 	z-index: 2 !important;
 }
 
 .menuSelectContent {
-	border-radius: var(--radius-3);
-	background-color: var(--color-panel);
-	box-shadow: var(--shadow-3);
+	border-radius: var(--tl-radius-3);
+	background-color: var(--tl-color-panel);
+	box-shadow: var(--tl-shadow-3);
 }
 
 .menuSelectOption {
+	position: relative;
 	display: flex;
 	align-items: center;
-	padding: 8px 8px 8px 12px;
+	padding: 8px;
 	gap: 4px;
 	cursor: pointer;
+	z-index: 1;
+	margin-bottom: -4px;
+	margin-top: -4px;
+}
+
+.menuSelectOption:first-of-type {
+	margin-top: 0px;
+}
+
+.menuSelectOption:last-of-type {
+	margin-bottom: 0px;
+}
+
+.menuSelectOption::after {
+	content: '';
+	inset: 4px;
+	display: block;
+	position: absolute;
+	background-color: var(--tl-color-muted-2);
+	opacity: 0;
+	border-radius: 6px;
+}
+
+.menuSelectOption > span:only-of-type {
+	padding-left: 19px; /* 15px of icon + 4px gap */
+}
+
+@media (hover: hover) {
+	.menuSelectOption:hover {
+		z-index: 2;
+	}
+
+	.menuSelectOption:hover::after {
+		opacity: 1;
+	}
 }
 
 :global(.tl-container__focused:not(.tl-container__no-focus-ring)) .menuSelectOption:focus-visible {
 	border-radius: 10px;
-	outline: 2px solid var(--color-focus);
+	outline: 2px solid var(--tl-color-focus);
 	outline-offset: -5px;
-}
-
-@media (hover: hover) {
-	.menuSelectTrigger[data-disabled='false']:hover > .menuSelectLabel::after {
-		visibility: visible;
-	}
 }
 
 .menuSelectSelect:disabled {
@@ -171,6 +220,16 @@ div:has(> .menuSelectContent) {
 .menuSelectTrigger:focus-visible {
 	outline-offset: 2px;
 	border-radius: 2px;
+}
+
+.menuSelectTrigger[data-state='open']::after {
+	opacity: 1;
+}
+
+@media (hover: hover) {
+	.menuSelectTrigger:not([data-disabled='true']):hover::after {
+		opacity: 1;
+	}
 }
 
 /* --------------------- Switch --------------------- */
@@ -205,7 +264,7 @@ div:has(> .menuSelectContent) {
 	width: var(--switch-w);
 	position: relative;
 	border-radius: 99px;
-	background-color: var(--tla-color-text-3);
+	background-color: var(--tla-color-inactive);
 	transition:
 		background-color 0.12s,
 		left 0.12s;
@@ -243,7 +302,17 @@ div:has(> .menuSelectContent) {
 
 .menuSwitchContainer:has(input:focus-visible) > div {
 	outline-offset: 2px;
-	outline: 2px solid var(--color-focus);
+	outline: 2px solid var(--tl-color-focus);
+}
+
+@media (hover: hover) {
+	.menuSwitchContainer:not(.disabled):hover > .menuSwitch[data-checked='false'] {
+		background-color: var(--tla-color-inactive-hover);
+	}
+
+	.menuSwitchContainer:not(.disabled):hover > .menuSwitch[data-checked='true'] {
+		background-color: var(--tla-color-primary-hover);
+	}
 }
 
 /* ---------------------- Tabs ---------------------- */
@@ -268,7 +337,7 @@ div:has(> .menuSelectContent) {
 	display: flex;
 	align-items: center;
 	padding: var(--tab-padding);
-	color: var(--tla-color-text-3);
+	color: var(--tla-color-text-2);
 }
 
 .menuTabsTab::after {

@@ -29,9 +29,11 @@ import { TLAppUiEventSource, useTldrawAppUiEvents } from '../../utils/app-ui-eve
 import { getIsCoarsePointer } from '../../utils/getIsCoarsePointer'
 import { defineMessages, useIntl, useMsg } from '../../utils/i18n'
 import { TlaFileMenu } from '../TlaFileMenu/TlaFileMenu'
-import { TlaIcon, TlaIconWrapper } from '../TlaIcon/TlaIcon'
+import { TlaIcon } from '../TlaIcon/TlaIcon'
+import { TlaLogo } from '../TlaLogo/TlaLogo'
 import { sidebarMessages } from '../TlaSidebar/components/TlaSidebarFileLink'
 import {
+	CookieConsentMenuItem,
 	GiveUsFeedbackMenuItem,
 	LegalSummaryMenuItem,
 	UserManualMenuItem,
@@ -63,7 +65,6 @@ export function TlaEditorTopLeftPanel({ isAnonUser }: { isAnonUser: boolean }) {
 
 export function TlaEditorTopLeftPanelAnonymous() {
 	const separator = '/'
-	const brandMsg = useMsg(messages.brand)
 	const pageMenuLbl = useMsg(messages.pageMenu)
 	// GOTCHA: 'anonymous' doesn't always mean logged out
 	// we show this version of the panel for published files as well.
@@ -88,10 +89,7 @@ export function TlaEditorTopLeftPanelAnonymous() {
 	return (
 		<>
 			<Link to="/" className={styles.topLeftOfflineLogo}>
-				<TlaIconWrapper data-size="m" data-testid="tla-sidebar-logo-icon">
-					<TlaIcon icon="tldraw" ariaLabel="tldraw" />
-				</TlaIconWrapper>
-				<div className={classNames('tla-text_ui__title', 'notranslate')}>{brandMsg}</div>
+				<TlaLogo data-testid="tla-sidebar-logo-icon" />
 			</Link>
 			{anonFileName && (
 				<>
@@ -121,7 +119,7 @@ export function TlaEditorTopLeftPanelAnonymous() {
 						<button
 							className={styles.topLeftMainMenuTrigger}
 							title={pageMenuLbl}
-							data-testid="tla-page-menu"
+							data-testid="tla-main-menu"
 						>
 							<TlaIcon icon="dots-vertical-strong" />
 						</button>
@@ -140,6 +138,7 @@ export function TlaEditorTopLeftPanelAnonymous() {
 							<UserManualMenuItem />
 							<GiveUsFeedbackMenuItem />
 							<LegalSummaryMenuItem />
+							<CookieConsentMenuItem />
 						</TldrawUiMenuGroup>
 						{!app && (
 							<TldrawUiMenuGroup id="signin">
@@ -214,7 +213,7 @@ export function TlaEditorTopLeftPanelSignedIn() {
 	return (
 		<>
 			{/* spacer for the sidebar toggle button */}
-			{isEmbed ? null : <div style={{ width: 40 }} />}
+			{isEmbed ? null : <div style={{ width: 40, flexShrink: 0 }} />}
 			<TlaFileNameEditor
 				source="file-header"
 				isRenaming={isRenaming}
@@ -232,7 +231,7 @@ export function TlaEditorTopLeftPanelSignedIn() {
 					<button
 						className={styles.topLeftMainMenuTrigger}
 						title={pageMenuLbl}
-						data-testid="tla-page-menu"
+						data-testid="tla-main-menu"
 					>
 						<TlaIcon icon="dots-vertical-strong" />
 					</button>
@@ -285,7 +284,8 @@ function TlaFileNameEditor({
 	const handleEditingEnd = useCallback(() => {
 		if (!onChange) return
 		setIsEditing(false)
-	}, [onChange])
+		onEnd?.()
+	}, [onChange, onEnd])
 
 	const handleEditingComplete = useCallback(
 		(name: string) => {

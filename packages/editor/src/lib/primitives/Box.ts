@@ -1,6 +1,6 @@
 import { BoxModel } from '@tldraw/tlschema'
 import { Vec, VecLike } from './Vec'
-import { PI, PI2, toPrecision } from './utils'
+import { approximatelyLte, PI, PI2, toPrecision } from './utils'
 
 /** @public */
 export type BoxLike = BoxModel | Box
@@ -134,33 +134,33 @@ export class Box {
 
 	// eslint-disable-next-line no-restricted-syntax
 	get center() {
-		return new Vec(this.midX, this.midY)
+		return new Vec(this.x + this.w / 2, this.y + this.h / 2)
 	}
 
 	// eslint-disable-next-line no-restricted-syntax
 	set center(v: Vec) {
-		this.minX = v.x - this.width / 2
-		this.minY = v.y - this.height / 2
+		this.x = v.x - this.w / 2
+		this.y = v.y - this.h / 2
 	}
 
 	// eslint-disable-next-line no-restricted-syntax
 	get corners() {
 		return [
-			new Vec(this.minX, this.minY),
-			new Vec(this.maxX, this.minY),
-			new Vec(this.maxX, this.maxY),
-			new Vec(this.minX, this.maxY),
+			new Vec(this.x, this.y),
+			new Vec(this.x + this.w, this.y),
+			new Vec(this.x + this.w, this.y + this.h),
+			new Vec(this.x, this.y + this.h),
 		]
 	}
 
 	// eslint-disable-next-line no-restricted-syntax
 	get cornersAndCenter() {
 		return [
-			new Vec(this.minX, this.minY),
-			new Vec(this.maxX, this.minY),
-			new Vec(this.maxX, this.maxY),
-			new Vec(this.minX, this.maxY),
-			this.center,
+			new Vec(this.x, this.y),
+			new Vec(this.x + this.w, this.y),
+			new Vec(this.x + this.w, this.y + this.h),
+			new Vec(this.x, this.y + this.h),
+			new Vec(this.x + this.w / 2, this.y + this.h / 2),
 		]
 	}
 
@@ -205,10 +205,10 @@ export class Box {
 	}
 
 	expand(A: Box) {
-		const minX = Math.min(this.minX, A.minX)
-		const minY = Math.min(this.minY, A.minY)
-		const maxX = Math.max(this.maxX, A.maxX)
-		const maxY = Math.max(this.maxY, A.maxY)
+		const minX = Math.min(this.x, A.x)
+		const minY = Math.min(this.y, A.y)
+		const maxX = Math.max(this.x + this.w, A.x + A.w)
+		const maxY = Math.max(this.y + this.h, A.y + A.h)
 
 		this.x = minX
 		this.y = minY
@@ -245,10 +245,10 @@ export class Box {
 	}
 
 	snapToGrid(size: number) {
-		const minX = Math.round(this.minX / size) * size
-		const minY = Math.round(this.minY / size) * size
-		const maxX = Math.round(this.maxX / size) * size
-		const maxY = Math.round(this.maxY / size) * size
+		const minX = Math.round(this.x / size) * size
+		const minY = Math.round(this.y / size) * size
+		const maxX = Math.round((this.x + this.w) / size) * size
+		const maxY = Math.round((this.y + this.h) / size) * size
 		this.minX = minX
 		this.minY = minY
 		this.width = Math.max(1, maxX - minX)
@@ -274,26 +274,26 @@ export class Box {
 	getHandlePoint(handle: SelectionCorner | SelectionEdge) {
 		switch (handle) {
 			case 'top_left':
-				return new Vec(this.minX, this.minY)
+				return new Vec(this.x, this.y)
 			case 'top_right':
-				return new Vec(this.maxX, this.minY)
+				return new Vec(this.x + this.w, this.y)
 			case 'bottom_left':
-				return new Vec(this.minX, this.maxY)
+				return new Vec(this.x, this.y + this.h)
 			case 'bottom_right':
-				return new Vec(this.maxX, this.maxY)
+				return new Vec(this.x + this.w, this.y + this.h)
 			case 'top':
-				return new Vec(this.midX, this.minY)
+				return new Vec(this.x + this.w / 2, this.y)
 			case 'right':
-				return new Vec(this.maxX, this.midY)
+				return new Vec(this.x + this.w, this.y + this.h / 2)
 			case 'bottom':
-				return new Vec(this.midX, this.maxY)
+				return new Vec(this.x + this.w / 2, this.y + this.h)
 			case 'left':
-				return new Vec(this.minX, this.midY)
+				return new Vec(this.x, this.y + this.h / 2)
 		}
 	}
 
 	toJson(): BoxModel {
-		return { x: this.minX, y: this.minY, w: this.w, h: this.h }
+		return { x: this.x, y: this.y, w: this.w, h: this.h }
 	}
 
 	resize(handle: SelectionCorner | SelectionEdge | string, dx: number, dy: number) {
@@ -357,10 +357,10 @@ export class Box {
 	}
 
 	union(box: BoxModel) {
-		const minX = Math.min(this.minX, box.x)
-		const minY = Math.min(this.minY, box.y)
-		const maxX = Math.max(this.maxX, box.w + box.x)
-		const maxY = Math.max(this.maxY, box.h + box.y)
+		const minX = Math.min(this.x, box.x)
+		const minY = Math.min(this.y, box.y)
+		const maxX = Math.max(this.x + this.w, box.x + box.w)
+		const maxY = Math.max(this.y + this.h, box.y + box.h)
 
 		this.x = minX
 		this.y = minY
@@ -415,6 +415,15 @@ export class Box {
 
 	static Contains(A: Box, B: Box) {
 		return A.minX < B.minX && A.minY < B.minY && A.maxY > B.maxY && A.maxX > B.maxX
+	}
+
+	static ContainsApproximately(A: Box, B: Box, precision?: number) {
+		return (
+			approximatelyLte(A.minX, B.minX, precision) &&
+			approximatelyLte(A.minY, B.minY, precision) &&
+			approximatelyLte(B.maxX, A.maxX, precision) &&
+			approximatelyLte(B.maxY, A.maxY, precision)
+		)
 	}
 
 	static Includes(A: Box, B: Box) {

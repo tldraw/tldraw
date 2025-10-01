@@ -10,6 +10,7 @@ import {
 	createRecordMigrationSequence,
 	createRecordType,
 } from '@tldraw/store'
+import { vi, type Mock } from 'vitest'
 import { TLSyncClient, TLSyncErrorCloseEventReason } from '../lib/TLSyncClient'
 import { RoomSnapshot, TLRoomSocket } from '../lib/TLSyncRoom'
 import { RecordOpType, ValueOpType } from '../lib/diff'
@@ -17,23 +18,23 @@ import { TLSocketServerSentEvent, getTlsyncProtocolVersion } from '../lib/protoc
 import { TestServer } from './TestServer'
 import { TestSocketPair } from './TestSocketPair'
 
-const actualProtocol = jest.requireActual('../lib/protocol')
+const actualProtocol = (await vi.importActual('../lib/protocol')) as any
 
-jest.mock('../lib/protocol', () => {
-	const actual = jest.requireActual('../lib/protocol')
+vi.mock('../lib/protocol', async () => {
+	const actual = (await vi.importActual('../lib/protocol')) as any
 	return {
 		...actual,
-		getTlsyncProtocolVersion: jest.fn(actual.getTlsyncProtocolVersion),
+		getTlsyncProtocolVersion: vi.fn(actual.getTlsyncProtocolVersion),
 	}
 })
 
-const mockGetTlsyncProtocolVersion = getTlsyncProtocolVersion as jest.Mock
+const mockGetTlsyncProtocolVersion = getTlsyncProtocolVersion as Mock
 
 function mockSocket<R extends UnknownRecord>(): TLRoomSocket<R> {
 	return {
 		isOpen: true,
-		sendMessage: jest.fn(),
-		close: jest.fn(),
+		sendMessage: vi.fn(),
+		close: vi.fn(),
 	}
 }
 
@@ -181,7 +182,7 @@ class TestInstance {
 			onLoad: () => {
 				this.hasLoaded = true
 			},
-			onSyncError: jest.fn((reason) => {
+			onSyncError: vi.fn((reason) => {
 				throw new Error('onSyncError: ' + reason)
 			}),
 			presence: computed('', () => null),
@@ -193,7 +194,7 @@ class TestInstance {
 			onLoad: () => {
 				this.hasLoaded = true
 			},
-			onSyncError: jest.fn((reason) => {
+			onSyncError: vi.fn((reason) => {
 				throw new Error('onSyncError: ' + reason)
 			}),
 			presence: computed('', () => null),
@@ -227,11 +228,11 @@ test('the server can handle receiving v1 stuff from the client', () => {
 	t.oldClient.store.put([user])
 	t.flush()
 
-	expect(t.server.room.state.get().documents[user.id].state).toMatchObject({
+	expect(t.server.room.documents.get(user.id)?.state).toMatchObject({
 		name: 'bob',
 		birthdate: null,
 	})
-	expect(t.server.room.state.get().documents[user.id].state).not.toMatchObject({
+	expect(t.server.room.documents.get(user.id)?.state).not.toMatchObject({
 		name: 'bob',
 		age: 10,
 	})
@@ -253,7 +254,7 @@ test('the server can send v2 stuff to the v1 client', () => {
 	t.newClient.store.put([user])
 	t.flush()
 
-	expect(t.server.room.state.get().documents[user.id].state).toMatchObject({
+	expect(t.server.room.documents.get(user.id)?.state).toMatchObject({
 		name: 'bob',
 		birthdate: '2022-01-09',
 	})
@@ -286,11 +287,11 @@ test('the server will run schema migrations on a snapshot', () => {
 		schemaV3
 	)
 
-	expect(t.server.room.state.get().documents[bob.id].state).toMatchObject({
+	expect(t.server.room.documents.get(bob.id)?.state).toMatchObject({
 		name: 'bob',
 		birthdate: null,
 	})
-	expect(t.server.room.state.get().documents[joe.id]).toBeUndefined()
+	expect(t.server.room.documents.get(joe.id)).toBeUndefined()
 
 	// there should be someone named steve
 	const snapshot = t.server.room.getSnapshot()
@@ -318,7 +319,7 @@ test('clients will receive updates from a snapshot migration upon connection', (
 	const newClientSocketPair = new TestSocketPair('test_upgrade__brand_new', newServer)
 
 	// need to set these two things to get the message through
-	newClientSocketPair.callbacks['onReceiveMessage'] = jest.fn()
+	newClientSocketPair.callbacks['onReceiveMessage'] = vi.fn()
 	newClientSocketPair.clientSocket.connectionStatus = 'online'
 
 	const id = 'test_upgrade_brand_new'
@@ -337,7 +338,7 @@ test('clients will receive updates from a snapshot migration upon connection', (
 		schema: schemaV3.serialize(),
 	})
 
-	expect((newClientSocket.sendMessage as jest.Mock).mock.calls[0][0]).toMatchObject({
+	expect((newClientSocket.sendMessage as Mock).mock.calls[0][0]).toMatchObject({
 		// we should have added steve and deleted joe
 		diff: {
 			[joe.id]: [RecordOpType.Remove],
@@ -528,12 +529,12 @@ describe('when the client is too old', () => {
 		const v2Id = 'test_upgrade_v2'
 		const v2Socket = mockSocket<RV2>()
 
-		const v2SendMessage = v2Socket.sendMessage as jest.Mock
+		const v2SendMessage = v2Socket.sendMessage as Mock
 
 		const v1Id = 'test_upgrade_v1'
 		const v1Socket = mockSocket<RV1>()
 
-		const v1SendMessage = v1Socket.sendMessage as jest.Mock
+		const v1SendMessage = v1Socket.sendMessage as Mock
 
 		v2Server.room.handleNewSession({
 			sessionId: v1Id,
@@ -743,15 +744,15 @@ describe('when the client is the same version', () => {
 			serverClock: 10,
 			isReadonly: false,
 		} satisfies TLSocketServerSentEvent<RV2>)
-		;(aSocket.sendMessage as jest.Mock).mockClear()
-		;(bSocket.sendMessage as jest.Mock).mockClear()
+		;(aSocket.sendMessage as Mock).mockClear()
+		;(bSocket.sendMessage as Mock).mockClear()
 
 		return {
 			v2Server,
 			aId,
 			bId,
-			v2ClientASendMessage: aSocket.sendMessage as jest.Mock,
-			v2ClientBSendMessage: bSocket.sendMessage as jest.Mock,
+			v2ClientASendMessage: aSocket.sendMessage as Mock,
+			v2ClientBSendMessage: bSocket.sendMessage as Mock,
 			steve,
 		}
 	}

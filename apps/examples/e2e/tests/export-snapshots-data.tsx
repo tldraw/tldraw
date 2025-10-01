@@ -32,7 +32,11 @@ export const manCrop: TLShapeCrop = {
 	topLeft: { x: 0.25, y: 0.05 },
 	bottomRight: { x: 0.75, y: 0.3 },
 }
-
+export const manCropAsCircle: TLShapeCrop = {
+	topLeft: { x: 0.25, y: 0.05 },
+	bottomRight: { x: 0.75, y: 0.3 },
+	isCircle: true,
+}
 export const richText = {
 	type: 'doc',
 	content: [
@@ -103,6 +107,26 @@ export const richText = {
 				{ type: 'text', marks: [{ type: 'highlight' }], text: 'highlight ' },
 				{ type: 'text', marks: [{ type: 'highlight' }, { type: 'bold' }], text: 'across' },
 				{ type: 'text', marks: [{ type: 'highlight' }], text: ' styles' },
+			],
+		},
+	],
+}
+
+export const richTextForArrow = {
+	type: 'doc',
+	content: [
+		{
+			type: 'heading',
+			attrs: { dir: 'auto', level: 3 },
+			content: [{ type: 'text', text: 'Headers' }],
+		},
+		{
+			type: 'paragraph',
+			attrs: { dir: 'auto' },
+			content: [
+				{ type: 'text', marks: [{ type: 'highlight' }], text: 'rich' },
+				{ type: 'text', text: ' ' },
+				{ type: 'text', marks: [{ type: 'code' }], text: 'text' },
 			],
 		},
 	],

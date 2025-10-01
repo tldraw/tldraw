@@ -13,13 +13,13 @@ import {
 	debounce,
 	getHashForString,
 	lerp,
-	stopEventPropagation,
 	tlenv,
 	toDomPrecision,
+	useEditor,
 	useSvgExportContext,
 } from '@tldraw/editor'
 import classNames from 'classnames'
-import { useState } from 'react'
+import { PointerEventHandler, useCallback, useState } from 'react'
 import { convertCommonTitleHTMLEntities } from '../../utils/text/text'
 import { HyperlinkButton } from '../shared/HyperlinkButton'
 import { LINK_ICON } from '../shared/icons-editor'
@@ -71,7 +71,7 @@ export class BookmarkShapeUtil extends BaseBoxShapeUtil<TLBookmarkShape> {
 	}
 
 	override component(shape: TLBookmarkShape) {
-		return <BookmarkShapeComponent shape={shape} util={this} />
+		return <BookmarkShapeComponent shape={shape} />
 	}
 
 	override indicator(shape: TLBookmarkShape) {
@@ -115,25 +115,28 @@ export class BookmarkShapeUtil extends BaseBoxShapeUtil<TLBookmarkShape> {
 	}
 }
 
-function BookmarkShapeComponent({
-	shape,
-	util,
-}: {
-	shape: TLBookmarkShape
-	util: BookmarkShapeUtil
-}) {
+function BookmarkShapeComponent({ shape }: { shape: TLBookmarkShape }) {
+	const editor = useEditor()
+
 	const asset = (
-		shape.props.assetId ? util.editor.getAsset(shape.props.assetId) : null
+		shape.props.assetId ? editor.getAsset(shape.props.assetId) : null
 	) as TLBookmarkAsset
 
 	const isSafariExport = !!useSvgExportContext() && tlenv.isSafari
 
-	const pageRotation = util.editor.getShapePageTransform(shape)!.rotation()
+	const pageRotation = editor.getShapePageTransform(shape)!.rotation()
 
 	const address = getHumanReadableAddress(shape)
 
 	const [isFaviconValid, setIsFaviconValid] = useState(true)
 	const onFaviconError = () => setIsFaviconValid(false)
+
+	const markAsHandledOnShiftKey = useCallback<PointerEventHandler>(
+		(e) => {
+			if (!editor.inputs.shiftKey) editor.markEventAsHandled(e)
+		},
+		[editor]
+	)
 
 	return (
 		<HTMLContainer>
@@ -177,9 +180,9 @@ function BookmarkShapeComponent({
 						href={shape.props.url || ''}
 						target="_blank"
 						rel="noopener noreferrer"
-						onPointerDown={stopEventPropagation}
-						onPointerUp={stopEventPropagation}
-						onClick={stopEventPropagation}
+						draggable={false}
+						onPointerDown={markAsHandledOnShiftKey}
+						onPointerUp={markAsHandledOnShiftKey}
 					>
 						{isFaviconValid && asset?.props.favicon ? (
 							<img

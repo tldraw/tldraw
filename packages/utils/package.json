@@ -1,7 +1,7 @@
 {
 	"name": "@tldraw/utils",
-	"description": "A tiny little drawing app (private utilities).",
-	"version": "3.13.0",
+	"description": "tldraw infinite canvas SDK (private utilities).",
+	"version": "4.0.2",
 	"author": {
 		"name": "tldraw Inc.",
 		"email": "hello@tldraw.com"
@@ -17,6 +17,7 @@
 	},
 	"keywords": [
 		"tldraw",
+		"sdk",
 		"drawing",
 		"app",
 		"development",
@@ -27,37 +28,34 @@
 	"/* NOTE */": "These `main` and `types` fields are rewritten by the build script. They are not the actual values we publish",
 	"main": "./src/index.ts",
 	"types": "./.tsbuild/index.d.ts",
+	"type": "module",
 	"/* GOTCHA */": "files will include ./dist and index.d.ts by default, add any others you want to include in here",
 	"files": [],
 	"scripts": {
-		"test-ci": "lazy inherit",
-		"test": "yarn run -T jest",
-		"test-coverage": "lazy inherit",
+		"test-ci": "yarn run -T vitest run --passWithNoTests",
+		"test": "yarn run -T vitest --passWithNoTests",
+		"test-coverage": "yarn run -T vitest run --coverage --passWithNoTests",
 		"build": "yarn run -T tsx ../../internal/scripts/build-package.ts",
 		"build-api": "yarn run -T tsx ../../internal/scripts/build-api.ts",
 		"prepack": "yarn run -T tsx ../../internal/scripts/prepack.ts",
 		"postpack": "../../internal/scripts/postpack.sh",
 		"pack-tarball": "yarn pack",
-		"lint": "yarn run -T tsx ../../internal/scripts/lint.ts"
-	},
-	"jest": {
-		"preset": "../../internal/config/jest/node/jest-preset.js",
-		"setupFiles": [
-			"raf/polyfill"
-		],
-		"moduleNameMapper": {
-			"^~(.*)": "<rootDir>/src/$1"
-		}
+		"lint": "yarn run -T tsx ../../internal/scripts/lint.ts",
+		"context": "yarn run -T tsx ../../internal/scripts/context.ts"
 	},
 	"dependencies": {
-		"fractional-indexing-jittered": "^0.9.1",
+		"jittered-fractional-indexing": "^1.0.0",
+		"lodash.isequal": "^4.5.0",
+		"lodash.isequalwith": "^4.4.0",
 		"lodash.throttle": "^4.1.1",
 		"lodash.uniq": "^4.5.0"
 	},
 	"devDependencies": {
+		"@types/lodash.isequal": "^4.5.8",
+		"@types/lodash.isequalwith": "^4.4.9",
 		"@types/lodash.throttle": "^4.1.9",
 		"@types/lodash.uniq": "^4.5.9",
-		"jest-environment-jsdom": "^29.7.0",
-		"lazyrepo": "0.0.0-alpha.27"
+		"lazyrepo": "0.0.0-alpha.27",
+		"vitest": "^3.2.4"
 	}
 }

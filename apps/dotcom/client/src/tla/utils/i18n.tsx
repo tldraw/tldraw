@@ -1,5 +1,6 @@
 /* eslint-disable no-restricted-imports */
-
+import { FormatXMLElementFn } from 'intl-messageformat'
+import { ComponentPropsWithoutRef } from 'react'
 import {
 	FormattedMessage,
 	IntlConfig,
@@ -11,10 +12,6 @@ import {
 	defineMessages as originalDefineMessages,
 	useIntl,
 } from 'react-intl'
-
-import { FormatXMLElementFn } from 'intl-messageformat'
-import md5 from 'md5'
-import { ComponentPropsWithoutRef } from 'react'
 
 // Re-export everything and override below what we want to override.
 // eslint-disable-next-line
@@ -30,22 +27,17 @@ export function useMsg(
 
 const INTERNAL_LOCALES = ['xx-AE', 'xx-LS']
 
-// This matches the extraction tool pattern:
-//   --id-interpolation-pattern '[md5:contenthash:hex:10]'
-function generateId({ id, description, defaultMessage }: MessageDescriptor) {
-	if (id) {
-		return id
-	}
+// We use `@swc/plugin-formatjs` in `vite.config.ts` to generate IDs for messages.
+// This should always have an ID, so we throw an error if it's missing.
+function fetchId({ id }: MessageDescriptor) {
+	if (id) return id
 
-	return md5((description ? `${defaultMessage}#${description}` : defaultMessage) as string).slice(
-		0,
-		10
-	)
+	throw new Error('MessageDescriptor must have an id.')
 }
 
 export function F(props: ComponentPropsWithoutRef<typeof FormattedMessage>) {
 	const intl = useIntl()
-	const id = generateId(props)
+	const id = fetchId(props)
 	let internalMessage = (props.defaultMessage || '') as string
 	if (intl.locale === 'xx-AE') {
 		internalMessage = makeAccented(internalMessage)
@@ -71,7 +63,7 @@ export function defineMessages<T extends string, D extends MessageDescriptor>(
 ): Record<T, D> {
 	for (const key in msgs) {
 		if (!msgs[key].id) {
-			msgs[key].id = generateId(msgs[key])
+			msgs[key].id = fetchId(msgs[key])
 		}
 	}
 	return originalDefineMessages(msgs)

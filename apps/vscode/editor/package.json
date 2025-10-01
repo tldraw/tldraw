@@ -18,6 +18,7 @@
 	},
 	"keywords": [
 		"tldraw",
+		"sdk",
 		"drawing",
 		"app",
 		"development",
@@ -29,19 +30,22 @@
 		"build": "yarn run -T tsx scripts/build.ts",
 		"dev": "yarn run -T tsx scripts/dev.ts",
 		"clean": "rm -rf .turbo && rm -rf node_modules && rm -rf dist",
-		"lint": "yarn run -T tsx ../../../internal/scripts/lint.ts"
+		"lint": "yarn run -T tsx ../../../internal/scripts/lint.ts",
+		"test": "yarn run -T vitest --passWithNoTests",
+		"test-ci": "yarn run -T vitest run --passWithNoTests",
+		"test-coverage": "yarn run -T vitest run --coverage --passWithNoTests"
 	},
 	"devDependencies": {
 		"@tldraw/assets": "workspace:*",
 		"@types/fs-extra": "^11.0.4",
-		"@types/node": "~20.11.30",
+		"@types/node": "^22.15.31",
 		"@types/react": "^18.3.18",
 		"@types/react-dom": "^18.3.5",
 		"@types/react-router-dom": "^5.3.3",
 		"concurrently": "^9.1.2",
 		"create-serve": "1.0.1",
 		"dotenv": "^16.4.7",
-		"esbuild": "^0.24.2",
+		"esbuild": "^0.25.6",
 		"fs-extra": "^11.3.0",
 		"lazyrepo": "0.0.0-alpha.27",
 		"react": "^18.3.1",

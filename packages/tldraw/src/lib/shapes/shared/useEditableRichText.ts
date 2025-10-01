@@ -1,4 +1,4 @@
-import { TLRichText, TLShapeId, TLUnknownShape, preventDefault, useEditor } from '@tldraw/editor'
+import { TLRichText, TLShapeId, TLUnknownShape, isAccelKey, useEditor } from '@tldraw/editor'
 import { useCallback, useEffect, useRef } from 'react'
 import { isEmptyRichText } from '../../utils/text/richText'
 import { useEditableTextCommon } from './useEditablePlainText'
@@ -29,15 +29,7 @@ export function useEditableRichText(shapeId: TLShapeId, type: string, richText?:
 	const handleKeyDown = useCallback(
 		(e: KeyboardEvent) => {
 			if (editor.getEditingShapeId() !== shapeId) return
-
-			switch (e.key) {
-				case 'Enter': {
-					if (e.ctrlKey || e.metaKey) {
-						editor.complete()
-					}
-					break
-				}
-			}
+			if (e.key === 'Enter' && isAccelKey(e)) editor.complete()
 		},
 		[editor, shapeId]
 	)
@@ -56,27 +48,10 @@ export function useEditableRichText(shapeId: TLShapeId, type: string, richText?:
 		[editor, shapeId, type]
 	)
 
-	const handlePaste = useCallback(
-		(e: ClipboardEvent | React.ClipboardEvent<HTMLTextAreaElement>) => {
-			if (editor.getEditingShapeId() !== shapeId) return
-			if (e.clipboardData) {
-				// find html in the clipboard and look for the tldraw data
-				const html = e.clipboardData.getData('text/html')
-				if (html) {
-					if (html.includes('<div data-tldraw')) {
-						preventDefault(e)
-					}
-				}
-			}
-		},
-		[editor, shapeId]
-	)
-
 	return {
 		rInput,
 		handleKeyDown,
 		handleChange,
-		handlePaste,
 		isEmpty,
 		...commonUseEditableTextHandlers,
 	}

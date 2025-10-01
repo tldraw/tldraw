@@ -18,6 +18,7 @@ import throttle from 'lodash.throttle'
 import { Logger } from './Logger'
 import { fetchEverythingSql } from './fetchEverythingSql.snap'
 import { parseResultRow } from './parseResultRow'
+import { getSubscriptionChanges } from './replicator/Subscription'
 import { Environment, TLUserDurableObjectEvent, getUserDoSnapshotKey } from './types'
 import { getReplicator, getStatsDurableObjct } from './utils/durableObjects'
 import { retryOnConnectionFailure } from './utils/retryOnConnectionFailure'
@@ -25,7 +26,6 @@ type PromiseWithResolve = ReturnType<typeof promiseWithResolve>
 
 export interface ZRowUpdateEvent {
 	type: 'row_update'
-	userId: string
 	row: TlaRow
 	table: ZTable
 	event: ZEvent
@@ -78,7 +78,7 @@ type BootState =
 			lastSequenceNumber: number
 	  }
 
-const stateVersion = 1
+const stateVersion = 2
 interface StateSnapshot {
 	version: number
 	initialData: ZStoreData
@@ -86,7 +86,11 @@ interface StateSnapshot {
 		updates: ZRowUpdate[]
 		mutationId: string
 	}>
+	sequenceId: string
+	lastSequenceNumber: number
 }
+
+const notASequenceId = 'not_a_sequence'
 
 function migrateStateSnapshot(snapshot: any) {
 	if (snapshot.version === 0) {
@@ -98,6 +102,12 @@ function migrateStateSnapshot(snapshot: any) {
 			file: data.files,
 			file_state: data.fileStates,
 		} satisfies ZStoreData
+	}
+
+	if (snapshot.version === 1) {
+		snapshot.version = 2
+		snapshot.sequenceId = notASequenceId
+		snapshot.lastSequenceNumber = 0
 	}
 }
 
@@ -140,12 +150,15 @@ export class UserDataSyncer {
 		this.reboot({ delay: false, source: 'constructor' })
 		const persist = throttle(
 			async () => {
+				if (this.state.type !== 'connected') return
 				const initialData = this.store.getCommittedData()
 				if (initialData) {
 					const snapshot: StateSnapshot = {
 						version: stateVersion,
 						initialData,
 						optimisticUpdates: this.store.getOptimisticUpdates(),
+						sequenceId: this.state.sequenceId,
+						lastSequenceNumber: this.state.lastSequenceNumber,
 					}
 					this.log.debug('stashing snapshot')
 					this.lastStashEpoch = this.store.epoch
@@ -302,6 +315,8 @@ export class UserDataSyncer {
 			version: stateVersion,
 			initialData,
 			optimisticUpdates: [],
+			sequenceId: notASequenceId,
+			lastSequenceNumber: 0,
 		} satisfies StateSnapshot
 	}
 
@@ -315,6 +330,7 @@ export class UserDataSyncer {
 			bootId: uniqueId(),
 			bufferedEvents: [],
 		}
+		let resumeData: { sequenceId: string; lastSequenceNumber: number } | null = null
 		/**
 		 * BOOTUP SEQUENCE
 		 * 1. Generate a unique boot id
@@ -344,36 +360,49 @@ export class UserDataSyncer {
 			) {
 				this.commitMutations(res.initialData.mutationNumber)
 			}
+			if (res.sequenceId !== notASequenceId) {
+				resumeData = { sequenceId: res.sequenceId, lastSequenceNumber: res.lastSequenceNumber }
+			}
 		}
 
 		const initialData = this.store.getCommittedData()!
 
 		const guestFileIds = initialData.file.filter((f) => f.ownerId !== this.userId).map((f) => f.id)
 
-		const res = await getReplicator(this.env).registerUser({
-			userId: this.userId,
-			lsn: initialData.lsn,
-			guestFileIds,
-			bootId: this.state.bootId,
-		})
+		if (
+			!resumeData ||
+			!(await getReplicator(this.env).resumeSequence({
+				userId: this.userId,
+				sequenceId: resumeData.sequenceId,
+				lastSequenceNumber: resumeData.lastSequenceNumber,
+			}))
+		) {
+			const res = await getReplicator(this.env).registerUser({
+				userId: this.userId,
+				lsn: initialData.lsn,
+				guestFileIds,
+				bootId: this.state.bootId,
+			})
 
-		if (signal.aborted) {
-			this.log.debug('aborting because of timeout')
-			return
-		}
+			if (signal.aborted) {
+				this.log.debug('aborting because of timeout')
+				return
+			}
 
-		if (res.type === 'reboot') {
-			this.logEvent({ type: 'not_enough_history_for_fast_reboot', id: this.userId })
-			if (hard) throw new Error('reboot loop, waiting')
-			return this.boot(true, signal)
+			if (res.type === 'reboot') {
+				this.logEvent({ type: 'not_enough_history_for_fast_reboot', id: this.userId })
+				if (hard) throw new Error('reboot loop, waiting')
+				return this.boot(true, signal)
+			}
+			resumeData = { sequenceId: res.sequenceId, lastSequenceNumber: res.sequenceNumber }
 		}
 
 		const bufferedEvents = this.state.bufferedEvents
 		this.state = {
 			type: 'connected',
 			bootId: this.state.bootId,
-			sequenceId: res.sequenceId,
-			lastSequenceNumber: res.sequenceNumber,
+			sequenceId: resumeData.sequenceId,
+			lastSequenceNumber: resumeData.lastSequenceNumber,
 		}
 
 		if (bufferedEvents.length > 0) {
@@ -464,6 +493,18 @@ export class UserDataSyncer {
 			return
 		}
 
+		// do a hard reboot if any topic subscriptions changed
+		const topicUpdates = getSubscriptionChanges(
+			event.changes
+				.filter((c): c is ZRowUpdateEvent => c.type === 'row_update')
+				.map((ev) => ({ row: ev.row, event: { command: ev.event, table: ev.table } }))
+		)
+
+		if (topicUpdates.newSubscriptions?.length || topicUpdates.removedSubscriptions?.length) {
+			this.reboot({ hard: true, delay: false, source: 'handleReplicationEvent(hard reboot)' })
+			return
+		}
+
 		transact(() => {
 			let maxMutationNumber = -1
 			for (const ev of event.changes) {
@@ -485,31 +526,6 @@ export class UserDataSyncer {
 			this.lastLsnCommit = Date.now()
 			this.store.commitLsn(event.lsn)
 		})
-
-		// make sure we have all the files we need
-		const data = this.store.getFullData()
-		for (const fileState of data?.file_state ?? []) {
-			if (!data?.file.some((f) => f.id === fileState.fileId)) {
-				this.log.debug('missing file', fileState.fileId)
-				this.addGuestFile(fileState.fileId)
-			}
-		}
-
-		for (const file of data?.file ?? []) {
-			// and make sure we don't have any files we don't need
-			// this happens when a shared file is made private
-			if (file.ownerId !== this.userId && !data?.file_state.some((fs) => fs.fileId === file.id)) {
-				this.log.debug('extra file', file.id)
-				const update: ZRowUpdate = {
-					event: 'delete',
-					row: { id: file.id },
-					table: 'file',
-				}
-				this.store.updateCommittedData(update)
-				this.broadcast({ type: 'update', update: update })
-				continue
-			}
-		}
 	}
 
 	async addGuestFile(fileOrId: string | TlaFile) {

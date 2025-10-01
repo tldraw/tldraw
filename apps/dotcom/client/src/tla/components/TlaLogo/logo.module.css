@@ -1,0 +1,11 @@
+.logo {
+	display: flex;
+	position: relative;
+	flex-shrink: 0;
+	background-color: var(--tl-color-text-1);
+	height: 19px;
+	width: 70px;
+	z-index: 1;
+	pointer-events: none;
+	color: inherit;
+}

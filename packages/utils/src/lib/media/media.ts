@@ -188,7 +188,7 @@ export class MediaHelpers {
 					const physChunk = PngHelpers.findChunk(view, 'pHYs')
 					if (physChunk) {
 						const physData = PngHelpers.parsePhys(view, physChunk.dataOffset)
-						if (physData.unit === 0 && physData.ppux === physData.ppuy) {
+						if (physData.unit === 1 && physData.ppux === physData.ppuy) {
 							// Calculate pixels per meter:
 							// - 1 inch = 0.0254 meters
 							// - 72 DPI is 72 dots per inch

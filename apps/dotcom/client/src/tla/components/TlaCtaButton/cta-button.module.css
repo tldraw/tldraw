@@ -47,7 +47,13 @@
 	content: '';
 	position: absolute;
 	inset: 0px;
-	background-color: var(--color-background);
+	background-color: var(--tl-color-background);
 	border-radius: 8px;
 	z-index: 1;
+}
+
+@media (hover: hover) {
+	.ctaButton:hover::before {
+		background-color: var(--tla-color-cta-hover);
+	}
 }

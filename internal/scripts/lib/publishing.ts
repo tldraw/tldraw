@@ -1,8 +1,10 @@
+import { Octokit } from '@octokit/rest'
 import { execSync } from 'child_process'
 import { fetch } from 'cross-fetch'
 import { existsSync, readFileSync, readdirSync, writeFileSync } from 'fs'
+import { glob } from 'glob'
 import path, { join } from 'path'
-import { compare, parse } from 'semver'
+import { parse } from 'semver'
 import { exec } from './exec'
 import { REPO_ROOT } from './file'
 import { nicelog } from './nicelog'
@@ -46,7 +48,7 @@ export async function getAllPackageDetails(): Promise<Record<string, PackageDeta
 	return Object.fromEntries(results.map((result) => [result.name, result]))
 }
 
-export async function setAllVersions(version: string) {
+export async function setAllVersions(version: string, options?: { stageChanges?: boolean }) {
 	const packages = await getAllPackageDetails()
 	for (const packageDetails of Object.values(packages)) {
 		const manifest = JSON.parse(readFileSync(path.join(packageDetails.dir, 'package.json'), 'utf8'))
@@ -64,21 +66,50 @@ export async function setAllVersions(version: string) {
 	writeFileSync('lerna.json', JSON.stringify(lernaJson, null, '\t') + '\n')
 
 	execSync('yarn')
+
+	if (options?.stageChanges) {
+		await stageAllPackageJsonChanges()
+	}
 }
 
-export async function getLatestVersion() {
-	const packages = await getAllPackageDetails()
-
-	const allVersions = Object.values(packages).map((p) => parse(p.version)!)
-	allVersions.sort(compare)
-
-	const latestVersion = allVersions[allVersions.length - 1]
-
-	if (!latestVersion) {
-		throw new Error('Could not find latest version')
+async function stageAllPackageJsonChanges() {
+	// stage the changes
+	const packageJsonFilesToAdd = []
+	for (const workspace of await getAllWorkspacePackages()) {
+		if (workspace.relativePath.startsWith('packages/')) {
+			packageJsonFilesToAdd.push(`${workspace.relativePath}/package.json`)
+		}
 	}
+	const versionFilesToAdd = glob.sync('**/*/version.ts', {
+		ignore: ['node_modules/**'],
+		follow: false,
+	})
+	console.log('versionFilesToAdd', versionFilesToAdd)
+	await exec('git', [
+		'add',
+		'--update',
+		'lerna.json',
+		...packageJsonFilesToAdd,
+		...versionFilesToAdd,
+	])
+}
 
-	return latestVersion
+function assertExists<T>(v: T | null | undefined): T {
+	if (v === null || v === undefined) throw new Error('Expected value to exist')
+	return v
+}
+
+export async function getLatestTldrawVersionFromNpm({
+	versionPrefix,
+}: { versionPrefix?: string } = {}) {
+	if (!versionPrefix)
+		return assertExists(parse((await exec('npm', ['show', 'tldraw', 'version'])).trim()))
+
+	const versions = (await exec('npm', ['show', 'tldraw@~' + versionPrefix, 'version'])).trim()
+	if (versions.startsWith('tldraw')) {
+		return assertExists(parse(versions.split('\n').pop()?.split(' ')[1].replaceAll("'", '')))
+	}
+	return assertExists(parse(versions))
 }
 
 function topologicalSortPackages(packages: Record<string, PackageDetails>) {
@@ -208,4 +239,14 @@ export async function publishProductionDocsAndExamplesAndBemo({
 }: { gitRef?: string } = {}) {
 	await exec('git', ['push', 'origin', `${gitRef}:docs-production`, `--force`])
 	await exec('git', ['push', 'origin', `${gitRef}:bemo-production`, `--force`])
+}
+
+export async function triggerBumpVersionsWorkflow(ghToken: string) {
+	const octokit = new Octokit({ auth: ghToken })
+	await octokit.rest.actions.createWorkflowDispatch({
+		owner: 'tldraw',
+		repo: 'tldraw',
+		workflow_id: 'bump-versions.yml',
+		ref: 'main',
+	})
 }

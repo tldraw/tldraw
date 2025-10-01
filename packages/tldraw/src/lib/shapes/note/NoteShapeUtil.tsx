@@ -1,13 +1,13 @@
 /* eslint-disable react-hooks/rules-of-hooks */
 import {
 	Box,
+	EMPTY_ARRAY,
 	Editor,
 	Group2d,
 	IndexKey,
 	Rectangle2d,
 	ShapeUtil,
 	SvgExportContext,
-	TLFontFace,
 	TLHandle,
 	TLNoteShape,
 	TLNoteShapeProps,
@@ -17,8 +17,10 @@ import {
 	Vec,
 	WeakCache,
 	exhaustiveSwitchError,
+	getColorValue,
 	getDefaultColorTheme,
 	getFontsFromRichText,
+	isEqual,
 	lerp,
 	noteShapeMigrations,
 	noteShapeProps,
@@ -30,7 +32,13 @@ import {
 	useValue,
 } from '@tldraw/editor'
 import { useCallback } from 'react'
+import { startEditingShapeWithLabel } from '../../tools/SelectTool/selectHelpers'
 import { useCurrentTranslation } from '../../ui/hooks/useTranslation/useTranslation'
+import {
+	isEmptyRichText,
+	renderHtmlFromRichTextForMeasurement,
+	renderPlaintextFromRichText,
+} from '../../utils/text/richText'
 import { isRightToLeftLanguage } from '../../utils/text/text'
 import { HyperlinkButton } from '../shared/HyperlinkButton'
 import { RichTextLabel, RichTextSVG } from '../shared/RichTextLabel'
@@ -40,15 +48,6 @@ import {
 	LABEL_PADDING,
 	TEXT_PROPS,
 } from '../shared/default-shape-constants'
-
-import { startEditingShapeWithLabel } from '../../tools/SelectTool/selectHelpers'
-
-import isEqual from 'lodash.isequal'
-import {
-	isEmptyRichText,
-	renderHtmlFromRichTextForMeasurement,
-	renderPlaintextFromRichText,
-} from '../../utils/text/richText'
 import { useDefaultColorTheme } from '../shared/useDefaultColorTheme'
 import { useIsReadyForEditing } from '../shared/useEditablePlainText'
 import {
@@ -148,6 +147,7 @@ export class NoteShapeUtil extends ShapeUtil<TLNoteShape> {
 					height: lh,
 					isFilled: true,
 					isLabel: true,
+					excludeFromShapeBounds: true,
 				}),
 			],
 		})
@@ -228,7 +228,10 @@ export class NoteShapeUtil extends ShapeUtil<TLNoteShape> {
 		return renderPlaintextFromRichText(this.editor, shape.props.richText)
 	}
 
-	override getFontFaces(shape: TLNoteShape): TLFontFace[] {
+	override getFontFaces(shape: TLNoteShape) {
+		if (isEmptyRichText(shape.props.richText)) {
+			return EMPTY_ARRAY
+		}
 		return getFontsFromRichText(this.editor, shape.props.richText, {
 			family: `tldraw_${shape.props.font}`,
 			weight: 'normal',
@@ -287,7 +290,7 @@ export class NoteShapeUtil extends ShapeUtil<TLNoteShape> {
 					style={{
 						width: nw,
 						height: nh,
-						backgroundColor: theme[color].note.fill,
+						backgroundColor: getColorValue(theme, color, 'noteFill'),
 						borderBottom: hideShadows
 							? isDarkMode
 								? `${2 * scale}px solid rgb(20, 20, 20)`
@@ -307,7 +310,11 @@ export class NoteShapeUtil extends ShapeUtil<TLNoteShape> {
 							verticalAlign={verticalAlign}
 							richText={richText}
 							isSelected={isSelected}
-							labelColor={labelColor === 'black' ? theme[color].note.text : theme[labelColor].fill}
+							labelColor={
+								labelColor === 'black'
+									? getColorValue(theme, color, 'noteText')
+									: getColorValue(theme, labelColor, 'fill')
+							}
 							wrap
 							padding={LABEL_PADDING * scale}
 							hasCustomTabBehavior
@@ -342,9 +349,10 @@ export class NoteShapeUtil extends ShapeUtil<TLNoteShape> {
 				align={shape.props.align}
 				verticalAlign={shape.props.verticalAlign}
 				richText={shape.props.richText}
-				labelColor={theme[shape.props.color].note.text}
+				labelColor={getColorValue(theme, shape.props.color, 'noteText')}
 				bounds={bounds}
-				padding={LABEL_PADDING * shape.props.scale}
+				padding={LABEL_PADDING}
+				showTextOutline={false}
 			/>
 		)
 
@@ -355,7 +363,7 @@ export class NoteShapeUtil extends ShapeUtil<TLNoteShape> {
 					rx={1}
 					width={NOTE_SIZE}
 					height={bounds.h}
-					fill={theme[shape.props.color].note.fill}
+					fill={getColorValue(theme, shape.props.color, 'noteFill')}
 				/>
 				{textLabel}
 			</>
@@ -444,6 +452,7 @@ function getNoteLabelSize(editor: Editor, shape: TLNoteShape) {
 			fontSize: fontSizeAdjustment,
 			maxWidth: NOTE_SIZE - LABEL_PADDING * 2 - FUZZ,
 			disableOverflowWrapBreaking: true,
+			measureScrollWidth: true,
 		})
 
 		labelHeight = nextTextSize.h + LABEL_PADDING * 2
@@ -527,7 +536,6 @@ function useNoteKeydownHandler(id: TLShapeId) {
 				const newNote = getNoteShapeForAdjacentPosition(editor, shape, adjacentCenter, pageRotation)
 
 				if (newNote) {
-					editor.markHistoryStoppingPoint('editing adjacent shape')
 					startEditingShapeWithLabel(editor, newNote, true /* selectAll */)
 				}
 			}

@@ -20,6 +20,7 @@ export function AssetUrlsProvider({
 			if (!src) continue
 
 			const image = Image()
+			image.crossOrigin = 'anonymous'
 			image.src = src
 			image.decode()
 		}
@@ -27,6 +28,7 @@ export function AssetUrlsProvider({
 			if (!src) continue
 
 			const image = Image()
+			image.crossOrigin = 'anonymous'
 			image.src = src
 			image.decode()
 		}

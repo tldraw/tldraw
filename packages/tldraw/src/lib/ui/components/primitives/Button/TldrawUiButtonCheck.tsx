@@ -11,6 +11,7 @@ export function TldrawUiButtonCheck({ checked }: TLUiButtonCheckProps) {
 	const msg = useTranslation()
 	return (
 		<TldrawUiIcon
+			data-checked={!!checked}
 			label={msg(checked ? 'ui.checked' : 'ui.unchecked')}
 			icon={checked ? 'check' : 'none'}
 			className="tlui-button__icon"

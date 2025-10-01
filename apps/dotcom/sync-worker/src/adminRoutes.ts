@@ -3,9 +3,10 @@ import { assert, sleep, uniqueId } from '@tldraw/utils'
 import { createRouter } from '@tldraw/worker-shared'
 import { StatusError, json } from 'itty-router'
 import { createPostgresConnectionPool } from './postgres'
+import { returnFileSnapshot } from './routes/tla/getFileSnapshot'
 import { type Environment } from './types'
 import { getReplicator, getRoomDurableObject, getUserDurableObject } from './utils/durableObjects'
-import { getClerkClient, requireAuth } from './utils/tla/getAuth'
+import { getClerkClient, requireAdminAccess, requireAuth } from './utils/tla/getAuth'
 
 async function requireUser(env: Environment, q: string) {
 	const db = createPostgresConnectionPool(env, '/app/admin/user')
@@ -24,13 +25,7 @@ async function requireUser(env: Environment, q: string) {
 export const adminRoutes = createRouter<Environment>()
 	.all('/app/admin/*', async (req, env) => {
 		const auth = await requireAuth(req, env)
-		const user = await getClerkClient(env).users.getUser(auth.userId)
-		if (
-			!user.primaryEmailAddress?.emailAddress.endsWith('@tldraw.com') ||
-			user.primaryEmailAddress?.verification?.status !== 'verified'
-		) {
-			throw new StatusError(403, 'Unauthorized')
-		}
+		await requireAdminAccess(env, auth)
 	})
 	.get('/app/admin/user', async (res, env) => {
 		const q = res.query['q']
@@ -77,6 +72,92 @@ export const adminRoutes = createRouter<Environment>()
 		}
 		return await hardDeleteAppFile({ pg, file, env })
 	})
+	.post('/app/admin/delete_user', async (res, env) => {
+		const q = res.query['q']
+		if (typeof q !== 'string') {
+			return new Response('Missing query param', { status: 400 })
+		}
+		const userRow = await requireUser(env, q)
+
+		await performUserDeletion(userRow, env)
+
+		return new Response('User deleted', { status: 200 })
+	})
+	.get('/app/admin/delete_user_sse', async (res, env) => {
+		const q = res.query['q']
+		if (typeof q !== 'string') {
+			return new Response('Missing query param', { status: 400 })
+		}
+
+		const userRow = await requireUser(env, q)
+
+		return new Response(
+			new ReadableStream({
+				async start(controller) {
+					try {
+						// Helper function to send progress events
+						const sendProgress = (step: string, message: string, details?: any) => {
+							const event = {
+								type: 'progress',
+								step,
+								message,
+								timestamp: Date.now(),
+								details,
+							}
+							controller.enqueue(new TextEncoder().encode(`data: ${JSON.stringify(event)}\n\n`))
+						}
+
+						sendProgress('starting', 'Beginning user deletion process...', { userId: userRow.id })
+
+						await performUserDeletion(userRow, env, sendProgress)
+
+						// Send completion event
+						const completionEvent = {
+							type: 'complete',
+							step: 'finished',
+							message: 'User deletion completed successfully',
+							timestamp: Date.now(),
+							details: { userId: userRow.id },
+						}
+						controller.enqueue(
+							new TextEncoder().encode(`data: ${JSON.stringify(completionEvent)}\n\n`)
+						)
+					} catch (error) {
+						// Send error event
+						const errorEvent = {
+							type: 'error',
+							step: 'error',
+							message: error instanceof Error ? error.message : 'Unknown error occurred',
+							timestamp: Date.now(),
+							details: { error: error instanceof Error ? error.stack : String(error) },
+						}
+						controller.enqueue(new TextEncoder().encode(`data: ${JSON.stringify(errorEvent)}\n\n`))
+					} finally {
+						controller.close()
+					}
+				},
+			}),
+			{
+				headers: {
+					'Content-Type': 'text/event-stream',
+					'Cache-Control': 'no-cache',
+					Connection: 'keep-alive',
+					'Access-Control-Allow-Origin': '*',
+					'Access-Control-Allow-Headers': 'Cache-Control',
+				},
+			}
+		)
+	})
+	.get('/app/admin/download-tldr/:fileSlug', async (res, env) => {
+		const fileSlug = res.params.fileSlug
+		assert(typeof fileSlug === 'string', 'fileSlug is required')
+		return await returnFileSnapshot(env, fileSlug, true)
+	})
+	.get('/app/admin/download-legacy-tldr/:fileSlug', async (res, env) => {
+		const fileSlug = res.params.fileSlug
+		assert(typeof fileSlug === 'string', 'fileSlug is required')
+		return await returnFileSnapshot(env, fileSlug, false)
+	})
 
 async function maybeHardDeleteLegacyFile({ id, env }: { id: string; env: Environment }) {
 	return await getRoomDurableObject(env, id).__admin__hardDeleteIfLegacy()
@@ -120,4 +201,58 @@ async function hardDeleteAppFile({
 	// hard delete file (this will trigger a cascade delete of all remaining related records & R2 objects)
 	await pg.deleteFrom('file').where('id', '=', file.id).execute()
 	return new Response('Deleted', { status: 200 })
+}
+
+async function performUserDeletion(
+	userRow: any,
+	env: any,
+	sendProgress?: (step: string, message: string, details?: any) => void
+) {
+	const pg = createPostgresConnectionPool(env, '/app/admin/delete_user')
+
+	// First, get all files owned by this user
+	const userFiles = await pg
+		.selectFrom('file')
+		.where('ownerId', '=', userRow.id)
+		.selectAll()
+		.execute()
+
+	sendProgress?.('files', `Found ${userFiles.length} files to delete`, {
+		fileCount: userFiles.length,
+	})
+
+	// Hard delete all user's files
+	for (let i = 0; i < userFiles.length; i++) {
+		const file = userFiles[i]
+		sendProgress?.('files', `Deleting file ${i + 1}/${userFiles.length}: ${file.name}`, {
+			fileId: file.id,
+		})
+		await hardDeleteAppFile({ pg, file, env })
+	}
+
+	sendProgress?.('database', 'Cleaning up database records...')
+
+	// Clean up tables that don't have CASCADE delete constraints and delete user in a transaction
+	await pg.transaction().execute(async (tx) => {
+		// Clean up tables that don't have CASCADE delete constraints
+		await tx.deleteFrom('user_mutation_number').where('userId', '=', userRow.id).execute()
+
+		// Clean up assets that reference this user (nullable foreign key)
+		await tx.deleteFrom('asset').where('userId', '=', userRow.id).execute()
+
+		// Delete the user row (this will cascade delete any remaining related records)
+		await tx.deleteFrom('user').where('id', '=', userRow.id).execute()
+	})
+
+	sendProgress?.('clerk', 'Deleting user from Clerk...')
+
+	// Delete user from Clerk
+	const clerk = getClerkClient(env)
+	await clerk.users.deleteUser(userRow.id)
+
+	sendProgress?.('durable_object', 'Cleaning up user durable object state...')
+
+	// Clean up user durable object state and R2 data
+	const user = getUserDurableObject(env, userRow.id)
+	await user.admin_delete(userRow.id)
 }

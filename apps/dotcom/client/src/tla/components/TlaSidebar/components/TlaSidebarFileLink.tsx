@@ -5,8 +5,9 @@ import { KeyboardEvent, MouseEvent, useCallback, useEffect, useRef, useState } f
 import { Link, useNavigate, useParams } from 'react-router-dom'
 import {
 	TldrawUiMenuContextProvider,
+	TldrawUiTooltip,
 	preventDefault,
-	useContainer,
+	useMaybeEditor,
 	useMenuIsOpen,
 	useValue,
 } from 'tldraw'
@@ -20,13 +21,6 @@ import { F, defineMessages, useIntl } from '../../../utils/i18n'
 import { toggleMobileSidebar, useIsSidebarOpenMobile } from '../../../utils/local-session-state'
 import { FileItems, FileItemsWrapper } from '../../TlaFileMenu/TlaFileMenu'
 import { TlaIcon } from '../../TlaIcon/TlaIcon'
-import {
-	TlaTooltipArrow,
-	TlaTooltipContent,
-	TlaTooltipPortal,
-	TlaTooltipRoot,
-	TlaTooltipTrigger,
-} from '../../TlaTooltip/TlaTooltip'
 import styles from '../sidebar.module.css'
 import { TlaSidebarFileLinkMenu } from './TlaSidebarFileLinkMenu'
 import { TlaSidebarRenameInline } from './TlaSidebarRenameInline'
@@ -84,7 +78,7 @@ export function TlaSidebarFileLink({ item, testId }: { item: RecentFile; testId:
 					handleRenameAction={handleRenameAction}
 				/>
 			</_ContextMenu.Trigger>
-			<_ContextMenu.Content className="tlui-menu scrollable">
+			<_ContextMenu.Content className="tlui-menu tlui-scrollable">
 				{/* Don't show the context menu on mobile */}
 				{!isMobile && (
 					<TldrawUiMenuContextProvider type="context-menu" sourceId="context-menu">
@@ -104,6 +98,7 @@ export function TlaSidebarFileLink({ item, testId }: { item: RecentFile; testId:
 
 export const sidebarMessages = defineMessages({
 	renameFile: { defaultMessage: 'Rename file' },
+	selected: { defaultMessage: 'selected' },
 })
 
 export function TlaSidebarFileLinkInner({
@@ -133,6 +128,11 @@ export function TlaSidebarFileLinkInner({
 	const app = useApp()
 	const focusCtx = useFileSidebarFocusContext()
 	const isSidebarOpenMobile = useIsSidebarOpenMobile()
+	const editor = useMaybeEditor()
+	const intl = useIntl()
+	const enhancedA11yMode = useValue('enhancedA11yMode', () => editor?.user.getEnhancedA11yMode(), [
+		editor,
+	])
 
 	useEffect(() => {
 		// on mount, trigger rename action if this is a new file.
@@ -165,6 +165,7 @@ export function TlaSidebarFileLinkInner({
 	return (
 		<div
 			className={classNames(styles.sidebarFileListItem, styles.hoverable)}
+			data-enhanced-a11y-mode={enhancedA11yMode}
 			data-active={isActive}
 			data-element="file-link"
 			data-testid={testId}
@@ -173,11 +174,14 @@ export function TlaSidebarFileLinkInner({
 			// We use this id to scroll the active file link into view when creating or deleting files.
 			id={isActive ? ACTIVE_FILE_LINK_ID : undefined}
 			role="listitem"
+			draggable={false}
 		>
 			<Link
 				ref={linkRef}
 				onKeyDown={handleKeyDown}
-				aria-label={fileName}
+				aria-label={
+					fileName + (isActive ? ` (${intl.formatMessage(sidebarMessages.selected)})` : '')
+				}
 				onClick={(event) => {
 					// Don't navigate if we are already on the file page
 					// unless the user is holding ctrl or cmd to open in a new tab
@@ -191,6 +195,7 @@ export function TlaSidebarFileLinkInner({
 				}}
 				to={href}
 				className={styles.sidebarFileListItemButton}
+				draggable={false}
 			/>
 			<div className={styles.sidebarFileListItemContent}>
 				<div
@@ -211,7 +216,6 @@ export function TlaSidebarFileLinkInner({
 }
 
 function GuestBadge({ file, href }: { file: TlaFile; href: string }) {
-	const container = useContainer()
 	const ownerName = file.ownerName.trim()
 	const testId = `guest-badge-${file.name}`
 	const navigate = useNavigate()
@@ -230,29 +234,26 @@ function GuestBadge({ file, href }: { file: TlaFile; href: string }) {
 
 	return (
 		<div className={styles.sidebarFileListItemGuestBadge} data-testid={testId}>
-			<TlaTooltipRoot disableHoverableContent>
-				<TlaTooltipTrigger
+			<TldrawUiTooltip
+				content={
+					<>
+						{ownerName ? (
+							<F defaultMessage={`Shared by {ownerName}`} values={{ ownerName }} />
+						) : (
+							<F defaultMessage="Shared with you" />
+						)}
+					</>
+				}
+			>
+				<div
 					dir="ltr"
 					// this is needed to prevent the tooltip from closing when clicking the badge
 					onClick={handleToolTipClick}
 					className={styles.sidebarFileListItemGuestBadgeTrigger}
 				>
 					<TlaIcon icon="group" className="tlui-guest-icon" />
-				</TlaTooltipTrigger>
-				<TlaTooltipPortal container={container}>
-					<TlaTooltipContent
-						// this is also needed to prevent the tooltip from closing when clicking the badge
-						onPointerDownOutside={preventDefault}
-					>
-						{ownerName ? (
-							<F defaultMessage={`Shared by {ownerName}`} values={{ ownerName }} />
-						) : (
-							<F defaultMessage="Shared with you" />
-						)}
-						<TlaTooltipArrow />
-					</TlaTooltipContent>
-				</TlaTooltipPortal>
-			</TlaTooltipRoot>
+				</div>
+			</TldrawUiTooltip>
 		</div>
 	)
 }

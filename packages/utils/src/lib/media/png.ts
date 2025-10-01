@@ -126,7 +126,7 @@ export class PngHelpers {
 		return {
 			ppux: view.getUint32(offset),
 			ppuy: view.getUint32(offset + 4),
-			unit: view.getUint8(offset + 4),
+			unit: view.getUint8(offset + 8),
 		}
 	}
 
@@ -160,10 +160,10 @@ export class PngHelpers {
 		pHYsDataView.setUint8(6, 'Y'.charCodeAt(0))
 		pHYsDataView.setUint8(7, 's'.charCodeAt(0))
 
-		const DPI_96 = 2835.5
+		const DPI_72 = 2835.5
 
-		pHYsDataView.setInt32(8, DPI_96 * dpr)
-		pHYsDataView.setInt32(12, DPI_96 * dpr)
+		pHYsDataView.setInt32(8, DPI_72 * dpr)
+		pHYsDataView.setInt32(12, DPI_72 * dpr)
 		pHYsDataView.setInt8(16, 1)
 
 		const crcBit = new Uint8Array(pHYsData.slice(4, 17))
@@ -172,6 +172,6 @@ export class PngHelpers {
 		const startBuf = view.buffer.slice(0, offset)
 		const endBuf = view.buffer.slice(offset + size)
 
-		return new Blob([startBuf, pHYsData, endBuf], options)
+		return new Blob([startBuf as ArrayBuffer, pHYsData, endBuf as ArrayBuffer], options)
 	}
 }

@@ -1,0 +1,40 @@
+{
+	"name": "tldraw-vue-example",
+	"private": true,
+	"version": "0.0.0",
+	"author": {
+		"name": "tldraw GB Ltd.",
+		"email": "hello@tldraw.com"
+	},
+	"homepage": "https://tldraw.dev",
+	"license": "MIT",
+	"type": "module",
+	"tldraw_template": {
+		"repo": "tldraw/vue-template",
+		"scripts": {
+			"lint": null
+		}
+	},
+	"scripts": {
+		"dev": "vite",
+		"build": "tsc && vite build",
+		"lint": "yarn run -T tsx ../../internal/scripts/lint.ts",
+		"preview": "vite preview"
+	},
+	"dependencies": {
+		"react": "^18.3.1",
+		"react-dom": "^18.3.1",
+		"tldraw": "workspace:*",
+		"vue": "^3.5.17"
+	},
+	"devDependencies": {
+		"@types/react": "^18.3.18",
+		"@types/react-dom": "^18.3.5",
+		"@vitejs/plugin-react-swc": "^3.10.2",
+		"@vitejs/plugin-vue": "^6.0.0",
+		"typescript": "^5.8.3",
+		"vite": "^7.0.1",
+		"vite-plugin-vue-devtools": "^7.7.7",
+		"vue-tsc": "^3.0.1"
+	}
+}

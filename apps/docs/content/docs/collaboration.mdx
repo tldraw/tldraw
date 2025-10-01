@@ -81,17 +81,17 @@ To use tldraw sync in production, you will need to self-host the tldraw sync ser
 
 ## Using other collaboration backends
 
-While tldraw sync is our recommended and best-supported backend for tldraw, we designed the tldraw SDK to work with any data solution.
+While [tldraw sync](/docs/sync) is our recommended and best-supported backend for tldraw, we designed the tldraw SDK to work with any data solution. For example, Liveblocks offers a [tldraw starter](https://liveblocks.io/examples/tldraw-whiteboard), and many product teams have plugged tldraw into their own real-time data solutions.
 
-As a reference, our [tldraw-yjs example](https://github.com/tldraw/tldraw-yjs-example) shows an integration between tldraw and the [Yjs](https://yjs.dev) CRDT library.
+### Manual setup
 
-Whichever backend you choose, adding collaboration to tldraw will involve synchronizing data, sharing user presence, and handling user assets.
+Collaboration in tldraw involves synchronizing data, sharing user presence, and handling user assets.
 
-### Synchronizing data
+#### Synchronizing data
 
-For more information about how to synchronize the tldraw editor's store with other processes (i.e. how to get data out and put data in, including from remote sources) see the [Persistence](/docs/persistence) page.
+For more information about how to synchronize the tldraw editor's store with other processes—how to get data out and put data in, including from remote sources—see the [Persistence](/docs/persistence) page.
 
-### User presence
+#### User presence
 
 The tldraw SDK has support for displaying the 'presence' of other users. Presence information consists of the user id, name, and color, as well as their canvas context, such as their current page, pointer position, selection, viewport.
 
@@ -101,9 +101,7 @@ We provide a helper, [createPresenceStateDerivation](?), for constructing a reac
 
 To the editor, any `instance_presence` records that belong to other users (i.e. those with a different user id than the editor's configured user id) are considered "collaborators". The editor has two methods, `getCollaborators` and `getCollaboratorsOnCurrentPage`, which return reactive signals about the current collaborators.
 
-See the [yjs-example](https://github.com/tldraw/tldraw-yjs-example/blob/45dfe7589ae44e4aaf9bb7359d0372f3a88bd597/src/useYjsStore.ts) for an example of how these records may be created, shared, and updated.
-
-### Collaboration UI
+#### Collaboration UI
 
 The `tldraw` library includes several components specifically designed for collaboration.
 You can remove, replace, or customize these using the editor's `components` prop. See [TLComponents](?) for more info.

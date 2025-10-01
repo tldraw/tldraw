@@ -19,8 +19,8 @@ import {
 	areAnglesCompatible,
 	compact,
 	isAccelKey,
+	kickoutOccludedShapes,
 } from '@tldraw/editor'
-import { kickoutOccludedShapes } from '../selectHelpers'
 
 export type ResizingInfo = TLPointerEventInfo & {
 	target: 'selection'
@@ -122,8 +122,19 @@ export class Resizing extends StateNode {
 	}
 
 	private cancel() {
-		// Restore initial models
+		// Call onResizeCancel callback before resetting
+		const { shapeSnapshots } = this.snapshot
+
+		shapeSnapshots.forEach(({ shape }) => {
+			const current = this.editor.getShape(shape.id)
+			if (current) {
+				const util = this.editor.getShapeUtil(shape)
+				util.onResizeCancel?.(shape, current)
+			}
+		})
+
 		this.editor.bailToMark(this.markId)
+
 		if (this.info.onInteractionEnd) {
 			this.editor.setCurrentTool(this.info.onInteractionEnd, {})
 		} else {

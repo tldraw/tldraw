@@ -1,3 +1,3 @@
 it('works', () => {
-	// we need a test for jest to pass.
+	// we need a test for vitest to pass.
 })

@@ -1,3 +1,5 @@
+import isEqualWith from 'lodash.isequalwith'
+
 /** @internal */
 export function hasOwnProperty(obj: object, key: string): boolean {
 	return Object.prototype.hasOwnProperty.call(obj, key)
@@ -57,6 +59,21 @@ export function objectMapEntries<Key extends string, Value>(object: {
 }
 
 /**
+ * Returns the entries of an object as an iterable iterator.
+ * Useful when working with large collections, to avoid allocating an array.
+ *
+ * @internal
+ */
+export function* objectMapEntriesIterable<Key extends string, Value>(object: {
+	[K in Key]: Value
+}): IterableIterator<[Key, Value]> {
+	for (const key in object) {
+		if (!Object.prototype.hasOwnProperty.call(object, key)) continue
+		yield [key, object[key]]
+	}
+}
+
+/**
  * An alias for `Object.fromEntries` that treats the object as a map and so preserves the type of the
  * keys.
  *
@@ -99,9 +116,9 @@ export function mapObjectMapValues<Key extends string, ValueBefore, ValueAfter>(
 	mapper: (key: Key, value: ValueBefore) => ValueAfter
 ): { [K in Key]: ValueAfter } {
 	const result = {} as { [K in Key]: ValueAfter }
-	for (const [key, value] of objectMapEntries(object)) {
-		const newValue = mapper(key, value)
-		result[key] = newValue
+	for (const key in object) {
+		if (!Object.prototype.hasOwnProperty.call(object, key)) continue
+		result[key] = mapper(key, object[key])
 	}
 	return result
 }
@@ -143,4 +160,29 @@ export function omit(
 		delete result[key]
 	}
 	return result
+}
+
+/** @internal */
+export function getChangedKeys<T extends object>(obj1: T, obj2: T): (keyof T)[] {
+	const result: (keyof T)[] = []
+	for (const key in obj1) {
+		if (!Object.is(obj1[key], obj2[key])) {
+			result.push(key)
+		}
+	}
+	return result
+}
+
+/** @internal */
+export function isEqualAllowingForFloatingPointErrors(
+	obj1: object,
+	obj2: object,
+	threshold = 0.000001
+): boolean {
+	return isEqualWith(obj1, obj2, (value1, value2) => {
+		if (typeof value1 === 'number' && typeof value2 === 'number') {
+			return Math.abs(value1 - value2) < threshold
+		}
+		return undefined
+	})
 }

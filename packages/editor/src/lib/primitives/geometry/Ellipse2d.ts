@@ -1,14 +1,15 @@
 import { Box } from '../Box'
 import { Vec, VecLike } from '../Vec'
-import { PI, PI2, perimeterOfEllipse } from '../utils'
+import { PI, PI2, clamp, perimeterOfEllipse } from '../utils'
 import { Edge2d } from './Edge2d'
 import { Geometry2d, Geometry2dOptions } from './Geometry2d'
-import { getVerticesCountForLength } from './geometry-constants'
+import { getVerticesCountForArcLength } from './geometry-constants'
 
 /** @public */
 export class Ellipse2d extends Geometry2d {
-	w: number
-	h: number
+	private _w: number
+	private _h: number
+	private _edges?: Edge2d[]
 
 	constructor(
 		public config: Omit<Geometry2dOptions, 'isClosed'> & {
@@ -18,11 +19,9 @@ export class Ellipse2d extends Geometry2d {
 	) {
 		super({ ...config, isClosed: true })
 		const { width, height } = config
-		this.w = width
-		this.h = height
+		this._w = width
+		this._h = height
 	}
-
-	_edges?: Edge2d[]
 
 	// eslint-disable-next-line no-restricted-syntax
 	get edges() {
@@ -41,14 +40,14 @@ export class Ellipse2d extends Geometry2d {
 
 	getVertices() {
 		// Perimeter of the ellipse
-		const w = Math.max(1, this.w)
-		const h = Math.max(1, this.h)
+		const w = Math.max(1, this._w)
+		const h = Math.max(1, this._h)
 		const cx = w / 2
 		const cy = h / 2
 		const q = Math.pow(cx - cy, 2) / Math.pow(cx + cy, 2)
 		const p = PI * (cx + cy) * (1 + (3 * q) / (10 + Math.sqrt(4 - 3 * q)))
 		// Number of points
-		const len = getVerticesCountForLength(p)
+		const len = getVerticesCountForArcLength(p)
 		// Size of step
 		const step = PI2 / len
 
@@ -63,7 +62,7 @@ export class Ellipse2d extends Geometry2d {
 		const vertices = Array(len)
 
 		for (let i = 0; i < len; i++) {
-			vertices[i] = new Vec(cx + cx * cos, cy + cy * sin)
+			vertices[i] = new Vec(clamp(cx + cx * cos, 0, w), clamp(cy + cy * sin, 0, h))
 			ts = b * cos + a * sin
 			tc = a * cos - b * sin
 			sin = ts
@@ -95,11 +94,11 @@ export class Ellipse2d extends Geometry2d {
 	}
 
 	getBounds() {
-		return new Box(0, 0, this.w, this.h)
+		return new Box(0, 0, this._w, this._h)
 	}
 
 	getLength(): number {
-		const { w, h } = this
+		const { _w: w, _h: h } = this
 		const cx = w / 2
 		const cy = h / 2
 		const rx = Math.max(0, cx)
@@ -108,7 +107,7 @@ export class Ellipse2d extends Geometry2d {
 	}
 
 	getSvgPathData(first = false) {
-		const { w, h } = this
+		const { _w: w, _h: h } = this
 		const cx = w / 2
 		const cy = h / 2
 		const rx = Math.max(0, cx)

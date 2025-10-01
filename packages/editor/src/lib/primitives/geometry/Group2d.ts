@@ -17,13 +17,19 @@ export class Group2d extends Geometry2d {
 	) {
 		super({ ...config, isClosed: true, isFilled: false })
 
-		for (const child of config.children) {
-			if (child.ignore) {
-				this.ignoredChildren.push(child)
-			} else {
-				this.children.push(child)
+		const addChildren = (children: Geometry2d[]) => {
+			for (const child of children) {
+				if (child instanceof Group2d) {
+					addChildren(child.children)
+				} else if (child.ignore) {
+					this.ignoredChildren.push(child)
+				} else {
+					this.children.push(child)
+				}
 			}
 		}
+
+		addChildren(config.children)
 
 		if (this.children.length === 0) throw Error('Group2d must have at least one child')
 	}
@@ -106,6 +112,11 @@ export class Group2d extends Geometry2d {
 			if (child.isExcludedByFilter(filters)) return EMPTY_ARRAY
 			return child.intersectCircle(center, radius, filters)
 		})
+	}
+
+	override getBoundsVertices(): Vec[] {
+		if (this.excludeFromShapeBounds) return []
+		return this.children.flatMap((child) => child.getBoundsVertices())
 	}
 
 	override intersectPolygon(polygon: VecLike[], filters?: Geometry2dFilters) {
@@ -199,7 +210,7 @@ export class Group2d extends Geometry2d {
 			path += child.toSimpleSvgPath()
 		}
 
-		const corners = Box.FromPoints(this.vertices).corners
+		const corners = Box.FromPoints(this.boundsVertices).corners
 		// draw just a few pixels around each corner, e.g. an L shape for the bottom left
 
 		for (let i = 0, n = corners.length; i < n; i++) {
@@ -229,5 +240,9 @@ export class Group2d extends Geometry2d {
 
 	getSvgPathData(): string {
 		return this.children.map((c, i) => (c.isLabel ? '' : c.getSvgPathData(i === 0))).join(' ')
+	}
+
+	overlapsPolygon(polygon: VecLike[]): boolean {
+		return this.children.some((child) => child.overlapsPolygon(polygon))
 	}
 }

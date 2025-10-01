@@ -1070,7 +1070,7 @@ describe('the select tool', () => {
 		// that we're doing hit testing manually—we'll catch that it was inside a shape
 
 		// editor.keyUp('Shift')
-		// jest.advanceTimersByTime(200)
+		// vi.advanceTimersByTime(200)
 
 		// expect(editor.selectedShapeIds.includes(ids.boxA)).toBe(false)
 		// expect(editor.selectedShapeIds.includes(ids.boxB)).toBe(true)
@@ -1941,7 +1941,7 @@ describe('snapping', () => {
 		expect(editor.snaps.getIndicators().length).toBe(0)
 	})
 
-	it('does not happen between children and thier group', () => {
+	it('does not happen between children and their group', () => {
 		editor.select(ids.boxD)
 		editor.pointerDown(65, 5, ids.boxD)
 		editor.pointerMove(80, 105, ids.boxD, { ctrlKey: true })

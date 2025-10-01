@@ -62,7 +62,7 @@ export abstract class StateNode implements Partial<TLEventHandlers> {
 
 		this.parent = parent ?? ({} as any)
 
-		if (this.parent) {
+		if (parent) {
 			if (children && initial) {
 				this.type = 'branch'
 				this.initial = initial
@@ -206,15 +206,15 @@ export abstract class StateNode implements Partial<TLEventHandlers> {
 	}
 
 	// todo: move this logic into transition
-	exit(info: any, from: string) {
+	exit(info: any, to: string) {
 		if (debugFlags.measurePerformance.get() && this.performanceTracker.isStarted()) {
 			this.performanceTracker.stop()
 		}
 		this._isActive.set(false)
-		this.onExit?.(info, from)
+		this.onExit?.(info, to)
 
 		if (!this.getIsActive()) {
-			this.getCurrent()?.exit(info, from)
+			this.getCurrent()?.exit(info, to)
 		}
 	}
 
@@ -236,6 +236,32 @@ export abstract class StateNode implements Partial<TLEventHandlers> {
 
 	setCurrentToolIdMask(id: string | undefined) {
 		this._currentToolIdMask.set(id)
+	}
+
+	/**
+	 * Add a child node to this state node.
+	 *
+	 * @public
+	 */
+	addChild(childConstructor: TLStateNodeConstructor): this {
+		if (this.type === 'leaf') {
+			throw new Error('StateNode.addChild: cannot add child to a leaf node')
+		}
+
+		// Initialize children if it's undefined (for root nodes without static children)
+		if (!this.children) {
+			this.children = {}
+		}
+
+		const child = new childConstructor(this.editor, this)
+
+		// Check if a child with this ID already exists
+		if (this.children[child.id]) {
+			throw new Error(`StateNode.addChild: a child with id '${child.id}' already exists`)
+		}
+
+		this.children[child.id] = child
+		return this
 	}
 
 	onWheel?(info: TLWheelEventInfo): void

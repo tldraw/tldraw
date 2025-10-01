@@ -62,6 +62,9 @@ export const tipTapDefaultExtensions: Extensions = [
 	TextDirection,
 ]
 
+// todo: bust this if the editor changes, too
+const htmlCache = new WeakCache<TLRichText, string>()
+
 /**
  * Renders HTML from a rich text string.
  *
@@ -71,11 +74,13 @@ export const tipTapDefaultExtensions: Extensions = [
  * @public
  */
 export function renderHtmlFromRichText(editor: Editor, richText: TLRichText) {
-	const tipTapExtensions =
-		editor.getTextOptions().tipTapConfig?.extensions ?? tipTapDefaultExtensions
-	const html = generateHTML(richText as JSONContent, tipTapExtensions)
-	// We replace empty paragraphs with a single line break to prevent the browser from collapsing them.
-	return html.replaceAll('<p dir="auto"></p>', '<p><br /></p>') ?? ''
+	return htmlCache.get(richText, () => {
+		const tipTapExtensions =
+			editor.getTextOptions().tipTapConfig?.extensions ?? tipTapDefaultExtensions
+		const html = generateHTML(richText as JSONContent, tipTapExtensions)
+		// We replace empty paragraphs with a single line break to prevent the browser from collapsing them.
+		return html.replaceAll('<p dir="auto"></p>', '<p><br /></p>') ?? ''
+	})
 }
 
 /**

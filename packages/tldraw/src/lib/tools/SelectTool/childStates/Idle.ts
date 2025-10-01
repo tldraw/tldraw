@@ -1,9 +1,7 @@
 import {
 	Editor,
-	Group2d,
 	StateNode,
 	TLAdjacentDirection,
-	TLArrowShape,
 	TLClickEventInfo,
 	TLGroupShape,
 	TLKeyboardEventInfo,
@@ -14,14 +12,16 @@ import {
 	VecLike,
 	createShapeId,
 	debugFlags,
+	kickoutOccludedShapes,
 	pointInPolygon,
 	toRichText,
 } from '@tldraw/editor'
+import { isOverArrowLabel } from '../../../shapes/arrow/arrowLabel'
 import { getHitShapeOnCanvasPointerDown } from '../../selection-logic/getHitShapeOnCanvasPointerDown'
 import { getShouldEnterCropMode } from '../../selection-logic/getShouldEnterCropModeOnPointerDown'
 import { selectOnCanvasPointerUp } from '../../selection-logic/selectOnCanvasPointerUp'
 import { updateHoveredShapeId } from '../../selection-logic/updateHoveredShapeId'
-import { kickoutOccludedShapes, startEditingShapeWithLabel } from '../selectHelpers'
+import { startEditingShapeWithLabel } from '../selectHelpers'
 
 const SKIPPED_KEYS_FOR_AUTO_EDITING = [
 	'Delete',
@@ -96,12 +96,6 @@ export class Idle extends StateNode {
 			}
 			case 'shape': {
 				const { shape } = info
-
-				if (this.isOverArrowLabelTest(shape)) {
-					// We're moving the label on a shape.
-					this.parent.transition('pointing_arrow_label', info)
-					break
-				}
 
 				if (this.editor.isShapeOrAncestorLocked(shape)) {
 					this.parent.transition('pointing_canvas', info)
@@ -594,23 +588,7 @@ export class Idle extends StateNode {
 	isOverArrowLabelTest(shape: TLShape | undefined) {
 		if (!shape) return false
 
-		const pointInShapeSpace = this.editor.getPointInShapeSpace(
-			shape,
-			this.editor.inputs.currentPagePoint
-		)
-
-		// todo: Extract into general hit test for arrows
-		if (this.editor.isShapeOfType<TLArrowShape>(shape, 'arrow')) {
-			// How should we handle multiple labels? Do shapes ever have multiple labels?
-			const labelGeometry = this.editor.getShapeGeometry<Group2d>(shape).children[1]
-			// Knowing what we know about arrows... if the shape has no text in its label,
-			// then the label geometry should not be there.
-			if (labelGeometry && pointInPolygon(pointInShapeSpace, labelGeometry.vertices)) {
-				return true
-			}
-		}
-
-		return false
+		return isOverArrowLabel(this.editor, shape)
 	}
 
 	handleDoubleClickOnCanvas(info: TLClickEventInfo) {
@@ -625,6 +603,7 @@ export class Idle extends StateNode {
 
 		const { x, y } = this.editor.inputs.currentPagePoint
 
+		// Allow this to trigger the max shapes reached alert
 		this.editor.createShapes<TLTextShape>([
 			{
 				id,

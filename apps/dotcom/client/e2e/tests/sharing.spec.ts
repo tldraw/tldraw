@@ -1,6 +1,5 @@
 import fs from 'fs'
 import path from 'path'
-import { uniqueId } from 'tldraw'
 import { getRandomName, openNewTab } from '../fixtures/helpers'
 import { expect, test } from '../fixtures/tla-test'
 
@@ -241,7 +240,7 @@ test.describe('signed in user on someone elses file', () => {
 		await expect(newPage.getByTestId('tla-error-icon')).not.toBeVisible()
 		// We should also see the file in the sidebar and a guest badge icon next to it
 		await expect(newPage.getByTestId('tla-sidebar').getByText(newName)).toBeVisible()
-		await expect(newPage.getByTestId(`guest-badge-${newName}`).getByRole('button')).toBeVisible()
+		await expect(newPage.getByTestId(`guest-badge-${newName}`)).toBeVisible()
 	})
 
 	test('tabs work correctly', async ({ browser, sidebar, shareMenu }) => {
@@ -463,7 +462,7 @@ test('can export a file as an image', async ({ page, shareMenu }) => {
 })
 
 test('can follow a deep link to a never-seen file', async ({ editor, browser, shareMenu }) => {
-	const text = uniqueId()
+	const text = Math.random().toString(36).substring(2, 15)
 	await editor.createNewPage()
 	await editor.createTextShape(text)
 
@@ -482,11 +481,11 @@ test('can follow a deep link to a never-seen file', async ({ editor, browser, sh
 	})
 
 	await newEditor.expectShapesCount(1)
-	expect(newEditor.page.getByText(text)).toBeVisible()
+	expect(newEditor.page.getByText(text).last()).toBeVisible()
 })
 
 test('can follow a deep link to an already-seen file', async ({ editor, shareMenu, browser }) => {
-	const text = uniqueId()
+	const text = Math.random().toString(36).substring(2, 15)
 
 	await shareMenu.open()
 	await shareMenu.inviteTabButton.click()
@@ -511,5 +510,5 @@ test('can follow a deep link to an already-seen file', async ({ editor, shareMen
 
 	await editor.page.goto(url)
 	await editor.expectShapesCount(1)
-	await expect(editor.page.getByText(text)).toBeVisible()
+	await expect(editor.page.getByText(text).last()).toBeVisible()
 })

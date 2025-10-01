@@ -7,7 +7,7 @@
 // @internal
 export class ArraySet<T> {
     // (undocumented)
-    [Symbol.iterator](): Generator<T, void, undefined>;
+    [Symbol.iterator](): Generator<T, void, unknown>;
     add(elem: T): boolean;
     // (undocumented)
     clear(): void;
@@ -89,6 +89,9 @@ export interface ComputedOptions<Value, Diff> {
     historyLength?: number;
     isEqual?(a: any, b: any): boolean;
 }
+
+// @internal (undocumented)
+export function deferAsyncEffects<T>(fn: () => Promise<T>): Promise<T | undefined>;
 
 // @public
 export const EffectScheduler: new <Result>(name: string, runEffect: (lastReactedEpoch: number) => Result, options?: EffectSchedulerOptions) => EffectScheduler<Result>;

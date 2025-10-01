@@ -2,6 +2,7 @@
 import {
 	BaseBoxShapeUtil,
 	Box,
+	EMPTY_ARRAY,
 	Editor,
 	Group2d,
 	HTMLContainer,
@@ -9,7 +10,6 @@ import {
 	Rectangle2d,
 	SVGContainer,
 	SvgExportContext,
-	TLFontFace,
 	TLGeoShape,
 	TLGeoShapeProps,
 	TLResizeInfo,
@@ -18,13 +18,14 @@ import {
 	exhaustiveSwitchError,
 	geoShapeMigrations,
 	geoShapeProps,
+	getColorValue,
 	getDefaultColorTheme,
 	getFontsFromRichText,
+	isEqual,
 	lerp,
 	toRichText,
 	useValue,
 } from '@tldraw/editor'
-import isEqual from 'lodash.isequal'
 import {
 	isEmptyRichText,
 	renderHtmlFromRichTextForMeasurement,
@@ -62,17 +63,19 @@ export class GeoShapeUtil extends BaseBoxShapeUtil<TLGeoShape> {
 			w: 100,
 			h: 100,
 			geo: 'rectangle',
+			dash: 'draw',
+			growY: 0,
+			url: '',
+			scale: 1,
+
+			// Text properties
 			color: 'black',
 			labelColor: 'black',
 			fill: 'none',
-			dash: 'draw',
 			size: 'm',
 			font: 'draw',
 			align: 'middle',
 			verticalAlign: 'middle',
-			growY: 0,
-			url: '',
-			scale: 1,
 			richText: toRichText(''),
 		}
 	}
@@ -123,6 +126,8 @@ export class GeoShapeUtil extends BaseBoxShapeUtil<TLGeoShape> {
 					height: unscaledLabelHeight * shape.props.scale,
 					isFilled: true,
 					isLabel: true,
+					excludeFromShapeBounds: true,
+					isEmptyLabel: isEmptyRichText(shape.props.richText),
 				}),
 			],
 		})
@@ -166,7 +171,10 @@ export class GeoShapeUtil extends BaseBoxShapeUtil<TLGeoShape> {
 		return renderPlaintextFromRichText(this.editor, shape.props.richText)
 	}
 
-	override getFontFaces(shape: TLGeoShape): TLFontFace[] {
+	override getFontFaces(shape: TLGeoShape) {
+		if (isEmptyRichText(shape.props.richText)) {
+			return EMPTY_ARRAY
+		}
 		return getFontsFromRichText(this.editor, shape.props.richText, {
 			family: `tldraw_${shape.props.font}`,
 			weight: 'normal',
@@ -214,7 +222,7 @@ export class GeoShapeUtil extends BaseBoxShapeUtil<TLGeoShape> {
 							verticalAlign={verticalAlign}
 							richText={richText}
 							isSelected={isOnlySelected}
-							labelColor={theme[props.labelColor].solid}
+							labelColor={getColorValue(theme, props.labelColor, 'solid')}
 							wrap
 						/>
 					</HTMLContainer>
@@ -229,7 +237,7 @@ export class GeoShapeUtil extends BaseBoxShapeUtil<TLGeoShape> {
 			this.editor,
 		])
 
-		const { size, dash } = shape.props
+		const { size, dash, scale } = shape.props
 		const strokeWidth = STROKE_SIZES[size]
 
 		const path = getGeoShapePath(shape)
@@ -240,20 +248,22 @@ export class GeoShapeUtil extends BaseBoxShapeUtil<TLGeoShape> {
 			passes: 1,
 			randomSeed: shape.id,
 			offset: 0,
-			roundness: strokeWidth * 2,
+			roundness: strokeWidth * 2 * scale,
 			props: { strokeWidth: undefined },
 			forceSolid: isZoomedOut,
 		})
 	}
 
 	override toSvg(shape: TLGeoShape, ctx: SvgExportContext) {
+		const scale = shape.props.scale
 		// We need to scale the shape to 1x for export
 		const newShape = {
 			...shape,
 			props: {
 				...shape.props,
-				w: shape.props.w / shape.props.scale,
-				h: shape.props.h / shape.props.scale,
+				w: shape.props.w / scale,
+				h: (shape.props.h + shape.props.growY) / scale,
+				growY: 0, // growY throws off the path calculations, so we set it to 0
 			},
 		}
 		const props = newShape.props
@@ -262,7 +272,7 @@ export class GeoShapeUtil extends BaseBoxShapeUtil<TLGeoShape> {
 		let textEl
 		if (!isEmptyRichText(props.richText)) {
 			const theme = getDefaultColorTheme(ctx)
-			const bounds = new Box(0, 0, props.w, props.h + props.growY)
+			const bounds = new Box(0, 0, props.w, (shape.props.h + shape.props.growY) / scale)
 			textEl = (
 				<RichTextSVG
 					fontSize={LABEL_FONT_SIZES[props.size]}
@@ -270,9 +280,9 @@ export class GeoShapeUtil extends BaseBoxShapeUtil<TLGeoShape> {
 					align={props.align}
 					verticalAlign={props.verticalAlign}
 					richText={props.richText}
-					labelColor={theme[props.labelColor].solid}
+					labelColor={getColorValue(theme, props.labelColor, 'solid')}
 					bounds={bounds}
-					padding={LABEL_PADDING * shape.props.scale}
+					padding={LABEL_PADDING}
 				/>
 			)
 		}
@@ -546,6 +556,21 @@ export class GeoShapeUtil extends BaseBoxShapeUtil<TLGeoShape> {
 	}
 }
 
+// imperfect but good enough, should be the width of the W in the font / size combo
+const minWidths = {
+	s: 12,
+	m: 14,
+	l: 16,
+	xl: 20,
+}
+
+const extraPaddings = {
+	s: 2,
+	m: 3.5,
+	l: 5,
+	xl: 10,
+}
+
 function getUnscaledLabelSize(editor: Editor, shape: TLGeoShape) {
 	const { richText, font, size, w } = shape.props
 
@@ -553,32 +578,20 @@ function getUnscaledLabelSize(editor: Editor, shape: TLGeoShape) {
 		return { w: 0, h: 0 }
 	}
 
-	const minSize = editor.textMeasure.measureText('w', {
-		...TEXT_PROPS,
-		fontFamily: FONT_FAMILIES[font],
-		fontSize: LABEL_FONT_SIZES[size],
-		maxWidth: 100, // ?
-	})
-
-	// TODO: Can I get these from somewhere?
-	const sizes = {
-		s: 2,
-		m: 3.5,
-		l: 5,
-		xl: 10,
-	}
+	// way too expensive to be recomputing on every update
+	const minWidth = minWidths[size]
 
 	const html = renderHtmlFromRichTextForMeasurement(editor, richText)
 	const textSize = editor.textMeasure.measureHtml(html, {
 		...TEXT_PROPS,
 		fontFamily: FONT_FAMILIES[font],
 		fontSize: LABEL_FONT_SIZES[size],
-		minWidth: minSize.w,
+		minWidth: minWidth,
 		maxWidth: Math.max(
 			// Guard because a DOM nodes can't be less 0
 			0,
 			// A 'w' width that we're setting as the min-width
-			Math.ceil(minSize.w + sizes[size]),
+			Math.ceil(minWidth + extraPaddings[size]),
 			// The actual text size
 			Math.ceil(w / shape.props.scale - LABEL_PADDING * 2)
 		),

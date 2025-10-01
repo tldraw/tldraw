@@ -14,11 +14,15 @@ import { routes } from '../../../routeDefs'
 import { useMaybeApp } from '../../hooks/useAppState'
 import { useCurrentFileId } from '../../hooks/useCurrentFileId'
 import { useTldrawAppUiEvents } from '../../utils/app-ui-events'
-import { F, defineMessages, useMsg } from '../../utils/i18n'
+import { defineMessages, F, useMsg } from '../../utils/i18n'
 import { TlaCtaButton } from '../TlaCtaButton/TlaCtaButton'
 import { TlaFileShareMenu } from '../TlaFileShareMenu/TlaFileShareMenu'
 import { TlaIcon } from '../TlaIcon/TlaIcon'
 import styles from './top.module.css'
+
+const ctaMessages = defineMessages({
+	signInToShare: { defaultMessage: 'Sign in to share' },
+})
 
 export function TlaEditorTopRightPanel({
 	isAnonUser,
@@ -27,6 +31,7 @@ export function TlaEditorTopRightPanel({
 	isAnonUser: boolean
 	context: 'file' | 'published-file' | 'scratch' | 'legacy'
 }) {
+	const ctaString = useMsg(ctaMessages.signInToShare)
 	const ref = useRef<HTMLDivElement>(null)
 	usePassThroughWheelEvents(ref)
 	const fileId = useCurrentFileId()
@@ -39,14 +44,20 @@ export function TlaEditorTopRightPanel({
 				<SignedOutShareButton fileId={fileId} context={context} />
 				<SignInButton
 					mode="modal"
+					data-testid="tla-sign-in-button"
 					forceRedirectUrl={location.pathname + location.search}
 					signUpForceRedirectUrl={location.pathname + location.search}
 				>
 					<TlaCtaButton
 						data-testid="tla-sign-up"
-						onClick={() => trackEvent('open-share-menu', { source: 'anon-landing-page' })}
+						onClick={() =>
+							trackEvent('sign-up-clicked', {
+								source: 'anon-landing-page',
+								ctaMessage: ctaString,
+							})
+						}
 					>
-						<F defaultMessage="Sign in" />
+						<F {...ctaMessages.signInToShare} />
 					</TlaCtaButton>
 				</SignInButton>
 			</div>
@@ -57,19 +68,21 @@ export function TlaEditorTopRightPanel({
 		<div ref={ref} className={styles.topRightPanel}>
 			<PeopleMenu />
 			{context === 'legacy' && <LegacyImportButton />}
-			<TlaFileShareMenu fileId={fileId!} source="file-header" context={context}>
-				<TlaCtaButton
-					data-testid="tla-share-button"
-					onClick={() => trackEvent('open-share-menu', { source: 'top-bar' })}
-				>
-					<F defaultMessage="Share" />
-				</TlaCtaButton>
-			</TlaFileShareMenu>
+			{context !== 'legacy' && (
+				<TlaFileShareMenu fileId={fileId!} source="file-header" context={context}>
+					<TlaCtaButton
+						data-testid="tla-share-button"
+						onClick={() => trackEvent('open-share-menu', { source: 'top-bar' })}
+					>
+						<F defaultMessage="Share" />
+					</TlaCtaButton>
+				</TlaFileShareMenu>
+			)}
 		</div>
 	)
 }
 
-function useGetFileName() {
+export function useGetFileName() {
 	const editor = useEditor()
 	const msg = useTranslation()
 	const defaultPageName = msg('page-menu.new-page-initial-name')

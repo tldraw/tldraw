@@ -20,6 +20,9 @@
   "08331c1710": {
     "translation": "S'ha superat el límit de tarifa; torna-ho a provar més tard."
   },
+  "08bd40c754": {
+    "translation": "Compte"
+  },
   "0b27918290": {
     "translation": "Fitxer"
   },
@@ -31,6 +34,9 @@
   },
   "110a4b01be": {
     "translation": "Publicar"
+  },
+  "12c8a9838c": {
+    "translation": "Prova el SDK de tldraw"
   },
   "13ddd375ad": {
     "translation": "Exporta com a"
@@ -44,11 +50,20 @@
   "1dd1c5fb7f": {
     "translation": "Avui"
   },
+  "20976e7bec": {
+    "translation": "La sala és plena"
+  },
+  "21bfb2dc2e": {
+    "translation": "Aquesta sala s'acosta al seu límit de mida. Penseu en la possibilitat d'eliminar part del contingut o iniciar un fitxer nou."
+  },
   "250ddea65c": {
     "translation": "Sobre tldraw"
   },
   "299cb00a7a": {
     "translation": "La càrrega ha fallat"
+  },
+  "2deec2cb74": {
+    "translation": "Aquesta sala ha arribat al límit de mida i és possible que els canvis ja no es puguin desar. Elimina part del contingut o inicia un fitxer nou."
   },
   "31246941ad": {
     "translation": "Heu d'iniciar la sessió per veure aquest fitxer."
@@ -82,6 +97,12 @@
   },
   "47839e47a5": {
     "translation": "tldraw"
+  },
+  "7697920637": {
+    "translation": "Torneu a carregar"
+  },
+  "764671e008": {
+    "translation": "Xateja amb nosaltres a Discord"
   },
   "4908687e50": {
     "translation": "Esteu segur que voleu oblidar aquest fitxer?"
@@ -118,6 +139,15 @@
   },
   "5a95a425f7": {
     "translation": "Comparteix"
+  },
+  "5bb6cf3b53": {
+    "translation": "L'habitació s'està fent gran"
+  },
+  "5bcc12ace8": {
+    "translation": "Aquesta sala ara és de només lectura"
+  },
+  "5bec508475": {
+    "translation": "S'ha detectat un navegador antic. Actualitzeu el navegador per utilitzar aquesta aplicació."
   },
   "5d26ae7550": {
     "translation": "No hem pogut penjar part del contingut que vas crear abans d'iniciar la sessió."
@@ -170,20 +200,20 @@
   "761e93ede9": {
     "translation": "Gestionar cookies"
   },
-  "7697920637": {
-    "translation": "Torneu a carregar"
-  },
-  "764671e008": {
-    "translation": "Xateja amb nosaltres a Discord"
-  },
   "777f9e90cf": {
     "translation": "Sol·licitud no vàlida."
+  },
+  "78e9815992": {
+    "translation": "Ho entenc"
   },
   "797799f35e": {
     "translation": "Envieu un problema a GitHub"
   },
   "7b1329f5ca": {
     "translation": "Manual d'usuari"
+  },
+  "7be10fc592": {
+    "translation": "Restaurar versió"
   },
   "7cb5f8b4a5": {
     "translation": "Oblida't"
@@ -209,6 +239,9 @@
   "86c66437fd": {
     "translation": "Canvia el nom del fitxer"
   },
+  "8b1946f965": {
+    "translation": "Per continuar editant, copieu la sala als vostres fitxers."
+  },
   "8eb2c00e96": {
     "translation": "Compartit amb tu"
   },
@@ -232,6 +265,9 @@
   },
   "9bef626805": {
     "translation": "Esborra el fitxer"
+  },
+  "9c258b8f88": {
+    "translation": "Aquesta sala multijugador anònima de tldraw ara és de només lectura. Per continuar editant-la, inicia la sessió i copia-la als teus fitxers."
   },
   "9ceb927baa": {
     "translation": "Publica aquest fitxer"
@@ -287,6 +323,9 @@
   },
   "b758336699": {
     "translation": "Copia l'enllaç"
+  },
+  "ba0318cb81": {
+    "translation": "Inicia la sessió per compartir"
   },
   "bb792693e2": {
     "translation": "Desenganxa"
@@ -377,6 +416,9 @@
   },
   "ede55d955f": {
     "translation": "Llegiu la nostra <a>política de cookies</a> per obtenir més informació."
+  },
+  "ef7de3f485": {
+    "translation": "seleccionat"
   },
   "f09b16bc5f": {
     "translation": "Fem servir galetes per mantenir la sessió iniciada, sincronitzar els vostres fitxers i recopilar dades analítiques que ens ajudin a millorar tldraw."

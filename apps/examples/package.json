@@ -1,6 +1,6 @@
 {
 	"name": "examples.tldraw.com",
-	"description": "A tiny little drawing app (examples).",
+	"description": "tldraw infinite canvas SDK (examples).",
 	"version": "0.0.0",
 	"private": true,
 	"author": {
@@ -18,6 +18,7 @@
 	},
 	"keywords": [
 		"tldraw",
+		"sdk",
 		"drawing",
 		"app",
 		"development",
@@ -31,21 +32,25 @@
 		"lint": "yarn run -T tsx ../../internal/scripts/lint.ts",
 		"preplaywright-e2e": "cp ../../node_modules/@tiptap/core/jsx-runtime/index.cjs ../../node_modules/@tiptap/core/jsx-runtime/index.cjs.bak || true && echo 'module.exports = {};' > ../../node_modules/@tiptap/core/jsx-runtime/index.cjs",
 		"postplaywright-e2e": "mv ../../node_modules/@tiptap/core/jsx-runtime/index.cjs.bak ../../node_modules/@tiptap/core/jsx-runtime/index.cjs || true",
-		"e2e": "yarn preplaywright-e2e && playwright test -c ./e2e/playwright.config.ts; yarn postplaywright-e2e",
-		"e2e-ui": "yarn preplaywright-e2e && playwright test --ui -c ./e2e/playwright.config.ts; yarn postplaywright-e2e"
+		"e2e": "yarn preplaywright-e2e && playwright test --project=chromium -c ./e2e/playwright.config.ts ./e2e/tests/**/*.spec.{ts,tsx}; yarn postplaywright-e2e",
+		"e2e-ui": "yarn preplaywright-e2e && playwright test --ui --project=chromium -c ./e2e/playwright.config.ts ./e2e/tests/**/*.spec.{ts,tsx}; yarn postplaywright-e2e",
+		"e2e-perf": "yarn preplaywright-e2e && playwright test --workers=1 -c ./e2e/playwright.config.ts ./e2e/perf/**/*.spec.{ts,tsx}; yarn postplaywright-e2e",
+		"e2e-perf-ui": "yarn preplaywright-e2e && playwright test --ui -c ./e2e/playwright.config.ts ./e2e/perf/**/*.spec.{ts,tsx}; yarn postplaywright-e2e",
+		"test": "yarn run -T vitest --passWithNoTests",
+		"test-ci": "yarn run -T vitest run --passWithNoTests",
+		"test-coverage": "yarn run -T vitest run --coverage --passWithNoTests"
 	},
 	"dependencies": {
 		"@playwright/test": "^1.50.0",
-		"@tiptap/core": "3.0.0-next.8",
-		"@tiptap/extension-font-family": "3.0.0-next.8",
-		"@tiptap/extension-text-style": "3.0.0-next.8",
-		"@tiptap/pm": "3.0.0-next.8",
-		"@tiptap/starter-kit": "3.0.0-next.8",
+		"@tiptap/core": "3.6.2",
+		"@tiptap/extension-font-family": "3.6.2",
+		"@tiptap/extension-text-style": "3.6.2",
+		"@tiptap/pm": "3.6.2",
+		"@tiptap/starter-kit": "3.6.2",
 		"@tldraw/assets": "workspace:*",
 		"@tldraw/dotcom-shared": "workspace:*",
 		"@tldraw/state": "workspace:*",
 		"@tldraw/sync": "workspace:*",
-		"@vercel/analytics": "^1.4.1",
 		"ag-grid-community": "^32.3.3",
 		"ag-grid-react": "^32.3.3",
 		"axe-core": "^4.10.3",
@@ -54,22 +59,23 @@
 		"lodash": "^4.17.21",
 		"pdf-lib": "^1.17.1",
 		"pdfjs-dist": "^4.10.38",
-		"radix-ui": "^1.3.4",
+		"radix-ui": "^1.4.2",
 		"react": "^18.3.1",
 		"react-dom": "^18.3.1",
 		"react-helmet-async": "^1.3.0",
 		"react-router-dom": "^6.28.2",
 		"tldraw": "workspace:*",
-		"vite": "^5.4.14"
+		"vite": "^7.0.1"
 	},
 	"devDependencies": {
 		"@types/lodash": "^4.17.14",
 		"@types/react": "^18.3.18",
-		"@vitejs/plugin-react-swc": "^3.7.2",
+		"@vitejs/plugin-react-swc": "^3.10.2",
 		"dotenv": "^16.4.7",
 		"remark": "^15.0.1",
 		"remark-frontmatter": "^5.0.0",
 		"remark-html": "^16.0.1",
 		"vfile-matter": "^5.0.0"
-	}
+	},
+	"type": "module"
 }

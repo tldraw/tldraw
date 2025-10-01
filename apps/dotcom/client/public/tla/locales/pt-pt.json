@@ -20,6 +20,9 @@
   "08331c1710": {
     "translation": "Limite de ações excedido. Tente mais tarde."
   },
+  "08bd40c754": {
+    "translation": "Conta"
+  },
   "0b27918290": {
     "translation": "Ficheiro"
   },
@@ -31,6 +34,9 @@
   },
   "110a4b01be": {
     "translation": "Publicar"
+  },
+  "12c8a9838c": {
+    "translation": "Experimente o SDK tldraw"
   },
   "13ddd375ad": {
     "translation": "Exportar como"
@@ -44,11 +50,20 @@
   "1dd1c5fb7f": {
     "translation": "Hoje"
   },
+  "20976e7bec": {
+    "translation": "A sala está cheia"
+  },
+  "21bfb2dc2e": {
+    "translation": "Esta sala está se aproximando do limite de tamanho. Considere remover algum conteúdo ou iniciar um novo arquivo."
+  },
   "250ddea65c": {
     "translation": "Sobre tldraw"
   },
   "299cb00a7a": {
     "translation": "O carregamento falhou"
+  },
+  "2deec2cb74": {
+    "translation": "Esta sala atingiu o limite de tamanho e as alterações podem não ser mais salvas. Remova algum conteúdo ou crie um novo arquivo."
   },
   "31246941ad": {
     "translation": "Tem de iniciar sessão para ver este ficheiro."
@@ -82,6 +97,12 @@
   },
   "47839e47a5": {
     "translation": "tldraw"
+  },
+  "7697920637": {
+    "translation": "Por favor recarregue"
+  },
+  "764671e008": {
+    "translation": "Converse conosco no Discord"
   },
   "4908687e50": {
     "translation": "Tem a certeza de que quer esquecer este ficheiro?"
@@ -118,6 +139,15 @@
   },
   "5a95a425f7": {
     "translation": "Partilhar"
+  },
+  "5bb6cf3b53": {
+    "translation": "A sala está ficando grande"
+  },
+  "5bcc12ace8": {
+    "translation": "Esta sala agora é somente leitura"
+  },
+  "5bec508475": {
+    "translation": "Navegador antigo detectado. Atualize seu navegador para usar este aplicativo."
   },
   "5d26ae7550": {
     "translation": "Não conseguimos carregar alguns dos conteúdos que criou antes de iniciar sessão."
@@ -170,20 +200,20 @@
   "761e93ede9": {
     "translation": "Gerenciar cookies"
   },
-  "7697920637": {
-    "translation": "Por favor recarregue"
-  },
-  "764671e008": {
-    "translation": "Converse conosco no Discord"
-  },
   "777f9e90cf": {
     "translation": "Pedido inválido."
+  },
+  "78e9815992": {
+    "translation": "Entendi"
   },
   "797799f35e": {
     "translation": "Envie um problema no GitHub"
   },
   "7b1329f5ca": {
     "translation": "Manual do usuário"
+  },
+  "7be10fc592": {
+    "translation": "Restaurar versão"
   },
   "7cb5f8b4a5": {
     "translation": "Esquecer"
@@ -209,6 +239,9 @@
   "86c66437fd": {
     "translation": "Renomear arquivo"
   },
+  "8b1946f965": {
+    "translation": "Para continuar editando, copie a sala para seus arquivos."
+  },
   "8eb2c00e96": {
     "translation": "Partilhado consigo"
   },
@@ -232,6 +265,9 @@
   },
   "9bef626805": {
     "translation": "Eliminar ficheiro"
+  },
+  "9c258b8f88": {
+    "translation": "Esta sala multijogador anônima do tldraw agora é somente leitura. Para continuar editando, faça login e copie-a para seus arquivos."
   },
   "9ceb927baa": {
     "translation": "Publicar este ficheiro"
@@ -287,6 +323,9 @@
   },
   "b758336699": {
     "translation": "Copiar link"
+  },
+  "ba0318cb81": {
+    "translation": "Entre para compartilhar"
   },
   "bb792693e2": {
     "translation": "Desafixar"
@@ -377,6 +416,9 @@
   },
   "ede55d955f": {
     "translation": "Leia nossa <a>política de cookies</a> para saber mais."
+  },
+  "ef7de3f485": {
+    "translation": "selecionado"
   },
   "f09b16bc5f": {
     "translation": "Usamos cookies para mantê-lo conectado, sincronizar seus arquivos e coletar análises para nos ajudar a melhorar o tldraw."

@@ -1,7 +1,9 @@
 import { tlenv } from '@tldraw/editor'
 
-const cmdKey = tlenv.isDarwin ? '⌘' : 'Ctrl'
-const altKey = tlenv.isDarwin ? '⌥' : 'Alt'
+// N.B. We rework these Windows placeholders down below.
+const cmdKey = tlenv.isDarwin ? '⌘' : '__CTRL__'
+const ctrlKey = tlenv.isDarwin ? '⌃' : '__CTRL__'
+const altKey = tlenv.isDarwin ? '⌥' : '__ALT__'
 
 /** @public */
 export function kbd(str: string) {
@@ -18,19 +20,30 @@ export function kbd(str: string) {
 					? s.replace(/[[\]]/g, '')
 					: s
 							.replace(/cmd\+/g, cmdKey)
-							.replace(/ctrl\+/g, cmdKey)
+							.replace(/ctrl\+/g, ctrlKey)
 							.replace(/alt\+/g, altKey)
 							.replace(/shift\+/g, '⇧')
 							// Backwards compatibility with the old system.
 							.replace(/\$/g, cmdKey)
 							.replace(/\?/g, altKey)
 							.replace(/!/g, '⇧')
-							.split('')
+							.match(/__CTRL__|__ALT__|./g) || []
 			)
 			.flat()
-			.map((sub) => {
-				return sub[0].toUpperCase() + sub.slice(1)
+			.map((sub, index) => {
+				if (sub[0] === '+') return []
+
+				let modifiedKey
+				if (sub === '__CTRL__') {
+					modifiedKey = 'Ctrl'
+				} else if (sub === '__ALT__') {
+					modifiedKey = 'Alt'
+				} else {
+					modifiedKey = sub[0].toUpperCase() + sub.slice(1)
+				}
+				return tlenv.isDarwin || !index ? modifiedKey : ['+', modifiedKey]
 			})
+			.flat()
 	)
 }
 

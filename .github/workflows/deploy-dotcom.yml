@@ -2,6 +2,7 @@ name: Deploy .com
 
 on:
   pull_request:
+    types: [opened, synchronize, labeled, unlabeled]
   push:
     branches:
       - main
@@ -27,6 +28,9 @@ jobs:
     runs-on: ubuntu-latest-16-cores-open
     environment: ${{ github.ref == 'refs/heads/production' && 'deploy-production' || 'deploy-staging' }}
     concurrency: dotcom-${{ github.ref == 'refs/heads/production' && 'deploy-production' || github.ref }}
+    if: |
+      github.event_name == 'push' ||
+      (github.event_name == 'pull_request' && contains(github.event.pull_request.labels.*.name, 'dotcom-preview-please'))
 
     steps:
       # - name: Notify initial start

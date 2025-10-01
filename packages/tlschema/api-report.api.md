@@ -56,6 +56,7 @@ export const arrowShapeVersions: {
     readonly AddIsPrecise: "com.tldraw.shape.arrow/2";
     readonly AddLabelColor: "com.tldraw.shape.arrow/1";
     readonly AddLabelPosition: "com.tldraw.shape.arrow/3";
+    readonly AddRichText: "com.tldraw.shape.arrow/7";
     readonly AddScale: "com.tldraw.shape.arrow/5";
     readonly ExtractBindings: "com.tldraw.shape.arrow/4";
 };
@@ -108,13 +109,13 @@ id: TLAssetId;
 meta: JsonObject;
 props: Props;
 type: Type;
-typeName: 'asset';
+typeName: "asset";
 }[P]; } & { [P_1 in (undefined extends Props ? "props" : never) | (undefined extends Type ? "type" : never)]?: {
 id: TLAssetId;
 meta: JsonObject;
 props: Props;
 type: Type;
-typeName: 'asset';
+typeName: "asset";
 }[P_1] | undefined; }>>;
 
 // @public (undocumented)
@@ -311,6 +312,9 @@ export const geoShapeMigrations: TLPropsMigrations;
 
 // @public (undocumented)
 export const geoShapeProps: RecordProps<TLGeoShape>;
+
+// @public (undocumented)
+export function getColorValue(theme: TLDefaultColorTheme, color: TLDefaultColorStyle, variant: keyof TLDefaultColorThemeColor): string;
 
 // @public (undocumented)
 export function getDefaultColorTheme(opts: {
@@ -729,13 +733,13 @@ export interface TLArrowShapeProps {
     // (undocumented)
     labelPosition: number;
     // (undocumented)
+    richText: TLRichText;
+    // (undocumented)
     scale: number;
     // (undocumented)
     size: TLDefaultSizeStyle;
     // (undocumented)
     start: VecModel;
-    // (undocumented)
-    text: string;
 }
 
 // @public (undocumented)
@@ -926,23 +930,23 @@ export interface TLDefaultColorThemeColor {
     // (undocumented)
     fill: string;
     // (undocumented)
-    frame: {
-        fill: string;
-        headingFill: string;
-        headingStroke: string;
-        stroke: string;
-        text: string;
-    };
+    frameFill: string;
     // (undocumented)
-    highlight: {
-        p3: string;
-        srgb: string;
-    };
+    frameHeadingFill: string;
     // (undocumented)
-    note: {
-        fill: string;
-        text: string;
-    };
+    frameHeadingStroke: string;
+    // (undocumented)
+    frameStroke: string;
+    // (undocumented)
+    frameText: string;
+    // (undocumented)
+    highlightP3: string;
+    // (undocumented)
+    highlightSrgb: string;
+    // (undocumented)
+    noteFill: string;
+    // (undocumented)
+    noteText: string;
     // (undocumented)
     pattern: string;
     // (undocumented)
@@ -1482,6 +1486,8 @@ export interface TLShapeCrop {
     // (undocumented)
     bottomRight: VecModel;
     // (undocumented)
+    isCircle?: boolean;
+    // (undocumented)
     topLeft: VecModel;
 }
 
@@ -1568,6 +1574,8 @@ export interface TLVideoShapeProps {
     altText: string;
     // (undocumented)
     assetId: null | TLAssetId;
+    // (undocumented)
+    autoplay: boolean;
     // (undocumented)
     h: number;
     // (undocumented)

@@ -3,11 +3,25 @@
 @tailwind utilities;
 @import url('./demo.css');
 
-html {
-	scroll-padding-top: 72px;
-}
-
 @layer base {
+	.prose h2,
+	.prose h3,
+	.prose h4,
+	.prose h5,
+	.prose h6 {
+		scroll-margin-top: 90px;
+	}
+
+	@media (max-width: 768px) {
+		.prose h2,
+		.prose h3,
+		.prose h4,
+		.prose h5,
+		.prose h6 {
+			scroll-margin-top: 130px;
+		}
+	}
+
 	.prose h2 a,
 	.prose h3 a,
 	.prose h4 a {

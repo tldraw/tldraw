@@ -10,6 +10,7 @@ import {
 	Geometry2dFilters,
 	Geometry2dOptions,
 	getPerfectDashProps,
+	getVerticesCountForArcLength,
 	Group2d,
 	modulate,
 	PerfectDashTerminal,
@@ -121,6 +122,7 @@ export interface CubicBezierToPathBuilderCommand extends PathBuilderCommandBase 
 	type: 'cubic'
 	cp1: VecModel
 	cp2: VecModel
+	resolution?: number
 }
 
 /** @internal */
@@ -317,8 +319,17 @@ export class PathBuilder {
 		// Calculate the sweep angle
 		const sweepAngle = endAngle - startAngle
 
+		// Calculate the approximate arc length. General ellipse arc length is expensive - there's
+		// no closed form solution, so we have to do iterative numerical approximation. As we only
+		// use this to control the resolution of later approximations, let's cheat and just use the
+		// circular arc length with the largest radius:
+		const approximateArcLength = Math.max(rx1, ry1) * Math.abs(sweepAngle)
+
 		// Approximate the arc using cubic bezier curves
 		const numSegments = Math.min(4, Math.ceil(Math.abs(sweepAngle) / (Math.PI / 2)))
+		const resolutionPerSegment = Math.ceil(
+			getVerticesCountForArcLength(approximateArcLength) / numSegments
+		)
 		const anglePerSegment = sweepAngle / numSegments
 
 		// Helper function to compute point on ellipse
@@ -364,7 +375,16 @@ export class PathBuilder {
 			const cp2y = end.y - handleScale * d2.y
 
 			const bezierOpts = i === 0 ? opts : { ...opts, mergeWithPrevious: true }
-			this.cubicBezierTo(end.x, end.y, cp1x, cp1y, cp2x, cp2y, bezierOpts)
+			this.cubicBezierToWithResolution(
+				end.x,
+				end.y,
+				cp1x,
+				cp1y,
+				cp2x,
+				cp2y,
+				bezierOpts,
+				resolutionPerSegment
+			)
 		}
 
 		return this
@@ -379,6 +399,18 @@ export class PathBuilder {
 		cp2Y: number,
 		opts?: PathBuilderCommandOpts
 	) {
+		return this.cubicBezierToWithResolution(x, y, cp1X, cp1Y, cp2X, cp2Y, opts)
+	}
+	private cubicBezierToWithResolution(
+		x: number,
+		y: number,
+		cp1X: number,
+		cp1Y: number,
+		cp2X: number,
+		cp2Y: number,
+		opts?: PathBuilderCommandOpts,
+		resolution?: number
+	) {
 		this.assertHasMoveTo()
 		this.commands.push({
 			type: 'cubic',
@@ -388,6 +420,7 @@ export class PathBuilder {
 			cp2: { x: cp2X, y: cp2Y },
 			isClose: false,
 			opts,
+			resolution,
 		})
 		return this
 	}
@@ -909,11 +942,11 @@ export class PathBuilder {
 			let tangentStart, tangentEnd
 			switch (current.type) {
 				case 'line':
-					tangentStart = tangentEnd = Vec.Sub(previous, current).norm()
+					tangentStart = tangentEnd = Vec.Sub(previous, current).uni()
 					break
 				case 'cubic': {
-					tangentStart = Vec.Sub(current.cp1, previous).norm()
-					tangentEnd = Vec.Sub(current.cp2, current).norm()
+					tangentStart = Vec.Sub(current.cp1, previous).uni()
+					tangentEnd = Vec.Sub(current.cp2, current).uni()
 					break
 				}
 				default:
@@ -972,6 +1005,7 @@ export class PathBuilderGeometry2d extends Geometry2d {
 							cp1: Vec.From(command.cp1),
 							cp2: Vec.From(command.cp2),
 							end: Vec.From(command),
+							resolution: command.resolution,
 						})
 					)
 					break

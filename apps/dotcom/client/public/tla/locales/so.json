@@ -20,6 +20,9 @@
   "08331c1710": {
     "translation": "Xadka qiimaha waa dhaafey, isku day mar kale hadhow."
   },
+  "08bd40c754": {
+    "translation": "Xisaab"
+  },
   "0b27918290": {
     "translation": "Faylka"
   },
@@ -31,6 +34,9 @@
   },
   "110a4b01be": {
     "translation": "Daabac"
+  },
+  "12c8a9838c": {
+    "translation": "Isku day tldraw SDK"
   },
   "13ddd375ad": {
     "translation": "Dhoofinta sida"
@@ -44,11 +50,20 @@
   "1dd1c5fb7f": {
     "translation": "Maanta"
   },
+  "20976e7bec": {
+    "translation": "Qolku waa buuxaa"
+  },
+  "21bfb2dc2e": {
+    "translation": "Qolkan waxa uu ku soo dhawaanayaa cabbirkiisa. Tixgeli inaad tirtirto qaar ka mid ah nuxurka ama bilawdo fayl cusub."
+  },
   "250ddea65c": {
     "translation": "Ku saabsan tldraw"
   },
   "299cb00a7a": {
     "translation": "Soo dejintu waa fashilantay"
+  },
+  "2deec2cb74": {
+    "translation": "Qolkaani waxa uu gaadhay xadka cabbirkiisa waxaana laga yaabaa in isbeddelada aan la kaydin. Ka saar qaar ka mid ah nuxurka ama bilow fayl cusub."
   },
   "31246941ad": {
     "translation": "Waxaad u baahan tahay inaad gasho si aad u aragto faylkan."
@@ -82,6 +97,12 @@
   },
   "47839e47a5": {
     "translation": "tldraw"
+  },
+  "7697920637": {
+    "translation": "Fadlan dib u soo deji"
+  },
+  "764671e008": {
+    "translation": "Nagala hadal Discord"
   },
   "4908687e50": {
     "translation": "Ma hubtaa inaad rabto inaad ilowdo faylkan?"
@@ -118,6 +139,15 @@
   },
   "5a95a425f7": {
     "translation": "La wadaag"
+  },
+  "5bb6cf3b53": {
+    "translation": "Qolku wuu weynaadaa"
+  },
+  "5bcc12ace8": {
+    "translation": "Qolkan hadda waa akhris-kaliya"
+  },
+  "5bec508475": {
+    "translation": "browser hore waa la helay Fadlan cusboonaysii biraawsarkaaga si aad u isticmaasho abkan."
   },
   "5d26ae7550": {
     "translation": "Waanu ku guuldareysanay inaan soo rarno qayb ka mid ah macluumaadka aad abuurtay ka hor inta aanad soo galin"
@@ -170,20 +200,20 @@
   "761e93ede9": {
     "translation": "Maamul cookies"
   },
-  "7697920637": {
-    "translation": "Fadlan dib u soo deji"
-  },
-  "764671e008": {
-    "translation": "Nagala hadal Discord"
-  },
   "777f9e90cf": {
     "translation": "Codsi aan sax ahayn"
+  },
+  "78e9815992": {
+    "translation": "Helay"
   },
   "797799f35e": {
     "translation": "Ku soo gudbi arrin GitHub"
   },
   "7b1329f5ca": {
     "translation": "Buugga isticmaale"
+  },
+  "7be10fc592": {
+    "translation": "Soo celi nooca"
   },
   "7cb5f8b4a5": {
     "translation": "Iska ilow"
@@ -209,6 +239,9 @@
   "86c66437fd": {
     "translation": "Magaca beddelo faylka"
   },
+  "8b1946f965": {
+    "translation": "Si aad u sii waddo tafatirka fadlan ku koobi qolka faylashaada."
+  },
   "8eb2c00e96": {
     "translation": "kula wadaagay"
   },
@@ -232,6 +265,9 @@
   },
   "9bef626805": {
     "translation": "Tirtir faylka"
+  },
+  "9c258b8f88": {
+    "translation": "Qolkan ciyaartoy badan oo tldraw ah oo qarsoodi ah hadda waa akhris-kaliya. Si aad u sii waddo tafatirka, fadlan soo gal oo koobi ka geli faylashaada."
   },
   "9ceb927baa": {
     "translation": "Daabac faylkan"
@@ -287,6 +323,9 @@
   },
   "b758336699": {
     "translation": "Koobiga isku xirka"
+  },
+  "ba0318cb81": {
+    "translation": "Saxiix si aad ula wadaagto"
   },
   "bb792693e2": {
     "translation": "Furi"
@@ -377,6 +416,9 @@
   },
   "ede55d955f": {
     "translation": "Si aad wax badan u barato akhri <a> siyaasadayada kukiyada</a>"
+  },
+  "ef7de3f485": {
+    "translation": "la doortay"
   },
   "f09b16bc5f": {
     "translation": "Waxaan u isticmaalnaa cookies si aan kuu soo galno, si aan u waafajino faylashaada, iyo si aan u ururino falanqaynta si ay nooga caawiso horumarinta tldraw."

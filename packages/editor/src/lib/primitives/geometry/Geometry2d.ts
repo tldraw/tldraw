@@ -9,6 +9,8 @@ import {
 	intersectLineSegmentPolyline,
 	intersectPolys,
 	linesIntersect,
+	polygonIntersectsPolyline,
+	polygonsIntersect,
 } from '../intersect'
 import { approximately, pointInPolygon } from '../utils'
 
@@ -44,9 +46,11 @@ export const Geometry2dFilters: {
 /** @public */
 export interface TransformedGeometry2dOptions {
 	isLabel?: boolean
+	isEmptyLabel?: boolean
 	isInternal?: boolean
 	debugColor?: string
 	ignore?: boolean
+	excludeFromShapeBounds?: boolean
 }
 
 /** @public */
@@ -57,20 +61,31 @@ export interface Geometry2dOptions extends TransformedGeometry2dOptions {
 
 /** @public */
 export abstract class Geometry2d {
+	// todo: consider making accessors for these too, so that they can be overridden in subclasses by geometries with more complex logic
 	isFilled = false
 	isClosed = true
 	isLabel = false
+	isEmptyLabel = false
 	isInternal = false
+	excludeFromShapeBounds = false
 	debugColor?: string
 	ignore?: boolean
 
 	constructor(opts: Geometry2dOptions) {
+		const {
+			isLabel = false,
+			isEmptyLabel = false,
+			isInternal = false,
+			excludeFromShapeBounds = false,
+		} = opts
 		this.isFilled = opts.isFilled
 		this.isClosed = opts.isClosed
-		this.isLabel = opts.isLabel ?? false
-		this.isInternal = opts.isInternal ?? false
 		this.debugColor = opts.debugColor
 		this.ignore = opts.ignore
+		this.isLabel = isLabel
+		this.isEmptyLabel = isEmptyLabel
+		this.isInternal = isInternal
+		this.excludeFromShapeBounds = excludeFromShapeBounds
 	}
 
 	isExcludedByFilter(filters?: Geometry2dFilters) {
@@ -222,25 +237,6 @@ export abstract class Geometry2d {
 		return distanceAlongRoute / length
 	}
 
-	/** @deprecated Iterate the vertices instead. */
-	nearestPointOnLineSegment(A: VecLike, B: VecLike): Vec {
-		const { vertices } = this
-		let nearest: Vec | undefined
-		let dist = Infinity
-		let d: number, p: Vec, q: Vec
-		for (let i = 0; i < vertices.length; i++) {
-			p = vertices[i]
-			q = Vec.NearestPointOnLineSegment(A, B, p, true)
-			d = Vec.Dist2(p, q)
-			if (d < dist) {
-				dist = d
-				nearest = q
-			}
-		}
-		if (!nearest) throw Error('nearest point not found')
-		return nearest
-	}
-
 	isPointInBounds(point: VecLike, margin = 0) {
 		const { bounds } = this
 		return !(
@@ -249,6 +245,53 @@ export abstract class Geometry2d {
 			point.x > bounds.maxX + margin ||
 			point.y > bounds.maxY + margin
 		)
+	}
+
+	overlapsPolygon(_polygon: VecLike[]): boolean {
+		const polygon = _polygon.map((v) => Vec.From(v))
+
+		// Otherwise, check if the geometry itself overlaps the polygon
+		const { vertices, center, isFilled, isEmptyLabel, isClosed } = this
+
+		// We'll do things in order of cheapest to most expensive checks
+
+		// Skip empty labels
+		if (isEmptyLabel) return false
+
+		// If any of the geometry's vertices are inside the polygon, it's inside
+		if (vertices.some((v) => pointInPolygon(v, polygon))) {
+			return true
+		}
+
+		// If the geometry is filled and closed and its center is inside the polygon, it's inside
+		if (isClosed) {
+			if (isFilled) {
+				// If closed and filled, check if the center is inside the polygon
+				if (pointInPolygon(center, polygon)) {
+					return true
+				}
+
+				// ..then, slightly more expensive check, see the geometry covers the entire polygon but not its center
+				if (polygon.every((v) => pointInPolygon(v, vertices))) {
+					return true
+				}
+			}
+
+			// If any the geometry's vertices intersect the edge of the polygon, it's inside.
+			// for example when a rotated rectangle is moved over the corner of a parent rectangle
+			// If the geometry is closed, intersect as a polygon
+			if (polygonsIntersect(polygon, vertices)) {
+				return true
+			}
+		} else {
+			// If the geometry is not closed, intersect as a polyline
+			if (polygonIntersectsPolyline(polygon, vertices)) {
+				return true
+			}
+		}
+
+		// If none of the above checks passed, the geometry is outside the polygon
+		return false
 	}
 
 	transform(transform: MatModel, opts?: TransformedGeometry2dOptions): Geometry2d {
@@ -266,8 +309,23 @@ export abstract class Geometry2d {
 		return this._vertices
 	}
 
+	getBoundsVertices(): Vec[] {
+		if (this.excludeFromShapeBounds) return []
+		return this.vertices
+	}
+
+	private _boundsVertices: Vec[] | undefined
+
+	// eslint-disable-next-line no-restricted-syntax
+	get boundsVertices(): Vec[] {
+		if (!this._boundsVertices) {
+			this._boundsVertices = this.getBoundsVertices()
+		}
+		return this._boundsVertices
+	}
+
 	getBounds() {
-		return Box.FromPoints(this.vertices)
+		return Box.FromPoints(this.boundsVertices)
 	}
 
 	private _bounds: Box | undefined
@@ -392,6 +450,10 @@ export class TransformedGeometry2d extends Geometry2d {
 
 	getVertices(filters: Geometry2dFilters): Vec[] {
 		return this.geometry.getVertices(filters).map((v) => Mat.applyToPoint(this.matrix, v))
+	}
+
+	getBoundsVertices(): Vec[] {
+		return this.geometry.getBoundsVertices().map((v) => Mat.applyToPoint(this.matrix, v))
 	}
 
 	nearestPoint(point: VecLike, filters?: Geometry2dFilters): Vec {
