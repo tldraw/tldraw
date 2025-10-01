@@ -42,7 +42,7 @@ function ShapeItem({
 					onDoubleClick={() => {
 						setIsEditingName(true)
 					}}
-					onClick={(ev) => {
+					onPointerDown={(ev) => {
 						// Don't handle if the event was already handled (e.g., by the visibility button)
 						if (editor.wasEventAlreadyHandled(ev)) return
 						// We synchronize the selection state of the layer panel items with the selection state of the shapes in the editor.
@@ -93,6 +93,10 @@ function ShapeItem({
 					)}
 					<button
 						className="shape-visibility-toggle"
+						onPointerDown={(ev) => {
+							ev.preventDefault()
+							editor.markEventAsHandled(ev)
+						}}
 						onClick={(ev) => {
 							const now = Date.now()
 							if (now - timeSinceLastVisibilityToggle.current < 200) {
@@ -108,8 +112,6 @@ function ShapeItem({
 								})
 								timeSinceLastVisibilityToggle.current = now
 							}
-							ev.preventDefault()
-							editor.markEventAsHandled(ev)
 						}}
 						onDoubleClickCapture={(ev) => {
 							editor.markEventAsHandled(ev)
