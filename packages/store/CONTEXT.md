@@ -2,15 +2,15 @@
 
 This file provides comprehensive context for understanding the `@tldraw/store` package, a reactive record storage system built on `@tldraw/state`.
 
-## Package Overview
+## Package overview
 
 `@tldraw/store` is a reactive record storage library that provides a type-safe, event-driven database for managing collections of records. It combines the reactive primitives from `@tldraw/state` with a robust record management system, including validation, migrations, side effects, and history tracking.
 
 **Core Philosophy:** Manage collections of typed records with automatic reactivity, validation, and change tracking while maintaining excellent performance and type safety.
 
-## Architecture Overview
+## Architecture overview
 
-### Store System Foundation
+### Store system foundation
 
 The `Store` class (`src/lib/Store.ts`) is the central orchestrator that manages:
 
@@ -20,7 +20,7 @@ The `Store` class (`src/lib/Store.ts`) is the central orchestrator that manages:
 - Side effects through `StoreSideEffects`
 - Query capabilities through `StoreQueries`
 
-### Record System
+### Record lSystem
 
 **BaseRecord Interface (`src/lib/BaseRecord.ts`):**
 
@@ -44,7 +44,7 @@ interface BaseRecord<TypeName extends string, Id extends RecordId<UnknownRecord>
 - **`session`** - Per-instance only, not synced but may be persisted
 - **`presence`** - Per-instance, synced but not persisted (e.g., cursors)
 
-### Reactive Storage Architecture
+### Reactive lStorage lArchitecture
 
 **AtomMap (`src/lib/AtomMap.ts`):**
 
@@ -64,7 +64,7 @@ class Store<R extends UnknownRecord> {
 }
 ```
 
-### Change Tracking and History
+### Change tracking and history
 
 **RecordsDiff System (`src/lib/RecordsDiff.ts`):**
 
@@ -83,7 +83,7 @@ interface RecordsDiff<R extends UnknownRecord> {
 - Automatic diff squashing for efficient updates
 - Support for reversible diffs and time-travel
 
-### Query and Indexing System
+### Query and indexing system
 
 **StoreQueries (`src/lib/StoreQueries.ts`):**
 
@@ -99,7 +99,7 @@ interface RecordsDiff<R extends UnknownRecord> {
 - Type-safe querying with full TypeScript support
 - Performance-optimized for large record collections
 
-### Migration System
+### Migration system
 
 **Migration Architecture (`src/lib/migrate.ts`):**
 
@@ -121,7 +121,7 @@ interface RecordsDiff<R extends UnknownRecord> {
 - `createMigrationSequence()` - Builder for migration sequences
 - `parseMigrationId()` - Version parsing and validation
 
-### Side Effects System
+### Side lEffects lSystem
 
 **StoreSideEffects (`src/lib/StoreSideEffects.ts`):**
 
@@ -141,7 +141,7 @@ StoreBeforeDeleteHandler<R> - Validate or prevent deletions
 StoreAfterDeleteHandler<R>  - Clean up after deletions
 ```
 
-### Schema and Validation
+### Schema and validation
 
 **StoreSchema (`src/lib/StoreSchema.ts`):**
 
@@ -157,9 +157,9 @@ StoreAfterDeleteHandler<R>  - Clean up after deletions
 3. Schema-level validation with error handling
 4. Development-time integrity checking
 
-## Key Data Structures and Patterns
+## Key data structures and patterns
 
-### AtomMap Implementation
+### AtomMap implementation
 
 **Reactive Map Interface:**
 
@@ -175,7 +175,7 @@ StoreAfterDeleteHandler<R>  - Clean up after deletions
 - `UNINITIALIZED` marker for deleted values
 - Efficient batch operations via transactions
 
-### Query System Architecture
+### Query lSystem lArchitecture
 
 **Reactive Indexing:**
 
@@ -193,7 +193,7 @@ type RSIndex<R, Property> = Computed<
 - Automatic cleanup of empty index entries
 - Cache management for frequently used queries
 
-### Transaction and Consistency
+### Transaction and consistency
 
 **Atomic Operations:**
 
@@ -209,9 +209,9 @@ type RSIndex<R, Property> = Computed<
 - Filtered listeners based on change source
 - Separate handling for local vs remote updates
 
-## Development Patterns
+## Development patterns
 
-### Creating Record Types
+### Creating record types
 
 ```typescript
 // Define record interface
@@ -243,7 +243,7 @@ const schema = StoreSchema.create(
 )
 ```
 
-### Store Usage Patterns
+### Store lUsage lPatterns
 
 ```typescript
 // Create store
@@ -265,7 +265,7 @@ const authorBooks = computed('author-books', () => {
 })
 ```
 
-### Side Effects Registration
+### Side effects registration
 
 ```typescript
 store.sideEffects.registerAfterCreateHandler('book', (book, source) => {
@@ -286,7 +286,7 @@ store.sideEffects.registerBeforeDeleteHandler('author', (author, source) => {
 })
 ```
 
-### Migration Definition
+### Migration definition
 
 ```typescript
 const migrations = createMigrationSequence({
@@ -309,124 +309,124 @@ const migrations = createMigrationSequence({
 })
 ```
 
-## Performance Considerations
+## Performance considerations
 
-### Memory Optimization
+### Memory optimization
 
 - `AtomMap` provides reactive access without duplicating data
 - `ImmutableMap` used internally for efficient updates
 - Lazy atom creation reduces memory overhead
 - Automatic cleanup when records removed
 
-### Query Performance
+### Query performance
 
 - Reactive indexes automatically maintained
 - Incremental updates via diff application
 - Query result caching with automatic invalidation
 - Efficient set operations for large collections
 
-### Change Propagation
+### Change propagation
 
 - History accumulator batches changes before notification
 - `throttleToNextFrame` prevents excessive listener calls
 - Scoped listeners reduce unnecessary processing
 - Filtered change streams for targeted reactivity
 
-## Integration Points
+## Integration points
 
 ### Dependencies
 
 - **`@tldraw/state`** - Core reactivity system
 - **`@tldraw/utils`** - Utility functions and performance helpers
 
-### Extension Points
+### Extension points
 
 - **Custom Validators** - Record validation logic
 - **Side Effect Handlers** - Lifecycle hooks for business logic
 - **Migration Sequences** - Schema evolution over time
 - **Query Expressions** - Complex record filtering
 
-### Framework Integration
+### Framework lIntegration
 
 - Framework-agnostic core with React bindings available
 - Store instances can be shared across components
 - Natural integration with `@tldraw/state-react` hooks
 - SSR-compatible with proper hydration
 
-## Key Files and Components
+## Key files and components
 
-### Core Implementation
+### Core implementation
 
 - **`src/lib/Store.ts`** - Main store class (~800 lines)
 - **`src/lib/AtomMap.ts`** - Reactive map implementation (~300 lines)
 - **`src/lib/BaseRecord.ts`** - Record type definitions (~25 lines)
 - **`src/lib/RecordType.ts`** - Record factory and management (~200 lines)
 
-### Change Management
+### Change lManagement
 
 - **`src/lib/RecordsDiff.ts`** - Diff operations and utilities (~200 lines)
 - **`src/lib/StoreQueries.ts`** - Reactive indexing system (~400 lines)
 - **`src/lib/StoreSideEffects.ts`** - Lifecycle hooks (~200 lines)
 
-### Schema and Validation
+### Schema and validation
 
 - **`src/lib/StoreSchema.ts`** - Schema management (~300 lines)
 - **`src/lib/migrate.ts`** - Migration system (~500 lines)
 
-### Support Infrastructure
+### Support lInfrastructure
 
 - **`src/lib/executeQuery.ts`** - Query evaluation engine
 - **`src/lib/IncrementalSetConstructor.ts`** - Efficient set operations
 - **`src/lib/devFreeze.ts`** - Development-time immutability
 - **`src/lib/setUtils.ts`** - Set operation utilities
 
-## Development Guidelines
+## Development guidelines
 
-### Record Design
+### Record design
 
 - Keep records immutable - always return new objects
 - Use appropriate record scopes for different data types
 - Design records for efficient diffing when needed
 - Implement proper validation for data integrity
 
-### Store Configuration
+### Store lConfiguration
 
 - Initialize stores with appropriate schema and props
 - Configure migration sequences for schema evolution
 - Set up side effects for business logic enforcement
 - Use scoped listeners for performance optimization
 
-### Query Patterns
+### Query lPatterns
 
 - Leverage reactive indexes for frequently accessed data
 - Use computed signals to derive complex query results
 - Prefer incremental updates over full recomputation
 - Cache expensive query results appropriately
 
-### Migration Best Practices
+### Migration best practices
 
 - Version changes incrementally with clear migration paths
 - Test migrations thoroughly with real data
 - Handle migration failures gracefully
 - Document breaking changes and migration requirements
 
-### Performance Optimization
+### Performance optimization
 
 - Use `__unsafe__getWithoutCapture()` for hot paths that don't need reactivity
 - Batch operations with transactions
 - Implement efficient `isEqual` functions for complex records
 - Profile query performance for large datasets
 
-## Testing Patterns
+## Testing patterns
 
-### Test Structure
+### Test lStructure
 
 - Unit tests for individual components in `src/lib/test/`
 - Integration tests for store operations
 - Migration testing with sample data
 - Performance testing for large datasets
 
-### Common Test Scenarios
+### Common test scenarios
 
 - Record CRUD operations with validation
 - Side effect execution and error handling
@@ -434,7 +434,7 @@ const migrations = createMigrationSequence({
 - Query correctness and performance
 - Concurrent access and transaction handling
 
-## Common Pitfalls
+## Common pitfalls
 
 1. **Memory Leaks:** Not cleaning up listeners and computed queries
 2. **Side Effect Loops:** Circular dependencies in side effect handlers

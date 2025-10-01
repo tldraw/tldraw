@@ -5,7 +5,7 @@
 
 The `@tldraw/utils` package provides foundational utility functions used throughout the tldraw codebase. It contains pure, reusable helper functions for common programming tasks including array manipulation, object operations, control flow, media processing, and performance optimization.
 
-## Package Structure & Exports
+## Package structure & exports
 
 The utils package uses a barrel export pattern through `index.ts`, exposing all utilities as named exports:
 
@@ -37,9 +37,9 @@ import { Result, assert, exhaustiveSwitchError } from '@tldraw/utils'
 
 ## Architecture
 
-### Core Categories
+### Core categories
 
-#### Array Utilities (`array.ts`)
+#### Array utilities (`array.ts`)
 
 Type-safe array manipulation functions with complete TypeScript signatures:
 
@@ -62,7 +62,7 @@ mergeArraysAndReplaceDefaults<Key extends string | number | symbol, T extends Re
 ): T[]
 ```
 
-#### Object Utilities (`object.ts`)
+#### Object utilities (`object.ts`)
 
 Type-preserving object operations with complete signatures:
 
@@ -86,7 +86,7 @@ mapObjectMapValues<Key extends string | number | symbol, ValueBefore, ValueAfter
 areObjectsShallowEqual<T extends Record<string | number | symbol, unknown>>(obj1: T, obj2: T): boolean
 ```
 
-#### Control Flow (`control.ts`)
+#### Control flow (`control.ts`)
 
 Error handling and async utilities:
 
@@ -114,7 +114,7 @@ promiseWithResolve<T>(): Promise<T> & {
 sleep(ms: number): Promise<void>
 ```
 
-#### Reordering System (`reordering.ts`)
+#### Reordering system (`reordering.ts`)
 
 Fractional indexing for item ordering. IndexKey is a branded string type that ensures type safety for ordering operations:
 
@@ -134,7 +134,7 @@ validateIndexKey(key: string): IndexKey
 sortByIndex<T extends { index: IndexKey }>(a: T, b: T): number
 ```
 
-#### Media Helpers (`media/media.ts`)
+#### Media helpers (`media/media.ts`)
 
 Media file processing and validation:
 
@@ -165,7 +165,7 @@ class MediaHelpers {
 }
 ```
 
-### Performance & Execution
+### Performance & execution
 
 #### ExecutionQueue (`ExecutionQueue.ts`)
 
@@ -189,7 +189,7 @@ class ExecutionQueue {
 }
 ```
 
-#### Performance Tracking (`perf.ts`, `PerformanceTracker.ts`)
+#### Performance tracking (`perf.ts`, `PerformanceTracker.ts`)
 
 Performance measurement and monitoring:
 
@@ -213,7 +213,7 @@ class PerformanceTracker {
 }
 ```
 
-### Data Processing
+### Data processing
 
 #### Hashing (`hash.ts`)
 
@@ -259,9 +259,9 @@ deleteFromSessionStorage(key: string): void
 clearSessionStorage(): void
 ```
 
-### Utility Functions
+### Utility functions
 
-#### Timing & Throttling
+#### Timing & throttling
 
 ```typescript
 // Throttling utilities for performance
@@ -278,7 +278,7 @@ class Timers {
 }
 ```
 
-#### File Operations (`file.ts`)
+#### File operations (`file.ts`)
 
 File system and blob utilities:
 
@@ -293,7 +293,7 @@ class FileHelpers {
 }
 ```
 
-#### Value Processing (`value.ts`)
+#### Value processing (`value.ts`)
 
 Value validation and cloning:
 
@@ -318,9 +318,9 @@ export const fetch: typeof globalThis.fetch
 export const Image: typeof globalThis.Image
 ```
 
-### Specialized Utilities
+### Specialized utilities
 
-#### String Processing
+#### String processing
 
 ```typescript
 // String enumeration helper for creating string literal types
@@ -330,7 +330,7 @@ stringEnum<T extends Record<string, string>>(obj: T): T
 safeParseUrl(url: string): URL | undefined
 ```
 
-#### Mathematical Operations
+#### Mathematical operations
 
 ```typescript
 // Interpolation and random number generation
@@ -340,7 +340,7 @@ modulate(value: number, rangeA: [number, number], rangeB: [number, number]): num
 rng(seed?: string): () => number // Seedable PRNG for deterministic randomness
 ```
 
-#### Error Enhancement (`error.ts`)
+#### Error enhancement (`error.ts`)
 
 Error annotation system for debugging:
 
@@ -354,23 +354,23 @@ annotateError(error: unknown, annotations: ErrorAnnotations): void
 getErrorAnnotations(error: unknown): ErrorAnnotations | undefined
 ```
 
-## Key Design Patterns
+## Key design patterns
 
-### Type Safety
+### Type safety
 
 - Extensive use of TypeScript generics for type preservation
 - Brand types for nominal typing (IndexKey prevents string/index confusion)
 - Type guards for runtime type checking with proper narrowing
 - Assertion functions that provide type information to TypeScript
 
-### Performance Optimization
+### Performance optimization
 
 - Stack trace optimization with `omitFromStackTrace` for cleaner debugging
 - Weak reference caching to prevent memory leaks
 - FPS-aware throttling for smooth 60fps animations
 - Efficient object comparison with early returns and shallow checks
 
-### Cross-Platform Compatibility
+### Cross-Platform compatibility
 
 The utils package ensures consistent behavior across different JavaScript environments:
 
@@ -392,16 +392,16 @@ The utils package ensures consistent behavior across different JavaScript enviro
 - Deterministic random number generation for reproducible tests
 - Environment detection utilities for conditional behavior
 
-### Functional Programming
+### Functional programming
 
 - Pure functions with no side effects (except explicit I/O operations)
 - Immutable operations that return new objects rather than mutating inputs
 - Higher-order functions for common patterns like filtering and mapping
 - Composition-friendly API design that works well with pipes and chains
 
-## Usage Patterns & Examples
+## Usage patterns & examples
 
-### In Editor Package
+### In editor package
 
 ```typescript
 // Array utilities for managing shape collections
@@ -414,7 +414,7 @@ const newIndex = getIndexBetween(belowShape?.index ?? null, aboveShape?.index ??
 const sortedShapes = shapes.sort(sortByIndex)
 ```
 
-### In State Package
+### In state package
 
 ```typescript
 // Control flow utilities for error handling
@@ -431,7 +431,7 @@ tracker.mark('reaction-start')
 tracker.measure('reaction-time', 'reaction-start')
 ```
 
-### In Store Package
+### In store package
 
 ```typescript
 // Hashing for record deduplication
@@ -445,21 +445,21 @@ await writeQueue.push(() => database.write(operation))
 
 ## Dependencies
 
-### External Dependencies
+### External dependencies
 
 - `lodash.isequal`, `lodash.isequalwith`: Deep equality comparison for complex objects
 - `lodash.throttle`, `lodash.uniq`: Performance utilities with battle-tested implementations
 - `fractional-indexing-jittered`: Fractional indexing implementation for stable ordering
 
-### Peer Dependencies
+### Peer dependencies
 
 None - the utils package is completely self-contained and provides the foundation for other tldraw packages.
 
-### Internal Dependencies
+### Internal dependencies
 
 None - this package has no dependencies on other `@tldraw/*` packages, making it the foundation of the dependency graph.
 
-## When to Use Utils vs Other Packages
+## When to use utils vs other packages
 
 **Use @tldraw/utils when:**
 
@@ -476,7 +476,7 @@ None - this package has no dependencies on other `@tldraw/*` packages, making it
 - `@tldraw/editor` for canvas/shape operations
 - `@tldraw/tldraw` for complete editor with UI
 
-## Testing Patterns
+## Testing patterns
 
 The utils package follows co-located testing with `.test.ts` files alongside source files:
 
@@ -508,33 +508,33 @@ describe('ExecutionQueue', () => {
 })
 ```
 
-## Troubleshooting Common Issues
+## Troubleshooting common issues
 
-### Performance Issues
+### Performance issues
 
 - Use `fpsThrottle` for UI updates that happen frequently
 - Use `WeakCache` for expensive computations tied to object lifecycles
 - Use `ExecutionQueue` to prevent overwhelming the system with parallel operations
 
-### Memory Leaks
+### Memory leaks
 
 - Prefer `WeakCache` over `Map` for object-keyed caches
 - Always call `dispose()` on `Timers` instances
 - Use `Result` types instead of throwing exceptions in hot paths
 
-### Type Safety Issues
+### Type safety issues
 
 - Use assertion functions (`assert`, `assertExists`) for runtime type checking
 - Prefer branded types (like `IndexKey`) for values that shouldn't be mixed
 - Use type guards (`isDefined`, `isNonNull`) before accessing potentially undefined values
 
-### Cross-Platform Issues
+### Cross-Platform issues
 
 - Use provided `fetch` and `Image` exports instead of globals for Node.js compatibility
 - Handle storage quota errors with try/catch around storage operations
 - Use `safeParseUrl` instead of `new URL()` constructor for user input
 
-## Version Compatibility
+## Version compatibility
 
 The utils package maintains backward compatibility within major versions. When upgrading:
 
@@ -543,7 +543,7 @@ The utils package maintains backward compatibility within major versions. When u
 - Test thoroughly with your specific usage patterns
 - Consider using the migration scripts provided for major version updates
 
-## Key Benefits
+## Key benefits
 
 ### Performance
 
@@ -559,7 +559,7 @@ The utils package maintains backward compatibility within major versions. When u
 - Defensive programming practices throughout
 - Extensive test coverage (>95% line coverage)
 
-### Developer Experience
+### Developer experience
 
 - Clear, descriptive function names following consistent patterns
 - Comprehensive TypeScript types with proper generic constraints

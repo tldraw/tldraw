@@ -8,7 +8,7 @@ A lightweight Cloudflare Worker that provides asset upload and retrieval service
 
 ## Architecture
 
-### Tech Stack
+### Tech stack
 
 - **Runtime**: Cloudflare Workers (V8 isolates)
 - **Storage**: Cloudflare R2 (S3-compatible object storage)
@@ -23,9 +23,9 @@ A lightweight Cloudflare Worker that provides asset upload and retrieval service
 - **CORS**: Full CORS support for cross-origin requests
 - **Multi-Environment**: dev, preview, staging, production deployments
 
-## Core Functionality
+## Core functionality
 
-### Asset Upload (`POST /uploads/:objectName`)
+### Asset upload (`POST /uploads/:objectName`)
 
 - Accepts image files via POST requests
 - Stores assets in Cloudflare R2 buckets
@@ -33,7 +33,7 @@ A lightweight Cloudflare Worker that provides asset upload and retrieval service
 - Prevents duplicate uploads (409 if exists)
 - Preserves HTTP metadata (content-type, etc.)
 
-### Asset Retrieval (`GET /uploads/:objectName`)
+### Asset retrieval (`GET /uploads/:objectName`)
 
 - Serves uploaded assets from R2 storage
 - Implements automatic caching via Cloudflare Cache API
@@ -41,14 +41,14 @@ A lightweight Cloudflare Worker that provides asset upload and retrieval service
 - Handles conditional requests (If-None-Match, etc.)
 - Returns 404 for non-existent assets
 
-### Request Flow
+### Request flow
 
 ```
 Client Request → Cloudflare Edge → Worker → R2 Storage
              ← Cache Layer   ← Worker ← R2 Response
 ```
 
-## Environment Configuration
+## Environment configuration
 
 ### Development (`dev`)
 
@@ -70,25 +70,25 @@ Client Request → Cloudflare Edge → Worker → R2 Storage
 - Custom Domain: `assets.tldraw.xyz`
 - Zone: `tldraw.xyz`
 
-## Storage Structure
+## Storage lStructure
 
-### R2 Buckets
+### R2 buckets
 
 - **uploads-preview**: Development, preview, and staging assets
 - **uploads**: Production assets only
 - **Object Names**: Client-generated unique identifiers
 - **Metadata**: Preserved HTTP headers (content-type, etc.)
 
-### Caching Strategy
+### Caching strategy
 
 - **Cloudflare Cache**: Automatic edge caching for GET requests
 - **Cache Keys**: Full URL with headers for proper invalidation
 - **Range Support**: Efficient streaming for large assets
 - **ETag Headers**: For conditional requests and validation
 
-## Worker Implementation
+## Worker lImplementation
 
-### Entry Point (`src/worker.ts`)
+### Entry point (`src/worker.ts`)
 
 ```typescript
 export default class Worker extends WorkerEntrypoint<Environment> {
@@ -100,7 +100,7 @@ export default class Worker extends WorkerEntrypoint<Environment> {
 }
 ```
 
-### Environment Interface (`src/types.ts`)
+### Environment interface (`src/types.ts`)
 
 - **UPLOADS**: R2Bucket binding for asset storage
 - **CF_VERSION_METADATA**: Worker version information
@@ -108,7 +108,7 @@ export default class Worker extends WorkerEntrypoint<Environment> {
 - **SENTRY_DSN**: Error tracking configuration
 - **MEASURE**: Analytics Engine binding
 
-## Shared Dependencies
+## Shared lDependencies
 
 ### @tldraw/worker-shared
 
@@ -120,31 +120,31 @@ Provides common functionality across all tldraw workers:
 - **createRouter**: Router setup with middleware
 - **CORS handling**: Cross-origin request support
 
-### Key Functions
+### Key lFunctions
 
 - Upload validation and R2 storage operations
 - Cache-aware asset retrieval with range support
 - Error handling and response formatting
 - Analytics integration for monitoring
 
-## Security Considerations
+## Security considerations
 
-### Access Control
+### Access control
 
 - **CORS**: Configured for cross-origin requests (`origin: '*'`)
 - **Object Names**: Client-controlled, requires proper validation
 - **Upload Limits**: Inherits Cloudflare Worker size limits
 - **Content Types**: Preserves but doesn't validate file types
 
-### Data Isolation
+### Data isolation
 
 - **Environment Separation**: Separate buckets for dev/preview/production
 - **No Authentication**: Public upload/retrieval (relies on object name secrecy)
 - **Analytics**: Basic request telemetry via Analytics Engine
 
-## Development Workflow
+## Development workflow
 
-### Local Development
+### Local development
 
 ```bash
 yarn dev  # Starts local worker with R2 persistence
@@ -170,9 +170,9 @@ yarn lint        # Code quality checks
 - **Environment-specific**: Different names/buckets per environment
 - **Version Metadata**: Automatic version tracking
 
-## Usage Integration
+## Usage lIntegration
 
-### Client Integration
+### Client integration
 
 ```typescript
 // Upload asset
@@ -193,9 +193,9 @@ const imageUrl = `${WORKER_URL}/uploads/${objectName}`
 - **Performance**: Edge-cached delivery for global users
 - **Reliability**: R2 durability and redundancy
 
-## Monitoring & Analytics
+## Monitoring & analytics
 
-### Analytics Engine
+### Analytics engine
 
 - **Request Metrics**: Upload/retrieval counts and latency
 - **Error Tracking**: Failed requests and error rates
@@ -208,9 +208,9 @@ const imageUrl = `${WORKER_URL}/uploads/${objectName}`
 - **Sentry Integration**: Error reporting and alerting
 - **Version Tracking**: Deployment metadata and rollback capability
 
-## Limitations & Considerations
+## Limitations & considerations
 
-### Size Constraints
+### Size constraints
 
 - **Worker Limit**: 25MB request body size (Cloudflare limit)
 - **Asset Types**: No server-side validation of file types
@@ -222,14 +222,14 @@ const imageUrl = `${WORKER_URL}/uploads/${objectName}`
 - **No Versioning**: Object names must be unique per upload
 - **No Metadata**: Minimal asset information beyond HTTP headers
 
-## Related Services
+## Related lServices
 
-### Companion Workers
+### Companion workers
 
 - **sync-worker**: Real-time collaboration backend
 - **image-resize-worker**: Asset transformation and optimization
 
-### Integration Points
+### Integration points
 
 - **tldraw.com client**: Primary consumer of upload/retrieval APIs
 - **R2 Storage**: Shared storage infrastructure

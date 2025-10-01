@@ -6,9 +6,9 @@ The `@tldraw/sync-core` package provides the core infrastructure for real-time c
 
 ## Architecture
 
-### Core Components
+### Core components
 
-#### `TLSyncClient` - Client-Side Synchronization
+#### `TLSyncClient` - client-Side synchronization
 
 Manages client-side synchronization with the server:
 
@@ -35,7 +35,7 @@ Key features:
 - **Conflict Resolution**: Server authoritative with rollback capability
 - **Presence Management**: Real-time cursor and user presence
 
-#### `TLSyncRoom` - Server-Side Room Management
+#### `TLSyncRoom` - server-Side room management
 
 Manages server-side state for collaboration rooms:
 
@@ -61,7 +61,7 @@ Responsibilities:
 - **Persistence**: Coordinate with storage backends
 - **Schema Management**: Handle schema migrations and compatibility
 
-### Protocol System
+### Protocol lSystem
 
 #### WebSocket Protocol (`protocol.ts`)
 
@@ -86,7 +86,7 @@ type TLSocketServerSentEvent =
 	| PongEvent // Ping response
 ```
 
-#### Connection Lifecycle
+#### Connection lifecycle
 
 1. **Connect Request**: Client sends schema and initial state
 2. **Hydration**: Server responds with full state snapshot
@@ -94,9 +94,9 @@ type TLSocketServerSentEvent =
 4. **Presence Sync**: Real-time user cursor/selection state
 5. **Graceful Disconnect**: Proper cleanup and persistence
 
-### Diff System
+### Diff lSystem
 
-#### `NetworkDiff` - Efficient Change Representation
+#### `NetworkDiff` - efficient change representation
 
 Compact, network-optimized change format:
 
@@ -111,7 +111,7 @@ type RecordOp<R> =
 	| [RecordOpType.Remove] // Delete record
 ```
 
-#### Object Diffing
+#### Object diffing
 
 Fine-grained property-level changes:
 
@@ -127,9 +127,9 @@ type ValueOp =
 	| [ValueOpType.Delete] // Remove property
 ```
 
-### Session Management
+### Session lManagement
 
-#### `RoomSession` - Individual Client Sessions
+#### `RoomSession` - individual client sessions
 
 Tracks state for each connected client:
 
@@ -157,9 +157,9 @@ Session lifecycle constants:
 - `SESSION_IDLE_TIMEOUT`: 20 seconds before idle detection
 - `SESSION_REMOVAL_WAIT_TIME`: 5 seconds for cleanup delay
 
-### Network Adapters
+### Network adapters
 
-#### `ClientWebSocketAdapter` - Client Connection Management
+#### `ClientWebSocketAdapter` - client connection management
 
 Manages WebSocket connections with reliability features:
 
@@ -178,7 +178,7 @@ class ClientWebSocketAdapter implements TLPersistentClientSocket<TLRecord> {
 }
 ```
 
-#### `ReconnectManager` - Connection Reliability
+#### `ReconnectManager` - connection reliability
 
 Handles automatic reconnection with exponential backoff:
 
@@ -187,9 +187,9 @@ Handles automatic reconnection with exponential backoff:
 - **Connection Health**: Monitors connection quality
 - **Graceful Degradation**: Handles various failure modes
 
-### Data Consistency
+### Data consistency
 
-#### Conflict Resolution Strategy
+#### Conflict lResolution lStrategy
 
 **Server Authoritative Model:**
 
@@ -198,21 +198,21 @@ Handles automatic reconnection with exponential backoff:
 3. Server broadcasts canonical version to all clients
 4. Clients rollback and re-apply if conflicts detected
 
-#### Change Ordering
+#### Change ordering
 
 - **Causal Ordering**: Changes applied in dependency order
 - **Vector Clocks**: Track causality across distributed clients
 - **Tombstone Management**: Handle deletions in distributed system
 
-#### Schema Evolution
+#### Schema evolution
 
 - **Version Compatibility**: Detect and handle schema mismatches
 - **Migration Support**: Upgrade/downgrade data during sync
 - **Graceful Degradation**: Handle unknown record types
 
-### Performance Optimizations
+### Performance optimizations
 
-#### Batching and Chunking
+#### Batching and chunking
 
 ```typescript
 // Message chunking for large updates
@@ -222,15 +222,15 @@ chunk<T>(items: T[], maxSize: number): T[][]
 throttle(updateFn: () => void, delay: number)
 ```
 
-#### Presence Optimization
+#### Presence optimization
 
 - **Throttled Updates**: Cursor movements throttled to reduce bandwidth
 - **Selective Broadcasting**: Only send presence to relevant clients
 - **Ephemeral State**: Presence doesn't persist to storage
 
-### Error Handling
+### Error handling
 
-#### `TLRemoteSyncError` - Sync-Specific Errors
+#### `TLRemoteSyncError` - sync-Specific errors
 
 Specialized error types for synchronization issues:
 
@@ -247,35 +247,35 @@ class TLRemoteSyncError extends Error {
 // - SERVER_TOO_OLD: Server needs upgrade
 ```
 
-#### Connection Recovery
+#### Connection recovery
 
 - **Automatic Retry**: Exponential backoff for reconnection
 - **State Reconciliation**: Re-sync state after reconnection
 - **Partial Recovery**: Handle partial data loss gracefully
 
-## Key Design Patterns
+## Key design patterns
 
-### Event-Driven Architecture
+### Event-Driven architecture
 
 - **nanoevents**: Lightweight event system for internal communication
 - **Signal Integration**: Reactive updates using signals
 - **WebSocket Events**: Standard WebSocket event handling
 
-### Immutable State Updates
+### Immutable state updates
 
 - **Structural Sharing**: Minimize memory usage for state changes
 - **Diff-Based Sync**: Only transmit actual changes
 - **Rollback Support**: Maintain history for conflict resolution
 
-### Async State Management
+### Async lState lManagement
 
 - **Promise-Based APIs**: Async operations return promises
 - **Effect Scheduling**: Coordinate updates with React lifecycle
 - **Transaction Support**: Atomic multi-record updates
 
-## Network Protocol
+## Network protocol
 
-### Message Types
+### Message types
 
 1. **Connect**: Establish session with schema validation
 2. **Push**: Client sends local changes to server
@@ -283,62 +283,62 @@ class TLRemoteSyncError extends Error {
 4. **Ping/Pong**: Keepalive for connection health
 5. **Error**: Communicate protocol violations
 
-### Reliability Features
+### Reliability lFeatures
 
 - **Message Ordering**: Guaranteed order of operations
 - **Duplicate Detection**: Prevent duplicate message processing
 - **Timeout Handling**: Detect and recover from network issues
 - **Graceful Shutdown**: Clean disconnection protocol
 
-## Integration Points
+## Integration points
 
-### With Store Package
+### With store package
 
 - **Store Synchronization**: Bidirectional sync with local stores
 - **Migration Coordination**: Handle schema changes during sync
 - **Query Integration**: Sync affects query results
 
-### With State Package
+### With state package
 
 - **Reactive Integration**: Changes trigger signal updates
 - **Transaction Coordination**: Maintain consistency during sync
 - **Effect Scheduling**: Coordinate with React updates
 
-### With Schema Package
+### With schema package
 
 - **Schema Validation**: Ensure type safety across clients
 - **Version Management**: Handle schema evolution
 - **Record Validation**: Validate all synchronized records
 
-## Use Cases
+## Use cases
 
-### Real-Time Collaboration
+### Real-Time collaboration
 
 - **Multi-User Drawing**: Multiple users editing simultaneously
 - **Live Cursors**: Real-time cursor and selection display
 - **Conflict Resolution**: Handle simultaneous edits gracefully
 
-### Offline/Online Sync
+### Offline/Online sync
 
 - **Offline Editing**: Local changes queued for sync
 - **Reconnection Sync**: State reconciliation after network recovery
 - **Partial Sync**: Handle incomplete synchronization
 
-### Scalable Architecture
+### Scalable lArchitecture
 
 - **Room-Based Isolation**: Separate sync contexts per document
 - **Horizontal Scaling**: Support multiple server instances
 - **Load Management**: Handle varying client loads efficiently
 
-## Security Considerations
+## Security considerations
 
-### Access Control
+### Access control
 
 - **Read-Only Mode**: Restrict editing permissions per session
 - **Session Validation**: Verify client identity and permissions
 - **Schema Enforcement**: Prevent malicious schema changes
 
-### Data Integrity
+### Data integrity
 
 - **Change Validation**: Server validates all client changes
 - **Type Safety**: Schema ensures data structure integrity

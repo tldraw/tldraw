@@ -7,9 +7,9 @@ The `@tldraw/state-react` package provides React bindings for tldraw's reactive 
 
 ## Architecture
 
-### Core React Hooks
+### Core React hooks
 
-#### `useValue` - Signal Subscription
+#### `useValue` - signal subscription
 
 The primary hook for extracting values from signals and subscribing to changes:
 
@@ -34,7 +34,7 @@ Implementation details:
 **Return Signature:**
 The hook returns the actual value (not the signal wrapper) by using `__unsafe__getWithoutCapture()` to avoid triggering dependency tracking during the subscription callback.
 
-#### `useAtom` - Component-Local State
+#### `useAtom` - component-Local state
 
 Creates component-scoped reactive atoms:
 
@@ -53,7 +53,7 @@ Features:
 - Configurable with AtomOptions (diff functions, etc.)
 - Automatically cleaned up when component unmounts
 
-#### `useComputed` - Component-Local Computed Values
+#### `useComputed` - component-Local computed values
 
 Creates memoized computed signals within components:
 
@@ -79,9 +79,9 @@ Benefits:
 - Efficient recomputation only when dependencies change
 - Named for debugging and performance profiling
 
-### Effect Hooks
+### Effect hooks
 
-#### `useReactor` - Frame-Throttled Effects
+#### `useReactor` - frame-Throttled effects
 
 Runs reactive effects with updates throttled to animation frames:
 
@@ -97,7 +97,7 @@ Implementation:
 - Proper cleanup on unmount or dependency changes
 - Ideal for visual updates and animations
 
-#### `useQuickReactor` - Immediate Effects
+#### `useQuickReactor` - immediate effects
 
 Runs reactive effects without throttling:
 
@@ -116,9 +116,9 @@ Use cases:
 - Non-visual side effects
 - Critical updates that can't wait for next frame
 
-### Component Tracking
+### Component lTracking
 
-#### `track` - Higher-Order Component
+#### `track` - higher-Order component
 
 Automatically tracks signal dependencies in React components:
 
@@ -135,7 +135,7 @@ Advanced implementation:
 - **Forward ref support**: Handles forwardRef components correctly
 - **Symbol detection**: Works with React's internal component types
 
-#### `useStateTracking` - Lower-Level Tracking
+#### `useStateTracking` - lower-Level tracking
 
 Manual reactive tracking for render functions:
 
@@ -152,9 +152,9 @@ Features:
 - Prevents "zombie component" issues during unmounting
 - `deps` parameter has default empty array value
 
-## Key Implementation Details
+## Key implementation details
 
-### The `__unsafe__getWithoutCapture` Method
+### The `__unsafe__getWithoutCapture` method
 
 This internal method is used in `useValue` to extract signal values without triggering dependency tracking:
 
@@ -178,7 +178,7 @@ const getSnapshot = useCallback(() => {
 - Prevents infinite loops where getting a value triggers the subscription
 - Ensures clean separation between subscription and value extraction
 
-### ProxyHandlers Implementation
+### ProxyHandlers implementation
 
 The `track` function uses JavaScript Proxy to intercept React component function calls:
 
@@ -194,7 +194,7 @@ const proxiedComponent = new Proxy(baseComponent, {
 
 This allows automatic signal tracking without manual hook calls in every component.
 
-### EffectScheduler Integration
+### EffectScheduler integration
 
 The package uses `EffectScheduler` differently for different hooks:
 
@@ -228,9 +228,9 @@ const scheduler = useMemo(
 
 The `EffectScheduler` itself is agnostic to timing - it delegates scheduling to the provided callback or executes immediately.
 
-## Key Design Patterns
+## Key design patterns
 
-### React Integration Strategy
+### React lIntegration lStrategy
 
 The package uses several React patterns for optimal integration:
 
@@ -239,9 +239,9 @@ The package uses several React patterns for optimal integration:
 3. **useMemo**: Memoization of expensive signal creation
 4. **useState**: Component-local signal instances
 
-### Performance Optimizations
+### Performance optimizations
 
-#### Throttling Strategy
+#### Throttling lStrategy
 
 ```typescript
 // Frame-throttled updates for visual changes
@@ -263,14 +263,14 @@ useQuickReactor(
 )
 ```
 
-#### Dependency Management
+#### Dependency lManagement
 
 - Explicit dependency arrays like React hooks
 - Automatic signal dependency tracking during execution
 - Efficient change detection using epoch-based snapshots
 - `scheduleCount` mechanism in `useStateTracking` for batched updates
 
-### Error Handling Patterns
+### Error lHandling lPatterns
 
 The package includes comprehensive error handling:
 
@@ -297,16 +297,16 @@ Common patterns:
 - Error isolation to prevent cascade failures
 - Safe cleanup functions to prevent memory leaks
 
-### Memory Management
+### Memory management
 
 - Automatic cleanup of reactive subscriptions
 - Proper disposal of effect schedulers
 - Prevention of memory leaks through careful lifecycle management
 - Component unmounting detection to avoid "zombie" subscriptions
 
-## Component Unmounting and Cleanup
+## Component unmounting and cleanup
 
-### Handling Component Lifecycle
+### Handling component lifecycle
 
 ```typescript
 // Effect cleanup on unmount
@@ -320,16 +320,16 @@ const atom = useAtom('myAtom', initialValue)
 // No manual cleanup needed - React handles disposal
 ```
 
-### Preventing Memory Leaks
+### Preventing memory leaks
 
 - All reactive subscriptions are automatically unsubscribed on unmount
 - Effect schedulers are properly disposed
 - Signal references are cleared when components unmount
 - Proxy objects don't create persistent references
 
-## Usage Patterns
+## Usage patterns
 
-### Basic Component Tracking
+### Basic lComponent lTracking
 
 ```typescript
 const Counter = track(function Counter() {
@@ -340,7 +340,7 @@ const Counter = track(function Counter() {
 })
 ```
 
-### Computed Values in Components
+### Computed values in components
 
 ```typescript
 const UserProfile = track(function UserProfile({ userId }: Props) {
@@ -352,7 +352,7 @@ const UserProfile = track(function UserProfile({ userId }: Props) {
 })
 ```
 
-### Side Effects and Synchronization
+### Side effects and synchronization
 
 ```typescript
 const DataSyncComponent = track(function DataSync() {
@@ -378,7 +378,7 @@ const DataSyncComponent = track(function DataSync() {
 })
 ```
 
-### Manual State Tracking
+### Manual lState lTracking
 
 ```typescript
 function CustomComponent() {
@@ -389,9 +389,9 @@ function CustomComponent() {
 }
 ```
 
-## Performance Considerations
+## Performance considerations
 
-### When to Use Each Hook
+### When to use each hook
 
 **useValue:**
 
@@ -417,7 +417,7 @@ function CustomComponent() {
 - Performance: Fine-grained control over tracking behavior
 - Use when: You need manual control over the tracking lifecycle
 
-### Optimization Guidelines
+### Optimization lGuidelines
 
 1. **Prefer `$` prefix**: Use consistent naming for signals (`$count`, `$user`)
 2. **Batch related changes**: Group signal updates to minimize renders
@@ -425,7 +425,7 @@ function CustomComponent() {
 4. **Minimize dependency arrays**: Only include truly reactive dependencies
 5. **Avoid creating signals in render**: Use `useAtom`/`useComputed` for component-local state
 
-### Memory and Performance Monitoring
+### Memory and performance monitoring
 
 - Signal subscriptions are lightweight but should be monitored in large applications
 - Use React DevTools to identify unnecessary re-renders
@@ -434,7 +434,7 @@ function CustomComponent() {
 
 ## Integration with tldraw
 
-### Editor Components
+### Editor lComponents
 
 Used throughout tldraw's React components:
 
@@ -442,21 +442,21 @@ Used throughout tldraw's React components:
 - **UI Components**: All reactive UI elements use state-react hooks
 - **Tool Components**: State machines integrated with React lifecycle
 
-### Performance in Complex UIs
+### Performance in complex uIs
 
 - **Selective Updates**: Only components accessing changed signals re-render
 - **Batched Updates**: Multiple signal changes batched into single renders
 - **Frame Alignment**: Visual updates aligned with browser paint cycles
 
-## Key Benefits
+## Key benefits
 
-### Automatic Reactivity
+### Automatic reactivity
 
 - No manual subscription management required
 - Automatic dependency tracking eliminates bugs
 - Components automatically re-render when state changes
 
-### React Ecosystem Compatibility
+### React ecosystem compatibility
 
 - Works with existing React patterns and tools
 - Compatible with React DevTools
@@ -468,7 +468,7 @@ Used throughout tldraw's React components:
 - Efficient change detection and subscription management
 - Optimized for large, complex applications
 
-### Developer Experience
+### Developer experience
 
 - Familiar React hook patterns
 - Clear error messages with component context
@@ -476,13 +476,13 @@ Used throughout tldraw's React components:
 
 ## Dependencies
 
-### External Dependencies
+### External dependencies
 
 - **React**: Core React hooks and lifecycle integration
 - **@tldraw/state**: Core reactive state system (EffectScheduler, signals)
 - **@tldraw/utils**: Throttling utilities (`throttleToNextFrame`)
 
-### Integration Points
+### Integration points
 
 - Builds directly on EffectScheduler from state package
 - Uses utility functions for performance optimization

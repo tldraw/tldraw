@@ -482,11 +482,11 @@ export function MoveToPageMenu() {
 
 							if (toPage) {
 								addToast({
-									title: 'Changed Page',
+									title: 'Changed page',
 									description: `Moved to ${toPage.name}.`,
 									actions: [
 										{
-											label: 'Go Back',
+											label: 'Go back',
 											type: 'primary',
 											onClick: () => {
 												editor.markHistoryStoppingPoint('change-page')

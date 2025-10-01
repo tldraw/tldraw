@@ -6,11 +6,11 @@ The `image-resize-worker` is a Cloudflare Worker that provides on-demand image r
 
 ## Architecture
 
-### Core Functionality (`worker.ts`)
+### Core functionality (`worker.ts`)
 
 The worker implements a URL-based image transformation service:
 
-#### Request Flow
+#### Request flow
 
 ```typescript
 // URL Pattern: /:origin/:path+ with optional query params
@@ -51,11 +51,11 @@ export default class Worker extends WorkerEntrypoint<Environment> {
 }
 ```
 
-### Image Transformation Options
+### Image transformation options
 
 The worker supports Cloudflare's Image Resizing parameters:
 
-#### Query Parameters
+#### Query parameters
 
 ```typescript
 const queryValidator = T.object({
@@ -72,7 +72,7 @@ const imageOptions: RequestInitCfPropertiesImage = {
 }
 ```
 
-#### Smart Format Selection
+#### Smart format selection
 
 Automatic format optimization based on browser capabilities:
 
@@ -85,11 +85,11 @@ const format = accept.includes('image/avif')
 		: null // Original format
 ```
 
-### Origin Validation System
+### Origin lValidation lSystem
 
 Security mechanism to prevent abuse by validating request origins:
 
-#### Development Mode
+#### Development mode
 
 ```typescript
 isValidOrigin(origin: string) {
@@ -106,11 +106,11 @@ isValidOrigin(origin: string) {
 }
 ```
 
-### Routing Architecture
+### Routing lArchitecture
 
 Two distinct routing modes based on origin:
 
-#### Service Binding Mode
+#### Service binding mode
 
 For internal tldraw services (multiplayer server):
 
@@ -129,7 +129,7 @@ if (useServiceBinding(this.env, origin)) {
 }
 ```
 
-#### External Fetch Mode
+#### External fetch mode
 
 For direct image URLs from validated origins:
 
@@ -140,11 +140,11 @@ else {
 }
 ```
 
-### Caching Strategy
+### Caching strategy
 
 Multi-layer caching for optimal performance:
 
-#### Cache Key Generation
+#### Cache key generation
 
 ```typescript
 const cacheKey = new URL(passthroughUrl)
@@ -154,7 +154,7 @@ for (const [key, value] of Object.entries(query)) {
 }
 ```
 
-#### ETag Handling
+#### ETag handling
 
 Proper HTTP caching with ETag support:
 
@@ -180,9 +180,9 @@ function parseEtag(etag: string) {
 }
 ```
 
-## Environment Configuration
+## Environment configuration
 
-### Worker Environment Interface
+### Worker lEnvironment lInterface
 
 ```typescript
 interface Environment {
@@ -193,11 +193,11 @@ interface Environment {
 }
 ```
 
-### Deployment Configuration (`wrangler.toml`)
+### Deployment configuration (`wrangler.toml`)
 
 Multi-environment setup for different stages:
 
-#### Development Environment
+#### Development environment
 
 ```toml
 [env.dev]
@@ -205,7 +205,7 @@ name = "image-optimizer"
 services = [{ binding = "SYNC_WORKER", service = "dev-tldraw-multiplayer" }]
 ```
 
-#### Staging Environment
+#### Staging environment
 
 ```toml
 [env.staging]
@@ -214,7 +214,7 @@ services = [{ binding = "SYNC_WORKER", service = "main-tldraw-multiplayer" }]
 route = { pattern = "staging-images.tldraw.xyz", custom_domain = true }
 ```
 
-#### Production Environment
+#### Production environment
 
 ```toml
 [env.production]
@@ -225,28 +225,28 @@ route = { pattern = "images.tldraw.xyz", custom_domain = true }
 
 ## Dependencies
 
-### Core Worker Libraries
+### Core lWorker lLibraries
 
 - **@tldraw/worker-shared**: Request handling, routing, and error management utilities
 - **@tldraw/dotcom-shared**: Shared constants and configurations (APP_ASSET_UPLOAD_ENDPOINT)
 - **@tldraw/validate**: Type-safe input validation for query parameters
 - **itty-router**: Lightweight HTTP routing for Cloudflare Workers
 
-### Development Dependencies
+### Development lDependencies
 
 - **@cloudflare/workers-types**: TypeScript definitions for Workers APIs
 - **wrangler**: Cloudflare Workers CLI and deployment tool
 
-## Key Features
+## Key features
 
-### Image Optimization
+### Image optimization
 
 **Format Conversion**: Automatic AVIF/WebP conversion based on browser support
 **Quality Control**: Adjustable quality settings (1-100)
 **Size Control**: Width-based resizing with scale-down protection
 **Compression**: Cloudflare's optimized image processing pipeline
 
-### Performance Optimization
+### Performance optimization
 
 **Global Caching**: Leverages Cloudflare's global cache network
 **ETag Support**: Proper HTTP caching with conditional requests
@@ -260,9 +260,9 @@ route = { pattern = "images.tldraw.xyz", custom_domain = true }
 **Content Type Validation**: Ensures responses are actual images
 **No Upscaling**: Prevents resource abuse with fit: 'scale-down'
 
-## Usage Patterns
+## Usage patterns
 
-### Basic Image Resizing
+### Basic image resizing
 
 Transform any image from a valid origin:
 
@@ -272,7 +272,7 @@ GET /assets.tldraw.com/uploads/abc123.png?w=600&q=80
 
 Response: Resized image at 600px width with 80% quality
 
-### Format Optimization
+### Format optimization
 
 Browser automatically receives optimal format:
 
@@ -285,7 +285,7 @@ GET / assets.tldraw.com / image.jpg
 // Fallback: Original JPEG format
 ```
 
-### Asset Upload Integration
+### Asset lUpload lIntegration
 
 Works with tldraw's multiplayer asset system:
 
@@ -298,9 +298,9 @@ GET /localhost:3000/api/uploads/asset-uuid?w=400
 // })
 ```
 
-## Integration with tldraw Ecosystem
+## Integration with tldraw ecosystem
 
-### Asset Pipeline
+### Asset pipeline
 
 The image-resize-worker is part of tldraw's asset management system:
 
@@ -310,7 +310,7 @@ User Upload -> Sync Worker -> R2 Storage
 Image Request -> Image Resize Worker -> Optimized Delivery
 ```
 
-### Service Architecture
+### Service architecture
 
 ```
 tldraw.com (Client)
@@ -319,7 +319,7 @@ tldraw.com (Client)
 └── assets.tldraw.com (CDN delivery)
 ```
 
-### URL Structure
+### URL structure
 
 Different URL patterns for different use cases:
 
@@ -327,38 +327,38 @@ Different URL patterns for different use cases:
 - **Multiplayer Assets**: `/localhost:3000/api/uploads/file.png`
 - **Published Content**: Various origins ending in `.tldraw.com`
 
-## Error Handling
+## Error handling
 
-### Validation Errors
+### Validation errors
 
 - **Invalid Origin**: Returns 404 for non-whitelisted domains
 - **Invalid Path**: Returns 404 for non-asset paths in service binding mode
 - **Invalid Content**: Returns 404 for non-image responses
 
-### Graceful Degradation
+### Graceful degradation
 
 - **Cache Miss**: Falls back to origin fetch with transformations
 - **Transformation Failure**: May return original image or error
 - **Service Binding Failure**: Falls back to direct fetch mode
 
-## Performance Characteristics
+## Performance characteristics
 
-### Cloudflare Edge Benefits
+### Cloudflare edge benefits
 
 - **Global Distribution**: Processing at 200+ edge locations worldwide
 - **Low Latency**: Image transformation close to users
 - **High Throughput**: Automatic scaling based on demand
 - **Bandwidth Optimization**: Format conversion reduces transfer sizes
 
-### Caching Efficiency
+### Caching efficiency
 
 - **Cache Hit Rate**: High hit rate due to consistent cache keys
 - **Cache Duration**: Leverages browser and CDN caching
 - **Cache Invalidation**: ETag-based validation for freshness
 
-## Development and Testing
+## Development and testing
 
-### Local Development
+### Local development
 
 ```bash
 yarn dev  # Starts worker with inspector on port 9339
@@ -380,16 +380,16 @@ Each environment is deployed separately:
 - Staging: Automatic deployment for QA
 - Production: Controlled deployment with rollback capability
 
-## Key Benefits
+## Key benefits
 
-### User Experience
+### User experience
 
 - **Faster Loading**: Optimized images load faster
 - **Bandwidth Savings**: Modern formats reduce data usage
 - **Responsive Images**: Width-based resizing for different screen sizes
 - **Universal Compatibility**: Fallback to supported formats
 
-### Developer Experience
+### Developer experience
 
 - **Simple API**: URL-based transformation parameters
 - **Type Safety**: Full TypeScript support with validation

@@ -6,7 +6,7 @@ The `create-tldraw` package is a CLI tool for scaffolding new tldraw projects. I
 
 ## Architecture
 
-### CLI Entry Point
+### CLI entry point
 
 ```bash
 #!/usr/bin/env node
@@ -19,9 +19,9 @@ The CLI uses a two-stage loading system:
 - `cli.cjs`: Simple entry point that requires the compiled CommonJS bundle
 - `dist-cjs/main.cjs`: Actual CLI implementation bundled via esbuild
 
-### Core Components
+### Core components
 
-#### Interactive CLI Interface (`main.ts`)
+#### Interactive CLI interface (`main.ts`)
 
 Primary CLI application with rich interactive prompts:
 
@@ -49,7 +49,7 @@ async function main() {
 - **Progress Indication**: Visual feedback with spinners and status messages
 - **Error Recovery**: Graceful handling of cancellation and failures
 
-#### Template System (`templates.ts`)
+#### Template system (`templates.ts`)
 
 Structured template definitions for different use cases:
 
@@ -93,7 +93,7 @@ const TEMPLATES: Templates = {
 }
 ```
 
-#### Utility Functions (`utils.ts`)
+#### Utility functions (`utils.ts`)
 
 Essential CLI utilities for project setup:
 
@@ -117,7 +117,7 @@ function getRunCommand(manager: PackageManager, command: string): string
 async function uncancel<T>(promise: Promise<T | symbol>): Promise<T>
 ```
 
-#### Custom ANSI Text Wrapping (`wrap-ansi.ts`)
+#### Custom aNSI text wrapping (`wrap-ansi.ts`)
 
 Custom implementation for terminal text wrapping that handles ANSI escape sequences:
 
@@ -128,9 +128,9 @@ function wrapAnsi(input: string, columns: number): string
 
 This custom implementation ensures that colored text in CLI prompts and messages wraps correctly without breaking ANSI formatting codes, providing consistent visual presentation across different terminal widths.
 
-### Template Management
+### Template management
 
-#### Template Selection UI (`group-select.ts`)
+#### Template selection UI (`group-select.ts`)
 
 Enhanced group-based selection interface with custom rendering:
 
@@ -163,7 +163,7 @@ The grouped selection system provides:
 - **Detailed Descriptions**: Helpful hints for each template option
 - **Keyboard Navigation**: Standard CLI navigation patterns
 
-#### Template Download System
+#### Template download system
 
 GitHub-based template retrieval with comprehensive error handling:
 
@@ -204,9 +204,9 @@ async function downloadTemplate(template: Template, targetDir: string) {
 - **Progress Indication**: Real-time download status with spinners
 - **Cleanup on Failure**: Automatic cleanup of partially downloaded content
 
-### Project Customization
+### Project customization
 
-#### Package.json Customization
+#### Package.json customization
 
 Automatic project personalization with preserved licensing:
 
@@ -227,7 +227,7 @@ async function renameTemplate(name: string, targetDir: string) {
 
 The package.json customization preserves template licensing while personalizing the project metadata for the new owner.
 
-#### Smart Naming System
+#### Smart naming system
 
 Intelligent package name generation with npm compliance:
 
@@ -247,9 +247,9 @@ function toValidPackageName(projectName: string): string {
 }
 ```
 
-### CLI Command Interface
+### CLI command interface
 
-#### Command-Line Arguments
+#### Command-Line arguments
 
 Flexible argument handling for different usage patterns:
 
@@ -281,7 +281,7 @@ const args = parseArgs(process.argv.slice(2), {
 })
 ```
 
-#### Interactive Prompts
+#### Interactive prompts
 
 Rich CLI experience using @clack/prompts with custom enhancements:
 
@@ -308,9 +308,9 @@ const name = await text({
 })
 ```
 
-### Directory Management
+### Directory management
 
-#### Smart Directory Handling
+#### Smart directory handling
 
 Intelligent handling of target directories with safety checks:
 
@@ -346,9 +346,9 @@ async function ensureEmpty(targetDir: string, overwriteArg: boolean) {
 - **Flexible Options**: Cancel, overwrite, or merge with existing content
 - **Recursive Creation**: Automatically creates parent directories as needed
 
-### Package Manager Integration
+### Package manager integration
 
-#### Universal Package Manager Support
+#### Universal package manager support
 
 Automatic detection and appropriate command generation:
 
@@ -386,9 +386,9 @@ function getRunCommand(manager: PackageManager, command: string): string {
 }
 ```
 
-### Error Handling
+### Error handling
 
-#### Comprehensive Error Management
+#### Comprehensive lError lManagement
 
 Graceful error handling throughout the CLI with user-friendly messaging:
 
@@ -429,9 +429,9 @@ try {
 - **Operation Cleanup**: Automatic cleanup of partial operations on failure
 - **User Guidance**: Actionable suggestions for resolving common issues
 
-## Build System
+## Build system
 
-### esbuild Bundle Configuration
+### esbuild bundle configuration
 
 Optimized TypeScript to CommonJS compilation for Node.js distribution:
 
@@ -454,7 +454,7 @@ esbuild src/main.ts \
 - **Node.js Target**: Optimized for Node.js 18+ runtime environments
 - **Development Watch**: `scripts/dev.sh` provides watch mode for development
 
-### Distribution Strategy
+### Distribution lStrategy
 
 Optimized package structure for CLI distribution:
 
@@ -470,9 +470,9 @@ Optimized package structure for CLI distribution:
 }
 ```
 
-### Development Workflow
+### Development workflow
 
-#### Development Scripts
+#### Development lScripts
 
 Streamlined development experience:
 
@@ -487,7 +487,7 @@ Streamlined development experience:
 node cli.cjs        # Test CLI locally after build
 ```
 
-#### TypeScript Compilation Pipeline
+#### TypeScript compilation pipeline
 
 ```
 src/
@@ -501,9 +501,9 @@ dist-cjs/
 └── main.cjs         → Single bundled CommonJS output
 ```
 
-## Testing Configuration
+## Testing lConfiguration
 
-### Jest Setup
+### Jest setup
 
 Comprehensive test configuration for CLI validation:
 
@@ -527,13 +527,13 @@ Comprehensive test configuration for CLI validation:
 - **CLI Tests**: Command-line interface and argument parsing
 - **Mock Templates**: Test template system without external dependencies
 
-## Template Categories
+## Template categories
 
-### Framework Templates
+### Framework templates
 
 Ready-to-use integrations with popular frameworks:
 
-#### Vite Template (`tldraw/vite-template`)
+#### Vite template (`tldraw/vite-template`)
 
 - **Purpose**: Fastest way to start with tldraw
 - **Tech Stack**: Vite + React + TypeScript
@@ -548,11 +548,11 @@ Ready-to-use integrations with popular frameworks:
 - **Use Case**: Production web applications, SSR/SSG requirements
 - **Features**: App Router, optimized builds, deployment ready
 
-### Application Templates
+### Application templates
 
 Complete application examples with advanced features:
 
-#### Multiplayer Sync (`tldraw/tldraw-sync-cloudflare`)
+#### Multiplayer sync (`tldraw/tldraw-sync-cloudflare`)
 
 - **Purpose**: Real-time collaborative drawing
 - **Tech Stack**: tldraw + sync + Cloudflare Durable Objects
@@ -560,9 +560,9 @@ Complete application examples with advanced features:
 - **Use Case**: Collaborative whiteboarding, team drawing sessions
 - **Deployment**: Cloudflare Workers with Durable Objects backend
 
-## Usage Patterns
+## Usage patterns
 
-### Basic Project Creation
+### Basic project creation
 
 ```bash
 # Interactive mode with full guidance
@@ -575,7 +575,7 @@ npx create-tldraw my-drawing-app --template vite-template
 npx create-tldraw ./existing-dir --overwrite
 ```
 
-### Advanced Usage Patterns
+### Advanced lUsage lPatterns
 
 ```bash
 # Corporate environments with specific package managers
@@ -588,7 +588,7 @@ npx create-tldraw ci-app --template nextjs-template --overwrite
 npx create-tldraw && cd $(ls -t | head -1) && npm run dev
 ```
 
-### Post-Creation Workflow
+### Post-Creation workflow
 
 ```bash
 cd my-tldraw-app
@@ -598,9 +598,9 @@ npm run build        # Create production build
 npm run typecheck    # Validate TypeScript
 ```
 
-## Template Development
+## Template lDevelopment
 
-### Automatic Template Generation
+### Automatic template generation
 
 Templates are automatically discovered and validated:
 
@@ -624,7 +624,7 @@ async function generateTemplateList() {
 }
 ```
 
-### Template Requirements
+### Template requirements
 
 Standards for template repositories:
 
@@ -635,7 +635,7 @@ Standards for template repositories:
 - **License**: Clear licensing for template usage
 - **Dependencies**: Current tldraw version and compatible dependencies
 
-### Quality Assurance
+### Quality assurance
 
 Automated validation for template integrity:
 
@@ -645,9 +645,9 @@ Automated validation for template integrity:
 - **Dependency Audit**: Check for security vulnerabilities in dependencies
 - **Documentation Review**: README must include setup and usage instructions
 
-## Development Features
+## Development lFeatures
 
-### Enhanced CLI Experience
+### Enhanced CLI experience
 
 Visual feedback and user guidance throughout the process:
 
@@ -669,7 +669,7 @@ const runCmd = getRunCommand(getPackageManager(), 'dev')
 outro(`Done! Now run:\n\n  cd ${targetDir}\n  ${installCmd}\n  ${runCmd}`)
 ```
 
-### Smart Defaults and Validation
+### Smart defaults and validation
 
 Intelligent default value generation and input validation:
 
@@ -696,9 +696,9 @@ function isDirEmpty(path: string): boolean {
 }
 ```
 
-## Key Benefits
+## Key benefits
 
-### Developer Experience
+### Developer experience
 
 - **Zero Configuration**: Works immediately with sensible defaults
 - **Framework Flexibility**: Support for React, Next.js, and Vue ecosystems
@@ -706,7 +706,7 @@ function isDirEmpty(path: string): boolean {
 - **Universal Compatibility**: Works with npm, yarn, and pnpm package managers
 - **Error Prevention**: Comprehensive validation and safety checks
 
-### Template Ecosystem
+### Template ecosystem
 
 - **Curated Quality**: Official templates demonstrate best practices
 - **Feature Examples**: Specialized templates for multiplayer, AI integration
@@ -714,7 +714,7 @@ function isDirEmpty(path: string): boolean {
 - **Automatic Updates**: Template list stays current with repository changes
 - **Community Driven**: Clear contribution model for new template types
 
-### Production Readiness
+### Production readiness
 
 - **TypeScript First**: All templates include strict TypeScript configuration
 - **Modern Tooling**: Latest build tools, development servers, and frameworks
@@ -722,7 +722,7 @@ function isDirEmpty(path: string): boolean {
 - **Testing Integration**: Pre-configured testing frameworks and example tests
 - **Performance Optimized**: Build configurations optimized for production use
 
-### Maintenance and Reliability
+### Maintenance and reliability
 
 - **Automated Validation**: Template repositories automatically validated for integrity
 - **Version Consistency**: Templates maintained to work with current tldraw releases

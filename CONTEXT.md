@@ -2,7 +2,7 @@
 
 This file provides comprehensive context for understanding the tldraw monorepo, an infinite canvas SDK for React applications and the infrastructure behind tldraw.com.
 
-## Repository Overview
+## Repository overview
 
 This is a TypeScript monorepo containing the complete tldraw ecosystem - from the core infinite canvas SDK to the collaborative whiteboard application tldraw.com. It's organized using Yarn Berry workspaces and built with a custom incremental build system called LazyRepo.
 
@@ -12,9 +12,9 @@ This is a TypeScript monorepo containing the complete tldraw ecosystem - from th
 **Node.js:** ^20.0.0 required  
 **React:** ^18.0.0 || ^19.0.0 peer dependency
 
-## Essential Commands
+## Essential commands
 
-### Development Commands
+### Development commands
 
 - `yarn dev` - Start development server for examples app (main SDK showcase)
 - `yarn dev-app` - Start tldraw.com client app development
@@ -42,16 +42,16 @@ This is a TypeScript monorepo containing the complete tldraw ecosystem - from th
 - `yarn e2e-dotcom` - Run end-to-end tests for tldraw.com
 - `yarn e2e-ui` - Run E2E tests with Playwright UI
 
-### Code Quality
+### Code quality
 
 - `yarn lint` - Lint all packages
 - `yarn typecheck` - Type check all packages (run before commits)
 - `yarn format` - Format code with Prettier
 - `yarn api-check` - Validate public API consistency
 
-## High-Level Architecture
+## High-Level architecture
 
-### Monorepo Structure
+### Monorepo structure
 
 **Packages (`packages/`)** - Core SDK and libraries:
 
@@ -93,7 +93,7 @@ This is a TypeScript monorepo containing the complete tldraw ecosystem - from th
 - `workflow/` - Node-based visual programming interface for executable workflows
 - `chat/`, `agent/`, `simple-server-example/` - Additional use case examples
 
-### Core SDK Architecture
+### Core SDK architecture
 
 **Three-Layer System:**
 
@@ -115,7 +115,7 @@ This is a TypeScript monorepo containing the complete tldraw ecosystem - from th
    - IndexedDB persistence and migration system
    - Built on @tldraw/state reactive signals
 
-### Reactive State Management
+### Reactive state management
 
 **@tldraw/state - Signals Architecture:**
 
@@ -132,7 +132,7 @@ This is a TypeScript monorepo containing the complete tldraw ecosystem - from th
 - Store changes trigger reactive updates across the system
 - Batched updates prevent cascading re-computations
 
-### Shape and Tool System
+### Shape and tool system
 
 **Shape Architecture:**
 
@@ -154,9 +154,9 @@ This is a TypeScript monorepo containing the complete tldraw ecosystem - from th
 - `BindingUtil` classes define binding behavior and visual indicators
 - Automatic updates when connected shapes change position/properties
 
-## Testing Patterns
+## Testing patterns
 
-### Vitest Tests
+### Vitest tests
 
 **Unit Tests:**
 
@@ -170,13 +170,13 @@ This is a TypeScript monorepo containing the complete tldraw ecosystem - from th
 - Filter with additional args: `yarn test run --grep "selection"`
 - Avoid root-level `yarn test` (slow and hard to filter)
 
-### Playwright E2E Tests
+### Playwright E2E tests
 
 - Located in `apps/examples/e2e/` and `apps/dotcom/client/e2e/`
 - Use `yarn e2e` and `yarn e2e-dotcom` commands
 - Comprehensive UI interaction testing
 
-## Development Workspace Structure
+## Development workspace structure
 
 ```
 apps/
@@ -229,9 +229,9 @@ internal/             # Internal development tools and configuration
 └── scripts/         # Build, deployment, and maintenance automation
 ```
 
-## Development Infrastructure
+## Development infrastructure
 
-### Build System (LazyRepo)
+### Build system (LazyRepo)
 
 Custom incremental build system optimized for monorepos:
 
@@ -241,7 +241,7 @@ Custom incremental build system optimized for monorepos:
 - Parallel execution where dependencies allow
 - Configuration in `lazy.config.ts`
 
-### Package Management
+### Package management
 
 **Yarn Berry (v4) with Workspaces:**
 
@@ -250,7 +250,7 @@ Custom incremental build system optimized for monorepos:
 - Efficient disk usage with Plug'n'Play
 - Lock file and cache committed to repository
 
-### Code Quality
+### Code quality
 
 **TypeScript Configuration:**
 
@@ -265,7 +265,7 @@ Custom incremental build system optimized for monorepos:
 - Prettier for consistent code formatting
 - Pre-commit hooks via Husky ensuring quality
 
-## Key Development Notes
+## Key development notes
 
 ### TypeScript Workflow
 
@@ -274,30 +274,30 @@ Custom incremental build system optimized for monorepos:
 - API surface validated with Microsoft API Extractor
 - Strict type checking across all packages
 
-### Monorepo Management
+### Monorepo management
 
 - Yarn workspaces with berry (yarn 4.x) - use `yarn` not `npm`
 - Package manager enforced via `packageManager` field in package.json
 - Dependencies managed at workspace level where possible
 - Efficient disk usage with Plug'n'Play system
 
-### Asset Management Workflow
+### Asset management workflow
 
 - Icons, fonts, translations stored in `/assets` directory
 - Run `yarn refresh-assets` after making asset changes
 - Assets automatically bundled into packages during build process
 - Shared across packages and applications with optimization
 
-### Primary Development Environment
+### Primary development environment
 
 - Main development happens in `apps/examples` - the SDK showcase
 - Examples demonstrate SDK capabilities and serve as development testbed
 - See `apps/examples/writing-examples.md` for example guidelines
 - Use examples app to test SDK changes in real scenarios
 
-## Asset and Content Management
+## Asset and content management
 
-### Asset Pipeline
+### Asset pipeline
 
 **Static Assets (`/assets`):**
 
@@ -311,7 +311,7 @@ Custom incremental build system optimized for monorepos:
 - Hash-based deduplication and caching
 - Support for various formats and size constraints
 
-### External Content Integration
+### External content integration
 
 **Rich Content Handling:**
 
@@ -320,9 +320,9 @@ Custom incremental build system optimized for monorepos:
 - SVG import with size calculation and optimization
 - Copy/paste between tldraw instances with format preservation
 
-## Collaboration and Sync
+## Collaboration and sync
 
-### Multiplayer Architecture
+### Multiplayer architecture
 
 **@tldraw/sync System:**
 
@@ -349,9 +349,9 @@ Custom incremental build system optimized for monorepos:
 - **Authentication**: Clerk integration with JWT-based API access
 - **File Management**: Complete file system with sharing, publishing, version history
 
-## Development Patterns
+## Development patterns
 
-### Creating Custom Components
+### Creating custom components
 
 **Custom Shapes:**
 
@@ -377,7 +377,7 @@ Custom incremental build system optimized for monorepos:
 - Maintains responsive behavior and accessibility
 - See existing components for architectural patterns
 
-### Integration Patterns
+### Integration patterns
 
 **Embedding in Applications:**
 
@@ -388,9 +388,9 @@ Custom incremental build system optimized for monorepos:
 - Asset URLs configurable via `@tldraw/assets` package (imports, URLs, or self-hosted strategies)
 - Use `npm create tldraw` CLI for quick project scaffolding
 
-## Performance Considerations
+## Performance considerations
 
-### Rendering Optimization
+### Rendering optimization
 
 **Canvas Performance:**
 
@@ -407,7 +407,7 @@ Custom incremental build system optimized for monorepos:
 - Component re-renders minimized through React.memo and signal integration
 - Uses `__unsafe__getWithoutCapture()` for performance-critical paths
 
-### Memory Management
+### Memory management
 
 **Efficient Resource Usage:**
 
@@ -416,7 +416,7 @@ Custom incremental build system optimized for monorepos:
 - Store history pruning prevents unbounded growth
 - Shape utility garbage collection when unused
 
-## Licensing and Business Model
+## Licensing and business model
 
 **SDK Licensing:**
 
@@ -430,9 +430,9 @@ Custom incremental build system optimized for monorepos:
 - Extensive examples and documentation for SDK adoption
 - Community-driven with transparent development process
 
-## Advanced Features and Integrations
+## Advanced features and integrations
 
-### Asset Management
+### Asset management
 
 **Centralized Assets (`@tldraw/assets`):**
 
@@ -449,7 +449,7 @@ Custom incremental build system optimized for monorepos:
 - **External Content**: Bookmark unfurling, embed metadata extraction
 - **Deduplication**: Hash-based asset deduplication across uploads
 
-### Collaboration Features
+### Collaboration features
 
 **Real-Time Multiplayer:**
 
@@ -465,7 +465,7 @@ Custom incremental build system optimized for monorepos:
 - **Version Control**: Complete change history with restore capability
 - **Schema Migration**: Automatic data migration for schema evolution
 
-### Extension and Customization
+### Extension and customization
 
 **Developer Tools:**
 
@@ -482,9 +482,9 @@ Custom incremental build system optimized for monorepos:
 - **Custom UI**: Complete component override system
 - **External Content**: Handlers for custom import/export formats
 
-## Technical Deep Dive
+## Technical deep dive
 
-### Reactive Architecture Details
+### Reactive architecture details
 
 **Signals System (`@tldraw/state`):**
 
@@ -502,7 +502,7 @@ Custom incremental build system optimized for monorepos:
 - **History Tracking**: Change diffs with configurable history length
 - **Schema Evolution**: Version-based migration system with dependencies
 
-### Database and Persistence
+### Database and persistence
 
 **Client-Side Storage:**
 
@@ -518,9 +518,9 @@ Custom incremental build system optimized for monorepos:
 - **Durable Objects**: Stateful compute for room management and real-time sync
 - **Zero Sync**: Optimistic synchronization with conflict resolution
 
-## Development Workflow Best Practices
+## Development workflow best practices
 
-### Getting Started
+### Getting started
 
 1. **Clone and Setup**: `git clone` → `yarn install`
 2. **Start Development**: `yarn dev` (examples app at localhost:5420)
@@ -528,21 +528,21 @@ Custom incremental build system optimized for monorepos:
 4. **Check Types**: `yarn typecheck` before commits
 5. **Follow Patterns**: Read relevant CONTEXT.md files and existing code
 
-### Creating Examples
+### Creating examples
 
 - **Location**: `apps/examples/src/examples/your-example/`
 - **Structure**: README.md with frontmatter + YourExample.tsx component
 - **Guidelines**: See `apps/examples/writing-examples.md` for detailed patterns
 - **Categories**: getting-started, configuration, editor-api, shapes/tools, etc.
 
-### Package Development
+### Package development
 
 - **Testing**: Run tests from package directory, not root
 - **API Changes**: Run `yarn api-check` to validate public API surface
 - **Dependencies**: Check existing usage before adding new libraries
 - **Documentation**: API docs auto-generated from TSDoc comments
 
-### Performance Guidelines
+### Performance guidelines
 
 - **Use Signals**: Leverage reactive system for automatic optimization
 - **Batch Updates**: Use transactions for multiple state changes

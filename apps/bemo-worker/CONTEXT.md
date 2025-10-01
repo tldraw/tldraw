@@ -10,28 +10,28 @@ A Cloudflare Worker that provides essential services for tldraw applications, in
 - BemoDO (Durable Object) manages persistent WebSocket connections and room state
 - Uses Cloudflare R2 for asset storage and Analytics Engine for telemetry
 
-## Core Responsibilities
+## Core responsibilities
 
-### 1. Asset Management
+### 1. asset management
 
 - **Upload Endpoint**: `POST /uploads/:objectName` - Handles user asset uploads to R2 bucket
 - **Asset Retrieval**: `GET /uploads/:objectName` - Serves uploaded assets with proper caching
 - Storage path: `asset-uploads/{objectName}` in BEMO_BUCKET
 
-### 2. Bookmark Unfurling
+### 2. bookmark unfurling
 
 - **Legacy Route**: `GET /bookmarks/unfurl` - Extract metadata only
 - **Full Unfurl**: `POST /bookmarks/unfurl` - Extract metadata and save preview images
 - **Asset Serving**: `GET /bookmarks/assets/:objectName` - Serve bookmark preview images
 - Storage path: `bookmark-assets/{objectName}` in BEMO_BUCKET
 
-### 3. Real-time Collaboration
+### 3. real-time collaboration
 
 - **Room Connection**: `GET /connect/:slug` - Establishes WebSocket connection to collaborative rooms
 - Uses BemoDO (Durable Object) to maintain room state and handle multiplayer synchronization
 - Integrates with @tldraw/sync-core for real-time document collaboration
 
-## Key Components
+## Key components
 
 ### Worker (worker.ts)
 
@@ -46,7 +46,7 @@ Durable Object that manages:
 - Analytics event tracking
 - R2 bucket integration for persistent storage
 
-### Environment Configuration
+### Environment configuration
 
 Multi-environment setup (dev/preview/staging/production) with:
 
@@ -78,14 +78,14 @@ Multi-environment setup (dev/preview/staging/production) with:
 - Bundle size limit: 350KB (enforced via check-bundle-size script)
 - TypeScript configuration optimized for Cloudflare Workers environment
 
-## Deployment Environments
+## Deployment environments
 
 - **dev**: Local development with preview bucket
 - **preview**: Feature branches with temporary deployments
 - **staging**: `canary-demo.tldraw.xyz` for pre-production testing
 - **production**: `demo.tldraw.xyz` for live service
 
-## Security & Performance
+## Security & performance
 
 - CORS enabled for cross-origin requests
 - Proper asset caching headers

@@ -6,7 +6,7 @@ This template demonstrates a branching conversational UI built on tldraw, showca
 
 The branching chat template is a full-stack application that combines tldraw's infinite canvas with AI chat capabilities, allowing users to create visual conversation trees with branching dialogue paths.
 
-### Key Features
+### Key features
 
 - **Visual Conversation Flow**: Create branching conversation trees on an infinite canvas
 - **AI Integration**: Stream responses from AI models (OpenAI/compatible APIs)
@@ -64,9 +64,9 @@ The branching chat template is a full-stack application that combines tldraw's i
 - Handles conversation context from connected nodes
 - Streams AI responses back to frontend
 
-## Key Concepts
+## Key concepts
 
-### Node Types
+### Node types
 
 **MessageNode**
 
@@ -75,7 +75,7 @@ The branching chat template is a full-stack application that combines tldraw's i
 - Supports streaming updates for AI responses
 - Dynamic sizing based on content length
 
-### Connection Flow
+### Connection flow
 
 1. **Node Creation**: Users create message nodes via toolbar
 2. **Connection**: Nodes connect via ports to establish conversation flow
@@ -83,15 +83,15 @@ The branching chat template is a full-stack application that combines tldraw's i
 4. **AI Processing**: Complete conversation context sent to AI endpoint
 5. **Streaming Response**: AI response streamed back and displayed in real-time
 
-### Port System
+### Port lSystem
 
 - **Input Ports**: Allow incoming connections from previous conversation steps
 - **Output Ports**: Allow outgoing connections to next conversation steps
 - **Dynamic Positioning**: Ports adjust position based on node content size
 
-## Development Setup
+## Development setup
 
-### Environment Variables
+### Environment variables
 
 Required in `.env` or `.dev.vars`:
 
@@ -99,7 +99,7 @@ Required in `.env` or `.dev.vars`:
 OPENAI_API_KEY=your_openai_api_key_here
 ```
 
-### Local Development
+### Local development
 
 ```bash
 yarn dev    # Start development server
@@ -115,15 +115,15 @@ The template uses Cloudflare Workers for the backend:
 - Durable Objects for state management
 - Edge runtime for global performance
 
-## Customization Points
+## Customization points
 
-### Adding New Node Types
+### Adding new node types
 
 1. Create new node definition in `/client/nodes/types/`
 2. Add to `NodeDefinitions` array in `nodeTypes.tsx`
 3. Implement required methods: `Component`, `getPorts`, `computeOutput`
 
-### Custom AI Integration
+### Custom aI integration
 
 - Modify `/worker/routes/` to change AI provider
 - Uses Vercel AI SDK - supports multiple providers
@@ -137,33 +137,33 @@ The template uses Cloudflare Workers for the backend:
 
 ## Integration with tldraw
 
-### Custom Shape System
+### Custom lShape lSystem
 
 - Extends tldraw's shape system with `NodeShapeUtil`
 - Custom geometry, rendering, and interaction handling
 - Maintains tldraw's reactive state management
 
-### Custom Tools
+### Custom lTools
 
 - `PointingPort` tool for creating connections
 - Integrated into tldraw's select tool state machine
 - Drag-and-drop node creation from toolbar
 
-### Binding System
+### Binding system
 
 - `ConnectionBindingUtil` manages relationships between nodes
 - Automatic cleanup when nodes are deleted
 - Visual feedback for connections
 
-## Technical Details
+## Technical details
 
-### State Management
+### State management
 
 - Uses tldraw's reactive signals for state
 - Node data stored in tldraw's document model
 - Automatic persistence via tldraw's persistence system
 
-### Performance Optimizations
+### Performance optimizations
 
 - Connection shapes kept at bottom layer
 - Transparency disabled for workflow shapes
@@ -179,7 +179,7 @@ yarn build    # Build frontend
 wrangler deploy    # Deploy to Cloudflare
 ```
 
-## File Structure
+## File lStructure
 
 ```
 /templates/branching-chat/

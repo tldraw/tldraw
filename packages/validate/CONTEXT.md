@@ -6,9 +6,9 @@ The `@tldraw/validate` package provides a comprehensive runtime validation syste
 
 ## Architecture
 
-### Core Validation System
+### Core validation system
 
-#### `Validator<T>` - Base Validator Class
+#### `Validator<T>` - base validator class
 
 The foundation of the validation system:
 
@@ -31,7 +31,7 @@ Key features:
 - **Composability**: Chain validators with `refine` and `check`
 - **Nullability**: Easy nullable/optional variants
 
-#### `ValidationError` - Enhanced Error Reporting
+#### `ValidationError` - enhanced error reporting
 
 Detailed error information with path tracking:
 
@@ -50,9 +50,9 @@ Features:
 - **Formatted Messages**: Human-readable error descriptions
 - **Stack Trace Integration**: Proper error reporting for debugging
 
-### Primitive Validators
+### Primitive validators
 
-#### Basic Types
+#### Basic types
 
 ```typescript
 // Core primitives
@@ -68,7 +68,7 @@ const array: Validator<unknown[]>
 arrayOf<T>(itemValidator: Validatable<T>): ArrayOfValidator<T>
 ```
 
-#### Numeric Validators
+#### Numeric validators
 
 Specialized number validation:
 
@@ -80,7 +80,7 @@ const positiveInteger: Validator<number> // positive integers
 const nonZeroInteger: Validator<number> // non-negative integers
 ```
 
-#### URL Validators
+#### URL validators
 
 Safe URL validation for different contexts:
 
@@ -90,7 +90,7 @@ const srcUrl: Validator<string> // http/https/data/asset URLs safe for resources
 const httpUrl: Validator<string> // strict http/https only
 ```
 
-#### Literal & Enum Validators
+#### Literal & enum validators
 
 ```typescript
 literal<T>(expectedValue: T): Validator<T>
@@ -98,9 +98,9 @@ literalEnum<Values>(...values: Values): Validator<Values[number]>
 setEnum<T>(values: ReadonlySet<T>): Validator<T>
 ```
 
-### Complex Validators
+### Complex validators
 
-#### `ObjectValidator<Shape>` - Object Validation
+#### `ObjectValidator<Shape>` - object validation
 
 Type-safe object structure validation:
 
@@ -127,7 +127,7 @@ Features:
 - **Extension Support**: Compose validators via extension
 - **Performance**: Optimized validation using known good values
 
-#### `ArrayOfValidator<T>` - Array Content Validation
+#### `ArrayOfValidator<T>` - array content validation
 
 Validates array contents with additional constraints:
 
@@ -143,7 +143,7 @@ class ArrayOfValidator<T> extends Validator<T[]> {
 const numbersValidator = arrayOf(number).nonEmpty()
 ```
 
-#### `UnionValidator<Key, Config>` - Discriminated Unions
+#### `UnionValidator<Key, config>` - discriminated unions
 
 Type-safe discriminated union validation:
 
@@ -161,7 +161,7 @@ const shapeValidator = union('type', {
 })
 ```
 
-#### `DictValidator<Key, Value>` - Dictionary Validation
+#### `DictValidator<Key, value>` - dictionary validation
 
 Validates objects as key-value maps:
 
@@ -175,7 +175,7 @@ const stringToNumberDict = dict(string, number)
 const jsonDict = dict(string, jsonValue)
 ```
 
-### Specialized Validators
+### Specialized validators
 
 #### JSON Validation
 
@@ -192,7 +192,7 @@ Handles:
 - Nested arrays and objects
 - Performance optimized for large JSON structures
 
-#### Index Key Validation
+#### Index key validation
 
 Fractional indexing support:
 
@@ -202,7 +202,7 @@ const indexKey: Validator<IndexKey>
 
 Validates fractional indexing keys for ordering systems.
 
-#### Model Validation
+#### Model validation
 
 Named entity validation with enhanced error reporting:
 
@@ -210,9 +210,9 @@ Named entity validation with enhanced error reporting:
 model<T extends {readonly id: string}>(name: string, validator: Validatable<T>): Validator<T>
 ```
 
-### Utility Functions
+### Utility functions
 
-#### Composition Helpers
+#### Composition helpers
 
 ```typescript
 // Union composition
@@ -223,9 +223,9 @@ optional<T>(validator: Validatable<T>): Validator<T | undefined>
 nullable<T>(validator: Validatable<T>): Validator<T | null>
 ```
 
-## Performance Optimizations
+## Performance optimizations
 
-### Known Good Version Validation
+### Known good version validation
 
 The `validateUsingKnownGoodVersion` method provides significant performance benefits:
 
@@ -234,21 +234,21 @@ The `validateUsingKnownGoodVersion` method provides significant performance bene
 - **Reference Equality**: Uses `Object.is()` for quick equality checks
 - **Early Returns**: Avoids expensive validation when possible
 
-### Efficient Object Processing
+### Efficient object processing
 
 - **Property Iteration**: Optimized loops for object validation
 - **Error Path Building**: Lazy path construction for error reporting
 - **Type Guards**: Fast runtime type checking
 
-## Error Handling
+## Error handling
 
-### Detailed Error Messages
+### Detailed error messages
 
 - **Type Information**: Clear description of expected vs actual types
 - **Path Context**: Exact location of validation failure in nested structures
 - **Custom Messages**: Support for domain-specific error descriptions
 
-### Error Path Formatting
+### Error path formatting
 
 ```typescript
 // Example error paths:
@@ -257,9 +257,9 @@ The `validateUsingKnownGoodVersion` method provides significant performance bene
 'At shape.(type = rectangle).width: Expected a positive number, got -5'
 ```
 
-## Usage Patterns
+## Usage patterns
 
-### Shape Schema Validation
+### Shape schema validation
 
 Used extensively in tlschema package:
 
@@ -276,7 +276,7 @@ export const imageShapeProps: RecordProps<TLImageShape> = {
 }
 ```
 
-### API Request Validation
+### API request validation
 
 Safe handling of external data:
 
@@ -289,7 +289,7 @@ const queryValidator = T.object({
 const validatedQuery = queryValidator.validate(request.query)
 ```
 
-### Store Migration Validation
+### Store migration validation
 
 Ensures data integrity during schema migrations:
 
@@ -301,27 +301,27 @@ const migrationValidator = T.object({
 })
 ```
 
-## Design Principles
+## Design principles
 
-### Type Safety First
+### Type safety first
 
 - **Compile-Time**: Full TypeScript support with proper type inference
 - **Runtime**: Guaranteed type safety after validation passes
 - **Type Preservation**: Validators maintain exact input types when possible
 
-### Performance Conscious
+### Performance conscious
 
 - **Minimal Allocations**: Reuse objects when validation passes
 - **Early Exits**: Fast paths for common cases
 - **Lazy Evaluation**: Only compute expensive operations when needed
 
-### Developer Experience
+### Developer experience
 
 - **Clear APIs**: Intuitive method names and composition patterns
 - **Helpful Errors**: Detailed error messages with context
 - **Composability**: Easy to build complex validators from simple ones
 
-### Security Focused
+### Security focused
 
 - **Safe URLs**: Protocol validation prevents XSS and other attacks
 - **Input Sanitization**: Strict validation of external data
@@ -329,7 +329,7 @@ const migrationValidator = T.object({
 
 ## Integration with tldraw
 
-### Schema Validation
+### Schema validation
 
 Core integration with tlschema package for:
 
@@ -338,7 +338,7 @@ Core integration with tlschema package for:
 - Record type validation
 - Migration validation
 
-### Store Integration
+### Store integration
 
 Used in store package for:
 
@@ -346,7 +346,7 @@ Used in store package for:
 - Migration step validation
 - Query parameter validation
 
-### Editor Integration
+### Editor integration
 
 Runtime validation in editor for:
 
@@ -355,15 +355,15 @@ Runtime validation in editor for:
 - API response validation
 - Configuration validation
 
-## Key Benefits
+## Key benefits
 
-### Runtime Safety
+### Runtime safety
 
 - Catch type errors at runtime before they cause issues
 - Validate external data (API responses, user input, file contents)
 - Ensure data integrity throughout the application
 
-### Development Productivity
+### Development productivity
 
 - Clear error messages help debug validation issues quickly
 - Type inference reduces boilerplate

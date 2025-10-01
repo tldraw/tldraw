@@ -6,9 +6,9 @@ The `@tldraw/tldraw` package is the main "batteries included" SDK that provides 
 
 ## Architecture
 
-### Core Components
+### Core components
 
-#### `Tldraw.tsx` - Main Component
+#### `Tldraw.tsx` - main component
 
 The primary component that combines the editor with the complete UI system:
 
@@ -33,9 +33,9 @@ Comprehensive UI system with responsive layout:
 - Conditional rendering based on focus mode, readonly state, debug mode
 - Mobile-specific behavior (toolbar hiding during editing)
 
-### Shape System
+### Shape system
 
-#### Default Shape Utilities (`defaultShapeUtils.ts`)
+#### Default shape utilities (`defaultShapeUtils.ts`)
 
 Complete set of shape implementations:
 
@@ -59,9 +59,9 @@ Each shape has its own directory with:
 - Tool states (Idle, Pointing, etc.)
 - Helper functions and components
 
-### Tools System
+### Tools system
 
-#### Default Tools (`defaultTools.ts`)
+#### Default tools (`defaultTools.ts`)
 
 Complete toolset:
 
@@ -72,7 +72,7 @@ Complete toolset:
 - **LaserTool**: Temporary pointer for presentations
 - **ZoomTool**: Zoom to specific areas
 
-#### SelectTool - Primary Interaction Tool
+#### SelectTool - primary interaction tool
 
 Sophisticated state machine with child states:
 
@@ -85,9 +85,9 @@ Sophisticated state machine with child states:
 - **EditingShape**: Text editing mode
 - **Pointing** states: Various pointer interaction states
 
-### UI Component System
+### UI component system
 
-#### Component Architecture
+#### Component architecture
 
 Hierarchical component system with context providers:
 
@@ -95,7 +95,7 @@ Hierarchical component system with context providers:
 - **Specialized Providers**: Tooltips, translations, events, dialogs, toasts, breakpoints
 - **Component Override System**: Every UI component can be replaced/customized
 
-#### Key UI Components
+#### Key UI components
 
 - **Toolbar**: Main tool selection with overflow handling
 - **StylePanel**: Shape style controls (color, size, opacity, etc.)
@@ -106,9 +106,9 @@ Hierarchical component system with context providers:
 - **Dialogs**: Modal dialogs for embeds, links, keyboard shortcuts
 - **Toasts**: User notifications system
 
-### External Content System
+### External content system
 
-#### Content Handlers (`defaultExternalContentHandlers.ts`)
+#### Content handlers (`defaultExternalContentHandlers.ts`)
 
 Comprehensive external content processing:
 
@@ -120,7 +120,7 @@ Comprehensive external content processing:
 - **Tldraw Content**: Copy/paste between tldraw instances
 - **Excalidraw**: Import from Excalidraw format
 
-#### Asset Management
+#### Asset management
 
 - Size and type validation
 - Automatic image resizing and optimization
@@ -128,9 +128,9 @@ Comprehensive external content processing:
 - Temporary preview creation
 - Background upload processing
 
-### Bindings System
+### Bindings system
 
-#### Arrow Bindings (`ArrowBindingUtil`)
+#### Arrow bindings (`ArrowBindingUtil`)
 
 Smart arrow connections:
 
@@ -139,9 +139,9 @@ Smart arrow connections:
 - Binding preservation during shape updates
 - Visual feedback for binding states
 
-### State Management & Side Effects
+### State management & side effects
 
-#### Default Side Effects (`defaultSideEffects.ts`)
+#### Default side effects (`defaultSideEffects.ts`)
 
 Reactive state management for UI behavior:
 
@@ -151,7 +151,7 @@ Reactive state management for UI behavior:
 
 ### Utilities
 
-#### Export System (`utils/export/`)
+#### Export system (`utils/export/`)
 
 Multi-format export capabilities:
 
@@ -160,7 +160,7 @@ Multi-format export capabilities:
 - **Print Support**: Optimized printing layouts
 - **Copy/Paste**: Clipboard integration
 
-#### Text Processing (`utils/text/`)
+#### Text processing (`utils/text/`)
 
 Advanced text handling:
 
@@ -168,7 +168,7 @@ Advanced text handling:
 - **Text Direction**: RTL language detection and support
 - **Text Measurement**: Accurate text sizing for layout
 
-#### Asset Processing (`utils/assets/`)
+#### Asset processing (`utils/assets/`)
 
 Asset optimization and management:
 
@@ -176,9 +176,9 @@ Asset optimization and management:
 - **Font Preloading**: Ensure consistent text rendering
 - **Size Constraints**: Automatic asset size management
 
-### Canvas Overlays
+### Canvas overlays
 
-#### Visual Feedback Components (`canvas/`)
+#### Visual feedback components (`canvas/`)
 
 Canvas-level visual elements:
 
@@ -188,27 +188,27 @@ Canvas-level visual elements:
 - **TldrawSelectionForeground**: Selection outline and controls
 - **TldrawShapeIndicators**: Hover and focus indicators
 
-## Key Patterns
+## Key patterns
 
-### Component Composition
+### Component composition
 
 - Every UI component can be overridden via the components prop
 - Providers use context for dependency injection
 - Responsive design with breakpoint-based rendering
 
-### State Machine Architecture
+### State machine architecture
 
 - Tools implemented as hierarchical state machines
 - Clear separation between tool logic and rendering
 - Reactive state updates trigger automatic UI changes
 
-### Asset Pipeline
+### Asset pipeline
 
 - Async asset processing with progress feedback
 - Automatic optimization and validation
 - Hash-based caching and deduplication
 
-### Extension Points
+### Extension points
 
 - Custom shapes via ShapeUtil classes
 - Custom tools via StateNode extensions
@@ -217,48 +217,48 @@ Canvas-level visual elements:
 
 ## Integration
 
-### With Editor Package
+### With editor package
 
 - Wraps `@tldraw/editor` with complete UI
 - Extends editor with additional functionality
 - Provides default implementations for all extension points
 
-### With External Systems
+### With external systems
 
 - Clipboard integration for copy/paste
 - File system integration for drag/drop
 - URL handling for bookmarks and embeds
 - External service integration (YouTube, Figma, etc.)
 
-### Responsive Design
+### Responsive design
 
 - Mobile-first breakpoint system
 - Touch-optimized interactions
 - Adaptive UI based on screen size
 - Virtual keyboard handling on mobile
 
-## Performance Considerations
+## Performance considerations
 
-### Canvas Rendering
+### Canvas rendering
 
 - WebGL-accelerated minimap
 - Optimized shape rendering with culling
 - Efficient hit testing and bounds calculation
 
-### Asset Handling
+### Asset handling
 
 - Lazy loading of external content
 - Background processing of large files
 - Temporary previews during upload
 - Automatic cleanup of unused assets
 
-### Memory Management
+### Memory management
 
 - Proper cleanup of event listeners and reactors
 - Efficient state updates with batching
 - Asset deduplication to reduce memory usage
 
-## Development Patterns
+## Development patterns
 
 ### Testing
 
@@ -272,7 +272,7 @@ Canvas-level visual elements:
 - Generic type parameters for extensibility
 - Proper inference for shape and tool types
 
-### Error Handling
+### Error handling
 
 - Graceful degradation for failed external content
 - User-friendly error messages via toast system

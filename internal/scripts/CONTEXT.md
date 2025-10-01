@@ -6,9 +6,9 @@ Build scripts and development tooling for the tldraw monorepo.
 
 This package contains TypeScript scripts and utilities that support the tldraw development workflow, including build automation, deployment, testing, publishing, and maintenance tasks.
 
-## Key Scripts
+## Key scripts
 
-### Build & Development
+### Build & development
 
 - `api-check.ts` - Validates public API consistency across packages using Microsoft API Extractor
 - `build-api.ts` - Generates API documentation and type definitions
@@ -17,13 +17,13 @@ This package contains TypeScript scripts and utilities that support the tldraw d
 - `lint.ts` - Runs ESLint across the monorepo with custom rules
 - `clean.sh` - Removes build artifacts and node_modules
 
-### Context Management
+### Context management
 
 - `context.ts` - Finds and displays nearest CONTEXT.md files (supports -v, -r, -u flags)
 - `refresh-context.ts` - Updates CONTEXT.md files using Claude Code CLI integration
 - Script supports reviewing all packages or specific directories
 
-### Publishing & Deployment
+### Publishing & deployment
 
 - `publish-new.ts` - Publishes new package versions
 - `publish-patch.ts` - Handles patch releases
@@ -33,7 +33,7 @@ This package contains TypeScript scripts and utilities that support the tldraw d
 - `deploy-dotcom.ts` - Deploys tldraw.com application
 - `deploy-bemo.ts` - Deploys collaboration backend
 
-### Asset Management
+### Asset management
 
 - `refresh-assets.ts` - Updates icons, fonts, and translations across packages
 - Assets are centrally managed and distributed during builds
@@ -46,20 +46,20 @@ This package contains TypeScript scripts and utilities that support the tldraw d
 - `i18n-download-strings.ts` - Downloads localized strings from Lokalise
 - Supports the tldraw UI translation workflow
 
-### Testing & Quality
+### Testing & quality
 
 - `check-packages.ts` - Validates package configurations and dependencies
 - `check-worker-bundle.ts` - Verifies worker bundle integrity
 - `license-report.ts` - Generates license compliance reports
 - `generate-test-licenses.ts` - Creates test license configurations
 
-### Template Management
+### Template management
 
 - `export-template.ts` - Generates starter templates for different frameworks
 - `refresh-create-templates.ts` - Updates npm create tldraw templates
 - `dev-template.sh` - Development script for testing templates
 
-### Utilities Library (`lib/`)
+### Utilities library (`lib/`)
 
 - `exec.ts` - Enhanced command execution with logging
 - `file.ts` - File system operations and path utilities
@@ -70,13 +70,13 @@ This package contains TypeScript scripts and utilities that support the tldraw d
 - `discord.ts` - Discord webhook integrations
 - `pr-info.ts` - GitHub PR metadata extraction
 
-### Version Management
+### Version management
 
 - `bump-versions.ts` - Automated version bumping across packages
 - `get-pr-numbers.ts` - Extracts PR numbers from commit history
 - `update-pr-template.ts` - Updates GitHub PR templates
 
-### Deployment Support
+### Deployment support
 
 - `trigger-dotcom-hotfix.ts` - Emergency deployment triggers
 - `trigger-sdk-hotfix.ts` - SDK hotfix deployment
@@ -92,7 +92,7 @@ Built on Node.js with TypeScript, using:
 - **GitHub Actions integration** for CI/CD workflows
 - **Lokalise API** for translation management
 
-## Usage Patterns
+## Usage patterns
 
 Scripts are typically run via yarn from the monorepo root:
 

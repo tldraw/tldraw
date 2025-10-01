@@ -6,11 +6,11 @@ The `@tldraw/worker-shared` package provides shared utilities for tldraw's worke
 
 ## Architecture
 
-### Request Routing System (`handleRequest.ts`)
+### Request routing system (`handleRequest.ts`)
 
 Type-safe HTTP request handling with validation:
 
-#### Router Creation
+#### Router creation
 
 ```typescript
 import { Router, RouterType, IRequest, RequestHandler } from 'itty-router'
@@ -26,7 +26,7 @@ function createRouter<Env extends SentryEnvironment, Ctx extends ExecutionContex
 }
 ```
 
-#### Request Handler
+#### Request handler
 
 ```typescript
 async function handleApiRequest({
@@ -57,7 +57,7 @@ async function handleApiRequest({
 }
 ```
 
-#### Input Validation
+#### Input lValidation
 
 Type-safe request parsing with validation:
 
@@ -87,11 +87,11 @@ async function parseRequestBody<Body>(request: IRequest, validator: T.Validator<
 }
 ```
 
-### Asset Management (`userAssetUploads.ts`)
+### Asset management (`userAssetUploads.ts`)
 
 Cloudflare R2 integration for user-uploaded assets:
 
-#### Asset Upload
+#### Asset upload
 
 ```typescript
 async function handleUserAssetUpload({
@@ -124,7 +124,7 @@ async function handleUserAssetUpload({
 }
 ```
 
-#### Asset Retrieval with Caching
+#### Asset retrieval with caching
 
 ```typescript
 async function handleUserAssetGet({
@@ -178,11 +178,11 @@ async function handleUserAssetGet({
 }
 ```
 
-### Bookmark Processing (`bookmarks.ts`)
+### Bookmark processing (`bookmarks.ts`)
 
 Web page metadata extraction with image optimization:
 
-#### Metadata Extraction
+#### Metadata extraction
 
 ```typescript
 import { unfurl } from 'cloudflare-workers-unfurl'
@@ -226,7 +226,7 @@ async function handleExtractBookmarkMetadataRequest({
 }
 ```
 
-#### Image Optimization
+#### Image optimization
 
 ```typescript
 async function trySaveImage(
@@ -268,11 +268,11 @@ async function trySaveImage(
 }
 ```
 
-### Error Monitoring (`sentry.ts`)
+### Error monitoring (`sentry.ts`)
 
 Sentry integration for production error tracking:
 
-#### Sentry Configuration
+#### Sentry lConfiguration
 
 ```typescript
 import { Toucan } from 'toucan-js'
@@ -310,7 +310,7 @@ function createSentry(ctx: Context, env: SentryEnvironment, request?: Request) {
 }
 ```
 
-### Environment Management (`env.ts`)
+### Environment management (`env.ts`)
 
 Type-safe environment variable handling:
 
@@ -335,7 +335,7 @@ const { SENTRY_DSN, API_KEY } = requiredEnv(env, {
 // TypeScript guarantees these are non-null
 ```
 
-### HTTP Error Utilities (`errors.ts`)
+### HTTP error utilities (`errors.ts`)
 
 Standard HTTP error responses:
 
@@ -349,23 +349,23 @@ function forbidden() {
 }
 ```
 
-## Key Features
+## Key features
 
-### Asset Pipeline
+### Asset pipeline
 
 **R2 Integration**: Cloudflare R2 object storage for user assets
 **Caching Strategy**: Multi-layer caching with Cloudflare Cache API
 **Range Requests**: Support for partial content delivery
 **Immutable Assets**: Long-term caching for uploaded content
 
-### Bookmark System
+### Bookmark lSystem
 
 **Metadata Extraction**: Rich preview data from web pages
 **Image Optimization**: Automatic image resizing and quality optimization
 **Fallback Handling**: Graceful degradation when image processing fails
 **Multi-Size Support**: Different image sizes for different use cases
 
-### Error Handling
+### Error handling
 
 **Structured Errors**: Consistent error response format
 **Monitoring Integration**: Automatic error reporting to Sentry
@@ -379,9 +379,9 @@ function forbidden() {
 **Cache Integration**: Leverages Cloudflare's global cache network
 **Minimal Dependencies**: Lightweight for fast cold starts
 
-## Integration Patterns
+## Integration patterns
 
-### Basic Worker Setup
+### Basic worker setup
 
 ```typescript
 import {
@@ -430,7 +430,7 @@ export default {
 }
 ```
 
-### Asset Upload Flow
+### Asset upload flow
 
 ```typescript
 // 1. Client uploads asset
@@ -450,7 +450,7 @@ const { object } = await response.json()
 const assetUrl = `https://assets.tldraw.com/${object}`
 ```
 
-### Bookmark Processing Flow
+### Bookmark processing flow
 
 ```typescript
 // 1. Client requests bookmark metadata
@@ -469,9 +469,9 @@ await Promise.all([
 const { title, description, image, favicon } = await response.json()
 ```
 
-## Cloudflare Workers Integration
+## Cloudflare lWorkers lIntegration
 
-### R2 Storage Integration
+### R2 storage integration
 
 ```typescript
 interface Env {
@@ -491,7 +491,7 @@ const object = await bucket.get(objectName, {
 })
 ```
 
-### Image Optimization
+### Image optimization
 
 ```typescript
 // Cloudflare Image Resizing
@@ -506,7 +506,7 @@ const imageResponse = await fetch(imageUrl, {
 })
 ```
 
-### Cache API Integration
+### Cache API integration
 
 ```typescript
 // Leverage Cloudflare's global cache
@@ -521,9 +521,9 @@ if (cachedResponse) return cachedResponse
 context.waitUntil(caches.default.put(cacheKey, response.clone()))
 ```
 
-## Environment Management
+## Environment lManagement
 
-### Type-Safe Environment Variables
+### Type-Safe environment variables
 
 ```typescript
 interface WorkerEnv {
@@ -542,7 +542,7 @@ const { SENTRY_DSN, WORKER_NAME } = requiredEnv(env, {
 // TypeScript guarantees these are defined
 ```
 
-### Environment Validation
+### Environment lValidation
 
 ```typescript
 function requiredEnv<T extends object>(
@@ -558,9 +558,9 @@ function requiredEnv<T extends object>(
 }
 ```
 
-## Error Handling System
+## Error lHandling lSystem
 
-### Standard HTTP Errors
+### Standard HTTP errors
 
 ```typescript
 // Common error responses
@@ -576,7 +576,7 @@ function forbidden() {
 throw new StatusError(400, `Query parameters: ${validationMessage}`)
 ```
 
-### Monitoring Integration
+### Monitoring lIntegration
 
 ```typescript
 // Automatic error reporting
@@ -588,7 +588,7 @@ try {
 }
 ```
 
-### Development vs Production
+### Development vs production
 
 ```typescript
 // Sentry only in production
@@ -604,55 +604,55 @@ const sentry = new Toucan({
 })
 ```
 
-## Performance Optimizations
+## Performance optimizations
 
-### Edge Computing
+### Edge computing
 
 - **Global Distribution**: Workers run at Cloudflare edge locations
 - **Low Latency**: Processing close to users
 - **Automatic Scaling**: Handles traffic spikes automatically
 - **Zero Cold Starts**: V8 isolates for instant execution
 
-### Caching Strategy
+### Caching strategy
 
 - **Multi-Layer Caching**: Browser cache + CDN cache + worker cache
 - **Immutable Assets**: Assets cached for 1 year
 - **Cache Invalidation**: ETags for conditional requests
 - **Range Support**: Efficient partial content delivery
 
-### Resource Efficiency
+### Resource efficiency
 
 - **Streaming**: Support for large file uploads/downloads
 - **Memory Management**: Efficient handling of binary data
 - **Connection Pooling**: Reuse connections for external requests
 - **Background Tasks**: Non-blocking asset processing
 
-## Security Considerations
+## Security considerations
 
-### Input Validation
+### Input lValidation
 
 - **URL Validation**: Ensure valid HTTP/HTTPS URLs for bookmarks
 - **File Type Validation**: Verify content types for uploads
 - **Size Limits**: Prevent abuse with file size restrictions
 - **Path Sanitization**: Secure object naming patterns
 
-### Access Control
+### Access control
 
 - **CORS Configuration**: Controlled cross-origin access
 - **Authentication**: Integration with auth systems
 - **Rate Limiting**: Prevent API abuse
 - **Error Information**: Careful error message disclosure
 
-### Content Safety
+### Content safety
 
 - **Image Processing**: Automatic optimization prevents malicious images
 - **Metadata Scrubbing**: Remove sensitive information from extracted data
 - **Sandbox Execution**: Workers isolated from sensitive systems
 - **Monitoring**: Comprehensive error and security event tracking
 
-## Deployment Architecture
+## Deployment lArchitecture
 
-### Worker Distribution
+### Worker distribution
 
 ```
 Edge Locations (Global)
@@ -663,16 +663,16 @@ Edge Locations (Global)
     └── worker-shared/   # Shared utilities (this package)
 ```
 
-### Service Integration
+### Service lIntegration
 
 - **R2 Storage**: Asset persistence and delivery
 - **Cache API**: Performance optimization
 - **Analytics**: Request and error monitoring
 - **CDN**: Global content delivery network
 
-## Key Benefits
+## Key benefits
 
-### Development Experience
+### Development lExperience
 
 - **Type Safety**: Full TypeScript support for worker development
 - **Reusable Patterns**: Common worker utilities abstracted

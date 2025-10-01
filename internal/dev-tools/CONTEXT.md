@@ -4,7 +4,7 @@
 
 The `@internal/dev-tools` package provides internal development tools for the tldraw team. This is a private package that contains utilities to help with development workflows and debugging.
 
-## Package Structure
+## Package structure
 
 ```
 internal/dev-tools/
@@ -26,7 +26,7 @@ internal/dev-tools/
 
 ## Features
 
-### Git Bisect Tool
+### Git bisect tool
 
 The primary feature is a web-based git bisect helper tool that:
 
@@ -40,14 +40,14 @@ The tool uses PR preview deployments at `https://pr-{number}-preview-deploy.tldr
 
 ## Architecture
 
-### Technology Stack
+### Technology stack
 
 - **React 18**: UI framework
 - **TypeScript**: Type safety
 - **Vite**: Build tool and dev server
 - **CSS**: Vanilla CSS styling
 
-### Key Components
+### Key components
 
 - `Bisect.tsx`: Main bisect logic and state management
 - `BisectButton.tsx`: Reusable button component

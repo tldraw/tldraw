@@ -2,7 +2,7 @@
 
 The tldraw VS Code extension enables users to create, view, and edit `.tldr` files directly within VS Code, bringing the full tldraw infinite canvas experience to the editor.
 
-## Architecture Overview
+## Architecture overview
 
 This application consists of two main components:
 
@@ -28,7 +28,7 @@ A React-based webview application that renders the tldraw editor:
 - **Messages**: `src/FullPageMessage.tsx` - Error/loading states
 - **Utils**: `src/utils/` - RPC communication, bookmarks, external content handling
 
-## Key Features
+## Key features
 
 **File Support**
 
@@ -49,7 +49,7 @@ A React-based webview application that renders the tldraw editor:
 - Real-time file change synchronization
 - External content handling for links and embeds
 
-## Development Commands
+## Development commands
 
 **Extension Development**
 
@@ -62,7 +62,7 @@ A React-based webview application that renders the tldraw editor:
 - `yarn dev` (from editor/) - Start editor development server
 - `yarn build` (from editor/) - Build editor bundle
 
-## Extension Configuration
+## Extension lConfiguration
 
 The extension contributes:
 
@@ -71,7 +71,7 @@ The extension contributes:
 - Keyboard shortcuts for zoom and dark mode
 - File type associations for `.tldr` and `.tldr.json`
 
-## Build System
+## Build system
 
 - Extension uses esbuild for fast compilation
 - Editor uses esbuild with React/JSX support
@@ -85,7 +85,7 @@ The extension contributes:
 - Manual publishing via `yarn publish` command
 - Direct .vsix downloads available from repository
 
-## Key Dependencies
+## Key lDependencies
 
 - **VS Code API**: Core extension functionality
 - **tldraw**: Full tldraw SDK for editor capabilities

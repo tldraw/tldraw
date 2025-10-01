@@ -8,7 +8,7 @@ Provides tldraw functionality within Google Meet through Google Apps Script add-
 
 ## Architecture
 
-### Core Components
+### Core components
 
 **appsscript.json** - Google Apps Script manifest
 
@@ -24,7 +24,7 @@ Provides tldraw functionality within Google Meet through Google Apps Script add-
 - Generates `.clasp.json` with appropriate Google Apps Script IDs
 - Handles production vs staging environment configuration
 
-### Build Process
+### Build process
 
 The build system:
 
@@ -33,7 +33,7 @@ The build system:
 3. Replaces `TLDRAW_HOST` with environment-specific URL
 4. Generates `.clasp.json` with correct script ID
 
-### Environment Configuration
+### Environment configuration
 
 **Production**: `https://www.tldraw.com`
 
@@ -43,9 +43,9 @@ The build system:
 
 - Script ID: `1cJfZM0M_rGU-nYgG-4KR1DnERb7itkCsl1QmlqPxFvHnrz5n6Gfy8iht`
 
-## Google Apps Script Integration
+## Google apps script integration
 
-### Add-on Configuration
+### Add-on configuration
 
 - **Side Panel URI**: `/ts-side` - Compact tldraw interface for Meet sidebar
 - **Main Stage URI**: `/ts` - Full tldraw interface for screen sharing
@@ -60,9 +60,9 @@ Required permissions:
 - External request capabilities for tldraw API calls
 - Workspace link preview functionality
 
-## Development Workflow
+## Development workflow
 
-### Setup Commands
+### Setup commands
 
 ```bash
 yarn glogin    # Login to Google Apps Script
@@ -70,7 +70,7 @@ yarn glogout   # Logout from Google Apps Script
 yarn gcreate   # Create new Apps Script project
 ```
 
-### Build & Deploy
+### Build & deploy
 
 ```bash
 yarn build           # Build for production
@@ -86,7 +86,7 @@ yarn gpull:staging   # Pull from staging
 - **@google/clasp**: Google Apps Script CLI tool for deployment
 - **@types/google-apps-script**: TypeScript definitions for Apps Script APIs
 
-## Integration Points
+## Integration points
 
 This package connects tldraw with Google Meet by:
 

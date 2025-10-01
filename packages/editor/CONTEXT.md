@@ -3,7 +3,7 @@
 
 This file provides comprehensive context for understanding the `@tldraw/editor` package, the core infinite canvas editor for tldraw.
 
-## Package Overview
+## Package overview
 
 The `@tldraw/editor` package is the foundational layer of tldraw - a minimal infinite canvas editor without any specific shapes, tools, or UI. It provides the core editing engine that the main `tldraw` package builds upon.
 
@@ -13,9 +13,9 @@ The `@tldraw/editor` package is the foundational layer of tldraw - a minimal inf
 **Compatibility:** Requires Node.js ^20.0.0, React ^18.0.0  
 **Bundle:** Ships with separate CSS file (`editor.css`) that must be imported
 
-## Architecture Overview
+## Architecture overview
 
-### Core Components
+### Core components
 
 **1. Editor Class (`src/lib/editor/Editor.ts`)**
 
@@ -39,7 +39,7 @@ The `@tldraw/editor` package is the foundational layer of tldraw - a minimal inf
 - Can accept external stores or create internal ones
 - Handles loading states and sync status
 
-### State Management Architecture
+### State lManagement lArchitecture
 
 **Reactive Signals System:**
 
@@ -55,7 +55,7 @@ The `@tldraw/editor` package is the foundational layer of tldraw - a minimal inf
 - Derivations compute dependent values efficiently
 - History management with undo/redo support
 
-### Tools and State System
+### Tools and state system
 
 **StateNode Architecture (`src/lib/editor/tools/StateNode.ts`)**
 
@@ -71,7 +71,7 @@ The `@tldraw/editor` package is the foundational layer of tldraw - a minimal inf
 - Child states for complex tools (e.g., drawing, resizing)
 - Configurable tool state charts
 
-### Shape System
+### Shape system
 
 **ShapeUtil Architecture (`src/lib/editor/shapes/ShapeUtil.ts`)**
 
@@ -87,7 +87,7 @@ The `@tldraw/editor` package is the foundational layer of tldraw - a minimal inf
 - `indicator()` - Selection indicator rendering
 - `onResize()`, `onRotate()` - Interaction handlers
 
-### Binding System
+### Binding system
 
 **BindingUtil Architecture (`src/lib/editor/bindings/BindingUtil.ts`)**
 
@@ -103,7 +103,7 @@ The `@tldraw/editor` package is the foundational layer of tldraw - a minimal inf
 - BindingUtils define visual indicators and interaction behavior
 - Automatically updated when connected shapes change
 
-### Manager System
+### Manager lSystem
 
 The editor uses specialized managers for different concerns:
 
@@ -120,7 +120,7 @@ The editor uses specialized managers for different concerns:
 - `TickManager` - Animation frame management
 - `UserPreferencesManager` - User settings persistence
 
-### Component System
+### Component lSystem
 
 **Default Components (`src/lib/components/default-components/`)**
 
@@ -144,7 +144,7 @@ The editor uses specialized managers for different concerns:
 - Shape-specific indicators defined in ShapeUtil.indicator()
 - Binding indicators for relationship visualization
 
-### Text Editing Integration
+### Text lEditing lIntegration
 
 **Tiptap Integration:**
 
@@ -160,7 +160,7 @@ The editor uses specialized managers for different concerns:
 - Coordinates with Tiptap editor instances
 - Provides text layout and wrapping calculations
 
-### Geometry and Math
+### Geometry and math
 
 **Primitive System (`src/lib/primitives/`)**
 
@@ -176,7 +176,7 @@ The editor uses specialized managers for different concerns:
 - Hit testing and intersection calculations
 - Point-in-shape and shape-shape collision detection
 
-### Event System
+### Event lSystem
 
 **Event Flow:**
 
@@ -193,7 +193,7 @@ The editor uses specialized managers for different concerns:
 - Wheel events for zooming/panning
 - Tick events for animations
 
-### Export and Serialization
+### Export and serialization
 
 **Export Capabilities:**
 
@@ -208,7 +208,7 @@ The editor uses specialized managers for different concerns:
 - Camera position and selected shapes in URL
 - Configurable deep link behavior
 
-### Licensing and Watermark
+### Licensing and watermark
 
 **License Management:**
 
@@ -217,28 +217,28 @@ The editor uses specialized managers for different concerns:
 - Watermark removal with valid business license
 - License validation and enforcement
 
-## Key Files and Directories
+## Key files and directories
 
-### Core Implementation
+### Core implementation
 
 - `src/lib/editor/Editor.ts` - Main editor class
 - `src/lib/TldrawEditor.tsx` - React component wrapper
 - `src/lib/config/createTLStore.ts` - Store creation and configuration
 - `src/lib/options.ts` - Editor configuration options
 
-### Tools and State
+### Tools and state
 
 - `src/lib/editor/tools/StateNode.ts` - State machine base class
 - `src/lib/editor/tools/RootState.ts` - Root state implementation
 - `src/lib/editor/tools/BaseBoxShapeTool/` - Base tool for box shapes
 
-### Shape System
+### Shape system
 
 - `src/lib/editor/shapes/ShapeUtil.ts` - Shape utility base class
 - `src/lib/editor/shapes/BaseBoxShapeUtil.tsx` - Base for rectangular shapes
 - `src/lib/editor/shapes/group/GroupShapeUtil.tsx` - Group shape implementation
 
-### Binding System
+### Binding system
 
 - `src/lib/editor/bindings/BindingUtil.ts` - Binding utility base class
 
@@ -256,7 +256,7 @@ The editor uses specialized managers for different concerns:
 - `src/lib/editor/managers/TickManager.ts` - Animation frame management
 - `src/lib/editor/managers/UserPreferencesManager.ts` - User settings
 
-### Components and Indicators
+### Components and indicators
 
 - `src/lib/components/default-components/` - Default UI components
 - `src/lib/components/default-components/DefaultCanvas.tsx` - Main drawing surface
@@ -265,7 +265,7 @@ The editor uses specialized managers for different concerns:
 - `src/lib/components/default-components/DefaultSelectionBackground.tsx` - Selection indicators
 - `src/lib/components/default-components/DefaultGrid.tsx` - Viewport grid
 
-### Testing Infrastructure
+### Testing infrastructure
 
 - `src/test/TestEditor.ts` - Editor testing utilities and mocks
 - `src/test/` - Integration tests and test helpers
@@ -276,9 +276,9 @@ The editor uses specialized managers for different concerns:
 - `src/lib/primitives/` - Math and geometry utilities
 - `src/lib/hooks/` - React hooks for editor integration
 
-## Development Patterns
+## Development patterns
 
-### Creating Custom Shapes
+### Creating custom shapes
 
 ```typescript
 class MyShapeUtil extends ShapeUtil<TLMyShape> {
@@ -302,7 +302,7 @@ class MyShapeUtil extends ShapeUtil<TLMyShape> {
 ```
 ````
 
-### Creating Custom Tools
+### Creating lCustom lTools
 
 ```typescript
 export class MyTool extends StateNode {
@@ -323,7 +323,7 @@ export class MyTool extends StateNode {
 }
 ```
 
-### State Management
+### State management
 
 ```typescript
 // Access reactive state
@@ -343,7 +343,7 @@ editor.batch(() => {
 })
 ```
 
-### Testing Patterns
+### Testing lPatterns
 
 ```typescript
 import { TestEditor } from './test/TestEditor'
@@ -403,7 +403,7 @@ describe('MyFeature', () => {
 - Theme variables for light/dark mode switching
 - Minimal external styling dependencies
 
-## Performance Considerations
+## Performance considerations
 
 **Reactive System Optimization:**
 
@@ -427,7 +427,7 @@ describe('MyFeature', () => {
 - Large assets are handled with lazy loading and disposal
 - Store history is pruned to prevent unbounded memory growth
 
-## Extensibility Points
+## Extensibility points
 
 **Highly Customizable:**
 

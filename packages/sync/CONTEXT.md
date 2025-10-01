@@ -6,9 +6,9 @@ The `@tldraw/sync` package provides React hooks and high-level utilities for int
 
 ## Architecture
 
-### Primary Hooks
+### Primary hooks
 
-#### `useSync` - Production Multiplayer Hook
+#### `useSync` - production multiplayer hook
 
 The main hook for production multiplayer integration:
 
@@ -25,7 +25,7 @@ interface UseSyncOptions {
 }
 ```
 
-#### `useSyncDemo` - Demo Server Integration
+#### `useSyncDemo` - demo server integration
 
 Simplified hook for quick prototyping with tldraw's demo server:
 
@@ -40,9 +40,9 @@ interface UseSyncDemoOptions {
 }
 ```
 
-### Store Integration
+### Store integration
 
-#### `RemoteTLStoreWithStatus` - Multiplayer Store State
+#### `RemoteTLStoreWithStatus` - multiplayer store state
 
 Enhanced store wrapper with connection status:
 
@@ -63,9 +63,9 @@ Status progression:
 2. **synced-remote**: Successfully connected and synchronized
 3. **error**: Connection failed or sync error occurred
 
-### Connection Management
+### Connection lManagement
 
-#### WebSocket Connection Lifecycle
+#### WebSocket connection lifecycle
 
 Comprehensive connection state management:
 
@@ -94,7 +94,7 @@ const client = new TLSyncClient({
 })
 ```
 
-#### Error Handling and Recovery
+#### Error handling and recovery
 
 Comprehensive error handling with user feedback:
 
@@ -119,9 +119,9 @@ onSyncError(reason) {
 }
 ```
 
-### Presence System
+### Presence lSystem
 
-#### User Presence Management
+#### User lPresence lManagement
 
 Real-time user cursor and selection synchronization:
 
@@ -148,7 +148,7 @@ const presence = computed('instancePresence', () => {
 })
 ```
 
-#### Presence Modes
+#### Presence modes
 
 Dynamic presence behavior based on room occupancy:
 
@@ -164,9 +164,9 @@ const presenceMode = computed<TLPresenceMode>('presenceMode', () => {
 // - Performance optimizations
 ```
 
-### Asset Management
+### Asset management
 
-#### Demo Asset Store
+#### Demo asset store
 
 Integrated blob storage for demo environments:
 
@@ -193,7 +193,7 @@ function createDemoAssetStore(host: string): TLAssetStore {
 }
 ```
 
-#### Asset Resolution Strategy
+#### Asset lResolution lStrategy
 
 Smart image optimization for performance:
 
@@ -202,9 +202,9 @@ Smart image optimization for performance:
 - **Type-Aware**: Handles animated/vector images appropriately
 - **Size-Threshold**: Only optimizes images above 1.5MB
 
-### Connection Reliability
+### Connection reliability
 
-#### Automatic Reconnection
+#### Automatic reconnection
 
 Built-in reconnection management:
 
@@ -223,7 +223,7 @@ store = createTLStore({
 })
 ```
 
-#### State Recovery
+#### State recovery
 
 Robust recovery from connection issues:
 
@@ -232,9 +232,9 @@ Robust recovery from connection issues:
 - **Conflict Resolution**: Handle overlapping changes gracefully
 - **Store Validation**: Ensure store remains usable after reconnection
 
-## Demo Server Integration
+## Demo lServer lIntegration
 
-### Hosted Demo Environment
+### Hosted lDemo lEnvironment
 
 Pre-configured integration with tldraw's demo infrastructure:
 
@@ -242,7 +242,7 @@ Pre-configured integration with tldraw's demo infrastructure:
 - **Image Worker**: `https://images.tldraw.xyz` for image optimization
 - **Bookmark Unfurling**: `${host}/bookmarks/unfurl` for URL metadata
 
-### Asset Processing Pipeline
+### Asset processing pipeline
 
 Integrated asset handling for demo environments:
 
@@ -258,7 +258,7 @@ editor.registerExternalAssetHandler('url', async ({ url }) => {
 // - Fallback to basic bookmark on errors
 ```
 
-### Security and Limitations
+### Security and limitations
 
 Demo server considerations:
 
@@ -267,9 +267,9 @@ Demo server considerations:
 - **Upload Restrictions**: File uploads disabled on production demo domains
 - **Rate Limiting**: Built-in protection against abuse
 
-## Integration Patterns
+## Integration patterns
 
-### Basic Multiplayer Setup
+### Basic multiplayer setup
 
 ```typescript
 function MultiplayerApp() {
@@ -286,7 +286,7 @@ function MultiplayerApp() {
 }
 ```
 
-### Demo/Prototype Setup
+### Demo/Prototype setup
 
 ```typescript
 function DemoApp() {
@@ -299,7 +299,7 @@ function DemoApp() {
 }
 ```
 
-### Custom Presence Implementation
+### Custom lPresence lImplementation
 
 ```typescript
 const store = useSync({
@@ -318,7 +318,7 @@ const store = useSync({
 })
 ```
 
-### Authentication Integration
+### Authentication lIntegration
 
 ```typescript
 const store = useSync({
@@ -334,37 +334,37 @@ const store = useSync({
 })
 ```
 
-## Performance Considerations
+## Performance considerations
 
-### Connection Optimization
+### Connection optimization
 
 - **Batched Updates**: Multiple changes sent together
 - **Diff Compression**: Only send actual changes, not full state
 - **Presence Throttling**: Limit cursor update frequency
 - **Selective Sync**: Only sync relevant data
 
-### Memory Management
+### Memory management
 
 - **Automatic Cleanup**: Proper disposal of connections and resources
 - **Weak References**: Prevent memory leaks in long-running sessions
 - **State Pruning**: Remove unnecessary historical data
 
-### Network Efficiency
+### Network efficiency
 
 - **Binary Protocol**: Efficient message encoding
 - **Compression**: Optional compression for large updates
 - **Connection Pooling**: Reuse connections where possible
 
-## Error Recovery
+## Error recovery
 
-### Network Issues
+### Network issues
 
 - **Offline Detection**: Graceful handling of network loss
 - **Automatic Retry**: Progressive backoff for reconnection
 - **State Buffering**: Queue changes during disconnection
 - **Conflict Resolution**: Handle changes made while offline
 
-### Server Issues
+### Server issues
 
 - **Server Errors**: Proper handling of server-side failures
 - **Schema Mismatches**: Handle version incompatibilities
@@ -373,34 +373,34 @@ const store = useSync({
 
 ## Dependencies
 
-### Core Dependencies
+### Core lDependencies
 
 - **@tldraw/sync-core**: Core synchronization infrastructure
 - **@tldraw/state-react**: React integration for reactive state
 - **tldraw**: Main tldraw package for store and editor integration
 
-### Peer Dependencies
+### Peer dependencies
 
 - **React**: React hooks and lifecycle integration
 - **WebSocket**: Browser or Node.js WebSocket implementation
 
-## Key Benefits
+## Key benefits
 
-### Developer Experience
+### Developer experience
 
 - **Simple API**: Single hook for full multiplayer functionality
 - **Flexible Configuration**: Support for custom servers and asset stores
 - **Great Defaults**: Demo server for instant prototyping
 - **TypeScript Support**: Full type safety throughout
 
-### Real-Time Features
+### Real-Time features
 
 - **Live Collaboration**: Multiple users editing simultaneously
 - **Presence Indicators**: See other users' cursors and selections
 - **Instant Updates**: Changes appear immediately across all clients
 - **Conflict Resolution**: Intelligent handling of simultaneous edits
 
-### Production Ready
+### Production ready
 
 - **Reliability**: Robust error handling and recovery
 - **Scalability**: Efficient protocols for large rooms

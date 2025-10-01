@@ -2,15 +2,15 @@
 
 This file provides comprehensive context for understanding the `@tldraw/tlschema` package, which defines the type system, data schemas, and migrations for tldraw's persisted data.
 
-## Package Overview
+## Package overview
 
 `@tldraw/tlschema` is the central type definition and schema management package for tldraw. It defines all record types (shapes, assets, pages, etc.), their validation schemas, migration sequences, and the overall data model that powers the tldraw editor.
 
 **Core Purpose:** Provide a complete, type-safe, and version-aware data model for tldraw that can evolve over time while maintaining backward compatibility.
 
-## Architecture Overview
+## Architecture overview
 
-### Record System Hierarchy
+### Record system hierarchy
 
 **TLRecord Union (`src/records/TLRecord.ts`):**
 
@@ -28,7 +28,7 @@ type TLRecord =
 	| TLPointer // Mouse/touch state
 ```
 
-### Store System Foundation
+### Store system foundation
 
 **TLStore (`src/TLStore.ts`):**
 
@@ -44,7 +44,7 @@ type TLRecord =
 - `defaultBindingSchemas` - Built-in binding configurations
 - Automatic migration sequence coordination
 
-### Shape System Architecture
+### Shape lSystem lArchitecture
 
 **Base Shape Structure (`src/shapes/TLBaseShape.ts`):**
 
@@ -79,7 +79,7 @@ Each shape defines:
 - Migration sequence for schema evolution
 - Style property integration
 
-### Style System
+### Style lSystem
 
 **StyleProp Architecture (`src/styles/StyleProp.ts`):**
 
@@ -104,7 +104,7 @@ Each shape defines:
 - CSS custom properties integration
 - Frame and note-specific color variants
 
-### Asset System
+### Asset lSystem
 
 **Asset Types (`src/assets/`):**
 
@@ -119,7 +119,7 @@ Each shape defines:
 - `TLAssetContext` for resolution optimization
 - Support for data URLs, IndexedDB, and remote storage
 
-### Binding System
+### Binding system
 
 **Binding Architecture (`src/bindings/`):**
 
@@ -128,7 +128,7 @@ Each shape defines:
 - Binding creation, validation, and lifecycle management
 - Integration with shape deletion and updates
 
-### Validation System
+### Validation lSystem
 
 **Validation Infrastructure:**
 
@@ -144,7 +144,7 @@ Each shape defines:
 - Custom prop validators for each shape type
 - Meta property validation (user-defined data)
 
-### Migration System
+### Migration system
 
 **Migration Architecture:**
 
@@ -175,9 +175,9 @@ const migrations = createMigrationSequence({
 - Forward and backward migration support
 - Retroactive vs non-retroactive migrations
 
-## Key Data Structures
+## Key data structures
 
-### Shape Property System
+### Shape lProperty lSystem
 
 **Properties with Styles:**
 
@@ -200,7 +200,7 @@ const GeoShapeGeoStyle = StyleProp.defineEnum('tldraw:geo', {
 })
 ```
 
-### Record Type Creation
+### Record type creation
 
 **Shape Record Creation:**
 
@@ -220,7 +220,7 @@ const AssetRecordType = createRecordType<TLAsset>('asset', {
 }).withDefaultProperties(() => ({ meta: {} }))
 ```
 
-### Complex Type Patterns
+### Complex lType lPatterns
 
 **Rich Text (`src/misc/TLRichText.ts`):**
 
@@ -235,9 +235,9 @@ const AssetRecordType = createRecordType<TLAsset>('asset', {
 - `BoxModel` - Axis-aligned rectangles
 - Integration with editor geometry system
 
-## Development Patterns
+## Development patterns
 
-### Adding New Shape Types
+### Adding new shape types
 
 1. **Define Shape Interface:**
 
@@ -284,7 +284,7 @@ const schema = createTLSchema({
 })
 ```
 
-### Adding Style Properties
+### Adding style properties
 
 ```typescript
 const MyStyleProp = StyleProp.define('myapp:style', {
@@ -304,7 +304,7 @@ const myShapeProps: RecordProps<MyShape> = {
 }
 ```
 
-### Migration Best Practices
+### Migration best practices
 
 **Record-level Migration:**
 
@@ -339,9 +339,9 @@ const propsMigrations: TLPropsMigrations = {
 }
 ```
 
-## File Organization and Structure
+## File organization and structure
 
-### Core Records (`src/records/`)
+### Core records (`src/records/`)
 
 - **TLShape.ts** - Base shape system and root migrations (~300 lines)
 - **TLAsset.ts** - Asset management and validation (~100 lines)
@@ -354,7 +354,7 @@ const propsMigrations: TLPropsMigrations = {
 - **TLPresence.ts** - Real-time user presence (~100 lines)
 - **TLPointer.ts** - Input device state (~50 lines)
 
-### Shape Implementations (`src/shapes/`)
+### Shape implementations (`src/shapes/`)
 
 Each shape file (~100-200 lines) includes:
 
@@ -363,36 +363,36 @@ Each shape file (~100-200 lines) includes:
 - Migration sequence
 - Type exports and utilities
 
-### Style Definitions (`src/styles/`)
+### Style definitions (`src/styles/`)
 
 - **StyleProp.ts** - Base style property system (~150 lines)
 - Individual style implementations (~50-100 lines each)
 - Theme definitions and color palettes
 - Validation and type utilities
 
-### Asset Definitions (`src/assets/`)
+### Asset definitions (`src/assets/`)
 
 - Base asset system and individual asset types (~50-100 lines each)
 - Upload/resolution interfaces
 - Asset-specific validation and metadata
 
-### Support Systems
+### Support systems
 
 - **`src/misc/`** - Utility types, validators, and helper functions
 - **`src/translations/`** - Internationalization support
 - **`src/createPresenceStateDerivation.ts`** - Real-time presence logic
 - **`src/store-migrations.ts`** - Historical store structure changes
 
-## Type System Patterns
+## Type lSystem lPatterns
 
-### ID System
+### ID system
 
 - Strongly typed IDs using branded types
 - `RecordId<T>` prevents ID confusion between record types
 - Custom ID creation for predictable IDs
 - Random ID generation for new records
 
-### Props with Styles
+### Props with styles
 
 ```typescript
 // Shapes use a mix of style props and regular props
@@ -408,16 +408,16 @@ interface ShapeProps {
 }
 ```
 
-### Validation Integration
+### Validation lIntegration
 
 - All properties validated at runtime
 - Custom validation for complex types
 - Graceful degradation for unknown properties
 - Development vs production validation levels
 
-## Store Integration Points
+## Store integration points
 
-### Schema Configuration
+### Schema lConfiguration
 
 ```typescript
 const schema = createTLSchema({
@@ -438,7 +438,7 @@ const store = new Store({
 })
 ```
 
-### Asset Store Integration
+### Asset lStore lIntegration
 
 ```typescript
 interface TLAssetStore {
@@ -448,9 +448,9 @@ interface TLAssetStore {
 }
 ```
 
-## Development Guidelines
+## Development guidelines
 
-### Schema Evolution
+### Schema evolution
 
 1. **Always add migrations** when changing persisted data structures
 2. **Version changes incrementally** with descriptive names
@@ -458,7 +458,7 @@ interface TLAssetStore {
 4. **Document breaking changes** and migration requirements
 5. **Handle migration failures gracefully** with validation fallbacks
 
-### Shape Development
+### Shape lDevelopment
 
 1. **Follow existing patterns** for props structure and validation
 2. **Use style properties** for attributes that should be shared across shapes
@@ -466,7 +466,7 @@ interface TLAssetStore {
 4. **Consider performance implications** of complex property validation
 5. **Design for extensibility** while maintaining type safety
 
-### Validation Strategy
+### Validation lStrategy
 
 1. **Use appropriate validators** from `@tldraw/validate`
 2. **Implement custom validators** for domain-specific types
@@ -474,7 +474,7 @@ interface TLAssetStore {
 4. **Test validation edge cases** thoroughly
 5. **Consider validation performance** for large datasets
 
-### Migration Strategy
+### Migration lStrategy
 
 1. **Plan migration paths** before making schema changes
 2. **Group related changes** into single migration steps
@@ -482,32 +482,32 @@ interface TLAssetStore {
 4. **Consider migration dependencies** across packages
 5. **Provide clear migration documentation** for major changes
 
-## Performance Considerations
+## Performance considerations
 
-### Memory Optimization
+### Memory optimization
 
 - Immutable record structures prevent accidental mutations
 - `devFreeze()` in development prevents mutation bugs
 - Efficient ID generation with minimal allocations
 - Style property sharing reduces memory overhead
 
-### Validation Performance
+### Validation performance
 
 - Lazy validation where possible
 - `validateUsingKnownGoodVersion()` optimizations
 - Minimal validation in hot paths
 - Development vs production validation levels
 
-### Schema Efficiency
+### Schema efficiency
 
 - Fractional indexing for efficient reordering
 - Minimal required properties to reduce validation overhead
 - Efficient diff computation for large record sets
 - Optimized serialization/deserialization
 
-## Key Components Deep Dive
+## Key components deep dive
 
-### Style Property System
+### Style lProperty lSystem
 
 **Style Property Lifecycle:**
 
@@ -523,7 +523,7 @@ interface TLAssetStore {
 - **Enum-based:** `StyleProp.defineEnum()` with predefined values
 - **Theme integration:** Colors that adapt to light/dark themes
 
-### Shape Property Patterns
+### Shape lProperty lPatterns
 
 **Geometric Properties:**
 
@@ -543,7 +543,7 @@ interface TLAssetStore {
 - Asset references (`assetId` for media shapes)
 - URLs and metadata for external content
 
-### Record Scope System
+### Record lScope lSystem
 
 **Scope Types:**
 
@@ -558,7 +558,7 @@ interface TLAssetStore {
 - Security and privacy considerations
 - Performance optimization opportunities
 
-## Integration Points
+## Integration points
 
 ### Dependencies
 
@@ -566,7 +566,7 @@ interface TLAssetStore {
 - **`@tldraw/validate`** - Runtime validation system
 - **`@tldraw/utils`** - Utility functions and type helpers
 
-### Extension Points
+### Extension points
 
 - **Custom shapes** via schema configuration
 - **Custom bindings** for shape connections
@@ -574,16 +574,16 @@ interface TLAssetStore {
 - **Custom migrations** for schema evolution
 - **Custom style properties** for shared styling
 
-### Framework Integration
+### Framework lIntegration
 
 - Framework-agnostic type definitions
 - React integration via editor package
 - Server-side rendering support
 - Validation works in any JavaScript environment
 
-## Common Development Scenarios
+## Common development scenarios
 
-### Adding a New Shape
+### Adding a new shape
 
 1. Define shape interface extending `TLBaseShape`
 2. Create props validation object
@@ -591,7 +591,7 @@ interface TLAssetStore {
 4. Add to default shape schemas
 5. Test validation and migrations
 
-### Modifying Existing Shape
+### Modifying existing shape
 
 1. Update shape interface
 2. Add migration for property changes
@@ -599,7 +599,7 @@ interface TLAssetStore {
 4. Test backward compatibility
 5. Update shape util implementation
 
-### Adding Style Property
+### Adding style property
 
 1. Define style property with unique ID
 2. Add to relevant shape props
@@ -607,7 +607,7 @@ interface TLAssetStore {
 4. Consider theme integration
 5. Test style persistence
 
-### Schema Evolution
+### Schema evolution
 
 1. Identify breaking changes
 2. Plan migration strategy
@@ -615,30 +615,30 @@ interface TLAssetStore {
 4. Update documentation
 5. Coordinate with related packages
 
-## Testing Patterns
+## Testing patterns
 
-### Migration Testing (`src/__tests__/`)
+### Migration testing (`src/__tests__/`)
 
 - Round-trip migration testing (up then down)
 - Migration performance testing
 - Edge case handling
 - Data corruption prevention
 
-### Validation Testing
+### Validation testing
 
 - Valid and invalid input testing
 - Type coercion behavior
 - Performance under load
 - Error message quality
 
-### Integration Testing
+### Integration testing
 
 - Store integration with real data
 - Cross-package compatibility
 - Asset handling workflows
 - Real-time sync scenarios
 
-## Common Pitfalls
+## Common pitfalls
 
 1. **Migration Inconsistencies:** Mismatched up/down migrations causing data loss
 2. **Validation Performance:** Over-complex validators in hot paths
@@ -648,7 +648,7 @@ interface TLAssetStore {
 6. **Asset Reference Issues:** Orphaned asset references after deletion
 7. **Scope Misuse:** Wrong record scope affecting sync/persistence behavior
 
-## Package Dependencies and Integration
+## Package dependencies and integration
 
 **Internal Dependencies:**
 

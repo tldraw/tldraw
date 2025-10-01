@@ -6,11 +6,11 @@ The `zero-cache` is a specialized database caching and synchronization layer for
 
 ## Architecture
 
-### Core Components
+### Core components
 
 The zero-cache system consists of several integrated components:
 
-#### Zero Server (Rocicorp Zero)
+#### Zero server (Rocicorp zero)
 
 The primary synchronization engine that provides:
 
@@ -27,7 +27,7 @@ The primary synchronization engine that provides:
 }
 ```
 
-#### PostgreSQL Database
+#### PostgreSQL database
 
 The authoritative data source with logical replication enabled:
 
@@ -86,7 +86,7 @@ CREATE TABLE "file_state" (
 );
 ```
 
-#### PgBouncer Connection Pool
+#### PgBouncer connection pool
 
 Efficient connection pooling for database access:
 
@@ -100,11 +100,11 @@ default_pool_size = 100   # Connection pool size
 max_prepared_statements = 10
 ```
 
-### Data Synchronization Flow
+### Data synchronization flow
 
 The zero-cache implements a sophisticated data flow:
 
-#### 1. Database Change Detection
+#### 1. database change detection
 
 PostgreSQL logical replication streams changes to Zero:
 
@@ -117,7 +117,7 @@ ALTER TABLE file REPLICA IDENTITY FULL;
 ALTER TABLE file_state REPLICA IDENTITY FULL;
 ```
 
-#### 2. Local Caching
+#### 2. local caching
 
 Zero maintains a local SQLite replica for performance:
 
@@ -129,7 +129,7 @@ SQLite Replica (/data/sync-replica.db)
 Client Applications
 ```
 
-#### 3. Conflict Resolution
+#### 3. conflict resolution
 
 Zero handles conflicts using Conflict-Free Replicated Data Types (CRDTs):
 
@@ -137,9 +137,9 @@ Zero handles conflicts using Conflict-Free Replicated Data Types (CRDTs):
 - **Causal Ordering**: For maintaining operation sequences
 - **Vector Clocks**: For distributed state tracking
 
-## Database Schema Evolution
+## Database schema evolution
 
-### Migration System
+### Migration system
 
 The zero-cache includes a comprehensive migration system:
 
@@ -164,11 +164,11 @@ const migrate = async (summary: string[], dryRun: boolean) => {
 }
 ```
 
-### Schema Evolution Examples
+### Schema evolution examples
 
 Key migrations that shaped the current schema:
 
-#### User Preferences Enhancement
+#### User preferences enhancement
 
 ```sql
 -- Migration 019: Add keyboard shortcuts preference
@@ -178,7 +178,7 @@ ALTER TABLE "user" ADD COLUMN "areKeyboardShortcutsEnabled" BOOLEAN;
 ALTER TABLE "user" ADD COLUMN "showUiLabels" BOOLEAN;
 ```
 
-#### File Sharing and Collaboration
+#### File sharing and collaboration
 
 ```sql
 -- Migration 006: Soft deletion support
@@ -191,7 +191,7 @@ ALTER TABLE "file_state" ADD COLUMN "isPinned" BOOLEAN;
 ALTER TABLE "file_state" ADD COLUMN "isFileOwner" BOOLEAN;
 ```
 
-#### Asset Management
+#### Asset management
 
 ```sql
 -- Migration 010: Asset information
@@ -204,7 +204,7 @@ CREATE TABLE "asset" (
 );
 ```
 
-### Database Triggers
+### Database triggers
 
 Automated data consistency through triggers:
 
@@ -226,9 +226,9 @@ FOR EACH ROW
 EXECUTE FUNCTION delete_file_states();
 ```
 
-## Development Environment
+## Development lEnvironment
 
-### Docker Composition
+### Docker composition
 
 Local development stack with Docker Compose:
 
@@ -261,7 +261,7 @@ services:
       DATABASE_URL: postgres://user:password@zstart_postgres:5432/postgres
 ```
 
-### Development Workflow
+### Development workflow
 
 ```bash
 # Start the complete development environment
@@ -274,7 +274,7 @@ yarn dev
 # 4. Zero cache server
 ```
 
-#### Schema Bundling
+#### Schema bundling
 
 Dynamic schema compilation for Zero:
 
@@ -290,7 +290,7 @@ nodemon --watch ./.schema.js \
   --signal SIGINT
 ```
 
-### Environment Management
+### Environment lManagement
 
 Environment variables for different deployment stages:
 
@@ -301,7 +301,7 @@ BOTCOM_POSTGRES_POOLED_CONNECTION_STRING="postgresql://user:password@127.0.0.1:6
 ZERO_REPLICA_FILE="/tmp/sync-replica.db"
 ```
 
-#### Production (Fly.io Template)
+#### Production (Fly.io template)
 
 ```toml
 [env]
@@ -314,9 +314,9 @@ ZERO_PUSH_URL = "__ZERO_PUSH_URL"
 ZERO_LAZY_STARTUP = 'true'
 ```
 
-## Data Model and Relationships
+## Data model and relationships
 
-### User Management
+### User lManagement
 
 Complete user profile and preferences:
 
@@ -355,7 +355,7 @@ interface User {
 }
 ```
 
-### File Management
+### File management
 
 Comprehensive file metadata and sharing:
 
@@ -386,7 +386,7 @@ interface File {
 }
 ```
 
-### User-File Relationships
+### User-File relationships
 
 Per-user file interaction state:
 
@@ -409,7 +409,7 @@ interface FileState {
 }
 ```
 
-### Mutation Tracking
+### Mutation lTracking
 
 Change tracking for synchronization:
 
@@ -420,13 +420,13 @@ interface UserMutationNumber {
 }
 ```
 
-## Real-Time Synchronization
+## Real-Time synchronization
 
-### Client-Server Protocol
+### Client-Server protocol
 
 Zero implements a sophisticated sync protocol:
 
-#### Initial Data Loading
+#### Initial data loading
 
 ```typescript
 // Client connects and receives initial dataset
@@ -440,7 +440,7 @@ const zero = new Zero({
 const files = await zero.query.file.where('ownerId', userId).or('shared', true).run()
 ```
 
-#### Real-Time Updates
+#### Real-Time updates
 
 ```typescript
 // Client mutations are immediately optimistic
@@ -453,7 +453,7 @@ await zero.mutate.file.update({
 // Conflicts resolved automatically using CRDTs
 ```
 
-#### Offline Support
+#### Offline support
 
 ```typescript
 // Zero maintains local state during disconnection
@@ -461,7 +461,7 @@ await zero.mutate.file.update({
 // Handles conflict resolution upon reconnection
 ```
 
-### Conflict Resolution Strategies
+### Conflict resolution strategies
 
 Zero employs multiple conflict resolution approaches:
 
@@ -476,7 +476,7 @@ if (serverChange.timestamp > localChange.timestamp) {
 }
 ```
 
-#### Causal Consistency
+#### Causal consistency
 
 ```typescript
 // Operations maintain causal ordering
@@ -484,7 +484,7 @@ if (serverChange.timestamp > localChange.timestamp) {
 // Prevents causality violations
 ```
 
-#### Set-based CRDTs
+#### Set-based cRDTs
 
 ```typescript
 // Collections use add/remove semantics
@@ -492,13 +492,13 @@ if (serverChange.timestamp > localChange.timestamp) {
 // No conflicts for set operations
 ```
 
-## Production Deployment
+## Production deployment
 
-### Fly.io Configuration
+### Fly.io configuration
 
 The zero-cache deploys to Fly.io with specialized configuration:
 
-#### Resource Allocation
+#### Resource allocation
 
 ```toml
 [[vm]]
@@ -513,7 +513,7 @@ auto_stop_machines = "off"     # Always-on for real-time sync
 min_machines_running = 1       # High availability
 ```
 
-#### Persistent Storage
+#### Persistent storage
 
 ```toml
 [mounts]
@@ -521,7 +521,7 @@ source = "sqlite_db"          # Persistent volume for replica
 destination = "/data"         # Mount point for SQLite file
 ```
 
-#### Health Monitoring
+#### Health monitoring
 
 ```toml
 [[http_service.checks]]
@@ -532,9 +532,9 @@ timeout = "5s"                # Request timeout
 path = "/"                    # Health check path
 ```
 
-### Production Considerations
+### Production lConsiderations
 
-#### Database Configuration
+#### Database lConfiguration
 
 ```sql
 -- Production PostgreSQL settings for logical replication
@@ -545,7 +545,7 @@ max_connections = 500                  -- High concurrency
 shared_preload_libraries = 'wal2json'  -- JSON change format
 ```
 
-#### Connection Pooling
+#### Connection pooling
 
 ```ini
 # Production PgBouncer configuration
@@ -557,7 +557,7 @@ max_prepared_statements = 50         # Statement caching
 query_wait_timeout = 30              # Timeout protection
 ```
 
-#### Monitoring and Alerting
+#### Monitoring and alerting
 
 ```typescript
 // Built-in Zero metrics
@@ -570,13 +570,13 @@ query_wait_timeout = 30              # Timeout protection
 }
 ```
 
-## Performance Optimizations
+## Performance optimizations
 
-### Caching Strategy
+### Caching strategy
 
 Multi-layer caching for optimal performance:
 
-#### Local SQLite Replica
+#### Local sQLite replica
 
 ```typescript
 // Zero maintains local copy of relevant data
@@ -585,7 +585,7 @@ Multi-layer caching for optimal performance:
 const localData = await zero.query.local.file.findMany()
 ```
 
-#### Query Optimization
+#### Query optimization
 
 ```typescript
 // Zero optimizes queries automatically
@@ -597,7 +597,7 @@ const filesWithStates = await zero.query.file
 	.run()
 ```
 
-#### Connection Efficiency
+#### Connection efficiency
 
 ```typescript
 // Single persistent connection per client
@@ -613,9 +613,9 @@ const zero = new Zero({
 })
 ```
 
-### Scalability Features
+### Scalability features
 
-#### Horizontal Scaling
+#### Horizontal scaling
 
 ```toml
 # Multiple Zero cache instances
@@ -624,7 +624,7 @@ const zero = new Zero({
 # Automatic failover and recovery
 ```
 
-#### Resource Management
+#### Resource lManagement
 
 ```typescript
 // Memory-efficient data structures
@@ -633,7 +633,7 @@ const zero = new Zero({
 // Connection pooling and reuse
 ```
 
-#### Network Optimization
+#### Network optimization
 
 ```typescript
 // Delta compression for changes
@@ -642,11 +642,11 @@ const zero = new Zero({
 // Intelligent prefetching
 ```
 
-## Maintenance and Operations
+## Maintenance and operations
 
-### Database Maintenance
+### Database maintenance
 
-#### Migration Management
+#### Migration lManagement
 
 ```bash
 # Apply new migrations
@@ -659,7 +659,7 @@ yarn migrate --dry-run
 yarn migrate --status
 ```
 
-#### Data Cleanup
+#### Data cleanup
 
 ```bash
 # Complete environment reset
@@ -671,7 +671,7 @@ yarn clean
 # - Cached schema bundles
 ```
 
-#### Backup and Recovery
+#### Backup and recovery
 
 ```sql
 -- PostgreSQL logical backup
@@ -687,9 +687,9 @@ pg_restore --verbose --clean --no-acl --no-owner \
   backup.dump
 ```
 
-### Monitoring and Debugging
+### Monitoring and debugging
 
-#### Performance Monitoring
+#### Performance lMonitoring
 
 ```typescript
 // Zero provides built-in metrics
@@ -710,7 +710,7 @@ pg_restore --verbose --clean --no-acl --no-owner \
 }
 ```
 
-#### Error Tracking
+#### Error lTracking
 
 ```typescript
 // Comprehensive error logging
@@ -724,7 +724,7 @@ zero.on('error', (error) => {
 })
 ```
 
-#### Debug Logging
+#### Debug logging
 
 ```bash
 # Enable debug logging
@@ -734,39 +734,39 @@ LOG_LEVEL=debug yarn zero-server
 LOG_LEVEL=trace yarn zero-server
 ```
 
-## Key Features
+## Key features
 
-### Real-Time Synchronization
+### Real-Time synchronization
 
 - **Instant Updates**: Changes appear immediately across all connected clients
 - **Offline Support**: Full functionality during network disconnection
 - **Conflict Resolution**: Automatic handling of concurrent modifications
 - **Selective Sync**: Only relevant data synchronized per user
 
-### Developer Experience
+### Developer experience
 
 - **Type Safety**: Full TypeScript integration with generated types
 - **Schema Evolution**: Safe database migrations with rollback support
 - **Hot Reloading**: Automatic schema updates during development
 - **Testing Support**: In-memory mode for unit testing
 
-### Production Ready
+### Production ready
 
 - **High Availability**: Multi-region deployment with failover
 - **Scalability**: Horizontal scaling across multiple instances
 - **Performance**: Sub-millisecond query responses from local cache
 - **Reliability**: Transactional consistency with automatic recovery
 
-### Data Consistency
+### Data consistency
 
 - **ACID Transactions**: Full transactional support for complex operations
 - **Causal Consistency**: Operations maintain proper ordering
 - **Eventual Consistency**: Guaranteed convergence across all clients
 - **Schema Validation**: Type-safe data with runtime validation
 
-## Integration with tldraw Ecosystem
+## Integration with tldraw ecosystem
 
-### Client Integration
+### Client integration
 
 Zero-cache integrates seamlessly with tldraw applications:
 
@@ -784,7 +784,7 @@ const useFileUpdates = (fileId: string) => {
 }
 ```
 
-### Service Architecture
+### Service architecture
 
 ```
 tldraw.com Client
@@ -801,7 +801,7 @@ SQLite Replica (Local cache)
 Client Applications (Offline-first)
 ```
 
-### Data Flow
+### Data flow
 
 ```
 User Action (Client)

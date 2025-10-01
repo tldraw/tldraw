@@ -13,14 +13,14 @@ This app builds a UMD (Universal Module Definition) library that provides:
 
 ## Architecture
 
-### Build System
+### Build lSystem
 
 - **Vite-based build**: Creates a single UMD library (`tl-analytics.js`)
 - **React components**: Built with React 18 but bundled for standalone usage
 - **CSS injection**: Styles are inlined and injected at runtime
 - **External globals**: React and ReactDOM are expected as global dependencies
 
-### Core Components
+### Core components
 
 **Analytics.tsx** - Main analytics component
 
@@ -41,7 +41,7 @@ This app builds a UMD (Universal Module Definition) library that provides:
 - Provides functions: `page()`, `identify()`, `track()`, `gtag()`, `openPrivacySettings()`
 - Handles DOM injection and component initialization
 
-### Analytics Providers
+### Analytics providers
 
 **PostHog**
 
@@ -110,21 +110,21 @@ The built library is designed to be included via script tag:
 </script>
 ```
 
-## Privacy & Compliance
+## Privacy & compliance
 
-### Cookie Management
+### Cookie lManagement
 
 - Uses `allowTracking` cookie to store consent
 - Three states: 'unknown', 'opted-in', 'opted-out'
 - Consent banner appears only for 'unknown' state
 
-### Data Collection
+### Data collection
 
 - **Without consent**: Anonymous, memory-only tracking
 - **With consent**: Full tracking with persistent storage
 - **GDPR compliance**: User can opt-out at any time via privacy settings
 
-### Theme Support
+### Theme support
 
 - Automatic theme detection from document root styles
 - Observes changes to `color-scheme` CSS property

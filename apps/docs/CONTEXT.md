@@ -8,7 +8,7 @@ A Next.js application that generates comprehensive documentation for the tldraw 
 
 ## Architecture
 
-### Tech Stack
+### Tech stack
 
 - **Framework**: Next.js 15 with App Router
 - **Content**: MDX for human-written docs, auto-generated from TypeScript via API Extractor
@@ -17,14 +17,14 @@ A Next.js application that generates comprehensive documentation for the tldraw 
 - **Search**: Algolia for full-text search capabilities
 - **Themes**: Dark/light mode support via next-themes
 
-### Content Management System
+### Content management system
 
-- **Human Content**: MDX files in `/content` with frontmatter metadata
-- **Generated Content**: API docs created from TypeScript source via scripts
-- **Database Build**: SQLite populated by build scripts for fast querying
-- **File Watching**: Development mode auto-rebuilds on content changes
+- **Human content**: MDX files in `/content` with frontmatter metadata
+- **Generated content**: API docs created from TypeScript source via scripts
+- **Database build**: SQLite populated by build scripts for fast querying
+- **File watching**: Development mode auto-rebuilds on content changes
 
-## Directory Structure
+## Directory structure
 
 ```
 apps/docs/
@@ -46,9 +46,9 @@ apps/docs/
 └── api/                # API routes
 ```
 
-## Content Architecture
+## Content architecture
 
-### Section System
+### Section system
 
 Content is organized into sections defined in `sections.json`:
 
@@ -59,21 +59,21 @@ Content is organized into sections defined in `sections.json`:
 - **blog**: News and updates
 - **legal**: Terms and policies
 
-### Content Types
+### Content types
 
-**Human-Written Content** (`/content/docs`, `/content/getting-started`, etc.):
+**Human-written content** (`/content/docs`, `/content/getting-started`, etc.):
 
 - MDX files with frontmatter metadata
 - Manual curation and organization
 - Includes examples, tutorials, guides
 
-**Auto-Generated Content** (`/content/reference`):
+**Auto-generated content** (`/content/reference`):
 
 - Generated from TypeScript source via API Extractor
 - Covers all public APIs across tldraw packages
 - Automatically updated with code changes
 
-### Frontmatter Schema
+### Frontmatter schema
 
 ```yaml
 title: "Article Title"
@@ -87,34 +87,34 @@ keywords: ["tag1", "tag2"] # Search keywords
 hero: "image_path" # Social media image
 ```
 
-## Build Process
+## Build process
 
-### Development Commands
+### Development commands
 
 - `yarn dev` - Development server with file watching
 - `yarn dev-docs` - Docs-specific development mode
 - `yarn watch-content` - Content file watcher only
 
-### Content Generation Pipeline
+### Content generation pipeline
 
-1. **API Source Fetching** (`fetch-api-source.ts`)
+1. **API source fetching** (`fetch-api-source.ts`)
    - Pulls TypeScript definitions from tldraw packages
    - Uses GitHub API or local files
 
-2. **API Documentation** (`create-api-markdown.ts`)
+2. **API documentation** (`create-api-markdown.ts`)
    - Processes TypeScript via API Extractor
    - Generates structured markdown for each API
 
-3. **Content Processing** (`refresh-content.ts`)
+3. **Content processing** (`refresh-content.ts`)
    - Processes all MDX files
    - Populates SQLite database
    - Builds search indices
 
-4. **Search Indexing** (`update-algolia-index.ts`)
+4. **Search indexing** (`update-algolia-index.ts`)
    - Updates Algolia search index
    - Includes content, metadata, and search keywords
 
-### Complete Build
+### Complete build
 
 ```bash
 yarn refresh-everything  # Full regeneration
@@ -122,29 +122,29 @@ yarn refresh-content     # Content only
 yarn refresh-api         # API docs only
 ```
 
-## Key Components
+## Key components
 
-### Content Rendering
+### Content rendering
 
-- **MDX Processing**: `next-mdx-remote-client` for MDX rendering
-- **Code Highlighting**: Shiki for syntax highlighting
-- **Link Handling**: Custom components for internal/external links
+- **MDX processing**: `next-mdx-remote-client` for MDX rendering
+- **Code highlighting**: Shiki for syntax highlighting
+- **Link handling**: Custom components for internal/external links
 
-### Search Implementation
+### Search implementation
 
-- **Algolia Integration**: Full-text search across all content
+- **Algolia integration**: Full-text search across all content
 - **InstantSearch**: Real-time search UI components
-- **Faceted Search**: Filter by content type, section, tags
+- **Faceted search**: Filter by content type, section, tags
 
 ### Navigation
 
-- **Dynamic Sidebar**: Generated from content structure
+- **Dynamic sidebar**: Generated from content structure
 - **Breadcrumbs**: Contextual navigation
-- **Section Organization**: Hierarchical content browsing
+- **Section organization**: Hierarchical content browsing
 
-## API Reference Generation
+## API reference generation
 
-### Source Processing
+### Source processing
 
 Uses Microsoft API Extractor to process TypeScript:
 
@@ -152,7 +152,7 @@ Uses Microsoft API Extractor to process TypeScript:
 - Generates structured documentation data
 - Maintains type information and relationships
 
-### Package Coverage
+### Package coverage
 
 Generates docs for all major tldraw packages:
 
@@ -164,23 +164,23 @@ Generates docs for all major tldraw packages:
 - `@tldraw/tlschema` - Type definitions
 - `@tldraw/validate` - Validation utilities
 
-### Documentation Structure
+### Documentation structure
 
 - **Classes**: Methods, properties, inheritance
 - **Functions**: Parameters, return types, examples
 - **Types**: Interface definitions, type aliases
 - **Enums**: Values and descriptions
 
-## Development Workflow
+## Development workflow
 
-### Content Development
+### Content development
 
 1. Write/edit MDX files in appropriate `/content` subdirectory
 2. Use proper frontmatter with required fields
 3. File watcher auto-rebuilds during development
 4. Test locally before committing
 
-### API Documentation Updates
+### API documentation updates
 
 1. Changes to TypeScript source trigger regeneration
 2. Run `yarn refresh-api` to update API docs
@@ -190,45 +190,45 @@ Generates docs for all major tldraw packages:
 ### Deployment
 
 - **Build**: `yarn build` generates static site
-- **Content Validation**: Link checking, broken reference detection
+- **Content validation**: Link checking, broken reference detection
 - **Search**: Algolia index updates during build
 - **Assets**: Optimized images, fonts, and static resources
 
-## Integration Points
+## Integration points
 
-### With Main Repository
+### With main repository
 
-- **Source Dependency**: Reads from tldraw package builds
-- **Version Sync**: Tracks main repository releases
-- **Asset Sharing**: Uses shared icons, fonts from `/assets`
+- **Source dependency**: Reads from tldraw package builds
+- **Version sync**: Tracks main repository releases
+- **Asset sharing**: Uses shared icons, fonts from `/assets`
 
-### External Services
+### External services
 
 - **Algolia**: Search indexing and querying
 - **GitHub API**: Source code fetching for API docs
 - **Analytics**: User interaction tracking
 
-## Performance Considerations
+## Performance considerations
 
-### Static Generation
+### Static generation
 
 - Most pages pre-rendered at build time
 - Dynamic content cached in SQLite
 - Incremental Static Regeneration for updates
 
-### Search Optimization
+### Search optimization
 
 - Algolia handles search queries
 - Client-side search UI components
 - Debounced search input for performance
 
-### Asset Optimization
+### Asset optimization
 
 - Next.js automatic image optimization
 - Font subsetting and preloading
 - CSS optimization and purging
 
-## Key Files
+## Key files
 
 **Configuration**:
 
@@ -236,13 +236,13 @@ Generates docs for all major tldraw packages:
 - `tailwind.config.js` - Styling configuration
 - `tsconfig.json` - TypeScript settings
 
-**Content Management**:
+**Content management**:
 
 - `content/sections.json` - Content organization
 - `content/authors.json` - Author metadata
 - `watcher.ts` - Development file watching
 
-**Build Scripts**:
+**Build scripts**:
 
 - `scripts/refresh-content.ts` - Content processing
 - `scripts/create-api-markdown.ts` - API doc generation

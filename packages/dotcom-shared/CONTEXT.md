@@ -6,11 +6,11 @@ The `@tldraw/dotcom-shared` package contains shared code between the tldraw.com 
 
 ## Architecture
 
-### Database Schema (`tlaSchema.ts`)
+### Database schema (`tlaSchema.ts`)
 
 Comprehensive data model using Rocicorp Zero for real-time collaboration:
 
-#### Core Tables
+#### Core tables
 
 ```typescript
 // User Management
@@ -112,11 +112,11 @@ const fileStateRelationships = relationships(file_state, ({ one }) => ({
 }))
 ```
 
-### Optimistic State Management (`OptimisticAppStore.ts`)
+### Optimistic state management (`OptimisticAppStore.ts`)
 
 Real-time UI updates with optimistic mutations:
 
-#### Store Architecture
+#### Store lArchitecture
 
 ```typescript
 class OptimisticAppStore {
@@ -145,7 +145,7 @@ class OptimisticAppStore {
 }
 ```
 
-#### Optimistic Update Flow
+#### Optimistic update flow
 
 ```typescript
 // 1. Apply optimistic update immediately for instant UI
@@ -169,7 +169,7 @@ rejectMutation(mutationId: string) {
 }
 ```
 
-#### Data Synchronization
+#### Data synchronization
 
 ```typescript
 // Apply database updates (insert/update/delete)
@@ -200,11 +200,11 @@ applyUpdate(prev: ZStoreData, update: ZRowUpdate): ZStoreData {
 }
 ```
 
-### Permission System
+### Permission lSystem
 
 Role-based access control for collaborative features:
 
-#### User Permissions
+#### User permissions
 
 ```typescript
 const permissions = definePermissions<AuthData, TlaSchema>(schema, () => {
@@ -232,11 +232,11 @@ const permissions = definePermissions<AuthData, TlaSchema>(schema, () => {
 })
 ```
 
-### Mutation System (`mutators.ts`)
+### Mutation system (`mutators.ts`)
 
 Type-safe database operations with validation:
 
-#### User Mutations
+#### User mutations
 
 ```typescript
 user: {
@@ -252,7 +252,7 @@ user: {
 }
 ```
 
-#### File Mutations
+#### File mutations
 
 ```typescript
 file: {
@@ -286,7 +286,7 @@ file: {
 }
 ```
 
-#### Data Protection
+#### Data protection
 
 ```typescript
 // Prevent modification of immutable columns
@@ -307,7 +307,7 @@ function disallowImmutableMutations(data, immutableColumns) {
 
 Comprehensive type definitions for client-server communication:
 
-#### Room Management
+#### Room lManagement
 
 ```typescript
 interface CreateRoomRequestBody {
@@ -326,7 +326,7 @@ type CreateSnapshotResponseBody =
 	| { error: true; message: string }
 ```
 
-#### File Operations
+#### File lOperations
 
 ```typescript
 interface CreateFilesRequestBody {
@@ -339,7 +339,7 @@ type CreateFilesResponseBody = { error: false; slugs: string[] } | { error: true
 type PublishFileResponseBody = { error: false } | { error: true; message: string }
 ```
 
-#### Real-Time Communication
+#### Real-Time communication
 
 ```typescript
 // Server to Client
@@ -358,9 +358,9 @@ interface ZClientSentMessage {
 }
 ```
 
-### Configuration and Constants
+### Configuration and constants
 
-#### Room Management (`routes.ts`)
+#### Room management (`routes.ts`)
 
 URL routing patterns for different room types:
 
@@ -386,16 +386,16 @@ const RoomOpenModeToPath = {
 }
 ```
 
-#### Application Limits (`constants.ts`)
+#### Application limits (`constants.ts`)
 
 ```typescript
 const MAX_NUMBER_OF_FILES = 200 // Per-user file limit
 const ROOM_SIZE_LIMIT_MB = 25 // Room data size limit
 ```
 
-### Error Handling
+### Error handling
 
-#### Error Code System
+#### Error lCode lSystem
 
 ```typescript
 const ZErrorCode = stringEnum(
@@ -411,7 +411,7 @@ const ZErrorCode = stringEnum(
 )
 ```
 
-#### Validation and Assertions
+#### Validation and assertions
 
 ```typescript
 // File limit enforcement
@@ -428,21 +428,21 @@ assert(file.id.length <= 32, ZErrorCode.bad_request)
 assert(file.id.length >= 16, ZErrorCode.bad_request)
 ```
 
-## Key Features
+## Key features
 
-### Real-Time Collaboration
+### Real-Time collaboration
 
 **Optimistic Updates**: Immediate UI response while server processes changes
 **Conflict Resolution**: Automatic handling of concurrent modifications
 **Live Sync**: Real-time data synchronization across multiple clients
 
-### File Management
+### File management
 
 **Ownership Model**: Clear file ownership with sharing capabilities
 **Access Control**: Permission-based file access for collaboration
 **State Tracking**: Per-user file interaction history and preferences
 
-### User Experience
+### User experience
 
 **Preferences Sync**: User settings synchronized across devices
 **Export Options**: Customizable export formats and themes
@@ -454,9 +454,9 @@ assert(file.id.length >= 16, ZErrorCode.bad_request)
 **Authorization**: Row-level security with permission expressions
 **Data Isolation**: Users can only access permitted data
 
-## Data Flow Patterns
+## Data lFlow lPatterns
 
-### Mutation Flow
+### Mutation flow
 
 ```typescript
 // 1. Client initiates mutation
@@ -476,7 +476,7 @@ websocket.send({
 // Failure: { type: 'reject', mutationId, errorCode: 'forbidden' }
 ```
 
-### File Sharing
+### File sharing
 
 ```typescript
 // Owner shares file
@@ -494,7 +494,7 @@ await mutators.file_state.insert({
 })
 ```
 
-### Permission Enforcement
+### Permission enforcement
 
 ```typescript
 // File access check
@@ -508,13 +508,13 @@ const userCanAccessFile = (authData, { exists, and, cmp, or }) =>
 	)
 ```
 
-## Protocol Communication
+## Protocol communication
 
 ### WebSocket Protocol
 
 Bi-directional communication for real-time collaboration:
 
-#### Server Messages
+#### Server messages
 
 ```typescript
 // Initial data load
@@ -530,7 +530,7 @@ Bi-directional communication for real-time collaboration:
 { type: 'reject', mutationId: string, errorCode: ZErrorCode }
 ```
 
-#### Client Messages
+#### Client messages
 
 ```typescript
 // Mutation requests
@@ -542,7 +542,7 @@ Bi-directional communication for real-time collaboration:
 }
 ```
 
-### Version Management
+### Version management
 
 ```typescript
 // Protocol versioning for backwards compatibility
@@ -555,9 +555,9 @@ if (clientVersion < MIN_Z_PROTOCOL_VERSION) {
 }
 ```
 
-## User Preferences System
+## User lPreferences lSystem
 
-### Preferences Schema
+### Preferences schema
 
 Comprehensive user customization options:
 
@@ -578,7 +578,7 @@ const UserPreferencesKeys = [
 ] as const satisfies Array<keyof TlaUser>
 ```
 
-### Export Configuration
+### Export lConfiguration
 
 ```typescript
 interface TlaUser {
@@ -589,9 +589,9 @@ interface TlaUser {
 }
 ```
 
-## File Lifecycle
+## File lifecycle
 
-### File Creation
+### File creation
 
 ```typescript
 // Create file with initial state
@@ -616,7 +616,7 @@ await mutators.file.insertWithFileState({
 })
 ```
 
-### File Deletion
+### File deletion
 
 ```typescript
 // Soft delete preserving history
@@ -626,7 +626,7 @@ await mutators.file.deleteOrForget(file)
 // If collaborator: removes only user's file_state
 ```
 
-### Publishing System
+### Publishing system
 
 ```typescript
 // Publish for public access
@@ -638,9 +638,9 @@ await mutators.file.update({
 })
 ```
 
-## Feedback System
+## Feedback lSystem
 
-### User Feedback Collection
+### User feedback collection
 
 ```typescript
 interface SubmitFeedbackRequestBody {
@@ -652,9 +652,9 @@ interface SubmitFeedbackRequestBody {
 const MAX_PROBLEM_DESCRIPTION_LENGTH = 2000
 ```
 
-## License Management
+## License lManagement
 
-### License Key System
+### License lKey lSystem
 
 ```typescript
 // License validation for pro features
@@ -664,16 +664,16 @@ export default function getLicenseKey(): string | null {
 }
 ```
 
-## Key Benefits
+## Key benefits
 
-### Developer Experience
+### Developer experience
 
 - **Type Safety**: Full TypeScript definitions for all operations
 - **Real-Time**: Optimistic updates for instant UI feedback
 - **Scalable**: Designed for thousands of concurrent users
 - **Reliable**: Automatic conflict resolution and error recovery
 
-### User Experience
+### User experience
 
 - **Instant Updates**: Changes appear immediately while syncing
 - **Offline Resilience**: Optimistic updates work during network issues

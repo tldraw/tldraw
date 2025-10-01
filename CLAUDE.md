@@ -2,13 +2,13 @@
 
 This file provides guidance to Claude Code (claude.ai/code) when working with code in this repository.
 
-## Repository Overview
+## Repository overview
 
 This is the tldraw monorepo - an infinite canvas SDK for React applications. It's organized using yarn workspaces with packages for the core editor, UI components, shapes, tools, and supporting infrastructure.
 
 **Important**: There are CONTEXT.md files throughout this repository designed specifically for AI agents. Always read the relevant CONTEXT.md files to understand packages and their architecture.
 
-## Essential Commands
+## Essential commands
 
 ### Development
 
@@ -27,7 +27,7 @@ This is the tldraw monorepo - an infinite canvas SDK for React applications. It'
 - `yarn e2e` - Run end-to-end tests for examples
 - `yarn e2e-dotcom` - Run end-to-end tests for tldraw.com
 
-### Code Quality
+### Code quality
 
 - `yarn lint` - Lint package
 - `yarn typecheck` in workspace root - Type check all packages
@@ -37,9 +37,9 @@ This is the tldraw monorepo - an infinite canvas SDK for React applications. It'
 IMPORTANT: NEVER run bare `tsc` - always use `yarn typecheck`.
 If the `typecheck` command is not found, it's because you're not running it from the root of the repo.
 
-## Architecture Overview
+## Architecture overview
 
-### Core Packages Structure
+### Core packages structure
 
 **@tldraw/editor** - Foundational infinite canvas editor
 
@@ -67,52 +67,52 @@ If the `typecheck` command is not found, it's because you're not running it from
 - Validation schemas and migrations
 - Shared data structures
 
-### Key Architectural Patterns
+### Key architectural patterns
 
-**Reactive State Management**
+**Reactive state management**
 
 - Uses @tldraw/state for reactive signals (Atom, Computed)
 - All editor state is reactive and observable
 - Automatic dependency tracking prevents unnecessary re-renders
 
-**Shape System**
+**Shape system**
 
 - Each shape type has a ShapeUtil class defining behavior
 - ShapeUtil handles geometry, rendering, interactions
 - Extensible - custom shapes via new ShapeUtil implementations
 
-**Tools as State Machines**
+**Tools as state machines**
 
 - Tools implemented as StateNode hierarchies
 - Event-driven with pointer, keyboard, tick handlers
 - Complex tools have child states (e.g., SelectTool has Brushing, Translating, etc.)
 
-**Bindings System**
+**Bindings system**
 
 - Relationships between shapes (arrows to shapes, etc.)
 - BindingUtil classes define binding behavior
 - Automatic updates when connected shapes change
 
-## Testing Patterns
+## Testing patterns
 
-**Vitest Tests**
+**Vitest tests**
 
 - Unit tests: name test files after the file being tested (e.g., `LicenseManager.test.ts`)
 - Integration tests: use `src/test/feature-name.test.ts` format
 - Test in tldraw workspace if you need default shapes/tools
 
-**Running Tests**
+**Running tests**
 
 - Run from specific workspace directory: `cd packages/editor && yarn test run`
 - Filter with additional args: `yarn test run --grep "selection"`
 - Avoid `yarn test` from root (slow and hard to filter)
 
-**Playwright E2E Tests**
+**Playwright E2E tests**
 
 - Located in `apps/examples/e2e/` and `apps/dotcom/client/e2e/`
 - Use `yarn e2e` and `yarn e2e-dotcom` commands
 
-## Development Workspace Structure
+## Development workspace structure
 
 ```
 apps/
@@ -139,7 +139,7 @@ packages/
 templates/            # Starter templates for different frameworks
 ```
 
-## Build System (LazyRepo)
+## Build system (LazyRepo)
 
 Uses `lazyrepo` for incremental builds with caching:
 
@@ -148,7 +148,7 @@ Uses `lazyrepo` for incremental builds with caching:
 - Caching based on file inputs/outputs
 - Parallel execution where possible
 
-## Key Development Notes
+## Key development notes
 
 **TypeScript**
 
@@ -156,48 +156,48 @@ Uses `lazyrepo` for incremental builds with caching:
 - Run `yarn typecheck` before commits
 - API surface validated with Microsoft API Extractor
 
-**Monorepo Management**
+**Monorepo management**
 
 - Yarn workspaces with berry (yarn 4.x)
 - Use `yarn` not `npm` - packageManager field enforces this
 - Dependencies managed at workspace level where possible
 
-**Asset Management**
+**Asset management**
 
 - Icons, fonts, translations in `/assets` (managed centrally)
 - Run `yarn refresh-assets` after asset changes
 - Assets bundled into packages during build
 - Automatic optimization and deduplication
 
-**Example Development**
+**Example development**
 
 - Main development happens in `apps/examples`
 - Examples showcase SDK capabilities
 - See `apps/examples/writing-examples.md` for guidelines
 
-## Creating New Components
+## Creating new components
 
-**Custom Shapes**
+**Custom shapes**
 
 1. Create ShapeUtil class extending base ShapeUtil
 2. Implement required methods (getGeometry, component, indicator)
 3. Register in editor via shapeUtils prop
 
-**Custom Tools**
+**Custom tools**
 
 1. Create StateNode class with tool logic
 2. Define state machine with onEnter/onExit/event handlers
 3. Register in editor via tools prop
 
-**UI Customization**
+**UI customization**
 
 - Every tldraw UI component can be overridden
 - Pass custom components via `components` prop
 - See existing components for patterns
 
-## Integration Notes
+## Integration notes
 
-**With External Apps**
+**With external apps**
 
 - Import CSS: `import 'tldraw/tldraw.css'` (full) or `import '@tldraw/editor/editor.css'` (editor only)
 - Requires React 18+ and modern bundler

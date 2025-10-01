@@ -6,9 +6,9 @@ The `@tldraw/assets` package contains all static assets used by tldraw, includin
 
 ## Architecture
 
-### Asset Categories
+### Asset categories
 
-#### Icons System
+#### Icons lSystem
 
 Single SVG sprite with fragment identifiers for efficient icon delivery:
 
@@ -30,7 +30,7 @@ icons: {
 - **UI Icons**: `chevron-*`, `align-*`, `zoom-*`, `undo`, `redo`, etc.
 - **Action Icons**: `duplicate`, `delete`, `lock`, `group`, `share`, etc.
 
-#### Typography System
+#### Typography lSystem
 
 Complete font family with multiple weights and styles:
 
@@ -62,7 +62,7 @@ fonts: {
 }
 ```
 
-#### Internationalization System
+#### Internationalization lSystem
 
 Comprehensive translation support for 40+ languages:
 
@@ -86,7 +86,7 @@ translations: {
 }
 ```
 
-#### Embed Icons
+#### Embed icons
 
 Service icons for external content embedding:
 
@@ -101,9 +101,9 @@ embedIcons: {
 }
 ```
 
-### Export Strategies
+### Export strategies
 
-#### Import-Based Assets (`imports.js`)
+#### Import-Based assets (`imports.js`)
 
 Direct ES module imports for bundler optimization:
 
@@ -123,7 +123,7 @@ export function getAssetUrlsByImport(opts) {
 }
 ```
 
-#### URL-Based Assets (`urls.js`)
+#### URL-Based assets (`urls.js`)
 
 Runtime URL generation using `import.meta.url`:
 
@@ -140,7 +140,7 @@ export function getAssetUrlsByMetaUrl(opts) {
 }
 ```
 
-#### Self-Hosted Assets (`selfHosted.js`)
+#### Self-Hosted assets (`selfHosted.js`)
 
 Relative path resolution for custom hosting:
 
@@ -154,7 +154,7 @@ export function getAssetUrls(opts) {
 }
 ```
 
-### Asset URL Formatting
+### Asset uRL formatting
 
 #### `formatAssetUrl` Utility
 
@@ -187,9 +187,9 @@ function formatAssetUrl(assetUrl: AssetUrl, format: AssetUrlOptions = {}) {
 - **Development**: Serve assets from local dev server
 - **Self-Hosting**: Package assets with application bundle
 
-### Type System
+### Type lSystem
 
-#### Asset URL Types
+#### Asset uRL types
 
 Type-safe asset URL handling:
 
@@ -205,9 +205,9 @@ interface AssetUrls {
 }
 ```
 
-### Build System Integration
+### Build lSystem lIntegration
 
-#### Automatic Generation
+#### Automatic generation
 
 Asset exports are automatically generated from source files:
 
@@ -223,7 +223,7 @@ Asset exports are automatically generated from source files:
 - `selfHosted.js` + `selfHosted.d.ts` - relative path resolution
 - `types.d.ts` - TypeScript definitions
 
-#### Vite-Specific Exports
+#### Vite-Specific exports
 
 Special handling for Vite bundler:
 
@@ -232,9 +232,9 @@ Special handling for Vite bundler:
 // imports.vite.d.ts - Vite-specific type definitions
 ```
 
-## Language Support
+## Language support
 
-### Translation Architecture
+### Translation lArchitecture
 
 Comprehensive internationalization with regional variants:
 
@@ -257,7 +257,7 @@ Comprehensive internationalization with regional variants:
 }
 ```
 
-### Language Metadata
+### Language metadata
 
 Centralized language configuration:
 
@@ -270,9 +270,9 @@ Centralized language configuration:
 ]
 ```
 
-## External Service Integration
+## External lService lIntegration
 
-### Embed Service Icons
+### Embed service icons
 
 Visual branding for embedded content:
 
@@ -295,9 +295,9 @@ embedIcons: {
 }
 ```
 
-## Performance Optimizations
+## Performance optimizations
 
-### Icon Sprite System
+### Icon lSprite lSystem
 
 All icons merged into single SVG sprite for optimal loading:
 
@@ -318,7 +318,7 @@ All icons merged into single SVG sprite for optimal loading:
 - **Fragment Addressing**: Access via `#icon-name`
 - **Bundle Optimization**: Unused icons can be tree-shaken
 
-### Font Loading Strategy
+### Font lLoading lStrategy
 
 Optimized web font delivery:
 
@@ -332,7 +332,7 @@ Optimized web font delivery:
 }
 ```
 
-### Asset Bundling Flexibility
+### Asset bundling flexibility
 
 Multiple export patterns support different bundling needs:
 
@@ -340,9 +340,9 @@ Multiple export patterns support different bundling needs:
 **URL Strategy**: Best for ESM environments with import.meta.url
 **Self-Hosted Strategy**: Best for custom asset hosting solutions
 
-## Development Workflow
+## Development workflow
 
-### Asset Pipeline
+### Asset pipeline
 
 Automated asset management and optimization:
 
@@ -352,7 +352,7 @@ Automated asset management and optimization:
 4. **Type Generation**: TypeScript definitions auto-generated
 5. **Bundle Integration**: Assets ready for different bundler strategies
 
-### Asset Updates
+### Asset updates
 
 Standardized process for asset modifications:
 
@@ -361,9 +361,9 @@ Standardized process for asset modifications:
 3. **Commit Generated**: Include auto-generated export files
 4. **Type Safety**: TypeScript ensures valid asset references
 
-## Integration Patterns
+## Integration patterns
 
-### Basic Asset Usage
+### Basic asset usage
 
 ```typescript
 import { getAssetUrlsByImport } from '@tldraw/assets/imports'
@@ -373,7 +373,7 @@ const iconUrl = assetUrls.icons['tool-pointer']
 const fontUrl = assetUrls.fonts.tldraw_sans_bold
 ```
 
-### Custom Base URL
+### Custom base uRL
 
 ```typescript
 import { getAssetUrls } from '@tldraw/assets/selfHosted'
@@ -383,7 +383,7 @@ const assetUrls = getAssetUrls({
 })
 ```
 
-### Custom URL Transformation
+### Custom uRL transformation
 
 ```typescript
 const assetUrls = getAssetUrls((assetUrl) => {
@@ -392,9 +392,9 @@ const assetUrls = getAssetUrls((assetUrl) => {
 })
 ```
 
-## Key Benefits
+## Key benefits
 
-### Asset Management
+### Asset management
 
 - **Centralized Assets**: All static resources in one package
 - **Type Safety**: TypeScript definitions for all asset references
@@ -415,7 +415,7 @@ const assetUrls = getAssetUrls((assetUrl) => {
 - **Fallback Strategy**: Graceful degradation to English
 - **Cultural Adaptation**: Right-to-left language support
 
-### Developer Experience
+### Developer experience
 
 - **Simple Integration**: Import and use pattern for all assets
 - **Build-Time Safety**: TypeScript prevents invalid asset references

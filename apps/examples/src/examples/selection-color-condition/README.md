@@ -1,5 +1,5 @@
 ---
-title: Selection Color Condition
+title: Selection color condition
 component: ./SelectionColorConditionExample.tsx
 category: ui
 priority: 3
