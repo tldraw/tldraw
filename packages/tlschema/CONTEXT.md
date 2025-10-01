@@ -130,7 +130,7 @@ Each shape defines:
 
 ### Validation system
 
-**Validation Infrastructure:**
+**Validation infrastructure:**
 
 - Built on `@tldraw/validate` for runtime type checking
 - Cascading validation from store → record → props
