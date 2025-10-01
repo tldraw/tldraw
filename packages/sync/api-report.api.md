@@ -67,7 +67,6 @@ export interface UseSyncOptionsBase {
 
 // @public (undocumented)
 export interface UseSyncOptionsWithConnectFn extends UseSyncOptionsBase {
-    // (undocumented)
     connect: UseSyncConnectFn;
     // (undocumented)
     uri?: undefined;

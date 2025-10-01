@@ -348,6 +348,11 @@ export interface UseSyncOptionsWithUri extends UseSyncOptionsBase {
 
 /** @public */
 export interface UseSyncOptionsWithConnectFn extends UseSyncOptionsBase {
+	/**
+	 * Create a connection to the server. Mostly you should use {@link UseSyncOptionsWithUri.uri}
+	 * instead, but this is useful if you want to use a custom transport to connect to the server,
+	 * instead of our default websocket-based transport.
+	 */
 	connect: UseSyncConnectFn
 	uri?: undefined
 }
