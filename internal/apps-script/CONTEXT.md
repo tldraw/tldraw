@@ -43,7 +43,7 @@ The build system:
 
 - Script ID: `1cJfZM0M_rGU-nYgG-4KR1DnERb7itkCsl1QmlqPxFvHnrz5n6Gfy8iht`
 
-## Google apps script integration
+## Google Apps Script integration
 
 ### Add-on configuration
 
