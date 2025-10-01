@@ -337,9 +337,9 @@ Different URL patterns for different use cases:
 
 ### Graceful degradation
 
-- **Cache Miss**: Falls back to origin fetch with transformations
-- **Transformation Failure**: May return original image or error
-- **Service Binding Failure**: Falls back to direct fetch mode
+- **Cache miss**: Falls back to origin fetch with transformations
+- **Transformation failure**: May return original image or error
+- **Service binding failure**: Falls back to direct fetch mode
 
 ## Performance characteristics
 
