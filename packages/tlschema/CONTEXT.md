@@ -306,7 +306,7 @@ const myShapeProps: RecordProps<MyShape> = {
 
 ### Migration best practices
 
-**Record-level Migration:**
+**Record-level migration:**
 
 ```typescript
 const recordMigrations = createRecordMigrationSequence({
