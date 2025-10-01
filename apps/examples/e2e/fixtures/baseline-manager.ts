@@ -44,12 +44,14 @@ export interface Environment {
 	browser: string
 }
 
+const __dirname = path.dirname(new URL(import.meta.url).pathname)
+
 export class BaselineManager {
 	private baselineFilePath: string
 	private regressionThreshold = 15 // Percentage
 	private warningThreshold = 10 // Percentage
 
-	constructor(baselineDir = path.join(path.dirname(import.meta.url), '..', 'baselines')) {
+	constructor(baselineDir = path.join(__dirname, '..', 'baselines')) {
 		// Ensure baseline directory exists
 		if (!fs.existsSync(baselineDir)) {
 			fs.mkdirSync(baselineDir, { recursive: true })
