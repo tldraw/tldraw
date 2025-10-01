@@ -160,8 +160,8 @@ The grouped selection system provides:
 
 - **Category Grouping**: Templates organized by framework vs application type
 - **Visual Hierarchy**: Group headers with consistent styling
-- **Detailed Descriptions**: Helpful hints for each template option
-- **Keyboard Navigation**: Standard CLI navigation patterns
+- **Detailed descriptions**: Helpful hints for each template option
+- **Keyboard navigation**: Standard CLI navigation patterns
 
 #### Template download system
 
