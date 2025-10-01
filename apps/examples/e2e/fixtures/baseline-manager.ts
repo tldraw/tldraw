@@ -49,7 +49,7 @@ export class BaselineManager {
 	private regressionThreshold = 15 // Percentage
 	private warningThreshold = 10 // Percentage
 
-	constructor(baselineDir = path.join(__dirname, '..', 'baselines')) {
+	constructor(baselineDir = path.join(path.dirname(import.meta.url), '..', 'baselines')) {
 		// Ensure baseline directory exists
 		if (!fs.existsSync(baselineDir)) {
 			fs.mkdirSync(baselineDir, { recursive: true })
