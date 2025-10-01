@@ -8,7 +8,7 @@ The `@tldraw/tldraw` package is the main "batteries included" SDK that provides 
 
 ### Core components
 
-#### `Tldraw.tsx` - main component
+#### `Tldraw.tsx` - Main component
 
 The primary component that combines the editor with the complete UI system:
 
