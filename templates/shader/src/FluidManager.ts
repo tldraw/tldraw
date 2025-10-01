@@ -17,7 +17,7 @@ const DEFAULT_DARK_MODE_COLOR_MAP: Record<string, [number, number, number]> = {
 }
 
 const DEFAULT_LIGHT_MODE_COLOR_MAP: Record<string, [number, number, number]> = {
-	black: [0, 0, 0],
+	black: [0.2, 0.2, 0.2],
 	grey: [0.25, 0.25, 0.25],
 	'light-violet': [0.45, 0.25, 0.4],
 	violet: [0.35, 0.15, 0.5],
@@ -94,7 +94,7 @@ export interface FluidManagerConfig {
 	sunraysWeight: number
 }
 
-const DEFAULT_CONFIG: FluidManagerConfig = {
+export const DEFAULT_CONFIG: FluidManagerConfig = {
 	quality: 0.5,
 	velocityScale: 0.01,
 	boundsSampleCount: 20,
@@ -188,18 +188,16 @@ export class FluidManager {
 	initialize(darkMode: boolean = false): void {
 		this.darkMode = darkMode
 
-		const resolutionScale = this.config.quality
-
 		// Set canvas internal resolution based on display size
 		const rect = this.canvas.getBoundingClientRect()
-		this.canvas.width = rect.width * resolutionScale
-		this.canvas.height = rect.height * resolutionScale
+		this.canvas.width = rect.width
+		this.canvas.height = rect.height
 
-		const backgroundColor = darkMode ? { r: 0, g: 0, b: 0 } : this.config.backColor
+		const backgroundColor = darkMode ? { r: 0, g: 0, b: 0 } : { r: 255, g: 255, b: 255 }
 
 		this.fluidSim = new FluidSimulation(this.canvas, {
-			SIM_RESOLUTION: this.config.simResolution,
-			DYE_RESOLUTION: this.config.dyeResolution,
+			SIM_RESOLUTION: this.config.quality * this.config.simResolution,
+			DYE_RESOLUTION: this.config.quality * this.config.dyeResolution,
 			DENSITY_DISSIPATION: this.config.densityDissipation,
 			VELOCITY_DISSIPATION: this.config.velocityDissipation,
 			PRESSURE: this.config.pressure,

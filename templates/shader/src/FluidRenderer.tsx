@@ -1,12 +1,16 @@
 import { memo, useLayoutEffect, useRef } from 'react'
-import { useEditor, useIsDarkMode } from 'tldraw'
-import { FluidManager, FluidManagerConfig } from './FluidManager'
+import { useEditor, useIsDarkMode, useValue } from 'tldraw'
+import { FluidManager } from './FluidManager'
+import { fluidConfig } from './fluid-config'
+import './shader.css'
 
-export const FluidRenderer = memo(({ config = {} }: { config?: Partial<FluidManagerConfig> }) => {
+export const FluidRenderer = memo(() => {
 	const editor = useEditor()
 	const rCanvas = useRef<HTMLCanvasElement>(null)
 	const rFluidManager = useRef<FluidManager | null>(null)
 	const darkMode = useIsDarkMode()
+
+	const config = useValue('config', () => fluidConfig.get(), [])
 
 	// Initialize FluidManager
 	useLayoutEffect(() => {
@@ -45,24 +49,7 @@ export const FluidRenderer = memo(({ config = {} }: { config?: Partial<FluidMana
 			manager.dispose()
 			rFluidManager.current = null
 		}
-
-		return () => {
-			manager.dispose()
-			rFluidManager.current = null
-		}
 	}, [darkMode, editor, config])
 
-	return (
-		<canvas
-			ref={rCanvas}
-			style={{
-				position: 'absolute',
-				top: 0,
-				left: 0,
-				width: '100%',
-				height: '100%',
-				zIndex: 1000,
-			}}
-		/>
-	)
+	return <canvas ref={rCanvas} className="shader-canvas" />
 })

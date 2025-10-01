@@ -950,68 +950,11 @@ export class FluidSimulation {
 	}
 
 	private generateColor(modifier: number = 1): [number, number, number] {
-		// let c = this.HSVtoRGB(Math.random(), 1.0, 0.25)
-		// c.r *= 0.5
-		// c.g *= 0.5
-		// c.b *= 2
-
 		let r = Math.random() * 0.4 * modifier
 		let g = Math.random() * 0.4 * modifier
 		let b = Math.random() * 0.7 * modifier
-		// if (r < 0.2 && g < 0.2 && b < 0.2) {
-		// 	b = 1
-		// }
 		return [r, g, b]
 	}
-
-	// private HSVtoRGB(h: number, s: number, v: number) {
-	// 	let r: number, g: number, b: number, i: number, f: number, p: number, q: number, t: number
-	// 	i = Math.floor(h * 6)
-	// 	f = h * 6 - i
-	// 	p = v * (1 - s)
-	// 	q = v * (1 - f * s)
-	// 	t = v * (1 - (1 - f) * s)
-
-	// 	switch (i % 6) {
-	// 		case 0:
-	// 			r = v
-	// 			g = t
-	// 			b = p
-	// 			break
-	// 		case 1:
-	// 			r = q
-	// 			g = v
-	// 			b = p
-	// 			break
-	// 		case 2:
-	// 			r = p
-	// 			g = v
-	// 			b = t
-	// 			break
-	// 		case 3:
-	// 			r = p
-	// 			g = q
-	// 			b = v
-	// 			break
-	// 		case 4:
-	// 			r = t
-	// 			g = p
-	// 			b = v
-	// 			break
-	// 		case 5:
-	// 			r = v
-	// 			g = p
-	// 			b = q
-	// 			break
-	// 		default:
-	// 			r = 0
-	// 			g = 0
-	// 			b = 0
-	// 			break
-	// 	}
-
-	// 	return { r, g, b }
-	// }
 
 	private resizeCanvas() {
 		let width = this.scaleByPixelRatio(this.canvas.clientWidth)

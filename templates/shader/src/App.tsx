@@ -1,13 +1,22 @@
-import { Tldraw } from 'tldraw'
+import { DefaultStylePanel, Tldraw } from 'tldraw'
+import { ConfigPanel } from './ConfigPanel'
 import { FluidRenderer } from './FluidRenderer'
 
 function App() {
 	return (
-		<div style={{ position: 'fixed', inset: 0 }}>
+		<div className="shader-app">
 			<Tldraw
 				persistenceKey="shader"
 				components={{
 					Background: FluidRenderer,
+					StylePanel: () => {
+						return (
+							<div style={{ display: 'flex', flexDirection: 'row' }}>
+								<ConfigPanel />
+								<DefaultStylePanel />
+							</div>
+						)
+					},
 				}}
 			/>
 		</div>
