@@ -81,7 +81,7 @@ Client Request → Cloudflare Edge → Worker → R2 Storage
 
 ### Caching strategy
 
-- **Cloudflare Cache**: Automatic edge caching for GET requests
+- **Cloudflare cache**: Automatic edge caching for GET requests
 - **Cache keys**: Full URL with headers for proper invalidation
 - **Range support**: Efficient streaming for large assets
 - **ETag headers**: For conditional requests and validation
