@@ -324,8 +324,8 @@ tldraw.com (Client)
 Different URL patterns for different use cases:
 
 - **Direct assets**: `/assets.tldraw.com/uploads/file.png`
-- **Multiplayer Assets**: `/localhost:3000/api/uploads/file.png`
-- **Published Content**: Various origins ending in `.tldraw.com`
+- **Multiplayer assets**: `/localhost:3000/api/uploads/file.png`
+- **Published content**: Various origins ending in `.tldraw.com`
 
 ## Error handling
 
