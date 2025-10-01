@@ -26,8 +26,8 @@ class Validator<T> implements Validatable<T> {
 
 Key features:
 
-- **Performance Optimization**: `validateUsingKnownGoodVersion` avoids re-validating unchanged parts
-- **Type Safety**: Maintains TypeScript type information through validation
+- **Performance optimization**: `validateUsingKnownGoodVersion` avoids re-validating unchanged parts
+- **Type safety**: Maintains TypeScript type information through validation
 - **Composability**: Chain validators with `refine` and `check`
 - **Nullability**: Easy nullable/optional variants
 
@@ -46,9 +46,9 @@ class ValidationError extends Error {
 
 Features:
 
-- **Path Tracking**: Shows exactly where in nested objects validation failed
-- **Formatted Messages**: Human-readable error descriptions
-- **Stack Trace Integration**: Proper error reporting for debugging
+- **Path tracking**: Shows exactly where in nested objects validation failed
+- **Formatted messages**: Human-readable error descriptions
+- **Stack trace integration**: Proper error reporting for debugging
 
 ### Primitive validators
 
@@ -122,9 +122,9 @@ const personValidator = object({
 
 Features:
 
-- **Property Validation**: Each property validated with its own validator
-- **Unknown Property Handling**: Strict by default, configurable
-- **Extension Support**: Compose validators via extension
+- **Property validation**: Each property validated with its own validator
+- **Unknown property handling**: Strict by default, configurable
+- **Extension support**: Compose validators via extension
 - **Performance**: Optimized validation using known good values
 
 #### `ArrayOfValidator<T>` - array content validation
@@ -229,24 +229,24 @@ nullable<T>(validator: Validatable<T>): Validator<T | null>
 
 The `validateUsingKnownGoodVersion` method provides significant performance benefits:
 
-- **Structural Sharing**: Returns the previous value if validation passes and no changes detected
-- **Partial Validation**: Only validates changed parts of complex structures
-- **Reference Equality**: Uses `Object.is()` for quick equality checks
-- **Early Returns**: Avoids expensive validation when possible
+- **Structural sharing**: Returns the previous value if validation passes and no changes detected
+- **Partial validation**: Only validates changed parts of complex structures
+- **Reference equality**: Uses `Object.is()` for quick equality checks
+- **Early returns**: Avoids expensive validation when possible
 
 ### Efficient object processing
 
-- **Property Iteration**: Optimized loops for object validation
-- **Error Path Building**: Lazy path construction for error reporting
-- **Type Guards**: Fast runtime type checking
+- **Property iteration**: Optimized loops for object validation
+- **Error path building**: Lazy path construction for error reporting
+- **Type guards**: Fast runtime type checking
 
 ## Error handling
 
 ### Detailed error messages
 
-- **Type Information**: Clear description of expected vs actual types
-- **Path Context**: Exact location of validation failure in nested structures
-- **Custom Messages**: Support for domain-specific error descriptions
+- **Type information**: Clear description of expected vs actual types
+- **Path context**: Exact location of validation failure in nested structures
+- **Custom messages**: Support for domain-specific error descriptions
 
 ### Error path formatting
 
@@ -305,27 +305,27 @@ const migrationValidator = T.object({
 
 ### Type safety first
 
-- **Compile-Time**: Full TypeScript support with proper type inference
+- **Compile-time**: Full TypeScript support with proper type inference
 - **Runtime**: Guaranteed type safety after validation passes
-- **Type Preservation**: Validators maintain exact input types when possible
+- **Type preservation**: Validators maintain exact input types when possible
 
 ### Performance conscious
 
-- **Minimal Allocations**: Reuse objects when validation passes
-- **Early Exits**: Fast paths for common cases
-- **Lazy Evaluation**: Only compute expensive operations when needed
+- **Minimal allocations**: Reuse objects when validation passes
+- **Early exits**: Fast paths for common cases
+- **Lazy evaluation**: Only compute expensive operations when needed
 
 ### Developer experience
 
 - **Clear APIs**: Intuitive method names and composition patterns
-- **Helpful Errors**: Detailed error messages with context
+- **Helpful errors**: Detailed error messages with context
 - **Composability**: Easy to build complex validators from simple ones
 
 ### Security focused
 
 - **Safe URLs**: Protocol validation prevents XSS and other attacks
-- **Input Sanitization**: Strict validation of external data
-- **No Unsafe Operations**: All validators are pure functions
+- **Input sanitization**: Strict validation of external data
+- **No unsafe operations**: All validators are pure functions
 
 ## Integration with tldraw
 

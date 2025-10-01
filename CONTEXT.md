@@ -117,7 +117,7 @@ This is a TypeScript monorepo containing the complete tldraw ecosystem - from th
 
 ### Reactive state management
 
-**@tldraw/state - Signals Architecture:**
+**@tldraw/state - Signals architecture:**
 
 - Fine-grained reactivity similar to MobX or SolidJS
 - `Atom<T>` for mutable state, `Computed<T>` for derived values
@@ -324,7 +324,7 @@ Custom incremental build system optimized for monorepos:
 
 ### Multiplayer architecture
 
-**@tldraw/sync System:**
+**@tldraw/sync system:**
 
 - WebSocket-based real-time collaboration
 - Conflict-free updates with operational transformation
@@ -379,7 +379,7 @@ Custom incremental build system optimized for monorepos:
 
 ### Integration patterns
 
-**Embedding in Applications:**
+**Embedding in applications:**
 
 - Import required CSS: `import 'tldraw/tldraw.css'` (full) or `import '@tldraw/editor/editor.css'` (editor only)
 - Requires React 18+ and modern bundler support
@@ -418,7 +418,7 @@ Custom incremental build system optimized for monorepos:
 
 ## Licensing and business model
 
-**SDK Licensing:**
+**SDK licensing:**
 
 - Open source with "Made with tldraw" watermark by default
 - Business license available for watermark removal
@@ -436,51 +436,51 @@ Custom incremental build system optimized for monorepos:
 
 **Centralized assets (`@tldraw/assets`):**
 
-- **Icon System**: 80+ icons in optimized SVG sprite format
+- **Icon system**: 80+ icons in optimized SVG sprite format
 - **Typography**: IBM Plex fonts (Sans, Serif, Mono) + Shantell Sans (handwritten)
 - **Internationalization**: 40+ languages with regional variants (RTL support)
-- **Embed Icons**: Service icons for external content (YouTube, Figma, etc.)
-- **Export Strategies**: Multiple formats (imports, URLs, self-hosted) for different bundlers
+- **Embed icons**: Service icons for external content (YouTube, Figma, etc.)
+- **Export strategies**: Multiple formats (imports, URLs, self-hosted) for different bundlers
 
 **Dynamic asset pipeline:**
 
-- **Upload Workers**: Cloudflare R2 + image optimization + format conversion (AVIF/WebP)
-- **CDN Delivery**: Global asset distribution with intelligent caching
-- **External Content**: Bookmark unfurling, embed metadata extraction
+- **Upload workers**: Cloudflare R2 + image optimization + format conversion (AVIF/WebP)
+- **CDN delivery**: Global asset distribution with intelligent caching
+- **External content**: Bookmark unfurling, embed metadata extraction
 - **Deduplication**: Hash-based asset deduplication across uploads
 
 ### Collaboration features
 
 **Real-time multiplayer:**
 
-- **Presence System**: Live cursors, selections, and user awareness indicators
-- **Conflict Resolution**: Operational transformation for concurrent edits
-- **Connection Reliability**: Automatic reconnection with exponential backoff
-- **Permission Management**: File-level access control (view/edit/owner)
+- **Presence system**: Live cursors, selections, and user awareness indicators
+- **Conflict resolution**: Operational transformation for concurrent edits
+- **Connection reliability**: Automatic reconnection with exponential backoff
+- **Permission management**: File-level access control (view/edit/owner)
 
 **Data synchronization:**
 
-- **Optimistic Updates**: Immediate UI feedback with server reconciliation
-- **Offline Support**: Queue changes during network issues, sync on reconnect
-- **Version Control**: Complete change history with restore capability
-- **Schema Migration**: Automatic data migration for schema evolution
+- **Optimistic updates**: Immediate UI feedback with server reconciliation
+- **Offline support**: Queue changes during network issues, sync on reconnect
+- **Version control**: Complete change history with restore capability
+- **Schema migration**: Automatic data migration for schema evolution
 
 ### Extension and customization
 
 **Developer tools:**
 
-- **CLI Scaffolding**: `npm create tldraw` with interactive template selection
-- **VSCode Integration**: Full editor for .tldr files with webview-based rendering
-- **Testing Utilities**: TestEditor, comprehensive E2E test suites
-- **Performance Monitoring**: Built-in performance tracking and analysis
+- **CLI scaffolding**: `npm create tldraw` with interactive template selection
+- **VSCode integration**: Full editor for .tldr files with webview-based rendering
+- **Testing utilities**: TestEditor, comprehensive E2E test suites
+- **Performance monitoring**: Built-in performance tracking and analysis
 
 **Extension points:**
 
-- **Custom Shapes**: ShapeUtil classes for new shape types
-- **Custom Tools**: StateNode state machines for interactive tools
-- **Custom Bindings**: BindingUtil classes for shape relationships
+- **Custom shapes**: ShapeUtil classes for new shape types
+- **Custom tools**: StateNode state machines for interactive tools
+- **Custom bindings**: BindingUtil classes for shape relationships
 - **Custom UI**: Complete component override system
-- **External Content**: Handlers for custom import/export formats
+- **External content**: Handlers for custom import/export formats
 
 ## Technical deep dive
 
@@ -488,45 +488,45 @@ Custom incremental build system optimized for monorepos:
 
 **Signals system (`@tldraw/state`):**
 
-- **Atom/Computed Pattern**: Mutable atoms + derived computed values
-- **Dependency Tracking**: Automatic capture of signal dependencies during computation
-- **Memory Optimization**: ArraySet hybrid data structure, WeakCache for object-keyed caches
-- **Effect Scheduling**: Pluggable scheduling (immediate vs animation frame throttled)
-- **Transaction Support**: Atomic multi-state updates with rollback capability
+- **Atom/Computed pattern**: Mutable atoms + derived computed values
+- **Dependency tracking**: Automatic capture of signal dependencies during computation
+- **Memory optimization**: ArraySet hybrid data structure, WeakCache for object-keyed caches
+- **Effect scheduling**: Pluggable scheduling (immediate vs animation frame throttled)
+- **Transaction support**: Atomic multi-state updates with rollback capability
 
 **Store system (`@tldraw/store`):**
 
-- **Record Management**: Type-safe record storage with validation and migrations
-- **Query System**: Reactive indexes with incremental updates
-- **Side Effects**: Lifecycle hooks for create/update/delete operations
-- **History Tracking**: Change diffs with configurable history length
-- **Schema Evolution**: Version-based migration system with dependencies
+- **Record management**: Type-safe record storage with validation and migrations
+- **Query system**: Reactive indexes with incremental updates
+- **Side effects**: Lifecycle hooks for create/update/delete operations
+- **History tracking**: Change diffs with configurable history length
+- **Schema evolution**: Version-based migration system with dependencies
 
 ### Database and persistence
 
 **Client-side storage:**
 
 - **IndexedDB**: Local persistence with automatic migrations
-- **Store Snapshots**: Complete document state serialization
-- **Asset Caching**: Local asset storage with deduplication
-- **User Preferences**: Settings persistence across sessions
+- **Store snapshots**: Complete document state serialization
+- **Asset caching**: Local asset storage with deduplication
+- **User preferences**: Settings persistence across sessions
 
 **Server-side infrastructure:**
 
 - **PostgreSQL**: Source of truth for user data, files, metadata
-- **R2 Object Storage**: Durable asset storage with global replication
+- **R2 object storage**: Durable asset storage with global replication
 - **Durable Objects**: Stateful compute for room management and real-time sync
-- **Zero Sync**: Optimistic synchronization with conflict resolution
+- **Zero sync**: Optimistic synchronization with conflict resolution
 
 ## Development workflow best practices
 
 ### Getting started
 
-1. **Clone and Setup**: `git clone` → `yarn install`
-2. **Start Development**: `yarn dev` (examples app at localhost:5420)
-3. **Run Tests**: `cd packages/editor && yarn test run` for specific packages
-4. **Check Types**: `yarn typecheck` before commits
-5. **Follow Patterns**: Read relevant CONTEXT.md files and existing code
+1. **Clone and setup**: `git clone` → `yarn install`
+2. **Start development**: `yarn dev` (examples app at localhost:5420)
+3. **Run tests**: `cd packages/editor && yarn test run` for specific packages
+4. **Check types**: `yarn typecheck` before commits
+5. **Follow patterns**: Read relevant CONTEXT.md files and existing code
 
 ### Creating examples
 
@@ -538,15 +538,15 @@ Custom incremental build system optimized for monorepos:
 ### Package development
 
 - **Testing**: Run tests from package directory, not root
-- **API Changes**: Run `yarn api-check` to validate public API surface
+- **API changes**: Run `yarn api-check` to validate public API surface
 - **Dependencies**: Check existing usage before adding new libraries
 - **Documentation**: API docs auto-generated from TSDoc comments
 
 ### Performance guidelines
 
-- **Use Signals**: Leverage reactive system for automatic optimization
-- **Batch Updates**: Use transactions for multiple state changes
-- **Memory Management**: Dispose of effects and subscriptions properly
-- **Asset Optimization**: Use appropriate asset export strategy for your bundler
+- **Use signals**: Leverage reactive system for automatic optimization
+- **Batch updates**: Use transactions for multiple state changes
+- **Memory management**: Dispose of effects and subscriptions properly
+- **Asset optimization**: Use appropriate asset export strategy for your bundler
 
 This context file provides the essential architectural understanding needed to navigate and contribute to the tldraw codebase effectively.

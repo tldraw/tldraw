@@ -25,27 +25,27 @@ interface Signal<Value, Diff = unknown> {
 }
 ```
 
-**Two Signal Types:**
+**Two signal types:**
 
 1. **Atoms** (`src/lib/Atom.ts`) - Mutable state containers that hold raw values
 2. **Computed** (`src/lib/Computed.ts`) - Derived values that automatically recompute when dependencies change
 
 ### Dependency tracking system
 
-**Capture Mechanism (`src/lib/capture.ts`):**
+**Capture mechanism (`src/lib/capture.ts`):**
 
 - Uses a global capture stack to automatically track dependencies
 - When `.get()` is called during computation, `maybeCaptureParent()` registers dependencies
 - `CaptureStackFrame` manages the capture context with efficient parent tracking
 - `unsafe__withoutCapture()` allows reading values without creating dependencies
 
-**Parent-Child Relationships:**
+**Parent-child relationships:**
 
 - Each signal maintains an `ArraySet<Child>` of dependents
 - Each child maintains arrays of `parents` and `parentEpochs`
 - Automatic cleanup when no more children exist
 
-### Memory-Optimized data structures
+### Memory-optimized data structures
 
 **ArraySet (`src/lib/ArraySet.ts`):**
 
@@ -56,14 +56,14 @@ interface Signal<Value, Diff = unknown> {
 
 ### Reactive update propagation
 
-**Effect Scheduling (`src/lib/EffectScheduler.ts`):**
+**Effect scheduling (`src/lib/EffectScheduler.ts`):**
 
 - `EffectScheduler` manages side effects and reactions
 - `react()` creates immediate reactions, `reactor()` creates controllable ones
 - Pluggable `scheduleEffect` for custom batching (e.g., requestAnimationFrame)
 - Automatic cleanup and lifecycle management
 
-**Epoch-Based Invalidation:**
+**Epoch-based invalidation:**
 
 - Global epoch counter increments on any state change
 - Each signal tracks `lastChangedEpoch` for efficient dirty checking
@@ -71,14 +71,14 @@ interface Signal<Value, Diff = unknown> {
 
 ### Transaction system
 
-**Atomic Updates (`src/lib/transactions.ts`):**
+**Atomic updates (`src/lib/transactions.ts`):**
 
 - `transact()` batches multiple state changes into single atomic operation
 - `transaction()` supports nested transactions with individual rollback
 - Automatic rollback on exceptions
 - `initialAtomValues` map stores original values for rollback
 
-**Global State Management:**
+**Global state management:**
 
 - Singleton pattern for global transaction state
 - `globalEpoch` tracks current time
@@ -87,14 +87,14 @@ interface Signal<Value, Diff = unknown> {
 
 ### History and time travel
 
-**Change Tracking (`src/lib/HistoryBuffer.ts`):**
+**Change tracking (`src/lib/HistoryBuffer.ts`):**
 
 - Circular buffer stores diffs between sequential values
 - Configurable `historyLength` per signal
 - `ComputeDiff<Value, Diff>` functions for custom diff computation
 - `RESET_VALUE` symbol when history insufficient for incremental updates
 
-**Incremental Computation:**
+**Incremental computation:**
 
 - `withDiff()` helper for manually providing diffs
 - `isUninitialized()` for handling first computation
@@ -136,13 +136,13 @@ class __UNSAFE__Computed<Value, Diff> implements Computed<Value, Diff> {
 
 ### Supporting infrastructure
 
-**Capture Stack Frame:**
+**Capture stack frame:**
 
 - Manages dependency tracking during computation
 - Efficiently handles parent addition/removal
 - Supports debugging with ancestor epoch tracking
 
-**Transaction Management:**
+**Transaction management:**
 
 - Nested transaction support with proper cleanup
 - Rollback capability with value restoration
@@ -159,10 +159,10 @@ class __UNSAFE__Computed<Value, Diff> implements Computed<Value, Diff> {
 
 ### Computation efficiency
 
-- **Lazy Evaluation:** Computed values only recalculate when dependencies change
-- **Epoch Comparison:** Fast dirty checking via numeric epoch comparison
-- **Dependency Pruning:** Automatic cleanup of unused parent-child relationships
-- **Batch Updates:** Transaction system prevents intermediate computations
+- **Lazy evaluation:** Computed values only recalculate when dependencies change
+- **Epoch comparison:** Fast dirty checking via numeric epoch comparison
+- **Dependency pruning:** Automatic cleanup of unused parent-child relationships
+- **Batch updates:** Transaction system prevents intermediate computations
 
 ### Runtime optimizations
 
@@ -355,8 +355,8 @@ Located in `src/lib/__tests__/`:
 
 ## Common pitfalls
 
-1. **Infinite Loops:** Avoid updating atoms inside their own reactions
-2. **Memory Leaks:** Always clean up reactions and computed signals
-3. **Unnecessary Dependencies:** Use `unsafe__withoutCapture()` judiciously
-4. **Transaction Misuse:** Don't nest transactions unnecessarily
-5. **History Overhead:** Set appropriate `historyLength` based on usage patterns
+1. **Infinite loops:** Avoid updating atoms inside their own reactions
+2. **Memory leaks:** Always clean up reactions and computed signals
+3. **Unnecessary dependencies:** Use `unsafe__withoutCapture()` judiciously
+4. **Transaction misuse:** Don't nest transactions unnecessarily
+5. **History overhead:** Set appropriate `historyLength` based on usage patterns
