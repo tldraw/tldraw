@@ -75,6 +75,12 @@
       "value": "Veröffentlichen"
     }
   ],
+  "12c8a9838c": [
+    {
+      "type": 0,
+      "value": "Testen Sie das tldraw SDK"
+    }
+  ],
   "13ddd375ad": [
     {
       "type": 0,
@@ -935,6 +941,12 @@
     {
       "type": 0,
       "value": ", um mehr zu erfahren."
+    }
+  ],
+  "ef7de3f485": [
+    {
+      "type": 0,
+      "value": "ausgewählt"
     }
   ],
   "f09b16bc5f": [

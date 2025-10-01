@@ -203,6 +203,48 @@ async function hardDeleteAppFile({
 	return new Response('Deleted', { status: 200 })
 }
 
+async function deleteUserFromAnalytics(
+	userId: string,
+	env: Environment,
+	sendProgress?: (step: string, message: string, details?: any) => void
+) {
+	if (!env.ANALYTICS_API_URL || !env.ANALYTICS_API_TOKEN) {
+		sendProgress?.(
+			'analytics',
+			'Skipping analytics deletion - missing configuration (ANALYTICS_API_URL or ANALYTICS_API_TOKEN)'
+		)
+		return
+	}
+
+	try {
+		const response = await fetch(`${env.ANALYTICS_API_URL}/api/user-deletion`, {
+			method: 'POST',
+			headers: {
+				'Content-Type': 'application/json',
+				Authorization: `Bearer ${env.ANALYTICS_API_TOKEN}`,
+			},
+			body: JSON.stringify({
+				clerk_id: userId,
+			}),
+			signal: AbortSignal.timeout(30000),
+		})
+
+		if (!response.ok) {
+			const errorText = await response.text().catch(() => 'Unknown error')
+			throw new Error(`Analytics API returned ${response.status}: ${errorText}`)
+		}
+
+		const result = (await response.json()) as { success: boolean }
+		sendProgress?.('analytics', 'Successfully deleted user data from analytics', {
+			success: result.success,
+		})
+	} catch (error) {
+		const errorMessage = error instanceof Error ? error.message : String(error)
+		console.error('Failed to delete user from analytics:', errorMessage)
+		sendProgress?.('analytics', `Warning: Analytics deletion failed - ${errorMessage}`)
+	}
+}
+
 async function performUserDeletion(
 	userRow: any,
 	env: any,
@@ -249,6 +291,10 @@ async function performUserDeletion(
 	// Delete user from Clerk
 	const clerk = getClerkClient(env)
 	await clerk.users.deleteUser(userRow.id)
+
+	// Delete user from analytics service
+	sendProgress?.('analytics', 'Deleting user from analytics...')
+	await deleteUserFromAnalytics(userRow.id, env, sendProgress)
 
 	sendProgress?.('durable_object', 'Cleaning up user durable object state...')
 
