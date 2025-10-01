@@ -73,9 +73,9 @@ export type TLSyncErrorCloseEventReason =
 export type TLCustomMessageHandler = (this: null, data: any) => void
 
 /**
- * @internal
+ * @public
  */
-export type TlSocketStatusChangeEvent =
+export type TLSocketStatusChangeEvent =
 	| {
 			status: 'online' | 'offline'
 	  }
@@ -84,7 +84,7 @@ export type TlSocketStatusChangeEvent =
 			reason: string
 	  }
 /** @internal */
-export type TLSocketStatusListener = (params: TlSocketStatusChangeEvent) => void
+export type TLSocketStatusListener = (params: TLSocketStatusChangeEvent) => void
 
 /** @internal */
 export type TLPersistentClientSocketStatus = 'online' | 'offline' | 'error'
@@ -106,7 +106,7 @@ export interface TLPersistentClientSocket<R extends UnknownRecord = UnknownRecor
 	/** Attach a listener for messages sent by the server */
 	onReceiveMessage: SubscribingFn<TLSocketServerSentEvent<R>>
 	/** Attach a listener for connection status changes */
-	onStatusChange: SubscribingFn<TlSocketStatusChangeEvent>
+	onStatusChange: SubscribingFn<TLSocketStatusChangeEvent>
 	/** Restart the connection */
 	restart(): void
 	/** Close the connection */

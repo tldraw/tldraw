@@ -1,4 +1,4 @@
-import { TLPersistentClientSocket, TlSocketStatusChangeEvent, useSync } from '@tldraw/sync'
+import { TLPersistentClientSocket, TLSocketStatusChangeEvent, useSync } from '@tldraw/sync'
 import { useCallback } from 'react'
 import { io, Socket } from 'socket.io-client'
 import {
@@ -49,7 +49,7 @@ function App() {
 
 // Helper function to convert Socket.IO to TLPersistentClientSocket
 function socketIoToTldrawSocket(ioSocket: Socket): TLPersistentClientSocket<TLRecord> {
-	const statusChangeListeners = new Set<(event: TlSocketStatusChangeEvent) => void>()
+	const statusChangeListeners = new Set<(event: TLSocketStatusChangeEvent) => void>()
 	const tldrawSocket: TLPersistentClientSocket<TLRecord> = {
 		connectionStatus: 'offline',
 

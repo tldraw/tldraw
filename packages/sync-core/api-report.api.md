@@ -255,8 +255,7 @@ export interface TLPersistentClientSocket<R extends UnknownRecord = UnknownRecor
     close(): void;
     connectionStatus: 'error' | 'offline' | 'online';
     onReceiveMessage: SubscribingFn<TLSocketServerSentEvent<R>>;
-    // Warning: (ae-incompatible-release-tags) The symbol "onStatusChange" is marked as @public, but its signature references "TlSocketStatusChangeEvent" which is marked as @internal
-    onStatusChange: SubscribingFn<TlSocketStatusChangeEvent>;
+    onStatusChange: SubscribingFn<TLSocketStatusChangeEvent>;
     restart(): void;
     sendMessage(msg: TLSocketClientSentEvent<R>): void;
 }
@@ -432,8 +431,8 @@ export type TLSocketServerSentEvent<R extends UnknownRecord> = {
     type: 'pong';
 } | TLSocketServerSentDataEvent<R>;
 
-// @internal (undocumented)
-export type TlSocketStatusChangeEvent = {
+// @public (undocumented)
+export type TLSocketStatusChangeEvent = {
     reason: string;
     status: 'error';
 } | {
@@ -441,7 +440,7 @@ export type TlSocketStatusChangeEvent = {
 };
 
 // @internal (undocumented)
-export type TLSocketStatusListener = (params: TlSocketStatusChangeEvent) => void;
+export type TLSocketStatusListener = (params: TLSocketStatusChangeEvent) => void;
 
 // @internal
 export class TLSyncClient<R extends UnknownRecord, S extends Store<R> = Store<R>> {
